@@ -30,6 +30,8 @@ EXACT_WORKFLOW_RUN_COUNTS = {
     "python3 scripts/zigux/install-zig.py --self-test": 1,
     "python3 scripts/zigux/install-zig.py --dest .zig-toolchain": 2,
     "python3 scripts/zigux/check-zig-toolchain.py --self-test": 1,
+    "python3 scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test": 1,
+    "python3 scripts/zigux/check-phase2-toolchain-pin-scope.py": 1,
     "python3 scripts/zigux/check-zig-toolchain.py": 2,
     "python3 scripts/zigux/validate-phase2.py": 1,
     "python3 scripts/zigux/validate-phase2-closure.py": 1,
@@ -262,6 +264,8 @@ def run_self_test() -> int:
             "run: python3 scripts/zigux/install-zig.py --dest .zig-toolchain",
             "run: python3 scripts/zigux/install-zig.py --dest .zig-toolchain",
             "run: python3 scripts/zigux/check-zig-toolchain.py --self-test",
+            "run: python3 scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test",
+            "run: python3 scripts/zigux/check-phase2-toolchain-pin-scope.py",
             "run: python3 scripts/zigux/check-zig-toolchain.py",
             "run: python3 scripts/zigux/check-zig-toolchain.py",
             "run: python3 scripts/zigux/validate-phase2.py",
@@ -278,6 +282,8 @@ def run_self_test() -> int:
                 "run: python3 scripts/zigux/install-zig.py --dest .zig-toolchain",
                 "run: python3 scripts/zigux/install-zig.py --dest .zig-toolchain",
                 "run: python3 scripts/zigux/check-zig-toolchain.py --self-test",
+                "run: python3 scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test",
+                "run: python3 scripts/zigux/check-phase2-toolchain-pin-scope.py",
                 "run: python3 scripts/zigux/check-zig-toolchain.py",
                 "run: python3 scripts/zigux/check-zig-toolchain.py",
             ]
@@ -296,6 +302,8 @@ def run_self_test() -> int:
                 "run: python3 scripts/zigux/install-zig.py --dest .zig-toolchain",
                 "run: python3 scripts/zigux/install-zig.py --dest .zig-toolchain",
                 "run: python3 scripts/zigux/check-zig-toolchain.py --self-test",
+                "run: python3 scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test",
+                "run: python3 scripts/zigux/check-phase2-toolchain-pin-scope.py",
                 "run: python3 scripts/zigux/check-zig-toolchain.py",
                 "run: python3 scripts/zigux/check-zig-toolchain.py",
                 "run: python3 scripts/zigux/validate-phase2.py",
@@ -317,6 +325,8 @@ def run_self_test() -> int:
                 "run: python3 scripts/zigux/install-zig.py --dest .zig-toolchain",
                 "run: python3 scripts/zigux/install-zig.py --dest .zig-toolchain",
                 "run: python3 scripts/zigux/check-zig-toolchain.py --self-test",
+                "run: python3 scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test",
+                "run: python3 scripts/zigux/check-phase2-toolchain-pin-scope.py",
                 "run: python3 scripts/zigux/check-zig-toolchain.py",
                 "run: python3 scripts/zigux/validate-phase2.py",
                 "run: python3 scripts/zigux/validate-phase2-closure.py",
@@ -335,6 +345,8 @@ def run_self_test() -> int:
                 "run: python3 scripts/zigux/install-zig.py --dest .zig-toolchain",
                 "run: python3 scripts/zigux/install-zig.py --dest .zig-toolchain",
                 "run: python3 scripts/zigux/check-zig-toolchain.py --self-test",
+                "run: python3 scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test",
+                "run: python3 scripts/zigux/check-phase2-toolchain-pin-scope.py",
                 "run: python3 scripts/zigux/check-zig-toolchain.py",
                 "run: python3 scripts/zigux/check-zig-toolchain.py",
                 "run: python3 scripts/zigux/validate-phase2.py",
@@ -354,6 +366,8 @@ def run_self_test() -> int:
                 "run: python3 scripts/zigux/install-zig.py --self-test",
                 "run: python3 scripts/zigux/install-zig.py --dest .zig-toolchain",
                 "run: python3 scripts/zigux/install-zig.py --dest .zig-toolchain",
+                "run: python3 scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test",
+                "run: python3 scripts/zigux/check-phase2-toolchain-pin-scope.py",
                 "run: python3 scripts/zigux/check-zig-toolchain.py",
                 "run: python3 scripts/zigux/check-zig-toolchain.py",
                 "run: python3 scripts/zigux/validate-phase2.py",
@@ -366,6 +380,52 @@ def run_self_test() -> int:
         for issue in issues
     ):
         raise SystemExit("phase2-toolchain-pin-scope:self-test:workflow_toolchain_selftest_missing")
+
+    issues = validate_exact_workflow_runs(
+        "\n".join(
+            [
+                "run: python3 scripts/zigux/install-zig.py --self-test",
+                "run: python3 scripts/zigux/install-zig.py --dest .zig-toolchain",
+                "run: python3 scripts/zigux/install-zig.py --dest .zig-toolchain",
+                "run: python3 scripts/zigux/check-zig-toolchain.py --self-test",
+                "run: python3 scripts/zigux/check-phase2-toolchain-pin-scope.py",
+                "run: python3 scripts/zigux/check-zig-toolchain.py",
+                "run: python3 scripts/zigux/check-zig-toolchain.py",
+                "run: python3 scripts/zigux/validate-phase2.py",
+                "run: python3 scripts/zigux/validate-phase2-closure.py",
+            ]
+        )
+    )
+    if not any(
+        issue.startswith(
+            "workflow_exact_run:python3 scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test:count=0:expected=1"
+        )
+        for issue in issues
+    ):
+        raise SystemExit("phase2-toolchain-pin-scope:self-test:workflow_pin_scope_selftest_missing")
+
+    issues = validate_exact_workflow_runs(
+        "\n".join(
+            [
+                "run: python3 scripts/zigux/install-zig.py --self-test",
+                "run: python3 scripts/zigux/install-zig.py --dest .zig-toolchain",
+                "run: python3 scripts/zigux/install-zig.py --dest .zig-toolchain",
+                "run: python3 scripts/zigux/check-zig-toolchain.py --self-test",
+                "run: python3 scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test",
+                "run: python3 scripts/zigux/check-zig-toolchain.py",
+                "run: python3 scripts/zigux/check-zig-toolchain.py",
+                "run: python3 scripts/zigux/validate-phase2.py",
+                "run: python3 scripts/zigux/validate-phase2-closure.py",
+            ]
+        )
+    )
+    if not any(
+        issue.startswith(
+            "workflow_exact_run:python3 scripts/zigux/check-phase2-toolchain-pin-scope.py:count=0:expected=1"
+        )
+        for issue in issues
+    ):
+        raise SystemExit("phase2-toolchain-pin-scope:self-test:workflow_pin_scope_live_missing")
 
     issues = validate_exact_workflow_runs("run: python3 scripts/zigux/check-zig-toolchain.py --arch x86_64")
     if not any(issue.startswith("workflow_forbidden_fragment:") for issue in issues):
@@ -722,7 +782,7 @@ def run_self_test() -> int:
             raise SystemExit("phase2-toolchain-pin-scope:self-test:json_round_trip")
 
     print("PHASE2_TOOLCHAIN_PIN_SCOPE_SELF_TEST=pass")
-    print("PHASE2_TOOLCHAIN_PIN_SCOPE_SELF_TEST_CASE_COUNT=38")
+    print("PHASE2_TOOLCHAIN_PIN_SCOPE_SELF_TEST_CASE_COUNT=40")
     return 0
 
 
@@ -844,4 +904,4 @@ if __name__ == "__main__":
     raise SystemExit(main())
 
 # Bootstrap validator compatibility marker: def expected_toolchain_notes_markers(channel: str, minimum_version: str) -> list[str]:
-# Shared Phase 2 validator compatibility marker: PHASE2_TOOLCHAIN_PIN_SCOPE_SELF_TEST_CASE_COUNT=38
+# Shared Phase 2 validator compatibility marker: PHASE2_TOOLCHAIN_PIN_SCOPE_SELF_TEST_CASE_COUNT=40
