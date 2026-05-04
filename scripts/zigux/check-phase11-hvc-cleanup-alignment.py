@@ -77,6 +77,9 @@ SYSRQ_HELPER_MARKERS = [
     "pub fn summarizeSysrqHandoff(",
     "    const is_toggle = request.is_kernel_console and request.input_char == 0x0f;",
     "    const invokes_sysrq_handler = request.is_kernel_console and request.sysrq_pressed_before and !is_toggle;",
+    "    const emits_literal_char = if (!request.is_kernel_console)",
+    "        .emits_literal_char = emits_literal_char,",
+    "        .consumes_input_without_flip = !emits_literal_char,",
     "        .invokes_sysrq_handler = invokes_sysrq_handler,",
     "        .keeps_live_sysrq_execution_out_of_scope = true,",
 ]
@@ -354,6 +357,12 @@ def clone_fixture_root(destination_root: Path) -> None:
                 "        false",
                 "    else",
                 "        request.sysrq_pressed_before;",
+                "    const emits_literal_char = if (!request.is_kernel_console)",
+                "        true",
+                "    else if (is_toggle)",
+                "        request.sysrq_pressed_before",
+                "    else",
+                "        !request.sysrq_pressed_before;",
                 "",
                 "    return .{",
                 "        .anchor = hvc_console.HvcConsoleLab.descriptor().anchor,",
@@ -367,8 +376,8 @@ def clone_fixture_root(destination_root: Path) -> None:
                 "        .sysrq_pressed_after = sysrq_pressed_after,",
                 "        .invokes_sysrq_handler = invokes_sysrq_handler,",
                 "        .clears_sysrq_after_handler = clears_sysrq_after_handler,",
-                "        .emits_literal_char = !request.is_kernel_console,",
-                "        .consumes_input_without_flip = true,",
+                "        .emits_literal_char = emits_literal_char,",
+                "        .consumes_input_without_flip = !emits_literal_char,",
                 "        .keeps_tty_registration_out_of_scope = true,",
                 "        .keeps_live_hypervisor_io_out_of_scope = true,",
                 "        .keeps_live_sysrq_execution_out_of_scope = true,",
@@ -622,6 +631,21 @@ def run_self_test() -> int:
         )
         sysrq_helper_path.write_text(original_sysrq_helper, encoding="utf-8")
 
+        sysrq_helper_path.write_text(
+            original_sysrq_helper.replace(
+                "        .emits_literal_char = emits_literal_char,\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing(
+            "sysrq_helper_emits_literal_char_marker",
+            tmp_root,
+            "sysrq_helper:        .emits_literal_char = emits_literal_char,",
+        )
+        sysrq_helper_path.write_text(original_sysrq_helper, encoding="utf-8")
+
         hvc_test_path = tmp_root / REQUIRED_FILES["hvc_test"]
         original_hvc_test = hvc_test_path.read_text(encoding="utf-8")
         hvc_test_path.write_text(
@@ -704,7 +728,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE11_HVC_CLEANUP_ALIGNMENT_SELF_TEST=pass")
-    print("PHASE11_HVC_CLEANUP_ALIGNMENT_SELF_TEST_CASE_COUNT=19")
+    print("PHASE11_HVC_CLEANUP_ALIGNMENT_SELF_TEST_CASE_COUNT=20")
     return 0
 
 
