@@ -74,8 +74,12 @@ The exact checks currently recorded in `zigux/tests/phase5_kretprobe_example_man
 - attached Zig toolchain: `0.17.0-dev.87+9b177a7d2`
 - exact command and observed result:
   - `zig test samples/zigux/kretprobe_example.zig`
-    - `1/1 kretprobe_example.test.kretprobe sample replay keeps the anchor reviewable and non-runtime...OK`
-    - `All 1 tests passed.`
+    - `1/5 kretprobe_example.test.kretprobe sample descriptor and anchor replay stay reviewable...OK`
+    - `2/5 kretprobe_example.test.kretprobe sample keeps retarget recovery and timestamp boundaries explicit...OK`
+    - `3/5 kretprobe_example.test.kretprobe sample keeps the maxactive budget fixed across replay...OK`
+    - `4/5 kretprobe_example.test.kretprobe sample keeps lifecycle guard transitions explicit...OK`
+    - `5/5 kretprobe_example.test.kretprobe sample keeps ownership and post-exit boundaries explicit...OK`
+    - `All 5 tests passed.`
 - current-head direct replay still confirms the exact sample-owned behavior recorded above:
   - default symbol selection remains `kernel_clone`, with pre-init retargeting to `do_sys_openat2`
   - kernel-thread entries with no `current->mm` still skip arming a tracked instance
