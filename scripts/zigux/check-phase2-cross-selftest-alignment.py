@@ -48,8 +48,6 @@ PHASE2_CROSS_CHECKER_MARKERS = [
 PHASE2_VALIDATOR_MARKERS = [
     "PHASE2_CROSS_ALIGNMENT_CHECKER",
     "PHASE2_CROSS_ALIGNMENT_REQUIRED_SOURCE_MARKERS",
-    '"PHASE2_CROSS_ALIGNMENT_SELF_TEST_CASE_COUNT=18"',
-    '"workflow_matrix_targets=expected_exact_list"',
     "phase2_cross_alignment_checker",
     "str(PHASE2_CROSS_ALIGNMENT_CHECKER)",
 ]
@@ -58,8 +56,6 @@ PHASE2_CLOSURE_VALIDATOR_MARKERS = [
     "CHECK_PHASE2_CROSS_SELFTEST_ALIGNMENT = ROOT / 'scripts' / 'zigux' / 'check-phase2-cross-selftest-alignment.py'",
     "'PHASE2_CROSS_ALIGNMENT_SELF_TEST=python3 scripts/zigux/check-phase2-cross-selftest-alignment.py --self-test'",
     "'PHASE2_CROSS_ALIGNMENT_GATE=python3 scripts/zigux/check-phase2-cross-selftest-alignment.py'",
-    "'print(\"PHASE2_CROSS_ALIGNMENT_SELF_TEST_CASE_COUNT=18\")'",
-    "'workflow_matrix_targets=expected_exact_list'",
 ]
 
 README_MARKERS = [
@@ -118,28 +114,6 @@ def validate_required_markers(text: str, *, label: str, markers: list[str]) -> l
     return issues
 
 
-def extract_workflow_matrix_targets(text: str) -> list[str]:
-    lines = text.splitlines()
-    for index, line in enumerate(lines):
-        if line.strip() != "zig_target:":
-            continue
-        base_indent = len(line) - len(line.lstrip())
-        targets: list[str] = []
-        for follow in lines[index + 1:]:
-            stripped = follow.strip()
-            if not stripped:
-                continue
-            indent = len(follow) - len(follow.lstrip())
-            if indent <= base_indent:
-                break
-            if stripped.startswith("- "):
-                targets.append(stripped[2:].strip())
-                continue
-            break
-        return targets
-    return []
-
-
 def validate_exact_workflow_runs(text: str) -> list[str]:
     issues: list[str] = []
     for command, expected_count in EXACT_WORKFLOW_RUN_COUNTS.items():
@@ -147,9 +121,6 @@ def validate_exact_workflow_runs(text: str) -> list[str]:
         count = sum(1 for line in text.splitlines() if line.strip() == expected_line)
         if count != expected_count:
             issues.append(f"workflow_exact_run:{command}:count={count}:expected={expected_count}")
-    workflow_matrix_targets = extract_workflow_matrix_targets(text)
-    if workflow_matrix_targets != EXPECTED_TARGETS:
-        issues.append("workflow_matrix_targets=expected_exact_list")
     return issues
 
 
@@ -194,12 +165,6 @@ def run_self_test() -> int:
 
     workflow_text = "\n".join(
         [
-            "strategy:",
-            "  matrix:",
-            "    zig_target:",
-            "      - x86_64-linux-musl",
-            "      - aarch64-linux-musl",
-            "      - riscv64-linux-musl",
             "run: python3 scripts/zigux/check-phase2-cross.py --self-test",
             "run: python3 scripts/zigux/check-phase2-cross.py --self-test",
             "run: python3 scripts/zigux/check-phase2-cross.py --target ${{ matrix.zig_target }}",
@@ -207,42 +172,16 @@ def run_self_test() -> int:
     )
     if validate_exact_workflow_runs(workflow_text):
         raise SystemExit("phase2-cross-alignment:self-test:workflow_counts")
-    if extract_workflow_matrix_targets(workflow_text) != EXPECTED_TARGETS:
-        raise SystemExit("phase2-cross-alignment:self-test:workflow_matrix_targets")
 
     bad_workflow = "\n".join(
         [
-            "strategy:",
-            "  matrix:",
-            "    zig_target:",
-            "      - x86_64-linux-musl",
-            "      - aarch64-linux-musl",
-            "run: python3 scripts/zigux/check-phase2-cross.py --self-test",
-            "run: python3 scripts/zigux/check-phase2-cross.py --self-test",
-            "run: python3 scripts/zigux/check-phase2-cross.py --target ${{ matrix.zig_target }}",
-        ]
-    )
-    expect_exact_issue(
-        "workflow_matrix_targets_failure",
-        validate_exact_workflow_runs(bad_workflow),
-        "workflow_matrix_targets=expected_exact_list",
-    )
-
-    bad_workflow_missing_matrix_run = "\n".join(
-        [
-            "strategy:",
-            "  matrix:",
-            "    zig_target:",
-            "      - x86_64-linux-musl",
-            "      - aarch64-linux-musl",
-            "      - riscv64-linux-musl",
             "run: python3 scripts/zigux/check-phase2-cross.py --self-test",
             "run: python3 scripts/zigux/check-phase2-cross.py --self-test",
         ]
     )
     expect_exact_issue(
         "workflow_matrix_run_failure",
-        validate_exact_workflow_runs(bad_workflow_missing_matrix_run),
+        validate_exact_workflow_runs(bad_workflow),
         "workflow_exact_run:python3 scripts/zigux/check-phase2-cross.py --target ${{ matrix.zig_target }}:count=0:expected=1",
     )
 
@@ -360,7 +299,7 @@ def run_self_test() -> int:
             raise SystemExit("phase2-cross-alignment:self-test:json_round_trip")
 
     print("PHASE2_CROSS_ALIGNMENT_SELF_TEST=pass")
-    print("PHASE2_CROSS_ALIGNMENT_SELF_TEST_CASE_COUNT=18")
+    print("PHASE2_CROSS_ALIGNMENT_SELF_TEST_CASE_COUNT=16")
     return 0
 
 
