@@ -44,7 +44,7 @@ From the tests root, the bounded Phase 9 packet is carried by:
 - `zigux/tests/runtime_trace_events_module.zig`
 - `zigux/tests/runtime_trace_events_diff.zig`
 
-Those files should keep the manifest-backed catalog, shared replay entrypoint, module-metadata packet, non-owner boundary, and the current runtime starter surveys aligned with the docs-root and scripts-root packet.
+Those files should keep the manifest-backed catalog, shared replay entrypoint, module-metadata packet, non-owner boundary, and the current runtime starter surveys aligned with the docs-root, tests-root index, review-checklist, and scripts-root packet.
 
 ## Shared request boundary
 
