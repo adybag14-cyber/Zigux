@@ -29,6 +29,7 @@ test "phase13 devres of_iomap descriptor keeps the planner explicit" {
     try expectContains(devres_source, ".provides_of_iomap_planning = true");
     try expectContains(devres_source, "pub fn planDeviceTreeIomap(");
     try expectContains(devres_source, "reported_size = if (input.report_size) translated_size else null;");
+    try expectContains(devres_source, ".fail_pretty_name_allocation = input.fail_pretty_name_allocation,");
     try expectContains(devres_source, ".stage = .managed_ioremap_resource");
     try expectNotContains(devres_source, "struct device_node");
 }
@@ -103,6 +104,41 @@ test "phase13 devres of_iomap planner rejects address-translation misses before 
             try std.testing.expect(!failure.requests_region);
             try std.testing.expect(!failure.releases_region_on_remap_failure);
             try std.testing.expectEqual(@as(?devres.ErrorStage, null), failure.resource_stage);
+        },
+    }
+}
+
+test "phase13 devres of_iomap planner preserves translated size on pretty-name allocation failure" {
+    const resources = [_]devres.Resource{
+        .{
+            .start = 0x8400,
+            .end = 0x847f,
+            .is_memory = true,
+            .nonposted = true,
+            .name = "regs",
+        },
+    };
+
+    const outcome = try devres.DevresHelperLab.planDeviceTreeIomap(std.testing.allocator, .{
+        .device_name = "spi2",
+        .index = 0,
+        .resources = &resources,
+        .report_size = true,
+        .fail_pretty_name_allocation = true,
+    });
+
+    switch (outcome) {
+        .mapped => return error.ExpectedFailure,
+        .err => |failure| {
+            try std.testing.expectEqualStrings("lib/devres.c", failure.anchor);
+            try std.testing.expectEqual(devres.DeviceTreeIomapStage.managed_ioremap_resource, failure.stage);
+            try std.testing.expectEqual(devres.ErrorCode.no_memory, failure.error_code);
+            try std.testing.expectEqual(@as(usize, 0), failure.index);
+            try std.testing.expectEqual(@as(?u64, 0x80), failure.reported_size);
+            try std.testing.expectEqual(devres.IoremapType.np, failure.effective_type);
+            try std.testing.expect(!failure.requests_region);
+            try std.testing.expect(!failure.releases_region_on_remap_failure);
+            try std.testing.expectEqual(@as(?devres.ErrorStage, .pretty_name), failure.resource_stage);
         },
     }
 }
