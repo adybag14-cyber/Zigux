@@ -243,13 +243,17 @@ test "phase3 policy gate reaches raw-pointer bridge consumers through decoded po
     try std.testing.expectEqual(@as(u32, 7), words_slice[0]);
     const second_word = try raw_pointer_policy.constPointerAt(u32, base + @sizeOf(u32));
     try std.testing.expectEqual(@as(u32, 11), second_word.*);
+    try std.testing.expectEqual(@as(u32, 11), try raw_pointer_policy.readValueAt(u32, base + @sizeOf(u32)));
 
     try std.testing.expectError(error.UnsafeScopeDenied, mmio_policy.constSliceAt(u32, base, words.len));
     try std.testing.expectError(error.UnsafeScopeDenied, mmio_policy.constPointerAt(u32, base));
+    try std.testing.expectError(error.UnsafeScopeDenied, mmio_policy.readValueAt(u32, base));
     try std.testing.expectError(error.UnsafeScopeDenied, none_policy.constSliceAt(u32, base, words.len));
     try std.testing.expectError(error.UnsafeScopeDenied, none_policy.constPointerAt(u32, base));
+    try std.testing.expectError(error.UnsafeScopeDenied, none_policy.readValueAt(u32, base));
     try std.testing.expectError(error.MisalignedAccess, raw_pointer_policy.constSliceAt(u32, base + 1, 1));
     try std.testing.expectError(error.MisalignedAccess, raw_pointer_policy.constPointerAt(u32, base + 1));
+    try std.testing.expectError(error.MisalignedAccess, raw_pointer_policy.readValueAt(u32, base + 1));
     try std.testing.expectError(error.AddressOverflow, raw_pointer_policy.constSliceAt(u32, 4, std.math.maxInt(usize)));
 }
 
@@ -275,6 +279,8 @@ test "phase3 narrow unsafe helpers stay explicit" {
     try std.testing.expectError(error.UnsafeScopeDenied, narrow.constPointerAt(u32, .volatile_mmio, base));
     const second_word = try narrow.constPointerAt(u32, .raw_pointer_bridge, base + @sizeOf(u32));
     try std.testing.expectEqual(@as(u32, 11), second_word.*);
+    try std.testing.expectError(error.UnsafeScopeDenied, narrow.constValueAt(u32, .volatile_mmio, base));
+    try std.testing.expectEqual(@as(u32, 11), try narrow.constValueAt(u32, .raw_pointer_bridge, base + @sizeOf(u32)));
 }
 
 test "phase3 policy gate decodes interop-policy unsafe bytes explicitly" {
@@ -341,10 +347,13 @@ test "phase3 policy gate enforces the declared unsafe scope" {
     try std.testing.expectError(error.UnsafeScopeDenied, narrow.scopedConstPointerAt(u32, .volatile_mmio, base));
     const raw_ptr = try narrow.constPointerAt(u32, .raw_pointer_bridge, base);
     try std.testing.expectEqual(@as(u32, 17), raw_ptr.*);
+    try std.testing.expectError(error.UnsafeScopeDenied, narrow.constValueAt(u32, .volatile_mmio, base));
+    try std.testing.expectEqual(@as(u32, 17), try narrow.constValueAt(u32, .raw_pointer_bridge, base));
 
     try std.testing.expectError(error.MisalignedAccess, narrow.scopedPointerAt(u32, .volatile_mmio, base, 1));
     try std.testing.expectError(error.MisalignedAccess, narrow.scopedConstSliceAt(u32, .raw_pointer_bridge, base + 1, 1));
     try std.testing.expectError(error.MisalignedAccess, narrow.scopedConstPointerAt(u32, .raw_pointer_bridge, base + 1));
+    try std.testing.expectError(error.MisalignedAccess, narrow.scopedConstValueAt(u32, .raw_pointer_bridge, base + 1));
 }
 
 test "phase3 policy gate rejects overflowed unsafe address math" {
