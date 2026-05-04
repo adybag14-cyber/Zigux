@@ -478,6 +478,9 @@ pub const VirtioMmioRegisterWindowLab = struct {
 
     pub fn reset(self: *Self) StatusSummary {
         self.status = 0;
+        self.selected_device_page = 0;
+        self.selected_driver_page = 0;
+        self.driver_feature_pages = [_]u32{0} ** supported_feature_pages;
         self.selected_queue = 0;
         self.legacy_guest_page_size = 0;
         self.interrupt_status = 0;
@@ -597,4 +600,50 @@ test "register enum keeps the bounded mmio offsets reviewable" {
     try std.testing.expectEqual(@as(u32, 0x0a4), @intFromEnum(Register.queue_used_high));
     try std.testing.expectEqual(@as(u32, 0x0fc), @intFromEnum(Register.config_generation));
     try std.testing.expectEqual(@as(u32, 0x100), @intFromEnum(Register.config));
+}
+
+test "phase10 virtio mmio reset clears driver-owned queue state and feature writes while preserving queue maxima" {
+    var window = VirtioMmioRegisterWindowLab.initWithQueueMaximums(
+        .{ 0x0000_00a5, 0x5a5a_0000 },
+        7,
+        .{ 8, 16 },
+    );
+
+    try window.selectDeviceFeaturePage(1);
+    try window.selectDriverFeaturePage(1);
+    _ = try window.writeSelectedDriverFeatures(0xf0f0_0001);
+    _ = try window.selectQueue(1);
+    _ = try window.writeSelectedQueueSize(16);
+    _ = try window.planModernQueueAddress(0x1000, 0x2000, 0x3000);
+    _ = try window.writeSelectedQueueReady(true);
+    _ = try window.notifySelectedQueue();
+    _ = try window.planConfigWrite(4, .half, 0x1234);
+    try window.raiseInterrupt(queue_interrupt_bit | config_interrupt_bit);
+    _ = try window.setStatus(3);
+
+    const reset = window.reset();
+    try std.testing.expectEqualStrings("drivers/virtio/virtio_mmio.c", reset.anchor);
+    try std.testing.expectEqual(@as(u8, 0), reset.status);
+    try std.testing.expectEqual(@as(usize, 1), reset.reset_count);
+    try std.testing.expectEqual(@as(u32, 0), window.readInterruptStatus());
+    try std.testing.expect(window.pendingConfigWritePlan() == null);
+
+    const feature_summary = try window.featureWindowSummary();
+    try std.testing.expectEqual(@as(u32, 0), feature_summary.selected_device_page);
+    try std.testing.expectEqual(@as(u32, 0), feature_summary.selected_driver_page);
+    try std.testing.expectEqual(@as(u32, 0x0000_00a5), feature_summary.selected_device_features);
+    try std.testing.expectEqual(@as(u32, 0), feature_summary.selected_driver_features);
+
+    var queue = try window.queueRegisterSummary();
+    try std.testing.expectEqual(@as(u32, 0), queue.selected_queue);
+    try std.testing.expectEqual(@as(u16, 8), queue.selected_queue_size_max);
+    try std.testing.expectEqual(@as(u16, 0), queue.selected_queue_size);
+    try std.testing.expect(!queue.selected_queue_ready);
+
+    queue = try window.selectQueue(1);
+    try std.testing.expectEqual(@as(u16, 16), queue.selected_queue_size_max);
+    try std.testing.expectEqual(@as(u16, 0), queue.selected_queue_size);
+    try std.testing.expect(!queue.selected_queue_ready);
+    try std.testing.expectError(error.QueueNotifyRequiresConfiguredSize, window.notifySelectedQueue());
+    try std.testing.expectError(error.QueueAddressRequiresConfiguredSize, window.planModernQueueAddress(0x1110, 0x2220, 0x3330));
 }
