@@ -27,8 +27,9 @@
     "phase15_validate_target_present": true,
     "phase15_make_target_present": true,
     "shared_ci_phase15_present": true,
-    "phase15_replay_green_on_current_master": true,
-    "docs_root_phase15_summary_aligned": true,
+    "phase15_replay_green_at_reviewed_head": true,
+    "docs_root_phase15_summary_aligned_at_reviewed_head": true,
+    "current_master_provenance_refresh_required": true,
     "deep_core_status_change_ready": false
   },
   "remaining_gaps": [
@@ -40,5 +41,5 @@
       "why_now": "The live repo still lacks evidence strong enough to move kernel/sched/core.c, mm/page_alloc.c, kernel/rcu/tree.c, or net/core/skbuff.c out of the freeze-in-C posture."
     }
   ],
-  "next_step": "Keep this readiness lane parked unless the shared Phase 15 replay drifts, a named reopen trigger now fits the evidence packet again, or the deep-core blocker posture changes. When one of those conditions changes, rerun the dedicated readiness guard, python3 scripts/zigux/validate-phase15.py, make -C zigux phase15-validate, zig build test --build-file zigux/tests/phase15_build.zig, and make -C zigux phase15 before refreshing neighboring governance packets."
+  "next_step": "Keep this readiness lane parked unless the shared Phase 15 replay drifts, the reviewed-provenance head for this packet needs refresh because later repo movement touched the same governance surface, a named reopen trigger now fits the evidence packet again, or the deep-core blocker posture changes. When one of those conditions changes, rerun the dedicated readiness guard, python3 scripts/zigux/validate-phase15.py, make -C zigux phase15-validate, zig build test --build-file zigux/tests/phase15_build.zig, and make -C zigux phase15 before refreshing neighboring governance packets."
 }
