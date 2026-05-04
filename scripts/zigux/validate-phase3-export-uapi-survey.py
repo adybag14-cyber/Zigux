@@ -51,7 +51,7 @@ REQUIRED_SURVEY_SNIPPETS = (
     EXPORT_UAPI_TEST_REL,
     "zigux/tests/phase3_export_uapi_layout_build.zig",
     EXPORT_UAPI_LAYOUT_TEST_REL,
-    "zigux/tests/fixtures/phase3_abi_manifest.json",
+    "zigux/tests/fixtures/phase3_abi/phase3_abi_manifest.json",
     "python3 scripts/zigux/validate-phase3.py --slug abi --check-build-smoke",
     "phase3-dump`, `phase3-low-level-wrappers-test`, `phase3-export-uapi-test`, `phase3-export-uapi-layout-test`, and `phase3-policy-unsafe-test`",
     "part of the shared ABI build-smoke proof rather than only a boundary-local survey gate",
@@ -76,7 +76,7 @@ REQUIRED_SURVEY_PATHS = (
     EXPORT_UAPI_TEST_REL,
     EXPORT_UAPI_LAYOUT_BUILD_REL,
     EXPORT_UAPI_LAYOUT_TEST_REL,
-    "zigux/tests/fixtures/phase3_abi_manifest.json",
+    "zigux/tests/fixtures/phase3_abi/phase3_abi_manifest.json",
     "scripts/zigux/validate-phase3.py",
     VALIDATE_PHASE3_CORE_REL,
 )
@@ -195,7 +195,7 @@ SURVEYED_PACKET_PATHS = (
     EXPORT_UAPI_TEST_REL,
     EXPORT_UAPI_LAYOUT_BUILD_REL,
     EXPORT_UAPI_LAYOUT_TEST_REL,
-    "zigux/tests/fixtures/phase3_abi_manifest.json",
+    "zigux/tests/fixtures/phase3_abi/phase3_abi_manifest.json",
 )
 SURVEYED_PACKET_BLOB_MARKERS = {
     "PHASE3_EXPORT_SHIM_BLOB_SHA": EXPORT_SHIM_REL,
@@ -207,7 +207,7 @@ SURVEYED_PACKET_BLOB_MARKERS = {
     "PHASE3_EXPORT_UAPI_TEST_BLOB_SHA": EXPORT_UAPI_TEST_REL,
     "PHASE3_EXPORT_UAPI_LAYOUT_BUILD_BLOB_SHA": EXPORT_UAPI_LAYOUT_BUILD_REL,
     "PHASE3_EXPORT_UAPI_LAYOUT_TEST_BLOB_SHA": EXPORT_UAPI_LAYOUT_TEST_REL,
-    "PHASE3_ABI_MANIFEST_BLOB_SHA": "zigux/tests/fixtures/phase3_abi_manifest.json",
+    "PHASE3_ABI_MANIFEST_BLOB_SHA": "zigux/tests/fixtures/phase3_abi/phase3_abi_manifest.json",
 }
 REQUIRED_SURVEY_BLOB_MARKERS = tuple(SURVEYED_PACKET_BLOB_MARKERS)
 PLACEHOLDER_SHA = "0123456789abcdef0123456789abcdef01234567"
