@@ -360,7 +360,7 @@ else:
                 missing.append(f"survey:rollback_trigger:{item}")
 
 shared_smoke_surfaces = manifest.get("shared_smoke_surfaces")
-if not isinstance(shared_smoke_surfaces, list) or len(shared_smoke_surfaces) != 14:
+if not isinstance(shared_smoke_surfaces, list) or len(shared_smoke_surfaces) != 15:
     missing.append("manifest:shared_smoke_surfaces")
 
 smoke_commands = manifest.get("smoke_commands")
