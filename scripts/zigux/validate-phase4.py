@@ -182,6 +182,46 @@ RUNTIME_ATOMIC64_MATRIX_NOTE_MARKERS = [
     "shared `phase4_build.zig` entrypoint",
 ]
 
+PERF_BASELINE_SURVEYED_GATE_EXPECTATIONS = {
+    "zigux/tests/atomic64_diff.zig": {
+        "gate_owner": "ABI and Runtime Team",
+        "gate_rollback_owner": "ABI and Runtime Team",
+        "threshold_posture": "threshold_pending_until_runtime_atomic64_scope_widens",
+    },
+    "zigux/tests/bitmap_diff.zig": {
+        "gate_owner": "Shared Subsystems Pod",
+        "gate_rollback_owner": "Shared Subsystems Pod",
+        "threshold_posture": "threshold_pending_until_bitmap_gate_grows_beyond_bounded_correctness_checks",
+    },
+}
+
+PERF_BASELINE_PENDING_PLAN_EXPECTATIONS = {
+    "zigux/tests/atomic64_diff.zig": {
+        "gate_owner": "ABI and Runtime Team",
+        "gate_rollback_owner": "ABI and Runtime Team",
+        "threshold_posture": "threshold_pending_until_runtime_atomic64_scope_widens",
+        "current_correctness_replay": "make -C zigux phase4-runtime-atomic64-diff",
+        "threshold_ready_surface": "post-selftest replay explicit for the current rollback gate",
+        "benchmark_command": "unapproved_until_runtime_atomic64_scope_widens",
+        "acceptable_limit": "unapproved_until_runtime_atomic64_scope_widens",
+        "next_threshold_step": "broader atomic64 benchmark entrypoint",
+        "status": "pending_scope_widening",
+        "why_not_approved_yet": "post-selftest replay explicit",
+    },
+    "zigux/tests/bitmap_diff.zig": {
+        "gate_owner": "Shared Subsystems Pod",
+        "gate_rollback_owner": "Shared Subsystems Pod",
+        "threshold_posture": "threshold_pending_until_bitmap_gate_grows_beyond_bounded_correctness_checks",
+        "current_correctness_replay": "make -C zigux phase4-bitmap-diff",
+        "threshold_ready_surface": "runThresholdReplay() as the deterministic bitmap threshold batch",
+        "benchmark_command": "unapproved_until_bitmap_gate_grows_beyond_bounded_correctness_checks",
+        "acceptable_limit": "unapproved_until_bitmap_gate_grows_beyond_bounded_correctness_checks",
+        "next_threshold_step": "isolated bitmap benchmark route",
+        "status": "pending_bounded_benchmark",
+        "why_not_approved_yet": "deterministic threshold replay batch ready",
+    },
+}
+
 
 def read_text(root: Path, rel: str) -> str:
     return (root / rel).read_text(encoding="utf-8")
@@ -223,6 +263,63 @@ def find_gap_by_id(manifest: object, gap_id: str) -> dict[str, object] | None:
         if isinstance(gap, dict) and gap.get("id") == gap_id:
             return gap
     return None
+
+
+def find_entry_by_surface(entries: object, surface: str) -> dict[str, object] | None:
+    if not isinstance(entries, list):
+        return None
+    for entry in entries:
+        if isinstance(entry, dict) and entry.get("surface") == surface:
+            return entry
+    return None
+
+
+def validate_perf_baseline_manifest(manifest: object) -> list[str]:
+    missing: list[str] = []
+    if not isinstance(manifest, dict):
+        return ["perf_manifest:dict"]
+    if manifest.get("lane_key") != "P4-L20":
+        missing.append("perf_manifest:lane_key")
+
+    surveyed_gates = manifest.get("surveyed_gates")
+    if not isinstance(surveyed_gates, list):
+        missing.append("perf_manifest:surveyed_gates")
+    else:
+        for surface, expected in PERF_BASELINE_SURVEYED_GATE_EXPECTATIONS.items():
+            gate = find_entry_by_surface(surveyed_gates, surface)
+            if gate is None:
+                missing.append(f"perf_manifest:surveyed_gate:{surface}")
+                continue
+            for field, value in expected.items():
+                if gate.get(field) != value:
+                    missing.append(f"perf_manifest:surveyed_gate:{surface}:{field}")
+
+    pending_plans = manifest.get("pending_threshold_plans")
+    if not isinstance(pending_plans, list):
+        missing.append("perf_manifest:pending_threshold_plans")
+    else:
+        for surface, expected in PERF_BASELINE_PENDING_PLAN_EXPECTATIONS.items():
+            plan = find_entry_by_surface(pending_plans, surface)
+            if plan is None:
+                missing.append(f"perf_manifest:pending_plan:{surface}")
+                continue
+            for field in (
+                "gate_owner",
+                "gate_rollback_owner",
+                "threshold_posture",
+                "current_correctness_replay",
+                "benchmark_command",
+                "acceptable_limit",
+                "status",
+            ):
+                if plan.get(field) != expected[field]:
+                    missing.append(f"perf_manifest:pending_plan:{surface}:{field}")
+            for field in ("threshold_ready_surface", "next_threshold_step", "why_not_approved_yet"):
+                value = plan.get(field)
+                if not isinstance(value, str) or expected[field] not in value:
+                    missing.append(f"perf_manifest:pending_plan:{surface}:{field}")
+
+    return missing
 
 
 def validate_root(root: Path) -> list[str]:
@@ -293,8 +390,7 @@ def validate_root(root: Path) -> list[str]:
         missing.append("kprobe_manifest:shared_build_replay")
     if kprobe_manifest.get("threshold_posture") != "c_anchor_only_until_kprobe_example_starter_lands":
         missing.append("kprobe_manifest:threshold_posture")
-    if not isinstance(perf_manifest, dict) or perf_manifest.get("lane_key") != "P4-L20":
-        missing.append("perf_manifest:lane_key")
+    missing.extend(validate_perf_baseline_manifest(perf_manifest))
     if not isinstance(fsmount_manifest, dict) or fsmount_manifest.get("anchor") != "samples/vfs/test-fsmount.c":
         missing.append("fsmount_manifest:anchor")
     if not isinstance(runtime_manifest, dict) or runtime_manifest.get("anchor") != "lib/atomic64_test.c":
@@ -388,7 +484,53 @@ def write_fixture_tree(root: Path) -> None:
         ]) + "\n",
         "zigux/tests/phase4_test_fsmount_manifest.json": json.dumps({"anchor": "samples/vfs/test-fsmount.c"}),
         "zigux/tests/phase4_test_fsmount_survey.zig": "phase4-test-fsmount-survey-tests\n",
-        "zigux/tests/phase4_perf_baseline_manifest.json": json.dumps({"lane_key": "P4-L20"}),
+        "zigux/tests/phase4_perf_baseline_manifest.json": json.dumps(
+            {
+                "lane_key": "P4-L20",
+                "surveyed_gates": [
+                    {
+                        "surface": "zigux/tests/atomic64_diff.zig",
+                        "gate_owner": "ABI and Runtime Team",
+                        "gate_rollback_owner": "ABI and Runtime Team",
+                        "threshold_posture": "threshold_pending_until_runtime_atomic64_scope_widens",
+                    },
+                    {
+                        "surface": "zigux/tests/bitmap_diff.zig",
+                        "gate_owner": "Shared Subsystems Pod",
+                        "gate_rollback_owner": "Shared Subsystems Pod",
+                        "threshold_posture": "threshold_pending_until_bitmap_gate_grows_beyond_bounded_correctness_checks",
+                    },
+                ],
+                "pending_threshold_plans": [
+                    {
+                        "surface": "zigux/tests/atomic64_diff.zig",
+                        "gate_owner": "ABI and Runtime Team",
+                        "gate_rollback_owner": "ABI and Runtime Team",
+                        "threshold_posture": "threshold_pending_until_runtime_atomic64_scope_widens",
+                        "current_correctness_replay": "make -C zigux phase4-runtime-atomic64-diff",
+                        "threshold_ready_surface": "zigux/tests/runtime_atomic64_diff.zig keeps the post-selftest replay explicit for the current rollback gate",
+                        "benchmark_command": "unapproved_until_runtime_atomic64_scope_widens",
+                        "acceptable_limit": "unapproved_until_runtime_atomic64_scope_widens",
+                        "next_threshold_step": "ABI and Runtime Team needs one broader atomic64 benchmark entrypoint beyond the current isolated replay before approving one benchmark command and one acceptable limit.",
+                        "status": "pending_scope_widening",
+                        "why_not_approved_yet": "The live atomic64 gate is still a bounded rollback-readiness slice, and zigux/tests/runtime_atomic64_diff.zig now keeps the post-selftest replay explicit.",
+                    },
+                    {
+                        "surface": "zigux/tests/bitmap_diff.zig",
+                        "gate_owner": "Shared Subsystems Pod",
+                        "gate_rollback_owner": "Shared Subsystems Pod",
+                        "threshold_posture": "threshold_pending_until_bitmap_gate_grows_beyond_bounded_correctness_checks",
+                        "current_correctness_replay": "make -C zigux phase4-bitmap-diff",
+                        "threshold_ready_surface": "zigux/tests/bitmap_diff.zig exposes runThresholdReplay() as the deterministic bitmap threshold batch for future perf-baseline work",
+                        "benchmark_command": "unapproved_until_bitmap_gate_grows_beyond_bounded_correctness_checks",
+                        "acceptable_limit": "unapproved_until_bitmap_gate_grows_beyond_bounded_correctness_checks",
+                        "next_threshold_step": "Shared Subsystems Pod needs to promote the current deterministic bitmap threshold batch into one isolated bitmap benchmark route before approving one benchmark command and one acceptable limit.",
+                        "status": "pending_bounded_benchmark",
+                        "why_not_approved_yet": "The live bitmap gate still carries a bounded correctness-first rollback packet, and zigux/tests/bitmap_diff.zig now keeps one deterministic threshold replay batch ready.",
+                    },
+                ],
+            }
+        ),
         "zigux/tests/phase4_perf_baseline_survey.zig": "phase4-perf-baseline-survey-tests\n",
         "zigux/tests/bitmap_diff.zig": "bitmap\n",
         "zigux/tests/phase4_build.zig": "\n".join(BUILD_MARKERS) + "\n",
@@ -641,6 +783,54 @@ def run_self_test() -> int:
         missing = validate_root(root)
         assert (
             "gate_evidence_workflow_route_note:the dedicated workflow-route checker file itself"
+            in missing
+        ), missing
+
+        write_fixture_tree(root)
+        perf_manifest = root / "zigux/tests/phase4_perf_baseline_manifest.json"
+        perf_manifest.write_text(
+            perf_manifest.read_text(encoding="utf-8").replace(
+                "post-selftest replay explicit for the current rollback gate",
+                "rollback gate summary",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        missing = validate_root(root)
+        assert (
+            "perf_manifest:pending_plan:zigux/tests/atomic64_diff.zig:threshold_ready_surface"
+            in missing
+        ), missing
+
+        write_fixture_tree(root)
+        perf_manifest = root / "zigux/tests/phase4_perf_baseline_manifest.json"
+        perf_manifest.write_text(
+            perf_manifest.read_text(encoding="utf-8").replace(
+                "isolated bitmap benchmark route",
+                "future benchmark work",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        missing = validate_root(root)
+        assert (
+            "perf_manifest:pending_plan:zigux/tests/bitmap_diff.zig:next_threshold_step"
+            in missing
+        ), missing
+
+        write_fixture_tree(root)
+        perf_manifest = root / "zigux/tests/phase4_perf_baseline_manifest.json"
+        perf_manifest.write_text(
+            perf_manifest.read_text(encoding="utf-8").replace(
+                "threshold_pending_until_runtime_atomic64_scope_widens",
+                "threshold_pending_until_runtime_atomic64_shift",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        missing = validate_root(root)
+        assert (
+            "perf_manifest:surveyed_gate:zigux/tests/atomic64_diff.zig:threshold_posture"
             in missing
         ), missing
 
