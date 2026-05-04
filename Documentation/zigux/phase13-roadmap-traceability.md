@@ -88,6 +88,7 @@ Current lane state recorded in the manifest:
 - landed `phase13-devres-tests`
 - landed `phase13-devres-slice-note`
 - landed `phase13-devres-reviewability-gate`
+- landed `phase13-devres-iounmap-reviewability-gate`
 - landed `phase13-devres-survey-note`
 - landed `phase13-devres-managed-ioremap-lifetime`
 - landed `phase13-devres-managed-ioremap-np-wrapper`
@@ -97,6 +98,7 @@ Current lane state recorded in the manifest:
 - landed `phase13-devres-arch-phys-wc-token-planner`
 - landed `phase13-devres-arch-io-memtype-planner`
 - landed `phase13-devres-dma-coherent-lifetime-planner`
+- landed `phase13-devres-scatterlist-lifetime-planner`
 - blocked `phase13-devres-live-mmio-side-effects`
 - blocked `phase13-devres-live-dma-mappings`
 - blocked `phase13-devres-live-scatterlist-ownership`
@@ -105,7 +107,7 @@ Current lane state recorded in the manifest:
 - the same manifest-backed packet now also records the already-landed helper-first scatterlist bookkeeping slice in `lib/devres_scatterlist.zig` and `zigux/tests/phase13_devres_scatterlist.zig`, while keeping that evidence explicitly bounded to retained-record bookkeeping rather than live `sg_*` ownership
 
 Traceability summary:
-- this anchor stays roadmap-aligned and manifest-backed, and the helper packet now covers the shared build gate, make target, dedicated slice note, managed ioremap, resource-planner, ioport, direct non-posted wrapper, direct plain/UC/WC/NP ioremap wrapper-family reviewability, arch write-combine bookkeeping helpers, adjacent coherent DMA alloc/free bookkeeping, and the already-promoted helper-first scatterlist bookkeeping slice inside the shared replay.
+- this anchor stays roadmap-aligned and manifest-backed, and the helper packet now covers the shared build gate, make target, dedicated slice note, dedicated iounmap reviewability gate, managed ioremap, resource-planner, ioport, direct non-posted wrapper, direct plain/UC/WC/NP ioremap wrapper-family reviewability, arch write-combine bookkeeping helpers, adjacent coherent DMA alloc/free bookkeeping, and the already-promoted helper-first scatterlist bookkeeping slice inside the shared replay.
 - even with those adjacent helper slices visible, the devres anchor still refuses to claim live MMIO side effects, live DMA-backed mappings, full scatterlist ownership, live device-tree walking, or global arch-memtype mutation.
 - the next honest same-family follow-up is to keep this manifest-backed packet, shared replay, and directly coupled survey note aligned if another bounded coherent-DMA or scatterlist bookkeeping step lands, rather than reopening helper implementation or widening into live DMA-backed behavior.
 
