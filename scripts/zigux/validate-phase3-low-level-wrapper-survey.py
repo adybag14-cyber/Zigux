@@ -51,6 +51,7 @@ REQUIRED_SURVEY_SNIPPETS = (
     "`zigux/helpers/atomic.zig` currently limits the approved helper surface to `load`, `store`, `exchange`, `fetchAdd`, `fetchSub`, `fetchAnd`, `fetchOr`, `fetchXor`, `fetchMin`, `fetchMax`, `compareExchange`, and `compareExchangeWeak`",
     "`zigux/helpers/barrier.zig` currently limits the approved barrier surface to `acquire`, `release`, `acquireRelease`, and `full`",
     "`zigux/helpers/mmio.zig` currently limits the approved MMIO surface to `range`, `read8`, `read16`, `read32`, `read64`, `write8`, `write16`, `write32`, and `write64`, plus the scoped `read8`, `write8`, `read16`, `write16`, `read32`, `write32`, `read64`, and `write64` entry points, the width-specific `read8Policy`, `write8Policy`, `read16Policy`, `write16Policy`, `read32Policy`, `write32Policy`, `read64Policy`, and `write64Policy` entry points, and the generic `readScopedWithPolicy` plus `writeScopedWithPolicy` bridges",
+    "`zigux/tests/phase3_low_level_wrappers_build.zig` and `zigux/tests/phase3_low_level_wrappers.zig` keep the atomic, barrier, direct-plus-scoped MMIO, width-specific policy-aware MMIO, and generic decoded-policy MMIO bridge packet reviewable on one focused compile-and-test path, and the focused build now also wires the current `interop_policy` dependency that `zigux/helpers/mmio.zig` imports.",
     "`zigux/tests/phase3_policy_unsafe.zig` and `scripts/zigux/check-phase3-policy-unsafe-mmio-consumer.py` keep the broader whole-record interop-policy decode and second-boundary-helper MMIO story reviewable beside that focused low-level gate",
     "no relaxed-order barrier variants are shipped in the current packet",
     "no broader kernel-style atomic helper family is shipped in the current packet",
@@ -494,6 +495,30 @@ def run_self_test() -> int:
         )
         issues = validate(root)
         assert "missing_low_level_test_snippet:atomic.fetchMax(u32, &value, 29, .seq_cst)" in issues
+
+        _write(
+            root,
+            SURVEY_REL,
+            "\n".join([
+                "# Phase 3 Low-Level Wrapper Boundary Survey",
+                "",
+                *[f"- `{marker}`" for marker in REQUIRED_SURVEY_MARKERS],
+                "",
+                *[
+                    snippet
+                    for snippet in REQUIRED_SURVEY_SNIPPETS
+                    if snippet
+                    != "`zigux/tests/phase3_low_level_wrappers_build.zig` and `zigux/tests/phase3_low_level_wrappers.zig` keep the atomic, barrier, direct-plus-scoped MMIO, width-specific policy-aware MMIO, and generic decoded-policy MMIO bridge packet reviewable on one focused compile-and-test path, and the focused build now also wires the current `interop_policy` dependency that `zigux/helpers/mmio.zig` imports."
+                ],
+                "",
+                *_blob_marker_lines(),
+            ]) + "\n",
+        )
+        issues = validate(root)
+        assert (
+            "missing_survey_snippet:`zigux/tests/phase3_low_level_wrappers_build.zig` and `zigux/tests/phase3_low_level_wrappers.zig` keep the atomic, barrier, direct-plus-scoped MMIO, width-specific policy-aware MMIO, and generic decoded-policy MMIO bridge packet reviewable on one focused compile-and-test path, and the focused build now also wires the current `interop_policy` dependency that `zigux/helpers/mmio.zig` imports."
+            in issues
+        )
 
         _write(root, LOW_LEVEL_TEST_REL, "\n".join(REQUIRED_LOW_LEVEL_TEST_SNIPPETS) + "\n")
         _write(
