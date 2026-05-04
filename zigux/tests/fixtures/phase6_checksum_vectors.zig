@@ -55,6 +55,20 @@ pub const KunitRandomPrefixCase = struct {
     expected_compute: u16,
 };
 
+pub const Add16Case = struct {
+    name: []const u8,
+    sum: u16,
+    addend: u16,
+    expected: u16,
+};
+
+pub const Sub16Case = struct {
+    name: []const u8,
+    sum: u16,
+    addend: u16,
+    expected: u16,
+};
+
 pub const PerfCase = struct {
     label: []const u8,
     len: usize,
@@ -273,6 +287,42 @@ pub const kunit_random_prefix_cases = [_]KunitRandomPrefixCase{
         .seed = 0x8402ab7a,
         .expected_partial = 0xc153,
         .expected_compute = 0x3eac,
+    },
+};
+
+pub const add16_cases = [_]Add16Case{
+    .{
+        .name = "saturated plus one wraps with carry",
+        .sum = 0xffff,
+        .addend = 0x0001,
+        .expected = 0x0001,
+    },
+    .{
+        .name = "saturated plus zero stays saturated",
+        .sum = 0xffff,
+        .addend = 0x0000,
+        .expected = 0xffff,
+    },
+    .{
+        .name = "saturated plus saturated preserves ones complement",
+        .sum = 0xffff,
+        .addend = 0xffff,
+        .expected = 0xffff,
+    },
+};
+
+pub const sub16_cases = [_]Sub16Case{
+    .{
+        .name = "zero minus one borrows across ones complement",
+        .sum = 0x0000,
+        .addend = 0x0001,
+        .expected = 0xfffe,
+    },
+    .{
+        .name = "subtracting a prior addend recovers the original word",
+        .sum = 0xbe01,
+        .addend = 0xabcd,
+        .expected = 0x1234,
     },
 };
 
