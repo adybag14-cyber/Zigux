@@ -441,7 +441,7 @@ pub const KretprobeExampleSample = struct {
     }
 };
 
-test "kretprobe sample replay keeps the anchor reviewable and non-runtime" {
+test "kretprobe sample descriptor and anchor replay stay reviewable" {
     const expected_focus = sample_review_focus;
     const expected_non_goals = sample_review_non_goals;
     const descriptor = KretprobeExampleSample.descriptor();
@@ -479,11 +479,15 @@ test "kretprobe sample replay keeps the anchor reviewable and non-runtime" {
     for (expected_focus, replay.checked_focus) |expected, actual| {
         try std.testing.expectEqual(expected, actual);
     }
+}
 
-    var retargeted = KretprobeExampleSample{};
-    try std.testing.expectError(error.InvalidLifecycleTransition, retargeted.entryHandler(true, 100));
-    try std.testing.expectError(error.InvalidSymbolName, retargeted.retargetSymbol(""));
-    const recovered = try retargeted.runRetargetRecoveryReplay();
+test "kretprobe sample keeps retarget recovery and timestamp boundaries explicit" {
+    var sample = KretprobeExampleSample{};
+
+    try std.testing.expectError(error.InvalidLifecycleTransition, sample.entryHandler(true, 100));
+    try std.testing.expectError(error.InvalidSymbolName, sample.retargetSymbol(""));
+
+    const recovered = try sample.runRetargetRecoveryReplay();
     try std.testing.expectEqualStrings("samples/kprobes/kretprobe_example.c", recovered.anchor);
     try std.testing.expectEqualStrings("do_sys_openat2", recovered.symbol_name);
     try std.testing.expect(recovered.skipped_kernel_thread_path_checked);
@@ -493,16 +497,20 @@ test "kretprobe sample replay keeps the anchor reviewable and non-runtime" {
     try std.testing.expectEqual(@as(usize, @sizeOf(i64)), recovered.private_data_size_bytes);
     try std.testing.expectEqual(KretprobeExampleSample.default_maxactive, recovered.maxactive);
     try std.testing.expectEqual(SampleStage.initialized, recovered.stage_after_recovery);
-    try std.testing.expectEqualStrings("do_sys_openat2", retargeted.symbol_name);
-    try std.testing.expectEqual(@as(usize, 1), retargeted.skipped_kernel_threads);
-    try std.testing.expectEqual(@as(usize, 9), retargeted.last_retval);
-    try std.testing.expectEqual(@as(i64, 60), retargeted.last_duration_ns);
-    try std.testing.expectEqual(@as(i64, -1), retargeted.instance_data.entry_stamp_ns);
-    try retargeted.recordMissedInstance();
-    try std.testing.expectEqual(@as(usize, 1), retargeted.nmissed);
+    try std.testing.expectEqualStrings("do_sys_openat2", sample.symbol_name);
+    try std.testing.expectEqual(@as(usize, 1), sample.skipped_kernel_threads);
+    try std.testing.expectEqual(@as(usize, 9), sample.last_retval);
+    try std.testing.expectEqual(@as(i64, 60), sample.last_duration_ns);
+    try std.testing.expectEqual(@as(i64, -1), sample.instance_data.entry_stamp_ns);
 
-    var budget = KretprobeExampleSample{};
-    const maxactive = try budget.runMaxactiveBudgetReplay();
+    try sample.recordMissedInstance();
+    try std.testing.expectEqual(@as(usize, 1), sample.nmissed);
+}
+
+test "kretprobe sample keeps the maxactive budget fixed across replay" {
+    var sample = KretprobeExampleSample{};
+    const maxactive = try sample.runMaxactiveBudgetReplay();
+
     try std.testing.expectEqualStrings("samples/kprobes/kretprobe_example.c", maxactive.anchor);
     try std.testing.expectEqualStrings(KretprobeExampleSample.default_symbol_name, maxactive.symbol_name);
     try std.testing.expectEqual(KretprobeExampleSample.default_maxactive, maxactive.budget_before_init);
@@ -512,9 +520,12 @@ test "kretprobe sample replay keeps the anchor reviewable and non-runtime" {
     try std.testing.expectEqual(@as(usize, 1), maxactive.missed_instances);
     try std.testing.expectEqual(@as(usize, 1), maxactive.replay_runs);
     try std.testing.expectEqual(SampleStage.replay_complete, maxactive.stage_after_replay);
+}
 
-    var guards = KretprobeExampleSample{};
-    const lifecycle_guards = try guards.runLifecycleGuardReplay();
+test "kretprobe sample keeps lifecycle guard transitions explicit" {
+    var sample = KretprobeExampleSample{};
+    const lifecycle_guards = try sample.runLifecycleGuardReplay();
+
     try std.testing.expectEqualStrings("samples/kprobes/kretprobe_example.c", lifecycle_guards.anchor);
     try std.testing.expectEqualStrings(KretprobeExampleSample.default_symbol_name, lifecycle_guards.symbol_name);
     try std.testing.expectEqual(SampleStage.cold, lifecycle_guards.stage_before_init);
@@ -525,27 +536,31 @@ test "kretprobe sample replay keeps the anchor reviewable and non-runtime" {
     try std.testing.expect(lifecycle_guards.post_init_retarget_rejected);
     try std.testing.expect(lifecycle_guards.post_init_recovery_rejected);
     try std.testing.expectEqual(@as(usize, 1), lifecycle_guards.init_runs);
+}
 
-    var lifecycle = KretprobeExampleSample{};
-    try std.testing.expectEqual(KretprobeExampleSample.default_maxactive, lifecycle.maxactiveBudget());
-    try std.testing.expectEqual(SampleStage.cold, lifecycle.stage());
-    try lifecycle.init();
-    try std.testing.expectEqual(KretprobeExampleSample.default_maxactive, lifecycle.maxactiveBudget());
-    try std.testing.expectEqual(SampleStage.initialized, lifecycle.stage());
-    try std.testing.expect(try lifecycle.entryHandler(true, 200));
-    try std.testing.expectError(error.OutstandingProbeInstance, lifecycle.exit());
-    try std.testing.expectError(error.InvalidTimestampOrder, lifecycle.retHandler(9, 199));
-    const second_recovered = try lifecycle.retHandler(9, 260);
-    try std.testing.expectEqual(@as(i64, 60), second_recovered.duration_ns);
-    try std.testing.expectEqual(@as(i64, -1), lifecycle.instance_data.entry_stamp_ns);
-    try std.testing.expectEqual(SampleStage.initialized, lifecycle.stage());
-    try lifecycle.exit();
-    try std.testing.expectEqual(SampleStage.exited, lifecycle.stage());
-    try std.testing.expectEqual(@as(usize, 1), lifecycle.init_runs);
-    try std.testing.expectEqual(@as(usize, 1), lifecycle.exit_runs);
-    try std.testing.expectEqual(@as(usize, 0), lifecycle.active_instances);
-    try std.testing.expectEqual(@as(i64, -1), lifecycle.instance_data.entry_stamp_ns);
-    try std.testing.expectError(error.InvalidLifecycleTransition, lifecycle.recordMissedInstance());
-    try std.testing.expectError(error.InvalidLifecycleTransition, lifecycle.entryHandler(true, 300));
-    try std.testing.expectError(error.InvalidLifecycleTransition, lifecycle.retHandler(11, 360));
+test "kretprobe sample keeps ownership and post-exit boundaries explicit" {
+    var sample = KretprobeExampleSample{};
+    try std.testing.expectEqual(KretprobeExampleSample.default_maxactive, sample.maxactiveBudget());
+    try std.testing.expectEqual(SampleStage.cold, sample.stage());
+
+    const replay = try sample.runOwnershipBoundaryReplay();
+    try std.testing.expectEqualStrings("samples/kprobes/kretprobe_example.c", replay.anchor);
+    try std.testing.expectEqualStrings(KretprobeExampleSample.default_symbol_name, replay.symbol_name);
+    try std.testing.expect(replay.armed_exit_rejected);
+    try std.testing.expectEqual(@as(i64, 199), replay.rejected_timestamp_ns);
+    try std.testing.expectEqual(@as(i64, 60), replay.recovered_duration_ns);
+    try std.testing.expectEqual(SampleStage.exited, replay.stage_after_exit);
+    try std.testing.expectEqual(@as(usize, 1), replay.exit_runs);
+    try std.testing.expect(replay.post_exit_record_missed_rejected);
+    try std.testing.expect(replay.post_exit_entry_rejected);
+    try std.testing.expect(replay.post_exit_ret_rejected);
+
+    try std.testing.expectEqual(SampleStage.exited, sample.stage());
+    try std.testing.expectEqual(@as(usize, 1), sample.init_runs);
+    try std.testing.expectEqual(@as(usize, 1), sample.exit_runs);
+    try std.testing.expectEqual(@as(usize, 0), sample.active_instances);
+    try std.testing.expectEqual(@as(i64, -1), sample.instance_data.entry_stamp_ns);
+    try std.testing.expectError(error.InvalidLifecycleTransition, sample.recordMissedInstance());
+    try std.testing.expectError(error.InvalidLifecycleTransition, sample.entryHandler(true, 300));
+    try std.testing.expectError(error.InvalidLifecycleTransition, sample.retHandler(11, 360));
 }
