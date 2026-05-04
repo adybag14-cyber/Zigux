@@ -205,7 +205,7 @@ PHASE12_PACKET_MARKERS = {
     ),
 }
 SURVEY_NOTE_MARKERS = {
-    "phase12_virtio_net_manifest.json": {
+    "phase12_virtio_net_manifest.json": (
         "## Rollback And Reversible Delivery",
         "owner: `Network Driver Lane`",
         "rollback owner: `Network Driver Lane`",
@@ -215,8 +215,8 @@ SURVEY_NOTE_MARKERS = {
         "phase12-virtio-net-syntax-lab-tests",
         "rollback drill: run `make -C zigux phase12-validate`",
         "zig build test --build-file zigux/tests/phase12_build.zig --summary all",
-    },
-    "phase12_nvme_pci_manifest.json": {
+    ),
+    "phase12_nvme_pci_manifest.json": (
         "## Rollback And Reversible Delivery",
         "owner: `Storage Driver Lane`",
         "rollback owner: `Storage Driver Lane`",
@@ -225,8 +225,8 @@ SURVEY_NOTE_MARKERS = {
         "phase12-nvme-pci-survey-tests",
         "rollback drill: run `make -C zigux phase12-validate`",
         "zig build test --build-file zigux/tests/phase12_build.zig --summary all",
-    },
-    "phase12_libbpf_manifest.json": {
+    ),
+    "phase12_libbpf_manifest.json": (
         "## Rollback And Reversible Delivery",
         "owner: `BPF Tooling Lane`",
         "rollback owner: `BPF Tooling Lane`",
@@ -237,8 +237,8 @@ SURVEY_NOTE_MARKERS = {
         "phase12-libbpf-reviewability-tests",
         "rollback drill: run `make -C zigux phase12-validate`",
         "zig build test --build-file zigux/tests/phase12_build.zig --summary all",
-    },
-    "phase12_virtio_scsi_manifest.json": {
+    ),
+    "phase12_virtio_scsi_manifest.json": (
         "## Rollback And Reversible Delivery",
         "owner: `Storage Driver Lane`",
         "rollback owner: `Storage Driver Lane`",
@@ -246,7 +246,7 @@ SURVEY_NOTE_MARKERS = {
         "phase12-virtio-scsi-tests",
         "phase12-virtio-scsi-survey-tests",
         "rollback drill: run `make -C zigux phase12-validate`",
-    },
+    ),
 }
 BUILD_MARKERS = [
     "phase12-nvme-pci-tests",
@@ -473,7 +473,7 @@ def run_self_test() -> int:
         source_text + "\n" + CHECKLIST_MARKERS[-1],
         MANIFEST_SPECS,
         "validator_source_count:"
-        f"{CHECKLIST_MARKERS[-1]}:expected=1:actual={focused_replay_count}"
+        f"{CHECKLIST_MARKERS[-1]}:expected=1:actual=2",
     )
 
     drifted_manifest_specs = json.loads(json.dumps(MANIFEST_SPECS))
