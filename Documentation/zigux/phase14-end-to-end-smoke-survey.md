@@ -38,7 +38,6 @@ This document records the shared Phase 14 smoke lane that verifies the current b
   - `Documentation/zigux/phase14-release-boundary-survey.md`
   - `zigux/tests/phase14_end_to_end_smoke_manifest.json`
   - `zigux/tests/phase14_end_to_end_smoke_survey.zig`
-  - `zigux/tests/phase14_rcu_tree_survey.zig`
   - `zigux/tests/phase14_build.zig`
   - `zigux/Makefile`
   - `.github/workflows/zigux-bootstrap.yml`
