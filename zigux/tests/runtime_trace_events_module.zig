@@ -175,6 +175,8 @@ test "runtime trace-events sample keeps registration balance and failed-exit rol
     try std.testing.expectEqual(@as(usize, 10), before_exit.main_thread_events);
     try std.testing.expectEqual(@as(usize, 4), before_exit.fn_thread_events);
     try std.testing.expectEqual(@as(usize, 14), before_exit.total_events);
+    try std.testing.expectEqual(@as(?usize, 6), before_exit.last_main_emitted_events);
+    try std.testing.expectEqual(@as(?usize, 2), before_exit.last_fn_emitted_events);
     try std.testing.expectEqual(@as(usize, 1), before_exit.init_runs);
     try std.testing.expectEqual(@as(usize, 1), before_exit.selftest_runs);
     try std.testing.expectEqual(@as(usize, 0), before_exit.exit_runs);
@@ -196,6 +198,8 @@ test "runtime trace-events sample keeps registration balance and failed-exit rol
     try std.testing.expectEqual(before_exit.main_thread_events, after_exit.main_thread_events);
     try std.testing.expectEqual(before_exit.fn_thread_events, after_exit.fn_thread_events);
     try std.testing.expectEqual(before_exit.total_events, after_exit.total_events);
+    try std.testing.expectEqual(before_exit.last_main_emitted_events, after_exit.last_main_emitted_events);
+    try std.testing.expectEqual(before_exit.last_fn_emitted_events, after_exit.last_fn_emitted_events);
     try std.testing.expectEqual(before_exit.init_runs, after_exit.init_runs);
     try std.testing.expectEqual(before_exit.selftest_runs, after_exit.selftest_runs);
     try std.testing.expectEqual(@as(usize, 1), after_exit.exit_runs);
@@ -245,6 +249,8 @@ test "runtime trace-events module gate keeps selftest-ready failed-exit rollback
     try std.testing.expectEqual(@as(usize, 10), before_failed_exit.main_thread_events);
     try std.testing.expectEqual(@as(usize, 4), before_failed_exit.fn_thread_events);
     try std.testing.expectEqual(@as(usize, 14), before_failed_exit.total_events);
+    try std.testing.expectEqual(@as(?usize, 4), before_failed_exit.last_main_emitted_events);
+    try std.testing.expectEqual(@as(?usize, 2), before_failed_exit.last_fn_emitted_events);
     try std.testing.expectEqual(@as(usize, 1), before_failed_exit.init_runs);
     try std.testing.expectEqual(@as(usize, 1), before_failed_exit.selftest_runs);
     try std.testing.expectEqual(@as(usize, 0), before_failed_exit.exit_runs);
@@ -278,6 +284,8 @@ test "runtime trace-events module gate keeps selftest-ready failed-exit rollback
     try std.testing.expectEqual(before_failed_exit.main_thread_events, after_failed_exit.main_thread_events);
     try std.testing.expectEqual(before_failed_exit.fn_thread_events, after_failed_exit.fn_thread_events);
     try std.testing.expectEqual(before_failed_exit.total_events, after_failed_exit.total_events);
+    try std.testing.expectEqual(before_failed_exit.last_main_emitted_events, after_failed_exit.last_main_emitted_events);
+    try std.testing.expectEqual(before_failed_exit.last_fn_emitted_events, after_failed_exit.last_fn_emitted_events);
     try std.testing.expectEqual(before_failed_exit.init_runs, after_failed_exit.init_runs);
     try std.testing.expectEqual(before_failed_exit.selftest_runs, after_failed_exit.selftest_runs);
     try std.testing.expectEqual(before_failed_exit.exit_runs, after_failed_exit.exit_runs);
@@ -307,6 +315,8 @@ test "runtime trace-events module gate keeps selftest-ready failed-exit rollback
     try std.testing.expectEqualStrings("foo_bar_unreg", module.summary().last_unregister_label orelse return error.ExpectedFunctionPayload);
 
     const before_exit = module.summary();
+    try std.testing.expectEqual(@as(?usize, 4), before_exit.last_main_emitted_events);
+    try std.testing.expectEqual(@as(?usize, 2), before_exit.last_fn_emitted_events);
     try module.exit();
 
     const after_exit = module.summary();
@@ -316,6 +326,8 @@ test "runtime trace-events module gate keeps selftest-ready failed-exit rollback
     try std.testing.expectEqual(before_exit.main_thread_events, after_exit.main_thread_events);
     try std.testing.expectEqual(before_exit.fn_thread_events, after_exit.fn_thread_events);
     try std.testing.expectEqual(before_exit.total_events, after_exit.total_events);
+    try std.testing.expectEqual(before_exit.last_main_emitted_events, after_exit.last_main_emitted_events);
+    try std.testing.expectEqual(before_exit.last_fn_emitted_events, after_exit.last_fn_emitted_events);
     try std.testing.expectEqual(before_exit.init_runs, after_exit.init_runs);
     try std.testing.expectEqual(before_exit.selftest_runs, after_exit.selftest_runs);
     try std.testing.expectEqual(@as(usize, 1), after_exit.exit_runs);
