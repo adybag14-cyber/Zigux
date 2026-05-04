@@ -16,7 +16,9 @@ The current helper stays intentionally narrow:
 - adds one bounded `simple_transaction_get()` / `simple_transaction_set()` staging-buffer planner that models request-size limits, one-write-per-open reservation, copy-fault retention, and publish-size bookkeeping without claiming live page allocation, file-private storage mutation, or pseudo-filesystem state
 - adds one bounded `simple_transaction_read()` / `simple_transaction_release()` follow-up that keeps the work in pure private-data presence checks, read-delegation intent, and release bookkeeping before any live dentries, inode-backed state, or pseudo-filesystem lifecycle is touched
 - adds one bounded `simple_open()` planner that keeps the inode-private-data borrow explicit by modeling when `inode->i_private` is copied into `file->private_data` and when the open path remains a pure zero-error no-op, without claiming live inode mutation, file allocation, or broader open/close lifecycle ownership
+- adds one pure `generic_check_addressable()` addressability planner that keeps block-size validation, last-block accounting, and sector or page addressability limits explicit without claiming live superblock, page-cache, or inode ownership
 
 This slice does not claim `d_add()` side effects, cursor-backed directory iteration, inode allocation, pseudo-fs mounting, simple-transaction state, or any other live VFS plumbing from the wider `fs/libfs.c` body.
 
-The next honest bounded step in this same lane is a pure `generic_check_addressable()` addressability planner that stays inside block-size, byte-count overflow, and sector/page-cache addressability checks. After that, the remaining cursor-backed helpers plus inode and pseudo-filesystem lifecycle work stay blocked on live VFS state.
+The current helper packet now covers the landed addressability boundary too.
+The next honest same-lane work, if any, is review-local only: keep notes and packet governance aligned while the remaining cursor-backed helpers plus inode and pseudo-filesystem lifecycle stay blocked on live VFS state.
