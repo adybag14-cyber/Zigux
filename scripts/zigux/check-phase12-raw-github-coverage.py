@@ -88,6 +88,10 @@ CHECKLIST_MARKERS = [
     "including the current one commit-pinned raw catalog, one archival raw map, and two shared-tree-only anchors",
 ]
 
+CHECKLIST_EXACT_COUNT_MARKERS = {
+    "including the current one commit-pinned raw catalog, one archival raw map, and two shared-tree-only anchors": 1,
+}
+
 TEST_MARKERS = [
     "phase12 raw GitHub coverage survey keeps the roadmap-wide public-read split explicit",
     "phase12_raw_github_coverage_manifest.json",
@@ -249,6 +253,7 @@ def validate_markers() -> list[str]:
     for marker in CHECKLIST_MARKERS:
         if marker not in checklist_text:
             missing.append(f"checklist:{marker}")
+    missing.extend(collect_exact_count_misses(checklist_text, CHECKLIST_EXACT_COUNT_MARKERS, "checklist_count"))
     for marker in TEST_MARKERS:
         if marker not in test_text:
             missing.append(f"test:{marker}")
@@ -436,6 +441,20 @@ def run_self_test() -> int:
     finally:
         checklist_path.write_text(original_checklist, encoding="utf-8")
 
+    checklist_path.write_text(
+        original_checklist
+        + "including the current one commit-pinned raw catalog, one archival raw map, and two shared-tree-only anchors\n",
+        encoding="utf-8",
+    )
+    try:
+        expect_missing(
+            "checklist_exact_count",
+            validate_tree(),
+            "checklist_count:including the current one commit-pinned raw catalog, one archival raw map, and two shared-tree-only anchors:expected=1:actual=2",
+        )
+    finally:
+        checklist_path.write_text(original_checklist, encoding="utf-8")
+
     test_path = ROOT / "zigux/tests/phase12_raw_github_coverage_survey.zig"
     original_test = test_path.read_text(encoding="utf-8")
     test_path.write_text(
@@ -452,7 +471,7 @@ def run_self_test() -> int:
         test_path.write_text(original_test, encoding="utf-8")
 
     print("PHASE12_RAW_GITHUB_COVERAGE_SELF_TEST=pass")
-    print("PHASE12_RAW_GITHUB_COVERAGE_SELF_TEST_CASE_COUNT=11")
+    print("PHASE12_RAW_GITHUB_COVERAGE_SELF_TEST_CASE_COUNT=12")
     return 0
 
 
