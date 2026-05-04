@@ -22,6 +22,7 @@ This document records the bounded Phase 15 readiness lane for surveying the rema
   - `zigux/tests/phase15_readiness_gate_manifest.json`
   - `zigux/tests/phase15_readiness_gate.zig`
   - `zigux/tests/phase15_docs_root_reviewability.zig`
+  - `zigux/tests/phase15_evidence_archive_templates.zig`
   - `zigux/tests/phase15_build.zig`
   - `zigux/Makefile`
   - `.github/workflows/zigux-bootstrap.yml`
@@ -70,9 +71,10 @@ At reviewed `master` head `d918be7ded6383c13cbd5eea4ca4aa4f3cdafee4`, the repo a
 - `.github/workflows/zigux-bootstrap.yml` is present and runs `Run Phase 15 governance tests`, so the same shared replay surface remained the published Phase 15 gate at reviewed `master` head `d918be7ded6383c13cbd5eea4ca4aa4f3cdafee4`
 - `Documentation/zigux/README.md` exposes the Phase 15 governance notes, the direct handoff pointer, and the same maintenance-mode posture as the dedicated readiness and handoff packet
 - `zigux/tests/phase15_docs_root_reviewability.zig` is present and keeps the docs-root Phase 15 summary aligned with the dedicated readiness and handoff packet under that same shared replay surface
+- `zigux/tests/phase15_evidence_archive_templates.zig` is present and keeps the reserved evidence-archive decision-record templates reviewable under that same shared replay surface
 - the dedicated readiness and handoff packets both record the shared Phase 15 replay as green at reviewed `master` head `d918be7ded6383c13cbd5eea4ca4aa4f3cdafee4`
 
-That means the roadmap-required governance bundle was present at reviewed `master` head `d918be7ded6383c13cbd5eea4ca4aa4f3cdafee4`, the bootstrap ledger anchor had already been carried forward into a fuller Phase 15 review surface there, the dedicated validator script and validator-first target stayed explicit as release evidence before the shared replay surface was trusted there, and the dedicated readiness plus handoff notes recorded that same reviewed-head posture. Later repo movement still requires a fresh bounded provenance refresh before this note should restate any of that as a new current-`master` claim.
+That means the roadmap-required governance bundle was present at reviewed `master` head `d918be7ded6383c13cbd5eea4ca4aa4f3cdafee4`, the bootstrap ledger anchor had already been carried forward into a fuller Phase 15 review surface there, the dedicated validator script and validator-first target stayed explicit as release evidence before the shared replay surface was trusted there, the dedicated evidence-archive template guard kept the reserved archive packet reviewable there, and the dedicated readiness plus handoff notes recorded that same reviewed-head posture. Later repo movement still requires a fresh bounded provenance refresh before this note should restate any of that as a new current-`master` claim.
 
 ## Remaining Readiness Gaps
 
@@ -97,9 +99,10 @@ The readiness gate recorded by this packet is:
 4. the parked handoff-and-next-step packet stays aligned with the same governance bundle
 5. the docs-root Phase 15 summary stays aligned with that current replay posture and maintenance-mode handoff
 6. the dedicated docs-root reviewability guard stays aligned with the same readiness and handoff packet instead of leaving that top-level release-evidence path implicit
-7. the remaining gap stays explicit as blocked deep-core status changes pending stronger stay-in-C exception evidence
+7. the dedicated evidence-archive template guard stays explicit inside the same shared replay path instead of leaving the reserved per-anchor decision-record packet implicit
+8. the remaining gap stays explicit as blocked deep-core status changes pending stronger stay-in-C exception evidence
 
-If any one of those seven conditions stops being true, the tranche is no longer ready for maintenance-mode governance review.
+If any one of those eight conditions stops being true, the tranche is no longer ready for maintenance-mode governance review.
 
 ## Recorded Gaps
 
@@ -114,7 +117,7 @@ The current lane state is:
 - landed `phase15-docs-root-summary-alignment`
 - blocked `phase15-deep-core-status-change-blocker`
 
-This keeps the lane tight. At reviewed `master` head `d918be7ded6383c13cbd5eea4ca4aa4f3cdafee4`, Zigux had one reviewable readiness packet that said the roadmap bundle was landed, the ledger anchor was still visible, the dedicated validator script and validator-first target remained explicit before the shared replay, the shared bootstrap workflow still pointed at the reviewed Phase 15 gate, the parked handoff-and-next-step packet was present in the same governance family, the dedicated docs-root reviewability guard remained visible inside that same review path, the dedicated replay path was green there, the docs-root Phase 15 summary matched that same maintenance-mode packet there, and any new current-`master` restatement now requires a fresh bounded provenance refresh, while the remaining honest gap is the unchanged deep-core status-change posture.
+This keeps the lane tight. At reviewed `master` head `d918be7ded6383c13cbd5eea4ca4aa4f3cdafee4`, Zigux had one reviewable readiness packet that said the roadmap bundle was landed, the ledger anchor was still visible, the dedicated validator script and validator-first target remained explicit before the shared replay, the shared bootstrap workflow still pointed at the reviewed Phase 15 gate, the parked handoff-and-next-step packet was present in the same governance family, the dedicated docs-root reviewability guard remained visible inside that same review path, the dedicated evidence-archive template guard remained visible inside that same review path, the dedicated replay path was green there, the docs-root Phase 15 summary matched that same maintenance-mode packet there, and any new current-`master` restatement now requires a fresh bounded provenance refresh, while the remaining honest gap is the unchanged deep-core status-change posture.
 
 ## Non-goals
 
