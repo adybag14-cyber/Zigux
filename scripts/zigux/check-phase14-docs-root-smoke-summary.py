@@ -45,6 +45,7 @@ SURVEY_SHARED_SMOKE_BOUNDARY_BLOCK = [
     "- `Documentation/zigux/phase14-release-boundary-survey.md`",
     "- `zigux/tests/phase14_end_to_end_smoke_manifest.json`",
     "- `zigux/tests/phase14_end_to_end_smoke_survey.zig`",
+    "- `zigux/tests/phase14_rcu_tree_survey.zig`",
     "- `zigux/tests/phase14_build.zig`",
     "- `zigux/Makefile`",
     "- `.github/workflows/zigux-bootstrap.yml`",
@@ -198,6 +199,7 @@ Phase 14 flow
   - `Documentation/zigux/phase14-release-boundary-survey.md`
   - `zigux/tests/phase14_end_to_end_smoke_manifest.json`
   - `zigux/tests/phase14_end_to_end_smoke_survey.zig`
+  - `zigux/tests/phase14_rcu_tree_survey.zig`
   - `zigux/tests/phase14_build.zig`
   - `zigux/Makefile`
   - `.github/workflows/zigux-bootstrap.yml`
@@ -301,7 +303,7 @@ phase14: phase14-validate phase14-test
         scripts_readme_text,
         survey_text.replace(
             "  - `zigux/tests/phase14_build.zig`\n",
-            "  - `zigux/tests/phase14_build.zig`\n  - `zigux/tests/phase14_rcu_tree_survey.zig`\n",
+            "  - `zigux/tests/phase14_build.zig`\n  - `zigux/tests/phase14_workqueue_bridge.zig`\n",
             1,
         ),
         release_boundary_text,
