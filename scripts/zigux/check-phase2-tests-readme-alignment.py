@@ -2,7 +2,9 @@
 from __future__ import annotations
 
 from pathlib import Path
+import json
 import os
+import re
 import subprocess
 import sys
 import tempfile
@@ -21,6 +23,12 @@ REQUIRED_FILES = {
     "makefile": "zigux/Makefile",
     "workflow": ".github/workflows/zigux-bootstrap.yml",
 }
+
+EXPECTED_CROSS_TARGETS = [
+    "x86_64-linux-musl",
+    "aarch64-linux-musl",
+    "riscv64-linux-musl",
+]
 
 TESTS_README_MARKERS = [
     "zigux/tests/fixtures/phase2_cross_targets.json",
@@ -143,6 +151,11 @@ MAKEFILE_EXACT_RUN_COUNTS = {
     "scripts/zigux/check-phase2-tests-readme-alignment.py": 1,
 }
 
+EXACT_DOC_COMMAND_COUNTS = {
+    "make -C zigux phase2-validate": 1,
+    "make -C zigux phase2": 1,
+}
+
 
 def repo_root_from_script(script_path: Path) -> Path:
     return script_path.resolve().parents[2]
@@ -164,6 +177,28 @@ def resolve_root() -> Path:
 
 def read_text(root: Path, rel_path: str) -> str:
     return (root / rel_path).read_text(encoding="utf-8")
+
+
+def validate_cross_targets_manifest(path: Path) -> list[str]:
+    payload = json.loads(path.read_text(encoding="utf-8"))
+    if not isinstance(payload, dict):
+        return ["cross_targets:expected_object"]
+
+    issues: list[str] = []
+    if payload.get("phase") != "Phase 2":
+        issues.append(f"cross_targets:phase={payload.get('phase')!r}:expected='Phase 2'")
+    if payload.get("status") != "closed":
+        issues.append(f"cross_targets:status={payload.get('status')!r}:expected='closed'")
+    if payload.get("target_count") != len(EXPECTED_CROSS_TARGETS):
+        issues.append(
+            f"cross_targets:target_count={payload.get('target_count')!r}:expected={len(EXPECTED_CROSS_TARGETS)}"
+        )
+    targets = payload.get("targets")
+    if not isinstance(targets, list):
+        issues.append("cross_targets:targets:expected_list")
+    elif targets != EXPECTED_CROSS_TARGETS:
+        issues.append("cross_targets:targets=expected_exact_list")
+    return issues
 
 
 def validate_exact_marker_counts(
@@ -197,6 +232,21 @@ def validate_exact_makefile_runs(text: str) -> list[str]:
         count = sum(1 for line in stripped_lines if line.endswith(command))
         if count != expected_count:
             issues.append(f"makefile_exact_run:{command}:count={count}:expected={expected_count}")
+    return issues
+
+
+def validate_exact_command_mentions(
+    text: str,
+    *,
+    label: str,
+    expected_counts: dict[str, int],
+) -> list[str]:
+    issues: list[str] = []
+    for command, expected_count in expected_counts.items():
+        pattern = re.compile(rf"{re.escape(command)}(?![-\\w]|\\s+--)")
+        actual_count = len(pattern.findall(text))
+        if actual_count != expected_count:
+            issues.append(f"{label}:{command}:count={actual_count}:expected={expected_count}")
     return issues
 
 
@@ -250,6 +300,35 @@ def validate(root: Path) -> list[str]:
         if marker not in workflow:
             missing.append(f"workflow:{marker}")
     missing.extend(validate_exact_workflow_runs(workflow))
+    missing.extend(
+        validate_exact_command_mentions(
+            tests_readme,
+            label="tests_readme",
+            expected_counts=EXACT_DOC_COMMAND_COUNTS,
+        )
+    )
+    missing.extend(
+        validate_exact_command_mentions(
+            toolchain_notes,
+            label="toolchain_notes",
+            expected_counts=EXACT_DOC_COMMAND_COUNTS,
+        )
+    )
+    missing.extend(
+        validate_exact_command_mentions(
+            review_checklist,
+            label="review_checklist",
+            expected_counts=EXACT_DOC_COMMAND_COUNTS,
+        )
+    )
+    missing.extend(
+        validate_exact_command_mentions(
+            scripts_readme,
+            label="scripts_readme",
+            expected_counts=EXACT_DOC_COMMAND_COUNTS,
+        )
+    )
+    missing.extend(validate_cross_targets_manifest(root / REQUIRED_FILES["cross_targets"]))
 
     return missing
 
@@ -408,7 +487,19 @@ def clone_fixture_root(destination_root: Path) -> None:
             ]
         ),
     )
-    write_file(destination_root, REQUIRED_FILES["cross_targets"], '{"targets":["x86_64-linux-musl"]}\n')
+    write_file(
+        destination_root,
+        REQUIRED_FILES["cross_targets"],
+        json.dumps(
+            {
+                "phase": "Phase 2",
+                "status": "closed",
+                "target_count": len(EXPECTED_CROSS_TARGETS),
+                "targets": list(EXPECTED_CROSS_TARGETS),
+            },
+            indent=2,
+        ) + "\n",
+    )
     write_file(
         destination_root,
         REQUIRED_FILES["makefile"],
@@ -662,7 +753,7 @@ def run_self_test() -> int:
         phase2_closure_validator_path.write_text(original_phase2_closure_validator, encoding="utf-8")
 
         phase2_closure_validator_path.write_text(
-            original_phase2_closure_validator.replace("    'make -C zigux phase2-validate',\n", "", 1),
+            original_phase2_closure_validator.replace("    'make -C zigux phase2-validate',\n", ""),
             encoding="utf-8",
         )
         expect_missing(
@@ -682,6 +773,46 @@ def run_self_test() -> int:
             "phase2_closure_validator:x86_64-linux",
         )
         phase2_closure_validator_path.write_text(original_phase2_closure_validator, encoding="utf-8")
+
+        cross_targets_path = tmp_root / REQUIRED_FILES["cross_targets"]
+        original_cross_targets = cross_targets_path.read_text(encoding="utf-8")
+        cross_targets_path.write_text(
+            json.dumps(
+                {
+                    "phase": "Phase 2",
+                    "status": "closed",
+                    "target_count": 2,
+                    "targets": list(EXPECTED_CROSS_TARGETS),
+                },
+                indent=2,
+            ) + "\n",
+            encoding="utf-8",
+        )
+        expect_missing(
+            "cross_targets_target_count",
+            tmp_root,
+            "cross_targets:target_count=2:expected=3",
+        )
+        cross_targets_path.write_text(original_cross_targets, encoding="utf-8")
+
+        cross_targets_path.write_text(
+            json.dumps(
+                {
+                    "phase": "Phase 2",
+                    "status": "closed",
+                    "target_count": 3,
+                    "targets": ["x86_64-linux-musl", "aarch64-linux-musl"],
+                },
+                indent=2,
+            ) + "\n",
+            encoding="utf-8",
+        )
+        expect_missing(
+            "cross_targets_targets_list",
+            tmp_root,
+            "cross_targets:targets=expected_exact_list",
+        )
+        cross_targets_path.write_text(original_cross_targets, encoding="utf-8")
 
         makefile_path = tmp_root / REQUIRED_FILES["makefile"]
         original_makefile = makefile_path.read_text(encoding="utf-8")
@@ -711,7 +842,7 @@ def run_self_test() -> int:
         expect_missing(
             "makefile_tests_readme_gate",
             tmp_root,
-            "makefile:scripts/zigux/check-phase2-tests-readme-alignment.py",
+            "makefile_exact_run:scripts/zigux/check-phase2-tests-readme-alignment.py:count=0:expected=1",
         )
         makefile_path.write_text(original_makefile, encoding="utf-8")
 
@@ -842,7 +973,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE2_TESTS_README_ALIGNMENT_SELF_TEST=pass")
-    print("PHASE2_TESTS_README_ALIGNMENT_SELF_TEST_CASE_COUNT=24")
+    print("PHASE2_TESTS_README_ALIGNMENT_SELF_TEST_CASE_COUNT=26")
     return 0
 
 
