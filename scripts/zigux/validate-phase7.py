@@ -211,7 +211,7 @@ expected_argv_split_fixture = {
     "leading_nul_stays_empty": {"argc": 0, "argv": []},
     "quote_characters_stay_literal": {
         "argc": 3,
-        "argv": ['root=\"/dev/sda', '1\"', "single"],
+        "argv": ['root="/dev/sda', '1"', "single"],
     },
     "whitespace_collapse": {
         "argc": 3,
