@@ -1,7 +1,7 @@
 {
   "lane_key": "P7-L05",
   "phase": "Phase 7",
-  "surveyed_commit": "d46fb91493e6e9126d5111bf0e5b21184e0ec1d1",
+  "surveyed_commit": "c0b506e3254e63fe007a72d420bb275846a89093",
   "anchor": "lib/cmdline.c",
   "roadmap_destinations": [
     "lib/cmdline.zig"
