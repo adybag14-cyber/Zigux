@@ -176,16 +176,7 @@ EXACT_ONCE_DOCS_ROOT_SNIPPETS = REQUIRED_DOCS_ROOT_SNIPPETS
 EXPECTED_PHASE3_README_FLOW_COUNT = 2
 EXPECTED_CROSS_PHASE_README_FLOW_COUNT = 3
 
-DEFAULT_PHASE3_README_FLOW_SNIPPETS = (
-    "`validate-phase3.py` is the validator-first entrypoint for the shared Phase 3 ABI and interop packet, and `make -C zigux phase3-validate` plus the bootstrap workflow replay that same route before the broader build-backed or survey-backed checks run.",
-    "`validate-phase3-roadmap-gap-survey.py`, `validate-phase3-rbtree-interop-survey.py`, `check-phase3-rbtree-shared-lift-contract.py`, `validate-phase3-export-uapi-survey.py`, `validate-phase3-low-level-wrapper-survey.py`, `validate-phase3-policy-unsafe-survey.py`, `check-phase3-policy-unsafe-mmio-consumer.py`, `check-phase3-abi-layout-packet.py`, `check-phase3-abi-binding-constants.py`, `check-phase3-tooling-packet.py`, `check-phase3-readme-tooling-inventory.py`, `check-phase3-validation-flow.py`, `check-phase3-build-roots.py`, and `check-phase3-canonical-survey-manifest.py` stay as supporting checks inside that validator-first route rather than standalone bootstrap or release entrypoints.",
-)
-
-DEFAULT_CROSS_PHASE_README_FLOW_SNIPPETS = (
-    "`validate-phase6.py` keeps the shipped Phase 6 leaf-helper packet aligned across `scripts/zigux/README.md`, `Documentation/zigux/README.md`, `Documentation/zigux/phase6-helper-parity-catalog.md`, `zigux/tests/phase6_helper_parity_manifest.json`, `zigux/tests/phase6_build.zig`, `zigux/Makefile`, the bootstrap workflow, and the four helper-local slice notes before any shared replay claims stay green.",
-    "`validate-phase8.py` is the validator-first entrypoint for the parked repo-hosted tooling packet across `tools/lib/subcmd/exec-cmd.zig`, `tools/lib/subcmd/help.zig`, `tools/lib/symbol/kallsyms.zig`, the helper-first `tools/lib/bpf/zigux_segments/` rollout, and the bounded `perf_buffer__poll(timeout_ms)` bookkeeping adjunct.",
-    "`validate-phase9.py` is the validator-first entrypoint for the shared runtime-pilot packet across `scripts/zigux/README.md`, `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/phase9-runtime-loader-gap-survey.md`, `Documentation/zigux/phase9-module-metadata-depmod-bridge-survey.md`, `zigux/tests/README.md`, `zigux/tests/phase9_build.zig`, `zigux/Makefile`, and `.github/workflows/zigux-bootstrap.yml`.",
-)
+_FIXTURE_README_FLOW_SNIPPETS: tuple[tuple[str, ...], tuple[str, ...]] | None = None
 
 
 def _read_text(root: Path, rel: str, issues: list[str]) -> str:
@@ -283,6 +274,20 @@ def _load_cross_phase_readme_flow_snippets(root: Path) -> tuple[tuple[str, ...],
         "unexpected_cross_phase_flow_contract_count",
         "duplicate_cross_phase_flow_contract_snippet",
     )
+
+
+def _load_fixture_readme_flow_snippets() -> tuple[tuple[str, ...], tuple[str, ...]]:
+    global _FIXTURE_README_FLOW_SNIPPETS
+    if _FIXTURE_README_FLOW_SNIPPETS is None:
+        phase3_snippets, phase3_issues = _load_phase3_readme_flow_snippets(ROOT)
+        cross_phase_snippets, cross_phase_issues = _load_cross_phase_readme_flow_snippets(ROOT)
+        issues = phase3_issues + cross_phase_issues
+        if issues:
+            raise SystemExit(
+                "phase3-validation-flow-self-test:fixture_contract_load_failed:" + ",".join(issues)
+            )
+        _FIXTURE_README_FLOW_SNIPPETS = (phase3_snippets, cross_phase_snippets)
+    return _FIXTURE_README_FLOW_SNIPPETS
 
 
 def validate(root: Path) -> list[str]:
@@ -457,9 +462,14 @@ def _fixture_docs_root() -> str:
 
 
 def _fixture_scripts_readme(
-    phase3_snippets: tuple[str, ...] = DEFAULT_PHASE3_README_FLOW_SNIPPETS,
-    cross_phase_snippets: tuple[str, ...] = DEFAULT_CROSS_PHASE_README_FLOW_SNIPPETS,
+    phase3_snippets: tuple[str, ...] | None = None,
+    cross_phase_snippets: tuple[str, ...] | None = None,
 ) -> str:
+    default_phase3_snippets, default_cross_phase_snippets = _load_fixture_readme_flow_snippets()
+    if phase3_snippets is None:
+        phase3_snippets = default_phase3_snippets
+    if cross_phase_snippets is None:
+        cross_phase_snippets = default_cross_phase_snippets
     return (
         "# scripts/zigux\n"
         "\n"
@@ -476,9 +486,14 @@ def _fixture_scripts_readme(
 
 
 def _fixture_readme_tooling_inventory(
-    phase3_snippets: tuple[str, ...] = DEFAULT_PHASE3_README_FLOW_SNIPPETS,
-    cross_phase_snippets: tuple[str, ...] = DEFAULT_CROSS_PHASE_README_FLOW_SNIPPETS,
+    phase3_snippets: tuple[str, ...] | None = None,
+    cross_phase_snippets: tuple[str, ...] | None = None,
 ) -> str:
+    default_phase3_snippets, default_cross_phase_snippets = _load_fixture_readme_flow_snippets()
+    if phase3_snippets is None:
+        phase3_snippets = default_phase3_snippets
+    if cross_phase_snippets is None:
+        cross_phase_snippets = default_cross_phase_snippets
     lines = ["REQUIRED_PHASE3_FLOW_SNIPPETS = ("]
     for snippet in phase3_snippets:
         lines.append(f'    "{snippet}",')
@@ -501,6 +516,8 @@ def _assert_only(issues: list[str], expected: list[str], label: str) -> None:
 
 
 def run_self_test() -> int:
+    fixture_phase3_snippets, fixture_cross_phase_snippets = _load_fixture_readme_flow_snippets()
+
     with tempfile.TemporaryDirectory(prefix="zigux_phase3_validation_flow_") as tmp_dir:
         root = Path(tmp_dir)
 
@@ -571,13 +588,13 @@ def run_self_test() -> int:
             case_count += 1
 
         reset_tree()
-        duplicated_phase3 = DEFAULT_PHASE3_README_FLOW_SNIPPETS[0]
+        duplicated_phase3 = fixture_phase3_snippets[0]
         _write(
             root,
             README_TOOLING_INVENTORY_REL,
             _fixture_readme_tooling_inventory(
                 (duplicated_phase3, duplicated_phase3),
-                DEFAULT_CROSS_PHASE_README_FLOW_SNIPPETS,
+                fixture_cross_phase_snippets,
             ),
         )
         _assert_only(
@@ -600,7 +617,11 @@ def run_self_test() -> int:
         case_count += 1
 
         reset_tree()
-        _write(root, README_TOOLING_INVENTORY_REL, _fixture_readme_tooling_inventory((DEFAULT_PHASE3_README_FLOW_SNIPPETS[0],), DEFAULT_CROSS_PHASE_README_FLOW_SNIPPETS))
+        _write(
+            root,
+            README_TOOLING_INVENTORY_REL,
+            _fixture_readme_tooling_inventory((fixture_phase3_snippets[0],), fixture_cross_phase_snippets),
+        )
         _assert_only(
             validate(root),
             [f"unexpected_phase3_flow_contract_count:1:{EXPECTED_PHASE3_README_FLOW_COUNT}"],
@@ -625,14 +646,14 @@ def run_self_test() -> int:
         case_count += 1
 
         reset_tree()
-        duplicated_cross_phase = DEFAULT_CROSS_PHASE_README_FLOW_SNIPPETS[1]
+        duplicated_cross_phase = fixture_cross_phase_snippets[1]
         _write(
             root,
             README_TOOLING_INVENTORY_REL,
             _fixture_readme_tooling_inventory(
-                DEFAULT_PHASE3_README_FLOW_SNIPPETS,
+                fixture_phase3_snippets,
                 (
-                    DEFAULT_CROSS_PHASE_README_FLOW_SNIPPETS[0],
+                    fixture_cross_phase_snippets[0],
                     duplicated_cross_phase,
                     duplicated_cross_phase,
                 ),
@@ -662,8 +683,8 @@ def run_self_test() -> int:
             root,
             README_TOOLING_INVENTORY_REL,
             _fixture_readme_tooling_inventory(
-                DEFAULT_PHASE3_README_FLOW_SNIPPETS,
-                (DEFAULT_CROSS_PHASE_README_FLOW_SNIPPETS[0],),
+                fixture_phase3_snippets,
+                (fixture_cross_phase_snippets[0],),
             ),
         )
         _assert_only(
@@ -680,7 +701,7 @@ def run_self_test() -> int:
             "\n".join(
                 [
                     "REQUIRED_PHASE3_FLOW_SNIPPETS = (",
-                    *[f'    "{snippet}",' for snippet in DEFAULT_PHASE3_README_FLOW_SNIPPETS],
+                    *[f'    "{snippet}",' for snippet in fixture_phase3_snippets],
                     ")",
                     "",
                     "REQUIRED_CROSS_PHASE_FLOW_SNIPPETS = (1, 2, 3)",
@@ -732,19 +753,19 @@ def run_self_test() -> int:
             "# scripts/zigux\n"
             "\n"
             "Phase 3 flow\n"
-            f"- {DEFAULT_PHASE3_README_FLOW_SNIPPETS[1]}\n"
+            f"- {fixture_phase3_snippets[1]}\n"
             "Phase 6 flow\n"
-            f"- {DEFAULT_CROSS_PHASE_README_FLOW_SNIPPETS[0]}\n"
+            f"- {fixture_cross_phase_snippets[0]}\n"
             "Phase 8 flow\n"
-            f"- {DEFAULT_CROSS_PHASE_README_FLOW_SNIPPETS[1]}\n"
+            f"- {fixture_cross_phase_snippets[1]}\n"
             "Phase 9 flow\n"
-            f"- {DEFAULT_CROSS_PHASE_README_FLOW_SNIPPETS[2]}\n",
+            f"- {fixture_cross_phase_snippets[2]}\n",
         )
         _assert_only(
             validate(root),
             [
-                f"missing_scripts_readme_snippet:{DEFAULT_PHASE3_README_FLOW_SNIPPETS[0]}",
-                f"unexpected_scripts_readme_snippet_count:0:{DEFAULT_PHASE3_README_FLOW_SNIPPETS[0]}",
+                f"missing_scripts_readme_snippet:{fixture_phase3_snippets[0]}",
+                f"unexpected_scripts_readme_snippet_count:0:{fixture_phase3_snippets[0]}",
             ],
             f"missing_phase3_readme_guard_failed_{case_count}",
         )
@@ -754,11 +775,11 @@ def run_self_test() -> int:
         _write(
             root,
             SCRIPTS_README_REL,
-            _fixture_scripts_readme() + f"\n- {DEFAULT_PHASE3_README_FLOW_SNIPPETS[0]}\n",
+            _fixture_scripts_readme() + f"\n- {fixture_phase3_snippets[0]}\n",
         )
         _assert_only(
             validate(root),
-            [f"unexpected_scripts_readme_snippet_count:2:{DEFAULT_PHASE3_README_FLOW_SNIPPETS[0]}"],
+            [f"unexpected_scripts_readme_snippet_count:2:{fixture_phase3_snippets[0]}"],
             f"duplicate_phase3_readme_guard_failed_{case_count}",
         )
         case_count += 1
@@ -770,27 +791,27 @@ def run_self_test() -> int:
             "# scripts/zigux\n"
             "\n"
             "Phase 3 flow\n"
-            f"- {DEFAULT_PHASE3_README_FLOW_SNIPPETS[0]}\n"
-            f"- {DEFAULT_PHASE3_README_FLOW_SNIPPETS[1]}\n"
+            f"- {fixture_phase3_snippets[0]}\n"
+            f"- {fixture_phase3_snippets[1]}\n"
             "Phase 8 flow\n"
-            f"- {DEFAULT_CROSS_PHASE_README_FLOW_SNIPPETS[1]}\n"
+            f"- {fixture_cross_phase_snippets[1]}\n"
             "Phase 9 flow\n"
-            f"- {DEFAULT_CROSS_PHASE_README_FLOW_SNIPPETS[2]}\n",
+            f"- {fixture_cross_phase_snippets[2]}\n",
         )
         _assert_only(
             validate(root),
             [
-                f"missing_scripts_readme_snippet:{DEFAULT_CROSS_PHASE_README_FLOW_SNIPPETS[0]}",
-                f"unexpected_scripts_readme_snippet_count:0:{DEFAULT_CROSS_PHASE_README_FLOW_SNIPPETS[0]}",
+                f"missing_scripts_readme_snippet:{fixture_cross_phase_snippets[0]}",
+                f"unexpected_scripts_readme_snippet_count:0:{fixture_cross_phase_snippets[0]}",
             ],
             f"missing_cross_phase_readme_guard_failed_{case_count}",
         )
         case_count += 1
 
         for snippet, label in (
-            (DEFAULT_CROSS_PHASE_README_FLOW_SNIPPETS[0], "duplicate_phase6_readme_guard_failed"),
-            (DEFAULT_CROSS_PHASE_README_FLOW_SNIPPETS[1], "duplicate_phase8_readme_guard_failed"),
-            (DEFAULT_CROSS_PHASE_README_FLOW_SNIPPETS[2], "duplicate_phase9_readme_guard_failed"),
+            (fixture_cross_phase_snippets[0], "duplicate_phase6_readme_guard_failed"),
+            (fixture_cross_phase_snippets[1], "duplicate_phase8_readme_guard_failed"),
+            (fixture_cross_phase_snippets[2], "duplicate_phase9_readme_guard_failed"),
         ):
             reset_tree()
             _write(root, SCRIPTS_README_REL, _fixture_scripts_readme() + f"\n- {snippet}\n")
