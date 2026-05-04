@@ -52,6 +52,7 @@ The current lane state is:
 - landed `phase13-landlock-rule-materialization-followup`
 - landed `phase13-landlock-rule-replacement-followup`
 - landed `phase13-landlock-rule-release-followup`
+- landed `phase13-landlock-rule-merge-tree-replay-followup`
 - blocked `phase13-landlock-live-tree-state-blocker`
 
 This keeps the lane explicit without overstating progress: Zigux now has a real `ruleset.zig` helper foothold for access-mask accounting, build-check-style capacity reviewability, matching-rule insertion planning, tree-search outcome planning, no-match tree-link planning, helper-only `landlock_find_rule()` lookup planning, helper-only `create_rule()` materialization planning, helper-only replacement planning, helper-only `free_rule()` release planning, one bounded `merge_tree()` replay handoff planner, and a dedicated reviewability gate, but it still does not claim live rule storage, hierarchy ownership, or full Landlock policy enforcement.
