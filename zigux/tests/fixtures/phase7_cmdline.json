@@ -92,6 +92,11 @@
       "param": "mode",
       "rest": "",
       "value": "fast"
+    },
+    "unterminated_quoted_value": {
+      "param": "mode",
+      "rest": "",
+      "value": "fast boot"
     }
   },
   "parse_option_str": {
