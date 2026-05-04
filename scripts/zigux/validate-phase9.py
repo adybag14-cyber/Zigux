@@ -559,6 +559,11 @@ required_bitmap_survey_test_markers = [
     '"nthSetBit()"',
 ]
 
+KRETPROBE_LANE_KEY = "P9-L15"
+KRETPROBE_SURVEYED_COMMIT = "9ab58640ce44fd53534dd49e29fcce6e274dc3d0"
+TRACE_EVENTS_SURVEYED_COMMIT = "e7b3b515704dd521630df0b0f62396d033e38e02"
+BITMAP_SURVEYED_COMMIT = "456151afa8a38a088e3cc582187b35fe5c7b0445"
+
 required_kretprobe_survey_markers = [
     "manifest-backed delivery catalog and ownership map",
     "`PHASE9_SURVEYED_COMMIT=",
