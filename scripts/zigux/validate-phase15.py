@@ -178,6 +178,7 @@ SURVEY_MARKERS = [
     "make -C zigux phase15",
     "zig build test --build-file zigux/tests/phase15_build.zig",
     "zigux/tests/phase15_docs_root_reviewability.zig",
+    "zigux/tests/phase15_evidence_archive_templates.zig",
     "docs-root Phase 15 summary now matches the dedicated readiness and handoff packet",
     "phase15-docs-root-summary-alignment",
 ]
