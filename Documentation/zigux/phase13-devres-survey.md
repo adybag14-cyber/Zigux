@@ -11,19 +11,18 @@ This lane stays inside the Phase 13 shared-helper tranche and records the curren
 - product boundary:
   - `lib/devres.zig`
   - `lib/devres_dma_coherent.zig`
+  - `lib/devres_scatterlist.zig`
   - `zigux/tests/phase13_devres.zig`
   - `zigux/tests/phase13_devres_dma_coherent.zig`
+  - `zigux/tests/phase13_devres_scatterlist.zig`
   - `zigux/tests/phase13_devres_reviewability.zig`
   - `zigux/tests/phase13_devres_iounmap_reviewability.zig`
   - `zigux/tests/phase13_devres_iomap_reviewability.zig`
   - `zigux/tests/phase13_devres_manifest.json`
   - `zigux/tests/phase13_build.zig`
   - `Documentation/zigux/phase13-devres-slice.md`
-  - `Documentation/zigux/phase13-devres-survey.md`
-- adjacent same-anchor repo evidence still outside this manifest-backed packet:
-  - `lib/devres_scatterlist.zig`
-  - `zigux/tests/phase13_devres_scatterlist.zig`
   - `Documentation/zigux/phase13-devres-scatterlist-slice.md`
+  - `Documentation/zigux/phase13-devres-survey.md`
 
 Current repo state on `master`:
 
@@ -38,7 +37,7 @@ Current repo state on `master`:
 - `zigux/tests/phase13_devres.zig` already exercises managed `__devm_ioremap()` lifetime planning, the direct `devm_ioremap()`, `devm_ioremap_uc()`, `devm_ioremap_wc()`, and `devm_ioremap_np()` acquire wrappers, `__devm_ioremap_resource()` planning, `devm_of_iomap()` translation handoff, `devm_ioport_map()` lifetime bookkeeping, `devm_arch_phys_wc_add()` token retention, and `devm_arch_io_reserve_memtype_wc()` range retention
 - `lib/devres_dma_coherent.zig` plus `zigux/tests/phase13_devres_dma_coherent.zig` now keep the helper-first coherent-DMA lifetime packet reviewable on current `master`, including `dmam_alloc_coherent()` / `dmam_free_coherent()`-style release-record retention, free-on-partial-failure cleanup, and exact `(cpu_address, dma_handle)` release matching without claiming live DMA-backed allocation, free, or scatterlist execution
 - current `master` also carries an adjacent helper-first scatterlist bookkeeping slice through `lib/devres_scatterlist.zig`, `zigux/tests/phase13_devres_scatterlist.zig`, and `Documentation/zigux/phase13-devres-scatterlist-slice.md`, where `planManagedScatterlistMap()` and `planManagedScatterlistUnmap()` keep retained-record and exact unmap-match decisions reviewable without claiming live `dma_map_sgtable()` execution, live `dma_unmap_sgtable()` execution, or `sg_*` traversal
-- that same scatterlist slice is not yet named in `zigux/tests/phase13_devres_manifest.json` or wired into `zigux/tests/phase13_build.zig`, so the next honest same-anchor follow-up is packet integration for already-landed evidence rather than another new scatterlist helper
+- the manifest-backed devres packet now names that same scatterlist slice in `zigux/tests/phase13_devres_manifest.json` and `zigux/tests/phase13_build.zig` so the already-landed helper-first DMA/scatterlist bookkeeping evidence is checked with the rest of the devres packet instead of living only in an adjacent slice note
 - helper-first iomap or resource planners plus explicit DMA/scatterlist blockers pinned to the current repo state are the exact current review surface for this packet
 - the current `lib/devres.zig` helper lab still exposes no `dma*`, `dmam_*`, `scatterlist`, `sg_table`, or `sg_*` ownership surface, and the adjacent scatterlist slice still stops at helper-first bookkeeping, so the Phase 13 packet remains outside live DMA-backed and scatter-gather behavior rather than merely leaving that boundary implicit
 - `Documentation/zigux/phase13-devres-slice.md` already marks the helper boundary clearly, and this survey now names the exact DMA/scatterlist boundary evidence that the shared release packet expects on current `master`
@@ -75,4 +74,4 @@ What remains explicitly blocked:
 - live device-tree walking, overlapping resource arbitration, or broader `struct device_node` ownership beyond the pure `devm_of_iomap()` planner boundary
 - live MTRR or arch memtype state mutation beyond the token-style and range-style detach bookkeeping planners
 
-The next honest bounded step for this lane is to pull the already-landed helper-first scatterlist bookkeeping slice into the manifest-backed devres survey/build packet, or keep this survey aligned if another adjacent lane lands that validation follow-up first. New product work in this same anchor should prefer that integration step before reopening helper implementation.
+The next honest bounded step for this lane is to keep the manifest-backed devres packet aligned if another adjacent helper lane changes the coherent-DMA or scatterlist bookkeeping slice, rather than reopening helper implementation or widening into live DMA-backed behavior.
