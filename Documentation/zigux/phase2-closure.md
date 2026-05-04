@@ -40,8 +40,10 @@ The bounded Phase 2 bootstrap archive pin remains intentionally limited to the c
 
 - `x86_64-linux`
 - policy file: `scripts/zigux/zig-toolchain-policy.json`
+- companion note: `Documentation/zigux/phase2-toolchain-bootstrap-notes.md`
 - guard: `scripts/zigux/check-phase2-toolchain-pin-scope.py`
 - the archive pin must not broaden beyond `x86_64-linux` until a new bootstrap runner target gains first-class workflow evidence
+- the Linux-style `make -C zigux phase2-validate` and `make -C zigux phase2` routes keep this bounded pin-scope packet tied to the same shared validator and closure-validator surface
 - `PHASE2_TOOLCHAIN_PIN_SCOPE_POLICY=scripts/zigux/zig-toolchain-policy.json keeps the bootstrap archive pin limited to x86_64-linux until a new runner target gains first-class workflow evidence`
 
 ## Closure Gates
@@ -154,7 +156,7 @@ Phase 2 is only considered closed when all of the following are green:
 - `PHASE2_CROSS_MANIFEST_POLICY=check-phase2-cross.py rejects duplicate tool entries, duplicate requested targets, unexpected explicit targets, duplicate manifest targets, and manifest-count drift before live compile replay`
 - `PHASE2_TOOLCHAIN_PIN_SCOPE_SELF_TEST=python3 scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test`
 - `PHASE2_TOOLCHAIN_PIN_SCOPE_GATE=python3 scripts/zigux/check-phase2-toolchain-pin-scope.py`
-- `PHASE2_TOOLCHAIN_PIN_SCOPE_POLICY=scripts/zigux/zig-toolchain-policy.json keeps the bootstrap archive pin limited to x86_64-linux until a new bootstrap runner target gains first-class workflow evidence`
+- `PHASE2_TOOLCHAIN_PIN_SCOPE_POLICY=scripts/zigux/zig-toolchain-policy.json keeps the bootstrap archive pin limited to x86_64-linux until a new runner target gains first-class workflow evidence`
 - `PHASE2_SHARED_VALIDATOR=python3 scripts/zigux/validate-phase2.py`
 - `PHASE2_CLOSURE_GATE=python3 scripts/zigux/validate-phase2-closure.py`
 
