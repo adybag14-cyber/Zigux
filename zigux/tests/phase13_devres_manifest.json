@@ -21,6 +21,7 @@
     "preexisting_phase13_devres_test_present": true,
     "preexisting_phase13_devres_slice_present": true,
     "preexisting_phase13_devres_reviewability_present": true,
+    "preexisting_phase13_devres_wrapper_reviewability_present": true,
     "preexisting_phase13_devres_survey_present": true,
     "devres_dma_coherent_helper_sha256": "944f595b5434603dd21e77b33af03d317613e2f2f1a81d574c9d1b5f4e422c05",
     "devres_dma_coherent_test_sha256": "898655bd8bdcdbad0074011ae92b3ca3f4c5272d58812253ea8b2aa0542f8dce",
