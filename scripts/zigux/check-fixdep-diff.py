@@ -55,6 +55,13 @@ EXPECTED_CASES = {
         'expected': 'sample_concatenated_expected.txt',
         'expected_exit_code': 0,
     },
+    'sample_comment_continued': {
+        'depfile': 'sample_comment_continued.d',
+        'target': 'sample_comment_continued.o',
+        'cmdline': 'rustc --emit dep-info=sample_comment_continued.d -o sample_comment_continued.o zigux/tests/fixtures/fixdep/sample_comment_continued.rs',
+        'expected': 'sample_comment_continued_expected.txt',
+        'expected_exit_code': 0,
+    },
     'sample_comment_only': {
         'depfile': 'sample_comment_only.d',
         'target': 'sample_comment_only.o',
