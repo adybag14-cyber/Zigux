@@ -120,6 +120,18 @@ EXPECTED_LANDED_INPUT_HELPER_EVIDENCE = {
     ]
 }
 
+EXPECTED_LANDED_MMIO_HELPER_EVIDENCE = {
+    "zigux/tests/phase10_virtio_mmio_manifest.json": [
+        "phase10-mmio-register-window-helper",
+        "phase10-mmio-queue-register-helper",
+        "phase10-mmio-queue-notify-helper",
+        "phase10-mmio-queue-address-helper",
+        "phase10-mmio-config-window-helper",
+        "phase10-mmio-config-write-helper",
+        "phase10-mmio-interrupt-ack-helper"
+    ]
+}
+
 EXPECTED_FOCUSED_HARNESS_REPLAYS = {
     "zigux/tests/phase10_virtio_ring_reset_reuse.zig": [
         "phase10 ring drained-reset reuse replay"
@@ -447,6 +459,15 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
 
         if closure_manifest.get("landed_input_helper_evidence") != EXPECTED_LANDED_INPUT_HELPER_EVIDENCE:
             missing.append("closure_manifest:landed_input_helper_evidence")
+        if closure_manifest.get("landed_mmio_helper_evidence") != EXPECTED_LANDED_MMIO_HELPER_EVIDENCE:
+            missing.append("closure_manifest:landed_mmio_helper_evidence")
+
+        blocked_transport_gaps = closure_manifest.get("blocked_transport_gaps")
+        if not isinstance(blocked_transport_gaps, dict):
+            missing.append("closure_manifest:blocked_transport_gaps")
+        elif blocked_transport_gaps.get("zigux/tests/phase10_virtio_mmio_manifest.json") != "phase10-mmio-lifecycle-and-irq-paths":
+            missing.append("closure_manifest:blocked_transport_gaps:mmio")
+
         if closure_manifest.get("focused_harness_replays") != EXPECTED_FOCUSED_HARNESS_REPLAYS:
             missing.append("closure_manifest:focused_harness_replays")
 
@@ -532,6 +553,10 @@ def write_fixture(root: Path) -> None:
             }
         },
         "landed_input_helper_evidence": EXPECTED_LANDED_INPUT_HELPER_EVIDENCE,
+        "landed_mmio_helper_evidence": EXPECTED_LANDED_MMIO_HELPER_EVIDENCE,
+        "blocked_transport_gaps": {
+            "zigux/tests/phase10_virtio_mmio_manifest.json": "phase10-mmio-lifecycle-and-irq-paths"
+        },
         "focused_harness_replays": EXPECTED_FOCUSED_HARNESS_REPLAYS
     }
 
@@ -622,6 +647,25 @@ def run_self_test() -> int:
         ]
         closure_manifest_path.write_text(json.dumps(closure_manifest, indent=2) + "\n", encoding="utf-8")
         expect_missing_marker("landed_input_probe_preflight_guard", root, "closure_manifest:landed_input_helper_evidence")
+        write_fixture(root)
+
+        closure_manifest = json.loads(closure_manifest_path.read_text(encoding="utf-8"))
+        closure_manifest["landed_mmio_helper_evidence"]["zigux/tests/phase10_virtio_mmio_manifest.json"] = [
+            "phase10-mmio-register-window-helper",
+            "phase10-mmio-queue-register-helper",
+            "phase10-mmio-queue-notify-helper",
+            "phase10-mmio-queue-address-helper",
+            "phase10-mmio-config-window-helper",
+            "phase10-mmio-config-write-helper"
+        ]
+        closure_manifest_path.write_text(json.dumps(closure_manifest, indent=2) + "\n", encoding="utf-8")
+        expect_missing_marker("landed_mmio_interrupt_ack_guard", root, "closure_manifest:landed_mmio_helper_evidence")
+        write_fixture(root)
+
+        closure_manifest = json.loads(closure_manifest_path.read_text(encoding="utf-8"))
+        closure_manifest["blocked_transport_gaps"]["zigux/tests/phase10_virtio_mmio_manifest.json"] = "phase10-mmio-queue-address-helper"
+        closure_manifest_path.write_text(json.dumps(closure_manifest, indent=2) + "\n", encoding="utf-8")
+        expect_missing_marker("mmio_blocked_transport_gap_guard", root, "closure_manifest:blocked_transport_gaps:mmio")
         write_fixture(root)
 
         closure_manifest = json.loads(closure_manifest_path.read_text(encoding="utf-8"))
@@ -900,7 +944,7 @@ def run_self_test() -> int:
         expect_missing_file("queue_isolation_file_guard", root, "zigux/tests/phase10_virtio_mmio_queue_isolation.zig")
 
     print("PHASE10_CLOSURE_VALIDATOR_SELF_TEST=pass")
-    print("PHASE10_CLOSURE_VALIDATOR_SELF_TEST_CASE_COUNT=26")
+    print("PHASE10_CLOSURE_VALIDATOR_SELF_TEST_CASE_COUNT=28")
     return 0
 
 
