@@ -19,7 +19,9 @@ SELF_TEST_CASE_COUNT = 10
 PARITY_CASE_COUNT = 122
 VARIANT_ENCODE_VECTORS = 30
 VARIANT_DECODE_VECTORS = 20
-CATALOG_EVIDENCE_SELF_TEST_CASE_COUNT = 11
+PERF_PAYLOAD_CASES = 2
+PERF_REPLAY_CASES = 10
+CATALOG_EVIDENCE_SELF_TEST_CASE_COUNT = 15
 
 CATALOG_MARKERS = [
     "shared packet posture: parked after the current helper-local parity and perf surface cleared the bounded Phase 6 goal",
@@ -30,6 +32,8 @@ CATALOG_MARKERS = [
 CATALOG_FIXTURE_MARKERS = [
     f"{VARIANT_ENCODE_VECTORS} variant encode vectors",
     f"{VARIANT_DECODE_VECTORS} variant decode vectors",
+    f"{PERF_PAYLOAD_CASES} committed perf payload cases",
+    f"{PERF_REPLAY_CASES} committed perf replay cases",
 ]
 
 CATALOG_REVIEW_MARKERS = [
@@ -84,6 +88,10 @@ def validate(root: Path) -> list[str]:
         missing.append("manifest:base64:variant_encode_vectors")
     if base64.get("variant_decode_vectors") != VARIANT_DECODE_VECTORS:
         missing.append("manifest:base64:variant_decode_vectors")
+    if base64.get("perf_payload_cases") != PERF_PAYLOAD_CASES:
+        missing.append("manifest:base64:perf_payload_cases")
+    if base64.get("perf_replay_cases") != PERF_REPLAY_CASES:
+        missing.append("manifest:base64:perf_replay_cases")
     if base64.get("c_parity_self_test_cases") != SELF_TEST_CASE_COUNT:
         missing.append("manifest:base64:c_parity_self_test_cases")
     if base64.get("c_parity_cases") != PARITY_CASE_COUNT:
@@ -125,6 +133,8 @@ def build_self_test_tree(root: Path) -> None:
                     "base64": {
                         "variant_encode_vectors": VARIANT_ENCODE_VECTORS,
                         "variant_decode_vectors": VARIANT_DECODE_VECTORS,
+                        "perf_payload_cases": PERF_PAYLOAD_CASES,
+                        "perf_replay_cases": PERF_REPLAY_CASES,
                         "c_parity_self_test_cases": SELF_TEST_CASE_COUNT,
                         "c_parity_cases": PARITY_CASE_COUNT,
                     }
@@ -166,9 +176,21 @@ def run_self_test() -> int:
             count += 1
 
             build_self_test_tree(root)
-            write(root, CATALOG_PATH, "\n".join(["# x", *CATALOG_MARKERS, CATALOG_FIXTURE_MARKERS[1], *CATALOG_REVIEW_MARKERS]) + "\n")
+            write(root, CATALOG_PATH, "\n".join(["# x", *CATALOG_MARKERS, CATALOG_FIXTURE_MARKERS[1], *CATALOG_FIXTURE_MARKERS[2:], *CATALOG_REVIEW_MARKERS]) + "\n")
             if f"catalog_fixture:missing:{CATALOG_FIXTURE_MARKERS[0]}" not in validate(root):
                 raise AssertionError("missing catalog fixture marker failure")
+            count += 1
+
+            build_self_test_tree(root)
+            write(root, CATALOG_PATH, "\n".join(["# x", *CATALOG_MARKERS, *CATALOG_FIXTURE_MARKERS[:2], CATALOG_FIXTURE_MARKERS[3], *CATALOG_REVIEW_MARKERS]) + "\n")
+            if f"catalog_fixture:missing:{CATALOG_FIXTURE_MARKERS[2]}" not in validate(root):
+                raise AssertionError("missing catalog perf payload marker failure")
+            count += 1
+
+            build_self_test_tree(root)
+            write(root, CATALOG_PATH, "\n".join(["# x", *CATALOG_MARKERS, *CATALOG_FIXTURE_MARKERS[:3], *CATALOG_REVIEW_MARKERS]) + "\n")
+            if f"catalog_fixture:missing:{CATALOG_FIXTURE_MARKERS[3]}" not in validate(root):
+                raise AssertionError("missing catalog perf replay marker failure")
             count += 1
 
             build_self_test_tree(root)
@@ -177,6 +199,22 @@ def run_self_test() -> int:
             write(root, MANIFEST_PATH, json.dumps(manifest, indent=2) + "\n")
             if "manifest:base64:variant_encode_vectors" not in validate(root):
                 raise AssertionError("missing manifest variant encode count failure")
+            count += 1
+
+            build_self_test_tree(root)
+            manifest = json.loads(read_text(root, MANIFEST_PATH))
+            manifest["determinism_evidence"]["base64"]["perf_payload_cases"] = 1
+            write(root, MANIFEST_PATH, json.dumps(manifest, indent=2) + "\n")
+            if "manifest:base64:perf_payload_cases" not in validate(root):
+                raise AssertionError("missing manifest perf payload count failure")
+            count += 1
+
+            build_self_test_tree(root)
+            manifest = json.loads(read_text(root, MANIFEST_PATH))
+            manifest["determinism_evidence"]["base64"]["perf_replay_cases"] = 9
+            write(root, MANIFEST_PATH, json.dumps(manifest, indent=2) + "\n")
+            if "manifest:base64:perf_replay_cases" not in validate(root):
+                raise AssertionError("missing manifest perf replay count failure")
             count += 1
 
             build_self_test_tree(root)
