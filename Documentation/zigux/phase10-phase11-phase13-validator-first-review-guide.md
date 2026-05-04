@@ -36,6 +36,7 @@ Keep these evidence surfaces aligned in the same review:
 - `scripts/zigux/check-phase10-core-packet.py`
 - `scripts/zigux/check-phase10-harness-coverage.py`
 - `zigux/tests/phase10_build.zig`
+- `zigux/tests/phase10_virtio_core.zig`
 - `zigux/tests/phase10_virtio_core_survey.zig`
 - `zigux/tests/phase10_virtio_ring_survey.zig`
 - `zigux/tests/phase10_virtio_input_survey.zig`
@@ -50,7 +51,7 @@ Keep these evidence surfaces aligned in the same review:
 - `.github/workflows/zigux-bootstrap.yml`
 
 Reviewer prompt:
-- Does the shared Phase 10 packet still read as one validator-first lab bundle, with all four lane survey manifests, all four lane survey replays, the shared closure manifest, the dedicated closure-ledger supplement, the focused ring drained-reset reuse replay, the focused multitouch preflight replay, and the focused MMIO queue-isolation replay, rather than a set of independent virtio starter files?
+- Does the shared Phase 10 packet still read as one validator-first lab bundle, with the shared core lab gate, all four lane survey manifests, all four lane survey replays, the shared closure manifest, the dedicated closure-ledger supplement, the focused ring drained-reset reuse replay, the focused multitouch preflight replay, and the focused MMIO queue-isolation replay, rather than a set of independent virtio starter files?
 
 ## Phase 11: Simple-driver packet
 
@@ -152,7 +153,7 @@ Reviewer prompt:
 ## Checklist carryover prompts
 
 Keep these reviewer questions explicit when `Documentation/zigux/review-checklist.md` or other shared contributor surfaces are refreshed:
-- Phase 10: do `Documentation/zigux/phase10-closure-evidence.md`, `zigux-alpha/PHASE10_CLOSURE_LEDGER.md`, `zigux/tests/phase10_closure_manifest.json`, `scripts/zigux/check-phase10-closure-inventory.py`, `scripts/zigux/check-phase10-core-packet.py`, `scripts/zigux/check-phase10-harness-coverage.py`, `zigux/tests/phase10_virtio_core_survey.zig`, `zigux/tests/phase10_virtio_ring_survey.zig`, `zigux/tests/phase10_virtio_input_survey.zig`, `zigux/tests/phase10_virtio_mmio_survey.zig`, `zigux/tests/phase10_virtio_ring_reset_reuse.zig`, `zigux/tests/phase10_virtio_input_multitouch_preflight.zig`, and `zigux/tests/phase10_virtio_mmio_queue_isolation.zig` still describe the same validator-first lab bundle and focused harness evidence?
+- Phase 10: do `Documentation/zigux/phase10-closure-evidence.md`, `zigux-alpha/PHASE10_CLOSURE_LEDGER.md`, `zigux/tests/phase10_closure_manifest.json`, `scripts/zigux/check-phase10-closure-inventory.py`, `scripts/zigux/check-phase10-core-packet.py`, `scripts/zigux/check-phase10-harness-coverage.py`, `zigux/tests/phase10_virtio_core.zig`, `zigux/tests/phase10_virtio_core_survey.zig`, `zigux/tests/phase10_virtio_ring_survey.zig`, `zigux/tests/phase10_virtio_input_survey.zig`, `zigux/tests/phase10_virtio_mmio_survey.zig`, `zigux/tests/phase10_virtio_ring_reset_reuse.zig`, `zigux/tests/phase10_virtio_input_multitouch_preflight.zig`, and `zigux/tests/phase10_virtio_mmio_queue_isolation.zig` still describe the same validator-first lab bundle and focused harness evidence?
 - Phase 11: do `Documentation/zigux/phase11-shared-replay-contract.md`, `scripts/zigux/check-phase11-build-inventory.py`, `scripts/zigux/check-phase11-layout-assert-surface.py`, `scripts/zigux/check-phase11-hvc-validation-flow.py`, `scripts/zigux/check-phase11-hvc-cleanup-alignment.py`, `scripts/zigux/check-phase11-shared-replay-contract.py`, `scripts/zigux/check-phase11-header-boundary-packet.py`, `zigux/tests/phase11_build.zig`, `zigux/tests/phase11_hvc_console_survey.zig`, and `zigux/tests/phase11_uapi_header_parity_manifest.json` still keep the pre-replay stack, the shared-versus-dedicated `hvc_console` split, and the shared header-boundary packet aligned?
 - Phase 13: do `Documentation/zigux/phase13-release-notes-survey.md`, `Documentation/zigux/README.md`, `zigux/tests/phase13_build.zig`, `zigux/tests/phase13_libfs_manifest.json`, `zigux/tests/phase13_devres_manifest.json`, `zigux/tests/phase13_landlock_ruleset_manifest.json`, `zigux/tests/phase13_landlock_syscalls_manifest.json`, `zigux/tests/phase13_notifier_list_manifest.json`, `scripts/zigux/check-phase13-devres-packet.py`, `zigux/tests/phase13_landlock_syscalls_reviewability.zig`, `zigux/tests/phase13_notifier_list_reviewability.zig`, `zigux/bindings/notifier_abi.zig`, `include/zigux/notifier_abi.h`, and `zigux/helpers/notifier_chain_view.zig` still keep the validator-first release path, the four roadmap-anchor manifests plus the adjacent notifier-list manifest, the dedicated devres packet guard, and the adjacent notifier evidence aligned?
 
