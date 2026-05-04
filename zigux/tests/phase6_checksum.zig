@@ -240,7 +240,7 @@ test "fixture inventory and representative checksum cases stay reviewable" {
     try std.testing.expectEqual(@as(usize, 5), fixtures.compute_cases.len);
     try std.testing.expectEqual(@as(usize, 2), fixtures.composition_cases.len);
     try std.testing.expectEqual(@as(usize, 3), fixtures.seeded_cases.len);
-    try std.testing.expectEqual(@as(usize, 2), fixtures.add16_cases.len);
+    try std.testing.expectEqual(@as(usize, 3), fixtures.add16_cases.len);
     try std.testing.expectEqual(@as(usize, 2), fixtures.sub16_cases.len);
     try std.testing.expectEqual(@as(usize, 1), fixtures.pseudo_header_cases.len);
     try std.testing.expectEqual(@as(usize, 3), fixtures.ipv6_pseudo_header_cases.len);
