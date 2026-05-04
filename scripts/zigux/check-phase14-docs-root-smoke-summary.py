@@ -57,12 +57,9 @@ RELEASE_BOUNDARY_LINES = [
     "Keep this lane parked unless the shared smoke packet or one of the four anchor-local Phase 14 manifests moves. If that happens, refresh this release-boundary reading and the docs-root Phase 14 summary so the release-facing story keeps matching the validator-backed smoke packet without widening it into a new active delivery claim.",
 ]
 
-SCRIPTS_README_SUBSTRINGS = [
-    "`check-phase14-docs-root-smoke-summary.py --self-test` and `check-phase14-docs-root-smoke-summary.py` keep the docs-root Phase 14 smoke summary and the shared smoke survey fail-closed around the same validator-backed `phase14-validate`, focused `phase14-smoke`, and study-only reviewability wording before the broader shared validator runs.",
-]
-
 SCRIPTS_README_EXACT_LINE_COUNTS = {
     "- `check-phase14-docs-root-smoke-summary.py`": 1,
+    "- `check-phase14-docs-root-smoke-summary.py --self-test` and `check-phase14-docs-root-smoke-summary.py` keep the docs-root Phase 14 smoke summary and the shared smoke survey fail-closed around the same validator-backed `phase14-validate`, focused `phase14-smoke`, and study-only reviewability wording before the broader shared validator runs.": 1,
     "- `Documentation/zigux/phase14-release-boundary-survey.md`, `Documentation/zigux/phase14-end-to-end-smoke-survey.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/freeze-map.md`, `zigux/tests/phase14_end_to_end_smoke_manifest.json`, and `zigux/tests/phase14_end_to_end_smoke_survey.zig` keep the exact rollback threshold, automatic return-to-blocked trigger list, and ZAR-to-product transfer rationale visible from the docs root rather than relying on run memory.": 1,
     "- attached-toolchain fallback commands stay explicit in the scripts index too: `make -C zigux phase14-validate PYTHON=python3 ZIG=<attached-zig-path>`, `make -C zigux phase14-smoke ZIG=<attached-zig-path>`, `make -C zigux phase14-test ZIG=<attached-zig-path>`, and `make -C zigux phase14 ZIG=<attached-zig-path>`.": 1,
 }
@@ -109,9 +106,6 @@ def validate_phase14_summary_surfaces(
     issues.extend(require_exact_lines("survey", survey_text, SURVEY_EXACT_LINE_COUNTS))
     issues.extend(require_exact_lines("makefile", makefile_text, MAKEFILE_EXACT_LINE_COUNTS))
     issues.extend(require_exact_count("release_boundary", release_boundary_text, RELEASE_BOUNDARY_LINES))
-    issues.extend(
-        require_substrings("scripts_readme", scripts_readme_text, SCRIPTS_README_SUBSTRINGS)
-    )
     issues.extend(
         require_exact_lines(
             "scripts_readme", scripts_readme_text, SCRIPTS_README_EXACT_LINE_COUNTS
@@ -348,6 +342,18 @@ phase14: phase14-validate phase14-test
             True,
         ),
         (
+            "missing_scripts_readme_flow_line",
+            docs_root_text,
+            survey_text,
+            release_boundary_text,
+            scripts_readme_text.replace(
+                "- `check-phase14-docs-root-smoke-summary.py --self-test` and `check-phase14-docs-root-smoke-summary.py` keep the docs-root Phase 14 smoke summary and the shared smoke survey fail-closed around the same validator-backed `phase14-validate`, focused `phase14-smoke`, and study-only reviewability wording before the broader shared validator runs.\n",
+                "",
+            ),
+            makefile_text,
+            True,
+        ),
+        (
             "missing_scripts_readme_release_boundary_line",
             docs_root_text,
             survey_text,
@@ -365,6 +371,16 @@ phase14: phase14-validate phase14-test
             survey_text,
             release_boundary_text,
             scripts_readme_text + "\n- `check-phase14-docs-root-smoke-summary.py`",
+            makefile_text,
+            True,
+        ),
+        (
+            "duplicate_scripts_readme_flow_line",
+            docs_root_text,
+            survey_text,
+            release_boundary_text,
+            scripts_readme_text
+            + "\n- `check-phase14-docs-root-smoke-summary.py --self-test` and `check-phase14-docs-root-smoke-summary.py` keep the docs-root Phase 14 smoke summary and the shared smoke survey fail-closed around the same validator-backed `phase14-validate`, focused `phase14-smoke`, and study-only reviewability wording before the broader shared validator runs.",
             makefile_text,
             True,
         ),
@@ -467,10 +483,7 @@ def main(argv: list[str]) -> int:
     print(f"PHASE14_SURVEY_MARKER_COUNT={len(SURVEY_EXACT_LINE_COUNTS) + 1}")
     print(f"PHASE14_MAKEFILE_MARKER_COUNT={len(MAKEFILE_EXACT_LINE_COUNTS)}")
     print(f"PHASE14_RELEASE_BOUNDARY_MARKER_COUNT={len(RELEASE_BOUNDARY_LINES)}")
-    print(
-        "PHASE14_SCRIPTS_README_MARKER_COUNT="
-        f"{len(SCRIPTS_README_SUBSTRINGS) + len(SCRIPTS_README_EXACT_LINE_COUNTS)}"
-    )
+    print(f"PHASE14_SCRIPTS_README_MARKER_COUNT={len(SCRIPTS_README_EXACT_LINE_COUNTS)}")
     return 0
 
 
