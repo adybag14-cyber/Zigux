@@ -140,16 +140,32 @@ PHASE2_TOOLCHAIN_NOTES_REQUIRED_SOURCE_MARKERS = [
     "python3 scripts/zigux/check-zig-toolchain.py --self-test",
     "python3 scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test",
     "python3 scripts/zigux/check-phase2-toolchain-pin-scope.py",
-    "python3 scripts/zigux/install-zig.py --dest .zig-toolchain",
-    "python3 scripts/zigux/check-zig-toolchain.py",
+    "python3 scripts/zigux/check-phase2-tests-readme-alignment.py --self-test",
+    "python3 scripts/zigux/check-phase2-tests-readme-alignment.py",
     "python3 scripts/zigux/validate-phase2.py",
     "python3 scripts/zigux/validate-phase2-closure.py",
     "Documentation/zigux/phase2-closure.md",
     "Documentation/zigux/review-checklist.md",
     "make -C zigux phase2-validate",
     "make -C zigux phase2",
+    "same three-target compile matrix, validator pair, and Linux-style `make -C zigux phase2-validate` plus `make -C zigux phase2` replay surface",
     "kbuild-facing replay surface",
     "same kbuild-facing replay surface named by the shared validators, the closure note, and the shared review checklist",
+    "x86_64-linux",
+]
+PHASE2_TOOLCHAIN_README_REQUIRED_SOURCE_MARKERS = [
+    "check-phase2-toolchain-pin-scope.py --self-test",
+    "check-phase2-toolchain-pin-scope.py",
+    "check-phase2-tests-readme-alignment.py --self-test",
+    "check-phase2-tests-readme-alignment.py",
+    "Documentation/zigux/phase2-toolchain-bootstrap-notes.md",
+    "Documentation/zigux/phase2-closure.md",
+    "Documentation/zigux/review-checklist.md",
+    "zigux/tests/README.md",
+    "phase2_cross_targets.json",
+    "make -C zigux phase2-validate",
+    "make -C zigux phase2",
+    "kbuild-facing review path",
     "x86_64-linux",
 ]
 PHASE2_TOOLCHAIN_REVIEW_CHECKLIST_REQUIRED_SOURCE_MARKERS = [
@@ -565,6 +581,13 @@ def main() -> int:
             TOOLCHAIN_NOTES,
             label="phase2_toolchain_notes",
             required_markers=PHASE2_TOOLCHAIN_NOTES_REQUIRED_SOURCE_MARKERS,
+        )
+    )
+    issues.extend(
+        validate_source_markers(
+            README_FILE,
+            label="phase2_toolchain_readme",
+            required_markers=PHASE2_TOOLCHAIN_README_REQUIRED_SOURCE_MARKERS,
         )
     )
     issues.extend(
