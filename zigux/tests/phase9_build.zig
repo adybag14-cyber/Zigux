@@ -70,6 +70,13 @@ pub fn build(b: *std.Build) void {
         .target = target,
         .optimize = optimize,
     });
+    const runtime_trace_events_loader_module = b.createModule(.{
+        .root_source_file = b.path("../../samples/zigux/runtime_trace_events_loader.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    runtime_trace_events_loader_module.addImport("runtime_trace_events_sample", runtime_trace_events_sample_module);
+    runtime_trace_events_loader_module.addImport("runtime_loader", runtime_loader_module);
     const runtime_kretprobe_sample_module = b.createModule(.{
         .root_source_file = b.path("../../samples/zigux/runtime_kretprobe.zig"),
         .target = target,
@@ -234,6 +241,11 @@ pub fn build(b: *std.Build) void {
         .root_module = runtime_trace_events_diff_module,
     });
     const run_runtime_trace_events_diff_tests = b.addRunArtifact(runtime_trace_events_diff_tests);
+    const runtime_trace_events_loader_tests = b.addTest(.{
+        .name = "phase9-runtime-trace-events-loader-tests",
+        .root_module = runtime_trace_events_loader_module,
+    });
+    const run_runtime_trace_events_loader_tests = b.addRunArtifact(runtime_trace_events_loader_tests);
     const runtime_kretprobe_sample_tests = b.addTest(.{
         .name = "phase9-runtime-kretprobe-sample-tests",
         .root_module = runtime_kretprobe_sample_module,
@@ -296,7 +308,7 @@ pub fn build(b: *std.Build) void {
     });
     const run_runtime_loader_non_owner_boundary_survey_tests = b.addRunArtifact(runtime_loader_non_owner_boundary_survey_tests);
 
-    const test_step = b.step("test", "Run Phase 9 runtime atomic64, bitmap, trace-events, kretprobe, loader, allocator-init-flow, loader-gap, non-owner-boundary, and module-metadata survey tests");
+    const test_step = b.step("test", "Run Phase 9 runtime atomic64, bitmap, trace-events, trace-events loader, kretprobe, loader, allocator-init-flow, loader-gap, non-owner-boundary, and module-metadata survey tests");
     test_step.dependOn(&run_runtime_atomic64_module_tests.step);
     test_step.dependOn(&run_runtime_atomic64_loader_tests.step);
     test_step.dependOn(&run_runtime_atomic64_sample_tests.step);
@@ -309,6 +321,7 @@ pub fn build(b: *std.Build) void {
     test_step.dependOn(&run_runtime_trace_events_module_tests.step);
     test_step.dependOn(&run_runtime_trace_events_sample_tests.step);
     test_step.dependOn(&run_runtime_trace_events_diff_tests.step);
+    test_step.dependOn(&run_runtime_trace_events_loader_tests.step);
     test_step.dependOn(&run_runtime_kretprobe_sample_tests.step);
     test_step.dependOn(&run_runtime_kretprobe_module_tests.step);
     test_step.dependOn(&run_runtime_kretprobe_diff_tests.step);
