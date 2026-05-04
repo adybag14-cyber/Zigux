@@ -133,7 +133,7 @@ test "phase11 hvc_console survey manifest records the landed starter and remaini
     try std.testing.expect(manifest.survey_summary.hvc_console_poll_retry_split_present);
     try std.testing.expect(manifest.survey_summary.hvc_console_survey_gate_present);
     try std.testing.expect(manifest.survey_summary.hvc_console_survey_note_present);
-    try std.testing.expectEqual(@as(usize, 16), manifest.gaps.len);
+    try std.testing.expectEqual(@as(usize, 17), manifest.gaps.len);
 
     var starter_landed_count: usize = 0;
     var ready_next_count: usize = 0;
@@ -152,6 +152,7 @@ test "phase11 hvc_console survey manifest records the landed starter and remaini
     var saw_winsize_layout_assert = false;
     var saw_hv_ops_layout_assert = false;
     var saw_hv_ops_signature_assert = false;
+    var saw_hvc_export_signature_assert = false;
     var saw_driver_tests = false;
     var saw_validation_matrix = false;
 
@@ -329,6 +330,16 @@ test "phase11 hvc_console survey manifest records the landed starter and remaini
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "dtr_rts") != null);
         }
 
+        if (std.mem.eql(u8, gap.id, "phase11-hvc-console-export-signature-assert")) {
+            saw_hvc_export_signature_assert = true;
+            try std.testing.expectEqualStrings("zigux/tests/phase11_hvc_console_survey.zig", gap.zigux_destination);
+            try std.testing.expectEqualStrings("starter_landed", gap.status);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "C calling convention") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "hvc_instantiate") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "__hvc_resize") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "notifier_hangup_irq") != null);
+        }
+
         if (std.mem.eql(u8, gap.id, "phase11-hvc-console-driver-tests")) {
             saw_driver_tests = true;
             try std.testing.expectEqualStrings("zigux/tests/phase11_hvc_console.zig", gap.zigux_destination);
@@ -371,7 +382,7 @@ test "phase11 hvc_console survey manifest records the landed starter and remaini
         }
     }
 
-    try std.testing.expectEqual(@as(usize, 16), starter_landed_count);
+    try std.testing.expectEqual(@as(usize, 17), starter_landed_count);
     try std.testing.expectEqual(@as(usize, 0), ready_next_count);
     try std.testing.expectEqual(@as(usize, 0), blocked_count);
     try std.testing.expect(saw_build_gate);
@@ -388,6 +399,7 @@ test "phase11 hvc_console survey manifest records the landed starter and remaini
     try std.testing.expect(saw_winsize_layout_assert);
     try std.testing.expect(saw_hv_ops_layout_assert);
     try std.testing.expect(saw_hv_ops_signature_assert);
+    try std.testing.expect(saw_hvc_export_signature_assert);
     try std.testing.expect(saw_driver_tests);
     try std.testing.expect(saw_validation_matrix);
 }
@@ -548,6 +560,9 @@ test "phase11 hvc console survey keeps the survey note, slice note, and validati
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "tiny notifier-add open handoff summary") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "hvc_kick") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "notifier-IRQ helper surface") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "four driver-local ABI checkpoints") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "fourth exported-helper signature proof") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "notifier_hangup_irq()") != null);
     try std.testing.expect(std.mem.indexOf(u8, validation_matrix, "`hvc_remove()` handoff") != null);
     try std.testing.expect(std.mem.indexOf(u8, validation_matrix, "`hvc_cleanup()` tty-port release handoff") != null);
     try std.testing.expect(std.mem.indexOf(u8, validation_matrix, "`summarizeNotifierAddOutcome()`") != null);
