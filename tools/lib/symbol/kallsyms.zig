@@ -334,6 +334,34 @@ pub fn kallsymsParseReader(
     return callback_state.result;
 }
 
+pub fn kallsymsParseFile(
+    allocator: std.mem.Allocator,
+    io: std.Io,
+    file: std.Io.File,
+    scratch_buffer: []u8,
+    context: ?*anyopaque,
+    process_symbol: ProcessSymbolFn,
+) !i32 {
+    var callback_state = ProcessSymbolCallbackState{
+        .context = context,
+        .process_symbol = process_symbol,
+    };
+
+    forEachParsedFile(
+        allocator,
+        io,
+        file,
+        scratch_buffer,
+        &callback_state,
+        ProcessSymbolCallbackState.process,
+    ) catch |err| switch (err) {
+        error.StopParsing => return callback_state.result,
+        else => return err,
+    };
+
+    return callback_state.result;
+}
+
 pub fn kallsymsParseInDir(
     allocator: std.mem.Allocator,
     io: std.Io,
@@ -911,6 +939,48 @@ test "kallsymsParse wrappers preserve the C-shaped callback contract and bounded
         try writer.interface.flush();
     }
 
+    const file = try temp_dir.dir.openFile(io, "kallsyms.map", .{});
+    defer file.close(io);
+
+    var file_scratch_buffer: [17]u8 = undefined;
+    var file_state = CallbackState.init();
+    defer file_state.deinit(std.testing.allocator);
+
+    const file_result = try kallsymsParseFile(
+        std.testing.allocator,
+        io,
+        file,
+        &file_scratch_buffer,
+        &file_state,
+        CallbackState.collect,
+    );
+
+    try std.testing.expectEqual(@as(i32, 23), file_result);
+    try std.testing.expectEqual(@as(usize, 2), file_state.names.items.len);
+    try std.testing.expectEqualStrings("startup_64", file_state.names.items[0]);
+    try std.testing.expectEqualStrings("weak_handler", file_state.names.items[1]);
+    try std.testing.expectEqual(@as(u8, 'W'), file_state.symbol_types.items[1]);
+    try std.testing.expectEqual(@as(u64, 0xffffffff81000200), file_state.starts.items[1]);
+
+    var empty_file_state = CallbackState.init();
+    defer empty_file_state.deinit(std.testing.allocator);
+    var empty_file_scratch_buffer: [0]u8 = .{};
+
+    const empty_file = try temp_dir.dir.openFile(io, "kallsyms.map", .{});
+    defer empty_file.close(io);
+
+    try std.testing.expectError(
+        error.EmptyScratchBuffer,
+        kallsymsParseFile(
+            std.testing.allocator,
+            io,
+            empty_file,
+            &empty_file_scratch_buffer,
+            &empty_file_state,
+            CallbackState.collectWithoutStop,
+        ),
+    );
+
     var callback_state = CallbackState.init();
     defer callback_state.deinit(std.testing.allocator);
 
@@ -993,13 +1063,36 @@ test "kallsymsParse wrappers preserve the C-shaped callback contract and bounded
     try std.testing.expectEqual(@as(u64, 1), oversized_contents_state.starts.items[0]);
 
     {
-        const file = try temp_dir.dir.createFile(io, "oversized-kallsyms.map", .{ .read = true, .truncate = true });
-        defer file.close(io);
+        const oversized_output = try temp_dir.dir.createFile(io, "oversized-kallsyms.map", .{ .read = true, .truncate = true });
+        defer oversized_output.close(io);
         var writer_buffer: [640]u8 = undefined;
-        var writer: std.Io.File.Writer = .init(file, io, &writer_buffer);
+        var writer: std.Io.File.Writer = .init(oversized_output, io, &writer_buffer);
         try writer.interface.writeAll(oversized_contents);
         try writer.interface.flush();
     }
+
+    const oversized_file = try temp_dir.dir.openFile(io, "oversized-kallsyms.map", .{});
+    defer oversized_file.close(io);
+
+    var oversized_file_state = CallbackState.init();
+    defer oversized_file_state.deinit(std.testing.allocator);
+    var oversized_file_scratch_buffer: [19]u8 = undefined;
+
+    const oversized_file_result = try kallsymsParseFile(
+        std.testing.allocator,
+        io,
+        oversized_file,
+        &oversized_file_scratch_buffer,
+        &oversized_file_state,
+        CallbackState.collectWithoutStop,
+    );
+
+    try std.testing.expectEqual(@as(i32, 0), oversized_file_result);
+    try std.testing.expectEqual(@as(usize, 1), oversized_file_state.names.items.len);
+    try std.testing.expectEqual(@as(usize, KSYM_NAME_LEN), oversized_file_state.names.items[0].len);
+    try std.testing.expect(std.mem.allEqual(u8, oversized_file_state.names.items[0], 'b'));
+    try std.testing.expectEqual(@as(u8, 'T'), oversized_file_state.symbol_types.items[0]);
+    try std.testing.expectEqual(@as(u64, 1), oversized_file_state.starts.items[0]);
 
     const oversized_filename = try std.fs.path.join(
         std.testing.allocator,
@@ -1064,6 +1157,72 @@ test "kallsymsParseReader keeps the final unterminated callback record at EOF" {
     const result = try kallsymsParseReader(
         std.testing.allocator,
         &reader,
+        &scratch_buffer,
+        &state,
+        CallbackState.collect,
+    );
+
+    try std.testing.expectEqual(@as(i32, 0), result);
+    try std.testing.expectEqual(@as(usize, 2), state.names.items.len);
+    try std.testing.expectEqualStrings("startup_64", state.names.items[0]);
+    try std.testing.expectEqualStrings("weak_tail", state.names.items[1]);
+}
+
+test "kallsymsParseFile keeps the final unterminated callback record at EOF with caller-owned scratch" {
+    const CallbackState = struct {
+        names: std.ArrayList([]u8),
+
+        fn init() @This() {
+            return .{
+                .names = std.ArrayList([]u8).empty,
+            };
+        }
+
+        fn deinit(self: *@This(), allocator: std.mem.Allocator) void {
+            for (self.names.items) |name| {
+                allocator.free(name);
+            }
+            self.names.deinit(allocator);
+            self.* = undefined;
+        }
+
+        fn collect(context: ?*anyopaque, name: [:0]const u8, symbol_type: u8, start: u64) i32 {
+            _ = symbol_type;
+            _ = start;
+            const self: *@This() = @ptrCast(@alignCast(context.?));
+            self.names.append(std.testing.allocator, std.testing.allocator.dupe(u8, name) catch return -99) catch return -98;
+            return 0;
+        }
+    };
+
+    const contents =
+        "ffffffff81000000 T startup_64\n" ++
+        "ffffffff81000400 w weak_tail";
+
+    var temp_dir = std.testing.tmpDir(.{});
+    defer temp_dir.cleanup();
+    const io = std.testing.io;
+
+    {
+        const file = try temp_dir.dir.createFile(io, "kallsyms-file-eof.map", .{ .read = true });
+        defer file.close(io);
+        var writer_buffer: [128]u8 = undefined;
+        var writer: std.Io.File.Writer = .init(file, io, &writer_buffer);
+        try writer.interface.writeAll(contents);
+        try writer.interface.flush();
+    }
+
+    const file = try temp_dir.dir.openFile(io, "kallsyms-file-eof.map", .{});
+    defer file.close(io);
+
+    var state = CallbackState.init();
+    defer state.deinit(std.testing.allocator);
+    var scratch_buffer: [12]u8 = undefined;
+
+    const result = try kallsymsParseFile(
+        std.testing.allocator,
+        io,
+        file,
         &scratch_buffer,
         &state,
         CallbackState.collect,
