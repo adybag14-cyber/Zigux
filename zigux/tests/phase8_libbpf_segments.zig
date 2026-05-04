@@ -218,7 +218,7 @@ test "phase 8 libbpf segment manifest records the current bounded catalog" {
     defer parsed.deinit();
 
     const manifest = parsed.value;
-    try std.testing.expectEqualStrings("P8-L13", manifest.lane_key);
+    try std.testing.expectEqualStrings("P8-L15", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 8", manifest.phase);
     try std.testing.expectEqualStrings(current_surveyed_commit, manifest.surveyed_commit);
     try std.testing.expectEqualStrings("tools/lib/bpf/libbpf.c", manifest.anchor);
@@ -398,7 +398,7 @@ test "phase 8 docs keep the deferred irq routing and timer boundary explicit" {
     );
     try expectContains(
         survey_note,
-        "active scheduled ownership and cleanup lane for this packet is `P8-L13`",
+        "active scheduled ownership and cleanup lane for this packet is `P8-L15`",
     );
     try expectContains(survey_note, "perf-buffer-online-cpu-routing");
     try expectContains(survey_note, "per-CPU `perf_event_open()` setup");
