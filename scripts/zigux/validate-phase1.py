@@ -218,10 +218,6 @@ MANIFEST_EXPECTATIONS = {
         "empty_unit_test_contract": "Direct Zig unit coverage keeps bitmap_scnprintf() from mutating a non-empty caller buffer when no bits are set, matching the committed empty-bitmap parity fixture contract.",
     },
     "tools/lib/find_bit.zig": {
-        "small_bitmap_unit_test_anchor": 'tools/lib/find_bit.zig:test "single-word scans keep linux small-bitmap semantics"',
-        "small_bitmap_unit_test_contract": "Direct Zig unit coverage keeps single-word set, zero, and shared-bit scans aligned with Linux small-bitmap semantics by masking out-of-range tail bits while preserving inclusive in-range matches inside one word.",
-        "low_level_unit_test_anchor": 'tools/lib/find_bit.zig:test "find low-level underscore entry points preserve same-word and tail-clamped scan semantics"',
-        "low_level_unit_test_contract": "Direct Zig unit coverage keeps _find_first_bit(), _find_first_and_bit(), _find_first_zero_bit(), _find_next_bit(), _find_next_and_bit(), and _find_next_zero_bit() aligned with the public scan helpers across same-word inclusive starts and tail-clamped caller-selected bit windows.",
         "tail_start_unit_test_anchor": 'tools/lib/find_bit.zig:test "tail scans keep the last in-range bit reachable from an inclusive start"',
         "tail_start_unit_test_contract": "Direct Zig unit coverage keeps tail-clamped set, zero, and shared-bit scans aligned when the inclusive start lands on the last in-range bit, while later starts still return nbits instead of leaking the out-of-range tail.",
         "tail_word_boundary_unit_test_anchor": 'tools/lib/find_bit.zig:test "tail scans honor an exact tail-word boundary start"',
@@ -469,6 +465,7 @@ def self_test() -> int:
         write(fixture_path, json.dumps({k: {x: 1 for x in v} for k, v in FIXTURE_SHAPE.items()}, indent=2) + "\n")
         for rel in (
             "Documentation/zigux/review-checklist.md",
+            "scripts/zigux/check-phase1-find-bit-validator-anchors.py",
             "scripts/zigux/check-phase1-validation-route-inventory.py",
             ".github/workflows/zigux-bootstrap.yml",
             "zigux/Makefile",
@@ -479,7 +476,7 @@ def self_test() -> int:
             expect_failure(root, rel)
             write(path, baseline)
     print("PHASE1_VALIDATOR_SELF_TEST=pass")
-    print("PHASE1_VALIDATOR_SELF_TEST_CASE_COUNT=21")
+    print("PHASE1_VALIDATOR_SELF_TEST_CASE_COUNT=22")
     return 0
 
 
