@@ -229,7 +229,5 @@
   "expected_test_count": 59,
   "expected_summary_line": "Build Summary: 25/25 steps succeeded; 59/59 tests passed",
   "forbidden_markers": [],
-  "dedicated_survey_replays": [
-    "phase12-libbpf-focused-replay"
-  ]
+  "dedicated_survey_replays": []
 }
