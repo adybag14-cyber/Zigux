@@ -26,6 +26,11 @@ REQUIRED_MARKERS = {
         "- `Documentation/zigux/phase1-closure.md` remains the dedicated closure packet for the bounded host-side `tools/lib/*.zig` helper tranche, and `zigux/tests/fixtures/phase1_helper_manifest.json` plus `zigux/tests/phase1_helpers.zig` keep the closed helper inventory and parity-backed replay surface explicit from the docs root.",
         1,
     ),
+    "docs_root_phase1_companion_count": (
+        "Documentation/zigux/README.md",
+        "- `Documentation/zigux/phase1-tests-root-review-companion.md` keeps the tests-root ownership view, shared reviewer surface, and fail-closed checker stack explicit for that same closed Phase 1 helper packet, so the docs root does not leave the narrower tests-root review path implicit behind the broader closure note.",
+        1,
+    ),
     "docs_root_phase1_entrypoints_count": (
         "Documentation/zigux/README.md",
         "- `python3 scripts/zigux/validate-phase1.py`, `python3 scripts/zigux/validate-phase1-closure.py`, `make -C zigux phase1-validate`, `make -C zigux phase1-test`, `make -C zigux phase1-bench`, and `make -C zigux phase1` are the current validator-first and replay entrypoints for that bounded host-side helper packet.",
@@ -223,6 +228,7 @@ def expect_missing_and_duplicate(
 def self_test() -> int:
     docs_markers = [
         REQUIRED_MARKERS["docs_root_phase1_closure_packet_count"][1],
+        REQUIRED_MARKERS["docs_root_phase1_companion_count"][1],
         REQUIRED_MARKERS["docs_root_phase1_entrypoints_count"][1],
     ]
     scripts_markers = [
@@ -257,8 +263,14 @@ def self_test() -> int:
         (
             "Documentation/zigux/README.md",
             docs_markers,
-            "docs_root_phase1_entrypoints_count",
+            "docs_root_phase1_companion_count",
             docs_markers[1],
+        ),
+        (
+            "Documentation/zigux/README.md",
+            docs_markers,
+            "docs_root_phase1_entrypoints_count",
+            docs_markers[2],
         ),
         (
             "scripts/zigux/README.md",
