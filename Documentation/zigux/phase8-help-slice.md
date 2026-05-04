@@ -19,7 +19,9 @@ This document tracks the bounded Phase 8 userspace-adjacent tooling slice for Zi
 
 The Phase 8 roadmap explicitly names `tools/lib/subcmd/help.c` as a userspace-adjacent tooling anchor and recommends `tools/lib/subcmd/*.zig` as the first Zigux destination for this tranche.
 
-This lane keeps the shipped `help.zig` parked slice aligned with the stable command-list manipulation logic from `help.c`, because that surface is still easier to validate honestly than direct terminal-size probing, directory walking, or environment inspection. Pure writer-driven output emission remains in scope here because it is driven entirely by injected inputs and stays reviewable without widening into terminal, environment, or CLI side effects.
+The broader Phase 8 goal is to prove Zigux inside serious repo-hosted tooling, not just tiny helpers, and this parked `tools/lib/subcmd/help.zig` slice is one of the concrete `tools/lib/subcmd/*.zig` destinations that carries that tooling-expansion evidence.
+
+This lane keeps the shipped `help.zig` parked slice aligned with the stable command-list manipulation logic from `help.c`, because that surface is still easier to validate honestly than direct terminal-size probing, directory walking, or environment inspection. Pure writer-driven output emission remains in scope here because it is driven entirely by injected inputs and stays reviewable without widening into terminal, environment, or CLI side effects. That keeps the packet rooted in helper-first, output-stable tooling behavior rather than treating the current port as an isolated formatting helper.
 
 ## Gates
 
