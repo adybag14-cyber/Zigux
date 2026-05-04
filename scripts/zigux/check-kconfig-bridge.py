@@ -778,6 +778,7 @@ def main() -> int:
                 expected_path=FIXTURE_DIR / case['expected'],
             )
 
+        # confdata bridge normalizes a trailing carriage return on the final unterminated line
         trailing_cr_input, trailing_cr_expected = write_synthetic_confdata_case(
             tmp_dir,
             name='final_trailing_carriage_return',
