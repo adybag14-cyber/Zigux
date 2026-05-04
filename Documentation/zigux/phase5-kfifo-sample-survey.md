@@ -125,11 +125,12 @@ The latest direct Zig replay recorded for this packet remains the 2026-05-01 run
 The exact focused verification commands and observed results for the bytestream-local packet were:
 
 - `zig test samples/zigux/bytestream_fifo.zig`
-  - observed result: `1/4 bytestream_fifo.test.bytestream fifo sample replays the Linux anchor result sequence...OK`
-  - observed result: `2/4 bytestream_fifo.test.bytestream fifo sample keeps helper boundaries explicit...OK`
-  - observed result: `3/4 bytestream_fifo.test.bytestream fifo sample keeps ownership and lifetime guards explicit...OK`
-  - observed result: `4/4 bytestream_fifo.test.bytestream fifo sample reset clears queue state without rewinding lifecycle bookkeeping...OK`
-  - observed result: `All 4 tests passed.`
+  - observed result: `1/5 bytestream_fifo.test.bytestream fifo sample replays the Linux anchor result sequence...OK`
+  - observed result: `2/5 bytestream_fifo.test.bytestream fifo sample keeps helper boundaries explicit...OK`
+  - observed result: `3/5 bytestream_fifo.test.bytestream fifo sample exposes wraparound state explicitly...OK`
+  - observed result: `4/5 bytestream_fifo.test.bytestream fifo sample keeps ownership and lifetime guards explicit...OK`
+  - observed result: `5/5 bytestream_fifo.test.bytestream fifo sample reset clears queue state without rewinding lifecycle bookkeeping...OK`
+  - observed result: `All 5 tests passed.`
 - `zig test zigux/tests/phase5_bytestream_fifo.zig`
   - observed result: `1/5 phase5_bytestream_fifo.test.phase 5 bytestream fifo sample stays in the reference-sample lane...OK`
   - observed result: `2/5 phase5_bytestream_fifo.test.phase 5 bytestream fifo sample replays exact queue behavior from the Linux anchor...OK`
