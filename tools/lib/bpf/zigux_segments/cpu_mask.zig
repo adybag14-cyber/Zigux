@@ -23,7 +23,7 @@ pub const ParseCpuMaskError = error{
     InputTooLarge,
 };
 
-pub const PlanPerfBufferExplicitTargetError = error{
+pub const PlanPerfBufferExplicitTargetError = std.mem.Allocator.Error || error{
     CpuCountMismatch,
     InvalidCpuIndex,
     InvalidMapKey,
