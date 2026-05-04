@@ -14,8 +14,10 @@ ROOT = _SELF_PATH.parents[2] if len(_SELF_PATH.parents) > 2 else _SELF_PATH.pare
 
 SURVEY_PATH = "Documentation/zigux/phase9-runtime-loader-gap-survey.md"
 SUBSTRATE_PLAN_PATH = "Documentation/zigux/phase9-runtime-loader-substrate-plan.md"
+TESTS_REVIEW_COMPANION_PATH = "Documentation/zigux/phase9-tests-root-review-companion.md"
 REVIEW_CHECKLIST_PATH = "Documentation/zigux/review-checklist.md"
 SAMPLES_README_PATH = "samples/zigux/README.md"
+TESTS_README_PATH = "zigux/tests/README.md"
 MAKEFILE_PATH = "zigux/Makefile"
 MANIFEST_PATH = "zigux/tests/runtime_loader_gap_manifest.json"
 RUNTIME_LOADER_PATH = "zigux/kernel/runtime_loader.zig"
@@ -28,8 +30,10 @@ TRACE_EVENTS_LOADER_PATH = "samples/zigux/runtime_trace_events_loader.zig"
 REQUIRED_FILES = [
     SURVEY_PATH,
     SUBSTRATE_PLAN_PATH,
+    TESTS_REVIEW_COMPANION_PATH,
     REVIEW_CHECKLIST_PATH,
     SAMPLES_README_PATH,
+    TESTS_README_PATH,
     MAKEFILE_PATH,
     MANIFEST_PATH,
     RUNTIME_LOADER_PATH,
@@ -386,6 +390,52 @@ SAMPLES_README_REQUIRED_GROUPS = {
 }
 
 
+TESTS_REVIEW_COMPANION_REQUIRED_GROUPS = {
+    "shared_reviewer_surface": [
+        "Documentation/zigux/phase9-tests-root-review-companion.md",
+        "scripts/zigux/check-phase9-loader-substrate-plan.py",
+        "zigux/tests/README.md",
+        "zigux/tests/phase9_build.zig",
+    ],
+    "shared_request_boundary": [
+        "zigux/tests/runtime_loader_gap_manifest.json",
+        "zigux/tests/runtime_loader_gap_survey.zig",
+        "scripts/zigux/check-phase9-loader-substrate-plan.py",
+        "Documentation/zigux/phase9-runtime-loader-substrate-plan.md",
+        "RuntimeLoadRequest",
+    ],
+}
+
+
+TESTS_README_REQUIRED_GROUPS = {
+    "runtime_bundle_reviewability": [
+        "Documentation/zigux/phase9-tests-root-review-companion.md",
+        "scripts/zigux/check-phase9-loader-substrate-plan.py",
+        "scripts/zigux/validate-phase9.py",
+        "make -C zigux phase9-validate",
+        "make -C zigux phase9-trace-events-survey",
+    ],
+    "shared_loader_packet_explicit": [
+        "manifest-backed catalog and ownership map",
+        "Documentation/zigux/README.md",
+        "review checklist",
+        "scripts/zigux/check-phase9-loader-substrate-plan.py",
+        "shared request contract",
+        "sample-side loader plans",
+        "shared `phase9_build.zig` replay path",
+    ],
+    "runtime_load_request_boundary": [
+        "RuntimeLoadRequest",
+        "samples/zigux/runtime_atomic64_loader.zig",
+        "samples/zigux/runtime_bitmap_loader.zig",
+        "samples/zigux/runtime_kretprobe_loader.zig",
+        "zigux/kernel/runtime_loader.zig",
+        "samples/zigux/runtime_trace_events_loader.zig",
+        "blocked trace-events substrate handoff",
+    ],
+}
+
+
 def validate(root: Path) -> tuple[list[str], list[str]]:
     missing_files = collect_missing_files(root)
     if missing_files:
@@ -393,8 +443,10 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
 
     survey_text = read_text(root, SURVEY_PATH)
     substrate_plan_text = read_text(root, SUBSTRATE_PLAN_PATH)
+    tests_review_companion_text = read_text(root, TESTS_REVIEW_COMPANION_PATH)
     review_checklist_text = read_text(root, REVIEW_CHECKLIST_PATH)
     samples_readme_text = read_text(root, SAMPLES_README_PATH)
+    tests_readme_text = read_text(root, TESTS_README_PATH)
     makefile_text = read_text(root, MAKEFILE_PATH)
     trace_events_loader_text = read_text(root, TRACE_EVENTS_LOADER_PATH)
 
@@ -403,6 +455,13 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
     missing_markers.extend(expect_markers(survey_text, SURVEY_REQUIRED_MARKERS, "survey"))
     missing_markers.extend(
         expect_markers(substrate_plan_text, SUBSTRATE_PLAN_REQUIRED_MARKERS, "substrate_plan")
+    )
+    missing_markers.extend(
+        expect_marker_groups(
+            tests_review_companion_text,
+            TESTS_REVIEW_COMPANION_REQUIRED_GROUPS,
+            "tests_review_companion_group",
+        )
     )
     missing_markers.extend(
         expect_marker_groups(
@@ -416,6 +475,13 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
             samples_readme_text,
             SAMPLES_README_REQUIRED_GROUPS,
             "samples_readme_group",
+        )
+    )
+    missing_markers.extend(
+        expect_marker_groups(
+            tests_readme_text,
+            TESTS_README_REQUIRED_GROUPS,
+            "tests_readme_group",
         )
     )
     for marker in MAKEFILE_REQUIRED_MARKERS:
@@ -485,6 +551,25 @@ def write_fixture_tree(root: Path) -> None:
         + "\n",
         encoding="utf-8",
     )
+    (root / TESTS_REVIEW_COMPANION_PATH).write_text(
+        "\n".join(
+            [
+                "# Phase 9 Tests-Root Review Companion",
+                "",
+                "## Shared reviewer surface",
+                "- `Documentation/zigux/phase9-tests-root-review-companion.md`",
+                "- `scripts/zigux/check-phase9-loader-substrate-plan.py`",
+                "- `zigux/tests/README.md`",
+                "- `zigux/tests/phase9_build.zig`",
+                "",
+                "## Shared request boundary",
+                "- `zigux/tests/runtime_loader_gap_manifest.json`, `zigux/tests/runtime_loader_gap_survey.zig`, `scripts/zigux/check-phase9-loader-substrate-plan.py`, and `Documentation/zigux/phase9-runtime-loader-substrate-plan.md` keep the shared `RuntimeLoadRequest` boundary reviewable together.",
+                "",
+            ]
+        )
+        + "\n",
+        encoding="utf-8",
+    )
     (root / REVIEW_CHECKLIST_PATH).write_text(
         "\n".join(
             [
@@ -508,6 +593,19 @@ def write_fixture_tree(root: Path) -> None:
                 "- the runtime bitmap pair `samples/zigux/runtime_bitmap.zig` and `samples/zigux/runtime_bitmap_loader.zig` stays a later Phase 9 runtime pilot packet rooted in `lib/test_bitmap.c`; keep it cataloged here as follow-on work rather than treating it as a fifth approved Phase 5 reference idiom",
                 "- keep the bitmap runtime pilot visibly separate from the approved Phase 5 idiom set: `samples/zigux/runtime_bitmap.zig` and `samples/zigux/runtime_bitmap_loader.zig` belong with the Phase 9 runtime bitmap survey packet, not the four roadmap-approved Phase 5 anchor samples",
                 "- keep `samples/zigux/runtime_trace_events.zig` explicit as a sample-only blocked Phase 9 pilot even though `samples/zigux/runtime_trace_events_loader.zig` is now shipped as a bounded scaffold, so the shared sample-root packet does not imply a cleared runtime-substrate handoff or a fully loader-backed runtime follow-on",
+                "",
+            ]
+        ),
+        encoding="utf-8",
+    )
+    (root / TESTS_README_PATH).write_text(
+        "\n".join(
+            [
+                "# zigux/tests",
+                "",
+                "- keep the current Phase 9 runtime bundle reviewable through `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/phase9-tests-root-review-companion.md`, `scripts/zigux/README.md`, `zigux/tests/phase9_build.zig`, `zigux/tests/runtime_loader_gap_survey.zig`, `zigux/tests/runtime_loader_gap_manifest.json`, `scripts/zigux/validate-phase9.py`, `scripts/zigux/check-phase9-loader-substrate-plan.py`, `make -C zigux phase9-validate`, and the focused `make -C zigux phase9-module-metadata-survey` plus `make -C zigux phase9-trace-events-survey` replays instead of widening into ad hoc runtime-slice checks",
+                "- keep the shared Phase 9 runtime-loader evidence packet explicit in the tests root: the manifest-backed catalog and ownership map should still name which file owns the survey note, the top-level docs index `Documentation/zigux/README.md`, the review checklist, `scripts/zigux/check-phase9-loader-substrate-plan.py`, the shared request contract, the sample-side loader plans, and the shared `phase9_build.zig` replay path",
+                "- keep the shared `RuntimeLoadRequest` boundary explicit in the tests root too: `samples/zigux/runtime_atomic64_loader.zig`, `samples/zigux/runtime_bitmap_loader.zig`, and `samples/zigux/runtime_kretprobe_loader.zig` should continue to route their bounded loader-plan evidence through `zigux/kernel/runtime_loader.zig` and its shared `RuntimeLoadRequest` surface, while `samples/zigux/runtime_trace_events_loader.zig` remains an adjacent scaffold until the blocked trace-events substrate handoff can truthfully adopt that same request path",
                 "",
             ]
         ),
@@ -707,6 +805,31 @@ def run_self_test() -> int:
         )
         survey_path.write_text(original_survey, encoding="utf-8")
 
+        tests_review_companion_path = tmp_root / TESTS_REVIEW_COMPANION_PATH
+        original_tests_review_companion = tests_review_companion_path.read_text(encoding="utf-8")
+        tests_review_companion_path.write_text("", encoding="utf-8")
+        expect_missing_marker(
+            "tests_review_companion_shared_surface",
+            tmp_root,
+            "tests_review_companion_group:shared_reviewer_surface",
+        )
+        tests_review_companion_path.write_text(original_tests_review_companion, encoding="utf-8")
+
+        tests_review_companion_path.write_text(
+            original_tests_review_companion.replace(
+                "shared `RuntimeLoadRequest` boundary reviewable together.",
+                "shared request boundary reviewable together.",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "tests_review_companion_request_boundary",
+            tmp_root,
+            "tests_review_companion_group:shared_request_boundary",
+        )
+        tests_review_companion_path.write_text(original_tests_review_companion, encoding="utf-8")
+
         review_checklist_path = tmp_root / REVIEW_CHECKLIST_PATH
         original_review_checklist = review_checklist_path.read_text(encoding="utf-8")
         review_checklist_path.write_text("", encoding="utf-8")
@@ -778,6 +901,53 @@ def run_self_test() -> int:
             "samples_readme_group:runtime_bitmap_follow_on_catalog",
         )
         samples_readme_path.write_text(original_samples_readme, encoding="utf-8")
+
+        tests_readme_path = tmp_root / TESTS_README_PATH
+        original_tests_readme = tests_readme_path.read_text(encoding="utf-8")
+        tests_readme_path.write_text(
+            original_tests_readme.replace(
+                "Documentation/zigux/phase9-tests-root-review-companion.md",
+                "Documentation/zigux/phase9-runtime-loader-gap-survey.md",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "tests_readme_runtime_bundle_reviewability",
+            tmp_root,
+            "tests_readme_group:runtime_bundle_reviewability",
+        )
+        tests_readme_path.write_text(original_tests_readme, encoding="utf-8")
+
+        tests_readme_path.write_text(
+            original_tests_readme.replace(
+                "shared request contract",
+                "shared review contract",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "tests_readme_shared_loader_packet",
+            tmp_root,
+            "tests_readme_group:shared_loader_packet_explicit",
+        )
+        tests_readme_path.write_text(original_tests_readme, encoding="utf-8")
+
+        tests_readme_path.write_text(
+            original_tests_readme.replace(
+                "blocked trace-events substrate handoff",
+                "runtime follow-on handoff",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "tests_readme_runtime_load_request_boundary",
+            tmp_root,
+            "tests_readme_group:runtime_load_request_boundary",
+        )
+        tests_readme_path.write_text(original_tests_readme, encoding="utf-8")
 
         manifest_path = tmp_root / MANIFEST_PATH
         original_manifest = manifest_path.read_text(encoding="utf-8")
@@ -911,7 +1081,7 @@ def run_self_test() -> int:
         trace_events_loader_path.write_text(original_trace_events_loader, encoding="utf-8")
 
     print("PHASE9_LOADER_SUBSTRATE_PLAN_SELF_TEST=pass")
-    print("PHASE9_LOADER_SUBSTRATE_PLAN_SELF_TEST_CASE_COUNT=18")
+    print("PHASE9_LOADER_SUBSTRATE_PLAN_SELF_TEST_CASE_COUNT=21")
     return 0
 
 
@@ -954,7 +1124,7 @@ def main() -> int:
     print("PHASE9_LOADER_SUBSTRATE_PLAN=pass")
     print(
         "PHASE9_LOADER_SUBSTRATE_PLAN_MARKER_COUNT="
-        f"{len(SURVEY_REQUIRED_MARKERS) + len(SUBSTRATE_PLAN_REQUIRED_MARKERS) + len(REVIEW_CHECKLIST_REQUIRED_GROUPS) + len(SAMPLES_README_REQUIRED_GROUPS) + len(MAKEFILE_REQUIRED_MARKERS) + len(TRACE_EVENTS_LOADER_REQUIRED_MARKERS) + len(TRACE_EVENTS_LOADER_REQUIRED_CONTROL_SURFACE_MARKERS) + len(TRACE_EVENTS_LOADER_FORBIDDEN_MARKERS) + len(TRACE_EVENTS_LOADER_FORBIDDEN_CONTROL_SURFACE_MARKERS) + 16}"
+        f"{len(SURVEY_REQUIRED_MARKERS) + len(SUBSTRATE_PLAN_REQUIRED_MARKERS) + len(TESTS_REVIEW_COMPANION_REQUIRED_GROUPS) + len(REVIEW_CHECKLIST_REQUIRED_GROUPS) + len(SAMPLES_README_REQUIRED_GROUPS) + len(TESTS_README_REQUIRED_GROUPS) + len(MAKEFILE_REQUIRED_MARKERS) + len(TRACE_EVENTS_LOADER_REQUIRED_MARKERS) + len(TRACE_EVENTS_LOADER_REQUIRED_CONTROL_SURFACE_MARKERS) + len(TRACE_EVENTS_LOADER_FORBIDDEN_MARKERS) + len(TRACE_EVENTS_LOADER_FORBIDDEN_CONTROL_SURFACE_MARKERS) + 16}"
     )
     return 0
 
