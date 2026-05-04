@@ -421,6 +421,18 @@ pub const length_cases = [_]LengthCase{
 
 pub const exact_capacity_cases = [_]ExactCapacityCase{
     .{
+        .name = "exact-capacity ascii rowsize-16 group-2",
+        .len = 16,
+        .rowsize = 16,
+        .groupsize = 2,
+        .ascii = true,
+        .expected_length = 57,
+        .expected_text = .{
+            .little = "32be 7bdb 180a b293 ba70 24c4 837d 9b34  .2.{....p..$}.4.",
+            .big = "be32 db7b 0a18 93b2 70ba c424 7d83 349b  .2.{....p..$}.4.",
+        },
+    },
+    .{
         .name = "exact-capacity plain rowsize-16 group-4",
         .len = 16,
         .rowsize = 16,
