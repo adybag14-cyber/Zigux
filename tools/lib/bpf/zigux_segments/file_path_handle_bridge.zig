@@ -3,6 +3,7 @@ const std = @import("std");
 pub const bpf_obj_name_len: usize = 16;
 
 pub const FdInfoMapInfo = struct {
+    map_id: u32 = 0,
     map_type: u32,
     key_size: u32,
     value_size: u32,
@@ -348,6 +349,7 @@ pub fn resolveReusePinnedMapAttempt(is_compatible: bool, reuse_fd_result: i32) R
 
 pub fn parseMapInfoFromFdinfo(input: []const u8) FilePathHandleBridgeError!FdInfoMapInfo {
     var info = FdInfoMapInfo{
+        .map_id = 0,
         .map_type = 0,
         .key_size = 0,
         .value_size = 0,
@@ -357,6 +359,7 @@ pub fn parseMapInfoFromFdinfo(input: []const u8) FilePathHandleBridgeError!FdInf
 
     var lines = std.mem.tokenizeAny(u8, input, "\r\n");
     while (lines.next()) |line| {
+        if (try parseDecimalField(line, "map_id", &info.map_id)) continue;
         if (try parseDecimalField(line, "map_type", &info.map_type)) continue;
         if (try parseDecimalField(line, "key_size", &info.key_size)) continue;
         if (try parseDecimalField(line, "value_size", &info.value_size)) continue;
@@ -566,6 +569,7 @@ test "parseMapInfoFromFdinfo keeps the bounded key-value parsing behavior" {
         "pos:\t0\n" ++
             "flags:\t02000002\n" ++
             "mnt_id:\t27\n" ++
+            "map_id:\t27\n" ++
             "map_type:\t2\n" ++
             "key_size:\t8\n" ++
             "value_size:\t16\n" ++
@@ -574,6 +578,7 @@ test "parseMapInfoFromFdinfo keeps the bounded key-value parsing behavior" {
             "map_extra:\t17\n",
     );
 
+    try std.testing.expectEqual(@as(u32, 27), info.map_id);
     try std.testing.expectEqual(@as(u32, 2), info.map_type);
     try std.testing.expectEqual(@as(u32, 8), info.key_size);
     try std.testing.expectEqual(@as(u32, 16), info.value_size);
@@ -585,6 +590,7 @@ test "parseMapInfoFromFdinfo keeps the bounded key-value parsing behavior" {
 test "parseMapInfoFromFdinfo tolerates reordered fields and surrounding whitespace" {
     const info = try parseMapInfoFromFdinfo(
         "map_flags:   512\r\n" ++
+            "map_id:\t44\r\n" ++
             "map_extra:\t0x20\r\n" ++
             "max_entries:\t128\r\n" ++
             "value_size:\t4\r\n" ++
@@ -592,6 +598,7 @@ test "parseMapInfoFromFdinfo tolerates reordered fields and surrounding whitespa
             "map_type:\t1\r\n",
     );
 
+    try std.testing.expectEqual(@as(u32, 44), info.map_id);
     try std.testing.expectEqual(@as(u32, 1), info.map_type);
     try std.testing.expectEqual(@as(u32, 4), info.key_size);
     try std.testing.expectEqual(@as(u32, 4), info.value_size);
@@ -602,7 +609,8 @@ test "parseMapInfoFromFdinfo tolerates reordered fields and surrounding whitespa
 
 test "parseMapInfoFromFdinfo keeps libbpf-style numeric bases explicit" {
     const info = try parseMapInfoFromFdinfo(
-        "map_type:\t1\r\n" ++
+        "map_id:\t3\r\n" ++
+            "map_type:\t1\r\n" ++
             "key_size:\t4\r\n" ++
             "value_size:\t8\r\n" ++
             "max_entries:\t16\r\n" ++
@@ -610,20 +618,24 @@ test "parseMapInfoFromFdinfo keeps libbpf-style numeric bases explicit" {
             "map_extra:\t0X2A\r\n",
     );
 
+    try std.testing.expectEqual(@as(u32, 3), info.map_id);
     try std.testing.expectEqual(@as(u32, 8), info.map_flags);
     try std.testing.expectEqual(@as(u64, 42), info.map_extra);
 }
 
 test "parseMapInfoFromFdinfo mirrors libbpf's zero-init and last-field-wins fallback" {
     const info = try parseMapInfoFromFdinfo(
-        "map_type:\t1\n" ++
+        "map_id:\t5\n" ++
+            "map_type:\t1\n" ++
             "key_size:\t4\n" ++
             "map_extra:\t5\n" ++
+            "map_id:\t9\n" ++
             "map_type:\t2\n" ++
             "map_extra:\t9\n" ++
             "value_size:\t8\n",
     );
 
+    try std.testing.expectEqual(@as(u32, 9), info.map_id);
     try std.testing.expectEqual(@as(u32, 2), info.map_type);
     try std.testing.expectEqual(@as(u32, 4), info.key_size);
     try std.testing.expectEqual(@as(u32, 8), info.value_size);
@@ -636,6 +648,14 @@ test "parseMapInfoFromFdinfo keeps malformed values explicit" {
     try std.testing.expectError(error.InvalidValue, parseMapInfoFromFdinfo(
         "map_type:\t1\n" ++
             "key_size:\tfour\n" ++
+            "value_size:\t8\n" ++
+            "max_entries:\t16\n" ++
+            "map_flags:\t32\n",
+    ));
+    try std.testing.expectError(error.InvalidValue, parseMapInfoFromFdinfo(
+        "map_id:\tbad\n" ++
+            "map_type:\t1\n" ++
+            "key_size:\t4\n" ++
             "value_size:\t8\n" ++
             "max_entries:\t16\n" ++
             "map_flags:\t32\n",
