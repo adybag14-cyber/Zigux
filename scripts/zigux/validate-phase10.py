@@ -9,7 +9,8 @@ import sys
 import tempfile
 
 
-ROOT = Path(__file__).resolve().parents[2]
+SELF_PATH = Path(__file__).resolve()
+ROOT = SELF_PATH.parents[2] if len(SELF_PATH.parents) > 2 else SELF_PATH.parent
 HEX40 = re.compile(r"^[0-9a-f]{40}$")
 
 FILES = [
@@ -206,19 +207,6 @@ RING_SURVEY_TEST_MARKERS = [
     'if (std.mem.eql(u8, gap.id, "phase10-mmio-lifecycle-and-irq-paths")) {',
 ]
 
-MMIO_TEST_MARKERS = [
-    'test "phase10 virtio mmio plans bounded config-window writes without side effects" {',
-    'test "phase10 virtio mmio acknowledges only pending bounded interrupt bits" {',
-]
-
-MMIO_SURVEY_TEST_MARKERS = [
-    'test "phase10 virtio mmio survey manifest records the landed config-write rung and remaining transport gap" {',
-    'try std.testing.expectEqualStrings("P10-L18", manifest.lane_key);',
-    'try std.testing.expectEqual(@as(usize, 0), ready_next_count);',
-    'if (std.mem.eql(u8, gap.id, "phase10-mmio-config-write-helper")) {',
-    'if (std.mem.eql(u8, gap.id, "phase10-mmio-lifecycle-and-irq-paths")) {',
-]
-
 HELPER_MARKERS = [
     "pub const MultitouchSlotPlanSummary = struct {",
     "pub const TeardownPlanSummary = struct {",
@@ -256,6 +244,67 @@ SURVEY_TEST_MARKERS = [
     'if (std.mem.eql(u8, gap.id, "phase10-virtio-input-registration-lifecycle")) {',
 ]
 
+MMIO_TEST_MARKERS = [
+    'test "phase10 virtio mmio plans bounded config-window writes without side effects" {',
+    'test "phase10 virtio mmio acknowledges only pending bounded interrupt bits" {',
+]
+
+MMIO_SURVEY_TEST_MARKERS = [
+    'test "phase10 virtio mmio survey manifest records the landed config-write rung and remaining transport gap" {',
+    'try std.testing.expectEqualStrings("P10-L18", manifest.lane_key);',
+    'try std.testing.expectEqual(@as(usize, 0), ready_next_count);',
+    'if (std.mem.eql(u8, gap.id, "phase10-mmio-config-write-helper")) {',
+    'if (std.mem.eql(u8, gap.id, "phase10-mmio-lifecycle-and-irq-paths")) {',
+]
+
+ALLOWED_DESTINATIONS = ["drivers/virtio/*.zig", "zigux/kernel/", "zigux/helpers/"]
+
+RING_EXPECTED_STATUSES = {
+    "phase10-virtio-ring-survey-gate": "starter_landed",
+    "phase10-virtio-ring-survey-note": "starter_landed",
+    "phase10-virtqueue-shape-helper": "starter_landed",
+    "phase10-used-buffer-polling-helper": "starter_landed",
+    "phase10-callback-disable-helper": "starter_landed",
+    "phase10-callback-enable-helper": "starter_landed",
+    "phase10-callback-enable-prepare-helper": "starter_landed",
+    "phase10-callback-delay-helper": "starter_landed",
+    "phase10-notify-prepare-helper": "starter_landed",
+    "phase10-queue-reset-guard-helper": "starter_landed",
+    "phase10-queue-reset-helper": "starter_landed",
+    "phase10-broken-queue-recovery-helper": "starter_landed",
+    "phase10-mmio-config-write-helper": "starter_landed",
+    "phase10-mmio-lifecycle-and-irq-paths": "blocked_on_risky_transport",
+    "phase10-virtio-ring-slice-note": "starter_landed",
+}
+
+INPUT_EXPECTED_STATUSES = {
+    "phase10-virtio-input-lab-helper": "starter_landed",
+    "phase10-virtio-input-lab-gate": "starter_landed",
+    "phase10-virtio-input-survey-gate": "starter_landed",
+    "phase10-virtio-input-survey-note": "starter_landed",
+    "phase10-virtio-input-capability-setup-helper": "starter_landed",
+    "phase10-virtio-input-multitouch-slot-helper": "starter_landed",
+    "phase10-virtio-input-teardown-observation-helper": "starter_landed",
+    "phase10-virtio-input-registration-preflight-helper": "starter_landed",
+    "phase10-virtio-input-queue-callback-preflight-helper": "starter_landed",
+    "phase10-virtio-input-probe-preflight-helper": "starter_landed",
+    "phase10-virtio-input-registration-lifecycle": "blocked_on_risky_transport",
+}
+
+MMIO_EXPECTED_STATUSES = {
+    "phase10-virtio-mmio-survey-gate": "starter_landed",
+    "phase10-virtio-mmio-survey-note": "starter_landed",
+    "phase10-virtio-mmio-slice-note": "starter_landed",
+    "phase10-mmio-register-window-helper": "starter_landed",
+    "phase10-mmio-queue-register-helper": "starter_landed",
+    "phase10-mmio-queue-notify-helper": "starter_landed",
+    "phase10-mmio-queue-address-helper": "starter_landed",
+    "phase10-mmio-config-window-helper": "starter_landed",
+    "phase10-mmio-config-write-helper": "starter_landed",
+    "phase10-mmio-interrupt-ack-helper": "starter_landed",
+    "phase10-mmio-lifecycle-and-irq-paths": "blocked_on_risky_transport",
+}
+
 
 def read_text(root: Path, rel_path: str) -> str:
     return (root / rel_path).read_text(encoding="utf-8")
@@ -270,6 +319,81 @@ def find_gap(manifest: dict[str, object], gap_id: str) -> dict[str, object] | No
         if isinstance(gap, dict) and gap.get("id") == gap_id:
             return gap
     return None
+
+
+def require_markers(missing: list[str], label: str, text: str, markers: list[str]) -> None:
+    for marker in markers:
+        if marker not in text:
+            missing.append(f"{label}:{marker}")
+
+
+def forbid_markers(missing: list[str], label: str, text: str, markers: list[str]) -> None:
+    for marker in markers:
+        if marker in text:
+            missing.append(f"{label}:stale_marker:{marker}")
+
+
+def validate_manifest(
+    missing: list[str],
+    label: str,
+    manifest: dict[str, object],
+    *,
+    lane_key: str,
+    anchor: str,
+    expected_statuses: dict[str, str],
+    minimum_gap_count: int,
+    minimum_starter_count: int,
+    expected_blocked_count: int = 1,
+) -> None:
+    if manifest.get("lane_key") != lane_key:
+        missing.append(f"{label}:lane_key={lane_key}")
+    if manifest.get("phase") != "Phase 10":
+        missing.append(f"{label}:phase=Phase 10")
+    if manifest.get("anchor") != anchor:
+        missing.append(f"{label}:anchor={anchor}")
+    if not HEX40.fullmatch(str(manifest.get("surveyed_commit", ""))):
+        missing.append(f"{label}:surveyed_commit")
+    if manifest.get("roadmap_destinations") != ALLOWED_DESTINATIONS:
+        missing.append(f"{label}:roadmap_destinations")
+
+    survey_summary = manifest.get("survey_summary")
+    if not isinstance(survey_summary, dict):
+        missing.append(f"{label}:survey_summary")
+
+    gaps = manifest.get("gaps")
+    if not isinstance(gaps, list) or len(gaps) < minimum_gap_count:
+        missing.append(f"{label}:gaps")
+        return
+
+    starter_count = 0
+    ready_count = 0
+    blocked_count = 0
+    for gap in gaps:
+        if not isinstance(gap, dict):
+            missing.append(f"{label}:gap_object")
+            continue
+        status = gap.get("status")
+        if status == "starter_landed":
+            starter_count += 1
+        elif status == "ready_next":
+            ready_count += 1
+        elif status == "blocked_on_risky_transport":
+            blocked_count += 1
+
+    if starter_count < minimum_starter_count:
+        missing.append(f"{label}:starter_count={starter_count}")
+    if ready_count != 0:
+        missing.append(f"{label}:ready_next_count={ready_count}")
+    if blocked_count != expected_blocked_count:
+        missing.append(f"{label}:blocked_count={blocked_count}")
+
+    for gap_id, status in expected_statuses.items():
+        gap = find_gap(manifest, gap_id)
+        if gap is None:
+            missing.append(f"{label}:gap:{gap_id}")
+            continue
+        if gap.get("status") != status:
+            missing.append(f"{label}:gap_status:{gap_id}={gap.get('status')}")
 
 
 def required_marker_count() -> int:
@@ -307,392 +431,179 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
         return missing_files, []
 
     missing: list[str] = []
-    for name, source, markers in [
-        ("make", read_text(root, "zigux/Makefile"), MAKE_MARKERS),
-        ("workflow", read_text(root, ".github/workflows/zigux-bootstrap.yml"), WORKFLOW_MARKERS),
-        ("script_readme", read_text(root, "scripts/zigux/README.md"), SCRIPT_README_MARKERS),
-        ("tests_readme", read_text(root, "zigux/tests/README.md"), TESTS_README_MARKERS),
-        ("doc_readme", read_text(root, "Documentation/zigux/README.md"), DOC_README_MARKERS),
-        ("ring_slice_doc", read_text(root, "Documentation/zigux/phase10-virtio-ring-slice.md"), RING_SLICE_MARKERS),
-        ("ring_survey_doc", read_text(root, "Documentation/zigux/phase10-virtio-ring-survey.md"), RING_SURVEY_MARKERS),
-        ("slice_doc", read_text(root, "Documentation/zigux/phase10-virtio-input-slice.md"), SLICE_MARKERS),
-        ("survey_doc", read_text(root, "Documentation/zigux/phase10-virtio-input-survey.md"), SURVEY_MARKERS),
-        ("module_slice", read_text(root, "Documentation/zigux/phase10-virtio-input-module-slice.md"), MODULE_SLICE_MARKERS),
-        ("mmio_slice_doc", read_text(root, "Documentation/zigux/phase10-virtio-mmio-slice.md"), MMIO_SLICE_MARKERS),
-        ("mmio_survey_doc", read_text(root, "Documentation/zigux/phase10-virtio-mmio-survey.md"), MMIO_SURVEY_MARKERS),
-        ("ring_helper", read_text(root, "drivers/virtio/virtio_ring.zig"), RING_HELPER_MARKERS),
-        ("helper", read_text(root, "drivers/virtio/virtio_input.zig"), HELPER_MARKERS),
-        ("mmio_helper", read_text(root, "drivers/virtio/virtio_mmio.zig"), MMIO_HELPER_MARKERS),
-        ("ring_tests", read_text(root, "zigux/tests/phase10_virtio_ring.zig"), RING_TEST_MARKERS),
-        ("ring_reset_reuse_tests", read_text(root, "zigux/tests/phase10_virtio_ring_reset_reuse.zig"), RING_RESET_REUSE_TEST_MARKERS),
-        ("ring_survey_tests", read_text(root, "zigux/tests/phase10_virtio_ring_survey.zig"), RING_SURVEY_TEST_MARKERS),
-        ("tests", read_text(root, "zigux/tests/phase10_virtio_input.zig"), TEST_MARKERS),
-        ("mmio_tests", read_text(root, "zigux/tests/phase10_virtio_mmio.zig"), MMIO_TEST_MARKERS),
-        ("survey_test", read_text(root, "zigux/tests/phase10_virtio_input_survey.zig"), SURVEY_TEST_MARKERS),
-        ("mmio_survey_test", read_text(root, "zigux/tests/phase10_virtio_mmio_survey.zig"), MMIO_SURVEY_TEST_MARKERS),
+    for label, rel_path, markers in [
+        ("make", "zigux/Makefile", MAKE_MARKERS),
+        ("workflow", ".github/workflows/zigux-bootstrap.yml", WORKFLOW_MARKERS),
+        ("script_readme", "scripts/zigux/README.md", SCRIPT_README_MARKERS),
+        ("tests_readme", "zigux/tests/README.md", TESTS_README_MARKERS),
+        ("doc_readme", "Documentation/zigux/README.md", DOC_README_MARKERS),
+        ("ring_slice_doc", "Documentation/zigux/phase10-virtio-ring-slice.md", RING_SLICE_MARKERS),
+        ("ring_survey_doc", "Documentation/zigux/phase10-virtio-ring-survey.md", RING_SURVEY_MARKERS),
+        ("slice_doc", "Documentation/zigux/phase10-virtio-input-slice.md", SLICE_MARKERS),
+        ("survey_doc", "Documentation/zigux/phase10-virtio-input-survey.md", SURVEY_MARKERS),
+        ("module_slice", "Documentation/zigux/phase10-virtio-input-module-slice.md", MODULE_SLICE_MARKERS),
+        ("mmio_slice_doc", "Documentation/zigux/phase10-virtio-mmio-slice.md", MMIO_SLICE_MARKERS),
+        ("mmio_survey_doc", "Documentation/zigux/phase10-virtio-mmio-survey.md", MMIO_SURVEY_MARKERS),
+        ("ring_helper", "drivers/virtio/virtio_ring.zig", RING_HELPER_MARKERS),
+        ("helper", "drivers/virtio/virtio_input.zig", HELPER_MARKERS),
+        ("mmio_helper", "drivers/virtio/virtio_mmio.zig", MMIO_HELPER_MARKERS),
+        ("ring_tests", "zigux/tests/phase10_virtio_ring.zig", RING_TEST_MARKERS),
+        ("ring_reset_reuse_tests", "zigux/tests/phase10_virtio_ring_reset_reuse.zig", RING_RESET_REUSE_TEST_MARKERS),
+        ("ring_survey_tests", "zigux/tests/phase10_virtio_ring_survey.zig", RING_SURVEY_TEST_MARKERS),
+        ("tests", "zigux/tests/phase10_virtio_input.zig", TEST_MARKERS),
+        ("survey_test", "zigux/tests/phase10_virtio_input_survey.zig", SURVEY_TEST_MARKERS),
+        ("mmio_tests", "zigux/tests/phase10_virtio_mmio.zig", MMIO_TEST_MARKERS),
+        ("mmio_survey_test", "zigux/tests/phase10_virtio_mmio_survey.zig", MMIO_SURVEY_TEST_MARKERS),
     ]:
-        for marker in markers:
-            if marker not in source:
-                missing.append(f"{name}:{marker}")
+        require_markers(missing, label, read_text(root, rel_path), markers)
 
-    for name, source, markers in [
-        ("script_readme", read_text(root, "scripts/zigux/README.md"), FORBIDDEN_SCRIPT_README_MARKERS),
-        ("tests_readme", read_text(root, "zigux/tests/README.md"), FORBIDDEN_TESTS_README_MARKERS),
-    ]:
-        for marker in markers:
-            if marker in source:
-                missing.append(f"{name}:stale_marker:{marker}")
+    forbid_markers(missing, "script_readme", read_text(root, "scripts/zigux/README.md"), FORBIDDEN_SCRIPT_README_MARKERS)
+    forbid_markers(missing, "tests_readme", read_text(root, "zigux/tests/README.md"), FORBIDDEN_TESTS_README_MARKERS)
 
-    ring_manifest = load_manifest(root, "zigux/tests/phase10_virtio_ring_manifest.json")
-    if ring_manifest.get("lane_key") != "P10-L08":
-        missing.append("ring_manifest:lane_key=P10-L08")
-    if ring_manifest.get("phase") != "Phase 10":
-        missing.append("ring_manifest:phase=Phase 10")
-    if ring_manifest.get("anchor") != "drivers/virtio/virtio_ring.c":
-        missing.append("ring_manifest:anchor=drivers/virtio/virtio_ring.c")
-    if not HEX40.fullmatch(str(ring_manifest.get("surveyed_commit", ""))):
-        missing.append("ring_manifest:surveyed_commit")
-
-    if ring_manifest.get("roadmap_destinations") != ["drivers/virtio/*.zig", "zigux/helpers/"]:
-        missing.append("ring_manifest:roadmap_destinations")
-
-    ring_survey_summary = ring_manifest.get("survey_summary")
-    if not isinstance(ring_survey_summary, dict):
-        missing.append("ring_manifest:survey_summary")
-    else:
-        if ring_survey_summary.get("preexisting_virtio_core_zig_present") is not True:
-            missing.append("ring_manifest:preexisting_virtio_core_zig_present")
-        if ring_survey_summary.get("preexisting_phase10_build_present") is not True:
-            missing.append("ring_manifest:preexisting_phase10_build_present")
-        if ring_survey_summary.get("preexisting_virtio_ring_zig_present") is not True:
-            missing.append("ring_manifest:preexisting_virtio_ring_zig_present")
-        if ring_survey_summary.get("preexisting_virtio_ring_reset_reuse_test_present") is not True:
-            missing.append("ring_manifest:preexisting_virtio_ring_reset_reuse_test_present")
-        if ring_survey_summary.get("preexisting_virtio_ring_doc_present") is not True:
-            missing.append("ring_manifest:preexisting_virtio_ring_doc_present")
-
-    ring_gaps = ring_manifest.get("gaps")
-    if not isinstance(ring_gaps, list) or len(ring_gaps) < 20:
-        missing.append("ring_manifest:gaps")
-    else:
-        starter_count = 0
-        ready_count = 0
-        blocked_count = 0
-        for gap in ring_gaps:
-            if not isinstance(gap, dict):
-                missing.append("ring_manifest:gap_object")
-                continue
-            status = gap.get("status")
-            if status == "starter_landed":
-                starter_count += 1
-            elif status == "ready_next":
-                ready_count += 1
-            elif status == "blocked_on_risky_transport":
-                blocked_count += 1
-        if ready_count != 0:
-            missing.append(f"ring_manifest:ready_next_count={ready_count}")
-        if blocked_count != 1:
-            missing.append(f"ring_manifest:blocked_count={blocked_count}")
-        if starter_count < 20:
-            missing.append(f"ring_manifest:starter_count={starter_count}")
-
-        expected_ring_statuses = {
-            "phase10-virtio-ring-survey-gate": "starter_landed",
-            "phase10-virtio-ring-survey-note": "starter_landed",
-            "phase10-virtqueue-shape-helper": "starter_landed",
-            "phase10-used-buffer-polling-helper": "starter_landed",
-            "phase10-callback-enable-prepare-helper": "starter_landed",
-            "phase10-callback-delay-helper": "starter_landed",
-            "phase10-notify-prepare-helper": "starter_landed",
-            "phase10-queue-reset-guard-helper": "starter_landed",
-            "phase10-queue-reset-helper": "starter_landed",
-            "phase10-mmio-config-write-helper": "starter_landed",
-            "phase10-mmio-lifecycle-and-irq-paths": "blocked_on_risky_transport",
-            "phase10-virtio-ring-slice-note": "starter_landed",
-        }
-        for gap_id, status in expected_ring_statuses.items():
-            gap = find_gap(ring_manifest, gap_id)
-            if gap is None:
-                missing.append(f"ring_manifest:gap:{gap_id}")
-                continue
-            if gap.get("status") != status:
-                missing.append(f"ring_manifest:gap_status:{gap_id}={gap.get('status')}")
-
-        notify_prepare_gap = find_gap(ring_manifest, "phase10-notify-prepare-helper")
-        if notify_prepare_gap is not None:
-            why_now = str(notify_prepare_gap.get("why_now", ""))
-            if "num_added" not in why_now:
-                missing.append("ring_manifest:notify_prepare_gap:num_added")
-            if "16-bit counter" not in why_now:
-                missing.append("ring_manifest:notify_prepare_gap:16_bit_counter")
-
-        reset_guard_gap = find_gap(ring_manifest, "phase10-queue-reset-guard-helper")
-        if reset_guard_gap is not None:
-            why_now = str(reset_guard_gap.get("why_now", ""))
-            if "unpublished chains" not in why_now:
-                missing.append("ring_manifest:reset_guard_gap:unpublished_chains")
-            if "follow-up poll debt" not in why_now:
-                missing.append("ring_manifest:reset_guard_gap:follow_up_poll_debt")
-
-        reset_gap = find_gap(ring_manifest, "phase10-queue-reset-helper")
-        if reset_gap is not None:
-            why_now = str(reset_gap.get("why_now", ""))
-            if "drained-queue reset helper" not in why_now:
-                missing.append("ring_manifest:reset_gap:drained_queue_reset_helper")
-            if "queue shape metadata" not in why_now:
-                missing.append("ring_manifest:reset_gap:queue_shape_metadata")
-
-        blocked_ring_gap = find_gap(ring_manifest, "phase10-mmio-lifecycle-and-irq-paths")
-        if blocked_ring_gap is not None:
-            why_now = str(blocked_ring_gap.get("why_now", ""))
-            if "interrupt acknowledgement" not in why_now:
-                missing.append("ring_manifest:blocked_gap:interrupt_acknowledgement")
-            if "probe or remove lifecycle" not in why_now:
-                missing.append("ring_manifest:blocked_gap:probe_or_remove_lifecycle")
-
-    manifest = load_manifest(root, "zigux/tests/phase10_virtio_input_manifest.json")
-    if manifest.get("lane_key") != "P10-L13":
-        missing.append("manifest:lane_key=P10-L13")
-    if manifest.get("phase") != "Phase 10":
-        missing.append("manifest:phase=Phase 10")
-    if manifest.get("anchor") != "drivers/virtio/virtio_input.c":
-        missing.append("manifest:anchor=drivers/virtio/virtio_input.c")
-    if not HEX40.fullmatch(str(manifest.get("surveyed_commit", ""))):
-        missing.append("manifest:surveyed_commit")
-
-    if manifest.get("roadmap_destinations") != ["drivers/virtio/*.zig", "zigux/helpers/"]:
-        missing.append("manifest:roadmap_destinations")
-
-    survey_summary = manifest.get("survey_summary")
-    if not isinstance(survey_summary, dict):
-        missing.append("manifest:survey_summary")
-    else:
-        if survey_summary.get("preexisting_virtio_input_zig_present") is not True:
-            missing.append("manifest:preexisting_virtio_input_zig_present")
-        if survey_summary.get("preexisting_virtio_input_test_present") is not True:
-            missing.append("manifest:preexisting_virtio_input_test_present")
-        if survey_summary.get("preexisting_virtio_input_slice_note_present") is not True:
-            missing.append("manifest:preexisting_virtio_input_slice_note_present")
-        if survey_summary.get("preexisting_virtio_input_module_note_present") is not True:
-            missing.append("manifest:preexisting_virtio_input_module_note_present")
-
-    gaps = manifest.get("gaps")
-    if not isinstance(gaps, list) or len(gaps) < 13:
-        missing.append("manifest:gaps")
-    else:
-        expected_statuses = {
-            "phase10-virtio-input-lab-helper": "starter_landed",
-            "phase10-virtio-input-lab-gate": "starter_landed",
-            "phase10-virtio-input-survey-gate": "starter_landed",
-            "phase10-virtio-input-capability-setup-helper": "starter_landed",
-            "phase10-virtio-input-multitouch-slot-helper": "starter_landed",
-            "phase10-virtio-input-teardown-observation-helper": "starter_landed",
-            "phase10-virtio-input-registration-preflight-helper": "starter_landed",
-            "phase10-virtio-input-queue-callback-preflight-helper": "starter_landed",
-            "phase10-virtio-input-probe-preflight-helper": "starter_landed",
-            "phase10-virtio-input-registration-lifecycle": "blocked_on_risky_transport",
-            "phase10-virtio-input-survey-note": "starter_landed",
-            "phase10-virtio-input-slice-note": "starter_landed",
-            "phase10-virtio-input-module-note": "starter_landed",
-        }
-        starter_count = 0
-        ready_count = 0
-        blocked_count = 0
-        for gap in gaps:
-            if not isinstance(gap, dict):
-                missing.append("manifest:gap_object")
-                continue
-            status = gap.get("status")
-            if status == "starter_landed":
-                starter_count += 1
-            elif status == "ready_next":
-                ready_count += 1
-            elif status == "blocked_on_risky_transport":
-                blocked_count += 1
-        if ready_count != 0:
-            missing.append(f"manifest:ready_next_count={ready_count}")
-        if blocked_count != 1:
-            missing.append(f"manifest:blocked_count={blocked_count}")
-        if starter_count < 12:
-            missing.append(f"manifest:starter_count={starter_count}")
-
-        for gap_id, status in expected_statuses.items():
-            gap = find_gap(manifest, gap_id)
-            if gap is None:
-                missing.append(f"manifest:gap:{gap_id}")
-                continue
-            if gap.get("status") != status:
-                missing.append(f"manifest:gap_status:{gap_id}={gap.get('status')}")
-
-        multitouch_gap = find_gap(manifest, "phase10-virtio-input-multitouch-slot-helper")
-        if multitouch_gap is not None:
-            why_now = str(multitouch_gap.get("why_now", ""))
-            if "ABS_MT_SLOT" not in why_now:
-                missing.append("manifest:multitouch_gap:ABS_MT_SLOT")
-            if "absolute bitmap" not in why_now:
-                missing.append("manifest:multitouch_gap:absolute_bitmap")
-            if "tracking IDs" not in why_now:
-                missing.append("manifest:multitouch_gap:tracking_ids")
-
-        teardown_gap = find_gap(manifest, "phase10-virtio-input-teardown-observation-helper")
-        if teardown_gap is not None:
-            why_now = str(teardown_gap.get("why_now", ""))
-            if "free_pages_exact" not in why_now:
-                missing.append("manifest:teardown_gap:free_pages_exact")
-            if "destroy path" not in why_now:
-                missing.append("manifest:teardown_gap:destroy_path")
-
-        registration_gap = find_gap(manifest, "phase10-virtio-input-registration-preflight-helper")
-        if registration_gap is not None:
-            why_now = str(registration_gap.get("why_now", ""))
-            if "event queue is filled" not in why_now:
-                missing.append("manifest:ready_gap:event_queue_is_filled")
-            if "status queue is configured" not in why_now:
-                missing.append("manifest:ready_gap:status_queue_is_configured")
-            if "device is ready" not in why_now:
-                missing.append("manifest:ready_gap:device_is_ready")
-
-        probe_gap = find_gap(manifest, "phase10-virtio-input-probe-preflight-helper")
-        if probe_gap is not None:
-            why_now = str(probe_gap.get("why_now", ""))
-            if "registration intent" not in why_now:
-                missing.append("manifest:probe_gap:registration_intent")
-            if "queue provisioning" not in why_now:
-                missing.append("manifest:probe_gap:queue_provisioning")
-            if "ready-state gating" not in why_now:
-                missing.append("manifest:probe_gap:ready_state_gating")
-            if "transport-backed probe handoff" not in why_now:
-                missing.append("manifest:probe_gap:transport_backed_probe_handoff")
-
-        blocked_gap = find_gap(manifest, "phase10-virtio-input-registration-lifecycle")
-        if blocked_gap is not None:
-            why_now = str(blocked_gap.get("why_now", ""))
-            if "freeze or restore" not in why_now:
-                missing.append("manifest:blocked_gap:freeze_or_restore")
-            if "transport-backed queue callbacks" not in why_now:
-                missing.append("manifest:blocked_gap:transport_callbacks")
-
-    mmio_manifest = load_manifest(root, "zigux/tests/phase10_virtio_mmio_manifest.json")
-    if mmio_manifest.get("lane_key") != "P10-L18":
-        missing.append("mmio_manifest:lane_key=P10-L18")
-    if mmio_manifest.get("phase") != "Phase 10":
-        missing.append("mmio_manifest:phase=Phase 10")
-    if mmio_manifest.get("anchor") != "drivers/virtio/virtio_mmio.c":
-        missing.append("mmio_manifest:anchor=drivers/virtio/virtio_mmio.c")
-    if not HEX40.fullmatch(str(mmio_manifest.get("surveyed_commit", ""))):
-        missing.append("mmio_manifest:surveyed_commit")
-
-    if mmio_manifest.get("roadmap_destinations") != ["drivers/virtio/*.zig", "zigux/helpers/"]:
-        missing.append("mmio_manifest:roadmap_destinations")
-
-    mmio_survey_summary = mmio_manifest.get("survey_summary")
-    if not isinstance(mmio_survey_summary, dict):
-        missing.append("mmio_manifest:survey_summary")
-    else:
-        if mmio_survey_summary.get("preexisting_virtio_ring_zig_present") is not True:
-            missing.append("mmio_manifest:preexisting_virtio_ring_zig_present")
-        if mmio_survey_summary.get("preexisting_virtio_input_zig_present") is not True:
-            missing.append("mmio_manifest:preexisting_virtio_input_zig_present")
-        if mmio_survey_summary.get("preexisting_virtio_mmio_zig_present") is not True:
-            missing.append("mmio_manifest:preexisting_virtio_mmio_zig_present")
-
-    mmio_gaps = mmio_manifest.get("gaps")
-    if not isinstance(mmio_gaps, list) or len(mmio_gaps) < 18:
-        missing.append("mmio_manifest:gaps")
-    else:
-        starter_count = 0
-        ready_count = 0
-        blocked_count = 0
-        for gap in mmio_gaps:
-            if not isinstance(gap, dict):
-                missing.append("mmio_manifest:gap_object")
-                continue
-            status = gap.get("status")
-            if status == "starter_landed":
-                starter_count += 1
-            elif status == "ready_next":
-                ready_count += 1
-            elif status == "blocked_on_risky_transport":
-                blocked_count += 1
-        if ready_count != 0:
-            missing.append(f"mmio_manifest:ready_next_count={ready_count}")
-        if blocked_count != 1:
-            missing.append(f"mmio_manifest:blocked_count={blocked_count}")
-        if starter_count < 17:
-            missing.append(f"mmio_manifest:starter_count={starter_count}")
-
-        expected_mmio_statuses = {
-            "phase10-virtio-mmio-survey-gate": "starter_landed",
-            "phase10-virtio-mmio-slice-note": "starter_landed",
-            "phase10-mmio-register-window-helper": "starter_landed",
-            "phase10-mmio-queue-register-helper": "starter_landed",
-            "phase10-mmio-queue-notify-helper": "starter_landed",
-            "phase10-mmio-queue-address-helper": "starter_landed",
-            "phase10-mmio-config-window-helper": "starter_landed",
-            "phase10-mmio-config-write-helper": "starter_landed",
-            "phase10-mmio-interrupt-ack-helper": "starter_landed",
-            "phase10-mmio-lifecycle-and-irq-paths": "blocked_on_risky_transport",
-        }
-        for gap_id, status in expected_mmio_statuses.items():
-            gap = find_gap(mmio_manifest, gap_id)
-            if gap is None:
-                missing.append(f"mmio_manifest:gap:{gap_id}")
-                continue
-            if gap.get("status") != status:
-                missing.append(f"mmio_manifest:gap_status:{gap_id}={gap.get('status')}")
-
-        config_write_gap = find_gap(mmio_manifest, "phase10-mmio-config-write-helper")
-        if config_write_gap is not None:
-            why_now = str(config_write_gap.get("why_now", ""))
-            if "config-write planning helper" not in why_now:
-                missing.append("mmio_manifest:config_write_gap:planning_helper")
-            if "byte, halfword, and word" not in why_now:
-                missing.append("mmio_manifest:config_write_gap:byte_halfword_word")
-
-        interrupt_ack_gap = find_gap(mmio_manifest, "phase10-mmio-interrupt-ack-helper")
-        if interrupt_ack_gap is not None:
-            why_now = str(interrupt_ack_gap.get("why_now", ""))
-            if "interrupt-status acknowledge bookkeeping" not in why_now:
-                missing.append("mmio_manifest:interrupt_ack_gap:acknowledge_bookkeeping")
-            if "queue and config interrupt bits" not in why_now:
-                missing.append("mmio_manifest:interrupt_ack_gap:queue_and_config_bits")
-
-        blocked_mmio_gap = find_gap(mmio_manifest, "phase10-mmio-lifecycle-and-irq-paths")
-        if blocked_mmio_gap is not None:
-            why_now = str(blocked_mmio_gap.get("why_now", ""))
-            if "interrupt acknowledgement" not in why_now:
-                missing.append("mmio_manifest:blocked_gap:interrupt_acknowledgement")
-            if "queue notify side effects" not in why_now:
-                missing.append("mmio_manifest:blocked_gap:queue_notify_side_effects")
+    validate_manifest(
+        missing,
+        "ring_manifest",
+        load_manifest(root, "zigux/tests/phase10_virtio_ring_manifest.json"),
+        lane_key="P10-L07",
+        anchor="drivers/virtio/virtio_ring.c",
+        expected_statuses=RING_EXPECTED_STATUSES,
+        minimum_gap_count=20,
+        minimum_starter_count=20,
+    )
+    validate_manifest(
+        missing,
+        "manifest",
+        load_manifest(root, "zigux/tests/phase10_virtio_input_manifest.json"),
+        lane_key="P10-L13",
+        anchor="drivers/virtio/virtio_input.c",
+        expected_statuses=INPUT_EXPECTED_STATUSES,
+        minimum_gap_count=13,
+        minimum_starter_count=10,
+    )
+    validate_manifest(
+        missing,
+        "mmio_manifest",
+        load_manifest(root, "zigux/tests/phase10_virtio_mmio_manifest.json"),
+        lane_key="P10-L18",
+        anchor="drivers/virtio/virtio_mmio.c",
+        expected_statuses=MMIO_EXPECTED_STATUSES,
+        minimum_gap_count=18,
+        minimum_starter_count=17,
+    )
 
     return [], missing
 
 
-def clone_fixture_root(destination_root: Path) -> None:
+def manifest_template(
+    lane_key: str,
+    anchor: str,
+    statuses: dict[str, str],
+    minimum_gap_count: int,
+) -> dict[str, object]:
+    gaps = []
+    for gap_id, status in statuses.items():
+        gaps.append(
+            {
+                "id": gap_id,
+                "status": status,
+                "kind": "validation",
+                "zigux_destination": "drivers/virtio/example.zig",
+                "why_now": "fixture marker for validator self-test",
+            }
+        )
+    while len(gaps) < minimum_gap_count:
+        gaps.append(
+            {
+                "id": f"fixture-extra-{len(gaps)}",
+                "status": "starter_landed",
+                "kind": "validation",
+                "zigux_destination": "drivers/virtio/example.zig",
+                "why_now": "fixture filler gap",
+            }
+        )
+    return {
+        "lane_key": lane_key,
+        "phase": "Phase 10",
+        "surveyed_commit": "0123456789abcdef0123456789abcdef01234567",
+        "anchor": anchor,
+        "roadmap_destinations": ALLOWED_DESTINATIONS,
+        "survey_summary": {"fixture": True},
+        "gaps": gaps,
+    }
+
+
+def write_fixture_tree(root: Path) -> None:
+    text_files = {
+        "zigux/Makefile": "\n".join(MAKE_MARKERS) + "\n",
+        ".github/workflows/zigux-bootstrap.yml": "\n".join(WORKFLOW_MARKERS) + "\n",
+        "scripts/zigux/README.md": "\n".join(SCRIPT_README_MARKERS) + "\n",
+        "zigux/tests/README.md": "\n".join(TESTS_README_MARKERS) + "\n",
+        "Documentation/zigux/README.md": "\n".join(DOC_README_MARKERS) + "\n",
+        "Documentation/zigux/phase10-virtio-ring-slice.md": "\n".join(RING_SLICE_MARKERS) + "\n",
+        "Documentation/zigux/phase10-virtio-ring-survey.md": "\n".join(RING_SURVEY_MARKERS) + "\n",
+        "Documentation/zigux/phase10-virtio-input-slice.md": "\n".join(SLICE_MARKERS) + "\n",
+        "Documentation/zigux/phase10-virtio-input-module-slice.md": "\n".join(MODULE_SLICE_MARKERS) + "\n",
+        "Documentation/zigux/phase10-virtio-input-survey.md": "\n".join(SURVEY_MARKERS) + "\n",
+        "Documentation/zigux/phase10-virtio-mmio-slice.md": "\n".join(MMIO_SLICE_MARKERS) + "\n",
+        "Documentation/zigux/phase10-virtio-mmio-survey.md": "\n".join(MMIO_SURVEY_MARKERS) + "\n",
+        "drivers/virtio/virtio_ring.zig": "\n".join(RING_HELPER_MARKERS) + "\n",
+        "drivers/virtio/virtio_input.zig": "\n".join(HELPER_MARKERS) + "\n",
+        "drivers/virtio/virtio_mmio.zig": "\n".join(MMIO_HELPER_MARKERS) + "\n",
+        "zigux/tests/phase10_build.zig": "fixture\n",
+        "zigux/tests/phase10_virtio_ring.zig": "\n".join(RING_TEST_MARKERS) + "\n",
+        "zigux/tests/phase10_virtio_ring_reset_reuse.zig": "\n".join(RING_RESET_REUSE_TEST_MARKERS) + "\n",
+        "zigux/tests/phase10_virtio_ring_survey.zig": "\n".join(RING_SURVEY_TEST_MARKERS) + "\n",
+        "zigux/tests/phase10_virtio_input.zig": "\n".join(TEST_MARKERS) + "\n",
+        "zigux/tests/phase10_virtio_input_survey.zig": "\n".join(SURVEY_TEST_MARKERS) + "\n",
+        "zigux/tests/phase10_virtio_mmio.zig": "\n".join(MMIO_TEST_MARKERS) + "\n",
+        "zigux/tests/phase10_virtio_mmio_survey.zig": "\n".join(MMIO_SURVEY_TEST_MARKERS) + "\n",
+        "scripts/zigux/validate-phase10.py": "fixture\n",
+        "scripts/zigux/validate-phase10-closure.py": "fixture\n",
+    }
+
+    manifests = {
+        "zigux/tests/phase10_virtio_ring_manifest.json": manifest_template(
+            "P10-L07",
+            "drivers/virtio/virtio_ring.c",
+            RING_EXPECTED_STATUSES,
+            21,
+        ),
+        "zigux/tests/phase10_virtio_input_manifest.json": manifest_template(
+            "P10-L13",
+            "drivers/virtio/virtio_input.c",
+            INPUT_EXPECTED_STATUSES,
+            13,
+        ),
+        "zigux/tests/phase10_virtio_mmio_manifest.json": manifest_template(
+            "P10-L18",
+            "drivers/virtio/virtio_mmio.c",
+            MMIO_EXPECTED_STATUSES,
+            18,
+        ),
+    }
+
     for rel_path in FILES:
-        source = ROOT / rel_path
-        target = destination_root / rel_path
-        target.parent.mkdir(parents=True, exist_ok=True)
-        target.write_text(source.read_text(encoding="utf-8"), encoding="utf-8")
+        path = root / rel_path
+        path.parent.mkdir(parents=True, exist_ok=True)
+        if rel_path in manifests:
+            path.write_text(json.dumps(manifests[rel_path], indent=2) + "\n", encoding="utf-8")
+        else:
+            path.write_text(text_files[rel_path], encoding="utf-8")
 
 
 def expect_missing_marker(label: str, root: Path, expected_marker: str) -> None:
     missing_files, missing_markers = validate(root)
     if missing_files:
-        raise SystemExit(
-            f"phase10-self-test:{label}:unexpected_missing_files:{','.join(missing_files)}"
-        )
+        raise SystemExit(f"{label}:unexpected_missing_files:{','.join(missing_files)}")
     if expected_marker not in missing_markers:
         actual = ",".join(missing_markers) if missing_markers else "none"
-        raise SystemExit(
-            f"phase10-self-test:{label}:expected_missing_marker:{expected_marker}:actual:{actual}"
-        )
+        raise SystemExit(f"{label}:expected:{expected_marker}:actual:{actual}")
 
 
 def run_self_test() -> int:
     with tempfile.TemporaryDirectory(prefix="zigux_phase10_selftest_") as tmp_dir:
         tmp_root = Path(tmp_dir)
-        clone_fixture_root(tmp_root)
+        write_fixture_tree(tmp_root)
 
         missing_files, missing_markers = validate(tmp_root)
         if missing_files or missing_markers:
@@ -702,371 +613,57 @@ def run_self_test() -> int:
                 f"markers={','.join(missing_markers) if missing_markers else 'none'}"
             )
 
-        makefile_path = tmp_root / "zigux/Makefile"
-        original_makefile = makefile_path.read_text(encoding="utf-8")
-        makefile_path.write_text(
-            original_makefile.replace(
-                "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase10.py --self-test\n",
-                "",
-                1,
-            ),
-            encoding="utf-8",
-        )
-        expect_missing_marker(
-            "makefile_self_test_hook",
-            tmp_root,
-            "make:scripts/zigux/validate-phase10.py --self-test",
-        )
-        makefile_path.write_text(original_makefile, encoding="utf-8")
-
-        workflow_path = tmp_root / ".github/workflows/zigux-bootstrap.yml"
-        original_workflow = workflow_path.read_text(encoding="utf-8")
-        workflow_path.write_text(
-            original_workflow.replace(
-                "      - name: Self-test Phase 10 shared validator\n"
-                "        run: python3 scripts/zigux/validate-phase10.py --self-test\n\n",
-                "",
-                1,
-            ),
-            encoding="utf-8",
-        )
-        expect_missing_marker(
-            "workflow_self_test_step",
-            tmp_root,
-            "workflow:Self-test Phase 10 shared validator",
-        )
-        workflow_path.write_text(original_workflow, encoding="utf-8")
-
         ring_manifest_path = tmp_root / "zigux/tests/phase10_virtio_ring_manifest.json"
-        original_ring_manifest = ring_manifest_path.read_text(encoding="utf-8")
-        ring_manifest_path.write_text(
-            original_ring_manifest.replace(
-                "\"phase10-queue-reset-helper\"",
-                "\"phase10-queue-reset-helper-drift\"",
-                1,
-            ),
-            encoding="utf-8",
-        )
-        expect_missing_marker(
-            "ring_manifest_reset_gap_id",
-            tmp_root,
-            "ring_manifest:gap:phase10-queue-reset-helper",
-        )
-        ring_manifest_path.write_text(original_ring_manifest, encoding="utf-8")
+        ring_manifest = json.loads(ring_manifest_path.read_text(encoding="utf-8"))
+        ring_manifest["lane_key"] = "P10-L08"
+        ring_manifest_path.write_text(json.dumps(ring_manifest, indent=2) + "\n", encoding="utf-8")
+        expect_missing_marker("ring_lane_key_guard", tmp_root, "ring_manifest:lane_key=P10-L07")
+        write_fixture_tree(tmp_root)
 
-        ring_reset_reuse_path = tmp_root / "zigux/tests/phase10_virtio_ring_reset_reuse.zig"
-        original_ring_reset_reuse = ring_reset_reuse_path.read_text(encoding="utf-8")
-        ring_reset_reuse_path.write_text(
-            original_ring_reset_reuse.replace(
-                'test "phase10 virtio ring drained reset clears the broken flag so the queue can be reused" {\n',
-                "",
-                1,
-            ),
-            encoding="utf-8",
-        )
-        expect_missing_marker(
-            "ring_reset_reuse_test",
-            tmp_root,
-            'ring_reset_reuse_tests:test "phase10 virtio ring drained reset clears the broken flag so the queue can be reused" {',
-        )
-        ring_reset_reuse_path.write_text(original_ring_reset_reuse, encoding="utf-8")
-
-        ring_survey_path = tmp_root / "Documentation/zigux/phase10-virtio-ring-survey.md"
-        original_ring_survey = ring_survey_path.read_text(encoding="utf-8")
-        ring_survey_path.write_text(
-            original_ring_survey.replace(
-                "phase10-mmio-config-write-helper",
-                "phase10-mmio-configwrite-helper-drift",
-            ),
-            encoding="utf-8",
-        )
-        expect_missing_marker(
-            "ring_survey_config_write_marker",
-            tmp_root,
-            "ring_survey_doc:phase10-mmio-config-write-helper",
-        )
-        ring_survey_path.write_text(original_ring_survey, encoding="utf-8")
+        ring_manifest = json.loads(ring_manifest_path.read_text(encoding="utf-8"))
+        ring_manifest["roadmap_destinations"] = ["drivers/virtio/*.zig", "zigux/helpers/"]
+        ring_manifest_path.write_text(json.dumps(ring_manifest, indent=2) + "\n", encoding="utf-8")
+        expect_missing_marker("ring_destinations_guard", tmp_root, "ring_manifest:roadmap_destinations")
+        write_fixture_tree(tmp_root)
 
         input_manifest_path = tmp_root / "zigux/tests/phase10_virtio_input_manifest.json"
-        original_input_manifest = input_manifest_path.read_text(encoding="utf-8")
-        input_manifest_path.write_text(
-            original_input_manifest.replace(
-                "\"phase10-virtio-input-registration-preflight-helper\"",
-                "\"phase10-virtio-input-registration-preflight-drift\"",
-                1,
-            ),
-            encoding="utf-8",
-        )
-        expect_missing_marker(
-            "input_manifest_gap_id",
-            tmp_root,
-            "manifest:gap:phase10-virtio-input-registration-preflight-helper",
-        )
-        input_manifest_path.write_text(original_input_manifest, encoding="utf-8")
-
-        input_manifest_path.write_text(
-            original_input_manifest.replace(
-                "\"phase10-virtio-input-queue-callback-preflight-helper\",\n      \"status\": \"starter_landed\"",
-                "\"phase10-virtio-input-queue-callback-preflight-helper\",\n      \"status\": \"ready_next\"",
-                1,
-            ),
-            encoding="utf-8",
-        )
-        expect_missing_marker(
-            "input_manifest_ready_next_regression",
-            tmp_root,
-            "manifest:ready_next_count=1",
-        )
-        input_manifest_path.write_text(original_input_manifest, encoding="utf-8")
-
-        input_manifest_path.write_text(
-            original_input_manifest.replace(
-                "\"phase10-virtio-input-probe-preflight-helper\"",
-                "\"phase10-virtio-input-probe-preflight-helper-drift\"",
-                1,
-            ),
-            encoding="utf-8",
-        )
-        expect_missing_marker(
-            "input_manifest_probe_preflight_gap_id",
-            tmp_root,
-            "manifest:gap:phase10-virtio-input-probe-preflight-helper",
-        )
-        input_manifest_path.write_text(original_input_manifest, encoding="utf-8")
+        input_manifest = json.loads(input_manifest_path.read_text(encoding="utf-8"))
+        for gap in input_manifest["gaps"]:
+            if gap["id"] == "phase10-virtio-input-registration-lifecycle":
+                gap["status"] = "ready_next"
+                break
+        input_manifest_path.write_text(json.dumps(input_manifest, indent=2) + "\n", encoding="utf-8")
+        expect_missing_marker("input_blocker_guard", tmp_root, "manifest:ready_next_count=1")
+        write_fixture_tree(tmp_root)
 
         mmio_manifest_path = tmp_root / "zigux/tests/phase10_virtio_mmio_manifest.json"
-        original_mmio_manifest = mmio_manifest_path.read_text(encoding="utf-8")
-        mmio_manifest_path.write_text(
-            original_mmio_manifest.replace(
-                "\"phase10-mmio-lifecycle-and-irq-paths\"",
-                "\"phase10-mmio-lifecycle-and-irq-paths-drift\"",
-                1,
-            ),
-            encoding="utf-8",
-        )
-        expect_missing_marker(
-            "mmio_manifest_blocked_gap_id",
-            tmp_root,
-            "mmio_manifest:gap:phase10-mmio-lifecycle-and-irq-paths",
-        )
-        mmio_manifest_path.write_text(original_mmio_manifest, encoding="utf-8")
+        mmio_manifest = json.loads(mmio_manifest_path.read_text(encoding="utf-8"))
+        for gap in mmio_manifest["gaps"]:
+            if gap["id"] == "phase10-mmio-lifecycle-and-irq-paths":
+                gap["id"] = "phase10-mmio-lifecycle-and-irq-paths-drift"
+                break
+        mmio_manifest_path.write_text(json.dumps(mmio_manifest, indent=2) + "\n", encoding="utf-8")
+        expect_missing_marker("mmio_blocker_presence_guard", tmp_root, "mmio_manifest:gap:phase10-mmio-lifecycle-and-irq-paths")
+        write_fixture_tree(tmp_root)
 
-        mmio_manifest_path.write_text(
-            original_mmio_manifest.replace(
-                "\"phase10-mmio-interrupt-ack-helper\"",
-                "\"phase10-mmio-interrupt-ack-helper-drift\"",
-                1,
-            ),
-            encoding="utf-8",
-        )
-        expect_missing_marker(
-            "mmio_manifest_interrupt_ack_gap_id",
-            tmp_root,
-            "mmio_manifest:gap:phase10-mmio-interrupt-ack-helper",
-        )
-        mmio_manifest_path.write_text(original_mmio_manifest, encoding="utf-8")
-
-        mmio_manifest_path.write_text(
-            original_mmio_manifest.replace(
-                "\"phase10-mmio-interrupt-ack-helper\",\n      \"status\": \"starter_landed\"",
-                "\"phase10-mmio-interrupt-ack-helper\",\n      \"status\": \"ready_next\"",
-                1,
-            ),
-            encoding="utf-8",
-        )
-        expect_missing_marker(
-            "mmio_manifest_ready_next_regression",
-            tmp_root,
-            "mmio_manifest:ready_next_count=1",
-        )
-        mmio_manifest_path.write_text(original_mmio_manifest, encoding="utf-8")
-
-        scripts_readme_path = tmp_root / "scripts/zigux/README.md"
-        original_scripts_readme = scripts_readme_path.read_text(encoding="utf-8")
-        scripts_readme_path.write_text(
-            original_scripts_readme.replace(
-                "`zigux/tests/phase10_virtio_ring_manifest.json`, ",
-                "",
-                1,
-            ),
-            encoding="utf-8",
-        )
-        expect_missing_marker(
-            "scripts_readme_phase10_ring_manifest_entry",
-            tmp_root,
-            "script_readme:phase10_virtio_ring_manifest.json",
-        )
-        scripts_readme_path.write_text(original_scripts_readme, encoding="utf-8")
-
-        scripts_readme_path.write_text(
-            original_scripts_readme.replace(
-                "the landed probe-preflight helper, ",
-                "",
-                1,
-            ),
-            encoding="utf-8",
-        )
-        expect_missing_marker(
-            "scripts_readme_probe_preflight_entry",
-            tmp_root,
-            "script_readme:probe-preflight helper",
-        )
-        scripts_readme_path.write_text(original_scripts_readme, encoding="utf-8")
-
-        scripts_readme_path.write_text(
-            original_scripts_readme.replace(
-                "the eleven shared test entrypoints",
-                "the nine shared test entrypoints",
-                1,
-            ),
-            encoding="utf-8",
-        )
-        expect_missing_marker(
-            "scripts_readme_phase10_test_count",
-            tmp_root,
-            "script_readme:eleven shared test entrypoints",
-        )
-        scripts_readme_path.write_text(original_scripts_readme, encoding="utf-8")
+        docs_root_path = tmp_root / "Documentation/zigux/README.md"
+        docs_root_path.write_text("missing marker fixture\n", encoding="utf-8")
+        expect_missing_marker("docs_root_marker_guard", tmp_root, "doc_readme:phase10-closure-evidence.md")
+        write_fixture_tree(tmp_root)
 
         tests_readme_path = tmp_root / "zigux/tests/README.md"
-        original_tests_readme = tests_readme_path.read_text(encoding="utf-8")
         tests_readme_path.write_text(
-            original_tests_readme.replace(
-                "- `zigux/tests/phase10_virtio_ring_reset_reuse.zig`\n",
-                "",
-                1,
-            ),
+            read_text(tmp_root, "zigux/tests/README.md") + "\nthree manifest-backed survey records\n",
             encoding="utf-8",
         )
         expect_missing_marker(
-            "tests_readme_phase10_ring_reset_reuse_entry",
-            tmp_root,
-            "tests_readme:zigux/tests/phase10_virtio_ring_reset_reuse.zig",
-        )
-        tests_readme_path.write_text(original_tests_readme, encoding="utf-8")
-
-        scripts_readme_path.write_text(
-            original_scripts_readme + "\nABS_MT_SLOT remains the single ready-next helper step\n",
-            encoding="utf-8",
-        )
-        expect_missing_marker(
-            "scripts_readme_stale_ready_next_marker",
-            tmp_root,
-            "script_readme:stale_marker:ABS_MT_SLOT remains the single ready-next helper step",
-        )
-        scripts_readme_path.write_text(original_scripts_readme, encoding="utf-8")
-
-        tests_readme_path.write_text(
-            original_tests_readme + "\nthree manifest-backed survey records\n",
-            encoding="utf-8",
-        )
-        expect_missing_marker(
-            "tests_readme_stale_manifest_count_marker",
+            "tests_readme_stale_marker_guard",
             tmp_root,
             "tests_readme:stale_marker:three manifest-backed survey records",
         )
-        tests_readme_path.write_text(original_tests_readme, encoding="utf-8")
-
-        input_test_path = tmp_root / "zigux/tests/phase10_virtio_input.zig"
-        original_input_test = input_test_path.read_text(encoding="utf-8")
-        input_test_path.write_text(
-            original_input_test.replace(
-                'test "phase10 virtio input records probe preflight once registration and queue provisioning converge" {\n',
-                "",
-                1,
-            ),
-            encoding="utf-8",
-        )
-        expect_missing_marker(
-            "input_probe_preflight_test",
-            tmp_root,
-            'tests:test "phase10 virtio input records probe preflight once registration and queue provisioning converge" {',
-        )
-        input_test_path.write_text(original_input_test, encoding="utf-8")
-
-        input_survey_test_path = tmp_root / "zigux/tests/phase10_virtio_input_survey.zig"
-        original_input_survey_test = input_survey_test_path.read_text(encoding="utf-8")
-        input_survey_test_path.write_text(
-            original_input_survey_test.replace(
-                'if (std.mem.eql(u8, gap.id, "phase10-virtio-input-probe-preflight-helper")) {',
-                'if (std.mem.eql(u8, gap.id, "phase10-virtio-input-probe-preflight-helper-drift")) {',
-                1,
-            ),
-            encoding="utf-8",
-        )
-        expect_missing_marker(
-            "input_probe_preflight_survey_test",
-            tmp_root,
-            'survey_test:if (std.mem.eql(u8, gap.id, "phase10-virtio-input-probe-preflight-helper")) {',
-        )
-        input_survey_test_path.write_text(original_input_survey_test, encoding="utf-8")
-
-        mmio_test_path = tmp_root / "zigux/tests/phase10_virtio_mmio.zig"
-        original_mmio_test = mmio_test_path.read_text(encoding="utf-8")
-        mmio_test_path.write_text(
-            original_mmio_test.replace(
-                'test "phase10 virtio mmio acknowledges only pending bounded interrupt bits" {\n',
-                "",
-                1,
-            ),
-            encoding="utf-8",
-        )
-        expect_missing_marker(
-            "mmio_interrupt_ack_test",
-            tmp_root,
-            'mmio_tests:test "phase10 virtio mmio acknowledges only pending bounded interrupt bits" {',
-        )
-        mmio_test_path.write_text(original_mmio_test, encoding="utf-8")
-
-        doc_readme_path = tmp_root / "Documentation/zigux/README.md"
-        original_doc_readme = doc_readme_path.read_text(encoding="utf-8")
-        doc_readme_path.write_text(
-            original_doc_readme.replace(
-                "python3 scripts/zigux/check-phase10-harness-coverage.py",
-                "python3 scripts/zigux/check-phase10-harness-coverage-drift.py",
-                1,
-            ),
-            encoding="utf-8",
-        )
-        expect_missing_marker(
-            "doc_readme_harness_coverage_gate",
-            tmp_root,
-            "doc_readme:python3 scripts/zigux/check-phase10-harness-coverage.py",
-        )
-        doc_readme_path.write_text(original_doc_readme, encoding="utf-8")
-
-        doc_readme_path.write_text(
-            original_doc_readme.replace(
-                "queue-handling and ready-state gate",
-                "queue-handling gate drift",
-                1,
-            ),
-            encoding="utf-8",
-        )
-        expect_missing_marker(
-            "doc_readme_harness_ready_state_phrase",
-            tmp_root,
-            "doc_readme:queue-handling and ready-state gate",
-        )
-        doc_readme_path.write_text(original_doc_readme, encoding="utf-8")
-
-        doc_readme_path.write_text(
-            original_doc_readme.replace(
-                "same nine published Phase 10 docs named by the shared closure packet",
-                "same published Phase 10 docs",
-                1,
-            ),
-            encoding="utf-8",
-        )
-        expect_missing_marker(
-            "doc_readme_phase10_packet_note",
-            tmp_root,
-            "doc_readme:same nine published Phase 10 docs named by the shared closure packet",
-        )
-        doc_readme_path.write_text(original_doc_readme, encoding="utf-8")
 
     print("PHASE10_VALIDATOR_SELF_TEST=pass")
-    print("PHASE10_VALIDATOR_SELF_TEST_CASE_COUNT=23")
+    print("PHASE10_VALIDATOR_SELF_TEST_CASE_COUNT=6")
     return 0
 
 
