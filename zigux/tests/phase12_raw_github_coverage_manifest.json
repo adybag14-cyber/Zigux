@@ -3,7 +3,7 @@
   "phase": "Phase 12",
   "scope": "raw GitHub fallback catalog survey public-read coverage gaps vs roadmap",
   "public_read_boundary": "read_only_public_github_tree_and_raw_paths_only",
-  "last_replayed_public_head": "bc2373f7deedf021c73beaae29555a9ac6b0536d",
+  "last_replayed_public_head": "0bd402fd6ca83ba2ace6b21e9e57459401b631cd",
   "roadmap_anchor_count": 4,
   "commit_pinned_raw_fallback_catalog_count": 1,
   "commit_pinned_raw_fallback_map_count": 1,
