@@ -9,7 +9,7 @@ import tempfile
 
 SCRIPT_PATH = Path(__file__).resolve()
 ROOT = SCRIPT_PATH.parents[2] if len(SCRIPT_PATH.parents) > 2 else SCRIPT_PATH.parent
-SELF_TEST_CASE_COUNT = 13
+SELF_TEST_CASE_COUNT = 17
 
 CHECKSUM_PERF_PATH = "zigux/tests/phase6_checksum_perf.zig"
 HEXDUMP_PERF_PATH = "zigux/tests/phase6_hexdump_perf.zig"
@@ -81,6 +81,17 @@ def drop_exact_line(content: str, marker: str) -> str:
             continue
         kept.append(line)
     return "\n".join(kept) + ("\n" if kept else "")
+
+
+def duplicate_exact_line(content: str, marker: str) -> str:
+    updated: list[str] = []
+    duplicated = False
+    for line in content.splitlines():
+        updated.append(line)
+        if not duplicated and line.strip() == marker:
+            updated.append(line)
+            duplicated = True
+    return "\n".join(updated) + ("\n" if updated else "")
 
 
 def validate(root: Path) -> dict[str, object]:
@@ -214,6 +225,16 @@ def run_self_test() -> int:
             count += 1
 
             build_self_test_tree(root)
+            (root / MAKEFILE_PATH).unlink()
+            expect_missing_file(validate(root), MAKEFILE_PATH)
+            count += 1
+
+            build_self_test_tree(root)
+            (root / MANIFEST_PATH).unlink()
+            expect_missing_file(validate(root), MANIFEST_PATH)
+            count += 1
+
+            build_self_test_tree(root)
             checksum_path = root / CHECKSUM_PERF_PATH
             checksum_path.write_text(
                 checksum_path.read_text(encoding="utf-8").replace(CHECKSUM_PERF_MARKERS[1], "", 1),
@@ -261,10 +282,10 @@ def run_self_test() -> int:
             build_self_test_tree(root)
             makefile_path = root / MAKEFILE_PATH
             makefile_path.write_text(
-                drop_exact_line(makefile_path.read_text(encoding="utf-8"), MAKEFILE_MARKERS[1]),
+                duplicate_exact_line(makefile_path.read_text(encoding="utf-8"), MAKEFILE_MARKERS[0]),
                 encoding="utf-8",
             )
-            expect_contains(validate(root), f"makefile:missing:{MAKEFILE_MARKERS[1]}")
+            expect_contains(validate(root), f"makefile:missing:{MAKEFILE_MARKERS[0]}")
             count += 1
 
             build_self_test_tree(root)
@@ -274,6 +295,24 @@ def run_self_test() -> int:
                 encoding="utf-8",
             )
             expect_contains(validate(root), f"manifest:missing:{MANIFEST_MARKERS[0]}")
+            count += 1
+
+            build_self_test_tree(root)
+            manifest_path = root / MANIFEST_PATH
+            manifest_path.write_text(
+                duplicate_exact_line(manifest_path.read_text(encoding="utf-8"), MANIFEST_MARKERS[0]),
+                encoding="utf-8",
+            )
+            expect_contains(validate(root), f"manifest:missing:{MANIFEST_MARKERS[0]}")
+            count += 1
+
+            build_self_test_tree(root)
+            makefile_path = root / MAKEFILE_PATH
+            makefile_path.write_text(
+                drop_exact_line(makefile_path.read_text(encoding="utf-8"), MAKEFILE_MARKERS[1]),
+                encoding="utf-8",
+            )
+            expect_contains(validate(root), f"makefile:missing:{MAKEFILE_MARKERS[1]}")
             count += 1
 
             build_self_test_tree(root)
