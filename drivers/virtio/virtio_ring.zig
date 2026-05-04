@@ -692,3 +692,53 @@ test "phase10 virtio ring teardown summary keeps publish and poll debt visible" 
     try std.testing.expect(summary.requires_poll_before_teardown);
     try std.testing.expect(!summary.ready_for_drained_teardown);
 }
+
+test "phase10 virtio ring blocks poll helpers while the queue stays broken" {
+    var ring = VirtioRingLab{};
+    try ring.defineQueue(5, 8, .split, true, false);
+
+    try ring.publishDescriptorChain(5);
+    _ = try ring.breakQueue(5);
+
+    try std.testing.expectError(error.QueueBroken, ring.pollUsedBuffers(5));
+    try std.testing.expectError(error.QueueBroken, ring.pollAfterEnable(5, 0));
+
+    const broken_summary = try ring.brokenSummary(5);
+    try std.testing.expect(broken_summary.broken);
+    try std.testing.expectEqual(@as(u16, 1), broken_summary.outstanding_chain_count);
+    try std.testing.expectEqual(@as(u16, 0), broken_summary.pending_used_chain_count);
+    try std.testing.expectEqual(@as(u16, 1), broken_summary.unpublished_chain_count);
+}
+
+test "phase10 virtio ring keeps pending used debt visible without advancing poll bookkeeping while broken" {
+    var ring = VirtioRingLab{};
+    try ring.defineQueue(6, 8, .packed_ring, true, true);
+
+    try ring.publishDescriptorChain(6);
+    _ = try ring.prepareKick(6);
+    const prepare_summary = try ring.enableCallbackPrepare(6);
+    try ring.recordUsedChains(6, 1);
+    _ = try ring.breakQueue(6);
+
+    const broken_summary = try ring.brokenSummary(6);
+    try std.testing.expect(broken_summary.broken);
+    try std.testing.expectEqual(@as(u16, 0), broken_summary.outstanding_chain_count);
+    try std.testing.expectEqual(@as(u16, 1), broken_summary.pending_used_chain_count);
+    try std.testing.expectEqual(@as(u16, 0), broken_summary.unpublished_chain_count);
+
+    try std.testing.expectError(error.QueueBroken, ring.pollUsedBuffers(6));
+    try std.testing.expectError(error.QueueBroken, ring.pollAfterEnable(6, prepare_summary.last_used_idx_snapshot));
+
+    _ = try ring.unbreakQueue(6);
+
+    const enable_poll = try ring.pollAfterEnable(6, prepare_summary.last_used_idx_snapshot);
+    try std.testing.expectEqual(@as(u16, 0), enable_poll.last_used_idx_snapshot);
+    try std.testing.expectEqual(@as(u16, 1), enable_poll.current_last_used_idx);
+    try std.testing.expect(enable_poll.has_used_buffers_since_prepare);
+
+    const used_poll = try ring.pollUsedBuffers(6);
+    try std.testing.expectEqual(@as(u16, 1), used_poll.last_used_idx);
+    try std.testing.expectEqual(@as(u16, 0), used_poll.last_polled_used_idx);
+    try std.testing.expectEqual(@as(u16, 1), used_poll.newly_used_chain_count);
+    try std.testing.expect(used_poll.has_newly_used_chains);
+}
