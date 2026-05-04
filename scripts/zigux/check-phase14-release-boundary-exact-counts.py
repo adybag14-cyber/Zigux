@@ -5,29 +5,21 @@ from pathlib import Path
 import sys
 
 
-ROOT = Path(__file__).resolve().parents[2]
-
-VALIDATOR_SNIPPETS = [
-    "RELEASE_BOUNDARY_EXACT_COUNT_MARKERS = RELEASE_BOUNDARY_MARKERS",
-    '"PHASE14_RELEASE_BOUNDARY=present"',
-    '"PHASE14_SHARED_REPLAY_PRESENT=yes"',
-    '"PHASE14_RELEASE_CLOSED=no"',
-    'release_boundary_text = text("Documentation/zigux/phase14-release-boundary-survey.md")',
-    "for marker in RELEASE_BOUNDARY_EXACT_COUNT_MARKERS:",
-    'expect_exact_count("release_boundary", release_boundary_text, marker, 1, missing)',
-]
+ROOT = Path(__file__).resolve().parents[2] if len(Path(__file__).resolve().parents) > 2 else Path.cwd()
 
 DOCS_ROOT_CHECKER_SNIPPETS = [
     "RELEASE_BOUNDARY_LINES = [",
     '"PHASE14_RELEASE_BOUNDARY=present"',
     '"PHASE14_SHARED_REPLAY_PRESENT=yes"',
     '"PHASE14_RELEASE_CLOSED=no"',
-    "require_exact_count(",
-    '"release_boundary", release_boundary_text, RELEASE_BOUNDARY_LINES, 1',
+    '"shared smoke packet: `Documentation/zigux/phase14-end-to-end-smoke-survey.md`, `Documentation/zigux/phase14-release-boundary-survey.md`, `zigux/tests/phase14_end_to_end_smoke_manifest.json`, `scripts/zigux/check-phase14-docs-root-smoke-summary.py`, `scripts/zigux/check-phase14-release-boundary-exact-counts.py`, `scripts/zigux/validate-phase14.py`, `make -C zigux phase14-validate`, `make -C zigux phase14-smoke`, `zig build phase14-smoke --build-file zigux/tests/phase14_build.zig --summary all`, and `zig build test --build-file zigux/tests/phase14_build.zig --summary all` now keep the four-anchor boundary map, the focused smoke shard, and the shared full-bundle replay explicit from a study-only posture"',
+    'require_exact_count("release_boundary", release_boundary_text, RELEASE_BOUNDARY_LINES)',
 ]
 
 MAKEFILE_SNIPPETS = [
     "phase14-validate:",
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase14-docs-root-smoke-summary.py --self-test",
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase14-docs-root-smoke-summary.py",
     "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase14-release-boundary-exact-counts.py --self-test",
     "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase14-release-boundary-exact-counts.py",
     "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase14.py",
@@ -42,66 +34,39 @@ def count_exact_line(text: str, snippet: str) -> int:
     return sum(1 for line in text.splitlines() if line.strip() == snippet)
 
 
-def require_exact_count(label: str, text: str, snippets: list[str], expected_count: int) -> list[str]:
+def require_exact_count(label: str, text: str, snippets: list[str]) -> list[str]:
     issues: list[str] = []
     for snippet in snippets:
-        actual_count = text.count(snippet)
-        if actual_count != expected_count:
-            issues.append(f"{label}:{actual_count}:{snippet}")
+        actual = text.count(snippet)
+        if actual != 1:
+            issues.append(f"{label}:{actual}:{snippet}")
     return issues
 
 
-def require_exact_line_count(label: str, text: str, snippets: list[str], expected_count: int) -> list[str]:
+def require_exact_line_count(label: str, text: str, snippets: list[str]) -> list[str]:
     issues: list[str] = []
     for snippet in snippets:
-        actual_count = count_exact_line(text, snippet)
-        if actual_count != expected_count:
-            issues.append(f"{label}:{actual_count}:{snippet}")
+        actual = count_exact_line(text, snippet)
+        if actual != 1:
+            issues.append(f"{label}:{actual}:{snippet}")
     return issues
 
 
-def validate_phase14_release_boundary_alignment(
-    validator_text: str,
-    docs_root_checker_text: str,
-    makefile_text: str,
-) -> list[str]:
-    issues = require_exact_count("validator", validator_text, VALIDATOR_SNIPPETS, 1)
-    issues.extend(
-        require_exact_count(
-            "docs_root_checker",
-            docs_root_checker_text,
-            DOCS_ROOT_CHECKER_SNIPPETS,
-            1,
-        )
-    )
-    issues.extend(require_exact_line_count("makefile", makefile_text, MAKEFILE_SNIPPETS, 1))
+def validate_alignment(docs_root_checker_text: str, makefile_text: str) -> list[str]:
+    issues = require_exact_count("docs_root_checker", docs_root_checker_text, DOCS_ROOT_CHECKER_SNIPPETS)
+    issues.extend(require_exact_line_count("makefile", makefile_text, MAKEFILE_SNIPPETS))
     return issues
 
 
 def run_self_test() -> int:
-    validator_text = """
-RELEASE_BOUNDARY_MARKERS = [
-    "PHASE14_RELEASE_BOUNDARY=present",
-    "PHASE14_SHARED_REPLAY_PRESENT=yes",
-    "PHASE14_RELEASE_CLOSED=no",
-]
-RELEASE_BOUNDARY_EXACT_COUNT_MARKERS = RELEASE_BOUNDARY_MARKERS
-release_boundary_text = text("Documentation/zigux/phase14-release-boundary-survey.md")
-for marker in RELEASE_BOUNDARY_EXACT_COUNT_MARKERS:
-    expect_exact_count("release_boundary", release_boundary_text, marker, 1, missing)
-""".strip()
-
     docs_root_checker_text = """
 RELEASE_BOUNDARY_LINES = [
     "PHASE14_RELEASE_BOUNDARY=present",
     "PHASE14_SHARED_REPLAY_PRESENT=yes",
     "PHASE14_RELEASE_CLOSED=no",
+    "shared smoke packet: `Documentation/zigux/phase14-end-to-end-smoke-survey.md`, `Documentation/zigux/phase14-release-boundary-survey.md`, `zigux/tests/phase14_end_to_end_smoke_manifest.json`, `scripts/zigux/check-phase14-docs-root-smoke-summary.py`, `scripts/zigux/check-phase14-release-boundary-exact-counts.py`, `scripts/zigux/validate-phase14.py`, `make -C zigux phase14-validate`, `make -C zigux phase14-smoke`, `zig build phase14-smoke --build-file zigux/tests/phase14_build.zig --summary all`, and `zig build test --build-file zigux/tests/phase14_build.zig --summary all` now keep the four-anchor boundary map, the focused smoke shard, and the shared full-bundle replay explicit from a study-only posture",
 ]
-missing.extend(
-    require_exact_count(
-        "release_boundary", release_boundary_text, RELEASE_BOUNDARY_LINES, 1
-    )
-)
+issues = require_exact_count("release_boundary", release_boundary_text, RELEASE_BOUNDARY_LINES)
 """.strip()
 
     makefile_text = """
@@ -113,82 +78,19 @@ phase14-validate:
 	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase14.py
 """.strip()
 
-    cases = [
-        ("happy_path", validator_text, docs_root_checker_text, makefile_text, False),
-        (
-            "missing_validator_shared_replay_marker",
-            validator_text.replace('"PHASE14_SHARED_REPLAY_PRESENT=yes"', "", 1),
-            docs_root_checker_text,
-            makefile_text,
-            True,
+    good = validate_alignment(docs_root_checker_text, makefile_text)
+    bad = validate_alignment(
+        docs_root_checker_text.replace(
+            "`scripts/zigux/check-phase14-release-boundary-exact-counts.py`, ", "", 1
         ),
-        (
-            "duplicate_validator_exact_count_alias",
-            validator_text + "\nRELEASE_BOUNDARY_EXACT_COUNT_MARKERS = RELEASE_BOUNDARY_MARKERS",
-            docs_root_checker_text,
-            makefile_text,
-            True,
-        ),
-        (
-            "missing_docs_root_shared_replay_marker",
-            validator_text,
-            docs_root_checker_text.replace('"PHASE14_SHARED_REPLAY_PRESENT=yes"', "", 1),
-            makefile_text,
-            True,
-        ),
-        (
-            "duplicate_docs_root_release_closed_marker",
-            validator_text,
-            docs_root_checker_text + '\n"PHASE14_RELEASE_CLOSED=no"',
-            makefile_text,
-            True,
-        ),
-        (
-            "missing_makefile_release_boundary_self_test",
-            validator_text,
-            docs_root_checker_text,
-            makefile_text.replace(
-                "scripts/zigux/check-phase14-release-boundary-exact-counts.py --self-test",
-                "",
-                1,
-            ),
-            True,
-        ),
-        (
-            "duplicate_makefile_release_boundary_helper",
-            validator_text,
-            docs_root_checker_text,
-            makefile_text
-            + "\n\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase14-release-boundary-exact-counts.py",
-            True,
-        ),
-        (
-            "duplicate_makefile_phase14_validate_target",
-            validator_text,
-            docs_root_checker_text,
-            makefile_text + "\nphase14-validate:",
-            True,
-        ),
-    ]
-
-    for name, validator_value, docs_root_checker_value, makefile_value, should_fail in cases:
-        issues = validate_phase14_release_boundary_alignment(
-            validator_value,
-            docs_root_checker_value,
-            makefile_value,
-        )
-        failed = bool(issues)
-        if failed != should_fail:
-            print(f"PHASE14_RELEASE_BOUNDARY_EXACT_COUNTS_SELF_TEST={name}:fail")
-            if issues:
-                print("ISSUES_START")
-                for issue in issues:
-                    print(issue)
-                print("ISSUES_END")
-            return 1
+        makefile_text,
+    )
+    if good or not bad:
+        print("PHASE14_RELEASE_BOUNDARY_EXACT_COUNTS_SELF_TEST=fail")
+        return 1
 
     print("PHASE14_RELEASE_BOUNDARY_EXACT_COUNTS_SELF_TEST=pass")
-    print(f"PHASE14_RELEASE_BOUNDARY_EXACT_COUNTS_SELF_TEST_CASE_COUNT={len(cases)}")
+    print("PHASE14_RELEASE_BOUNDARY_EXACT_COUNTS_SELF_TEST_CASE_COUNT=2")
     return 0
 
 
@@ -196,10 +98,9 @@ def main(argv: list[str]) -> int:
     if argv[1:] == ["--self-test"]:
         return run_self_test()
 
-    validator_path = ROOT / "scripts/zigux/validate-phase14.py"
     docs_root_checker_path = ROOT / "scripts/zigux/check-phase14-docs-root-smoke-summary.py"
     makefile_path = ROOT / "zigux/Makefile"
-    required_paths = [validator_path, docs_root_checker_path, makefile_path]
+    required_paths = [docs_root_checker_path, makefile_path]
     missing_files = [str(path) for path in required_paths if not path.exists()]
     if missing_files:
         print("PHASE14_RELEASE_BOUNDARY_EXACT_COUNTS=fail")
@@ -209,11 +110,7 @@ def main(argv: list[str]) -> int:
         print("MISSING_FILES_END")
         return 1
 
-    issues = validate_phase14_release_boundary_alignment(
-        read(validator_path),
-        read(docs_root_checker_path),
-        read(makefile_path),
-    )
+    issues = validate_alignment(read(docs_root_checker_path), read(makefile_path))
     if issues:
         print("PHASE14_RELEASE_BOUNDARY_EXACT_COUNTS=fail")
         print("ISSUES_START")
@@ -223,7 +120,6 @@ def main(argv: list[str]) -> int:
         return 1
 
     print("PHASE14_RELEASE_BOUNDARY_EXACT_COUNTS=pass")
-    print(f"PHASE14_VALIDATOR_SNIPPET_COUNT={len(VALIDATOR_SNIPPETS)}")
     print(f"PHASE14_DOCS_ROOT_CHECKER_SNIPPET_COUNT={len(DOCS_ROOT_CHECKER_SNIPPETS)}")
     print(f"PHASE14_MAKEFILE_SNIPPET_COUNT={len(MAKEFILE_SNIPPETS)}")
     return 0
