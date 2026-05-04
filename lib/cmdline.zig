@@ -617,6 +617,20 @@ test "nextArg preserves leading equals sentinels and trims trailing spaces" {
     try std.testing.expectEqualStrings("", cStringPrefix(spaced.rest));
 }
 
+test "nextArg rewrites split delimiters in place and keeps slices in the caller buffer" {
+    var input = [_]u8{ 'r', 'o', 'o', 't', '=', '"', '/', 'd', 'e', 'v', '/', 's', 'd', 'a', ' ', '1', '"', ' ', 'r', 'o', 0 };
+    const parsed = nextArg(input[0..]);
+    try std.testing.expectEqualStrings("root", parsed.param);
+    try std.testing.expectEqualStrings("/dev/sda 1", parsed.value.?);
+    try std.testing.expectEqualStrings("ro", cStringPrefix(parsed.rest));
+    try std.testing.expect(parsed.param.ptr == input[0..].ptr);
+    try std.testing.expect(parsed.value.?.ptr == input[6..].ptr);
+    try std.testing.expect(parsed.rest.ptr == input[18..].ptr);
+    try std.testing.expectEqual(@as(u8, 0), input[4]);
+    try std.testing.expectEqual(@as(u8, 0), input[16]);
+    try std.testing.expectEqual(@as(u8, 0), input[17]);
+}
+
 test "nextArg keeps empty quoted bare tokens isolated from the trailing cursor" {
     var empty_quoted = [_]u8{ '"', '"', ' ', 'n', 'e', 'x', 't', 0 };
     const parsed = nextArg(empty_quoted[0..]);
