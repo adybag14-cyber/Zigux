@@ -550,6 +550,22 @@ def run_self_test() -> int:
     missing = collect_missing(
         **{
             **base_inputs,
+            "survey_text": base_inputs["survey_text"].replace(
+                "zigux/tests/phase12_raw_github_coverage_survey.zig\n",
+                "",
+                1,
+            ),
+        }
+    )
+    expect_contains(
+        "survey_raw_coverage_survey_artifact_exact_count_detection",
+        missing,
+        "survey_count:zigux/tests/phase12_raw_github_coverage_survey.zig:expected=3:actual=2",
+    )
+
+    missing = collect_missing(
+        **{
+            **base_inputs,
             "raw_coverage_text": base_inputs["raw_coverage_text"].replace(
                 "zigux/tests/phase12_raw_github_coverage_manifest.json\n",
                 "",
@@ -561,6 +577,22 @@ def run_self_test() -> int:
         "raw_coverage_manifest_marker_detection",
         missing,
         "raw_coverage:zigux/tests/phase12_raw_github_coverage_manifest.json",
+    )
+
+    missing = collect_missing(
+        **{
+            **base_inputs,
+            "raw_coverage_text": base_inputs["raw_coverage_text"].replace(
+                "zigux/tests/phase12_raw_github_coverage_survey.zig\n",
+                "",
+                1,
+            ),
+        }
+    )
+    expect_contains(
+        "raw_coverage_survey_marker_detection",
+        missing,
+        "raw_coverage:zigux/tests/phase12_raw_github_coverage_survey.zig",
     )
 
     missing = collect_missing(
@@ -718,7 +750,7 @@ def run_self_test() -> int:
     expect_contains("raw_coverage_marker_detection", missing, "raw_coverage:shared-tree-only")
 
     print("PHASE12_RELEASE_READINESS_PACKET_SELF_TEST=pass")
-    print("PHASE12_RELEASE_READINESS_PACKET_SELF_TEST_CASE_COUNT=34")
+    print("PHASE12_RELEASE_READINESS_PACKET_SELF_TEST_CASE_COUNT=36")
     return 0
 
 
