@@ -297,6 +297,16 @@ EXPECTED_FOCUSED_HARNESS_REPLAYS = {
 }
 
 ALLOWED_DESTINATIONS = ["drivers/virtio/*.zig", "zigux/kernel/", "zigux/helpers/"]
+EXPECTED_FREEZE_MAP = "Documentation/zigux/freeze-map.md"
+EXPECTED_FREEZE_BOUNDARY_STATUS = "aligned"
+EXPECTED_RISKY_TRANSPORT_POSTURE = "blocked_on_risky_transport"
+EXPECTED_FORBIDDEN_TRANSPORT_CLAIMS = [
+    "queue_setup_reset_paths",
+    "irq_parity",
+    "dma_paths",
+    "input_registration_lifecycle",
+    "probe_remove_lifecycle",
+]
 
 RING_EXPECTED_STATUSES = {
     "phase10-virtio-ring-survey-gate": "starter_landed",
@@ -395,6 +405,18 @@ def validate_manifest(
         missing.append(f"{label}:surveyed_commit")
     if manifest.get("roadmap_destinations") != ALLOWED_DESTINATIONS:
         missing.append(f"{label}:roadmap_destinations")
+    if manifest.get("freeze_map") != EXPECTED_FREEZE_MAP:
+        missing.append(f"{label}:freeze_map")
+    if manifest.get("freeze_boundary_status") != EXPECTED_FREEZE_BOUNDARY_STATUS:
+        missing.append(f"{label}:freeze_boundary_status")
+    if manifest.get("risky_transport_posture") != EXPECTED_RISKY_TRANSPORT_POSTURE:
+        missing.append(f"{label}:risky_transport_posture")
+    if manifest.get("forbidden_transport_claims") != EXPECTED_FORBIDDEN_TRANSPORT_CLAIMS:
+        missing.append(f"{label}:forbidden_transport_claims")
+    if manifest.get("architecture_council_reopen_required") is not True:
+        missing.append(f"{label}:architecture_council_reopen_required")
+    if manifest.get("architecture_council_reopen_attached") is not False:
+        missing.append(f"{label}:architecture_council_reopen_attached")
 
     survey_summary = manifest.get("survey_summary")
     if not isinstance(survey_summary, dict):
@@ -583,6 +605,12 @@ def manifest_template(
         "surveyed_commit": "0123456789abcdef0123456789abcdef01234567",
         "anchor": anchor,
         "roadmap_destinations": ALLOWED_DESTINATIONS,
+        "freeze_map": EXPECTED_FREEZE_MAP,
+        "freeze_boundary_status": EXPECTED_FREEZE_BOUNDARY_STATUS,
+        "risky_transport_posture": EXPECTED_RISKY_TRANSPORT_POSTURE,
+        "forbidden_transport_claims": EXPECTED_FORBIDDEN_TRANSPORT_CLAIMS,
+        "architecture_council_reopen_required": True,
+        "architecture_council_reopen_attached": False,
         "survey_summary": {"fixture": True},
         "gaps": gaps,
     }
@@ -698,6 +726,16 @@ def run_self_test() -> int:
         expect_missing_marker("ring_destinations_guard", tmp_root, "ring_manifest:roadmap_destinations")
         write_fixture_tree(tmp_root)
 
+        ring_manifest = json.loads(ring_manifest_path.read_text(encoding="utf-8"))
+        ring_manifest["freeze_boundary_status"] = "drifted"
+        ring_manifest_path.write_text(json.dumps(ring_manifest, indent=2) + "\n", encoding="utf-8")
+        expect_missing_marker(
+            "ring_freeze_boundary_status_guard",
+            tmp_root,
+            "ring_manifest:freeze_boundary_status",
+        )
+        write_fixture_tree(tmp_root)
+
         input_manifest_path = tmp_root / "zigux/tests/phase10_virtio_input_manifest.json"
         input_manifest = json.loads(input_manifest_path.read_text(encoding="utf-8"))
         for gap in input_manifest["gaps"]:
@@ -721,6 +759,16 @@ def run_self_test() -> int:
         )
         write_fixture_tree(tmp_root)
 
+        input_manifest = json.loads(input_manifest_path.read_text(encoding="utf-8"))
+        input_manifest["architecture_council_reopen_attached"] = True
+        input_manifest_path.write_text(json.dumps(input_manifest, indent=2) + "\n", encoding="utf-8")
+        expect_missing_marker(
+            "input_reopen_attachment_guard",
+            tmp_root,
+            "manifest:architecture_council_reopen_attached",
+        )
+        write_fixture_tree(tmp_root)
+
         mmio_manifest_path = tmp_root / "zigux/tests/phase10_virtio_mmio_manifest.json"
         mmio_manifest = json.loads(mmio_manifest_path.read_text(encoding="utf-8"))
         for gap in mmio_manifest["gaps"]:
@@ -729,6 +777,21 @@ def run_self_test() -> int:
                 break
         mmio_manifest_path.write_text(json.dumps(mmio_manifest, indent=2) + "\n", encoding="utf-8")
         expect_missing_marker("mmio_blocker_presence_guard", tmp_root, "mmio_manifest:gap:phase10-mmio-lifecycle-and-irq-paths")
+        write_fixture_tree(tmp_root)
+
+        mmio_manifest = json.loads(mmio_manifest_path.read_text(encoding="utf-8"))
+        mmio_manifest["forbidden_transport_claims"] = [
+            "queue_setup_reset_paths",
+            "irq_parity",
+            "dma_paths",
+            "probe_remove_lifecycle",
+        ]
+        mmio_manifest_path.write_text(json.dumps(mmio_manifest, indent=2) + "\n", encoding="utf-8")
+        expect_missing_marker(
+            "mmio_forbidden_transport_claims_guard",
+            tmp_root,
+            "mmio_manifest:forbidden_transport_claims",
+        )
         write_fixture_tree(tmp_root)
 
         docs_root_path = tmp_root / "Documentation/zigux/README.md"
@@ -811,7 +874,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE10_VALIDATOR_SELF_TEST=pass")
-    print("PHASE10_VALIDATOR_SELF_TEST_CASE_COUNT=12")
+    print("PHASE10_VALIDATOR_SELF_TEST_CASE_COUNT=15")
     return 0
 
 
