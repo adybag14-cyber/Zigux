@@ -82,7 +82,7 @@ test "phase 14 ring-buffer survey manifest records the study-only gap without in
     try std.testing.expect(manifest.survey_summary.preexisting_phase14_ring_buffer_survey_test_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase14_ring_buffer_survey_note_present);
     try std.testing.expectEqual(@as(usize, 6), manifest.decision_checklist.len);
-    try std.testing.expectEqual(@as(usize, 21), manifest.gaps.len);
+    try std.testing.expectEqual(@as(usize, 22), manifest.gaps.len);
 
     var landed_count: usize = 0;
     var blocked_count: usize = 0;
@@ -96,6 +96,7 @@ test "phase 14 ring-buffer survey manifest records the study-only gap without in
     var saw_read_page_extraction_followup = false;
     var saw_read_page_allocation_contract_followup = false;
     var saw_subbuf_order_reconfig_followup = false;
+    var saw_page_count_resize_workqueue_followup = false;
     var saw_snapshot_rollback_failure_followup = false;
     var saw_tracing_disabled_recovery_followup = false;
     var saw_map_dup_unmap_lifetime_followup = false;
@@ -189,6 +190,16 @@ test "phase 14 ring-buffer survey manifest records the study-only gap without in
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "buffer_subbuf_size_write()") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "tracing_buffers_read()") != null);
         }
+        if (std.mem.eql(u8, gap.id, "phase14-ring-buffer-page-count-resize-workqueue-followup")) {
+            saw_page_count_resize_workqueue_followup = true;
+            try std.testing.expectEqualStrings("starter_landed", gap.status);
+            try std.testing.expectEqualStrings("Documentation/zigux/phase14-ring-buffer-survey.md", gap.zigux_destination);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "ring_buffer_resize()") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "rb_update_pages()") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "schedule_work_on()") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "update_pages_work") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "update_done") != null);
+        }
         if (std.mem.eql(u8, gap.id, "phase14-ring-buffer-snapshot-rollback-failure-followup")) {
             saw_snapshot_rollback_failure_followup = true;
             try std.testing.expectEqualStrings("starter_landed", gap.status);
@@ -247,7 +258,7 @@ test "phase 14 ring-buffer survey manifest records the study-only gap without in
         }
     }
 
-    try std.testing.expectEqual(@as(usize, 20), landed_count);
+    try std.testing.expectEqual(@as(usize, 21), landed_count);
     try std.testing.expectEqual(@as(usize, 1), blocked_count);
     try std.testing.expect(saw_boundary_checklist);
     try std.testing.expect(saw_remote_reader_metadata_followup);
@@ -259,6 +270,7 @@ test "phase 14 ring-buffer survey manifest records the study-only gap without in
     try std.testing.expect(saw_read_page_extraction_followup);
     try std.testing.expect(saw_read_page_allocation_contract_followup);
     try std.testing.expect(saw_subbuf_order_reconfig_followup);
+    try std.testing.expect(saw_page_count_resize_workqueue_followup);
     try std.testing.expect(saw_snapshot_rollback_failure_followup);
     try std.testing.expect(saw_tracing_disabled_recovery_followup);
     try std.testing.expect(saw_map_dup_unmap_lifetime_followup);
@@ -346,6 +358,13 @@ test "phase 14 ring-buffer survey note records the landed remote-reader, reset, 
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "reader_page()") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "lost_events") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "## Sub-buffer order reconfiguration audit") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "## Page-count resize workqueue audit") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "ring_buffer_resize()") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "rb_update_pages()") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "update_pages_work") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "update_done") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "schedule_work_on(cpu, &cpu_buffer->update_pages_work)") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "nr_pages_to_update") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "## Snapshot rollback failure-path audit") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "buffer_subbuf_size_write()") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "tracing_buffers_read()") != null);
@@ -380,6 +399,7 @@ test "phase 14 ring-buffer survey note records the landed remote-reader, reset, 
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase14-ring-buffer-reset-governance-followup") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase14-ring-buffer-remote-reader-metadata-followup") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase14-ring-buffer-cpu-hotplug-lifetime-followup") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase14-ring-buffer-page-count-resize-workqueue-followup") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "## Attached toolchain fallback guidance") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "when `zig` is not on `PATH`") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "make -C zigux phase14-validate PYTHON=python3 ZIG=<attached-zig-path>") != null);
