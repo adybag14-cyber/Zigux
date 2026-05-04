@@ -260,7 +260,7 @@ test "atomic64 diff wrapper keeps standalone phase4 validator workflow evidence 
     try expectGateEvidenceMarker("`PHASE4_VALIDATOR_SELF_TEST=pass`");
     try expectGateEvidenceMarker("`PHASE4_VALIDATION=pass`");
     try expectGateEvidenceMarker("`PHASE4_REQUIRED_FILE_COUNT=27`");
-    try expectGateEvidenceMarker("`PHASE4_REQUIRED_MARKER_COUNT=59`");
+    try expectGateEvidenceMarker("`PHASE4_REQUIRED_MARKER_COUNT=62`");
 }
 
 test "atomic64 diff wrapper keeps the dedicated phase4 gate-evidence checker explicit" {
