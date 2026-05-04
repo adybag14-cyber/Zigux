@@ -239,6 +239,7 @@ EXPECTED_LANDED_MMIO_HELPERS = {
         "phase10-mmio-config-window-helper",
         "phase10-mmio-config-write-helper",
         "phase10-mmio-interrupt-ack-helper",
+        "phase10-mmio-probe-preflight-helper",
     ]
 }
 
