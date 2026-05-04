@@ -66,7 +66,7 @@
       "status": "starter_landed",
       "kind": "documentation",
       "zigux_destination": "Documentation/zigux/phase11-gpio-wdt-validation-matrix.md",
-      "why_now": "The first bounded hardware-validation matrix now names the shared Phase 11 replay path, the property and transition evidence, the teardown-facing stop evidence, the explicit teardown-summary evidence, the starter-local nowayout policy proof, and the first bounded register-device call surface that keep the gpio_wdt packet reviewable without claiming live GPIO or watchdog-core execution."
+      "why_now": "The first bounded hardware-validation matrix now names the shared Phase 11 replay path, the property and transition evidence, the teardown-facing stop evidence, the explicit teardown-summary evidence, the starter-local nowayout policy proof, the explicit remaining blocker surface, and the first bounded register-device call surface that keep the gpio_wdt packet reviewable without claiming live GPIO or watchdog-core execution."
     },
     {
       "id": "phase11-gpio-wdt-watchdog-metadata-followup",
@@ -118,11 +118,18 @@
       "why_now": "The starter now adds one tiny register-device request summary so review can see the exact watchdog metadata, timeout, nowayout, parent, stop-on-reboot, and teardown-adjacent startup state that would reach the first bounded `devm_watchdog_register_device()` request before any live GPIO descriptor acquisition or reboot glue lands."
     },
     {
+      "id": "phase11-gpio-wdt-register-device-failure-followup",
+      "status": "starter_landed",
+      "kind": "simple_driver_starter",
+      "zigux_destination": "drivers/watchdog/gpio_wdt.zig",
+      "why_now": "The starter now adds one tiny `registerDeviceFailureSummary()` helper so review can see the remaining descriptor preflight, platform-registration, and reboot-glue blockers as an explicit parked failure surface instead of inferring them from the bounded register-device request alone."
+    },
+    {
       "id": "phase11-gpio-wdt-platform-registration",
       "status": "blocked_on_driver_scaffold",
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase11_gpio_wdt.zig",
-      "why_now": "Platform-driver registration, GPIO descriptor acquisition, watchdog core registration, and reboot integration remain blocked even after the register-device call summary lands because the lane still lacks a live descriptor-backed probe path and a richer hardware-validation plan."
+      "why_now": "Platform-driver registration, GPIO descriptor acquisition, watchdog core registration, and reboot integration remain blocked even after the register-device call summary and explicit remaining-blocker summary land because the lane still lacks a live descriptor-backed probe path and a richer hardware-validation plan."
     }
   ]
 }
