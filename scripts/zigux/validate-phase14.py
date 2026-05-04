@@ -196,6 +196,23 @@ FREEZE_MAP_MARKERS = [
     "Architecture Council",
 ]
 
+SHARED_SMOKE_SURFACES = [
+    "scripts/zigux/validate-phase14.py",
+    "scripts/zigux/check-phase14-docs-root-smoke-summary.py",
+    "scripts/zigux/check-phase14-release-boundary-exact-counts.py",
+    "scripts/zigux/README.md",
+    "Documentation/zigux/README.md",
+    "Documentation/zigux/phase14-release-boundary-survey.md",
+    "zigux/tests/phase14_end_to_end_smoke_manifest.json",
+    "zigux/tests/phase14_end_to_end_smoke_survey.zig",
+    "zigux/tests/phase14_build.zig",
+    "zigux/Makefile",
+    ".github/workflows/zigux-bootstrap.yml",
+    "Documentation/zigux/phase14-end-to-end-smoke-survey.md",
+    "Documentation/zigux/review-checklist.md",
+    "Documentation/zigux/freeze-map.md",
+]
+
 ALLOWED_COVERAGE_MODES = {"full_bundle_only", "focused_and_full_bundle"}
 PRODUCTIZATION_KEYS = {
     "owner": "Core-Adjacent Pod",
@@ -359,8 +376,13 @@ else:
                 missing.append(f"survey:rollback_trigger:{item}")
 
 shared_smoke_surfaces = manifest.get("shared_smoke_surfaces")
-if not isinstance(shared_smoke_surfaces, list) or len(shared_smoke_surfaces) != 14:
+if not isinstance(shared_smoke_surfaces, list):
     missing.append("manifest:shared_smoke_surfaces")
+else:
+    if shared_smoke_surfaces != SHARED_SMOKE_SURFACES:
+        missing.append("manifest:shared_smoke_surfaces:items")
+    if len(shared_smoke_surfaces) != len(SHARED_SMOKE_SURFACES):
+        missing.append(f"manifest:shared_smoke_surfaces:count={len(shared_smoke_surfaces)}")
 
 smoke_commands = manifest.get("smoke_commands")
 if not isinstance(smoke_commands, list) or len(smoke_commands) != 3:
