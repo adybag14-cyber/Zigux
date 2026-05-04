@@ -20,8 +20,10 @@ def repo_root() -> Path:
 ROOT = repo_root()
 
 REQUIRED_FILES = [
+    ".github/workflows/zigux-bootstrap.yml",
     "Documentation/zigux/README.md",
     "Documentation/zigux/phase1-closure.md",
+    "Documentation/zigux/review-checklist.md",
     "scripts/zigux/README.md",
     "scripts/zigux/artifact_diff.py",
     "scripts/zigux/check-phase1-bench.py",
@@ -45,6 +47,7 @@ REQUIRED_FILES = [
     "tools/lib/string.zig",
     "tools/lib/vsprintf.zig",
     "tools/lib/zalloc.zig",
+    "zigux/Makefile",
     "zigux/tests/bitmap_diff.zig",
     "zigux/tests/bitmap_diff_build.zig",
     "zigux/tests/build.zig",
@@ -418,8 +421,19 @@ def self_test() -> int:
         del fixture["find_bit"]["tail_and_mixed_next"]
         write(fixture_path, json.dumps(fixture, indent=2) + "\n")
         expect_failure(root, "fixture:find_bit:tail_and_mixed_next:missing")
+        write(fixture_path, json.dumps({k: {x: 1 for x in v} for k, v in FIXTURE_SHAPE.items()}, indent=2) + "\n")
+        for rel in (
+            "Documentation/zigux/review-checklist.md",
+            ".github/workflows/zigux-bootstrap.yml",
+            "zigux/Makefile",
+        ):
+            path = root / rel
+            baseline = path.read_text(encoding="utf-8")
+            path.unlink()
+            expect_failure(root, rel)
+            write(path, baseline)
     print("PHASE1_VALIDATOR_SELF_TEST=pass")
-    print("PHASE1_VALIDATOR_SELF_TEST_CASE_COUNT=10")
+    print("PHASE1_VALIDATOR_SELF_TEST_CASE_COUNT=13")
     return 0
 
 
