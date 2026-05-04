@@ -31,6 +31,25 @@ static void write_json_escaped(FILE *out, const char *text)
 	}
 }
 
+static void write_usage(void)
+{
+	fputs(
+		"Usage:\n"
+		"genksyms [-adDTwqhVR] > /path/to/.tmp_obj.ver\n"
+		"\n"
+		"  -d, --debug           Increment the debug level (repeatable)\n"
+		"  -D, --dump            Dump expanded symbol defs (for debugging only)\n"
+		"  -r, --reference file  Read reference symbols from a file\n"
+		"  -T, --dump-types file Dump expanded types into file\n"
+		"  -p, --preserve        Preserve reference modversions or fail\n"
+		"  -w, --warnings        Enable warnings\n"
+		"  -q, --quiet           Disable warnings (default)\n"
+		"  -h, --help            Print this message\n"
+		"  -V, --version         Print the release version\n",
+		stderr
+	);
+}
+
 int main(int argc, char **argv)
 {
 	int debug_level = 0;
@@ -75,6 +94,7 @@ int main(int argc, char **argv)
 		case 'r':
 			if (reference_count >= 16) {
 				fprintf(stderr, "too many reference files\n");
+				write_usage();
 				return 1;
 			}
 			reference_files[reference_count++] = optarg;
@@ -89,23 +109,10 @@ int main(int argc, char **argv)
 			fputs("genksyms version 2.5.60\n", stderr);
 			break;
 		case 'h':
-			fputs(
-				"Usage:\n"
-				"genksyms [-adDTwqhVR] > /path/to/.tmp_obj.ver\n"
-				"\n"
-				"  -d, --debug           Increment the debug level (repeatable)\n"
-				"  -D, --dump            Dump expanded symbol defs (for debugging only)\n"
-				"  -r, --reference file  Read reference symbols from a file\n"
-				"  -T, --dump-types file Dump expanded types into file\n"
-				"  -p, --preserve        Preserve reference modversions or fail\n"
-				"  -w, --warnings        Enable warnings\n"
-				"  -q, --quiet           Disable warnings (default)\n"
-				"  -h, --help            Print this message\n"
-				"  -V, --version         Print the release version\n",
-				stderr
-			);
+			write_usage();
 			return 0;
 		default:
+			write_usage();
 			return 1;
 		}
 	}
