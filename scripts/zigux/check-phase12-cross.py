@@ -11,6 +11,7 @@ import subprocess
 ROOT = Path(__file__).resolve().parents[2]
 FIXTURE = ROOT / "zigux" / "tests" / "fixtures" / "phase12_cross_targets.json"
 BUILD_FILE = ROOT / "zigux" / "tests" / "phase12_cross_build.zig"
+NOTE = ROOT / "Documentation" / "zigux" / "phase12-cross-compile-smoke.md"
 EXPECTED_PHASE = "Phase 12"
 EXPECTED_LANE_KEY = "P12-L02"
 EXPECTED_BUILD_STEP = "cross"
@@ -59,6 +60,27 @@ def validate_build_text(build_text: str) -> None:
             raise SystemExit(f"phase12-cross:build_marker:{label}")
 
 
+def validate_note_text(note_text: str, allowed_targets: list[str]) -> None:
+    expected_targets = ", ".join(f"`{target}`" for target in allowed_targets)
+    expected_markers = [
+        ("title", "# Phase 12 Cross Compile Smoke"),
+        ("compile_entrypoint", "- compile entrypoint: `python3 scripts/zigux/check-phase12-cross.py --zig <zig-path>`"),
+        ("build_file", "- build file: `zigux/tests/phase12_cross_build.zig`"),
+        ("approved_targets", f"- approved targets: {expected_targets}"),
+        (
+            "landed_gates",
+            "- current packet now includes the landed `phase12_virtio_scsi_recovery_state.zig`, `phase12_virtio_net_syntax_lab.zig`, `phase12_virtio_scsi_syntax_lab.zig`, and `phase12_raw_github_coverage_survey.zig` gates in addition to the existing driver and libbpf survey modules",
+        ),
+        (
+            "rollback_posture",
+            "- rollback posture: if this packet drifts, repair the cross-build wiring or remove the stale claim from this note, `Documentation/zigux/phase12-release-readiness-survey.md`, `Documentation/zigux/phase12-shared-replay-contract.md`, `Documentation/zigux/review-checklist.md`, and `zigux/tests/README.md` before widening any Phase 12 driver implementation work",
+        ),
+    ]
+    for label, marker in expected_markers:
+        if marker not in note_text:
+            raise SystemExit(f"phase12-cross:note_marker:{label}")
+
+
 def validate_fixture(doc: dict[str, object]) -> list[str]:
     if doc.get("phase") != EXPECTED_PHASE:
         raise SystemExit("phase12-cross:fixture_phase")
@@ -70,6 +92,8 @@ def validate_fixture(doc: dict[str, object]) -> list[str]:
         raise SystemExit("phase12-cross:fixture_build_step")
     if not BUILD_FILE.exists():
         raise SystemExit("phase12-cross:build_file_missing")
+    if not NOTE.exists():
+        raise SystemExit("phase12-cross:note_file_missing")
 
     validate_build_text(BUILD_FILE.read_text(encoding="utf-8"))
 
@@ -89,6 +113,7 @@ def validate_fixture(doc: dict[str, object]) -> list[str]:
         seen_targets.add(target)
         normalized_targets.append(target)
 
+    validate_note_text(NOTE.read_text(encoding="utf-8"), normalized_targets)
     return normalized_targets
 
 
@@ -133,6 +158,7 @@ def run_self_test() -> int:
     doc = load_json_object(FIXTURE)
     allowed_targets = validate_fixture(doc)
     build_text = BUILD_FILE.read_text(encoding="utf-8")
+    note_text = NOTE.read_text(encoding="utf-8")
 
     if resolve_targets(None, allowed_targets) != allowed_targets:
         raise SystemExit("phase12-cross:self-test:default_target_selection")
@@ -234,8 +260,37 @@ def run_self_test() -> int:
         "phase12-cross:build_marker:raw_github_coverage_step",
     )
 
+    missing_note_targets = note_text.replace(
+        f"- approved targets: {', '.join(f'`{target}`' for target in allowed_targets)}",
+        "- approved targets: `x86_64-linux-musl`, `aarch64-linux-gnu`, `riscv64-linux-musl`",
+        1,
+    )
+    expect_system_exit(
+        "note_marker_approved_targets",
+        lambda: validate_note_text(missing_note_targets, allowed_targets),
+        "phase12-cross:note_marker:approved_targets",
+    )
+
+    missing_note_gate = note_text.replace("`phase12_raw_github_coverage_survey.zig`", "`phase12_raw_github_coverage_missing.zig`", 1)
+    expect_system_exit(
+        "note_marker_landed_gates",
+        lambda: validate_note_text(missing_note_gate, allowed_targets),
+        "phase12-cross:note_marker:landed_gates",
+    )
+
+    missing_note_entrypoint = note_text.replace(
+        "`python3 scripts/zigux/check-phase12-cross.py --zig <zig-path>`",
+        "`python3 scripts/zigux/check-phase12-cross.py`",
+        1,
+    )
+    expect_system_exit(
+        "note_marker_compile_entrypoint",
+        lambda: validate_note_text(missing_note_entrypoint, allowed_targets),
+        "phase12-cross:note_marker:compile_entrypoint",
+    )
+
     print("PHASE12_CROSS_SELF_TEST=pass")
-    print("PHASE12_CROSS_SELF_TEST_CASE_COUNT=13")
+    print("PHASE12_CROSS_SELF_TEST_CASE_COUNT=16")
     return 0
 
 
