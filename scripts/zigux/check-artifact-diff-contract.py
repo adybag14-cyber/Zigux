@@ -13,6 +13,7 @@ ARTIFACT_DIFF = ROOT / 'scripts' / 'zigux' / 'artifact_diff.py'
 EXPECTED_CONTRACT_CASES = [
     'helper_self_test',
     'helper_self_test_repeat',
+    'cli_help',
     'cli_missing_required_args',
     'cli_missing_actual_operand',
     'cli_invalid_mode_choice',
@@ -403,6 +404,28 @@ def main() -> int:
     assert_helper_self_test_output(helper_self_test_lines)
     covered_cases.append('helper_self_test')
     covered_cases.append('helper_self_test_repeat')
+
+    run_contract_case(
+        ['-h'],
+        0,
+        [
+            'usage: artifact_diff.py [-h] [--mode {text,json,sha256}]',
+            '                        [--self-test] [expected] [actual]',
+            '',
+            'Compare two artifacts in a stable mode.',
+            '',
+            'positional arguments:',
+            '  expected',
+            '  actual',
+            '',
+            'options:',
+            '  -h, --help            show this help message and exit',
+            '  --mode {text,json,sha256}',
+            '  --self-test           Run built-in deterministic comparison checks.',
+        ],
+        repeat_count=2,
+    )
+    covered_cases.append('cli_help')
 
     run_error_contract_case(
         [],
