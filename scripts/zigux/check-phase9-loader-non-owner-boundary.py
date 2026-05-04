@@ -240,6 +240,24 @@ def run_self_test() -> int:
             )
         doc_readme_path.write_text(original_doc_readme, encoding="utf-8")
 
+        survey_path = tmp_root / SURVEY_PATH
+        original_survey = survey_path.read_text(encoding="utf-8")
+        survey_path.write_text(
+            original_survey.replace(
+                "rust/exports.c",
+                "rust/exports_missing.c",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        failures = validate(tmp_root)
+        if "survey:rust/exports.c" not in failures:
+            raise SystemExit(
+                "phase9-loader-non-owner-selftest:expected_survey_surface_failure:"
+                + ",".join(failures or ["none"])
+            )
+        survey_path.write_text(original_survey, encoding="utf-8")
+
         makefile_path = tmp_root / MAKEFILE_PATH
         makefile_path.write_text(
             "PHONY += phase9-validate phase9-test phase9-loader-gap-survey phase9-kretprobe-survey phase9-trace-events-survey phase9\n",
@@ -295,7 +313,7 @@ def run_self_test() -> int:
             )
 
     print("PHASE9_LOADER_NON_OWNER_BOUNDARY_SELF_TEST=pass")
-    print("PHASE9_LOADER_NON_OWNER_BOUNDARY_SELF_TEST_CASE_COUNT=7")
+    print("PHASE9_LOADER_NON_OWNER_BOUNDARY_SELF_TEST_CASE_COUNT=8")
     return 0
 
 
