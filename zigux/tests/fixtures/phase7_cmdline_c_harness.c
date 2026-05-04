@@ -141,12 +141,15 @@ static void run_memparse_section(void)
     char memparse_input[] = "64K,panic";
     char leading_plus_input[] = "+0x10";
     char bare_suffix_input[] = "G5";
+    char bare_hex_prefix_input[] = "0xK";
     char *memparse_rest = NULL;
     char *leading_plus_rest = NULL;
     char *bare_suffix_rest = NULL;
+    char *bare_hex_prefix_rest = NULL;
     unsigned long long sized = memparse(memparse_input, &memparse_rest);
     unsigned long long leading_plus = memparse(leading_plus_input, &leading_plus_rest);
     unsigned long long bare_suffix = memparse(bare_suffix_input, &bare_suffix_rest);
+    unsigned long long bare_hex_prefix = memparse(bare_hex_prefix_input, &bare_hex_prefix_rest);
 
     printf("\"memparse\":{");
     printf("\"suffix_scaling\":{");
@@ -156,6 +159,10 @@ static void run_memparse_section(void)
     printf("\"bare_suffix\":{");
     printf("\"value\":%llu,", bare_suffix);
     printf("\"stop_index\":%ld", (long)(bare_suffix_rest - bare_suffix_input));
+    printf("},");
+    printf("\"bare_hex_prefix\":{");
+    printf("\"value\":%llu,", bare_hex_prefix);
+    printf("\"stop_index\":%ld", (long)(bare_hex_prefix_rest - bare_hex_prefix_input));
     printf("},");
     printf("\"leading_plus\":{");
     printf("\"value\":%llu,", leading_plus);
