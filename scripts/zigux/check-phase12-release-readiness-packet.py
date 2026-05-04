@@ -20,6 +20,8 @@ REQUIRED_FILES = [
     "Documentation/zigux/phase12-libbpf-segment-survey.md",
     "scripts/zigux/README.md",
     "scripts/zigux/check-phase12-cross.py",
+    "scripts/zigux/check-phase12-libbpf-snapshot.py",
+    "scripts/zigux/check-phase12-libbpf-packet.py",
     "scripts/zigux/check-phase12-libbpf-focused-replay.py",
     "scripts/zigux/check-phase12-raw-github-coverage.py",
     "scripts/zigux/check-phase12-release-readiness-packet.py",
@@ -41,6 +43,8 @@ SURVEY_MARKERS = [
     "Documentation/zigux/phase12-virtio-net-survey.md",
     "Documentation/zigux/phase12-libbpf-segment-survey.md",
     "scripts/zigux/check-phase12-cross.py",
+    "scripts/zigux/check-phase12-libbpf-snapshot.py",
+    "scripts/zigux/check-phase12-libbpf-packet.py",
     "scripts/zigux/check-phase12-raw-github-coverage.py",
     "scripts/zigux/check-phase12-libbpf-focused-replay.py",
     "scripts/zigux/check-phase12-release-readiness-packet.py",
@@ -120,6 +124,8 @@ CONTRACT_NOTE_MARKERS = [
     "- `Documentation/zigux/phase12-cross-compile-smoke.md`",
     "- `Documentation/zigux/phase12-raw-github-coverage-survey.md`",
     "- `scripts/zigux/check-phase12-release-readiness-packet.py`",
+    "- `scripts/zigux/check-phase12-libbpf-snapshot.py`",
+    "- `scripts/zigux/check-phase12-libbpf-packet.py`",
 ]
 
 MAKEFILE_SELF_TEST_MARKER = "scripts/zigux/check-phase12-release-readiness-packet.py --self-test"
@@ -244,6 +250,8 @@ def run_self_test() -> int:
             SURVEY_MARKERS
             + [
                 "scripts/zigux/check-phase12-cross.py",
+                "scripts/zigux/check-phase12-libbpf-snapshot.py",
+                "scripts/zigux/check-phase12-libbpf-packet.py",
                 "scripts/zigux/check-phase12-raw-github-coverage.py",
                 "zigux/tests/phase12_raw_github_coverage_manifest.json",
                 "zigux/tests/phase12_raw_github_coverage_survey.zig",
@@ -319,6 +327,38 @@ def run_self_test() -> int:
         "focused_replay_checker_file_detection",
         missing,
         "missing_file:scripts/zigux/check-phase12-libbpf-focused-replay.py",
+    )
+
+    missing = collect_missing(
+        **{
+            **base_inputs,
+            "present_files": {
+                path
+                for path in REQUIRED_FILES
+                if path != "scripts/zigux/check-phase12-libbpf-snapshot.py"
+            },
+        }
+    )
+    expect_contains(
+        "libbpf_snapshot_checker_file_detection",
+        missing,
+        "missing_file:scripts/zigux/check-phase12-libbpf-snapshot.py",
+    )
+
+    missing = collect_missing(
+        **{
+            **base_inputs,
+            "present_files": {
+                path
+                for path in REQUIRED_FILES
+                if path != "scripts/zigux/check-phase12-libbpf-packet.py"
+            },
+        }
+    )
+    expect_contains(
+        "libbpf_packet_checker_file_detection",
+        missing,
+        "missing_file:scripts/zigux/check-phase12-libbpf-packet.py",
     )
 
     missing = collect_missing(
@@ -469,6 +509,30 @@ def run_self_test() -> int:
         "survey_cross_checker_exact_count_detection",
         missing,
         "survey_count:scripts/zigux/check-phase12-cross.py:expected=2:actual=3",
+    )
+
+    missing = collect_missing(
+        **{
+            **base_inputs,
+            "survey_text": base_inputs["survey_text"].replace("scripts/zigux/check-phase12-libbpf-snapshot.py\n", "", 1),
+        }
+    )
+    expect_contains(
+        "survey_libbpf_snapshot_checker_detection",
+        missing,
+        "survey:scripts/zigux/check-phase12-libbpf-snapshot.py",
+    )
+
+    missing = collect_missing(
+        **{
+            **base_inputs,
+            "survey_text": base_inputs["survey_text"].replace("scripts/zigux/check-phase12-libbpf-packet.py\n", "", 1),
+        }
+    )
+    expect_contains(
+        "survey_libbpf_packet_checker_detection",
+        missing,
+        "survey:scripts/zigux/check-phase12-libbpf-packet.py",
     )
 
     missing = collect_missing(
@@ -654,7 +718,7 @@ def run_self_test() -> int:
     expect_contains("raw_coverage_marker_detection", missing, "raw_coverage:shared-tree-only")
 
     print("PHASE12_RELEASE_READINESS_PACKET_SELF_TEST=pass")
-    print("PHASE12_RELEASE_READINESS_PACKET_SELF_TEST_CASE_COUNT=30")
+    print("PHASE12_RELEASE_READINESS_PACKET_SELF_TEST_CASE_COUNT=34")
     return 0
 
 
