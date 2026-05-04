@@ -1,7 +1,6 @@
 const std = @import("std");
 const Io = std.Io;
 const abi = @import("abi_bindings");
-const rbtree = @import("rbtree_bindings");
 
 fn writeStructLayout(writer: anytype, comptime name: []const u8, comptime T: type, comma: bool) !void {
     try writer.writeAll("\"");
@@ -74,11 +73,11 @@ pub fn main(init: std.process.Init) !void {
     try writer.writeAll(",\"hlist_flag_truncated\":");
     try writer.print("{d}", .{abi.HLIST_FLAG_TRUNCATED});
     try writer.writeAll(",\"root_flag_empty\":");
-    try writer.print("{d}", .{rbtree.ROOT_FLAG_EMPTY});
+    try writer.print("{d}", .{abi.RBTREE_ROOT_FLAG_EMPTY});
     try writer.writeAll(",\"root_flag_cached\":");
-    try writer.print("{d}", .{rbtree.ROOT_FLAG_CACHED});
+    try writer.print("{d}", .{abi.RBTREE_ROOT_FLAG_CACHED});
     try writer.writeAll(",\"root_flag_leftmost_valid\":");
-    try writer.print("{d}", .{rbtree.ROOT_FLAG_LEFTMOST_VALID});
+    try writer.print("{d}", .{abi.RBTREE_ROOT_FLAG_LEFTMOST_VALID});
     try writer.writeAll(",\"minor_alloc_flag_truncated\":");
     try writer.print("{d}", .{abi.MINOR_ALLOC_FLAG_TRUNCATED});
     try writer.writeAll(",\"minor_alloc_flag_found\":");
@@ -88,13 +87,13 @@ pub fn main(init: std.process.Init) !void {
     try writer.writeAll("},\"records\":{\"rbtree_empty_root\":{\"root_addr\":");
     try writer.print("{d}", .{0});
     try writer.writeAll(",\"leftmost_addr\":0,\"flags\":");
-    try writer.print("{d}", .{rbtree.ROOT_FLAG_EMPTY});
+    try writer.print("{d}", .{abi.RBTREE_ROOT_FLAG_EMPTY});
     try writer.writeAll(",\"reserved\":0},\"rbtree_cached_leftmost_root\":{\"root_addr\":");
     try writer.print("{d}", .{0x2000});
     try writer.writeAll(",\"leftmost_addr\":");
     try writer.print("{d}", .{0x1800});
     try writer.writeAll(",\"flags\":");
-    try writer.print("{d}", .{rbtree.ROOT_FLAG_CACHED | rbtree.ROOT_FLAG_LEFTMOST_VALID});
+    try writer.print("{d}", .{abi.RBTREE_ROOT_FLAG_CACHED | abi.RBTREE_ROOT_FLAG_LEFTMOST_VALID});
     try writer.writeAll(",\"reserved\":0},\"rbtree_uncached_root\":{\"root_addr\":");
     try writer.print("{d}", .{0x2400});
     try writer.writeAll(",\"leftmost_addr\":0,\"flags\":0,\"reserved\":0}},\"structs\":{");
@@ -111,7 +110,7 @@ pub fn main(init: std.process.Init) !void {
     try writeStructLayout(writer, "zigux_hlist_node_ref", abi.HListNodeRef, true);
     try writeStructLayout(writer, "zigux_hlist_view", abi.HListView, true);
     try writeStructLayout(writer, "zigux_hlist_summary", abi.HListSummary, true);
-    try writeStructLayout(writer, "zigux_rbtree_root_view", rbtree.RootView, false);
+    try writeStructLayout(writer, "zigux_rbtree_root_view", abi.RbtreeRootView, false);
     try writer.writeAll("}}\n");
     try writer.flush();
 }
