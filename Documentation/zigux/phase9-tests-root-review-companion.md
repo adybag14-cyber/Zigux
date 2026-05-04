@@ -10,6 +10,7 @@ The active Phase 9 packet should continue to agree across these shared review su
 - `Documentation/zigux/phase9-runtime-loader-gap-survey.md`
 - `Documentation/zigux/phase9-runtime-loader-substrate-plan.md`
 - `Documentation/zigux/phase9-module-metadata-depmod-bridge-survey.md`
+- `Documentation/zigux/phase9-tests-root-review-companion.md`
 - `scripts/zigux/README.md`
 - `zigux/tests/README.md`
 - `zigux/Makefile`
