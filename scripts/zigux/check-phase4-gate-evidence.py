@@ -280,6 +280,9 @@ def validate_root(root: Path) -> list[str]:
     for marker in REQUIRED_WORKFLOW_ROUTE_STATUS_MARKERS:
         if marker not in gate_evidence:
             missing.append(f"phase4_gate_evidence:{marker}")
+    for marker in REQUIRED_KPROBE_SURVEY_STATUS_MARKERS:
+        if marker not in gate_evidence:
+            missing.append(f"phase4_gate_evidence:kprobe_survey_status:{marker}")
     if workflow is not None:
         missing.extend(collect_exact_workflow_run_count_markers(workflow, gate_evidence))
     for marker in REQUIRED_RUNTIME_ATOMIC64_REVERSIBLE_DELIVERY_MARKERS:
