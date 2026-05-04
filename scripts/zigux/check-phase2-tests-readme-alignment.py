@@ -653,7 +653,6 @@ def run_self_test() -> int:
         )
         makefile_path.write_text(original_makefile, encoding="utf-8")
 
-        makefile_path.writeText = None
         makefile_path.write_text(
             original_makefile.replace(
                 "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-tests-readme-alignment.py\n",
