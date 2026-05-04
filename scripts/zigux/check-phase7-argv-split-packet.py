@@ -417,6 +417,36 @@ def run_self_test() -> int:
         )
         docs_root_path.write_text(original_docs_root, encoding="utf-8")
 
+        docs_root_path.write_text(
+            original_docs_root.replace(
+                "`python3 scripts/zigux/check-phase7-argv-split-packet.py`\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_failure(
+            "docs_root_packet_marker",
+            tmp_root,
+            "Documentation/zigux/README.md: exact_count:`python3 scripts/zigux/check-phase7-argv-split-packet.py`:0!=1",
+        )
+        docs_root_path.write_text(original_docs_root, encoding="utf-8")
+
+        docs_root_path.write_text(
+            original_docs_root.replace(
+                "`python3 scripts/zigux/check-phase7-argv-split-packet.py`\n",
+                "`python3 scripts/zigux/check-phase7-argv-split-packet.py`\n`python3 scripts/zigux/check-phase7-argv-split-packet.py`\n",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_failure(
+            "docs_root_packet_duplicate",
+            tmp_root,
+            "Documentation/zigux/README.md: exact_count:`python3 scripts/zigux/check-phase7-argv-split-packet.py`:2!=1",
+        )
+        docs_root_path.write_text(original_docs_root, encoding="utf-8")
+
         scripts_root_path = tmp_root / "scripts" / "zigux" / "README.md"
         original_scripts_root = read(scripts_root_path)
         scripts_root_path.write_text(
@@ -611,7 +641,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE7_ARGV_SPLIT_PACKET_SELF_TEST=pass")
-    print("PHASE7_ARGV_SPLIT_PACKET_SELF_TEST_CASE_COUNT=21")
+    print("PHASE7_ARGV_SPLIT_PACKET_SELF_TEST_CASE_COUNT=23")
     return 0
 
 
