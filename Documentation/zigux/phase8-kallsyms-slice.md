@@ -7,7 +7,7 @@ This document tracks the bounded Phase 8 userspace-adjacent tooling slice for Zi
 - `PHASE8_STATUS=parked`
 - `PHASE8_SLICE=kallsyms-parse-wrapper-parked`
 - legacy validator alias: `PHASE8_SLICE=kallsyms-parse-wrapper-starter`
-- scope: symbol-type helpers, injected line parsing, chunked reader iteration, thin reader or path adapters, and direct callback wrappers over contents, reader-backed parsing, and file-backed parsing only
+- scope: symbol-type helpers, injected line parsing, chunked reader iteration, thin reader, file, or path adapters, and direct callback wrappers over contents, reader-backed parsing, file-backed parsing, and plain filename parsing only
 - product boundary:
   - `tools/lib/symbol/kallsyms.zig`
   - `zigux/tests/phase8_kallsyms.zig`
@@ -21,7 +21,7 @@ The Phase 8 roadmap explicitly names `tools/lib/symbol/kallsyms.c` as a userspac
 
 This parked packet therefore keeps `tools/lib/symbol/kallsyms.zig` framed as helper-first expansion inside the recommended `tools/lib/symbol/*.zig` family and keeps its review surface centered on output-stable tooling behavior rather than downstream symbol plumbing.
 
-The live repo already has the parse-first `kallsyms.zig` parked slice, the injected chunked reader surface, thin reader-backed and path-backed adapters, the bounded discard-after-boundary behavior for oversized symbol names, and direct callback wrappers across caller-provided contents, injected readers, and file-backed parsing. The lane-local drift is no longer about broad symbol-tooling expansion; it is about keeping that bounded callback-wrapper surface explicit and machine-checked while still framing the tranche as a parser-and-wrapper packet rather than a broader symbol-tooling port.
+The live repo already has the parse-first `kallsyms.zig` parked slice, the injected chunked reader surface, thin reader-backed, file-backed, and path-backed adapters, the bounded discard-after-boundary behavior for oversized symbol names, and direct callback wrappers across caller-provided contents, injected readers, open files, and plain filename parsing. The lane-local drift is no longer about broad symbol-tooling expansion; it is about keeping that bounded callback-wrapper surface explicit and machine-checked while still framing the tranche as a parser-and-wrapper packet rather than a broader symbol-tooling port.
 
 ## Gates
 
@@ -52,9 +52,11 @@ The current parked slice covers:
 - injected per-line parsing for `"<hex> <type> <name>"` records with malformed-line skipping
 - injected chunked reader iteration that reconstructs split lines before reusing the same parser
 - thin reader-backed parsing that reuses the same malformed-line and callback semantics
+- thin file-backed parsing that reuses the same malformed-line and callback semantics over an already open file plus caller-owned scratch storage
 - thin path-backed parsing that opens a file and feeds the same reader-backed path
 - one direct `kallsymsParseContents()` wrapper that replays the same C-shaped callback contract over caller-provided contents
 - one direct `kallsymsParseReader()` wrapper that replays the same C-shaped callback contract over an injected reader plus caller-owned scratch storage
+- one direct `kallsymsParseFile()` wrapper that replays the same C-shaped callback contract over an already open file plus caller-owned scratch storage
 - one direct `kallsymsParse()` wrapper that accepts a plain filename plus the same callback contract while `kallsymsParseInDir()` keeps the narrower injected-dir variant available for tests and callers that need it
 - bounded symbol-name truncation that keeps the parked parser inside `KSYM_NAME_LEN` while preserving the same continue-parsing shape as the C helper
 - chunked overlong-line handling that now stops buffering after the bounded callback surface is full, discards the remainder of that one line until newline, and still reaches the next symbol record the same way the fixed-size C buffer does
@@ -62,11 +64,11 @@ The current parked slice covers:
 The current tests check:
 
 - helper-local `tools/lib/symbol/kallsyms.zig` tests own the direct binding, type, `parseLine()`, per-line malformed-record skipping, EOF-finish, and callback-stop matrix
-- the focused `zigux/tests/phase8_kallsyms.zig` replay stays on the integrated review packet: chunked reconstruction, chunked callback-stop behavior, thin reader and path adapters, direct callback wrappers, the parked note itself, and the live C helper anchors
+- the focused `zigux/tests/phase8_kallsyms.zig` replay stays on the integrated review packet: chunked reconstruction, chunked callback-stop behavior, thin reader, file, and path adapters, direct callback wrappers, the parked note itself, and the live C helper anchors
 - split records still parse correctly when a file-like reader delivers partial lines and CRLF endings across chunk boundaries
 - split records also preserve callback-stop behavior unchanged when a failing symbol spans buffered chunk boundaries in the dedicated Phase 8 gate
-- the new reader and path adapters preserve the same callback and malformed-line behavior as the lower-level parser
-- the direct wrappers preserve the same callback-stop contract across caller-provided contents, injected readers, the cwd-based filename entrypoint, and the injected-dir contract while presenting a `void *arg` plus null-terminated symbol-name callback shape
+- the new reader, file, and path adapters preserve the same callback and malformed-line behavior as the lower-level parser
+- the direct wrappers preserve the same callback-stop contract across caller-provided contents, injected readers, already open files, the cwd-based filename entrypoint, and the injected-dir contract while presenting a `void *arg` plus null-terminated symbol-name callback shape
 - oversized symbol names are truncated to `KSYM_NAME_LEN` in chunk-reconstructed parsing, with explicit helper and dedicated Phase 8 test coverage for the chunked discard path, so the parked slice now matches the C helper's bounded callback contract without buffering the whole overlong line first
 
 ## Non-goals
