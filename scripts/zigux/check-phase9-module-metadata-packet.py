@@ -676,6 +676,9 @@ def run_self_test() -> int:
         phase9_build_path.write_text(original_phase9_build.replace('phase9-runtime-module-metadata-survey-tests', '', 1), encoding='utf-8')
         expect_missing_marker('phase9_build_module_metadata_step', tmp_root, 'phase9_build:phase9-runtime-module-metadata-survey-tests')
         phase9_build_path.write_text(original_phase9_build, encoding='utf-8')
+        validate_phase9_path.write_text(original_validate_phase9.replace('phase9-runtime-module-metadata-survey-tests', 'phase9-runtime-module-metadata-survey-step', 1), encoding='utf-8')
+        expect_missing_marker('validate_phase9_module_metadata_build_leg', tmp_root, 'validate_phase9:phase9-runtime-module-metadata-survey-tests')
+        validate_phase9_path.write_text(original_validate_phase9, encoding='utf-8')
         survey_path.write_text(original_survey.replace('- `python3 scripts/zigux/check-phase9-module-metadata-packet.py --self-test`\n', '', 1), encoding='utf-8')
         expect_missing_marker('survey_checker_self_test_gate', tmp_root, 'survey:- `python3 scripts/zigux/check-phase9-module-metadata-packet.py --self-test`')
         survey_path.write_text(original_survey, encoding='utf-8')
@@ -723,7 +726,7 @@ def run_self_test() -> int:
         expect_missing_marker('tests_readme_depmod_parity_warning', tmp_root, 'tests_readme:absent depmod-facing metadata without implying `.modinfo`, `MODULE_ALIAS()`, or `scripts/depmod.sh` parity')
         tests_readme_path.write_text(original_tests_readme, encoding='utf-8')
     print('PHASE9_MODULE_METADATA_PACKET_SELF_TEST=pass')
-    print('PHASE9_MODULE_METADATA_PACKET_SELF_TEST_CASE_COUNT=24')
+    print('PHASE9_MODULE_METADATA_PACKET_SELF_TEST_CASE_COUNT=25')
     return 0
 
 def main() -> int:
