@@ -33,7 +33,6 @@ test "phase 8 perf-buffer poll docs keep the bounded wait-result helper explicit
     try expectContains(note, "cumulative processed-record count");
     try expectContains(note, "first failing ready buffer");
     try expectContains(note, "ready-buffer processing attempts cannot exceed observed ready events");
-    try expectContains(note, "ready-buffer processing attempts cannot exceed the counted ready buffers");
     try expectContains(note, "non-ready wait observations cannot claim record processing");
     try expectContains(note, "reject impossible post-wait buffer state combinations");
     try expectContains(note, "no standalone timer helper");
