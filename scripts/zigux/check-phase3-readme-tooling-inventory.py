@@ -169,7 +169,7 @@ def _makefile_named_helper_entries(
     return _ordered_unique(filtered), issues
 
 
-def _helper_section_entries(readme: str) -> tuple[list[str], list[str]]:
+def _helper_section_entries(readme: str) -> tuple[list[str], list[str], bool]:
     issues: list[str] = []
     entries: list[str] = []
     found_heading = False
@@ -203,7 +203,7 @@ def _helper_section_entries(readme: str) -> tuple[list[str], list[str]]:
         issues.append(f"missing_readme_section:{README_HELPER_SECTION}")
     elif not entries:
         issues.append("missing_readme_section_entries:current_bootstrap_helpers")
-    return entries, issues
+    return entries, issues, found_heading
 
 
 def _require_snippets(
@@ -275,8 +275,15 @@ def validate(root: Path) -> list[str]:
         + phase11_required_entries
         + phase13_required_entries
     )
-    readme_entries, section_issues = _helper_section_entries(readme)
-    issues.extend(section_issues)
+    readme_entries, section_issues, has_helper_section = _helper_section_entries(readme)
+    if has_helper_section:
+        issues.extend(section_issues)
+    else:
+        issues.extend(
+            issue
+            for issue in section_issues
+            if issue != f"missing_readme_section:{README_HELPER_SECTION}"
+        )
     _require_snippets(readme, REQUIRED_PHASE3_FLOW_SNIPPETS, "missing_phase3_flow_snippet", issues)
     _require_exact_count(
         readme,
@@ -288,31 +295,34 @@ def validate(root: Path) -> list[str]:
 
     phase3_required_set = set(phase3_required_entries)
     phase13_required_set = set(phase13_required_entries)
-    readme_set = set(readme_entries)
-
-    missing_phase3_entries: list[str] = []
-    missing_phase13_entries: list[str] = []
 
     for basename in required_entries:
         rel = f"scripts/zigux/{basename}"
         if not (root / rel).exists():
             issues.append(f"missing_repo_file:{rel}")
-        if basename not in readme_set:
-            issues.append(f"missing_readme_entry:{basename}")
-            if basename in phase3_required_set:
-                missing_phase3_entries.append(basename)
-            if basename in phase13_required_set:
-                missing_phase13_entries.append(basename)
 
-    phase3_filtered_entries = [basename for basename in readme_entries if basename in phase3_required_set]
-    if not missing_phase3_entries and phase3_filtered_entries != phase3_required_entries:
-        issues.append("readme_entry_order_drift:phase3_packet")
+    if has_helper_section:
+        readme_set = set(readme_entries)
+        missing_phase3_entries: list[str] = []
+        missing_phase13_entries: list[str] = []
 
-    phase13_filtered_entries = [
-        basename for basename in readme_entries if basename in phase13_required_set
-    ]
-    if not missing_phase13_entries and phase13_filtered_entries != phase13_required_entries:
-        issues.append("readme_entry_order_drift:phase13_validate")
+        for basename in required_entries:
+            if basename not in readme_set:
+                issues.append(f"missing_readme_entry:{basename}")
+                if basename in phase3_required_set:
+                    missing_phase3_entries.append(basename)
+                if basename in phase13_required_set:
+                    missing_phase13_entries.append(basename)
+
+        phase3_filtered_entries = [basename for basename in readme_entries if basename in phase3_required_set]
+        if not missing_phase3_entries and phase3_filtered_entries != phase3_required_entries:
+            issues.append("readme_entry_order_drift:phase3_packet")
+
+        phase13_filtered_entries = [
+            basename for basename in readme_entries if basename in phase13_required_set
+        ]
+        if not missing_phase13_entries and phase13_filtered_entries != phase13_required_entries:
+            issues.append("readme_entry_order_drift:phase13_validate")
 
     return issues
 
@@ -439,6 +449,37 @@ def run_self_test() -> int:
             raise SystemExit(
                 "phase3-readme-tooling-inventory-self-test:baseline_failed:" + ",".join(issues)
             )
+
+        _write(
+            root / README_REL,
+            "\n".join(
+                (
+                    "# scripts/zigux",
+                    "",
+                    _fixture_phase3_flow(),
+                )
+            ),
+        )
+        issues = validate(root)
+        if issues:
+            raise SystemExit(
+                "phase3-readme-tooling-inventory-self-test:flow_first_readme_guard_failed:"
+                + (",".join(issues) if issues else "none")
+            )
+        _write(
+            root / README_REL,
+            "\n".join(
+                (
+                    "# scripts/zigux",
+                    "",
+                    "Current bootstrap helpers",
+                    "- `artifact_diff.py`",
+                    helper_lines,
+                    "",
+                    _fixture_phase3_flow(),
+                )
+            ),
+        )
 
         _write(
             root / TOOLING_PACKET_SCRIPT_REL,
@@ -983,7 +1024,7 @@ def run_self_test() -> int:
             )
 
     print("PHASE3_README_TOOLING_INVENTORY_SELF_TEST=pass")
-    print("PHASE3_README_TOOLING_INVENTORY_SELF_TEST_CASE_COUNT=23")
+    print("PHASE3_README_TOOLING_INVENTORY_SELF_TEST_CASE_COUNT=24")
     return 0
 
 
