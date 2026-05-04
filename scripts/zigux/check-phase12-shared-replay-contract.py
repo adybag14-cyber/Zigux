@@ -16,6 +16,7 @@ ROOT = (
 
 REQUIRED_FILES = [
     "Documentation/zigux/phase12-shared-replay-contract.md",
+    "Documentation/zigux/phase12-release-coordination-matrix.md",
     "Documentation/zigux/phase12-release-readiness-survey.md",
     "Documentation/zigux/phase12-cross-compile-smoke.md",
     "Documentation/zigux/phase12-raw-github-coverage-survey.md",
@@ -36,6 +37,10 @@ RAW_COVERAGE_CONTRACT_SENTENCE = (
     "- that same release-facing PMO packet now also names `zigux/tests/phase12_raw_github_coverage_manifest.json` "
     "and `zigux/tests/phase12_raw_github_coverage_survey.zig` directly, so the mixed public-read fallback split stays "
     "tied to manifest-backed and Zig-survey-backed evidence instead of living only in note-level prose."
+)
+
+RELEASE_COORDINATION_MATRIX_BULLET = (
+    "- `Documentation/zigux/phase12-release-coordination-matrix.md`"
 )
 
 SHARED_REPLAY_NOTE_MARKERS = [
@@ -60,6 +65,7 @@ SHARED_REPLAY_NOTE_MARKERS = [
     "zig build test --build-file zigux/tests/phase12_libbpf_only_build.zig --summary all",
     "Documentation/zigux/README.md",
     "Documentation/zigux/review-checklist.md",
+    RELEASE_COORDINATION_MATRIX_BULLET,
     "Documentation/zigux/phase12-release-readiness-survey.md",
     "Documentation/zigux/phase12-cross-compile-smoke.md",
     "Documentation/zigux/phase12-raw-github-coverage-survey.md",
@@ -73,6 +79,7 @@ SHARED_REPLAY_NOTE_MARKERS = [
 SHARED_REPLAY_NOTE_EXACT_COUNTS = {
     "- `python3 scripts/zigux/check-phase12-shared-replay-contract.py --self-test`": 1,
     "- `python3 scripts/zigux/check-phase12-shared-replay-contract.py`": 1,
+    RELEASE_COORDINATION_MATRIX_BULLET: 2,
     "- `zigux/tests/phase12_raw_github_coverage_manifest.json`": 1,
     "- `zigux/tests/phase12_raw_github_coverage_survey.zig`": 1,
     RAW_COVERAGE_CONTRACT_SENTENCE: 1,
@@ -308,6 +315,25 @@ def write_fixture_tree(root: Path) -> None:
         "\n".join(note_lines) + "\n",
     )
     write_text(
+        root / "Documentation/zigux/phase12-release-coordination-matrix.md",
+        "\n".join(
+            [
+                "# Phase 12 Release Coordination Matrix",
+                "PHASE12_STATUS=active",
+                "PHASE12_RELEASE_CLOSED=no",
+                "make -C zigux phase12-validate",
+                "make -C zigux phase12",
+                "Documentation/zigux/phase12-shared-replay-contract.md",
+                "x86_64-linux-musl",
+                "aarch64-linux-musl",
+                "riscv64-linux-musl",
+                "PHASE12_COMMIT_PINNED_RAW_FALLBACK_COUNT=2",
+                "PHASE12_SHARED_TREE_ONLY_FALLBACK_COUNT=2",
+            ]
+        )
+        + "\n",
+    )
+    write_text(
         root / "Documentation/zigux/phase12-release-readiness-survey.md",
         "\n".join(
             [
@@ -361,6 +387,16 @@ def run_self_test() -> int:
                 f"{baseline.stdout.strip() or baseline.stderr.strip() or 'no_output'}"
             )
 
+        matrix_path = tmp_root / "Documentation/zigux/phase12-release-coordination-matrix.md"
+        matrix_backup = matrix_path.read_text(encoding="utf-8")
+        matrix_path.unlink()
+        expect_missing(
+            "missing_release_coordination_matrix_file",
+            run_checker(tmp_root),
+            "missing_file:Documentation/zigux/phase12-release-coordination-matrix.md",
+        )
+        write_text(matrix_path, matrix_backup)
+
         note_path = tmp_root / "Documentation/zigux/phase12-shared-replay-contract.md"
         note_backup = note_path.read_text(encoding="utf-8")
         write_text(note_path, note_backup.replace("make -C zigux phase12-validate\n", "", 1))
@@ -368,6 +404,28 @@ def run_self_test() -> int:
             "missing_note_validate_route",
             run_checker(tmp_root),
             "shared_replay_note:make -C zigux phase12-validate",
+        )
+        write_text(note_path, note_backup)
+
+        write_text(
+            note_path,
+            note_backup.replace(RELEASE_COORDINATION_MATRIX_BULLET + "\n", "", 1),
+        )
+        expect_missing(
+            "missing_note_release_coordination_matrix_bullet",
+            run_checker(tmp_root),
+            f"shared_replay_note_count:{RELEASE_COORDINATION_MATRIX_BULLET}:expected=2:actual=1",
+        )
+        write_text(note_path, note_backup)
+
+        write_text(
+            note_path,
+            note_backup + RELEASE_COORDINATION_MATRIX_BULLET + "\n",
+        )
+        expect_missing(
+            "duplicate_note_release_coordination_matrix_bullet",
+            run_checker(tmp_root),
+            f"shared_replay_note_count:{RELEASE_COORDINATION_MATRIX_BULLET}:expected=2:actual=3",
         )
         write_text(note_path, note_backup)
 
@@ -626,7 +684,7 @@ def run_self_test() -> int:
         write_text(build_path, build_backup)
 
     print("PHASE12_SHARED_REPLAY_CONTRACT_SELF_TEST=pass")
-    print("PHASE12_SHARED_REPLAY_CONTRACT_SELF_TEST_CASE_COUNT=23")
+    print("PHASE12_SHARED_REPLAY_CONTRACT_SELF_TEST_CASE_COUNT=26")
     return 0
 
 
