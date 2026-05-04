@@ -68,16 +68,22 @@ test "phase 5 kobject sample replays bounded attribute registration and roundtri
 
 test "phase 5 kobject sample keeps shared attribute dispatch and parse failures explicit" {
     var module = sample.KobjectExampleSample{};
-    try module.init();
-    try module.registerAttributes();
+    const replay = try module.runSharedDispatchReplay();
 
-    try std.testing.expectEqual(@as(usize, 2), try module.storeValue("baz", "9\n"));
-    try std.testing.expectEqual(@as(usize, 3), try module.storeValue("bar", "10\n"));
-    try std.testing.expectEqualStrings("9\n", (try module.showValue("baz")).text[0..2]);
-    try std.testing.expectEqualStrings("10\n", (try module.showValue("bar")).text[0..3]);
-    try std.testing.expectError(error.InvalidInteger, module.storeValue("foo", "abc\n"));
-    try std.testing.expectError(error.UnknownAttribute, module.storeValue("qux", "1\n"));
-    try std.testing.expectError(error.UnknownAttribute, module.showValue("qux"));
+    try std.testing.expectEqual(sample.SampleStage.cold, replay.stage_before_replay);
+    try std.testing.expectEqual(sample.SampleStage.registered, replay.stage_after_replay);
+    try std.testing.expectEqual(@as(usize, 1), replay.register_runs_after_replay);
+    try std.testing.expect(replay.attributes_are_accessible_after_replay);
+    try std.testing.expectEqual(@as(usize, 2), replay.baz_store_len);
+    try std.testing.expectEqual(@as(usize, 3), replay.bar_store_len);
+    try std.testing.expectEqualStrings("baz", replay.baz_value.attr_name);
+    try std.testing.expectEqualStrings("bar", replay.bar_value.attr_name);
+    try std.testing.expectEqualStrings("9\n", replay.baz_value.text[0..replay.baz_value.len]);
+    try std.testing.expectEqualStrings("10\n", replay.bar_value.text[0..replay.bar_value.len]);
+    try std.testing.expect(replay.invalid_integer_visible);
+    try std.testing.expect(replay.unknown_store_visible);
+    try std.testing.expect(replay.unknown_show_visible);
+    try std.testing.expectEqual(sample.SampleStage.registered, module.stage());
 }
 
 test "phase 5 kobject sample makes ownership and lifetime boundaries explicit" {
