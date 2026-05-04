@@ -67,8 +67,9 @@ EXPECTED_FORBIDDEN_TRANSPORT_CLAIMS = [
 
 EXPECTED_EXACT_CHECKS = [
     "python3 scripts/zigux/check-phase10-closure-inventory.py",
-    "python3 scripts/zigux/validate-phase10-closure.py",
+    "python3 scripts/zigux/validate-phase10.py",
     "python3 scripts/zigux/check-phase10-harness-coverage.py",
+    "python3 scripts/zigux/validate-phase10-closure.py",
     "zig build test --build-file zigux/tests/phase10_build.zig --summary all",
     "make -C zigux phase10-validate",
     "make -C zigux phase10-test",
