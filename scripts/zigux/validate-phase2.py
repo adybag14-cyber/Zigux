@@ -20,6 +20,9 @@ PHASE2_CROSS_ALIGNMENT_CHECKER = (
     ROOT / "scripts" / "zigux" / "check-phase2-cross-selftest-alignment.py"
 )
 PHASE2_CROSS_CHECKER = ROOT / "scripts" / "zigux" / "check-phase2-cross.py"
+PHASE2_TESTS_README_ALIGNMENT_CHECKER = (
+    ROOT / "scripts" / "zigux" / "check-phase2-tests-readme-alignment.py"
+)
 TOOLCHAIN_PIN_SCOPE_CHECKER = ROOT / "scripts" / "zigux" / "check-phase2-toolchain-pin-scope.py"
 TOOLCHAIN_NOTES = ROOT / "Documentation" / "zigux" / "phase2-toolchain-bootstrap-notes.md"
 REVIEW_CHECKLIST = ROOT / "Documentation" / "zigux" / "review-checklist.md"
@@ -57,6 +60,7 @@ REQUIRED_PHASE2_FILES = [
     KCONFIG_ALIGNMENT_CHECKER,
     PHASE2_CROSS_ALIGNMENT_CHECKER,
     PHASE2_CROSS_CHECKER,
+    PHASE2_TESTS_README_ALIGNMENT_CHECKER,
     TOOLCHAIN_PIN_SCOPE_CHECKER,
     ROOT / "scripts" / "zigux" / "check-mk-elfconfig-diff.py",
     ROOT / "scripts" / "zigux" / "fixdep.zig",
@@ -691,6 +695,14 @@ def main() -> int:
 
     result = subprocess.run(
         [sys.executable, str(PHASE2_CROSS_ALIGNMENT_CHECKER)],
+        cwd=ROOT,
+    )
+    if result.returncode != 0:
+        print("PHASE2_VALIDATION=fail")
+        return result.returncode
+
+    result = subprocess.run(
+        [sys.executable, str(PHASE2_TESTS_README_ALIGNMENT_CHECKER)],
         cwd=ROOT,
     )
     if result.returncode != 0:
