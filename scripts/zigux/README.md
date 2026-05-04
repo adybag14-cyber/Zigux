@@ -21,6 +21,7 @@ Phase 2 flow
 
 Phase 2 implementation surface addendum
 - `check-kconfig-bridge.py --self-test` stays paired with `check-kconfig-bridge.py` before live bounded replay.
+- `check-phase2-kconfig-selftest-alignment.py --self-test` and `check-phase2-kconfig-selftest-alignment.py` keep `check-kconfig-bridge.py`, `scripts/zigux/validate-phase2.py`, `scripts/zigux/validate-phase2-closure.py`, `zigux/tests/fixtures/kconfig_bridge/cases.json`, `.github/workflows/zigux-bootstrap.yml`, and `zigux/Makefile` aligned before the Linux-style `phase2-kconfig` replay claims bounded closure evidence.
 - The bounded Phase 2 implementation roots remain `genksyms.zig`, `genksyms_crc.zig`, `mk_elfconfig.zig`, `kconfig/conf_bridge.zig`, and `kconfig/confdata_bridge.zig` so the scripts index names the same implementation surface the shared closure validator expects.
 
 Phase 2 toolchain pin scope
@@ -77,7 +78,7 @@ Phase 9 flow
 
 Phase 10 flow
 - `validate-phase10.py`, `validate-phase10-closure.py`, `check-phase10-core-packet.py`, and `make -C zigux phase10-validate` keep the Phase 10 core-plus-ring-plus-input-plus-MMIO lab packet aligned before the shared replay claims closure evidence.
-- that shared validation surface spans `zigux/tests/phase10_build.zig`, `zigux/tests/phase10_virtio_core_manifest.json`, `zigux/tests/phase10_virtio_ring_manifest.json`, `zigux/tests/phase10_virtio_input_manifest.json`, `zigux/tests/phase10_virtio_mmio_manifest.json`, `Documentation/zigux/phase10-virtio-core-survey.md`, `Documentation/zigux/phase10-virtio-ring-slice.md`, `Documentation/zigux/phase10-virtio-input-slice.md`, `Documentation/zigux/phase10-virtio-input-survey.md`, `Documentation/zigux/phase10-virtio-mmio-slice.md`, and `Documentation/zigux/phase10-virtio-mmio-survey.md`, alongside the core-packet, closure-inventory, and harness-coverage checkers.
+- that shared validation surface spans `zigux/tests/phase10_build.zig`, `zigux/tests/phase10_virtio_core_manifest.json`, `zigux/tests/phase10_virtio_ring_manifest.json`, `zigux/tests/phase10_virtio_input_manifest.json`, `zigux/tests/phase10_virtio_mmio_manifest.json`, `Documentation/zigux/phase10-virtio-core-survey.md`, `Documentation/zigux/phase10-virtio-ring-slice.md`, `Documentation/zigux/phase10-virtio-input-slice.md`, `Documentation/zigux/phase10-virtio-input-survey.md`, and `Documentation/zigux/phase10-virtio-mmio-slice.md`, alongside the core-packet, closure-inventory, and harness-coverage checkers.
 - the ring manifest-backed packet keeps the ring reset-reuse replay explicit through `zigux/tests/phase10_virtio_ring_reset_reuse.zig`, while the input packet still names the blocked registration-lifecycle contract even after the landed probe-preflight helper and the MMIO packet stays parked at the bounded MMIO interrupt-ack rung.
 - the current reviewer-facing Phase 10 packet counts eleven shared test entrypoints across the core, ring, input, and MMIO bundle, so focused harness shards stay visible without being mistaken for separate closure claims.
 
