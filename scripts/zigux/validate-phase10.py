@@ -35,6 +35,7 @@ FILES = [
     "zigux/tests/phase10_virtio_ring_survey.zig",
     "zigux/tests/phase10_virtio_ring_manifest.json",
     "zigux/tests/phase10_virtio_input.zig",
+    "zigux/tests/phase10_virtio_input_multitouch_preflight.zig",
     "zigux/tests/phase10_virtio_input_registration_blocker.zig",
     "zigux/tests/phase10_virtio_input_survey.zig",
     "zigux/tests/phase10_virtio_input_manifest.json",
@@ -42,6 +43,7 @@ FILES = [
     "Documentation/zigux/phase10-virtio-mmio-survey.md",
     "drivers/virtio/virtio_mmio.zig",
     "zigux/tests/phase10_virtio_mmio.zig",
+    "zigux/tests/phase10_virtio_mmio_queue_isolation.zig",
     "zigux/tests/phase10_virtio_mmio_survey.zig",
     "zigux/tests/phase10_virtio_mmio_manifest.json",
     "zigux/tests/phase10_closure_manifest.json",
@@ -609,9 +611,11 @@ def write_fixture_tree(root: Path) -> None:
         "zigux/tests/phase10_virtio_ring_reset_reuse.zig": "\n".join(RING_RESET_REUSE_TEST_MARKERS) + "\n",
         "zigux/tests/phase10_virtio_ring_survey.zig": "\n".join(RING_SURVEY_TEST_MARKERS) + "\n",
         "zigux/tests/phase10_virtio_input.zig": "\n".join(TEST_MARKERS) + "\n",
+        "zigux/tests/phase10_virtio_input_multitouch_preflight.zig": "fixture\n",
         "zigux/tests/phase10_virtio_input_registration_blocker.zig": "\n".join(BLOCKER_TEST_MARKERS) + "\n",
         "zigux/tests/phase10_virtio_input_survey.zig": "\n".join(SURVEY_TEST_MARKERS) + "\n",
         "zigux/tests/phase10_virtio_mmio.zig": "\n".join(MMIO_TEST_MARKERS) + "\n",
+        "zigux/tests/phase10_virtio_mmio_queue_isolation.zig": "fixture\n",
         "zigux/tests/phase10_virtio_mmio_survey.zig": "\n".join(MMIO_SURVEY_TEST_MARKERS) + "\n",
         "scripts/zigux/validate-phase10.py": "fixture\n",
         "scripts/zigux/validate-phase10-closure.py": "fixture\n",
@@ -657,6 +661,15 @@ def expect_missing_marker(label: str, root: Path, expected_marker: str) -> None:
     if expected_marker not in missing_markers:
         actual = ",".join(missing_markers) if missing_markers else "none"
         raise SystemExit(f"{label}:expected:{expected_marker}:actual:{actual}")
+
+
+def expect_missing_file(label: str, root: Path, rel_path: str) -> None:
+    missing_files, missing_markers = validate(root)
+    if missing_markers:
+        raise SystemExit(f"{label}:unexpected_markers:{','.join(missing_markers)}")
+    if rel_path not in missing_files:
+        actual = ",".join(missing_files) if missing_files else "none"
+        raise SystemExit(f"{label}:expected_file:{rel_path}:actual:{actual}")
 
 
 def run_self_test() -> int:
@@ -779,8 +792,26 @@ def run_self_test() -> int:
             "closure_manifest:focused_harness_replays",
         )
 
+        write_fixture_tree(tmp_root)
+        input_multitouch_preflight_path = tmp_root / "zigux/tests/phase10_virtio_input_multitouch_preflight.zig"
+        input_multitouch_preflight_path.unlink()
+        expect_missing_file(
+            "input_multitouch_replay_file_guard",
+            tmp_root,
+            "zigux/tests/phase10_virtio_input_multitouch_preflight.zig",
+        )
+
+        write_fixture_tree(tmp_root)
+        mmio_queue_isolation_path = tmp_root / "zigux/tests/phase10_virtio_mmio_queue_isolation.zig"
+        mmio_queue_isolation_path.unlink()
+        expect_missing_file(
+            "mmio_queue_isolation_file_guard",
+            tmp_root,
+            "zigux/tests/phase10_virtio_mmio_queue_isolation.zig",
+        )
+
     print("PHASE10_VALIDATOR_SELF_TEST=pass")
-    print("PHASE10_VALIDATOR_SELF_TEST_CASE_COUNT=10")
+    print("PHASE10_VALIDATOR_SELF_TEST_CASE_COUNT=12")
     return 0
 
 
