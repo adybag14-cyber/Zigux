@@ -30,6 +30,21 @@ SURVEY_EXACT_LINE_COUNTS = {
     "- make -C zigux phase14 ZIG=<attached-zig-path>": 1,
 }
 
+MAKEFILE_EXACT_LINE_COUNTS = {
+    "PHONY += phase14-validate phase14-smoke phase14-test phase14": 1,
+    "phase14-validate:": 1,
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase14-docs-root-smoke-summary.py --self-test": 1,
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase14-docs-root-smoke-summary.py": 1,
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase14-release-boundary-exact-counts.py --self-test": 1,
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase14-release-boundary-exact-counts.py": 1,
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase14.py": 1,
+    "phase14-smoke:": 1,
+    "cd $(ZIGUX_ROOT) && $(ZIG) build phase14-smoke --build-file zigux/tests/phase14_build.zig --summary all": 1,
+    "phase14-test:": 1,
+    "cd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase14_build.zig --summary all": 1,
+    "phase14: phase14-validate phase14-test": 1,
+}
+
 RELEASE_BOUNDARY_LINES = [
     "PHASE14_RELEASE_BOUNDARY=present",
     "PHASE14_SHARED_REPLAY_PRESENT=yes",
@@ -84,9 +99,11 @@ def validate_phase14_summary_surfaces(
     survey_text: str,
     release_boundary_text: str,
     scripts_readme_text: str,
+    makefile_text: str,
 ) -> list[str]:
     issues = require_substrings("docs_root", docs_root_text, DOCS_ROOT_LINES)
     issues.extend(require_exact_lines("survey", survey_text, SURVEY_EXACT_LINE_COUNTS))
+    issues.extend(require_exact_lines("makefile", makefile_text, MAKEFILE_EXACT_LINE_COUNTS))
     issues.extend(
         require_substrings("release_boundary", release_boundary_text, RELEASE_BOUNDARY_LINES)
     )
@@ -148,14 +165,42 @@ Phase 14 flow
 - attached-toolchain fallback commands stay explicit in the scripts index too: `make -C zigux phase14-validate PYTHON=python3 ZIG=<attached-zig-path>`, `make -C zigux phase14-smoke ZIG=<attached-zig-path>`, `make -C zigux phase14-test ZIG=<attached-zig-path>`, and `make -C zigux phase14 ZIG=<attached-zig-path>`.
 """.strip()
 
+    makefile_text = """
+PHONY += phase14-validate phase14-smoke phase14-test phase14
+
+phase14-validate:
+	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase14-docs-root-smoke-summary.py --self-test
+	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase14-docs-root-smoke-summary.py
+	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase14-release-boundary-exact-counts.py --self-test
+	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase14-release-boundary-exact-counts.py
+	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase14.py
+
+phase14-smoke:
+	cd $(ZIGUX_ROOT) && $(ZIG) build phase14-smoke --build-file zigux/tests/phase14_build.zig --summary all
+
+phase14-test:
+	cd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase14_build.zig --summary all
+
+phase14: phase14-validate phase14-test
+""".strip()
+
     cases = [
-        ("happy_path", docs_root_text, survey_text, release_boundary_text, scripts_readme_text, False),
+        (
+            "happy_path",
+            docs_root_text,
+            survey_text,
+            release_boundary_text,
+            scripts_readme_text,
+            makefile_text,
+            False,
+        ),
         (
             "missing_docs_root_smoke_gate",
             docs_root_text.replace("validator-backed shared smoke gate", "shared smoke gate"),
             survey_text,
             release_boundary_text,
             scripts_readme_text,
+            makefile_text,
             True,
         ),
         (
@@ -167,14 +212,19 @@ Phase 14 flow
             survey_text,
             release_boundary_text,
             scripts_readme_text,
+            makefile_text,
             True,
         ),
         (
             "missing_second_survey_smoke_line",
             docs_root_text,
-            survey_text.replace("\n- make -C zigux phase14-smoke\n- make -C zigux phase14-validate PYTHON=python3 ZIG=<attached-zig-path>", "\n- make -C zigux phase14-validate PYTHON=python3 ZIG=<attached-zig-path>"),
+            survey_text.replace(
+                "\n- make -C zigux phase14-smoke\n- make -C zigux phase14-validate PYTHON=python3 ZIG=<attached-zig-path>",
+                "\n- make -C zigux phase14-validate PYTHON=python3 ZIG=<attached-zig-path>",
+            ),
             release_boundary_text,
             scripts_readme_text,
+            makefile_text,
             True,
         ),
         (
@@ -183,6 +233,7 @@ Phase 14 flow
             survey_text + "\n- make -C zigux phase14-smoke",
             release_boundary_text,
             scripts_readme_text,
+            makefile_text,
             True,
         ),
         (
@@ -191,6 +242,7 @@ Phase 14 flow
             survey_text.replace("\n- make -C zigux phase14-test ZIG=<attached-zig-path>", ""),
             release_boundary_text,
             scripts_readme_text,
+            makefile_text,
             True,
         ),
         (
@@ -199,6 +251,59 @@ Phase 14 flow
             survey_text.replace("\n- make -C zigux phase14 ZIG=<attached-zig-path>", ""),
             release_boundary_text,
             scripts_readme_text,
+            makefile_text,
+            True,
+        ),
+        (
+            "missing_makefile_smoke_target",
+            docs_root_text,
+            survey_text,
+            release_boundary_text,
+            scripts_readme_text,
+            makefile_text.replace(
+                "\nphase14-smoke:\n\tcd $(ZIGUX_ROOT) && $(ZIG) build phase14-smoke --build-file zigux/tests/phase14_build.zig --summary all",
+                "",
+            ),
+            True,
+        ),
+        (
+            "duplicate_makefile_smoke_build_line",
+            docs_root_text,
+            survey_text,
+            release_boundary_text,
+            scripts_readme_text,
+            makefile_text
+            + "\ncd $(ZIGUX_ROOT) && $(ZIG) build phase14-smoke --build-file zigux/tests/phase14_build.zig --summary all",
+            True,
+        ),
+        (
+            "missing_makefile_test_target",
+            docs_root_text,
+            survey_text,
+            release_boundary_text,
+            scripts_readme_text,
+            makefile_text.replace(
+                "\nphase14-test:\n\tcd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase14_build.zig --summary all",
+                "",
+            ),
+            True,
+        ),
+        (
+            "missing_makefile_wrapper_target",
+            docs_root_text,
+            survey_text,
+            release_boundary_text,
+            scripts_readme_text,
+            makefile_text.replace("\nphase14: phase14-validate phase14-test", ""),
+            True,
+        ),
+        (
+            "duplicate_makefile_wrapper_target",
+            docs_root_text,
+            survey_text,
+            release_boundary_text,
+            scripts_readme_text,
+            makefile_text + "\nphase14: phase14-validate phase14-test",
             True,
         ),
         (
@@ -207,6 +312,7 @@ Phase 14 flow
             survey_text,
             release_boundary_text.replace("- PHASE14_RELEASE_BOUNDARY=present\n", ""),
             scripts_readme_text,
+            makefile_text,
             True,
         ),
         (
@@ -218,6 +324,7 @@ Phase 14 flow
                 "",
             ),
             scripts_readme_text,
+            makefile_text,
             True,
         ),
         (
@@ -226,6 +333,7 @@ Phase 14 flow
             survey_text,
             release_boundary_text,
             scripts_readme_text.replace("- `check-phase14-docs-root-smoke-summary.py`", ""),
+            makefile_text,
             True,
         ),
         (
@@ -237,6 +345,7 @@ Phase 14 flow
                 "- `Documentation/zigux/phase14-release-boundary-survey.md`, `Documentation/zigux/phase14-end-to-end-smoke-survey.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/freeze-map.md`, `zigux/tests/phase14_end_to_end_smoke_manifest.json`, and `zigux/tests/phase14_end_to_end_smoke_survey.zig` keep the exact rollback threshold, automatic return-to-blocked trigger list, and ZAR-to-product transfer rationale visible from the docs root rather than relying on run memory.\n",
                 "",
             ),
+            makefile_text,
             True,
         ),
         (
@@ -245,6 +354,7 @@ Phase 14 flow
             survey_text,
             release_boundary_text,
             scripts_readme_text + "\n- `check-phase14-docs-root-smoke-summary.py`",
+            makefile_text,
             True,
         ),
         (
@@ -254,14 +364,17 @@ Phase 14 flow
             release_boundary_text,
             scripts_readme_text
             + "\n- attached-toolchain fallback commands stay explicit in the scripts index too: `make -C zigux phase14-validate PYTHON=python3 ZIG=<attached-zig-path>`, `make -C zigux phase14-smoke ZIG=<attached-zig-path>`, `make -C zigux phase14-test ZIG=<attached-zig-path>`, and `make -C zigux phase14 ZIG=<attached-zig-path>`.",
+            makefile_text,
             True,
         ),
         (
             "duplicate_survey_provenance",
             docs_root_text,
-            survey_text + "\n- survey provenance captured against verified `master` head `bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb`",
+            survey_text
+            + "\n- survey provenance captured against verified `master` head `bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb`",
             release_boundary_text,
             scripts_readme_text,
+            makefile_text,
             True,
         ),
     ]
@@ -272,10 +385,15 @@ Phase 14 flow
         survey_value,
         release_value,
         scripts_value,
+        makefile_value,
         should_fail,
     ) in cases:
         issues = validate_phase14_summary_surfaces(
-            docs_value, survey_value, release_value, scripts_value
+            docs_value,
+            survey_value,
+            release_value,
+            scripts_value,
+            makefile_value,
         )
         failed = bool(issues)
         if failed != should_fail:
@@ -300,12 +418,14 @@ def main(argv: list[str]) -> int:
     survey_path = ROOT / "Documentation/zigux/phase14-end-to-end-smoke-survey.md"
     release_boundary_path = ROOT / "Documentation/zigux/phase14-release-boundary-survey.md"
     scripts_readme_path = ROOT / "scripts/zigux/README.md"
+    makefile_path = ROOT / "zigux/Makefile"
 
     required_paths = [
         docs_root_path,
         survey_path,
         release_boundary_path,
         scripts_readme_path,
+        makefile_path,
     ]
     missing_files = [str(path) for path in required_paths if not path.exists()]
     if missing_files:
@@ -321,6 +441,7 @@ def main(argv: list[str]) -> int:
         read(survey_path),
         read(release_boundary_path),
         read(scripts_readme_path),
+        read(makefile_path),
     )
     if issues:
         print("PHASE14_DOCS_ROOT_SMOKE_SUMMARY=fail")
@@ -333,6 +454,7 @@ def main(argv: list[str]) -> int:
     print("PHASE14_DOCS_ROOT_SMOKE_SUMMARY=pass")
     print(f"PHASE14_DOCS_ROOT_MARKER_COUNT={len(DOCS_ROOT_LINES)}")
     print(f"PHASE14_SURVEY_MARKER_COUNT={len(SURVEY_EXACT_LINE_COUNTS) + 1}")
+    print(f"PHASE14_MAKEFILE_MARKER_COUNT={len(MAKEFILE_EXACT_LINE_COUNTS)}")
     print(f"PHASE14_RELEASE_BOUNDARY_MARKER_COUNT={len(RELEASE_BOUNDARY_LINES)}")
     print(
         "PHASE14_SCRIPTS_README_MARKER_COUNT="
