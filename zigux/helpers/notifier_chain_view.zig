@@ -33,6 +33,10 @@ pub fn length(view: abi.NotifierChainView) u32 {
     return summarize(view).length;
 }
 
+pub fn hasNonincreasingPriorityOrder(view: abi.NotifierChainView) bool {
+    return (summarize(view).flags & abi.NOTIFIER_CHAIN_FLAG_PRIORITY_NONINCREASING) != 0;
+}
+
 pub fn summarize(view: abi.NotifierChainView) abi.NotifierChainSummary {
     if (!isValid(view)) {
         return .{ .length = 0, .flags = 0, .highest_priority = 0, .lowest_priority = 0 };
@@ -111,6 +115,7 @@ test "phase13 notifier chain view tracks terminated chains" {
     try std.testing.expectEqual(@as(u32, 2), length(view));
     try std.testing.expectEqual(@as(u32, 2), summary.length);
     try std.testing.expectEqual(@as(u32, abi.NOTIFIER_CHAIN_FLAG_TERMINATED | abi.NOTIFIER_CHAIN_FLAG_PRIORITY_NONINCREASING), summary.flags);
+    try std.testing.expect(hasNonincreasingPriorityOrder(view));
     try std.testing.expectEqual(@as(i32, 50), summary.highest_priority);
     try std.testing.expectEqual(@as(i32, 10), summary.lowest_priority);
 }
@@ -123,6 +128,7 @@ test "phase13 notifier chain view keeps the empty sentinel explicit" {
     try std.testing.expect(isEmpty(view));
     try std.testing.expectEqual(@as(u32, 0), summary.length);
     try std.testing.expectEqual(@as(u32, abi.NOTIFIER_CHAIN_FLAG_EMPTY | abi.NOTIFIER_CHAIN_FLAG_TERMINATED), summary.flags);
+    try std.testing.expect(!hasNonincreasingPriorityOrder(view));
 }
 
 test "phase13 notifier chain view marks truncation and self loops" {
@@ -132,16 +138,20 @@ test "phase13 notifier chain view marks truncation and self loops" {
     node_a.next_addr = narrow.addressOf(&node_b);
     head.head_addr = narrow.addressOf(&node_a);
 
-    const truncated = summarize(viewFromHead(&head, 1));
+    const truncated_view = viewFromHead(&head, 1);
+    const truncated = summarize(truncated_view);
     try std.testing.expectEqual(@as(u32, 1), truncated.length);
     try std.testing.expectEqual(@as(u32, abi.NOTIFIER_CHAIN_FLAG_TRUNCATED | abi.NOTIFIER_CHAIN_FLAG_PRIORITY_NONINCREASING), truncated.flags);
+    try std.testing.expect(hasNonincreasingPriorityOrder(truncated_view));
 
     var loop = abi.NotifierBlockRef{ .notifier_call_addr = 0x3333, .next_addr = 0, .priority = 9, .reserved = 0 };
     loop.next_addr = narrow.addressOf(&loop);
     head.head_addr = narrow.addressOf(&loop);
-    const self_loop = summarize(viewFromHead(&head, 8));
+    const self_loop_view = viewFromHead(&head, 8);
+    const self_loop = summarize(self_loop_view);
     try std.testing.expectEqual(@as(u32, 1), self_loop.length);
     try std.testing.expectEqual(@as(u32, abi.NOTIFIER_CHAIN_FLAG_SELF_LOOP | abi.NOTIFIER_CHAIN_FLAG_PRIORITY_NONINCREASING), self_loop.flags);
+    try std.testing.expect(hasNonincreasingPriorityOrder(self_loop_view));
     try std.testing.expectEqual(@as(i32, 9), self_loop.highest_priority);
     try std.testing.expectEqual(@as(i32, 9), self_loop.lowest_priority);
 }
@@ -154,9 +164,11 @@ test "phase13 notifier chain view clears the priority-order flag when priorities
     node_a.next_addr = narrow.addressOf(&node_b);
     head.head_addr = narrow.addressOf(&node_a);
 
-    const summary = summarize(viewFromHead(&head, 8));
+    const view = viewFromHead(&head, 8);
+    const summary = summarize(view);
     try std.testing.expectEqual(@as(u32, 2), summary.length);
     try std.testing.expectEqual(@as(u32, abi.NOTIFIER_CHAIN_FLAG_TERMINATED), summary.flags);
+    try std.testing.expect(!hasNonincreasingPriorityOrder(view));
     try std.testing.expectEqual(@as(i32, 9), summary.highest_priority);
     try std.testing.expectEqual(@as(i32, 1), summary.lowest_priority);
 }
