@@ -17,10 +17,29 @@ pub const Node = struct {
     }
 };
 
+pub const NodeLinked = struct {
+    node: Node = Node.init(),
+    prev: ?*NodeLinked = null,
+    next: ?*NodeLinked = null,
+
+    pub fn init() NodeLinked {
+        return .{};
+    }
+};
+
 pub const Root = struct {
     node: ?*Node = null,
 
     pub fn init() Root {
+        return .{};
+    }
+};
+
+pub const RootLinked = struct {
+    root: Root = Root.init(),
+    leftmost: ?*NodeLinked = null,
+
+    pub fn init() RootLinked {
         return .{};
     }
 };
@@ -33,6 +52,10 @@ fn orderToInt(order: std.math.Order) i32 {
         .eq => 0,
         .gt => 1,
     };
+}
+
+fn linkedFromNode(node: *Node) *NodeLinked {
+    return @fieldParentPtr("node", node);
 }
 
 pub fn emptyRoot(root: *const Root) bool {
@@ -48,6 +71,12 @@ pub fn clearNode(node: *Node) void {
     node.left = null;
     node.right = null;
     node.color = .red;
+}
+
+pub fn clearLinkedNode(node: *NodeLinked) void {
+    clearNode(&node.node);
+    node.prev = null;
+    node.next = null;
 }
 
 pub fn linkNode(node: *Node, parent: ?*Node, link: *?*Node) void {
@@ -198,6 +227,50 @@ pub fn add(node: *Node, root: *Root, less: LessFn) void {
 
     linkNode(node, parent, link);
     insertColor(node, root);
+}
+
+pub fn addLinked(node: *NodeLinked, root: *RootLinked, less: LessFn) bool {
+    var link = &root.root.node;
+    var parent: ?*Node = null;
+    var leftmost = true;
+
+    while (link.*) |current| {
+        parent = current;
+        if (less(&node.node, current)) {
+            link = &current.left;
+        } else {
+            link = &current.right;
+            leftmost = false;
+        }
+    }
+
+    node.prev = null;
+    node.next = null;
+    if (parent) |parent_node| {
+        const parent_linked = linkedFromNode(parent_node);
+        if (link == &parent_node.left) {
+            node.prev = parent_linked.prev;
+            node.next = parent_linked;
+            parent_linked.prev = node;
+            if (node.prev) |prev_linked| {
+                prev_linked.next = node;
+            }
+        } else {
+            node.next = parent_linked.next;
+            node.prev = parent_linked;
+            parent_linked.next = node;
+            if (node.next) |next_linked| {
+                next_linked.prev = node;
+            }
+        }
+    }
+
+    linkNode(&node.node, parent, link);
+    insertColor(&node.node, &root.root);
+    if (leftmost) {
+        root.leftmost = node;
+    }
+    return leftmost;
 }
 
 pub fn find(key: anytype, root: *const Root, cmp: *const fn (@TypeOf(key), *const Node) i32) ?*Node {
@@ -482,6 +555,22 @@ pub fn erase(node: *Node, root: *Root) void {
     }
 }
 
+pub fn eraseLinked(node: *NodeLinked, root: *RootLinked) bool {
+    if (node.prev) |prev_linked| {
+        prev_linked.next = node.next;
+    } else {
+        root.leftmost = node.next;
+    }
+
+    if (node.next) |next_linked| {
+        next_linked.prev = node.prev;
+    }
+
+    erase(&node.node, &root.root);
+    clearLinkedNode(node);
+    return root.leftmost != null;
+}
+
 pub fn eraseInit(node: *Node, root: *Root) void {
     erase(node, root);
     clearNode(node);
@@ -627,6 +716,65 @@ test "rbtree inserts and traverses in sorted order" {
 
     try std.testing.expectEqual(@as(usize, 5), count);
     try std.testing.expectEqualSlices(i32, &[_]i32{ 5, 10, 15, 20, 25 }, order[0..count]);
+}
+
+test "rbtree linked helpers keep leftmost and neighbor links stable" {
+    const Entry = struct {
+        key: i32,
+        linked: NodeLinked = NodeLinked.init(),
+    };
+
+    const less = struct {
+        fn compare(lhs: *const Node, rhs: *const Node) bool {
+            const lhs_entry: *const Entry = @fieldParentPtr("linked", @as(*const NodeLinked, @fieldParentPtr("node", lhs)));
+            const rhs_entry: *const Entry = @fieldParentPtr("linked", @as(*const NodeLinked, @fieldParentPtr("node", rhs)));
+            return lhs_entry.key < rhs_entry.key;
+        }
+    }.compare;
+
+    var entries = [_]Entry{
+        .{ .key = 10 },
+        .{ .key = 20 },
+        .{ .key = 5 },
+        .{ .key = 15 },
+    };
+    var root = RootLinked.init();
+
+    try std.testing.expect(addLinked(&entries[0].linked, &root, less));
+    try std.testing.expect(!addLinked(&entries[1].linked, &root, less));
+    try std.testing.expect(addLinked(&entries[2].linked, &root, less));
+    try std.testing.expect(!addLinked(&entries[3].linked, &root, less));
+
+    try std.testing.expectEqual(@as(?*NodeLinked, &entries[2].linked), root.leftmost);
+    try std.testing.expectEqual(@as(?*NodeLinked, null), entries[2].linked.prev);
+    try std.testing.expectEqual(@as(?*NodeLinked, &entries[0].linked), entries[2].linked.next);
+    try std.testing.expectEqual(@as(?*NodeLinked, &entries[2].linked), entries[0].linked.prev);
+    try std.testing.expectEqual(@as(?*NodeLinked, &entries[3].linked), entries[0].linked.next);
+    try std.testing.expectEqual(@as(?*NodeLinked, &entries[0].linked), entries[3].linked.prev);
+    try std.testing.expectEqual(@as(?*NodeLinked, &entries[1].linked), entries[3].linked.next);
+    try std.testing.expectEqual(@as(?*NodeLinked, &entries[3].linked), entries[1].linked.prev);
+    try std.testing.expectEqual(@as(?*NodeLinked, null), entries[1].linked.next);
+
+    try std.testing.expect(eraseLinked(&entries[2].linked, &root));
+    try std.testing.expectEqual(@as(?*NodeLinked, &entries[0].linked), root.leftmost);
+    try std.testing.expect(emptyNode(&entries[2].linked.node));
+    try std.testing.expectEqual(@as(?*NodeLinked, null), entries[2].linked.prev);
+    try std.testing.expectEqual(@as(?*NodeLinked, null), entries[2].linked.next);
+    try std.testing.expectEqual(@as(?*NodeLinked, null), entries[0].linked.prev);
+    try std.testing.expectEqual(@as(?*NodeLinked, &entries[3].linked), entries[0].linked.next);
+
+    try std.testing.expect(eraseLinked(&entries[0].linked, &root));
+    try std.testing.expectEqual(@as(?*NodeLinked, &entries[3].linked), root.leftmost);
+    try std.testing.expectEqual(@as(?*NodeLinked, null), entries[3].linked.prev);
+
+    try std.testing.expect(eraseLinked(&entries[1].linked, &root));
+    try std.testing.expectEqual(@as(?*NodeLinked, &entries[3].linked), root.leftmost);
+    try std.testing.expectEqual(@as(?*NodeLinked, null), entries[3].linked.next);
+
+    try std.testing.expect(!eraseLinked(&entries[3].linked, &root));
+    try std.testing.expectEqual(@as(?*NodeLinked, null), root.leftmost);
+    try std.testing.expect(emptyRoot(&root.root));
+    try std.testing.expect(emptyNode(&entries[3].linked.node));
 }
 
 test "rbtree erase and replace keep traversal consistent" {
