@@ -29,7 +29,7 @@ SURVEY_MARKERS = [
     "lane: `P12-L07`",
     "phase: `Phase 12`",
     "public boundary: read-only GitHub tree and raw-path inspection only",
-    "last replayed public head for this exact coverage split: `bc2373f7deedf021c73beaae29555a9ac6b0536d`",
+    "last replayed public head for this exact coverage split: `0bd402fd6ca83ba2ace6b21e9e57459401b631cd`",
     "`drivers/net/virtio_net.c`",
     "`drivers/nvme/host/pci.c`",
     "`drivers/scsi/virtio_scsi.c`",
@@ -45,7 +45,7 @@ SURVEY_MARKERS = [
 
 SURVEY_EXACT_COUNT_MARKERS = {
     "lane: `P12-L07`": 1,
-    "last replayed public head for this exact coverage split: `bc2373f7deedf021c73beaae29555a9ac6b0536d`": 1,
+    "last replayed public head for this exact coverage split: `0bd402fd6ca83ba2ace6b21e9e57459401b631cd`": 1,
     "one anchor keeps a commit-pinned raw fallback catalog with a last bounded replay note: `Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md`": 1,
     "one anchor keeps a commit-pinned raw fallback map for the archived NVMe packet: `Documentation/zigux/phase12-nvme-pci-raw-github-fallback-map.md`": 1,
     "two anchors remain shared-tree-only fallback reads: `virtio_net` and `libbpf`": 1,
@@ -184,7 +184,7 @@ def validate_manifest(manifest: dict[str, object]) -> list[str]:
         "phase": "Phase 12",
         "scope": "raw GitHub fallback catalog survey public-read coverage gaps vs roadmap",
         "public_read_boundary": "read_only_public_github_tree_and_raw_paths_only",
-        "last_replayed_public_head": "bc2373f7deedf021c73beaae29555a9ac6b0536d",
+        "last_replayed_public_head": "0bd402fd6ca83ba2ace6b21e9e57459401b631cd",
         "roadmap_anchor_count": 4,
         "commit_pinned_raw_fallback_catalog_count": 1,
         "commit_pinned_raw_fallback_map_count": 1,
