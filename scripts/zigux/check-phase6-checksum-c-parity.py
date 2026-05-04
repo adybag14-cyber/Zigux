@@ -168,10 +168,10 @@ def run_self_test() -> int:
         "missing fixture source: /tmp/phase6-missing-fixture.zig",
     )
     build_text = build_zig_build_text()
-    assert_equal("build_text_checksum_import", 'root_module.addImport("checksum", checksum_module);' in build_text, True)
     assert_equal(
-        "build_text_fixture_import_and_paths",
-        'root_module.addImport("phase6_checksum_vectors", fixtures_module);' in build_text
+        "build_text_imports_and_paths",
+        'root_module.addImport("checksum", checksum_module);' in build_text
+        and 'root_module.addImport("phase6_checksum_vectors", fixtures_module);' in build_text
         and str(FIXTURE_SOURCE) in build_text
         and str(ZIG_RUNNER) in build_text,
         True,
@@ -189,6 +189,15 @@ def run_self_test() -> int:
         lambda: validate_expected_surface(unexpected_lines, "self-test-unexpected-case"),
         "phase6-checksum-c-parity:self-test-unexpected-case:unexpected_output:"
         f"expected={EXPECTED_SORTED_LINES!r}:actual={unexpected_lines!r}",
+    )
+    missing_replace4_case = [
+        line for line in EXPECTED_SORTED_LINES if line != "replace4\tipv4-saddr\t0x9c58"
+    ]
+    expect_system_exit(
+        "missing_case",
+        lambda: validate_expected_surface(missing_replace4_case, "self-test-missing-case"),
+        "phase6-checksum-c-parity:self-test-missing-case:unexpected_output:"
+        f"expected={EXPECTED_SORTED_LINES!r}:actual={missing_replace4_case!r}",
     )
     expect_system_exit(
         "mismatch_surface",
