@@ -102,6 +102,36 @@ REQUIRED_CLOSURE_VALIDATOR_SNIPPETS = {
 REQUIRED_CLOSURE_DOC_SNIPPETS = {
     "find_bit_bench_keys_marker": f"`{FIND_BIT_BENCH_KEYS}`",
     "find_bit_bench_iterations_marker": f"`{FIND_BIT_BENCH_ITERATIONS}`",
+    "find_bit_unit_review_marker": (
+        "PHASE1_FIND_BIT_UNIT_REVIEW=find_bit same-word zero-scan start masking keeps inclusive "
+        "starts honest, skips earlier zero matches after the search advances, and still clamps "
+        "tail results to nbits"
+    ),
+    "find_bit_set_unit_review_marker": (
+        "PHASE1_FIND_BIT_SET_UNIT_REVIEW=find_bit same-word set-scan start masking keeps "
+        "inclusive starts honest, skips earlier same-word set matches after the search advances, "
+        "and still clamps tail results to nbits"
+    ),
+    "find_bit_and_unit_review_marker": (
+        "PHASE1_FIND_BIT_AND_UNIT_REVIEW=find_bit same-word shared-bit start masking keeps "
+        "inclusive starts honest, skips earlier same-word overlaps after the search advances, and "
+        "still clamps tail AND results to nbits"
+    ),
+    "find_bit_mask_unit_review_marker": (
+        "PHASE1_FIND_BIT_MASK_UNIT_REVIEW=find_bit mask and sizing helpers keep Linux-style "
+        "whole-word, partial-word, and wrapped-start boundaries reviewable without relying only "
+        "on indirect scan coverage"
+    ),
+    "find_bit_boundary_unit_review_marker": (
+        "PHASE1_FIND_BIT_BOUNDARY_UNIT_REVIEW=find_bit empty and out-of-range scans return nbits "
+        "for zero-length bitmaps, start-at-nbits searches, and fully set zero-bit windows that "
+        "must not report past the declared range"
+    ),
+    "find_bit_alias_unit_review_marker": (
+        "PHASE1_FIND_BIT_ALIAS_UNIT_REVIEW=find_bit underscore alias entry points preserve the "
+        "same set, shared-bit, and zero-bit scan semantics as the camelCase helpers across the "
+        "same caller-selected bit windows and tail clamps"
+    ),
     "find_bit_small_bitmap_review_marker": (
         "PHASE1_FIND_BIT_SMALL_BITMAP_UNIT_REVIEW=find_bit single-word set zero and shared-bit scans keep Linux "
         "small-bitmap semantics aligned by masking out-of-range tail bits while preserving inclusive in-range "
@@ -161,11 +191,29 @@ REQUIRED_DOCS_README_LINES = {
 }
 
 REQUIRED_FIND_BIT_SOURCE_SNIPPETS = {
+    "unit_anchor": 'test "find next zero bit skips earlier matches in the same word" {',
+    "set_anchor": 'test "find next bit skips earlier matches in the same word" {',
+    "and_anchor": 'test "find next and bit skips earlier shared matches in the same word" {',
+    "mask_anchor": 'test "word helpers keep linux-style mask and sizing boundaries" {',
+    "boundary_anchor": 'test "empty and boundary scans return nbits" {',
+    "alias_anchor": 'test "find underscore aliases preserve scan semantics" {',
     "small_bitmap_anchor": 'test "single-word scans keep linux small-bitmap semantics" {',
     "low_level_anchor": 'test "find low-level underscore entry points preserve same-word and tail-clamped scan semantics" {',
 }
 
 REQUIRED_MANIFEST_FIELDS = {
+    "unit_test_anchor": 'tools/lib/find_bit.zig:test "find next zero bit skips earlier matches in the same word"',
+    "unit_test_contract": "Direct Zig unit coverage keeps same-word zero-scan start masking aligned so inclusive starts can return the current zero, later starts skip earlier same-word zeros, and tail scans still clamp to nbits.",
+    "set_unit_test_anchor": 'tools/lib/find_bit.zig:test "find next bit skips earlier matches in the same word"',
+    "set_unit_test_contract": "Direct Zig unit coverage keeps same-word set-scan start masking aligned so inclusive starts can return the current set bit, later starts skip earlier same-word matches, and tail scans still clamp to nbits.",
+    "and_unit_test_anchor": 'tools/lib/find_bit.zig:test "find next and bit skips earlier shared matches in the same word"',
+    "and_unit_test_contract": "Direct Zig unit coverage keeps same-word shared-bit start masking aligned so inclusive starts can return the current shared bit, later starts skip earlier same-word overlaps, and tail-clamped AND scans still stop at nbits.",
+    "mask_unit_test_anchor": 'tools/lib/find_bit.zig:test "word helpers keep linux-style mask and sizing boundaries"',
+    "mask_unit_test_contract": "Direct Zig unit coverage keeps bitsToWords(), firstWordMask(), and lastWordMask() aligned with Linux-style whole-word, partial-word, and wrapped-start boundaries so exported mask helpers remain reviewable without relying only on indirect scan coverage.",
+    "boundary_unit_test_anchor": 'tools/lib/find_bit.zig:test "empty and boundary scans return nbits"',
+    "boundary_unit_test_contract": "Direct Zig unit coverage keeps empty and out-of-range scan boundaries aligned by returning nbits for zero-length bitmaps, start-at-nbits searches, and fully set zero-bit windows that must not report past the declared range.",
+    "alias_unit_test_anchor": 'tools/lib/find_bit.zig:test "find underscore aliases preserve scan semantics"',
+    "alias_unit_test_contract": "Direct Zig unit coverage keeps find_first_bit(), find_first_and_bit(), find_first_zero_bit(), find_next_bit(), find_next_and_bit(), and find_next_zero_bit() aligned with the camelCase scan helpers across the same caller-selected bit windows and tail clamps.",
     "small_bitmap_unit_test_anchor": 'tools/lib/find_bit.zig:test "single-word scans keep linux small-bitmap semantics"',
     "small_bitmap_unit_test_contract": "Direct Zig unit coverage keeps single-word set, zero, and shared-bit scans aligned with Linux small-bitmap semantics by masking out-of-range tail bits while preserving inclusive in-range matches inside one word.",
     "low_level_unit_test_anchor": 'tools/lib/find_bit.zig:test "find low-level underscore entry points preserve same-word and tail-clamped scan semantics"',
@@ -857,8 +905,8 @@ def main() -> int:
     parser = argparse.ArgumentParser(
         description=(
             "Fail closed if the Phase 1 find_bit validators, manifest, helper source, Makefile route, or docs-root index "
-            "stop naming the shipped small-bitmap, low-level underscore, tail-start, tail-word-boundary, zero-sized, "
-            "or bench workload-size evidence packet."
+            "stop naming the shipped same-word zero, set, and shared-bit anchors plus the mask, boundary, alias, "
+            "small-bitmap, low-level underscore, tail-start, tail-word-boundary, zero-sized, or bench workload-size evidence packet."
         )
     )
     parser.add_argument("--validator", type=Path, default=DEFAULT_VALIDATOR)
