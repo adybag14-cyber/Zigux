@@ -54,6 +54,12 @@ REQUIRED_INTEROP_POLICY_SNIPPETS = (
 )
 
 REQUIRED_POLICY_TEST_SNIPPETS = (
+    'test "phase3 policy helpers stay ABI aligned"',
+    'test "phase3 policy layout stays explicit at the ABI boundary"',
+    "layout_assert.assertInteropPolicyLayout();",
+    "const policy: abi.InteropPolicy = .{",
+    "try std.testing.expectEqual(@intFromEnum(abi.AllocatorMode.arena), policy.allocator_mode);",
+    "try std.testing.expectEqual(@intFromEnum(abi.UnsafeScope.raw_pointer_bridge), policy.unsafe_scope);",
     'test "phase3 policy gate reaches a second boundary helper through decoded policy"',
     "const none_policy = try interop_policy.decode(.{",
     "try mmio.writeScopedWithPolicy(u32, mmio_policy, base32, 0, 0x10213243);",
@@ -306,6 +312,28 @@ def run_self_test() -> int:
         issues = validate(root)
         assert "missing_policy_test_snippet:try std.testing.expectEqual(@as(u32, 0xdecafbad), regs32[1]);" in issues
         assert "missing_policy_test_snippet:try std.testing.expectEqual(@as(u64, 0x1111_2222_3333_4444), regs64[1]);" in issues
+
+        _write(root, POLICY_TEST_REL, "\n".join(REQUIRED_POLICY_TEST_SNIPPETS) + "\n")
+        _write(
+            root,
+            POLICY_TEST_REL,
+            "\n".join(
+                snippet
+                for snippet in REQUIRED_POLICY_TEST_SNIPPETS
+                if snippet != 'test "phase3 policy layout stays explicit at the ABI boundary"'
+                and snippet != "layout_assert.assertInteropPolicyLayout();"
+                and snippet != "const policy: abi.InteropPolicy = .{"
+                and snippet != "try std.testing.expectEqual(@intFromEnum(abi.AllocatorMode.arena), policy.allocator_mode);"
+                and snippet != "try std.testing.expectEqual(@intFromEnum(abi.UnsafeScope.raw_pointer_bridge), policy.unsafe_scope);"
+            )
+            + "\n",
+        )
+        issues = validate(root)
+        assert 'missing_policy_test_snippet:test "phase3 policy layout stays explicit at the ABI boundary"' in issues
+        assert "missing_policy_test_snippet:layout_assert.assertInteropPolicyLayout();" in issues
+        assert "missing_policy_test_snippet:const policy: abi.InteropPolicy = .{" in issues
+        assert "missing_policy_test_snippet:try std.testing.expectEqual(@intFromEnum(abi.AllocatorMode.arena), policy.allocator_mode);" in issues
+        assert "missing_policy_test_snippet:try std.testing.expectEqual(@intFromEnum(abi.UnsafeScope.raw_pointer_bridge), policy.unsafe_scope);" in issues
 
         _write(root, POLICY_TEST_REL, "\n".join(REQUIRED_POLICY_TEST_SNIPPETS) + "\n")
         _write(root, SURVEY_REL, "\n".join(
