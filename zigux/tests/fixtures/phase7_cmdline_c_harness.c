@@ -225,6 +225,8 @@ static void run_next_arg_section(void)
     emit_next_arg_case("leading_equals", "=bad next");
     printf(",");
     emit_next_arg_case("trimmed_empty_rest", "mode=fast   ");
+    printf(",");
+    emit_next_arg_case("unterminated_quoted_value", "mode=\"fast boot");
     printf("}");
 }
 
