@@ -16,6 +16,27 @@ pub const SampleFocus = enum {
     reviewable_non_sysfs_scope,
 };
 
+pub const sample_review_focus = [_]SampleFocus{
+    .bounded_attribute_roundtrip,
+    .shared_attribute_dispatch,
+    .ownership_and_lifetime,
+    .parse_error_visibility,
+    .static_name_no_uevent_boundary,
+    .reviewable_non_sysfs_scope,
+};
+
+pub const sample_review_non_goals = [_][]const u8{
+    "sysfs file creation parity",
+    "kernel_kobj integration",
+    "uevent delivery",
+    "loadable module registration",
+};
+
+pub const ReviewContract = struct {
+    focus: []const SampleFocus,
+    non_goals: []const []const u8,
+};
+
 pub const SampleDescriptor = struct {
     name: []const u8,
     anchor: []const u8,
@@ -164,6 +185,13 @@ pub const KobjectExampleSample = struct {
         };
     }
 
+    pub fn reviewContract() ReviewContract {
+        return .{
+            .focus = &sample_review_focus,
+            .non_goals = &sample_review_non_goals,
+        };
+    }
+
     pub fn directoryName() []const u8 {
         return "kobject_example";
     }
@@ -299,14 +327,7 @@ pub const KobjectExampleSample = struct {
             .foo_value = try self.showValue("foo"),
             .baz_value = try self.showValue("baz"),
             .bar_value = try self.showValue("bar"),
-            .checked_focus = &.{
-                .bounded_attribute_roundtrip,
-                .shared_attribute_dispatch,
-                .ownership_and_lifetime,
-                .parse_error_visibility,
-                .static_name_no_uevent_boundary,
-                .reviewable_non_sysfs_scope,
-            },
+            .checked_focus = reviewContract().focus,
         };
     }
 
@@ -448,23 +469,28 @@ pub const KobjectExampleSample = struct {
 };
 
 test "kobject sample replay keeps the descriptor and anchor reviewable and non-runtime" {
+    const expected_focus = sample_review_focus;
+    const expected_non_goals = sample_review_non_goals;
     const descriptor = KobjectExampleSample.descriptor();
+    const contract = KobjectExampleSample.reviewContract();
     var sample = KobjectExampleSample{};
     try sample.init();
     const replay = try sample.runAnchorReplay();
-    const expected_focus = [_]SampleFocus{
-        .bounded_attribute_roundtrip,
-        .shared_attribute_dispatch,
-        .ownership_and_lifetime,
-        .parse_error_visibility,
-        .static_name_no_uevent_boundary,
-        .reviewable_non_sysfs_scope,
-    };
 
     try std.testing.expectEqualStrings("kobject_example", descriptor.name);
     try std.testing.expectEqualStrings("samples/kobject/kobject-example.c", descriptor.anchor);
     try std.testing.expect(!descriptor.requires_runtime_substrate);
     try std.testing.expect(descriptor.provides_selfcheck);
+
+    try std.testing.expectEqual(@as(usize, expected_focus.len), contract.focus.len);
+    for (expected_focus, contract.focus) |expected, actual| {
+        try std.testing.expectEqual(expected, actual);
+    }
+    try std.testing.expectEqual(@as(usize, expected_non_goals.len), contract.non_goals.len);
+    for (expected_non_goals, contract.non_goals) |expected, actual| {
+        try std.testing.expectEqualStrings(expected, actual);
+    }
+
     try std.testing.expectEqualStrings("samples/kobject/kobject-example.c", replay.anchor);
     try std.testing.expectEqualStrings("kobject_example", replay.directory_name);
     try std.testing.expectEqualStrings("foo", replay.ordered_attr_names[0]);
@@ -498,7 +524,10 @@ test "kobject sample replay keeps the descriptor and anchor reviewable and non-r
     try std.testing.expectEqualStrings("42\n", replay.foo_value.text[0..replay.foo_value.len]);
     try std.testing.expectEqualStrings("7\n", replay.baz_value.text[0..replay.baz_value.len]);
     try std.testing.expectEqualStrings("-5\n", replay.bar_value.text[0..replay.bar_value.len]);
-    try std.testing.expectEqualSlices(SampleFocus, &expected_focus, replay.checked_focus);
+    try std.testing.expectEqual(@as(usize, expected_focus.len), replay.checked_focus.len);
+    for (expected_focus, replay.checked_focus) |expected, actual| {
+        try std.testing.expectEqual(expected, actual);
+    }
 }
 
 test "kobject sample keeps shared dispatch and parse failures explicit through a sample-owned replay" {
