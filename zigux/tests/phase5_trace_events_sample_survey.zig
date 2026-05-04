@@ -378,6 +378,9 @@ test "phase 5 trace-events contributor docs stay aligned with the shipped review
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "floating branch label") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "CREATE_TRACE_POINTS") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "runStringFormattingCycleReplay()") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "no standalone `samples/zigux/*printf*`, `*vsprintf*`, or `*format*` Phase 5 reference sample") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "`tools/lib/vsprintf.zig`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "`string_get_size()` helper packet") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "FunctionCallbackNotRegistered") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "before a callback is registered") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "second `registerFunctionCallback()`") != null);
@@ -438,6 +441,9 @@ test "phase 5 trace-events contributor docs stay aligned with the shipped review
     try std.testing.expect(std.mem.indexOf(u8, sample_root_readme, "phase5_trace_events_sample_survey.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, sample_root_readme, "phase5-trace-events-sample-survey.md") != null);
     try std.testing.expect(std.mem.indexOf(u8, sample_root_readme, "approved payload-and-callback idiom") != null);
+    try std.testing.expect(std.mem.indexOf(u8, sample_root_readme, "current `master` still ships no standalone `samples/zigux/*printf*`, `*vsprintf*`, or `*format*` Phase 5 reference sample") != null);
+    try std.testing.expect(std.mem.indexOf(u8, sample_root_readme, "selected-string plus `iter=%d` replay in `samples/zigux/trace_events_sample.zig`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, sample_root_readme, "closed Phase 1 `tools/lib/vsprintf.zig` packet plus the bounded Phase 7 `string_get_size()` helper packet") != null);
     try std.testing.expect(std.mem.indexOf(u8, sample_root_readme, "unregister-underflow rejection before a callback is armed") != null);
     try std.testing.expect(std.mem.indexOf(u8, sample_root_readme, "`OutstandingRegistration` rejection if `exit()` is attempted while one callback is still live") != null);
     try std.testing.expect(std.mem.indexOf(u8, sample_root_readme, "Phase 9 runtime pilot claim") != null);
