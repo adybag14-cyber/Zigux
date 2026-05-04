@@ -30,7 +30,7 @@ This document records the shared Phase 14 smoke lane that verifies the current b
 - `PHASE14_BOUNDARY_MAP=shared-anchor-packet-bundle`
 - `PHASE14_CONCURRENCY_AUDIT_SCOPE=anchor-local-packets-only`
 - `PHASE14_ATTACHED_TOOLCHAIN_FALLBACK=ZIG=<attached-zig-path>`
-- survey provenance captured against verified `master` head `672d03034b090ab859f4088396160ea13120e1d6`
+- survey provenance captured against verified `master` head `02264a3240cd30ce45c9a932047a0204b7ab5029`
 - shared smoke boundary:
   - `scripts/zigux/validate-phase14.py`
   - `scripts/zigux/check-phase14-docs-root-smoke-summary.py`
@@ -56,9 +56,9 @@ This lane stays narrow on purpose. It does not add a new bridge. It verifies tha
 
 ## Exact evidence captured
 
-- verified `master` head: `672d03034b090ab859f4088396160ea13120e1d6`
+- verified `master` head: `02264a3240cd30ce45c9a932047a0204b7ab5029`
 - shared smoke manifest lane key: `P14-L01`
-- shared smoke manifest surveyed commit: `672d03034b090ab859f4088396160ea13120e1d6`
+- shared smoke manifest surveyed commit: `02264a3240cd30ce45c9a932047a0204b7ab5029`
 - validator-backed smoke commands:
   - `make -C zigux phase14-validate`
   - `make -C zigux phase14-test`
@@ -80,7 +80,7 @@ This lane stays narrow on purpose. It does not add a new bridge. It verifies tha
   - `phase14-end-to-end-smoke-tests`: root `phase14_end_to_end_smoke_survey.zig`, coverage `focused_and_full_bundle` through dedicated shard `phase14-smoke` plus the shared `zig build test --build-file zigux/tests/phase14_build.zig --summary all` replay
 - anchor packets in the current smoke bundle:
   - workqueue: `zigux/tests/phase14_workqueue_bridge_manifest.json`, lane `P14-Y05`, surveyed commit `02264a3240cd30ce45c9a932047a0204b7ab5029`, blocked `phase14-workqueue-live-execution-blocker`
-  - skbuff: `zigux/tests/phase14_skbuff_bridge_manifest.json`, lane `P14-L12`, surveyed commit `6689715b1930c419e49a44b1c2dd317548a08c1d`, blocked `phase14-skbuff-live-ownership-blocker`
+  - skbuff: `zigux/tests/phase14_skbuff_bridge_manifest.json`, lane `P14-L12`, surveyed commit `02264a3240cd30ce45c9a932047a0204b7ab5029`, blocked `phase14-skbuff-live-ownership-blocker`
   - ring buffer: `zigux/tests/phase14_ring_buffer_manifest.json`, lane `P14-L08`, surveyed commit `f9a7a6e93c8e6a1b6550fd7b2aa5571729aab05b`, blocked `phase14-ring-buffer-zig-port-blocker`
   - RCU tree: `zigux/tests/phase14_rcu_tree_manifest.json`, lane `P14-Y04`, surveyed commit `355b71d89807a217a6b7c405c996cbd623c48ca0`, blocked `phase14-rcu-tree-bridge-blocker`
 - bounded-internal same-phase follow-up lanes:
