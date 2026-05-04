@@ -168,7 +168,7 @@ INDEFINITE_POLICY_NOTE_MARKERS = [
 ]
 
 SURVEY_MARKERS = [
-    "## Current Repo Readiness",
+    "## Readiness at Reviewed Head",
     "## Readiness Gate",
     "Documentation/zigux/phase15-architecture-council-review-process.md",
     "Documentation/zigux/phase15-parity-scorecard.md",
@@ -495,8 +495,8 @@ repo_evidence = readiness_manifest.get("repo_evidence", {})
 require_true(repo_evidence, "manifest:repo_evidence", [
     "freeze_map_present", "review_checklist_present", "review_process_present", "parity_scorecard_present",
     "indefinite_c_policy_present", "handoff_next_steps_present", "phase15_build_present",
-    "phase15_make_target_present", "shared_ci_phase15_present", "phase15_replay_green_on_current_master",
-    "docs_root_phase15_summary_aligned",
+    "phase15_make_target_present", "shared_ci_phase15_present", "phase15_replay_green_at_reviewed_head",
+    "docs_root_phase15_summary_aligned_at_reviewed_head", "current_master_provenance_refresh_required",
 ])
 require_false(repo_evidence, "manifest:repo_evidence", ["deep_core_status_change_ready"])
 remaining_gaps = readiness_manifest.get("remaining_gaps")
@@ -507,7 +507,7 @@ if isinstance(remaining_gaps, list) and len(remaining_gaps) == 1:
     require(gap.get("status") == "blocked_on_stay_in_c_evidence", "manifest:remaining_gaps:status")
     require(gap.get("zigux_destination") == "Documentation/zigux/phase15-parity-scorecard.md", "manifest:remaining_gaps:zigux_destination")
 require(
-    f"survey provenance refreshed against verified `master` head `{readiness_manifest['surveyed_commit']}`"
+    f"survey provenance last refreshed against reviewed `master` head `{readiness_manifest['surveyed_commit']}`"
     in text("Documentation/zigux/phase15-readiness-gate-survey.md"),
     "manifest:surveyed_commit:readiness_note",
 )
