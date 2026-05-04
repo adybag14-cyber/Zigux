@@ -309,6 +309,16 @@ def run_self_test() -> int:
         "manifest:libbpf:public_read_status",
     )
 
+    drifted_manifest = json.loads(json.dumps(load_manifest()))
+    drifted_manifest["shared_tree_readback_roots"][1] = (
+        "https://github.com/adybag14-cyber/Zigux/tree/master/tools/lib/bpf/drift"
+    )
+    expect_missing(
+        "manifest_readback_roots",
+        validate_manifest(drifted_manifest),
+        "manifest:shared_tree_readback_roots",
+    )
+
     survey_path = ROOT / "Documentation/zigux/phase12-raw-github-coverage-survey.md"
     original_survey = survey_path.read_text(encoding="utf-8")
     survey_path.write_text(
@@ -327,6 +337,25 @@ def run_self_test() -> int:
         )
     finally:
         survey_path.write_text(original_survey, encoding="utf-8")
+
+    docs_root_path = ROOT / "Documentation/zigux/README.md"
+    original_docs_root = docs_root_path.read_text(encoding="utf-8")
+    docs_root_path.write_text(
+        original_docs_root.replace(
+            "the docs-root Phase 12 release packet now also states the mixed fallback split directly",
+            "the docs-root Phase 12 release packet now states an outdated fallback split",
+            1,
+        ),
+        encoding="utf-8",
+    )
+    try:
+        expect_missing(
+            "docs_root_marker",
+            validate_tree(),
+            "docs_root:the docs-root Phase 12 release packet now also states the mixed fallback split directly",
+        )
+    finally:
+        docs_root_path.write_text(original_docs_root, encoding="utf-8")
 
     make_path = ROOT / "zigux/Makefile"
     original_make = make_path.read_text(encoding="utf-8")
@@ -471,7 +500,7 @@ def run_self_test() -> int:
         test_path.write_text(original_test, encoding="utf-8")
 
     print("PHASE12_RAW_GITHUB_COVERAGE_SELF_TEST=pass")
-    print("PHASE12_RAW_GITHUB_COVERAGE_SELF_TEST_CASE_COUNT=12")
+    print("PHASE12_RAW_GITHUB_COVERAGE_SELF_TEST_CASE_COUNT=14")
     return 0
 
 
