@@ -181,7 +181,7 @@
     {
       "id": "loader-free-blocker",
       "kind": "runtime_substrate_boundary",
-      "expected": "samples/zigux/runtime_trace_events_loader.zig is present as a bounded blocked scaffold, but phase9-runtime-trace-events-loader-tests and any shared runtime-loader binding still stay absent while runtime task ownership, polling and event-loop substrate, thread creation, and tracepoint-registration lifecycle wiring remain blocked"
+      "expected": "samples/zigux/runtime_trace_events_loader.zig is present as a bounded blocked scaffold whose review-only perf-runtime-trace-events command-name override, empty-name rejection, and releasePlanWithoutSubstrate() to released_without_substrate fallback stay explicit, but phase9-runtime-trace-events-loader-tests and any shared runtime-loader binding still stay absent while runtime task ownership, polling and event-loop substrate, thread creation, and tracepoint-registration lifecycle wiring remain blocked"
     }
   ],
   "gaps": [
