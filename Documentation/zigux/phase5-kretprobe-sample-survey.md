@@ -66,6 +66,24 @@ The exact checks currently recorded in `zigux/tests/phase5_kretprobe_example_man
 - `runOwnershipBoundaryReplay()` rejects `exit()` on an armed sample until `retHandler()` clears the outstanding tracked instance
 - after `runOwnershipBoundaryReplay()` exits the sample rejects later `recordMissedInstance()`, `entryHandler()`, or `retHandler()` calls
 
+## Current head focused sample verification
+
+- inspected current `master` head on 2026-05-04: `c0b506e3254e63fe007a72d420bb275846a89093`
+- attached Zig toolchain: `0.17.0-dev.87+9b177a7d2`
+- exact command and observed result:
+  - `zig test samples/zigux/kretprobe_example.zig`
+    - `1/1 kretprobe_example.test.kretprobe sample replay keeps the anchor reviewable and non-runtime...OK`
+    - `All 1 tests passed.`
+- current-head direct replay still confirms the exact sample-owned behavior recorded above:
+  - default symbol selection remains `kernel_clone`, with pre-init retargeting to `do_sys_openat2`
+  - kernel-thread entries with no `current->mm` still skip arming a tracked instance
+  - the private entry timestamp remains one `i64`-sized word
+  - `runAnchorReplay()` still reports return value `42` and duration `75 ns` from entry `100` to return `175`
+  - timestamp-order rejection and recovery still reject `199` after `200` and accept `260` for `60 ns`
+  - `maxactiveBudget()` remains fixed at `20` and the replay still records one missed instance
+  - the ownership replay still rejects `exit()` while armed and still rejects `recordMissedInstance()`, `entryHandler()`, and `retHandler()` after exit
+- the manifest-backed survey packet below remains pinned to `PHASE5_SURVEYED_COMMIT=7c1e6840cf73a321e775e8e77448157b1304ee1d` until the broader shared `zigux/tests/phase5_build.zig` bundle is rerun against a scratch tree of current `master`
+
 ## Latest verification snapshot
 
 - inspected `master` head: `7c1e6840cf73a321e775e8e77448157b1304ee1d`
