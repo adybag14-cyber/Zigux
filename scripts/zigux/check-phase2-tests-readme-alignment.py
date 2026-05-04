@@ -82,9 +82,12 @@ PHASE2_VALIDATOR_MARKERS = [
     "PHASE2_TESTS_README_REQUIRED_SOURCE_MARKERS",
     "phase2_tests_readme",
     "PHASE2_TESTS_README_ALIGNMENT_CHECKER = (",
-    'ROOT / "scripts" / "zigux" / "check-phase2-tests-readme-alignment.py"',
-    '[sys.executable, str(PHASE2_TESTS_README_ALIGNMENT_CHECKER)],',
 ]
+
+PHASE2_VALIDATOR_EXACT_COUNTS = {
+    'ROOT / "scripts" / "zigux" / "check-phase2-tests-readme-alignment.py"': 1,
+    "[sys.executable, str(PHASE2_TESTS_README_ALIGNMENT_CHECKER)],": 1,
+}
 
 PHASE2_CLOSURE_VALIDATOR_MARKERS = [
     "required_toolchain_notes_markers",
@@ -140,6 +143,20 @@ def read_text(root: Path, rel_path: str) -> str:
     return (root / rel_path).read_text(encoding="utf-8")
 
 
+def validate_exact_marker_counts(
+    text: str,
+    *,
+    label: str,
+    expected_counts: dict[str, int],
+) -> list[str]:
+    issues: list[str] = []
+    for marker, expected_count in expected_counts.items():
+        actual_count = text.count(marker)
+        if actual_count != expected_count:
+            issues.append(f"{label}:{marker}:count={actual_count}:expected={expected_count}")
+    return issues
+
+
 def validate(root: Path) -> list[str]:
     missing: list[str] = []
     for label, rel_path in REQUIRED_FILES.items():
@@ -172,6 +189,13 @@ def validate(root: Path) -> list[str]:
     for marker in PHASE2_VALIDATOR_MARKERS:
         if marker not in phase2_validator:
             missing.append(f"phase2_validator:{marker}")
+    missing.extend(
+        validate_exact_marker_counts(
+            phase2_validator,
+            label="phase2_validator",
+            expected_counts=PHASE2_VALIDATOR_EXACT_COUNTS,
+        )
+    )
     for marker in PHASE2_CLOSURE_VALIDATOR_MARKERS:
         if marker not in phase2_closure_validator:
             missing.append(f"phase2_closure_validator:{marker}")
@@ -508,6 +532,38 @@ def run_self_test() -> int:
         )
         phase2_validator_path.write_text(original_phase2_validator, encoding="utf-8")
 
+        phase2_validator_path.write_text(
+            original_phase2_validator.replace(
+                '    ROOT / "scripts" / "zigux" / "check-phase2-tests-readme-alignment.py"\n',
+                '    ROOT / "scripts" / "zigux" / "check-phase2-tests-readme-alignment.py"\n'
+                '    ROOT / "scripts" / "zigux" / "check-phase2-tests-readme-alignment.py"\n',
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing(
+            "phase2_validator_checker_path_duplicate",
+            tmp_root,
+            'phase2_validator:ROOT / "scripts" / "zigux" / "check-phase2-tests-readme-alignment.py":count=2:expected=1',
+        )
+        phase2_validator_path.write_text(original_phase2_validator, encoding="utf-8")
+
+        phase2_validator_path.write_text(
+            original_phase2_validator.replace(
+                "    [sys.executable, str(PHASE2_TESTS_README_ALIGNMENT_CHECKER)],\n",
+                "    [sys.executable, str(PHASE2_TESTS_README_ALIGNMENT_CHECKER)],\n"
+                "    [sys.executable, str(PHASE2_TESTS_README_ALIGNMENT_CHECKER)],\n",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing(
+            "phase2_validator_checker_run_duplicate",
+            tmp_root,
+            "phase2_validator:[sys.executable, str(PHASE2_TESTS_README_ALIGNMENT_CHECKER)],:count=2:expected=1",
+        )
+        phase2_validator_path.write_text(original_phase2_validator, encoding="utf-8")
+
         makefile_path = tmp_root / REQUIRED_FILES["makefile"]
         original_makefile = makefile_path.read_text(encoding="utf-8")
         makefile_path.write_text(
@@ -535,7 +591,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE2_TESTS_README_ALIGNMENT_SELF_TEST=pass")
-    print("PHASE2_TESTS_README_ALIGNMENT_SELF_TEST_CASE_COUNT=10")
+    print("PHASE2_TESTS_README_ALIGNMENT_SELF_TEST_CASE_COUNT=12")
     return 0
 
 
