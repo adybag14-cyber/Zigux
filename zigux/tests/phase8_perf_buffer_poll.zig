@@ -33,6 +33,7 @@ test "phase 8 perf-buffer poll docs keep the bounded wait-result helper explicit
     try expectContains(note, "cumulative processed-record count");
     try expectContains(note, "first failing ready buffer");
     try expectContains(note, "ready-buffer processing attempts cannot exceed observed ready events");
+    try expectContains(note, "ready-buffer processing attempts cannot exceed the counted ready buffers");
     try expectContains(note, "non-ready wait observations cannot claim record processing");
     try expectContains(note, "reject impossible post-wait buffer state combinations");
     try expectContains(note, "no standalone timer helper");
@@ -133,6 +134,20 @@ test "phase 8 perf-buffer poll helper keeps execution bookkeeping aligned with t
     try std.testing.expectEqual(@as(usize, 4), summary.processed_record_count);
     try std.testing.expectEqual(@as(?usize, 1), summary.first_process_error_index);
     try std.testing.expectEqual(@as(?i32, -11), summary.first_process_error);
+}
+
+test "phase 8 perf-buffer poll helper rejects processing more ready buffers than the helper counted as ready" {
+    try std.testing.expectError(
+        perf_buffer_poll.PollError.ReadyBufferProcessingExceedsReadyCount,
+        perf_buffer_poll.summarizePollExecution(5, .{ .ready_events = 3 }, &.{
+            .{ .ready = true },
+            .{},
+            .{ .error_code = -32 },
+        }, &.{
+            .{ .records_processed = 1 },
+            .{ .records_processed = 2 },
+        }),
+    );
 }
 
 test "phase 8 perf-buffer poll helper rejects impossible post-wait record processing" {
