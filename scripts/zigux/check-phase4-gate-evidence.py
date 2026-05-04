@@ -106,6 +106,16 @@ REQUIRED_SCRIPTS_ROOT_RUNTIME_ATOMIC64_MARKERS = [
     "`phase4-runtime-atomic64-diff-tests`",
 ]
 
+SCRIPTS_ROOT_BITMAP_ROUTE_LINE_PREFIX = (
+    "the shared validator and `scripts/zigux/check-phase4-gate-evidence.py` "
+    "now both exact-count the scripts-root"
+)
+
+REQUIRED_SCRIPTS_ROOT_BITMAP_ROUTE_MARKERS = [
+    "`make -C zigux phase4-bitmap-diff`",
+    "`phase4-bitmap-diff-tests`",
+]
+
 EXACT_VALIDATOR_STATUS_LINES = [
     "PHASE4_VALIDATOR_SELF_TEST=pass",
     "PHASE4_VALIDATION=pass",
@@ -216,6 +226,29 @@ def collect_exact_workflow_run_count_markers(workflow: str, gate_evidence: str) 
             missing.append(f"workflow_exact_count:{command}:{actual_count}:{expected_count}")
     return missing
 
+def collect_scripts_root_bitmap_route_markers(gate_evidence: str) -> list[str]:
+    missing: list[str] = []
+    matching_lines = [
+        line for line in gate_evidence.splitlines()
+        if SCRIPTS_ROOT_BITMAP_ROUTE_LINE_PREFIX in line
+    ]
+    if len(matching_lines) != 1:
+        missing.append(
+            "phase4_gate_evidence:scripts_root_bitmap_route_line_count:"
+            f"{len(matching_lines)}"
+        )
+        if not matching_lines:
+            return missing
+    route_line = matching_lines[0]
+    for marker in REQUIRED_SCRIPTS_ROOT_BITMAP_ROUTE_MARKERS:
+        actual_count = route_line.count(marker)
+        if actual_count != 1:
+            missing.append(
+                "phase4_gate_evidence:scripts_root_bitmap_route:"
+                f"{marker}:{actual_count}"
+            )
+    return missing
+
 def validate_root(root: Path) -> list[str]:
     missing: list[str] = []
     gate_evidence_path = "Documentation/zigux/phase4-gate-evidence.md"
@@ -259,6 +292,7 @@ def validate_root(root: Path) -> list[str]:
     for marker in REQUIRED_SCRIPTS_ROOT_RUNTIME_ATOMIC64_MARKERS:
         if marker not in gate_evidence:
             missing.append(f"phase4_gate_evidence:scripts_root_runtime_atomic64:{marker}")
+    missing.extend(collect_scripts_root_bitmap_route_markers(gate_evidence))
     for line in EXACT_VALIDATOR_STATUS_LINES:
         if f"`{line}`" not in gate_evidence:
             missing.append(f"phase4_gate_evidence:{line}")
@@ -338,6 +372,7 @@ def write_fixture_tree(root: Path) -> None:
         "- synthetic fixture keeps the runtime atomic64 reversible-delivery packet explicit: `lib/atomic64_test.c` stays the source of truth, removing `atomic64_diff.zig` from the shared `phase4_build.zig` entrypoint is the documented rollback move, `runtime_atomic64_diff.zig` remains the single replay body, and the existing Phase 9 runtime atomic64 starter remains the forward path.",
         "- synthetic fixture keeps one pending threshold-plan record per shipped rollback gate explicit, pinning `make -C zigux phase4-runtime-atomic64-diff` and `make -C zigux phase4-bitmap-diff` beside the still-unapproved benchmark-command and acceptable-limit placeholders.",
         "- synthetic fixture keeps the scripts-root runtime atomic64 packet explicit through `make -C zigux phase4-runtime-atomic64-diff` and `phase4-runtime-atomic64-diff-tests` instead of leaving that scripts-root wording implied behind the broader shared-build list.",
+        "- synthetic fixture keeps one dedicated scripts-root bitmap replay sentence explicit: the shared validator and `scripts/zigux/check-phase4-gate-evidence.py` now both exact-count the scripts-root `make -C zigux phase4-bitmap-diff` route and the paired `phase4-bitmap-diff-tests` shared-build marker so the restored scripts-root bitmap surface cannot drift behind broader Phase 4 prose.",
         "- synthetic fixture keeps the kprobe survey packet explicit through `make -C zigux phase4-kprobe-example-survey`, `phase4-kprobe-example-survey-tests`, and the now-landed note that the shared validator now fails closed on the kprobe survey packet itself.",
         "",
         "## Current Conclusion",
@@ -410,6 +445,36 @@ def run_self_test() -> int:
         gate_evidence.write_text(gate_evidence.read_text(encoding="utf-8").replace("`phase4-runtime-atomic64-diff-tests`", "`phase4-runtime-atomic64-diff-missing`", 1), encoding="utf-8")
         missing = validate_root(root)
         assert "phase4_gate_evidence:scripts_root_runtime_atomic64:`phase4-runtime-atomic64-diff-tests`" in missing, missing
+        write_fixture_tree(root)
+        gate_evidence = root / "Documentation/zigux/phase4-gate-evidence.md"
+        gate_evidence.write_text(
+            gate_evidence.read_text(encoding="utf-8").replace(
+                "the paired `phase4-bitmap-diff-tests` shared-build marker",
+                "the paired `phase4-bitmap-diff-missing` shared-build marker",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        missing = validate_root(root)
+        assert (
+            "phase4_gate_evidence:scripts_root_bitmap_route:`phase4-bitmap-diff-tests`:0"
+            in missing
+        ), missing
+        write_fixture_tree(root)
+        gate_evidence = root / "Documentation/zigux/phase4-gate-evidence.md"
+        gate_evidence.write_text(
+            gate_evidence.read_text(encoding="utf-8").replace(
+                "the scripts-root `make -C zigux phase4-bitmap-diff` route",
+                "the scripts-root `make -C zigux phase4-bitmap-diff` route plus `make -C zigux phase4-bitmap-diff` again",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        missing = validate_root(root)
+        assert (
+            "phase4_gate_evidence:scripts_root_bitmap_route:`make -C zigux phase4-bitmap-diff`:2"
+            in missing
+        ), missing
         print("PHASE4_GATE_EVIDENCE_SELF_TEST=pass")
         return 0
 
