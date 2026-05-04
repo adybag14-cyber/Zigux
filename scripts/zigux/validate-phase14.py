@@ -42,12 +42,21 @@ MAKE_MARKERS = [
     "phase14-validate:",
     "scripts/zigux/check-phase14-docs-root-smoke-summary.py --self-test",
     "scripts/zigux/check-phase14-docs-root-smoke-summary.py",
+    "scripts/zigux/check-phase14-release-boundary-exact-counts.py --self-test",
+    "scripts/zigux/check-phase14-release-boundary-exact-counts.py",
     "scripts/zigux/validate-phase14.py",
     "phase14-smoke:",
     "$(ZIG) build phase14-smoke --build-file zigux/tests/phase14_build.zig --summary all",
     "phase14-test:",
     "$(ZIG) build test --build-file zigux/tests/phase14_build.zig --summary all",
     "phase14: phase14-validate phase14-test",
+]
+
+MAKE_EXACT_COUNT_MARKERS = [
+    "phase14-validate:",
+    "scripts/zigux/check-phase14-release-boundary-exact-counts.py --self-test",
+    "scripts/zigux/check-phase14-release-boundary-exact-counts.py",
+    "scripts/zigux/validate-phase14.py",
 ]
 
 WORKFLOW_MARKERS = [
@@ -240,10 +249,11 @@ missing: list[str] = []
 scripts_readme_text = text("scripts/zigux/README.md")
 survey_note = text("Documentation/zigux/phase14-end-to-end-smoke-survey.md")
 release_boundary_text = text("Documentation/zigux/phase14-release-boundary-survey.md")
+make_text = text("zigux/Makefile")
 
 for name, source, markers in [
     ("scripts_readme", scripts_readme_text, SCRIPT_README_MARKERS),
-    ("make", text("zigux/Makefile"), MAKE_MARKERS),
+    ("make", make_text, MAKE_MARKERS),
     ("workflow", text(".github/workflows/zigux-bootstrap.yml"), WORKFLOW_MARKERS),
     ("survey", survey_note, RELEASE_MARKERS),
     ("release_boundary", release_boundary_text, RELEASE_BOUNDARY_MARKERS),
@@ -255,6 +265,9 @@ for name, source, markers in [
 
 for marker in SCRIPT_README_EXACT_COUNT_MARKERS:
     expect_exact_count("scripts_readme", scripts_readme_text, marker, 1, missing)
+
+for marker in MAKE_EXACT_COUNT_MARKERS:
+    expect_exact_count("make", make_text, marker, 1, missing)
 
 for marker in RELEASE_BOUNDARY_EXACT_COUNT_MARKERS:
     expect_exact_count("release_boundary", release_boundary_text, marker, 1, missing)
@@ -615,3 +628,4 @@ print(f"PHASE14_FOCUSED_SHARD_COUNT={focused_shard_count}")
 print(f"PHASE14_ANCHOR_LOCAL_STEP_COUNT={anchor_local_step_count}")
 print(f"PHASE14_FULL_BUNDLE_ONLY_ARTIFACT_COUNT={full_bundle_only_count}")
 print(f"PHASE14_SCRIPTS_README_EXACT_COUNT_MARKER_COUNT={len(SCRIPT_README_EXACT_COUNT_MARKERS)}")
+print(f"PHASE14_MAKE_EXACT_COUNT_MARKER_COUNT={len(MAKE_EXACT_COUNT_MARKERS)}")
