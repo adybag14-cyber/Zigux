@@ -179,6 +179,7 @@ Key entrypoints
 - `scripts/zigux/validate-phase8.py`
 - `scripts/zigux/validate-phase9.py`
 - `scripts/zigux/validate-phase10.py`
+- `scripts/zigux/validate-phase10-closure.py`
 - `Documentation/zigux/phase4-validation-matrix.md`
 - `scripts/zigux/phase3_catalog.py --self-test`
 - `scripts/zigux/phase3_check_lib.py --self-test`
