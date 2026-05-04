@@ -18,7 +18,7 @@ The next honest bounded move inside this packet is still the tiny watchdog-metad
 
 Latest verification snapshot:
 
-- lane key now records `P11-L10` and the surveyed head is now `907e65f13e0035306d4106dec0ca3b3eb2fc7179` while keeping the same bounded DesignWare starter scope
+- lane key now records `P11-L12` and the surveyed head is now `907e65f13e0035306d4106dec0ca3b3eb2fc7179` while keeping the same bounded DesignWare starter scope
 - the focused `dw_wdt` driver and survey replays for this landed starter packet remain green, but this archival watchdog note no longer claims that the whole current shared Phase 11 validator is green when unrelated non-watchdog drift can reopen elsewhere on `master`; the legacy carried-forward marker text remains "latest carried-forward shared replay status remains `PHASE11_VALIDATION=pass` for the landed starter packet" only as archival validator continuity for this bounded note
 - `zig test --dep dw_wdt -Mroot=zigux/tests/phase11_dw_wdt.zig -Mdw_wdt=drivers/watchdog/dw_wdt.zig`
 - `zig test --dep dw_wdt -Mroot=zigux/tests/phase11_dw_wdt_suspend_resume.zig -Mdw_wdt=drivers/watchdog/dw_wdt.zig`
