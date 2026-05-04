@@ -136,6 +136,7 @@ PHASE2_TOOLCHAIN_NOTES_REQUIRED_SOURCE_MARKERS = [
     "Documentation/zigux/review-checklist.md",
     "make -C zigux phase2-validate",
     "make -C zigux phase2",
+    "kbuild-facing replay surface",
     "x86_64-linux",
 ]
 PHASE2_FIXDEP_REQUIRED_SOURCE_MARKERS = [
