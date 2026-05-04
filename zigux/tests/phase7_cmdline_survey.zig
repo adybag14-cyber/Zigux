@@ -273,6 +273,7 @@ test "phase 7 cmdline survey keeps the helper-only handoff explicit" {
     try expectContains(helper_cmdline, ".name = \"empty quoted value becomes empty string\",");
     try expectContains(helper_cmdline, ".name = \"first equals wins inside the value\",");
     try expectContains(helper_cmdline, ".name = \"quoted value without trailing token leaves empty rest\",");
+    try expectContains(helper_cmdline, ".name = \"unterminated quoted value consumes the token tail\",");
     try expectContains(helper_cmdline, ".name = \"leading equals sign stays in the parameter token\",");
     try expectContains(helper_cmdline, ".name = \"trailing spaces after key=value trim to empty rest\",");
     try expectContains(helper_cmdline, ".input = \"root=\\\"/dev/sda 1\\\" ro\",");
@@ -281,6 +282,7 @@ test "phase 7 cmdline survey keeps the helper-only handoff explicit" {
     try expectContains(helper_cmdline, ".input = \"rdinit=\\\"\\\" quiet\",");
     try expectContains(helper_cmdline, ".input = \"key=alpha=beta tail\",");
     try expectContains(helper_cmdline, ".input = \"mode=\\\"fast boot\\\"\",");
+    try expectContains(helper_cmdline, ".input = \"mode=\\\"fast boot\",");
     try expectContains(helper_cmdline, ".input = \"=bad next\",");
     try expectContains(helper_cmdline, ".input = \"mode=fast   \",");
     try expectContains(helper_cmdline, "for (next_arg_cases) |case| {");
@@ -292,6 +294,7 @@ test "phase 7 cmdline survey keeps the helper-only handoff explicit" {
     try expectContains(next_arg_fixture, ".name = \"empty quoted value becomes empty string\",");
     try expectContains(next_arg_fixture, ".name = \"first equals wins inside the value\",");
     try expectContains(next_arg_fixture, ".name = \"quoted value without trailing token leaves empty rest\",");
+    try expectContains(next_arg_fixture, ".name = \"unterminated quoted value consumes the token tail\",");
     try expectContains(next_arg_fixture, ".name = \"leading equals sign stays in the parameter token\",");
     try expectContains(next_arg_fixture, ".name = \"trailing spaces after key=value trim to empty rest\",");
     try expectContains(next_arg_fixture, ".input = \"root=\\\"/dev/sda 1\\\" ro\",");
@@ -300,6 +303,7 @@ test "phase 7 cmdline survey keeps the helper-only handoff explicit" {
     try expectContains(next_arg_fixture, ".input = \"rdinit=\\\"\\\" quiet\",");
     try expectContains(next_arg_fixture, ".input = \"key=alpha=beta tail\",");
     try expectContains(next_arg_fixture, ".input = \"mode=\\\"fast boot\\\"\",");
+    try expectContains(next_arg_fixture, ".input = \"mode=\\\"fast boot\",");
     try expectContains(next_arg_fixture, ".input = \"=bad next\",");
     try expectContains(next_arg_fixture, ".input = \"mode=fast   \",");
 
