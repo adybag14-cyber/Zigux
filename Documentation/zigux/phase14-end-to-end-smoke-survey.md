@@ -24,6 +24,8 @@ This document records the shared Phase 14 smoke lane that verifies the current b
 - `PHASE14_FULL_BUNDLE_DEPENDENCY_COUNT=5`
 - `PHASE14_FOCUSED_SHARD_DEPENDENCY_COUNT=1`
 - `PHASE14_FOCUSED_SHARD_ONLY_ARTIFACT=phase14-end-to-end-smoke-tests`
+- `PHASE14_BOUNDED_INTERNAL_LANE_COUNT=2`
+- `PHASE14_GOVERNANCE_BLOCKED_LANE_COUNT=2`
 - `PHASE14_WORKFLOW_SMOKE_PATH=make-wrapper`
 - `PHASE14_BOUNDARY_MAP=shared-anchor-packet-bundle`
 - `PHASE14_CONCURRENCY_AUDIT_SCOPE=anchor-local-packets-only`
@@ -81,6 +83,12 @@ This lane stays narrow on purpose. It does not add a new bridge. It verifies tha
   - skbuff: `zigux/tests/phase14_skbuff_bridge_manifest.json`, lane `P14-L12`, surveyed commit `6689715b1930c419e49a44b1c2dd317548a08c1d`, blocked `phase14-skbuff-live-ownership-blocker`
   - ring buffer: `zigux/tests/phase14_ring_buffer_manifest.json`, lane `P14-L08`, surveyed commit `f9a7a6e93c8e6a1b6550fd7b2aa5571729aab05b`, blocked `phase14-ring-buffer-zig-port-blocker`
   - RCU tree: `zigux/tests/phase14_rcu_tree_manifest.json`, lane `P14-Y04`, surveyed commit `355b71d89807a217a6b7c405c996cbd623c48ca0`, blocked `phase14-rcu-tree-bridge-blocker`
+- bounded-internal same-phase follow-up lanes:
+  - `kernel/workqueue.c` under lane `P14-Y05`
+  - `kernel/trace/ring_buffer.c` under lane `P14-L08`
+- governance-blocked Phase 14 anchors:
+  - `net/core/skbuff.c` under lane `P14-L12`
+  - `kernel/rcu/tree.c` under lane `P14-Y04`
 
 ## Shared smoke findings
 
@@ -101,6 +109,7 @@ This lane stays narrow on purpose. It does not add a new bridge. It verifies tha
 - the shared smoke manifest and note now also keep the exact `blocked_on_stay_in_c_evidence` review-blocker status explicit alongside the rollback threshold, fallback path, and return-to-blocked trigger catalog, so the packet fails closed before any shared smoke maintenance can overstate a Phase 14 status change.
 - `zigux/tests/phase14_end_to_end_smoke_manifest.json` now is the current four-anchor boundary map for the shared packet, because it keeps the workqueue, skbuff, ring-buffer, and RCU anchor manifests pinned together under one reviewable lane.
 - those same four anchor-local packets are the current bounded concurrency-audit scope for this slice: they keep queue, ownership, buffer, and grace-period audit evidence reviewable without claiming live parity or a status change.
+- the shared smoke packet now also keeps the sequencing split explicit: only the bounded-internal `kernel/workqueue.c` and `kernel/trace/ring_buffer.c` anchors remain eligible for same-phase bounded follow-up, while `net/core/skbuff.c` and `kernel/rcu/tree.c` stay governance-blocked under the Phase 15 freeze packet and must not be treated as bounded-internal next steps.
 
 ## Productization evidence
 
@@ -160,4 +169,4 @@ This shared smoke slice does not claim:
 
 ## Next bounded step
 
-Leave this shared smoke lane closed unless one of the four anchor-local Phase 14 manifests, survey notes, or the shared replay wiring drifts. If it does, refresh this packet instead of widening into new deep-core or bridge implementation work.
+Leave this shared smoke lane closed unless one of the four anchor-local Phase 14 manifests, survey notes, or the shared replay wiring drifts. If it does, refresh this packet instead of widening into new deep-core or bridge implementation work. Any same-phase bounded follow-up stays limited to the bounded-internal `kernel/workqueue.c` and `kernel/trace/ring_buffer.c` lanes unless the governance packet changes.
