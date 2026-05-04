@@ -21,10 +21,10 @@ This document starts the first bounded Phase 3 slice for Zigux.
 - `PHASE3_MMIO_SCOPE=range-read8-read16-read32-read64-write8-write16-write32-write64-plus-scoped-read8-write8-read16-write16-read32-write32-read64-write64-plus-policy-read8-write8-read16-write16-read32-write32-read64-write64-and-generic-policy-bridges`
 - `PHASE3_ROADMAP_ANCHORS=rust-exports-lib-bitmap-lib-rbtree-lib-cpumask`
 - `PHASE3_CURRENT_INTEROP_FAMILIES=bitmap-cpumask-rbtree-list-hlist-errptr-xarray-idr-ida-minor-alloc-dev-region-cdev-chrdev`
-- `PHASE3_CURRENT_INTEROP_FAMILIES_DETAIL=bitmap-cpumask-rbtree-dedicated-boundary-list-hlist-errptr-xarray-idr-ida-minor-alloc-dev-region-cdev-chrdev-notify-ack-window-delivery-guard`
+- `PHASE3_CURRENT_INTEROP_FAMILIES_DETAIL=bitmap-cpumask-rbtree-dedicated-boundary-plus-shared-root-view-list-hlist-errptr-xarray-idr-ida-minor-alloc-dev-region-cdev-chrdev-notify-ack-window-delivery-guard`
 - `PHASE3_CURRENT_INTEROP_GAP=repo-now-carries-curated-phase3-parity-slices-beyond-the-original-roadmap-anchor-set`
-- `PHASE3_CURRENT_INTEROP_GAP_DETAIL=live-build-graph-now-carries-deep-chrdev-tail-packets-while-the-shared-phase3-abi-replay-already-covers-rbtree-root-view-through-dedicated-bindings-and-the-curated-shared-abi-h-plus-abi-zig-lift-is-still-missing`
-- `PHASE3_NEXT_SAFE_STEP=shared-rbtree-root-view-lift-only-before-any-more-shared-abi-growth`
+- `PHASE3_CURRENT_INTEROP_GAP_DETAIL=live-build-graph-now-carries-deep-chrdev-tail-packets-while-the-curated-shared-include-zigux-abi-h-plus-zigux-bindings-abi-zig-rbtree-root-view-lift-is-landed-and-the-honest-remaining-gap-is-survey-and-validator-wording-that-still-describes-that-shared-lift-as-missing`
+- `PHASE3_NEXT_SAFE_STEP=align-shared-rbtree-survey-and-validator-wording-before-any-more-shared-abi-growth`
 - scope: first permanent C/Zigux boundary only
 - product boundary:
   - `include/linux/zigux.h`
@@ -63,7 +63,7 @@ The roadmap still describes the Phase 3 boundary through a narrow anchor set:
 Current repo reality is broader than that original anchor list.
 The live curated Phase 3 packet now also carries parity slices for:
 
-- bitmap, cpumask, and dedicated rbtree boundary views
+- bitmap, cpumask, and dedicated rbtree boundary views plus the shared `rbtree` root-view lift inside the canonical ABI packet
 - list and hlist traversal views
 - err-pointer, xarray, xarray-slot, idr, and ida planning views
 - minor-allocation and dev-region planning slices
@@ -71,21 +71,20 @@ The live curated Phase 3 packet now also carries parity slices for:
 - chrdev open, fops, route, io, transfer, resume, retry, requeue, and completion planning slices
 - chrdev notification, ack, budget, window, delivery, and delivery-guard tail chains
 
-Current repo reality therefore includes the dedicated rbtree boundary packet plus minor-allocation, dev-region, cdev, and chrdev planning and notification chains.
+Current repo reality therefore includes the dedicated `rbtree` boundary packet, the landed shared `rbtree` root-view lift inside the canonical ABI packet, plus minor-allocation, dev-region, cdev, and chrdev planning and notification chains.
 
 That is real repo-backed interop progress, but it is also the current survey gap:
 
 - the roadmap wording is still narrower than the committed Phase 3 fixture catalog and build graph under `zigux/tests/build.zig`, which now carries chrdev tail dumps well past the original notify and ack starters
-- the repo already treats those extra curated parity slices as current interop reality through `zigux/bindings/abi.zig`, the committed Phase 3 fixture manifests, `Documentation/zigux/artifact-diff.md`, and `Documentation/zigux/phase3-roadmap-gap-survey.md`; the shared ABI replay also already covers `zigux_rbtree_root_view` through `zigux/tests/phase3_abi.zig`, `zigux/tests/phase3_abi_dump.zig`, `zigux/tests/fixtures/phase3_abi/phase3_abi_c_harness.c`, and `zigux/tests/fixtures/phase3_abi/expected.json`, but it still reaches that record through `include/zigux/rbtree.h` and `zigux/bindings/rbtree.zig` rather than a curated shared `include/zigux/abi.h` plus `zigux/bindings/abi.zig` lift
-- future Phase 3 work should therefore prefer documenting and validating this larger current catalog honestly while closing the still-missing curated shared `rbtree` root-view lift inside `include/zigux/abi.h` and `zigux/bindings/abi.zig` before adding still more chrdev tail growth
+- the repo already treats those extra curated parity slices as current interop reality through `zigux/bindings/abi.zig`, the committed Phase 3 fixture manifests, `Documentation/zigux/artifact-diff.md`, and `Documentation/zigux/phase3-roadmap-gap-survey.md`; the shared ABI replay now also carries `zigux_rbtree_root_view` through the curated shared `include/zigux/abi.h` plus `zigux/bindings/abi.zig` surface, with the same record replayed by `zigux/tests/phase3_abi.zig`, `zigux/tests/phase3_abi_dump.zig`, `zigux/tests/fixtures/phase3_abi/phase3_abi_c_harness.c`, and `zigux/tests/fixtures/phase3_abi/expected.json`
+- future Phase 3 work should therefore prefer documenting and validating this larger current catalog honestly while aligning the remaining survey and validator wording that still describes the shared `rbtree` lift as missing before adding still more chrdev tail growth
 
 ## Next Safe Step
 
-Current repo evidence narrows the next honest shared ABI move to one small `rbtree` root-view lift before any more shared packet growth.
+Current repo evidence narrows the next honest shared ABI move to one bounded wording-alignment pass before any more shared packet growth.
 
-- add one curated shared `zigux_rbtree_root_view` record in `include/zigux/abi.h` and one matching shared binding in `zigux/bindings/abi.zig`
-- reuse the dedicated `zigux_rbtree_root_view` layout and `root_flag_empty`, `root_flag_cached`, and `root_flag_leftmost_valid` constants unchanged
-- retarget the shared `phase3_abi` replay so it no longer depends on `include/zigux/rbtree.h` and `zigux/bindings/rbtree.zig`
+- align the remaining shared Phase 3 survey and validator wording with the landed shared `zigux_rbtree_root_view` lift in `include/zigux/abi.h` and `zigux/bindings/abi.zig`
+- keep the shared ABI replay, manifest catalog, and dedicated `rbtree` packet explicit in that wording
 - stop there; do not widen this boundary handoff into new chrdev tail growth or unrelated Phase 3 packet churn
 
 ## Gates
@@ -164,7 +163,7 @@ Unsafe policy:
 - the validator self-test now proves that removing the narrow-unsafe misalignment guard marker fails the focused Phase 3 source audit before broader ABI replay runs
 
 Low-level wrapper survey:
-- atomic reality today: `zigux/helpers/atomic.zig` currently limits the approved wrapper set to `load`, `store`, `exchange`, `fetchAdd`, `fetchSub`, `fetchAnd`, `fetchOr`, `fetchXor`, `fetchMin`, `fetchMax`, `compareExchange`, and `compareExchangeWeak`, all parameterized by Zig atomic order rather than exposing a broader kernel-style helper family, and the focused replay now keeps the `fetchMin()` and `fetchMax()` floor-and-ceiling paths plus the strong compare-exchange success and mismatch paths and the weak compare-exchange retry and mismatch paths reviewable under the same bounded gate
+- atomic reality today: `zigux/helpers/atomic.zig` currently limits the approved wrapper set to `load`, `store`, `exchange`, `fetchAdd`, `fetchSub`, `fetchAnd`, `fetchOr`, `fetchXor`, `fetchMin`, `fetchMax`, `compareExchange`, and `compareExchangeWeak`, all parameterized by Zig atomic order rather than exposing a broader kernel-style helper family, and the focused wrapper replay now keeps the `fetchMin()` and `fetchMax()` floor-and-ceiling paths plus the strong compare-exchange success and mismatch paths and the weak compare-exchange retry and mismatch paths reviewable under the same bounded gate
 - barrier reality today: `zigux/helpers/barrier.zig` currently limits the approved barrier surface to `acquire`, `release`, `acquireRelease`, and `full`, each expressed through a throwaway ordered atomic probe so the helper does not keep hidden shared state, and the focused wrapper replay now keeps that local probe behavior under the same bounded gate
 - MMIO reality today: `zigux/helpers/mmio.zig` currently limits the approved MMIO surface to `range`, `read8`, `read16`, `read32`, and `read64`, `write8`, `write16`, `write32`, and `write64`, plus scoped `read8`, `write8`, `read16`, `write16`, `read32`, and `write32`, `read64`, and `write64` entry points, width-specific `read8Policy`, `write8Policy`, `read16Policy`, `write16Policy`, `read32Policy`, `write32Policy`, `read64Policy`, and `write64Policy` entry points, and the generic `readScopedWithPolicy` plus `writeScopedWithPolicy` bridges that keep decoded-policy MMIO access routed back through the declared narrow unsafe layer, reject misaligned scoped addresses before pointer formation where the width requires it, reject overflowed scoped address math before pointer formation, and share the canonical `MmioRange` layout assertions with the focused low-level wrapper gate through `zigux/helpers/layout_assert.zig`
 - `Documentation/zigux/phase3-low-level-wrapper-boundary-survey.md` and `scripts/zigux/validate-phase3-low-level-wrapper-survey.py` now keep that atomic, barrier, and MMIO packet explicit as its own bounded review surface beside the broader ABI slice note, while `zigux/tests/phase3_policy_unsafe.zig` and `scripts/zigux/check-phase3-policy-unsafe-mmio-consumer.py` keep the decoded-policy MMIO bridge reviewable beside the focused low-level gate, so broader kernel-style atomic or barrier families plus MMIO expansion beyond the current direct, scoped, and decoded-policy 8-bit, 16-bit, 32-bit, and 64-bit helpers still stay deferred until a roadmap-backed boundary slice really needs them
