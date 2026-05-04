@@ -266,6 +266,9 @@ test "phase 8 help docs keep the parked stable-output boundary explicit" {
     try expectContains(slice_note, "make -C zigux phase8-help-test");
     try expectContains(slice_note, "does not yet claim:");
     try expectContains(slice_note, "cmd_help()");
+    try expectContains(slice_note, "serious repo-hosted tooling");
+    try expectContains(slice_note, "`tools/lib/subcmd/*.zig`");
+    try expectContains(slice_note, "output-stable tooling behavior");
 }
 
 test "phase 8 help review checklist keeps the parked stable-output packet reviewable" {
