@@ -256,6 +256,7 @@ test "phase 8 help docs keep the parked stable-output boundary explicit" {
     try expectContains(slice_note, "zigux/tests/phase8_help.zig");
     try expectContains(slice_note, "zigux/tests/phase8_help_only_build.zig");
     try expectContains(slice_note, "zigux/tests/phase8_help_kallsyms_only_build.zig");
+    try expectContains(slice_note, "zigux/tests/phase8_build.zig");
     try expectContains(slice_note, "stable command-list manipulation logic");
     try expectContains(slice_note, "Pure writer-driven output emission remains in scope here");
     try expectContains(slice_note, "without widening into terminal, environment, or CLI side effects");
@@ -264,6 +265,7 @@ test "phase 8 help docs keep the parked stable-output boundary explicit" {
     try expectContains(slice_note, "fully empty `PATH` fallback");
     try expectContains(slice_note, "phase replay stays centered on integrated command discovery and section rendering");
     try expectContains(slice_note, "make -C zigux phase8-help-test");
+    try expectContains(slice_note, "make -C zigux phase8");
     try expectContains(slice_note, "does not yet claim:");
     try expectContains(slice_note, "cmd_help()");
     try expectContains(slice_note, "serious repo-hosted tooling");
