@@ -7,8 +7,8 @@ This document records the bounded Phase 14 survey lane around `net/core/skbuff.c
 - `PHASE14_LANE_KEY=P14-L12`
 - `PHASE14_STATUS=active`
 - `PHASE14_SLICE=skbuff-direct-xmit-identity-drop`
-- `PHASE14_SURVEYED_COMMIT=6689715b1930c419e49a44b1c2dd317548a08c1d`
-- survey provenance captured against verified `master` head `6689715b1930c419e49a44b1c2dd317548a08c1d`
+- `PHASE14_SURVEYED_COMMIT=02264a3240cd30ce45c9a932047a0204b7ab5029`
+- survey provenance captured against verified `master` head `02264a3240cd30ce45c9a932047a0204b7ab5029`
 - scope: the landed `net/core/skbuff_bridge.zig` boundary map plus its expanded lifetime audit outline, its dedicated Phase 14 test gate and manifest, the shared Phase 14 build wiring, and the lane notes that compare the new foothold against the roadmap
 - product boundary:
   - `net/core/skbuff_bridge.zig`
