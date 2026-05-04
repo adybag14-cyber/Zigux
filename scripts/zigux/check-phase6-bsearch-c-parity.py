@@ -145,6 +145,20 @@ def validate_matching_surface(c_lines: list[str], zig_lines: list[str], label: s
         )
 
 
+def collect_failures(c_lines: list[str], zig_lines: list[str]) -> list[str]:
+    failures: list[str] = []
+    for label, lines in (("c", c_lines), ("zig", zig_lines)):
+        try:
+            validate_expected_surface(lines, label)
+        except SystemExit as exc:
+            failures.append(str(exc))
+    try:
+        validate_matching_surface(c_lines, zig_lines, "c-vs-zig")
+    except SystemExit as exc:
+        failures.append(str(exc))
+    return failures
+
+
 def run_self_test() -> int:
     assert_equal("require_tool_env", require_tool("zig", "PHASE6_SELFTEST_TOOL"), "/tmp/zig-self-test")
     expect_system_exit(
@@ -166,14 +180,25 @@ def run_self_test() -> int:
         "runtime-raw-hit\t34\t2",
         "runtime-raw-miss-descending\t20\tnull",
     }
+    aggregate_failures = collect_failures(
+        ["u32-hit\t3\t0", "runtime-raw-hit\t34\tnull"],
+        ["u32-hit\t3\t0", "runtime-raw-hit\t34\t2", "unexpected-extra\t999\tnull"],
+    )
     assert_equal(
-        "build_text_paths",
+        "build_text_paths_and_failure_aggregation",
         'root_module.addImport("bsearch", bsearch_module);' in build_text
         and str(ROOT / "lib" / "bsearch.zig") in build_text
         and str(ZIG_RUNNER) in build_text
         and len(EXPECTED_SORTED_LINES) == 29
         and descending_runtime_lines.issubset(EXPECTED_SORTED_LINES)
-        and sorted_lines("mutable-hit\t34\t35\nascending-hit\t34\t4\n") == ["ascending-hit\t34\t4", "mutable-hit\t34\t35"],
+        and sorted_lines("mutable-hit\t34\t35\nascending-hit\t34\t4\n") == ["ascending-hit\t34\t4", "mutable-hit\t34\t35"]
+        and len(aggregate_failures) == 3
+        and aggregate_failures[0].startswith("phase6-bsearch-c-parity:c:unexpected_output:")
+        and aggregate_failures[1].startswith("phase6-bsearch-c-parity:zig:unexpected_output:")
+        and aggregate_failures[2]
+        == "phase6-bsearch-c-parity:c-vs-zig:c_output_mismatch:"
+        "expected=['u32-hit\\t3\\t0', 'runtime-raw-hit\\t34\\tnull']:"
+        "actual=['u32-hit\\t3\\t0', 'runtime-raw-hit\\t34\\t2', 'unexpected-extra\\t999\\tnull']",
         True,
     )
 
@@ -251,16 +276,7 @@ def main() -> int:
 
     c_lines = sorted_lines(c_run.stdout)
     zig_lines = sorted_lines(zig_run.stdout)
-    failures: list[str] = []
-    for label, lines in (("c", c_lines), ("zig", zig_lines)):
-        try:
-            validate_expected_surface(lines, label)
-        except SystemExit as exc:
-            failures.append(str(exc))
-    try:
-        validate_matching_surface(c_lines, zig_lines, "c-vs-zig")
-    except SystemExit as exc:
-        failures.append(str(exc))
+    failures = collect_failures(c_lines, zig_lines)
 
     if failures:
         print("PHASE6_BSEARCH_C_PARITY=fail")
