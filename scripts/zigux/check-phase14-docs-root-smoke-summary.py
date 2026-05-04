@@ -297,6 +297,27 @@ phase14: phase14-validate phase14-test
         release_boundary_text,
         makefile_text,
     )
+    missing_release_boundary = validate_phase14_summary_surfaces(
+        docs_root_text,
+        tests_root_text,
+        scripts_readme_text,
+        survey_text,
+        release_boundary_text.replace(
+            "- shared smoke packet: `Documentation/zigux/phase14-end-to-end-smoke-survey.md`, `Documentation/zigux/phase14-release-boundary-survey.md`, `zigux/tests/phase14_end_to_end_smoke_manifest.json`, `scripts/zigux/check-phase14-docs-root-smoke-summary.py`, `scripts/zigux/check-phase14-release-boundary-exact-counts.py`, `scripts/zigux/validate-phase14.py`, `make -C zigux phase14-validate`, `make -C zigux phase14-smoke`, `zig build phase14-smoke --build-file zigux/tests/phase14_build.zig --summary all`, and `zig build test --build-file zigux/tests/phase14_build.zig --summary all` now keep the four-anchor boundary map, the focused smoke shard, and the shared full-bundle replay explicit from a study-only posture\n",
+            "",
+            1,
+        ),
+        makefile_text,
+    )
+    duplicate_docs_root = validate_phase14_summary_surfaces(
+        docs_root_text
+        + "\n- `Documentation/zigux/phase14-release-boundary-survey.md` and `Documentation/zigux/phase14-end-to-end-smoke-survey.md` now make the roadmap's core-adjacent sequencing step explicit from the docs root, so release-facing review no longer jumps directly from the active Phase 13 helper tranche to the Phase 15 governance packet.",
+        tests_root_text,
+        scripts_readme_text,
+        survey_text,
+        release_boundary_text,
+        makefile_text,
+    )
     stray_boundary_entry = validate_phase14_summary_surfaces(
         docs_root_text,
         tests_root_text,
@@ -315,13 +336,15 @@ phase14: phase14-validate phase14-test
         or not missing_tests_packet
         or not duplicate_attached_toolchain
         or not duplicate_tests_packet
+        or not missing_release_boundary
+        or not duplicate_docs_root
         or not stray_boundary_entry
     ):
         print("PHASE14_DOCS_ROOT_SMOKE_SUMMARY_SELF_TEST=fail")
         return 1
 
     print("PHASE14_DOCS_ROOT_SMOKE_SUMMARY_SELF_TEST=pass")
-    print("PHASE14_DOCS_ROOT_SMOKE_SUMMARY_SELF_TEST_CASE_COUNT=6")
+    print("PHASE14_DOCS_ROOT_SMOKE_SUMMARY_SELF_TEST_CASE_COUNT=8")
     return 0
 
 
