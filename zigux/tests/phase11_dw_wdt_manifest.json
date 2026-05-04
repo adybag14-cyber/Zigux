@@ -1,5 +1,5 @@
 {
-  "lane_key": "P11-L12",
+  "lane_key": "P11-L10",
   "phase": "Phase 11",
   "surveyed_commit": "907e65f13e0035306d4106dec0ca3b3eb2fc7179",
   "anchor": "drivers/watchdog/dw_wdt.c",
@@ -79,7 +79,7 @@
       "status": "starter_landed",
       "kind": "documentation",
       "zigux_destination": "Documentation/zigux/phase11-dw-wdt-validation-matrix.md",
-      "why_now": "A dedicated validation matrix now centralizes the shared Phase 11 test gate, fixed-TOP timeout evidence, IRQ pretimeout bookkeeping, imported running-state handoff evidence, bounded suspend-resume state-preservation evidence, non-stoppable stop failure-mode coverage, the landed remove-handoff teardown parity, the debugfs-clear call-site boundary, the landed platform-resource preflight plus live resource-order summary, and the exact replay commands so the DesignWare lane does not overclaim platform-driver or PM parity."
+      "why_now": "A dedicated validation matrix now centralizes the shared Phase 11 test gate, fixed-TOP timeout evidence, IRQ pretimeout bookkeeping, imported running-state handoff evidence, bounded suspend-resume state-preservation evidence, the landed remove-handoff teardown parity, the debugfs-clear call-site boundary, the landed platform-resource preflight plus live resource-order summary, and the exact replay commands so the DesignWare lane does not overclaim platform-driver or PM parity."
     },
     {
       "id": "phase11-dw-wdt-probe-summary",
