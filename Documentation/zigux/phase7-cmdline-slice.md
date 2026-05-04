@@ -92,12 +92,14 @@ The current tests check:
 - committed C-vs-Zig parity for `parse_option_str()` now keeps that stop-at-NUL scan behavior in the checked JSON fixture instead of leaving it helper-local only
 - `parse_option_str()` empty-needle parity now mirrors the live C helper: empty option names only match empty segments at the start of the scan or between commas, while an empty source string or a purely trailing comma still return false
 - serialized `next_arg()` edge cases covering quoted values, quoted bare tokens, empty quoted values, unquoted punctuation-rich values, first-equals splitting, leading-equals sentinel handling, trailing-space trimming after `key=value`, and empty-rest termination
+- helper-local `next_arg()` ownership proof that `param`, optional `value`, and `rest` remain slices into the caller-owned mutable buffer while the helper rewrites only the split `=`, closing quote, and token delimiter bytes to NUL in place
 - the dedicated C parity fixture now also keeps quoted bare-token ownership and first-equals value splitting externally reviewable instead of leaving those edges only in the helper-local and shared Zig packets
 - a machine-checked manifest that records the `lib/cmdline.c` anchor and the landed Phase 7 review surfaces
 
 Review note:
 - this slice intentionally follows `lib/cmdline.c` and its `simple_strtoull()` call sites, not the broader `kstrtoull()` family in `lib/kstrtox.c` that does accept a leading `+`
 - `zig test lib/cmdline.zig` keeps a mirrored `next_arg()` edge corpus beside `zigux/tests/fixtures/phase7_cmdline_next_arg_vectors.zig` because helper-local test runs cannot import that fixture from outside the helper module path; keep both packets aligned when those serialized cases change
+- `next_arg()` is intentionally in-place: it returns slices into the caller-owned mutable buffer and rewrites only the bytes used as the split `=`, closing quote, and token delimiter when it terminates `param`, `value`, and `rest`
 - the shared build-inventory gate stays part of this parked review packet, so `zigux/tests/fixtures/phase7_build_inventory.json` plus the published `make -C zigux phase7-validate` wrapper path stay explicit instead of living only in the broader shared Phase 7 notes
 
 ## Non-goals
