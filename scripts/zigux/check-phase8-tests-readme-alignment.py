@@ -24,10 +24,14 @@ REQUIRED_FILES = {
 }
 
 TESTS_README_MARKERS = [
-    "zigux/tests/phase8_perf_buffer_poll.zig",
-    "zigux/tests/phase8_perf_buffer_poll_only_build.zig",
-    "make -C zigux phase8-perf-buffer-poll-test",
+    "zigux/tests/phase8_exec_cmd_only_build.zig",
+    "zigux/tests/phase8_help_only_build.zig",
+    "zigux/tests/phase8_kallsyms_only_build.zig",
     "zigux/tests/phase8_libbpf_segments_only_build.zig",
+    "zigux/tests/phase8_perf_buffer_poll_only_build.zig",
+    "zigux/tests/phase8_build.zig",
+    "make -C zigux phase8-perf-buffer-poll-test",
+    "zigux/tests/phase8_perf_buffer_poll.zig",
     "zigux/tests/phase8_bpf_type_names.zig",
     "zigux/tests/phase8_file_path_handle_bridge.zig",
     "zigux/tests/phase8_bridge_boundary_survey.zig",
@@ -209,6 +213,9 @@ def clone_fixture_root(destination_root: Path) -> None:
             [
                 "# zigux/tests",
                 "",
+                "- zigux/tests/phase8_exec_cmd_only_build.zig",
+                "- zigux/tests/phase8_help_only_build.zig",
+                "- zigux/tests/phase8_kallsyms_only_build.zig",
                 "- zigux/tests/phase8_libbpf_segments.zig",
                 "- zigux/tests/phase8_libbpf_segments_only_build.zig",
                 "- zigux/tests/phase8_bpf_type_names.zig",
@@ -216,6 +223,7 @@ def clone_fixture_root(destination_root: Path) -> None:
                 "- zigux/tests/phase8_bridge_boundary_survey.zig",
                 "- zigux/tests/phase8_perf_buffer_poll.zig",
                 "- zigux/tests/phase8_perf_buffer_poll_only_build.zig",
+                "- zigux/tests/phase8_build.zig",
                 "- make -C zigux phase8-perf-buffer-poll-test",
                 "- scripts/zigux/validate-phase8.py",
                 "- Documentation/zigux/phase8-userspace-kernel-bridge-boundary-survey.md",
@@ -401,6 +409,51 @@ def run_self_test() -> int:
         original_tests_readme = tests_readme_path.read_text(encoding="utf-8")
         tests_readme_path.write_text(
             original_tests_readme.replace(
+                "- zigux/tests/phase8_exec_cmd_only_build.zig\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing(
+            "tests_readme_exec_cmd_only_build",
+            tmp_root,
+            "tests_readme:zigux/tests/phase8_exec_cmd_only_build.zig",
+        )
+        tests_readme_path.write_text(original_tests_readme, encoding="utf-8")
+
+        tests_readme_path.write_text(
+            original_tests_readme.replace(
+                "- zigux/tests/phase8_help_only_build.zig\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing(
+            "tests_readme_help_only_build",
+            tmp_root,
+            "tests_readme:zigux/tests/phase8_help_only_build.zig",
+        )
+        tests_readme_path.write_text(original_tests_readme, encoding="utf-8")
+
+        tests_readme_path.write_text(
+            original_tests_readme.replace(
+                "- zigux/tests/phase8_kallsyms_only_build.zig\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing(
+            "tests_readme_kallsyms_only_build",
+            tmp_root,
+            "tests_readme:zigux/tests/phase8_kallsyms_only_build.zig",
+        )
+        tests_readme_path.write_text(original_tests_readme, encoding="utf-8")
+
+        tests_readme_path.write_text(
+            original_tests_readme.replace(
                 "- zigux/tests/phase8_perf_buffer_poll_only_build.zig\n",
                 "",
                 1,
@@ -516,6 +569,21 @@ def run_self_test() -> int:
             "tests_readme_libbpf_segments",
             tmp_root,
             "tests_readme:zigux/tests/phase8_libbpf_segments.zig",
+        )
+        tests_readme_path.write_text(original_tests_readme, encoding="utf-8")
+
+        tests_readme_path.write_text(
+            original_tests_readme.replace(
+                "- zigux/tests/phase8_build.zig\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing(
+            "tests_readme_shared_build",
+            tmp_root,
+            "tests_readme:zigux/tests/phase8_build.zig",
         )
         tests_readme_path.write_text(original_tests_readme, encoding="utf-8")
 
@@ -960,7 +1028,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE8_TESTS_README_ALIGNMENT_SELF_TEST=pass")
-    print("PHASE8_TESTS_README_ALIGNMENT_SELF_TEST_CASE_COUNT=36")
+    print("PHASE8_TESTS_README_ALIGNMENT_SELF_TEST_CASE_COUNT=40")
     return 0
 
 
