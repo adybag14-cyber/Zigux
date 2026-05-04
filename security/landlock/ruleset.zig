@@ -19,6 +19,7 @@ pub const ModuleDescriptor = struct {
     provides_rule_materialization_planning: bool,
     provides_rule_replacement_planning: bool,
     provides_rule_release_planning: bool,
+    provides_rule_merge_tree_replay_planning: bool,
     touches_live_object_trees: bool,
     touches_live_hierarchy: bool,
 };
@@ -168,6 +169,16 @@ pub const RuleReleasePlan = struct {
     would_free_rule_allocation: bool,
 };
 
+pub const TreeMergeReplayPlan = struct {
+    anchor: []const u8,
+    root: TreeRoot,
+    key_type: KeyType,
+    destination_layer: Layer,
+    source_rule_num_layers: usize,
+    would_reuse_source_key: bool,
+    would_call_insert_rule: bool,
+};
+
 pub const CapacityInvariantPlan = struct {
     anchor: []const u8,
     rule_num_layers_fits_max_layers: bool,
@@ -194,6 +205,7 @@ pub const RulesetHelperLab = struct {
             .provides_rule_materialization_planning = true,
             .provides_rule_replacement_planning = true,
             .provides_rule_release_planning = true,
+            .provides_rule_merge_tree_replay_planning = true,
             .touches_live_object_trees = false,
             .touches_live_hierarchy = false,
         };
@@ -405,6 +417,33 @@ pub const RulesetHelperLab = struct {
             .may_sleep = true,
             .would_release_object_reference = rule_present and key_type == .inode,
             .would_free_rule_allocation = rule_present,
+        };
+    }
+
+    pub fn planMergeTreeRuleReplay(key_type: KeyType, dst_num_layers: u16, source_rule: RulePlan) !TreeMergeReplayPlan {
+        if (dst_num_layers == 0 or dst_num_layers > max_num_layers) {
+            return error.InvalidLayer;
+        }
+        if (source_rule.num_layers != 1) {
+            return error.InvalidMergeSourceRule;
+        }
+
+        const source_layer = source_rule.layers[0];
+        if (source_layer.level != 0) {
+            return error.InvalidMergeSourceLayer;
+        }
+
+        return .{
+            .anchor = descriptor().anchor,
+            .root = selectRoot(key_type),
+            .key_type = key_type,
+            .destination_layer = .{
+                .level = dst_num_layers,
+                .access = source_layer.access,
+            },
+            .source_rule_num_layers = source_rule.num_layers,
+            .would_reuse_source_key = true,
+            .would_call_insert_rule = true,
         };
     }
 
@@ -623,3 +662,45 @@ pub const RulesetHelperLab = struct {
         return plan;
     }
 };
+
+test "landlock ruleset merge tree replay planner stays data-only" {
+    const source_rule = RulePlan{
+        .num_layers = 1,
+        .layers = [_]Layer{.{ .level = 0, .access = 0x5 }} ++ ([_]Layer{.{ .level = 0, .access = 0 }} ** (max_num_layers - 1)),
+    };
+
+    const plan = try RulesetHelperLab.planMergeTreeRuleReplay(.net_port, 2, source_rule);
+    try std.testing.expectEqualStrings("security/landlock/ruleset.c", plan.anchor);
+    try std.testing.expectEqual(TreeRoot.net_port, plan.root);
+    try std.testing.expectEqual(KeyType.net_port, plan.key_type);
+    try std.testing.expectEqual(@as(u16, 2), plan.destination_layer.level);
+    try std.testing.expectEqual(@as(u32, 0x5), plan.destination_layer.access);
+    try std.testing.expectEqual(@as(usize, 1), plan.source_rule_num_layers);
+    try std.testing.expect(plan.would_reuse_source_key);
+    try std.testing.expect(plan.would_call_insert_rule);
+}
+
+test "landlock ruleset merge tree replay planner rejects non-single-level sources" {
+    const multi_layer_source = RulePlan{
+        .num_layers = 2,
+        .layers = [_]Layer{
+            .{ .level = 0, .access = 0x1 },
+            .{ .level = 1, .access = 0x2 },
+        } ++ ([_]Layer{.{ .level = 0, .access = 0 }} ** (max_num_layers - 2)),
+    };
+    try std.testing.expectError(error.InvalidMergeSourceRule, RulesetHelperLab.planMergeTreeRuleReplay(.inode, 2, multi_layer_source));
+
+    const leveled_source = RulePlan{
+        .num_layers = 1,
+        .layers = [_]Layer{.{ .level = 1, .access = 0x3 }} ++ ([_]Layer{.{ .level = 0, .access = 0 }} ** (max_num_layers - 1)),
+    };
+    try std.testing.expectError(error.InvalidMergeSourceLayer, RulesetHelperLab.planMergeTreeRuleReplay(.inode, 2, leveled_source));
+    try std.testing.expectError(error.InvalidLayer, RulesetHelperLab.planMergeTreeRuleReplay(.inode, 0, source_ruleWithZeroLevel()));
+}
+
+fn source_ruleWithZeroLevel() RulePlan {
+    return .{
+        .num_layers = 1,
+        .layers = [_]Layer{.{ .level = 0, .access = 0x3 }} ++ ([_]Layer{.{ .level = 0, .access = 0 }} ** (max_num_layers - 1)),
+    };
+}
