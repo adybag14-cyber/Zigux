@@ -15,6 +15,7 @@ REQUIRED_FILES = [
 REQUIRED_MARKERS = [
     "if the change updates the landed Phase 5 `kobject` sample packet, does the manifest-backed survey still pin the exact inspected `master` head",
     "with `ownershipSummary()` and the `cold`/`initialized`/`registered`/`exited` lifecycle snapshot still explicit for reviewers?",
+    "if the change updates the landed Phase 5 `kretprobe` or `trace-events` sample packet, does the manifest-backed survey still pin an exact surveyed commit for the inspected `master` head while keeping that Phase 5 sample visibly separate from the later Phase 9 runtime starter or pilot?",
     "if the change updates the landed Phase 5 `kretprobe` sample packet, do the note, shared checklist text, and paired focused replays keep pre-init retargeting, the fixed `maxactiveBudget()` cue, timestamp-order rejection and recovery, and post-exit handler rejection explicit instead of leaving those probe-lifecycle boundaries implied?",
     "if the change updates the landed Phase 5 `trace-events` sample packet, do the note, shared checklist text, and paired focused replays keep `lifecycleSummary()`, the exact `checked_focus` order, single-live callback registration, `unregisterFunctionCallback()` underflow plus `OutstandingRegistration` rejection, and post-exit replay rejection explicit instead of leaving those callback-boundary cues implicit?",
     "if the change updates a landed Phase 5 sample that keeps a Linux concurrency or private-data cue only for reviewability, does the note or checklist still say clearly what remains in-memory-only and what runtime parity is still out of scope?",
@@ -87,6 +88,11 @@ def run_self_test() -> int:
             "with `ownershipSummary()` and the `cold`/`initialized`/`registered`/`exited` lifecycle snapshot still explicit for reviewers?",
             "with the lifecycle summary still explicit for reviewers?",
             "kobject-lifecycle-marker-gap",
+        ),
+        (
+            "if the change updates the landed Phase 5 `kretprobe` or `trace-events` sample packet, does the manifest-backed survey still pin an exact surveyed commit for the inspected `master` head while keeping that Phase 5 sample visibly separate from the later Phase 9 runtime starter or pilot?",
+            "if the change updates the landed Phase 5 `kretprobe` or `trace-events` sample packet, do the survey note and checklist keep the runtime follow-on boundary explicit?",
+            "surveyed-commit-boundary-gap",
         ),
         (
             "if the change updates the landed Phase 5 `kretprobe` sample packet, do the note, shared checklist text, and paired focused replays keep pre-init retargeting, the fixed `maxactiveBudget()` cue, timestamp-order rejection and recovery, and post-exit handler rejection explicit instead of leaving those probe-lifecycle boundaries implied?",
