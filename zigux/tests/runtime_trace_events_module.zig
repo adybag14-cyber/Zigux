@@ -108,6 +108,7 @@ test "runtime trace-events sample keeps registration balance and failed-exit rol
 
     try std.testing.expectError(error.RegistrationUnderflow, module.unregisterFunctionThread());
     try module.registerFunctionThread();
+    try std.testing.expectError(error.FunctionThreadAlreadyRegistered, module.registerFunctionThread());
     try std.testing.expectEqualStrings("event-sample", module.summary().main_thread_label orelse return error.ExpectedFunctionPayload);
     try std.testing.expectEqualStrings("event-sample-fn", module.summary().function_thread_label orelse return error.ExpectedFunctionPayload);
     try std.testing.expectEqualStrings("foo_bar_reg", module.summary().last_register_label orelse return error.ExpectedFunctionPayload);
