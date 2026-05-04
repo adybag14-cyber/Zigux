@@ -10,7 +10,8 @@ import textwrap
 from pathlib import Path
 
 
-ROOT = Path(__file__).resolve().parents[2]
+SCRIPT_PATH = Path(__file__).resolve()
+ROOT = SCRIPT_PATH.parents[2] if len(SCRIPT_PATH.parents) > 2 else SCRIPT_PATH.parent
 C_HARNESS = ROOT / "zigux" / "tests" / "fixtures" / "phase6_bsearch_c_harness.c"
 HELPER_SOURCE = ROOT / "lib" / "bsearch.zig"
 ZIG_RUNNER = ROOT / "zigux" / "tests" / "phase6_bsearch_c_parity.zig"
@@ -58,6 +59,11 @@ def require_tool(name: str, env_name: str) -> str:
     if tool is None:
         raise SystemExit(f"missing required tool: {name}")
     return tool
+
+
+def derive_root(script_path: Path) -> Path:
+    resolved = script_path.resolve()
+    return resolved.parents[2] if len(resolved.parents) > 2 else resolved.parent
 
 
 def validate_required_path(path: Path, label: str) -> None:
@@ -191,10 +197,12 @@ def run_self_test() -> int:
         ["u32-hit\t3\t0", "runtime-raw-hit\t34\t2", "unexpected-extra\t999\tnull"],
     )
     assert_equal(
-        "build_text_paths_and_failure_aggregation",
+        "build_text_paths_root_derivation_and_failure_aggregation",
         'root_module.addImport("bsearch", bsearch_module);' in build_text
         and str(HELPER_SOURCE) in build_text
         and str(ZIG_RUNNER) in build_text
+        and derive_root(Path("/tmp/phase6-checker.py")) == Path("/tmp")
+        and derive_root(Path("/tmp/a/b/c/phase6-checker.py")) == Path("/tmp/a")
         and len(EXPECTED_SORTED_LINES) == 29
         and descending_runtime_lines.issubset(EXPECTED_SORTED_LINES)
         and sorted_lines("mutable-hit\t34\t35\nascending-hit\t34\t4\n") == ["ascending-hit\t34\t4", "mutable-hit\t34\t35"]
