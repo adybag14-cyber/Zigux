@@ -35,6 +35,8 @@ The same contract is also exposed in bootstrap CI: `Validate Phase 11 header bou
 
 The same contract is fail-closed by `python3 scripts/zigux/check-phase11-shared-replay-contract.py` before the broader validator runs.
 
+The broader validator follow-through is still smaller than the rest of the packet: today `scripts/zigux/validate-phase11.py` does not yet mirror the active `Documentation/zigux/review-checklist.md` contributor prompt that names the full pre-replay stack, so that exact checklist-alignment hook remains the next bounded same-lane validator step rather than already-landed coverage.
+
 ## Shared Replay Surface
 
 The shared replay packet currently runs through these entrypoints:
