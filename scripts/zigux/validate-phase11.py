@@ -152,6 +152,10 @@ DOCS_README_MARKERS = [
     "Documentation/zigux/phase11-uapi-header-parity-survey.md",
     "Documentation/zigux/phase11-shared-replay-contract.md",
     "the active Phase 11 simple-driver packet now keeps the four roadmap-backed driver lanes visible from the top-level docs index",
+    "zigux/tests/phase11_gpio_wdt_manifest.json",
+    "zigux/tests/phase11_bcm2835_wdt_manifest.json",
+    "zigux/tests/phase11_dw_wdt_manifest.json",
+    "zigux/tests/phase11_hvc_console_manifest.json",
     "python3 scripts/zigux/check-phase11-build-inventory.py",
     "python3 scripts/zigux/check-phase11-shared-replay-contract.py",
     "python3 scripts/zigux/check-phase11-header-boundary-packet.py",
@@ -381,16 +385,16 @@ def run_self_test() -> int:
         original_docs_readme = docs_readme_path.read_text(encoding="utf-8")
         docs_readme_path.write_text(
             original_docs_readme.replace(
-                "python3 scripts/zigux/check-phase11-header-boundary-packet.py",
-                "python3 scripts/zigux/check-phase11-shared-replay-contract.py",
+                "zigux/tests/phase11_dw_wdt_manifest.json",
+                "zigux/tests/phase11_uapi_header_parity_manifest.json",
                 1,
             ),
             encoding="utf-8",
         )
         expect_missing_marker(
-            "docs_readme_header_boundary_marker",
+            "docs_readme_manifest_inventory_marker",
             tmp_root,
-            "docs_readme:python3 scripts/zigux/check-phase11-header-boundary-packet.py",
+            "docs_readme:zigux/tests/phase11_dw_wdt_manifest.json",
         )
         docs_readme_path.write_text(original_docs_readme, encoding="utf-8")
 
