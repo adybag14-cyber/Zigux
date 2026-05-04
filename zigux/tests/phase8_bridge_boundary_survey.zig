@@ -289,6 +289,9 @@ test "phase 8 bridge boundary survey still matches the live helper surfaces" {
     try expectContains(bridge_note, "online CPU filtering");
     try expectContains(bridge_note, "pure caller-pinned positive CPU planning");
     try expectContains(bridge_note, "pure auto-selected CPU planning from already-injected possible and online masks");
+    try expectContains(bridge_note, "per-CPU `perf_event_open()` setup");
+    try expectContains(bridge_note, "perf-buffer ring `mmap()` setup");
+    try expectContains(bridge_note, "`PERF_EVENT_IOC_ENABLE` enablement");
     try expectContains(bridge_note, "per-CPU perf-event-array map updates");
     try expectContains(bridge_note, "epoll-backed perf FD registration");
     try expectContains(bridge_note, "Documentation/zigux/phase8-perf-buffer-poll-slice.md");
@@ -296,7 +299,7 @@ test "phase 8 bridge boundary survey still matches the live helper surfaces" {
     try expectContains(bridge_note, "zigux/tests/phase8_perf_buffer_poll.zig");
     try expectContains(bridge_note, "wait-result classification");
     try expectContains(bridge_note, "ready-buffer bookkeeping");
-    try expectContains(bridge_note, "PHASE8_VALIDATOR_FLOW_SELF_TEST_CASE_COUNT=15");
+    try expectContains(bridge_note, "PHASE8_VALIDATOR_FLOW_SELF_TEST_CASE_COUNT=17");
     try expectContains(libbpf_survey_note, "classifyReusePinnedMapOpenFailure()");
     try expectContains(libbpf_survey_note, "resolveReusePinnedMapAttempt()");
     try expectContains(libbpf_survey_note, "skip_missing_pinned_map");
@@ -309,7 +312,7 @@ test "phase 8 bridge boundary survey still matches the live helper surfaces" {
     try expectContains(poll_note, "first failing ready buffer");
     try expectContains(poll_note, "no standalone timer helper");
     try expectContains(poll_note, "no standalone clockevent helper");
-    try expectContains(poll_note, "PHASE8_VALIDATOR_FLOW_SELF_TEST_CASE_COUNT=15");
+    try expectContains(poll_note, "PHASE8_VALIDATOR_FLOW_SELF_TEST_CASE_COUNT=17");
 
     try expectContains(exec_cmd_helper, "command_name: []const u8");
     try expectContains(exec_cmd_helper, "exec_path_env: []const u8");
