@@ -58,6 +58,7 @@ Phase 6 flow
 - `python3 scripts/zigux/check-phase6-base64-c-parity.py`, `python3 scripts/zigux/check-phase6-bsearch-c-parity.py`, `python3 scripts/zigux/check-phase6-checksum-c-parity.py`, and `python3 scripts/zigux/check-phase6-hexdump-c-parity.py` are the bounded external portability spot checks for the current base64, bsearch, checksum, and hexdump helper packet.
 - `check-phase6-docs-root-external-parity.py`
 - `check-phase6-base64-catalog-evidence.py`
+- `check-phase6-docs-root-external-parity.py --self-test`, `check-phase6-docs-root-external-parity.py`, `check-phase6-base64-catalog-evidence.py --self-test`, and `check-phase6-base64-catalog-evidence.py` are the dedicated fail-closed checker commands for the docs-root external portability inventory and the parked base64 catalog evidence packet inside that same bounded Phase 6 helper tranche.
 - `validate-phase6.py --self-test` exercises the shared Phase 6 marker walk in a compact synthetic tree and fails if catalog-head provenance, script-README wording, perf-survey markers, shared-gates inventory, manifest `surveyed_commit`, or helper-local determinism evidence drifts.
 
 Phase 8 flow
