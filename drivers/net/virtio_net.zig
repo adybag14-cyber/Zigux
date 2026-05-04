@@ -86,6 +86,11 @@ pub const BigPacketReason = enum {
     guest_gso,
 };
 
+pub const ReceiveQueueRefillPath = enum {
+    fresh_allocation,
+    recycled_room_reuse,
+};
+
 pub const HeaderScatterPolicy = enum {
     separate_header_sg,
     combined_header_and_data,
@@ -185,6 +190,7 @@ pub const QueueResumeSummary = struct {
 pub const MergeableReceiveRefillSummary = struct {
     anchor: []const u8,
     rx_queue_entries: u16,
+    refill_path: ReceiveQueueRefillPath,
     uses_mergeable_buffers: bool,
     packet_budget_bytes: u32,
     min_buf_len_bytes: u32,
@@ -532,6 +538,7 @@ pub const VirtioNetProbeLab = struct {
         return .{
             .anchor = descriptor().anchor,
             .rx_queue_entries = rx_queue_entries,
+            .refill_path = if (recycled_room_bytes > 0) .recycled_room_reuse else .fresh_allocation,
             .uses_mergeable_buffers = snapshot.mergeable_rx_buffers,
             .packet_budget_bytes = packet_budget_bytes,
             .min_buf_len_bytes = min_buf_len_bytes,
