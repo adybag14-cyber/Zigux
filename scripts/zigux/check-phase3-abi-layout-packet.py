@@ -429,7 +429,6 @@ def run_self_test() -> int:
             + "\n",
             encoding="utf-8",
         )
-        (root / PHASE3_ABI_DUMP_REL).writeText = None
         (root / PHASE3_ABI_DUMP_REL).write_text(
             "\n".join(
                 [
