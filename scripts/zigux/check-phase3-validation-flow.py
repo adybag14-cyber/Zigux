@@ -40,8 +40,10 @@ REQUIRED_MAKEFILE_SNIPPETS = (
 )
 
 EXACT_ONCE_MAKEFILE_SNIPPETS = (
+    "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase3.py\n",
     "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase3-validation-flow.py --self-test\n",
     "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase3-validation-flow.py\n",
+    "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase3.py --self-test\n",
     "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/phase3_catalog.py --self-test\n",
     "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/phase3_catalog.py --audit-doc-sync\n",
     "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/phase3_catalog.py --check-slug-sanity\n",
@@ -417,6 +419,36 @@ def run_self_test() -> int:
         if issues != expected:
             raise SystemExit(
                 "phase3-validation-flow-self-test:duplicate_validation_flow_makefile_guard_failed:"
+                + (",".join(issues) if issues else "none")
+            )
+
+        duplicated_validate_phase3_makefile = (
+            _fixture_makefile()
+            + "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase3.py\n"
+        )
+        _write(root, MAKEFILE_REL, duplicated_validate_phase3_makefile)
+        issues = validate(root)
+        expected = [
+            "unexpected_makefile_snippet_count:2:\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase3.py\n",
+        ]
+        if issues != expected:
+            raise SystemExit(
+                "phase3-validation-flow-self-test:duplicate_validate_phase3_makefile_guard_failed:"
+                + (",".join(issues) if issues else "none")
+            )
+
+        duplicated_validate_phase3_self_test_makefile = (
+            _fixture_makefile()
+            + "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase3.py --self-test\n"
+        )
+        _write(root, MAKEFILE_REL, duplicated_validate_phase3_self_test_makefile)
+        issues = validate(root)
+        expected = [
+            "unexpected_makefile_snippet_count:2:\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase3.py --self-test\n",
+        ]
+        if issues != expected:
+            raise SystemExit(
+                "phase3-validation-flow-self-test:duplicate_validate_phase3_self_test_makefile_guard_failed:"
                 + (",".join(issues) if issues else "none")
             )
 
@@ -904,7 +936,7 @@ def run_self_test() -> int:
             )
 
         print("PHASE3_VALIDATION_FLOW_SELF_TEST=pass")
-        print("PHASE3_VALIDATION_FLOW_SELF_TEST_CASE_COUNT=58")
+        print("PHASE3_VALIDATION_FLOW_SELF_TEST_CASE_COUNT=60")
         return 0
 
 
