@@ -157,6 +157,12 @@ jobs:
       - name: Validate Phase 3 slices
         run: python3 scripts/zigux/validate-phase3.py
 
+      - name: Self-test Phase 3 ABI duplicate declaration checker
+        run: python3 scripts/zigux/check-phase3-abi-duplicate-declarations.py --self-test
+
+      - name: Check Phase 3 ABI duplicate declarations
+        run: python3 scripts/zigux/check-phase3-abi-duplicate-declarations.py
+
       - name: Check Phase 3 validation flow
         run: python3 scripts/zigux/check-phase3-validation-flow.py
 
