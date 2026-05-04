@@ -67,8 +67,10 @@ pub fn isValid(view: RootView) bool {
     if (!hasOnlyKnownFlags(view)) return false;
     if (view.reserved != 0) return false;
     if (isEmpty(view) and view.root_addr != 0) return false;
+    if (!isEmpty(view) and view.root_addr == 0) return false;
+    if (hasLeftmost(view) != isCached(view)) return false;
+    if (isCached(view) and view.leftmost_addr == 0) return false;
     if (!isCached(view) and view.leftmost_addr != 0) return false;
-    if (!hasLeftmost(view) and view.leftmost_addr != 0) return false;
     return true;
 }
 
@@ -143,4 +145,44 @@ test "phase3 rbtree binding canonicalization rejects drift" {
         .reserved = 1,
     };
     try std.testing.expectEqual(@as(?RootView, null), canonicalize(reserved_bits));
+
+    const rootless_uncached: RootView = .{
+        .root_addr = 0,
+        .leftmost_addr = 0,
+        .flags = 0,
+        .reserved = 0,
+    };
+    try std.testing.expectEqual(@as(?RootView, null), canonicalize(rootless_uncached));
+
+    const cached_without_leftmost_flag: RootView = .{
+        .root_addr = 0x1000,
+        .leftmost_addr = 0x0800,
+        .flags = ROOT_FLAG_CACHED,
+        .reserved = 0,
+    };
+    try std.testing.expectEqual(@as(?RootView, null), canonicalize(cached_without_leftmost_flag));
+
+    const leftmost_without_cached_flag: RootView = .{
+        .root_addr = 0x1000,
+        .leftmost_addr = 0,
+        .flags = ROOT_FLAG_LEFTMOST_VALID,
+        .reserved = 0,
+    };
+    try std.testing.expectEqual(@as(?RootView, null), canonicalize(leftmost_without_cached_flag));
+
+    const cached_without_root: RootView = .{
+        .root_addr = 0,
+        .leftmost_addr = 0x0800,
+        .flags = ROOT_FLAG_CACHED | ROOT_FLAG_LEFTMOST_VALID,
+        .reserved = 0,
+    };
+    try std.testing.expectEqual(@as(?RootView, null), canonicalize(cached_without_root));
+
+    const cached_without_leftmost: RootView = .{
+        .root_addr = 0x1000,
+        .leftmost_addr = 0,
+        .flags = ROOT_FLAG_CACHED | ROOT_FLAG_LEFTMOST_VALID,
+        .reserved = 0,
+    };
+    try std.testing.expectEqual(@as(?RootView, null), canonicalize(cached_without_leftmost));
 }
