@@ -295,7 +295,6 @@ def run_self_test() -> int:
         assert any(issue.startswith("missing_survey_marker:") for issue in issues)
         assert any(issue.startswith("missing_survey_snippet:") for issue in issues)
 
-        (root / SURVEY_REL).writeText if False else None
         (root / SURVEY_REL).write_text("\n".join((*REQUIRED_SURVEY_MARKERS, *REQUIRED_SURVEY_SNIPPETS)) + "\n", encoding="utf-8")
         (root / ROADMAP_GAP_SURVEY_REL).write_text(REQUIRED_ROADMAP_GAP_MARKERS[0] + "\n", encoding="utf-8")
         issues = validate(root)
