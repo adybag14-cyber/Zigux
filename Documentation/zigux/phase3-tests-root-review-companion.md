@@ -10,7 +10,7 @@ This note keeps the tests-root view of the shared Phase 3 ABI packet explicit no
 - `PHASE3_TESTS_ROOT_VALIDATOR=python3 scripts/zigux/check-phase3-tests-root-companion.py`
 - `PHASE3_TESTS_ROOT_SHARED_REPLAY=zigux/tests/phase3_abi.zig,zigux/tests/phase3_abi_dump.zig,zigux/tests/phase3_rbtree_shared_contract.zig,zigux/tests/fixtures/phase3_abi_manifest.json`
 - `PHASE3_TESTS_ROOT_SHARED_STATUS=landed-shared-zigux_rbtree_root_view-lift-explicit`
-- `PHASE3_TESTS_ROOT_NEXT_STEP=wire-this-companion-into-validate-phase3-without-reopening-shared-abi-growth`
+- `PHASE3_TESTS_ROOT_NEXT_STEP=keep-this-companion-aligned-with-validate-phase3-and-the-shared-abi-manifest-without-reopening-shared-abi-growth`
 
 ## Why this exists
 
