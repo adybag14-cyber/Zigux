@@ -27,8 +27,8 @@ REQUIRED_SURVEY_SNIPPETS = (
     "`zigux/helpers/mmio.zig` is now the shipped second boundary helper that consumes `DecodedInteropPolicy` directly outside the focused `phase3_policy_unsafe` test packet",
     "That same focused replay now reaches the typed-policy MMIO surface through `read8Policy()`, `write8Policy()`, `read16Policy()`, `write16Policy()`, `read32Policy()`, `write32Policy()`, `read64Policy()`, and `write64Policy()` so the whole width-specific decoded-policy MMIO family stays attached to the same narrow boundary packet instead of leaving 8-bit, 16-bit, or 64-bit governance implicit.",
     "the current tree does not yet ship a third Phase 3 boundary helper that consumes `DecodedInteropPolicy` directly beyond the focused replay and the scoped MMIO helper",
-    "and it now also exposes direct raw-pointer bridge readers through `constSliceAt()` and `constPointerAt()` without widening the packet into a broader runtime caller surface",
-    "- `zigux/helpers/interop_policy.zig` now proves typed decoding through the focused replay, keeps direct raw-pointer bridge reads reviewable through `constSliceAt()` and `constPointerAt()`, and still stays inside the same bounded policy record rather than widening into a broader runtime surface",
+    "and it now also exposes direct raw-pointer bridge readers through `constSliceAt()`, `constPointerAt()`, and `readValueAt()` without widening the packet into a broader runtime caller surface",
+    "- `zigux/helpers/interop_policy.zig` now proves typed decoding through the focused replay, keeps direct raw-pointer bridge reads reviewable through `constSliceAt()`, `constPointerAt()`, and `readValueAt()`, and still stays inside the same bounded policy record rather than widening into a broader runtime surface",
     "the shared `zigux/tests/phase3_abi_dump.zig` replay now also keeps `unsafe_scope_none`, `unsafe_scope_volatile_mmio`, `unsafe_scope_raw_pointer_bridge`, and `zigux_rbtree_root_view` explicit on the canonical ABI dump path, so this packet's enum-byte and root-view evidence is no longer compile-only",
     "the shared `zigux/tests/phase3_abi_dump.zig` replay keeps the same unsafe-scope constants plus `zigux_rbtree_root_view` visible on the canonical dump path",
 )
@@ -53,6 +53,8 @@ REQUIRED_INTEROP_POLICY_SNIPPETS = (
     "        return narrow.scopedConstSliceAt(T, self.unsafe_scope, base, len);",
     "    pub fn constPointerAt(",
     "        return narrow.scopedConstPointerAt(T, self.unsafe_scope, addr);",
+    "    pub fn readValueAt(",
+    "        return narrow.scopedConstValueAt(T, self.unsafe_scope, addr);",
     'test "phase3 interop policy decoder keeps raw-pointer bridge consumers explicit"',
 )
 
@@ -86,12 +88,16 @@ REQUIRED_POLICY_TEST_SNIPPETS = (
     "const none_policy = try interop_policy.decode(.{",
     "try std.testing.expectError(error.UnsafeScopeDenied, none_policy.constSliceAt(u32, base, words.len));",
     "try std.testing.expectError(error.UnsafeScopeDenied, none_policy.constPointerAt(u32, base));",
+    "try std.testing.expectError(error.UnsafeScopeDenied, none_policy.readValueAt(u32, base));",
     "const words_slice = try raw_pointer_policy.constSliceAt(u32, base, words.len);",
     "const second_word = try raw_pointer_policy.constPointerAt(u32, base + @sizeOf(u32));",
+    "try std.testing.expectEqual(@as(u32, 11), try raw_pointer_policy.readValueAt(u32, base + @sizeOf(u32)));",
     "try std.testing.expectError(error.UnsafeScopeDenied, mmio_policy.constSliceAt(u32, base, words.len));",
     "try std.testing.expectError(error.UnsafeScopeDenied, mmio_policy.constPointerAt(u32, base));",
+    "try std.testing.expectError(error.UnsafeScopeDenied, mmio_policy.readValueAt(u32, base));",
     "try std.testing.expectError(error.MisalignedAccess, raw_pointer_policy.constSliceAt(u32, base + 1, 1));",
     "try std.testing.expectError(error.MisalignedAccess, raw_pointer_policy.constPointerAt(u32, base + 1));",
+    "try std.testing.expectError(error.MisalignedAccess, raw_pointer_policy.readValueAt(u32, base + 1));",
     "try std.testing.expectError(error.AddressOverflow, raw_pointer_policy.constSliceAt(u32, 4, std.math.maxInt(usize)));",
 )
 
@@ -241,9 +247,10 @@ def run_self_test() -> int:
                 "",
             )
         ) + "\n")
-        _write(root, INTEROP_POLICY_REL, "\n".join(snippet for snippet in REQUIRED_INTEROP_POLICY_SNIPPETS if "constPointerAt" not in snippet) + "\n")
+        _write(root, INTEROP_POLICY_REL, "\n".join(snippet for snippet in REQUIRED_INTEROP_POLICY_SNIPPETS if "constPointerAt" not in snippet and "readValueAt" not in snippet) + "\n")
         issues = validate(root)
         assert "missing_interop_policy_snippet:    pub fn constPointerAt(" in issues
+        assert "missing_interop_policy_snippet:    pub fn readValueAt(" in issues
 
         _write(root, INTEROP_POLICY_REL, "\n".join(REQUIRED_INTEROP_POLICY_SNIPPETS) + "\n")
         _write(
@@ -283,11 +290,15 @@ def run_self_test() -> int:
         _write(
             root,
             POLICY_TEST_REL,
-            "\n".join(snippet for snippet in REQUIRED_POLICY_TEST_SNIPPETS if "none_policy.constSliceAt" not in snippet and "none_policy.constPointerAt" not in snippet) + "\n",
+            "\n".join(
+                snippet for snippet in REQUIRED_POLICY_TEST_SNIPPETS
+                if "none_policy.constSliceAt" not in snippet and "none_policy.constPointerAt" not in snippet and "none_policy.readValueAt" not in snippet
+            ) + "\n",
         )
         issues = validate(root)
         assert "missing_policy_test_snippet:try std.testing.expectError(error.UnsafeScopeDenied, none_policy.constSliceAt(u32, base, words.len));" in issues
         assert "missing_policy_test_snippet:try std.testing.expectError(error.UnsafeScopeDenied, none_policy.constPointerAt(u32, base));" in issues
+        assert "missing_policy_test_snippet:try std.testing.expectError(error.UnsafeScopeDenied, none_policy.readValueAt(u32, base));" in issues
 
         _write(root, POLICY_TEST_REL, "\n".join(REQUIRED_POLICY_TEST_SNIPPETS) + "\n")
         _write(
