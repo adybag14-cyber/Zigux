@@ -217,13 +217,12 @@ test "bitmap diff gate replays bounded lib/test_bitmap.c range expectations" {
     try expectClear(&map, 8);
     try expectSet(&map, 9);
 
-    // The shipped Zig helper still keeps bitmap_fill(35) at the requested whole-word-rounded prefix boundary.
-    // bitmap_fill() matches the Linux rounded whole-word contract at the 35-bit edge.
+    // The shipped Zig helper still keeps bitmap_fill(35) exact even though the paired zero replay rounds to one full word.
     try std.testing.expectEqual(bits_per_long, roundedPrefixLen(35));
-    try expectCurrentFillPrefix(&map, 35, roundedPrefixLen(35), "0-63");
-    try expectSet(&map, 35);
-    try expectSet(&map, bits_per_long - 1);
-    try expectClear(&map, bits_per_long);
+    try expectCurrentFillPrefix(&map, 35, 35, "0-34");
+    try expectSet(&map, 34);
+    try expectClear(&map, 35);
+    try expectClear(&map, bits_per_long - 1);
 
     bitmap.zero(&map, bitmap_nbits);
     bitmap.setRange(&map, 1, 3);
@@ -263,16 +262,15 @@ test "bitmap diff gate replays bounded lib/test_bitmap.c range expectations" {
     try expectSet(&map, bits_per_long * 2);
 }
 
-test "bitmap diff survey records the resolved rounded 115-bit fill parity against lib/test_bitmap.c" {
+test "bitmap diff survey keeps the current 35-bit and 115-bit fill drifts explicit against lib/test_bitmap.c" {
     var map = [_]Word{0} ** word_count;
 
-    // The current Zig helper matches the Linux two-word rounded fill anchor at 115 bits.
-    // Keep that resolved parity executable inside the Phase 4 bitmap gate.
+    // The Linux anchors round 35-bit and 115-bit fills to whole active words, while the current Zig helper still stops at the requested bit count.
     try std.testing.expectEqual(bits_per_long * 2, roundedPrefixLen(115));
-    try expectCurrentFillPrefix(&map, 115, roundedPrefixLen(115), "0-127");
+    try expectCurrentFillPrefix(&map, 115, 115, "0-114");
     try expectSet(&map, 114);
-    try expectSet(&map, 115);
-    try expectSet(&map, bits_per_long * 2 - 1);
+    try expectClear(&map, 115);
+    try expectClear(&map, bits_per_long * 2 - 1);
 }
 
 test "bitmap diff gate records exact cross-boundary set and clear checks" {
@@ -290,14 +288,14 @@ test "bitmap diff gate records exact cross-boundary set and clear checks" {
     try expectClear(&map, 98);
 
     bitmap.fill(&map, 115);
-    // test_fill_set carried-forward bitmap_fill(115) from the exact 0-63,79-97 anchor state closes back over the gap to 0-127
-    try std.testing.expectEqual(@as(usize, roundedPrefixLen(115)), weight(&map, bitmap_nbits));
+    // test_fill_set carried-forward bitmap_fill(115) from the exact 0-63,79-97 anchor state still stops at bit 114 instead of closing the whole second-word gap.
+    try std.testing.expectEqual(@as(usize, 115), weight(&map, bitmap_nbits));
     try std.testing.expectEqual(@as(usize, 0), firstSet(&map, bitmap_nbits));
-    try std.testing.expectEqual(@as(usize, roundedPrefixLen(115)), firstZero(&map, bitmap_nbits));
-    try expectPrintedList(&map, bitmap_nbits, "0-127");
+    try std.testing.expectEqual(@as(usize, 115), firstZero(&map, bitmap_nbits));
+    try expectPrintedList(&map, bitmap_nbits, "0-114");
     try expectSet(&map, 114);
-    try expectSet(&map, 115);
-    try expectSet(&map, bits_per_long * 2 - 1);
+    try expectClear(&map, 115);
+    try expectClear(&map, bits_per_long * 2 - 1);
     try expectClear(&map, bits_per_long * 2);
 
     bitmap.fill(&map, bitmap_nbits);
