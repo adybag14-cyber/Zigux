@@ -392,22 +392,27 @@ test "runtime kretprobe sample keeps failed exit rollback explicit in the direct
 
     try std.testing.expectEqual(ModuleStage.exited, module.stage());
     try std.testing.expectEqual(ModuleStage.initialized, replay.before_failed_exit.stage);
+    try std.testing.expectEqualStrings(RuntimeKretprobeSample.default_symbol_name, replay.before_failed_exit.symbol_name);
     try std.testing.expectEqual(@as(usize, 1), replay.before_failed_exit.init_runs);
     try std.testing.expectEqual(@as(usize, 0), replay.before_failed_exit.selftest_runs);
     try std.testing.expectEqual(@as(usize, 0), replay.before_failed_exit.exit_runs);
     try std.testing.expectEqual(@as(usize, 1), replay.before_failed_exit.maxactive);
     try std.testing.expectEqual(@as(usize, 1), replay.before_failed_exit.active_instances);
     try std.testing.expect(replay.before_failed_exit.entry_timestamp_armed);
+    try std.testing.expectEqual(@as(usize, 0), replay.before_failed_exit.skipped_kernel_threads);
     try std.testing.expectEqual(@as(usize, 0), replay.before_failed_exit.nmissed);
     try std.testing.expectEqual(@as(usize, 0), replay.before_failed_exit.last_retval);
     try std.testing.expectEqual(@as(i64, 0), replay.before_failed_exit.last_duration_ns);
 
     try std.testing.expectEqual(ModuleStage.initialized, replay.after_failed_exit.stage);
+    try std.testing.expectEqualStrings(replay.before_failed_exit.symbol_name, replay.after_failed_exit.symbol_name);
     try std.testing.expectEqual(replay.before_failed_exit.init_runs, replay.after_failed_exit.init_runs);
     try std.testing.expectEqual(replay.before_failed_exit.selftest_runs, replay.after_failed_exit.selftest_runs);
     try std.testing.expectEqual(replay.before_failed_exit.exit_runs, replay.after_failed_exit.exit_runs);
+    try std.testing.expectEqual(replay.before_failed_exit.maxactive, replay.after_failed_exit.maxactive);
     try std.testing.expectEqual(replay.before_failed_exit.active_instances, replay.after_failed_exit.active_instances);
     try std.testing.expectEqual(replay.before_failed_exit.entry_timestamp_armed, replay.after_failed_exit.entry_timestamp_armed);
+    try std.testing.expectEqual(replay.before_failed_exit.skipped_kernel_threads, replay.after_failed_exit.skipped_kernel_threads);
     try std.testing.expectEqual(replay.before_failed_exit.nmissed, replay.after_failed_exit.nmissed);
     try std.testing.expectEqual(replay.before_failed_exit.last_retval, replay.after_failed_exit.last_retval);
     try std.testing.expectEqual(replay.before_failed_exit.last_duration_ns, replay.after_failed_exit.last_duration_ns);
@@ -421,9 +426,12 @@ test "runtime kretprobe sample keeps failed exit rollback explicit in the direct
     try std.testing.expectEqual(@as(i64, 75), replay.selftest.last_duration_ns);
 
     try std.testing.expectEqual(ModuleStage.exited, replay.final_summary.stage);
+    try std.testing.expectEqualStrings(RuntimeKretprobeSample.default_symbol_name, replay.final_summary.symbol_name);
     try std.testing.expectEqual(@as(usize, 1), replay.final_summary.init_runs);
     try std.testing.expectEqual(@as(usize, 1), replay.final_summary.selftest_runs);
     try std.testing.expectEqual(@as(usize, 1), replay.final_summary.exit_runs);
+    try std.testing.expectEqual(@as(usize, 1), replay.final_summary.maxactive);
+    try std.testing.expectEqual(@as(usize, 0), replay.final_summary.skipped_kernel_threads);
     try std.testing.expectEqual(@as(usize, 1), replay.final_summary.nmissed);
     try std.testing.expectEqual(@as(usize, 42), replay.final_summary.last_retval);
     try std.testing.expectEqual(@as(i64, 75), replay.final_summary.last_duration_ns);
