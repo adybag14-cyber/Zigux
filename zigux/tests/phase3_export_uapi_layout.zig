@@ -19,4 +19,17 @@ test "phase3 export shim and uapi keep canonical boundary layout" {
     try std.testing.expectEqual(header, uapi_header);
     try std.testing.expect(export_shim.isCanonicalHeader(header));
     try std.testing.expect(uapi_version.isCanonical(uapi_header));
+
+    const future_compatible = export_shim.compatibleHeader(header.size + 8, 0x55);
+    try std.testing.expectEqual(@as(usize, 8), @sizeOf(@TypeOf(future_compatible)));
+    try std.testing.expect(export_shim.isCompatibleHeader(future_compatible));
+    try std.testing.expect(!export_shim.isCanonicalHeader(future_compatible));
+    try std.testing.expect(uapi_version.isCompatible(future_compatible));
+    try std.testing.expect(!uapi_version.isCanonical(future_compatible));
+    try std.testing.expectEqual(header, export_shim.canonicalizeHeader(future_compatible).?);
+    try std.testing.expectEqual(uapi_header, uapi_version.canonicalizeHeader(future_compatible).?);
+
+    const mismatched_version = export_shim.versionedHeader(header.size, abi.ABI_VERSION + 1, 0x55);
+    try std.testing.expect(export_shim.canonicalizeHeader(mismatched_version) == null);
+    try std.testing.expect(uapi_version.canonicalizeHeader(mismatched_version) == null);
 }
