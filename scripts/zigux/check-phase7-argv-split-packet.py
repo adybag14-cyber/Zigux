@@ -20,6 +20,9 @@ REQUIRED_FILES = [
     SCRIPT_PATH,
     ROOT / "Documentation" / "zigux" / "README.md",
     ROOT / "scripts" / "zigux" / "README.md",
+    ROOT / "scripts" / "zigux" / "validate-phase7.py",
+    ROOT / "scripts" / "zigux" / "check-phase7-build-inventory.py",
+    ROOT / "scripts" / "zigux" / "check-phase7-make-wrapper.py",
     ROOT / "scripts" / "zigux" / "check-phase7-argv-split-parity.py",
     ROOT / "Documentation" / "zigux" / "phase7-argv-split-slice.md",
     ROOT / "lib" / "argv_split.zig",
@@ -29,6 +32,7 @@ REQUIRED_FILES = [
     ROOT / "zigux" / "tests" / "phase7_argv_split.zig",
     ROOT / "zigux" / "tests" / "phase7_argv_split_survey.zig",
     ROOT / "zigux" / "tests" / "phase7_argv_split_manifest.json",
+    ROOT / "zigux" / "tests" / "fixtures" / "phase7_build_inventory.json",
     ROOT / "zigux" / "tests" / "fixtures" / "phase7_argv_split_vectors.zig",
     ROOT / "zigux" / "tests" / "fixtures" / "phase7_argv_split.json",
     ROOT / "zigux" / "tests" / "fixtures" / "phase7_argv_split_c_harness.c",
@@ -165,6 +169,9 @@ SELF_TEST_FILE_CONTENTS = {
             "",
         ]
     ),
+    "scripts/zigux/validate-phase7.py": "# self-test validator placeholder\n",
+    "scripts/zigux/check-phase7-build-inventory.py": "# self-test build inventory checker placeholder\n",
+    "scripts/zigux/check-phase7-make-wrapper.py": "# self-test make wrapper checker placeholder\n",
     "zigux/tests/README.md": "\n".join(
         [
             "`scripts/zigux/check-phase7-argv-split-packet.py`",
@@ -259,6 +266,7 @@ SELF_TEST_FILE_CONTENTS = {
         indent=2,
     )
     + "\n",
+    "zigux/tests/fixtures/phase7_build_inventory.json": "{}\n",
     "zigux/tests/fixtures/phase7_argv_split_vectors.zig": "// self-test fixture\n",
     "zigux/tests/fixtures/phase7_argv_split.json": "{}\n",
     "zigux/tests/fixtures/phase7_argv_split_c_harness.c": "/* self-test harness */\n",
@@ -303,6 +311,55 @@ def run_self_test() -> int:
         if baseline.returncode != 0:
             actual = baseline.stdout.strip() or baseline.stderr.strip() or "no_output"
             raise SystemExit(f"phase7-argv-split-packet-self-test:baseline_failed:{actual}")
+
+        shared_validator_path = tmp_root / "scripts" / "zigux" / "validate-phase7.py"
+        original_shared_validator = read(shared_validator_path)
+        shared_validator_path.unlink()
+        expect_failure(
+            "shared_validator_required_file",
+            tmp_root,
+            "scripts/zigux/validate-phase7.py",
+        )
+        shared_validator_path.write_text(original_shared_validator, encoding="utf-8")
+
+        build_inventory_checker_path = tmp_root / "scripts" / "zigux" / "check-phase7-build-inventory.py"
+        original_build_inventory_checker = read(build_inventory_checker_path)
+        build_inventory_checker_path.unlink()
+        expect_failure(
+            "build_inventory_checker_required_file",
+            tmp_root,
+            "scripts/zigux/check-phase7-build-inventory.py",
+        )
+        build_inventory_checker_path.write_text(
+            original_build_inventory_checker,
+            encoding="utf-8",
+        )
+
+        make_wrapper_checker_path = tmp_root / "scripts" / "zigux" / "check-phase7-make-wrapper.py"
+        original_make_wrapper_checker = read(make_wrapper_checker_path)
+        make_wrapper_checker_path.unlink()
+        expect_failure(
+            "make_wrapper_checker_required_file",
+            tmp_root,
+            "scripts/zigux/check-phase7-make-wrapper.py",
+        )
+        make_wrapper_checker_path.write_text(
+            original_make_wrapper_checker,
+            encoding="utf-8",
+        )
+
+        build_inventory_fixture_path = tmp_root / "zigux" / "tests" / "fixtures" / "phase7_build_inventory.json"
+        original_build_inventory_fixture = read(build_inventory_fixture_path)
+        build_inventory_fixture_path.unlink()
+        expect_failure(
+            "build_inventory_fixture_required_file",
+            tmp_root,
+            "zigux/tests/fixtures/phase7_build_inventory.json",
+        )
+        build_inventory_fixture_path.write_text(
+            original_build_inventory_fixture,
+            encoding="utf-8",
+        )
 
         doc_path = tmp_root / "Documentation" / "zigux" / "phase7-argv-split-slice.md"
         original_doc = read(doc_path)
@@ -554,7 +611,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE7_ARGV_SPLIT_PACKET_SELF_TEST=pass")
-    print("PHASE7_ARGV_SPLIT_PACKET_SELF_TEST_CASE_COUNT=17")
+    print("PHASE7_ARGV_SPLIT_PACKET_SELF_TEST_CASE_COUNT=21")
     return 0
 
 
