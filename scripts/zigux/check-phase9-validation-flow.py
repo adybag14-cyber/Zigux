@@ -70,8 +70,14 @@ README_EXACT_ONCE_MARKERS = [
     "- `check-phase9-validation-flow.py --self-test` and `check-phase9-validation-flow.py` keep the shared Phase 9 release-discipline route aligned across `zigux/Makefile`, `.github/workflows/zigux-bootstrap.yml`, the loader-gap survey, the module-metadata survey, the trace-events survey, the kretprobe survey, and `zigux/tests/phase9_build.zig` before the broader runtime bundle claims reviewable progress.\n",
 ]
 
+COMMIT_ALIGNMENT_SURVEY_BLOCK = (
+    "phase9-loader-commit-alignment-survey:\n"
+    "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase9-runtime-loader-commit-alignment.py --self-test\n"
+    "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase9-runtime-loader-commit-alignment.py\n"
+)
+
 MAKEFILE_MARKERS = [
-    "PHONY += phase9-validate phase9-test phase9-loader-gap-survey phase9-non-owner-boundary-survey phase9-module-metadata-survey phase9-kretprobe-survey phase9-trace-events-survey phase9",
+    "PHONY += phase9-validate phase9-test phase9-loader-gap-survey phase9-loader-commit-alignment-survey phase9-non-owner-boundary-survey phase9-module-metadata-survey phase9-kretprobe-survey phase9-trace-events-survey phase9",
     "phase9-validate:",
     "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase9.py --self-test\n",
     "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase9-validation-flow.py --self-test\n",
@@ -87,6 +93,7 @@ MAKEFILE_MARKERS = [
     "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase9-module-metadata-packet.py\n",
     "phase9-loader-gap-survey:",
     "\tcd $(ZIGUX_ROOT) && $(ZIG) test zigux/tests/runtime_loader_gap_survey.zig\n",
+    COMMIT_ALIGNMENT_SURVEY_BLOCK,
     "phase9-non-owner-boundary-survey:",
     "\tcd $(ZIGUX_ROOT) && $(ZIG) test zigux/tests/runtime_loader_non_owner_boundary_survey.zig\n",
     "phase9-module-metadata-survey:",
@@ -99,10 +106,9 @@ MAKEFILE_MARKERS = [
 ]
 
 MAKEFILE_EXACT_ONCE_MARKERS = [
-    "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase9-runtime-loader-commit-alignment.py --self-test\n",
-    "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase9-runtime-loader-commit-alignment.py\n",
     "phase9-loader-gap-survey:\n",
     "\tcd $(ZIGUX_ROOT) && $(ZIG) test zigux/tests/runtime_loader_gap_survey.zig\n",
+    "phase9-loader-commit-alignment-survey:\n",
     "phase9-non-owner-boundary-survey:\n",
     "\tcd $(ZIGUX_ROOT) && $(ZIG) test zigux/tests/runtime_loader_non_owner_boundary_survey.zig\n",
     "phase9-module-metadata-survey:\n",
@@ -367,6 +373,10 @@ def write_fixture_tree(root: Path) -> None:
                 "phase9-loader-gap-survey:",
                 "\tcd $(ZIGUX_ROOT) && $(ZIG) test zigux/tests/runtime_loader_gap_survey.zig",
                 "",
+                "phase9-loader-commit-alignment-survey:",
+                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase9-runtime-loader-commit-alignment.py --self-test",
+                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase9-runtime-loader-commit-alignment.py",
+                "",
                 "phase9-non-owner-boundary-survey:",
                 "\tcd $(ZIGUX_ROOT) && $(ZIG) test zigux/tests/runtime_loader_non_owner_boundary_survey.zig",
                 "",
@@ -615,24 +625,10 @@ def run_self_test() -> int:
             ),
             (
                 MAKEFILE_PATH,
-                "makefile_commit_alignment_self_test_missing",
-                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase9-runtime-loader-commit-alignment.py --self-test\n",
+                "makefile_commit_alignment_survey_block_missing",
+                COMMIT_ALIGNMENT_SURVEY_BLOCK,
                 "",
-                "makefile:\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase9-runtime-loader-commit-alignment.py --self-test\n",
-            ),
-            (
-                MAKEFILE_PATH,
-                "makefile_commit_alignment_self_test_duplicate",
-                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase9-runtime-loader-commit-alignment.py --self-test\n",
-                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase9-runtime-loader-commit-alignment.py --self-test\n\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase9-runtime-loader-commit-alignment.py --self-test\n",
-                "makefile_exact:\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase9-runtime-loader-commit-alignment.py --self-test\n",
-            ),
-            (
-                MAKEFILE_PATH,
-                "makefile_commit_alignment_live_missing",
-                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase9-runtime-loader-commit-alignment.py\n",
-                "",
-                "makefile:\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase9-runtime-loader-commit-alignment.py\n",
+                f"makefile:{COMMIT_ALIGNMENT_SURVEY_BLOCK}",
             ),
             (
                 MAKEFILE_PATH,
@@ -640,6 +636,13 @@ def run_self_test() -> int:
                 "phase9-loader-gap-survey:\n",
                 "phase9-loader-gap-survey:\nphase9-loader-gap-survey:\n",
                 "makefile_exact:phase9-loader-gap-survey:\n",
+            ),
+            (
+                MAKEFILE_PATH,
+                "makefile_commit_alignment_target_duplicate",
+                "phase9-loader-commit-alignment-survey:\n",
+                "phase9-loader-commit-alignment-survey:\nphase9-loader-commit-alignment-survey:\n",
+                "makefile_exact:phase9-loader-commit-alignment-survey:\n",
             ),
             (
                 MAKEFILE_PATH,
