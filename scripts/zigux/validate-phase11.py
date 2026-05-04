@@ -507,9 +507,56 @@ def run_self_test() -> int:
             tmp_root,
             "phase11_hvc_console_tests:    try std.testing.expect(hangup_drain.read_hangup_pending);",
         )
+        hvc_test_path.write_text(original_hvc_test, encoding="utf-8")
+
+        matrix_path = tmp_root / "Documentation/zigux/phase11-hvc-console-validation-matrix.md"
+        original_matrix = matrix_path.read_text(encoding="utf-8")
+        matrix_path.write_text(
+            original_matrix.replace(
+                "| `hvc_cleanup()` tty-port release handoff | `summarizeCleanupHandoff()` keeps `tty_port_put()` ownership, tty-port reference drop timing, and the deferred final release boundary reviewable without claiming live tty destruction or host-backed teardown |\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "hvc_cleanup_matrix_surface",
+            tmp_root,
+            "phase11_hvc_console_docs:matrix:`hvc_cleanup()` tty-port release handoff",
+        )
+        matrix_path.write_text(original_matrix, encoding="utf-8")
+
+        matrix_path.write_text(
+            original_matrix.replace(
+                "- final-close and hangup-driven cleanup handoff boundaries are now pinned separately from the broader remove packet: `zigux/tests/phase11_hvc_console.zig` drives `summarizeCleanupHandoff()` through final-close and close-skipped requests and proves that the helper keeps `tty_port_put()` ownership, tty-port reference drop timing, and deferred final release explicit without inventing live tty destruction or host-backed teardown.\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "hvc_cleanup_failure_mode_surface",
+            tmp_root,
+            "phase11_hvc_console_docs:failure_modes:final-close and hangup-driven cleanup handoff boundaries are now pinned separately from the broader remove packet",
+        )
+        matrix_path.write_text(original_matrix, encoding="utf-8")
+
+        hvc_test_path.write_text(
+            original_hvc_test.replace(
+                "    try std.testing.expect(final_cleanup.tty_port_put_requested);\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "hvc_cleanup_test_surface",
+            tmp_root,
+            "phase11_hvc_console_tests:    try std.testing.expect(final_cleanup.tty_port_put_requested);",
+        )
 
     print("PHASE11_VALIDATOR_SELF_TEST=pass")
-    print("PHASE11_VALIDATOR_SELF_TEST_CASE_COUNT=14")
+    print("PHASE11_VALIDATOR_SELF_TEST_CASE_COUNT=17")
     return 0
 
 
@@ -532,61 +579,61 @@ def count_statuses(manifest: dict[str, object], match: str) -> int:
     total = 0
     for gap in manifest.get("gaps", []):
         status = gap.get("status")
-        if not isinstance(status, str):
-            continue
-        if match.endswith("_") and status.startswith(match):
+        if status == match:
             total += 1
-        elif status == match:
+        elif isinstance(status, str) and status.startswith(match):
             total += 1
     return total
 
 
-if "--self-test" in sys.argv[1:]:
-    raise SystemExit(run_self_test())
-
-
-missing_files = [path for path in FILES if not (ROOT / path).exists()]
-if missing_files:
-    print("PHASE11_VALIDATION=fail")
-    print("MISSING_PHASE11_FILES_START")
-    for path in missing_files:
-        print(path)
-    print("MISSING_PHASE11_FILES_END")
-    sys.exit(1)
-
 missing: list[str] = []
-for name, source, markers in [
-    ("make", text("zigux/Makefile"), MAKE_MARKERS),
-    ("workflow", text(".github/workflows/zigux-bootstrap.yml"), WORKFLOW_MARKERS),
-    ("script_readme", text("scripts/zigux/README.md"), README_MARKERS),
-    ("docs_readme", text("Documentation/zigux/README.md"), DOCS_README_MARKERS),
-    ("review_checklist", text("Documentation/zigux/review-checklist.md"), CHECKLIST_MARKERS),
-    ("phase11_build", text("zigux/tests/phase11_build.zig"), BUILD_MARKERS),
-]:
-    for marker in markers:
-        if marker not in source:
-            missing.append(f"{name}:{marker}")
+for path in FILES:
+    if not (ROOT / path).exists():
+        missing.append(path)
+
+for marker in MAKE_MARKERS:
+    if marker not in text("zigux/Makefile"):
+        missing.append(f"make:{marker}")
+for marker in WORKFLOW_MARKERS:
+    if marker not in text(".github/workflows/zigux-bootstrap.yml"):
+        missing.append(f"workflow:{marker}")
+for marker in README_MARKERS:
+    if marker not in text("scripts/zigux/README.md"):
+        missing.append(f"scripts_readme:{marker}")
+for marker in DOCS_README_MARKERS:
+    if marker not in text("Documentation/zigux/README.md"):
+        missing.append(f"docs_readme:{marker}")
+for marker in CHECKLIST_MARKERS:
+    if marker not in text("Documentation/zigux/review-checklist.md"):
+        missing.append(f"review_checklist:{marker}")
 
 build_text = text("zigux/tests/phase11_build.zig")
+for marker in BUILD_MARKERS:
+    if marker not in build_text:
+        missing.append(f"phase11_build:{marker}")
 for marker in FORBIDDEN_BUILD_MARKERS:
     if marker in build_text:
         missing.append(f"phase11_build:forbidden:{marker}")
 
 build_inventory = load_json(BUILD_INVENTORY_FIXTURE)
 expected_build_test_names = build_inventory.get("build_test_names")
-if not isinstance(expected_build_test_names, list) or not all(isinstance(item, str) for item in expected_build_test_names):
+if not isinstance(expected_build_test_names, list) or not all(
+    isinstance(item, str) for item in expected_build_test_names
+):
     missing.append("phase11_build_fixture:build_test_names")
 else:
     actual_build_test_names = BUILD_TEST_NAME_RE.findall(build_text)
     if actual_build_test_names != expected_build_test_names:
         missing.append("phase11_build_fixture:build_test_names_mismatch")
 
-expected_depend_steps = build_inventory.get("shared_test_depend_steps")
-if not isinstance(expected_depend_steps, list) or not all(isinstance(item, str) for item in expected_depend_steps):
+expected_shared_steps = build_inventory.get("shared_test_depend_steps")
+if not isinstance(expected_shared_steps, list) or not all(
+    isinstance(item, str) for item in expected_shared_steps
+):
     missing.append("phase11_build_fixture:shared_test_depend_steps")
 else:
-    actual_depend_steps = BUILD_DEPEND_STEP_RE.findall(build_text)
-    if actual_depend_steps != expected_depend_steps:
+    actual_shared_steps = BUILD_DEPEND_STEP_RE.findall(build_text)
+    if actual_shared_steps != expected_shared_steps:
         missing.append("phase11_build_fixture:shared_test_depend_steps_mismatch")
 
 expected_module_roots = build_inventory.get("module_root_source_files")
@@ -744,7 +791,9 @@ for marker in [
     "`zigux/tests/phase11_hvc_console.zig` now keeps the timed-sleep, untimed-sleep, pre-state kick, and post-state kick assertions inside the shared Phase 11 replay",
     "`zigux/tests/phase11_hvc_console.zig` now keeps the active-hangup and stale-hangup assertions inside the shared Phase 11 replay",
     "`zigux/tests/phase11_hvc_console.zig` now keeps the tty-attached and tty-detached remove-handoff assertions inside the shared Phase 11 replay",
-    "leave this helper parked unless another comparably small host-free notifier or sysrq split becomes obvious",
+    "`hvc_cleanup()` tty-port release handoff",
+    "`zigux/tests/phase11_hvc_console.zig` now keeps the final-close and hangup-driven cleanup handoff assertions inside the shared Phase 11 replay",
+    "leave this helper parked unless another comparably small host-free tty-port teardown split becomes obvious",
     "the shared Phase 11 gate for this lane remains `zigux/tests/phase11_build.zig`",
     "the dedicated archival survey gate remains `zigux/tests/phase11_hvc_console_survey.zig`",
 ]:
@@ -759,6 +808,9 @@ for marker in [
     "read_hangup_pending",
     "remove-time detached teardown is now pinned separately from the attached path",
     "tty_attached = false",
+    "final-close and hangup-driven cleanup handoff boundaries are now pinned separately from the broader remove packet",
+    "close-skipped requests",
+    "deferred final release explicit",
 ]:
     if marker not in hvc_matrix_doc:
         missing.append(f"phase11_hvc_console_docs:failure_modes:{marker}")
@@ -780,6 +832,10 @@ for marker in [
     "        .tty_attached = false,",
     "    try std.testing.expect(!detached_remove.tty_vhangup_requested);",
     "    try std.testing.expect(!detached_remove.tty_kref_put_after_vhangup);",
+    'test "phase11 hvc console keeps hvc_cleanup tty-port release boundaries reviewable" {',
+    "    try std.testing.expect(final_cleanup.tty_port_put_requested);",
+    "    try std.testing.expect(hangup_cleanup.close_skipped);",
+    "    try std.testing.expect(hangup_cleanup.drops_tty_port_reference);",
 ]:
     if marker not in hvc_test_text:
         missing.append(f"phase11_hvc_console_tests:{marker}")
