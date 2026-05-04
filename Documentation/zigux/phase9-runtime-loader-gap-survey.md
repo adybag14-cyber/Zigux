@@ -12,6 +12,7 @@ This document records the shared boot/runtime loader gap that still separates th
   - `Documentation/zigux/phase9-runtime-loader-gap-survey.md`
   - `Documentation/zigux/phase9-runtime-loader-substrate-plan.md`
   - `Documentation/zigux/review-checklist.md`
+  - `Documentation/zigux/phase9-tests-root-review-companion.md`
   - `Documentation/zigux/freeze-map.md`
   - `zigux/tests/runtime_loader_gap_manifest.json`
   - `zigux/tests/runtime_loader_gap_survey.zig`
@@ -60,6 +61,8 @@ The review checklist also remains part of this bounded governance surface. For t
 
 The same checklist packet also needs to keep the freeze-map coupling explicit so `Documentation/zigux/freeze-map.md`, the study-only `kernel/workqueue.c` status, and the Architecture Council reopen rule stay in the same reviewable ownership packet beside the survey note, the shared request contract, the sample-side loader plans, and `zigux/tests/phase9_build.zig`.
 
+The tests-root companion now remains part of that same bounded review packet too. `Documentation/zigux/phase9-tests-root-review-companion.md` keeps the shared reviewer surface, tests-root ownership view, and `RuntimeLoadRequest` boundary explicit so the narrower tests-root handoff does not drift behind the docs-root survey and checklist packet.
+
 The shared substrate plan is part of the same delivery packet now. `Documentation/zigux/phase9-runtime-loader-substrate-plan.md` keeps the shared loader-stage vocabulary and the atomic64, bitmap, and kretprobe handoff alignment explicit so the shared request surface does not silently drift away from the sample-side loaders that already feed it.
 
 ## Delivery ownership map
@@ -69,6 +72,7 @@ The manifest-backed catalog for this slice now names which file owns each part o
 - `Documentation/zigux/phase9-runtime-loader-gap-survey.md` owns the roadmap-boundary note, blocker posture, and bounded replay contract
 - `Documentation/zigux/phase9-runtime-loader-substrate-plan.md` owns the shared loader-stage vocabulary plus the atomic64, bitmap, and kretprobe handoff-alignment note for the same runtime packet
 - `Documentation/zigux/review-checklist.md` owns the runtime review guardrails and ownership prompts for the same evidence packet
+- `Documentation/zigux/phase9-tests-root-review-companion.md` owns the narrower tests-root reviewer surface, ownership view, and shared `RuntimeLoadRequest` boundary cues for the same evidence packet
 - `Documentation/zigux/freeze-map.md` owns the study-only `kernel/workqueue.c` boundary and the Architecture Council reopen rule for any status change tied to scheduler-facing runtime substrate work
 - `zigux/tests/runtime_loader_gap_manifest.json` owns the manifest-backed catalog and ownership map for the current delivery packet
 - `zigux/tests/runtime_loader_gap_survey.zig` owns the machine-checkable replay of the manifest, note, shared request surface, and without-substrate rollback posture
