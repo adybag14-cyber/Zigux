@@ -185,7 +185,7 @@ test "phase 15 parity scorecard manifest tracks the current roadmap gap honestly
 
     try std.testing.expectEqualStrings("P15-Y03", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 15", manifest.phase);
-    try std.testing.expectEqualStrings("0bd402fd6ca83ba2ace6b21e9e57459401b631cd", manifest.surveyed_commit);
+    try std.testing.expectEqualStrings("02264a3240cd30ce45c9a932047a0204b7ab5029", manifest.surveyed_commit);
     try std.testing.expect(manifest.review_process.decision_record_required);
     try std.testing.expectEqual(@as(usize, 15), manifest.review_process.required_record_fields.len);
     try std.testing.expectEqual(@as(usize, 3), manifest.review_process.reopen_trigger_catalog.len);
@@ -319,6 +319,7 @@ test "phase 15 parity scorecard docs keep the parity-tracking survey aligned" {
     defer std.testing.allocator.free(bootstrap_workflow);
 
     try expectContains(scorecard_doc, "PHASE15_LANE_KEY=P15-Y03");
+    try expectContains(scorecard_doc, "survey provenance refreshed against verified `master` head `02264a3240cd30ce45c9a932047a0204b7ab5029`");
     try expectContains(scorecard_doc, "## Current Parity-Tracking Gap");
     try expectContains(scorecard_doc, "That closes the current parity-tracking gap for the roadmap requirement `parity scorecard`.");
     try expectContains(scorecard_doc, "lane identity, surveyed-master provenance, roadmap wording, rollback-threshold field sync, and replay-backed evidence packet current");
