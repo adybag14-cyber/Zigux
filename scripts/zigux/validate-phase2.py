@@ -143,6 +143,7 @@ PHASE2_TOOLCHAIN_NOTES_REQUIRED_SOURCE_MARKERS = [
     "make -C zigux phase2-validate",
     "make -C zigux phase2",
     "kbuild-facing replay surface",
+    "same kbuild-facing replay surface named by the shared validators, the closure note, and the shared review checklist",
     "x86_64-linux",
 ]
 PHASE2_TOOLCHAIN_REVIEW_CHECKLIST_REQUIRED_SOURCE_MARKERS = [
