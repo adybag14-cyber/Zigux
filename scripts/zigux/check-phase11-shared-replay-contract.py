@@ -35,8 +35,9 @@ DOCS_README_MARKERS = [
     "the active Phase 11 simple-driver packet now keeps the four roadmap-backed driver lanes visible from the top-level docs index while keeping the paired UAPI header parity survey explicit as the shared tranche-close boundary.",
 ]
 TESTS_README_MARKERS = [
-    "keep `Documentation/zigux/phase11-shared-replay-contract.md`, `zigux/tests/phase11_build.zig`, `zigux/tests/fixtures/phase11_build_inventory.json`, `zigux/tests/phase11_hvc_console_survey.zig`, and `scripts/zigux/validate-phase11.py` aligned",
-    "keep the shared-versus-dedicated replay boundary explicit: `zigux/tests/phase11_build.zig` remains the shared replay for the landed starter packet, while `zigux/tests/phase11_hvc_console_survey.zig` remains the dedicated archival replay for the exact shared-versus-dedicated delivery contract.",
+    "keep `Documentation/zigux/phase11-shared-replay-contract.md`, `zigux/tests/phase11_build.zig`, `zigux/tests/fixtures/phase11_build_inventory.json`, `zigux/tests/phase11_dw_wdt_suspend_resume.zig`, `zigux/tests/phase11_dw_wdt_remove_idle_split.zig`, `zigux/tests/phase11_hvc_console_modem_control_split.zig`, `zigux/tests/phase11_hvc_console_poll_retry_split.zig`, `zigux/tests/phase11_hvc_console_survey.zig`, `scripts/zigux/check-phase11-build-inventory.py`, `scripts/zigux/check-phase11-layout-assert-surface.py`, `scripts/zigux/check-phase11-hvc-validation-flow.py`, `scripts/zigux/check-phase11-hvc-cleanup-alignment.py`, `scripts/zigux/check-phase11-shared-replay-contract.py`, `scripts/zigux/check-phase11-header-boundary-packet.py`, `zigux/tests/phase11_uapi_header_parity_manifest.json`, and `scripts/zigux/validate-phase11.py` aligned so the tests root names the same pre-replay stack, four shared split and adjunct replays, shared-versus-dedicated replay boundary, and shared header packet as the docs-root and validator-first packet.",
+    "keep the shared-versus-dedicated replay boundary explicit: `zigux/tests/phase11_build.zig` remains the shared replay for the landed starter packet and explicitly carries `zigux/tests/phase11_dw_wdt_suspend_resume.zig`, `zigux/tests/phase11_dw_wdt_remove_idle_split.zig`, `zigux/tests/phase11_hvc_console_modem_control_split.zig`, and `zigux/tests/phase11_hvc_console_poll_retry_split.zig`, while `zigux/tests/phase11_hvc_console_survey.zig` remains the dedicated archival replay for the exact shared-versus-dedicated delivery contract and `scripts/zigux/check-phase11-header-boundary-packet.py` keeps the shared header-boundary packet explicit beside that split.",
+    "- Phase 11: do `Documentation/zigux/phase11-shared-replay-contract.md`, `scripts/zigux/check-phase11-build-inventory.py`, `scripts/zigux/check-phase11-layout-assert-surface.py`, `scripts/zigux/check-phase11-hvc-validation-flow.py`, `scripts/zigux/check-phase11-hvc-cleanup-alignment.py`, `scripts/zigux/check-phase11-shared-replay-contract.py`, `scripts/zigux/check-phase11-header-boundary-packet.py`, `zigux/tests/phase11_build.zig`, `zigux/tests/phase11_hvc_console_survey.zig`, and `zigux/tests/phase11_uapi_header_parity_manifest.json` still keep the pre-replay stack, the shared-versus-dedicated `hvc_console` split, and the shared header-boundary packet aligned?",
 ]
 MAKEFILE_MARKERS = [
     "phase11-validate:",
@@ -411,12 +412,34 @@ def run_self_test() -> int:
         tests_readme_backup = text(tests_readme_path)
         write_text(
             tests_readme_path,
+            tests_readme_backup.replace(TESTS_README_MARKERS[0] + "\n", "", 1),
+        )
+        expect_missing(
+            "missing_tests_root_alignment_packet",
+            run_checker(tmp_root),
+            f"tests_readme:{TESTS_README_MARKERS[0]}",
+        )
+        write_text(tests_readme_path, tests_readme_backup)
+
+        write_text(
+            tests_readme_path,
             tests_readme_backup.replace(TESTS_README_MARKERS[1] + "\n", "", 1),
         )
         expect_missing(
             "missing_tests_root_boundary_marker",
             run_checker(tmp_root),
             f"tests_readme:{TESTS_README_MARKERS[1]}",
+        )
+        write_text(tests_readme_path, tests_readme_backup)
+
+        write_text(
+            tests_readme_path,
+            tests_readme_backup.replace(TESTS_README_MARKERS[2] + "\n", "", 1),
+        )
+        expect_missing(
+            "missing_tests_root_contributor_prompt",
+            run_checker(tmp_root),
+            f"tests_readme:{TESTS_README_MARKERS[2]}",
         )
         write_text(tests_readme_path, tests_readme_backup)
 
@@ -702,7 +725,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE11_SHARED_REPLAY_CONTRACT_SELF_TEST=pass")
-    print("PHASE11_SHARED_REPLAY_CONTRACT_SELF_TEST_CASE_COUNT=27")
+    print("PHASE11_SHARED_REPLAY_CONTRACT_SELF_TEST_CASE_COUNT=28")
     return 0
 
 
