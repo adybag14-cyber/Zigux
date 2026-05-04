@@ -355,10 +355,13 @@ fn expectExhaustiveTailCanonicality(variant: Variant) !void {
                 try std.testing.expectEqual(@as(usize, 1), try bytes(two_char_tail[0..], false, variant));
                 try std.testing.expectEqual(@as(usize, 1), try decodeTail(one_byte_out[0..], two_char_tail[0..], variant));
                 try std.testing.expectEqual(expected, one_byte_out[0]);
+                try std.testing.expectEqual(@as(usize, 1), try decode(one_byte_out[0..], two_char_tail[0..], false, variant));
+                try std.testing.expectEqual(expected, one_byte_out[0]);
             } else {
                 try std.testing.expectError(DecodeError.InvalidInput, validateTail(two_char_tail[0..], variant));
                 try std.testing.expectError(DecodeError.InvalidInput, bytes(two_char_tail[0..], false, variant));
                 try std.testing.expectError(DecodeError.InvalidInput, decodeTail(one_byte_out[0..], two_char_tail[0..], variant));
+                try std.testing.expectError(DecodeError.InvalidInput, decode(one_byte_out[0..], two_char_tail[0..], false, variant));
             }
 
             for (0..64) |raw_c| {
@@ -376,10 +379,13 @@ fn expectExhaustiveTailCanonicality(variant: Variant) !void {
                     try std.testing.expectEqual(@as(usize, 2), try bytes(three_char_tail[0..], false, variant));
                     try std.testing.expectEqual(@as(usize, 2), try decodeTail(two_byte_out[0..], three_char_tail[0..], variant));
                     try std.testing.expectEqualSlices(u8, &expected, two_byte_out[0..]);
+                    try std.testing.expectEqual(@as(usize, 2), try decode(two_byte_out[0..], three_char_tail[0..], false, variant));
+                    try std.testing.expectEqualSlices(u8, &expected, two_byte_out[0..]);
                 } else {
                     try std.testing.expectError(DecodeError.InvalidInput, validateTail(three_char_tail[0..], variant));
                     try std.testing.expectError(DecodeError.InvalidInput, bytes(three_char_tail[0..], false, variant));
                     try std.testing.expectError(DecodeError.InvalidInput, decodeTail(two_byte_out[0..], three_char_tail[0..], variant));
+                    try std.testing.expectError(DecodeError.InvalidInput, decode(two_byte_out[0..], three_char_tail[0..], false, variant));
                 }
             }
         }
