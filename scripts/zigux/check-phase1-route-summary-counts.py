@@ -76,6 +76,29 @@ REQUIRED_ROUTE_LINES = {
     ),
 }
 
+COMPANION_ROUTE_LINES = {
+    "companion_phase1_find_bit_self_test_count": (
+        "Documentation/zigux/phase1-tests-root-review-companion.md",
+        "- `python3 scripts/zigux/check-phase1-find-bit-validator-anchors.py --self-test`",
+        1,
+    ),
+    "companion_phase1_find_bit_count": (
+        "Documentation/zigux/phase1-tests-root-review-companion.md",
+        "- `python3 scripts/zigux/check-phase1-find-bit-validator-anchors.py`",
+        1,
+    ),
+    "companion_phase1_bench_self_test_count": (
+        "Documentation/zigux/phase1-tests-root-review-companion.md",
+        "- `python3 scripts/zigux/check-phase1-bench.py --self-test`",
+        1,
+    ),
+    "companion_phase1_bench_count": (
+        "Documentation/zigux/phase1-tests-root-review-companion.md",
+        "- `python3 scripts/zigux/check-phase1-bench.py`",
+        1,
+    ),
+}
+
 CLOSURE_ROUTE_LINES = {
     "closure_phase1_parity_gate_count": (
         "Documentation/zigux/phase1-closure.md",
@@ -151,6 +174,16 @@ def main() -> int:
         if actual_count != expected_count:
             missing.append(f"{label}:expected={expected_count}:actual={actual_count}")
 
+    for label, (rel, marker, expected_count) in COMPANION_ROUTE_LINES.items():
+        path = ROOT / rel
+        if not path.exists():
+            missing.append(f"{label}:missing_file:{rel}")
+            continue
+        lines = cached_lines.setdefault(rel, read_lines(rel))
+        actual_count = exact_count(lines, marker)
+        if actual_count != expected_count:
+            missing.append(f"{label}:expected={expected_count}:actual={actual_count}")
+
     for label, (rel, marker, expected_count) in CLOSURE_ROUTE_LINES.items():
         path = ROOT / rel
         if not path.exists():
@@ -167,7 +200,7 @@ def main() -> int:
     print("PHASE1_ROUTE_SUMMARY_COUNTS=pass")
     print(
         "PHASE1_ROUTE_SUMMARY_COUNT_TARGETS="
-        f"{len(REQUIRED_MARKERS) + len(REQUIRED_ROUTE_LINES) + len(CLOSURE_ROUTE_LINES)}"
+        f"{len(REQUIRED_MARKERS) + len(REQUIRED_ROUTE_LINES) + len(COMPANION_ROUTE_LINES) + len(CLOSURE_ROUTE_LINES)}"
     )
     return 0
 
@@ -244,6 +277,12 @@ def self_test() -> int:
         REQUIRED_ROUTE_LINES["workflow_phase1_route_summary_self_test_count"][1],
         REQUIRED_ROUTE_LINES["workflow_phase1_route_summary_run_count"][1],
     ]
+    companion_markers = [
+        COMPANION_ROUTE_LINES["companion_phase1_find_bit_self_test_count"][1],
+        COMPANION_ROUTE_LINES["companion_phase1_find_bit_count"][1],
+        COMPANION_ROUTE_LINES["companion_phase1_bench_self_test_count"][1],
+        COMPANION_ROUTE_LINES["companion_phase1_bench_count"][1],
+    ]
     closure_markers = [
         CLOSURE_ROUTE_LINES["closure_phase1_parity_gate_count"][1],
         CLOSURE_ROUTE_LINES["closure_phase1_parity_self_test_gate_count"][1],
@@ -315,6 +354,30 @@ def self_test() -> int:
             workflow_markers[1],
         ),
         (
+            "Documentation/zigux/phase1-tests-root-review-companion.md",
+            companion_markers,
+            "companion_phase1_find_bit_self_test_count",
+            companion_markers[0],
+        ),
+        (
+            "Documentation/zigux/phase1-tests-root-review-companion.md",
+            companion_markers,
+            "companion_phase1_find_bit_count",
+            companion_markers[1],
+        ),
+        (
+            "Documentation/zigux/phase1-tests-root-review-companion.md",
+            companion_markers,
+            "companion_phase1_bench_self_test_count",
+            companion_markers[2],
+        ),
+        (
+            "Documentation/zigux/phase1-tests-root-review-companion.md",
+            companion_markers,
+            "companion_phase1_bench_count",
+            companion_markers[3],
+        ),
+        (
             "Documentation/zigux/phase1-closure.md",
             closure_markers,
             "closure_phase1_parity_gate_count",
@@ -360,6 +423,7 @@ def self_test() -> int:
         write(root / "scripts/zigux/README.md", fixture_text(scripts_markers))
         write(root / "zigux/Makefile", fixture_text(makefile_markers))
         write(root / ".github/workflows/zigux-bootstrap.yml", fixture_text(workflow_markers))
+        write(root / "Documentation/zigux/phase1-tests-root-review-companion.md", fixture_text(companion_markers))
         write(root / "Documentation/zigux/phase1-closure.md", fixture_text(closure_markers))
 
         env = dict(os.environ)
@@ -394,6 +458,11 @@ def self_test() -> int:
                 ".github/workflows/zigux-bootstrap.yml",
                 fixture_text(workflow_markers),
                 "workflow_phase1_route_summary_self_test_count:missing_file:.github/workflows/zigux-bootstrap.yml",
+            ),
+            (
+                "Documentation/zigux/phase1-tests-root-review-companion.md",
+                fixture_text(companion_markers),
+                "companion_phase1_find_bit_self_test_count:missing_file:Documentation/zigux/phase1-tests-root-review-companion.md",
             ),
             (
                 "Documentation/zigux/phase1-closure.md",
