@@ -173,19 +173,19 @@ BUILD_MARKERS = [
 ]
 
 SCRIPTS_README_MARKERS = [
-    "`check-phase13-devres-packet.py` keeps the helper-first `devres` packet and its blocked DMA/scatterlist boundary visible in that same shared Phase 13 release flow instead of leaving the live devres guard implicit in the Makefile wiring and packet-local survey assets.",
+    "that shared Phase 13 release packet keeps `Documentation/zigux/phase13-notifier-list-survey.md`, `Documentation/zigux/phase13-devres-scatterlist-slice.md`, the four roadmap-anchor manifests plus `zigux/tests/phase13_notifier_list_manifest.json`, the direct libfs, devres, coherent-DMA, scatterlist, Landlock ruleset, and Landlock syscalls helper replays, the `iounmap`, `iomap`, wrapper, ruleset-fops-sync, and syscall reviewability gates, `zigux/tests/phase13_notifier_list_reviewability.zig`, `zigux/bindings/notifier_abi.zig`, `include/zigux/notifier_abi.h`, and `zigux/helpers/notifier_chain_view.zig` visible from the scripts root so the contributor packet names the same validator-first evidence bundle as the tests-root and docs-root guides.",
 ]
 
 SCRIPTS_README_EXACT_COUNT_MARKERS = {
-    "`check-phase13-devres-packet.py` keeps the helper-first `devres` packet and its blocked DMA/scatterlist boundary visible in that same shared Phase 13 release flow instead of leaving the live devres guard implicit in the Makefile wiring and packet-local survey assets.": 1,
+    "that shared Phase 13 release packet keeps `Documentation/zigux/phase13-notifier-list-survey.md`, `Documentation/zigux/phase13-devres-scatterlist-slice.md`, the four roadmap-anchor manifests plus `zigux/tests/phase13_notifier_list_manifest.json`, the direct libfs, devres, coherent-DMA, scatterlist, Landlock ruleset, and Landlock syscalls helper replays, the `iounmap`, `iomap`, wrapper, ruleset-fops-sync, and syscall reviewability gates, `zigux/tests/phase13_notifier_list_reviewability.zig`, `zigux/bindings/notifier_abi.zig`, `include/zigux/notifier_abi.h`, and `zigux/helpers/notifier_chain_view.zig` visible from the scripts root so the contributor packet names the same validator-first evidence bundle as the tests-root and docs-root guides.": 1,
 }
 
 REVIEW_CHECKLIST_MARKERS = [
-    "if the change touches the shared Phase 13 release-discipline packet, do `scripts/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/phase13-devres-survey.md`, `zigux/tests/phase13_devres_manifest.json`, `zigux/tests/phase13_devres_dma_coherent.zig`, and `zigux/tests/phase13_devres_reviewability.zig` still keep the scripts-root devres inventory sentence and its adjacent coherent-DMA plus reviewability evidence explicit so reviewer guidance does not drift behind the stricter shared validator contract?",
+    "if the change touches the shared Phase 13 release-discipline packet, do `scripts/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/phase13-devres-survey.md`, `Documentation/zigux/phase13-devres-scatterlist-slice.md`, `zigux/tests/phase13_devres_manifest.json`, `zigux/tests/phase13_devres_dma_coherent.zig`, `zigux/tests/phase13_devres_scatterlist.zig`, and `zigux/tests/phase13_devres_reviewability.zig` still keep the scripts-root devres inventory sentence and its adjacent coherent-DMA, scatterlist, plus reviewability evidence explicit so reviewer guidance does not drift behind the stricter shared validator contract?",
 ]
 
 REVIEW_CHECKLIST_EXACT_COUNT_MARKERS = {
-    "if the change touches the shared Phase 13 release-discipline packet, do `scripts/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/phase13-devres-survey.md`, `zigux/tests/phase13_devres_manifest.json`, `zigux/tests/phase13_devres_dma_coherent.zig`, and `zigux/tests/phase13_devres_reviewability.zig` still keep the scripts-root devres inventory sentence and its adjacent coherent-DMA plus reviewability evidence explicit so reviewer guidance does not drift behind the stricter shared validator contract?": 1,
+    "if the change touches the shared Phase 13 release-discipline packet, do `scripts/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/phase13-devres-survey.md`, `Documentation/zigux/phase13-devres-scatterlist-slice.md`, `zigux/tests/phase13_devres_manifest.json`, `zigux/tests/phase13_devres_dma_coherent.zig`, `zigux/tests/phase13_devres_scatterlist.zig`, and `zigux/tests/phase13_devres_reviewability.zig` still keep the scripts-root devres inventory sentence and its adjacent coherent-DMA, scatterlist, plus reviewability evidence explicit so reviewer guidance does not drift behind the stricter shared validator contract?": 1,
 }
 
 EXPECTED_GAP_STATUS = {
