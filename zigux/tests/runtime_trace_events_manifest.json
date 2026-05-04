@@ -22,7 +22,7 @@
   },
   "review_prompts": [
     "the review packet still keeps the Linux anchor, shipped selftest hook, bounded diagnostics-summary surface, and loader-free blocker explicit by treating `samples/zigux/runtime_trace_events_loader.zig` as a blocked scaffold with no `phase9-runtime-trace-events-loader-tests` target instead of implying a live trace-events loader or ring-buffer parity",
-    "the manifest, survey gate, module gate, diff gate, and survey note still agree on lifecycle stage, registration balance, explicit foo_bar_reg and foo_bar_unreg labels, explicit main-thread and function-thread event totals, latest main-thread and function-thread emitted-event counts, replay run counters, count-gated conditional replay, payload-summary visibility, and the frozen runtime-substrate boundary",
+    "the manifest, survey gate, module gate, diff gate, and survey note still agree on lifecycle stage, registration balance, explicit foo_bar_reg and foo_bar_unreg labels, explicit main-thread and function-thread event totals, latest main-thread and function-thread emitted-event counts, replay run counters, count-gated conditional replay, payload-summary visibility, both initialized-stage and selftest-ready failed-exit rollback, and the frozen runtime-substrate boundary",
     "the manifest-backed delivery catalog and ownership map still keep the sample, loader scaffold, module gate, diff gate, survey gate, shared build entrypoint, survey note, module-slice note, and freeze-map boundary in one reviewable packet",
     "the packet keeps `samples/trace_events/trace-events-sample.h` visible as a header-side macro boundary, records its current surveyed size, and does not turn that survey evidence into a generated tracepoint macro parity claim",
     "the lane still treats `Documentation/zigux/freeze-map.md` as authoritative for the study-only `kernel/trace/ring_buffer.c` boundary and carries no Architecture Council status-change request or parity scorecard claim",
@@ -45,7 +45,7 @@
       "id": "runtime-trace-events-module-gate",
       "kind": "validation",
       "path": "zigux/tests/runtime_trace_events_module.zig",
-      "role": "owns the dedicated lifecycle, summary-surface, and failed-exit rollback checks for the runtime trace-events starter"
+      "role": "owns the dedicated lifecycle, summary-surface, initialized-stage failed-exit rollback checks, and selftest-ready failed-exit rollback checks for the runtime trace-events starter"
     },
     {
       "id": "runtime-trace-events-diff-gate",
@@ -101,7 +101,7 @@
     },
     {
       "surface": "zigux/tests/runtime_trace_events_module.zig",
-      "owns": "dedicated lifecycle, summary-surface, and failed-exit rollback checks for the runtime trace-events starter"
+      "owns": "dedicated lifecycle, summary-surface, initialized-stage failed-exit rollback checks, and selftest-ready failed-exit rollback checks for the runtime trace-events starter"
     },
     {
       "surface": "zigux/tests/runtime_trace_events_diff.zig",
@@ -166,7 +166,7 @@
     {
       "id": "failed-exit-rollback",
       "kind": "rollback_contract",
-      "expected": "error.OutstandingRegistration leaves the module in the initialized stage with registration depth, replay run counters, explicit per-thread event totals, and the latest bounded main-thread and function-thread payload literals intact until the registration is unwound and the selftest-to-exit path resumes"
+      "expected": "error.OutstandingRegistration leaves the module in the initialized stage before selftest and in the selftest_complete stage after shipped selftest replay, preserving registration depth, replay run counters, the explicit 10 main-thread, 4 function-thread, and 14 total-event selftest-ready summary, and the latest bounded main-thread and function-thread payload literals intact until the outstanding registration is unwound and the selftest-to-exit path resumes"
     },
     {
       "id": "trace-header-boundary",
