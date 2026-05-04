@@ -463,6 +463,8 @@ test "runtime atomic64 diff gate keeps lifecycle transitions single-shot" {
     var cold_module = sample.RuntimeAtomic64Sample{};
     try std.testing.expectError(error.InvalidLifecycleTransition, cold_module.runSelftest());
     try std.testing.expectError(error.InvalidLifecycleTransition, cold_module.exit());
+    try std.testing.expectError(error.InvalidLifecycleTransition, cold_module.incNotZeroCounter());
+    try std.testing.expectError(error.InvalidLifecycleTransition, cold_module.decIfPositiveCounter());
 
     var module = sample.RuntimeAtomic64Sample{};
     try module.init(7);
