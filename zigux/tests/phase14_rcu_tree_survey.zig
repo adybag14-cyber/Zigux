@@ -69,7 +69,7 @@ fn findGap(entries: []const Gap, id: []const u8) ?Gap {
     return null;
 }
 
-test "phase 14 rcu tree manifest stays aligned with lane P14-L16 and the memory-ordering audit" {
+test "phase 14 rcu tree manifest stays aligned with lane P14-Y04 and the memory-ordering audit" {
     const allocator = std.testing.allocator;
     const manifest_json = try readFileAlloc(allocator, "zigux/tests/phase14_rcu_tree_manifest.json", 32 * 1024);
     defer allocator.free(manifest_json);
@@ -78,7 +78,7 @@ test "phase 14 rcu tree manifest stays aligned with lane P14-L16 and the memory-
     defer parsed.deinit();
 
     const manifest = parsed.value;
-    try std.testing.expectEqualStrings("P14-L16", manifest.lane_key);
+    try std.testing.expectEqualStrings("P14-Y04", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 14", manifest.phase);
     try std.testing.expectEqualStrings("355b71d89807a217a6b7c405c996cbd623c48ca0", manifest.surveyed_commit);
     try std.testing.expectEqualStrings("kernel/rcu/tree.c", manifest.anchor);
@@ -137,8 +137,8 @@ test "phase 14 rcu tree note, review checklist, and freeze map keep the blocked 
     const parsed = try std.json.parseFromSlice(Manifest, allocator, manifest_json, .{ .ignore_unknown_fields = true });
     defer parsed.deinit();
 
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "bounded Phase 14 survey lane `P14-L16` around `kernel/rcu/tree.c`") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE14_LANE_KEY=P14-L16") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "bounded Phase 14 survey lane `P14-Y04` around `kernel/rcu/tree.c`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE14_LANE_KEY=P14-Y04") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "`kernel/rcu/tree_bridge.zig`: `blocked_on_stay_in_c_evidence`") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "placeholder wrapper") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "rollback owner: `Repo Tooling Pod`") != null);
