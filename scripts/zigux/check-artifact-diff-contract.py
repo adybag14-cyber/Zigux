@@ -409,8 +409,8 @@ def main() -> int:
         ['-h'],
         0,
         [
-            'usage: artifact_diff.py [-h] [--mode {text,json,sha256}]',
-            '                        [--self-test] [expected] [actual]',
+            'usage: artifact_diff.py [-h] [--mode {text,json,sha256}] [--self-test]',
+            '                        [expected] [actual]',
             '',
             'Compare two artifacts in a stable mode.',
             '',
