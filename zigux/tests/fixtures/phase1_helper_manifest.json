@@ -206,7 +206,7 @@
       "prefix_length_unit_test_contract": "Direct Zig unit coverage keeps strHasPrefix and str_has_prefix aligned by returning the matched C-string prefix length for exact and embedded-NUL prefixes while rejecting mismatches and longer prefixes.",
       "suffix_unit_test_anchor": "tools/lib/string.zig:test \"str_ends_with matches kernel suffix semantics\"",
       "suffix_unit_test_contract": "Direct Zig unit coverage keeps strEndsWith, str_ends_with, and strends aligned with kernel-style suffix semantics for exact, empty-suffix, shorter-input, and case-sensitive comparisons.",
-      "memparse_unit_test_anchor": "tools/lib/string.zig:test \"memparse forwards the header-level string helper surface\"",
+      "memparse_unit_test_anchor": "tools/lib/string.zig:test \"memparse preserves the header-level string helper contract\"",
       "memparse_unit_test_contract": "Direct Zig unit coverage keeps memparse aligned by preserving decimal, hexadecimal, suffix-bearing, invalid, and binary-unit-tail inputs including optional trailing B forms without changing the parsed value or rest pointer contract."
     },
     "tools/lib/argv_split.zig": {
