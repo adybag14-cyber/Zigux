@@ -19,6 +19,7 @@ pub const ModuleDescriptor = struct {
     provides_directory_emit_planning: bool,
     provides_directory_cursor_preconditions: bool,
     provides_directory_cursor_reposition_planning: bool,
+    provides_directory_scan_resched_planning: bool,
     provides_directory_close_planning: bool,
     provides_transaction_buffer_planning: bool,
     provides_transaction_read_release_planning: bool,
@@ -166,6 +167,21 @@ pub const CursorRepositionPlan = struct {
     keeps_private_data: bool,
 };
 
+pub const ScanReschedMode = enum {
+    continue_scan,
+    requeue_cursor_behind_current,
+};
+
+pub const ScanReschedPlan = struct {
+    anchor: []const u8,
+    mode: ScanReschedMode,
+    unlinks_existing_cursor: bool,
+    reinserts_cursor_behind_current: bool,
+    resumes_from_cursor_next: bool,
+    drops_parent_lock_for_cond_resched: bool,
+    relocks_parent_after_cond_resched: bool,
+};
+
 pub const DirectoryClosePlan = struct {
     anchor: []const u8,
     returns_zero: bool,
@@ -274,6 +290,7 @@ pub const LibFsHelperLab = struct {
             .provides_directory_emit_planning = true,
             .provides_directory_cursor_preconditions = true,
             .provides_directory_cursor_reposition_planning = true,
+            .provides_directory_scan_resched_planning = true,
             .provides_directory_close_planning = true,
             .provides_transaction_buffer_planning = true,
             .provides_transaction_read_release_planning = true,
@@ -572,6 +589,18 @@ pub const LibFsHelperLab = struct {
             .requires_parent_lock = true,
             .drops_found_reference = true,
             .keeps_private_data = true,
+        };
+    }
+
+    pub fn scanPositivesReschedPlan(cursor_is_hashed: bool, resched_requested: bool) ScanReschedPlan {
+        return .{
+            .anchor = descriptor().anchor,
+            .mode = if (resched_requested) .requeue_cursor_behind_current else .continue_scan,
+            .unlinks_existing_cursor = resched_requested and cursor_is_hashed,
+            .reinserts_cursor_behind_current = resched_requested,
+            .resumes_from_cursor_next = resched_requested,
+            .drops_parent_lock_for_cond_resched = resched_requested,
+            .relocks_parent_after_cond_resched = resched_requested,
         };
     }
 
