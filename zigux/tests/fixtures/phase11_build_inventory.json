@@ -235,7 +235,10 @@
     "test_step.dependOn(&run_phase11_hvc_console_survey_tests.step);"
   ],
   "dedicated_survey_replays": [
-    "zigux/tests/phase11_hvc_console_survey.zig"
+    {
+      "test": "phase11-hvc-console-survey-tests",
+      "path": "zigux/tests/phase11_hvc_console_survey.zig"
+    }
   ],
   "shared_split_replays": [
     {
