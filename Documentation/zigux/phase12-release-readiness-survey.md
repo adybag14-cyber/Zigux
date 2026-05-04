@@ -48,6 +48,7 @@ This survey closes that PMO gap without widening driver scope:
 - the current tranche is active, not closed
 - the release-facing note now also names `python3 scripts/zigux/check-phase12-release-readiness-packet.py --self-test` plus `python3 scripts/zigux/check-phase12-release-readiness-packet.py` as the dedicated PMO packet guard, so this release-coordination note has its own fail-closed review hook instead of relying only on the broader validator and reviewer habit
 - the shared validator-first path remains `python3 scripts/zigux/validate-phase12.py`, `make -C zigux phase12-validate`, `zig build test --build-file zigux/tests/phase12_build.zig --summary all`, and `make -C zigux phase12`
+- when Devbox or a PATH-provided Zig toolchain is unavailable, the same validator-first route still stays explicit through the attached-toolchain fallback commands `make -C zigux phase12-validate PYTHON=python3 ZIG=<attached-zig-path>` and `make -C zigux phase12 ZIG=<attached-zig-path>` instead of forcing ad hoc release-review reruns
 - the non-native compile-smoke packet is an explicit part of the release reading through `Documentation/zigux/phase12-cross-compile-smoke.md`, `python3 scripts/zigux/check-phase12-cross.py --zig <zig-path>`, and `zigux/tests/phase12_cross_build.zig`
 - the public-read fallback posture is intentionally mixed and should stay explicit instead of being inferred from whichever anchor most recently gained a pinned raw catalog
 - the release packet should say plainly which anchors have commit-pinned public fallback artifacts today and which still rely on shared-tree fallback reads only
@@ -142,6 +143,7 @@ The current bounded release-evidence set is:
 
 5. run the make-level validation entrypoint
 - `make -C zigux phase12-validate`
+- attached-toolchain fallback when Devbox or PATH Zig is unavailable: `make -C zigux phase12-validate PYTHON=python3 ZIG=<attached-zig-path>`
 
 6. replay the bounded cross-compile smoke packet
 - `python3 scripts/zigux/check-phase12-cross.py --zig <zig-path>`
@@ -156,6 +158,7 @@ The current bounded release-evidence set is:
 
 9. run the Linux-style combined Phase 12 entrypoint
 - `make -C zigux phase12`
+- attached-toolchain fallback when Devbox or PATH Zig is unavailable: `make -C zigux phase12 ZIG=<attached-zig-path>`
 
 ## Non-goals
 
