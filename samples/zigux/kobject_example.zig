@@ -63,6 +63,19 @@ pub const InitializedExitReplay = struct {
     exited: OwnershipSummary,
 };
 
+pub const PostExitRejectionReplay = struct {
+    exit_summary: ExitSummary,
+    exited: OwnershipSummary,
+    init_rejected: bool,
+    register_rejected: bool,
+    anchor_replay_rejected: bool,
+    initialized_exit_replay_rejected: bool,
+    ownership_replay_rejected: bool,
+    show_rejected: bool,
+    store_rejected: bool,
+    exit_rejected: bool,
+};
+
 pub const SharedDispatchReplay = struct {
     stage_before_replay: SampleStage,
     stage_after_replay: SampleStage,
@@ -121,6 +134,15 @@ const Attribute = enum {
     baz,
     bar,
 };
+
+fn sawInvalidLifecycleTransition(result: anytype) !bool {
+    if (result) |_| {
+        return false;
+    } else |err| {
+        if (err == error.InvalidLifecycleTransition) return true;
+        return err;
+    }
+}
 
 pub const KobjectExampleSample = struct {
     const Self = @This();
@@ -320,6 +342,28 @@ pub const KobjectExampleSample = struct {
             .initialized = initialized,
             .initialized_exit = initialized_exit,
             .exited = exited,
+        };
+    }
+
+    pub fn runPostExitRejectionReplay(self: *Self) !PostExitRejectionReplay {
+        if (self.stage() != .cold) return error.InvalidLifecycleTransition;
+
+        try self.init();
+        try self.registerAttributes();
+        const exit_summary = try self.exit();
+        const exited = self.ownershipSummary();
+
+        return .{
+            .exit_summary = exit_summary,
+            .exited = exited,
+            .init_rejected = try sawInvalidLifecycleTransition(self.init()),
+            .register_rejected = try sawInvalidLifecycleTransition(self.registerAttributes()),
+            .anchor_replay_rejected = try sawInvalidLifecycleTransition(self.runAnchorReplay()),
+            .initialized_exit_replay_rejected = try sawInvalidLifecycleTransition(self.runInitializedExitReplay()),
+            .ownership_replay_rejected = try sawInvalidLifecycleTransition(self.runOwnershipReplay()),
+            .show_rejected = try sawInvalidLifecycleTransition(self.showValue("foo")),
+            .store_rejected = try sawInvalidLifecycleTransition(self.storeValue("foo", "1\n")),
+            .exit_rejected = try sawInvalidLifecycleTransition(self.exit()),
         };
     }
 
@@ -594,29 +638,40 @@ test "kobject sample teardown keeps ownership boundaries explicit" {
     try std.testing.expectError(error.InvalidLifecycleTransition, initialized_sample.showValue("foo"));
     try std.testing.expectError(error.InvalidLifecycleTransition, initialized_sample.storeValue("foo", "1\n"));
     try std.testing.expectError(error.InvalidLifecycleTransition, initialized_sample.exit());
+}
 
-    var registered_sample = KobjectExampleSample{};
-    try registered_sample.init();
-    try registered_sample.registerAttributes();
+test "kobject sample keeps post-exit rejections reviewable through a sample-owned replay" {
+    var sample = KobjectExampleSample{};
+    const replay = try sample.runPostExitRejectionReplay();
 
-    const registered_exit = try registered_sample.exit();
-    try std.testing.expectEqual(SampleStage.registered, registered_exit.stage_before_exit);
-    try std.testing.expectEqual(SampleStage.exited, registered_exit.stage_after_exit);
-    try std.testing.expectEqual(@as(usize, 3), registered_exit.active_attr_count_before_exit);
-    try std.testing.expectEqual(@as(usize, 0), registered_exit.active_attr_count_after_exit);
-    try std.testing.expect(registered_exit.attributes_were_accessible);
-    try std.testing.expectEqual(ExitDisposition.tore_down_registered_attributes, registered_exit.disposition);
-    try std.testing.expectEqual(@as(usize, 1), registered_exit.init_runs);
-    try std.testing.expectEqual(@as(usize, 1), registered_exit.register_runs);
-    try std.testing.expectEqual(@as(usize, 1), registered_exit.exit_runs);
-    try std.testing.expectEqual(@as(i32, 0), registered_sample.foo);
-    try std.testing.expectEqual(@as(i32, 0), registered_sample.baz);
-    try std.testing.expectEqual(@as(i32, 0), registered_sample.bar);
-    try std.testing.expectError(error.InvalidLifecycleTransition, registered_sample.init());
-    try std.testing.expectError(error.InvalidLifecycleTransition, registered_sample.registerAttributes());
-    try std.testing.expectError(error.InvalidLifecycleTransition, registered_sample.runAnchorReplay());
-    try std.testing.expectError(error.InvalidLifecycleTransition, registered_sample.runInitializedExitReplay());
-    try std.testing.expectError(error.InvalidLifecycleTransition, registered_sample.showValue("foo"));
-    try std.testing.expectError(error.InvalidLifecycleTransition, registered_sample.storeValue("foo", "1\n"));
-    try std.testing.expectError(error.InvalidLifecycleTransition, registered_sample.exit());
+    try std.testing.expectEqual(SampleStage.registered, replay.exit_summary.stage_before_exit);
+    try std.testing.expectEqual(SampleStage.exited, replay.exit_summary.stage_after_exit);
+    try std.testing.expectEqual(@as(usize, 3), replay.exit_summary.active_attr_count_before_exit);
+    try std.testing.expectEqual(@as(usize, 0), replay.exit_summary.active_attr_count_after_exit);
+    try std.testing.expect(replay.exit_summary.attributes_were_accessible);
+    try std.testing.expectEqual(ExitDisposition.tore_down_registered_attributes, replay.exit_summary.disposition);
+    try std.testing.expectEqual(@as(usize, 1), replay.exit_summary.init_runs);
+    try std.testing.expectEqual(@as(usize, 1), replay.exit_summary.register_runs);
+    try std.testing.expectEqual(@as(usize, 1), replay.exit_summary.exit_runs);
+
+    try std.testing.expectEqual(SampleStage.exited, replay.exited.stage);
+    try std.testing.expectEqual(@as(usize, 0), replay.exited.active_attr_count);
+    try std.testing.expect(!replay.exited.attributes_are_accessible);
+    try std.testing.expectEqual(@as(usize, 1), replay.exited.init_runs);
+    try std.testing.expectEqual(@as(usize, 1), replay.exited.register_runs);
+    try std.testing.expectEqual(@as(usize, 1), replay.exited.exit_runs);
+    try std.testing.expect(!replay.exited.can_run_anchor_replay);
+    try std.testing.expect(!replay.exited.can_register_attributes);
+    try std.testing.expect(!replay.exited.can_exit);
+    try std.testing.expect(replay.init_rejected);
+    try std.testing.expect(replay.register_rejected);
+    try std.testing.expect(replay.anchor_replay_rejected);
+    try std.testing.expect(replay.initialized_exit_replay_rejected);
+    try std.testing.expect(replay.ownership_replay_rejected);
+    try std.testing.expect(replay.show_rejected);
+    try std.testing.expect(replay.store_rejected);
+    try std.testing.expect(replay.exit_rejected);
+    try std.testing.expectEqual(@as(i32, 0), sample.foo);
+    try std.testing.expectEqual(@as(i32, 0), sample.baz);
+    try std.testing.expectEqual(@as(i32, 0), sample.bar);
 }
