@@ -15,6 +15,7 @@ SCRIPT_PATH = Path(__file__).resolve()
 REQUIRED_FILES = {
     "tests_readme": "zigux/tests/README.md",
     "toolchain_notes": "Documentation/zigux/phase2-toolchain-bootstrap-notes.md",
+    "phase2_closure": "Documentation/zigux/phase2-closure.md",
     "review_checklist": "Documentation/zigux/review-checklist.md",
     "scripts_readme": "scripts/zigux/README.md",
     "phase2_validator": "scripts/zigux/validate-phase2.py",
@@ -55,6 +56,16 @@ TOOLCHAIN_NOTES_MARKERS = [
     "make -C zigux phase2",
     "x86_64-linux",
     "same kbuild-facing replay surface named by the shared validators, the closure note, and the shared review checklist",
+]
+
+PHASE2_CLOSURE_MARKERS = [
+    "Documentation/zigux/phase2-toolchain-bootstrap-notes.md",
+    "zigux/tests/README.md",
+    "python3 scripts/zigux/check-phase2-tests-readme-alignment.py --self-test",
+    "python3 scripts/zigux/check-phase2-tests-readme-alignment.py",
+    "make -C zigux phase2-validate",
+    "make -C zigux phase2",
+    "same three-target compile matrix and kbuild-facing packet",
 ]
 
 REVIEW_CHECKLIST_MARKERS = [
@@ -260,6 +271,7 @@ def validate(root: Path) -> list[str]:
 
     tests_readme = read_text(root, REQUIRED_FILES["tests_readme"])
     toolchain_notes = read_text(root, REQUIRED_FILES["toolchain_notes"])
+    phase2_closure = read_text(root, REQUIRED_FILES["phase2_closure"])
     review_checklist = read_text(root, REQUIRED_FILES["review_checklist"])
     scripts_readme = read_text(root, REQUIRED_FILES["scripts_readme"])
     phase2_validator = read_text(root, REQUIRED_FILES["phase2_validator"])
@@ -273,6 +285,9 @@ def validate(root: Path) -> list[str]:
     for marker in TOOLCHAIN_NOTES_MARKERS:
         if marker not in toolchain_notes:
             missing.append(f"toolchain_notes:{marker}")
+    for marker in PHASE2_CLOSURE_MARKERS:
+        if marker not in phase2_closure:
+            missing.append(f"phase2_closure:{marker}")
     for marker in REVIEW_CHECKLIST_MARKERS:
         if marker not in review_checklist:
             missing.append(f"review_checklist:{marker}")
@@ -311,6 +326,13 @@ def validate(root: Path) -> list[str]:
         validate_exact_command_mentions(
             toolchain_notes,
             label="toolchain_notes",
+            expected_counts=EXACT_DOC_COMMAND_COUNTS,
+        )
+    )
+    missing.extend(
+        validate_exact_command_mentions(
+            phase2_closure,
+            label="phase2_closure",
             expected_counts=EXACT_DOC_COMMAND_COUNTS,
         )
     )
@@ -392,6 +414,24 @@ def clone_fixture_root(destination_root: Path) -> None:
                 "- make -C zigux phase2",
                 "- x86_64-linux",
                 "- same kbuild-facing replay surface named by the shared validators, the closure note, and the shared review checklist",
+                "",
+            ]
+        ),
+    )
+    write_file(
+        destination_root,
+        REQUIRED_FILES["phase2_closure"],
+        "\n".join(
+            [
+                "# Phase 2 Closure",
+                "",
+                "- Documentation/zigux/phase2-toolchain-bootstrap-notes.md",
+                "- zigux/tests/README.md",
+                "- python3 scripts/zigux/check-phase2-tests-readme-alignment.py --self-test",
+                "- python3 scripts/zigux/check-phase2-tests-readme-alignment.py",
+                "- make -C zigux phase2-validate",
+                "- make -C zigux phase2",
+                "- same three-target compile matrix and kbuild-facing packet",
                 "",
             ]
         ),
@@ -498,7 +538,8 @@ def clone_fixture_root(destination_root: Path) -> None:
                 "targets": list(EXPECTED_CROSS_TARGETS),
             },
             indent=2,
-        ) + "\n",
+        )
+        + "\n",
     )
     write_file(
         destination_root,
@@ -649,6 +690,68 @@ def run_self_test() -> int:
         )
         toolchain_notes_path.write_text(original_toolchain_notes, encoding="utf-8")
 
+        phase2_closure_path = tmp_root / REQUIRED_FILES["phase2_closure"]
+        original_phase2_closure = phase2_closure_path.read_text(encoding="utf-8")
+        phase2_closure_path.write_text(
+            original_phase2_closure.replace(
+                "- Documentation/zigux/phase2-toolchain-bootstrap-notes.md\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing(
+            "phase2_closure_toolchain_notes",
+            tmp_root,
+            "phase2_closure:Documentation/zigux/phase2-toolchain-bootstrap-notes.md",
+        )
+        phase2_closure_path.write_text(original_phase2_closure, encoding="utf-8")
+
+        phase2_closure_path.write_text(
+            original_phase2_closure.replace(
+                "- python3 scripts/zigux/check-phase2-tests-readme-alignment.py --self-test\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing(
+            "phase2_closure_tests_readme_self_test",
+            tmp_root,
+            "phase2_closure:python3 scripts/zigux/check-phase2-tests-readme-alignment.py --self-test",
+        )
+        phase2_closure_path.write_text(original_phase2_closure, encoding="utf-8")
+
+        phase2_closure_path.write_text(
+            original_phase2_closure.replace(
+                "- make -C zigux phase2\n",
+                "- make -C zigux phase2-removed\n",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing(
+            "phase2_closure_phase2_make",
+            tmp_root,
+            "phase2_closure:make -C zigux phase2",
+        )
+        phase2_closure_path.write_text(original_phase2_closure, encoding="utf-8")
+
+        phase2_closure_path.write_text(
+            original_phase2_closure.replace(
+                "- same three-target compile matrix and kbuild-facing packet\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing(
+            "phase2_closure_compile_packet",
+            tmp_root,
+            "phase2_closure:same three-target compile matrix and kbuild-facing packet",
+        )
+        phase2_closure_path.write_text(original_phase2_closure, encoding="utf-8")
+
         review_checklist_path = tmp_root / REQUIRED_FILES["review_checklist"]
         original_review_checklist = review_checklist_path.read_text(encoding="utf-8")
         review_checklist_path.write_text(
@@ -785,7 +888,8 @@ def run_self_test() -> int:
                     "targets": list(EXPECTED_CROSS_TARGETS),
                 },
                 indent=2,
-            ) + "\n",
+            )
+            + "\n",
             encoding="utf-8",
         )
         expect_missing(
@@ -804,7 +908,8 @@ def run_self_test() -> int:
                     "targets": ["x86_64-linux-musl", "aarch64-linux-musl"],
                 },
                 indent=2,
-            ) + "\n",
+            )
+            + "\n",
             encoding="utf-8",
         )
         expect_missing(
@@ -973,7 +1078,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE2_TESTS_README_ALIGNMENT_SELF_TEST=pass")
-    print("PHASE2_TESTS_README_ALIGNMENT_SELF_TEST_CASE_COUNT=26")
+    print("PHASE2_TESTS_README_ALIGNMENT_SELF_TEST_CASE_COUNT=30")
     return 0
 
 
