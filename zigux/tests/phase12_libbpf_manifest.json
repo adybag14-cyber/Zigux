@@ -30,7 +30,7 @@
       "python3 scripts/zigux/check-phase12-libbpf-focused-replay.py",
       "python3 scripts/zigux/validate-phase12.py",
       "make -C zigux phase12-validate",
-      "zig build test --build-file zigux/tests/phase12_libbpf_only_build.zig --summary all",
+      "zig build --build-file zigux/tests/phase12_libbpf_only_build.zig phase12-libbpf-focused-replay --summary all",
       "zig build test --build-file zigux/tests/phase12_build.zig --summary all"
     ]
   },
