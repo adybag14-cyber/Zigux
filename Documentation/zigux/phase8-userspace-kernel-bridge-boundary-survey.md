@@ -79,7 +79,7 @@ The current bridge packet now matches the roadmap shape, but it still leaves a b
 
 ## Review gate
 
-The shared review path still follows the same validator-first Phase 8 sequence that current `master` publishes through `zigux/Makefile`: the broader validator self-test runs first, the dedicated validator-route audit plus the dedicated tests-readme alignment checker and the dedicated perf-buffer poll gate checker each keep their self-test and live pass inside the same fail-closed packet, and only then do the focused survey, focused perf-buffer poll shard, and shared build replays run, so this cross-slice boundary note stays tied to the same docs-root, tests-root, Makefile, workflow, and segmented libbpf packet that current `master` already ships.
+The shared review path still follows the same validator-first Phase 8 sequence that current `master` publishes through `zigux/Makefile`: the broader validator self-test runs first, the dedicated validator-route audit plus the dedicated tests-readme alignment checker and the dedicated perf-buffer poll gate checker each keep their self-test and live pass inside the same fail-closed packet, and only then do the focused survey, focused perf-buffer poll shard, shared build replays, and the aggregate `make -C zigux phase8` wrapper run, so this cross-slice boundary note stays tied to the same docs-root, tests-root, Makefile, workflow, and segmented libbpf packet that current `master` already ships.
 
 1. `python3 scripts/zigux/validate-phase8.py --self-test`
 2. `python3 scripts/zigux/check-phase8-validator-flow.py --self-test`
@@ -95,6 +95,7 @@ The shared review path still follows the same validator-first Phase 8 sequence t
 12. `make -C zigux phase8-perf-buffer-poll-test`
 13. `zig build test --build-file zigux/tests/phase8_perf_buffer_poll_only_build.zig --summary all`
 14. `zig build test --build-file zigux/tests/phase8_build.zig --summary all`
+15. `make -C zigux phase8`
 
 `scripts/zigux/check-phase8-validator-flow.py` now stays inside that same published wrapper path instead of sitting beside it, and it currently publishes `PHASE8_VALIDATOR_FLOW_SELF_TEST_CASE_COUNT=15`.
 
