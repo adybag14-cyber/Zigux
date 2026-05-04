@@ -50,8 +50,8 @@ No parity scorecard entry or Architecture Council status-change request is attac
 - the direct sample-local continuity proof now also goes one replay round further after the shipped selftest path, raising the explicit summary to `14` main-thread, `6` function-thread, and `20` total events before `exit()`, and then preserving that stronger post-selftest summary through successful teardown once registration is unwound
 - helper-local and module-gate failed-exit rollback proofs showing that `error.OutstandingRegistration` preserves the current replay summary both before selftest completion and after the shipped selftest path: the initialized-stage path keeps the current counters and payload summary intact until the registration is unwound, and the selftest-ready path preserves the explicit `10` main-thread, `4` function-thread, and `14` total-event summary plus the latest payload literals until unregister and exit complete normally
 - dedicated Phase 9 module and diff tests that assert those lifecycle, registration, diagnostics-summary, explicit per-thread event-total, replay run-counter, and payload-literal expectations through the shared `zigux/tests/phase9_build.zig` gate, with the diff gate now cross-checking the stable replay summary against the concrete main-thread and function-thread payload labels plus the selftest-path `init_runs`, `selftest_runs`, and `exit_runs` counters instead of treating raw payload structs as the only machine-checkable source
-- dedicated Phase 9 module, sample, diff, and manifest coverage wired into the shared `zigux/tests/phase9_build.zig` gate, including `phase9-runtime-trace-events-sample-tests` for the direct selftest and failed-exit rollback proof
-- the bounded `samples/zigux/runtime_trace_events_loader.zig` scaffold now exists as a blocked pre-execution handoff that keeps review-only register/unregister labels, explicit module entry and exit labels, an optional review-only command-name override with empty-name rejection, and the release-without-substrate fallback visible without claiming a shared runtime-loader binding, runtime activation control, or a trace-events loader target in the shared build packet
+- dedicated Phase 9 module, sample, diff, loader, and manifest coverage wired into the shared `zigux/tests/phase9_build.zig` gate, including `phase9-runtime-trace-events-sample-tests` for the direct selftest and failed-exit rollback proof plus `phase9-runtime-trace-events-loader-tests` for the blocked loader scaffold replay
+- the bounded `samples/zigux/runtime_trace_events_loader.zig` scaffold now exists as a blocked pre-execution handoff that keeps review-only register/unregister labels, explicit module entry and exit labels, an optional review-only command-name override with empty-name rejection, and the release-without-substrate fallback visible without claiming a shared runtime-loader binding, runtime activation control, or executable substrate handoff
 
 ## Non-goals
 
@@ -76,7 +76,7 @@ This slice does not yet claim:
 
 2. run the shared Phase 9 build
 - `zig build test --build-file zigux/tests/phase9_build.zig --summary all`
-- this shared build includes `phase9-runtime-trace-events-sample-tests`, `phase9-runtime-trace-events-module-tests`, `phase9-runtime-trace-events-diff-tests`, and `phase9-runtime-trace-events-survey-tests` while still carrying no trace-events loader target
+- this shared build includes `phase9-runtime-trace-events-sample-tests`, `phase9-runtime-trace-events-module-tests`, `phase9-runtime-trace-events-diff-tests`, `phase9-runtime-trace-events-loader-tests`, and `phase9-runtime-trace-events-survey-tests` while shared runtime-loader binding, runtime task ownership, and scheduler-facing substrate work still remain blocked
 
 3. run the convenience target
 - `make -C zigux phase9`
