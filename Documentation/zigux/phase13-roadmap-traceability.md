@@ -70,12 +70,15 @@ Current repo evidence:
 - implementation anchor: `lib/devres.zig`
 - dedicated tests: `zigux/tests/phase13_devres.zig`
 - adjacent coherent-DMA replay: `zigux/tests/phase13_devres_dma_coherent.zig`
+- adjacent scatterlist helper: `lib/devres_scatterlist.zig`
+- adjacent scatterlist replay: `zigux/tests/phase13_devres_scatterlist.zig`
 - reviewability gates: `zigux/tests/phase13_devres_reviewability.zig`, `zigux/tests/phase13_devres_iounmap_reviewability.zig`, `zigux/tests/phase13_devres_iomap_reviewability.zig`, and `zigux/tests/phase13_devres_wrapper_reviewability.zig`
 - manifest: `zigux/tests/phase13_devres_manifest.json`
 - manifest `surveyed_commit`: `aa01b37be5500e6a1e4f959c9fe07f0e39d39bfb`
 - shared build entry: `zigux/tests/phase13_build.zig`
 - slice note: `Documentation/zigux/phase13-devres-slice.md`
 - survey note: `Documentation/zigux/phase13-devres-survey.md`
+- adjacent scatterlist slice note: `Documentation/zigux/phase13-devres-scatterlist-slice.md`
 
 Current lane state recorded in the manifest:
 - landed `phase13-build-gate`
@@ -97,9 +100,12 @@ Current lane state recorded in the manifest:
 - blocked `phase13-devres-live-scatterlist-ownership`
 - blocked `phase13-devres-live-device-tree-walk`
 - blocked `phase13-devres-live-arch-memtype-state`
+- adjacent same-anchor evidence not yet promoted into the manifest-backed packet: the helper-first scatterlist bookkeeping slice in `lib/devres_scatterlist.zig` plus `zigux/tests/phase13_devres_scatterlist.zig`
 
 Traceability summary:
-- this anchor stays roadmap-aligned and manifest-backed, and the helper packet now covers the shared build gate, make target, dedicated slice note, managed ioremap, resource-planner, ioport, direct non-posted wrapper, direct plain/UC/WC/NP ioremap wrapper-family reviewability, and arch write-combine bookkeeping helpers while the shared replay also keeps the adjacent coherent DMA alloc/free bookkeeping evidence visible, all while still refusing to claim live MMIO side effects, live DMA-backed mappings, scatterlist ownership, live device-tree walking, or global arch-memtype mutation.
+- this anchor stays roadmap-aligned and manifest-backed, and the helper packet now covers the shared build gate, make target, dedicated slice note, managed ioremap, resource-planner, ioport, direct non-posted wrapper, direct plain/UC/WC/NP ioremap wrapper-family reviewability, and arch write-combine bookkeeping helpers while the shared replay also keeps the adjacent coherent DMA alloc/free bookkeeping evidence visible.
+- current `master` also already carries a helper-first scatterlist bookkeeping slice beside that manifest-backed packet, but it is not yet named in the devres manifest or shared Phase 13 build; the next honest survey-local follow-up is to integrate that already-landed same-anchor evidence rather than treating scatterlist work as wholly missing or widening into live `sg_*` ownership.
+- even with that adjacent slice present, the devres anchor still refuses to claim live MMIO side effects, live DMA-backed mappings, full scatterlist ownership, live device-tree walking, or global arch-memtype mutation.
 
 ### `security/landlock/ruleset.c`
 
