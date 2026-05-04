@@ -132,9 +132,15 @@ SCRIPTS_README_EXACT_COUNTS = {
 DOCS_ROOT_README_MARKERS = [
     "the active Phase 12 heavy-helper survey packet now also keeps the bounded `tools/lib/bpf/zigux_segments/` helper foundations, the reproducibility snapshot, the focused libbpf-only replay shard rooted in `scripts/zigux/check-phase12-libbpf-focused-replay.py` plus `zigux/tests/phase12_libbpf_only_build.zig`, the still-deferred file-path-and-handle bridge and perf-buffer-online-cpu-routing boundaries, and the blocked object-model, loader, and relocation split visible from the top-level docs index.",
 ]
+DOCS_ROOT_README_EXACT_COUNTS = {
+    DOCS_ROOT_README_MARKERS[0]: 1,
+}
 TESTS_README_MARKERS = [
     "keep `Documentation/zigux/phase12-shared-replay-contract.md`, `zigux/tests/phase12_build.zig`, `zigux/tests/phase12_libbpf_only_build.zig`, `scripts/zigux/check-phase12-libbpf-focused-replay.py`, `scripts/zigux/validate-phase12.py`, and `zigux/tests/phase12_libbpf_manifest.json` aligned so the tests root names the same shared-versus-focused libbpf replay boundary as the docs-root contract note instead of leaving the dedicated shard implied behind the broader shared build inventory.",
 ]
+TESTS_README_EXACT_COUNTS = {
+    TESTS_README_MARKERS[0]: 1,
+}
 REVIEW_CHECKLIST_MARKERS = [
     "if the change touches the focused Phase 12 libbpf-only replay packet, do `python3 scripts/zigux/check-phase12-libbpf-focused-replay.py --self-test`, `scripts/zigux/check-phase12-libbpf-focused-replay.py`, `scripts/zigux/validate-phase12.py`, `zigux/tests/phase12_libbpf_only_build.zig`, `zigux/tests/phase12_libbpf_manifest.json`, `Documentation/zigux/phase12-libbpf-segment-survey.md`, `zigux/Makefile`, and `.github/workflows/zigux-bootstrap.yml` still agree on the same dedicated replay shard, review-note hook, and validator-first rollback path instead of leaving that narrower libbpf gate implied behind the broader packet checks?",
 ]
@@ -257,7 +263,21 @@ def collect_missing(
         )
     )
     missing.extend(collect_marker_misses(docs_root_readme_text, DOCS_ROOT_README_MARKERS, "docs_root_readme"))
+    missing.extend(
+        collect_exact_count_misses(
+            docs_root_readme_text,
+            DOCS_ROOT_README_EXACT_COUNTS,
+            "docs_root_readme_count",
+        )
+    )
     missing.extend(collect_marker_misses(tests_readme_text, TESTS_README_MARKERS, "tests_readme"))
+    missing.extend(
+        collect_exact_count_misses(
+            tests_readme_text,
+            TESTS_README_EXACT_COUNTS,
+            "tests_readme_count",
+        )
+    )
     missing.extend(collect_marker_misses(review_checklist_text, REVIEW_CHECKLIST_MARKERS, "review_checklist"))
     missing.extend(
         collect_exact_count_misses(
@@ -621,6 +641,20 @@ def run_self_test() -> int:
     missing = collect_missing(
         **{
             **base_inputs,
+            "docs_root_readme_text": base_inputs["docs_root_readme_text"]
+            + DOCS_ROOT_README_MARKERS[0]
+            + "\n",
+        }
+    )
+    expect_contains(
+        "docs_root_readme_exact_count_detection",
+        missing,
+        f"docs_root_readme_count:{DOCS_ROOT_README_MARKERS[0]}:expected=1:actual=2",
+    )
+
+    missing = collect_missing(
+        **{
+            **base_inputs,
             "tests_readme_text": base_inputs["tests_readme_text"].replace(
                 TESTS_README_MARKERS[0] + "\n",
                 "",
@@ -632,6 +666,20 @@ def run_self_test() -> int:
         "tests_readme_marker_detection",
         missing,
         f"tests_readme:{TESTS_README_MARKERS[0]}",
+    )
+
+    missing = collect_missing(
+        **{
+            **base_inputs,
+            "tests_readme_text": base_inputs["tests_readme_text"]
+            + TESTS_README_MARKERS[0]
+            + "\n",
+        }
+    )
+    expect_contains(
+        "tests_readme_exact_count_detection",
+        missing,
+        f"tests_readme_count:{TESTS_README_MARKERS[0]}:expected=1:actual=2",
     )
 
     missing = collect_missing(
@@ -807,7 +855,7 @@ def run_self_test() -> int:
     )
 
     print("PHASE12_LIBBPF_FOCUSED_REPLAY_SELF_TEST=pass")
-    print("PHASE12_LIBBPF_FOCUSED_REPLAY_SELF_TEST_CASE_COUNT=31")
+    print("PHASE12_LIBBPF_FOCUSED_REPLAY_SELF_TEST_CASE_COUNT=33")
     return 0
 
 
