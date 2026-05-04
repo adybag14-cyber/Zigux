@@ -21,6 +21,7 @@ PHASE2_CROSS_ALIGNMENT_CHECKER = (
 )
 PHASE2_CROSS_CHECKER = ROOT / "scripts" / "zigux" / "check-phase2-cross.py"
 TOOLCHAIN_PIN_SCOPE_CHECKER = ROOT / "scripts" / "zigux" / "check-phase2-toolchain-pin-scope.py"
+TOOLCHAIN_NOTES = ROOT / "Documentation" / "zigux" / "phase2-toolchain-bootstrap-notes.md"
 CHECK_FIXDEP = ROOT / "scripts" / "zigux" / "check-fixdep-diff.py"
 CHECK_KCONFIG_BRIDGE = ROOT / "scripts" / "zigux" / "check-kconfig-bridge.py"
 WORKFLOW_FILE = ROOT / ".github" / "workflows" / "zigux-bootstrap.yml"
@@ -64,6 +65,7 @@ REQUIRED_PHASE2_FILES = [
     ROOT / "scripts" / "zigux" / "kconfig" / "confdata_bridge.zig",
     WORKFLOW_FILE,
     README_FILE,
+    TOOLCHAIN_NOTES,
     ROOT / "Documentation" / "zigux" / "phase2-closure.md",
     MAKEFILE_FILE,
     PHASE2_TOOL_MANIFEST,
@@ -123,6 +125,18 @@ PHASE2_TOOLCHAIN_PIN_SCOPE_REQUIRED_SOURCE_MARKERS = [
     '"python3 scripts/zigux/install-zig.py --dest .zig-toolchain": 2',
     '"python3 scripts/zigux/check-zig-toolchain.py": 2',
     'EXPECTED_PIN_TARGETS = [',
+]
+PHASE2_TOOLCHAIN_NOTES_REQUIRED_SOURCE_MARKERS = [
+    "scripts/zigux/zig-toolchain-policy.json",
+    "python3 scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test",
+    "python3 scripts/zigux/check-phase2-toolchain-pin-scope.py",
+    "python3 scripts/zigux/validate-phase2.py",
+    "python3 scripts/zigux/validate-phase2-closure.py",
+    "Documentation/zigux/phase2-closure.md",
+    "Documentation/zigux/review-checklist.md",
+    "make -C zigux phase2-validate",
+    "make -C zigux phase2",
+    "x86_64-linux",
 ]
 PHASE2_FIXDEP_REQUIRED_SOURCE_MARKERS = [
     "FIXDEP_SELF_TEST=pass",
@@ -502,6 +516,13 @@ def main() -> int:
             TOOLCHAIN_PIN_SCOPE_CHECKER,
             label="toolchain_pin_scope_checker",
             required_markers=PHASE2_TOOLCHAIN_PIN_SCOPE_REQUIRED_SOURCE_MARKERS,
+        )
+    )
+    issues.extend(
+        validate_source_markers(
+            TOOLCHAIN_NOTES,
+            label="phase2_toolchain_notes",
+            required_markers=PHASE2_TOOLCHAIN_NOTES_REQUIRED_SOURCE_MARKERS,
         )
     )
     issues.extend(
