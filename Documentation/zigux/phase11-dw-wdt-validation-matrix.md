@@ -47,6 +47,11 @@ Without this matrix, the slice and survey named the right boundaries but did not
 - current shared replay wiring on `master` also includes `phase11-dw-wdt-remove-idle-split-tests`, so the shared packet now keeps the dedicated idle remove-time pending-interrupt split aligned with the main driver and survey replays
 - exact shared command:
   - `zig build test --build-file zigux/tests/phase11_build.zig --summary all`
+- published validator-first wrappers:
+  - `make -C zigux phase11-validate`
+  - `make -C zigux phase11`
+- validator-first posture:
+  - run `make -C zigux phase11-validate` before trusting `make -C zigux phase11` or the raw `zig build test --build-file zigux/tests/phase11_build.zig --summary all` replay for this watchdog packet
 - focused driver replay command:
   - `zig test --dep dw_wdt -Mroot=zigux/tests/phase11_dw_wdt.zig -Mdw_wdt=drivers/watchdog/dw_wdt.zig`
 - focused suspend-resume replay command:
