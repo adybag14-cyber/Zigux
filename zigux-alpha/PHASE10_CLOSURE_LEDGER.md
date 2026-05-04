@@ -70,7 +70,7 @@ This focused ledger records the current closure-evidence bundle for the active P
 - `PHASE10_LEDGER_NEXT_STEP=leave_parked_unless_phase10-core-probe-remove-lifecycle_or_phase10-virtio-input-registration-lifecycle_or_phase10-mmio-lifecycle-and-irq-paths_splits_smaller`
 - `PHASE10_LEDGER_BLOCKERS=phase10-core-probe-remove-lifecycle,phase10-virtio-input-registration-lifecycle,phase10-mmio-lifecycle-and-irq-paths`
 - `PHASE10_LEDGER_LANDED_CORE_HELPERS=phase10-config-generation-summary-helper,phase10-config-delivery-disposition-helper,phase10-config-driver-toggle-guard-helper`
-- `PHASE10_LEDGER_LANDED_MMIO_HELPERS=phase10-mmio-register-window-helper,phase10-mmio-queue-register-helper,phase10-mmio-queue-notify-helper,phase10-mmio-queue-address-helper,phase10-mmio-config-window-helper,phase10-mmio-config-write-helper,phase10-mmio-interrupt-ack-helper`
+- `PHASE10_LEDGER_LANDED_MMIO_HELPERS=phase10-mmio-register-window-helper,phase10-mmio-queue-register-helper,phase10-mmio-queue-notify-helper,phase10-mmio-queue-address-helper,phase10-mmio-config-window-helper,phase10-mmio-config-write-helper,phase10-mmio-interrupt-ack-helper,phase10-mmio-probe-preflight-helper`
 
 This ledger stays intentionally narrow. It records the roadmap-backed closure packet and the current parked-next-step posture without claiming queue setup, reset, IRQ parity, DMA, probe or remove lifecycle, or input registration lifecycle parity.
 
@@ -90,7 +90,7 @@ The shared closure note and manifest also keep the roadmap-boundary packet expli
 
 The same freeze-boundary packet keeps `kernel/workqueue.c` and `kernel/trace/ring_buffer.c` in the separate Phase 14 study-only family, so this ledger now records those parked anchors directly instead of leaving them implicit in the companion closure note.
 
-The shared closure manifest, the dedicated MMIO survey gate, the dedicated harness-coverage checker, the shared Phase 10 validator, and the dedicated MMIO survey now agree that the landed MMIO helper ladder reaches bounded interrupt acknowledgement, so this ledger keeps that reviewable helper-and-validation set explicit instead of collapsing the MMIO packet into only its remaining transport blocker.
+The shared closure manifest, the dedicated MMIO survey gate, the dedicated harness-coverage checker, the shared Phase 10 validator, and the dedicated MMIO survey now agree that the landed MMIO helper ladder reaches bounded interrupt acknowledgement plus probe preflight, so this ledger keeps that reviewable helper-and-validation set explicit instead of collapsing the MMIO packet into only its remaining transport blocker.
 
 The exact replay packet for the current closure bundle is:
 
