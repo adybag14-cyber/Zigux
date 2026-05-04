@@ -4,6 +4,7 @@ from __future__ import annotations
 import argparse
 import json
 from pathlib import Path
+import re
 import sys
 import tempfile
 
@@ -15,6 +16,7 @@ CATALOG_PATH = Path("Documentation/zigux/phase6-helper-parity-catalog.md")
 MANIFEST_PATH = Path("zigux/tests/phase6_helper_parity_manifest.json")
 PARITY_SCRIPT_PATH = Path("scripts/zigux/check-phase6-base64-c-parity.py")
 GENERATED_INCLUDE_PATH = Path("zigux/tests/fixtures/phase6_base64_c_generated_cases.inc")
+HEX40 = re.compile(r"^[0-9a-f]{40}$")
 
 SELF_TEST_CASE_COUNT = 10
 PARITY_CASE_COUNT = 122
@@ -22,7 +24,9 @@ VARIANT_ENCODE_VECTORS = 30
 VARIANT_DECODE_VECTORS = 20
 PERF_PAYLOAD_CASES = 2
 PERF_REPLAY_CASES = 10
-CATALOG_EVIDENCE_SELF_TEST_CASE_COUNT = 16
+CATALOG_EVIDENCE_SELF_TEST_CASE_COUNT = 20
+SELF_TEST_HEAD = "c0b506e3254e63fe007a72d420bb275846a89093"
+SELF_TEST_MUTATED_HEAD = "43d3dea8cb01acef8a348e899e763b23bc0a2446"
 
 CATALOG_MARKERS = [
     "shared packet posture: parked after the current helper-local parity and perf surface cleared the bounded Phase 6 goal",
@@ -39,7 +43,7 @@ CATALOG_DETERMINISM_MARKERS = [
 ]
 
 CATALOG_REVIEW_MARKERS = [
-    "`python3 scripts/zigux/check-phase6-base64-catalog-evidence.py --self-test` and `python3 scripts/zigux/check-phase6-base64-catalog-evidence.py` now keep the shared base64 review packet fail-closed on the exact parked shared-packet posture, the 30 variant encode vectors, 20 variant decode vectors, `PHASE6_BASE64_C_PARITY_SELF_TEST_CASE_COUNT=10`, and `PHASE6_BASE64_C_PARITY_CASES=122` evidence recorded across this catalog, `zigux/tests/phase6_helper_parity_manifest.json`, and `scripts/zigux/check-phase6-base64-c-parity.py`.",
+    "`python3 scripts/zigux/check-phase6-base64-catalog-evidence.py --self-test` and `python3 scripts/zigux/check-phase6-base64-catalog-evidence.py` now keep the shared base64 review packet fail-closed on the catalog `verified head`, the manifest `surveyed_commit`, the exact parked shared-packet posture, the 30 variant encode vectors, 20 variant decode vectors, `PHASE6_BASE64_C_PARITY_SELF_TEST_CASE_COUNT=10`, and `PHASE6_BASE64_C_PARITY_CASES=122` evidence recorded across this catalog, `zigux/tests/phase6_helper_parity_manifest.json`, and `scripts/zigux/check-phase6-base64-c-parity.py`.",
 ]
 
 PARITY_SCRIPT_MARKERS = [
@@ -59,6 +63,13 @@ def read_text(root: Path, relpath: Path) -> str:
     return (root / relpath).read_text(encoding="utf-8")
 
 
+def parse_catalog_head(catalog: str) -> str | None:
+    for line in catalog.splitlines():
+        if line.startswith("- verified head: `") and line.endswith("`"):
+            return line[len("- verified head: `") : -1]
+    return None
+
+
 def validate(root: Path) -> list[str]:
     missing: list[str] = []
 
@@ -72,6 +83,12 @@ def validate(root: Path) -> list[str]:
         missing.append(f"generated_artifact_present:{GENERATED_INCLUDE_PATH.as_posix()}")
 
     catalog = read_text(root, CATALOG_PATH)
+    catalog_head = parse_catalog_head(catalog)
+    if catalog_head is None:
+        missing.append("catalog:verified_head")
+    elif not HEX40.fullmatch(catalog_head):
+        missing.append("catalog:verified_head_invalid")
+
     for marker in CATALOG_MARKERS:
         if marker not in catalog:
             missing.append(f"catalog:missing:{marker}")
@@ -91,6 +108,12 @@ def validate(root: Path) -> list[str]:
             missing.append(f"parity_script:missing:{marker}")
 
     manifest = json.loads(read_text(root, MANIFEST_PATH))
+    surveyed_commit = manifest.get("surveyed_commit")
+    if not isinstance(surveyed_commit, str) or not HEX40.fullmatch(surveyed_commit):
+        missing.append("manifest:surveyed_commit")
+    elif catalog_head is not None and HEX40.fullmatch(catalog_head) and surveyed_commit != catalog_head:
+        missing.append("manifest:surveyed_commit_mismatch")
+
     base64 = manifest.get("determinism_evidence", {}).get("base64", {})
     if base64.get("variant_encode_vectors") != VARIANT_ENCODE_VECTORS:
         missing.append("manifest:base64:variant_encode_vectors")
@@ -136,7 +159,14 @@ def build_self_test_tree(root: Path) -> None:
         root,
         CATALOG_PATH,
         "\n".join(
-            ["# x", *CATALOG_MARKERS, *CATALOG_FIXTURE_MARKERS, *CATALOG_DETERMINISM_MARKERS, *CATALOG_REVIEW_MARKERS]
+            [
+                "# x",
+                f"- verified head: `{SELF_TEST_HEAD}`",
+                *CATALOG_MARKERS,
+                *CATALOG_FIXTURE_MARKERS,
+                *CATALOG_DETERMINISM_MARKERS,
+                *CATALOG_REVIEW_MARKERS,
+            ]
         )
         + "\n",
     )
@@ -146,6 +176,7 @@ def build_self_test_tree(root: Path) -> None:
         MANIFEST_PATH,
         json.dumps(
             {
+                "surveyed_commit": SELF_TEST_HEAD,
                 "determinism_evidence": {
                     "base64": {
                         "variant_encode_vectors": VARIANT_ENCODE_VECTORS,
@@ -188,19 +219,19 @@ def run_self_test() -> int:
             count += 1
 
             build_self_test_tree(root)
-            write(root, CATALOG_PATH, "\n".join(["# x", *CATALOG_MARKERS, *CATALOG_FIXTURE_MARKERS, *CATALOG_DETERMINISM_MARKERS]) + "\n")
+            write(root, CATALOG_PATH, "\n".join(["# x", f"- verified head: `{SELF_TEST_HEAD}`", *CATALOG_MARKERS, *CATALOG_FIXTURE_MARKERS, *CATALOG_DETERMINISM_MARKERS]) + "\n")
             if f"catalog_review:missing:{CATALOG_REVIEW_MARKERS[0]}" not in validate(root):
                 raise AssertionError("missing catalog review marker failure")
             count += 1
 
             build_self_test_tree(root)
-            write(root, CATALOG_PATH, "\n".join(["# x", *CATALOG_MARKERS, *CATALOG_DETERMINISM_MARKERS, *CATALOG_REVIEW_MARKERS]) + "\n")
+            write(root, CATALOG_PATH, "\n".join(["# x", f"- verified head: `{SELF_TEST_HEAD}`", *CATALOG_MARKERS, *CATALOG_DETERMINISM_MARKERS, *CATALOG_REVIEW_MARKERS]) + "\n")
             if f"catalog_fixture:missing:{CATALOG_FIXTURE_MARKERS[0]}" not in validate(root):
                 raise AssertionError("missing catalog fixture marker failure")
             count += 1
 
             build_self_test_tree(root)
-            write(root, CATALOG_PATH, "\n".join(["# x", *CATALOG_MARKERS, *CATALOG_FIXTURE_MARKERS, *CATALOG_REVIEW_MARKERS]) + "\n")
+            write(root, CATALOG_PATH, "\n".join(["# x", f"- verified head: `{SELF_TEST_HEAD}`", *CATALOG_MARKERS, *CATALOG_FIXTURE_MARKERS, *CATALOG_REVIEW_MARKERS]) + "\n")
             if f"catalog_determinism:missing:{CATALOG_DETERMINISM_MARKERS[0]}" not in validate(root):
                 raise AssertionError("missing catalog determinism marker failure")
             count += 1
@@ -289,6 +320,36 @@ def run_self_test() -> int:
                 raise AssertionError("missing manifest file failure")
             count += 1
 
+            build_self_test_tree(root)
+            catalog = root / CATALOG_PATH
+            catalog.write_text("# x\n", encoding="utf-8")
+            if "catalog:verified_head" not in validate(root):
+                raise AssertionError("missing catalog head failure")
+            count += 1
+
+            build_self_test_tree(root)
+            catalog = root / CATALOG_PATH
+            catalog.write_text("# x\n- verified head: `not-a-sha`\n", encoding="utf-8")
+            if "catalog:verified_head_invalid" not in validate(root):
+                raise AssertionError("missing invalid catalog head failure")
+            count += 1
+
+            build_self_test_tree(root)
+            manifest = json.loads(read_text(root, MANIFEST_PATH))
+            manifest["surveyed_commit"] = "not-a-sha"
+            write(root, MANIFEST_PATH, json.dumps(manifest, indent=2) + "\n")
+            if "manifest:surveyed_commit" not in validate(root):
+                raise AssertionError("missing manifest surveyed-commit failure")
+            count += 1
+
+            build_self_test_tree(root)
+            manifest = json.loads(read_text(root, MANIFEST_PATH))
+            manifest["surveyed_commit"] = SELF_TEST_MUTATED_HEAD
+            write(root, MANIFEST_PATH, json.dumps(manifest, indent=2) + "\n")
+            if "manifest:surveyed_commit_mismatch" not in validate(root):
+                raise AssertionError("missing manifest surveyed-commit mismatch failure")
+            count += 1
+
             if count != CATALOG_EVIDENCE_SELF_TEST_CASE_COUNT:
                 raise AssertionError(
                     f"expected {CATALOG_EVIDENCE_SELF_TEST_CASE_COUNT} self-test cases, got {count}"
@@ -325,7 +386,9 @@ def main(argv: list[str] | None = None) -> int:
         print("PHASE6_BASE64_CATALOG_EVIDENCE_MISSING_END")
         return 1
 
+    manifest = json.loads(read_text(ROOT, MANIFEST_PATH))
     print("PHASE6_BASE64_CATALOG_EVIDENCE=pass")
+    print(f"PHASE6_BASE64_CATALOG_VERIFIED_HEAD={manifest['surveyed_commit']}")
     print(f"PHASE6_BASE64_C_PARITY_SELF_TEST_CASE_COUNT={SELF_TEST_CASE_COUNT}")
     print(f"PHASE6_BASE64_C_PARITY_CASES={PARITY_CASE_COUNT}")
     return 0
