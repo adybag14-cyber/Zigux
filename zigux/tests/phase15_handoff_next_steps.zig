@@ -118,7 +118,6 @@ test "phase 15 handoff manifest records the parked governance contract" {
         .{manifest.surveyed_commit},
     );
     defer std.testing.allocator.free(handoff_provenance);
-
     try std.testing.expect(std.mem.indexOf(u8, handoff_note, handoff_provenance) != null);
 
     try std.testing.expect(manifest.repo_evidence.freeze_map_governance_present);
@@ -160,6 +159,7 @@ test "phase 15 handoff manifest records the parked governance contract" {
     try std.testing.expect(std.mem.indexOf(u8, manifest.pending_next_steps[0], "named reopen trigger") != null);
     try std.testing.expect(std.mem.indexOf(u8, manifest.pending_next_steps[1], "packet-local inside") != null);
     try std.testing.expect(std.mem.indexOf(u8, manifest.pending_next_steps[1], "phase15-freeze-map-governance.md") != null);
+    try std.testing.expect(std.mem.indexOf(u8, manifest.pending_next_steps[1], "refresh that dedicated parity-scorecard packet first") != null);
     try std.testing.expect(std.mem.indexOf(u8, manifest.pending_next_steps[1], "return to this handoff lane only") != null);
     try std.testing.expect(std.mem.indexOf(u8, manifest.pending_next_steps[2], "python3 scripts/zigux/check-phase15-review-process-handoff.py --self-test") != null);
     try std.testing.expect(std.mem.indexOf(u8, manifest.pending_next_steps[2], "python3 scripts/zigux/check-phase15-review-process-handoff.py") != null);
@@ -216,7 +216,11 @@ test "phase 15 handoff note keeps the open gaps and parked next steps explicit" 
     try std.testing.expect(std.mem.indexOf(u8, handoff_note, "shared bootstrap workflow still runs `Run Phase 15 governance tests`") != null);
     try std.testing.expect(std.mem.indexOf(u8, handoff_note, "docs-root release evidence now matches the dedicated maintenance packet") != null);
     try std.testing.expect(std.mem.indexOf(u8, handoff_note, "phase15-docs-root-summary-alignment") != null);
+    try std.testing.expect(std.mem.indexOf(u8, handoff_note, "phase15-current-master-parity-scorecard-validator-drift-followup") != null);
     try std.testing.expect(std.mem.indexOf(u8, handoff_note, "phase15-deep-core-status-change-blocker") != null);
+    try std.testing.expect(std.mem.indexOf(u8, handoff_note, "P15-L04") != null);
+    try std.testing.expect(std.mem.indexOf(u8, handoff_note, "P15-Y03") != null);
+    try std.testing.expect(std.mem.indexOf(u8, handoff_note, "current-`master` replay should be treated as drifted rather than fully trustworthy") != null);
     try std.testing.expect(std.mem.indexOf(u8, handoff_note, "python3 scripts/zigux/check-phase15-review-process-handoff.py --self-test") != null);
     try std.testing.expect(std.mem.indexOf(u8, handoff_note, "python3 scripts/zigux/check-phase15-review-process-handoff.py") != null);
     try std.testing.expect(std.mem.indexOf(u8, handoff_note, "focused handoff-checker route") != null);
@@ -231,7 +235,5 @@ test "phase 15 handoff note keeps the open gaps and parked next steps explicit" 
     try std.testing.expect(std.mem.indexOf(u8, handoff_note, "phase15-review-process-replay-drift") == null);
 
     try std.testing.expect(std.mem.indexOf(u8, docs_readme, "Documentation/zigux/phase15-handoff-next-steps-survey.md") != null);
-    try std.testing.expect(std.mem.indexOf(u8, docs_readme, "only remaining blocked work is the deep-core status-change evidence") != null);
-    try std.testing.expect(std.mem.indexOf(u8, docs_readme, "remaining broader replay drift on current `master`") == null);
     try std.testing.expect(std.mem.indexOf(u8, workflow, "Run Phase 15 governance tests") != null);
 }
