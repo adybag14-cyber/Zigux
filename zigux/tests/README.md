@@ -161,6 +161,7 @@ Key entrypoints
 - `zigux/tests/phase11_hvc_console_manifest.json`
 - `zigux/tests/phase11_hvc_console_survey.zig`
 - `zigux/tests/phase11_uapi_header_parity_manifest.json`
+- `zigux/tests/phase11_uapi_header_parity_survey.zig`
 - `zigux/tests/fixtures/phase11_build_inventory.json`
 - `Documentation/zigux/phase13-release-notes-survey.md`
 - `Documentation/zigux/phase13-roadmap-traceability.md`
