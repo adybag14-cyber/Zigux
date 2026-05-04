@@ -17,6 +17,7 @@ required_files = [
     ROOT / 'scripts' / 'zigux' / 'README.md',
     ROOT / 'scripts' / 'zigux' / 'check-zig-toolchain.py',
     ROOT / 'scripts' / 'zigux' / 'check-phase2-toolchain-pin-scope.py',
+    ROOT / 'scripts' / 'zigux' / 'check-phase2-tests-readme-alignment.py',
     ROOT / 'scripts' / 'zigux' / 'install-zig.py',
     ROOT / 'scripts' / 'zigux' / 'zig-toolchain-policy.json',
     ROOT / 'scripts' / 'zigux' / 'validate-phase2.py',
@@ -366,6 +367,9 @@ if missing_installer_markers:
 phase2_validator = (ROOT / 'scripts' / 'zigux' / 'validate-phase2.py').read_text(encoding='utf-8')
 required_phase2_validator_markers = [
     'TOOLCHAIN_PIN_SCOPE_CHECKER = ROOT / "scripts" / "zigux" / "check-phase2-toolchain-pin-scope.py"',
+    'PHASE2_TESTS_README_ALIGNMENT_CHECKER = (',
+    'label="phase2_tests_readme",',
+    'str(PHASE2_TESTS_README_ALIGNMENT_CHECKER)',
     '"PHASE2_TOOLCHAIN_PIN_SCOPE_SELF_TEST=pass"',
     '"PHASE2_TOOLCHAIN_PIN_SCOPE=pass"',
     'str(TOOLCHAIN_PIN_SCOPE_CHECKER)',
@@ -409,6 +413,8 @@ scripts_readme = (ROOT / 'scripts' / 'zigux' / 'README.md').read_text(encoding='
 required_scripts_readme_pin_scope_markers = [
     'check-phase2-toolchain-pin-scope.py --self-test',
     'check-phase2-toolchain-pin-scope.py',
+    'check-phase2-tests-readme-alignment.py --self-test',
+    'check-phase2-tests-readme-alignment.py',
     'zig-toolchain-policy.json',
     'x86_64-linux',
 ]
@@ -429,6 +435,8 @@ phase2_toolchain_notes = (
 required_phase2_toolchain_notes_markers = [
     'check-phase2-toolchain-pin-scope.py --self-test',
     'check-phase2-toolchain-pin-scope.py',
+    'check-phase2-tests-readme-alignment.py --self-test',
+    'check-phase2-tests-readme-alignment.py',
     'zig-toolchain-policy.json',
     'x86_64-linux',
     'install-zig.py --dest .zig-toolchain',
@@ -449,6 +457,8 @@ required_phase2_closure_markers = [
     'scripts/zigux/zig-toolchain-policy.json',
     'scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test',
     'scripts/zigux/check-phase2-toolchain-pin-scope.py',
+    'scripts/zigux/check-phase2-tests-readme-alignment.py --self-test',
+    'scripts/zigux/check-phase2-tests-readme-alignment.py',
     'x86_64-linux',
     'PHASE2_TOOLCHAIN_PIN_SCOPE_POLICY=',
 ]
@@ -563,6 +573,80 @@ if phase2_pin_scope_makefile_count_issues:
     for issue in phase2_pin_scope_makefile_count_issues:
         print(issue)
     print('MISSING_PHASE2_PIN_SCOPE_BOOTSTRAP_MAKEFILE_COUNTS_END')
+    sys.exit(1)
+
+phase2_tests_readme_workflow_exact_counts = {
+    'workflow:step:Self-test Phase 2 tests README alignment checker': 1,
+    'workflow:step:Check Phase 2 tests README alignment': 1,
+    'workflow:run:python3 scripts/zigux/check-phase2-tests-readme-alignment.py --self-test': 1,
+    'workflow:run:python3 scripts/zigux/check-phase2-tests-readme-alignment.py': 1,
+}
+phase2_tests_readme_workflow_observed_counts = {
+    'workflow:step:Self-test Phase 2 tests README alignment checker': workflow.count(
+        'Self-test Phase 2 tests README alignment checker'
+    ),
+    'workflow:step:Check Phase 2 tests README alignment': workflow.count(
+        'Check Phase 2 tests README alignment'
+    ),
+    'workflow:run:python3 scripts/zigux/check-phase2-tests-readme-alignment.py --self-test': len(
+        re.findall(
+            r'^\s*run:\s+python3 scripts/zigux/check-phase2-tests-readme-alignment\.py --self-test\s*$',
+            workflow,
+            flags=re.MULTILINE,
+        )
+    ),
+    'workflow:run:python3 scripts/zigux/check-phase2-tests-readme-alignment.py': len(
+        re.findall(
+            r'^\s*run:\s+python3 scripts/zigux/check-phase2-tests-readme-alignment\.py\s*$',
+            workflow,
+            flags=re.MULTILINE,
+        )
+    ),
+}
+phase2_tests_readme_workflow_count_issues = [
+    f'{key}={phase2_tests_readme_workflow_observed_counts[key]},expected={expected}'
+    for key, expected in phase2_tests_readme_workflow_exact_counts.items()
+    if phase2_tests_readme_workflow_observed_counts[key] != expected
+]
+if phase2_tests_readme_workflow_count_issues:
+    print('BOOTSTRAP_VALIDATION=fail')
+    print('MISSING_PHASE2_TESTS_README_BOOTSTRAP_WORKFLOW_COUNTS_START')
+    for issue in phase2_tests_readme_workflow_count_issues:
+        print(issue)
+    print('MISSING_PHASE2_TESTS_README_BOOTSTRAP_WORKFLOW_COUNTS_END')
+    sys.exit(1)
+
+phase2_tests_readme_makefile_exact_counts = {
+    'makefile:run:scripts/zigux/check-phase2-tests-readme-alignment.py --self-test': 1,
+    'makefile:run:scripts/zigux/check-phase2-tests-readme-alignment.py': 1,
+}
+phase2_tests_readme_makefile_observed_counts = {
+    'makefile:run:scripts/zigux/check-phase2-tests-readme-alignment.py --self-test': len(
+        re.findall(
+            r'^\s*cd \$\(ZIGUX_ROOT\) && \$\(PYTHON\) scripts/zigux/check-phase2-tests-readme-alignment\.py --self-test\s*$',
+            makefile,
+            flags=re.MULTILINE,
+        )
+    ),
+    'makefile:run:scripts/zigux/check-phase2-tests-readme-alignment.py': len(
+        re.findall(
+            r'^\s*cd \$\(ZIGUX_ROOT\) && \$\(PYTHON\) scripts/zigux/check-phase2-tests-readme-alignment\.py\s*$',
+            makefile,
+            flags=re.MULTILINE,
+        )
+    ),
+}
+phase2_tests_readme_makefile_count_issues = [
+    f'{key}={phase2_tests_readme_makefile_observed_counts[key]},expected={expected}'
+    for key, expected in phase2_tests_readme_makefile_exact_counts.items()
+    if phase2_tests_readme_makefile_observed_counts[key] != expected
+]
+if phase2_tests_readme_makefile_count_issues:
+    print('BOOTSTRAP_VALIDATION=fail')
+    print('MISSING_PHASE2_TESTS_README_BOOTSTRAP_MAKEFILE_COUNTS_START')
+    for issue in phase2_tests_readme_makefile_count_issues:
+        print(issue)
+    print('MISSING_PHASE2_TESTS_README_BOOTSTRAP_MAKEFILE_COUNTS_END')
     sys.exit(1)
 
 phase2_shared_validation_workflow_exact_counts = {
