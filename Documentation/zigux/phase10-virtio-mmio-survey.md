@@ -6,6 +6,7 @@ This document tracks the bounded Phase 10 survey lane around `drivers/virtio/vir
 
 - `PHASE10_STATUS=active`
 - `PHASE10_SLICE=virtio-mmio-survey`
+- lane: `P10-L18`
 - scope: survey manifest, dedicated survey gate, shared Phase 10 build wiring, and a lane-level note that records what is present in the live repo plus the remaining MMIO transport gap against the roadmap, including the bounded transport-identity snapshots, register-window, queue-register, queue-notify, queue-address, config-window, config-write, interrupt-ack, and probe-preflight helpers
 - product boundary:
   - `zigux/tests/phase10_virtio_mmio_manifest.json`
