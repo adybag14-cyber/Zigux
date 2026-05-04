@@ -10,6 +10,22 @@ test "runtime bitmap sample advertises the bounded pilot-module contract" {
     try std.testing.expect(descriptor.provides_selftest_hook);
 }
 
+test "runtime bitmap sample keeps the public review contract explicit at the module boundary" {
+    const expected_focus = sample.sample_review_focus;
+    const expected_non_goals = sample.sample_review_non_goals;
+    const contract = sample.RuntimeBitmapSample.reviewContract();
+
+    try std.testing.expectEqual(@as(usize, expected_focus.len), contract.focus.len);
+    for (expected_focus, contract.focus) |expected, actual| {
+        try std.testing.expectEqual(expected, actual);
+    }
+
+    try std.testing.expectEqual(@as(usize, expected_non_goals.len), contract.non_goals.len);
+    for (expected_non_goals, contract.non_goals) |expected, actual| {
+        try std.testing.expectEqualStrings(expected, actual);
+    }
+}
+
 test "runtime bitmap sample enforces lifecycle transitions and bitmap mutations" {
     var module = sample.RuntimeBitmapSample{};
     const second_word_base = sample.RuntimeBitmapSample.bitmap_nbits / 2;
