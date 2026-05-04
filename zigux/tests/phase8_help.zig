@@ -255,6 +255,7 @@ test "phase 8 help docs keep the parked stable-output boundary explicit" {
     try expectContains(slice_note, "tools/lib/subcmd/help.zig");
     try expectContains(slice_note, "zigux/tests/phase8_help.zig");
     try expectContains(slice_note, "zigux/tests/phase8_help_only_build.zig");
+    try expectContains(slice_note, "zigux/tests/phase8_help_kallsyms_only_build.zig");
     try expectContains(slice_note, "stable command-list manipulation logic");
     try expectContains(slice_note, "Pure writer-driven output emission remains in scope here");
     try expectContains(slice_note, "without widening into terminal, environment, or CLI side effects");
