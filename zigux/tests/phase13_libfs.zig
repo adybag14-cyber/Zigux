@@ -17,6 +17,7 @@ test "phase13 libfs exposes the statfs starter anchored to libfs.c" {
     try std.testing.expect(descriptor.provides_transaction_buffer_planning);
     try std.testing.expect(descriptor.provides_transaction_read_release_planning);
     try std.testing.expect(descriptor.provides_open_private_data_planning);
+    try std.testing.expect(descriptor.provides_addressability_planning);
     try std.testing.expect(!descriptor.touches_live_dcache);
     try std.testing.expect(!descriptor.touches_live_inode_state);
 
@@ -439,4 +440,44 @@ test "phase13 libfs simple open planning keeps inode-private handoff explicit" {
     try std.testing.expectEqual(libfs.SimpleOpenPrivateDataSource.unchanged, untouched.private_data_source);
     try std.testing.expect(untouched.returns_zero);
     try std.testing.expect(!untouched.stores_inode_private_data);
+}
+
+test "phase13 libfs generic_check_addressable planning keeps empty and valid filesystems explicit" {
+    const empty = libfs.LibFsHelperLab.genericCheckAddressablePlan(libfs.sector_shift, 0, .{});
+    try std.testing.expectEqualStrings("fs/libfs.c", empty.anchor);
+    try std.testing.expectEqual(libfs.AddressabilityStatus.empty_filesystem, empty.status);
+    try std.testing.expectEqual(@as(u64, 0), empty.last_fs_block);
+    try std.testing.expectEqual(@as(u64, 0), empty.last_fs_page);
+
+    const valid = libfs.LibFsHelperLab.genericCheckAddressablePlan(libfs.page_shift, 1024, .{});
+    try std.testing.expectEqual(libfs.AddressabilityStatus.addressable, valid.status);
+    try std.testing.expectEqual(@as(u64, 1023), valid.last_fs_block);
+    try std.testing.expectEqual(@as(u64, 1023), valid.last_fs_page);
+    try std.testing.expectEqual(std.math.maxInt(u64) >> 3, valid.sector_index_limit);
+    try std.testing.expectEqual(std.math.maxInt(u64), valid.page_index_limit);
+}
+
+test "phase13 libfs generic_check_addressable planning rejects invalid bits and tiny synthetic limits" {
+    const invalid_low = libfs.LibFsHelperLab.genericCheckAddressablePlan(8, 1, .{});
+    try std.testing.expectEqual(libfs.AddressabilityStatus.invalid_blocksize, invalid_low.status);
+
+    const invalid_high = libfs.LibFsHelperLab.genericCheckAddressablePlan(13, 1, .{});
+    try std.testing.expectEqual(libfs.AddressabilityStatus.invalid_blocksize, invalid_high.status);
+
+    const sector_overflow = libfs.LibFsHelperLab.genericCheckAddressablePlan(12, 8193, .{
+        .sector_index_bits = 16,
+        .page_index_bits = 16,
+    });
+    try std.testing.expectEqual(libfs.AddressabilityStatus.too_large_for_sector_index, sector_overflow.status);
+    try std.testing.expectEqual(@as(u64, 8192), sector_overflow.last_fs_block);
+    try std.testing.expectEqual(@as(u64, 8191), sector_overflow.sector_index_limit);
+
+    const page_overflow = libfs.LibFsHelperLab.genericCheckAddressablePlan(9, 129, .{
+        .sector_index_bits = 32,
+        .page_index_bits = 4,
+    });
+    try std.testing.expectEqual(libfs.AddressabilityStatus.too_large_for_page_index, page_overflow.status);
+    try std.testing.expectEqual(@as(u64, 128), page_overflow.last_fs_block);
+    try std.testing.expectEqual(@as(u64, 16), page_overflow.last_fs_page);
+    try std.testing.expectEqual(@as(u64, 15), page_overflow.page_index_limit);
 }
