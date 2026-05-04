@@ -8,7 +8,6 @@ import sys
 import tempfile
 
 
-DEFAULT_ROOT = Path(__file__).resolve().parent
 SCRIPT_PATH = Path(__file__).resolve()
 
 REQUIRED_FILES = {
@@ -125,6 +124,10 @@ WORKFLOW_MARKERS = [
 ]
 
 
+def repo_root_from_script(script_path: Path) -> Path:
+    return script_path.resolve().parents[2]
+
+
 def resolve_root() -> Path:
     args = sys.argv[1:]
     if "--root" in args:
@@ -136,7 +139,7 @@ def resolve_root() -> Path:
     env_root = os.environ.get("ZIGUX_PHASE2_ROOT")
     if env_root:
         return Path(env_root).resolve()
-    return DEFAULT_ROOT
+    return repo_root_from_script(SCRIPT_PATH)
 
 
 def read_text(root: Path, rel_path: str) -> str:
@@ -211,7 +214,7 @@ def validate(root: Path) -> list[str]:
 
 def run_validator(root: Path) -> subprocess.CompletedProcess[str]:
     return subprocess.run(
-        [sys.executable, str(root / "scripts/zigux/check-phase2-tests-readme-alignment.py"), "--root", str(root)],
+        [sys.executable, str(root / "scripts/zigux/check-phase2-tests-readme-alignment.py")],
         capture_output=True,
         text=True,
         check=False,
