@@ -179,6 +179,14 @@ TESTS_COMPANION_MARKERS = [
     "zigux/tests/phase11_uapi_header_parity_manifest.json",
     "keeps the shared header-boundary packet explicit through `scripts/zigux/check-phase11-header-boundary-packet.py`",
 ]
+TESTS_README_MARKERS = [
+    "Phase 11 guidance",
+    "keep the current Phase 11 simple-driver packet reviewable through `zigux/tests/phase11_build.zig`, `scripts/zigux/validate-phase11.py`, `make -C zigux phase11-validate`, and `zigux/tests/fixtures/phase11_build_inventory.json` instead of widening into ad hoc driver-local bootstrap claims.",
+    "four shared split and adjunct replays",
+    "shared-versus-dedicated replay boundary",
+    "shared header packet as the docs-root and validator-first packet.",
+    "`scripts/zigux/check-phase11-header-boundary-packet.py` keeps the shared header-boundary packet explicit beside that split.",
+]
 BUILD_MARKERS = [
     "phase11-gpio-wdt-tests",
     "phase11-bcm2835-wdt-tests",
@@ -437,6 +445,23 @@ def run_self_test() -> int:
         )
         tests_companion_path.write_text(original_tests_companion, encoding="utf-8")
 
+        tests_readme_path = tmp_root / "zigux/tests/README.md"
+        original_tests_readme = tests_readme_path.read_text(encoding="utf-8")
+        tests_readme_path.write_text(
+            original_tests_readme.replace(
+                "four shared split and adjunct replays",
+                "shared split replays",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "tests_readme_phase11_guidance_marker",
+            tmp_root,
+            "tests_readme:four shared split and adjunct replays",
+        )
+        tests_readme_path.write_text(original_tests_readme, encoding="utf-8")
+
         makefile_path = tmp_root / "zigux/Makefile"
         original_makefile = makefile_path.read_text(encoding="utf-8")
         makefile_path.write_text(
@@ -608,6 +633,11 @@ def main() -> int:
     for marker in TESTS_COMPANION_MARKERS:
         if marker not in tests_companion:
             missing.append(f"tests_companion:{marker}")
+
+    tests_readme = text("zigux/tests/README.md")
+    for marker in TESTS_README_MARKERS:
+        if marker not in tests_readme:
+            missing.append(f"tests_readme:{marker}")
 
     phase11_build = text("zigux/tests/phase11_build.zig")
     for marker in BUILD_MARKERS:
