@@ -247,6 +247,11 @@ fn nonEmptyEnvValue(value: ?[:0]const u8) ?[]const u8 {
     return slice;
 }
 
+fn envValue(value: ?[:0]const u8) ?[]const u8 {
+    const slice = value orelse return null;
+    return slice;
+}
+
 fn envValueOrDefault(value: ?[:0]const u8, fallback: []const u8) []const u8 {
     return nonEmptyEnvValue(value) orelse fallback;
 }
@@ -276,7 +281,7 @@ fn applyModeEnvFallbacks(
 pub fn main(init: std.process.Init) !void {
     const io = init.io;
     const args = try init.minimal.args.toSlice(init.arena.allocator());
-    const allconfig = nonEmptyEnvValue(std.process.Environ.getPosix(init.minimal.environ, "KCONFIG_ALLCONFIG"));
+    const allconfig = envValue(std.process.Environ.getPosix(init.minimal.environ, "KCONFIG_ALLCONFIG"));
     const seed = nonEmptyEnvValue(std.process.Environ.getPosix(init.minimal.environ, "KCONFIG_SEED"));
     const probability = nonEmptyEnvValue(std.process.Environ.getPosix(init.minimal.environ, "KCONFIG_PROBABILITY"));
     const autoconfig = envValueOrDefault(std.process.Environ.getPosix(init.minimal.environ, "KCONFIG_AUTOCONFIG"), "include/config/auto.conf");
@@ -612,6 +617,20 @@ test "conf bridge rejects explicit empty allconfig cli paths" {
         "arm64",
         "",
     }));
+}
+
+test "conf bridge preserves empty allconfig env trigger for allconfig modes" {
+    var request = try parseRequestArgs(&.{
+        "conf_bridge",
+        "allnoconfig",
+        "Kconfig",
+        "none/.config",
+        "arm64",
+    });
+    applyModeEnvFallbacks(&request, envValue(""), null, null, "include/config/auto.conf", "include/generated/autoconf.h", null);
+
+    try std.testing.expect(request.allconfig != null);
+    try std.testing.expectEqual(@as(usize, 0), request.allconfig.?.len);
 }
 
 test "conf bridge uses allconfig env fallback for allconfig modes" {
