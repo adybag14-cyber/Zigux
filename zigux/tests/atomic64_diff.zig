@@ -161,6 +161,16 @@ test "atomic64 diff wrapper keeps roadmap entrypoint and rollback evidence align
     try expectManifestMarker("\"id\": \"phase4-roadmap-path-alignment\"");
 }
 
+test "atomic64 diff wrapper pins manifest threshold ownership placeholders" {
+    try expectManifestMarker("\"owner\": \"ABI and Runtime Team\"");
+    try expectManifestMarker("\"rollback_owner\": \"ABI and Runtime Team\"");
+    try expectManifestMarker("\"posture\": \"threshold_pending_until_runtime_atomic64_scope_widens\"");
+    try expectManifestMarker("\"status\": \"pending_scope_widening\"");
+    try expectManifestMarker("\"benchmark_command\": \"unapproved_until_runtime_atomic64_scope_widens\"");
+    try expectManifestMarker("\"acceptable_limit\": \"unapproved_until_runtime_atomic64_scope_widens\"");
+    try expectManifestMarker("\"scope\": \"add, sub, bitwise, exchange, cmpxchg, add_unless, inc_not_zero, dec_if_positive, and selftest-family plus post-selftest replay set\"");
+}
+
 test "atomic64 diff wrapper keeps isolated rollback replay evidence explicit" {
     try expectPhase4MatrixMarker("`make -C zigux phase4-runtime-atomic64-diff`");
     try expectPhase4MatrixMarker(
