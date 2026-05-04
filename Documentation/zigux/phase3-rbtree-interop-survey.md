@@ -13,7 +13,7 @@ This note records the current state of the roadmap-backed `lib/rbtree.c` anchor 
 - `PHASE3_RBTREE_PHASE3_SLICE=Documentation/zigux/phase3-rbtree-slice.md`
 - `PHASE3_RBTREE_PHASE3_BOUNDARY_STATUS=dedicated-boundary-and-shared-abi-root-view-lift-landed`
 - `PHASE3_RBTREE_NON_GOALS=no-balancing-port,no-export-shim-growth,no-uapi-growth`
-- `PHASE3_RBTREE_NEXT_BOUNDED_STEP=align-shared-phase3-abi-note-and-marker-packet`
+- `PHASE3_RBTREE_NEXT_BOUNDED_STEP=align-phase3-docs-root-summary-with-landed-shared-rbtree-lift`
 - `PHASE3_RBTREE_SHARED_REPLAY=zigux/tests/phase3_abi.zig,zigux/tests/phase3_abi_dump.zig,zigux/tests/fixtures/phase3_abi/phase3_abi_c_harness.c,zigux/tests/fixtures/phase3_abi/expected.json`
 - `PHASE3_RBTREE_SHARED_LAYOUT_CONTRACT=zigux_rbtree_root_view-reused-unchanged-in-shared-phase3-abi-packet`
 - `PHASE3_RBTREE_SHARED_CONSTANT_CONTRACT=root_flag_empty,root_flag_cached,root_flag_leftmost_valid`
@@ -46,7 +46,7 @@ This Phase 3 lane now carries both the helper-local packet and the full dedicate
 - `zigux/tests/phase3_rbtree_shared_contract.zig` and `scripts/zigux/check-phase3-rbtree-shared-lift-contract.py` now keep the dedicated layout, shared lift, and sample-record packet aligned before the broader ABI lane moves again
 - the shared Phase 3 ABI manifest now explicitly catalogs the dedicated `rbtree` packet, the shared replay files, and the shared-lift guards, so this packet is no longer missing inventory or shared-code evidence
 
-The remaining same-family gap is therefore review-facing rather than implementation-facing: the broader shared ABI note and some validator wording still need to stay aligned with this already-landed shared `rbtree` lift.
+The remaining same-family gap is therefore review-facing rather than implementation-facing: the docs-root Phase 3 summary and any still-coupled survey wording need to stay aligned with this already-landed shared `rbtree` lift.
 
 ## Validation Path
 
@@ -61,7 +61,7 @@ The live Phase 3 validation packet now exposes this survey through dedicated and
 
 Current `master` no longer lacks the shared `rbtree` root-view lift itself.
 
-Current `master` still needs the surrounding shared ABI note and marker packet to stay synchronized with that landed lift:
+Current `master` still needs the surrounding docs-root summary and survey wording to stay synchronized with that landed lift:
 
 - keep the dedicated and shared replay paths explicit in the survey packet
 - keep the shared ABI manifest catalog and shared-lift contract checker in the same bounded review packet
@@ -77,8 +77,8 @@ This survey does not treat any of the following as the next honest Phase 3 step:
 
 ## Next Bounded Step
 
-The next honest same-lane follow-on is one bounded shared-note and validator alignment pass:
+The next honest same-lane follow-on is one bounded docs-root and survey-summary alignment pass:
 
-- align the broader shared Phase 3 ABI note and marker packet with the landed `zigux_rbtree_root_view` lift
+- align the docs-root Phase 3 summary with the landed `zigux_rbtree_root_view` lift and keep any still-coupled survey wording in sync
 - keep the dedicated packet, shared replay, and shared-lift contract explicit in that wording
 - stop there; do not widen this lane into more `chrdev_*` tail growth or unrelated Phase 3 packet churn
