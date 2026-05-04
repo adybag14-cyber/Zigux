@@ -472,7 +472,13 @@ test "phase 15 indefinite-C policy note preserves stay-in-C boundary language" {
 
     try expectContains(freeze_map, "product source of truth");
     try expectContains(freeze_map, "no silent exception path");
+    try expectContains(review_process, "requested decision bucket");
+    try expectContains(review_process, "decision record ID");
     try expectContains(review_process, "retained discussion state");
+    try expectContains(review_process, "the explicit `Documentation/zigux/phase15-indefinite-c-policy.md` link");
+    try expectContains(review_process, "the explicit note that the existing C implementation remains the product source of truth unless the Architecture Council approves the requested status change");
+    try expectContains(review_process, "the trigger-specific refreshed evidence by path for every named reopen trigger");
+    try expectContains(review_process, "refreshed lane-owner and rollback-owner evidence whenever the reopen trigger is `ownership_or_validation_changed`");
     try expectContains(review_checklist, "trigger-specific refreshed evidence by path");
     try expectContains(review_checklist, "current blocker disposition");
     try expectContains(scorecard, "retired_from_active_discussion");
