@@ -2,7 +2,7 @@
 
 This note records the current shared Phase 6 leaf-helper evidence bundle at the inspected `master` tip when this catalog was refreshed.
 
-- verified head: `368dcb11d347e77c13bef6607bd99b313573e389`
+- verified head: `c0b506e3254e63fe007a72d420bb275846a89093`
 - machine-readable inventory: `zigux/tests/phase6_helper_parity_manifest.json`
 - shared packet posture: parked after the current helper-local parity and perf surface cleared the bounded Phase 6 goal
 
@@ -131,7 +131,7 @@ The committed Phase 6 fixture corpus is deterministic today because every shippe
 - `make -C zigux phase6` replays the bundled Phase 6 helper tests together.
 - `make -C zigux phase6-perf` replays the bundled Phase 6 perf harnesses together while keeping those microbenches out of the default helper-test lane.
 - `python3 scripts/zigux/check-phase6-base64-c-parity.py --self-test` is the current tool-free reviewability check for the bounded base64 external parity script before the live `zig` plus `cc` replay runs, and it now proves the explicit `c_output_mismatch` failure contract before `python3 scripts/zigux/check-phase6-base64-c-parity.py` reruns the full `PHASE6_BASE64_C_PARITY_CASES=122` spot check.
-- `python3 scripts/zigux/check-phase6-base64-catalog-evidence.py --self-test` and `python3 scripts/zigux/check-phase6-base64-catalog-evidence.py` now keep the shared base64 review packet fail-closed on the exact parked shared-packet posture, the 30 variant encode vectors, 20 variant decode vectors, `PHASE6_BASE64_C_PARITY_SELF_TEST_CASE_COUNT=10`, and `PHASE6_BASE64_C_PARITY_CASES=122` evidence recorded across this catalog, `zigux/tests/phase6_helper_parity_manifest.json`, and `scripts/zigux/check-phase6-base64-c-parity.py`.
+- `python3 scripts/zigux/check-phase6-base64-catalog-evidence.py --self-test` and `python3 scripts/zigux/check-phase6-base64-catalog-evidence.py` now keep the shared base64 review packet fail-closed on the catalog `verified head`, the manifest `surveyed_commit`, the exact parked shared-packet posture, the 30 variant encode vectors, 20 variant decode vectors, `PHASE6_BASE64_C_PARITY_SELF_TEST_CASE_COUNT=10`, and `PHASE6_BASE64_C_PARITY_CASES=122` evidence recorded across this catalog, `zigux/tests/phase6_helper_parity_manifest.json`, and `scripts/zigux/check-phase6-base64-c-parity.py`.
 - `python3 scripts/zigux/check-phase6-bsearch-c-parity.py --self-test` is the current tool-free reviewability check for the bounded bsearch external parity script before the live `zig` plus `cc` replay runs.
 - `python3 scripts/zigux/check-phase6-checksum-c-parity.py --self-test` is the current tool-free reviewability check for the bounded checksum external parity script before the live `zig` plus `cc` replay runs, and `python3 scripts/zigux/check-phase6-checksum-c-parity.py` currently passes with `PHASE6_CHECKSUM_C_PARITY_CASES=27`.
 - `python3 scripts/zigux/check-phase6-hexdump-c-parity.py --self-test` is the current tool-free reviewability check for the bounded hexdump external parity script before the live `zig` plus `cc` replay runs, and `python3 scripts/zigux/check-phase6-hexdump-c-parity.py` currently passes with `PHASE6_HEXDUMP_C_PARITY_CASES=29`.
