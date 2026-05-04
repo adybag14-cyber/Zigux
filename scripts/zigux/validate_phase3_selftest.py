@@ -31,6 +31,7 @@ from validate_phase3_core import (
     validate_low_level_wrapper_exports,
     validate_policy_unsafe_boundary,
     validate_manifest,
+    validate_slices,
     validate_source_markers,
 )
 
