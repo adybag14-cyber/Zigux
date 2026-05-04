@@ -6,7 +6,8 @@ from pathlib import Path
 import sys
 import tempfile
 
-ROOT = Path(__file__).resolve().parents[2]
+_SELF_PATH = Path(__file__).resolve()
+ROOT = _SELF_PATH.parents[2] if len(_SELF_PATH.parents) > 2 else Path.cwd()
 INPUT_BLOCKER_BUILD = "zigux/tests/phase10_virtio_input_registration_blocker_build.zig"
 
 DOCS = [
@@ -290,6 +291,25 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
         if survey.get("surveyed_commits") != EXPECTED_SURVEYED_COMMITS:
             missing.append("closure_manifest:survey_provenance:surveyed_commits")
 
+        lane_keys = survey.get("lane_keys")
+        surveyed_commits = survey.get("surveyed_commits")
+        if isinstance(lane_keys, dict) and isinstance(surveyed_commits, dict):
+            lane_manifests = {
+                "core": "zigux/tests/phase10_virtio_core_manifest.json",
+                "ring": "zigux/tests/phase10_virtio_ring_manifest.json",
+                "input": "zigux/tests/phase10_virtio_input_manifest.json",
+                "mmio": "zigux/tests/phase10_virtio_mmio_manifest.json",
+            }
+            for lane_name, rel_path in lane_manifests.items():
+                manifest = load_json(root, rel_path)
+                if not isinstance(manifest, dict):
+                    missing.append(f"{lane_name}_manifest:type")
+                    continue
+                if manifest.get("lane_key") != lane_keys.get(lane_name):
+                    missing.append(f"closure_manifest:survey_provenance:{lane_name}:lane_key")
+                if manifest.get("surveyed_commit") != surveyed_commits.get(lane_name):
+                    missing.append(f"closure_manifest:survey_provenance:{lane_name}:surveyed_commit")
+
     roadmap = closure.get("roadmap_parity_scoreboard")
     if not isinstance(roadmap, dict):
         missing.append("closure_manifest:roadmap_parity_scoreboard")
@@ -398,11 +418,15 @@ def write_fixture(root: Path) -> None:
         "blocked_transport_gaps": {"zigux/tests/phase10_virtio_mmio_manifest.json": "phase10-mmio-lifecycle-and-irq-paths"},
     }
     (root / "zigux/tests/phase10_closure_manifest.json").write_text(json.dumps(closure_manifest, indent=2) + "\n", encoding="utf-8")
-    ring_manifest = {"gaps": [{"id": "phase10-broken-queue-recovery-helper", "status": "starter_landed", "why_now": "broken-queue recovery helper with teardown-safe queue reuse"}]}
+    ring_manifest = {
+        "lane_key": "P10-L07",
+        "surveyed_commit": EXPECTED_SURVEYED_COMMITS["ring"],
+        "gaps": [{"id": "phase10-broken-queue-recovery-helper", "status": "starter_landed", "why_now": "broken-queue recovery helper with teardown-safe queue reuse"}],
+    }
     (root / "zigux/tests/phase10_virtio_ring_manifest.json").write_text(json.dumps(ring_manifest, indent=2) + "\n", encoding="utf-8")
-    (root / "zigux/tests/phase10_virtio_core_manifest.json").write_text("{}\n", encoding="utf-8")
-    (root / "zigux/tests/phase10_virtio_input_manifest.json").write_text("{}\n", encoding="utf-8")
-    (root / "zigux/tests/phase10_virtio_mmio_manifest.json").write_text("{}\n", encoding="utf-8")
+    (root / "zigux/tests/phase10_virtio_core_manifest.json").write_text(json.dumps({"lane_key": "P10-L01", "surveyed_commit": EXPECTED_SURVEYED_COMMITS["core"]}, indent=2) + "\n", encoding="utf-8")
+    (root / "zigux/tests/phase10_virtio_input_manifest.json").write_text(json.dumps({"lane_key": "P10-L13", "surveyed_commit": EXPECTED_SURVEYED_COMMITS["input"]}, indent=2) + "\n", encoding="utf-8")
+    (root / "zigux/tests/phase10_virtio_mmio_manifest.json").write_text(json.dumps({"lane_key": "P10-L18", "surveyed_commit": EXPECTED_SURVEYED_COMMITS["mmio"]}, indent=2) + "\n", encoding="utf-8")
 
 
 def expect_marker(label: str, root: Path, marker: str) -> None:
@@ -462,6 +486,20 @@ def run_self_test() -> int:
         expect_marker("mmio_probe_preflight_guard", root, "closure_manifest:landed_mmio_helper_evidence")
         write_fixture(root)
 
+        input_manifest_path = root / "zigux/tests/phase10_virtio_input_manifest.json"
+        input_manifest = json.loads(input_manifest_path.read_text(encoding="utf-8"))
+        input_manifest["lane_key"] = "P10-L99"
+        input_manifest_path.write_text(json.dumps(input_manifest, indent=2) + "\n", encoding="utf-8")
+        expect_marker("survey_provenance_input_lane_guard", root, "closure_manifest:survey_provenance:input:lane_key")
+        write_fixture(root)
+
+        mmio_manifest_path = root / "zigux/tests/phase10_virtio_mmio_manifest.json"
+        mmio_manifest = json.loads(mmio_manifest_path.read_text(encoding="utf-8"))
+        mmio_manifest["surveyed_commit"] = "0" * 40
+        mmio_manifest_path.write_text(json.dumps(mmio_manifest, indent=2) + "\n", encoding="utf-8")
+        expect_marker("survey_provenance_mmio_commit_guard", root, "closure_manifest:survey_provenance:mmio:surveyed_commit")
+        write_fixture(root)
+
         tests_readme_path = root / "zigux/tests/README.md"
         original_tests_readme = tests_readme_path.read_text(encoding="utf-8")
         tests_readme_path.write_text(
@@ -518,7 +556,7 @@ def run_self_test() -> int:
             raise SystemExit(f"phase10-closure-self-test:file_guard:actual_files={files}:markers={markers}")
 
     print("PHASE10_CLOSURE_VALIDATOR_SELF_TEST=pass")
-    print("PHASE10_CLOSURE_VALIDATOR_SELF_TEST_CASE_COUNT=13")
+    print("PHASE10_CLOSURE_VALIDATOR_SELF_TEST_CASE_COUNT=15")
     return 0
 
 
