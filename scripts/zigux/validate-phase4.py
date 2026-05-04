@@ -110,6 +110,8 @@ TESTS_README_MARKERS = [
 ]
 
 GATE_EVIDENCE_TARGETS = {
+    "PHASE4_GATE_EVIDENCE_CHECKER_BLOB_SHA": "scripts/zigux/check-phase4-gate-evidence.py",
+    "PHASE4_WORKFLOW_ROUTE_CHECKER_BLOB_SHA": "scripts/zigux/check-phase4-workflow-route-counts.py",
     "PHASE4_VALIDATOR_BLOB_SHA": "scripts/zigux/validate-phase4.py",
     "PHASE4_BUILD_BLOB_SHA": "zigux/tests/phase4_build.zig",
     "PHASE4_MAKEFILE_BLOB_SHA": "zigux/Makefile",
@@ -123,11 +125,6 @@ GATE_EVIDENCE_TARGETS = {
     "PHASE4_SCRIPT_README_BLOB_SHA": "scripts/zigux/README.md",
     "PHASE4_TESTS_README_BLOB_SHA": "zigux/tests/README.md",
 }
-
-ADDITIONAL_GATE_EVIDENCE_MARKERS = [
-    "PHASE4_GATE_EVIDENCE_CHECKER_BLOB_SHA=",
-    "PHASE4_WORKFLOW_ROUTE_CHECKER_BLOB_SHA=",
-]
 
 ATOMIC64_GATE_EVIDENCE_MARKERS = [
     "make -C zigux phase4-runtime-atomic64-diff",
@@ -218,9 +215,6 @@ def validate_root(root: Path) -> list[str]:
         expected = blob_sha((root / rel).read_bytes())
         if f"{marker}={expected}" not in gate_evidence:
             missing.append(f"gate_evidence:{marker}:{expected}")
-    for marker in ADDITIONAL_GATE_EVIDENCE_MARKERS:
-        if marker not in gate_evidence:
-            missing.append(f"gate_evidence:{marker}")
 
     return missing
 
@@ -268,17 +262,9 @@ def write_fixture_tree(root: Path) -> None:
         target.parent.mkdir(parents=True, exist_ok=True)
         target.write_text(content, encoding="utf-8")
 
-    gate_evidence_checker_sha = blob_sha(
-        (root / "scripts/zigux/check-phase4-gate-evidence.py").read_bytes()
-    )
-    workflow_route_checker_sha = blob_sha(
-        (root / "scripts/zigux/check-phase4-workflow-route-counts.py").read_bytes()
-    )
     evidence = [
         "PHASE4_EVIDENCE_MODE=github_connector_readback",
         "PHASE4_EVIDENCE_SCOPE=rollback_ownership_and_lab_matrix_current_gate_definitions",
-        f"PHASE4_GATE_EVIDENCE_CHECKER_BLOB_SHA={gate_evidence_checker_sha}",
-        f"PHASE4_WORKFLOW_ROUTE_CHECKER_BLOB_SHA={workflow_route_checker_sha}",
         "shared validator now fails closed on the kprobe survey packet itself",
         "make -C zigux phase4-runtime-atomic64-diff",
         "phase4-runtime-atomic64-diff-tests",
@@ -360,29 +346,25 @@ def run_self_test() -> int:
 
         write_fixture_tree(root)
         gate_evidence = root / "Documentation/zigux/phase4-gate-evidence.md"
+        old = "PHASE4_GATE_EVIDENCE_CHECKER_BLOB_SHA=" + blob_sha((root / "scripts/zigux/check-phase4-gate-evidence.py").read_bytes())
         gate_evidence.write_text(
-            gate_evidence.read_text(encoding="utf-8").replace(
-                "PHASE4_GATE_EVIDENCE_CHECKER_BLOB_SHA=",
-                "PHASE4_GATE_EVIDENCE_CHECKER_BLOB_MISSING=",
-                1,
-            ),
+            gate_evidence.read_text(encoding="utf-8").replace(old, "PHASE4_GATE_EVIDENCE_CHECKER_BLOB_SHA=deadbeef", 1),
             encoding="utf-8",
         )
         missing = validate_root(root)
-        assert "gate_evidence:PHASE4_GATE_EVIDENCE_CHECKER_BLOB_SHA=" in missing, missing
+        expected = "gate_evidence:PHASE4_GATE_EVIDENCE_CHECKER_BLOB_SHA:" + blob_sha((root / "scripts/zigux/check-phase4-gate-evidence.py").read_bytes())
+        assert expected in missing, missing
 
         write_fixture_tree(root)
         gate_evidence = root / "Documentation/zigux/phase4-gate-evidence.md"
+        old = "PHASE4_WORKFLOW_ROUTE_CHECKER_BLOB_SHA=" + blob_sha((root / "scripts/zigux/check-phase4-workflow-route-counts.py").read_bytes())
         gate_evidence.write_text(
-            gate_evidence.read_text(encoding="utf-8").replace(
-                "PHASE4_WORKFLOW_ROUTE_CHECKER_BLOB_SHA=",
-                "PHASE4_WORKFLOW_ROUTE_CHECKER_BLOB_MISSING=",
-                1,
-            ),
+            gate_evidence.read_text(encoding="utf-8").replace(old, "PHASE4_WORKFLOW_ROUTE_CHECKER_BLOB_SHA=deadbeef", 1),
             encoding="utf-8",
         )
         missing = validate_root(root)
-        assert "gate_evidence:PHASE4_WORKFLOW_ROUTE_CHECKER_BLOB_SHA=" in missing, missing
+        expected = "gate_evidence:PHASE4_WORKFLOW_ROUTE_CHECKER_BLOB_SHA:" + blob_sha((root / "scripts/zigux/check-phase4-workflow-route-counts.py").read_bytes())
+        assert expected in missing, missing
 
         write_fixture_tree(root)
         gate_evidence = root / "Documentation/zigux/phase4-gate-evidence.md"
@@ -412,7 +394,6 @@ def required_marker_count() -> int:
         + len(ATOMIC64_SCRIPTS_README_MARKERS)
         + len(TESTS_README_MARKERS)
         + len(GATE_EVIDENCE_TARGETS)
-        + len(ADDITIONAL_GATE_EVIDENCE_MARKERS)
         + len(ATOMIC64_GATE_EVIDENCE_MARKERS)
     )
 
