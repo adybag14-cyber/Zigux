@@ -16,6 +16,7 @@ This lane stays inside the Phase 13 shared-helper tranche and records the curren
   - `zigux/tests/phase13_devres_dma_coherent.zig`
   - `zigux/tests/phase13_devres_scatterlist.zig`
   - `zigux/tests/phase13_devres_reviewability.zig`
+  - `zigux/tests/phase13_devres_wrapper_reviewability.zig`
   - `zigux/tests/phase13_devres_iounmap_reviewability.zig`
   - `zigux/tests/phase13_devres_iomap_reviewability.zig`
   - `zigux/tests/phase13_devres_manifest.json`
@@ -31,6 +32,7 @@ Current repo state on `master`:
 - compared against the earlier surveyed head `66b55d8a9a800345097f3c04b9f95130b1f8d0b8`, the current helper packet now advances by rejecting full-width inclusive MMIO resource spans that would overflow size math before request-region or remap planning begins; the refreshed `lib/devres.zig` helper surface now hashes to `sha256 11b2d4e475b7d21c1086679a438a851f1f12df15aa655b75e8a78fee7427bc21`
 - compared against that same earlier surveyed head, the dedicated `zigux/tests/phase13_devres.zig` replay remains hash-stable at `sha256 7dc45ab99f46d5424e3d757f720e58654aaea326b13db1af601be88c3cbff476` while still covering the direct non-posted wrapper path
 - the shipped `DevresHelperLab` descriptor now says explicitly that the helper-only surface still avoids live DMA-backed mappings and scatterlist ownership instead of leaving that boundary only in the manifest and prose packet
+- `zigux/tests/phase13_devres_wrapper_reviewability.zig` now source-scans `lib/devres.zig` for the direct plain, UC, WC, and NP managed ioremap wrapper entrypoints, checks that `zigux/tests/phase13_build.zig` still runs the dedicated wrapper-family replay, and keeps that direct-wrapper packet visible in this survey instead of leaving it implied only by the helper lab, shared build wiring, or roadmap traceability note
 - `zigux/tests/phase13_devres_iounmap_reviewability.zig` now source-scans `lib/devres.zig` for the explicit `provides_iounmap_call_planning` marker and replays exact-match plus release-miss `devm_iounmap()` planning so the pointer-exact detach surface stays reviewable inside the broader devres packet instead of living only in the helper lab or survey prose
 - `zigux/tests/phase13_devres_iomap_reviewability.zig` now source-scans `lib/devres.zig` for the explicit `provides_of_iomap_planning` marker and replays translated-size success, address-translation miss, and downstream remap-failure `devm_of_iomap()` planning so the translated-resource handoff stays reviewable inside the broader devres packet instead of living only in the helper lab or survey prose
 - a direct token scan of current `lib/devres.zig` finds only the `touches_live_dma` and `touches_live_scatterlist` descriptor markers and no `dmam_alloc_coherent`, `dmam_free_coherent`, `dma_map_resource`, `dma_unmap_resource`, `dma_map_sgtable`, `dma_unmap_sgtable`, `dma_map_sg_attrs`, `dma_unmap_sg_attrs`, `struct scatterlist`, `sg_table`, or `sg_` helper entrypoints
@@ -54,6 +56,7 @@ What is landed today:
 - managed `__devm_ioremap()` lifetime planning, including retained release records on success and free-on-failure cleanup when mapping returns `NULL`
 - the direct `devm_ioremap()` wrapper path that keeps the plain managed ioremap export explicit instead of leaving it implied by the internal lifetime helper
 - the direct `devm_ioremap_resource()` wrapper path that keeps the plain managed-resource export explicit instead of leaving it implied only by `__devm_ioremap_resource()` and the UC/WC wrapper pair
+- the direct plain, UC, WC, and NP managed ioremap wrapper family plus its dedicated survey-visible reviewability gate in `zigux/tests/phase13_devres_wrapper_reviewability.zig`, so the wrapper ladder stays packet-owned instead of being implied only by helper descriptors or shared build wiring
 - the `devm_ioremap_uc()` wrapper path and exact `devm_iounmap()` pointer-match release behavior
 - the `devm_ioremap_wc()` wrapper path without widening into live write-combined mappings
 - the `devm_ioremap_np()` wrapper path so the direct non-posted managed mapping export is reviewable instead of being inferred only from the generic lifetime helper or from resource-flag fallback
@@ -74,4 +77,4 @@ What remains explicitly blocked:
 - live device-tree walking, overlapping resource arbitration, or broader `struct device_node` ownership beyond the pure `devm_of_iomap()` planner boundary
 - live MTRR or arch memtype state mutation beyond the token-style and range-style detach bookkeeping planners
 
-The next honest bounded step for this lane is to keep the manifest-backed devres packet aligned if another adjacent helper lane changes the coherent-DMA or scatterlist bookkeeping slice, rather than reopening helper implementation or widening into live DMA-backed behavior.
+The next honest bounded step for this lane is to keep the manifest-backed devres packet aligned if another adjacent helper lane changes the coherent-DMA or scatterlist bookkeeping slice, or if a future wrapper-family reviewability gate gains a new packet-local requirement, rather than reopening helper implementation or widening into live DMA-backed behavior.
