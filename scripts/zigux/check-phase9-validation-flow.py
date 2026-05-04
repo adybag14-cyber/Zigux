@@ -11,6 +11,7 @@ _SELF_PATH = Path(__file__).resolve()
 ROOT = _SELF_PATH.parents[2] if len(_SELF_PATH.parents) > 2 else _SELF_PATH.parent
 
 README_PATH = "scripts/zigux/README.md"
+DOC_README_PATH = "Documentation/zigux/README.md"
 MAKEFILE_PATH = "zigux/Makefile"
 WORKFLOW_PATH = ".github/workflows/zigux-bootstrap.yml"
 SURVEY_PATH = "Documentation/zigux/phase9-runtime-loader-gap-survey.md"
@@ -38,6 +39,7 @@ MODULE_METADATA_CHECKER_PATH = "scripts/zigux/check-phase9-module-metadata-packe
 
 REQUIRED_FILES = [
     README_PATH,
+    DOC_README_PATH,
     MAKEFILE_PATH,
     WORKFLOW_PATH,
     SURVEY_PATH,
@@ -70,6 +72,16 @@ README_MARKERS = [
 README_EXACT_ONCE_MARKERS = [
     "Phase 9 flow\n",
     "- `check-phase9-validation-flow.py --self-test` and `check-phase9-validation-flow.py` keep the shared Phase 9 release-discipline route aligned across `zigux/Makefile`, `.github/workflows/zigux-bootstrap.yml`, the loader-gap survey, the module-metadata survey, the trace-events survey, the kretprobe survey, and `zigux/tests/phase9_build.zig` before the broader runtime bundle claims reviewable progress.\n",
+]
+
+DOC_README_MARKERS = [
+    "Phase 9 notes\n",
+    "- `python3 scripts/zigux/validate-phase9.py --self-test`, `python3 scripts/zigux/check-phase9-validation-flow.py --self-test`, `python3 scripts/zigux/check-phase9-module-metadata-packet.py --self-test`, `python3 scripts/zigux/check-phase9-loader-substrate-plan.py --self-test`, `python3 scripts/zigux/check-phase9-runtime-loader-commit-alignment.py --self-test`, `python3 scripts/zigux/check-phase9-loader-non-owner-boundary.py --self-test`, `python3 scripts/zigux/validate-phase9.py`, `python3 scripts/zigux/check-phase9-validation-flow.py`, `python3 scripts/zigux/check-phase9-module-metadata-packet.py`, `python3 scripts/zigux/check-phase9-loader-substrate-plan.py`, `python3 scripts/zigux/check-phase9-runtime-loader-commit-alignment.py`, `python3 scripts/zigux/check-phase9-loader-non-owner-boundary.py`, `make -C zigux phase9-validate`, `make -C zigux phase9-loader-commit-alignment-survey`, `make -C zigux phase9-non-owner-boundary-survey`, and `zigux/tests/phase9_build.zig` are the current shared review path for Phase 9 runtime evidence.\n",
+]
+
+DOC_README_EXACT_ONCE_MARKERS = [
+    "Phase 9 notes\n",
+    "- `python3 scripts/zigux/validate-phase9.py --self-test`, `python3 scripts/zigux/check-phase9-validation-flow.py --self-test`, `python3 scripts/zigux/check-phase9-module-metadata-packet.py --self-test`, `python3 scripts/zigux/check-phase9-loader-substrate-plan.py --self-test`, `python3 scripts/zigux/check-phase9-runtime-loader-commit-alignment.py --self-test`, `python3 scripts/zigux/check-phase9-loader-non-owner-boundary.py --self-test`, `python3 scripts/zigux/validate-phase9.py`, `python3 scripts/zigux/check-phase9-validation-flow.py`, `python3 scripts/zigux/check-phase9-module-metadata-packet.py`, `python3 scripts/zigux/check-phase9-loader-substrate-plan.py`, `python3 scripts/zigux/check-phase9-runtime-loader-commit-alignment.py`, `python3 scripts/zigux/check-phase9-loader-non-owner-boundary.py`, `make -C zigux phase9-validate`, `make -C zigux phase9-loader-commit-alignment-survey`, `make -C zigux phase9-non-owner-boundary-survey`, and `zigux/tests/phase9_build.zig` are the current shared review path for Phase 9 runtime evidence.\n",
 ]
 
 COMMIT_ALIGNMENT_SURVEY_BLOCK = (
@@ -255,6 +267,7 @@ def validate(root: Path) -> list[str]:
 
     texts = {
         "readme": read_text(root, README_PATH),
+        "doc_readme": read_text(root, DOC_README_PATH),
         "makefile": read_text(root, MAKEFILE_PATH),
         "workflow": read_text(root, WORKFLOW_PATH),
         "survey": read_text(root, SURVEY_PATH),
@@ -272,6 +285,13 @@ def validate(root: Path) -> list[str]:
         texts["readme"],
         README_MARKERS,
         README_EXACT_ONCE_MARKERS,
+    )
+    require_markers(
+        failures,
+        "doc_readme",
+        texts["doc_readme"],
+        DOC_README_MARKERS,
+        DOC_README_EXACT_ONCE_MARKERS,
     )
     require_markers(
         failures,
@@ -363,6 +383,19 @@ def write_fixture_tree(root: Path) -> None:
                 README_MARKERS[5].rstrip("\n"),
                 README_MARKERS[6].rstrip("\n"),
                 README_MARKERS[7].rstrip("\n"),
+                "",
+            ]
+        ),
+        encoding="utf-8",
+    )
+
+    (root / DOC_README_PATH).write_text(
+        "\n".join(
+            [
+                "# Zigux Documentation",
+                "",
+                "Phase 9 notes",
+                DOC_README_MARKERS[1].rstrip("\n"),
                 "",
             ]
         ),
@@ -657,6 +690,20 @@ def run_self_test() -> int:
                 f"readme:{README_MARKERS[7]}",
             ),
             (
+                DOC_README_PATH,
+                "doc_readme_phase9_heading_missing",
+                "Phase 9 notes\n",
+                "Phase Nine notes\n",
+                "doc_readme:Phase 9 notes\n",
+            ),
+            (
+                DOC_README_PATH,
+                "doc_readme_phase9_route_bullet_missing",
+                DOC_README_MARKERS[1],
+                "",
+                f"doc_readme:{DOC_README_MARKERS[1]}",
+            ),
+            (
                 MAKEFILE_PATH,
                 "makefile_module_metadata_phony",
                 "phase9-module-metadata-survey phase9-kretprobe-survey",
@@ -860,6 +907,8 @@ def main() -> int:
     marker_count = (
         len(README_MARKERS)
         + len(README_EXACT_ONCE_MARKERS)
+        + len(DOC_README_MARKERS)
+        + len(DOC_README_EXACT_ONCE_MARKERS)
         + len(MAKEFILE_MARKERS)
         + len(MAKEFILE_EXACT_ONCE_MARKERS)
         + len(WORKFLOW_MARKERS)
