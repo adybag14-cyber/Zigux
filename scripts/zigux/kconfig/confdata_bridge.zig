@@ -84,18 +84,22 @@ fn trimTrailingCarriageReturn(text: []const u8) []const u8 {
     return text;
 }
 
+fn truncateAtFirstNull(text: []const u8) []const u8 {
+    return text[0 .. std.mem.indexOfScalar(u8, text, 0) orelse text.len];
+}
+
 fn nextConfigLine(input: []const u8, cursor: *usize) ?[]const u8 {
     if (cursor.* >= input.len) return null;
 
     const remaining = input[cursor.*..];
     if (std.mem.indexOfScalar(u8, remaining, '\n')) |newline_offset| {
-        const line = trimTrailingCarriageReturn(remaining[0..newline_offset]);
+        const line = truncateAtFirstNull(trimTrailingCarriageReturn(remaining[0..newline_offset]));
         cursor.* += newline_offset + 1;
         return line;
     }
 
     cursor.* = input.len;
-    return trimTrailingCarriageReturn(remaining);
+    return truncateAtFirstNull(trimTrailingCarriageReturn(remaining));
 }
 
 fn decodeQuotedString(allocator: std.mem.Allocator, raw_value: []const u8) ![]u8 {
@@ -540,6 +544,40 @@ test "confdata bridge recognizes a final unset comment without a terminating new
     try std.testing.expectEqualStrings("n", summary.entries[1].value);
 }
 
+test "confdata bridge ignores suffix bytes after an embedded NUL" {
+    const allocator = std.testing.allocator;
+    var summary = try parseConfig(
+        allocator,
+        "CONFIG_ALPHA=y\x00suffix_noise\n" ++
+            "CONFIG_BETA=\"zigux\"\x00trailing_bytes\n" ++
+            "CONFIG_COUNT=42\x00garbage\n",
+    );
+    defer deinitSummary(allocator, &summary);
+
+    try std.testing.expectEqual(@as(usize, 3), summary.set_count);
+    try std.testing.expectEqual(@as(usize, 0), summary.unset_count);
+    try std.testing.expectEqual(@as(usize, 3), summary.entries.len);
+    try std.testing.expectEqual(EntryKind.tristate, summary.entries[0].kind);
+    try std.testing.expectEqualStrings("y", summary.entries[0].value);
+    try std.testing.expectEqual(EntryKind.string, summary.entries[1].kind);
+    try std.testing.expectEqualStrings("zigux", summary.entries[1].value);
+    try std.testing.expectEqual(EntryKind.int, summary.entries[2].kind);
+    try std.testing.expectEqualStrings("42", summary.entries[2].value);
+}
+
+test "confdata bridge preserves carriage return before an embedded NUL on newline-terminated lines" {
+    const allocator = std.testing.allocator;
+    var summary = try parseConfig(
+        allocator,
+        "CONFIG_COUNT=7\r\x00suffix_noise\n",
+    );
+    defer deinitSummary(allocator, &summary);
+
+    try std.testing.expectEqual(@as(usize, 1), summary.entries.len);
+    try std.testing.expectEqual(EntryKind.value, summary.entries[0].kind);
+    try std.testing.expectEqualStrings("7\r", summary.entries[0].value);
+}
+
 test "confdata bridge keeps explicit n assignments as tristate values" {
     const allocator = std.testing.allocator;
     var summary = try parseConfig(allocator,
@@ -635,7 +673,7 @@ test "confdata bridge ignores non-CONFIG lines" {
         \\CONFIG_ALPHA=y
         \\BROKEN_ALPHA=y
         \\# BROKEN_BETA is not set
-        \\CONFIG_NAME="zigux"
+        \\CONFIG_NAME=\"zigux\"
         \\# CONFIG_DEBUG is not set
         \\
     );
