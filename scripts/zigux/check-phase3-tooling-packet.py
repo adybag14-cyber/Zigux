@@ -304,7 +304,11 @@ def run_self_test() -> int:
         readme_only_rel = "scripts/zigux/validate-phase3-roadmap-gap-survey.py"
         (root / readme_only_rel).unlink()
         issues = validate(root)
-        if issues != [f"missing_readme_tooling_file:{readme_only_rel}"]:
+        expected = [
+            f"missing_repo_file:{readme_only_rel}",
+            f"missing_readme_tooling_file:{readme_only_rel}",
+        ]
+        if issues != expected:
             raise SystemExit(
                 "phase3-tooling-packet-self-test:missing_readme_tooling_file_guard_failed:"
                 + (",".join(issues) if issues else "none")
