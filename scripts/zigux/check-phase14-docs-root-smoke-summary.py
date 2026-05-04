@@ -76,13 +76,17 @@ def count_exact_line(text: str, marker: str) -> int:
     return sum(1 for line in text.splitlines() if line.strip() == marker)
 
 
-def require_substrings(label: str, text: str, markers: list[str]) -> list[str]:
+def require_exact_count(label: str, text: str, markers: list[str]) -> list[str]:
     issues: list[str] = []
     for marker in markers:
         actual = text.count(marker)
         if actual != 1:
             issues.append(f"{label}:{actual}:{marker}")
     return issues
+
+
+def require_substrings(label: str, text: str, markers: list[str]) -> list[str]:
+    return require_exact_count(label, text, markers)
 
 
 def require_exact_lines(label: str, text: str, counts: dict[str, int]) -> list[str]:
@@ -104,9 +108,7 @@ def validate_phase14_summary_surfaces(
     issues = require_substrings("docs_root", docs_root_text, DOCS_ROOT_LINES)
     issues.extend(require_exact_lines("survey", survey_text, SURVEY_EXACT_LINE_COUNTS))
     issues.extend(require_exact_lines("makefile", makefile_text, MAKEFILE_EXACT_LINE_COUNTS))
-    issues.extend(
-        require_substrings("release_boundary", release_boundary_text, RELEASE_BOUNDARY_LINES)
-    )
+    issues.extend(require_exact_count("release_boundary", release_boundary_text, RELEASE_BOUNDARY_LINES))
     issues.extend(
         require_substrings("scripts_readme", scripts_readme_text, SCRIPTS_README_SUBSTRINGS)
     )
@@ -323,6 +325,15 @@ phase14: phase14-validate phase14-test
                 "- combined shared replay entrypoint: `make -C zigux phase14` remains the published convenience route for the validator-backed smoke packet, so release-facing review and local replay still name the same one-command path as the shared smoke note and manifest instead of leaving that wrapper path implicit in `zigux/Makefile`\n",
                 "",
             ),
+            scripts_readme_text,
+            makefile_text,
+            True,
+        ),
+        (
+            "duplicate_release_boundary_shared_replay_marker",
+            docs_root_text,
+            survey_text,
+            release_boundary_text + "\n- PHASE14_SHARED_REPLAY_PRESENT=yes",
             scripts_readme_text,
             makefile_text,
             True,
