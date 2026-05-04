@@ -72,7 +72,7 @@ EXPECTED_EXACT_CHECKS = [
     "zig build test --build-file zigux/tests/phase10_build.zig --summary all",
     "make -C zigux phase10-validate",
     "make -C zigux phase10-test",
-    "make -C zigux phase10",
+    "make -C zigux phase10"
 ]
 
 EXPECTED_CLOSURE_MANIFEST = {
@@ -114,8 +114,21 @@ EXPECTED_LANDED_INPUT_HELPER_EVIDENCE = {
         "phase10-virtio-input-teardown-observation-helper",
         "phase10-virtio-input-registration-preflight-helper",
         "phase10-virtio-input-queue-callback-preflight-helper",
-        "phase10-virtio-input-probe-preflight-helper",
+        "phase10-virtio-input-probe-preflight-helper"
+    ]
+}
+
+EXPECTED_FOCUSED_HARNESS_REPLAYS = {
+    "zigux/tests/phase10_virtio_ring_reset_reuse.zig": [
+        "phase10 ring drained-reset reuse replay"
     ],
+    "zigux/tests/phase10_virtio_input_multitouch_preflight.zig": [
+        "phase10 input multitouch-ready preflight replay"
+    ],
+    "zigux/tests/phase10_virtio_mmio_queue_isolation.zig": [
+        "phase10 mmio multi-queue isolation replay",
+        "phase10 mmio reset clears legacy and modern queue address plans after queue selection changes"
+    ]
 }
 
 REQUIRED_FILES = [
@@ -155,12 +168,12 @@ CLOSURE_MARKERS = [
     "zigux/tests/phase10_virtio_input_multitouch_preflight.zig",
     "zigux/tests/phase10_virtio_mmio_queue_isolation.zig",
     "phase10-mmio-interrupt-ack-helper",
-    "phase10-mmio-lifecycle-and-irq-paths",
+    "phase10-mmio-lifecycle-and-irq-paths"
 ]
 
 CLOSURE_EXACT_ONCE_MARKERS = [
     "PHASE10_HARNESS_COVERAGE_GATE=python3 scripts/zigux/check-phase10-harness-coverage.py",
-    "PHASE10_TEST_COUNT=11",
+    "PHASE10_TEST_COUNT=11"
 ]
 
 DOCS_README_MARKERS = [
@@ -173,20 +186,20 @@ DOCS_README_MARKERS = [
     "zigux/tests/phase10_virtio_input_multitouch_preflight.zig",
     "zigux/tests/phase10_virtio_mmio_queue_isolation.zig",
     "focused harness replays",
-    "queue-handling and ready-state gate",
+    "queue-handling and ready-state gate"
 ]
 
 DOCS_README_EXACT_ONCE_MARKERS = [
     "python3 scripts/zigux/check-phase10-harness-coverage.py",
     "focused harness replays",
-    "queue-handling and ready-state gate",
+    "queue-handling and ready-state gate"
 ]
 
 CHECKLIST_MARKERS = [
     "phase10-closure-evidence.md",
     "phase10_closure_manifest.json",
     "kernel/workqueue.c",
-    "kernel/trace/ring_buffer.c",
+    "kernel/trace/ring_buffer.c"
 ]
 
 FREEZE_MAP_MARKERS = [
@@ -195,7 +208,7 @@ FREEZE_MAP_MARKERS = [
     "kernel/rcu/tree.c",
     "net/core/skbuff.c",
     "kernel/workqueue.c",
-    "kernel/trace/ring_buffer.c",
+    "kernel/trace/ring_buffer.c"
 ]
 
 LEDGER_MARKERS = [
@@ -211,14 +224,14 @@ LEDGER_MARKERS = [
     "PHASE10_LEDGER_ALLOWED_ROADMAP_DESTINATIONS=drivers/virtio/*.zig,zigux/kernel/,zigux/helpers/",
     "PHASE10_LEDGER_INPUT_MULTITOUCH_PREFLIGHT_GATE=zigux/tests/phase10_virtio_input_multitouch_preflight.zig",
     "PHASE10_LEDGER_MMIO_QUEUE_ISOLATION_GATE=zigux/tests/phase10_virtio_mmio_queue_isolation.zig",
-    "PHASE10_LEDGER_SCOREBOARD_LAB_ONLY_DRIVER_VALIDATION_EVIDENCE=zigux/tests/phase10_build.zig,zigux/tests/phase10_virtio_input_multitouch_preflight.zig,zigux/tests/phase10_virtio_mmio_queue_isolation.zig,scripts/zigux/check-phase10-harness-coverage.py,scripts/zigux/check-phase10-closure-inventory.py,scripts/zigux/validate-phase10.py,scripts/zigux/validate-phase10-closure.py,Documentation/zigux/phase10-closure-evidence.md,zigux/Makefile,.github/workflows/zigux-bootstrap.yml",
+    "PHASE10_LEDGER_SCOREBOARD_LAB_ONLY_DRIVER_VALIDATION_EVIDENCE=zigux/tests/phase10_build.zig,zigux/tests/phase10_virtio_input_multitouch_preflight.zig,zigux/tests/phase10_virtio_mmio_queue_isolation.zig,scripts/zigux/check-phase10-harness-coverage.py,scripts/zigux/check-phase10-closure-inventory.py,scripts/zigux/validate-phase10.py,scripts/zigux/validate-phase10-closure.py,Documentation/zigux/phase10-closure-evidence.md,zigux/Makefile,.github/workflows/zigux-bootstrap.yml"
 ]
 
 LEDGER_EXACT_ONCE_MARKERS = [
     "PHASE10_LEDGER_HARNESS_COVERAGE_VALIDATE=scripts/zigux/check-phase10-harness-coverage.py",
     "PHASE10_LEDGER_INPUT_MULTITOUCH_PREFLIGHT_GATE=zigux/tests/phase10_virtio_input_multitouch_preflight.zig",
     "PHASE10_LEDGER_MMIO_QUEUE_ISOLATION_GATE=zigux/tests/phase10_virtio_mmio_queue_isolation.zig",
-    "PHASE10_LEDGER_EXACT_CHECK_3=python3 scripts/zigux/check-phase10-harness-coverage.py",
+    "PHASE10_LEDGER_EXACT_CHECK_3=python3 scripts/zigux/check-phase10-harness-coverage.py"
 ]
 
 MAKEFILE_MARKERS = [
@@ -228,7 +241,7 @@ MAKEFILE_MARKERS = [
     "scripts/zigux/validate-phase10.py",
     "scripts/zigux/check-phase10-harness-coverage.py --self-test",
     "scripts/zigux/check-phase10-harness-coverage.py",
-    "scripts/zigux/validate-phase10-closure.py",
+    "scripts/zigux/validate-phase10-closure.py"
 ]
 
 WORKFLOW_MARKERS = [
@@ -236,7 +249,7 @@ WORKFLOW_MARKERS = [
     "Validate Phase 10 focused harness coverage",
     "Validate Phase 10 closure evidence",
     "make -C zigux phase10-validate",
-    "Run Phase 10 virtio helper tests",
+    "Run Phase 10 virtio helper tests"
 ]
 
 BUILD_MARKERS = [
@@ -246,25 +259,25 @@ BUILD_MARKERS = [
     "phase10-virtio-mmio-queue-isolation-tests",
     "phase10-virtio-ring-survey-tests",
     "phase10-virtio-input-survey-tests",
-    "phase10-virtio-mmio-survey-tests",
+    "phase10-virtio-mmio-survey-tests"
 ]
 
 CORE_SURVEY_MARKERS = [
     "phase10-config-generation-summary-helper",
     "phase10-config-delivery-disposition-helper",
-    "phase10-core-probe-remove-lifecycle",
+    "phase10-core-probe-remove-lifecycle"
 ]
 
 RING_SURVEY_MARKERS = [
     "phase10-broken-queue-recovery-helper",
     "phase10-mmio-interrupt-ack-helper",
-    "phase10-mmio-lifecycle-and-irq-paths",
+    "phase10-mmio-lifecycle-and-irq-paths"
 ]
 
 INPUT_SURVEY_MARKERS = [
     "phase10-virtio-input-registration-preflight-helper",
     "phase10-virtio-input-queue-callback-preflight-helper",
-    "phase10-virtio-input-registration-lifecycle",
+    "phase10-virtio-input-registration-lifecycle"
 ]
 
 MMIO_SURVEY_MARKERS = [
@@ -285,7 +298,7 @@ MMIO_SURVEY_MARKERS = [
     "wrapper-first or study-only posture",
     "drivers/virtio/*.zig",
     "zigux/kernel/",
-    "zigux/helpers/",
+    "zigux/helpers/"
 ]
 
 
@@ -370,7 +383,7 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
                 "Documentation/zigux/phase10-virtio-input-module-slice.md",
                 "Documentation/zigux/phase10-virtio-input-survey.md",
                 "Documentation/zigux/phase10-virtio-mmio-slice.md",
-                "Documentation/zigux/phase10-virtio-mmio-survey.md",
+                "Documentation/zigux/phase10-virtio-mmio-survey.md"
             ],
             "manifests": MANIFESTS,
             "drivers": DRIVERS,
@@ -414,13 +427,15 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
                         "zigux/tests/phase10_virtio_mmio_queue_isolation.zig",
                         "scripts/zigux/check-phase10-harness-coverage.py",
                         "scripts/zigux/check-phase10-closure-inventory.py",
-                        "scripts/zigux/validate-phase10-closure.py",
+                        "scripts/zigux/validate-phase10-closure.py"
                     ]:
                         if path not in evidence:
                             missing.append(f"closure_manifest:roadmap_parity_scoreboard:lab_only_driver_validation:evidence:{path}")
 
         if closure_manifest.get("landed_input_helper_evidence") != EXPECTED_LANDED_INPUT_HELPER_EVIDENCE:
             missing.append("closure_manifest:landed_input_helper_evidence")
+        if closure_manifest.get("focused_harness_replays") != EXPECTED_FOCUSED_HARNESS_REPLAYS:
+            missing.append("closure_manifest:focused_harness_replays")
 
     ring_manifest = load_json(root, "zigux/tests/phase10_virtio_ring_manifest.json")
     if not isinstance(ring_manifest, dict):
@@ -470,7 +485,7 @@ def write_fixture(root: Path) -> None:
             "Documentation/zigux/phase10-virtio-input-module-slice.md",
             "Documentation/zigux/phase10-virtio-input-survey.md",
             "Documentation/zigux/phase10-virtio-mmio-slice.md",
-            "Documentation/zigux/phase10-virtio-mmio-survey.md",
+            "Documentation/zigux/phase10-virtio-mmio-survey.md"
         ],
         "manifests": MANIFESTS,
         "drivers": DRIVERS,
@@ -482,7 +497,7 @@ def write_fixture(root: Path) -> None:
         "survey_provenance": {
             "source": "manifest_derived",
             "lane_keys": EXPECTED_SURVEY_LANE_KEYS,
-            "surveyed_commits": EXPECTED_SURVEYED_COMMITS,
+            "surveyed_commits": EXPECTED_SURVEYED_COMMITS
         },
         "roadmap_parity_scoreboard": {
             "lab_only_driver_validation": {
@@ -497,11 +512,12 @@ def write_fixture(root: Path) -> None:
                     "scripts/zigux/validate-phase10-closure.py",
                     "Documentation/zigux/phase10-closure-evidence.md",
                     "zigux/Makefile",
-                    ".github/workflows/zigux-bootstrap.yml",
-                ],
+                    ".github/workflows/zigux-bootstrap.yml"
+                ]
             }
         },
         "landed_input_helper_evidence": EXPECTED_LANDED_INPUT_HELPER_EVIDENCE,
+        "focused_harness_replays": EXPECTED_FOCUSED_HARNESS_REPLAYS
     }
 
     ring_manifest = {
@@ -509,7 +525,7 @@ def write_fixture(root: Path) -> None:
             {
                 "id": "phase10-broken-queue-recovery-helper",
                 "status": "starter_landed",
-                "why_now": "The live ring slice now includes a tiny broken-queue recovery helper that reuses the drained reset discipline after a bounded broken-queue marker, so the survey records teardown-safe queue reuse without claiming transport-backed reset execution, descriptor reclamation, or IRQ delivery.",
+                "why_now": "The live ring slice now includes a tiny broken-queue recovery helper that reuses the drained reset discipline after a bounded broken-queue marker, so the survey records teardown-safe queue reuse without claiming transport-backed reset execution, descriptor reclamation, or IRQ delivery."
             }
         ]
     }
@@ -519,7 +535,7 @@ def write_fixture(root: Path) -> None:
         "zigux/tests/phase10_virtio_ring_manifest.json": ring_manifest,
         "zigux/tests/phase10_virtio_core_manifest.json": {},
         "zigux/tests/phase10_virtio_input_manifest.json": {},
-        "zigux/tests/phase10_virtio_mmio_manifest.json": {},
+        "zigux/tests/phase10_virtio_mmio_manifest.json": {}
     }
 
     for rel_path in REQUIRED_FILES:
@@ -587,17 +603,25 @@ def run_self_test() -> int:
             "phase10-virtio-input-multitouch-slot-helper",
             "phase10-virtio-input-teardown-observation-helper",
             "phase10-virtio-input-registration-preflight-helper",
-            "phase10-virtio-input-queue-callback-preflight-helper",
+            "phase10-virtio-input-queue-callback-preflight-helper"
         ]
         closure_manifest_path.write_text(json.dumps(closure_manifest, indent=2) + "\n", encoding="utf-8")
         expect_missing_marker("landed_input_probe_preflight_guard", root, "closure_manifest:landed_input_helper_evidence")
+        write_fixture(root)
+
+        closure_manifest = json.loads(closure_manifest_path.read_text(encoding="utf-8"))
+        closure_manifest["focused_harness_replays"]["zigux/tests/phase10_virtio_mmio_queue_isolation.zig"] = [
+            "phase10 mmio multi-queue isolation replay"
+        ]
+        closure_manifest_path.write_text(json.dumps(closure_manifest, indent=2) + "\n", encoding="utf-8")
+        expect_missing_marker("focused_harness_replays_guard", root, "closure_manifest:focused_harness_replays")
         write_fixture(root)
 
         build_path = root / "zigux/tests/phase10_build.zig"
         original_build = build_path.read_text(encoding="utf-8")
         build_path.write_text(
             original_build.replace("phase10-virtio-input-multitouch-preflight-tests", "phase10-input-preflight-drift", 1),
-            encoding="utf-8",
+            encoding="utf-8"
         )
         expect_missing_marker("build_marker_guard", root, "phase10_build:phase10-virtio-input-multitouch-preflight-tests")
         write_fixture(root)
@@ -606,14 +630,14 @@ def run_self_test() -> int:
         original_closure_note = closure_note_path.read_text(encoding="utf-8")
         closure_note_path.write_text(
             original_closure_note.replace("zigux/tests/phase10_virtio_mmio_queue_isolation.zig", "zigux/tests/phase10_virtio_mmio_queue_drift.zig", 1),
-            encoding="utf-8",
+            encoding="utf-8"
         )
         expect_missing_marker("closure_note_queue_isolation_guard", root, "closure:zigux/tests/phase10_virtio_mmio_queue_isolation.zig")
         write_fixture(root)
 
         closure_note_path.write_text(
             original_closure_note.replace("PHASE10_SURVEY_INPUT_LANE=P10-L13", "PHASE10_SURVEY_INPUT_LANE=P10-Y05", 1),
-            encoding="utf-8",
+            encoding="utf-8"
         )
         expect_missing_marker("closure_note_input_lane_guard", root, "closure:PHASE10_SURVEY_INPUT_LANE=P10-L13")
         write_fixture(root)
@@ -622,9 +646,9 @@ def run_self_test() -> int:
             original_closure_note.replace(
                 "PHASE10_HARNESS_COVERAGE_GATE=python3 scripts/zigux/check-phase10-harness-coverage.py",
                 "PHASE10_HARNESS_COVERAGE_GATE=missing",
-                1,
+                1
             ),
-            encoding="utf-8",
+            encoding="utf-8"
         )
         expect_missing_marker("closure_note_harness_gate_guard", root, "closure:PHASE10_HARNESS_COVERAGE_GATE=python3 scripts/zigux/check-phase10-harness-coverage.py")
         write_fixture(root)
@@ -633,23 +657,23 @@ def run_self_test() -> int:
         original_closure_note = closure_note_path.read_text(encoding="utf-8")
         closure_note_path.write_text(
             original_closure_note + "\nPHASE10_HARNESS_COVERAGE_GATE=python3 scripts/zigux/check-phase10-harness-coverage.py\n",
-            encoding="utf-8",
+            encoding="utf-8"
         )
         expect_missing_marker(
             "closure_note_harness_gate_duplicate",
             root,
-            "closure:count:PHASE10_HARNESS_COVERAGE_GATE=python3 scripts/zigux/check-phase10-harness-coverage.py=2",
+            "closure:count:PHASE10_HARNESS_COVERAGE_GATE=python3 scripts/zigux/check-phase10-harness-coverage.py=2"
         )
         write_fixture(root)
 
         closure_note_path.write_text(
             original_closure_note + "\nPHASE10_TEST_COUNT=11\n",
-            encoding="utf-8",
+            encoding="utf-8"
         )
         expect_missing_marker(
             "closure_note_test_count_duplicate",
             root,
-            "closure:count:PHASE10_TEST_COUNT=11=2",
+            "closure:count:PHASE10_TEST_COUNT=11=2"
         )
         write_fixture(root)
 
@@ -659,14 +683,14 @@ def run_self_test() -> int:
             original_mmio_survey.replace(
                 "PHASE10_ARCHITECTURE_COUNCIL_REOPEN_REQUIRED=yes",
                 "PHASE10_ARCHITECTURE_COUNCIL_REOPEN_REQUIRED=drift",
-                1,
+                1
             ),
-            encoding="utf-8",
+            encoding="utf-8"
         )
         expect_missing_marker(
             "mmio_survey_reopen_guard",
             root,
-            "mmio_survey:PHASE10_ARCHITECTURE_COUNCIL_REOPEN_REQUIRED=yes",
+            "mmio_survey:PHASE10_ARCHITECTURE_COUNCIL_REOPEN_REQUIRED=yes"
         )
         write_fixture(root)
 
@@ -676,14 +700,14 @@ def run_self_test() -> int:
             original_docs_readme.replace(
                 "python3 scripts/zigux/check-phase10-harness-coverage.py",
                 "python3 scripts/zigux/check-phase10-harness-coverage-drift.py",
-                1,
+                1
             ),
-            encoding="utf-8",
+            encoding="utf-8"
         )
         expect_missing_marker(
             "docs_readme_harness_gate_guard",
             root,
-            "docs_readme:python3 scripts/zigux/check-phase10-harness-coverage.py",
+            "docs_readme:python3 scripts/zigux/check-phase10-harness-coverage.py"
         )
         write_fixture(root)
 
@@ -693,14 +717,14 @@ def run_self_test() -> int:
             original_docs_readme.replace(
                 "queue-handling and ready-state gate",
                 "queue-handling gate drift",
-                1,
+                1
             ),
-            encoding="utf-8",
+            encoding="utf-8"
         )
         expect_missing_marker(
             "docs_readme_ready_state_phrase_guard",
             root,
-            "docs_readme:queue-handling and ready-state gate",
+            "docs_readme:queue-handling and ready-state gate"
         )
         write_fixture(root)
 
@@ -708,23 +732,23 @@ def run_self_test() -> int:
         original_docs_readme = docs_readme_path.read_text(encoding="utf-8")
         docs_readme_path.write_text(
             original_docs_readme + "\nqueue-handling and ready-state gate\n",
-            encoding="utf-8",
+            encoding="utf-8"
         )
         expect_missing_marker(
             "docs_readme_ready_state_phrase_duplicate",
             root,
-            "docs_readme:count:queue-handling and ready-state gate=2",
+            "docs_readme:count:queue-handling and ready-state gate=2"
         )
         write_fixture(root)
 
         docs_readme_path.write_text(
             original_docs_readme + "\npython3 scripts/zigux/check-phase10-harness-coverage.py\n",
-            encoding="utf-8",
+            encoding="utf-8"
         )
         expect_missing_marker(
             "docs_readme_harness_gate_duplicate",
             root,
-            "docs_readme:count:python3 scripts/zigux/check-phase10-harness-coverage.py=2",
+            "docs_readme:count:python3 scripts/zigux/check-phase10-harness-coverage.py=2"
         )
         write_fixture(root)
 
@@ -734,14 +758,14 @@ def run_self_test() -> int:
             original_ledger.replace(
                 "PHASE10_LEDGER_SURVEY_INPUT_LANE=P10-L13",
                 "PHASE10_LEDGER_SURVEY_INPUT_LANE=P10-Y05",
-                1,
+                1
             ),
-            encoding="utf-8",
+            encoding="utf-8"
         )
         expect_missing_marker(
             "ledger_input_lane_guard",
             root,
-            "ledger:PHASE10_LEDGER_SURVEY_INPUT_LANE=P10-L13",
+            "ledger:PHASE10_LEDGER_SURVEY_INPUT_LANE=P10-L13"
         )
         write_fixture(root)
 
@@ -749,7 +773,7 @@ def run_self_test() -> int:
         original_ledger = ledger_path.read_text(encoding="utf-8")
         ledger_path.write_text(
             original_ledger.replace("PHASE10_LEDGER_INPUT_MULTITOUCH_PREFLIGHT_GATE=zigux/tests/phase10_virtio_input_multitouch_preflight.zig", "PHASE10_LEDGER_INPUT_MULTITOUCH_PREFLIGHT_GATE=drift", 1),
-            encoding="utf-8",
+            encoding="utf-8"
         )
         expect_missing_marker("ledger_preflight_guard", root, "ledger:PHASE10_LEDGER_INPUT_MULTITOUCH_PREFLIGHT_GATE=zigux/tests/phase10_virtio_input_multitouch_preflight.zig")
         write_fixture(root)
@@ -760,14 +784,14 @@ def run_self_test() -> int:
             original_ledger.replace(
                 "PHASE10_LEDGER_HARNESS_COVERAGE_VALIDATE=scripts/zigux/check-phase10-harness-coverage.py",
                 "PHASE10_LEDGER_HARNESS_COVERAGE_VALIDATE=drift",
-                1,
+                1
             ),
-            encoding="utf-8",
+            encoding="utf-8"
         )
         expect_missing_marker(
             "ledger_harness_gate_guard",
             root,
-            "ledger:PHASE10_LEDGER_HARNESS_COVERAGE_VALIDATE=scripts/zigux/check-phase10-harness-coverage.py",
+            "ledger:PHASE10_LEDGER_HARNESS_COVERAGE_VALIDATE=scripts/zigux/check-phase10-harness-coverage.py"
         )
         write_fixture(root)
 
@@ -775,23 +799,23 @@ def run_self_test() -> int:
         original_ledger = ledger_path.read_text(encoding="utf-8")
         ledger_path.write_text(
             original_ledger + "\nPHASE10_LEDGER_HARNESS_COVERAGE_VALIDATE=scripts/zigux/check-phase10-harness-coverage.py\n",
-            encoding="utf-8",
+            encoding="utf-8"
         )
         expect_missing_marker(
             "ledger_harness_gate_duplicate",
             root,
-            "ledger:count:PHASE10_LEDGER_HARNESS_COVERAGE_VALIDATE=scripts/zigux/check-phase10-harness-coverage.py=2",
+            "ledger:count:PHASE10_LEDGER_HARNESS_COVERAGE_VALIDATE=scripts/zigux/check-phase10-harness-coverage.py=2"
         )
         write_fixture(root)
 
         ledger_path.write_text(
             original_ledger + "\nPHASE10_LEDGER_MMIO_QUEUE_ISOLATION_GATE=zigux/tests/phase10_virtio_mmio_queue_isolation.zig\n",
-            encoding="utf-8",
+            encoding="utf-8"
         )
         expect_missing_marker(
             "ledger_queue_isolation_duplicate",
             root,
-            "ledger:count:PHASE10_LEDGER_MMIO_QUEUE_ISOLATION_GATE=zigux/tests/phase10_virtio_mmio_queue_isolation.zig=2",
+            "ledger:count:PHASE10_LEDGER_MMIO_QUEUE_ISOLATION_GATE=zigux/tests/phase10_virtio_mmio_queue_isolation.zig=2"
         )
         write_fixture(root)
 
@@ -810,7 +834,7 @@ def run_self_test() -> int:
         expect_missing_file("queue_isolation_file_guard", root, "zigux/tests/phase10_virtio_mmio_queue_isolation.zig")
 
     print("PHASE10_CLOSURE_VALIDATOR_SELF_TEST=pass")
-    print("PHASE10_CLOSURE_VALIDATOR_SELF_TEST_CASE_COUNT=22")
+    print("PHASE10_CLOSURE_VALIDATOR_SELF_TEST_CASE_COUNT=23")
     return 0
 
 
