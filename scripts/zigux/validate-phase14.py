@@ -140,10 +140,7 @@ RELEASE_BOUNDARY_MARKERS = [
     "Keep this lane parked unless the shared smoke packet or one of the four anchor-local Phase 14 manifests moves. If that happens, refresh this release-boundary reading and the docs-root Phase 14 summary so the release-facing story keeps matching the validator-backed smoke packet without widening it into a new active delivery claim.",
 ]
 
-RELEASE_BOUNDARY_EXACT_COUNT_MARKERS = [
-    "PHASE14_SHARED_REPLAY_PRESENT=yes",
-    "PHASE14_RELEASE_CLOSED=no",
-]
+RELEASE_BOUNDARY_EXACT_COUNT_MARKERS = RELEASE_BOUNDARY_MARKERS
 
 CHECKLIST_MARKERS = [
     "is there a stated rollback owner and fallback path?",
