@@ -50,6 +50,10 @@
     }
   },
   "memparse": {
+    "bare_hex_prefix": {
+      "stop_index": 1,
+      "value": 0
+    },
     "bare_suffix": {
       "stop_index": 1,
       "value": 0
