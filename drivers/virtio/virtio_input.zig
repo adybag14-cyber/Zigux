@@ -1,4 +1,5 @@
 const std = @import("std");
+const registration_blocker = @import("virtio_input_registration_blocker");
 
 pub const queue_capacity: usize = 2;
 pub const max_descriptor_count: u16 = 1024;
@@ -528,6 +529,18 @@ pub const VirtioInputLab = struct {
                 queue_summary.event_buffers_ready and
                 queue_summary.device_ready,
         };
+    }
+
+    pub fn registrationBlockerSummary(self: *const Self) !registration_blocker.RegistrationBlockerSummary {
+        const registration_summary = try self.registrationPreflightSummary();
+        const queue_summary = try self.queueCallbackPreflightSummary();
+        const probe_summary = try self.probePreflightSummary();
+
+        return registration_blocker.summarize(.{
+            .registration_preflight_ready = registration_summary.ready_for_registration,
+            .queue_callback_ready = queue_summary.ready_for_queue_callback,
+            .probe_handoff_ready = probe_summary.ready_for_probe_handoff,
+        });
     }
 
     pub fn sendStatus(self: *Self, event_type: u16, code: u16, value: i32) !StatusSendSummary {
