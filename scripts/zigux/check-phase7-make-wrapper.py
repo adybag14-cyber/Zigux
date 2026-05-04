@@ -22,6 +22,8 @@ EXPECTED_MAKE_EXPANSIONS = {
         "python3 scripts/zigux/check-phase7-make-wrapper.py",
         "python3 scripts/zigux/check-phase7-cmdline-parity.py --self-test",
         "python3 scripts/zigux/check-phase7-cmdline-parity.py",
+        "python3 scripts/zigux/check-phase7-argv-split-packet.py --self-test",
+        "python3 scripts/zigux/check-phase7-argv-split-packet.py",
         "python3 scripts/zigux/check-phase7-argv-split-parity.py --self-test",
         "python3 scripts/zigux/check-phase7-argv-split-parity.py",
         "python3 scripts/zigux/check-phase7-rbtree-parity.py --self-test",
@@ -39,6 +41,8 @@ EXPECTED_MAKE_EXPANSIONS = {
         "python3 scripts/zigux/check-phase7-make-wrapper.py",
         "python3 scripts/zigux/check-phase7-cmdline-parity.py --self-test",
         "python3 scripts/zigux/check-phase7-cmdline-parity.py",
+        "python3 scripts/zigux/check-phase7-argv-split-packet.py --self-test",
+        "python3 scripts/zigux/check-phase7-argv-split-packet.py",
         "python3 scripts/zigux/check-phase7-argv-split-parity.py --self-test",
         "python3 scripts/zigux/check-phase7-argv-split-parity.py",
         "python3 scripts/zigux/check-phase7-rbtree-parity.py --self-test",
@@ -61,6 +65,8 @@ UNEXPECTED_MAKE_EXPANSIONS = {
         "python3 scripts/zigux/check-phase7-make-wrapper.py",
         "python3 scripts/zigux/check-phase7-cmdline-parity.py --self-test",
         "python3 scripts/zigux/check-phase7-cmdline-parity.py",
+        "python3 scripts/zigux/check-phase7-argv-split-packet.py --self-test",
+        "python3 scripts/zigux/check-phase7-argv-split-packet.py",
         "python3 scripts/zigux/check-phase7-argv-split-parity.py --self-test",
         "python3 scripts/zigux/check-phase7-argv-split-parity.py",
         "python3 scripts/zigux/check-phase7-rbtree-parity.py --self-test",
@@ -406,6 +412,24 @@ def run_self_test() -> int:
                 "phase7-validate": [
                     line
                     for line in EXPECTED_MAKE_EXPANSIONS["phase7-validate"]
+                    if line != "python3 scripts/zigux/check-phase7-argv-split-packet.py"
+                ],
+            },
+        )
+        expect_failure(
+            "missing_validator_argv_split_packet_live",
+            tmp_root,
+            fake_make_env,
+            "validator phase7-validate expansion missing: python3 scripts/zigux/check-phase7-argv-split-packet.py",
+        )
+
+        write_validator_fixture(
+            validator_path,
+            {
+                **EXPECTED_MAKE_EXPANSIONS,
+                "phase7-validate": [
+                    line
+                    for line in EXPECTED_MAKE_EXPANSIONS["phase7-validate"]
                     if line != "python3 scripts/zigux/check-phase7-rbtree-parity.py"
                 ],
             },
@@ -496,6 +520,24 @@ def run_self_test() -> int:
                 "phase7": [
                     line
                     for line in EXPECTED_MAKE_EXPANSIONS["phase7"]
+                    if line != "python3 scripts/zigux/check-phase7-argv-split-packet.py"
+                ],
+            },
+        )
+        expect_failure(
+            "missing_validator_argv_split_packet_live_in_bundle",
+            tmp_root,
+            fake_make_env,
+            "validator phase7 expansion missing: python3 scripts/zigux/check-phase7-argv-split-packet.py",
+        )
+
+        write_validator_fixture(
+            validator_path,
+            {
+                **EXPECTED_MAKE_EXPANSIONS,
+                "phase7": [
+                    line
+                    for line in EXPECTED_MAKE_EXPANSIONS["phase7"]
                     if line != "python3 scripts/zigux/check-phase7-rbtree-parity.py"
                 ],
             },
@@ -520,6 +562,8 @@ def run_self_test() -> int:
                     "python3 scripts/zigux/check-phase7-make-wrapper.py",
                     "python3 scripts/zigux/check-phase7-cmdline-parity.py --self-test",
                     "python3 scripts/zigux/check-phase7-cmdline-parity.py",
+                    "python3 scripts/zigux/check-phase7-argv-split-packet.py --self-test",
+                    "python3 scripts/zigux/check-phase7-argv-split-packet.py",
                     "python3 scripts/zigux/check-phase7-argv-split-parity.py --self-test",
                     "python3 scripts/zigux/check-phase7-argv-split-parity.py",
                     "python3 scripts/zigux/check-phase7-rbtree-parity.py --self-test",
@@ -562,6 +606,25 @@ def run_self_test() -> int:
                     line
                     for line in EXPECTED_MAKE_EXPANSIONS["phase7-validate"]
                     if line
+                    != "python3 scripts/zigux/check-phase7-argv-split-packet.py --self-test"
+                ],
+            },
+        )
+        expect_failure(
+            "missing_argv_split_packet_selftest",
+            tmp_root,
+            fake_make_env,
+            "phase7-validate: missing expected wrapper expansion: python3 scripts/zigux/check-phase7-argv-split-packet.py --self-test",
+        )
+
+        make_fake_make(
+            fake_make_path,
+            {
+                **EXPECTED_MAKE_EXPANSIONS,
+                "phase7-validate": [
+                    line
+                    for line in EXPECTED_MAKE_EXPANSIONS["phase7-validate"]
+                    if line
                     != "python3 scripts/zigux/check-phase7-argv-split-parity.py --self-test"
                 ],
             },
@@ -590,6 +653,25 @@ def run_self_test() -> int:
             tmp_root,
             fake_make_env,
             "phase7-validate: missing expected wrapper expansion: python3 scripts/zigux/check-phase7-rbtree-parity.py --self-test",
+        )
+
+        make_fake_make(
+            fake_make_path,
+            {
+                **EXPECTED_MAKE_EXPANSIONS,
+                "phase7": [
+                    line
+                    for line in EXPECTED_MAKE_EXPANSIONS["phase7"]
+                    if line
+                    != "python3 scripts/zigux/check-phase7-argv-split-packet.py"
+                ],
+            },
+        )
+        expect_failure(
+            "missing_argv_split_packet_live_in_bundle",
+            tmp_root,
+            fake_make_env,
+            "phase7: missing expected wrapper expansion: python3 scripts/zigux/check-phase7-argv-split-packet.py",
         )
 
         make_fake_make(
@@ -648,7 +730,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE7_MAKE_WRAPPER_SELF_TEST=pass")
-    print("PHASE7_MAKE_WRAPPER_SELF_TEST_CASE_COUNT=18")
+    print("PHASE7_MAKE_WRAPPER_SELF_TEST_CASE_COUNT=22")
     return 0
 
 
