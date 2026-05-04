@@ -1,7 +1,7 @@
 {
   "lane_key": "P15-L08",
   "phase": "Phase 15",
-  "surveyed_commit": "02264a3240cd30ce45c9a932047a0204b7ab5029",
+  "surveyed_commit": "d918be7ded6383c13cbd5eea4ca4aa4f3cdafee4",
   "roadmap_requirement": "Architecture Council review process",
   "anchor": "Documentation/zigux/phase15-architecture-council-review-process.md",
   "current_approval_state": "no_freeze_map_status_change_approved",
@@ -95,7 +95,7 @@
     "roadmap_handoff": "The Architecture Council review process stays honest only while it remains visibly tied to the same Phase 15 governance bundle as the freeze map, parity scorecard, indefinite-C policy, shared replay gate, and parked maintenance-mode next step.",
     "bootstrap_ledger_anchor": "docs(zigux): add documentation root, review checklist, and freeze map",
     "current_repo_handoff": "The original documentation-root and freeze-map landing is now carried forward by Documentation/zigux/README.md, Documentation/zigux/freeze-map.md, Documentation/zigux/review-checklist.md, Documentation/zigux/phase15-freeze-map-governance.md, the review-process note, Documentation/zigux/phase15-parity-scorecard.md, Documentation/zigux/phase15-indefinite-c-policy.md, Documentation/zigux/phase15-readiness-gate-survey.md, Documentation/zigux/phase15-handoff-next-steps-survey.md, scripts/zigux/README.md, scripts/zigux/check-phase15-review-process-handoff.py, scripts/zigux/validate-phase15.py, zigux/tests/README.md, zigux/tests/phase15_docs_root_reviewability.zig, zigux/tests/phase15_build.zig, and make -C zigux phase15.",
-    "current_bounded_lane": "P15-L08 keeps the review-process packet narrowed to one same-packet governance, approval, and ownership evidence verification refresh by replacing stale lane markers and directly coupled recorded-gap drift across the review-process note, manifest, and focused test so the Architecture Council handoff stays aligned with the current parked maintenance-mode Phase 15 packet, its dedicated readiness packet, its docs-root reviewability guard, its scripts-root validator path, its dedicated handoff-checker route, its tests-root guidance path, and the neighboring governance slices as last reviewed at master head 02264a3240cd30ce45c9a932047a0204b7ab5029; later repo movement now requires a fresh bounded provenance refresh before this handoff should restate that lane alignment for current master, without reopening freeze-map, parity-scorecard, or indefinite-C policy maintenance.",
+    "current_bounded_lane": "P15-L08 keeps the review-process packet narrowed to one same-packet governance, approval, and ownership evidence verification refresh by replacing stale lane markers and directly coupled recorded-gap drift across the review-process note, manifest, and focused test so the Architecture Council handoff stays aligned with the current parked maintenance-mode Phase 15 packet, its dedicated readiness packet, its docs-root reviewability guard, its scripts-root validator path, its dedicated handoff-checker route, its tests-root guidance path, and the neighboring governance slices as last reviewed at master head d918be7ded6383c13cbd5eea4ca4aa4f3cdafee4; later repo movement now requires a fresh bounded provenance refresh before this handoff should restate that lane alignment for current master, without reopening freeze-map, parity-scorecard, or indefinite-C policy maintenance.",
     "maintenance_mode_next_step": "Wait for one of the named reopen triggers, a shared Phase 15 replay drift, or the deep-core blocker posture to change before opening another Phase 15 slice."
   },
   "handoff": {
@@ -184,90 +184,4 @@
       "kind": "governance_sync",
       "zigux_destination": "Documentation/zigux/review-checklist.md",
       "why_now": "The shared review checklist now also has to keep the current roadmap phase and written rationale explicit, so those roadmap-backed review-process requirements do not live only in the survey note and manifest."
-    },
-    {
-      "id": "phase15-automatic-return-to-blocked-gate",
-      "status": "starter_landed",
-      "kind": "policy_gate",
-      "zigux_destination": "Documentation/zigux/phase15-architecture-council-review-process.md",
-      "why_now": "The review-process packet now treats the automatic return-to-blocked trigger as a first-class required field so active review cannot keep going on stale scorecard evidence, replay drift, blocker drift, or rollback-threshold ambiguity."
-    },
-    {
-      "id": "phase15-indefinite-c-policy-review-gate",
-      "status": "starter_landed",
-      "kind": "policy_gate",
-      "zigux_destination": "Documentation/zigux/phase15-architecture-council-review-process.md",
-      "why_now": "A freeze-map anchor that stays in C now has to link the dedicated indefinite-C policy note or say plainly why the packet is not yet entering that policy posture, so the review-process packet cannot drift away from the roadmap's long-term in-C policy surface."
-    },
-    {
-      "id": "phase15-review-process-roadmap-handoff-evidence",
-      "status": "starter_landed",
-      "kind": "handoff",
-      "zigux_destination": "Documentation/zigux/phase15-architecture-council-review-process.md",
-      "why_now": "The review-process slice needed the same roadmap source, bootstrap-ledger anchor, current bounded lane, parked next-step evidence, and freeze-map-governance companion carried by the rest of the Phase 15 governance bundle so later runs can see why this note stays landed without reopening deep-core scope."
-    },
-    {
-      "id": "phase15-review-process-reopen-evidence-matrix-gate",
-      "status": "starter_landed",
-      "kind": "policy_gate",
-      "zigux_destination": "Documentation/zigux/phase15-architecture-council-review-process.md",
-      "why_now": "The review checklist and indefinite-C policy already require trigger-specific reopened evidence by path plus the current blocker disposition, so the dedicated review-process packet now carries and proves the same reopen-evidence rule instead of relying on a trigger-name-only reopen request."
-    },
-    {
-      "id": "phase15-review-process-rollback-threshold-field-gate",
-      "status": "starter_landed",
-      "kind": "policy_gate",
-      "zigux_destination": "Documentation/zigux/phase15-architecture-council-review-process.md",
-      "why_now": "The freeze-map reopen rule already says a reopened stay-in-C anchor must state the rollback threshold, so the dedicated Architecture Council packet now carries and proves that threshold as its own required request field instead of leaving it implied inside the automatic return-to-blocked trigger wording."
-    },
-    {
-      "id": "phase15-review-process-source-of-truth-field-gate",
-      "status": "starter_landed",
-      "kind": "policy_gate",
-      "zigux_destination": "Documentation/zigux/phase15-architecture-council-review-process.md",
-      "why_now": "The freeze map and the indefinite-C policy already require an explicit reminder that the existing C implementation remains the product source of truth until approval lands, so the dedicated review-process packet now carries that reminder as its own required request field instead of leaving it implied inside neighboring stay-in-C policy surfaces."
-    },
-    {
-      "id": "phase15-review-process-lane-identity-provenance-refresh",
-      "status": "starter_landed",
-      "kind": "ownership_gate",
-      "zigux_destination": "Documentation/zigux/phase15-architecture-council-review-process.md",
-      "why_now": "Neighboring Phase 15 governance packets had already moved to newer active-lane identities, so the Architecture Council packet needed one bounded governance, approval, and ownership evidence verification refresh across the note, manifest, and focused test to keep the parked handoff aligned with the active scheduled lane without reopening surveyed provenance or neighboring governance packets."
-    },
-    {
-      "id": "phase15-review-process-indefinite-c-evidence-path-sync",
-      "status": "starter_landed",
-      "kind": "governance_sync",
-      "zigux_destination": "zigux/tests/phase15_architecture_council_review_process_manifest.json",
-      "why_now": "The review-process packet already requires the dedicated indefinite-C policy link for stay-in-C requests, so the current approval and ownership evidence-path inventory must list that same policy note instead of leaving one governance surface implied."
-    },
-    {
-      "id": "phase15-review-process-ownership-evidence-rollback-threshold-sync",
-      "status": "starter_landed",
-      "kind": "governance_sync",
-      "zigux_destination": "zigux/tests/phase15_architecture_council_review_process_manifest.json",
-      "why_now": "The review-process packet already requires rollback-threshold proof for stay-in-C reviews, so the current ownership-evidence inventory must list that same rollback threshold instead of leaving the scorecard and anchor-template evidence ahead of the machine-checked packet inventory."
-    },
-    {
-      "id": "phase15-review-process-freeze-map-governance-handoff-sync",
-      "status": "starter_landed",
-      "kind": "handoff_sync",
-      "zigux_destination": "zigux/tests/phase15_architecture_council_review_process_manifest.json",
-      "why_now": "The parked Architecture Council packet now keeps the dedicated freeze-map-governance companion explicit inside the same current-repo handoff bundle, so future maintenance does not undercount that neighboring governance note while the packet stays in maintenance mode."
-    },
-    {
-      "id": "phase15-review-process-scripts-tests-root-handoff-sync",
-      "status": "starter_landed",
-      "kind": "handoff_sync",
-      "zigux_destination": "zigux/tests/phase15_architecture_council_review_process_manifest.json",
-      "why_now": "The parked Architecture Council packet now keeps the scripts-root Phase 15 validator path, the dedicated handoff-checker route, and the tests-root guidance path explicit inside the same current-repo handoff bundle, so future maintenance does not lose the shared release-discipline route while the packet stays in maintenance mode."
-    },
-    {
-      "id": "phase15-review-process-readiness-docs-root-handoff-sync",
-      "status": "starter_landed",
-      "kind": "handoff_sync",
-      "zigux_destination": "zigux/tests/phase15_architecture_council_review_process_manifest.json",
-      "why_now": "The parked Architecture Council packet now keeps the dedicated readiness survey and docs-root reviewability guard explicit inside the same current-repo handoff bundle, so future maintenance does not leave the review-process packet behind the already-landed Phase 15 parked handoff surfaces."
-    }
-  ]
-}
+    },{
