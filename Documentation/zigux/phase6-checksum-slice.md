@@ -40,13 +40,17 @@ Phase 6 is where Zigux can keep proving low-risk in-kernel helper ports without 
 - `python3 scripts/zigux/check-phase6-checksum-c-parity.py --self-test`
 - `python3 scripts/zigux/check-phase6-checksum-c-parity.py`
 
-3. run the focused Zig Phase 6 helper tests
+3. run the shared checksum-plus-hexdump perf-marker guard when touching perf reporting, thresholds, or reference-path wording
+- `python3 scripts/zigux/check-phase6-checksum-hexdump-perf-markers.py --self-test`
+- `python3 scripts/zigux/check-phase6-checksum-hexdump-perf-markers.py`
+
+4. run the focused Zig Phase 6 helper tests
 - `zig build test --build-file zigux/tests/phase6_build.zig`
 
-4. keep the helper wired through the Zigux convenience target
+5. keep the helper wired through the Zigux convenience target
 - `make -C zigux phase6`
 
-5. replay the checksum perf sanity harness when reviewing checksum-cost drift
+6. replay the checksum perf sanity harness when reviewing checksum-cost drift
 - `zig build checksum-perf --build-file zigux/tests/phase6_build.zig`
 - or `make -C zigux phase6-checksum-perf`
 
@@ -89,6 +93,7 @@ The current tests check:
 - an external C-vs-Zig spot check through `python3 scripts/zigux/check-phase6-checksum-c-parity.py`, `zigux/tests/phase6_checksum_c_parity.zig`, and `zigux/tests/fixtures/phase6_checksum_c_harness.c` so the current `lib/checksum.c` arithmetic surface stays directly reviewable beside the committed Zig fixture packet; the live parity runner now replays 27 direct outputs across 5 compute cases, 3 seeded partial cases, 2 composition cases, 1 IPv4 pseudo-header nofold case, 3 IPv6 pseudo-header nofold cases, 4 carry-discipline folds, 5 direct `add16` and `sub16` carry-helper outputs, and 4 incremental replacement outputs
 - shared fixture-backed checksum vectors stored in `zigux/tests/fixtures/phase6_checksum_vectors.zig` and consumed by `zigux/tests/phase6_checksum.zig`, while `lib/checksum.zig` keeps only helper-local arithmetic and regression checks so the leaf helper no longer depends on the shared Phase 6 fixture packet
 - a replayable perf-sanity harness reports representative checksum cost per call and per byte while rechecking parity against the widened-accumulator `referencePartial` path on deterministic 64-byte and 1501-byte payloads, and it currently fail-closes on `max_slowdown_pct = 150` for both committed perf cases
+- the shared `python3 scripts/zigux/check-phase6-checksum-hexdump-perf-markers.py` guard now keeps that perf packet fail-closed around the per-call, per-byte, slowdown, folded-checksum, and reference-path markers before broader Phase 6 replay claims stay green
 
 This is enough evidence to leave the bounded checksum helper lane parked unless a concrete new parity, perf, or directly coupled review-packet gap appears in the live repo.
 
