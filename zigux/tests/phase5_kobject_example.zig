@@ -218,3 +218,45 @@ test "phase 5 kobject sample records sample-owned lifecycle replay explicitly" {
     try std.testing.expectError(error.InvalidLifecycleTransition, module.storeValue("foo", "1\n"));
     try std.testing.expectError(error.InvalidLifecycleTransition, module.exit());
 }
+
+test "phase 5 kobject sample keeps post-exit rejections reviewable through a sample-owned replay" {
+    var module = sample.KobjectExampleSample{};
+    const replay = try module.runPostExitRejectionReplay();
+
+    try std.testing.expectEqual(sample.SampleStage.registered, replay.exit_summary.stage_before_exit);
+    try std.testing.expectEqual(sample.SampleStage.exited, replay.exit_summary.stage_after_exit);
+    try std.testing.expectEqual(@as(usize, 3), replay.exit_summary.active_attr_count_before_exit);
+    try std.testing.expectEqual(@as(usize, 0), replay.exit_summary.active_attr_count_after_exit);
+    try std.testing.expect(replay.exit_summary.attributes_were_accessible);
+    try std.testing.expectEqual(sample.ExitDisposition.tore_down_registered_attributes, replay.exit_summary.disposition);
+    try std.testing.expectEqual(@as(usize, 1), replay.exit_summary.init_runs);
+    try std.testing.expectEqual(@as(usize, 1), replay.exit_summary.register_runs);
+    try std.testing.expectEqual(@as(usize, 1), replay.exit_summary.exit_runs);
+
+    try std.testing.expectEqual(sample.SampleStage.exited, replay.exited.stage);
+    try std.testing.expectEqual(@as(usize, 0), replay.exited.active_attr_count);
+    try std.testing.expect(!replay.exited.attributes_are_accessible);
+    try std.testing.expectEqual(@as(usize, 1), replay.exited.init_runs);
+    try std.testing.expectEqual(@as(usize, 1), replay.exited.register_runs);
+    try std.testing.expectEqual(@as(usize, 1), replay.exited.exit_runs);
+    try std.testing.expect(!replay.exited.can_run_anchor_replay);
+    try std.testing.expect(!replay.exited.can_register_attributes);
+    try std.testing.expect(!replay.exited.can_exit);
+    try std.testing.expect(replay.init_rejected);
+    try std.testing.expect(replay.register_rejected);
+    try std.testing.expect(replay.anchor_replay_rejected);
+    try std.testing.expect(replay.initialized_exit_replay_rejected);
+    try std.testing.expect(replay.ownership_replay_rejected);
+    try std.testing.expect(replay.show_rejected);
+    try std.testing.expect(replay.store_rejected);
+    try std.testing.expect(replay.exit_rejected);
+    try std.testing.expectEqual(sample.SampleStage.exited, module.stage());
+    try std.testing.expect(!module.attributesAreAccessible());
+    try std.testing.expectEqual(@as(usize, 0), module.activeAttrCount());
+    try std.testing.expectEqual(@as(i32, 0), module.foo);
+    try std.testing.expectEqual(@as(i32, 0), module.baz);
+    try std.testing.expectEqual(@as(i32, 0), module.bar);
+    try std.testing.expectEqual(@as(usize, 1), module.init_runs);
+    try std.testing.expectEqual(@as(usize, 1), module.register_runs);
+    try std.testing.expectEqual(@as(usize, 1), module.exit_runs);
+}
