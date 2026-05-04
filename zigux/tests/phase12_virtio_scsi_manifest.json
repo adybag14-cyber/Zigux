@@ -45,7 +45,7 @@
       {
         "feature": "throughput and recovery parity",
         "status": "recovery_shape_only",
-        "evidence": "The lane records freeze or restore planning and queue-map restore pressure, but it does not claim measured throughput, command completion, event-work recycling, or PM callback parity."
+        "evidence": "The lane records freeze or restore planning, queue-depth restore pressure, queue-map restore pressure, event-buffer refill pressure, and restore sequencing, but it does not claim measured throughput, command completion, event-work recycling, or PM callback parity."
       },
       {
         "feature": "segmented rollout",
@@ -123,7 +123,7 @@
       "status": "starter_landed",
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase12_virtio_scsi_recovery_state.zig",
-      "why_now": "Dedicated recovery-state coverage now proves restore clears stale queue-depth state, replans later freeze generations from the new topology, and keeps the bounded transport-reset packet honest before any live `scsi_scan_host()`, blk-mq submission, or DMA-backed request flow is attempted."
+      "why_now": "Dedicated recovery-state coverage now proves restore clears stale queue-depth state, replans later freeze generations, keeps the bounded recovery-event-refill summary aligned with the replanned frozen topology, and keeps the bounded transport-reset packet honest before any live `scsi_scan_host()`, blk-mq submission, or DMA-backed request flow is attempted."
     },
     {
       "id": "phase12-virtio-scsi-slice-note",
