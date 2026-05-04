@@ -39,6 +39,8 @@ FILES = [
     "scripts/zigux/README.md",
     "Documentation/zigux/README.md",
     "Documentation/zigux/review-checklist.md",
+    "Documentation/zigux/phase12-shared-replay-contract.md",
+    "zigux/tests/README.md",
     "Documentation/zigux/phase12-virtio-net-survey.md",
     "Documentation/zigux/phase12-nvme-pci-survey.md",
     "Documentation/zigux/phase12-nvme-pci-slice.md",
@@ -141,6 +143,17 @@ DOCS_ROOT_MARKERS = [
     "the same shared Phase 12 rollback-lab packet now also keeps the active rollback owners and C-anchor fallback path explicit at the docs root: `Network Driver Lane` owns the bounded `virtio_net` packet against `drivers/net/virtio_net.c`, `Storage Driver Lane` owns the bounded `nvme_pci` and `virtio_scsi` packets against `drivers/nvme/host/pci.c` and `drivers/scsi/virtio_scsi.c`, and `BPF Tooling Lane` owns the bounded libbpf helper packet against `tools/lib/bpf/libbpf.c`.",
     "reversible delivery remains limited to the bounded Zig starters, survey notes, review gates, and snapshot fixtures around those C anchors, and `make -C zigux phase12-validate` stays the shared rollback drill before `zig build test --build-file zigux/tests/phase12_build.zig --summary all` reruns the current Phase 12 tranche.",
 ]
+CONTRACT_NOTE_MARKERS = [
+    "The focused libbpf-only replay checker is intentionally part of that stack before the broader validator runs",
+    "- `python3 scripts/zigux/check-phase12-libbpf-focused-replay.py --self-test`",
+    "- `zig build test --build-file zigux/tests/phase12_libbpf_only_build.zig --summary all`",
+]
+TESTS_ROOT_README_MARKERS = [
+    "keep `Documentation/zigux/phase12-shared-replay-contract.md`, `zigux/tests/phase12_build.zig`, `zigux/tests/phase12_libbpf_only_build.zig`, `scripts/zigux/check-phase12-libbpf-focused-replay.py`, `scripts/zigux/validate-phase12.py`, and `zigux/tests/phase12_libbpf_manifest.json` aligned so the tests root names the same shared-versus-focused libbpf replay boundary as the docs-root contract note instead of leaving the dedicated shard implied behind the broader shared build inventory.",
+]
+TESTS_ROOT_README_EXACT_COUNTS = {
+    TESTS_ROOT_README_MARKERS[0]: 1,
+}
 CHECKLIST_MARKERS = [
     "is there a stated rollback owner and fallback path?",
     "if the change is a Phase 12 complex-driver or heavy-helper slice, do `scripts/zigux/validate-phase12.py`, `zigux/tests/phase12_build.zig`, the four Phase 12 manifests, and the four Phase 12 survey notes still agree on the same bounded tranche, exact surveyed commits, approved roadmap destinations, shared replay contract, and explicit DMA versus object-model blocker posture?",
@@ -327,30 +340,25 @@ MANIFEST_SPECS = {
         "raw_fallback_artifact_paths": [
             "drivers/scsi/virtio_scsi.zig",
             "zigux/tests/phase12_virtio_scsi.zig",
-            "zigux/tests/phase12_virtio_scsi_manifest.json",
             "zigux/tests/phase12_virtio_scsi_survey.zig",
-            "zigux/tests/phase12_build.zig",
-            "Documentation/zigux/phase12-virtio-scsi-slice.md",
+            "zigux/tests/phase12_virtio_scsi_manifest.json",
             "Documentation/zigux/phase12-virtio-scsi-survey.md",
-            "scripts/zigux/validate-phase12.py",
-            "zigux/Makefile",
+            "Documentation/zigux/phase12-virtio-scsi-slice.md",
         ],
         "raw_fallback_raw_paths": [
-            "drivers/scsi/virtio_scsi.zig",
-            "zigux/tests/phase12_virtio_scsi.zig",
-            "zigux/tests/phase12_virtio_scsi_manifest.json",
-            "zigux/tests/phase12_virtio_scsi_survey.zig",
-            "zigux/tests/phase12_build.zig",
-            "Documentation/zigux/phase12-virtio-scsi-slice.md",
-            "Documentation/zigux/phase12-virtio-scsi-survey.md",
-            "scripts/zigux/validate-phase12.py",
-            "zigux/Makefile",
+            "drivers/scsi/virtio_scsi.c",
+            "drivers/scsi/scsi_debug.c",
         ],
         "raw_fallback_current_markers": [
-            "The shared validator flow remains `python3 scripts/zigux/validate-phase12.py`, `make -C zigux phase12-validate`, and `make -C zigux phase12`, with the raw fallback catalog acting only as a read-only review aid while the same bounded survey packet stays grounded in `zigux/tests/phase12_virtio_scsi_manifest.json`, `zigux/tests/phase12_virtio_scsi_survey.zig`, and `Documentation/zigux/phase12-virtio-scsi-survey.md`.",
+            "current direct fallback coverage remains intentionally narrow",
+            "shared-tree-only fallback anchors for the phase docs root and tests root",
+            "the current active coverage stays limited to one commit-pinned raw catalog for `drivers/scsi/virtio_scsi.c` and one archival commit-pinned fallback map for `drivers/nvme/host/pci.c`",
+            "no commit-pinned raw fallback is claimed for `drivers/net/virtio_net.c` or `tools/lib/bpf/libbpf.c`",
         ],
         "raw_fallback_latest_recheck_markers": [
-            "Latest bounded recheck: the shared packet now also keeps `zigux/tests/phase12_virtio_scsi_recovery_state.zig` explicit beside `zigux/tests/phase12_virtio_scsi_manifest.json`, `zigux/tests/phase12_virtio_scsi_survey.zig`, `Documentation/zigux/phase12-virtio-scsi-slice.md`, `scripts/zigux/validate-phase12.py`, and `make -C zigux phase12`, so restore-time queue reinitialization, queue-depth capture, and io-queue-map recovery remain visible without widening into DMA-backed queue ownership or live `Scsi_Host` lifecycle claims.",
+            "latest raw fallback recheck",
+            "still no raw fallback coverage claim for `drivers/net/virtio_net.c` or `tools/lib/bpf/libbpf.c`",
+            "the storage packet remains anchored to one current commit-pinned raw catalog and one archival nvme map only",
         ],
         "raw_fallback_rollback_markers": [
             "## Rollback And Reversible Delivery",
@@ -621,6 +629,8 @@ for name, source, markers in [
     ("workflow", text(".github/workflows/zigux-bootstrap.yml"), WORKFLOW_MARKERS),
     ("script_readme", text("scripts/zigux/README.md"), README_MARKERS),
     ("docs_root_readme", text("Documentation/zigux/README.md"), DOCS_ROOT_MARKERS),
+    ("contract_note", text("Documentation/zigux/phase12-shared-replay-contract.md"), CONTRACT_NOTE_MARKERS),
+    ("tests_root_readme", text("zigux/tests/README.md"), TESTS_ROOT_README_MARKERS),
     ("review_checklist", text("Documentation/zigux/review-checklist.md"), CHECKLIST_MARKERS),
     ("phase12_build", text("zigux/tests/phase12_build.zig"), BUILD_MARKERS),
 ]:
@@ -633,6 +643,13 @@ missing.extend(
         text("Documentation/zigux/review-checklist.md"),
         CHECKLIST_EXACT_COUNTS,
         "review_checklist_count",
+    )
+)
+missing.extend(
+    collect_exact_count_misses(
+        text("zigux/tests/README.md"),
+        TESTS_ROOT_README_EXACT_COUNTS,
+        "tests_root_readme_count",
     )
 )
 
