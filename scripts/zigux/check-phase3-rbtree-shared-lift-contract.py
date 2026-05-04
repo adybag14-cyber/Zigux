@@ -49,11 +49,9 @@ CONTAINS_RULES = {
         'const rbtree = @import("rbtree_bindings");',
         "PHASE3_RBTREE_SHARED_LAYOUT_CONTRACT=zigux_rbtree_root_view-reused-unchanged-in-shared-phase3-abi-packet",
         "PHASE3_RBTREE_SHARED_CONSTANT_CONTRACT=root_flag_empty,root_flag_cached,root_flag_leftmost_valid",
-        "PHASE3_RBTREE_SHARED_SAMPLE_RECORDS=empty-root,cached-leftmost-root,uncached-root",
         "fn expectSameRootView(shared: abi.RbtreeRootView, dedicated: rbtree.RootView) !void {",
         "try std.testing.expectEqual(@sizeOf(rbtree.RootView), @sizeOf(abi.RbtreeRootView));",
         "try std.testing.expectEqual(abi.RBTREE_ROOT_FLAG_EMPTY, rbtree.ROOT_FLAG_EMPTY);",
-        "try expectSameRootView(empty_root, rbtree.empty());",
     ),
     SHARED_ABI_TEST_REL: (
         "fn isRbtreeEmpty(view: abi.RbtreeRootView) bool {",
@@ -63,6 +61,15 @@ CONTAINS_RULES = {
 }
 
 EXACT_ONCE_RULES = {
+    SHARED_CONTRACT_REL: (
+        "// PHASE3_RBTREE_SHARED_SAMPLE_RECORDS=empty-root,cached-leftmost-root,uncached-root",
+        "const empty_root: abi.RbtreeRootView = .{",
+        "const cached_root: abi.RbtreeRootView = .{",
+        "const uncached_root: abi.RbtreeRootView = .{",
+        "try expectSameRootView(empty_root, rbtree.empty());",
+        "try expectSameRootView(cached_root, .{",
+        "try expectSameRootView(uncached_root, .{",
+    ),
     SHARED_ABI_TEST_REL: (
         "// PHASE3_SHARED_RBTREE_SAMPLE_RECORDS=empty-root,cached-leftmost-root,uncached-root",
         "const empty_root: abi.RbtreeRootView = .{",
@@ -220,6 +227,7 @@ def run_self_test() -> int:
         assert any(issue.startswith("missing_shared_abi_header_snippet:") for issue in issues)
         _write_fixture(root / SHARED_ABI_HEADER_REL, SHARED_ABI_HEADER_REL)
 
+        (root / SHARED_ABI_BINDING_REL).writeText = None
         (root / SHARED_ABI_BINDING_REL).write_text(CONTAINS_RULES[SHARED_ABI_BINDING_REL][0] + "\n", encoding="utf-8")
         issues = validate(root)
         assert any(issue.startswith("missing_shared_abi_binding_snippet:") for issue in issues)
