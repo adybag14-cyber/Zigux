@@ -142,6 +142,7 @@ PHASE1_CLOSURE_MARKERS = [
     "PHASE1_BITMAP_HEADER_ALIAS_UNIT_REVIEW=bitmap bitmap_zero bitmap_fill bitmap_copy bitmap_empty and bitmap_full stay aligned with zero fill copy empty and full for active-word clearing partial-tail fill masking copied-tail preservation and predicate results across the same declared bit window",
     "PHASE1_BITMAP_ALIAS_UNIT_REVIEW=bitmap underscore alias entry points preserve the same caller-selected window semantics as the camelCase helpers for weight bitwise range and formatting operations",
     "PHASE1_BITMAP_ALLOCATOR_ALIAS_UNIT_REVIEW=bitmap bitmap_alloc bitmap_zalloc and bitmap_free stay aligned with bitmapAlloc bitmapZalloc and bitmapFree for partial-word sizing zero-filled allocation and optional-handle reset semantics",
+    "PHASE1_BITMAP_COPY_ALIAS_UNIT_REVIEW=bitmap bitmap_copy_clear_tail and bitmap_copy_and_extend stay aligned with copyClearTail and copyAndExtend for tail masking in the final copied word and zero-filled extension across the remaining word window",
     "PHASE1_BITMAP_XOR_UNIT_REVIEW=bitmap xorBits multiword-tail coverage proves callers can clamp the last word back to the in-range bits without leaking the out-of-range tail",
     "PHASE1_BITMAP_TAIL_MASK_UNIT_REVIEW=bitmap tail-masked reduction helpers ignore out-of-range differences while preserving the in-range window for andBits, andNotBits, equal, intersects, and subset",
     "PHASE1_BITMAP_ZERO_BIT_UNIT_REVIEW=bitmap zero-length helper calls stay side-effect free so zero fill copy copyClearTail orBits xorBits scans and formatting leave caller-owned buffers untouched when nbits is zero",
@@ -457,6 +458,9 @@ def self_test() -> int:
         closure.write_text(closure_text.replace(PHASE1_CLOSURE_MARKERS[0] + "\n", "", 1), encoding="utf-8")
         expect_failure(root, PHASE1_CLOSURE_MARKERS[0])
         write(closure, closure_text)
+        closure.write_text(closure_text.replace(PHASE1_CLOSURE_MARKERS[3] + "\n", "", 1), encoding="utf-8")
+        expect_failure(root, PHASE1_CLOSURE_MARKERS[3])
+        write(closure, closure_text)
         workflow = root / ".github/workflows/zigux-bootstrap.yml"
         workflow_text = workflow.read_text(encoding="utf-8")
         workflow.write_text(workflow_text.replace("run: python3 scripts/zigux/check-phase1-find-bit-validator-anchors.py\n", "", 1), encoding="utf-8")
@@ -504,7 +508,7 @@ def self_test() -> int:
             expect_failure(root, rel)
             write(path, baseline)
     print("PHASE1_VALIDATOR_SELF_TEST=pass")
-    print("PHASE1_VALIDATOR_SELF_TEST_CASE_COUNT=27")
+    print("PHASE1_VALIDATOR_SELF_TEST_CASE_COUNT=28")
     return 0
 
 
