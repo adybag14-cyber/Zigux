@@ -108,8 +108,15 @@ SCRIPT_README_MARKERS = [
     "when `zig` is not on `PATH`",
 ]
 
-SCRIPT_README_EXACT_COUNT_MARKERS = [
+DOCS_ROOT_EXACT_LINE_MARKERS = [
+    "- `Documentation/zigux/phase14-release-boundary-survey.md` and `Documentation/zigux/phase14-end-to-end-smoke-survey.md` now make the roadmap's core-adjacent sequencing step explicit from the docs root, so release-facing review no longer jumps directly from the active Phase 13 helper tranche to the Phase 15 governance packet.",
+    "- the current Phase 14 release reading is intentionally boundary-only: `kernel/workqueue.c` and `kernel/trace/ring_buffer.c` stay in study-only posture, while `kernel/rcu/tree.c` and `net/core/skbuff.c` remain blocked under the Phase 15 freeze-in-C governance packet rather than being treated as an active release lane.",
+    "- `zigux/tests/phase14_end_to_end_smoke_manifest.json`, `scripts/zigux/check-phase14-docs-root-smoke-summary.py`, `scripts/zigux/validate-phase14.py`, `make -C zigux phase14-validate`, `make -C zigux phase14-smoke`, and `zigux/tests/phase14_build.zig` now provide one validator-backed shared smoke gate for that study-only four-anchor packet; it stays a reviewability lane rather than a closure or active subsystem delivery claim.",
+]
+
+SCRIPT_README_EXACT_LINE_MARKERS = [
     "- `check-phase14-docs-root-smoke-summary.py`",
+    "- attached-toolchain fallback commands stay explicit in the scripts index too: `make -C zigux phase14-validate PYTHON=python3 ZIG=<attached-zig-path>`, `make -C zigux phase14-smoke ZIG=<attached-zig-path>`, `make -C zigux phase14-test ZIG=<attached-zig-path>`, and `make -C zigux phase14 ZIG=<attached-zig-path>`.",
 ]
 
 RELEASE_MARKERS = [
@@ -266,6 +273,7 @@ if missing_files:
     sys.exit(1)
 
 missing: list[str] = []
+docs_root_text = text("Documentation/zigux/README.md")
 scripts_readme_text = text("scripts/zigux/README.md")
 survey_note = text("Documentation/zigux/phase14-end-to-end-smoke-survey.md")
 release_boundary_text = text("Documentation/zigux/phase14-release-boundary-survey.md")
@@ -282,8 +290,11 @@ for name, source, markers in [
     for marker in markers:
         expect_marker(name, source, marker, missing)
 
-for marker in SCRIPT_README_EXACT_COUNT_MARKERS:
-    expect_exact_count("scripts_readme", scripts_readme_text, marker, 1, missing)
+for marker in DOCS_ROOT_EXACT_LINE_MARKERS:
+    expect_exact_line_count("docs_root", docs_root_text, marker, 1, missing)
+
+for marker in SCRIPT_README_EXACT_LINE_MARKERS:
+    expect_exact_line_count("scripts_readme", scripts_readme_text, marker, 1, missing)
 
 for marker in MAKE_EXACT_COUNT_MARKERS:
     expect_exact_line_count("make", make_text, marker, 1, missing)
@@ -646,5 +657,6 @@ print(f"PHASE14_COMPILE_ARTIFACT_COUNT={len(expected_build_test_names)}")
 print(f"PHASE14_FOCUSED_SHARD_COUNT={focused_shard_count}")
 print(f"PHASE14_ANCHOR_LOCAL_STEP_COUNT={anchor_local_step_count}")
 print(f"PHASE14_FULL_BUNDLE_ONLY_ARTIFACT_COUNT={full_bundle_only_count}")
-print(f"PHASE14_SCRIPTS_README_EXACT_COUNT_MARKER_COUNT={len(SCRIPT_README_EXACT_COUNT_MARKERS)}")
+print(f"PHASE14_DOCS_ROOT_EXACT_LINE_MARKER_COUNT={len(DOCS_ROOT_EXACT_LINE_MARKERS)}")
+print(f"PHASE14_SCRIPTS_README_EXACT_LINE_MARKER_COUNT={len(SCRIPT_README_EXACT_LINE_MARKERS)}")
 print(f"PHASE14_MAKE_EXACT_COUNT_MARKER_COUNT={len(MAKE_EXACT_COUNT_MARKERS)}")
