@@ -597,6 +597,22 @@ test "phase11 hvc console survey keeps a bounded hv_ops layout proof" {
     }
 }
 
+test "phase11 hvc console survey keeps a bounded exported helper layout proof" {
+    comptime {
+        layout_assert.assertSize(HvcExportSurface, 72);
+        layout_assert.assertAlign(HvcExportSurface, 8);
+        layout_assert.assertOffset(HvcExportSurface, "hvc_instantiate", 0);
+        layout_assert.assertOffset(HvcExportSurface, "hvc_alloc", 8);
+        layout_assert.assertOffset(HvcExportSurface, "hvc_remove", 16);
+        layout_assert.assertOffset(HvcExportSurface, "hvc_poll", 24);
+        layout_assert.assertOffset(HvcExportSurface, "hvc_kick", 32);
+        layout_assert.assertOffset(HvcExportSurface, "__hvc_resize", 40);
+        layout_assert.assertOffset(HvcExportSurface, "notifier_add_irq", 48);
+        layout_assert.assertOffset(HvcExportSurface, "notifier_del_irq", 56);
+        layout_assert.assertOffset(HvcExportSurface, "notifier_hangup_irq", 64);
+    }
+}
+
 test "phase11 hvc console survey keeps bounded hv_ops callback signature proofs" {
     comptime {
         assertExactType(@FieldType(HvOpsLayout, "get_chars"), ?*const fn (u32, [*]u8, usize) callconv(.c) isize);
