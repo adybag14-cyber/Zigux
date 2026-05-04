@@ -87,6 +87,26 @@ pub const RecoverySummary = struct {
     last_admin_queue_depth: u16,
 };
 
+pub const QueueRecoveryReplaySummary = struct {
+    anchor: []const u8,
+    controller_io_queue_limit: usize,
+    planned_io_queues: usize,
+    replay_io_queues: usize,
+    dropped_io_queues: usize,
+    total_queue_pairs: usize,
+    first_io_queue_id: u16,
+    last_io_queue_id: u16,
+    admin_queue_depth: u16,
+    admin_sq_entry_bytes: u16,
+    admin_host_dma_bytes: u32,
+    replay_io_host_dma_bytes: u32,
+    total_host_dma_bytes: u32,
+    replay_uses_cmb_io_queue: bool,
+    controller_limited: bool,
+    queues_frozen: bool,
+    reset_generation: u32,
+};
+
 pub const PrpBufferShapeSummary = struct {
     anchor: []const u8,
     dma_address: u64,
@@ -157,13 +177,25 @@ pub const DoorbellWindowSummary = struct {
 pub const NvmePciQueueLab = struct {
     const Self = @This();
 
+    const QueueReplayTemplate = struct {
+        queue_depth: u16 = 0,
+        sq_entry_bytes: u16 = 0,
+        uses_cmb: bool = false,
+        host_dma_bytes: u32 = 0,
+    };
+
     page_size: u32,
     doorbell_stride_bytes: u32,
     recovery_state: RecoveryState = .running,
     next_io_queue_id: u16 = 1,
     planned_io_queues: usize = 0,
     reset_generation: u32 = 0,
+    admin_queue_planned: bool = false,
     last_admin_queue_depth: u16 = min_queue_depth,
+    last_admin_sq_entry_bytes: u16 = min_sq_entry_bytes,
+    last_admin_uses_cmb: bool = false,
+    last_admin_host_dma_bytes: u32 = 0,
+    io_queue_templates: [max_planned_io_queues]QueueReplayTemplate = [_]QueueReplayTemplate{.{}} ** max_planned_io_queues,
 
     pub fn descriptor() ModuleDescriptor {
         return .{
@@ -202,7 +234,11 @@ pub const NvmePciQueueLab = struct {
         uses_cmb: bool,
     ) !QueuePairPlanSummary {
         const summary = try self.planQueue(.admin, admin_queue_id, requested_depth, sq_entry_bytes, uses_cmb);
+        self.admin_queue_planned = true;
         self.last_admin_queue_depth = summary.queue_depth;
+        self.last_admin_sq_entry_bytes = summary.sq_entry_bytes;
+        self.last_admin_uses_cmb = summary.uses_cmb;
+        self.last_admin_host_dma_bytes = summary.host_dma_bytes;
         return summary;
     }
 
@@ -216,6 +252,12 @@ pub const NvmePciQueueLab = struct {
         if (self.planned_io_queues >= max_planned_io_queues) return error.TooManyPlannedIoQueues;
 
         const summary = try self.planQueue(.io, self.next_io_queue_id, requested_depth, sq_entry_bytes, uses_cmb);
+        self.io_queue_templates[self.planned_io_queues] = .{
+            .queue_depth = summary.queue_depth,
+            .sq_entry_bytes = summary.sq_entry_bytes,
+            .uses_cmb = summary.uses_cmb,
+            .host_dma_bytes = summary.host_dma_bytes,
+        };
         self.next_io_queue_id += 1;
         self.planned_io_queues += 1;
         return summary;
@@ -264,6 +306,7 @@ pub const NvmePciQueueLab = struct {
         self.recovery_state = .running;
         self.next_io_queue_id = 1;
         self.planned_io_queues = 0;
+        self.io_queue_templates = [_]QueueReplayTemplate{.{}} ** max_planned_io_queues;
         return self.recoverySummary();
     }
 
@@ -275,6 +318,49 @@ pub const NvmePciQueueLab = struct {
             .planned_io_queues = self.planned_io_queues,
             .reset_generation = self.reset_generation,
             .last_admin_queue_depth = self.last_admin_queue_depth,
+        };
+    }
+
+    pub fn planQueueRecoveryReplay(
+        self: *const Self,
+        controller_io_queue_limit: usize,
+    ) !QueueRecoveryReplaySummary {
+        if (!self.admin_queue_planned) return error.AdminQueueNotPlanned;
+
+        const replay_io_queues = @min(self.planned_io_queues, controller_io_queue_limit);
+        const dropped_io_queues = self.planned_io_queues - replay_io_queues;
+        const total_queue_pairs = try checkedAddUsize(replay_io_queues, 1);
+        const first_io_queue_id: u16 = if (replay_io_queues == 0) 0 else 1;
+        const last_io_queue_id: u16 = if (replay_io_queues == 0) 0 else try checkedCastU16(replay_io_queues);
+
+        var replay_io_host_dma_bytes: u32 = 0;
+        var replay_uses_cmb_io_queue = false;
+        var index: usize = 0;
+        while (index < replay_io_queues) : (index += 1) {
+            const template = self.io_queue_templates[index];
+            replay_io_host_dma_bytes = try checkedAddU32(replay_io_host_dma_bytes, template.host_dma_bytes);
+            replay_uses_cmb_io_queue = replay_uses_cmb_io_queue or template.uses_cmb;
+        }
+        const total_host_dma_bytes = try checkedAddU32(self.last_admin_host_dma_bytes, replay_io_host_dma_bytes);
+
+        return .{
+            .anchor = descriptor().anchor,
+            .controller_io_queue_limit = controller_io_queue_limit,
+            .planned_io_queues = self.planned_io_queues,
+            .replay_io_queues = replay_io_queues,
+            .dropped_io_queues = dropped_io_queues,
+            .total_queue_pairs = total_queue_pairs,
+            .first_io_queue_id = first_io_queue_id,
+            .last_io_queue_id = last_io_queue_id,
+            .admin_queue_depth = self.last_admin_queue_depth,
+            .admin_sq_entry_bytes = self.last_admin_sq_entry_bytes,
+            .admin_host_dma_bytes = self.last_admin_host_dma_bytes,
+            .replay_io_host_dma_bytes = replay_io_host_dma_bytes,
+            .total_host_dma_bytes = total_host_dma_bytes,
+            .replay_uses_cmb_io_queue = replay_uses_cmb_io_queue,
+            .controller_limited = replay_io_queues < self.planned_io_queues,
+            .queues_frozen = self.recovery_state != .running,
+            .reset_generation = self.reset_generation,
         };
     }
 
