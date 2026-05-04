@@ -70,6 +70,12 @@ SURVEY_VALIDATION_SCRIPTS = (
         "missing_mmio_policy_consumer_anchor",
     ),
     (
+        "check-phase3-abi-duplicate-declarations.py",
+        "PHASE3_ABI_DUPLICATE_DECLARATIONS=fail",
+        "abi-duplicate-declarations-gate",
+        "duplicate_abi_declaration:macro:include/zigux/abi.h:2,6:ZIGUX_STATUS_FLAG_ERROR",
+    ),
+    (
         "check-phase3-abi-layout-packet.py",
         "PHASE3_ABI_LAYOUT_PACKET=fail",
         "abi-layout-packet-gate",
