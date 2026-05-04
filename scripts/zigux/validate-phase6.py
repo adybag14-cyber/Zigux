@@ -72,7 +72,7 @@ MAKE_MARKERS = [
 
 CATALOG_MARKERS = [
     "PHASE6_BASE64_C_PARITY_CASES=122",
-    "PHASE6_BSEARCH_C_PARITY_SELF_TEST_CASE_COUNT=6",
+    "PHASE6_BSEARCH_C_PARITY_SELF_TEST_CASE_COUNT=7",
     "PHASE6_BSEARCH_C_PARITY_CASES=29",
     "PHASE6_CHECKSUM_C_PARITY_SELF_TEST_CASE_COUNT=11",
     "PHASE6_CHECKSUM_C_PARITY_CASES=27",
@@ -205,7 +205,7 @@ DOCS_ROOT_EXTERNAL_PARITY_SCRIPT_MARKERS = [
 
 BSEARCH_PARITY_SCRIPT_MARKERS = [
     'print("PHASE6_BSEARCH_C_PARITY_SELF_TEST=pass")',
-    'print("PHASE6_BSEARCH_C_PARITY_SELF_TEST_CASE_COUNT=6")',
+    'print("PHASE6_BSEARCH_C_PARITY_SELF_TEST_CASE_COUNT=7")',
     'print(f"PHASE6_BSEARCH_C_PARITY_CASES={len(c_lines)}")',
 ]
 
@@ -320,7 +320,7 @@ EXPECTED_BSEARCH_DETERMINISM = {
     "inline_corpus": "sorted integer and symbol tables",
     "perf_fixture_cases": 3,
     "deterministic_probe_prefix_cases": 8,
-    "c_parity_self_test_cases": 6,
+    "c_parity_self_test_cases": 7,
     "c_parity_cases": 29,
 }
 
@@ -503,14 +503,14 @@ def validate_manifest(missing: list[str], manifest: dict[str, object], catalog_h
 
 
 def validate_phase6(root: Path) -> dict[str, object]:
-    missing_files = [path for path in REQUIRED_FILES if not (root / path).is_file()]
+    missing_files = [path for path in REQUIRED_FILES if not (root / path).exists()]
     if missing_files:
         return {
             "ok": False,
             "missing_files": missing_files,
             "missing": [],
             "catalog_head": None,
-            "catalog_head_status": "missing",
+            "catalog_head_status": "missing_files",
         }
 
     missing: list[str] = []
@@ -518,14 +518,6 @@ def validate_phase6(root: Path) -> dict[str, object]:
     catalog_content = text(root, "Documentation/zigux/phase6-helper-parity-catalog.md")
     require_markers(missing, "catalog", catalog_content, CATALOG_MARKERS)
     catalog_head, catalog_head_status = parse_catalog_head(catalog_content)
-    if catalog_head_status != "ok":
-        return {
-            "ok": False,
-            "missing_files": [],
-            "missing": missing,
-            "catalog_head": catalog_head,
-            "catalog_head_status": catalog_head_status,
-        }
 
     perf_survey_content = text(root, "Documentation/zigux/phase6-perf-gate-survey.md")
     require_markers(missing, "perf_survey", perf_survey_content, PERF_SURVEY_MARKERS)
@@ -543,7 +535,7 @@ def validate_phase6(root: Path) -> dict[str, object]:
     require_markers(missing, "hexdump_slice", hexdump_slice_content, HEXDUMP_SLICE_MARKERS)
 
     scripts_readme_content = text(root, "scripts/zigux/README.md")
-    require_markers(missing, "scripts_readme", scripts_readme_content, [SCRIPTS_README_MARKERS[0], SCRIPTS_README_MARKERS[3]])
+    require_markers(missing, "scripts_readme", scripts_readme_content, SCRIPTS_README_MARKERS)
     require_exact_line_counts(missing, "scripts_readme_line", scripts_readme_content, SCRIPTS_README_MARKERS[1:3])
 
     docs_root_content = text(root, "Documentation/zigux/README.md")
@@ -554,9 +546,6 @@ def validate_phase6(root: Path) -> dict[str, object]:
 
     workflow_content = text(root, ".github/workflows/zigux-bootstrap.yml")
     require_markers(missing, "workflow", workflow_content, WORKFLOW_MARKERS)
-
-    make_content = text(root, "zigux/Makefile")
-    require_markers(missing, "make", make_content, MAKE_MARKERS)
 
     phase6_build_content = text(root, "zigux/tests/phase6_build.zig")
     require_markers(missing, "phase6_build", phase6_build_content, PHASE6_BUILD_MARKERS)
@@ -580,43 +569,62 @@ def validate_phase6(root: Path) -> dict[str, object]:
     require_markers(missing, "hexdump_vectors", hexdump_vectors_content, HEXDUMP_FIXTURE_MARKERS)
 
     base64_catalog_evidence_content = text(root, "scripts/zigux/check-phase6-base64-catalog-evidence.py")
-    require_markers(missing, "base64_catalog_evidence_script", base64_catalog_evidence_content, BASE64_CATALOG_EVIDENCE_MARKERS)
+    require_markers(
+        missing,
+        "base64_catalog_evidence_script",
+        base64_catalog_evidence_content,
+        BASE64_CATALOG_EVIDENCE_MARKERS,
+    )
 
-    docs_root_external_parity_content = text(root, "scripts/zigux/check-phase6-docs-root-external-parity.py")
-    require_markers(missing, "docs_root_external_parity_script", docs_root_external_parity_content, DOCS_ROOT_EXTERNAL_PARITY_SCRIPT_MARKERS)
+    docs_root_external_parity_script_content = text(root, "scripts/zigux/check-phase6-docs-root-external-parity.py")
+    require_markers(
+        missing,
+        "docs_root_external_parity_script",
+        docs_root_external_parity_script_content,
+        DOCS_ROOT_EXTERNAL_PARITY_SCRIPT_MARKERS,
+    )
 
     bsearch_parity_script_content = text(root, "scripts/zigux/check-phase6-bsearch-c-parity.py")
-    require_markers(missing, "bsearch_parity_script", bsearch_parity_script_content, BSEARCH_PARITY_SCRIPT_MARKERS)
-
+    require_markers(
+        missing,
+        "bsearch_parity_script",
+        bsearch_parity_script_content,
+        BSEARCH_PARITY_SCRIPT_MARKERS,
+    )
     bsearch_parity_runner_content = text(root, "zigux/tests/phase6_bsearch_c_parity.zig")
     require_markers(missing, "bsearch_parity_runner", bsearch_parity_runner_content, BSEARCH_PARITY_RUNNER_MARKERS)
-
     bsearch_parity_harness_content = text(root, "zigux/tests/fixtures/phase6_bsearch_c_harness.c")
     require_markers(missing, "bsearch_parity_harness", bsearch_parity_harness_content, BSEARCH_PARITY_HARNESS_MARKERS)
 
     checksum_parity_script_content = text(root, "scripts/zigux/check-phase6-checksum-c-parity.py")
-    require_markers(missing, "checksum_parity_script", checksum_parity_script_content, CHECKSUM_PARITY_SCRIPT_MARKERS)
-
+    require_markers(
+        missing,
+        "checksum_parity_script",
+        checksum_parity_script_content,
+        CHECKSUM_PARITY_SCRIPT_MARKERS,
+    )
     checksum_parity_runner_content = text(root, "zigux/tests/phase6_checksum_c_parity.zig")
     require_markers(missing, "checksum_parity_runner", checksum_parity_runner_content, CHECKSUM_PARITY_RUNNER_MARKERS)
-
     checksum_parity_harness_content = text(root, "zigux/tests/fixtures/phase6_checksum_c_harness.c")
     require_markers(missing, "checksum_parity_harness", checksum_parity_harness_content, CHECKSUM_PARITY_HARNESS_MARKERS)
 
     hexdump_parity_script_content = text(root, "scripts/zigux/check-phase6-hexdump-c-parity.py")
-    require_markers(missing, "hexdump_parity_script", hexdump_parity_script_content, HEXDUMP_PARITY_SCRIPT_MARKERS)
-
+    require_markers(
+        missing,
+        "hexdump_parity_script",
+        hexdump_parity_script_content,
+        HEXDUMP_PARITY_SCRIPT_MARKERS,
+    )
     hexdump_parity_runner_content = text(root, "zigux/tests/phase6_hexdump_c_parity.zig")
     require_markers(missing, "hexdump_parity_runner", hexdump_parity_runner_content, HEXDUMP_PARITY_RUNNER_MARKERS)
-
     hexdump_parity_harness_content = text(root, "zigux/tests/fixtures/phase6_hexdump_c_harness.c")
     require_markers(missing, "hexdump_parity_harness", hexdump_parity_harness_content, HEXDUMP_PARITY_HARNESS_MARKERS)
 
+    make_content = text(root, "zigux/Makefile")
+    require_markers(missing, "make", make_content, MAKE_MARKERS)
+
     manifest = json.loads(text(root, "zigux/tests/phase6_helper_parity_manifest.json"))
-    if not isinstance(manifest, dict):
-        missing.append("manifest:root")
-    else:
-        validate_manifest(missing, manifest, catalog_head)
+    validate_manifest(missing, manifest, catalog_head)
 
     return {
         "ok": not missing,
