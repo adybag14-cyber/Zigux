@@ -122,11 +122,34 @@ test "phase10 virtio ring blocks publish and kick work while the queue is marked
 
     try std.testing.expectError(error.QueueBroken, ring.publishDescriptorChain(1));
     try std.testing.expectError(error.QueueBroken, ring.prepareKick(1));
+    try std.testing.expectError(error.QueueBroken, ring.pollUsedBuffers(1));
+    try std.testing.expectError(error.QueueBroken, ring.pollAfterEnable(1, 0));
 
     const still_broken = try ring.brokenSummary(1);
     try std.testing.expect(still_broken.broken);
     try std.testing.expectEqual(@as(u16, 1), still_broken.outstanding_chain_count);
     try std.testing.expectEqual(@as(u16, 1), still_broken.unpublished_chain_count);
+}
+
+test "phase10 virtio ring keeps pending used debt reviewable but blocks poll helpers until unbreak" {
+    var ring = virtio_ring.VirtioRingLab{};
+    try ring.defineQueue(1, 8, .split, true, false);
+
+    try ring.publishDescriptorChain(1);
+    _ = try ring.prepareKick(1);
+    const prepare_summary = try ring.enableCallbackPrepare(1);
+    try ring.recordUsedChains(1, 1);
+    _ = try ring.breakQueue(1);
+
+    const broken_summary = try ring.brokenSummary(1);
+    try std.testing.expect(broken_summary.broken);
+    try std.testing.expectEqual(@as(u16, 1), broken_summary.pending_used_chain_count);
+    try std.testing.expectError(error.QueueBroken, ring.pollUsedBuffers(1));
+    try std.testing.expectError(error.QueueBroken, ring.pollAfterEnable(1, prepare_summary.last_used_idx_snapshot));
+
+    _ = try ring.unbreakQueue(1);
+    try std.testing.expect((try ring.pollAfterEnable(1, prepare_summary.last_used_idx_snapshot)).has_used_buffers_since_prepare);
+    try std.testing.expectEqual(@as(u16, 1), (try ring.pollUsedBuffers(1)).newly_used_chain_count);
 }
 
 test "phase10 virtio ring can resume queue-local publish and kick bookkeeping after unbreak" {
