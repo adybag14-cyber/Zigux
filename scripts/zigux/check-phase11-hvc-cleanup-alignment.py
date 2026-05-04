@@ -20,14 +20,14 @@ REQUIRED_FILES = {
     "slice": "Documentation/zigux/phase11-hvc-console-slice.md",
     "matrix": "Documentation/zigux/phase11-hvc-console-validation-matrix.md",
     "poll_retry_split": "zigux/tests/phase11_hvc_console_poll_retry_split.zig",
-    "sysrq_helper": "zigux/tests/phase11_hvc_console_sysrq_helper.zig",
+    "sysrq_helper": "drivers/tty/hvc/hvc_console_sysrq.zig",
     "hvc_test": "zigux/tests/phase11_hvc_console.zig",
 }
 
 SURVEY_MARKERS = [
     "reviewed against live `master` `{commit}`",
     "`zigux/tests/phase11_hvc_console_poll_retry_split.zig` now keeps the already-landed `__hvc_poll()` IRQ-backed may-sleep drained-read split, the may-sleep IRQ-free retry-rearm split, the partial-write-versus-stalled-write split, and the bounded sysrq toggle-versus-dispatch split plus the later non-kernel `^O` literal fallback and teardown-time `error.ConsoleUnavailable` rejection explicit inside the shared Phase 11 gate so those read-versus-write retry details and primary-console sysrq teardown edges do not stay implicit in the older single-file HVC replay",
-    "The next honest bounded step inside the same Phase 11 lane is to leave the starter parked unless fresh repo inspection finds another comparably small host-free sysrq or khvcd handoff that is not already covered by the notifier-add open handoff, the bounded sysrq helper, the `struct winsize` layout proof, the `struct hv_ops` layout proof, and the `hv_ops` callback-signature proof; otherwise avoid widening straight into live tty teardown, notifier execution, sysrq handling, live khvcd worker behavior, `struct hvc_struct`, or host-backed teardown.",
+    "The next honest bounded step inside the same Phase 11 lane is to leave the starter parked unless fresh repo inspection finds another comparably small host-free sysrq or khvcd handoff that is not already covered by the notifier-add open handoff, the bounded sysrq helper, the `struct winsize` layout proof, the `struct hv_ops` layout proof, the `hv_ops` callback-signature proof, and the exported hvc helper signature proof; otherwise avoid widening straight into live tty teardown, notifier execution, sysrq handling, live khvcd worker behavior, `struct hvc_struct`, or host-backed teardown.",
 ]
 
 SLICE_MARKERS = [
@@ -194,7 +194,7 @@ def clone_fixture_root(destination_root: Path) -> None:
                 f"- reviewed against live `master` `{FIXTURE_COMMIT}`",
                 "- `hvc_cleanup()` remains bounded",
                 "- `zigux/tests/phase11_hvc_console_poll_retry_split.zig` now keeps the already-landed `__hvc_poll()` IRQ-backed may-sleep drained-read split, the may-sleep IRQ-free retry-rearm split, the partial-write-versus-stalled-write split, and the bounded sysrq toggle-versus-dispatch split plus the later non-kernel `^O` literal fallback and teardown-time `error.ConsoleUnavailable` rejection explicit inside the shared Phase 11 gate so those read-versus-write retry details and primary-console sysrq teardown edges do not stay implicit in the older single-file HVC replay",
-                "- The next honest bounded step inside the same Phase 11 lane is to leave the starter parked unless fresh repo inspection finds another comparably small host-free sysrq or khvcd handoff that is not already covered by the notifier-add open handoff, the bounded sysrq helper, the `struct winsize` layout proof, the `struct hv_ops` layout proof, and the `hv_ops` callback-signature proof; otherwise avoid widening straight into live tty teardown, notifier execution, sysrq handling, live khvcd worker behavior, `struct hvc_struct`, or host-backed teardown.",
+                "- The next honest bounded step inside the same Phase 11 lane is to leave the starter parked unless fresh repo inspection finds another comparably small host-free sysrq or khvcd handoff that is not already covered by the notifier-add open handoff, the bounded sysrq helper, the `struct winsize` layout proof, the `struct hv_ops` layout proof, the `hv_ops` callback-signature proof, and the exported hvc helper signature proof; otherwise avoid widening straight into live tty teardown, notifier execution, sysrq handling, live khvcd worker behavior, `struct hvc_struct`, or host-backed teardown.",
                 "",
             ]
         ),
@@ -265,7 +265,7 @@ def clone_fixture_root(destination_root: Path) -> None:
     (destination_root / REQUIRED_FILES["sysrq_helper"]).write_text(
         "\n".join(
             [
-                "const hvc_console = @import(\"hvc_console\");",
+                "const hvc_console = @import(\"./hvc_console.zig\");",
                 "",
                 "pub const SysrqHandoffRequest = struct {",
                 "    is_kernel_console: bool = false,",
@@ -439,7 +439,7 @@ def run_self_test() -> int:
 
         survey_path.write_text(
             original_survey.replace(
-                "host-free sysrq or khvcd handoff that is not already covered by the notifier-add open handoff, the bounded sysrq helper, the `struct winsize` layout proof, the `struct hv_ops` layout proof, and the `hv_ops` callback-signature proof; otherwise avoid widening straight into live tty teardown, notifier execution, sysrq handling, live khvcd worker behavior, `struct hvc_struct`, or host-backed teardown.",
+                "host-free sysrq or khvcd handoff that is not already covered by the notifier-add open handoff, the bounded sysrq helper, the `struct winsize` layout proof, the `struct hv_ops` layout proof, the `hv_ops` callback-signature proof, and the exported hvc helper signature proof; otherwise avoid widening straight into live tty teardown, notifier execution, sysrq handling, live khvcd worker behavior, `struct hvc_struct`, or host-backed teardown.",
                 "host-free khvcd handoff that is not already covered by the notifier-add open handoff, the `struct winsize` layout proof, the `struct hv_ops` layout proof, and the `hv_ops` callback-signature proof; otherwise avoid widening straight into live tty teardown, notifier execution, live khvcd worker behavior, `struct hvc_struct`, or host-backed teardown.",
                 1,
             ),
@@ -448,7 +448,7 @@ def run_self_test() -> int:
         expect_missing(
             "survey_next_step",
             tmp_root,
-            "survey:The next honest bounded step inside the same Phase 11 lane is to leave the starter parked unless fresh repo inspection finds another comparably small host-free sysrq or khvcd handoff that is not already covered by the notifier-add open handoff, the bounded sysrq helper, the `struct winsize` layout proof, the `struct hv_ops` layout proof, and the `hv_ops` callback-signature proof; otherwise avoid widening straight into live tty teardown, notifier execution, sysrq handling, live khvcd worker behavior, `struct hvc_struct`, or host-backed teardown.",
+            "survey:The next honest bounded step inside the same Phase 11 lane is to leave the starter parked unless fresh repo inspection finds another comparably small host-free sysrq or khvcd handoff that is not already covered by the notifier-add open handoff, the bounded sysrq helper, the `struct winsize` layout proof, the `struct hv_ops` layout proof, the `hv_ops` callback-signature proof, and the exported hvc helper signature proof; otherwise avoid widening straight into live tty teardown, notifier execution, sysrq handling, live khvcd worker behavior, `struct hvc_struct`, or host-backed teardown.",
         )
         survey_path.write_text(original_survey, encoding="utf-8")
 
