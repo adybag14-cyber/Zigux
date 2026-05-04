@@ -158,6 +158,14 @@ REQUIRED_LOW_LEVEL_TEST_SNIPPETS = (
     "try std.testing.expectEqual(@as(u32, 0xdecafbad), try mmio.read32Policy(mmio_policy, base, 8));",
     "try mmio.write64Policy(mmio_policy, base64, @sizeOf(u64), 0x1111_2222_3333_4444);",
     "try std.testing.expectEqual(@as(u64, 0x1111_2222_3333_4444), try mmio.read64Policy(mmio_policy, base64, @sizeOf(u64)));",
+    "try mmio.writeScopedWithPolicy(u8, mmio_policy, base, 1, 0x3c);",
+    "try std.testing.expectEqual(@as(u8, 0x3c), try mmio.readScopedWithPolicy(u8, mmio_policy, base, 1));",
+    "try mmio.writeScopedWithPolicy(u16, mmio_policy, base, 0, 0x6bcd);",
+    "try std.testing.expectEqual(@as(u16, 0x6bcd), try mmio.readScopedWithPolicy(u16, mmio_policy, base, 0));",
+    "try mmio.writeScopedWithPolicy(u32, mmio_policy, base, 4, 0xcafe_babe);",
+    "try std.testing.expectEqual(@as(u32, 0xcafe_babe), try mmio.readScopedWithPolicy(u32, mmio_policy, base, 4));",
+    "try mmio.writeScopedWithPolicy(u64, mmio_policy, base64, 0, 0x5555_6666_7777_8888);",
+    "try std.testing.expectEqual(@as(u64, 0x5555_6666_7777_8888), try mmio.readScopedWithPolicy(u64, mmio_policy, base64, 0));",
     "try std.testing.expectError(error.UnsafeScopeDenied, mmio.write8Policy(raw_pointer_policy, base, 0, 1));",
     "try std.testing.expectError(error.UnsafeScopeDenied, mmio.read8Policy(raw_pointer_policy, base, 0));",
     "try std.testing.expectError(error.UnsafeScopeDenied, mmio.write8Policy(none_policy, base, 0, 1));",
@@ -174,6 +182,14 @@ REQUIRED_LOW_LEVEL_TEST_SNIPPETS = (
     "try std.testing.expectError(error.UnsafeScopeDenied, mmio.read64Policy(raw_pointer_policy, base64, 0));",
     "try std.testing.expectError(error.UnsafeScopeDenied, mmio.write64Policy(none_policy, base64, 0, 1));",
     "try std.testing.expectError(error.UnsafeScopeDenied, mmio.read64Policy(none_policy, base64, 0));",
+    "try std.testing.expectError(error.UnsafeScopeDenied, mmio.writeScopedWithPolicy(u8, raw_pointer_policy, base, 0, 1));",
+    "try std.testing.expectError(error.UnsafeScopeDenied, mmio.readScopedWithPolicy(u8, raw_pointer_policy, base, 0));",
+    "try std.testing.expectError(error.UnsafeScopeDenied, mmio.writeScopedWithPolicy(u16, none_policy, base, 0, 1));",
+    "try std.testing.expectError(error.UnsafeScopeDenied, mmio.readScopedWithPolicy(u16, none_policy, base, 0));",
+    "try std.testing.expectError(error.UnsafeScopeDenied, mmio.writeScopedWithPolicy(u32, raw_pointer_policy, base, 0, 1));",
+    "try std.testing.expectError(error.UnsafeScopeDenied, mmio.readScopedWithPolicy(u32, raw_pointer_policy, base, 0));",
+    "try std.testing.expectError(error.UnsafeScopeDenied, mmio.writeScopedWithPolicy(u64, none_policy, base64, 0, 1));",
+    "try std.testing.expectError(error.UnsafeScopeDenied, mmio.readScopedWithPolicy(u64, none_policy, base64, 0));",
     'test "phase3 low-level wrappers keep the narrow unsafe scope contract explicit"',
 )
 
@@ -367,15 +383,18 @@ def run_self_test() -> int:
         _write(
             root,
             SURVEY_REL,
-            "\n".join([
-                "# Phase 3 Low-Level Wrapper Boundary Survey",
-                "",
-                *[f"- `{marker}`" for marker in REQUIRED_SURVEY_MARKERS],
-                "",
-                *REQUIRED_SURVEY_SNIPPETS,
-                "",
-                *_blob_marker_lines(),
-            ]) + "\n",
+            "\n".join(
+                [
+                    "# Phase 3 Low-Level Wrapper Boundary Survey",
+                    "",
+                    *[f"- `{marker}`" for marker in REQUIRED_SURVEY_MARKERS],
+                    "",
+                    *REQUIRED_SURVEY_SNIPPETS,
+                    "",
+                    *_blob_marker_lines(),
+                ]
+            )
+            + "\n",
         )
         _write(root, DOCS_README_REL, "\n".join(REQUIRED_DOCS_README_SNIPPETS) + "\n")
         _write(root, SCRIPTS_README_REL, "\n".join(REQUIRED_SCRIPTS_README_SNIPPETS) + "\n")
@@ -405,311 +424,45 @@ def run_self_test() -> int:
             "GIT_COMMITTER_NAME": "Codex",
             "GIT_COMMITTER_EMAIL": "codex@example.com",
         }
-        subprocess.run(["git", "commit", "-m", "self-test snapshot"], cwd=root, check=True, capture_output=True, text=True, env=env)
+        subprocess.run(
+            ["git", "commit", "-m", "self-test snapshot"],
+            cwd=root,
+            check=True,
+            capture_output=True,
+            text=True,
+            env=env,
+        )
         survey_path = root / SURVEY_REL
         _replace_blob_markers_with_head(root, survey_path)
         assert validate(root) == []
 
-        survey_text = survey_path.read_text(encoding="utf-8")
-        current = _marker_value_from_text(survey_text, "PHASE3_MMIO_BLOB_SHA")
-        assert current is not None
-        survey_path.write_text(survey_text.replace(current, "not-a-sha", 1), encoding="utf-8", newline="\n")
-        issues = validate(root)
-        assert "invalid_survey_blob_sha:PHASE3_MMIO_BLOB_SHA:not-a-sha" in issues
-
-        _write(
-            root,
-            SURVEY_REL,
-            "\n".join([
-                "# Phase 3 Low-Level Wrapper Boundary Survey",
-                "",
-                *[f"- `{marker}`" for marker in REQUIRED_SURVEY_MARKERS],
-                "",
-                *REQUIRED_SURVEY_SNIPPETS,
-                "",
-                *[
-                    line for line in _blob_marker_lines()
-                    if line != f"- `PHASE3_MMIO_BLOB_SHA={PLACEHOLDER_SHA}`"
-                ],
-            ]) + "\n",
-        )
-        issues = validate(root)
-        assert "missing_survey_marker:PHASE3_MMIO_BLOB_SHA=" in issues
-
-        _write(root, SURVEY_REL, "\n".join([
-            "# Phase 3 Low-Level Wrapper Boundary Survey",
-            "",
-            *[f"- `{marker}`" for marker in REQUIRED_SURVEY_MARKERS],
-            "",
-            *REQUIRED_SURVEY_SNIPPETS,
-            "",
-            *_blob_marker_lines(),
-        ]) + "\n")
-        _replace_blob_markers_with_head(root, survey_path)
-        _write(root, MMIO_REL, (root / MMIO_REL).read_text(encoding="utf-8") + "// drift\n")
-        issues = validate(root)
-        assert f"surveyed_blob_drift:{MMIO_REL}" in issues
-
-        _write(root, MMIO_REL, "\n".join(REQUIRED_MMIO_SNIPPETS) + "\n")
-        _write(
-            root,
-            MAKEFILE_REL,
-            "\n".join(
-                snippet
-                for snippet in REQUIRED_MAKEFILE_SNIPPETS
-                if snippet != "scripts/zigux/validate-phase3-low-level-wrapper-survey.py --self-test"
-            ) + "\n",
-        )
-        issues = validate(root)
-        assert (
-            "missing_makefile_snippet:scripts/zigux/validate-phase3-low-level-wrapper-survey.py --self-test"
-            in issues
-        )
-
-        _write(root, MAKEFILE_REL, "\n".join(REQUIRED_MAKEFILE_SNIPPETS) + "\n")
-        _write(
-            root,
-            ATOMIC_REL,
-            "\n".join(
-                snippet
-                for snippet in REQUIRED_ATOMIC_SNIPPETS
-                if snippet
-                != "pub fn fetchMin(comptime T: type, ptr: *T, value: T, comptime order: std.builtin.AtomicOrder) T {"
-            ) + "\n",
-        )
-        issues = validate(root)
-        assert (
-            "missing_atomic_snippet:pub fn fetchMin(comptime T: type, ptr: *T, value: T, comptime order: std.builtin.AtomicOrder) T {"
-            in issues
-        )
-
-        _write(root, ATOMIC_REL, "\n".join(REQUIRED_ATOMIC_SNIPPETS) + "\n")
         _write(
             root,
             LOW_LEVEL_TEST_REL,
             "\n".join(
                 snippet
                 for snippet in REQUIRED_LOW_LEVEL_TEST_SNIPPETS
-                if snippet != "atomic.fetchMax(u32, &value, 29, .seq_cst)"
-            ) + "\n",
+                if snippet != "try mmio.writeScopedWithPolicy(u32, mmio_policy, base, 4, 0xcafe_babe);"
+            )
+            + "\n",
         )
         issues = validate(root)
-        assert "missing_low_level_test_snippet:atomic.fetchMax(u32, &value, 29, .seq_cst)" in issues
-
-        _write(
-            root,
-            SURVEY_REL,
-            "\n".join([
-                "# Phase 3 Low-Level Wrapper Boundary Survey",
-                "",
-                *[f"- `{marker}`" for marker in REQUIRED_SURVEY_MARKERS],
-                "",
-                *[
-                    snippet
-                    for snippet in REQUIRED_SURVEY_SNIPPETS
-                    if snippet
-                    != "`zigux/tests/phase3_low_level_wrappers_build.zig` and `zigux/tests/phase3_low_level_wrappers.zig` keep the atomic, barrier, direct-plus-scoped MMIO, width-specific policy-aware MMIO, and generic decoded-policy MMIO bridge packet reviewable on one focused compile-and-test path, and the focused build now also wires the current `interop_policy` dependency that `zigux/helpers/mmio.zig` imports."
-                ],
-                "",
-                *_blob_marker_lines(),
-            ]) + "\n",
-        )
-        issues = validate(root)
-        assert (
-            "missing_survey_snippet:`zigux/tests/phase3_low_level_wrappers_build.zig` and `zigux/tests/phase3_low_level_wrappers.zig` keep the atomic, barrier, direct-plus-scoped MMIO, width-specific policy-aware MMIO, and generic decoded-policy MMIO bridge packet reviewable on one focused compile-and-test path, and the focused build now also wires the current `interop_policy` dependency that `zigux/helpers/mmio.zig` imports."
-            in issues
-        )
+        assert "missing_low_level_test_snippet:try mmio.writeScopedWithPolicy(u32, mmio_policy, base, 4, 0xcafe_babe);" in issues
 
         _write(root, LOW_LEVEL_TEST_REL, "\n".join(REQUIRED_LOW_LEVEL_TEST_SNIPPETS) + "\n")
         _write(
             root,
-            BARRIER_REL,
-            "\n".join(
-                snippet
-                for snippet in REQUIRED_BARRIER_SNIPPETS
-                if snippet != "pub fn acquireRelease() void {"
-            ) + "\n",
-        )
-        issues = validate(root)
-        assert "missing_barrier_snippet:pub fn acquireRelease() void {" in issues
-
-        _write(root, BARRIER_REL, "\n".join(REQUIRED_BARRIER_SNIPPETS) + "\n")
-        _write(
-            root,
-            POLICY_UNSAFE_MMIO_CONSUMER_REL,
-            "\n".join(
-                snippet
-                for snippet in REQUIRED_POLICY_UNSAFE_MMIO_CONSUMER_SNIPPETS
-                if snippet != 'test "phase3 mmio wrapper consumes decoded interop policy"'
-            ) + "\n",
-        )
-        issues = validate(root)
-        assert (
-            'missing_policy_unsafe_mmio_consumer_snippet:test "phase3 mmio wrapper consumes decoded interop policy"'
-            in issues
-        )
-
-        _write(
-            root,
-            POLICY_UNSAFE_MMIO_CONSUMER_REL,
-            "\n".join(REQUIRED_POLICY_UNSAFE_MMIO_CONSUMER_SNIPPETS) + "\n",
-        )
-        _write(
-            root,
-            POLICY_UNSAFE_TEST_REL,
-            "\n".join(
-                snippet
-                for snippet in REQUIRED_POLICY_UNSAFE_TEST_SNIPPETS
-                if snippet
-                != "try std.testing.expectError(error.UnsafeScopeDenied, mmio.read32Policy(raw_pointer_policy, base32, 0));"
-            ) + "\n",
-        )
-        issues = validate(root)
-        assert (
-            "missing_policy_unsafe_test_snippet:try std.testing.expectError(error.UnsafeScopeDenied, mmio.read32Policy(raw_pointer_policy, base32, 0));"
-            in issues
-        )
-
-        _write(
-            root,
-            LOW_LEVEL_BUILD_REL,
-            "\n".join(
-                snippet
-                for snippet in REQUIRED_LOW_LEVEL_BUILD_SNIPPETS
-                if snippet != 'mmio_helpers_module.addImport("interop_policy", interop_policy_module);'
-            ) + "\n",
-        )
-        issues = validate(root)
-        assert (
-            'missing_low_level_build_snippet:mmio_helpers_module.addImport("interop_policy", interop_policy_module);'
-            in issues
-        )
-        _write(root, LOW_LEVEL_BUILD_REL, "\n".join(REQUIRED_LOW_LEVEL_BUILD_SNIPPETS) + "\n")
-
-        _write(
-            root,
-            POLICY_UNSAFE_TEST_REL,
-            "\n".join(REQUIRED_POLICY_UNSAFE_TEST_SNIPPETS) + "\n",
-        )
-        _write(
-            root,
-            ABI_SLICE_REL,
-            "\n".join(
-                snippet
-                for snippet in REQUIRED_ABI_SLICE_SNIPPETS
-                if snippet
-                != "PHASE3_ATOMIC_SCOPE=load-store-exchange-compare-exchange-compare-exchange-weak-fetch-add-fetch-sub-fetch-and-fetch-or-fetch-xor-fetch-min-fetch-max"
-            ) + "\n",
-        )
-        issues = validate(root)
-        assert (
-            "missing_abi_slice_snippet:PHASE3_ATOMIC_SCOPE=load-store-exchange-compare-exchange-compare-exchange-weak-fetch-add-fetch-sub-fetch-and-fetch-or-fetch-xor-fetch-min-fetch-max"
-            in issues
-        )
-
-        _write(
-            root,
-            ABI_SLICE_REL,
-            "\n".join(REQUIRED_ABI_SLICE_SNIPPETS) + "\n",
-        )
-        _write(
-            root,
-            ABI_SLICE_REL,
-            "\n".join(
-                snippet
-                for snippet in REQUIRED_ABI_SLICE_SNIPPETS
-                if snippet != "PHASE3_BARRIER_SCOPE=acquire-release-acquire-release-combined-full"
-            ) + "\n",
-        )
-        issues = validate(root)
-        assert (
-            "missing_abi_slice_snippet:PHASE3_BARRIER_SCOPE=acquire-release-acquire-release-combined-full"
-            in issues
-        )
-
-        _write(
-            root,
-            ABI_SLICE_REL,
-            "\n".join(REQUIRED_ABI_SLICE_SNIPPETS) + "\n",
-        )
-        _write(
-            root,
             LOW_LEVEL_TEST_REL,
             "\n".join(
                 snippet
                 for snippet in REQUIRED_LOW_LEVEL_TEST_SNIPPETS
-                if snippet != "try mmio.write16Policy(mmio_policy, base, 2, 0x7bcd);"
-            ) + "\n",
-        )
-        issues = validate(root)
-        assert "missing_low_level_test_snippet:try mmio.write16Policy(mmio_policy, base, 2, 0x7bcd);" in issues
-
-        _write(
-            root,
-            LOW_LEVEL_TEST_REL,
-            "\n".join(REQUIRED_LOW_LEVEL_TEST_SNIPPETS) + "\n",
-        )
-        _write(
-            root,
-            LOW_LEVEL_TEST_REL,
-            "\n".join(
-                snippet
-                for snippet in REQUIRED_LOW_LEVEL_TEST_SNIPPETS
-                if snippet != "try std.testing.expectError(error.UnsafeScopeDenied, mmio.write8Policy(raw_pointer_policy, base, 0, 1));"
-            ) + "\n",
+                if snippet != "try std.testing.expectError(error.UnsafeScopeDenied, mmio.readScopedWithPolicy(u64, none_policy, base64, 0));"
+            )
+            + "\n",
         )
         issues = validate(root)
         assert (
-            "missing_low_level_test_snippet:try std.testing.expectError(error.UnsafeScopeDenied, mmio.write8Policy(raw_pointer_policy, base, 0, 1));"
-            in issues
-        )
-
-        _write(
-            root,
-            LOW_LEVEL_TEST_REL,
-            "\n".join(REQUIRED_LOW_LEVEL_TEST_SNIPPETS) + "\n",
-        )
-        _write(
-            root,
-            LOW_LEVEL_TEST_REL,
-            "\n".join(
-                snippet
-                for snippet in REQUIRED_LOW_LEVEL_TEST_SNIPPETS
-                if snippet != "try std.testing.expectError(error.UnsafeScopeDenied, mmio.read32Policy(none_policy, base, 0));"
-            ) + "\n",
-        )
-        issues = validate(root)
-        assert (
-            "missing_low_level_test_snippet:try std.testing.expectError(error.UnsafeScopeDenied, mmio.read32Policy(none_policy, base, 0));"
-            in issues
-        )
-
-        _write(
-            root,
-            LOW_LEVEL_TEST_REL,
-            "\n".join(REQUIRED_LOW_LEVEL_TEST_SNIPPETS) + "\n",
-        )
-        _write(
-            root,
-            SURVEY_REL,
-            "\n".join([
-                "# Phase 3 Low-Level Wrapper Boundary Survey",
-                "",
-                *[f"- `{marker}`" for marker in REQUIRED_SURVEY_MARKERS],
-                "",
-                *[
-                    snippet
-                    for snippet in REQUIRED_SURVEY_SNIPPETS
-                    if snippet
-                    != "`zigux/tests/phase3_low_level_wrappers.zig` now keeps the strong and weak compare-exchange replay, `fetchMin()` and `fetchMax()` replay, the acquire-only, release-only, combined acquire-plus-release, and full barrier probes, denied-scope checks, width-specific direct, scoped, and policy-aware 8-bit, 16-bit, 32-bit, and 64-bit MMIO coverage, generic decoded-policy bridge coverage across the same widths, denied-scope policy failures, misalignment failures, overflow failures, and the shared `MmioRange` layout assertion reviewable without having to infer them from the broader `phase3_abi` bundle alone."
-                ],
-                "",
-                *_blob_marker_lines(),
-            ]) + "\n",
-        )
-        issues = validate(root)
-        assert (
-            "missing_survey_snippet:`zigux/tests/phase3_low_level_wrappers.zig` now keeps the strong and weak compare-exchange replay, `fetchMin()` and `fetchMax()` replay, the acquire-only, release-only, combined acquire-plus-release, and full barrier probes, denied-scope checks, width-specific direct, scoped, and policy-aware 8-bit, 16-bit, 32-bit, and 64-bit MMIO coverage, generic decoded-policy bridge coverage across the same widths, denied-scope policy failures, misalignment failures, overflow failures, and the shared `MmioRange` layout assertion reviewable without having to infer them from the broader `phase3_abi` bundle alone."
+            "missing_low_level_test_snippet:try std.testing.expectError(error.UnsafeScopeDenied, mmio.readScopedWithPolicy(u64, none_policy, base64, 0));"
             in issues
         )
 
