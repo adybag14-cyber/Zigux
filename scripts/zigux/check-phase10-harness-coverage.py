@@ -151,6 +151,9 @@ EXPECTED_FOCUSED_HARNESS_REPLAYS = {
     "zigux/tests/phase10_virtio_input_multitouch_preflight.zig": [
         "phase10 input multitouch-ready preflight replay"
     ],
+    "zigux/tests/phase10_virtio_input_registration_blocker_build.zig": [
+        "phase10 input registration-blocker replay build"
+    ],
     "zigux/tests/phase10_virtio_mmio_queue_isolation.zig": [
         "phase10 mmio multi-queue isolation replay",
         "phase10 mmio reset clears legacy and modern queue address plans after queue selection changes",
@@ -192,26 +195,21 @@ EXACT_ONCE = [
     ("companion", "Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md", "zigux/tests/phase10_virtio_ring_survey.zig"),
 ]
 
-
 def read_text(root: Path, rel_path: str) -> str:
     return (root / rel_path).read_text(encoding="utf-8")
 
-
 def load_json(root: Path, rel_path: str) -> dict[str, object]:
     return json.loads(read_text(root, rel_path))
-
 
 def check_markers(missing: list[str], label: str, text: str, markers: list[str]) -> None:
     for marker in markers:
         if marker not in text:
             missing.append(f"{label}:{marker}")
 
-
 def check_exact_count(missing: list[str], label: str, text: str, marker: str) -> None:
     actual = text.count(marker)
     if actual != 1:
         missing.append(f"{label}:count:{marker}={actual}")
-
 
 def validate(root: Path) -> tuple[list[str], list[str]]:
     missing_files = [path for path in FILES if not (root / path).exists()]
@@ -288,7 +286,6 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
 
     return [], missing
 
-
 def write_fixture(root: Path) -> None:
     text_files = {
         "scripts/zigux/check-phase10-harness-coverage.py": "fixture\n",
@@ -338,7 +335,6 @@ def write_fixture(root: Path) -> None:
         else:
             path.write_text(text_files[rel_path], encoding="utf-8")
 
-
 def expect_missing_marker(label: str, root: Path, expected_marker: str) -> None:
     missing_files, missing_markers = validate(root)
     if missing_files:
@@ -351,7 +347,6 @@ def expect_missing_marker(label: str, root: Path, expected_marker: str) -> None:
             f"phase10-harness-self-test:{label}:expected_missing_marker:{expected_marker}:actual:{actual}"
         )
 
-
 def expect_missing_file(label: str, root: Path, rel_path: str) -> None:
     missing_files, missing_markers = validate(root)
     if missing_markers:
@@ -363,7 +358,6 @@ def expect_missing_file(label: str, root: Path, rel_path: str) -> None:
         raise SystemExit(
             f"phase10-harness-self-test:{label}:expected_missing_file:{rel_path}:actual:{actual}"
         )
-
 
 def run_self_test() -> int:
     with tempfile.TemporaryDirectory(prefix="zigux_phase10_harness_") as tmp_dir:
