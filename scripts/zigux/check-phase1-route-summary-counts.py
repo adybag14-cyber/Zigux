@@ -36,6 +36,11 @@ REQUIRED_MARKERS = {
         "- `python3 scripts/zigux/validate-phase1.py`, `python3 scripts/zigux/validate-phase1-closure.py`, `make -C zigux phase1-validate`, `make -C zigux phase1-test`, `make -C zigux phase1-bench`, and `make -C zigux phase1` are the current validator-first and replay entrypoints for that bounded host-side helper packet.",
         1,
     ),
+    "docs_root_phase1_companion_checks_count": (
+        "Documentation/zigux/README.md",
+        "- `python3 scripts/zigux/check-phase1-bitmap-validator-anchors.py`, `python3 scripts/zigux/check-phase1-find-bit-validator-anchors.py`, `python3 scripts/zigux/check-phase1-route-summary-counts.py`, `python3 scripts/zigux/check-phase1-validation-route-inventory.py`, `python3 scripts/zigux/check-phase1-parity.py`, and `python3 scripts/zigux/check-phase1-bench.py` are the dedicated fail-closed companion checks that keep the closed helper inventory, anchor evidence, replay routes, and benchmark packet aligned across the docs root, scripts root, tests root, Makefile, and bootstrap workflow.",
+        1,
+    ),
     "scripts_root_phase1_validator_first_count": (
         "scripts/zigux/README.md",
         "- `validate-phase1.py` is the validator-first entrypoint for the closed host-helper packet around `tools/lib/bitmap.zig`, `tools/lib/find_bit.zig`, `tools/lib/string.zig`, and `tools/lib/rbtree.zig` plus the bounded supporting helpers and committed `zigux/tests/fixtures/phase1_helpers.json` corpus.",
@@ -318,6 +323,7 @@ def self_test() -> int:
         REQUIRED_MARKERS["docs_root_phase1_closure_packet_count"][1],
         REQUIRED_MARKERS["docs_root_phase1_companion_count"][1],
         REQUIRED_MARKERS["docs_root_phase1_entrypoints_count"][1],
+        REQUIRED_MARKERS["docs_root_phase1_companion_checks_count"][1],
     ]
     scripts_markers = [
         REQUIRED_MARKERS["scripts_root_phase1_validator_first_count"][1],
@@ -376,6 +382,12 @@ def self_test() -> int:
             docs_markers,
             "docs_root_phase1_entrypoints_count",
             docs_markers[2],
+        ),
+        (
+            "Documentation/zigux/README.md",
+            docs_markers,
+            "docs_root_phase1_companion_checks_count",
+            docs_markers[3],
         ),
         (
             "scripts/zigux/README.md",
