@@ -8,7 +8,7 @@ This note records the current atomic, barrier, and MMIO boundary for the bounded
 - `PHASE3_ATOMIC_PATH=zigux/helpers/atomic.zig`
 - `PHASE3_ATOMIC_SCOPE=load-store-exchange-compare-exchange-compare-exchange-weak-fetch-add-fetch-sub-fetch-and-fetch-or-fetch-xor-fetch-min-fetch-max`
 - `PHASE3_ATOMIC_STATUS=bounded-helper-surface-and-mismatch-replay-landed`
-- `PHASE3_ATOMIC_BLOB_SHA=9e02a5504a426f154d750463a5ed2e8023ec5250`
+- `PHASE3_ATOMIC_BLOB_SHA=30a95ede47e7a1223b0b5a5314c1960b1d102008`
 - `PHASE3_BARRIER_PATH=zigux/helpers/barrier.zig`
 - `PHASE3_BARRIER_SCOPE=acquire-release-acquire-release-combined-full`
 - `PHASE3_BARRIER_STATUS=throwaway-probe-barriers-landed`
