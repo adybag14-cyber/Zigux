@@ -18,6 +18,7 @@ REQUIRED_FILES = [
     "zigux/tests/phase13_devres_dma_coherent.zig",
     "zigux/tests/phase13_devres_scatterlist.zig",
     "zigux/tests/phase13_devres_reviewability.zig",
+    "zigux/tests/phase13_devres_wrapper_reviewability.zig",
     "zigux/tests/phase13_devres_iounmap_reviewability.zig",
     "zigux/tests/phase13_devres_iomap_reviewability.zig",
     "zigux/tests/phase13_devres_manifest.json",
@@ -77,6 +78,16 @@ SCATTERLIST_TEST_MARKERS = [
     "planManagedScatterlistUnmap(",
 ]
 
+WRAPPER_REVIEWABILITY_MARKERS = [
+    'test "phase13 devres direct ioremap wrapper family stays explicit and individually covered"',
+    'try expectContains(devres_source, "pub fn planManagedIoremapAcquirePlain(");',
+    'try expectContains(devres_source, "pub fn planManagedIoremapAcquireUc(");',
+    'try expectContains(devres_source, "pub fn planManagedIoremapAcquireWc(");',
+    'try expectContains(devres_source, "pub fn planManagedIoremapAcquireNp(");',
+    'try expectContains(phase13_build, "phase13_devres_wrapper_reviewability.zig");',
+    'try expectContains(phase13_build, "phase13-devres-wrapper-reviewability-tests");',
+]
+
 IOUNMAP_REVIEWABILITY_MARKERS = [
     'test "phase13 devres iounmap descriptor keeps the planner explicit"',
     'test "phase13 devres iounmap planner stays pointer-exact and warns on release misses"',
@@ -110,10 +121,13 @@ SURVEY_MARKERS = [
     "- `PHASE13_STATUS=active`",
     "- `PHASE13_SLICE=devres-helper-dma-scatterlist-boundary-reviewability`",
     "helper-first iomap or resource planners plus explicit DMA/scatterlist blockers pinned to the current repo state",
+    "- `zigux/tests/phase13_devres_wrapper_reviewability.zig`",
     "- `lib/devres_scatterlist.zig`",
     "- `zigux/tests/phase13_devres_scatterlist.zig`",
     "- `Documentation/zigux/phase13-devres-scatterlist-slice.md`",
+    "`zigux/tests/phase13_devres_wrapper_reviewability.zig` now source-scans `lib/devres.zig` for the direct plain, UC, WC, and NP managed ioremap wrapper entrypoints",
     "`zigux/tests/phase13_devres_iounmap_reviewability.zig` now source-scans `lib/devres.zig` for the explicit `provides_iounmap_call_planning` marker and replays exact-match plus release-miss `devm_iounmap()` planning so the pointer-exact detach surface stays reviewable inside the broader devres packet instead of living only in the helper lab or survey prose",
+    "the direct plain, UC, WC, and NP managed ioremap wrapper family plus its dedicated survey-visible reviewability gate",
     "live MMIO side effects such as `devres_alloc_node()` ownership, `devres_add()` installation, `devm_request_mem_region()` side effects, and direct `ioremap()` or `iounmap()` execution against real hardware state",
     "live DMA-backed helpers such as `dmam_alloc_coherent()`, `dmam_free_coherent()`, `dma_map_resource()`, `dma_unmap_resource()`, or `dma_map_sgtable()` ownership and execution",
     "live scatter-gather ownership such as `struct scatterlist`, `sg_table`, `sg_*` iteration, merge, or detach-time cleanup behavior",
@@ -146,11 +160,13 @@ BUILD_MARKERS = [
     "../../lib/devres_scatterlist.zig",
     "phase13_devres_dma_coherent.zig",
     "phase13_devres_scatterlist.zig",
+    "phase13_devres_wrapper_reviewability.zig",
     "phase13_devres_iounmap_reviewability.zig",
     "phase13_devres_iomap_reviewability.zig",
     "phase13-devres-tests",
     "phase13-devres-dma-coherent-tests",
     "phase13-devres-scatterlist-tests",
+    "phase13-devres-wrapper-reviewability-tests",
     "phase13-devres-iounmap-reviewability-tests",
     "phase13-devres-iomap-reviewability-tests",
     "phase13-devres-reviewability-tests",
@@ -224,6 +240,7 @@ def _check_repo(root: Path) -> list[str]:
     dma_coherent_tests_text = _read(root / "zigux/tests/phase13_devres_dma_coherent.zig")
     scatterlist_tests_text = _read(root / "zigux/tests/phase13_devres_scatterlist.zig")
     reviewability_text = _read(root / "zigux/tests/phase13_devres_reviewability.zig")
+    wrapper_reviewability_text = _read(root / "zigux/tests/phase13_devres_wrapper_reviewability.zig")
     iounmap_reviewability_text = _read(root / "zigux/tests/phase13_devres_iounmap_reviewability.zig")
     iomap_reviewability_text = _read(root / "zigux/tests/phase13_devres_iomap_reviewability.zig")
     manifest_text = _read(root / "zigux/tests/phase13_devres_manifest.json")
@@ -240,6 +257,7 @@ def _check_repo(root: Path) -> list[str]:
     _require_markers(missing, "devres_tests", devres_tests_text, DEVRES_TEST_MARKERS)
     _require_markers(missing, "devres_dma_coherent_tests", dma_coherent_tests_text, DMA_COHERENT_TEST_MARKERS)
     _require_markers(missing, "devres_scatterlist_tests", scatterlist_tests_text, SCATTERLIST_TEST_MARKERS)
+    _require_markers(missing, "wrapper_reviewability", wrapper_reviewability_text, WRAPPER_REVIEWABILITY_MARKERS)
     _require_markers(missing, "iounmap_reviewability", iounmap_reviewability_text, IOUNMAP_REVIEWABILITY_MARKERS)
     _require_markers(missing, "iomap_reviewability", iomap_reviewability_text, IOMAP_REVIEWABILITY_MARKERS)
     _require_markers(missing, "reviewability", reviewability_text, REVIEWABILITY_MARKERS)
@@ -296,6 +314,7 @@ def _check_repo(root: Path) -> list[str]:
             "preexisting_phase13_devres_test_present",
             "preexisting_phase13_devres_slice_present",
             "preexisting_phase13_devres_reviewability_present",
+            "preexisting_phase13_devres_wrapper_reviewability_present",
             "preexisting_phase13_devres_iounmap_reviewability_present",
             "preexisting_phase13_devres_iomap_reviewability_present",
             "preexisting_phase13_devres_survey_present",
@@ -339,6 +358,10 @@ def _run_self_test() -> int:
         (root / "zigux/tests/phase13_devres.zig").write_text("\n".join(DEVRES_TEST_MARKERS) + "\n", encoding="utf-8")
         (root / "zigux/tests/phase13_devres_dma_coherent.zig").write_text("\n".join(DMA_COHERENT_TEST_MARKERS) + "\n", encoding="utf-8")
         (root / "zigux/tests/phase13_devres_scatterlist.zig").write_text("\n".join(SCATTERLIST_TEST_MARKERS) + "\n", encoding="utf-8")
+        (root / "zigux/tests/phase13_devres_wrapper_reviewability.zig").write_text(
+            "\n".join(WRAPPER_REVIEWABILITY_MARKERS) + "\n",
+            encoding="utf-8",
+        )
         (root / "zigux/tests/phase13_devres_reviewability.zig").write_text(
             "\n".join(
                 [
@@ -390,6 +413,7 @@ def _run_self_test() -> int:
                 "preexisting_phase13_devres_test_present": True,
                 "preexisting_phase13_devres_slice_present": True,
                 "preexisting_phase13_devres_reviewability_present": True,
+                "preexisting_phase13_devres_wrapper_reviewability_present": True,
                 "preexisting_phase13_devres_iounmap_reviewability_present": True,
                 "preexisting_phase13_devres_iomap_reviewability_present": True,
                 "preexisting_phase13_devres_survey_present": True,
@@ -474,6 +498,25 @@ def _run_self_test() -> int:
         case_count += 1
         review_checklist_path.write_text(original_review_checklist, encoding="utf-8")
 
+        wrapper_reviewability_path = root / "zigux/tests/phase13_devres_wrapper_reviewability.zig"
+        wrapper_reviewability_path.write_text("", encoding="utf-8")
+        missing = _check_repo(root)
+        expected_missing = (
+            "wrapper_reviewability:"
+            + WRAPPER_REVIEWABILITY_MARKERS[0]
+        )
+        if expected_missing not in missing:
+            print("PHASE13_DEVRES_PACKET_SELF_TEST=fail")
+            print("missing wrapper reviewability marker did not fail")
+            for item in missing:
+                print(item)
+            return 1
+        case_count += 1
+        wrapper_reviewability_path.write_text(
+            "\n".join(WRAPPER_REVIEWABILITY_MARKERS) + "\n",
+            encoding="utf-8",
+        )
+
     print("PHASE13_DEVRES_PACKET_SELF_TEST=pass")
     print(f"PHASE13_DEVRES_PACKET_SELF_TEST_CASE_COUNT={case_count}")
     return 0
@@ -501,7 +544,7 @@ def main() -> int:
     print(f"PHASE13_DEVRES_REQUIRED_FILE_COUNT={len(REQUIRED_FILES)}")
     print(
         "PHASE13_DEVRES_MARKER_COUNT="
-        f"{len(DEVRES_MARKERS) + len(DMA_COHERENT_MARKERS) + len(SCATTERLIST_MARKERS) + len(DEVRES_TEST_MARKERS) + len(DMA_COHERENT_TEST_MARKERS) + len(SCATTERLIST_TEST_MARKERS) + len(IOUNMAP_REVIEWABILITY_MARKERS) + len(IOMAP_REVIEWABILITY_MARKERS) + len(REVIEWABILITY_MARKERS) + len(SURVEY_MARKERS) + len(SURVEY_EXACT_COUNT_MARKERS) + len(SLICE_MARKERS) + len(SCATTERLIST_SLICE_MARKERS) + len(BUILD_MARKERS) + len(SCRIPTS_README_MARKERS) + len(SCRIPTS_README_EXACT_COUNT_MARKERS) + len(REVIEW_CHECKLIST_MARKERS) + len(REVIEW_CHECKLIST_EXACT_COUNT_MARKERS)}"
+        f"{len(DEVRES_MARKERS) + len(DMA_COHERENT_MARKERS) + len(SCATTERLIST_MARKERS) + len(DEVRES_TEST_MARKERS) + len(DMA_COHERENT_TEST_MARKERS) + len(SCATTERLIST_TEST_MARKERS) + len(WRAPPER_REVIEWABILITY_MARKERS) + len(IOUNMAP_REVIEWABILITY_MARKERS) + len(IOMAP_REVIEWABILITY_MARKERS) + len(REVIEWABILITY_MARKERS) + len(SURVEY_MARKERS) + len(SURVEY_EXACT_COUNT_MARKERS) + len(SLICE_MARKERS) + len(SCATTERLIST_SLICE_MARKERS) + len(BUILD_MARKERS) + len(SCRIPTS_README_MARKERS) + len(SCRIPTS_README_EXACT_COUNT_MARKERS) + len(REVIEW_CHECKLIST_MARKERS) + len(REVIEW_CHECKLIST_EXACT_COUNT_MARKERS)}"
     )
     return 0
 
