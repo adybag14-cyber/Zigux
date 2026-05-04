@@ -236,6 +236,18 @@ def expect_exact_count(
         missing.append(f"{source_name}:count={actual_count}:{marker}")
 
 
+def expect_exact_line_count(
+    source_name: str,
+    source_text: str,
+    marker: str,
+    expected_count: int,
+    missing: list[str],
+) -> None:
+    actual_count = sum(1 for line in source_text.splitlines() if line.strip() == marker)
+    if actual_count != expected_count:
+        missing.append(f"{source_name}:line_count={actual_count}:{marker}")
+
+
 missing_files = [path for path in FILES if not (ROOT / path).exists()]
 if missing_files:
     print("PHASE14_VALIDATION=fail")
@@ -267,7 +279,7 @@ for marker in SCRIPT_README_EXACT_COUNT_MARKERS:
     expect_exact_count("scripts_readme", scripts_readme_text, marker, 1, missing)
 
 for marker in MAKE_EXACT_COUNT_MARKERS:
-    expect_exact_count("make", make_text, marker, 1, missing)
+    expect_exact_line_count("make", make_text, marker, 1, missing)
 
 for marker in RELEASE_BOUNDARY_EXACT_COUNT_MARKERS:
     expect_exact_count("release_boundary", release_boundary_text, marker, 1, missing)
