@@ -9,7 +9,7 @@ from pathlib import Path
 
 SCRIPT_PATH = Path(__file__).resolve()
 ROOT = SCRIPT_PATH.parents[2] if len(SCRIPT_PATH.parents) > 2 else SCRIPT_PATH.parent
-SELF_TEST_CASE_COUNT = 18
+SELF_TEST_CASE_COUNT = 20
 
 DOCS_ROOT_PATH = Path("Documentation/zigux/README.md")
 SCRIPTS_README_PATH = Path("scripts/zigux/README.md")
@@ -39,6 +39,12 @@ REQUIRED_SCRIPTS_README_LINES = [
     "- `check-phase6-docs-root-external-parity.py`",
     "- `check-phase6-base64-catalog-evidence.py`",
 ]
+SCRIPTS_README_SELF_TEST_LINE = (
+    "`validate-phase6.py --self-test` exercises the shared Phase 6 marker walk "
+    "in a compact synthetic tree and fails if catalog-head provenance, "
+    "script-README wording, perf-survey markers, shared-gates inventory, "
+    "manifest `surveyed_commit`, or helper-local determinism evidence drifts."
+)
 REQUIRED_TESTS_README_LINES = [
     "- `scripts/zigux/check-phase6-docs-root-external-parity.py`",
     "- `scripts/zigux/check-phase6-base64-catalog-evidence.py`",
@@ -70,6 +76,7 @@ REQUIRED_FILE_COUNT = (
 REQUIRED_LINE_COUNT = (
     1
     + len(REQUIRED_SCRIPTS_README_LINES)
+    + 1
     + len(REQUIRED_TESTS_README_LINES)
     + len(REQUIRED_MANIFEST_EXACT_CHECKS)
     + len(REQUIRED_MAKEFILE_LINES)
@@ -124,6 +131,15 @@ def validate(root: Path) -> list[str]:
                 f"expected=1:actual={actual_count}:{line}"
             )
 
+    actual_count = count_exact_line(
+        scripts_readme_lines, SCRIPTS_README_SELF_TEST_LINE
+    )
+    if actual_count != 1:
+        missing.append(
+            "scripts_readme_self_test_line:"
+            f"expected=1:actual={actual_count}:{SCRIPTS_README_SELF_TEST_LINE}"
+        )
+
     tests_readme_lines = normalized_lines(read_text(root, TESTS_README_PATH))
     for line in REQUIRED_TESTS_README_LINES:
         actual_count = count_exact_line(tests_readme_lines, line)
@@ -166,7 +182,11 @@ def write(root: Path, relative_path: Path, content: str) -> None:
 
 def build_fixture_tree(root: Path) -> None:
     write(root, DOCS_ROOT_PATH, f"{EXTERNAL_PARITY_LINE}\n")
-    write(root, SCRIPTS_README_PATH, "\n".join(REQUIRED_SCRIPTS_README_LINES) + "\n")
+    write(
+        root,
+        SCRIPTS_README_PATH,
+        "\n".join([*REQUIRED_SCRIPTS_README_LINES, SCRIPTS_README_SELF_TEST_LINE]) + "\n",
+    )
     write(root, TESTS_README_PATH, "\n".join(REQUIRED_TESTS_README_LINES) + "\n")
     write(
         root,
@@ -227,7 +247,8 @@ def run_self_test() -> int:
             build_fixture_tree(root)
             scripts_readme = root / SCRIPTS_README_PATH
             scripts_readme.write_text(
-                "- `check-phase6-docs-root-external-parity.py`\n- `check-phase6-docs-root-external-parity.py`\n",
+                "- `check-phase6-docs-root-external-parity.py`\n- `check-phase6-docs-root-external-parity.py`\n"
+                f"- `check-phase6-base64-catalog-evidence.py`\n{SCRIPTS_README_SELF_TEST_LINE}\n",
                 encoding="utf-8",
             )
             expect_contains(
@@ -239,7 +260,7 @@ def run_self_test() -> int:
             build_fixture_tree(root)
             scripts_readme = root / SCRIPTS_README_PATH
             scripts_readme.write_text(
-                "- `check-phase6-docs-root-external-parity.py`\n",
+                f"- `check-phase6-docs-root-external-parity.py`\n{SCRIPTS_README_SELF_TEST_LINE}\n",
                 encoding="utf-8",
             )
             expect_contains(
@@ -251,12 +272,46 @@ def run_self_test() -> int:
             build_fixture_tree(root)
             scripts_readme = root / SCRIPTS_README_PATH
             scripts_readme.write_text(
-                "- `check-phase6-docs-root-external-parity.py`\n- `check-phase6-base64-catalog-evidence.py`\n- `check-phase6-base64-catalog-evidence.py`\n",
+                "- `check-phase6-docs-root-external-parity.py`\n"
+                "- `check-phase6-base64-catalog-evidence.py`\n"
+                "- `check-phase6-base64-catalog-evidence.py`\n"
+                f"{SCRIPTS_README_SELF_TEST_LINE}\n",
                 encoding="utf-8",
             )
             expect_contains(
                 validate(root),
                 "scripts_readme_checker_line:expected=1:actual=2:- `check-phase6-base64-catalog-evidence.py`",
+            )
+            count += 1
+
+            build_fixture_tree(root)
+            scripts_readme = root / SCRIPTS_README_PATH
+            scripts_readme.write_text(
+                "\n".join(REQUIRED_SCRIPTS_README_LINES) + "\n",
+                encoding="utf-8",
+            )
+            expect_contains(
+                validate(root),
+                f"scripts_readme_self_test_line:expected=1:actual=0:{SCRIPTS_README_SELF_TEST_LINE}",
+            )
+            count += 1
+
+            build_fixture_tree(root)
+            scripts_readme = root / SCRIPTS_README_PATH
+            scripts_readme.write_text(
+                "\n".join(
+                    [
+                        *REQUIRED_SCRIPTS_README_LINES,
+                        SCRIPTS_README_SELF_TEST_LINE,
+                        SCRIPTS_README_SELF_TEST_LINE,
+                    ]
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+            expect_contains(
+                validate(root),
+                f"scripts_readme_self_test_line:expected=1:actual=2:{SCRIPTS_README_SELF_TEST_LINE}",
             )
             count += 1
 
