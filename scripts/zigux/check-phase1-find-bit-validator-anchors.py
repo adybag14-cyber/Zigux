@@ -177,14 +177,6 @@ def validate_required_files(required_files: dict[str, Path]) -> list[str]:
     return missing
 
 
-def validate_text(prefix: str, text: str, snippets: dict[str, str]) -> list[str]:
-    missing: list[str] = []
-    for label, snippet in snippets.items():
-        if snippet not in text:
-            missing.append(f"{prefix}:{label}")
-    return missing
-
-
 def validate_exact_lines(prefix: str, text: str, lines: dict[str, str]) -> list[str]:
     missing: list[str] = []
     normalized = [line.strip() for line in text.splitlines()]
@@ -227,18 +219,18 @@ def collect_missing(
     manifest_text: str,
 ) -> list[str]:
     return [
-        *validate_text("phase1_validator_find_bit", validator_text, REQUIRED_VALIDATOR_SNIPPETS),
-        *validate_text(
+        *validate_snippet_counts("phase1_validator_find_bit", validator_text, REQUIRED_VALIDATOR_SNIPPETS),
+        *validate_snippet_counts(
             "phase1_closure_validator_find_bit",
             closure_validator_text,
             REQUIRED_CLOSURE_VALIDATOR_SNIPPETS,
         ),
-        *validate_text(
+        *validate_snippet_counts(
             "phase1_closure_doc_find_bit",
             closure_doc_text,
             REQUIRED_CLOSURE_DOC_SNIPPETS,
         ),
-        *validate_text(
+        *validate_snippet_counts(
             "phase1_bench_checker_find_bit",
             bench_checker_text,
             REQUIRED_BENCH_CHECKER_SNIPPETS,
@@ -268,7 +260,7 @@ def collect_missing(
             docs_readme_text,
             REQUIRED_DOCS_README_LINES,
         ),
-        *validate_text(
+        *validate_snippet_counts(
             "phase1_find_bit_source",
             find_bit_source_text,
             REQUIRED_FIND_BIT_SOURCE_SNIPPETS,
@@ -443,8 +435,23 @@ def run_self_test() -> int:
     for label, snippet in REQUIRED_VALIDATOR_SNIPPETS.items():
         expect_missing(
             label,
-            f"phase1_validator_find_bit:{label}",
+            f"phase1_validator_find_bit:{label}:expected=1:actual=0",
             validator_text=validator_text.replace(snippet, "", 1),
+            closure_validator_text=closure_validator_text,
+            closure_doc_text=closure_doc_text,
+            bench_checker_text=bench_checker_text,
+            workflow_text=workflow_text,
+            makefile_text=makefile_text,
+            scripts_readme_text=scripts_readme_text,
+            docs_readme_text=docs_readme_text,
+            find_bit_source_text=find_bit_source_text,
+            manifest_text=manifest_text,
+        )
+        total_cases += 1
+        expect_missing(
+            f"{label}_duplicate",
+            f"phase1_validator_find_bit:{label}:expected=1:actual=2",
+            validator_text=validator_text + snippet + "\n",
             closure_validator_text=closure_validator_text,
             closure_doc_text=closure_doc_text,
             bench_checker_text=bench_checker_text,
@@ -460,9 +467,24 @@ def run_self_test() -> int:
     for label, snippet in REQUIRED_CLOSURE_VALIDATOR_SNIPPETS.items():
         expect_missing(
             label,
-            f"phase1_closure_validator_find_bit:{label}",
+            f"phase1_closure_validator_find_bit:{label}:expected=1:actual=0",
             validator_text=validator_text,
             closure_validator_text=closure_validator_text.replace(snippet, "", 1),
+            closure_doc_text=closure_doc_text,
+            bench_checker_text=bench_checker_text,
+            workflow_text=workflow_text,
+            makefile_text=makefile_text,
+            scripts_readme_text=scripts_readme_text,
+            docs_readme_text=docs_readme_text,
+            find_bit_source_text=find_bit_source_text,
+            manifest_text=manifest_text,
+        )
+        total_cases += 1
+        expect_missing(
+            f"{label}_duplicate",
+            f"phase1_closure_validator_find_bit:{label}:expected=1:actual=2",
+            validator_text=validator_text,
+            closure_validator_text=closure_validator_text + snippet + "\n",
             closure_doc_text=closure_doc_text,
             bench_checker_text=bench_checker_text,
             workflow_text=workflow_text,
@@ -477,10 +499,25 @@ def run_self_test() -> int:
     for label, snippet in REQUIRED_CLOSURE_DOC_SNIPPETS.items():
         expect_missing(
             label,
-            f"phase1_closure_doc_find_bit:{label}",
+            f"phase1_closure_doc_find_bit:{label}:expected=1:actual=0",
             validator_text=validator_text,
             closure_validator_text=closure_validator_text,
             closure_doc_text=closure_doc_text.replace(snippet, "", 1),
+            bench_checker_text=bench_checker_text,
+            workflow_text=workflow_text,
+            makefile_text=makefile_text,
+            scripts_readme_text=scripts_readme_text,
+            docs_readme_text=docs_readme_text,
+            find_bit_source_text=find_bit_source_text,
+            manifest_text=manifest_text,
+        )
+        total_cases += 1
+        expect_missing(
+            f"{label}_duplicate",
+            f"phase1_closure_doc_find_bit:{label}:expected=1:actual=2",
+            validator_text=validator_text,
+            closure_validator_text=closure_validator_text,
+            closure_doc_text=closure_doc_text + snippet + "\n",
             bench_checker_text=bench_checker_text,
             workflow_text=workflow_text,
             makefile_text=makefile_text,
@@ -494,11 +531,26 @@ def run_self_test() -> int:
     for label, snippet in REQUIRED_BENCH_CHECKER_SNIPPETS.items():
         expect_missing(
             label,
-            f"phase1_bench_checker_find_bit:{label}",
+            f"phase1_bench_checker_find_bit:{label}:expected=1:actual=0",
             validator_text=validator_text,
             closure_validator_text=closure_validator_text,
             closure_doc_text=closure_doc_text,
             bench_checker_text=bench_checker_text.replace(snippet, "", 1),
+            workflow_text=workflow_text,
+            makefile_text=makefile_text,
+            scripts_readme_text=scripts_readme_text,
+            docs_readme_text=docs_readme_text,
+            find_bit_source_text=find_bit_source_text,
+            manifest_text=manifest_text,
+        )
+        total_cases += 1
+        expect_missing(
+            f"{label}_duplicate",
+            f"phase1_bench_checker_find_bit:{label}:expected=1:actual=2",
+            validator_text=validator_text,
+            closure_validator_text=closure_validator_text,
+            closure_doc_text=closure_doc_text,
+            bench_checker_text=bench_checker_text + snippet + "\n",
             workflow_text=workflow_text,
             makefile_text=makefile_text,
             scripts_readme_text=scripts_readme_text,
@@ -673,7 +725,7 @@ def run_self_test() -> int:
     for label, snippet in REQUIRED_FIND_BIT_SOURCE_SNIPPETS.items():
         expect_missing(
             label,
-            f"phase1_find_bit_source:{label}",
+            f"phase1_find_bit_source:{label}:expected=1:actual=0",
             validator_text=validator_text,
             closure_validator_text=closure_validator_text,
             closure_doc_text=closure_doc_text,
@@ -683,6 +735,21 @@ def run_self_test() -> int:
             scripts_readme_text=scripts_readme_text,
             docs_readme_text=docs_readme_text,
             find_bit_source_text=find_bit_source_text.replace(snippet, "", 1),
+            manifest_text=manifest_text,
+        )
+        total_cases += 1
+        expect_missing(
+            f"{label}_duplicate",
+            f"phase1_find_bit_source:{label}:expected=1:actual=2",
+            validator_text=validator_text,
+            closure_validator_text=closure_validator_text,
+            closure_doc_text=closure_doc_text,
+            bench_checker_text=bench_checker_text,
+            workflow_text=workflow_text,
+            makefile_text=makefile_text,
+            scripts_readme_text=scripts_readme_text,
+            docs_readme_text=docs_readme_text,
+            find_bit_source_text=find_bit_source_text + snippet + "\n",
             manifest_text=manifest_text,
         )
         total_cases += 1
