@@ -290,7 +290,6 @@ def run_self_test() -> int:
         issues = validate(root)
         assert f"unexpected_survey_marker_count:2:{duplicated_survey_marker}" in issues
 
-        (root / SURVEY_REL).writeText = None
         (root / SURVEY_REL).write_text("\n".join((*REQUIRED_SURVEY_MARKERS, *REQUIRED_SURVEY_SNIPPETS)) + "\n", encoding="utf-8")
         duplicated_survey_snippet = EXACT_ONCE_SURVEY_SNIPPETS[0]
         (root / SURVEY_REL).write_text(
