@@ -140,6 +140,10 @@ RELEASE_BOUNDARY_MARKERS = [
     "Keep this lane parked unless the shared smoke packet or one of the four anchor-local Phase 14 manifests moves. If that happens, refresh this release-boundary reading and the docs-root Phase 14 summary so the release-facing story keeps matching the validator-backed smoke packet without widening it into a new active delivery claim.",
 ]
 
+RELEASE_BOUNDARY_EXACT_COUNT_MARKERS = [
+    "PHASE14_RELEASE_CLOSED=no",
+]
+
 CHECKLIST_MARKERS = [
     "is there a stated rollback owner and fallback path?",
     "if the change touches the shared Phase 14 smoke packet, do `scripts/zigux/validate-phase14.py`, `scripts/zigux/README.md`, `zigux/tests/phase14_end_to_end_smoke_manifest.json`, `zigux/tests/phase14_end_to_end_smoke_survey.zig`, `zigux/tests/phase14_build.zig`, `Documentation/zigux/phase14-end-to-end-smoke-survey.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/freeze-map.md`, and the four Phase 14 anchor-local manifests plus survey notes still agree on the same exact validator-backed smoke commands, the same focused `phase14-smoke` shard commands, ready-next versus blocked posture, stay-in-C boundary, named owner, validation gate, rollback owner, rollback threshold, automatic return-to-blocked trigger catalog, roadmap risk bundle (`hidden runtime behavior`, `memory-ordering mistakes`, `overpromising full parity`, `deep-core scope creep`), and explicit ZAR-to-product transfer rationale?",
@@ -237,13 +241,14 @@ if missing_files:
 missing: list[str] = []
 scripts_readme_text = text("scripts/zigux/README.md")
 survey_note = text("Documentation/zigux/phase14-end-to-end-smoke-survey.md")
+release_boundary_text = text("Documentation/zigux/phase14-release-boundary-survey.md")
 
 for name, source, markers in [
     ("scripts_readme", scripts_readme_text, SCRIPT_README_MARKERS),
     ("make", text("zigux/Makefile"), MAKE_MARKERS),
     ("workflow", text(".github/workflows/zigux-bootstrap.yml"), WORKFLOW_MARKERS),
     ("survey", survey_note, RELEASE_MARKERS),
-    ("release_boundary", text("Documentation/zigux/phase14-release-boundary-survey.md"), RELEASE_BOUNDARY_MARKERS),
+    ("release_boundary", release_boundary_text, RELEASE_BOUNDARY_MARKERS),
     ("checklist", text("Documentation/zigux/review-checklist.md"), CHECKLIST_MARKERS),
     ("build", text("zigux/tests/phase14_build.zig"), BUILD_MARKERS),
 ]:
@@ -252,6 +257,9 @@ for name, source, markers in [
 
 for marker in SCRIPT_README_EXACT_COUNT_MARKERS:
     expect_exact_count("scripts_readme", scripts_readme_text, marker, 1, missing)
+
+for marker in RELEASE_BOUNDARY_EXACT_COUNT_MARKERS:
+    expect_exact_count("release_boundary", release_boundary_text, marker, 1, missing)
 
 freeze_map_text = text("Documentation/zigux/freeze-map.md")
 for marker in FREEZE_MAP_MARKERS:
