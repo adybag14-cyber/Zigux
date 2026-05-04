@@ -15,6 +15,10 @@ Phase 2 implementation surface addendum
 - `check-kconfig-bridge.py --self-test` stays paired with `check-kconfig-bridge.py` before live bounded replay.
 - The bounded Phase 2 implementation roots remain `genksyms.zig`, `genksyms_crc.zig`, `mk_elfconfig.zig`, `kconfig/conf_bridge.zig`, and `kconfig/confdata_bridge.zig` so the scripts index names the same implementation surface the shared closure validator expects.
 
+Phase 2 toolchain pin scope
+- `check-phase2-toolchain-pin-scope.py --self-test` and `check-phase2-toolchain-pin-scope.py` keep `scripts/zigux/zig-toolchain-policy.json`, `Documentation/zigux/phase2-toolchain-bootstrap-notes.md`, `Documentation/zigux/review-checklist.md`, and the workflow bootstrap install and verification route aligned before `make -C zigux phase2-validate` or `make -C zigux phase2` claims bounded closure evidence.
+- the current bootstrap archive pin remains `x86_64-linux`, and that kbuild-facing review path stays limited to the current workflow host target until first-class evidence exists for widening the archive pin.
+
 Phase 6 flow
 - `validate-phase6.py` keeps the shipped Phase 6 leaf-helper packet aligned across `scripts/zigux/README.md`, `Documentation/zigux/README.md`, `Documentation/zigux/phase6-helper-parity-catalog.md`, `zigux/tests/phase6_helper_parity_manifest.json`, `zigux/tests/phase6_build.zig`, `zigux/Makefile`, the bootstrap workflow, and the four helper-local slice notes before any shared replay claims stay green.
 - `python3 scripts/zigux/check-phase6-base64-c-parity.py`, `python3 scripts/zigux/check-phase6-bsearch-c-parity.py`, `python3 scripts/zigux/check-phase6-checksum-c-parity.py`, and `python3 scripts/zigux/check-phase6-hexdump-c-parity.py` are the bounded external portability spot checks for the current base64, bsearch, checksum, and hexdump helper packet.
