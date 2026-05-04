@@ -1,5 +1,6 @@
 const std = @import("std");
 const abi = @import("abi_bindings");
+const narrow = @import("narrow_unsafe");
 
 pub fn assertSize(comptime T: type, comptime expected: usize) void {
     if (@sizeOf(T) != expected) {
@@ -48,6 +49,12 @@ fn assertInteropPolicyByteValue(comptime label: []const u8, comptime actual: any
     }
 }
 
+pub fn assertUnsafeScopeTagParity() void {
+    assertInteropPolicyByteValue("unsafe_scope_tag.none", @intFromEnum(narrow.UnsafeScopeTag.none), @intFromEnum(abi.UnsafeScope.none));
+    assertInteropPolicyByteValue("unsafe_scope_tag.volatile_mmio", @intFromEnum(narrow.UnsafeScopeTag.volatile_mmio), @intFromEnum(abi.UnsafeScope.volatile_mmio));
+    assertInteropPolicyByteValue("unsafe_scope_tag.raw_pointer_bridge", @intFromEnum(narrow.UnsafeScopeTag.raw_pointer_bridge), @intFromEnum(abi.UnsafeScope.raw_pointer_bridge));
+}
+
 pub fn assertBoundaryHeaderLayout() void {
     assertSize(abi.BoundaryHeader, 8);
     assertAlign(abi.BoundaryHeader, 4);
@@ -80,6 +87,7 @@ pub fn assertInteropPolicyModeValues() void {
     assertInteropPolicyByteValue("unsafe_scope.none", @intFromEnum(abi.UnsafeScope.none), 0);
     assertInteropPolicyByteValue("unsafe_scope.volatile_mmio", @intFromEnum(abi.UnsafeScope.volatile_mmio), 1);
     assertInteropPolicyByteValue("unsafe_scope.raw_pointer_bridge", @intFromEnum(abi.UnsafeScope.raw_pointer_bridge), 2);
+    assertUnsafeScopeTagParity();
 }
 
 pub fn assertInteropPolicyLayout() void {
