@@ -25,6 +25,7 @@ Phase 2 implementation surface addendum
 
 Phase 2 toolchain pin scope
 - `check-phase2-toolchain-pin-scope.py --self-test` and `check-phase2-toolchain-pin-scope.py` keep `scripts/zigux/zig-toolchain-policy.json`, `Documentation/zigux/phase2-toolchain-bootstrap-notes.md`, `Documentation/zigux/review-checklist.md`, and the workflow bootstrap install and verification route aligned before `make -C zigux phase2-validate` or `make -C zigux phase2` claims bounded closure evidence.
+- `check-phase2-cross-selftest-alignment.py --self-test` and `check-phase2-cross-selftest-alignment.py` keep `zigux/tests/fixtures/phase2_cross_targets.json`, `Documentation/zigux/phase2-toolchain-bootstrap-notes.md`, `scripts/zigux/validate-phase2.py`, `scripts/zigux/validate-phase2-closure.py`, `zigux/Makefile`, and `.github/workflows/zigux-bootstrap.yml` aligned around the three-target compile matrix without widening the pinned bootstrap archive beyond `x86_64-linux`.
 - the current bootstrap archive pin remains `x86_64-linux`, and that kbuild-facing review path stays limited to the current workflow host target until first-class evidence exists for widening the archive pin.
 
 Phase 3 flow
