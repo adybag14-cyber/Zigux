@@ -59,11 +59,15 @@ SHARED_REPLAY_NOTE_MARKERS = [
     "Documentation/zigux/phase12-raw-github-coverage-survey.md",
     "scripts/zigux/README.md",
     "zigux/tests/README.md",
+    "- `zigux/tests/phase12_raw_github_coverage_manifest.json`",
+    "- `zigux/tests/phase12_raw_github_coverage_survey.zig`",
 ]
 
 SHARED_REPLAY_NOTE_EXACT_COUNTS = {
     "- `python3 scripts/zigux/check-phase12-shared-replay-contract.py --self-test`": 1,
     "- `python3 scripts/zigux/check-phase12-shared-replay-contract.py`": 1,
+    "- `zigux/tests/phase12_raw_github_coverage_manifest.json`": 1,
+    "- `zigux/tests/phase12_raw_github_coverage_survey.zig`": 1,
 }
 
 DOCS_ROOT_MARKERS = [
@@ -379,6 +383,50 @@ def run_self_test() -> int:
         )
         write_text(note_path, note_backup)
 
+        write_text(
+            note_path,
+            note_backup.replace("- `zigux/tests/phase12_raw_github_coverage_manifest.json`\n", "", 1),
+        )
+        expect_missing(
+            "missing_note_raw_coverage_manifest_bullet",
+            run_checker(tmp_root),
+            "shared_replay_note:- `zigux/tests/phase12_raw_github_coverage_manifest.json`",
+        )
+        write_text(note_path, note_backup)
+
+        write_text(
+            note_path,
+            note_backup + "- `zigux/tests/phase12_raw_github_coverage_manifest.json`\n",
+        )
+        expect_missing(
+            "duplicate_note_raw_coverage_manifest_bullet",
+            run_checker(tmp_root),
+            "shared_replay_note_count:- `zigux/tests/phase12_raw_github_coverage_manifest.json`:expected=1:actual=2",
+        )
+        write_text(note_path, note_backup)
+
+        write_text(
+            note_path,
+            note_backup.replace("- `zigux/tests/phase12_raw_github_coverage_survey.zig`\n", "", 1),
+        )
+        expect_missing(
+            "missing_note_raw_coverage_survey_bullet",
+            run_checker(tmp_root),
+            "shared_replay_note:- `zigux/tests/phase12_raw_github_coverage_survey.zig`",
+        )
+        write_text(note_path, note_backup)
+
+        write_text(
+            note_path,
+            note_backup + "- `zigux/tests/phase12_raw_github_coverage_survey.zig`\n",
+        )
+        expect_missing(
+            "duplicate_note_raw_coverage_survey_bullet",
+            run_checker(tmp_root),
+            "shared_replay_note_count:- `zigux/tests/phase12_raw_github_coverage_survey.zig`:expected=1:actual=2",
+        )
+        write_text(note_path, note_backup)
+
         docs_root_path = tmp_root / "Documentation/zigux/README.md"
         docs_root_backup = docs_root_path.read_text(encoding="utf-8")
         write_text(
@@ -513,7 +561,7 @@ def run_self_test() -> int:
         write_text(build_path, build_backup)
 
     print("PHASE12_SHARED_REPLAY_CONTRACT_SELF_TEST=pass")
-    print("PHASE12_SHARED_REPLAY_CONTRACT_SELF_TEST_CASE_COUNT=15")
+    print("PHASE12_SHARED_REPLAY_CONTRACT_SELF_TEST_CASE_COUNT=19")
     return 0
 
 
