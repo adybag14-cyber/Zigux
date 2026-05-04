@@ -51,6 +51,14 @@ test "phase 7 argv_split survey manifest records the parked runtime leaf surface
     const parsed = try std.json.parseFromSlice(Manifest, std.testing.allocator, manifest_json, .{});
     defer parsed.deinit();
 
+    const docs_readme = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "Documentation/zigux/README.md",
+        std.testing.allocator,
+        .limited(128 * 1024),
+    );
+    defer std.testing.allocator.free(docs_readme);
+
     const argv_split_helper = try std.Io.Dir.cwd().readFileAlloc(
         io_instance.io(),
         "lib/argv_split.zig",
@@ -209,6 +217,10 @@ test "phase 7 argv_split survey manifest records the parked runtime leaf surface
     try std.testing.expect(saw_shared_fixtures);
     try std.testing.expect(saw_packet_checker);
     try std.testing.expect(saw_survey_gate);
+    try expectContains(docs_readme, "`python3 scripts/zigux/check-phase7-argv-split-packet.py --self-test`");
+    try expectContains(docs_readme, "`python3 scripts/zigux/check-phase7-argv-split-packet.py`");
+    try expectContains(docs_readme, "`python3 scripts/zigux/check-phase7-argv-split-parity.py --self-test`");
+    try expectContains(docs_readme, "`python3 scripts/zigux/check-phase7-argv-split-parity.py`");
     try std.testing.expect(std.mem.indexOf(u8, argv_split_helper, "pub fn argvFree") != null);
     try std.testing.expect(std.mem.indexOf(u8, argv_split_helper, "leading_nul_expected") != null);
     try expectContains(argv_split_helper, "const empty_argv_null_terminated: []const ?[*:0]const u8 = &.{null};");
