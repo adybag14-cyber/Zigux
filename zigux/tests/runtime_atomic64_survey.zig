@@ -111,8 +111,8 @@ test "phase 9 runtime atomic64 survey manifest records the landed diff gate and 
     try std.testing.expect(manifest.survey_summary.preexisting_phase9_doc_present);
     try std.testing.expect(manifest.review_prompts.len >= 6);
     try std.testing.expectEqual(@as(usize, 14), manifest.exact_checks.len);
-    try std.testing.expectEqual(@as(usize, 11), manifest.delivery_evidence_catalog.len);
-    try std.testing.expectEqual(@as(usize, 11), manifest.ownership_map.len);
+    try std.testing.expectEqual(@as(usize, 12), manifest.delivery_evidence_catalog.len);
+    try std.testing.expectEqual(@as(usize, 12), manifest.ownership_map.len);
     try std.testing.expect(manifest.gaps.len >= 7);
     try std.testing.expectEqual(@as(usize, 6), manifest.non_goals.len);
 
