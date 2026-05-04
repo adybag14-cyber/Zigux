@@ -125,6 +125,7 @@ GATE_EVIDENCE_TARGETS = {
 }
 
 ADDITIONAL_GATE_EVIDENCE_MARKERS = [
+    "PHASE4_GATE_EVIDENCE_CHECKER_BLOB_SHA=",
     "PHASE4_WORKFLOW_ROUTE_CHECKER_BLOB_SHA=",
 ]
 
@@ -267,12 +268,16 @@ def write_fixture_tree(root: Path) -> None:
         target.parent.mkdir(parents=True, exist_ok=True)
         target.write_text(content, encoding="utf-8")
 
+    gate_evidence_checker_sha = blob_sha(
+        (root / "scripts/zigux/check-phase4-gate-evidence.py").read_bytes()
+    )
     workflow_route_checker_sha = blob_sha(
         (root / "scripts/zigux/check-phase4-workflow-route-counts.py").read_bytes()
     )
     evidence = [
         "PHASE4_EVIDENCE_MODE=github_connector_readback",
         "PHASE4_EVIDENCE_SCOPE=rollback_ownership_and_lab_matrix_current_gate_definitions",
+        f"PHASE4_GATE_EVIDENCE_CHECKER_BLOB_SHA={gate_evidence_checker_sha}",
         f"PHASE4_WORKFLOW_ROUTE_CHECKER_BLOB_SHA={workflow_route_checker_sha}",
         "shared validator now fails closed on the kprobe survey packet itself",
         "make -C zigux phase4-runtime-atomic64-diff",
@@ -352,6 +357,19 @@ def run_self_test() -> int:
             "gate_evidence_atomic64:runtime_atomic64_diff.zig` remains the single replay body"
             in missing
         ), missing
+
+        write_fixture_tree(root)
+        gate_evidence = root / "Documentation/zigux/phase4-gate-evidence.md"
+        gate_evidence.write_text(
+            gate_evidence.read_text(encoding="utf-8").replace(
+                "PHASE4_GATE_EVIDENCE_CHECKER_BLOB_SHA=",
+                "PHASE4_GATE_EVIDENCE_CHECKER_BLOB_MISSING=",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        missing = validate_root(root)
+        assert "gate_evidence:PHASE4_GATE_EVIDENCE_CHECKER_BLOB_SHA=" in missing, missing
 
         write_fixture_tree(root)
         gate_evidence = root / "Documentation/zigux/phase4-gate-evidence.md"
