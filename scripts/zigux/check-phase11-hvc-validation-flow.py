@@ -14,6 +14,8 @@ CHECKER_PATH = "scripts/zigux/check-phase11-hvc-cleanup-alignment.py"
 SHARED_REPLAY_CONTRACT_CHECKER_PATH = "scripts/zigux/check-phase11-shared-replay-contract.py"
 HEADER_BOUNDARY_PACKET_CHECKER_PATH = "scripts/zigux/check-phase11-header-boundary-packet.py"
 VALIDATOR_PATH = "scripts/zigux/validate-phase11.py"
+SCRIPTS_README_PATH = "scripts/zigux/README.md"
+DOCS_README_PATH = "Documentation/zigux/README.md"
 MAKEFILE_PATH = "zigux/Makefile"
 WORKFLOW_PATH = ".github/workflows/zigux-bootstrap.yml"
 
@@ -70,6 +72,17 @@ WORKFLOW_MARKERS = [
     "make -C zigux phase11-validate",
 ]
 
+SCRIPTS_README_MARKERS = [
+    "check-phase11-header-boundary-packet.py --self-test",
+    "check-phase11-header-boundary-packet.py",
+    "paired UAPI header parity packet",
+]
+
+DOCS_README_MARKERS = [
+    "python3 scripts/zigux/check-phase11-header-boundary-packet.py",
+    "paired UAPI header parity packet explicit as the pre-replay Phase 11 delivery gate behind `make -C zigux phase11-validate`",
+]
+
 
 def read_text(root: Path, rel_path: str) -> str:
     return (root / rel_path).read_text(encoding="utf-8")
@@ -86,6 +99,8 @@ def validate(root: Path) -> list[str]:
         SHARED_REPLAY_CONTRACT_CHECKER_PATH,
         HEADER_BOUNDARY_PACKET_CHECKER_PATH,
         VALIDATOR_PATH,
+        SCRIPTS_README_PATH,
+        DOCS_README_PATH,
         MAKEFILE_PATH,
         WORKFLOW_PATH,
     ]:
@@ -94,8 +109,18 @@ def validate(root: Path) -> list[str]:
     if missing:
         return missing
 
+    scripts_readme = read_text(root, SCRIPTS_README_PATH)
+    docs_readme = read_text(root, DOCS_README_PATH)
     makefile = read_text(root, MAKEFILE_PATH)
     workflow = read_text(root, WORKFLOW_PATH)
+
+    for marker in SCRIPTS_README_MARKERS:
+        if marker not in scripts_readme:
+            missing.append(f"scripts_readme:{marker}")
+
+    for marker in DOCS_README_MARKERS:
+        if marker not in docs_readme:
+            missing.append(f"docs_readme:{marker}")
 
     for marker in MAKEFILE_MARKERS:
         if marker not in makefile:
@@ -166,7 +191,41 @@ def clone_fixture_root(destination_root: Path) -> None:
 
     validator_target = destination_root / VALIDATOR_PATH
     validator_target.parent.mkdir(parents=True, exist_ok=True)
+    validator_target.writeText if False else None
     validator_target.write_text("#!/usr/bin/env python3\nprint('placeholder')\n", encoding="utf-8")
+
+    scripts_readme_target = destination_root / SCRIPTS_README_PATH
+    scripts_readme_target.parent.mkdir(parents=True, exist_ok=True)
+    scripts_readme_target.write_text(
+        "\n".join(
+            [
+                "# scripts/zigux",
+                "",
+                "Phase 11 flow",
+                "- check-phase11-header-boundary-packet.py --self-test",
+                "- check-phase11-header-boundary-packet.py",
+                "- paired UAPI header parity packet",
+                "",
+            ]
+        ),
+        encoding="utf-8",
+    )
+
+    docs_readme_target = destination_root / DOCS_README_PATH
+    docs_readme_target.parent.mkdir(parents=True, exist_ok=True)
+    docs_readme_target.write_text(
+        "\n".join(
+            [
+                "# Zigux Documentation",
+                "",
+                "Phase 11 notes",
+                "- python3 scripts/zigux/check-phase11-header-boundary-packet.py",
+                "- paired UAPI header parity packet explicit as the pre-replay Phase 11 delivery gate behind `make -C zigux phase11-validate`",
+                "",
+            ]
+        ),
+        encoding="utf-8",
+    )
 
     makefile_target = destination_root / MAKEFILE_PATH
     makefile_target.parent.mkdir(parents=True, exist_ok=True)
@@ -238,6 +297,40 @@ def run_self_test() -> int:
                 "phase11-hvc-flow-self-test:baseline_failed:"
                 f"{baseline.stdout.strip() or baseline.stderr.strip() or 'no_output'}"
             )
+
+        scripts_readme_path = tmp_root / SCRIPTS_README_PATH
+        original_scripts_readme = scripts_readme_path.read_text(encoding="utf-8")
+        scripts_readme_path.write_text(
+            original_scripts_readme.replace(
+                "check-phase11-header-boundary-packet.py --self-test",
+                "check-phase11-shared-replay-contract.py --self-test",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing(
+            "scripts_readme_header_boundary_self_test_marker",
+            tmp_root,
+            "scripts_readme:check-phase11-header-boundary-packet.py --self-test",
+        )
+        scripts_readme_path.write_text(original_scripts_readme, encoding="utf-8")
+
+        docs_readme_path = tmp_root / DOCS_README_PATH
+        original_docs_readme = docs_readme_path.read_text(encoding="utf-8")
+        docs_readme_path.write_text(
+            original_docs_readme.replace(
+                "paired UAPI header parity packet explicit as the pre-replay Phase 11 delivery gate behind `make -C zigux phase11-validate`",
+                "shared Phase 11 pre-replay packet",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing(
+            "docs_readme_header_boundary_review_path_marker",
+            tmp_root,
+            "docs_readme:paired UAPI header parity packet explicit as the pre-replay Phase 11 delivery gate behind `make -C zigux phase11-validate`",
+        )
+        docs_readme_path.write_text(original_docs_readme, encoding="utf-8")
 
         makefile_path = tmp_root / MAKEFILE_PATH
         original_makefile = makefile_path.read_text(encoding="utf-8")
@@ -544,7 +637,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE11_HVC_VALIDATION_FLOW_SELF_TEST=pass")
-    print("PHASE11_HVC_VALIDATION_FLOW_SELF_TEST_CASE_COUNT=19")
+    print("PHASE11_HVC_VALIDATION_FLOW_SELF_TEST_CASE_COUNT=21")
     return 0
 
 
