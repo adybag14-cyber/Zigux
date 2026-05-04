@@ -324,8 +324,7 @@ def run_self_test() -> int:
         missing = validate_root(root)
         assert "docs_readme_atomic64:make -C zigux phase4-runtime-atomic64-diff" in missing, missing
 
-        write_fixtureTree = write_fixture_tree
-        write_fixtureTree(root)
+        write_fixture_tree(root)
         matrix = root / "Documentation/zigux/phase4-validation-matrix.md"
         matrix.write_text(
             matrix.read_text(encoding="utf-8").replace(
