@@ -30,6 +30,10 @@ SURVEY_EXACT_LINE_COUNTS = {
     "- `make -C zigux phase14 ZIG=<attached-zig-path>`": 1,
 }
 
+SCRIPTS_README_EXACT_LINE_COUNTS = {
+    "- `make -C zigux phase14-validate`, `make -C zigux phase14-smoke`, `zig build phase14-smoke --build-file zigux/tests/phase14_build.zig --summary all`, `zig build test --build-file zigux/tests/phase14_build.zig --summary all`, and `make -C zigux phase14` are the validator-first, focused wrapper, direct focused shard, shared full-bundle, and convenience entrypoints for the current study-only four-anchor packet, while the anchor-local manifests and survey notes keep the ready-next versus blocked posture explicit without widening into new bridge or deep-core claims.": 1,
+}
+
 RELEASE_BOUNDARY_LINES = [
     "PHASE14_RELEASE_BOUNDARY=present",
     "PHASE14_SHARED_REPLAY_PRESENT=yes",
@@ -85,11 +89,13 @@ def require_exact_lines(label: str, text: str, counts: dict[str, int]) -> list[s
 
 def validate_phase14_summary_surfaces(
     docs_root_text: str,
+    scripts_readme_text: str,
     survey_text: str,
     release_boundary_text: str,
     makefile_text: str,
 ) -> list[str]:
     issues = require_exact_count("docs_root", docs_root_text, DOCS_ROOT_LINES)
+    issues.extend(require_exact_lines("scripts_readme", scripts_readme_text, SCRIPTS_README_EXACT_LINE_COUNTS))
     issues.extend(require_exact_lines("survey", survey_text, SURVEY_EXACT_LINE_COUNTS))
     issues.extend(require_exact_count("release_boundary", release_boundary_text, RELEASE_BOUNDARY_LINES))
     issues.extend(require_exact_lines("makefile", makefile_text, MAKEFILE_EXACT_LINE_COUNTS))
@@ -104,6 +110,11 @@ Phase 14 notes
 - `Documentation/zigux/phase14-release-boundary-survey.md` and `Documentation/zigux/phase14-end-to-end-smoke-survey.md` now make the roadmap's core-adjacent sequencing step explicit from the docs root, so release-facing review no longer jumps directly from the active Phase 13 helper tranche to the Phase 15 governance packet.
 - the current Phase 14 release reading is intentionally boundary-only: `kernel/workqueue.c` and `kernel/trace/ring_buffer.c` stay in study-only posture, while `kernel/rcu/tree.c` and `net/core/skbuff.c` remain blocked under the Phase 15 freeze-in-C governance packet rather than being treated as an active release lane.
 - `zigux/tests/phase14_end_to_end_smoke_manifest.json`, `scripts/zigux/check-phase14-docs-root-smoke-summary.py`, `scripts/zigux/check-phase14-release-boundary-exact-counts.py`, `scripts/zigux/validate-phase14.py`, `make -C zigux phase14-validate`, `make -C zigux phase14-smoke`, `zig build phase14-smoke --build-file zigux/tests/phase14_build.zig --summary all`, `make -C zigux phase14`, and `zigux/tests/phase14_build.zig` now provide one validator-backed shared smoke gate for that study-only four-anchor packet; it stays a reviewability lane rather than a closure or active subsystem delivery claim.
+""".strip()
+
+    scripts_readme_text = """
+Phase 14 flow
+- `make -C zigux phase14-validate`, `make -C zigux phase14-smoke`, `zig build phase14-smoke --build-file zigux/tests/phase14_build.zig --summary all`, `zig build test --build-file zigux/tests/phase14_build.zig --summary all`, and `make -C zigux phase14` are the validator-first, focused wrapper, direct focused shard, shared full-bundle, and convenience entrypoints for the current study-only four-anchor packet, while the anchor-local manifests and survey notes keep the ready-next versus blocked posture explicit without widening into new bridge or deep-core claims.
 """.strip()
 
     survey_text = """
@@ -153,14 +164,19 @@ phase14: phase14-validate phase14-test
 """.strip()
 
     good = validate_phase14_summary_surfaces(
-        docs_root_text, survey_text, release_boundary_text, makefile_text
+        docs_root_text,
+        scripts_readme_text,
+        survey_text,
+        release_boundary_text,
+        makefile_text,
     )
     bad = validate_phase14_summary_surfaces(
         docs_root_text,
-        survey_text,
-        release_boundary_text.replace(
-            "`scripts/zigux/check-phase14-release-boundary-exact-counts.py`, ", "", 1
+        scripts_readme_text.replace(
+            "`zig build phase14-smoke --build-file zigux/tests/phase14_build.zig --summary all`, ", "", 1
         ),
+        survey_text,
+        release_boundary_text,
         makefile_text,
     )
     if good or not bad:
@@ -177,11 +193,12 @@ def main(argv: list[str]) -> int:
         return run_self_test()
 
     docs_root_path = ROOT / "Documentation/zigux/README.md"
+    scripts_readme_path = ROOT / "scripts/zigux/README.md"
     survey_path = ROOT / "Documentation/zigux/phase14-end-to-end-smoke-survey.md"
     release_boundary_path = ROOT / "Documentation/zigux/phase14-release-boundary-survey.md"
     makefile_path = ROOT / "zigux/Makefile"
 
-    required_paths = [docs_root_path, survey_path, release_boundary_path, makefile_path]
+    required_paths = [docs_root_path, scripts_readme_path, survey_path, release_boundary_path, makefile_path]
     missing_files = [str(path) for path in required_paths if not path.exists()]
     if missing_files:
         print("PHASE14_DOCS_ROOT_SMOKE_SUMMARY=fail")
@@ -193,6 +210,7 @@ def main(argv: list[str]) -> int:
 
     issues = validate_phase14_summary_surfaces(
         read(docs_root_path),
+        read(scripts_readme_path),
         read(survey_path),
         read(release_boundary_path),
         read(makefile_path),
@@ -207,6 +225,7 @@ def main(argv: list[str]) -> int:
 
     print("PHASE14_DOCS_ROOT_SMOKE_SUMMARY=pass")
     print(f"PHASE14_DOCS_ROOT_MARKER_COUNT={len(DOCS_ROOT_LINES)}")
+    print(f"PHASE14_SCRIPTS_README_MARKER_COUNT={len(SCRIPTS_README_EXACT_LINE_COUNTS)}")
     print(f"PHASE14_SURVEY_MARKER_COUNT={len(SURVEY_EXACT_LINE_COUNTS) + 1}")
     print(f"PHASE14_RELEASE_BOUNDARY_MARKER_COUNT={len(RELEASE_BOUNDARY_LINES)}")
     print(f"PHASE14_MAKEFILE_MARKER_COUNT={len(MAKEFILE_EXACT_LINE_COUNTS)}")
