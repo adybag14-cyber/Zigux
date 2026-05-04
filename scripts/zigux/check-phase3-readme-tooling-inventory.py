@@ -528,6 +528,46 @@ def run_self_test() -> int:
         _write(
             root / MAKEFILE_REL,
             _fixture_makefile().replace(
+                '\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase7-argv-split-parity.py --self-test\n',
+                '\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase7-argv-split-parity.py --self-test\n'
+                '\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase7-argv-split-parity.py --self-test\n',
+                1,
+            ),
+        )
+        issues = validate(root)
+        expected = [
+            "unexpected_makefile_self_test_route_count:phase7-validate::2:check-phase7-argv-split-parity.py"
+        ]
+        if issues != expected:
+            raise SystemExit(
+                "phase3-readme-tooling-inventory-self-test:duplicate_phase7_self_test_route_guard_failed:"
+                + (",".join(issues) if issues else "none")
+            )
+        _write(root / MAKEFILE_REL, _fixture_makefile())
+
+        _write(
+            root / MAKEFILE_REL,
+            _fixture_makefile().replace(
+                '\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase7-argv-split-parity.py\n',
+                '\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase7-argv-split-parity.py\n'
+                '\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase7-argv-split-parity.py\n',
+                1,
+            ),
+        )
+        issues = validate(root)
+        expected = [
+            "unexpected_makefile_live_route_count:phase7-validate::2:check-phase7-argv-split-parity.py"
+        ]
+        if issues != expected:
+            raise SystemExit(
+                "phase3-readme-tooling-inventory-self-test:duplicate_phase7_makefile_route_guard_failed:"
+                + (",".join(issues) if issues else "none")
+            )
+        _write(root / MAKEFILE_REL, _fixture_makefile())
+
+        _write(
+            root / MAKEFILE_REL,
+            _fixture_makefile().replace(
                 '\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase11-shared-replay-contract.py\n',
                 '\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase11-shared-replay-contract.py\n'
                 '\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase11-shared-replay-contract.py\n',
@@ -943,7 +983,7 @@ def run_self_test() -> int:
             )
 
     print("PHASE3_README_TOOLING_INVENTORY_SELF_TEST=pass")
-    print("PHASE3_README_TOOLING_INVENTORY_SELF_TEST_CASE_COUNT=21")
+    print("PHASE3_README_TOOLING_INVENTORY_SELF_TEST_CASE_COUNT=23")
     return 0
 
 
