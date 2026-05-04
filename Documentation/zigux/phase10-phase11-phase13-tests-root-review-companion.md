@@ -34,6 +34,7 @@ Tests-root reviewer prompt:
 ## Phase 11 tests-root packet
 
 Keep the shared-versus-dedicated replay boundary explicit:
+- `Documentation/zigux/phase11-shared-replay-contract.md`
 - `zigux/tests/README.md`
 - `zigux/tests/phase11_build.zig`
 - `zigux/tests/fixtures/phase11_build_inventory.json`
@@ -53,7 +54,7 @@ Keep the shared-versus-dedicated replay boundary explicit:
 - `scripts/zigux/validate-phase11.py`
 
 Tests-root reviewer prompts:
-- Do the pre-replay Phase 11 checkers still describe the same delivery contract that `zigux/tests/README.md`, `zigux/tests/phase11_build.zig`, `zigux/tests/fixtures/phase11_build_inventory.json`, `zigux/tests/phase11_uapi_header_parity_manifest.json`, and `Documentation/zigux/review-checklist.md` claim?
+- Do the pre-replay Phase 11 checkers still describe the same delivery contract that `Documentation/zigux/phase11-shared-replay-contract.md`, `zigux/tests/README.md`, `zigux/tests/phase11_build.zig`, `zigux/tests/fixtures/phase11_build_inventory.json`, `zigux/tests/phase11_uapi_header_parity_manifest.json`, and `Documentation/zigux/review-checklist.md` claim?
 - Does `zigux/tests/phase11_hvc_console_survey.zig` still stay separate as the dedicated archival replay while the shared starter packet remains under `zigux/tests/phase11_build.zig`, explicitly includes `zigux/tests/phase11_dw_wdt_suspend_resume.zig`, `zigux/tests/phase11_dw_wdt_remove_idle_split.zig`, `zigux/tests/phase11_hvc_console_modem_control_split.zig`, and `zigux/tests/phase11_hvc_console_poll_retry_split.zig`, and keeps the shared header-boundary packet explicit through `scripts/zigux/check-phase11-header-boundary-packet.py`?
 
 ## Phase 13 tests-root packet
