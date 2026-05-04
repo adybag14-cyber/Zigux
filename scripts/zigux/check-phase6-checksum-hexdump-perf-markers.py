@@ -9,11 +9,12 @@ import tempfile
 
 SCRIPT_PATH = Path(__file__).resolve()
 ROOT = SCRIPT_PATH.parents[2] if len(SCRIPT_PATH.parents) > 2 else SCRIPT_PATH.parent
-SELF_TEST_CASE_COUNT = 9
+SELF_TEST_CASE_COUNT = 11
 
 CHECKSUM_PERF_PATH = "zigux/tests/phase6_checksum_perf.zig"
 HEXDUMP_PERF_PATH = "zigux/tests/phase6_hexdump_perf.zig"
 PERF_SURVEY_PATH = "Documentation/zigux/phase6-perf-gate-survey.md"
+CATALOG_PATH = "Documentation/zigux/phase6-helper-parity-catalog.md"
 MAKEFILE_PATH = "zigux/Makefile"
 MANIFEST_PATH = "zigux/tests/phase6_helper_parity_manifest.json"
 
@@ -33,6 +34,10 @@ HEXDUMP_PERF_MARKERS = [
 
 PERF_SURVEY_MARKERS = [
     "`python3 scripts/zigux/check-phase6-checksum-hexdump-perf-markers.py --self-test` and `python3 scripts/zigux/check-phase6-checksum-hexdump-perf-markers.py` now keep the shipped checksum and hexdump perf-marker packet fail-closed around the per-call, per-byte, slowdown, folded-checksum, required-length, and reference-path reporting markers before broader Phase 6 replay claims stay green",
+]
+
+CATALOG_MARKERS = [
+    "`python3 scripts/zigux/check-phase6-checksum-hexdump-perf-markers.py --self-test` and `python3 scripts/zigux/check-phase6-checksum-hexdump-perf-markers.py` keep the shipped checksum and hexdump perf-marker packet fail-closed around the per-call, per-byte, slowdown, folded-checksum, required-length, and reference-path reporting markers before broader Phase 6 replay claims stay green.",
 ]
 
 MAKEFILE_MARKERS = [
@@ -61,6 +66,7 @@ def validate(root: Path) -> dict[str, object]:
     checksum_path = root / CHECKSUM_PERF_PATH
     hexdump_path = root / HEXDUMP_PERF_PATH
     perf_survey_path = root / PERF_SURVEY_PATH
+    catalog_path = root / CATALOG_PATH
     makefile_path = root / MAKEFILE_PATH
     manifest_path = root / MANIFEST_PATH
 
@@ -81,6 +87,12 @@ def validate(root: Path) -> dict[str, object]:
     else:
         for marker in missing_markers(text(root, PERF_SURVEY_PATH), PERF_SURVEY_MARKERS):
             missing.append(f"perf_survey:missing:{marker}")
+
+    if not catalog_path.exists():
+        missing_files.append(CATALOG_PATH)
+    else:
+        for marker in missing_markers(text(root, CATALOG_PATH), CATALOG_MARKERS):
+            missing.append(f"catalog:missing:{marker}")
 
     if not makefile_path.exists():
         missing_files.append(MAKEFILE_PATH)
@@ -131,6 +143,7 @@ def build_self_test_tree(root: Path) -> None:
     write(root, CHECKSUM_PERF_PATH, "\n".join(CHECKSUM_PERF_MARKERS) + "\n")
     write(root, HEXDUMP_PERF_PATH, "\n".join(HEXDUMP_PERF_MARKERS) + "\n")
     write(root, PERF_SURVEY_PATH, "\n".join(PERF_SURVEY_MARKERS) + "\n")
+    write(root, CATALOG_PATH, "\n".join(CATALOG_MARKERS) + "\n")
     write(root, MAKEFILE_PATH, "\n".join(MAKEFILE_MARKERS) + "\n")
     write(root, MANIFEST_PATH, "\n".join(MANIFEST_MARKERS) + "\n")
 
@@ -172,32 +185,61 @@ def run_self_test() -> int:
             count += 1
 
             build_self_test_tree(root)
+            (root / CATALOG_PATH).unlink()
+            expect_missing_file(validate(root), CATALOG_PATH)
+            count += 1
+
+            build_self_test_tree(root)
             checksum_path = root / CHECKSUM_PERF_PATH
-            checksum_path.write_text(checksum_path.read_text(encoding="utf-8").replace(CHECKSUM_PERF_MARKERS[1], "", 1), encoding="utf-8")
+            checksum_path.write_text(
+                checksum_path.read_text(encoding="utf-8").replace(CHECKSUM_PERF_MARKERS[1], "", 1),
+                encoding="utf-8",
+            )
             expect_contains(validate(root), f"checksum_perf:missing:{CHECKSUM_PERF_MARKERS[1]}")
             count += 1
 
             build_self_test_tree(root)
             hexdump_path = root / HEXDUMP_PERF_PATH
-            hexdump_path.write_text(hexdump_path.read_text(encoding="utf-8").replace(HEXDUMP_PERF_MARKERS[1], "", 1), encoding="utf-8")
+            hexdump_path.write_text(
+                hexdump_path.read_text(encoding="utf-8").replace(HEXDUMP_PERF_MARKERS[1], "", 1),
+                encoding="utf-8",
+            )
             expect_contains(validate(root), f"hexdump_perf:missing:{HEXDUMP_PERF_MARKERS[1]}")
             count += 1
 
             build_self_test_tree(root)
             survey_path = root / PERF_SURVEY_PATH
-            survey_path.write_text(survey_path.read_text(encoding="utf-8").replace(PERF_SURVEY_MARKERS[0], "", 1), encoding="utf-8")
+            survey_path.write_text(
+                survey_path.read_text(encoding="utf-8").replace(PERF_SURVEY_MARKERS[0], "", 1),
+                encoding="utf-8",
+            )
             expect_contains(validate(root), f"perf_survey:missing:{PERF_SURVEY_MARKERS[0]}")
             count += 1
 
             build_self_test_tree(root)
+            catalog_path = root / CATALOG_PATH
+            catalog_path.write_text(
+                catalog_path.read_text(encoding="utf-8").replace(CATALOG_MARKERS[0], "", 1),
+                encoding="utf-8",
+            )
+            expect_contains(validate(root), f"catalog:missing:{CATALOG_MARKERS[0]}")
+            count += 1
+
+            build_self_test_tree(root)
             makefile_path = root / MAKEFILE_PATH
-            makefile_path.write_text(makefile_path.read_text(encoding="utf-8").replace(MAKEFILE_MARKERS[0], "", 1), encoding="utf-8")
+            makefile_path.write_text(
+                makefile_path.read_text(encoding="utf-8").replace(MAKEFILE_MARKERS[0], "", 1),
+                encoding="utf-8",
+            )
             expect_contains(validate(root), f"makefile:missing:{MAKEFILE_MARKERS[0]}")
             count += 1
 
             build_self_test_tree(root)
             manifest_path = root / MANIFEST_PATH
-            manifest_path.write_text(manifest_path.read_text(encoding="utf-8").replace(MANIFEST_MARKERS[0], "", 1), encoding="utf-8")
+            manifest_path.write_text(
+                manifest_path.read_text(encoding="utf-8").replace(MANIFEST_MARKERS[0], "", 1),
+                encoding="utf-8",
+            )
             expect_contains(validate(root), f"manifest:missing:{MANIFEST_MARKERS[0]}")
             count += 1
 
