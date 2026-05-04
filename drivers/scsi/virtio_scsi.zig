@@ -133,6 +133,8 @@ pub const RecoveryRestoreSummary = struct {
     requires_event_rearm: bool,
     preserves_scsi_host_registration: bool,
     reruns_host_scan: bool,
+    find_vqs_before_device_ready: bool,
+    device_ready_before_event_rearm: bool,
 };
 
 pub const ProbeRequest = struct {
@@ -542,6 +544,8 @@ pub const VirtioScsiQueueLab = struct {
             .requires_event_rearm = true,
             .preserves_scsi_host_registration = true,
             .reruns_host_scan = false,
+            .find_vqs_before_device_ready = true,
+            .device_ready_before_event_rearm = true,
         };
     }
 
