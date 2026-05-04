@@ -483,6 +483,14 @@ test "phase 9 runtime atomic64 docs stay aligned with the manifest-backed survey
     );
     defer std.testing.allocator.free(module_slice);
 
+    const module_gate = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "zigux/tests/runtime_atomic64_module.zig",
+        std.testing.allocator,
+        .limited(32 * 1024),
+    );
+    defer std.testing.allocator.free(module_gate);
+
     const required_markers = [_][]const u8{
         "`PHASE9_LANE_KEY=P9-L04`",
         "`Documentation/zigux/freeze-map.md` keeps `kernel/workqueue.c` in `Study / Boundary Only`",
@@ -499,6 +507,20 @@ test "phase 9 runtime atomic64 docs stay aligned with the manifest-backed survey
 
     for (required_markers) |marker| {
         try std.testing.expect(std.mem.indexOf(u8, module_slice, marker) != null);
+    }
+
+    const required_module_gate_markers = [_][]const u8{
+        "const cold_summary = module.summary();",
+        "const initialized_summary = module.summary();",
+        "const post_selftest_summary = module.summary();",
+        "const exited_summary = module.summary();",
+        "try std.testing.expectEqual(@as(usize, 1), post_selftest_summary.selftest_runs);",
+        "try std.testing.expectEqual(@as(usize, 1), exited_summary.exit_runs);",
+        "test \"runtime atomic64 sample keeps post-selftest mutation replay explicit at the module boundary\" {",
+    };
+
+    for (required_module_gate_markers) |marker| {
+        try std.testing.expect(std.mem.indexOf(u8, module_gate, marker) != null);
     }
 
     try expectSurveyedCommitMarker(survey_doc, manifest.surveyed_commit);
