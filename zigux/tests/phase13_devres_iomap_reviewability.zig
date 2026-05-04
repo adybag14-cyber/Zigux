@@ -107,6 +107,41 @@ test "phase13 devres of_iomap planner rejects address-translation misses before 
     }
 }
 
+test "phase13 devres of_iomap planner preserves translated size on request-region denial" {
+    const resources = [_]devres.Resource{
+        .{
+            .start = 0x8800,
+            .end = 0x88ff,
+            .is_memory = true,
+            .nonposted = false,
+            .name = "busy",
+        },
+    };
+
+    const outcome = try devres.DevresHelperLab.planDeviceTreeIomap(std.testing.allocator, .{
+        .device_name = "uart3",
+        .index = 0,
+        .resources = &resources,
+        .report_size = true,
+        .request_region_granted = false,
+    });
+
+    switch (outcome) {
+        .mapped => return error.ExpectedFailure,
+        .err => |failure| {
+            try std.testing.expectEqualStrings("lib/devres.c", failure.anchor);
+            try std.testing.expectEqual(devres.DeviceTreeIomapStage.managed_ioremap_resource, failure.stage);
+            try std.testing.expectEqual(devres.ErrorCode.busy, failure.error_code);
+            try std.testing.expectEqual(@as(usize, 0), failure.index);
+            try std.testing.expectEqual(@as(?u64, 0x100), failure.reported_size);
+            try std.testing.expectEqual(devres.IoremapType.normal, failure.effective_type);
+            try std.testing.expect(failure.requests_region);
+            try std.testing.expect(!failure.releases_region_on_remap_failure);
+            try std.testing.expectEqual(@as(?devres.ErrorStage, .request_region), failure.resource_stage);
+        },
+    }
+}
+
 test "phase13 devres of_iomap planner preserves translated size on downstream remap failure" {
     const resources = [_]devres.Resource{
         .{
