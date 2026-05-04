@@ -258,7 +258,7 @@ pub fn parseIntArray(allocator: std.mem.Allocator, buf: []const u8) ParseIntArra
     }
 
     const count: usize = @intCast(count_buf[0]);
-    const ints = try allocator.alloc(i32, count + 1);
+    const ints = try allocator.alloc(i32, try checkedTrailingNulCapacity(count));
     errdefer allocator.free(ints);
     @memset(ints, 0);
     _ = cmdline.getOptions(input, ints.len, ints);
@@ -267,7 +267,7 @@ pub fn parseIntArray(allocator: std.mem.Allocator, buf: []const u8) ParseIntArra
 
 pub fn parseIntArrayUser(allocator: std.mem.Allocator, from: []const u8, count: usize) ParseIntArrayError![]i32 {
     const copy_len = @min(count, from.len);
-    const buf = try allocator.alloc(u8, copy_len + 1);
+    const buf = try allocator.alloc(u8, try checkedTrailingNulCapacity(copy_len));
     defer allocator.free(buf);
 
     @memcpy(buf[0..copy_len], from[0..copy_len]);
@@ -279,7 +279,7 @@ pub fn kstrdupQuotable(allocator: std.mem.Allocator, src: ?[]const u8) !?[:0]u8 
     const input = src orelse return null;
     const prefix = cStringPrefix(input);
     const escaped_len = stringEscapeMem(prefix, &.{}, ESCAPE_HEX, "\x0c\n\r\t\x0b\x07\x1b\\\"");
-    const dst = try allocator.alloc(u8, escaped_len + 1);
+    const dst = try allocator.alloc(u8, try checkedTrailingNulCapacity(escaped_len));
     errdefer allocator.free(dst);
 
     const actual_len = stringEscapeMem(prefix, dst[0..escaped_len], ESCAPE_HEX, "\x0c\n\r\t\x0b\x07\x1b\\\"");
@@ -291,7 +291,7 @@ pub fn kstrdupQuotable(allocator: std.mem.Allocator, src: ?[]const u8) !?[:0]u8 
 pub fn kstrdupAndReplace(allocator: std.mem.Allocator, src: ?[]const u8, old: u8, new: u8) !?[:0]u8 {
     const input = src orelse return null;
     const prefix = cStringPrefix(input);
-    const dst = try allocator.alloc(u8, prefix.len + 1);
+    const dst = try allocator.alloc(u8, try checkedTrailingNulCapacity(prefix.len));
     errdefer allocator.free(dst);
 
     @memcpy(dst[0..prefix.len], prefix);
@@ -527,13 +527,17 @@ fn copySnprintfStyle(dest: []u8, src: []const u8) usize {
     return src.len;
 }
 
+fn checkedTrailingNulCapacity(base_len: usize) error{Overflow}!usize {
+    return std.math.add(usize, base_len, 1);
+}
+
 fn allocPrintCString(
     allocator: std.mem.Allocator,
     comptime fmt: []const u8,
     args: anytype,
 ) ![:0]u8 {
     const len = std.fmt.count(fmt, args);
-    const rendered = try allocator.alloc(u8, len + 1);
+    const rendered = try allocator.alloc(u8, try checkedTrailingNulCapacity(len));
     errdefer allocator.free(rendered);
     _ = try std.fmt.bufPrint(rendered[0..len], fmt, args);
     rendered[len] = 0;
@@ -821,6 +825,11 @@ test "stringEscapeStr treats zero-sized destinations as length-only requests" {
     const any_np_len = stringEscapeStrAnyNp("A\n\x00tail", &out, 0, null);
     try std.testing.expectEqual(@as(usize, 3), any_np_len);
     try std.testing.expectEqualSlices(u8, &[_]u8{ '?', '?', '?', '?' }, &out);
+}
+
+test "allocation-backed trailing-NUL helpers reject usize overflow before allocation" {
+    try std.testing.expectEqual(@as(usize, 1), try checkedTrailingNulCapacity(0));
+    try std.testing.expectError(error.Overflow, checkedTrailingNulCapacity(std.math.maxInt(usize)));
 }
 
 test "parseIntArray returns a counted Linux-style integer array" {
