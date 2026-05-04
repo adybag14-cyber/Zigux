@@ -151,6 +151,25 @@ Phase 14 flow
     cases = [
         ("happy_path", docs_root_text, survey_text, release_boundary_text, scripts_readme_text, False),
         (
+            "missing_docs_root_smoke_gate",
+            docs_root_text.replace("validator-backed shared smoke gate", "shared smoke gate"),
+            survey_text,
+            release_boundary_text,
+            scripts_readme_text,
+            True,
+        ),
+        (
+            "missing_docs_root_checker_reference",
+            docs_root_text.replace(
+                "`scripts/zigux/check-phase14-docs-root-smoke-summary.py`, ",
+                "",
+            ),
+            survey_text,
+            release_boundary_text,
+            scripts_readme_text,
+            True,
+        ),
+        (
             "missing_second_survey_smoke_line",
             docs_root_text,
             survey_text.replace("\n- make -C zigux phase14-smoke\n- make -C zigux phase14-validate PYTHON=python3 ZIG=<attached-zig-path>", "\n- make -C zigux phase14-validate PYTHON=python3 ZIG=<attached-zig-path>"),
@@ -180,6 +199,52 @@ Phase 14 flow
             survey_text.replace("\n- make -C zigux phase14 ZIG=<attached-zig-path>", ""),
             release_boundary_text,
             scripts_readme_text,
+            True,
+        ),
+        (
+            "missing_release_boundary_marker",
+            docs_root_text,
+            survey_text,
+            release_boundary_text.replace("- PHASE14_RELEASE_BOUNDARY=present\n", ""),
+            scripts_readme_text,
+            True,
+        ),
+        (
+            "missing_release_boundary_combined_entrypoint",
+            docs_root_text,
+            survey_text,
+            release_boundary_text.replace(
+                "- combined shared replay entrypoint: `make -C zigux phase14` remains the published convenience route for the validator-backed smoke packet, so release-facing review and local replay still name the same one-command path as the shared smoke note and manifest instead of leaving that wrapper path implicit in `zigux/Makefile`\n",
+                "",
+            ),
+            scripts_readme_text,
+            True,
+        ),
+        (
+            "missing_scripts_readme_helper",
+            docs_root_text,
+            survey_text,
+            release_boundary_text,
+            scripts_readme_text.replace("- `check-phase14-docs-root-smoke-summary.py`", ""),
+            True,
+        ),
+        (
+            "missing_scripts_readme_release_boundary_line",
+            docs_root_text,
+            survey_text,
+            release_boundary_text,
+            scripts_readme_text.replace(
+                "- `Documentation/zigux/phase14-release-boundary-survey.md`, `Documentation/zigux/phase14-end-to-end-smoke-survey.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/freeze-map.md`, `zigux/tests/phase14_end_to_end_smoke_manifest.json`, and `zigux/tests/phase14_end_to_end_smoke_survey.zig` keep the exact rollback threshold, automatic return-to-blocked trigger list, and ZAR-to-product transfer rationale visible from the docs root rather than relying on run memory.\n",
+                "",
+            ),
+            True,
+        ),
+        (
+            "duplicate_scripts_readme_helper",
+            docs_root_text,
+            survey_text,
+            release_boundary_text,
+            scripts_readme_text + "\n- `check-phase14-docs-root-smoke-summary.py`",
             True,
         ),
         (
