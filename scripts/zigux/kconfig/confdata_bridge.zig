@@ -802,3 +802,49 @@ test "confdata bridge keeps plus-signed and leading-zero decimals as fallback sc
     try std.testing.expectEqual(EntryKind.int, summary.entries[3].kind);
     try std.testing.expectEqualStrings("-9", summary.entries[3].value);
 }
+
+test "confdata bridge emits escaped quoted payloads before trailing suffix bytes" {
+    const Capture = struct {
+        list: std.ArrayList(u8),
+        allocator: std.mem.Allocator,
+
+        fn init(allocator: std.mem.Allocator) !@This() {
+            return .{ .list = try std.ArrayList(u8).initCapacity(allocator, 224), .allocator = allocator };
+        }
+
+        fn deinit(self: *@This()) void {
+            self.list.deinit(self.allocator);
+        }
+
+        fn writeAll(self: *@This(), bytes: []const u8) !void {
+            try self.list.appendSlice(self.allocator, bytes);
+        }
+
+        fn writeByte(self: *@This(), byte: u8) !void {
+            try self.list.append(self.allocator, byte);
+        }
+
+        fn print(self: *@This(), comptime fmt: []const u8, args: anytype) !void {
+            const rendered = try std.fmt.allocPrint(self.allocator, fmt, args);
+            defer self.allocator.free(rendered);
+            try self.list.appendSlice(self.allocator, rendered);
+        }
+    };
+
+    var capture = try Capture.init(std.testing.allocator);
+    defer capture.deinit();
+
+    try runConfdataBridge(
+        std.testing.allocator,
+        "CONFIG_BANNER=\"zigux \\\"bridge\\\"\"suffix_noise\n" ++
+            "CONFIG_PATH=\"drivers\\\\zigux\"tail\n",
+        &capture,
+    );
+
+    try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"set\":2") != null);
+    try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"unset\":0") != null);
+    try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "{\"name\":\"CONFIG_BANNER\",\"kind\":\"string\",\"value\":\"zigux \\\"bridge\\\"\"}") != null);
+    try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "{\"name\":\"CONFIG_PATH\",\"kind\":\"string\",\"value\":\"drivers\\\\zigux\"}") != null);
+    try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "suffix_noise") == null);
+    try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "tail") == null);
+}
