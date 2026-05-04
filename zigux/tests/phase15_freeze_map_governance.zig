@@ -137,6 +137,9 @@ test "phase 15 freeze-map governance manifest records the active lane and blocke
         if (std.mem.eql(u8, gap.id, "phase15-freeze-map-governance-note")) {
             saw_note = true;
             try std.testing.expectEqualStrings("Documentation/zigux/phase15-freeze-map-governance.md", gap.zigux_destination);
+            try std.testing.expect(hasSubstring(gap.why_now, "reviewed-head provenance boundary"));
+            try std.testing.expect(hasSubstring(gap.why_now, "current-`master` enforcement claim"));
+            try std.testing.expect(!hasSubstring(gap.why_now, "latest visible current-head survey"));
         }
         if (std.mem.eql(u8, gap.id, "phase15-roadmap-vs-repo-reality-survey")) {
             saw_roadmap_vs_repo_reality = true;
@@ -161,7 +164,7 @@ test "phase 15 freeze-map governance manifest records the active lane and blocke
     try std.testing.expect(saw_rollback_threshold_requirement);
 }
 
-test "phase 15 freeze-map governance note keeps the active lane, current head, ownership inventory, rollback threshold, and unchanged blocker posture explicit" {
+test "phase 15 freeze-map governance note keeps the active lane, reviewed head boundary, ownership inventory, rollback threshold, and unchanged blocker posture explicit" {
     var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
     defer io_instance.deinit();
 
@@ -175,6 +178,11 @@ test "phase 15 freeze-map governance note keeps the active lane, current head, o
 
     try std.testing.expect(hasSubstring(note, "PHASE15_LANE_KEY=P15-L04"));
     try std.testing.expect(hasSubstring(note, "5bf6598fadf90e6ab59b1d402fa5decc1c1c6b05"));
+    try std.testing.expect(hasSubstring(note, "survey provenance last refreshed against reviewed `master` head"));
+    try std.testing.expect(hasSubstring(note, "before this note should make a new current-`master` claim"));
+    try std.testing.expect(!hasSubstring(note, "survey provenance refreshed against latest visible `master` head"));
+    try std.testing.expect(!hasSubstring(note, "The roadmap and the live repo still agree on the Phase 15 deep-core freeze set."));
+    try std.testing.expect(!hasSubstring(note, "Current repo reality also still supports the same blocker posture rather than a status-change-ready one:"));
     try std.testing.expect(hasSubstring(note, "## Current blocker ownership"));
     try std.testing.expect(hasSubstring(note, "Architecture Council + PMO / Release Management"));
     try std.testing.expect(hasSubstring(note, "Architecture Council + Validation and Perf Team"));
