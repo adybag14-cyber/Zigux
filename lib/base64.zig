@@ -41,6 +41,10 @@ pub fn chars(nbytes: usize, padding: bool) usize {
     };
 }
 
+pub fn charsPadded(nbytes: usize) usize {
+    return chars(nbytes, true);
+}
+
 pub fn bytes(src: []const u8, padding: bool, variant: Variant) DecodeError!usize {
     return decodedLength(src, padding, variant);
 }
@@ -454,6 +458,14 @@ test "chars matches padded and unpadded output sizes" {
     try std.testing.expectEqual(@as(usize, 3), chars(2, false));
     try std.testing.expectEqual(@as(usize, 4), chars(3, false));
     try std.testing.expectEqual(@as(usize, 6), chars(4, false));
+}
+
+test "charsPadded mirrors the Linux BASE64_CHARS contract" {
+    const cases = [_]usize{ 0, 1, 2, 3, 4, 5, 31, 32, 33 };
+
+    inline for (cases) |nbytes| {
+        try std.testing.expectEqual(chars(nbytes, true), charsPadded(nbytes));
+    }
 }
 
 test "bytes reports decoded output sizes and rejects malformed input" {
