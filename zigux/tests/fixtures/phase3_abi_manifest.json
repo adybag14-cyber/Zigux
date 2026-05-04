@@ -41,11 +41,8 @@
     "scripts/zigux/check-phase3-readme-tooling-inventory.py",
     "scripts/zigux/check-phase3-tooling-packet.py",
     "scripts/zigux/check-phase3-validation-flow.py",
-    "scripts/zigux/generate-phase3-check-wrappers.py",
     "scripts/zigux/run-phase3-checks.py",
-    "scripts/zigux/phase3_catalog.py",
     "scripts/zigux/phase3_check_lib.py",
-    "scripts/zigux/validate-phase3.py",
     "Documentation/zigux/phase3-abi-slice.md",
     "Documentation/zigux/phase3-roadmap-gap-survey.md",
     "Documentation/zigux/phase3-rbtree-interop-survey.md",
@@ -61,5 +58,5 @@
     "scripts/zigux/validate_phase3_core.py",
     "scripts/zigux/validate_phase3_selftest.py"
   ],
-  "file_count": 57
+  "file_count": 54
 }
