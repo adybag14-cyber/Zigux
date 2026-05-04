@@ -178,6 +178,7 @@ test "phase11 gpio_wdt survey manifest records the refreshed starter state, modu
     var blocked_count: usize = 0;
     var saw_driver_gap = false;
     var saw_build_gate = false;
+    var saw_survey_gate = false;
     var saw_doc_gate = false;
     var saw_test_gate = false;
     var saw_slice_note = false;
@@ -206,6 +207,15 @@ test "phase11 gpio_wdt survey manifest records the refreshed starter state, modu
             saw_build_gate = true;
             try std.testing.expectEqualStrings("zigux/tests/phase11_build.zig", gap.zigux_destination);
             try std.testing.expectEqualStrings("starter_landed", gap.status);
+        }
+
+        if (std.mem.eql(u8, gap.id, "phase11-gpio-wdt-survey-gate")) {
+            saw_survey_gate = true;
+            try std.testing.expectEqualStrings("zigux/tests/phase11_gpio_wdt_survey.zig", gap.zigux_destination);
+            try std.testing.expectEqualStrings("starter_landed", gap.status);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "freshness check") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "landed gpio_wdt starter") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "overclaim broader watchdog progress") != null);
         }
 
         if (std.mem.eql(u8, gap.id, "phase11-gpio-wdt-survey-note")) {
@@ -327,6 +337,7 @@ test "phase11 gpio_wdt survey manifest records the refreshed starter state, modu
     try std.testing.expectEqual(@as(usize, 14), starter_landed_count);
     try std.testing.expectEqual(@as(usize, 1), blocked_count);
     try std.testing.expect(saw_build_gate);
+    try std.testing.expect(saw_survey_gate);
     try std.testing.expect(saw_doc_gate);
     try std.testing.expect(saw_driver_gap);
     try std.testing.expect(saw_test_gate);
