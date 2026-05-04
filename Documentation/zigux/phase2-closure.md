@@ -91,13 +91,14 @@ Phase 2 is only considered closed when all of the following are green:
 - `python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py`
 - the checker self-test must stay in the Linux-style `phase2-kconfig` path before live replay so manifest-ordering and failure-shape drift cannot hide behind the bounded bridge artifacts
 - the checker self-test must emit `KCONFIG_BRIDGE_SELF_TEST_CASE_COUNT=6` so the bounded synthetic four-conf-case plus two-confdata-case packet stays explicit before live replay
+- the bounded synthetic confdata trailing-carriage-return packet is only closed when the checker self-test runs `final_trailing_carriage_return` and `final_unterminated_unset_comment` through `check_confdata_case()` and the rebuild replay instead of only asserting saved fixture bytes
 - the dedicated alignment checker keeps `check-kconfig-bridge.py`, `scripts/zigux/validate-phase2.py`, `scripts/zigux/validate-phase2-closure.py`, `zigux/tests/fixtures/kconfig_bridge/cases.json`, the bootstrap workflow route, and `zigux/Makefile` in sync before closure evidence stays green
 - the conf bridge packet must keep required positional input rejection explicit: empty `Kconfig`, `.config`, and `ARCH` values must fail before bridge JSON emission
 - conf and confdata repeat-run JSON determinism is required before closure evidence stays green, and confdata replay must also stay stable across a second binary rebuild in the same check packet
 
 7. bounded phase2 cross-target compile gate
 - `python3 scripts/zigux/check-phase2-cross.py --self-test`
-- the checker self-test must stay in the Linux-style `phase2-cross` path before live compile replay so duplicate tool entries, duplicate requested targets, unexpected explicit targets, duplicate manifest targets, manifest-count drift, and explicit-target failure drift cannot hide behind local Zig availability
+- the checker self-test must stay in the Linux-style `phase2-cross` path before live compile replay so duplicate tool entries, duplicate requested targets, unexpected explicit targets, duplicate manifest targets, and explicit-target failure drift cannot hide behind local Zig availability
 - `python3 scripts/zigux/check-phase2-cross.py`
 - `python3 scripts/zigux/check-phase2-cross-selftest-alignment.py --self-test`
 - `python3 scripts/zigux/check-phase2-cross-selftest-alignment.py`
@@ -212,6 +213,8 @@ The bounded `kconfig` bridge closure packet remains closed because the shared fi
   `check-kconfig-bridge.py` rejects uncovered conf bridge modes, unsorted conf-case order, malformed manifest shape, duplicate fixture references, orphaned fixture files, and non-canonical confdata fixture naming before replaying the bounded artifacts
 - checker self-test breadth marker:
   `check-kconfig-bridge.py --self-test` now emits `KCONFIG_BRIDGE_SELF_TEST_CASE_COUNT=6` so the bounded synthetic four-conf-case plus two-confdata-case packet stays explicit before live replay
+- synthetic confdata execution proof:
+  `check-kconfig-bridge.py --self-test` now runs `final_trailing_carriage_return` and `final_unterminated_unset_comment` through `check_confdata_case()` plus rebuild replay so the trailing-carriage-return confdata packet is execution-proven instead of only byte-asserted
 - helper-local anchors in `scripts/zigux/kconfig/conf_bridge.zig`:
   `conf bridge emits allconfig env for allconfig family modes`
   `conf bridge requires mode arg for defconfig modes`
