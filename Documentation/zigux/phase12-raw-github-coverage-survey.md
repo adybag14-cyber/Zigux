@@ -9,6 +9,7 @@ This note records the bounded public-read fallback posture for the roadmap-backe
 - public boundary: read-only GitHub tree and raw-path inspection only
 - shared validator path: `python3 scripts/zigux/validate-phase12.py` and `make -C zigux phase12-validate`
 - release coordination note: `Documentation/zigux/phase12-release-readiness-survey.md`
+- release packet guard for this same split: `python3 scripts/zigux/check-phase12-release-readiness-packet.py`
 - last replayed public head for this exact coverage split: `bc2373f7deedf021c73beaae29555a9ac6b0536d`
 
 ## Coverage Split
@@ -62,4 +63,4 @@ The surviving pinned fallback artifacts this survey compares against remain:
 - `Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md`
 - `Documentation/zigux/phase12-nvme-pci-raw-github-fallback-map.md`
 
-The shared release-coordination reading for this same split now lives in `Documentation/zigux/phase12-release-readiness-survey.md`, so PMO review and degraded public-read review name the same two commit-pinned artifacts, the same two shared-tree-only anchors, and the same validator-first rollback path.
+The shared release-coordination reading for this same split now lives in `Documentation/zigux/phase12-release-readiness-survey.md`, and `python3 scripts/zigux/check-phase12-release-readiness-packet.py` keeps the release-facing PMO packet honest against that same mixed fallback split, so PMO review and degraded public-read review name the same two commit-pinned artifacts, the same two shared-tree-only anchors, and the same validator-first rollback path.
