@@ -76,6 +76,9 @@ REQUIRED_CLOSURE_MARKERS = [
     "PHASE1_BITMAP_TAIL_MASK_UNIT_REVIEW=bitmap tail-masked reduction helpers ignore out-of-range differences while preserving the in-range window for andBits, andNotBits, equal, intersects, and subset",
     "PHASE1_BITMAP_ZERO_BIT_UNIT_REVIEW=bitmap zero-length helper calls stay side-effect free so zero fill copy copyClearTail orBits xorBits scans and formatting leave caller-owned buffers untouched when nbits is zero",
     "PHASE1_BITMAP_EMPTY_UNIT_REVIEW=bitmap bitmap_scnprintf keeps a non-empty caller buffer untouched when no bits are set, matching the committed empty-bitmap parity fixture contract",
+    "PHASE1_FIND_BIT_TAIL_START_UNIT_REVIEW=find_bit tail-clamped set zero and shared-bit scans keep the last in-range bit reachable from an inclusive start while later starts still return nbits instead of leaking the out-of-range tail",
+    "PHASE1_FIND_BIT_TAIL_WORD_BOUNDARY_UNIT_REVIEW=find_bit tail-clamped set zero and shared-bit scans keep the first in-range tail-word match reachable when the search starts exactly at the tail-word boundary instead of rereading an earlier full-word result",
+    "PHASE1_FIND_BIT_ZERO_SIZED_UNIT_REVIEW=find_bit zero-length set zero and shared-bit scans return 0 even when backing words are populated so declared nbits stays authoritative over caller storage",
     "PHASE1_STRING_MEMPARSE_UNIT_REVIEW=string memparse preserves decimal, hexadecimal, suffix-bearing, invalid, and binary-unit-tail inputs including optional trailing B forms without changing the parsed value or rest pointer contract",
     "PHASE1_RBTREE_POSTORDER_ITERATOR_UNIT_REVIEW=rbtree iteratePostorder visits each node exactly once in left-right-root order and reports exhaustion cleanly after the full walk",
     "PHASE1_RBTREE_POSTORDER_SAFE_UNIT_REVIEW=rbtree iteratePostorderSafe caches exactly one step ahead so callers can invalidate the current node without truncating the remaining postorder walk",
@@ -566,6 +569,27 @@ def self_test() -> int:
 
         write(
             root / "Documentation/zigux/phase1-closure.md",
+            "\n".join(marker for marker in REQUIRED_CLOSURE_MARKERS if not marker.startswith("PHASE1_FIND_BIT_TAIL_START_UNIT_REVIEW=")) + "\n",
+        )
+        expect_failure(root, "closure:PHASE1_FIND_BIT_TAIL_START_UNIT_REVIEW=find_bit tail-clamped set zero and shared-bit scans keep the last in-range bit reachable from an inclusive start while later starts still return nbits instead of leaking the out-of-range tail")
+        write(root / "Documentation/zigux/phase1-closure.md", "\n".join(REQUIRED_CLOSURE_MARKERS) + "\n")
+
+        write(
+            root / "Documentation/zigux/phase1-closure.md",
+            "\n".join(marker for marker in REQUIRED_CLOSURE_MARKERS if not marker.startswith("PHASE1_FIND_BIT_TAIL_WORD_BOUNDARY_UNIT_REVIEW=")) + "\n",
+        )
+        expect_failure(root, "closure:PHASE1_FIND_BIT_TAIL_WORD_BOUNDARY_UNIT_REVIEW=find_bit tail-clamped set zero and shared-bit scans keep the first in-range tail-word match reachable when the search starts exactly at the tail-word boundary instead of rereading an earlier full-word result")
+        write(root / "Documentation/zigux/phase1-closure.md", "\n".join(REQUIRED_CLOSURE_MARKERS) + "\n")
+
+        write(
+            root / "Documentation/zigux/phase1-closure.md",
+            "\n".join(marker for marker in REQUIRED_CLOSURE_MARKERS if not marker.startswith("PHASE1_FIND_BIT_ZERO_SIZED_UNIT_REVIEW=")) + "\n",
+        )
+        expect_failure(root, "closure:PHASE1_FIND_BIT_ZERO_SIZED_UNIT_REVIEW=find_bit zero-length set zero and shared-bit scans return 0 even when backing words are populated so declared nbits stays authoritative over caller storage")
+        write(root / "Documentation/zigux/phase1-closure.md", "\n".join(REQUIRED_CLOSURE_MARKERS) + "\n")
+
+        write(
+            root / "Documentation/zigux/phase1-closure.md",
             "\n".join(marker for marker in REQUIRED_CLOSURE_MARKERS if not marker.startswith("PHASE1_RBTREE_ALIAS_GAP_NOTE=")) + "\n",
         )
         expect_failure(root, "closure:PHASE1_RBTREE_ALIAS_GAP_NOTE=the closed Phase 1 rbtree tranche still excludes Linux-style rb_* alias parity for the already-ported entry points, and that remaining surface stays explicitly out of scope until a later bounded repair lands")
@@ -666,7 +690,7 @@ def self_test() -> int:
         expect_failure(root, "rbtree_source:unexpected_alias:pub fn rb_first(")
 
     print("PHASE1_CLOSURE_VALIDATOR_SELF_TEST=pass")
-    print("PHASE1_CLOSURE_VALIDATOR_SELF_TEST_CASE_COUNT=27")
+    print("PHASE1_CLOSURE_VALIDATOR_SELF_TEST_CASE_COUNT=30")
     return 0
 
 
