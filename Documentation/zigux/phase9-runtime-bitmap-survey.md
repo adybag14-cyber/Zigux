@@ -6,7 +6,7 @@ This document tracks the bounded Phase 9 runtime pilot-module survey around `lib
 
 - `PHASE9_STATUS=active`
 - `PHASE9_SLICE=runtime-bitmap-survey`
-- `PHASE9_LANE_KEY=P9-L08`
+- `PHASE9_LANE_KEY=P9-Y08`
 - `PHASE9_SURVEYED_COMMIT=c0b506e3254e63fe007a72d420bb275846a89093`
 - scope: survey manifest, manifest-backed delivery catalog and ownership map, dedicated runtime survey gate, direct `phase9-runtime-bitmap-sample-tests`, `phase9-runtime-bitmap-module-tests`, `phase9-runtime-bitmap-diff-tests`, and `phase9-runtime-bitmap-loader-tests` shared-build legs, landed sample-backed module starter, landed focused top-bit companion replay plus its dedicated sample-side build file, landed module gate, landed diff gate, landed loader scaffold, landed shared loader-request binding, prepared loader-summary snapshot replay, and the lane-level review note that keeps the remaining broader runtime-control blocker explicit without claiming loadable-module parity
 - product boundary:
@@ -173,4 +173,4 @@ This survey slice still does not claim:
 
 ## Next bounded step
 
-Stay in the Phase 9 runtime bitmap lane and keep the next step on the remaining broader shared runtime-loader control surface or real lifecycle-parity blocker, rather than inventing another bitmap-local binding surface now that `zigux/kernel/runtime_loader.zig` already consumes the current handoff plan, while keeping the focused top-bit companion replay and the separate `kernel/workqueue.c` freeze-map boundary in study-only status unless the Architecture Council explicitly reopens that anchor.
+Stay in the Phase 9 runtime bitmap lane and keep the next step on the remaining broader shared runtime-loader control surface or real lifecycle-parity blocker, rather than inventing another bitmap-local binding surface now that `zigux/kernel/runtime_loader.zig` already consumes the current handoff plan, while keeping the focused top-bit companion replay and the separate `kernel/workqueue.c` freeze-map boundary in study-only status unless the Architecture Council explicitly reopens it.
