@@ -12,11 +12,13 @@ This document captures the bounded Phase 9 follow-up after the landed atomic64, 
 - product boundary:
   - `Documentation/zigux/phase9-runtime-loader-substrate-plan.md`
   - `scripts/zigux/check-phase9-runtime-loader-commit-alignment.py`
+  - `scripts/zigux/check-phase9-loader-non-owner-boundary.py`
   - `zigux/kernel/runtime_loader.zig`
   - `samples/zigux/runtime_atomic64_loader.zig`
   - `samples/zigux/runtime_bitmap_loader.zig`
   - `samples/zigux/runtime_kretprobe_loader.zig`
   - `samples/zigux/runtime_trace_events_loader.zig`
+  - `zigux/tests/runtime_loader_non_owner_boundary_survey.zig`
   - `zigux/tests/phase9_build.zig`
 
 ## Why this slice exists
@@ -114,15 +116,20 @@ The shared request surface also stays parked beneath the nearby freeze-map bound
 2. replay the focused surveyed-commit alignment check for the shared loader packet
 - `make -C zigux phase9-loader-commit-alignment-survey`
 
-3. replay the focused runtime-loader survey packet that keeps this note aligned with the manifest, shared request surface, and sample-side loaders
+3. replay the focused non-owner-boundary check for the shared loader packet so the trace-events scaffold and the Phase 2 plus Phase 3 non-owner references stay explicit
+- `python3 scripts/zigux/check-phase9-loader-non-owner-boundary.py --self-test`
+- `python3 scripts/zigux/check-phase9-loader-non-owner-boundary.py`
+- `make -C zigux phase9-non-owner-boundary-survey`
+
+4. replay the focused runtime-loader survey packet that keeps this note aligned with the manifest, shared request surface, and sample-side loaders
 - `zig test zigux/tests/runtime_loader_gap_survey.zig`
 - `make -C zigux phase9-loader-gap-survey`
 
-4. replay the shared Phase 9 runtime bundle so the same loader-stage vocabulary and lifecycle-parity evidence stay visible beside the broader samples and surveys
+5. replay the shared Phase 9 runtime bundle so the same loader-stage vocabulary and lifecycle-parity evidence stay visible beside the broader samples and surveys
 - `zig build test --build-file zigux/tests/phase9_build.zig --summary all`
 - `make -C zigux phase9-test`
 
-5. run the validator-first wrapper path when reviewing the whole Phase 9 packet
+6. run the validator-first wrapper path when reviewing the whole Phase 9 packet
 - `make -C zigux phase9-validate`
 - `make -C zigux phase9`
 
