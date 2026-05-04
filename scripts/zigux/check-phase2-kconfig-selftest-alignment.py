@@ -92,7 +92,7 @@ KCONFIG_CHECKER_MARKERS = [
 PHASE2_VALIDATOR_MARKERS = [
     "KCONFIG_ALIGNMENT_CHECKER = (",
     '"PHASE2_KCONFIG_ALIGNMENT_SELF_TEST=pass"',
-    '"PHASE2_KCONFIG_ALIGNMENT_SELF_TEST_CASE_COUNT=9"',
+    '"PHASE2_KCONFIG_ALIGNMENT_SELF_TEST_CASE_COUNT=13"',
     '"phase2_kconfig_alignment_checker"',
 ]
 
@@ -296,6 +296,50 @@ def run_self_test() -> int:
     if not any(issue.startswith("makefile_exact_run:") for issue in makefile_issues):
         raise SystemExit("phase2-kconfig-alignment:self-test:makefile_missing_failure")
 
+    valid_makefile_kconfig_route = "\n".join(
+        [
+            "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-kconfig-bridge.py --self-test",
+            "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-kconfig-bridge.py",
+            "\tcd $(ZIGUX_ROOT) && $(ZIG) test scripts/zigux/kconfig/conf_bridge.zig",
+            "\tcd $(ZIGUX_ROOT) && $(ZIG) test scripts/zigux/kconfig/confdata_bridge.zig",
+        ]
+    ) + "\n"
+    if validate_exact_makefile_runs(
+        valid_makefile_kconfig_route,
+        expected_counts=EXPECTED_MAKEFILE_KCONFIG_ROUTE_COUNTS,
+    ):
+        raise SystemExit("phase2-kconfig-alignment:self-test:makefile_kconfig_route_counts")
+
+    kconfig_route_failures = [
+        (
+            "phase2-kconfig-alignment:self-test:makefile_kconfig_selftest_missing",
+            "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-kconfig-bridge.py --self-test\n",
+            "makefile_exact_run:scripts/zigux/check-kconfig-bridge.py --self-test:count=0:expected=1",
+        ),
+        (
+            "phase2-kconfig-alignment:self-test:makefile_kconfig_live_missing",
+            "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-kconfig-bridge.py\n",
+            "makefile_exact_run:scripts/zigux/check-kconfig-bridge.py:count=0:expected=1",
+        ),
+        (
+            "phase2-kconfig-alignment:self-test:makefile_conf_bridge_test_missing",
+            "\tcd $(ZIGUX_ROOT) && $(ZIG) test scripts/zigux/kconfig/conf_bridge.zig\n",
+            "makefile_exact_run:$(ZIG) test scripts/zigux/kconfig/conf_bridge.zig:count=0:expected=1",
+        ),
+        (
+            "phase2-kconfig-alignment:self-test:makefile_confdata_bridge_test_missing",
+            "\tcd $(ZIGUX_ROOT) && $(ZIG) test scripts/zigux/kconfig/confdata_bridge.zig\n",
+            "makefile_exact_run:$(ZIG) test scripts/zigux/kconfig/confdata_bridge.zig:count=0:expected=1",
+        ),
+    ]
+    for failure_label, removed_line, expected_issue in kconfig_route_failures:
+        makefile_issues = validate_exact_makefile_runs(
+            valid_makefile_kconfig_route.replace(removed_line, "", 1),
+            expected_counts=EXPECTED_MAKEFILE_KCONFIG_ROUTE_COUNTS,
+        )
+        if expected_issue not in makefile_issues:
+            raise SystemExit(failure_label)
+
     valid_checker = "\n".join(KCONFIG_CHECKER_MARKERS) + "\n"
     if validate_required_markers(
         valid_checker,
@@ -396,7 +440,7 @@ def run_self_test() -> int:
             raise SystemExit("phase2-kconfig-alignment:self-test:json_round_trip")
 
     print("PHASE2_KCONFIG_ALIGNMENT_SELF_TEST=pass")
-    print("PHASE2_KCONFIG_ALIGNMENT_SELF_TEST_CASE_COUNT=9")
+    print("PHASE2_KCONFIG_ALIGNMENT_SELF_TEST_CASE_COUNT=13")
     return 0
 
 
