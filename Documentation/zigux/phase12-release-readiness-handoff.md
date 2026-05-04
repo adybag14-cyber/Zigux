@@ -9,7 +9,7 @@ This note keeps the active Phase 12 PMO follow-up explicit without claiming that
 - `PHASE12_SHARED_REPLAY_ENTRYPOINT=make -C zigux phase12`
 - `PHASE12_RELEASE_READINESS_SURVEY=Documentation/zigux/phase12-release-readiness-survey.md`
 - `PHASE12_SHARED_VALIDATOR=scripts/zigux/validate-phase12.py`
-- `PHASE12_SHARED_VALIDATOR_BLOB_SHA=da8e0bc30418730cdaa3e2a36e0b5be6ca47e6b7`
+- `PHASE12_SHARED_VALIDATOR_BLOB_SHA=d9a1f229ff22545a3b10bc86eb4c97b2d53764d8`
 
 ## What is already live on master
 
@@ -60,4 +60,4 @@ Do not call Phase 12 release-ready or release-closed while any of the following 
 
 ## Next bounded step
 
-The next honest PMO step is still the shared-validator promotion for `scripts/zigux/validate-phase12.py`, using the current live blob `da8e0bc30418730cdaa3e2a36e0b5be6ca47e6b7` and the saved release-readiness bridge bundle, then confirming the release-facing markers each land exactly once on readback.
+The next honest PMO step is still the shared-validator promotion for `scripts/zigux/validate-phase12.py`, using the current live blob `d9a1f229ff22545a3b10bc86eb4c97b2d53764d8` and the saved release-readiness bridge bundle, then confirming the release-facing markers each land exactly once on readback.
