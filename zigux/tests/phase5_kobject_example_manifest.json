@@ -10,10 +10,10 @@
     "the manifest and survey test still describe the exact registration, single register_runs ownership claim, Linux foo/baz/bar attribute order, shared 0664 attribute mode pattern, integer roundtrip, and shared baz/bar dispatch contract run through phase5_build.zig",
     "the replay contract keeps the static directory-name cue explicit, keeps emits_uevent false, and says dynamic kobjects stay out of scope for this Phase 5 sample",
     "the sample-backed survey note, shared docs-root guide, shared sample-root catalog, shared tests-root guide, and shared review checklist still name the manifest-backed survey, sample-backed survey note, and phase5_build.zig entrypoint as part of the shipped kobject review surface",
-    "the manifest prompts keep the unnamed attribute group shape plus the pre-registration ownership boundary, the sample-owned runOwnershipReplay() helper, initialized-only exit summary, ownershipSummary lifecycle snapshot, and post-exit init/register/show/store rejection boundaries explicit instead of implying sysfs registration",
+    "the manifest prompts keep the unnamed attribute group shape plus the pre-registration ownership boundary, the sample-owned runOwnershipReplay() helper, initialized-only exit summary, ownershipSummary lifecycle snapshot, and sample-owned post-exit init/register/show/store rejection boundaries explicit instead of implying sysfs registration",
     "sample-behavior changes update the manifest-backed registration, attribute-order, teardown-summary, replay-readiness, lifecycle replay, and lifecycle contract instead of leaving reviewers to infer it from code alone",
     "ownership checks keep the initialized-but-not-registered stage explicit by requiring zero active attributes and no show/store access until registerAttributes claims ownership, and ownershipSummary must expose replay readiness plus the cold, initialized, registered, and exited stage transitions directly through the sample-owned runOwnershipReplay() helper",
-    "docs and tests keep the post-exit init/register/show/store boundary explicit while still keeping sysfs creation, kernel_kobj integration, uevents, and runtime registration out of scope for this Phase 5 sample, and keep the shared sample-root packet explicit that the landed slice is an approved Phase 5 ownership-and-lifetime idiom"
+    "docs and tests keep the sample-owned post-exit init/register/show/store boundary explicit while still keeping sysfs creation, kernel_kobj integration, uevents, and runtime registration out of scope for this Phase 5 sample, and keep the shared sample-root packet explicit that the landed slice is an approved Phase 5 ownership-and-lifetime idiom"
   ],
   "exact_checks": [
     {
@@ -79,7 +79,7 @@
     {
       "id": "exit-boundary",
       "kind": "ownership_lifetime",
-      "expected": "registered exit returns a teardown summary, clears the tracked values, removes the active attribute count, and rejects later init, registerAttributes, showValue, storeValue, or runAnchorReplay calls"
+      "expected": "registered exit returns a teardown summary, then the sample-owned post-exit replay clears the tracked values, removes the active attribute count, and rejects later init, registerAttributes, runAnchorReplay, showValue, storeValue, or exit calls"
     }
   ],
   "non_goals": [
