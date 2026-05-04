@@ -15,6 +15,38 @@ pub const OperationFamily = enum {
     iteration_and_ranges,
 };
 
+pub const SampleFocus = enum {
+    descriptor_and_anchor,
+    summary_replay,
+    sparse_iteration,
+    parse_and_print,
+    range_mutation_and_copy,
+    selftest_lifecycle,
+    exit_lifecycle_and_guards,
+};
+
+pub const sample_review_focus = [_]SampleFocus{
+    .descriptor_and_anchor,
+    .summary_replay,
+    .sparse_iteration,
+    .parse_and_print,
+    .range_mutation_and_copy,
+    .selftest_lifecycle,
+    .exit_lifecycle_and_guards,
+};
+
+pub const sample_review_non_goals = [_][]const u8{
+    "loadable runtime bitmap module parity",
+    "shared runtime-loader command-name or argv-policy controls",
+    "real runtime execution through a live substrate",
+    "full lib/test_bitmap.c parity beyond the bounded starter packet",
+};
+
+pub const ReviewContract = struct {
+    focus: []const SampleFocus,
+    non_goals: []const []const u8,
+};
+
 pub const ModuleDescriptor = struct {
     name: []const u8,
     anchor: []const u8,
@@ -57,6 +89,13 @@ pub const RuntimeBitmapSample = struct {
             .anchor = "lib/test_bitmap.c",
             .requires_runtime_substrate = true,
             .provides_selftest_hook = true,
+        };
+    }
+
+    pub fn reviewContract() ReviewContract {
+        return .{
+            .focus = &sample_review_focus,
+            .non_goals = &sample_review_non_goals,
         };
     }
 
@@ -249,6 +288,28 @@ pub const RuntimeBitmapSample = struct {
         self.stage_state = .exited;
     }
 };
+
+test "runtime bitmap sample review contract keeps bounded starter focus explicit" {
+    const expected_focus = sample_review_focus;
+    const expected_non_goals = sample_review_non_goals;
+    const descriptor = RuntimeBitmapSample.descriptor();
+    const contract = RuntimeBitmapSample.reviewContract();
+
+    try std.testing.expectEqualStrings("runtime_bitmap", descriptor.name);
+    try std.testing.expectEqualStrings("lib/test_bitmap.c", descriptor.anchor);
+    try std.testing.expect(descriptor.requires_runtime_substrate);
+    try std.testing.expect(descriptor.provides_selftest_hook);
+
+    try std.testing.expectEqual(@as(usize, expected_focus.len), contract.focus.len);
+    for (expected_focus, contract.focus) |expected, actual| {
+        try std.testing.expectEqual(expected, actual);
+    }
+
+    try std.testing.expectEqual(@as(usize, expected_non_goals.len), contract.non_goals.len);
+    for (expected_non_goals, contract.non_goals) |expected, actual| {
+        try std.testing.expectEqualStrings(expected, actual);
+    }
+}
 
 test "runtime bitmap sample keeps bounded view summaries stable" {
     var module = RuntimeBitmapSample{};
