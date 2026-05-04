@@ -30,7 +30,7 @@ That gap matters because the current anchors are still large and deeply coupled:
 - roadmap source: `zigux-alpha/ZAR_TO_ZIGUX_PRODUCT_ROADMAP.md` Phase 15, `Full-Parity Blockers and Long-Term Governance`
 - roadmap handoff: Phase 15 must keep the freeze map, Architecture Council review process, parity scorecard, and policy for code that remains in C indefinitely visible as one honest governance bundle
 - bootstrap ledger anchor: `docs(zigux): add documentation root, review checklist, and freeze map`
-- current repo handoff: the ledger's documentation root and freeze-map start point is now carried forward by `Documentation/zigux/README.md`, the landed Phase 15 review-process note, parity scorecard, indefinite-C policy note, `Documentation/zigux/phase15-handoff-next-steps-survey.md`, the reserved evidence-archive templates, the dedicated Zig manifest and test, the shared `zigux/tests/phase15_build.zig` gate, the `make -C zigux phase15` convenience target, and the shared bootstrap workflow replay
+- current repo handoff: the ledger's documentation root and freeze-map start point is now carried forward by `Documentation/zigux/README.md`, the landed Phase 15 review-process note, parity scorecard, indefinite-C policy note, `Documentation/zigux/phase15-handoff-next-steps-survey.md`, the reserved evidence-archive templates, the dedicated Zig manifest and test, the shared scripts-root validator path in `scripts/zigux/README.md` plus `scripts/zigux/validate-phase15.py`, the shared tests-root guidance path in `zigux/tests/README.md`, the shared `zigux/tests/phase15_build.zig` gate, the `make -C zigux phase15` target, and the shared bootstrap workflow replay
 - maintenance-mode next step: keep the Phase 15 governance lane parked until one of the named reopen triggers fires or the deep-core blocker posture changes
 
 ## Current Parity-Tracking Gap
@@ -44,7 +44,7 @@ The roadmap-required parity-tracking bundle is already present locally:
 - the dedicated parity scorecard packet exists in `Documentation/zigux/phase15-parity-scorecard.md`
 - the indefinite-C policy packet exists in `Documentation/zigux/phase15-indefinite-c-policy.md`
 - the dedicated manifest and Zig test keep the scorecard machine-checkable in `zigux/tests/phase15_parity_scorecard.json` and `zigux/tests/phase15_parity_scorecard.zig`
-- `Documentation/zigux/README.md`, `zigux/tests/phase15_build.zig`, and `make -C zigux phase15` keep the same governance bundle visible on the docs root and shared replay path
+- `Documentation/zigux/README.md`, `scripts/zigux/README.md`, `scripts/zigux/validate-phase15.py`, `zigux/tests/README.md`, `zigux/tests/phase15_build.zig`, and `make -C zigux phase15` keep the same governance bundle visible across the docs root, scripts-root validator path, tests-root guidance path, and shared replay surface
 
 That means the current parity-tracking gap is narrower and maintenance-only: keep the scorecard's lane identity, surveyed-master provenance, roadmap wording, rollback-threshold field sync, and replay-backed evidence packet current so the roadmap requirement stays explicitly satisfied instead of drifting into stale metadata.
 
@@ -219,6 +219,8 @@ The roadmap-required bundle is already present locally:
 - Architecture Council review process
 - parity scorecard
 - policy for code that remains in C indefinitely
+- shared scripts-root validator path through `scripts/zigux/README.md` and `scripts/zigux/validate-phase15.py`
+- shared tests-root guidance path through `zigux/tests/README.md`
 
 The landed bundle is now enforced and tracked through both local replay and the published shared workflow:
 
