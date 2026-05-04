@@ -466,6 +466,22 @@ def run_self_test() -> int:
         gate_evidence = root / "Documentation/zigux/phase4-gate-evidence.md"
         gate_evidence.write_text(
             gate_evidence.read_text(encoding="utf-8").replace(
+                "one `make -C zigux phase4-validate` run line",
+                "missing `make -C zigux phase4-validate` run line",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        missing = validate_root(root)
+        assert (
+            "phase4_gate_evidence:exact_workflow_count:one `make -C zigux phase4-validate` run line"
+            in missing
+        ), missing
+
+        write_fixture_tree(root)
+        gate_evidence = root / "Documentation/zigux/phase4-gate-evidence.md"
+        gate_evidence.write_text(
+            gate_evidence.read_text(encoding="utf-8").replace(
                 "PHASE4_WORKFLOW_ROUTE_COUNTS=pass",
                 "PHASE4_WORKFLOW_ROUTE_COUNTS=fail",
                 1,
@@ -486,7 +502,10 @@ def run_self_test() -> int:
             encoding="utf-8",
         )
         missing = validate_root(root)
-        assert "phase4_gate_evidence:scripts_root_runtime_atomic64:`phase4-runtime-atomic64-diff-tests`" in missing, missing
+        assert (
+            "phase4_gate_evidence:scripts_root_runtime_atomic64:`phase4-runtime-atomic64-diff-tests`"
+            in missing
+        ), missing
 
         print("PHASE4_GATE_EVIDENCE_SELF_TEST=pass")
         return 0
