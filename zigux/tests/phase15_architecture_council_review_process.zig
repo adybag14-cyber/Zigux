@@ -192,6 +192,13 @@ test "phase 15 architecture council review-process manifest records current trig
     try std.testing.expect(std.mem.indexOf(u8, manifest.handoff_evidence.current_repo_handoff, "zigux/tests/phase15_build.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, manifest.handoff_evidence.current_repo_handoff, "make -C zigux phase15") != null);
     try std.testing.expect(std.mem.indexOf(u8, manifest.handoff_evidence.current_bounded_lane, expected_lane_key) != null);
+    const expected_handoff_lane_provenance = try std.fmt.allocPrint(
+        std.testing.allocator,
+        "as last reviewed at master head {s}",
+        .{manifest.surveyed_commit},
+    );
+    defer std.testing.allocator.free(expected_handoff_lane_provenance);
+    try std.testing.expect(std.mem.indexOf(u8, manifest.handoff_evidence.current_bounded_lane, expected_handoff_lane_provenance) != null);
     try std.testing.expect(std.mem.indexOf(u8, manifest.handoff_evidence.current_bounded_lane, "governance, approval, and ownership evidence verification") != null);
     try std.testing.expect(std.mem.indexOf(u8, manifest.handoff_evidence.current_bounded_lane, "current parked maintenance-mode Phase 15 packet") != null);
     try std.testing.expect(std.mem.indexOf(u8, manifest.handoff_evidence.current_bounded_lane, "scripts-root validator path") != null);
@@ -380,6 +387,13 @@ test "phase 15 architecture council review-process note stays aligned with check
     );
     defer std.testing.allocator.free(expected_lane_line);
     try std.testing.expect(std.mem.indexOf(u8, review_process, expected_lane_line) != null);
+    const expected_lane_handoff_provenance = try std.fmt.allocPrint(
+        std.testing.allocator,
+        "as last reviewed at `master` head `{s}`",
+        .{manifest.surveyed_commit},
+    );
+    defer std.testing.allocator.free(expected_lane_handoff_provenance);
+    try std.testing.expect(std.mem.indexOf(u8, review_process, expected_lane_handoff_provenance) != null);
     try std.testing.expect(std.mem.indexOf(u8, review_process, "Documentation/zigux/phase15-handoff-next-steps-survey.md") != null);
     try std.testing.expect(std.mem.indexOf(u8, review_process, "shared Phase 15 replay drift") != null);
     try std.testing.expect(std.mem.indexOf(u8, review_process, "phase15-review-process-lane-identity-provenance-refresh") != null);
