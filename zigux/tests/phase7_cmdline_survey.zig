@@ -384,6 +384,7 @@ test "phase 7 cmdline survey keeps the helper-only handoff explicit" {
             saw_survey_gate = true;
             try std.testing.expectEqualStrings("starter_landed", gap.status);
             try std.testing.expectEqualStrings("zigux/tests/phase7_cmdline_survey.zig", gap.zigux_destination);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "machine-checked survey gate") != null);
         }
 
         for (manifest.gaps[i + 1 ..]) |other| {
