@@ -95,6 +95,81 @@ fn findNthSet(map: []const Word, nbits: usize, nth: usize) usize {
     return nbits;
 }
 
+const ThresholdReplaySummary = struct {
+    iterations: usize,
+    checksum: u64,
+    final_weight: usize,
+    final_first_set: usize,
+    final_first_zero: usize,
+    final_nth_seven: usize,
+    final_render_len: usize,
+};
+
+fn mixThresholdChecksum(checksum: *u64, value: usize) void {
+    checksum.* = checksum.* *% 0x9e3779b185ebca87 +% @as(u64, @intCast(value));
+}
+
+// Keep one deterministic batch available so a future bitmap threshold lane can
+// benchmark the exact current rollback gate instead of a looser synthetic loop.
+pub fn runThresholdReplay(iterations: usize) ThresholdReplaySummary {
+    var map = [_]Word{0} ** word_count;
+    var src = [_]Word{0} ** word_count;
+    var dst = [_]Word{0} ** word_count;
+    var buffer: [64]u8 = undefined;
+    var checksum: u64 = 0;
+    var render_len: usize = 0;
+
+    var iteration: usize = 0;
+    while (iteration < iterations) : (iteration += 1) {
+        bitmap.zero(&map, bitmap_nbits);
+        bitmap.setRange(&map, 0, 9);
+        mixThresholdChecksum(&checksum, weight(&map, bitmap_nbits));
+        mixThresholdChecksum(&checksum, firstZero(&map, bitmap_nbits));
+
+        bitmap.fill(&map, bitmap_nbits);
+        zeroPrefix(&map, 115);
+        mixThresholdChecksum(&checksum, weight(&map, bitmap_nbits));
+        mixThresholdChecksum(&checksum, firstSet(&map, bitmap_nbits));
+
+        bitmap.zero(&src, bitmap_nbits);
+        bitmap.setRange(&src, 0, 109);
+        bitmap.fill(&dst, bitmap_nbits);
+        copyFrom(&dst, &src, 97);
+        mixThresholdChecksum(&checksum, weight(&dst, bitmap_nbits));
+        mixThresholdChecksum(&checksum, firstZero(&dst, bitmap_nbits));
+
+        bitmap.zero(&map, bitmap_nbits);
+        bitmap.setRange(&map, 1, 3);
+        bitmap.setRange(&map, 7, 1);
+        bitmap.setRange(&map, 10, 2);
+        render_len = bitmap.scnprintf(&map, 32, &buffer);
+        mixThresholdChecksum(&checksum, render_len);
+        mixThresholdChecksum(&checksum, @as(usize, buffer[0]));
+
+        bitmap.zero(&map, bits_per_long * 3);
+        bitmap.setRange(&map, 10, 1);
+        bitmap.setRange(&map, 20, 1);
+        bitmap.setRange(&map, 30, 1);
+        bitmap.setRange(&map, 40, 1);
+        bitmap.setRange(&map, 50, 1);
+        bitmap.setRange(&map, 60, 1);
+        bitmap.setRange(&map, 80, 1);
+        bitmap.setRange(&map, 123, 1);
+        mixThresholdChecksum(&checksum, findNthSet(&map, bits_per_long * 3, 7));
+        mixThresholdChecksum(&checksum, findNthSet(&map, bits_per_long * 3, 8));
+    }
+
+    return .{
+        .iterations = iterations,
+        .checksum = checksum,
+        .final_weight = weight(&map, bits_per_long * 3),
+        .final_first_set = firstSet(&map, bits_per_long * 3),
+        .final_first_zero = firstZero(&map, bits_per_long * 3),
+        .final_nth_seven = findNthSet(&map, bits_per_long * 3, 7),
+        .final_render_len = render_len,
+    };
+}
+
 test "bitmap diff gate records exact starting printlist anchors" {
     var map = [_]Word{0} ** word_count;
 
@@ -582,4 +657,21 @@ test "bitmap diff gate records exact bounded find_nth_bit checks" {
     // test_find_nth_bit exp1 walk keeps nth lookups aligned with the dense
     // mixed-word set-bit scan used by the C anchor's sequential replay.
     try expectNthMatchesSequentialWalk(&exp1, exp1.len * bits_per_long);
+}
+
+test "bitmap diff gate keeps a deterministic threshold replay batch ready for future perf baselines" {
+    const single = runThresholdReplay(1);
+    const repeated = runThresholdReplay(4);
+
+    try std.testing.expectEqual(@as(usize, 1), single.iterations);
+    try std.testing.expectEqual(@as(usize, 4), repeated.iterations);
+    try std.testing.expectEqual(@as(usize, 8), single.final_weight);
+    try std.testing.expectEqual(@as(usize, 10), single.final_first_set);
+    try std.testing.expectEqual(@as(usize, 0), single.final_first_zero);
+    try std.testing.expectEqual(@as(usize, 123), single.final_nth_seven);
+    try std.testing.expectEqual(@as(usize, 11), single.final_render_len);
+    try std.testing.expect(single.checksum != 0);
+    try std.testing.expect(repeated.checksum != 0);
+    try std.testing.expect(repeated.checksum != single.checksum);
+    try std.testing.expectEqualDeep(repeated, runThresholdReplay(4));
 }
