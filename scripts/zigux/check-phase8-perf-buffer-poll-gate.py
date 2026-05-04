@@ -128,7 +128,7 @@ EXACT_COUNTS = {
     },
     "zigux/tests/README.md": {
         "zigux/tests/phase8_perf_buffer_poll_only_build.zig": 1,
-        "zigux/tests/phase8_perf_BUFFER_POLL.zig": 1,
+        "zigux/tests/phase8_perf_buffer_poll.zig": 1,
         "make -C zigux phase8-perf-buffer-poll-test": 1,
     },
     "scripts/zigux/README.md": {
