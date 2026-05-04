@@ -631,6 +631,7 @@ test "phase12 virtio net mergeable refill treats guest uso as big-packet pressur
 
     const refill = try lab.planMergeableReceiveRefill(4);
     try std.testing.expectEqual(@as(u16, 4), refill.rx_queue_entries);
+    try std.testing.expectEqual(virtio_net.ReceiveQueueRefillPath.fresh_allocation, refill.refill_path);
     try std.testing.expect(refill.uses_mergeable_buffers);
     try std.testing.expectEqual(@as(u32, 65565), refill.packet_budget_bytes);
     try std.testing.expectEqual(@as(u32, 16380), refill.min_buf_len_bytes);
@@ -658,6 +659,7 @@ test "phase12 virtio net plans mergeable refill budgets from mtu and header stat
     const refill = try lab.planMergeableReceiveRefill(4);
     try std.testing.expectEqualStrings("drivers/net/virtio_net.c", refill.anchor);
     try std.testing.expectEqual(@as(u16, 4), refill.rx_queue_entries);
+    try std.testing.expectEqual(virtio_net.ReceiveQueueRefillPath.recycled_room_reuse, refill.refill_path);
     try std.testing.expect(refill.uses_mergeable_buffers);
     try std.testing.expectEqual(@as(u32, 9_038), refill.packet_budget_bytes);
     try std.testing.expectEqual(@as(u32, 2_240), refill.min_buf_len_bytes);
@@ -699,6 +701,7 @@ test "phase12 virtio net restore clears stale refill planning state" {
     });
 
     const refill = try lab.planMergeableReceiveRefill(4);
+    try std.testing.expectEqual(virtio_net.ReceiveQueueRefillPath.fresh_allocation, refill.refill_path);
     try std.testing.expectEqual(@as(u32, 0), refill.recycled_room_bytes);
     try std.testing.expectEqual(@as(u32, 1_518), refill.fresh_allocation_bytes);
     _ = try lab.freezeForRecovery();
