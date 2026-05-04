@@ -22,6 +22,7 @@ This document records the current release-planning reading for the roadmap's Pha
   - `scripts/zigux/validate-phase14.py`
   - `zigux/tests/phase14_end_to_end_smoke_manifest.json`
   - `zigux/tests/phase14_end_to_end_smoke_survey.zig`
+  - `zigux/tests/phase14_rcu_tree_survey.zig`
   - `zigux/tests/phase14_build.zig`
   - `zigux/Makefile`
   - `.github/workflows/zigux-bootstrap.yml`
@@ -58,7 +59,7 @@ The current Phase 14 release-facing reading is:
 - combined shared replay entrypoint: `make -C zigux phase14` remains the published convenience route for the validator-backed smoke packet, so release-facing review and local replay still name the same one-command path as the shared smoke note and manifest instead of leaving that wrapper path implicit in `zigux/Makefile`
 - `kernel/workqueue.c`: boundary-study-only anchor; future work, if any, stays limited to boundary maps, concurrency audits, and wrapper-first or study-only review surfaces such as the roadmap's `kernel/workqueue_bridge.zig` destination
 - `kernel/trace/ring_buffer.c`: boundary-study-only anchor; future work, if any, stays limited to the same study-only posture and does not become an active replay or parity claim without stronger evidence
-- `kernel/rcu/tree.c`: remains blocked from active delivery and is currently governed by the shared smoke packet plus the Phase 15 readiness and handoff packet rather than an active Phase 14 delivery lane
+- `kernel/rcu/tree.c`: remains blocked from active delivery and is currently governed by the shared smoke packet plus the Phase 15 readiness and handoff packet; `zigux/tests/phase14_rcu_tree_survey.zig` is the current full-bundle-only freeze-in-C survey replay rather than a placeholder bridge or status-change claim
 - `net/core/skbuff.c`: remains blocked from active delivery and is currently governed by the same shared smoke packet plus the Phase 15 freeze-in-C and readiness packet rather than an active Phase 14 delivery lane
 - the release packet for this tranche is therefore study-only sequencing plus smoke-backed boundary guidance; the shared smoke gate is real, but it remains a reviewability packet rather than a release-closure or status-change claim
 
