@@ -237,6 +237,7 @@ test "phase 8 file-path-handle bridge accepts reordered fields and surrounding w
             "map_type:\t1\r\n",
     );
 
+    try std.testing.expectEqual(@as(u32, 0), info.map_id);
     try std.testing.expectEqual(@as(u32, 1), info.map_type);
     try std.testing.expectEqual(@as(u32, 4), info.key_size);
     try std.testing.expectEqual(@as(u32, 8), info.value_size);
@@ -280,16 +281,19 @@ test "phase 8 file-path-handle bridge keeps reused-map name selection bounded an
 
 test "phase 8 file-path-handle bridge mirrors libbpf zero-init and last-field-wins fdinfo fallback" {
     const info = try file_path_handle_bridge.parseMapInfoFromFdinfo(
-        "map_type:\t3\n" ++
+        "map_id:\t1\n" ++
+            "map_type:\t3\n" ++
             "key_size:\t4\n" ++
             "value_size:\t8\n" ++
             "map_extra:\t1\n" ++
+            "map_id:\t9\n" ++
             "map_type:\t7\n" ++
             "map_extra:\t5\n" ++
             "map_flags:\t0x20\n" ++
             "map_flags:\t0x40\n",
     );
 
+    try std.testing.expectEqual(@as(u32, 9), info.map_id);
     try std.testing.expectEqual(@as(u32, 7), info.map_type);
     try std.testing.expectEqual(@as(u32, 4), info.key_size);
     try std.testing.expectEqual(@as(u32, 8), info.value_size);
@@ -299,6 +303,14 @@ test "phase 8 file-path-handle bridge mirrors libbpf zero-init and last-field-wi
 }
 
 test "phase 8 file-path-handle bridge keeps malformed fdinfo values explicit" {
+    try std.testing.expectError(error.InvalidValue, file_path_handle_bridge.parseMapInfoFromFdinfo(
+        "map_id:\tbad\n" ++
+            "map_type:\t3\n" ++
+            "key_size:\t4\n" ++
+            "value_size:\t8\n" ++
+            "max_entries:\t256\n" ++
+            "map_flags:\t32\n",
+    ));
     try std.testing.expectError(error.InvalidValue, file_path_handle_bridge.parseMapInfoFromFdinfo(
         "map_type:\t3\n" ++
             "key_size:\tfour\n" ++
