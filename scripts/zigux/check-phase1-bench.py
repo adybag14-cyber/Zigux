@@ -125,6 +125,20 @@ def validate_expectations_shape(expectations: dict[str, object]) -> None:
             f'{optional_find_bit_checksum}'
         )
 
+    optional_rbtree_checksum = next(
+        (
+            key
+            for key in sorted(metric_groups['checksums'])
+            if key.startswith('PHASE1_BENCH_RBTREE_')
+        ),
+        None,
+    )
+    if optional_rbtree_checksum is not None:
+        raise SystemExit(
+            'phase1-bench:expectations:checksums:rbtree_exact_required:'
+            f'{optional_rbtree_checksum}'
+        )
+
     for bitmap_exact_checksum in sorted(metric_groups['exact_checksums']):
         if not bitmap_exact_checksum.startswith('PHASE1_BENCH_BITMAP_'):
             continue
@@ -498,20 +512,25 @@ def run_self_test() -> int:
     else:
         raise SystemExit('phase1-bench:self-test:invalid_find_bit_missing_zero_iterations:unexpected_pass')
 
-    invalid_rbtree_missing_iterations = {
+    invalid_rbtree_optional = {
         **rbtree_expectations,
-        'iterations': {},
+        'exact_checksums': {
+            key: value
+            for key, value in rbtree_expectations['exact_checksums'].items()
+            if key != 'PHASE1_BENCH_RBTREE_DUPLICATE_CHECKSUM'
+        },
+        'checksums': ['PHASE1_BENCH_RBTREE_DUPLICATE_CHECKSUM'],
     }
     try:
-        validate_expectations_shape(invalid_rbtree_missing_iterations)
+        validate_expectations_shape(invalid_rbtree_optional)
     except SystemExit as exc:
         assert_equal(
-            'invalid_rbtree_missing_iterations',
+            'invalid_rbtree_optional',
             str(exc),
-            'phase1-bench:expectations:iterations:rbtree_required:PHASE1_BENCH_RBTREE_ITERATIONS',
+            'phase1-bench:expectations:checksums:rbtree_exact_required:PHASE1_BENCH_RBTREE_DUPLICATE_CHECKSUM',
         )
     else:
-        raise SystemExit('phase1-bench:self-test:invalid_rbtree_missing_iterations:unexpected_pass')
+        raise SystemExit('phase1-bench:self-test:invalid_rbtree_optional:unexpected_pass')
 
     print('PHASE1_BENCH_SELF_TEST=pass')
     print('PHASE1_BENCH_SELF_TEST_CASE_COUNT=19')
