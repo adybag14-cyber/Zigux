@@ -73,7 +73,7 @@ Without this matrix, the slice preserves the parked boundary but does not keep t
 - the shared Phase 11 gate for this lane remains `zigux/tests/phase11_build.zig`
 - the shared Phase 11 gate now keeps both `zigux/tests/phase11_hvc_console_modem_control_split.zig` and `zigux/tests/phase11_hvc_console_poll_retry_split.zig` inside the same replay packet so callback-fallback, sysrq-state, and poll-retry failure modes stay explicit without widening the dedicated survey gate
 - the dedicated archival survey gate remains `zigux/tests/phase11_hvc_console_survey.zig`
-- the dedicated survey replay still passes separately from the shared Phase 11 replay and remains the archival checkpoint for this lane: `make -C zigux phase11-hvc-survey` routes through the dedicated `hvc-console-survey` step in `zigux/tests/phase11_build.zig`, while `make -C zigux phase11` continues to route only through the shared `test` step and therefore does not automatically run that archival replay
+- the dedicated survey replay still passes separately from the shared Phase 11 replay and remains the archival checkpoint for this lane: `make -C zigux phase11-hvc-survey` routes through the dedicated `hvc-console-survey` step in `zigux/tests/phase11_build.zig`, and `make -C zigux phase11` keeps that archival replay in the published validator-first path after `phase11-validate` and the shared `test` step complete
 - this bounded notifier-add, sysrq, worker-entry, sleep-handoff, drain-order, hangup-disconnect, remove-handoff, cleanup-handoff, and write-failure evidence stays inside the existing starter, test, survey, manifest, and note files rather than adding a new Phase 11 entry point
 
 ## Review Rules
