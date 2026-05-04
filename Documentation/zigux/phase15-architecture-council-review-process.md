@@ -130,6 +130,8 @@ If multiple triggers are cited together, each trigger's minimum evidence must st
 
 - current lane posture: `maintenance_mode`
 - replay before trusting this parked handoff:
+  - `python3 scripts/zigux/validate-phase15.py`
+  - `make -C zigux phase15-validate`
   - `zig build test --build-file zigux/tests/phase15_build.zig`
   - `make -C zigux phase15`
 - keep `Documentation/zigux/phase15-readiness-gate-survey.md`, `zigux/tests/phase15_docs_root_reviewability.zig`, `scripts/zigux/README.md`, `scripts/zigux/check-phase15-review-process-handoff.py`, `scripts/zigux/validate-phase15.py`, and `zigux/tests/README.md` aligned with the same parked governance bundle so the readiness packet, docs-root reviewability guard, scripts-root validator path, dedicated handoff-checker route, and tests-root guidance path do not drift away from the Architecture Council handoff while this lane remains parked
@@ -174,7 +176,7 @@ The current lane state is:
 - landed `phase15-review-process-scripts-tests-root-handoff-sync`
 - landed `phase15-review-process-readiness-docs-root-handoff-sync`
 
-This keeps the slice narrow. Zigux gains a reviewable Architecture Council process description that now points at the landed parity scorecard, aligns the required packet with the scorecard's decision-record fields, keeps the dedicated freeze-map-governance companion explicit in the same parked handoff bundle, names the retained stay-in-C closeout state, standardizes the reopen-trigger catalog, requires refreshed ownership evidence when a packet reopens because ownership or validation changed, requires trigger-specific reopened evidence by path instead of trigger-name-only reopen requests, makes the automatic return-to-blocked trigger explicit in the review packet, promotes the rollback threshold from implied trigger wording to an explicit required request field, requires an explicit source-of-truth reminder inside the same request field set, keeps the current ownership-evidence inventory synced to the same rollback-threshold proof already required by the scorecard and the reserved anchor templates, keeps the current roadmap phase and written rationale explicit in the shared checklist, keeps the roadmap and ledger provenance explicit in the same handoff surface, refreshes the packet's own lane-identity and provenance markers so the note, manifest, and focused test stay aligned with the current parked maintenance-mode Phase 15 packet and the neighboring Phase 15 governance packet family, keeps the scripts-root validator path, dedicated handoff-checker route, and tests-root guidance path visible inside the same handoff packet, records one explicit current-enforcement-evidence section for the parked note and its checker, keeps the dedicated readiness packet and docs-root reviewability guard explicit inside that same current-repo handoff bundle, and states the current no-approval posture plainly, but it still does not claim a real council roster or any change to a freeze-map anchor status.
+This keeps the slice narrow. Zigux gains a reviewable Architecture Council process description that now points at the landed parity scorecard, aligns the required packet with the scorecard's decision-record fields, keeps the dedicated freeze-map-governance companion explicit in the same parked handoff bundle, names the retained stay-in-C closeout state, standardizes the reopen-trigger catalog, requires refreshed ownership evidence when a packet reopens because ownership or validation changed, requires trigger-specific reopened evidence by path instead of trigger-name-only reopen requests, makes the automatic return-to-blocked trigger explicit in the review packet, promotes the rollback threshold from implied trigger wording to an explicit required request field, requires an explicit source-of-truth reminder inside the same request field set, keeps the current ownership-evidence inventory synced to the same rollback-threshold proof already required by the scorecard and the reserved anchor templates, keeps the current roadmap phase and written rationale explicit in the shared checklist, keeps the roadmap and ledger provenance explicit in the same handoff surface, refreshes the packet's own lane-identity and provenance markers so the note, manifest, and focused test stay aligned with the current parked maintenance-mode Phase 15 packet and the neighboring Phase 15 governance packet family, keeps the scripts-root validator path, dedicated handoff-checker route, and tests-root guidance path visible inside the same handoff packet, records one explicit current-enforcement-evidence section for the parked note and its checker, keeps the dedicated readiness packet and docs-root reviewability guard explicit inside that same current-repo handoff bundle, states the current no-approval posture plainly, and now keeps the packet's own Gates and maintenance-mode handoff wording explicit about the shared validator-first route before the wider replay path, but it still does not claim a real council roster or any change to a freeze-map anchor status.
 
 ## Non-goals
 
@@ -187,10 +189,14 @@ This slice does not claim:
 
 ## Gates
 
-1. run the dedicated Phase 15 build
+1. run the shared validator-first gate
+- `python3 scripts/zigux/validate-phase15.py`
+- `make -C zigux phase15-validate`
+
+2. run the dedicated Phase 15 build
 - `zig build test --build-file zigux/tests/phase15_build.zig`
 
-2. run the convenience target
+3. run the convenience target
 - `make -C zigux phase15`
 
 ## Next bounded step
