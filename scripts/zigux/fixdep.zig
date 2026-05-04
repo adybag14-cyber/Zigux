@@ -1015,3 +1015,55 @@ test "preserving a primary error ignores late output flush failures" {
 
     flushOutputPreservingPrimaryError(&writer);
 }
+
+test "runFixdep keeps the savedcmd prelude before no-target parse errors" {
+    const Capture = struct {
+        list: std.ArrayList(u8),
+        allocator: std.mem.Allocator,
+
+        fn init(allocator: std.mem.Allocator) !@This() {
+            return .{
+                .list = try std.ArrayList(u8).initCapacity(allocator, 64),
+                .allocator = allocator,
+            };
+        }
+
+        fn deinit(self: *@This()) void {
+            self.list.deinit(self.allocator);
+        }
+
+        fn print(self: *@This(), comptime fmt: []const u8, args: anytype) !void {
+            const rendered = try std.fmt.allocPrint(self.allocator, fmt, args);
+            defer self.allocator.free(rendered);
+            try self.list.appendSlice(self.allocator, rendered);
+        }
+
+        fn flush(_: *@This()) !void {}
+    };
+
+    const depfile_name = "zigux_fixdep_comment_only_test.d";
+    try Io.Dir.cwd().writeFile(std.testing.io, .{
+        .sub_path = depfile_name,
+        .data = "# comment only\n# still no targets\n",
+    });
+    defer Io.Dir.cwd().deleteFile(std.testing.io, depfile_name) catch {};
+
+    var capture = try Capture.init(std.testing.allocator);
+    defer capture.deinit();
+
+    try std.testing.expectError(
+        error.NoTargets,
+        runFixdep(
+            std.testing.allocator,
+            std.testing.io,
+            &capture,
+            depfile_name,
+            "sample.o",
+            "clang -c sample.c -o sample.o",
+        ),
+    );
+    try std.testing.expectEqualStrings(
+        "savedcmd_sample.o := clang -c sample.c -o sample.o\n\n",
+        capture.list.items,
+    );
+}
