@@ -163,7 +163,10 @@ Key entrypoints
 - `zigux/tests/fixtures/phase11_build_inventory.json`
 - `zigux/tests/phase3_abi.zig`
 - `zigux/tests/phase14_build.zig`
+- `zigux/tests/phase14_end_to_end_smoke_survey.zig`
+- `zigux/tests/phase14_end_to_end_smoke_manifest.json`
 - `zigux/tests/phase14_ring_buffer_survey.zig`
+- `zigux/tests/phase14_rcu_tree_survey.zig`
 - `zigux/tests/phase14_skbuff_bridge.zig`
 - `zigux/tests/phase14_workqueue_bridge.zig`
 - `scripts/zigux/validate-phase3.py`
