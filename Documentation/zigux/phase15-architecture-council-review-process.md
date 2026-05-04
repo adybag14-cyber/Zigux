@@ -24,11 +24,11 @@ This document records the bounded Phase 15 governance lane around the Architectu
 
 ## Why this slice exists
 
-The roadmap's Phase 15 requirements include an Architecture Council review process, a parity scorecard, and the policy for code that remains in C indefinitely. Current `master` already carries the freeze map, stay-in-C governance language, and a landed parity-scorecard baseline, but this review-process note is still the reviewable record that says when the Architecture Council must be engaged, what evidence a request must carry, and what bounded outcomes are allowed.
+The roadmap's Phase 15 requirements include an Architecture Council review process, a parity scorecard, and the policy for code that remains in C indefinitely. Current `master` already carries the freeze map, stay-in-C governance language, a landed parity-scorecard baseline, and this review-process note as the reviewable record that says when the Architecture Council must be engaged, what evidence a request must carry, and what bounded outcomes are allowed.
 
-That missing process leaves a governance gap between the roadmap and the live repo. Without it, a future patch can mention the Architecture Council in principle while still leaving reviewers to guess what packet a status-change request needs and which decisions are legitimate inside the current mixed-language product plan.
+The current roadmap-versus-repo gap inside this slice is no longer a missing review-process artifact. The maintenance-mode task here is narrower: keep the trigger conditions, required packet fields, approval posture, reopen evidence rules, and shared handoff surfaces aligned with the same parked Phase 15 governance bundle instead of letting the process packet drift into stale or contradictory guidance.
 
-The honest bounded step is to land a survey-grade review-process note that turns the roadmap requirement into a concrete review artifact without pretending the council already has a full roster, cadence, or automation surface.
+That is the honest bounded role for this note now. It keeps the roadmap requirement concrete and reviewable without pretending the council already has a full roster, cadence, automation surface, or any approved freeze-map status change.
 
 ## Trigger Conditions
 
