@@ -255,6 +255,10 @@ test "phase12 virtio scsi repeated recovery refreshes frozen topology and queue 
     });
     _ = try lab.freezeForTransportReset();
     _ = try lab.restoreAfterTransportReset();
+    try std.testing.expectError(error.TransportNotFrozen, lab.recoveryQueuePlan());
+    try std.testing.expectError(error.TransportNotFrozen, lab.recoveryIoQueueMapSummary());
+    try std.testing.expectError(error.TransportNotFrozen, lab.recoveryEventRefillSummary());
+    try std.testing.expectError(error.TransportNotFrozen, lab.recoveryRestoreSummary());
 
     const relaid = try lab.planQueueLayout(3, 0);
     try std.testing.expectEqual(@as(u16, 3), relaid.request_queues);
@@ -298,6 +302,16 @@ test "phase12 virtio scsi repeated recovery refreshes frozen topology and queue 
     try std.testing.expectEqual(@as(u16, 3), io_map.default_queue_count);
     try std.testing.expectEqual(@as(u16, 0), io_map.poll_queue_count);
     try std.testing.expect(!io_map.requires_poll_map_restore);
+
+    const second_restore = try lab.restoreAfterTransportReset();
+    try std.testing.expectEqual(@as(u16, 2), second_restore.recovery_generation);
+    try std.testing.expectEqual(@as(u16, 3), second_restore.remembered_request_queues);
+    try std.testing.expectEqual(@as(u16, 0), second_restore.remembered_poll_queues);
+    try std.testing.expect(second_restore.requires_queue_layout_replan);
+    try std.testing.expectError(error.TransportNotFrozen, lab.recoveryQueuePlan());
+    try std.testing.expectError(error.TransportNotFrozen, lab.recoveryIoQueueMapSummary());
+    try std.testing.expectError(error.TransportNotFrozen, lab.recoveryEventRefillSummary());
+    try std.testing.expectError(error.TransportNotFrozen, lab.recoveryRestoreSummary());
 }
 
 test "phase12 virtio scsi rejects invalid freeze restore sequencing" {
