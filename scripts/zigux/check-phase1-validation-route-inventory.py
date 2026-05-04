@@ -394,6 +394,10 @@ def self_test() -> int:
             ("Documentation/zigux/review-checklist.md", fixture_text(checklist_entries)),
             ("scripts/zigux/README.md", fixture_text(scripts_entries)),
             ("scripts/zigux/validate-phase1.py", "// fixture\n"),
+            ("scripts/zigux/check-phase1-parity.py", "// fixture\n"),
+            ("scripts/zigux/check-phase1-bench.py", "// fixture\n"),
+            ("scripts/zigux/validate-phase1-closure.py", "// fixture\n"),
+            (".github/workflows/zigux-bootstrap.yml", fixture_text(workflow_entries)),
             ("zigux/tests/README.md", fixture_text(tests_entries)),
             ("zigux/Makefile", fixture_text(makefile_entries)),
         ]
