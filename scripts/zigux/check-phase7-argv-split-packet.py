@@ -24,6 +24,7 @@ REQUIRED_FILES = [
     ROOT / "Documentation" / "zigux" / "phase7-argv-split-slice.md",
     ROOT / "lib" / "argv_split.zig",
     ROOT / "zigux" / "Makefile",
+    ROOT / "zigux" / "tests" / "README.md",
     ROOT / "zigux" / "tests" / "phase7_build.zig",
     ROOT / "zigux" / "tests" / "phase7_argv_split.zig",
     ROOT / "zigux" / "tests" / "phase7_argv_split_survey.zig",
@@ -63,6 +64,10 @@ REQUIRED_SCRIPTS_ROOT_MARKERS = [
 REQUIRED_SCRIPTS_ROOT_EXACT_COUNT_MARKERS = {
     "- `check-phase7-argv-split-packet.py`": 1,
 }
+
+REQUIRED_TESTS_ROOT_MARKERS = [
+    "`scripts/zigux/check-phase7-argv-split-packet.py`",
+]
 
 REQUIRED_PARITY_MARKERS = [
     'SELF_TEST_PAYLOAD_ENV = "PHASE7_ARGV_SPLIT_PARITY_SELFTEST_PAYLOAD"',
@@ -151,6 +156,12 @@ SELF_TEST_FILE_CONTENTS = {
     "scripts/zigux/README.md": "\n".join(
         [
             "- `check-phase7-argv-split-packet.py`",
+            "",
+        ]
+    ),
+    "zigux/tests/README.md": "\n".join(
+        [
+            "`scripts/zigux/check-phase7-argv-split-packet.py`",
             "",
         ]
     ),
@@ -370,6 +381,23 @@ def run_self_test() -> int:
         )
         scripts_root_path.write_text(original_scripts_root, encoding="utf-8")
 
+        tests_root_path = tmp_root / "zigux" / "tests" / "README.md"
+        original_tests_root = read(tests_root_path)
+        tests_root_path.write_text(
+            original_tests_root.replace(
+                "`scripts/zigux/check-phase7-argv-split-packet.py`",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_failure(
+            "tests_root_packet_marker",
+            tmp_root,
+            "zigux/tests/README.md: `scripts/zigux/check-phase7-argv-split-packet.py`",
+        )
+        tests_root_path.write_text(original_tests_root, encoding="utf-8")
+
         makefile_path = tmp_root / "zigux" / "Makefile"
         original_makefile = read(makefile_path)
         makefile_path.write_text(
@@ -489,7 +517,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE7_ARGV_SPLIT_PACKET_SELF_TEST=pass")
-    print("PHASE7_ARGV_SPLIT_PACKET_SELF_TEST_CASE_COUNT=14")
+    print("PHASE7_ARGV_SPLIT_PACKET_SELF_TEST_CASE_COUNT=15")
     return 0
 
 
@@ -525,6 +553,7 @@ if missing_files:
 
 docs_root = read(ROOT / "Documentation" / "zigux" / "README.md")
 scripts_root = read(ROOT / "scripts" / "zigux" / "README.md")
+tests_root = read(ROOT / "zigux" / "tests" / "README.md")
 doc = read(ROOT / "Documentation" / "zigux" / "phase7-argv-split-slice.md")
 parity = read(ROOT / "scripts" / "zigux" / "check-phase7-argv-split-parity.py")
 makefile = read(ROOT / "zigux" / "Makefile")
@@ -549,6 +578,7 @@ assert_exact_count_markers(
     REQUIRED_SCRIPTS_ROOT_EXACT_COUNT_MARKERS,
     missing_markers,
 )
+assert_markers("zigux/tests/README.md", tests_root, REQUIRED_TESTS_ROOT_MARKERS, missing_markers)
 assert_markers("Documentation/zigux/phase7-argv-split-slice.md", doc, REQUIRED_DOC_MARKERS, missing_markers)
 assert_markers("scripts/zigux/check-phase7-argv-split-parity.py", parity, REQUIRED_PARITY_MARKERS, missing_markers)
 assert_markers("zigux/Makefile", makefile, REQUIRED_MAKE_MARKERS, missing_markers)
@@ -604,5 +634,5 @@ print("PHASE7_ARGV_SPLIT_PACKET=pass")
 print(f"PHASE7_ARGV_SPLIT_PACKET_REQUIRED_FILE_COUNT={len(REQUIRED_FILES)}")
 print(
     "PHASE7_ARGV_SPLIT_PACKET_REQUIRED_MARKER_COUNT="
-    f"{len(REQUIRED_DOCS_ROOT_MARKERS) + len(REQUIRED_DOCS_ROOT_EXACT_COUNT_MARKERS) + len(REQUIRED_SCRIPTS_ROOT_MARKERS) + len(REQUIRED_SCRIPTS_ROOT_EXACT_COUNT_MARKERS) + len(REQUIRED_DOC_MARKERS) + len(REQUIRED_PARITY_MARKERS) + len(REQUIRED_MAKE_MARKERS) + len(REQUIRED_BUILD_MARKERS) + len(REQUIRED_TEST_MARKERS) + len(REQUIRED_SURVEY_MARKERS) + len(REQUIRED_HELPER_MARKERS)}"
+    f"{len(REQUIRED_DOCS_ROOT_MARKERS) + len(REQUIRED_DOCS_ROOT_EXACT_COUNT_MARKERS) + len(REQUIRED_SCRIPTS_ROOT_MARKERS) + len(REQUIRED_SCRIPTS_ROOT_EXACT_COUNT_MARKERS) + len(REQUIRED_TESTS_ROOT_MARKERS) + len(REQUIRED_DOC_MARKERS) + len(REQUIRED_PARITY_MARKERS) + len(REQUIRED_MAKE_MARKERS) + len(REQUIRED_BUILD_MARKERS) + len(REQUIRED_TEST_MARKERS) + len(REQUIRED_SURVEY_MARKERS) + len(REQUIRED_HELPER_MARKERS)}"
 )
