@@ -18,6 +18,8 @@ This document records the shared boot/runtime loader gap that still separates th
   - `zigux/tests/runtime_trace_events_manifest.json`
   - `zigux/tests/phase9_build.zig`
   - `zigux/kernel/runtime_loader.zig`
+  - `scripts/zigux/check-phase9-runtime-loader-commit-alignment.py`
+  - `scripts/zigux/check-phase9-loader-non-owner-boundary.py`
   - `samples/zigux/runtime_atomic64_loader.zig`
   - `samples/zigux/runtime_bitmap_loader.zig`
   - `samples/zigux/runtime_kretprobe_loader.zig`
@@ -70,6 +72,8 @@ The manifest-backed catalog for this slice now names which file owns each part o
 - `zigux/tests/runtime_loader_gap_survey.zig` owns the machine-checkable replay of the manifest, note, shared request surface, and without-substrate rollback posture
 - `zigux/tests/phase9_build.zig` owns the shared Phase 9 runtime bundle replay entrypoint
 - `zigux/kernel/runtime_loader.zig` owns the shared request contract plus allocator, selftest-hook, command-name, and init or exit handoff fields
+- `scripts/zigux/check-phase9-runtime-loader-commit-alignment.py` owns the focused surveyed-commit alignment guard for this survey note, the paired substrate-plan note, and the manifest-backed catalog before the broader runtime bundle reruns
+- `scripts/zigux/check-phase9-loader-non-owner-boundary.py` owns the focused non-owner boundary guard that keeps the Phase 2 config bridges and Phase 3 export-boundary references explicit instead of counting them as direct Phase 9 runtime evidence
 - `samples/zigux/runtime_atomic64_loader.zig` owns the atomic64 loader-plan projection and without-substrate rollback path into the shared runtime request surface
 - `samples/zigux/runtime_bitmap_loader.zig` owns the bitmap loader-plan projection and without-substrate rollback path into the shared runtime request surface
 - `samples/zigux/runtime_kretprobe_loader.zig` owns the kretprobe loader-plan projection and without-substrate rollback path into the shared runtime request surface
