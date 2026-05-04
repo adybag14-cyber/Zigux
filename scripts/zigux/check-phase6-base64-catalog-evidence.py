@@ -14,6 +14,7 @@ ROOT = SCRIPT_PATH.parents[2] if len(SCRIPT_PATH.parents) > 2 else SCRIPT_PATH.p
 CATALOG_PATH = Path("Documentation/zigux/phase6-helper-parity-catalog.md")
 MANIFEST_PATH = Path("zigux/tests/phase6_helper_parity_manifest.json")
 PARITY_SCRIPT_PATH = Path("scripts/zigux/check-phase6-base64-c-parity.py")
+GENERATED_INCLUDE_PATH = Path("zigux/tests/fixtures/phase6_base64_c_generated_cases.inc")
 
 SELF_TEST_CASE_COUNT = 10
 PARITY_CASE_COUNT = 122
@@ -21,7 +22,7 @@ VARIANT_ENCODE_VECTORS = 30
 VARIANT_DECODE_VECTORS = 20
 PERF_PAYLOAD_CASES = 2
 PERF_REPLAY_CASES = 10
-CATALOG_EVIDENCE_SELF_TEST_CASE_COUNT = 15
+CATALOG_EVIDENCE_SELF_TEST_CASE_COUNT = 16
 
 CATALOG_MARKERS = [
     "shared packet posture: parked after the current helper-local parity and perf surface cleared the bounded Phase 6 goal",
@@ -30,14 +31,15 @@ CATALOG_MARKERS = [
 ]
 
 CATALOG_FIXTURE_MARKERS = [
-    f"{VARIANT_ENCODE_VECTORS} variant encode vectors",
-    f"{VARIANT_DECODE_VECTORS} variant decode vectors",
-    f"{PERF_PAYLOAD_CASES} committed perf payload cases",
-    f"{PERF_REPLAY_CASES} committed perf replay cases",
+    "`zigux/tests/fixtures/phase6_base64_vectors.zig` is the current static base64 corpus with 22 standard encode vectors, 30 variant encode vectors, 22 standard decode vectors, 20 variant decode vectors, 28 invalid decode vectors, 2 committed perf payload cases, and 10 committed perf replay cases",
+]
+
+CATALOG_DETERMINISM_MARKERS = [
+    "No generated Phase 6 fixture artifact is committed today; current corpus determinism comes from these committed literals, normalization helpers, and sorted external parity replays.",
 ]
 
 CATALOG_REVIEW_MARKERS = [
-    "`python3 scripts/zigux/check-phase6-base64-catalog-evidence.py --self-test` and `python3 scripts/zigux/check-phase6-base64-catalog-evidence.py` now keep the shared base64 review packet fail-closed",
+    "`python3 scripts/zigux/check-phase6-base64-catalog-evidence.py --self-test` and `python3 scripts/zigux/check-phase6-base64-catalog-evidence.py` now keep the shared base64 review packet fail-closed on the exact parked shared-packet posture, the 30 variant encode vectors, 20 variant decode vectors, `PHASE6_BASE64_C_PARITY_SELF_TEST_CASE_COUNT=10`, and `PHASE6_BASE64_C_PARITY_CASES=122` evidence recorded across this catalog, `zigux/tests/phase6_helper_parity_manifest.json`, and `scripts/zigux/check-phase6-base64-c-parity.py`.",
 ]
 
 PARITY_SCRIPT_MARKERS = [
@@ -66,6 +68,9 @@ def validate(root: Path) -> list[str]:
     if missing:
         return missing
 
+    if (root / GENERATED_INCLUDE_PATH).exists():
+        missing.append(f"generated_artifact_present:{GENERATED_INCLUDE_PATH.as_posix()}")
+
     catalog = read_text(root, CATALOG_PATH)
     for marker in CATALOG_MARKERS:
         if marker not in catalog:
@@ -73,6 +78,9 @@ def validate(root: Path) -> list[str]:
     for marker in CATALOG_FIXTURE_MARKERS:
         if marker not in catalog:
             missing.append(f"catalog_fixture:missing:{marker}")
+    for marker in CATALOG_DETERMINISM_MARKERS:
+        if marker not in catalog:
+            missing.append(f"catalog_determinism:missing:{marker}")
     for marker in CATALOG_REVIEW_MARKERS:
         if marker not in catalog:
             missing.append(f"catalog_review:missing:{marker}")
@@ -96,6 +104,12 @@ def validate(root: Path) -> list[str]:
         missing.append("manifest:base64:c_parity_self_test_cases")
     if base64.get("c_parity_cases") != PARITY_CASE_COUNT:
         missing.append("manifest:base64:c_parity_cases")
+
+    determinism = manifest.get("determinism_evidence")
+    if not isinstance(determinism, dict):
+        missing.append("manifest:determinism_evidence")
+    elif determinism.get("generated_fixture_artifacts_committed") is not False:
+        missing.append("manifest:generated_fixture_artifacts_committed")
 
     exact_checks = manifest.get("exact_checks")
     if not isinstance(exact_checks, list):
@@ -121,7 +135,10 @@ def build_self_test_tree(root: Path) -> None:
     write(
         root,
         CATALOG_PATH,
-        "\n".join(["# x", *CATALOG_MARKERS, *CATALOG_FIXTURE_MARKERS, *CATALOG_REVIEW_MARKERS]) + "\n",
+        "\n".join(
+            ["# x", *CATALOG_MARKERS, *CATALOG_FIXTURE_MARKERS, *CATALOG_DETERMINISM_MARKERS, *CATALOG_REVIEW_MARKERS]
+        )
+        + "\n",
     )
     write(root, PARITY_SCRIPT_PATH, "\n".join(PARITY_SCRIPT_MARKERS) + "\n")
     write(
@@ -137,7 +154,8 @@ def build_self_test_tree(root: Path) -> None:
                         "perf_replay_cases": PERF_REPLAY_CASES,
                         "c_parity_self_test_cases": SELF_TEST_CASE_COUNT,
                         "c_parity_cases": PARITY_CASE_COUNT,
-                    }
+                    },
+                    "generated_fixture_artifacts_committed": False,
                 },
                 "exact_checks": EXPECTED_CHECKS,
             },
@@ -170,27 +188,21 @@ def run_self_test() -> int:
             count += 1
 
             build_self_test_tree(root)
-            write(root, CATALOG_PATH, "\n".join(["# x", *CATALOG_MARKERS, *CATALOG_FIXTURE_MARKERS]) + "\n")
+            write(root, CATALOG_PATH, "\n".join(["# x", *CATALOG_MARKERS, *CATALOG_FIXTURE_MARKERS, *CATALOG_DETERMINISM_MARKERS]) + "\n")
             if f"catalog_review:missing:{CATALOG_REVIEW_MARKERS[0]}" not in validate(root):
                 raise AssertionError("missing catalog review marker failure")
             count += 1
 
             build_self_test_tree(root)
-            write(root, CATALOG_PATH, "\n".join(["# x", *CATALOG_MARKERS, CATALOG_FIXTURE_MARKERS[1], *CATALOG_FIXTURE_MARKERS[2:], *CATALOG_REVIEW_MARKERS]) + "\n")
+            write(root, CATALOG_PATH, "\n".join(["# x", *CATALOG_MARKERS, *CATALOG_DETERMINISM_MARKERS, *CATALOG_REVIEW_MARKERS]) + "\n")
             if f"catalog_fixture:missing:{CATALOG_FIXTURE_MARKERS[0]}" not in validate(root):
                 raise AssertionError("missing catalog fixture marker failure")
             count += 1
 
             build_self_test_tree(root)
-            write(root, CATALOG_PATH, "\n".join(["# x", *CATALOG_MARKERS, *CATALOG_FIXTURE_MARKERS[:2], CATALOG_FIXTURE_MARKERS[3], *CATALOG_REVIEW_MARKERS]) + "\n")
-            if f"catalog_fixture:missing:{CATALOG_FIXTURE_MARKERS[2]}" not in validate(root):
-                raise AssertionError("missing catalog perf payload marker failure")
-            count += 1
-
-            build_self_test_tree(root)
-            write(root, CATALOG_PATH, "\n".join(["# x", *CATALOG_MARKERS, *CATALOG_FIXTURE_MARKERS[:3], *CATALOG_REVIEW_MARKERS]) + "\n")
-            if f"catalog_fixture:missing:{CATALOG_FIXTURE_MARKERS[3]}" not in validate(root):
-                raise AssertionError("missing catalog perf replay marker failure")
+            write(root, CATALOG_PATH, "\n".join(["# x", *CATALOG_MARKERS, *CATALOG_FIXTURE_MARKERS, *CATALOG_REVIEW_MARKERS]) + "\n")
+            if f"catalog_determinism:missing:{CATALOG_DETERMINISM_MARKERS[0]}" not in validate(root):
+                raise AssertionError("missing catalog determinism marker failure")
             count += 1
 
             build_self_test_tree(root)
@@ -227,6 +239,14 @@ def run_self_test() -> int:
 
             build_self_test_tree(root)
             manifest = json.loads(read_text(root, MANIFEST_PATH))
+            manifest["determinism_evidence"]["generated_fixture_artifacts_committed"] = True
+            write(root, MANIFEST_PATH, json.dumps(manifest, indent=2) + "\n")
+            if "manifest:generated_fixture_artifacts_committed" not in validate(root):
+                raise AssertionError("missing manifest generated-artifact failure")
+            count += 1
+
+            build_self_test_tree(root)
+            manifest = json.loads(read_text(root, MANIFEST_PATH))
             manifest["exact_checks"] = manifest["exact_checks"][:-1]
             write(root, MANIFEST_PATH, json.dumps(manifest, indent=2) + "\n")
             if (
@@ -255,6 +275,12 @@ def run_self_test() -> int:
             write(root, PARITY_SCRIPT_PATH, 'print("PHASE6_BASE64_C_PARITY_SELF_TEST=pass")\n')
             if 'parity_script:missing:print("PHASE6_BASE64_C_PARITY=pass")' not in validate(root):
                 raise AssertionError("missing parity script marker failure")
+            count += 1
+
+            build_self_test_tree(root)
+            write(root, GENERATED_INCLUDE_PATH, "transient drift\n")
+            if f"generated_artifact_present:{GENERATED_INCLUDE_PATH.as_posix()}" not in validate(root):
+                raise AssertionError("missing generated include presence failure")
             count += 1
 
             build_self_test_tree(root)
