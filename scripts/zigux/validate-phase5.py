@@ -170,8 +170,11 @@ TEXT_MARKERS = {
         '../../samples/zigux/kobject_example.zig',
         '../../samples/zigux/kretprobe_example.zig',
         '../../samples/zigux/trace_events_sample.zig',
+        'phase5-bytestream-fifo-sample-tests',
         'phase5-bytestream-fifo-tests',
+        'phase5-kobject-example-sample-tests',
         'phase5-kobject-example-tests',
+        'phase5-kretprobe-example-sample-tests',
         'phase5-kretprobe-example-tests',
         'phase5-trace-events-sample-tests',
         'phase5-bytestream-fifo-survey-tests',
@@ -304,7 +307,7 @@ MANIFEST_EXPECTATIONS = {
             "post-exit-rejection",
         ],
         "survey_note": "Documentation/zigux/phase5-kretprobe-sample-survey.md",
-        "survey_summary": "Build Summary: 17/17 steps succeeded; 28/28 tests passed",
+        "survey_summary": "Build Summary: 18/18 steps succeeded; 29/29 tests passed",
         "sample_test": "zig test samples/zigux/kretprobe_example.zig",
         "sample_result": "All 1 tests passed.",
         "survey_test": "zig test zigux/tests/phase5_kretprobe_example_survey.zig",
@@ -340,7 +343,7 @@ MANIFEST_EXPECTATIONS = {
             "post-exit-rejection",
         ],
         "survey_note": "Documentation/zigux/phase5-trace-events-sample-survey.md",
-        "survey_summary": "Build Summary: 17/17 steps succeeded; 28/28 tests passed",
+        "survey_summary": "Build Summary: 18/18 steps succeeded; 29/29 tests passed",
         "sample_test": "zig test samples/zigux/trace_events_sample.zig",
         "sample_result": "All 5 tests passed.",
         "survey_test": "zig test zigux/tests/phase5_trace_events_sample_survey.zig",
@@ -807,6 +810,21 @@ def run_self_test() -> int:
         copy_tree(ROOT, tmp_root)
         build_file = tmp_root / "zigux/tests/phase5_build.zig"
         text = build_file.read_text(encoding="utf-8").replace(
+            '"phase5-kretprobe-example-sample-tests"',
+            '"phase5-kretprobe-example-sample-review"',
+            1,
+        )
+        build_file.write_text(text, encoding="utf-8")
+        missing = validate_phase5(tmp_root)
+        if missing["ok"] or "zigux/tests/phase5_build.zig:missing:phase5-kretprobe-example-sample-tests" not in missing["missing"]:
+            print("PHASE5_VALIDATOR_SELF_TEST=fail")
+            print("PHASE5_VALIDATOR_SELF_TEST_REASON=phase5-build-kretprobe-sample-gap")
+            return 1
+
+        tmp_root = Path(tmp)
+        copy_tree(ROOT, tmp_root)
+        build_file = tmp_root / "zigux/tests/phase5_build.zig"
+        text = build_file.read_text(encoding="utf-8").replace(
             '"phase5-kobject-example-survey-tests"',
             '"phase5-kobject-example-survey-review"',
             1,
@@ -849,7 +867,7 @@ def run_self_test() -> int:
             return 1
 
     print("PHASE5_VALIDATOR_SELF_TEST=pass")
-    print("PHASE5_VALIDATOR_SELF_TEST_CASE_COUNT=27")
+    print("PHASE5_VALIDATOR_SELF_TEST_CASE_COUNT=28")
     return 0
 
 
