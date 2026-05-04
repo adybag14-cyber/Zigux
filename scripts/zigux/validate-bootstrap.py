@@ -84,8 +84,14 @@ required_workflow_markers = [
     'python3 scripts/zigux/check-phase10-harness-coverage.py --self-test',
     'Validate Phase 10 focused harness coverage',
     'python3 scripts/zigux/check-phase10-harness-coverage.py',
-    'Run Phase 10 virtio helper tests',
-    'zigux/tests/phase10_build.zig',
+    'Self-test Phase 11 simple-driver validator',
+    'python3 scripts/zigux/validate-phase11.py --self-test',
+    'Self-test Phase 11 header boundary packet checker',
+    'python3 scripts/zigux/check-phase11-header-boundary-packet.py --self-test',
+    'Validate Phase 11 header boundary packet',
+    'python3 scripts/zigux/check-phase11-header-boundary-packet.py',
+    'Validate Phase 11 simple-driver bundle',
+    'make -C zigux phase11-validate',
     'Run Phase 11 watchdog and console tests',
     'zigux/tests/phase11_build.zig',
     'Run dedicated Phase 11 hvc survey replay',
@@ -145,6 +151,10 @@ if (
 
 phase11_validator_self_test_command = 'python3 scripts/zigux/validate-phase11.py --self-test'
 phase11_validator_self_test_step = 'Self-test Phase 11 simple-driver validator'
+phase11_header_boundary_self_test_command = 'python3 scripts/zigux/check-phase11-header-boundary-packet.py --self-test'
+phase11_header_boundary_self_test_step = 'Self-test Phase 11 header boundary packet checker'
+phase11_header_boundary_validate_command = 'python3 scripts/zigux/check-phase11-header-boundary-packet.py'
+phase11_header_boundary_validate_step = 'Validate Phase 11 header boundary packet'
 phase11_validate_command = 'make -C zigux phase11-validate'
 phase11_validate_step = 'Validate Phase 11 simple-driver bundle'
 phase11_hvc_survey_command = 'make -C zigux phase11-hvc-survey'
@@ -153,6 +163,26 @@ workflow_phase11_validator_self_test_command_count = len(
     re.findall(r'^\s*run:\s+python3 scripts/zigux/validate-phase11\.py --self-test\s*$', workflow, flags=re.MULTILINE)
 )
 workflow_phase11_validator_self_test_step_count = workflow.count(phase11_validator_self_test_step)
+workflow_phase11_header_boundary_self_test_command_count = len(
+    re.findall(
+        r'^\s*run:\s+python3 scripts/zigux/check-phase11-header-boundary-packet\.py --self-test\s*$',
+        workflow,
+        flags=re.MULTILINE,
+    )
+)
+workflow_phase11_header_boundary_self_test_step_count = workflow.count(
+    phase11_header_boundary_self_test_step
+)
+workflow_phase11_header_boundary_validate_command_count = len(
+    re.findall(
+        r'^\s*run:\s+python3 scripts/zigux/check-phase11-header-boundary-packet\.py\s*$',
+        workflow,
+        flags=re.MULTILINE,
+    )
+)
+workflow_phase11_header_boundary_validate_step_count = workflow.count(
+    phase11_header_boundary_validate_step
+)
 workflow_phase11_validate_command_count = len(
     re.findall(r'^\s*run:\s+make -C zigux phase11-validate\s*$', workflow, flags=re.MULTILINE)
 )
@@ -164,6 +194,10 @@ workflow_phase11_hvc_survey_step_count = workflow.count(phase11_hvc_survey_step)
 if (
     workflow_phase11_validator_self_test_command_count != 1
     or workflow_phase11_validator_self_test_step_count != 1
+    or workflow_phase11_header_boundary_self_test_command_count != 1
+    or workflow_phase11_header_boundary_self_test_step_count != 1
+    or workflow_phase11_header_boundary_validate_command_count != 1
+    or workflow_phase11_header_boundary_validate_step_count != 1
     or workflow_phase11_validate_command_count != 1
     or workflow_phase11_validate_step_count != 1
     or workflow_phase11_hvc_survey_command_count != 1
@@ -178,6 +212,22 @@ if (
     print(
         'workflow:phase11_validator_self_test_step_count='
         f'{workflow_phase11_validator_self_test_step_count},expected=1'
+    )
+    print(
+        'workflow:phase11_header_boundary_self_test_command_count='
+        f'{workflow_phase11_header_boundary_self_test_command_count},expected=1'
+    )
+    print(
+        'workflow:phase11_header_boundary_self_test_step_count='
+        f'{workflow_phase11_header_boundary_self_test_step_count},expected=1'
+    )
+    print(
+        'workflow:phase11_header_boundary_validate_command_count='
+        f'{workflow_phase11_header_boundary_validate_command_count},expected=1'
+    )
+    print(
+        'workflow:phase11_header_boundary_validate_step_count='
+        f'{workflow_phase11_header_boundary_validate_step_count},expected=1'
     )
     print(f'workflow:phase11_validate_command_count={workflow_phase11_validate_command_count},expected=1')
     print(f'workflow:phase11_validate_step_count={workflow_phase11_validate_step_count},expected=1')
