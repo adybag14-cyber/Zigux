@@ -164,7 +164,8 @@
       "phase10-mmio-queue-address-helper",
       "phase10-mmio-config-window-helper",
       "phase10-mmio-config-write-helper",
-      "phase10-mmio-interrupt-ack-helper"
+      "phase10-mmio-interrupt-ack-helper",
+      "phase10-mmio-probe-preflight-helper"
     ]
   },
   "focused_harness_replays": {
