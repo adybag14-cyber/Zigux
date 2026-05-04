@@ -127,7 +127,7 @@ REQUIRED_LEDGER_MARKERS = [
 
 REQUIRED_BENCH_CHECKER_MARKERS = [
     "print('PHASE1_BENCH_SELF_TEST=pass')",
-    "print('PHASE1_BENCH_SELF_TEST_CASE_COUNT=18')",
+    "print('PHASE1_BENCH_SELF_TEST_CASE_COUNT=19')",
     "print('DUPLICATE_PHASE1_BENCH_KEYS_START')",
     "print('MISSING_PHASE1_BENCH_KEYS_START')",
 ]
@@ -248,7 +248,7 @@ REQUIRED_ITERATIONS = {
     "PHASE1_BENCH_HWEIGHT_ITERATIONS": 100000,
     "PHASE1_BENCH_LIST_SORT_ITERATIONS": 1000,
     "PHASE1_BENCH_RBTREE_ITERATIONS": 4000,
-}
+]
 
 REQUIRED_EXACT_CHECKSUMS = {
     "PHASE1_BENCH_BITMAP_WEIGHT_CHECKSUM": 2260000,
@@ -536,7 +536,7 @@ def self_test() -> int:
         write(root / "scripts/zigux/README.md", "\n".join(REQUIRED_SCRIPTS_ROOT_MARKERS) + "\n")
 
         write(root / "scripts/zigux/check-phase1-bench.py", "print('PHASE1_BENCH_SELF_TEST=pass')\n")
-        expect_failure(root, "bench_checker:print('PHASE1_BENCH_SELF_TEST_CASE_COUNT=18')")
+        expect_failure(root, "bench_checker:print('PHASE1_BENCH_SELF_TEST_CASE_COUNT=19')")
         write(root / "scripts/zigux/check-phase1-bench.py", "\n".join(REQUIRED_BENCH_CHECKER_MARKERS) + "\n")
 
         write(root / "zigux/Makefile", "phase1-validate:\n")
