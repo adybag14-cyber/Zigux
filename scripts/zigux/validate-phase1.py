@@ -177,6 +177,25 @@ WORKFLOW_LINES = {
     "run: python3 scripts/zigux/validate-phase1-closure.py --self-test": 1,
 }
 
+MAKEFILE_LINES = {
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase1-bitmap-validator-anchors.py --self-test": 1,
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase1-bitmap-validator-anchors.py": 1,
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase1-find-bit-validator-anchors.py --self-test": 1,
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase1-find-bit-validator-anchors.py": 1,
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase1-route-summary-counts.py --self-test": 1,
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase1-route-summary-counts.py": 1,
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase1-validation-route-inventory.py --self-test": 1,
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase1-validation-route-inventory.py": 1,
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase1.py --self-test": 1,
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase1.py": 1,
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase1-parity.py --self-test": 1,
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase1-parity.py": 1,
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase1-bench.py --self-test": 1,
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase1-bench.py": 1,
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase1-closure.py --self-test": 1,
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase1-closure.py": 1,
+}
+
 MANIFEST_EXPECTATIONS = {
     "tools/lib/bitmap.zig": {
         "header_alias_unit_test_anchor": 'tools/lib/bitmap.zig:test "bitmap header-style aliases preserve zero fill copy and predicate semantics"',
@@ -226,10 +245,8 @@ MANIFEST_EXPECTATIONS = {
     },
 }
 
-
 def read_text(rel: str) -> str:
     return (ROOT / rel).read_text(encoding="utf-8")
-
 
 def fail(label: str, items: list[str]) -> int:
     print("PHASE1_VALIDATION=fail")
@@ -238,7 +255,6 @@ def fail(label: str, items: list[str]) -> int:
         print(item)
     print(f"{label}_END")
     return 1
-
 
 def validate_fixture_shape() -> list[str]:
     issues: list[str] = []
@@ -252,7 +268,6 @@ def validate_fixture_shape() -> list[str]:
         for key in missing:
             issues.append(f"fixture:{section}:{key}:missing")
     return issues
-
 
 def validate_manifest_shape() -> list[str]:
     issues: list[str] = []
@@ -277,7 +292,6 @@ def validate_manifest_shape() -> list[str]:
             if note.get(field) != expected:
                 issues.append(f"manifest:{helper}:{field}:mismatch")
     return issues
-
 
 def validate_markers() -> list[str]:
     issues: list[str] = []
@@ -310,8 +324,12 @@ def validate_markers() -> list[str]:
         actual_count = sum(1 for raw in workflow.splitlines() if raw.strip() == line)
         if actual_count != expected_count:
             issues.append(f"workflow_exact:{line}:expected_count={expected_count}:actual_count={actual_count}")
+    makefile = read_text("zigux/Makefile")
+    for line, expected_count in MAKEFILE_LINES.items():
+        actual_count = sum(1 for raw in makefile.splitlines() if raw.strip() == line)
+        if actual_count != expected_count:
+            issues.append(f"makefile_exact:{line}:expected_count={expected_count}:actual_count={actual_count}")
     return issues
-
 
 def main() -> int:
     missing_files = [rel for rel in REQUIRED_FILES if not (ROOT / rel).exists()]
@@ -331,11 +349,9 @@ def main() -> int:
     print(f"PHASE1_REQUIRED_MARKER_COUNT={len(DOCS_ROOT_MARKERS) + len(REVIEW_CHECKLIST_MARKERS) + len(SCRIPTS_ROOT_MARKERS) + len(TESTS_ROOT_MARKERS) + len(PHASE1_CLOSURE_MARKERS) + len(WORKFLOW_LINES)}")
     return 0
 
-
 def write(path: Path, content: str) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(content, encoding="utf-8")
-
 
 def expect_failure(root: Path, expected: str) -> None:
     env = dict(os.environ)
@@ -346,7 +362,6 @@ def expect_failure(root: Path, expected: str) -> None:
         raise SystemExit(f"phase1-self-test:expected_failure:{expected}")
     if expected not in output:
         raise SystemExit(f"phase1-self-test:missing_expected_output:expected={expected!r}:actual={output!r}")
-
 
 def self_test() -> int:
     with tempfile.TemporaryDirectory(prefix="phase1-validator-") as tmp:
@@ -363,6 +378,7 @@ def self_test() -> int:
         write(root / "zigux/tests/README.md", "\n".join(TESTS_ROOT_MARKERS) + "\n")
         write(root / "Documentation/zigux/phase1-closure.md", "\n".join(PHASE1_CLOSURE_MARKERS) + "\n")
         write(root / ".github/workflows/zigux-bootstrap.yml", "\n".join(WORKFLOW_LINES.keys()) + "\n")
+        write(root / "zigux/Makefile", "\n".join(MAKEFILE_LINES.keys()) + "\n")
         write(root / "zigux/tests/fixtures/phase1_helpers.json", json.dumps({k: {x: 1 for x in v} for k, v in FIXTURE_SHAPE.items()}, indent=2) + "\n")
         write(root / "zigux/tests/fixtures/phase1_bench_expectations.json", json.dumps({"status": "pass"}, indent=2) + "\n")
         helper_notes = {helper: {} for helper in HELPERS}
@@ -409,6 +425,11 @@ def self_test() -> int:
         workflow.write_text(workflow_text.replace("run: python3 scripts/zigux/check-phase1-find-bit-validator-anchors.py\n", "", 1), encoding="utf-8")
         expect_failure(root, "workflow_exact:run: python3 scripts/zigux/check-phase1-find-bit-validator-anchors.py:expected_count=1:actual_count=0")
         write(workflow, workflow_text)
+        makefile = root / "zigux/Makefile"
+        makefile_text = makefile.read_text(encoding="utf-8")
+        makefile.write_text(makefile_text.replace("cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase1-find-bit-validator-anchors.py\n", "", 1), encoding="utf-8")
+        expect_failure(root, "makefile_exact:cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase1-find-bit-validator-anchors.py:expected_count=1:actual_count=0")
+        write(makefile, makefile_text)
         manifest_path = root / "zigux/tests/fixtures/phase1_helper_manifest.json"
         data = json.loads(manifest_path.read_text(encoding="utf-8"))
         data["helper_review_notes"]["tools/lib/rbtree.zig"]["cached_duplicate_unit_test_anchor"] = 'tools/lib/rbtree.zig:test "rbtree cached root tracks duplicate minima across replace and erase"'
@@ -433,7 +454,7 @@ def self_test() -> int:
             expect_failure(root, rel)
             write(path, baseline)
     print("PHASE1_VALIDATOR_SELF_TEST=pass")
-    print("PHASE1_VALIDATOR_SELF_TEST_CASE_COUNT=13")
+    print("PHASE1_VALIDATOR_SELF_TEST_CASE_COUNT=14")
     return 0
 
 
