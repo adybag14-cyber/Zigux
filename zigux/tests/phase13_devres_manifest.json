@@ -143,7 +143,14 @@
       "status": "starter_landed",
       "kind": "resource_helper_wrapper",
       "zigux_destination": "lib/devres_dma_coherent.zig",
-      "why_now": "The helper packet now keeps dmam_alloc_coherent() and dmam_free_coherent() helper-first in a dedicated sibling planner that records release-record allocation, success-path retention of the returned CPU address plus DMA handle for detach-time cleanup, free-on-partial-failure cleanup when either half of the coherent mapping never materializes, and exact free-time tuple matching without claiming live DMA-backed execution or scatterlist ownership."
+      "why_now": "The helper packet now keeps dmam_alloc_coherent() and dmam_free_coherent() helper-first in a dedicated sibling planner that records release-record allocation, success-path retention of the returned CPU address plus DMA handle for detach-time cleanup, free-on-partial-failure cleanup when either half of the coherent mapping never materializes, and exact free-time tuple matching without claiming live DMA-backed allocation, free, or scatterlist execution."
+    },
+    {
+      "id": "phase13-devres-scatterlist-lifetime-planner",
+      "status": "starter_landed",
+      "kind": "resource_helper_wrapper",
+      "zigux_destination": "lib/devres_scatterlist.zig",
+      "why_now": "The adjacent helper-first scatterlist slice now keeps planManagedScatterlistMap() and planManagedScatterlistUnmap() explicit around retained-record map and exact detach-time release matching without claiming live dma_map_sgtable() execution, sg_table traversal, or live scatter-gather ownership."
     },
     {
       "id": "phase13-devres-live-mmio-side-effects",
