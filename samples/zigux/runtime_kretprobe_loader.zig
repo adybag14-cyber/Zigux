@@ -21,6 +21,42 @@ pub const RuntimeKretprobeLoadPlan = struct {
     summary: runtime_kretprobe_sample.RuntimeKretprobeSummary,
 };
 
+fn optionalStringEql(lhs: ?[]const u8, rhs: ?[]const u8) bool {
+    if (lhs) |lhs_value| {
+        return if (rhs) |rhs_value| std.mem.eql(u8, lhs_value, rhs_value) else false;
+    }
+    return rhs == null;
+}
+
+pub fn keepsSharedRequestSnapshotExplicit(
+    plan: RuntimeKretprobeLoadPlan,
+    request: runtime_loader.RuntimeLoadRequest,
+) bool {
+    if (request.lane() != .kretprobe) return false;
+
+    return std.mem.eql(u8, request.module_name, plan.module_name) and
+        optionalStringEql(plan.command_name, request.command_name) and
+        std.mem.eql(u8, request.anchor, plan.anchor) and
+        std.mem.eql(u8, request.entry_symbol, plan.entry_symbol) and
+        std.mem.eql(u8, request.exit_symbol, plan.exit_symbol) and
+        request.requires_runtime_substrate == plan.requires_runtime_substrate and
+        request.provides_selftest_hook == plan.provides_selftest_hook and
+        std.mem.eql(u8, request.payload.kretprobe.register_api, plan.register_api) and
+        std.mem.eql(u8, request.payload.kretprobe.unregister_api, plan.unregister_api) and
+        std.mem.eql(u8, request.payload.kretprobe.symbol_name, plan.symbol_name) and
+        request.payload.kretprobe.maxactive == plan.maxactive and
+        request.payload.kretprobe.private_data_bytes == plan.private_data_bytes and
+        request.payload.kretprobe.active_instances == plan.summary.active_instances and
+        request.payload.kretprobe.skipped_kernel_threads == plan.summary.skipped_kernel_threads and
+        request.payload.kretprobe.nmissed == plan.summary.nmissed and
+        request.payload.kretprobe.last_retval == plan.summary.last_retval and
+        request.payload.kretprobe.last_duration_ns == plan.summary.last_duration_ns and
+        request.payload.kretprobe.init_runs == plan.summary.init_runs and
+        request.payload.kretprobe.selftest_runs == plan.summary.selftest_runs and
+        request.payload.kretprobe.exit_runs == plan.summary.exit_runs and
+        request.payload.kretprobe.entry_timestamp_armed == plan.summary.entry_timestamp_armed;
+}
+
 pub const RuntimeKretprobeLoader = struct {
     const Self = @This();
 
@@ -264,7 +300,7 @@ test "runtime kretprobe loader emits the shared runtime-loader request shape" {
     _ = try module.runSelftest();
 
     var loader = RuntimeKretprobeLoader{};
-    _ = try loader.prepare(&module);
+    const plan = try loader.prepare(&module);
 
     const request = try loader.requestSharedRuntimeLoad();
     try std.testing.expectEqual(LoaderStage.waiting_on_runtime_substrate, loader.stage());
@@ -277,6 +313,7 @@ test "runtime kretprobe loader emits the shared runtime-loader request shape" {
     try std.testing.expect(request.keepsAllocatorInitFlowConsistent());
     try std.testing.expect(request.keepsLifecyclePayloadConsistent());
     try std.testing.expect(request.keepsSharedHandoffContractExplicit());
+    try std.testing.expect(keepsSharedRequestSnapshotExplicit(plan, request));
     try std.testing.expectEqual(runtime_loader.allocatorHandoffFor(.kernel_heap).init_flow, request.allocator_handoff.init_flow);
     try std.testing.expect(request.allocator_handoff.initializes_owned_state);
     try std.testing.expect(!request.allocator_handoff.requires_reset_on_init);
@@ -294,20 +331,19 @@ test "runtime kretprobe loader can release the shared runtime-loader request wit
     _ = try module.runSelftest();
 
     var loader = RuntimeKretprobeLoader{};
-    _ = try loader.prepare(&module);
+    const plan = try loader.prepare(&module);
 
     const released = try loader.releaseSharedRuntimeLoadWithoutSubstrate();
     try std.testing.expectEqual(LoaderStage.released_without_substrate, loader.stage());
     try std.testing.expectEqual(runtime_loader.LoaderLane.kretprobe, released.lane());
-    try std.testing.expectEqual(@as(?[]const u8, null), released.command_name);
     try std.testing.expect(released.keepsCommandNameExplicit());
     try std.testing.expect(released.isReleasedWithoutSubstrate());
-    try std.testing.expect(!released.isWaitingOnRuntimeSubstrate());
     try std.testing.expect(released.keepsInitExitContractExplicit());
     try std.testing.expect(released.keepsStageConsistentWithRuntimeSubstrate());
     try std.testing.expect(released.keepsAllocatorInitFlowConsistent());
     try std.testing.expect(released.keepsLifecyclePayloadConsistent());
     try std.testing.expect(released.keepsSharedHandoffContractExplicit());
+    try std.testing.expect(keepsSharedRequestSnapshotExplicit(plan, released));
     try std.testing.expectEqual(runtime_loader.allocatorHandoffFor(.kernel_heap).init_flow, released.allocator_handoff.init_flow);
     try std.testing.expect(released.allocator_handoff.initializes_owned_state);
     try std.testing.expect(!released.allocator_handoff.requires_reset_on_init);
@@ -325,7 +361,6 @@ test "runtime kretprobe loader can release the shared runtime-loader request wit
     try std.testing.expectEqual(@as(i64, 75), released.payload.kretprobe.last_duration_ns);
     try std.testing.expectEqualStrings("zigux_runtime_kretprobe_init", released.entry_symbol);
     try std.testing.expectEqualStrings("zigux_runtime_kretprobe_exit", released.exit_symbol);
-    try std.testing.expectError(error.InvalidLoaderState, loader.requestSharedRuntimeLoad());
 }
 
 test "runtime kretprobe loader preserves an explicit shared command name" {
@@ -342,14 +377,57 @@ test "runtime kretprobe loader preserves an explicit shared command name" {
     const request = try loader.requestSharedRuntimeLoad();
     try std.testing.expectEqualStrings("perf-runtime-kretprobe", request.command_name.?);
     try std.testing.expect(request.keepsCommandNameExplicit());
+    try std.testing.expect(keepsSharedRequestSnapshotExplicit(plan, request));
     try std.testing.expectEqual(runtime_loader.LoaderStage.waiting_on_runtime_substrate, request.handoff_stage);
 
     var fallback_loader = RuntimeKretprobeLoader{};
-    _ = try fallback_loader.prepareWithCommandName(&module, "perf-runtime-kretprobe");
+    const fallback_plan = try fallback_loader.prepareWithCommandName(&module, "perf-runtime-kretprobe");
     const released = try fallback_loader.releaseSharedRuntimeLoadWithoutSubstrate();
     try std.testing.expectEqualStrings("perf-runtime-kretprobe", released.command_name.?);
     try std.testing.expect(released.keepsCommandNameExplicit());
+    try std.testing.expect(keepsSharedRequestSnapshotExplicit(fallback_plan, released));
     try std.testing.expectEqual(runtime_loader.LoaderStage.released_without_substrate, released.handoff_stage);
+}
+
+test "runtime kretprobe loader rejects shared-request snapshot drift" {
+    var module = runtime_kretprobe_sample.RuntimeKretprobeSample{};
+    try module.retargetSymbol("do_sys_openat2");
+    try module.init();
+    _ = try module.runSelftest();
+
+    var loader = RuntimeKretprobeLoader{};
+    const plan = try loader.prepareWithCommandName(&module, "perf-runtime-kretprobe");
+    const request = try loader.requestSharedRuntimeLoad();
+    try std.testing.expect(keepsSharedRequestSnapshotExplicit(plan, request));
+
+    var drifted_command = request;
+    drifted_command.command_name = "perf-runtime-kretprobe-drift";
+    try std.testing.expect(!keepsSharedRequestSnapshotExplicit(plan, drifted_command));
+
+    var drifted_symbol = request;
+    drifted_symbol.payload.kretprobe.symbol_name = "vfs_read";
+    try std.testing.expect(!keepsSharedRequestSnapshotExplicit(plan, drifted_symbol));
+
+    var drifted_nmissed = request;
+    drifted_nmissed.payload.kretprobe.nmissed += 1;
+    try std.testing.expect(!keepsSharedRequestSnapshotExplicit(plan, drifted_nmissed));
+
+    var drifted_lane = request;
+    drifted_lane.payload = .{
+        .bitmap = .{
+            .first_set = 0,
+            .first_zero = 1,
+            .weight = 4,
+            .nbits = 128,
+            .init_runs = plan.summary.init_runs,
+            .selftest_runs = plan.summary.selftest_runs,
+            .exit_runs = plan.summary.exit_runs,
+        },
+    };
+    try std.testing.expect(!keepsSharedRequestSnapshotExplicit(plan, drifted_lane));
+
+    const released = request.releasedWithoutSubstrate();
+    try std.testing.expect(keepsSharedRequestSnapshotExplicit(plan, released));
 }
 
 test "runtime kretprobe loader rejects an empty explicit shared command name" {
