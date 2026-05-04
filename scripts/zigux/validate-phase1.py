@@ -378,6 +378,14 @@ def self_test() -> int:
         docs.write_text(docs_text.replace(DOCS_ROOT_MARKERS[0] + "\n", "", 1), encoding="utf-8")
         expect_failure(root, DOCS_ROOT_MARKERS[0])
         write(docs, docs_text)
+        scripts_readme = root / "scripts/zigux/README.md"
+        scripts_readme_text = scripts_readme.read_text(encoding="utf-8")
+        scripts_readme.write_text(scripts_readme_text.replace(SCRIPTS_ROOT_MARKERS[1] + "\n", "", 1), encoding="utf-8")
+        expect_failure(root, SCRIPTS_ROOT_MARKERS[1])
+        write(scripts_readme, scripts_readme_text)
+        scripts_readme.write_text(scripts_readme_text + SCRIPTS_ROOT_MARKERS[1] + "\n", encoding="utf-8")
+        expect_failure(root, f"scripts_root:{SCRIPTS_ROOT_MARKERS[1]}:expected_count=1:actual_count=2")
+        write(scripts_readme, scripts_readme_text)
         review_checklist = root / "Documentation/zigux/review-checklist.md"
         review_checklist_text = review_checklist.read_text(encoding="utf-8")
         review_checklist.write_text(review_checklist_text.replace(REVIEW_CHECKLIST_MARKERS[0] + "\n", "", 1), encoding="utf-8")
@@ -411,7 +419,7 @@ def self_test() -> int:
         write(fixture_path, json.dumps(fixture, indent=2) + "\n")
         expect_failure(root, "fixture:find_bit:tail_and_mixed_next:missing")
     print("PHASE1_VALIDATOR_SELF_TEST=pass")
-    print("PHASE1_VALIDATOR_SELF_TEST_CASE_COUNT=8")
+    print("PHASE1_VALIDATOR_SELF_TEST_CASE_COUNT=10")
     return 0
 
 
