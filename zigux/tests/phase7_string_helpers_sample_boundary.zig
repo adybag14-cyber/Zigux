@@ -8,6 +8,22 @@ test "phase 7 string helper sample boundary keeps the shipped build helper-only"
     var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
     defer io_instance.deinit();
 
+    const docs_readme = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "Documentation/zigux/README.md",
+        std.testing.allocator,
+        .limited(48 * 1024),
+    );
+    defer std.testing.allocator.free(docs_readme);
+
+    const review_checklist = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "Documentation/zigux/review-checklist.md",
+        std.testing.allocator,
+        .limited(64 * 1024),
+    );
+    defer std.testing.allocator.free(review_checklist);
+
     const samples_readme = try std.Io.Dir.cwd().readFileAlloc(
         io_instance.io(),
         "samples/zigux/README.md",
@@ -47,6 +63,10 @@ test "phase 7 string helper sample boundary keeps the shipped build helper-only"
         try std.testing.expect(std.mem.indexOf(u8, entry.name, "string") == null);
     }
 
+    try expectContains(docs_readme, "current `master` ships no `samples/zigux/*string*` reference sample");
+    try expectContains(docs_readme, "sample-root follow-up should not treat that absence as a missing Phase 5 port");
+    try expectContains(review_checklist, "current `master` ships no `samples/zigux/*string*` Phase 5 reference sample");
+    try expectContains(review_checklist, "the shipped string-helper evidence remains the separate Phase 7 helper bundle");
     try expectContains(samples_readme, "current `master` still ships no `samples/zigux/*string*` Phase 5 reference sample");
     try expectContains(samples_readme, "treat any new `samples/zigux/*string*.zig` file as review-blocking");
     try expectContains(phase7_build, "phase7-string-helpers-tests");
