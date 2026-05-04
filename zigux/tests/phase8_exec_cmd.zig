@@ -6,6 +6,10 @@ fn expectContains(haystack: []const u8, needle: []const u8) !void {
     try std.testing.expect(std.mem.indexOf(u8, haystack, needle) != null);
 }
 
+fn expectNotContains(haystack: []const u8, needle: []const u8) !void {
+    try std.testing.expect(std.mem.indexOf(u8, haystack, needle) == null);
+}
+
 fn readWorkspaceFile(allocator: std.mem.Allocator, path: []const u8, limit: usize) ![]u8 {
     const full_path = try std.fs.path.join(allocator, &.{ build_options.repo_root, path });
     defer allocator.free(full_path);
@@ -110,6 +114,9 @@ test "phase 8 exec-cmd docs keep the deferred execution boundary explicit" {
     try expectContains(slice_note, "repo-hosted userspace-adjacent tooling");
     try expectContains(slice_note, "bounded helper-first port");
     try expectContains(slice_note, "output-stable tooling behavior");
+    try expectContains(slice_note, "single-slash root-cwd `/tools/bin:/scripts` shape");
+    try expectNotContains(slice_note, "`//tools/bin://scripts` shape");
+    try expectNotContains(slice_note, "`//relative` output shape");
     try expectContains(slice_note, "kernel/workqueue.c");
     try expectContains(slice_note, "`kernel/workqueue.c` remains a Phase 14 boundary-study target");
     try expectContains(slice_note, "`execv_cmd()`");
