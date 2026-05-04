@@ -12,7 +12,7 @@ It does not replace the deeper survey and contract notes. Its job is narrower: k
 - `PHASE12_APPROVED_CROSS_TARGET_COUNT=3`
 - `PHASE12_COMMIT_PINNED_RAW_FALLBACK_COUNT=2`
 - `PHASE12_SHARED_TREE_ONLY_FALLBACK_COUNT=2`
-- shared validator-first route: `python3 scripts/zigux/check-phase12-release-readiness-packet.py --self-test`, `python3 scripts/zigux/check-phase12-release-readiness-packet.py`, `python3 scripts/zigux/check-phase12-shared-replay-contract.py --self-test`, `python3 scripts/zigux/check-phase12-shared-replay-contract.py`, `python3 scripts/zigux/validate-phase12.py`, `make -C zigux phase12-validate`, and `make -C zigux phase12`
+- shared validator-first route: `python3 scripts/zigux/check-phase12-raw-github-coverage.py --self-test`, `python3 scripts/zigux/check-phase12-raw-github-coverage.py`, `python3 scripts/zigux/check-phase12-release-readiness-packet.py --self-test`, `python3 scripts/zigux/check-phase12-release-readiness-packet.py`, `python3 scripts/zigux/check-phase12-shared-replay-contract.py --self-test`, `python3 scripts/zigux/check-phase12-shared-replay-contract.py`, `python3 scripts/zigux/validate-phase12.py`, `make -C zigux phase12-validate`, and `make -C zigux phase12`
 - approved non-native smoke packet: `x86_64-linux-musl`, `aarch64-linux-musl`, and `riscv64-linux-musl`
 
 ## Anchor matrix
@@ -41,6 +41,7 @@ The PMO reading should stay the same across those files:
 - the owner split is three-way rather than one vague driver bucket
 - two anchors have commit-pinned public fallback artifacts today
 - two anchors still rely on shared-tree fallback reads today
+- the mixed fallback split is backed by `scripts/zigux/check-phase12-raw-github-coverage.py`, `zigux/tests/phase12_raw_github_coverage_manifest.json`, and `zigux/tests/phase12_raw_github_coverage_survey.zig` instead of living only in prose notes
 - `make -C zigux phase12-validate` remains the rollback drill before `make -C zigux phase12`
 
 ## Shared surface alignment
@@ -49,7 +50,7 @@ Before treating the Phase 12 PMO packet as reviewable, keep these summary surfac
 
 - `Documentation/zigux/README.md` should keep the active-not-closed Phase 12 posture and the validator-first replay route visible from the docs root
 - `scripts/zigux/README.md` should keep the same owner split, focused libbpf replay shard, and validate-before-replay route visible from the scripts root
-- `zigux/tests/README.md` should explicitly name this matrix plus `Documentation/zigux/phase12-nvme-pci-raw-github-fallback-map.md` and `Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md` so the tests root carries the same two commit-pinned versus two shared-tree-only fallback split instead of leaving the mixed mode implicit
+- `zigux/tests/README.md` should explicitly name this matrix plus `Documentation/zigux/phase12-nvme-pci-raw-github-fallback-map.md`, `Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md`, `zigux/tests/phase12_raw_github_coverage_manifest.json`, and `zigux/tests/phase12_raw_github_coverage_survey.zig` so the tests root carries the same two commit-pinned versus two shared-tree-only fallback split and the same paired manifest-backed raw-coverage evidence instead of leaving the mixed mode implicit
 
 ## Review use
 
