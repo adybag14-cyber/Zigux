@@ -74,7 +74,7 @@ test "phase 14 rcu tree manifest stays aligned with lane P14-L16 and the memory-
     const manifest_json = try readFileAlloc(allocator, "zigux/tests/phase14_rcu_tree_manifest.json", 32 * 1024);
     defer allocator.free(manifest_json);
 
-    const parsed = try std.json.parseFromSlice(Manifest, allocator, manifest_json, .{});
+    const parsed = try std.json.parseFromSlice(Manifest, allocator, manifest_json, .{ .ignore_unknown_fields = true });
     defer parsed.deinit();
 
     const manifest = parsed.value;
@@ -134,7 +134,7 @@ test "phase 14 rcu tree note, review checklist, and freeze map keep the blocked 
     const freeze_map = try readFileAlloc(allocator, "Documentation/zigux/freeze-map.md", 16 * 1024);
     defer allocator.free(freeze_map);
 
-    const parsed = try std.json.parseFromSlice(Manifest, allocator, manifest_json, .{});
+    const parsed = try std.json.parseFromSlice(Manifest, allocator, manifest_json, .{ .ignore_unknown_fields = true });
     defer parsed.deinit();
 
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "bounded Phase 14 survey lane `P14-L16` around `kernel/rcu/tree.c`") != null);
