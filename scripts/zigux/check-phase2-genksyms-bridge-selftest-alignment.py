@@ -54,6 +54,7 @@ CASE_NAME_ORDER = [
 README_MARKERS = [
     "`check-genksyms-bridge.py --self-test` exercises the bounded `genksyms` bridge checker packet itself before the Linux-style `phase2-tools` entrypoint replays live bridge artifacts, so missing-expected-fixture drift, duplicate expected-fixture wiring, stderr-mode contract drift, and repeat-run compare coverage cannot hide behind a locally passing bridge replay.",
     "that same committed bridge packet currently spans 26 reviewable cases under `zigux/tests/fixtures/genksyms_bridge/`, including the minimal, clustered short-inline, abbreviated long-option, lone-dash passthrough, explicit-terminator positional, missing-argument, and reference-limit fixtures that keep the widened wrapper-first surface explicit.",
+    "`scripts/genksyms/genksyms.c` remains the authoritative parser and export engine for parser-heavy symbol semantics, while `scripts/zigux/genksyms.zig` is intentionally limited to the bounded getopt-style wrapper-first bridge that Phase 2 can prove safely.",
 ]
 
 CLOSURE_DOC_MARKERS = [
@@ -62,6 +63,7 @@ CLOSURE_DOC_MARKERS = [
     "- `python3 scripts/zigux/check-phase2-genksyms-bridge-selftest-alignment.py`",
     "- `PHASE2_GENKSYMS_BRIDGE_CASE_COUNT=26`",
     "- `PHASE2_GENKSYMS_BRIDGE_STDERR_POLICY=success-path stderr silence plus repeat-run stderr determinism are required for closure`",
+    "- `PHASE2_GENKSYMS_IMPLEMENTATION_BOUNDARY=scripts/genksyms/genksyms.c remains authoritative for parser-heavy symbol parsing and export semantics while scripts/zigux/genksyms.zig stays a bounded wrapper-first getopt bridge`",
 ]
 
 VALIDATOR_MARKERS = [
@@ -358,10 +360,20 @@ def run_self_test() -> int:
         expect_issue("readme_marker", root, f"readme:{README_MARKERS[0]}")
         write(readme_path, original)
 
+        original = readme_path.read_text(encoding="utf-8")
+        write(readme_path, original.replace(README_MARKERS[2] + "\n", "", 1))
+        expect_issue("readme_boundary_marker", root, f"readme:{README_MARKERS[2]}")
+        write(readme_path, original)
+
         closure_doc_path = root / REQUIRED_FILES["closure_doc"]
         original = closure_doc_path.read_text(encoding="utf-8")
         write(closure_doc_path, original.replace(CLOSURE_DOC_MARKERS[0] + "\n", "", 1))
         expect_issue("closure_doc_marker", root, f"closure_doc:{CLOSURE_DOC_MARKERS[0]}")
+        write(closure_doc_path, original)
+
+        original = closure_doc_path.read_text(encoding="utf-8")
+        write(closure_doc_path, original.replace(CLOSURE_DOC_MARKERS[5] + "\n", "", 1))
+        expect_issue("closure_doc_boundary_marker", root, f"closure_doc:{CLOSURE_DOC_MARKERS[5]}")
         write(closure_doc_path, original)
 
         bridge_checker_path = root / REQUIRED_FILES["bridge_checker"]
@@ -477,7 +489,7 @@ def run_self_test() -> int:
         expect_issue("version_expected_file", root, "cases:version:expected=version_expected.json")
 
     print("PHASE2_GENKSYMS_BRIDGE_SELFTEST_ALIGNMENT_SELF_TEST=pass")
-    print("PHASE2_GENKSYMS_BRIDGE_SELFTEST_ALIGNMENT_SELF_TEST_CASE_COUNT=14")
+    print("PHASE2_GENKSYMS_BRIDGE_SELFTEST_ALIGNMENT_SELF_TEST_CASE_COUNT=16")
     return 0
 
 
