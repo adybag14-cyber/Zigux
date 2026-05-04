@@ -213,7 +213,7 @@ test "phase 5 kobject manifest records the exact bounded checks" {
     try std.testing.expect(saw_contract_prompt);
     try std.testing.expect(saw_static_name_prompt);
     try std.testing.expect(saw_docs_prompt);
-    try std.testing.expect(saw_group_boundary_prompt);
+    try std.testing.expect(saw_groupBoundaryPrompt);
     try std.testing.expect(saw_sync_prompt);
     try std.testing.expect(saw_ownership_prompt);
     try std.testing.expect(saw_non_goal_prompt);
@@ -322,6 +322,11 @@ test "phase 5 kobject contributor docs stay aligned with the shipped review surf
     try expectContains(survey_note, "replay readiness");
     try expectContains(survey_note, "cold, initialized, registered, and exited");
     try expectContains(survey_note, "registered teardown summary");
+    try expectContains(survey_note, "runtime_atomic64_loader.zig");
+    try expectContains(survey_note, "runtime_bitmap_loader.zig");
+    try expectContains(survey_note, "runtime_kretprobe_loader.zig");
+    try expectContains(survey_note, "runtime_trace_events_loader.zig");
+    try expectContains(survey_note, "visibly separate from those later runtime starters");
     try expectContains(survey_note, "sysfs creation, `kernel_kobj` integration, uevents, and loadable module registration remain out of scope");
     try expectContains(survey_note, "zig test samples/zigux/kobject_example.zig");
     try expectContains(survey_note, "All 5 tests passed.");
@@ -332,6 +337,14 @@ test "phase 5 kobject contributor docs stay aligned with the shipped review surf
     try expectContains(readme, "samples/zigux/kobject_example.zig");
     try expectContains(readme, "shared sample-root catalog, shared tests-root guide, shared review checklist, manifest, and shared `phase5_build.zig` entrypoint prompts");
     try expectContains(readme, "direct sample replays and paired survey replays explicit for the four shipped Phase 5 families");
+    try expectContains(readme, "samples/zigux/runtime_bitmap.zig");
+    try expectContains(readme, "samples/zigux/runtime_bitmap_loader.zig");
+    try expectContains(readme, "sample-only blocked Phase 9 pilot");
+    try expectContains(readme, "samples/zigux/runtime_trace_events_loader.zig");
+    try expectContains(readme, "no `samples/zigux/*string*` Phase 5 reference sample");
+    try expectContains(readme, "no `samples/zigux/*cmdline*` Phase 5 reference sample");
+    try expectContains(readme, "phase7-string-helpers-slice.md");
+    try expectContains(readme, "phase7-cmdline-slice.md");
 
     try expectContains(sample_root_readme, "Kobject review packet");
     try expectContains(sample_root_readme, "phase5_kobject_example_manifest.json");
@@ -344,6 +357,12 @@ test "phase 5 kobject contributor docs stay aligned with the shipped review surf
     try expectContains(sample_root_readme, "registered teardown summary");
     try expectContains(sample_root_readme, "post-exit rejection boundaries");
     try expectContains(sample_root_readme, "sysfs creation, `kernel_kobj` integration, uevents, and runtime registration out of scope");
+    try expectContains(sample_root_readme, "sample-only blocked Phase 9 pilot");
+    try expectContains(sample_root_readme, "runtime-substrate handoff still stays blocked");
+    try expectContains(sample_root_readme, "no `samples/zigux/*string*` Phase 5 reference sample");
+    try expectContains(sample_root_readme, "no `samples/zigux/*cmdline*` Phase 5 reference sample");
+    try expectContains(sample_root_readme, "phase7-string-helpers-slice.md");
+    try expectContains(sample_root_readme, "phase7-cmdline-slice.md");
     try expectContains(sample_root_readme, "zig test zigux/tests/phase5_kobject_example_survey.zig");
 
     try expectContains(tests_readme, "zigux/tests/phase5_kobject_example.zig");
@@ -355,10 +374,19 @@ test "phase 5 kobject contributor docs stay aligned with the shipped review surf
     try expectContains(tests_readme, "zig test zigux/tests/phase5_kobject_example_survey.zig");
     try expectContains(tests_readme, "keep the current Phase 5 reference-sample packet reviewable through `zigux/tests/phase5_build.zig`");
     try expectContains(tests_readme, "direct sample replays and paired survey replays explicit for every shipped Phase 5 family");
+    try expectContains(tests_readme, "runtime_bitmap_top_bit_contract.zig");
+    try expectContains(tests_readme, "runtime_trace_events_loader.zig");
+    try expectContains(tests_readme, "no `samples/zigux/*string*` or `samples/zigux/*cmdline*` Phase 5 reference sample");
+    try expectContains(tests_readme, "phase7_string_helpers.zig");
+    try expectContains(tests_readme, "phase7_cmdline.zig");
 
     try expectContains(review_checklist, "landed Phase 5 `kobject` sample packet");
     try expectContains(review_checklist, "manifest-backed survey still pin the exact inspected `master` head");
     try expectContains(review_checklist, "approved ownership-and-lifetime idiom rather than a new runtime-substrate claim");
     try expectContains(review_checklist, "sample-backed survey note");
     try expectContains(review_checklist, "phase5_build.zig");
+    try expectContains(review_checklist, "no `samples/zigux/*string*` Phase 5 reference sample");
+    try expectContains(review_checklist, "no `samples/zigux/*cmdline*` Phase 5 reference sample");
+    try expectContains(review_checklist, "phase7-string-helpers-slice.md");
+    try expectContains(review_checklist, "phase7-cmdline-slice.md");
 }
