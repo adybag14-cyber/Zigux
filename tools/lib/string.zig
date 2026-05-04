@@ -306,6 +306,10 @@ pub fn strim(buf: []u8) []u8 {
     return trimSpaces(buf[0..end]);
 }
 
+pub fn strstrip(buf: []u8) []u8 {
+    return strim(buf);
+}
+
 pub fn removeSpaces(buf: []u8) []u8 {
     var write_idx: usize = 0;
     var read_idx: usize = 0;
@@ -504,6 +508,16 @@ test "skip trim remove and replace spaces work in place" {
     const replaced_end = strreplace(strreplace_buf[0 .. strreplace_buf.len - 1], '-', '_');
     try std.testing.expectEqual(@intFromPtr(strreplace_buf[0..].ptr) + 3, @intFromPtr(replaced_end));
     try std.testing.expectEqualSlices(u8, &[_]u8{ 'a', '_', 'b', 0, '-' }, &strreplace_buf);
+}
+
+test "strstrip aliases strim with the same C-string trimming semantics" {
+    var strip_buf = [_]u8{ ' ', '\t', 'o', 'k', ' ', '\n', 0, 'x' };
+    try std.testing.expectEqualStrings("ok", strstrip(&strip_buf));
+    try std.testing.expectEqualSlices(u8, &[_]u8{ ' ', '\t', 'o', 'k', 0, '\n', 0, 'x' }, &strip_buf);
+
+    var whitespace_only = [_]u8{ ' ', '\n', 0, 'x' };
+    try std.testing.expectEqualStrings("", strstrip(&whitespace_only));
+    try std.testing.expectEqualSlices(u8, &[_]u8{ 0, '\n', 0, 'x' }, &whitespace_only);
 }
 
 test "trimSpaces and strim stop at the first embedded NUL" {
