@@ -20,6 +20,7 @@ Recommended Zigux destinations:
 Shared tranche entrypoints already present on `master`:
 - `zigux/tests/phase13_build.zig`
 - `zigux/Makefile` via `make -C zigux phase13`
+- the shared replay currently routes sixteen named steps on `master`: the four anchor-local test gates, the eight anchor-local reviewability or sync gates, the adjacent coherent-DMA and scatterlist `devres` support replays, and the two roadmap-adjacent notifier reviewability or helper-view steps
 - `Documentation/zigux/phase13-release-notes-survey.md` keeps the active validator-first release reading for those same four roadmap anchors visible instead of leaving the current survey packet implicit outside this traceability note
 - the same shared packet now also keeps `zigux/tests/phase13_landlock_syscalls_reviewability.zig` visible as dedicated reviewability evidence for the landed `phase13-landlock-syscalls-reviewability-tests` replay step, so the syscall anchor does not look smaller than the current shared build on `master`
 - `lib/devres.c` is represented by real helper code, real tests, a manifest-backed survey packet, and explicit blocked DMA/scatterlist boundary evidence
@@ -198,4 +199,4 @@ Why this packet belongs here but stays outside the anchor count:
 Traceability consequence:
 - the four roadmap anchors above remain the only Phase 13 anchor count for this note
 - the notifier-list packet is supporting evidence for the current shared-helper tranche, not a substitute for `fs/libfs.c`, `lib/devres.c`, `security/landlock/ruleset.c`, or `security/landlock/syscalls.c`
-- future docs-root, release-note, or checklist updates should keep the dedicated `zigux/tests/phase13_landlock_syscalls_reviewability.zig` gate and the same-family `zigux/tests/phase13_landlock_ruleset_fops_sync.zig` guard visible together with the roadmap-adjacent notifier packet, including `zigux/tests/phase13_notifier_list_reviewability.zig`, `zigux/bindings/notifier_abi.zig`, `include/zigux/notifier_abi.h`, and `zigux/helpers/notifier_chain_view.zig`, while continuing to describe Phase 13 closure through the four manifest-backed roadmap anchors only
+- future docs-root, release-note, or checklist updates should keep the current sixteen-step shared replay visible together with the dedicated `zigux/tests/phase13_landlock_syscalls_reviewability.zig` gate and the same-family `zigux/tests/phase13_landlock_ruleset_fops_sync.zig` guard, plus the roadmap-adjacent notifier packet including `zigux/tests/phase13_notifier_list_reviewability.zig`, `zigux/bindings/notifier_abi.zig`, `include/zigux/notifier_abi.h`, and `zigux/helpers/notifier_chain_view.zig`, while continuing to describe Phase 13 closure through the four manifest-backed roadmap anchors only
