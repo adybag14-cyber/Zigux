@@ -2,27 +2,27 @@
   "required_snippets": [
     {
       "id": "required_file_review_checklist",
-      "snippet": "\"Documentation/zigux/review-checklist.md\"," 
+      "snippet": "\"Documentation/zigux/review-checklist.md\","
     },
     {
       "id": "required_file_tests_root",
-      "snippet": "\"zigux/tests/README.md\"," 
+      "snippet": "\"zigux/tests/README.md\","
     },
     {
       "id": "required_file_validate_phase1",
-      "snippet": "\"scripts/zigux/validate-phase1.py\"," 
+      "snippet": "\"scripts/zigux/validate-phase1.py\","
     },
     {
       "id": "required_file_bitmap_checker",
-      "snippet": "\"scripts/zigux/check-phase1-bitmap-validator-anchors.py\"," 
+      "snippet": "\"scripts/zigux/check-phase1-bitmap-validator-anchors.py\","
     },
     {
       "id": "required_file_route_summary_checker",
-      "snippet": "\"scripts/zigux/check-phase1-route-summary-counts.py\"," 
+      "snippet": "\"scripts/zigux/check-phase1-route-summary-counts.py\","
     },
     {
       "id": "required_file_route_inventory_checker",
-      "snippet": "\"scripts/zigux/check-phase1-validation-route-inventory.py\"," 
+      "snippet": "\"scripts/zigux/check-phase1-validation-route-inventory.py\","
     },
     {
       "id": "review_checklist_marker",
@@ -34,43 +34,43 @@
     },
     {
       "id": "workflow_validate_phase1_self_test_exact_count",
-      "snippet": "\"workflow_phase1_validate_self_test_count\"," 
+      "snippet": "\"workflow_phase1_validate_self_test_count\","
     },
     {
       "id": "workflow_validate_phase1_exact_count",
-      "snippet": "\"workflow_phase1_validate_count\"," 
+      "snippet": "\"workflow_phase1_validate_count\","
     },
     {
       "id": "workflow_bitmap_exact_count",
-      "snippet": "\"workflow_phase1_bitmap_count\"," 
+      "snippet": "\"workflow_phase1_bitmap_count\","
     },
     {
       "id": "workflow_route_summary_exact_count",
-      "snippet": "\"workflow_phase1_route_summary_count\"," 
+      "snippet": "\"workflow_phase1_route_summary_count\","
     },
     {
       "id": "workflow_route_inventory_exact_count",
-      "snippet": "\"workflow_phase1_route_inventory_count\"," 
+      "snippet": "\"workflow_phase1_route_inventory_count\","
     },
     {
       "id": "makefile_validate_phase1_self_test_exact_count",
-      "snippet": "\"makefile_phase1_validate_self_test_count\"," 
+      "snippet": "\"makefile_phase1_validate_self_test_count\","
     },
     {
       "id": "makefile_validate_phase1_exact_count",
-      "snippet": "\"makefile_phase1_validate_count\"," 
+      "snippet": "\"makefile_phase1_validate_count\","
     },
     {
       "id": "makefile_bitmap_exact_count",
-      "snippet": "\"makefile_phase1_bitmap_count\"," 
+      "snippet": "\"makefile_phase1_bitmap_count\","
     },
     {
       "id": "makefile_route_summary_exact_count",
-      "snippet": "\"makefile_phase1_route_summary_count\"," 
+      "snippet": "\"makefile_phase1_route_summary_count\","
     },
     {
       "id": "makefile_route_inventory_exact_count",
-      "snippet": "\"makefile_phase1_route_inventory_count\"," 
+      "snippet": "\"makefile_phase1_route_inventory_count\","
     }
   ]
 }
