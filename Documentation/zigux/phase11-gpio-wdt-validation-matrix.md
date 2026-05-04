@@ -55,6 +55,11 @@ Without this matrix, the slice and survey named the right next step but did not 
 - current shared replay wiring on `master` includes both `phase11-gpio-wdt-tests` and `phase11-gpio-wdt-survey-tests`
 - exact shared command:
   - `zig build test --build-file zigux/tests/phase11_build.zig --summary all`
+- published validator-first wrappers:
+  - `make -C zigux phase11-validate`
+  - `make -C zigux phase11`
+- validator-first posture:
+  - run `make -C zigux phase11-validate` before trusting `make -C zigux phase11` or the raw `zig build test --build-file zigux/tests/phase11_build.zig --summary all` replay for this watchdog packet
 - included gpio artifacts:
   - `phase11-gpio-wdt-tests`
   - `phase11-gpio-wdt-survey-tests`
