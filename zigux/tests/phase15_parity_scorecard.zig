@@ -185,7 +185,7 @@ test "phase 15 parity scorecard manifest tracks the current roadmap gap honestly
 
     try std.testing.expectEqualStrings("P15-Y03", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 15", manifest.phase);
-    try std.testing.expectEqualStrings("355b71d89807a217a6b7c405c996cbd623c48ca0", manifest.surveyed_commit);
+    try std.testing.expectEqualStrings("0bd402fd6ca83ba2ace6b21e9e57459401b631cd", manifest.surveyed_commit);
     try std.testing.expect(manifest.review_process.decision_record_required);
     try std.testing.expectEqual(@as(usize, 15), manifest.review_process.required_record_fields.len);
     try std.testing.expectEqual(@as(usize, 3), manifest.review_process.reopen_trigger_catalog.len);
@@ -197,6 +197,12 @@ test "phase 15 parity scorecard manifest tracks the current roadmap gap honestly
     try expectContains(manifest.current_parity_tracking_gap.current_gap, "rollback-threshold");
     try expectContains(manifest.handoff_evidence.current_repo_handoff, "Documentation/zigux/README.md");
     try expectContains(manifest.handoff_evidence.current_repo_handoff, "Documentation/zigux/phase15-handoff-next-steps-survey.md");
+    try expectContains(manifest.handoff_evidence.current_repo_handoff, "scripts/zigux/README.md");
+    try expectContains(manifest.handoff_evidence.current_repo_handoff, "scripts/zigux/validate-phase15.py");
+    try expectContains(manifest.handoff_evidence.current_repo_handoff, "zigux/tests/README.md");
+    try expectContains(manifest.current_parity_tracking_gap.repo_state, "scripts/zigux/README.md");
+    try expectContains(manifest.current_parity_tracking_gap.repo_state, "scripts/zigux/validate-phase15.py");
+    try expectContains(manifest.current_parity_tracking_gap.repo_state, "zigux/tests/README.md");
     try expectContains(manifest.current_parity_tracking_gap.repo_state, "make -C zigux phase15");
     try expectContains(manifest.current_parity_tracking_gap.closure_signal, "parity-tracking gap");
     try expectContains(manifest.current_parity_tracking_gap.remaining_blocker, "deep-core status-change blocker");
@@ -318,6 +324,9 @@ test "phase 15 parity scorecard docs keep the parity-tracking survey aligned" {
     try expectContains(scorecard_doc, "lane identity, surveyed-master provenance, roadmap wording, rollback-threshold field sync, and replay-backed evidence packet current");
     try expectContains(scorecard_doc, "Documentation/zigux/README.md");
     try expectContains(scorecard_doc, "Documentation/zigux/phase15-handoff-next-steps-survey.md");
+    try expectContains(scorecard_doc, "scripts/zigux/README.md");
+    try expectContains(scorecard_doc, "scripts/zigux/validate-phase15.py");
+    try expectContains(scorecard_doc, "zigux/tests/README.md");
     try expectContains(scorecard_doc, "shared replay path");
     try expectContains(scorecard_doc, "anchors with explicit lane-owner plus rollback-owner coverage: `4 / 4`");
     try expectContains(scorecard_doc, "required review-process record fields tracked in the manifest: `15`");
