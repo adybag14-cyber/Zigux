@@ -15,6 +15,9 @@ DOCS_ROOT = "Documentation/zigux/README.md"
 CLOSURE_MANIFEST = "zigux/tests/phase10_closure_manifest.json"
 CLOSURE_LEDGER = "zigux-alpha/PHASE10_CLOSURE_LEDGER.md"
 HARNESS_CHECKER = "scripts/zigux/check-phase10-harness-coverage.py"
+CORE_PACKET_CHECKER = "scripts/zigux/check-phase10-core-packet.py"
+SHARED_VALIDATOR = "scripts/zigux/validate-phase10.py"
+CLOSURE_VALIDATOR = "scripts/zigux/validate-phase10-closure.py"
 
 EXPECTED_DOCS = [
     "Documentation/zigux/phase10-virtio-core-slice.md",
@@ -304,6 +307,9 @@ REQUIRED_FILES = [
     CLOSURE_MANIFEST,
     CLOSURE_LEDGER,
     HARNESS_CHECKER,
+    CORE_PACKET_CHECKER,
+    SHARED_VALIDATOR,
+    CLOSURE_VALIDATOR,
     *EXPECTED_DOCS,
     *EXPECTED_MANIFESTS,
     *EXPECTED_DRIVERS,
@@ -500,6 +506,15 @@ def expect_missing_marker(label: str, root: Path, expected_marker: str) -> None:
         raise SystemExit(f"{label}:expected:{expected_marker}:actual:{actual}")
 
 
+def expect_missing_file(label: str, root: Path, rel_path: str) -> None:
+    missing_files, missing_markers = validate(root)
+    if missing_markers:
+        raise SystemExit(f"{label}:unexpected_markers:{','.join(missing_markers)}")
+    if rel_path not in missing_files:
+        actual = ",".join(missing_files) if missing_files else "none"
+        raise SystemExit(f"{label}:expected_file:{rel_path}:actual:{actual}")
+
+
 def run_self_test() -> int:
     with tempfile.TemporaryDirectory(prefix="zigux_phase10_closure_inventory_") as tmp_dir:
         root = Path(tmp_dir) / "repo"
@@ -518,6 +533,20 @@ def run_self_test() -> int:
         manifest["ready_transport_followups"] = {}
         manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
         expect_missing_marker("ready_followups_guard", root, "manifest:ready_transport_followups")
+        write_fixture(root)
+
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        manifest["exact_checks"] = [
+            check
+            for check in manifest["exact_checks"]
+            if check != "python3 scripts/zigux/check-phase10-core-packet.py"
+        ]
+        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+        expect_missing_marker(
+            "core_packet_exact_check_guard",
+            root,
+            "manifest:exact_checks",
+        )
         write_fixture(root)
 
         manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
@@ -585,20 +614,6 @@ def run_self_test() -> int:
         manifest["allowed_roadmap_destinations"] = ["drivers/virtio/*.zig", "zigux/helpers/"]
         manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
         expect_missing_marker("allowed_destinations_guard", root, "manifest:allowed_roadmap_destinations")
-        write_fixture(root)
-
-        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
-        manifest["exact_checks"] = [
-            check
-            for check in manifest["exact_checks"]
-            if check != "python3 scripts/zigux/check-phase10-core-packet.py"
-        ]
-        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
-        expect_missing_marker(
-            "core_packet_exact_check_guard",
-            root,
-            "manifest:exact_checks",
-        )
         write_fixture(root)
 
         manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
@@ -721,6 +736,18 @@ def run_self_test() -> int:
         )
         write_fixture(root)
 
+        (root / CORE_PACKET_CHECKER).unlink()
+        expect_missing_file("core_packet_checker_file_guard", root, CORE_PACKET_CHECKER)
+        write_fixture(root)
+
+        (root / SHARED_VALIDATOR).unlink()
+        expect_missing_file("shared_validator_file_guard", root, SHARED_VALIDATOR)
+        write_fixture(root)
+
+        (root / CLOSURE_VALIDATOR).unlink()
+        expect_missing_file("closure_validator_file_guard", root, CLOSURE_VALIDATOR)
+        write_fixture(root)
+
         harness_checker_path = root / HARNESS_CHECKER
         harness_checker_path.unlink()
         missing_files, missing_markers = validate(root)
@@ -728,7 +755,7 @@ def run_self_test() -> int:
             raise SystemExit("required_file_guard_failed")
 
     print("PHASE10_CLOSURE_INVENTORY_SELF_TEST=pass")
-    print("PHASE10_CLOSURE_INVENTORY_SELF_TEST_CASE_COUNT=19")
+    print("PHASE10_CLOSURE_INVENTORY_SELF_TEST_CASE_COUNT=22")
     return 0
 
 
