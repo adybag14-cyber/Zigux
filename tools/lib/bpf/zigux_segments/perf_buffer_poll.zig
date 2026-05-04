@@ -52,6 +52,31 @@ pub const ProcessRecordSummary = struct {
     first_error: ?i32,
 };
 
+pub const ConsumeBufferObservation = struct {
+    present: bool = true,
+    process: ProcessRecordObservation = .{},
+};
+
+pub const ConsumeExecutionSummary = struct {
+    slot_count: usize,
+    attempted_present_buffer_count: usize,
+    completed_present_buffer_count: usize,
+    processed_record_count: usize,
+    first_error_slot_index: ?usize,
+    first_error: ?i32,
+};
+
+pub const ConsumeReturnDisposition = enum {
+    success,
+    processing_failed,
+};
+
+pub const ConsumeExecutionResult = struct {
+    execution: ConsumeExecutionSummary,
+    return_value: i32,
+    disposition: ConsumeReturnDisposition,
+};
+
 pub const PollSummary = struct {
     wait_class: WaitClass,
     outcome: PollOutcome,
@@ -166,6 +191,54 @@ pub fn summarizeProcessRecords(observations: []const ProcessRecordObservation) P
         .first_error_index = null,
         .first_error = null,
     };
+}
+
+pub fn summarizeConsumeExecution(buffers: []const ConsumeBufferObservation) ConsumeExecutionSummary {
+    var attempted_present_buffer_count: usize = 0;
+    var completed_present_buffer_count: usize = 0;
+    var processed_record_count: usize = 0;
+
+    for (buffers, 0..) |buffer, slot_index| {
+        if (!buffer.present) {
+            continue;
+        }
+
+        attempted_present_buffer_count += 1;
+        if (buffer.process.result != 0) {
+            return .{
+                .slot_count = buffers.len,
+                .attempted_present_buffer_count = attempted_present_buffer_count,
+                .completed_present_buffer_count = completed_present_buffer_count,
+                .processed_record_count = processed_record_count,
+                .first_error_slot_index = slot_index,
+                .first_error = buffer.process.result,
+            };
+        }
+
+        completed_present_buffer_count += 1;
+        processed_record_count += buffer.process.records_processed;
+    }
+
+    return .{
+        .slot_count = buffers.len,
+        .attempted_present_buffer_count = attempted_present_buffer_count,
+        .completed_present_buffer_count = completed_present_buffer_count,
+        .processed_record_count = processed_record_count,
+        .first_error_slot_index = null,
+        .first_error = null,
+    };
+}
+
+pub fn resolveConsumeExecutionResult(execution: ConsumeExecutionSummary) ConsumeExecutionResult {
+    return .{
+        .execution = execution,
+        .return_value = execution.first_error orelse 0,
+        .disposition = if (execution.first_error == null) .success else .processing_failed,
+    };
+}
+
+pub fn summarizeConsumeExecutionResult(buffers: []const ConsumeBufferObservation) ConsumeExecutionResult {
+    return resolveConsumeExecutionResult(summarizeConsumeExecution(buffers));
 }
 
 pub fn summarizePoll(
@@ -399,6 +472,67 @@ test "summarizeReadyBuffers counts ready buffers and preserves the first error" 
     try std.testing.expectEqual(@as(?i32, -11), summary.first_error);
 }
 
+test "summarizeProcessRecords keeps perf_buffer__process_records fail-fast ordering and processed record totals explicit" {
+    const failure = summarizeProcessRecords(&.{
+        .{ .records_processed = 4 },
+        .{ .records_processed = 3 },
+        .{ .result = -22 },
+        .{ .result = -5, .records_processed = 9 },
+    });
+    try std.testing.expectEqual(@as(usize, 3), failure.attempted_count);
+    try std.testing.expectEqual(@as(usize, 2), failure.completed_count);
+    try std.testing.expectEqual(@as(usize, 7), failure.processed_record_count);
+    try std.testing.expectEqual(@as(?usize, 2), failure.first_error_index);
+    try std.testing.expectEqual(@as(?i32, -22), failure.first_error);
+
+    const success = summarizeProcessRecords(&.{
+        .{ .records_processed = 1 },
+        .{ .records_processed = 2 },
+        .{ .records_processed = 3 },
+    });
+    try std.testing.expectEqual(@as(usize, 3), success.attempted_count);
+    try std.testing.expectEqual(@as(usize, 3), success.completed_count);
+    try std.testing.expectEqual(@as(usize, 6), success.processed_record_count);
+    try std.testing.expectEqual(@as(?usize, null), success.first_error_index);
+    try std.testing.expectEqual(@as(?i32, null), success.first_error);
+}
+
+test "summarizeConsumeExecution keeps already-open buffer traversal fail-fast while skipping absent slots" {
+    const summary = summarizeConsumeExecution(&.{
+        .{ .present = true, .process = .{ .records_processed = 4 } },
+        .{ .present = false },
+        .{ .present = true, .process = .{ .result = -11 } },
+        .{ .present = true, .process = .{ .records_processed = 9 } },
+    });
+
+    try std.testing.expectEqual(@as(usize, 4), summary.slot_count);
+    try std.testing.expectEqual(@as(usize, 2), summary.attempted_present_buffer_count);
+    try std.testing.expectEqual(@as(usize, 1), summary.completed_present_buffer_count);
+    try std.testing.expectEqual(@as(usize, 4), summary.processed_record_count);
+    try std.testing.expectEqual(@as(?usize, 2), summary.first_error_slot_index);
+    try std.testing.expectEqual(@as(?i32, -11), summary.first_error);
+}
+
+test "summarizeConsumeExecutionResult keeps success and first processing failure explicit" {
+    const success = summarizeConsumeExecutionResult(&.{
+        .{ .present = false },
+        .{ .present = true, .process = .{ .records_processed = 1 } },
+        .{ .present = true, .process = .{ .records_processed = 2 } },
+    });
+    try std.testing.expectEqual(ConsumeReturnDisposition.success, success.disposition);
+    try std.testing.expectEqual(@as(i32, 0), success.return_value);
+    try std.testing.expectEqual(@as(usize, 2), success.execution.completed_present_buffer_count);
+    try std.testing.expectEqual(@as(usize, 3), success.execution.processed_record_count);
+
+    const failure = summarizeConsumeExecutionResult(&.{
+        .{ .present = true, .process = .{ .records_processed = 5 } },
+        .{ .present = true, .process = .{ .result = -32 } },
+    });
+    try std.testing.expectEqual(ConsumeReturnDisposition.processing_failed, failure.disposition);
+    try std.testing.expectEqual(@as(i32, -32), failure.return_value);
+    try std.testing.expectEqual(@as(?usize, 1), failure.execution.first_error_slot_index);
+}
+
 test "summarizePoll keeps bounded ready observations compact and reviewable" {
     const buffers = [_]BufferObservation{
         .{ .ready = true },
@@ -450,31 +584,6 @@ test "summarizePoll keeps timeout interruption and missing-ready mismatches expl
         PollError.ReadyEventsMissingReadyBuffer,
         summarizePoll(5, .{ .ready_events = 1 }, &idle_buffers),
     );
-}
-
-test "summarizeProcessRecords keeps perf_buffer__process_records fail-fast ordering and processed record totals explicit" {
-    const failure = summarizeProcessRecords(&.{
-        .{ .records_processed = 4 },
-        .{ .records_processed = 3 },
-        .{ .result = -22 },
-        .{ .result = -5, .records_processed = 9 },
-    });
-    try std.testing.expectEqual(@as(usize, 3), failure.attempted_count);
-    try std.testing.expectEqual(@as(usize, 2), failure.completed_count);
-    try std.testing.expectEqual(@as(usize, 7), failure.processed_record_count);
-    try std.testing.expectEqual(@as(?usize, 2), failure.first_error_index);
-    try std.testing.expectEqual(@as(?i32, -22), failure.first_error);
-
-    const success = summarizeProcessRecords(&.{
-        .{ .records_processed = 1 },
-        .{ .records_processed = 2 },
-        .{ .records_processed = 3 },
-    });
-    try std.testing.expectEqual(@as(usize, 3), success.attempted_count);
-    try std.testing.expectEqual(@as(usize, 3), success.completed_count);
-    try std.testing.expectEqual(@as(usize, 6), success.processed_record_count);
-    try std.testing.expectEqual(@as(?usize, null), success.first_error_index);
-    try std.testing.expectEqual(@as(?i32, null), success.first_error);
 }
 
 test "summarizePollExecution keeps ready-buffer processing inside the observed epoll budget" {
@@ -575,7 +684,7 @@ test "resolvePollExecutionResultFromWaitResult rejects mismatched wait-result an
         12,
         2,
         &.{ .{ .ready = true }, .{ .ready = true } },
-        &.{ .{ .records_processed = 1 } },
+        &.{.{ .records_processed = 1 }},
     );
     try std.testing.expectError(
         PollError.WaitResultDisagreesWithExecutionOutcome,
