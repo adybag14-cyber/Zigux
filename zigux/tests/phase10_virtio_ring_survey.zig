@@ -35,8 +35,12 @@ const Manifest = struct {
     surveyed_commit: []const u8,
     anchor: []const u8,
     roadmap_destinations: []const []const u8,
+    freeze_map: []const u8,
     freeze_boundary_status: []const u8,
     risky_transport_posture: []const u8,
+    forbidden_transport_claims: []const []const u8,
+    architecture_council_reopen_required: bool,
+    architecture_council_reopen_attached: bool,
     roadmap_parity_evidence: RoadmapParityEvidence,
     survey_summary: SurveySummary,
     gaps: []const Gap,
@@ -128,8 +132,17 @@ test "phase10 virtio ring survey manifest records the live queue-discipline pack
     try std.testing.expectEqualStrings("zigux/kernel/", manifest.roadmap_destinations[1]);
     try std.testing.expectEqualStrings("zigux/helpers/", manifest.roadmap_destinations[2]);
     try std.testing.expectEqualStrings("drivers/virtio/virtio_ring.c", manifest.anchor);
+    try std.testing.expectEqualStrings("Documentation/zigux/freeze-map.md", manifest.freeze_map);
     try std.testing.expectEqualStrings("aligned", manifest.freeze_boundary_status);
     try std.testing.expectEqualStrings("blocked_on_risky_transport", manifest.risky_transport_posture);
+    try std.testing.expectEqual(@as(usize, 5), manifest.forbidden_transport_claims.len);
+    try std.testing.expectEqualStrings("queue_setup_reset_paths", manifest.forbidden_transport_claims[0]);
+    try std.testing.expectEqualStrings("irq_parity", manifest.forbidden_transport_claims[1]);
+    try std.testing.expectEqualStrings("dma_paths", manifest.forbidden_transport_claims[2]);
+    try std.testing.expectEqualStrings("input_registration_lifecycle", manifest.forbidden_transport_claims[3]);
+    try std.testing.expectEqualStrings("probe_remove_lifecycle", manifest.forbidden_transport_claims[4]);
+    try std.testing.expect(manifest.architecture_council_reopen_required);
+    try std.testing.expect(!manifest.architecture_council_reopen_attached);
     try std.testing.expectEqualStrings("starter_landed", manifest.roadmap_parity_evidence.virtqueue_wrappers.status);
     try std.testing.expectEqual(@as(usize, 4), manifest.roadmap_parity_evidence.virtqueue_wrappers.evidence.len);
     try std.testing.expectEqualStrings("drivers/virtio/virtio_ring.zig", manifest.roadmap_parity_evidence.virtqueue_wrappers.evidence[0]);
@@ -219,10 +232,25 @@ test "phase10 virtio ring survey manifest records the live queue-discipline pack
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE10_RING_ROADMAP_VIRTQUEUE_WRAPPERS=starter_landed") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE10_RING_ROADMAP_LAB_ONLY_DRIVER_VALIDATION=starter_landed") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE10_RING_ROADMAP_DUAL_IMPLEMENTATIONS_FOR_RISKY_AREAS=blocked_on_risky_transport") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE10_FREEZE_MAP=Documentation/zigux/freeze-map.md") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE10_FREEZE_BOUNDARY_OWNER=P10-L10") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE10_FREEZE_BOUNDARY_ROLLBACK_OWNER=P10-L10") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE10_ARCHITECTURE_COUNCIL_REOPEN_REQUIRED=yes") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE10_ARCHITECTURE_COUNCIL_REOPEN_ATTACHED=no") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "shared closure evidence still owns the separate MMIO wrappers row") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase10-broken-queue-recovery-helper") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase10-mmio-config-write-helper") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase10-mmio-interrupt-ack-helper") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "kernel/sched/core.c") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "mm/page_alloc.c") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "kernel/rcu/tree.c") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "net/core/skbuff.c") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "kernel/workqueue.c") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "kernel/trace/ring_buffer.c") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "wrapper-first or study-only posture") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "the rollback owner for this lane is `P10-L10`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "queue_setup_reset_paths") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "probe_remove_lifecycle") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "no smaller ready transport follow-up remains ahead of the still-blocked lifecycle and IRQ packet") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "Do not reopen the ring lane") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "drivers/virtio/*.zig") != null);
