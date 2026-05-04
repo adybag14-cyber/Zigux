@@ -79,7 +79,7 @@ REQUIRED_PARITY_MARKERS = [
     'HARNESS = ROOT / "zigux" / "tests" / "fixtures" / "phase7_argv_split_c_harness.c"',
     'SOURCE = ROOT / "lib" / "argv_split.c"',
     'print("PHASE7_ARGV_SPLIT_PARITY_SELF_TEST=pass")',
-    'print("PHASE7_ARGV_SPLIT_PARITY_SELF_TEST_CASE_COUNT=3")',
+    'print("PHASE7_ARGV_SPLIT_PARITY_SELF_TEST_CASE_COUNT=4")',
     'print("PHASE7_ARGV_SPLIT_PARITY=pass")',
 ]
 
@@ -176,7 +176,7 @@ SELF_TEST_FILE_CONTENTS = {
             'HARNESS = ROOT / "zigux" / "tests" / "fixtures" / "phase7_argv_split_c_harness.c"',
             'SOURCE = ROOT / "lib" / "argv_split.c"',
             'print("PHASE7_ARGV_SPLIT_PARITY_SELF_TEST=pass")',
-            'print("PHASE7_ARGV_SPLIT_PARITY_SELF_TEST_CASE_COUNT=3")',
+            'print("PHASE7_ARGV_SPLIT_PARITY_SELF_TEST_CASE_COUNT=4")',
             'print("PHASE7_ARGV_SPLIT_PARITY=pass")',
             "",
         ]
