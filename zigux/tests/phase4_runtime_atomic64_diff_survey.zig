@@ -266,6 +266,13 @@ test "phase4 runtime atomic64 survey manifest records the shipped bounded gate, 
         64 * 1024,
     );
     defer std.testing.allocator.free(phase4_validator);
+    const phase4_gate_evidence_checker = try readWorkspaceFile(
+        io_instance.io(),
+        std.testing.allocator,
+        "scripts/zigux/check-phase4-gate-evidence.py",
+        64 * 1024,
+    );
+    defer std.testing.allocator.free(phase4_gate_evidence_checker);
     const runtime_atomic64_sample = try readWorkspaceFile(
         io_instance.io(),
         std.testing.allocator,
@@ -447,6 +454,12 @@ test "phase4 runtime atomic64 survey manifest records the shipped bounded gate, 
         phase4_gate_evidence,
         "PHASE4_GATE_EVIDENCE_TARGET_COUNT=",
         expected_phase4_gate_evidence_target_count,
+    );
+    try expectGateEvidenceBlob(phase4_gate_evidence, "PHASE4_VALIDATOR_BLOB_SHA", phase4_validator);
+    try expectGateEvidenceBlob(
+        phase4_gate_evidence,
+        "PHASE4_GATE_EVIDENCE_CHECKER_BLOB_SHA",
+        phase4_gate_evidence_checker,
     );
     try expectGateEvidenceBlob(phase4_gate_evidence, "PHASE4_RUNTIME_ATOMIC64_MANIFEST_BLOB_SHA", manifest_json);
     try expectGateEvidenceBlob(phase4_gate_evidence, "PHASE4_RUNTIME_ATOMIC64_SURVEY_BLOB_SHA", runtime_atomic64_diff_survey);
