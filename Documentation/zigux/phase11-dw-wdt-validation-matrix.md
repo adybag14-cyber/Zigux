@@ -6,6 +6,7 @@ This document records the bounded validation matrix for the Zigux `dw_wdt` lane.
 
 - `PHASE11_DW_WDT_STATUS=validation_matrix_landed`
 - reviewed against live `master` `907e65f13e0035306d4106dec0ca3b3eb2fc7179`
+- continuity: this matrix tracks the live DesignWare watchdog packet on `P11-L11`; the parked bcm2835 archival wording under `P11-L10` is separate watchdog-family continuity and not part of this matrix
 - scope: keep the current `dw_wdt` starter honest about what is already validated, name the existing lifecycle, remove-time, failure-mode, and bounded suspend-resume evidence clearly, and avoid overclaiming platform registration, live PM callbacks, IRQ wiring, debugfs, or hardware-backed behavior before those surfaces exist in Zigux
 - current repo reality:
   - `drivers/watchdog/dw_wdt.zig`
