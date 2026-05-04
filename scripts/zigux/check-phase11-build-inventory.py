@@ -34,9 +34,9 @@ BUILD_STEP_RE = re.compile(
 FORBIDDEN_BUILD_MARKERS = [
     "test_step.dependOn(&run_phase11_hvc_console_survey_tests.step);",
 ]
-DEDICATED_SURVEY_REPLAYS = [
-    "zigux/tests/phase11_hvc_console_survey.zig",
-]
+DEDICATED_SURVEY_REPLAY_TESTS = {
+    "phase11-hvc-console-survey-tests": "zigux/tests/phase11_hvc_console_survey.zig",
+}
 SHARED_ADJUNCT_REPLAY_TESTS = {
     "phase11-dw-wdt-suspend-resume-tests": "zigux/tests/phase11_dw_wdt_suspend_resume.zig",
 }
@@ -102,6 +102,7 @@ def render_inventory() -> dict[str, object]:
         item["module"]: item["path"]
         for item in module_root_source_files
     }
+    dedicated_survey_replays = []
     shared_split_replays = []
     shared_adjunct_replays = []
     for item in test_root_modules:
@@ -110,6 +111,15 @@ def render_inventory() -> dict[str, object]:
         if root_path is None:
             continue
         test_path = (Path("zigux/tests") / root_path).as_posix()
+        expected_dedicated_path = DEDICATED_SURVEY_REPLAY_TESTS.get(test_name)
+        if expected_dedicated_path is not None and test_path == expected_dedicated_path:
+            dedicated_survey_replays.append(
+                {
+                    "test": test_name,
+                    "path": test_path,
+                }
+            )
+            continue
         if test_name.endswith(SPLIT_TEST_SUFFIX):
             shared_split_replays.append(
                 {
@@ -140,7 +150,7 @@ def render_inventory() -> dict[str, object]:
         ],
         "test_root_modules": test_root_modules,
         "forbidden_markers": FORBIDDEN_BUILD_MARKERS,
-        "dedicated_survey_replays": DEDICATED_SURVEY_REPLAYS,
+        "dedicated_survey_replays": dedicated_survey_replays,
         "shared_split_replays": shared_split_replays,
         "shared_adjunct_replays": shared_adjunct_replays,
         "shared_replay_markers": SHARED_REPLAY_MARKERS,
@@ -335,6 +345,11 @@ pub fn build(b: *std.Build) void {
     });
     phase11_hvc_console_poll_retry_split_module.addImport(\"hvc_console\", hvc_console_module);
     phase11_hvc_console_poll_retry_split_module.addImport(\"hvc_console_sysrq\", hvc_console_sysrq_module);
+    const phase11_hvc_console_survey_module = b.createModule(.{
+        .root_source_file = b.path(\"phase11_hvc_console_survey.zig\"),
+        .target = target,
+        .optimize = optimize,
+    });
 
     const phase11_dw_wdt_suspend_resume_tests = b.addTest(.{
         .name = \"phase11-dw-wdt-suspend-resume-tests\",
@@ -366,7 +381,7 @@ pub fn build(b: *std.Build) void {
     );
     const phase11_hvc_console_survey_tests = b.addTest(.{
         .name = \"phase11-hvc-console-survey-tests\",
-        .root_module = phase11_hvc_console_poll_retry_split_module,
+        .root_module = phase11_hvc_console_survey_module,
     });
     const run_phase11_hvc_console_survey_tests = b.addRunArtifact(
         phase11_hvc_console_survey_tests,
@@ -409,6 +424,7 @@ pub fn build(b: *std.Build) void {
             {"module": "hvc_console_sysrq_module", "path": "../../drivers/tty/hvc/hvc_console_sysrq.zig"},
             {"module": "phase11_hvc_console_modem_control_split_module", "path": "phase11_hvc_console_modem_control_split.zig"},
             {"module": "phase11_hvc_console_poll_retry_split_module", "path": "phase11_hvc_console_poll_retry_split.zig"},
+            {"module": "phase11_hvc_console_survey_module", "path": "phase11_hvc_console_survey.zig"},
         ],
         "module_imports": [
             {"module": "phase11_dw_wdt_suspend_resume_module", "import_name": "dw_wdt", "imported_module": "dw_wdt_module"},
@@ -422,10 +438,12 @@ pub fn build(b: *std.Build) void {
             {"test": "phase11-dw-wdt-remove-idle-split-tests", "root_module": "phase11_dw_wdt_remove_idle_split_module"},
             {"test": "phase11-hvc-console-modem-control-split-tests", "root_module": "phase11_hvc_console_modem_control_split_module"},
             {"test": "phase11-hvc-console-poll-retry-split-tests", "root_module": "phase11_hvc_console_poll_retry_split_module"},
-            {"test": "phase11-hvc-console-survey-tests", "root_module": "phase11_hvc_console_poll_retry_split_module"},
+            {"test": "phase11-hvc-console-survey-tests", "root_module": "phase11_hvc_console_survey_module"},
         ],
         "forbidden_markers": FORBIDDEN_BUILD_MARKERS,
-        "dedicated_survey_replays": DEDICATED_SURVEY_REPLAYS,
+        "dedicated_survey_replays": [
+            {"test": "phase11-hvc-console-survey-tests", "path": "zigux/tests/phase11_hvc_console_survey.zig"},
+        ],
         "shared_split_replays": [
             {"test": "phase11-dw-wdt-remove-idle-split-tests", "path": "zigux/tests/phase11_dw_wdt_remove_idle_split.zig"},
             {"test": "phase11-hvc-console-modem-control-split-tests", "path": "zigux/tests/phase11_hvc_console_modem_control_split.zig"},
@@ -446,6 +464,7 @@ pub fn build(b: *std.Build) void {
         "zigux/tests/phase11_dw_wdt_remove_idle_split.zig": "    try std.testing.expect(reset_available_summary.remove_clears_interrupt_status);\n",
         "zigux/tests/phase11_hvc_console_modem_control_split.zig": "    try std.testing.expectEqual(@as(c_int, -7), summary.tiocmset_result);\n",
         "zigux/tests/phase11_hvc_console_poll_retry_split.zig": "    try std.testing.expect(dispatch.invokes_sysrq_handler);\n",
+        "zigux/tests/phase11_hvc_console_survey.zig": "// self-test placeholder\n",
     }.items():
         write_text(root / rel_path, content)
 
@@ -583,6 +602,16 @@ def run_self_test() -> int:
         fixture_path.write_text(fixture_backup, encoding="utf-8")
 
         fixture = json.loads(fixture_backup)
+        fixture["dedicated_survey_replays"] = []
+        fixture_path.write_text(json.dumps(fixture, indent=2) + "\n", encoding="utf-8")
+        expect_stdout(
+            "dedicated_survey_replay_fixture_drift",
+            run_checker(tmp_root),
+            "ARTIFACT_DIFF=fail",
+        )
+        fixture_path.write_text(fixture_backup, encoding="utf-8")
+
+        fixture = json.loads(fixture_backup)
         fixture["shared_adjunct_replays"] = []
         fixture_path.write_text(json.dumps(fixture, indent=2) + "\n", encoding="utf-8")
         expect_stdout(
@@ -603,7 +632,7 @@ def run_self_test() -> int:
         fixture_path.write_text(fixture_backup, encoding="utf-8")
 
     print("PHASE11_BUILD_INVENTORY_SELF_TEST=pass")
-    print("PHASE11_BUILD_INVENTORY_SELF_TEST_CASE_COUNT=12")
+    print("PHASE11_BUILD_INVENTORY_SELF_TEST_CASE_COUNT=13")
     return 0
 
 
