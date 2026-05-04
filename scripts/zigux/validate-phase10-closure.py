@@ -120,6 +120,7 @@ REQUIRED_FILES = [
     "scripts/zigux/check-phase10-harness-coverage.py",
     "scripts/zigux/check-phase10-closure-inventory.py",
     "scripts/zigux/check-phase10-core-packet.py",
+    "scripts/zigux/check-phase10-survey-provenance.py",
     "zigux/tests/README.md",
     "zigux-alpha/PHASE10_CLOSURE_LEDGER.md",
     "zigux/Makefile",
@@ -147,6 +148,7 @@ TEXT_MARKERS = {
         "zigux/tests/phase10_virtio_input_registration_blocker_build.zig",
         "zigux/tests/phase10_virtio_mmio_queue_isolation.zig",
         "PHASE10_HARNESS_COVERAGE_GATE=python3 scripts/zigux/check-phase10-harness-coverage.py",
+        "python3 scripts/zigux/check-phase10-survey-provenance.py",
     ],
     "Documentation/zigux/README.md": [
         "Documentation/zigux/phase10-closure-evidence.md",
@@ -171,6 +173,7 @@ TEXT_MARKERS = {
         "PHASE10_LEDGER_INPUT_REGISTRATION_BLOCKER_BUILD=zigux/tests/phase10_virtio_input_registration_blocker_build.zig",
         "PHASE10_LEDGER_MMIO_QUEUE_ISOLATION_GATE=zigux/tests/phase10_virtio_mmio_queue_isolation.zig",
         "PHASE10_LEDGER_LANDED_MMIO_HELPERS=phase10-mmio-register-window-helper,phase10-mmio-queue-register-helper,phase10-mmio-queue-notify-helper,phase10-mmio-queue-address-helper,phase10-mmio-config-window-helper,phase10-mmio-config-write-helper,phase10-mmio-interrupt-ack-helper,phase10-mmio-probe-preflight-helper",
+        "python3 scripts/zigux/check-phase10-survey-provenance.py",
     ],
     "zigux/Makefile": [
         "phase10-validate:",
@@ -216,14 +219,11 @@ EXACT_ONCE = {
     ],
 }
 
-
 def read_text(root: Path, rel_path: str) -> str:
     return (root / rel_path).read_text(encoding="utf-8")
 
-
 def load_json(root: Path, rel_path: str) -> object:
     return json.loads(read_text(root, rel_path))
-
 
 def validate(root: Path) -> tuple[list[str], list[str]]:
     missing_files = [path for path in REQUIRED_FILES if not (root / path).exists()]
@@ -365,7 +365,6 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
 
     return [], missing
 
-
 def write_fixture(root: Path) -> None:
     for rel_path in REQUIRED_FILES:
         path = root / rel_path
@@ -428,14 +427,12 @@ def write_fixture(root: Path) -> None:
     (root / "zigux/tests/phase10_virtio_input_manifest.json").write_text(json.dumps({"lane_key": "P10-L13", "surveyed_commit": EXPECTED_SURVEYED_COMMITS["input"]}, indent=2) + "\n", encoding="utf-8")
     (root / "zigux/tests/phase10_virtio_mmio_manifest.json").write_text(json.dumps({"lane_key": "P10-L18", "surveyed_commit": EXPECTED_SURVEYED_COMMITS["mmio"]}, indent=2) + "\n", encoding="utf-8")
 
-
 def expect_marker(label: str, root: Path, marker: str) -> None:
     files, markers = validate(root)
     if files:
         raise SystemExit(f"phase10-closure-self-test:{label}:missing_files:{','.join(files)}")
     if marker not in markers:
         raise SystemExit(f"phase10-closure-self-test:{label}:expected:{marker}:actual:{','.join(markers) if markers else 'none'}")
-
 
 def run_self_test() -> int:
     with tempfile.TemporaryDirectory(prefix="zigux_phase10_closure_") as tmp_dir:
@@ -544,6 +541,42 @@ def run_self_test() -> int:
         expect_marker("ring_reuse_guard", root, "ring_manifest:broken-queue-recovery-helper:reuse")
         write_fixture(root)
 
+        note_path.write_text(
+            note_path.read_text(encoding="utf-8").replace(
+                "python3 scripts/zigux/check-phase10-survey-provenance.py",
+                "python3 scripts/zigux/check-phase10-survey-provenance-drift.py",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_marker(
+            "closure_note_survey_provenance_guard",
+            root,
+            "Documentation/zigux/phase10-closure-evidence.md:python3 scripts/zigux/check-phase10-survey-provenance.py",
+        )
+        write_fixture(root)
+
+        ledger_path.write_text(
+            ledger_path.read_text(encoding="utf-8").replace(
+                "python3 scripts/zigux/check-phase10-survey-provenance.py",
+                "python3 scripts/zigux/check-phase10-survey-provenance-drift.py",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_marker(
+            "ledger_survey_provenance_guard",
+            root,
+            "zigux-alpha/PHASE10_CLOSURE_LEDGER.md:python3 scripts/zigux/check-phase10-survey-provenance.py",
+        )
+        write_fixture(root)
+
+        (root / "scripts/zigux/check-phase10-survey-provenance.py").unlink()
+        files, markers = validate(root)
+        if "scripts/zigux/check-phase10-survey-provenance.py" not in files or markers:
+            raise SystemExit(f"phase10-closure-self-test:survey-provenance-file-guard:actual_files={files}:markers={markers}")
+        write_fixture(root)
+
         (root / INPUT_BLOCKER_BUILD).unlink()
         files, markers = validate(root)
         if INPUT_BLOCKER_BUILD not in files or markers:
@@ -556,9 +589,8 @@ def run_self_test() -> int:
             raise SystemExit(f"phase10-closure-self-test:file_guard:actual_files={files}:markers={markers}")
 
     print("PHASE10_CLOSURE_VALIDATOR_SELF_TEST=pass")
-    print("PHASE10_CLOSURE_VALIDATOR_SELF_TEST_CASE_COUNT=15")
+    print("PHASE10_CLOSURE_VALIDATOR_SELF_TEST_CASE_COUNT=18")
     return 0
-
 
 if "--self-test" in sys.argv[1:]:
     sys.exit(run_self_test())
