@@ -43,6 +43,7 @@ RBTREE_SHARED_CHECKER_REL = "scripts/zigux/check-phase3-rbtree-shared-lift-contr
 README_TOOLING_INVENTORY_SCRIPT = "check-phase3-readme-tooling-inventory.py"
 TOOLING_PACKET_SCRIPT = "check-phase3-tooling-packet.py"
 VALIDATION_FLOW_SCRIPT = "check-phase3-validation-flow.py"
+ABI_LAYOUT_PACKET_SCRIPT = "check-phase3-abi-layout-packet.py"
 
 
 def _write_phase3_slice(
@@ -205,6 +206,22 @@ def _run_validation_flow_self_test() -> int:
     stdout_lines = result.stdout.splitlines()
     assert "PHASE3_VALIDATION_FLOW_SELF_TEST=pass" in stdout_lines
     assert "PHASE3_VALIDATION_FLOW_SELF_TEST_CASE_COUNT=67" in stdout_lines
+    return 0
+
+
+def _run_abi_layout_packet_self_test() -> int:
+    script_path = Path(__file__).resolve().with_name(ABI_LAYOUT_PACKET_SCRIPT)
+    result = subprocess.run(
+        ["python3", str(script_path), "--self-test"],
+        text=True,
+        capture_output=True,
+        check=False,
+    )
+    assert result.returncode == 0, (
+        result.stdout if not result.stderr else result.stdout + "\n" + result.stderr
+    )
+    stdout_lines = result.stdout.splitlines()
+    assert "PHASE3_ABI_LAYOUT_PACKET_SELF_TEST=pass" in stdout_lines
     return 0
 
 
@@ -471,6 +488,7 @@ def run_self_test() -> int:
         assert _run_readme_tooling_inventory_self_test() == 0
         assert _run_tooling_packet_self_test() == 0
         assert _run_validation_flow_self_test() == 0
+        assert _run_abi_layout_packet_self_test() == 0
         assert _run_rbtree_shared_lift_self_test() == 0
 
         rbtree_shared_marker_fixture = root / "phase3-rbtree-shared-marker-fixture.zig"
@@ -506,7 +524,7 @@ def run_self_test() -> int:
             assert_missing_rbtree_shared_marker(missing_marker)
 
     print("PHASE3_VALIDATOR_SELF_TEST=pass")
-    print("PHASE3_VALIDATOR_SELF_TEST_CASE_COUNT=28")
+    print("PHASE3_VALIDATOR_SELF_TEST_CASE_COUNT=29")
     return 0
 
 
