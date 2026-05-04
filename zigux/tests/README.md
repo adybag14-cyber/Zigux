@@ -63,6 +63,7 @@ Key entrypoints
 - `zigux/tests/phase6_helper_parity_manifest.json`
 - `scripts/zigux/check-phase6-docs-root-external-parity.py`
 - `scripts/zigux/check-phase6-base64-catalog-evidence.py`
+- `scripts/zigux/check-phase6-checksum-hexdump-perf-markers.py`
 - `scripts/zigux/validate-phase6.py`
 - `zigux/tests/phase7_build.zig`
 - `zigux/tests/fixtures/phase7_build_inventory.json`
