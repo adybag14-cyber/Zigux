@@ -22,6 +22,7 @@ FILES = [
     "zigux/tests/phase10_virtio_input_multitouch_preflight.zig",
     "zigux/tests/phase10_virtio_mmio_queue_isolation.zig",
     "zigux/tests/phase10_closure_manifest.json",
+    "zigux-alpha/PHASE10_CLOSURE_LEDGER.md",
 ]
 
 MAKE_MARKERS = [
@@ -93,12 +94,14 @@ CLOSURE_NOTE_EXACT_ONCE_MARKERS = [
 ]
 
 COMPANION_MARKERS = [
+    "zigux-alpha/PHASE10_CLOSURE_LEDGER.md",
     "zigux/tests/phase10_virtio_ring_reset_reuse.zig",
     "zigux/tests/phase10_virtio_ring_survey.zig",
     "focused ring drained-reset reuse replay",
 ]
 
 COMPANION_EXACT_ONCE_MARKERS = [
+    "zigux-alpha/PHASE10_CLOSURE_LEDGER.md",
     "zigux/tests/phase10_virtio_ring_reset_reuse.zig",
     "zigux/tests/phase10_virtio_ring_survey.zig",
 ]
@@ -248,6 +251,7 @@ def write_fixture(root: Path) -> None:
         "zigux/tests/phase10_build.zig": "\n".join(BUILD_MARKERS) + "\n",
         "zigux/tests/phase10_virtio_input_multitouch_preflight.zig": "\n".join(INPUT_PREFLIGHT_TEST_MARKERS) + "\n",
         "zigux/tests/phase10_virtio_mmio_queue_isolation.zig": "\n".join(MMIO_QUEUE_ISOLATION_TEST_MARKERS) + "\n",
+        "zigux-alpha/PHASE10_CLOSURE_LEDGER.md": "fixture\n",
     }
     manifest = {
         "test_count": 11,
@@ -573,6 +577,21 @@ def run_self_test() -> int:
         original_companion = companion_path.read_text(encoding="utf-8")
         companion_path.write_text(
             original_companion.replace(
+                "zigux-alpha/PHASE10_CLOSURE_LEDGER.md",
+                "zigux-alpha/PHASE10_CLOSURE_LEDGER_DRIFT.md",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "companion_closure_ledger_entry",
+            root,
+            "companion:zigux-alpha/PHASE10_CLOSURE_LEDGER.md",
+        )
+        companion_path.write_text(original_companion, encoding="utf-8")
+
+        companion_path.write_text(
+            original_companion.replace(
                 "zigux/tests/phase10_virtio_ring_reset_reuse.zig",
                 "zigux/tests/phase10_virtio_ring_reset_reuse_drift.zig",
                 1,
@@ -583,6 +602,17 @@ def run_self_test() -> int:
             "companion_ring_reset_reuse_entry",
             root,
             "companion:zigux/tests/phase10_virtio_ring_reset_reuse.zig",
+        )
+        companion_path.write_text(original_companion, encoding="utf-8")
+
+        companion_path.write_text(
+            original_companion + "\nzigux-alpha/PHASE10_CLOSURE_LEDGER.md\n",
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "companion_closure_ledger_duplicate",
+            root,
+            "companion:count:zigux-alpha/PHASE10_CLOSURE_LEDGER.md=2",
         )
         companion_path.write_text(original_companion, encoding="utf-8")
 
@@ -723,9 +753,18 @@ def run_self_test() -> int:
             root,
             "mmio_queue_isolation_test:QueueReadyBlocksAddressRewrite",
         )
+        queue_isolation_path.write_text(original_queue_isolation, encoding="utf-8")
+
+        ledger_path = root / "zigux-alpha/PHASE10_CLOSURE_LEDGER.md"
+        ledger_path.unlink()
+        expect_missing_file(
+            "closure_ledger_file",
+            root,
+            "zigux-alpha/PHASE10_CLOSURE_LEDGER.md",
+        )
 
     print("PHASE10_HARNESS_COVERAGE_SELF_TEST=pass")
-    print("PHASE10_HARNESS_COVERAGE_SELF_TEST_CASE_COUNT=29")
+    print("PHASE10_HARNESS_COVERAGE_SELF_TEST_CASE_COUNT=34")
     return 0
 
 
