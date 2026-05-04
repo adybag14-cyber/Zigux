@@ -156,9 +156,15 @@ def check_validator_alignment(root: Path) -> list[str]:
             continue
 
         for line in expected_lines:
-            if line not in actual_lines:
+            actual_count = actual_lines.count(line)
+            if actual_count == 0:
                 failures.append(
                     f"validator {target_name} expansion missing: {line}"
+                )
+                continue
+            if actual_count != 1:
+                failures.append(
+                    f"validator {target_name} expansion count drift: {line} ({actual_count} != 1)"
                 )
 
         for line in UNEXPECTED_MAKE_EXPANSIONS.get(target_name, []):
@@ -208,15 +214,20 @@ def check_root(root: Path, env: dict[str, str] | None = None) -> tuple[bool, lis
             continue
 
         wrapper_lines = [line.strip() for line in result.stdout.splitlines() if line.strip()]
-        wrapper_line_set = set(wrapper_lines)
         for line in expected_lines:
-            if line not in wrapper_line_set:
+            actual_count = wrapper_lines.count(line)
+            if actual_count == 0:
                 failures.append(
                     f"{target_name}: missing expected wrapper expansion: {line}"
                 )
+                continue
+            if actual_count != 1:
+                failures.append(
+                    f"{target_name}: expected wrapper expansion count drift: {line} ({actual_count} != 1)"
+                )
 
         for line in UNEXPECTED_MAKE_EXPANSIONS.get(target_name, []):
-            if line in wrapper_line_set:
+            if line in wrapper_lines:
                 failures.append(
                     f"{target_name}: unexpected wrapper expansion: {line}"
                 )
@@ -224,7 +235,7 @@ def check_root(root: Path, env: dict[str, str] | None = None) -> tuple[bool, lis
         expected_positions = {
             line: wrapper_lines.index(line)
             for line in expected_lines
-            if line in wrapper_line_set
+            if line in wrapper_lines
         }
         for earlier, later in zip(expected_lines, expected_lines[1:]):
             earlier_pos = expected_positions.get(earlier)
@@ -462,6 +473,23 @@ def run_self_test() -> int:
             validator_path,
             {
                 **EXPECTED_MAKE_EXPANSIONS,
+                "phase7-test": [
+                    *EXPECTED_MAKE_EXPANSIONS["phase7-test"],
+                    EXPECTED_MAKE_EXPANSIONS["phase7-test"][0],
+                ],
+            },
+        )
+        expect_failure(
+            "validator_phase7_test_duplicate_line",
+            tmp_root,
+            fake_make_env,
+            "validator phase7-test expansion count drift: zig build test --build-file zigux/tests/phase7_build.zig --summary all (2 != 1)",
+        )
+
+        write_validator_fixture(
+            validator_path,
+            {
+                **EXPECTED_MAKE_EXPANSIONS,
                 "phase7": [
                     line
                     for line in EXPECTED_MAKE_EXPANSIONS["phase7"]
@@ -659,6 +687,23 @@ def run_self_test() -> int:
             fake_make_path,
             {
                 **EXPECTED_MAKE_EXPANSIONS,
+                "phase7-test": [
+                    *EXPECTED_MAKE_EXPANSIONS["phase7-test"],
+                    EXPECTED_MAKE_EXPANSIONS["phase7-test"][0],
+                ],
+            },
+        )
+        expect_failure(
+            "duplicate_phase7_test_wrapper_line",
+            tmp_root,
+            fake_make_env,
+            "phase7-test: expected wrapper expansion count drift: zig build test --build-file zigux/tests/phase7_build.zig --summary all (2 != 1)",
+        )
+
+        make_fake_make(
+            fake_make_path,
+            {
+                **EXPECTED_MAKE_EXPANSIONS,
                 "phase7": [
                     line
                     for line in EXPECTED_MAKE_EXPANSIONS["phase7"]
@@ -730,7 +775,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE7_MAKE_WRAPPER_SELF_TEST=pass")
-    print("PHASE7_MAKE_WRAPPER_SELF_TEST_CASE_COUNT=22")
+    print("PHASE7_MAKE_WRAPPER_SELF_TEST_CASE_COUNT=24")
     return 0
 
 
