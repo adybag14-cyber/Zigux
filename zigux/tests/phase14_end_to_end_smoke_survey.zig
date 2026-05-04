@@ -134,7 +134,7 @@ test "phase14 shared smoke manifest records the current evidence bundle" {
     const manifest = parsed.value;
     try std.testing.expectEqualStrings("P14-L01", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 14", manifest.phase);
-    try std.testing.expectEqualStrings("672d03034b090ab859f4088396160ea13120e1d6", manifest.surveyed_commit);
+    try std.testing.expectEqualStrings("02264a3240cd30ce45c9a932047a0204b7ab5029", manifest.surveyed_commit);
     try std.testing.expectEqualStrings("Core-Adjacent Pod", manifest.productization.owner);
     try std.testing.expectEqualStrings("study_only", manifest.productization.status_bucket);
     try std.testing.expectEqualStrings(
@@ -234,7 +234,7 @@ test "phase14 shared smoke manifest records the current evidence bundle" {
     try std.testing.expectEqualStrings("", manifest.anchor_packets[2].ready_next_gap);
     try std.testing.expectEqualStrings("phase14-ring-buffer-zig-port-blocker", manifest.anchor_packets[2].blocked_gap);
     try std.testing.expectEqualStrings("P14-L12", manifest.anchor_packets[1].lane_key);
-    try std.testing.expectEqualStrings("6689715b1930c419e49a44b1c2dd317548a08c1d", manifest.anchor_packets[1].surveyed_commit);
+    try std.testing.expectEqualStrings("02264a3240cd30ce45c9a932047a0204b7ab5029", manifest.anchor_packets[1].surveyed_commit);
     try std.testing.expectEqualStrings("", manifest.anchor_packets[1].ready_next_gap);
     try std.testing.expectEqualStrings("phase14-skbuff-live-ownership-blocker", manifest.anchor_packets[1].blocked_gap);
     try std.testing.expectEqualStrings("P14-Y04", manifest.anchor_packets[3].lane_key);
