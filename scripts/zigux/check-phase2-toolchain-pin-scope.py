@@ -13,7 +13,8 @@ ROOT = Path(__file__).resolve().parents[2]
 POLICY = ROOT / "scripts" / "zigux" / "zig-toolchain-policy.json"
 WORKFLOW = ROOT / ".github" / "workflows" / "zigux-bootstrap.yml"
 MAKEFILE = ROOT / "zigux" / "Makefile"
-README = ROOT / "scripts" / "zigux" / "README.md"
+SCRIPTS_README = ROOT / "scripts" / "zigux" / "README.md"
+DOCS_ROOT_README = ROOT / "Documentation" / "zigux" / "README.md"
 TOOLCHAIN_NOTES = ROOT / "Documentation" / "zigux" / "phase2-toolchain-bootstrap-notes.md"
 REVIEW_CHECKLIST = ROOT / "Documentation" / "zigux" / "review-checklist.md"
 CLOSURE_DOC = ROOT / "Documentation" / "zigux" / "phase2-closure.md"
@@ -68,7 +69,7 @@ PHASE2_CLOSURE_VALIDATOR_MARKERS = [
     "'scripts/zigux/check-phase2-toolchain-pin-scope.py': 1",
 ]
 
-README_MARKERS = [
+SCRIPTS_README_MARKERS = [
     "check-phase2-toolchain-pin-scope.py --self-test",
     "check-phase2-toolchain-pin-scope.py",
     "zig-toolchain-policy.json",
@@ -78,6 +79,22 @@ README_MARKERS = [
     "make -C zigux phase2-validate",
     "make -C zigux phase2",
     "kbuild-facing review path",
+]
+
+DOCS_ROOT_README_MARKERS = [
+    "check-phase2-toolchain-pin-scope.py --self-test",
+    "check-phase2-toolchain-pin-scope.py",
+    "validate-phase2.py",
+    "validate-phase2-closure.py",
+    "zig-toolchain-policy.json",
+    "Documentation/zigux/phase2-toolchain-bootstrap-notes.md",
+    "Documentation/zigux/review-checklist.md",
+    "make -C zigux phase2-validate",
+    "make -C zigux phase2",
+    "install-zig.py --dest .zig-toolchain",
+    "check-zig-toolchain.py",
+    "bounded `x86_64-linux` archive pin visible from the docs root as one kbuild-facing review path",
+    "shared and closure validators fail-closing on the same dedicated toolchain-note sentence",
 ]
 
 REVIEW_CHECKLIST_MARKERS = [
@@ -554,17 +571,40 @@ def run_self_test() -> int:
     if marker_issues != ["sample:missing_marker:delta"]:
         raise SystemExit("phase2-toolchain-pin-scope:self-test:marker_failure_shape")
 
-    readme_text = "\n".join(README_MARKERS)
-    if validate_required_markers(readme_text, label="readme", markers=README_MARKERS):
-        raise SystemExit("phase2-toolchain-pin-scope:self-test:readme_markers")
+    scripts_readme_text = "\n".join(SCRIPTS_README_MARKERS)
+    if validate_required_markers(scripts_readme_text, label="scripts_readme", markers=SCRIPTS_README_MARKERS):
+        raise SystemExit("phase2-toolchain-pin-scope:self-test:scripts_readme_markers")
 
     marker_issues = validate_required_markers(
-        "\n".join(marker for marker in README_MARKERS if marker != "kbuild-facing review path"),
-        label="readme",
-        markers=README_MARKERS,
+        "\n".join(marker for marker in SCRIPTS_README_MARKERS if marker != "kbuild-facing review path"),
+        label="scripts_readme",
+        markers=SCRIPTS_README_MARKERS,
     )
-    if "readme:missing_marker:kbuild-facing review path" not in marker_issues:
-        raise SystemExit("phase2-toolchain-pin-scope:self-test:readme_reviewability_marker")
+    if "scripts_readme:missing_marker:kbuild-facing review path" not in marker_issues:
+        raise SystemExit("phase2-toolchain-pin-scope:self-test:scripts_readme_reviewability_marker")
+
+    docs_root_readme_text = "\n".join(DOCS_ROOT_README_MARKERS)
+    if validate_required_markers(
+        docs_root_readme_text,
+        label="docs_root_readme",
+        markers=DOCS_ROOT_README_MARKERS,
+    ):
+        raise SystemExit("phase2-toolchain-pin-scope:self-test:docs_root_readme_markers")
+
+    marker_issues = validate_required_markers(
+        "\n".join(
+            marker
+            for marker in DOCS_ROOT_README_MARKERS
+            if marker != "shared and closure validators fail-closing on the same dedicated toolchain-note sentence"
+        ),
+        label="docs_root_readme",
+        markers=DOCS_ROOT_README_MARKERS,
+    )
+    if (
+        "docs_root_readme:missing_marker:shared and closure validators fail-closing on the same dedicated toolchain-note sentence"
+        not in marker_issues
+    ):
+        raise SystemExit("phase2-toolchain-pin-scope:self-test:docs_root_readme_fail_closed_marker")
 
     toolchain_notes_markers = expected_toolchain_notes_markers(
         valid_policy["channel"],
@@ -823,7 +863,7 @@ def run_self_test() -> int:
             raise SystemExit("phase2-toolchain-pin-scope:self-test:json_round_trip")
 
     print("PHASE2_TOOLCHAIN_PIN_SCOPE_SELF_TEST=pass")
-    print("PHASE2_TOOLCHAIN_PIN_SCOPE_SELF_TEST_CASE_COUNT=43")
+    print("PHASE2_TOOLCHAIN_PIN_SCOPE_SELF_TEST_CASE_COUNT=45")
     return 0
 
 
@@ -841,7 +881,8 @@ def main() -> int:
         POLICY,
         WORKFLOW,
         MAKEFILE,
-        README,
+        SCRIPTS_README,
+        DOCS_ROOT_README,
         TOOLCHAIN_NOTES,
         REVIEW_CHECKLIST,
         CLOSURE_DOC,
@@ -900,9 +941,16 @@ def main() -> int:
     )
     issues.extend(
         validate_required_markers(
-            README.read_text(encoding="utf-8"),
+            SCRIPTS_README.read_text(encoding="utf-8"),
             label="scripts_readme",
-            markers=README_MARKERS,
+            markers=SCRIPTS_README_MARKERS,
+        )
+    )
+    issues.extend(
+        validate_required_markers(
+            DOCS_ROOT_README.read_text(encoding="utf-8"),
+            label="docs_root_readme",
+            markers=DOCS_ROOT_README_MARKERS,
         )
     )
     issues.extend(
@@ -945,4 +993,4 @@ if __name__ == "__main__":
     raise SystemExit(main())
 
 # Bootstrap validator compatibility marker: def expected_toolchain_notes_markers(channel: str, minimum_version: str) -> list[str]:
-# Shared Phase 2 validator compatibility marker: PHASE2_TOOLCHAIN_PIN_SCOPE_SELF_TEST_CASE_COUNT=43
+# Shared Phase 2 validator compatibility marker: PHASE2_TOOLCHAIN_PIN_SCOPE_SELF_TEST_CASE_COUNT=45
