@@ -9,12 +9,13 @@ import tempfile
 
 SCRIPT_PATH = Path(__file__).resolve()
 ROOT = SCRIPT_PATH.parents[2] if len(SCRIPT_PATH.parents) > 2 else SCRIPT_PATH.parent
-SELF_TEST_CASE_COUNT = 23
+SELF_TEST_CASE_COUNT = 26
 
 CHECKSUM_PERF_PATH = "zigux/tests/phase6_checksum_perf.zig"
 HEXDUMP_PERF_PATH = "zigux/tests/phase6_hexdump_perf.zig"
 PERF_SURVEY_PATH = "Documentation/zigux/phase6-perf-gate-survey.md"
 CATALOG_PATH = "Documentation/zigux/phase6-helper-parity-catalog.md"
+DOCS_ROOT_PATH = "Documentation/zigux/README.md"
 SCRIPTS_README_PATH = "scripts/zigux/README.md"
 TESTS_README_PATH = "zigux/tests/README.md"
 MAKEFILE_PATH = "zigux/Makefile"
@@ -40,6 +41,10 @@ PERF_SURVEY_MARKERS = [
 
 CATALOG_MARKERS = [
     "`python3 scripts/zigux/check-phase6-checksum-hexdump-perf-markers.py --self-test` and `python3 scripts/zigux/check-phase6-checksum-hexdump-perf-markers.py` keep the shipped checksum and hexdump perf-marker packet fail-closed around the per-call, per-byte, slowdown, folded-checksum, required-length, and reference-path reporting markers before broader Phase 6 replay claims stay green.",
+]
+
+DOCS_ROOT_MARKERS = [
+    "- `python3 scripts/zigux/check-phase6-docs-root-external-parity.py --self-test`, `python3 scripts/zigux/check-phase6-docs-root-external-parity.py`, `python3 scripts/zigux/check-phase6-base64-catalog-evidence.py --self-test`, `python3 scripts/zigux/check-phase6-base64-catalog-evidence.py`, `python3 scripts/zigux/check-phase6-checksum-hexdump-perf-markers.py --self-test`, and `python3 scripts/zigux/check-phase6-checksum-hexdump-perf-markers.py` are the shipped fail-closed review hooks for the docs-root external portability inventory, the parked base64 catalog evidence packet, and the checksum plus hexdump perf-marker packet inside that same bounded Phase 6 helper tranche.",
 ]
 
 SCRIPTS_README_MARKERS = [
@@ -113,6 +118,7 @@ def validate(root: Path) -> dict[str, object]:
     hexdump_path = root / HEXDUMP_PERF_PATH
     perf_survey_path = root / PERF_SURVEY_PATH
     catalog_path = root / CATALOG_PATH
+    docs_root_path = root / DOCS_ROOT_PATH
     scripts_readme_path = root / SCRIPTS_README_PATH
     tests_readme_path = root / TESTS_README_PATH
     makefile_path = root / MAKEFILE_PATH
@@ -141,6 +147,12 @@ def validate(root: Path) -> dict[str, object]:
     else:
         for marker in exact_line_count_failures(text(root, CATALOG_PATH), CATALOG_MARKERS):
             missing.append(f"catalog:{marker}")
+
+    if not docs_root_path.exists():
+        missing_files.append(DOCS_ROOT_PATH)
+    else:
+        for marker in exact_line_count_failures(text(root, DOCS_ROOT_PATH), DOCS_ROOT_MARKERS):
+            missing.append(f"docs_root:{marker}")
 
     if not scripts_readme_path.exists():
         missing_files.append(SCRIPTS_README_PATH)
@@ -204,6 +216,7 @@ def build_self_test_tree(root: Path) -> None:
     write(root, HEXDUMP_PERF_PATH, "\n".join(HEXDUMP_PERF_MARKERS) + "\n")
     write(root, PERF_SURVEY_PATH, "\n".join(PERF_SURVEY_MARKERS) + "\n")
     write(root, CATALOG_PATH, "\n".join(CATALOG_MARKERS) + "\n")
+    write(root, DOCS_ROOT_PATH, "\n".join(DOCS_ROOT_MARKERS) + "\n")
     write(root, SCRIPTS_README_PATH, "\n".join(SCRIPTS_README_MARKERS) + "\n")
     write(root, TESTS_README_PATH, "\n".join(TESTS_README_MARKERS) + "\n")
     write(root, MAKEFILE_PATH, "\n".join(MAKEFILE_MARKERS) + "\n")
@@ -249,6 +262,11 @@ def run_self_test() -> int:
             build_self_test_tree(root)
             (root / CATALOG_PATH).unlink()
             expect_missing_file(validate(root), CATALOG_PATH)
+            count += 1
+
+            build_self_test_tree(root)
+            (root / DOCS_ROOT_PATH).unlink()
+            expect_missing_file(validate(root), DOCS_ROOT_PATH)
             count += 1
 
             build_self_test_tree(root)
@@ -313,6 +331,24 @@ def run_self_test() -> int:
                 encoding="utf-8",
             )
             expect_contains(validate(root), f"catalog:expected=1:actual=2:{CATALOG_MARKERS[0]}")
+            count += 1
+
+            build_self_test_tree(root)
+            docs_root_path = root / DOCS_ROOT_PATH
+            docs_root_path.write_text(
+                drop_exact_line(docs_root_path.read_text(encoding="utf-8"), DOCS_ROOT_MARKERS[0]),
+                encoding="utf-8",
+            )
+            expect_contains(validate(root), f"docs_root:expected=1:actual=0:{DOCS_ROOT_MARKERS[0]}")
+            count += 1
+
+            build_self_test_tree(root)
+            docs_root_path = root / DOCS_ROOT_PATH
+            docs_root_path.write_text(
+                duplicate_exact_line(docs_root_path.read_text(encoding="utf-8"), DOCS_ROOT_MARKERS[0]),
+                encoding="utf-8",
+            )
+            expect_contains(validate(root), f"docs_root:expected=1:actual=2:{DOCS_ROOT_MARKERS[0]}")
             count += 1
 
             build_self_test_tree(root)
