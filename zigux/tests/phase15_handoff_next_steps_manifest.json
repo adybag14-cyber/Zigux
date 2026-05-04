@@ -21,8 +21,9 @@
     "shared_ci_phase15_present": true,
     "docs_index_handoff_pointer_present": true,
     "docs_root_reviewability_guard_present": true,
-    "phase15_replay_green_on_current_master": true,
-    "docs_root_phase15_summary_aligned": true,
+    "phase15_replay_green_at_reviewed_head": true,
+    "docs_root_phase15_summary_aligned_at_reviewed_head": true,
+    "current_master_provenance_refresh_required": true,
     "deep_core_status_change_ready": false
   },
   "open_handoff_gaps": [
@@ -35,7 +36,7 @@
     }
   ],
   "pending_next_steps": [
-    "Keep this handoff lane parked unless the shared Phase 15 replay drifts again, a named reopen trigger now fits the evidence packet again, or a deep-core blocker change makes a refreshed synthesis necessary.",
+    "Keep this handoff lane parked unless the shared Phase 15 replay drifts again, the reviewed-provenance head for this packet needs refresh because later repo movement touched the same governance surface, a named reopen trigger now fits the evidence packet again, or a deep-core blocker change makes a refreshed synthesis necessary.",
     "If drift is packet-local inside Documentation/zigux/phase15-freeze-map-governance.md, Documentation/zigux/phase15-architecture-council-review-process.md, Documentation/zigux/phase15-parity-scorecard.md, or Documentation/zigux/phase15-indefinite-c-policy.md, refresh that dedicated packet first and return to this handoff lane only when shared replay, docs-root alignment, or cross-packet synthesis drifts.",
     "When one of those shared conditions changes, rerun python3 scripts/zigux/check-phase15-review-process-handoff.py --self-test, python3 scripts/zigux/check-phase15-review-process-handoff.py, python3 scripts/zigux/validate-phase15.py, make -C zigux phase15-validate, zig build test --build-file zigux/tests/phase15_build.zig, and make -C zigux phase15 before refreshing neighboring governance packets."
   ]
