@@ -12,6 +12,7 @@ HEX40 = re.compile(r"^[0-9a-f]{40}$")
 
 FILES = [
     "scripts/zigux/validate-phase15.py",
+    "scripts/zigux/check-phase15-review-process-handoff.py",
     "Documentation/zigux/README.md",
     "Documentation/zigux/freeze-map.md",
     "Documentation/zigux/phase15-freeze-map-governance.md",
@@ -45,6 +46,8 @@ FILES = [
 MAKE_MARKERS = [
     "PHONY += phase15-validate phase15-test phase15",
     "phase15-validate:",
+    "scripts/zigux/check-phase15-review-process-handoff.py --self-test",
+    "scripts/zigux/check-phase15-review-process-handoff.py",
     "scripts/zigux/validate-phase15.py",
     "phase15-test:",
     "$(ZIG) build test --build-file zigux/tests/phase15_build.zig",
