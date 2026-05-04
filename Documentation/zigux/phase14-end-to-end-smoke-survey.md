@@ -31,6 +31,7 @@ This document records the shared Phase 14 smoke lane that verifies the current b
 - shared smoke boundary:
   - `scripts/zigux/validate-phase14.py`
   - `scripts/zigux/check-phase14-docs-root-smoke-summary.py`
+  - `scripts/zigux/check-phase14-release-boundary-exact-counts.py`
   - `scripts/zigux/README.md`
   - `Documentation/zigux/README.md`
   - `Documentation/zigux/phase14-release-boundary-survey.md`
@@ -81,7 +82,7 @@ This lane stays narrow on purpose. It does not add a new bridge. It verifies tha
 ## Shared smoke findings
 
 - `zigux/tests/phase14_build.zig` is the shared Phase 14 replay entrypoint and now includes the dedicated smoke survey alongside the four anchor-local packets.
-- `scripts/zigux/check-phase14-docs-root-smoke-summary.py`, `Documentation/zigux/README.md`, `scripts/zigux/validate-phase14.py`, and `scripts/zigux/README.md` now keep the fast shared-smoke contract explicit, so the docs-root summary, shared note, manifest, make targets, workflow path, and smoke-shard entrypoint are checked before the slower replay claims stay current.
+- `scripts/zigux/check-phase14-docs-root-smoke-summary.py`, `scripts/zigux/check-phase14-release-boundary-exact-counts.py`, `Documentation/zigux/README.md`, `scripts/zigux/validate-phase14.py`, and `scripts/zigux/README.md` now keep the fast shared-smoke contract explicit, so the docs-root summary, release-boundary exact-count helper, shared note, manifest, make targets, workflow path, and smoke-shard entrypoint are checked before the slower replay claims stay current.
 - `Documentation/zigux/phase14-release-boundary-survey.md` is now counted inside the same shared smoke packet, so the release-facing sequencing note cannot drift away from the validator-backed four-anchor boundary packet while this lane stays in maintenance mode.
 - `zigux/tests/phase14_build.zig` now exposes one dedicated shared `phase14-smoke` shard, and all four anchor-local artifacts still replay only through the heavier `test` bundle.
 - `zigux/tests/phase14_build.zig` now also keeps the routing boundary explicit: the full `test` bundle depends on all five compile artifacts exactly once, while the focused `phase14-smoke` shard depends only on the shared smoke survey artifact.
