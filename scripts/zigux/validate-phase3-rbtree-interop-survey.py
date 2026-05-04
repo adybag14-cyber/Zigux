@@ -9,6 +9,7 @@ ROOT = Path(__file__).resolve().parents[2]
 SURVEY_REL = "Documentation/zigux/phase3-rbtree-interop-survey.md"
 ROADMAP_GAP_SURVEY_REL = "Documentation/zigux/phase3-roadmap-gap-survey.md"
 SLICE_REL = "Documentation/zigux/phase3-rbtree-slice.md"
+DOCS_README_REL = "Documentation/zigux/README.md"
 SHARED_LIFT_CHECK_REL = "scripts/zigux/check-phase3-rbtree-shared-lift-contract.py"
 ABI_MANIFEST_REL = "zigux/tests/fixtures/phase3_abi_manifest.json"
 
@@ -59,10 +60,22 @@ EXACT_ONCE_SURVEY_SNIPPETS = (
     "The next honest same-lane follow-on is one bounded survey-summary alignment pass",
 )
 
+REQUIRED_DOCS_README_SNIPPETS = (
+    "`Documentation/zigux/phase3-rbtree-interop-survey.md` records the dedicated `rbtree` boundary packet, and `scripts/zigux/validate-phase3-rbtree-interop-survey.py` remains a supporting survey check inside that shared validator-first route.",
+    "the landed dedicated `rbtree` boundary packet and shared `zigux_rbtree_root_view` lift inside `include/zigux/abi.h` and `zigux/bindings/abi.zig`",
+    "the remaining survey-and-validator wording gap before more `chrdev_*` tail growth",
+)
+
+EXACT_ONCE_DOCS_README_SNIPPETS = (
+    "`Documentation/zigux/phase3-rbtree-interop-survey.md` records the dedicated `rbtree` boundary packet, and `scripts/zigux/validate-phase3-rbtree-interop-survey.py` remains a supporting survey check inside that shared validator-first route.",
+    "the landed dedicated `rbtree` boundary packet and shared `zigux_rbtree_root_view` lift inside `include/zigux/abi.h` and `zigux/bindings/abi.zig`",
+)
+
 REQUIRED_REPO_PATHS = (
     "Documentation/zigux/phase1-closure.md",
     "Documentation/zigux/phase3-rbtree-slice.md",
     "Documentation/zigux/phase3-roadmap-gap-survey.md",
+    "Documentation/zigux/README.md",
     "Documentation/zigux/phase7-rbtree-slice.md",
     "lib/rbtree.zig",
     "tools/lib/rbtree.zig",
@@ -179,6 +192,7 @@ def validate(root: Path) -> list[str]:
     survey = _read_text(root, SURVEY_REL, issues)
     roadmap_gap = _read_text(root, ROADMAP_GAP_SURVEY_REL, issues)
     slice_text = _read_text(root, SLICE_REL, issues)
+    docs_readme = _read_text(root, DOCS_README_REL, issues)
     shared_lift_check = _read_text(root, SHARED_LIFT_CHECK_REL, issues)
     abi_manifest = _read_text(root, ABI_MANIFEST_REL, issues)
 
@@ -225,6 +239,16 @@ def validate(root: Path) -> list[str]:
             issues,
         )
 
+    if docs_readme:
+        _check_snippets(docs_readme, REQUIRED_DOCS_README_SNIPPETS, "missing_docs_readme_snippet", issues)
+        _check_exact_count(
+            docs_readme,
+            EXACT_ONCE_DOCS_README_SNIPPETS,
+            "unexpected_docs_readme_snippet_count",
+            1,
+            issues,
+        )
+
     if shared_lift_check:
         for snippet in REQUIRED_SHARED_LIFT_CHECK_SNIPPETS:
             if snippet not in shared_lift_check:
@@ -254,6 +278,8 @@ def run_self_test() -> int:
         (root / SURVEY_REL).write_text("\n".join((*REQUIRED_SURVEY_MARKERS, *REQUIRED_SURVEY_SNIPPETS)) + "\n", encoding="utf-8")
         (root / ROADMAP_GAP_SURVEY_REL).write_text("\n".join(REQUIRED_ROADMAP_GAP_MARKERS) + "\n", encoding="utf-8")
         (root / SLICE_REL).write_text("\n".join((*REQUIRED_SLICE_MARKERS, *REQUIRED_SLICE_SNIPPETS)) + "\n", encoding="utf-8")
+        (root / DOCS_README_REL).writeText = None
+        (root / DOCS_README_REL).write_text("\n".join(REQUIRED_DOCS_README_SNIPPETS) + "\n", encoding="utf-8")
         (root / SHARED_LIFT_CHECK_REL).write_text("\n".join(REQUIRED_SHARED_LIFT_CHECK_SNIPPETS) + "\n", encoding="utf-8")
         (root / ABI_MANIFEST_REL).write_text("\n".join(REQUIRED_ABI_MANIFEST_ENTRIES) + "\n", encoding="utf-8")
 
@@ -282,6 +308,11 @@ def run_self_test() -> int:
         assert any(issue.startswith("missing_slice_snippet:") for issue in issues)
 
         (root / SLICE_REL).write_text("\n".join((*REQUIRED_SLICE_MARKERS, *REQUIRED_SLICE_SNIPPETS)) + "\n", encoding="utf-8")
+        (root / DOCS_README_REL).write_text(REQUIRED_DOCS_README_SNIPPETS[0] + "\n", encoding="utf-8")
+        issues = validate(root)
+        assert any(issue.startswith("missing_docs_readme_snippet:") for issue in issues)
+
+        (root / DOCS_README_REL).write_text("\n".join(REQUIRED_DOCS_README_SNIPPETS) + "\n", encoding="utf-8")
         duplicated_survey_marker = EXACT_ONCE_SURVEY_MARKERS[0]
         (root / SURVEY_REL).write_text(
             "\n".join((*REQUIRED_SURVEY_MARKERS, *REQUIRED_SURVEY_SNIPPETS, duplicated_survey_marker)) + "\n",
@@ -318,6 +349,15 @@ def run_self_test() -> int:
         assert f"unexpected_slice_marker_count:2:{duplicated_slice_marker}" in issues
 
         (root / SLICE_REL).write_text("\n".join((*REQUIRED_SLICE_MARKERS, *REQUIRED_SLICE_SNIPPETS)) + "\n", encoding="utf-8")
+        duplicated_docs_readme_snippet = EXACT_ONCE_DOCS_README_SNIPPETS[0]
+        (root / DOCS_README_REL).write_text(
+            "\n".join((*REQUIRED_DOCS_README_SNIPPETS, duplicated_docs_readme_snippet)) + "\n",
+            encoding="utf-8",
+        )
+        issues = validate(root)
+        assert f"unexpected_docs_readme_snippet_count:2:{duplicated_docs_readme_snippet}" in issues
+
+        (root / DOCS_README_REL).write_text("\n".join(REQUIRED_DOCS_README_SNIPPETS) + "\n", encoding="utf-8")
         missing_repo_rel = REQUIRED_REPO_PATHS[-1]
         missing_repo_path = root / missing_repo_rel
         missing_repo_path.unlink()
