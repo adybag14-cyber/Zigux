@@ -297,3 +297,57 @@ test "runtime bitmap sample keeps parse-and-print and bit-list guards explicit a
 
     try std.testing.expectError(error.InvalidLifecycleTransition, parsed.initFromBitList("1"));
 }
+
+test "runtime bitmap sample keeps transactional init failures explicit at the module boundary" {
+    var parsed = sample.RuntimeBitmapSample{};
+    try std.testing.expectError(
+        error.BitRangeOutOfBounds,
+        parsed.initFromBitList("0, 5, 64, 128"),
+    );
+    try std.testing.expectEqual(sample.ModuleStage.cold, parsed.stage());
+
+    const parsed_summary = parsed.summary();
+    try std.testing.expectEqual(sample.RuntimeBitmapSample.bitmap_nbits, parsed_summary.first_set);
+    try std.testing.expectEqual(@as(u32, 0), parsed_summary.first_zero);
+    try std.testing.expectEqual(@as(u32, 0), parsed_summary.weight);
+    try std.testing.expectEqual(@as(usize, 0), parsed_summary.init_runs);
+    try std.testing.expectEqual(@as(usize, 0), parsed_summary.selftest_runs);
+    try std.testing.expectEqual(@as(usize, 0), parsed_summary.exit_runs);
+    try std.testing.expectEqual(@as(?u32, null), parsed.nthSetBit(0));
+    try std.testing.expect(!parsed.isSet(0));
+    try std.testing.expect(!parsed.isSet(5));
+    try std.testing.expect(!parsed.isSet(64));
+
+    const parsed_formatted = try parsed.formatSetBits(std.testing.allocator);
+    defer std.testing.allocator.free(parsed_formatted);
+    try std.testing.expectEqualStrings("", parsed_formatted);
+
+    try parsed.initFromBitList("0, 5, 64, 70");
+    try std.testing.expectEqual(sample.ModuleStage.initialized, parsed.stage());
+    try std.testing.expect(parsed.isSet(0));
+    try std.testing.expect(parsed.isSet(5));
+    try std.testing.expect(parsed.isSet(64));
+    try std.testing.expect(parsed.isSet(70));
+
+    var direct = sample.RuntimeBitmapSample{};
+    try std.testing.expectError(
+        error.BitRangeOutOfBounds,
+        direct.initWithSetBits(&.{ 1, sample.RuntimeBitmapSample.bitmap_nbits }),
+    );
+    try std.testing.expectEqual(sample.ModuleStage.cold, direct.stage());
+
+    const direct_summary = direct.summary();
+    try std.testing.expectEqual(sample.RuntimeBitmapSample.bitmap_nbits, direct_summary.first_set);
+    try std.testing.expectEqual(@as(u32, 0), direct_summary.first_zero);
+    try std.testing.expectEqual(@as(u32, 0), direct_summary.weight);
+    try std.testing.expectEqual(@as(usize, 0), direct_summary.init_runs);
+    try std.testing.expectEqual(@as(usize, 0), direct_summary.selftest_runs);
+    try std.testing.expectEqual(@as(usize, 0), direct_summary.exit_runs);
+    try std.testing.expect(!direct.isSet(1));
+    try std.testing.expectEqual(@as(?u32, null), direct.nthSetBit(0));
+
+    try direct.initWithSetBits(&.{ 1, 3 });
+    try std.testing.expectEqual(sample.ModuleStage.initialized, direct.stage());
+    try std.testing.expect(direct.isSet(1));
+    try std.testing.expect(direct.isSet(3));
+}
