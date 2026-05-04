@@ -94,6 +94,10 @@ KCONFIG_CHECKER_MARKERS = [
     "compare_text_artifacts(default_actual, default_rebuild)",
     "input_path=trailing_cr_input",
     "input_path=final_unset_input",
+    "env['KCONFIG_ALLCONFIG'] = case['allconfig_env']",
+    "env['KCONFIG_AUTOCONFIG'] = case['autoconfig']",
+    "env['KCONFIG_AUTOHEADER'] = case['autoheader']",
+    "env['KCONFIG_NOSILENTUPDATE'] = case['nosilentupdate']",
     "env['KCONFIG_SEED'] = case['seed']",
     "env['KCONFIG_PROBABILITY'] = case['probability']",
 ]
