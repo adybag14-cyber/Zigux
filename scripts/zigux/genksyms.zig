@@ -431,7 +431,7 @@ pub fn main(init: std.process.Init) !void {
     const command = switch (outcome) {
         .command => |command| command,
         .failure => |failure| {
-            var stderr_buffer: [512]u8 = undefined;
+            var stderr_buffer: [1024]u8 = undefined;
             var stderr_writer = Io.File.stderr().writer(io, &stderr_buffer);
             const version_count = switch (failure) {
                 .invalid_option => |details| details.version_count,
@@ -448,6 +448,7 @@ pub fn main(init: std.process.Init) !void {
                 .too_many_reference_files => try stderr_writer.interface.writeAll("too many reference files\n"),
                 .ambiguous_option => |details| try writeAmbiguousOptionError(&stderr_writer.interface, details.option, details.possibilities),
             }
+            try stderr_writer.interface.writeAll(usage_text);
             try stderr_writer.interface.flush();
             std.process.exit(1);
         },
