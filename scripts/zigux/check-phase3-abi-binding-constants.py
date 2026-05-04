@@ -84,39 +84,49 @@ def _parse_int(token: str) -> int:
     return int(cleaned, 0)
 
 
-def _parse_header_constants(text: str) -> dict[str, int]:
+def _parse_header_constants(text: str) -> tuple[dict[str, int], set[str]]:
     constants: dict[str, int] = {}
+    counts: dict[str, int] = {}
     for name, value in re.findall(r"^#define\s+(ZIGUX_[A-Z0-9_]+)\s+([^\s/]+)", text, re.MULTILINE):
+        counts[name] = counts.get(name, 0) + 1
         try:
             constants[name] = _parse_int(value)
         except ValueError:
             continue
-    return constants
+    duplicates = {name for name, count in counts.items() if count > 1}
+    return constants, duplicates
 
 
-def _parse_binding_constants(text: str) -> dict[str, int]:
+def _parse_binding_constants(text: str) -> tuple[dict[str, int], set[str]]:
     constants: dict[str, int] = {}
+    counts: dict[str, int] = {}
     for name, value in re.findall(r"^pub const\s+([A-Z0-9_]+)\s*:\s*[^=]+?=\s*([^;]+);", text, re.MULTILINE):
+        counts[name] = counts.get(name, 0) + 1
         raw = value.strip().replace("_", "")
         if re.fullmatch(r"[-+]?0[xX][0-9a-fA-F]+|[-+]?[0-9]+", raw):
             constants[name] = int(raw, 0)
-    return constants
+    duplicates = {name for name, count in counts.items() if count > 1}
+    return constants, duplicates
 
 
-def _parse_binding_enums(text: str) -> dict[str, dict[str, int]]:
+def _parse_binding_enums(text: str) -> tuple[dict[str, dict[str, int]], dict[str, set[str]]]:
     enums: dict[str, dict[str, int]] = {}
+    duplicate_members: dict[str, set[str]] = {}
     for enum_name, body in re.findall(
         r"pub const\s+([A-Za-z0-9_]+)\s*=\s*enum\([^\)]+\)\s*\{(.*?)\n\};",
         text,
         re.DOTALL,
     ):
         members: dict[str, int] = {}
+        counts: dict[str, int] = {}
         for member, value in re.findall(r"\b([a-zA-Z_][a-zA-Z0-9_]*)\s*=\s*([^,\n]+)", body):
+            counts[member] = counts.get(member, 0) + 1
             raw = value.strip().replace("_", "")
             if re.fullmatch(r"[-+]?0[xX][0-9a-fA-F]+|[-+]?[0-9]+", raw):
                 members[member] = int(raw, 0)
         enums[enum_name] = members
-    return enums
+        duplicate_members[enum_name] = {member for member, count in counts.items() if count > 1}
+    return enums, duplicate_members
 
 
 def validate_constants(root: Path = ROOT) -> list[str]:
@@ -130,12 +140,14 @@ def validate_constants(root: Path = ROOT) -> list[str]:
 
     header_text = header_path.read_text(encoding="utf-8")
     bindings_text = bindings_path.read_text(encoding="utf-8")
-    header_constants = _parse_header_constants(header_text)
-    binding_constants = _parse_binding_constants(bindings_text)
-    binding_enums = _parse_binding_enums(bindings_text)
+    header_constants, header_duplicates = _parse_header_constants(header_text)
+    binding_constants, binding_duplicates = _parse_binding_constants(bindings_text)
+    binding_enums, binding_enum_duplicates = _parse_binding_enums(bindings_text)
 
     for key, expected in EXPECTED_VALUES.items():
         header_name = HEADER_CONSTANTS[key]
+        if header_name in header_duplicates:
+            issues.append(f"abi-binding-constants: duplicate header definition for {header_name}")
         header_value = header_constants.get(header_name)
         if header_value is None:
             issues.append(f"abi-binding-constants: header missing {header_name}")
@@ -145,11 +157,17 @@ def validate_constants(root: Path = ROOT) -> list[str]:
         binding_value: int | None = None
         if key in BINDING_CONST_NAMES:
             binding_name = BINDING_CONST_NAMES[key]
+            if binding_name in binding_duplicates:
+                issues.append(f"abi-binding-constants: duplicate binding definition for {binding_name}")
             binding_value = binding_constants.get(binding_name)
             if binding_value is None:
                 issues.append(f"abi-binding-constants: binding missing {binding_name}")
         else:
             enum_name, member_name = BINDING_ENUM_MEMBERS[key]
+            if member_name in binding_enum_duplicates.get(enum_name, set()):
+                issues.append(
+                    f"abi-binding-constants: duplicate binding enum member {enum_name}.{member_name}"
+                )
             enum_members = binding_enums.get(enum_name)
             if enum_members is None:
                 issues.append(f"abi-binding-constants: binding missing enum {enum_name}")
@@ -237,6 +255,50 @@ def run_self_test() -> int:
             newline="\n",
         )
         assert validate_constants(root) == []
+
+        header_path = root / HEADER_REL
+        header_path.write_text(
+            header_path.read_text(encoding="utf-8")
+            + "#define ZIGUX_STATUS_FLAG_ERROR 1U\n",
+            encoding="utf-8",
+            newline="\n",
+        )
+        issues = validate_constants(root)
+        assert "abi-binding-constants: duplicate header definition for ZIGUX_STATUS_FLAG_ERROR" in issues
+        header_path.write_text(
+            header_path.read_text(encoding="utf-8").rsplit("#define ZIGUX_STATUS_FLAG_ERROR 1U\n", 1)[0]
+            + "\n",
+            encoding="utf-8",
+            newline="\n",
+        )
+
+        bindings_path.write_text(
+            bindings_path.read_text(encoding="utf-8")
+            + "pub const STATUS_FLAG_ERROR: u16 = 1;\n",
+            encoding="utf-8",
+            newline="\n",
+        )
+        issues = validate_constants(root)
+        assert "abi-binding-constants: duplicate binding definition for STATUS_FLAG_ERROR" in issues
+        bindings_path.write_text(
+            bindings_path.read_text(encoding="utf-8").rsplit("pub const STATUS_FLAG_ERROR: u16 = 1;\n", 1)[0]
+            + "\n",
+            encoding="utf-8",
+            newline="\n",
+        )
+
+        bindings_path.write_text(
+            bindings_path.read_text(encoding="utf-8").replace("    kernel = 1,\n", "    kernel = 1,\n    kernel = 1,\n", 1),
+            encoding="utf-8",
+            newline="\n",
+        )
+        issues = validate_constants(root)
+        assert "abi-binding-constants: duplicate binding enum member Facility.kernel" in issues
+        bindings_path.write_text(
+            bindings_path.read_text(encoding="utf-8").replace("    kernel = 1,\n    kernel = 1,\n", "    kernel = 1,\n", 1),
+            encoding="utf-8",
+            newline="\n",
+        )
 
         bindings_path.write_text(
             bindings_path.read_text(encoding="utf-8").replace("    kernel = 1,\n", "", 1),
