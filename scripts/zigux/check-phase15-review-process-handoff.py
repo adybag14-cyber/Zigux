@@ -27,16 +27,20 @@ HANDOFF_INVENTORY_MARKERS = [
     "Documentation/zigux/phase15-freeze-map-governance.md",
     "Documentation/zigux/phase15-parity-scorecard.md",
     "Documentation/zigux/phase15-indefinite-c-policy.md",
+    "Documentation/zigux/phase15-readiness-gate-survey.md",
     "Documentation/zigux/phase15-handoff-next-steps-survey.md",
     "scripts/zigux/README.md",
     "scripts/zigux/check-phase15-review-process-handoff.py",
     "scripts/zigux/validate-phase15.py",
     "zigux/tests/README.md",
+    "zigux/tests/phase15_docs_root_reviewability.zig",
     "zigux/tests/phase15_build.zig",
     "make -C zigux phase15",
 ]
 
 MANIFEST_ROUTE_MARKERS = [
+    "readiness packet",
+    "docs-root reviewability guard",
     "scripts-root validator path",
     "tests-root guidance path",
     "dedicated handoff-checker route",
@@ -44,16 +48,22 @@ MANIFEST_ROUTE_MARKERS = [
 ]
 
 NOTE_LANE_ROUTE_MARKERS = [
+    "readiness packet",
+    "docs-root reviewability guard",
     "scripts-root validator path",
     "tests-root guidance path",
     "dedicated handoff-checker route",
 ]
 
 NOTE_HANDOFF_ROUTE_MARKERS = [
+    "Documentation/zigux/phase15-readiness-gate-survey.md",
+    "zigux/tests/phase15_docs_root_reviewability.zig",
     "scripts/zigux/README.md",
     "scripts/zigux/check-phase15-review-process-handoff.py",
     "scripts/zigux/validate-phase15.py",
     "zigux/tests/README.md",
+    "readiness packet",
+    "docs-root reviewability guard",
     "scripts-root validator path",
     "dedicated handoff-checker route",
     "tests-root guidance path",
@@ -62,10 +72,12 @@ NOTE_HANDOFF_ROUTE_MARKERS = [
 CURRENT_ENFORCEMENT_MARKERS = [
     "last reviewed remote `master` head for this packet",
     "Documentation/zigux/review-checklist.md",
+    "Documentation/zigux/phase15-readiness-gate-survey.md",
     "scripts/zigux/check-phase15-review-process-handoff.py",
     "python3 scripts/zigux/validate-phase15.py",
     "make -C zigux phase15-validate",
     "Documentation/zigux/README.md",
+    "zigux/tests/phase15_docs_root_reviewability.zig",
     "zigux/tests/README.md",
     "phase15-review-process-current-enforcement-evidence-gate",
 ]
@@ -192,13 +204,13 @@ def write_fixture_tree(root: Path) -> None:
 
 ## Roadmap Handoff Evidence
 
-- current repo handoff: the original documentation-root and freeze-map landing is now carried forward by `Documentation/zigux/README.md`, `Documentation/zigux/freeze-map.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/phase15-freeze-map-governance.md`, this review-process note, `Documentation/zigux/phase15-parity-scorecard.md`, `Documentation/zigux/phase15-indefinite-c-policy.md`, `Documentation/zigux/phase15-handoff-next-steps-survey.md`, `scripts/zigux/README.md`, `scripts/zigux/check-phase15-review-process-handoff.py`, `scripts/zigux/validate-phase15.py`, `zigux/tests/README.md`, `zigux/tests/phase15_build.zig`, and `make -C zigux phase15`
-- current bounded lane: `P15-L08` keeps the review-process packet narrowed so the scripts-root validator path, the dedicated handoff-checker route, and the tests-root guidance path stay explicit together.
+- current repo handoff: the original documentation-root and freeze-map landing is now carried forward by `Documentation/zigux/README.md`, `Documentation/zigux/freeze-map.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/phase15-freeze-map-governance.md`, this review-process note, `Documentation/zigux/phase15-parity-scorecard.md`, `Documentation/zigux/phase15-indefinite-c-policy.md`, `Documentation/zigux/phase15-readiness-gate-survey.md`, `Documentation/zigux/phase15-handoff-next-steps-survey.md`, `scripts/zigux/README.md`, `scripts/zigux/check-phase15-review-process-handoff.py`, `scripts/zigux/validate-phase15.py`, `zigux/tests/README.md`, `zigux/tests/phase15_docs_root_reviewability.zig`, `zigux/tests/phase15_build.zig`, and `make -C zigux phase15`
+- current bounded lane: `P15-L08` keeps the review-process packet narrowed so the readiness packet, the docs-root reviewability guard, the scripts-root validator path, the dedicated handoff-checker route, and the tests-root guidance path stay explicit together.
 - maintenance-mode next step: wait for one named reopen trigger.
 
 ## Maintenance-Mode Handoff
 
-- keep `scripts/zigux/README.md`, `scripts/zigux/check-phase15-review-process-handoff.py`, `scripts/zigux/validate-phase15.py`, and `zigux/tests/README.md` aligned with the same parked governance bundle so the scripts-root validator path, dedicated handoff-checker route, and tests-root guidance path do not drift away from the Architecture Council handoff while this lane remains parked.
+- keep `Documentation/zigux/phase15-readiness-gate-survey.md`, `zigux/tests/phase15_docs_root_reviewability.zig`, `scripts/zigux/README.md`, `scripts/zigux/check-phase15-review-process-handoff.py`, `scripts/zigux/validate-phase15.py`, and `zigux/tests/README.md` aligned with the same parked governance bundle so the readiness packet, the docs-root reviewability guard, the scripts-root validator path, dedicated handoff-checker route, and tests-root guidance path do not drift away from the Architecture Council handoff while this lane remains parked.
 
 ## Current enforcement evidence
 
@@ -206,7 +218,7 @@ def write_fixture_tree(root: Path) -> None:
 - the review hook was present at that reviewed head in `Documentation/zigux/review-checklist.md`
 - the dedicated handoff checker was present there in `scripts/zigux/check-phase15-review-process-handoff.py`
 - the shared validator-first governance gate was present there through `python3 scripts/zigux/validate-phase15.py` and `make -C zigux phase15-validate`
-- the docs-root and tests-root review surfaces were present there in `Documentation/zigux/README.md` and `zigux/tests/README.md`
+- the docs-root, readiness, docs-root reviewability, and tests-root review surfaces were present there in `Documentation/zigux/README.md`, `Documentation/zigux/phase15-readiness-gate-survey.md`, `zigux/tests/phase15_docs_root_reviewability.zig`, and `zigux/tests/README.md`
 - landed `phase15-review-process-current-enforcement-evidence-gate`
 
 ## Recorded Gaps
@@ -215,8 +227,8 @@ def write_fixture_tree(root: Path) -> None:
 
     manifest = {
         "handoff_evidence": {
-            "current_repo_handoff": "The original documentation-root and freeze-map landing is now carried forward by Documentation/zigux/README.md, Documentation/zigux/freeze-map.md, Documentation/zigux/review-checklist.md, Documentation/zigux/phase15-freeze-map-governance.md, the review-process note, Documentation/zigux/phase15-parity-scorecard.md, Documentation/zigux/phase15-indefinite-c-policy.md, Documentation/zigux/phase15-handoff-next-steps-survey.md, scripts/zigux/README.md, scripts/zigux/check-phase15-review-process-handoff.py, scripts/zigux/validate-phase15.py, zigux/tests/README.md, zigux/tests/phase15_build.zig, and make -C zigux phase15.",
-            "current_bounded_lane": "P15-L08 keeps the review-process packet narrowed to one same-packet governance refresh so the Architecture Council handoff stays aligned with the current parked maintenance-mode Phase 15 packet, its scripts-root validator path, its dedicated handoff-checker route, and its tests-root guidance path.",
+            "current_repo_handoff": "The original documentation-root and freeze-map landing is now carried forward by Documentation/zigux/README.md, Documentation/zigux/freeze-map.md, Documentation/zigux/review-checklist.md, Documentation/zigux/phase15-freeze-map-governance.md, the review-process note, Documentation/zigux/phase15-parity-scorecard.md, Documentation/zigux/phase15-indefinite-c-policy.md, Documentation/zigux/phase15-readiness-gate-survey.md, Documentation/zigux/phase15-handoff-next-steps-survey.md, scripts/zigux/README.md, scripts/zigux/check-phase15-review-process-handoff.py, scripts/zigux/validate-phase15.py, zigux/tests/README.md, zigux/tests/phase15_docs_root_reviewability.zig, zigux/tests/phase15_build.zig, and make -C zigux phase15.",
+            "current_bounded_lane": "P15-L08 keeps the review-process packet narrowed to one same-packet governance refresh so the Architecture Council handoff stays aligned with the current parked maintenance-mode Phase 15 packet, its dedicated readiness packet, its docs-root reviewability guard, its scripts-root validator path, its dedicated handoff-checker route, and its tests-root guidance path.",
         }
     }
     (root / MANIFEST_PATH).write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
@@ -284,7 +296,7 @@ def run_self_test() -> int:
         manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
         expect_failure(
             tmp_root,
-            "manifest_lane:scripts-root validator path",
+            "manifest_lane:readiness packet",
             "missing_manifest_lane_route_marker",
         )
 
@@ -302,8 +314,8 @@ def run_self_test() -> int:
         write_fixture_tree(tmp_root)
         note_path.write_text(
             original_note.replace(
-                "keep `scripts/zigux/README.md`, `scripts/zigux/check-phase15-review-process-handoff.py`, `scripts/zigux/validate-phase15.py`, and `zigux/tests/README.md` aligned",
-                "keep `scripts/zigux/README.md`, `scripts/zigux/validate-phase15.py`, and `zigux/tests/README.md` aligned",
+                "keep `Documentation/zigux/phase15-readiness-gate-survey.md`, `zigux/tests/phase15_docs_root_reviewability.zig`, `scripts/zigux/README.md`, `scripts/zigux/check-phase15-review-process-handoff.py`, `scripts/zigux/validate-phase15.py`, and `zigux/tests/README.md` aligned",
+                "keep `Documentation/zigux/phase15-readiness-gate-survey.md`, `zigux/tests/phase15_docs_root_reviewability.zig`, `scripts/zigux/README.md`, `scripts/zigux/validate-phase15.py`, and `zigux/tests/README.md` aligned",
                 1,
             ),
             encoding="utf-8",
