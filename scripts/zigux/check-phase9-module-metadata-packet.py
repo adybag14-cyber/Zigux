@@ -567,7 +567,7 @@ def write_fixture_tree(root: Path) -> None:
         "}",
         "",
     ]), encoding='utf-8')
-    (root / KRETPROBE_LOADER_PATH).writeText("\n".join([
+    (root / KRETPROBE_LOADER_PATH).write_text("\n".join([
         "pub const RuntimeKretprobeLoadPlan = struct {};",
         "pub fn toSharedRequest(plan: RuntimeKretprobeLoadPlan) runtime_loader.RuntimeLoadRequest {",
         '    _ = "register_kretprobe";',
