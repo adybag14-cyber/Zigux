@@ -84,6 +84,8 @@ required_workflow_markers = [
     'python3 scripts/zigux/check-phase10-harness-coverage.py --self-test',
     'Validate Phase 10 focused harness coverage',
     'python3 scripts/zigux/check-phase10-harness-coverage.py',
+    'Run Phase 10 virtio helper tests',
+    'zigux/tests/phase10_build.zig',
     'Self-test Phase 11 simple-driver validator',
     'python3 scripts/zigux/validate-phase11.py --self-test',
     'Self-test Phase 11 header boundary packet checker',
