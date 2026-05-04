@@ -31,7 +31,6 @@ Those files should keep the closed helper inventory, the harness-backed parity r
 
 The tests-root packet stays bounded behind the same validator-first route:
 - `python3 scripts/zigux/validate-phase1.py`
-- `python3 scripts/zigux/validate-phase1-closure.py`
 - `make -C zigux phase1-validate`
 - `make -C zigux phase1-test`
 - `make -C zigux phase1-bench`
