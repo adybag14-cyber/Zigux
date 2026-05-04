@@ -548,6 +548,21 @@ def run_self_test() -> int:
 
         hvc_test_path.write_text(
             original_hvc_test.replace(
+                "    try std.testing.expect(hangup_cleanup.close_skipped);\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing(
+            "hvc_test_hangup_cleanup_close_skipped_marker",
+            tmp_root,
+            "hvc_test:    try std.testing.expect(hangup_cleanup.close_skipped);",
+        )
+        hvc_test_path.write_text(original_hvc_test, encoding="utf-8")
+
+        hvc_test_path.write_text(
+            original_hvc_test.replace(
                 "    try std.testing.expect(hangup_cleanup.defers_final_release_to_port_destruct);\n",
                 "",
                 1,
@@ -587,7 +602,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE11_HVC_CLEANUP_ALIGNMENT_SELF_TEST=pass")
-    print("PHASE11_HVC_CLEANUP_ALIGNMENT_SELF_TEST_CASE_COUNT=15")
+    print("PHASE11_HVC_CLEANUP_ALIGNMENT_SELF_TEST_CASE_COUNT=16")
     return 0
 
 
