@@ -372,6 +372,16 @@ def run_self_test() -> int:
         assert "phase4_gate_evidence:PHASE4_EXACT_READBACK_HEAD=" in missing, missing
         write_fixture_tree(root)
         gate_evidence = root / "Documentation/zigux/phase4-gate-evidence.md"
+        old = "PHASE4_VALIDATOR_BLOB_SHA=" + git_blob_sha1(read_bytes(root, "scripts/zigux/validate-phase4.py"))
+        gate_evidence.write_text(
+            gate_evidence.read_text(encoding="utf-8").replace(old, "PHASE4_VALIDATOR_BLOB_SHA=deadbeef", 1),
+            encoding="utf-8",
+        )
+        missing = validate_root(root)
+        expected = "phase4_gate_evidence:PHASE4_VALIDATOR_BLOB_SHA:" + git_blob_sha1(read_bytes(root, "scripts/zigux/validate-phase4.py"))
+        assert expected in missing, missing
+        write_fixture_tree(root)
+        gate_evidence = root / "Documentation/zigux/phase4-gate-evidence.md"
         gate_evidence.write_text(gate_evidence.read_text(encoding="utf-8").replace("PHASE4_REQUIRED_FILE_COUNT=27", "PHASE4_REQUIRED_FILE_COUNT=21", 1), encoding="utf-8")
         missing = validate_root(root)
         assert "phase4_gate_evidence:PHASE4_REQUIRED_FILE_COUNT=27" in missing, missing
