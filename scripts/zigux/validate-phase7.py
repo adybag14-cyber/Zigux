@@ -551,7 +551,6 @@ def run_self_test() -> int:
         )
         doc_readme_path.write_text(original_doc_readme, encoding="utf-8")
 
-        doc_readme_path.writeText if False else None
         doc_readme_path.write_text(
             original_doc_readme.replace(
                 "`python3 scripts/zigux/check-phase7-argv-split-packet.py --self-test`",
