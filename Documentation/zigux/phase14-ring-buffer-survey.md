@@ -10,7 +10,7 @@ This document records the bounded Phase 14 survey lane around `kernel/trace/ring
 - `PHASE14_SURVEYED_COMMIT=f9a7a6e93c8e6a1b6550fd7b2aa5571729aab05b`
 - scope: the dedicated Phase 14 ring-buffer survey gate, its manifest, the shared Phase 14 build wiring, and this lane note that keeps the roadmap gap explicit without shipping a Zig bridge
 - survey provenance refreshed against verified `master` head `f9a7a6e93c8e6a1b6550fd7b2aa5571729aab05b`
-- live follow-up: current repo inspection added one more bounded remote-reader metadata audit around `rb_read_remote_meta_page()` and `__rb_get_reader_page_from_remote()` without widening this packet into a repin, bridge claim, or wrapper-first implementation
+- live follow-up: current repo inspection added one more bounded reset and clear-path governance audit around `ring_buffer_reset_cpu()`, `ring_buffer_reset_online_cpus()`, `ring_buffer_reset()`, and tracefs-owned clear semantics without widening this packet into a reset bridge claim or wrapper-first implementation
 - product boundary:
   - `zigux/tests/phase14_ring_buffer_survey.zig`
   - `zigux/tests/phase14_ring_buffer_manifest.json`
@@ -34,7 +34,7 @@ The honest Phase 14 move here is therefore not to start a `ring_buffer.zig` file
 - `Documentation/trace/ring-buffer-map.rst` is present at 106 lines and adds mmap-facing reader, sub-buffer, and tracefs limitation behavior that would be easy to understate in a premature Zig wrapper.
 - `kernel/trace/simple_ring_buffer.c` exists as a much smaller 517-line companion, which reinforces that the full tracing ring buffer is the complex path and should not be treated like a straightforward helper port.
 - the live repo already had `zigux/tests/phase14_build.zig`, `zigux/Makefile` Phase 14 wiring, `Documentation/zigux/freeze-map.md`, and the workqueue bridge slice, so the highest-value non-overlapping ring-buffer step is a survey gate rather than another starter implementation.
-- the survey manifest now records a landed decision checklist around reserve or commit publication, head-page and reader-page handoff, remote-reader metadata, wakeup or mmap-facing publication, tracefs mapping limitations, and reader-page consume boundaries so later runs can deepen the audit without inventing `kernel/trace/ring_buffer.zig`.
+- the survey manifest now records a landed decision checklist around reserve or commit publication, head-page and reader-page handoff, remote-reader metadata, wakeup or mmap-facing publication, tracefs mapping limitations, reader-page consume boundaries, and reset or clear-path governance so later runs can deepen the audit without inventing `kernel/trace/ring_buffer.zig`.
 
 ## Decision checklist
 
@@ -144,6 +144,13 @@ The honest Phase 14 move here is therefore not to start a `ring_buffer.zig` file
 - `tracer_alloc_buffers()` wires that same path into `cpuhp_setup_state_multi(CPUHP_TRACE_RB_PREPARE, "trace/RB:prepare", trace_rb_cpu_prepare, NULL)`, which keeps hotplug allocation, publication ordering, and later instance teardown inside one tracing-core control surface rather than a wrapper-safe helper seam.
 - Because offline CPUs keep their old buffers and later online transitions reuse the same contract, the honest Phase 14 posture is still stay-in-C evidence only: a future Zig bridge should not imply independent ownership of per-CPU hotplug churn, retained unread data, or cross-CPU publication ordering.
 
+## Reset and clear-path governance audit
+
+- `include/linux/ring_buffer.h` exposes `ring_buffer_reset_cpu()`, `ring_buffer_reset_online_cpus()`, and `ring_buffer_reset()` as public entry points, and the same header lets remote exporters provide a `reset` callback through `struct ring_buffer_remote`, so reset is already a multi-entry contract rather than a private helper that a Zig wrapper could quietly duplicate.
+- The user-facing clear paths are broader than a single buffer helper. `Documentation/trace/ftrace.rst` says changing `current_tracer` clears the ring buffer and the snapshot buffer, opening `trace` for writing with `O_TRUNC` clears the ring buffer contents, and changing `buffer_subbuf_size_kb` discards both live and snapshot data while tracing is stopped, which means tracefs already treats clear operations as shared tracing policy.
+- `kernel/trace/trace.c` keeps that policy serialized above the raw ring-buffer internals. The `trace_access_lock()` commentary explains that consumed events cannot be exposed concurrently because pages may return to normal ring-buffer use or be handed to splice readers, and the same file routes `tracing_on` resume plus tracer selection through tracefs-wide control surfaces instead of a wrapper-safe per-helper reset seam.
+- The honest Phase 14 decision is therefore to keep reset ownership in C. Any future reconsideration would need to explain how per-CPU reset, all-CPU reset, remote reset callbacks, tracefs clear-on-truncate behavior, and snapshot discard semantics remain aligned without weakening the current tracefs contract.
+
 ## Attached toolchain fallback guidance
 
 - This anchor-local survey still rides the shared Phase 14 validator and build entrypoints; only the Zig binary changes when `zig` is not on `PATH`.
@@ -174,6 +181,7 @@ The current lane state is:
 - landed `phase14-ring-buffer-tracing-disabled-recovery-followup`
 - landed `phase14-ring-buffer-map-dup-unmap-lifetime-followup`
 - landed `phase14-ring-buffer-cpu-hotplug-lifetime-followup`
+- landed `phase14-ring-buffer-reset-governance-followup`
 - blocked `phase14-ring-buffer-zig-port-blocker`
 
 This keeps the lane honest: Zigux now has an explicit reviewable record that `kernel/trace/ring_buffer.c` belongs in the study-only set for now, and that the repo still does not ship `kernel/trace/ring_buffer.zig`.
@@ -205,4 +213,4 @@ This survey slice does not claim:
 
 ## Next bounded step
 
-Keep the Phase 14 ring-buffer packet parked unless it drifts again or a future study-only step can stay narrower than the existing remote-reader, resize, rollback, reader-page, mapped-reader, kill-switch-recovery, and hotplug-lifetime audits; the next honest follow-up would need another concrete source-of-truth drift or a still-smaller tracefs evidence gap instead of reopening bridge code or generic tracing UX work.
+Keep the Phase 14 ring-buffer packet parked unless it drifts again or a future study-only step can stay narrower than the existing remote-reader, resize, rollback, reader-page, mapped-reader, kill-switch-recovery, hotplug-lifetime, and reset-governance audits; the next honest follow-up would need another concrete source-of-truth drift or a still-smaller tracefs evidence gap instead of reopening bridge code or generic tracing UX work.
