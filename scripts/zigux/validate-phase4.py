@@ -80,6 +80,11 @@ MATRIX_MARKERS = [
     "threshold_pending_until_bitmap_gate_grows_beyond_bounded_correctness_checks",
 ]
 
+BITMAP_MATRIX_MARKERS = [
+    "zero-nbits helper calls as explicit no-op rollback checks",
+    "zero-length range edits from populated anchors measurable",
+]
+
 README_MARKERS = [
     "check-phase4-kprobe-example-packet.py",
     "check-phase4-workflow-route-counts.py",
@@ -137,6 +142,10 @@ ATOMIC64_GATE_EVIDENCE_MARKERS = [
     "runtime_atomic64_diff.zig` remains the single replay body",
 ]
 
+BITMAP_GATE_EVIDENCE_MARKERS = [
+    "the refreshed bitmap row still treats the 115-bit fill as resolved parity rather than an open survey-only mismatch",
+]
+
 
 def read_text(root: Path, rel: str) -> str:
     return (root / rel).read_text(encoding="utf-8")
@@ -177,12 +186,14 @@ def validate_root(root: Path) -> list[str]:
     missing.extend(missing_text(workflow, "workflow", ["Validate Phase 4 diff gates", "Run Phase 4 diff tests"]))
     missing.extend(missing_text(build, "build", BUILD_MARKERS))
     missing.extend(missing_text(matrix, "matrix", MATRIX_MARKERS))
+    missing.extend(missing_text(matrix, "matrix_bitmap", BITMAP_MATRIX_MARKERS))
     missing.extend(missing_text(docs_readme, "docs_readme", README_MARKERS))
     missing.extend(missing_text(docs_readme, "docs_readme_atomic64", ATOMIC64_DOCS_README_MARKERS))
     missing.extend(missing_text(scripts_readme, "scripts_readme", README_MARKERS[:-1]))
     missing.extend(missing_text(scripts_readme, "scripts_readme_atomic64", ATOMIC64_SCRIPTS_README_MARKERS))
     missing.extend(missing_text(tests_readme, "tests_readme", TESTS_README_MARKERS))
     missing.extend(missing_text(gate_evidence, "gate_evidence_atomic64", ATOMIC64_GATE_EVIDENCE_MARKERS))
+    missing.extend(missing_text(gate_evidence, "gate_evidence_bitmap", BITMAP_GATE_EVIDENCE_MARKERS))
     missing.extend(
         missing_text(
             kprobe_survey,
@@ -232,7 +243,7 @@ def write_fixture_tree(root: Path) -> None:
         "scripts/zigux/check-phase4-workflow-route-counts.py": "# ok\n",
         "scripts/zigux/validate-phase4.py": "# placeholder\n",
         "Documentation/zigux/artifact-diff.md": "Current Phase 4 use\n",
-        "Documentation/zigux/phase4-validation-matrix.md": "\n".join(MATRIX_MARKERS) + "\n",
+        "Documentation/zigux/phase4-validation-matrix.md": "\n".join(MATRIX_MARKERS + BITMAP_MATRIX_MARKERS) + "\n",
         "Documentation/zigux/README.md": "\n".join(README_MARKERS + ATOMIC64_DOCS_README_MARKERS) + "\n",
         "scripts/zigux/README.md": "\n".join(README_MARKERS[:-1] + ATOMIC64_SCRIPTS_README_MARKERS) + "\n",
         "zigux/tests/README.md": "\n".join(TESTS_README_MARKERS) + "\n",
@@ -269,6 +280,7 @@ def write_fixture_tree(root: Path) -> None:
     evidence = [
         "PHASE4_EVIDENCE_MODE=github_connector_readback",
         "PHASE4_EVIDENCE_SCOPE=rollback_ownership_and_lab_matrix_current_gate_definitions",
+        *BITMAP_GATE_EVIDENCE_MARKERS,
         "shared validator now fails closed on the kprobe survey packet itself",
         "make -C zigux phase4-runtime-atomic64-diff",
         "phase4-runtime-atomic64-diff-tests",
@@ -301,6 +313,22 @@ def run_self_test() -> int:
         assert "docs_readme_atomic64:make -C zigux phase4-runtime-atomic64-diff" in missing, missing
 
         write_fixture_tree(root)
+        matrix = root / "Documentation/zigux/phase4-validation-matrix.md"
+        matrix.write_text(
+            matrix.read_text(encoding="utf-8").replace(
+                "zero-nbits helper calls as explicit no-op rollback checks\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        missing = validate_root(root)
+        assert (
+            "matrix_bitmap:zero-nbits helper calls as explicit no-op rollback checks"
+            in missing
+        ), missing
+
+        write_fixture_tree(root)
         makefile = root / "zigux/Makefile"
         makefile.write_text(
             makefile.read_text(encoding="utf-8").replace(
@@ -329,6 +357,22 @@ def run_self_test() -> int:
         missing = validate_root(root)
         assert (
             "make:\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase4-gate-evidence.py"
+            in missing
+        ), missing
+
+        write_fixture_tree(root)
+        gate_evidence = root / "Documentation/zigux/phase4-gate-evidence.md"
+        gate_evidence.write_text(
+            gate_evidence.read_text(encoding="utf-8").replace(
+                "the refreshed bitmap row still treats the 115-bit fill as resolved parity rather than an open survey-only mismatch\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        missing = validate_root(root)
+        assert (
+            "gate_evidence_bitmap:the refreshed bitmap row still treats the 115-bit fill as resolved parity rather than an open survey-only mismatch"
             in missing
         ), missing
 
@@ -405,6 +449,7 @@ def required_marker_count() -> int:
         len(MAKE_LINES)
         + len(BUILD_MARKERS)
         + len(MATRIX_MARKERS)
+        + len(BITMAP_MATRIX_MARKERS)
         + len(README_MARKERS)
         + len(ATOMIC64_DOCS_README_MARKERS)
         + len(README_MARKERS[:-1])
@@ -412,6 +457,7 @@ def required_marker_count() -> int:
         + len(TESTS_README_MARKERS)
         + len(GATE_EVIDENCE_TARGETS)
         + len(ATOMIC64_GATE_EVIDENCE_MARKERS)
+        + len(BITMAP_GATE_EVIDENCE_MARKERS)
     )
 
 
