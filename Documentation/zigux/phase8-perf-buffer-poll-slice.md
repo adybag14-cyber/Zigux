@@ -4,7 +4,7 @@ This note records the bounded Phase 8 helper-first slice around the pure wait-re
 
 ## Status
 
-- `PHASE8_STATUS=active`
+- `PHASE8_STATUS=parked`
 - `PHASE8_SLICE=perf-buffer-poll-helper`
 - scope: pure wait-result classification plus ready-buffer bookkeeping only
 - product boundary:
