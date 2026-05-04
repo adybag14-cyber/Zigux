@@ -352,3 +352,186 @@ test "phase 8 bridge boundary survey still matches the live helper surfaces" {
     try expectContains(file_path_handle_bridge_helper, "pub fn resolveReusePinnedMapAttempt(");
     try expectContains(file_path_handle_bridge_helper, "skip_missing_pinned_map");
 }
+
+test "phase 8 docs keep the deferred irq routing and timer boundary explicit" {
+    const survey_note = try readWorkspaceFile(
+        std.testing.allocator,
+        "Documentation/zigux/phase8-libbpf-segment-survey.md",
+        64 * 1024,
+    );
+    defer std.testing.allocator.free(survey_note);
+
+    const bridge_note = try readWorkspaceFile(
+        std.testing.allocator,
+        "Documentation/zigux/phase8-userspace-kernel-bridge-boundary-survey.md",
+        64 * 1024,
+    );
+    defer std.testing.allocator.free(bridge_note);
+
+    const cpu_mask_note = try readWorkspaceFile(
+        std.testing.allocator,
+        "Documentation/zigux/phase8-libbpf-cpu-mask-slice.md",
+        32 * 1024,
+    );
+    defer std.testing.allocator.free(cpu_mask_note);
+
+    const cpu_mask_helper = try readWorkspaceFile(
+        std.testing.allocator,
+        "tools/lib/bpf/zigux_segments/cpu_mask.zig",
+        64 * 1024,
+    );
+    defer std.testing.allocator.free(cpu_mask_helper);
+
+    const cpu_mask_test = try readWorkspaceFile(
+        std.testing.allocator,
+        "zigux/tests/phase8_cpu_mask.zig",
+        32 * 1024,
+    );
+    defer std.testing.allocator.free(cpu_mask_test);
+
+    try expectContains(
+        survey_note,
+        "- survey checkpoint: refreshed against inspected `master` head `" ++ current_surveyed_commit ++ "`",
+    );
+    try expectContains(
+        survey_note,
+        "scope: segment manifest plus six landed helper-first starter slices, the separate bounded perf-buffer poll bookkeeping adjunct, one deferred resource boundary, one deferred interrupt-routing boundary, one blocked object-model follow-on, and two deferred loader-facing follow-ons",
+    );
+    try expectContains(
+        survey_note,
+        "segmented rollout instead of a single-file port attempt",
+    );
+    try expectContains(
+        survey_note,
+        "helper-first clusters with stable text or path behavior",
+    );
+    try expectContains(
+        survey_note,
+        "That eleven-segment catalog intentionally excludes the separate `perf_buffer_poll.zig` adjunct packet",
+    );
+    try expectContains(
+        survey_note,
+        "historical `P8-L15-S..` prefix as a stable segment catalog identifier",
+    );
+    try expectContains(
+        survey_note,
+        "active scheduled ownership and cleanup lane for this packet is `P8-L13`",
+    );
+    try expectContains(survey_note, "perf-buffer-online-cpu-routing");
+    try expectContains(survey_note, "per-CPU `perf_event_open()` setup");
+    try expectContains(survey_note, "perf-buffer ring `mmap()` setup");
+    try expectContains(survey_note, "`PERF_EVENT_IOC_ENABLE` enablement");
+    try expectContains(survey_note, "interrupt-routing-sensitive timing boundary");
+    try expectContains(survey_note, "no standalone timer helper");
+    try expectContains(survey_note, "no standalone clockevent helper");
+    try expectContains(survey_note, "Documentation/zigux/phase8-perf-buffer-poll-slice.md");
+    try expectContains(survey_note, "tools/lib/bpf/zigux_segments/perf_buffer_poll.zig");
+    try expectContains(survey_note, "zigux/tests/phase8_perf_buffer_poll.zig");
+    try expectContains(survey_note, "wait-result classification");
+    try expectContains(survey_note, "ready-buffer bookkeeping");
+    try expectContains(survey_note, "ordered `perf_buffer__process_records()` pass reviewable as a bounded fail-fast summary helper");
+    try expectContains(survey_note, "rejects impossible post-wait buffer state combinations");
+    try expectContains(survey_note, "does not claim direct `epoll_wait()` parity");
+    try expectContains(bridge_note, "perf_buffer__poll(timeout_ms)");
+    try expectContains(bridge_note, "Documentation/zigux/phase8-perf-buffer-poll-slice.md");
+    try expectContains(bridge_note, "tools/lib/bpf/zigux_segments/perf_buffer_poll.zig");
+    try expectContains(bridge_note, "zigux/tests/phase8_perf_buffer_poll.zig");
+    try expectContains(bridge_note, "wait-result classification");
+    try expectContains(bridge_note, "ready-buffer bookkeeping");
+    try expectContains(bridge_note, "ordered `perf_buffer__process_records()` fail-fast summary");
+    try expectContains(bridge_note, "cumulative processed-record count returned before the first failing ready buffer only");
+    try expectContains(bridge_note, "no standalone timer helper");
+    try expectContains(bridge_note, "no standalone clockevent helper");
+    try expectContains(bridge_note, "does not close the broader routing boundary");
+    try expectContains(cpu_mask_note, "bounded perf-buffer auto-CPU sizing");
+    try expectContains(cpu_mask_note, "`+N` and `+N-+M` signed-decimal token forms");
+    try expectContains(cpu_mask_note, "a bounded auto-CPU count clamp that mirrors libbpf's perf-buffer map-budget sizing");
+    try expectContains(cpu_mask_note, "a pure online-CPU eligibility predicate that mirrors libbpf's automatic-budget offline skip rule");
+    try expectContains(cpu_mask_note, "`libbpf_num_possible_cpus()` caching");
+    try expectContains(cpu_mask_note, "`perf_buffer__new()` online CPU selection");
+    try expectContains(cpu_mask_note, "perf-buffer-online-cpu-routing");
+    try expectContains(cpu_mask_note, "interrupt-routing-sensitive timing boundary");
+    try expectContains(cpu_mask_note, "`perf_buffer__poll(timeout_ms)` timeout handling");
+    try expectContains(cpu_mask_note, "no standalone timer helper");
+    try expectContains(cpu_mask_note, "no standalone clockevent helper");
+    try expectContains(cpu_mask_note, "per-CPU perf-buffer routing");
+    try expectContains(cpu_mask_helper, "pub fn derivePerfBufferAutoCpuCount(possible_cpu_count: usize, map_max_entries: u32) usize {");
+    try expectContains(cpu_mask_helper, "test \"parseCpuMaskString accepts the C helper's signed decimal token syntax when values stay non-negative\"");
+    try expectContains(cpu_mask_helper, "test \"derivePerfBufferAutoCpuCount keeps perf-buffer auto sizing within the map budget\"");
+    try expectContains(cpu_mask_test, "test \"phase 8 cpu mask starter slice accepts plus-prefixed CPU tokens like the live C helper\"");
+    try expectContains(cpu_mask_test, "test \"phase 8 cpu mask reader interface keeps failures explicit\"");
+}
+
+test "phase 8 docs keep the bounded fdinfo map_extra parsing explicit" {
+    const survey_note = try readWorkspaceFile(
+        std.testing.allocator,
+        "Documentation/zigux/phase8-libbpf-segment-survey.md",
+        64 * 1024,
+    );
+    defer std.testing.allocator.free(survey_note);
+
+    try expectContains(survey_note, "`map_extra`");
+    try expectContains(survey_note, "`map_flags`, and `map_extra`");
+    try expectContains(survey_note, "explicit `map_flags` and `map_extra` bases");
+}
+
+test "phase 8 bridge boundary note keeps reuse-open and reuse-resolution planning explicit" {
+    const bridge_note = try readWorkspaceFile(
+        std.testing.allocator,
+        "Documentation/zigux/phase8-userspace-kernel-bridge-boundary-survey.md",
+        64 * 1024,
+    );
+    defer std.testing.allocator.free(bridge_note);
+
+    try expectContains(bridge_note, "classifyReusePinnedMapOpenFailure()");
+    try expectContains(bridge_note, "resolveReusePinnedMapAttempt()");
+    try expectContains(bridge_note, "missing pinned-map lookup versus hard open failure");
+    try expectContains(bridge_note, "`reused`, `incompatible_map`, and `reuse_fd_failed`");
+    try expectContains(bridge_note, "`should_close_pin_fd`");
+    try expectContains(bridge_note, "`should_mark_map_pinned`");
+}
+
+test "phase 8 docs and manifest keep the deferred file-path resource boundary explicit" {
+    const survey_note = try readWorkspaceFile(
+        std.testing.allocator,
+        "Documentation/zigux/phase8-libbpf-segment-survey.md",
+        64 * 1024,
+    );
+    defer std.testing.allocator.free(survey_note);
+
+    const bridge_note = try readWorkspaceFile(
+        std.testing.allocator,
+        "Documentation/zigux/phase8-userspace-kernel-bridge-boundary-survey.md",
+        64 * 1024,
+    );
+    defer std.testing.allocator.free(bridge_note);
+
+    const manifest_json = try readWorkspaceFile(
+        std.testing.allocator,
+        "tools/lib/bpf/zigux_segments/manifest.json",
+        64 * 1024,
+    );
+    defer std.testing.allocator.free(manifest_json);
+
+    const parsed = try std.json.parseFromSlice(Manifest, std.testing.allocator, manifest_json, .{});
+    defer parsed.deinit();
+
+    const bridge_segment = findSegmentBySlug(parsed.value.segments, "file-path-and-handle-bridge") orelse return error.MissingFilePathHandleBridgeSegment;
+    try std.testing.expectEqualStrings("deferred_high_risk", bridge_segment.status);
+    try std.testing.expectEqualStrings("resource_boundary", bridge_segment.kind);
+    try std.testing.expectEqualStrings("tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig", bridge_segment.zigux_destination);
+    try std.testing.expectEqual(@as(usize, 2), bridge_segment.anchor_ranges.len);
+    try expectContains(bridge_segment.why_now, "token-preparation planner");
+    try expectContains(bridge_segment.why_now, "real bpffs path opens");
+    try expectContains(bridge_segment.why_now, "fd ownership");
+
+    try expectContains(survey_note, "file-path-and-handle-bridge");
+    try expectContains(survey_note, "real procfs reads");
+    try expectContains(survey_note, "bpffs opens");
+    try expectContains(survey_note, "fd close or ownership semantics");
+    try expectContains(bridge_note, "skip_optional_missing_delegation");
+    try expectContains(bridge_note, "`skip_optional`");
+    try expectContains(bridge_note, "mandatory `fail`");
+    try expectContains(bridge_note, "bpf_obj_get()` reopen flows");
+    try expectContains(bridge_note, "FD duplication or replacement behavior");
+}
