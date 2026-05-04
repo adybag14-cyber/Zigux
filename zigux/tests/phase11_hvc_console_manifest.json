@@ -128,11 +128,11 @@
       "why_now": "The first kernel-integration validation matrix now names the shared Phase 11 starter replay, records that the dedicated hvc_console survey gate still runs separately, and keeps the bounded close-wait, final-close teardown, tty-registration handoff, notifier-add open handoff, bounded sysrq toggle-and-dispatch handoff, khvcd polling-contract, khvcd worker-entry, khvcd sleep-and-reschedule handoff, __hvc_poll drain-order, hvc_hangup disconnect, hvc_remove handoff evidence, and the hvc_cleanup tty-port release handoff honest without claiming host-backed I/O."
     },
     {
-      "id": "phase11-hvc-console-tty-and-teardown-parity",
+      "id": "phase11-hvc-console-cleanup-handoff",
       "status": "starter_landed",
       "kind": "simple_driver_starter",
       "zigux_destination": "drivers/tty/hvc/hvc_console.zig",
-      "why_now": "Tiny final-close teardown, tty-registration handoff, notifier-add open handoff, bounded sysrq toggle-and-dispatch handoff, khvcd polling-contract, khvcd worker-entry, khvcd sleep-and-reschedule handoff, __hvc_poll drain-order, hvc_hangup disconnect, hvc_remove handoff, and hvc_cleanup tty-port release summaries now keep setup_hvc_console() teardown parity, close-wait ownership, open-time IRQ-request and polling-fallback boundaries, HUPCL and notifier-del shutdown boundaries, primary-console sysrq toggle and next-byte dispatch boundaries, notifier-driven versus polling-driven wakeups, sleep-versus-timeout choices, tty wakeup sequencing, hangup-time disconnect boundaries, remove-time slot-release ordering, and cleanup-time tty-port ownership reviewable before any host-backed teardown or worker execution lands."
+      "why_now": "A tiny hvc_cleanup tty-port release handoff summary now keeps tty_port_put ownership, tty-port reference drop timing, and the deferred final release boundary reviewable without claiming live tty destruction or host-backed teardown."
     }
   ]
 }
