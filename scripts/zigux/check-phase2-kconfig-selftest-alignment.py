@@ -209,8 +209,8 @@ def validate_cases(payload: dict[str, object]) -> list[str]:
         issues.append("cases:allyesconfig:allconfig_env=arch/riscv/configs/allyes-seed.config")
 
     allmodconfig = by_name.get("allmodconfig", {})
-    if allmodconfig.get("allconfig_env") != "":
-        issues.append("cases:allmodconfig:allconfig_env=empty_string_trigger")
+    if "allconfig_env" in allmodconfig:
+        issues.append("cases:allmodconfig:allconfig_env=unexpected")
 
     randconfig = by_name.get("randconfig", {})
     if randconfig.get("allconfig") != "seed/allrandom.config":
@@ -255,7 +255,7 @@ def build_valid_cases_json() -> str:
             {"name": "savedefconfig"},
             {"name": "allnoconfig"},
             {"name": "allyesconfig", "allconfig_env": "arch/riscv/configs/allyes-seed.config"},
-            {"name": "allmodconfig", "allconfig_env": ""},
+            {"name": "allmodconfig"},
             {"name": "alldefconfig"},
             {
                 "name": "randconfig",
@@ -440,6 +440,12 @@ def run_self_test() -> int:
     issues = validate_cases(invalid_cases)
     if "cases:syncconfig:autoconfig=generated/phase2/auto-sync.conf" not in issues:
         raise SystemExit("phase2-kconfig-alignment:self-test:syncconfig_autoconfig_failure")
+
+    invalid_cases = json.loads(build_valid_cases_json())
+    invalid_cases["conf_cases"][7]["allconfig_env"] = ""
+    issues = validate_cases(invalid_cases)
+    if "cases:allmodconfig:allconfig_env=unexpected" not in issues:
+        raise SystemExit("phase2-kconfig-alignment:self-test:allmodconfig_allconfig_env_failure")
 
     invalid_cases = json.loads(build_valid_cases_json())
     invalid_cases["confdata_cases"] = invalid_cases["confdata_cases"][:-1]
