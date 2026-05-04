@@ -344,7 +344,7 @@ def write_fixture(root: Path) -> None:
     for rel_path, markers in TEXT_MARKERS.items():
         extra = EXACT_ONCE.get(rel_path, [])
         all_markers = markers + [m for m in extra if m not in markers]
-        (root / rel_path).write_text("\n".join(all_markers) + "\nPHASE10_TEST_COUNT=11\n", encoding="utf-8")
+        (root / rel_path).write_text("\n".join(all_markers) + "\n", encoding="utf-8")
 
     closure_manifest = {
         "phase": "Phase 10",
@@ -436,6 +436,23 @@ def run_self_test() -> int:
         expect_marker("mmio_probe_preflight_guard", root, "closure_manifest:landed_mmio_helper_evidence")
         write_fixture(root)
 
+        tests_readme_path = root / "zigux/tests/README.md"
+        original_tests_readme = tests_readme_path.read_text(encoding="utf-8")
+        tests_readme_path.write_text(
+            original_tests_readme.replace(
+                "zigux-alpha/PHASE10_CLOSURE_LEDGER.md",
+                "zigux-alpha/PHASE10_LEDGER_DRIFT.md",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_marker(
+            "tests_readme_closure_ledger_guard",
+            root,
+            "zigux/tests/README.md:zigux-alpha/PHASE10_CLOSURE_LEDGER.md",
+        )
+        write_fixture(root)
+
         note_path = root / "Documentation/zigux/phase10-closure-evidence.md"
         note_path.write_text(note_path.read_text(encoding="utf-8").replace("phase10-mmio-probe-preflight-helper", "drift", 1), encoding="utf-8")
         expect_marker("closure_note_probe_preflight_guard", root, "Documentation/zigux/phase10-closure-evidence.md:phase10-mmio-probe-preflight-helper")
@@ -469,7 +486,7 @@ def run_self_test() -> int:
             raise SystemExit(f"phase10-closure-self-test:file_guard:actual_files={files}:markers={markers}")
 
     print("PHASE10_CLOSURE_VALIDATOR_SELF_TEST=pass")
-    print("PHASE10_CLOSURE_VALIDATOR_SELF_TEST_CASE_COUNT=9")
+    print("PHASE10_CLOSURE_VALIDATOR_SELF_TEST_CASE_COUNT=10")
     return 0
 
 
