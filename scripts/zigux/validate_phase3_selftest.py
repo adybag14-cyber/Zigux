@@ -14,6 +14,7 @@ from validate_phase3_core import (
     ABI_REQUIRED_DOC_MARKERS,
     ABI_REQUIRED_EXPECTED_CONSTANTS,
     ABI_REQUIRED_MANIFEST_FILES,
+    ABI_REQUIRED_SOURCE_MARKERS,
     ABI_EXPORT_UAPI_BUILD_FILE_REL,
     ABI_EXPORT_UAPI_LAYOUT_BUILD_FILE_REL,
     ABI_LOW_LEVEL_BUILD_FILE_REL,
@@ -111,6 +112,42 @@ def _write_phase3_abi_fixture(paths: Phase3Paths) -> None:
     manifest["files"] = [*manifest["files"], *extra_files]
     manifest["file_count"] = len(manifest["files"])
     manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8", newline="\n")
+
+
+def _run_export_uapi_build_marker_self_test() -> int:
+    rel = ABI_EXPORT_UAPI_BUILD_FILE_REL
+    export_uapi_markers = ABI_REQUIRED_SOURCE_MARKERS[rel][:4]
+    with tempfile.TemporaryDirectory(prefix="zigux_phase3_export_uapi_build_markers_") as tmp_dir:
+        root = Path(tmp_dir)
+        build_path = root / rel
+        build_path.parent.mkdir(parents=True, exist_ok=True)
+
+        build_path.write_text(
+            "\n".join(export_uapi_markers[1:]) + "\n",
+            encoding="utf-8",
+            newline="\n",
+        )
+        assert validate_source_markers(root, {rel: export_uapi_markers}) == [
+            f"source-marker: {rel} missing {export_uapi_markers[0]}"
+        ]
+
+        build_path.write_text(
+            "\n".join(export_uapi_markers[:3]) + "\n",
+            encoding="utf-8",
+            newline="\n",
+        )
+        assert validate_source_markers(root, {rel: export_uapi_markers}) == [
+            f"source-marker: {rel} missing {export_uapi_markers[3]}"
+        ]
+
+        build_path.write_text(
+            "\n".join(export_uapi_markers) + "\n",
+            encoding="utf-8",
+            newline="\n",
+        )
+        assert validate_source_markers(root, {rel: export_uapi_markers}) == []
+
+    return 0
 
 
 def run_self_test() -> int:
@@ -301,6 +338,8 @@ def run_self_test() -> int:
             },
         ) == ["source-marker: marker-fixture.zig missing pub fn policyByteMarker() void {}"]
 
+        assert _run_export_uapi_build_marker_self_test() == 0
+
         rbtree_shared_marker_fixture = root / "phase3-rbtree-shared-marker-fixture.zig"
 
         def assert_missing_rbtree_shared_marker(missing_marker: str) -> None:
@@ -334,7 +373,7 @@ def run_self_test() -> int:
             assert_missing_rbtree_shared_marker(missing_marker)
 
     print("PHASE3_VALIDATOR_SELF_TEST=pass")
-    print("PHASE3_VALIDATOR_SELF_TEST_CASE_COUNT=18")
+    print("PHASE3_VALIDATOR_SELF_TEST_CASE_COUNT=19")
     return 0
 
 
