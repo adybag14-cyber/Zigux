@@ -59,4 +59,10 @@ pub fn build(b: *std.Build) void {
     const test_step = b.step("test", "Run focused Phase 12 libbpf survey and reviewability tests");
     test_step.dependOn(&run_phase12_libbpf_segments_tests.step);
     test_step.dependOn(&run_phase12_libbpf_reviewability_tests.step);
+
+    const focused_replay_step = b.step(
+        "phase12-libbpf-focused-replay",
+        "Run focused Phase 12 libbpf survey and reviewability tests",
+    );
+    focused_replay_step.dependOn(test_step);
 }
