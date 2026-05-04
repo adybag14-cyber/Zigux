@@ -32,6 +32,12 @@ REQUIRED_FILES = [
     ".github/workflows/zigux-bootstrap.yml",
 ]
 
+RAW_COVERAGE_CONTRACT_SENTENCE = (
+    "- that same release-facing PMO packet now also names `zigux/tests/phase12_raw_github_coverage_manifest.json` "
+    "and `zigux/tests/phase12_raw_github_coverage_survey.zig` directly, so the mixed public-read fallback split stays "
+    "tied to manifest-backed and Zig-survey-backed evidence instead of living only in note-level prose."
+)
+
 SHARED_REPLAY_NOTE_MARKERS = [
     "# Phase 12 Shared Replay Contract",
     "python3 scripts/zigux/check-phase12-build-inventory.py --self-test",
@@ -61,6 +67,7 @@ SHARED_REPLAY_NOTE_MARKERS = [
     "zigux/tests/README.md",
     "- `zigux/tests/phase12_raw_github_coverage_manifest.json`",
     "- `zigux/tests/phase12_raw_github_coverage_survey.zig`",
+    RAW_COVERAGE_CONTRACT_SENTENCE,
 ]
 
 SHARED_REPLAY_NOTE_EXACT_COUNTS = {
@@ -68,6 +75,7 @@ SHARED_REPLAY_NOTE_EXACT_COUNTS = {
     "- `python3 scripts/zigux/check-phase12-shared-replay-contract.py`": 1,
     "- `zigux/tests/phase12_raw_github_coverage_manifest.json`": 1,
     "- `zigux/tests/phase12_raw_github_coverage_survey.zig`": 1,
+    RAW_COVERAGE_CONTRACT_SENTENCE: 1,
 }
 
 DOCS_ROOT_MARKERS = [
@@ -348,11 +356,7 @@ def run_self_test() -> int:
 
         write_text(
             note_path,
-            note_backup.replace(
-                "- `python3 scripts/zigux/check-phase12-shared-replay-contract.py --self-test`\n",
-                "",
-                1,
-            ),
+            note_backup.replace("- `python3 scripts/zigux/check-phase12-shared-replay-contract.py --self-test`\n", "", 1),
         )
         expect_missing(
             "missing_note_contract_checker_self_test",
@@ -424,6 +428,28 @@ def run_self_test() -> int:
             "duplicate_note_raw_coverage_survey_bullet",
             run_checker(tmp_root),
             "shared_replay_note_count:- `zigux/tests/phase12_raw_github_coverage_survey.zig`:expected=1:actual=2",
+        )
+        write_text(note_path, note_backup)
+
+        write_text(
+            note_path,
+            note_backup.replace(RAW_COVERAGE_CONTRACT_SENTENCE + "\n", "", 1),
+        )
+        expect_missing(
+            "missing_note_raw_coverage_contract_sentence",
+            run_checker(tmp_root),
+            f"shared_replay_note:{RAW_COVERAGE_CONTRACT_SENTENCE}",
+        )
+        write_text(note_path, note_backup)
+
+        write_text(
+            note_path,
+            note_backup + RAW_COVERAGE_CONTRACT_SENTENCE + "\n",
+        )
+        expect_missing(
+            "duplicate_note_raw_coverage_contract_sentence",
+            run_checker(tmp_root),
+            f"shared_replay_note_count:{RAW_COVERAGE_CONTRACT_SENTENCE}:expected=1:actual=2",
         )
         write_text(note_path, note_backup)
 
@@ -561,7 +587,7 @@ def run_self_test() -> int:
         write_text(build_path, build_backup)
 
     print("PHASE12_SHARED_REPLAY_CONTRACT_SELF_TEST=pass")
-    print("PHASE12_SHARED_REPLAY_CONTRACT_SELF_TEST_CASE_COUNT=19")
+    print("PHASE12_SHARED_REPLAY_CONTRACT_SELF_TEST_CASE_COUNT=21")
     return 0
 
 
