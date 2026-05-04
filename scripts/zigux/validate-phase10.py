@@ -42,6 +42,7 @@ FILES = [
     "zigux/tests/phase10_virtio_mmio.zig",
     "zigux/tests/phase10_virtio_mmio_survey.zig",
     "zigux/tests/phase10_virtio_mmio_manifest.json",
+    "zigux/tests/phase10_closure_manifest.json",
 ]
 
 MAKE_MARKERS = [
@@ -258,6 +259,19 @@ MMIO_SURVEY_TEST_MARKERS = [
     'if (std.mem.eql(u8, gap.id, "phase10-mmio-lifecycle-and-irq-paths")) {',
 ]
 
+EXPECTED_FOCUSED_HARNESS_REPLAYS = {
+    "zigux/tests/phase10_virtio_ring_reset_reuse.zig": [
+        "phase10 ring drained-reset reuse replay"
+    ],
+    "zigux/tests/phase10_virtio_input_multitouch_preflight.zig": [
+        "phase10 input multitouch-ready preflight replay"
+    ],
+    "zigux/tests/phase10_virtio_mmio_queue_isolation.zig": [
+        "phase10 mmio multi-queue isolation replay",
+        "phase10 mmio reset clears legacy and modern queue address plans after queue selection changes",
+    ],
+}
+
 ALLOWED_DESTINATIONS = ["drivers/virtio/*.zig", "zigux/kernel/", "zigux/helpers/"]
 
 RING_EXPECTED_STATUSES = {
@@ -461,6 +475,10 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
     forbid_markers(missing, "script_readme", read_text(root, "scripts/zigux/README.md"), FORBIDDEN_SCRIPT_README_MARKERS)
     forbid_markers(missing, "tests_readme", read_text(root, "zigux/tests/README.md"), FORBIDDEN_TESTS_README_MARKERS)
 
+    closure_manifest = load_manifest(root, "zigux/tests/phase10_closure_manifest.json")
+    if closure_manifest.get("focused_harness_replays") != EXPECTED_FOCUSED_HARNESS_REPLAYS:
+        missing.append("closure_manifest:focused_harness_replays")
+
     validate_manifest(
         missing,
         "ring_manifest",
@@ -581,6 +599,9 @@ def write_fixture_tree(root: Path) -> None:
             MMIO_EXPECTED_STATUSES,
             18,
         ),
+        "zigux/tests/phase10_closure_manifest.json": {
+            "focused_harness_replays": EXPECTED_FOCUSED_HARNESS_REPLAYS,
+        },
     }
 
     for rel_path in FILES:
@@ -691,8 +712,25 @@ def run_self_test() -> int:
             "script_readme:stale_marker:ABS_MT_SLOT remains the single ready-next helper step",
         )
 
+        write_fixture_tree(tmp_root)
+        closure_manifest_path = tmp_root / "zigux/tests/phase10_closure_manifest.json"
+        original_closure_manifest = closure_manifest_path.read_text(encoding="utf-8")
+        closure_manifest_path.write_text(
+            original_closure_manifest.replace(
+                '"phase10 mmio reset clears legacy and modern queue address plans after queue selection changes"',
+                '"phase10 mmio reset drift"',
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "closure_manifest_focused_harness_replays",
+            tmp_root,
+            "closure_manifest:focused_harness_replays",
+        )
+
     print("PHASE10_VALIDATOR_SELF_TEST=pass")
-    print("PHASE10_VALIDATOR_SELF_TEST_CASE_COUNT=8")
+    print("PHASE10_VALIDATOR_SELF_TEST_CASE_COUNT=9")
     return 0
 
 
