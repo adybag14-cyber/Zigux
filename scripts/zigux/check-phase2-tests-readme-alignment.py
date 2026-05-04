@@ -89,9 +89,13 @@ PHASE2_VALIDATOR_EXACT_COUNTS = {
 }
 
 PHASE2_CLOSURE_VALIDATOR_MARKERS = [
-    "required_toolchain_notes_markers",
-    "required_readme_markers",
-    "required_workflow_markers",
+    "check-phase2-toolchain-pin-scope.py --self-test",
+    "check-phase2-toolchain-pin-scope.py",
+    "Documentation/zigux/phase2-toolchain-bootstrap-notes.md",
+    "Documentation/zigux/review-checklist.md",
+    "make -C zigux phase2-validate",
+    "make -C zigux phase2",
+    "x86_64-linux",
 ]
 
 MAKEFILE_MARKERS = [
@@ -347,9 +351,27 @@ def clone_fixture_root(destination_root: Path) -> None:
         REQUIRED_FILES["phase2_closure_validator"],
         "\n".join(
             [
-                "required_toolchain_notes_markers = []",
-                "required_readme_markers = []",
-                "required_workflow_markers = []",
+                "required_toolchain_notes_markers = [",
+                "    'scripts/zigux/zig-toolchain-policy.json',",
+                "    'check-phase2-toolchain-pin-scope.py --self-test',",
+                "    'check-phase2-toolchain-pin-scope.py',",
+                "    'Documentation/zigux/phase2-toolchain-bootstrap-notes.md',",
+                "    'Documentation/zigux/review-checklist.md',",
+                "    'make -C zigux phase2-validate',",
+                "    'make -C zigux phase2',",
+                "    'x86_64-linux',",
+                "]",
+                "required_readme_markers = [",
+                "    'Documentation/zigux/phase2-toolchain-bootstrap-notes.md',",
+                "    'Documentation/zigux/review-checklist.md',",
+                "    'make -C zigux phase2-validate',",
+                "    'make -C zigux phase2',",
+                "    'kbuild-facing review path',",
+                "]",
+                "required_workflow_markers = [",
+                "    'python3 scripts/zigux/validate-phase2.py',",
+                "    'python3 scripts/zigux/validate-phase2-closure.py',",
+                "]",
                 "",
             ]
         ),
@@ -579,6 +601,41 @@ def run_self_test() -> int:
         )
         phase2_validator_path.write_text(original_phase2_validator, encoding="utf-8")
 
+        phase2_closure_validator_path = tmp_root / REQUIRED_FILES["phase2_closure_validator"]
+        original_phase2_closure_validator = phase2_closure_validator_path.read_text(encoding="utf-8")
+        phase2_closure_validator_path.write_text(
+            original_phase2_closure_validator.replace("    'check-phase2-toolchain-pin-scope.py --self-test',\n", "", 1),
+            encoding="utf-8",
+        )
+        expect_missing(
+            "phase2_closure_validator_toolchain_pin_self_test",
+            tmp_root,
+            "phase2_closure_validator:check-phase2-toolchain-pin-scope.py --self-test",
+        )
+        phase2_closure_validator_path.write_text(original_phase2_closure_validator, encoding="utf-8")
+
+        phase2_closure_validator_path.write_text(
+            original_phase2_closure_validator.replace("    'make -C zigux phase2-validate',\n", "", 1),
+            encoding="utf-8",
+        )
+        expect_missing(
+            "phase2_closure_validator_make_validate",
+            tmp_root,
+            "phase2_closure_validator:make -C zigux phase2-validate",
+        )
+        phase2_closure_validator_path.write_text(original_phase2_closure_validator, encoding="utf-8")
+
+        phase2_closure_validator_path.write_text(
+            original_phase2_closure_validator.replace("    'x86_64-linux',\n", "", 1),
+            encoding="utf-8",
+        )
+        expect_missing(
+            "phase2_closure_validator_pin_target",
+            tmp_root,
+            "phase2_closure_validator:x86_64-linux",
+        )
+        phase2_closure_validator_path.write_text(original_phase2_closure_validator, encoding="utf-8")
+
         makefile_path = tmp_root / REQUIRED_FILES["makefile"]
         original_makefile = makefile_path.read_text(encoding="utf-8")
         makefile_path.write_text(
@@ -596,6 +653,7 @@ def run_self_test() -> int:
         )
         makefile_path.write_text(original_makefile, encoding="utf-8")
 
+        makefile_path.writeText = None
         makefile_path.write_text(
             original_makefile.replace(
                 "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-tests-readme-alignment.py\n",
@@ -668,7 +726,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE2_TESTS_README_ALIGNMENT_SELF_TEST=pass")
-    print("PHASE2_TESTS_README_ALIGNMENT_SELF_TEST_CASE_COUNT=16")
+    print("PHASE2_TESTS_README_ALIGNMENT_SELF_TEST_CASE_COUNT=19")
     return 0
 
 
