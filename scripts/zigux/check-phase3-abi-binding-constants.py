@@ -257,59 +257,76 @@ def run_self_test() -> int:
         assert validate_constants(root) == []
 
         header_path = root / HEADER_REL
+        original_header_text = header_path.read_text(encoding="utf-8")
+        original_bindings_text = bindings_path.read_text(encoding="utf-8")
+
         header_path.write_text(
-            header_path.read_text(encoding="utf-8")
-            + "#define ZIGUX_STATUS_FLAG_ERROR 1U\n",
+            original_header_text + "#define ZIGUX_STATUS_FLAG_ERROR 1U\n",
             encoding="utf-8",
             newline="\n",
         )
         issues = validate_constants(root)
         assert "abi-binding-constants: duplicate header definition for ZIGUX_STATUS_FLAG_ERROR" in issues
         header_path.write_text(
-            header_path.read_text(encoding="utf-8").rsplit("#define ZIGUX_STATUS_FLAG_ERROR 1U\n", 1)[0]
-            + "\n",
+            original_header_text,
+            encoding="utf-8",
+            newline="\n",
+        )
+
+        header_path.write_text(
+            original_header_text.replace("#define ZIGUX_FACILITY_DRIVERS 3U\n", "", 1),
+            encoding="utf-8",
+            newline="\n",
+        )
+        issues = validate_constants(root)
+        assert "abi-binding-constants: header missing ZIGUX_FACILITY_DRIVERS" in issues
+        header_path.write_text(
+            original_header_text,
             encoding="utf-8",
             newline="\n",
         )
 
         bindings_path.write_text(
-            bindings_path.read_text(encoding="utf-8")
-            + "pub const STATUS_FLAG_ERROR: u16 = 1;\n",
+            original_bindings_text + "pub const STATUS_FLAG_ERROR: u16 = 1;\n",
             encoding="utf-8",
             newline="\n",
         )
         issues = validate_constants(root)
         assert "abi-binding-constants: duplicate binding definition for STATUS_FLAG_ERROR" in issues
         bindings_path.write_text(
-            bindings_path.read_text(encoding="utf-8").rsplit("pub const STATUS_FLAG_ERROR: u16 = 1;\n", 1)[0]
-            + "\n",
+            original_bindings_text,
             encoding="utf-8",
             newline="\n",
         )
 
         bindings_path.write_text(
-            bindings_path.read_text(encoding="utf-8").replace("    kernel = 1,\n", "    kernel = 1,\n    kernel = 1,\n", 1),
+            original_bindings_text.replace("    kernel = 1,\n", "    kernel = 1,\n    kernel = 1,\n", 1),
             encoding="utf-8",
             newline="\n",
         )
         issues = validate_constants(root)
         assert "abi-binding-constants: duplicate binding enum member Facility.kernel" in issues
         bindings_path.write_text(
-            bindings_path.read_text(encoding="utf-8").replace("    kernel = 1,\n    kernel = 1,\n", "    kernel = 1,\n", 1),
+            original_bindings_text,
             encoding="utf-8",
             newline="\n",
         )
 
         bindings_path.write_text(
-            bindings_path.read_text(encoding="utf-8").replace("    kernel = 1,\n", "", 1),
+            original_bindings_text.replace("    kernel = 1,\n", "", 1),
             encoding="utf-8",
             newline="\n",
         )
         issues = validate_constants(root)
         assert "abi-binding-constants: binding missing enum member Facility.kernel" in issues
+        bindings_path.write_text(
+            original_bindings_text,
+            encoding="utf-8",
+            newline="\n",
+        )
 
         bindings_path.write_text(
-            bindings_path.read_text(encoding="utf-8").replace(
+            original_bindings_text.replace(
                 "pub const STATUS_FLAG_ERROR: u16 = 1;",
                 "pub const STATUS_FLAG_ERROR: u16 = 9;",
                 1,
@@ -319,9 +336,15 @@ def run_self_test() -> int:
         )
         issues = validate_constants(root)
         assert "abi-binding-constants: binding status_flag_error=9 expected 1" in issues
+        assert "abi-binding-constants: header/binding mismatch for status_flag_error: 1!=9" in issues
+        bindings_path.write_text(
+            original_bindings_text,
+            encoding="utf-8",
+            newline="\n",
+        )
 
         bindings_path.write_text(
-            bindings_path.read_text(encoding="utf-8").replace(
+            original_bindings_text.replace(
                 "pub const CHRDEV_NOTIFY_ACK_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_BUDGET_FLAG_BUDGET_APPLIED: u32 = 1;\n",
                 "",
                 1,
