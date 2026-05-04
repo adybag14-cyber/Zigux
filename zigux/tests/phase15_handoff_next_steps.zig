@@ -153,6 +153,8 @@ test "phase 15 handoff manifest records the parked governance contract" {
     try std.testing.expect(std.mem.indexOf(u8, manifest.pending_next_steps[1], "packet-local inside") != null);
     try std.testing.expect(std.mem.indexOf(u8, manifest.pending_next_steps[1], "phase15-freeze-map-governance.md") != null);
     try std.testing.expect(std.mem.indexOf(u8, manifest.pending_next_steps[1], "return to this handoff lane only") != null);
+    try std.testing.expect(std.mem.indexOf(u8, manifest.pending_next_steps[2], "python3 scripts/zigux/check-phase15-review-process-handoff.py --self-test") != null);
+    try std.testing.expect(std.mem.indexOf(u8, manifest.pending_next_steps[2], "python3 scripts/zigux/check-phase15-review-process-handoff.py") != null);
     try std.testing.expect(std.mem.indexOf(u8, manifest.pending_next_steps[2], "python3 scripts/zigux/validate-phase15.py") != null);
     try std.testing.expect(std.mem.indexOf(u8, manifest.pending_next_steps[2], "make -C zigux phase15-validate") != null);
     try std.testing.expect(std.mem.indexOf(u8, manifest.pending_next_steps[2], "zig build test --build-file zigux/tests/phase15_build.zig") != null);
