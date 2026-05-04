@@ -41,6 +41,8 @@ The highest-value honest step in this lane is therefore to add a boundary map th
 - the bridge now records the smaller `validate_xmit_skb_list()` republish handoff around `head = skb`, `tail->next = skb`, and `validate_xmit_skb()` drop pruning so the lane records how validated outputs are stitched back into one list before any wrapper claim approaches live packet lifetime behavior.
 - the packet now records a dedicated stay-in-C governance note for the direct `__dev_direct_xmit()` identity-drop checkpoint, keeping `skb = validate_xmit_skb_list(...)`, `skb != orig_skb`, and the drop path explicitly observational-only while qdisc publication, queue ownership, and skb lifetime ownership remain in C.
 - the bridge now records the narrower `__dev_direct_xmit()` identity-drop follow-up around `skb = validate_xmit_skb_list(...)`, `skb != orig_skb`, and the drop path, and that checkpoint stays strictly observational: it does not move qdisc publication, queue ownership, or skb lifetime ownership out of the existing C implementation.
+- the bridge also now carries a skbuff-local concurrency audit outline around `__napi_alloc_frag_align()`, `napi_skb_cache_get_bulk()`, `drop_reasons_register_subsys()`, and `skb_attempt_defer_free()`, which makes the BH-local allocator lock scope, per-CPU cache refill, RCU publication boundary, and remote-CPU defer-free handoff reviewable without claiming live allocator, publication-ordering, or softirq ownership.
+- that concurrency packet stays review-only too: `napi_alloc_cache.bh_lock`, `RCU_INIT_POINTER()` plus `synchronize_rcu()`, and `kick_defer_list_purge(cpu)` are recorded here as stay-in-C evidence surfaces rather than as any claim that Zigux owns allocator concurrency, RCU ordering, or deferred-free execution.
 
 ## Recorded gaps
 
@@ -64,7 +66,7 @@ The current lane state is:
 - landed `phase14-skbuff-direct-xmit-identity-drop-followup`
 - blocked `phase14-skbuff-live-ownership-blocker`
 
-This keeps the lane explicit without overstating progress: Zigux now has a real Phase 14 skbuff boundary map, a lifetime-audit foothold, an explicit checksum-state audit, the first segmentation-handoff study, the partial-seg tail-owner follow-up, the checksum-to-data-offset crossover audit, the exported tail-publication checkpoint, the consumer-side `validate_xmit_skb_list()` reset checkpoint, the republish handoff that stitches validated outputs back into one list, and the direct `__dev_direct_xmit()` identity-drop checkpoint itself, but it still does not claim live refcount transitions, destructor ordering, checksum ownership, segmentation behavior, qdisc publication ownership, or a direct `net/core/skbuff.c` rewrite.
+This keeps the lane explicit without overstating progress: Zigux now has a real Phase 14 skbuff boundary map, a lifetime-audit foothold, an explicit checksum-state audit, the first segmentation-handoff study, the partial-seg tail-owner follow-up, the checksum-to-data-offset crossover audit, the exported tail-publication checkpoint, the consumer-side `validate_xmit_skb_list()` reset checkpoint, the republish handoff that stitches validated outputs back into one list, the direct `__dev_direct_xmit()` identity-drop checkpoint itself, and a skbuff-local concurrency audit outline around the NAPI allocator lock, per-CPU skb cache refill, drop-reason RCU publication, and remote defer-free handoff, but it still does not claim live refcount transitions, destructor ordering, checksum ownership, segmentation behavior, allocator concurrency ownership, RCU publication ordering, softirq handoff ownership, qdisc publication ownership, or a direct `net/core/skbuff.c` rewrite.
 
 ## Freeze-in-C guardrails
 
@@ -79,12 +81,14 @@ This keeps the lane explicit without overstating progress: Zigux now has a real 
   - explicit stay-in-C wording for `head = skb`, `tail->next = skb`, `validate_xmit_skb()`, `skb = validate_xmit_skb_list(...)`, `skb != orig_skb`, and the `__dev_direct_xmit()` identity-drop checkpoint
   - the landed direct-xmit identity-drop checkpoint and the blocked live-ownership gap kept explicit beside the same freeze-in-C posture
   - explicit wording that the identity-drop checkpoint is observational only and does not transfer qdisc publication, queue ownership, or skb lifetime ownership out of C
-  - the same no-ready-next posture for the republish and direct-xmit checkpoints kept explicit across this survey note and `Documentation/zigux/phase14-skbuff-bridge-slice.md`
+  - explicit stay-in-C wording that `napi_alloc_cache.bh_lock`, `RCU_INIT_POINTER()` plus `synchronize_rcu()`, and `kick_defer_list_purge(cpu)` remain evidence-only concurrency checkpoints rather than bridge ownership claims
+  - the same no-ready-next posture for the republish, direct-xmit, and concurrency checkpoints kept explicit across this survey note and `Documentation/zigux/phase14-skbuff-bridge-slice.md`
 - automatic return-to-blocked triggers:
   - any edit that drops the named validation gate or rollback owner
   - missing freeze-in-C or stay-in-C wording for the republish or direct-xmit handoff in this survey packet
   - any manifest refresh that changes the landed direct-xmit checkpoint or blocked gap without refreshing this survey note
   - any edit that stops distinguishing the observational `__dev_direct_xmit()` identity-drop checkpoint from the still-blocked qdisc publication, queue ownership, or skb lifetime ownership
+  - any edit that starts implying allocator concurrency ownership, RCU publication ordering ownership, or remote defer-free execution ownership moved out of C without refreshing the bridge and note set together
   - any change that silently restores a ready-next claim or narrows the packet past observational-only wording without refreshing the bridge, manifest, and note set together
 
 ## Rollback threshold for observational checkpoints
@@ -92,7 +96,8 @@ This keeps the lane explicit without overstating progress: Zigux now has a real 
 This run tightens one narrower guardrail without reopening the bridge.
 
 - current packet posture for both the `validate_xmit_skb_list()` republish checkpoint and the `__dev_direct_xmit()` identity-drop checkpoint remains `freeze_in_c` even though the survey lane stays active for reviewability maintenance.
-- the smallest evidence packet that keeps those checkpoints honest is still the existing bridge, manifest-backed survey, slice note, and this survey note, all agreeing that `head = skb`, `tail->next = skb`, `validate_xmit_skb()`, `skb = validate_xmit_skb_list(...)`, `skb != orig_skb`, qdisc publication, queue ownership, and skb lifetime ownership stay explicitly in C.
+- the same packet also keeps the skbuff-local concurrency outline review-only: the NAPI BH-local allocator lock, drop-reason RCU publication, and remote defer-free handoff remain evidence surfaces rather than bridge ownership claims.
+- the smallest evidence packet that keeps those checkpoints honest is still the existing bridge, manifest-backed survey, slice note, and this survey note, all agreeing that `head = skb`, `tail->next = skb`, `validate_xmit_skb()`, `skb = validate_xmit_skb_list(...)`, `skb != orig_skb`, qdisc publication, queue ownership, skb lifetime ownership, allocator concurrency, RCU publication ordering, and deferred-free execution stay explicitly in C.
 - if a future run wants to reopen a narrower follow-up, it must refresh that whole packet together. A note-only change that weakens the observational-only wording or silently reintroduces a new ready-next claim is not an acceptable bridge step.
 - if any of those cues drift, the lane should fall straight back to blocked skbuff-packet maintenance instead of claiming forward motion on transmit-list ownership.
 
@@ -118,4 +123,4 @@ This survey slice does not claim:
 
 ## Next bounded step
 
-Keep this lane parked unless the skbuff survey packet drifts again or another narrower same-family audit becomes explicit without weakening the stay-in-C posture. The landed `__dev_direct_xmit()` identity-drop checkpoint stays observational only, qdisc publication, queue ownership, and skb lifetime ownership remain explicitly in C, and any future packet repair that loses the shared no-ready-next posture should be treated as rollback-to-maintenance work rather than as a new bridge opening.
+Keep this lane parked unless the skbuff survey packet drifts again or another narrower same-family audit becomes explicit without weakening the stay-in-C posture. The landed `__dev_direct_xmit()` identity-drop checkpoint stays observational only, the skbuff-local concurrency outline stays review-only, qdisc publication, queue ownership, skb lifetime ownership, allocator concurrency, RCU publication ordering, and deferred-free execution remain explicitly in C, and any future packet repair that loses the shared no-ready-next posture should be treated as rollback-to-maintenance work rather than as a new bridge opening.
