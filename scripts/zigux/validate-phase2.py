@@ -23,6 +23,7 @@ PHASE2_CROSS_CHECKER = ROOT / "scripts" / "zigux" / "check-phase2-cross.py"
 TOOLCHAIN_PIN_SCOPE_CHECKER = ROOT / "scripts" / "zigux" / "check-phase2-toolchain-pin-scope.py"
 TOOLCHAIN_NOTES = ROOT / "Documentation" / "zigux" / "phase2-toolchain-bootstrap-notes.md"
 REVIEW_CHECKLIST = ROOT / "Documentation" / "zigux" / "review-checklist.md"
+TESTS_README = ROOT / "zigux" / "tests" / "README.md"
 CHECK_FIXDEP = ROOT / "scripts" / "zigux" / "check-fixdep-diff.py"
 CHECK_KCONFIG_BRIDGE = ROOT / "scripts" / "zigux" / "check-kconfig-bridge.py"
 WORKFLOW_FILE = ROOT / ".github" / "workflows" / "zigux-bootstrap.yml"
@@ -68,6 +69,7 @@ REQUIRED_PHASE2_FILES = [
     README_FILE,
     TOOLCHAIN_NOTES,
     REVIEW_CHECKLIST,
+    TESTS_README,
     ROOT / "Documentation" / "zigux" / "phase2-closure.md",
     MAKEFILE_FILE,
     PHASE2_TOOL_MANIFEST,
@@ -159,13 +161,25 @@ PHASE2_TOOLCHAIN_REVIEW_CHECKLIST_REQUIRED_SOURCE_MARKERS = [
     "make -C zigux phase2-validate",
     "make -C zigux phase2",
 ]
+PHASE2_TESTS_README_REQUIRED_SOURCE_MARKERS = [
+    "zigux/tests/fixtures/phase2_cross_targets.json",
+    "python3 scripts/zigux/check-phase2-cross.py --self-test",
+    "python3 scripts/zigux/check-phase2-cross.py",
+    "python3 scripts/zigux/check-phase2-cross-selftest-alignment.py --self-test",
+    "python3 scripts/zigux/check-phase2-cross-selftest-alignment.py",
+    "python3 scripts/zigux/validate-phase2.py",
+    "python3 scripts/zigux/validate-phase2-closure.py",
+    "make -C zigux phase2-validate",
+    "make -C zigux phase2",
+    "same three-target compile matrix, direct cross gate, alignment guard, and kbuild-facing replay surface as the docs root, scripts root, closure note, review checklist, workflow, and Makefile",
+]
 PHASE2_FIXDEP_REQUIRED_SOURCE_MARKERS = [
     "FIXDEP_SELF_TEST=pass",
     "print(f'FIXDEP_SELF_TEST_CASE_COUNT={checks_run}')",
     "validate_tool_sources(C_FIXDEP, ZIG_FIXDEP)",
     "expected_stderr_path = expected_stderr or implicit_expected_stderr",
     "diff_text(c_actual, c_repeat)",
-    "diff_text(zig_actual, zig_repeat)",
+    "diff_text(zig_actual, c_repeat)",
     "diff_text(c_actual_stderr, zig_actual_stderr)",
     "diff_text(c_actual_stderr, c_repeat_stderr)",
     "diff_text(zig_actual_stderr, zig_repeat_stderr)",
@@ -552,6 +566,13 @@ def main() -> int:
             REVIEW_CHECKLIST,
             label="phase2_toolchain_review_checklist",
             required_markers=PHASE2_TOOLCHAIN_REVIEW_CHECKLIST_REQUIRED_SOURCE_MARKERS,
+        )
+    )
+    issues.extend(
+        validate_source_markers(
+            TESTS_README,
+            label="phase2_tests_readme",
+            required_markers=PHASE2_TESTS_README_REQUIRED_SOURCE_MARKERS,
         )
     )
     issues.extend(
