@@ -125,7 +125,7 @@ PHASE2_TOOLCHAIN_PIN_SCOPE_REQUIRED_SOURCE_MARKERS = [
 ]
 PHASE2_FIXDEP_REQUIRED_SOURCE_MARKERS = [
     "FIXDEP_SELF_TEST=pass",
-    "FIXDEP_SELF_TEST_CASE_COUNT=12",
+    "FIXDEP_SELF_TEST_CASE_COUNT=13",
     "validate_tool_sources(C_FIXDEP, ZIG_FIXDEP)",
     "expected_stderr_path = expected_stderr or implicit_expected_stderr",
     "diff_text(c_actual, c_repeat)",
@@ -308,6 +308,13 @@ def validate_expected_fixdep_cases(cases_path: Path) -> list[str]:
             "target": "sample_concatenated.o",
             "cmdline": "clang -c zigux/tests/fixtures/fixdep/sample_concatenated_source.c -o sample_concatenated.o",
             "expected": "sample_concatenated_expected.txt",
+            "expected_exit_code": 0,
+        },
+        "sample_comment_continued": {
+            "depfile": "sample_comment_continued.d",
+            "target": "sample_comment_continued.o",
+            "cmdline": "rustc --emit dep-info=sample_comment_continued.d -o sample_comment_continued.o zigux/tests/fixtures/fixdep/sample_comment_continued.rs",
+            "expected": "sample_comment_continued_expected.txt",
             "expected_exit_code": 0,
         },
         "sample_comment_only": {
