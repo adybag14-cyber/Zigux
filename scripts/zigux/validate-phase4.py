@@ -102,6 +102,10 @@ GATE_EVIDENCE_TARGETS = {
     "PHASE4_KPROBE_EXAMPLE_SURVEY_BLOB_SHA": "zigux/tests/phase4_kprobe_example_survey.zig",
 }
 
+ADDITIONAL_GATE_EVIDENCE_MARKERS = [
+    "PHASE4_WORKFLOW_ROUTE_CHECKER_BLOB_SHA=",
+]
+
 
 def read_text(root: Path, rel: str) -> str:
     return (root / rel).read_text(encoding="utf-8")
@@ -181,6 +185,9 @@ def validate_root(root: Path) -> list[str]:
         expected = blob_sha((root / rel).read_bytes())
         if f"{marker}={expected}" not in gate_evidence:
             missing.append(f"gate_evidence:{marker}:{expected}")
+    for marker in ADDITIONAL_GATE_EVIDENCE_MARKERS:
+        if marker not in gate_evidence:
+            missing.append(f"gate_evidence:{marker}")
 
     return missing
 
@@ -228,9 +235,13 @@ def write_fixture_tree(root: Path) -> None:
         target.parent.mkdir(parents=True, exist_ok=True)
         target.write_text(content, encoding="utf-8")
 
+    workflow_route_checker_sha = blob_sha(
+        (root / "scripts/zigux/check-phase4-workflow-route-counts.py").read_bytes()
+    )
     evidence = [
         "PHASE4_EVIDENCE_MODE=github_connector_readback",
         "PHASE4_EVIDENCE_SCOPE=rollback_ownership_and_lab_matrix_current_gate_definitions",
+        f"PHASE4_WORKFLOW_ROUTE_CHECKER_BLOB_SHA={workflow_route_checker_sha}",
         "shared validator now fails closed on the kprobe survey packet itself",
     ]
     for marker, rel in GATE_EVIDENCE_TARGETS.items():
@@ -248,6 +259,19 @@ def run_self_test() -> int:
         survey.write_text(survey.read_text(encoding="utf-8").replace("phase4-kprobe-example-survey-tests\n", ""), encoding="utf-8")
         missing = validate_root(root)
         assert "kprobe_survey:phase4-kprobe-example-survey-tests" in missing, missing
+
+        write_fixture_tree(root)
+        gate_evidence = root / "Documentation/zigux/phase4-gate-evidence.md"
+        gate_evidence.write_text(
+            gate_evidence.read_text(encoding="utf-8").replace(
+                "PHASE4_WORKFLOW_ROUTE_CHECKER_BLOB_SHA=",
+                "PHASE4_WORKFLOW_ROUTE_CHECKER_BLOB_MISSING=",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        missing = validate_root(root)
+        assert "gate_evidence:PHASE4_WORKFLOW_ROUTE_CHECKER_BLOB_SHA=" in missing, missing
 
     print("PHASE4_VALIDATOR_SELF_TEST=pass")
     return 0
