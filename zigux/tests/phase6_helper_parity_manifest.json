@@ -124,7 +124,7 @@
       "inline_corpus": "sorted integer and symbol tables",
       "perf_fixture_cases": 3,
       "deterministic_probe_prefix_cases": 8,
-      "c_parity_self_test_cases": 6,
+      "c_parity_self_test_cases": 7,
       "c_parity_cases": 29
     },
     "checksum": {
