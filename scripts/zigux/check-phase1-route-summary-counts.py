@@ -155,7 +155,7 @@ COMPANION_ROUTE_LINES = {
     "companion_phase1_validate_phase1_closure_count": (
         "Documentation/zigux/phase1-tests-root-review-companion.md",
         "- `python3 scripts/zigux/validate-phase1-closure.py`",
-        1,
+        2,
     ),
 }
 
@@ -301,19 +301,27 @@ def expect_missing_and_duplicate(
     baseline_entries: list[str],
     label: str,
     marker: str,
+    expected_count: int,
 ) -> None:
     path = root / rel
-    write(path, fixture_text([entry for entry in baseline_entries if entry != marker]))
+    trimmed_entries: list[str] = []
+    removed = False
+    for entry in baseline_entries:
+        if not removed and entry == marker:
+            removed = True
+            continue
+        trimmed_entries.append(entry)
+    write(path, fixture_text(trimmed_entries))
     expect_failure(
         script,
         root,
-        f"{label}:expected=1:actual=0",
+        f"{label}:expected={expected_count}:actual={expected_count - 1}",
     )
     write(path, fixture_text(baseline_entries + [marker]))
     expect_failure(
         script,
         root,
-        f"{label}:expected=1:actual=2",
+        f"{label}:expected={expected_count}:actual={expected_count + 1}",
     )
     write(path, fixture_text(baseline_entries))
 
@@ -354,6 +362,7 @@ def self_test() -> int:
         COMPANION_ROUTE_LINES["companion_phase1_bench_count"][1],
         COMPANION_ROUTE_LINES["companion_phase1_validate_phase1_closure_self_test_count"][1],
         COMPANION_ROUTE_LINES["companion_phase1_validate_phase1_closure_count"][1],
+        COMPANION_ROUTE_LINES["companion_phase1_validate_phase1_closure_count"][1],
     ]
     closure_markers = [
         CLOSURE_ROUTE_LINES["closure_phase1_parity_gate_count"][1],
@@ -370,192 +379,224 @@ def self_test() -> int:
             docs_markers,
             "docs_root_phase1_closure_packet_count",
             docs_markers[0],
+            1,
         ),
         (
             "Documentation/zigux/README.md",
             docs_markers,
             "docs_root_phase1_companion_count",
             docs_markers[1],
+            1,
         ),
         (
             "Documentation/zigux/README.md",
             docs_markers,
             "docs_root_phase1_entrypoints_count",
             docs_markers[2],
+            1,
         ),
         (
             "Documentation/zigux/README.md",
             docs_markers,
             "docs_root_phase1_companion_checks_count",
             docs_markers[3],
+            1,
         ),
         (
             "scripts/zigux/README.md",
             scripts_markers,
             "scripts_root_phase1_validator_first_count",
             scripts_markers[0],
+            1,
         ),
         (
             "scripts/zigux/README.md",
             scripts_markers,
             "scripts_root_phase1_packet_alignment_count",
             scripts_markers[1],
+            1,
         ),
         (
             "scripts/zigux/README.md",
             scripts_markers,
             "scripts_root_phase1_review_hooks_count",
             scripts_markers[2],
+            1,
         ),
         (
             "zigux/Makefile",
             makefile_markers,
             "makefile_phase1_route_summary_self_test_count",
             makefile_markers[0],
+            1,
         ),
         (
             "zigux/Makefile",
             makefile_markers,
             "makefile_phase1_route_summary_run_count",
             makefile_markers[1],
+            1,
         ),
         (
             ".github/workflows/zigux-bootstrap.yml",
             workflow_markers,
             "workflow_phase1_route_summary_self_test_count",
             workflow_markers[0],
+            1,
         ),
         (
             ".github/workflows/zigux-bootstrap.yml",
             workflow_markers,
             "workflow_phase1_route_summary_run_count",
             workflow_markers[1],
+            1,
         ),
         (
             "Documentation/zigux/phase1-tests-root-review-companion.md",
             companion_markers,
             "companion_phase1_validate_self_test_count",
             companion_markers[0],
+            1,
         ),
         (
             "Documentation/zigux/phase1-tests-root-review-companion.md",
             companion_markers,
             "companion_phase1_bitmap_self_test_count",
             companion_markers[1],
+            1,
         ),
         (
             "Documentation/zigux/phase1-tests-root-review-companion.md",
             companion_markers,
             "companion_phase1_bitmap_count",
             companion_markers[2],
+            1,
         ),
         (
             "Documentation/zigux/phase1-tests-root-review-companion.md",
             companion_markers,
             "companion_phase1_find_bit_self_test_count",
             companion_markers[3],
+            1,
         ),
         (
             "Documentation/zigux/phase1-tests-root-review-companion.md",
             companion_markers,
             "companion_phase1_find_bit_count",
             companion_markers[4],
+            1,
         ),
         (
             "Documentation/zigux/phase1-tests-root-review-companion.md",
             companion_markers,
             "companion_phase1_route_summary_self_test_count",
             companion_markers[5],
+            1,
         ),
         (
             "Documentation/zigux/phase1-tests-root-review-companion.md",
             companion_markers,
             "companion_phase1_route_summary_count",
             companion_markers[6],
+            1,
         ),
         (
             "Documentation/zigux/phase1-tests-root-review-companion.md",
             companion_markers,
             "companion_phase1_validation_route_inventory_self_test_count",
             companion_markers[7],
+            1,
         ),
         (
             "Documentation/zigux/phase1-tests-root-review-companion.md",
             companion_markers,
             "companion_phase1_validation_route_inventory_count",
             companion_markers[8],
+            1,
         ),
         (
             "Documentation/zigux/phase1-tests-root-review-companion.md",
             companion_markers,
             "companion_phase1_parity_self_test_count",
             companion_markers[9],
+            1,
         ),
         (
             "Documentation/zigux/phase1-tests-root-review-companion.md",
             companion_markers,
             "companion_phase1_parity_count",
             companion_markers[10],
+            1,
         ),
         (
             "Documentation/zigux/phase1-tests-root-review-companion.md",
             companion_markers,
             "companion_phase1_bench_self_test_count",
             companion_markers[11],
+            1,
         ),
         (
             "Documentation/zigux/phase1-tests-root-review-companion.md",
             companion_markers,
             "companion_phase1_bench_count",
             companion_markers[12],
+            1,
         ),
         (
             "Documentation/zigux/phase1-tests-root-review-companion.md",
             companion_markers,
             "companion_phase1_validate_phase1_closure_self_test_count",
             companion_markers[13],
+            1,
         ),
         (
             "Documentation/zigux/phase1-tests-root-review-companion.md",
             companion_markers,
             "companion_phase1_validate_phase1_closure_count",
             companion_markers[14],
+            2,
         ),
         (
             "Documentation/zigux/phase1-closure.md",
             closure_markers,
             "closure_phase1_parity_gate_count",
             closure_markers[0],
+            1,
         ),
         (
             "Documentation/zigux/phase1-closure.md",
             closure_markers,
             "closure_phase1_parity_self_test_gate_count",
             closure_markers[1],
+            1,
         ),
         (
             "Documentation/zigux/phase1-closure.md",
             closure_markers,
             "closure_phase1_bench_check_gate_count",
             closure_markers[2],
+            1,
         ),
         (
             "Documentation/zigux/phase1-closure.md",
             closure_markers,
             "closure_phase1_bench_self_test_gate_count",
             closure_markers[3],
+            1,
         ),
         (
             "Documentation/zigux/phase1-closure.md",
             closure_markers,
             "closure_phase1_closure_gate_count",
             closure_markers[4],
+            1,
         ),
         (
             "Documentation/zigux/phase1-closure.md",
             closure_markers,
             "closure_phase1_closure_self_test_gate_count",
             closure_markers[5],
+            1,
         ),
     ]
 
@@ -578,8 +619,8 @@ def self_test() -> int:
             return 1
 
         total_cases = 1
-        for rel, baseline_entries, label, marker in marker_cases:
-            expect_missing_and_duplicate(script, root, rel, baseline_entries, label, marker)
+        for rel, baseline_entries, label, marker, expected_count in marker_cases:
+            expect_missing_and_duplicate(script, root, rel, baseline_entries, label, marker, expected_count)
             total_cases += 2
 
         missing_file_cases = [
