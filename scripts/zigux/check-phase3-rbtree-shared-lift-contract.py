@@ -227,12 +227,15 @@ SHARED_PACKET_SNIPPETS = {
 SHARED_PACKET_EXACT_ONCE_SNIPPETS = {
     SHARED_ABI_DUMP_REL: (
         'writeStructLayout(writer, "zigux_rbtree_root_view", rbtree.RootView, false);',
+        'try writer.writeAll("},\\\"records\\\":{\\\"rbtree_empty_root\\\":{\\\"root_addr\\\":");',
     ),
     SHARED_ABI_HARNESS_REL: (
         "offsetof(struct zigux_rbtree_root_view, root_addr)",
+        'fputs("},\\\"records\\\":{\\\"rbtree_empty_root\\\":{\\\"root_addr\\\":", stdout);',
     ),
     SHARED_ABI_EXPECTED_REL: (
         '"zigux_rbtree_root_view":{"size":24,"align":8,"offsets":{"root_addr":0,"leftmost_addr":8,"flags":16,"reserved":20}}',
+        '"rbtree_empty_root":{"root_addr":0,"leftmost_addr":0,"flags":1,"reserved":0}',
     ),
 }
 
@@ -283,8 +286,11 @@ SHARED_PACKET_SELF_TEST_CASES = (
 
 SHARED_PACKET_EXACT_ONCE_SELF_TEST_CASES = (
     (SHARED_ABI_DUMP_REL, SHARED_PACKET_EXACT_ONCE_SNIPPETS[SHARED_ABI_DUMP_REL][0]),
+    (SHARED_ABI_DUMP_REL, SHARED_PACKET_EXACT_ONCE_SNIPPETS[SHARED_ABI_DUMP_REL][1]),
     (SHARED_ABI_HARNESS_REL, SHARED_PACKET_EXACT_ONCE_SNIPPETS[SHARED_ABI_HARNESS_REL][0]),
+    (SHARED_ABI_HARNESS_REL, SHARED_PACKET_EXACT_ONCE_SNIPPETS[SHARED_ABI_HARNESS_REL][1]),
     (SHARED_ABI_EXPECTED_REL, SHARED_PACKET_EXACT_ONCE_SNIPPETS[SHARED_ABI_EXPECTED_REL][0]),
+    (SHARED_ABI_EXPECTED_REL, SHARED_PACKET_EXACT_ONCE_SNIPPETS[SHARED_ABI_EXPECTED_REL][1]),
 )
 
 MANIFEST_PATHS = (
