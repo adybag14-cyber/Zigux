@@ -246,5 +246,5 @@ test "phase 7 argv_split survey manifest records the parked runtime leaf surface
     try expectContains(argv_split_parity_checker, "SOURCE = ROOT / \"lib\" / \"argv_split.c\"");
     try expectContains(argv_split_parity_checker, "FIXTURE = ROOT / \"zigux\" / \"tests\" / \"fixtures\" / \"phase7_argv_split.json\"");
     try expectContains(argv_split_parity_checker, "HARNESS = ROOT / \"zigux\" / \"tests\" / \"fixtures\" / \"phase7_argv_split_c_harness.c\"");
-    try expectContains(argv_split_parity_checker, "PHASE7_ARGV_SPLIT_PARITY_SELF_TEST_CASE_COUNT=3");
+    try expectContains(argv_split_parity_checker, "PHASE7_ARGV_SPLIT_PARITY_SELF_TEST_CASE_COUNT=4");
 }
