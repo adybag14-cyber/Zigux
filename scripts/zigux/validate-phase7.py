@@ -155,6 +155,7 @@ required_tests_readme_markers = [
     "`scripts/zigux/validate-phase7.py`",
     "`scripts/zigux/check-phase7-build-inventory.py`",
     "`scripts/zigux/check-phase7-make-wrapper.py`",
+    "`scripts/zigux/check-phase7-argv-split-packet.py --self-test`",
     "`scripts/zigux/check-phase7-argv-split-packet.py`",
     "`scripts/zigux/check-phase7-cmdline-parity.py --self-test`",
     "`scripts/zigux/check-phase7-cmdline-parity.py`",
@@ -222,13 +223,11 @@ expected_argv_split_fixture = {
     },
 }
 
-
 def clone_fixture_root(destination_root: Path) -> None:
     for source in required_files:
         target = destination_root / source.relative_to(ROOT)
         target.parent.mkdir(parents=True, exist_ok=True)
         shutil.copyfile(source, target)
-
 
 def run_validator(root: Path) -> subprocess.CompletedProcess[str]:
     return subprocess.run(
@@ -238,7 +237,6 @@ def run_validator(root: Path) -> subprocess.CompletedProcess[str]:
         text=True,
         check=False,
     )
-
 
 def expect_missing_marker(label: str, root: Path, expected_marker: str) -> None:
     result = run_validator(root)
@@ -250,10 +248,8 @@ def expect_missing_marker(label: str, root: Path, expected_marker: str) -> None:
             f"phase7-self-test:{label}:expected_missing_marker:{expected_marker}:actual:{actual}"
         )
 
-
 def collect_missing_markers(label: str, content: str, markers: list[str]) -> list[tuple[str, str]]:
     return [(label, marker) for marker in markers if marker not in content]
-
 
 def collect_exact_count_marker_drift(
     label: str,
@@ -266,7 +262,6 @@ def collect_exact_count_marker_drift(
         if actual_count != expected_count:
             drift.append((label, f"exact_count:{marker}:{actual_count}!={expected_count}"))
     return drift
-
 
 def run_self_test() -> int:
     with tempfile.TemporaryDirectory(prefix="zigux_phase7_validator_selftest_") as tmp_dir:
@@ -470,6 +465,21 @@ def run_self_test() -> int:
 
         tests_readme_path.write_text(
             original_tests_readme.replace(
+                "`scripts/zigux/check-phase7-argv-split-packet.py --self-test`",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "tests_readme_argv_split_packet_self_test_marker",
+            tmp_root,
+            "zigux/tests/README.md: `scripts/zigux/check-phase7-argv-split-packet.py --self-test`",
+        )
+        tests_readme_path.write_text(original_tests_readme, encoding="utf-8")
+
+        tests_readme_path.write_text(
+            original_tests_readme.replace(
                 "`scripts/zigux/check-phase7-argv-split-packet.py`",
                 "",
                 1,
@@ -558,9 +568,8 @@ def run_self_test() -> int:
         )
 
     print("PHASE7_VALIDATOR_SELF_TEST=pass")
-    print("PHASE7_VALIDATOR_SELF_TEST_CASE_COUNT=18")
+    print("PHASE7_VALIDATOR_SELF_TEST_CASE_COUNT=19")
     return 0
-
 
 def main() -> int:
     if "--self-test" in sys.argv[1:]:
