@@ -335,6 +335,7 @@ test "runtime module metadata docs stay aligned with the manifest-backed surveye
         "it is not yet loadable-module metadata parity",
         "the shared runtime loader currently exposes three tagged loader lanes: `atomic64`, `bitmap`, and `kretprobe`",
         "four landed loader-plan files now stay at `samples/zigux/runtime_atomic64_loader.zig`, `samples/zigux/runtime_bitmap_loader.zig`, `samples/zigux/runtime_kretprobe_loader.zig`, and `samples/zigux/runtime_trace_events_loader.zig`",
+        "the first three landed loader-plan files currently project `command_name = null` into `RuntimeLoadRequest`, so the optional command-name field is still reserved for a future shared activation surface rather than exercised by the shipped starter packet",
         "The dedicated `samples/zigux/runtime_trace_events_loader.zig` scaffold is now landed too, but it still stops outside that shared `RuntimeLoadRequest` union",
     });
     try expectSurveyedCommitMarker(survey_note, manifest.surveyed_commit);
@@ -385,6 +386,7 @@ test "runtime module metadata survey note keeps descriptor fields, shared loader
         "tests-root guidance",
         "loadable-module metadata parity",
         "depmod bridge",
+        "the first three landed loader-plan files currently project `command_name = null` into `RuntimeLoadRequest`",
         "python3 scripts/zigux/validate-phase9.py",
         "zig build test --build-file zigux/tests/phase9_build.zig --summary all",
         "zig test zigux/tests/runtime_module_metadata_survey.zig",
@@ -452,8 +454,11 @@ test "runtime module metadata survey proves the landed loader-plan scaffolds sta
     try expectContainsAll(runtime_atomic64_loader, &.{
         "pub const RuntimeAtomic64LoadPlan = struct",
         "pub fn toSharedRequest(plan: RuntimeAtomic64LoadPlan) runtime_loader.RuntimeLoadRequest",
+        "return planForWithCommandName(module, null);",
         "\"zigux_runtime_atomic64_init\"",
         "\"zigux_runtime_atomic64_exit\"",
+        "try std.testing.expectEqual(@as(?[]const u8, null), plan.command_name);",
+        "try std.testing.expectEqual(@as(?[]const u8, null), request.command_name);",
         ".waitingOnRuntimeSubstrate();",
         "releasedWithoutSubstrate();",
         "\"perf-runtime-atomic64\"",
@@ -461,8 +466,11 @@ test "runtime module metadata survey proves the landed loader-plan scaffolds sta
     try expectContainsAll(runtime_bitmap_loader, &.{
         "pub const RuntimeBitmapLoadPlan = struct",
         "pub fn toSharedRequest(plan: RuntimeBitmapLoadPlan) runtime_loader.RuntimeLoadRequest",
+        "return planForWithCommandName(module, null);",
         "\"zigux_runtime_bitmap_init\"",
         "\"zigux_runtime_bitmap_exit\"",
+        "try std.testing.expectEqual(@as(?[]const u8, null), plan.command_name);",
+        "try std.testing.expectEqual(@as(?[]const u8, null), request.command_name);",
         ".waitingOnRuntimeSubstrate();",
         "releasedWithoutSubstrate();",
         "\"perf-runtime-bitmap\"",
@@ -470,10 +478,13 @@ test "runtime module metadata survey proves the landed loader-plan scaffolds sta
     try expectContainsAll(runtime_kretprobe_loader, &.{
         "pub const RuntimeKretprobeLoadPlan = struct",
         "pub fn toSharedRequest(plan: RuntimeKretprobeLoadPlan) runtime_loader.RuntimeLoadRequest",
+        "return planForWithCommandName(module, null);",
         "\"register_kretprobe\"",
         "\"unregister_kretprobe\"",
         "\"zigux_runtime_kretprobe_init\"",
         "\"zigux_runtime_kretprobe_exit\"",
+        "try std.testing.expectEqual(@as(?[]const u8, null), plan.command_name);",
+        "try std.testing.expectEqual(@as(?[]const u8, null), request.command_name);",
         ".waitingOnRuntimeSubstrate();",
         "releasedWithoutSubstrate();",
         "\"perf-runtime-kretprobe\"",
