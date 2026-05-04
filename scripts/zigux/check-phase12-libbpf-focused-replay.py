@@ -35,8 +35,14 @@ REQUIRED_FILES = [
     "tools/lib/bpf/zigux_segments/perf_buffer_poll.zig",
     "Documentation/zigux/phase12-libbpf-segment-survey.md",
     "Documentation/zigux/phase12-shared-replay-contract.md",
+    "Documentation/zigux/phase12-release-readiness-survey.md",
+    "Documentation/zigux/phase12-cross-compile-smoke.md",
+    "Documentation/zigux/phase12-raw-github-coverage-survey.md",
     "Documentation/zigux/review-checklist.md",
     "zigux/tests/README.md",
+    "scripts/zigux/check-phase12-release-readiness-packet.py",
+    "zigux/tests/phase12_raw_github_coverage_manifest.json",
+    "zigux/tests/phase12_raw_github_coverage_survey.zig",
 ]
 EXPECTED_BUILD_TEST_NAMES = [
     "phase12-libbpf-segment-survey-tests",
@@ -109,6 +115,31 @@ CONTRACT_NOTE_MARKERS = [
     "The focused libbpf-only replay checker is intentionally part of that stack before the broader validator runs",
     "- `python3 scripts/zigux/check-phase12-libbpf-focused-replay.py --self-test`",
     "- `zig build test --build-file zigux/tests/phase12_libbpf_only_build.zig --summary all`",
+    "the same shared contract now also stays coupled to `Documentation/zigux/phase12-release-readiness-survey.md`, `Documentation/zigux/phase12-cross-compile-smoke.md`, and `Documentation/zigux/phase12-raw-github-coverage-survey.md`, so the release-facing PMO packet, the approved non-native smoke packet, and the mixed public-read fallback packet name the same pre-replay checker stack instead of drifting into parallel Phase 12 stories.",
+]
+RELEASE_SURVEY_MARKERS = [
+    "scripts/zigux/check-phase12-libbpf-focused-replay.py",
+    "zigux/tests/phase12_libbpf_only_build.zig",
+    "Documentation/zigux/phase12-shared-replay-contract.md",
+    "Documentation/zigux/phase12-cross-compile-smoke.md",
+    "Documentation/zigux/phase12-raw-github-coverage-survey.md",
+    "while the release packet now also keeps the focused libbpf-only replay shard explicit through `scripts/zigux/check-phase12-libbpf-focused-replay.py` and `zigux/tests/phase12_libbpf_only_build.zig`; public-read fallback still remains shared-tree-only rather than map-pinned or catalog-pinned",
+    "Documentation/zigux/phase12-shared-replay-contract.md` now stays inside the same release packet as the shared-versus-focused replay contract note",
+]
+RELEASE_SURVEY_EXACT_COUNTS = {
+    RELEASE_SURVEY_MARKERS[5]: 1,
+    RELEASE_SURVEY_MARKERS[6]: 1,
+}
+CROSS_SMOKE_MARKERS = [
+    "python3 scripts/zigux/check-phase12-release-readiness-packet.py",
+    "python3 scripts/zigux/validate-phase12.py",
+    "make -C zigux phase12-validate",
+]
+RAW_COVERAGE_MARKERS = [
+    "Documentation/zigux/phase12-release-readiness-survey.md",
+    "Documentation/zigux/phase12-libbpf-segment-survey.md",
+    "tools/lib/bpf/libbpf.c",
+    "shared-tree-only",
 ]
 MANIFEST_MARKERS = [
     "check-phase12-libbpf-focused-replay.py --self-test",
@@ -239,6 +270,9 @@ def collect_missing(
     reviewability_text: str,
     survey_note_text: str,
     contract_note_text: str,
+    release_survey_text: str,
+    cross_smoke_text: str,
+    raw_coverage_text: str,
     manifest_text: str,
     scripts_readme_text: str,
     docs_root_readme_text: str,
@@ -253,6 +287,16 @@ def collect_missing(
     missing.extend(collect_marker_misses(reviewability_text, REVIEWABILITY_MARKERS, "reviewability"))
     missing.extend(collect_marker_misses(survey_note_text, SURVEY_NOTE_MARKERS, "survey_note"))
     missing.extend(collect_marker_misses(contract_note_text, CONTRACT_NOTE_MARKERS, "contract_note"))
+    missing.extend(collect_marker_misses(release_survey_text, RELEASE_SURVEY_MARKERS, "release_survey"))
+    missing.extend(
+        collect_exact_count_misses(
+            release_survey_text,
+            RELEASE_SURVEY_EXACT_COUNTS,
+            "release_survey_count",
+        )
+    )
+    missing.extend(collect_marker_misses(cross_smoke_text, CROSS_SMOKE_MARKERS, "cross_smoke"))
+    missing.extend(collect_marker_misses(raw_coverage_text, RAW_COVERAGE_MARKERS, "raw_coverage"))
     missing.extend(collect_marker_misses(manifest_text, MANIFEST_MARKERS, "manifest"))
     missing.extend(collect_marker_misses(scripts_readme_text, SCRIPTS_README_MARKERS, "scripts_readme"))
     missing.extend(
@@ -336,6 +380,9 @@ def build_live_inputs() -> dict[str, object]:
         "reviewability_text": read_text("zigux/tests/phase12_libbpf_reviewability.zig"),
         "survey_note_text": read_text("Documentation/zigux/phase12-libbpf-segment-survey.md"),
         "contract_note_text": read_text("Documentation/zigux/phase12-shared-replay-contract.md"),
+        "release_survey_text": read_text("Documentation/zigux/phase12-release-readiness-survey.md"),
+        "cross_smoke_text": read_text("Documentation/zigux/phase12-cross-compile-smoke.md"),
+        "raw_coverage_text": read_text("Documentation/zigux/phase12-raw-github-coverage-survey.md"),
         "manifest_text": read_text("zigux/tests/phase12_libbpf_manifest.json"),
         "scripts_readme_text": read_text("scripts/zigux/README.md"),
         "docs_root_readme_text": read_text("Documentation/zigux/README.md"),
@@ -359,6 +406,9 @@ def run_self_test() -> int:
         "reviewability_text": "\n".join(REVIEWABILITY_MARKERS) + "\n",
         "survey_note_text": "\n".join(SURVEY_NOTE_MARKERS) + "\n",
         "contract_note_text": "\n".join(CONTRACT_NOTE_MARKERS) + "\n",
+        "release_survey_text": "\n".join(RELEASE_SURVEY_MARKERS) + "\n",
+        "cross_smoke_text": "\n".join(CROSS_SMOKE_MARKERS) + "\n",
+        "raw_coverage_text": "\n".join(RAW_COVERAGE_MARKERS) + "\n",
         "manifest_text": "\n".join(MANIFEST_MARKERS) + "\n",
         "scripts_readme_text": "\n".join([*SCRIPTS_README_MARKERS, SCRIPTS_README_BOUNDARY_MARKER]) + "\n",
         "docs_root_readme_text": "\n".join(DOCS_ROOT_README_MARKERS) + "\n",
@@ -578,6 +628,68 @@ def run_self_test() -> int:
         "contract_note_marker_detection",
         missing,
         f"contract_note:{CONTRACT_NOTE_MARKERS[0]}",
+    )
+
+    missing = collect_missing(
+        **{
+            **base_inputs,
+            "release_survey_text": base_inputs["release_survey_text"].replace(
+                RELEASE_SURVEY_MARKERS[5] + "\n",
+                "",
+                1,
+            ),
+        }
+    )
+    expect_contains(
+        "release_survey_marker_detection",
+        missing,
+        f"release_survey:{RELEASE_SURVEY_MARKERS[5]}",
+    )
+
+    missing = collect_missing(
+        **{
+            **base_inputs,
+            "release_survey_text": base_inputs["release_survey_text"]
+            + RELEASE_SURVEY_MARKERS[6]
+            + "\n",
+        }
+    )
+    expect_contains(
+        "release_survey_exact_count_detection",
+        missing,
+        f"release_survey_count:{RELEASE_SURVEY_MARKERS[6]}:expected=1:actual=2",
+    )
+
+    missing = collect_missing(
+        **{
+            **base_inputs,
+            "cross_smoke_text": base_inputs["cross_smoke_text"].replace(
+                CROSS_SMOKE_MARKERS[0] + "\n",
+                "",
+                1,
+            ),
+        }
+    )
+    expect_contains(
+        "cross_smoke_marker_detection",
+        missing,
+        f"cross_smoke:{CROSS_SMOKE_MARKERS[0]}",
+    )
+
+    missing = collect_missing(
+        **{
+            **base_inputs,
+            "raw_coverage_text": base_inputs["raw_coverage_text"].replace(
+                RAW_COVERAGE_MARKERS[0] + "\n",
+                "",
+                1,
+            ),
+        }
+    )
+    expect_contains(
+        "raw_coverage_marker_detection",
+        missing,
+        f"raw_coverage:{RAW_COVERAGE_MARKERS[0]}",
     )
 
     missing = collect_missing(
@@ -855,7 +967,7 @@ def run_self_test() -> int:
     )
 
     print("PHASE12_LIBBPF_FOCUSED_REPLAY_SELF_TEST=pass")
-    print("PHASE12_LIBBPF_FOCUSED_REPLAY_SELF_TEST_CASE_COUNT=33")
+    print("PHASE12_LIBBPF_FOCUSED_REPLAY_SELF_TEST_CASE_COUNT=37")
     return 0
 
 
