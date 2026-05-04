@@ -83,6 +83,11 @@ REQUIRED_PERF_BASELINE_PENDING_THRESHOLD_PLAN_MARKERS = [
     "still-unapproved benchmark-command and acceptable-limit placeholders",
 ]
 
+REQUIRED_SCRIPTS_ROOT_RUNTIME_ATOMIC64_MARKERS = [
+    "`make -C zigux phase4-runtime-atomic64-diff`",
+    "`phase4-runtime-atomic64-diff-tests`",
+]
+
 EXACT_VALIDATOR_STATUS_LINES = [
     "PHASE4_VALIDATOR_SELF_TEST=pass",
     "PHASE4_VALIDATION=pass",
@@ -252,6 +257,11 @@ def validate_root(root: Path) -> list[str]:
             missing.append(
                 f"phase4_gate_evidence:perf_baseline_pending_threshold_plan:{marker}"
             )
+    for marker in REQUIRED_SCRIPTS_ROOT_RUNTIME_ATOMIC64_MARKERS:
+        if marker not in gate_evidence:
+            missing.append(
+                f"phase4_gate_evidence:scripts_root_runtime_atomic64:{marker}"
+            )
     for line in EXACT_VALIDATOR_STATUS_LINES:
         if f"`{line}`" not in gate_evidence:
             missing.append(f"phase4_gate_evidence:{line}")
@@ -345,6 +355,7 @@ def write_fixture_tree(root: Path) -> None:
         "- on the synthetic workflow, there is one `make -C zigux phase4-validate` run line and one `make -C zigux phase4-test` run line under the Phase 4 steps, and the checker keeps those exact counts fail-closed beside the broader route markers.",
         "- synthetic fixture keeps the runtime atomic64 reversible-delivery packet explicit: `lib/atomic64_test.c` stays the source of truth, removing `atomic64_diff.zig` from the shared `phase4_build.zig` entrypoint is the documented rollback move, `runtime_atomic64_diff.zig` remains the single replay body, and the existing Phase 9 runtime atomic64 starter remains the forward path.",
         "- synthetic fixture keeps one pending threshold-plan record per shipped rollback gate explicit, pinning `make -C zigux phase4-runtime-atomic64-diff` and `make -C zigux phase4-bitmap-diff` beside the still-unapproved benchmark-command and acceptable-limit placeholders.",
+        "- synthetic fixture keeps the scripts-root runtime atomic64 packet explicit through `make -C zigux phase4-runtime-atomic64-diff` and `phase4-runtime-atomic64-diff-tests` instead of leaving that scripts-root wording implied behind the broader shared-build list.",
         "- synthetic fixture keeps the kprobe survey packet explicit through `make -C zigux phase4-kprobe-example-survey`, `phase4-kprobe-example-survey-tests`, and the now-landed note that the shared validator now fails closed on the kprobe survey packet itself.",
         "",
         "## Current Conclusion",
@@ -419,6 +430,19 @@ def run_self_test() -> int:
         )
         missing = validate_root(root)
         assert "phase4_gate_evidence:PHASE4_REQUIRED_MARKER_COUNT=54" in missing, missing
+
+        write_fixture_tree(root)
+        gate_evidence = root / "Documentation/zigux/phase4-gate-evidence.md"
+        gate_evidence.write_text(
+            gate_evidence.read_text(encoding="utf-8").replace(
+                "`phase4-runtime-atomic64-diff-tests`",
+                "`phase4-runtime-atomic64-diff-missing`",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        missing = validate_root(root)
+        assert "phase4_gate_evidence:scripts_root_runtime_atomic64:`phase4-runtime-atomic64-diff-tests`" in missing, missing
 
         print("PHASE4_GATE_EVIDENCE_SELF_TEST=pass")
         return 0
