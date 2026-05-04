@@ -51,6 +51,16 @@ The honest move for this lane is therefore not to start `kernel/rcu/tree_bridge.
 - `quiescent-state-propagation-and-callback-acceleration`: keep `rcu_report_qs_rnp()`, `note_gp_changes()`, and `rcu_accelerate_cbs()` in C because quiescent-state reporting still walks the locked `rcu_node` tree, `note_gp_changes()` still folds GP transitions into per-CPU callback state, and callback acceleration still depends on segmented callback lists plus offload state.
 - `callback-enqueue-and-batch-invocation`: keep `__call_rcu_common()`, `call_rcu_core()`, and `rcu_do_batch()` in C because callback enqueue still routes through per-CPU segmented callback lists, overload tracking, NOCB offload selection, grace-period forcing, and time-bounded callback invocation.
 
+## Memory-ordering network follow-up
+
+This run records one narrower ordering-boundary spot check without changing the underlying freeze decision.
+
+- `Documentation/RCU/Design/Memory-Ordering/Tree-RCU-Memory-Ordering.rst` does not describe a detachable helper seam. It documents the `rcu_node` lock-ordering network itself, including the way `raw_spin_lock_rcu_node()` acquisition relies on `smp_mb__after_unlock_lock()` so ordering can propagate across the live hierarchy instead of through a small wrapper boundary.
+- `rcu_gp_init()` and the hotplug-side `rcutree_report_cpu_starting()` path still publish shared state with `smp_store_release()`, which means grace-period startup, CPU enrollment, and the visibility rules for later polling or callback paths still travel through the same core ordering contract.
+- `kernel/rcu/update.c` keeps that same contract user-visible through `synchronize_rcu()`, `start_poll_synchronize_rcu()`, and `poll_state_synchronize_rcu_full()`, and the memory-ordering document explicitly calls out those polling primitives as consumers of the same grace-period ordering guarantee.
+
+The net result is still survey-only: the lock-ordering network, GP publication stores, and polling-order semantics remain explicitly in C, not as a new opening for `kernel/rcu/tree_bridge.zig`.
+
 ## Grace-period sequence publication follow-up
 
 This run closes one more bounded stay-in-C follow-up without changing the underlying freeze decision.
@@ -212,4 +222,4 @@ This survey slice does not claim:
 
 ## Next bounded step
 
-Keep the Phase 14 RCU tree lane parked unless the freeze posture changes. The survey now records grace-period publication, expedited waits, public wait and callback-barrier ownership, NOCB wakeup ownership, idle-watch transitions, quiescent-state propagation, callback enqueue, callback offload, deferred wakeup flushing, CPU hotplug enrollment, callback migration, and the rollback threshold that would force any weak status-review attempt back to blocked freeze posture, so another lane-local follow-up would risk inventing motion without a narrower blocker change.
+Keep the Phase 14 RCU tree lane parked unless the freeze posture changes. The survey now records grace-period publication, the memory-ordering lock network, expedited waits, public wait and callback-barrier ownership, NOCB wakeup ownership, idle-watch transitions, quiescent-state propagation, callback enqueue, callback offload, deferred wakeup flushing, CPU hotplug enrollment, callback migration, and the rollback threshold that would force any weak status-review attempt back to blocked freeze posture, so another lane-local follow-up would risk inventing motion without a narrower blocker change.
