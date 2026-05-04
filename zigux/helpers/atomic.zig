@@ -17,7 +17,7 @@ fn ensureStoreOrder(comptime order: std.builtin.AtomicOrder) void {
 fn ensureReadModifyWriteOrder(comptime order: std.builtin.AtomicOrder) void {
     switch (order) {
         .monotonic, .acquire, .release, .acq_rel, .seq_cst => {},
-        .unordered => @compileError("atomic read-modify-write helpers require monotonic, acquire, release, acq_rel, or seq_cst ordering"),
+        .unordered => @compileError("atomic read-modify-write only accepts monotonic, acquire, release, acq_rel, or seq_cst ordering"),
     }
 }
 
@@ -32,6 +32,36 @@ fn ensureCompareExchangeFailureOrder(comptime order: std.builtin.AtomicOrder) vo
     switch (order) {
         .unordered, .monotonic, .acquire, .seq_cst => {},
         .release, .acq_rel => @compileError("compareExchange failure ordering only accepts unordered, monotonic, acquire, or seq_cst"),
+    }
+}
+
+fn ensureCompareExchangeOrdersCompatible(
+    comptime success_order: std.builtin.AtomicOrder,
+    comptime failure_order: std.builtin.AtomicOrder,
+) void {
+    switch (success_order) {
+        .unordered => unreachable,
+        .monotonic => switch (failure_order) {
+            .unordered, .monotonic => {},
+            .acquire, .seq_cst => @compileError("compareExchange failure ordering cannot be stronger than monotonic success ordering"),
+            .release, .acq_rel => unreachable,
+        },
+        .acquire => switch (failure_order) {
+            .unordered, .monotonic, .acquire => {},
+            .seq_cst => @compileError("compareExchange failure ordering cannot be stronger than acquire success ordering"),
+            .release, .acq_rel => unreachable,
+        },
+        .release => switch (failure_order) {
+            .unordered, .monotonic => {},
+            .acquire, .seq_cst => @compileError("compareExchange failure ordering cannot add acquire semantics when success ordering is release"),
+            .release, .acq_rel => unreachable,
+        },
+        .acq_rel => switch (failure_order) {
+            .unordered, .monotonic, .acquire => {},
+            .seq_cst => @compileError("compareExchange failure ordering cannot be stronger than acq_rel success ordering"),
+            .release, .acq_rel => unreachable,
+        },
+        .seq_cst => {},
     }
 }
 
@@ -95,6 +125,7 @@ pub fn compareExchange(
 ) ?T {
     ensureCompareExchangeSuccessOrder(success_order);
     ensureCompareExchangeFailureOrder(failure_order);
+    ensureCompareExchangeOrdersCompatible(success_order, failure_order);
     return @cmpxchgStrong(T, ptr, expected_value, new_value, success_order, failure_order);
 }
 
@@ -108,6 +139,7 @@ pub fn compareExchangeWeak(
 ) ?T {
     ensureCompareExchangeSuccessOrder(success_order);
     ensureCompareExchangeFailureOrder(failure_order);
+    ensureCompareExchangeOrdersCompatible(success_order, failure_order);
     return @cmpxchgWeak(T, ptr, expected_value, new_value, success_order, failure_order);
 }
 
@@ -157,16 +189,28 @@ test "phase3 atomic wrappers accept valid non-seq-cst orderings" {
     var value: u32 = 0;
     store(u32, &value, 9, .release);
     try std.testing.expectEqual(@as(u32, 9), load(u32, &value, .acquire));
-    try std.testing.expectEqual(@as(u32, 9), exchange(u32, &value, 12, .acq_rel));
-    try std.testing.expectEqual(@as(u32, 12), value);
-    try std.testing.expectEqual(@as(u32, 12), fetchAdd(u32, &value, 5, .acq_rel));
-    try std.testing.expectEqual(@as(u32, 17), value);
-    try std.testing.expectEqual(@as(u32, 17), fetchMax(u32, &value, 21, .monotonic));
-    try std.testing.expectEqual(@as(u32, 21), value);
 
-    var cmp: u32 = 3;
-    try std.testing.expectEqual(@as(?u32, null), compareExchange(u32, &cmp, 3, 5, .acq_rel, .acquire));
-    try std.testing.expectEqual(@as(u32, 5), cmp);
+    var rmw: u32 = 10;
+    try std.testing.expectEqual(@as(u32, 10), exchange(u32, &rmw, 12, .acq_rel));
+    try std.testing.expectEqual(@as(u32, 12), rmw);
+    try std.testing.expectEqual(@as(u32, 12), fetchAdd(u32, &rmw, 3, .release));
+    try std.testing.expectEqual(@as(u32, 15), rmw);
+    try std.testing.expectEqual(@as(u32, 15), fetchSub(u32, &rmw, 2, .acquire));
+    try std.testing.expectEqual(@as(u32, 13), rmw);
+    try std.testing.expectEqual(@as(u32, 13), fetchOr(u32, &rmw, 0b0010, .acq_rel));
+    try std.testing.expectEqual(@as(u32, 15), rmw);
+    try std.testing.expectEqual(@as(u32, 15), fetchAnd(u32, &rmw, 0b1110, .monotonic));
+    try std.testing.expectEqual(@as(u32, 14), rmw);
+    try std.testing.expectEqual(@as(u32, 14), fetchXor(u32, &rmw, 0b0100, .release));
+    try std.testing.expectEqual(@as(u32, 10), rmw);
+    try std.testing.expectEqual(@as(u32, 10), fetchMax(u32, &rmw, 18, .acquire));
+    try std.testing.expectEqual(@as(u32, 18), rmw);
+    try std.testing.expectEqual(@as(u32, 18), fetchMin(u32, &rmw, 16, .monotonic));
+    try std.testing.expectEqual(@as(u32, 16), rmw);
+
+    var release_cmp: u32 = 3;
+    try std.testing.expectEqual(@as(?u32, null), compareExchange(u32, &release_cmp, 3, 5, .acq_rel, .acquire));
+    try std.testing.expectEqual(@as(u32, 5), release_cmp);
 
     var monotonic_cmp: u32 = 5;
     try std.testing.expectEqual(@as(?u32, null), compareExchange(u32, &monotonic_cmp, 5, 7, .monotonic, .monotonic));
