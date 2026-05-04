@@ -224,6 +224,18 @@ SHARED_PACKET_SNIPPETS = {
     ),
 }
 
+SHARED_PACKET_EXACT_ONCE_SNIPPETS = {
+    SHARED_ABI_DUMP_REL: (
+        'writeStructLayout(writer, "zigux_rbtree_root_view", rbtree.RootView, false);',
+    ),
+    SHARED_ABI_HARNESS_REL: (
+        "offsetof(struct zigux_rbtree_root_view, root_addr)",
+    ),
+    SHARED_ABI_EXPECTED_REL: (
+        '"zigux_rbtree_root_view":{"size":24,"align":8,"offsets":{"root_addr":0,"leftmost_addr":8,"flags":16,"reserved":20}}',
+    ),
+}
+
 SHARED_ABI_FORBIDDEN = {
     SHARED_ABI_HEADER_REL: (
         "ZIGUX_RBTREE_ROOT_FLAG_EMPTY",
@@ -255,15 +267,24 @@ SHARED_PACKET_SELF_TEST_CASES = (
         *SHARED_ABI_TEST_UNCACHED_DETAIL_SNIPPETS,
         *SHARED_ABI_TEST_UNCACHED_PRESENCE_SNIPPETS,
     )),
+    (SHARED_ABI_DUMP_REL, SHARED_PACKET_SNIPPETS[SHARED_ABI_DUMP_REL][1]),
     (SHARED_ABI_DUMP_REL, SHARED_PACKET_SNIPPETS[SHARED_ABI_DUMP_REL][2]),
     (SHARED_ABI_DUMP_REL, SHARED_PACKET_SNIPPETS[SHARED_ABI_DUMP_REL][3]),
     (SHARED_ABI_DUMP_REL, SHARED_PACKET_SNIPPETS[SHARED_ABI_DUMP_REL][4]),
+    (SHARED_ABI_HARNESS_REL, SHARED_PACKET_SNIPPETS[SHARED_ABI_HARNESS_REL][1]),
     (SHARED_ABI_HARNESS_REL, SHARED_PACKET_SNIPPETS[SHARED_ABI_HARNESS_REL][2]),
     (SHARED_ABI_HARNESS_REL, SHARED_PACKET_SNIPPETS[SHARED_ABI_HARNESS_REL][3]),
     (SHARED_ABI_HARNESS_REL, SHARED_PACKET_SNIPPETS[SHARED_ABI_HARNESS_REL][4]),
     (SHARED_ABI_EXPECTED_REL, SHARED_PACKET_SNIPPETS[SHARED_ABI_EXPECTED_REL][0]),
     (SHARED_ABI_EXPECTED_REL, SHARED_PACKET_SNIPPETS[SHARED_ABI_EXPECTED_REL][1]),
     (SHARED_ABI_EXPECTED_REL, SHARED_PACKET_SNIPPETS[SHARED_ABI_EXPECTED_REL][2]),
+    (SHARED_ABI_EXPECTED_REL, SHARED_PACKET_SNIPPETS[SHARED_ABI_EXPECTED_REL][3]),
+)
+
+SHARED_PACKET_EXACT_ONCE_SELF_TEST_CASES = (
+    (SHARED_ABI_DUMP_REL, SHARED_PACKET_EXACT_ONCE_SNIPPETS[SHARED_ABI_DUMP_REL][0]),
+    (SHARED_ABI_HARNESS_REL, SHARED_PACKET_EXACT_ONCE_SNIPPETS[SHARED_ABI_HARNESS_REL][0]),
+    (SHARED_ABI_EXPECTED_REL, SHARED_PACKET_EXACT_ONCE_SNIPPETS[SHARED_ABI_EXPECTED_REL][0]),
 )
 
 MANIFEST_PATHS = (
@@ -320,6 +341,15 @@ def require_absent(text: str, rel: str, snippets: tuple[str, ...], prefix: str, 
             issues.append(f"{prefix}:{rel}:{snippet}")
 
 
+def require_exact_count(
+    text: str, rel: str, snippets: tuple[str, ...], expected_count: int, prefix: str, issues: list[str]
+) -> None:
+    for snippet in snippets:
+        count = text.count(snippet)
+        if count != expected_count:
+            issues.append(f"{prefix}:{rel}:{expected_count}:{count}:{snippet}")
+
+
 def validate(root: Path) -> list[str]:
     issues: list[str] = []
     survey = read_text(root, SURVEY_REL, issues)
@@ -353,7 +383,17 @@ def validate(root: Path) -> list[str]:
     require_contains(shared_contract, SHARED_CONTRACT_REL, SHARED_CONTRACT_SNIPPETS, "missing_snippet", issues)
 
     for rel, snippets in SHARED_PACKET_SNIPPETS.items():
-        require_contains(read_text(root, rel, issues), rel, snippets, "missing_shared_packet", issues)
+        text = read_text(root, rel, issues)
+        require_contains(text, rel, snippets, "missing_shared_packet", issues)
+        if rel in SHARED_PACKET_EXACT_ONCE_SNIPPETS:
+            require_exact_count(
+                text,
+                rel,
+                SHARED_PACKET_EXACT_ONCE_SNIPPETS[rel],
+                1,
+                "unexpected_shared_packet_count",
+                issues,
+            )
     for rel, snippets in SHARED_ABI_FORBIDDEN.items():
         require_absent(read_text(root, rel, issues), rel, snippets, "unexpected_shared_lift", issues)
 
@@ -398,6 +438,12 @@ def assert_missing_shared_packet_snippet(root: Path, rel: str, snippet: str) -> 
     assert f"missing_shared_packet:{rel}:{snippet}" in issues
 
 
+def assert_duplicate_shared_packet_snippet(root: Path, rel: str, snippet: str) -> None:
+    write(root, rel, "\n".join((*SHARED_PACKET_SNIPPETS[rel], snippet)) + "\n")
+    issues = validate(root)
+    assert f"unexpected_shared_packet_count:{rel}:1:2:{snippet}" in issues
+
+
 def run_self_test() -> int:
     with tempfile.TemporaryDirectory(prefix="zigux_phase3_rbtree_shared_lift_") as tmp_dir:
         root = Path(tmp_dir)
@@ -434,6 +480,10 @@ def run_self_test() -> int:
         for rel, snippet in SHARED_PACKET_SELF_TEST_CASES:
             assert_missing_shared_packet_snippet(root, rel, snippet)
 
+        for rel, snippet in SHARED_PACKET_EXACT_ONCE_SELF_TEST_CASES:
+            write(root, rel, "\n".join(SHARED_PACKET_SNIPPETS[rel]) + "\n")
+            assert_duplicate_shared_packet_snippet(root, rel, snippet)
+
         write(root, SHARED_ABI_TEST_REL, "\n".join(SHARED_PACKET_SNIPPETS[SHARED_ABI_TEST_REL]) + "\n")
         write(root, SHARED_ABI_DUMP_REL, "\n".join(SHARED_PACKET_SNIPPETS[SHARED_ABI_DUMP_REL]) + "\n")
         write(root, SHARED_ABI_HARNESS_REL, "\n".join(SHARED_PACKET_SNIPPETS[SHARED_ABI_HARNESS_REL]) + "\n")
@@ -462,7 +512,13 @@ def run_self_test() -> int:
         issues = validate(root)
         assert f"missing_manifest_entry:{SHARED_CONTRACT_CHECK_REL}" in issues
 
-    self_test_case_count = 1 + len(SHARED_CONTRACT_SELF_TEST_SNIPPETS) + len(SHARED_PACKET_SELF_TEST_CASES) + 5
+    self_test_case_count = (
+        1
+        + len(SHARED_CONTRACT_SELF_TEST_SNIPPETS)
+        + len(SHARED_PACKET_SELF_TEST_CASES)
+        + len(SHARED_PACKET_EXACT_ONCE_SELF_TEST_CASES)
+        + 5
+    )
     print("PHASE3_RBTREE_SHARED_LIFT_CONTRACT_SELF_TEST=pass")
     print(f"PHASE3_RBTREE_SHARED_LIFT_CONTRACT_SELF_TEST_CASE_COUNT={self_test_case_count}")
     return 0
