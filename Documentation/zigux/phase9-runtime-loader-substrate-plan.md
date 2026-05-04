@@ -86,13 +86,15 @@ The first lane payloads stay small:
 
 The first shared-request union therefore still covers atomic64, bitmap, and kretprobe only, while the trace-events scaffold remains a separate pre-execution note until that packet can truthfully reuse the same handoff without implying trace-core parity or scheduler-facing ownership.
 
+The same shared request now also keeps the initcall and registration boundary machine-checkable instead of prose-only. `zigux/kernel/runtime_loader.zig` uses `RuntimeLoadRequest.keepsPreExecutionLifecycleBoundaryExplicit` as the shared guard that keeps staged `zigux_runtime_*_init` and `zigux_runtime_*_exit` names review-only, while `register_kretprobe`, `unregister_kretprobe`, `foo_bar_reg`, and `foo_bar_unreg` remain metadata-only labels across `samples/zigux/runtime_kretprobe_loader.zig`, `samples/zigux/runtime_trace_events_loader.zig`, and the shared runtime-loader contract rather than being mistaken for executable registration or live initcall behavior.
+
 ## Current acceptance boundary
 
 The first shared substrate implementation is now ready because:
 
 - atomic64, bitmap, and kretprobe can all export a common request shape without losing their current lane-specific facts
 - the shared Phase 9 build can run focused tests for that common request shape
-- the code still makes it impossible to confuse a bounded handoff with a real loadable runtime module
+- the code still makes it impossible to confuse a bounded handoff with a real loadable runtime module, and `RuntimeLoadRequest.keepsPreExecutionLifecycleBoundaryExplicit` now names that fail-closed pre-execution guard directly in the shared contract
 - the adjacent trace-events scaffold remains free to adopt the same request shape later, but it is still intentionally outside this first shared-request union so the implementation does not have to pretend thread creation or tracepoint registration are already solved
 - the shared request keeps `command_name` reviewable as a narrow handoff clue that can later mirror `ExtractArgv0Result.command_name` without claiming a finished argv or environment control plane
 - allocator ownership now stays machine-checkable through the shared `allocator_handoff` record before any real runtime loader exists
