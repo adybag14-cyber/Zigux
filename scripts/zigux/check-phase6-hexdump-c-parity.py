@@ -10,8 +10,10 @@ import textwrap
 from pathlib import Path
 
 
-ROOT = Path(__file__).resolve().parents[2]
+SCRIPT_PATH = Path(__file__).resolve()
+ROOT = SCRIPT_PATH.parents[2] if len(SCRIPT_PATH.parents) > 2 else SCRIPT_PATH.parent
 C_HARNESS = ROOT / "zigux" / "tests" / "fixtures" / "phase6_hexdump_c_harness.c"
+FIXTURE_SOURCE = ROOT / "zigux" / "tests" / "fixtures" / "phase6_hexdump_vectors.zig"
 ZIG_RUNNER = ROOT / "zigux" / "tests" / "phase6_hexdump_c_parity.zig"
 EXPECTED_SORTED_LINES = sorted(
     [
@@ -89,7 +91,7 @@ def build_zig_build_text() -> str:
                 .optimize = optimize,
             }});
             const fixtures_module = b.createModule(.{{
-                .root_source_file = .{{ .cwd_relative = \"{ROOT / 'zigux' / 'tests' / 'fixtures' / 'phase6_hexdump_vectors.zig'}\" }},
+                .root_source_file = .{{ .cwd_relative = \"{FIXTURE_SOURCE}\" }},
                 .target = target,
                 .optimize = optimize,
             }});
@@ -163,22 +165,21 @@ def run_self_test() -> int:
         lambda: validate_required_path(Path("/tmp/phase6-missing-runner.zig"), "runner"),
         "missing runner: /tmp/phase6-missing-runner.zig",
     )
+    expect_system_exit(
+        "missing_fixture_source",
+        lambda: validate_required_path(Path("/tmp/phase6-missing-fixture.zig"), "fixture source"),
+        "missing fixture source: /tmp/phase6-missing-fixture.zig",
+    )
     build_text = build_zig_build_text()
-    assert_equal("build_text_hexdump_import", 'root_module.addImport("hexdump", hexdump_module);' in build_text, True)
     assert_equal(
-        "build_text_fixture_import",
-        'root_module.addImport("phase6_hexdump_vectors", fixtures_module);' in build_text,
+        "build_text_runner_fixture_paths_and_normalization",
+        'root_module.addImport("hexdump", hexdump_module);' in build_text
+        and 'root_module.addImport("phase6_hexdump_vectors", fixtures_module);' in build_text
+        and str(FIXTURE_SOURCE) in build_text
+        and str(ZIG_RUNNER) in build_text
+        and len(EXPECTED_SORTED_LINES) == 29
+        and sorted_lines("hexToBin\tA\t10\ndump\tplain\t3\tabc\n") == ["dump\tplain\t3\tabc", "hexToBin\tA\t10"],
         True,
-    )
-    assert_equal(
-        "build_text_runner_and_surface_count",
-        str(ZIG_RUNNER) in build_text and len(EXPECTED_SORTED_LINES) == 29,
-        True,
-    )
-    assert_equal(
-        "sorted_lines",
-        sorted_lines("hexToBin\tA\t10\ndump\tplain\t3\tabc\n"),
-        ["dump\tplain\t3\tabc", "hexToBin\tA\t10"],
     )
     validate_expected_surface(EXPECTED_SORTED_LINES, "self-test-positive")
     unexpected_lines = EXPECTED_SORTED_LINES + ["unexpected-extra\tbogus\t0\t"]
@@ -218,6 +219,7 @@ def main() -> int:
     cc = require_tool("cc", "CC")
 
     validate_required_path(C_HARNESS, "harness")
+    validate_required_path(FIXTURE_SOURCE, "fixture source")
     validate_required_path(ZIG_RUNNER, "runner")
 
     out_dir = ROOT / ".zigux-cache" / "phase6-hexdump-c-parity"
