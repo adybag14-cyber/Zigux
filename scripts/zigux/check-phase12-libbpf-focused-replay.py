@@ -117,6 +117,10 @@ CONTRACT_NOTE_MARKERS = [
     "- `zig build test --build-file zigux/tests/phase12_libbpf_only_build.zig --summary all`",
     "the same shared contract now also stays coupled to `Documentation/zigux/phase12-release-readiness-survey.md`, `Documentation/zigux/phase12-cross-compile-smoke.md`, and `Documentation/zigux/phase12-raw-github-coverage-survey.md`, so the release-facing PMO packet, the approved non-native smoke packet, and the mixed public-read fallback packet name the same pre-replay checker stack instead of drifting into parallel Phase 12 stories.",
 ]
+CONTRACT_NOTE_EXACT_COUNTS = {
+    CONTRACT_NOTE_MARKERS[0]: 1,
+    CONTRACT_NOTE_MARKERS[3]: 1,
+}
 RELEASE_SURVEY_MARKERS = [
     "scripts/zigux/check-phase12-libbpf-focused-replay.py",
     "zigux/tests/phase12_libbpf_only_build.zig",
@@ -287,6 +291,13 @@ def collect_missing(
     missing.extend(collect_marker_misses(reviewability_text, REVIEWABILITY_MARKERS, "reviewability"))
     missing.extend(collect_marker_misses(survey_note_text, SURVEY_NOTE_MARKERS, "survey_note"))
     missing.extend(collect_marker_misses(contract_note_text, CONTRACT_NOTE_MARKERS, "contract_note"))
+    missing.extend(
+        collect_exact_count_misses(
+            contract_note_text,
+            CONTRACT_NOTE_EXACT_COUNTS,
+            "contract_note_count",
+        )
+    )
     missing.extend(collect_marker_misses(release_survey_text, RELEASE_SURVEY_MARKERS, "release_survey"))
     missing.extend(
         collect_exact_count_misses(
@@ -633,6 +644,34 @@ def run_self_test() -> int:
     missing = collect_missing(
         **{
             **base_inputs,
+            "contract_note_text": base_inputs["contract_note_text"]
+            + CONTRACT_NOTE_MARKERS[0]
+            + "\n",
+        }
+    )
+    expect_contains(
+        "contract_note_exact_count_detection",
+        missing,
+        f"contract_note_count:{CONTRACT_NOTE_MARKERS[0]}:expected=1:actual=2",
+    )
+
+    missing = collect_missing(
+        **{
+            **base_inputs,
+            "contract_note_text": base_inputs["contract_note_text"]
+            + CONTRACT_NOTE_MARKERS[3]
+            + "\n",
+        }
+    )
+    expect_contains(
+        "contract_note_release_coupling_exact_count_detection",
+        missing,
+        f"contract_note_count:{CONTRACT_NOTE_MARKERS[3]}:expected=1:actual=2",
+    )
+
+    missing = collect_missing(
+        **{
+            **base_inputs,
             "release_survey_text": base_inputs["release_survey_text"].replace(
                 RELEASE_SURVEY_MARKERS[5] + "\n",
                 "",
@@ -967,7 +1006,7 @@ def run_self_test() -> int:
     )
 
     print("PHASE12_LIBBPF_FOCUSED_REPLAY_SELF_TEST=pass")
-    print("PHASE12_LIBBPF_FOCUSED_REPLAY_SELF_TEST_CASE_COUNT=37")
+    print("PHASE12_LIBBPF_FOCUSED_REPLAY_SELF_TEST_CASE_COUNT=39")
     return 0
 
 
