@@ -35,7 +35,7 @@ The same contract is also exposed in bootstrap CI: `Validate Phase 11 header bou
 
 The same contract is fail-closed by `python3 scripts/zigux/check-phase11-shared-replay-contract.py` before the broader validator runs.
 
-The broader validator follow-through is still smaller than the rest of the packet: today `scripts/zigux/validate-phase11.py` does not yet mirror the active `Documentation/zigux/review-checklist.md` contributor prompt that names the full pre-replay stack, so that exact checklist-alignment hook remains the next bounded same-lane validator step rather than already-landed coverage.
+The broader validator follow-through stays intentionally smaller than the dedicated contract checker: today `scripts/zigux/validate-phase11.py` keeps the packet-wide manifest, docs, and shared replay alignment fail-closed, while `python3 scripts/zigux/check-phase11-shared-replay-contract.py` keeps the exact checklist-facing and shared-versus-dedicated replay wording fail-closed before that broader validator runs.
 
 ## Shared Replay Surface
 
@@ -74,6 +74,10 @@ That packet should remain reviewable as a shared header-boundary check before th
 When the shared-versus-dedicated replay contract changes, keep these contributor-facing guidance surfaces aligned with this note:
 
 - `Documentation/zigux/README.md`
+- `Documentation/zigux/phase11-gpio-wdt-validation-matrix.md`
+- `Documentation/zigux/phase11-bcm2835-wdt-validation-matrix.md`
+- `Documentation/zigux/phase11-dw-wdt-validation-matrix.md`
+- `Documentation/zigux/phase11-hvc-console-validation-matrix.md`
 - `Documentation/zigux/review-checklist.md`
 - `Documentation/zigux/phase10-phase11-phase13-validator-first-review-guide.md`
 - `Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md`
@@ -81,6 +85,8 @@ When the shared-versus-dedicated replay contract changes, keep these contributor
 - `zigux/tests/README.md`
 
 Those surfaces are where contributors usually discover the Phase 11 route before they open the deeper packet notes, so any replay-contract change should stay explicit there as well.
+
+The four driver-local validation matrices belong in that same sync set because each roadmap-backed driver lane names the shared Phase 11 replay route there; if the shared replay contract changes without those matrix notes moving too, the contributor-facing matrix packet starts undercounting the live simple-driver tranche.
 
 In particular, the `zigux/tests/README.md` Phase 11 guidance now repeats the four shared split and adjunct replays, the four driver-local manifests, and `scripts/zigux/check-phase11-header-boundary-packet.py` explicitly, so the tests-root carryover prompt matches the shared contract note, the validator-first guide, and the tests-root review companion.
 
@@ -107,6 +113,10 @@ The minimum agreement surface for that kind of change is:
 - `scripts/zigux/check-phase11-shared-replay-contract.py`
 - `scripts/zigux/check-phase11-header-boundary-packet.py`
 - `scripts/zigux/validate-phase11.py`
+- `Documentation/zigux/phase11-gpio-wdt-validation-matrix.md`
+- `Documentation/zigux/phase11-bcm2835-wdt-validation-matrix.md`
+- `Documentation/zigux/phase11-dw-wdt-validation-matrix.md`
+- `Documentation/zigux/phase11-hvc-console-validation-matrix.md`
 - `Documentation/zigux/review-checklist.md`
 - `Documentation/zigux/phase10-phase11-phase13-validator-first-review-guide.md`
 - `Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md`
