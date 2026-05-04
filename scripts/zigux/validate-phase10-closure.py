@@ -93,6 +93,18 @@ EXPECTED_FOCUSED_HARNESS = {
         "phase10 mmio reset clears legacy and modern queue address plans after queue selection changes",
     ],
 }
+REQUIRED_LAB_VALIDATION_EVIDENCE = [
+    "zigux/tests/phase10_build.zig",
+    "zigux/tests/phase10_virtio_input_multitouch_preflight.zig",
+    "zigux/tests/phase10_virtio_mmio_queue_isolation.zig",
+    "scripts/zigux/check-phase10-harness-coverage.py",
+    "scripts/zigux/check-phase10-closure-inventory.py",
+    "scripts/zigux/validate-phase10.py",
+    "scripts/zigux/validate-phase10-closure.py",
+    "Documentation/zigux/phase10-closure-evidence.md",
+    "zigux/Makefile",
+    ".github/workflows/zigux-bootstrap.yml",
+]
 REQUIRED_FILES = [
     "Documentation/zigux/phase10-closure-evidence.md",
     "Documentation/zigux/README.md",
@@ -274,8 +286,21 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
         missing.append("closure_manifest:roadmap_parity_scoreboard")
     else:
         row = roadmap.get("lab_only_driver_validation")
-        if not isinstance(row, dict) or row.get("status") != "starter_landed":
+        if not isinstance(row, dict):
             missing.append("closure_manifest:roadmap_parity_scoreboard:lab_only_driver_validation")
+        else:
+            if row.get("status") != "starter_landed":
+                missing.append("closure_manifest:roadmap_parity_scoreboard:lab_only_driver_validation")
+            evidence = row.get("evidence")
+            if not isinstance(evidence, list):
+                missing.append("closure_manifest:roadmap_parity_scoreboard:lab_only_driver_validation:evidence")
+            else:
+                for path in REQUIRED_LAB_VALIDATION_EVIDENCE:
+                    if path not in evidence:
+                        missing.append(
+                            "closure_manifest:roadmap_parity_scoreboard:lab_only_driver_validation:evidence:"
+                            f"{path}"
+                        )
 
     landed_input = closure.get("landed_input_helper_evidence")
     if landed_input != {"zigux/tests/phase10_virtio_input_manifest.json": EXPECTED_LANDED_INPUT_HELPERS}:
@@ -349,7 +374,12 @@ def write_fixture(root: Path) -> None:
             "lane_keys": EXPECTED_SURVEY_LANE_KEYS,
             "surveyed_commits": EXPECTED_SURVEYED_COMMITS,
         },
-        "roadmap_parity_scoreboard": {"lab_only_driver_validation": {"status": "starter_landed"}},
+        "roadmap_parity_scoreboard": {
+            "lab_only_driver_validation": {
+                "status": "starter_landed",
+                "evidence": REQUIRED_LAB_VALIDATION_EVIDENCE,
+            }
+        },
         "landed_input_helper_evidence": {"zigux/tests/phase10_virtio_input_manifest.json": EXPECTED_LANDED_INPUT_HELPERS},
         "landed_mmio_helper_evidence": {"zigux/tests/phase10_virtio_mmio_manifest.json": EXPECTED_LANDED_MMIO_HELPERS},
         "focused_harness_replays": EXPECTED_FOCUSED_HARNESS,
@@ -384,6 +414,20 @@ def run_self_test() -> int:
         manifest["test_count"] = 9
         closure_manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
         expect_marker("test_count_guard", root, "closure_manifest:test_count")
+        write_fixture(root)
+
+        manifest = json.loads(closure_manifest_path.read_text(encoding="utf-8"))
+        manifest["roadmap_parity_scoreboard"]["lab_only_driver_validation"]["evidence"] = [
+            path
+            for path in manifest["roadmap_parity_scoreboard"]["lab_only_driver_validation"]["evidence"]
+            if path != "zigux/tests/phase10_virtio_mmio_queue_isolation.zig"
+        ]
+        closure_manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+        expect_marker(
+            "lab_validation_queue_isolation_guard",
+            root,
+            "closure_manifest:roadmap_parity_scoreboard:lab_only_driver_validation:evidence:zigux/tests/phase10_virtio_mmio_queue_isolation.zig",
+        )
         write_fixture(root)
 
         manifest = json.loads(closure_manifest_path.read_text(encoding="utf-8"))
@@ -425,7 +469,7 @@ def run_self_test() -> int:
             raise SystemExit(f"phase10-closure-self-test:file_guard:actual_files={files}:markers={markers}")
 
     print("PHASE10_CLOSURE_VALIDATOR_SELF_TEST=pass")
-    print("PHASE10_CLOSURE_VALIDATOR_SELF_TEST_CASE_COUNT=8")
+    print("PHASE10_CLOSURE_VALIDATOR_SELF_TEST_CASE_COUNT=9")
     return 0
 
 
@@ -448,7 +492,7 @@ if missing_markers:
     print("MISSING_PHASE10_CLOSURE_MARKERS_END")
     sys.exit(1)
 
-total_markers = sum(len(v) for v in TEXT_MARKERS.values()) + sum(len(v) for v in EXACT_ONCE.values())
+total_markers = sum(len(v) for v in TEXT_MARKERS.values()) + sum(len(v) for v in EXACT_ONCE.values()) + len(REQUIRED_LAB_VALIDATION_EVIDENCE)
 print("PHASE10_CLOSURE_VALIDATION=pass")
 print(f"PHASE10_CLOSURE_REQUIRED_FILE_COUNT={len(REQUIRED_FILES)}")
 print(f"PHASE10_CLOSURE_REQUIRED_MARKER_COUNT={total_markers}")
