@@ -5,10 +5,8 @@
   "files": [
     "include/zigux/abi.h",
     "include/linux/zigux.h",
-    "include/zigux/rbtree.h",
     "Documentation/zigux/review-checklist.md",
     "zigux/bindings/abi.zig",
-    "zigux/bindings/rbtree.zig",
     "zigux/kernel/export_shim.zig",
     "zigux/uapi/version.zig",
     "zigux/helpers/layout_assert.zig",
@@ -25,10 +23,6 @@
     "zigux/tests/phase3_policy_unsafe_build.zig",
     "zigux/tests/phase3_policy_unsafe.zig",
     "zigux/tests/phase3_abi.zig",
-    "zigux/tests/phase3_rbtree_shared_contract.zig",
-    "zigux/tests/phase3_rbtree_dump.zig",
-    "zigux/tests/phase3_rbtree_survey.zig",
-    "zigux/tests/phase3_rbtree_manifest.json",
     "zigux/tests/phase3_export_uapi_build.zig",
     "zigux/tests/phase3_export_uapi.zig",
     "zigux/tests/phase3_export_uapi_layout_build.zig",
@@ -36,8 +30,6 @@
     "zigux/tests/phase3_abi_dump.zig",
     "zigux/tests/fixtures/phase3_abi/expected.json",
     "zigux/tests/fixtures/phase3_abi/phase3_abi_c_harness.c",
-    "zigux/tests/fixtures/phase3_rbtree/expected.json",
-    "zigux/tests/fixtures/phase3_rbtree/phase3_rbtree_c_harness.c",
     "zigux/tests/fixtures/phase3_abi_manifest.json",
     "scripts/zigux/check-phase3-abi.py",
     "scripts/zigux/check-phase3-abi-layout-packet.py",
@@ -55,7 +47,6 @@
     "scripts/zigux/phase3_check_lib.py",
     "scripts/zigux/validate-phase3.py",
     "Documentation/zigux/phase3-abi-slice.md",
-    "Documentation/zigux/phase3-rbtree-slice.md",
     "Documentation/zigux/phase3-roadmap-gap-survey.md",
     "Documentation/zigux/phase3-rbtree-interop-survey.md",
     "Documentation/zigux/phase3-export-uapi-boundary-survey.md",
@@ -70,5 +61,5 @@
     "scripts/zigux/validate_phase3_core.py",
     "scripts/zigux/validate_phase3_selftest.py"
   ],
-  "file_count": 66
+  "file_count": 57
 }
