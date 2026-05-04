@@ -578,6 +578,10 @@ pub fn firstPostorder(root: *const Root) ?*Node {
 
 pub fn nextPostorder(node: ?*const Node) ?*Node {
     const current = node orelse return null;
+    if (emptyNode(current)) {
+        return null;
+    }
+
     const parent = current.parent;
     if (parent != null and parent.?.left == current and parent.?.right != null) {
         return leftDeepestNode(parent.?.right.?);
@@ -1081,4 +1085,5 @@ test "rbtree postorder and empty node helpers behave" {
     var detached = Node.init();
     clearNode(&detached);
     try std.testing.expect(emptyNode(&detached));
+    try std.testing.expectEqual(@as(?*Node, null), nextPostorder(&detached));
 }
