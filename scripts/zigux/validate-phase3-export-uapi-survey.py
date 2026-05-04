@@ -48,9 +48,9 @@ REQUIRED_SURVEY_MARKERS = (
 
 REQUIRED_SURVEY_SNIPPETS = (
     "zigux/tests/phase3_export_uapi_build.zig",
-    "zigux/tests/phase3_export_uapi.zig",
+    EXPORT_UAPI_TEST_REL,
     "zigux/tests/phase3_export_uapi_layout_build.zig",
-    "zigux/tests/phase3_export_uapi_layout.zig",
+    EXPORT_UAPI_LAYOUT_TEST_REL,
     "zigux/tests/fixtures/phase3_abi_manifest.json",
     "python3 scripts/zigux/validate-phase3.py --slug abi --check-build-smoke",
     "phase3-dump`, `phase3-low-level-wrappers-test`, `phase3-export-uapi-test`, `phase3-export-uapi-layout-test`, and `phase3-policy-unsafe-test`",
@@ -134,16 +134,16 @@ REQUIRED_ABI_SLICE_SNIPPETS = (
 
 REQUIRED_EXPORT_UAPI_TEST_SNIPPETS = (
     "try std.testing.expectEqual(header, uapi_version.boundaryHeader(0x44));",
-    "try std.testing.expect(uapi_version.isCurrentAbiVersion(header.abi_version));",
-    "try std.testing.expect(uapi_version.isCanonicalSize(header.size));",
+    "try std.testing.expect(export_shim.isCurrentAbiVersion(header.abi_version));",
+    "try std.testing.expect(export_shim.isCanonicalSize(header.size));",
     "try std.testing.expect(export_shim.isCanonicalHeader(header));",
     "try std.testing.expect(uapi_version.isCanonical(header));",
     "try std.testing.expectEqual(header, export_shim.canonicalizeHeader(header).?);",
     "try std.testing.expectEqual(header, uapi_version.canonicalizeHeader(header).?);",
-    "const undersized_header = export_shim.compatibleHeader(uapi_version.header_size - 1, 0x11);",
+    "const undersized_header = export_shim.compatibleHeader(export_shim.header_size - 1, 0x11);",
     "try std.testing.expect(!uapi_version.isCompatibleSize(undersized_header.size));",
-    "try std.testing.expect(!uapi_version.isCurrentAbiVersion(mismatched_version_header.abi_version));",
-    "const future_compatible_header = export_shim.compatibleHeader(uapi_version.header_size + 8, 0x44);",
+    "try std.testing.expect(!export_shim.isCurrentAbiVersion(mismatched_version_header.abi_version));",
+    "const future_compatible_header = export_shim.compatibleHeader(export_shim.header_size + 8, 0x44);",
     "try std.testing.expect(uapi_version.isCompatibleSize(future_compatible_header.size));",
     "try std.testing.expect(!export_shim.isCanonicalHeader(future_compatible_header));",
     "try std.testing.expect(!uapi_version.isCanonical(future_compatible_header));",
