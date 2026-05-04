@@ -648,6 +648,13 @@ def run_self_test() -> int:
                 f"readme:{README_MARKERS[6]}",
             ),
             (
+                README_PATH,
+                "readme_trace_boundary_bullet_missing",
+                README_MARKERS[7],
+                "",
+                f"readme:{README_MARKERS[7]}",
+            ),
+            (
                 MAKEFILE_PATH,
                 "makefile_module_metadata_phony",
                 "phase9-module-metadata-survey phase9-kretprobe-survey",
