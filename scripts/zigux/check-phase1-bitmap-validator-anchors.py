@@ -56,15 +56,15 @@ REQUIRED_CLOSURE_SNIPPETS = {
     ),
     "alias_anchor": (
         "- bitmap alias unit-test anchor: `tools/lib/bitmap.zig:test "
-        "\"bitmap underscore aliases preserve bitmap helper semantics\"`"
+        "\\\"bitmap underscore aliases preserve bitmap helper semantics\\\"`"
     ),
     "double_underscore_anchor": (
         "- bitmap double-underscore alias unit-test anchor: `tools/lib/bitmap.zig:test "
-        "\"bitmap double-underscore aliases preserve core helper semantics\"`"
+        "\\\"bitmap double-underscore aliases preserve core helper semantics\\\"`"
     ),
     "size_anchor": (
         "- bitmap size unit-test anchor: `tools/lib/bitmap.zig:test "
-        "\"bitmap size helpers round up to full words in bytes\"`"
+        "\\\"bitmap size helpers round up to full words in bytes\\\"`"
     ),
 }
 
@@ -202,7 +202,7 @@ def run_check(
     makefile_source = makefile_path.read_text(encoding="utf-8")
 
     missing = [
-        *validate_text("phase1_bitmap_closure_doc", closure_doc_source, REQUIRED_CLOSURE_SNIPPETS),
+        *validate_exact_lines("phase1_bitmap_closure_doc", closure_doc_source, REQUIRED_CLOSURE_SNIPPETS),
         *validate_manifest("phase1_bitmap_manifest", manifest_source),
         *validate_exact_lines("phase1_bitmap_workflow", workflow_source, REQUIRED_WORKFLOW_LINES),
         *validate_exact_lines("phase1_bitmap_makefile", makefile_source, REQUIRED_MAKEFILE_LINES),
@@ -232,7 +232,7 @@ def expect_missing(
     expected: str,
 ) -> None:
     missing = [
-        *validate_text("phase1_bitmap_closure_doc", closure_doc_text, REQUIRED_CLOSURE_SNIPPETS),
+        *validate_exact_lines("phase1_bitmap_closure_doc", closure_doc_text, REQUIRED_CLOSURE_SNIPPETS),
         *validate_manifest("phase1_bitmap_manifest", manifest_text),
         *validate_exact_lines("phase1_bitmap_workflow", workflow_text, REQUIRED_WORKFLOW_LINES),
         *validate_exact_lines("phase1_bitmap_makefile", makefile_text, REQUIRED_MAKEFILE_LINES),
@@ -257,7 +257,7 @@ def run_self_test() -> int:
     makefile_baseline = "\n".join(REQUIRED_MAKEFILE_LINES.values()) + "\n"
 
     baseline_missing = [
-        *validate_text("phase1_bitmap_closure_doc", closure_doc_baseline, REQUIRED_CLOSURE_SNIPPETS),
+        *validate_exact_lines("phase1_bitmap_closure_doc", closure_doc_baseline, REQUIRED_CLOSURE_SNIPPETS),
         *validate_manifest("phase1_bitmap_manifest", manifest_baseline),
         *validate_exact_lines("phase1_bitmap_workflow", workflow_baseline, REQUIRED_WORKFLOW_LINES),
         *validate_exact_lines("phase1_bitmap_makefile", makefile_baseline, REQUIRED_MAKEFILE_LINES),
@@ -276,7 +276,16 @@ def run_self_test() -> int:
             manifest_baseline,
             workflow_baseline,
             makefile_baseline,
-            f"phase1_bitmap_closure_doc:{label}",
+            f"phase1_bitmap_closure_doc:{label}:expected=1:actual=0",
+        )
+        total_cases += 1
+        expect_missing(
+            f"{label}_duplicate",
+            closure_doc_baseline + snippet + "\n",
+            manifest_baseline,
+            workflow_baseline,
+            makefile_baseline,
+            f"phase1_bitmap_closure_doc:{label}:expected=1:actual=2",
         )
         total_cases += 1
 
