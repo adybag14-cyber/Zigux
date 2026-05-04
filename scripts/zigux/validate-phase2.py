@@ -142,6 +142,8 @@ PHASE2_TOOLCHAIN_NOTES_REQUIRED_SOURCE_MARKERS = [
     "python3 scripts/zigux/check-phase2-toolchain-pin-scope.py",
     "python3 scripts/zigux/check-phase2-tests-readme-alignment.py --self-test",
     "python3 scripts/zigux/check-phase2-tests-readme-alignment.py",
+    "python3 scripts/zigux/install-zig.py --dest .zig-toolchain",
+    "python3 scripts/zigux/check-zig-toolchain.py",
     "python3 scripts/zigux/validate-phase2.py",
     "python3 scripts/zigux/validate-phase2-closure.py",
     "Documentation/zigux/phase2-closure.md",
