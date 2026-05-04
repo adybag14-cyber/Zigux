@@ -52,7 +52,7 @@ The dedicated fail-closed checker stack remains explicit through these self-test
 - `python3 scripts/zigux/check-phase1-bench.py --self-test`
 - `python3 scripts/zigux/check-phase1-bench.py`
 - `python3 scripts/zigux/validate-phase1-closure.py --self-test`
-- `python3 scripts/zigux/validate-phase1-closure.py`
+- live closure gate: `python3 scripts/zigux/validate-phase1-closure.py`
 
 ## Review rule
 
