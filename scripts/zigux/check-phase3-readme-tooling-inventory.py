@@ -28,6 +28,7 @@ REQUIRED_PHASE3_FLOW_SNIPPETS = (
 )
 REQUIRED_CROSS_PHASE_FLOW_SNIPPETS = (
     "`validate-phase6.py` keeps the shipped Phase 6 leaf-helper packet aligned across `scripts/zigux/README.md`, `Documentation/zigux/README.md`, `Documentation/zigux/phase6-helper-parity-catalog.md`, `zigux/tests/phase6_helper_parity_manifest.json`, `zigux/tests/phase6_build.zig`, `zigux/Makefile`, the bootstrap workflow, and the four helper-local slice notes before any shared replay claims stay green.",
+    "`validate-phase8.py` is the validator-first entrypoint for the parked repo-hosted tooling packet across `tools/lib/subcmd/exec-cmd.zig`, `tools/lib/subcmd/help.zig`, `tools/lib/symbol/kallsyms.zig`, the helper-first `tools/lib/bpf/zigux_segments/` rollout, and the bounded `perf_buffer__poll(timeout_ms)` bookkeeping adjunct.",
     "`validate-phase9.py` is the validator-first entrypoint for the shared runtime-pilot packet across `scripts/zigux/README.md`, `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/phase9-runtime-loader-gap-survey.md`, `Documentation/zigux/phase9-module-metadata-depmod-bridge-survey.md`, `zigux/tests/README.md`, `zigux/tests/phase9_build.zig`, `zigux/Makefile`, and `.github/workflows/zigux-bootstrap.yml`.",
 )
 EXACT_ONCE_PHASE3_FLOW_SNIPPETS = REQUIRED_PHASE3_FLOW_SNIPPETS
@@ -289,6 +290,7 @@ def validate(root: Path) -> list[str]:
             for issue in section_issues
             if issue != f"missing_readme_section:{README_HELPER_SECTION}"
         )
+
     _require_snippets(readme, REQUIRED_PHASE3_FLOW_SNIPPETS, "missing_phase3_flow_snippet", issues)
     _require_exact_count(
         readme,
@@ -366,8 +368,10 @@ def _fixture_cross_phase_flow() -> str:
         (
             "Phase 6 flow",
             f"- {REQUIRED_CROSS_PHASE_FLOW_SNIPPETS[0]}",
-            "Phase 9 flow",
+            "Phase 8 flow",
             f"- {REQUIRED_CROSS_PHASE_FLOW_SNIPPETS[1]}",
+            "Phase 9 flow",
+            f"- {REQUIRED_CROSS_PHASE_FLOW_SNIPPETS[2]}",
             "",
         )
     )
@@ -406,6 +410,14 @@ def _fixture_makefile() -> str:
             "",
         )
     )
+
+
+def _assert_only(issues: list[str], expected: list[str], label: str) -> None:
+    if issues != expected:
+        raise SystemExit(
+            f"phase3-readme-tooling-inventory-self-test:{label}:"
+            + (",".join(issues) if issues else "none")
+        )
 
 
 def run_self_test() -> int:
@@ -459,450 +471,312 @@ def run_self_test() -> int:
             _write(root / rel, "# stub\n")
 
         helper_lines = "\n".join(f"- `{Path(rel).name}`" for rel in required_rels)
-        _write(
-            root / README_REL,
-            "\n".join(
-                (
-                    "# scripts/zigux",
-                    "",
-                    "Current bootstrap helpers",
-                    "- `artifact_diff.py`",
-                    helper_lines,
-                    "",
-                    _fixture_phase3_flow(),
-                    _fixture_cross_phase_flow(),
-                )
-            ),
+        baseline_readme = "\n".join(
+            (
+                "# scripts/zigux",
+                "",
+                "Current bootstrap helpers",
+                "- `artifact_diff.py`",
+                helper_lines,
+                "",
+                _fixture_phase3_flow(),
+                _fixture_cross_phase_flow(),
+            )
         )
-
+        _write(root / README_REL, baseline_readme)
         issues = validate(root)
         if issues:
             raise SystemExit(
                 "phase3-readme-tooling-inventory-self-test:baseline_failed:" + ",".join(issues)
             )
 
-        _write(
-            root / README_REL,
-            "\n".join(
-                (
-                    "# scripts/zigux",
-                    "",
-                    _fixture_phase3_flow(),
-                    _fixture_cross_phase_flow(),
-                )
-            ),
+        flow_first_readme = "\n".join(
+            (
+                "# scripts/zigux",
+                "",
+                _fixture_phase3_flow(),
+                _fixture_cross_phase_flow(),
+            )
         )
+        _write(root / README_REL, flow_first_readme)
         issues = validate(root)
         if issues:
             raise SystemExit(
                 "phase3-readme-tooling-inventory-self-test:flow_first_readme_guard_failed:"
                 + (",".join(issues) if issues else "none")
             )
-        _write(
-            root / README_REL,
-            "\n".join(
-                (
-                    "# scripts/zigux",
-                    "",
-                    "Current bootstrap helpers",
-                    "- `artifact_diff.py`",
-                    helper_lines,
-                    "",
-                    _fixture_phase3_flow(),
-                    _fixture_cross_phase_flow(),
-                )
-            ),
-        )
+        _write(root / README_REL, baseline_readme)
 
-        _write(
-            root / TOOLING_PACKET_SCRIPT_REL,
-            "\n".join(
-                (
-                    "def canonical_readme_tooling_files(root):",
-                    "    return (",
-                    "        [",
-                    *[f"            {rel!r}," for rel in tooling_packet_rels],
-                    f"            {tooling_packet_rels[0]!r},",
-                    "        ],",
-                    "        [],",
-                    "    )",
-                    "",
-                )
-            ),
-        )
-        issues = validate(root)
-        expected = [f"duplicate_canonical_readme_entry:{Path(tooling_packet_rels[0]).name}"]
-        if issues != expected:
-            raise SystemExit(
-                "phase3-readme-tooling-inventory-self-test:duplicate_canonical_entry_guard_failed:"
-                + (",".join(issues) if issues else "none")
+        duplicate_tooling_packet_script = "\n".join(
+            (
+                "def canonical_readme_tooling_files(root):",
+                "    return (",
+                "        [",
+                *[f"            {rel!r}," for rel in tooling_packet_rels],
+                f"            {tooling_packet_rels[0]!r},",
+                "        ],",
+                "        [],",
+                "    )",
+                "",
             )
+        )
+        _write(root / TOOLING_PACKET_SCRIPT_REL, duplicate_tooling_packet_script)
+        _assert_only(
+            validate(root),
+            [f"duplicate_canonical_readme_entry:{Path(tooling_packet_rels[0]).name}"],
+            "duplicate_canonical_entry_guard_failed",
+        )
         _write(root / TOOLING_PACKET_SCRIPT_REL, tooling_packet_script)
 
-        _write(
-            root / MAKEFILE_REL,
-            "\n".join(
-                (
-                    "phase2-validate:",
-                    "\t@true",
-                    "",
-                    _fixture_makefile(),
-                )
-            ),
+        missing_phase2_makefile = "\n".join(("phase2-validate:", "\t@true", "", _fixture_makefile()))
+        _write(root / MAKEFILE_REL, missing_phase2_makefile)
+        _assert_only(
+            validate(root),
+            [f"missing_makefile_target_entries:{PHASE2_VALIDATE_TARGET}"],
+            "missing_phase2_makefile_guard_failed",
         )
-        issues = validate(root)
-        expected = [f"missing_makefile_target_entries:{PHASE2_VALIDATE_TARGET}"]
-        if issues != expected:
-            raise SystemExit(
-                "phase3-readme-tooling-inventory-self-test:missing_phase2_makefile_guard_failed:"
-                + (",".join(issues) if issues else "none")
-            )
         _write(root / MAKEFILE_REL, _fixture_makefile())
 
-        _write(
-            root / MAKEFILE_REL,
-            _fixture_makefile().replace(
-                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-kconfig-selftest-alignment.py --self-test\n",
-                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-kconfig-selftest-alignment.py --self-test\n"
-                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-kconfig-selftest-alignment.py --self-test\n",
-                1,
-            ),
+        duplicate_phase2_self_test = _fixture_makefile().replace(
+            "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-kconfig-selftest-alignment.py --self-test\n",
+            "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-kconfig-selftest-alignment.py --self-test\n"
+            "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-kconfig-selftest-alignment.py --self-test\n",
+            1,
         )
-        issues = validate(root)
-        expected = [
-            "unexpected_makefile_self_test_route_count:phase2-validate::2:check-phase2-kconfig-selftest-alignment.py"
-        ]
-        if issues != expected:
-            raise SystemExit(
-                "phase3-readme-tooling-inventory-self-test:duplicate_phase2_self_test_route_guard_failed:"
-                + (",".join(issues) if issues else "none")
-            )
+        _write(root / MAKEFILE_REL, duplicate_phase2_self_test)
+        _assert_only(
+            validate(root),
+            ["unexpected_makefile_self_test_route_count:phase2-validate::2:check-phase2-kconfig-selftest-alignment.py"],
+            "duplicate_phase2_self_test_route_guard_failed",
+        )
         _write(root / MAKEFILE_REL, _fixture_makefile())
 
-        _write(
-            root / MAKEFILE_REL,
-            _fixture_makefile().replace(
-                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase6-base64-catalog-evidence.py --self-test\n",
-                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase6-base64-catalog-evidence.py --self-test\n"
-                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase6-base64-catalog-evidence.py --self-test\n",
-                1,
-            ),
+        duplicate_phase6_self_test = _fixture_makefile().replace(
+            "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase6-base64-catalog-evidence.py --self-test\n",
+            "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase6-base64-catalog-evidence.py --self-test\n"
+            "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase6-base64-catalog-evidence.py --self-test\n",
+            1,
         )
-        issues = validate(root)
-        expected = [
-            "unexpected_makefile_self_test_route_count:phase6-validate::2:check-phase6-base64-catalog-evidence.py"
-        ]
-        if issues != expected:
-            raise SystemExit(
-                "phase3-readme-tooling-inventory-self-test:duplicate_phase6_self_test_route_guard_failed:"
-                + (",".join(issues) if issues else "none")
-            )
+        _write(root / MAKEFILE_REL, duplicate_phase6_self_test)
+        _assert_only(
+            validate(root),
+            ["unexpected_makefile_self_test_route_count:phase6-validate::2:check-phase6-base64-catalog-evidence.py"],
+            "duplicate_phase6_self_test_route_guard_failed",
+        )
         _write(root / MAKEFILE_REL, _fixture_makefile())
 
-        _write(
-            root / MAKEFILE_REL,
-            _fixture_makefile().replace(
-                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase7-argv-split-parity.py --self-test\n",
-                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase7-argv-split-parity.py --self-test\n"
-                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase7-argv-split-parity.py --self-test\n",
-                1,
-            ),
+        duplicate_phase7_self_test = _fixture_makefile().replace(
+            "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase7-argv-split-parity.py --self-test\n",
+            "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase7-argv-split-parity.py --self-test\n"
+            "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase7-argv-split-parity.py --self-test\n",
+            1,
         )
-        issues = validate(root)
-        expected = [
-            "unexpected_makefile_self_test_route_count:phase7-validate::2:check-phase7-argv-split-parity.py"
-        ]
-        if issues != expected:
-            raise SystemExit(
-                "phase3-readme-tooling-inventory-self-test:duplicate_phase7_self_test_route_guard_failed:"
-                + (",".join(issues) if issues else "none")
-            )
+        _write(root / MAKEFILE_REL, duplicate_phase7_self_test)
+        _assert_only(
+            validate(root),
+            ["unexpected_makefile_self_test_route_count:phase7-validate::2:check-phase7-argv-split-parity.py"],
+            "duplicate_phase7_self_test_route_guard_failed",
+        )
         _write(root / MAKEFILE_REL, _fixture_makefile())
 
-        _write(
-            root / MAKEFILE_REL,
-            _fixture_makefile().replace(
-                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase7-argv-split-parity.py\n",
-                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase7-argv-split-parity.py\n"
-                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase7-argv-split-parity.py\n",
-                1,
-            ),
+        duplicate_phase7_live = _fixture_makefile().replace(
+            "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase7-argv-split-parity.py\n",
+            "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase7-argv-split-parity.py\n"
+            "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase7-argv-split-parity.py\n",
+            1,
         )
-        issues = validate(root)
-        expected = [
-            "unexpected_makefile_live_route_count:phase7-validate::2:check-phase7-argv-split-parity.py"
-        ]
-        if issues != expected:
-            raise SystemExit(
-                "phase3-readme-tooling-inventory-self-test:duplicate_phase7_makefile_route_guard_failed:"
-                + (",".join(issues) if issues else "none")
-            )
+        _write(root / MAKEFILE_REL, duplicate_phase7_live)
+        _assert_only(
+            validate(root),
+            ["unexpected_makefile_live_route_count:phase7-validate::2:check-phase7-argv-split-parity.py"],
+            "duplicate_phase7_makefile_route_guard_failed",
+        )
         _write(root / MAKEFILE_REL, _fixture_makefile())
 
-        _write(
-            root / MAKEFILE_REL,
-            _fixture_makefile().replace(
-                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase11-shared-replay-contract.py\n",
-                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase11-shared-replay-contract.py\n"
-                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase11-shared-replay-contract.py\n",
-                1,
-            ),
+        duplicate_phase11_live = _fixture_makefile().replace(
+            "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase11-shared-replay-contract.py\n",
+            "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase11-shared-replay-contract.py\n"
+            "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase11-shared-replay-contract.py\n",
+            1,
         )
-        issues = validate(root)
-        expected = [
-            "unexpected_makefile_live_route_count:phase11-validate::2:check-phase11-shared-replay-contract.py"
-        ]
-        if issues != expected:
-            raise SystemExit(
-                "phase3-readme-tooling-inventory-self-test:duplicate_phase11_makefile_route_guard_failed:"
-                + (",".join(issues) if issues else "none")
-            )
-        _write(
-            root / MAKEFILE_REL,
-            _fixture_makefile().replace(
-                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase11-shared-replay-contract.py --self-test\n",
-                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase11-shared-replay-contract.py --self-test\n"
-                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase11-shared-replay-contract.py --self-test\n",
-                1,
-            ),
+        _write(root / MAKEFILE_REL, duplicate_phase11_live)
+        _assert_only(
+            validate(root),
+            ["unexpected_makefile_live_route_count:phase11-validate::2:check-phase11-shared-replay-contract.py"],
+            "duplicate_phase11_makefile_route_guard_failed",
         )
-        issues = validate(root)
-        expected = [
-            "unexpected_makefile_self_test_route_count:phase11-validate::2:check-phase11-shared-replay-contract.py"
-        ]
-        if issues != expected:
-            raise SystemExit(
-                "phase3-readme-tooling-inventory-self-test:duplicate_phase11_self_test_route_guard_failed:"
-                + (",".join(issues) if issues else "none")
-            )
         _write(root / MAKEFILE_REL, _fixture_makefile())
 
-        _write(
-            root / MAKEFILE_REL,
-            _fixture_makefile().replace(
-                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase13-devres-packet.py --self-test\n",
-                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase13-devres-packet.py --self-test\n"
-                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase13-devres-packet.py --self-test\n",
-                1,
-            ),
+        duplicate_phase11_self_test = _fixture_makefile().replace(
+            "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase11-shared-replay-contract.py --self-test\n",
+            "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase11-shared-replay-contract.py --self-test\n"
+            "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase11-shared-replay-contract.py --self-test\n",
+            1,
         )
-        issues = validate(root)
-        expected = [
-            "unexpected_makefile_self_test_route_count:phase13-validate::2:check-phase13-devres-packet.py"
-        ]
-        if issues != expected:
-            raise SystemExit(
-                "phase3-readme-tooling-inventory-self-test:duplicate_phase13_devres_self_test_route_guard_failed:"
-                + (",".join(issues) if issues else "none")
-            )
-
-        _write(
-            root / MAKEFILE_REL,
-            _fixture_makefile().replace(
-                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase13-devres-packet.py\n",
-                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase13-devres-packet.py\n"
-                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase13-devres-packet.py\n",
-                1,
-            ),
+        _write(root / MAKEFILE_REL, duplicate_phase11_self_test)
+        _assert_only(
+            validate(root),
+            ["unexpected_makefile_self_test_route_count:phase11-validate::2:check-phase11-shared-replay-contract.py"],
+            "duplicate_phase11_self_test_route_guard_failed",
         )
-        issues = validate(root)
-        expected = [
-            "unexpected_makefile_live_route_count:phase13-validate::2:check-phase13-devres-packet.py"
-        ]
-        if issues != expected:
-            raise SystemExit(
-                "phase3-readme-tooling-inventory-self-test:duplicate_phase13_makefile_route_guard_failed:"
-                + (",".join(issues) if issues else "none")
-            )
         _write(root / MAKEFILE_REL, _fixture_makefile())
 
-        _write(
-            root / MAKEFILE_REL,
-            _fixture_makefile().replace(
-                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase13-release.py\n",
-                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase13-release.py\n"
-                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase13-release.py\n",
-                1,
-            ),
+        duplicate_phase13_devres_self_test = _fixture_makefile().replace(
+            "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase13-devres-packet.py --self-test\n",
+            "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase13-devres-packet.py --self-test\n"
+            "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase13-devres-packet.py --self-test\n",
+            1,
         )
-        issues = validate(root)
-        expected = [
-            "unexpected_makefile_live_route_count:phase13-validate::2:validate-phase13-release.py"
-        ]
-        if issues != expected:
-            raise SystemExit(
-                "phase3-readme-tooling-inventory-self-test:duplicate_phase13_release_validator_route_guard_failed:"
-                + (",".join(issues) if issues else "none")
-            )
+        _write(root / MAKEFILE_REL, duplicate_phase13_devres_self_test)
+        _assert_only(
+            validate(root),
+            ["unexpected_makefile_self_test_route_count:phase13-validate::2:check-phase13-devres-packet.py"],
+            "duplicate_phase13_devres_self_test_route_guard_failed",
+        )
         _write(root / MAKEFILE_REL, _fixture_makefile())
 
-        _write(
-            root / MAKEFILE_REL,
-            _fixture_makefile().replace(
-                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase13-release.py\n",
-                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase13-release.py\n"
-                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase13-release.py --self-test\n",
-                1,
-            ),
+        duplicate_phase13_devres_live = _fixture_makefile().replace(
+            "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase13-devres-packet.py\n",
+            "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase13-devres-packet.py\n"
+            "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase13-devres-packet.py\n",
+            1,
         )
-        issues = validate(root)
-        expected = [
-            "unexpected_makefile_self_test_route_count:phase13-validate::1:validate-phase13-release.py"
-        ]
-        if issues != expected:
-            raise SystemExit(
-                "phase3-readme-tooling-inventory-self-test:unexpected_phase13_release_validator_self_test_route_guard_failed:"
-                + (",".join(issues) if issues else "none")
-            )
+        _write(root / MAKEFILE_REL, duplicate_phase13_devres_live)
+        _assert_only(
+            validate(root),
+            ["unexpected_makefile_live_route_count:phase13-validate::2:check-phase13-devres-packet.py"],
+            "duplicate_phase13_makefile_route_guard_failed",
+        )
         _write(root / MAKEFILE_REL, _fixture_makefile())
 
-        _write(
-            root / MAKEFILE_REL,
-            "\n".join(
-                (
-                    "phase11-validate:",
-                    "\t@true",
-                    "",
-                    _fixture_makefile(),
-                )
-            ),
+        duplicate_phase13_release = _fixture_makefile().replace(
+            "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase13-release.py\n",
+            "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase13-release.py\n"
+            "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase13-release.py\n",
+            1,
         )
-        issues = validate(root)
-        expected = [f"missing_makefile_target_entries:{PHASE11_VALIDATE_TARGET}"]
-        if issues != expected:
-            raise SystemExit(
-                "phase3-readme-tooling-inventory-self-test:missing_phase11_makefile_guard_failed:"
-                + (",".join(issues) if issues else "none")
-            )
+        _write(root / MAKEFILE_REL, duplicate_phase13_release)
+        _assert_only(
+            validate(root),
+            ["unexpected_makefile_live_route_count:phase13-validate::2:validate-phase13-release.py"],
+            "duplicate_phase13_release_validator_route_guard_failed",
+        )
         _write(root / MAKEFILE_REL, _fixture_makefile())
 
-        _write(
-            root / README_REL,
-            "\n".join(
-                (
-                    "# scripts/zigux",
-                    "",
-                    "Current bootstrap helpers",
-                    *[
-                        f"- `{Path(rel).name}`"
-                        for rel in required_rels
-                        if rel != tooling_packet_rels[0]
-                    ],
-                    "",
-                    _fixture_phase3_flow(),
-                    _fixture_cross_phase_flow(),
-                )
-            ),
+        unexpected_phase13_release_self_test = _fixture_makefile().replace(
+            "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase13-release.py\n",
+            "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase13-release.py\n"
+            "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase13-release.py --self-test\n",
+            1,
         )
-        issues = validate(root)
-        expected = f"missing_readme_entry:{Path(tooling_packet_rels[0]).name}"
-        if issues != [expected]:
-            raise SystemExit(
-                "phase3-readme-tooling-inventory-self-test:missing_readme_entry_guard_failed:"
-                + (",".join(issues) if issues else "none")
-            )
+        _write(root / MAKEFILE_REL, unexpected_phase13_release_self_test)
+        _assert_only(
+            validate(root),
+            ["unexpected_makefile_self_test_route_count:phase13-validate::1:validate-phase13-release.py"],
+            "unexpected_phase13_release_validator_self_test_route_guard_failed",
+        )
+        _write(root / MAKEFILE_REL, _fixture_makefile())
 
-        _write(
-            root / README_REL,
-            "\n".join(
-                (
-                    "# scripts/zigux",
-                    "",
-                    "Current bootstrap helpers",
-                    *[
-                        f"- `{Path(rel).name}`"
-                        for rel in required_rels
-                        if rel != "scripts/zigux/check-phase13-devres-packet.py"
-                    ],
-                    "",
-                    _fixture_phase3_flow(),
-                    _fixture_cross_phase_flow(),
-                )
-            ),
+        missing_phase11_makefile = "\n".join(("phase11-validate:", "\t@true", "", _fixture_makefile()))
+        _write(root / MAKEFILE_REL, missing_phase11_makefile)
+        _assert_only(
+            validate(root),
+            [f"missing_makefile_target_entries:{PHASE11_VALIDATE_TARGET}"],
+            "missing_phase11_makefile_guard_failed",
         )
-        issues = validate(root)
-        expected = ["missing_readme_entry:check-phase13-devres-packet.py"]
-        if issues != expected:
-            raise SystemExit(
-                "phase3-readme-tooling-inventory-self-test:missing_phase13_readme_entry_guard_failed:"
-                + (",".join(issues) if issues else "none")
-            )
+        _write(root / MAKEFILE_REL, _fixture_makefile())
 
-        _write(
-            root / README_REL,
-            "\n".join(
-                (
-                    "# scripts/zigux",
-                    "",
-                    "Current bootstrap helpers",
-                    *[
-                        f"- `{Path(rel).name}`"
-                        for rel in required_rels
-                        if rel != "scripts/zigux/check-phase11-shared-replay-contract.py"
-                    ],
-                    "",
-                    _fixture_phase3_flow(),
-                    _fixture_cross_phase_flow(),
-                )
-            ),
-        )
-        issues = validate(root)
-        expected = ["missing_readme_entry:check-phase11-shared-replay-contract.py"]
-        if issues != expected:
-            raise SystemExit(
-                "phase3-readme-tooling-inventory-self-test:missing_phase11_readme_entry_guard_failed:"
-                + (",".join(issues) if issues else "none")
+        missing_phase3_readme_entry = "\n".join(
+            (
+                "# scripts/zigux",
+                "",
+                "Current bootstrap helpers",
+                *[f"- `{Path(rel).name}`" for rel in required_rels if rel != tooling_packet_rels[0]],
+                "",
+                _fixture_phase3_flow(),
+                _fixture_cross_phase_flow(),
             )
+        )
+        _write(root / README_REL, missing_phase3_readme_entry)
+        _assert_only(
+            validate(root),
+            [f"missing_readme_entry:{Path(tooling_packet_rels[0]).name}"],
+            "missing_readme_entry_guard_failed",
+        )
 
-        _write(
-            root / README_REL,
-            "\n".join(
-                (
-                    "# scripts/zigux",
-                    "",
-                    "Current bootstrap helpers",
-                    *[
-                        f"- `{Path(rel).name}`"
-                        for rel in required_rels
-                        if rel != "scripts/zigux/check-phase2-kconfig-selftest-alignment.py"
-                    ],
-                    "",
-                    _fixture_phase3_flow(),
-                    _fixture_cross_phase_flow(),
-                )
-            ),
-        )
-        issues = validate(root)
-        expected = ["missing_readme_entry:check-phase2-kconfig-selftest-alignment.py"]
-        if issues != expected:
-            raise SystemExit(
-                "phase3-readme-tooling-inventory-self-test:missing_phase2_readme_entry_guard_failed:"
-                + (",".join(issues) if issues else "none")
+        missing_phase13_readme_entry = "\n".join(
+            (
+                "# scripts/zigux",
+                "",
+                "Current bootstrap helpers",
+                *[f"- `{Path(rel).name}`" for rel in required_rels if rel != "scripts/zigux/check-phase13-devres-packet.py"],
+                "",
+                _fixture_phase3_flow(),
+                _fixture_cross_phase_flow(),
             )
+        )
+        _write(root / README_REL, missing_phase13_readme_entry)
+        _assert_only(
+            validate(root),
+            ["missing_readme_entry:check-phase13-devres-packet.py"],
+            "missing_phase13_readme_entry_guard_failed",
+        )
 
-        _write(
-            root / README_REL,
-            "\n".join(
-                (
-                    "# scripts/zigux",
-                    "",
-                    "Current bootstrap helpers",
-                    f"- `{Path(tooling_packet_rels[1]).name}`",
-                    f"- `{Path(tooling_packet_rels[0]).name}`",
-                    *[f"- `{Path(rel).name}`" for rel in required_rels[2:]],
-                    "",
-                    _fixture_phase3_flow(),
-                    _fixture_cross_phase_flow(),
-                )
-            ),
-        )
-        issues = validate(root)
-        expected = ["readme_entry_order_drift:phase3_packet"]
-        if issues != expected:
-            raise SystemExit(
-                "phase3-readme-tooling-inventory-self-test:order_guard_failed:"
-                + (",".join(issues) if issues else "none")
+        missing_phase11_readme_entry = "\n".join(
+            (
+                "# scripts/zigux",
+                "",
+                "Current bootstrap helpers",
+                *[f"- `{Path(rel).name}`" for rel in required_rels if rel != "scripts/zigux/check-phase11-shared-replay-contract.py"],
+                "",
+                _fixture_phase3_flow(),
+                _fixture_cross_phase_flow(),
             )
+        )
+        _write(root / README_REL, missing_phase11_readme_entry)
+        _assert_only(
+            validate(root),
+            ["missing_readme_entry:check-phase11-shared-replay-contract.py"],
+            "missing_phase11_readme_entry_guard_failed",
+        )
+
+        missing_phase2_readme_entry = "\n".join(
+            (
+                "# scripts/zigux",
+                "",
+                "Current bootstrap helpers",
+                *[f"- `{Path(rel).name}`" for rel in required_rels if rel != "scripts/zigux/check-phase2-kconfig-selftest-alignment.py"],
+                "",
+                _fixture_phase3_flow(),
+                _fixture_cross_phase_flow(),
+            )
+        )
+        _write(root / README_REL, missing_phase2_readme_entry)
+        _assert_only(
+            validate(root),
+            ["missing_readme_entry:check-phase2-kconfig-selftest-alignment.py"],
+            "missing_phase2_readme_entry_guard_failed",
+        )
+
+        phase3_order_drift = "\n".join(
+            (
+                "# scripts/zigux",
+                "",
+                "Current bootstrap helpers",
+                f"- `{Path(tooling_packet_rels[1]).name}`",
+                f"- `{Path(tooling_packet_rels[0]).name}`",
+                *[f"- `{Path(rel).name}`" for rel in required_rels[2:]],
+                "",
+                _fixture_phase3_flow(),
+                _fixture_cross_phase_flow(),
+            )
+        )
+        _write(root / README_REL, phase3_order_drift)
+        _assert_only(
+            validate(root),
+            ["readme_entry_order_drift:phase3_packet"],
+            "order_guard_failed",
+        )
 
         reordered_phase13_helper_rels = (
             "scripts/zigux/check-phase13-devres-packet.py",
@@ -919,209 +793,178 @@ def run_self_test() -> int:
             + phase11_helper_rels
             + reordered_phase13_helper_rels
         )
-        _write(
-            root / README_REL,
-            "\n".join(
-                (
-                    "# scripts/zigux",
-                    "",
-                    "Current bootstrap helpers",
-                    "- `artifact_diff.py`",
-                    reordered_helper_lines,
-                    "",
-                    _fixture_phase3_flow(),
-                    _fixture_cross_phase_flow(),
-                )
-            ),
-        )
-        issues = validate(root)
-        expected = ["readme_entry_order_drift:phase13_validate"]
-        if issues != expected:
-            raise SystemExit(
-                "phase3-readme-tooling-inventory-self-test:phase13_order_guard_failed:"
-                + (",".join(issues) if issues else "none")
+        phase13_order_drift = "\n".join(
+            (
+                "# scripts/zigux",
+                "",
+                "Current bootstrap helpers",
+                "- `artifact_diff.py`",
+                reordered_helper_lines,
+                "",
+                _fixture_phase3_flow(),
+                _fixture_cross_phase_flow(),
             )
-
-        _write(
-            root / README_REL,
-            "\n".join(
-                (
-                    "# scripts/zigux",
-                    "",
-                    "Current bootstrap helpers",
-                    f"- `{Path(tooling_packet_rels[0]).name}`",
-                    f"- `{Path(tooling_packet_rels[0]).name}`",
-                    *[f"- `{Path(rel).name}`" for rel in required_rels[1:]],
-                    "",
-                    _fixture_phase3_flow(),
-                    _fixture_cross_phase_flow(),
-                )
-            ),
         )
-        issues = validate(root)
-        expected = [f"duplicate_readme_entry:{Path(tooling_packet_rels[0]).name}"]
-        if issues != expected:
-            raise SystemExit(
-                "phase3-readme-tooling-inventory-self-test:duplicate_readme_entry_guard_failed:"
-                + (",".join(issues) if issues else "none")
+        _write(root / README_REL, phase13_order_drift)
+        _assert_only(
+            validate(root),
+            ["readme_entry_order_drift:phase13_validate"],
+            "phase13_order_guard_failed",
+        )
+
+        duplicate_readme_entry = "\n".join(
+            (
+                "# scripts/zigux",
+                "",
+                "Current bootstrap helpers",
+                f"- `{Path(tooling_packet_rels[0]).name}`",
+                f"- `{Path(tooling_packet_rels[0]).name}`",
+                *[f"- `{Path(rel).name}`" for rel in required_rels[1:]],
+                "",
+                _fixture_phase3_flow(),
+                _fixture_cross_phase_flow(),
             )
-
-        _write(
-            root / README_REL,
-            "\n".join(
-                (
-                    "# scripts/zigux",
-                    "",
-                    "Current bootstrap helpers",
-                    "- `artifact_diff.py`",
-                    helper_lines,
-                    "",
-                )
-            ),
         )
-        issues = validate(root)
-        expected = [
-            f"missing_phase3_flow_snippet:{REQUIRED_PHASE3_FLOW_SNIPPETS[0]}",
-            f"missing_phase3_flow_snippet:{REQUIRED_PHASE3_FLOW_SNIPPETS[1]}",
-            f"unexpected_phase3_flow_snippet_count:0:{REQUIRED_PHASE3_FLOW_SNIPPETS[0]}",
-            f"unexpected_phase3_flow_snippet_count:0:{REQUIRED_PHASE3_FLOW_SNIPPETS[1]}",
-            f"missing_cross_phase_flow_snippet:{REQUIRED_CROSS_PHASE_FLOW_SNIPPETS[0]}",
-            f"missing_cross_phase_flow_snippet:{REQUIRED_CROSS_PHASE_FLOW_SNIPPETS[1]}",
-            f"unexpected_cross_phase_flow_snippet_count:0:{REQUIRED_CROSS_PHASE_FLOW_SNIPPETS[0]}",
-            f"unexpected_cross_phase_flow_snippet_count:0:{REQUIRED_CROSS_PHASE_FLOW_SNIPPETS[1]}",
-        ]
-        if issues != expected:
-            raise SystemExit(
-                "phase3-readme-tooling-inventory-self-test:missing_phase3_flow_guard_failed:"
-                + (",".join(issues) if issues else "none")
+        _write(root / README_REL, duplicate_readme_entry)
+        _assert_only(
+            validate(root),
+            [f"duplicate_readme_entry:{Path(tooling_packet_rels[0]).name}"],
+            "duplicate_readme_entry_guard_failed",
+        )
+
+        missing_flow_readme = "\n".join(
+            (
+                "# scripts/zigux",
+                "",
+                "Current bootstrap helpers",
+                "- `artifact_diff.py`",
+                helper_lines,
+                "",
             )
-
-        _write(
-            root / README_REL,
-            "\n".join(
-                (
-                    "# scripts/zigux",
-                    "",
-                    "Current bootstrap helpers",
-                    "- `artifact_diff.py`",
-                    helper_lines,
-                    "",
-                    _fixture_phase3_flow() + f"- {REQUIRED_PHASE3_FLOW_SNIPPETS[0]}",
-                    _fixture_cross_phase_flow(),
-                )
-            ),
         )
-        issues = validate(root)
-        expected = [
-            f"unexpected_phase3_flow_snippet_count:2:{REQUIRED_PHASE3_FLOW_SNIPPETS[0]}"
-        ]
-        if issues != expected:
-            raise SystemExit(
-                "phase3-readme-tooling-inventory-self-test:duplicate_phase3_flow_guard_failed:"
-                + (",".join(issues) if issues else "none")
+        _write(root / README_REL, missing_flow_readme)
+        _assert_only(
+            validate(root),
+            [
+                f"missing_phase3_flow_snippet:{REQUIRED_PHASE3_FLOW_SNIPPETS[0]}",
+                f"missing_phase3_flow_snippet:{REQUIRED_PHASE3_FLOW_SNIPPETS[1]}",
+                f"unexpected_phase3_flow_snippet_count:0:{REQUIRED_PHASE3_FLOW_SNIPPETS[0]}",
+                f"unexpected_phase3_flow_snippet_count:0:{REQUIRED_PHASE3_FLOW_SNIPPETS[1]}",
+                f"missing_cross_phase_flow_snippet:{REQUIRED_CROSS_PHASE_FLOW_SNIPPETS[0]}",
+                f"missing_cross_phase_flow_snippet:{REQUIRED_CROSS_PHASE_FLOW_SNIPPETS[1]}",
+                f"missing_cross_phase_flow_snippet:{REQUIRED_CROSS_PHASE_FLOW_SNIPPETS[2]}",
+                f"unexpected_cross_phase_flow_snippet_count:0:{REQUIRED_CROSS_PHASE_FLOW_SNIPPETS[0]}",
+                f"unexpected_cross_phase_flow_snippet_count:0:{REQUIRED_CROSS_PHASE_FLOW_SNIPPETS[1]}",
+                f"unexpected_cross_phase_flow_snippet_count:0:{REQUIRED_CROSS_PHASE_FLOW_SNIPPETS[2]}",
+            ],
+            "missing_phase3_flow_guard_failed",
+        )
+
+        duplicate_phase3_flow = "\n".join(
+            (
+                "# scripts/zigux",
+                "",
+                "Current bootstrap helpers",
+                "- `artifact_diff.py`",
+                helper_lines,
+                "",
+                _fixture_phase3_flow() + f"- {REQUIRED_PHASE3_FLOW_SNIPPETS[0]}",
+                _fixture_cross_phase_flow(),
             )
-
-        _write(
-            root / README_REL,
-            "\n".join(
-                (
-                    "# scripts/zigux",
-                    "",
-                    "Current bootstrap helpers",
-                    "- `artifact_diff.py`",
-                    helper_lines,
-                    "",
-                    _fixture_phase3_flow() + f"- {REQUIRED_PHASE3_FLOW_SNIPPETS[1]}",
-                    _fixture_cross_phase_flow(),
-                )
-            ),
         )
-        issues = validate(root)
-        expected = [
-            f"unexpected_phase3_flow_snippet_count:2:{REQUIRED_PHASE3_FLOW_SNIPPETS[1]}"
-        ]
-        if issues != expected:
-            raise SystemExit(
-                "phase3-readme-tooling-inventory-self-test:duplicate_phase3_supporting_checks_guard_failed:"
-                + (",".join(issues) if issues else "none")
+        _write(root / README_REL, duplicate_phase3_flow)
+        _assert_only(
+            validate(root),
+            [f"unexpected_phase3_flow_snippet_count:2:{REQUIRED_PHASE3_FLOW_SNIPPETS[0]}"],
+            "duplicate_phase3_flow_guard_failed",
+        )
+
+        duplicate_phase3_supporting_checks = "\n".join(
+            (
+                "# scripts/zigux",
+                "",
+                "Current bootstrap helpers",
+                "- `artifact_diff.py`",
+                helper_lines,
+                "",
+                _fixture_phase3_flow() + f"- {REQUIRED_PHASE3_FLOW_SNIPPETS[1]}",
+                _fixture_cross_phase_flow(),
             )
-
-        _write(
-            root / README_REL,
-            "\n".join(
-                (
-                    "# scripts/zigux",
-                    "",
-                    "Current bootstrap helpers",
-                    "- `artifact_diff.py`",
-                    helper_lines,
-                    "",
-                    _fixture_phase3_flow(),
-                    _fixture_cross_phase_flow() + f"- {REQUIRED_CROSS_PHASE_FLOW_SNIPPETS[0]}",
-                )
-            ),
         )
-        issues = validate(root)
-        expected = [
-            f"unexpected_cross_phase_flow_snippet_count:2:{REQUIRED_CROSS_PHASE_FLOW_SNIPPETS[0]}"
-        ]
-        if issues != expected:
-            raise SystemExit(
-                "phase3-readme-tooling-inventory-self-test:duplicate_cross_phase_flow_guard_failed:"
-                + (",".join(issues) if issues else "none")
+        _write(root / README_REL, duplicate_phase3_supporting_checks)
+        _assert_only(
+            validate(root),
+            [f"unexpected_phase3_flow_snippet_count:2:{REQUIRED_PHASE3_FLOW_SNIPPETS[1]}"],
+            "duplicate_phase3_supporting_checks_guard_failed",
+        )
+
+        duplicate_phase6_flow = "\n".join(
+            (
+                "# scripts/zigux",
+                "",
+                "Current bootstrap helpers",
+                "- `artifact_diff.py`",
+                helper_lines,
+                "",
+                _fixture_phase3_flow(),
+                _fixture_cross_phase_flow() + f"- {REQUIRED_CROSS_PHASE_FLOW_SNIPPETS[0]}",
             )
-
-        _write(
-            root / README_REL,
-            "\n".join(
-                (
-                    "# scripts/zigux",
-                    "",
-                    "Current bootstrap helpers",
-                    "- `artifact_diff.py`",
-                    helper_lines,
-                    "",
-                    _fixture_phase3_flow(),
-                    _fixture_cross_phase_flow() + f"- {REQUIRED_CROSS_PHASE_FLOW_SNIPPETS[1]}",
-                )
-            ),
         )
-        issues = validate(root)
-        expected = [
-            f"unexpected_cross_phase_flow_snippet_count:2:{REQUIRED_CROSS_PHASE_FLOW_SNIPPETS[1]}"
-        ]
-        if issues != expected:
-            raise SystemExit(
-                "phase3-readme-tooling-inventory-self-test:duplicate_phase9_flow_guard_failed:"
-                + (",".join(issues) if issues else "none")
+        _write(root / README_REL, duplicate_phase6_flow)
+        _assert_only(
+            validate(root),
+            [f"unexpected_cross_phase_flow_snippet_count:2:{REQUIRED_CROSS_PHASE_FLOW_SNIPPETS[0]}"],
+            "duplicate_phase6_flow_guard_failed",
+        )
+
+        duplicate_phase8_flow = "\n".join(
+            (
+                "# scripts/zigux",
+                "",
+                "Current bootstrap helpers",
+                "- `artifact_diff.py`",
+                helper_lines,
+                "",
+                _fixture_phase3_flow(),
+                _fixture_cross_phase_flow() + f"- {REQUIRED_CROSS_PHASE_FLOW_SNIPPETS[1]}",
             )
-
-        _write(
-            root / README_REL,
-            "\n".join(
-                (
-                    "# scripts/zigux",
-                    "",
-                    "Current bootstrap helpers",
-                    "- `artifact_diff.py`",
-                    helper_lines,
-                    "",
-                    _fixture_phase3_flow(),
-                    _fixture_cross_phase_flow(),
-                )
-            ),
         )
+        _write(root / README_REL, duplicate_phase8_flow)
+        _assert_only(
+            validate(root),
+            [f"unexpected_cross_phase_flow_snippet_count:2:{REQUIRED_CROSS_PHASE_FLOW_SNIPPETS[1]}"],
+            "duplicate_phase8_flow_guard_failed",
+        )
+
+        duplicate_phase9_flow = "\n".join(
+            (
+                "# scripts/zigux",
+                "",
+                "Current bootstrap helpers",
+                "- `artifact_diff.py`",
+                helper_lines,
+                "",
+                _fixture_phase3_flow(),
+                _fixture_cross_phase_flow() + f"- {REQUIRED_CROSS_PHASE_FLOW_SNIPPETS[2]}",
+            )
+        )
+        _write(root / README_REL, duplicate_phase9_flow)
+        _assert_only(
+            validate(root),
+            [f"unexpected_cross_phase_flow_snippet_count:2:{REQUIRED_CROSS_PHASE_FLOW_SNIPPETS[2]}"],
+            "duplicate_phase9_flow_guard_failed",
+        )
+
+        _write(root / README_REL, baseline_readme)
         (root / tooling_packet_rels[-1]).unlink()
-        issues = validate(root)
-        expected = f"missing_repo_file:{tooling_packet_rels[-1]}"
-        if issues != [expected]:
-            raise SystemExit(
-                "phase3-readme-tooling-inventory-self-test:missing_repo_file_guard_failed:"
-                + (",".join(issues) if issues else "none")
-            )
+        _assert_only(
+            validate(root),
+            [f"missing_repo_file:{tooling_packet_rels[-1]}"],
+            "missing_repo_file_guard_failed",
+        )
 
     print("PHASE3_README_TOOLING_INVENTORY_SELF_TEST=pass")
-    print("PHASE3_README_TOOLING_INVENTORY_SELF_TEST_CASE_COUNT=26")
+    print("PHASE3_README_TOOLING_INVENTORY_SELF_TEST_CASE_COUNT=23")
     return 0
 
 
