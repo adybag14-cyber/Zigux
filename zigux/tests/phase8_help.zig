@@ -177,6 +177,65 @@ test "phase 8 help focused replay keeps main-only output free of stray PATH head
     try std.testing.expect(std.mem.indexOf(u8, rendered.writer.buffered(), "elsewhere on your $PATH") == null);
 }
 
+test "phase 8 help focused replay keeps the fully empty PATH fallback visible in stable output" {
+    const current_dir_entries = [_]help.DirectoryEntry{
+        .{ .name = "perf-current", .is_executable = true },
+        .{ .name = "perf-report.exe", .is_executable = true },
+        .{ .name = "README.md", .is_executable = true },
+    };
+
+    var source = FixtureSource{
+        .dirs = &.{
+            .{ .path = "", .entries = &current_dir_entries },
+        },
+    };
+
+    var main_cmds = help.CmdNames.init(std.testing.allocator);
+    defer main_cmds.deinit();
+    var other_cmds = help.CmdNames.init(std.testing.allocator);
+    defer other_cmds.deinit();
+
+    try help.loadCommandListsFromEnvPath(
+        std.testing.allocator,
+        null,
+        null,
+        "",
+        &main_cmds,
+        &other_cmds,
+        &source,
+        FixtureSource.populate,
+    );
+
+    try std.testing.expectEqual(@as(usize, 0), main_cmds.count());
+    try std.testing.expectEqual(@as(usize, 2), other_cmds.count());
+    try std.testing.expectEqualStrings("current", other_cmds.names.items[0].name);
+    try std.testing.expectEqualStrings("report", other_cmds.names.items[1].name);
+
+    var rendered: std.Io.Writer.Allocating = .init(std.testing.allocator);
+    defer rendered.deinit();
+
+    try help.writeCommandSectionsForTerminal(
+        &rendered.writer,
+        "perf",
+        "/ignored",
+        main_cmds,
+        other_cmds,
+        null,
+        "24",
+        null,
+    );
+
+    const other_rule = [_]u8{'-'} ** 43;
+    const expected = std.fmt.comptimePrint(
+        "perf available from elsewhere on your $PATH\n{s}\n" ++
+            "  current report\n" ++
+            "\n",
+        .{other_rule[0..]},
+    );
+
+    try std.testing.expectEqualStrings(expected, rendered.writer.buffered());
+}
+
 test "phase 8 help focused replay keeps shared column width stable when PATH commands are longer" {
     const exec_entries = [_]help.DirectoryEntry{
         .{ .name = "perf-report.exe", .is_executable = true },
