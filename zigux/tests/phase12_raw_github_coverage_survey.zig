@@ -99,8 +99,10 @@ test "phase12 raw GitHub coverage survey keeps the roadmap-wide public-read spli
     var shared_tree_only_count: usize = 0;
     var commit_pinned_catalog_count: usize = 0;
     var commit_pinned_map_count: usize = 0;
+    var saw_virtio_net = false;
     var saw_nvme_pci = false;
     var saw_virtio_scsi = false;
+    var saw_libbpf = false;
     for (manifest.anchors) |anchor| {
         if (std.mem.eql(u8, anchor.public_read_status, "shared_tree_only")) {
             shared_tree_only_count += 1;
@@ -118,6 +120,14 @@ test "phase12 raw GitHub coverage survey keeps the roadmap-wide public-read spli
             return error.UnexpectedStatus;
         }
 
+        if (std.mem.eql(u8, anchor.id, "virtio_net")) {
+            saw_virtio_net = true;
+            try std.testing.expectEqualStrings("drivers/net/virtio_net.c", anchor.anchor);
+            try std.testing.expectEqualStrings("drivers/net/virtio_net.zig", anchor.roadmap_destination);
+            try std.testing.expectEqualStrings("Documentation/zigux/phase12-virtio-net-survey.md", anchor.survey_note_path);
+            try std.testing.expectEqualStrings("shared_tree_only", anchor.public_read_status);
+        }
+
         if (std.mem.eql(u8, anchor.id, "nvme_pci")) {
             saw_nvme_pci = true;
             try std.testing.expectEqualStrings("drivers/nvme/host/pci.c", anchor.anchor);
@@ -127,13 +137,23 @@ test "phase12 raw GitHub coverage survey keeps the roadmap-wide public-read spli
             saw_virtio_scsi = true;
             try std.testing.expectEqualStrings("drivers/scsi/virtio_scsi.c", anchor.anchor);
         }
+
+        if (std.mem.eql(u8, anchor.id, "libbpf")) {
+            saw_libbpf = true;
+            try std.testing.expectEqualStrings("tools/lib/bpf/libbpf.c", anchor.anchor);
+            try std.testing.expectEqualStrings("tools/lib/bpf/zigux_segments/", anchor.roadmap_destination);
+            try std.testing.expectEqualStrings("Documentation/zigux/phase12-libbpf-segment-survey.md", anchor.survey_note_path);
+            try std.testing.expectEqualStrings("shared_tree_only", anchor.public_read_status);
+        }
     }
 
     try std.testing.expectEqual(@as(usize, 2), shared_tree_only_count);
     try std.testing.expectEqual(@as(usize, 1), commit_pinned_catalog_count);
     try std.testing.expectEqual(@as(usize, 1), commit_pinned_map_count);
+    try std.testing.expect(saw_virtio_net);
     try std.testing.expect(saw_nvme_pci);
     try std.testing.expect(saw_virtio_scsi);
+    try std.testing.expect(saw_libbpf);
 
     for ([_][]const u8{
         "drivers/net/virtio_net.c",
