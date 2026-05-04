@@ -1,7 +1,7 @@
 {
   "lane_key": "P14-L01",
   "phase": "Phase 14",
-  "surveyed_commit": "672d03034b090ab859f4088396160ea13120e1d6",
+  "surveyed_commit": "02264a3240cd30ce45c9a932047a0204b7ab5029",
   "productization": {
     "owner": "Core-Adjacent Pod",
     "status_bucket": "study_only",
@@ -88,7 +88,7 @@
     {
       "lane_key": "P14-L12",
       "anchor": "net/core/skbuff.c",
-      "surveyed_commit": "6689715b1930c419e49a44b1c2dd317548a08c1d",
+      "surveyed_commit": "02264a3240cd30ce45c9a932047a0204b7ab5029",
       "manifest_path": "zigux/tests/phase14_skbuff_bridge_manifest.json",
       "survey_note_path": "Documentation/zigux/phase14-skbuff-bridge-survey.md",
       "ready_next_gap": "",
