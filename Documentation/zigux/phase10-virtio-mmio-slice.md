@@ -5,8 +5,8 @@ This document tracks the bounded `drivers/virtio/virtio_mmio.c` lab helper under
 ## Status
 
 - `PHASE10_STATUS=active`
-- `PHASE10_SLICE=virtio-mmio-interrupt-ack-helper`
-- scope: bounded MMIO register offsets, transport-identity snapshots, device-feature page selection, driver-feature page writes, queue-select and queue-size planning, queue-ready bookkeeping, queue-notify snapshots, version-scoped queue-address planning, read-only config-window snapshots, in-memory config-write planning, bounded interrupt-state summaries, status and reset bookkeeping, config-generation tracking, interrupt-status acknowledge bookkeeping, focused multi-queue state-isolation coverage, dedicated Phase 10 MMIO tests, and a slice note only
+- `PHASE10_SLICE=virtio-mmio-probe-preflight-helper`
+- scope: bounded MMIO register offsets, transport-identity snapshots, probe-preflight summaries, device-feature page selection, driver-feature page writes, queue-select and queue-size planning, queue-ready bookkeeping, queue-notify snapshots, version-scoped queue-address planning, read-only config-window snapshots, in-memory config-write planning, bounded interrupt-state summaries, status and reset bookkeeping, config-generation tracking, interrupt-status acknowledge bookkeeping, focused multi-queue state-isolation coverage, dedicated Phase 10 MMIO tests, and a slice note only
 - product boundary:
   - `drivers/virtio/virtio_mmio.zig`
   - `zigux/tests/phase10_virtio_mmio.zig`
@@ -18,13 +18,14 @@ This document tracks the bounded `drivers/virtio/virtio_mmio.c` lab helper under
 
 The Phase 10 roadmap names `drivers/virtio/virtio_mmio.c` as a primary transport anchor, but it also says to prove virtqueue wrappers before widening into MMIO or other risky transport work.
 
-The live repo now has the virtio core, ring, and input lab footholds plus the earlier MMIO survey lane. This slice now records a small transport-identity snapshot alongside the landed interrupt-state summary plus interrupt-ack rung after the earlier config-write helper, keeping the reviewable magic, version, device-id, and vendor-id handshake plus queue and config interrupt bits explicit in memory without pretending to own shared IRQ delivery, queue setup, probe and remove lifecycle, or DMA-facing transport work.
+The live repo now has the virtio core, ring, and input lab footholds plus the earlier MMIO survey lane. This slice now records a small transport-identity snapshot plus a bounded probe-preflight summary alongside the landed interrupt-state summary and interrupt-ack rung after the earlier config-write helper, keeping the reviewable magic, version, device-id, vendor-id, and earliest probe-handoff gate explicit in memory without pretending to own shared IRQ delivery, queue setup, probe and remove lifecycle, or DMA-facing transport work.
 
 ## Landed starter surface
 
 - module descriptor metadata anchored to `drivers/virtio/virtio_mmio.c`
 - bounded register-offset constants for the device-features, driver-features, guest-page-size, queue-select, queue-size, queue-ready, queue-notify, queue-address, interrupt, status, and config-generation window
 - transport-identity snapshots that keep the MMIO magic value, transport version support, device-id presence, and vendor-id bookkeeping reviewable without claiming probe parity
+- probe-preflight summaries that keep the earliest magic, version, device, vendor, legacy guest-page-size intent, queue-register-window readiness, interrupt-ack readiness, and ready-for-probe-handoff checks reviewable without claiming real probe lifecycle behavior
 - device-feature page selection and readback for the low and high 32-bit feature pages
 - driver-feature page selection and write bookkeeping for the same bounded two-page feature window
 - queue selection and queue-register summaries for a tiny in-memory queue window
@@ -57,7 +58,7 @@ The still-blocked `phase10-mmio-lifecycle-and-irq-paths` follow-up remains owned
 - `zigux/tests/phase10_closure_manifest.json`
 - `zigux-alpha/PHASE10_CLOSURE_LEDGER.md`
 
-This keeps the driver-local slice note from implying ownership of shared IRQ delivery, queue setup, probe, remove, or DMA-facing transport claims just because the bounded interrupt-state and interrupt-ack rungs are now landed.
+This keeps the driver-local slice note from implying ownership of shared IRQ delivery, queue setup, probe, remove, or DMA-facing transport claims just because the bounded probe-preflight, interrupt-state, and interrupt-ack rungs are now landed.
 
 ## Non-goals
 
@@ -95,4 +96,4 @@ This keeps the MMIO slice note aligned with the shared closure packet's exact te
 
 ## Next bounded step
 
-Leave the MMIO lane parked unless a future inspection can split the remaining `phase10-mmio-lifecycle-and-irq-paths` blocker into another transport-safe observation helper beyond this transport-identity plus interrupt-state packet, without claiming queue setup, shared IRQ delivery, probe, or remove parity.
+Leave the MMIO lane parked unless a future inspection can split the remaining `phase10-mmio-lifecycle-and-irq-paths` blocker into another transport-safe observation helper beyond this transport-identity plus probe-preflight packet, without claiming queue setup, shared IRQ delivery, probe, or remove parity.
