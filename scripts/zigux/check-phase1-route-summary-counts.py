@@ -77,6 +77,21 @@ REQUIRED_ROUTE_LINES = {
 }
 
 COMPANION_ROUTE_LINES = {
+    "companion_phase1_validate_self_test_count": (
+        "Documentation/zigux/phase1-tests-root-review-companion.md",
+        "- `python3 scripts/zigux/validate-phase1.py --self-test`",
+        1,
+    ),
+    "companion_phase1_bitmap_self_test_count": (
+        "Documentation/zigux/phase1-tests-root-review-companion.md",
+        "- `python3 scripts/zigux/check-phase1-bitmap-validator-anchors.py --self-test`",
+        1,
+    ),
+    "companion_phase1_bitmap_count": (
+        "Documentation/zigux/phase1-tests-root-review-companion.md",
+        "- `python3 scripts/zigux/check-phase1-bitmap-validator-anchors.py`",
+        1,
+    ),
     "companion_phase1_find_bit_self_test_count": (
         "Documentation/zigux/phase1-tests-root-review-companion.md",
         "- `python3 scripts/zigux/check-phase1-find-bit-validator-anchors.py --self-test`",
@@ -87,6 +102,36 @@ COMPANION_ROUTE_LINES = {
         "- `python3 scripts/zigux/check-phase1-find-bit-validator-anchors.py`",
         1,
     ),
+    "companion_phase1_route_summary_self_test_count": (
+        "Documentation/zigux/phase1-tests-root-review-companion.md",
+        "- `python3 scripts/zigux/check-phase1-route-summary-counts.py --self-test`",
+        1,
+    ),
+    "companion_phase1_route_summary_count": (
+        "Documentation/zigux/phase1-tests-root-review-companion.md",
+        "- `python3 scripts/zigux/check-phase1-route-summary-counts.py`",
+        1,
+    ),
+    "companion_phase1_validation_route_inventory_self_test_count": (
+        "Documentation/zigux/phase1-tests-root-review-companion.md",
+        "- `python3 scripts/zigux/check-phase1-validation-route-inventory.py --self-test`",
+        1,
+    ),
+    "companion_phase1_validation_route_inventory_count": (
+        "Documentation/zigux/phase1-tests-root-review-companion.md",
+        "- `python3 scripts/zigux/check-phase1-validation-route-inventory.py`",
+        1,
+    ),
+    "companion_phase1_parity_self_test_count": (
+        "Documentation/zigux/phase1-tests-root-review-companion.md",
+        "- `python3 scripts/zigux/check-phase1-parity.py --self-test`",
+        1,
+    ),
+    "companion_phase1_parity_count": (
+        "Documentation/zigux/phase1-tests-root-review-companion.md",
+        "- `python3 scripts/zigux/check-phase1-parity.py`",
+        1,
+    ),
     "companion_phase1_bench_self_test_count": (
         "Documentation/zigux/phase1-tests-root-review-companion.md",
         "- `python3 scripts/zigux/check-phase1-bench.py --self-test`",
@@ -95,6 +140,16 @@ COMPANION_ROUTE_LINES = {
     "companion_phase1_bench_count": (
         "Documentation/zigux/phase1-tests-root-review-companion.md",
         "- `python3 scripts/zigux/check-phase1-bench.py`",
+        1,
+    ),
+    "companion_phase1_validate_phase1_closure_self_test_count": (
+        "Documentation/zigux/phase1-tests-root-review-companion.md",
+        "- `python3 scripts/zigux/validate-phase1-closure.py --self-test`",
+        1,
+    ),
+    "companion_phase1_validate_phase1_closure_count": (
+        "Documentation/zigux/phase1-tests-root-review-companion.md",
+        "- `python3 scripts/zigux/validate-phase1-closure.py`",
         1,
     ),
 }
@@ -278,10 +333,21 @@ def self_test() -> int:
         REQUIRED_ROUTE_LINES["workflow_phase1_route_summary_run_count"][1],
     ]
     companion_markers = [
+        COMPANION_ROUTE_LINES["companion_phase1_validate_self_test_count"][1],
+        COMPANION_ROUTE_LINES["companion_phase1_bitmap_self_test_count"][1],
+        COMPANION_ROUTE_LINES["companion_phase1_bitmap_count"][1],
         COMPANION_ROUTE_LINES["companion_phase1_find_bit_self_test_count"][1],
         COMPANION_ROUTE_LINES["companion_phase1_find_bit_count"][1],
+        COMPANION_ROUTE_LINES["companion_phase1_route_summary_self_test_count"][1],
+        COMPANION_ROUTE_LINES["companion_phase1_route_summary_count"][1],
+        COMPANION_ROUTE_LINES["companion_phase1_validation_route_inventory_self_test_count"][1],
+        COMPANION_ROUTE_LINES["companion_phase1_validation_route_inventory_count"][1],
+        COMPANION_ROUTE_LINES["companion_phase1_parity_self_test_count"][1],
+        COMPANION_ROUTE_LINES["companion_phase1_parity_count"][1],
         COMPANION_ROUTE_LINES["companion_phase1_bench_self_test_count"][1],
         COMPANION_ROUTE_LINES["companion_phase1_bench_count"][1],
+        COMPANION_ROUTE_LINES["companion_phase1_validate_phase1_closure_self_test_count"][1],
+        COMPANION_ROUTE_LINES["companion_phase1_validate_phase1_closure_count"][1],
     ]
     closure_markers = [
         CLOSURE_ROUTE_LINES["closure_phase1_parity_gate_count"][1],
@@ -356,26 +422,92 @@ def self_test() -> int:
         (
             "Documentation/zigux/phase1-tests-root-review-companion.md",
             companion_markers,
-            "companion_phase1_find_bit_self_test_count",
+            "companion_phase1_validate_self_test_count",
             companion_markers[0],
         ),
         (
             "Documentation/zigux/phase1-tests-root-review-companion.md",
             companion_markers,
-            "companion_phase1_find_bit_count",
+            "companion_phase1_bitmap_self_test_count",
             companion_markers[1],
         ),
         (
             "Documentation/zigux/phase1-tests-root-review-companion.md",
             companion_markers,
-            "companion_phase1_bench_self_test_count",
+            "companion_phase1_bitmap_count",
             companion_markers[2],
         ),
         (
             "Documentation/zigux/phase1-tests-root-review-companion.md",
             companion_markers,
-            "companion_phase1_bench_count",
+            "companion_phase1_find_bit_self_test_count",
             companion_markers[3],
+        ),
+        (
+            "Documentation/zigux/phase1-tests-root-review-companion.md",
+            companion_markers,
+            "companion_phase1_find_bit_count",
+            companion_markers[4],
+        ),
+        (
+            "Documentation/zigux/phase1-tests-root-review-companion.md",
+            companion_markers,
+            "companion_phase1_route_summary_self_test_count",
+            companion_markers[5],
+        ),
+        (
+            "Documentation/zigux/phase1-tests-root-review-companion.md",
+            companion_markers,
+            "companion_phase1_route_summary_count",
+            companion_markers[6],
+        ),
+        (
+            "Documentation/zigux/phase1-tests-root-review-companion.md",
+            companion_markers,
+            "companion_phase1_validation_route_inventory_self_test_count",
+            companion_markers[7],
+        ),
+        (
+            "Documentation/zigux/phase1-tests-root-review-companion.md",
+            companion_markers,
+            "companion_phase1_validation_route_inventory_count",
+            companion_markers[8],
+        ),
+        (
+            "Documentation/zigux/phase1-tests-root-review-companion.md",
+            companion_markers,
+            "companion_phase1_parity_self_test_count",
+            companion_markers[9],
+        ),
+        (
+            "Documentation/zigux/phase1-tests-root-review-companion.md",
+            companion_markers,
+            "companion_phase1_parity_count",
+            companion_markers[10],
+        ),
+        (
+            "Documentation/zigux/phase1-tests-root-review-companion.md",
+            companion_markers,
+            "companion_phase1_bench_self_test_count",
+            companion_markers[11],
+        ),
+        (
+            "Documentation/zigux/phase1-tests-root-review-companion.md",
+            companion_markers,
+            "companion_phase1_bench_count",
+            companion_markers[12],
+        ),
+        (
+            "Documentation/zigux/phase1-tests-root-review-companion.md",
+            companion_markers,
+            "companion_phase1_validate_phase1_closure_self_test_count",
+            companion_markers[13],
+        ),
+        (
+            "Documentation/zigux/phase1-tests-root-review-companion.md",
+            companion_markers,
+            "companion_phase1_validate_phase1_closure_count",
+            companion_markers[14],
         ),
         (
             "Documentation/zigux/phase1-closure.md",
@@ -462,7 +594,7 @@ def self_test() -> int:
             (
                 "Documentation/zigux/phase1-tests-root-review-companion.md",
                 fixture_text(companion_markers),
-                "companion_phase1_find_bit_self_test_count:missing_file:Documentation/zigux/phase1-tests-root-review-companion.md",
+                "companion_phase1_validate_self_test_count:missing_file:Documentation/zigux/phase1-tests-root-review-companion.md",
             ),
             (
                 "Documentation/zigux/phase1-closure.md",
