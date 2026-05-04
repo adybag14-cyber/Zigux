@@ -71,7 +71,6 @@ The manifest-backed catalog for this slice now names which file owns each part o
 - `samples/zigux/runtime_kretprobe_loader.zig` owns the sample-side loader projection, explicit shared `command_name` preservation, waiting_on_runtime_substrate handoff, released_without_substrate fallback, and kretprobe payload summary
 - `zigux/kernel/runtime_loader.zig` owns the shared runtime-loader request contract that consumes the kretprobe loader handoff, allocator posture, and staged entry and exit symbols
 - `Documentation/zigux/phase9-runtime-loader-gap-survey.md` owns the blocked shared command-name, argv-policy, environment-derived activation-control posture that keeps the kretprobe packet pre-execution
-- `Documentation/zigux/freeze-map.md` owns the study-only `kernel/workqueue.c` boundary, the no-parity-scorecard posture, and the Architecture Council reopen rule for any scheduler-facing status change tied to this pre-execution kretprobe packet
 
 ## Recorded gaps
 
