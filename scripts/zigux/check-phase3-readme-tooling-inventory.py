@@ -15,6 +15,7 @@ MAKEFILE_REL = "zigux/Makefile"
 README_HELPER_SECTION = "Current bootstrap helpers"
 
 PHASE2_VALIDATE_TARGET = "phase2-validate:"
+PHASE2_TOOLS_TARGET = "phase2-tools:"
 PHASE2_KCONFIG_TARGET = "phase2-kconfig:"
 PHASE2_CROSS_TARGET = "phase2-cross:"
 PHASE6_VALIDATE_TARGET = "phase6-validate:"
@@ -27,6 +28,14 @@ PHASE2_REQUIRED = (
     "check-phase2-kconfig-selftest-alignment.py",
     "check-phase2-toolchain-pin-scope.py",
     "check-phase2-tests-readme-alignment.py",
+)
+PHASE2_TOOLS_ROUTE_COUNTS = (
+    ("artifact_diff.py", 0, 1),
+    ("check-artifact-diff-contract.py", 1, 0),
+    ("check-fixdep-diff.py", 1, 1),
+    ("check-genksyms-bridge.py", 1, 1),
+    ("check-genksyms-crc-diff.py", 1, 1),
+    ("check-mk-elfconfig-diff.py", 1, 1),
 )
 PHASE2_KCONFIG_REQUIRED = ("check-kconfig-bridge.py",)
 PHASE2_CROSS_REQUIRED = ("check-phase2-cross-selftest-alignment.py",)
@@ -151,6 +160,16 @@ def _named_helper_entries(root: Path, target: str, required: tuple[str, ...]) ->
     return _ordered_unique([entry for entry, _ in records if entry in required]), issues
 
 
+def _phase2_tools_entries(root: Path) -> tuple[list[str], list[str]]:
+    records, issues = _makefile_records(root, PHASE2_TOOLS_TARGET)
+    if issues:
+        return [], issues
+    ordered = [basename for basename, _, _ in PHASE2_TOOLS_ROUTE_COUNTS]
+    for basename, expected_live, expected_self_test in PHASE2_TOOLS_ROUTE_COUNTS:
+        _check_route_counts(records, PHASE2_TOOLS_TARGET, basename, expected_live, expected_self_test, issues)
+    return ordered, issues
+
+
 def _target_helper_entries(root: Path, target: str) -> tuple[list[str], list[str]]:
     records, issues = _makefile_records(root, target)
     if issues:
@@ -204,6 +223,7 @@ def validate(root: Path) -> list[str]:
 
     phase3_entries, issues = _canonical_phase3_entries(root)
     phase2_entries, phase2_issues = _named_helper_entries(root, PHASE2_VALIDATE_TARGET, PHASE2_REQUIRED)
+    phase2_tools_entries, phase2_tools_issues = _phase2_tools_entries(root)
     phase2_kconfig_entries, phase2_kconfig_issues = _named_helper_entries(
         root, PHASE2_KCONFIG_TARGET, PHASE2_KCONFIG_REQUIRED
     )
@@ -216,6 +236,7 @@ def validate(root: Path) -> list[str]:
     phase13_entries, phase13_issues = _target_helper_entries(root, PHASE13_VALIDATE_TARGET)
     issues.extend(
         phase2_issues
+        + phase2_tools_issues
         + phase2_kconfig_issues
         + phase2_cross_issues
         + phase6_issues
@@ -227,6 +248,7 @@ def validate(root: Path) -> list[str]:
     all_entries = _ordered_unique(
         phase3_entries
         + phase2_entries
+        + phase2_tools_entries
         + phase2_kconfig_entries
         + phase2_cross_entries
         + phase6_entries
@@ -312,6 +334,18 @@ def _fixture_makefile() -> str:
         "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-tests-readme-alignment.py --self-test",
         "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-tests-readme-alignment.py",
         "",
+        "phase2-tools:",
+        "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/artifact_diff.py --self-test",
+        "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-artifact-diff-contract.py",
+        "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-fixdep-diff.py --self-test",
+        "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-fixdep-diff.py",
+        "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-genksyms-bridge.py --self-test",
+        "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-genksyms-bridge.py",
+        "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-genksyms-crc-diff.py --self-test",
+        "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-genksyms-crc-diff.py",
+        "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-mk-elfconfig-diff.py --self-test",
+        "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-mk-elfconfig-diff.py",
+        "",
         "phase2-kconfig:",
         "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-kconfig-bridge.py --self-test",
         "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-kconfig-bridge.py",
@@ -365,6 +399,14 @@ def _baseline_required_rels() -> tuple[tuple[str, ...], tuple[str, ...]]:
         "scripts/zigux/check-phase3-readme-tooling-inventory.py",
         "scripts/zigux/validate-phase3.py",
     )
+    phase2_tools_helper_rels = (
+        "scripts/zigux/artifact_diff.py",
+        "scripts/zigux/check-artifact-diff-contract.py",
+        "scripts/zigux/check-fixdep-diff.py",
+        "scripts/zigux/check-genksyms-bridge.py",
+        "scripts/zigux/check-genksyms-crc-diff.py",
+        "scripts/zigux/check-mk-elfconfig-diff.py",
+    )
     phase13_helper_rels = (
         "scripts/zigux/check-phase13-libfs-packet.py",
         "scripts/zigux/check-phase13-devres-packet.py",
@@ -377,6 +419,7 @@ def _baseline_required_rels() -> tuple[tuple[str, ...], tuple[str, ...]]:
         "scripts/zigux/check-phase2-kconfig-selftest-alignment.py",
         "scripts/zigux/check-phase2-toolchain-pin-scope.py",
         "scripts/zigux/check-phase2-tests-readme-alignment.py",
+    ) + phase2_tools_helper_rels + (
         "scripts/zigux/check-kconfig-bridge.py",
         "scripts/zigux/check-phase2-cross-selftest-alignment.py",
         "scripts/zigux/check-phase6-base64-catalog-evidence.py",
@@ -393,7 +436,6 @@ def _baseline_readme(required_rels: tuple[str, ...]) -> str:
             "# scripts/zigux",
             "",
             "Current bootstrap helpers",
-            "- `artifact_diff.py`",
             helper_lines,
             "",
             _fixture_phase3_flow(),
@@ -451,6 +493,11 @@ def run_self_test() -> int:
         _write(root / MAKEFILE_REL, baseline_makefile)
         case_count += 1
 
+        _write(root / MAKEFILE_REL, "\n".join(("phase2-tools:", "\t@true", "", baseline_makefile)))
+        _assert_only(validate(root), [f"missing_makefile_target_entries:{PHASE2_TOOLS_TARGET}"], "missing_phase2_tools_makefile_guard_failed")
+        _write(root / MAKEFILE_REL, baseline_makefile)
+        case_count += 1
+
         _write(root / MAKEFILE_REL, "\n".join(("phase2-kconfig:", "\t@true", "", baseline_makefile)))
         _assert_only(validate(root), [f"missing_makefile_target_entries:{PHASE2_KCONFIG_TARGET}"], "missing_phase2_kconfig_makefile_guard_failed")
         _write(root / MAKEFILE_REL, baseline_makefile)
@@ -470,6 +517,16 @@ def run_self_test() -> int:
             ("duplicate_phase2_toolchain_pin_scope_makefile_route_guard_failed", "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-toolchain-pin-scope.py\n", "unexpected_makefile_live_route_count:phase2-validate::2:check-phase2-toolchain-pin-scope.py"),
             ("duplicate_phase2_tests_readme_self_test_route_guard_failed", "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-tests-readme-alignment.py --self-test\n", "unexpected_makefile_self_test_route_count:phase2-validate::2:check-phase2-tests-readme-alignment.py"),
             ("duplicate_phase2_tests_readme_makefile_route_guard_failed", "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-tests-readme-alignment.py\n", "unexpected_makefile_live_route_count:phase2-validate::2:check-phase2-tests-readme-alignment.py"),
+            ("duplicate_phase2_artifact_diff_self_test_route_guard_failed", "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/artifact_diff.py --self-test\n", "unexpected_makefile_self_test_route_count:phase2-tools::2:artifact_diff.py"),
+            ("duplicate_phase2_artifact_diff_contract_makefile_route_guard_failed", "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-artifact-diff-contract.py\n", "unexpected_makefile_live_route_count:phase2-tools::2:check-artifact-diff-contract.py"),
+            ("duplicate_phase2_fixdep_self_test_route_guard_failed", "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-fixdep-diff.py --self-test\n", "unexpected_makefile_self_test_route_count:phase2-tools::2:check-fixdep-diff.py"),
+            ("duplicate_phase2_fixdep_makefile_route_guard_failed", "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-fixdep-diff.py\n", "unexpected_makefile_live_route_count:phase2-tools::2:check-fixdep-diff.py"),
+            ("duplicate_phase2_genksyms_bridge_tool_self_test_route_guard_failed", "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-genksyms-bridge.py --self-test\n", "unexpected_makefile_self_test_route_count:phase2-tools::2:check-genksyms-bridge.py"),
+            ("duplicate_phase2_genksyms_bridge_tool_makefile_route_guard_failed", "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-genksyms-bridge.py\n", "unexpected_makefile_live_route_count:phase2-tools::2:check-genksyms-bridge.py"),
+            ("duplicate_phase2_genksyms_crc_self_test_route_guard_failed", "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-genksyms-crc-diff.py --self-test\n", "unexpected_makefile_self_test_route_count:phase2-tools::2:check-genksyms-crc-diff.py"),
+            ("duplicate_phase2_genksyms_crc_makefile_route_guard_failed", "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-genksyms-crc-diff.py\n", "unexpected_makefile_live_route_count:phase2-tools::2:check-genksyms-crc-diff.py"),
+            ("duplicate_phase2_mk_elfconfig_self_test_route_guard_failed", "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-mk-elfconfig-diff.py --self-test\n", "unexpected_makefile_self_test_route_count:phase2-tools::2:check-mk-elfconfig-diff.py"),
+            ("duplicate_phase2_mk_elfconfig_makefile_route_guard_failed", "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-mk-elfconfig-diff.py\n", "unexpected_makefile_live_route_count:phase2-tools::2:check-mk-elfconfig-diff.py"),
             ("duplicate_phase2_kconfig_bridge_self_test_route_guard_failed", "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-kconfig-bridge.py --self-test\n", "unexpected_makefile_self_test_route_count:phase2-kconfig::2:check-kconfig-bridge.py"),
             ("duplicate_phase2_kconfig_bridge_makefile_route_guard_failed", "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-kconfig-bridge.py\n", "unexpected_makefile_live_route_count:phase2-kconfig::2:check-kconfig-bridge.py"),
             ("duplicate_phase2_cross_self_test_route_guard_failed", "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-cross-selftest-alignment.py --self-test\n", "unexpected_makefile_self_test_route_count:phase2-cross::2:check-phase2-cross-selftest-alignment.py"),
@@ -520,6 +577,12 @@ def run_self_test() -> int:
             ("missing_phase2_readme_entry_guard_failed", "scripts/zigux/check-phase2-kconfig-selftest-alignment.py", "missing_readme_entry:check-phase2-kconfig-selftest-alignment.py"),
             ("missing_phase2_toolchain_pin_scope_readme_entry_guard_failed", "scripts/zigux/check-phase2-toolchain-pin-scope.py", "missing_readme_entry:check-phase2-toolchain-pin-scope.py"),
             ("missing_phase2_tests_readme_entry_guard_failed", "scripts/zigux/check-phase2-tests-readme-alignment.py", "missing_readme_entry:check-phase2-tests-readme-alignment.py"),
+            ("missing_phase2_artifact_diff_readme_entry_guard_failed", "scripts/zigux/artifact_diff.py", "missing_readme_entry:artifact_diff.py"),
+            ("missing_phase2_artifact_diff_contract_readme_entry_guard_failed", "scripts/zigux/check-artifact-diff-contract.py", "missing_readme_entry:check-artifact-diff-contract.py"),
+            ("missing_phase2_fixdep_readme_entry_guard_failed", "scripts/zigux/check-fixdep-diff.py", "missing_readme_entry:check-fixdep-diff.py"),
+            ("missing_phase2_genksyms_bridge_tool_readme_entry_guard_failed", "scripts/zigux/check-genksyms-bridge.py", "missing_readme_entry:check-genksyms-bridge.py"),
+            ("missing_phase2_genksyms_crc_readme_entry_guard_failed", "scripts/zigux/check-genksyms-crc-diff.py", "missing_readme_entry:check-genksyms-crc-diff.py"),
+            ("missing_phase2_mk_elfconfig_readme_entry_guard_failed", "scripts/zigux/check-mk-elfconfig-diff.py", "missing_readme_entry:check-mk-elfconfig-diff.py"),
             ("missing_phase2_kconfig_bridge_readme_entry_guard_failed", "scripts/zigux/check-kconfig-bridge.py", "missing_readme_entry:check-kconfig-bridge.py"),
             ("missing_phase2_cross_readme_entry_guard_failed", "scripts/zigux/check-phase2-cross-selftest-alignment.py", "missing_readme_entry:check-phase2-cross-selftest-alignment.py"),
         )
@@ -543,8 +606,8 @@ def run_self_test() -> int:
             "scripts/zigux/validate-phase13-release.py",
         )
         reordered = "\n".join(
-            ("# scripts/zigux", "", "Current bootstrap helpers", "- `artifact_diff.py`",
-             *[f"- `{Path(rel).name}`" for rel in tooling_packet_rels + ("scripts/zigux/check-phase2-genksyms-bridge-selftest-alignment.py", "scripts/zigux/check-phase2-kconfig-selftest-alignment.py", "scripts/zigux/check-phase2-toolchain-pin-scope.py", "scripts/zigux/check-phase2-tests-readme-alignment.py", "scripts/zigux/check-kconfig-bridge.py", "scripts/zigux/check-phase2-cross-selftest-alignment.py", "scripts/zigux/check-phase6-base64-catalog-evidence.py", "scripts/zigux/check-phase7-argv-split-parity.py", "scripts/zigux/check-phase11-shared-replay-contract.py") + phase13_reordered],
+            ("# scripts/zigux", "", "Current bootstrap helpers",
+             *[f"- `{Path(rel).name}`" for rel in tooling_packet_rels + ("scripts/zigux/check-phase2-genksyms-bridge-selftest-alignment.py", "scripts/zigux/check-phase2-kconfig-selftest-alignment.py", "scripts/zigux/check-phase2-toolchain-pin-scope.py", "scripts/zigux/check-phase2-tests-readme-alignment.py", "scripts/zigux/artifact_diff.py", "scripts/zigux/check-artifact-diff-contract.py", "scripts/zigux/check-fixdep-diff.py", "scripts/zigux/check-genksyms-bridge.py", "scripts/zigux/check-genksyms-crc-diff.py", "scripts/zigux/check-mk-elfconfig-diff.py", "scripts/zigux/check-kconfig-bridge.py", "scripts/zigux/check-phase2-cross-selftest-alignment.py", "scripts/zigux/check-phase6-base64-catalog-evidence.py", "scripts/zigux/check-phase7-argv-split-parity.py", "scripts/zigux/check-phase11-shared-replay-contract.py") + phase13_reordered],
              "", _fixture_phase3_flow(), _fixture_cross_phase_flow())
         )
         _write(root / README_REL, reordered)
@@ -556,7 +619,7 @@ def run_self_test() -> int:
         _assert_only(validate(root), [f"duplicate_readme_entry:{Path(tooling_packet_rels[0]).name}"], "duplicate_readme_entry_guard_failed")
         case_count += 1
 
-        missing_flow = "\n".join(("# scripts/zigux", "", "Current bootstrap helpers", "- `artifact_diff.py`", *[f"- `{Path(rel).name}`" for rel in required_rels], ""))
+        missing_flow = "\n".join(("# scripts/zigux", "", "Current bootstrap helpers", *[f"- `{Path(rel).name}`" for rel in required_rels], ""))
         _write(root / README_REL, missing_flow)
         _assert_only(
             validate(root),
@@ -593,12 +656,12 @@ def run_self_test() -> int:
         _assert_only(validate(root), [f"missing_repo_file:{tooling_packet_rels[-1]}"], "missing_repo_file_guard_failed")
         case_count += 1
 
-    if case_count != 55:
+    if case_count != 72:
         raise SystemExit(
             f"phase3-readme-tooling-inventory-self-test:unexpected_case_count:{case_count}"
         )
     print("PHASE3_README_TOOLING_INVENTORY_SELF_TEST=pass")
-    print("PHASE3_README_TOOLING_INVENTORY_SELF_TEST_CASE_COUNT=55")
+    print("PHASE3_README_TOOLING_INVENTORY_SELF_TEST_CASE_COUNT=72")
     return 0
 
 
@@ -623,6 +686,7 @@ def main() -> int:
 
     phase3_entries, entry_issues = _canonical_phase3_entries(repo_root)
     phase2_entries, phase2_issues = _named_helper_entries(repo_root, PHASE2_VALIDATE_TARGET, PHASE2_REQUIRED)
+    phase2_tools_entries, phase2_tools_issues = _phase2_tools_entries(repo_root)
     phase2_kconfig_entries, phase2_kconfig_issues = _named_helper_entries(
         repo_root, PHASE2_KCONFIG_TARGET, PHASE2_KCONFIG_REQUIRED
     )
@@ -635,6 +699,7 @@ def main() -> int:
     phase13_entries, phase13_issues = _target_helper_entries(repo_root, PHASE13_VALIDATE_TARGET)
     entry_issues.extend(
         phase2_issues
+        + phase2_tools_issues
         + phase2_kconfig_issues
         + phase2_cross_issues
         + phase6_issues
@@ -652,6 +717,7 @@ def main() -> int:
         _ordered_unique(
             phase3_entries
             + phase2_entries
+            + phase2_tools_entries
             + phase2_kconfig_entries
             + phase2_cross_entries
             + phase6_entries
