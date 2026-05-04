@@ -3,6 +3,7 @@ const runtime_atomic64_diff = @import("runtime_atomic64_diff.zig");
 const atomic64_diff_source = @embedFile("atomic64_diff.zig");
 const runtime_atomic64_diff_source = @embedFile("runtime_atomic64_diff.zig");
 const phase4_runtime_atomic64_manifest_source = @embedFile("phase4_runtime_atomic64_diff_manifest.json");
+const phase4_runtime_atomic64_survey_source = @embedFile("phase4_runtime_atomic64_diff_survey.zig");
 const phase4_build_source = @embedFile("phase4_build.zig");
 const phase4_makefile_source = @embedFile("../Makefile");
 const phase4_workflow_source = @embedFile("../../.github/workflows/zigux-bootstrap.yml");
@@ -41,6 +42,26 @@ fn expectGateEvidenceMarker(marker: []const u8) !void {
 
 fn expectGateEvidenceCheckerMarker(marker: []const u8) !void {
     try std.testing.expect(std.mem.indexOf(u8, check_phase4_gate_evidence_source, marker) != null);
+}
+
+fn gitBlobShaHex(payload: []const u8) [40]u8 {
+    var hasher = std.crypto.hash.Sha1.init(.{});
+    var header_buf: [64]u8 = undefined;
+    const header = std.fmt.bufPrint(&header_buf, "blob {d}\x00", .{payload.len}) catch unreachable;
+    hasher.update(header);
+    hasher.update(payload);
+
+    var digest: [20]u8 = undefined;
+    hasher.final(&digest);
+
+    return std.fmt.bytesToHex(digest, .lower);
+}
+
+fn expectGateEvidenceBlob(marker: []const u8, payload: []const u8) !void {
+    const digest = gitBlobShaHex(payload);
+    var line_buf: [128]u8 = undefined;
+    const line = try std.fmt.bufPrint(&line_buf, "`{s}={s}`", .{ marker, &digest });
+    try std.testing.expect(std.mem.indexOf(u8, phase4_gate_evidence_source, line) != null);
 }
 
 fn countOccurrences(haystack: []const u8, needle: []const u8) usize {
@@ -256,6 +277,18 @@ test "atomic64 diff wrapper keeps the dedicated phase4 gate-evidence checker exp
     try expectGateEvidenceMarker("`PHASE4_GATE_EVIDENCE_TARGET_COUNT=17`");
     try expectGateEvidenceMarker("`PHASE4_RUNTIME_ATOMIC64_MANIFEST_BLOB_SHA=");
     try expectGateEvidenceMarker("`PHASE4_RUNTIME_ATOMIC64_SURVEY_BLOB_SHA=");
+    try expectGateEvidenceBlob(
+        "PHASE4_GATE_EVIDENCE_CHECKER_BLOB_SHA",
+        check_phase4_gate_evidence_source,
+    );
+    try expectGateEvidenceBlob(
+        "PHASE4_RUNTIME_ATOMIC64_MANIFEST_BLOB_SHA",
+        phase4_runtime_atomic64_manifest_source,
+    );
+    try expectGateEvidenceBlob(
+        "PHASE4_RUNTIME_ATOMIC64_SURVEY_BLOB_SHA",
+        phase4_runtime_atomic64_survey_source,
+    );
     try expectGateEvidenceMarker("`make -C zigux phase4-runtime-atomic64-diff`");
     try expectGateEvidenceMarker("`phase4-runtime-atomic64-diff-tests`");
     try expectGateEvidenceMarker("`phase4-runtime-atomic64-diff-survey-tests`");
