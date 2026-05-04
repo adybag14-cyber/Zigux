@@ -22,6 +22,7 @@ REQUIRED_FILES = [
     "Documentation/zigux/README.md",
     "Documentation/zigux/review-checklist.md",
     "scripts/zigux/README.md",
+    "scripts/zigux/check-phase12-shared-replay-contract.py",
     "scripts/zigux/validate-phase12.py",
     "zigux/tests/README.md",
     "zigux/tests/phase12_build.zig",
@@ -45,6 +46,8 @@ SHARED_REPLAY_NOTE_MARKERS = [
     "python3 scripts/zigux/check-phase12-raw-github-coverage.py",
     "python3 scripts/zigux/check-phase12-release-readiness-packet.py --self-test",
     "python3 scripts/zigux/check-phase12-release-readiness-packet.py",
+    "python3 scripts/zigux/check-phase12-shared-replay-contract.py --self-test",
+    "python3 scripts/zigux/check-phase12-shared-replay-contract.py",
     "python3 scripts/zigux/validate-phase12.py",
     "make -C zigux phase12-validate",
     "zig build test --build-file zigux/tests/phase12_build.zig --summary all",
@@ -77,6 +80,7 @@ SCRIPTS_README_MARKERS = [
     "check-phase12-libbpf-focused-replay.py",
     "check-phase12-raw-github-coverage.py",
     "check-phase12-release-readiness-packet.py",
+    "check-phase12-shared-replay-contract.py",
     "validate-phase12.py",
     "Documentation/zigux/phase12-shared-replay-contract.md",
     "zigux/tests/phase12_libbpf_only_build.zig",
@@ -115,6 +119,8 @@ MAKEFILE_MARKERS = [
     "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase12-raw-github-coverage.py",
     "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase12-release-readiness-packet.py --self-test",
     "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase12-release-readiness-packet.py",
+    "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase12-shared-replay-contract.py --self-test",
+    "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase12-shared-replay-contract.py",
     "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase12.py",
 ]
 
@@ -126,25 +132,25 @@ WORKFLOW_MARKERS = [
 ]
 
 BUILD_MARKERS = [
-    'phase12-virtio-net-tests',
-    'phase12-virtio-net-survey-tests',
-    'phase12-nvme-pci-tests',
-    'phase12-nvme-pci-survey-tests',
-    'phase12-virtio-scsi-tests',
-    'phase12-virtio-scsi-survey-tests',
-    'phase12-raw-github-coverage-survey-tests',
-    'phase12-libbpf-segment-survey-tests',
-    'phase12-libbpf-reviewability-tests',
+    "phase12-virtio-net-tests",
+    "phase12-virtio-net-survey-tests",
+    "phase12-nvme-pci-tests",
+    "phase12-nvme-pci-survey-tests",
+    "phase12-virtio-scsi-tests",
+    "phase12-virtio-scsi-survey-tests",
+    "phase12-raw-github-coverage-survey-tests",
+    "phase12-libbpf-segment-survey-tests",
+    "phase12-libbpf-reviewability-tests",
 ]
 
 LIBBPF_ONLY_BUILD_MARKERS = [
-    'phase12-libbpf-segment-survey-tests',
-    'phase12-libbpf-reviewability-tests',
+    "phase12-libbpf-segment-survey-tests",
+    "phase12-libbpf-reviewability-tests",
 ]
 
 BUILD_FIXTURE_MARKERS = [
-    '"phase12-libbpf-segment-survey-tests"',
-    '"phase12-libbpf-reviewability-tests"',
+    "\"phase12-libbpf-segment-survey-tests\"",
+    "\"phase12-libbpf-reviewability-tests\"",
 ]
 
 
@@ -302,6 +308,21 @@ def run_self_test() -> int:
         )
         write_text(note_path, note_backup)
 
+        write_text(
+            note_path,
+            note_backup.replace(
+                "python3 scripts/zigux/check-phase12-shared-replay-contract.py --self-test\n",
+                "",
+                1,
+            ),
+        )
+        expect_missing(
+            "missing_note_contract_checker_self_test",
+            run_checker(tmp_root),
+            "shared_replay_note:python3 scripts/zigux/check-phase12-shared-replay-contract.py --self-test",
+        )
+        write_text(note_path, note_backup)
+
         docs_root_path = tmp_root / "Documentation/zigux/README.md"
         docs_root_backup = docs_root_path.read_text(encoding="utf-8")
         write_text(
@@ -325,6 +346,17 @@ def run_self_test() -> int:
             "missing_scripts_readme_contract_link",
             run_checker(tmp_root),
             "scripts_readme:Documentation/zigux/phase12-shared-replay-contract.md",
+        )
+        write_text(scripts_readme_path, scripts_readme_backup)
+
+        write_text(
+            scripts_readme_path,
+            scripts_readme_backup.replace("check-phase12-shared-replay-contract.py\n", "", 1),
+        )
+        expect_missing(
+            "missing_scripts_readme_contract_checker",
+            run_checker(tmp_root),
+            "scripts_readme:check-phase12-shared-replay-contract.py",
         )
         write_text(scripts_readme_path, scripts_readme_backup)
 
@@ -378,6 +410,17 @@ def run_self_test() -> int:
         )
         write_text(makefile_path, makefile_backup)
 
+        write_text(
+            makefile_path,
+            makefile_backup.replace(MAKEFILE_MARKERS[13] + "\n", "", 1),
+        )
+        expect_missing(
+            "missing_makefile_contract_checker_self_test",
+            run_checker(tmp_root),
+            f"makefile:{MAKEFILE_MARKERS[13]}",
+        )
+        write_text(makefile_path, makefile_backup)
+
         build_path = tmp_root / "zigux/tests/phase12_build.zig"
         build_backup = build_path.read_text(encoding="utf-8")
         write_text(
@@ -392,7 +435,7 @@ def run_self_test() -> int:
         write_text(build_path, build_backup)
 
     print("PHASE12_SHARED_REPLAY_CONTRACT_SELF_TEST=pass")
-    print("PHASE12_SHARED_REPLAY_CONTRACT_SELF_TEST_CASE_COUNT=8")
+    print("PHASE12_SHARED_REPLAY_CONTRACT_SELF_TEST_CASE_COUNT=11")
     return 0
 
 
