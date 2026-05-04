@@ -99,6 +99,15 @@ The first shared substrate implementation is now ready because:
 
 That still leaves the broader control plane blocked. Any future non-null `command_name` must keep a truthful Phase 8 owner such as `tools/lib/subcmd/exec-cmd.zig` and `ExtractArgv0Result.command_name`, and this slice still does not claim `Config.exec_path_env`, `PERF_EXEC_PATH`, `PATH`, or other environment-derived activation handling as runtime-loader behavior.
 
+## Review-Only Command Provenance
+
+The current packet is now explicit about where a review-only `command_name` hint may come from and where it still must not go:
+
+- truthful review provenance for a non-null `command_name` stays with the parked Phase 8 `tools/lib/subcmd/exec-cmd.zig` surface, especially `ExtractArgv0Result.command_name`
+- the shared Phase 9 request may preserve that command name as a review clue across `waiting_on_runtime_substrate` and `released_without_substrate`, but it still does not turn that clue into a runnable control plane
+- `Config.exec_path_env`, `PERF_EXEC_PATH`, `PATH`, and other environment-derived activation inputs remain blocked from counting as runtime-loader behavior in this slice
+- `samples/zigux/runtime_trace_events_loader.zig` may keep the same review-only command-name cue on its blocked scaffold, but it still does not join the shared request union or claim environment-driven activation while the trace-core boundary stays frozen
+
 ## Adjacent freeze boundaries
 
 The shared request surface also stays parked beneath the nearby freeze-map boundaries:
