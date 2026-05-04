@@ -89,7 +89,8 @@ The exact checks currently recorded in `zigux/tests/phase5_kretprobe_example_man
   - timestamp-order rejection and recovery still reject `199` after `200` and accept `260` for `60 ns`
   - `maxactiveBudget()` remains fixed at `20`, the replay still records one missed instance, and `runLifecycleGuardReplay()` keeps the pre-init `runAnchorReplay()` and `exit()` rejection plus the double `init()` and post-init retarget and recovery rejection explicit
   - the ownership replay still rejects `exit()` while armed and still rejects `recordMissedInstance()`, `entryHandler()`, and `retHandler()` after exit
-- the manifest-backed survey packet below is now pinned to `PHASE5_SURVEYED_COMMIT=7c1e6840cf73a321e775e8e77448157b1304ee1d` after the lane-local scratch survey replay recorded in the latest verification snapshot
+- this newer current-head replay is intentionally direct-sample evidence only: it confirms that `zig test samples/zigux/kretprobe_example.zig` still matches the sample-owned contract on a newer `master` head, but it does not repin the broader manifest-backed survey packet because the note, manifest, and adjacent contributor surfaces were not rerun together at `c0b506e3254e63fe007a72d420bb275846a89093`
+- the manifest-backed survey packet below is therefore still pinned to `PHASE5_SURVEYED_COMMIT=7c1e6840cf73a321e775e8e77448157b1304ee1d` after the lane-local scratch survey replay recorded in the latest verification snapshot
 
 ## Latest verification snapshot
 
@@ -101,6 +102,7 @@ The exact checks currently recorded in `zigux/tests/phase5_kretprobe_example_man
     - `2/2 phase5_kretprobe_example_survey.test.phase 5 kretprobe contributor docs stay aligned with the shipped review surface...OK`
     - `All 2 tests passed.`
 - this lane-local refresh used a focused survey-packet scratch replay with the directly coupled note, manifest, shared sample-root catalog, shared tests-root guide, top-level docs-root guide, and shared review checklist; no live repo checkout was available for a fresh `zig test samples/zigux/kretprobe_example.zig` or `zig build test --build-file zigux/tests/phase5_build.zig --summary all` replay in this run
+- the newer current-head direct sample replay above confirms that the sample-owned `kretprobe_example` behavior still matches the same bounded contract, but the manifest-backed packet and adjacent contributor surfaces remain pinned to `7c1e6840cf73a321e775e8e77448157b1304ee1d` until that wider same-packet rerun is refreshed together
 - that focused survey-packet scratch replay still confirms the same contributor-facing contract:
   - pre-init retargeting still uses `do_sys_openat2`
   - timestamp-order recovery still rejects `199` after `200` and accepts `260` for a `60 ns` replay
@@ -133,6 +135,7 @@ The current gap is no longer "Zigux has no kretprobe sample guidance." The more 
 - this sample must remain visibly separate from the later `samples/zigux/runtime_kretprobe.zig` and `samples/zigux/runtime_kretprobe_loader.zig` Phase 9 follow-ons so contributors do not over-claim runtime substrate coverage
 - the same shared contributor packet also needs to keep the no `samples/zigux/*string*`, no `samples/zigux/*cmdline*`, and no `samples/zigux/*rbtree*` boundaries visible so helper-only Phase 7 evidence does not read like three more missing Phase 5 sample ports beside the landed kretprobe idiom
 - this approved probe-lifecycle idiom is now pinned to `PHASE5_SURVEYED_COMMIT=7c1e6840cf73a321e775e8e77448157b1304ee1d` so the survey note, manifest-backed checks, shared sample-root catalog, shared tests-root guide, and shared review checklist all point at the same inspected `master` head
+- the newer direct-sample replay recorded above is intentionally narrower evidence for `samples/zigux/kretprobe_example.zig` only and should not be mistaken for a wider packet repin until the manifest-backed survey and adjacent contributor surfaces are rerun together
 - the Phase 5 roadmap's four named sample anchors are now all represented by bounded `samples/zigux/` reference readings, but that does not close the separate Phase 9 runtime pilot tranche
 
 ## Review gates for this survey
