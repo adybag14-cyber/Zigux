@@ -108,7 +108,7 @@
       "id": "runtime-atomic64-module-slice",
       "kind": "documentation",
       "path": "Documentation/zigux/phase9-runtime-atomic64-module-slice.md",
-      "role": "records the bounded starter surface, loader handoff wording, and shared-build-leg explanation for the shipped runtime atomic64 packet"
+      "role": "records the bounded starter surface, loader handoff wording, prepared counter-summary snapshot replay, and shared-build-leg explanation for the shipped runtime atomic64 packet"
     },
     {
       "id": "runtime-atomic64-manifest",
@@ -150,13 +150,13 @@
       "id": "runtime-atomic64-loader-scaffold",
       "kind": "runtime_substrate_scaffold",
       "path": "samples/zigux/runtime_atomic64_loader.zig",
-      "role": "owns the entry and exit symbol names, explicit shared command_name preservation, waiting_on_runtime_substrate handoff, released_without_substrate fallback, and atomic64 payload summary for the sample-side loader projection"
+      "role": "owns the entry and exit symbol names, explicit shared command_name preservation, prepared counter-summary snapshot replay, waiting_on_runtime_substrate handoff, released_without_substrate fallback, and atomic64 payload summary for the sample-side loader projection"
     },
     {
       "id": "runtime-atomic64-shared-loader-binding",
       "kind": "runtime_substrate",
       "path": "zigux/kernel/runtime_loader.zig",
-      "role": "owns the shared runtime-loader request contract that consumes the atomic64 loader handoff, allocator posture, and staged entry and exit symbols"
+      "role": "owns the shared runtime-loader request contract that consumes the atomic64 loader handoff, prepared counter-summary snapshot replay, allocator posture, and staged entry and exit symbols"
     },
     {
       "id": "runtime-loader-gap-note",
@@ -178,7 +178,7 @@
     },
     {
       "surface": "Documentation/zigux/phase9-runtime-atomic64-module-slice.md",
-      "owns": "the bounded starter surface, loader handoff wording, and shared-build-leg explanation for the shipped packet"
+      "owns": "the bounded starter surface, loader handoff wording, prepared counter-summary snapshot replay, and shared-build-leg explanation for the shipped packet"
     },
     {
       "surface": "zigux/tests/runtime_atomic64_manifest.json",
@@ -206,11 +206,11 @@
     },
     {
       "surface": "samples/zigux/runtime_atomic64_loader.zig",
-      "owns": "the sample-side loader projection, explicit shared command_name preservation, waiting_on_runtime_substrate handoff, released_without_substrate fallback, and atomic64 payload summary"
+      "owns": "the sample-side loader projection, explicit shared command_name preservation, prepared counter-summary snapshot replay, waiting_on_runtime_substrate handoff, released_without_substrate fallback, and atomic64 payload summary"
     },
     {
       "surface": "zigux/kernel/runtime_loader.zig",
-      "owns": "the shared runtime-loader request contract that consumes the atomic64 loader handoff, allocator posture, and staged entry and exit symbols"
+      "owns": "the shared runtime-loader request contract that consumes the atomic64 loader handoff, prepared counter-summary snapshot replay, allocator posture, and staged entry and exit symbols"
     },
     {
       "surface": "Documentation/zigux/phase9-runtime-loader-gap-survey.md",
