@@ -132,6 +132,13 @@
       "why_now": "The live repo now includes one bounded in-memory probe preflight summary that records whether identity, capability setup, registration intent, queue provisioning, and ready-state gating have all converged before any transport-backed probe handoff or input registration lifecycle work."
     },
     {
+      "id": "phase10-virtio-input-registration-blocker-helper",
+      "status": "starter_landed",
+      "kind": "lab_driver_starter",
+      "zigux_destination": "drivers/virtio/virtio_input_registration_blocker.zig",
+      "why_now": "The live repo now includes one bounded driver-local registration blocker helper that keeps `input_register_device()` lifecycle, transport-backed queue callbacks, freeze or restore handling, and probe or remove work explicitly parked as `blocked_on_risky_transport` even after registration, queue-callback, and probe-preflight readiness all converge in memory."
+    },
+    {
       "id": "phase10-virtio-input-registration-lifecycle",
       "status": "blocked_on_risky_transport",
       "kind": "validation",
