@@ -153,7 +153,7 @@
         "benchmark_notes_status": "pending_until_rcu_followup_is_narrower_than_freeze_boundary",
         "replay_command": "zig build test --build-file zigux/tests/phase15_build.zig",
         "latest_blocker_disposition": "blocked_phase14_followup_still_wider_than_allowed_rcu_seam",
-        "rollback_threshold": "If the decision record, scorecard evidence, benchmark notes, replay_command, rollback owner, or narrowed RCU follow-up stops being explicit, or if the candidate seam widens back across grace-period sequencing, expedited-GP behavior, or NOCB wakeup ownership, return this anchor to blocked review posture."
+        "rollback_threshold": "If the decision record, scorecard evidence, benchmark notes, replay command, rollback owner, or narrowed RCU follow-up stops being explicit, or if the candidate seam widens back across grace-period sequencing, expedited-GP behavior, or NOCB wakeup ownership, return this anchor to blocked review posture."
       }
     },
     {
