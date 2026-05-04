@@ -141,6 +141,9 @@ test "runtime trace-events diff gate keeps selftest-ready failed-exit rollback e
     try std.testing.expectEqual(@as(usize, 0), before_failed_exit.exit_runs);
     try std.testing.expectEqual(@as(i32, 5), before_failed_exit.last_main_count);
     try std.testing.expectEqual(@as(i32, 15), before_failed_exit.last_fn_count);
+    try std.testing.expect(before_failed_exit.saw_vararg_payload);
+    try std.testing.expect(before_failed_exit.saw_rel_loc_payload);
+    try std.testing.expect(before_failed_exit.saw_conditional_path);
     try std.testing.expectEqualStrings("foo_bar_reg", before_failed_exit.last_register_label orelse return error.ExpectedFunctionPayload);
     try std.testing.expectEqualStrings("foo_bar_unreg", before_failed_exit.last_unregister_label orelse return error.ExpectedFunctionPayload);
     try std.testing.expectEqualStrings("hello", before_failed_exit.last_main_foo_bar_message orelse return error.ExpectedMainPayload);
@@ -171,6 +174,9 @@ test "runtime trace-events diff gate keeps selftest-ready failed-exit rollback e
     try std.testing.expectEqual(before_failed_exit.exit_runs, after_failed_exit.exit_runs);
     try std.testing.expectEqual(before_failed_exit.last_main_count, after_failed_exit.last_main_count);
     try std.testing.expectEqual(before_failed_exit.last_fn_count, after_failed_exit.last_fn_count);
+    try std.testing.expectEqual(before_failed_exit.saw_vararg_payload, after_failed_exit.saw_vararg_payload);
+    try std.testing.expectEqual(before_failed_exit.saw_rel_loc_payload, after_failed_exit.saw_rel_loc_payload);
+    try std.testing.expectEqual(before_failed_exit.saw_conditional_path, after_failed_exit.saw_conditional_path);
     try std.testing.expectEqualStrings(before_failed_exit.main_thread_label orelse return error.ExpectedFunctionPayload, after_failed_exit.main_thread_label orelse return error.ExpectedFunctionPayload);
     try std.testing.expectEqualStrings(before_failed_exit.function_thread_label orelse return error.ExpectedFunctionPayload, after_failed_exit.function_thread_label orelse return error.ExpectedFunctionPayload);
     try std.testing.expectEqualStrings(before_failed_exit.last_register_label orelse return error.ExpectedFunctionPayload, after_failed_exit.last_register_label orelse return error.ExpectedFunctionPayload);
