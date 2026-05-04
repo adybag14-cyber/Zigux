@@ -10,6 +10,7 @@ The active Phase 9 packet should continue to agree across these shared review su
 - `Documentation/zigux/phase9-runtime-loader-gap-survey.md`
 - `Documentation/zigux/phase9-runtime-loader-substrate-plan.md`
 - `Documentation/zigux/phase9-module-metadata-depmod-bridge-survey.md`
+- `Documentation/zigux/freeze-map.md`
 - `Documentation/zigux/phase9-tests-root-review-companion.md`
 - `scripts/zigux/README.md`
 - `zigux/tests/README.md`
@@ -44,7 +45,7 @@ From the tests root, the bounded Phase 9 packet is carried by:
 - `zigux/tests/runtime_trace_events_module.zig`
 - `zigux/tests/runtime_trace_events_diff.zig`
 
-Those files should keep the manifest-backed catalog, shared replay entrypoint, module-metadata packet, non-owner boundary, and the current runtime starter surveys aligned with the docs-root, tests-root index, review-checklist, and scripts-root packet.
+Those files should keep the manifest-backed catalog, shared replay entrypoint, module-metadata packet, non-owner boundary, the trace-events freeze-map boundary, and the current runtime starter surveys aligned with the docs-root, tests-root index, review-checklist, and scripts-root packet.
 
 ## Shared request boundary
 
@@ -52,6 +53,7 @@ The tests-root packet should continue to keep the shared `RuntimeLoadRequest` bo
 - `samples/zigux/runtime_atomic64_loader.zig`, `samples/zigux/runtime_bitmap_loader.zig`, and `samples/zigux/runtime_kretprobe_loader.zig` should continue to route their bounded loader-plan evidence through `zigux/kernel/runtime_loader.zig` and its shared `RuntimeLoadRequest` surface.
 - `samples/zigux/runtime_trace_events_loader.zig` remains an adjacent scaffold until the blocked trace-events substrate handoff can truthfully adopt that same request path.
 - `zigux/tests/runtime_loader_gap_manifest.json` and `zigux/tests/runtime_loader_gap_survey.zig` should keep that shared-request boundary reviewable beside the same without-substrate fallback posture and the current sample-only blocked trace-events pilot.
+- `Documentation/zigux/freeze-map.md` should keep `kernel/trace/ring_buffer.c` explicit as `Study / Boundary Only` beside that same blocked trace-events pilot until an Architecture Council decision reopens the boundary.
 
 ## Validator-first route
 
@@ -80,4 +82,4 @@ The tests-root packet stays bounded behind the same validator-first route:
 
 ## Review rule
 
-Update this companion only when the tests-root ownership view, the shared `RuntimeLoadRequest` boundary, or the validator-first Phase 9 route changes too. Do not treat a new helper, an implicit loadable-module claim, or a trace-events substrate reopening as Phase 9 maintenance unless the shared loader-gap packet is deliberately reopened with matching docs, tests, and review-surface evidence.
+Update this companion only when the tests-root ownership view, the shared `RuntimeLoadRequest` boundary, or the validator-first Phase 9 route changes too. Do not treat a new helper, an implicit loadable-module claim, or a trace-events substrate reopening as Phase 9 maintenance unless the shared loader-gap packet is deliberately reopened with matching docs, tests, review-surface, and freeze-map evidence.
