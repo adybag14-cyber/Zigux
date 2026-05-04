@@ -43,6 +43,18 @@ SURVEY_MARKERS = [
     "PHASE12_SHARED_TREE_READBACK_ROOT_COUNT=4",
 ]
 
+SURVEY_EXACT_COUNT_MARKERS = {
+    "lane: `P12-L07`": 1,
+    "last replayed public head for this exact coverage split: `bc2373f7deedf021c73beaae29555a9ac6b0536d`": 1,
+    "one anchor keeps a commit-pinned raw fallback catalog with a last bounded replay note: `Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md`": 1,
+    "one anchor keeps a commit-pinned raw fallback map for the archived NVMe packet: `Documentation/zigux/phase12-nvme-pci-raw-github-fallback-map.md`": 1,
+    "two anchors remain shared-tree-only fallback reads: `virtio_net` and `libbpf`": 1,
+    "PHASE12_ROADMAP_ANCHOR_COUNT=4": 1,
+    "PHASE12_COMMIT_PINNED_RAW_FALLBACK_COUNT=2": 1,
+    "PHASE12_SHARED_TREE_ONLY_FALLBACK_COUNT=2": 1,
+    "PHASE12_SHARED_TREE_READBACK_ROOT_COUNT=4": 1,
+}
+
 DOCS_ROOT_MARKERS = [
     "Documentation/zigux/phase12-release-readiness-survey.md",
     "Documentation/zigux/phase12-raw-github-coverage-survey.md",
@@ -61,6 +73,12 @@ RELEASE_MARKERS = [
     "PHASE12_SHARED_TREE_ONLY_FALLBACK_COUNT=2",
     "the raw-fallback packet now keeps the split explicit: two anchors have dedicated commit-pinned fallback artifacts, and two anchors still rely on shared-tree fallback reads",
 ]
+
+RELEASE_EXACT_COUNT_MARKERS = {
+    "PHASE12_COMMIT_PINNED_RAW_FALLBACK_COUNT=2": 1,
+    "PHASE12_SHARED_TREE_ONLY_FALLBACK_COUNT=2": 1,
+    "the raw-fallback packet now keeps the split explicit: two anchors have dedicated commit-pinned fallback artifacts, and two anchors still rely on shared-tree fallback reads": 1,
+}
 
 CHECKLIST_MARKERS = [
     "if the change touches the shared Phase 12 degraded-workflow packet",
@@ -81,6 +99,18 @@ TEST_MARKERS = [
     "shared_tree_readback_root_count",
     "shared_tree_readback_roots",
 ]
+
+TEST_EXACT_COUNT_MARKERS = {
+    'try std.testing.expectEqualStrings("P12-L07", manifest.lane_key);': 1,
+    'try std.testing.expectEqual(@as(usize, 4), manifest.shared_tree_readback_root_count);': 1,
+    'try std.testing.expectEqual(@as(usize, 2), shared_tree_only_count);': 1,
+    'try std.testing.expectEqual(@as(usize, 1), commit_pinned_catalog_count);': 1,
+    'try std.testing.expectEqual(@as(usize, 1), commit_pinned_map_count);': 1,
+    '"one anchor keeps a commit-pinned raw fallback catalog"': 1,
+    '"one anchor keeps a commit-pinned raw fallback map"': 1,
+    '"two anchors remain shared-tree-only fallback reads"': 1,
+    '"PHASE12_SHARED_TREE_READBACK_ROOT_COUNT=4"': 1,
+}
 
 EXPECTED_SHARED_TREE_READBACK_ROOTS = [
     "https://github.com/adybag14-cyber/Zigux/tree/master/drivers/net",
@@ -131,6 +161,15 @@ def read_text(path: str) -> str:
 
 def load_manifest() -> dict[str, object]:
     return json.loads(read_text("zigux/tests/phase12_raw_github_coverage_manifest.json"))
+
+
+def collect_exact_count_misses(text: str, expected_counts: dict[str, int], prefix: str) -> list[str]:
+    missing: list[str] = []
+    for marker, expected_count in expected_counts.items():
+        actual_count = text.count(marker)
+        if actual_count != expected_count:
+            missing.append(f"{prefix}:{marker}:expected={expected_count}:actual={actual_count}")
+    return missing
 
 
 def validate_manifest(manifest: dict[str, object]) -> list[str]:
@@ -199,18 +238,21 @@ def validate_markers() -> list[str]:
     for marker in SURVEY_MARKERS:
         if marker not in survey_text:
             missing.append(f"survey:{marker}")
+    missing.extend(collect_exact_count_misses(survey_text, SURVEY_EXACT_COUNT_MARKERS, "survey_count"))
     for marker in DOCS_ROOT_MARKERS:
         if marker not in docs_root_text:
             missing.append(f"docs_root:{marker}")
     for marker in RELEASE_MARKERS:
         if marker not in release_text:
             missing.append(f"release:{marker}")
+    missing.extend(collect_exact_count_misses(release_text, RELEASE_EXACT_COUNT_MARKERS, "release_count"))
     for marker in CHECKLIST_MARKERS:
         if marker not in checklist_text:
             missing.append(f"checklist:{marker}")
     for marker in TEST_MARKERS:
         if marker not in test_text:
             missing.append(f"test:{marker}")
+    missing.extend(collect_exact_count_misses(test_text, TEST_EXACT_COUNT_MARKERS, "test_count"))
 
     if "Phase 12 Virtio SCSI Raw GitHub Fallback Catalog" not in raw_catalog_text:
         missing.append("raw_catalog:title")
@@ -327,8 +369,50 @@ def run_self_test() -> int:
     finally:
         release_path.write_text(original_release, encoding="utf-8")
 
+    survey_path.write_text(
+        original_survey
+        + "two anchors remain shared-tree-only fallback reads: `virtio_net` and `libbpf`\n",
+        encoding="utf-8",
+    )
+    try:
+        expect_missing(
+            "survey_exact_count",
+            validate_tree(),
+            "survey_count:two anchors remain shared-tree-only fallback reads: `virtio_net` and `libbpf`:expected=1:actual=2",
+        )
+    finally:
+        survey_path.write_text(original_survey, encoding="utf-8")
+
+    release_path.write_text(
+        original_release + "PHASE12_SHARED_TREE_ONLY_FALLBACK_COUNT=2\n",
+        encoding="utf-8",
+    )
+    try:
+        expect_missing(
+            "release_exact_count",
+            validate_tree(),
+            "release_count:PHASE12_SHARED_TREE_ONLY_FALLBACK_COUNT=2:expected=1:actual=2",
+        )
+    finally:
+        release_path.write_text(original_release, encoding="utf-8")
+
+    test_path = ROOT / "zigux/tests/phase12_raw_github_coverage_survey.zig"
+    original_test = test_path.read_text(encoding="utf-8")
+    test_path.write_text(
+        original_test + '"two anchors remain shared-tree-only fallback reads"\n',
+        encoding="utf-8",
+    )
+    try:
+        expect_missing(
+            "test_exact_count",
+            validate_tree(),
+            'test_count:"two anchors remain shared-tree-only fallback reads":expected=1:actual=2',
+        )
+    finally:
+        test_path.write_text(original_test, encoding="utf-8")
+
     print("PHASE12_RAW_GITHUB_COVERAGE_SELF_TEST=pass")
-    print("PHASE12_RAW_GITHUB_COVERAGE_SELF_TEST_CASE_COUNT=5")
+    print("PHASE12_RAW_GITHUB_COVERAGE_SELF_TEST_CASE_COUNT=8")
     return 0
 
 
