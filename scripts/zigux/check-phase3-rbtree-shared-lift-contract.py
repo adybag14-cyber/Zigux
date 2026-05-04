@@ -259,8 +259,75 @@ def run_self_test() -> int:
 
                 path.write_text(original, encoding="utf-8")
 
+        missing_manifest_entry = MANIFEST_ENTRIES[0]
+        (root / MANIFEST_REL).write_text("\n".join(MANIFEST_ENTRIES[1:]) + "\n", encoding="utf-8")
+        issues = validate(root)
+        assert (
+            "missing_manifest_entry:" + missing_manifest_entry.strip('"')
+            in issues
+        )
+        (root / MANIFEST_REL).write_text("\n".join(MANIFEST_ENTRIES) + "\n", encoding="utf-8")
+
+        expected_path.write_text(
+            json.dumps(
+                {
+                    "records": {
+                        **EXPECTED_RECORDS,
+                        "rbtree_uncached_root": {
+                            **EXPECTED_RECORDS["rbtree_uncached_root"],
+                            "flags": 1,
+                        },
+                    },
+                    "structs": {"zigux_rbtree_root_view": EXPECTED_LAYOUT},
+                },
+                separators=(",", ":"),
+            ),
+            encoding="utf-8",
+        )
+        issues = validate(root)
+        assert (
+            "unexpected_expected_record:rbtree_uncached_root:{'root_addr': 9216, 'leftmost_addr': 0, 'flags': 1, 'reserved': 0}"
+            in issues
+        )
+
+        expected_path.writeText = None
+        expected_path.write_text(
+            json.dumps(
+                {
+                    "records": EXPECTED_RECORDS,
+                    "structs": {
+                        "zigux_rbtree_root_view": {
+                            **EXPECTED_LAYOUT,
+                            "offsets": {
+                                **EXPECTED_LAYOUT["offsets"],
+                                "reserved": 16,
+                            },
+                        }
+                    },
+                },
+                separators=(",", ":"),
+            ),
+            encoding="utf-8",
+        )
+        issues = validate(root)
+        assert (
+            "unexpected_expected_layout:{'size': 24, 'align': 8, 'offsets': {'root_addr': 0, 'leftmost_addr': 8, 'flags': 16, 'reserved': 16}}"
+            in issues
+        )
+
+        expected_path.write_text(
+            json.dumps(
+                {
+                    "records": EXPECTED_RECORDS,
+                    "structs": {"zigux_rbtree_root_view": EXPECTED_LAYOUT},
+                },
+                separators=(",", ":"),
+            ),
+            encoding="utf-8",
+        )
+
         print("PHASE3_RBTREE_SHARED_LIFT_CONTRACT_SELF_TEST=pass")
-        print(f"PHASE3_RBTREE_SHARED_LIFT_CONTRACT_SELF_TEST_CASE_COUNT={3 + exact_once_case_count}")
+        print(f"PHASE3_RBTREE_SHARED_LIFT_CONTRACT_SELF_TEST_CASE_COUNT={5 + exact_once_case_count}")
         return 0
 
 
