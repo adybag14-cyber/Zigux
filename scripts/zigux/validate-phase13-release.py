@@ -128,7 +128,7 @@ RELEASE_MARKERS = [
     "`security/landlock/syscalls.c` through `zigux/tests/phase13_landlock_syscalls_manifest.json` lane `P13-L16`",
     "adjacent notifier-list reviewability evidence through `zigux/tests/phase13_notifier_list_manifest.json` lane `P13-L19`",
     "Shared helper sequencing on top of those manifest-owner keys is now:",
-    "`fs/libfs.c`: keep the pure helper-next step under `P13-L01` for `generic_check_addressable()`, and keep `P13-L03` verification-only unless a real helper landing or traceability drift appears",
+    "`fs/libfs.c`: keep `P13-L01` narrowed to libfs survey-local or traceability-local drift now that `generic_check_addressable()` is already landed, and keep `P13-L03` verification-only unless a real packet-alignment failure or focused libfs replay regression appears",
     "`lib/devres.c`: keep helper expansion parked behind `P13-L06` until a concrete exported-helper gap appears, and keep `P13-L07` verification-only unless a focused devres replay fails or a helper-local regression surfaces",
     "`security/landlock/ruleset.c`: keep the remaining helper-only boundary work, if any, under `P13-L12` and do not reopen it from shared release notes unless the manifest-backed packet or shared replay drifts",
     "`security/landlock/syscalls.c`: keep `P13-L16` narrowed to packet drift or tiny validation-only cleanup and do not widen it from the shared release packet into new syscall helper scope",
@@ -197,8 +197,6 @@ SCRIPT_README_MARKERS = [
 
 SCRIPTS_README_EXACT_COUNT_MARKERS = {
     "`check-phase13-libfs-packet.py`, `check-phase13-devres-packet.py`, `check-phase13-notifier-packet.py`, and `validate-phase13-release.py` keep `Documentation/zigux/phase13-release-notes-survey.md`, `Documentation/zigux/phase13-roadmap-traceability.md`, `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, `zigux/Makefile`, and `zigux/tests/phase13_build.zig` aligned as one shared release-discipline packet, with the four roadmap-anchor manifests `zigux/tests/phase13_libfs_manifest.json`, `zigux/tests/phase13_devres_manifest.json`, `zigux/tests/phase13_landlock_ruleset_manifest.json`, and `zigux/tests/phase13_landlock_syscalls_manifest.json`, the adjacent `zigux/tests/phase13_notifier_list_manifest.json`, the dedicated `scripts/zigux/check-phase13-devres-packet.py` guard, the `phase13-landlock-syscalls-reviewability-tests` gate under `zigux/tests/phase13_landlock_syscalls_reviewability.zig`, and the adjacent notifier evidence under `zigux/tests/phase13_notifier_list_reviewability.zig`, `zigux/bindings/notifier_abi.zig`, and `zigux/helpers/notifier_chain_view.zig` kept explicit instead of leaving the Phase 13 review path split across isolated docs or build wiring.": 1,
-    "`check-phase13-devres-packet.py` keeps the helper-first `devres` packet and its blocked DMA/scatterlist boundary visible in that same shared Phase 13 release flow instead of leaving the live devres guard implicit in the Makefile wiring and packet-local survey assets.": 1,
-    "`Documentation/zigux/phase13-devres-survey.md`, `zigux/tests/phase13_devres_manifest.json`, `zigux/tests/phase13_devres_dma_coherent.zig`, and `zigux/tests/phase13_devres_reviewability.zig` keep the helper-first `devres` packet explicit about adjacent coherent-DMA bookkeeping while live DMA-backed mappings and scatterlist ownership stay blocked rather than implied.": 1,
 }
 
 REVIEW_CHECKLIST_MARKERS = [
