@@ -88,7 +88,12 @@ TESTS_README_MARKERS = [
     "zigux/tests/phase12_libbpf_only_build.zig",
     "zigux/tests/phase12_build.zig",
     "Documentation/zigux/phase12-virtio-scsi-survey.md",
+    "keep `Documentation/zigux/phase12-shared-replay-contract.md`, `zigux/tests/phase12_build.zig`, `zigux/tests/phase12_libbpf_only_build.zig`, `scripts/zigux/check-phase12-libbpf-focused-replay.py`, `scripts/zigux/validate-phase12.py`, and `zigux/tests/phase12_libbpf_manifest.json` aligned so the tests root names the same shared-versus-focused libbpf replay boundary as the docs-root contract note instead of leaving the dedicated shard implied behind the broader shared build inventory.",
 ]
+
+TESTS_README_EXACT_COUNTS = {
+    TESTS_README_MARKERS[-1]: 1,
+}
 
 REVIEW_CHECKLIST_MARKERS = [
     "if the change is a Phase 12 complex-driver or heavy-helper slice, do `scripts/zigux/validate-phase12.py`, `zigux/tests/phase12_build.zig`, the four Phase 12 manifests, and the four Phase 12 survey notes still agree on the same bounded tranche, exact surveyed commits, approved roadmap destinations, shared replay contract, and explicit DMA versus object-model blocker posture?",
@@ -174,6 +179,14 @@ def collect_missing(root: Path) -> list[str]:
         for marker in markers:
             if marker not in text:
                 missing.append(f"{label}:{marker}")
+
+    tests_readme_text = read_text(root, "zigux/tests/README.md")
+    for marker, expected_count in TESTS_README_EXACT_COUNTS.items():
+        actual_count = tests_readme_text.count(marker)
+        if actual_count != expected_count:
+            missing.append(
+                f"tests_readme_count:{marker}:expected={expected_count}:actual={actual_count}"
+            )
 
     return missing
 
@@ -319,12 +332,23 @@ def run_self_test() -> int:
         tests_readme_backup = tests_readme_path.read_text(encoding="utf-8")
         write_text(
             tests_readme_path,
-            tests_readme_backup.replace("zigux/tests/phase12_libbpf_only_build.zig\n", "", 1),
+            tests_readme_backup.replace("Documentation/zigux/phase12-virtio-scsi-survey.md\n", "", 1),
         )
         expect_missing(
-            "missing_tests_readme_focused_build",
+            "missing_tests_readme_storage_survey",
             run_checker(tmp_root),
-            "tests_readme:zigux/tests/phase12_libbpf_only_build.zig",
+            "tests_readme:Documentation/zigux/phase12-virtio-scsi-survey.md",
+        )
+        write_text(tests_readme_path, tests_readme_backup)
+
+        write_text(
+            tests_readme_path,
+            tests_readme_backup + TESTS_README_MARKERS[-1] + "\n",
+        )
+        expect_missing(
+            "duplicate_tests_readme_boundary_sentence",
+            run_checker(tmp_root),
+            f"tests_readme_count:{TESTS_README_MARKERS[-1]}:expected=1:actual=2",
         )
         write_text(tests_readme_path, tests_readme_backup)
 
@@ -368,7 +392,7 @@ def run_self_test() -> int:
         write_text(build_path, build_backup)
 
     print("PHASE12_SHARED_REPLAY_CONTRACT_SELF_TEST=pass")
-    print("PHASE12_SHARED_REPLAY_CONTRACT_SELF_TEST_CASE_COUNT=7")
+    print("PHASE12_SHARED_REPLAY_CONTRACT_SELF_TEST_CASE_COUNT=8")
     return 0
 
 
