@@ -6,7 +6,7 @@ This document tracks the first bounded Phase 9 runtime bitmap starter under `sam
 
 - `PHASE9_STATUS=active`
 - `PHASE9_SLICE=runtime-bitmap-module-starter`
-- `PHASE9_LANE_KEY=P9-L08`
+- `PHASE9_LANE_KEY=P9-Y08`
 - `PHASE9_SURVEYED_COMMIT=c0b506e3254e63fe007a72d420bb275846a89093`
 - scope: lifecycle starter, bitmap range mutation and copy behavior, bounded differential coverage, bounded parse-and-print replay including duplicate bit-list normalization, empty formatting, and transactional failed-init recovery, adjacent loader scaffold plus shared loader-request binding, prepared loader-summary snapshot replay, focused top-bit companion replay plus its dedicated sample-side build file, dedicated Phase 9 sample, module, diff, and loader test wiring, and adjacent manifest plus survey packet alignment only
 - product boundary:
