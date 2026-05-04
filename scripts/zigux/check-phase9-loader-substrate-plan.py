@@ -78,6 +78,7 @@ SAMPLES_README_REQUIRED_MARKERS = [
     "- the runtime bitmap packet rooted in `lib/test_bitmap.c` now includes `samples/zigux/runtime_bitmap.zig`, `samples/zigux/runtime_bitmap_loader.zig`, and the focused `samples/zigux/runtime_bitmap_top_bit_contract.zig` plus `samples/zigux/runtime_bitmap_top_bit_build.zig` companion replay; keep that family cataloged here as later Phase 9 follow-on work rather than treating it as a fifth approved Phase 5 reference idiom",
     "- keep the bitmap runtime pilot visibly separate from the approved Phase 5 idiom set: `samples/zigux/runtime_bitmap.zig`, `samples/zigux/runtime_bitmap_loader.zig`, `samples/zigux/runtime_bitmap_top_bit_contract.zig`, and `samples/zigux/runtime_bitmap_top_bit_build.zig` belong with the Phase 9 runtime bitmap survey packet, not the four roadmap-approved Phase 5 anchor samples",
     "- keep `samples/zigux/runtime_trace_events.zig` explicit as a sample-only blocked Phase 9 pilot even though `samples/zigux/runtime_trace_events_loader.zig` is now shipped as a bounded scaffold, so the shared sample-root packet does not imply a cleared runtime-substrate handoff or a fully loader-backed runtime follow-on",
+    "- when this loader-side catalog changes, keep `python3 scripts/zigux/check-phase9-loader-substrate-plan.py` in the same review packet so the sample-root runtime inventory stays aligned with `Documentation/zigux/phase9-runtime-loader-substrate-plan.md`, `zigux/tests/runtime_loader_gap_manifest.json`, and `zigux/tests/runtime_trace_events_manifest.json`",
 ]
 
 MAKEFILE_REQUIRED_MARKERS = [
@@ -435,6 +436,7 @@ def write_fixture_tree(root: Path) -> None:
                 "- the runtime bitmap packet rooted in `lib/test_bitmap.c` now includes `samples/zigux/runtime_bitmap.zig`, `samples/zigux/runtime_bitmap_loader.zig`, and the focused `samples/zigux/runtime_bitmap_top_bit_contract.zig` plus `samples/zigux/runtime_bitmap_top_bit_build.zig` companion replay; keep that family cataloged here as later Phase 9 follow-on work rather than treating it as a fifth approved Phase 5 reference idiom",
                 "- keep the bitmap runtime pilot visibly separate from the approved Phase 5 idiom set: `samples/zigux/runtime_bitmap.zig`, `samples/zigux/runtime_bitmap_loader.zig`, `samples/zigux/runtime_bitmap_top_bit_contract.zig`, and `samples/zigux/runtime_bitmap_top_bit_build.zig` belong with the Phase 9 runtime bitmap survey packet, not the four roadmap-approved Phase 5 anchor samples",
                 "- keep `samples/zigux/runtime_trace_events.zig` explicit as a sample-only blocked Phase 9 pilot even though `samples/zigux/runtime_trace_events_loader.zig` is now shipped as a bounded scaffold, so the shared sample-root packet does not imply a cleared runtime-substrate handoff or a fully loader-backed runtime follow-on",
+                "- when this loader-side catalog changes, keep `python3 scripts/zigux/check-phase9-loader-substrate-plan.py` in the same review packet so the sample-root runtime inventory stays aligned with `Documentation/zigux/phase9-runtime-loader-substrate-plan.md`, `zigux/tests/runtime_loader_gap_manifest.json`, and `zigux/tests/runtime_trace_events_manifest.json`",
                 "",
             ]
         ),
@@ -691,6 +693,21 @@ def run_self_test() -> int:
         )
         samples_readme_path.write_text(original_samples_readme, encoding="utf-8")
 
+        samples_readme_path.write_text(
+            original_samples_readme.replace(
+                "- when this loader-side catalog changes, keep `python3 scripts/zigux/check-phase9-loader-substrate-plan.py` in the same review packet so the sample-root runtime inventory stays aligned with `Documentation/zigux/phase9-runtime-loader-substrate-plan.md`, `zigux/tests/runtime_loader_gap_manifest.json`, and `zigux/tests/runtime_trace_events_manifest.json`",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "samples_readme_loader_checker_trace_events_manifest_alignment",
+            tmp_root,
+            "samples_readme:- when this loader-side catalog changes, keep `python3 scripts/zigux/check-phase9-loader-substrate-plan.py` in the same review packet so the sample-root runtime inventory stays aligned with `Documentation/zigux/phase9-runtime-loader-substrate-plan.md`, `zigux/tests/runtime_loader_gap_manifest.json`, and `zigux/tests/runtime_trace_events_manifest.json`",
+        )
+        samples_readme_path.write_text(original_samples_readme, encoding="utf-8")
+
         manifest_path = tmp_root / MANIFEST_PATH
         original_manifest = manifest_path.read_text(encoding="utf-8")
         manifest = json.loads(original_manifest)
@@ -823,7 +840,7 @@ def run_self_test() -> int:
         trace_events_loader_path.write_text(original_trace_events_loader, encoding="utf-8")
 
     print("PHASE9_LOADER_SUBSTRATE_PLAN_SELF_TEST=pass")
-    print("PHASE9_LOADER_SUBSTRATE_PLAN_SELF_TEST_CASE_COUNT=18")
+    print("PHASE9_LOADER_SUBSTRATE_PLAN_SELF_TEST_CASE_COUNT=19")
     return 0
 
 
