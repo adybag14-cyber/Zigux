@@ -9,7 +9,7 @@ import tempfile
 
 SCRIPT_PATH = Path(__file__).resolve()
 ROOT = SCRIPT_PATH.parents[2] if len(SCRIPT_PATH.parents) > 2 else SCRIPT_PATH.parent
-SELF_TEST_CASE_COUNT = 11
+SELF_TEST_CASE_COUNT = 13
 
 CHECKSUM_PERF_PATH = "zigux/tests/phase6_checksum_perf.zig"
 HEXDUMP_PERF_PATH = "zigux/tests/phase6_hexdump_perf.zig"
@@ -59,6 +59,30 @@ def missing_markers(content: str, markers: list[str]) -> list[str]:
     return [marker for marker in markers if marker not in content]
 
 
+def normalized_lines(content: str) -> list[str]:
+    return [line.strip() for line in content.splitlines()]
+
+
+def missing_exact_lines(content: str, markers: list[str]) -> list[str]:
+    lines = normalized_lines(content)
+    missing: list[str] = []
+    for marker in markers:
+        if sum(1 for line in lines if line == marker) != 1:
+            missing.append(marker)
+    return missing
+
+
+def drop_exact_line(content: str, marker: str) -> str:
+    kept: list[str] = []
+    removed = False
+    for line in content.splitlines():
+        if not removed and line.strip() == marker:
+            removed = True
+            continue
+        kept.append(line)
+    return "\n".join(kept) + ("\n" if kept else "")
+
+
 def validate(root: Path) -> dict[str, object]:
     missing_files: list[str] = []
     missing: list[str] = []
@@ -97,13 +121,13 @@ def validate(root: Path) -> dict[str, object]:
     if not makefile_path.exists():
         missing_files.append(MAKEFILE_PATH)
     else:
-        for marker in missing_markers(text(root, MAKEFILE_PATH), MAKEFILE_MARKERS):
+        for marker in missing_exact_lines(text(root, MAKEFILE_PATH), MAKEFILE_MARKERS):
             missing.append(f"makefile:missing:{marker}")
 
     if not manifest_path.exists():
         missing_files.append(MANIFEST_PATH)
     else:
-        for marker in missing_markers(text(root, MANIFEST_PATH), MANIFEST_MARKERS):
+        for marker in missing_exact_lines(text(root, MANIFEST_PATH), MANIFEST_MARKERS):
             missing.append(f"manifest:missing:{marker}")
 
     return {
@@ -228,19 +252,37 @@ def run_self_test() -> int:
             build_self_test_tree(root)
             makefile_path = root / MAKEFILE_PATH
             makefile_path.write_text(
-                makefile_path.read_text(encoding="utf-8").replace(MAKEFILE_MARKERS[0], "", 1),
+                drop_exact_line(makefile_path.read_text(encoding="utf-8"), MAKEFILE_MARKERS[0]),
                 encoding="utf-8",
             )
             expect_contains(validate(root), f"makefile:missing:{MAKEFILE_MARKERS[0]}")
             count += 1
 
             build_self_test_tree(root)
+            makefile_path = root / MAKEFILE_PATH
+            makefile_path.write_text(
+                drop_exact_line(makefile_path.read_text(encoding="utf-8"), MAKEFILE_MARKERS[1]),
+                encoding="utf-8",
+            )
+            expect_contains(validate(root), f"makefile:missing:{MAKEFILE_MARKERS[1]}")
+            count += 1
+
+            build_self_test_tree(root)
             manifest_path = root / MANIFEST_PATH
             manifest_path.write_text(
-                manifest_path.read_text(encoding="utf-8").replace(MANIFEST_MARKERS[0], "", 1),
+                drop_exact_line(manifest_path.read_text(encoding="utf-8"), MANIFEST_MARKERS[0]),
                 encoding="utf-8",
             )
             expect_contains(validate(root), f"manifest:missing:{MANIFEST_MARKERS[0]}")
+            count += 1
+
+            build_self_test_tree(root)
+            manifest_path = root / MANIFEST_PATH
+            manifest_path.write_text(
+                drop_exact_line(manifest_path.read_text(encoding="utf-8"), MANIFEST_MARKERS[1]),
+                encoding="utf-8",
+            )
+            expect_contains(validate(root), f"manifest:missing:{MANIFEST_MARKERS[1]}")
             count += 1
 
             if count != SELF_TEST_CASE_COUNT:
