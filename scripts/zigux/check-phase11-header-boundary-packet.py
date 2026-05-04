@@ -86,6 +86,13 @@ WORKFLOW_MARKERS = [
     "make -C zigux phase11-validate",
 ]
 
+EXPECTED_DEDICATED_SURVEY_REPLAYS = [
+    {
+        "test": "phase11-hvc-console-survey-tests",
+        "path": "zigux/tests/phase11_hvc_console_survey.zig",
+    }
+]
+
 
 def text(path: Path) -> str:
     return path.read_text(encoding="utf-8")
@@ -194,7 +201,7 @@ def validate_packet(root: Path) -> int:
             missing.append("build_inventory:shared_adjunct_replays:exact")
 
     dedicated_replays = inventory.get("dedicated_survey_replays")
-    if dedicated_replays != ["zigux/tests/phase11_hvc_console_survey.zig"]:
+    if dedicated_replays != EXPECTED_DEDICATED_SURVEY_REPLAYS:
         missing.append("build_inventory:dedicated_survey_replays")
 
     replay_markers = inventory.get("shared_replay_markers")
@@ -344,9 +351,7 @@ def write_fixture_tree(root: Path) -> None:
                         "path": "zigux/tests/phase11_dw_wdt_suspend_resume.zig",
                     }
                 ],
-                "dedicated_survey_replays": [
-                    "zigux/tests/phase11_hvc_console_survey.zig"
-                ],
+                "dedicated_survey_replays": EXPECTED_DEDICATED_SURVEY_REPLAYS,
                 "shared_replay_markers": [
                     {
                         "path": "zigux/tests/phase11_dw_wdt_suspend_resume.zig",
@@ -570,8 +575,20 @@ def run_self_test() -> int:
         )
         write_text(build_inventory_path, json.dumps(inventory_backup, indent=2) + "\n")
 
+        broken_inventory = dict(inventory_backup)
+        broken_inventory["dedicated_survey_replays"] = [
+            "zigux/tests/phase11_hvc_console_survey.zig"
+        ]
+        write_text(build_inventory_path, json.dumps(broken_inventory, indent=2) + "\n")
+        expect_missing(
+            "legacy_dedicated_replay_shape",
+            run_checker(tmp_root),
+            "build_inventory:dedicated_survey_replays",
+        )
+        write_text(build_inventory_path, json.dumps(inventory_backup, indent=2) + "\n")
+
     print("PHASE11_HEADER_BOUNDARY_PACKET_SELF_TEST=pass")
-    print("PHASE11_HEADER_BOUNDARY_PACKET_SELF_TEST_CASE_COUNT=14")
+    print("PHASE11_HEADER_BOUNDARY_PACKET_SELF_TEST_CASE_COUNT=15")
     return 0
 
 
