@@ -76,7 +76,7 @@ const expected_segment_destinations = [_][]const u8{
     "tools/lib/bpf/zigux_segments/type_names.zig",
     "tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig",
     "tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig",
-    "tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig",
+    "tools/lib/bpf/zigux_segments/cpu_mask.zig",
     "tools/lib/bpf/zigux_segments/cpu_mask.zig",
     "tools/lib/bpf/zigux_segments/skeleton.zig",
     "tools/lib/bpf/zigux_segments/object_loader.zig",
@@ -401,6 +401,9 @@ test "phase 8 docs keep the deferred irq routing and timer boundary explicit" {
         "active scheduled ownership and cleanup lane for this packet is `P8-L13`",
     );
     try expectContains(survey_note, "perf-buffer-online-cpu-routing");
+    try expectContains(survey_note, "per-CPU `perf_event_open()` setup");
+    try expectContains(survey_note, "perf-buffer ring `mmap()` setup");
+    try expectContains(survey_note, "`PERF_EVENT_IOC_ENABLE` enablement");
     try expectContains(survey_note, "interrupt-routing-sensitive timing boundary");
     try expectContains(survey_note, "no standalone timer helper");
     try expectContains(survey_note, "no standalone clockevent helper");
