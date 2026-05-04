@@ -8,7 +8,7 @@ This document records the bounded Phase 15 governance lane around `Documentation
 - `PHASE15_STATUS=governance_slice_landed`
 - `PHASE15_SLICE=freeze-map-governance-blocker-ownership-sync`
 - scope: the live freeze map, the existing dedicated Phase 15 manifest and test gate, and one bounded maintenance follow-up that keeps the root freeze-map note aligned with the already-landed parity-scorecard, review-process, indefinite-C policy, retained stay-in-C closeout, current blocker posture, explicit per-anchor blocker ownership, and the real current enforcement state on `master`
-- survey provenance refreshed against latest visible `master` head `d918be7ded6383c13cbd5eea4ca4aa4f3cdafee4`
+- survey provenance last refreshed against reviewed `master` head `d918be7ded6383c13cbd5eea4ca4aa4f3cdafee4`; later repo movement touching this freeze-map governance surface now requires a fresh bounded provenance refresh before this note should make a new current-`master` claim
 - product boundary:
   - `Documentation/zigux/freeze-map.md`
   - `Documentation/zigux/phase15-freeze-map-governance.md`
@@ -31,25 +31,25 @@ That still leaves room for packet drift. The root freeze map already says that a
 
 The honest bounded step is to sync the freeze-map packet to that already-landed ownership truth while keeping the current blocker posture explicit and without widening into parity-scorecard maintenance or a neighboring Phase 15 packet.
 
-The real current state is steady rather than status-change-ready: the narrower freeze-map packet still replays locally, the same deep-core blocker posture remains in place, and the earlier docs-root summary alignment drift is now already closed by the dedicated readiness and handoff packets rather than remaining a freeze-map change.
+The last reviewed state for this packet was steady rather than status-change-ready: the narrower freeze-map packet replayed locally at the reviewed governance head, the same deep-core blocker posture remained in place there, and the earlier docs-root summary alignment drift is now already closed by the dedicated readiness and handoff packets rather than remaining a freeze-map change.
 
 ## Roadmap versus repo reality
 
-The roadmap and the live repo still agree on the Phase 15 deep-core freeze set.
+The roadmap and the reviewed repo state still agree on the Phase 15 deep-core freeze set.
 
 - roadmap freeze-in-C anchors: `kernel/sched/core.c`, `mm/page_alloc.c`, `kernel/rcu/tree.c`, `net/core/skbuff.c`
 - live `Documentation/zigux/freeze-map.md` freeze-in-C anchors: `kernel/sched/core.c`, `mm/page_alloc.c`, `kernel/rcu/tree.c`, `net/core/skbuff.c`
 - roadmap study-only anchors: `kernel/workqueue.c`, `kernel/trace/ring_buffer.c`
 - live `Documentation/zigux/freeze-map.md` study-only anchors: `kernel/workqueue.c`, `kernel/trace/ring_buffer.c`
 
-Current repo reality also still supports the same blocker posture rather than a status-change-ready one:
+At the last reviewed governance head, repo reality also still supported the same blocker posture rather than a status-change-ready one:
 
-- `kernel/sched/core.c`: the Phase 15 scorecard still records `blocked_no_bounded_scheduler_seam`, and the repo still has no narrower scheduler seam packet or Architecture Council decision record
-- `mm/page_alloc.c`: the Phase 15 scorecard still records `blocked_no_bounded_allocator_seam`, and the repo still has no narrower allocator seam packet or Architecture Council decision record
-- `kernel/rcu/tree.c`: the existing `Documentation/zigux/phase14-rcu-tree-survey.md` packet still keeps the follow-up wider than the allowed seam, and the Phase 15 scorecard still records `blocked_phase14_followup_still_wider_than_allowed_rcu_seam`
-- `net/core/skbuff.c`: the existing `Documentation/zigux/phase14-skbuff-bridge-survey.md` packet still keeps the follow-up wider than the allowed packet-lifetime boundary, and the Phase 15 scorecard still records `blocked_packet_lifetime_boundary_still_too_wide`
+- `kernel/sched/core.c`: the Phase 15 scorecard still recorded `blocked_no_bounded_scheduler_seam`, and the repo still had no narrower scheduler seam packet or Architecture Council decision record
+- `mm/page_alloc.c`: the Phase 15 scorecard still recorded `blocked_no_bounded_allocator_seam`, and the repo still had no narrower allocator seam packet or Architecture Council decision record
+- `kernel/rcu/tree.c`: the existing `Documentation/zigux/phase14-rcu-tree-survey.md` packet still kept the follow-up wider than the allowed seam, and the Phase 15 scorecard still recorded `blocked_phase14_followup_still_wider_than_allowed_rcu_seam`
+- `net/core/skbuff.c`: the existing `Documentation/zigux/phase14-skbuff-bridge-survey.md` packet still kept the follow-up wider than the allowed packet-lifetime boundary, and the Phase 15 scorecard still recorded `blocked_packet_lifetime_boundary_still_too_wide`
 
-That means the honest current comparison is stable: no roadmap freeze-map delta needs to be opened, and no deep-core blocker has moved from governance-ready into status-change-ready.
+That means the last reviewed comparison was stable: no roadmap freeze-map delta needed to be opened at that reviewed head, and no deep-core blocker had moved from governance-ready into status-change-ready there.
 
 ## Landed governance rules
 
@@ -64,12 +64,12 @@ That means the honest current comparison is stable: no roadmap freeze-map delta 
 
 ## Current blocker posture
 
-- `kernel/sched/core.c` remains blocked because the repo still has no bounded scheduler seam
-- `mm/page_alloc.c` remains blocked because the repo still has no bounded allocator seam
-- `kernel/rcu/tree.c` remains blocked because the published Phase 14 follow-up is still wider than the allowed RCU seam
-- `net/core/skbuff.c` remains blocked because the published Phase 14 follow-up is still wider than the allowed packet-lifetime boundary
-- no Architecture Council decision record currently claims a freeze-map status change for any of those four anchors
-- the freeze-map anchor set therefore stays unchanged on current `master`
+- `kernel/sched/core.c` was still blocked at the reviewed governance head because the repo had no bounded scheduler seam
+- `mm/page_alloc.c` was still blocked at the reviewed governance head because the repo had no bounded allocator seam
+- `kernel/rcu/tree.c` was still blocked at the reviewed governance head because the published Phase 14 follow-up was still wider than the allowed RCU seam
+- `net/core/skbuff.c` was still blocked at the reviewed governance head because the published Phase 14 follow-up was still wider than the allowed packet-lifetime boundary
+- no Architecture Council decision record currently claimed a freeze-map status change for any of those four anchors at the reviewed governance head
+- the freeze-map anchor set was therefore unchanged at that reviewed `master` head
 
 ## Current blocker ownership
 
@@ -120,20 +120,20 @@ This slice does not claim:
 
 ## Current enforcement evidence
 
-- latest visible remote `master` head for this check: `d918be7ded6383c13cbd5eea4ca4aa4f3cdafee4`
-- the root policy is present and explicit in `Documentation/zigux/freeze-map.md`, including the freeze-in-C list, study-only list, Architecture Council requirement, parity-scorecard requirement, explicit rollback-threshold language, retained stay-in-C closeout state, reopen-trigger language, the explicit source-of-truth reminder for reopened packets, and the no-silent-exception rule
-- the review hook is present in `Documentation/zigux/review-checklist.md`, which now asks whether freeze-map anchors carry parity-scorecard evidence or blocker state, decision-record links, retained-discussion state, reopen triggers, rollback-threshold language, and an explicit current lane owner for blocked evidence packets
-- the shared review checklist now carries a dedicated freeze-map governance-packet drift gate, so edits to `Documentation/zigux/freeze-map.md`, `Documentation/zigux/phase15-freeze-map-governance.md`, `Documentation/zigux/phase15-architecture-council-review-process.md`, or `Documentation/zigux/phase15-parity-scorecard.md` must keep the rollback threshold, automatic return-to-blocked trigger, retained discussion state, reopen triggers, and the current maintenance-mode handoff aligned
-- the shared validator-first governance gate is present in `scripts/zigux/validate-phase15.py` and `zigux/Makefile`, so freeze-map maintenance edits now keep one explicit pre-replay review boundary through `python3 scripts/zigux/validate-phase15.py` or `make -C zigux phase15-validate` before the wider `make -C zigux phase15` replay path
-- the reserved evidence archive packet remains explicit through `Documentation/zigux/phase15-evidence-archives/` and `zigux/tests/phase15_evidence_archive_templates.zig`, so the per-anchor no-approval posture, retained discussion state, reopen-trigger catalog, and indefinite-C policy links stay reviewable as concrete records instead of only shared prose
-- the parity scorecard already carries the current per-anchor lane owner, validation gate, rollback owner, blocker disposition, and rollback threshold records, and this freeze-map packet now restates that owner inventory so the anchor-local blocker posture remains reviewable without a separate scorecard lookup
-- the current roadmap-versus-repo comparison remains stable: the freeze and study-only lists in `Documentation/zigux/freeze-map.md` still match the roadmap, and the scorecard plus the existing Phase 14 RCU or skbuff survey packets still back the same four deep-core blockers
-- the dedicated local replay surface is present in `zigux/tests/phase15_build.zig` and `zigux/Makefile`, so a focused maintainer run can still use `zig build test --build-file zigux/tests/phase15_build.zig` or `make -C zigux phase15`
-- the shared bootstrap workflow now invokes the Phase 15 gate through `Run Phase 15 governance tests`, so the current freeze-map governance bundle is no longer maintainer-run only
-- focused replay against current `master` shows the narrower freeze-map governance packet is runnable:
+- last reviewed remote `master` head for this packet: `d918be7ded6383c13cbd5eea4ca4aa4f3cdafee4`; later repo movement now requires a fresh bounded provenance refresh before any new current-`master` enforcement claim
+- the root policy was present and explicit at that reviewed head in `Documentation/zigux/freeze-map.md`, including the freeze-in-C list, study-only list, Architecture Council requirement, parity-scorecard requirement, explicit rollback-threshold language, retained stay-in-C closeout state, reopen-trigger language, the explicit source-of-truth reminder for reopened packets, and the no-silent-exception rule
+- the review hook was present there in `Documentation/zigux/review-checklist.md`, which now asks whether freeze-map anchors carry parity-scorecard evidence or blocker state, decision-record links, retained-discussion state, reopen triggers, rollback-threshold language, and an explicit current lane owner for blocked evidence packets
+- the shared review checklist now carried a dedicated freeze-map governance-packet drift gate, so edits to `Documentation/zigux/freeze-map.md`, `Documentation/zigux/phase15-freeze-map-governance.md`, `Documentation/zigux/phase15-architecture-council-review-process.md`, or `Documentation/zigux/phase15-parity-scorecard.md` had to keep the rollback threshold, automatic return-to-blocked trigger, retained discussion state, reopen triggers, and the current maintenance-mode handoff aligned
+- the shared validator-first governance gate was present there in `scripts/zigux/validate-phase15.py` and `zigux/Makefile`, so freeze-map maintenance edits kept one explicit pre-replay review boundary through `python3 scripts/zigux/validate-phase15.py` or `make -C zigux phase15-validate` before the wider `make -C zigux phase15` replay path
+- the reserved evidence archive packet remained explicit through `Documentation/zigux/phase15-evidence-archives/` and `zigux/tests/phase15_evidence_archive_templates.zig`, so the per-anchor no-approval posture, retained discussion state, reopen-trigger catalog, and indefinite-C policy links stayed reviewable as concrete records instead of only shared prose
+- the parity scorecard already carried the current per-anchor lane owner, validation gate, rollback owner, blocker disposition, and rollback threshold records, and this freeze-map packet now restated that owner inventory so the anchor-local blocker posture remained reviewable without a separate scorecard lookup
+- the reviewed roadmap-versus-repo comparison remained stable: the freeze and study-only lists in `Documentation/zigux/freeze-map.md` still matched the roadmap, and the scorecard plus the existing Phase 14 RCU or skbuff survey packets still backed the same four deep-core blockers
+- the dedicated local replay surface was present in `zigux/tests/phase15_build.zig` and `zigux/Makefile`, so a focused maintainer run could still use `zig build test --build-file zigux/tests/phase15_build.zig` or `make -C zigux phase15`
+- the shared bootstrap workflow now invoked the Phase 15 gate through `Run Phase 15 governance tests`, so the current freeze-map governance bundle was no longer maintainer-run only at that reviewed head
+- focused replay at reviewed `master` head `d918be7ded6383c13cbd5eea4ca4aa4f3cdafee4` showed the narrower freeze-map governance packet was runnable:
   - `zigux/tests/phase15_freeze_map_governance.zig` compiled and its `4/4` tests passed
-  - `make -C zigux phase15` remains the same bounded shared replay path exposed through `zigux/Makefile`
-- current observed behavior on live `master`: the repo carries real freeze-map policy, manifests, scorecard, dedicated replay entrypoints, shared bootstrap workflow coverage for the current Phase 15 gate, one explicit checklist gate that keeps the governance packet aligned during maintenance edits, and one explicit owner inventory that keeps the blocker posture reviewable while the deep-core blocker posture remains unchanged
+  - `make -C zigux phase15` remained the same bounded shared replay path exposed through `zigux/Makefile`
+- observed behavior at reviewed `master` head `d918be7ded6383c13cbd5eea4ca4aa4f3cdafee4`: the repo carried real freeze-map policy, manifests, scorecard, dedicated replay entrypoints, shared bootstrap workflow coverage for the current Phase 15 gate, one explicit checklist gate that kept the governance packet aligned during maintenance edits, and one explicit owner inventory that kept the blocker posture reviewable while the deep-core blocker posture remained unchanged
 
 ## Exact blocker record
 
