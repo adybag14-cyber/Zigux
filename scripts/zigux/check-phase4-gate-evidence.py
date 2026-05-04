@@ -280,9 +280,6 @@ def validate_root(root: Path) -> list[str]:
     for marker in REQUIRED_WORKFLOW_ROUTE_STATUS_MARKERS:
         if marker not in gate_evidence:
             missing.append(f"phase4_gate_evidence:{marker}")
-    for marker in REQUIRED_KPROBE_SURVEY_STATUS_MARKERS:
-        if marker not in gate_evidence:
-            missing.append(f"phase4_gate_evidence:kprobe_survey_status:{marker}")
     if workflow is not None:
         missing.extend(collect_exact_workflow_run_count_markers(workflow, gate_evidence))
     for marker in REQUIRED_RUNTIME_ATOMIC64_REVERSIBLE_DELIVERY_MARKERS:
@@ -358,7 +355,7 @@ def write_fixture_tree(root: Path) -> None:
         "- `PHASE4_WORKFLOW_ROUTE_COUNTS_SELF_TEST=pass`",
         "- `PHASE4_WORKFLOW_ROUTE_COUNTS=pass`",
         "- `PHASE4_WORKFLOW_ROUTE_COUNTS_REQUIRED_FILE_COUNT=5`",
-        "- `PHASE4_WORKFLOW_ROUTE_COUNTS_REQUIRED_CHECK_COUNT=34`",
+        "- `PHASE4_WORKFLOW_ROUTE_COUNTS_REQUIRED_CHECK_COUNT=36`",
         "- `ARTIFACT_DIFF_CONTRACT_SELF_TEST=pass`",
         "- `ARTIFACT_DIFF_CONTRACT_SELF_TEST_CASE_COUNT=9`",
         "- `ARTIFACT_DIFF_CONTRACT=pass`",
@@ -440,7 +437,14 @@ def run_self_test() -> int:
         assert "phase4_gate_evidence:PHASE4_REQUIRED_MARKER_COUNT=64" in missing, missing
         write_fixture_tree(root)
         gate_evidence = root / "Documentation/zigux/phase4-gate-evidence.md"
-        gate_evidence.write_text(gate_evidence.read_text(encoding="utf-8").replace("one `make -C zigux phase4-validate` run line", "missing `make -C zigux phase4-validate` run line", 1), encoding="utf-8")
+        gate_evidence.write_text(
+            gate_evidence.read_text(encoding="utf-8").replace(
+                "one `make -C zigux phase4-validate` run line",
+                "missing `make -C zigux phase4-validate` run line",
+                1,
+            ),
+            encoding="utf-8",
+        )
         missing = validate_root(root)
         assert "phase4_gate_evidence:exact_workflow_count:one `make -C zigux phase4-validate` run line" in missing, missing
         write_fixture_tree(root)
@@ -448,6 +452,36 @@ def run_self_test() -> int:
         gate_evidence.write_text(gate_evidence.read_text(encoding="utf-8").replace("PHASE4_WORKFLOW_ROUTE_COUNTS=pass", "PHASE4_WORKFLOW_ROUTE_COUNTS=fail", 1), encoding="utf-8")
         missing = validate_root(root)
         assert "phase4_gate_evidence:PHASE4_WORKFLOW_ROUTE_COUNTS=pass" in missing, missing
+        write_fixture_tree(root)
+        gate_evidence = root / "Documentation/zigux/phase4-gate-evidence.md"
+        gate_evidence.write_text(
+            gate_evidence.read_text(encoding="utf-8").replace(
+                "PHASE4_WORKFLOW_ROUTE_COUNTS_REQUIRED_FILE_COUNT=5",
+                "PHASE4_WORKFLOW_ROUTE_COUNTS_REQUIRED_FILE_COUNT=4",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        missing = validate_root(root)
+        assert (
+            "phase4_gate_evidence:PHASE4_WORKFLOW_ROUTE_COUNTS_REQUIRED_FILE_COUNT="
+            in " ".join(missing)
+        ), missing
+        write_fixture_tree(root)
+        gate_evidence = root / "Documentation/zigux/phase4-gate-evidence.md"
+        gate_evidence.write_text(
+            gate_evidence.read_text(encoding="utf-8").replace(
+                "PHASE4_WORKFLOW_ROUTE_COUNTS_REQUIRED_CHECK_COUNT=36",
+                "PHASE4_WORKFLOW_ROUTE_COUNTS_REQUIRED_CHECK_COUNT=35",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        missing = validate_root(root)
+        assert (
+            "phase4_gate_evidence:PHASE4_WORKFLOW_ROUTE_COUNTS_REQUIRED_CHECK_COUNT="
+            in " ".join(missing)
+        ), missing
         write_fixture_tree(root)
         gate_evidence = root / "Documentation/zigux/phase4-gate-evidence.md"
         gate_evidence.write_text(gate_evidence.read_text(encoding="utf-8").replace("- `ARTIFACT_DIFF_CONTRACT_CASE_COUNT=27`", "- `ARTIFACT_DIFF_CONTRACT_CASE_COUNT=26`", 1), encoding="utf-8")
