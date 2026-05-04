@@ -495,7 +495,7 @@ expected_provenance_line = f"- survey provenance captured against verified `mast
 if expected_provenance_line not in survey_note:
     missing.append("survey:provenance_line")
 expected_verified_head_line = f"- verified `master` head: `{surveyed_commit}`"
-if expected_verifiedHead_line not in survey_note:
+if expected_verified_head_line not in survey_note:
     missing.append("survey:verified_master_head_line")
 expected_manifest_commit_line = f"- shared smoke manifest surveyed commit: `{surveyed_commit}`"
 if expected_manifest_commit_line not in survey_note:
