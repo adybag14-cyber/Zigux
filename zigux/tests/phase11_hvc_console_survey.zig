@@ -147,6 +147,7 @@ test "phase11 hvc_console survey manifest records the landed starter and remaini
     var saw_sleep_handoff = false;
     var saw_hangup_disconnect = false;
     var saw_remove_handoff = false;
+    var saw_cleanup_handoff = false;
     var saw_header_parity = false;
     var saw_winsize_layout_assert = false;
     var saw_hv_ops_layout_assert = false;
@@ -276,6 +277,15 @@ test "phase11 hvc_console survey manifest records the landed starter and remaini
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "keep-irq-until-hangup teardown boundaries") != null);
         }
 
+        if (std.mem.eql(u8, gap.id, "phase11-hvc-console-cleanup-handoff")) {
+            saw_cleanup_handoff = true;
+            try std.testing.expectEqualStrings("drivers/tty/hvc/hvc_console.zig", gap.zigux_destination);
+            try std.testing.expectEqualStrings("starter_landed", gap.status);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "tty_port_put ownership") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "tty-port reference drop timing") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "deferred final release boundary") != null);
+        }
+
         if (std.mem.eql(u8, gap.id, "phase11-hvc-console-header-parity")) {
             saw_header_parity = true;
             try std.testing.expectEqualStrings("drivers/tty/hvc/hvc_console.zig", gap.zigux_destination);
@@ -369,6 +379,7 @@ test "phase11 hvc_console survey manifest records the landed starter and remaini
     try std.testing.expect(saw_sleep_handoff);
     try std.testing.expect(saw_hangup_disconnect);
     try std.testing.expect(saw_remove_handoff);
+    try std.testing.expect(saw_cleanup_handoff);
     try std.testing.expect(saw_header_parity);
     try std.testing.expect(saw_winsize_layout_assert);
     try std.testing.expect(saw_hv_ops_layout_assert);
