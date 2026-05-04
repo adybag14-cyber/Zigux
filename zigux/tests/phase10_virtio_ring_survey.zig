@@ -145,13 +145,10 @@ test "phase10 virtio ring survey manifest records the live queue-discipline pack
     try std.testing.expect(!manifest.architecture_council_reopen_attached);
     try std.testing.expectEqualStrings("starter_landed", manifest.roadmap_parity_evidence.virtqueue_wrappers.status);
     try std.testing.expectEqual(@as(usize, 4), manifest.roadmap_parity_evidence.virtqueue_wrappers.evidence.len);
-    try std.testing.expectEqualStrings("drivers/virtio/virtio_ring.zig", manifest.roadmap_parity_evidence.virtqueue_wrappers.evidence[0]);
     try std.testing.expectEqualStrings("starter_landed", manifest.roadmap_parity_evidence.lab_only_driver_validation.status);
     try std.testing.expectEqual(@as(usize, 7), manifest.roadmap_parity_evidence.lab_only_driver_validation.evidence.len);
-    try std.testing.expectEqualStrings("zigux/tests/phase10_build.zig", manifest.roadmap_parity_evidence.lab_only_driver_validation.evidence[0]);
     try std.testing.expectEqualStrings("blocked_on_risky_transport", manifest.roadmap_parity_evidence.dual_implementations_for_risky_areas.status);
     try std.testing.expectEqual(@as(usize, 4), manifest.roadmap_parity_evidence.dual_implementations_for_risky_areas.evidence.len);
-    try std.testing.expectEqualStrings("phase10-mmio-lifecycle-and-irq-paths", manifest.roadmap_parity_evidence.dual_implementations_for_risky_areas.evidence[0]);
     try std.testing.expect(manifest.survey_summary.virtio_ring_c_lines >= 3000);
     try std.testing.expectEqual(@as(usize, 4), manifest.survey_summary.preexisting_phase10_test_files);
     try std.testing.expect(manifest.survey_summary.preexisting_phase10_build_present);
@@ -160,6 +157,39 @@ test "phase10 virtio ring survey manifest records the live queue-discipline pack
     try std.testing.expect(manifest.survey_summary.preexisting_virtio_ring_zig_present);
     try std.testing.expect(manifest.survey_summary.preexisting_virtio_ring_reset_reuse_test_present);
     try std.testing.expect(manifest.survey_summary.preexisting_virtio_ring_doc_present);
+
+    const expected_virtqueue_evidence = [_][]const u8{
+        "drivers/virtio/virtio_ring.zig",
+        "zigux/tests/phase10_virtio_ring.zig",
+        "zigux/tests/phase10_virtio_ring_manifest.json",
+        "Documentation/zigux/phase10-virtio-ring-survey.md",
+    };
+    for (expected_virtqueue_evidence, 0..) |path, index| {
+        try std.testing.expectEqualStrings(path, manifest.roadmap_parity_evidence.virtqueue_wrappers.evidence[index]);
+    }
+
+    const expected_lab_validation_evidence = [_][]const u8{
+        "zigux/tests/phase10_build.zig",
+        "zigux/tests/phase10_virtio_ring_survey.zig",
+        "scripts/zigux/check-phase10-closure-inventory.py",
+        "scripts/zigux/check-phase10-harness-coverage.py",
+        "scripts/zigux/validate-phase10.py",
+        "scripts/zigux/validate-phase10-closure.py",
+        "zigux/Makefile",
+    };
+    for (expected_lab_validation_evidence, 0..) |path, index| {
+        try std.testing.expectEqualStrings(path, manifest.roadmap_parity_evidence.lab_only_driver_validation.evidence[index]);
+    }
+
+    const expected_risky_transport_evidence = [_][]const u8{
+        "phase10-mmio-lifecycle-and-irq-paths",
+        "queue_setup_reset_paths",
+        "irq_parity",
+        "dma_paths",
+    };
+    for (expected_risky_transport_evidence, 0..) |path, index| {
+        try std.testing.expectEqualStrings(path, manifest.roadmap_parity_evidence.dual_implementations_for_risky_areas.evidence[index]);
+    }
 
     const required_ring_helpers = [_][]const u8{
         "phase10-virtqueue-shape-helper",
@@ -232,6 +262,10 @@ test "phase10 virtio ring survey manifest records the live queue-discipline pack
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE10_RING_ROADMAP_VIRTQUEUE_WRAPPERS=starter_landed") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE10_RING_ROADMAP_LAB_ONLY_DRIVER_VALIDATION=starter_landed") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE10_RING_ROADMAP_DUAL_IMPLEMENTATIONS_FOR_RISKY_AREAS=blocked_on_risky_transport") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "scripts/zigux/check-phase10-closure-inventory.py") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "scripts/zigux/check-phase10-harness-coverage.py") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "scripts/zigux/validate-phase10.py") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "scripts/zigux/validate-phase10-closure.py") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE10_FREEZE_MAP=Documentation/zigux/freeze-map.md") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE10_FREEZE_BOUNDARY_OWNER=P10-L10") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE10_FREEZE_BOUNDARY_ROLLBACK_OWNER=P10-L10") != null);
