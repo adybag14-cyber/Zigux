@@ -22,6 +22,8 @@ The shared entrypoints for that packet remain:
 - `make -C zigux phase6-checksum-perf`
 - `make -C zigux phase6-hexdump-perf`
 
+The shared packet posture is also parked after the current helper-local parity and perf surface cleared the bounded Phase 6 goal.
+
 The new aggregate `make -C zigux phase6-perf` path exists so the already-shipped helper-local perf gates can be replayed together without widening the packet into cross-machine absolute thresholds or folding those heavier microbenches into the default `make -C zigux phase6` helper-test lane.
 
 ## Current measurement posture
