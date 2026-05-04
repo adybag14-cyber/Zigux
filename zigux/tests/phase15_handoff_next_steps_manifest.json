@@ -37,6 +37,6 @@
   "pending_next_steps": [
     "Keep this handoff lane parked unless the shared Phase 15 replay drifts again, a named reopen trigger now fits the evidence packet again, or a deep-core blocker change makes a refreshed synthesis necessary.",
     "If drift is packet-local inside Documentation/zigux/phase15-freeze-map-governance.md, Documentation/zigux/phase15-architecture-council-review-process.md, Documentation/zigux/phase15-parity-scorecard.md, or Documentation/zigux/phase15-indefinite-c-policy.md, refresh that dedicated packet first and return to this handoff lane only when shared replay, docs-root alignment, or cross-packet synthesis drifts.",
-    "When one of those shared conditions changes, rerun python3 scripts/zigux/validate-phase15.py, make -C zigux phase15-validate, zig build test --build-file zigux/tests/phase15_build.zig, and make -C zigux phase15 before refreshing neighboring governance packets."
+    "When one of those shared conditions changes, rerun python3 scripts/zigux/check-phase15-review-process-handoff.py --self-test, python3 scripts/zigux/check-phase15-review-process-handoff.py, python3 scripts/zigux/validate-phase15.py, make -C zigux phase15-validate, zig build test --build-file zigux/tests/phase15_build.zig, and make -C zigux phase15 before refreshing neighboring governance packets."
   ]
 }
