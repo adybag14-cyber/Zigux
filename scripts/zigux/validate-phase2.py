@@ -179,7 +179,7 @@ PHASE2_FIXDEP_REQUIRED_SOURCE_MARKERS = [
     "validate_tool_sources(C_FIXDEP, ZIG_FIXDEP)",
     "expected_stderr_path = expected_stderr or implicit_expected_stderr",
     "diff_text(c_actual, c_repeat)",
-    "diff_text(zig_actual, c_repeat)",
+    "diff_text(zig_actual, zig_repeat)",
     "diff_text(c_actual_stderr, zig_actual_stderr)",
     "diff_text(c_actual_stderr, c_repeat_stderr)",
     "diff_text(zig_actual_stderr, zig_repeat_stderr)",
