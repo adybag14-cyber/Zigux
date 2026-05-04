@@ -24,6 +24,14 @@ test "phase 7 string helper sample boundary keeps the shipped build helper-only"
     );
     defer std.testing.allocator.free(phase7_build);
 
+    const phase7_build_inventory = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "zigux/tests/fixtures/phase7_build_inventory.json",
+        std.testing.allocator,
+        .limited(16 * 1024),
+    );
+    defer std.testing.allocator.free(phase7_build_inventory);
+
     try std.testing.expectError(
         error.FileNotFound,
         std.Io.Dir.cwd().access(io_instance.io(), "samples/zigux/string_helpers_sample.zig", .{}),
@@ -43,6 +51,10 @@ test "phase 7 string helper sample boundary keeps the shipped build helper-only"
     try expectContains(samples_readme, "treat any new `samples/zigux/*string*.zig` file as review-blocking");
     try expectContains(phase7_build, "phase7-string-helpers-tests");
     try expectContains(phase7_build, "phase7-string-helpers-survey-tests");
+    try expectContains(phase7_build, "phase7-string-helpers-sample-boundary-tests");
+    try expectContains(phase7_build_inventory, "\"phase7_string_helpers_sample_boundary.zig\"");
+    try expectContains(phase7_build_inventory, "\"phase7-string-helpers-sample-boundary-tests\"");
+    try expectContains(phase7_build_inventory, "\"phase7-string-helpers-sample-boundary-tests\": \"repo_root\"");
     try std.testing.expect(std.mem.indexOf(u8, phase7_build, "phase7-string-helpers-sample-tests") == null);
     try std.testing.expect(std.mem.indexOf(u8, phase7_build, "phase7_string_helpers_sample.zig") == null);
 }
