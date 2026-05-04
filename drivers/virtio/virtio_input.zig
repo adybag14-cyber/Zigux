@@ -73,6 +73,15 @@ pub const StatusSendSummary = struct {
     suppressed_status_count: usize,
 };
 
+pub const StatusDrainSummary = struct {
+    anchor: []const u8,
+    completed_status_count: usize,
+    pending_status_count_before: usize,
+    pending_status_count_after: usize,
+    suppressed_status_count: usize,
+    ready: bool,
+};
+
 pub const ConfigBitmapSummary = struct {
     anchor: []const u8,
     select: ConfigSelect,
@@ -564,6 +573,23 @@ pub const VirtioInputLab = struct {
             .suppressed_msc_timestamp = suppressed,
             .queued_status_count = self.queued_status_count,
             .suppressed_status_count = self.suppressed_status_count,
+        };
+    }
+
+    pub fn drainStatusQueue(self: *Self, completed_status_count: usize) !StatusDrainSummary {
+        if (self.status_descriptor_count == 0) return error.StatusQueueNotConfigured;
+        if (completed_status_count > self.queued_status_count) return error.StatusCompletionCountExceedsQueued;
+
+        const pending_status_count_before = self.queued_status_count;
+        self.queued_status_count -= completed_status_count;
+
+        return .{
+            .anchor = descriptor().anchor,
+            .completed_status_count = completed_status_count,
+            .pending_status_count_before = pending_status_count_before,
+            .pending_status_count_after = self.queued_status_count,
+            .suppressed_status_count = self.suppressed_status_count,
+            .ready = self.ready,
         };
     }
 
