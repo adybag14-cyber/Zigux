@@ -133,11 +133,12 @@ Current lane state recorded in the manifest:
 - landed `phase13-landlock-tree-link-followup`
 - landed `phase13-landlock-rule-lookup-followup`
 - landed `phase13-landlock-rule-materialization-followup`
+- landed `phase13-landlock-rule-replacement-followup`
 - landed `phase13-landlock-rule-release-followup`
 - blocked `phase13-landlock-live-tree-state-blocker`
 
 Traceability summary:
-- this anchor stays helper-first and manifest-backed: the current ruleset helper packet is wired through the shared Phase 13 build and make entrypoints, records its dedicated reviewability gate plus slice and survey notes, and now includes layer-merge, tree-search, tree-link, rule-lookup, materialization, and release planners while still refusing to claim `rb_replace_node()`, live object ownership transfer, hierarchy lifetime, or workqueue-backed teardown as pure in-memory slice work.
+- this anchor stays helper-first and manifest-backed: the current ruleset helper packet is wired through the shared Phase 13 build and make entrypoints, records its dedicated reviewability gate plus slice and survey notes, and now includes layer-merge, tree-search, tree-link, rule-lookup, materialization, replacement, and release planners while still refusing to claim actual `rb_replace_node()` mutation, live object ownership transfer, hierarchy lifetime, or workqueue-backed teardown as pure in-memory slice work.
 
 ### `security/landlock/syscalls.c`
 
