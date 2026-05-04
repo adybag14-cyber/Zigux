@@ -328,6 +328,9 @@ test "phase 5 kobject contributor docs stay aligned with the shipped review surf
     try expectContains(survey_note, "runtime_trace_events_loader.zig");
     try expectContains(survey_note, "visibly separate from those later runtime starters");
     try expectContains(survey_note, "sysfs creation, `kernel_kobj` integration, uevents, and loadable module registration remain out of scope");
+    try expectContains(survey_note, "no `samples/zigux/*rbtree*` Phase 5 reference sample");
+    try expectContains(survey_note, "phase7-rbtree-slice.md");
+    try expectContains(survey_note, "stale `rbtree-style` shorthand");
     try expectContains(survey_note, "zig test samples/zigux/kobject_example.zig");
     try expectContains(survey_note, "All 6 tests passed.");
     try expectContains(survey_note, "zig test zigux/tests/phase5_kobject_example_survey.zig");
