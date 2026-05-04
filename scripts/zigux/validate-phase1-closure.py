@@ -300,7 +300,7 @@ REQUIRED_MANIFEST_FIELDS = {
         "alias_gap_note": "Linux-style rb_* alias surface parity is still missing for the already-ported entry points, and that remaining surface stays explicitly out of scope for the closed Phase 1 tranche until a later bounded repair lands.",
         "cached_find_add_unit_test_contract": "Direct Zig unit coverage keeps findAddCached() aligned so equal-key probes return the original resident node, distinct inserts still link into the cached tree, and RootCached continues to expose the same leftmost node as the underlying tree root.",
         "postorder_iterator_unit_test_contract": "Direct Zig unit coverage keeps iteratePostorder() aligned so the explicit iterator visits each node exactly once in left-right-root order and reports exhaustion cleanly after the full walk.",
-        "postorder_safe_unit_test_contract": "Direct Zig unit coverage keeps iteratePostorderSafe() aligned across erase-driven rebalancing so the walk still reaches each remaining node exactly once after the current node is removed.",
+        "postorder_safe_unit_test_contract": "Direct Zig unit coverage keeps iteratePostorderSafe() aligned by caching exactly one step ahead so callers can invalidate the current node without truncating the remaining postorder walk.",
         "postorder_safe_rebalance_unit_test_contract": "Direct Zig unit coverage keeps iteratePostorderSafe() aligned across erase-driven rebalancing so the walk still reaches each remaining node exactly once after the current node is removed.",
     },
     "tools/lib/string.zig": {
