@@ -50,7 +50,7 @@ test "phase 5 kretprobe manifest records the exact bounded checks" {
     try std.testing.expectEqualStrings("samples/zigux/kretprobe_example.zig", manifest.sample_path);
     try std.testing.expect(std.mem.indexOf(u8, manifest.validation_entrypoint, "phase5_build.zig") != null);
     try std.testing.expectEqual(@as(usize, 9), manifest.review_prompts.len);
-    try std.testing.expectEqual(@as(usize, 10), manifest.exact_checks.len);
+    try std.testing.expectEqual(@as(usize, 11), manifest.exact_checks.len);
     try std.testing.expectEqual(@as(usize, 4), manifest.non_goals.len);
 
     var saw_descriptor_prompt = false;
@@ -62,12 +62,14 @@ test "phase 5 kretprobe manifest records the exact bounded checks" {
     var saw_helper_contract_prompt = false;
     var saw_symbol_prompt = false;
     var saw_non_goal_prompt = false;
+    var saw_lifecycle_guard_prompt = false;
     var saw_private_data_check = false;
     var saw_maxactive_check = false;
     var saw_symbol_check = false;
     var saw_retarget_check = false;
     var saw_duration_check = false;
     var saw_timestamp_order_check = false;
+    var saw_lifecycle_guard_check = false;
     var saw_exit_check = false;
 
     for (manifest.review_prompts) |prompt| {
@@ -100,17 +102,23 @@ test "phase 5 kretprobe manifest records the exact bounded checks" {
         {
             saw_maxactive_prompt = true;
         }
-        if (std.mem.indexOf(u8, prompt, "pre-init retargeting") != null and
-            std.mem.indexOf(u8, prompt, "timestamp-order") != null and
-            std.mem.indexOf(u8, prompt, "ownership replay") != null)
+        if (std.mem.indexOf(u8, prompt, "lifecycle-guard") != null and
+            std.mem.indexOf(u8, prompt, "pre-init retargeting") != null and
+            std.mem.indexOf(u8, prompt, "timestamp-order") != null)
         {
             saw_exact_contract_prompt = true;
         }
         if (std.mem.indexOf(u8, prompt, "runRetargetRecoveryReplay()") != null and
             std.mem.indexOf(u8, prompt, "runMaxactiveBudgetReplay()") != null and
-            std.mem.indexOf(u8, prompt, "runOwnershipBoundaryReplay()") != null)
+            std.mem.indexOf(u8, prompt, "runOwnershipBoundaryReplay()") != null and
+            std.mem.indexOf(u8, prompt, "runLifecycleGuardReplay()") != null)
         {
             saw_helper_contract_prompt = true;
+        }
+        if (std.mem.indexOf(u8, prompt, "lifecycle-guard boundaries") != null and
+            std.mem.indexOf(u8, prompt, "runLifecycleGuardReplay()") != null)
+        {
+            saw_lifecycle_guard_prompt = true;
         }
         if (std.mem.indexOf(u8, prompt, "pre-init") != null and
             std.mem.indexOf(u8, prompt, "module_param") != null)
@@ -162,6 +170,14 @@ test "phase 5 kretprobe manifest records the exact bounded checks" {
             try std.testing.expect(std.mem.indexOf(u8, check.expected, "maxactiveBudget()") != null);
             try std.testing.expect(std.mem.indexOf(u8, check.expected, "20 concurrent instances") != null);
         }
+        if (std.mem.eql(u8, check.id, "lifecycle-guard-boundaries")) {
+            saw_lifecycle_guard_check = true;
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "runLifecycleGuardReplay") != null);
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "runAnchorReplay()") != null);
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "double init") != null);
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "post-init retarget") != null);
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "one init run") != null);
+        }
         if (std.mem.eql(u8, check.id, "post-exit-rejection")) {
             saw_exit_check = true;
             try std.testing.expect(std.mem.indexOf(u8, check.expected, "runOwnershipBoundaryReplay") != null);
@@ -182,6 +198,7 @@ test "phase 5 kretprobe manifest records the exact bounded checks" {
     try std.testing.expect(saw_maxactive_prompt);
     try std.testing.expect(saw_exact_contract_prompt);
     try std.testing.expect(saw_helper_contract_prompt);
+    try std.testing.expect(saw_lifecycle_guard_prompt);
     try std.testing.expect(saw_symbol_prompt);
     try std.testing.expect(saw_non_goal_prompt);
     try std.testing.expect(saw_private_data_check);
@@ -190,6 +207,7 @@ test "phase 5 kretprobe manifest records the exact bounded checks" {
     try std.testing.expect(saw_retarget_check);
     try std.testing.expect(saw_duration_check);
     try std.testing.expect(saw_timestamp_order_check);
+    try std.testing.expect(saw_lifecycle_guard_check);
     try std.testing.expect(saw_exit_check);
     try std.testing.expect(std.mem.eql(u8, manifest.non_goals[0], "register_kretprobe parity"));
     try std.testing.expect(std.mem.eql(u8, manifest.non_goals[1], "unregister_kretprobe parity"));
@@ -281,20 +299,20 @@ test "phase 5 kretprobe contributor docs stay aligned with the shipped review su
     try expectContains(survey_note, "shared tests-root guide in `zigux/tests/README.md` is part of that same contributor packet now");
     try expectContains(survey_note, "the direct `zig test samples/zigux/kretprobe_example.zig` replay, the paired `zig test zigux/tests/phase5_kretprobe_example_survey.zig` replay");
     try expectContains(survey_note, "runOwnershipBoundaryReplay()");
+    try expectContains(survey_note, "runLifecycleGuardReplay()");
     try expectContains(survey_note, "Latest verification snapshot");
-    try expectContains(survey_note, "zig test samples/zigux/kretprobe_example.zig");
-    try expectContains(survey_note, "All 1 tests passed.");
+    try expectContains(survey_note, "focused survey-packet scratch replay");
     try expectContains(survey_note, "zig test zigux/tests/phase5_kretprobe_example_survey.zig");
-    try expectContains(survey_note, "Build Summary: 18/18 steps succeeded; 29/29 tests passed");
-    try expectContains(survey_note, "phase5-kretprobe-example-tests 5 pass (5 total)");
-    try expectContains(survey_note, "phase5-kretprobe-example-survey-tests 2 pass (2 total)");
-    try expectContains(survey_note, "register_kretprobe()");
+    try expectContains(survey_note, "All 2 tests passed.");
+    try expectContains(survey_note, "no live repo checkout was available for a fresh `zig test samples/zigux/kretprobe_example.zig`");
     try expectContains(survey_note, "do_sys_openat2");
     try expectContains(survey_note, "199");
     try expectContains(survey_note, "260");
     try expectContains(survey_note, "recordMissedInstance()");
     try expectContains(survey_note, "entryHandler()");
     try expectContains(survey_note, "retHandler()");
+    try expectContains(survey_note, "pre-init `runAnchorReplay()` and `exit()` rejection");
+    try expectContains(survey_note, "double `init()` plus post-init retarget and recovery rejection");
     {
         const pinned_commit_line = try std.fmt.allocPrint(
             std.testing.allocator,
