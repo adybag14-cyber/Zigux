@@ -39,7 +39,7 @@ test "phase 8 perf-buffer poll docs keep the bounded wait-result helper explicit
     try expectContains(note, "no standalone clockevent helper");
 }
 
-test "phase 8 perf-buffer poll helper stays wired into focused and shared Phase 8 builds" {
+test "phase 8 perf-buffer poll helper stays wired into the shared Phase 8 build" {
     const focused_build_file = try readWorkspaceFile(
         std.testing.allocator,
         "zigux/tests/phase8_perf_buffer_poll_only_build.zig",
@@ -54,6 +54,8 @@ test "phase 8 perf-buffer poll helper stays wired into focused and shared Phase 
     );
     defer std.testing.allocator.free(shared_build_file);
 
+    // Keep the shipped validator anchor stable while still checking both the
+    // focused shard and the shared Phase 8 build bundle.
     try expectContains(focused_build_file, "phase8_perf_buffer_poll.zig");
     try expectContains(focused_build_file, "phase8-perf-buffer-poll-tests");
     try expectContains(focused_build_file, "Run focused Phase 8 perf-buffer poll tests");
