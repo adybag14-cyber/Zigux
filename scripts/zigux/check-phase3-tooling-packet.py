@@ -23,6 +23,7 @@ REQUIRED_TOOLING_FILES = (
     "scripts/zigux/check-phase3-policy-unsafe-mmio-consumer.py",
     "scripts/zigux/check-phase3-rbtree-shared-lift-contract.py",
     "scripts/zigux/check-phase3-readme-tooling-inventory.py",
+    "scripts/zigux/check-phase3-tests-root-companion.py",
     "scripts/zigux/check-phase3-tooling-packet.py",
     "scripts/zigux/check-phase3-validation-flow.py",
     "scripts/zigux/generate-phase3-check-wrappers.py",
