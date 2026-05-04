@@ -125,6 +125,15 @@ EXACT_VALIDATOR_STATUS_PREFIXES = [
     "PHASE4_VALIDATION=pass",
 ]
 
+EXACT_GATE_EVIDENCE_STATUS_LINES = [
+    "- `PHASE4_GATE_EVIDENCE_TARGET_COUNT=18`",
+]
+
+EXACT_GATE_EVIDENCE_WORKFLOW_ROUTE_NOTE_MARKERS = [
+    "`PHASE4_GATE_EVIDENCE_TARGET_COUNT=18` continues to describe the narrower gate-evidence-checker-enforced blob target set",
+    "the dedicated workflow-route checker file itself",
+]
+
 PHASE4_GATE_EVIDENCE_BLOB_TARGETS = {
     "PHASE4_VALIDATION_MATRIX_BLOB_SHA": "Documentation/zigux/phase4-validation-matrix.md",
     "PHASE4_VALIDATOR_BLOB_SHA": "scripts/zigux/validate-phase4.py",
@@ -261,6 +270,25 @@ def collect_scripts_root_bitmap_route_markers(gate_evidence: str) -> list[str]:
     return missing
 
 
+def collect_exact_gate_evidence_status_markers(gate_evidence: str) -> list[str]:
+    missing: list[str] = []
+    for marker in EXACT_GATE_EVIDENCE_STATUS_LINES:
+        actual_count = sum(1 for line in gate_evidence.splitlines() if line == marker)
+        if actual_count != 1:
+            missing.append(
+                "phase4_gate_evidence:status_exact_count:"
+                f"{marker}:{actual_count}"
+            )
+    for marker in EXACT_GATE_EVIDENCE_WORKFLOW_ROUTE_NOTE_MARKERS:
+        actual_count = gate_evidence.count(marker)
+        if actual_count != 1:
+            missing.append(
+                "phase4_gate_evidence:workflow_route_note_exact_count:"
+                f"{marker}:{actual_count}"
+            )
+    return missing
+
+
 def load_validator_module(root: Path):
     validator_path = root / VALIDATOR_PATH
     if not validator_path.exists():
@@ -339,14 +367,19 @@ def validate_root(root: Path) -> list[str]:
         missing.extend(collect_exact_workflow_run_count_markers(workflow, gate_evidence))
     for marker in REQUIRED_RUNTIME_ATOMIC64_REVERSIBLE_DELIVERY_MARKERS:
         if marker not in gate_evidence:
-            missing.append(f"phase4_gate_evidence:runtime_atomic64_reversible_delivery:{marker}")
+            missing.append(
+                f"phase4_gate_evidence:runtime_atomic64_reversible_delivery:{marker}"
+            )
     for marker in REQUIRED_PERF_BASELINE_PENDING_THRESHOLD_PLAN_MARKERS:
         if marker not in gate_evidence:
-            missing.append(f"phase4_gate_evidence:perf_baseline_pending_threshold_plan:{marker}")
+            missing.append(
+                f"phase4_gate_evidence:perf_baseline_pending_threshold_plan:{marker}"
+            )
     for marker in REQUIRED_SCRIPTS_ROOT_RUNTIME_ATOMIC64_MARKERS:
         if marker not in gate_evidence:
             missing.append(f"phase4_gate_evidence:scripts_root_runtime_atomic64:{marker}")
     missing.extend(collect_scripts_root_bitmap_route_markers(gate_evidence))
+    missing.extend(collect_exact_gate_evidence_status_markers(gate_evidence))
     missing.extend(collect_exact_validator_status_markers(root, gate_evidence))
     for marker, relative_path in PHASE4_GATE_EVIDENCE_BLOB_TARGETS.items():
         target = root / relative_path
@@ -436,6 +469,7 @@ def write_fixture_tree(root: Path) -> None:
         "- synthetic fixture keeps the scripts-root runtime atomic64 packet explicit through `make -C zigux phase4-runtime-atomic64-diff` and `phase4-runtime-atomic64-diff-tests` instead of leaving that scripts-root wording implied behind the broader shared-build list.",
         "- synthetic fixture keeps one dedicated scripts-root bitmap replay sentence explicit: the shared validator and `scripts/zigux/check-phase4-gate-evidence.py` now both exact-count the scripts-root `make -C zigux phase4-bitmap-diff` route and the paired `phase4-bitmap-diff-tests` shared-build marker so the restored scripts-root bitmap surface cannot drift behind broader Phase 4 prose.",
         "- synthetic fixture keeps the kprobe survey packet explicit through `make -C zigux phase4-kprobe-example-survey`, `phase4-kprobe-example-survey-tests`, and the now-landed note that the shared validator now fails closed on the kprobe survey packet itself.",
+        "- `PHASE4_GATE_EVIDENCE_TARGET_COUNT=18` continues to describe the narrower gate-evidence-checker-enforced blob target set, which includes the dedicated workflow-route checker file itself.",
         "",
         "## Current Conclusion",
         "",
@@ -583,6 +617,36 @@ def run_self_test() -> int:
         missing = validate_root(root)
         assert (
             "phase4_gate_evidence:scripts_root_bitmap_route:`make -C zigux phase4-bitmap-diff`:2"
+            in missing
+        ), missing
+        write_fixture_tree(root)
+        gate_evidence = root / "Documentation/zigux/phase4-gate-evidence.md"
+        gate_evidence.write_text(
+            gate_evidence.read_text(encoding="utf-8").replace(
+                "- `PHASE4_GATE_EVIDENCE_TARGET_COUNT=18`\n",
+                "- `PHASE4_GATE_EVIDENCE_TARGET_COUNT=18`\n- `PHASE4_GATE_EVIDENCE_TARGET_COUNT=18`\n",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        missing = validate_root(root)
+        assert (
+            "phase4_gate_evidence:status_exact_count:- `PHASE4_GATE_EVIDENCE_TARGET_COUNT=18`:2"
+            in missing
+        ), missing
+        write_fixture_tree(root)
+        gate_evidence = root / "Documentation/zigux/phase4-gate-evidence.md"
+        gate_evidence.write_text(
+            gate_evidence.read_text(encoding="utf-8").replace(
+                "the dedicated workflow-route checker file itself",
+                "the dedicated workflow-route checker file itself and again the dedicated workflow-route checker file itself",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        missing = validate_root(root)
+        assert (
+            "phase4_gate_evidence:workflow_route_note_exact_count:the dedicated workflow-route checker file itself:2"
             in missing
         ), missing
         print("PHASE4_GATE_EVIDENCE_SELF_TEST=pass")
