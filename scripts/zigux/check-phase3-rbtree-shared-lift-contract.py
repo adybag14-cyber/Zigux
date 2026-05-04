@@ -45,11 +45,6 @@ CONTAINS_RULES = {
         "pub const RbtreeRootView = extern struct {",
     ),
     SHARED_CONTRACT_REL: (
-        'const abi = @import("abi_bindings");',
-        'const rbtree = @import("rbtree_bindings");',
-        "PHASE3_RBTREE_SHARED_LAYOUT_CONTRACT=zigux_rbtree_root_view-reused-unchanged-in-shared-phase3-abi-packet",
-        "PHASE3_RBTREE_SHARED_CONSTANT_CONTRACT=root_flag_empty,root_flag_cached,root_flag_leftmost_valid",
-        "fn expectSameRootView(shared: abi.RbtreeRootView, dedicated: rbtree.RootView) !void {",
         "try std.testing.expectEqual(@sizeOf(rbtree.RootView), @sizeOf(abi.RbtreeRootView));",
         "try std.testing.expectEqual(abi.RBTREE_ROOT_FLAG_EMPTY, rbtree.ROOT_FLAG_EMPTY);",
     ),
@@ -62,6 +57,11 @@ CONTAINS_RULES = {
 
 EXACT_ONCE_RULES = {
     SHARED_CONTRACT_REL: (
+        'const abi = @import("abi_bindings");',
+        'const rbtree = @import("rbtree_bindings");',
+        "fn expectSameRootView(shared: abi.RbtreeRootView, dedicated: rbtree.RootView) !void {",
+        "// PHASE3_RBTREE_SHARED_LAYOUT_CONTRACT=zigux_rbtree_root_view-reused-unchanged-in-shared-phase3-abi-packet",
+        "// PHASE3_RBTREE_SHARED_CONSTANT_CONTRACT=root_flag_empty,root_flag_cached,root_flag_leftmost_valid",
         "// PHASE3_RBTREE_SHARED_SAMPLE_RECORDS=empty-root,cached-leftmost-root,uncached-root",
         "const empty_root: abi.RbtreeRootView = .{",
         "const cached_root: abi.RbtreeRootView = .{",
