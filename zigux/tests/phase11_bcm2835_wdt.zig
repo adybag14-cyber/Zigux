@@ -163,6 +163,55 @@ test "phase11 bcm2835_wdt registration summary records watchdog registration and
     try std.testing.expect(!not_controller.poweroff_handler_conflict);
 }
 
+test "phase11 bcm2835_wdt registration outcome summary keeps probe failure and poweroff claim blocking reviewable" {
+    var watchdog = try bcm2835_wdt.Bcm2835WatchdogLab.init(9);
+
+    const success = watchdog.registrationOutcomeSummary(true, true, false);
+    try std.testing.expectEqualStrings("drivers/watchdog/bcm2835_wdt.c", success.anchor);
+    try std.testing.expect(success.register_device_requested);
+    try std.testing.expect(success.register_device_succeeded);
+    try std.testing.expect(!success.register_device_failed);
+    try std.testing.expect(success.system_power_controller);
+    try std.testing.expect(!success.poweroff_handler_present);
+    try std.testing.expect(success.poweroff_handler_claimed);
+    try std.testing.expect(!success.poweroff_handler_conflict);
+    try std.testing.expect(!success.poweroff_handler_claim_blocked_by_registration_failure);
+    try std.testing.expect(!success.probe_returns_error);
+
+    const conflict = watchdog.registrationOutcomeSummary(true, true, true);
+    try std.testing.expect(conflict.register_device_requested);
+    try std.testing.expect(conflict.register_device_succeeded);
+    try std.testing.expect(!conflict.register_device_failed);
+    try std.testing.expect(conflict.system_power_controller);
+    try std.testing.expect(conflict.poweroff_handler_present);
+    try std.testing.expect(!conflict.poweroff_handler_claimed);
+    try std.testing.expect(conflict.poweroff_handler_conflict);
+    try std.testing.expect(!conflict.poweroff_handler_claim_blocked_by_registration_failure);
+    try std.testing.expect(!conflict.probe_returns_error);
+
+    const failed = watchdog.registrationOutcomeSummary(true, false, false);
+    try std.testing.expect(failed.register_device_requested);
+    try std.testing.expect(!failed.register_device_succeeded);
+    try std.testing.expect(failed.register_device_failed);
+    try std.testing.expect(failed.system_power_controller);
+    try std.testing.expect(!failed.poweroff_handler_present);
+    try std.testing.expect(!failed.poweroff_handler_claimed);
+    try std.testing.expect(!failed.poweroff_handler_conflict);
+    try std.testing.expect(failed.poweroff_handler_claim_blocked_by_registration_failure);
+    try std.testing.expect(failed.probe_returns_error);
+
+    const passive_failure = watchdog.registrationOutcomeSummary(false, false, false);
+    try std.testing.expect(passive_failure.register_device_requested);
+    try std.testing.expect(!passive_failure.register_device_succeeded);
+    try std.testing.expect(passive_failure.register_device_failed);
+    try std.testing.expect(!passive_failure.system_power_controller);
+    try std.testing.expect(!passive_failure.poweroff_handler_present);
+    try std.testing.expect(!passive_failure.poweroff_handler_claimed);
+    try std.testing.expect(!passive_failure.poweroff_handler_conflict);
+    try std.testing.expect(!passive_failure.poweroff_handler_claim_blocked_by_registration_failure);
+    try std.testing.expect(passive_failure.probe_returns_error);
+}
+
 test "phase11 bcm2835_wdt platform handoff summary keeps parent and PM-base prerequisites reviewable" {
     var watchdog = try bcm2835_wdt.Bcm2835WatchdogLab.init(9);
 
