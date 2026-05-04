@@ -234,6 +234,10 @@ def ensure_manifest_is_deterministic(cases: object, fixture_dir: Path = FIXTURE_
 
             if group_name == 'conf_cases':
                 allowed_keys = {'name', 'mode', 'kconfig', 'config', 'arch', 'mode_arg', 'allconfig', 'allconfig_env', 'autoconfig', 'autoheader', 'nosilentupdate', 'seed', 'probability', 'expected'}
+                if expected_path is not None:
+                    canonical_expected = f'{name}_expected.json'
+                    if expected_path != canonical_expected:
+                        issues.append(f'{case_prefix}:expected:expected_canonical_name:{canonical_expected}')
                 mode = read_nonempty_string(case, 'mode', issues, prefix=case_prefix)
                 read_nonempty_string(case, 'kconfig', issues, prefix=case_prefix)
                 read_nonempty_string(case, 'config', issues, prefix=case_prefix)
@@ -618,6 +622,16 @@ def run_self_test() -> int:
             'manifest=beta,alpha',
             'expected=alpha,beta',
             'UNSORTED_CONFDATA_CASE_ORDER_END',
+        ]
+
+        miswired_conf_expected_cases = json.loads(json.dumps(valid_cases))
+        miswired_conf_expected_cases['conf_cases'][0]['expected'] = 'oldconfig_expected.json'
+        assert capture_failure(ensure_manifest_is_deterministic, miswired_conf_expected_cases, fixture_dir) == [
+            'KCONFIG_BRIDGE_DIFF=fail',
+            'INVALID_KCONFIG_MANIFEST_START',
+            'conf_cases:oldaskconfig:expected:expected_canonical_name:oldaskconfig_expected.json',
+            'conf_cases:oldconfig:expected:duplicate_with:conf_cases:oldaskconfig',
+            'INVALID_KCONFIG_MANIFEST_END',
         ]
 
         (fixture_dir / 'orphaned_expected.json').write_text('{}\n', encoding='utf-8', newline='\n')
