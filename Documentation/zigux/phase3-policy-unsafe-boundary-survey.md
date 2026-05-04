@@ -4,11 +4,11 @@ This note records the current policy and narrow-unsafe boundary for the bounded 
 
 ## Status
 
-- `PHASE3_SURVEYED_COMMIT=bc2373f7deedf021c73beaae29555a9ac6b0536d`
+- `PHASE3_SURVEYED_COMMIT=11ce68dddd5ecc31de988f3d8bf6e4c680be04b0`
 - `PHASE3_LAYOUT_ASSERT_PATH=zigux/helpers/layout_assert.zig`
 - `PHASE3_LAYOUT_ASSERT_SCOPE=canonical-bindings`
 - `PHASE3_LAYOUT_ASSERT_STATUS=canonical-layout-assertions-landed`
-- `PHASE3_LAYOUT_ASSERT_BLOB_SHA=5c2996a464bed45f1b9b8944ac0eca4fd2c48f63`
+- `PHASE3_LAYOUT_ASSERT_BLOB_SHA=95d3dccd72bdf70d035e5d1ca0704bcc661502f1`
 - `PHASE3_PANIC_POLICY_PATH=zigux/helpers/panic_policy.zig`
 - `PHASE3_PANIC_POLICY=explicit-modes-only`
 - `PHASE3_PANIC_POLICY_STATUS=interop-byte-decode-landed`
@@ -26,10 +26,10 @@ This note records the current policy and narrow-unsafe boundary for the bounded 
 - `PHASE3_MMIO_PATH=zigux/helpers/mmio.zig`
 - `PHASE3_MMIO_BLOB_SHA=218e68eb18f91b6df31e686fb7f121234d49fb24`
 - `PHASE3_MMIO_TYPED_POLICY_CONSUMER=zigux/helpers/mmio.zig`
-- `PHASE3_ABI_SLICE_DOC_BLOB_SHA=b4c360f07c39f6c3edcf58cf12b37a1d4fefd3c2`
+- `PHASE3_ABI_SLICE_DOC_BLOB_SHA=6bb6839964179a4f0d818c40412233f8a718de51`
 - `PHASE3_POLICY_UNSAFE_BUILD_BLOB_SHA=b8b22a949673c47f3512aac54bfa643cd593600c`
 - `PHASE3_POLICY_UNSAFE_TEST_BLOB_SHA=12c752cdc3c83f1575402fd1523ed42229c0a47b`
-- `PHASE3_ABI_MANIFEST_BLOB_SHA=3fa037bb2c225602f7129ccd4255e72596c78b87`
+- `PHASE3_ABI_MANIFEST_BLOB_SHA=3b6103a6ef4162b0969c78a48681923cb622402a`
 - `PHASE3_POLICY_UNSAFE_GATE=zig build phase3-policy-unsafe-test --build-file zigux/tests/phase3_policy_unsafe_build.zig`
 - `PHASE3_BOUNDARY_GAP=typed-policy-mmio-consumer-landed-no-third-boundary-helper-beyond-focused-replay`
 - `PHASE3_NEXT_BOUNDED_STEP=keep-the-policy-and-unsafe-surface-narrow-until-one-roadmap-backed-helper-beyond-mmio-needs-a-typed-interop-policy-consumer`
@@ -50,7 +50,7 @@ It does require the current tree to say clearly which policy rules are already l
 
 ## Live Repo Reality
 
-This survey now treats `PHASE3_SURVEYED_COMMIT=bc2373f7deedf021c73beaae29555a9ac6b0536d` as the last fully resurveyed shared-head anchor for the directly coupled policy-and-unsafe packet, not as a claim that the current `master` head still equals that commit. For current-truth checks, the packet-local blob IDs above are the authoritative evidence for those helper, build, test, manifest, and slice-note paths whenever later `master` movement leaves the packet unchanged.
+This survey now treats `PHASE3_SURVEYED_COMMIT=11ce68dddd5ecc31de988f3d8bf6e4c680be04b0` as the last fully resurveyed shared-head anchor for the directly coupled policy-and-unsafe packet, not as a claim that the current `master` head still equals that commit. For current-truth checks, the packet-local blob IDs above are the authoritative evidence for those helper, build, test, manifest, and slice-note paths whenever later `master` movement leaves the packet unchanged.
 
 The current tree already carries a real bounded policy-and-unsafe substrate:
 
