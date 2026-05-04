@@ -343,6 +343,11 @@ def run_self_test() -> int:
         issues = validate(root)
         assert 'missing_policy_build_snippet:root_module.addImport("layout_assert", layout_assert_module);' in issues
 
+        _write(root, POLICY_BUILD_REL, "\n".join(REQUIRED_POLICY_BUILD_SNIPPETS) + "\n")
+        _write(root, POLICY_BUILD_REL, "\n".join(snippet for snippet in REQUIRED_POLICY_BUILD_SNIPPETS if snippet != 'root_module.addImport("mmio", mmio_module);') + "\n")
+        issues = validate(root)
+        assert 'missing_policy_build_snippet:root_module.addImport("mmio", mmio_module);' in issues
+
     print("PHASE3_POLICY_UNSAFE_MMIO_CONSUMER_SELF_TEST=pass")
     return 0
 
