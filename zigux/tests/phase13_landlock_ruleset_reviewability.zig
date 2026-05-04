@@ -58,7 +58,7 @@ test "phase13 landlock ruleset reviewability ties helper, survey, and manifest t
     try std.testing.expect(manifest.survey_summary.ruleset_c_lines >= 700);
     try std.testing.expect(manifest.survey_summary.preexisting_phase13_build_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase13_landlock_test_present);
-    try std.testing.expectEqual(@as(usize, 14), manifest.gaps.len);
+    try std.testing.expectEqual(@as(usize, 15), manifest.gaps.len);
 
     const descriptor = ruleset.RulesetHelperLab.descriptor();
     try std.testing.expectEqualStrings("landlock_ruleset_helper_lab", descriptor.name);
@@ -72,6 +72,7 @@ test "phase13 landlock ruleset reviewability ties helper, survey, and manifest t
     try std.testing.expect(descriptor.provides_rule_tree_link_planning);
     try std.testing.expect(descriptor.provides_rule_lookup_planning);
     try std.testing.expect(descriptor.provides_rule_materialization_planning);
+    try std.testing.expect(descriptor.provides_rule_replacement_planning);
     try std.testing.expect(descriptor.provides_rule_release_planning);
     try std.testing.expect(!descriptor.touches_live_object_trees);
     try std.testing.expect(!descriptor.touches_live_hierarchy);
@@ -90,5 +91,6 @@ test "phase13 landlock ruleset reviewability ties helper, survey, and manifest t
     try expectContains(survey_note, "`zigux/tests/phase13_landlock_ruleset_reviewability.zig`");
     try expectContains(survey_note, "dedicated reviewability gate now ties the helper descriptor, manifest, and survey note together");
     try expectContains(survey_note, "landed `phase13-landlock-ruleset-reviewability-gate`");
-    try expectContains(survey_note, "helper-only state");
+    try expectContains(survey_note, "helper-only replacement planning");
+    try expectContains(survey_note, "actual `rb_replace_node()` mutation");
 }
