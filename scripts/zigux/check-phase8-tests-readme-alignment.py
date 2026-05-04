@@ -39,6 +39,8 @@ TESTS_README_MARKERS = [
     "zigux/tests/phase8_bridge_boundary_survey.zig",
     "zigux/tests/phase8_libbpf_segments.zig",
     "scripts/zigux/validate-phase8.py",
+    "scripts/zigux/check-phase8-tests-readme-alignment.py",
+    "scripts/zigux/check-phase8-perf-buffer-poll-gate.py",
     "Documentation/zigux/phase8-userspace-kernel-bridge-boundary-survey.md",
 ]
 
@@ -249,6 +251,8 @@ def clone_fixture_root(destination_root: Path) -> None:
                 "- zigux/tests/phase8_build.zig",
                 "- make -C zigux phase8-perf-buffer-poll-test",
                 "- scripts/zigux/validate-phase8.py",
+                "- scripts/zigux/check-phase8-tests-readme-alignment.py",
+                "- scripts/zigux/check-phase8-perf-buffer-poll-gate.py",
                 "- Documentation/zigux/phase8-userspace-kernel-bridge-boundary-survey.md",
                 "",
             ]
@@ -659,8 +663,38 @@ def run_self_test() -> int:
             tmp_root,
             "tests_readme:scripts/zigux/validate-phase8.py",
         )
-        tests_readme_path.write_text(original_tests_readme, encoding="utf-8")
 
+        tests_readme_path.write_text(original_tests_readme, encoding="utf-8")
+        tests_readme_path.write_text(
+            original_tests_readme.replace(
+                "- scripts/zigux/check-phase8-tests-readme-alignment.py\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing(
+            "tests_readme_check_phase8_tests_readme_alignment",
+            tmp_root,
+            "tests_readme:scripts/zigux/check-phase8-tests-readme-alignment.py",
+        )
+
+        tests_readme_path.write_text(original_tests_readme, encoding="utf-8")
+        tests_readme_path.write_text(
+            original_tests_readme.replace(
+                "- scripts/zigux/check-phase8-perf-buffer-poll-gate.py\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing(
+            "tests_readme_check_phase8_perf_buffer_poll_gate",
+            tmp_root,
+            "tests_readme:scripts/zigux/check-phase8-perf-buffer-poll-gate.py",
+        )
+
+        tests_readme_path.write_text(original_tests_readme, encoding="utf-8")
         tests_readme_path.write_text(
             original_tests_readme.replace(
                 "- Documentation/zigux/phase8-userspace-kernel-bridge-boundary-survey.md\n",
@@ -1214,7 +1248,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE8_TESTS_README_ALIGNMENT_SELF_TEST=pass")
-    print("PHASE8_TESTS_README_ALIGNMENT_SELF_TEST_CASE_COUNT=49")
+    print("PHASE8_TESTS_README_ALIGNMENT_SELF_TEST_CASE_COUNT=51")
     return 0
 
 
