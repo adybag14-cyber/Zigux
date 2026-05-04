@@ -40,7 +40,10 @@ SURVEY_MARKERS = [
     "https://github.com/adybag14-cyber/Zigux/tree/master/tools/lib/bpf",
     "https://github.com/adybag14-cyber/Zigux/tree/master/Documentation/zigux",
     "https://github.com/adybag14-cyber/Zigux/tree/master/zigux/tests",
+    "https://raw.githubusercontent.com/adybag14-cyber/Zigux/master/drivers/net/virtio_net.c",
+    "https://raw.githubusercontent.com/adybag14-cyber/Zigux/master/tools/lib/bpf/libbpf.c",
     "PHASE12_SHARED_TREE_READBACK_ROOT_COUNT=4",
+    "PHASE12_SHARED_TREE_BRANCH_RAW_PATH_COUNT=2",
 ]
 
 SURVEY_EXACT_COUNT_MARKERS = {
@@ -53,6 +56,7 @@ SURVEY_EXACT_COUNT_MARKERS = {
     "PHASE12_COMMIT_PINNED_RAW_FALLBACK_COUNT=2": 1,
     "PHASE12_SHARED_TREE_ONLY_FALLBACK_COUNT=2": 1,
     "PHASE12_SHARED_TREE_READBACK_ROOT_COUNT=4": 1,
+    "PHASE12_SHARED_TREE_BRANCH_RAW_PATH_COUNT=2": 1,
 }
 
 DOCS_ROOT_MARKERS = [
@@ -101,19 +105,24 @@ TEST_MARKERS = [
     "commit_pinned_raw_catalog",
     "commit_pinned_raw_map",
     "shared_tree_readback_root_count",
+    "shared_tree_branch_raw_path_count",
     "shared_tree_readback_roots",
+    "shared_tree_branch_raw_paths",
 ]
 
 TEST_EXACT_COUNT_MARKERS = {
     'try std.testing.expectEqualStrings("P12-L07", manifest.lane_key);': 1,
     'try std.testing.expectEqual(@as(usize, 4), manifest.shared_tree_readback_root_count);': 1,
+    'try std.testing.expectEqual(@as(usize, 2), manifest.shared_tree_branch_raw_path_count);': 1,
     'try std.testing.expectEqual(@as(usize, 2), shared_tree_only_count);': 1,
+    'try std.testing.expectEqual(@as(usize, 2), shared_tree_branch_raw_path_count);': 1,
     'try std.testing.expectEqual(@as(usize, 1), commit_pinned_catalog_count);': 1,
     'try std.testing.expectEqual(@as(usize, 1), commit_pinned_map_count);': 1,
     '"one anchor keeps a commit-pinned raw fallback catalog"': 1,
     '"one anchor keeps a commit-pinned raw fallback map"': 1,
     '"two anchors remain shared-tree-only fallback reads"': 1,
     '"PHASE12_SHARED_TREE_READBACK_ROOT_COUNT=4"': 1,
+    '"PHASE12_SHARED_TREE_BRANCH_RAW_PATH_COUNT=2"': 1,
 }
 
 EXPECTED_SHARED_TREE_READBACK_ROOTS = [
@@ -121,6 +130,11 @@ EXPECTED_SHARED_TREE_READBACK_ROOTS = [
     "https://github.com/adybag14-cyber/Zigux/tree/master/tools/lib/bpf",
     "https://github.com/adybag14-cyber/Zigux/tree/master/Documentation/zigux",
     "https://github.com/adybag14-cyber/Zigux/tree/master/zigux/tests",
+]
+
+EXPECTED_SHARED_TREE_BRANCH_RAW_PATHS = [
+    "https://raw.githubusercontent.com/adybag14-cyber/Zigux/master/drivers/net/virtio_net.c",
+    "https://raw.githubusercontent.com/adybag14-cyber/Zigux/master/tools/lib/bpf/libbpf.c",
 ]
 
 EXPECTED_ANCHORS = {
@@ -131,6 +145,7 @@ EXPECTED_ANCHORS = {
         "public_read_status": "shared_tree_only",
         "raw_fallback_catalog_path": "",
         "raw_fallback_map_path": "",
+        "shared_tree_branch_raw_path": "https://raw.githubusercontent.com/adybag14-cyber/Zigux/master/drivers/net/virtio_net.c",
     },
     "nvme_pci": {
         "anchor": "drivers/nvme/host/pci.c",
@@ -139,6 +154,7 @@ EXPECTED_ANCHORS = {
         "public_read_status": "commit_pinned_raw_map",
         "raw_fallback_catalog_path": "",
         "raw_fallback_map_path": "Documentation/zigux/phase12-nvme-pci-raw-github-fallback-map.md",
+        "shared_tree_branch_raw_path": "",
     },
     "virtio_scsi": {
         "anchor": "drivers/scsi/virtio_scsi.c",
@@ -147,6 +163,7 @@ EXPECTED_ANCHORS = {
         "public_read_status": "commit_pinned_raw_catalog",
         "raw_fallback_catalog_path": "Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md",
         "raw_fallback_map_path": "",
+        "shared_tree_branch_raw_path": "",
     },
     "libbpf": {
         "anchor": "tools/lib/bpf/libbpf.c",
@@ -155,6 +172,7 @@ EXPECTED_ANCHORS = {
         "public_read_status": "shared_tree_only",
         "raw_fallback_catalog_path": "",
         "raw_fallback_map_path": "",
+        "shared_tree_branch_raw_path": "https://raw.githubusercontent.com/adybag14-cyber/Zigux/master/tools/lib/bpf/libbpf.c",
     },
 }
 
@@ -190,6 +208,7 @@ def validate_manifest(manifest: dict[str, object]) -> list[str]:
         "commit_pinned_raw_fallback_map_count": 1,
         "shared_tree_only_anchor_count": 2,
         "shared_tree_readback_root_count": 4,
+        "shared_tree_branch_raw_path_count": 2,
     }
     for key, value in expected_scalars.items():
         if manifest.get(key) != value:
@@ -198,6 +217,10 @@ def validate_manifest(manifest: dict[str, object]) -> list[str]:
     readback_roots = manifest.get("shared_tree_readback_roots")
     if readback_roots != EXPECTED_SHARED_TREE_READBACK_ROOTS:
         missing.append("manifest:shared_tree_readback_roots")
+
+    branch_raw_paths = manifest.get("shared_tree_branch_raw_paths")
+    if branch_raw_paths != EXPECTED_SHARED_TREE_BRANCH_RAW_PATHS:
+        missing.append("manifest:shared_tree_branch_raw_paths")
 
     anchors = manifest.get("anchors")
     if not isinstance(anchors, list) or len(anchors) != 4:
@@ -530,6 +553,7 @@ def main(argv: list[str] | None = None) -> int:
     print(f"PHASE12_RAW_GITHUB_COVERAGE_SHARED_TREE_ONLY_COUNT={shared_tree_only}")
     print(f"PHASE12_RAW_GITHUB_COVERAGE_COMMIT_PINNED_COUNT={commit_pinned}")
     print(f"PHASE12_RAW_GITHUB_COVERAGE_SHARED_TREE_ROOT_COUNT={manifest['shared_tree_readback_root_count']}")
+    print(f"PHASE12_RAW_GITHUB_COVERAGE_SHARED_TREE_BRANCH_RAW_PATH_COUNT={manifest['shared_tree_branch_raw_path_count']}")
     return 0
 
 
