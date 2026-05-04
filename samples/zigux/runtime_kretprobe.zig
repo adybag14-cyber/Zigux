@@ -66,6 +66,13 @@ pub const FailedExitRecoveryReplay = struct {
     final_summary: RuntimeKretprobeSummary,
 };
 
+pub const MaxactivePressureReplay = struct {
+    before_pressure: RuntimeKretprobeSummary,
+    after_pressure: RuntimeKretprobeSummary,
+    recovered: ProbeResult,
+    final_summary: RuntimeKretprobeSummary,
+};
+
 pub const RuntimeKretprobeSample = struct {
     const Self = @This();
 
@@ -202,6 +209,35 @@ pub const RuntimeKretprobeSample = struct {
     pub fn recordMissedInstance(self: *Self) !void {
         try self.ensureMutable();
         self.nmissed += 1;
+    }
+
+    pub fn runMaxactivePressureReplay(self: *Self) !MaxactivePressureReplay {
+        if (self.stage() != .cold) return error.InvalidLifecycleTransition;
+
+        try self.configureMaxactive(1);
+        try self.init();
+
+        const armed = try self.entryHandler(true, 410);
+        if (!armed) return error.UnexpectedEntrySkip;
+        const before_pressure = self.summary();
+
+        if (self.entryHandler(true, 430)) |_| {
+            return error.ExpectedMaxactiveExceeded;
+        } else |err| switch (err) {
+            error.MaxactiveExceeded => {},
+            else => return err,
+        }
+
+        const after_pressure = self.summary();
+        const recovered = try self.retHandler(17, 490);
+        try self.exit();
+
+        return .{
+            .before_pressure = before_pressure,
+            .after_pressure = after_pressure,
+            .recovered = recovered,
+            .final_summary = self.summary(),
+        };
     }
 
     pub fn runFailedExitRecoveryReplay(self: *Self) !FailedExitRecoveryReplay {
@@ -384,6 +420,47 @@ test "runtime kretprobe sample replays bounded skip, return, and concurrent time
     try std.testing.expectError(error.InvalidLifecycleTransition, module.entryHandler(true, 320));
 }
 
+test "runtime kretprobe sample keeps maxactive pressure replay explicit in the direct sample leg" {
+    var module = RuntimeKretprobeSample{};
+    const replay = try module.runMaxactivePressureReplay();
+
+    try std.testing.expectEqual(ModuleStage.exited, module.stage());
+    try std.testing.expectEqual(ModuleStage.initialized, replay.before_pressure.stage);
+    try std.testing.expectEqualStrings(RuntimeKretprobeSample.default_symbol_name, replay.before_pressure.symbol_name);
+    try std.testing.expectEqual(@as(usize, 1), replay.before_pressure.maxactive);
+    try std.testing.expectEqual(@as(usize, 1), replay.before_pressure.active_instances);
+    try std.testing.expectEqual(@as(usize, 0), replay.before_pressure.nmissed);
+    try std.testing.expectEqual(@as(usize, 1), replay.before_pressure.init_runs);
+    try std.testing.expectEqual(@as(usize, 0), replay.before_pressure.selftest_runs);
+    try std.testing.expectEqual(@as(usize, 0), replay.before_pressure.exit_runs);
+    try std.testing.expect(replay.before_pressure.entry_timestamp_armed);
+
+    try std.testing.expectEqual(ModuleStage.initialized, replay.after_pressure.stage);
+    try std.testing.expectEqualStrings(replay.before_pressure.symbol_name, replay.after_pressure.symbol_name);
+    try std.testing.expectEqual(replay.before_pressure.maxactive, replay.after_pressure.maxactive);
+    try std.testing.expectEqual(replay.before_pressure.active_instances, replay.after_pressure.active_instances);
+    try std.testing.expectEqual(@as(usize, 1), replay.after_pressure.nmissed);
+    try std.testing.expectEqual(replay.before_pressure.init_runs, replay.after_pressure.init_runs);
+    try std.testing.expectEqual(replay.before_pressure.selftest_runs, replay.after_pressure.selftest_runs);
+    try std.testing.expectEqual(replay.before_pressure.exit_runs, replay.after_pressure.exit_runs);
+    try std.testing.expect(replay.after_pressure.entry_timestamp_armed);
+
+    try std.testing.expectEqual(@as(usize, 17), replay.recovered.retval);
+    try std.testing.expectEqual(@as(i64, 80), replay.recovered.duration_ns);
+
+    try std.testing.expectEqual(ModuleStage.exited, replay.final_summary.stage);
+    try std.testing.expectEqualStrings(RuntimeKretprobeSample.default_symbol_name, replay.final_summary.symbol_name);
+    try std.testing.expectEqual(@as(usize, 1), replay.final_summary.maxactive);
+    try std.testing.expectEqual(@as(usize, 0), replay.final_summary.active_instances);
+    try std.testing.expectEqual(@as(usize, 1), replay.final_summary.nmissed);
+    try std.testing.expectEqual(@as(usize, 17), replay.final_summary.last_retval);
+    try std.testing.expectEqual(@as(i64, 80), replay.final_summary.last_duration_ns);
+    try std.testing.expectEqual(@as(usize, 1), replay.final_summary.init_runs);
+    try std.testing.expectEqual(@as(usize, 0), replay.final_summary.selftest_runs);
+    try std.testing.expectEqual(@as(usize, 1), replay.final_summary.exit_runs);
+    try std.testing.expect(!replay.final_summary.entry_timestamp_armed);
+}
+
 test "runtime kretprobe sample keeps failed exit rollback explicit in the direct sample leg" {
     var module = RuntimeKretprobeSample{};
     try module.configureMaxactive(1);
@@ -431,7 +508,7 @@ test "runtime kretprobe sample keeps failed exit rollback explicit in the direct
     try std.testing.expectEqual(@as(usize, 1), replay.final_summary.selftest_runs);
     try std.testing.expectEqual(@as(usize, 1), replay.final_summary.exit_runs);
     try std.testing.expectEqual(@as(usize, 1), replay.final_summary.maxactive);
-    try std.testing.expectEqual(@as(usize, 0), replay.final_summary.skipped_kernel_threads);
+    try std.testing.expectEqual(@as(usize, 1), replay.final_summary.skipped_kernel_threads);
     try std.testing.expectEqual(@as(usize, 1), replay.final_summary.nmissed);
     try std.testing.expectEqual(@as(usize, 42), replay.final_summary.last_retval);
     try std.testing.expectEqual(@as(i64, 75), replay.final_summary.last_duration_ns);
