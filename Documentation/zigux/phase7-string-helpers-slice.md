@@ -119,6 +119,7 @@ The current tests check:
 - one allocator-backed `kstrdup_quotable()` proof that escapes newline, tab, backslash, and double-quote bytes through the existing bounded `ESCAPE_HEX` surface, preserves a trailing sentinel NUL, and keeps Linux's null-input behavior explicit
 - one allocator-backed `kstrdup_and_replace()` proof that duplicates the first-NUL prefix before reusing `strreplace()`, preserves a trailing sentinel NUL on the returned owned string, keeps null input explicit, and leaves the source bytes untouched
 - one allocator-backed `kasprintf_strarray_raw()` proof that keeps the direct C-style null-terminated pointer-array form explicit beside the higher-level Zig wrapper
+- one shared `kasprintf_strarray_raw()` ownership proof that separate zero-count allocations stay distinct across callers instead of aliasing one sentinel-owned array while still tearing down safely through counted free paths
 - one counted `kfree_strarray_raw()` proof that frees a partially initialized pointer-array prefix without requiring later entries to exist
 - one allocator-backed `kasprintf_strarray()` proof that returns sequential `prefix-index` owned strings together with a trailing null-pointer view for C-style callers
 - one `kfree_strarray()` proof that keeps first-NUL prefix handling, zero-count sentinel reuse, and repeated teardown safe
