@@ -205,23 +205,23 @@ def _run_self_test() -> int:
             (root / rel).mkdir(parents=True, exist_ok=True)
 
         surveyed_commit = "949994db4046ec70abf044d1b2ea874fde9bc4a6"
-        (root / "fs/libfs.zig").writeText("\n".join(LIBFS_MARKERS) + "\n", encoding="utf-8")
-        (root / "zigux/tests/phase13_libfs.zig").writeText("\n".join(TEST_MARKERS) + "\n", encoding="utf-8")
-        (root / "zigux/tests/phase13_libfs_reviewability.zig").writeText(
+        (root / "fs/libfs.zig").write_text("\n".join(LIBFS_MARKERS) + "\n", encoding="utf-8")
+        (root / "zigux/tests/phase13_libfs.zig").write_text("\n".join(TEST_MARKERS) + "\n", encoding="utf-8")
+        (root / "zigux/tests/phase13_libfs_reviewability.zig").write_text(
             'expected_surveyed_commit = "' + surveyed_commit + '"\n' + "\n".join(REVIEWABILITY_MARKERS[1:]) + "\n",
             encoding="utf-8",
         )
-        (root / "Documentation/zigux/phase13-libfs-survey.md").writeText(
+        (root / "Documentation/zigux/phase13-libfs-survey.md").write_text(
             f"PHASE13_SURVEYED_COMMIT={surveyed_commit}\n" + "\n".join(SURVEY_MARKERS) + "\n",
             encoding="utf-8",
         )
-        (root / "Documentation/zigux/phase13-libfs-slice.md").writeText("\n".join(SLICE_MARKERS) + "\n", encoding="utf-8")
-        (root / "Documentation/zigux/phase13-roadmap-traceability.md").writeText(
+        (root / "Documentation/zigux/phase13-libfs-slice.md").write_text("\n".join(SLICE_MARKERS) + "\n", encoding="utf-8")
+        (root / "Documentation/zigux/phase13-roadmap-traceability.md").write_text(
             f"manifest `surveyed_commit`: `{surveyed_commit}`\n" + "\n".join(TRACEABILITY_MARKERS) + "\n",
             encoding="utf-8",
         )
-        (root / "zigux/Makefile").writeText("\n".join(MAKE_MARKERS) + "\n", encoding="utf-8")
-        (root / "zigux/tests/phase13_build.zig").writeText("placeholder\n", encoding="utf-8")
+        (root / "zigux/Makefile").write_text("\n".join(MAKE_MARKERS) + "\n", encoding="utf-8")
+        (root / "zigux/tests/phase13_build.zig").write_text("placeholder\n", encoding="utf-8")
         manifest = {
             "lane_key": "P13-L04",
             "phase": "Phase 13",
@@ -239,7 +239,7 @@ def _run_self_test() -> int:
                 {"id": "phase13-libfs-inode-and-pseudofs-lifecycle", "status": "blocked_on_vfs_state"},
             ],
         }
-        (root / "zigux/tests/phase13_libfs_manifest.json").writeText(
+        (root / "zigux/tests/phase13_libfs_manifest.json").write_text(
             json.dumps(manifest, indent=2) + "\n",
             encoding="utf-8",
         )
