@@ -90,6 +90,8 @@ The four driver-local validation matrices belong in that same sync set because e
 
 In particular, the `zigux/tests/README.md` Phase 11 guidance now repeats the four shared split and adjunct replays, the four driver-local manifests, and `scripts/zigux/check-phase11-header-boundary-packet.py` explicitly, so the tests-root carryover prompt matches the shared contract note, the validator-first guide, and the tests-root review companion.
 
+The same four driver-local manifests should stay explicit in `Documentation/zigux/README.md` whenever the docs-root Phase 11 summary is refreshed, so the top-level docs index does not undercount the active simple-driver packet while the tests-root and checklist-facing prompts stay precise.
+
 ## Review Use
 
 Use this note when a simple-driver change touches the shared Phase 11 test packet, the pre-replay checker stack, or the split replay inventory.
