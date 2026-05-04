@@ -29,7 +29,12 @@ def _canonical_survey_script_rels(root: Path) -> tuple[list[str], list[str]]:
     if not validator_path.exists():
         return [], [f"missing_validator:{VALIDATOR_REL}"]
 
-    namespace = runpy.run_path(str(validator_path))
+    try:
+        namespace = runpy.run_path(str(validator_path))
+    except Exception as exc:
+        return [], [
+            f"validator_load_failed:{VALIDATOR_REL}:{type(exc).__name__}:{exc}"
+        ]
     issues: list[str] = []
     rels: list[str] = []
 
@@ -265,6 +270,25 @@ def run_self_test() -> int:
                 + (",".join(issues) if issues else "none")
             )
 
+        _write(
+            root / VALIDATOR_REL,
+            "\n".join(
+                (
+                    'raise RuntimeError("synthetic validator load failure")',
+                    "",
+                )
+            ),
+        )
+        issues = validate(root)
+        expected = [
+            f"validator_load_failed:{VALIDATOR_REL}:RuntimeError:synthetic validator load failure"
+        ]
+        if issues != expected:
+            raise SystemExit(
+                "phase3-canonical-survey-manifest-self-test:validator_load_failure_guard_failed:"
+                + (",".join(issues) if issues else "none")
+            )
+
         (root / VALIDATOR_REL).unlink()
         issues = validate(root)
         expected = [f"missing_validator:{VALIDATOR_REL}"]
@@ -275,7 +299,7 @@ def run_self_test() -> int:
             )
 
     print("PHASE3_CANONICAL_SURVEY_MANIFEST_SELF_TEST=pass")
-    print("PHASE3_CANONICAL_SURVEY_MANIFEST_SELF_TEST_CASE_COUNT=8")
+    print("PHASE3_CANONICAL_SURVEY_MANIFEST_SELF_TEST_CASE_COUNT=9")
     return 0
 
 
