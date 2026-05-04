@@ -27,6 +27,7 @@ FILES = [
     "zigux/Makefile",
     "drivers/virtio/virtio_ring.zig",
     "drivers/virtio/virtio_input.zig",
+    "drivers/virtio/virtio_input_registration_blocker.zig",
     "zigux/tests/README.md",
     "zigux/tests/phase10_build.zig",
     "zigux/tests/phase10_virtio_ring.zig",
@@ -34,6 +35,7 @@ FILES = [
     "zigux/tests/phase10_virtio_ring_survey.zig",
     "zigux/tests/phase10_virtio_ring_manifest.json",
     "zigux/tests/phase10_virtio_input.zig",
+    "zigux/tests/phase10_virtio_input_registration_blocker.zig",
     "zigux/tests/phase10_virtio_input_survey.zig",
     "zigux/tests/phase10_virtio_input_manifest.json",
     "Documentation/zigux/phase10-virtio-mmio-slice.md",
@@ -156,6 +158,7 @@ SURVEY_MARKERS = [
     "phase10-virtio-input-registration-preflight-helper",
     "phase10-virtio-input-queue-callback-preflight-helper",
     "phase10-virtio-input-probe-preflight-helper",
+    "phase10-virtio-input-registration-blocker-helper",
     "phase10-virtio-input-registration-lifecycle",
 ]
 
@@ -223,6 +226,16 @@ HELPER_MARKERS = [
     "pub fn reset(self: *Self) void {",
 ]
 
+BLOCKER_HELPER_MARKERS = [
+    "pub const RegistrationBlockerState = struct {",
+    "pub const RegistrationBlockerSummary = struct {",
+    "pub fn summarize(state: RegistrationBlockerState) RegistrationBlockerSummary {",
+    "input_registration_lifecycle_blocked = true",
+    "transport_queue_callbacks_blocked = true",
+    "freeze_restore_blocked = true",
+    "probe_remove_blocked = true",
+]
+
 TEST_MARKERS = [
     'test "phase10 virtio input stages capability setup from config bitmaps and ABS metadata" {',
     'test "phase10 virtio input plans multitouch slots from ABS_MT_SLOT metadata" {',
@@ -232,6 +245,15 @@ TEST_MARKERS = [
     'test "phase10 virtio input records queue-callback preflight once registration and queue intent are staged" {',
     'test "phase10 virtio input records probe preflight once registration and queue provisioning converge" {',
     'test "phase10 virtio input reset clears queue plan and returns to default bus identity" {',
+]
+
+BLOCKER_TEST_MARKERS = [
+    'test "phase10 virtio input registration blocker keeps risky lifecycle claims parked after probe readiness converges" {',
+    "try std.testing.expect(summary.input_registration_lifecycle_blocked);",
+    "try std.testing.expect(summary.transport_queue_callbacks_blocked);",
+    "try std.testing.expect(summary.freeze_restore_blocked);",
+    "try std.testing.expect(summary.probe_remove_blocked);",
+    'try std.testing.expectEqualStrings("blocked_on_risky_transport", summary.risky_transport_posture);',
 ]
 
 SURVEY_TEST_MARKERS = [
@@ -303,6 +325,7 @@ INPUT_EXPECTED_STATUSES = {
     "phase10-virtio-input-registration-preflight-helper": "starter_landed",
     "phase10-virtio-input-queue-callback-preflight-helper": "starter_landed",
     "phase10-virtio-input-probe-preflight-helper": "starter_landed",
+    "phase10-virtio-input-registration-blocker-helper": "starter_landed",
     "phase10-virtio-input-registration-lifecycle": "blocked_on_risky_transport",
 }
 
@@ -427,11 +450,13 @@ def required_marker_count() -> int:
         + len(MMIO_SURVEY_MARKERS)
         + len(RING_HELPER_MARKERS)
         + len(HELPER_MARKERS)
+        + len(BLOCKER_HELPER_MARKERS)
         + len(MMIO_HELPER_MARKERS)
         + len(RING_TEST_MARKERS)
         + len(RING_RESET_REUSE_TEST_MARKERS)
         + len(RING_SURVEY_TEST_MARKERS)
         + len(TEST_MARKERS)
+        + len(BLOCKER_TEST_MARKERS)
         + len(MMIO_TEST_MARKERS)
         + len(SURVEY_TEST_MARKERS)
         + len(MMIO_SURVEY_TEST_MARKERS)
@@ -461,11 +486,21 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
         ("mmio_survey_doc", "Documentation/zigux/phase10-virtio-mmio-survey.md", MMIO_SURVEY_MARKERS),
         ("ring_helper", "drivers/virtio/virtio_ring.zig", RING_HELPER_MARKERS),
         ("helper", "drivers/virtio/virtio_input.zig", HELPER_MARKERS),
+        (
+            "blocker_helper",
+            "drivers/virtio/virtio_input_registration_blocker.zig",
+            BLOCKER_HELPER_MARKERS,
+        ),
         ("mmio_helper", "drivers/virtio/virtio_mmio.zig", MMIO_HELPER_MARKERS),
         ("ring_tests", "zigux/tests/phase10_virtio_ring.zig", RING_TEST_MARKERS),
         ("ring_reset_reuse_tests", "zigux/tests/phase10_virtio_ring_reset_reuse.zig", RING_RESET_REUSE_TEST_MARKERS),
         ("ring_survey_tests", "zigux/tests/phase10_virtio_ring_survey.zig", RING_SURVEY_TEST_MARKERS),
         ("tests", "zigux/tests/phase10_virtio_input.zig", TEST_MARKERS),
+        (
+            "blocker_tests",
+            "zigux/tests/phase10_virtio_input_registration_blocker.zig",
+            BLOCKER_TEST_MARKERS,
+        ),
         ("survey_test", "zigux/tests/phase10_virtio_input_survey.zig", SURVEY_TEST_MARKERS),
         ("mmio_tests", "zigux/tests/phase10_virtio_mmio.zig", MMIO_TEST_MARKERS),
         ("mmio_survey_test", "zigux/tests/phase10_virtio_mmio_survey.zig", MMIO_SURVEY_TEST_MARKERS),
@@ -497,7 +532,7 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
         anchor="drivers/virtio/virtio_input.c",
         expected_statuses=INPUT_EXPECTED_STATUSES,
         minimum_gap_count=13,
-        minimum_starter_count=10,
+        minimum_starter_count=11,
     )
     validate_manifest(
         missing,
@@ -567,12 +602,14 @@ def write_fixture_tree(root: Path) -> None:
         "Documentation/zigux/phase10-virtio-mmio-survey.md": "\n".join(MMIO_SURVEY_MARKERS) + "\n",
         "drivers/virtio/virtio_ring.zig": "\n".join(RING_HELPER_MARKERS) + "\n",
         "drivers/virtio/virtio_input.zig": "\n".join(HELPER_MARKERS) + "\n",
+        "drivers/virtio/virtio_input_registration_blocker.zig": "\n".join(BLOCKER_HELPER_MARKERS) + "\n",
         "drivers/virtio/virtio_mmio.zig": "\n".join(MMIO_HELPER_MARKERS) + "\n",
         "zigux/tests/phase10_build.zig": "fixture\n",
         "zigux/tests/phase10_virtio_ring.zig": "\n".join(RING_TEST_MARKERS) + "\n",
         "zigux/tests/phase10_virtio_ring_reset_reuse.zig": "\n".join(RING_RESET_REUSE_TEST_MARKERS) + "\n",
         "zigux/tests/phase10_virtio_ring_survey.zig": "\n".join(RING_SURVEY_TEST_MARKERS) + "\n",
         "zigux/tests/phase10_virtio_input.zig": "\n".join(TEST_MARKERS) + "\n",
+        "zigux/tests/phase10_virtio_input_registration_blocker.zig": "\n".join(BLOCKER_TEST_MARKERS) + "\n",
         "zigux/tests/phase10_virtio_input_survey.zig": "\n".join(SURVEY_TEST_MARKERS) + "\n",
         "zigux/tests/phase10_virtio_mmio.zig": "\n".join(MMIO_TEST_MARKERS) + "\n",
         "zigux/tests/phase10_virtio_mmio_survey.zig": "\n".join(MMIO_SURVEY_TEST_MARKERS) + "\n",
@@ -658,6 +695,19 @@ def run_self_test() -> int:
         expect_missing_marker("input_blocker_guard", tmp_root, "manifest:ready_next_count=1")
         write_fixture_tree(tmp_root)
 
+        input_manifest = json.loads(input_manifest_path.read_text(encoding="utf-8"))
+        for gap in input_manifest["gaps"]:
+            if gap["id"] == "phase10-virtio-input-registration-blocker-helper":
+                gap["id"] = "phase10-virtio-input-registration-blocker-helper-drift"
+                break
+        input_manifest_path.write_text(json.dumps(input_manifest, indent=2) + "\n", encoding="utf-8")
+        expect_missing_marker(
+            "input_registration_blocker_helper_guard",
+            tmp_root,
+            "manifest:gap:phase10-virtio-input-registration-blocker-helper",
+        )
+        write_fixture_tree(tmp_root)
+
         mmio_manifest_path = tmp_root / "zigux/tests/phase10_virtio_mmio_manifest.json"
         mmio_manifest = json.loads(mmio_manifest_path.read_text(encoding="utf-8"))
         for gap in mmio_manifest["gaps"]:
@@ -730,7 +780,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE10_VALIDATOR_SELF_TEST=pass")
-    print("PHASE10_VALIDATOR_SELF_TEST_CASE_COUNT=9")
+    print("PHASE10_VALIDATOR_SELF_TEST_CASE_COUNT=10")
     return 0
 
 
