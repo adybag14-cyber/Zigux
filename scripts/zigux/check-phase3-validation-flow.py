@@ -26,6 +26,8 @@ REQUIRED_MAKEFILE_SNIPPETS = (
     "phase3-validate:",
     "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase3.py\n",
     "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase3.py --slug abi --check-build-smoke --zig $(ZIG)\n",
+    "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase3-abi-duplicate-declarations.py --self-test\n",
+    "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase3-abi-duplicate-declarations.py\n",
     "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase3-validation-flow.py --self-test\n",
     "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase3-validation-flow.py\n",
     "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase3.py --self-test\n",
@@ -42,6 +44,8 @@ REQUIRED_MAKEFILE_SNIPPETS = (
 
 EXACT_ONCE_MAKEFILE_SNIPPETS = (
     "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase3.py\n",
+    "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase3-abi-duplicate-declarations.py --self-test\n",
+    "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase3-abi-duplicate-declarations.py\n",
     "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase3-validation-flow.py --self-test\n",
     "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase3-validation-flow.py\n",
     "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase3.py --self-test\n",
@@ -83,6 +87,10 @@ FORBIDDEN_MAKEFILE_SNIPPETS = (
 REQUIRED_WORKFLOW_SNIPPETS = (
     "name: Validate Phase 3 slices",
     "run: python3 scripts/zigux/validate-phase3.py\n",
+    "name: Self-test Phase 3 ABI duplicate declaration checker",
+    "run: python3 scripts/zigux/check-phase3-abi-duplicate-declarations.py --self-test\n",
+    "name: Check Phase 3 ABI duplicate declarations",
+    "run: python3 scripts/zigux/check-phase3-abi-duplicate-declarations.py\n",
     "name: Check Phase 3 validation flow",
     "run: python3 scripts/zigux/check-phase3-validation-flow.py\n",
     "name: Self-test Phase 3 validator",
@@ -99,6 +107,8 @@ REQUIRED_WORKFLOW_SNIPPETS = (
 
 EXACT_ONCE_WORKFLOW_SNIPPETS = (
     "run: python3 scripts/zigux/validate-phase3.py\n",
+    "run: python3 scripts/zigux/check-phase3-abi-duplicate-declarations.py --self-test\n",
+    "run: python3 scripts/zigux/check-phase3-abi-duplicate-declarations.py\n",
     "run: python3 scripts/zigux/check-phase3-validation-flow.py\n",
     "run: python3 scripts/zigux/validate-phase3.py --self-test\n",
     "run: python3 scripts/zigux/check-phase3-validation-flow.py --self-test\n",
@@ -115,6 +125,8 @@ EXACT_ONCE_WORKFLOW_SNIPPETS = (
 
 EXACT_ONCE_WORKFLOW_TITLE_SNIPPETS = (
     "name: Validate Phase 3 slices\n",
+    "name: Self-test Phase 3 ABI duplicate declaration checker\n",
+    "name: Check Phase 3 ABI duplicate declarations\n",
     "name: Check Phase 3 validation flow\n",
     "name: Self-test Phase 3 validator\n",
     "name: Self-test Phase 3 validation flow checker\n",
@@ -366,6 +378,8 @@ def _fixture_makefile() -> str:
         "phase3-validate:\n"
         "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase3.py\n"
         "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase3.py --slug abi --check-build-smoke --zig $(ZIG)\n"
+        "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase3-abi-duplicate-declarations.py --self-test\n"
+        "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase3-abi-duplicate-declarations.py\n"
         "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase3-validation-flow.py --self-test\n"
         "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase3-validation-flow.py\n"
         "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase3.py --self-test\n"
@@ -397,6 +411,10 @@ def _fixture_workflow() -> str:
         "    steps:\n"
         "      - name: Validate Phase 3 slices\n"
         "        run: python3 scripts/zigux/validate-phase3.py\n"
+        "      - name: Self-test Phase 3 ABI duplicate declaration checker\n"
+        "        run: python3 scripts/zigux/check-phase3-abi-duplicate-declarations.py --self-test\n"
+        "      - name: Check Phase 3 ABI duplicate declarations\n"
+        "        run: python3 scripts/zigux/check-phase3-abi-duplicate-declarations.py\n"
         "      - name: Check Phase 3 validation flow\n"
         "        run: python3 scripts/zigux/check-phase3-validation-flow.py\n"
         "      - name: Self-test Phase 3 validator\n"
@@ -794,11 +812,11 @@ def run_self_test() -> int:
         )
         case_count += 1
 
-        if case_count != 61:
+        if case_count != 67:
             raise SystemExit(f"phase3-validation-flow-self-test:unexpected_case_count:{case_count}")
 
         print("PHASE3_VALIDATION_FLOW_SELF_TEST=pass")
-        print("PHASE3_VALIDATION_FLOW_SELF_TEST_CASE_COUNT=61")
+        print("PHASE3_VALIDATION_FLOW_SELF_TEST_CASE_COUNT=67")
         return 0
 
 
