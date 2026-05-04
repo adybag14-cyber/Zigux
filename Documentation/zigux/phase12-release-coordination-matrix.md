@@ -12,7 +12,7 @@ It does not replace the deeper survey and contract notes. Its job is narrower: k
 - `PHASE12_APPROVED_CROSS_TARGET_COUNT=3`
 - `PHASE12_COMMIT_PINNED_RAW_FALLBACK_COUNT=2`
 - `PHASE12_SHARED_TREE_ONLY_FALLBACK_COUNT=2`
-- shared validator-first route: `python3 scripts/zigux/check-phase12-release-readiness-packet.py --self-test`, `python3 scripts/zigux/check-phase12-release-readiness-packet.py`, `python3 scripts/zigux/check-phase12-shared-replay-contract.py --self-test`, `python3 scripts/zigux/check-phase12-shared-replay-contract.py`, `python3 scripts/zigux/validate-phase12.py`, and `make -C zigux phase12-validate`, and `make -C zigux phase12`
+- shared validator-first route: `python3 scripts/zigux/check-phase12-release-readiness-packet.py --self-test`, `python3 scripts/zigux/check-phase12-release-readiness-packet.py`, `python3 scripts/zigux/check-phase12-shared-replay-contract.py --self-test`, `python3 scripts/zigux/check-phase12-shared-replay-contract.py`, `python3 scripts/zigux/validate-phase12.py`, `make -C zigux phase12-validate`, and `make -C zigux phase12`
 - approved non-native smoke packet: `x86_64-linux-musl`, `aarch64-linux-musl`, and `riscv64-linux-musl`
 
 ## Anchor matrix
