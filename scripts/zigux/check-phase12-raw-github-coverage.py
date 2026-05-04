@@ -417,6 +417,25 @@ def run_self_test() -> int:
     finally:
         release_path.write_text(original_release, encoding="utf-8")
 
+    checklist_path = ROOT / "Documentation/zigux/review-checklist.md"
+    original_checklist = checklist_path.read_text(encoding="utf-8")
+    checklist_path.write_text(
+        original_checklist.replace(
+            "including the current one commit-pinned raw catalog, one archival raw map, and two shared-tree-only anchors",
+            "including the current one commit-pinned raw catalog, one archival raw map, and one shared-tree-only anchor",
+            1,
+        ),
+        encoding="utf-8",
+    )
+    try:
+        expect_missing(
+            "checklist_marker",
+            validate_tree(),
+            "checklist:including the current one commit-pinned raw catalog, one archival raw map, and two shared-tree-only anchors",
+        )
+    finally:
+        checklist_path.write_text(original_checklist, encoding="utf-8")
+
     test_path = ROOT / "zigux/tests/phase12_raw_github_coverage_survey.zig"
     original_test = test_path.read_text(encoding="utf-8")
     test_path.write_text(
@@ -433,7 +452,7 @@ def run_self_test() -> int:
         test_path.write_text(original_test, encoding="utf-8")
 
     print("PHASE12_RAW_GITHUB_COVERAGE_SELF_TEST=pass")
-    print("PHASE12_RAW_GITHUB_COVERAGE_SELF_TEST_CASE_COUNT=10")
+    print("PHASE12_RAW_GITHUB_COVERAGE_SELF_TEST_CASE_COUNT=11")
     return 0
 
 
