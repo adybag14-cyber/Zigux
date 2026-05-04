@@ -66,6 +66,9 @@ SHARED_PACKET_SNIPPETS = {
         "const uncached_root: abi.RbtreeRootView = .{",
         "try std.testing.expect(isCanonicalRbtreeRootView(uncached_root));",
     ),
+}
+
+SHARED_PACKET_EXACT_ONCE_SNIPPETS = {
     SHARED_ABI_DUMP_REL: (
         'try writer.writeAll("},\\\"records\\\":{\\\"rbtree_empty_root\\\":{\\\"root_addr\\\":");',
         'try writer.writeAll(",\\\"reserved\\\":0},\\\"rbtree_cached_leftmost_root\\\":{\\\"root_addr\\\":");',
@@ -77,6 +80,11 @@ SHARED_PACKET_SNIPPETS = {
         'fputs(",\\\"reserved\\\":0},\\\"rbtree_cached_leftmost_root\\\":{\\\"root_addr\\\":", stdout);',
         'fputs(",\\\"reserved\\\":0},\\\"rbtree_uncached_root\\\":{\\\"root_addr\\\":", stdout);',
         '{"zigux_rbtree_root_view", sizeof(struct zigux_rbtree_root_view), _Alignof(struct zigux_rbtree_root_view), ARRAY_SIZE(zigux_rbtree_root_view_fields), zigux_rbtree_root_view_fields},',
+    ),
+    SHARED_ABI_EXPECTED_REL: (
+        '"rbtree_empty_root":{"root_addr":0,"leftmost_addr":0,"flags":1,"reserved":0}',
+        '"rbtree_cached_leftmost_root":{"root_addr":8192,"leftmost_addr":6144,"flags":6,"reserved":0}',
+        '"rbtree_uncached_root":{"root_addr":9216,"leftmost_addr":0,"flags":0,"reserved":0}',
     ),
 }
 
@@ -109,6 +117,13 @@ def _require_contains(text: str, rel: str, snippets: tuple[str, ...], prefix: st
             issues.append(f"{prefix}:{rel}:{snippet}")
 
 
+def _require_exact_count(text: str, rel: str, snippets: tuple[str, ...], prefix: str, issues: list[str]) -> None:
+    for snippet in snippets:
+        count = text.count(snippet)
+        if count != 1:
+            issues.append(f"{prefix}:{rel}:expected=1:actual={count}:{snippet}")
+
+
 def validate(root: Path) -> list[str]:
     issues: list[str] = []
     _require_contains(_read_text(root, DEDICATED_HEADER_REL, issues), DEDICATED_HEADER_REL, DEDICATED_HEADER_SNIPPETS, "missing_dedicated_header_snippet", issues)
@@ -119,6 +134,9 @@ def validate(root: Path) -> list[str]:
 
     for rel, snippets in SHARED_PACKET_SNIPPETS.items():
         _require_contains(_read_text(root, rel, issues), rel, snippets, "missing_shared_packet", issues)
+
+    for rel, snippets in SHARED_PACKET_EXACT_ONCE_SNIPPETS.items():
+        _require_exact_count(_read_text(root, rel, issues), rel, snippets, "unexpected_snippet_count", issues)
 
     manifest = _read_text(root, MANIFEST_REL, issues)
     if manifest:
@@ -185,6 +203,8 @@ def run_self_test() -> int:
         (root / SHARED_CONTRACT_REL).write_text("\n".join(SHARED_CONTRACT_SNIPPETS) + "\n", encoding="utf-8")
         for rel, snippets in SHARED_PACKET_SNIPPETS.items():
             (root / rel).write_text("\n".join(snippets) + "\n", encoding="utf-8")
+        for rel, snippets in SHARED_PACKET_EXACT_ONCE_SNIPPETS.items():
+            (root / rel).write_text("\n".join(snippets) + "\n", encoding="utf-8")
         (root / MANIFEST_REL).write_text("\n".join(MANIFEST_ENTRIES) + "\n", encoding="utf-8")
         (root / SHARED_ABI_EXPECTED_REL).write_text(
             json.dumps(
@@ -206,8 +226,15 @@ def run_self_test() -> int:
                             "offsets": {"root_addr": 0, "leftmost_addr": 8, "flags": 16, "reserved": 20},
                         }
                     },
-                }
+                },
+                separators=(",", ":"),
             ),
+            encoding="utf-8",
+        )
+        assert validate(root) == []
+
+        (root / SHARED_ABI_EXPECTED_REL).write_text(
+            (root / SHARED_ABI_EXPECTED_REL).read_text(encoding="utf-8") + "\n",
             encoding="utf-8",
         )
         assert validate(root) == []
@@ -226,7 +253,30 @@ def run_self_test() -> int:
         issues = validate(root)
         assert any(issue.startswith("missing_shared_packet:") for issue in issues)
 
+        (root / SHARED_ABI_TEST_REL).write_text("\n".join(SHARED_PACKET_SNIPPETS[SHARED_ABI_TEST_REL]) + "\n", encoding="utf-8")
+        exact_once_case_count = 0
+        for rel, snippets in SHARED_PACKET_EXACT_ONCE_SNIPPETS.items():
+            path = root / rel
+            original = path.read_text(encoding="utf-8")
+            for snippet in snippets:
+                path.write_text(original.replace(snippet, "", 1), encoding="utf-8")
+                issues = validate(root)
+                assert f"unexpected_snippet_count:{rel}:expected=1:actual=0:{snippet}" in issues
+                exact_once_case_count += 1
+
+                if rel == SHARED_ABI_EXPECTED_REL:
+                    duplicate_text = original.replace(snippet, snippet + "," + snippet, 1)
+                else:
+                    duplicate_text = original.replace(snippet, snippet + "\n" + snippet, 1)
+                path.write_text(duplicate_text, encoding="utf-8")
+                issues = validate(root)
+                assert f"unexpected_snippet_count:{rel}:expected=1:actual=2:{snippet}" in issues
+                exact_once_case_count += 1
+
+                path.write_text(original, encoding="utf-8")
+
         print("PHASE3_RBTREE_SHARED_LIFT_CONTRACT_SELF_TEST=pass")
+        print(f"PHASE3_RBTREE_SHARED_LIFT_CONTRACT_SELF_TEST_CASE_COUNT={3 + exact_once_case_count}")
         return 0
 
 
