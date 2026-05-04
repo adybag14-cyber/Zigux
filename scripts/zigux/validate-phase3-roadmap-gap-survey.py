@@ -38,7 +38,7 @@ REQUIRED_SURVEY_MARKERS = (
     "PHASE3_CURRENT_BITMAP_CPUMASK=zigux/helpers/bitmap_view.zig,zigux/helpers/cpumask_view.zig",
     "PHASE3_CURRENT_LIST_HLIST=zigux/helpers/list_view.zig,zigux/helpers/hlist_view.zig",
     "PHASE3_CURRENT_RBTREE_STATUS=phase3-dedicated-rbtree-boundary-exists-shared-abi-lift-still-missing",
-    "PHASE3_CURRENT_RBTREE_EVIDENCE=tools/lib/rbtree.zig,lib/rbtree.zig,include/zigux/rbtree.h,zigux/bindings/rbtree.zig,zigux/helpers/rbtree_view.zig,Documentation/zigux/phase1-closure.md,Documentation/zigux/phase3-rbtree-slice.md,Documentation/zigux/phase3-rbtree-interop-survey.md,Documentation/zigux/phase7-rbtree-slice.md,zigux/tests/phase3_rbtree_survey.zig,zigux/tests/phase3_rbtree_manifest.json,zigux/tests/phase3_rbtree_shared_contract.zig,zigux/tests/phase3_rbtree_dump.zig,zigux/tests/fixtures/phase3_rbtree/expected.json,zigux/tests/fixtures/phase3_rbtree/phase3_rbtree_c_harness.c,zigux/tests/phase7_rbtree.zig,zigux/tests/phase7_rbtree_survey.zig,zigux/tests/phase7_rbtree_manifest.json",
+    "PHASE3_CURRENT_RBTREE_EVIDENCE=tools/lib/rbtree.zig,lib/rbtree.zig,include/zigux/rbtree.h,zigux/bindings/rbtree.zig,zigux/helpers/rbtree_view.zig,zigux/helpers/rbtree_root_view.zig,Documentation/zigux/phase1-closure.md,Documentation/zigux/phase3-rbtree-slice.md,Documentation/zigux/phase3-rbtree-interop-survey.md,Documentation/zigux/phase7-rbtree-slice.md,zigux/tests/phase3_rbtree_survey.zig,zigux/tests/phase3_rbtree_root_view_survey.zig,zigux/tests/phase3_rbtree_manifest.json,zigux/tests/phase3_rbtree_shared_contract.zig,zigux/tests/phase3_rbtree_dump.zig,zigux/tests/fixtures/phase3_rbtree/expected.json,zigux/tests/fixtures/phase3_rbtree/phase3_rbtree_c_harness.c,scripts/zigux/check-phase3-rbtree-shared-lift-contract.py,zigux/tests/phase7_rbtree.zig,zigux/tests/phase7_rbtree_survey.zig,zigux/tests/phase7_rbtree_manifest.json",
     "PHASE3_CURRENT_SHARED_RBTREE_REPLAY=zigux/tests/phase3_abi.zig,zigux/tests/phase3_abi_dump.zig,zigux/tests/fixtures/phase3_abi/phase3_abi_c_harness.c,zigux/tests/fixtures/phase3_abi/expected.json",
     "PHASE3_CURRENT_RBTREE_SHARED_CONTRACT=zigux/tests/phase3_rbtree_shared_contract.zig",
     "PHASE3_CURRENT_RBTREE_SHARED_LAYOUT_CONTRACT=shared-phase3-abi-replay-already-reuses-dedicated-rbtree-layout-shared-header-lift-still-missing",
@@ -56,7 +56,7 @@ REQUIRED_SURVEY_SNIPPETS = (
     "the shared `phase3_abi` replay still reaches `rbtree` through `include/zigux/rbtree.h` and `zigux/bindings/rbtree.zig` rather than through a curated shared `abi.h` plus `abi.zig` record",
     "the shared ABI replay already covers `zigux_rbtree_root_view` through `zigux/tests/phase3_abi.zig`, `zigux/tests/phase3_abi_dump.zig`, `zigux/tests/fixtures/phase3_abi/phase3_abi_c_harness.c`, and `zigux/tests/fixtures/phase3_abi/expected.json`",
     "The shared ABI manifest now also catalogs that shared replay and its lift guards, so the Phase 3 gap is no longer tangled up with inventory drift.",
-    "`zigux/tests/phase3_rbtree_shared_contract.zig` also keeps that planned shared packet contract machine-checked before the full shared header and binding lift lands.",
+    "`zigux/helpers/rbtree_root_view.zig`, `zigux/tests/phase3_rbtree_root_view_survey.zig`, `zigux/tests/phase3_rbtree_shared_contract.zig`, and `scripts/zigux/check-phase3-rbtree-shared-lift-contract.py` now also keep the reusable root-view helper plus the planned shared-lift contract explicit before the canonical shared header and binding grow.",
     "The dedicated roadmap-gap survey is reviewed through the shared validator-first path rather than as a standalone bootstrap or release entrypoint.",
     "`python3 scripts/zigux/validate-phase3.py`",
     "`make -C zigux phase3-validate`",
@@ -79,6 +79,7 @@ EXACT_ONCE_SURVEY_SNIPPETS = (
 
 REQUIRED_SURVEY_PATHS = (
     "zigux/helpers/rbtree_view.zig",
+    "zigux/helpers/rbtree_root_view.zig",
     "include/zigux/rbtree.h",
     "zigux/bindings/rbtree.zig",
     "Documentation/zigux/phase1-closure.md",
@@ -86,6 +87,7 @@ REQUIRED_SURVEY_PATHS = (
     "Documentation/zigux/phase3-rbtree-interop-survey.md",
     "Documentation/zigux/phase7-rbtree-slice.md",
     "zigux/tests/phase3_rbtree_survey.zig",
+    "zigux/tests/phase3_rbtree_root_view_survey.zig",
     "zigux/tests/phase3_rbtree_manifest.json",
     "zigux/tests/phase3_rbtree_dump.zig",
     "zigux/tests/phase3_rbtree_shared_contract.zig",
@@ -98,6 +100,7 @@ REQUIRED_SURVEY_PATHS = (
     "zigux/tests/phase7_rbtree.zig",
     "zigux/tests/phase7_rbtree_survey.zig",
     "zigux/tests/phase7_rbtree_manifest.json",
+    "scripts/zigux/check-phase3-rbtree-shared-lift-contract.py",
     "lib/rbtree.zig",
     "tools/lib/rbtree.zig",
 )
