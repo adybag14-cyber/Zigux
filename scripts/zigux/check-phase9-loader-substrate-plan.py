@@ -24,7 +24,6 @@ ATOMIC64_LOADER_PATH = "samples/zigux/runtime_atomic64_loader.zig"
 BITMAP_LOADER_PATH = "samples/zigux/runtime_bitmap_loader.zig"
 KRETPROBE_LOADER_PATH = "samples/zigux/runtime_kretprobe_loader.zig"
 TRACE_EVENTS_LOADER_PATH = "samples/zigux/runtime_trace_events_loader.zig"
-CHECKER_PATH = "scripts/zigux/check-phase9-loader-substrate-plan.py"
 
 REQUIRED_FILES = [
     SURVEY_PATH,
@@ -76,11 +75,9 @@ SAMPLES_README_REQUIRED_MARKERS = [
     "- `samples/zigux/runtime_bitmap_loader.zig`",
     "- `samples/zigux/runtime_trace_events.zig`",
     "- `samples/zigux/runtime_trace_events.zig` is still a sample-only blocked Phase 9 pilot on current `master`; the bounded `samples/zigux/runtime_trace_events_loader.zig` scaffold is shipped now, but keep it separate from the loader-backed follow-ons above because the runtime-substrate handoff still stays blocked",
-    "- the current Phase 9 loader-side packet now depends on the shared `zigux/kernel/runtime_loader.zig` `RuntimeLoadRequest` boundary for `samples/zigux/runtime_atomic64_loader.zig`, `samples/zigux/runtime_bitmap_loader.zig`, and `samples/zigux/runtime_kretprobe_loader.zig`; keep `samples/zigux/runtime_trace_events_loader.zig` explicit as an adjacent scaffold until the trace-events blocker can truthfully adopt that same shared request path",
-    "- the runtime bitmap packet rooted in `lib/test_bitmap.c` now includes `samples/zigux/runtime_bitmap.zig`, `samples/zigux/runtime_bitmap_loader.zig`, and the focused `samples/zigux/runtime_bitmap_top_bit_contract.zig` plus `samples/zigux/runtime_bitmap_top_bit_build.zig` companion replay; keep that family cataloged here as later Phase 9 follow-on work rather than treating it as a fifth approved Phase 5 reference idiom",
-    "- keep the bitmap runtime pilot visibly separate from the approved Phase 5 idiom set: `samples/zigux/runtime_bitmap.zig`, `samples/zigux/runtime_bitmap_loader.zig`, `samples/zigux/runtime_bitmap_top_bit_contract.zig`, and `samples/zigux/runtime_bitmap_top_bit_build.zig` belong with the Phase 9 runtime bitmap survey packet, not the four roadmap-approved Phase 5 anchor samples",
+    "- the runtime bitmap pair `samples/zigux/runtime_bitmap.zig` and `samples/zigux/runtime_bitmap_loader.zig` stays a later Phase 9 runtime pilot packet rooted in `lib/test_bitmap.c`; keep it cataloged here as follow-on work rather than treating it as a fifth approved Phase 5 reference idiom",
+    "- keep the bitmap runtime pilot visibly separate from the approved Phase 5 idiom set: `samples/zigux/runtime_bitmap.zig` and `samples/zigux/runtime_bitmap_loader.zig` belong with the Phase 9 runtime bitmap survey packet, not the four roadmap-approved Phase 5 anchor samples",
     "- keep `samples/zigux/runtime_trace_events.zig` explicit as a sample-only blocked Phase 9 pilot even though `samples/zigux/runtime_trace_events_loader.zig` is now shipped as a bounded scaffold, so the shared sample-root packet does not imply a cleared runtime-substrate handoff or a fully loader-backed runtime follow-on",
-    "- when this loader-side catalog changes, keep `python3 scripts/zigux/check-phase9-loader-substrate-plan.py` in the same review packet so the sample-root runtime inventory stays aligned with `Documentation/zigux/phase9-runtime-loader-substrate-plan.md`, `zigux/tests/runtime_loader_gap_manifest.json`, and `zigux/tests/runtime_trace_events_manifest.json`",
 ]
 
 MAKEFILE_REQUIRED_MARKERS = [
@@ -227,13 +224,6 @@ def validate_manifest_alignment(root: Path) -> list[str]:
             for entry in delivery_evidence
         ):
             missing_markers.append("manifest:trace-events-loader-blocked-scaffold_delivery_evidence_missing")
-        if not any(
-            isinstance(entry, dict)
-            and entry.get("id") == "runtime-loader-substrate-plan-checker"
-            and entry.get("path") == CHECKER_PATH
-            for entry in delivery_evidence
-        ):
-            missing_markers.append("manifest:runtime-loader-substrate-plan-checker_delivery_evidence_missing")
 
     ownership_map = manifest.get("ownership_map")
     if not isinstance(ownership_map, list):
@@ -256,15 +246,6 @@ def validate_manifest_alignment(root: Path) -> list[str]:
             for entry in ownership_map
         ):
             missing_markers.append("manifest:trace-events-loader-blocked-scaffold_ownership_missing")
-        if not any(
-            isinstance(entry, dict)
-            and entry.get("surface") == CHECKER_PATH
-            and isinstance(entry.get("owns"), str)
-            and "fail-closed checker coverage" in entry["owns"]
-            and "shared runtime request surface" in entry["owns"]
-            for entry in ownership_map
-        ):
-            missing_markers.append("manifest:runtime-loader-substrate-plan-checker_ownership_missing")
 
     gaps = manifest.get("gaps")
     if not isinstance(gaps, list):
@@ -344,6 +325,67 @@ def validate_manifest_alignment(root: Path) -> list[str]:
     return missing_markers
 
 
+def expect_markers(text: str, markers: list[str], prefix: str) -> list[str]:
+    return [f"{prefix}:{marker}" for marker in markers if marker not in text]
+
+
+def expect_marker_groups(
+    text: str,
+    groups: dict[str, list[str]],
+    prefix: str,
+) -> list[str]:
+    failures: list[str] = []
+    for label, markers in groups.items():
+        if any(marker not in text for marker in markers):
+            failures.append(f"{prefix}:{label}")
+    return failures
+
+
+REVIEW_CHECKLIST_REQUIRED_GROUPS = {
+    "shared_loader_alignment_prompt": [
+        "if the change touches the shared Phase 9 runtime-loader evidence packet",
+        "Documentation/zigux/phase9-runtime-loader-substrate-plan.md",
+        "zigux/tests/runtime_loader_gap_manifest.json",
+        "zigux/kernel/runtime_loader.zig",
+        "atomic64, bitmap, and kretprobe loader plans",
+        "shared loader-stage vocabulary",
+        "without-substrate fallback",
+    ],
+    "trace_events_blocked_pilot_prompt": [
+        "if the change touches the shared Phase 9 runtime-loader evidence packet",
+        "samples/zigux/runtime_trace_events.zig",
+        "sample-only blocked",
+        "samples/zigux/runtime_trace_events_loader.zig",
+        "bounded scaffold",
+        "runtime-substrate handoff",
+    ],
+}
+
+
+SAMPLES_README_REQUIRED_GROUPS = {
+    "trace_events_blocked_scaffold_catalog": [
+        "samples/zigux/runtime_trace_events.zig",
+        "sample-only blocked Phase 9 pilot",
+        "samples/zigux/runtime_trace_events_loader.zig",
+        "scaffold is shipped now",
+        "runtime-substrate handoff still stays blocked",
+    ],
+    "runtime_bitmap_follow_on_catalog": [
+        "samples/zigux/runtime_bitmap.zig",
+        "samples/zigux/runtime_bitmap_loader.zig",
+        "later Phase 9 runtime pilot packet rooted in `lib/test_bitmap.c`",
+        "fifth approved Phase 5 reference idiom",
+    ],
+    "runtime_bitmap_review_boundary": [
+        "keep the bitmap runtime pilot visibly separate",
+        "samples/zigux/runtime_bitmap.zig",
+        "samples/zigux/runtime_bitmap_loader.zig",
+        "Phase 9 runtime bitmap survey packet",
+        "four roadmap-approved Phase 5 anchor samples",
+    ],
+}
+
+
 def validate(root: Path) -> tuple[list[str], list[str]]:
     missing_files = collect_missing_files(root)
     if missing_files:
@@ -358,18 +400,24 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
 
     missing_markers: list[str] = []
 
-    for marker in SURVEY_REQUIRED_MARKERS:
-        if marker not in survey_text:
-            missing_markers.append(f"survey:{marker}")
-    for marker in SUBSTRATE_PLAN_REQUIRED_MARKERS:
-        if marker not in substrate_plan_text:
-            missing_markers.append(f"substrate_plan:{marker}")
-    for marker in REVIEW_CHECKLIST_REQUIRED_MARKERS:
-        if marker not in review_checklist_text:
-            missing_markers.append(f"review_checklist:{marker}")
-    for marker in SAMPLES_README_REQUIRED_MARKERS:
-        if marker not in samples_readme_text:
-            missing_markers.append(f"samples_readme:{marker}")
+    missing_markers.extend(expect_markers(survey_text, SURVEY_REQUIRED_MARKERS, "survey"))
+    missing_markers.extend(
+        expect_markers(substrate_plan_text, SUBSTRATE_PLAN_REQUIRED_MARKERS, "substrate_plan")
+    )
+    missing_markers.extend(
+        expect_marker_groups(
+            review_checklist_text,
+            REVIEW_CHECKLIST_REQUIRED_GROUPS,
+            "review_checklist_group",
+        )
+    )
+    missing_markers.extend(
+        expect_marker_groups(
+            samples_readme_text,
+            SAMPLES_README_REQUIRED_GROUPS,
+            "samples_readme_group",
+        )
+    )
     for marker in MAKEFILE_REQUIRED_MARKERS:
         if marker not in makefile_text:
             missing_markers.append(f"makefile:{marker}")
@@ -438,7 +486,13 @@ def write_fixture_tree(root: Path) -> None:
         encoding="utf-8",
     )
     (root / REVIEW_CHECKLIST_PATH).write_text(
-        REVIEW_CHECKLIST_REQUIRED_MARKERS[0] + "\n",
+        "\n".join(
+            [
+                REVIEW_CHECKLIST_REQUIRED_MARKERS[0],
+                "if the change touches the shared Phase 9 runtime-loader evidence packet, does it still model `samples/zigux/runtime_trace_events.zig` as a sample-only blocked pilot and keep the shipped `samples/zigux/runtime_trace_events_loader.zig` bounded scaffold plus the remaining runtime-substrate handoff blocker explicit rather than making the fourth runtime pilot look fully loader-backed?",
+                "",
+            ]
+        ),
         encoding="utf-8",
     )
     (root / SAMPLES_README_PATH).write_text(
@@ -451,11 +505,9 @@ def write_fixture_tree(root: Path) -> None:
                 "- `samples/zigux/runtime_bitmap_loader.zig`",
                 "- `samples/zigux/runtime_trace_events.zig`",
                 "- `samples/zigux/runtime_trace_events.zig` is still a sample-only blocked Phase 9 pilot on current `master`; the bounded `samples/zigux/runtime_trace_events_loader.zig` scaffold is shipped now, but keep it separate from the loader-backed follow-ons above because the runtime-substrate handoff still stays blocked",
-                "- the current Phase 9 loader-side packet now depends on the shared `zigux/kernel/runtime_loader.zig` `RuntimeLoadRequest` boundary for `samples/zigux/runtime_atomic64_loader.zig`, `samples/zigux/runtime_bitmap_loader.zig`, and `samples/zigux/runtime_kretprobe_loader.zig`; keep `samples/zigux/runtime_trace_events_loader.zig` explicit as an adjacent scaffold until the trace-events blocker can truthfully adopt that same shared request path",
-                "- the runtime bitmap packet rooted in `lib/test_bitmap.c` now includes `samples/zigux/runtime_bitmap.zig`, `samples/zigux/runtime_bitmap_loader.zig`, and the focused `samples/zigux/runtime_bitmap_top_bit_contract.zig` plus `samples/zigux/runtime_bitmap_top_bit_build.zig` companion replay; keep that family cataloged here as later Phase 9 follow-on work rather than treating it as a fifth approved Phase 5 reference idiom",
-                "- keep the bitmap runtime pilot visibly separate from the approved Phase 5 idiom set: `samples/zigux/runtime_bitmap.zig`, `samples/zigux/runtime_bitmap_loader.zig`, `samples/zigux/runtime_bitmap_top_bit_contract.zig`, and `samples/zigux/runtime_bitmap_top_bit_build.zig` belong with the Phase 9 runtime bitmap survey packet, not the four roadmap-approved Phase 5 anchor samples",
+                "- the runtime bitmap pair `samples/zigux/runtime_bitmap.zig` and `samples/zigux/runtime_bitmap_loader.zig` stays a later Phase 9 runtime pilot packet rooted in `lib/test_bitmap.c`; keep it cataloged here as follow-on work rather than treating it as a fifth approved Phase 5 reference idiom",
+                "- keep the bitmap runtime pilot visibly separate from the approved Phase 5 idiom set: `samples/zigux/runtime_bitmap.zig` and `samples/zigux/runtime_bitmap_loader.zig` belong with the Phase 9 runtime bitmap survey packet, not the four roadmap-approved Phase 5 anchor samples",
                 "- keep `samples/zigux/runtime_trace_events.zig` explicit as a sample-only blocked Phase 9 pilot even though `samples/zigux/runtime_trace_events_loader.zig` is now shipped as a bounded scaffold, so the shared sample-root packet does not imply a cleared runtime-substrate handoff or a fully loader-backed runtime follow-on",
-                "- when this loader-side catalog changes, keep `python3 scripts/zigux/check-phase9-loader-substrate-plan.py` in the same review packet so the sample-root runtime inventory stays aligned with `Documentation/zigux/phase9-runtime-loader-substrate-plan.md`, `zigux/tests/runtime_loader_gap_manifest.json`, and `zigux/tests/runtime_trace_events_manifest.json`",
                 "",
             ]
         ),
@@ -485,10 +537,6 @@ def write_fixture_tree(root: Path) -> None:
                         "id": "trace-events-loader-blocked-scaffold",
                         "path": TRACE_EVENTS_LOADER_PATH,
                     },
-                    {
-                        "id": "runtime-loader-substrate-plan-checker",
-                        "path": CHECKER_PATH,
-                    },
                 ],
                 "ownership_map": [
                     {
@@ -498,10 +546,6 @@ def write_fixture_tree(root: Path) -> None:
                     {
                         "surface": TRACE_EVENTS_LOADER_PATH,
                         "owns": "trace-events loader-plan scaffold plus the without-substrate fallback under the sample-only blocked boundary",
-                    },
-                    {
-                        "surface": CHECKER_PATH,
-                        "owns": "fail-closed checker coverage for the shared loader-stage vocabulary, the sample-side loader catalog, the trace-events scaffold boundary, and the shared runtime request surface",
                     },
                 ],
                 "gaps": [
@@ -669,7 +713,22 @@ def run_self_test() -> int:
         expect_missing_marker(
             "review_checklist_alignment",
             tmp_root,
-            f"review_checklist:{REVIEW_CHECKLIST_REQUIRED_MARKERS[0]}",
+            "review_checklist_group:shared_loader_alignment_prompt",
+        )
+        review_checklist_path.write_text(original_review_checklist, encoding="utf-8")
+
+        review_checklist_path.write_text(
+            original_review_checklist.replace(
+                "sample-only blocked pilot and keep the shipped `samples/zigux/runtime_trace_events_loader.zig` bounded scaffold plus the remaining runtime-substrate handoff blocker explicit",
+                "sample-only blocked pilot and leave the runtime follow-on posture implicit",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "review_checklist_trace_events_boundary",
+            tmp_root,
+            "review_checklist_group:trace_events_blocked_pilot_prompt",
         )
         review_checklist_path.write_text(original_review_checklist, encoding="utf-8")
 
@@ -692,8 +751,8 @@ def run_self_test() -> int:
         original_samples_readme = samples_readme_path.read_text(encoding="utf-8")
         samples_readme_path.write_text(
             original_samples_readme.replace(
-                "- `samples/zigux/runtime_trace_events.zig` is still a sample-only blocked Phase 9 pilot on current `master`; the bounded `samples/zigux/runtime_trace_events_loader.zig` scaffold is shipped now, but keep it separate from the loader-backed follow-ons above because the runtime-substrate handoff still stays blocked",
-                "",
+                "runtime-substrate handoff still stays blocked",
+                "runtime-substrate handoff is assumed handled",
                 1,
             ),
             encoding="utf-8",
@@ -701,52 +760,22 @@ def run_self_test() -> int:
         expect_missing_marker(
             "samples_readme_blocked_trace_events_loader_boundary",
             tmp_root,
-            "samples_readme:- `samples/zigux/runtime_trace_events.zig` is still a sample-only blocked Phase 9 pilot on current `master`; the bounded `samples/zigux/runtime_trace_events_loader.zig` scaffold is shipped now, but keep it separate from the loader-backed follow-ons above because the runtime-substrate handoff still stays blocked",
+            "samples_readme_group:trace_events_blocked_scaffold_catalog",
         )
         samples_readme_path.write_text(original_samples_readme, encoding="utf-8")
 
         samples_readme_path.write_text(
             original_samples_readme.replace(
-                "- the current Phase 9 loader-side packet now depends on the shared `zigux/kernel/runtime_loader.zig` `RuntimeLoadRequest` boundary for `samples/zigux/runtime_atomic64_loader.zig`, `samples/zigux/runtime_bitmap_loader.zig`, and `samples/zigux/runtime_kretprobe_loader.zig`; keep `samples/zigux/runtime_trace_events_loader.zig` explicit as an adjacent scaffold until the trace-events blocker can truthfully adopt that same shared request path",
-                "",
+                "later Phase 9 runtime pilot packet rooted in `lib/test_bitmap.c`",
+                "approved helper packet",
                 1,
             ),
             encoding="utf-8",
         )
         expect_missing_marker(
-            "samples_readme_shared_runtime_loader_boundary",
+            "samples_readme_runtime_bitmap_catalog",
             tmp_root,
-            "samples_readme:- the current Phase 9 loader-side packet now depends on the shared `zigux/kernel/runtime_loader.zig` `RuntimeLoadRequest` boundary for `samples/zigux/runtime_atomic64_loader.zig`, `samples/zigux/runtime_bitmap_loader.zig`, and `samples/zigux/runtime_kretprobe_loader.zig`; keep `samples/zigux/runtime_trace_events_loader.zig` explicit as an adjacent scaffold until the trace-events blocker can truthfully adopt that same shared request path",
-        )
-        samples_readme_path.write_text(original_samples_readme, encoding="utf-8")
-
-        samples_readme_path.write_text(
-            original_samples_readme.replace(
-                "- the runtime bitmap packet rooted in `lib/test_bitmap.c` now includes `samples/zigux/runtime_bitmap.zig`, `samples/zigux/runtime_bitmap_loader.zig`, and the focused `samples/zigux/runtime_bitmap_top_bit_contract.zig` plus `samples/zigux/runtime_bitmap_top_bit_build.zig` companion replay; keep that family cataloged here as later Phase 9 follow-on work rather than treating it as a fifth approved Phase 5 reference idiom",
-                "",
-                1,
-            ),
-            encoding="utf-8",
-        )
-        expect_missing_marker(
-            "samples_readme_runtime_bitmap_packet_boundary",
-            tmp_root,
-            "samples_readme:- the runtime bitmap packet rooted in `lib/test_bitmap.c` now includes `samples/zigux/runtime_bitmap.zig`, `samples/zigux/runtime_bitmap_loader.zig`, and the focused `samples/zigux/runtime_bitmap_top_bit_contract.zig` plus `samples/zigux/runtime_bitmap_top_bit_build.zig` companion replay; keep that family cataloged here as later Phase 9 follow-on work rather than treating it as a fifth approved Phase 5 reference idiom",
-        )
-        samples_readme_path.write_text(original_samples_readme, encoding="utf-8")
-
-        samples_readme_path.write_text(
-            original_samples_readme.replace(
-                "- when this loader-side catalog changes, keep `python3 scripts/zigux/check-phase9-loader-substrate-plan.py` in the same review packet so the sample-root runtime inventory stays aligned with `Documentation/zigux/phase9-runtime-loader-substrate-plan.md`, `zigux/tests/runtime_loader_gap_manifest.json`, and `zigux/tests/runtime_trace_events_manifest.json`",
-                "",
-                1,
-            ),
-            encoding="utf-8",
-        )
-        expect_missing_marker(
-            "samples_readme_loader_checker_trace_events_manifest_alignment",
-            tmp_root,
-            "samples_readme:- when this loader-side catalog changes, keep `python3 scripts/zigux/check-phase9-loader-substrate-plan.py` in the same review packet so the sample-root runtime inventory stays aligned with `Documentation/zigux/phase9-runtime-loader-substrate-plan.md`, `zigux/tests/runtime_loader_gap_manifest.json`, and `zigux/tests/runtime_trace_events_manifest.json`",
+            "samples_readme_group:runtime_bitmap_follow_on_catalog",
         )
         samples_readme_path.write_text(original_samples_readme, encoding="utf-8")
 
@@ -772,16 +801,6 @@ def run_self_test() -> int:
         )
         manifest_path.write_text(original_manifest, encoding="utf-8")
 
-        manifest = json.loads(original_manifest)
-        manifest["delivery_evidence_catalog"][2]["id"] = "runtime-loader-checker"
-        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
-        expect_missing_marker(
-            "manifest_checker_delivery_evidence",
-            tmp_root,
-            "manifest:runtime-loader-substrate-plan-checker_delivery_evidence_missing",
-        )
-        manifest_path.write_text(original_manifest, encoding="utf-8")
-
         substrate_plan_path = tmp_root / SUBSTRATE_PLAN_PATH
         original_substrate_plan = substrate_plan_path.read_text(encoding="utf-8")
         substrate_plan_path.write_text(
@@ -798,16 +817,6 @@ def run_self_test() -> int:
             "substrate_plan:surveyed_commit_mismatch",
         )
         substrate_plan_path.write_text(original_substrate_plan, encoding="utf-8")
-
-        manifest = json.loads(original_manifest)
-        manifest["ownership_map"][2]["surface"] = SUBSTRATE_PLAN_PATH
-        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
-        expect_missing_marker(
-            "manifest_checker_ownership",
-            tmp_root,
-            "manifest:runtime-loader-substrate-plan-checker_ownership_missing",
-        )
-        manifest_path.write_text(original_manifest, encoding="utf-8")
 
         manifest = json.loads(original_manifest)
         manifest["phase8_control_surface_markers"]["shared_runtime_loader_field"] = "shared loader field"
@@ -902,7 +911,7 @@ def run_self_test() -> int:
         trace_events_loader_path.write_text(original_trace_events_loader, encoding="utf-8")
 
     print("PHASE9_LOADER_SUBSTRATE_PLAN_SELF_TEST=pass")
-    print("PHASE9_LOADER_SUBSTRATE_PLAN_SELF_TEST_CASE_COUNT=22")
+    print("PHASE9_LOADER_SUBSTRATE_PLAN_SELF_TEST_CASE_COUNT=18")
     return 0
 
 
@@ -945,7 +954,7 @@ def main() -> int:
     print("PHASE9_LOADER_SUBSTRATE_PLAN=pass")
     print(
         "PHASE9_LOADER_SUBSTRATE_PLAN_MARKER_COUNT="
-        f"{len(SURVEY_REQUIRED_MARKERS) + len(SUBSTRATE_PLAN_REQUIRED_MARKERS) + len(REVIEW_CHECKLIST_REQUIRED_MARKERS) + len(SAMPLES_README_REQUIRED_MARKERS) + len(MAKEFILE_REQUIRED_MARKERS) + len(TRACE_EVENTS_LOADER_REQUIRED_MARKERS) + len(TRACE_EVENTS_LOADER_REQUIRED_CONTROL_SURFACE_MARKERS) + len(TRACE_EVENTS_LOADER_FORBIDDEN_MARKERS) + len(TRACE_EVENTS_LOADER_FORBIDDEN_CONTROL_SURFACE_MARKERS) + 18}"
+        f"{len(SURVEY_REQUIRED_MARKERS) + len(SUBSTRATE_PLAN_REQUIRED_MARKERS) + len(REVIEW_CHECKLIST_REQUIRED_GROUPS) + len(SAMPLES_README_REQUIRED_GROUPS) + len(MAKEFILE_REQUIRED_MARKERS) + len(TRACE_EVENTS_LOADER_REQUIRED_MARKERS) + len(TRACE_EVENTS_LOADER_REQUIRED_CONTROL_SURFACE_MARKERS) + len(TRACE_EVENTS_LOADER_FORBIDDEN_MARKERS) + len(TRACE_EVENTS_LOADER_FORBIDDEN_CONTROL_SURFACE_MARKERS) + 16}"
     )
     return 0
 
