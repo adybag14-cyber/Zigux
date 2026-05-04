@@ -9,7 +9,7 @@ from pathlib import Path
 
 SCRIPT_PATH = Path(__file__).resolve()
 ROOT = SCRIPT_PATH.parents[2] if len(SCRIPT_PATH.parents) > 2 else SCRIPT_PATH.parent
-SELF_TEST_CASE_COUNT = 20
+SELF_TEST_CASE_COUNT = 22
 
 DOCS_ROOT_PATH = Path("Documentation/zigux/README.md")
 SCRIPTS_README_PATH = Path("scripts/zigux/README.md")
@@ -34,6 +34,11 @@ EXTERNAL_PARITY_LINE = (
     "`python3 scripts/zigux/check-phase6-hexdump-c-parity.py` are the shipped "
     "external C-vs-Zig review hooks for the bounded base64, bsearch, checksum, "
     "and hexdump portability surfaces."
+)
+DOCS_ROOT_VALIDATOR_LINE = (
+    "`python3 scripts/zigux/validate-phase6.py`, `make -C zigux phase6-validate`, "
+    "and `make -C zigux phase6` are the published validator-first shared replay "
+    "path for the current Phase 6 helper tranche."
 )
 REQUIRED_SCRIPTS_README_LINES = [
     "- `check-phase6-docs-root-external-parity.py`",
@@ -74,7 +79,7 @@ REQUIRED_FILE_COUNT = (
     5 + len(REQUIRED_REVIEW_HELPER_PATHS) + len(REQUIRED_SCRIPT_PATHS)
 )
 REQUIRED_LINE_COUNT = (
-    1
+    2
     + len(REQUIRED_SCRIPTS_README_LINES)
     + 1
     + len(REQUIRED_TESTS_README_LINES)
@@ -119,6 +124,13 @@ def validate(root: Path) -> list[str]:
     if actual_count != 1:
         missing.append(
             "docs_root_external_parity_line:"
+            f"expected=1:actual={actual_count}"
+        )
+
+    actual_count = count_exact_line(docs_root_lines, DOCS_ROOT_VALIDATOR_LINE)
+    if actual_count != 1:
+        missing.append(
+            "docs_root_validator_line:"
             f"expected=1:actual={actual_count}"
         )
 
@@ -181,7 +193,11 @@ def write(root: Path, relative_path: Path, content: str) -> None:
 
 
 def build_fixture_tree(root: Path) -> None:
-    write(root, DOCS_ROOT_PATH, f"{EXTERNAL_PARITY_LINE}\n")
+    write(
+        root,
+        DOCS_ROOT_PATH,
+        "\n".join([EXTERNAL_PARITY_LINE, DOCS_ROOT_VALIDATOR_LINE]) + "\n",
+    )
     write(
         root,
         SCRIPTS_README_PATH,
@@ -226,12 +242,40 @@ def run_self_test() -> int:
             build_fixture_tree(root)
             docs_root = root / DOCS_ROOT_PATH
             docs_root.write_text(
-                f"{EXTERNAL_PARITY_LINE}\n{EXTERNAL_PARITY_LINE}\n",
+                f"{EXTERNAL_PARITY_LINE}\n{EXTERNAL_PARITY_LINE}\n{DOCS_ROOT_VALIDATOR_LINE}\n",
                 encoding="utf-8",
             )
             expect_contains(
                 validate(root),
                 "docs_root_external_parity_line:expected=1:actual=2",
+            )
+            count += 1
+
+            build_fixture_tree(root)
+            docs_root = root / DOCS_ROOT_PATH
+            docs_root.write_text(f"{EXTERNAL_PARITY_LINE}\n", encoding="utf-8")
+            expect_contains(
+                validate(root),
+                "docs_root_validator_line:expected=1:actual=0",
+            )
+            count += 1
+
+            build_fixture_tree(root)
+            docs_root = root / DOCS_ROOT_PATH
+            docs_root.write_text(
+                "\n".join(
+                    [
+                        EXTERNAL_PARITY_LINE,
+                        DOCS_ROOT_VALIDATOR_LINE,
+                        DOCS_ROOT_VALIDATOR_LINE,
+                    ]
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+            expect_contains(
+                validate(root),
+                "docs_root_validator_line:expected=1:actual=2",
             )
             count += 1
 
@@ -479,7 +523,7 @@ def run_self_test() -> int:
 
 def main() -> int:
     parser = argparse.ArgumentParser(
-        description="Fail closed on the Phase 6 docs-root external parity inventory line."
+        description="Fail closed on the Phase 6 docs-root review inventory lines."
     )
     parser.add_argument("--self-test", action="store_true", help="Run built-in checks")
     args = parser.parse_args()
