@@ -269,6 +269,7 @@ test "phase11 dw_wdt survey manifest and validation matrix record the landed lif
     var blocked_count: usize = 0;
     var saw_build_gate = false;
     var saw_survey_gate = false;
+    var saw_survey_note = false;
     var saw_driver_gap = false;
     var saw_driver_tests = false;
     var saw_header_boundary = false;
@@ -305,6 +306,15 @@ test "phase11 dw_wdt survey manifest and validation matrix record the landed lif
             try std.testing.expectEqualStrings("starter_landed", gap.status);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "remove-handoff teardown evidence") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "validation-matrix status") != null);
+        }
+
+        if (std.mem.eql(u8, gap.id, "phase11-dw-wdt-survey-note")) {
+            saw_survey_note = true;
+            try std.testing.expectEqualStrings("Documentation/zigux/phase11-dw-wdt-survey.md", gap.zigux_destination);
+            try std.testing.expectEqualStrings("starter_landed", gap.status);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "anchors the live dw_wdt lane to `master`") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "platform-resource preflight packet") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "review packet provenance") != null);
         }
 
         if (std.mem.eql(u8, gap.id, "phase11-dw-wdt-driver-starter")) {
@@ -403,6 +413,7 @@ test "phase11 dw_wdt survey manifest and validation matrix record the landed lif
     try std.testing.expect(blocked_count > 0);
     try std.testing.expect(saw_build_gate);
     try std.testing.expect(saw_survey_gate);
+    try std.testing.expect(saw_survey_note);
     try std.testing.expect(saw_driver_gap);
     try std.testing.expect(saw_driver_tests);
     try std.testing.expect(saw_header_boundary);
