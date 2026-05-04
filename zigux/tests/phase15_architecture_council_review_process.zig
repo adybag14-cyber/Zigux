@@ -328,7 +328,7 @@ test "phase 15 architecture council review-process note stays aligned with check
 
     const expected_provenance = try std.fmt.allocPrint(
         std.testing.allocator,
-        "survey provenance refreshed against verified `master` head `{s}`",
+        "survey provenance last refreshed against reviewed `master` head `{s}`",
         .{manifest.surveyed_commit},
     );
     defer std.testing.allocator.free(expected_provenance);
