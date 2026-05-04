@@ -18,7 +18,7 @@ test "phase 8 exec-cmd module imports cleanly" {
     _ = exec_cmd;
 }
 
-test "phase 8 exec-cmd focused replay keeps the deferred handoff integrated while helper-local planners own edge shapes" {
+test "phase 8 exec-cmd focused replay keeps inherited relative PERF_EXEC_PATH raw in env while the deferred handoff normalizes PATH" {
     const config = exec_cmd.Config{
         .exec_name = "perf",
         .prefix = "/usr/libexec/perf-core",
@@ -33,8 +33,8 @@ test "phase 8 exec-cmd focused replay keeps the deferred handoff integrated whil
     defer state.deinit(std.testing.allocator);
 
     try exec_cmd.execCmdInit(&env, config);
-    try exec_cmd.setArgvExecPath(std.testing.allocator, &env, &state, config, "tools/bin");
     try exec_cmd.setArgv0Path(std.testing.allocator, &state, "scripts");
+    try env.set("PERF_EXEC_PATH", "tools/bin");
     try env.set("PATH", "/usr/bin:/bin");
 
     var execv_plan = try exec_cmd.planDeferredExecvCall(
@@ -47,6 +47,7 @@ test "phase 8 exec-cmd focused replay keeps the deferred handoff integrated whil
     );
     defer execv_plan.deinit(std.testing.allocator);
 
+    try std.testing.expectEqualStrings("tools/bin", env.get("PERF_EXEC_PATH").?);
     try std.testing.expectEqualStrings(
         "/repo/tools/bin:/repo/scripts:/usr/bin:/bin",
         execv_plan.path,
