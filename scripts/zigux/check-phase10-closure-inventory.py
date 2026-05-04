@@ -185,16 +185,16 @@ EXPECTED_CROSS_PHASE_BOUNDARY = {
 EXPECTED_SURVEY_PROVENANCE = {
     "source": "manifest_derived",
     "lane_keys": {
-        "core": "P10-L01",
-        "ring": "P10-L07",
-        "input": "P10-L13",
-        "mmio": "P10-L18",
+      "core": "P10-L01",
+      "ring": "P10-L07",
+      "input": "P10-L13",
+      "mmio": "P10-L18",
     },
     "surveyed_commits": {
-        "core": "d30cbe483a2f019ae797b309a29556bd58fe00d0",
-        "ring": "fe8a43ea2e186da0da152198b571dff57ea3c38c",
-        "input": "f5a4d6990f701937b2a3bb9ae723bb6d0f27ba21",
-        "mmio": "0945df1cf664a3582d7241f859183a13f3f04adb",
+      "core": "d30cbe483a2f019ae797b309a29556bd58fe00d0",
+      "ring": "fe8a43ea2e186da0da152198b571dff57ea3c38c",
+      "input": "f5a4d6990f701937b2a3bb9ae723bb6d0f27ba21",
+      "mmio": "0945df1cf664a3582d7241f859183a13f3f04adb",
     },
 }
 
@@ -374,20 +374,16 @@ LEDGER_EXACT_ONCE_MARKERS = [
     "PHASE10_LEDGER_MMIO_QUEUE_ISOLATION_GATE=zigux/tests/phase10_virtio_mmio_queue_isolation.zig",
 ]
 
-
 def read_text(root: Path, rel_path: str) -> str:
     return (root / rel_path).read_text(encoding="utf-8")
 
-
 def load_json(root: Path, rel_path: str) -> object:
     return json.loads(read_text(root, rel_path))
-
 
 def check_markers(missing: list[str], label: str, text: str, markers: list[str]) -> None:
     for marker in markers:
         if marker not in text:
             missing.append(f"{label}:{marker}")
-
 
 def check_exact_count(
     missing: list[str], label: str, text: str, marker: str, expected: int = 1
@@ -395,7 +391,6 @@ def check_exact_count(
     actual = text.count(marker)
     if actual != expected:
         missing.append(f"{label}:count:{marker}={actual}")
-
 
 def validate(root: Path) -> tuple[list[str], list[str]]:
     missing_files = [path for path in REQUIRED_FILES if not (root / path).exists()]
@@ -459,7 +454,6 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
 
     return [], missing
 
-
 def write_fixture(root: Path) -> None:
     for rel_path in REQUIRED_FILES:
         path = root / rel_path
@@ -505,7 +499,6 @@ def write_fixture(root: Path) -> None:
         else:
             path.write_text("fixture\n", encoding="utf-8")
 
-
 def expect_missing_marker(label: str, root: Path, expected_marker: str) -> None:
     missing_files, missing_markers = validate(root)
     if missing_files:
@@ -514,7 +507,6 @@ def expect_missing_marker(label: str, root: Path, expected_marker: str) -> None:
         actual = ",".join(missing_markers) if missing_markers else "none"
         raise SystemExit(f"{label}:expected:{expected_marker}:actual:{actual}")
 
-
 def expect_missing_file(label: str, root: Path, rel_path: str) -> None:
     missing_files, missing_markers = validate(root)
     if missing_markers:
@@ -522,7 +514,6 @@ def expect_missing_file(label: str, root: Path, rel_path: str) -> None:
     if rel_path not in missing_files:
         actual = ",".join(missing_files) if missing_files else "none"
         raise SystemExit(f"{label}:expected_file:{rel_path}:actual:{actual}")
-
 
 def run_self_test() -> int:
     with tempfile.TemporaryDirectory(prefix="zigux_phase10_closure_inventory_") as tmp_dir:
@@ -573,6 +564,20 @@ def run_self_test() -> int:
         manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
         expect_missing_marker(
             "lab_validation_scoreboard_harness_evidence_guard",
+            root,
+            "manifest:roadmap_parity_scoreboard",
+        )
+        write_fixture(root)
+
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        manifest["roadmap_parity_scoreboard"]["lab_only_driver_validation"]["evidence"] = [
+            path
+            for path in manifest["roadmap_parity_scoreboard"]["lab_only_driver_validation"]["evidence"]
+            if path != "zigux/tests/phase10_virtio_input_registration_blocker_build.zig"
+        ]
+        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+        expect_missing_marker(
+            "lab_validation_scoreboard_registration_blocker_build_guard",
             root,
             "manifest:roadmap_parity_scoreboard",
         )
@@ -763,6 +768,10 @@ def run_self_test() -> int:
         expect_missing_file("closure_validator_file_guard", root, CLOSURE_VALIDATOR)
         write_fixture(root)
 
+        (root / INPUT_BLOCKER_BUILD).unlink()
+        expect_missing_file("input_blocker_build_file_guard", root, INPUT_BLOCKER_BUILD)
+        write_fixture(root)
+
         harness_checker_path = root / HARNESS_CHECKER
         harness_checker_path.unlink()
         missing_files, missing_markers = validate(root)
@@ -770,9 +779,8 @@ def run_self_test() -> int:
             raise SystemExit("required_file_guard_failed")
 
     print("PHASE10_CLOSURE_INVENTORY_SELF_TEST=pass")
-    print("PHASE10_CLOSURE_INVENTORY_SELF_TEST_CASE_COUNT=23")
+    print("PHASE10_CLOSURE_INVENTORY_SELF_TEST_CASE_COUNT=25")
     return 0
-
 
 def main() -> int:
     if "--self-test" in sys.argv[1:]:
@@ -798,7 +806,6 @@ def main() -> int:
     print(f"PHASE10_CLOSURE_INVENTORY_REQUIRED_FILE_COUNT={len(REQUIRED_FILES)}")
     print("PHASE10_CLOSURE_INVENTORY_REQUIRED_GROUP_COUNT=10")
     return 0
-
 
 if __name__ == "__main__":
     sys.exit(main())
