@@ -56,6 +56,7 @@ The current checksum helper surface exercised by this slice covers:
 
 - `add`
 - `sub`
+- `negate`
 - `shift`
 - `blockAdd`
 - `blockSub`
@@ -82,6 +83,7 @@ The current tests check:
 - 6 imported KUnit random-prefix lengths through the committed fixture corpus
 - pseudo-header accumulation parity for the committed IPv4 UDP-style checksum vector
 - IPv6 pseudo-header accumulation parity for 3 committed UDP, TCP, and ICMPv6-style checksum vectors, including the upper-length-bits regression fixture
+- helper-local arithmetic regressions for `add`, `sub`, `negate`, shift rotation, and block composition invariants inside `lib/checksum.zig`
 - 16-bit carry-helper parity for wrapped add and subtract edge cases before the incremental replacement helpers consume that contract
 - incremental checksum replacement parity for payload word updates, 16-bit IPv4 header field replacement, 32-bit IPv4 address replacement, and diff-based checksum repair
 - an external C-vs-Zig spot check through `python3 scripts/zigux/check-phase6-checksum-c-parity.py`, `zigux/tests/phase6_checksum_c_parity.zig`, and `zigux/tests/fixtures/phase6_checksum_c_harness.c` so the current `lib/checksum.c` arithmetic surface stays directly reviewable beside the committed Zig fixture packet; the live parity runner now replays 27 direct outputs across 5 compute cases, 3 seeded partial cases, 2 composition cases, 1 IPv4 pseudo-header nofold case, 3 IPv6 pseudo-header nofold cases, 4 carry-discipline folds, 5 direct `add16` and `sub16` carry-helper outputs, and 4 incremental replacement outputs
