@@ -1,7 +1,37 @@
 const std = @import("std");
 
+const SurveySummary = struct {
+    preexisting_phase7_test_files: usize,
+    preexisting_phase7_fixture_modules: usize,
+    preexisting_phase7_build_present: bool,
+    preexisting_phase7_doc_present: bool,
+    preexisting_phase7_helper_present: bool,
+};
+
+const Gap = struct {
+    id: []const u8,
+    status: []const u8,
+    kind: []const u8,
+    zigux_destination: []const u8,
+    why_now: []const u8,
+};
+
+const Manifest = struct {
+    lane_key: []const u8,
+    phase: []const u8,
+    anchor: []const u8,
+    roadmap_destinations: []const []const u8,
+    survey_summary: SurveySummary,
+    gaps: []const Gap,
+};
+
 fn expectContains(haystack: []const u8, needle: []const u8) !void {
     try std.testing.expect(std.mem.indexOf(u8, haystack, needle) != null);
+}
+
+fn isAllowedStatus(status: []const u8) bool {
+    return std.mem.eql(u8, status, "starter_landed") or
+        std.mem.eql(u8, status, "ready_next");
 }
 
 test "phase 7 string helpers survey keeps the roadmap and sample-root boundary explicit" {
@@ -72,13 +102,23 @@ test "phase 7 string helpers survey keeps the roadmap and sample-root boundary e
     );
     defer std.testing.allocator.free(string_helpers_tests);
 
-    const string_helpers_manifest = try std.Io.Dir.cwd().readFileAlloc(
+    const manifest_json = try std.Io.Dir.cwd().readFileAlloc(
         io_instance.io(),
         "zigux/tests/phase7_string_helpers_manifest.json",
         std.testing.allocator,
         .limited(16 * 1024),
     );
-    defer std.testing.allocator.free(string_helpers_manifest);
+    defer std.testing.allocator.free(manifest_json);
+
+    const parsed_manifest = try std.json.parseFromSlice(
+        Manifest,
+        std.testing.allocator,
+        manifest_json,
+        .{},
+    );
+    defer parsed_manifest.deinit();
+
+    const manifest = parsed_manifest.value;
 
     const escape_vectors = try std.Io.Dir.cwd().readFileAlloc(
         io_instance.io(),
@@ -173,6 +213,112 @@ test "phase 7 string helpers survey keeps the roadmap and sample-root boundary e
         if (!std.mem.endsWith(u8, entry.name, ".zig")) continue;
         try std.testing.expect(std.mem.indexOf(u8, entry.name, "string") == null);
     }
+
+    try std.testing.expectEqualStrings("P7-L04", manifest.lane_key);
+    try std.testing.expectEqualStrings("Phase 7", manifest.phase);
+    try std.testing.expectEqualStrings("lib/string_helpers.c", manifest.anchor);
+    try std.testing.expectEqual(@as(usize, 1), manifest.roadmap_destinations.len);
+    try std.testing.expectEqualStrings("lib/string_helpers.zig", manifest.roadmap_destinations[0]);
+    try std.testing.expectEqual(@as(usize, 1), manifest.survey_summary.preexisting_phase7_test_files);
+    try std.testing.expectEqual(@as(usize, 1), manifest.survey_summary.preexisting_phase7_fixture_modules);
+    try std.testing.expect(manifest.survey_summary.preexisting_phase7_build_present);
+    try std.testing.expect(manifest.survey_summary.preexisting_phase7_doc_present);
+    try std.testing.expect(manifest.survey_summary.preexisting_phase7_helper_present);
+    try std.testing.expect(manifest.gaps.len >= 7);
+
+    var starter_landed_count: usize = 0;
+    var ready_next_count: usize = 0;
+    var saw_build_gate = false;
+    var saw_helper = false;
+    var saw_dedicated_tests = false;
+    var saw_shared_fixtures = false;
+    var saw_slice_note = false;
+    var saw_manifest_packet = false;
+    var saw_survey_gate = false;
+
+    for (manifest.gaps, 0..) |gap, i| {
+        try std.testing.expect(gap.id.len > 0);
+        try std.testing.expect(gap.kind.len > 0);
+        try std.testing.expect(gap.why_now.len > 0);
+        try std.testing.expect(isAllowedStatus(gap.status));
+
+        if (std.mem.eql(u8, gap.status, "starter_landed")) {
+            starter_landed_count += 1;
+        } else if (std.mem.eql(u8, gap.status, "ready_next")) {
+            ready_next_count += 1;
+        }
+
+        if (std.mem.eql(u8, gap.id, "phase7-build-gate")) {
+            saw_build_gate = true;
+            try std.testing.expectEqualStrings("starter_landed", gap.status);
+            try std.testing.expectEqualStrings("validation", gap.kind);
+            try std.testing.expectEqualStrings("zigux/tests/phase7_build.zig", gap.zigux_destination);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "shared Phase 7 build step") != null);
+        }
+
+        if (std.mem.eql(u8, gap.id, "phase7-string-helpers-helper")) {
+            saw_helper = true;
+            try std.testing.expectEqualStrings("starter_landed", gap.status);
+            try std.testing.expectEqualStrings("runtime_leaf_helper", gap.kind);
+            try std.testing.expectEqualStrings("lib/string_helpers.zig", gap.zigux_destination);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "runtime-safe leaf packet") != null);
+        }
+
+        if (std.mem.eql(u8, gap.id, "phase7-string-helpers-dedicated-tests")) {
+            saw_dedicated_tests = true;
+            try std.testing.expectEqualStrings("starter_landed", gap.status);
+            try std.testing.expectEqualStrings("validation", gap.kind);
+            try std.testing.expectEqualStrings("zigux/tests/phase7_string_helpers.zig", gap.zigux_destination);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "string-array teardown behavior") != null);
+        }
+
+        if (std.mem.eql(u8, gap.id, "phase7-string-helpers-shared-fixtures")) {
+            saw_shared_fixtures = true;
+            try std.testing.expectEqualStrings("starter_landed", gap.status);
+            try std.testing.expectEqualStrings("validation", gap.kind);
+            try std.testing.expectEqualStrings("zigux/tests/fixtures/phase7_string_helpers_escape_vectors.zig", gap.zigux_destination);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "serialized cases helper-local only") != null);
+        }
+
+        if (std.mem.eql(u8, gap.id, "phase7-string-helpers-slice-note")) {
+            saw_slice_note = true;
+            try std.testing.expectEqualStrings("starter_landed", gap.status);
+            try std.testing.expectEqualStrings("documentation", gap.kind);
+            try std.testing.expectEqualStrings("Documentation/zigux/phase7-string-helpers-slice.md", gap.zigux_destination);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "validator-first handoff") != null);
+        }
+
+        if (std.mem.eql(u8, gap.id, "phase7-string-helpers-manifest-packet")) {
+            saw_manifest_packet = true;
+            try std.testing.expectEqualStrings("starter_landed", gap.status);
+            try std.testing.expectEqualStrings("validation", gap.kind);
+            try std.testing.expectEqualStrings("zigux/tests/phase7_string_helpers_manifest.json", gap.zigux_destination);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "machine-readable") != null);
+        }
+
+        if (std.mem.eql(u8, gap.id, "phase7-string-helpers-survey-gate")) {
+            saw_survey_gate = true;
+            try std.testing.expectEqualStrings("starter_landed", gap.status);
+            try std.testing.expectEqualStrings("validation", gap.kind);
+            try std.testing.expectEqualStrings("zigux/tests/phase7_string_helpers_survey.zig", gap.zigux_destination);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "machine-checked survey gate") != null);
+        }
+
+        for (manifest.gaps[i + 1 ..]) |other| {
+            try std.testing.expect(!std.mem.eql(u8, gap.id, other.id));
+            try std.testing.expect(!std.mem.eql(u8, gap.zigux_destination, other.zigux_destination));
+        }
+    }
+
+    try std.testing.expect(starter_landed_count >= 7);
+    try std.testing.expectEqual(@as(usize, 0), ready_next_count);
+    try std.testing.expect(saw_build_gate);
+    try std.testing.expect(saw_helper);
+    try std.testing.expect(saw_dedicated_tests);
+    try std.testing.expect(saw_shared_fixtures);
+    try std.testing.expect(saw_slice_note);
+    try std.testing.expect(saw_manifest_packet);
+    try std.testing.expect(saw_survey_gate);
 
     try expectContains(roadmap, "## Phase 5: Samples and Reference Patterns");
     try expectContains(roadmap, "samples/kfifo/bytestream-example.c");
@@ -308,12 +454,12 @@ test "phase 7 string helpers survey keeps the roadmap and sample-root boundary e
     try expectContains(string_helpers_tests, "phase 7 stringEscapeMem covers the bounded escape subset");
     try expectContains(string_helpers_tests, "phase 7 stringEscapeMem reports truncated output length without forcing a terminator");
 
-    try expectContains(string_helpers_manifest, "\"lane_key\": \"P7-L04\"");
-    try expectContains(string_helpers_manifest, "\"anchor\": \"lib/string_helpers.c\"");
-    try expectContains(string_helpers_manifest, "\"lib/string_helpers.zig\"");
-    try expectContains(string_helpers_manifest, "\"phase7-string-helpers-manifest-packet\"");
-    try expectContains(string_helpers_manifest, "\"zigux/tests/phase7_string_helpers_manifest.json\"");
-    try expectContains(string_helpers_manifest, "\"zigux/tests/fixtures/phase7_string_helpers_escape_vectors.zig\"");
+    try expectContains(manifest_json, "\"lane_key\": \"P7-L04\"");
+    try expectContains(manifest_json, "\"anchor\": \"lib/string_helpers.c\"");
+    try expectContains(manifest_json, "\"lib/string_helpers.zig\"");
+    try expectContains(manifest_json, "\"phase7-string-helpers-manifest-packet\"");
+    try expectContains(manifest_json, "\"zigux/tests/phase7_string_helpers_manifest.json\"");
+    try expectContains(manifest_json, "\"zigux/tests/fixtures/phase7_string_helpers_escape_vectors.zig\"");
 
     try expectContains(escape_vectors, "pub const unescape_cases");
     try expectContains(escape_vectors, "pub const escape_cases");
