@@ -100,6 +100,12 @@ REQUIRED_CLOSURE_VALIDATOR_SNIPPETS = {
 }
 
 REQUIRED_CLOSURE_DOC_SNIPPETS = {
+    "find_bit_bench_review_marker": (
+        "PHASE1_FIND_BIT_BENCH_REVIEW=find_bit benchmark smoke pins deterministic next-bit, "
+        "whole-family, tail-window, same-word, zero-bit, and shared-bit scan checksums plus "
+        "the live loop counts so helper-local scan regressions cannot hide behind a generic "
+        "positive checksum or a silently shrunk workload"
+    ),
     "find_bit_bench_keys_marker": f"`{FIND_BIT_BENCH_KEYS}`",
     "find_bit_bench_iterations_marker": f"`{FIND_BIT_BENCH_ITERATIONS}`",
     "find_bit_unit_review_marker": (
