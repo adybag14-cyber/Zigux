@@ -12,6 +12,7 @@ This document tracks the bounded Phase 8 userspace-adjacent tooling slice for Zi
   - `tools/lib/subcmd/help.zig`
   - `zigux/tests/phase8_help.zig`
   - `zigux/tests/phase8_help_only_build.zig`
+  - `zigux/tests/phase8_help_kallsyms_only_build.zig`
   - `zigux/tests/phase8_build.zig`
 
 ## Why this slice exists
@@ -28,10 +29,13 @@ This lane keeps the shipped `help.zig` parked slice aligned with the stable comm
 2. run the focused Phase 8 help replay
 - `zig build test --build-file zigux/tests/phase8_help_only_build.zig --summary all`
 
-3. run the dedicated Phase 8 tooling gate
+3. run the focused shared help and symbol gate
+- `zig build test --build-file zigux/tests/phase8_help_kallsyms_only_build.zig --summary all`
+
+4. run the dedicated Phase 8 tooling gate
 - `zig build test --build-file zigux/tests/phase8_build.zig --summary all`
 
-4. run the convenience targets
+5. run the convenience targets
 - `make -C zigux phase8-help-test`
 - `make -C zigux phase8`
 
@@ -70,6 +74,7 @@ The current tests check:
 - layout planning preserves the same column math used before printing, including the single-column fallback for narrow terminals, the empty-list row contract, and environment-driven column selection through the injected terminal helper
 - pretty-print output stays testable without `printf()` by reusing the injected terminal-dimensions path and emitting the same row text the C helper would print
 - section-level output stays testable without `printf()` by rendering the same `available <title> in '<path>'` and `$PATH` headings, underline lengths, shared column width, section spacing, and empty-section suppression that `list_commands()` uses in `help.c`
+- the parked help packet also stays reviewable through the shared `zigux/tests/phase8_help_kallsyms_only_build.zig` replay, so the combined help-plus-symbol tranche does not need the full Phase 8 bundle just to prove the existing `help` surface still wires cleanly beside `kallsyms`
 
 ## Non-goals
 
@@ -81,4 +86,4 @@ This slice does not yet claim:
 
 ## Next bounded step
 
-The current bounded gap versus the broader Phase 8 tooling packet is now the replay shape rather than missing helper behavior: `help.zig` can be reviewed through its own `phase8_help_only_build.zig` shard and the shared `phase8_build.zig` tooling replay without hiding only inside the full tooling bundle. Park this lane unless a fresh helper-only parity gap appears; the next honest follow-up should only reopen it for another exact formatting or command-source parity edge rather than widening into direct environment reads, directory walking, or full CLI behavior.
+The current bounded gap versus the broader Phase 8 tooling packet is now the replay shape rather than missing helper behavior: `help.zig` can be reviewed through its own `phase8_help_only_build.zig` shard, the shared `phase8_help_kallsyms_only_build.zig` replay, and the shared `phase8_build.zig` tooling replay without hiding only inside the full tooling bundle. Park this lane unless a fresh helper-only parity gap appears; the next honest follow-up should only reopen it for another exact formatting or command-source parity edge rather than widening into direct environment reads, directory walking, or full CLI behavior.
