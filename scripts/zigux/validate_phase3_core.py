@@ -52,6 +52,9 @@ ABI_REQUIRED_MANIFEST_FILES = (
     "zigux/tests/phase3_policy_unsafe.zig",
     ABI_POLICY_UNSAFE_MMIO_CONSUMER_REL,
     "zigux/tests/phase3_abi.zig",
+
+    "zigux/tests/phase3_rbtree_shared_contract.zig",
+
     ABI_EXPORT_UAPI_BUILD_FILE_REL,
     "zigux/tests/phase3_export_uapi.zig",
     ABI_EXPORT_UAPI_LAYOUT_BUILD_FILE_REL,
@@ -64,7 +67,11 @@ ABI_REQUIRED_MANIFEST_FILES = (
     "Documentation/zigux/phase3-rbtree-interop-survey.md",
     "Documentation/zigux/phase3-export-uapi-boundary-survey.md",
     "scripts/zigux/check-phase3-abi.py",
+
     "scripts/zigux/check-phase3-abi-layout-packet.py",
+
+    "scripts/zigux/check-phase3-rbtree-shared-lift-contract.py",
+
     "scripts/zigux/run-phase3-checks.py",
     "scripts/zigux/phase3_check_lib.py",
     "scripts/zigux/validate-phase3-roadmap-gap-survey.py",
