@@ -148,9 +148,9 @@ BITMAP_GATE_EVIDENCE_MARKERS = [
 
 ARTIFACT_DIFF_NOTE_MARKERS = [
     "ARTIFACT_DIFF_SELF_TEST_CASE_COUNT=18",
-    "ARTIFACT_DIFF_CONTRACT_BASE_CASE_COUNT=21",
+    "ARTIFACT_DIFF_CONTRACT_BASE_CASE_COUNT=22",
     "ARTIFACT_DIFF_CONTRACT_REPEAT_CASE_COUNT=4",
-    "ARTIFACT_DIFF_CONTRACT_CASE_COUNT=25",
+    "ARTIFACT_DIFF_CONTRACT_CASE_COUNT=26",
 ]
 
 
@@ -392,7 +392,7 @@ def run_self_test() -> int:
         artifact_diff_note = root / "Documentation/zigux/artifact-diff.md"
         artifact_diff_note.write_text(
             artifact_diff_note.read_text(encoding="utf-8").replace(
-                "ARTIFACT_DIFF_CONTRACT_CASE_COUNT=25\n",
+                "ARTIFACT_DIFF_CONTRACT_CASE_COUNT=26\n",
                 "",
                 1,
             ),
@@ -400,7 +400,7 @@ def run_self_test() -> int:
         )
         missing = validate_root(root)
         assert (
-            "artifact_diff_note:ARTIFACT_DIFF_CONTRACT_CASE_COUNT=25" in missing
+            "artifact_diff_note:ARTIFACT_DIFF_CONTRACT_CASE_COUNT=26" in missing
         ), missing
 
         write_fixture_tree(root)
