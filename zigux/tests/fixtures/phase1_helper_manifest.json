@@ -150,7 +150,7 @@
       "cached_duplicate_unit_test_contract": "Direct Zig unit coverage keeps RootCached duplicate minima aligned when eraseCached() promotes the next equal-key minimum and replaceNodeCached() leaves the cached first node unchanged for non-leftmost replacement.",
       "cached_findadd_unit_test_anchor": "tools/lib/rbtree.zig:test \"rbtree findAddCached preserves duplicate ownership and leftmost cache\"",
       "cached_findadd_unit_test_contract": "Direct Zig unit coverage keeps findAddCached() aligned by returning the original equal-key resident node, still linking new distinct keys into the cached tree, and keeping the cached first node aligned with the underlying tree root.",
-      "cached_find_add_unit_test_contract": "Direct Zig unit coverage keeps findAddCached() aligned by returning the original equal-key resident node, still linking new distinct keys into the cached tree, and keeping the cached first node aligned with the underlying tree root.",
+      "cached_find_add_unit_test_contract": "Direct Zig unit coverage keeps findAddCached() aligned so equal-key probes return the original resident node, distinct inserts still link into the cached tree, and RootCached continues to expose the same leftmost node as the underlying tree root.",
       "iterate_unit_test_anchor": "tools/lib/rbtree.zig:test \"rbtree iterateMatches streams only the duplicate range\"",
       "iterate_unit_test_contract": "Direct Zig unit coverage keeps iterateMatches() yielding only the equal-key duplicate range and cleanly reporting no match for missing keys.",
       "reverse_unit_test_anchor": "tools/lib/rbtree.zig:test \"rbtree iterateMatchesReverse streams only the duplicate range in reverse\"",
