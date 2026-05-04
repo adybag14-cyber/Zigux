@@ -169,7 +169,7 @@ MANIFEST_SPECS = {
     "phase11_gpio_wdt_manifest.json": ("P11-L04", "drivers/watchdog/gpio_wdt.c", 15, [], ["phase11-gpio-wdt-platform-registration"]),
     "phase11_bcm2835_wdt_manifest.json": ("P11-L08", "drivers/watchdog/bcm2835_wdt.c", 13, [], ["phase11-bcm2835-wdt-live-platform-registration"]),
     "phase11_dw_wdt_manifest.json": ("P11-L11", "drivers/watchdog/dw_wdt.c", 12, [], ["phase11-dw-wdt-platform-and-pm"]),
-    "phase11_hvc_console_manifest.json": ("P11-L18", "drivers/tty/hvc/hvc_console.c", 16, [], []),
+    "phase11_hvc_console_manifest.json": ("P11-L18", "drivers/tty/hvc/hvc_console.c", 17, [], []),
     "phase11_uapi_header_parity_manifest.json": ("P11-L17", "include/uapi/linux/watchdog.h and include/uapi/asm-generic/termios.h", 8, ["phase11-phase3-interop-followup"], []),
 }
 ALLOWED_STATUSES = {
@@ -526,94 +526,102 @@ def run_self_test() -> int:
         )
         matrix_path.write_text(original_matrix, encoding="utf-8")
 
-        inventory_path = tmp_root / BUILD_INVENTORY_FIXTURE
-        original_inventory = inventory_path.read_text(encoding="utf-8")
-        inventory_path.write_text(
-            original_inventory.replace(
-                '    "zigux/tests/phase11_hvc_console_survey.zig"\n',
+        survey_path = tmp_root / "zigux/tests/phase11_hvc_console_survey.zig"
+        original_survey = survey_path.read_text(encoding="utf-8")
+        survey_path.write_text(
+            original_survey.replace(
+                "    try std.testing.expectEqual(@as(usize, 17), manifest.gaps.len);\n",
                 "",
                 1,
             ),
             encoding="utf-8",
         )
         expect_missing_marker(
-            "build_inventory_dedicated_replay",
+            "hvc_manifest_gap_count_alignment",
             tmp_root,
-            "phase11_build_fixture:dedicated_survey_replays",
+            "phase11_hvc_console_manifest.json:gap_count",
         )
-        inventory_path.write_text(original_inventory, encoding="utf-8")
+        survey_path.write_text(original_survey, encoding="utf-8")
 
+        print("PHASE11_VALIDATOR_SELF_TEST=pass")
         return 0
 
 
-def load_manifest(path: str) -> dict[str, object]:
-    return json.loads(text(f"zigux/tests/{path}"))
+def load_manifest(name: str) -> dict[str, object]:
+    return json.loads(text(f"zigux/tests/{name}"))
 
 
 def find_gap(manifest: dict[str, object], gap_id: str) -> dict[str, object] | None:
-    gaps = manifest.get("gaps")
-    if not isinstance(gaps, list):
-        return None
-    for gap in gaps:
+    for gap in manifest.get("gaps", []):
         if isinstance(gap, dict) and gap.get("id") == gap_id:
             return gap
     return None
 
 
-def count_statuses(manifest: dict[str, object], prefix_or_exact: str) -> int:
-    gaps = manifest.get("gaps")
-    if not isinstance(gaps, list):
-        return 0
-    total = 0
-    for gap in gaps:
+def count_statuses(manifest: dict[str, object], status_prefix: str) -> int:
+    count = 0
+    for gap in manifest.get("gaps", []):
         if not isinstance(gap, dict):
             continue
         status = gap.get("status")
         if not isinstance(status, str):
             continue
-        if prefix_or_exact.endswith("_"):
-            if status.startswith(prefix_or_exact):
-                total += 1
-        elif status == prefix_or_exact:
-            total += 1
-    return total
+        if status_prefix == status or status.startswith(status_prefix):
+            count += 1
+    return count
 
 
 def main() -> int:
-    if len(sys.argv) > 1 and sys.argv[1] == "--self-test":
+    if len(sys.argv) == 2 and sys.argv[1] == "--self-test":
         return run_self_test()
 
     missing: list[str] = []
+
     for rel_path in FILES:
         if not (ROOT / rel_path).is_file():
-            missing.append(rel_path)
+            missing.append(f"file:{rel_path}")
 
-    makefile_text = text("zigux/Makefile")
+    if missing:
+        print("PHASE11_VALIDATION=fail")
+        print("PHASE11_VALIDATION_MISSING_START")
+        for item in missing:
+            print(item)
+        print("PHASE11_VALIDATION_MISSING_END")
+        sys.exit(1)
+
+    make_text = text("zigux/Makefile")
+    workflow_text = text(".github/workflows/zigux-bootstrap.yml")
+    scripts_readme = text("scripts/zigux/README.md")
+    docs_readme = text("Documentation/zigux/README.md")
+    checklist_text = text("Documentation/zigux/review-checklist.md")
+    build_text = text("zigux/tests/phase11_build.zig")
+    build_inventory_text = text(BUILD_INVENTORY_FIXTURE)
+
     for marker in MAKE_MARKERS:
-        if marker not in makefile_text:
+        if marker not in make_text:
             missing.append(f"make:{marker}")
 
-    workflow_text = text(".github/workflows/zigux-bootstrap.yml")
     for marker in WORKFLOW_MARKERS:
         if marker not in workflow_text:
             missing.append(f"workflow:{marker}")
 
-    readme_text = text("scripts/zigux/README.md")
     for marker in README_MARKERS:
-        if marker not in readme_text:
+        if marker not in scripts_readme:
             missing.append(f"scripts_readme:{marker}")
 
-    docs_readme_text = text("Documentation/zigux/README.md")
     for marker in DOCS_README_MARKERS:
-        if marker not in docs_readme_text:
+        if marker not in docs_readme:
             missing.append(f"docs_readme:{marker}")
 
-    checklist_text = text("Documentation/zigux/review-checklist.md")
     for marker in CHECKLIST_MARKERS:
         if marker not in checklist_text:
-            missing.append(f"review_checklist:{marker}")
+            missing.append(f"checklist:{marker}")
 
-    build_text = text("zigux/tests/phase11_build.zig")
+    build_test_names = BUILD_TEST_NAME_RE.findall(build_text)
+    if build_test_names.count("phase11-hvc-console-survey-tests") != 1:
+        missing.append("phase11_build:hvc_console_survey_test_name")
+
+    build_depend_steps = BUILD_DEPEND_STEP_RE.findall(build_text)
     for marker in BUILD_MARKERS:
         if marker not in build_text:
             missing.append(f"phase11_build:{marker}")
@@ -621,99 +629,48 @@ def main() -> int:
         if marker in build_text:
             missing.append(f"phase11_build:forbidden:{marker}")
 
-    build_inventory = load_manifest("fixtures/phase11_build_inventory.json")
-    if build_inventory.get("build_file") != "zigux/tests/phase11_build.zig":
-        missing.append("phase11_build_fixture:build_file")
-    if build_inventory.get("module_root") != "zigux/tests":
-        missing.append("phase11_build_fixture:module_root")
-    if build_inventory.get("make_target") != "make -C zigux phase11-test":
-        missing.append("phase11_build_fixture:make_target")
-    if build_inventory.get("validation_target") != "make -C zigux phase11-validate":
-        missing.append("phase11_build_fixture:validation_target")
-    if build_inventory.get("dedicated_hvc_survey_target") != "make -C zigux phase11-hvc-survey":
-        missing.append("phase11_build_fixture:dedicated_hvc_survey_target")
-    if build_inventory.get("shared_replay_command") != "zig build test --build-file zigux/tests/phase11_build.zig --summary all":
-        missing.append("phase11_build_fixture:shared_replay_command")
-    if build_inventory.get("dedicated_hvc_survey_command") != "zig test zigux/tests/phase11_hvc_console_survey.zig":
-        missing.append("phase11_build_fixture:dedicated_hvc_survey_command")
-    if build_inventory.get("phase11_build_target") != "phase11":
-        missing.append("phase11_build_fixture:phase11_build_target")
-    if build_inventory.get("phase11_build_targets") != ["phase11-validate", "phase11-test", "phase11-hvc-survey"]:
-        missing.append("phase11_build_fixture:phase11_build_targets")
+    module_map = {module: path for module, path in BUILD_MODULE_RE.findall(build_text)}
+    if module_map.get("phase11_hvc_console_survey_module") != "phase11_hvc_console_survey.zig":
+        missing.append("phase11_build:hvc_console_survey_module")
+    if module_map.get("hvc_console_sysrq_module") != "../../drivers/tty/hvc/hvc_console_sysrq.zig":
+        missing.append("phase11_build:hvc_console_sysrq_module")
 
-    expected_build_tests = build_inventory.get("build_tests")
-    if not isinstance(expected_build_tests, list) or not all(isinstance(item, str) for item in expected_build_tests):
-        missing.append("phase11_build_fixture:build_tests")
-    else:
-        actual_build_tests = BUILD_TEST_NAME_RE.findall(build_text)
-        if actual_build_tests != expected_build_tests:
-            missing.append("phase11_build_fixture:build_tests_mismatch")
+    import_rows = BUILD_IMPORT_RE.findall(build_text)
+    if (
+        "phase11_hvc_console_poll_retry_split_module",
+        "hvc_console_sysrq",
+        "hvc_console_sysrq_module",
+    ) not in import_rows:
+        missing.append("phase11_build:hvc_console_sysrq_import")
 
-    expected_test_step_dependencies = build_inventory.get("test_step_dependencies")
-    if not isinstance(expected_test_step_dependencies, list) or not all(
-        isinstance(item, str) for item in expected_test_step_dependencies
-    ):
-        missing.append("phase11_build_fixture:test_step_dependencies")
-    else:
-        actual_test_step_dependencies = BUILD_DEPEND_STEP_RE.findall(build_text)
-        if actual_test_step_dependencies != expected_test_step_dependencies:
-            missing.append("phase11_build_fixture:test_step_dependencies_mismatch")
+    test_root_modules = {
+        test_name: module for test_name, module in BUILD_TEST_ROOT_MODULE_RE.findall(build_text)
+    }
+    if test_root_modules.get("phase11-hvc-console-poll-retry-split-tests") != "phase11_hvc_console_poll_retry_split_module":
+        missing.append("phase11_build:hvc_console_poll_retry_split_root")
+    if test_root_modules.get("phase11-hvc-console-survey-tests") != "phase11_hvc_console_survey_module":
+        missing.append("phase11_build:hvc_console_survey_root")
 
-    expected_module_roots = build_inventory.get("module_roots")
-    if not isinstance(expected_module_roots, list) or not all(
-        isinstance(item, dict)
-        and isinstance(item.get("module"), str)
-        and isinstance(item.get("root_source_file"), str)
-        for item in expected_module_roots
-    ):
-        missing.append("phase11_build_fixture:module_roots")
-    else:
-        actual_module_roots = [
-            {"module": module_name, "root_source_file": root_source_file}
-            for module_name, root_source_file in BUILD_MODULE_RE.findall(build_text)
-        ]
-        if actual_module_roots != expected_module_roots:
-            missing.append("phase11_build_fixture:module_roots_mismatch")
+    if "run_phase11_hvc_console_survey_tests" not in build_text:
+        missing.append("phase11_build:hvc_console_survey_step")
+    if "hvc_console_survey_step.dependOn(&run_phase11_hvc_console_survey_tests.step);" not in build_text:
+        missing.append("phase11_build:hvc_console_survey_depend")
+    if "const hvc_console_survey_step = b.step(\"hvc-console-survey\"" not in build_text:
+        missing.append("phase11_build:hvc_console_survey_named_step")
 
-    expected_module_imports = build_inventory.get("module_imports")
-    if not isinstance(expected_module_imports, list) or not all(
-        isinstance(item, dict)
-        and isinstance(item.get("module"), str)
-        and isinstance(item.get("import_name"), str)
-        and isinstance(item.get("imported_module"), str)
-        for item in expected_module_imports
-    ):
-        missing.append("phase11_build_fixture:module_imports")
-    else:
-        actual_module_imports = [
-            {
-                "module": module_name,
-                "import_name": import_name,
-                "imported_module": imported_module,
-            }
-            for module_name, import_name, imported_module in BUILD_IMPORT_RE.findall(build_text)
-        ]
-        if actual_module_imports != expected_module_imports:
-            missing.append("phase11_build_fixture:module_imports_mismatch")
+    try:
+        build_inventory = json.loads(build_inventory_text)
+    except json.JSONDecodeError as exc:
+        missing.append(f"phase11_build_fixture:json:{exc.msg}")
+        build_inventory = {}
 
-    expected_test_root_modules = build_inventory.get("test_root_modules")
-    if not isinstance(expected_test_root_modules, list) or not all(
-        isinstance(item, dict)
-        and isinstance(item.get("test"), str)
-        and isinstance(item.get("root_module"), str)
-        for item in expected_test_root_modules
-    ):
-        missing.append("phase11_build_fixture:test_root_modules")
-    else:
-        actual_test_root_modules = [
-            {"test": test_name, "root_module": root_module}
-            for test_name, root_module in BUILD_TEST_ROOT_MODULE_RE.findall(build_text)
-        ]
-        if actual_test_root_modules != expected_test_root_modules:
-            missing.append("phase11_build_fixture:test_root_modules_mismatch")
+    if build_inventory.get("build_test_names") != build_test_names:
+        missing.append("phase11_build_fixture:build_test_names")
+    if build_inventory.get("shared_test_depend_steps") != build_depend_steps:
+        missing.append("phase11_build_fixture:shared_test_depend_steps")
 
-    expected_forbidden_markers = build_inventory.get("forbidden_markers")
-    if expected_forbidden_markers != FORBIDDEN_BUILD_MARKERS:
+    expected_forbidden = FORBIDDEN_BUILD_MARKERS
+    if build_inventory.get("forbidden_markers") != expected_forbidden:
         missing.append("phase11_build_fixture:forbidden_markers")
 
     dedicated_survey_replays = build_inventory.get("dedicated_survey_replays")
