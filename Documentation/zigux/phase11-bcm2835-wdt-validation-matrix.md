@@ -6,6 +6,7 @@ This document records the first bounded hardware-validation matrix for the Zigux
 
 - `PHASE11_BCM2835_WDT_STATUS=platform_handoff_landed`
 - reviewed against live `master` `f5a4d6990f701937b2a3bb9ae723bb6d0f27ba21`
+- that pinned commit is archived packet-local review evidence for this bcm2835 matrix, not a claim that the current live `master` tip still points at `f5a4d6990f701937b2a3bb9ae723bb6d0f27ba21`
 - scope: keep the current `bcm2835_wdt` starter honest about what is already validated, name the current registration-outcome, platform-handoff, poweroff-path, and remove-time callback-identity evidence, and avoid overclaiming live platform registration, PM wiring, or poweroff coordination before those behaviors exist in Zigux
 - latest focused replay: `zig test zigux/tests/phase11_bcm2835_wdt_survey.zig` still passes for the bounded bcm2835 packet on current `master`
 - shared replay boundary: `zig build test --build-file zigux/tests/phase11_build.zig --summary all` still includes `phase11-bcm2835-wdt-tests` and `phase11-bcm2835-wdt-survey-tests`, but this watchdog-local matrix no longer claims that the whole current shared Phase 11 replay is green when unrelated non-watchdog drift can reopen elsewhere on `master`
