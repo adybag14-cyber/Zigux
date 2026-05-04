@@ -97,7 +97,7 @@ The shared review path still follows the same validator-first Phase 8 sequence t
 14. `zig build test --build-file zigux/tests/phase8_build.zig --summary all`
 15. `make -C zigux phase8`
 
-`scripts/zigux/check-phase8-validator-flow.py` now stays inside that same published wrapper path instead of sitting beside it, and it currently publishes `PHASE8_VALIDATOR_FLOW_SELF_TEST_CASE_COUNT=15`.
+`scripts/zigux/check-phase8-validator-flow.py` now stays inside that same published wrapper path instead of sitting beside it, and it currently publishes `PHASE8_VALIDATOR_FLOW_SELF_TEST_CASE_COUNT=17`.
 
 ## Non-goals
 
