@@ -21,6 +21,7 @@ REVIEW_CHECKLIST_PATH = Path("Documentation/zigux/review-checklist.md")
 TESTS_COMPANION_PATH = Path("Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md")
 MAKEFILE_PATH = Path("zigux/Makefile")
 WORKFLOW_PATH = Path(".github/workflows/zigux-bootstrap.yml")
+BUILD_INVENTORY_PATH = Path("zigux/tests/fixtures/phase11_build_inventory.json")
 
 SURVEY_NOTE_MARKERS = [
     "# Phase 11 UAPI And Driver-Header Parity Survey",
@@ -37,8 +38,12 @@ SURVEY_NOTE_MARKERS = [
 SURVEY_ZIG_MARKERS = [
     "phase11 shared header parity manifest records the bounded layout checkpoints",
     "phase11 shared header parity survey keeps the header boundary explicit",
+    "phase11 shared header parity survey keeps the hvc snapshot aligned with the bounded header mirror",
+    "phase11 shared header parity survey keeps exact hvc snapshot counts",
     "phase11 shared header parity survey keeps a bounded watchdog_info layout proof",
     "phase11 shared header parity survey keeps a bounded winsize layout proof",
+    "phase11 shared header parity survey keeps bounded exported helper signature proofs",
+    "shared_adjunct_replays: []const SharedAdjunctReplay,",
 ]
 
 HVC_MATRIX_MARKERS = [
@@ -120,6 +125,11 @@ def validate_packet(root: Path) -> int:
         missing.append("manifest:lane_key")
     if manifest.get("phase") != "Phase 11":
         missing.append("manifest:phase")
+    surveyed_commit = str(manifest.get("surveyed_commit", ""))
+    if len(surveyed_commit) != 40 or any(ch not in "0123456789abcdef" for ch in surveyed_commit):
+        missing.append("manifest:surveyed_commit")
+    elif surveyed_commit not in text(root / SURVEY_NOTE_PATH):
+        missing.append("survey_note:surveyed_commit")
     gaps = manifest.get("gaps")
     if not isinstance(gaps, list):
         missing.append("manifest:gaps")
@@ -145,6 +155,52 @@ def validate_packet(root: Path) -> int:
         if not isinstance(gate_gap, dict) or gate_gap.get("status") != "starter_landed":
             missing.append("manifest:phase11-shared-header-parity-gate")
 
+        watchdog_layout_gap = by_id.get("phase11-dw-wdt-watchdog-info-layout-assert")
+        if not isinstance(watchdog_layout_gap, dict) or watchdog_layout_gap.get("status") != "starter_landed":
+            missing.append("manifest:phase11-dw-wdt-watchdog-info-layout-assert")
+
+        winsize_layout_gap = by_id.get("phase11-hvc-console-winsize-layout-assert")
+        if not isinstance(winsize_layout_gap, dict) or winsize_layout_gap.get("status") != "starter_landed":
+            missing.append("manifest:phase11-hvc-console-winsize-layout-assert")
+
+        export_signature_gap = by_id.get("phase11-hvc-console-export-signature-assert")
+        if not isinstance(export_signature_gap, dict) or export_signature_gap.get("status") != "starter_landed":
+            missing.append("manifest:phase11-hvc-console-export-signature-assert")
+
+    inventory = json.loads(text(root / BUILD_INVENTORY_PATH))
+    shared_split_replays = inventory.get("shared_split_replays")
+    if not isinstance(shared_split_replays, list) or len(shared_split_replays) != 3:
+        missing.append("build_inventory:shared_split_replays")
+    else:
+        expected_split = [
+            ("phase11-dw-wdt-remove-idle-split-tests", "zigux/tests/phase11_dw_wdt_remove_idle_split.zig"),
+            ("phase11-hvc-console-modem-control-split-tests", "zigux/tests/phase11_hvc_console_modem_control_split.zig"),
+            ("phase11-hvc-console-poll-retry-split-tests", "zigux/tests/phase11_hvc_console_poll_retry_split.zig"),
+        ]
+        actual_split = [
+            (entry.get("test"), entry.get("path"))
+            for entry in shared_split_replays
+            if isinstance(entry, dict)
+        ]
+        if actual_split != expected_split:
+            missing.append("build_inventory:shared_split_replays:exact")
+
+    shared_adjunct_replays = inventory.get("shared_adjunct_replays")
+    if not isinstance(shared_adjunct_replays, list) or len(shared_adjunct_replays) != 1:
+        missing.append("build_inventory:shared_adjunct_replays")
+    else:
+        adjunct = shared_adjunct_replays[0]
+        if not isinstance(adjunct, dict) or adjunct.get("test") != "phase11-dw-wdt-suspend-resume-tests" or adjunct.get("path") != "zigux/tests/phase11_dw_wdt_suspend_resume.zig":
+            missing.append("build_inventory:shared_adjunct_replays:exact")
+
+    dedicated_replays = inventory.get("dedicated_survey_replays")
+    if dedicated_replays != ["zigux/tests/phase11_hvc_console_survey.zig"]:
+        missing.append("build_inventory:dedicated_survey_replays")
+
+    replay_markers = inventory.get("shared_replay_markers")
+    if not isinstance(replay_markers, list) or len(replay_markers) != 4:
+        missing.append("build_inventory:shared_replay_markers")
+
     if missing:
         print("PHASE11_HEADER_BOUNDARY_PACKET=fail")
         print("PHASE11_HEADER_BOUNDARY_PACKET_MISSING_START")
@@ -162,6 +218,9 @@ def validate_packet(root: Path) -> int:
     print(f"PHASE11_HEADER_BOUNDARY_TESTS_COMPANION_MARKER_COUNT={len(TESTS_COMPANION_MARKERS)}")
     print(f"PHASE11_HEADER_BOUNDARY_MAKEFILE_MARKER_COUNT={len(MAKEFILE_MARKERS)}")
     print(f"PHASE11_HEADER_BOUNDARY_WORKFLOW_MARKER_COUNT={len(WORKFLOW_MARKERS)}")
+    print(f"PHASE11_HEADER_BOUNDARY_SHARED_SPLIT_REPLAY_COUNT={len(shared_split_replays)}")
+    print(f"PHASE11_HEADER_BOUNDARY_SHARED_ADJUNCT_REPLAY_COUNT={len(shared_adjunct_replays)}")
+    print(f"PHASE11_HEADER_BOUNDARY_SHARED_REPLAY_MARKER_COUNT={len(replay_markers)}")
     return 0
 
 
@@ -191,7 +250,17 @@ def expect_missing(label: str, result: subprocess.CompletedProcess[str], marker:
 
 
 def write_fixture_tree(root: Path) -> None:
-    write_text(root / SURVEY_NOTE_PATH, "\n".join(SURVEY_NOTE_MARKERS) + "\n")
+    write_text(
+        root / SURVEY_NOTE_PATH,
+        "\n".join(
+            [
+                SURVEY_NOTE_MARKERS[0],
+                "This survey note records the shared Phase 11 header boundary after re-reading `master` `1851d34766b4bc833344b3be89e4f079234212fa`.",
+                *SURVEY_NOTE_MARKERS[1:],
+            ]
+        )
+        + "\n",
+    )
     write_text(root / SURVEY_ZIG_PATH, "\n".join(SURVEY_ZIG_MARKERS) + "\n")
     write_text(root / HVC_MATRIX_PATH, "\n".join(HVC_MATRIX_MARKERS) + "\n")
     write_text(root / SHARED_REPLAY_NOTE_PATH, "\n".join(SHARED_REPLAY_NOTE_MARKERS) + "\n")
@@ -212,6 +281,7 @@ def write_fixture_tree(root: Path) -> None:
             {
                 "lane_key": "P11-L17",
                 "phase": "Phase 11",
+                "surveyed_commit": "1851d34766b4bc833344b3be89e4f079234212fa",
                 "gaps": [
                     {
                         "id": "phase11-shared-header-parity-note",
@@ -224,11 +294,76 @@ def write_fixture_tree(root: Path) -> None:
                         "zigux_destination": "zigux/tests/phase11_uapi_header_parity_survey.zig",
                     },
                     {
+                        "id": "phase11-dw-wdt-watchdog-info-layout-assert",
+                        "status": "starter_landed",
+                        "zigux_destination": "zigux/tests/phase11_uapi_header_parity_survey.zig",
+                    },
+                    {
+                        "id": "phase11-hvc-console-winsize-layout-assert",
+                        "status": "starter_landed",
+                        "zigux_destination": "zigux/tests/phase11_uapi_header_parity_survey.zig",
+                    },
+                    {
+                        "id": "phase11-hvc-console-export-signature-assert",
+                        "status": "starter_landed",
+                        "zigux_destination": "zigux/tests/phase11_uapi_header_parity_survey.zig",
+                    },
+                    {
                         "id": "phase11-phase3-interop-followup",
                         "status": "ready_next",
                         "zigux_destination": "Documentation/zigux/phase11-uapi-header-parity-survey.md",
                         "why_now": "Phase 3 interop substrate shared struct layouts",
                     },
+                ],
+            },
+            indent=2,
+        )
+        + "\n",
+    )
+    write_text(
+        root / BUILD_INVENTORY_PATH,
+        json.dumps(
+            {
+                "shared_split_replays": [
+                    {
+                        "test": "phase11-dw-wdt-remove-idle-split-tests",
+                        "path": "zigux/tests/phase11_dw_wdt_remove_idle_split.zig",
+                    },
+                    {
+                        "test": "phase11-hvc-console-modem-control-split-tests",
+                        "path": "zigux/tests/phase11_hvc_console_modem_control_split.zig",
+                    },
+                    {
+                        "test": "phase11-hvc-console-poll-retry-split-tests",
+                        "path": "zigux/tests/phase11_hvc_console_poll_retry_split.zig",
+                    },
+                ],
+                "shared_adjunct_replays": [
+                    {
+                        "test": "phase11-dw-wdt-suspend-resume-tests",
+                        "path": "zigux/tests/phase11_dw_wdt_suspend_resume.zig",
+                    }
+                ],
+                "dedicated_survey_replays": [
+                    "zigux/tests/phase11_hvc_console_survey.zig"
+                ],
+                "shared_replay_markers": [
+                    {
+                        "path": "zigux/tests/phase11_dw_wdt_suspend_resume.zig",
+                        "marker": "resume"
+                    },
+                    {
+                        "path": "zigux/tests/phase11_dw_wdt_remove_idle_split.zig",
+                        "marker": "remove_idle"
+                    },
+                    {
+                        "path": "zigux/tests/phase11_hvc_console_modem_control_split.zig",
+                        "marker": "tiocmset"
+                    },
+                    {
+                        "path": "zigux/tests/phase11_hvc_console_poll_retry_split.zig",
+                        "marker": "sysrq"
+                    }
                 ],
             },
             indent=2,
@@ -263,12 +398,35 @@ def run_self_test() -> int:
         )
         write_text(survey_note_path, survey_note_backup)
 
+        survey_zig_path = tmp_root / SURVEY_ZIG_PATH
+        survey_zig_backup = text(survey_zig_path)
+        write_text(
+            survey_zig_path,
+            survey_zig_backup.replace(
+                "shared_adjunct_replays: []const SharedAdjunctReplay,\n",
+                "",
+                1,
+            ),
+        )
+        expect_missing(
+            "missing_adjunct_replay_marker",
+            run_checker(tmp_root),
+            "survey_zig:shared_adjunct_replays: []const SharedAdjunctReplay,",
+        )
+        write_text(survey_zig_path, survey_zig_backup)
+
         manifest_path = tmp_root / MANIFEST_PATH
         manifest_backup = json.loads(text(manifest_path))
         broken = dict(manifest_backup)
         broken["lane_key"] = "P11-LXX"
         write_text(manifest_path, json.dumps(broken, indent=2) + "\n")
         expect_missing("wrong_lane_key", run_checker(tmp_root), "manifest:lane_key")
+        write_text(manifest_path, json.dumps(manifest_backup, indent=2) + "\n")
+
+        broken = json.loads(text(manifest_path))
+        broken["surveyed_commit"] = "not-a-real-commit"
+        write_text(manifest_path, json.dumps(broken, indent=2) + "\n")
+        expect_missing("wrong_surveyed_commit", run_checker(tmp_root), "manifest:surveyed_commit")
         write_text(manifest_path, json.dumps(manifest_backup, indent=2) + "\n")
 
         broken = json.loads(text(manifest_path))
@@ -285,25 +443,13 @@ def run_self_test() -> int:
 
         broken = json.loads(text(manifest_path))
         for gap in broken["gaps"]:
-            if gap["id"] == "phase11-shared-header-parity-note":
+            if gap["id"] == "phase11-hvc-console-export-signature-assert":
                 gap["status"] = "ready_next"
         write_text(manifest_path, json.dumps(broken, indent=2) + "\n")
         expect_missing(
-            "wrong_note_gap_status",
+            "wrong_export_signature_gap_status",
             run_checker(tmp_root),
-            "manifest:phase11-shared-header-parity-note",
-        )
-        write_text(manifest_path, json.dumps(manifest_backup, indent=2) + "\n")
-
-        broken = json.loads(text(manifest_path))
-        for gap in broken["gaps"]:
-            if gap["id"] == "phase11-shared-header-parity-gate":
-                gap["status"] = "ready_next"
-        write_text(manifest_path, json.dumps(broken, indent=2) + "\n")
-        expect_missing(
-            "wrong_gate_gap_status",
-            run_checker(tmp_root),
-            "manifest:phase11-shared-header-parity-gate",
+            "manifest:phase11-hvc-console-export-signature-assert",
         )
         write_text(manifest_path, json.dumps(manifest_backup, indent=2) + "\n")
 
@@ -412,8 +558,20 @@ def run_self_test() -> int:
         )
         write_text(tests_companion_path, tests_companion_backup)
 
+        build_inventory_path = tmp_root / BUILD_INVENTORY_PATH
+        inventory_backup = json.loads(text(build_inventory_path))
+        broken_inventory = dict(inventory_backup)
+        broken_inventory["shared_adjunct_replays"] = []
+        write_text(build_inventory_path, json.dumps(broken_inventory, indent=2) + "\n")
+        expect_missing(
+            "missing_shared_adjunct_replay",
+            run_checker(tmp_root),
+            "build_inventory:shared_adjunct_replays",
+        )
+        write_text(build_inventory_path, json.dumps(inventory_backup, indent=2) + "\n")
+
     print("PHASE11_HEADER_BOUNDARY_PACKET_SELF_TEST=pass")
-    print("PHASE11_HEADER_BOUNDARY_PACKET_SELF_TEST_CASE_COUNT=12")
+    print("PHASE11_HEADER_BOUNDARY_PACKET_SELF_TEST_CASE_COUNT=14")
     return 0
 
 
