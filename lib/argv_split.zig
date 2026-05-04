@@ -5,8 +5,8 @@ var empty_storage_null_terminated = [_:0]u8{0};
 const empty_storage_view = empty_storage_null_terminated[0..0 :0];
 
 pub const ArgvSplitResult = struct {
-    storage: [:0]u8,
-    argv: [][:0]u8,
+    storage: [:0]const u8,
+    argv: []const [:0]const u8,
     argv_null_terminated: []const ?[*:0]const u8,
 
     pub fn deinit(self: *ArgvSplitResult, allocator: std.mem.Allocator) void {
@@ -365,6 +365,18 @@ test "argvFree mirrors argv_free release ownership and stays safe after teardown
     try std.testing.expectEqual(@as(usize, 0), split.argv.len);
     try std.testing.expectEqual(@as(usize, 1), split.argv_null_terminated.len);
     try std.testing.expectEqual(@as(?[*:0]const u8, null), split.cArgv()[0]);
+}
+
+test "argvSplit exports read-only storage and token views" {
+    const storage_info = @typeInfo(@TypeOf(@as(ArgvSplitResult, undefined).storage)).pointer;
+    try std.testing.expect(storage_info.is_const);
+
+    const argv_info = @typeInfo(@TypeOf(@as(ArgvSplitResult, undefined).argv)).pointer;
+    try std.testing.expect(argv_info.is_const);
+
+    const token_info = @typeInfo(argv_info.child).pointer;
+    try std.testing.expect(token_info.is_const);
+    try std.testing.expect(token_info.sentinel() != null);
 }
 
 test "argvSplit frees intermediate allocations when allocator failure interrupts setup" {
