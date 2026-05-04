@@ -145,22 +145,7 @@ fn runPerfCase(case: fixtures.PerfCase, io: std.Io) !PerfResult {
 
     var queries: [fixtures.query_count]u32 = undefined;
     var expected_hits: [fixtures.query_count]bool = undefined;
-    fixtures.seedDeterministicQueries(case.len, values, &queries, &expected_hits);
-
-    var prng = std.Random.DefaultPrng.init(0x5a17_2026_0700_0007);
-    const random = prng.random();
-
-    for (queries[8..], expected_hits[8..], 8..) |*query, *hit, idx| {
-        const value_index = random.uintLessThan(usize, case.len);
-        const base_value = values[value_index];
-        if ((idx & 1) == 0) {
-            query.* = base_value;
-            hit.* = true;
-        } else {
-            query.* = base_value + 1;
-            hit.* = false;
-        }
-    }
+    fixtures.seedPerfQueries(case.len, values, &queries, &expected_hits);
 
     const typed_variants = [_]TypedVariant{
         .{ .label = "typed-native-ascending", .values = values, .compare_native = compareNativeCounted },
