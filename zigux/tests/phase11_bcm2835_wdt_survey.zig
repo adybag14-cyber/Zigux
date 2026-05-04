@@ -118,6 +118,8 @@ test "phase11 bcm2835_wdt survey manifest and validation matrix record the lande
     try std.testing.expect(std.mem.indexOf(u8, matrix_doc, "WDIOF_SETTIMEOUT") != null);
     try std.testing.expect(std.mem.indexOf(u8, matrix_doc, "full platform registration") != null);
     try std.testing.expect(std.mem.indexOf(u8, matrix_doc, "PM base ioremap") != null);
+    try std.testing.expect(std.mem.indexOf(u8, matrix_doc, "registration outcome failure boundary") != null);
+    try std.testing.expect(std.mem.indexOf(u8, matrix_doc, "registrationOutcomeSummary()") != null);
     try std.testing.expect(std.mem.indexOf(u8, matrix_doc, "poweroff path summary") != null);
     try std.testing.expect(std.mem.indexOf(u8, matrix_doc, "shared system-poweroff callback") != null);
     try std.testing.expect(std.mem.indexOf(u8, matrix_doc, "remove-time teardown boundary") != null);
@@ -128,6 +130,8 @@ test "phase11 bcm2835_wdt survey manifest and validation matrix record the lande
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "this archival watchdog note no longer claims that the whole current shared Phase 11 replay is green") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "bcm2835 starter for watchdog metadata, timeout tick encoding, running-bit detection") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "small poweroff-path summary") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_doc, "tiny registration-outcome summary") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_doc, "register-device success-versus-failure and poweroff-claim blocking evidence explicit") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "tiny platform-registration or PM-base handoff summary") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "`zigux/tests/phase11_build.zig` still compiles and runs the gpio starter checks, the bcm2835 starter checks, and the bcm2835 survey check together") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "the archival survey now carries `P11-L08` packet identity so the bcm2835 watchdog review record stays traceable alongside the live manifest, survey gate, and validator ownership for the current lane key") != null);
@@ -135,9 +139,11 @@ test "phase11 bcm2835_wdt survey manifest and validation matrix record the lande
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "Any later move into live platform registration, PM base plumbing, or shared poweroff-handler coordination should stay blocked") != null);
 
     try std.testing.expect(std.mem.indexOf(u8, slice_doc, "tiny watchdog metadata summary for the Linux identity string, watchdog option flags, static timeout bounds, and bounded start or stop or get_timeleft or restart ops coverage") != null);
+    try std.testing.expect(std.mem.indexOf(u8, slice_doc, "tiny registration-outcome summary for register-device success versus failure, probe-error return intent, and poweroff-handler claim follow-through or blocking when registration does not complete") != null);
     try std.testing.expect(std.mem.indexOf(u8, slice_doc, "tiny platform-registration and PM-base handoff summary for parent attachment, PM base availability, drvdata handoff readiness, register-device intent, and poweroff claim-vs-conflict reviewability") != null);
     try std.testing.expect(std.mem.indexOf(u8, slice_doc, "tiny poweroff-path summary for shared system-poweroff callback ownership, Raspberry Pi halt-partition request bits, and the short restart arming sequence") != null);
     try std.testing.expect(std.mem.indexOf(u8, slice_doc, "tiny remove-time teardown summary for devm-managed watchdog cleanup while clearing the shared poweroff handler only when the bcm2835 lane currently owns it") != null);
+    try std.testing.expect(std.mem.indexOf(u8, slice_doc, "registration-outcome failure handling") != null);
     try std.testing.expect(std.mem.indexOf(u8, slice_doc, "remaining gap is a later hardware-facing decision about whether to model any live platform registration or PM base plumbing") != null);
 
     var starter_landed_count: usize = 0;
