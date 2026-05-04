@@ -554,6 +554,7 @@ def run_self_test() -> int:
             tmp_root,
             "phase11_hvc_console_tests:    try std.testing.expect(final_cleanup.tty_port_put_requested);",
         )
+        hvc_test_path.write_text(original_hvc_test, encoding="utf-8")
 
     print("PHASE11_VALIDATOR_SELF_TEST=pass")
     print("PHASE11_VALIDATOR_SELF_TEST_CASE_COUNT=17")
@@ -584,6 +585,10 @@ def count_statuses(manifest: dict[str, object], match: str) -> int:
         elif isinstance(status, str) and status.startswith(match):
             total += 1
     return total
+
+
+if "--self-test" in sys.argv[1:]:
+    raise SystemExit(run_self_test())
 
 
 missing: list[str] = []
