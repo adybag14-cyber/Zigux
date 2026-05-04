@@ -22,6 +22,7 @@ PHASE2_CROSS_ALIGNMENT_CHECKER = (
 PHASE2_CROSS_CHECKER = ROOT / "scripts" / "zigux" / "check-phase2-cross.py"
 TOOLCHAIN_PIN_SCOPE_CHECKER = ROOT / "scripts" / "zigux" / "check-phase2-toolchain-pin-scope.py"
 TOOLCHAIN_NOTES = ROOT / "Documentation" / "zigux" / "phase2-toolchain-bootstrap-notes.md"
+REVIEW_CHECKLIST = ROOT / "Documentation" / "zigux" / "review-checklist.md"
 CHECK_FIXDEP = ROOT / "scripts" / "zigux" / "check-fixdep-diff.py"
 CHECK_KCONFIG_BRIDGE = ROOT / "scripts" / "zigux" / "check-kconfig-bridge.py"
 WORKFLOW_FILE = ROOT / ".github" / "workflows" / "zigux-bootstrap.yml"
@@ -66,6 +67,7 @@ REQUIRED_PHASE2_FILES = [
     WORKFLOW_FILE,
     README_FILE,
     TOOLCHAIN_NOTES,
+    REVIEW_CHECKLIST,
     ROOT / "Documentation" / "zigux" / "phase2-closure.md",
     MAKEFILE_FILE,
     PHASE2_TOOL_MANIFEST,
@@ -142,6 +144,19 @@ PHASE2_TOOLCHAIN_NOTES_REQUIRED_SOURCE_MARKERS = [
     "make -C zigux phase2",
     "kbuild-facing replay surface",
     "x86_64-linux",
+]
+PHASE2_TOOLCHAIN_REVIEW_CHECKLIST_REQUIRED_SOURCE_MARKERS = [
+    "Documentation/zigux/phase2-toolchain-bootstrap-notes.md",
+    "scripts/zigux/zig-toolchain-policy.json",
+    "scripts/zigux/check-phase2-toolchain-pin-scope.py",
+    "scripts/zigux/validate-phase2.py",
+    "scripts/zigux/validate-phase2-closure.py",
+    ".github/workflows/zigux-bootstrap.yml",
+    "zigux/Makefile",
+    "bounded archive pin",
+    "workflow bootstrap install and verification route",
+    "make -C zigux phase2-validate",
+    "make -C zigux phase2",
 ]
 PHASE2_FIXDEP_REQUIRED_SOURCE_MARKERS = [
     "FIXDEP_SELF_TEST=pass",
@@ -528,6 +543,13 @@ def main() -> int:
             TOOLCHAIN_NOTES,
             label="phase2_toolchain_notes",
             required_markers=PHASE2_TOOLCHAIN_NOTES_REQUIRED_SOURCE_MARKERS,
+        )
+    )
+    issues.extend(
+        validate_source_markers(
+            REVIEW_CHECKLIST,
+            label="phase2_toolchain_review_checklist",
+            required_markers=PHASE2_TOOLCHAIN_REVIEW_CHECKLIST_REQUIRED_SOURCE_MARKERS,
         )
     )
     issues.extend(
