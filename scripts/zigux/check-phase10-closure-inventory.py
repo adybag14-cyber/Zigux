@@ -143,6 +143,7 @@ EXPECTED_SCOREBOARD = {
         "status": "blocked_on_risky_transport",
         "evidence": [
             "Documentation/zigux/phase10-closure-evidence.md",
+            "zigux/tests/phase10_virtio_core_manifest.json",
             "zigux/tests/phase10_virtio_ring_manifest.json",
             "zigux/tests/phase10_virtio_input_manifest.json",
             "zigux/tests/phase10_virtio_mmio_manifest.json",
@@ -274,6 +275,7 @@ EXPECTED_PHASE14_STUDY_ONLY_BOUNDARY = {
 }
 
 EXPECTED_BLOCKED_TRANSPORT_GAPS = {
+    "zigux/tests/phase10_virtio_core_manifest.json": "phase10-core-probe-remove-lifecycle",
     "zigux/tests/phase10_virtio_input_manifest.json": "phase10-virtio-input-registration-lifecycle",
     "zigux/tests/phase10_virtio_mmio_manifest.json": "phase10-mmio-lifecycle-and-irq-paths",
 }
@@ -325,6 +327,7 @@ CLOSURE_NOTE_MARKERS = [
     "PHASE10_SURVEY_MMIO_LANE=P10-L18",
     "PHASE10_HARNESS_COVERAGE_GATE=python3 scripts/zigux/check-phase10-harness-coverage.py",
     "PHASE10_CROSS_PHASE_SCOREBOARD_BOUNDARY=phase5_reference_samples_and_phase9_runtime_starters_do_not_count_as_phase10_virtio_driver_evidence",
+    "phase10-core-probe-remove-lifecycle",
     "phase10-virtio-input-registration-lifecycle",
     "phase10-mmio-lifecycle-and-irq-paths",
 ]
@@ -350,7 +353,7 @@ LEDGER_MARKERS = [
     "PHASE10_LEDGER_SURVEY_INPUT_LANE=P10-L13",
     "PHASE10_LEDGER_SURVEY_MMIO_LANE=P10-L18",
     "PHASE10_LEDGER_ALLOWED_ROADMAP_DESTINATIONS=drivers/virtio/*.zig,zigux/kernel/,zigux/helpers/",
-    "PHASE10_LEDGER_BLOCKERS=phase10-virtio-input-registration-lifecycle,phase10-mmio-lifecycle-and-irq-paths",
+    "PHASE10_LEDGER_BLOCKERS=phase10-core-probe-remove-lifecycle,phase10-virtio-input-registration-lifecycle,phase10-mmio-lifecycle-and-irq-paths",
     "PHASE10_LEDGER_LANDED_CORE_HELPERS=phase10-config-generation-summary-helper,phase10-config-delivery-disposition-helper,phase10-config-driver-toggle-guard-helper",
     "PHASE10_LEDGER_HARNESS_COVERAGE_VALIDATE=scripts/zigux/check-phase10-harness-coverage.py",
     "PHASE10_LEDGER_RING_RESET_REUSE_GATE=zigux/tests/phase10_virtio_ring_reset_reuse.zig",
