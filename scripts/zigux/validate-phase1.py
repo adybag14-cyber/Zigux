@@ -454,6 +454,7 @@ def self_test() -> int:
         write(fixture_path, json.dumps({k: {x: 1 for x in v} for k, v in FIXTURE_SHAPE.items()}, indent=2) + "\n")
         for rel in (
             "Documentation/zigux/review-checklist.md",
+            "scripts/zigux/check-phase1-validation-route-inventory.py",
             ".github/workflows/zigux-bootstrap.yml",
             "zigux/Makefile",
         ):
@@ -463,7 +464,7 @@ def self_test() -> int:
             expect_failure(root, rel)
             write(path, baseline)
     print("PHASE1_VALIDATOR_SELF_TEST=pass")
-    print("PHASE1_VALIDATOR_SELF_TEST_CASE_COUNT=14")
+    print("PHASE1_VALIDATOR_SELF_TEST_CASE_COUNT=15")
     return 0
 
 
