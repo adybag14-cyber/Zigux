@@ -98,4 +98,4 @@ This slice does not claim:
 
 ## Next bounded step
 
-Keep the Phase 13 libfs lane helper-first and inspect whether the broader Phase 13 release-facing docs should explicitly call out the landed `generic_check_addressable()` helper before attempting any cursor-backed helpers, inode lifecycle work, or pseudo-filesystem paths that still depend on live VFS state.
+Keep the Phase 13 libfs lane survey-local unless fresh repo inspection finds another direct roadmap or traceability drift inside the existing helper packet; the landed `generic_check_addressable()` helper is already reflected in the shared release notes, so deeper cursor-backed helpers, inode lifecycle work, and pseudo-filesystem paths remain blocked on live VFS state.
