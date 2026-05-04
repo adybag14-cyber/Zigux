@@ -206,7 +206,7 @@ REQUIRED_POLICY_UNSAFE_TEST_SNIPPETS = (
     'test "phase3 policy gate enforces the declared unsafe scope"',
     "try std.testing.expectError(error.UnsafeScopeDenied, narrow.constSliceAt(u32, .volatile_mmio, base, words.len));",
     "const words_slice = try narrow.constSliceAt(u32, .raw_pointer_bridge, base, words.len);",
-    "try std.testing.expectError(error.UnsafeScopeDenied, narrow.constPointerAt(u32, .volatile_mmio, base + @sizeOf(u32)));",
+    "try std.testing.expectError(error.UnsafeScopeDenied, narrow.constPointerAt(u32, .volatile_mmio, base));",
     "const second_word = try narrow.constPointerAt(u32, .raw_pointer_bridge, base + @sizeOf(u32));",
     'test "phase3 policy gate rejects overflowed unsafe address math"',
     "try std.testing.expectError(error.AddressOverflow, narrow.checkedByteOffset(max, 1));",
@@ -475,41 +475,18 @@ def run_self_test() -> int:
                     "# Phase 3 Policy and Unsafe Boundary Survey",
                     "",
                     f"- `PHASE3_SURVEYED_COMMIT={PLACEHOLDER_COMMIT}`",
-                    "- `PHASE3_LAYOUT_ASSERT_PATH=zigux/helpers/layout_assert.zig`",
-                    "- `PHASE3_LAYOUT_ASSERT_SCOPE=canonical-bindings`",
-                    "- `PHASE3_LAYOUT_ASSERT_STATUS=canonical-layout-assertions-landed`",
-                    "- `PHASE3_PANIC_POLICY_PATH=zigux/helpers/panic_policy.zig`",
-                    "- `PHASE3_PANIC_POLICY=explicit-modes-only`",
-                    "- `PHASE3_PANIC_POLICY_STATUS=interop-byte-decode-landed`",
-                    "- `PHASE3_ALLOCATOR_POLICY_PATH=zigux/helpers/allocator_policy.zig`",
-                    "- `PHASE3_ALLOCATOR_POLICY=explicit-modes-only`",
-                    "- `PHASE3_ALLOCATOR_POLICY_STATUS=interop-byte-decode-and-init-flow-landed`",
-                    "- `PHASE3_INTEROP_POLICY_PATH=zigux/helpers/interop_policy.zig`",
-                    "- `PHASE3_INTEROP_POLICY_SCOPE=whole-record-decode-explicit-mode-and-scope-validation`",
-                    "- `PHASE3_UNSAFE_PATH=zigux/unsafe/narrow.zig`",
-                    "- `PHASE3_UNSAFE_SCOPE=narrow-mmio-and-raw-pointer-bridge`",
-                    "- `PHASE3_MMIO_PATH=zigux/helpers/mmio.zig`",
-                    "- `PHASE3_MMIO_TYPED_POLICY_CONSUMER=zigux/helpers/mmio.zig`",
-                    "- `PHASE3_POLICY_UNSAFE_GATE=zig build phase3-policy-unsafe-test --build-file zigux/tests/phase3_policy_unsafe_build.zig`",
-                    "- `PHASE3_BOUNDARY_GAP=typed-policy-mmio-consumer-landed-no-third-boundary-helper-beyond-focused-replay`",
-                    "- `PHASE3_NEXT_BOUNDED_STEP=keep-the-policy-and-unsafe-surface-narrow-until-one-roadmap-backed-helper-beyond-mmio-needs-a-typed-interop-policy-consumer`",
-                    *_blob_marker_lines(),
+                    *[f"- `{marker}`" for marker in REQUIRED_SURVEY_MARKERS],
+                    *(_blob_marker_lines()),
                     "",
-                    f"This survey is pinned to verified `master` head `{PLACEHOLDER_COMMIT}`.",
-                    "The packet names zigux/helpers/layout_assert.zig, zigux/helpers/panic_policy.zig, zigux/helpers/allocator_policy.zig, zigux/helpers/interop_policy.zig, zigux/unsafe/narrow.zig, zigux/helpers/mmio.zig, zigux/tests/phase3_policy_unsafe_build.zig, and zigux/tests/phase3_policy_unsafe.zig.",
-                    "The current bounded packet keeps typed interop-policy decoding explicit through `init`, `encode`, and round-trip replay helpers plus `action()`, `permitsVolatileMmio()`, and `permitsRawPointerBridge()` accessors.",
-                    "The same packet keeps decoded-policy MMIO reviewable through readScopedWithPolicy and `mmio.write32Policy()` and `mmio.read32Policy()`.",
+                    *REQUIRED_SURVEY_SNIPPETS,
                     "",
                 ]
-            ),
+            )
+            + "\n",
         )
         _write(root, DOCS_README_REL, "\n".join(REQUIRED_DOCS_README_SNIPPETS) + "\n")
         _write(root, SCRIPTS_README_REL, "\n".join(REQUIRED_SCRIPTS_README_SNIPPETS) + "\n")
-        _write(
-            root,
-            MAKEFILE_REL,
-            "\n".join(REQUIRED_MAKEFILE_SNIPPETS) + "\n",
-        )
+        _write(root, MAKEFILE_REL, "\n".join(REQUIRED_MAKEFILE_SNIPPETS) + "\n")
         _write(
             root,
             LAYOUT_ASSERT_REL,
@@ -741,6 +718,10 @@ def run_self_test() -> int:
         )
         assert (
             'missing_policy_unsafe_test_snippet:try std.testing.expectError(error.UnsafeScopeDenied, narrow.constSliceAt(u32, .volatile_mmio, base, words.len));'
+            in issues
+        )
+        assert (
+            'missing_policy_unsafe_test_snippet:try std.testing.expectError(error.UnsafeScopeDenied, narrow.constPointerAt(u32, .volatile_mmio, base));'
             in issues
         )
         assert (
