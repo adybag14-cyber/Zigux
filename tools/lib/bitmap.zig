@@ -39,10 +39,7 @@ pub fn fill(dst: []Word, nbits: usize) void {
     }
 
     const nwords = bitsToWords(nbits);
-    if (nwords > 1) {
-        @memset(dst[0 .. nwords - 1], ~@as(Word, 0));
-    }
-    dst[nwords - 1] = lastWordMask(nbits);
+    @memset(dst[0..nwords], ~@as(Word, 0));
 }
 
 pub fn copy(dst: []Word, src: []const Word, nbits: usize) void {
@@ -533,13 +530,13 @@ test "bitmap set clear weight and empty full helpers" {
     try std.testing.expect(full(&map, bits_per_long * 2));
 }
 
-test "bitmap fill masks a partial tail while zero clears only the active word window" {
+test "bitmap fill rounds a partial tail up to the active word window while zero clears only the active word window" {
     const nbits = bits_per_long + 5;
     var map = [_]Word{ 0, 0, 0x55aa };
 
     fill(&map, nbits);
     try std.testing.expectEqual(~@as(Word, 0), map[0]);
-    try std.testing.expectEqual(lastWordMask(nbits), map[1]);
+    try std.testing.expectEqual(~@as(Word, 0), map[1]);
     try std.testing.expectEqual(@as(Word, 0x55aa), map[2]);
 
     zero(&map, nbits);
@@ -817,7 +814,7 @@ test "bitmap header-style aliases preserve zero fill copy and predicate semantic
     try std.testing.expect(bitmap_empty(&zero_map, nbits));
 
     bitmap_fill(&fill_map, nbits);
-    try std.testing.expectEqualSlices(Word, &[_]Word{ ~@as(Word, 0), lastWordMask(nbits), 0x55aa }, &fill_map);
+    try std.testing.expectEqualSlices(Word, &[_]Word{ ~@as(Word, 0), ~@as(Word, 0), 0x55aa }, &fill_map);
     try std.testing.expect(bitmap_full(&fill_map, nbits));
 
     bitmap_copy(&copy_map, &src, nbits);
