@@ -15,6 +15,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 C_HARNESS = ROOT / "zigux" / "tests" / "fixtures" / "phase6_base64_c_harness.c"
+HELPER_SOURCE = ROOT / "lib" / "base64.zig"
 CASE_GENERATOR = ROOT / "zigux" / "tests" / "phase6_base64_c_casegen.zig"
 FIXTURE_SOURCE = ROOT / "zigux" / "tests" / "fixtures" / "phase6_base64_vectors.zig"
 GENERATED_INCLUDE = ROOT / "zigux" / "tests" / "fixtures" / "phase6_base64_c_generated_cases.inc"
@@ -60,7 +61,7 @@ def build_zig_build_text() -> str:
             const optimize = b.standardOptimizeOption(.{{}});
 
             const base64_module = b.createModule(.{{
-                .root_source_file = .{{ .cwd_relative = \"{ROOT / 'lib' / 'base64.zig'}\" }},
+                .root_source_file = .{{ .cwd_relative = \"{HELPER_SOURCE}\" }},
                 .target = target,
                 .optimize = optimize,
             }});
@@ -298,11 +299,15 @@ def cleanup_generated_include_self_test() -> bool:
 
 
 def run_self_test() -> int:
-    assert_equal("require_tool_env", require_tool("zig", "PHASE6_SELFTEST_TOOL"), "/tmp/zig-self-test")
     expect_system_exit(
         "missing_harness",
         lambda: validate_required_path(Path("/tmp/phase6-missing-harness.c"), "harness"),
         "missing harness: /tmp/phase6-missing-harness.c",
+    )
+    expect_system_exit(
+        "missing_helper_source",
+        lambda: validate_required_path(Path("/tmp/phase6-missing-helper.zig"), "helper source"),
+        "missing helper source: /tmp/phase6-missing-helper.zig",
     )
     expect_system_exit(
         "missing_case_generator",
@@ -350,8 +355,9 @@ pub const invalid_decode_cases = [_]InvalidDecodeCase{
     )
     assert_equal(
         "build_text_and_surface",
-        'root_module.addImport("base64", base64_module);' in build_text
-        and str(ROOT / "lib" / "base64.zig") in build_text
+        require_tool("zig", "PHASE6_SELFTEST_TOOL") == "/tmp/zig-self-test"
+        and 'root_module.addImport("base64", base64_module);' in build_text
+        and str(HELPER_SOURCE) in build_text
         and str(ZIG_RUNNER) in build_text
         and expected_surface_from_fixture_text(sample_fixture) == sample_expected
         and cleanup_generated_include_self_test(),
@@ -407,6 +413,7 @@ def main() -> int:
     cc = require_tool("cc", "CC")
 
     validate_required_path(C_HARNESS, "harness")
+    validate_required_path(HELPER_SOURCE, "helper source")
     validate_required_path(CASE_GENERATOR, "case generator")
     validate_required_path(FIXTURE_SOURCE, "fixture source")
     validate_required_path(ZIG_RUNNER, "runner")
