@@ -164,6 +164,79 @@ FORBIDDEN_BUILD_MARKERS = [
     "test_step.dependOn(&run_phase11_hvc_console_survey_tests.step);",
 ]
 BUILD_INVENTORY_FIXTURE = "zigux/tests/fixtures/phase11_build_inventory.json"
+PHASE11_BUILD_FIXTURE_TEST_NAMES = [
+    "phase11-gpio-wdt-tests",
+    "phase11-gpio-wdt-survey-tests",
+    "phase11-bcm2835-wdt-tests",
+    "phase11-bcm2835-wdt-survey-tests",
+    "phase11-dw-wdt-tests",
+    "phase11-dw-wdt-suspend-resume-tests",
+    "phase11-dw-wdt-remove-idle-split-tests",
+    "phase11-dw-wdt-survey-tests",
+    "phase11-uapi-header-parity-survey-tests",
+    "phase11-hvc-console-tests",
+    "phase11-hvc-console-modem-control-split-tests",
+    "phase11-hvc-console-poll-retry-split-tests",
+    "phase11-hvc-console-survey-tests",
+]
+PHASE11_BUILD_FIXTURE_DEPEND_STEPS = [
+    "run_phase11_gpio_wdt_tests",
+    "run_phase11_gpio_wdt_survey_tests",
+    "run_phase11_bcm2835_wdt_tests",
+    "run_phase11_bcm2835_wdt_survey_tests",
+    "run_phase11_dw_wdt_tests",
+    "run_phase11_dw_wdt_suspend_resume_tests",
+    "run_phase11_dw_wdt_remove_idle_split_tests",
+    "run_phase11_dw_wdt_survey_tests",
+    "run_phase11_uapi_header_parity_survey_tests",
+    "run_phase11_hvc_console_tests",
+    "run_phase11_hvc_console_modem_control_split_tests",
+    "run_phase11_hvc_console_poll_retry_split_tests",
+]
+PHASE11_BUILD_FIXTURE_DEDICATED_SURVEY_REPLAYS = [
+    {
+        "test": "phase11-hvc-console-survey-tests",
+        "path": "zigux/tests/phase11_hvc_console_survey.zig",
+    },
+]
+PHASE11_BUILD_FIXTURE_SHARED_SPLIT_REPLAYS = [
+    {
+        "test": "phase11-dw-wdt-remove-idle-split-tests",
+        "path": "zigux/tests/phase11_dw_wdt_remove_idle_split.zig",
+    },
+    {
+        "test": "phase11-hvc-console-modem-control-split-tests",
+        "path": "zigux/tests/phase11_hvc_console_modem_control_split.zig",
+    },
+    {
+        "test": "phase11-hvc-console-poll-retry-split-tests",
+        "path": "zigux/tests/phase11_hvc_console_poll_retry_split.zig",
+    },
+]
+PHASE11_BUILD_FIXTURE_SHARED_ADJUNCT_REPLAYS = [
+    {
+        "test": "phase11-dw-wdt-suspend-resume-tests",
+        "path": "zigux/tests/phase11_dw_wdt_suspend_resume.zig",
+    },
+]
+PHASE11_BUILD_FIXTURE_SHARED_REPLAY_MARKERS = [
+    {
+        "path": "zigux/tests/phase11_dw_wdt_suspend_resume.zig",
+        "marker": "    try std.testing.expect(summary.resume_preserves_timeout_programming);",
+    },
+    {
+        "path": "zigux/tests/phase11_dw_wdt_remove_idle_split.zig",
+        "marker": "    try std.testing.expect(reset_available_summary.remove_clears_interrupt_status);",
+    },
+    {
+        "path": "zigux/tests/phase11_hvc_console_modem_control_split.zig",
+        "marker": "    try std.testing.expectEqual(@as(c_int, -7), summary.tiocmset_result);",
+    },
+    {
+        "path": "zigux/tests/phase11_hvc_console_poll_retry_split.zig",
+        "marker": "    try std.testing.expect(dispatch.invokes_sysrq_handler);",
+    },
+]
 
 MANIFEST_SPECS = {
     "phase11_gpio_wdt_manifest.json": ("P11-L04", "drivers/watchdog/gpio_wdt.c", 15, [], ["phase11-gpio-wdt-platform-registration"]),
@@ -296,6 +369,7 @@ def run_self_test() -> int:
             tmp_root,
             "workflow:Self-test Phase 11 simple-driver validator",
         )
+        workflow_path.writeText if False else None
         workflow_path.write_text(original_workflow, encoding="utf-8")
 
         workflow_path.write_text(
@@ -521,6 +595,69 @@ def run_self_test() -> int:
         )
         matrix_path.write_text(original_matrix, encoding="utf-8")
 
+        build_inventory_path = tmp_root / BUILD_INVENTORY_FIXTURE
+        original_build_inventory = build_inventory_path.read_text(encoding="utf-8")
+
+        build_inventory = json.loads(original_build_inventory)
+        build_inventory["build_test_names"] = build_inventory["build_test_names"][:-1]
+        build_inventory_path.write_text(json.dumps(build_inventory, indent=2) + "\n", encoding="utf-8")
+        expect_missing_marker(
+            "build_inventory_test_names",
+            tmp_root,
+            "phase11_build_fixture:build_test_names",
+        )
+        build_inventory_path.write_text(original_build_inventory, encoding="utf-8")
+
+        build_inventory = json.loads(original_build_inventory)
+        build_inventory["shared_test_depend_steps"] = build_inventory["shared_test_depend_steps"][:-1]
+        build_inventory_path.write_text(json.dumps(build_inventory, indent=2) + "\n", encoding="utf-8")
+        expect_missing_marker(
+            "build_inventory_depend_steps",
+            tmp_root,
+            "phase11_build_fixture:shared_test_depend_steps",
+        )
+        build_inventory_path.write_text(original_build_inventory, encoding="utf-8")
+
+        build_inventory = json.loads(original_build_inventory)
+        build_inventory["dedicated_survey_replays"] = []
+        build_inventory_path.write_text(json.dumps(build_inventory, indent=2) + "\n", encoding="utf-8")
+        expect_missing_marker(
+            "build_inventory_dedicated_replays",
+            tmp_root,
+            "phase11_build_fixture:dedicated_survey_replays",
+        )
+        build_inventory_path.write_text(original_build_inventory, encoding="utf-8")
+
+        build_inventory = json.loads(original_build_inventory)
+        build_inventory["shared_split_replays"] = build_inventory["shared_split_replays"][:-1]
+        build_inventory_path.write_text(json.dumps(build_inventory, indent=2) + "\n", encoding="utf-8")
+        expect_missing_marker(
+            "build_inventory_shared_split_replays",
+            tmp_root,
+            "phase11_build_fixture:shared_split_replays",
+        )
+        build_inventory_path.write_text(original_build_inventory, encoding="utf-8")
+
+        build_inventory = json.loads(original_build_inventory)
+        build_inventory["shared_adjunct_replays"] = []
+        build_inventory_path.write_text(json.dumps(build_inventory, indent=2) + "\n", encoding="utf-8")
+        expect_missing_marker(
+            "build_inventory_shared_adjunct_replays",
+            tmp_root,
+            "phase11_build_fixture:shared_adjunct_replays",
+        )
+        build_inventory_path.write_text(original_build_inventory, encoding="utf-8")
+
+        build_inventory = json.loads(original_build_inventory)
+        build_inventory["shared_replay_markers"] = build_inventory["shared_replay_markers"][:-1]
+        build_inventory_path.write_text(json.dumps(build_inventory, indent=2) + "\n", encoding="utf-8")
+        expect_missing_marker(
+            "build_inventory_shared_replay_markers",
+            tmp_root,
+            "phase11_build_fixture:shared_replay_markers",
+        )
+        build_inventory_path.write_text(original_build_inventory, encoding="utf-8")
+
         print("PHASE11_SELF_TEST=pass")
         return 0
 
@@ -560,48 +697,33 @@ def parse_build_inventory() -> dict[str, object]:
     return json.loads(fixture_path.read_text(encoding="utf-8"))
 
 def validate_build_inventory_fixture(build_inventory: dict[str, object], missing: list[str]) -> None:
-    shared_tests = build_inventory.get("shared_tests")
-    if shared_tests != [
-        "phase11-gpio-wdt-tests",
-        "phase11-bcm2835-wdt-tests",
-        "phase11-dw-wdt-tests",
-        "phase11-uapi-header-parity-survey-tests",
-        "phase11-hvc-console-tests",
-    ]:
-        missing.append("phase11_build_fixture:shared_tests")
+    build_test_names = build_inventory.get("build_test_names")
+    if build_test_names != PHASE11_BUILD_FIXTURE_TEST_NAMES:
+        missing.append("phase11_build_fixture:build_test_names")
 
-    shared_split_replays = build_inventory.get("shared_split_replays")
-    if not isinstance(shared_split_replays, list) or len(shared_split_replays) != 3:
-        missing.append("phase11_build_fixture:shared_split_replays")
-    else:
-        expected_split = [
-            {
-                "test": "phase11-dw-wdt-remove-idle-split-tests",
-                "path": "zigux/tests/phase11_dw_wdt_remove_idle_split.zig",
-            },
-            {
-                "test": "phase11-dw-wdt-survey-tests",
-                "path": "zigux/tests/phase11_dw_wdt_survey.zig",
-            },
-            {
-                "test": "phase11-uapi-header-parity-survey-tests",
-                "path": "zigux/tests/phase11_uapi_header_parity_survey.zig",
-            },
-        ]
-        if shared_split_replays != expected_split:
-            missing.append("phase11_build_fixture:shared_split_replays")
-
-    required_build_markers = build_inventory.get("required_build_markers")
-    if required_build_markers != BUILD_MARKERS:
-        missing.append("phase11_build_fixture:required_build_markers")
-
-    forbidden_build_markers = build_inventory.get("forbidden_build_markers")
-    if forbidden_build_markers != FORBIDDEN_BUILD_MARKERS:
-        missing.append("phase11_build_fixture:forbidden_build_markers")
+    shared_test_depend_steps = build_inventory.get("shared_test_depend_steps")
+    if shared_test_depend_steps != PHASE11_BUILD_FIXTURE_DEPEND_STEPS:
+        missing.append("phase11_build_fixture:shared_test_depend_steps")
 
     dedicated_survey_replays = build_inventory.get("dedicated_survey_replays")
-    if dedicated_survey_replays != ["zigux/tests/phase11_hvc_console_survey.zig"]:
+    if dedicated_survey_replays != PHASE11_BUILD_FIXTURE_DEDICATED_SURVEY_REPLAYS:
         missing.append("phase11_build_fixture:dedicated_survey_replays")
+
+    shared_split_replays = build_inventory.get("shared_split_replays")
+    if shared_split_replays != PHASE11_BUILD_FIXTURE_SHARED_SPLIT_REPLAYS:
+        missing.append("phase11_build_fixture:shared_split_replays")
+
+    shared_adjunct_replays = build_inventory.get("shared_adjunct_replays")
+    if shared_adjunct_replays != PHASE11_BUILD_FIXTURE_SHARED_ADJUNCT_REPLAYS:
+        missing.append("phase11_build_fixture:shared_adjunct_replays")
+
+    forbidden_build_markers = build_inventory.get("forbidden_markers")
+    if forbidden_build_markers != FORBIDDEN_BUILD_MARKERS:
+        missing.append("phase11_build_fixture:forbidden_markers")
+
+    shared_replay_markers = build_inventory.get("shared_replay_markers")
+    if shared_replay_markers != PHASE11_BUILD_FIXTURE_SHARED_REPLAY_MARKERS:
+        missing.append("phase11_build_fixture:shared_replay_markers")
 
 def main() -> int:
     if len(sys.argv) > 1 and sys.argv[1] == "--self-test":
@@ -728,6 +850,14 @@ def main() -> int:
             count_marker = f'expectEqual(@as(usize, {expected_count}), {variable_name});'
             if count_marker not in survey_text:
                 missing.append(f"{name}:survey_count:{variable_name}={expected_count}")
+
+    if missing:
+        print("PHASE11_VALIDATION=fail")
+        print("PHASE11_VALIDATION_MISSING_START")
+        for item in missing:
+            print(item)
+        print("PHASE11_VALIDATION_MISSING_END")
+        return 1
 
     print("PHASE11_VALIDATION=pass")
     print(f"PHASE11_REQUIRED_FILE_COUNT={len(FILES)}")
