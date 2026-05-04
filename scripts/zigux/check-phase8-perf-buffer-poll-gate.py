@@ -7,7 +7,7 @@ import sys
 import tempfile
 
 
-ROOT = Path(__file__).resolve().parents[2]
+ROOT = Path(__file__).resolve().parents[2] if len(Path(__file__).resolve().parents) >= 3 else Path.cwd()
 
 REQUIRED_FILES = [
     ".github/workflows/zigux-bootstrap.yml",
@@ -64,7 +64,7 @@ REQUIRED_MARKERS = {
         "tools/lib/bpf/zigux_segments/perf_buffer_poll.zig",
         "zigux/tests/phase8_perf_buffer_poll.zig",
         "zigux/tests/phase8_perf_buffer_poll_only_build.zig",
-        "check-phase8-perf-buffer-poll-gate.py",
+        "check-phase8-perf-buffer-poll-gate.py --self-test",
         "make -C zigux phase8-validate",
     ],
     "scripts/zigux/validate-phase8.py": [
@@ -80,9 +80,9 @@ REQUIRED_MARKERS = {
         "pub const PollExecutionSummary = struct {",
         "pub fn summarizeProcessRecords(",
         "pub fn summarizePollExecution(",
-        "test \"summarizeProcessRecords keeps perf_buffer__process_records fail-fast ordering and processed record totals explicit\"",
-        "test \"summarizePollExecution keeps ready-buffer processing inside the observed epoll budget\"",
-        "test \"summarizePollExecution rejects impossible processing outside the live perf_buffer__poll wait result\"",
+        'test "summarizeProcessRecords keeps perf_buffer__process_records fail-fast ordering and processed record totals explicit"',
+        'test "summarizePollExecution keeps ready-buffer processing inside the observed epoll budget"',
+        'test "summarizePollExecution rejects impossible processing outside the live perf_buffer__poll wait result"',
     ],
     "zigux/Makefile": [
         "PHONY += phase8-validate phase8-exec-cmd-test phase8-help-test phase8-kallsyms-test phase8-libbpf-segments-test phase8-perf-buffer-poll-test phase8-test phase8",
@@ -104,9 +104,9 @@ REQUIRED_MARKERS = {
         "phase8-perf-buffer-poll-tests",
     ],
     "zigux/tests/phase8_perf_buffer_poll.zig": [
-        "test \"phase 8 perf-buffer poll helper stays wired into focused and shared Phase 8 builds\"",
-        "test \"phase 8 perf-buffer poll helper keeps execution bookkeeping aligned with the observed ready-event budget\"",
-        "test \"phase 8 perf-buffer poll helper rejects impossible post-wait record processing\"",
+        'test "phase 8 perf-buffer poll helper stays wired into focused and shared Phase 8 builds"',
+        'test "phase 8 perf-buffer poll helper keeps execution bookkeeping aligned with the observed ready-event budget"',
+        'test "phase 8 perf-buffer poll helper rejects impossible post-wait record processing"',
         "phase8_perf_buffer_poll_only_build.zig",
         "phase8-perf-buffer-poll-tests",
     ],
@@ -115,6 +115,26 @@ REQUIRED_MARKERS = {
         "phase8-perf-buffer-poll-tests",
         "Run focused Phase 8 perf-buffer poll tests",
     ],
+}
+
+EXACT_COUNTS = {
+    "zigux/tests/README.md": {
+        "zigux/tests/phase8_perf_buffer_poll_only_build.zig": 1,
+        "zigux/tests/phase8_perf_buffer_poll.zig": 1,
+        "make -C zigux phase8-perf-buffer-poll-test": 1,
+    },
+    "scripts/zigux/README.md": {
+        "check-phase8-perf-buffer-poll-gate.py --self-test": 1,
+        "make -C zigux phase8-validate": 1,
+    },
+    ".github/workflows/zigux-bootstrap.yml": {
+        "Run focused Phase 8 perf-buffer poll tests": 1,
+    },
+    "zigux/Makefile": {
+        "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase8-perf-buffer-poll-gate.py --self-test\n": 1,
+        "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase8-perf-buffer-poll-gate.py\n": 1,
+        "phase8-perf-buffer-poll-test:\n": 1,
+    },
 }
 
 FIXTURE_TEXT = {
@@ -158,34 +178,35 @@ FIXTURE_TEXT = {
 """,
     "scripts/zigux/README.md": """# scripts/zigux
 
-- `check-phase8-perf-buffer-poll-gate.py`
+- `check-phase8-perf-buffer-poll-gate.py --self-test`
 
 ## Phase 8 flow
 - `Documentation/zigux/phase8-perf-buffer-poll-slice.md`
 - `tools/lib/bpf/zigux_segments/perf_buffer_poll.zig`
 - `zigux/tests/phase8_perf_buffer_poll.zig`
 - `zigux/tests/phase8_perf_buffer_poll_only_build.zig`
+- `check-phase8-perf-buffer-poll-gate.py`
 - `make -C zigux phase8-validate`
 """,
     "scripts/zigux/check-phase8-perf-buffer-poll-gate.py": """#!/usr/bin/env python3
-print("fixture")
+print(\"fixture\")
 """,
     "scripts/zigux/validate-phase8.py": """REQUIRED_FILES = [
-    "zigux/tests/phase8_perf_buffer_poll_only_build.zig",
+    \"zigux/tests/phase8_perf_buffer_poll_only_build.zig\",
 ]
 
 required_make_markers = [
-    "phase8-perf-buffer-poll-test:",
+    \"phase8-perf-buffer-poll-test:\",
 ]
 
 required_workflow_markers = [
-    "Run focused Phase 8 perf-buffer poll tests",
+    \"Run focused Phase 8 perf-buffer poll tests\",
 ]
 
 required_phase8_perf_buffer_poll_markers = [
-    "Documentation/zigux/phase8-perf-buffer-poll-slice.md",
-    "zigux/tests/phase8_perf_buffer_poll.zig",
-    "phase8-perf-buffer-poll-tests",
+    \"Documentation/zigux/phase8-perf-buffer-poll-slice.md\",
+    \"zigux/tests/phase8_perf_buffer_poll.zig\",
+    \"phase8-perf-buffer-poll-tests\",
 ]
 """,
     "tools/lib/bpf/zigux_segments/perf_buffer_poll.zig": """pub const WaitClass = enum {
@@ -199,18 +220,18 @@ pub const PollExecutionSummary = struct {
 pub fn summarizeProcessRecords() void {}
 pub fn summarizePollExecution() void {}
 
-test "summarizeProcessRecords keeps perf_buffer__process_records fail-fast ordering and processed record totals explicit" {}
-test "summarizePollExecution keeps ready-buffer processing inside the observed epoll budget" {}
-test "summarizePollExecution rejects impossible processing outside the live perf_buffer__poll wait result" {}
+test \"summarizeProcessRecords keeps perf_buffer__process_records fail-fast ordering and processed record totals explicit\" {}
+test \"summarizePollExecution keeps ready-buffer processing inside the observed epoll budget\" {}
+test \"summarizePollExecution rejects impossible processing outside the live perf_buffer__poll wait result\" {}
 """,
     "zigux/Makefile": """PHONY += phase8-validate phase8-exec-cmd-test phase8-help-test phase8-kallsyms-test phase8-libbpf-segments-test phase8-perf-buffer-poll-test phase8-test phase8
 
 phase8-validate:
-	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase8-perf-buffer-poll-gate.py --self-test
-	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase8-perf-buffer-poll-gate.py
+\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase8-perf-buffer-poll-gate.py --self-test
+\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase8-perf-buffer-poll-gate.py
 
 phase8-perf-buffer-poll-test:
-	cd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase8_perf_buffer_poll_only_build.zig --summary all
+\tcd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase8_perf_buffer_poll_only_build.zig --summary all
 
 phase8: phase8-validate phase8-exec-cmd-test phase8-help-test phase8-kallsyms-test phase8-libbpf-segments-test phase8-perf-buffer-poll-test phase8-test
 """,
@@ -221,30 +242,30 @@ phase8: phase8-validate phase8-exec-cmd-test phase8-help-test phase8-kallsyms-te
 - `make -C zigux phase8-perf-buffer-poll-test`
 """,
     "zigux/tests/phase8_build.zig": """const perf_buffer_poll_module = b.createModule(.{
-    .root_source_file = b.path("../../tools/lib/bpf/zigux_segments/perf_buffer_poll.zig"),
+    .root_source_file = b.path(\"../../tools/lib/bpf/zigux_segments/perf_buffer_poll.zig\"),
 });
 const perf_buffer_poll_root_module = b.createModule(.{
-    .root_source_file = b.path("phase8_perf_buffer_poll.zig"),
+    .root_source_file = b.path(\"phase8_perf_buffer_poll.zig\"),
 });
 const perf_buffer_poll_tests = b.addTest(.{
-    .name = "phase8-perf-buffer-poll-tests",
+    .name = \"phase8-perf-buffer-poll-tests\",
 });
 """,
-    "zigux/tests/phase8_perf_buffer_poll.zig": """test "phase 8 perf-buffer poll helper stays wired into focused and shared Phase 8 builds" {
-    _ = "phase8_perf_buffer_poll_only_build.zig";
-    _ = "phase8-perf-buffer-poll-tests";
+    "zigux/tests/phase8_perf_buffer_poll.zig": """test \"phase 8 perf-buffer poll helper stays wired into focused and shared Phase 8 builds\" {
+    _ = \"phase8_perf_buffer_poll_only_build.zig\";
+    _ = \"phase8-perf-buffer-poll-tests\";
 }
 
-test "phase 8 perf-buffer poll helper keeps execution bookkeeping aligned with the observed ready-event budget" {}
-test "phase 8 perf-buffer poll helper rejects impossible post-wait record processing" {}
+test \"phase 8 perf-buffer poll helper keeps execution bookkeeping aligned with the observed ready-event budget\" {}
+test \"phase 8 perf-buffer poll helper rejects impossible post-wait record processing\" {}
 """,
     "zigux/tests/phase8_perf_buffer_poll_only_build.zig": """const root_module = b.createModule(.{
-    .root_source_file = b.path("phase8_perf_buffer_poll.zig"),
+    .root_source_file = b.path(\"phase8_perf_buffer_poll.zig\"),
 });
 const perf_buffer_poll_tests = b.addTest(.{
-    .name = "phase8-perf-buffer-poll-tests",
+    .name = \"phase8-perf-buffer-poll-tests\",
 });
-const test_step = b.step("test", "Run focused Phase 8 perf-buffer poll tests");
+const test_step = b.step(\"test\", \"Run focused Phase 8 perf-buffer poll tests\");
 """,
 }
 
@@ -258,7 +279,9 @@ def collect_missing_files(root: Path) -> list[str]:
 
 
 def required_marker_count() -> int:
-    return sum(len(markers) for markers in REQUIRED_MARKERS.values())
+    return sum(len(markers) for markers in REQUIRED_MARKERS.values()) + sum(
+        len(markers) for markers in EXACT_COUNTS.values()
+    )
 
 
 def validate(root: Path) -> tuple[list[str], list[str]]:
@@ -272,6 +295,16 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
         for marker in markers:
             if marker not in text:
                 missing_markers.append(f"{rel_path}:{marker}")
+
+    for rel_path, markers in EXACT_COUNTS.items():
+        text = read_text(root, rel_path)
+        for marker, expected_count in markers.items():
+            actual_count = text.count(marker)
+            if actual_count != expected_count:
+                missing_markers.append(
+                    f"{rel_path}:count:{marker}:expected={expected_count}:actual={actual_count}"
+                )
+
     return [], missing_markers
 
 
@@ -308,8 +341,61 @@ def run_self_test() -> int:
                 f"markers={','.join(missing_markers) if missing_markers else 'none'}"
             )
 
+        tests_readme_path = tmp_root / "zigux/tests/README.md"
+        original_tests_readme = tests_readme_path.read_text(encoding="utf-8")
+        tests_readme_path.write_text(
+            original_tests_readme + "- `zigux/tests/phase8_perf_buffer_poll_only_build.zig`\n",
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "tests_readme_focused_build_duplicate",
+            tmp_root,
+            "zigux/tests/README.md:count:zigux/tests/phase8_perf_buffer_poll_only_build.zig:expected=1:actual=2",
+        )
+        tests_readme_path.write_text(original_tests_readme, encoding="utf-8")
+
+        tests_readme_path.write_text(
+            original_tests_readme.replace(
+                "zigux/tests/phase8_perf_buffer_poll.zig",
+                "zigux/tests/phase8_perf_buffer_wait.zig",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "tests_readme_poll_surface",
+            tmp_root,
+            "zigux/tests/README.md:zigux/tests/phase8_perf_buffer_poll.zig",
+        )
+        tests_readme_path.write_text(original_tests_readme, encoding="utf-8")
+
+        scripts_readme_path = tmp_root / "scripts/zigux/README.md"
+        original_scripts_readme = scripts_readme_path.read_text(encoding="utf-8")
+        scripts_readme_path.write_text(
+            original_scripts_readme + "- `check-phase8-perf-buffer-poll-gate.py --self-test`\n",
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "scripts_readme_self_test_duplicate",
+            tmp_root,
+            "scripts/zigux/README.md:count:check-phase8-perf-buffer-poll-gate.py --self-test:expected=1:actual=2",
+        )
+        scripts_readme_path.write_text(original_scripts_readme, encoding="utf-8")
+
         makefile_path = tmp_root / "zigux/Makefile"
         original_makefile = makefile_path.read_text(encoding="utf-8")
+        makefile_path.write_text(
+            original_makefile
+            + "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase8-perf-buffer-poll-gate.py --self-test\n",
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "makefile_self_test_duplicate",
+            tmp_root,
+            "zigux/Makefile:count:\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase8-perf-buffer-poll-gate.py --self-test\n:expected=1:actual=2",
+        )
+        makefile_path.write_text(original_makefile, encoding="utf-8")
+
         makefile_path.write_text(
             original_makefile.replace(
                 "scripts/zigux/check-phase8-perf-buffer-poll-gate.py --self-test",
@@ -319,138 +405,25 @@ def run_self_test() -> int:
             encoding="utf-8",
         )
         expect_missing_marker(
-            "makefile_self_test_hook",
+            "makefile_self_test_surface",
             tmp_root,
             "zigux/Makefile:scripts/zigux/check-phase8-perf-buffer-poll-gate.py --self-test",
         )
         makefile_path.write_text(original_makefile, encoding="utf-8")
 
-        makefile_path.write_text(
-            original_makefile.replace(
-                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase8-perf-buffer-poll-gate.py\n",
-                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase8-perf-buffer-poll-self.py\n",
-                1,
-            ),
-            encoding="utf-8",
-        )
-        expect_missing_marker(
-            "makefile_live_hook",
-            tmp_root,
-            "zigux/Makefile:scripts/zigux/check-phase8-perf-buffer-poll-gate.py",
-        )
-        makefile_path.write_text(original_makefile, encoding="utf-8")
-
-        tests_readme_path = tmp_root / "zigux/tests/README.md"
-        original_tests_readme = tests_readme_path.read_text(encoding="utf-8")
-        tests_readme_path.write_text(
-            original_tests_readme.replace(
-                "zigux/tests/phase8_perf_buffer_poll_only_build.zig",
-                "zigux/tests/phase8_perf_buffer_poll_build.zig",
-                1,
-            ),
-            encoding="utf-8",
-        )
-        expect_missing_marker(
-            "tests_readme_focused_build",
-            tmp_root,
-            "zigux/tests/README.md:zigux/tests/phase8_perf_buffer_poll_only_build.zig",
-        )
-        tests_readme_path.write_text(original_tests_readme, encoding="utf-8")
-
-        note_path = tmp_root / "Documentation/zigux/phase8-perf-buffer-poll-slice.md"
-        original_note = note_path.read_text(encoding="utf-8")
-        note_path.write_text(
-            original_note.replace(
-                "wait-result classification",
-                "wait-result summary",
-                1,
-            ),
-            encoding="utf-8",
-        )
-        expect_missing_marker(
-            "note_wait_result_classification",
-            tmp_root,
-            "Documentation/zigux/phase8-perf-buffer-poll-slice.md:wait-result classification",
-        )
-        note_path.write_text(original_note, encoding="utf-8")
-
-        note_path.write_text(
-            original_note.replace(
-                "cumulative processed-record count",
-                "processed-record count",
-                1,
-            ),
-            encoding="utf-8",
-        )
-        expect_missing_marker(
-            "note_processed_record_count",
-            tmp_root,
-            "Documentation/zigux/phase8-perf-buffer-poll-slice.md:cumulative processed-record count",
-        )
-        note_path.write_text(original_note, encoding="utf-8")
-
-        note_path.write_text(
-            original_note.replace(
-                "first failing ready buffer",
-                "first ready buffer",
-                1,
-            ),
-            encoding="utf-8",
-        )
-        expect_missing_marker(
-            "note_first_failing_ready_buffer",
-            tmp_root,
-            "Documentation/zigux/phase8-perf-buffer-poll-slice.md:first failing ready buffer",
-        )
-        note_path.write_text(original_note, encoding="utf-8")
-
-        note_path.write_text(
-            original_note.replace(
-                "non-ready wait observations cannot claim record processing",
-                "non-ready wait observations stay explicit",
-                1,
-            ),
-            encoding="utf-8",
-        )
-        expect_missing_marker(
-            "note_non_ready_processing_guard",
-            tmp_root,
-            "Documentation/zigux/phase8-perf-buffer-poll-slice.md:non-ready wait observations cannot claim record processing",
-        )
-        note_path.write_text(original_note, encoding="utf-8")
-
-        note_path.write_text(
-            original_note.replace(
-                "no standalone timer helper",
-                "no standalone timer boundary",
-                1,
-            ),
-            encoding="utf-8",
-        )
-        expect_missing_marker(
-            "note_timer_boundary",
-            tmp_root,
-            "Documentation/zigux/phase8-perf-buffer-poll-slice.md:no standalone timer helper",
-        )
-        note_path.write_text(original_note, encoding="utf-8")
-
-        note_path.write_text(
-            original_note.replace(
-                "no standalone clockevent helper",
-                "no standalone clockevent boundary",
-                1,
-            ),
-            encoding="utf-8",
-        )
-        expect_missing_marker(
-            "note_clockevent_boundary",
-            tmp_root,
-            "Documentation/zigux/phase8-perf-buffer-poll-slice.md:no standalone clockevent helper",
-        )
-        note_path.write_text(original_note, encoding="utf-8")
-
         workflow_path = tmp_root / ".github/workflows/zigux-bootstrap.yml"
         original_workflow = workflow_path.read_text(encoding="utf-8")
+        workflow_path.write_text(
+            original_workflow + "- name: Run focused Phase 8 perf-buffer poll tests\n",
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "workflow_poll_step_duplicate",
+            tmp_root,
+            ".github/workflows/zigux-bootstrap.yml:count:Run focused Phase 8 perf-buffer poll tests:expected=1:actual=2",
+        )
+        workflow_path.write_text(original_workflow, encoding="utf-8")
+
         workflow_path.write_text(
             original_workflow.replace(
                 "Run focused Phase 8 perf-buffer poll tests",
@@ -460,245 +433,14 @@ def run_self_test() -> int:
             encoding="utf-8",
         )
         expect_missing_marker(
-            "workflow_poll_step",
+            "workflow_poll_step_surface",
             tmp_root,
             ".github/workflows/zigux-bootstrap.yml:Run focused Phase 8 perf-buffer poll tests",
         )
         workflow_path.write_text(original_workflow, encoding="utf-8")
 
-        docs_readme_path = tmp_root / "Documentation/zigux/README.md"
-        original_docs_readme = docs_readme_path.read_text(encoding="utf-8")
-        docs_readme_path.write_text(
-            original_docs_readme.replace(
-                "zigux/tests/phase8_perf_buffer_poll.zig",
-                "zigux/tests/phase8_perf_buffer_poll_only_build.zig",
-                1,
-            ),
-            encoding="utf-8",
-        )
-        expect_missing_marker(
-            "docs_readme_poll_test_surface",
-            tmp_root,
-            "Documentation/zigux/README.md:zigux/tests/phase8_perf_buffer_poll.zig",
-        )
-        docs_readme_path.write_text(original_docs_readme, encoding="utf-8")
-
-        docs_readme_path.write_text(
-            original_docs_readme.replace(
-                "make -C zigux phase8-validate",
-                "make -C zigux phase8-check",
-                1,
-            ),
-            encoding="utf-8",
-        )
-        expect_missing_marker(
-            "docs_readme_validate_hook",
-            tmp_root,
-            "Documentation/zigux/README.md:make -C zigux phase8-validate",
-        )
-        docs_readme_path.write_text(original_docs_readme, encoding="utf-8")
-
-        scripts_readme_path = tmp_root / "scripts/zigux/README.md"
-        original_scripts_readme = scripts_readme_path.read_text(encoding="utf-8")
-        scripts_readme_path.write_text(
-            original_scripts_readme.replace(
-                "tools/lib/bpf/zigux_segments/perf_buffer_poll.zig",
-                "tools/lib/bpf/zigux_segments/perf_buffer_poll_helper.zig",
-                1,
-            ),
-            encoding="utf-8",
-        )
-        expect_missing_marker(
-            "scripts_readme_helper_surface",
-            tmp_root,
-            "scripts/zigux/README.md:tools/lib/bpf/zigux_segments/perf_buffer_poll.zig",
-        )
-        scripts_readme_path.write_text(original_scripts_readme, encoding="utf-8")
-
-        scripts_readme_path.write_text(
-            original_scripts_readme.replace(
-                "make -C zigux phase8-validate",
-                "make -C zigux phase8-check",
-                1,
-            ),
-            encoding="utf-8",
-        )
-        expect_missing_marker(
-            "scripts_readme_validate_hook",
-            tmp_root,
-            "scripts/zigux/README.md:make -C zigux phase8-validate",
-        )
-        scripts_readme_path.write_text(original_scripts_readme, encoding="utf-8")
-
-        scripts_readme_path.write_text(
-            original_scripts_readme.replace(
-                "Documentation/zigux/phase8-perf-buffer-poll-slice.md",
-                "Documentation/zigux/phase8-perf-buffer-slice.md",
-                1,
-            ),
-            encoding="utf-8",
-        )
-        expect_missing_marker(
-            "scripts_readme_note_surface",
-            tmp_root,
-            "scripts/zigux/README.md:Documentation/zigux/phase8-perf-buffer-poll-slice.md",
-        )
-        scripts_readme_path.write_text(original_scripts_readme, encoding="utf-8")
-
-        scripts_readme_path.write_text(
-            original_scripts_readme.replace(
-                "zigux/tests/phase8_perf_buffer_poll.zig",
-                "zigux/tests/phase8_perf_buffer_wait.zig",
-                1,
-            ),
-            encoding="utf-8",
-        )
-        expect_missing_marker(
-            "scripts_readme_test_surface",
-            tmp_root,
-            "scripts/zigux/README.md:zigux/tests/phase8_perf_buffer_poll.zig",
-        )
-        scripts_readme_path.write_text(original_scripts_readme, encoding="utf-8")
-
-        scripts_readme_path.write_text(
-            original_scripts_readme.replace(
-                "zigux/tests/phase8_perf_buffer_poll_only_build.zig",
-                "zigux/tests/phase8_perf_buffer_poll_build.zig",
-                1,
-            ),
-            encoding="utf-8",
-        )
-        expect_missing_marker(
-            "scripts_readme_focused_build_surface",
-            tmp_root,
-            "scripts/zigux/README.md:zigux/tests/phase8_perf_buffer_poll_only_build.zig",
-        )
-        scripts_readme_path.write_text(original_scripts_readme, encoding="utf-8")
-
-        scripts_readme_path.write_text(
-            original_scripts_readme.replace(
-                "check-phase8-perf-buffer-poll-gate.py",
-                "check-phase8-perf-buffer-poll.py",
-                1,
-            ),
-            encoding="utf-8",
-        )
-        expect_missing_marker(
-            "scripts_readme_gate_checker_surface",
-            tmp_root,
-            "scripts/zigux/README.md:check-phase8-perf-buffer-poll-gate.py",
-        )
-        scripts_readme_path.write_text(original_scripts_readme, encoding="utf-8")
-
-        bridge_boundary_path = tmp_root / "Documentation/zigux/phase8-userspace-kernel-bridge-boundary-survey.md"
-        original_bridge_boundary = bridge_boundary_path.read_text(encoding="utf-8")
-        bridge_boundary_path.write_text(
-            original_bridge_boundary.replace(
-                "zigux/tests/phase8_perf_buffer_poll_only_build.zig",
-                "zigux/tests/phase8_perf_buffer_poll_build.zig",
-                1,
-            ),
-            encoding="utf-8",
-        )
-        expect_missing_marker(
-            "bridge_boundary_focused_build",
-            tmp_root,
-            "Documentation/zigux/phase8-userspace-kernel-bridge-boundary-survey.md:zigux/tests/phase8_perf_buffer_poll_only_build.zig",
-        )
-        bridge_boundary_path.write_text(original_bridge_boundary, encoding="utf-8")
-
-        bridge_boundary_path.write_text(
-            original_bridge_boundary.replace(
-                "ready-buffer counts",
-                "ready-buffer summaries",
-                1,
-            ),
-            encoding="utf-8",
-        )
-        expect_missing_marker(
-            "bridge_boundary_ready_buffer_counts",
-            tmp_root,
-            "Documentation/zigux/phase8-userspace-kernel-bridge-boundary-survey.md:ready-buffer counts",
-        )
-        bridge_boundary_path.write_text(original_bridge_boundary, encoding="utf-8")
-
-        bridge_boundary_path.write_text(
-            original_bridge_boundary.replace(
-                "no standalone timer helper",
-                "no standalone timer boundary",
-                1,
-            ),
-            encoding="utf-8",
-        )
-        expect_missing_marker(
-            "bridge_boundary_timer_phrase",
-            tmp_root,
-            "Documentation/zigux/phase8-userspace-kernel-bridge-boundary-survey.md:no standalone timer helper",
-        )
-        bridge_boundary_path.write_text(original_bridge_boundary, encoding="utf-8")
-
-        bridge_boundary_path.write_text(
-            original_bridge_boundary.replace(
-                "no standalone clockevent helper",
-                "no standalone clockevent boundary",
-                1,
-            ),
-            encoding="utf-8",
-        )
-        expect_missing_marker(
-            "bridge_boundary_clockevent_phrase",
-            tmp_root,
-            "Documentation/zigux/phase8-userspace-kernel-bridge-boundary-survey.md:no standalone clockevent helper",
-        )
-        bridge_boundary_path.write_text(original_bridge_boundary, encoding="utf-8")
-
         helper_path = tmp_root / "tools/lib/bpf/zigux_segments/perf_buffer_poll.zig"
         original_helper = helper_path.read_text(encoding="utf-8")
-        helper_path.write_text(
-            original_helper.replace(
-                "pub fn summarizeProcessRecords(",
-                "pub fn summarizeProcessedRecords(",
-                1,
-            ),
-            encoding="utf-8",
-        )
-        expect_missing_marker(
-            "helper_process_records_surface",
-            tmp_root,
-            "tools/lib/bpf/zigux_segments/perf_buffer_poll.zig:pub fn summarizeProcessRecords(",
-        )
-        helper_path.write_text(original_helper, encoding="utf-8")
-
-        helper_path.write_text(
-            original_helper.replace(
-                "pub const WaitClass = enum {",
-                "pub const WaitGroup = enum {",
-                1,
-            ),
-            encoding="utf-8",
-        )
-        expect_missing_marker(
-            "helper_wait_class_surface",
-            tmp_root,
-            "tools/lib/bpf/zigux_segments/perf_buffer_poll.zig:pub const WaitClass = enum {",
-        )
-        helper_path.write_text(original_helper, encoding="utf-8")
-
-        helper_path.write_text(
-            original_helper.replace(
-                "pub const PollExecutionSummary = struct {",
-                "pub const PollRunSummary = struct {",
-                1,
-            ),
-            encoding="utf-8",
-        )
-        expect_missing_marker(
-            "helper_poll_execution_summary_surface",
-            tmp_root,
-            "tools/lib/bpf/zigux_segments/perf_buffer_poll.zig:pub const PollExecutionSummary = struct {",
-        )
-        helper_path.write_text(original_helper, encoding="utf-8")
-
         helper_path.write_text(
             original_helper.replace(
                 "pub fn summarizePollExecution(",
@@ -714,225 +456,8 @@ def run_self_test() -> int:
         )
         helper_path.write_text(original_helper, encoding="utf-8")
 
-        helper_path.write_text(
-            original_helper.replace(
-                'test "summarizeProcessRecords keeps perf_buffer__process_records fail-fast ordering and processed record totals explicit"',
-                'test "summarizeProcessRecords keeps perf_buffer__process_records ordering explicit"',
-                1,
-            ),
-            encoding="utf-8",
-        )
-        expect_missing_marker(
-            "helper_process_records_test_surface",
-            tmp_root,
-            'tools/lib/bpf/zigux_segments/perf_buffer_poll.zig:test "summarizeProcessRecords keeps perf_buffer__process_records fail-fast ordering and processed record totals explicit"',
-        )
-        helper_path.write_text(original_helper, encoding="utf-8")
-
-        helper_path.write_text(
-            original_helper.replace(
-                'test "summarizePollExecution keeps ready-buffer processing inside the observed epoll budget"',
-                'test "summarizePollExecution keeps observed event accounting explicit"',
-                1,
-            ),
-            encoding="utf-8",
-        )
-        expect_missing_marker(
-            "helper_poll_execution_budget_test_surface",
-            tmp_root,
-            'tools/lib/bpf/zigux_segments/perf_buffer_poll.zig:test "summarizePollExecution keeps ready-buffer processing inside the observed epoll budget"',
-        )
-        helper_path.write_text(original_helper, encoding="utf-8")
-
-        helper_path.write_text(
-            original_helper.replace(
-                'test "summarizePollExecution rejects impossible processing outside the live perf_buffer__poll wait result"',
-                'test "summarizePollExecution rejects impossible processing outside the wait result"',
-                1,
-            ),
-            encoding="utf-8",
-        )
-        expect_missing_marker(
-            "helper_poll_execution_guard_test_surface",
-            tmp_root,
-            'tools/lib/bpf/zigux_segments/perf_buffer_poll.zig:test "summarizePollExecution rejects impossible processing outside the live perf_buffer__poll wait result"',
-        )
-        helper_path.write_text(original_helper, encoding="utf-8")
-
-        validator_path = tmp_root / "scripts/zigux/validate-phase8.py"
-        original_validator = validator_path.read_text(encoding="utf-8")
-        validator_path.write_text(
-            original_validator.replace(
-                '"zigux/tests/phase8_perf_buffer_poll_only_build.zig"',
-                '"zigux/tests/phase8_perf_buffer_poll_build.zig"',
-                1,
-            ),
-            encoding="utf-8",
-        )
-        expect_missing_marker(
-            "validator_focused_build_file",
-            tmp_root,
-            "scripts/zigux/validate-phase8.py:zigux/tests/phase8_perf_buffer_poll_only_build.zig",
-        )
-        validator_path.write_text(original_validator, encoding="utf-8")
-
-        validator_path.write_text(
-            original_validator.replace(
-                "Documentation/zigux/phase8-perf-buffer-poll-slice.md",
-                "Documentation/zigux/phase8-perf-buffer-slice.md",
-                1,
-            ),
-            encoding="utf-8",
-        )
-        expect_missing_marker(
-            "validator_perf_buffer_poll_note_surface",
-            tmp_root,
-            "scripts/zigux/validate-phase8.py:Documentation/zigux/phase8-perf-buffer-poll-slice.md",
-        )
-        validator_path.write_text(original_validator, encoding="utf-8")
-
-        validator_path.write_text(
-            original_validator.replace(
-                "zigux/tests/phase8_perf_buffer_poll.zig",
-                "zigux/tests/phase8_perf_buffer_wait.zig",
-                1,
-            ),
-            encoding="utf-8",
-        )
-        expect_missing_marker(
-            "validator_perf_buffer_poll_test_surface",
-            tmp_root,
-            "scripts/zigux/validate-phase8.py:zigux/tests/phase8_perf_buffer_poll.zig",
-        )
-        validator_path.write_text(original_validator, encoding="utf-8")
-
-        validator_path.write_text(
-            original_validator.replace(
-                "phase8-perf-buffer-poll-test:",
-                "phase8-perf-buffer-test:",
-                1,
-            ),
-            encoding="utf-8",
-        )
-        expect_missing_marker(
-            "validator_make_target",
-            tmp_root,
-            "scripts/zigux/validate-phase8.py:phase8-perf-buffer-poll-test:",
-        )
-        validator_path.write_text(original_validator, encoding="utf-8")
-
-        validator_path.write_text(
-            original_validator.replace(
-                "Run focused Phase 8 perf-buffer poll tests",
-                "Run focused Phase 8 perf-buffer tests",
-                1,
-            ),
-            encoding="utf-8",
-        )
-        expect_missing_marker(
-            "validator_workflow_surface",
-            tmp_root,
-            "scripts/zigux/validate-phase8.py:Run focused Phase 8 perf-buffer poll tests",
-        )
-        validator_path.write_text(original_validator, encoding="utf-8")
-
-        validator_path.write_text(
-            original_validator.replace(
-                "phase8-perf-buffer-poll-tests",
-                "phase8-perf-buffer-tests",
-                1,
-            ),
-            encoding="utf-8",
-        )
-        expect_missing_marker(
-            "validator_artifact_name",
-            tmp_root,
-            "scripts/zigux/validate-phase8.py:phase8-perf-buffer-poll-tests",
-        )
-        validator_path.write_text(original_validator, encoding="utf-8")
-
-        shared_build_path = tmp_root / "zigux/tests/phase8_build.zig"
-        original_shared_build = shared_build_path.read_text(encoding="utf-8")
-        shared_build_path.write_text(
-            original_shared_build.replace(
-                "phase8-perf-buffer-poll-tests",
-                "phase8-perf-buffer-tests",
-                1,
-            ),
-            encoding="utf-8",
-        )
-        expect_missing_marker(
-            "shared_build_poll_artifact_name",
-            tmp_root,
-            "zigux/tests/phase8_build.zig:phase8-perf-buffer-poll-tests",
-        )
-        shared_build_path.write_text(original_shared_build, encoding="utf-8")
-
-        poll_test_path = tmp_root / "zigux/tests/phase8_perf_buffer_poll.zig"
-        original_poll_test = poll_test_path.read_text(encoding="utf-8")
-        poll_test_path.write_text(
-            original_poll_test.replace(
-                "phase8_perf_buffer_poll_only_build.zig",
-                "phase8_perf_buffer_poll_build.zig",
-                1,
-            ),
-            encoding="utf-8",
-        )
-        expect_missing_marker(
-            "poll_test_focused_build_surface",
-            tmp_root,
-            "zigux/tests/phase8_perf_buffer_poll.zig:phase8_perf_buffer_poll_only_build.zig",
-        )
-        poll_test_path.write_text(original_poll_test, encoding="utf-8")
-
-        poll_test_path.write_text(
-            original_poll_test.replace(
-                'test "phase 8 perf-buffer poll helper keeps execution bookkeeping aligned with the observed ready-event budget"',
-                'test "phase 8 perf-buffer poll helper keeps observed event accounting explicit"',
-                1,
-            ),
-            encoding="utf-8",
-        )
-        expect_missing_marker(
-            "poll_test_execution_budget_surface",
-            tmp_root,
-            'zigux/tests/phase8_perf_buffer_poll.zig:test "phase 8 perf-buffer poll helper keeps execution bookkeeping aligned with the observed ready-event budget"',
-        )
-        poll_test_path.write_text(original_poll_test, encoding="utf-8")
-
-        poll_test_path.write_text(
-            original_poll_test.replace(
-                'test "phase 8 perf-buffer poll helper rejects impossible post-wait record processing"',
-                'test "phase 8 perf-buffer poll helper rejects impossible post-wait processing"',
-                1,
-            ),
-            encoding="utf-8",
-        )
-        expect_missing_marker(
-            "poll_test_execution_guard_surface",
-            tmp_root,
-            'zigux/tests/phase8_perf_buffer_poll.zig:test "phase 8 perf-buffer poll helper rejects impossible post-wait record processing"',
-        )
-        poll_test_path.write_text(original_poll_test, encoding="utf-8")
-
-        focused_build_path = tmp_root / "zigux/tests/phase8_perf_buffer_poll_only_build.zig"
-        original_focused_build = focused_build_path.read_text(encoding="utf-8")
-        focused_build_path.write_text(
-            original_focused_build.replace(
-                "phase8-perf-buffer-poll-tests",
-                "phase8-perf-buffer-tests",
-                1,
-            ),
-            encoding="utf-8",
-        )
-        expect_missing_marker(
-            "focused_build_artifact_name",
-            tmp_root,
-            "zigux/tests/phase8_perf_buffer_poll_only_build.zig:phase8-perf-buffer-poll-tests",
-        )
-
-    print("PHASE8_PERF_BUFFER_POLL_GATE_SELF_TEST=pass")
-    print("PHASE8_PERF_BUFFER_POLL_GATE_SELF_TEST_CASE_COUNT=40")
+        print("PHASE8_PERF_BUFFER_POLL_GATE_SELF_TEST=pass")
+        print("PHASE8_PERF_BUFFER_POLL_GATE_SELF_TEST_CASE_COUNT=8")
     return 0
 
 
