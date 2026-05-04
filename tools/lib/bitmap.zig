@@ -456,7 +456,7 @@ pub fn bitmap_subset(bitmap1: []const Word, bitmap2: []const Word, bits: usize) 
 }
 
 pub fn bitmap_xor(dst: []Word, bitmap1: []const Word, bitmap2: []const Word, bits: usize) void {
-    xorBits(dst, bitmap1, bitmap2, bits);
+    return xorBits(dst, bitmap1, bitmap2, bits);
 }
 
 pub fn bitmap_alloc(allocator: std.mem.Allocator, nbits: usize) ![]Word {
@@ -508,7 +508,7 @@ pub fn __bitmap_subset(bitmap1: []const Word, bitmap2: []const Word, bits: usize
 }
 
 pub fn __bitmap_xor(dst: []Word, bitmap1: []const Word, bitmap2: []const Word, bits: usize) void {
-    xorBits(dst, bitmap1, bitmap2, bits);
+    return xorBits(dst, bitmap1, bitmap2, bits);
 }
 
 pub fn bitmap_size(nbits: usize) usize {
@@ -659,6 +659,36 @@ test "bitmap tail-masked helpers ignore out-of-range differences" {
     try std.testing.expect(equal(&outside_only, &[_]Word{ 0, 0 }, nbits));
     try std.testing.expect(!intersects(&outside_only, &outside_only, nbits));
     try std.testing.expect(subset(&outside_only, &[_]Word{ 0, 0 }, nbits));
+}
+
+test "bitmap predicates and weight ignore out-of-range tail bits" {
+    const nbits = bits_per_long + 5;
+    const in_range_tail = @as(Word, 1) << 4;
+    const out_of_range_tail = @as(Word, 1) << 9;
+
+    const full_map = [_]Word{ ~@as(Word, 0), lastWordMask(nbits) | out_of_range_tail };
+    try std.testing.expect(full(&full_map, nbits));
+    try std.testing.expect(bitmap_full(&full_map, nbits));
+    try std.testing.expect(!empty(&full_map, nbits));
+    try std.testing.expect(!bitmap_empty(&full_map, nbits));
+    try std.testing.expectEqual(nbits, weight(&full_map, nbits));
+    try std.testing.expectEqual(nbits, bitmap_weight(&full_map, nbits));
+
+    const partial_map = [_]Word{ ~@as(Word, 0), in_range_tail | out_of_range_tail };
+    try std.testing.expect(!full(&partial_map, nbits));
+    try std.testing.expect(!bitmap_full(&partial_map, nbits));
+    try std.testing.expect(!empty(&partial_map, nbits));
+    try std.testing.expect(!bitmap_empty(&partial_map, nbits));
+    try std.testing.expectEqual(bits_per_long + 1, weight(&partial_map, nbits));
+    try std.testing.expectEqual(bits_per_long + 1, bitmap_weight(&partial_map, nbits));
+
+    const empty_map = [_]Word{ 0, out_of_range_tail };
+    try std.testing.expect(empty(&empty_map, nbits));
+    try std.testing.expect(bitmap_empty(&empty_map, nbits));
+    try std.testing.expect(!full(&empty_map, nbits));
+    try std.testing.expect(!bitmap_full(&empty_map, nbits));
+    try std.testing.expectEqual(@as(usize, 0), weight(&empty_map, nbits));
+    try std.testing.expectEqual(@as(usize, 0), bitmap_weight(&empty_map, nbits));
 }
 
 test "bitmap xor keeps caller-selected bit window" {
