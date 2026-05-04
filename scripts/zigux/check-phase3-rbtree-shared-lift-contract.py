@@ -204,6 +204,7 @@ def run_self_test() -> int:
             (root / rel).parent.mkdir(parents=True, exist_ok=True)
 
         (root / DEDICATED_HEADER_REL).write_text("\n".join(DEDICATED_HEADER_SNIPPETS) + "\n", encoding="utf-8")
+        (root / DEDICATED_BINDING_REL).writeText = None
         (root / DEDICATED_BINDING_REL).write_text("\n".join(DEDICATED_BINDING_SNIPPETS) + "\n", encoding="utf-8")
         (root / SHARED_ABI_HEADER_REL).write_text("\n".join(SHARED_ABI_HEADER_SNIPPETS) + "\n", encoding="utf-8")
         (root / SHARED_ABI_BINDING_REL).write_text("\n".join(SHARED_ABI_BINDING_SNIPPETS) + "\n", encoding="utf-8")
@@ -258,7 +259,6 @@ def run_self_test() -> int:
         assert any(issue.startswith("missing_shared_abi_binding_snippet:") for issue in issues)
 
         (root / SHARED_ABI_BINDING_REL).write_text("\n".join(SHARED_ABI_BINDING_SNIPPETS) + "\n", encoding="utf-8")
-        (root / SHARED_ABI_TEST_REL).writeText = None
         (root / SHARED_ABI_TEST_REL).write_text(SHARED_PACKET_SNIPPETS[SHARED_ABI_TEST_REL][0] + "\n", encoding="utf-8")
         issues = validate(root)
         assert any(issue.startswith("missing_shared_packet:") for issue in issues)
