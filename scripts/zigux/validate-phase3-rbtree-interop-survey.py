@@ -83,7 +83,7 @@ REQUIRED_ROADMAP_GAP_MARKERS = (
 REQUIRED_SLICE_MARKERS = (
     "PHASE3_RBTREE_DEDICATED_BOUNDARY_PARITY=zigux/tests/fixtures/phase3_rbtree/expected.json,zigux/tests/fixtures/phase3_rbtree/phase3_rbtree_c_harness.c",
     "PHASE3_RBTREE_SHARED_BOUNDARY_STATUS=shared-root-view-lift-landed-shared-replay-present",
-    "PHASE3_RBTREE_SHARED_BOUNDARY_GAP=shared-phase3-abi-note-and-marker-alignment-still-needed",
+    "PHASE3_RBTREE_SHARED_BOUNDARY_GAP=shared-phase3-abi-validator-packet-still-needs-rbtree-shared-lift-alignment",
     "PHASE3_RBTREE_SHARED_BOUNDARY_GUARDS=scripts/zigux/check-phase3-abi-layout-packet.py,scripts/zigux/check-phase3-rbtree-shared-lift-contract.py",
 )
 
@@ -91,8 +91,8 @@ REQUIRED_SLICE_SNIPPETS = (
     "This slice now carries both the dedicated `rbtree` boundary packet and the landed shared Phase 3 ABI root-view lift.",
     "a shared `rbtree` root-view record in `include/zigux/abi.h` and `zigux/bindings/abi.zig`",
     "a shared Phase 3 ABI replay in `zigux/tests/phase3_abi.zig`, `zigux/tests/phase3_abi_dump.zig`, and `zigux/tests/fixtures/phase3_abi/phase3_abi_c_harness.c` that now uses the curated shared header and binding path",
-    "the outstanding same-family work is note and marker alignment rather than missing shared code",
-    "The next honest follow-up is one bounded shared-note alignment pass",
+    "the outstanding same-family work is the broader shared ABI validator-packet alignment rather than missing shared code",
+    "The next honest follow-up is one bounded shared-validator alignment pass",
 )
 
 REQUIRED_SHARED_LIFT_CHECK_SNIPPETS = (
