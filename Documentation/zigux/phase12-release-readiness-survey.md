@@ -12,6 +12,7 @@ This document records the current release-discipline reading for the active boun
 - scope: roadmap-backed `virtio_net`, `nvme_pci`, `virtio_scsi`, and bounded libbpf helper evidence plus the current cross-compile smoke packet and the mixed public-read fallback coverage packet
 - product boundary:
   - `Documentation/zigux/phase12-release-readiness-survey.md`
+  - `Documentation/zigux/phase12-release-coordination-matrix.md`
   - `Documentation/zigux/review-checklist.md`
   - `Documentation/zigux/phase12-shared-replay-contract.md`
   - `Documentation/zigux/phase12-cross-compile-smoke.md`
@@ -52,6 +53,7 @@ This survey closes that PMO gap without widening driver scope:
 - the non-native compile-smoke packet is an explicit part of the release reading through `Documentation/zigux/phase12-cross-compile-smoke.md`, `python3 scripts/zigux/check-phase12-cross.py --zig <zig-path>`, and `zigux/tests/phase12_cross_build.zig`
 - the public-read fallback posture is intentionally mixed and should stay explicit instead of being inferred from whichever anchor most recently gained a pinned raw catalog
 - the release packet should say plainly which anchors have commit-pinned public fallback artifacts today and which still rely on shared-tree fallback reads only
+- the release packet now also keeps `Documentation/zigux/phase12-release-coordination-matrix.md` explicit as the compact PMO handoff for the three-way owner split, per-anchor status bucket, shared validation gate, rollback owner, and mixed public-read fallback mode, so that release-facing view does not stay discoverable only from the deeper shared replay contract note
 - the release packet should also keep the current three-way owner split explicit so `virtio_net`, the shared storage packet around `nvme_pci` and `virtio_scsi`, and `libbpf` do not collapse back into one fuzzy release label during PMO review
 - the release packet should keep the shared review checklist visible as part of the same PMO evidence surface so degraded-workflow, build-inventory, raw-fallback, and focused libbpf-only replay questions do not live only in reviewer habit
 - the dedicated Phase 12 PMO checklist question now restates the active-not-closed release posture, the approved three-target musl smoke set, and the current two commit-pinned versus two shared-tree-only fallback split in one release-facing prompt instead of leaving that summary only in the survey note and docs root
@@ -66,6 +68,7 @@ The current Phase 12 release-facing reading is:
 - `tools/lib/bpf/libbpf.c`: bounded segmented helper survey evidence is present through `Documentation/zigux/phase12-libbpf-segment-survey.md`, while the release packet now also keeps the focused libbpf-only replay shard explicit through `scripts/zigux/check-phase12-libbpf-focused-replay.py`, `zigux/tests/phase12_libbpf_only_build.zig`, and the dedicated `zig build --build-file zigux/tests/phase12_libbpf_only_build.zig phase12-libbpf-focused-replay --summary all` alias; public-read fallback still remains shared-tree-only rather than map-pinned or catalog-pinned
 - `Documentation/zigux/README.md` now also mirrors the mixed fallback split directly, naming `Documentation/zigux/phase12-nvme-pci-raw-github-fallback-map.md` and `Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md` as the dedicated commit-pinned fallback artifacts while `Documentation/zigux/phase12-virtio-net-survey.md` and `Documentation/zigux/phase12-libbpf-segment-survey.md` remain shared-tree-only fallback reads
 - the same release packet now also keeps the active complex-driver rollback owner split explicit: `Network Driver Lane` owns the bounded `virtio_net` packet, `Storage Driver Lane` owns the bounded `nvme_pci` and `virtio_scsi` packets, and `BPF Tooling Lane` owns the bounded libbpf helper packet
+- `Documentation/zigux/phase12-release-coordination-matrix.md` now also keeps that same three-way owner split, the per-anchor status bucket, the shared validation gate, the rollback owner map, and the mixed two commit-pinned versus two shared-tree-only fallback split visible in one compact PMO handoff view
 - the shared-tree-only side of that fallback split is now also bounded by four published readback roots in `Documentation/zigux/phase12-raw-github-coverage-survey.md`: `https://github.com/adybag14-cyber/Zigux/tree/master/drivers/net`, `https://github.com/adybag14-cyber/Zigux/tree/master/tools/lib/bpf`, `https://github.com/adybag14-cyber/Zigux/tree/master/Documentation/zigux`, and `https://github.com/adybag14-cyber/Zigux/tree/master/zigux/tests`, so degraded public review of `virtio_net` and `libbpf` no longer depends on ad hoc tree discovery
 - that same mixed fallback packet is also backed by `scripts/zigux/check-phase12-raw-github-coverage.py`, `zigux/tests/phase12_raw_github_coverage_manifest.json`, and `zigux/tests/phase12_raw_github_coverage_survey.zig`, so the release-facing note now names the checker and manifest-backed survey evidence instead of treating the split as prose-only release guidance
 - `Documentation/zigux/review-checklist.md` now remains part of the same release-facing packet and carries the shared degraded-workflow, build-inventory, raw-fallback, focused libbpf-only replay, and dedicated Phase 12 PMO release-readiness prompts, so PMO review does not rely on the docs root alone to keep those release checks visible
@@ -87,6 +90,7 @@ The current Phase 12 release-facing reading is:
 The current bounded release-evidence set is:
 
 - `Documentation/zigux/phase12-release-readiness-survey.md`
+- `Documentation/zigux/phase12-release-coordination-matrix.md`
 - `Documentation/zigux/review-checklist.md`
 - `Documentation/zigux/phase12-shared-replay-contract.md`
 - `Documentation/zigux/phase12-cross-compile-smoke.md`
@@ -172,4 +176,4 @@ This survey does not claim:
 
 ## Next bounded step
 
-If this `pmo-release` lane reopens, the next honest follow-up is to tighten `scripts/zigux/check-phase12-release-readiness-packet.py` so its contract-note guard also exact-counts the raw-coverage sentence and the paired Review Use bullets already published in `Documentation/zigux/phase12-shared-replay-contract.md`, keeping `zigux/tests/phase12_raw_github_coverage_manifest.json` and `zigux/tests/phase12_raw_github_coverage_survey.zig` coupled to the same release-facing PMO packet instead of leaving that newer contract wording checker-soft. Keep that work bounded to the dedicated release-packet checker and the adjacent shared contract note without reopening DMA transport, queue ownership, throughput, recovery, object-model, loader, relocation, helper behavior, or direct driver behavior.
+If this `pmo-release` lane reopens, the next honest follow-up is to tighten `scripts/zigux/check-phase12-release-readiness-packet.py` so the checker treats `Documentation/zigux/phase12-release-coordination-matrix.md` and the paired tests-root PMO handoff sentence as first-class release-packet summary surfaces too, keeping the compact owner or status or validation-gate handoff visible from the same bounded Phase 12 release packet instead of leaving that newer matrix discoverable only through note-level readback. Keep that work bounded to the dedicated release-packet checker plus adjacent PMO guidance wording without reopening DMA transport, queue ownership, throughput, recovery, object-model, loader, relocation, helper behavior, or direct driver behavior.
