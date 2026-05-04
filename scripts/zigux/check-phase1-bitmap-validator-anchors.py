@@ -55,16 +55,13 @@ REQUIRED_CLOSURE_SNIPPETS = {
         "contract"
     ),
     "alias_anchor": (
-        "- bitmap alias unit-test anchor: `tools/lib/bitmap.zig:test "
-        "\\\"bitmap underscore aliases preserve bitmap helper semantics\\\"`"
+        "- bitmap alias unit-test anchor: `tools/lib/bitmap.zig:test \"bitmap underscore aliases preserve bitmap helper semantics\"`"
     ),
     "double_underscore_anchor": (
-        "- bitmap double-underscore alias unit-test anchor: `tools/lib/bitmap.zig:test "
-        "\\\"bitmap double-underscore aliases preserve core helper semantics\\\"`"
+        "- bitmap double-underscore alias unit-test anchor: `tools/lib/bitmap.zig:test \"bitmap double-underscore aliases preserve core helper semantics\"`"
     ),
     "size_anchor": (
-        "- bitmap size unit-test anchor: `tools/lib/bitmap.zig:test "
-        "\\\"bitmap size helpers round up to full words in bytes\\\"`"
+        "- bitmap size unit-test anchor: `tools/lib/bitmap.zig:test \"bitmap size helpers round up to full words in bytes\"`"
     ),
 }
 
