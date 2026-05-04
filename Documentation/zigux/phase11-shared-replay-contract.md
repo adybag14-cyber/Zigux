@@ -89,6 +89,10 @@ Use this note when a simple-driver change touches the shared Phase 11 test packe
 The minimum agreement surface for that kind of change is:
 
 - `zigux/tests/phase11_build.zig`
+- `zigux/tests/phase11_dw_wdt_suspend_resume.zig`
+- `zigux/tests/phase11_dw_wdt_remove_idle_split.zig`
+- `zigux/tests/phase11_hvc_console_modem_control_split.zig`
+- `zigux/tests/phase11_hvc_console_poll_retry_split.zig`
 - `zigux/tests/fixtures/phase11_build_inventory.json`
 - `scripts/zigux/check-phase11-build-inventory.py`
 - `scripts/zigux/check-phase11-layout-assert-surface.py`
