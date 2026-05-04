@@ -43,6 +43,7 @@ TESTS_README_MARKERS = [
 DOC_README_MARKERS = [
     "Phase 8 notes",
     "Documentation/zigux/phase8-perf-buffer-poll-slice.md",
+    "tools/lib/bpf/zigux_segments/perf_buffer_poll.zig",
     "zigux/tests/phase8_bridge_boundary_survey.zig",
     "zigux/tests/phase8_file_path_handle_bridge.zig",
     "zigux/tests/phase8_bpf_type_names.zig",
@@ -93,6 +94,8 @@ SCRIPTS_README_MARKERS = [
     "check-phase8-tests-readme-alignment.py",
     "Phase 8 flow",
     "make -C zigux phase8-validate",
+    "Documentation/zigux/phase8-perf-buffer-poll-slice.md",
+    "tools/lib/bpf/zigux_segments/perf_buffer_poll.zig",
     "zigux/tests/phase8_bridge_boundary_survey.zig",
     "zigux/tests/phase8_libbpf_segments_only_build.zig",
     "zigux/tests/phase8_perf_buffer_poll.zig",
@@ -242,6 +245,7 @@ def clone_fixture_root(destination_root: Path) -> None:
                 "",
                 "## Phase 8 notes",
                 "- Documentation/zigux/phase8-perf-buffer-poll-slice.md",
+                "- tools/lib/bpf/zigux_segments/perf_buffer_poll.zig",
                 "- zigux/tests/phase8_bridge_boundary_survey.zig",
                 "- zigux/tests/phase8_file_path_handle_bridge.zig",
                 "- zigux/tests/phase8_bpf_type_names.zig",
@@ -347,6 +351,8 @@ def clone_fixture_root(destination_root: Path) -> None:
                 "",
                 "## Phase 8 flow",
                 "- make -C zigux phase8-validate",
+                "- Documentation/zigux/phase8-perf-buffer-poll-slice.md",
+                "- tools/lib/bpf/zigux_segments/perf_buffer_poll.zig",
                 "- zigux/tests/phase8_bridge_boundary_survey.zig",
                 "- zigux/tests/phase8_libbpf_segments_only_build.zig",
                 "- zigux/tests/phase8_perf_buffer_poll.zig",
@@ -709,6 +715,21 @@ def run_self_test() -> int:
         )
         doc_readme_path.write_text(original_doc_readme, encoding="utf-8")
 
+        doc_readme_path.write_text(
+            original_doc_readme.replace(
+                "- tools/lib/bpf/zigux_segments/perf_buffer_poll.zig\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing(
+            "doc_readme_perf_buffer_poll_helper",
+            tmp_root,
+            "doc_readme:tools/lib/bpf/zigux_segments/perf_buffer_poll.zig",
+        )
+        doc_readme_path.write_text(original_doc_readme, encoding="utf-8")
+
         perf_slice_path = tmp_root / REQUIRED_FILES["perf_slice"]
         original_perf_slice = perf_slice_path.read_text(encoding="utf-8")
         perf_slice_path.write_text(
@@ -1006,6 +1027,36 @@ def run_self_test() -> int:
         )
         scripts_readme_path.write_text(original_scripts_readme, encoding="utf-8")
 
+        scripts_readme_path.write_text(
+            original_scripts_readme.replace(
+                "- Documentation/zigux/phase8-perf-buffer-poll-slice.md\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing(
+            "scripts_readme_perf_buffer_poll_slice",
+            tmp_root,
+            "scripts_readme:Documentation/zigux/phase8-perf-buffer-poll-slice.md",
+        )
+        scripts_readme_path.write_text(original_scripts_readme, encoding="utf-8")
+
+        scripts_readme_path.write_text(
+            original_scripts_readme.replace(
+                "- tools/lib/bpf/zigux_segments/perf_buffer_poll.zig\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing(
+            "scripts_readme_perf_buffer_poll_helper",
+            tmp_root,
+            "scripts_readme:tools/lib/bpf/zigux_segments/perf_buffer_poll.zig",
+        )
+        scripts_readme_path.write_text(original_scripts_readme, encoding="utf-8")
+
         workflow_path = tmp_root / REQUIRED_FILES["workflow"]
         original_workflow = workflow_path.read_text(encoding="utf-8")
         workflow_path.write_text(
@@ -1058,7 +1109,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE8_TESTS_README_ALIGNMENT_SELF_TEST=pass")
-    print("PHASE8_TESTS_README_ALIGNMENT_SELF_TEST_CASE_COUNT=42")
+    print("PHASE8_TESTS_README_ALIGNMENT_SELF_TEST_CASE_COUNT=45")
     return 0
 
 
