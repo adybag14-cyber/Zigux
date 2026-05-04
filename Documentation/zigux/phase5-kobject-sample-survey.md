@@ -2,7 +2,7 @@
 
 - `PHASE5_STATUS=parked`
 - `PHASE5_SLICE=kobject-reference-sample-starter`
-- `PHASE5_LANE_KEY=P5-L12`
+- `PHASE5_LANE_KEY=P5-L10`
 - `PHASE5_SURVEYED_COMMIT=affdebd460c9c33ce939c7535cdb929352648e93`
 - scope: roadmap-vs-repo sample reviewability, approved ownership-and-lifetime guidance, and exact bounded checks for the landed `samples/zigux/` kobject-style replay
 - product boundary:
