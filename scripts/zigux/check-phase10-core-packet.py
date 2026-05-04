@@ -38,10 +38,14 @@ CORE_DOC_MARKERS = [
     "phase10-config-generation-summary-helper",
     "phase10-config-delivery-disposition-helper",
     "phase10-config-driver-toggle-guard-helper",
+    "phase10-driver-id-match-helper",
     "phase10-core-probe-remove-lifecycle",
 ]
 
 CORE_HELPER_MARKERS = [
+    "pub const DriverIdMatchRule = struct {",
+    "pub const DriverIdMatchSummary = struct {",
+    "pub fn driverIdMatchSummary(",
     "pub const ConfigGenerationSummary = struct {",
     "pub const DriverBindingSummary = struct {",
     "pub const DriverRemoveSummary = struct {",
@@ -53,6 +57,8 @@ CORE_HELPER_MARKERS = [
 ]
 
 CORE_TEST_MARKERS = [
+    'test "phase10 virtio core records exact driver id-table matches from virtio.c" {',
+    'test "phase10 virtio core models wildcard and unmatched driver id-table paths" {',
     'test "phase10 virtio core rejects nested driver config toggles and only flushes pending change after a valid enable" {',
     'test "phase10 virtio core records bounded driver binding around config_changed" {',
     'test "phase10 virtio core models bounded driver remove bookkeeping without transport reset" {',
@@ -149,7 +155,7 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
             missing.append("manifest:survey_summary:preexisting_phase10_test_files")
 
     gaps = manifest.get("gaps")
-    if not isinstance(gaps, list) or len(gaps) < 14:
+    if not isinstance(gaps, list) or len(gaps) < 15:
         missing.append("manifest:gaps")
     else:
         starter_count = 0
@@ -163,7 +169,7 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
             elif gap.get("status") == "blocked_on_risky_transport":
                 blocked_count += 1
 
-        if starter_count < 13:
+        if starter_count < 14:
             missing.append(f"manifest:starter_count={starter_count}")
         if blocked_count != 1:
             missing.append(f"manifest:blocked_count={blocked_count}")
@@ -178,6 +184,7 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
             "phase10-virtio-core-survey-note": "starter_landed",
             "phase10-config-change-bookkeeping-helper": "starter_landed",
             "phase10-driver-binding-bookkeeping-helper": "starter_landed",
+            "phase10-driver-id-match-helper": "starter_landed",
             "phase10-driver-remove-bookkeeping-helper": "starter_landed",
             "phase10-config-generation-summary-helper": "starter_landed",
             "phase10-config-delivery-disposition-helper": "starter_landed",
@@ -191,6 +198,18 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
                 continue
             if gap.get("status") != status:
                 missing.append(f"manifest:gap_status:{gap_id}={gap.get('status')}")
+
+        driver_id_gap = find_gap(manifest, "phase10-driver-id-match-helper")
+        if driver_id_gap is not None:
+            why_now = str(driver_id_gap.get("why_now", ""))
+            if "virtio_id_match()" not in why_now:
+                missing.append("manifest:driver_id_gap:virtio_id_match()")
+            if "virtio_dev_match()" not in why_now:
+                missing.append("manifest:driver_id_gap:virtio_dev_match()")
+            if "VIRTIO_DEV_ANY_ID" not in why_now:
+                missing.append("manifest:driver_id_gap:VIRTIO_DEV_ANY_ID")
+            if "first-match ordering" not in why_now:
+                missing.append("manifest:driver_id_gap:first_match_ordering")
 
         remove_gap = find_gap(manifest, "phase10-driver-remove-bookkeeping-helper")
         if remove_gap is not None:
@@ -305,6 +324,22 @@ def run_self_test() -> int:
         )
         manifest_path.write_text(original_manifest, encoding="utf-8")
 
+        manifest_path.writeText = None
+        manifest_path.write_text(
+            original_manifest.replace(
+                '"phase10-driver-id-match-helper"',
+                '"phase10-driver-id-match-helper-drift"',
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "core_manifest_driver_id_gap_id",
+            tmp_root,
+            "manifest:gap:phase10-driver-id-match-helper",
+        )
+        manifest_path.write_text(original_manifest, encoding="utf-8")
+
         manifest_path.write_text(
             original_manifest.replace(
                 '"phase10-core-probe-remove-lifecycle",\n      "status": "blocked_on_risky_transport"',
@@ -341,6 +376,21 @@ def run_self_test() -> int:
         original_helper = helper_path.read_text(encoding="utf-8")
         helper_path.write_text(
             original_helper.replace(
+                "pub fn driverIdMatchSummary(",
+                "pub fn driverIdMatchSummaryDrift(",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "helper_driver_id_match_summary_entrypoint",
+            tmp_root,
+            "core_helper:pub fn driverIdMatchSummary(",
+        )
+        helper_path.write_text(original_helper, encoding="utf-8")
+
+        helper_path.write_text(
+            original_helper.replace(
                 "pub fn removeDriver(self: *Self) !DriverRemoveSummary {",
                 "pub fn removeDriverDrift(self: *Self) !DriverRemoveSummary {",
                 1,
@@ -353,6 +403,23 @@ def run_self_test() -> int:
             "core_helper:pub fn removeDriver(self: *Self) !DriverRemoveSummary {",
         )
         helper_path.write_text(original_helper, encoding="utf-8")
+
+        test_path = tmp_root / "zigux/tests/phase10_virtio_core.zig"
+        original_test = test_path.read_text(encoding="utf-8")
+        test_path.write_text(
+            original_test.replace(
+                'test "phase10 virtio core records exact driver id-table matches from virtio.c" {',
+                'test "phase10 virtio core records exact driver id-table matches drift" {',
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "core_test_driver_id_match_case",
+            tmp_root,
+            'core_tests:test "phase10 virtio core records exact driver id-table matches from virtio.c" {',
+        )
+        test_path.write_text(original_test, encoding="utf-8")
 
         survey_test_path = tmp_root / "zigux/tests/phase10_virtio_core_survey.zig"
         original_survey_test = survey_test_path.read_text(encoding="utf-8")
@@ -409,7 +476,7 @@ def run_self_test() -> int:
         closure_path.write_text(original_closure, encoding="utf-8")
 
     print("PHASE10_CORE_PACKET_SELF_TEST=pass")
-    print("PHASE10_CORE_PACKET_SELF_TEST_CASE_COUNT=8")
+    print("PHASE10_CORE_PACKET_SELF_TEST_CASE_COUNT=11")
     return 0
 
 
