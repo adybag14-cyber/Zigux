@@ -181,7 +181,32 @@ pub fn hasExtension(filename: []const u8, ext: []const u8) bool {
 }
 
 fn parseDimension(value: []const u8) usize {
-    return std.fmt.parseInt(usize, value, 10) catch 0;
+    var index: usize = 0;
+    while (index < value.len and std.ascii.isWhitespace(value[index])) : (index += 1) {}
+
+    if (index == value.len) {
+        return 0;
+    }
+
+    if (value[index] == '+') {
+        index += 1;
+    } else if (value[index] == '-') {
+        return 0;
+    }
+
+    var seen_digit = false;
+    var parsed: usize = 0;
+    while (index < value.len and std.ascii.isDigit(value[index])) : (index += 1) {
+        seen_digit = true;
+        parsed = std.math.mul(usize, parsed, 10) catch return 0;
+        parsed = std.math.add(usize, parsed, value[index] - '0') catch return 0;
+    }
+
+    if (!seen_digit) {
+        return 0;
+    }
+
+    return parsed;
 }
 
 pub fn splitPathEntries(allocator: std.mem.Allocator, raw_path: []const u8) !PathEntries {
@@ -868,6 +893,16 @@ test "loadCommandListsFromEnvPath reuses the shared loader for custom prefixes" 
     try std.testing.expectEqualStrings("trace", other_cmds.names.items[1].name);
 }
 
+test "parseDimension accepts positive numeric prefixes like atoi" {
+    try std.testing.expectEqual(@as(usize, 40), parseDimension("40"));
+    try std.testing.expectEqual(@as(usize, 40), parseDimension(" 40"));
+    try std.testing.expectEqual(@as(usize, 120), parseDimension("+120"));
+    try std.testing.expectEqual(@as(usize, 31), parseDimension("31rows"));
+    try std.testing.expectEqual(@as(usize, 96), parseDimension("96 columns"));
+    try std.testing.expectEqual(@as(usize, 0), parseDimension("-12"));
+    try std.testing.expectEqual(@as(usize, 0), parseDimension("bogus"));
+}
+
 test "resolveTerminalDimensions mirrors C env precedence, fallback, and defaults" {
     try std.testing.expectEqualDeep(
         TerminalDimensions{ .rows = 40, .cols = 120 },
@@ -902,6 +937,26 @@ test "resolveTerminalDimensions mirrors C env precedence, fallback, and defaults
             "bogus",
             "24",
             null,
+        ),
+    );
+}
+
+test "resolveTerminalDimensions accepts positive numeric prefixes before falling back" {
+    try std.testing.expectEqualDeep(
+        TerminalDimensions{ .rows = 40, .cols = 120 },
+        resolveTerminalDimensions(
+            " 40rows",
+            "+120cols",
+            .{ .rows = 31, .cols = 96 },
+        ),
+    );
+
+    try std.testing.expectEqualDeep(
+        TerminalDimensions{ .rows = 31, .cols = 96 },
+        resolveTerminalDimensions(
+            "-40",
+            "120",
+            .{ .rows = 31, .cols = 96 },
         ),
     );
 }
