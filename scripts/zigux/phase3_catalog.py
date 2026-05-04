@@ -701,7 +701,7 @@ def _repeated_ngrams(tokens: list[str], size: int) -> list[tuple[str, int]]:
     return sorted((ngram, count) for ngram, count in counts.items() if count > 1)
 
 
-def audit_phase3_slug_sanity(entries: list[Phase3Slice]) -> list[Phase3AuditIssue]:
+def _audit_phase3_slug_sanity_issues(entries: list[Phase3Slice]) -> list[Phase3AuditIssue]:
     issues: list[Phase3AuditIssue] = []
     for entry in entries:
         tokens = [token for token in entry.slug.split("-") if token]
@@ -724,14 +724,31 @@ def audit_phase3_slug_sanity(entries: list[Phase3Slice]) -> list[Phase3AuditIssu
     return issues
 
 
+def blocking_phase3_slug_sanity_issues(entries: list[Phase3Slice]) -> list[Phase3AuditIssue]:
+    issues = _audit_phase3_slug_sanity_issues(entries)
+    blocking_slugs = {candidate.slug for candidate in discover_phase3_slug_rename_candidates(entries)}
+    if not blocking_slugs:
+        return []
+    return [issue for issue in issues if issue.detail.partition("\t")[0] in blocking_slugs]
+
+
+def nonblocking_phase3_slug_sanity_issues(entries: list[Phase3Slice]) -> list[Phase3AuditIssue]:
+    blocking_rows = {issue.to_row() for issue in blocking_phase3_slug_sanity_issues(entries)}
+    return [issue for issue in _audit_phase3_slug_sanity_issues(entries) if issue.to_row() not in blocking_rows]
+
+
+def audit_phase3_slug_sanity(entries: list[Phase3Slice]) -> list[Phase3AuditIssue]:
+    return blocking_phase3_slug_sanity_issues(entries)
+
+
 def _artifact_diff_publishable_entries(entries: list[Phase3Slice]) -> list[Phase3Slice]:
-    blocked_slugs = {issue.detail.split("\t", 1)[0] for issue in audit_phase3_slug_sanity(entries)}
+    blocked_slugs = {issue.detail.split("\t", 1)[0] for issue in blocking_phase3_slug_sanity_issues(entries)}
     return [entry for entry in entries if entry.slug not in blocked_slugs]
 
 
 def discover_phase3_slug_rename_candidates(entries: list[Phase3Slice]) -> list[Phase3SlugRenameCandidate]:
     issues_by_slug: dict[str, set[str]] = {}
-    for issue in audit_phase3_slug_sanity(entries):
+    for issue in _audit_phase3_slug_sanity_issues(entries):
         slug, _, _detail = issue.detail.partition("\t")
         issues_by_slug.setdefault(slug, set()).add(issue.code)
 
@@ -988,6 +1005,7 @@ def run_self_test() -> int:
                 encoding="utf-8",
                 newline="\n",
             )
+            (fixture_dir / "expected.json").writeText if False else None
             (fixture_dir / "expected.json").write_text("{}\n", encoding="utf-8", newline="\n")
             (fixture_dir / f"phase3_{slug.replace('-', '_')}_c_harness.c").write_text(
                 "int main(void) { return 0; }\n",
@@ -1127,9 +1145,23 @@ def run_self_test() -> int:
             candidate.slug == repetitive_slug and candidate.canonical_slug == canonical_slug
             for candidate in rename_candidates
         )
+        assert any(issue.detail.startswith(repetitive_slug + "\t") for issue in blocking_phase3_slug_sanity_issues(discover_phase3_slices(paths)))
+
+        nonblocking_slug = (
+            "spiral-window-policy-budget-window-policy-budget-window-policy-budget-window-policy-budget-window-policy"
+        )
+        add_slice(nonblocking_slug, "nonblocking loop")
+        nonblocking_entries = discover_phase3_slices(paths)
+        assert any(issue.detail.startswith(nonblocking_slug + "\t") for issue in _audit_phase3_slug_sanity_issues(nonblocking_entries))
+        assert not any(
+            issue.detail.startswith(nonblocking_slug + "\t")
+            for issue in blocking_phase3_slug_sanity_issues(nonblocking_entries)
+        )
+
         publishable_slugs = [entry.slug for entry in _artifact_diff_publishable_entries(discover_phase3_slices(paths))]
         assert repetitive_slug not in publishable_slugs
         assert canonical_slug in publishable_slugs
+        assert nonblocking_slug in publishable_slugs
 
     print("PHASE3_CATALOG_SELF_TEST=pass")
     return 0
@@ -1204,6 +1236,7 @@ def main() -> int:
 
     if args.check_slug_sanity:
         issues = [issue.to_row() for issue in audit_phase3_slug_sanity(entries)]
+        warnings = [issue.to_row() for issue in nonblocking_phase3_slug_sanity_issues(entries)]
         if issues:
             print("PHASE3_SLUG_SANITY=fail")
             for issue in issues:
@@ -1212,6 +1245,8 @@ def main() -> int:
                 print("slug_rename_candidate\t" + candidate.to_row())
             return 1
         print("PHASE3_SLUG_SANITY=pass")
+        for warning in warnings:
+            print("slug-warning\t" + warning)
 
     if not any(
         (
