@@ -110,6 +110,7 @@ TESTS_README_MARKERS = [
 ]
 
 GATE_EVIDENCE_TARGETS = {
+    "PHASE4_VALIDATION_MATRIX_BLOB_SHA": "Documentation/zigux/phase4-validation-matrix.md",
     "PHASE4_GATE_EVIDENCE_CHECKER_BLOB_SHA": "scripts/zigux/check-phase4-gate-evidence.py",
     "PHASE4_WORKFLOW_ROUTE_CHECKER_BLOB_SHA": "scripts/zigux/check-phase4-workflow-route-counts.py",
     "PHASE4_VALIDATOR_BLOB_SHA": "scripts/zigux/validate-phase4.py",
@@ -118,8 +119,11 @@ GATE_EVIDENCE_TARGETS = {
     "PHASE4_WORKFLOW_BLOB_SHA": ".github/workflows/zigux-bootstrap.yml",
     "PHASE4_KPROBE_EXAMPLE_MANIFEST_BLOB_SHA": "zigux/tests/phase4_kprobe_example_manifest.json",
     "PHASE4_KPROBE_EXAMPLE_SURVEY_BLOB_SHA": "zigux/tests/phase4_kprobe_example_survey.zig",
+    "PHASE4_TEST_FSMOUNT_MANIFEST_BLOB_SHA": "zigux/tests/phase4_test_fsmount_manifest.json",
     "PHASE4_TEST_FSMOUNT_SURVEY_BLOB_SHA": "zigux/tests/phase4_test_fsmount_survey.zig",
+    "PHASE4_PERF_BASELINE_MANIFEST_BLOB_SHA": "zigux/tests/phase4_perf_baseline_manifest.json",
     "PHASE4_PERF_BASELINE_SURVEY_BLOB_SHA": "zigux/tests/phase4_perf_baseline_survey.zig",
+    "PHASE4_RUNTIME_ATOMIC64_MANIFEST_BLOB_SHA": "zigux/tests/phase4_runtime_atomic64_diff_manifest.json",
     "PHASE4_RUNTIME_ATOMIC64_SURVEY_BLOB_SHA": "zigux/tests/phase4_runtime_atomic64_diff_survey.zig",
     "PHASE4_DOC_README_BLOB_SHA": "Documentation/zigux/README.md",
     "PHASE4_SCRIPT_README_BLOB_SHA": "scripts/zigux/README.md",
@@ -378,6 +382,19 @@ def run_self_test() -> int:
         )
         missing = validate_root(root)
         assert "gate_evidence:PHASE4_TESTS_README_BLOB_SHA:" in " ".join(missing), missing
+
+        write_fixture_tree(root)
+        gate_evidence = root / "Documentation/zigux/phase4-gate-evidence.md"
+        gate_evidence.write_text(
+            gate_evidence.read_text(encoding="utf-8").replace(
+                "PHASE4_PERF_BASELINE_MANIFEST_BLOB_SHA=",
+                "PHASE4_PERF_BASELINE_MANIFEST_BLOB_MISSING=",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        missing = validate_root(root)
+        assert "gate_evidence:PHASE4_PERF_BASELINE_MANIFEST_BLOB_SHA:" in " ".join(missing), missing
 
     print("PHASE4_VALIDATOR_SELF_TEST=pass")
     return 0
