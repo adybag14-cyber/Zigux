@@ -81,6 +81,78 @@ test "phase11 bcm2835_wdt mirrors running-state detection and start or stop regi
     try std.testing.expectEqual(@as(u32, 0), runtime.time_left_sec);
 }
 
+test "phase11 bcm2835_wdt keepalive ping rearms the current timeout without losing halt state" {
+    var watchdog = try bcm2835_wdt.Bcm2835WatchdogLab.init(9);
+    _ = watchdog.loadRegisters(.{
+        .rstc = 0x1234_5608,
+        .rsts = bcm2835_wdt.pm_rsts_halt,
+        .wdog = bcm2835_wdt.secondsToTicks(3),
+    });
+
+    const runtime = watchdog.ping();
+    try std.testing.expect(runtime.running);
+    try std.testing.expect(!runtime.restart_armed);
+    try std.testing.expect(runtime.halt_partition_requested);
+    try std.testing.expectEqual(@as(u32, 9), runtime.timeout_sec);
+    try std.testing.expectEqual(@as(u32, 9), runtime.time_left_sec);
+    try std.testing.expectEqual(
+        bcm2835_wdt.pm_password | bcm2835_wdt.secondsToTicks(9),
+        runtime.registers.wdog,
+    );
+    try std.testing.expectEqual(
+        bcm2835_wdt.pm_password |
+            (0x1234_5608 & bcm2835_wdt.pm_rstc_wrcfg_clr) |
+            bcm2835_wdt.pm_rstc_wrcfg_full_reset,
+        runtime.registers.rstc,
+    );
+    try std.testing.expectEqual(@as(u32, bcm2835_wdt.pm_rsts_halt), runtime.registers.rsts);
+}
+
+test "phase11 bcm2835_wdt setTimeout updates the timeout and rearms the watchdog window" {
+    var watchdog = try bcm2835_wdt.Bcm2835WatchdogLab.init(4);
+    _ = watchdog.loadRegisters(.{
+        .rstc = 0xabcd_1208,
+        .rsts = 0x10,
+        .wdog = bcm2835_wdt.secondsToTicks(2),
+    });
+
+    const runtime = try watchdog.setTimeout(11);
+    try std.testing.expect(runtime.running);
+    try std.testing.expectEqual(@as(u32, 11), runtime.timeout_sec);
+    try std.testing.expectEqual(@as(u32, 11), runtime.time_left_sec);
+    try std.testing.expectEqual(@as(u32, 11), watchdog.configSnapshot().timeout_sec);
+    try std.testing.expectEqual(
+        bcm2835_wdt.pm_password | bcm2835_wdt.secondsToTicks(11),
+        runtime.registers.wdog,
+    );
+    try std.testing.expectEqual(
+        bcm2835_wdt.pm_password |
+            (0xabcd_1208 & bcm2835_wdt.pm_rstc_wrcfg_clr) |
+            bcm2835_wdt.pm_rstc_wrcfg_full_reset,
+        runtime.registers.rstc,
+    );
+    try std.testing.expectEqual(@as(u32, 0x10), runtime.registers.rsts);
+    try std.testing.expect(!runtime.restart_armed);
+}
+
+test "phase11 bcm2835_wdt setTimeout keeps the old timeout when validation fails" {
+    var watchdog = try bcm2835_wdt.Bcm2835WatchdogLab.init(6);
+    _ = watchdog.loadRegisters(.{
+        .rstc = bcm2835_wdt.pm_rstc_wrcfg_full_reset,
+        .wdog = bcm2835_wdt.secondsToTicks(6),
+    });
+
+    try std.testing.expectError(error.TimeoutTooLarge, watchdog.setTimeout(16));
+    const runtime = watchdog.runtimeSnapshot();
+    try std.testing.expect(runtime.running);
+    try std.testing.expectEqual(@as(u32, 6), runtime.timeout_sec);
+    try std.testing.expectEqual(@as(u32, 6), runtime.time_left_sec);
+    try std.testing.expectEqual(
+        @as(u32, bcm2835_wdt.secondsToTicks(6)),
+        runtime.registers.wdog,
+    );
+}
+
 test "phase11 bcm2835_wdt restart path uses the short reset timeout and preserves halt partition state" {
     var watchdog = try bcm2835_wdt.Bcm2835WatchdogLab.init(5);
     _ = watchdog.loadRegisters(.{
