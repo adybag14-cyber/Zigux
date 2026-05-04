@@ -125,3 +125,116 @@ test "phase 8 perf-buffer poll helper rejects impossible post-wait record proces
         }),
     );
 }
+
+const current_surveyed_commit = "0bd402fd6ca83ba2ace6b21e9e57459401b631cd";
+
+test "phase 8 perf-buffer poll docs and helper survey still match the current stable-output packet" {
+    const docs_root = try readWorkspaceFile(
+        std.testing.allocator,
+        "Documentation/zigux/README.md",
+        64 * 1024,
+    );
+    defer std.testing.allocator.free(docs_root);
+    try expectContains(docs_root, "Documentation/zigux/phase8-perf-buffer-poll-slice.md");
+    try expectContains(docs_root, "zigux/tests/phase8_perf_buffer_poll_only_build.zig");
+    try expectContains(docs_root, "zigux/tests/phase8_perf_buffer_poll.zig");
+
+    const bridge_note = try readWorkspaceFile(
+        std.testing.allocator,
+        "Documentation/zigux/phase8-userspace-kernel-bridge-boundary-survey.md",
+        64 * 1024,
+    );
+    defer std.testing.allocator.free(bridge_note);
+    try expectContains(bridge_note, "Documentation/zigux/phase8-perf-buffer-poll-slice.md");
+    try expectContains(bridge_note, "zigux/tests/phase8_perf_buffer_poll_only_build.zig");
+    try expectContains(bridge_note, "make -C zigux phase8-perf-buffer-poll-test");
+
+    const helper = try readWorkspaceFile(
+        std.testing.allocator,
+        "tools/lib/bpf/zigux_segments/perf_buffer_poll.zig",
+        64 * 1024,
+    );
+    defer std.testing.allocator.free(helper);
+    try expectContains(helper, "pub fn summarizeProcessRecords(");
+    try expectContains(helper, "pub fn summarizePollExecution(");
+    try expectContains(helper, "WaitResultDisagreesWithReadyEventCount");
+
+    const survey = try readWorkspaceFile(
+        std.testing.allocator,
+        "Documentation/zigux/phase8-libbpf-segment-survey.md",
+        64 * 1024,
+    );
+    defer std.testing.allocator.free(survey);
+    try expectContains(survey, current_surveyed_commit);
+    try expectContains(survey, "zigux/tests/phase8_perf_buffer_poll.zig");
+}
+
+test "resolvePollExecutionResultFromWaitResult rejects mismatched wait-result and execution summaries" {
+    const ready_execution = try perf_buffer_poll.summarizePollExecutionFromWaitResult(
+        12,
+        2,
+        &.{ .{ .ready = true }, .{ .ready = true } },
+        &.{.{ .records_processed = 1 }},
+    );
+    try std.testing.expectError(
+        perf_buffer_poll.PollError.WaitResultDisagreesWithExecutionOutcome,
+        perf_buffer_poll.resolvePollExecutionResultFromWaitResult(0, ready_execution),
+    );
+    try std.testing.expectError(
+        perf_buffer_poll.PollError.WaitResultDisagreesWithReadyEventCount,
+        perf_buffer_poll.resolvePollExecutionResultFromWaitResult(3, ready_execution),
+    );
+
+    const failed_execution = try perf_buffer_poll.summarizePollExecutionFromWaitResult(5, -5, &.{}, &.{});
+    try std.testing.expectError(
+        perf_buffer_poll.PollError.WaitResultDisagreesWithFailureCode,
+        perf_buffer_poll.resolvePollExecutionResultFromWaitResult(-9, failed_execution),
+    );
+}
+
+test "summarizePollExecution rejects impossible processing outside the live perf_buffer__poll wait result" {
+    try std.testing.expectError(
+        perf_buffer_poll.PollError.NonReadyWaitHasProcessedRecords,
+        perf_buffer_poll.summarizePollExecution(0, .timed_out, &.{}, &.{.{ .records_processed = 1 }}),
+    );
+    try std.testing.expectError(
+        perf_buffer_poll.PollError.NonReadyWaitHasProcessedRecords,
+        perf_buffer_poll.summarizePollExecution(-1, .interrupted, &.{}, &.{.{ .records_processed = 1 }}),
+    );
+    try std.testing.expectError(
+        perf_buffer_poll.PollError.ReadyBufferProcessingExceedsObservedEvents,
+        perf_buffer_poll.summarizePollExecution(5, .{ .ready_events = 1 }, &.{.{ .ready = true }}, &.{
+            .{ .records_processed = 1 },
+            .{ .records_processed = 2 },
+        }),
+    );
+}
+
+test "summarizePollExecution rejects processing more ready buffers than the helper counted as ready" {
+    try std.testing.expectError(
+        perf_buffer_poll.PollError.ReadyBufferProcessingExceedsReadyCount,
+        perf_buffer_poll.summarizePollExecution(5, .{ .ready_events = 3 }, &.{
+            .{ .ready = true },
+            .{},
+            .{ .error_code = -32 },
+        }, &.{
+            .{ .records_processed = 1 },
+            .{ .records_processed = 2 },
+        }),
+    );
+}
+
+test "summarizePoll rejects impossible buffer state for timeout interrupt and failed wait results" {
+    try std.testing.expectError(
+        perf_buffer_poll.PollError.TimeoutObservationHasReadyBuffer,
+        perf_buffer_poll.summarizePoll(0, .timed_out, &.{.{ .error_code = -5 }}),
+    );
+    try std.testing.expectError(
+        perf_buffer_poll.PollError.InterruptedObservationHasReadyBuffer,
+        perf_buffer_poll.summarizePoll(-1, .interrupted, &.{.{ .ready = true }}),
+    );
+    try std.testing.expectError(
+        perf_buffer_poll.PollError.FailedObservationHasBufferState,
+        perf_buffer_poll.summarizePoll(5, .{ .failed = -11 }, &.{.{ .error_code = -32 }}),
+    );
+}
