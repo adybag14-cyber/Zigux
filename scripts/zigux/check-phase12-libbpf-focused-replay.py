@@ -160,6 +160,10 @@ SCRIPTS_README_BOUNDARY_MARKER = (
     "zigux/tests/phase12_libbpf_only_build.zig --summary all` replay intentionally stays outside that "
     "shared wrapper as the dedicated focused libbpf-only shard."
 )
+SCRIPTS_README_ALIAS_MARKER = (
+    "and the named `zig build --build-file zigux/tests/phase12_libbpf_only_build.zig "
+    "phase12-libbpf-focused-replay --summary all` alias keeps that same focused rerun explicit from the scripts root."
+)
 SCRIPTS_README_MARKERS = [
     "check-phase12-libbpf-focused-replay.py",
     "phase12_libbpf_only_build.zig",
@@ -167,6 +171,7 @@ SCRIPTS_README_MARKERS = [
 ]
 SCRIPTS_README_EXACT_COUNTS = {
     SCRIPTS_README_BOUNDARY_MARKER: 1,
+    SCRIPTS_README_ALIAS_MARKER: 1,
 }
 DOCS_ROOT_README_MARKERS = [
     "the active Phase 12 heavy-helper survey packet now also keeps the bounded `tools/lib/bpf/zigux_segments/` helper foundations, the reproducibility snapshot, the focused libbpf-only replay shard rooted in `scripts/zigux/check-phase12-libbpf-focused-replay.py` plus `zigux/tests/phase12_libbpf_only_build.zig`, the still-deferred file-path-and-handle bridge and perf-buffer-online-cpu-routing boundaries, and the blocked object-model, loader, and relocation split visible from the top-level docs index.",
@@ -435,7 +440,14 @@ def run_self_test() -> int:
         "cross_smoke_text": "\n".join(CROSS_SMOKE_MARKERS) + "\n",
         "raw_coverage_text": "\n".join(RAW_COVERAGE_MARKERS) + "\n",
         "manifest_text": "\n".join(MANIFEST_MARKERS) + "\n",
-        "scripts_readme_text": "\n".join([*SCRIPTS_README_MARKERS, SCRIPTS_README_BOUNDARY_MARKER]) + "\n",
+        "scripts_readme_text": "\n".join(
+            [
+                *SCRIPTS_README_MARKERS,
+                SCRIPTS_README_BOUNDARY_MARKER,
+                SCRIPTS_README_ALIAS_MARKER,
+            ]
+        )
+        + "\n",
         "docs_root_readme_text": "\n".join(DOCS_ROOT_README_MARKERS) + "\n",
         "tests_readme_text": "\n".join(TESTS_README_MARKERS) + "\n",
         "review_checklist_text": "\n".join(REVIEW_CHECKLIST_MARKERS) + "\n",
@@ -838,6 +850,20 @@ def run_self_test() -> int:
     missing = collect_missing(
         **{
             **base_inputs,
+            "scripts_readme_text": base_inputs["scripts_readme_text"]
+            + SCRIPTS_README_ALIAS_MARKER
+            + "\n",
+        }
+    )
+    expect_contains(
+        "scripts_readme_alias_exact_count_detection",
+        missing,
+        f"scripts_readme_count:{SCRIPTS_README_ALIAS_MARKER}:expected=1:actual=2",
+    )
+
+    missing = collect_missing(
+        **{
+            **base_inputs,
             "docs_root_readme_text": base_inputs["docs_root_readme_text"].replace(
                 DOCS_ROOT_README_MARKERS[0] + "\n",
                 "",
@@ -1068,7 +1094,7 @@ def run_self_test() -> int:
     )
 
     print("PHASE12_LIBBPF_FOCUSED_REPLAY_SELF_TEST=pass")
-    print("PHASE12_LIBBPF_FOCUSED_REPLAY_SELF_TEST_CASE_COUNT=41")
+    print("PHASE12_LIBBPF_FOCUSED_REPLAY_SELF_TEST_CASE_COUNT=42")
     return 0
 
 
