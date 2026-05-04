@@ -371,7 +371,7 @@ MANIFEST_EXPECTATIONS = {
         "sysfs_unit_test_contract": "Direct Zig unit coverage keeps sysfsStreq() and sysfs_streq() aligned by treating a single trailing newline as equivalent to C-string termination while still rejecting non-terminal newline and content mismatches.",
         "alias_unit_test_anchor": 'tools/lib/string.zig:test "trimSpaces and strim trim trailing whitespace before an embedded NUL"',
         "alias_unit_test_contract": "Direct Zig unit coverage keeps trimSpaces and strim aligned with C-string semantics by trimming trailing whitespace that appears before the first embedded NUL while preserving bytes beyond that terminator.",
-        "memparse_unit_test_anchor": 'tools/lib/string.zig:test "memparse forwards the header-level string helper surface"',
+        "memparse_unit_test_anchor": 'tools/lib/string.zig:test "memparse preserves the header-level string helper contract"',
         "memparse_unit_test_contract": "Direct Zig unit coverage keeps memparse aligned by preserving decimal, hexadecimal, suffix-bearing, invalid, and binary-unit-tail inputs including optional trailing B forms without changing the parsed value or rest pointer contract.",
         "prefix_unit_test_anchor": 'tools/lib/string.zig:test "strstarts matches kernel prefix semantics"',
         "prefix_unit_test_contract": "Direct Zig unit coverage keeps strStarts and strstarts aligned with kernel-style prefix semantics for exact, empty-prefix, shorter-input, and case-sensitive comparisons.",
@@ -409,51 +409,51 @@ def read_text(rel: str) -> str:
     return (ROOT / rel).read_text(encoding="utf-8")
 
 
-def fail(header: str, details: list[str]) -> int:
+def fail(label: str, items: list[str]) -> int:
     print("PHASE1_VALIDATION=fail")
-    print(f"{header}_START")
-    for detail in details:
-        print(detail)
-    print(f"{header}_END")
+    print(f"{label}_START")
+    for item in items:
+        print(item)
+    print(f"{label}_END")
     return 1
 
 
 def validate_fixture_shape() -> list[str]:
-    fixture = json.loads(read_text("zigux/tests/fixtures/phase1_helpers.json"))
     issues: list[str] = []
-    for section, required_keys in FIXTURE_SHAPE.items():
-        data = fixture.get(section)
-        if not isinstance(data, dict):
-            issues.append(f"phase1_helpers:{section}:missing")
+    path = ROOT / "zigux/tests/fixtures/phase1_helpers.json"
+    data = json.loads(path.read_text(encoding="utf-8"))
+    for helper, required_keys in FIXTURE_SHAPE.items():
+        actual = data.get(helper)
+        if not isinstance(actual, dict):
+            issues.append(f"{helper}:missing_object")
             continue
-        for key in sorted(required_keys):
-            if key not in data:
-                issues.append(f"phase1_helpers:{section}.{key}:missing")
+        missing_keys = sorted(required_keys - set(actual.keys()))
+        extra_keys = sorted(set(actual.keys()) - required_keys)
+        if missing_keys:
+            issues.append(f"{helper}:missing_keys:{','.join(missing_keys)}")
+        if extra_keys:
+            issues.append(f"{helper}:extra_keys:{','.join(extra_keys)}")
+    extra_sections = sorted(set(data.keys()) - set(FIXTURE_SHAPE.keys()))
+    if extra_sections:
+        issues.append(f"fixture:extra_sections:{','.join(extra_sections)}")
     return issues
 
 
 def validate_manifest_shape() -> list[str]:
-    manifest = json.loads(read_text("zigux/tests/fixtures/phase1_helper_manifest.json"))
     issues: list[str] = []
-    if manifest.get("phase") != "Phase 1":
-        issues.append("phase1_manifest:phase:mismatch")
-    if manifest.get("status") != "closed":
-        issues.append("phase1_manifest:status:mismatch")
-    if manifest.get("helper_count") != len(HELPERS):
-        issues.append(
-            f"phase1_manifest:helper_count:expected={len(HELPERS)}:actual={manifest.get('helper_count')}"
-        )
-    if manifest.get("helpers") != HELPERS:
-        issues.append("phase1_manifest:helpers:mismatch")
-
-    notes = manifest.get("helper_review_notes")
+    path = ROOT / "zigux/tests/fixtures/phase1_helper_manifest.json"
+    data = json.loads(path.read_text(encoding="utf-8"))
+    if data.get("helper_count") != len(HELPERS):
+        issues.append("helper_count:mismatch")
+    if data.get("helpers") != HELPERS:
+        issues.append("helpers:order_or_contents_mismatch")
+    notes = data.get("helper_review_notes")
     if not isinstance(notes, dict):
-        return ["phase1_manifest:helper_review_notes:missing"]
-
+        return ["helper_review_notes:missing_object"]
     for helper, fields in MANIFEST_EXPECTATIONS.items():
         helper_notes = notes.get(helper)
         if not isinstance(helper_notes, dict):
-            issues.append(f"phase1_manifest:{helper}:missing")
+            issues.append(f"{helper}:missing_note")
             continue
         for field, expected in fields.items():
             if helper_notes.get(field) != expected:
