@@ -305,7 +305,7 @@ test "phase 8 bridge boundary survey still matches the live helper surfaces" {
     try expectContains(libbpf_survey_note, "skip_missing_pinned_map");
     try expectContains(cpu_mask_note, "a bounded auto-CPU count clamp that mirrors libbpf's perf-buffer map-budget sizing");
     try expectContains(cpu_mask_note, "a pure online-CPU eligibility predicate that mirrors libbpf's automatic-budget offline skip rule");
-    try expectContains(cpu_mask_note, "a pure caller-pinned positive CPU planner that mirrors libbpf's explicit positive `cpu_cnt` branch as sequential CPU indices");
+    try expectContains(cpu_mask_note, "a pure caller-supplied perf-buffer target planner that keeps the explicit positive-branch `cpus[]` and `map_keys[]` pairs aligned");
     try expectContains(cpu_mask_note, "a pure auto-selected CPU planner that consumes already-injected possible and online masks");
     try expectContains(cpu_mask_note, "perf-buffer-online-cpu-routing");
     try expectContains(poll_note, "cumulative processed-record count");
