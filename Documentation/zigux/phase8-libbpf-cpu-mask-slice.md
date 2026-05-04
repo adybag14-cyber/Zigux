@@ -54,6 +54,7 @@ The current starter slice covers:
 - repeated comma and newline delimiter skipping for sysfs-style CPU mask strings
 - leading `sscanf()`-style token whitespace, including vertical tab, form feed, and carriage return, only where the C helper's `%d` token parsing already consumes them, without widening into standalone whitespace-delimiter behavior
 - an injected chunk-reader interface that can assemble buffered sysfs-style input without touching real file descriptors
+- the same fixed-width CPU-mask read ceiling that libbpf enforces before widening into real file-descriptor or `/sys` reads
 - dense `[]bool` mask materialization for future tooling callers
 - counted possible-CPU reporting over the parsed mask
 - a bounded auto-CPU count clamp that mirrors libbpf's perf-buffer map-budget sizing without widening into `/sys` reads, online CPU filtering, perf-event-array updates, epoll-backed perf FD registration, or timeout-driven `perf_buffer__poll(timeout_ms)` waits that return ready-buffer counts
@@ -69,6 +70,7 @@ The current tests check:
 - newline-terminated, repeated-delimiter, and `sscanf()`-style token-leading whitespace inputs, including vertical tab, form feed, and carriage return cases
 - C-style whitespace immediately after range dashes for the second parsed CPU index
 - chunked reader input that splits `+`-prefixed ranges, post-dash whitespace, delimiters, and leading `sscanf()`-style whitespace across buffer boundaries
+- explicit rejection once chunked reader input exceeds libbpf's fixed-width CPU-mask buffer ceiling
 - sparse masks with unset gaps preserved
 - explicit error handling for empty, malformed, and trailing-whitespace-only ranges
 - reader contract failures such as zero-length chunks, oversized counts, and injected read errors
