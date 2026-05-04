@@ -226,10 +226,22 @@ test "incremental checksum replacements match full recomputation" {
     try std.testing.expectEqual(checksum.compute(&ipv4_header), checksum.replace4(checksum_before_addr_change, old_saddr, new_saddr));
 }
 
+test "fixture-backed 16-bit carry helpers stay reviewable on the exported checksum surface" {
+    for (fixtures.add16_cases) |case| {
+        try std.testing.expectEqual(case.expected, checksum.add16(case.sum, case.addend));
+    }
+
+    for (fixtures.sub16_cases) |case| {
+        try std.testing.expectEqual(case.expected, checksum.sub16(case.sum, case.addend));
+    }
+}
+
 test "fixture inventory and representative checksum cases stay reviewable" {
     try std.testing.expectEqual(@as(usize, 5), fixtures.compute_cases.len);
     try std.testing.expectEqual(@as(usize, 2), fixtures.composition_cases.len);
     try std.testing.expectEqual(@as(usize, 3), fixtures.seeded_cases.len);
+    try std.testing.expectEqual(@as(usize, 2), fixtures.add16_cases.len);
+    try std.testing.expectEqual(@as(usize, 2), fixtures.sub16_cases.len);
     try std.testing.expectEqual(@as(usize, 1), fixtures.pseudo_header_cases.len);
     try std.testing.expectEqual(@as(usize, 3), fixtures.ipv6_pseudo_header_cases.len);
     try std.testing.expectEqual(@as(usize, 4), fixtures.carry_discipline_cases.len);
@@ -238,6 +250,12 @@ test "fixture inventory and representative checksum cases stay reviewable" {
 
     try std.testing.expectEqualStrings("ipv4 header", fixtures.compute_cases[2].name);
     try std.testing.expectEqual(@as(u16, 0x9c5d), fixtures.compute_cases[2].expected_compute);
+
+    try std.testing.expectEqualStrings("saturated plus one wraps with carry", fixtures.add16_cases[0].name);
+    try std.testing.expectEqual(@as(u16, 0x0001), fixtures.add16_cases[0].expected);
+
+    try std.testing.expectEqualStrings("subtracting a prior addend recovers the original word", fixtures.sub16_cases[1].name);
+    try std.testing.expectEqual(@as(u16, 0x1234), fixtures.sub16_cases[1].expected);
 
     try std.testing.expectEqualStrings("icmpv6 preserves upper declared length bits", fixtures.ipv6_pseudo_header_cases[2].name);
     try std.testing.expectEqual(@as(u32, 0x0001_0001), fixtures.ipv6_pseudo_header_cases[2].declared_len);
