@@ -617,6 +617,8 @@ test "phase 9 runtime bitmap module slice note stays aligned with the landed loa
         "bounded two-word runtime bitmap backing store",
         "bounded parse-and-print replay",
         "duplicate bit-list normalization and empty formatting",
+        "transactional failed-init recovery",
+        "failed parsed or direct init attempts stay cold and empty until a clean follow-up init succeeds",
         "freezes the prepared summary before later sample mutation",
     };
 
@@ -638,7 +640,7 @@ test "phase 9 runtime bitmap module slice note stays aligned with the landed loa
     ) == null);
 }
 
-test "phase 9 runtime bitmap direct sample keeps empty parse-and-print replay explicit" {
+test "phase 9 runtime bitmap direct sample keeps parse-and-print and transactional init replay explicit" {
     var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
     defer io_instance.deinit();
 
@@ -659,4 +661,12 @@ test "phase 9 runtime bitmap direct sample keeps empty parse-and-print replay ex
     try std.testing.expect(std.mem.indexOf(u8, sample_source, "try duplicate_bits.initFromBitList(\"70, 5, 70, 0, 64, 5\");") != null);
     try std.testing.expect(std.mem.indexOf(u8, sample_source, "const duplicate_formatted = try duplicate_bits.formatSetBits(std.testing.allocator);") != null);
     try std.testing.expect(std.mem.indexOf(u8, sample_source, "try std.testing.expectEqualStrings(\"0,5,64,70\", duplicate_formatted);") != null);
+    try std.testing.expect(std.mem.indexOf(u8, sample_source, "test \"runtime bitmap sample keeps transactional init failures explicit in the direct sample leg\"") != null);
+    try std.testing.expect(std.mem.indexOf(u8, sample_source, "try std.testing.expectError(error.BitRangeOutOfBounds, parsed.initFromBitList(\"0, 5, 64, 128\"));") != null);
+    try std.testing.expect(std.mem.indexOf(u8, sample_source, "try std.testing.expectEqual(ModuleStage.cold, parsed.stage());") != null);
+    try std.testing.expect(std.mem.indexOf(u8, sample_source, "try std.testing.expectEqual(@as(u32, 0), parsed_summary.weight);") != null);
+    try std.testing.expect(std.mem.indexOf(u8, sample_source, "try parsed.initFromBitList(\"0, 5, 64, 70\");") != null);
+    try std.testing.expect(std.mem.indexOf(u8, sample_source, "try std.testing.expectError(error.BitRangeOutOfBounds, direct.initWithSetBits(&.{ 1, RuntimeBitmapSample.bitmap_nbits }));") != null);
+    try std.testing.expect(std.mem.indexOf(u8, sample_source, "try std.testing.expectEqual(ModuleStage.cold, direct.stage());") != null);
+    try std.testing.expect(std.mem.indexOf(u8, sample_source, "try direct.initWithSetBits(&.{ 1, 3 });") != null);
 }
