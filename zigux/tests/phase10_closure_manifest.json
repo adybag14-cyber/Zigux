@@ -154,7 +154,8 @@
       "phase10-virtio-input-teardown-observation-helper",
       "phase10-virtio-input-registration-preflight-helper",
       "phase10-virtio-input-queue-callback-preflight-helper",
-      "phase10-virtio-input-probe-preflight-helper"
+      "phase10-virtio-input-probe-preflight-helper",
+      "phase10-virtio-input-registration-blocker-helper"
     ]
   },
   "landed_mmio_helper_evidence": {
