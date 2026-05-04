@@ -134,9 +134,9 @@ EXACT_ONCE_WORKFLOW_TITLE_SNIPPETS = (
     "name: Audit Phase 3 documentation sync\n",
     "name: Check Phase 3 slug sanity\n",
     "name: Self-test Phase 3 shared helper\n",
-    "name: Self-test Phase 3 runner\n",
     "name: Self-test Phase 3 wrapper generator\n",
     "name: Validate Phase 3 wrapper templates\n",
+    "name: Self-test Phase 3 runner\n",
     "name: Validate Phase 3 README tooling inventory\n",
     "name: Self-test Phase 3 README tooling inventory checker\n",
 )
