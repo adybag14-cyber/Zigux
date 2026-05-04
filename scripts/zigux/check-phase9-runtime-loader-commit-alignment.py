@@ -21,6 +21,7 @@ PIN_CARRIER_PATHS = {
 REQUIRED_PACKET_PATHS = {
     "Documentation/zigux/phase9-runtime-loader-gap-survey.md",
     "Documentation/zigux/phase9-runtime-loader-substrate-plan.md",
+    "Documentation/zigux/review-checklist.md",
     "zigux/tests/runtime_loader_gap_manifest.json",
     "zigux/kernel/runtime_loader.zig",
     "samples/zigux/runtime_trace_events_loader.zig",
@@ -185,6 +186,12 @@ def run_self_test() -> int:
       \"role\": \"records the shared runtime loader substrate plan\"
     },
     {
+      \"id\": \"runtime-loader-review-checklist\",
+      \"kind\": \"governance\",
+      \"path\": \"Documentation/zigux/review-checklist.md\",
+      \"role\": \"records the shared runtime loader review checklist boundary\"
+    },
+    {
       \"id\": \"runtime-loader-gap-manifest\",
       \"kind\": \"manifest\",
       \"path\": \"zigux/tests/runtime_loader_gap_manifest.json\",
@@ -228,12 +235,14 @@ The current substrate-plan packet is pinned to `master` commit `1383062a0df7f7a3
         manifest_path = root / "zigux/tests/runtime_loader_gap_manifest.json"
         survey_path = root / "Documentation/zigux/phase9-runtime-loader-gap-survey.md"
         substrate_path = root / "Documentation/zigux/phase9-runtime-loader-substrate-plan.md"
+        review_checklist_path = root / "Documentation/zigux/review-checklist.md"
         runtime_loader_path = root / "zigux/kernel/runtime_loader.zig"
         trace_events_loader_path = root / "samples/zigux/runtime_trace_events_loader.zig"
 
         manifest_path.write_text(baseline_manifest, encoding="utf-8")
         survey_path.write_text(baseline_survey, encoding="utf-8")
         substrate_path.write_text(baseline_substrate, encoding="utf-8")
+        review_checklist_path.write_text("# review checklist baseline\n", encoding="utf-8")
         runtime_loader_path.write_text("// runtime loader baseline\n", encoding="utf-8")
         trace_events_loader_path.write_text("// trace-events loader baseline\n", encoding="utf-8")
 
@@ -316,6 +325,35 @@ The current substrate-plan packet is pinned to `master` commit `1383062a0df7f7a3
             raise SystemExit(
                 "phase9-loader-commit-alignment:self-test:expected_required_path_failure:"
                 + ",".join(missing_path_errors or ["none"])
+            )
+        manifest_path.write_text(
+            baseline_manifest.replace(
+                "1383062a0df7f7a360df54db685454b3e69798af",
+                baseline_commit,
+            ),
+            encoding="utf-8",
+        )
+
+        missing_checklist_manifest = json.loads(
+            baseline_manifest.replace(
+                "1383062a0df7f7a360df54db685454b3e69798af",
+                baseline_commit,
+            )
+        )
+        missing_checklist_manifest["delivery_evidence_catalog"] = [
+            entry
+            for entry in missing_checklist_manifest["delivery_evidence_catalog"]
+            if entry.get("path") != "Documentation/zigux/review-checklist.md"
+        ]
+        manifest_path.write_text(
+            json.dumps(missing_checklist_manifest, indent=2) + "\n",
+            encoding="utf-8",
+        )
+        missing_checklist_errors = validate(root)
+        if "runtime_loader_packet:missing_required_path:Documentation/zigux/review-checklist.md" not in missing_checklist_errors:
+            raise SystemExit(
+                "phase9-loader-commit-alignment:self-test:expected_review_checklist_required_path_failure:"
+                + ",".join(missing_checklist_errors or ["none"])
             )
         manifest_path.write_text(
             baseline_manifest.replace(
@@ -437,8 +475,39 @@ The current substrate-plan packet is pinned to `master` commit `1383062a0df7f7a3
                 + ",".join(stale_errors)
             )
 
+        subprocess.run(
+            ["git", "reset", "--hard", "HEAD~1"],
+            cwd=root,
+            check=True,
+            capture_output=True,
+            text=True,
+        )
+        review_checklist_path.write_text("# review checklist changed after pin\n", encoding="utf-8")
+        subprocess.run(["git", "add", "."], cwd=root, check=True, capture_output=True, text=True)
+        subprocess.run(
+            ["git", "commit", "-m", "change review checklist after pin"],
+            cwd=root,
+            check=True,
+            capture_output=True,
+            text=True,
+        )
+        checklist_stale_errors = validate(root)
+        if "runtime_loader_packet:surveyed_commit_stale" not in checklist_stale_errors:
+            raise SystemExit(
+                "phase9-loader-commit-alignment:self-test:expected_review_checklist_stale_packet_failure:"
+                + ",".join(checklist_stale_errors or ["none"])
+            )
+        if (
+            "runtime_loader_packet:changed_since_surveyed_commit:Documentation/zigux/review-checklist.md"
+            not in checklist_stale_errors
+        ):
+            raise SystemExit(
+                "phase9-loader-commit-alignment:self-test:expected_review_checklist_changed_path_marker:"
+                + ",".join(checklist_stale_errors)
+            )
+
     print("PHASE9_LOADER_COMMIT_ALIGNMENT_SELF_TEST=pass")
-    print("PHASE9_LOADER_COMMIT_ALIGNMENT_SELF_TEST_CASE_COUNT=6")
+    print("PHASE9_LOADER_COMMIT_ALIGNMENT_SELF_TEST_CASE_COUNT=8")
     return 0
 
 
