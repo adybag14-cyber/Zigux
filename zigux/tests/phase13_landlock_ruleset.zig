@@ -79,7 +79,7 @@ test "phase13 landlock ruleset manifest records the shipped helper lab and remai
     try std.testing.expect(manifest.survey_summary.preexisting_phase13_landlock_test_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase13_landlock_slice_note_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase13_landlock_survey_note_present);
-    try std.testing.expectEqual(@as(usize, 14), manifest.gaps.len);
+    try std.testing.expectEqual(@as(usize, 15), manifest.gaps.len);
 
     var starter_landed_count: usize = 0;
     var ready_next_count: usize = 0;
@@ -96,6 +96,7 @@ test "phase13 landlock ruleset manifest records the shipped helper lab and remai
     var saw_tree_link_followup = false;
     var saw_lookup_followup = false;
     var saw_materialization_followup = false;
+    var saw_replacement_followup = false;
     var saw_release_followup = false;
     var saw_live_state_blocker = false;
 
@@ -188,6 +189,13 @@ test "phase13 landlock ruleset manifest records the shipped helper lab and remai
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "create_rule()") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "RB_CLEAR_NODE()") != null);
         }
+        if (std.mem.eql(u8, gap.id, "phase13-landlock-rule-replacement-followup")) {
+            saw_replacement_followup = true;
+            try std.testing.expectEqualStrings("starter_landed", gap.status);
+            try std.testing.expectEqualStrings("security/landlock/ruleset.zig", gap.zigux_destination);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "rb_replace_node()") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "previous-rule release") != null);
+        }
         if (std.mem.eql(u8, gap.id, "phase13-landlock-rule-release-followup")) {
             saw_release_followup = true;
             try std.testing.expectEqualStrings("starter_landed", gap.status);
@@ -200,7 +208,7 @@ test "phase13 landlock ruleset manifest records the shipped helper lab and remai
             saw_live_state_blocker = true;
             try std.testing.expectEqualStrings("blocked_on_live_lsm_state", gap.status);
             try std.testing.expectEqualStrings("security/landlock/ruleset.zig", gap.zigux_destination);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "rb_replace_node()") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "actual rb-tree mutation") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "workqueue-backed teardown") != null);
         }
 
@@ -209,7 +217,7 @@ test "phase13 landlock ruleset manifest records the shipped helper lab and remai
         }
     }
 
-    try std.testing.expectEqual(@as(usize, 13), starter_landed_count);
+    try std.testing.expectEqual(@as(usize, 14), starter_landed_count);
     try std.testing.expectEqual(@as(usize, 0), ready_next_count);
     try std.testing.expectEqual(@as(usize, 1), blocked_count);
     try std.testing.expect(saw_build_gate);
@@ -224,6 +232,7 @@ test "phase13 landlock ruleset manifest records the shipped helper lab and remai
     try std.testing.expect(saw_tree_link_followup);
     try std.testing.expect(saw_lookup_followup);
     try std.testing.expect(saw_materialization_followup);
+    try std.testing.expect(saw_replacement_followup);
     try std.testing.expect(saw_release_followup);
     try std.testing.expect(saw_live_state_blocker);
 }
