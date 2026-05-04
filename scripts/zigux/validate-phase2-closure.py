@@ -501,11 +501,12 @@ def validate_genksyms_crc_checker_gate(checker_script: Path) -> list[str]:
     source = checker_script.read_text(encoding='utf-8')
     required_markers = {
         'self_test_arg': "parser.add_argument('--self-test'",
-        'self_test_pass_marker': "print('PHASE2_GENKSYMS_CRC_SELF_TEST=pass')",
-        'self_test_case_count_marker': "print('PHASE2_GENKSYMS_CRC_SELF_TEST_CASE_COUNT=9')",
-        'missing_expected_fixture_guard': 'expected:missing_fixture:',
-        'orphaned_expected_guard': 'inputs.txt:orphaned_expected:',
-        'duplicate_expected_guard': 'expected:duplicate_reference:',
+        'self_test_pass_marker': "print('GENKSYMS_CRC_SELF_TEST=pass')",
+        'self_test_case_count_marker': "print('GENKSYMS_CRC_SELF_TEST_CASE_COUNT=11')",
+        'missing_fixture_guard': 'genksyms-crc:self-test:missing_expected_fixture',
+        'missing_input_guard': 'genksyms-crc:self-test:missing_input_fixture',
+        'orphaned_expected_guard': 'orphaned_expected:',
+        'orphaned_input_guard': 'orphaned_input:',
         'mismatch_contract_guard': 'genksyms-crc:self-test:mismatch_contract',
         'repeat_c_compare': "run(diff_base + [str(c_actual), str(c_repeat)], cwd=str(ROOT))",
         'repeat_zig_compare': "run(diff_base + [str(zig_actual), str(zig_repeat)], cwd=str(ROOT))",
