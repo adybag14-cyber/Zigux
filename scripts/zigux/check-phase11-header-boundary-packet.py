@@ -17,6 +17,7 @@ MANIFEST_PATH = Path("zigux/tests/phase11_uapi_header_parity_manifest.json")
 HVC_MATRIX_PATH = Path("Documentation/zigux/phase11-hvc-console-validation-matrix.md")
 SHARED_REPLAY_NOTE_PATH = Path("Documentation/zigux/phase11-shared-replay-contract.md")
 REVIEW_GUIDE_PATH = Path("Documentation/zigux/phase10-phase11-phase13-validator-first-review-guide.md")
+REVIEW_CHECKLIST_PATH = Path("Documentation/zigux/review-checklist.md")
 TESTS_COMPANION_PATH = Path("Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md")
 MAKEFILE_PATH = Path("zigux/Makefile")
 WORKFLOW_PATH = Path(".github/workflows/zigux-bootstrap.yml")
@@ -59,6 +60,10 @@ REVIEW_GUIDE_MARKERS = [
     "- Do the pre-replay checkers still describe the same delivery contract that the shared build inventory, the shared header-boundary packet, and the Phase 11 manifests claim?",
 ]
 
+REVIEW_CHECKLIST_MARKERS = [
+    "- if the change touches the active Phase 11 contributor packet, do `Documentation/zigux/phase11-shared-replay-contract.md`, `scripts/zigux/check-phase11-build-inventory.py`, `scripts/zigux/check-phase11-layout-assert-surface.py`, `scripts/zigux/check-phase11-hvc-validation-flow.py`, `scripts/zigux/check-phase11-hvc-cleanup-alignment.py`, `scripts/zigux/check-phase11-shared-replay-contract.py`, `scripts/zigux/check-phase11-header-boundary-packet.py`, `zigux/tests/phase11_build.zig`, `zigux/tests/phase11_hvc_console_survey.zig`, and `zigux/tests/phase11_uapi_header_parity_manifest.json` still keep the pre-replay stack, the shared-versus-dedicated `hvc_console` split, and the shared header-boundary packet aligned?",
+]
+
 TESTS_COMPANION_MARKERS = [
     "- `scripts/zigux/check-phase11-header-boundary-packet.py`",
     "- Does `zigux/tests/phase11_hvc_console_survey.zig` still stay separate as the dedicated archival replay while the shared starter packet remains under `zigux/tests/phase11_build.zig` and the shared header-boundary packet stays explicit through `scripts/zigux/check-phase11-header-boundary-packet.py`?",
@@ -88,6 +93,7 @@ def validate_packet(root: Path) -> int:
         ("hvc_matrix", root / HVC_MATRIX_PATH, HVC_MATRIX_MARKERS),
         ("shared_replay_note", root / SHARED_REPLAY_NOTE_PATH, SHARED_REPLAY_NOTE_MARKERS),
         ("review_guide", root / REVIEW_GUIDE_PATH, REVIEW_GUIDE_MARKERS),
+        ("review_checklist", root / REVIEW_CHECKLIST_PATH, REVIEW_CHECKLIST_MARKERS),
         ("tests_companion", root / TESTS_COMPANION_PATH, TESTS_COMPANION_MARKERS),
         ("makefile", root / MAKEFILE_PATH, MAKEFILE_MARKERS),
         ("workflow", root / WORKFLOW_PATH, WORKFLOW_MARKERS),
@@ -140,6 +146,7 @@ def validate_packet(root: Path) -> int:
     print(f"PHASE11_HEADER_BOUNDARY_ZIG_MARKER_COUNT={len(SURVEY_ZIG_MARKERS)}")
     print(f"PHASE11_HEADER_BOUNDARY_SHARED_REPLAY_NOTE_MARKER_COUNT={len(SHARED_REPLAY_NOTE_MARKERS)}")
     print(f"PHASE11_HEADER_BOUNDARY_REVIEW_GUIDE_MARKER_COUNT={len(REVIEW_GUIDE_MARKERS)}")
+    print(f"PHASE11_HEADER_BOUNDARY_REVIEW_CHECKLIST_MARKER_COUNT={len(REVIEW_CHECKLIST_MARKERS)}")
     print(f"PHASE11_HEADER_BOUNDARY_TESTS_COMPANION_MARKER_COUNT={len(TESTS_COMPANION_MARKERS)}")
     print(f"PHASE11_HEADER_BOUNDARY_MAKEFILE_MARKER_COUNT={len(MAKEFILE_MARKERS)}")
     print(f"PHASE11_HEADER_BOUNDARY_WORKFLOW_MARKER_COUNT={len(WORKFLOW_MARKERS)}")
@@ -177,6 +184,7 @@ def write_fixture_tree(root: Path) -> None:
     write_text(root / HVC_MATRIX_PATH, "\n".join(HVC_MATRIX_MARKERS) + "\n")
     write_text(root / SHARED_REPLAY_NOTE_PATH, "\n".join(SHARED_REPLAY_NOTE_MARKERS) + "\n")
     write_text(root / REVIEW_GUIDE_PATH, "\n".join(REVIEW_GUIDE_MARKERS) + "\n")
+    write_text(root / REVIEW_CHECKLIST_PATH, "\n".join(REVIEW_CHECKLIST_MARKERS) + "\n")
     write_text(root / TESTS_COMPANION_PATH, "\n".join(TESTS_COMPANION_MARKERS) + "\n")
     write_text(
         root / MAKEFILE_PATH,
@@ -323,6 +331,19 @@ def run_self_test() -> int:
         )
         write_text(review_guide_path, review_guide_backup)
 
+        review_checklist_path = tmp_root / REVIEW_CHECKLIST_PATH
+        review_checklist_backup = text(review_checklist_path)
+        write_text(
+            review_checklist_path,
+            review_checklist_backup.replace(REVIEW_CHECKLIST_MARKERS[0] + "\n", "", 1),
+        )
+        expect_missing(
+            "missing_review_checklist_header_boundary_marker",
+            run_checker(tmp_root),
+            f"review_checklist:{REVIEW_CHECKLIST_MARKERS[0]}",
+        )
+        write_text(review_checklist_path, review_checklist_backup)
+
         tests_companion_path = tmp_root / TESTS_COMPANION_PATH
         tests_companion_backup = text(tests_companion_path)
         write_text(
@@ -337,7 +358,7 @@ def run_self_test() -> int:
         write_text(tests_companion_path, tests_companion_backup)
 
     print("PHASE11_HEADER_BOUNDARY_PACKET_SELF_TEST=pass")
-    print("PHASE11_HEADER_BOUNDARY_PACKET_SELF_TEST_CASE_COUNT=8")
+    print("PHASE11_HEADER_BOUNDARY_PACKET_SELF_TEST_CASE_COUNT=9")
     return 0
 
 
