@@ -90,13 +90,14 @@ EXPECTED_STUDY_ONLY_ANCHORS = [
 
 EXPECTED_EXACT_CHECKS = [
     "python3 scripts/zigux/check-phase10-closure-inventory.py",
+    "python3 scripts/zigux/check-phase10-core-packet.py",
     "python3 scripts/zigux/validate-phase10.py",
     "python3 scripts/zigux/check-phase10-harness-coverage.py",
     "python3 scripts/zigux/validate-phase10-closure.py",
     "zig build test --build-file zigux/tests/phase10_build.zig --summary all",
     "make -C zigux phase10-validate",
     "make -C zigux phase10-test",
-    "make -C zigux phase10",
+    "make -C zigux phase10"
 ]
 
 EXPECTED_SCOREBOARD = {
@@ -590,6 +591,20 @@ def run_self_test() -> int:
         manifest["exact_checks"] = [
             check
             for check in manifest["exact_checks"]
+            if check != "python3 scripts/zigux/check-phase10-core-packet.py"
+        ]
+        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+        expect_missing_marker(
+            "core_packet_exact_check_guard",
+            root,
+            "manifest:exact_checks",
+        )
+        write_fixture(root)
+
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        manifest["exact_checks"] = [
+            check
+            for check in manifest["exact_checks"]
             if check != "python3 scripts/zigux/validate-phase10.py"
         ]
         manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
@@ -713,7 +728,7 @@ def run_self_test() -> int:
             raise SystemExit("required_file_guard_failed")
 
     print("PHASE10_CLOSURE_INVENTORY_SELF_TEST=pass")
-    print("PHASE10_CLOSURE_INVENTORY_SELF_TEST_CASE_COUNT=18")
+    print("PHASE10_CLOSURE_INVENTORY_SELF_TEST_CASE_COUNT=19")
     return 0
 
 
