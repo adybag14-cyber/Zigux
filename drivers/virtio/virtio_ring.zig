@@ -271,6 +271,7 @@ pub const VirtioRingLab = struct {
 
     pub fn pollUsedBuffers(self: *Self, queue_index: u16) !UsedBufferPollSummary {
         const slot = try self.checkedQueueSlot(queue_index);
+        if (slot.broken) return error.QueueBroken;
         const previous_poll_idx = slot.last_polled_used_idx;
         const newly_used_chain_count = slot.last_used_idx -% previous_poll_idx;
 
@@ -339,6 +340,7 @@ pub const VirtioRingLab = struct {
         const index = try checkedQueueIndex(queue_index);
         const slot = self.queues[index];
         if (!slot.active) return error.QueueNotDefined;
+        if (slot.broken) return error.QueueBroken;
 
         return .{
             .anchor = descriptor().anchor,
