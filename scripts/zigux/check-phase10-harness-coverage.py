@@ -119,6 +119,19 @@ MMIO_QUEUE_ISOLATION_TEST_MARKERS = [
     "QueueAddressRequiresConfiguredSize",
 ]
 
+EXPECTED_FOCUSED_HARNESS_REPLAYS = {
+    "zigux/tests/phase10_virtio_ring_reset_reuse.zig": [
+        "phase10 ring drained-reset reuse replay"
+    ],
+    "zigux/tests/phase10_virtio_input_multitouch_preflight.zig": [
+        "phase10 input multitouch-ready preflight replay"
+    ],
+    "zigux/tests/phase10_virtio_mmio_queue_isolation.zig": [
+        "phase10 mmio multi-queue isolation replay",
+        "phase10 mmio reset clears legacy and modern queue address plans after queue selection changes",
+    ],
+}
+
 EXACT_ONCE = [
     ("scripts_readme", "scripts/zigux/README.md", "phase10_virtio_ring_reset_reuse.zig"),
     ("scripts_readme", "scripts/zigux/README.md", "phase10_virtio_input_multitouch_preflight.zig"),
@@ -231,6 +244,9 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
                             f"lab_only_driver_validation:evidence:{path}"
                         )
 
+    if closure_manifest.get("focused_harness_replays") != EXPECTED_FOCUSED_HARNESS_REPLAYS:
+        missing.append("closure_manifest:focused_harness_replays")
+
     return [], missing
 
 
@@ -269,6 +285,7 @@ def write_fixture(root: Path) -> None:
                 ]
             }
         },
+        "focused_harness_replays": EXPECTED_FOCUSED_HARNESS_REPLAYS,
     }
 
     for rel_path in FILES:
@@ -401,9 +418,21 @@ def run_self_test() -> int:
             root,
             "closure_manifest:roadmap_parity_scoreboard:lab_only_driver_validation:evidence:zigux/tests/phase10_virtio_ring_reset_reuse.zig",
         )
+        write_fixture(root)
+
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        manifest["focused_harness_replays"]["zigux/tests/phase10_virtio_mmio_queue_isolation.zig"] = [
+            "phase10 mmio multi-queue isolation replay"
+        ]
+        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+        expect_missing_marker(
+            "focused_harness_replays_mmio_reset_guard",
+            root,
+            "closure_manifest:focused_harness_replays",
+        )
 
     print("PHASE10_HARNESS_COVERAGE_SELF_TEST=pass")
-    print("PHASE10_HARNESS_COVERAGE_SELF_TEST_CASE_COUNT=7")
+    print("PHASE10_HARNESS_COVERAGE_SELF_TEST_CASE_COUNT=8")
     return 0
 
 
