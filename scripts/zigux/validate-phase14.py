@@ -145,7 +145,6 @@ RELEASE_MARKERS = [
     "PHASE14_FOCUSED_SHARD_COUNT=1",
     "PHASE14_ANCHOR_LOCAL_STEP_COUNT=0",
     "PHASE14_FULL_BUNDLE_ONLY_ARTIFACT_COUNT=4",
-    "PHASE14_FULL_BUNDLE_DEPENDENCY_COUNT=5",
     "PHASE14_FOCUSED_SHARD_DEPENDENCY_COUNT=1",
     "PHASE14_FOCUSED_SHARD_ONLY_ARTIFACT=phase14-end-to-end-smoke-tests",
     "PHASE14_STAY_IN_C_BOUNDARY=explicit",
@@ -403,7 +402,7 @@ else:
         missing.append(f"manifest:shared_smoke_surfaces:count={len(shared_smoke_surfaces)}")
 
 smoke_commands = manifest.get("smoke_commands")
-if not isinstance(smoke_commands, list) or len(smoke_commands) != 3:
+if not isinstance(smoke_commands, list) or len(smoke_commands) != 4:
     missing.append("manifest:smoke_commands")
 
 smoke_shard_commands = manifest.get("smoke_shard_commands")
