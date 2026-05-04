@@ -84,6 +84,7 @@ test "phase 5 bytestream fifo manifest records the exact bounded checks" {
     try std.testing.expect(std.mem.indexOf(u8, helper_review_source, "phase 5 bytestream fifo sample keeps bounded helper behavior explicit") != null);
     try std.testing.expect(std.mem.indexOf(u8, helper_review_source, "empty_preview.total_visible") != null);
     try std.testing.expect(std.mem.indexOf(u8, helper_review_source, "preview_replay.preview_total_visible") != null);
+    try std.testing.expect(std.mem.indexOf(u8, helper_review_source, "full_preview_result.total_visible") != null);
     try std.testing.expect(std.mem.indexOf(u8, helper_review_source, "!module.pushByte(255)") != null);
     try std.testing.expect(std.mem.indexOf(u8, helper_review_source, "short_drain") != null);
     try std.testing.expect(std.mem.indexOf(u8, helper_review_source, "phase 5 bytestream fifo reset clears queue state without restarting lifecycle bookkeeping") != null);
@@ -228,6 +229,10 @@ test "phase 5 bytestream fifo manifest records the exact bounded checks" {
             saw_preview_truncation = true;
             try std.testing.expect(std.mem.indexOf(u8, check.expected, "length-8 preview yields exactly [2,3,4,5,6,7,8,9]") != null);
             try std.testing.expect(std.mem.indexOf(u8, check.expected, "queue length at 10") != null);
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "total_visible") != null);
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "0") != null);
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "10") != null);
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "32") != null);
         }
         if (std.mem.eql(u8, check.id, "queue-only-reset")) {
             saw_queue_only_reset = true;
