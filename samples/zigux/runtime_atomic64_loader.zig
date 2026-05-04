@@ -16,6 +16,32 @@ pub const RuntimeAtomic64LoadPlan = struct {
     summary: runtime_atomic64_sample.RuntimeAtomic64Summary,
 };
 
+fn optionalStringEql(lhs: ?[]const u8, rhs: ?[]const u8) bool {
+    if (lhs) |lhs_value| {
+        return if (rhs) |rhs_value| std.mem.eql(u8, lhs_value, rhs_value) else false;
+    }
+    return rhs == null;
+}
+
+pub fn keepsSharedRequestSnapshotExplicit(
+    plan: RuntimeAtomic64LoadPlan,
+    request: runtime_loader.RuntimeLoadRequest,
+) bool {
+    if (request.lane() != .atomic64) return false;
+
+    return std.mem.eql(u8, request.module_name, plan.module_name) and
+        optionalStringEql(plan.command_name, request.command_name) and
+        std.mem.eql(u8, request.anchor, plan.anchor) and
+        std.mem.eql(u8, request.entry_symbol, plan.entry_symbol) and
+        std.mem.eql(u8, request.exit_symbol, plan.exit_symbol) and
+        request.requires_runtime_substrate == plan.requires_runtime_substrate and
+        request.provides_selftest_hook == plan.provides_selftest_hook and
+        request.payload.atomic64.counter_snapshot == plan.summary.counter_snapshot and
+        request.payload.atomic64.init_runs == plan.summary.init_runs and
+        request.payload.atomic64.selftest_runs == plan.summary.selftest_runs and
+        request.payload.atomic64.exit_runs == plan.summary.exit_runs;
+}
+
 pub const RuntimeAtomic64Loader = struct {
     const Self = @This();
 
@@ -197,7 +223,7 @@ test "runtime atomic64 loader emits the shared runtime-loader request shape" {
     _ = try module.runSelftest();
 
     var loader = RuntimeAtomic64Loader{};
-    _ = try loader.prepare(&module);
+    const plan = try loader.prepare(&module);
 
     const request = try loader.requestSharedRuntimeLoad();
     try std.testing.expectEqual(LoaderStage.waiting_on_runtime_substrate, loader.stage());
@@ -210,6 +236,7 @@ test "runtime atomic64 loader emits the shared runtime-loader request shape" {
     try std.testing.expect(request.keepsAllocatorInitFlowConsistent());
     try std.testing.expect(request.keepsLifecyclePayloadConsistent());
     try std.testing.expect(request.keepsSharedHandoffContractExplicit());
+    try std.testing.expect(keepsSharedRequestSnapshotExplicit(plan, request));
     try std.testing.expectEqual(runtime_loader.allocatorHandoffFor(.kernel_heap).init_flow, request.allocator_handoff.init_flow);
     try std.testing.expect(request.allocator_handoff.initializes_owned_state);
     try std.testing.expect(!request.allocator_handoff.requires_reset_on_init);
@@ -227,7 +254,7 @@ test "runtime atomic64 loader can release the shared runtime-loader request with
     _ = try module.runSelftest();
 
     var loader = RuntimeAtomic64Loader{};
-    _ = try loader.prepare(&module);
+    const plan = try loader.prepare(&module);
 
     const released = try loader.releaseSharedRuntimeLoadWithoutSubstrate();
     try std.testing.expectEqual(LoaderStage.released_without_substrate, loader.stage());
@@ -241,6 +268,7 @@ test "runtime atomic64 loader can release the shared runtime-loader request with
     try std.testing.expect(released.keepsAllocatorInitFlowConsistent());
     try std.testing.expect(released.keepsLifecyclePayloadConsistent());
     try std.testing.expect(released.keepsSharedHandoffContractExplicit());
+    try std.testing.expect(keepsSharedRequestSnapshotExplicit(plan, released));
     try std.testing.expectEqual(runtime_loader.allocatorHandoffFor(.kernel_heap).init_flow, released.allocator_handoff.init_flow);
     try std.testing.expect(released.allocator_handoff.initializes_owned_state);
     try std.testing.expect(!released.allocator_handoff.requires_reset_on_init);
@@ -259,7 +287,7 @@ test "runtime atomic64 loader keeps initialized-stage shared requests and fallba
     try module.init(9);
 
     var loader = RuntimeAtomic64Loader{};
-    _ = try loader.prepare(&module);
+    const plan = try loader.prepare(&module);
 
     const request = try loader.requestSharedRuntimeLoad();
     try std.testing.expectEqual(LoaderStage.waiting_on_runtime_substrate, loader.stage());
@@ -272,6 +300,7 @@ test "runtime atomic64 loader keeps initialized-stage shared requests and fallba
     try std.testing.expect(request.keepsAllocatorInitFlowConsistent());
     try std.testing.expect(request.keepsLifecyclePayloadConsistent());
     try std.testing.expect(request.keepsSharedHandoffContractExplicit());
+    try std.testing.expect(keepsSharedRequestSnapshotExplicit(plan, request));
     try std.testing.expectEqual(runtime_loader.LoaderStage.waiting_on_runtime_substrate, request.handoff_stage);
     try std.testing.expectEqual(@as(i64, 9), request.payload.atomic64.counter_snapshot);
     try std.testing.expectEqual(@as(usize, 1), request.payload.atomic64.init_runs);
@@ -279,7 +308,7 @@ test "runtime atomic64 loader keeps initialized-stage shared requests and fallba
     try std.testing.expectEqual(@as(usize, 0), request.payload.atomic64.exit_runs);
 
     var fallback_loader = RuntimeAtomic64Loader{};
-    _ = try fallback_loader.prepare(&module);
+    const fallback_plan = try fallback_loader.prepare(&module);
 
     const released = try fallback_loader.releaseSharedRuntimeLoadWithoutSubstrate();
     try std.testing.expectEqual(LoaderStage.released_without_substrate, fallback_loader.stage());
@@ -293,6 +322,7 @@ test "runtime atomic64 loader keeps initialized-stage shared requests and fallba
     try std.testing.expect(released.keepsAllocatorInitFlowConsistent());
     try std.testing.expect(released.keepsLifecyclePayloadConsistent());
     try std.testing.expect(released.keepsSharedHandoffContractExplicit());
+    try std.testing.expect(keepsSharedRequestSnapshotExplicit(fallback_plan, released));
     try std.testing.expectEqual(runtime_loader.LoaderStage.released_without_substrate, released.handoff_stage);
     try std.testing.expectEqual(@as(i64, 9), released.payload.atomic64.counter_snapshot);
     try std.testing.expectEqual(@as(usize, 1), released.payload.atomic64.init_runs);
@@ -313,14 +343,52 @@ test "runtime atomic64 loader preserves an explicit shared command name" {
     const request = try loader.requestSharedRuntimeLoad();
     try std.testing.expectEqualStrings("perf-runtime-atomic64", request.command_name.?);
     try std.testing.expect(request.keepsCommandNameExplicit());
+    try std.testing.expect(keepsSharedRequestSnapshotExplicit(plan, request));
     try std.testing.expectEqual(runtime_loader.LoaderStage.waiting_on_runtime_substrate, request.handoff_stage);
 
     var fallback_loader = RuntimeAtomic64Loader{};
-    _ = try fallback_loader.prepareWithCommandName(&module, "perf-runtime-atomic64");
+    const fallback_plan = try fallback_loader.prepareWithCommandName(&module, "perf-runtime-atomic64");
     const released = try fallback_loader.releaseSharedRuntimeLoadWithoutSubstrate();
     try std.testing.expectEqualStrings("perf-runtime-atomic64", released.command_name.?);
     try std.testing.expect(released.keepsCommandNameExplicit());
+    try std.testing.expect(keepsSharedRequestSnapshotExplicit(fallback_plan, released));
     try std.testing.expectEqual(runtime_loader.LoaderStage.released_without_substrate, released.handoff_stage);
+}
+
+test "runtime atomic64 loader rejects shared-request snapshot drift" {
+    var module = runtime_atomic64_sample.RuntimeAtomic64Sample{};
+    try module.init(0x1111_2222_3333_4444);
+    _ = try module.runSelftest();
+
+    var loader = RuntimeAtomic64Loader{};
+    const plan = try loader.prepareWithCommandName(&module, "perf-runtime-atomic64");
+    const request = try loader.requestSharedRuntimeLoad();
+    try std.testing.expect(keepsSharedRequestSnapshotExplicit(plan, request));
+
+    var drifted_command = request;
+    drifted_command.command_name = "perf-runtime-atomic64-drift";
+    try std.testing.expect(!keepsSharedRequestSnapshotExplicit(plan, drifted_command));
+
+    var drifted_counter = request;
+    drifted_counter.payload.atomic64.counter_snapshot += 1;
+    try std.testing.expect(!keepsSharedRequestSnapshotExplicit(plan, drifted_counter));
+
+    var drifted_lane = request;
+    drifted_lane.payload = .{
+        .bitmap = .{
+            .first_set = 0,
+            .first_zero = 1,
+            .weight = 4,
+            .nbits = 128,
+            .init_runs = plan.summary.init_runs,
+            .selftest_runs = plan.summary.selftest_runs,
+            .exit_runs = plan.summary.exit_runs,
+        },
+    };
+    try std.testing.expect(!keepsSharedRequestSnapshotExplicit(plan, drifted_lane));
+
+    const released = request.releasedWithoutSubstrate();
+    try std.testing.expect(keepsSharedRequestSnapshotExplicit(plan, released));
 }
 
 test "runtime atomic64 loader rejects an empty explicit shared command name" {
