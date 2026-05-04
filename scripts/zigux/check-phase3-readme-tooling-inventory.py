@@ -15,16 +15,19 @@ MAKEFILE_REL = "zigux/Makefile"
 README_HELPER_SECTION = "Current bootstrap helpers"
 
 PHASE2_VALIDATE_TARGET = "phase2-validate:"
+PHASE2_CROSS_TARGET = "phase2-cross:"
 PHASE6_VALIDATE_TARGET = "phase6-validate:"
 PHASE7_VALIDATE_TARGET = "phase7-validate:"
 PHASE11_VALIDATE_TARGET = "phase11-validate:"
 PHASE13_VALIDATE_TARGET = "phase13-validate:"
 
 PHASE2_REQUIRED = (
+    "check-phase2-genksyms-bridge-selftest-alignment.py",
     "check-phase2-kconfig-selftest-alignment.py",
     "check-phase2-toolchain-pin-scope.py",
     "check-phase2-tests-readme-alignment.py",
 )
+PHASE2_CROSS_REQUIRED = ("check-phase2-cross-selftest-alignment.py",)
 PHASE6_REQUIRED = ("check-phase6-base64-catalog-evidence.py",)
 PHASE7_REQUIRED = ("check-phase7-argv-split-parity.py",)
 PHASE11_REQUIRED = ("check-phase11-shared-replay-contract.py",)
@@ -199,14 +202,30 @@ def validate(root: Path) -> list[str]:
 
     phase3_entries, issues = _canonical_phase3_entries(root)
     phase2_entries, phase2_issues = _named_helper_entries(root, PHASE2_VALIDATE_TARGET, PHASE2_REQUIRED)
+    phase2_cross_entries, phase2_cross_issues = _named_helper_entries(
+        root, PHASE2_CROSS_TARGET, PHASE2_CROSS_REQUIRED
+    )
     phase6_entries, phase6_issues = _named_helper_entries(root, PHASE6_VALIDATE_TARGET, PHASE6_REQUIRED)
     phase7_entries, phase7_issues = _named_helper_entries(root, PHASE7_VALIDATE_TARGET, PHASE7_REQUIRED)
     phase11_entries, phase11_issues = _named_helper_entries(root, PHASE11_VALIDATE_TARGET, PHASE11_REQUIRED)
     phase13_entries, phase13_issues = _target_helper_entries(root, PHASE13_VALIDATE_TARGET)
-    issues.extend(phase2_issues + phase6_issues + phase7_issues + phase11_issues + phase13_issues)
+    issues.extend(
+        phase2_issues
+        + phase2_cross_issues
+        + phase6_issues
+        + phase7_issues
+        + phase11_issues
+        + phase13_issues
+    )
 
     all_entries = _ordered_unique(
-        phase3_entries + phase2_entries + phase6_entries + phase7_entries + phase11_entries + phase13_entries
+        phase3_entries
+        + phase2_entries
+        + phase2_cross_entries
+        + phase6_entries
+        + phase7_entries
+        + phase11_entries
+        + phase13_entries
     )
     helper_entries, helper_issues, has_helper_section = _readme_helper_entries(readme)
     if has_helper_section:
@@ -277,12 +296,20 @@ def _fixture_cross_phase_flow() -> str:
 def _fixture_makefile() -> str:
     lines = [
         "phase2-validate:",
+        "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-genksyms-bridge-selftest-alignment.py --self-test",
+        "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-genksyms-bridge-selftest-alignment.py",
         "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-kconfig-selftest-alignment.py --self-test",
         "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-kconfig-selftest-alignment.py",
         "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test",
         "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-toolchain-pin-scope.py",
         "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-tests-readme-alignment.py --self-test",
         "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-tests-readme-alignment.py",
+        "",
+        "phase2-cross:",
+        "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-cross-selftest-alignment.py --self-test",
+        "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-cross-selftest-alignment.py",
+        "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-cross.py --self-test",
+        "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-cross.py",
         "",
         "phase6-validate:",
         "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase6-base64-catalog-evidence.py --self-test",
@@ -335,9 +362,11 @@ def _baseline_required_rels() -> tuple[tuple[str, ...], tuple[str, ...]]:
         "scripts/zigux/validate-phase13-release.py",
     )
     required_rels = tooling_packet_rels + (
+        "scripts/zigux/check-phase2-genksyms-bridge-selftest-alignment.py",
         "scripts/zigux/check-phase2-kconfig-selftest-alignment.py",
         "scripts/zigux/check-phase2-toolchain-pin-scope.py",
         "scripts/zigux/check-phase2-tests-readme-alignment.py",
+        "scripts/zigux/check-phase2-cross-selftest-alignment.py",
         "scripts/zigux/check-phase6-base64-catalog-evidence.py",
         "scripts/zigux/check-phase7-argv-split-parity.py",
         "scripts/zigux/check-phase11-shared-replay-contract.py",
@@ -410,13 +439,22 @@ def run_self_test() -> int:
         _write(root / MAKEFILE_REL, baseline_makefile)
         case_count += 1
 
+        _write(root / MAKEFILE_REL, "\n".join(("phase2-cross:", "\t@true", "", baseline_makefile)))
+        _assert_only(validate(root), [f"missing_makefile_target_entries:{PHASE2_CROSS_TARGET}"], "missing_phase2_cross_makefile_guard_failed")
+        _write(root / MAKEFILE_REL, baseline_makefile)
+        case_count += 1
+
         makefile_cases = (
+            ("duplicate_phase2_genksyms_bridge_self_test_route_guard_failed", "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-genksyms-bridge-selftest-alignment.py --self-test\n", "unexpected_makefile_self_test_route_count:phase2-validate::2:check-phase2-genksyms-bridge-selftest-alignment.py"),
+            ("duplicate_phase2_genksyms_bridge_makefile_route_guard_failed", "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-genksyms-bridge-selftest-alignment.py\n", "unexpected_makefile_live_route_count:phase2-validate::2:check-phase2-genksyms-bridge-selftest-alignment.py"),
             ("duplicate_phase2_self_test_route_guard_failed", "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-kconfig-selftest-alignment.py --self-test\n", "unexpected_makefile_self_test_route_count:phase2-validate::2:check-phase2-kconfig-selftest-alignment.py"),
             ("duplicate_phase2_makefile_route_guard_failed", "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-kconfig-selftest-alignment.py\n", "unexpected_makefile_live_route_count:phase2-validate::2:check-phase2-kconfig-selftest-alignment.py"),
             ("duplicate_phase2_toolchain_pin_scope_self_test_route_guard_failed", "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test\n", "unexpected_makefile_self_test_route_count:phase2-validate::2:check-phase2-toolchain-pin-scope.py"),
             ("duplicate_phase2_toolchain_pin_scope_makefile_route_guard_failed", "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-toolchain-pin-scope.py\n", "unexpected_makefile_live_route_count:phase2-validate::2:check-phase2-toolchain-pin-scope.py"),
             ("duplicate_phase2_tests_readme_self_test_route_guard_failed", "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-tests-readme-alignment.py --self-test\n", "unexpected_makefile_self_test_route_count:phase2-validate::2:check-phase2-tests-readme-alignment.py"),
             ("duplicate_phase2_tests_readme_makefile_route_guard_failed", "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-tests-readme-alignment.py\n", "unexpected_makefile_live_route_count:phase2-validate::2:check-phase2-tests-readme-alignment.py"),
+            ("duplicate_phase2_cross_self_test_route_guard_failed", "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-cross-selftest-alignment.py --self-test\n", "unexpected_makefile_self_test_route_count:phase2-cross::2:check-phase2-cross-selftest-alignment.py"),
+            ("duplicate_phase2_cross_makefile_route_guard_failed", "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-cross-selftest-alignment.py\n", "unexpected_makefile_live_route_count:phase2-cross::2:check-phase2-cross-selftest-alignment.py"),
             ("duplicate_phase6_self_test_route_guard_failed", "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase6-base64-catalog-evidence.py --self-test\n", "unexpected_makefile_self_test_route_count:phase6-validate::2:check-phase6-base64-catalog-evidence.py"),
             ("duplicate_phase6_makefile_route_guard_failed", "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase6-base64-catalog-evidence.py\n", "unexpected_makefile_live_route_count:phase6-validate::2:check-phase6-base64-catalog-evidence.py"),
             ("duplicate_phase7_self_test_route_guard_failed", "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase7-argv-split-parity.py --self-test\n", "unexpected_makefile_self_test_route_count:phase7-validate::2:check-phase7-argv-split-parity.py"),
@@ -459,9 +497,11 @@ def run_self_test() -> int:
             ("missing_phase13_readme_entry_guard_failed", "scripts/zigux/check-phase13-devres-packet.py", "missing_readme_entry:check-phase13-devres-packet.py"),
             ("missing_phase13_devres_inventory_readme_entry_guard_failed", "scripts/zigux/check-phase13-devres-inventory-contract.py", "missing_readme_entry:check-phase13-devres-inventory-contract.py"),
             ("missing_phase11_readme_entry_guard_failed", "scripts/zigux/check-phase11-shared-replay-contract.py", "missing_readme_entry:check-phase11-shared-replay-contract.py"),
+            ("missing_phase2_genksyms_bridge_readme_entry_guard_failed", "scripts/zigux/check-phase2-genksyms-bridge-selftest-alignment.py", "missing_readme_entry:check-phase2-genksyms-bridge-selftest-alignment.py"),
             ("missing_phase2_readme_entry_guard_failed", "scripts/zigux/check-phase2-kconfig-selftest-alignment.py", "missing_readme_entry:check-phase2-kconfig-selftest-alignment.py"),
             ("missing_phase2_toolchain_pin_scope_readme_entry_guard_failed", "scripts/zigux/check-phase2-toolchain-pin-scope.py", "missing_readme_entry:check-phase2-toolchain-pin-scope.py"),
             ("missing_phase2_tests_readme_entry_guard_failed", "scripts/zigux/check-phase2-tests-readme-alignment.py", "missing_readme_entry:check-phase2-tests-readme-alignment.py"),
+            ("missing_phase2_cross_readme_entry_guard_failed", "scripts/zigux/check-phase2-cross-selftest-alignment.py", "missing_readme_entry:check-phase2-cross-selftest-alignment.py"),
         )
         for label, rel, expected in readme_cases:
             entries = [f"- `{Path(item).name}`" for item in required_rels if item != rel]
@@ -484,7 +524,7 @@ def run_self_test() -> int:
         )
         reordered = "\n".join(
             ("# scripts/zigux", "", "Current bootstrap helpers", "- `artifact_diff.py`",
-             *[f"- `{Path(rel).name}`" for rel in tooling_packet_rels + ("scripts/zigux/check-phase2-kconfig-selftest-alignment.py", "scripts/zigux/check-phase2-toolchain-pin-scope.py", "scripts/zigux/check-phase2-tests-readme-alignment.py", "scripts/zigux/check-phase6-base64-catalog-evidence.py", "scripts/zigux/check-phase7-argv-split-parity.py", "scripts/zigux/check-phase11-shared-replay-contract.py") + phase13_reordered],
+             *[f"- `{Path(rel).name}`" for rel in tooling_packet_rels + ("scripts/zigux/check-phase2-genksyms-bridge-selftest-alignment.py", "scripts/zigux/check-phase2-kconfig-selftest-alignment.py", "scripts/zigux/check-phase2-toolchain-pin-scope.py", "scripts/zigux/check-phase2-tests-readme-alignment.py", "scripts/zigux/check-phase2-cross-selftest-alignment.py", "scripts/zigux/check-phase6-base64-catalog-evidence.py", "scripts/zigux/check-phase7-argv-split-parity.py", "scripts/zigux/check-phase11-shared-replay-contract.py") + phase13_reordered],
              "", _fixture_phase3_flow(), _fixture_cross_phase_flow())
         )
         _write(root / README_REL, reordered)
@@ -533,12 +573,12 @@ def run_self_test() -> int:
         _assert_only(validate(root), [f"missing_repo_file:{tooling_packet_rels[-1]}"], "missing_repo_file_guard_failed")
         case_count += 1
 
-    if case_count != 44:
+    if case_count != 51:
         raise SystemExit(
             f"phase3-readme-tooling-inventory-self-test:unexpected_case_count:{case_count}"
         )
     print("PHASE3_README_TOOLING_INVENTORY_SELF_TEST=pass")
-    print("PHASE3_README_TOOLING_INVENTORY_SELF_TEST_CASE_COUNT=44")
+    print("PHASE3_README_TOOLING_INVENTORY_SELF_TEST_CASE_COUNT=51")
     return 0
 
 
@@ -563,18 +603,38 @@ def main() -> int:
 
     phase3_entries, entry_issues = _canonical_phase3_entries(repo_root)
     phase2_entries, phase2_issues = _named_helper_entries(repo_root, PHASE2_VALIDATE_TARGET, PHASE2_REQUIRED)
+    phase2_cross_entries, phase2_cross_issues = _named_helper_entries(
+        repo_root, PHASE2_CROSS_TARGET, PHASE2_CROSS_REQUIRED
+    )
     phase6_entries, phase6_issues = _named_helper_entries(repo_root, PHASE6_VALIDATE_TARGET, PHASE6_REQUIRED)
     phase7_entries, phase7_issues = _named_helper_entries(repo_root, PHASE7_VALIDATE_TARGET, PHASE7_REQUIRED)
     phase11_entries, phase11_issues = _named_helper_entries(repo_root, PHASE11_VALIDATE_TARGET, PHASE11_REQUIRED)
     phase13_entries, phase13_issues = _target_helper_entries(repo_root, PHASE13_VALIDATE_TARGET)
-    entry_issues.extend(phase2_issues + phase6_issues + phase7_issues + phase11_issues + phase13_issues)
+    entry_issues.extend(
+        phase2_issues
+        + phase2_cross_issues
+        + phase6_issues
+        + phase7_issues
+        + phase11_issues
+        + phase13_issues
+    )
     if entry_issues:
         print("PHASE3_README_TOOLING_INVENTORY=fail")
         for issue in entry_issues:
             print(issue)
         return 1
 
-    entry_count = len(_ordered_unique(phase3_entries + phase2_entries + phase6_entries + phase7_entries + phase11_entries + phase13_entries))
+    entry_count = len(
+        _ordered_unique(
+            phase3_entries
+            + phase2_entries
+            + phase2_cross_entries
+            + phase6_entries
+            + phase7_entries
+            + phase11_entries
+            + phase13_entries
+        )
+    )
     print("PHASE3_README_TOOLING_INVENTORY=pass")
     print(f"PHASE3_README_TOOLING_INVENTORY_ENTRY_COUNT={entry_count}")
     return 0
