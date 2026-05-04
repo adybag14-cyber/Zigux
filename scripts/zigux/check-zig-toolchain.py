@@ -141,8 +141,8 @@ def run_self_test() -> int:
             "minimum_version": "0.17.0-dev.87+9b177a7d2",
             "policy_note": "Shared Zigux bootstrap and Phase 2 toolchain pin.",
             "archive_sha256": {
-                "x86_64-linux": "313b231e76f3cc9b718044602dbc3c42b531693507203a6baf2fa892c9533e77",
-                "aarch64-macos": "313b231e76f3cc9b718044602dbc3c42b531693507203a6baf2fa892c9533e77",
+                "x86_64-linux": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "aarch64-macos": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
             },
         }
     ) == (
@@ -151,10 +151,17 @@ def run_self_test() -> int:
         "0.17.0-dev.87+9b177a7d2",
         "Shared Zigux bootstrap and Phase 2 toolchain pin.",
         {
-            "x86_64-linux": "313b231e76f3cc9b718044602dbc3c42b531693507203a6baf2fa892c9533e77",
-            "aarch64-macos": "313b231e76f3cc9b718044602dbc3c42b531693507203a6baf2fa892c9533e77",
+            "x86_64-linux": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "aarch64-macos": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
         },
     )
+    default_phase, default_channel, default_minimum_version, default_policy_note, default_archive_sha256 = load_policy(
+        DEFAULT_POLICY
+    )
+    assert default_phase == DEFAULT_POLICY_PHASE
+    assert default_channel == default_minimum_version
+    assert default_policy_note == "Shared Zigux bootstrap and Phase 2 toolchain pin."
+    assert resolve_target_key("Linux", "x86_64") in default_archive_sha256
     try:
         parse_zig_version("master")
     except ValueError:
