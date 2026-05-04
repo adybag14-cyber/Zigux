@@ -272,11 +272,11 @@ def run_self_test() -> int:
     expect_exact_issue(
         "closure_validator_marker_failure",
         validate_required_markers(
-            closure_validator_text.replace(PHASE2_CLOSURE_VALIDATOR_MARKERS[0], "", 1),
+            closure_validator_text.replace(PHASE2_CLOSURE_VALIDATOR_MARKERS[1], "", 1),
             label="phase2_closure_validator",
             markers=PHASE2_CLOSURE_VALIDATOR_MARKERS,
         ),
-        f"phase2_closure_validator:missing_marker:{PHASE2_CLOSURE_VALIDATOR_MARKERS[0]}",
+        f"phase2_closure_validator:missing_marker:{PHASE2_CLOSURE_VALIDATOR_MARKERS[1]}",
     )
 
     scripts_readme_text = "\n".join(SCRIPTS_README_MARKERS)
