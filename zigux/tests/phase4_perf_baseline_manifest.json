@@ -41,9 +41,9 @@
       "threshold_ready_surface": "zigux/tests/bitmap_diff.zig exposes runThresholdReplay() as the deterministic bitmap threshold batch for future perf-baseline work",
       "benchmark_command": "unapproved_until_bitmap_gate_grows_beyond_bounded_correctness_checks",
       "acceptable_limit": "unapproved_until_bitmap_gate_grows_beyond_bounded_correctness_checks",
-      "next_threshold_step": "Shared Subsystems Pod needs to promote the current deterministic bitmap threshold batch into one isolated benchmark route before approving one benchmark command and one acceptable limit.",
+      "next_threshold_step": "Shared Subsystems Pod now has one isolated bitmap benchmark route at `zig build phase4-bitmap-bench --build-file zigux/tests/phase4_build.zig`, and next needs to approve one benchmark command and one acceptable limit for that isolated bitmap benchmark route.",
       "status": "pending_bounded_benchmark",
-      "why_not_approved_yet": "The live bitmap gate still carries a bounded correctness-first rollback packet, and `zigux/tests/bitmap_diff.zig` now keeps one deterministic threshold replay batch ready for a future perf-baseline lane, so Shared Subsystems Pod still needs to turn that batch into one isolated bitmap benchmark route before approving a benchmark command and acceptable limit for that route."
+      "why_not_approved_yet": "The live bitmap gate still carries a bounded correctness-first rollback packet, and `zigux/tests/bitmap_diff.zig` now keeps one deterministic threshold replay batch ready for the new isolated `zig build phase4-bitmap-bench --build-file zigux/tests/phase4_build.zig` route, but no benchmark command or acceptable limit is approved for that route yet."
     }
   ],
   "survey_summary": {
@@ -80,7 +80,7 @@
       "status": "ready_next",
       "kind": "perf_command",
       "zigux_destination": "zigux/tests/bitmap_diff.zig",
-      "why_now": "The bitmap rollback gate is still correctness-only, but it now carries a deterministic threshold replay batch that pins the current benchmark-ready loop to the shipped replay surface, so Shared Subsystems Pod next needs to promote that batch into one isolated bitmap benchmark route and then one benchmark command plus one acceptable limit before Phase 4 claims perf coverage."
+      "why_now": "The bitmap rollback gate is still correctness-only, but it now carries a deterministic threshold replay batch plus a new isolated bitmap benchmark route, so Shared Subsystems Pod next needs to approve one benchmark command and one acceptable limit before Phase 4 claims perf coverage."
     }
   ]
 }
