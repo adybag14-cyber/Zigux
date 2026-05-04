@@ -17,6 +17,11 @@ DOCS_ROOT_LINES = [
     "reviewability lane rather than a closure or active subsystem delivery claim",
 ]
 
+TESTS_ROOT_EXACT_LINE_COUNTS = {
+    "- keep the current Phase 14 smoke packet reviewable through `zigux/tests/phase14_build.zig`, `scripts/zigux/check-phase14-docs-root-smoke-summary.py`, `scripts/zigux/check-phase14-release-boundary-exact-counts.py`, `scripts/zigux/validate-phase14.py`, `make -C zigux phase14-validate`, `make -C zigux phase14-smoke`, `zig build phase14-smoke --build-file zigux/tests/phase14_build.zig --summary all`, `make -C zigux phase14`, and `zig build test --build-file zigux/tests/phase14_build.zig --summary all` so the shared study-only boundary packet stays aligned across the dedicated docs-root and release-boundary smoke helpers, the focused smoke shard, the full replay, the named rollback owner, `Documentation/zigux/phase14-release-boundary-survey.md`, and the docs-root summary instead of widening into ad hoc bridge or deep-core claims": 1,
+    "- keep the Phase 14 shared smoke packet explicit in the tests root: `Documentation/zigux/phase14-end-to-end-smoke-survey.md`, `Documentation/zigux/phase14-release-boundary-survey.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/freeze-map.md`, `zigux/tests/phase14_end_to_end_smoke_manifest.json`, and `zigux/tests/phase14_end_to_end_smoke_survey.zig` should continue to keep the exact rollback threshold, automatic return-to-blocked trigger list, shared-surface accounting, and ZAR-to-product transfer rationale visible from the tests root rather than relying on run memory": 1,
+}
+
 SURVEY_EXACT_LINE_COUNTS = {
     "- `PHASE14_SHARED_LANE=P14-L01`": 1,
     "- `PHASE14_VALIDATE_ENTRYPOINT=make -C zigux phase14-validate`": 1,
@@ -92,12 +97,14 @@ def require_exact_lines(label: str, text: str, counts: dict[str, int]) -> list[s
 
 def validate_phase14_summary_surfaces(
     docs_root_text: str,
+    tests_root_text: str,
     scripts_readme_text: str,
     survey_text: str,
     release_boundary_text: str,
     makefile_text: str,
 ) -> list[str]:
     issues = require_exact_count("docs_root", docs_root_text, DOCS_ROOT_LINES)
+    issues.extend(require_exact_lines("tests_root", tests_root_text, TESTS_ROOT_EXACT_LINE_COUNTS))
     issues.extend(require_exact_lines("scripts_readme", scripts_readme_text, SCRIPTS_README_EXACT_LINE_COUNTS))
     issues.extend(require_exact_lines("survey", survey_text, SURVEY_EXACT_LINE_COUNTS))
     issues.extend(require_exact_count("release_boundary", release_boundary_text, RELEASE_BOUNDARY_LINES))
@@ -113,6 +120,12 @@ Phase 14 notes
 - `Documentation/zigux/phase14-release-boundary-survey.md` and `Documentation/zigux/phase14-end-to-end-smoke-survey.md` now make the roadmap's core-adjacent sequencing step explicit from the docs root, so release-facing review no longer jumps directly from the active Phase 13 helper tranche to the Phase 15 governance packet.
 - the current Phase 14 release reading is intentionally boundary-only: `kernel/workqueue.c` and `kernel/trace/ring_buffer.c` stay in study-only posture, while `kernel/rcu/tree.c` and `net/core/skbuff.c` remain blocked under the Phase 15 freeze-in-C governance packet rather than being treated as an active release lane.
 - `zigux/tests/phase14_end_to_end_smoke_manifest.json`, `scripts/zigux/check-phase14-docs-root-smoke-summary.py`, `scripts/zigux/check-phase14-release-boundary-exact-counts.py`, `scripts/zigux/validate-phase14.py`, `make -C zigux phase14-validate`, `make -C zigux phase14-smoke`, `zig build phase14-smoke --build-file zigux/tests/phase14_build.zig --summary all`, `make -C zigux phase14`, and `zigux/tests/phase14_build.zig` now provide one validator-backed shared smoke gate for that study-only four-anchor packet; it stays a reviewability lane rather than a closure or active subsystem delivery claim.
+""".strip()
+
+    tests_root_text = """
+Phase 14 guidance
+- keep the current Phase 14 smoke packet reviewable through `zigux/tests/phase14_build.zig`, `scripts/zigux/check-phase14-docs-root-smoke-summary.py`, `scripts/zigux/check-phase14-release-boundary-exact-counts.py`, `scripts/zigux/validate-phase14.py`, `make -C zigux phase14-validate`, `make -C zigux phase14-smoke`, `zig build phase14-smoke --build-file zigux/tests/phase14_build.zig --summary all`, `make -C zigux phase14`, and `zig build test --build-file zigux/tests/phase14_build.zig --summary all` so the shared study-only boundary packet stays aligned across the dedicated docs-root and release-boundary smoke helpers, the focused smoke shard, the full replay, the named rollback owner, `Documentation/zigux/phase14-release-boundary-survey.md`, and the docs-root summary instead of widening into ad hoc bridge or deep-core claims
+- keep the Phase 14 shared smoke packet explicit in the tests root: `Documentation/zigux/phase14-end-to-end-smoke-survey.md`, `Documentation/zigux/phase14-release-boundary-survey.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/freeze-map.md`, `zigux/tests/phase14_end_to_end_smoke_manifest.json`, and `zigux/tests/phase14_end_to_end_smoke_survey.zig` should continue to keep the exact rollback threshold, automatic return-to-blocked trigger list, shared-surface accounting, and ZAR-to-product transfer rationale visible from the tests root rather than relying on run memory
 """.strip()
 
     scripts_readme_text = """
@@ -171,6 +184,7 @@ phase14: phase14-validate phase14-test
 
     good = validate_phase14_summary_surfaces(
         docs_root_text,
+        tests_root_text,
         scripts_readme_text,
         survey_text,
         release_boundary_text,
@@ -178,17 +192,9 @@ phase14: phase14-validate phase14-test
     )
     missing_entrypoint = validate_phase14_summary_surfaces(
         docs_root_text,
+        tests_root_text,
         scripts_readme_text.replace(
-            "`zig build phase14-smoke --build-file zigux/tests/phase14_build.zig --summary all`, ", "", 1
-        ),
-        survey_text,
-        release_boundary_text,
-        makefile_text,
-    )
-    missing_docs_packet = validate_phase14_summary_surfaces(
-        docs_root_text,
-        scripts_readme_text.replace(
-            "- `Documentation/zigux/phase14-release-boundary-survey.md`, `Documentation/zigux/phase14-end-to-end-smoke-survey.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/freeze-map.md`, `zigux/tests/phase14_end_to_end_smoke_manifest.json`, and `zigux/tests/phase14_end_to_end_smoke_survey.zig` keep the exact rollback threshold, automatic return-to-blocked trigger list, and ZAR-to-product transfer rationale visible from the docs root rather than relying on run memory.\n",
+            "`zig build phase14-smoke --build-file zigux/tests/phase14_build.zig --summary all`, ",
             "",
             1,
         ),
@@ -196,20 +202,48 @@ phase14: phase14-validate phase14-test
         release_boundary_text,
         makefile_text,
     )
+    missing_tests_packet = validate_phase14_summary_surfaces(
+        docs_root_text,
+        tests_root_text.replace(
+            "- keep the Phase 14 shared smoke packet explicit in the tests root: `Documentation/zigux/phase14-end-to-end-smoke-survey.md`, `Documentation/zigux/phase14-release-boundary-survey.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/freeze-map.md`, `zigux/tests/phase14_end_to_end_smoke_manifest.json`, and `zigux/tests/phase14_end_to_end_smoke_survey.zig` should continue to keep the exact rollback threshold, automatic return-to-blocked trigger list, shared-surface accounting, and ZAR-to-product transfer rationale visible from the tests root rather than relying on run memory",
+            "",
+            1,
+        ),
+        scripts_readme_text,
+        survey_text,
+        release_boundary_text,
+        makefile_text,
+    )
     duplicate_attached_toolchain = validate_phase14_summary_surfaces(
         docs_root_text,
+        tests_root_text,
         scripts_readme_text
         + "\n- attached-toolchain fallback commands stay explicit in the scripts index too: `make -C zigux phase14-validate PYTHON=python3 ZIG=<attached-zig-path>`, `make -C zigux phase14-smoke ZIG=<attached-zig-path>`, `make -C zigux phase14-test ZIG=<attached-zig-path>`, and `make -C zigux phase14 ZIG=<attached-zig-path>`.",
         survey_text,
         release_boundary_text,
         makefile_text,
     )
-    if good or not missing_entrypoint or not missing_docs_packet or not duplicate_attached_toolchain:
+    duplicate_tests_packet = validate_phase14_summary_surfaces(
+        docs_root_text,
+        tests_root_text
+        + "\n- keep the Phase 14 shared smoke packet explicit in the tests root: `Documentation/zigux/phase14-end-to-end-smoke-survey.md`, `Documentation/zigux/phase14-release-boundary-survey.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/freeze-map.md`, `zigux/tests/phase14_end_to_end_smoke_manifest.json`, and `zigux/tests/phase14_end_to_end_smoke_survey.zig` should continue to keep the exact rollback threshold, automatic return-to-blocked trigger list, shared-surface accounting, and ZAR-to-product transfer rationale visible from the tests root rather than relying on run memory",
+        scripts_readme_text,
+        survey_text,
+        release_boundary_text,
+        makefile_text,
+    )
+    if (
+        good
+        or not missing_entrypoint
+        or not missing_tests_packet
+        or not duplicate_attached_toolchain
+        or not duplicate_tests_packet
+    ):
         print("PHASE14_DOCS_ROOT_SMOKE_SUMMARY_SELF_TEST=fail")
         return 1
 
     print("PHASE14_DOCS_ROOT_SMOKE_SUMMARY_SELF_TEST=pass")
-    print("PHASE14_DOCS_ROOT_SMOKE_SUMMARY_SELF_TEST_CASE_COUNT=4")
+    print("PHASE14_DOCS_ROOT_SMOKE_SUMMARY_SELF_TEST_CASE_COUNT=5")
     return 0
 
 
@@ -218,12 +252,20 @@ def main(argv: list[str]) -> int:
         return run_self_test()
 
     docs_root_path = ROOT / "Documentation/zigux/README.md"
+    tests_root_path = ROOT / "zigux/tests/README.md"
     scripts_readme_path = ROOT / "scripts/zigux/README.md"
     survey_path = ROOT / "Documentation/zigux/phase14-end-to-end-smoke-survey.md"
     release_boundary_path = ROOT / "Documentation/zigux/phase14-release-boundary-survey.md"
     makefile_path = ROOT / "zigux/Makefile"
 
-    required_paths = [docs_root_path, scripts_readme_path, survey_path, release_boundary_path, makefile_path]
+    required_paths = [
+        docs_root_path,
+        tests_root_path,
+        scripts_readme_path,
+        survey_path,
+        release_boundary_path,
+        makefile_path,
+    ]
     missing_files = [str(path) for path in required_paths if not path.exists()]
     if missing_files:
         print("PHASE14_DOCS_ROOT_SMOKE_SUMMARY=fail")
@@ -235,6 +277,7 @@ def main(argv: list[str]) -> int:
 
     issues = validate_phase14_summary_surfaces(
         read(docs_root_path),
+        read(tests_root_path),
         read(scripts_readme_path),
         read(survey_path),
         read(release_boundary_path),
@@ -250,6 +293,7 @@ def main(argv: list[str]) -> int:
 
     print("PHASE14_DOCS_ROOT_SMOKE_SUMMARY=pass")
     print(f"PHASE14_DOCS_ROOT_MARKER_COUNT={len(DOCS_ROOT_LINES)}")
+    print(f"PHASE14_TESTS_ROOT_MARKER_COUNT={len(TESTS_ROOT_EXACT_LINE_COUNTS)}")
     print(f"PHASE14_SCRIPTS_README_MARKER_COUNT={len(SCRIPTS_README_EXACT_LINE_COUNTS)}")
     print(f"PHASE14_SURVEY_MARKER_COUNT={len(SURVEY_EXACT_LINE_COUNTS) + 1}")
     print(f"PHASE14_RELEASE_BOUNDARY_MARKER_COUNT={len(RELEASE_BOUNDARY_LINES)}")
