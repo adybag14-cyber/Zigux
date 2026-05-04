@@ -22,9 +22,10 @@ From the tests root, the bounded Phase 1 packet is carried by:
 - `zigux/tests/phase1_bench.zig`
 - `zigux/tests/fixtures/phase1_helper_manifest.json`
 - `zigux/tests/fixtures/phase1_helpers.json`
+- `zigux/tests/fixtures/phase1_helpers_c_harness.c`
 - `zigux/tests/fixtures/phase1_bench_expectations.json`
 
-Those files should keep the closed helper inventory, the replay entrypoints, the benchmark checksum contract, and the helper-review notes aligned with the docs-root and scripts-root packet.
+Those files should keep the closed helper inventory, the harness-backed parity replay surface, the replay entrypoints, the benchmark checksum contract, and the helper-review notes aligned with the docs-root and scripts-root packet.
 
 ## Validator-first route
 
