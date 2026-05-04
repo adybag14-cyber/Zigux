@@ -207,6 +207,9 @@ test "phase 15 handoff note keeps the open gaps and parked next steps explicit" 
     try std.testing.expect(std.mem.indexOf(u8, handoff_note, "docs-root release evidence now matches the dedicated maintenance packet") != null);
     try std.testing.expect(std.mem.indexOf(u8, handoff_note, "phase15-docs-root-summary-alignment") != null);
     try std.testing.expect(std.mem.indexOf(u8, handoff_note, "phase15-deep-core-status-change-blocker") != null);
+    try std.testing.expect(std.mem.indexOf(u8, handoff_note, "python3 scripts/zigux/check-phase15-review-process-handoff.py --self-test") != null);
+    try std.testing.expect(std.mem.indexOf(u8, handoff_note, "python3 scripts/zigux/check-phase15-review-process-handoff.py") != null);
+    try std.testing.expect(std.mem.indexOf(u8, handoff_note, "focused handoff-checker route") != null);
     try std.testing.expect(std.mem.indexOf(u8, handoff_note, "python3 scripts/zigux/validate-phase15.py") != null);
     try std.testing.expect(std.mem.indexOf(u8, handoff_note, "make -C zigux phase15-validate") != null);
     try std.testing.expect(std.mem.indexOf(u8, handoff_note, "make -C zigux phase15") != null);
