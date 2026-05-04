@@ -16,6 +16,7 @@ BUILD_SMOKE_DEPEND_STEP_RE = re.compile(r"phase14_smoke_step\.dependOn\(&([A-Za-
 FILES = [
     "scripts/zigux/validate-phase14.py",
     "scripts/zigux/check-phase14-docs-root-smoke-summary.py",
+    "scripts/zigux/check-phase14-release-boundary-exact-counts.py",
     "scripts/zigux/README.md",
     "Documentation/zigux/README.md",
     "Documentation/zigux/phase14-end-to-end-smoke-survey.md",
@@ -358,7 +359,7 @@ else:
                 missing.append(f"survey:rollback_trigger:{item}")
 
 shared_smoke_surfaces = manifest.get("shared_smoke_surfaces")
-if not isinstance(shared_smoke_surfaces, list) or len(shared_smoke_surfaces) != 13:
+if not isinstance(shared_smoke_surfaces, list) or len(shared_smoke_surfaces) != 14:
     missing.append("manifest:shared_smoke_surfaces")
 
 smoke_commands = manifest.get("smoke_commands")
