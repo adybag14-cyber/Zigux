@@ -214,7 +214,7 @@ test "phase 7 string helpers survey keeps the roadmap and sample-root boundary e
         try std.testing.expect(std.mem.indexOf(u8, entry.name, "string") == null);
     }
 
-    try std.testing.expectEqualStrings("P7-L04", manifest.lane_key);
+    try std.testing.expectEqualStrings("P7-Y01", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 7", manifest.phase);
     try std.testing.expectEqualStrings("lib/string_helpers.c", manifest.anchor);
     try std.testing.expectEqual(@as(usize, 1), manifest.roadmap_destinations.len);
@@ -454,7 +454,7 @@ test "phase 7 string helpers survey keeps the roadmap and sample-root boundary e
     try expectContains(string_helpers_tests, "phase 7 stringEscapeMem covers the bounded escape subset");
     try expectContains(string_helpers_tests, "phase 7 stringEscapeMem reports truncated output length without forcing a terminator");
 
-    try expectContains(manifest_json, "\"lane_key\": \"P7-L04\"");
+    try expectContains(manifest_json, "\"lane_key\": \"P7-Y01\"");
     try expectContains(manifest_json, "\"anchor\": \"lib/string_helpers.c\"");
     try expectContains(manifest_json, "\"lib/string_helpers.zig\"");
     try expectContains(manifest_json, "\"phase7-string-helpers-manifest-packet\"");
