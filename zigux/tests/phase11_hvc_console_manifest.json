@@ -114,6 +114,13 @@
       "why_now": "A third driver-local ABI proof now keeps struct hv_ops callback signatures reviewable by pinning the C calling convention plus get_chars, put_chars, flush, notifier_add, notifier_del, notifier_hangup, tiocmget, tiocmset, and dtr_rts parameter and return types without claiming struct hvc_struct, tty registration, or live hypervisor I/O ownership."
     },
     {
+      "id": "phase11-hvc-console-export-signature-assert",
+      "status": "starter_landed",
+      "kind": "validation",
+      "zigux_destination": "zigux/tests/phase11_hvc_console_survey.zig",
+      "why_now": "A fourth driver-local ABI proof now keeps the exported helper surface reviewable by pinning the C calling convention plus the exact hvc_instantiate, hvc_alloc, hvc_remove, hvc_poll, hvc_kick, __hvc_resize, notifier_add_irq, notifier_del_irq, and notifier_hangup_irq parameter and return types without claiming struct hvc_struct, tty registration, or live hypervisor I/O ownership."
+    },
+    {
       "id": "phase11-hvc-console-driver-tests",
       "status": "starter_landed",
       "kind": "validation",
