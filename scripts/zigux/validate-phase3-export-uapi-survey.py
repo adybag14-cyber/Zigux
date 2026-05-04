@@ -101,8 +101,14 @@ REQUIRED_MAKEFILE_SNIPPETS = (
 )
 
 REQUIRED_EXPORT_SHIM_SNIPPETS = (
+    "pub const HeaderCompatibility = uapi_version.Compatibility;",
+    "pub const abi_version: u16 = uapi_version.abi_version;",
+    "pub const header_size: u32 = uapi_version.header_size;",
     "pub fn canonicalHeader(flags: u16) abi.BoundaryHeader {",
+    "pub fn compatibleHeader(size: u32, flags: u16) abi.BoundaryHeader {",
+    "pub fn versionedHeader(size: u32, version: u16, flags: u16) abi.BoundaryHeader {",
     "pub fn header(flags: u16) abi.BoundaryHeader {",
+    "pub fn headerCompatibility(boundary_header: abi.BoundaryHeader) ?HeaderCompatibility {",
     "pub fn canonicalizeHeader(boundary_header: abi.BoundaryHeader) ?abi.BoundaryHeader {",
     "pub fn isCompatibleHeader(boundary_header: abi.BoundaryHeader) bool {",
     "pub fn isCanonicalHeader(boundary_header: abi.BoundaryHeader) bool {",
@@ -110,7 +116,9 @@ REQUIRED_EXPORT_SHIM_SNIPPETS = (
     "pub fn ok(facility: abi.Facility) abi.ExportStatus {",
     "pub fn errno(code: i32, facility: abi.Facility) abi.ExportStatus {",
     "pub fn isOk(status: abi.ExportStatus) bool {",
+    'test "phase3 export shim keeps failure encoding explicit"',
     'test "phase3 export shim separates canonical headers from broader compatibility"',
+    'test "phase3 export shim versioned header relay keeps arbitrary replay explicit"',
     'test "phase3 export shim canonicalizes compatible headers back to the current shape"',
 )
 
@@ -701,6 +709,21 @@ def run_self_test() -> int:
         export_shim_path.write_text(original_export_shim + "// drift\n", encoding="utf-8")
         issues = validate(root)
         assert f"surveyed_blob_drift:{EXPORT_SHIM_REL}" in issues
+        export_shim_path.write_text(original_export_shim, encoding="utf-8")
+
+        export_shim_path.write_text(
+            original_export_shim.replace(
+                "pub fn headerCompatibility(boundary_header: abi.BoundaryHeader) ?HeaderCompatibility {\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        issues = validate(root)
+        assert (
+            "missing_export_shim_snippet:pub fn headerCompatibility(boundary_header: abi.BoundaryHeader) ?HeaderCompatibility {"
+            in issues
+        )
         export_shim_path.write_text(original_export_shim, encoding="utf-8")
 
         survey_path.write_text(REQUIRED_SURVEY_MARKERS[0] + "\n", encoding="utf-8")
