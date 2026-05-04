@@ -23,10 +23,14 @@ PHASE11_REQUIRED_HELPER_ENTRIES = ("check-phase11-shared-replay-contract.py",)
 PHASE11_VALIDATE_TARGET = "phase11-validate:"
 PHASE13_VALIDATE_TARGET = "phase13-validate:"
 REQUIRED_PHASE3_FLOW_SNIPPETS = (
-    "`validate-phase3.py` is the validator-first entrypoint for the shared Phase 3 ABI and interop packet, and `make -C zigux phase3-validate` plus the bootstrap workflow replay that same route before the broader build-backed or survey-backed checks run.",
-    "`validate-phase3-roadmap-gap-survey.py`, `validate-phase3-rbtree-interop-survey.py`, `check-phase3-rbtree-shared-lift-contract.py`, `validate-phase3-export-uapi-survey.py`, `validate-phase3-low-level-wrapper-survey.py`, `validate-phase3-policy-unsafe-survey.py`, `check-phase3-policy-unsafe-mmio-consumer.py`, `check-phase3-abi-layout-packet.py`, `check-phase3-abi-binding-constants.py`, `check-phase3-tooling-packet.py`, `check-phase3-readme-tooling-inventory.py`, `check-phase3-validation-flow.py`, `check-phase3-build-roots.py`, and `check-phase3-canonical-survey-manifest.py` stay as supporting checks inside that validator-first route rather than standalone bootstrap or release entrypoints.",
+    "`validate-phase3.py`, `make -C zigux phase3-validate`, and the bootstrap workflow keep the bounded ABI substrate packet aligned across `scripts/zigux/README.md`, `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/phase3-abi-slice.md`, `zigux/tests/fixtures/phase3_abi_manifest.json`, and the shared Phase 3 build roots before broader interop replay claims closure.",
+    "`the supporting survey and contract checks stay inside that same validator-first route: `validate-phase3-roadmap-gap-survey.py`, `validate-phase3-rbtree-interop-survey.py`, `validate-phase3-export-uapi-survey.py`, `validate-phase3-low-level-wrapper-survey.py`, `validate-phase3-policy-unsafe-survey.py`, `check-phase3-policy-unsafe-mmio-consumer.py`, `check-phase3-abi-layout-packet.py`, `check-phase3-abi-binding-constants.py`, `check-phase3-tooling-packet.py`, `check-phase3-readme-tooling-inventory.py`, `check-phase3-validation-flow.py`, `check-phase3-build-roots.py`, and `check-phase3-canonical-survey-manifest.py`.`",
+)
+REQUIRED_CROSS_PHASE_FLOW_SNIPPETS = (
+    "`validate-phase6.py` keeps the shipped Phase 6 leaf-helper packet aligned across `scripts/zigux/README.md`, `Documentation/zigux/README.md`, `Documentation/zigux/phase6-helper-parity-catalog.md`, `zigux/tests/phase6_helper_parity_manifest.json`, `zigux/tests/phase6_build.zig`, `zigux/Makefile`, the bootstrap workflow, and the four helper-local slice notes before any shared replay claims stay green.",
 )
 EXACT_ONCE_PHASE3_FLOW_SNIPPETS = REQUIRED_PHASE3_FLOW_SNIPPETS
+EXACT_ONCE_CROSS_PHASE_FLOW_SNIPPETS = REQUIRED_CROSS_PHASE_FLOW_SNIPPETS
 
 
 def _ordered_unique(entries: list[str]) -> list[str]:
@@ -292,6 +296,19 @@ def validate(root: Path) -> list[str]:
         1,
         issues,
     )
+    _require_snippets(
+        readme,
+        REQUIRED_CROSS_PHASE_FLOW_SNIPPETS,
+        "missing_cross_phase_flow_snippet",
+        issues,
+    )
+    _require_exact_count(
+        readme,
+        EXACT_ONCE_CROSS_PHASE_FLOW_SNIPPETS,
+        "unexpected_cross_phase_flow_snippet_count",
+        1,
+        issues,
+    )
 
     phase3_required_set = set(phase3_required_entries)
     phase13_required_set = set(phase13_required_entries)
@@ -338,6 +355,16 @@ def _fixture_phase3_flow() -> str:
             "Phase 3 flow",
             f"- {REQUIRED_PHASE3_FLOW_SNIPPETS[0]}",
             f"- {REQUIRED_PHASE3_FLOW_SNIPPETS[1]}",
+            "",
+        )
+    )
+
+
+def _fixture_cross_phase_flow() -> str:
+    return "\n".join(
+        (
+            "Phase 6 flow",
+            f"- {REQUIRED_CROSS_PHASE_FLOW_SNIPPETS[0]}",
             "",
         )
     )
@@ -440,6 +467,7 @@ def run_self_test() -> int:
                     helper_lines,
                     "",
                     _fixture_phase3_flow(),
+                    _fixture_cross_phase_flow(),
                 )
             ),
         )
@@ -457,6 +485,7 @@ def run_self_test() -> int:
                     "# scripts/zigux",
                     "",
                     _fixture_phase3_flow(),
+                    _fixture_cross_phase_flow(),
                 )
             ),
         )
@@ -477,6 +506,7 @@ def run_self_test() -> int:
                     helper_lines,
                     "",
                     _fixture_phase3_flow(),
+                    _fixture_cross_phase_flow(),
                 )
             ),
         )
@@ -529,9 +559,9 @@ def run_self_test() -> int:
         _write(
             root / MAKEFILE_REL,
             _fixture_makefile().replace(
-                '\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-kconfig-selftest-alignment.py --self-test\n',
-                '\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-kconfig-selftest-alignment.py --self-test\n'
-                '\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-kconfig-selftest-alignment.py --self-test\n',
+                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-kconfig-selftest-alignment.py --self-test\n",
+                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-kconfig-selftest-alignment.py --self-test\n"
+                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-kconfig-selftest-alignment.py --self-test\n",
                 1,
             ),
         )
@@ -549,9 +579,9 @@ def run_self_test() -> int:
         _write(
             root / MAKEFILE_REL,
             _fixture_makefile().replace(
-                '\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase6-base64-catalog-evidence.py --self-test\n',
-                '\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase6-base64-catalog-evidence.py --self-test\n'
-                '\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase6-base64-catalog-evidence.py --self-test\n',
+                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase6-base64-catalog-evidence.py --self-test\n",
+                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase6-base64-catalog-evidence.py --self-test\n"
+                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase6-base64-catalog-evidence.py --self-test\n",
                 1,
             ),
         )
@@ -569,9 +599,9 @@ def run_self_test() -> int:
         _write(
             root / MAKEFILE_REL,
             _fixture_makefile().replace(
-                '\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase7-argv-split-parity.py --self-test\n',
-                '\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase7-argv-split-parity.py --self-test\n'
-                '\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase7-argv-split-parity.py --self-test\n',
+                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase7-argv-split-parity.py --self-test\n",
+                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase7-argv-split-parity.py --self-test\n"
+                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase7-argv-split-parity.py --self-test\n",
                 1,
             ),
         )
@@ -589,9 +619,9 @@ def run_self_test() -> int:
         _write(
             root / MAKEFILE_REL,
             _fixture_makefile().replace(
-                '\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase7-argv-split-parity.py\n',
-                '\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase7-argv-split-parity.py\n'
-                '\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase7-argv-split-parity.py\n',
+                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase7-argv-split-parity.py\n",
+                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase7-argv-split-parity.py\n"
+                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase7-argv-split-parity.py\n",
                 1,
             ),
         )
@@ -609,9 +639,9 @@ def run_self_test() -> int:
         _write(
             root / MAKEFILE_REL,
             _fixture_makefile().replace(
-                '\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase11-shared-replay-contract.py\n',
-                '\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase11-shared-replay-contract.py\n'
-                '\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase11-shared-replay-contract.py\n',
+                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase11-shared-replay-contract.py\n",
+                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase11-shared-replay-contract.py\n"
+                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase11-shared-replay-contract.py\n",
                 1,
             ),
         )
@@ -627,9 +657,9 @@ def run_self_test() -> int:
         _write(
             root / MAKEFILE_REL,
             _fixture_makefile().replace(
-                '\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase11-shared-replay-contract.py --self-test\n',
-                '\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase11-shared-replay-contract.py --self-test\n'
-                '\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase11-shared-replay-contract.py --self-test\n',
+                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase11-shared-replay-contract.py --self-test\n",
+                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase11-shared-replay-contract.py --self-test\n"
+                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase11-shared-replay-contract.py --self-test\n",
                 1,
             ),
         )
@@ -647,9 +677,9 @@ def run_self_test() -> int:
         _write(
             root / MAKEFILE_REL,
             _fixture_makefile().replace(
-                '\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase13-devres-packet.py --self-test\n',
-                '\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase13-devres-packet.py --self-test\n'
-                '\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase13-devres-packet.py --self-test\n',
+                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase13-devres-packet.py --self-test\n",
+                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase13-devres-packet.py --self-test\n"
+                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase13-devres-packet.py --self-test\n",
                 1,
             ),
         )
@@ -666,9 +696,9 @@ def run_self_test() -> int:
         _write(
             root / MAKEFILE_REL,
             _fixture_makefile().replace(
-                '\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase13-devres-packet.py\n',
-                '\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase13-devres-packet.py\n'
-                '\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase13-devres-packet.py\n',
+                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase13-devres-packet.py\n",
+                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase13-devres-packet.py\n"
+                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase13-devres-packet.py\n",
                 1,
             ),
         )
@@ -686,9 +716,9 @@ def run_self_test() -> int:
         _write(
             root / MAKEFILE_REL,
             _fixture_makefile().replace(
-                '\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase13-release.py\n',
-                '\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase13-release.py\n'
-                '\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase13-release.py\n',
+                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase13-release.py\n",
+                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase13-release.py\n"
+                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase13-release.py\n",
                 1,
             ),
         )
@@ -706,9 +736,9 @@ def run_self_test() -> int:
         _write(
             root / MAKEFILE_REL,
             _fixture_makefile().replace(
-                '\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase13-release.py\n',
-                '\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase13-release.py\n'
-                '\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase13-release.py --self-test\n',
+                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase13-release.py\n",
+                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase13-release.py\n"
+                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase13-release.py --self-test\n",
                 1,
             ),
         )
@@ -757,6 +787,7 @@ def run_self_test() -> int:
                     ],
                     "",
                     _fixture_phase3_flow(),
+                    _fixture_cross_phase_flow(),
                 )
             ),
         )
@@ -782,6 +813,7 @@ def run_self_test() -> int:
                     ],
                     "",
                     _fixture_phase3_flow(),
+                    _fixture_cross_phase_flow(),
                 )
             ),
         )
@@ -807,6 +839,7 @@ def run_self_test() -> int:
                     ],
                     "",
                     _fixture_phase3_flow(),
+                    _fixture_cross_phase_flow(),
                 )
             ),
         )
@@ -832,6 +865,7 @@ def run_self_test() -> int:
                     ],
                     "",
                     _fixture_phase3_flow(),
+                    _fixture_cross_phase_flow(),
                 )
             ),
         )
@@ -855,6 +889,7 @@ def run_self_test() -> int:
                     *[f"- `{Path(rel).name}`" for rel in required_rels[2:]],
                     "",
                     _fixture_phase3_flow(),
+                    _fixture_cross_phase_flow(),
                 )
             ),
         )
@@ -892,6 +927,7 @@ def run_self_test() -> int:
                     reordered_helper_lines,
                     "",
                     _fixture_phase3_flow(),
+                    _fixture_cross_phase_flow(),
                 )
             ),
         )
@@ -915,6 +951,7 @@ def run_self_test() -> int:
                     *[f"- `{Path(rel).name}`" for rel in required_rels[1:]],
                     "",
                     _fixture_phase3_flow(),
+                    _fixture_cross_phase_flow(),
                 )
             ),
         )
@@ -944,7 +981,9 @@ def run_self_test() -> int:
             f"missing_phase3_flow_snippet:{REQUIRED_PHASE3_FLOW_SNIPPETS[0]}",
             f"missing_phase3_flow_snippet:{REQUIRED_PHASE3_FLOW_SNIPPETS[1]}",
             f"unexpected_phase3_flow_snippet_count:0:{REQUIRED_PHASE3_FLOW_SNIPPETS[0]}",
-            f"unexpected_phase3_flow_snippet_count:0:{REQUIRED_PHASE3_FLOW_SNIPPETS[1]}"
+            f"unexpected_phase3_flow_snippet_count:0:{REQUIRED_PHASE3_FLOW_SNIPPETS[1]}",
+            f"missing_cross_phase_flow_snippet:{REQUIRED_CROSS_PHASE_FLOW_SNIPPETS[0]}",
+            f"unexpected_cross_phase_flow_snippet_count:0:{REQUIRED_CROSS_PHASE_FLOW_SNIPPETS[0]}",
         ]
         if issues != expected:
             raise SystemExit(
@@ -963,6 +1002,7 @@ def run_self_test() -> int:
                     helper_lines,
                     "",
                     _fixture_phase3_flow() + f"- {REQUIRED_PHASE3_FLOW_SNIPPETS[0]}",
+                    _fixture_cross_phase_flow(),
                 )
             ),
         )
@@ -987,6 +1027,7 @@ def run_self_test() -> int:
                     helper_lines,
                     "",
                     _fixture_phase3_flow() + f"- {REQUIRED_PHASE3_FLOW_SNIPPETS[1]}",
+                    _fixture_cross_phase_flow(),
                 )
             ),
         )
@@ -1011,6 +1052,32 @@ def run_self_test() -> int:
                     helper_lines,
                     "",
                     _fixture_phase3_flow(),
+                    _fixture_cross_phase_flow() + f"- {REQUIRED_CROSS_PHASE_FLOW_SNIPPETS[0]}",
+                )
+            ),
+        )
+        issues = validate(root)
+        expected = [
+            f"unexpected_cross_phase_flow_snippet_count:2:{REQUIRED_CROSS_PHASE_FLOW_SNIPPETS[0]}"
+        ]
+        if issues != expected:
+            raise SystemExit(
+                "phase3-readme-tooling-inventory-self-test:duplicate_cross_phase_flow_guard_failed:"
+                + (",".join(issues) if issues else "none")
+            )
+
+        _write(
+            root / README_REL,
+            "\n".join(
+                (
+                    "# scripts/zigux",
+                    "",
+                    "Current bootstrap helpers",
+                    "- `artifact_diff.py`",
+                    helper_lines,
+                    "",
+                    _fixture_phase3_flow(),
+                    _fixture_cross_phase_flow(),
                 )
             ),
         )
@@ -1024,7 +1091,7 @@ def run_self_test() -> int:
             )
 
     print("PHASE3_README_TOOLING_INVENTORY_SELF_TEST=pass")
-    print("PHASE3_README_TOOLING_INVENTORY_SELF_TEST_CASE_COUNT=24")
+    print("PHASE3_README_TOOLING_INVENTORY_SELF_TEST_CASE_COUNT=25")
     return 0
 
 
