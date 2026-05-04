@@ -19,6 +19,7 @@ CHECK_PHASE2_KCONFIG_SELFTEST_ALIGNMENT = ROOT / 'scripts' / 'zigux' / 'check-ph
 CHECK_PHASE2_CROSS_SELFTEST_ALIGNMENT = ROOT / 'scripts' / 'zigux' / 'check-phase2-cross-selftest-alignment.py'
 CHECK_PHASE2_TOOLCHAIN_PIN_SCOPE = ROOT / 'scripts' / 'zigux' / 'check-phase2-toolchain-pin-scope.py'
 TOOLCHAIN_POLICY = ROOT / 'scripts' / 'zigux' / 'zig-toolchain-policy.json'
+TOOLCHAIN_NOTES = ROOT / 'Documentation' / 'zigux' / 'phase2-toolchain-bootstrap-notes.md'
 EXPECTED_TOOL_MANIFEST_TOOLS = [
     'scripts/zigux/fixdep.zig',
     'scripts/zigux/genksyms.zig',
@@ -500,12 +501,11 @@ def validate_genksyms_crc_checker_gate(checker_script: Path) -> list[str]:
     source = checker_script.read_text(encoding='utf-8')
     required_markers = {
         'self_test_arg': "parser.add_argument('--self-test'",
-        'self_test_pass_marker': "print('GENKSYMS_CRC_SELF_TEST=pass')",
-        'self_test_case_count_marker': "print('GENKSYMS_CRC_SELF_TEST_CASE_COUNT=11')",
-        'missing_fixture_guard': 'genksyms-crc:self-test:missing_expected_fixture',
-        'missing_input_guard': 'genksyms-crc:self-test:missing_input_fixture',
-        'orphaned_expected_guard': 'orphaned_expected:',
-        'orphaned_input_guard': 'orphaned_input:',
+        'self_test_pass_marker': "print('PHASE2_GENKSYMS_CRC_SELF_TEST=pass')",
+        'self_test_case_count_marker': "print('PHASE2_GENKSYMS_CRC_SELF_TEST_CASE_COUNT=9')",
+        'missing_expected_fixture_guard': 'expected:missing_fixture:',
+        'orphaned_expected_guard': 'inputs.txt:orphaned_expected:',
+        'duplicate_expected_guard': 'expected:duplicate_reference:',
         'mismatch_contract_guard': 'genksyms-crc:self-test:mismatch_contract',
         'repeat_c_compare': "run(diff_base + [str(c_actual), str(c_repeat)], cwd=str(ROOT))",
         'repeat_zig_compare': "run(diff_base + [str(zig_actual), str(zig_repeat)], cwd=str(ROOT))",
@@ -606,6 +606,7 @@ required_files = [
     ROOT / '.github' / 'workflows' / 'zigux-bootstrap.yml',
     ROOT / 'Documentation' / 'zigux' / 'artifact-diff.md',
     ROOT / 'Documentation' / 'zigux' / 'phase2-closure.md',
+    TOOLCHAIN_NOTES,
     ROOT / 'scripts' / 'zigux' / 'artifact_diff.py',
     ROOT / 'scripts' / 'zigux' / 'check-artifact-diff-contract.py',
     ROOT / 'scripts' / 'zigux' / 'check-fixdep-diff.py',
@@ -666,6 +667,7 @@ workflow = (ROOT / '.github' / 'workflows' / 'zigux-bootstrap.yml').read_text(en
 ledger = (ROOT / 'zigux-alpha' / 'BOOTSTRAP_COMMIT_LEDGER.md').read_text(encoding='utf-8')
 script_readme = (ROOT / 'scripts' / 'zigux' / 'README.md').read_text(encoding='utf-8')
 artifact_doc = (ROOT / 'Documentation' / 'zigux' / 'artifact-diff.md').read_text(encoding='utf-8')
+toolchain_notes = TOOLCHAIN_NOTES.read_text(encoding='utf-8')
 makefile = (ROOT / 'zigux' / 'Makefile').read_text(encoding='utf-8')
 tool_manifest = json.loads((ROOT / 'zigux' / 'tests' / 'fixtures' / 'phase2_tool_manifest.json').read_text(encoding='utf-8'))
 targets_manifest = json.loads((ROOT / 'zigux' / 'tests' / 'fixtures' / 'phase2_cross_targets.json').read_text(encoding='utf-8'))
@@ -797,6 +799,11 @@ required_readme_markers = [
     'check-phase2-toolchain-pin-scope.py',
     'zig-toolchain-policy.json',
     'x86_64-linux',
+    'Documentation/zigux/phase2-toolchain-bootstrap-notes.md',
+    'Documentation/zigux/review-checklist.md',
+    'make -C zigux phase2-validate',
+    'make -C zigux phase2',
+    'kbuild-facing review path',
     'check-mk-elfconfig-diff.py',
     'check-phase2-cross.py',
     'genksyms.zig',
@@ -839,6 +846,18 @@ required_makefile_markers = [
     '$(ZIG) test scripts/zigux/kconfig/confdata_bridge.zig',
     '$(ZIG) test scripts/zigux/mk_elfconfig.zig',
 ]
+required_toolchain_notes_markers = [
+    'scripts/zigux/zig-toolchain-policy.json',
+    'python3 scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test',
+    'python3 scripts/zigux/check-phase2-toolchain-pin-scope.py',
+    'python3 scripts/zigux/validate-phase2.py',
+    'python3 scripts/zigux/validate-phase2-closure.py',
+    'Documentation/zigux/phase2-closure.md',
+    'Documentation/zigux/review-checklist.md',
+    'make -C zigux phase2-validate',
+    'make -C zigux phase2',
+    'x86_64-linux',
+]
 
 missing_markers = []
 for marker in required_closure_markers:
@@ -859,6 +878,9 @@ for marker in required_doc_markers:
 for marker in required_makefile_markers:
     if marker not in makefile:
         missing_markers.append(f'make:{marker}')
+for marker in required_toolchain_notes_markers:
+    if marker not in toolchain_notes:
+        missing_markers.append(f'toolchain_notes:{marker}')
 
 if tool_manifest.get('phase') != 'Phase 2':
     missing_markers.append('manifest:phase=Phase 2')
@@ -911,4 +933,4 @@ if missing_markers:
 
 print('PHASE2_CLOSURE_VALIDATION=pass')
 print(f'PHASE2_CLOSURE_REQUIRED_FILE_COUNT={len(required_files)}')
-print(f'PHASE2_CLOSURE_REQUIRED_MARKER_COUNT={len(required_closure_markers) + len(required_workflow_markers) + len(required_ledger_markers) + len(required_readme_markers) + len(required_doc_markers) + len(required_makefile_markers)}')
+print(f'PHASE2_CLOSURE_REQUIRED_MARKER_COUNT={len(required_closure_markers) + len(required_workflow_markers) + len(required_ledger_markers) + len(required_readme_markers) + len(required_doc_markers) + len(required_makefile_markers) + len(required_toolchain_notes_markers)}')
