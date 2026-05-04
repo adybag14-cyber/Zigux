@@ -42,13 +42,13 @@
       "policy for code that remains in C indefinitely"
     ],
     "bootstrap_ledger_anchor": "docs(zigux): add documentation root, review checklist, and freeze map",
-    "current_repo_handoff": "Documentation root and freeze-map governance are now carried forward by Documentation/zigux/README.md, the landed Phase 15 review-process note, the parity scorecard, the indefinite-C policy note, Documentation/zigux/phase15-handoff-next-steps-survey.md, the evidence-archive templates, the dedicated Zig manifest and test, the shared scripts-root validator path in scripts/zigux/README.md plus scripts/zigux/validate-phase15.py, the shared tests-root guidance path in zigux/tests/README.md, the shared phase15_build.zig gate, make -C zigux phase15 target, and the shared bootstrap workflow replay.",
+    "current_repo_handoff": "Documentation root and freeze-map governance are now carried forward by Documentation/zigux/README.md, the landed Phase 15 review-process note, the parity scorecard, the indefinite-C policy note, Documentation/zigux/phase15-handoff-next-steps-survey.md, the evidence-archive templates, the dedicated Zig manifest and test, the shared scripts-root validator path in scripts/zigux/README.md, the focused handoff-checker route in scripts/zigux/check-phase15-review-process-handoff.py, the shared validator path in scripts/zigux/validate-phase15.py, the shared tests-root guidance path in zigux/tests/README.md, the dedicated docs-root reviewability guard in zigux/tests/phase15_docs_root_reviewability.zig, the shared phase15_build.zig gate, make -C zigux phase15 target, and the shared bootstrap workflow replay.",
     "maintenance_mode_next_step": "Wait for one of the named reopen triggers to fit the evidence packet again or for the deep-core blocker posture to change enough to justify another bounded follow-up."
   },
   "current_parity_tracking_gap": {
     "roadmap_requirement": "parity scorecard",
-    "current_gap": "No missing local governance artifact remains; the maintenance-mode gap is keeping the scorecard lane identity, surveyed-master provenance, roadmap wording, rollback-threshold field sync, and replay-backed evidence packet current.",
-    "repo_state": "The freeze map, Architecture Council review process, parity scorecard, indefinite-C policy, dedicated manifest and Zig test, Documentation/zigux/README.md docs-root index, scripts/zigux/README.md scripts-root validator path, scripts/zigux/validate-phase15.py shared validator, zigux/tests/README.md tests-root guidance path, shared phase15_build.zig replay, and make -C zigux phase15 replay are all present on current master.",
+    "current_gap": "No missing local governance artifact remains; the maintenance-mode gap is keeping the scorecard lane identity, surveyed-master provenance, roadmap wording, rollback-threshold field sync, focused handoff-checker route, dedicated docs-root reviewability guard, and replay-backed evidence packet current.",
+    "repo_state": "The freeze map, Architecture Council review process, parity scorecard, indefinite-C policy, dedicated manifest and Zig test, Documentation/zigux/README.md docs-root index, scripts/zigux/README.md scripts-root validator path, scripts/zigux/check-phase15-review-process-handoff.py focused handoff-checker route, scripts/zigux/validate-phase15.py shared validator, zigux/tests/README.md tests-root guidance path, zigux/tests/phase15_docs_root_reviewability.zig dedicated docs-root reviewability guard, shared phase15_build.zig replay, and make -C zigux phase15 replay are all present on current master.",
     "closure_signal": "This closes the current roadmap-vs-repo parity-tracking gap for the Phase 15 parity scorecard requirement.",
     "remaining_blocker": "The only remaining blocked work is the existing deep-core status-change blocker rather than another missing parity-tracking artifact."
   },
@@ -203,6 +203,8 @@
     "phase15_scorecard_note_present": true,
     "phase15_evidence_archive_templates_present": true,
     "phase15_anchor_owner_tracking_present": true,
+    "phase15_handoff_checker_present": true,
+    "phase15_docs_root_reviewability_guard_present": true,
     "phase15_scorecard_test_present": true,
     "phase15_scorecard_manifest_present": true,
     "phase15_build_present": true,
@@ -359,7 +361,7 @@
     "anchors_with_explicit_owner_and_rollback_owner": 4,
     "required_review_process_record_fields": 15,
     "reopen_trigger_catalog_entries": 3,
-    "repo_evidence_checks_green": 15,
+    "repo_evidence_checks_green": 17,
     "landed_scorecard_gaps": 19,
     "blocked_scorecard_gaps": 1,
     "replay_surfaces_available": 3
