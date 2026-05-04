@@ -38,6 +38,7 @@ pub fn build(b: *std.Build) void {
         .target = target,
         .optimize = optimize,
     });
+    layout_assert_module.addImport("narrow_unsafe", narrow_unsafe_module);
     const interop_policy_module = b.createModule(.{
         .root_source_file = b.path("../helpers/interop_policy.zig"),
         .target = target,
