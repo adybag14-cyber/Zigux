@@ -18,7 +18,7 @@ required_files = [
     ROOT / "scripts" / "zigux" / "check-phase7-argv-split-packet.py",
     ROOT / "scripts" / "zigux" / "check-phase7-argv-split-parity.py",
     ROOT / "scripts" / "zigux" / "check-phase7-rbtree-parity.py",
-    ROOT / "scripts" / "zigux" / "README.md",
+    ROOT / "scripts" / "README.md",
     ROOT / "Documentation" / "zigux" / "README.md",
     ROOT / "Documentation" / "zigux" / "review-checklist.md",
     ROOT / "Documentation" / "zigux" / "phase7-string-helpers-slice.md",
@@ -291,6 +291,36 @@ def run_self_test() -> int:
             "build_inventory_self_test_hook",
             tmp_root,
             "zigux/Makefile: python3 scripts/zigux/check-phase7-build-inventory.py --self-test",
+        )
+        makefile_path.write_text(original_makefile, encoding="utf-8")
+
+        makefile_path.write_text(
+            original_makefile.replace(
+                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase7-make-wrapper.py --self-test\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "make_wrapper_self_test_hook",
+            tmp_root,
+            "zigux/Makefile: python3 scripts/zigux/check-phase7-make-wrapper.py --self-test",
+        )
+        makefile_path.write_text(original_makefile, encoding="utf-8")
+
+        makefile_path.write_text(
+            original_makefile.replace(
+                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase7-make-wrapper.py\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "make_wrapper_live_hook",
+            tmp_root,
+            "zigux/Makefile: python3 scripts/zigux/check-phase7-make-wrapper.py",
         )
         makefile_path.write_text(original_makefile, encoding="utf-8")
 
@@ -602,7 +632,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE7_VALIDATOR_SELF_TEST=pass")
-    print("PHASE7_VALIDATOR_SELF_TEST_CASE_COUNT=21")
+    print("PHASE7_VALIDATOR_SELF_TEST_CASE_COUNT=23")
     return 0
 
 def main() -> int:
