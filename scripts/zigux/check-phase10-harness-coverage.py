@@ -24,6 +24,7 @@ FILES = [
     "zigux/tests/phase10_build.zig",
     "zigux/tests/phase10_virtio_ring_reset_reuse.zig",
     "zigux/tests/phase10_virtio_input_multitouch_preflight.zig",
+    "zigux/tests/phase10_virtio_input_registration_blocker_build.zig",
     "zigux/tests/phase10_virtio_mmio_queue_isolation.zig",
     "zigux/tests/phase10_closure_manifest.json",
     "zigux-alpha/PHASE10_CLOSURE_LEDGER.md",
@@ -61,6 +62,7 @@ DOCS_README_MARKERS = [
     "python3 scripts/zigux/check-phase10-harness-coverage.py",
     "zigux/tests/phase10_virtio_ring_reset_reuse.zig",
     "zigux/tests/phase10_virtio_input_multitouch_preflight.zig",
+    "zigux/tests/phase10_virtio_input_registration_blocker_build.zig",
     "zigux/tests/phase10_virtio_mmio_queue_isolation.zig",
     "focused ring drained-reset reuse replay",
     "focused harness replays",
@@ -72,6 +74,7 @@ CHECKLIST_MARKERS = [
     "scripts/zigux/check-phase10-harness-coverage.py",
     "zigux/tests/phase10_virtio_ring_reset_reuse.zig",
     "zigux/tests/phase10_virtio_input_multitouch_preflight.zig",
+    "zigux/tests/phase10_virtio_input_registration_blocker_build.zig",
     "zigux/tests/phase10_virtio_mmio_queue_isolation.zig",
 ]
 
@@ -84,6 +87,7 @@ BUILD_MARKERS = [
 CLOSURE_NOTE_MARKERS = [
     "zigux/tests/phase10_virtio_ring_reset_reuse.zig",
     "zigux/tests/phase10_virtio_input_multitouch_preflight.zig",
+    "zigux/tests/phase10_virtio_input_registration_blocker_build.zig",
     "zigux/tests/phase10_virtio_mmio_queue_isolation.zig",
     "PHASE10_TEST_COUNT=11",
 ]
@@ -94,12 +98,14 @@ GUIDE_MARKERS = [
     "- `python3 scripts/zigux/check-phase10-harness-coverage.py`",
     "- `zigux/tests/phase10_virtio_ring_reset_reuse.zig`",
     "- `zigux/tests/phase10_virtio_input_multitouch_preflight.zig`",
+    "- `zigux/tests/phase10_virtio_input_registration_blocker_build.zig`",
     "- `zigux/tests/phase10_virtio_mmio_queue_isolation.zig`",
 ]
 
 COMPANION_MARKERS = [
     "zigux-alpha/PHASE10_CLOSURE_LEDGER.md",
     "zigux/tests/phase10_virtio_ring_reset_reuse.zig",
+    "zigux/tests/phase10_virtio_input_registration_blocker_build.zig",
     "zigux/tests/phase10_virtio_ring_survey.zig",
     "focused ring drained-reset reuse replay",
 ]
@@ -116,6 +122,13 @@ INPUT_PREFLIGHT_TEST_MARKERS = [
     "queueCallbackPreflightSummary()",
     "probePreflightSummary()",
     "MultitouchSlotMinimumNegative",
+]
+
+BLOCKER_BUILD_MARKERS = [
+    "phase10_virtio_input_registration_blocker.zig",
+    "../../drivers/virtio/virtio_input_registration_blocker.zig",
+    "phase10-virtio-input-registration-blocker-tests",
+    "Run the focused Phase 10 virtio input registration blocker replay",
 ]
 
 MMIO_QUEUE_ISOLATION_TEST_MARKERS = [
@@ -152,6 +165,7 @@ EXACT_ONCE = [
     ("tests_readme", "zigux/tests/README.md", "zigux/tests/phase10_virtio_mmio_queue_isolation.zig"),
     ("docs_readme", "Documentation/zigux/README.md", "zigux/tests/phase10_virtio_ring_reset_reuse.zig"),
     ("docs_readme", "Documentation/zigux/README.md", "zigux/tests/phase10_virtio_input_multitouch_preflight.zig"),
+    ("docs_readme", "Documentation/zigux/README.md", "zigux/tests/phase10_virtio_input_registration_blocker_build.zig"),
     ("docs_readme", "Documentation/zigux/README.md", "zigux/tests/phase10_virtio_mmio_queue_isolation.zig"),
     ("docs_readme", "Documentation/zigux/README.md", "focused ring drained-reset reuse replay"),
     ("docs_readme", "Documentation/zigux/README.md", "queue-handling and ready-state gate"),
@@ -159,16 +173,20 @@ EXACT_ONCE = [
     ("checklist", "Documentation/zigux/review-checklist.md", "scripts/zigux/check-phase10-harness-coverage.py"),
     ("checklist", "Documentation/zigux/review-checklist.md", "zigux/tests/phase10_virtio_ring_reset_reuse.zig"),
     ("checklist", "Documentation/zigux/review-checklist.md", "zigux/tests/phase10_virtio_input_multitouch_preflight.zig"),
+    ("checklist", "Documentation/zigux/review-checklist.md", "zigux/tests/phase10_virtio_input_registration_blocker_build.zig"),
     ("checklist", "Documentation/zigux/review-checklist.md", "zigux/tests/phase10_virtio_mmio_queue_isolation.zig"),
     ("closure_note", "Documentation/zigux/phase10-closure-evidence.md", "zigux/tests/phase10_virtio_ring_reset_reuse.zig"),
     ("closure_note", "Documentation/zigux/phase10-closure-evidence.md", "zigux/tests/phase10_virtio_input_multitouch_preflight.zig"),
+    ("closure_note", "Documentation/zigux/phase10-closure-evidence.md", "zigux/tests/phase10_virtio_input_registration_blocker_build.zig"),
     ("closure_note", "Documentation/zigux/phase10-closure-evidence.md", "zigux/tests/phase10_virtio_mmio_queue_isolation.zig"),
     ("closure_note", "Documentation/zigux/phase10-closure-evidence.md", "PHASE10_TEST_COUNT=11"),
     ("guide", "Documentation/zigux/phase10-phase11-phase13-validator-first-review-guide.md", "- `zigux/tests/phase10_virtio_ring_reset_reuse.zig`"),
     ("guide", "Documentation/zigux/phase10-phase11-phase13-validator-first-review-guide.md", "- `zigux/tests/phase10_virtio_input_multitouch_preflight.zig`"),
+    ("guide", "Documentation/zigux/phase10-phase11-phase13-validator-first-review-guide.md", "- `zigux/tests/phase10_virtio_input_registration_blocker_build.zig`"),
     ("guide", "Documentation/zigux/phase10-phase11-phase13-validator-first-review-guide.md", "- `zigux/tests/phase10_virtio_mmio_queue_isolation.zig`"),
     ("companion", "Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md", "zigux-alpha/PHASE10_CLOSURE_LEDGER.md"),
     ("companion", "Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md", "zigux/tests/phase10_virtio_ring_reset_reuse.zig"),
+    ("companion", "Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md", "zigux/tests/phase10_virtio_input_registration_blocker_build.zig"),
     ("companion", "Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md", "zigux/tests/phase10_virtio_ring_survey.zig"),
 ]
 
@@ -212,6 +230,7 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
         ("companion", "Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md", COMPANION_MARKERS),
         ("ring_reset_reuse_test", "zigux/tests/phase10_virtio_ring_reset_reuse.zig", RING_RESET_REUSE_TEST_MARKERS),
         ("input_preflight_test", "zigux/tests/phase10_virtio_input_multitouch_preflight.zig", INPUT_PREFLIGHT_TEST_MARKERS),
+        ("blocker_build", "zigux/tests/phase10_virtio_input_registration_blocker_build.zig", BLOCKER_BUILD_MARKERS),
         ("mmio_queue_isolation_test", "zigux/tests/phase10_virtio_mmio_queue_isolation.zig", MMIO_QUEUE_ISOLATION_TEST_MARKERS),
     ]
     for label, rel_path, markers in checks:
@@ -252,6 +271,7 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
                     "zigux/tests/phase10_build.zig",
                     "zigux/tests/phase10_virtio_ring_reset_reuse.zig",
                     "zigux/tests/phase10_virtio_input_multitouch_preflight.zig",
+                    "zigux/tests/phase10_virtio_input_registration_blocker_build.zig",
                     "zigux/tests/phase10_virtio_mmio_queue_isolation.zig",
                     "scripts/zigux/check-phase10-harness-coverage.py",
                 ]:
@@ -282,6 +302,7 @@ def write_fixture(root: Path) -> None:
         "zigux/tests/phase10_build.zig": "\n".join(BUILD_MARKERS) + "\n",
         "zigux/tests/phase10_virtio_ring_reset_reuse.zig": "\n".join(RING_RESET_REUSE_TEST_MARKERS) + "\n",
         "zigux/tests/phase10_virtio_input_multitouch_preflight.zig": "\n".join(INPUT_PREFLIGHT_TEST_MARKERS) + "\n",
+        "zigux/tests/phase10_virtio_input_registration_blocker_build.zig": "\n".join(BLOCKER_BUILD_MARKERS) + "\n",
         "zigux/tests/phase10_virtio_mmio_queue_isolation.zig": "\n".join(MMIO_QUEUE_ISOLATION_TEST_MARKERS) + "\n",
         "zigux-alpha/PHASE10_CLOSURE_LEDGER.md": "fixture\n",
     }
@@ -298,6 +319,7 @@ def write_fixture(root: Path) -> None:
                     "zigux/tests/phase10_build.zig",
                     "zigux/tests/phase10_virtio_ring_reset_reuse.zig",
                     "zigux/tests/phase10_virtio_input_multitouch_preflight.zig",
+                    "zigux/tests/phase10_virtio_input_registration_blocker_build.zig",
                     "zigux/tests/phase10_virtio_mmio_queue_isolation.zig",
                     "scripts/zigux/check-phase10-harness-coverage.py",
                 ]
@@ -428,6 +450,23 @@ def run_self_test() -> int:
         )
         checklist_path.write_text(original_checklist, encoding="utf-8")
 
+        blocker_build_path = root / "zigux/tests/phase10_virtio_input_registration_blocker_build.zig"
+        original_blocker_build = blocker_build_path.read_text(encoding="utf-8")
+        blocker_build_path.write_text(
+            original_blocker_build.replace(
+                "phase10-virtio-input-registration-blocker-tests",
+                "phase10-input-blocker-drift",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "blocker_build_marker",
+            root,
+            "blocker_build:phase10-virtio-input-registration-blocker-tests",
+        )
+        blocker_build_path.write_text(original_blocker_build, encoding="utf-8")
+
         closure_note_path = root / "Documentation/zigux/phase10-closure-evidence.md"
         original_closure_note = closure_note_path.read_text(encoding="utf-8")
         closure_note_path.write_text(
@@ -486,6 +525,20 @@ def run_self_test() -> int:
         write_fixture(root)
 
         manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        manifest["roadmap_parity_scoreboard"]["lab_only_driver_validation"]["evidence"] = [
+            path
+            for path in manifest["roadmap_parity_scoreboard"]["lab_only_driver_validation"]["evidence"]
+            if path != "zigux/tests/phase10_virtio_input_registration_blocker_build.zig"
+        ]
+        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+        expect_missing_marker(
+            "closure_manifest_blocker_build_evidence",
+            root,
+            "closure_manifest:roadmap_parity_scoreboard:lab_only_driver_validation:evidence:zigux/tests/phase10_virtio_input_registration_blocker_build.zig",
+        )
+        write_fixture(root)
+
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
         manifest["focused_harness_replays"]["zigux/tests/phase10_virtio_mmio_queue_isolation.zig"] = [
             "phase10 mmio multi-queue isolation replay"
         ]
@@ -497,7 +550,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE10_HARNESS_COVERAGE_SELF_TEST=pass")
-    print("PHASE10_HARNESS_COVERAGE_SELF_TEST_CASE_COUNT=11")
+    print("PHASE10_HARNESS_COVERAGE_SELF_TEST_CASE_COUNT=13")
     return 0
 
 
@@ -524,5 +577,5 @@ print("PHASE10_HARNESS_COVERAGE=pass")
 print(f"PHASE10_HARNESS_REQUIRED_FILE_COUNT={len(FILES)}")
 print(
     "PHASE10_HARNESS_REQUIRED_MARKER_COUNT="
-    f"{len(MAKE_MARKERS) + len(WORKFLOW_MARKERS) + len(SCRIPTS_README_MARKERS) + len(TESTS_README_MARKERS) + len(DOCS_README_MARKERS) + len(CHECKLIST_MARKERS) + len(BUILD_MARKERS) + len(CLOSURE_NOTE_MARKERS) + len(GUIDE_MARKERS) + len(COMPANION_MARKERS) + len(RING_RESET_REUSE_TEST_MARKERS) + len(INPUT_PREFLIGHT_TEST_MARKERS) + len(MMIO_QUEUE_ISOLATION_TEST_MARKERS) + len(EXACT_ONCE)}"
+    f"{len(MAKE_MARKERS) + len(WORKFLOW_MARKERS) + len(SCRIPTS_README_MARKERS) + len(TESTS_README_MARKERS) + len(DOCS_README_MARKERS) + len(CHECKLIST_MARKERS) + len(BUILD_MARKERS) + len(CLOSURE_NOTE_MARKERS) + len(GUIDE_MARKERS) + len(COMPANION_MARKERS) + len(RING_RESET_REUSE_TEST_MARKERS) + len(INPUT_PREFLIGHT_TEST_MARKERS) + len(BLOCKER_BUILD_MARKERS) + len(MMIO_QUEUE_ISOLATION_TEST_MARKERS) + len(EXACT_ONCE)}"
 )
