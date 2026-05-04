@@ -12,6 +12,7 @@ ROOT = _SELF_PATH.parents[2] if len(_SELF_PATH.parents) > 2 else _SELF_PATH.pare
 
 README_PATH = "scripts/zigux/README.md"
 DOC_README_PATH = "Documentation/zigux/README.md"
+REVIEW_CHECKLIST_PATH = "Documentation/zigux/review-checklist.md"
 MAKEFILE_PATH = "zigux/Makefile"
 WORKFLOW_PATH = ".github/workflows/zigux-bootstrap.yml"
 SURVEY_PATH = "Documentation/zigux/phase9-runtime-loader-gap-survey.md"
@@ -40,6 +41,7 @@ MODULE_METADATA_CHECKER_PATH = "scripts/zigux/check-phase9-module-metadata-packe
 REQUIRED_FILES = [
     README_PATH,
     DOC_README_PATH,
+    REVIEW_CHECKLIST_PATH,
     MAKEFILE_PATH,
     WORKFLOW_PATH,
     SURVEY_PATH,
@@ -83,6 +85,12 @@ DOC_README_EXACT_ONCE_MARKERS = [
     "Phase 9 notes\n",
     "- `python3 scripts/zigux/validate-phase9.py --self-test`, `python3 scripts/zigux/check-phase9-validation-flow.py --self-test`, `python3 scripts/zigux/check-phase9-module-metadata-packet.py --self-test`, `python3 scripts/zigux/check-phase9-loader-substrate-plan.py --self-test`, `python3 scripts/zigux/check-phase9-runtime-loader-commit-alignment.py --self-test`, `python3 scripts/zigux/check-phase9-loader-non-owner-boundary.py --self-test`, `python3 scripts/zigux/validate-phase9.py`, `python3 scripts/zigux/check-phase9-validation-flow.py`, `python3 scripts/zigux/check-phase9-module-metadata-packet.py`, `python3 scripts/zigux/check-phase9-loader-substrate-plan.py`, `python3 scripts/zigux/check-phase9-runtime-loader-commit-alignment.py`, `python3 scripts/zigux/check-phase9-loader-non-owner-boundary.py`, `make -C zigux phase9-validate`, `make -C zigux phase9-loader-commit-alignment-survey`, `make -C zigux phase9-non-owner-boundary-survey`, and `zigux/tests/phase9_build.zig` are the current shared review path for Phase 9 runtime evidence.\n",
 ]
+
+REVIEW_CHECKLIST_MARKERS = [
+    "- if the change touches the shared Phase 9 release-discipline packet, do `scripts/zigux/README.md`, `zigux/tests/README.md`, `scripts/zigux/validate-phase9.py`, `zigux/Makefile`, `.github/workflows/zigux-bootstrap.yml`, and `zigux/tests/phase9_build.zig` still keep the validator-first `make -C zigux phase9` path explicit so the docs, workflow, and shared replay packet all name the same release-discipline route?\n",
+]
+
+REVIEW_CHECKLIST_EXACT_ONCE_MARKERS = REVIEW_CHECKLIST_MARKERS
 
 COMMIT_ALIGNMENT_SURVEY_BLOCK = (
     "phase9-loader-commit-alignment-survey:\n"
@@ -268,6 +276,7 @@ def validate(root: Path) -> list[str]:
     texts = {
         "readme": read_text(root, README_PATH),
         "doc_readme": read_text(root, DOC_README_PATH),
+        "review_checklist": read_text(root, REVIEW_CHECKLIST_PATH),
         "makefile": read_text(root, MAKEFILE_PATH),
         "workflow": read_text(root, WORKFLOW_PATH),
         "survey": read_text(root, SURVEY_PATH),
@@ -292,6 +301,13 @@ def validate(root: Path) -> list[str]:
         texts["doc_readme"],
         DOC_README_MARKERS,
         DOC_README_EXACT_ONCE_MARKERS,
+    )
+    require_markers(
+        failures,
+        "review_checklist",
+        texts["review_checklist"],
+        REVIEW_CHECKLIST_MARKERS,
+        REVIEW_CHECKLIST_EXACT_ONCE_MARKERS,
     )
     require_markers(
         failures,
@@ -396,6 +412,19 @@ def write_fixture_tree(root: Path) -> None:
                 "",
                 "Phase 9 notes",
                 DOC_README_MARKERS[1].rstrip("\n"),
+                "",
+            ]
+        ),
+        encoding="utf-8",
+    )
+
+    (root / REVIEW_CHECKLIST_PATH).write_text(
+        "\n".join(
+            [
+                "# Zigux Review Checklist",
+                "",
+                "## ABI and Runtime",
+                REVIEW_CHECKLIST_MARKERS[0].rstrip("\n"),
                 "",
             ]
         ),
@@ -704,6 +733,20 @@ def run_self_test() -> int:
                 f"doc_readme:{DOC_README_MARKERS[1]}",
             ),
             (
+                REVIEW_CHECKLIST_PATH,
+                "review_checklist_route_missing",
+                REVIEW_CHECKLIST_MARKERS[0],
+                "",
+                f"review_checklist:{REVIEW_CHECKLIST_MARKERS[0]}",
+            ),
+            (
+                REVIEW_CHECKLIST_PATH,
+                "review_checklist_route_duplicate",
+                REVIEW_CHECKLIST_MARKERS[0],
+                REVIEW_CHECKLIST_MARKERS[0] + REVIEW_CHECKLIST_MARKERS[0],
+                f"review_checklist_exact:{REVIEW_CHECKLIST_MARKERS[0]}",
+            ),
+            (
                 MAKEFILE_PATH,
                 "makefile_module_metadata_phony",
                 "phase9-module-metadata-survey phase9-kretprobe-survey",
@@ -909,6 +952,8 @@ def main() -> int:
         + len(README_EXACT_ONCE_MARKERS)
         + len(DOC_README_MARKERS)
         + len(DOC_README_EXACT_ONCE_MARKERS)
+        + len(REVIEW_CHECKLIST_MARKERS)
+        + len(REVIEW_CHECKLIST_EXACT_ONCE_MARKERS)
         + len(MAKEFILE_MARKERS)
         + len(MAKEFILE_EXACT_ONCE_MARKERS)
         + len(WORKFLOW_MARKERS)
