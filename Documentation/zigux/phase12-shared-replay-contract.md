@@ -86,6 +86,7 @@ The shared and focused Phase 12 gates now enforce the same narrower libbpf-only 
 - `scripts/zigux/validate-phase12.py` now exact-counts that same review-checklist prompt, so the broader shared validator runtime path matches the duplicate-drift protection already enforced by the narrower libbpf checkers.
 - the current contract is therefore reviewable in both directions: the focused shard keeps its own dedicated replay boundary explicit, and the broader shared validator also refuses silent duplication or disappearance of that same contributor-facing review hook.
 - the same shared contract now also stays coupled to `Documentation/zigux/phase12-release-readiness-survey.md`, `Documentation/zigux/phase12-cross-compile-smoke.md`, and `Documentation/zigux/phase12-raw-github-coverage-survey.md`, so the release-facing PMO packet, the approved non-native smoke packet, and the mixed public-read fallback packet name the same pre-replay checker stack instead of drifting into parallel Phase 12 stories.
+- that same release-facing PMO packet now also names `zigux/tests/phase12_raw_github_coverage_manifest.json` and `zigux/tests/phase12_raw_github_coverage_survey.zig` directly, so the mixed public-read fallback split stays tied to manifest-backed and Zig-survey-backed evidence instead of living only in note-level prose.
 
 ## Contributor Sync Points
 
@@ -122,6 +123,8 @@ The minimum agreement surface for that kind of change is:
 - `scripts/zigux/check-phase12-shared-replay-contract.py`
 - `zigux/tests/phase12_build.zig`
 - `zigux/tests/phase12_libbpf_only_build.zig`
+- `zigux/tests/phase12_raw_github_coverage_manifest.json`
+- `zigux/tests/phase12_raw_github_coverage_survey.zig`
 - `zigux/tests/phase12_libbpf_manifest.json`
 - `zigux/tests/phase12_libbpf_segments.zig`
 - `zigux/tests/phase12_libbpf_reviewability.zig`
