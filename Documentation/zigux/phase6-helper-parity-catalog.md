@@ -2,7 +2,7 @@
 
 This note records the current shared Phase 6 leaf-helper evidence bundle at the inspected `master` tip when this catalog was refreshed.
 
-- verified head: `c0b506e3254e63fe007a72d420bb275846a89093`
+- verified head: `51a8cd74aee315792f81feadf2995bb9d58e7018`
 - machine-readable inventory: `zigux/tests/phase6_helper_parity_manifest.json`
 - shared packet posture: parked after the current helper-local parity and perf surface cleared the bounded Phase 6 goal
 
