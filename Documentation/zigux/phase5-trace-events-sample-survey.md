@@ -39,6 +39,7 @@ Fresh repo inspection now shows that current `master` carries all four roadmap-a
 - the shared sample-root catalog in `samples/zigux/README.md` is part of that boundary now, because it is the shortest shared place to keep the four Phase 5 reference readings visibly separate from the later runtime starters that live in the same directory.
 - the shared sample-root catalog now also carries a dedicated trace-events review-packet stanza, so contributors can refresh the exact replay contract, callback-balance cues, and out-of-scope runtime claims without having to infer them from the deeper survey note alone.
 - the shared tests-root guide in `zigux/tests/README.md` is part of that same contributor packet now, because it names the direct `zig test samples/zigux/trace_events_sample.zig` replay, the paired `zig test zigux/tests/phase5_trace_events_sample_survey.zig` replay, and the wider Phase 5 boundary cues that keep this landed sample distinct from the separate Phase 7 helper-only evidence and the later Phase 9 runtime follow-ons.
+- the same contributor packet also has to keep the sample-owned `zigux/tests/phase5_trace_events_sample.zig` replay explicit as a `phase5_build.zig`-wired check: that focused replay imports `trace_events_reference_sample`, so reviewers should treat it as a focused shared-build replay rather than a standalone `zig test` command.
 - the same trace-events family boundary should stay explicit in reviewer-facing prose too: current `master` ships `samples/zigux/runtime_trace_events.zig` as a sample-only blocked Phase 9 pilot, and the bounded `samples/zigux/runtime_trace_events_loader.zig` scaffold is shipped now as a separate follow-on surface whose runtime-substrate handoff still stays blocked, so the landed `trace_events_sample` packet remains the non-runtime reference idiom for this family.
 
 ## Landed sample and exact checks
@@ -98,6 +99,7 @@ The exact checks currently recorded in `zigux/tests/phase5_trace_events_sample_m
     - `phase5-kretprobe-example-survey-tests 2 pass (2 total)`
     - `phase5-trace-events-sample-tests 5 pass (5 total)`
     - `phase5-trace-events-sample-survey-tests 2 pass (2 total)`
+- the focused `zigux/tests/phase5_trace_events_sample.zig` replay remains part of the shipped `phase5_build.zig` packet rather than a standalone direct `zig test` command, so this note keeps that surface explicit without overstating a separate direct replay.
 
 ## Contributor refresh prompts for the landed sample
 
@@ -106,6 +108,7 @@ When a contributor updates `samples/zigux/trace_events_sample.zig` or its direct
 - does `TraceEventsReferenceSample.descriptor()` still name `samples/trace_events/trace-events-sample.c` and keep `requires_runtime_substrate = false` plus `provides_selfcheck = true`?
 - does `zigux/tests/phase5_trace_events_sample_manifest.json` still pin `surveyed_commit` to the exact inspected `master` head instead of a floating branch label?
 - do the sample-backed survey note, `samples/zigux/README.md`, `zigux/tests/README.md`, `Documentation/zigux/README.md`, and `Documentation/zigux/review-checklist.md` still describe the same bounded replay contract and keep this Phase 5 sample visibly separate from the later Phase 9 runtime pilot?
+- does `zigux/tests/phase5_trace_events_sample.zig` still stay wired through `zigux/tests/phase5_build.zig` via the `trace_events_reference_sample` import so the focused replay remains explicit even though it is not a standalone `zig test` entrypoint?
 - do `zigux/tests/phase5_trace_events_sample_manifest.json` and `zigux/tests/phase5_trace_events_sample_survey.zig` still describe the exact selected-string-slot, payload-length, main-iteration, callback-iteration, vararg-payload, lifecycle-summary, message, relative-location, callback-path, and teardown contract run through `zigux/tests/phase5_build.zig`?
 - does `lifecycleSummary()` still keep stage plus init, replay, and exit counts, registration depth, and total event calls visible without private field access?
 - does `runStringFormattingCycleReplay()` still keep the full modulo-selected string cycle explicit across counts `0` through `4` through five public cases instead of reducing the review surface to only one reviewed string case?
