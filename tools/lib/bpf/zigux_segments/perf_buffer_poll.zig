@@ -69,6 +69,7 @@ pub const PollError = error{
     TimeoutObservationHasReadyBuffer,
     InterruptedObservationHasReadyBuffer,
     FailedObservationHasBufferState,
+    ReadyBufferProcessingExceedsReadyCount,
     ReadyBufferProcessingExceedsObservedEvents,
     NonReadyWaitHasProcessedRecords,
 };
@@ -242,6 +243,9 @@ pub fn summarizePollExecution(
         .ready => {
             if (process.attempted_count > poll.observed_ready_events) {
                 return PollError.ReadyBufferProcessingExceedsObservedEvents;
+            }
+            if (process.attempted_count > poll.ready_count) {
+                return PollError.ReadyBufferProcessingExceedsReadyCount;
             }
         },
         .timeout, .interrupted, .failed => {
@@ -436,6 +440,20 @@ test "summarizePollExecution rejects impossible processing outside the live perf
     try std.testing.expectError(
         PollError.ReadyBufferProcessingExceedsObservedEvents,
         summarizePollExecution(5, .{ .ready_events = 1 }, &.{.{ .ready = true }}, &.{
+            .{ .records_processed = 1 },
+            .{ .records_processed = 2 },
+        }),
+    );
+}
+
+test "summarizePollExecution rejects processing more ready buffers than the helper counted as ready" {
+    try std.testing.expectError(
+        PollError.ReadyBufferProcessingExceedsReadyCount,
+        summarizePollExecution(5, .{ .ready_events = 3 }, &.{
+            .{ .ready = true },
+            .{},
+            .{ .error_code = -32 },
+        }, &.{
             .{ .records_processed = 1 },
             .{ .records_processed = 2 },
         }),
