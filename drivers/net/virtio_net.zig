@@ -185,6 +185,7 @@ pub const QueueResumeSummary = struct {
     remembered_queue_recovery_action: QueueRecoveryAction,
     requires_control_queue_restore: bool,
     requires_rss_reapply: bool,
+    requires_fresh_probe_snapshot: bool,
 };
 
 pub const MergeableReceiveRefillSummary = struct {
@@ -508,6 +509,7 @@ pub const VirtioNetProbeLab = struct {
             .remembered_queue_recovery_action = snapshot.queue_recovery_action,
             .requires_control_queue_restore = requires_control_queue_restore,
             .requires_rss_reapply = requires_rss_reapply,
+            .requires_fresh_probe_snapshot = true,
         };
     }
 
