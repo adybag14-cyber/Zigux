@@ -41,6 +41,22 @@ MANIFEST_ROUTE_MARKERS = [
     "current parked maintenance-mode Phase 15 packet",
 ]
 
+NOTE_LANE_ROUTE_MARKERS = [
+    "scripts-root validator path",
+    "tests-root guidance path",
+    "dedicated handoff-checker route",
+]
+
+NOTE_HANDOFF_ROUTE_MARKERS = [
+    "scripts/zigux/README.md",
+    "scripts/zigux/check-phase15-review-process-handoff.py",
+    "scripts/zigux/validate-phase15.py",
+    "zigux/tests/README.md",
+    "scripts-root validator path",
+    "dedicated handoff-checker route",
+    "tests-root guidance path",
+]
+
 
 def read_text(root: Path, rel_path: str) -> str:
     return (root / rel_path).read_text(encoding="utf-8")
@@ -54,6 +70,17 @@ def expect_exact_once(text: str, marker: str, label: str, failures: list[str]) -
     count = text.count(marker)
     if count != 1:
         failures.append(f"{label}:{marker}:count={count}")
+
+
+def note_section(note: str, start_marker: str, end_marker: str | None) -> str | None:
+    if start_marker not in note:
+        return None
+    section = note.split(start_marker, 1)[1]
+    if end_marker is not None:
+        if end_marker not in section:
+            return None
+        section = section.split(end_marker, 1)[0]
+    return section
 
 
 def validate(root: Path) -> list[str]:
@@ -86,13 +113,45 @@ def validate(root: Path) -> list[str]:
         failures.append("manifest:handoff_evidence.current_bounded_lane:not_string")
         return failures
 
-    for marker in HANDOFF_INVENTORY_MARKERS:
-        expect_exact_once(note, marker, "note_inventory", failures)
-        expect_exact_once(current_repo_handoff, marker, "manifest_inventory", failures)
+    note_current_repo_handoff = note_section(
+        note,
+        "- current repo handoff:",
+        "- current bounded lane:",
+    )
+    if note_current_repo_handoff is None:
+        failures.append("note_inventory_section:missing")
+    else:
+        for marker in HANDOFF_INVENTORY_MARKERS:
+            expect_exact_once(note_current_repo_handoff, marker, "note_inventory", failures)
+            expect_exact_once(current_repo_handoff, marker, "manifest_inventory", failures)
 
     for marker in MANIFEST_ROUTE_MARKERS:
         if marker not in current_bounded_lane:
             failures.append(f"manifest_lane:{marker}")
+
+    note_current_bounded_lane = note_section(
+        note,
+        "- current bounded lane:",
+        "- maintenance-mode next step:",
+    )
+    if note_current_bounded_lane is None:
+        failures.append("note_lane_section:missing")
+    else:
+        for marker in NOTE_LANE_ROUTE_MARKERS:
+            if marker not in note_current_bounded_lane:
+                failures.append(f"note_lane:{marker}")
+
+    note_maintenance_handoff = note_section(
+        note,
+        "## Maintenance-Mode Handoff",
+        "## Recorded Gaps",
+    )
+    if note_maintenance_handoff is None:
+        failures.append("note_handoff_section:missing")
+    else:
+        for marker in NOTE_HANDOFF_ROUTE_MARKERS:
+            if marker not in note_maintenance_handoff:
+                failures.append(f"note_handoff:{marker}")
 
     if "current repo handoff" not in note.lower():
         failures.append("note:current_repo_handoff_line")
@@ -109,6 +168,14 @@ def write_fixture_tree(root: Path) -> None:
 ## Roadmap Handoff Evidence
 
 - current repo handoff: the original documentation-root and freeze-map landing is now carried forward by `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/phase15-freeze-map-governance.md`, this review-process note, `Documentation/zigux/phase15-parity-scorecard.md`, `Documentation/zigux/phase15-indefinite-c-policy.md`, `Documentation/zigux/phase15-handoff-next-steps-survey.md`, `scripts/zigux/README.md`, `scripts/zigux/check-phase15-review-process-handoff.py`, `scripts/zigux/validate-phase15.py`, `zigux/tests/README.md`, `zigux/tests/phase15_build.zig`, and `make -C zigux phase15`
+- current bounded lane: `P15-L08` keeps the review-process packet narrowed so the scripts-root validator path, the dedicated handoff-checker route, and the tests-root guidance path stay explicit together.
+- maintenance-mode next step: wait for one named reopen trigger.
+
+## Maintenance-Mode Handoff
+
+- keep `scripts/zigux/README.md`, `scripts/zigux/check-phase15-review-process-handoff.py`, `scripts/zigux/validate-phase15.py`, and `zigux/tests/README.md` aligned with the same parked governance bundle so the scripts-root validator path, dedicated handoff-checker route, and tests-root guidance path do not drift away from the Architecture Council handoff while this lane remains parked.
+
+## Recorded Gaps
 """
     (root / NOTE_PATH).write_text(note, encoding="utf-8")
 
@@ -187,8 +254,34 @@ def run_self_test() -> int:
             "missing_manifest_lane_route_marker",
         )
 
+        write_fixture_tree(tmp_root)
+        note_path.write_text(
+            original_note.replace("dedicated handoff-checker route", "dedicated route", 1),
+            encoding="utf-8",
+        )
+        expect_failure(
+            tmp_root,
+            "note_lane:dedicated handoff-checker route",
+            "missing_note_lane_route_marker",
+        )
+
+        write_fixture_tree(tmp_root)
+        note_path.write_text(
+            original_note.replace(
+                "keep `scripts/zigux/README.md`, `scripts/zigux/check-phase15-review-process-handoff.py`, `scripts/zigux/validate-phase15.py`, and `zigux/tests/README.md` aligned",
+                "keep `scripts/zigux/README.md`, `scripts/zigux/validate-phase15.py`, and `zigux/tests/README.md` aligned",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_failure(
+            tmp_root,
+            "note_handoff:scripts/zigux/check-phase15-review-process-handoff.py",
+            "missing_note_handoff_checker_route",
+        )
+
     print("PHASE15_REVIEW_PROCESS_HANDOFF_SELF_TEST=pass")
-    print("PHASE15_REVIEW_PROCESS_HANDOFF_SELF_TEST_CASE_COUNT=5")
+    print("PHASE15_REVIEW_PROCESS_HANDOFF_SELF_TEST_CASE_COUNT=7")
     return 0
 
 
@@ -222,7 +315,16 @@ def main() -> int:
         return 1
 
     print("PHASE15_REVIEW_PROCESS_HANDOFF=pass")
-    print(f"PHASE15_REVIEW_PROCESS_HANDOFF_MARKER_COUNT={len(NOTE_MARKERS) + (len(HANDOFF_INVENTORY_MARKERS) * 2) + len(MANIFEST_ROUTE_MARKERS)}")
+    print(
+        "PHASE15_REVIEW_PROCESS_HANDOFF_MARKER_COUNT="
+        + str(
+            len(NOTE_MARKERS)
+            + (len(HANDOFF_INVENTORY_MARKERS) * 2)
+            + len(MANIFEST_ROUTE_MARKERS)
+            + len(NOTE_LANE_ROUTE_MARKERS)
+            + len(NOTE_HANDOFF_ROUTE_MARKERS)
+        )
+    )
     return 0
 
 
