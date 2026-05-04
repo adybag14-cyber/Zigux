@@ -81,6 +81,7 @@ The exact checks currently recorded in `zigux/tests/phase5_kretprobe_example_man
     - `Build Summary: 17/17 steps succeeded; 28/28 tests passed`
     - `phase5-kretprobe-example-tests 5 pass (5 total)`
     - `phase5-kretprobe-example-survey-tests 2 pass (2 total)`
+- the focused `zigux/tests/phase5_kretprobe_example.zig` replay remains part of the shipped `phase5_build.zig` packet rather than a standalone direct `zig test` command, so this note keeps that surface explicit without overstating a separate direct replay.
 
 ## Contributor refresh prompts for the landed sample
 
@@ -115,9 +116,11 @@ The current gap is no longer "Zigux has no kretprobe sample guidance." The more 
    - `find samples/zigux -maxdepth 1 -type f | sort | rg "kretprobe|runtime_kretprobe"`
 3. run the focused self-check that keeps the in-memory replay explicit
    - `zig test samples/zigux/kretprobe_example.zig`
-4. run the manifest-backed survey gate from the repo root so the exact-check record stays readable
+4. confirm the focused shared-build replay still stays wired through `zigux/tests/phase5_build.zig`
+   - `rg -n "phase5-kretprobe-example-tests|kretprobe_example_sample" zigux/tests/phase5_build.zig zigux/tests/phase5_kretprobe_example.zig`
+5. run the manifest-backed survey gate from the repo root so the exact-check record stays readable
    - `zig test zigux/tests/phase5_kretprobe_example_survey.zig`
-5. run the exact bounded Phase 5 sample checks
+6. run the exact bounded Phase 5 sample checks
    - `zig build test --build-file zigux/tests/phase5_build.zig --summary all`
 
 ## Non-goals
