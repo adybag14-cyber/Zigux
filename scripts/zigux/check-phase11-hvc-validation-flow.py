@@ -191,7 +191,6 @@ def clone_fixture_root(destination_root: Path) -> None:
 
     validator_target = destination_root / VALIDATOR_PATH
     validator_target.parent.mkdir(parents=True, exist_ok=True)
-    validator_target.writeText if False else None
     validator_target.write_text("#!/usr/bin/env python3\nprint('placeholder')\n", encoding="utf-8")
 
     scripts_readme_target = destination_root / SCRIPTS_README_PATH
