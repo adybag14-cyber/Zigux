@@ -4,7 +4,7 @@ This document records the bounded Phase 15 governance lane for the deep-core fre
 
 ## Status
 
-- `PHASE15_LANE_KEY=P15-Y03`
+- `PHASE15_LANE_KEY=P15-L04`
 - `PHASE15_STATUS=freeze_in_c_governance`
 - `PHASE15_SLICE=current-parity-tracking-gap-survey`
 - scope: a reviewable scorecard that captures council inputs, evidence thresholds, validation gates, rollback ownership, rollback thresholds, evidence-archive reporting, reserved per-anchor decision-record templates, retained stay-in-C closeout state, explicit per-anchor owner tracking for the active freeze-in-C anchors, and one explicit roadmap-vs-repo parity-tracking gap survey now that the landed Phase 15 governance bundle already replays in the shared workflow
