@@ -48,7 +48,7 @@ This survey closes that PMO gap without widening driver scope:
 - the non-native compile-smoke packet is an explicit part of the release reading through `Documentation/zigux/phase12-cross-compile-smoke.md`, `python3 scripts/zigux/check-phase12-cross.py --zig <zig-path>`, and `zigux/tests/phase12_cross_build.zig`
 - the public-read fallback posture is intentionally mixed and should stay explicit instead of being inferred from whichever anchor most recently gained a pinned raw catalog
 - the release packet should say plainly which anchors have commit-pinned public fallback artifacts today and which still rely on shared-tree fallback reads only
-- the release packet should also keep the current four-way owner split explicit so `virtio_net`, `nvme_pci`, `virtio_scsi`, and `libbpf` do not collapse back into one fuzzy storage label during PMO review
+- the release packet should also keep the current three-way owner split explicit so `virtio_net`, the shared storage packet around `nvme_pci` and `virtio_scsi`, and `libbpf` do not collapse back into one fuzzy release label during PMO review
 - the release packet should keep the shared review checklist visible as part of the same PMO evidence surface so degraded-workflow, build-inventory, raw-fallback, and focused libbpf-only replay questions do not live only in reviewer habit
 - the dedicated Phase 12 PMO checklist question now restates the active-not-closed release posture, the approved three-target musl smoke set, and the current two commit-pinned versus two shared-tree-only fallback split in one release-facing prompt instead of leaving that summary only in the survey note and docs root
 
