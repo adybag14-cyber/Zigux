@@ -115,6 +115,8 @@ The minimum agreement surface for that kind of change is:
 - `scripts/zigux/check-phase11-shared-replay-contract.py`
 - `scripts/zigux/check-phase11-header-boundary-packet.py`
 - `scripts/zigux/validate-phase11.py`
+- `scripts/zigux/README.md`
+- `Documentation/zigux/README.md`
 - `Documentation/zigux/phase11-gpio-wdt-validation-matrix.md`
 - `Documentation/zigux/phase11-bcm2835-wdt-validation-matrix.md`
 - `Documentation/zigux/phase11-dw-wdt-validation-matrix.md`
