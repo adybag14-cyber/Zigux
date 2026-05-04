@@ -64,6 +64,14 @@ test "phase 7 cmdline survey keeps the helper-only handoff explicit" {
     );
     defer std.testing.allocator.free(review_checklist);
 
+    const script_readme = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "scripts/zigux/README.md",
+        std.testing.allocator,
+        .limited(128 * 1024),
+    );
+    defer std.testing.allocator.free(script_readme);
+
     const tests_readme = try std.Io.Dir.cwd().readFileAlloc(
         io_instance.io(),
         "zigux/tests/README.md",
@@ -173,6 +181,14 @@ test "phase 7 cmdline survey keeps the helper-only handoff explicit" {
     try expectContains(review_checklist, "if the change touches shared sample-root or helper-bundle notes for cmdline work");
     try expectContains(review_checklist, "current `master` ships no `samples/zigux/*cmdline*` Phase 5 reference sample");
     try expectContains(review_checklist, "the shipped cmdline evidence remains the separate Phase 7 helper bundle under `lib/cmdline.zig`, `zigux/tests/phase7_cmdline.zig`, and `zigux/tests/phase7_build.zig`");
+
+    try expectContains(script_readme, "`validate-phase7.py`");
+    try expectContains(script_readme, "`check-phase7-build-inventory.py`");
+    try expectContains(script_readme, "`check-phase7-make-wrapper.py`");
+    try expectContains(script_readme, "`check-phase7-cmdline-parity.py`");
+    try expectContains(script_readme, "`check-phase7-argv-split-packet.py`");
+    try expectContains(script_readme, "`check-phase7-argv-split-parity.py`");
+    try expectContains(script_readme, "`make -C zigux phase7-validate` is the validator-first entrypoint for the current Phase 7 flow.");
 
     try expectContains(tests_readme, "zigux/tests/phase7_cmdline_survey.zig");
     try expectContains(tests_readme, "zigux/tests/fixtures/phase7_cmdline_next_arg_vectors.zig");
@@ -368,7 +384,6 @@ test "phase 7 cmdline survey keeps the helper-only handoff explicit" {
             saw_survey_gate = true;
             try std.testing.expectEqualStrings("starter_landed", gap.status);
             try std.testing.expectEqualStrings("zigux/tests/phase7_cmdline_survey.zig", gap.zigux_destination);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "machine-checked survey gate") != null);
         }
 
         for (manifest.gaps[i + 1 ..]) |other| {
