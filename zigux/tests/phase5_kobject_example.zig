@@ -103,7 +103,20 @@ test "phase 5 kobject sample makes ownership and lifetime boundaries explicit" {
     try std.testing.expectError(error.InvalidLifecycleTransition, module.showValue("foo"));
     try std.testing.expectError(error.InvalidLifecycleTransition, module.init());
 
-    const initialized_exit = try module.exit();
+    var abandonment = sample.KobjectExampleSample{};
+    const abandonment_replay = try abandonment.runInitializedExitReplay();
+    const initialized_exit = abandonment_replay.initialized_exit;
+
+    try std.testing.expectEqual(sample.SampleStage.initialized, abandonment_replay.initialized.stage);
+    try std.testing.expectEqual(@as(usize, 0), abandonment_replay.initialized.active_attr_count);
+    try std.testing.expect(!abandonment_replay.initialized.attributes_are_accessible);
+    try std.testing.expectEqual(@as(usize, 1), abandonment_replay.initialized.init_runs);
+    try std.testing.expectEqual(@as(usize, 0), abandonment_replay.initialized.register_runs);
+    try std.testing.expectEqual(@as(usize, 0), abandonment_replay.initialized.exit_runs);
+    try std.testing.expect(abandonment_replay.initialized.can_run_anchor_replay);
+    try std.testing.expect(abandonment_replay.initialized.can_register_attributes);
+    try std.testing.expect(abandonment_replay.initialized.can_exit);
+
     try std.testing.expectEqual(sample.SampleStage.initialized, initialized_exit.stage_before_exit);
     try std.testing.expectEqual(sample.SampleStage.exited, initialized_exit.stage_after_exit);
     try std.testing.expectEqual(@as(usize, 0), initialized_exit.active_attr_count_before_exit);
@@ -113,18 +126,26 @@ test "phase 5 kobject sample makes ownership and lifetime boundaries explicit" {
     try std.testing.expectEqual(@as(usize, 1), initialized_exit.init_runs);
     try std.testing.expectEqual(@as(usize, 0), initialized_exit.register_runs);
     try std.testing.expectEqual(@as(usize, 1), initialized_exit.exit_runs);
-    try std.testing.expectEqual(sample.SampleStage.exited, module.stage());
-    try std.testing.expect(!module.attributesAreAccessible());
-    try std.testing.expectEqual(@as(usize, 0), module.activeAttrCount());
-    try std.testing.expectEqual(@as(i32, 0), module.foo);
-    try std.testing.expectEqual(@as(i32, 0), module.baz);
-    try std.testing.expectEqual(@as(i32, 0), module.bar);
-    try std.testing.expectError(error.InvalidLifecycleTransition, module.init());
-    try std.testing.expectError(error.InvalidLifecycleTransition, module.registerAttributes());
-    try std.testing.expectError(error.InvalidLifecycleTransition, module.runAnchorReplay());
-    try std.testing.expectError(error.InvalidLifecycleTransition, module.showValue("foo"));
-    try std.testing.expectError(error.InvalidLifecycleTransition, module.storeValue("foo", "1\n"));
-    try std.testing.expectError(error.InvalidLifecycleTransition, module.exit());
+
+    try std.testing.expectEqual(sample.SampleStage.exited, abandonment_replay.exited.stage);
+    try std.testing.expectEqual(@as(usize, 0), abandonment_replay.exited.active_attr_count);
+    try std.testing.expect(!abandonment_replay.exited.attributes_are_accessible);
+    try std.testing.expectEqual(@as(usize, 1), abandonment_replay.exited.init_runs);
+    try std.testing.expectEqual(@as(usize, 0), abandonment_replay.exited.register_runs);
+    try std.testing.expectEqual(@as(usize, 1), abandonment_replay.exited.exit_runs);
+    try std.testing.expect(!abandonment_replay.exited.can_run_anchor_replay);
+    try std.testing.expect(!abandonment_replay.exited.can_register_attributes);
+    try std.testing.expect(!abandonment_replay.exited.can_exit);
+    try std.testing.expectEqual(@as(i32, 0), abandonment.foo);
+    try std.testing.expectEqual(@as(i32, 0), abandonment.baz);
+    try std.testing.expectEqual(@as(i32, 0), abandonment.bar);
+    try std.testing.expectError(error.InvalidLifecycleTransition, abandonment.init());
+    try std.testing.expectError(error.InvalidLifecycleTransition, abandonment.registerAttributes());
+    try std.testing.expectError(error.InvalidLifecycleTransition, abandonment.runAnchorReplay());
+    try std.testing.expectError(error.InvalidLifecycleTransition, abandonment.runInitializedExitReplay());
+    try std.testing.expectError(error.InvalidLifecycleTransition, abandonment.showValue("foo"));
+    try std.testing.expectError(error.InvalidLifecycleTransition, abandonment.storeValue("foo", "1\n"));
+    try std.testing.expectError(error.InvalidLifecycleTransition, abandonment.exit());
 }
 
 test "phase 5 kobject sample records sample-owned lifecycle replay explicitly" {
