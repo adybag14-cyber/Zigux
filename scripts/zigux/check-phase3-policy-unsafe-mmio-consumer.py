@@ -68,8 +68,10 @@ REQUIRED_POLICY_TEST_SNIPPETS = (
     "try mmio.write16Policy(mmio_policy, base32, 2, 0x7bcd);",
     "try std.testing.expectEqual(@as(u16, 0x7bcd), try mmio.read16Policy(mmio_policy, base32, 2));",
     "try mmio.write32Policy(mmio_policy, base32, @sizeOf(u32), 0xdecafbad);",
+    "try std.testing.expectEqual(@as(u32, 0xdecafbad), regs32[1]);",
     "try std.testing.expectEqual(@as(u32, 0xdecafbad), try mmio.read32Policy(mmio_policy, base32, @sizeOf(u32)));",
     "try mmio.write64Policy(mmio_policy, base64, @sizeOf(u64), 0x1111_2222_3333_4444);",
+    "try std.testing.expectEqual(@as(u64, 0x1111_2222_3333_4444), regs64[1]);",
     "try std.testing.expectEqual(@as(u64, 0x1111_2222_3333_4444), try mmio.read64Policy(mmio_policy, base64, @sizeOf(u64)));",
     "try std.testing.expectError(error.UnsafeScopeDenied, mmio.write8Policy(raw_pointer_policy, base32, 0, 1));",
     "try std.testing.expectError(error.UnsafeScopeDenied, mmio.read8Policy(raw_pointer_policy, base32, 0));",
@@ -288,6 +290,22 @@ def run_self_test() -> int:
         assert "missing_policy_test_snippet:try std.testing.expectError(error.UnsafeScopeDenied, mmio.read32Policy(none_policy, base32, 0));" in issues
         assert "missing_policy_test_snippet:try std.testing.expectError(error.UnsafeScopeDenied, mmio.write64Policy(none_policy, base64, 0, 1));" in issues
         assert "missing_policy_test_snippet:try std.testing.expectError(error.UnsafeScopeDenied, mmio.read64Policy(none_policy, base64, 0));" in issues
+
+        _write(root, POLICY_TEST_REL, "\n".join(REQUIRED_POLICY_TEST_SNIPPETS) + "\n")
+        _write(
+            root,
+            POLICY_TEST_REL,
+            "\n".join(
+                snippet
+                for snippet in REQUIRED_POLICY_TEST_SNIPPETS
+                if snippet != "try std.testing.expectEqual(@as(u32, 0xdecafbad), regs32[1]);"
+                and snippet != "try std.testing.expectEqual(@as(u64, 0x1111_2222_3333_4444), regs64[1]);"
+            )
+            + "\n",
+        )
+        issues = validate(root)
+        assert "missing_policy_test_snippet:try std.testing.expectEqual(@as(u32, 0xdecafbad), regs32[1]);" in issues
+        assert "missing_policy_test_snippet:try std.testing.expectEqual(@as(u64, 0x1111_2222_3333_4444), regs64[1]);" in issues
 
         _write(root, POLICY_TEST_REL, "\n".join(REQUIRED_POLICY_TEST_SNIPPETS) + "\n")
         _write(root, SURVEY_REL, "\n".join(
