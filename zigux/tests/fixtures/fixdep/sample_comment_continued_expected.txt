@@ -1,0 +1,10 @@
+savedcmd_sample_comment_continued.o := rustc --emit dep-info=sample_comment_continued.d -o sample_comment_continued.o zigux/tests/fixtures/fixdep/sample_comment_continued.rs
+
+source_sample_comment_continued.o := sample_comment_continued_source.rmeta
+
+deps_sample_comment_continued.o := \
+  sample_comment_continued_dep.so \
+
+sample_comment_continued.o: $(deps_sample_comment_continued.o)
+
+$(deps_sample_comment_continued.o):
