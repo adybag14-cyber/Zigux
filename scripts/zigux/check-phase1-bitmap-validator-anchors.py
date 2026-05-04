@@ -159,6 +159,13 @@ REQUIRED_MAKEFILE_LINES = {
 }
 
 
+def normalize_closure_doc_line(line: str) -> str:
+    normalized = line.strip()
+    if normalized.startswith("- `") and normalized.endswith("`"):
+        return normalized[3:-1]
+    return normalized
+
+
 def validate_text(prefix: str, source: str, snippets: dict[str, str]) -> list[str]:
     missing: list[str] = []
     for label, snippet in snippets.items():
@@ -167,8 +174,18 @@ def validate_text(prefix: str, source: str, snippets: dict[str, str]) -> list[st
     return missing
 
 
-def validate_exact_lines(prefix: str, source: str, required_lines: dict[str, str]) -> list[str]:
-    lines = [line.strip() for line in source.splitlines()]
+def validate_exact_lines(
+    prefix: str,
+    source: str,
+    required_lines: dict[str, str],
+    normalize_line=None,
+) -> list[str]:
+    lines: list[str] = []
+    for raw_line in source.splitlines():
+        line = raw_line.strip()
+        if normalize_line is not None:
+            line = normalize_line(line)
+        lines.append(line)
     missing: list[str] = []
     for label, required_line in required_lines.items():
         actual_count = sum(1 for line in lines if line == required_line)
@@ -202,7 +219,12 @@ def run_check(
     makefile_source = makefile_path.read_text(encoding="utf-8")
 
     missing = [
-        *validate_exact_lines("phase1_bitmap_closure_doc", closure_doc_source, REQUIRED_CLOSURE_SNIPPETS),
+        *validate_exact_lines(
+            "phase1_bitmap_closure_doc",
+            closure_doc_source,
+            REQUIRED_CLOSURE_SNIPPETS,
+            normalize_closure_doc_line,
+        ),
         *validate_manifest("phase1_bitmap_manifest", manifest_source),
         *validate_exact_lines("phase1_bitmap_workflow", workflow_source, REQUIRED_WORKFLOW_LINES),
         *validate_exact_lines("phase1_bitmap_makefile", makefile_source, REQUIRED_MAKEFILE_LINES),
@@ -232,7 +254,12 @@ def expect_missing(
     expected: str,
 ) -> None:
     missing = [
-        *validate_exact_lines("phase1_bitmap_closure_doc", closure_doc_text, REQUIRED_CLOSURE_SNIPPETS),
+        *validate_exact_lines(
+            "phase1_bitmap_closure_doc",
+            closure_doc_text,
+            REQUIRED_CLOSURE_SNIPPETS,
+            normalize_closure_doc_line,
+        ),
         *validate_manifest("phase1_bitmap_manifest", manifest_text),
         *validate_exact_lines("phase1_bitmap_workflow", workflow_text, REQUIRED_WORKFLOW_LINES),
         *validate_exact_lines("phase1_bitmap_makefile", makefile_text, REQUIRED_MAKEFILE_LINES),
@@ -245,6 +272,10 @@ def expect_missing(
 
 def run_self_test() -> int:
     closure_doc_baseline = "\n".join(REQUIRED_CLOSURE_SNIPPETS.values()) + "\n"
+    wrapped_closure_doc_baseline = "\n".join(
+        f"- `{snippet}`" if not snippet.startswith("- ") else snippet
+        for snippet in REQUIRED_CLOSURE_SNIPPETS.values()
+    ) + "\n"
     manifest_baseline = json.dumps(
         {
             "helper_review_notes": {
@@ -257,7 +288,12 @@ def run_self_test() -> int:
     makefile_baseline = "\n".join(REQUIRED_MAKEFILE_LINES.values()) + "\n"
 
     baseline_missing = [
-        *validate_exact_lines("phase1_bitmap_closure_doc", closure_doc_baseline, REQUIRED_CLOSURE_SNIPPETS),
+        *validate_exact_lines(
+            "phase1_bitmap_closure_doc",
+            closure_doc_baseline,
+            REQUIRED_CLOSURE_SNIPPETS,
+            normalize_closure_doc_line,
+        ),
         *validate_manifest("phase1_bitmap_manifest", manifest_baseline),
         *validate_exact_lines("phase1_bitmap_workflow", workflow_baseline, REQUIRED_WORKFLOW_LINES),
         *validate_exact_lines("phase1_bitmap_makefile", makefile_baseline, REQUIRED_MAKEFILE_LINES),
@@ -267,7 +303,24 @@ def run_self_test() -> int:
             "phase1-bitmap-validator-self-test:baseline_failed:" + ",".join(baseline_missing)
         )
 
-    total_cases = 1
+    wrapped_baseline_missing = [
+        *validate_exact_lines(
+            "phase1_bitmap_closure_doc",
+            wrapped_closure_doc_baseline,
+            REQUIRED_CLOSURE_SNIPPETS,
+            normalize_closure_doc_line,
+        ),
+        *validate_manifest("phase1_bitmap_manifest", manifest_baseline),
+        *validate_exact_lines("phase1_bitmap_workflow", workflow_baseline, REQUIRED_WORKFLOW_LINES),
+        *validate_exact_lines("phase1_bitmap_makefile", makefile_baseline, REQUIRED_MAKEFILE_LINES),
+    ]
+    if wrapped_baseline_missing:
+        raise SystemExit(
+            "phase1-bitmap-validator-self-test:wrapped_baseline_failed:"
+            + ",".join(wrapped_baseline_missing)
+        )
+
+    total_cases = 2
 
     for label, snippet in REQUIRED_CLOSURE_SNIPPETS.items():
         expect_missing(
@@ -350,7 +403,7 @@ def run_self_test() -> int:
         manifest_path = tmp_root / "phase1_helper_manifest.json"
         workflow_path = tmp_root / "zigux-bootstrap.yml"
         makefile_path = tmp_root / "Makefile"
-        closure_path.write_text(closure_doc_baseline, encoding="utf-8")
+        closure_path.write_text(wrapped_closure_doc_baseline, encoding="utf-8")
         manifest_path.write_text(manifest_baseline, encoding="utf-8")
         workflow_path.write_text(workflow_baseline, encoding="utf-8")
         makefile_path.write_text(makefile_baseline, encoding="utf-8")
