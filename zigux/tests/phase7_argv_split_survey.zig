@@ -211,6 +211,10 @@ test "phase 7 argv_split survey manifest records the parked runtime leaf surface
     try std.testing.expect(saw_survey_gate);
     try std.testing.expect(std.mem.indexOf(u8, argv_split_helper, "pub fn argvFree") != null);
     try std.testing.expect(std.mem.indexOf(u8, argv_split_helper, "leading_nul_expected") != null);
+    try expectContains(argv_split_helper, "const empty_argv_null_terminated: []const ?[*:0]const u8 = &.{null};");
+    try expectContains(argv_split_helper, "const empty_storage_view = empty_storage_null_terminated[0..0 :0];");
+    try expectContains(argv_split_helper, "if (self.argv_null_terminated.ptr != empty_argv_null_terminated.ptr) {");
+    try expectContains(argv_split_helper, "if (self.storage.ptr != empty_storage_view.ptr) {");
     try std.testing.expect(std.mem.indexOf(u8, argv_split_tests, "const phase7_vectors = @import(\"fixtures/phase7_argv_split_vectors.zig\");") != null);
     try std.testing.expect(std.mem.indexOf(u8, argv_split_tests, "phase 7 argvSplit matches focused parity fixtures") != null);
     try std.testing.expect(std.mem.indexOf(u8, argv_split_tests, "phase 7 argvSplitWithArgc reports the split length through the optional out parameter") != null);
@@ -220,6 +224,8 @@ test "phase 7 argv_split survey manifest records the parked runtime leaf surface
     try std.testing.expect(std.mem.indexOf(u8, argv_split_tests, "phase 7 argvSplit deinit clears exported storage and argv views") != null);
     try std.testing.expect(std.mem.indexOf(u8, argv_split_tests, "phase 7 argvSplit deinit stays safe when called after teardown already cleared the result") != null);
     try std.testing.expect(std.mem.indexOf(u8, argv_split_tests, "phase 7 argvSplit frees intermediate allocations when allocator failure interrupts setup") != null);
+    try expectContains(argv_split_tests, "try std.testing.expect(split.storage.ptr == blank.storage.ptr);");
+    try expectContains(argv_split_tests, "try std.testing.expect(split.argv_null_terminated.ptr == blank.argv_null_terminated.ptr);");
     try std.testing.expect(std.mem.indexOf(u8, argv_split_fixture, "pub const argv_split_cases = [_]ArgvSplitCase{") != null);
     try std.testing.expect(std.mem.indexOf(u8, argv_split_fixture, ".name = \"leading NUL truncates to zero argv entries\",") != null);
     try std.testing.expect(std.mem.indexOf(u8, argv_split_fixture, ".name = \"first NUL stops counting and splitting\",") != null);
