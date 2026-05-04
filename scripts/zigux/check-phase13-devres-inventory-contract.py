@@ -14,6 +14,7 @@ REQUIRED_FILES = [
     "scripts/zigux/README.md",
     "Documentation/zigux/review-checklist.md",
     "Documentation/zigux/phase13-devres-survey.md",
+    "zigux/Makefile",
     "zigux/tests/phase13_devres_manifest.json",
     "zigux/tests/phase13_devres_dma_coherent.zig",
     "zigux/tests/phase13_devres_reviewability.zig",
@@ -40,6 +41,17 @@ REVIEW_CHECKLIST_MARKER = (
     "evidence explicit so reviewer guidance does not drift behind the stricter "
     "shared validator contract?"
 )
+
+MAKEFILE_MARKERS = [
+    "phase13-validate:",
+    "scripts/zigux/check-phase13-devres-inventory-contract.py --self-test",
+    "scripts/zigux/check-phase13-devres-inventory-contract.py",
+]
+
+MAKEFILE_EXACT_COUNT_MARKERS = {
+    "scripts/zigux/check-phase13-devres-inventory-contract.py --self-test": 1,
+    "scripts/zigux/check-phase13-devres-inventory-contract.py\n": 1,
+}
 
 SURVEY_MARKERS = [
     "# Phase 13 devres helper DMA/scatterlist boundary survey",
@@ -84,6 +96,7 @@ def _check_repo(root: Path) -> list[str]:
     scripts_readme_text = _read(root / "scripts/zigux/README.md")
     review_checklist_text = _read(root / "Documentation/zigux/review-checklist.md")
     survey_text = _read(root / "Documentation/zigux/phase13-devres-survey.md")
+    makefile_text = _read(root / "zigux/Makefile")
     reviewability_text = _read(root / "zigux/tests/phase13_devres_reviewability.zig")
     manifest = json.loads(_read(root / "zigux/tests/phase13_devres_manifest.json"))
 
@@ -97,6 +110,9 @@ def _check_repo(root: Path) -> list[str]:
         REVIEW_CHECKLIST_MARKER,
         1,
     )
+    _require_markers(missing, "makefile", makefile_text, MAKEFILE_MARKERS)
+    for marker, expected_count in MAKEFILE_EXACT_COUNT_MARKERS.items():
+        _require_exact_count(missing, "makefile", makefile_text, marker, expected_count)
     _require_markers(missing, "survey", survey_text, SURVEY_MARKERS)
     _require_markers(missing, "reviewability", reviewability_text, REVIEWABILITY_MARKERS)
 
@@ -138,11 +154,17 @@ def _run_self_test() -> int:
             + "\n",
             encoding="utf-8",
         )
+        (root / "zigux/Makefile").write_text(
+            "phase13-validate:\n"
+            "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase13-devres-inventory-contract.py --self-test\n"
+            "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase13-devres-inventory-contract.py\n",
+            encoding="utf-8",
+        )
         (root / "zigux/tests/phase13_devres_reviewability.zig").write_text(
             "\n".join(REVIEWABILITY_MARKERS) + "\n", encoding="utf-8"
         )
         (root / "zigux/tests/phase13_devres_dma_coherent.zig").write_text(
-            "test \"phase13 devres coherent dma placeholder\" {}\n",
+            'test "phase13 devres coherent dma placeholder" {}\n',
             encoding="utf-8",
         )
         (root / "zigux/tests/phase13_devres_manifest.json").write_text(
@@ -166,6 +188,30 @@ def _run_self_test() -> int:
                 print(item)
             return 1
         case_count += 1
+
+        makefile_path = root / "zigux/Makefile"
+        makefile_path.write_text(
+            _read(makefile_path)
+            + "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase13-devres-inventory-contract.py\n",
+            encoding="utf-8",
+        )
+        missing = _check_repo(root)
+        expected_missing = (
+            "makefile:exact_count:scripts/zigux/check-phase13-devres-inventory-contract.py\n:2!=1"
+        )
+        if expected_missing not in missing:
+            print("PHASE13_DEVRES_INVENTORY_CONTRACT_SELF_TEST=fail")
+            print("missing duplicate makefile route exact-count failure")
+            for item in missing:
+                print(item)
+            return 1
+        case_count += 1
+        makefile_path.write_text(
+            "phase13-validate:\n"
+            "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase13-devres-inventory-contract.py --self-test\n"
+            "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase13-devres-inventory-contract.py\n",
+            encoding="utf-8",
+        )
 
         scripts_path = root / "scripts/zigux/README.md"
         scripts_path.write_text(
@@ -223,7 +269,7 @@ def main() -> int:
     print(f"PHASE13_DEVRES_INVENTORY_REQUIRED_FILE_COUNT={len(REQUIRED_FILES)}")
     print(
         "PHASE13_DEVRES_INVENTORY_MARKER_COUNT="
-        f"{1 + 1 + len(SURVEY_MARKERS) + len(REVIEWABILITY_MARKERS)}"
+        f"{1 + 1 + len(MAKEFILE_MARKERS) + len(MAKEFILE_EXACT_COUNT_MARKERS) + len(SURVEY_MARKERS) + len(REVIEWABILITY_MARKERS)}"
     )
     return 0
 
