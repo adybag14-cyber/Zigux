@@ -67,6 +67,7 @@ EXPECTED_FORBIDDEN_TRANSPORT_CLAIMS = [
 
 EXPECTED_EXACT_CHECKS = [
     "python3 scripts/zigux/check-phase10-closure-inventory.py",
+    "python3 scripts/zigux/check-phase10-core-packet.py",
     "python3 scripts/zigux/validate-phase10.py",
     "python3 scripts/zigux/check-phase10-harness-coverage.py",
     "python3 scripts/zigux/validate-phase10-closure.py",
@@ -134,6 +135,7 @@ EXPECTED_FOCUSED_HARNESS_REPLAYS = {
 
 TESTS_README_MARKERS = [
     "zigux-alpha/PHASE10_CLOSURE_LEDGER.md",
+    "scripts/zigux/check-phase10-core-packet.py",
 ]
 
 REQUIRED_FILES = [
@@ -143,6 +145,7 @@ REQUIRED_FILES = [
     "Documentation/zigux/freeze-map.md",
     "scripts/zigux/check-phase10-harness-coverage.py",
     "scripts/zigux/check-phase10-closure-inventory.py",
+    "scripts/zigux/check-phase10-core-packet.py",
     "zigux/tests/README.md",
     "zigux-alpha/PHASE10_CLOSURE_LEDGER.md",
     "zigux/Makefile",
@@ -478,6 +481,7 @@ def write_fixture(root: Path) -> None:
         "Documentation/zigux/phase10-virtio-mmio-survey.md": "\n".join(MMIO_SURVEY_MARKERS) + "\n",
         "scripts/zigux/check-phase10-harness-coverage.py": "fixture\n",
         "scripts/zigux/check-phase10-closure-inventory.py": "fixture\n",
+        "scripts/zigux/check-phase10-core-packet.py": "fixture\n",
         "zigux-alpha/PHASE10_CLOSURE_LEDGER.md": "\n".join(LEDGER_MARKERS + LEDGER_EXACT_ONCE_MARKERS[3:4]) + "\n",
         "zigux/Makefile": "\n".join(MAKEFILE_MARKERS) + "\n",
         ".github/workflows/zigux-bootstrap.yml": "\n".join(WORKFLOW_MARKERS) + "\n",
@@ -727,7 +731,7 @@ def run_self_test() -> int:
             original_docs_readme.replace(
                 "queue-handling and ready-state gate",
                 "queue-handling gate drift",
-                1
+                1,
             ),
             encoding="utf-8"
         )
@@ -776,6 +780,23 @@ def run_self_test() -> int:
             "tests_readme_closure_ledger_guard",
             root,
             "tests_readme:zigux-alpha/PHASE10_CLOSURE_LEDGER.md",
+        )
+        write_fixture(root)
+
+        tests_readme_path = root / "zigux/tests/README.md"
+        original_tests_readme = tests_readme_path.read_text(encoding="utf-8")
+        tests_readme_path.write_text(
+            original_tests_readme.replace(
+                "scripts/zigux/check-phase10-core-packet.py",
+                "scripts/zigux/check-phase10-core-packet-drift.py",
+                1,
+            ),
+            encoding="utf-8"
+        )
+        expect_missing_marker(
+            "tests_readme_core_packet_guard",
+            root,
+            "tests_readme:scripts/zigux/check-phase10-core-packet.py",
         )
         write_fixture(root)
 
@@ -861,7 +882,7 @@ def run_self_test() -> int:
         expect_missing_file("queue_isolation_file_guard", root, "zigux/tests/phase10_virtio_mmio_queue_isolation.zig")
 
     print("PHASE10_CLOSURE_VALIDATOR_SELF_TEST=pass")
-    print("PHASE10_CLOSURE_VALIDATOR_SELF_TEST_CASE_COUNT=24")
+    print("PHASE10_CLOSURE_VALIDATOR_SELF_TEST_CASE_COUNT=25")
     return 0
 
 
