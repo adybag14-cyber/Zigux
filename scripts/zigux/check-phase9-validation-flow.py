@@ -10,23 +10,33 @@ import tempfile
 _SELF_PATH = Path(__file__).resolve()
 ROOT = _SELF_PATH.parents[2] if len(_SELF_PATH.parents) > 2 else _SELF_PATH.parent
 
+README_PATH = "scripts/zigux/README.md"
 MAKEFILE_PATH = "zigux/Makefile"
 WORKFLOW_PATH = ".github/workflows/zigux-bootstrap.yml"
 SURVEY_PATH = "Documentation/zigux/phase9-runtime-loader-gap-survey.md"
-MODULE_METADATA_SURVEY_PATH = "Documentation/zigux/phase9-module-metadata-depmod-bridge-survey.md"
+MODULE_METADATA_SURVEY_PATH = (
+    "Documentation/zigux/phase9-module-metadata-depmod-bridge-survey.md"
+)
 TRACE_EVENTS_SURVEY_PATH = "Documentation/zigux/phase9-runtime-trace-events-survey.md"
 KRETPROBE_SURVEY_PATH = "Documentation/zigux/phase9-runtime-kretprobe-survey.md"
 PHASE9_BUILD_PATH = "zigux/tests/phase9_build.zig"
-LOADER_SUBSTRATE_PLAN_PATH = "Documentation/zigux/phase9-runtime-loader-substrate-plan.md"
+LOADER_SUBSTRATE_PLAN_PATH = (
+    "Documentation/zigux/phase9-runtime-loader-substrate-plan.md"
+)
 NON_OWNER_BOUNDARY_SURVEY_PATH = "zigux/tests/runtime_loader_non_owner_boundary_survey.zig"
 MODULE_METADATA_SURVEY_TEST_PATH = "zigux/tests/runtime_module_metadata_survey.zig"
-LOADER_ALLOCATOR_INIT_FLOW_TEST_PATH = "zigux/tests/runtime_loader_allocator_init_flow.zig"
+LOADER_ALLOCATOR_INIT_FLOW_TEST_PATH = (
+    "zigux/tests/runtime_loader_allocator_init_flow.zig"
+)
 LOADER_SUBSTRATE_CHECKER_PATH = "scripts/zigux/check-phase9-loader-substrate-plan.py"
-COMMIT_ALIGNMENT_CHECKER_PATH = "scripts/zigux/check-phase9-runtime-loader-commit-alignment.py"
+COMMIT_ALIGNMENT_CHECKER_PATH = (
+    "scripts/zigux/check-phase9-runtime-loader-commit-alignment.py"
+)
 NON_OWNER_BOUNDARY_CHECKER_PATH = "scripts/zigux/check-phase9-loader-non-owner-boundary.py"
 MODULE_METADATA_CHECKER_PATH = "scripts/zigux/check-phase9-module-metadata-packet.py"
 
 REQUIRED_FILES = [
+    README_PATH,
     MAKEFILE_PATH,
     WORKFLOW_PATH,
     SURVEY_PATH,
@@ -42,6 +52,22 @@ REQUIRED_FILES = [
     COMMIT_ALIGNMENT_CHECKER_PATH,
     NON_OWNER_BOUNDARY_CHECKER_PATH,
     MODULE_METADATA_CHECKER_PATH,
+]
+
+README_MARKERS = [
+    "Phase 9 flow\n",
+    "- `validate-phase9.py` is the validator-first entrypoint for the shared runtime-pilot packet across `scripts/zigux/README.md`, `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/phase9-runtime-loader-gap-survey.md`, `Documentation/zigux/phase9-module-metadata-depmod-bridge-survey.md`, `zigux/tests/README.md`, `zigux/tests/phase9_build.zig`, `zigux/Makefile`, and `.github/workflows/zigux-bootstrap.yml`.\n",
+    "- `check-phase9-validation-flow.py --self-test` and `check-phase9-validation-flow.py` keep the shared Phase 9 release-discipline route aligned across `zigux/Makefile`, `.github/workflows/zigux-bootstrap.yml`, the loader-gap survey, the module-metadata survey, the trace-events survey, the kretprobe survey, and `zigux/tests/phase9_build.zig` before the broader runtime bundle claims reviewable progress.\n",
+    "- `check-phase9-loader-substrate-plan.py --self-test` and `check-phase9-loader-substrate-plan.py` keep `Documentation/zigux/phase9-runtime-loader-substrate-plan.md`, `Documentation/zigux/phase9-runtime-loader-gap-survey.md`, `samples/zigux/README.md`, `zigux/tests/runtime_loader_gap_manifest.json`, `samples/zigux/runtime_trace_events_loader.zig`, and the shared `phase9-validate` route aligned around the manifest-backed catalog and ownership map for the loader-stage packet.\n",
+    "- `check-phase9-module-metadata-packet.py --self-test` and `check-phase9-module-metadata-packet.py` keep `Documentation/zigux/phase9-module-metadata-depmod-bridge-survey.md`, `zigux/tests/runtime_module_metadata_manifest.json`, `zigux/tests/runtime_module_metadata_survey.zig`, `zigux/tests/README.md`, `zigux/kernel/runtime_loader.zig`, and the four loader-plan files aligned around the starter-descriptor surface and absent depmod-facing metadata.\n",
+    "- `make -C zigux phase9-validate` and `make -C zigux phase9` are the validator-first entrypoints for the shared runtime-pilot packet, while `make -C zigux phase9-loader-gap-survey`, `make -C zigux phase9-loader-commit-alignment-survey`, `make -C zigux phase9-non-owner-boundary-survey`, `make -C zigux phase9-module-metadata-survey`, `make -C zigux phase9-kretprobe-survey`, and `make -C zigux phase9-trace-events-survey` keep the focused survey replays explicit beside `zigux/tests/phase9_build.zig`.\n",
+    "- keep the runtime-pilot ownership packet explicit here too: the current Phase 9 evidence stays rooted in the manifest-backed catalog and ownership map, the roadmap selftest-hook markers, and the bounded lifecycle-parity posture instead of implying a ready loadable-module path.\n",
+    "- keep `samples/zigux/runtime_trace_events.zig` explicit as the sample-only blocked Phase 9 pilot even though `samples/zigux/runtime_trace_events_loader.zig` is now shipped as a bounded scaffold, and keep `Documentation/zigux/freeze-map.md` plus `kernel/trace/ring_buffer.c` visible at `Study / Boundary Only` inside the same runtime packet.\n",
+]
+
+README_EXACT_ONCE_MARKERS = [
+    "Phase 9 flow\n",
+    "- `check-phase9-validation-flow.py --self-test` and `check-phase9-validation-flow.py` keep the shared Phase 9 release-discipline route aligned across `zigux/Makefile`, `.github/workflows/zigux-bootstrap.yml`, the loader-gap survey, the module-metadata survey, the trace-events survey, the kretprobe survey, and `zigux/tests/phase9_build.zig` before the broader runtime bundle claims reviewable progress.\n",
 ]
 
 MAKEFILE_MARKERS = [
@@ -190,6 +216,17 @@ def count_exact_occurrence(text: str, marker: str) -> int:
     return text.count(marker)
 
 
+def require_markers(
+    failures: list[str], label: str, text: str, markers: list[str], exact_once: list[str]
+) -> None:
+    for marker in markers:
+        if marker not in text:
+            failures.append(f"{label}:{marker}")
+    for marker in exact_once:
+        if count_exact_occurrence(text, marker) != 1:
+            failures.append(f"{label}_exact:{marker}")
+
+
 def validate(root: Path) -> list[str]:
     failures: list[str] = []
 
@@ -199,6 +236,7 @@ def validate(root: Path) -> list[str]:
         return failures
 
     texts = {
+        "readme": read_text(root, README_PATH),
         "makefile": read_text(root, MAKEFILE_PATH),
         "workflow": read_text(root, WORKFLOW_PATH),
         "survey": read_text(root, SURVEY_PATH),
@@ -209,45 +247,69 @@ def validate(root: Path) -> list[str]:
         "loader_substrate_plan": read_text(root, LOADER_SUBSTRATE_PLAN_PATH),
     }
 
-    for marker in MAKEFILE_MARKERS:
-        if marker not in texts["makefile"]:
-            failures.append(f"makefile:{marker}")
-    for marker in MAKEFILE_EXACT_ONCE_MARKERS:
-        if count_exact_occurrence(texts["makefile"], marker) != 1:
-            failures.append(f"makefile_exact:{marker}")
-    for marker in WORKFLOW_MARKERS:
-        if marker not in texts["workflow"]:
-            failures.append(f"workflow:{marker}")
-    for marker in SURVEY_MARKERS:
-        if marker not in texts["survey"]:
-            failures.append(f"survey:{marker}")
-    for marker in SURVEY_EXACT_ONCE_MARKERS:
-        if count_exact_occurrence(texts["survey"], marker) != 1:
-            failures.append(f"survey_exact:{marker}")
-    for marker in MODULE_METADATA_SURVEY_MARKERS:
-        if marker not in texts["module_metadata_survey"]:
-            failures.append(f"module_metadata_survey:{marker}")
-    for marker in MODULE_METADATA_SURVEY_EXACT_ONCE_MARKERS:
-        if count_exact_occurrence(texts["module_metadata_survey"], marker) != 1:
-            failures.append(f"module_metadata_survey_exact:{marker}")
-    for marker in TRACE_EVENTS_SURVEY_MARKERS:
-        if marker not in texts["trace_events_survey"]:
-            failures.append(f"trace_events_survey:{marker}")
-    for marker in TRACE_EVENTS_SURVEY_EXACT_ONCE_MARKERS:
-        if count_exact_occurrence(texts["trace_events_survey"], marker) != 1:
-            failures.append(f"trace_events_survey_exact:{marker}")
-    for marker in KRETPROBE_SURVEY_MARKERS:
-        if marker not in texts["kretprobe_survey"]:
-            failures.append(f"kretprobe_survey:{marker}")
-    for marker in KRETPROBE_SURVEY_EXACT_ONCE_MARKERS:
-        if count_exact_occurrence(texts["kretprobe_survey"], marker) != 1:
-            failures.append(f"kretprobe_survey_exact:{marker}")
-    for marker in PHASE9_BUILD_MARKERS:
-        if marker not in texts["phase9_build"]:
-            failures.append(f"phase9_build:{marker}")
-    for marker in LOADER_SUBSTRATE_PLAN_MARKERS:
-        if marker not in texts["loader_substrate_plan"]:
-            failures.append(f"loader_substrate_plan:{marker}")
+    require_markers(
+        failures,
+        "readme",
+        texts["readme"],
+        README_MARKERS,
+        README_EXACT_ONCE_MARKERS,
+    )
+    require_markers(
+        failures,
+        "makefile",
+        texts["makefile"],
+        MAKEFILE_MARKERS,
+        MAKEFILE_EXACT_ONCE_MARKERS,
+    )
+    require_markers(
+        failures,
+        "workflow",
+        texts["workflow"],
+        WORKFLOW_MARKERS,
+        [],
+    )
+    require_markers(
+        failures,
+        "survey",
+        texts["survey"],
+        SURVEY_MARKERS,
+        SURVEY_EXACT_ONCE_MARKERS,
+    )
+    require_markers(
+        failures,
+        "module_metadata_survey",
+        texts["module_metadata_survey"],
+        MODULE_METADATA_SURVEY_MARKERS,
+        MODULE_METADATA_SURVEY_EXACT_ONCE_MARKERS,
+    )
+    require_markers(
+        failures,
+        "trace_events_survey",
+        texts["trace_events_survey"],
+        TRACE_EVENTS_SURVEY_MARKERS,
+        TRACE_EVENTS_SURVEY_EXACT_ONCE_MARKERS,
+    )
+    require_markers(
+        failures,
+        "kretprobe_survey",
+        texts["kretprobe_survey"],
+        KRETPROBE_SURVEY_MARKERS,
+        KRETPROBE_SURVEY_EXACT_ONCE_MARKERS,
+    )
+    require_markers(
+        failures,
+        "phase9_build",
+        texts["phase9_build"],
+        PHASE9_BUILD_MARKERS,
+        [],
+    )
+    require_markers(
+        failures,
+        "loader_substrate_plan",
+        texts["loader_substrate_plan"],
+        LOADER_SUBSTRATE_PLAN_MARKERS,
+        [],
+    )
 
     return failures
 
@@ -258,6 +320,27 @@ def write_fixture_tree(root: Path) -> None:
     (root / ".github/workflows").mkdir(parents=True, exist_ok=True)
     (root / "Documentation/zigux").mkdir(parents=True, exist_ok=True)
     (root / "scripts/zigux").mkdir(parents=True, exist_ok=True)
+
+    (root / README_PATH).write_text(
+        "\n".join(
+            [
+                "# scripts/zigux",
+                "",
+                "This directory holds Zigux-specific bootstrap and validation helpers.",
+                "",
+                "Phase 9 flow",
+                README_MARKERS[1].rstrip("\n"),
+                README_MARKERS[2].rstrip("\n"),
+                README_MARKERS[3].rstrip("\n"),
+                README_MARKERS[4].rstrip("\n"),
+                README_MARKERS[5].rstrip("\n"),
+                README_MARKERS[6].rstrip("\n"),
+                README_MARKERS[7].rstrip("\n"),
+                "",
+            ]
+        ),
+        encoding="utf-8",
+    )
 
     (root / MAKEFILE_PATH).write_text(
         "\n".join(
@@ -443,6 +526,12 @@ def write_fixture_tree(root: Path) -> None:
         (root / rel_path).write_text("# fixture placeholder\n", encoding="utf-8")
 
 
+def replace_once(text: str, old: str, new: str) -> str:
+    if old not in text:
+        raise SystemExit(f"selftest_missing_source_marker:{old}")
+    return text.replace(old, new, 1)
+
+
 def expect_failure(label: str, root: Path, expected_failure: str) -> None:
     failures = validate(root)
     if expected_failure not in failures:
@@ -450,6 +539,16 @@ def expect_failure(label: str, root: Path, expected_failure: str) -> None:
         raise SystemExit(
             f"phase9-validation-flow-selftest:{label}:expected_failure:{expected_failure}:actual:{actual}"
         )
+
+
+def mutate_and_expect(
+    root: Path, rel_path: str, label: str, old: str, new: str, expected_failure: str
+) -> None:
+    path = root / rel_path
+    original = path.read_text(encoding="utf-8")
+    path.write_text(replace_once(original, old, new), encoding="utf-8")
+    expect_failure(label, root, expected_failure)
+    path.write_text(original, encoding="utf-8")
 
 
 def run_self_test() -> int:
@@ -460,534 +559,190 @@ def run_self_test() -> int:
         baseline_failures = validate(tmp_root)
         if baseline_failures:
             raise SystemExit(
-                "phase9-validation-flow-selftest:baseline_failed:" + ",".join(baseline_failures)
+                "phase9-validation-flow-selftest:baseline_failed:"
+                + ",".join(baseline_failures)
             )
 
-        makefile_path = tmp_root / MAKEFILE_PATH
-        original_makefile = makefile_path.read_text(encoding="utf-8")
-        makefile_path.write_text(
-            original_makefile.replace(
+        cases = [
+            (
+                README_PATH,
+                "readme_heading_missing",
+                "Phase 9 flow\n",
+                "Phase Nine flow\n",
+                "readme:Phase 9 flow\n",
+            ),
+            (
+                README_PATH,
+                "readme_heading_duplicate",
+                "Phase 9 flow\n",
+                "Phase 9 flow\nPhase 9 flow\n",
+                "readme_exact:Phase 9 flow\n",
+            ),
+            (
+                README_PATH,
+                "readme_validation_flow_bullet_missing",
+                README_MARKERS[2],
+                "",
+                f"readme:{README_MARKERS[2]}",
+            ),
+            (
+                README_PATH,
+                "readme_validation_flow_bullet_duplicate",
+                README_MARKERS[2],
+                README_MARKERS[2] + README_MARKERS[2],
+                f"readme_exact:{README_MARKERS[2]}",
+            ),
+            (
+                README_PATH,
+                "readme_validate_phase9_entrypoint_missing",
+                README_MARKERS[1],
+                "",
+                f"readme:{README_MARKERS[1]}",
+            ),
+            (
+                README_PATH,
+                "readme_ownership_bullet_missing",
+                README_MARKERS[6],
+                "",
+                f"readme:{README_MARKERS[6]}",
+            ),
+            (
+                MAKEFILE_PATH,
+                "makefile_module_metadata_phony",
                 "phase9-module-metadata-survey phase9-kretprobe-survey",
                 "phase9-kretprobe-survey",
-                1,
+                f"makefile:{MAKEFILE_MARKERS[0]}",
             ),
-            encoding="utf-8",
-        )
-        expect_failure("module_metadata_phony", tmp_root, f"makefile:{MAKEFILE_MARKERS[0]}")
-        makefile_path.write_text(original_makefile, encoding="utf-8")
-
-        makefile_path.write_text(
-            original_makefile.replace(
-                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase9-module-metadata-packet.py --self-test\n",
-                "",
-                1,
-            ),
-            encoding="utf-8",
-        )
-        expect_failure(
-            "module_metadata_self_test_hook",
-            tmp_root,
-            "makefile:\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase9-module-metadata-packet.py --self-test\n",
-        )
-        makefile_path.write_text(original_makefile, encoding="utf-8")
-
-        makefile_path.write_text(
-            original_makefile.replace(
-                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase9-module-metadata-packet.py\n",
-                "",
-                1,
-            ),
-            encoding="utf-8",
-        )
-        expect_failure(
-            "module_metadata_live_hook",
-            tmp_root,
-            "makefile:\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase9-module-metadata-packet.py\n",
-        )
-        makefile_path.write_text(original_makefile, encoding="utf-8")
-
-        makefile_path.write_text(
-            original_makefile.replace(
+            (
+                MAKEFILE_PATH,
+                "makefile_commit_alignment_self_test_missing",
                 "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase9-runtime-loader-commit-alignment.py --self-test\n",
                 "",
-                1,
+                "makefile:\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase9-runtime-loader-commit-alignment.py --self-test\n",
             ),
-            encoding="utf-8",
-        )
-        expect_failure(
-            "commit_alignment_self_test_hook",
-            tmp_root,
-            "makefile:\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase9-runtime-loader-commit-alignment.py --self-test\n",
-        )
-        makefile_path.write_text(original_makefile, encoding="utf-8")
-
-        makefile_path.write_text(
-            original_makefile.replace(
+            (
+                MAKEFILE_PATH,
+                "makefile_commit_alignment_self_test_duplicate",
                 "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase9-runtime-loader-commit-alignment.py --self-test\n",
                 "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase9-runtime-loader-commit-alignment.py --self-test\n\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase9-runtime-loader-commit-alignment.py --self-test\n",
-                1,
+                "makefile_exact:\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase9-runtime-loader-commit-alignment.py --self-test\n",
             ),
-            encoding="utf-8",
-        )
-        expect_failure(
-            "commit_alignment_duplicate_self_test_hook",
-            tmp_root,
-            "makefile_exact:\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase9-runtime-loader-commit-alignment.py --self-test\n",
-        )
-        makefile_path.write_text(original_makefile, encoding="utf-8")
-
-        makefile_path.write_text(
-            original_makefile.replace(
+            (
+                MAKEFILE_PATH,
+                "makefile_commit_alignment_live_missing",
                 "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase9-runtime-loader-commit-alignment.py\n",
                 "",
-                1,
+                "makefile:\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase9-runtime-loader-commit-alignment.py\n",
             ),
-            encoding="utf-8",
-        )
-        expect_failure(
-            "commit_alignment_live_hook",
-            tmp_root,
-            "makefile:\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase9-runtime-loader-commit-alignment.py\n",
-        )
-        makefile_path.write_text(original_makefile, encoding="utf-8")
-
-        makefile_path.write_text(
-            original_makefile.replace(
-                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase9-runtime-loader-commit-alignment.py\n",
-                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase9-runtime-loader-commit-alignment.py\n\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase9-runtime-loader-commit-alignment.py\n",
-                1,
+            (
+                MAKEFILE_PATH,
+                "makefile_loader_gap_target_duplicate",
+                "phase9-loader-gap-survey:\n",
+                "phase9-loader-gap-survey:\nphase9-loader-gap-survey:\n",
+                "makefile_exact:phase9-loader-gap-survey:\n",
             ),
-            encoding="utf-8",
-        )
-        expect_failure(
-            "commit_alignment_duplicate_live_hook",
-            tmp_root,
-            "makefile_exact:\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase9-runtime-loader-commit-alignment.py\n",
-        )
-        makefile_path.write_text(original_makefile, encoding="utf-8")
-
-        makefile_path.write_text(
-            original_makefile.replace("phase9-module-metadata-survey:\n", "", 1),
-            encoding="utf-8",
-        )
-        expect_failure("module_metadata_target", tmp_root, "makefile:phase9-module-metadata-survey:")
-        makefile_path.write_text(original_makefile, encoding="utf-8")
-
-        makefile_path.write_text(
-            original_makefile.replace(
-                "\tcd $(ZIGUX_ROOT) && $(ZIG) test zigux/tests/runtime_module_metadata_survey.zig\n",
-                "",
-                1,
+            (
+                MAKEFILE_PATH,
+                "makefile_trace_events_command_duplicate",
+                "\tcd $(ZIGUX_ROOT) && $(ZIG) test --dep runtime_trace_events_sample -Mroot=zigux/tests/runtime_trace_events_survey.zig -Mruntime_trace_events_sample=samples/zigux/runtime_trace_events.zig\n",
+                "\tcd $(ZIGUX_ROOT) && $(ZIG) test --dep runtime_trace_events_sample -Mroot=zigux/tests/runtime_trace_events_survey.zig -Mruntime_trace_events_sample=samples/zigux/runtime_trace_events.zig\n\tcd $(ZIGUX_ROOT) && $(ZIG) test --dep runtime_trace_events_sample -Mroot=zigux/tests/runtime_trace_events_survey.zig -Mruntime_trace_events_sample=samples/zigux/runtime_trace_events.zig\n",
+                "makefile_exact:\tcd $(ZIGUX_ROOT) && $(ZIG) test --dep runtime_trace_events_sample -Mroot=zigux/tests/runtime_trace_events_survey.zig -Mruntime_trace_events_sample=samples/zigux/runtime_trace_events.zig\n",
             ),
-            encoding="utf-8",
-        )
-        expect_failure(
-            "module_metadata_command",
-            tmp_root,
-            "makefile:\tcd $(ZIGUX_ROOT) && $(ZIG) test zigux/tests/runtime_module_metadata_survey.zig\n",
-        )
-        makefile_path.write_text(original_makefile, encoding="utf-8")
-
-        makefile_path.write_text(
-            original_makefile.replace("phase9-non-owner-boundary-survey:\n", "", 1),
-            encoding="utf-8",
-        )
-        expect_failure(
-            "non_owner_boundary_target",
-            tmp_root,
-            "makefile:phase9-non-owner-boundary-survey:",
-        )
-        makefile_path.write_text(original_makefile, encoding="utf-8")
-
-        makefile_path.write_text(
-            original_makefile.replace(
-                "\tcd $(ZIGUX_ROOT) && $(ZIG) test zigux/tests/runtime_loader_non_owner_boundary_survey.zig\n",
-                "",
-                1,
+            (
+                WORKFLOW_PATH,
+                "workflow_validate_step_missing",
+                "Validate Phase 9 runtime gates",
+                "Validate runtime gates",
+                "workflow:Validate Phase 9 runtime gates",
             ),
-            encoding="utf-8",
-        )
-        expect_failure(
-            "non_owner_boundary_command",
-            tmp_root,
-            "makefile:\tcd $(ZIGUX_ROOT) && $(ZIG) test zigux/tests/runtime_loader_non_owner_boundary_survey.zig\n",
-        )
-        makefile_path.write_text(original_makefile, encoding="utf-8")
-
-        makefile_path.write_text(
-            original_makefile.replace(
-                "phase9-non-owner-boundary-survey:\n",
-                "phase9-non-owner-boundary-survey:\n\tcd $(ZIGUX_ROOT) && $(ZIG) test zigux/tests/runtime_loader_non_owner_boundary_survey.zig\n\nphase9-non-owner-boundary-survey:\n",
-                1,
-            ),
-            encoding="utf-8",
-        )
-        expect_failure(
-            "non_owner_boundary_duplicate_target",
-            tmp_root,
-            "makefile_exact:phase9-non-owner-boundary-survey:\n",
-        )
-        makefile_path.write_text(original_makefile, encoding="utf-8")
-
-        makefile_path.write_text(
-            original_makefile.replace(
-                "\tcd $(ZIGUX_ROOT) && $(ZIG) test zigux/tests/runtime_loader_non_owner_boundary_survey.zig\n",
-                "\tcd $(ZIGUX_ROOT) && $(ZIG) test zigux/tests/runtime_loader_non_owner_boundary_survey.zig\n\tcd $(ZIGUX_ROOT) && $(ZIG) test zigux/tests/runtime_loader_non_owner_boundary_survey.zig\n",
-                1,
-            ),
-            encoding="utf-8",
-        )
-        expect_failure(
-            "non_owner_boundary_duplicate_command",
-            tmp_root,
-            "makefile_exact:\tcd $(ZIGUX_ROOT) && $(ZIG) test zigux/tests/runtime_loader_non_owner_boundary_survey.zig\n",
-        )
-        makefile_path.write_text(original_makefile, encoding="utf-8")
-
-        module_metadata_survey_path = tmp_root / MODULE_METADATA_SURVEY_PATH
-        original_module_metadata_survey = module_metadata_survey_path.read_text(encoding="utf-8")
-        module_metadata_survey_path.write_text(
-            original_module_metadata_survey.replace(
-                "- `python3 scripts/zigux/check-phase9-module-metadata-packet.py --self-test`\n",
-                "",
-                1,
-            ),
-            encoding="utf-8",
-        )
-        expect_failure(
-            "module_metadata_survey_self_test_gate",
-            tmp_root,
-            "module_metadata_survey:- `python3 scripts/zigux/check-phase9-module-metadata-packet.py --self-test`\n",
-        )
-        module_metadata_survey_path.write_text(original_module_metadata_survey, encoding="utf-8")
-
-        module_metadata_survey_path.write_text(
-            original_module_metadata_survey.replace(
-                "- `python3 scripts/zigux/check-phase9-module-metadata-packet.py`\n",
-                "",
-                1,
-            ),
-            encoding="utf-8",
-        )
-        expect_failure(
-            "module_metadata_survey_live_gate",
-            tmp_root,
-            "module_metadata_survey:- `python3 scripts/zigux/check-phase9-module-metadata-packet.py`\n",
-        )
-        module_metadata_survey_path.write_text(original_module_metadata_survey, encoding="utf-8")
-
-        module_metadata_survey_path.write_text(
-            original_module_metadata_survey.replace(
-                "- `make -C zigux phase9-module-metadata-survey`\n",
-                "",
-                1,
-            ),
-            encoding="utf-8",
-        )
-        expect_failure(
-            "module_metadata_survey_make_gate",
-            tmp_root,
-            "module_metadata_survey:- `make -C zigux phase9-module-metadata-survey`\n",
-        )
-        module_metadata_survey_path.write_text(original_module_metadata_survey, encoding="utf-8")
-
-        module_metadata_survey_path.write_text(
-            original_module_metadata_survey.replace(
-                "- `make -C zigux phase9-module-metadata-survey`\n",
-                "- `make -C zigux phase9-module-metadata-survey`\n- `make -C zigux phase9-module-metadata-survey`\n",
-                1,
-            ),
-            encoding="utf-8",
-        )
-        expect_failure(
-            "module_metadata_survey_duplicate_make_gate",
-            tmp_root,
-            "module_metadata_survey_exact:- `make -C zigux phase9-module-metadata-survey`\n",
-        )
-        module_metadata_survey_path.write_text(original_module_metadata_survey, encoding="utf-8")
-
-        workflow_path = tmp_root / WORKFLOW_PATH
-        original_workflow = workflow_path.read_text(encoding="utf-8")
-        workflow_path.write_text(
-            original_workflow.replace("Validate Phase 9 runtime gates", "Validate runtime gates", 1),
-            encoding="utf-8",
-        )
-        expect_failure("workflow_validate_step", tmp_root, "workflow:Validate Phase 9 runtime gates")
-        workflow_path.write_text(original_workflow, encoding="utf-8")
-
-        survey_path = tmp_root / SURVEY_PATH
-        original_survey = survey_path.read_text(encoding="utf-8")
-        survey_path.write_text(
-            original_survey.replace(
+            (
+                SURVEY_PATH,
+                "survey_commit_alignment_self_test_missing",
                 "- `python3 scripts/zigux/check-phase9-runtime-loader-commit-alignment.py --self-test`\n",
                 "",
-                1,
+                "survey:- `python3 scripts/zigux/check-phase9-runtime-loader-commit-alignment.py --self-test`\n",
             ),
-            encoding="utf-8",
-        )
-        expect_failure(
-            "loader_gap_commit_alignment_self_test_gate",
-            tmp_root,
-            "survey:- `python3 scripts/zigux/check-phase9-runtime-loader-commit-alignment.py --self-test`\n",
-        )
-        survey_path.write_text(original_survey, encoding="utf-8")
-
-        survey_path.write_text(
-            original_survey.replace(
-                "- `python3 scripts/zigux/check-phase9-runtime-loader-commit-alignment.py --self-test`\n",
-                "- `python3 scripts/zigux/check-phase9-runtime-loader-commit-alignment.py --self-test`\n- `python3 scripts/zigux/check-phase9-runtime-loader-commit-alignment.py --self-test`\n",
-                1,
-            ),
-            encoding="utf-8",
-        )
-        expect_failure(
-            "loader_gap_duplicate_commit_alignment_self_test_gate",
-            tmp_root,
-            "survey_exact:- `python3 scripts/zigux/check-phase9-runtime-loader-commit-alignment.py --self-test`\n",
-        )
-        survey_path.write_text(original_survey, encoding="utf-8")
-
-        survey_path.write_text(
-            original_survey.replace(
-                "- `python3 scripts/zigux/check-phase9-runtime-loader-commit-alignment.py`\n",
-                "",
-                1,
-            ),
-            encoding="utf-8",
-        )
-        expect_failure(
-            "loader_gap_commit_alignment_live_gate",
-            tmp_root,
-            "survey:- `python3 scripts/zigux/check-phase9-runtime-loader-commit-alignment.py`\n",
-        )
-        survey_path.write_text(original_survey, encoding="utf-8")
-
-        survey_path.write_text(
-            original_survey.replace(
+            (
+                SURVEY_PATH,
+                "survey_commit_alignment_live_duplicate",
                 "- `python3 scripts/zigux/check-phase9-runtime-loader-commit-alignment.py`\n",
                 "- `python3 scripts/zigux/check-phase9-runtime-loader-commit-alignment.py`\n- `python3 scripts/zigux/check-phase9-runtime-loader-commit-alignment.py`\n",
-                1,
+                "survey_exact:- `python3 scripts/zigux/check-phase9-runtime-loader-commit-alignment.py`\n",
             ),
-            encoding="utf-8",
-        )
-        expect_failure(
-            "loader_gap_duplicate_commit_alignment_live_gate",
-            tmp_root,
-            "survey_exact:- `python3 scripts/zigux/check-phase9-runtime-loader-commit-alignment.py`\n",
-        )
-        survey_path.write_text(original_survey, encoding="utf-8")
-
-        survey_path.write_text(
-            original_survey.replace("- `make -C zigux phase9-loader-gap-survey`\n", "", 1),
-            encoding="utf-8",
-        )
-        expect_failure(
-            "loader_gap_make_gate",
-            tmp_root,
-            "survey:- `make -C zigux phase9-loader-gap-survey`\n",
-        )
-        survey_path.write_text(original_survey, encoding="utf-8")
-
-        survey_path.write_text(
-            original_survey.replace(
+            (
+                SURVEY_PATH,
+                "survey_make_gate_missing",
                 "- `make -C zigux phase9-loader-gap-survey`\n",
-                "- `make -C zigux phase9-loader-gap-survey`\n- `make -C zigux phase9-loader-gap-survey`\n",
-                1,
+                "",
+                "survey:- `make -C zigux phase9-loader-gap-survey`\n",
             ),
-            encoding="utf-8",
-        )
-        expect_failure(
-            "loader_gap_duplicate_make_gate",
-            tmp_root,
-            "survey_exact:- `make -C zigux phase9-loader-gap-survey`\n",
-        )
-        survey_path.write_text(original_survey, encoding="utf-8")
-
-        trace_events_survey_path = tmp_root / TRACE_EVENTS_SURVEY_PATH
-        original_trace_events_survey = trace_events_survey_path.read_text(encoding="utf-8")
-        trace_events_survey_path.write_text(
-            original_trace_events_survey.replace("phase9-runtime-trace-events-survey-tests", "phase9-runtime-trace-events-review-tests", 1),
-            encoding="utf-8",
-        )
-        expect_failure(
-            "trace_events_shared_build_leg",
-            tmp_root,
-            "trace_events_survey:phase9-runtime-trace-events-survey-tests",
-        )
-        trace_events_survey_path.write_text(original_trace_events_survey, encoding="utf-8")
-
-        trace_events_survey_path.write_text(
-            original_trace_events_survey.replace("- `make -C zigux phase9-trace-events-survey`\n", "", 1),
-            encoding="utf-8",
-        )
-        expect_failure(
-            "trace_events_make_gate",
-            tmp_root,
-            "trace_events_survey:- `make -C zigux phase9-trace-events-survey`\n",
-        )
-        trace_events_survey_path.write_text(original_trace_events_survey, encoding="utf-8")
-
-        trace_events_survey_path.write_text(
-            original_trace_events_survey.replace(
+            (
+                MODULE_METADATA_SURVEY_PATH,
+                "module_metadata_self_test_missing",
+                "- `python3 scripts/zigux/check-phase9-module-metadata-packet.py --self-test`\n",
+                "",
+                "module_metadata_survey:- `python3 scripts/zigux/check-phase9-module-metadata-packet.py --self-test`\n",
+            ),
+            (
+                MODULE_METADATA_SURVEY_PATH,
+                "module_metadata_make_duplicate",
+                "- `make -C zigux phase9-module-metadata-survey`\n",
+                "- `make -C zigux phase9-module-metadata-survey`\n- `make -C zigux phase9-module-metadata-survey`\n",
+                "module_metadata_survey_exact:- `make -C zigux phase9-module-metadata-survey`\n",
+            ),
+            (
+                TRACE_EVENTS_SURVEY_PATH,
+                "trace_events_build_leg_missing",
+                "phase9-runtime-trace-events-survey-tests",
+                "phase9-runtime-trace-events-review-tests",
+                "trace_events_survey:phase9-runtime-trace-events-survey-tests",
+            ),
+            (
+                TRACE_EVENTS_SURVEY_PATH,
+                "trace_events_make_duplicate",
                 "- `make -C zigux phase9-trace-events-survey`\n",
                 "- `make -C zigux phase9-trace-events-survey`\n- `make -C zigux phase9-trace-events-survey`\n",
-                1,
+                "trace_events_survey_exact:- `make -C zigux phase9-trace-events-survey`\n",
             ),
-            encoding="utf-8",
-        )
-        expect_failure(
-            "trace_events_duplicate_make_gate",
-            tmp_root,
-            "trace_events_survey_exact:- `make -C zigux phase9-trace-events-survey`\n",
-        )
-        trace_events_survey_path.write_text(original_trace_events_survey, encoding="utf-8")
-
-        kretprobe_survey_path = tmp_root / KRETPROBE_SURVEY_PATH
-        original_kretprobe_survey = kretprobe_survey_path.read_text(encoding="utf-8")
-        kretprobe_survey_path.write_text(
-            original_kretprobe_survey.replace("phase9-runtime-kretprobe-loader-tests", "phase9-runtime-kretprobe-replay-tests", 1),
-            encoding="utf-8",
-        )
-        expect_failure(
-            "kretprobe_loader_leg",
-            tmp_root,
-            "kretprobe_survey:phase9-runtime-kretprobe-loader-tests",
-        )
-        kretprobe_survey_path.write_text(original_kretprobe_survey, encoding="utf-8")
-
-        kretprobe_survey_path.write_text(
-            original_kretprobe_survey.replace("- `make -C zigux phase9-kretprobe-survey`\n", "", 1),
-            encoding="utf-8",
-        )
-        expect_failure(
-            "kretprobe_make_gate",
-            tmp_root,
-            "kretprobe_survey:- `make -C zigux phase9-kretprobe-survey`\n",
-        )
-        kretprobe_survey_path.write_text(original_kretprobe_survey, encoding="utf-8")
-
-        kretprobe_survey_path.write_text(
-            original_kretprobe_survey.replace(
+            (
+                KRETPROBE_SURVEY_PATH,
+                "kretprobe_loader_leg_missing",
+                "phase9-runtime-kretprobe-loader-tests",
+                "phase9-runtime-kretprobe-replay-tests",
+                "kretprobe_survey:phase9-runtime-kretprobe-loader-tests",
+            ),
+            (
+                KRETPROBE_SURVEY_PATH,
+                "kretprobe_make_missing",
                 "- `make -C zigux phase9-kretprobe-survey`\n",
-                "- `make -C zigux phase9-kretprobe-survey`\n- `make -C zigux phase9-kretprobe-survey`\n",
-                1,
+                "",
+                "kretprobe_survey:- `make -C zigux phase9-kretprobe-survey`\n",
             ),
-            encoding="utf-8",
-        )
-        expect_failure(
-            "kretprobe_duplicate_make_gate",
-            tmp_root,
-            "kretprobe_survey_exact:- `make -C zigux phase9-kretprobe-survey`\n",
-        )
-        kretprobe_survey_path.write_text(original_kretprobe_survey, encoding="utf-8")
-
-        phase9_build_path = tmp_root / PHASE9_BUILD_PATH
-        original_phase9_build = phase9_build_path.read_text(encoding="utf-8")
-        phase9_build_path.write_text(
-            original_phase9_build.replace("phase9-runtime-loader-non-owner-boundary-survey-tests", "", 1),
-            encoding="utf-8",
-        )
-        expect_failure(
-            "phase9_build_non_owner_boundary_leg",
-            tmp_root,
-            "phase9_build:phase9-runtime-loader-non-owner-boundary-survey-tests",
-        )
-        phase9_build_path.write_text(original_phase9_build, encoding="utf-8")
-
-        phase9_build_path.write_text(
-            original_phase9_build.replace("phase9-runtime-loader-allocator-init-flow-tests", "", 1),
-            encoding="utf-8",
-        )
-        expect_failure(
-            "phase9_build_allocator_init_flow_leg",
-            tmp_root,
-            "phase9_build:phase9-runtime-loader-allocator-init-flow-tests",
-        )
-        phase9_build_path.write_text(original_phase9_build, encoding="utf-8")
-
-        phase9_build_path.write_text(
-            original_phase9_build.replace("phase9-runtime-module-metadata-survey-tests", "", 1),
-            encoding="utf-8",
-        )
-        expect_failure(
-            "phase9_build_module_metadata_leg",
-            tmp_root,
-            "phase9_build:phase9-runtime-module-metadata-survey-tests",
-        )
-        phase9_build_path.write_text(original_phase9_build, encoding="utf-8")
-
-        loader_substrate_plan_path = tmp_root / LOADER_SUBSTRATE_PLAN_PATH
-        original_loader_substrate_plan = loader_substrate_plan_path.read_text(encoding="utf-8")
-        loader_substrate_plan_path.write_text(
-            original_loader_substrate_plan.replace("allocator_handoff", "allocator boundary", 1),
-            encoding="utf-8",
-        )
-        expect_failure(
-            "loader_substrate_allocator_marker",
-            tmp_root,
-            "loader_substrate_plan:allocator_handoff",
-        )
-        loader_substrate_plan_path.write_text(original_loader_substrate_plan, encoding="utf-8")
-
-        makefile_path.write_text(
-            original_makefile.replace(
-                "phase9-module-metadata-survey:\n",
-                "phase9-module-metadata-survey:\n\tcd $(ZIGUX_ROOT) && $(ZIG) test zigux/tests/runtime_module_metadata_survey.zig\n\nphase9-module-metadata-survey:\n",
-                1,
+            (
+                PHASE9_BUILD_PATH,
+                "phase9_build_non_owner_missing",
+                "phase9-runtime-loader-non-owner-boundary-survey-tests",
+                "",
+                "phase9_build:phase9-runtime-loader-non-owner-boundary-survey-tests",
             ),
-            encoding="utf-8",
-        )
-        expect_failure(
-            "module_metadata_duplicate_target",
-            tmp_root,
-            "makefile_exact:phase9-module-metadata-survey:\n",
-        )
-        makefile_path.write_text(original_makefile, encoding="utf-8")
-
-        makefile_path.write_text(
-            original_makefile.replace(
-                "phase9-kretprobe-survey:\n",
-                "phase9-kretprobe-survey:\n\tcd $(ZIGUX_ROOT) && $(ZIG) test zigux/tests/runtime_kretprobe_survey.zig\n\nphase9-kretprobe-survey:\n",
-                1,
+            (
+                PHASE9_BUILD_PATH,
+                "phase9_build_allocator_missing",
+                "phase9-runtime-loader-allocator-init-flow-tests",
+                "",
+                "phase9_build:phase9-runtime-loader-allocator-init-flow-tests",
             ),
-            encoding="utf-8",
-        )
-        expect_failure(
-            "kretprobe_duplicate_target",
-            tmp_root,
-            "makefile_exact:phase9-kretprobe-survey:\n",
-        )
-        makefile_path.write_text(original_makefile, encoding="utf-8")
-
-        makefile_path.write_text(
-            original_makefile.replace(
-                "\tcd $(ZIGUX_ROOT) && $(ZIG) test zigux/tests/runtime_kretprobe_survey.zig\n",
-                "\tcd $(ZIGUX_ROOT) && $(ZIG) test zigux/tests/runtime_kretprobe_survey.zig\n\tcd $(ZIGUX_ROOT) && $(ZIG) test zigux/tests/runtime_kretprobe_survey.zig\n",
-                1,
+            (
+                LOADER_SUBSTRATE_PLAN_PATH,
+                "loader_plan_allocator_missing",
+                "allocator_handoff",
+                "allocator boundary",
+                "loader_substrate_plan:allocator_handoff",
             ),
-            encoding="utf-8",
-        )
-        expect_failure(
-            "kretprobe_duplicate_command",
-            tmp_root,
-            "makefile_exact:\tcd $(ZIGUX_ROOT) && $(ZIG) test zigux/tests/runtime_kretprobe_survey.zig\n",
-        )
-        makefile_path.write_text(original_makefile, encoding="utf-8")
+        ]
 
-        makefile_path.write_text(
-            original_makefile.replace(
-                "phase9-trace-events-survey:\n",
-                "phase9-trace-events-survey:\n\tcd $(ZIGUX_ROOT) && $(ZIG) test --dep runtime_trace_events_sample -Mroot=zigux/tests/runtime_trace_events_survey.zig -Mruntime_trace_events_sample=samples/zigux/runtime_trace_events.zig\n\nphase9-trace-events-survey:\n",
-                1,
-            ),
-            encoding="utf-8",
-        )
-        expect_failure(
-            "trace_events_duplicate_target",
-            tmp_root,
-            "makefile_exact:phase9-trace-events-survey:\n",
-        )
-        makefile_path.write_text(original_makefile, encoding="utf-8")
+        for rel_path, label, old, new, expected_failure in cases:
+            mutate_and_expect(tmp_root, rel_path, label, old, new, expected_failure)
 
         checker_path = tmp_root / MODULE_METADATA_CHECKER_PATH
         checker_path.unlink()
@@ -998,7 +753,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE9_VALIDATION_FLOW_SELF_TEST=pass")
-    print("PHASE9_VALIDATION_FLOW_SELF_TEST_CASE_COUNT=35")
+    print(f"PHASE9_VALIDATION_FLOW_SELF_TEST_CASE_COUNT={len(cases) + 1}")
     return 0
 
 
@@ -1031,11 +786,26 @@ def main() -> int:
         print("PHASE9_VALIDATION_FLOW_FAILURES_END")
         return 1
 
-    print("PHASE9_VALIDATION_FLOW=pass")
-    print(
-        "PHASE9_VALIDATION_FLOW_MARKER_COUNT="
-        f"{len(MAKEFILE_MARKERS) + len(MAKEFILE_EXACT_ONCE_MARKERS) + len(WORKFLOW_MARKERS) + len(SURVEY_MARKERS) + len(SURVEY_EXACT_ONCE_MARKERS) + len(MODULE_METADATA_SURVEY_MARKERS) + len(MODULE_METADATA_SURVEY_EXACT_ONCE_MARKERS) + len(TRACE_EVENTS_SURVEY_MARKERS) + len(TRACE_EVENTS_SURVEY_EXACT_ONCE_MARKERS) + len(KRETPROBE_SURVEY_MARKERS) + len(KRETPROBE_SURVEY_EXACT_ONCE_MARKERS) + len(PHASE9_BUILD_MARKERS) + len(LOADER_SUBSTRATE_PLAN_MARKERS)}"
+    marker_count = (
+        len(README_MARKERS)
+        + len(README_EXACT_ONCE_MARKERS)
+        + len(MAKEFILE_MARKERS)
+        + len(MAKEFILE_EXACT_ONCE_MARKERS)
+        + len(WORKFLOW_MARKERS)
+        + len(SURVEY_MARKERS)
+        + len(SURVEY_EXACT_ONCE_MARKERS)
+        + len(MODULE_METADATA_SURVEY_MARKERS)
+        + len(MODULE_METADATA_SURVEY_EXACT_ONCE_MARKERS)
+        + len(TRACE_EVENTS_SURVEY_MARKERS)
+        + len(TRACE_EVENTS_SURVEY_EXACT_ONCE_MARKERS)
+        + len(KRETPROBE_SURVEY_MARKERS)
+        + len(KRETPROBE_SURVEY_EXACT_ONCE_MARKERS)
+        + len(PHASE9_BUILD_MARKERS)
+        + len(LOADER_SUBSTRATE_PLAN_MARKERS)
     )
+
+    print("PHASE9_VALIDATION_FLOW=pass")
+    print(f"PHASE9_VALIDATION_FLOW_MARKER_COUNT={marker_count}")
     return 0
 
 
