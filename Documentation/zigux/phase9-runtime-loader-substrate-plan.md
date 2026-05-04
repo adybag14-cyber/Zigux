@@ -114,6 +114,8 @@ The shared request surface also stays parked beneath the nearby freeze-map bound
 - `python3 scripts/zigux/check-phase9-loader-substrate-plan.py`
 
 2. replay the focused surveyed-commit alignment check for the shared loader packet
+- `python3 scripts/zigux/check-phase9-runtime-loader-commit-alignment.py --self-test`
+- `python3 scripts/zigux/check-phase9-runtime-loader-commit-alignment.py`
 - `make -C zigux phase9-loader-commit-alignment-survey`
 
 3. replay the focused non-owner-boundary check for the shared loader packet so the trace-events scaffold and the Phase 2 plus Phase 3 non-owner references stay explicit
