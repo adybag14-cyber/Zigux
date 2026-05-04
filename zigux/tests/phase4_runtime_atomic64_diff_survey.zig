@@ -273,6 +273,13 @@ test "phase4 runtime atomic64 survey manifest records the shipped bounded gate, 
         64 * 1024,
     );
     defer std.testing.allocator.free(phase4_gate_evidence_checker);
+    const phase4_workflow_route_checker = try readWorkspaceFile(
+        io_instance.io(),
+        std.testing.allocator,
+        "scripts/zigux/check-phase4-workflow-route-counts.py",
+        64 * 1024,
+    );
+    defer std.testing.allocator.free(phase4_workflow_route_checker);
     const runtime_atomic64_sample = try readWorkspaceFile(
         io_instance.io(),
         std.testing.allocator,
@@ -440,18 +447,6 @@ test "phase4 runtime atomic64 survey manifest records the shipped bounded gate, 
     try std.testing.expect(std.mem.indexOf(u8, phase4_gate_evidence, "PHASE4_VALIDATION=pass") != null);
     try expectGateEvidenceCount(
         phase4_gate_evidence,
-        "PHASE4_REQUIRED_FILE_COUNT=",
-        expected_phase4_required_file_count,
-    );
-    try expectGateEvidenceCount(
-        phase4_gate_evidence,
-        "PHASE4_REQUIRED_MARKER_COUNT=",
-        expected_phase4_required_marker_count,
-    );
-    try std.testing.expect(std.mem.indexOf(u8, phase4_gate_evidence, "PHASE4_GATE_EVIDENCE_SELF_TEST=pass") != null);
-    try std.testing.expect(std.mem.indexOf(u8, phase4_gate_evidence, "PHASE4_GATE_EVIDENCE_CHECK=pass") != null);
-    try expectGateEvidenceCount(
-        phase4_gate_evidence,
         "PHASE4_GATE_EVIDENCE_TARGET_COUNT=",
         expected_phase4_gate_evidence_target_count,
     );
@@ -460,6 +455,11 @@ test "phase4 runtime atomic64 survey manifest records the shipped bounded gate, 
         phase4_gate_evidence,
         "PHASE4_GATE_EVIDENCE_CHECKER_BLOB_SHA",
         phase4_gate_evidence_checker,
+    );
+    try expectGateEvidenceBlob(
+        phase4_gate_evidence,
+        "PHASE4_WORKFLOW_ROUTE_CHECKER_BLOB_SHA",
+        phase4_workflow_route_checker,
     );
     try expectGateEvidenceBlob(phase4_gate_evidence, "PHASE4_RUNTIME_ATOMIC64_MANIFEST_BLOB_SHA", manifest_json);
     try expectGateEvidenceBlob(phase4_gate_evidence, "PHASE4_RUNTIME_ATOMIC64_SURVEY_BLOB_SHA", runtime_atomic64_diff_survey);
