@@ -123,3 +123,52 @@ test "phase12 virtio net syntax lab keeps alternate review variants reachable" {
         virtio_net.XdpConstraint.ready,
     );
 }
+
+test "phase12 virtio net syntax lab keeps fallback and base variants reachable" {
+    try std.testing.expectEqual(virtio_net.RecoveryAction.freeze, virtio_net.RecoveryAction.freeze);
+    try std.testing.expectEqual(virtio_net.RecoveryAction.restore, virtio_net.RecoveryAction.restore);
+    try std.testing.expectEqual(virtio_net.QueueFallbackReason.none, virtio_net.QueueFallbackReason.none);
+    try std.testing.expectEqual(
+        virtio_net.QueueFallbackReason.multiqueue_not_negotiated,
+        virtio_net.QueueFallbackReason.multiqueue_not_negotiated,
+    );
+    try std.testing.expectEqual(
+        virtio_net.QueueFallbackReason.missing_control_vq,
+        virtio_net.QueueFallbackReason.missing_control_vq,
+    );
+    try std.testing.expectEqual(
+        virtio_net.QueueFallbackReason.requested_queue_pairs_clamped,
+        virtio_net.QueueFallbackReason.requested_queue_pairs_clamped,
+    );
+    try std.testing.expectEqual(
+        virtio_net.RssSummary.not_requested,
+        virtio_net.RssSummary.not_requested,
+    );
+    try std.testing.expectEqual(
+        virtio_net.RssSummary.requested_but_unavailable,
+        virtio_net.RssSummary.requested_but_unavailable,
+    );
+    try std.testing.expectEqual(
+        virtio_net.RssSummary.hash_report_only,
+        virtio_net.RssSummary.hash_report_only,
+    );
+    try std.testing.expectEqual(
+        virtio_net.QueueResumeScope.data_queues_only,
+        virtio_net.QueueResumeScope.data_queues_only,
+    );
+    try std.testing.expectEqual(virtio_net.HeaderShape.legacy, virtio_net.HeaderShape.legacy);
+    try std.testing.expectEqual(
+        virtio_net.HeaderShape.hash_report,
+        virtio_net.HeaderShape.hash_report,
+    );
+    try std.testing.expectEqual(virtio_net.ReceiveBufferMode.small, virtio_net.ReceiveBufferMode.small);
+    try std.testing.expectEqual(virtio_net.BigPacketReason.none, virtio_net.BigPacketReason.none);
+    try std.testing.expectEqual(
+        virtio_net.XdpConstraint.not_requested,
+        virtio_net.XdpConstraint.not_requested,
+    );
+    try std.testing.expectEqual(
+        virtio_net.XdpConstraint.blocked_by_big_packets,
+        virtio_net.XdpConstraint.blocked_by_big_packets,
+    );
+}
