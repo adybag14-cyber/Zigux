@@ -10,7 +10,7 @@ This note records the bounded public-read fallback posture for the roadmap-backe
 - shared validator path: `python3 scripts/zigux/validate-phase12.py` and `make -C zigux phase12-validate`
 - release coordination note: `Documentation/zigux/phase12-release-readiness-survey.md`
 - release packet guard for this same split: `python3 scripts/zigux/check-phase12-release-readiness-packet.py`
-- last replayed public head for this exact coverage split: `bc2373f7deedf021c73beaae29555a9ac6b0536d`
+- last replayed public head for this exact coverage split: `0bd402fd6ca83ba2ace6b21e9e57459401b631cd`
 
 ## Coverage Split
 
