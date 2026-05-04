@@ -48,6 +48,7 @@ FILES = [
     "zigux/tests/phase10_virtio_mmio_queue_isolation.zig",
     "zigux/tests/phase10_virtio_mmio_survey.zig",
     "zigux/tests/phase10_virtio_mmio_manifest.json",
+    "zigux/tests/phase10_virtio_core_manifest.json",
     "zigux/tests/phase10_closure_manifest.json",
 ]
 
@@ -322,6 +323,24 @@ EXPECTED_FORBIDDEN_TRANSPORT_CLAIMS = [
     "probe_remove_lifecycle",
 ]
 
+CORE_EXPECTED_STATUSES = {
+    "phase10-build-gate": "starter_landed",
+    "phase10-closure-evidence-gate": "starter_landed",
+    "phase10-virtio-core-lab-starter": "starter_landed",
+    "phase10-virtio-core-lab-gate": "starter_landed",
+    "phase10-virtio-core-slice-note": "starter_landed",
+    "phase10-virtio-core-survey-gate": "starter_landed",
+    "phase10-virtio-core-survey-note": "starter_landed",
+    "phase10-config-change-bookkeeping-helper": "starter_landed",
+    "phase10-driver-binding-bookkeeping-helper": "starter_landed",
+    "phase10-driver-id-match-helper": "starter_landed",
+    "phase10-driver-remove-bookkeeping-helper": "starter_landed",
+    "phase10-config-generation-summary-helper": "starter_landed",
+    "phase10-config-delivery-disposition-helper": "starter_landed",
+    "phase10-config-driver-toggle-guard-helper": "starter_landed",
+    "phase10-core-probe-remove-lifecycle": "blocked_on_risky_transport",
+}
+
 RING_EXPECTED_STATUSES = {
     "phase10-virtio-ring-survey-gate": "starter_landed",
     "phase10-virtio-ring-survey-note": "starter_landed",
@@ -554,6 +573,16 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
 
     validate_manifest(
         missing,
+        "core_manifest",
+        load_manifest(root, "zigux/tests/phase10_virtio_core_manifest.json"),
+        lane_key="P10-L01",
+        anchor="drivers/virtio/virtio.c",
+        expected_statuses=CORE_EXPECTED_STATUSES,
+        minimum_gap_count=15,
+        minimum_starter_count=14,
+    )
+    validate_manifest(
+        missing,
         "ring_manifest",
         load_manifest(root, "zigux/tests/phase10_virtio_ring_manifest.json"),
         lane_key="P10-L07",
@@ -666,6 +695,12 @@ def write_fixture_tree(root: Path) -> None:
     }
 
     manifests = {
+        "zigux/tests/phase10_virtio_core_manifest.json": manifest_template(
+            "P10-L01",
+            "drivers/virtio/virtio.c",
+            CORE_EXPECTED_STATUSES,
+            15,
+        ),
         "zigux/tests/phase10_virtio_ring_manifest.json": manifest_template(
             "P10-L07",
             "drivers/virtio/virtio_ring.c",
@@ -728,6 +763,32 @@ def run_self_test() -> int:
                 f"files={','.join(missing_files) if missing_files else 'none'}:"
                 f"markers={','.join(missing_markers) if missing_markers else 'none'}"
             )
+
+        core_manifest_path = tmp_root / "zigux/tests/phase10_virtio_core_manifest.json"
+        core_manifest = json.loads(core_manifest_path.read_text(encoding="utf-8"))
+        core_manifest["lane_key"] = "P10-L05"
+        core_manifest_path.write_text(json.dumps(core_manifest, indent=2) + "\n", encoding="utf-8")
+        expect_missing_marker("core_lane_key_guard", tmp_root, "core_manifest:lane_key=P10-L01")
+        write_fixture_tree(tmp_root)
+
+        core_manifest = json.loads(core_manifest_path.read_text(encoding="utf-8"))
+        core_manifest["roadmap_destinations"] = ["drivers/virtio/*.zig", "zigux/helpers/"]
+        core_manifest_path.write_text(json.dumps(core_manifest, indent=2) + "\n", encoding="utf-8")
+        expect_missing_marker("core_destinations_guard", tmp_root, "core_manifest:roadmap_destinations")
+        write_fixture_tree(tmp_root)
+
+        core_manifest = json.loads(core_manifest_path.read_text(encoding="utf-8"))
+        for gap in core_manifest["gaps"]:
+            if gap["id"] == "phase10-core-probe-remove-lifecycle":
+                gap["status"] = "ready_next"
+                break
+        core_manifest_path.write_text(json.dumps(core_manifest, indent=2) + "\n", encoding="utf-8")
+        expect_missing_marker(
+            "core_blocker_guard",
+            tmp_root,
+            "core_manifest:gap_status:phase10-core-probe-remove-lifecycle=ready_next",
+        )
+        write_fixture_tree(tmp_root)
 
         ring_manifest_path = tmp_root / "zigux/tests/phase10_virtio_ring_manifest.json"
         ring_manifest = json.loads(ring_manifest_path.read_text(encoding="utf-8"))
@@ -952,7 +1013,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE10_VALIDATOR_SELF_TEST=pass")
-    print("PHASE10_VALIDATOR_SELF_TEST_CASE_COUNT=19")
+    print("PHASE10_VALIDATOR_SELF_TEST_CASE_COUNT=22")
     return 0
 
 
