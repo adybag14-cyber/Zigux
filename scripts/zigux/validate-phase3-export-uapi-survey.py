@@ -174,13 +174,22 @@ REQUIRED_EXPORT_UAPI_LAYOUT_BUILD_SNIPPETS = (
 REQUIRED_EXPORT_UAPI_LAYOUT_TEST_SNIPPETS = (
     'test "phase3 export shim and uapi keep canonical boundary layout" {',
     'try std.testing.expectEqual(@as(usize, 8), @sizeOf(abi.BoundaryHeader));',
-    'try std.testing.expectEqual(@as(usize, 8), @sizeOf(abi.ExportStatus));',
+    'try std.testing.expectEqual(@as(usize, 0), @offsetOf(abi.BoundaryHeader, "size"));',
     'try std.testing.expectEqual(@as(usize, 4), @offsetOf(abi.BoundaryHeader, "abi_version"));',
+    'try std.testing.expectEqual(@as(usize, 6), @offsetOf(abi.BoundaryHeader, "flags"));',
+    'try std.testing.expectEqual(@as(usize, 8), @sizeOf(abi.ExportStatus));',
+    'try std.testing.expectEqual(@as(usize, 0), @offsetOf(abi.ExportStatus, "code"));',
+    'try std.testing.expectEqual(@as(usize, 4), @offsetOf(abi.ExportStatus, "facility"));',
     'try std.testing.expectEqual(@as(usize, 6), @offsetOf(abi.ExportStatus, "flags"));',
     'try std.testing.expectEqual(@sizeOf(abi.BoundaryHeader), @as(usize, header.size));',
     'try std.testing.expectEqual(header, uapi_header);',
     'try std.testing.expect(export_shim.isCanonicalHeader(header));',
     'try std.testing.expect(uapi_version.isCanonical(uapi_header));',
+    'try std.testing.expect(export_shim.isCompatibleHeader(future_compatible));',
+    'try std.testing.expect(uapi_version.isCompatible(future_compatible));',
+    'try std.testing.expectEqual(header, export_shim.canonicalizeHeader(future_compatible).?);',
+    'try std.testing.expect(export_shim.canonicalizeHeader(mismatched_version) == null);',
+    'try std.testing.expect(uapi_version.canonicalizeHeader(mismatched_version) == null);',
 )
 
 REQUIRED_VALIDATE_PHASE3_CORE_SNIPPETS = (
@@ -861,6 +870,36 @@ def run_self_test() -> int:
             in issues
         )
         validate_phase3_core_path.write_text(original_validate_phase3_core, encoding="utf-8")
+
+        survey_path.write_text(
+            "\n".join(
+                (
+                    *REQUIRED_SURVEY_MARKERS,
+                    f"PHASE3_SURVEYED_COMMIT={head}",
+                    *_blob_marker_lines(),
+                    *REQUIRED_SURVEY_SNIPPETS,
+                )
+            )
+            + "\n",
+            encoding="utf-8",
+        )
+        _replace_blob_markers_with_head(root, survey_path)
+        layout_test_path = root / EXPORT_UAPI_LAYOUT_TEST_REL
+        original_layout_test = layout_test_path.read_text(encoding="utf-8")
+        layout_test_path.write_text(
+            original_layout_test.replace(
+                'try std.testing.expectEqual(@as(usize, 4), @offsetOf(abi.ExportStatus, "facility"));\n',
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        issues = validate(root)
+        assert (
+            'missing_export_uapi_layout_test_snippet:try std.testing.expectEqual(@as(usize, 4), @offsetOf(abi.ExportStatus, "facility"));'
+            in issues
+        )
+        layout_test_path.write_text(original_layout_test, encoding="utf-8")
 
         survey_path.write_text(
             "\n".join(
