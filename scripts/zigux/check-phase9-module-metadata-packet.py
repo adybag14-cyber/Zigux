@@ -78,6 +78,8 @@ SURVEY_REQUIRED_MARKERS = [
 MODULE_METADATA_SURVEY_EXACT_ONCE_MARKERS = [
     "- `python3 scripts/zigux/check-phase9-module-metadata-packet.py --self-test`\n",
     "- `python3 scripts/zigux/check-phase9-module-metadata-packet.py`\n",
+    "- `zig build test --build-file zigux/tests/phase9_build.zig --summary all`\n",
+    "- `zig test zigux/tests/runtime_module_metadata_survey.zig`\n",
     "- `make -C zigux phase9-module-metadata-survey`\n",
 ]
 
@@ -565,7 +567,7 @@ def write_fixture_tree(root: Path) -> None:
         "}",
         "",
     ]), encoding='utf-8')
-    (root / KRETPROBE_LOADER_PATH).write_text("\n".join([
+    (root / KRETPROBE_LOADER_PATH).writeText("\n".join([
         "pub const RuntimeKretprobeLoadPlan = struct {};",
         "pub fn toSharedRequest(plan: RuntimeKretprobeLoadPlan) runtime_loader.RuntimeLoadRequest {",
         '    _ = "register_kretprobe";',
@@ -703,6 +705,12 @@ def run_self_test() -> int:
         survey_path.write_text(original_survey.replace('- `make -C zigux phase9-module-metadata-survey`\n', '- `make -C zigux phase9-module-metadata-survey`\n- `make -C zigux phase9-module-metadata-survey`\n', 1), encoding='utf-8')
         expect_missing_marker('survey_duplicate_make_target_gate', tmp_root, 'survey_exact:- `make -C zigux phase9-module-metadata-survey`\n')
         survey_path.write_text(original_survey, encoding='utf-8')
+        survey_path.write_text(original_survey.replace('- `zig build test --build-file zigux/tests/phase9_build.zig --summary all`\n', '- `zig build test --build-file zigux/tests/phase9_build.zig --summary all`\n- `zig build test --build-file zigux/tests/phase9_build.zig --summary all`\n', 1), encoding='utf-8')
+        expect_missing_marker('survey_duplicate_shared_build_gate', tmp_root, 'survey_exact:- `zig build test --build-file zigux/tests/phase9_build.zig --summary all`\n')
+        survey_path.write_text(original_survey, encoding='utf-8')
+        survey_path.write_text(original_survey.replace('- `zig test zigux/tests/runtime_module_metadata_survey.zig`\n', '- `zig test zigux/tests/runtime_module_metadata_survey.zig`\n- `zig test zigux/tests/runtime_module_metadata_survey.zig`\n', 1), encoding='utf-8')
+        expect_missing_marker('survey_duplicate_direct_zig_test_gate', tmp_root, 'survey_exact:- `zig test zigux/tests/runtime_module_metadata_survey.zig`\n')
+        survey_path.write_text(original_survey, encoding='utf-8')
         tests_readme_path = tmp_root / TESTS_README_PATH
         original_tests_readme = tests_readme_path.read_text(encoding='utf-8')
         tests_readme_path.write_text(original_tests_readme.replace('keep the dedicated Phase 9 module-metadata packet explicit beside the loader-gap packet', 'keep the dedicated Phase 9 packet explicit beside the loader-gap packet', 1), encoding='utf-8')
@@ -715,7 +723,7 @@ def run_self_test() -> int:
         expect_missing_marker('tests_readme_depmod_parity_warning', tmp_root, 'tests_readme:absent depmod-facing metadata without implying `.modinfo`, `MODULE_ALIAS()`, or `scripts/depmod.sh` parity')
         tests_readme_path.write_text(original_tests_readme, encoding='utf-8')
     print('PHASE9_MODULE_METADATA_PACKET_SELF_TEST=pass')
-    print('PHASE9_MODULE_METADATA_PACKET_SELF_TEST_CASE_COUNT=22')
+    print('PHASE9_MODULE_METADATA_PACKET_SELF_TEST_CASE_COUNT=24')
     return 0
 
 def main() -> int:
