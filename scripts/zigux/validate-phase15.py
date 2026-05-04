@@ -100,6 +100,8 @@ REVIEW_CHECKLIST_MARKERS = [
     "if the change touches the shared Phase 15 maintenance-mode handoff packet",
     "Documentation/zigux/phase15-handoff-next-steps-survey.md",
     "zigux/tests/phase15_docs_root_reviewability.zig",
+    "scripts/zigux/check-phase15-review-process-handoff.py",
+    "focused handoff-checker route",
     "named reopen triggers",
     "phase15-deep-core-status-change-blocker",
     "if the change touches the shared Phase 15 Architecture Council review-process packet",
