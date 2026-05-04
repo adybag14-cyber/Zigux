@@ -296,6 +296,21 @@ def run_self_test() -> int:
 
         makefile_path.write_text(
             original_makefile.replace(
+                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase7-build-inventory.py\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "build_inventory_live_hook",
+            tmp_root,
+            "zigux/Makefile: python3 scripts/zigux/check-phase7-build-inventory.py",
+        )
+        makefile_path.write_text(original_makefile, encoding="utf-8")
+
+        makefile_path.write_text(
+            original_makefile.replace(
                 "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase7-make-wrapper.py --self-test\n",
                 "",
                 1,
@@ -662,7 +677,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE7_VALIDATOR_SELF_TEST=pass")
-    print("PHASE7_VALIDATOR_SELF_TEST_CASE_COUNT=25")
+    print("PHASE7_VALIDATOR_SELF_TEST_CASE_COUNT=26")
     return 0
 
 def main() -> int:
