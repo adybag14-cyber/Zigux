@@ -172,6 +172,8 @@ required_doc_readme_markers = [
     "`python3 scripts/zigux/validate-phase7.py --self-test`",
     "`python3 scripts/zigux/check-phase7-build-inventory.py --self-test`",
     "`python3 scripts/zigux/check-phase7-build-inventory.py`",
+    "`python3 scripts/zigux/check-phase7-make-wrapper.py --self-test`",
+    "`python3 scripts/zigux/check-phase7-make-wrapper.py`",
     "`python3 scripts/zigux/check-phase7-argv-split-packet.py --self-test`",
     "`python3 scripts/zigux/check-phase7-argv-split-packet.py`",
     "`python3 scripts/zigux/check-phase7-argv-split-parity.py --self-test`",
@@ -472,6 +474,21 @@ def run_self_test() -> int:
 
         doc_readme_path.write_text(
             original_doc_readme.replace(
+                "`python3 scripts/zigux/check-phase7-make-wrapper.py --self-test`",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "make_wrapper_doc_readme_marker",
+            tmp_root,
+            "Documentation/zigux/README.md: `python3 scripts/zigux/check-phase7-make-wrapper.py --self-test`",
+        )
+        doc_readme_path.write_text(original_doc_readme, encoding="utf-8")
+
+        doc_readme_path.write_text(
+            original_doc_readme.replace(
                 "`python3 scripts/zigux/check-phase7-argv-split-packet.py --self-test`",
                 "`python3 scripts/zigux/check-phase7-argv-split-packet.py --self-test`, `python3 scripts/zigux/check-phase7-argv-split-packet.py --self-test`",
                 1,
@@ -727,7 +744,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE7_VALIDATOR_SELF_TEST=pass")
-    print("PHASE7_VALIDATOR_SELF_TEST_CASE_COUNT=28")
+    print("PHASE7_VALIDATOR_SELF_TEST_CASE_COUNT=29")
     return 0
 
 def main() -> int:
