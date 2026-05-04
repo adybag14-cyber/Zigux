@@ -79,6 +79,7 @@ EXPECTED_MAKEFILE_KCONFIG_ROUTE_COUNTS = {
 
 KCONFIG_CHECKER_MARKERS = [
     "parser.add_argument('--self-test'",
+    "assert total_self_test_cases == 6",
     "print('KCONFIG_BRIDGE_SELF_TEST=pass')",
     "print(f'KCONFIG_BRIDGE_SELF_TEST_CASE_COUNT={total_self_test_cases}')",
     "print('KCONFIG_BRIDGE_DETERMINISM=pass')",
@@ -200,8 +201,8 @@ def validate_cases(payload: dict[str, object]) -> list[str]:
     if syncconfig.get("nosilentupdate") != "1":
         issues.append("cases:syncconfig:nosilentupdate=1")
 
-    allyesconfig = by_name.get("allyesconfig", {})
-    if allyesconfig.get("allconfig_env") != "arch/riscv/configs/allyes-seed.config":
+    allyyesconfig = by_name.get("allyesconfig", {})
+    if allyyesconfig.get("allconfig_env") != "arch/riscv/configs/allyes-seed.config":
         issues.append("cases:allyesconfig:allconfig_env=arch/riscv/configs/allyes-seed.config")
 
     allmodconfig = by_name.get("allmodconfig", {})
