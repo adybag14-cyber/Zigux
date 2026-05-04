@@ -127,6 +127,8 @@ If multiple triggers are cited together, each trigger's minimum evidence must st
 
 - current lane posture: `maintenance_mode`
 - replay before trusting this parked handoff:
+  - `python3 scripts/zigux/validate-phase15.py`
+  - `make -C zigux phase15-validate`
   - `zig build test --build-file zigux/tests/phase15_build.zig`
   - `make -C zigux phase15`
 - keep `scripts/zigux/README.md`, `scripts/zigux/check-phase15-review-process-handoff.py`, `scripts/zigux/validate-phase15.py`, and `zigux/tests/README.md` aligned with the same parked governance bundle so the scripts-root validator path, dedicated handoff-checker route, and tests-root guidance path do not drift away from the Architecture Council handoff while this lane remains parked
@@ -173,10 +175,14 @@ This slice does not claim:
 
 ## Gates
 
-1. run the dedicated Phase 15 build
+1. run the shared validator-first gate
+- `python3 scripts/zigux/validate-phase15.py`
+- `make -C zigux phase15-validate`
+
+2. run the dedicated Phase 15 build
 - `zig build test --build-file zigux/tests/phase15_build.zig`
 
-2. run the convenience target
+3. run the convenience target
 - `make -C zigux phase15`
 
 ## Next bounded step
