@@ -215,6 +215,34 @@ pub const perf_cases = [_]PerfCase{
     .{ .label = "imap-1KB", .size = perf_payload_cases[1].size, .reps = perf_payload_cases[1].reps, .max_encode_slowdown_pct = 190, .max_decode_slowdown_pct = 320, .padding = false, .variant = .imap, .reference_kind = .imap_no_pad },
 };
 
+pub fn expectPerfCases() !void {
+    try std.testing.expectEqual(@as(usize, 10), perf_cases.len);
+
+    const expected = [_]PerfCase{
+        .{ .label = "std-64B", .size = 64, .reps = 20_000, .max_encode_slowdown_pct = 190, .max_decode_slowdown_pct = 320, .padding = true, .variant = .std, .reference_kind = .standard },
+        .{ .label = "std-1KB", .size = 1024, .reps = 4_000, .max_encode_slowdown_pct = 190, .max_decode_slowdown_pct = 320, .padding = true, .variant = .std, .reference_kind = .standard },
+        .{ .label = "urlsafe-padded-64B", .size = 64, .reps = 20_000, .max_encode_slowdown_pct = 190, .max_decode_slowdown_pct = 320, .padding = true, .variant = .urlsafe, .reference_kind = .url_safe_padded },
+        .{ .label = "urlsafe-padded-1KB", .size = 1024, .reps = 4_000, .max_encode_slowdown_pct = 190, .max_decode_slowdown_pct = 320, .padding = true, .variant = .urlsafe, .reference_kind = .url_safe_padded },
+        .{ .label = "urlsafe-64B", .size = 64, .reps = 20_000, .max_encode_slowdown_pct = 190, .max_decode_slowdown_pct = 320, .padding = false, .variant = .urlsafe, .reference_kind = .url_safe_no_pad },
+        .{ .label = "urlsafe-1KB", .size = 1024, .reps = 4_000, .max_encode_slowdown_pct = 190, .max_decode_slowdown_pct = 320, .padding = false, .variant = .urlsafe, .reference_kind = .url_safe_no_pad },
+        .{ .label = "imap-padded-64B", .size = 64, .reps = 20_000, .max_encode_slowdown_pct = 190, .max_decode_slowdown_pct = 320, .padding = true, .variant = .imap, .reference_kind = .imap_padded },
+        .{ .label = "imap-padded-1KB", .size = 1024, .reps = 4_000, .max_encode_slowdown_pct = 190, .max_decode_slowdown_pct = 320, .padding = true, .variant = .imap, .reference_kind = .imap_padded },
+        .{ .label = "imap-64B", .size = 64, .reps = 20_000, .max_encode_slowdown_pct = 190, .max_decode_slowdown_pct = 320, .padding = false, .variant = .imap, .reference_kind = .imap_no_pad },
+        .{ .label = "imap-1KB", .size = 1024, .reps = 4_000, .max_encode_slowdown_pct = 190, .max_decode_slowdown_pct = 320, .padding = false, .variant = .imap, .reference_kind = .imap_no_pad },
+    };
+
+    for (expected, perf_cases) |expected_case, actual_case| {
+        try std.testing.expectEqualStrings(expected_case.label, actual_case.label);
+        try std.testing.expectEqual(expected_case.size, actual_case.size);
+        try std.testing.expectEqual(expected_case.reps, actual_case.reps);
+        try std.testing.expectEqual(expected_case.max_encode_slowdown_pct, actual_case.max_encode_slowdown_pct);
+        try std.testing.expectEqual(expected_case.max_decode_slowdown_pct, actual_case.max_decode_slowdown_pct);
+        try std.testing.expectEqual(expected_case.padding, actual_case.padding);
+        try std.testing.expect(expected_case.variant == actual_case.variant);
+        try std.testing.expect(expected_case.reference_kind == actual_case.reference_kind);
+    }
+}
+
 pub fn fillPerfPayload(buffer: []u8) void {
     var prng = std.Random.DefaultPrng.init(0x5a17_2026_0640_0001);
     prng.random().bytes(buffer);
