@@ -1,5 +1,5 @@
 const std = @import("std");
-const registration_blocker = @import("virtio_input_registration_blocker");
+const registration_blocker = @import("virtio_input_registration_blocker.zig");
 
 pub const queue_capacity: usize = 2;
 pub const max_descriptor_count: u16 = 1024;
@@ -541,14 +541,17 @@ pub const VirtioInputLab = struct {
     }
 
     pub fn registrationBlockerSummary(self: *const Self) !registration_blocker.RegistrationBlockerSummary {
-        const registration_summary = try self.registrationPreflightSummary();
-        const queue_summary = try self.queueCallbackPreflightSummary();
-        const probe_summary = try self.probePreflightSummary();
+        const registration_ready = self.bestEffortRegistrationReady();
+        const event_buffers_ready = self.queued_event_buffer_count != 0;
+        const status_queue_configured = self.status_descriptor_count != 0;
+        const event_queue_configured = self.event_descriptor_count != 0;
+        const queue_ready = registration_ready and event_buffers_ready and status_queue_configured and self.ready;
+        const probe_ready = registration_ready and event_queue_configured and status_queue_configured and event_buffers_ready and self.ready;
 
         return registration_blocker.summarize(.{
-            .registration_preflight_ready = registration_summary.ready_for_registration,
-            .queue_callback_ready = queue_summary.ready_for_queue_callback,
-            .probe_handoff_ready = probe_summary.ready_for_probe_handoff,
+            .registration_preflight_ready = registration_ready,
+            .queue_callback_ready = queue_ready,
+            .probe_handoff_ready = probe_ready,
         });
     }
 
@@ -606,6 +609,20 @@ pub const VirtioInputLab = struct {
             .queued_event_buffer_count = self.queued_event_buffer_count,
             .ready = self.ready,
         };
+    }
+
+    fn bestEffortRegistrationReady(self: *const Self) bool {
+        const capability_summary = self.capabilitySetupSummary() catch return false;
+        const identity_ready = self.name_len != 0 and self.serial_len != 0 and self.phys_len != 0;
+        const multitouch_slot_intent = self.findAbsInfoIndex(abs_mt_slot) != null;
+
+        var multitouch_slot_requirement_ready = !self.multitouch_enabled;
+        if (multitouch_slot_intent) {
+            const slot_summary = self.multitouchSlotPlanSummary() catch return false;
+            multitouch_slot_requirement_ready = slot_summary.initializes_slots;
+        }
+
+        return identity_ready and capability_summary.staged_capability_count != 0 and multitouch_slot_requirement_ready;
     }
 
     fn validateDescriptorCount(descriptor_count: u16) !void {
