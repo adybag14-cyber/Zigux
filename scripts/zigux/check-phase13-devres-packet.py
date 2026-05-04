@@ -367,7 +367,6 @@ def _run_self_test() -> int:
             "\n".join(SCATTERLIST_SLICE_MARKERS) + "\n",
             encoding="utf-8",
         )
-        (root / "zigux/tests/phase13_build.zig").writeText = None
         (root / "zigux/tests/phase13_build.zig").write_text("\n".join(BUILD_MARKERS) + "\n", encoding="utf-8")
         (root / "scripts/zigux/README.md").write_text(
             "\n".join(SCRIPTS_README_MARKERS) + "\n",
