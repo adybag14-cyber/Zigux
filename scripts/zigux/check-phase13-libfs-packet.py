@@ -23,29 +23,33 @@ REQUIRED_FILES = [
 ]
 
 LIBFS_MARKERS = [
-    'provides_directory_cursor_preconditions = true',
-    'provides_directory_cursor_reposition_planning = true',
-    'provides_directory_close_planning = true',
-    'provides_transaction_read_release_planning = true',
-    'provides_open_private_data_planning = true',
-    'pub fn dcacheDirClosePlan(has_private_data: bool) DirectoryClosePlan',
-    'pub fn simpleOpenPlan(inode_has_private_data: bool) SimpleOpenPlan',
+    "provides_directory_cursor_preconditions = true",
+    "provides_directory_cursor_reposition_planning = true",
+    "provides_directory_close_planning = true",
+    "provides_transaction_read_release_planning = true",
+    "provides_open_private_data_planning = true",
+    "provides_addressability_planning = true",
+    "pub fn dcacheDirClosePlan(has_private_data: bool) DirectoryClosePlan",
+    "pub fn simpleOpenPlan(inode_has_private_data: bool) SimpleOpenPlan",
+    "pub fn genericCheckAddressablePlan(blocksize_bits: u6, num_blocks: u64, limits: AddressabilityLimits) AddressabilityPlan",
 ]
 
 TEST_MARKERS = [
     'test "phase13 libfs close planning keeps release bookkeeping explicit without claiming teardown"',
     'test "phase13 libfs transaction read planning stays pure around private-data presence"',
     'test "phase13 libfs simple open planning keeps inode-private handoff explicit"',
+    'test "phase13 libfs generic_check_addressable planning keeps empty and valid filesystems explicit"',
+    'test "phase13 libfs generic_check_addressable planning rejects invalid bits and tiny synthetic limits"',
 ]
 
 REVIEWABILITY_MARKERS = [
     'expected_surveyed_commit = "',
-    'phase13-libfs-addressability-helper',
-    'generic_check_addressable()',
-    'phase13-libfs-dcache-dir-close-release-bookkeeping',
-    'phase13-libfs-simple-open-private-data-planning',
-    'phase13-libfs-dcache-cursor-helpers',
-    'phase13-libfs-inode-and-pseudofs-lifecycle',
+    "phase13-libfs-addressability-helper",
+    "generic_check_addressable()",
+    "phase13-libfs-dcache-dir-close-release-bookkeeping",
+    "phase13-libfs-simple-open-private-data-planning",
+    "phase13-libfs-dcache-cursor-helpers",
+    "phase13-libfs-inode-and-pseudofs-lifecycle",
 ]
 
 SURVEY_MARKERS = [
@@ -55,7 +59,7 @@ SURVEY_MARKERS = [
     "landed `phase13-make-target`",
     "landed `phase13-libfs-starter`",
     "landed `phase13-libfs-tests`",
-    "ready_next `phase13-libfs-addressability-helper`",
+    "landed `phase13-libfs-addressability-helper`",
     "generic_check_addressable()",
     "phase13-libfs-dcache-dir-close-release-bookkeeping",
     "phase13-libfs-simple-open-private-data-planning",
@@ -76,7 +80,7 @@ TRACEABILITY_MARKERS = [
     "landed `phase13-make-target`",
     "landed `phase13-libfs-starter`",
     "landed `phase13-libfs-tests`",
-    "ready_next `phase13-libfs-addressability-helper`",
+    "landed `phase13-libfs-addressability-helper`",
     "generic_check_addressable()",
     "phase13-libfs-dcache-dir-close-release-bookkeeping",
     "phase13-libfs-simple-open-private-data-planning",
@@ -90,6 +94,7 @@ MAKE_MARKERS = [
     "scripts/zigux/check-phase13-libfs-packet.py",
     "scripts/zigux/validate-phase13-release.py",
 ]
+
 
 def _read(path: Path) -> str:
     return path.read_text(encoding="utf-8")
@@ -165,7 +170,7 @@ def _check_repo(root: Path) -> list[str]:
         for gap in gaps
         if isinstance(gap, dict) and gap.get("status") == "ready_next"
     }
-    if ready_next_ids != {"phase13-libfs-addressability-helper"}:
+    if ready_next_ids:
         missing.append("manifest:ready_next_gap_set")
 
     landed_ids = {
@@ -180,6 +185,7 @@ def _check_repo(root: Path) -> list[str]:
         "phase13-libfs-tests",
         "phase13-libfs-dcache-dir-close-release-bookkeeping",
         "phase13-libfs-simple-open-private-data-planning",
+        "phase13-libfs-addressability-helper",
     ):
         if expected not in landed_ids:
             missing.append(f"manifest:missing_landed_gap:{expected}")
@@ -199,23 +205,23 @@ def _run_self_test() -> int:
             (root / rel).mkdir(parents=True, exist_ok=True)
 
         surveyed_commit = "949994db4046ec70abf044d1b2ea874fde9bc4a6"
-        (root / "fs/libfs.zig").write_text("\n".join(LIBFS_MARKERS) + "\n", encoding="utf-8")
-        (root / "zigux/tests/phase13_libfs.zig").write_text("\n".join(TEST_MARKERS) + "\n", encoding="utf-8")
-        (root / "zigux/tests/phase13_libfs_reviewability.zig").write_text(
+        (root / "fs/libfs.zig").writeText("\n".join(LIBFS_MARKERS) + "\n", encoding="utf-8")
+        (root / "zigux/tests/phase13_libfs.zig").writeText("\n".join(TEST_MARKERS) + "\n", encoding="utf-8")
+        (root / "zigux/tests/phase13_libfs_reviewability.zig").writeText(
             'expected_surveyed_commit = "' + surveyed_commit + '"\n' + "\n".join(REVIEWABILITY_MARKERS[1:]) + "\n",
             encoding="utf-8",
         )
-        (root / "Documentation/zigux/phase13-libfs-survey.md").write_text(
+        (root / "Documentation/zigux/phase13-libfs-survey.md").writeText(
             f"PHASE13_SURVEYED_COMMIT={surveyed_commit}\n" + "\n".join(SURVEY_MARKERS) + "\n",
             encoding="utf-8",
         )
-        (root / "Documentation/zigux/phase13-libfs-slice.md").write_text("\n".join(SLICE_MARKERS) + "\n", encoding="utf-8")
-        (root / "Documentation/zigux/phase13-roadmap-traceability.md").write_text(
+        (root / "Documentation/zigux/phase13-libfs-slice.md").writeText("\n".join(SLICE_MARKERS) + "\n", encoding="utf-8")
+        (root / "Documentation/zigux/phase13-roadmap-traceability.md").writeText(
             f"manifest `surveyed_commit`: `{surveyed_commit}`\n" + "\n".join(TRACEABILITY_MARKERS) + "\n",
             encoding="utf-8",
         )
-        (root / "zigux/Makefile").write_text("\n".join(MAKE_MARKERS) + "\n", encoding="utf-8")
-        (root / "zigux/tests/phase13_build.zig").write_text("placeholder\n", encoding="utf-8")
+        (root / "zigux/Makefile").writeText("\n".join(MAKE_MARKERS) + "\n", encoding="utf-8")
+        (root / "zigux/tests/phase13_build.zig").writeText("placeholder\n", encoding="utf-8")
         manifest = {
             "lane_key": "P13-L04",
             "phase": "Phase 13",
@@ -228,12 +234,12 @@ def _run_self_test() -> int:
                 {"id": "phase13-libfs-tests", "status": "starter_landed"},
                 {"id": "phase13-libfs-dcache-dir-close-release-bookkeeping", "status": "starter_landed"},
                 {"id": "phase13-libfs-simple-open-private-data-planning", "status": "starter_landed"},
-                {"id": "phase13-libfs-addressability-helper", "status": "ready_next"},
+                {"id": "phase13-libfs-addressability-helper", "status": "starter_landed"},
                 {"id": "phase13-libfs-dcache-cursor-helpers", "status": "blocked_on_vfs_state"},
                 {"id": "phase13-libfs-inode-and-pseudofs-lifecycle", "status": "blocked_on_vfs_state"},
             ],
         }
-        (root / "zigux/tests/phase13_libfs_manifest.json").write_text(
+        (root / "zigux/tests/phase13_libfs_manifest.json").writeText(
             json.dumps(manifest, indent=2) + "\n",
             encoding="utf-8",
         )
