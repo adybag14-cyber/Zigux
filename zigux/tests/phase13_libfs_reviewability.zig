@@ -117,6 +117,8 @@ test "phase13 libfs manifest records the landed addressability slice and the rem
     var starter_landed_count: usize = 0;
     var ready_next_count: usize = 0;
     var blocked_count: usize = 0;
+    var helper_surface_count: usize = 0;
+    var stale_wrapper_kind_count: usize = 0;
     var saw_close_release = false;
     var saw_simple_open = false;
     var saw_addressability_helper = false;
@@ -137,15 +139,23 @@ test "phase13 libfs manifest records the landed addressability slice and the rem
             blocked_count += 1;
         }
 
+        if (std.mem.eql(u8, gap.kind, "filesystem_helper_surface")) {
+            helper_surface_count += 1;
+        } else if (std.mem.eql(u8, gap.kind, "filesystem_helper_wrapper")) {
+            stale_wrapper_kind_count += 1;
+        }
+
         if (std.mem.eql(u8, gap.id, "phase13-libfs-dcache-dir-close-release-bookkeeping")) {
             saw_close_release = true;
             try std.testing.expectEqualStrings("starter_landed", gap.status);
+            try std.testing.expectEqualStrings("filesystem_helper_surface", gap.kind);
             try std.testing.expectEqualStrings("fs/libfs.zig", gap.zigux_destination);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "dcache_dir_close") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "dput(file->private_data)") != null);
         }
         if (std.mem.eql(u8, gap.id, "phase13-libfs-dcache-cursor-reposition-bookkeeping")) {
             try std.testing.expectEqualStrings("starter_landed", gap.status);
+            try std.testing.expectEqualStrings("filesystem_helper_surface", gap.kind);
             try std.testing.expectEqualStrings("fs/libfs.zig", gap.zigux_destination);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "exported descriptor") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "cursor-reposition planning") != null);
@@ -153,6 +163,7 @@ test "phase13 libfs manifest records the landed addressability slice and the rem
         if (std.mem.eql(u8, gap.id, "phase13-libfs-simple-open-private-data-planning")) {
             saw_simple_open = true;
             try std.testing.expectEqualStrings("starter_landed", gap.status);
+            try std.testing.expectEqualStrings("filesystem_helper_surface", gap.kind);
             try std.testing.expectEqualStrings("fs/libfs.zig", gap.zigux_destination);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "simple_open()") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "inode->i_private") != null);
@@ -160,6 +171,7 @@ test "phase13 libfs manifest records the landed addressability slice and the rem
         if (std.mem.eql(u8, gap.id, "phase13-libfs-addressability-helper")) {
             saw_addressability_helper = true;
             try std.testing.expectEqualStrings("starter_landed", gap.status);
+            try std.testing.expectEqualStrings("filesystem_helper_surface", gap.kind);
             try std.testing.expectEqualStrings("fs/libfs.zig", gap.zigux_destination);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "generic_check_addressable()") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "block-size") != null);
@@ -167,10 +179,12 @@ test "phase13 libfs manifest records the landed addressability slice and the rem
         if (std.mem.eql(u8, gap.id, "phase13-libfs-dcache-cursor-helpers")) {
             saw_blocked_cursor_helpers = true;
             try std.testing.expectEqualStrings("blocked_on_vfs_state", gap.status);
+            try std.testing.expectEqualStrings("filesystem_helper_surface", gap.kind);
         }
         if (std.mem.eql(u8, gap.id, "phase13-libfs-inode-and-pseudofs-lifecycle")) {
             saw_blocked_inode_lifecycle = true;
             try std.testing.expectEqualStrings("blocked_on_vfs_state", gap.status);
+            try std.testing.expectEqualStrings("filesystem_helper_surface", gap.kind);
         }
 
         for (manifest.gaps[i + 1 ..]) |other| {
@@ -181,6 +195,8 @@ test "phase13 libfs manifest records the landed addressability slice and the rem
     try std.testing.expectEqual(@as(usize, 16), starter_landed_count);
     try std.testing.expectEqual(@as(usize, 0), ready_next_count);
     try std.testing.expectEqual(@as(usize, 2), blocked_count);
+    try std.testing.expectEqual(@as(usize, 12), helper_surface_count);
+    try std.testing.expectEqual(@as(usize, 0), stale_wrapper_kind_count);
     try std.testing.expect(saw_close_release);
     try std.testing.expect(saw_simple_open);
     try std.testing.expect(saw_addressability_helper);
