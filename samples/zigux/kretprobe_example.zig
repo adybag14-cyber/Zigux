@@ -103,6 +103,19 @@ pub const OwnershipBoundarySummary = struct {
     post_exit_ret_rejected: bool,
 };
 
+pub const LifecycleGuardSummary = struct {
+    anchor: []const u8,
+    symbol_name: []const u8,
+    stage_before_init: SampleStage,
+    stage_after_init: SampleStage,
+    pre_init_anchor_rejected: bool,
+    pre_init_exit_rejected: bool,
+    double_init_rejected: bool,
+    post_init_retarget_rejected: bool,
+    post_init_recovery_rejected: bool,
+    init_runs: usize,
+};
+
 pub const KretprobeExampleSample = struct {
     const Self = @This();
     const InstanceData = struct {
@@ -353,6 +366,65 @@ pub const KretprobeExampleSample = struct {
         };
     }
 
+    pub fn runLifecycleGuardReplay(self: *Self) !LifecycleGuardSummary {
+        if (self.stage() != .cold) return error.InvalidLifecycleTransition;
+
+        var pre_init_anchor_rejected = false;
+        if (self.runAnchorReplay()) |_| {
+            return error.ExpectedLifecycleGuardRejection;
+        } else |err| switch (err) {
+            error.InvalidLifecycleTransition => pre_init_anchor_rejected = true,
+            else => return err,
+        }
+
+        var pre_init_exit_rejected = false;
+        if (self.exit()) |_| {
+            return error.ExpectedLifecycleGuardRejection;
+        } else |err| switch (err) {
+            error.InvalidLifecycleTransition => pre_init_exit_rejected = true,
+            else => return err,
+        }
+
+        try self.init();
+
+        var double_init_rejected = false;
+        if (self.init()) |_| {
+            return error.ExpectedLifecycleGuardRejection;
+        } else |err| switch (err) {
+            error.InvalidLifecycleTransition => double_init_rejected = true,
+            else => return err,
+        }
+
+        var post_init_retarget_rejected = false;
+        if (self.retargetSymbol("do_sys_openat2")) |_| {
+            return error.ExpectedLifecycleGuardRejection;
+        } else |err| switch (err) {
+            error.InvalidLifecycleTransition => post_init_retarget_rejected = true,
+            else => return err,
+        }
+
+        var post_init_recovery_rejected = false;
+        if (self.runRetargetRecoveryReplay()) |_| {
+            return error.ExpectedLifecycleGuardRejection;
+        } else |err| switch (err) {
+            error.InvalidLifecycleTransition => post_init_recovery_rejected = true,
+            else => return err,
+        }
+
+        return .{
+            .anchor = descriptor().anchor,
+            .symbol_name = self.symbol_name,
+            .stage_before_init = .cold,
+            .stage_after_init = self.stage(),
+            .pre_init_anchor_rejected = pre_init_anchor_rejected,
+            .pre_init_exit_rejected = pre_init_exit_rejected,
+            .double_init_rejected = double_init_rejected,
+            .post_init_retarget_rejected = post_init_retarget_rejected,
+            .post_init_recovery_rejected = post_init_recovery_rejected,
+            .init_runs = self.init_runs,
+        };
+    }
+
     pub fn exit(self: *Self) !void {
         switch (self.stage()) {
             .initialized, .replay_complete => {},
@@ -441,17 +513,25 @@ test "kretprobe sample replay keeps the anchor reviewable and non-runtime" {
     try std.testing.expectEqual(@as(usize, 1), maxactive.replay_runs);
     try std.testing.expectEqual(SampleStage.replay_complete, maxactive.stage_after_replay);
 
+    var guards = KretprobeExampleSample{};
+    const lifecycle_guards = try guards.runLifecycleGuardReplay();
+    try std.testing.expectEqualStrings("samples/kprobes/kretprobe_example.c", lifecycle_guards.anchor);
+    try std.testing.expectEqualStrings(KretprobeExampleSample.default_symbol_name, lifecycle_guards.symbol_name);
+    try std.testing.expectEqual(SampleStage.cold, lifecycle_guards.stage_before_init);
+    try std.testing.expectEqual(SampleStage.initialized, lifecycle_guards.stage_after_init);
+    try std.testing.expect(lifecycle_guards.pre_init_anchor_rejected);
+    try std.testing.expect(lifecycle_guards.pre_init_exit_rejected);
+    try std.testing.expect(lifecycle_guards.double_init_rejected);
+    try std.testing.expect(lifecycle_guards.post_init_retarget_rejected);
+    try std.testing.expect(lifecycle_guards.post_init_recovery_rejected);
+    try std.testing.expectEqual(@as(usize, 1), lifecycle_guards.init_runs);
+
     var lifecycle = KretprobeExampleSample{};
     try std.testing.expectEqual(KretprobeExampleSample.default_maxactive, lifecycle.maxactiveBudget());
     try std.testing.expectEqual(SampleStage.cold, lifecycle.stage());
-    try std.testing.expectError(error.InvalidLifecycleTransition, lifecycle.runAnchorReplay());
-    try std.testing.expectError(error.InvalidLifecycleTransition, lifecycle.exit());
     try lifecycle.init();
     try std.testing.expectEqual(KretprobeExampleSample.default_maxactive, lifecycle.maxactiveBudget());
     try std.testing.expectEqual(SampleStage.initialized, lifecycle.stage());
-    try std.testing.expectError(error.InvalidLifecycleTransition, lifecycle.init());
-    try std.testing.expectError(error.InvalidLifecycleTransition, lifecycle.runRetargetRecoveryReplay());
-    try std.testing.expectError(error.InvalidLifecycleTransition, lifecycle.runMaxactiveBudgetReplay());
     try std.testing.expect(try lifecycle.entryHandler(true, 200));
     try std.testing.expectError(error.OutstandingProbeInstance, lifecycle.exit());
     try std.testing.expectError(error.InvalidTimestampOrder, lifecycle.retHandler(9, 199));
