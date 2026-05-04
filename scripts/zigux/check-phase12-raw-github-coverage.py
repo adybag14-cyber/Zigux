@@ -293,6 +293,17 @@ def run_self_test() -> int:
     manifest["lane_key"] = "P12-L99"
     expect_missing("lane_key", validate_manifest(manifest), "manifest:lane_key")
 
+    drifted_manifest = json.loads(json.dumps(load_manifest()))
+    for anchor in drifted_manifest["anchors"]:
+        if anchor.get("id") == "libbpf":
+            anchor["public_read_status"] = "commit_pinned_raw_catalog"
+            break
+    expect_missing(
+        "manifest_anchor_status",
+        validate_manifest(drifted_manifest),
+        "manifest:libbpf:public_read_status",
+    )
+
     survey_path = ROOT / "Documentation/zigux/phase12-raw-github-coverage-survey.md"
     original_survey = survey_path.read_text(encoding="utf-8")
     survey_path.write_text(
@@ -352,6 +363,16 @@ def run_self_test() -> int:
 
     release_path = ROOT / "Documentation/zigux/phase12-release-readiness-survey.md"
     original_release = release_path.read_text(encoding="utf-8")
+    release_path.unlink()
+    try:
+        expect_missing(
+            "missing_release_file",
+            validate_tree(),
+            "missing_file:Documentation/zigux/phase12-release-readiness-survey.md",
+        )
+    finally:
+        release_path.write_text(original_release, encoding="utf-8")
+
     release_path.write_text(
         original_release.replace(
             "PHASE12_SHARED_TREE_ONLY_FALLBACK_COUNT=2",
@@ -412,7 +433,7 @@ def run_self_test() -> int:
         test_path.write_text(original_test, encoding="utf-8")
 
     print("PHASE12_RAW_GITHUB_COVERAGE_SELF_TEST=pass")
-    print("PHASE12_RAW_GITHUB_COVERAGE_SELF_TEST_CASE_COUNT=8")
+    print("PHASE12_RAW_GITHUB_COVERAGE_SELF_TEST_CASE_COUNT=10")
     return 0
 
 
