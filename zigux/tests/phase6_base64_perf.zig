@@ -38,6 +38,30 @@ const PerfResult = struct {
     decoded_len: usize,
 };
 
+const ExpectedPerfCase = struct {
+    label: []const u8,
+    size: usize,
+    reps: usize,
+    max_encode_slowdown_pct: u16,
+    max_decode_slowdown_pct: u16,
+    padding: bool,
+    variant: base64.Variant,
+    reference_kind: ReferenceKind,
+};
+
+const expected_perf_cases = [_]ExpectedPerfCase{
+    .{ .label = "std-64B", .size = 64, .reps = 20_000, .max_encode_slowdown_pct = 190, .max_decode_slowdown_pct = 320, .padding = true, .variant = .std, .reference_kind = .standard },
+    .{ .label = "std-1KB", .size = 1024, .reps = 4_000, .max_encode_slowdown_pct = 190, .max_decode_slowdown_pct = 320, .padding = true, .variant = .std, .reference_kind = .standard },
+    .{ .label = "urlsafe-padded-64B", .size = 64, .reps = 20_000, .max_encode_slowdown_pct = 190, .max_decode_slowdown_pct = 320, .padding = true, .variant = .urlsafe, .reference_kind = .url_safe_padded },
+    .{ .label = "urlsafe-padded-1KB", .size = 1024, .reps = 4_000, .max_encode_slowdown_pct = 190, .max_decode_slowdown_pct = 320, .padding = true, .variant = .urlsafe, .reference_kind = .url_safe_padded },
+    .{ .label = "urlsafe-64B", .size = 64, .reps = 20_000, .max_encode_slowdown_pct = 190, .max_decode_slowdown_pct = 320, .padding = false, .variant = .urlsafe, .reference_kind = .url_safe_no_pad },
+    .{ .label = "urlsafe-1KB", .size = 1024, .reps = 4_000, .max_encode_slowdown_pct = 190, .max_decode_slowdown_pct = 320, .padding = false, .variant = .urlsafe, .reference_kind = .url_safe_no_pad },
+    .{ .label = "imap-padded-64B", .size = 64, .reps = 20_000, .max_encode_slowdown_pct = 190, .max_decode_slowdown_pct = 320, .padding = true, .variant = .imap, .reference_kind = .imap_padded },
+    .{ .label = "imap-padded-1KB", .size = 1024, .reps = 4_000, .max_encode_slowdown_pct = 190, .max_decode_slowdown_pct = 320, .padding = true, .variant = .imap, .reference_kind = .imap_padded },
+    .{ .label = "imap-64B", .size = 64, .reps = 20_000, .max_encode_slowdown_pct = 190, .max_decode_slowdown_pct = 320, .padding = false, .variant = .imap, .reference_kind = .imap_no_pad },
+    .{ .label = "imap-1KB", .size = 1024, .reps = 4_000, .max_encode_slowdown_pct = 190, .max_decode_slowdown_pct = 320, .padding = false, .variant = .imap, .reference_kind = .imap_no_pad },
+};
+
 fn median3(a: u64, b: u64, c: u64) u64 {
     return a + b + c - @min(a, @min(b, c)) - @max(a, @max(b, c));
 }
@@ -284,11 +308,16 @@ fn runPerfCase(case: fixtures.PerfCase, io: std.Io) !PerfResult {
 }
 
 test "phase 6 base64 perf matrix keeps all shipped variant-and-padding replays" {
-    try std.testing.expectEqual(@as(usize, 10), perf_cases.len);
-    try std.testing.expectEqualStrings("std-64B", perf_cases[0].label);
-    try std.testing.expect(perf_cases[0].variant == .std);
-    try std.testing.expect(perf_cases[0].padding);
-    try std.testing.expectEqualStrings("imap-1KB", perf_cases[perf_cases.len - 1].label);
-    try std.testing.expect(perf_cases[perf_cases.len - 1].variant == .imap);
-    try std.testing.expect(!perf_cases[perf_cases.len - 1].padding);
+    try std.testing.expectEqual(expected_perf_cases.len, perf_cases.len);
+
+    for (expected_perf_cases, perf_cases) |expected, actual| {
+        try std.testing.expectEqualStrings(expected.label, actual.label);
+        try std.testing.expectEqual(expected.size, actual.size);
+        try std.testing.expectEqual(expected.reps, actual.reps);
+        try std.testing.expectEqual(expected.max_encode_slowdown_pct, actual.max_encode_slowdown_pct);
+        try std.testing.expectEqual(expected.max_decode_slowdown_pct, actual.max_decode_slowdown_pct);
+        try std.testing.expectEqual(expected.padding, actual.padding);
+        try std.testing.expect(actual.variant == expected.variant);
+        try std.testing.expect(actual.reference_kind == expected.reference_kind);
+    }
 }
