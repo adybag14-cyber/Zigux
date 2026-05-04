@@ -106,7 +106,7 @@ test "phase 9 runtime kretprobe survey manifest records the landed ownership pac
     defer parsed.deinit();
 
     const manifest = parsed.value;
-    try std.testing.expectEqualStrings("P9-L16", manifest.lane_key);
+    try std.testing.expectEqualStrings("P9-L13", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 9", manifest.phase);
     try std.testing.expect(isLowerHexSha(manifest.surveyed_commit));
     try std.testing.expectEqualStrings("samples/kprobes/kretprobe_example.c", manifest.anchor);
@@ -445,7 +445,7 @@ test "phase 9 runtime kretprobe docs keep the ownership packet and shared-build 
     defer std.testing.allocator.free(phase9_build_file);
 
     const required_survey_markers = [_][]const u8{
-        "`PHASE9_LANE_KEY=P9-L16`",
+        "`PHASE9_LANE_KEY=P9-L13`",
         "manifest-backed delivery catalog and ownership map",
         "Latest verification snapshot",
         "zig test samples/zigux/runtime_kretprobe.zig",
@@ -484,7 +484,7 @@ test "phase 9 runtime kretprobe docs keep the ownership packet and shared-build 
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "released_without_substrate") != null);
 
     const required_module_markers = [_][]const u8{
-        "`PHASE9_LANE_KEY=P9-L16`",
+        "`PHASE9_LANE_KEY=P9-L13`",
         "phase9-runtime-kretprobe-sample-tests",
         "phase9-runtime-kretprobe-module-tests",
         "phase9-runtime-kretprobe-diff-tests",
