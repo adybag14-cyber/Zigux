@@ -101,12 +101,13 @@ This keeps the core survey note aligned with the shared closure packet's exact c
 
 ## Latest verification snapshot
 
-- verified against current `master` head `d30cbe483a2f019ae797b309a29556bd58fe00d0`
-- focused bounded replay covered `virtio_id_match()` and first-match `virtio_dev_match()` behavior for exact, wildcard, unmatched, and missing-identity cases plus the documented non-nestable `virtio_config_driver_disable()` and `virtio_config_driver_enable()` rule
+- verified the original survey packet against `master` head `d30cbe483a2f019ae797b309a29556bd58fe00d0`
+- later focused verification in the parked `P10-L03` core packet reconstructed the then-current `drivers/virtio/virtio.zig` and `zigux/tests/phase10_virtio_core.zig` pair on a newer `master` head, then passed attached-Zig `zig fmt --check` plus `zig build test --build-file build.zig --summary all` with `3/3` build steps and `25/25` tests
 - observed results:
-  - the focused Phase 10 virtio-core driver-ID and config-driver-toggle replay passed before publication
-  - broader Phase 10 closure and all-up build replay were not rerun in this narrow helper lane because no ring, MMIO, input, or transport-facing behavior changed
+  - the original survey-lane helper replay covered `virtio_id_match()` and first-match `virtio_dev_match()` behavior for exact, wildcard, unmatched, and missing-identity cases plus the documented non-nestable `virtio_config_driver_disable()` and `virtio_config_driver_enable()` rule
+  - the later focused core replay confirmed that the earlier memory-only compile warning is stale for the current bounded core packet rather than a live same-lane defect
+  - broader Phase 10 closure and all-up build replay were still not reopened in that later parked verification step because no ring, MMIO, input, or transport-facing behavior changed
 
 ## Next bounded step
 
-Leave the Phase 10 virtio-core lane parked again unless fresh repo inspection finds a directly coupled drift inside the landed driver ID-match packet, the new config-driver-toggle guard packet, or the other already-landed core-local evidence; the next new Phase 10 wrapper work should stay in adjacent ring or MMIO lanes instead of widening core lifecycle claims.
+Leave the original Phase 10 virtio-core survey packet parked unless fresh repo inspection finds a directly coupled drift inside the manifest-backed core survey note, survey gate, or the already-landed core-local evidence. The next honest same-family follow-up is another bounded note or ownership refresh if the parked core packet moves again; any new wrapper work should still stay in adjacent ring or MMIO lanes instead of widening core lifecycle claims.
