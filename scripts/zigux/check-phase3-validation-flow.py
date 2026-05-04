@@ -134,9 +134,9 @@ EXACT_ONCE_WORKFLOW_TITLE_SNIPPETS = (
     "name: Audit Phase 3 documentation sync\n",
     "name: Check Phase 3 slug sanity\n",
     "name: Self-test Phase 3 shared helper\n",
+    "name: Self-test Phase 3 runner\n",
     "name: Self-test Phase 3 wrapper generator\n",
     "name: Validate Phase 3 wrapper templates\n",
-    "name: Self-test Phase 3 runner\n",
     "name: Validate Phase 3 README tooling inventory\n",
     "name: Self-test Phase 3 README tooling inventory checker\n",
 )
@@ -555,7 +555,9 @@ def run_self_test() -> int:
 
         for snippet in (
             REQUIRED_DOCS_ROOT_SNIPPETS[0],
+            REQUIRED_DOCS_ROOT_SNIPPETS[1],
             REQUIRED_DOCS_ROOT_SNIPPETS[2],
+            REQUIRED_DOCS_ROOT_SNIPPETS[3],
             REQUIRED_DOCS_ROOT_SNIPPETS[4],
             REQUIRED_DOCS_ROOT_SNIPPETS[5],
         ):
@@ -812,11 +814,11 @@ def run_self_test() -> int:
         )
         case_count += 1
 
-        if case_count != 67:
+        if case_count != 69:
             raise SystemExit(f"phase3-validation-flow-self-test:unexpected_case_count:{case_count}")
 
         print("PHASE3_VALIDATION_FLOW_SELF_TEST=pass")
-        print("PHASE3_VALIDATION_FLOW_SELF_TEST_CASE_COUNT=67")
+        print("PHASE3_VALIDATION_FLOW_SELF_TEST_CASE_COUNT=69")
         return 0
 
 
