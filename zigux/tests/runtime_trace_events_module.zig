@@ -77,6 +77,8 @@ test "runtime trace-events sample keeps replay-summary continuity explicit after
     try std.testing.expectEqual(@as(usize, 10), replay.main_thread_events);
     try std.testing.expectEqual(@as(usize, 4), replay.fn_thread_events);
     try std.testing.expectEqual(@as(usize, 14), replay.total_events);
+    try std.testing.expectEqual(@as(?usize, 4), replay.last_main_emitted_events);
+    try std.testing.expectEqual(@as(?usize, 2), replay.last_fn_emitted_events);
     try std.testing.expectEqual(@as(usize, 1), replay.init_runs);
     try std.testing.expectEqual(@as(usize, 1), replay.selftest_runs);
     try std.testing.expectEqual(@as(usize, 0), replay.exit_runs);
