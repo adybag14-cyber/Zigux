@@ -6,7 +6,7 @@ This document records the shared Phase 14 smoke lane that verifies the current b
 
 - `PHASE14_STATUS=active`
 - `PHASE14_SLICE=end-to-end-smoke-verification`
-- `PHASE14_SHARED_LANE=P14-L01`
+- `PHASE14_SHARED_LANE=P14-Y08`
 - `PHASE14_SMOKE_VALIDATOR=present`
 - `PHASE14_VALIDATE_SCRIPT=python3 scripts/zigux/validate-phase14.py`
 - `PHASE14_VALIDATE_ENTRYPOINT=make -C zigux phase14-validate`
@@ -57,7 +57,7 @@ This lane stays narrow on purpose. It does not add a new bridge. It verifies tha
 ## Exact evidence captured
 
 - verified `master` head: `02264a3240cd30ce45c9a932047a0204b7ab5029`
-- shared smoke manifest lane key: `P14-L01`
+- shared smoke manifest lane key: `P14-Y08`
 - shared smoke manifest surveyed commit: `02264a3240cd30ce45c9a932047a0204b7ab5029`
 - validator-backed smoke commands:
   - `make -C zigux phase14-validate`
