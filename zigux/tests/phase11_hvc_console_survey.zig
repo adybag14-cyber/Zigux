@@ -184,6 +184,7 @@ test "phase11 hvc_console survey manifest records the landed starter and remaini
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "final-close teardown handoff") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "khvcd worker-entry") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "notifier-add open handoff") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "bounded sysrq toggle-and-dispatch handoff") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "khvcd sleep-and-reschedule handoff") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "__hvc_poll drain-order") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "hvc_hangup disconnect") != null);
@@ -198,6 +199,7 @@ test "phase11 hvc_console survey manifest records the landed starter and remaini
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "final-close teardown summary") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "khvcd worker-entry summary") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "tiny notifier-add open handoff summary") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "tiny bounded sysrq toggle-and-dispatch handoff summary") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "khvcd sleep-and-reschedule handoff summary") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "__hvc_poll drain-order summary") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "hvc_hangup disconnect summary") != null);
@@ -214,6 +216,7 @@ test "phase11 hvc_console survey manifest records the landed starter and remaini
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "final-close teardown summary") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "tty-registration handoff summary") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "tiny notifier-add open handoff summary") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "tiny bounded sysrq toggle-and-dispatch handoff summary") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "khvcd polling-contract summary") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "khvcd worker-entry summary") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "khvcd sleep-and-reschedule handoff summary") != null);
@@ -353,6 +356,7 @@ test "phase11 hvc_console survey manifest records the landed starter and remaini
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "final-close teardown") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "tty-registration handoff") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "notifier-add open handoff") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "bounded sysrq toggle-and-dispatch handoff") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "khvcd polling-contract") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "khvcd worker-entry") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "khvcd sleep-and-reschedule handoff") != null);
