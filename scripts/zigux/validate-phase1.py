@@ -490,7 +490,11 @@ def self_test() -> int:
             "Documentation/zigux/review-checklist.md",
             "scripts/zigux/check-phase1-bitmap-validator-anchors.py",
             "scripts/zigux/check-phase1-find-bit-validator-anchors.py",
+            "scripts/zigux/check-phase1-route-summary-counts.py",
             "scripts/zigux/check-phase1-validation-route-inventory.py",
+            "scripts/zigux/check-phase1-parity.py",
+            "scripts/zigux/check-phase1-bench.py",
+            "scripts/zigux/validate-phase1-closure.py",
             ".github/workflows/zigux-bootstrap.yml",
             "zigux/Makefile",
         ):
@@ -500,7 +504,7 @@ def self_test() -> int:
             expect_failure(root, rel)
             write(path, baseline)
     print("PHASE1_VALIDATOR_SELF_TEST=pass")
-    print("PHASE1_VALIDATOR_SELF_TEST_CASE_COUNT=23")
+    print("PHASE1_VALIDATOR_SELF_TEST_CASE_COUNT=27")
     return 0
 
 
