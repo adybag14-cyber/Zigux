@@ -391,7 +391,7 @@ test "phase 8 docs keep the deferred irq routing and timer boundary explicit" {
 
     try expectContains(
         survey_note,
-        "- survey checkpoint: refreshed against inspected `master` head `" ++ current_surveyed_commit ++ "`",
+        "- survey checkpoint: refreshed against inspected `master` head `" ++ shared_surveyed_commit ++ "`",
     );
     try expectContains(
         survey_note,
