@@ -166,6 +166,8 @@ test "phase11 gpio_wdt survey manifest records the refreshed starter state, modu
     try std.testing.expect(std.mem.indexOf(u8, module_slice_doc, "`gpio_wdt_lab` descriptor") != null);
     try std.testing.expect(std.mem.indexOf(u8, module_slice_doc, "`summarizeTeardown()` helper") != null);
     try std.testing.expect(std.mem.indexOf(u8, module_slice_doc, "`registerDeviceCallSummary()` surface explicit") != null);
+    try std.testing.expect(std.mem.indexOf(u8, module_slice_doc, "`registerDeviceFailureSummary()` surface explicit") != null);
+    try std.testing.expect(std.mem.indexOf(u8, module_slice_doc, "descriptor preflight, platform registration, and reboot glue blockers stay machine-checkable") != null);
     try std.testing.expect(std.mem.indexOf(u8, module_slice_doc, "The active continuity owner for this review packet is `P11-Y01`, while the archived manifest identity remains `P11-L04` for traceability.") != null);
     try std.testing.expect(std.mem.indexOf(u8, module_slice_doc, "The next honest bounded step inside the same Phase 11 lane is to leave this starter parked unless fresh repo inspection finds another comparably small teardown or failure-mode drift inside `gpio_wdt`.") != null);
     try std.testing.expect(std.mem.indexOf(u8, module_slice_doc, "Avoid widening straight into descriptor-backed preflight, reboot glue, or broader watchdog registration work from this packet.") != null);
