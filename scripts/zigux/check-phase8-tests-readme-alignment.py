@@ -948,6 +948,21 @@ def run_self_test() -> int:
 
         scripts_readme_path.write_text(
             original_scripts_readme.replace(
+                "- zigux/tests/phase8_bridge_boundary_survey.zig\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing(
+            "scripts_readme_bridge_boundary_survey",
+            tmp_root,
+            "scripts_readme:zigux/tests/phase8_bridge_boundary_survey.zig",
+        )
+        scripts_readme_path.write_text(original_scripts_readme, encoding="utf-8")
+
+        scripts_readme_path.write_text(
+            original_scripts_readme.replace(
                 "- zigux/tests/phase8_libbpf_segments_only_build.zig\n",
                 "",
                 1,
@@ -958,6 +973,21 @@ def run_self_test() -> int:
             "scripts_readme_libbpf_segments_only_build",
             tmp_root,
             "scripts_readme:zigux/tests/phase8_libbpf_segments_only_build.zig",
+        )
+        scripts_readme_path.write_text(original_scripts_readme, encoding="utf-8")
+
+        scripts_readme_path.write_text(
+            original_scripts_readme.replace(
+                "- zigux/tests/phase8_perf_buffer_poll.zig\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing(
+            "scripts_readme_perf_buffer_poll",
+            tmp_root,
+            "scripts_readme:zigux/tests/phase8_perf_buffer_poll.zig",
         )
         scripts_readme_path.write_text(original_scripts_readme, encoding="utf-8")
 
@@ -1028,7 +1058,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE8_TESTS_README_ALIGNMENT_SELF_TEST=pass")
-    print("PHASE8_TESTS_README_ALIGNMENT_SELF_TEST_CASE_COUNT=40")
+    print("PHASE8_TESTS_README_ALIGNMENT_SELF_TEST_CASE_COUNT=42")
     return 0
 
 
