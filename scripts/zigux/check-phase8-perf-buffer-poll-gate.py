@@ -118,9 +118,17 @@ REQUIRED_MARKERS = {
 }
 
 EXACT_COUNTS = {
+    "Documentation/zigux/README.md": {
+        "Documentation/zigux/phase8-perf-buffer-poll-slice.md": 1,
+        "make -C zigux phase8-validate": 1,
+    },
+    "Documentation/zigux/phase8-perf-buffer-poll-slice.md": {
+        "zigux/tests/phase8_perf_buffer_poll_only_build.zig": 1,
+        "make -C zigux phase8-perf-buffer-poll-test": 1,
+    },
     "zigux/tests/README.md": {
         "zigux/tests/phase8_perf_buffer_poll_only_build.zig": 1,
-        "zigux/tests/phase8_perf_buffer_poll.zig": 1,
+        "zigux/tests/phase8_perf_BUFFER_POLL.zig": 1,
         "make -C zigux phase8-perf-buffer-poll-test": 1,
     },
     "scripts/zigux/README.md": {
@@ -341,6 +349,32 @@ def run_self_test() -> int:
                 f"markers={','.join(missing_markers) if missing_markers else 'none'}"
             )
 
+        doc_readme_path = tmp_root / "Documentation/zigux/README.md"
+        original_doc_readme = doc_readme_path.read_text(encoding="utf-8")
+        doc_readme_path.write_text(
+            original_doc_readme + "- `Documentation/zigux/phase8-perf-buffer-poll-slice.md`\n",
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "doc_readme_perf_slice_duplicate",
+            tmp_root,
+            "Documentation/zigux/README.md:count:Documentation/zigux/phase8-perf-buffer-poll-slice.md:expected=1:actual=2",
+        )
+        doc_readme_path.write_text(original_doc_readme, encoding="utf-8")
+
+        perf_slice_path = tmp_root / "Documentation/zigux/phase8-perf-buffer-poll-slice.md"
+        original_perf_slice = perf_slice_path.read_text(encoding="utf-8")
+        perf_slice_path.write_text(
+            original_perf_slice + "- `make -C zigux phase8-perf-buffer-poll-test`\n",
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "perf_slice_make_target_duplicate",
+            tmp_root,
+            "Documentation/zigux/phase8-perf-buffer-poll-slice.md:count:make -C zigux phase8-perf-buffer-poll-test:expected=1:actual=2",
+        )
+        perf_slice_path.write_text(original_perf_slice, encoding="utf-8")
+
         tests_readme_path = tmp_root / "zigux/tests/README.md"
         original_tests_readme = tests_readme_path.read_text(encoding="utf-8")
         tests_readme_path.write_text(
@@ -457,7 +491,7 @@ def run_self_test() -> int:
         helper_path.write_text(original_helper, encoding="utf-8")
 
         print("PHASE8_PERF_BUFFER_POLL_GATE_SELF_TEST=pass")
-        print("PHASE8_PERF_BUFFER_POLL_GATE_SELF_TEST_CASE_COUNT=8")
+        print("PHASE8_PERF_BUFFER_POLL_GATE_SELF_TEST_CASE_COUNT=10")
     return 0
 
 
