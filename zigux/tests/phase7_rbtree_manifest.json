@@ -55,6 +55,13 @@
       "kind": "differential_validation",
       "zigux_destination": "zigux/tests/fixtures/phase7_rbtree.json",
       "why_now": "The committed parity layer now locks ordered insert, standalone erase traversal, erase-plus-replace traversal, duplicate-key lookup ranges, reverse traversal, and postorder behavior against lib/rbtree.c, while the dedicated Phase 7 gate covers the reusable-node eraseInit ownership reset that stays just outside the C parity fixture."
+    },
+    {
+      "id": "phase7-rbtree-parity-checker",
+      "status": "starter_landed",
+      "kind": "validation",
+      "zigux_destination": "scripts/zigux/check-phase7-rbtree-parity.py",
+      "why_now": "The dedicated parity checker is already part of the landed rbtree review path through the shared validator, Makefile, docs root, tests root, and slice note, so the manifest-backed ownership record should name that fail-closed review hook explicitly instead of leaving it implied by the parity fixture layer alone."
     }
   ]
 }
