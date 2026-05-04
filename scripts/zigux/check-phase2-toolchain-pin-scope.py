@@ -663,6 +663,56 @@ def run_self_test() -> int:
     if "phase2_validator:missing_marker:toolchain_pin_scope_checker" not in marker_issues:
         raise SystemExit("phase2-toolchain-pin-scope:self-test:phase2_validator_marker_missing")
 
+    phase2_closure_validator_text = "\n".join(PHASE2_CLOSURE_VALIDATOR_MARKERS)
+    if validate_required_markers(
+        phase2_closure_validator_text,
+        label="phase2_closure_validator",
+        markers=PHASE2_CLOSURE_VALIDATOR_MARKERS,
+    ):
+        raise SystemExit("phase2-toolchain-pin-scope:self-test:phase2_closure_validator_markers")
+
+    missing_phase2_closure_validator_marker = "\n".join(
+        marker
+        for marker in PHASE2_CLOSURE_VALIDATOR_MARKERS
+        if marker != "'scripts/zigux/check-phase2-toolchain-pin-scope.py': 1"
+    )
+    marker_issues = validate_required_markers(
+        missing_phase2_closure_validator_marker,
+        label="phase2_closure_validator",
+        markers=PHASE2_CLOSURE_VALIDATOR_MARKERS,
+    )
+    if (
+        "phase2_closure_validator:missing_marker:'scripts/zigux/check-phase2-toolchain-pin-scope.py': 1"
+        not in marker_issues
+    ):
+        raise SystemExit(
+            "phase2-toolchain-pin-scope:self-test:phase2_closure_validator_marker_missing"
+        )
+
+    review_checklist_text = "\n".join(REVIEW_CHECKLIST_MARKERS)
+    if validate_required_markers(
+        review_checklist_text,
+        label="review_checklist",
+        markers=REVIEW_CHECKLIST_MARKERS,
+    ):
+        raise SystemExit("phase2-toolchain-pin-scope:self-test:review_checklist_markers")
+
+    missing_review_checklist_marker = "\n".join(
+        marker
+        for marker in REVIEW_CHECKLIST_MARKERS
+        if marker != "scripts/zigux/check-phase2-toolchain-pin-scope.py"
+    )
+    marker_issues = validate_required_markers(
+        missing_review_checklist_marker,
+        label="review_checklist",
+        markers=REVIEW_CHECKLIST_MARKERS,
+    )
+    if (
+        "review_checklist:missing_marker:scripts/zigux/check-phase2-toolchain-pin-scope.py"
+        not in marker_issues
+    ):
+        raise SystemExit("phase2-toolchain-pin-scope:self-test:review_checklist_marker_missing")
+
     with tempfile.TemporaryDirectory(prefix="phase2_toolchain_pin_scope_") as tmp_dir_str:
         tmp_root = Path(tmp_dir_str)
         manifest_path = tmp_root / "toolchain.json"
@@ -672,7 +722,7 @@ def run_self_test() -> int:
             raise SystemExit("phase2-toolchain-pin-scope:self-test:json_round_trip")
 
     print("PHASE2_TOOLCHAIN_PIN_SCOPE_SELF_TEST=pass")
-    print("PHASE2_TOOLCHAIN_PIN_SCOPE_SELF_TEST_CASE_COUNT=34")
+    print("PHASE2_TOOLCHAIN_PIN_SCOPE_SELF_TEST_CASE_COUNT=38")
     return 0
 
 
@@ -794,4 +844,4 @@ if __name__ == "__main__":
     raise SystemExit(main())
 
 # Bootstrap validator compatibility marker: def expected_toolchain_notes_markers(channel: str, minimum_version: str) -> list[str]:
-# Shared Phase 2 validator compatibility marker: PHASE2_TOOLCHAIN_PIN_SCOPE_SELF_TEST_CASE_COUNT=32
+# Shared Phase 2 validator compatibility marker: PHASE2_TOOLCHAIN_PIN_SCOPE_SELF_TEST_CASE_COUNT=38
