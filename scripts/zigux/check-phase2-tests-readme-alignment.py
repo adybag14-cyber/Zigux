@@ -480,6 +480,21 @@ def run_self_test() -> int:
         original_phase2_validator = phase2_validator_path.read_text(encoding="utf-8")
         phase2_validator_path.write_text(
             original_phase2_validator.replace(
+                '    ROOT / "scripts" / "zigux" / "check-phase2-tests-readme-alignment.py"\n',
+                '    ROOT / "scripts" / "zigux" / "check-phase2-tests-readme-alignment-missing.py"\n',
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing(
+            "phase2_validator_checker_path",
+            tmp_root,
+            'phase2_validator:ROOT / "scripts" / "zigux" / "check-phase2-tests-readme-alignment.py"',
+        )
+        phase2_validator_path.write_text(original_phase2_validator, encoding="utf-8")
+
+        phase2_validator_path.write_text(
+            original_phase2_validator.replace(
                 "    [sys.executable, str(PHASE2_TESTS_README_ALIGNMENT_CHECKER)],\n",
                 "",
                 1,
@@ -520,7 +535,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE2_TESTS_README_ALIGNMENT_SELF_TEST=pass")
-    print("PHASE2_TESTS_README_ALIGNMENT_SELF_TEST_CASE_COUNT=9")
+    print("PHASE2_TESTS_README_ALIGNMENT_SELF_TEST_CASE_COUNT=10")
     return 0
 
 
