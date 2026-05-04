@@ -52,4 +52,28 @@ test "phase3 rbtree root view helper keeps dedicated binding semantics explicit"
         .reserved = 0,
     };
     try std.testing.expectEqual(@as(?rbtree.RootView, null), root_view.canonicalize(unknown_bits));
+
+    const cached_without_root: rbtree.RootView = .{
+        .root_addr = 0,
+        .leftmost_addr = 0x3300,
+        .flags = rbtree.ROOT_FLAG_CACHED | rbtree.ROOT_FLAG_LEFTMOST_VALID,
+        .reserved = 0,
+    };
+    try std.testing.expectEqual(@as(?rbtree.RootView, null), root_view.canonicalize(cached_without_root));
+
+    const cached_without_leftmost: rbtree.RootView = .{
+        .root_addr = 0x4400,
+        .leftmost_addr = 0,
+        .flags = rbtree.ROOT_FLAG_CACHED | rbtree.ROOT_FLAG_LEFTMOST_VALID,
+        .reserved = 0,
+    };
+    try std.testing.expectEqual(@as(?rbtree.RootView, null), root_view.canonicalize(cached_without_leftmost));
+
+    const rootless_uncached: rbtree.RootView = .{
+        .root_addr = 0,
+        .leftmost_addr = 0,
+        .flags = 0,
+        .reserved = 0,
+    };
+    try std.testing.expectEqual(@as(?rbtree.RootView, null), root_view.canonicalize(rootless_uncached));
 }
