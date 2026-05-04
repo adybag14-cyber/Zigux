@@ -134,6 +134,8 @@ pub const BytestreamFifoSample = struct {
         };
     }
 
+    // Keep the contributor-facing review packet discoverable in the sample so
+    // code edits do not drift away from the bounded Phase 5 docs and manifest.
     pub fn reviewContract() ReviewContract {
         return .{
             .focus = &sample_review_focus,
@@ -155,6 +157,10 @@ pub const BytestreamFifoSample = struct {
 
     pub fn isFull(self: *const Self) bool {
         return self.len == capacity;
+    }
+
+    pub fn isWrapped(self: *const Self) bool {
+        return self.len != 0 and self.head + self.len > capacity;
     }
 
     pub fn stage(self: *const Self) SampleStage {
@@ -267,6 +273,7 @@ pub const BytestreamFifoSample = struct {
         const len_after_initial_fill = self.count();
         if (self.isEmpty()) return error.UnexpectedEmptyQueueState;
         if (self.isFull()) return error.UnexpectedPrematureFullQueue;
+        if (self.isWrapped()) return error.UnexpectedWrappedInitialFill;
         if (self.available() != capacity - len_after_initial_fill) return error.UnexpectedInitialAvailableCount;
 
         var first_out: [5]u8 = undefined;
@@ -278,12 +285,14 @@ pub const BytestreamFifoSample = struct {
         if (second_drain_count != second_out.len) return error.UnexpectedSecondDrainCount;
         const requeue_count = self.enqueueSlice(second_out[0..]);
         if (requeue_count != second_out.len) return error.UnexpectedRequeueCount;
+        if (self.isWrapped()) return error.UnexpectedPreFillWrapState;
 
         const skipped = self.skipByte() orelse return error.UnexpectedSkipOnEmpty;
 
         var fill_value: u8 = 20;
         while (self.pushByte(fill_value)) : (fill_value +%= 1) {}
         if (!self.isFull()) return error.UnexpectedNonFullQueue;
+        if (!self.isWrapped()) return error.UnexpectedWraparoundState;
         if (self.isEmpty()) return error.UnexpectedEmptyFullQueue;
         if (self.count() != capacity) return error.UnexpectedFullQueueCount;
         if (self.available() != 0) return error.UnexpectedFullQueueAvailability;
@@ -302,6 +311,7 @@ pub const BytestreamFifoSample = struct {
         const final_len = self.drain(final_sequence[0..]);
         if (final_len != capacity) return error.UnexpectedFinalLength;
         if (!self.isEmpty()) return error.UnexpectedResidualElements;
+        if (self.isWrapped()) return error.UnexpectedResidualWrapState;
         if (self.isFull()) return error.UnexpectedFullQueueAfterDrain;
         if (self.available() != capacity) return error.UnexpectedFinalAvailableCount;
 
@@ -349,6 +359,7 @@ pub const BytestreamFifoSample = struct {
 
         const requeue_count = self.enqueueSlice(&.{ 0, 1 });
         if (requeue_count != 2) return error.UnexpectedRequeueCount;
+        if (self.isWrapped()) return error.UnexpectedPreviewWrapState;
 
         var snapshot_prefix: [4]u8 = undefined;
         const snapshot_len = self.snapshotInto(snapshot_prefix[0..]);
@@ -411,9 +422,11 @@ test "bytestream fifo sample replays the Linux anchor result sequence" {
     var sample = BytestreamFifoSample{};
     try std.testing.expect(sample.isEmpty());
     try std.testing.expect(!sample.isFull());
+    try std.testing.expect(!sample.isWrapped());
     try sample.init();
     try std.testing.expect(sample.isEmpty());
     try std.testing.expect(!sample.isFull());
+    try std.testing.expect(!sample.isWrapped());
     const replay = try sample.runAnchorReplay();
 
     try std.testing.expectEqualStrings("bytestream_fifo", descriptor.name);
@@ -458,6 +471,7 @@ test "bytestream fifo sample replays the Linux anchor result sequence" {
     try std.testing.expectEqual(SampleStage.replay_complete, sample.stage());
     try std.testing.expect(sample.isEmpty());
     try std.testing.expect(!sample.isFull());
+    try std.testing.expect(!sample.isWrapped());
     try std.testing.expectEqual(@as(usize, 1), sample.init_runs);
     try std.testing.expectEqual(@as(usize, fifo_capacity), sample.available());
     const replay_lifecycle = sample.lifecycleSummary();
@@ -472,6 +486,7 @@ test "bytestream fifo sample replays the Linux anchor result sequence" {
     try std.testing.expectEqual(@as(usize, 0), sample.count());
     try std.testing.expect(sample.isEmpty());
     try std.testing.expect(!sample.isFull());
+    try std.testing.expect(!sample.isWrapped());
     try std.testing.expectEqual(@as(usize, fifo_capacity), sample.available());
     try std.testing.expectEqual(@as(usize, 1), sample.exit_runs);
     const exited_lifecycle = sample.lifecycleSummary();
@@ -489,6 +504,7 @@ test "bytestream fifo sample keeps helper boundaries explicit" {
 
     try std.testing.expect(sample.isEmpty());
     try std.testing.expect(!sample.isFull());
+    try std.testing.expect(!sample.isWrapped());
     try std.testing.expectEqual(@as(?u8, null), sample.peekByte());
     try std.testing.expectEqual(@as(?u8, null), sample.skipByte());
     try std.testing.expectEqual(@as(usize, 0), sample.enqueueSlice(&.{}));
@@ -504,15 +520,18 @@ test "bytestream fifo sample keeps helper boundaries explicit" {
     try sample.init();
     try std.testing.expect(sample.isEmpty());
     try std.testing.expect(!sample.isFull());
+    try std.testing.expect(!sample.isWrapped());
     try std.testing.expect(sample.pushByte(7));
     try std.testing.expect(!sample.isEmpty());
     try std.testing.expect(!sample.isFull());
+    try std.testing.expect(!sample.isWrapped());
     try std.testing.expectEqual(@as(usize, 1), sample.count());
     try std.testing.expectEqual(@as(usize, fifo_capacity - 1), sample.available());
     sample.reset();
     try std.testing.expectEqual(SampleStage.initialized, sample.stage());
     try std.testing.expect(sample.isEmpty());
     try std.testing.expect(!sample.isFull());
+    try std.testing.expect(!sample.isWrapped());
     try std.testing.expectEqual(@as(usize, 1), sample.init_runs);
     try std.testing.expectEqual(@as(usize, 0), sample.exit_runs);
     try std.testing.expectEqual(@as(usize, 0), sample.count());
@@ -531,6 +550,7 @@ test "bytestream fifo sample keeps helper boundaries explicit" {
     try std.testing.expectEqual(@as(usize, 10), sample.count());
     try std.testing.expect(!sample.isEmpty());
     try std.testing.expect(!sample.isFull());
+    try std.testing.expect(!sample.isWrapped());
     try std.testing.expectEqual(@as(usize, fifo_capacity - 10), sample.available());
     try std.testing.expectEqual(@as(usize, expected_preview_focus.len), preview_replay.checked_focus.len);
     for (expected_preview_focus, preview_replay.checked_focus) |expected, actual| {
@@ -546,6 +566,7 @@ test "bytestream fifo sample keeps helper boundaries explicit" {
     try std.testing.expectEqual(@as(usize, fifo_capacity), sample.count());
     try std.testing.expect(!sample.isEmpty());
     try std.testing.expect(sample.isFull());
+    try std.testing.expect(!sample.isWrapped());
     try std.testing.expectEqual(@as(usize, 0), sample.available());
     try std.testing.expectEqual(@as(?u8, 0), sample.peekByte());
 
@@ -561,6 +582,7 @@ test "bytestream fifo sample keeps helper boundaries explicit" {
     sample.reset();
     try std.testing.expect(sample.isEmpty());
     try std.testing.expect(!sample.isFull());
+    try std.testing.expect(!sample.isWrapped());
     try std.testing.expectEqual(@as(usize, 5), sample.enqueueSlice("hello"));
     var short_drain: [3]u8 = undefined;
     try std.testing.expectEqual(@as(usize, short_drain.len), sample.drain(short_drain[0..]));
@@ -568,6 +590,7 @@ test "bytestream fifo sample keeps helper boundaries explicit" {
     try std.testing.expectEqual(@as(usize, 2), sample.count());
     try std.testing.expect(!sample.isEmpty());
     try std.testing.expect(!sample.isFull());
+    try std.testing.expect(!sample.isWrapped());
     try std.testing.expectEqual(@as(usize, fifo_capacity - 2), sample.available());
     try std.testing.expectEqual(@as(?u8, 'l'), sample.peekByte());
 
@@ -577,6 +600,7 @@ test "bytestream fifo sample keeps helper boundaries explicit" {
     try std.testing.expectEqual(@as(usize, 0), sample.count());
     try std.testing.expect(sample.isEmpty());
     try std.testing.expect(!sample.isFull());
+    try std.testing.expect(!sample.isWrapped());
     try std.testing.expectEqual(@as(usize, fifo_capacity), sample.available());
     try std.testing.expectEqual(@as(usize, 0), sample.drain(short_drain[0..]));
 
@@ -585,8 +609,35 @@ test "bytestream fifo sample keeps helper boundaries explicit" {
     try std.testing.expectEqual(@as(usize, 0), sample.count());
     try std.testing.expect(sample.isEmpty());
     try std.testing.expect(!sample.isFull());
+    try std.testing.expect(!sample.isWrapped());
     try std.testing.expectEqual(@as(usize, fifo_capacity), sample.available());
     try std.testing.expectEqual(@as(usize, 1), sample.exit_runs);
+}
+
+test "bytestream fifo sample exposes wraparound state explicitly" {
+    var sample = BytestreamFifoSample{};
+
+    try sample.init();
+    try std.testing.expect(!sample.isWrapped());
+    try std.testing.expectEqual(@as(usize, 5), sample.enqueueSlice("hello"));
+
+    var drained: [3]u8 = undefined;
+    try std.testing.expectEqual(@as(usize, drained.len), sample.drain(drained[0..]));
+    try std.testing.expectEqualSlices(u8, "hel", drained[0..]);
+    try std.testing.expect(!sample.isWrapped());
+    try std.testing.expectEqual(@as(usize, 2), sample.count());
+
+    var fill_value: u8 = 0;
+    while (sample.pushByte(fill_value)) : (fill_value +%= 1) {}
+    try std.testing.expect(sample.isFull());
+    try std.testing.expect(sample.isWrapped());
+    try std.testing.expectEqual(@as(usize, 0), sample.available());
+    try std.testing.expectEqual(@as(?u8, 'l'), sample.peekByte());
+
+    sample.reset();
+    try std.testing.expect(sample.isEmpty());
+    try std.testing.expect(!sample.isFull());
+    try std.testing.expect(!sample.isWrapped());
 }
 
 test "bytestream fifo sample keeps ownership and lifetime guards explicit" {
@@ -595,6 +646,7 @@ test "bytestream fifo sample keeps ownership and lifetime guards explicit" {
     try std.testing.expectEqual(SampleStage.cold, sample.stage());
     try std.testing.expect(sample.isEmpty());
     try std.testing.expect(!sample.isFull());
+    try std.testing.expect(!sample.isWrapped());
     try std.testing.expectEqual(@as(usize, fifo_capacity), sample.available());
     try std.testing.expectError(error.InvalidLifecycleTransition, sample.runAnchorReplay());
     try std.testing.expectError(error.InvalidLifecycleTransition, sample.runPreviewBoundaryReplay());
@@ -604,6 +656,7 @@ test "bytestream fifo sample keeps ownership and lifetime guards explicit" {
     try std.testing.expectEqual(SampleStage.initialized, sample.stage());
     try std.testing.expect(sample.isEmpty());
     try std.testing.expect(!sample.isFull());
+    try std.testing.expect(!sample.isWrapped());
     try std.testing.expectEqual(@as(usize, fifo_capacity), sample.available());
     try std.testing.expectError(error.InvalidLifecycleTransition, sample.init());
 
@@ -611,17 +664,20 @@ test "bytestream fifo sample keeps ownership and lifetime guards explicit" {
     try std.testing.expectEqual(SampleStage.initialized, sample.stage());
     try std.testing.expect(!sample.isEmpty());
     try std.testing.expect(!sample.isFull());
+    try std.testing.expect(!sample.isWrapped());
 
     _ = try sample.runAnchorReplay();
     try std.testing.expectEqual(SampleStage.replay_complete, sample.stage());
     try std.testing.expect(sample.isEmpty());
     try std.testing.expect(!sample.isFull());
+    try std.testing.expect(!sample.isWrapped());
 
     try sample.exit();
     try std.testing.expectEqual(SampleStage.exited, sample.stage());
     try std.testing.expectEqual(@as(usize, 0), sample.count());
     try std.testing.expect(sample.isEmpty());
     try std.testing.expect(!sample.isFull());
+    try std.testing.expect(!sample.isWrapped());
     try std.testing.expectEqual(@as(usize, fifo_capacity), sample.available());
     try std.testing.expectEqual(@as(usize, 1), sample.init_runs);
     try std.testing.expectEqual(@as(usize, 1), sample.exit_runs);
@@ -636,9 +692,11 @@ test "bytestream fifo sample reset clears queue state without rewinding lifecycl
     try sample.init();
     try std.testing.expect(sample.isEmpty());
     try std.testing.expect(!sample.isFull());
+    try std.testing.expect(!sample.isWrapped());
     try std.testing.expect(sample.pushByte(7));
     try std.testing.expect(!sample.isEmpty());
     try std.testing.expect(!sample.isFull());
+    try std.testing.expect(!sample.isWrapped());
     try std.testing.expectEqual(@as(usize, fifo_capacity - 1), sample.available());
     sample.reset();
     try std.testing.expectEqual(SampleStage.initialized, sample.stage());
@@ -646,6 +704,7 @@ test "bytestream fifo sample reset clears queue state without rewinding lifecycl
     try std.testing.expectEqual(@as(usize, 0), sample.exit_runs);
     try std.testing.expect(sample.isEmpty());
     try std.testing.expect(!sample.isFull());
+    try std.testing.expect(!sample.isWrapped());
     try std.testing.expectEqual(@as(usize, 0), sample.count());
     try std.testing.expectEqual(@as(usize, fifo_capacity), sample.available());
     try std.testing.expectEqual(@as(?u8, null), sample.peekByte());
@@ -657,6 +716,7 @@ test "bytestream fifo sample reset clears queue state without rewinding lifecycl
     try std.testing.expectEqual(@as(usize, 0), sample.exit_runs);
     try std.testing.expect(sample.isEmpty());
     try std.testing.expect(!sample.isFull());
+    try std.testing.expect(!sample.isWrapped());
     try std.testing.expectEqual(@as(usize, 0), sample.count());
     try std.testing.expectEqual(@as(usize, fifo_capacity), sample.available());
 
@@ -667,6 +727,7 @@ test "bytestream fifo sample reset clears queue state without rewinding lifecycl
     try std.testing.expectEqual(@as(usize, 0), sample.exit_runs);
     try std.testing.expect(sample.isEmpty());
     try std.testing.expect(!sample.isFull());
+    try std.testing.expect(!sample.isWrapped());
     try std.testing.expectEqual(@as(usize, 0), sample.count());
     try std.testing.expectEqual(@as(usize, fifo_capacity), sample.available());
 
@@ -677,6 +738,7 @@ test "bytestream fifo sample reset clears queue state without rewinding lifecycl
     try std.testing.expectEqual(@as(usize, 1), sample.exit_runs);
     try std.testing.expect(sample.isEmpty());
     try std.testing.expect(!sample.isFull());
+    try std.testing.expect(!sample.isWrapped());
     try std.testing.expectEqual(@as(usize, 0), sample.count());
     try std.testing.expectEqual(@as(usize, fifo_capacity), sample.available());
 }
