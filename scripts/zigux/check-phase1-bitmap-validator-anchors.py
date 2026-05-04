@@ -42,6 +42,12 @@ REQUIRED_CLOSURE_SNIPPETS = {
         "bitmap_free stay aligned with bitmapAlloc bitmapZalloc and bitmapFree for partial-word "
         "sizing zero-filled allocation and optional-handle reset semantics"
     ),
+    "copy_alias_review": (
+        "PHASE1_BITMAP_COPY_ALIAS_UNIT_REVIEW=bitmap bitmap_copy_clear_tail and "
+        "bitmap_copy_and_extend stay aligned with copyClearTail and copyAndExtend for tail "
+        "masking in the final copied word and zero-filled extension across the remaining word "
+        "window"
+    ),
     "xor_review": (
         "PHASE1_BITMAP_XOR_UNIT_REVIEW=bitmap xorBits multiword-tail coverage proves callers can "
         "clamp the last word back to the in-range bits without leaking the out-of-range tail"
@@ -63,6 +69,9 @@ REQUIRED_CLOSURE_SNIPPETS = {
     ),
     "alias_anchor": (
         "- bitmap alias unit-test anchor: `tools/lib/bitmap.zig:test \"bitmap underscore aliases preserve bitmap helper semantics\"`"
+    ),
+    "copy_alias_anchor": (
+        "- bitmap copy alias unit-test anchor: `tools/lib/bitmap.zig:test \"bitmap copy aliases preserve tail clearing and extension semantics\"`"
     ),
     "double_underscore_anchor": (
         "- bitmap double-underscore alias unit-test anchor: `tools/lib/bitmap.zig:test \"bitmap double-underscore aliases preserve core helper semantics\"`"
@@ -100,6 +109,14 @@ REQUIRED_MANIFEST_FIELDS = {
         "Direct Zig unit coverage keeps bitmap_alloc(), bitmap_zalloc(), and bitmap_free() "
         "aligned with bitmapAlloc(), bitmapZalloc(), and bitmapFree() for partial-word sizing, "
         "zero-filled allocation, and optional-handle reset semantics."
+    ),
+    "copy_alias_unit_test_anchor": (
+        'tools/lib/bitmap.zig:test "bitmap copy aliases preserve tail clearing and extension semantics"'
+    ),
+    "copy_alias_unit_test_contract": (
+        "Direct Zig unit coverage keeps bitmap_copy_clear_tail() and bitmap_copy_and_extend() "
+        "aligned with copyClearTail() and copyAndExtend() by preserving tail masking in the "
+        "final copied word and zero-filled extension across the remaining word window."
     ),
     "double_underscore_alias_unit_test_anchor": (
         'tools/lib/bitmap.zig:test "bitmap double-underscore aliases preserve core helper '
@@ -175,14 +192,6 @@ def validate_required_files(required_files: dict[str, Path]) -> list[str]:
     for rel, path in required_files.items():
         if not path.exists():
             missing.append(f"missing_file:{rel}")
-    return missing
-
-
-def validate_text(prefix: str, source: str, snippets: dict[str, str]) -> list[str]:
-    missing: list[str] = []
-    for label, snippet in snippets.items():
-        if snippet not in source:
-            missing.append(f"{prefix}:{label}")
     return missing
 
 
@@ -489,8 +498,9 @@ def main() -> int:
     parser = argparse.ArgumentParser(
         description=(
             "Fail closed if the shared Phase 1 validation lane stops naming the shipped bitmap "
-            "header-alias, underscore-alias, allocator-alias, double-underscore-alias, "
-            "size-helper, xor-window, tail-mask, zero-bit, or empty-bitmap review packet."
+            "header-alias, copy-alias, underscore-alias, allocator-alias, "
+            "double-underscore-alias, size-helper, xor-window, tail-mask, zero-bit, or "
+            "empty-bitmap review packet."
         )
     )
     parser.add_argument(
