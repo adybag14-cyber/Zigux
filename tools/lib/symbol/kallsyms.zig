@@ -1074,3 +1074,87 @@ test "kallsymsParseReader keeps the final unterminated callback record at EOF" {
     try std.testing.expectEqualStrings("startup_64", state.names.items[0]);
     try std.testing.expectEqualStrings("weak_tail", state.names.items[1]);
 }
+
+test "kallsymsParseInDir and kallsymsParse keep the final unterminated callback record with owned scratch" {
+    const CallbackState = struct {
+        names: std.ArrayList([]u8),
+
+        fn init() @This() {
+            return .{
+                .names = std.ArrayList([]u8).empty,
+            };
+        }
+
+        fn deinit(self: *@This(), allocator: std.mem.Allocator) void {
+            for (self.names.items) |name| {
+                allocator.free(name);
+            }
+            self.names.deinit(allocator);
+            self.* = undefined;
+        }
+
+        fn collect(context: ?*anyopaque, name: [:0]const u8, symbol_type: u8, start: u64) i32 {
+            _ = symbol_type;
+            _ = start;
+            const self: *@This() = @ptrCast(@alignCast(context.?));
+            self.names.append(std.testing.allocator, std.testing.allocator.dupe(u8, name) catch return -99) catch return -98;
+            return 0;
+        }
+    };
+
+    const contents =
+        "ffffffff81000000 T startup_64\n" ++
+        "ffffffff81000400 w weak_tail";
+
+    var temp_dir = std.testing.tmpDir(.{});
+    defer temp_dir.cleanup();
+    const io = std.testing.io;
+
+    {
+        const file = try temp_dir.dir.createFile(io, "kallsyms-eof.map", .{ .read = true });
+        defer file.close(io);
+        var writer_buffer: [128]u8 = undefined;
+        var writer: std.Io.File.Writer = .init(file, io, &writer_buffer);
+        try writer.interface.writeAll(contents);
+        try writer.interface.flush();
+    }
+
+    var in_dir_state = CallbackState.init();
+    defer in_dir_state.deinit(std.testing.allocator);
+
+    const in_dir_result = try kallsymsParseInDir(
+        std.testing.allocator,
+        io,
+        temp_dir.dir,
+        "kallsyms-eof.map",
+        &in_dir_state,
+        CallbackState.collect,
+    );
+
+    try std.testing.expectEqual(@as(i32, 0), in_dir_result);
+    try std.testing.expectEqual(@as(usize, 2), in_dir_state.names.items.len);
+    try std.testing.expectEqualStrings("startup_64", in_dir_state.names.items[0]);
+    try std.testing.expectEqualStrings("weak_tail", in_dir_state.names.items[1]);
+
+    const filename = try std.fs.path.join(
+        std.testing.allocator,
+        &.{ ".zig-cache", "tmp", temp_dir.sub_path[0..], "kallsyms-eof.map" },
+    );
+    defer std.testing.allocator.free(filename);
+
+    var filename_state = CallbackState.init();
+    defer filename_state.deinit(std.testing.allocator);
+
+    const filename_result = try kallsymsParse(
+        std.testing.allocator,
+        io,
+        filename,
+        &filename_state,
+        CallbackState.collect,
+    );
+
+    try std.testing.expectEqual(@as(i32, 0), filename_result);
+    try std.testing.expectEqual(@as(usize, 2), filename_state.names.items.len);
+    try std.testing.expectEqualStrings("startup_64", filename_state.names.items[0]);
+    try std.testing.expectEqualStrings("weak_tail", filename_state.names.items[1]);
+}
