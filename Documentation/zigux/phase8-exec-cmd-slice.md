@@ -79,7 +79,7 @@ The current tests check:
 - the deferred-exec handoff helper prepends the configured executable name to the collected `execl_cmd()` packet, keeps the trailing null terminator, preserves the empty-tail `execl_cmd(cmd, NULL)` shape, and stays launch-free so the reviewable surface stops before any real `execvp()` side effect
 - the combined deferred `execl_cmd()` planner keeps rebuilt `PATH` state and the future argv packet aligned in one launch-free handoff without claiming direct execution or queue ownership
 - the new PWD-aware deferred `execl_cmd()` planner keeps that same combined handoff aligned with the stat-backed logical-`PWD` proof and still falls back cleanly when the injected identities do not match
-- helper-local `tools/lib/subcmd/exec-cmd.zig` tests own the detailed `setupPathWithPwd()`, `planDeferredExecvCallWithPwd()`, `planDeferredExeclCallWithPwd()`, and empty-tail `execl_cmd(cmd, NULL)` shapes, while the focused Phase 8 replay stays centered on one integrated deferred handoff plus docs, build wiring, and live `exec-cmd.c` anchor reviewability
+- helper-local `tools/lib/subcmd/exec-cmd.zig` tests own the detailed inherited-empty-`PATH` trailing-`:` output, root-cwd single-slash `/tools/bin:/scripts` shape, `setupPathWithPwd()`, `planDeferredExecvCallWithPwd()`, `planDeferredExeclCallWithPwd()`, and empty-tail `execl_cmd(cmd, NULL)` shapes, while the focused Phase 8 replay stays centered on one integrated deferred handoff plus docs, build wiring, and live `exec-cmd.c` anchor reviewability
 
 ## Non-goals
 
