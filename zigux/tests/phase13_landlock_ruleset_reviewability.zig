@@ -34,7 +34,7 @@ fn expectContains(haystack: []const u8, needle: []const u8) !void {
     try std.testing.expect(std.mem.indexOf(u8, haystack, needle) != null);
 }
 
-test "phase13 landlock ruleset reviewability ties helper, survey, and manifest together" {
+test "phase13 landlock ruleset reviewability ties helper, slice, survey, and manifest together" {
     var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
     defer io_instance.deinit();
 
@@ -58,6 +58,7 @@ test "phase13 landlock ruleset reviewability ties helper, survey, and manifest t
     try std.testing.expect(manifest.survey_summary.ruleset_c_lines >= 700);
     try std.testing.expect(manifest.survey_summary.preexisting_phase13_build_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase13_landlock_test_present);
+    try std.testing.expect(manifest.survey_summary.preexisting_phase13_landlock_slice_note_present);
     try std.testing.expectEqual(@as(usize, 15), manifest.gaps.len);
 
     const descriptor = ruleset.RulesetHelperLab.descriptor();
@@ -76,6 +77,21 @@ test "phase13 landlock ruleset reviewability ties helper, survey, and manifest t
     try std.testing.expect(descriptor.provides_rule_release_planning);
     try std.testing.expect(!descriptor.touches_live_object_trees);
     try std.testing.expect(!descriptor.touches_live_hierarchy);
+
+    const slice_note = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "Documentation/zigux/phase13-landlock-ruleset-slice.md",
+        std.testing.allocator,
+        .limited(32 * 1024),
+    );
+    defer std.testing.allocator.free(slice_note);
+
+    try expectContains(slice_note, "# Phase 13 Landlock Ruleset Slice");
+    try expectContains(slice_note, "`security/landlock/ruleset.zig`");
+    try expectContains(slice_note, "adds one bounded `landlock_find_rule()` lookup planner");
+    try expectContains(slice_note, "`root->rb_node` descent");
+    try expectContains(slice_note, "match-versus-null outcomes stay reviewable as data");
+    try expectContains(slice_note, "The next honest bounded step in this same lane is blocked");
 
     const survey_note = try std.Io.Dir.cwd().readFileAlloc(
         io_instance.io(),
