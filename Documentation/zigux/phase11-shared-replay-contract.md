@@ -88,7 +88,7 @@ Those surfaces are where contributors usually discover the Phase 11 route before
 
 The four driver-local validation matrices belong in that same sync set because each roadmap-backed driver lane names the shared Phase 11 replay route there; if the shared replay contract changes without those matrix notes moving too, the contributor-facing matrix packet starts undercounting the live simple-driver tranche.
 
-In particular, the `zigux/tests/README.md` Phase 11 guidance now repeats the four shared split and adjunct replays, the four driver-local manifests, and `scripts/zigux/check-phase11-header-boundary-packet.py` explicitly, so the tests-root carryover prompt matches the shared contract note, the validator-first guide, and the tests-root review companion.
+In particular, the `zigux/tests/README.md` Phase 11 guidance already keeps the four shared split and adjunct replays plus `scripts/zigux/check-phase11-header-boundary-packet.py` explicit, while the Phase 11 key entrypoint inventory carries the four driver-local manifests and the paired UAPI header-parity manifest. When that tests-root guidance is refreshed again, those manifest names should stay explicit in the same guidance packet too so the tests-root carryover prompt matches the shared contract note, the validator-first guide, and the tests-root review companion.
 
 The same four driver-local manifests should stay explicit in `Documentation/zigux/README.md` whenever the docs-root Phase 11 summary is refreshed, so the top-level docs index does not undercount the active simple-driver packet while the tests-root and checklist-facing prompts stay precise.
 
