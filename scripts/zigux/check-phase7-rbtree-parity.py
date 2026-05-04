@@ -73,6 +73,24 @@ def include_flags(shim_dir: Path) -> list[str]:
     ]
 
 
+def validate_required_path(path: Path, label: str) -> None:
+    if not path.exists():
+        raise FileNotFoundError(f"missing {label}: {path}")
+
+
+def validate_required_paths(
+    *,
+    fixture: Path = FIXTURE,
+    harness: Path = HARNESS,
+    artifact_diff: Path = ARTIFACT_DIFF,
+    source: Path = SOURCE,
+) -> None:
+    validate_required_path(fixture, "fixture")
+    validate_required_path(harness, "harness")
+    validate_required_path(artifact_diff, "artifact diff tool")
+    validate_required_path(source, "source")
+
+
 def compile_and_run(
     exe: Path,
     actual: Path,
@@ -155,6 +173,13 @@ def run_self_test() -> int:
         env = os.environ.copy()
         env[SELF_TEST_PAYLOAD_ENV] = payload
 
+        validate_required_paths(
+            fixture=fixture,
+            harness=harness,
+            artifact_diff=fake_artifact_diff,
+            source=source,
+        )
+
         exe = tmp_dir / "phase7_rbtree_selftest"
         actual = tmp_dir / "actual.json"
         compile_and_run(
@@ -197,8 +222,45 @@ def run_self_test() -> int:
         if drift_result.returncode == 0:
             raise SystemExit("phase7-rbtree-parity-self-test:drift_not_detected")
 
+        fixture.unlink()
+        try:
+            validate_required_paths(
+                fixture=fixture,
+                harness=harness,
+                artifact_diff=fake_artifact_diff,
+                source=source,
+            )
+        except FileNotFoundError as exc:
+            if str(exc) != f"missing fixture: {fixture}":
+                raise SystemExit(
+                    "phase7-rbtree-parity-self-test:missing_fixture_guard_shape"
+                ) from exc
+        else:
+            raise SystemExit(
+                "phase7-rbtree-parity-self-test:missing_fixture_guard_not_detected"
+            )
+
+        fixture.write_text(payload, encoding="utf-8")
+        fake_artifact_diff.unlink()
+        try:
+            validate_required_paths(
+                fixture=fixture,
+                harness=harness,
+                artifact_diff=fake_artifact_diff,
+                source=source,
+            )
+        except FileNotFoundError as exc:
+            if str(exc) != f"missing artifact diff tool: {fake_artifact_diff}":
+                raise SystemExit(
+                    "phase7-rbtree-parity-self-test:missing_artifact_diff_guard_shape"
+                ) from exc
+        else:
+            raise SystemExit(
+                "phase7-rbtree-parity-self-test:missing_artifact_diff_guard_not_detected"
+            )
+
     print("PHASE7_RBTREE_PARITY_SELF_TEST=pass")
-    print("PHASE7_RBTREE_PARITY_SELF_TEST_CASE_COUNT=2")
+    print("PHASE7_RBTREE_PARITY_SELF_TEST_CASE_COUNT=4")
     return 0
 
 
@@ -221,6 +283,13 @@ def main() -> int:
 
     if args.self_test:
         return run_self_test()
+
+    try:
+        validate_required_paths()
+    except FileNotFoundError as exc:
+        print("PHASE7_RBTREE_PARITY=fail")
+        print(str(exc))
+        return 1
 
     compiler = find_compiler(args.cc)
 
