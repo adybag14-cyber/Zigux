@@ -8,6 +8,7 @@ import re
 import shutil
 import subprocess
 import sys
+import tempfile
 import textwrap
 from pathlib import Path
 
@@ -277,6 +278,25 @@ def expected_surface_from_fixture_file(path: Path) -> list[str]:
     return expected_surface_from_fixture_text(path.read_text(encoding="utf-8"))
 
 
+def cleanup_generated_include(path: Path) -> None:
+    try:
+        path.unlink()
+    except FileNotFoundError:
+        pass
+
+
+def cleanup_generated_include_self_test() -> bool:
+    temp_dir = Path(tempfile.mkdtemp(prefix="phase6-base64-selftest-"))
+    try:
+        generated_include = temp_dir / GENERATED_INCLUDE.name
+        generated_include.write_text("transient fixture data", encoding="utf-8")
+        cleanup_generated_include(generated_include)
+        cleanup_generated_include(generated_include)
+        return not generated_include.exists()
+    finally:
+        temp_dir.rmdir()
+
+
 def run_self_test() -> int:
     assert_equal("require_tool_env", require_tool("zig", "PHASE6_SELFTEST_TOOL"), "/tmp/zig-self-test")
     expect_system_exit(
@@ -333,7 +353,8 @@ pub const invalid_decode_cases = [_]InvalidDecodeCase{
         'root_module.addImport("base64", base64_module);' in build_text
         and str(ROOT / "lib" / "base64.zig") in build_text
         and str(ZIG_RUNNER) in build_text
-        and expected_surface_from_fixture_text(sample_fixture) == sample_expected,
+        and expected_surface_from_fixture_text(sample_fixture) == sample_expected
+        and cleanup_generated_include_self_test(),
         True,
     )
     expect_system_exit(
@@ -397,27 +418,30 @@ def main() -> int:
     c_bin = out_dir / "phase6_base64_c_harness"
     zig_build = out_dir / "build.zig"
 
-    generated_cases = run_checked([zig, "run", str(CASE_GENERATOR)]).stdout
-    GENERATED_INCLUDE.write_text(generated_cases, encoding="utf-8")
+    try:
+        generated_cases = run_checked([zig, "run", str(CASE_GENERATOR)]).stdout
+        GENERATED_INCLUDE.write_text(generated_cases, encoding="utf-8")
 
-    zig_build.write_text(build_zig_build_text(), encoding="utf-8")
+        zig_build.write_text(build_zig_build_text(), encoding="utf-8")
 
-    run_checked(
-        [
-            cc,
-            "-std=c99",
-            "-O2",
-            "-Wall",
-            "-Wextra",
-            "-pedantic",
-            "-o",
-            str(c_bin),
-            str(C_HARNESS),
-        ]
-    )
+        run_checked(
+            [
+                cc,
+                "-std=c99",
+                "-O2",
+                "-Wall",
+                "-Wextra",
+                "-pedantic",
+                "-o",
+                str(c_bin),
+                str(C_HARNESS),
+            ]
+        )
 
-    c_run = run_checked([str(c_bin)])
-    zig_run = run_checked([zig, "build", "run", "--build-file", str(zig_build)])
+        c_run = run_checked([str(c_bin)])
+        zig_run = run_checked([zig, "build", "run", "--build-file", str(zig_build)])
+    finally:
+        cleanup_generated_include(GENERATED_INCLUDE)
 
     c_lines = sorted_lines(c_run.stdout)
     zig_lines = sorted_lines(zig_run.stdout)
