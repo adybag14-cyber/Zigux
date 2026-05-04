@@ -24,6 +24,7 @@ This document records the current release-discipline reading for the active boun
   - `Documentation/zigux/phase12-virtio-scsi-survey.md`
   - `Documentation/zigux/phase12-virtio-scsi-slice.md`
   - `Documentation/zigux/phase12-libbpf-segment-survey.md`
+  - `scripts/zigux/README.md`
   - `scripts/zigux/check-phase12-cross.py`
   - `scripts/zigux/check-phase12-raw-github-coverage.py`
   - `scripts/zigux/check-phase12-libbpf-focused-replay.py`
@@ -94,6 +95,7 @@ The current bounded release-evidence set is:
 - `Documentation/zigux/phase12-virtio-scsi-survey.md`
 - `Documentation/zigux/phase12-virtio-scsi-slice.md`
 - `Documentation/zigux/phase12-libbpf-segment-survey.md`
+- `scripts/zigux/README.md`
 - `scripts/zigux/check-phase12-cross.py`
 - `scripts/zigux/check-phase12-raw-github-coverage.py`
 - `scripts/zigux/check-phase12-libbpf-focused-replay.py`
