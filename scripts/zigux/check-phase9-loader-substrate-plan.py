@@ -24,6 +24,7 @@ ATOMIC64_LOADER_PATH = "samples/zigux/runtime_atomic64_loader.zig"
 BITMAP_LOADER_PATH = "samples/zigux/runtime_bitmap_loader.zig"
 KRETPROBE_LOADER_PATH = "samples/zigux/runtime_kretprobe_loader.zig"
 TRACE_EVENTS_LOADER_PATH = "samples/zigux/runtime_trace_events_loader.zig"
+CHECKER_PATH = "scripts/zigux/check-phase9-loader-substrate-plan.py"
 
 REQUIRED_FILES = [
     SURVEY_PATH,
@@ -226,6 +227,13 @@ def validate_manifest_alignment(root: Path) -> list[str]:
             for entry in delivery_evidence
         ):
             missing_markers.append("manifest:trace-events-loader-blocked-scaffold_delivery_evidence_missing")
+        if not any(
+            isinstance(entry, dict)
+            and entry.get("id") == "runtime-loader-substrate-plan-checker"
+            and entry.get("path") == CHECKER_PATH
+            for entry in delivery_evidence
+        ):
+            missing_markers.append("manifest:runtime-loader-substrate-plan-checker_delivery_evidence_missing")
 
     ownership_map = manifest.get("ownership_map")
     if not isinstance(ownership_map, list):
@@ -248,6 +256,15 @@ def validate_manifest_alignment(root: Path) -> list[str]:
             for entry in ownership_map
         ):
             missing_markers.append("manifest:trace-events-loader-blocked-scaffold_ownership_missing")
+        if not any(
+            isinstance(entry, dict)
+            and entry.get("surface") == CHECKER_PATH
+            and isinstance(entry.get("owns"), str)
+            and "fail-closed checker coverage" in entry["owns"]
+            and "shared runtime request surface" in entry["owns"]
+            for entry in ownership_map
+        ):
+            missing_markers.append("manifest:runtime-loader-substrate-plan-checker_ownership_missing")
 
     gaps = manifest.get("gaps")
     if not isinstance(gaps, list):
@@ -468,6 +485,10 @@ def write_fixture_tree(root: Path) -> None:
                         "id": "trace-events-loader-blocked-scaffold",
                         "path": TRACE_EVENTS_LOADER_PATH,
                     },
+                    {
+                        "id": "runtime-loader-substrate-plan-checker",
+                        "path": CHECKER_PATH,
+                    },
                 ],
                 "ownership_map": [
                     {
@@ -477,6 +498,10 @@ def write_fixture_tree(root: Path) -> None:
                     {
                         "surface": TRACE_EVENTS_LOADER_PATH,
                         "owns": "trace-events loader-plan scaffold plus the without-substrate fallback under the sample-only blocked boundary",
+                    },
+                    {
+                        "surface": CHECKER_PATH,
+                        "owns": "fail-closed checker coverage for the shared loader-stage vocabulary, the sample-side loader catalog, the trace-events scaffold boundary, and the shared runtime request surface",
                     },
                 ],
                 "gaps": [
@@ -747,6 +772,16 @@ def run_self_test() -> int:
         )
         manifest_path.write_text(original_manifest, encoding="utf-8")
 
+        manifest = json.loads(original_manifest)
+        manifest["delivery_evidence_catalog"][2]["id"] = "runtime-loader-checker"
+        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+        expect_missing_marker(
+            "manifest_checker_delivery_evidence",
+            tmp_root,
+            "manifest:runtime-loader-substrate-plan-checker_delivery_evidence_missing",
+        )
+        manifest_path.write_text(original_manifest, encoding="utf-8")
+
         substrate_plan_path = tmp_root / SUBSTRATE_PLAN_PATH
         original_substrate_plan = substrate_plan_path.read_text(encoding="utf-8")
         substrate_plan_path.write_text(
@@ -763,6 +798,16 @@ def run_self_test() -> int:
             "substrate_plan:surveyed_commit_mismatch",
         )
         substrate_plan_path.write_text(original_substrate_plan, encoding="utf-8")
+
+        manifest = json.loads(original_manifest)
+        manifest["ownership_map"][2]["surface"] = SUBSTRATE_PLAN_PATH
+        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+        expect_missing_marker(
+            "manifest_checker_ownership",
+            tmp_root,
+            "manifest:runtime-loader-substrate-plan-checker_ownership_missing",
+        )
+        manifest_path.write_text(original_manifest, encoding="utf-8")
 
         manifest = json.loads(original_manifest)
         manifest["phase8_control_surface_markers"]["shared_runtime_loader_field"] = "shared loader field"
@@ -857,7 +902,7 @@ def run_self_test() -> int:
         trace_events_loader_path.write_text(original_trace_events_loader, encoding="utf-8")
 
     print("PHASE9_LOADER_SUBSTRATE_PLAN_SELF_TEST=pass")
-    print("PHASE9_LOADER_SUBSTRATE_PLAN_SELF_TEST_CASE_COUNT=20")
+    print("PHASE9_LOADER_SUBSTRATE_PLAN_SELF_TEST_CASE_COUNT=22")
     return 0
 
 
@@ -900,7 +945,7 @@ def main() -> int:
     print("PHASE9_LOADER_SUBSTRATE_PLAN=pass")
     print(
         "PHASE9_LOADER_SUBSTRATE_PLAN_MARKER_COUNT="
-        f"{len(SURVEY_REQUIRED_MARKERS) + len(SUBSTRATE_PLAN_REQUIRED_MARKERS) + len(REVIEW_CHECKLIST_REQUIRED_MARKERS) + len(SAMPLES_README_REQUIRED_MARKERS) + len(MAKEFILE_REQUIRED_MARKERS) + len(TRACE_EVENTS_LOADER_REQUIRED_MARKERS) + len(TRACE_EVENTS_LOADER_REQUIRED_CONTROL_SURFACE_MARKERS) + len(TRACE_EVENTS_LOADER_FORBIDDEN_MARKERS) + len(TRACE_EVENTS_LOADER_FORBIDDEN_CONTROL_SURFACE_MARKERS) + 16}"
+        f"{len(SURVEY_REQUIRED_MARKERS) + len(SUBSTRATE_PLAN_REQUIRED_MARKERS) + len(REVIEW_CHECKLIST_REQUIRED_MARKERS) + len(SAMPLES_README_REQUIRED_MARKERS) + len(MAKEFILE_REQUIRED_MARKERS) + len(TRACE_EVENTS_LOADER_REQUIRED_MARKERS) + len(TRACE_EVENTS_LOADER_REQUIRED_CONTROL_SURFACE_MARKERS) + len(TRACE_EVENTS_LOADER_FORBIDDEN_MARKERS) + len(TRACE_EVENTS_LOADER_FORBIDDEN_CONTROL_SURFACE_MARKERS) + 18}"
     )
     return 0
 
