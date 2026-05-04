@@ -129,6 +129,12 @@ CONTRACT_NOTE_MARKERS = [
     "- `scripts/zigux/check-phase12-libbpf-packet.py`",
 ]
 
+CONTRACT_NOTE_EXACT_COUNT_MARKERS = {
+    "that same release-facing PMO packet now also names `zigux/tests/phase12_raw_github_coverage_manifest.json` and `zigux/tests/phase12_raw_github_coverage_survey.zig` directly, so the mixed public-read fallback split stays tied to manifest-backed and Zig-survey-backed evidence instead of living only in note-level prose.": 1,
+    "- `zigux/tests/phase12_raw_github_coverage_manifest.json`": 1,
+    "- `zigux/tests/phase12_raw_github_coverage_survey.zig`": 1,
+}
+
 MAKEFILE_SELF_TEST_MARKER = "scripts/zigux/check-phase12-release-readiness-packet.py --self-test"
 MAKEFILE_RUN_MARKER = "scripts/zigux/check-phase12-release-readiness-packet.py"
 
@@ -362,6 +368,13 @@ def collect_missing(
     missing.extend(collect_marker_misses(survey_text, SURVEY_MARKERS, "survey"))
     missing.extend(collect_exact_count_misses(survey_text, SURVEY_EXACT_COUNT_MARKERS, "survey_count"))
     missing.extend(collect_marker_misses(contract_note_text, CONTRACT_NOTE_MARKERS, "contract_note"))
+    missing.extend(
+        collect_exact_count_misses(
+            contract_note_text,
+            CONTRACT_NOTE_EXACT_COUNT_MARKERS,
+            "contract_note_count",
+        )
+    )
     missing.extend(collect_marker_misses(docs_root_text, DOCS_ROOT_MARKERS, "docs_root"))
     missing.extend(collect_exact_count_misses(docs_root_text, DOCS_ROOT_EXACT_COUNT_MARKERS, "docs_root_count"))
     missing.extend(collect_marker_misses(review_checklist_text, REVIEW_CHECKLIST_MARKERS, "review_checklist"))
@@ -437,7 +450,7 @@ def expect_contains(label: str, missing: list[str], expected_item: str) -> None:
     if expected_item not in missing:
         actual = ",".join(missing) if missing else "none"
         raise SystemExit(
-            f"phase12-release-readiness-self-test:{label}:expected_missing:{expected_item}:actual:{actual}"
+            f"phase12-release-readiness-self-test:{label}:expected_missing_item:{expected_item}:actual:{actual}"
         )
 
 
@@ -471,7 +484,10 @@ def run_self_test() -> int:
             ]
         )
         + "\n",
-        "contract_note_text": "\n".join(CONTRACT_NOTE_MARKERS) + "\n",
+        "contract_note_text": "\n".join(
+            CONTRACT_NOTE_MARKERS + list(CONTRACT_NOTE_EXACT_COUNT_MARKERS)
+        )
+        + "\n",
         "docs_root_text": "\n".join(DOCS_ROOT_MARKERS) + "\n",
         "review_checklist_text": "\n".join(REVIEW_CHECKLIST_MARKERS) + "\n",
         "scripts_readme_text": "\n".join(SCRIPTS_README_MARKERS) + "\n",
@@ -900,6 +916,53 @@ def run_self_test() -> int:
         f"contract_note:{CONTRACT_NOTE_MARKERS[0]}",
     )
 
+    contract_note_raw_coverage_sentence = next(iter(CONTRACT_NOTE_EXACT_COUNT_MARKERS))
+    missing = collect_missing(
+        **{
+            **base_inputs,
+            "contract_note_text": base_inputs["contract_note_text"].replace(
+                contract_note_raw_coverage_sentence + "\n",
+                "",
+                1,
+            ),
+        }
+    )
+    expect_contains(
+        "contract_note_raw_coverage_sentence_exact_count_detection",
+        missing,
+        f"contract_note_count:{contract_note_raw_coverage_sentence}:expected=1:actual=0",
+    )
+
+    manifest_review_use_marker = "- `zigux/tests/phase12_raw_github_coverage_manifest.json`"
+    missing = collect_missing(
+        **{
+            **base_inputs,
+            "contract_note_text": base_inputs["contract_note_text"]
+            + manifest_review_use_marker
+            + "\n",
+        }
+    )
+    expect_contains(
+        "contract_note_manifest_review_use_exact_count_detection",
+        missing,
+        "contract_note_count:- `zigux/tests/phase12_raw_github_coverage_manifest.json`:expected=1:actual=2",
+    )
+
+    survey_review_use_marker = "- `zigux/tests/phase12_raw_github_coverage_survey.zig`"
+    missing = collect_missing(
+        **{
+            **base_inputs,
+            "contract_note_text": base_inputs["contract_note_text"]
+            + survey_review_use_marker
+            + "\n",
+        }
+    )
+    expect_contains(
+        "contract_note_survey_review_use_exact_count_detection",
+        missing,
+        "contract_note_count:- `zigux/tests/phase12_raw_github_coverage_survey.zig`:expected=1:actual=2",
+    )
+
     missing = collect_missing(
         **{
             **base_inputs,
@@ -1108,7 +1171,7 @@ def run_self_test() -> int:
     )
 
     print("PHASE12_RELEASE_READINESS_PACKET_SELF_TEST=pass")
-    print("PHASE12_RELEASE_READINESS_PACKET_SELF_TEST_CASE_COUNT=46")
+    print("PHASE12_RELEASE_READINESS_PACKET_SELF_TEST_CASE_COUNT=49")
     return 0
 
 
