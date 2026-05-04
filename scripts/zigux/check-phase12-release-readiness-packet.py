@@ -319,6 +319,22 @@ def run_self_test() -> int:
             "present_files": {
                 path
                 for path in REQUIRED_FILES
+                if path != "scripts/zigux/check-phase12-cross.py"
+            },
+        }
+    )
+    expect_contains(
+        "cross_checker_file_detection",
+        missing,
+        "missing_file:scripts/zigux/check-phase12-cross.py",
+    )
+
+    missing = collect_missing(
+        **{
+            **base_inputs,
+            "present_files": {
+                path
+                for path in REQUIRED_FILES
                 if path != "scripts/zigux/check-phase12-libbpf-focused-replay.py"
             },
         }
@@ -750,7 +766,7 @@ def run_self_test() -> int:
     expect_contains("raw_coverage_marker_detection", missing, "raw_coverage:shared-tree-only")
 
     print("PHASE12_RELEASE_READINESS_PACKET_SELF_TEST=pass")
-    print("PHASE12_RELEASE_READINESS_PACKET_SELF_TEST_CASE_COUNT=36")
+    print("PHASE12_RELEASE_READINESS_PACKET_SELF_TEST_CASE_COUNT=37")
     return 0
 
 
