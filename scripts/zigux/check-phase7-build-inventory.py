@@ -44,6 +44,7 @@ EXPECTED_REPO_ROOT_RUN_CWDS = [
     "phase7-cmdline-survey-tests",
     "phase7-argv-split-survey-tests",
     "phase7-string-helpers-survey-tests",
+    "phase7-string-helpers-sample-boundary-tests",
     "phase7-rbtree-survey-tests",
 ]
 
@@ -643,9 +644,9 @@ def main(argv: list[str] | None = None) -> int:
         build_inventory_errors.append("shared_validation_commands")
     if generated.get("unexpected_build_markers") != UNEXPECTED_BUILD_MARKERS:
         build_inventory_errors.append("unexpected_build_markers")
-    if len(generated.get("run_labels", [])) != 8:
+    if len(generated.get("run_labels", [])) != 9:
         build_inventory_errors.append("run_labels")
-    if len(generated.get("shared_test_depend_steps", [])) != 8:
+    if len(generated.get("shared_test_depend_steps", [])) != 9:
         build_inventory_errors.append("shared_test_depend_steps")
     for run_label in EXPECTED_REPO_ROOT_RUN_CWDS:
         if generated.get("run_cwds", {}).get(run_label) != "repo_root":
