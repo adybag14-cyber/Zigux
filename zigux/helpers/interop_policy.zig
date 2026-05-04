@@ -71,6 +71,15 @@ pub const DecodedInteropPolicy = struct {
         return narrow.scopedConstPointerAt(T, self.unsafe_scope, addr);
     }
 
+    pub fn readValueAt(
+        self: DecodedInteropPolicy,
+        comptime T: type,
+        addr: usize,
+    ) narrow.ScopeError!T {
+        if (!self.permitsRawPointerBridge()) return error.UnsafeScopeDenied;
+        return narrow.scopedConstValueAt(T, self.unsafe_scope, addr);
+    }
+
     pub fn toInteropPolicy(self: DecodedInteropPolicy) abi.InteropPolicy {
         return .{
             .panic_mode = @intFromEnum(self.panic_mode),
@@ -204,11 +213,14 @@ test "phase3 interop policy decoder keeps raw-pointer bridge consumers explicit"
     try std.testing.expectEqual(@as(u32, 7), words_slice[0]);
     const second_word = try raw_pointer_policy.constPointerAt(u32, base + @sizeOf(u32));
     try std.testing.expectEqual(@as(u32, 11), second_word.*);
+    try std.testing.expectEqual(@as(u32, 11), try raw_pointer_policy.readValueAt(u32, base + @sizeOf(u32)));
 
     try std.testing.expectError(error.UnsafeScopeDenied, mmio_policy.constSliceAt(u32, base, words.len));
     try std.testing.expectError(error.UnsafeScopeDenied, mmio_policy.constPointerAt(u32, base));
+    try std.testing.expectError(error.UnsafeScopeDenied, mmio_policy.readValueAt(u32, base));
     try std.testing.expectError(error.MisalignedAccess, raw_pointer_policy.constSliceAt(u32, base + 1, 1));
     try std.testing.expectError(error.MisalignedAccess, raw_pointer_policy.constPointerAt(u32, base + 1));
+    try std.testing.expectError(error.MisalignedAccess, raw_pointer_policy.readValueAt(u32, base + 1));
     try std.testing.expectError(error.AddressOverflow, raw_pointer_policy.constSliceAt(u32, 4, std.math.maxInt(usize)));
 }
 
