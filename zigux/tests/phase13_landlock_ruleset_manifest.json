@@ -104,6 +104,13 @@
       "why_now": "The ruleset helper now includes one bounded `create_rule()` materialization planner around copied layer stacks, optional merged-layer append behavior, `RB_CLEAR_NODE()` initialization, and whether the key kind would imply object-backed ownership, while still avoiding allocation, live refcounts, or `rb_replace_node()` state."
     },
     {
+      "id": "phase13-landlock-rule-replacement-followup",
+      "status": "starter_landed",
+      "kind": "security_helper_pilot",
+      "zigux_destination": "security/landlock/ruleset.zig",
+      "why_now": "The ruleset helper now includes one bounded helper-only replacement planning step around `rb_replace_node()`, previous-rule release intent, and inode-only previous-object release intent so matched-rule updates can stay reviewable as data without claiming actual rb-tree mutation or live ownership transfer."
+    },
+    {
       "id": "phase13-landlock-rule-release-followup",
       "status": "starter_landed",
       "kind": "security_helper_pilot",
@@ -115,7 +122,7 @@
       "status": "blocked_on_live_lsm_state",
       "kind": "security_helper_pilot",
       "zigux_destination": "security/landlock/ruleset.zig",
-      "why_now": "The next remaining ruleset gap now starts after helper-only materialization and release planning and crosses into `rb_replace_node()`, live object ownership transfer, hierarchy lifetime, workqueue-backed teardown, and other ruleset state that would overstate this helper lab if it were modeled as a pure in-memory followup."
+      "why_now": "The next remaining ruleset gap now starts after helper-only replacement and release planning and crosses into actual rb-tree mutation, live object ownership transfer, hierarchy lifetime, workqueue-backed teardown, and other ruleset state that would overstate this helper lab if it were modeled as a pure in-memory followup."
     }
   ]
 }
