@@ -526,6 +526,26 @@ def run_self_test() -> int:
 
         _write(
             root / MAKEFILE_REL,
+            _fixture_makefile().replace(
+                '\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase13-release.py\n',
+                '\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase13-release.py\n'
+                '\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase13-release.py\n',
+                1,
+            ),
+        )
+        issues = validate(root)
+        expected = [
+            "unexpected_makefile_live_route_count:phase13-validate::2:validate-phase13-release.py"
+        ]
+        if issues != expected:
+            raise SystemExit(
+                "phase3-readme-tooling-inventory-self-test:duplicate_phase13_release_validator_route_guard_failed:"
+                + (",".join(issues) if issues else "none")
+            )
+        _write(root / MAKEFILE_REL, _fixture_makefile())
+
+        _write(
+            root / MAKEFILE_REL,
             "\n".join(
                 (
                     "phase11-validate:",
@@ -745,7 +765,7 @@ def run_self_test() -> int:
             f"missing_phase3_flow_snippet:{REQUIRED_PHASE3_FLOW_SNIPPETS[0]}",
             f"missing_phase3_flow_snippet:{REQUIRED_PHASE3_FLOW_SNIPPETS[1]}",
             f"unexpected_phase3_flow_snippet_count:0:{REQUIRED_PHASE3_FLOW_SNIPPETS[0]}",
-            f"unexpected_phase3_flow_snippet_count:0:{REQUIRED_PHASE3_FLOW_SNIPPETS[1]}",
+            f"unexpected_phase3_flow_snippet_count:0:{REQUIRED_PHASE3_FLOW_SNIPPETS[1]}"
         ]
         if issues != expected:
             raise SystemExit(
@@ -825,7 +845,7 @@ def run_self_test() -> int:
             )
 
     print("PHASE3_README_TOOLING_INVENTORY_SELF_TEST=pass")
-    print("PHASE3_README_TOOLING_INVENTORY_SELF_TEST_CASE_COUNT=15")
+    print("PHASE3_README_TOOLING_INVENTORY_SELF_TEST_CASE_COUNT=16")
     return 0
 
 
