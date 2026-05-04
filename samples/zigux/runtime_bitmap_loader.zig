@@ -16,6 +16,35 @@ pub const RuntimeBitmapLoadPlan = struct {
     summary: runtime_bitmap_sample.RuntimeBitmapSummary,
 };
 
+fn optionalStringEql(lhs: ?[]const u8, rhs: ?[]const u8) bool {
+    if (lhs) |lhs_value| {
+        return if (rhs) |rhs_value| std.mem.eql(u8, lhs_value, rhs_value) else false;
+    }
+    return rhs == null;
+}
+
+pub fn keepsSharedRequestSnapshotExplicit(
+    plan: RuntimeBitmapLoadPlan,
+    request: runtime_loader.RuntimeLoadRequest,
+) bool {
+    if (request.lane() != .bitmap) return false;
+
+    return std.mem.eql(u8, request.module_name, plan.module_name) and
+        optionalStringEql(plan.command_name, request.command_name) and
+        std.mem.eql(u8, request.anchor, plan.anchor) and
+        std.mem.eql(u8, request.entry_symbol, plan.entry_symbol) and
+        std.mem.eql(u8, request.exit_symbol, plan.exit_symbol) and
+        request.requires_runtime_substrate == plan.requires_runtime_substrate and
+        request.provides_selftest_hook == plan.provides_selftest_hook and
+        request.payload.bitmap.first_set == plan.summary.first_set and
+        request.payload.bitmap.first_zero == plan.summary.first_zero and
+        request.payload.bitmap.weight == plan.summary.weight and
+        request.payload.bitmap.nbits == plan.summary.nbits and
+        request.payload.bitmap.init_runs == plan.summary.init_runs and
+        request.payload.bitmap.selftest_runs == plan.summary.selftest_runs and
+        request.payload.bitmap.exit_runs == plan.summary.exit_runs;
+}
+
 pub const RuntimeBitmapLoader = struct {
     const Self = @This();
 
@@ -216,7 +245,7 @@ test "runtime bitmap loader emits the shared runtime-loader request shape" {
     _ = try module.runSelftest();
 
     var loader = RuntimeBitmapLoader{};
-    _ = try loader.prepare(&module);
+    const plan = try loader.prepare(&module);
 
     const request = try loader.requestSharedRuntimeLoad();
     try std.testing.expectEqual(LoaderStage.waiting_on_runtime_substrate, loader.stage());
@@ -229,6 +258,7 @@ test "runtime bitmap loader emits the shared runtime-loader request shape" {
     try std.testing.expect(request.keepsAllocatorInitFlowConsistent());
     try std.testing.expect(request.keepsLifecyclePayloadConsistent());
     try std.testing.expect(request.keepsSharedHandoffContractExplicit());
+    try std.testing.expect(keepsSharedRequestSnapshotExplicit(plan, request));
     try std.testing.expectEqual(runtime_loader.allocatorHandoffFor(.kernel_heap).init_flow, request.allocator_handoff.init_flow);
     try std.testing.expect(request.allocator_handoff.initializes_owned_state);
     try std.testing.expect(!request.allocator_handoff.requires_reset_on_init);
@@ -250,7 +280,7 @@ test "runtime bitmap loader can release the shared runtime-loader request withou
     _ = try module.runSelftest();
 
     var loader = RuntimeBitmapLoader{};
-    _ = try loader.prepare(&module);
+    const plan = try loader.prepare(&module);
 
     const released = try loader.releaseSharedRuntimeLoadWithoutSubstrate();
     try std.testing.expectEqual(LoaderStage.released_without_substrate, loader.stage());
@@ -264,6 +294,7 @@ test "runtime bitmap loader can release the shared runtime-loader request withou
     try std.testing.expect(released.keepsAllocatorInitFlowConsistent());
     try std.testing.expect(released.keepsLifecyclePayloadConsistent());
     try std.testing.expect(released.keepsSharedHandoffContractExplicit());
+    try std.testing.expect(keepsSharedRequestSnapshotExplicit(plan, released));
     try std.testing.expectEqual(runtime_loader.allocatorHandoffFor(.kernel_heap).init_flow, released.allocator_handoff.init_flow);
     try std.testing.expect(released.allocator_handoff.initializes_owned_state);
     try std.testing.expect(!released.allocator_handoff.requires_reset_on_init);
@@ -293,14 +324,49 @@ test "runtime bitmap loader preserves an explicit shared command name" {
     const request = try loader.requestSharedRuntimeLoad();
     try std.testing.expectEqualStrings("perf-runtime-bitmap", request.command_name.?);
     try std.testing.expect(request.keepsCommandNameExplicit());
+    try std.testing.expect(keepsSharedRequestSnapshotExplicit(plan, request));
     try std.testing.expectEqual(runtime_loader.LoaderStage.waiting_on_runtime_substrate, request.handoff_stage);
 
     var fallback_loader = RuntimeBitmapLoader{};
-    _ = try fallback_loader.prepareWithCommandName(&module, "perf-runtime-bitmap");
+    const fallback_plan = try fallback_loader.prepareWithCommandName(&module, "perf-runtime-bitmap");
     const released = try fallback_loader.releaseSharedRuntimeLoadWithoutSubstrate();
     try std.testing.expectEqualStrings("perf-runtime-bitmap", released.command_name.?);
     try std.testing.expect(released.keepsCommandNameExplicit());
+    try std.testing.expect(keepsSharedRequestSnapshotExplicit(fallback_plan, released));
     try std.testing.expectEqual(runtime_loader.LoaderStage.released_without_substrate, released.handoff_stage);
+}
+
+test "runtime bitmap loader rejects shared-request snapshot drift" {
+    var module = runtime_bitmap_sample.RuntimeBitmapSample{};
+    try module.initWithSetBits(&.{ 0, 5, 64, 70 });
+    _ = try module.runSelftest();
+
+    var loader = RuntimeBitmapLoader{};
+    const plan = try loader.prepareWithCommandName(&module, "perf-runtime-bitmap");
+    const request = try loader.requestSharedRuntimeLoad();
+    try std.testing.expect(keepsSharedRequestSnapshotExplicit(plan, request));
+
+    var drifted_command = request;
+    drifted_command.command_name = "perf-runtime-bitmap-drift";
+    try std.testing.expect(!keepsSharedRequestSnapshotExplicit(plan, drifted_command));
+
+    var drifted_weight = request;
+    drifted_weight.payload.bitmap.weight += 1;
+    try std.testing.expect(!keepsSharedRequestSnapshotExplicit(plan, drifted_weight));
+
+    var drifted_lane = request;
+    drifted_lane.payload = .{
+        .atomic64 = .{
+            .counter_snapshot = 4,
+            .init_runs = plan.summary.init_runs,
+            .selftest_runs = plan.summary.selftest_runs,
+            .exit_runs = plan.summary.exit_runs,
+        },
+    };
+    try std.testing.expect(!keepsSharedRequestSnapshotExplicit(plan, drifted_lane));
+
+    const released = request.releasedWithoutSubstrate();
+    try std.testing.expect(keepsSharedRequestSnapshotExplicit(plan, released));
 }
 
 test "runtime bitmap loader rejects an empty explicit shared command name" {
@@ -325,7 +391,7 @@ test "runtime bitmap loader keeps initialized-stage shared requests and fallback
     try module.initWithSetBits(&.{ 2, 7, 9 });
 
     var loader = RuntimeBitmapLoader{};
-    _ = try loader.prepare(&module);
+    const plan = try loader.prepare(&module);
 
     const request = try loader.requestSharedRuntimeLoad();
     try std.testing.expectEqual(LoaderStage.waiting_on_runtime_substrate, loader.stage());
@@ -338,6 +404,7 @@ test "runtime bitmap loader keeps initialized-stage shared requests and fallback
     try std.testing.expect(request.keepsAllocatorInitFlowConsistent());
     try std.testing.expect(request.keepsLifecyclePayloadConsistent());
     try std.testing.expect(request.keepsSharedHandoffContractExplicit());
+    try std.testing.expect(keepsSharedRequestSnapshotExplicit(plan, request));
     try std.testing.expectEqual(runtime_loader.LoaderStage.waiting_on_runtime_substrate, request.handoff_stage);
     try std.testing.expectEqual(@as(u32, 2), request.payload.bitmap.first_set);
     try std.testing.expectEqual(@as(u32, 0), request.payload.bitmap.first_zero);
@@ -348,7 +415,7 @@ test "runtime bitmap loader keeps initialized-stage shared requests and fallback
     try std.testing.expectEqual(@as(usize, 0), request.payload.bitmap.exit_runs);
 
     var fallback_loader = RuntimeBitmapLoader{};
-    _ = try fallback_loader.prepare(&module);
+    const fallback_plan = try fallback_loader.prepare(&module);
 
     const released = try fallback_loader.releaseSharedRuntimeLoadWithoutSubstrate();
     try std.testing.expectEqual(LoaderStage.released_without_substrate, fallback_loader.stage());
@@ -362,6 +429,7 @@ test "runtime bitmap loader keeps initialized-stage shared requests and fallback
     try std.testing.expect(released.keepsAllocatorInitFlowConsistent());
     try std.testing.expect(released.keepsLifecyclePayloadConsistent());
     try std.testing.expect(released.keepsSharedHandoffContractExplicit());
+    try std.testing.expect(keepsSharedRequestSnapshotExplicit(fallback_plan, released));
     try std.testing.expectEqual(runtime_loader.LoaderStage.released_without_substrate, released.handoff_stage);
     try std.testing.expectEqual(@as(u32, 2), released.payload.bitmap.first_set);
     try std.testing.expectEqual(@as(u32, 0), released.payload.bitmap.first_zero);
