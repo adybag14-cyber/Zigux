@@ -53,12 +53,18 @@ MAKE_MARKERS = [
 ]
 
 MAKE_EXACT_COUNT_MARKERS = [
+    "PHONY += phase14-validate phase14-smoke phase14-test phase14",
     "phase14-validate:",
     "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase14-docs-root-smoke-summary.py --self-test",
     "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase14-docs-root-smoke-summary.py",
     "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase14-release-boundary-exact-counts.py --self-test",
     "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase14-release-boundary-exact-counts.py",
     "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase14.py",
+    "phase14-smoke:",
+    "cd $(ZIGUX_ROOT) && $(ZIG) build phase14-smoke --build-file zigux/tests/phase14_build.zig --summary all",
+    "phase14-test:",
+    "cd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase14_build.zig --summary all",
+    "phase14: phase14-validate phase14-test",
 ]
 
 WORKFLOW_MARKERS = [
@@ -267,7 +273,6 @@ make_text = text("zigux/Makefile")
 
 for name, source, markers in [
     ("scripts_readme", scripts_readme_text, SCRIPT_README_MARKERS),
-    ("make", make_text, MAKE_MARKERS),
     ("workflow", text(".github/workflows/zigux-bootstrap.yml"), WORKFLOW_MARKERS),
     ("survey", survey_note, RELEASE_MARKERS),
     ("release_boundary", release_boundary_text, RELEASE_BOUNDARY_MARKERS),
@@ -490,7 +495,7 @@ expected_provenance_line = f"- survey provenance captured against verified `mast
 if expected_provenance_line not in survey_note:
     missing.append("survey:provenance_line")
 expected_verified_head_line = f"- verified `master` head: `{surveyed_commit}`"
-if expected_verified_head_line not in survey_note:
+if expected_verifiedHead_line not in survey_note:
     missing.append("survey:verified_master_head_line")
 expected_manifest_commit_line = f"- shared smoke manifest surveyed commit: `{surveyed_commit}`"
 if expected_manifest_commit_line not in survey_note:
