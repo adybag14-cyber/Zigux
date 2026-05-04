@@ -4,7 +4,7 @@ This note records the current policy and narrow-unsafe boundary for the bounded 
 
 ## Status
 
-- `PHASE3_SURVEYED_COMMIT=2ee37b9104a798d616fac10b58e81afc5b7c18f5`
+- `PHASE3_SURVEYED_COMMIT=ce6e9f453a73dba4bf05ee021c95ba12f0eee53c`
 - `PHASE3_LAYOUT_ASSERT_PATH=zigux/helpers/layout_assert.zig`
 - `PHASE3_LAYOUT_ASSERT_SCOPE=canonical-bindings`
 - `PHASE3_LAYOUT_ASSERT_STATUS=canonical-layout-assertions-landed`
@@ -50,7 +50,7 @@ It does require the current tree to say clearly which policy rules are already l
 
 ## Live Repo Reality
 
-This survey now treats `PHASE3_SURVEYED_COMMIT=2ee37b9104a798d616fac10b58e81afc5b7c18f5` as the last fully resurveyed shared-head anchor for the directly coupled policy-and-unsafe packet, not as a claim that the current `master` head still equals that commit or as a verified `master` head snapshot for every later packet read. For current-truth checks, the packet-local blob IDs above are the authoritative evidence for those helper, build, test, manifest, and slice-note paths whenever later `master` movement leaves the packet unchanged.
+This survey now treats `PHASE3_SURVEYED_COMMIT=ce6e9f453a73dba4bf05ee021c95ba12f0eee53c` as the last fully resurveyed shared-head anchor for the directly coupled policy-and-unsafe packet, not as a claim that the current `master` head still equals that commit or as a verified `master` head snapshot for every later packet read. For current-truth checks, the packet-local blob IDs above are the authoritative evidence for those helper, build, test, manifest, and slice-note paths whenever later `master` movement leaves the packet unchanged.
 
 The current tree already carries a real bounded policy-and-unsafe substrate:
 
