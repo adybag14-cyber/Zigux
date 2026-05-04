@@ -16,7 +16,7 @@ This note records the current atomic, barrier, and MMIO boundary for the bounded
 - `PHASE3_MMIO_PATH=zigux/helpers/mmio.zig`
 - `PHASE3_MMIO_SCOPE=range-read8-read16-read32-read64-write8-write16-write32-write64-plus-scoped-read8-write8-read16-write16-read32-write32-read64-write64-plus-policy-read8-write8-read16-write16-read32-write32-read64-write64-and-generic-policy-bridges`
 - `PHASE3_MMIO_STATUS=scoped-width-specific-mmio-and-policy-bridge-landed`
-- `PHASE3_MMIO_BLOB_SHA=218e68eb18f91b6df31e686fb7f121234d49fb24`
+- `PHASE3_MMIO_BLOB_SHA=ff5a7457511619bb9f23792cde74a53b29377823`
 - `PHASE3_LOW_LEVEL_BUILD_PATH=zigux/tests/phase3_low_level_wrappers_build.zig`
 - `PHASE3_LOW_LEVEL_BUILD_BLOB_SHA=5ff32e1306830195e248c26b2125cb6f9b2418c9`
 - `PHASE3_LOW_LEVEL_TEST_PATH=zigux/tests/phase3_low_level_wrappers.zig`
