@@ -309,21 +309,35 @@ test "phase3 policy gate decodes interop-policy unsafe bytes explicitly" {
         .reserved = 1,
     };
 
+    try std.testing.expectEqual(narrow.UnsafeScopeTag.volatile_mmio, narrow.scopeFromInteropPolicy(mmio_policy).?);
+    try std.testing.expect(narrow.recognizesInteropPolicy(mmio_policy));
+    try std.testing.expect(narrow.permitsVolatileMmioPolicy(mmio_policy));
+    try std.testing.expect(!narrow.permitsRawPointerBridgePolicy(mmio_policy));
     try std.testing.expectEqual(narrow.UnsafeScopeTag.volatile_mmio, narrow.scopeFromInteropPolicyBytes(mmio_policy.unsafe_scope, mmio_policy.reserved).?);
     try std.testing.expect(narrow.recognizesInteropPolicyBytes(mmio_policy.unsafe_scope, mmio_policy.reserved));
     try std.testing.expect(narrow.permitsVolatileMmioPolicyBytes(mmio_policy.unsafe_scope, mmio_policy.reserved));
     try std.testing.expect(!narrow.permitsRawPointerBridgePolicyBytes(mmio_policy.unsafe_scope, mmio_policy.reserved));
 
+    try std.testing.expectEqual(narrow.UnsafeScopeTag.raw_pointer_bridge, narrow.scopeFromInteropPolicy(raw_pointer_policy).?);
+    try std.testing.expect(narrow.recognizesInteropPolicy(raw_pointer_policy));
+    try std.testing.expect(!narrow.permitsVolatileMmioPolicy(raw_pointer_policy));
+    try std.testing.expect(narrow.permitsRawPointerBridgePolicy(raw_pointer_policy));
     try std.testing.expectEqual(narrow.UnsafeScopeTag.raw_pointer_bridge, narrow.scopeFromInteropPolicyBytes(raw_pointer_policy.unsafe_scope, raw_pointer_policy.reserved).?);
     try std.testing.expect(narrow.recognizesInteropPolicyBytes(raw_pointer_policy.unsafe_scope, raw_pointer_policy.reserved));
     try std.testing.expect(!narrow.permitsVolatileMmioPolicyBytes(raw_pointer_policy.unsafe_scope, raw_pointer_policy.reserved));
     try std.testing.expect(narrow.permitsRawPointerBridgePolicyBytes(raw_pointer_policy.unsafe_scope, raw_pointer_policy.reserved));
 
+    try std.testing.expectEqual(@as(?narrow.UnsafeScopeTag, null), narrow.scopeFromInteropPolicy(invalid_scope_policy));
+    try std.testing.expect(!narrow.recognizesInteropPolicy(invalid_scope_policy));
+    try std.testing.expect(!narrow.permitsVolatileMmioPolicy(invalid_scope_policy));
+    try std.testing.expect(!narrow.permitsRawPointerBridgePolicy(invalid_scope_policy));
     try std.testing.expectEqual(@as(?narrow.UnsafeScopeTag, null), narrow.scopeFromInteropPolicyBytes(invalid_scope_policy.unsafe_scope, invalid_scope_policy.reserved));
     try std.testing.expect(!narrow.recognizesInteropPolicyBytes(invalid_scope_policy.unsafe_scope, invalid_scope_policy.reserved));
     try std.testing.expect(!narrow.permitsVolatileMmioPolicyBytes(invalid_scope_policy.unsafe_scope, invalid_scope_policy.reserved));
     try std.testing.expect(!narrow.permitsRawPointerBridgePolicyBytes(invalid_scope_policy.unsafe_scope, invalid_scope_policy.reserved));
 
+    try std.testing.expectEqual(@as(?narrow.UnsafeScopeTag, null), narrow.scopeFromInteropPolicy(reserved_policy));
+    try std.testing.expect(!narrow.recognizesInteropPolicy(reserved_policy));
     try std.testing.expectEqual(@as(?narrow.UnsafeScopeTag, null), narrow.scopeFromInteropPolicyBytes(reserved_policy.unsafe_scope, reserved_policy.reserved));
     try std.testing.expect(!narrow.recognizesInteropPolicyBytes(reserved_policy.unsafe_scope, reserved_policy.reserved));
 }
