@@ -146,9 +146,17 @@ REQUIRED_INTEROP_POLICY_SNIPPETS = (
 REQUIRED_UNSAFE_SNIPPETS = (
     "pub const UnsafeScopeTag = enum(u8) {",
     "pub fn scopeFromInteropPolicyBytes(unsafe_scope: u8, reserved: u8) ?UnsafeScopeTag {",
+    "pub fn permitsVolatileMmioPolicyBytes(unsafe_scope: u8, reserved: u8) bool {",
+    "pub fn permitsRawPointerBridgePolicyBytes(unsafe_scope: u8, reserved: u8) bool {",
+    "pub fn recognizesInteropPolicyBytes(unsafe_scope: u8, reserved: u8) bool {",
     "pub fn scopedPointerAt(comptime T: type, scope: UnsafeScopeTag, base: usize, offset: usize) ScopeError!*volatile T {",
     "pub fn scopedConstSliceAt(comptime T: type, scope: UnsafeScopeTag, base: usize, len: usize) ScopeError![]const T {",
     "pub fn scopedConstPointerAt(comptime T: type, scope: UnsafeScopeTag, addr: usize) ScopeError!*const T {",
+    "pub fn constValueAt(comptime T: type, scope: UnsafeScopeTag, addr: usize) ScopeError!T {",
+    "pub fn scopedConstValueAt(comptime T: type, scope: UnsafeScopeTag, addr: usize) ScopeError!T {",
+    'test "phase3 narrow unsafe wrappers stay bounded"',
+    'test "phase3 narrow unsafe scope stays explicit"',
+    'test "phase3 narrow unsafe scoped helpers reject misaligned addresses"',
     'test "phase3 narrow unsafe interop policy decoding stays explicit"',
     'test "phase3 scoped unsafe helpers require the declared scope"',
     'test "phase3 narrow unsafe scoped helpers reject overflowed address math"',
@@ -798,6 +806,53 @@ def run_self_test() -> int:
             in issues
         )
 
+        _write(
+            root,
+            UNSAFE_NARROW_REL,
+            "\n".join(
+                [
+                    "pub const UnsafeScopeTag = enum(u8) {",
+                    "pub fn scopeFromInteropPolicyBytes(unsafe_scope: u8, reserved: u8) ?UnsafeScopeTag { _ = unsafe_scope; _ = reserved; }",
+                    "pub fn scopedPointerAt(comptime T: type, scope: UnsafeScopeTag, base: usize, offset: usize) ScopeError!*volatile T { _ = T; _ = scope; _ = base; _ = offset; }",
+                    "pub fn scopedConstSliceAt(comptime T: type, scope: UnsafeScopeTag, base: usize, len: usize) ScopeError![]const T { _ = T; _ = scope; _ = base; _ = len; }",
+                    "pub fn scopedConstPointerAt(comptime T: type, scope: UnsafeScopeTag, addr: usize) ScopeError!*const T { _ = T; _ = scope; _ = addr; }",
+                    'test "phase3 narrow unsafe interop policy decoding stays explicit" {}',
+                    'test "phase3 scoped unsafe helpers require the declared scope" {}',
+                    'test "phase3 narrow unsafe scoped helpers reject overflowed address math" {}',
+                    "",
+                ]
+            ),
+        )
+        issues = validate(root)
+        assert (
+            "missing_unsafe_snippet:pub fn permitsVolatileMmioPolicyBytes(unsafe_scope: u8, reserved: u8) bool {"
+            in issues
+        )
+        assert (
+            "missing_unsafe_snippet:pub fn permitsRawPointerBridgePolicyBytes(unsafe_scope: u8, reserved: u8) bool {"
+            in issues
+        )
+        assert (
+            "missing_unsafe_snippet:pub fn recognizesInteropPolicyBytes(unsafe_scope: u8, reserved: u8) bool {"
+            in issues
+        )
+        assert (
+            "missing_unsafe_snippet:pub fn constValueAt(comptime T: type, scope: UnsafeScopeTag, addr: usize) ScopeError!T {"
+            in issues
+        )
+        assert (
+            "missing_unsafe_snippet:pub fn scopedConstValueAt(comptime T: type, scope: UnsafeScopeTag, addr: usize) ScopeError!T {"
+            in issues
+        )
+        assert 'missing_unsafe_snippet:test "phase3 narrow unsafe wrappers stay bounded"' in issues
+        assert 'missing_unsafe_snippet:test "phase3 narrow unsafe scope stays explicit"' in issues
+        assert 'missing_unsafe_snippet:test "phase3 narrow unsafe scoped helpers reject misaligned addresses"' in issues
+
+        _write(
+            root,
+            UNSAFE_NARROW_REL,
+            "\n".join(REQUIRED_UNSAFE_SNIPPETS) + "\n",
+        )
         _write(
             root,
             MMIO_REL,
