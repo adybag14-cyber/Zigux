@@ -65,6 +65,8 @@ This slice stays intentionally narrow and ports the first practical runtime-safe
 
 This lane is parked after the bounded helper surface compiled cleanly, the shared Phase 7 validator packet plus the build-inventory, make-wrapper, and dedicated rbtree parity self-tests now remain the published fail-closed handoff before helper replay, the focused module tests passed, the shared Phase 7 helper gate continued to import and exercise the live `rbtree` slice, the published `make -C zigux phase7` one-command bundle stays aligned with that same review path, the survey record captures the fully landed parity surface, and the committed parity fixture now locks ordered insert, standalone erase traversal, erase-plus-replace traversal, duplicate-range lookup, reverse traversal, and postorder behavior against the C helper surface.
 
+The manifest-backed survey gate now also reads the shared docs-root, scripts-root, tests-root, samples-root, and Makefile review packet directly, so the parked `samples/zigux/*rbtree*` boundary plus the published validator, parity, and wrapper routes fail closed from the same rbtree review note instead of depending only on the broader shared Phase 7 guides.
+
 The shared build-inventory gate and published `make -C zigux phase7` convenience path stay in that same review packet, so the committed `zigux/tests/fixtures/phase7_build_inventory.json` snapshot and the published wrapper route remain explicit instead of living only in the broader shared Phase 7 notes.
 
 ## Current parity surface
