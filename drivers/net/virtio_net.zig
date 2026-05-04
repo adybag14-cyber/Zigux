@@ -327,7 +327,7 @@ pub const VirtioNetProbeLab = struct {
         );
         const xdp_constraint = summarizeXdpConstraint(
             request.xdp_requested,
-            receive_buffer_mode,
+            receive_buffer_mode.big_packet_reason,
             mergeable_rx_buffers,
             header_scatter.policy,
         );
@@ -665,12 +665,12 @@ pub const VirtioNetProbeLab = struct {
 
     fn summarizeXdpConstraint(
         xdp_requested: bool,
-        receive_buffer_mode: ReceiveBufferSummary,
+        big_packet_reason: BigPacketReason,
         mergeable_rx_buffers: bool,
         header_scatter_policy: HeaderScatterPolicy,
     ) XdpConstraint {
         if (!xdp_requested) return .not_requested;
-        if (receive_buffer_mode.mode == .big_packets) return .blocked_by_big_packets;
+        if (big_packet_reason != .none) return .blocked_by_big_packets;
         if (mergeable_rx_buffers and header_scatter_policy == .separate_header_sg) {
             return .blocked_by_split_header;
         }
