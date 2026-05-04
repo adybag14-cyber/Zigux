@@ -90,11 +90,12 @@ The exact checks currently recorded in `zigux/tests/phase5_trace_events_sample_m
     - `2/2 phase5_trace_events_sample_survey.test.phase 5 trace-events contributor docs stay aligned with the shipped review surface...OK`
     - `All 2 tests passed.`
   - `zig build test --build-file zigux/tests/phase5_build.zig --summary all`
-    - `Build Summary: 17/17 steps succeeded; 28/28 tests passed`
+    - `Build Summary: 18/18 steps succeeded; 29/29 tests passed`
     - `phase5-bytestream-fifo-tests 5 pass (5 total)`
     - `phase5-bytestream-fifo-survey-tests 2 pass (2 total)`
     - `phase5-kobject-example-tests 5 pass (5 total)`
     - `phase5-kobject-example-survey-tests 2 pass (2 total)`
+    - `phase5-kretprobe-example-sample-tests 1 pass (1 total)`
     - `phase5-kretprobe-example-tests 5 pass (5 total)`
     - `phase5-kretprobe-example-survey-tests 2 pass (2 total)`
     - `phase5-trace-events-sample-tests 5 pass (5 total)`
