@@ -155,6 +155,12 @@ ARTIFACT_DIFF_NOTE_MARKERS = [
     "ARTIFACT_DIFF_CONTRACT_CASE_COUNT=27",
 ]
 
+RUNTIME_ATOMIC64_MATRIX_NOTE_MARKERS = [
+    "reversible-delivery evidence",
+    "`lib/atomic64_test.c` anchor",
+    "shared `phase4_build.zig` entrypoint",
+]
+
 
 def read_text(root: Path, rel: str) -> str:
     return (root / rel).read_text(encoding="utf-8")
@@ -170,6 +176,18 @@ def blob_sha(data: bytes) -> str:
 
 def missing_text(text: str, prefix: str, markers: list[str]) -> list[str]:
     return [f"{prefix}:{m}" for m in markers if m not in text]
+
+
+def find_gap_by_id(manifest: object, gap_id: str) -> dict[str, object] | None:
+    if not isinstance(manifest, dict):
+        return None
+    gaps = manifest.get("gaps")
+    if not isinstance(gaps, list):
+        return None
+    for gap in gaps:
+        if isinstance(gap, dict) and gap.get("id") == gap_id:
+            return gap
+    return None
 
 
 def validate_root(root: Path) -> list[str]:
@@ -230,6 +248,26 @@ def validate_root(root: Path) -> list[str]:
     if not isinstance(runtime_manifest, dict) or runtime_manifest.get("anchor") != "lib/atomic64_test.c":
         missing.append("runtime_manifest:anchor")
 
+    runtime_matrix_note_gap = find_gap_by_id(runtime_manifest, "phase4-validation-matrix-note")
+    if runtime_matrix_note_gap is None:
+        missing.append("runtime_manifest:phase4-validation-matrix-note")
+    else:
+        if runtime_matrix_note_gap.get("status") != "starter_landed":
+            missing.append("runtime_manifest:phase4-validation-matrix-note-status")
+        if runtime_matrix_note_gap.get("zigux_destination") != "Documentation/zigux/phase4-validation-matrix.md":
+            missing.append("runtime_manifest:phase4-validation-matrix-note-destination")
+        why_now = runtime_matrix_note_gap.get("why_now")
+        if not isinstance(why_now, str):
+            missing.append("runtime_manifest:phase4-validation-matrix-note-why-now")
+        else:
+            missing.extend(
+                missing_text(
+                    why_now,
+                    "runtime_manifest_matrix_note",
+                    RUNTIME_ATOMIC64_MATRIX_NOTE_MARKERS,
+                )
+            )
+
     if 'obj-$(CONFIG_SAMPLE_KPROBES) += kprobe_example.o' not in read_text(root, "samples/kprobes/Makefile"):
         missing.append("kprobe_anchor:makefile")
     if 'static char symbol[KSYM_NAME_LEN] = "kernel_clone";' not in read_text(root, "samples/kprobes/kprobe_example.c"):
@@ -269,7 +307,19 @@ def write_fixture_tree(root: Path) -> None:
         "samples/vfs/test-fsmount.c": "test-fsmount\n",
         "zigux/tests/atomic64_diff.zig": "atomic64\n",
         "zigux/tests/runtime_atomic64_diff.zig": "runtime atomic64 diff gate keeps post-selftest replay explicit\n",
-        "zigux/tests/phase4_runtime_atomic64_diff_manifest.json": json.dumps({"anchor": "lib/atomic64_test.c"}),
+        "zigux/tests/phase4_runtime_atomic64_diff_manifest.json": json.dumps(
+            {
+                "anchor": "lib/atomic64_test.c",
+                "gaps": [
+                    {
+                        "id": "phase4-validation-matrix-note",
+                        "status": "starter_landed",
+                        "zigux_destination": "Documentation/zigux/phase4-validation-matrix.md",
+                        "why_now": "The validation matrix already names the reversible-delivery evidence that keeps the current `lib/atomic64_test.c` anchor plus the shared `phase4_build.zig` entrypoint explicit.",
+                    }
+                ],
+            }
+        ),
         "zigux/tests/phase4_runtime_atomic64_diff_survey.zig": "phase4-runtime-atomic64-diff-survey-tests\n",
         "zigux/tests/phase4_kprobe_example_manifest.json": json.dumps({"shared_build_replay": "phase4-kprobe-example-survey-tests", "threshold_posture": "c_anchor_only_until_kprobe_example_starter_lands"}),
         "zigux/tests/phase4_kprobe_example_survey.zig": "\n".join([
@@ -325,6 +375,22 @@ def run_self_test() -> int:
         )
         missing = validate_root(root)
         assert "docs_readme_atomic64:make -C zigux phase4-runtime-atomic64-diff" in missing, missing
+
+        write_fixture_tree(root)
+        runtime_manifest = root / "zigux/tests/phase4_runtime_atomic64_diff_manifest.json"
+        runtime_manifest.write_text(
+            runtime_manifest.read_text(encoding="utf-8").replace(
+                "shared `phase4_build.zig` entrypoint",
+                "shared entrypoint",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        missing = validate_root(root)
+        assert (
+            "runtime_manifest_matrix_note:shared `phase4_build.zig` entrypoint"
+            in missing
+        ), missing
 
         write_fixture_tree(root)
         matrix = root / "Documentation/zigux/phase4-validation-matrix.md"
