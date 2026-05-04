@@ -351,3 +351,46 @@ test "runtime bitmap sample keeps transactional init failures explicit at the mo
     try std.testing.expect(direct.isSet(1));
     try std.testing.expect(direct.isSet(3));
 }
+
+test "runtime bitmap sample keeps failed range mutations non-destructive at the module boundary" {
+    var module = sample.RuntimeBitmapSample{};
+    const second_word_base = sample.RuntimeBitmapSample.bitmap_nbits / 2;
+    try module.initWithSetBits(&.{ 0, 5, second_word_base, second_word_base + 6 });
+
+    const summary_before_failure = module.summary();
+    try std.testing.expectEqual(sample.ModuleStage.initialized, module.stage());
+    try std.testing.expect(module.isSet(0));
+    try std.testing.expect(module.isSet(5));
+    try std.testing.expect(module.isSet(second_word_base));
+    try std.testing.expect(module.isSet(second_word_base + 6));
+
+    try std.testing.expectError(
+        error.BitRangeOutOfBounds,
+        module.setRange(sample.RuntimeBitmapSample.bitmap_nbits - 1, 2),
+    );
+    try std.testing.expectError(
+        error.BitRangeOutOfBounds,
+        module.clearRange(sample.RuntimeBitmapSample.bitmap_nbits, 1),
+    );
+
+    const summary_after_failure = module.summary();
+    try std.testing.expectEqual(sample.ModuleStage.initialized, module.stage());
+    try std.testing.expectEqual(summary_before_failure.first_set, summary_after_failure.first_set);
+    try std.testing.expectEqual(summary_before_failure.first_zero, summary_after_failure.first_zero);
+    try std.testing.expectEqual(summary_before_failure.weight, summary_after_failure.weight);
+    try std.testing.expectEqual(summary_before_failure.nbits, summary_after_failure.nbits);
+    try std.testing.expectEqual(summary_before_failure.init_runs, summary_after_failure.init_runs);
+    try std.testing.expectEqual(summary_before_failure.selftest_runs, summary_after_failure.selftest_runs);
+    try std.testing.expectEqual(summary_before_failure.exit_runs, summary_after_failure.exit_runs);
+    try std.testing.expect(module.isSet(0));
+    try std.testing.expect(module.isSet(5));
+    try std.testing.expect(module.isSet(second_word_base));
+    try std.testing.expect(module.isSet(second_word_base + 6));
+    try std.testing.expect(!module.isSet(second_word_base + 1));
+
+    const selftest = try module.runSelftest();
+    try std.testing.expectEqual(sample.ModuleStage.selftest_complete, module.stage());
+    try std.testing.expectEqual(@as(usize, 4), selftest.operation_families.len);
+    try std.testing.expect(selftest.checked_range_mutations);
+    try std.testing.expect(selftest.checked_iteration_paths);
+}
