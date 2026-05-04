@@ -2,7 +2,7 @@
 
 This note records the current shared-versus-focused replay contract for the active Phase 12 complex-driver and heavy-helper tranche on `master`.
 
-It is intentionally review-first documentation. It does not claim a fresh local replay result; it captures the live packet shape already wired through the shared validator, the shared build inventory, the bounded libbpf packet checkers, the raw-GitHub coverage checker, the release-readiness packet guard, and the dedicated focused libbpf-only replay shard.
+It is intentionally review-first documentation. It does not claim a fresh local replay result; it captures the live packet shape already wired through the shared validator, the shared replay contract checker, the shared build inventory, the bounded libbpf packet checkers, the raw-GitHub coverage checker, the release-readiness packet guard, and the dedicated focused libbpf-only replay shard.
 
 ## Scope
 
@@ -26,6 +26,8 @@ Run these in the published validator-first order before trusting the shared repl
 - `python3 scripts/zigux/check-phase12-raw-github-coverage.py`
 - `python3 scripts/zigux/check-phase12-release-readiness-packet.py --self-test`
 - `python3 scripts/zigux/check-phase12-release-readiness-packet.py`
+- `python3 scripts/zigux/check-phase12-shared-replay-contract.py --self-test`
+- `python3 scripts/zigux/check-phase12-shared-replay-contract.py`
 - `python3 scripts/zigux/validate-phase12.py`
 
 The published wrapper remains `make -C zigux phase12-validate`.
@@ -33,6 +35,8 @@ The published wrapper remains `make -C zigux phase12-validate`.
 The focused libbpf-only replay checker is intentionally part of that stack before the broader validator runs, so the dedicated shard can fail closed on its own build-root, review-note, Makefile, and workflow contract before the shared Phase 12 packet claims aligned evidence.
 
 The release-readiness packet checker is intentionally part of that same stack before the broader validator runs, so the active-not-closed PMO reading, the approved cross-target smoke set, and the mixed two commit-pinned versus two shared-tree-only fallback split fail closed beside the shared replay contract instead of drifting into separate note-only maintenance.
+
+The shared replay contract checker is intentionally part of that same stack before the broader validator runs, so the published contract note, the tests-root shared-versus-focused boundary sentence, and the live `phase12-validate` route fail closed together instead of leaving that agreement surface implied only by the Makefile.
 
 ## Shared Replay Surface
 
@@ -115,6 +119,7 @@ The minimum agreement surface for that kind of change is:
 - `scripts/zigux/check-phase12-libbpf-focused-replay.py`
 - `scripts/zigux/check-phase12-raw-github-coverage.py`
 - `scripts/zigux/check-phase12-release-readiness-packet.py`
+- `scripts/zigux/check-phase12-shared-replay-contract.py`
 - `zigux/tests/phase12_build.zig`
 - `zigux/tests/phase12_libbpf_only_build.zig`
 - `zigux/tests/phase12_libbpf_manifest.json`
