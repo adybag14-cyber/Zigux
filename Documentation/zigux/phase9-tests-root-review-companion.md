@@ -55,6 +55,12 @@ The tests-root packet should continue to keep the shared `RuntimeLoadRequest` bo
 ## Validator-first route
 
 The tests-root packet stays bounded behind the same validator-first route:
+- `python3 scripts/zigux/validate-phase9.py --self-test`
+- `python3 scripts/zigux/check-phase9-validation-flow.py --self-test`
+- `python3 scripts/zigux/check-phase9-loader-substrate-plan.py --self-test`
+- `python3 scripts/zigux/check-phase9-module-metadata-packet.py --self-test`
+- `python3 scripts/zigux/check-phase9-runtime-loader-commit-alignment.py --self-test`
+- `python3 scripts/zigux/check-phase9-loader-non-owner-boundary.py --self-test`
 - `python3 scripts/zigux/validate-phase9.py`
 - `python3 scripts/zigux/check-phase9-validation-flow.py`
 - `python3 scripts/zigux/check-phase9-loader-substrate-plan.py`
@@ -66,8 +72,10 @@ The tests-root packet stays bounded behind the same validator-first route:
 - `make -C zigux phase9-loader-commit-alignment-survey`
 - `make -C zigux phase9-non-owner-boundary-survey`
 - `make -C zigux phase9-module-metadata-survey`
+- `make -C zigux phase9-kretprobe-survey`
 - `make -C zigux phase9-trace-events-survey`
 - `make -C zigux phase9`
+- `zigux/tests/phase9_build.zig`
 
 ## Review rule
 
