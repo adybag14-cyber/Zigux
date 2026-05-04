@@ -30,7 +30,7 @@ const Manifest = struct {
     gaps: []const Gap,
 };
 
-const expected_surveyed_commit = "6652be8dc1038fe40868a604ba9bd864620f5342";
+const expected_surveyed_commit = "a8bb936df1520e7be16d3fdf9ee1875de398ead6";
 
 fn isAllowedStatus(status: []const u8) bool {
     return std.mem.eql(u8, status, "starter_landed") or
@@ -38,7 +38,7 @@ fn isAllowedStatus(status: []const u8) bool {
         std.mem.eql(u8, status, "blocked_on_vfs_state");
 }
 
-test "phase13 libfs manifest records the landed close-bookkeeping slice and the remaining blocked helpers" {
+test "phase13 libfs manifest records the landed addressability slice and the remaining blocked helpers" {
     var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
     defer io_instance.deinit();
 
@@ -110,6 +110,7 @@ test "phase13 libfs manifest records the landed close-bookkeeping slice and the 
     try std.testing.expect(descriptor.provides_transaction_buffer_planning);
     try std.testing.expect(descriptor.provides_transaction_read_release_planning);
     try std.testing.expect(descriptor.provides_open_private_data_planning);
+    try std.testing.expect(descriptor.provides_addressability_planning);
     try std.testing.expect(!descriptor.touches_live_dcache);
     try std.testing.expect(!descriptor.touches_live_inode_state);
 
@@ -158,7 +159,7 @@ test "phase13 libfs manifest records the landed close-bookkeeping slice and the 
         }
         if (std.mem.eql(u8, gap.id, "phase13-libfs-addressability-helper")) {
             saw_addressability_helper = true;
-            try std.testing.expectEqualStrings("ready_next", gap.status);
+            try std.testing.expectEqualStrings("starter_landed", gap.status);
             try std.testing.expectEqualStrings("fs/libfs.zig", gap.zigux_destination);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "generic_check_addressable()") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "block-size") != null);
@@ -177,8 +178,8 @@ test "phase13 libfs manifest records the landed close-bookkeeping slice and the 
         }
     }
 
-    try std.testing.expectEqual(@as(usize, 15), starter_landed_count);
-    try std.testing.expectEqual(@as(usize, 1), ready_next_count);
+    try std.testing.expectEqual(@as(usize, 16), starter_landed_count);
+    try std.testing.expectEqual(@as(usize, 0), ready_next_count);
     try std.testing.expectEqual(@as(usize, 2), blocked_count);
     try std.testing.expect(saw_close_release);
     try std.testing.expect(saw_simple_open);
