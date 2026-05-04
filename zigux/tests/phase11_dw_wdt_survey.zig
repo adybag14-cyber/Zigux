@@ -201,6 +201,7 @@ test "phase11 dw_wdt survey manifest and validation matrix record the landed lif
     try std.testing.expect(std.mem.indexOf(u8, matrix_doc, "non-stoppable stop failure-mode boundary") != null);
     try std.testing.expect(std.mem.indexOf(u8, matrix_doc, "remove-time teardown handoff boundary") != null);
     try std.testing.expect(std.mem.indexOf(u8, matrix_doc, "idle remove-time pending-interrupt split") != null);
+    try std.testing.expect(std.mem.indexOf(u8, matrix_doc, "unconditional debugfs clear call site") != null);
     try std.testing.expect(std.mem.indexOf(u8, matrix_doc, "summarizeSuspendResume()") != null);
     try std.testing.expect(std.mem.indexOf(u8, matrix_doc, "summarizeTeardownLifecycle()") != null);
     try std.testing.expect(std.mem.indexOf(u8, matrix_doc, "summarizeRemoveHandoff()") != null);
@@ -222,6 +223,7 @@ test "phase11 dw_wdt survey manifest and validation matrix record the landed lif
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "the focused `dw_wdt` driver and survey replays for this landed starter packet remain green") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "the focused `dw_wdt` driver and survey replays for this landed starter packet remain green, but this archival watchdog note no longer claims that the whole current shared Phase 11 validator is green when unrelated non-watchdog drift can reopen elsewhere on `master`") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "the legacy carried-forward marker text remains \"latest carried-forward shared replay status remains `PHASE11_VALIDATION=pass` for the landed starter packet\" only as archival validator continuity for this bounded note") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_doc, "unconditional debugfs clear call site") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "This lane still does not claim platform-driver registration") != null);
 
     try std.testing.expect(std.mem.indexOf(u8, slice_doc, "keeps the DesignWare non-stoppable stop semantics explicit when reset control is unavailable") != null);
@@ -229,6 +231,7 @@ test "phase11 dw_wdt survey manifest and validation matrix record the landed lif
     try std.testing.expect(std.mem.indexOf(u8, slice_doc, "summarizeSuspendResume()") != null);
     try std.testing.expect(std.mem.indexOf(u8, slice_doc, "summarizeTeardownLifecycle()") != null);
     try std.testing.expect(std.mem.indexOf(u8, slice_doc, "summarizeRemoveHandoff()") != null);
+    try std.testing.expect(std.mem.indexOf(u8, slice_doc, "unconditional debugfs clear call site") != null);
     try std.testing.expect(std.mem.indexOf(u8, slice_doc, "keeps idle remove-time pending interrupts distinct when remove happens before the watchdog is running") != null);
     try std.testing.expect(std.mem.indexOf(u8, slice_doc, "This slice does not claim platform-driver registration") != null);
 
@@ -324,7 +327,7 @@ test "phase11 dw_wdt survey manifest and validation matrix record the landed lif
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "fixed TOP timeout windows") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "probe-time summary") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "summarizeRemoveHandoff()") != null);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "debugfs clear") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "unconditional debugfs clear call site") != null);
         }
 
         if (std.mem.eql(u8, gap.id, "phase11-dw-wdt-driver-tests")) {
@@ -333,6 +336,7 @@ test "phase11 dw_wdt survey manifest and validation matrix record the landed lif
             try std.testing.expectEqualStrings("starter_landed", gap.status);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "non-stoppable stop semantics") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "remove-handoff teardown parity") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "debugfs-clear call-site ownership boundary") != null);
         }
 
         if (std.mem.eql(u8, gap.id, "phase11-dw-wdt-watchdog-header-boundary")) {
@@ -350,6 +354,7 @@ test "phase11 dw_wdt survey manifest and validation matrix record the landed lif
             try std.testing.expectEqualStrings("Documentation/zigux/phase11-dw-wdt-slice.md", gap.zigux_destination);
             try std.testing.expectEqualStrings("starter_landed", gap.status);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "remove-handoff teardown packet") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "debugfs-clear ownership boundary") != null);
         }
 
         if (std.mem.eql(u8, gap.id, "phase11-dw-wdt-validation-matrix")) {
@@ -361,6 +366,7 @@ test "phase11 dw_wdt survey manifest and validation matrix record the landed lif
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "IRQ pretimeout bookkeeping") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "non-stoppable stop failure-mode coverage") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "remove-handoff teardown parity") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "debugfs-clear call-site boundary") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "exact replay commands") != null);
         }
 
