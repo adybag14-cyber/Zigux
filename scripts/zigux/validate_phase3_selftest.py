@@ -38,6 +38,7 @@ from validate_phase3_core import (
 
 
 RBTREE_INTEROP_SURVEY_SCRIPT = "validate-phase3-rbtree-interop-survey.py"
+ROADMAP_GAP_SURVEY_SCRIPT = "validate-phase3-roadmap-gap-survey.py"
 RBTREE_SHARED_MISSING_MARKER_CASES = PHASE3_SHARED_RBTREE_RECORD_MARKERS
 RBTREE_SHARED_CONTRACT_TEST_REL = "zigux/tests/phase3_rbtree_shared_contract.zig"
 RBTREE_SHARED_CHECKER_REL = "scripts/zigux/check-phase3-rbtree-shared-lift-contract.py"
@@ -60,7 +61,7 @@ def _write_phase3_slice(
     fixture_dir = paths.fixtures_dir / f"phase3_{slug}"
     fixture_dir.mkdir(parents=True, exist_ok=True)
     (paths.docs_dir / f"phase3-{slug}-slice.md").write_text(
-        "\n".join(
+        "\\n".join(
             [
                 f"PHASE3_STATUS={status}",
                 f"PHASE3_SLICE={slug}-slice",
@@ -71,27 +72,27 @@ def _write_phase3_slice(
             ]
         ),
         encoding="utf-8",
-        newline="\n",
+        newline="\\n",
     )
     (paths.scripts_dir / f"check-phase3-{slug}.py").write_text(
         render_wrapper_stub(),
         encoding="utf-8",
-        newline="\n",
+        newline="\\n",
     )
     (paths.tests_dir / f"phase3_{slug}_dump.zig").write_text(
-        f"// {slug} dump\n",
+        f"// {slug} dump\\n",
         encoding="utf-8",
-        newline="\n",
+        newline="\\n",
     )
     (fixture_dir / "expected.json").write_text(
         json.dumps({"abi_version": 1, "constants": ABI_REQUIRED_EXPECTED_CONSTANTS, "structs": {}}),
         encoding="utf-8",
-        newline="\n",
+        newline="\\n",
     )
     (fixture_dir / f"phase3_{slug}_c_harness.c").write_text(
-        f"// {slug} harness\n",
+        f"// {slug} harness\\n",
         encoding="utf-8",
-        newline="\n",
+        newline="\\n",
     )
     (paths.fixtures_dir / f"phase3_{slug}_manifest.json").write_text(
         json.dumps(
@@ -109,7 +110,7 @@ def _write_phase3_slice(
             }
         ),
         encoding="utf-8",
-        newline="\n",
+        newline="\\n",
     )
 
 
@@ -121,10 +122,10 @@ def _write_phase3_abi_fixture(paths: Phase3Paths) -> None:
     for rel in extra_files:
         path = paths.root / rel
         path.parent.mkdir(parents=True, exist_ok=True)
-        path.write_text(f"// fixture for {rel}\n", encoding="utf-8", newline="\n")
+        path.write_text(f"// fixture for {rel}\\n", encoding="utf-8", newline="\\n")
     manifest["files"] = [*manifest["files"], *extra_files]
     manifest["file_count"] = len(manifest["files"])
-    manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8", newline="\n")
+    manifest_path.write_text(json.dumps(manifest, indent=2) + "\\n", encoding="utf-8", newline="\\n")
 
 
 def _run_export_uapi_build_marker_self_test() -> int:
@@ -136,27 +137,27 @@ def _run_export_uapi_build_marker_self_test() -> int:
         build_path.parent.mkdir(parents=True, exist_ok=True)
 
         build_path.write_text(
-            "\n".join(export_uapi_markers[1:]) + "\n",
+            "\\n".join(export_uapi_markers[1:]) + "\\n",
             encoding="utf-8",
-            newline="\n",
+            newline="\\n",
         )
         assert validate_source_markers(root, {rel: export_uapi_markers}) == [
             f"source-marker: {rel} missing {export_uapi_markers[0]}"
         ]
 
         build_path.write_text(
-            "\n".join(export_uapi_markers[:3]) + "\n",
+            "\\n".join(export_uapi_markers[:3]) + "\\n",
             encoding="utf-8",
-            newline="\n",
+            newline="\\n",
         )
         assert validate_source_markers(root, {rel: export_uapi_markers}) == [
             f"source-marker: {rel} missing {export_uapi_markers[3]}"
         ]
 
         build_path.write_text(
-            "\n".join(export_uapi_markers) + "\n",
+            "\\n".join(export_uapi_markers) + "\\n",
             encoding="utf-8",
-            newline="\n",
+            newline="\\n",
         )
         assert validate_source_markers(root, {rel: export_uapi_markers}) == []
 
@@ -172,7 +173,7 @@ def _run_readme_tooling_inventory_self_test() -> int:
         check=False,
     )
     assert result.returncode == 0, (
-        result.stdout if not result.stderr else result.stdout + "\n" + result.stderr
+        result.stdout if not result.stderr else result.stdout + "\\n" + result.stderr
     )
     stdout_lines = result.stdout.splitlines()
     assert "PHASE3_README_TOOLING_INVENTORY_SELF_TEST=pass" in stdout_lines
@@ -189,7 +190,7 @@ def _run_tooling_packet_self_test() -> int:
         check=False,
     )
     assert result.returncode == 0, (
-        result.stdout if not result.stderr else result.stdout + "\n" + result.stderr
+        result.stdout if not result.stderr else result.stdout + "\\n" + result.stderr
     )
     stdout_lines = result.stdout.splitlines()
     assert "PHASE3_TOOLING_PACKET_SELF_TEST=pass" in stdout_lines
@@ -206,7 +207,7 @@ def _run_validation_flow_self_test() -> int:
         check=False,
     )
     assert result.returncode == 0, (
-        result.stdout if not result.stderr else result.stdout + "\n" + result.stderr
+        result.stdout if not result.stderr else result.stdout + "\\n" + result.stderr
     )
     stdout_lines = result.stdout.splitlines()
     assert "PHASE3_VALIDATION_FLOW_SELF_TEST=pass" in stdout_lines
@@ -223,7 +224,7 @@ def _run_abi_layout_packet_self_test() -> int:
         check=False,
     )
     assert result.returncode == 0, (
-        result.stdout if not result.stderr else result.stdout + "\n" + result.stderr
+        result.stdout if not result.stderr else result.stdout + "\\n" + result.stderr
     )
     stdout_lines = result.stdout.splitlines()
     assert "PHASE3_ABI_LAYOUT_PACKET_SELF_TEST=pass" in stdout_lines
@@ -239,7 +240,7 @@ def _run_abi_binding_constants_self_test() -> int:
         check=False,
     )
     assert result.returncode == 0, (
-        result.stdout if not result.stderr else result.stdout + "\n" + result.stderr
+        result.stdout if not result.stderr else result.stdout + "\\n" + result.stderr
     )
     stdout_lines = result.stdout.splitlines()
     assert "PHASE3_ABI_BINDING_CONSTANTS_SELF_TEST=pass" in stdout_lines
@@ -255,7 +256,7 @@ def _run_abi_duplicate_declarations_self_test() -> int:
         check=False,
     )
     assert result.returncode == 0, (
-        result.stdout if not result.stderr else result.stdout + "\n" + result.stderr
+        result.stdout if not result.stderr else result.stdout + "\\n" + result.stderr
     )
     stdout_lines = result.stdout.splitlines()
     assert "PHASE3_ABI_DUPLICATE_DECLARATIONS_SELF_TEST=pass" in stdout_lines
@@ -271,10 +272,26 @@ def _run_rbtree_interop_survey_self_test() -> int:
         check=False,
     )
     assert result.returncode == 0, (
-        result.stdout if not result.stderr else result.stdout + "\n" + result.stderr
+        result.stdout if not result.stderr else result.stdout + "\\n" + result.stderr
     )
     stdout_lines = result.stdout.splitlines()
     assert "PHASE3_RBTREE_INTEROP_SURVEY_SELF_TEST=pass" in stdout_lines
+    return 0
+
+
+def _run_roadmap_gap_survey_self_test() -> int:
+    script_path = Path(__file__).resolve().with_name(ROADMAP_GAP_SURVEY_SCRIPT)
+    result = subprocess.run(
+        ["python3", str(script_path), "--self-test"],
+        text=True,
+        capture_output=True,
+        check=False,
+    )
+    assert result.returncode == 0, (
+        result.stdout if not result.stderr else result.stdout + "\\n" + result.stderr
+    )
+    stdout_lines = result.stdout.splitlines()
+    assert "PHASE3_ROADMAP_GAP_SURVEY_SELF_TEST=pass" in stdout_lines
     return 0
 
 
@@ -287,7 +304,7 @@ def _run_export_uapi_survey_self_test() -> int:
         check=False,
     )
     assert result.returncode == 0, (
-        result.stdout if not result.stderr else result.stdout + "\n" + result.stderr
+        result.stdout if not result.stderr else result.stdout + "\\n" + result.stderr
     )
     stdout_lines = result.stdout.splitlines()
     assert "PHASE3_EXPORT_UAPI_SURVEY_SELF_TEST=pass" in stdout_lines
@@ -303,7 +320,7 @@ def _run_low_level_wrapper_survey_self_test() -> int:
         check=False,
     )
     assert result.returncode == 0, (
-        result.stdout if not result.stderr else result.stdout + "\n" + result.stderr
+        result.stdout if not result.stderr else result.stdout + "\\n" + result.stderr
     )
     stdout_lines = result.stdout.splitlines()
     assert "PHASE3_LOW_LEVEL_WRAPPER_SURVEY_SELF_TEST=pass" in stdout_lines
@@ -319,7 +336,7 @@ def _run_policy_unsafe_survey_self_test() -> int:
         check=False,
     )
     assert result.returncode == 0, (
-        result.stdout if not result.stderr else result.stdout + "\n" + result.stderr
+        result.stdout if not result.stderr else result.stdout + "\\n" + result.stderr
     )
     stdout_lines = result.stdout.splitlines()
     assert "PHASE3_POLICY_UNSAFE_SURVEY_SELF_TEST=pass" in stdout_lines
@@ -335,7 +352,7 @@ def _run_abi_policy_unsafe_mmio_consumer_self_test() -> int:
         check=False,
     )
     assert result.returncode == 0, (
-        result.stdout if not result.stderr else result.stdout + "\n" + result.stderr
+        result.stdout if not result.stderr else result.stdout + "\\n" + result.stderr
     )
     stdout_lines = result.stdout.splitlines()
     assert "PHASE3_POLICY_UNSAFE_MMIO_CONSUMER_SELF_TEST=pass" in stdout_lines
@@ -351,7 +368,7 @@ def _run_rbtree_shared_lift_self_test() -> int:
         check=False,
     )
     assert result.returncode == 0, (
-        result.stdout if not result.stderr else result.stdout + "\n" + result.stderr
+        result.stdout if not result.stderr else result.stdout + "\\n" + result.stderr
     )
     stdout_lines = result.stdout.splitlines()
     assert "PHASE3_RBTREE_SHARED_LIFT_CONTRACT_SELF_TEST=pass" in stdout_lines
@@ -407,16 +424,16 @@ def run_self_test() -> int:
         build_log = root / "zig-build-smoke.log"
         fake_zig = root / "fake-zig.sh"
         fake_zig.write_text(
-            "\n".join(
+            "\\n".join(
                 [
                     "#!/bin/sh",
-                    f'printf "%s\\n" "$*" >> "{build_log}"',
+                    f'printf "%s\\\\n" "$*" >> "{build_log}"',
                     "exit 0",
                     "",
                 ]
             ),
             encoding="utf-8",
-            newline="\n",
+            newline="\\n",
         )
         fake_zig.chmod(0o755)
         for rel in (
@@ -428,7 +445,7 @@ def run_self_test() -> int:
         ):
             target = root / rel
             target.parent.mkdir(parents=True, exist_ok=True)
-            target.write_text("// build smoke fixture\n", encoding="utf-8", newline="\n")
+            target.write_text("// build smoke fixture\\n", encoding="utf-8", newline="\\n")
         abi_build_entry = Phase3Slice(
             root=root,
             slug="abi",
@@ -461,7 +478,7 @@ def run_self_test() -> int:
         ]
         export_uapi_survey_check.parent.mkdir(parents=True, exist_ok=True)
         export_uapi_survey_check.write_text(
-            "\n".join(
+            "\\n".join(
                 [
                     "#!/usr/bin/env python3",
                     "import sys",
@@ -474,7 +491,7 @@ def run_self_test() -> int:
                 ]
             ),
             encoding="utf-8",
-            newline="\n",
+            newline="\\n",
         )
         assert validate_export_uapi_boundary(root) == [
             "export-uapi-gate: missing_export_uapi_layout_gate",
@@ -482,7 +499,7 @@ def run_self_test() -> int:
             "export-uapi-gate: stderr: survey gate stderr",
         ]
         export_uapi_survey_check.write_text(
-            "\n".join(
+            "\\n".join(
                 [
                     "#!/usr/bin/env python3",
                     'print("PHASE3_EXPORT_UAPI_SURVEY=pass")',
@@ -490,7 +507,7 @@ def run_self_test() -> int:
                 ]
             ),
             encoding="utf-8",
-            newline="\n",
+            newline="\\n",
         )
         assert validate_export_uapi_boundary(root) == []
 
@@ -507,7 +524,7 @@ def run_self_test() -> int:
         abi_manifest = json.loads(abi_manifest_path.read_text(encoding="utf-8"))
         abi_manifest["files"].remove(RBTREE_SHARED_CONTRACT_TEST_REL)
         abi_manifest["file_count"] = len(abi_manifest["files"])
-        abi_manifest_path.write_text(json.dumps(abi_manifest, indent=2) + "\n", encoding="utf-8", newline="\n")
+        abi_manifest_path.write_text(json.dumps(abi_manifest, indent=2) + "\\n", encoding="utf-8", newline="\\n")
         assert validate_manifest(abi_manifest_entry, ABI_REQUIRED_MANIFEST_FILES) == [
             f"abi: manifest missing {RBTREE_SHARED_CONTRACT_TEST_REL}"
         ]
@@ -522,7 +539,7 @@ def run_self_test() -> int:
         abi_manifest = json.loads(abi_manifest_path.read_text(encoding="utf-8"))
         abi_manifest["files"].remove(roadmap_gap_doc)
         abi_manifest["file_count"] = len(abi_manifest["files"])
-        abi_manifest_path.write_text(json.dumps(abi_manifest, indent=2) + "\n", encoding="utf-8", newline="\n")
+        abi_manifest_path.write_text(json.dumps(abi_manifest, indent=2) + "\\n", encoding="utf-8", newline="\\n")
         assert validate_manifest(abi_manifest_entry, ABI_REQUIRED_MANIFEST_FILES) == [
             f"abi: manifest missing {roadmap_gap_doc}"
         ]
@@ -537,7 +554,7 @@ def run_self_test() -> int:
         abi_manifest = json.loads(abi_manifest_path.read_text(encoding="utf-8"))
         abi_manifest["files"].remove(export_uapi_layout_test)
         abi_manifest["file_count"] = len(abi_manifest["files"])
-        abi_manifest_path.write_text(json.dumps(abi_manifest, indent=2) + "\n", encoding="utf-8", newline="\n")
+        abi_manifest_path.write_text(json.dumps(abi_manifest, indent=2) + "\\n", encoding="utf-8", newline="\\n")
         assert validate_manifest(abi_manifest_entry, ABI_REQUIRED_MANIFEST_FILES) == [
             f"abi: manifest missing {export_uapi_layout_test}"
         ]
@@ -551,7 +568,7 @@ def run_self_test() -> int:
 
         artifact_diff_path = paths.docs_dir / "artifact-diff.md"
         artifact_diff_path.write_text(
-            "\n".join(
+            "\\n".join(
                 [
                     "# Artifact Diff Policy",
                     "",
@@ -564,7 +581,7 @@ def run_self_test() -> int:
                 ]
             ),
             encoding="utf-8",
-            newline="\n",
+            newline="\\n",
         )
         assert validate_slices(
             root,
@@ -583,13 +600,13 @@ def run_self_test() -> int:
             check_slug_sanity=False,
             check_all_wrappers=True,
             zig_path=None,
-        ) == ["doc-sync: artifact-diff-phase3-stale\tDocumentation/zigux/artifact-diff.md"]
+        ) == ["doc-sync: artifact-diff-phase3-stale\\tDocumentation/zigux/artifact-diff.md"]
 
         source_marker_fixture = root / "marker-fixture.zig"
         source_marker_fixture.write_text(
-            "pub fn boundaryMarker() void {}\n",
+            "pub fn boundaryMarker() void {}\\n",
             encoding="utf-8",
-            newline="\n",
+            newline="\\n",
         )
         assert validate_source_markers(
             root,
@@ -613,20 +630,21 @@ def run_self_test() -> int:
         assert _run_abi_layout_packet_self_test() == 0
         assert _run_abi_policy_unsafe_mmio_consumer_self_test() == 0
         assert _run_rbtree_interop_survey_self_test() == 0
+        assert _run_roadmap_gap_survey_self_test() == 0
         assert _run_rbtree_shared_lift_self_test() == 0
 
         rbtree_shared_marker_fixture = root / "phase3-rbtree-shared-marker-fixture.zig"
 
         def assert_missing_rbtree_shared_marker(missing_marker: str) -> None:
             rbtree_shared_marker_fixture.write_text(
-                "\n".join(
+                "\\n".join(
                     marker
                     for marker in RBTREE_SHARED_MISSING_MARKER_CASES
                     if marker != missing_marker
                 )
-                + "\n",
+                + "\\n",
                 encoding="utf-8",
-                newline="\n",
+                newline="\\n",
             )
             assert validate_source_markers(
                 root,
@@ -636,9 +654,9 @@ def run_self_test() -> int:
             ]
 
         rbtree_shared_marker_fixture.write_text(
-            "\n".join(RBTREE_SHARED_MISSING_MARKER_CASES) + "\n",
+            "\\n".join(RBTREE_SHARED_MISSING_MARKER_CASES) + "\\n",
             encoding="utf-8",
-            newline="\n",
+            newline="\\n",
         )
         assert validate_source_markers(
             root,
@@ -648,7 +666,7 @@ def run_self_test() -> int:
             assert_missing_rbtree_shared_marker(missing_marker)
 
     print("PHASE3_VALIDATOR_SELF_TEST=pass")
-    print("PHASE3_VALIDATOR_SELF_TEST_CASE_COUNT=36")
+    print("PHASE3_VALIDATOR_SELF_TEST_CASE_COUNT=37")
     return 0
 
 
