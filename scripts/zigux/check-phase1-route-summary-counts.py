@@ -155,7 +155,12 @@ COMPANION_ROUTE_LINES = {
     "companion_phase1_validate_phase1_closure_count": (
         "Documentation/zigux/phase1-tests-root-review-companion.md",
         "- `python3 scripts/zigux/validate-phase1-closure.py`",
-        2,
+        1,
+    ),
+    "companion_phase1_validate_phase1_closure_live_gate_count": (
+        "Documentation/zigux/phase1-tests-root-review-companion.md",
+        "- live closure gate: `python3 scripts/zigux/validate-phase1-closure.py`",
+        1,
     ),
 }
 
@@ -362,7 +367,7 @@ def self_test() -> int:
         COMPANION_ROUTE_LINES["companion_phase1_bench_count"][1],
         COMPANION_ROUTE_LINES["companion_phase1_validate_phase1_closure_self_test_count"][1],
         COMPANION_ROUTE_LINES["companion_phase1_validate_phase1_closure_count"][1],
-        COMPANION_ROUTE_LINES["companion_phase1_validate_phase1_closure_count"][1],
+        COMPANION_ROUTE_LINES["companion_phase1_validate_phase1_closure_live_gate_count"][1],
     ]
     closure_markers = [
         CLOSURE_ROUTE_LINES["closure_phase1_parity_gate_count"][1],
@@ -554,7 +559,14 @@ def self_test() -> int:
             companion_markers,
             "companion_phase1_validate_phase1_closure_count",
             companion_markers[14],
-            2,
+            1,
+        ),
+        (
+            "Documentation/zigux/phase1-tests-root-review-companion.md",
+            companion_markers,
+            "companion_phase1_validate_phase1_closure_live_gate_count",
+            companion_markers[15],
+            1,
         ),
         (
             "Documentation/zigux/phase1-closure.md",
