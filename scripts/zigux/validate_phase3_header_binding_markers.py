@@ -49,7 +49,7 @@ HEADER_BINDING_MARKERS = {
     ),
     "Documentation/zigux/phase3-abi-slice.md": (
         "PHASE3_CURRENT_INTEROP_FAMILIES=bitmap-cpumask-rbtree-list-hlist-errptr-xarray-idr-ida-minor-alloc-dev-region-cdev-chrdev",
-        "PHASE3_CURRENT_INTEROP_GAP_DETAIL=live-build-graph-now-carries-deep-chrdev-tail-packets-while-the-shared-phase3-abi-replay-already-covers-rbtree-root-view-through-dedicated-bindings-and-the-curated-shared-abi-h-plus-abi-zig-lift-is-still-missing",
+        "PHASE3_CURRENT_INTEROP_GAP_DETAIL=live-build-graph-now-carries-deep-chrdev-tail-packets-while-the-curated-shared-include-zigux-abi-h-plus-zigux-bindings-abi-zig-rbtree-root-view-lift-is-landed-and-the-honest-remaining-gap-is-survey-and-validator-wording-that-still-describes-that-shared-lift-as-missing",
         "dedicated rbtree boundary packet plus minor-allocation, dev-region, cdev, and chrdev planning and notification chains",
     ),
     "zigux/tests/build.zig": (
