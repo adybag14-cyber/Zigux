@@ -80,6 +80,23 @@ pub const StringFormattingCycleSummary = struct {
     relative_location_path_checked: bool,
 };
 
+pub const PayloadBoundarySummary = struct {
+    stage_before_replay: SampleStage,
+    stage_after_replay: SampleStage,
+    iteration_count: i32,
+    selected_string: []const u8,
+    selected_string_slot: usize,
+    payload_preview: [4]i32,
+    payload_preview_len: usize,
+    payload_len: usize,
+    array_sentinel: i32,
+    formatted_message: []const u8,
+    total_event_calls_after_replay: usize,
+    conditional_paths_checked: bool,
+    vararg_payload_path_checked: bool,
+    relative_location_path_checked: bool,
+};
+
 pub const LifecycleSummary = struct {
     stage: SampleStage,
     init_run_count: usize,
@@ -323,6 +340,33 @@ pub const TraceEventsReferenceSample = struct {
             .stage_after_replay = self.stage(),
             .cases = cases,
             .total_event_calls_after_cycle = self.total_event_calls,
+            .conditional_paths_checked = self.saw_conditional_path,
+            .vararg_payload_path_checked = self.saw_vararg_payload,
+            .relative_location_path_checked = self.saw_rel_loc_payload,
+        };
+    }
+
+    pub fn runPayloadBoundaryReplay(self: *Self, count: i32) !PayloadBoundarySummary {
+        const stage_before_replay = self.stage();
+        try self.ensureMutable();
+        try self.replayMainIteration(count);
+
+        const payload_preview_len = @min(self.selected_string_slot, @as(usize, 4));
+        var payload_preview: [4]i32 = [_]i32{0} ** 4;
+        @memcpy(payload_preview[0..payload_preview_len], self.array_payload[0..payload_preview_len]);
+
+        return .{
+            .stage_before_replay = stage_before_replay,
+            .stage_after_replay = self.stage(),
+            .iteration_count = self.last_main_count,
+            .selected_string = self.selected_string,
+            .selected_string_slot = self.selected_string_slot,
+            .payload_preview = payload_preview,
+            .payload_preview_len = payload_preview_len,
+            .payload_len = self.selected_string_slot,
+            .array_sentinel = self.array_payload[self.selected_string_slot],
+            .formatted_message = self.formattedMessage(),
+            .total_event_calls_after_replay = self.total_event_calls,
             .conditional_paths_checked = self.saw_conditional_path,
             .vararg_payload_path_checked = self.saw_vararg_payload,
             .relative_location_path_checked = self.saw_rel_loc_payload,
@@ -634,6 +678,22 @@ test "trace-events sample keeps callback registration single-live" {
     try std.testing.expectEqual(@as(usize, 0), initial_lifecycle.registration_depth);
     try std.testing.expectEqual(@as(usize, 0), initial_lifecycle.total_event_calls);
 
+    const payload_boundary = try sample.runPayloadBoundaryReplay(4);
+    try std.testing.expectEqual(SampleStage.initialized, payload_boundary.stage_before_replay);
+    try std.testing.expectEqual(SampleStage.initialized, payload_boundary.stage_after_replay);
+    try std.testing.expectEqual(@as(i32, 4), payload_boundary.iteration_count);
+    try std.testing.expectEqualStrings("One ring to rule them all", payload_boundary.selected_string);
+    try std.testing.expectEqual(@as(usize, 4), payload_boundary.selected_string_slot);
+    try std.testing.expectEqualSlices(i32, &.{ 1, 2, 3, 4 }, payload_boundary.payload_preview[0..payload_boundary.payload_preview_len]);
+    try std.testing.expectEqual(@as(usize, 4), payload_boundary.payload_preview_len);
+    try std.testing.expectEqual(@as(usize, 4), payload_boundary.payload_len);
+    try std.testing.expectEqual(@as(i32, 0), payload_boundary.array_sentinel);
+    try std.testing.expectEqualStrings("iter=4", payload_boundary.formatted_message);
+    try std.testing.expect(payload_boundary.conditional_paths_checked);
+    try std.testing.expect(payload_boundary.vararg_payload_path_checked);
+    try std.testing.expect(payload_boundary.relative_location_path_checked);
+    try std.testing.expectEqual(@as(usize, 6), payload_boundary.total_event_calls_after_replay);
+
     const replay = try sample.runCallbackBoundaryRecoveryReplay();
     try std.testing.expect(replay.missing_registration_rejected);
     try std.testing.expect(replay.underflow_before_registration_rejected);
@@ -641,4 +701,5 @@ test "trace-events sample keeps callback registration single-live" {
     try std.testing.expect(replay.invalid_callback_count_rejected);
     try std.testing.expect(replay.armed_exit_rejected);
     try std.testing.expectEqual(@as(usize, 0), sample.registration_depth);
+    try std.testing.expectEqual(@as(usize, 8), replay.total_event_calls_after_recovery);
 }
