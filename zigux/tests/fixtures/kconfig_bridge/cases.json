@@ -147,6 +147,16 @@
       "expected": "duplicate_assignments_expected.json"
     },
     {
+      "name": "embedded_nul_preserved_carriage_return",
+      "input": "embedded_nul_preserved_carriage_return.config",
+      "expected": "embedded_nul_preserved_carriage_return_expected.json"
+    },
+    {
+      "name": "embedded_nul_suffix_bytes",
+      "input": "embedded_nul_suffix_bytes.config",
+      "expected": "embedded_nul_suffix_bytes_expected.json"
+    },
+    {
       "name": "empty_string",
       "input": "empty_string.config",
       "expected": "empty_string_expected.json"
