@@ -412,6 +412,8 @@ test "phase 8 docs keep the deferred irq routing and timer boundary explicit" {
     try expectContains(survey_note, "zigux/tests/phase8_perf_buffer_poll.zig");
     try expectContains(survey_note, "wait-result classification");
     try expectContains(survey_note, "ready-buffer bookkeeping");
+    try expectContains(survey_note, "ordered `perf_buffer__process_records()` pass reviewable as a bounded fail-fast summary helper");
+    try expectContains(survey_note, "rejects impossible post-wait buffer state combinations");
     try expectContains(survey_note, "does not claim direct `epoll_wait()` parity");
     try expectContains(bridge_note, "perf_buffer__poll(timeout_ms)");
     try expectContains(bridge_note, "Documentation/zigux/phase8-perf-buffer-poll-slice.md");
@@ -419,6 +421,8 @@ test "phase 8 docs keep the deferred irq routing and timer boundary explicit" {
     try expectContains(bridge_note, "zigux/tests/phase8_perf_buffer_poll.zig");
     try expectContains(bridge_note, "wait-result classification");
     try expectContains(bridge_note, "ready-buffer bookkeeping");
+    try expectContains(bridge_note, "ordered `perf_buffer__process_records()` fail-fast summary");
+    try expectContains(bridge_note, "cumulative processed-record count returned before the first failing ready buffer only");
     try expectContains(bridge_note, "no standalone timer helper");
     try expectContains(bridge_note, "no standalone clockevent helper");
     try expectContains(bridge_note, "does not close the broader routing boundary");
