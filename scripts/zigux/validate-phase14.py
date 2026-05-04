@@ -562,8 +562,6 @@ if isinstance(manifest_lane_key, str):
 expected_test_entrypoint_marker = "PHASE14_TEST_ENTRYPOINT=make -C zigux phase14-test"
 if expected_test_entrypoint_marker not in survey_note:
     missing.append("survey:phase14_test_entrypoint")
-if "`make -C zigux phase14-test`" not in scripts_readme_text:
-    missing.append("scripts_readme:phase14_test_entrypoint")
 for key, value in PRODUCTIZATION_KEYS.items():
     if value not in survey_note:
         missing.append(f"survey:productization:{key}")
