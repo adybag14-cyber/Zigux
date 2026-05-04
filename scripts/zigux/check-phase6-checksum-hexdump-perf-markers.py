@@ -9,10 +9,11 @@ import tempfile
 
 SCRIPT_PATH = Path(__file__).resolve()
 ROOT = SCRIPT_PATH.parents[2] if len(SCRIPT_PATH.parents) > 2 else SCRIPT_PATH.parent
-SELF_TEST_CASE_COUNT = 5
+SELF_TEST_CASE_COUNT = 7
 
 CHECKSUM_PERF_PATH = "zigux/tests/phase6_checksum_perf.zig"
 HEXDUMP_PERF_PATH = "zigux/tests/phase6_hexdump_perf.zig"
+PERF_SURVEY_PATH = "Documentation/zigux/phase6-perf-gate-survey.md"
 
 CHECKSUM_PERF_MARKERS = [
     '"phase6-checksum-perf {s} len={} reps={} helper_ns_per_call={} helper_ns_per_byte={d:.2} reference_ns_per_call={} reference_ns_per_byte={d:.2} slowdown_pct={} folded=0x{x:0>4} sink=0x{x:0>8}\\n"',
@@ -28,15 +29,17 @@ HEXDUMP_PERF_MARKERS = [
     "const slowdown_pct = median3(",
 ]
 
+PERF_SURVEY_MARKERS = [
+    "`python3 scripts/zigux/check-phase6-checksum-hexdump-perf-markers.py --self-test` and `python3 scripts/zigux/check-phase6-checksum-hexdump-perf-markers.py` now keep the shipped checksum and hexdump perf-marker packet fail-closed around the per-call, per-byte, slowdown, folded-checksum, required-length, and reference-path reporting markers before broader Phase 6 replay claims stay green",
+]
+
 
 def text(root: Path, path: str) -> str:
     return (root / path).read_text(encoding="utf-8")
 
 
-
 def missing_markers(content: str, markers: list[str]) -> list[str]:
     return [marker for marker in markers if marker not in content]
-
 
 
 def validate(root: Path) -> dict[str, object]:
@@ -45,6 +48,7 @@ def validate(root: Path) -> dict[str, object]:
 
     checksum_path = root / CHECKSUM_PERF_PATH
     hexdump_path = root / HEXDUMP_PERF_PATH
+    perf_survey_path = root / PERF_SURVEY_PATH
 
     if not checksum_path.exists():
         missing_files.append(CHECKSUM_PERF_PATH)
@@ -58,12 +62,17 @@ def validate(root: Path) -> dict[str, object]:
         for marker in missing_markers(text(root, HEXDUMP_PERF_PATH), HEXDUMP_PERF_MARKERS):
             missing.append(f"hexdump_perf:missing:{marker}")
 
+    if not perf_survey_path.exists():
+        missing_files.append(PERF_SURVEY_PATH)
+    else:
+        for marker in missing_markers(text(root, PERF_SURVEY_PATH), PERF_SURVEY_MARKERS):
+            missing.append(f"perf_survey:missing:{marker}")
+
     return {
         "ok": not missing_files and not missing,
         "missing_files": missing_files,
         "missing": missing,
     }
-
 
 
 def report(result: dict[str, object]) -> int:
@@ -86,18 +95,16 @@ def report(result: dict[str, object]) -> int:
     return 0
 
 
-
 def write(root: Path, path: str, content: str) -> None:
     target = root / path
     target.parent.mkdir(parents=True, exist_ok=True)
     target.write_text(content, encoding="utf-8")
 
 
-
 def build_self_test_tree(root: Path) -> None:
     write(root, CHECKSUM_PERF_PATH, "\n".join(CHECKSUM_PERF_MARKERS) + "\n")
     write(root, HEXDUMP_PERF_PATH, "\n".join(HEXDUMP_PERF_MARKERS) + "\n")
-
+    write(root, PERF_SURVEY_PATH, "\n".join(PERF_SURVEY_MARKERS) + "\n")
 
 
 def expect_missing_file(result: dict[str, object], path: str) -> None:
@@ -105,11 +112,9 @@ def expect_missing_file(result: dict[str, object], path: str) -> None:
         raise AssertionError(f"missing file expectation {path}")
 
 
-
 def expect_contains(result: dict[str, object], item: str) -> None:
     if item not in result["missing"]:
         raise AssertionError(f"missing expectation {item}")
-
 
 
 def run_self_test() -> int:
@@ -134,6 +139,11 @@ def run_self_test() -> int:
             count += 1
 
             build_self_test_tree(root)
+            (root / PERF_SURVEY_PATH).unlink()
+            expect_missing_file(validate(root), PERF_SURVEY_PATH)
+            count += 1
+
+            build_self_test_tree(root)
             checksum_path = root / CHECKSUM_PERF_PATH
             checksum_path.write_text(checksum_path.read_text(encoding="utf-8").replace(CHECKSUM_PERF_MARKERS[1], "", 1), encoding="utf-8")
             expect_contains(validate(root), f"checksum_perf:missing:{CHECKSUM_PERF_MARKERS[1]}")
@@ -143,6 +153,12 @@ def run_self_test() -> int:
             hexdump_path = root / HEXDUMP_PERF_PATH
             hexdump_path.write_text(hexdump_path.read_text(encoding="utf-8").replace(HEXDUMP_PERF_MARKERS[1], "", 1), encoding="utf-8")
             expect_contains(validate(root), f"hexdump_perf:missing:{HEXDUMP_PERF_MARKERS[1]}")
+            count += 1
+
+            build_self_test_tree(root)
+            survey_path = root / PERF_SURVEY_PATH
+            survey_path.write_text(survey_path.read_text(encoding="utf-8").replace(PERF_SURVEY_MARKERS[0], "", 1), encoding="utf-8")
+            expect_contains(validate(root), f"perf_survey:missing:{PERF_SURVEY_MARKERS[0]}")
             count += 1
 
             if count != SELF_TEST_CASE_COUNT:
@@ -157,14 +173,12 @@ def run_self_test() -> int:
     return 0
 
 
-
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description="Check that the live Phase 6 checksum and hexdump perf harnesses keep their stronger review markers.",
     )
     parser.add_argument("--self-test", action="store_true", help="Run built-in checker tests")
     return parser.parse_args(argv)
-
 
 
 def main(argv: list[str] | None = None) -> int:
