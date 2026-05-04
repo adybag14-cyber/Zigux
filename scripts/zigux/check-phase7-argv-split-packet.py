@@ -66,11 +66,13 @@ REQUIRED_SCRIPTS_ROOT_EXACT_COUNT_MARKERS = {
 }
 
 REQUIRED_TESTS_ROOT_MARKERS = [
+    "`scripts/zigux/check-phase7-argv-split-packet.py --self-test`",
     "`scripts/zigux/check-phase7-argv-split-packet.py`",
 ]
 
 REQUIRED_TESTS_ROOT_EXACT_COUNT_MARKERS = {
-    "`scripts/zigux/check-phase7-argv-split-packet.py`": 1,
+    "`scripts/zigux/check-phase7-argv-split-packet.py --self-test`": 1,
+    "`scripts/zigux/check-phase7-argv-split-packet.py`": 2,
 }
 
 REQUIRED_PARITY_MARKERS = [
@@ -166,6 +168,7 @@ SELF_TEST_FILE_CONTENTS = {
     "zigux/tests/README.md": "\n".join(
         [
             "`scripts/zigux/check-phase7-argv-split-packet.py`",
+            "`scripts/zigux/check-phase7-argv-split-packet.py --self-test` and `scripts/zigux/check-phase7-argv-split-packet.py`",
             "",
         ]
     ),
@@ -389,6 +392,21 @@ def run_self_test() -> int:
         original_tests_root = read(tests_root_path)
         tests_root_path.write_text(
             original_tests_root.replace(
+                "`scripts/zigux/check-phase7-argv-split-packet.py --self-test`",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_failure(
+            "tests_root_packet_self_test_marker",
+            tmp_root,
+            "zigux/tests/README.md: `scripts/zigux/check-phase7-argv-split-packet.py --self-test`",
+        )
+        tests_root_path.write_text(original_tests_root, encoding="utf-8")
+
+        tests_root_path.write_text(
+            original_tests_root.replace(
                 "`scripts/zigux/check-phase7-argv-split-packet.py`",
                 "",
                 1,
@@ -398,7 +416,7 @@ def run_self_test() -> int:
         expect_failure(
             "tests_root_packet_marker",
             tmp_root,
-            "zigux/tests/README.md: `scripts/zigux/check-phase7-argv-split-packet.py`",
+            "zigux/tests/README.md: exact_count:`scripts/zigux/check-phase7-argv-split-packet.py`:1!=2",
         )
         tests_root_path.write_text(original_tests_root, encoding="utf-8")
 
@@ -413,7 +431,7 @@ def run_self_test() -> int:
         expect_failure(
             "tests_root_packet_duplicate",
             tmp_root,
-            "zigux/tests/README.md: exact_count:`scripts/zigux/check-phase7-argv-split-packet.py`:2!=1",
+            "zigux/tests/README.md: exact_count:`scripts/zigux/check-phase7-argv-split-packet.py`:3!=2",
         )
         tests_root_path.write_text(original_tests_root, encoding="utf-8")
 
@@ -536,7 +554,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE7_ARGV_SPLIT_PACKET_SELF_TEST=pass")
-    print("PHASE7_ARGV_SPLIT_PACKET_SELF_TEST_CASE_COUNT=16")
+    print("PHASE7_ARGV_SPLIT_PACKET_SELF_TEST_CASE_COUNT=17")
     return 0
 
 
