@@ -1,0 +1,76 @@
+{
+  "required_snippets": [
+    {
+      "id": "required_file_review_checklist",
+      "snippet": "\"Documentation/zigux/review-checklist.md\"," 
+    },
+    {
+      "id": "required_file_tests_root",
+      "snippet": "\"zigux/tests/README.md\"," 
+    },
+    {
+      "id": "required_file_validate_phase1",
+      "snippet": "\"scripts/zigux/validate-phase1.py\"," 
+    },
+    {
+      "id": "required_file_bitmap_checker",
+      "snippet": "\"scripts/zigux/check-phase1-bitmap-validator-anchors.py\"," 
+    },
+    {
+      "id": "required_file_route_summary_checker",
+      "snippet": "\"scripts/zigux/check-phase1-route-summary-counts.py\"," 
+    },
+    {
+      "id": "required_file_route_inventory_checker",
+      "snippet": "\"scripts/zigux/check-phase1-validation-route-inventory.py\"," 
+    },
+    {
+      "id": "review_checklist_marker",
+      "snippet": "\"- if the change touches the closed Phase 1 host-helper packet, do `Documentation/zigux/phase1-closure.md`, `scripts/zigux/validate-phase1.py`, `scripts/zigux/check-phase1-bitmap-validator-anchors.py`, `scripts/zigux/check-phase1-find-bit-validator-anchors.py`, `scripts/zigux/check-phase1-route-summary-counts.py`, `scripts/zigux/check-phase1-validation-route-inventory.py`, `scripts/zigux/check-phase1-parity.py`, `scripts/zigux/check-phase1-bench.py`, `scripts/zigux/validate-phase1-closure.py`, `zigux/tests/fixtures/phase1_helper_manifest.json`, `zigux/tests/phase1_helpers.zig`, and `zigux/tests/phase1_bench.zig` still agree on the same closed helper inventory, validator-first replay path, and fail-closed checker stack?\","
+    },
+    {
+      "id": "tests_root_marker",
+      "snippet": "\"- keep the closed Phase 1 host-helper packet reviewable through `Documentation/zigux/phase1-closure.md`, `scripts/zigux/validate-phase1.py`, `scripts/zigux/check-phase1-bitmap-validator-anchors.py`, `scripts/zigux/check-phase1-find-bit-validator-anchors.py`, `scripts/zigux/check-phase1-route-summary-counts.py`, `scripts/zigux/check-phase1-validation-route-inventory.py`, `scripts/zigux/check-phase1-parity.py`, `scripts/zigux/check-phase1-bench.py`, `scripts/zigux/validate-phase1-closure.py`, `zigux/tests/fixtures/phase1_helper_manifest.json`, `zigux/tests/phase1_helpers.zig`, and `zigux/tests/phase1_bench.zig` so the tests root names the same validator-first replay and fail-closed checker stack as the docs root, scripts root, workflow, and Makefile surfaces.\","
+    },
+    {
+      "id": "workflow_validate_phase1_self_test_exact_count",
+      "snippet": "\"workflow_phase1_validate_self_test_count\"," 
+    },
+    {
+      "id": "workflow_validate_phase1_exact_count",
+      "snippet": "\"workflow_phase1_validate_count\"," 
+    },
+    {
+      "id": "workflow_bitmap_exact_count",
+      "snippet": "\"workflow_phase1_bitmap_count\"," 
+    },
+    {
+      "id": "workflow_route_summary_exact_count",
+      "snippet": "\"workflow_phase1_route_summary_count\"," 
+    },
+    {
+      "id": "workflow_route_inventory_exact_count",
+      "snippet": "\"workflow_phase1_route_inventory_count\"," 
+    },
+    {
+      "id": "makefile_validate_phase1_self_test_exact_count",
+      "snippet": "\"makefile_phase1_validate_self_test_count\"," 
+    },
+    {
+      "id": "makefile_validate_phase1_exact_count",
+      "snippet": "\"makefile_phase1_validate_count\"," 
+    },
+    {
+      "id": "makefile_bitmap_exact_count",
+      "snippet": "\"makefile_phase1_bitmap_count\"," 
+    },
+    {
+      "id": "makefile_route_summary_exact_count",
+      "snippet": "\"makefile_phase1_route_summary_count\"," 
+    },
+    {
+      "id": "makefile_route_inventory_exact_count",
+      "snippet": "\"makefile_phase1_route_inventory_count\"," 
+    }
+  ]
+}
