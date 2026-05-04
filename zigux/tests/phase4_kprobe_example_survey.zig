@@ -52,6 +52,30 @@ fn isLowerHexSha(value: []const u8) bool {
     return true;
 }
 
+fn gitBlobShaHex(payload: []const u8) [40]u8 {
+    var hasher = std.crypto.hash.Sha1.init(.{});
+    var header_buf: [64]u8 = undefined;
+    const header = std.fmt.bufPrint(&header_buf, "blob {d}\x00", .{payload.len}) catch unreachable;
+    hasher.update(header);
+    hasher.update(payload);
+
+    var digest: [20]u8 = undefined;
+    hasher.final(&digest);
+
+    return std.fmt.bytesToHex(digest, .lower);
+}
+
+fn expectGateEvidenceBlob(
+    gate_evidence: []const u8,
+    marker: []const u8,
+    payload: []const u8,
+) !void {
+    const digest = gitBlobShaHex(payload);
+    var line_buf: [128]u8 = undefined;
+    const line = try std.fmt.bufPrint(&line_buf, "`{s}={s}`", .{ marker, &digest });
+    try std.testing.expect(std.mem.indexOf(u8, gate_evidence, line) != null);
+}
+
 test "phase4 kprobe_example survey manifest records the landed survey packet and remaining sample gap" {
     var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
     defer io_instance.deinit();
@@ -153,6 +177,13 @@ test "phase4 kprobe_example survey manifest records the landed survey packet and
         .limited(64 * 1024),
     );
     defer std.testing.allocator.free(phase4_gate_evidence);
+    const phase4_kprobe_example_survey = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "zigux/tests/phase4_kprobe_example_survey.zig",
+        std.testing.allocator,
+        .limited(64 * 1024),
+    );
+    defer std.testing.allocator.free(phase4_kprobe_example_survey);
     const phase4_validator = try std.Io.Dir.cwd().readFileAlloc(
         io_instance.io(),
         "scripts/zigux/validate-phase4.py",
@@ -191,7 +222,7 @@ test "phase4 kprobe_example survey manifest records the landed survey packet and
 
     const live_summary = SurveySummary{
         .kprobe_makefile_replay_present = std.mem.indexOf(u8, kprobes_makefile, "obj-$(CONFIG_SAMPLE_KPROBES) += kprobe_example.o") != null,
-        .kprobe_anchor_symbol_present = std.mem.indexOf(u8, anchor, "static char symbol[KSYM_NAME_LEN] = \\\"kernel_clone\\\";") != null,
+        .kprobe_anchor_symbol_present = std.mem.indexOf(u8, anchor, "static char symbol[KSYM_NAME_LEN] = \"kernel_clone\";") != null,
         .zig_sample_present = zig_sample_present,
         .phase4_build_present = std.mem.indexOf(u8, phase4_build, "phase4_kprobe_example_survey.zig") != null and
             std.mem.indexOf(u8, phase4_build, manifest.shared_build_replay) != null and
@@ -208,6 +239,16 @@ test "phase4 kprobe_example survey manifest records the landed survey packet and
             std.mem.indexOf(u8, phase4_gate_evidence, "zigux/tests/phase4_kprobe_example_manifest.json") != null,
     };
     try std.testing.expectEqualDeep(live_summary, manifest.survey_summary);
+    try expectGateEvidenceBlob(
+        phase4_gate_evidence,
+        "PHASE4_KPROBE_EXAMPLE_MANIFEST_BLOB_SHA",
+        manifest_json,
+    );
+    try expectGateEvidenceBlob(
+        phase4_gate_evidence,
+        "PHASE4_KPROBE_EXAMPLE_SURVEY_BLOB_SHA",
+        phase4_kprobe_example_survey,
+    );
 
     var starter_landed_count: usize = 0;
     var ready_next_count: usize = 0;
