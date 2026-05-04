@@ -7,7 +7,8 @@ import sys
 import tempfile
 
 
-ROOT = Path(__file__).resolve().parents[2]
+SELF_PATH = Path(__file__).resolve()
+ROOT = SELF_PATH.parents[2] if len(SELF_PATH.parents) > 2 else SELF_PATH.parent
 
 FILES = [
     "scripts/zigux/check-phase10-harness-coverage.py",
@@ -16,6 +17,7 @@ FILES = [
     "zigux/Makefile",
     ".github/workflows/zigux-bootstrap.yml",
     "Documentation/zigux/README.md",
+    "Documentation/zigux/review-checklist.md",
     "Documentation/zigux/phase10-closure-evidence.md",
     "Documentation/zigux/phase10-phase11-phase13-validator-first-review-guide.md",
     "Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md",
@@ -63,6 +65,14 @@ DOCS_README_MARKERS = [
     "focused ring drained-reset reuse replay",
     "focused harness replays",
     "queue-handling and ready-state gate",
+]
+
+CHECKLIST_MARKERS = [
+    "zigux-alpha/PHASE10_CLOSURE_LEDGER.md",
+    "scripts/zigux/check-phase10-harness-coverage.py",
+    "zigux/tests/phase10_virtio_ring_reset_reuse.zig",
+    "zigux/tests/phase10_virtio_input_multitouch_preflight.zig",
+    "zigux/tests/phase10_virtio_mmio_queue_isolation.zig",
 ]
 
 BUILD_MARKERS = [
@@ -145,6 +155,11 @@ EXACT_ONCE = [
     ("docs_readme", "Documentation/zigux/README.md", "zigux/tests/phase10_virtio_mmio_queue_isolation.zig"),
     ("docs_readme", "Documentation/zigux/README.md", "focused ring drained-reset reuse replay"),
     ("docs_readme", "Documentation/zigux/README.md", "queue-handling and ready-state gate"),
+    ("checklist", "Documentation/zigux/review-checklist.md", "zigux-alpha/PHASE10_CLOSURE_LEDGER.md"),
+    ("checklist", "Documentation/zigux/review-checklist.md", "scripts/zigux/check-phase10-harness-coverage.py"),
+    ("checklist", "Documentation/zigux/review-checklist.md", "zigux/tests/phase10_virtio_ring_reset_reuse.zig"),
+    ("checklist", "Documentation/zigux/review-checklist.md", "zigux/tests/phase10_virtio_input_multitouch_preflight.zig"),
+    ("checklist", "Documentation/zigux/review-checklist.md", "zigux/tests/phase10_virtio_mmio_queue_isolation.zig"),
     ("closure_note", "Documentation/zigux/phase10-closure-evidence.md", "zigux/tests/phase10_virtio_ring_reset_reuse.zig"),
     ("closure_note", "Documentation/zigux/phase10-closure-evidence.md", "zigux/tests/phase10_virtio_input_multitouch_preflight.zig"),
     ("closure_note", "Documentation/zigux/phase10-closure-evidence.md", "zigux/tests/phase10_virtio_mmio_queue_isolation.zig"),
@@ -190,6 +205,7 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
         ("scripts_readme", "scripts/zigux/README.md", SCRIPTS_README_MARKERS),
         ("tests_readme", "zigux/tests/README.md", TESTS_README_MARKERS),
         ("docs_readme", "Documentation/zigux/README.md", DOCS_README_MARKERS),
+        ("checklist", "Documentation/zigux/review-checklist.md", CHECKLIST_MARKERS),
         ("build", "zigux/tests/phase10_build.zig", BUILD_MARKERS),
         ("closure_note", "Documentation/zigux/phase10-closure-evidence.md", CLOSURE_NOTE_MARKERS),
         ("guide", "Documentation/zigux/phase10-phase11-phase13-validator-first-review-guide.md", GUIDE_MARKERS),
@@ -259,6 +275,7 @@ def write_fixture(root: Path) -> None:
         "zigux/Makefile": "\n".join(MAKE_MARKERS) + "\n",
         ".github/workflows/zigux-bootstrap.yml": "\n".join(WORKFLOW_MARKERS) + "\n",
         "Documentation/zigux/README.md": "\n".join(DOCS_README_MARKERS) + "\n",
+        "Documentation/zigux/review-checklist.md": "\n".join(CHECKLIST_MARKERS) + "\n",
         "Documentation/zigux/phase10-closure-evidence.md": "\n".join(CLOSURE_NOTE_MARKERS) + "\n",
         "Documentation/zigux/phase10-phase11-phase13-validator-first-review-guide.md": "\n".join(GUIDE_MARKERS) + "\n",
         "Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md": "\n".join(COMPANION_MARKERS) + "\n",
@@ -379,6 +396,38 @@ def run_self_test() -> int:
         expect_missing_marker("docs_readme_ring_phrase", root, "docs_readme:focused ring drained-reset reuse replay")
         docs_readme_path.write_text(original_docs_readme, encoding="utf-8")
 
+        checklist_path = root / "Documentation/zigux/review-checklist.md"
+        original_checklist = checklist_path.read_text(encoding="utf-8")
+        checklist_path.write_text(
+            original_checklist.replace(
+                "zigux-alpha/PHASE10_CLOSURE_LEDGER.md",
+                "zigux-alpha/PHASE10_LEDGER_DRIFT.md",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "checklist_closure_ledger_entry",
+            root,
+            "checklist:zigux-alpha/PHASE10_CLOSURE_LEDGER.md",
+        )
+        checklist_path.write_text(original_checklist, encoding="utf-8")
+
+        checklist_path.write_text(
+            original_checklist.replace(
+                "zigux/tests/phase10_virtio_ring_reset_reuse.zig",
+                "zigux/tests/phase10_ring_drift.zig",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "checklist_ring_entry",
+            root,
+            "checklist:zigux/tests/phase10_virtio_ring_reset_reuse.zig",
+        )
+        checklist_path.write_text(original_checklist, encoding="utf-8")
+
         closure_note_path = root / "Documentation/zigux/phase10-closure-evidence.md"
         original_closure_note = closure_note_path.read_text(encoding="utf-8")
         closure_note_path.write_text(
@@ -448,7 +497,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE10_HARNESS_COVERAGE_SELF_TEST=pass")
-    print("PHASE10_HARNESS_COVERAGE_SELF_TEST_CASE_COUNT=9")
+    print("PHASE10_HARNESS_COVERAGE_SELF_TEST_CASE_COUNT=11")
     return 0
 
 
@@ -475,5 +524,5 @@ print("PHASE10_HARNESS_COVERAGE=pass")
 print(f"PHASE10_HARNESS_REQUIRED_FILE_COUNT={len(FILES)}")
 print(
     "PHASE10_HARNESS_REQUIRED_MARKER_COUNT="
-    f"{len(MAKE_MARKERS) + len(WORKFLOW_MARKERS) + len(SCRIPTS_README_MARKERS) + len(TESTS_README_MARKERS) + len(DOCS_README_MARKERS) + len(BUILD_MARKERS) + len(CLOSURE_NOTE_MARKERS) + len(GUIDE_MARKERS) + len(COMPANION_MARKERS) + len(RING_RESET_REUSE_TEST_MARKERS) + len(INPUT_PREFLIGHT_TEST_MARKERS) + len(MMIO_QUEUE_ISOLATION_TEST_MARKERS) + len(EXACT_ONCE)}"
+    f"{len(MAKE_MARKERS) + len(WORKFLOW_MARKERS) + len(SCRIPTS_README_MARKERS) + len(TESTS_README_MARKERS) + len(DOCS_README_MARKERS) + len(CHECKLIST_MARKERS) + len(BUILD_MARKERS) + len(CLOSURE_NOTE_MARKERS) + len(GUIDE_MARKERS) + len(COMPANION_MARKERS) + len(RING_RESET_REUSE_TEST_MARKERS) + len(INPUT_PREFLIGHT_TEST_MARKERS) + len(MMIO_QUEUE_ISOLATION_TEST_MARKERS) + len(EXACT_ONCE)}"
 )
