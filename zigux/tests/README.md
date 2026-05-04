@@ -138,6 +138,7 @@ Key entrypoints
 - `zigux/tests/phase10_virtio_ring_survey.zig`
 - `zigux/tests/phase10_virtio_input.zig`
 - `zigux/tests/phase10_virtio_input_multitouch_preflight.zig`
+- `zigux/tests/phase10_virtio_input_registration_blocker_build.zig`
 - `zigux/tests/phase10_virtio_input_survey.zig`
 - `zigux/tests/phase10_virtio_mmio.zig`
 - `zigux/tests/phase10_virtio_mmio_queue_isolation.zig`
