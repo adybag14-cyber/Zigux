@@ -79,6 +79,7 @@ Keep the pre-replay checker stack explicit:
 - `make -C zigux phase11-hvc-survey`
 
 Keep these evidence surfaces aligned in the same review:
+- `scripts/zigux/README.md`
 - `Documentation/zigux/phase11-shared-replay-contract.md`
 - `Documentation/zigux/phase11-hvc-console-validation-matrix.md`
 - `Documentation/zigux/phase11-uapi-header-parity-survey.md`
@@ -105,6 +106,7 @@ Keep these evidence surfaces aligned in the same review:
 - `.github/workflows/zigux-bootstrap.yml`
 
 Reviewer prompts:
+- Does the scripts-root Phase 11 flow still name the same pre-replay checker stack, the shared `phase11-validate` plus `phase11` routes, the dedicated `phase11-hvc-survey` route, and the same manifest plus split-replay evidence bundle that this guide and the tests-root companion carry?
 - Does the shared Phase 11 replay still stay separate from the dedicated archival `hvc_console` survey while the shared starter packet explicitly includes `zigux/tests/phase11_dw_wdt_suspend_resume.zig`, `zigux/tests/phase11_dw_wdt_remove_idle_split.zig`, `zigux/tests/phase11_hvc_console_modem_control_split.zig`, and `zigux/tests/phase11_hvc_console_poll_retry_split.zig`?
 - Do the pre-replay checkers still describe the same delivery contract that the shared build inventory, the shared header-boundary packet, the active review checklist prompt, and the Phase 11 manifests claim?
 
