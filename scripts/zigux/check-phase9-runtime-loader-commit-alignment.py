@@ -18,6 +18,13 @@ PIN_CARRIER_PATHS = {
     "Documentation/zigux/phase9-runtime-loader-substrate-plan.md",
     "zigux/tests/runtime_loader_gap_manifest.json",
 }
+REQUIRED_PACKET_PATHS = {
+    "Documentation/zigux/phase9-runtime-loader-gap-survey.md",
+    "Documentation/zigux/phase9-runtime-loader-substrate-plan.md",
+    "zigux/tests/runtime_loader_gap_manifest.json",
+    "zigux/kernel/runtime_loader.zig",
+    "samples/zigux/runtime_trace_events_loader.zig",
+}
 
 
 def read_text(root: Path, rel_path: str) -> str:
@@ -103,6 +110,12 @@ def git_changed_packet_paths(root: Path, base_commit: str, packet_paths: list[st
     return changed_paths, None
 
 
+def validate_required_packet_paths(packet_paths: list[str]) -> list[str]:
+    seen_paths = set(packet_paths)
+    missing_paths = sorted(REQUIRED_PACKET_PATHS - seen_paths)
+    return [f"runtime_loader_packet:missing_required_path:{path}" for path in missing_paths]
+
+
 def validate(root: Path) -> list[str]:
     errors: list[str] = []
 
@@ -116,6 +129,8 @@ def validate(root: Path) -> list[str]:
 
     assert manifest_commit is not None
     assert packet_paths is not None
+
+    errors.extend(validate_required_packet_paths(packet_paths))
 
     survey_commit, survey_error = extract_markdown_surveyed_commit(
         survey_text,
@@ -180,6 +195,12 @@ def run_self_test() -> int:
       \"kind\": \"runtime_substrate\",
       \"path\": \"zigux/kernel/runtime_loader.zig\",
       \"role\": \"records the shared request contract\"
+    },
+    {
+      \"id\": \"trace-events-loader-blocked-scaffold\",
+      \"kind\": \"runtime_loader_scaffold_boundary\",
+      \"path\": \"samples/zigux/runtime_trace_events_loader.zig\",
+      \"role\": \"records the adjacent trace-events loader scaffold boundary\"
     }
   ]
 }
@@ -202,16 +223,19 @@ The current substrate-plan packet is pinned to `master` commit `1383062a0df7f7a3
         (root / "zigux/tests").mkdir(parents=True, exist_ok=True)
         (root / "Documentation/zigux").mkdir(parents=True, exist_ok=True)
         (root / "zigux/kernel").mkdir(parents=True, exist_ok=True)
+        (root / "samples/zigux").mkdir(parents=True, exist_ok=True)
 
         manifest_path = root / "zigux/tests/runtime_loader_gap_manifest.json"
         survey_path = root / "Documentation/zigux/phase9-runtime-loader-gap-survey.md"
         substrate_path = root / "Documentation/zigux/phase9-runtime-loader-substrate-plan.md"
         runtime_loader_path = root / "zigux/kernel/runtime_loader.zig"
+        trace_events_loader_path = root / "samples/zigux/runtime_trace_events_loader.zig"
 
         manifest_path.write_text(baseline_manifest, encoding="utf-8")
         survey_path.write_text(baseline_survey, encoding="utf-8")
         substrate_path.write_text(baseline_substrate, encoding="utf-8")
         runtime_loader_path.write_text("// runtime loader baseline\n", encoding="utf-8")
+        trace_events_loader_path.write_text("// trace-events loader baseline\n", encoding="utf-8")
 
         subprocess.run(["git", "init"], cwd=root, check=True, capture_output=True, text=True)
         subprocess.run(["git", "config", "user.name", "Codex"], cwd=root, check=True, capture_output=True, text=True)
@@ -271,6 +295,35 @@ The current substrate-plan packet is pinned to `master` commit `1383062a0df7f7a3
                 "phase9-loader-commit-alignment:self-test:baseline_failed:"
                 + ",".join(baseline_errors)
             )
+
+        missing_path_manifest = json.loads(
+            baseline_manifest.replace(
+                "1383062a0df7f7a360df54db685454b3e69798af",
+                baseline_commit,
+            )
+        )
+        missing_path_manifest["delivery_evidence_catalog"] = [
+            entry
+            for entry in missing_path_manifest["delivery_evidence_catalog"]
+            if entry.get("path") != "samples/zigux/runtime_trace_events_loader.zig"
+        ]
+        manifest_path.write_text(
+            json.dumps(missing_path_manifest, indent=2) + "\n",
+            encoding="utf-8",
+        )
+        missing_path_errors = validate(root)
+        if "runtime_loader_packet:missing_required_path:samples/zigux/runtime_trace_events_loader.zig" not in missing_path_errors:
+            raise SystemExit(
+                "phase9-loader-commit-alignment:self-test:expected_required_path_failure:"
+                + ",".join(missing_path_errors or ["none"])
+            )
+        manifest_path.write_text(
+            baseline_manifest.replace(
+                "1383062a0df7f7a360df54db685454b3e69798af",
+                baseline_commit,
+            ),
+            encoding="utf-8",
+        )
 
         substrate_path.write_text(
             baseline_substrate.replace(
@@ -385,7 +438,7 @@ The current substrate-plan packet is pinned to `master` commit `1383062a0df7f7a3
             )
 
     print("PHASE9_LOADER_COMMIT_ALIGNMENT_SELF_TEST=pass")
-    print("PHASE9_LOADER_COMMIT_ALIGNMENT_SELF_TEST_CASE_COUNT=5")
+    print("PHASE9_LOADER_COMMIT_ALIGNMENT_SELF_TEST_CASE_COUNT=6")
     return 0
 
 
