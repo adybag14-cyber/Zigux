@@ -18,6 +18,13 @@ DEFAULT_MANIFEST = ROOT / "zigux" / "tests" / "fixtures" / "phase1_helper_manife
 DEFAULT_WORKFLOW = ROOT / ".github" / "workflows" / "zigux-bootstrap.yml"
 DEFAULT_MAKEFILE = ROOT / "zigux" / "Makefile"
 
+REQUIRED_INPUT_FILES = {
+    "Documentation/zigux/phase1-closure.md": DEFAULT_CLOSURE_DOC,
+    "zigux/tests/fixtures/phase1_helper_manifest.json": DEFAULT_MANIFEST,
+    ".github/workflows/zigux-bootstrap.yml": DEFAULT_WORKFLOW,
+    "zigux/Makefile": DEFAULT_MAKEFILE,
+}
+
 REQUIRED_CLOSURE_SNIPPETS = {
     "header_alias_review": (
         "PHASE1_BITMAP_HEADER_ALIAS_UNIT_REVIEW=bitmap bitmap_zero bitmap_fill bitmap_copy "
@@ -163,6 +170,14 @@ def normalize_closure_doc_line(line: str) -> str:
     return normalized
 
 
+def validate_required_files(required_files: dict[str, Path]) -> list[str]:
+    missing: list[str] = []
+    for rel, path in required_files.items():
+        if not path.exists():
+            missing.append(f"missing_file:{rel}")
+    return missing
+
+
 def validate_text(prefix: str, source: str, snippets: dict[str, str]) -> list[str]:
     missing: list[str] = []
     for label, snippet in snippets.items():
@@ -210,6 +225,21 @@ def run_check(
     workflow_path: Path,
     makefile_path: Path,
 ) -> int:
+    required_files = {
+        "Documentation/zigux/phase1-closure.md": closure_doc_path,
+        "zigux/tests/fixtures/phase1_helper_manifest.json": manifest_path,
+        ".github/workflows/zigux-bootstrap.yml": workflow_path,
+        "zigux/Makefile": makefile_path,
+    }
+    missing_files = validate_required_files(required_files)
+    if missing_files:
+        print("PHASE1_BITMAP_VALIDATOR_ANCHOR_CHECK=fail")
+        print("MISSING_PHASE1_BITMAP_VALIDATOR_ANCHORS_START")
+        for item in missing_files:
+            print(item)
+        print("MISSING_PHASE1_BITMAP_VALIDATOR_ANCHORS_END")
+        return 1
+
     closure_doc_source = closure_doc_path.read_text(encoding="utf-8")
     manifest_source = manifest_path.read_text(encoding="utf-8")
     workflow_source = workflow_path.read_text(encoding="utf-8")
@@ -265,6 +295,35 @@ def expect_missing(
         raise SystemExit(
             f"phase1-bitmap-validator-self-test:{label}:expected={expected!r}:actual={missing!r}"
         )
+
+
+def expect_run_check_failure(
+    closure_path: Path,
+    manifest_path: Path,
+    workflow_path: Path,
+    makefile_path: Path,
+    expected: str,
+) -> None:
+    if run_check(closure_path, manifest_path, workflow_path, makefile_path) == 0:
+        raise SystemExit(f"phase1-bitmap-validator-self-test:expected_failure:{expected}")
+
+    paths = {
+        "Documentation/zigux/phase1-closure.md": closure_path,
+        "zigux/tests/fixtures/phase1_helper_manifest.json": manifest_path,
+        ".github/workflows/zigux-bootstrap.yml": workflow_path,
+        "zigux/Makefile": makefile_path,
+    }
+    actual_missing = validate_required_files(paths)
+    if expected.startswith("missing_file:"):
+        if expected not in actual_missing:
+            raise SystemExit(
+                f"phase1-bitmap-validator-self-test:expected={expected!r}:actual={actual_missing!r}"
+            )
+        return
+
+    raise SystemExit(
+        f"phase1-bitmap-validator-self-test:unexpected_failure_path:{expected!r}:actual_missing={actual_missing!r}"
+    )
 
 
 def run_self_test() -> int:
@@ -407,6 +466,19 @@ def run_self_test() -> int:
         if run_check(closure_path, manifest_path, workflow_path, makefile_path) != 0:
             raise SystemExit("phase1-bitmap-validator-self-test:file_check_failed")
         total_cases += 1
+
+        missing_file_cases = [
+            (closure_path, "missing_file:Documentation/zigux/phase1-closure.md"),
+            (manifest_path, "missing_file:zigux/tests/fixtures/phase1_helper_manifest.json"),
+            (workflow_path, "missing_file:.github/workflows/zigux-bootstrap.yml"),
+            (makefile_path, "missing_file:zigux/Makefile"),
+        ]
+        for path, expected in missing_file_cases:
+            baseline = path.read_text(encoding="utf-8")
+            path.unlink()
+            expect_run_check_failure(closure_path, manifest_path, workflow_path, makefile_path, expected)
+            path.write_text(baseline, encoding="utf-8")
+            total_cases += 1
 
     print("PHASE1_BITMAP_VALIDATOR_ANCHOR_SELF_TEST=pass")
     print(f"PHASE1_BITMAP_VALIDATOR_ANCHOR_SELF_TEST_CASE_COUNT={total_cases}")
