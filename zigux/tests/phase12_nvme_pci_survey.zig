@@ -186,6 +186,10 @@ test "phase12 nvme pci survey manifest records the landed starter and remaining 
     try std.testing.expect(std.mem.indexOf(u8, raw_fallback_map, "It does not claim a live-head replay catalog.") != null);
     try std.testing.expect(std.mem.indexOf(u8, raw_fallback_map, "## Tree Readback Roots") != null);
     try std.testing.expect(std.mem.indexOf(u8, raw_fallback_map, "## Raw Pinned URLs") != null);
+    try std.testing.expect(std.mem.indexOf(u8, raw_fallback_map, "## Ownership And Rollback") != null);
+    try std.testing.expect(std.mem.indexOf(u8, raw_fallback_map, "owner: `NVMe PCI Lane`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, raw_fallback_map, "rollback owner: `NVMe PCI Lane`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, raw_fallback_map, "fallback path: keep `drivers/nvme/host/pci.c` as the source of truth") != null);
     try std.testing.expect(std.mem.indexOf(u8, raw_fallback_map, "## Non-goals") != null);
     try std.testing.expect(std.mem.indexOf(u8, raw_fallback_map, "queue-recovery replay helper") != null);
     try std.testing.expect(std.mem.indexOf(u8, raw_fallback_map, "The dedicated `zigux/tests/phase12_nvme_pci_survey.zig` gate reads this note back as part of the archived reviewability surface") != null);
