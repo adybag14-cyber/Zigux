@@ -311,7 +311,7 @@ test "phase 7 cmdline survey keeps the helper-only handoff explicit" {
 
     try std.testing.expectEqualStrings("P7-L05", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 7", manifest.phase);
-    try std.testing.expectEqualStrings("d46fb91493e6e9126d5111bf0e5b21184e0ec1d1", manifest.surveyed_commit);
+    try std.testing.expectEqualStrings("c0b506e3254e63fe007a72d420bb275846a89093", manifest.surveyed_commit);
     try std.testing.expectEqualStrings("lib/cmdline.c", manifest.anchor);
     try std.testing.expectEqual(@as(usize, 1), manifest.roadmap_destinations.len);
     try std.testing.expectEqualStrings("lib/cmdline.zig", manifest.roadmap_destinations[0]);
