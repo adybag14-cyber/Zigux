@@ -16,6 +16,17 @@ DOCS_ROOT_CHECKER_SNIPPETS = [
     'require_exact_count("release_boundary", release_boundary_text, RELEASE_BOUNDARY_LINES)',
 ]
 
+RELEASE_BOUNDARY_LINES = [
+    "PHASE14_RELEASE_BOUNDARY=present",
+    "PHASE14_SHARED_REPLAY_PRESENT=yes",
+    "PHASE14_RELEASE_CLOSED=no",
+    "shared smoke packet: `Documentation/zigux/phase14-end-to-end-smoke-survey.md`, `Documentation/zigux/phase14-release-boundary-survey.md`, `zigux/tests/phase14_end_to_end_smoke_manifest.json`, `scripts/zigux/check-phase14-docs-root-smoke-summary.py`, `scripts/zigux/check-phase14-release-boundary-exact-counts.py`, `scripts/zigux/validate-phase14.py`, `make -C zigux phase14-validate`, `make -C zigux phase14-smoke`, `zig build phase14-smoke --build-file zigux/tests/phase14_build.zig --summary all`, and `zig build test --build-file zigux/tests/phase14_build.zig --summary all` now keep the four-anchor boundary map, the focused smoke shard, and the shared full-bundle replay explicit from a study-only posture",
+    "compile-shard matrix: one focused `phase14-smoke` shard still covers only `phase14-end-to-end-smoke-tests`, while `phase14-workqueue-bridge-tests`, `phase14-skbuff-bridge-tests`, `phase14-ring-buffer-survey-tests`, and `phase14-rcu-tree-survey-tests` remain `full_bundle_only` under `zig build test --build-file zigux/tests/phase14_build.zig --summary all`",
+    "combined shared replay entrypoint: `make -C zigux phase14` remains the published convenience route for the validator-backed smoke packet, so release-facing review and local replay still name the same one-command path as the shared smoke note and manifest instead of leaving that wrapper path implicit in `zigux/Makefile`",
+    "PHASE14_SHARED_SMOKE_GATE_COUNT=1",
+    "PHASE14_ACTIVE_DELIVERY_GATE_COUNT=0",
+]
+
 MAKEFILE_SNIPPETS = [
     "phase14-validate:",
     "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase14-docs-root-smoke-summary.py --self-test",
@@ -52,8 +63,13 @@ def require_exact_line_count(label: str, text: str, snippets: list[str]) -> list
     return issues
 
 
-def validate_alignment(docs_root_checker_text: str, makefile_text: str) -> list[str]:
+def validate_alignment(
+    docs_root_checker_text: str,
+    release_boundary_text: str,
+    makefile_text: str,
+) -> list[str]:
     issues = require_exact_count("docs_root_checker", docs_root_checker_text, DOCS_ROOT_CHECKER_SNIPPETS)
+    issues.extend(require_exact_count("release_boundary", release_boundary_text, RELEASE_BOUNDARY_LINES))
     issues.extend(require_exact_line_count("makefile", makefile_text, MAKEFILE_SNIPPETS))
     return issues
 
@@ -69,6 +85,17 @@ RELEASE_BOUNDARY_LINES = [
 issues = require_exact_count("release_boundary", release_boundary_text, RELEASE_BOUNDARY_LINES)
 """.strip()
 
+    release_boundary_text = """
+- PHASE14_RELEASE_BOUNDARY=present
+- PHASE14_SHARED_REPLAY_PRESENT=yes
+- PHASE14_RELEASE_CLOSED=no
+- shared smoke packet: `Documentation/zigux/phase14-end-to-end-smoke-survey.md`, `Documentation/zigux/phase14-release-boundary-survey.md`, `zigux/tests/phase14_end_to_end_smoke_manifest.json`, `scripts/zigux/check-phase14-docs-root-smoke-summary.py`, `scripts/zigux/check-phase14-release-boundary-exact-counts.py`, `scripts/zigux/validate-phase14.py`, `make -C zigux phase14-validate`, `make -C zigux phase14-smoke`, `zig build phase14-smoke --build-file zigux/tests/phase14_build.zig --summary all`, and `zig build test --build-file zigux/tests/phase14_build.zig --summary all` now keep the four-anchor boundary map, the focused smoke shard, and the shared full-bundle replay explicit from a study-only posture
+- compile-shard matrix: one focused `phase14-smoke` shard still covers only `phase14-end-to-end-smoke-tests`, while `phase14-workqueue-bridge-tests`, `phase14-skbuff-bridge-tests`, `phase14-ring-buffer-survey-tests`, and `phase14-rcu-tree-survey-tests` remain `full_bundle_only` under `zig build test --build-file zigux/tests/phase14_build.zig --summary all`
+- combined shared replay entrypoint: `make -C zigux phase14` remains the published convenience route for the validator-backed smoke packet, so release-facing review and local replay still name the same one-command path as the shared smoke note and manifest instead of leaving that wrapper path implicit in `zigux/Makefile`
+- PHASE14_SHARED_SMOKE_GATE_COUNT=1
+- PHASE14_ACTIVE_DELIVERY_GATE_COUNT=0
+""".strip()
+
     makefile_text = """
 phase14-validate:
 	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase14-docs-root-smoke-summary.py --self-test
@@ -78,19 +105,32 @@ phase14-validate:
 	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase14.py
 """.strip()
 
-    good = validate_alignment(docs_root_checker_text, makefile_text)
-    bad = validate_alignment(
+    good = validate_alignment(docs_root_checker_text, release_boundary_text, makefile_text)
+    bad_docs_root_checker = validate_alignment(
         docs_root_checker_text.replace(
-            "`scripts/zigux/check-phase14-release-boundary-exact-counts.py`, ", "", 1
+            '`scripts/zigux/check-phase14-release-boundary-exact-counts.py`, ',
+            "",
+            1,
         ),
+        release_boundary_text,
         makefile_text,
     )
-    if good or not bad:
+    bad_release_boundary = validate_alignment(
+        docs_root_checker_text,
+        release_boundary_text.replace("- PHASE14_ACTIVE_DELIVERY_GATE_COUNT=0", "", 1),
+        makefile_text,
+    )
+    duplicate_release_boundary = validate_alignment(
+        docs_root_checker_text,
+        release_boundary_text + "\n- PHASE14_SHARED_SMOKE_GATE_COUNT=1",
+        makefile_text,
+    )
+    if good or not bad_docs_root_checker or not bad_release_boundary or not duplicate_release_boundary:
         print("PHASE14_RELEASE_BOUNDARY_EXACT_COUNTS_SELF_TEST=fail")
         return 1
 
     print("PHASE14_RELEASE_BOUNDARY_EXACT_COUNTS_SELF_TEST=pass")
-    print("PHASE14_RELEASE_BOUNDARY_EXACT_COUNTS_SELF_TEST_CASE_COUNT=2")
+    print("PHASE14_RELEASE_BOUNDARY_EXACT_COUNTS_SELF_TEST_CASE_COUNT=4")
     return 0
 
 
@@ -99,8 +139,9 @@ def main(argv: list[str]) -> int:
         return run_self_test()
 
     docs_root_checker_path = ROOT / "scripts/zigux/check-phase14-docs-root-smoke-summary.py"
+    release_boundary_path = ROOT / "Documentation/zigux/phase14-release-boundary-survey.md"
     makefile_path = ROOT / "zigux/Makefile"
-    required_paths = [docs_root_checker_path, makefile_path]
+    required_paths = [docs_root_checker_path, release_boundary_path, makefile_path]
     missing_files = [str(path) for path in required_paths if not path.exists()]
     if missing_files:
         print("PHASE14_RELEASE_BOUNDARY_EXACT_COUNTS=fail")
@@ -110,7 +151,11 @@ def main(argv: list[str]) -> int:
         print("MISSING_FILES_END")
         return 1
 
-    issues = validate_alignment(read(docs_root_checker_path), read(makefile_path))
+    issues = validate_alignment(
+        read(docs_root_checker_path),
+        read(release_boundary_path),
+        read(makefile_path),
+    )
     if issues:
         print("PHASE14_RELEASE_BOUNDARY_EXACT_COUNTS=fail")
         print("ISSUES_START")
@@ -121,6 +166,7 @@ def main(argv: list[str]) -> int:
 
     print("PHASE14_RELEASE_BOUNDARY_EXACT_COUNTS=pass")
     print(f"PHASE14_DOCS_ROOT_CHECKER_SNIPPET_COUNT={len(DOCS_ROOT_CHECKER_SNIPPETS)}")
+    print(f"PHASE14_RELEASE_BOUNDARY_LINE_COUNT={len(RELEASE_BOUNDARY_LINES)}")
     print(f"PHASE14_MAKEFILE_SNIPPET_COUNT={len(MAKEFILE_SNIPPETS)}")
     return 0
 
