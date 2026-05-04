@@ -1,1 +1,1 @@
-{"counts":{"set":2,"unset":1},"entries":[{"name":"CONFIG_BANNER","kind":"string","value":"zigux"},{"name":"CONFIG_STATE","kind":"tristate","value":"y"},{"name":"CONFIG_DEBUG","kind":"unset","value":"n"}]}
+{"counts":{"set":3,"unset":1},"entries":[{"name":"CONFIG_BANNER","kind":"string","value":"zigux \"bridge\""},{"name":"CONFIG_PATH","kind":"string","value":"drivers\\zigux"},{"name":"CONFIG_STATE","kind":"tristate","value":"y"},{"name":"CONFIG_DEBUG","kind":"unset","value":"n"}]}
