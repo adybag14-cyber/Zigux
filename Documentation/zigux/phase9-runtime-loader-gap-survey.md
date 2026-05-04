@@ -141,6 +141,8 @@ That same boundary discipline also keeps module metadata and depmod publication 
 This slice therefore stays deliberately pre-execution. It does not claim runtime scheduling, polling, or event-loop implementation and it does not move runtime allocator or init-flow ownership into Phase 6.
 It also stays underneath the freeze-map study boundary for `kernel/workqueue.c`, so the shared loader packet must keep workqueue parity and any scheduler-core status change blocked until the Architecture Council explicitly reopens that anchor with fresh evidence.
 
+The same release-discipline packet now also keeps the dedicated surveyed-commit replay explicit: `make -C zigux phase9-loader-commit-alignment-survey` reruns the focused alignment guard for `Documentation/zigux/phase9-runtime-loader-gap-survey.md`, `Documentation/zigux/phase9-runtime-loader-substrate-plan.md`, and `zigux/tests/runtime_loader_gap_manifest.json` before the broader runtime bundle claims reviewable progress.
+
 ## Gates
 
 1. run the validator self-test first
@@ -151,6 +153,7 @@ It also stays underneath the freeze-map study boundary for `kernel/workqueue.c`,
 - `python3 scripts/zigux/check-phase9-loader-substrate-plan.py --self-test`
 - `python3 scripts/zigux/check-phase9-runtime-loader-commit-alignment.py --self-test`
 - `python3 scripts/zigux/check-phase9-loader-non-owner-boundary.py --self-test`
+- `make -C zigux phase9-loader-commit-alignment-survey`
 
 3. run the release-discipline validator and the dedicated runtime-loader packet checks
 - `python3 scripts/zigux/validate-phase9.py`
