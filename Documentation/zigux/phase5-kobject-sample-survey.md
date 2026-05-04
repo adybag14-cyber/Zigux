@@ -3,7 +3,7 @@
 - `PHASE5_STATUS=parked`
 - `PHASE5_SLICE=kobject-reference-sample-starter`
 - `PHASE5_LANE_KEY=P5-L10`
-- `PHASE5_SURVEYED_COMMIT=affdebd460c9c33ce939c7535cdb929352648e93`
+- `PHASE5_SURVEYED_COMMIT=0bd402fd6ca83ba2ace6b21e9e57459401b631cd`
 - scope: roadmap-vs-repo sample reviewability, approved ownership-and-lifetime guidance, and exact bounded checks for the landed `samples/zigux/` kobject-style replay
 - product boundary:
   - `Documentation/zigux/phase5-kobject-sample-survey.md`
@@ -69,7 +69,7 @@ The current gap is no longer "Zigux has no kobject sample guidance." The more pr
 - this sample must remain visibly separate from later runtime-facing work so contributors do not over-claim runtime substrate coverage
 - the shared sample-root catalog still carries the later Phase 9 runtime follow-ons beside the four approved Phase 5 anchors, and the scripts-root guide now names the same direct and paired replay surface, so this note keeps the kobject slice visibly inside the approved non-runtime set instead of counting nearby runtime starters as part of the landed ownership-and-lifetime idiom
 - current `master` still ships no `samples/zigux/*string*`, `samples/zigux/*cmdline*`, or `samples/zigux/*rbtree*` Phase 5 reference sample, so this survey keeps string, cmdline, and rbtree evidence under the separate Phase 7 helper bundles instead of treating them as open sample-port gaps inside the kobject family
-- this approved ownership-and-lifetime idiom is pinned to `PHASE5_SURVEYED_COMMIT=affdebd460c9c33ce939c7535cdb929352648e93` so the survey note, manifest-backed checks, shared sample-root catalog, scripts-root guide, shared tests-root guide, shared review checklist, and focused shared-build replay all point at the same inspected `master` head
+- this approved ownership-and-lifetime idiom is pinned to `PHASE5_SURVEYED_COMMIT=0bd402fd6ca83ba2ace6b21e9e57459401b631cd` so the survey note, manifest-backed checks, shared sample-root catalog, scripts-root guide, shared tests-root guide, shared review checklist, and focused shared-build replay all point at the same inspected `master` head
 - the Phase 5 roadmap's four named sample anchors are now all represented by bounded `samples/zigux/` reference readings, but that does not widen this slice into runtime sysfs or module-delivery claims
 
 ## Review gates for this survey
