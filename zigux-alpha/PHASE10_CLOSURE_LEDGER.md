@@ -61,8 +61,8 @@ This focused ledger records the current closure-evidence bundle for the active P
 - `PHASE10_LEDGER_EXACT_CHECK_1=python3 scripts/zigux/check-phase10-closure-inventory.py`
 - `PHASE10_LEDGER_EXACT_CHECK_2=python3 scripts/zigux/check-phase10-core-packet.py`
 - `PHASE10_LEDGER_EXACT_CHECK_3=python3 scripts/zigux/validate-phase10.py`
-- `PHASE10_LEDGER_EXACT_CHECK_4=python3 scripts/zigux/validate-phase10-closure.py`
-- `PHASE10_LEDGER_EXACT_CHECK_5=python3 scripts/zigux/check-phase10-harness-coverage.py`
+- `PHASE10_LEDGER_EXACT_CHECK_4=python3 scripts/zigux/check-phase10-harness-coverage.py`
+- `PHASE10_LEDGER_EXACT_CHECK_5=python3 scripts/zigux/validate-phase10-closure.py`
 - `PHASE10_LEDGER_EXACT_CHECK_6=zig build test --build-file zigux/tests/phase10_build.zig --summary all`
 - `PHASE10_LEDGER_EXACT_CHECK_7=make -C zigux phase10-validate`
 - `PHASE10_LEDGER_EXACT_CHECK_8=make -C zigux phase10-test`
@@ -97,8 +97,8 @@ The exact replay packet for the current closure bundle is:
 1. `python3 scripts/zigux/check-phase10-closure-inventory.py`
 2. `python3 scripts/zigux/check-phase10-core-packet.py`
 3. `python3 scripts/zigux/validate-phase10.py`
-4. `python3 scripts/zigux/validate-phase10-closure.py`
-5. `python3 scripts/zigux/check-phase10-harness-coverage.py`
+4. `python3 scripts/zigux/check-phase10-harness-coverage.py`
+5. `python3 scripts/zigux/validate-phase10-closure.py`
 6. `zig build test --build-file zigux/tests/phase10_build.zig --summary all`
 7. `make -C zigux phase10-validate`
 8. `make -C zigux phase10-test`
