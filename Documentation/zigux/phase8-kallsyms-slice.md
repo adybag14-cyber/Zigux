@@ -19,6 +19,8 @@ This document tracks the bounded Phase 8 userspace-adjacent tooling slice for Zi
 
 The Phase 8 roadmap explicitly names `tools/lib/symbol/kallsyms.c` as a userspace-adjacent tooling anchor and recommends `tools/lib/symbol/*.zig` as a bounded Zigux destination for this tranche. That same roadmap says Phase 8 should prove Zigux inside serious repo-hosted tooling, not just tiny helpers, so the phase-level packet should stay focused on the integrated parser-and-wrapper surface that reviewers actually need to inspect.
 
+This parked packet therefore keeps `tools/lib/symbol/kallsyms.zig` framed as helper-first expansion inside the recommended `tools/lib/symbol/*.zig` family and keeps its review surface centered on output-stable tooling behavior rather than downstream symbol plumbing.
+
 The live repo already has the parse-first `kallsyms.zig` parked slice, the injected chunked reader surface, thin reader-backed and path-backed adapters, the bounded discard-after-boundary behavior for oversized symbol names, and direct callback wrappers across caller-provided contents, injected readers, and file-backed parsing. The lane-local drift is no longer about broad symbol-tooling expansion; it is about keeping that bounded callback-wrapper surface explicit and machine-checked while still framing the tranche as a parser-and-wrapper packet rather than a broader symbol-tooling port.
 
 ## Gates
