@@ -28,6 +28,17 @@ pub const NegotiationSummary = struct {
     accepted_by_transport: bool,
 };
 
+pub const DriverValidationReplaySummary = struct {
+    anchor: []const u8,
+    driver_status: u8,
+    offered_feature_count: usize,
+    validated_feature_count: usize,
+    negotiated_feature_count: usize,
+    finalize_count: usize,
+    validation_replayed_finalize: bool,
+    accepted_by_transport: bool,
+};
+
 pub const QueueRegistrationSummary = struct {
     anchor: []const u8,
     queue_index: u16,
@@ -254,6 +265,48 @@ pub const VirtioCoreLabDevice = struct {
             .driver_status = self.status,
             .offered_feature_count = self.driver_features.count(),
             .negotiated_feature_count = self.negotiated_features.count(),
+            .accepted_by_transport = self.hasStatus(DeviceStatus.features_ok),
+        };
+    }
+
+    pub fn finalizeFeaturesWithDriverValidation(
+        self: *Self,
+        validated_feature_bits: []const u16,
+    ) !DriverValidationReplaySummary {
+        if (!self.hasStatus(DeviceStatus.driver)) return error.DriverNotAttached;
+        if (self.hasStatus(DeviceStatus.features_ok) or self.hasStatus(DeviceStatus.driver_ok)) {
+            return error.FeatureWindowClosed;
+        }
+
+        var validated_features = FeatureSet.initEmpty();
+        for (validated_feature_bits) |feature_bit| {
+            const index = try checkedFeatureIndex(feature_bit);
+            if (!self.driver_features.isSet(index)) return error.ValidationSelectedUnofferedFeature;
+            validated_features.set(index);
+        }
+
+        self.finalize_count += 1;
+        const validation_replayed_finalize = !featureSetsEqual(self.driver_features, validated_features);
+        if (validation_replayed_finalize) {
+            self.finalize_count += 1;
+        }
+
+        self.negotiated_features = FeatureSet.initEmpty();
+        self.status &= ~DeviceStatus.features_ok;
+
+        if (self.transport_accepts_features) {
+            self.negotiated_features = validated_features;
+            self.status |= DeviceStatus.features_ok;
+        }
+
+        return .{
+            .anchor = descriptor().anchor,
+            .driver_status = self.status,
+            .offered_feature_count = self.driver_features.count(),
+            .validated_feature_count = validated_features.count(),
+            .negotiated_feature_count = self.negotiated_features.count(),
+            .finalize_count = self.finalize_count,
+            .validation_replayed_finalize = validation_replayed_finalize,
             .accepted_by_transport = self.hasStatus(DeviceStatus.features_ok),
         };
     }
@@ -592,4 +645,69 @@ pub const VirtioCoreLabDevice = struct {
         if (!slot.active) return error.QueueNotRegistered;
         return slot;
     }
+
+    fn featureSetsEqual(lhs: FeatureSet, rhs: FeatureSet) bool {
+        var index: usize = 0;
+        while (index < feature_bit_capacity) : (index += 1) {
+            if (lhs.isSet(index) != rhs.isSet(index)) return false;
+        }
+        return true;
+    }
 };
+
+test "phase10 virtio core validation replay narrows negotiated features and reruns finalize" {
+    var device = try VirtioCoreLabDevice.init(&.{ 1, 7, 33 });
+
+    device.acknowledge();
+    try device.attachDriver();
+    try device.offerDriverFeature(1);
+    try device.offerDriverFeature(7);
+    try device.offerDriverFeature(33);
+
+    const summary = try device.finalizeFeaturesWithDriverValidation(&.{ 1, 33 });
+    try std.testing.expectEqualStrings("drivers/virtio/virtio.c", summary.anchor);
+    try std.testing.expect(summary.accepted_by_transport);
+    try std.testing.expect(summary.validation_replayed_finalize);
+    try std.testing.expectEqual(@as(usize, 3), summary.offered_feature_count);
+    try std.testing.expectEqual(@as(usize, 2), summary.validated_feature_count);
+    try std.testing.expectEqual(@as(usize, 2), summary.negotiated_feature_count);
+    try std.testing.expectEqual(@as(usize, 2), summary.finalize_count);
+    try std.testing.expect(device.hasStatus(DeviceStatus.features_ok));
+    try std.testing.expect(try device.hasNegotiatedFeature(1));
+    try std.testing.expect(!(try device.hasNegotiatedFeature(7)));
+    try std.testing.expect(try device.hasNegotiatedFeature(33));
+}
+
+test "phase10 virtio core validation replay stays single-pass when validation keeps offered features" {
+    var device = try VirtioCoreLabDevice.init(&.{ 2, 5 });
+
+    device.acknowledge();
+    try device.attachDriver();
+    try device.offerDriverFeature(2);
+    try device.offerDriverFeature(5);
+
+    const summary = try device.finalizeFeaturesWithDriverValidation(&.{ 2, 5 });
+    try std.testing.expect(summary.accepted_by_transport);
+    try std.testing.expect(!summary.validation_replayed_finalize);
+    try std.testing.expectEqual(@as(usize, 2), summary.offered_feature_count);
+    try std.testing.expectEqual(@as(usize, 2), summary.validated_feature_count);
+    try std.testing.expectEqual(@as(usize, 2), summary.negotiated_feature_count);
+    try std.testing.expectEqual(@as(usize, 1), summary.finalize_count);
+    try std.testing.expect(try device.hasNegotiatedFeature(2));
+    try std.testing.expect(try device.hasNegotiatedFeature(5));
+}
+
+test "phase10 virtio core validation replay rejects features the driver never offered" {
+    var device = try VirtioCoreLabDevice.init(&.{ 3, 9 });
+
+    device.acknowledge();
+    try device.attachDriver();
+    try device.offerDriverFeature(3);
+
+    try std.testing.expectError(
+        error.ValidationSelectedUnofferedFeature,
+        device.finalizeFeaturesWithDriverValidation(&.{ 3, 9 }),
+    );
+    try std.testing.expectEqual(@as(usize, 0), device.finalize_count);
+    try std.testing.expect(!(try device.hasNegotiatedFeature(3)));
+}
