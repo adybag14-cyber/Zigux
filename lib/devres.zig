@@ -119,6 +119,7 @@ pub const DeviceTreeIomapInput = struct {
     resources: []const Resource,
     requested_type: IoremapType = .normal,
     report_size: bool = false,
+    fail_pretty_name_allocation: bool = false,
     request_region_granted: bool = true,
     remap_succeeds: bool = true,
 };
@@ -527,6 +528,7 @@ pub const DevresHelperLab = struct {
             .device_name = input.device_name,
             .resource = resource,
             .requested_type = input.requested_type,
+            .fail_pretty_name_allocation = input.fail_pretty_name_allocation,
             .request_region_granted = input.request_region_granted,
             .remap_succeeds = input.remap_succeeds,
         });
