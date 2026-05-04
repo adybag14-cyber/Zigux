@@ -11,6 +11,7 @@ The module-facing surface stays intentionally narrow:
 - adds an explicit `summarizeTeardown()` helper so `gpio_wdt_disable()`-style eternal-ping ordering, toggle-versus-level disable fallout, and `always-running` versus `nowayout` stop failure modes stay reviewable beside the current starter
 - records the first chosen watchdog-registration surface as metadata-only planning, together with the validation focus that preceded the now-landed bounded register-device call summary
 - keeps the first bounded `registerDeviceCallSummary()` surface explicit so the starter records one real watchdog-core handoff boundary without claiming the live `devm_watchdog_register_device()` call
+- keeps the parked `registerDeviceFailureSummary()` surface explicit so descriptor preflight, platform registration, and reboot glue blockers stay machine-checkable beside the first bounded request instead of being implied by the call surface alone
 - stays under the shared `zigux/tests/phase11_build.zig` review gate so the starter and survey lane remain aligned
 
 This slice does not claim platform-driver registration, GPIO descriptor lookup, watchdog-core registration, reboot integration beyond summary bookkeeping, module parameter wiring beyond `nowayout` bookkeeping, or hardware validation coverage yet.
