@@ -32,10 +32,13 @@ FILES = [
     "scripts/zigux/check-phase11-hvc-validation-flow.py",
     "scripts/zigux/check-phase11-hvc-cleanup-alignment.py",
     "scripts/zigux/check-phase11-shared-replay-contract.py",
+    "scripts/zigux/check-phase11-header-boundary-packet.py",
     "scripts/zigux/validate-phase11.py",
     "scripts/zigux/README.md",
     "Documentation/zigux/README.md",
     "Documentation/zigux/review-checklist.md",
+    "Documentation/zigux/phase10-phase11-phase13-validator-first-review-guide.md",
+    "Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md",
     "Documentation/zigux/phase11-shared-replay-contract.md",
     "Documentation/zigux/phase11-dw-wdt-survey.md",
     "Documentation/zigux/phase11-dw-wdt-slice.md",
@@ -92,6 +95,8 @@ MAKE_MARKERS = [
     "scripts/zigux/check-phase11-hvc-cleanup-alignment.py",
     "scripts/zigux/check-phase11-shared-replay-contract.py --self-test",
     "scripts/zigux/check-phase11-shared-replay-contract.py",
+    "scripts/zigux/check-phase11-header-boundary-packet.py --self-test",
+    "scripts/zigux/check-phase11-header-boundary-packet.py",
     "scripts/zigux/validate-phase11.py --self-test",
     "scripts/zigux/validate-phase11.py",
     "$(ZIG) build test --build-file zigux/tests/phase11_build.zig --summary all",
@@ -107,7 +112,9 @@ WORKFLOW_MARKERS = [
     "Self-test Phase 11 hvc cleanup alignment checker",
     "Self-test Phase 11 layout assert surface checker",
     "Self-test Phase 11 shared replay contract checker",
+    "Self-test Phase 11 header boundary packet checker",
     "Validate Phase 11 shared replay contract",
+    "Validate Phase 11 header boundary packet",
     "Validate Phase 11 simple-driver bundle",
     "make -C zigux phase11-validate",
     "Run Phase 11 watchdog and console tests",
@@ -121,6 +128,8 @@ README_MARKERS = [
     "check-phase11-hvc-validation-flow.py",
     "check-phase11-hvc-cleanup-alignment.py",
     "check-phase11-shared-replay-contract.py",
+    "check-phase11-header-boundary-packet.py",
+    "check-phase11-header-boundary-packet.py --self-test",
     "validate-phase11.py",
     "validate-phase11.py --self-test",
     "Phase 11 flow",
@@ -130,6 +139,7 @@ README_MARKERS = [
     "phase11_build_inventory.json",
     "phase11_gpio_wdt_manifest.json",
     "phase11_uapi_header_parity_manifest.json",
+    "paired UAPI header parity packet",
     "dedicated hvc_console survey note and validation matrix",
     "exact shared-versus-dedicated replay commands and observed outcome lines",
 ]
@@ -144,12 +154,30 @@ DOCS_README_MARKERS = [
     "the active Phase 11 simple-driver packet now keeps the four roadmap-backed driver lanes visible from the top-level docs index",
     "python3 scripts/zigux/check-phase11-build-inventory.py",
     "python3 scripts/zigux/check-phase11-shared-replay-contract.py",
-    "python3 scripts/zigux/validate-phase11.py`, `zigux/tests/fixtures/phase11_build_inventory.json`, `make -C zigux phase11-validate`, and `make -C zigux phase11` now define the shared Phase 11 reviewability path",
+    "python3 scripts/zigux/check-phase11-header-boundary-packet.py",
+    "python3 scripts/zigux/validate-phase11.py",
+    "zigux/tests/fixtures/phase11_build_inventory.json",
+    "make -C zigux phase11-validate",
+    "make -C zigux phase11",
 ]
 CHECKLIST_MARKERS = [
     "if the change is a Phase 11 simple-driver slice, do `scripts/zigux/validate-phase11.py`, `zigux/tests/phase11_build.zig`, the four driver-local Phase 11 manifests, and `zigux/tests/phase11_uapi_header_parity_manifest.json` still agree on the same bounded simple-driver scope, shared replay contract, and explicit ready-next versus blocked follow-up posture?",
     "if the change touches the shared Phase 11 tooling path, do `zigux/tests/phase11_build.zig`, `zigux/tests/fixtures/phase11_build_inventory.json`, and `zigux/tests/phase11_hvc_console_survey.zig` still agree on the exact shared build inventory and the dedicated-survey boundary instead of silently implying that every Phase 11 survey gate already runs in the shared path?",
     "if the change touches the shared Phase 11 replay contract packet, do `Documentation/zigux/phase11-shared-replay-contract.md`, `scripts/zigux/validate-phase11.py`, `zigux/tests/phase11_build.zig`, `zigux/tests/fixtures/phase11_build_inventory.json`, and `zigux/tests/phase11_hvc_console_survey.zig` still agree on the same shared-versus-dedicated replay boundary instead of leaving that packet split implicit?",
+    "if the change touches the active Phase 11 contributor packet, do `Documentation/zigux/phase11-shared-replay-contract.md`, `scripts/zigux/check-phase11-build-inventory.py`, `scripts/zigux/check-phase11-layout-assert-surface.py`, `scripts/zigux/check-phase11-hvc-validation-flow.py`, `scripts/zigux/check-phase11-hvc-cleanup-alignment.py`, `scripts/zigux/check-phase11-shared-replay-contract.py`, `scripts/zigux/check-phase11-header-boundary-packet.py`, `zigux/tests/phase11_build.zig`, `zigux/tests/phase11_hvc_console_survey.zig`, and `zigux/tests/phase11_uapi_header_parity_manifest.json` still keep the pre-replay stack, the shared-versus-dedicated `hvc_console` split, and the shared header-boundary packet aligned?",
+]
+REVIEW_GUIDE_MARKERS = [
+    "## Phase 11: Simple-driver packet",
+    "python3 scripts/zigux/check-phase11-header-boundary-packet.py --self-test",
+    "python3 scripts/zigux/check-phase11-header-boundary-packet.py",
+    "zigux/tests/phase11_uapi_header_parity_manifest.json",
+    "Do the pre-replay checkers still describe the same delivery contract that the shared build inventory, the shared header-boundary packet, the active review checklist prompt, the four roadmap-backed driver matrices, and the Phase 11 manifests claim?",
+]
+TESTS_COMPANION_MARKERS = [
+    "## Phase 11 tests-root packet",
+    "scripts/zigux/check-phase11-header-boundary-packet.py",
+    "zigux/tests/phase11_uapi_header_parity_manifest.json",
+    "keeps the shared header-boundary packet explicit through `scripts/zigux/check-phase11-header-boundary-packet.py`",
 ]
 BUILD_MARKERS = [
     "phase11-gpio-wdt-tests",
@@ -277,29 +305,11 @@ SURVEY_SPECS = {
         "count_markers": [("starter_landed_count", "starter_landed"), ("ready_next_count", "ready_next")],
     },
 }
-HVC_DOC_PATHS = {
-    "survey": "Documentation/zigux/phase11-hvc-console-survey.md",
-    "slice": "Documentation/zigux/phase11-hvc-console-slice.md",
-    "matrix": "Documentation/zigux/phase11-hvc-console-validation-matrix.md",
-}
-GPIO_WDT_DOC_PATHS = {
-    "survey": "Documentation/zigux/phase11-gpio-wdt-survey.md",
-    "slice": "Documentation/zigux/phase11-gpio-wdt-slice.md",
-    "matrix": "Documentation/zigux/phase11-gpio-wdt-validation-matrix.md",
-}
-DW_WDT_DOC_PATHS = {
-    "survey": "Documentation/zigux/phase11-dw-wdt-survey.md",
-    "slice": "Documentation/zigux/phase11-dw-wdt-slice.md",
-    "matrix": "Documentation/zigux/phase11-dw-wdt-validation-matrix.md",
-}
-BCM2835_WDT_DOC_PATHS = {
-    "survey": "Documentation/zigux/phase11-bcm2835-wdt-survey.md",
-    "slice": "Documentation/zigux/phase11-bcm2835-wdt-slice.md",
-    "matrix": "Documentation/zigux/phase11-bcm2835-wdt-validation-matrix.md",
-}
+
 
 def text(path: str) -> str:
     return (ROOT / path).read_text(encoding="utf-8")
+
 
 def clone_fixture_root(destination_root: Path) -> None:
     for rel_path in FILES:
@@ -307,6 +317,7 @@ def clone_fixture_root(destination_root: Path) -> None:
         target = destination_root / rel_path
         target.parent.mkdir(parents=True, exist_ok=True)
         shutil.copyfile(source, target)
+
 
 def run_validator(root: Path) -> subprocess.CompletedProcess[str]:
     return subprocess.run(
@@ -317,6 +328,7 @@ def run_validator(root: Path) -> subprocess.CompletedProcess[str]:
         check=False,
     )
 
+
 def expect_missing_marker(label: str, root: Path, expected_marker: str) -> None:
     result = run_validator(root)
     if result.returncode == 0:
@@ -326,6 +338,7 @@ def expect_missing_marker(label: str, root: Path, expected_marker: str) -> None:
         raise SystemExit(
             f"phase11-self-test:{label}:expected_missing_marker:{expected_marker}:actual:{actual}"
         )
+
 
 def run_self_test() -> int:
     with tempfile.TemporaryDirectory(prefix="zigux_phase11_validator_selftest_") as tmp_dir:
@@ -339,20 +352,105 @@ def run_self_test() -> int:
                 f"{baseline.stdout.strip() or baseline.stderr.strip() or 'no_output'}"
             )
 
-        makefile_path = tmp_root / "zigux/Makefile"
-        original_makefile = makefile_path.read_text(encoding="utf-8")
-        makefile_path.write_text(
-            original_makefile.replace(
-                "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase11.py --self-test\n",
-                "",
+        scripts_readme_path = tmp_root / "scripts/zigux/README.md"
+        original_scripts_readme = scripts_readme_path.read_text(encoding="utf-8")
+        scripts_readme_path.write_text(
+            original_scripts_readme.replace(
+                "check-phase11-header-boundary-packet.py --self-test",
+                "check-phase11-shared-replay-contract.py --self-test",
                 1,
             ),
             encoding="utf-8",
         )
         expect_missing_marker(
-            "makefile_self_test_hook",
+            "scripts_readme_header_boundary_self_test_marker",
             tmp_root,
-            "make:scripts/zigux/validate-phase11.py --self-test",
+            "scripts_readme:check-phase11-header-boundary-packet.py --self-test",
+        )
+        scripts_readme_path.write_text(original_scripts_readme, encoding="utf-8")
+
+        docs_readme_path = tmp_root / "Documentation/zigux/README.md"
+        original_docs_readme = docs_readme_path.read_text(encoding="utf-8")
+        docs_readme_path.write_text(
+            original_docs_readme.replace(
+                "python3 scripts/zigux/check-phase11-header-boundary-packet.py",
+                "python3 scripts/zigux/check-phase11-shared-replay-contract.py",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "docs_readme_header_boundary_marker",
+            tmp_root,
+            "docs_readme:python3 scripts/zigux/check-phase11-header-boundary-packet.py",
+        )
+        docs_readme_path.write_text(original_docs_readme, encoding="utf-8")
+
+        review_checklist_path = tmp_root / "Documentation/zigux/review-checklist.md"
+        original_review_checklist = review_checklist_path.read_text(encoding="utf-8")
+        review_checklist_path.write_text(
+            original_review_checklist.replace(
+                "scripts/zigux/check-phase11-header-boundary-packet.py",
+                "scripts/zigux/check-phase11-shared-replay-contract.py",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "review_checklist_header_boundary_marker",
+            tmp_root,
+            "review_checklist:if the change touches the active Phase 11 contributor packet, do `Documentation/zigux/phase11-shared-replay-contract.md`, `scripts/zigux/check-phase11-build-inventory.py`, `scripts/zigux/check-phase11-layout-assert-surface.py`, `scripts/zigux/check-phase11-hvc-validation-flow.py`, `scripts/zigux/check-phase11-hvc-cleanup-alignment.py`, `scripts/zigux/check-phase11-shared-replay-contract.py`, `scripts/zigux/check-phase11-header-boundary-packet.py`, `zigux/tests/phase11_build.zig`, `zigux/tests/phase11_hvc_console_survey.zig`, and `zigux/tests/phase11_uapi_header_parity_manifest.json` still keep the pre-replay stack, the shared-versus-dedicated `hvc_console` split, and the shared header-boundary packet aligned?",
+        )
+        review_checklist_path.write_text(original_review_checklist, encoding="utf-8")
+
+        review_guide_path = tmp_root / "Documentation/zigux/phase10-phase11-phase13-validator-first-review-guide.md"
+        original_review_guide = review_guide_path.read_text(encoding="utf-8")
+        review_guide_path.write_text(
+            original_review_guide.replace(
+                "python3 scripts/zigux/check-phase11-header-boundary-packet.py --self-test",
+                "python3 scripts/zigux/check-phase11-shared-replay-contract.py --self-test",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "review_guide_header_boundary_marker",
+            tmp_root,
+            "review_guide:python3 scripts/zigux/check-phase11-header-boundary-packet.py --self-test",
+        )
+        review_guide_path.write_text(original_review_guide, encoding="utf-8")
+
+        tests_companion_path = tmp_root / "Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md"
+        original_tests_companion = tests_companion_path.read_text(encoding="utf-8")
+        tests_companion_path.write_text(
+            original_tests_companion.replace(
+                "keeps the shared header-boundary packet explicit through `scripts/zigux/check-phase11-header-boundary-packet.py`",
+                "keeps the shared packet explicit through `scripts/zigux/check-phase11-shared-replay-contract.py`",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "tests_companion_header_boundary_marker",
+            tmp_root,
+            "tests_companion:keeps the shared header-boundary packet explicit through `scripts/zigux/check-phase11-header-boundary-packet.py`",
+        )
+        tests_companion_path.write_text(original_tests_companion, encoding="utf-8")
+
+        makefile_path = tmp_root / "zigux/Makefile"
+        original_makefile = makefile_path.read_text(encoding="utf-8")
+        makefile_path.write_text(
+            original_makefile.replace(
+                "scripts/zigux/check-phase11-header-boundary-packet.py --self-test",
+                "scripts/zigux/check-phase11-build-inventory.py --self-test",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "makefile_header_boundary_self_test_hook",
+            tmp_root,
+            "make:scripts/zigux/check-phase11-header-boundary-packet.py --self-test",
         )
         makefile_path.write_text(original_makefile, encoding="utf-8")
 
@@ -360,340 +458,36 @@ def run_self_test() -> int:
         original_workflow = workflow_path.read_text(encoding="utf-8")
         workflow_path.write_text(
             original_workflow.replace(
-                "      - name: Self-test Phase 11 simple-driver validator\n"
-                "        run: python3 scripts/zigux/validate-phase11.py --self-test\n\n",
-                "",
+                "Validate Phase 11 header boundary packet",
+                "Validate Phase 11 replay packet",
                 1,
             ),
             encoding="utf-8",
         )
         expect_missing_marker(
-            "workflow_self_test_step",
+            "workflow_header_boundary_validate_step",
             tmp_root,
-            "workflow:Self-test Phase 11 simple-driver validator",
-        )
-        workflow_path.writeText if False else None
-        workflow_path.write_text(original_workflow, encoding="utf-8")
-
-        workflow_path.write_text(
-            original_workflow.replace(
-                "      - name: Run dedicated Phase 11 hvc survey replay\n"
-                "        run: make -C zigux phase11-hvc-survey\n\n",
-                "",
-                1,
-            ),
-            encoding="utf-8",
-        )
-        expect_missing_marker(
-            "workflow_hvc_survey_step",
-            tmp_root,
-            "workflow:Run dedicated Phase 11 hvc survey replay",
+            "workflow:Validate Phase 11 header boundary packet",
         )
         workflow_path.write_text(original_workflow, encoding="utf-8")
 
-        docs_readme_path = tmp_root / "Documentation/zigux/README.md"
-        original_docs_readme = docs_readme_path.read_text(encoding="utf-8")
-        docs_readme_path.write_text(
-            original_docs_readme.replace(
-                "Phase 11 notes\n",
-                "",
-                1,
-            ),
-            encoding="utf-8",
-        )
+        header_checker_path = tmp_root / "scripts/zigux/check-phase11-header-boundary-packet.py"
+        header_checker_path.unlink()
         expect_missing_marker(
-            "docs_readme_phase11_section",
+            "header_boundary_checker_file_presence",
             tmp_root,
-            "docs_readme:Phase 11 notes",
-        )
-        docs_readme_path.write_text(original_docs_readme, encoding="utf-8")
-
-        gpio_test_path = tmp_root / "zigux/tests/phase11_gpio_wdt.zig"
-        original_gpio_test = gpio_test_path.read_text(encoding="utf-8")
-        gpio_test_path.write_text(
-            original_gpio_test.replace(
-                "    const toggle_teardown = try toggle_watchdog.summarizeTeardown(false);\n",
-                "",
-                1,
-            ),
-            encoding="utf-8",
-        )
-        expect_missing_marker(
-            "gpio_teardown_summary_surface",
-            tmp_root,
-            "phase11_gpio_wdt_tests:    const toggle_teardown = try toggle_watchdog.summarizeTeardown(false);",
-        )
-        gpio_test_path.write_text(original_gpio_test, encoding="utf-8")
-
-        hvc_test_path = tmp_root / "zigux/tests/phase11_hvc_console.zig"
-        original_hvc_test = hvc_test_path.read_text(encoding="utf-8")
-        hvc_test_path.write_text(
-            original_hvc_test.replace(
-                "    try std.testing.expectEqual(@as(u32, 11), clamped_worker.sleep_timeout_ms);\n",
-                "",
-                1,
-            ),
-            encoding="utf-8",
-        )
-        expect_missing_marker(
-            "hvc_worker_timeout_clamp_surface",
-            tmp_root,
-            "phase11_hvc_console_tests:    try std.testing.expectEqual(@as(u32, 11), clamped_worker.sleep_timeout_ms);",
-        )
-        hvc_test_path.write_text(original_hvc_test, encoding="utf-8")
-
-        hvc_test_path.write_text(
-            original_hvc_test.replace(
-                "    try std.testing.expect(active_teardown.notifier_del_pending);\n",
-                "",
-                1,
-            ),
-            encoding="utf-8",
-        )
-        expect_missing_marker(
-            "hvc_close_teardown_surface",
-            tmp_root,
-            "phase11_hvc_console_tests:    try std.testing.expect(active_teardown.notifier_del_pending);",
-        )
-        hvc_test_path.write_text(original_hvc_test, encoding="utf-8")
-
-        dw_test_path = tmp_root / "zigux/tests/phase11_dw_wdt.zig"
-        original_dw_test = dw_test_path.read_text(encoding="utf-8")
-        dw_test_path.write_text(
-            original_dw_test.replace(
-                "    try std.testing.expect(stoppable_summary.stop_uses_reset_pulse);\n",
-                "",
-                1,
-            ),
-            encoding="utf-8",
-        )
-        expect_missing_marker(
-            "dw_teardown_failure_mode_surface",
-            tmp_root,
-            "phase11_dw_wdt_tests:    try std.testing.expect(stoppable_summary.stop_uses_reset_pulse);",
-        )
-        dw_test_path.write_text(original_dw_test, encoding="utf-8")
-
-        bcm2835_test_path = tmp_root / "zigux/tests/phase11_bcm2835_wdt.zig"
-        original_bcm2835_test = bcm2835_test_path.read_text(encoding="utf-8")
-        bcm2835_test_path.write_text(
-            original_bcm2835_test.replace(
-                "    try std.testing.expect(conflict.poweroff_handler_left_in_place);\n",
-                "",
-                1,
-            ),
-            encoding="utf-8",
-        )
-        expect_missing_marker(
-            "bcm2835_remove_failure_mode_surface",
-            tmp_root,
-            "phase11_bcm2835_wdt_tests:    try std.testing.expect(conflict.poweroff_handler_left_in_place);",
-        )
-        bcm2835_test_path.write_text(original_bcm2835_test, encoding="utf-8")
-
-        bcm2835_test_path.write_text(
-            original_bcm2835_test.replace(
-                "    try std.testing.expect(blocked.poweroff_handler_conflict);\n",
-                "",
-                1,
-            ),
-            encoding="utf-8",
-        )
-        expect_missing_marker(
-            "bcm2835_blocked_platform_conflict_surface",
-            tmp_root,
-            "phase11_bcm2835_wdt_tests:    try std.testing.expect(blocked.poweroff_handler_conflict);",
-        )
-        bcm2835_test_path.write_text(original_bcm2835_test, encoding="utf-8")
-
-        hvc_test_path.write_text(
-            original_hvc_test.replace(
-                "    try std.testing.expect(!stale_hangup.notifier_hangup_pending);\n",
-                "",
-                1,
-            ),
-            encoding="utf-8",
-        )
-        expect_missing_marker(
-            "hvc_stale_hangup_failure_mode_surface",
-            tmp_root,
-            "phase11_hvc_console_tests:    try std.testing.expect(!stale_hangup.notifier_hangup_pending);",
-        )
-        hvc_test_path.write_text(original_hvc_test, encoding="utf-8")
-
-        hvc_test_path.write_text(
-            original_hvc_test.replace(
-                "    try std.testing.expect(attached_remove.tty_port_put_precedes_tty_vhangup);\n",
-                "",
-                1,
-            ),
-            encoding="utf-8",
-        )
-        expect_missing_marker(
-            "hvc_attached_remove_order_surface",
-            tmp_root,
-            "phase11_hvc_console_tests:    try std.testing.expect(attached_remove.tty_port_put_precedes_tty_vhangup);",
-        )
-        hvc_test_path.write_text(original_hvc_test, encoding="utf-8")
-
-        hvc_test_path.write_text(
-            original_hvc_test.replace(
-                "    try std.testing.expect(!detached_remove.tty_vhangup_requested);\n",
-                "",
-                1,
-            ),
-            encoding="utf-8",
-        )
-        expect_missing_marker(
-            "hvc_detached_remove_teardown_surface",
-            tmp_root,
-            "phase11_hvc_console_tests:    try std.testing.expect(!detached_remove.tty_vhangup_requested);",
-        )
-        hvc_test_path.write_text(original_hvc_test, encoding="utf-8")
-
-        hvc_test_path.write_text(
-            original_hvc_test.replace(
-                "    try std.testing.expect(!detached_remove.tty_kref_put_after_vhangup);\n",
-                "",
-                1,
-            ),
-            encoding="utf-8",
-        )
-        expect_missing_marker(
-            "hvc_detached_remove_release_surface",
-            tmp_root,
-            "phase11_hvc_console_tests:    try std.testing.expect(!detached_remove.tty_kref_put_after_vhangup);",
-        )
-        hvc_test_path.write_text(original_hvc_test, encoding="utf-8")
-
-        hvc_test_path.write_text(
-            original_hvc_test.replace(
-                "    try std.testing.expect(hangup_drain.read_hangup_pending);\n",
-                "",
-                1,
-            ),
-            encoding="utf-8",
-        )
-        expect_missing_marker(
-            "hvc_poll_hangup_failure_mode_surface",
-            tmp_root,
-            "phase11_hvc_console_tests:    try std.testing.expect(hangup_drain.read_hangup_pending);",
-        )
-        hvc_test_path.write_text(original_hvc_test, encoding="utf-8")
-
-        hvc_sysrq_path = tmp_root / "drivers/tty/hvc/hvc_console_sysrq.zig"
-        hvc_sysrq_path.unlink()
-        expect_missing_marker(
-            "hvc_sysrq_helper_file_presence",
-            tmp_root,
-            "missing_file:drivers/tty/hvc/hvc_console_sysrq.zig",
+            "missing_file:scripts/zigux/check-phase11-header-boundary-packet.py",
         )
         clone_fixture_root(tmp_root)
-
-        hvc_modem_control_split_path = tmp_root / "zigux/tests/phase11_hvc_console_modem_control_split.zig"
-        hvc_modem_control_split_path.unlink()
-        expect_missing_marker(
-            "hvc_modem_control_split_file_presence",
-            tmp_root,
-            "missing_file:zigux/tests/phase11_hvc_console_modem_control_split.zig",
-        )
-        clone_fixture_root(tmp_root)
-
-        hvc_poll_retry_split_path = tmp_root / "zigux/tests/phase11_hvc_console_poll_retry_split.zig"
-        hvc_poll_retry_split_path.unlink()
-        expect_missing_marker(
-            "hvc_poll_retry_split_file_presence",
-            tmp_root,
-            "missing_file:zigux/tests/phase11_hvc_console_poll_retry_split.zig",
-        )
-        clone_fixture_root(tmp_root)
-
-        matrix_path = tmp_root / "Documentation/zigux/phase11-hvc-console-validation-matrix.md"
-        original_matrix = matrix_path.read_text(encoding="utf-8")
-        matrix_path.write_text(
-            original_matrix.replace(
-                "| `hvc_cleanup()` tty-port release handoff | `summarizeCleanupHandoff()` keeps `tty_port_put()` ownership, tty-port reference drop timing, and the deferred final release boundary reviewable without claiming live tty destruction or host-backed teardown |\n",
-                "",
-                1,
-            ),
-            encoding="utf-8",
-        )
-        expect_missing_marker(
-            "hvc_cleanup_alignment_matrix_marker",
-            tmp_root,
-            "phase11_hvc_console_docs:matrix:`hvc_cleanup()` tty-port release handoff",
-        )
-        matrix_path.write_text(original_matrix, encoding="utf-8")
-
-        build_inventory_path = tmp_root / BUILD_INVENTORY_FIXTURE
-        original_build_inventory = build_inventory_path.read_text(encoding="utf-8")
-
-        build_inventory = json.loads(original_build_inventory)
-        build_inventory["build_test_names"] = build_inventory["build_test_names"][:-1]
-        build_inventory_path.write_text(json.dumps(build_inventory, indent=2) + "\n", encoding="utf-8")
-        expect_missing_marker(
-            "build_inventory_test_names",
-            tmp_root,
-            "phase11_build_fixture:build_test_names",
-        )
-        build_inventory_path.write_text(original_build_inventory, encoding="utf-8")
-
-        build_inventory = json.loads(original_build_inventory)
-        build_inventory["shared_test_depend_steps"] = build_inventory["shared_test_depend_steps"][:-1]
-        build_inventory_path.write_text(json.dumps(build_inventory, indent=2) + "\n", encoding="utf-8")
-        expect_missing_marker(
-            "build_inventory_depend_steps",
-            tmp_root,
-            "phase11_build_fixture:shared_test_depend_steps",
-        )
-        build_inventory_path.write_text(original_build_inventory, encoding="utf-8")
-
-        build_inventory = json.loads(original_build_inventory)
-        build_inventory["dedicated_survey_replays"] = []
-        build_inventory_path.write_text(json.dumps(build_inventory, indent=2) + "\n", encoding="utf-8")
-        expect_missing_marker(
-            "build_inventory_dedicated_replays",
-            tmp_root,
-            "phase11_build_fixture:dedicated_survey_replays",
-        )
-        build_inventory_path.write_text(original_build_inventory, encoding="utf-8")
-
-        build_inventory = json.loads(original_build_inventory)
-        build_inventory["shared_split_replays"] = build_inventory["shared_split_replays"][:-1]
-        build_inventory_path.write_text(json.dumps(build_inventory, indent=2) + "\n", encoding="utf-8")
-        expect_missing_marker(
-            "build_inventory_shared_split_replays",
-            tmp_root,
-            "phase11_build_fixture:shared_split_replays",
-        )
-        build_inventory_path.write_text(original_build_inventory, encoding="utf-8")
-
-        build_inventory = json.loads(original_build_inventory)
-        build_inventory["shared_adjunct_replays"] = []
-        build_inventory_path.write_text(json.dumps(build_inventory, indent=2) + "\n", encoding="utf-8")
-        expect_missing_marker(
-            "build_inventory_shared_adjunct_replays",
-            tmp_root,
-            "phase11_build_fixture:shared_adjunct_replays",
-        )
-        build_inventory_path.write_text(original_build_inventory, encoding="utf-8")
-
-        build_inventory = json.loads(original_build_inventory)
-        build_inventory["shared_replay_markers"] = build_inventory["shared_replay_markers"][:-1]
-        build_inventory_path.write_text(json.dumps(build_inventory, indent=2) + "\n", encoding="utf-8")
-        expect_missing_marker(
-            "build_inventory_shared_replay_markers",
-            tmp_root,
-            "phase11_build_fixture:shared_replay_markers",
-        )
-        build_inventory_path.write_text(original_build_inventory, encoding="utf-8")
 
         print("PHASE11_SELF_TEST=pass")
         return 0
 
+
 def load_manifest(name: str) -> dict[str, object]:
     manifest_path = ROOT / "zigux/tests" / name
     return json.loads(manifest_path.read_text(encoding="utf-8"))
+
 
 def find_gap(manifest: dict[str, object], gap_id: str) -> dict[str, object] | None:
     gaps = manifest.get("gaps")
@@ -703,6 +497,7 @@ def find_gap(manifest: dict[str, object], gap_id: str) -> dict[str, object] | No
         if isinstance(gap, dict) and gap.get("id") == gap_id:
             return gap
     return None
+
 
 def count_statuses(manifest: dict[str, object], status_match: str) -> int:
     gaps = manifest.get("gaps")
@@ -722,9 +517,11 @@ def count_statuses(manifest: dict[str, object], status_match: str) -> int:
             total += 1
     return total
 
+
 def parse_build_inventory() -> dict[str, object]:
     fixture_path = ROOT / BUILD_INVENTORY_FIXTURE
     return json.loads(fixture_path.read_text(encoding="utf-8"))
+
 
 def validate_build_inventory_fixture(build_inventory: dict[str, object], missing: list[str]) -> None:
     build_test_names = build_inventory.get("build_test_names")
@@ -754,6 +551,7 @@ def validate_build_inventory_fixture(build_inventory: dict[str, object], missing
     shared_replay_markers = build_inventory.get("shared_replay_markers")
     if shared_replay_markers != PHASE11_BUILD_FIXTURE_SHARED_REPLAY_MARKERS:
         missing.append("phase11_build_fixture:shared_replay_markers")
+
 
 def main() -> int:
     if len(sys.argv) > 1 and sys.argv[1] == "--self-test":
@@ -801,6 +599,16 @@ def main() -> int:
         if marker not in review_checklist:
             missing.append(f"review_checklist:{marker}")
 
+    review_guide = text("Documentation/zigux/phase10-phase11-phase13-validator-first-review-guide.md")
+    for marker in REVIEW_GUIDE_MARKERS:
+        if marker not in review_guide:
+            missing.append(f"review_guide:{marker}")
+
+    tests_companion = text("Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md")
+    for marker in TESTS_COMPANION_MARKERS:
+        if marker not in tests_companion:
+            missing.append(f"tests_companion:{marker}")
+
     phase11_build = text("zigux/tests/phase11_build.zig")
     for marker in BUILD_MARKERS:
         if marker not in phase11_build:
@@ -823,6 +631,7 @@ def main() -> int:
         "phase11-hvc-survey",
         "phase11-uapi-header-parity-surface",
         "phase11-dw-wdt-watchdog-header-boundary",
+        "`python3 scripts/zigux/check-phase11-header-boundary-packet.py`",
     ]:
         if marker not in required_shared_replay_note:
             missing.append(f"shared_replay_contract:{marker}")
@@ -895,6 +704,7 @@ def main() -> int:
     print(f"PHASE11_READY_NEXT_STATUS_COUNT={ready_total}")
     print(f"PHASE11_BLOCKED_STATUS_COUNT={blocked_total}")
     return 0
+
 
 if __name__ == "__main__":
     raise SystemExit(main())
