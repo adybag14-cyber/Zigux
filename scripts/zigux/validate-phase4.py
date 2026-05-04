@@ -89,6 +89,18 @@ README_MARKERS = [
     "phase4-perf-baseline-survey-tests",
 ]
 
+ATOMIC64_DOCS_README_MARKERS = [
+    "make -C zigux phase4-runtime-atomic64-diff",
+    "phase4-runtime-atomic64-diff-tests",
+    "phase4-runtime-atomic64-diff-survey-tests",
+]
+
+ATOMIC64_SCRIPTS_README_MARKERS = [
+    "phase4-runtime-atomic64-diff",
+    "phase4-runtime-atomic64-diff-tests",
+    "phase4-runtime-atomic64-diff-survey-tests",
+]
+
 TESTS_README_MARKERS = [
     "zigux/tests/phase4_kprobe_example_manifest.json",
     "zigux/tests/phase4_kprobe_example_survey.zig",
@@ -114,6 +126,13 @@ GATE_EVIDENCE_TARGETS = {
 
 ADDITIONAL_GATE_EVIDENCE_MARKERS = [
     "PHASE4_WORKFLOW_ROUTE_CHECKER_BLOB_SHA=",
+]
+
+ATOMIC64_GATE_EVIDENCE_MARKERS = [
+    "make -C zigux phase4-runtime-atomic64-diff",
+    "phase4-runtime-atomic64-diff-tests",
+    "phase4-runtime-atomic64-diff-survey-tests",
+    "runtime_atomic64_diff.zig` remains the single replay body",
 ]
 
 
@@ -157,8 +176,11 @@ def validate_root(root: Path) -> list[str]:
     missing.extend(missing_text(build, "build", BUILD_MARKERS))
     missing.extend(missing_text(matrix, "matrix", MATRIX_MARKERS))
     missing.extend(missing_text(docs_readme, "docs_readme", README_MARKERS))
+    missing.extend(missing_text(docs_readme, "docs_readme_atomic64", ATOMIC64_DOCS_README_MARKERS))
     missing.extend(missing_text(scripts_readme, "scripts_readme", README_MARKERS[:-1]))
+    missing.extend(missing_text(scripts_readme, "scripts_readme_atomic64", ATOMIC64_SCRIPTS_README_MARKERS))
     missing.extend(missing_text(tests_readme, "tests_readme", TESTS_README_MARKERS))
+    missing.extend(missing_text(gate_evidence, "gate_evidence_atomic64", ATOMIC64_GATE_EVIDENCE_MARKERS))
     missing.extend(
         missing_text(
             kprobe_survey,
@@ -212,8 +234,8 @@ def write_fixture_tree(root: Path) -> None:
         "scripts/zigux/validate-phase4.py": "# placeholder\n",
         "Documentation/zigux/artifact-diff.md": "Current Phase 4 use\n",
         "Documentation/zigux/phase4-validation-matrix.md": "\n".join(MATRIX_MARKERS) + "\n",
-        "Documentation/zigux/README.md": "\n".join(README_MARKERS) + "\n",
-        "scripts/zigux/README.md": "\n".join(README_MARKERS[:-1]) + "\n",
+        "Documentation/zigux/README.md": "\n".join(README_MARKERS + ATOMIC64_DOCS_README_MARKERS) + "\n",
+        "scripts/zigux/README.md": "\n".join(README_MARKERS[:-1] + ATOMIC64_SCRIPTS_README_MARKERS) + "\n",
         "zigux/tests/README.md": "\n".join(TESTS_README_MARKERS) + "\n",
         "zigux/Makefile": "\n".join(MAKE_LINES) + "\n",
         ".github/workflows/zigux-bootstrap.yml": "Validate Phase 4 diff gates\nRun Phase 4 diff tests\n",
@@ -253,6 +275,10 @@ def write_fixture_tree(root: Path) -> None:
         "PHASE4_EVIDENCE_SCOPE=rollback_ownership_and_lab_matrix_current_gate_definitions",
         f"PHASE4_WORKFLOW_ROUTE_CHECKER_BLOB_SHA={workflow_route_checker_sha}",
         "shared validator now fails closed on the kprobe survey packet itself",
+        "make -C zigux phase4-runtime-atomic64-diff",
+        "phase4-runtime-atomic64-diff-tests",
+        "phase4-runtime-atomic64-diff-survey-tests",
+        "runtime_atomic64_diff.zig` remains the single replay body",
     ]
     for marker, rel in GATE_EVIDENCE_TARGETS.items():
         evidence.append(f"{marker}={blob_sha((root / rel).read_bytes())}")
@@ -269,6 +295,15 @@ def run_self_test() -> int:
         survey.write_text(survey.read_text(encoding="utf-8").replace("phase4-kprobe-example-survey-tests\n", ""), encoding="utf-8")
         missing = validate_root(root)
         assert "kprobe_survey:phase4-kprobe-example-survey-tests" in missing, missing
+
+        write_fixture_tree(root)
+        docs_readme = root / "Documentation/zigux/README.md"
+        docs_readme.write_text(
+            docs_readme.read_text(encoding="utf-8").replace("make -C zigux phase4-runtime-atomic64-diff\n", "", 1),
+            encoding="utf-8",
+        )
+        missing = validate_root(root)
+        assert "docs_readme_atomic64:make -C zigux phase4-runtime-atomic64-diff" in missing, missing
 
         write_fixture_tree(root)
         makefile = root / "zigux/Makefile"
@@ -306,6 +341,22 @@ def run_self_test() -> int:
         gate_evidence = root / "Documentation/zigux/phase4-gate-evidence.md"
         gate_evidence.write_text(
             gate_evidence.read_text(encoding="utf-8").replace(
+                "runtime_atomic64_diff.zig` remains the single replay body\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        missing = validate_root(root)
+        assert (
+            "gate_evidence_atomic64:runtime_atomic64_diff.zig` remains the single replay body"
+            in missing
+        ), missing
+
+        write_fixture_tree(root)
+        gate_evidence = root / "Documentation/zigux/phase4-gate-evidence.md"
+        gate_evidence.write_text(
+            gate_evidence.read_text(encoding="utf-8").replace(
                 "PHASE4_WORKFLOW_ROUTE_CHECKER_BLOB_SHA=",
                 "PHASE4_WORKFLOW_ROUTE_CHECKER_BLOB_MISSING=",
                 1,
@@ -333,7 +384,19 @@ def run_self_test() -> int:
 
 
 def required_marker_count() -> int:
-    return len(MAKE_LINES) + len(BUILD_MARKERS) + len(MATRIX_MARKERS) + len(README_MARKERS) + len(TESTS_README_MARKERS) + len(GATE_EVIDENCE_TARGETS)
+    return (
+        len(MAKE_LINES)
+        + len(BUILD_MARKERS)
+        + len(MATRIX_MARKERS)
+        + len(README_MARKERS)
+        + len(ATOMIC64_DOCS_README_MARKERS)
+        + len(README_MARKERS[:-1])
+        + len(ATOMIC64_SCRIPTS_README_MARKERS)
+        + len(TESTS_README_MARKERS)
+        + len(GATE_EVIDENCE_TARGETS)
+        + len(ADDITIONAL_GATE_EVIDENCE_MARKERS)
+        + len(ATOMIC64_GATE_EVIDENCE_MARKERS)
+    )
 
 
 def main() -> int:
