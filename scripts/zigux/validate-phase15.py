@@ -77,10 +77,16 @@ README_MARKERS = [
 
 SCRIPTS_README_MARKERS = [
     "Phase 15 flow",
+    "check-phase15-review-process-handoff.py",
     "validate-phase15.py",
     "make -C zigux phase15-validate",
     "make -C zigux phase15",
     "zig build test --build-file zigux/tests/phase15_build.zig",
+    "zigux/tests/phase15_architecture_council_review_process_manifest.json",
+    "zigux/tests/phase15_parity_scorecard.json",
+    "zigux/tests/phase15_indefinite_c_policy.json",
+    "zigux/tests/phase15_readiness_gate_manifest.json",
+    "zigux/tests/phase15_handoff_next_steps_manifest.json",
 ]
 
 TESTS_README_MARKERS = [
