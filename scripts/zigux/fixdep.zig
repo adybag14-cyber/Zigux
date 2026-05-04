@@ -789,6 +789,57 @@ test "dep parsing keeps the first source across concatenated target entries" {
     );
 }
 
+test "escaped-newline comments between concatenated target entries keep the first source" {
+    const Capture = struct {
+        list: std.ArrayList(u8),
+        allocator: std.mem.Allocator,
+
+        fn init(allocator: std.mem.Allocator) !@This() {
+            return .{
+                .list = try std.ArrayList(u8).initCapacity(allocator, 128),
+                .allocator = allocator,
+            };
+        }
+
+        fn deinit(self: *@This()) void {
+            self.list.deinit(self.allocator);
+        }
+
+        fn print(self: *@This(), comptime fmt: []const u8, args: anytype) !void {
+            const rendered = try std.fmt.allocPrint(self.allocator, fmt, args);
+            defer self.allocator.free(rendered);
+            try self.list.appendSlice(self.allocator, rendered);
+        }
+    };
+
+    var processor = Processor.init(std.testing.allocator, std.testing.io);
+    defer processor.deinit();
+
+    var capture = try Capture.init(std.testing.allocator);
+    defer capture.deinit();
+
+    try processor.parseDepFile(
+        &capture,
+        "sample_concatenated.o: sample_concatenated_source.rmeta sample_concatenated_dep.so\n" ++
+            "# rustc comment continues \\\n" ++
+            "across an intermediate physical line \\\n" ++
+            "before the next real target\n" ++
+            "sample_concatenated.o: sample_concatenated_temp.rmeta sample_concatenated_temp_dep.so\n",
+        "sample_concatenated.o",
+    );
+
+    try std.testing.expectEqualStrings(
+        "source_sample_concatenated.o := sample_concatenated_source.rmeta\n\n" ++
+            "deps_sample_concatenated.o := \\\n" ++
+            "  sample_concatenated_dep.so \\\n" ++
+            "  sample_concatenated_temp_dep.so \\\n" ++
+            "\n" ++
+            "sample_concatenated.o: $(deps_sample_concatenated.o)\n\n" ++
+            "$(deps_sample_concatenated.o):\n",
+        capture.list.items,
+    );
+}
+
 test "dep parsing unescapes escaped hash and colon tokens once" {
     const Capture = struct {
         list: std.ArrayList(u8),
