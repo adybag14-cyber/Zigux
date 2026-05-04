@@ -51,23 +51,22 @@ This helper does not yet claim:
 
 ## Gates
 
-The shared review path now fail-closes through the shared Phase 8 validator, the dedicated tests-readme alignment checker, the dedicated perf-buffer poll gate checker, and all three built-in self-tests before the focused perf-buffer poll build shard and the shared Phase 8 build replay run, so this slice stays tied to the same validator-first Phase 8 tooling packet as the docs root, tests root, Makefile, workflow, and broader segmented libbpf notes.
+The shared review path now fail-closes through the shared Phase 8 validator, the validator-route audit, the dedicated tests-readme alignment checker, the dedicated perf-buffer poll gate checker, and all four built-in self-tests before the focused perf-buffer poll build shard and the shared Phase 8 build replay run, so this slice stays tied to the same validator-first Phase 8 tooling packet as the docs root, tests root, Makefile, workflow, and broader segmented libbpf notes.
 
 1. `python3 scripts/zigux/validate-phase8.py --self-test`
-2. `python3 scripts/zigux/check-phase8-tests-readme-alignment.py --self-test`
-3. `python3 scripts/zigux/check-phase8-perf-buffer-poll-gate.py --self-test`
-4. `python3 scripts/zigux/validate-phase8.py`
-5. `python3 scripts/zigux/check-phase8-tests-readme-alignment.py`
-6. `python3 scripts/zigux/check-phase8-perf-buffer-poll-gate.py`
-7. `make -C zigux phase8-validate`
-8. `make -C zigux phase8-perf-buffer-poll-test`
-9. `zig build test --build-file zigux/tests/phase8_perf_buffer_poll_only_build.zig --summary all`
-10. `zig build test --build-file zigux/tests/phase8_build.zig --summary all`
+2. `python3 scripts/zigux/check-phase8-validator-flow.py --self-test`
+3. `python3 scripts/zigux/check-phase8-tests-readme-alignment.py --self-test`
+4. `python3 scripts/zigux/check-phase8-perf-buffer-poll-gate.py --self-test`
+5. `python3 scripts/zigux/validate-phase8.py`
+6. `python3 scripts/zigux/check-phase8-validator-flow.py`
+7. `python3 scripts/zigux/check-phase8-tests-readme-alignment.py`
+8. `python3 scripts/zigux/check-phase8-perf-buffer-poll-gate.py`
+9. `make -C zigux phase8-validate`
+10. `make -C zigux phase8-perf-buffer-poll-test`
+11. `zig build test --build-file zigux/tests/phase8_perf_buffer_poll_only_build.zig --summary all`
+12. `zig build test --build-file zigux/tests/phase8_build.zig --summary all`
 
-The repo now also ships a separate validator-route audit through `scripts/zigux/check-phase8-validator-flow.py`. That audit now runs inside the published `phase8-validate` wrapper and keeps the scripts-root inventory, tests-root packet, Makefile route, and bridge-boundary survey aligned around the same bounded poll-helper packet.
-
-- `python3 scripts/zigux/check-phase8-validator-flow.py --self-test`
-- `python3 scripts/zigux/check-phase8-validator-flow.py`
+`scripts/zigux/check-phase8-validator-flow.py` now stays inside that same published wrapper path instead of sitting beside it, and it currently publishes `PHASE8_VALIDATOR_FLOW_SELF_TEST_CASE_COUNT=15`.
 
 ## Latest committed gate snapshot
 
