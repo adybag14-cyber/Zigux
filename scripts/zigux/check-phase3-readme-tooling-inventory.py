@@ -39,7 +39,11 @@ PHASE2_TOOLS_ROUTE_COUNTS = (
 )
 PHASE2_KCONFIG_REQUIRED = ("check-kconfig-bridge.py",)
 PHASE2_CROSS_REQUIRED = ("check-phase2-cross-selftest-alignment.py",)
-PHASE6_REQUIRED = ("check-phase6-base64-catalog-evidence.py",)
+PHASE6_REQUIRED = (
+    "check-phase6-docs-root-external-parity.py",
+    "check-phase6-base64-catalog-evidence.py",
+    "check-phase6-checksum-hexdump-perf-markers.py",
+)
 PHASE7_REQUIRED = ("check-phase7-argv-split-parity.py",)
 PHASE11_REQUIRED = ("check-phase11-shared-replay-contract.py",)
 
@@ -357,8 +361,12 @@ def _fixture_makefile() -> str:
         "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-cross.py",
         "",
         "phase6-validate:",
+        "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase6-docs-root-external-parity.py --self-test",
+        "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase6-docs-root-external-parity.py",
         "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase6-base64-catalog-evidence.py --self-test",
         "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase6-base64-catalog-evidence.py",
+        "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase6-checksum-hexdump-perf-markers.py --self-test",
+        "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase6-checksum-hexdump-perf-markers.py",
         "",
         "phase7-validate:",
         "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase7-argv-split-parity.py --self-test",
@@ -422,7 +430,9 @@ def _baseline_required_rels() -> tuple[tuple[str, ...], tuple[str, ...]]:
     ) + phase2_tools_helper_rels + (
         "scripts/zigux/check-kconfig-bridge.py",
         "scripts/zigux/check-phase2-cross-selftest-alignment.py",
+        "scripts/zigux/check-phase6-docs-root-external-parity.py",
         "scripts/zigux/check-phase6-base64-catalog-evidence.py",
+        "scripts/zigux/check-phase6-checksum-hexdump-perf-markers.py",
         "scripts/zigux/check-phase7-argv-split-parity.py",
         "scripts/zigux/check-phase11-shared-replay-contract.py",
     ) + phase13_helper_rels
@@ -531,8 +541,12 @@ def run_self_test() -> int:
             ("duplicate_phase2_kconfig_bridge_makefile_route_guard_failed", "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-kconfig-bridge.py\n", "unexpected_makefile_live_route_count:phase2-kconfig::2:check-kconfig-bridge.py"),
             ("duplicate_phase2_cross_self_test_route_guard_failed", "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-cross-selftest-alignment.py --self-test\n", "unexpected_makefile_self_test_route_count:phase2-cross::2:check-phase2-cross-selftest-alignment.py"),
             ("duplicate_phase2_cross_makefile_route_guard_failed", "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-cross-selftest-alignment.py\n", "unexpected_makefile_live_route_count:phase2-cross::2:check-phase2-cross-selftest-alignment.py"),
+            ("duplicate_phase6_docs_root_self_test_route_guard_failed", "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase6-docs-root-external-parity.py --self-test\n", "unexpected_makefile_self_test_route_count:phase6-validate::2:check-phase6-docs-root-external-parity.py"),
+            ("duplicate_phase6_docs_root_makefile_route_guard_failed", "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase6-docs-root-external-parity.py\n", "unexpected_makefile_live_route_count:phase6-validate::2:check-phase6-docs-root-external-parity.py"),
             ("duplicate_phase6_self_test_route_guard_failed", "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase6-base64-catalog-evidence.py --self-test\n", "unexpected_makefile_self_test_route_count:phase6-validate::2:check-phase6-base64-catalog-evidence.py"),
             ("duplicate_phase6_makefile_route_guard_failed", "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase6-base64-catalog-evidence.py\n", "unexpected_makefile_live_route_count:phase6-validate::2:check-phase6-base64-catalog-evidence.py"),
+            ("duplicate_phase6_checksum_self_test_route_guard_failed", "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase6-checksum-hexdump-perf-markers.py --self-test\n", "unexpected_makefile_self_test_route_count:phase6-validate::2:check-phase6-checksum-hexdump-perf-markers.py"),
+            ("duplicate_phase6_checksum_makefile_route_guard_failed", "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase6-checksum-hexdump-perf-markers.py\n", "unexpected_makefile_live_route_count:phase6-validate::2:check-phase6-checksum-hexdump-perf-markers.py"),
             ("duplicate_phase7_self_test_route_guard_failed", "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase7-argv-split-parity.py --self-test\n", "unexpected_makefile_self_test_route_count:phase7-validate::2:check-phase7-argv-split-parity.py"),
             ("duplicate_phase7_makefile_route_guard_failed", "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase7-argv-split-parity.py\n", "unexpected_makefile_live_route_count:phase7-validate::2:check-phase7-argv-split-parity.py"),
             ("duplicate_phase11_makefile_route_guard_failed", "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase11-shared-replay-contract.py\n", "unexpected_makefile_live_route_count:phase11-validate::2:check-phase11-shared-replay-contract.py"),
@@ -544,7 +558,7 @@ def run_self_test() -> int:
             ("duplicate_phase13_devres_inventory_self_test_route_guard_failed", "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase13-devres-inventory-contract.py --self-test\n", "unexpected_makefile_self_test_route_count:phase13-validate::2:check-phase13-devres-inventory-contract.py"),
             ("duplicate_phase13_devres_inventory_makefile_route_guard_failed", "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase13-devres-inventory-contract.py\n", "unexpected_makefile_live_route_count:phase13-validate::2:check-phase13-devres-inventory-contract.py"),
             ("duplicate_phase13_notifier_self_test_route_guard_failed", "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase13-notifier-packet.py --self-test\n", "unexpected_makefile_self_test_route_count:phase13-validate::2:check-phase13-notifier-packet.py"),
-            ("duplicate_phase13_notifier_makefile_route_guard_failed", "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase13-notifier-packet.py\n", "unexpected_makefile_live_route_count:phase13-validate::2:check-phase13-notifier-packet.py"),
+            ("duplicate_phase13_notifier_makefile_route_guard_FAILED", "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase13-notifier-packet.py\n", "unexpected_makefile_live_route_count:phase13-validate::2:check-phase13-notifier-packet.py"),
             ("duplicate_phase13_release_validator_route_guard_failed", "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase13-release.py\n", "unexpected_makefile_live_route_count:phase13-validate::2:validate-phase13-release.py"),
         )
         for label, line, expected in makefile_cases:
@@ -585,6 +599,8 @@ def run_self_test() -> int:
             ("missing_phase2_mk_elfconfig_readme_entry_guard_failed", "scripts/zigux/check-mk-elfconfig-diff.py", "missing_readme_entry:check-mk-elfconfig-diff.py"),
             ("missing_phase2_kconfig_bridge_readme_entry_guard_failed", "scripts/zigux/check-kconfig-bridge.py", "missing_readme_entry:check-kconfig-bridge.py"),
             ("missing_phase2_cross_readme_entry_guard_failed", "scripts/zigux/check-phase2-cross-selftest-alignment.py", "missing_readme_entry:check-phase2-cross-selftest-alignment.py"),
+            ("missing_phase6_docs_root_readme_entry_guard_failed", "scripts/zigux/check-phase6-docs-root-external-parity.py", "missing_readme_entry:check-phase6-docs-root-external-parity.py"),
+            ("missing_phase6_checksum_readme_entry_guard_failed", "scripts/zigux/check-phase6-checksum-hexdump-perf-markers.py", "missing_readme_entry:check-phase6-checksum-hexdump-perf-markers.py"),
         )
         for label, rel, expected in readme_cases:
             entries = [f"- `{Path(item).name}`" for item in required_rels if item != rel]
@@ -607,7 +623,7 @@ def run_self_test() -> int:
         )
         reordered = "\n".join(
             ("# scripts/zigux", "", "Current bootstrap helpers",
-             *[f"- `{Path(rel).name}`" for rel in tooling_packet_rels + ("scripts/zigux/check-phase2-genksyms-bridge-selftest-alignment.py", "scripts/zigux/check-phase2-kconfig-selftest-alignment.py", "scripts/zigux/check-phase2-toolchain-pin-scope.py", "scripts/zigux/check-phase2-tests-readme-alignment.py", "scripts/zigux/artifact_diff.py", "scripts/zigux/check-artifact-diff-contract.py", "scripts/zigux/check-fixdep-diff.py", "scripts/zigux/check-genksyms-bridge.py", "scripts/zigux/check-genksyms-crc-diff.py", "scripts/zigux/check-mk-elfconfig-diff.py", "scripts/zigux/check-kconfig-bridge.py", "scripts/zigux/check-phase2-cross-selftest-alignment.py", "scripts/zigux/check-phase6-base64-catalog-evidence.py", "scripts/zigux/check-phase7-argv-split-parity.py", "scripts/zigux/check-phase11-shared-replay-contract.py") + phase13_reordered],
+             *[f"- `{Path(rel).name}`" for rel in tooling_packet_rels + ("scripts/zigux/check-phase2-genksyms-bridge-selftest-alignment.py", "scripts/zigux/check-phase2-kconfig-selftest-alignment.py", "scripts/zigux/check-phase2-toolchain-pin-scope.py", "scripts/zigux/check-phase2-tests-readme-alignment.py", "scripts/zigux/artifact_diff.py", "scripts/zigux/check-artifact-diff-contract.py", "scripts/zigux/check-fixdep-diff.py", "scripts/zigux/check-genksyms-bridge.py", "scripts/zigux/check-genksyms-crc-diff.py", "scripts/zigux/check-mk-elfconfig-diff.py", "scripts/zigux/check-kconfig-bridge.py", "scripts/zigux/check-phase2-cross-selftest-alignment.py", "scripts/zigux/check-phase6-docs-root-external-parity.py", "scripts/zigux/check-phase6-base64-catalog-evidence.py", "scripts/zigux/check-phase6-checksum-hexdump-perf-markers.py", "scripts/zigux/check-phase7-argv-split-parity.py", "scripts/zigux/check-phase11-shared-replay-contract.py") + phase13_reordered],
              "", _fixture_phase3_flow(), _fixture_cross_phase_flow())
         )
         _write(root / README_REL, reordered)
@@ -656,12 +672,12 @@ def run_self_test() -> int:
         _assert_only(validate(root), [f"missing_repo_file:{tooling_packet_rels[-1]}"], "missing_repo_file_guard_failed")
         case_count += 1
 
-    if case_count != 72:
+    if case_count != 78:
         raise SystemExit(
             f"phase3-readme-tooling-inventory-self-test:unexpected_case_count:{case_count}"
         )
     print("PHASE3_README_TOOLING_INVENTORY_SELF_TEST=pass")
-    print("PHASE3_README_TOOLING_INVENTORY_SELF_TEST_CASE_COUNT=72")
+    print("PHASE3_README_TOOLING_INVENTORY_SELF_TEST_CASE_COUNT=78")
     return 0
 
 
