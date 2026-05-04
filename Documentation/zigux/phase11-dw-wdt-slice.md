@@ -15,7 +15,8 @@ The starter stays intentionally narrow:
 - adds an explicit `summarizeTeardownLifecycle()` helper so reset-control-backed stop pulses, non-stoppable stop fallout, reset-mode restart forcing, and restart-from-stopped enablement stay reviewable before any live platform remove or PM teardown work
 - adds an explicit `summarizeRemoveHandoff()` helper so the unconditional debugfs clear call site, unregister-device ordering, reset-control-backed remove, and non-reset remove fallout stay reviewable before any live platform remove, PM, or debugfs-backed teardown work
 - keeps idle remove-time pending interrupts distinct when remove happens before the watchdog is running, so reset-backed interrupt clearing and non-reset preserved pending interrupt state stay reviewable without claiming a live remove callback
+- still leaves the tiny watchdog-metadata surface from `dw_wdt_ident`, `dw_wdt_pt_ident`, and `dw_wdt_ops` for the next bounded step, so the current slice does not yet model the identity string, the basic-versus-pretimeout option-flag split, or the bounded ops contract
 
 This slice does not claim platform-driver registration, clock or reset acquisition, IRQ registration, live suspend or resume callbacks, debugfs support, custom devicetree TOP arrays beyond the bounded in-memory ordering helper, live MMIO access, or hardware validation coverage yet.
 
-The next honest larger move is still blocked on platform-driver scaffold work such as live clock or reset acquisition, IRQ registration, watchdog registration execution, PM handling, and a hardware-validation plan.
+The next honest bounded move is still the tiny metadata surface above. Anything larger remains blocked on platform-driver scaffold work such as live clock or reset acquisition, IRQ registration, watchdog registration execution, live PM callback wiring, and a hardware-validation plan.
