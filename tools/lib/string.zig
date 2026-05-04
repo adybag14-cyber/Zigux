@@ -701,3 +701,18 @@ test "memchrInv dirty-word shortcut handles zero-value scans at word boundaries"
     misaligned[15] = 2;
     try std.testing.expectEqual(@as(?usize, 8), memchrInv(misaligned, 0));
 }
+
+test "memchrInv finds a last-byte mismatch in the first aligned dirty word" {
+    var aligned = [_]u8{'a'} ** 24;
+    aligned[15] = 'X';
+    aligned[23] = 'Y';
+    try std.testing.expectEqual(@as(?usize, 15), memchrInv(&aligned, 'a'));
+
+    var misaligned_storage = [_]u8{'a'} ** 32;
+    const start = (1 -% (@as(usize, @intCast(@intFromPtr(misaligned_storage[0..].ptr) & 7)))) & 7;
+    const misaligned = misaligned_storage[start .. start + 24];
+    try std.testing.expect((@intFromPtr(misaligned.ptr) & 7) == 1);
+    misaligned[14] = 'X';
+    misaligned[22] = 'Y';
+    try std.testing.expectEqual(@as(?usize, 14), memchrInv(misaligned, 'a'));
+}
