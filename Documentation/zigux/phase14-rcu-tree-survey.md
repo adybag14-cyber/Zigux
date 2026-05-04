@@ -158,6 +158,7 @@ This run adds one narrow rollback-threshold guardrail so the lane cannot quietly
 - active review blocker status: `blocked_on_stay_in_c_evidence`
 - lane owner: `Core-Adjacent Pod`
 - rollback owner: `Repo Tooling Pod`
+- fallback path: Keep `kernel/rcu/tree.c` as the product source of truth, keep `kernel/rcu/tree_bridge.zig` absent from active delivery, and fall back to the blocked freeze-in-C survey packet if the reopen record, parity evidence, replay command, blocker disposition, or rollback owner stops being explicit.
 
 Any future Architecture Council reopen attempt for `kernel/rcu/tree_bridge.zig` has to keep all of this explicit in the same reviewable packet:
 
