@@ -159,6 +159,7 @@
     {
       "name": "unsupported_long_option",
       "argv": [
+        "--version",
         "--bogus"
       ],
       "mode": "process_json",
