@@ -111,8 +111,8 @@ REQUIRED_DOCS_README_SNIPPETS = (
     "`scripts/zigux/validate-phase3-low-level-wrapper-survey.py` remains a supporting survey check inside that shared validator-first route",
     "`scripts/zigux/validate-phase3-policy-unsafe-survey.py` remains a supporting survey check inside that shared validator-first route",
     "the current export shim and current `zigux/uapi/version.zig` boundary",
-    "the current `rbtree` gap",
-    "the existing Phase 1 and Phase 7 `rbtree` evidence that does not yet close the Phase 3 boundary packet",
+    "the landed dedicated `rbtree` boundary packet and shared `zigux_rbtree_root_view` lift inside `include/zigux/abi.h` and `zigux/bindings/abi.zig`",
+    "the remaining survey-and-validator wording gap before more `chrdev_*` tail growth",
     "the note that the longer `chrdev_*` planning ladder should not be mistaken for roadmap closure",
 )
 
