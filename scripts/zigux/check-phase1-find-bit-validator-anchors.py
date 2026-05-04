@@ -748,9 +748,24 @@ def run_self_test() -> int:
             raise SystemExit("phase1-find-bit-validator-self-test:file_check_failed")
         total_cases += 1
 
-        paths["validator"].unlink()
-        expect_run_check_failure(paths, "missing_file:scripts/zigux/validate-phase1.py")
-        total_cases += 1
+        missing_file_cases = [
+            ("validator", "missing_file:scripts/zigux/validate-phase1.py"),
+            ("closure_validator", "missing_file:scripts/zigux/validate-phase1-closure.py"),
+            ("closure_doc", "missing_file:Documentation/zigux/phase1-closure.md"),
+            ("bench_checker", "missing_file:scripts/zigux/check-phase1-bench.py"),
+            ("workflow", "missing_file:.github/workflows/zigux-bootstrap.yml"),
+            ("makefile", "missing_file:zigux/Makefile"),
+            ("scripts_readme", "missing_file:scripts/zigux/README.md"),
+            ("docs_readme", "missing_file:Documentation/zigux/README.md"),
+            ("find_bit_source", "missing_file:tools/lib/find_bit.zig"),
+            ("manifest", "missing_file:zigux/tests/fixtures/phase1_helper_manifest.json"),
+        ]
+        for path_key, expected in missing_file_cases:
+            baseline = paths[path_key].read_text(encoding="utf-8")
+            paths[path_key].unlink()
+            expect_run_check_failure(paths, expected)
+            paths[path_key].write_text(baseline, encoding="utf-8")
+            total_cases += 1
 
     print("PHASE1_FIND_BIT_VALIDATOR_ANCHOR_SELF_TEST=pass")
     print(f"PHASE1_FIND_BIT_VALIDATOR_ANCHOR_SELF_TEST_CASE_COUNT={total_cases}")
