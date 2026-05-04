@@ -17,6 +17,7 @@ MANIFEST_PATH = "zigux/tests/phase15_architecture_council_review_process_manifes
 NOTE_MARKERS = [
     "## Roadmap Handoff Evidence",
     "- current repo handoff:",
+    "## Current enforcement evidence",
 ]
 
 HANDOFF_INVENTORY_MARKERS = [
@@ -56,6 +57,17 @@ NOTE_HANDOFF_ROUTE_MARKERS = [
     "scripts-root validator path",
     "dedicated handoff-checker route",
     "tests-root guidance path",
+]
+
+CURRENT_ENFORCEMENT_MARKERS = [
+    "last reviewed remote `master` head for this packet",
+    "Documentation/zigux/review-checklist.md",
+    "scripts/zigux/check-phase15-review-process-handoff.py",
+    "python3 scripts/zigux/validate-phase15.py",
+    "make -C zigux phase15-validate",
+    "Documentation/zigux/README.md",
+    "zigux/tests/README.md",
+    "phase15-review-process-current-enforcement-evidence-gate",
 ]
 
 
@@ -145,7 +157,7 @@ def validate(root: Path) -> list[str]:
     note_maintenance_handoff = note_section(
         note,
         "## Maintenance-Mode Handoff",
-        "## Recorded Gaps",
+        "## Current enforcement evidence",
     )
     if note_maintenance_handoff is None:
         failures.append("note_handoff_section:missing")
@@ -153,6 +165,18 @@ def validate(root: Path) -> list[str]:
         for marker in NOTE_HANDOFF_ROUTE_MARKERS:
             if marker not in note_maintenance_handoff:
                 failures.append(f"note_handoff:{marker}")
+
+    note_current_enforcement = note_section(
+        note,
+        "## Current enforcement evidence",
+        "## Recorded Gaps",
+    )
+    if note_current_enforcement is None:
+        failures.append("note_current_enforcement_section:missing")
+    else:
+        for marker in CURRENT_ENFORCEMENT_MARKERS:
+            if marker not in note_current_enforcement:
+                failures.append(f"note_current_enforcement:{marker}")
 
     if "current repo handoff" not in note.lower():
         failures.append("note:current_repo_handoff_line")
@@ -175,6 +199,15 @@ def write_fixture_tree(root: Path) -> None:
 ## Maintenance-Mode Handoff
 
 - keep `scripts/zigux/README.md`, `scripts/zigux/check-phase15-review-process-handoff.py`, `scripts/zigux/validate-phase15.py`, and `zigux/tests/README.md` aligned with the same parked governance bundle so the scripts-root validator path, dedicated handoff-checker route, and tests-root guidance path do not drift away from the Architecture Council handoff while this lane remains parked.
+
+## Current enforcement evidence
+
+- last reviewed remote `master` head for this packet: `02264a3240cd30ce45c9a932047a0204b7ab5029`
+- the review hook was present at that reviewed head in `Documentation/zigux/review-checklist.md`
+- the dedicated handoff checker was present there in `scripts/zigux/check-phase15-review-process-handoff.py`
+- the shared validator-first governance gate was present there through `python3 scripts/zigux/validate-phase15.py` and `make -C zigux phase15-validate`
+- the docs-root and tests-root review surfaces were present there in `Documentation/zigux/README.md` and `zigux/tests/README.md`
+- landed `phase15-review-process-current-enforcement-evidence-gate`
 
 ## Recorded Gaps
 """
@@ -281,8 +314,30 @@ def run_self_test() -> int:
             "missing_note_handoff_checker_route",
         )
 
+        write_fixture_tree(tmp_root)
+        note_path.write_text(
+            original_note.replace("## Current enforcement evidence", "## Enforcement evidence", 1),
+            encoding="utf-8",
+        )
+        expect_failure(
+            tmp_root,
+            "note:## Current enforcement evidence",
+            "missing_current_enforcement_heading",
+        )
+
+        write_fixture_tree(tmp_root)
+        note_path.write_text(
+            original_note.replace("make -C zigux phase15-validate", "make -C zigux phase15-check", 1),
+            encoding="utf-8",
+        )
+        expect_failure(
+            tmp_root,
+            "note_current_enforcement:make -C zigux phase15-validate",
+            "missing_current_enforcement_validate_route",
+        )
+
     print("PHASE15_REVIEW_PROCESS_HANDOFF_SELF_TEST=pass")
-    print("PHASE15_REVIEW_PROCESS_HANDOFF_SELF_TEST_CASE_COUNT=7")
+    print("PHASE15_REVIEW_PROCESS_HANDOFF_SELF_TEST_CASE_COUNT=9")
     return 0
 
 
@@ -324,6 +379,7 @@ def main() -> int:
             + len(MANIFEST_ROUTE_MARKERS)
             + len(NOTE_LANE_ROUTE_MARKERS)
             + len(NOTE_HANDOFF_ROUTE_MARKERS)
+            + len(CURRENT_ENFORCEMENT_MARKERS)
         )
     )
     return 0
