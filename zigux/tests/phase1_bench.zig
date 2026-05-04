@@ -325,6 +325,7 @@ fn findAndBitBench() struct { checksum: u64 } {
 fn stringBench() !struct {
     checksum: u64,
     bool_trim_checksum: u64,
+    cstring_checksum: u64,
     memchr_checksum: u64,
     compare_checksum: u64,
     memparse_checksum: u64,
@@ -348,6 +349,7 @@ fn stringBench() !struct {
 
     var checksum: u64 = 0;
     var bool_trim_checksum: u64 = 0;
+    var cstring_checksum: u64 = 0;
     var memchr_checksum: u64 = 0;
     var compare_checksum: u64 = 0;
     var memparse_checksum: u64 = 0;
@@ -374,8 +376,40 @@ fn stringBench() !struct {
         var replace_buf = [_]u8{ 'a', '-', 'b', 0, '-' };
         const replace_end = @intFromPtr(string.strreplace(replace_buf[0 .. replace_buf.len - 1], '-', '_')) - @intFromPtr(replace_buf[0..].ptr);
 
+        var lcpy_buf = [_]u8{ 0xaa, 0xaa, 0xaa };
+        const lcpy_len = string.strlcpy(&lcpy_buf, "zigux");
+
+        var scpy_buf = [_]u8{ 0xaa, 0xaa, 0xaa, 0xaa };
+        const scpy_len = string.strscpy(&scpy_buf, "cat");
+
+        var scpy_trunc_buf = [_]u8{ 0xaa, 0xaa, 0xaa, 0xaa };
+        const scpy_trunc = string.strscpy(&scpy_trunc_buf, "hello");
+
+        var strip_buf = [_]u8{ ' ', 'o', 'k', ' ', '\t', 0, 'x' };
+        const stripped = string.strstrip(&strip_buf);
+
+        const sysfs_eq = string.sysfs_streq("enabled", "enabled\n");
+        const sysfs_miss = string.sysfs_streq("enabled", "enabled\nx");
+
         bool_trim_checksum +%= @as(u64, @intFromBool(enabled));
         bool_trim_checksum +%= @intCast(trimmed.len + skipped.len + removed.len + replace_end);
+
+        cstring_checksum +%= @as(u64, @intCast(lcpy_len));
+        cstring_checksum +%= @as(u64, @intCast(if (scpy_len > 0) scpy_len else 0));
+        cstring_checksum +%= @as(u64, @intCast(if (scpy_trunc == -7) 7 else 0));
+        cstring_checksum +%= @as(u64, @intCast(stripped.len));
+        cstring_checksum +%= @as(u64, @intFromBool(sysfs_eq));
+        cstring_checksum +%= @as(u64, @intFromBool(!sysfs_miss));
+        cstring_checksum +%= @as(u64, lcpy_buf[0]);
+        cstring_checksum +%= @as(u64, lcpy_buf[1]);
+        cstring_checksum +%= @as(u64, scpy_buf[0]);
+        cstring_checksum +%= @as(u64, scpy_buf[1]);
+        cstring_checksum +%= @as(u64, scpy_buf[2]);
+        cstring_checksum +%= @as(u64, scpy_trunc_buf[0]);
+        cstring_checksum +%= @as(u64, scpy_trunc_buf[1]);
+        cstring_checksum +%= @as(u64, scpy_trunc_buf[2]);
+        cstring_checksum +%= @as(u64, stripped[0]);
+        cstring_checksum +%= @as(u64, stripped[1]);
 
         memchr_checksum +%= aligned_idx;
         memchr_checksum +%= misaligned_idx;
@@ -402,6 +436,7 @@ fn stringBench() !struct {
     return .{
         .checksum = checksum,
         .bool_trim_checksum = bool_trim_checksum,
+        .cstring_checksum = cstring_checksum,
         .memchr_checksum = memchr_checksum,
         .compare_checksum = compare_checksum,
         .memparse_checksum = memparse_checksum,
@@ -699,6 +734,7 @@ pub fn main(init: std.process.Init) !void {
     std.debug.assert(find_and_bit_result.checksum != 0);
     std.debug.assert(string_result.checksum != 0);
     std.debug.assert(string_result.bool_trim_checksum != 0);
+    std.debug.assert(string_result.cstring_checksum != 0);
     std.debug.assert(string_result.memchr_checksum != 0);
     std.debug.assert(string_result.compare_checksum != 0);
     std.debug.assert(string_result.memparse_checksum != 0);
@@ -732,6 +768,7 @@ pub fn main(init: std.process.Init) !void {
     try stdout_writer.interface.print("PHASE1_BENCH_STRING_ITERATIONS={d}\n", .{iterations_string});
     try stdout_writer.interface.print("PHASE1_BENCH_STRING_CHECKSUM={d}\n", .{string_result.checksum});
     try stdout_writer.interface.print("PHASE1_BENCH_STRING_BOOL_TRIM_CHECKSUM={d}\n", .{string_result.bool_trim_checksum});
+    try stdout_writer.interface.print("PHASE1_BENCH_STRING_CSTRING_CHECKSUM={d}\n", .{string_result.cstring_checksum});
     try stdout_writer.interface.print("PHASE1_BENCH_STRING_MEMCHR_CHECKSUM={d}\n", .{string_result.memchr_checksum});
     try stdout_writer.interface.print("PHASE1_BENCH_STRING_COMPARE_CHECKSUM={d}\n", .{string_result.compare_checksum});
     try stdout_writer.interface.print("PHASE1_BENCH_STRING_MEMPARSE_CHECKSUM={d}\n", .{string_result.memparse_checksum});
