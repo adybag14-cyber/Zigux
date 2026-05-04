@@ -103,6 +103,19 @@ SCRIPTS_README_MARKERS = [
     "zigux/tests/phase12_libbpf_only_build.zig",
 ]
 
+SCRIPTS_README_ALIAS_MARKER = (
+    "- `make -C zigux phase12` keeps the current Phase 12 bundle reviewable through one shared tranche entrypoint "
+    "instead of ad hoc complex-driver commands, while the direct `zig build test --build-file "
+    "zigux/tests/phase12_libbpf_only_build.zig --summary all` replay intentionally stays outside that "
+    "shared wrapper as the dedicated focused libbpf-only shard, and the named `zig build --build-file "
+    "zigux/tests/phase12_libbpf_only_build.zig phase12-libbpf-focused-replay --summary all` alias keeps "
+    "that same focused rerun explicit from the scripts root."
+)
+
+SCRIPTS_README_EXACT_COUNTS = {
+    SCRIPTS_README_ALIAS_MARKER: 1,
+}
+
 TESTS_README_MARKERS = [
     "Documentation/zigux/phase12-shared-replay-contract.md",
     "scripts/zigux/check-phase12-libbpf-focused-replay.py",
@@ -224,6 +237,7 @@ def collect_missing(root: Path) -> list[str]:
             "Documentation/zigux/phase12-shared-replay-contract.md",
             SHARED_REPLAY_NOTE_EXACT_COUNTS,
         ),
+        ("scripts_readme_count", "scripts/zigux/README.md", SCRIPTS_README_EXACT_COUNTS),
         ("makefile_count", "zigux/Makefile", MAKEFILE_EXACT_COUNTS),
         ("tests_readme_count", "zigux/tests/README.md", TESTS_README_EXACT_COUNTS),
     ]
@@ -318,7 +332,10 @@ def write_fixture_tree(root: Path) -> None:
     )
     write_text(root / "Documentation/zigux/README.md", "\n".join(DOCS_ROOT_MARKERS) + "\n")
     write_text(root / "Documentation/zigux/review-checklist.md", "\n".join(REVIEW_CHECKLIST_MARKERS) + "\n")
-    write_text(root / "scripts/zigux/README.md", "\n".join(SCRIPTS_README_MARKERS) + "\n")
+    write_text(
+        root / "scripts/zigux/README.md",
+        "\n".join([*SCRIPTS_README_MARKERS, SCRIPTS_README_ALIAS_MARKER]) + "\n",
+    )
     write_text(root / "zigux/tests/README.md", "\n".join(TESTS_README_MARKERS) + "\n")
     write_text(root / "scripts/zigux/validate-phase12.py", "\n".join(MAKEFILE_MARKERS) + "\nDocumentation/zigux/phase12-release-readiness-survey.md\n")
     write_text(root / "zigux/tests/phase12_build.zig", "\n".join(BUILD_MARKERS) + "\n")
@@ -490,6 +507,28 @@ def run_self_test() -> int:
         )
         write_text(scripts_readme_path, scripts_readme_backup)
 
+        write_text(
+            scripts_readme_path,
+            scripts_readme_backup.replace(SCRIPTS_README_ALIAS_MARKER + "\n", "", 1),
+        )
+        expect_missing(
+            "missing_scripts_readme_alias_sentence",
+            run_checker(tmp_root),
+            f"scripts_readme_count:{SCRIPTS_README_ALIAS_MARKER}:expected=1:actual=0",
+        )
+        write_text(scripts_readme_path, scripts_readme_backup)
+
+        write_text(
+            scripts_readme_path,
+            scripts_readme_backup + SCRIPTS_README_ALIAS_MARKER + "\n",
+        )
+        expect_missing(
+            "duplicate_scripts_readme_alias_sentence",
+            run_checker(tmp_root),
+            f"scripts_readme_count:{SCRIPTS_README_ALIAS_MARKER}:expected=1:actual=2",
+        )
+        write_text(scripts_readme_path, scripts_readme_backup)
+
         tests_readme_path = tmp_root / "zigux/tests/README.md"
         tests_readme_backup = tests_readme_path.read_text(encoding="utf-8")
         write_text(
@@ -587,7 +626,7 @@ def run_self_test() -> int:
         write_text(build_path, build_backup)
 
     print("PHASE12_SHARED_REPLAY_CONTRACT_SELF_TEST=pass")
-    print("PHASE12_SHARED_REPLAY_CONTRACT_SELF_TEST_CASE_COUNT=21")
+    print("PHASE12_SHARED_REPLAY_CONTRACT_SELF_TEST_CASE_COUNT=23")
     return 0
 
 
