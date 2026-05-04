@@ -170,6 +170,7 @@
     {
       "name": "ambiguous_abbreviated_long_option",
       "argv": [
+        "--version",
         "--dum"
       ],
       "mode": "process_json",
