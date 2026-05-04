@@ -71,6 +71,39 @@ REQUIRED_ROUTE_LINES = {
     ),
 }
 
+CLOSURE_ROUTE_LINES = {
+    "closure_phase1_parity_gate_count": (
+        "Documentation/zigux/phase1-closure.md",
+        "- `PHASE1_PARITY_GATE=python3 scripts/zigux/check-phase1-parity.py`",
+        1,
+    ),
+    "closure_phase1_parity_self_test_gate_count": (
+        "Documentation/zigux/phase1-closure.md",
+        "- `PHASE1_PARITY_SELF_TEST_GATE=python3 scripts/zigux/check-phase1-parity.py --self-test`",
+        1,
+    ),
+    "closure_phase1_bench_check_gate_count": (
+        "Documentation/zigux/phase1-closure.md",
+        "- `PHASE1_BENCH_CHECK_GATE=python3 scripts/zigux/check-phase1-bench.py`",
+        1,
+    ),
+    "closure_phase1_bench_self_test_gate_count": (
+        "Documentation/zigux/phase1-closure.md",
+        "- `PHASE1_BENCH_SELF_TEST_GATE=python3 scripts/zigux/check-phase1-bench.py --self-test`",
+        1,
+    ),
+    "closure_phase1_closure_gate_count": (
+        "Documentation/zigux/phase1-closure.md",
+        "- `PHASE1_CLOSURE_GATE=python3 scripts/zigux/validate-phase1-closure.py`",
+        1,
+    ),
+    "closure_phase1_closure_self_test_gate_count": (
+        "Documentation/zigux/phase1-closure.md",
+        "- `PHASE1_CLOSURE_SELF_TEST_GATE=python3 scripts/zigux/validate-phase1-closure.py --self-test`",
+        1,
+    ),
+}
+
 
 def read_lines(rel: str) -> list[str]:
     return (ROOT / rel).read_text(encoding="utf-8").splitlines()
@@ -113,13 +146,23 @@ def main() -> int:
         if actual_count != expected_count:
             missing.append(f"{label}:expected={expected_count}:actual={actual_count}")
 
+    for label, (rel, marker, expected_count) in CLOSURE_ROUTE_LINES.items():
+        path = ROOT / rel
+        if not path.exists():
+            missing.append(f"{label}:missing_file:{rel}")
+            continue
+        lines = cached_lines.setdefault(rel, read_lines(rel))
+        actual_count = exact_count(lines, marker)
+        if actual_count != expected_count:
+            missing.append(f"{label}:expected={expected_count}:actual={actual_count}")
+
     if missing:
         return fail(missing)
 
     print("PHASE1_ROUTE_SUMMARY_COUNTS=pass")
     print(
         "PHASE1_ROUTE_SUMMARY_COUNT_TARGETS="
-        f"{len(REQUIRED_MARKERS) + len(REQUIRED_ROUTE_LINES)}"
+        f"{len(REQUIRED_MARKERS) + len(REQUIRED_ROUTE_LINES) + len(CLOSURE_ROUTE_LINES)}"
     )
     return 0
 
@@ -195,6 +238,14 @@ def self_test() -> int:
         REQUIRED_ROUTE_LINES["workflow_phase1_route_summary_self_test_count"][1],
         REQUIRED_ROUTE_LINES["workflow_phase1_route_summary_run_count"][1],
     ]
+    closure_markers = [
+        CLOSURE_ROUTE_LINES["closure_phase1_parity_gate_count"][1],
+        CLOSURE_ROUTE_LINES["closure_phase1_parity_self_test_gate_count"][1],
+        CLOSURE_ROUTE_LINES["closure_phase1_bench_check_gate_count"][1],
+        CLOSURE_ROUTE_LINES["closure_phase1_bench_self_test_gate_count"][1],
+        CLOSURE_ROUTE_LINES["closure_phase1_closure_gate_count"][1],
+        CLOSURE_ROUTE_LINES["closure_phase1_closure_self_test_gate_count"][1],
+    ]
 
     marker_cases = [
         (
@@ -251,6 +302,42 @@ def self_test() -> int:
             "workflow_phase1_route_summary_run_count",
             workflow_markers[1],
         ),
+        (
+            "Documentation/zigux/phase1-closure.md",
+            closure_markers,
+            "closure_phase1_parity_gate_count",
+            closure_markers[0],
+        ),
+        (
+            "Documentation/zigux/phase1-closure.md",
+            closure_markers,
+            "closure_phase1_parity_self_test_gate_count",
+            closure_markers[1],
+        ),
+        (
+            "Documentation/zigux/phase1-closure.md",
+            closure_markers,
+            "closure_phase1_bench_check_gate_count",
+            closure_markers[2],
+        ),
+        (
+            "Documentation/zigux/phase1-closure.md",
+            closure_markers,
+            "closure_phase1_bench_self_test_gate_count",
+            closure_markers[3],
+        ),
+        (
+            "Documentation/zigux/phase1-closure.md",
+            closure_markers,
+            "closure_phase1_closure_gate_count",
+            closure_markers[4],
+        ),
+        (
+            "Documentation/zigux/phase1-closure.md",
+            closure_markers,
+            "closure_phase1_closure_self_test_gate_count",
+            closure_markers[5],
+        ),
     ]
 
     with tempfile.TemporaryDirectory(prefix="phase1-route-summary-") as tmp:
@@ -261,6 +348,7 @@ def self_test() -> int:
         write(root / "scripts/zigux/README.md", fixture_text(scripts_markers))
         write(root / "zigux/Makefile", fixture_text(makefile_markers))
         write(root / ".github/workflows/zigux-bootstrap.yml", fixture_text(workflow_markers))
+        write(root / "Documentation/zigux/phase1-closure.md", fixture_text(closure_markers))
 
         env = dict(os.environ)
         env["ZIGUX_PHASE1_ROOT"] = str(root)
