@@ -12,6 +12,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 C_HARNESS = ROOT / "zigux" / "tests" / "fixtures" / "phase6_checksum_c_harness.c"
+FIXTURE_SOURCE = ROOT / "zigux" / "tests" / "fixtures" / "phase6_checksum_vectors.zig"
 ZIG_RUNNER = ROOT / "zigux" / "tests" / "phase6_checksum_c_parity.zig"
 EXPECTED_SORTED_LINES = sorted(
     [
@@ -87,7 +88,7 @@ def build_zig_build_text() -> str:
                 .optimize = optimize,
             }});
             const fixtures_module = b.createModule(.{{
-                .root_source_file = .{{ .cwd_relative = \"{ROOT / 'zigux' / 'tests' / 'fixtures' / 'phase6_checksum_vectors.zig'}\" }},
+                .root_source_file = .{{ .cwd_relative = \"{FIXTURE_SOURCE}\" }},
                 .target = target,
                 .optimize = optimize,
             }});
@@ -161,10 +162,20 @@ def run_self_test() -> int:
         lambda: validate_required_path(Path("/tmp/phase6-missing-runner.zig"), "runner"),
         "missing runner: /tmp/phase6-missing-runner.zig",
     )
+    expect_system_exit(
+        "missing_fixture_source",
+        lambda: validate_required_path(Path("/tmp/phase6-missing-fixture.zig"), "fixture source"),
+        "missing fixture source: /tmp/phase6-missing-fixture.zig",
+    )
     build_text = build_zig_build_text()
     assert_equal("build_text_checksum_import", 'root_module.addImport("checksum", checksum_module);' in build_text, True)
-    assert_equal("build_text_fixtures_import", 'root_module.addImport("phase6_checksum_vectors", fixtures_module);' in build_text, True)
-    assert_equal("build_text_runner", str(ZIG_RUNNER) in build_text, True)
+    assert_equal(
+        "build_text_fixture_import_and_paths",
+        'root_module.addImport("phase6_checksum_vectors", fixtures_module);' in build_text
+        and str(FIXTURE_SOURCE) in build_text
+        and str(ZIG_RUNNER) in build_text,
+        True,
+    )
     assert_equal("expected_surface_case_count", len(EXPECTED_SORTED_LINES), 27)
     assert_equal(
         "sorted_lines",
@@ -209,6 +220,7 @@ def main() -> int:
     cc = require_tool("cc", "CC")
 
     validate_required_path(C_HARNESS, "harness")
+    validate_required_path(FIXTURE_SOURCE, "fixture source")
     validate_required_path(ZIG_RUNNER, "runner")
 
     out_dir = ROOT / ".zigux-cache" / "phase6-checksum-c-parity"
