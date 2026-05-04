@@ -113,6 +113,31 @@ test "phase 8 cpu mask reader interface accepts chunked sysfs-style input" {
     try std.testing.expect(parsed.values[8]);
 }
 
+test "phase 8 cpu mask reader interface keeps the fixed-width libbpf ceiling explicit" {
+    const ReaderState = struct {
+        returned: bool = false,
+
+        fn read(context: ?*anyopaque, buffer: []u8) !?usize {
+            const self: *@This() = @ptrCast(@alignCast(context.?));
+            if (self.returned) {
+                return null;
+            }
+
+            self.returned = true;
+            @memset(buffer, '1');
+            return buffer.len;
+        }
+    };
+
+    var state = ReaderState{};
+    var scratch: [cpu_mask.cpu_mask_file_read_limit + 1]u8 = undefined;
+
+    try std.testing.expectError(error.InputTooLarge, cpu_mask.parseCpuMaskFromReader(std.testing.allocator, &scratch, .{
+        .context = &state,
+        .readFn = ReaderState.read,
+    }));
+}
+
 test "phase 8 cpu mask starter slice keeps perf-buffer auto CPU sizing bounded without claiming routing parity" {
     try std.testing.expectEqual(@as(usize, 8), cpu_mask.derivePerfBufferAutoCpuCount(8, 0));
     try std.testing.expectEqual(@as(usize, 4), cpu_mask.derivePerfBufferAutoCpuCount(8, 4));
