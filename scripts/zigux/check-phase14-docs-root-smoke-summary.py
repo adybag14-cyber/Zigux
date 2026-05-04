@@ -25,7 +25,9 @@ TESTS_ROOT_EXACT_LINE_COUNTS = {
 SURVEY_EXACT_LINE_COUNTS = {
     "- `PHASE14_SHARED_LANE=P14-Y08`": 1,
     "- `PHASE14_VALIDATE_ENTRYPOINT=make -C zigux phase14-validate`": 1,
+    "- `PHASE14_TEST_ENTRYPOINT=make -C zigux phase14-test`": 1,
     "- `make -C zigux phase14-smoke`": 2,
+    "- `make -C zigux phase14-test`": 2,
     "- `zig build phase14-smoke --build-file zigux/tests/phase14_build.zig --summary all`": 2,
     "- `zigux/tests/phase14_build.zig`": 1,
     "- `reviewability lane rather than a closure or active subsystem delivery claim`": 1,
@@ -87,11 +89,14 @@ MAKEFILE_EXACT_LINE_COUNTS = {
     "phase14: phase14-validate phase14-test": 1,
 }
 
+
 def read(path: Path) -> str:
     return path.read_text(encoding="utf-8")
 
+
 def count_exact_line(text: str, marker: str) -> int:
     return sum(1 for line in text.splitlines() if line.strip() == marker)
+
 
 def require_exact_count(label: str, text: str, markers: list[str]) -> list[str]:
     issues: list[str] = []
@@ -101,6 +106,7 @@ def require_exact_count(label: str, text: str, markers: list[str]) -> list[str]:
             issues.append(f"{label}:{actual}:{marker}")
     return issues
 
+
 def require_exact_lines(label: str, text: str, counts: dict[str, int]) -> list[str]:
     issues: list[str] = []
     for marker, expected in counts.items():
@@ -108,6 +114,7 @@ def require_exact_lines(label: str, text: str, counts: dict[str, int]) -> list[s
         if actual != expected:
             issues.append(f"{label}:{actual}:{marker}")
     return issues
+
 
 def extract_exact_block(text: str, heading: str) -> list[str] | None:
     lines = text.splitlines()
@@ -128,6 +135,7 @@ def extract_exact_block(text: str, heading: str) -> list[str] | None:
         return block
     return None
 
+
 def require_exact_block(label: str, text: str, expected_lines: list[str]) -> list[str]:
     issues: list[str] = []
     actual_block = extract_exact_block(text, expected_lines[0])
@@ -136,6 +144,7 @@ def require_exact_block(label: str, text: str, expected_lines: list[str]) -> lis
     elif actual_block != expected_lines:
         issues.append(f"{label}:block_mismatch:{expected_lines[0]}")
     return issues
+
 
 def validate_phase14_summary_surfaces(
     docs_root_text: str,
@@ -155,6 +164,7 @@ def validate_phase14_summary_surfaces(
     if survey_text.count(HEX40_NOTE) != 1:
         issues.append(f"survey:{survey_text.count(HEX40_NOTE)}:{HEX40_NOTE}")
     return issues
+
 
 def run_self_test() -> int:
     docs_root_text = """
@@ -181,6 +191,7 @@ Phase 14 flow
     survey_text = """
 - `PHASE14_SHARED_LANE=P14-Y08`
 - `PHASE14_VALIDATE_ENTRYPOINT=make -C zigux phase14-validate`
+- `PHASE14_TEST_ENTRYPOINT=make -C zigux phase14-test`
 - survey provenance captured against verified `master` head `aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa`
 - shared smoke boundary:
   - `scripts/zigux/validate-phase14.py`
@@ -199,9 +210,11 @@ Phase 14 flow
   - `Documentation/zigux/review-checklist.md`
   - `Documentation/zigux/freeze-map.md`
 - `make -C zigux phase14-smoke`
+- `make -C zigux phase14-test`
 - `zig build phase14-smoke --build-file zigux/tests/phase14_build.zig --summary all`
 - `reviewability lane rather than a closure or active subsystem delivery claim`
 - `make -C zigux phase14-smoke`
+- `make -C zigux phase14-test`
 - `zig build phase14-smoke --build-file zigux/tests/phase14_build.zig --summary all`
 - `make -C zigux phase14-validate PYTHON=python3 ZIG=<attached-zig-path>`
 - `make -C zigux phase14-smoke ZIG=<attached-zig-path>`
@@ -322,6 +335,30 @@ phase14: phase14-validate phase14-test
         release_boundary_text,
         makefile_text,
     )
+    missing_phase14_test_entrypoint = validate_phase14_summary_surfaces(
+        docs_root_text,
+        tests_root_text,
+        scripts_readme_text,
+        survey_text.replace(
+            "- `PHASE14_TEST_ENTRYPOINT=make -C zigux phase14-test`\n",
+            "",
+            1,
+        ),
+        release_boundary_text,
+        makefile_text,
+    )
+    missing_phase14_test_gate = validate_phase14_summary_surfaces(
+        docs_root_text,
+        tests_root_text,
+        scripts_readme_text,
+        survey_text.replace(
+            "- `make -C zigux phase14-test`\n",
+            "",
+            1,
+        ),
+        release_boundary_text,
+        makefile_text,
+    )
     if (
         good
         or not missing_entrypoint
@@ -331,13 +368,16 @@ phase14: phase14-validate phase14-test
         or not missing_release_boundary
         or not duplicate_docs_root
         or not stray_boundary_entry
+        or not missing_phase14_test_entrypoint
+        or not missing_phase14_test_gate
     ):
         print("PHASE14_DOCS_ROOT_SMOKE_SUMMARY_SELF_TEST=fail")
         return 1
 
     print("PHASE14_DOCS_ROOT_SMOKE_SUMMARY_SELF_TEST=pass")
-    print("PHASE14_DOCS_ROOT_SMOKE_SUMMARY_SELF_TEST_CASE_COUNT=8")
+    print("PHASE14_DOCS_ROOT_SMOKE_SUMMARY_SELF_TEST_CASE_COUNT=10")
     return 0
+
 
 def main(argv: list[str]) -> int:
     if argv[1:] == ["--self-test"]:
@@ -392,6 +432,7 @@ def main(argv: list[str]) -> int:
     print(f"PHASE14_RELEASE_BOUNDARY_MARKER_COUNT={len(RELEASE_BOUNDARY_LINES)}")
     print(f"PHASE14_MAKEFILE_MARKER_COUNT={len(MAKEFILE_EXACT_LINE_COUNTS)}")
     return 0
+
 
 if __name__ == "__main__":
     raise SystemExit(main(sys.argv))
