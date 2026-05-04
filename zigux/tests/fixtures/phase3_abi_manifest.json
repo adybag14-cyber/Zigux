@@ -40,6 +40,7 @@
     "scripts/zigux/check-phase3-policy-unsafe-mmio-consumer.py",
     "scripts/zigux/check-phase3-rbtree-shared-lift-contract.py",
     "scripts/zigux/check-phase3-readme-tooling-inventory.py",
+    "scripts/zigux/check-phase3-tests-root-companion.py",
     "scripts/zigux/check-phase3-tooling-packet.py",
     "scripts/zigux/check-phase3-validation-flow.py",
     "scripts/zigux/generate-phase3-check-wrappers.py",
@@ -50,6 +51,7 @@
     "Documentation/zigux/phase3-abi-slice.md",
     "Documentation/zigux/phase3-roadmap-gap-survey.md",
     "Documentation/zigux/phase3-rbtree-interop-survey.md",
+    "Documentation/zigux/phase3-tests-root-review-companion.md",
     "Documentation/zigux/phase3-export-uapi-boundary-survey.md",
     "Documentation/zigux/phase3-policy-unsafe-boundary-survey.md",
     "Documentation/zigux/phase3-low-level-wrapper-boundary-survey.md",
@@ -62,5 +64,5 @@
     "scripts/zigux/validate_phase3_core.py",
     "scripts/zigux/validate_phase3_selftest.py"
   ],
-  "file_count": 58
+  "file_count": 60
 }
