@@ -2,15 +2,12 @@
 from __future__ import annotations
 
 import argparse
-from pathlib import Path
 import tempfile
+from pathlib import Path
 
 
 SELF_PATH = Path(__file__).resolve()
-if len(SELF_PATH.parents) >= 3:
-    ROOT = SELF_PATH.parents[2]
-else:
-    ROOT = SELF_PATH.parent
+ROOT = SELF_PATH.parents[2] if len(SELF_PATH.parents) >= 3 else SELF_PATH.parent
 
 DEFAULT_VALIDATOR = ROOT / "scripts" / "zigux" / "validate-phase1.py"
 DEFAULT_CLOSURE_VALIDATOR = ROOT / "scripts" / "zigux" / "validate-phase1-closure.py"
@@ -26,6 +23,11 @@ FIND_BIT_BENCH_KEYS = (
     "PHASE1_BENCH_FIND_BIT_FAMILY_CHECKSUM,PHASE1_BENCH_FIND_TAIL_WINDOW_CHECKSUM,"
     "PHASE1_BENCH_FIND_SAME_WORD_CHECKSUM,PHASE1_BENCH_FIND_NEXT_ZERO_BIT_CHECKSUM,"
     "PHASE1_BENCH_FIND_NEXT_AND_BIT_CHECKSUM"
+)
+FIND_BIT_BENCH_ITERATIONS = (
+    "PHASE1_FIND_BIT_BENCH_ITERATIONS=PHASE1_BENCH_FIND_NEXT_BIT_ITERATIONS,"
+    "PHASE1_BENCH_FIND_SAME_WORD_ITERATIONS,PHASE1_BENCH_FIND_NEXT_ZERO_BIT_ITERATIONS,"
+    "PHASE1_BENCH_FIND_NEXT_AND_BIT_ITERATIONS"
 )
 BENCH_SELF_TEST_COUNT = "print('PHASE1_BENCH_SELF_TEST_CASE_COUNT=18')"
 
@@ -79,30 +81,29 @@ REQUIRED_VALIDATOR_SNIPPETS = {
 
 REQUIRED_CLOSURE_VALIDATOR_SNIPPETS = {
     "bench_self_test_count_marker": f'"{BENCH_SELF_TEST_COUNT}",',
-    "bench_self_test_expect_failure": (
-        f'expect_failure(root, "bench_checker:{BENCH_SELF_TEST_COUNT}")'
-    ),
+    "bench_self_test_expect_failure": f'expect_failure(root, "bench_checker:{BENCH_SELF_TEST_COUNT}")',
 }
 
 REQUIRED_CLOSURE_DOC_SNIPPETS = {
     "find_bit_bench_keys_marker": f"`{FIND_BIT_BENCH_KEYS}`",
+    "find_bit_bench_iterations_marker": f"`{FIND_BIT_BENCH_ITERATIONS}`",
 }
 
 REQUIRED_BENCH_CHECKER_SNIPPETS = {
     "bench_self_test_count_marker": BENCH_SELF_TEST_COUNT,
 }
 
-REQUIRED_WORKFLOW_SNIPPETS = {
+REQUIRED_WORKFLOW_LINES = {
     "self_test_step": "run: python3 scripts/zigux/check-phase1-find-bit-validator-anchors.py --self-test",
     "live_step": "run: python3 scripts/zigux/check-phase1-find-bit-validator-anchors.py",
 }
 
-REQUIRED_MAKEFILE_SNIPPETS = {
+REQUIRED_MAKEFILE_LINES = {
     "self_test_step": "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase1-find-bit-validator-anchors.py --self-test",
     "live_step": "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase1-find-bit-validator-anchors.py",
 }
 
-REQUIRED_SCRIPTS_README_EXACT_LINES = {
+REQUIRED_SCRIPTS_README_LINES = {
     "helper_listing": "- `check-phase1-find-bit-validator-anchors.py`",
 }
 
@@ -111,9 +112,7 @@ REQUIRED_SCRIPTS_README_SNIPPETS = {
         "`check-phase1-find-bit-validator-anchors.py --self-test` and "
         "`check-phase1-find-bit-validator-anchors.py`"
     ),
-    "flow_note": (
-        "matching `phase1_helper_manifest.json` tail-start and zero-sized anchor checks"
-    ),
+    "flow_note": "matching `phase1_helper_manifest.json` tail-start and zero-sized anchor checks",
     "tail_word_boundary_note": "the paired tail-word-boundary anchor review",
 }
 
@@ -123,109 +122,38 @@ REQUIRED_DOCS_README_LINES = {
 }
 
 
-def validate_text(prefix: str, source: str, required_snippets: dict[str, str]) -> list[str]:
+def read_text(path: Path) -> str:
+    return path.read_text(encoding="utf-8")
+
+
+def validate_text(prefix: str, text: str, snippets: dict[str, str]) -> list[str]:
     missing: list[str] = []
-    for label, snippet in required_snippets.items():
-        if snippet not in source:
+    for label, snippet in snippets.items():
+        if snippet not in text:
             missing.append(f"{prefix}:{label}")
     return missing
 
 
-def validate_exact_lines(prefix: str, source: str, required_lines: dict[str, str]) -> list[str]:
+def validate_exact_lines(prefix: str, text: str, lines: dict[str, str]) -> list[str]:
     missing: list[str] = []
-    lines = [line.strip() for line in source.splitlines()]
-    for label, required_line in required_lines.items():
-        actual_count = sum(1 for line in lines if line == required_line)
-        if actual_count != 1:
-            missing.append(f"{prefix}:{label}:expected=1:actual={actual_count}")
+    normalized = [line.strip() for line in text.splitlines()]
+    for label, line in lines.items():
+        count = sum(1 for actual in normalized if actual == line)
+        if count != 1:
+            missing.append(f"{prefix}:{label}:expected=1:actual={count}")
     return missing
 
 
-def validate_snippet_counts(prefix: str, source: str, required_snippets: dict[str, str]) -> list[str]:
+def validate_snippet_counts(prefix: str, text: str, snippets: dict[str, str]) -> list[str]:
     missing: list[str] = []
-    for label, snippet in required_snippets.items():
-        actual_count = source.count(snippet)
-        if actual_count != 1:
-            missing.append(f"{prefix}:{label}:expected=1:actual={actual_count}")
+    for label, snippet in snippets.items():
+        count = text.count(snippet)
+        if count != 1:
+            missing.append(f"{prefix}:{label}:expected=1:actual={count}")
     return missing
 
 
-def run_check(
-    validator_path: Path,
-    closure_validator_path: Path,
-    closure_doc_path: Path,
-    bench_checker_path: Path,
-    workflow_path: Path,
-    makefile_path: Path,
-    scripts_readme_path: Path,
-    docs_readme_path: Path,
-) -> int:
-    validator_source = validator_path.read_text(encoding="utf-8")
-    closure_validator_source = closure_validator_path.read_text(encoding="utf-8")
-    closure_doc_source = closure_doc_path.read_text(encoding="utf-8")
-    bench_checker_source = bench_checker_path.read_text(encoding="utf-8")
-    workflow_source = workflow_path.read_text(encoding="utf-8")
-    makefile_source = makefile_path.read_text(encoding="utf-8")
-    scripts_readme_source = scripts_readme_path.read_text(encoding="utf-8")
-    docs_readme_source = docs_readme_path.read_text(encoding="utf-8")
-
-    missing = [
-        *validate_text("phase1_validator_find_bit", validator_source, REQUIRED_VALIDATOR_SNIPPETS),
-        *validate_text(
-            "phase1_closure_validator_find_bit",
-            closure_validator_source,
-            REQUIRED_CLOSURE_VALIDATOR_SNIPPETS,
-        ),
-        *validate_text(
-            "phase1_closure_doc_find_bit",
-            closure_doc_source,
-            REQUIRED_CLOSURE_DOC_SNIPPETS,
-        ),
-        *validate_text(
-            "phase1_bench_checker_find_bit",
-            bench_checker_source,
-            REQUIRED_BENCH_CHECKER_SNIPPETS,
-        ),
-        *validate_exact_lines("phase1_validator_find_bit_workflow", workflow_source, REQUIRED_WORKFLOW_SNIPPETS),
-        *validate_exact_lines("phase1_validator_find_bit_makefile", makefile_source, REQUIRED_MAKEFILE_SNIPPETS),
-        *validate_exact_lines(
-            "phase1_validator_find_bit_scripts_readme",
-            scripts_readme_source,
-            REQUIRED_SCRIPTS_README_EXACT_LINES,
-        ),
-        *validate_snippet_counts(
-            "phase1_validator_find_bit_scripts_readme",
-            scripts_readme_source,
-            REQUIRED_SCRIPTS_README_SNIPPETS,
-        ),
-        *validate_exact_lines("phase1_validator_find_bit_docs_readme", docs_readme_source, REQUIRED_DOCS_README_LINES),
-    ]
-    if missing:
-        print("PHASE1_FIND_BIT_VALIDATOR_ANCHOR_CHECK=fail")
-        print("MISSING_PHASE1_FIND_BIT_VALIDATOR_ANCHORS_START")
-        for item in missing:
-            print(item)
-        print("MISSING_PHASE1_FIND_BIT_VALIDATOR_ANCHORS_END")
-        return 1
-
-    print("PHASE1_FIND_BIT_VALIDATOR_ANCHOR_CHECK=pass")
-    print(
-        "PHASE1_FIND_BIT_VALIDATOR_ANCHOR_COUNT="
-        f"{len(REQUIRED_VALIDATOR_SNIPPETS) + len(REQUIRED_CLOSURE_VALIDATOR_SNIPPETS) + len(REQUIRED_CLOSURE_DOC_SNIPPETS) + len(REQUIRED_BENCH_CHECKER_SNIPPETS) + len(REQUIRED_WORKFLOW_SNIPPETS) + len(REQUIRED_MAKEFILE_SNIPPETS) + len(REQUIRED_SCRIPTS_README_EXACT_LINES) + len(REQUIRED_SCRIPTS_README_SNIPPETS) + len(REQUIRED_DOCS_README_LINES)}"
-    )
-    print(f"PHASE1_FIND_BIT_VALIDATOR_PATH={validator_path}")
-    print(f"PHASE1_FIND_BIT_CLOSURE_VALIDATOR_PATH={closure_validator_path}")
-    print(f"PHASE1_FIND_BIT_CLOSURE_DOC_PATH={closure_doc_path}")
-    print(f"PHASE1_FIND_BIT_BENCH_CHECKER_PATH={bench_checker_path}")
-    print(f"PHASE1_FIND_BIT_VALIDATOR_WORKFLOW_PATH={workflow_path}")
-    print(f"PHASE1_FIND_BIT_VALIDATOR_MAKEFILE_PATH={makefile_path}")
-    print(f"PHASE1_FIND_BIT_VALIDATOR_SCRIPTS_README_PATH={scripts_readme_path}")
-    print(f"PHASE1_FIND_BIT_VALIDATOR_DOCS_README_PATH={docs_readme_path}")
-    return 0
-
-
-def expect_missing(
-    label: str,
+def collect_missing(
     validator_text: str,
     closure_validator_text: str,
     closure_doc_text: str,
@@ -234,9 +162,8 @@ def expect_missing(
     makefile_text: str,
     scripts_readme_text: str,
     docs_readme_text: str,
-    expected: str,
-) -> None:
-    missing = [
+) -> list[str]:
+    return [
         *validate_text("phase1_validator_find_bit", validator_text, REQUIRED_VALIDATOR_SNIPPETS),
         *validate_text(
             "phase1_closure_validator_find_bit",
@@ -253,12 +180,20 @@ def expect_missing(
             bench_checker_text,
             REQUIRED_BENCH_CHECKER_SNIPPETS,
         ),
-        *validate_exact_lines("phase1_validator_find_bit_workflow", workflow_text, REQUIRED_WORKFLOW_SNIPPETS),
-        *validate_exact_lines("phase1_validator_find_bit_makefile", makefile_text, REQUIRED_MAKEFILE_SNIPPETS),
+        *validate_exact_lines(
+            "phase1_validator_find_bit_workflow",
+            workflow_text,
+            REQUIRED_WORKFLOW_LINES,
+        ),
+        *validate_exact_lines(
+            "phase1_validator_find_bit_makefile",
+            makefile_text,
+            REQUIRED_MAKEFILE_LINES,
+        ),
         *validate_exact_lines(
             "phase1_validator_find_bit_scripts_readme",
             scripts_readme_text,
-            REQUIRED_SCRIPTS_README_EXACT_LINES,
+            REQUIRED_SCRIPTS_README_LINES,
         ),
         *validate_snippet_counts(
             "phase1_validator_find_bit_scripts_readme",
@@ -271,6 +206,63 @@ def expect_missing(
             REQUIRED_DOCS_README_LINES,
         ),
     ]
+
+
+def run_check(
+    validator_path: Path,
+    closure_validator_path: Path,
+    closure_doc_path: Path,
+    bench_checker_path: Path,
+    workflow_path: Path,
+    makefile_path: Path,
+    scripts_readme_path: Path,
+    docs_readme_path: Path,
+) -> int:
+    missing = collect_missing(
+        read_text(validator_path),
+        read_text(closure_validator_path),
+        read_text(closure_doc_path),
+        read_text(bench_checker_path),
+        read_text(workflow_path),
+        read_text(makefile_path),
+        read_text(scripts_readme_path),
+        read_text(docs_readme_path),
+    )
+    if missing:
+        print("PHASE1_FIND_BIT_VALIDATOR_ANCHOR_CHECK=fail")
+        print("MISSING_PHASE1_FIND_BIT_VALIDATOR_ANCHORS_START")
+        for item in missing:
+            print(item)
+        print("MISSING_PHASE1_FIND_BIT_VALIDATOR_ANCHORS_END")
+        return 1
+
+    print("PHASE1_FIND_BIT_VALIDATOR_ANCHOR_CHECK=pass")
+    print(
+        "PHASE1_FIND_BIT_VALIDATOR_ANCHOR_COUNT="
+        f"{len(REQUIRED_VALIDATOR_SNIPPETS) + len(REQUIRED_CLOSURE_VALIDATOR_SNIPPETS) + len(REQUIRED_CLOSURE_DOC_SNIPPETS) + len(REQUIRED_BENCH_CHECKER_SNIPPETS) + len(REQUIRED_WORKFLOW_LINES) + len(REQUIRED_MAKEFILE_LINES) + len(REQUIRED_SCRIPTS_README_LINES) + len(REQUIRED_SCRIPTS_README_SNIPPETS) + len(REQUIRED_DOCS_README_LINES)}"
+    )
+    print(f"PHASE1_FIND_BIT_VALIDATOR_PATH={validator_path}")
+    print(f"PHASE1_FIND_BIT_CLOSURE_VALIDATOR_PATH={closure_validator_path}")
+    print(f"PHASE1_FIND_BIT_CLOSURE_DOC_PATH={closure_doc_path}")
+    print(f"PHASE1_FIND_BIT_BENCH_CHECKER_PATH={bench_checker_path}")
+    print(f"PHASE1_FIND_BIT_VALIDATOR_WORKFLOW_PATH={workflow_path}")
+    print(f"PHASE1_FIND_BIT_VALIDATOR_MAKEFILE_PATH={makefile_path}")
+    print(f"PHASE1_FIND_BIT_VALIDATOR_SCRIPTS_README_PATH={scripts_readme_path}")
+    print(f"PHASE1_FIND_BIT_VALIDATOR_DOCS_README_PATH={docs_readme_path}")
+    return 0
+
+
+def expect_missing(label: str, expected: str, **texts: str) -> None:
+    missing = collect_missing(
+        texts["validator_text"],
+        texts["closure_validator_text"],
+        texts["closure_doc_text"],
+        texts["bench_checker_text"],
+        texts["workflow_text"],
+        texts["makefile_text"],
+        texts["scripts_readme_text"],
+        texts["docs_readme_text"],
+    )
     if expected not in missing:
         raise SystemExit(
             f"phase1-find-bit-validator-self-test:{label}:expected={expected!r}:actual={missing!r}"
@@ -278,59 +270,33 @@ def expect_missing(
 
 
 def run_self_test() -> int:
-    validator_baseline = "\n".join(REQUIRED_VALIDATOR_SNIPPETS.values()) + "\n"
-    closure_validator_baseline = "\n".join(REQUIRED_CLOSURE_VALIDATOR_SNIPPETS.values()) + "\n"
-    closure_doc_baseline = "\n".join(REQUIRED_CLOSURE_DOC_SNIPPETS.values()) + "\n"
-    bench_checker_baseline = "\n".join(REQUIRED_BENCH_CHECKER_SNIPPETS.values()) + "\n"
-    workflow_baseline = "\n".join(REQUIRED_WORKFLOW_SNIPPETS.values()) + "\n"
-    makefile_baseline = "\n".join(REQUIRED_MAKEFILE_SNIPPETS.values()) + "\n"
-    scripts_readme_baseline = (
-        "\n".join(REQUIRED_SCRIPTS_README_EXACT_LINES.values())
+    validator_text = "\n".join(REQUIRED_VALIDATOR_SNIPPETS.values()) + "\n"
+    closure_validator_text = "\n".join(REQUIRED_CLOSURE_VALIDATOR_SNIPPETS.values()) + "\n"
+    closure_doc_text = "\n".join(REQUIRED_CLOSURE_DOC_SNIPPETS.values()) + "\n"
+    bench_checker_text = "\n".join(REQUIRED_BENCH_CHECKER_SNIPPETS.values()) + "\n"
+    workflow_text = "\n".join(REQUIRED_WORKFLOW_LINES.values()) + "\n"
+    makefile_text = "\n".join(REQUIRED_MAKEFILE_LINES.values()) + "\n"
+    scripts_readme_text = (
+        "\n".join(REQUIRED_SCRIPTS_README_LINES.values())
         + "\n"
         + "\n".join(REQUIRED_SCRIPTS_README_SNIPPETS.values())
         + "\n"
     )
-    docs_readme_baseline = "\n".join(REQUIRED_DOCS_README_LINES.values()) + "\n"
+    docs_readme_text = "\n".join(REQUIRED_DOCS_README_LINES.values()) + "\n"
 
-    baseline_missing = [
-        *validate_text("phase1_validator_find_bit", validator_baseline, REQUIRED_VALIDATOR_SNIPPETS),
-        *validate_text(
-            "phase1_closure_validator_find_bit",
-            closure_validator_baseline,
-            REQUIRED_CLOSURE_VALIDATOR_SNIPPETS,
-        ),
-        *validate_text(
-            "phase1_closure_doc_find_bit",
-            closure_doc_baseline,
-            REQUIRED_CLOSURE_DOC_SNIPPETS,
-        ),
-        *validate_text(
-            "phase1_bench_checker_find_bit",
-            bench_checker_baseline,
-            REQUIRED_BENCH_CHECKER_SNIPPETS,
-        ),
-        *validate_exact_lines("phase1_validator_find_bit_workflow", workflow_baseline, REQUIRED_WORKFLOW_SNIPPETS),
-        *validate_exact_lines("phase1_validator_find_bit_makefile", makefile_baseline, REQUIRED_MAKEFILE_SNIPPETS),
-        *validate_exact_lines(
-            "phase1_validator_find_bit_scripts_readme",
-            scripts_readme_baseline,
-            REQUIRED_SCRIPTS_README_EXACT_LINES,
-        ),
-        *validate_snippet_counts(
-            "phase1_validator_find_bit_scripts_readme",
-            scripts_readme_baseline,
-            REQUIRED_SCRIPTS_README_SNIPPETS,
-        ),
-        *validate_exact_lines(
-            "phase1_validator_find_bit_docs_readme",
-            docs_readme_baseline,
-            REQUIRED_DOCS_README_LINES,
-        ),
-    ]
+    baseline_missing = collect_missing(
+        validator_text,
+        closure_validator_text,
+        closure_doc_text,
+        bench_checker_text,
+        workflow_text,
+        makefile_text,
+        scripts_readme_text,
+        docs_readme_text,
+    )
     if baseline_missing:
         raise SystemExit(
-            "phase1-find-bit-validator-self-test:baseline_failed:"
-            + ",".join(baseline_missing)
+            "phase1-find-bit-validator-self-test:baseline_failed:" + ",".join(baseline_missing)
         )
 
     total_cases = 1
@@ -338,237 +304,235 @@ def run_self_test() -> int:
     for label, snippet in REQUIRED_VALIDATOR_SNIPPETS.items():
         expect_missing(
             label,
-            validator_baseline.replace(snippet, "", 1),
-            closure_validator_baseline,
-            closure_doc_baseline,
-            bench_checker_baseline,
-            workflow_baseline,
-            makefile_baseline,
-            scripts_readme_baseline,
-            docs_readme_baseline,
             f"phase1_validator_find_bit:{label}",
+            validator_text=validator_text.replace(snippet, "", 1),
+            closure_validator_text=closure_validator_text,
+            closure_doc_text=closure_doc_text,
+            bench_checker_text=bench_checker_text,
+            workflow_text=workflow_text,
+            makefile_text=makefile_text,
+            scripts_readme_text=scripts_readme_text,
+            docs_readme_text=docs_readme_text,
         )
         total_cases += 1
 
     for label, snippet in REQUIRED_CLOSURE_VALIDATOR_SNIPPETS.items():
         expect_missing(
             label,
-            validator_baseline,
-            closure_validator_baseline.replace(snippet, "", 1),
-            closure_doc_baseline,
-            bench_checker_baseline,
-            workflow_baseline,
-            makefile_baseline,
-            scripts_readme_baseline,
-            docs_readme_baseline,
             f"phase1_closure_validator_find_bit:{label}",
+            validator_text=validator_text,
+            closure_validator_text=closure_validator_text.replace(snippet, "", 1),
+            closure_doc_text=closure_doc_text,
+            bench_checker_text=bench_checker_text,
+            workflow_text=workflow_text,
+            makefile_text=makefile_text,
+            scripts_readme_text=scripts_readme_text,
+            docs_readme_text=docs_readme_text,
         )
         total_cases += 1
 
     for label, snippet in REQUIRED_CLOSURE_DOC_SNIPPETS.items():
         expect_missing(
             label,
-            validator_baseline,
-            closure_validator_baseline,
-            closure_doc_baseline.replace(snippet, "", 1),
-            bench_checker_baseline,
-            workflow_baseline,
-            makefile_baseline,
-            scripts_readme_baseline,
-            docs_readme_baseline,
             f"phase1_closure_doc_find_bit:{label}",
+            validator_text=validator_text,
+            closure_validator_text=closure_validator_text,
+            closure_doc_text=closure_doc_text.replace(snippet, "", 1),
+            bench_checker_text=bench_checker_text,
+            workflow_text=workflow_text,
+            makefile_text=makefile_text,
+            scripts_readme_text=scripts_readme_text,
+            docs_readme_text=docs_readme_text,
         )
         total_cases += 1
 
     for label, snippet in REQUIRED_BENCH_CHECKER_SNIPPETS.items():
         expect_missing(
             label,
-            validator_baseline,
-            closure_validator_baseline,
-            closure_doc_baseline,
-            bench_checker_baseline.replace(snippet, "", 1),
-            workflow_baseline,
-            makefile_baseline,
-            scripts_readme_baseline,
-            docs_readme_baseline,
             f"phase1_bench_checker_find_bit:{label}",
+            validator_text=validator_text,
+            closure_validator_text=closure_validator_text,
+            closure_doc_text=closure_doc_text,
+            bench_checker_text=bench_checker_text.replace(snippet, "", 1),
+            workflow_text=workflow_text,
+            makefile_text=makefile_text,
+            scripts_readme_text=scripts_readme_text,
+            docs_readme_text=docs_readme_text,
         )
         total_cases += 1
 
-    for label, snippet in REQUIRED_WORKFLOW_SNIPPETS.items():
-        mutated_workflow_lines = [
-            line for line in workflow_baseline.splitlines() if line.strip() != snippet
-        ]
+    for label, line in REQUIRED_WORKFLOW_LINES.items():
+        missing_lines = [raw for raw in workflow_text.splitlines() if raw.strip() != line]
         expect_missing(
             label,
-            validator_baseline,
-            closure_validator_baseline,
-            closure_doc_baseline,
-            bench_checker_baseline,
-            "\n".join(mutated_workflow_lines) + "\n",
-            makefile_baseline,
-            scripts_readme_baseline,
-            docs_readme_baseline,
             f"phase1_validator_find_bit_workflow:{label}:expected=1:actual=0",
+            validator_text=validator_text,
+            closure_validator_text=closure_validator_text,
+            closure_doc_text=closure_doc_text,
+            bench_checker_text=bench_checker_text,
+            workflow_text="\n".join(missing_lines) + "\n",
+            makefile_text=makefile_text,
+            scripts_readme_text=scripts_readme_text,
+            docs_readme_text=docs_readme_text,
         )
         total_cases += 1
         expect_missing(
             f"{label}_duplicate",
-            validator_baseline,
-            closure_validator_baseline,
-            closure_doc_baseline,
-            bench_checker_baseline,
-            workflow_baseline + snippet + "\n",
-            makefile_baseline,
-            scripts_readme_baseline,
-            docs_readme_baseline,
             f"phase1_validator_find_bit_workflow:{label}:expected=1:actual=2",
+            validator_text=validator_text,
+            closure_validator_text=closure_validator_text,
+            closure_doc_text=closure_doc_text,
+            bench_checker_text=bench_checker_text,
+            workflow_text=workflow_text + line + "\n",
+            makefile_text=makefile_text,
+            scripts_readme_text=scripts_readme_text,
+            docs_readme_text=docs_readme_text,
         )
         total_cases += 1
 
-    for label, snippet in REQUIRED_MAKEFILE_SNIPPETS.items():
-        mutated_makefile_lines = [
-            line for line in makefile_baseline.splitlines() if line.strip() != snippet
-        ]
+    for label, line in REQUIRED_MAKEFILE_LINES.items():
+        missing_lines = [raw for raw in makefile_text.splitlines() if raw.strip() != line]
         expect_missing(
             label,
-            validator_baseline,
-            closure_validator_baseline,
-            closure_doc_baseline,
-            bench_checker_baseline,
-            workflow_baseline,
-            "\n".join(mutated_makefile_lines) + "\n",
-            scripts_readme_baseline,
-            docs_readme_baseline,
             f"phase1_validator_find_bit_makefile:{label}:expected=1:actual=0",
+            validator_text=validator_text,
+            closure_validator_text=closure_validator_text,
+            closure_doc_text=closure_doc_text,
+            bench_checker_text=bench_checker_text,
+            workflow_text=workflow_text,
+            makefile_text="\n".join(missing_lines) + "\n",
+            scripts_readme_text=scripts_readme_text,
+            docs_readme_text=docs_readme_text,
         )
         total_cases += 1
         expect_missing(
             f"{label}_duplicate",
-            validator_baseline,
-            closure_validator_baseline,
-            closure_doc_baseline,
-            bench_checker_baseline,
-            workflow_baseline,
-            makefile_baseline + snippet + "\n",
-            scripts_readme_baseline,
-            docs_readme_baseline,
             f"phase1_validator_find_bit_makefile:{label}:expected=1:actual=2",
+            validator_text=validator_text,
+            closure_validator_text=closure_validator_text,
+            closure_doc_text=closure_doc_text,
+            bench_checker_text=bench_checker_text,
+            workflow_text=workflow_text,
+            makefile_text=makefile_text + line + "\n",
+            scripts_readme_text=scripts_readme_text,
+            docs_readme_text=docs_readme_text,
         )
         total_cases += 1
 
-    for label, snippet in REQUIRED_SCRIPTS_README_EXACT_LINES.items():
+    for label, line in REQUIRED_SCRIPTS_README_LINES.items():
         expect_missing(
             label,
-            validator_baseline,
-            closure_validator_baseline,
-            closure_doc_baseline,
-            bench_checker_baseline,
-            workflow_baseline,
-            makefile_baseline,
-            scripts_readme_baseline.replace(snippet, "", 1),
-            docs_readme_baseline,
             f"phase1_validator_find_bit_scripts_readme:{label}:expected=1:actual=0",
+            validator_text=validator_text,
+            closure_validator_text=closure_validator_text,
+            closure_doc_text=closure_doc_text,
+            bench_checker_text=bench_checker_text,
+            workflow_text=workflow_text,
+            makefile_text=makefile_text,
+            scripts_readme_text=scripts_readme_text.replace(line, "", 1),
+            docs_readme_text=docs_readme_text,
         )
         total_cases += 1
         expect_missing(
             f"{label}_duplicate",
-            validator_baseline,
-            closure_validator_baseline,
-            closure_doc_baseline,
-            bench_checker_baseline,
-            workflow_baseline,
-            makefile_baseline,
-            scripts_readme_baseline + snippet + "\n",
-            docs_readme_baseline,
             f"phase1_validator_find_bit_scripts_readme:{label}:expected=1:actual=2",
+            validator_text=validator_text,
+            closure_validator_text=closure_validator_text,
+            closure_doc_text=closure_doc_text,
+            bench_checker_text=bench_checker_text,
+            workflow_text=workflow_text,
+            makefile_text=makefile_text,
+            scripts_readme_text=scripts_readme_text + line + "\n",
+            docs_readme_text=docs_readme_text,
         )
         total_cases += 1
 
     for label, snippet in REQUIRED_SCRIPTS_README_SNIPPETS.items():
         expect_missing(
             label,
-            validator_baseline,
-            closure_validator_baseline,
-            closure_doc_baseline,
-            bench_checker_baseline,
-            workflow_baseline,
-            makefile_baseline,
-            scripts_readme_baseline.replace(snippet, "", 1),
-            docs_readme_baseline,
             f"phase1_validator_find_bit_scripts_readme:{label}:expected=1:actual=0",
+            validator_text=validator_text,
+            closure_validator_text=closure_validator_text,
+            closure_doc_text=closure_doc_text,
+            bench_checker_text=bench_checker_text,
+            workflow_text=workflow_text,
+            makefile_text=makefile_text,
+            scripts_readme_text=scripts_readme_text.replace(snippet, "", 1),
+            docs_readme_text=docs_readme_text,
         )
         total_cases += 1
         expect_missing(
             f"{label}_duplicate",
-            validator_baseline,
-            closure_validator_baseline,
-            closure_doc_baseline,
-            bench_checker_baseline,
-            workflow_baseline,
-            makefile_baseline,
-            scripts_readme_baseline + snippet + "\n",
-            docs_readme_baseline,
             f"phase1_validator_find_bit_scripts_readme:{label}:expected=1:actual=2",
+            validator_text=validator_text,
+            closure_validator_text=closure_validator_text,
+            closure_doc_text=closure_doc_text,
+            bench_checker_text=bench_checker_text,
+            workflow_text=workflow_text,
+            makefile_text=makefile_text,
+            scripts_readme_text=scripts_readme_text + snippet + "\n",
+            docs_readme_text=docs_readme_text,
         )
         total_cases += 1
 
-    for label, snippet in REQUIRED_DOCS_README_LINES.items():
+    for label, line in REQUIRED_DOCS_README_LINES.items():
         expect_missing(
             label,
-            validator_baseline,
-            closure_validator_baseline,
-            closure_doc_baseline,
-            bench_checker_baseline,
-            workflow_baseline,
-            makefile_baseline,
-            scripts_readme_baseline,
-            docs_readme_baseline.replace(snippet, "", 1),
             f"phase1_validator_find_bit_docs_readme:{label}:expected=1:actual=0",
+            validator_text=validator_text,
+            closure_validator_text=closure_validator_text,
+            closure_doc_text=closure_doc_text,
+            bench_checker_text=bench_checker_text,
+            workflow_text=workflow_text,
+            makefile_text=makefile_text,
+            scripts_readme_text=scripts_readme_text,
+            docs_readme_text=docs_readme_text.replace(line, "", 1),
         )
         total_cases += 1
         expect_missing(
             f"{label}_duplicate",
-            validator_baseline,
-            closure_validator_baseline,
-            closure_doc_baseline,
-            bench_checker_baseline,
-            workflow_baseline,
-            makefile_baseline,
-            scripts_readme_baseline,
-            docs_readme_baseline + snippet + "\n",
             f"phase1_validator_find_bit_docs_readme:{label}:expected=1:actual=2",
+            validator_text=validator_text,
+            closure_validator_text=closure_validator_text,
+            closure_doc_text=closure_doc_text,
+            bench_checker_text=bench_checker_text,
+            workflow_text=workflow_text,
+            makefile_text=makefile_text,
+            scripts_readme_text=scripts_readme_text,
+            docs_readme_text=docs_readme_text + line + "\n",
         )
         total_cases += 1
 
     with tempfile.TemporaryDirectory(prefix="zigux_phase1_find_bit_validator_") as tmp_dir:
         tmp_root = Path(tmp_dir)
-        temp_validator = tmp_root / "validate-phase1.py"
-        temp_closure_validator = tmp_root / "validate-phase1-closure.py"
-        temp_closure_doc = tmp_root / "phase1-closure.md"
-        temp_bench_checker = tmp_root / "check-phase1-bench.py"
-        temp_workflow = tmp_root / "zigux-bootstrap.yml"
-        temp_makefile = tmp_root / "Makefile"
-        temp_scripts_readme = tmp_root / "README.md"
-        temp_docs_readme = tmp_root / "docs-README.md"
-        temp_validator.write_text(validator_baseline, encoding="utf-8")
-        temp_closure_validator.write_text(closure_validator_baseline, encoding="utf-8")
-        temp_closure_doc.write_text(closure_doc_baseline, encoding="utf-8")
-        temp_bench_checker.write_text(bench_checker_baseline, encoding="utf-8")
-        temp_workflow.write_text(workflow_baseline, encoding="utf-8")
-        temp_makefile.write_text(makefile_baseline, encoding="utf-8")
-        temp_scripts_readme.write_text(scripts_readme_baseline, encoding="utf-8")
-        temp_docs_readme.write_text(docs_readme_baseline, encoding="utf-8")
+        paths = {
+            "validator": tmp_root / "validate-phase1.py",
+            "closure_validator": tmp_root / "validate-phase1-closure.py",
+            "closure_doc": tmp_root / "phase1-closure.md",
+            "bench_checker": tmp_root / "check-phase1-bench.py",
+            "workflow": tmp_root / "zigux-bootstrap.yml",
+            "makefile": tmp_root / "Makefile",
+            "scripts_readme": tmp_root / "README.md",
+            "docs_readme": tmp_root / "docs-README.md",
+        }
+        paths["validator"].write_text(validator_text, encoding="utf-8")
+        paths["closure_validator"].write_text(closure_validator_text, encoding="utf-8")
+        paths["closure_doc"].write_text(closure_doc_text, encoding="utf-8")
+        paths["bench_checker"].write_text(bench_checker_text, encoding="utf-8")
+        paths["workflow"].write_text(workflow_text, encoding="utf-8")
+        paths["makefile"].write_text(makefile_text, encoding="utf-8")
+        paths["scripts_readme"].write_text(scripts_readme_text, encoding="utf-8")
+        paths["docs_readme"].write_text(docs_readme_text, encoding="utf-8")
         if (
             run_check(
-                temp_validator,
-                temp_closure_validator,
-                temp_closure_doc,
-                temp_bench_checker,
-                temp_workflow,
-                temp_makefile,
-                temp_scripts_readme,
-                temp_docs_readme,
+                paths["validator"],
+                paths["closure_validator"],
+                paths["closure_doc"],
+                paths["bench_checker"],
+                paths["workflow"],
+                paths["makefile"],
+                paths["scripts_readme"],
+                paths["docs_readme"],
             )
             != 0
         ):
@@ -583,59 +547,20 @@ def run_self_test() -> int:
 def main() -> int:
     parser = argparse.ArgumentParser(
         description=(
-            "Fail closed if the Phase 1 find_bit validators, Makefile route, or docs-root index stop naming the shipped "
-            "tail-start, tail-word-boundary, zero-sized, or six-key bench evidence packet."
+            "Fail closed if the Phase 1 find_bit validators, Makefile route, or docs-root index "
+            "stop naming the shipped tail-start, tail-word-boundary, zero-sized, or bench "
+            "workload-size evidence packet."
         )
     )
-    parser.add_argument(
-        "--validator",
-        type=Path,
-        default=DEFAULT_VALIDATOR,
-        help="Path to the validate-phase1.py source to inspect.",
-    )
-    parser.add_argument(
-        "--closure-validator",
-        type=Path,
-        default=DEFAULT_CLOSURE_VALIDATOR,
-        help="Path to the validate-phase1-closure.py source to inspect.",
-    )
-    parser.add_argument(
-        "--closure-doc",
-        type=Path,
-        default=DEFAULT_CLOSURE_DOC,
-        help="Path to the phase1-closure.md document to inspect.",
-    )
-    parser.add_argument(
-        "--bench-checker",
-        type=Path,
-        default=DEFAULT_BENCH_CHECKER,
-        help="Path to the check-phase1-bench.py source to inspect.",
-    )
-    parser.add_argument(
-        "--workflow",
-        type=Path,
-        default=DEFAULT_WORKFLOW,
-        help="Path to the bootstrap workflow to inspect.",
-    )
-    parser.add_argument(
-        "--makefile",
-        type=Path,
-        default=DEFAULT_MAKEFILE,
-        help="Path to the Zigux Makefile to inspect.",
-    )
-    parser.add_argument(
-        "--scripts-readme",
-        type=Path,
-        default=DEFAULT_SCRIPTS_README,
-        help="Path to the scripts/zigux README to inspect.",
-    )
-    parser.add_argument(
-        "--docs-readme",
-        type=Path,
-        default=DEFAULT_DOCS_README,
-        help="Path to the Documentation/zigux README to inspect.",
-    )
-    parser.add_argument("--self-test", action="store_true", help="Run the built-in checker self-test.")
+    parser.add_argument("--validator", type=Path, default=DEFAULT_VALIDATOR)
+    parser.add_argument("--closure-validator", type=Path, default=DEFAULT_CLOSURE_VALIDATOR)
+    parser.add_argument("--closure-doc", type=Path, default=DEFAULT_CLOSURE_DOC)
+    parser.add_argument("--bench-checker", type=Path, default=DEFAULT_BENCH_CHECKER)
+    parser.add_argument("--workflow", type=Path, default=DEFAULT_WORKFLOW)
+    parser.add_argument("--makefile", type=Path, default=DEFAULT_MAKEFILE)
+    parser.add_argument("--scripts-readme", type=Path, default=DEFAULT_SCRIPTS_README)
+    parser.add_argument("--docs-readme", type=Path, default=DEFAULT_DOCS_README)
+    parser.add_argument("--self-test", action="store_true")
     args = parser.parse_args()
 
     if args.self_test:
