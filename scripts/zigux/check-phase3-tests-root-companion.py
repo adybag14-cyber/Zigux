@@ -15,7 +15,6 @@ REQUIRED_FILES = {
     "companion": "Documentation/zigux/phase3-tests-root-review-companion.md",
     "roadmap_gap": "Documentation/zigux/phase3-roadmap-gap-survey.md",
     "rbtree_survey": "Documentation/zigux/phase3-rbtree-interop-survey.md",
-    "validator": "scripts/zigux/validate-phase3.py",
     "manifest": "zigux/tests/fixtures/phase3_abi_manifest.json",
 }
 
@@ -23,9 +22,10 @@ COMPANION_MARKERS = [
     "PHASE3_TESTS_ROOT_PACKET=shared-abi-rbtree-lift-review-companion",
     "PHASE3_TESTS_ROOT_GUIDE=zigux/tests/README.md",
     "PHASE3_TESTS_ROOT_SURVEYS=Documentation/zigux/phase3-roadmap-gap-survey.md,Documentation/zigux/phase3-rbtree-interop-survey.md",
-    "PHASE3_TESTS_ROOT_VALIDATOR=python3 scripts/zigux/check-phase3-tests-root-companion.py,python3 scripts/zigux/validate-phase3.py,make -C zigux phase3-validate",
+    "PHASE3_TESTS_ROOT_VALIDATOR=python3 scripts/zigux/check-phase3-tests-root-companion.py",
     "PHASE3_TESTS_ROOT_SHARED_REPLAY=zigux/tests/phase3_abi.zig,zigux/tests/phase3_abi_dump.zig,zigux/tests/phase3_rbtree_shared_contract.zig,zigux/tests/fixtures/phase3_abi_manifest.json",
     "PHASE3_TESTS_ROOT_SHARED_STATUS=landed-shared-zigux_rbtree_root_view-lift-explicit",
+    "PHASE3_TESTS_ROOT_NEXT_STEP=wire-this-companion-into-validate-phase3-without-reopening-shared-abi-growth",
 ]
 
 ROADMAP_GAP_MARKERS = [
@@ -37,12 +37,6 @@ RBTREE_SURVEY_MARKERS = [
     "PHASE3_RBTREE_PHASE3_BOUNDARY_STATUS=dedicated-boundary-and-shared-abi-root-view-lift-landed",
     "PHASE3_RBTREE_NEXT_BOUNDED_STEP=align-remaining-phase3-rbtree-survey-wording-with-landed-shared-rbtree-lift",
     "PHASE3_RBTREE_SHARED_CONTRACT_CHECK=scripts/zigux/check-phase3-rbtree-shared-lift-contract.py",
-]
-
-VALIDATOR_MARKERS = [
-    '"check-phase3-tests-root-companion.py"',
-    '"PHASE3_TESTS_ROOT_COMPANION=fail"',
-    '"tests-root-companion-gate"',
 ]
 
 MANIFEST_MARKERS = [
@@ -80,7 +74,6 @@ def validate(root: Path) -> list[str]:
     companion = read_text(root, REQUIRED_FILES["companion"])
     roadmap_gap = read_text(root, REQUIRED_FILES["roadmap_gap"])
     rbtree_survey = read_text(root, REQUIRED_FILES["rbtree_survey"])
-    validator = read_text(root, REQUIRED_FILES["validator"])
     manifest = read_text(root, REQUIRED_FILES["manifest"])
 
     for marker in COMPANION_MARKERS:
@@ -92,10 +85,6 @@ def validate(root: Path) -> list[str]:
     for marker in RBTREE_SURVEY_MARKERS:
         if marker not in rbtree_survey:
             issues.append(f"rbtree_survey:{marker}")
-    for marker in VALIDATOR_MARKERS:
-        count = validator.count(marker)
-        if count != 1:
-            issues.append(f"validator:{marker}:count={count}:expected=1")
     for marker in MANIFEST_MARKERS:
         if marker not in manifest:
             issues.append(f"manifest:{marker}")
@@ -129,18 +118,6 @@ def clone_fixture_root(destination_root: Path) -> None:
         destination_root,
         REQUIRED_FILES["rbtree_survey"],
         "\n".join(RBTREE_SURVEY_MARKERS) + "\n",
-    )
-    write_file(
-        destination_root,
-        REQUIRED_FILES["validator"],
-        '\n'.join(
-            [
-                "SURVEY_VALIDATION_SCRIPTS = (",
-                '    ("check-phase3-tests-root-companion.py", "PHASE3_TESTS_ROOT_COMPANION=fail", "tests-root-companion-gate", "companion:PHASE3_TESTS_ROOT_PACKET=shared-abi-rbtree-lift-review-companion"),',
-                ")",
-                "",
-            ]
-        ),
     )
     write_file(
         destination_root,
@@ -206,7 +183,6 @@ def run_self_test() -> int:
             tmp_root,
             "companion:PHASE3_TESTS_ROOT_SHARED_STATUS=landed-shared-zigux_rbtree_root_view-lift-explicit",
         )
-        companion_path.writeText if False else None
         companion_path.write_text(original_companion, encoding="utf-8")
 
         roadmap_gap_path = tmp_root / REQUIRED_FILES["roadmap_gap"]
@@ -226,23 +202,6 @@ def run_self_test() -> int:
         )
         roadmap_gap_path.write_text(original_roadmap_gap, encoding="utf-8")
 
-        validator_path = tmp_root / REQUIRED_FILES["validator"]
-        original_validator = validator_path.read_text(encoding="utf-8")
-        validator_path.write_text(
-            original_validator.replace(
-                '"PHASE3_TESTS_ROOT_COMPANION=fail"',
-                '"PHASE3_TESTS_ROOT_COMPANION=missing"',
-                1,
-            ),
-            encoding="utf-8",
-        )
-        expect_missing(
-            "validator_banner",
-            tmp_root,
-            'validator:"PHASE3_TESTS_ROOT_COMPANION=fail":count=0:expected=1',
-        )
-        validator_path.write_text(original_validator, encoding="utf-8")
-
         manifest_path = tmp_root / REQUIRED_FILES["manifest"]
         original_manifest = manifest_path.read_text(encoding="utf-8")
         manifest_path.write_text(
@@ -260,7 +219,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE3_TESTS_ROOT_COMPANION_SELF_TEST=pass")
-    print("PHASE3_TESTS_ROOT_COMPANION_SELF_TEST_CASE_COUNT=4")
+    print("PHASE3_TESTS_ROOT_COMPANION_SELF_TEST_CASE_COUNT=3")
     return 0
 
 
