@@ -1,5 +1,5 @@
 {
-  "lane_key": "P5-L12",
+  "lane_key": "P5-L10",
   "phase": "Phase 5",
   "surveyed_commit": "affdebd460c9c33ce939c7535cdb929352648e93",
   "anchor": "samples/kobject/kobject-example.c",
@@ -13,7 +13,7 @@
     "the manifest prompts keep the unnamed attribute group shape plus the pre-registration ownership boundary, the sample-owned runOwnershipReplay() helper, initialized-only exit summary, ownershipSummary lifecycle snapshot, and post-exit init/register/show/store rejection boundaries explicit instead of implying sysfs registration",
     "sample-behavior changes update the manifest-backed registration, attribute-order, teardown-summary, replay-readiness, lifecycle replay, and lifecycle contract instead of leaving reviewers to infer it from code alone",
     "ownership checks keep the initialized-but-not-registered stage explicit by requiring zero active attributes and no show/store access until registerAttributes claims ownership, and ownershipSummary must expose replay readiness plus the cold, initialized, registered, and exited stage transitions directly through the sample-owned runOwnershipReplay() helper",
-    "docs and tests keep the post-exit init/register/show/store boundary explicit while still keeping sysfs creation, kernel_kobj integration, uevents, and module registration out of scope for this Phase 5 sample, and keep the shared sample-root packet explicit that the landed slice is an approved Phase 5 ownership-and-lifetime idiom"
+    "docs and tests keep the post-exit init/register/show/store boundary explicit while still keeping sysfs creation, kernel_kobj integration, uevents, and runtime registration out of scope for this Phase 5 sample, and keep the shared sample-root packet explicit that the landed slice is an approved Phase 5 ownership-and-lifetime idiom"
   ],
   "exact_checks": [
     {
