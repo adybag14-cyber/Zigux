@@ -366,9 +366,23 @@ def validate_root(root: Path) -> list[str]:
     if GATE_EVIDENCE_TARGET_COUNT_STATUS_LINE not in gate_evidence:
         missing.append(f"gate_evidence_status:{GATE_EVIDENCE_TARGET_COUNT_STATUS_LINE}")
     missing.extend(
+        exact_count_mismatches(
+            gate_evidence,
+            "gate_evidence_status_exact",
+            [GATE_EVIDENCE_TARGET_COUNT_STATUS_LINE],
+        )
+    )
+    missing.extend(
         missing_text(
             gate_evidence,
             "gate_evidence_workflow_route_note",
+            GATE_EVIDENCE_WORKFLOW_ROUTE_NOTE_MARKERS,
+        )
+    )
+    missing.extend(
+        exact_count_mismatches(
+            gate_evidence,
+            "gate_evidence_workflow_route_note_exact",
             GATE_EVIDENCE_WORKFLOW_ROUTE_NOTE_MARKERS,
         )
     )
@@ -769,6 +783,38 @@ def run_self_test() -> int:
         )
         missing = validate_root(root)
         assert "gate_evidence_status:- `PHASE4_GATE_EVIDENCE_TARGET_COUNT=18`" in missing, missing
+
+        write_fixture_tree(root)
+        gate_evidence = root / "Documentation/zigux/phase4-gate-evidence.md"
+        gate_evidence.write_text(
+            gate_evidence.read_text(encoding="utf-8").replace(
+                "- `PHASE4_GATE_EVIDENCE_TARGET_COUNT=18`\n",
+                "- `PHASE4_GATE_EVIDENCE_TARGET_COUNT=18`\n- `PHASE4_GATE_EVIDENCE_TARGET_COUNT=18`\n",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        missing = validate_root(root)
+        assert (
+            "gate_evidence_status_exact:- `PHASE4_GATE_EVIDENCE_TARGET_COUNT=18`:2"
+            in missing
+        ), missing
+
+        write_fixture_tree(root)
+        gate_evidence = root / "Documentation/zigux/phase4-gate-evidence.md"
+        gate_evidence.write_text(
+            gate_evidence.read_text(encoding="utf-8").replace(
+                "the dedicated workflow-route checker file itself",
+                "the dedicated workflow-route checker file itself and again the dedicated workflow-route checker file itself",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        missing = validate_root(root)
+        assert (
+            "gate_evidence_workflow_route_note_exact:the dedicated workflow-route checker file itself:2"
+            in missing
+        ), missing
 
         write_fixture_tree(root)
         gate_evidence = root / "Documentation/zigux/phase4-gate-evidence.md"
