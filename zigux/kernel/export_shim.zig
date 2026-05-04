@@ -2,7 +2,10 @@ const std = @import("std");
 const abi = @import("abi_bindings");
 const uapi_version = @import("uapi_version");
 
+pub const Header = abi.BoundaryHeader;
 pub const HeaderCompatibility = uapi_version.Compatibility;
+pub const abi_version: u16 = uapi_version.abi_version;
+pub const header_size: u32 = uapi_version.header_size;
 
 pub fn canonicalHeader(flags: u16) abi.BoundaryHeader {
     return uapi_version.canonicalHeader(flags);
@@ -26,6 +29,18 @@ pub fn headerCompatibility(boundary_header: abi.BoundaryHeader) ?HeaderCompatibi
 
 pub fn canonicalizeHeader(boundary_header: abi.BoundaryHeader) ?abi.BoundaryHeader {
     return uapi_version.canonicalizeHeader(boundary_header);
+}
+
+pub fn isCurrentAbiVersion(version: u16) bool {
+    return uapi_version.isCurrentAbiVersion(version);
+}
+
+pub fn isCompatibleSize(size: u32) bool {
+    return uapi_version.isCompatibleSize(size);
+}
+
+pub fn isCanonicalSize(size: u32) bool {
+    return uapi_version.isCanonicalSize(size);
 }
 
 pub fn isCompatibleHeader(boundary_header: abi.BoundaryHeader) bool {
@@ -78,11 +93,13 @@ test "phase3 export shim keeps failure encoding explicit" {
 
     const hdr = canonicalHeader(0x10);
     try std.testing.expectEqual(hdr, header(0x10));
-    try std.testing.expectEqual(hdr, compatibleHeader(@sizeOf(abi.BoundaryHeader), 0x10));
-    try std.testing.expectEqual(hdr, versionedHeader(@sizeOf(abi.BoundaryHeader), abi.ABI_VERSION, 0x10));
-    try std.testing.expectEqual(@as(u32, @sizeOf(abi.BoundaryHeader)), hdr.size);
-    try std.testing.expectEqual(abi.ABI_VERSION, hdr.abi_version);
-    try std.testing.expectEqual(@as(u16, 0x10), hdr.flags);
+    try std.testing.expectEqual(hdr, compatibleHeader(header_size, 0x10));
+    try std.testing.expectEqual(hdr, versionedHeader(header_size, abi_version, 0x10));
+    try std.testing.expectEqual(header_size, hdr.size);
+    try std.testing.expectEqual(abi_version, hdr.abi_version);
+    try std.testing.expect(isCurrentAbiVersion(hdr.abi_version));
+    try std.testing.expect(isCompatibleSize(hdr.size));
+    try std.testing.expect(isCanonicalSize(hdr.size));
     try std.testing.expectEqual(HeaderCompatibility.canonical, headerCompatibility(hdr).?);
     try std.testing.expect(isCompatibleHeader(hdr));
     try std.testing.expectEqual(hdr, uapi_version.boundaryHeader(0x10));
@@ -129,17 +146,22 @@ test "phase3 export shim separates canonical headers from broader compatibility"
     try std.testing.expectEqual(HeaderCompatibility.canonical, headerCompatibility(canonical).?);
     try std.testing.expect(isCanonicalHeader(canonical));
     try std.testing.expect(isCompatibleHeader(canonical));
+    try std.testing.expect(isCanonicalSize(canonical.size));
 
-    const future_compatible = compatibleHeader(@sizeOf(abi.BoundaryHeader) + 8, 0x20);
-    try std.testing.expectEqual(future_compatible, uapi_version.compatibleHeader(@sizeOf(abi.BoundaryHeader) + 8, 0x20));
+    const future_compatible = compatibleHeader(header_size + 8, 0x20);
+    try std.testing.expectEqual(future_compatible, uapi_version.compatibleHeader(header_size + 8, 0x20));
     try std.testing.expectEqual(HeaderCompatibility.future_compatible, headerCompatibility(future_compatible).?);
     try std.testing.expect(!isCanonicalHeader(future_compatible));
     try std.testing.expect(isCompatibleHeader(future_compatible));
+    try std.testing.expect(isCompatibleSize(future_compatible.size));
+    try std.testing.expect(!isCanonicalSize(future_compatible.size));
 }
 
 test "phase3 export shim versioned header relay keeps arbitrary replay explicit" {
-    const replay = versionedHeader(uapi_version.header_size + 4, abi.ABI_VERSION + 1, 0x31);
-    try std.testing.expectEqual(replay, uapi_version.versionedHeader(uapi_version.header_size + 4, abi.ABI_VERSION + 1, 0x31));
+    const replay = versionedHeader(header_size + 4, abi_version + 1, 0x31);
+    try std.testing.expectEqual(replay, uapi_version.versionedHeader(header_size + 4, abi_version + 1, 0x31));
+    try std.testing.expect(!isCurrentAbiVersion(replay.abi_version));
+    try std.testing.expect(isCompatibleSize(replay.size));
     try std.testing.expect(headerCompatibility(replay) == null);
     try std.testing.expect(canonicalizeHeader(replay) == null);
 }
@@ -148,12 +170,12 @@ test "phase3 export shim canonicalizes compatible headers back to the current sh
     const canonical = canonicalHeader(0x77);
     try std.testing.expectEqual(canonical, canonicalizeHeader(canonical).?);
 
-    const future_compatible = compatibleHeader(uapi_version.header_size + 8, 0x77);
-    try std.testing.expectEqual(future_compatible, uapi_version.compatibleHeader(uapi_version.header_size + 8, 0x77));
+    const future_compatible = compatibleHeader(header_size + 8, 0x77);
+    try std.testing.expectEqual(future_compatible, uapi_version.compatibleHeader(header_size + 8, 0x77));
     try std.testing.expectEqual(HeaderCompatibility.future_compatible, headerCompatibility(future_compatible).?);
     try std.testing.expectEqual(canonical, canonicalizeHeader(future_compatible).?);
 
-    const undersized = compatibleHeader(uapi_version.header_size - 1, 0x77);
+    const undersized = compatibleHeader(header_size - 1, 0x77);
     try std.testing.expect(headerCompatibility(undersized) == null);
     try std.testing.expect(canonicalizeHeader(undersized) == null);
 }
