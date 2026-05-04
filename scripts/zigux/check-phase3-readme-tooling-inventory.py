@@ -558,7 +558,7 @@ def run_self_test() -> int:
             ("duplicate_phase13_devres_inventory_self_test_route_guard_failed", "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase13-devres-inventory-contract.py --self-test\n", "unexpected_makefile_self_test_route_count:phase13-validate::2:check-phase13-devres-inventory-contract.py"),
             ("duplicate_phase13_devres_inventory_makefile_route_guard_failed", "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase13-devres-inventory-contract.py\n", "unexpected_makefile_live_route_count:phase13-validate::2:check-phase13-devres-inventory-contract.py"),
             ("duplicate_phase13_notifier_self_test_route_guard_failed", "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase13-notifier-packet.py --self-test\n", "unexpected_makefile_self_test_route_count:phase13-validate::2:check-phase13-notifier-packet.py"),
-            ("duplicate_phase13_notifier_makefile_route_guard_FAILED", "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase13-notifier-packet.py\n", "unexpected_makefile_live_route_count:phase13-validate::2:check-phase13-notifier-packet.py"),
+            ("duplicate_phase13_notifier_makefile_route_guard_failed", "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase13-notifier-packet.py\n", "unexpected_makefile_live_route_count:phase13-validate::2:check-phase13-notifier-packet.py"),
             ("duplicate_phase13_release_validator_route_guard_failed", "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase13-release.py\n", "unexpected_makefile_live_route_count:phase13-validate::2:validate-phase13-release.py"),
         )
         for label, line, expected in makefile_cases:
