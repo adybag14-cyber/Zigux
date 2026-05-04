@@ -30,6 +30,9 @@ HEADER_CONSTANTS = {
     "unsafe_scope_none": "ZIGUX_UNSAFE_NONE",
     "unsafe_scope_volatile_mmio": "ZIGUX_UNSAFE_VOLATILE_MMIO",
     "unsafe_scope_raw_pointer_bridge": "ZIGUX_UNSAFE_RAW_POINTER_BRIDGE",
+    "rbtree_root_flag_empty": "ZIGUX_RBTREE_ROOT_FLAG_EMPTY",
+    "rbtree_root_flag_cached": "ZIGUX_RBTREE_ROOT_FLAG_CACHED",
+    "rbtree_root_flag_leftmost_valid": "ZIGUX_RBTREE_ROOT_FLAG_LEFTMOST_VALID",
     "chrdev_notify_ack_window_policy_budget_window_delivery_window_status_skipped": "ZIGUX_CHRDEV_NOTIFY_ACK_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_STATUS_SKIPPED",
     "chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_flag_budget_applied": "ZIGUX_CHRDEV_NOTIFY_ACK_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_BUDGET_FLAG_BUDGET_APPLIED",
     "chrdev_notify_ack_delivery_budget_guard_window_policy_budget_window_delivery_window_budget_window_delivery_window_budget_window_delivery_window_budget_window_delivery_window_status_held": "ZIGUX_CHRDEV_NOTIFY_ACK_DELIVERY_BUDGET_GUARD_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_BUDGET_WINDOW_DELIVERY_WINDOW_BUDGET_WINDOW_DELIVERY_WINDOW_BUDGET_WINDOW_DELIVERY_WINDOW_STATUS_HELD",
@@ -50,6 +53,9 @@ EXPECTED_VALUES = {
     "unsafe_scope_none": 0,
     "unsafe_scope_volatile_mmio": 1,
     "unsafe_scope_raw_pointer_bridge": 2,
+    "rbtree_root_flag_empty": 1,
+    "rbtree_root_flag_cached": 2,
+    "rbtree_root_flag_leftmost_valid": 4,
     "chrdev_notify_ack_window_policy_budget_window_delivery_window_status_skipped": 6,
     "chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_flag_budget_applied": 1,
     "chrdev_notify_ack_delivery_budget_guard_window_policy_budget_window_delivery_window_budget_window_delivery_window_budget_window_delivery_window_budget_window_delivery_window_status_held": 7,
@@ -58,6 +64,9 @@ EXPECTED_VALUES = {
 BINDING_CONST_NAMES = {
     "abi_version": "ABI_VERSION",
     "status_flag_error": "STATUS_FLAG_ERROR",
+    "rbtree_root_flag_empty": "RBTREE_ROOT_FLAG_EMPTY",
+    "rbtree_root_flag_cached": "RBTREE_ROOT_FLAG_CACHED",
+    "rbtree_root_flag_leftmost_valid": "RBTREE_ROOT_FLAG_LEFTMOST_VALID",
     "chrdev_notify_ack_window_policy_budget_window_delivery_window_status_skipped": "CHRDEV_NOTIFY_ACK_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_STATUS_SKIPPED",
     "chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_flag_budget_applied": "CHRDEV_NOTIFY_ACK_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_BUDGET_FLAG_BUDGET_APPLIED",
     "chrdev_notify_ack_delivery_budget_guard_window_policy_budget_window_delivery_window_budget_window_delivery_window_budget_window_delivery_window_budget_window_delivery_window_status_held": "CHRDEV_NOTIFY_ACK_DELIVERY_BUDGET_GUARD_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_BUDGET_WINDOW_DELIVERY_WINDOW_BUDGET_WINDOW_DELIVERY_WINDOW_BUDGET_WINDOW_DELIVERY_WINDOW_STATUS_HELD",
@@ -210,6 +219,9 @@ def run_self_test() -> int:
                     "#define ZIGUX_UNSAFE_NONE 0U",
                     "#define ZIGUX_UNSAFE_VOLATILE_MMIO 1U",
                     "#define ZIGUX_UNSAFE_RAW_POINTER_BRIDGE 2U",
+                    "#define ZIGUX_RBTREE_ROOT_FLAG_EMPTY 1U",
+                    "#define ZIGUX_RBTREE_ROOT_FLAG_CACHED 2U",
+                    "#define ZIGUX_RBTREE_ROOT_FLAG_LEFTMOST_VALID 4U",
                     "#define ZIGUX_CHRDEV_NOTIFY_ACK_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_STATUS_SKIPPED 6U",
                     "#define ZIGUX_CHRDEV_NOTIFY_ACK_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_BUDGET_FLAG_BUDGET_APPLIED 1U",
                     "#define ZIGUX_CHRDEV_NOTIFY_ACK_DELIVERY_BUDGET_GUARD_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_BUDGET_WINDOW_DELIVERY_WINDOW_BUDGET_WINDOW_DELIVERY_WINDOW_BUDGET_WINDOW_DELIVERY_WINDOW_STATUS_HELD 7U",
@@ -225,6 +237,9 @@ def run_self_test() -> int:
                 (
                     "pub const ABI_VERSION: u16 = 1;",
                     "pub const STATUS_FLAG_ERROR: u16 = 1;",
+                    "pub const RBTREE_ROOT_FLAG_EMPTY: u32 = 1;",
+                    "pub const RBTREE_ROOT_FLAG_CACHED: u32 = 2;",
+                    "pub const RBTREE_ROOT_FLAG_LEFTMOST_VALID: u32 = 4;",
                     "pub const CHRDEV_NOTIFY_ACK_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_STATUS_SKIPPED: u32 = 6;",
                     "pub const CHRDEV_NOTIFY_ACK_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_BUDGET_FLAG_BUDGET_APPLIED: u32 = 1;",
                     "pub const CHRDEV_NOTIFY_ACK_DELIVERY_BUDGET_GUARD_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_BUDGET_WINDOW_DELIVERY_WINDOW_BUDGET_WINDOW_DELIVERY_WINDOW_BUDGET_WINDOW_DELIVERY_WINDOW_STATUS_HELD: u32 = 7;",
@@ -357,6 +372,40 @@ def run_self_test() -> int:
             "abi-binding-constants: binding missing "
             "CHRDEV_NOTIFY_ACK_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_BUDGET_FLAG_BUDGET_APPLIED"
         ) in issues
+        bindings_path.write_text(
+            original_bindings_text,
+            encoding="utf-8",
+            newline="\n",
+        )
+
+        bindings_path.write_text(
+            original_bindings_text.replace(
+                "pub const RBTREE_ROOT_FLAG_LEFTMOST_VALID: u32 = 4;",
+                "pub const RBTREE_ROOT_FLAG_LEFTMOST_VALID: u32 = 8;",
+                1,
+            ),
+            encoding="utf-8",
+            newline="\n",
+        )
+        issues = validate_constants(root)
+        assert "abi-binding-constants: binding rbtree_root_flag_leftmost_valid=8 expected 4" in issues
+        assert (
+            "abi-binding-constants: header/binding mismatch for rbtree_root_flag_leftmost_valid: 4!=8"
+            in issues
+        )
+        bindings_path.write_text(
+            original_bindings_text,
+            encoding="utf-8",
+            newline="\n",
+        )
+
+        header_path.write_text(
+            original_header_text.replace("#define ZIGUX_RBTREE_ROOT_FLAG_CACHED 2U\n", "", 1),
+            encoding="utf-8",
+            newline="\n",
+        )
+        issues = validate_constants(root)
+        assert "abi-binding-constants: header missing ZIGUX_RBTREE_ROOT_FLAG_CACHED" in issues
 
     print(SELF_TEST_BANNER)
     return 0
