@@ -1,7 +1,7 @@
 const std = @import("std");
 const current_surveyed_commit = "3ba64cd4e41a4de1c8fd8dbaecb23702ad9701a3";
 const expected_phase4_required_file_count: usize = 27;
-const expected_phase4_required_marker_count: usize = 62;
+const expected_phase4_required_marker_count: usize = 64;
 const expected_phase4_gate_evidence_target_count: usize = 17;
 
 const SurveySummary = struct {
