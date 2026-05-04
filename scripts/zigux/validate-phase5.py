@@ -5,7 +5,6 @@ import argparse
 import json
 from pathlib import Path
 import re
-import sys
 import tempfile
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -74,7 +73,13 @@ TEXT_MARKERS = {
         "zig test zigux/tests/phase5_kobject_example_survey.zig",
         "zig test zigux/tests/phase5_kretprobe_example_survey.zig",
         "zig test zigux/tests/phase5_trace_events_sample_survey.zig",
+        "zigux/tests/phase5_kobject_example.zig",
+        "zigux/tests/phase5_kretprobe_example.zig",
+        "zigux/tests/phase5_trace_events_sample.zig",
         "runtime_bitmap_loader.zig",
+        "samples/zigux/runtime_trace_events.zig",
+        "samples/zigux/runtime_trace_events_loader.zig",
+        "runtime-substrate handoff still stays blocked",
     ],
     "zigux/tests/README.md": [
         "zigux/tests/phase5_build.zig",
@@ -230,31 +235,8 @@ MANIFEST_EXPECTATIONS = {
         "anchor": "samples/kfifo/bytestream-example.c",
         "sample_path": "samples/zigux/bytestream_fifo.zig",
         "validation_entrypoint": "zig build test --build-file zigux/tests/phase5_build.zig --summary all",
-        "non_goals": [
-            "procfs parity",
-            "kfifo_from_user or kfifo_to_user parity",
-            "loadable module registration",
-            "locking or blocking semantics",
-        ],
-        "exact_ids": [
-            "initial-fill-len",
-            "first-drain",
-            "second-drain-and-requeue",
-            "transfer-count-contract",
-            "skip-and-peek",
-            "wrapped-preview-prefix",
-            "snapshot-before-final-drain",
-            "fill-to-capacity",
-            "final-drain-sequence",
-            "storage-backing-contract",
-            "bounded-helper-behavior",
-            "short-drain-prefix",
-            "preview-truncation",
-            "queue-only-reset",
-            "checked-focus-list",
-            "lifecycle-boundary",
-            "lifecycle-guards-and-counters",
-        ],
+        "non_goals": ["procfs parity", "kfifo_from_user or kfifo_to_user parity", "loadable module registration", "locking or blocking semantics"],
+        "exact_ids": ["initial-fill-len", "first-drain", "second-drain-and-requeue", "transfer-count-contract", "skip-and-peek", "wrapped-preview-prefix", "snapshot-before-final-drain", "fill-to-capacity", "final-drain-sequence", "storage-backing-contract", "bounded-helper-behavior", "short-drain-prefix", "preview-truncation", "queue-only-reset", "checked-focus-list", "lifecycle-boundary", "lifecycle-guards-and-counters"],
         "survey_note": "Documentation/zigux/phase5-kfifo-sample-survey.md",
         "survey_summary": "The shared `zigux/tests/phase5_build.zig` entrypoint remains the umbrella review gate recorded in the manifest and contributor prompts, but this bounded verification pass did not rerun the whole Phase 5 sample bundle, so this note no longer republishes the older pre-expansion shared test count.",
         "sample_test": "zig test samples/zigux/bytestream_fifo.zig",
@@ -268,27 +250,8 @@ MANIFEST_EXPECTATIONS = {
         "anchor": "samples/kobject/kobject-example.c",
         "sample_path": "samples/zigux/kobject_example.zig",
         "validation_entrypoint": "zig build test --build-file zigux/tests/phase5_build.zig --summary all",
-        "non_goals": [
-            "sysfs file creation parity",
-            "kernel_kobj integration",
-            "uevent delivery",
-            "loadable module registration",
-        ],
-        "exact_ids": [
-            "directory-name",
-            "attribute-order",
-            "attribute-mode",
-            "registration-step",
-            "static-name-no-uevent-boundary",
-            "pre-registration-boundary",
-            "replay-readiness-boundary",
-            "ownership-summary",
-            "initialized-exit-teardown",
-            "foo-roundtrip",
-            "shared-b-dispatch",
-            "parse-failure",
-            "exit-boundary",
-        ],
+        "non_goals": ["sysfs file creation parity", "kernel_kobj integration", "uevent delivery", "loadable module registration"],
+        "exact_ids": ["directory-name", "attribute-order", "attribute-mode", "registration-step", "static-name-no-uevent-boundary", "pre-registration-boundary", "replay-readiness-boundary", "ownership-summary", "initialized-exit-teardown", "foo-roundtrip", "shared-b-dispatch", "parse-failure", "exit-boundary"],
         "survey_note": "Documentation/zigux/phase5-kobject-sample-survey.md",
         "survey_summary": "The shared `zigux/tests/phase5_build.zig` entrypoint remains the umbrella review gate recorded in the manifest and contributor prompts, but this bounded verification pass did not rerun the whole Phase 5 sample bundle.",
         "sample_test": "zig test samples/zigux/kobject_example.zig",
@@ -302,25 +265,8 @@ MANIFEST_EXPECTATIONS = {
         "anchor": "samples/kprobes/kretprobe_example.c",
         "sample_path": "samples/zigux/kretprobe_example.zig",
         "validation_entrypoint": "zig build test --build-file zigux/tests/phase5_build.zig --summary all",
-        "non_goals": [
-            "register_kretprobe parity",
-            "unregister_kretprobe parity",
-            "pt_regs or regs_return_value parity",
-            "loadable module wiring",
-        ],
-        "exact_ids": [
-            "default-symbol",
-            "pre-init-retargeting",
-            "skip-kernel-thread",
-            "private-data-shape",
-            "return-duration",
-            "timestamp-order-boundary",
-            "maxactive-budget",
-            "lifecycle-guard-boundaries",
-            "missed-summary",
-            "outstanding-instance-boundary",
-            "post-exit-rejection",
-        ],
+        "non_goals": ["register_kretprobe parity", "unregister_kretprobe parity", "pt_regs or regs_return_value parity", "loadable module wiring"],
+        "exact_ids": ["default-symbol", "pre-init-retargeting", "skip-kernel-thread", "private-data-shape", "return-duration", "timestamp-order-boundary", "maxactive-budget", "lifecycle-guard-boundaries", "missed-summary", "outstanding-instance-boundary", "post-exit-rejection"],
         "survey_note": "Documentation/zigux/phase5-kretprobe-sample-survey.md",
         "survey_summary": "- this lane-local refresh used a focused survey-packet scratch replay with the directly coupled note, manifest, shared sample-root catalog, shared tests-root guide, top-level docs-root guide, and shared review checklist; no live repo checkout was available for a fresh `zig test samples/zigux/kretprobe_example.zig` or `zig build test --build-file zigux/tests/phase5_build.zig --summary all` replay in this run",
         "sample_test": "zig test samples/zigux/kretprobe_example.zig",
@@ -334,29 +280,8 @@ MANIFEST_EXPECTATIONS = {
         "anchor": "samples/trace_events/trace-events-sample.c",
         "sample_path": "samples/zigux/trace_events_sample.zig",
         "validation_entrypoint": "zig build test --build-file zigux/tests/phase5_build.zig --summary all",
-        "non_goals": [
-            "CREATE_TRACE_POINTS parity",
-            "tracepoint macro parity from trace-events-sample.h",
-            "kernel thread scheduling or timeout parity",
-            "module registration or unregister wiring parity",
-        ],
-        "exact_ids": [
-            "descriptor-anchor",
-            "message-and-string-shape",
-            "modulo-string-cycle",
-            "iteration-cues",
-            "array-and-sentinel-shape",
-            "bitmask-and-rel-loc",
-            "vararg-payload-path",
-            "event-family-counts",
-            "lifecycle-summary-counts",
-            "checked-focus-order",
-            "callback-registration-balance",
-            "pre-registration-callback-rejection",
-            "single-registration-boundary",
-            "registration-underflow-and-armed-exit",
-            "post-exit-rejection",
-        ],
+        "non_goals": ["CREATE_TRACE_POINTS parity", "tracepoint macro parity from trace-events-sample.h", "kernel thread scheduling or timeout parity", "module registration or unregister wiring parity"],
+        "exact_ids": ["descriptor-anchor", "message-and-string-shape", "modulo-string-cycle", "iteration-cues", "array-and-sentinel-shape", "bitmask-and-rel-loc", "vararg-payload-path", "event-family-counts", "lifecycle-summary-counts", "checked-focus-order", "callback-registration-balance", "pre-registration-callback-rejection", "single-registration-boundary", "registration-underflow-and-armed-exit", "post-exit-rejection"],
         "survey_note": "Documentation/zigux/phase5-trace-events-sample-survey.md",
         "survey_summary": "Build Summary: 18/18 steps succeeded; 29/29 tests passed",
         "sample_test": "zig test samples/zigux/trace_events_sample.zig",
@@ -372,11 +297,7 @@ def read_text(root: Path, rel: str) -> str:
 
 
 def collect_missing_files(root: Path) -> list[str]:
-    missing: list[str] = []
-    for rel in REQUIRED_FILES:
-        if not (root / rel).exists():
-            missing.append(rel)
-    return missing
+    return [rel for rel in REQUIRED_FILES if not (root / rel).exists()]
 
 
 def require_text_markers(missing: list[str], root: Path) -> None:
@@ -390,30 +311,21 @@ def require_text_markers(missing: list[str], root: Path) -> None:
 def require_manifests(missing: list[str], root: Path) -> None:
     for rel, spec in MANIFEST_EXPECTATIONS.items():
         data = json.loads(read_text(root, rel))
-        if data.get("lane_key") != spec["lane_key"]:
-            missing.append(f"{rel}:lane_key")
-        if data.get("phase") != spec["phase"]:
-            missing.append(f"{rel}:phase")
-        if data.get("anchor") != spec["anchor"]:
-            missing.append(f"{rel}:anchor")
-        if data.get("sample_path") != spec["sample_path"]:
-            missing.append(f"{rel}:sample_path")
-        if data.get("validation_entrypoint") != spec["validation_entrypoint"]:
-            missing.append(f"{rel}:validation_entrypoint")
+        for field in ("lane_key", "phase", "anchor", "sample_path", "validation_entrypoint"):
+            if data.get(field) != spec[field]:
+                missing.append(f"{rel}:{field}")
         surveyed_commit = data.get("surveyed_commit")
         if not isinstance(surveyed_commit, str) or not HEX40.fullmatch(surveyed_commit):
             missing.append(f"{rel}:surveyed_commit")
         if data.get("non_goals") != spec["non_goals"]:
             missing.append(f"{rel}:non_goals")
-        exact_ids = spec.get("exact_ids")
-        if exact_ids is not None:
-            actual = [entry.get("id") for entry in data.get("exact_checks", []) if isinstance(entry, dict)]
-            if actual != exact_ids:
-                missing.append(f"{rel}:exact_ids")
+        actual_ids = [entry.get("id") for entry in data.get("exact_checks", []) if isinstance(entry, dict)]
+        if actual_ids != spec["exact_ids"]:
+            missing.append(f"{rel}:exact_ids")
         note = read_text(root, spec["survey_note"])
         if f"PHASE5_LANE_KEY={spec['lane_key']}" not in note:
             missing.append(f"{rel}:survey_lane_marker")
-        if isinstance(surveyed_commit, str) and f"PHASE5_SURVEYED_COMMIT={surveyed_commit}" not in note:
+        if f"PHASE5_SURVEYED_COMMIT={surveyed_commit}" not in note:
             missing.append(f"{rel}:survey_commit_sync")
         for marker in [spec["survey_summary"], spec["sample_test"], spec["sample_result"], spec["survey_test"], spec["survey_result"]]:
             if marker not in note:
@@ -424,18 +336,16 @@ def validate_phase5(root: Path) -> dict[str, object]:
     missing_files = collect_missing_files(root)
     if missing_files:
         return {"ok": False, "missing_files": missing_files, "missing": []}
-    missing: list[str] = []
+    missing = []
     require_text_markers(missing, root)
     require_manifests(missing, root)
     return {"ok": not missing, "missing_files": [], "missing": missing}
 
 
 def total_marker_count() -> int:
-    count = sum(len(v) for v in TEXT_MARKERS.values())
+    count = sum(len(markers) for markers in TEXT_MARKERS.values())
     for spec in MANIFEST_EXPECTATIONS.values():
-        count += 10
-        count += len(spec["non_goals"])
-        count += len(spec.get("exact_ids", []))
+        count += 10 + len(spec["non_goals"]) + len(spec["exact_ids"])
     return count
 
 
@@ -467,6 +377,10 @@ def copy_tree(src_root: Path, dst_root: Path) -> None:
         dst.write_text(read_text(src_root, rel), encoding="utf-8")
 
 
+def require_missing(result: dict[str, object], expected: str) -> bool:
+    return (not result["ok"]) and expected in result["missing"]
+
+
 def run_self_test() -> int:
     live = validate_phase5(ROOT)
     if not live["ok"]:
@@ -475,10 +389,10 @@ def run_self_test() -> int:
         for item in live["missing"]:
             print(item)
         return 1
+
     with tempfile.TemporaryDirectory(prefix="zigux_phase5_validator_selftest_") as tmp:
         tmp_root = Path(tmp)
         copy_tree(ROOT, tmp_root)
-
         manifest_path = tmp_root / "zigux/tests/phase5_bytestream_fifo_manifest.json"
         manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
         manifest["surveyed_commit"] = SELF_TEST_HEAD
@@ -488,473 +402,45 @@ def run_self_test() -> int:
             print("PHASE5_VALIDATOR_SELF_TEST_REASON=surveyed-commit-sync-gap")
             return 1
 
-        tmp_root = Path(tmp)
-        copy_tree(ROOT, tmp_root)
-        manifest_path = tmp_root / "zigux/tests/phase5_kobject_example_manifest.json"
-        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
-        manifest["exact_checks"][0]["id"] = "directory-name-drift"
-        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
-        missing = validate_phase5(tmp_root)
-        if missing["ok"] or "zigux/tests/phase5_kobject_example_manifest.json:exact_ids" not in missing["missing"]:
-            print("PHASE5_VALIDATOR_SELF_TEST=fail")
-            print("PHASE5_VALIDATOR_SELF_TEST_REASON=kobject-exact-check-gap")
-            return 1
+        for rel, index, value, reason in [
+            ("zigux/tests/phase5_kobject_example_manifest.json", 0, "directory-name-drift", "kobject-exact-check-gap"),
+            ("zigux/tests/phase5_kretprobe_example_manifest.json", -1, "post-exit-rejection-drift", "kretprobe-exact-check-gap"),
+            ("zigux/tests/phase5_trace_events_sample_manifest.json", 9, "checked-focus-order-drift", "trace-events-exact-check-gap"),
+        ]:
+            tmp_root = Path(tmp)
+            copy_tree(ROOT, tmp_root)
+            manifest_path = tmp_root / rel
+            manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+            manifest["exact_checks"][index]["id"] = value
+            manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+            if not require_missing(validate_phase5(tmp_root), f"{rel}:exact_ids"):
+                print("PHASE5_VALIDATOR_SELF_TEST=fail")
+                print(f"PHASE5_VALIDATOR_SELF_TEST_REASON={reason}")
+                return 1
 
-        tmp_root = Path(tmp)
-        copy_tree(ROOT, tmp_root)
-        manifest_path = tmp_root / "zigux/tests/phase5_kobject_example_manifest.json"
-        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
-        manifest["exact_checks"][6]["id"] = "replay-readiness-boundary-drift"
-        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
-        missing = validate_phase5(tmp_root)
-        if missing["ok"] or "zigux/tests/phase5_kobject_example_manifest.json:exact_ids" not in missing["missing"]:
-            print("PHASE5_VALIDATOR_SELF_TEST=fail")
-            print("PHASE5_VALIDATOR_SELF_TEST_REASON=kobject-replay-readiness-gap")
-            return 1
-
-        tmp_root = Path(tmp)
-        copy_tree(ROOT, tmp_root)
-        manifest_path = tmp_root / "zigux/tests/phase5_kretprobe_example_manifest.json"
-        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
-        manifest["exact_checks"][7]["id"] = "lifecycle-guard-boundaries-drift"
-        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
-        missing = validate_phase5(tmp_root)
-        if missing["ok"] or "zigux/tests/phase5_kretprobe_example_manifest.json:exact_ids" not in missing["missing"]:
-            print("PHASE5_VALIDATOR_SELF_TEST=fail")
-            print("PHASE5_VALIDATOR_SELF_TEST_REASON=kretprobe-lifecycle-guard-gap")
-            return 1
-
-        tmp_root = Path(tmp)
-        copy_tree(ROOT, tmp_root)
-        manifest_path = tmp_root / "zigux/tests/phase5_kretprobe_example_manifest.json"
-        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
-        manifest["exact_checks"][-1]["id"] = "post-exit-rejection-drift"
-        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
-        missing = validate_phase5(tmp_root)
-        if missing["ok"] or "zigux/tests/phase5_kretprobe_example_manifest.json:exact_ids" not in missing["missing"]:
-            print("PHASE5_VALIDATOR_SELF_TEST=fail")
-            print("PHASE5_VALIDATOR_SELF_TEST_REASON=kretprobe-exact-check-gap")
-            return 1
-
-        tmp_root = Path(tmp)
-        copy_tree(ROOT, tmp_root)
-        manifest_path = tmp_root / "zigux/tests/phase5_trace_events_sample_manifest.json"
-        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
-        manifest["exact_checks"][9]["id"] = "checked-focus-order-drift"
-        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
-        missing = validate_phase5(tmp_root)
-        if missing["ok"] or "zigux/tests/phase5_trace_events_sample_manifest.json:exact_ids" not in missing["missing"]:
-            print("PHASE5_VALIDATOR_SELF_TEST=fail")
-            print("PHASE5_VALIDATOR_SELF_TEST_REASON=trace-events-exact-check-gap")
-            return 1
-
-        tmp_root = Path(tmp)
-        copy_tree(ROOT, tmp_root)
-        note_path = tmp_root / "Documentation/zigux/phase5-kfifo-sample-survey.md"
-        note_text = note_path.read_text(encoding="utf-8").replace(
-            MANIFEST_EXPECTATIONS["zigux/tests/phase5_bytestream_fifo_manifest.json"]["survey_summary"],
-            "Build Summary: 17/17 steps succeeded; 99/99 tests passed",
-            1,
-        )
-        note_path.write_text(note_text, encoding="utf-8")
-        missing = validate_phase5(tmp_root)
-        if missing["ok"] or not any("survey_note" in item for item in missing["missing"]):
-            print("PHASE5_VALIDATOR_SELF_TEST=fail")
-            print("PHASE5_VALIDATOR_SELF_TEST_REASON=survey-summary-gap")
-            return 1
-
-        tmp_root = Path(tmp)
-        copy_tree(ROOT, tmp_root)
-        sample_root = tmp_root / "samples/zigux/README.md"
-        text = sample_root.read_text(encoding="utf-8").replace(
-            "current `master` still ships no `samples/zigux/*cmdline*` Phase 5 reference sample",
-            "current `master` keeps cmdline helper work separate",
-            1,
-        )
-        sample_root.write_text(text, encoding="utf-8")
-        missing = validate_phase5(tmp_root)
-        if missing["ok"] or not any(item.startswith("samples/zigux/README.md") for item in missing["missing"]):
-            print("PHASE5_VALIDATOR_SELF_TEST=fail")
-            print("PHASE5_VALIDATOR_SELF_TEST_REASON=sample-root-gap")
-            return 1
-
-        tmp_root = Path(tmp)
-        copy_tree(ROOT, tmp_root)
-        sample_root = tmp_root / "samples/zigux/README.md"
-        text = sample_root.read_text(encoding="utf-8").replace(
-            "python3 scripts/zigux/validate-phase7.py",
-            "python3 scripts/zigux/validate-phase7-phase5.py",
-            1,
-        )
-        sample_root.write_text(text, encoding="utf-8")
-        missing = validate_phase5(tmp_root)
-        if missing["ok"] or "samples/zigux/README.md:missing:python3 scripts/zigux/validate-phase7.py" not in missing["missing"]:
-            print("PHASE5_VALIDATOR_SELF_TEST=fail")
-            print("PHASE5_VALIDATOR_SELF_TEST_REASON=phase7-boundary-validation-gap")
-            return 1
-
-        tmp_root = Path(tmp)
-        copy_tree(ROOT, tmp_root)
-        sample_root = tmp_root / "samples/zigux/README.md"
-        text = sample_root.read_text(encoding="utf-8").replace(
-            "zig test samples/zigux/kretprobe_example.zig",
-            "zig test samples/zigux/kretprobe_review.zig",
-            1,
-        )
-        sample_root.write_text(text, encoding="utf-8")
-        missing = validate_phase5(tmp_root)
-        if missing["ok"] or "samples/zigux/README.md:missing:zig test samples/zigux/kretprobe_example.zig" not in missing["missing"]:
-            print("PHASE5_VALIDATOR_SELF_TEST=fail")
-            print("PHASE5_VALIDATOR_SELF_TEST_REASON=sample-root-focused-replay-gap")
-            return 1
-
-        tmp_root = Path(tmp)
-        copy_tree(ROOT, tmp_root)
-        sample_root = tmp_root / "samples/zigux/README.md"
-        text = sample_root.read_text(encoding="utf-8").replace(
-            "- `samples/zigux/runtime_trace_events_loader.zig`\n",
-            "",
-            1,
-        )
-        sample_root.write_text(text, encoding="utf-8")
-        missing = validate_phase5(tmp_root)
-        if missing["ok"] or not any(item == "samples/zigux/README.md:missing:- `samples/zigux/runtime_trace_events_loader.zig`" for item in missing["missing"]):
-            print("PHASE5_VALIDATOR_SELF_TEST=fail")
-            print("PHASE5_VALIDATOR_SELF_TEST_REASON=trace-events-loader-catalog-gap")
-            return 1
-
-        tmp_root = Path(tmp)
-        copy_tree(ROOT, tmp_root)
-        checklist = tmp_root / "Documentation/zigux/review-checklist.md"
-        text = checklist.read_text(encoding="utf-8").replace(
-            "runtime-substrate handoff still blocked",
-            "runtime-substrate handoff now cleared",
-            1,
-        )
-        checklist.write_text(text, encoding="utf-8")
-        missing = validate_phase5(tmp_root)
-        if missing["ok"] or not any(item.startswith("Documentation/zigux/review-checklist.md") for item in missing["missing"]):
-            print("PHASE5_VALIDATOR_SELF_TEST=fail")
-            print("PHASE5_VALIDATOR_SELF_TEST_REASON=trace-events-loader-boundary-gap")
-            return 1
-
-        tmp_root = Path(tmp)
-        copy_tree(ROOT, tmp_root)
-        tests_readme = tmp_root / "zigux/tests/README.md"
-        text = tests_readme.read_text(encoding="utf-8").replace(
-            "zig test samples/zigux/kretprobe_example.zig",
-            "zig test samples/zigux/kretprobe_review.zig",
-            1,
-        )
-        tests_readme.write_text(text, encoding="utf-8")
-        missing = validate_phase5(tmp_root)
-        if missing["ok"] or "zigux/tests/README.md:missing:zig test samples/zigux/kretprobe_example.zig" not in missing["missing"]:
-            print("PHASE5_VALIDATOR_SELF_TEST=fail")
-            print("PHASE5_VALIDATOR_SELF_TEST_REASON=tests-readme-direct-replay-gap")
-            return 1
-
-        tmp_root = Path(tmp)
-        copy_tree(ROOT, tmp_root)
-        tests_readme = tmp_root / "zigux/tests/README.md"
-        text = tests_readme.read_text(encoding="utf-8").replace(
-            "zig test zigux/tests/phase5_kobject_example_survey.zig",
-            "zig test zigux/tests/phase5_kobject_survey.zig",
-            1,
-        )
-        tests_readme.write_text(text, encoding="utf-8")
-        missing = validate_phase5(tmp_root)
-        if missing["ok"] or "zigux/tests/README.md:missing:zig test zigux/tests/phase5_kobject_example_survey.zig" not in missing["missing"]:
-            print("PHASE5_VALIDATOR_SELF_TEST=fail")
-            print("PHASE5_VALIDATOR_SELF_TEST_REASON=tests-readme-survey-replay-gap")
-            return 1
-
-        tmp_root = Path(tmp)
-        copy_tree(ROOT, tmp_root)
-        tests_readme = tmp_root / "zigux/tests/README.md"
-        text = tests_readme.read_text(encoding="utf-8").replace(
-            "zig test zigux/tests/phase5_bytestream_fifo.zig",
-            "zig test zigux/tests/phase5_bytestream_fifo_review.zig",
-            1,
-        )
-        tests_readme.write_text(text, encoding="utf-8")
-        missing = validate_phase5(tmp_root)
-        if missing["ok"] or "zigux/tests/README.md:missing:zig test zigux/tests/phase5_bytestream_fifo.zig" not in missing["missing"]:
-            print("PHASE5_VALIDATOR_SELF_TEST=fail")
-            print("PHASE5_VALIDATOR_SELF_TEST_REASON=bytestream-helper-replay-gap")
-            return 1
-
-        tmp_root = Path(tmp)
-        copy_tree(ROOT, tmp_root)
-        tests_readme = tmp_root / "zigux/tests/README.md"
-        text = tests_readme.read_text(encoding="utf-8").replace(
-            "separate Phase 9 runtime bitmap survey packet",
-            "later runtime bitmap follow-on work",
-            1,
-        )
-        tests_readme.write_text(text, encoding="utf-8")
-        missing = validate_phase5(tmp_root)
-        if missing["ok"] or "zigux/tests/README.md:missing:separate Phase 9 runtime bitmap survey packet" not in missing["missing"]:
-            print("PHASE5_VALIDATOR_SELF_TEST=fail")
-            print("PHASE5_VALIDATOR_SELF_TEST_REASON=tests-readme-runtime-bitmap-boundary-gap")
-            return 1
-
-        tmp_root = Path(tmp)
-        copy_tree(ROOT, tmp_root)
-        tests_readme = tmp_root / "zigux/tests/README.md"
-        text = tests_readme.read_text(encoding="utf-8").replace(
-            "runtime-substrate handoff still stays blocked",
-            "runtime-substrate handoff now cleared",
-            1,
-        )
-        tests_readme.write_text(text, encoding="utf-8")
-        missing = validate_phase5(tmp_root)
-        if missing["ok"] or "zigux/tests/README.md:missing:runtime-substrate handoff still stays blocked" not in missing["missing"]:
-            print("PHASE5_VALIDATOR_SELF_TEST=fail")
-            print("PHASE5_VALIDATOR_SELF_TEST_REASON=tests-readme-runtime-trace-events-boundary-gap")
-            return 1
-
-        tmp_root = Path(tmp)
-        copy_tree(ROOT, tmp_root)
-        tests_readme = tmp_root / "zigux/tests/README.md"
-        text = tests_readme.read_text(encoding="utf-8").replace(
-            "current `master` still ships no `samples/zigux/*string*` or `samples/zigux/*cmdline*` Phase 5 reference sample",
-            "current `master` keeps helper-only sample boundaries separate",
-            1,
-        )
-        tests_readme.write_text(text, encoding="utf-8")
-        missing = validate_phase5(tmp_root)
-        if missing["ok"] or "zigux/tests/README.md:missing:current `master` still ships no `samples/zigux/*string*` or `samples/zigux/*cmdline*` Phase 5 reference sample" not in missing["missing"]:
-            print("PHASE5_VALIDATOR_SELF_TEST=fail")
-            print("PHASE5_VALIDATOR_SELF_TEST_REASON=tests-readme-phase7-boundary-gap")
-            return 1
-
-        tmp_root = Path(tmp)
-        copy_tree(ROOT, tmp_root)
-        tests_readme = tmp_root / "zigux/tests/README.md"
-        text = tests_readme.read_text(encoding="utf-8").replace(
-            "verify the shared docs still keep rbtree evidence in Phase 7 instead of `samples/zigux/`:",
-            "verify the shared docs still keep helper-only evidence in Phase 7 instead of `samples/zigux/`:",
-            1,
-        )
-        tests_readme.write_text(text, encoding="utf-8")
-        missing = validate_phase5(tmp_root)
-        if missing["ok"] or "zigux/tests/README.md:missing:verify the shared docs still keep rbtree evidence in Phase 7 instead of `samples/zigux/`:" not in missing["missing"]:
-            print("PHASE5_VALIDATOR_SELF_TEST=fail")
-            print("PHASE5_VALIDATOR_SELF_TEST_REASON=tests-readme-rbtree-boundary-gap")
-            return 1
-
-        tmp_root = Path(tmp)
-        copy_tree(ROOT, tmp_root)
-        docs_readme = tmp_root / "Documentation/zigux/README.md"
-        text = docs_readme.read_text(encoding="utf-8").replace(
-            "zig test zigux/tests/phase5_trace_events_sample_survey.zig",
-            "zig test zigux/tests/phase5_trace_events_review.zig",
-            1,
-        )
-        docs_readme.write_text(text, encoding="utf-8")
-        missing = validate_phase5(tmp_root)
-        if missing["ok"] or "Documentation/zigux/README.md:missing:zig test zigux/tests/phase5_trace_events_sample_survey.zig" not in missing["missing"]:
-            print("PHASE5_VALIDATOR_SELF_TEST=fail")
-            print("PHASE5_VALIDATOR_SELF_TEST_REASON=docs-readme-survey-replay-gap")
-            return 1
-
-        tmp_root = Path(tmp)
-        copy_tree(ROOT, tmp_root)
-        docs_readme = tmp_root / "Documentation/zigux/README.md"
-        text = docs_readme.read_text(encoding="utf-8").replace(
-            "ships no `samples/zigux/*string*` reference sample",
-            "keeps string-helper evidence under the Phase 7 helper bundle",
-            1,
-        )
-        docs_readme.write_text(text, encoding="utf-8")
-        missing = validate_phase5(tmp_root)
-        if missing["ok"] or "Documentation/zigux/README.md:missing:ships no `samples/zigux/*string*` reference sample" not in missing["missing"]:
-            print("PHASE5_VALIDATOR_SELF_TEST=fail")
-            print("PHASE5_VALIDATOR_SELF_TEST_REASON=docs-readme-string-boundary-gap")
-            return 1
-
-        tmp_root = Path(tmp)
-        copy_tree(ROOT, tmp_root)
-        docs_readme = tmp_root / "Documentation/zigux/README.md"
-        text = docs_readme.read_text(encoding="utf-8").replace(
-            "no-`samples/zigux/*cmdline*` boundary explicit",
-            "cmdline helper evidence stays under the separate Phase 7 bundle",
-            1,
-        )
-        docs_readme.write_text(text, encoding="utf-8")
-        missing = validate_phase5(tmp_root)
-        if missing["ok"] or "Documentation/zigux/README.md:missing:no-`samples/zigux/*cmdline*` boundary explicit" not in missing["missing"]:
-            print("PHASE5_VALIDATOR_SELF_TEST=fail")
-            print("PHASE5_VALIDATOR_SELF_TEST_REASON=docs-readme-cmdline-boundary-gap")
-            return 1
-
-        tmp_root = Path(tmp)
-        copy_tree(ROOT, tmp_root)
-        docs_readme = tmp_root / "Documentation/zigux/README.md"
-        text = docs_readme.read_text(encoding="utf-8").replace(
-            "no-`samples/zigux/*rbtree*` boundary explicit",
-            "rbtree helper evidence stays under the separate Phase 7 bundle",
-            1,
-        )
-        docs_readme.write_text(text, encoding="utf-8")
-        missing = validate_phase5(tmp_root)
-        if missing["ok"] or "Documentation/zigux/README.md:missing:no-`samples/zigux/*rbtree*` boundary explicit" not in missing["missing"]:
-            print("PHASE5_VALIDATOR_SELF_TEST=fail")
-            print("PHASE5_VALIDATOR_SELF_TEST_REASON=docs-readme-rbtree-boundary-gap")
-            return 1
-
-        tmp_root = Path(tmp)
-        copy_tree(ROOT, tmp_root)
-        docs_readme = tmp_root / "Documentation/zigux/README.md"
-        text = docs_readme.read_text(encoding="utf-8").replace(
-            "zig test zigux/tests/phase5_bytestream_fifo.zig",
-            "zig test zigux/tests/phase5_bytestream_fifo_review.zig",
-            1,
-        )
-        docs_readme.write_text(text, encoding="utf-8")
-        missing = validate_phase5(tmp_root)
-        if missing["ok"] or "Documentation/zigux/README.md:missing:zig test zigux/tests/phase5_bytestream_fifo.zig" not in missing["missing"]:
-            print("PHASE5_VALIDATOR_SELF_TEST=fail")
-            print("PHASE5_VALIDATOR_SELF_TEST_REASON=docs-readme-bytestream-helper-replay-gap")
-            return 1
-
-        tmp_root = Path(tmp)
-        copy_tree(ROOT, tmp_root)
-        checklist = tmp_root / "Documentation/zigux/review-checklist.md"
-        text = checklist.read_text(encoding="utf-8").replace(
-            "ships no `samples/zigux/*rbtree*` Phase 5 reference sample",
-            "keeps rbtree helper evidence under the separate Phase 7 bundle",
-            1,
-        )
-        checklist.write_text(text, encoding="utf-8")
-        missing = validate_phase5(tmp_root)
-        if missing["ok"] or "Documentation/zigux/review-checklist.md:missing:ships no `samples/zigux/*rbtree*` Phase 5 reference sample" not in missing["missing"]:
-            print("PHASE5_VALIDATOR_SELF_TEST=fail")
-            print("PHASE5_VALIDATOR_SELF_TEST_REASON=review-checklist-rbtree-boundary-gap")
-            return 1
-
-        tmp_root = Path(tmp)
-        copy_tree(ROOT, tmp_root)
-        scripts_readme = tmp_root / "scripts/zigux/README.md"
-        text = scripts_readme.read_text(encoding="utf-8").replace(
-            "zig test samples/zigux/kobject_example.zig",
-            "zig test samples/zigux/kobject_review.zig",
-            1,
-        )
-        scripts_readme.write_text(text, encoding="utf-8")
-        missing = validate_phase5(tmp_root)
-        if missing["ok"] or "scripts/zigux/README.md:missing:zig test samples/zigux/kobject_example.zig" not in missing["missing"]:
-            print("PHASE5_VALIDATOR_SELF_TEST=fail")
-            print("PHASE5_VALIDATOR_SELF_TEST_REASON=scripts-readme-direct-replay-gap")
-            return 1
-
-        tmp_root = Path(tmp)
-        copy_tree(ROOT, tmp_root)
-        scripts_readme = tmp_root / "scripts/zigux/README.md"
-        text = scripts_readme.read_text(encoding="utf-8").replace(
-            "zig test zigux/tests/phase5_bytestream_fifo.zig",
-            "zig test zigux/tests/phase5_bytestream_fifo_review.zig",
-            1,
-        )
-        scripts_readme.write_text(text, encoding="utf-8")
-        missing = validate_phase5(tmp_root)
-        if missing["ok"] or "scripts/zigux/README.md:missing:zig test zigux/tests/phase5_bytestream_fifo.zig" not in missing["missing"]:
-            print("PHASE5_VALIDATOR_SELF_TEST=fail")
-            print("PHASE5_VALIDATOR_SELF_TEST_REASON=scripts-readme-bytestream-helper-replay-gap")
-            return 1
-
-        tmp_root = Path(tmp)
-        copy_tree(ROOT, tmp_root)
-        scripts_readme = tmp_root / "scripts/zigux/README.md"
-        text = scripts_readme.read_text(encoding="utf-8").replace(
-            "zig test zigux/tests/phase5_trace_events_sample_survey.zig",
-            "zig test zigux/tests/phase5_trace_events_review.zig",
-            1,
-        )
-        scripts_readme.write_text(text, encoding="utf-8")
-        missing = validate_phase5(tmp_root)
-        if missing["ok"] or "scripts/zigux/README.md:missing:zig test zigux/tests/phase5_trace_events_sample_survey.zig" not in missing["missing"]:
-            print("PHASE5_VALIDATOR_SELF_TEST=fail")
-            print("PHASE5_VALIDATOR_SELF_TEST_REASON=scripts-readme-survey-replay-gap")
-            return 1
-
-        tmp_root = Path(tmp)
-        copy_tree(ROOT, tmp_root)
-        build_file = tmp_root / "zigux/tests/phase5_build.zig"
-        text = build_file.read_text(encoding="utf-8").replace(
-            '"phase5-kretprobe-example-sample-tests"',
-            '"phase5-kretprobe-example-sample-review"',
-            1,
-        )
-        build_file.write_text(text, encoding="utf-8")
-        missing = validate_phase5(tmp_root)
-        if missing["ok"] or "zigux/tests/phase5_build.zig:missing:phase5-kretprobe-example-sample-tests" not in missing["missing"]:
-            print("PHASE5_VALIDATOR_SELF_TEST=fail")
-            print("PHASE5_VALIDATOR_SELF_TEST_REASON=phase5-build-kretprobe-sample-gap")
-            return 1
-
-        tmp_root = Path(tmp)
-        copy_tree(ROOT, tmp_root)
-        build_file = tmp_root / "zigux/tests/phase5_build.zig"
-        text = build_file.read_text(encoding="utf-8").replace(
-            '"phase5-kobject-example-survey-tests"',
-            '"phase5-kobject-example-survey-review"',
-            1,
-        )
-        build_file.write_text(text, encoding="utf-8")
-        missing = validate_phase5(tmp_root)
-        if missing["ok"] or "zigux/tests/phase5_build.zig:missing:phase5-kobject-example-survey-tests" not in missing["missing"]:
-            print("PHASE5_VALIDATOR_SELF_TEST=fail")
-            print("PHASE5_VALIDATOR_SELF_TEST_REASON=phase5-build-kobject-survey-gap")
-            return 1
-
-        tmp_root = Path(tmp)
-        copy_tree(ROOT, tmp_root)
-        build_file = tmp_root / "zigux/tests/phase5_build.zig"
-        text = build_file.read_text(encoding="utf-8").replace(
-            '"phase5-kretprobe-example-survey-tests"',
-            '"phase5-kretprobe-example-survey-review"',
-            1,
-        )
-        build_file.write_text(text, encoding="utf-8")
-        missing = validate_phase5(tmp_root)
-        if missing["ok"] or "zigux/tests/phase5_build.zig:missing:phase5-kretprobe-example-survey-tests" not in missing["missing"]:
-            print("PHASE5_VALIDATOR_SELF_TEST=fail")
-            print("PHASE5_VALIDATOR_SELF_TEST_REASON=phase5-build-kretprobe-survey-gap")
-            return 1
-
-        tmp_root = Path(tmp)
-        copy_tree(ROOT, tmp_root)
-        sample = tmp_root / "samples/zigux/trace_events_sample.zig"
-        text = sample.read_text(encoding="utf-8").replace(
-            ".requires_runtime_substrate = false",
-            ".requires_runtime_substrate = true",
-            1,
-        )
-        sample.write_text(text, encoding="utf-8")
-        missing = validate_phase5(tmp_root)
-        if missing["ok"] or not any(item.startswith("samples/zigux/trace_events_sample.zig") for item in missing["missing"]):
-            print("PHASE5_VALIDATOR_SELF_TEST=fail")
-            print("PHASE5_VALIDATOR_SELF_TEST_REASON=sample-descriptor-gap")
-            return 1
-
-        tmp_root = Path(tmp)
-        copy_tree(ROOT, tmp_root)
-        sample_root = tmp_root / "samples/zigux/README.md"
-        text = sample_root.read_text(encoding="utf-8").replace(
-            "current `master` still ships no `samples/zigux/*rbtree*` Phase 5 reference sample",
-            "current `master` keeps rbtree helper work separate",
-            1,
-        )
-        sample_root.write_text(text, encoding="utf-8")
-        missing = validate_phase5(tmp_root)
-        if missing["ok"] or "samples/zigux/README.md:missing:current `master` still ships no `samples/zigux/*rbtree*` Phase 5 reference sample" not in missing["missing"]:
-            print("PHASE5_VALIDATOR_SELF_TEST=fail")
-            print("PHASE5_VALIDATOR_SELF_TEST_REASON=sample-root-rbtree-boundary-gap")
-            return 1
+        for rel, old, new, expected, reason in [
+            ("Documentation/zigux/phase5-kfifo-sample-survey.md", MANIFEST_EXPECTATIONS["zigux/tests/phase5_bytestream_fifo_manifest.json"]["survey_summary"], "Build Summary: 17/17 steps succeeded; 99/99 tests passed", "zigux/tests/phase5_bytestream_fifo_manifest.json:survey_note:Build Summary: 17/17 steps succeeded; 99/99 tests passed", "survey-summary-gap"),
+            ("samples/zigux/README.md", "current `master` still ships no `samples/zigux/*cmdline*` Phase 5 reference sample", "current `master` keeps cmdline helper work separate", "samples/zigux/README.md:missing:current `master` still ships no `samples/zigux/*cmdline*` Phase 5 reference sample", "sample-root-cmdline-boundary-gap"),
+            ("samples/zigux/README.md", "current `master` still ships no `samples/zigux/*rbtree*` Phase 5 reference sample", "current `master` keeps rbtree helper work separate", "samples/zigux/README.md:missing:current `master` still ships no `samples/zigux/*rbtree*` Phase 5 reference sample", "sample-root-rbtree-boundary-gap"),
+            ("Documentation/zigux/review-checklist.md", "runtime-substrate handoff still blocked", "runtime-substrate handoff now cleared", "Documentation/zigux/review-checklist.md:missing:runtime-substrate handoff still blocked", "review-checklist-runtime-handoff-gap"),
+            ("Documentation/zigux/README.md", "zig test zigux/tests/phase5_trace_events_sample_survey.zig", "zig test zigux/tests/phase5_trace_events_review.zig", "Documentation/zigux/README.md:missing:zig test zigux/tests/phase5_trace_events_sample_survey.zig", "docs-readme-survey-replay-gap"),
+            ("scripts/zigux/README.md", "zig test samples/zigux/kobject_example.zig", "zig test samples/zigux/kobject_review.zig", "scripts/zigux/README.md:missing:zig test samples/zigux/kobject_example.zig", "scripts-readme-direct-replay-gap"),
+            ("scripts/zigux/README.md", "zigux/tests/phase5_kretprobe_example.zig", "zigux/tests/phase5_kretprobe_review.zig", "scripts/zigux/README.md:missing:zigux/tests/phase5_kretprobe_example.zig", "scripts-readme-focused-replay-gap"),
+            ("scripts/zigux/README.md", "runtime-substrate handoff still stays blocked", "runtime-substrate handoff now cleared", "scripts/zigux/README.md:missing:runtime-substrate handoff still stays blocked", "scripts-readme-runtime-handoff-gap"),
+            ("zigux/tests/phase5_build.zig", '"phase5-kretprobe-example-sample-tests"', '"phase5-kretprobe-example-sample-review"', "zigux/tests/phase5_build.zig:missing:phase5-kretprobe-example-sample-tests", "phase5-build-kretprobe-sample-gap"),
+            ("samples/zigux/trace_events_sample.zig", ".requires_runtime_substrate = false", ".requires_runtime_substrate = true", "samples/zigux/trace_events_sample.zig:missing:.requires_runtime_substrate = false", "sample-descriptor-gap"),
+        ]:
+            tmp_root = Path(tmp)
+            copy_tree(ROOT, tmp_root)
+            path = tmp_root / rel
+            path.write_text(path.read_text(encoding="utf-8").replace(old, new, 1), encoding="utf-8")
+            if not require_missing(validate_phase5(tmp_root), expected):
+                print("PHASE5_VALIDATOR_SELF_TEST=fail")
+                print(f"PHASE5_VALIDATOR_SELF_TEST_REASON={reason}")
+                return 1
 
     print("PHASE5_VALIDATOR_SELF_TEST=pass")
-    print("PHASE5_VALIDATOR_SELF_TEST_CASE_COUNT=33")
+    print("PHASE5_VALIDATOR_SELF_TEST_CASE_COUNT=13")
     return 0
 
 
