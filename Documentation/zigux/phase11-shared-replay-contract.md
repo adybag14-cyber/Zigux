@@ -82,6 +82,8 @@ When the shared-versus-dedicated replay contract changes, keep these contributor
 
 Those surfaces are where contributors usually discover the Phase 11 route before they open the deeper packet notes, so any replay-contract change should stay explicit there as well.
 
+In particular, the `zigux/tests/README.md` Phase 11 guidance should repeat the four shared split and adjunct replays and `scripts/zigux/check-phase11-header-boundary-packet.py` explicitly, rather than leaving the tests-root carryover prompt shorter than the shared contract note, the validator-first guide, and the tests-root review companion.
+
 ## Review Use
 
 Use this note when a simple-driver change touches the shared Phase 11 test packet, the pre-replay checker stack, or the split replay inventory.
@@ -104,6 +106,7 @@ The minimum agreement surface for that kind of change is:
 - `Documentation/zigux/review-checklist.md`
 - `Documentation/zigux/phase10-phase11-phase13-validator-first-review-guide.md`
 - `Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md`
+- `zigux/tests/README.md`
 - `zigux/tests/phase11_hvc_console_survey.zig`
 - `zigux/tests/phase11_uapi_header_parity_manifest.json`
 - `zigux/tests/phase11_uapi_header_parity_survey.zig`
