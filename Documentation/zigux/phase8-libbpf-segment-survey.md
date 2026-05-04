@@ -70,9 +70,9 @@ The current starter implementation stays deliberately bounded:
 
 - `cpu_mask.zig` ports the string-parsing core of `parse_cpu_mask_str()`
 - the segment now includes an injected chunk-reader interface for sysfs-style buffered input without claiming direct file-descriptor parity
-- the starter exposes dense `[]bool` mask output plus set-bit counting for future perf-buffer and feature-probe callers
+- the starter now exposes dense `[]bool` mask output plus set-bit counting, bounded perf-buffer auto-CPU sizing, pure online-CPU eligibility checks, pure caller-supplied explicit perf-buffer target planning, bounded sequential positive-CPU fallback planning, and pure auto-selected CPU planning from already-injected possible and online masks for future perf-buffer and feature-probe callers
 - delimiter skipping now mirrors libbpf's comma-and-newline loop while still allowing the `sscanf()`-style leading whitespace that the C helper already consumes, without widening into real file I/O
-- the survey now keeps the separate `perf-buffer-online-cpu-routing` boundary explicit so the landed parser helper is not mistaken for online CPU selection or perf-event routing parity
+- the survey now keeps the separate `perf-buffer-online-cpu-routing` boundary explicit so the landed parser-and-planning helper is not mistaken for online CPU selection, perf-event-array routing, or direct `perf_buffer__poll(timeout_ms)` parity
 - malformed ranges still fail fast instead of silently stretching the segment into broader object or verifier-facing work
 - `type_names.zig` ports the exported attach, link, map, and program type string tables as pure dense lookups over the current `tools/include/uapi/linux/bpf.h` ordinal space
 - the type-name helper keeps unknown negative and oversized ordinals returning `null`, matching libbpf's bounded helper behavior without widening into name-to-type parsing or object lifecycle state
@@ -96,6 +96,11 @@ The current tests check:
 - repeated delimiters, newline-terminated inputs, and leading-whitespace-at-token-start inputs still parse cleanly
 - chunked reader input can split ranges, delimiters, and `sscanf()`-style leading whitespace across scratch-buffer boundaries
 - the bounded set-bit counter matches the parsed mask contents
+- the bounded auto-CPU count clamp keeps possible-CPU sizing inside the map entry budget while still treating zero as the uncapped case
+- explicit online-mask eligibility behavior stays visible for automatic versus caller-pinned CPU budgets
+- explicit caller-supplied CPU and map-key planning keeps pair ordering, count mismatches, and negative targets reviewable without widening into perf-buffer routing
+- the synthetic sequential positive-CPU fallback remains available for pure non-routing callers that only need a bounded CPU index list
+- auto-selected CPU planning keeps only online possible CPUs, respects the bounded map-entry budget, and treats truncated injected online masks as offline instead of widening into direct sysfs reads
 - empty, malformed, and trailing-whitespace-only ranges report explicit errors
 - reader contract failures stay explicit instead of silently truncating input
 - the manifest-backed survey now rejects dropping the deferred perf-buffer online-CPU routing boundary from the segment catalog
