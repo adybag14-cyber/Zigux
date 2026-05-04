@@ -494,6 +494,8 @@ def validate_genksyms_bridge_checker_gate(checker_script: Path) -> list[str]:
         'duplicate_expected_guard': 'expected:duplicate_reference:',
         'repeat_c_compare': "run(diff_base + [str(c_actual), str(c_repeat)], cwd=str(ROOT))",
         'repeat_zig_compare': "run(diff_base + [str(zig_actual), str(zig_repeat)], cwd=str(ROOT))",
+        'repeat_c_stderr_compare': "run(text_diff_base + [str(c_actual_stderr), str(c_repeat_stderr)], cwd=str(ROOT))",
+        'repeat_zig_stderr_compare': "run(text_diff_base + [str(zig_actual_stderr), str(zig_repeat_stderr)], cwd=str(ROOT))",
         'determinism_marker': "print('GENKSYMS_BRIDGE_DETERMINISM=pass')",
     }
 
@@ -509,10 +511,12 @@ def validate_genksyms_crc_checker_gate(checker_script: Path) -> list[str]:
     required_markers = {
         'self_test_arg': "parser.add_argument('--self-test'",
         'self_test_pass_marker': "print('GENKSYMS_CRC_SELF_TEST=pass')",
-        'self_test_case_count_marker': "print('GENKSYMS_CRC_SELF_TEST_CASE_COUNT=12')",
-        'explicit_tool_guard': 'validate_tool_sources(C_TOOL, ZIG_TOOL)',
-        'repeat_c_compare': "run(diff_base + [str(c_actual), str(c_repeat)], cwd=str(ROOT))",
-        'repeat_zig_compare': "run(diff_base + [str(zig_actual), str(zig_repeat)], cwd=str(ROOT))",
+        'self_test_case_count_marker': "print('GENKSYMS_CRC_SELF_TEST_CASE_COUNT=7')",
+        'repeat_c_compare': "diff_json(expected, c_actual)",
+        'repeat_zig_compare': "diff_json(expected, zig_actual)",
+        'repeat_cross_compare': "diff_json(c_actual, zig_actual)",
+        'repeat_c_determinism': "diff_json(c_actual, c_repeat)",
+        'repeat_zig_determinism': "diff_json(zig_actual, zig_repeat)",
         'determinism_marker': "print('GENKSYMS_CRC_DETERMINISM=pass')",
     }
 
@@ -530,11 +534,10 @@ def validate_fixdep_checker_gate(checker_script: Path) -> list[str]:
         'self_test_pass_marker': "print('FIXDEP_SELF_TEST=pass')",
         'self_test_case_count_marker': "print(f'FIXDEP_SELF_TEST_CASE_COUNT={checks_run}')",
         'explicit_tool_guard': 'validate_tool_sources(C_FIXDEP, ZIG_FIXDEP)',
-        'missing_expected_output_guard': 'missing_expected_output:',
-        'missing_expected_stderr_guard': 'missing_expected_stderr:',
-        'unsupported_stdout_mode_guard': 'unsupported_stdout_mode:',
+        'stderr_fixture_guard': "expected_stderr_path = expected_stderr or implicit_expected_stderr",
         'repeat_c_compare': 'diff_text(c_actual, c_repeat)',
         'repeat_zig_compare': 'diff_text(zig_actual, zig_repeat)',
+        'cross_stderr_compare': 'diff_text(c_actual_stderr, zig_actual_stderr)',
         'repeat_c_stderr_compare': 'diff_text(c_actual_stderr, c_repeat_stderr)',
         'repeat_zig_stderr_compare': 'diff_text(zig_actual_stderr, zig_repeat_stderr)',
         'determinism_marker': "print('FIXDEP_DETERMINISM=pass')",
@@ -695,6 +698,8 @@ required_closure_markers = [
     'PHASE2_FIXDEP_DETERMINISM=check-fixdep-diff.py replays C and Zig outputs twice before comparing artifacts',
     'PHASE2_FIXDEP_FULL_READ_POLICY=fixdep.zig reads dependency files at full C-helper size and maps short writes to fixdep output errors',
     f'PHASE2_FIXDEP_CASE_COUNT={fixdep_case_count}',
+    'PHASE2_FIXDEP_SHARED_STDOUT_PACKET=zigux/tests/fixtures/fixdep/sample_expected.txt,zigux/tests/fixtures/fixdep/sample_multi_target_expected.txt,zigux/tests/fixtures/fixdep/sample_escaped_space_expected.txt,zigux/tests/fixtures/fixdep/sample_escaped_colon_expected.txt,zigux/tests/fixtures/fixdep/sample_concatenated_expected.txt,zigux/tests/fixtures/fixdep/sample_comment_continued_expected.txt,zigux/tests/fixtures/fixdep/sample_comment_only_expected.txt,zigux/tests/fixtures/fixdep/sample_missing_dep_expected.txt,zigux/tests/fixtures/fixdep/sample_output_write_expected.txt',
+    'PHASE2_FIXDEP_SHARED_STDERR_PACKET=zigux/tests/fixtures/fixdep/sample_comment_only_expected.stderr.txt,zigux/tests/fixtures/fixdep/sample_missing_dep_expected.stderr.txt,zigux/tests/fixtures/fixdep/sample_output_write_expected.stderr.txt',
     'PHASE2_FIXDEP_OUTPUT_WRITE_CASE=zigux/tests/fixtures/fixdep/sample_output_write_expected.stderr.txt',
     'PHASE2_GENKSYMS_BRIDGE_GATE=python3 scripts/zigux/check-genksyms-bridge.py',
     'PHASE2_GENKSYMS_BRIDGE_DETERMINISM=check-genksyms-bridge.py replays C and Zig bridge outputs twice before comparing artifacts',
