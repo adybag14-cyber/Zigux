@@ -393,6 +393,7 @@ def self_test() -> int:
             total_cases += 2
 
         missing_file_cases = {
+            "Documentation/zigux/README.md": fixture_text(docs_entries),
             "Documentation/zigux/phase1-tests-root-review-companion.md": fixture_text(companion_entries),
             "Documentation/zigux/review-checklist.md": fixture_text(checklist_entries),
             "scripts/zigux/README.md": fixture_text(scripts_entries),
