@@ -134,8 +134,6 @@ pub const BytestreamFifoSample = struct {
         };
     }
 
-    // Keep the contributor-facing review packet discoverable in the sample so
-    // code edits do not drift away from the bounded Phase 5 docs and manifest.
     pub fn reviewContract() ReviewContract {
         return .{
             .focus = &sample_review_focus,
@@ -556,6 +554,9 @@ test "bytestream fifo sample keeps helper boundaries explicit" {
     try std.testing.expectEqual(@as(usize, fifo_capacity), full_preview_result.copied);
     try std.testing.expectEqual(@as(usize, fifo_capacity), full_preview_result.total_visible);
     try std.testing.expect(!full_preview_result.truncated);
+    for (full_preview, 0..) |actual, expected_index| {
+        try std.testing.expectEqual(@as(u8, @intCast(expected_index)), actual);
+    }
 
     sample.reset();
     try std.testing.expect(sample.isEmpty());
