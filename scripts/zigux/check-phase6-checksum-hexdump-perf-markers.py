@@ -9,11 +9,13 @@ import tempfile
 
 SCRIPT_PATH = Path(__file__).resolve()
 ROOT = SCRIPT_PATH.parents[2] if len(SCRIPT_PATH.parents) > 2 else SCRIPT_PATH.parent
-SELF_TEST_CASE_COUNT = 7
+SELF_TEST_CASE_COUNT = 9
 
 CHECKSUM_PERF_PATH = "zigux/tests/phase6_checksum_perf.zig"
 HEXDUMP_PERF_PATH = "zigux/tests/phase6_hexdump_perf.zig"
 PERF_SURVEY_PATH = "Documentation/zigux/phase6-perf-gate-survey.md"
+MAKEFILE_PATH = "zigux/Makefile"
+MANIFEST_PATH = "zigux/tests/phase6_helper_parity_manifest.json"
 
 CHECKSUM_PERF_MARKERS = [
     '"phase6-checksum-perf {s} len={} reps={} helper_ns_per_call={} helper_ns_per_byte={d:.2} reference_ns_per_call={} reference_ns_per_byte={d:.2} slowdown_pct={} folded=0x{x:0>4} sink=0x{x:0>8}\\n"',
@@ -33,6 +35,16 @@ PERF_SURVEY_MARKERS = [
     "`python3 scripts/zigux/check-phase6-checksum-hexdump-perf-markers.py --self-test` and `python3 scripts/zigux/check-phase6-checksum-hexdump-perf-markers.py` now keep the shipped checksum and hexdump perf-marker packet fail-closed around the per-call, per-byte, slowdown, folded-checksum, required-length, and reference-path reporting markers before broader Phase 6 replay claims stay green",
 ]
 
+MAKEFILE_MARKERS = [
+    "$(PYTHON) scripts/zigux/check-phase6-checksum-hexdump-perf-markers.py --self-test",
+    "$(PYTHON) scripts/zigux/check-phase6-checksum-hexdump-perf-markers.py",
+]
+
+MANIFEST_MARKERS = [
+    "python3 scripts/zigux/check-phase6-checksum-hexdump-perf-markers.py --self-test",
+    "python3 scripts/zigux/check-phase6-checksum-hexdump-perf-markers.py",
+]
+
 
 def text(root: Path, path: str) -> str:
     return (root / path).read_text(encoding="utf-8")
@@ -49,6 +61,8 @@ def validate(root: Path) -> dict[str, object]:
     checksum_path = root / CHECKSUM_PERF_PATH
     hexdump_path = root / HEXDUMP_PERF_PATH
     perf_survey_path = root / PERF_SURVEY_PATH
+    makefile_path = root / MAKEFILE_PATH
+    manifest_path = root / MANIFEST_PATH
 
     if not checksum_path.exists():
         missing_files.append(CHECKSUM_PERF_PATH)
@@ -67,6 +81,18 @@ def validate(root: Path) -> dict[str, object]:
     else:
         for marker in missing_markers(text(root, PERF_SURVEY_PATH), PERF_SURVEY_MARKERS):
             missing.append(f"perf_survey:missing:{marker}")
+
+    if not makefile_path.exists():
+        missing_files.append(MAKEFILE_PATH)
+    else:
+        for marker in missing_markers(text(root, MAKEFILE_PATH), MAKEFILE_MARKERS):
+            missing.append(f"makefile:missing:{marker}")
+
+    if not manifest_path.exists():
+        missing_files.append(MANIFEST_PATH)
+    else:
+        for marker in missing_markers(text(root, MANIFEST_PATH), MANIFEST_MARKERS):
+            missing.append(f"manifest:missing:{marker}")
 
     return {
         "ok": not missing_files and not missing,
@@ -105,6 +131,8 @@ def build_self_test_tree(root: Path) -> None:
     write(root, CHECKSUM_PERF_PATH, "\n".join(CHECKSUM_PERF_MARKERS) + "\n")
     write(root, HEXDUMP_PERF_PATH, "\n".join(HEXDUMP_PERF_MARKERS) + "\n")
     write(root, PERF_SURVEY_PATH, "\n".join(PERF_SURVEY_MARKERS) + "\n")
+    write(root, MAKEFILE_PATH, "\n".join(MAKEFILE_MARKERS) + "\n")
+    write(root, MANIFEST_PATH, "\n".join(MANIFEST_MARKERS) + "\n")
 
 
 def expect_missing_file(result: dict[str, object], path: str) -> None:
@@ -161,6 +189,18 @@ def run_self_test() -> int:
             expect_contains(validate(root), f"perf_survey:missing:{PERF_SURVEY_MARKERS[0]}")
             count += 1
 
+            build_self_test_tree(root)
+            makefile_path = root / MAKEFILE_PATH
+            makefile_path.write_text(makefile_path.read_text(encoding="utf-8").replace(MAKEFILE_MARKERS[0], "", 1), encoding="utf-8")
+            expect_contains(validate(root), f"makefile:missing:{MAKEFILE_MARKERS[0]}")
+            count += 1
+
+            build_self_test_tree(root)
+            manifest_path = root / MANIFEST_PATH
+            manifest_path.write_text(manifest_path.read_text(encoding="utf-8").replace(MANIFEST_MARKERS[0], "", 1), encoding="utf-8")
+            expect_contains(validate(root), f"manifest:missing:{MANIFEST_MARKERS[0]}")
+            count += 1
+
             if count != SELF_TEST_CASE_COUNT:
                 raise AssertionError(f"expected {SELF_TEST_CASE_COUNT} self-test cases, got {count}")
     except AssertionError as exc:
@@ -175,7 +215,7 @@ def run_self_test() -> int:
 
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        description="Check that the live Phase 6 checksum and hexdump perf harnesses keep their stronger review markers.",
+        description="Check that the live Phase 6 checksum and hexdump perf harnesses stay aligned with their published review routes.",
     )
     parser.add_argument("--self-test", action="store_true", help="Run built-in checker tests")
     return parser.parse_args(argv)
