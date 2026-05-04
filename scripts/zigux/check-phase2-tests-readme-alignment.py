@@ -98,6 +98,8 @@ MAKEFILE_MARKERS = [
     "phase2-validate:",
     "scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test",
     "scripts/zigux/check-phase2-toolchain-pin-scope.py",
+    "scripts/zigux/check-phase2-tests-readme-alignment.py --self-test",
+    "scripts/zigux/check-phase2-tests-readme-alignment.py",
     "scripts/zigux/validate-phase2.py",
     "scripts/zigux/validate-phase2-closure.py",
     "phase2-cross:",
@@ -115,6 +117,10 @@ WORKFLOW_MARKERS = [
     "python3 scripts/zigux/check-phase2-cross-selftest-alignment.py",
     "Validate Phase 2 fixdep files",
     "python3 scripts/zigux/validate-phase2.py",
+    "Self-test Phase 2 tests README alignment checker",
+    "python3 scripts/zigux/check-phase2-tests-readme-alignment.py --self-test",
+    "Check Phase 2 tests README alignment",
+    "python3 scripts/zigux/check-phase2-tests-readme-alignment.py",
     "Validate Phase 2 closure",
     "python3 scripts/zigux/validate-phase2-closure.py",
     "Self-test bounded Phase 2 cross-target checker",
@@ -357,6 +363,8 @@ def clone_fixture_root(destination_root: Path) -> None:
                 "phase2-validate:",
                 "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test",
                 "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-toolchain-pin-scope.py",
+                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-tests-readme-alignment.py --self-test",
+                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-tests-readme-alignment.py",
                 "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase2.py",
                 "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase2-closure.py",
                 "phase2-cross:",
@@ -384,6 +392,10 @@ def clone_fixture_root(destination_root: Path) -> None:
                 "        run: python3 scripts/zigux/check-phase2-cross-selftest-alignment.py --self-test",
                 "      - name: Check Phase 2 cross-target alignment",
                 "        run: python3 scripts/zigux/check-phase2-cross-selftest-alignment.py",
+                "      - name: Self-test Phase 2 tests README alignment checker",
+                "        run: python3 scripts/zigux/check-phase2-tests-readme-alignment.py --self-test",
+                "      - name: Check Phase 2 tests README alignment",
+                "        run: python3 scripts/zigux/check-phase2-tests-readme-alignment.py",
                 "      - name: Validate Phase 2 closure",
                 "        run: python3 scripts/zigux/validate-phase2-closure.py",
                 "  phase2-cross:",
@@ -570,6 +582,36 @@ def run_self_test() -> int:
         makefile_path = tmp_root / REQUIRED_FILES["makefile"]
         original_makefile = makefile_path.read_text(encoding="utf-8")
         makefile_path.write_text(
+            original_makefile.replace(
+                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-tests-readme-alignment.py --self-test\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing(
+            "makefile_tests_readme_self_test",
+            tmp_root,
+            "makefile:scripts/zigux/check-phase2-tests-readme-alignment.py --self-test",
+        )
+        makefile_path.write_text(original_makefile, encoding="utf-8")
+
+        makefile_path.write_text(
+            original_makefile.replace(
+                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-tests-readme-alignment.py\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing(
+            "makefile_tests_readme_gate",
+            tmp_root,
+            "makefile:scripts/zigux/check-phase2-tests-readme-alignment.py",
+        )
+        makefile_path.write_text(original_makefile, encoding="utf-8")
+
+        makefile_path.write_text(
             original_makefile.replace("phase2-cross:\n", "", 1),
             encoding="utf-8",
         )
@@ -578,6 +620,38 @@ def run_self_test() -> int:
 
         workflow_path = tmp_root / REQUIRED_FILES["workflow"]
         original_workflow = workflow_path.read_text(encoding="utf-8")
+        workflow_path.write_text(
+            original_workflow.replace(
+                "      - name: Self-test Phase 2 tests README alignment checker\n"
+                "        run: python3 scripts/zigux/check-phase2-tests-readme-alignment.py --self-test\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing(
+            "workflow_tests_readme_self_test",
+            tmp_root,
+            "workflow:Self-test Phase 2 tests README alignment checker",
+        )
+        workflow_path.write_text(original_workflow, encoding="utf-8")
+
+        workflow_path.write_text(
+            original_workflow.replace(
+                "      - name: Check Phase 2 tests README alignment\n"
+                "        run: python3 scripts/zigux/check-phase2-tests-readme-alignment.py\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing(
+            "workflow_tests_readme_gate",
+            tmp_root,
+            "workflow:Check Phase 2 tests README alignment",
+        )
+        workflow_path.write_text(original_workflow, encoding="utf-8")
+
         workflow_path.write_text(
             original_workflow.replace(
                 "      - name: Check Phase 2 cross-target alignment\n"
@@ -594,7 +668,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE2_TESTS_README_ALIGNMENT_SELF_TEST=pass")
-    print("PHASE2_TESTS_README_ALIGNMENT_SELF_TEST_CASE_COUNT=12")
+    print("PHASE2_TESTS_README_ALIGNMENT_SELF_TEST_CASE_COUNT=16")
     return 0
 
 
