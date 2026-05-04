@@ -1,6 +1,6 @@
 # Phase 10 Virtio Ring Slice
 
-This document tracks the first bounded `drivers/virtio/virtio_ring.c` lab helper under Phase 10.
+This document tracks the bounded queue-discipline packet around `drivers/virtio/virtio_ring.c` under Phase 10.
 
 ## Status
 
@@ -17,7 +17,7 @@ This document tracks the first bounded `drivers/virtio/virtio_ring.c` lab helper
 
 The Phase 10 roadmap puts virtqueue wrappers ahead of MMIO work and explicitly names `drivers/virtio/virtio_ring.c` as the next core anchor after `drivers/virtio/virtio.c`.
 
-The live repo already had a survey lane that made the queue-wrapper gap explicit. This slice lands the smallest honest follow-on: a lab-only helper that records queue shape, used-buffer polling, callback disable and re-enable state, callback enable-prepare snapshots, notification bookkeeping with rollover flushing, drained-queue reset discipline, and drained broken-queue recovery discipline in memory without pretending to own DMA mapping, real descriptor memory, or interrupt delivery.
+The live repo already had a survey lane that made the queue-wrapper gap explicit. This slice now records the landed queue-local packet: a lab-only helper that covers queue shape, used-buffer polling, callback disable and re-enable state, callback enable-prepare snapshots, notification bookkeeping with rollover flushing, drained-queue reset discipline, and drained broken-queue recovery discipline in memory without pretending to own DMA mapping, real descriptor memory, or interrupt delivery.
 
 ## Landed starter surface
 
@@ -38,6 +38,12 @@ The live repo already had a survey lane that made the queue-wrapper gap explicit
 - dedicated Phase 10 tests and build wiring for the helper
 
 The same parked ring packet also participates in the shared closure evidence bundle through `Documentation/zigux/phase10-closure-evidence.md`, `zigux/tests/phase10_closure_manifest.json`, and `zigux-alpha/PHASE10_CLOSURE_LEDGER.md`, so the current review path is broader than the dedicated ring test alone even though the landed helper surface remains queue-local.
+
+## Ownership handoff
+
+- this slice owns only the queue-local review packet around `drivers/virtio/virtio_ring.zig`, `zigux/tests/phase10_virtio_ring.zig`, `zigux/tests/phase10_virtio_ring_reset_reuse.zig`, `zigux/tests/phase10_virtio_ring_survey.zig`, and the two ring notes
+- the still-blocked transport-facing follow-up `phase10-mmio-lifecycle-and-irq-paths` stays owned by the adjacent MMIO packet in `zigux/tests/phase10_virtio_mmio_manifest.json` plus `Documentation/zigux/phase10-virtio-mmio-slice.md` and `Documentation/zigux/phase10-virtio-mmio-survey.md`
+- shared closure evidence remains the owner of the cross-slice scoreboard, freeze-boundary posture, and combined validation route; this ring note should not be used to reopen MMIO, IRQ, or lifecycle claims on its own
 
 ## Non-goals
 
@@ -65,4 +71,4 @@ This slice does not yet claim:
 
 ## Next bounded step
 
-The queue-local ring lane now covers the smallest honest reset-discipline, broken-queue-recovery, and notify-rollover steps as well, and the adjacent survey-backed `virtio_mmio` config-window, config-write, and interrupt-ack helpers are already landed. Do not reopen `virtio_ring.zig` for more speculative in-memory queue work; leave this packet parked unless a future Phase 10 review can split `phase10-mmio-lifecycle-and-irq-paths` into a smaller transport-safe observation helper without widening the ring slice.
+The queue-local ring lane now covers the smallest honest reset-discipline, broken-queue-recovery, and notify-rollover steps as well, and the adjacent MMIO packet owns the remaining `phase10-mmio-lifecycle-and-irq-paths` blocker. Do not reopen `virtio_ring.zig` for more speculative in-memory queue work; leave this packet parked unless a future Phase 10 review can split that MMIO-owned blocker into a smaller transport-safe observation helper without widening the ring slice.
