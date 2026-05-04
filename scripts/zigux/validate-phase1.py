@@ -406,6 +406,9 @@ def self_test() -> int:
         docs.write_text(docs_text.replace(DOCS_ROOT_MARKERS[0] + "\n", "", 1), encoding="utf-8")
         expect_failure(root, DOCS_ROOT_MARKERS[0])
         write(docs, docs_text)
+        docs.write_text(docs_text + DOCS_ROOT_MARKERS[0] + "\n", encoding="utf-8")
+        expect_failure(root, f"docs_root:{DOCS_ROOT_MARKERS[0]}:expected_count=1:actual_count=2")
+        write(docs, docs_text)
         scripts_readme = root / "scripts/zigux/README.md"
         scripts_readme_text = scripts_readme.read_text(encoding="utf-8")
         scripts_readme.write_text(scripts_readme_text.replace(SCRIPTS_ROOT_MARKERS[1] + "\n", "", 1), encoding="utf-8")
@@ -419,10 +422,16 @@ def self_test() -> int:
         review_checklist.write_text(review_checklist_text.replace(REVIEW_CHECKLIST_MARKERS[0] + "\n", "", 1), encoding="utf-8")
         expect_failure(root, REVIEW_CHECKLIST_MARKERS[0])
         write(review_checklist, review_checklist_text)
+        review_checklist.write_text(review_checklist_text + REVIEW_CHECKLIST_MARKERS[0] + "\n", encoding="utf-8")
+        expect_failure(root, f"review_checklist:{REVIEW_CHECKLIST_MARKERS[0]}:expected_count=1:actual_count=2")
+        write(review_checklist, review_checklist_text)
         tests_readme = root / "zigux/tests/README.md"
         tests_readme_text = tests_readme.read_text(encoding="utf-8")
         tests_readme.write_text(tests_readme_text.replace(TESTS_ROOT_MARKERS[0] + "\n", "", 1), encoding="utf-8")
         expect_failure(root, TESTS_ROOT_MARKERS[0])
+        write(tests_readme, tests_readme_text)
+        tests_readme.write_text(tests_readme_text + TESTS_ROOT_MARKERS[0] + "\n", encoding="utf-8")
+        expect_failure(root, f"tests_root:{TESTS_ROOT_MARKERS[0]}:expected_count=1:actual_count=2")
         write(tests_readme, tests_readme_text)
         closure = root / "Documentation/zigux/phase1-closure.md"
         closure_text = closure.read_text(encoding="utf-8")
@@ -434,10 +443,16 @@ def self_test() -> int:
         workflow.write_text(workflow_text.replace("run: python3 scripts/zigux/check-phase1-find-bit-validator-anchors.py\n", "", 1), encoding="utf-8")
         expect_failure(root, "workflow_exact:run: python3 scripts/zigux/check-phase1-find-bit-validator-anchors.py:expected_count=1:actual_count=0")
         write(workflow, workflow_text)
+        workflow.write_text(workflow_text + "run: python3 scripts/zigux/check-phase1-find-bit-validator-anchors.py\n", encoding="utf-8")
+        expect_failure(root, "workflow_exact:run: python3 scripts/zigux/check-phase1-find-bit-validator-anchors.py:expected_count=1:actual_count=2")
+        write(workflow, workflow_text)
         makefile = root / "zigux/Makefile"
         makefile_text = makefile.read_text(encoding="utf-8")
         makefile.write_text(makefile_text.replace("cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase1-find-bit-validator-anchors.py\n", "", 1), encoding="utf-8")
         expect_failure(root, "makefile_exact:cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase1-find-bit-validator-anchors.py:expected_count=1:actual_count=0")
+        write(makefile, makefile_text)
+        makefile.write_text(makefile_text + "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase1-find-bit-validator-anchors.py\n", encoding="utf-8")
+        expect_failure(root, "makefile_exact:cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase1-find-bit-validator-anchors.py:expected_count=1:actual_count=2")
         write(makefile, makefile_text)
         manifest_path = root / "zigux/tests/fixtures/phase1_helper_manifest.json"
         data = json.loads(manifest_path.read_text(encoding="utf-8"))
@@ -464,7 +479,7 @@ def self_test() -> int:
             expect_failure(root, rel)
             write(path, baseline)
     print("PHASE1_VALIDATOR_SELF_TEST=pass")
-    print("PHASE1_VALIDATOR_SELF_TEST_CASE_COUNT=15")
+    print("PHASE1_VALIDATOR_SELF_TEST_CASE_COUNT=21")
     return 0
 
 
