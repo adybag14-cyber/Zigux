@@ -25,10 +25,11 @@
       "gate_rollback_owner": "ABI and Runtime Team",
       "threshold_posture": "threshold_pending_until_runtime_atomic64_scope_widens",
       "current_correctness_replay": "make -C zigux phase4-runtime-atomic64-diff",
+      "threshold_ready_surface": "zigux/tests/runtime_atomic64_diff.zig keeps the post-selftest replay explicit for the current rollback gate",
       "benchmark_command": "unapproved_until_runtime_atomic64_scope_widens",
       "acceptable_limit": "unapproved_until_runtime_atomic64_scope_widens",
       "status": "pending_scope_widening",
-      "why_not_approved_yet": "The live atomic64 gate is still a bounded rollback-readiness slice, so Phase 4 keeps correctness-only coverage until a broader atomic64 benchmark entrypoint is explicitly added and reviewed."
+      "why_not_approved_yet": "The live atomic64 gate is still a bounded rollback-readiness slice, and `zigux/tests/runtime_atomic64_diff.zig` now keeps the post-selftest replay explicit, so Phase 4 keeps correctness-only coverage until a broader atomic64 benchmark entrypoint is explicitly added and reviewed."
     },
     {
       "surface": "zigux/tests/bitmap_diff.zig",
@@ -36,6 +37,7 @@
       "gate_rollback_owner": "Shared Subsystems Pod",
       "threshold_posture": "threshold_pending_until_bitmap_gate_grows_beyond_bounded_correctness_checks",
       "current_correctness_replay": "make -C zigux phase4-bitmap-diff",
+      "threshold_ready_surface": "zigux/tests/bitmap_diff.zig exposes runThresholdReplay() as the deterministic bitmap threshold batch for future perf-baseline work",
       "benchmark_command": "unapproved_until_bitmap_gate_grows_beyond_bounded_correctness_checks",
       "acceptable_limit": "unapproved_until_bitmap_gate_grows_beyond_bounded_correctness_checks",
       "status": "pending_bounded_benchmark",
