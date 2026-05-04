@@ -227,7 +227,6 @@ def run_self_test() -> int:
         assert any(issue.startswith("missing_shared_abi_header_snippet:") for issue in issues)
         _write_fixture(root / SHARED_ABI_HEADER_REL, SHARED_ABI_HEADER_REL)
 
-        (root / SHARED_ABI_BINDING_REL).writeText = None
         (root / SHARED_ABI_BINDING_REL).write_text(CONTAINS_RULES[SHARED_ABI_BINDING_REL][0] + "\n", encoding="utf-8")
         issues = validate(root)
         assert any(issue.startswith("missing_shared_abi_binding_snippet:") for issue in issues)
