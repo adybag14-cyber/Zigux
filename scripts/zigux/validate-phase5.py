@@ -249,7 +249,7 @@ MANIFEST_EXPECTATIONS = {
         "survey_result": "All 2 tests passed.",
     },
     "zigux/tests/phase5_kobject_example_manifest.json": {
-        "lane_key": "P5-L12",
+        "lane_key": "P5-L10",
         "phase": "Phase 5",
         "anchor": "samples/kobject/kobject-example.c",
         "sample_path": "samples/zigux/kobject_example.zig",
