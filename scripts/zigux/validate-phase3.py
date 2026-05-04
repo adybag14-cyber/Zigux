@@ -4,6 +4,7 @@ from __future__ import annotations
 import argparse
 import subprocess
 import tempfile
+from pathlib import Path
 
 from validate_phase3_core import (
     ROOT,
@@ -126,6 +127,16 @@ LOW_LEVEL_WRAPPER_BARRIER_ACQUIRE_RELEASE_MARKERS = {
     ),
 }
 
+ABI_EXACT_ONCE_MAKEFILE_SNIPPETS = (
+    "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase3-abi.py\n",
+    "\tcd $(ZIGUX_ROOT) && $(ZIG) build phase3-dump --build-file zigux/tests/build.zig\n",
+    "\tcd $(ZIGUX_ROOT) && $(ZIG) build phase3-export-uapi-test --build-file zigux/tests/phase3_export_uapi_build.zig\n",
+    "\tcd $(ZIGUX_ROOT) && $(ZIG) build phase3-export-uapi-layout-test --build-file zigux/tests/phase3_export_uapi_layout_build.zig\n",
+    "\tcd $(ZIGUX_ROOT) && $(ZIG) build phase3-low-level-wrappers-test --build-file zigux/tests/phase3_low_level_wrappers_build.zig\n",
+    "\tcd $(ZIGUX_ROOT) && $(ZIG) build phase3-policy-unsafe-test --build-file zigux/tests/phase3_policy_unsafe_build.zig\n",
+    "\tcd $(ZIGUX_ROOT) && $(ZIG) build phase3-test --build-file zigux/tests/build.zig\n",
+)
+
 
 def _run_script_self_test(script_name: str) -> int:
     script_path = ROOT / "scripts" / "zigux" / script_name
@@ -165,6 +176,24 @@ def _collect_script_validation_issues(
         issues.append(f"{issue_prefix}: stderr: {stderr.splitlines()[-1]}")
     if not issues:
         issues.append(f"{issue_prefix}: {script_name} exited with status {result.returncode}")
+    return issues
+
+
+def _collect_phase3_abi_makefile_exactness_issues(root: Path) -> list[str]:
+    makefile_path = root / "zigux" / "Makefile"
+    try:
+        makefile = makefile_path.read_text(encoding="utf-8")
+    except FileNotFoundError:
+        return ["abi-makefile-gate: missing_file:zigux/Makefile"]
+
+    issues: list[str] = []
+    for snippet in ABI_EXACT_ONCE_MAKEFILE_SNIPPETS:
+        actual_count = makefile.count(snippet)
+        if actual_count != 1:
+            issues.append(
+                "abi-makefile-gate: unexpected_makefile_snippet_count:"
+                f"{actual_count}:{snippet.rstrip()}"
+            )
     return issues
 
 
@@ -353,6 +382,42 @@ def _run_low_level_wrapper_barrier_marker_self_test() -> int:
     return 0
 
 
+def _run_phase3_abi_makefile_exactness_self_test() -> int:
+    with tempfile.TemporaryDirectory(prefix="zigux_phase3_abi_makefile_exactness_") as tmp_dir:
+        root = type(ROOT)(tmp_dir)
+        makefile_path = root / "zigux" / "Makefile"
+        makefile_path.parent.mkdir(parents=True, exist_ok=True)
+
+        makefile_path.write_text(
+            "phase3-abi:\n" + "".join(ABI_EXACT_ONCE_MAKEFILE_SNIPPETS),
+            encoding="utf-8",
+            newline="\n",
+        )
+        assert _collect_phase3_abi_makefile_exactness_issues(root) == []
+
+        makefile_path.write_text(
+            "phase3-abi:\n"
+            + "".join(ABI_EXACT_ONCE_MAKEFILE_SNIPPETS)
+            + ABI_EXACT_ONCE_MAKEFILE_SNIPPETS[0],
+            encoding="utf-8",
+            newline="\n",
+        )
+        assert _collect_phase3_abi_makefile_exactness_issues(root) == [
+            "abi-makefile-gate: unexpected_makefile_snippet_count:2:\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase3-abi.py"
+        ]
+
+        makefile_path.write_text(
+            "phase3-abi:\n" + "".join(ABI_EXACT_ONCE_MAKEFILE_SNIPPETS[:-1]),
+            encoding="utf-8",
+            newline="\n",
+        )
+        assert _collect_phase3_abi_makefile_exactness_issues(root) == [
+            "abi-makefile-gate: unexpected_makefile_snippet_count:0:\tcd $(ZIGUX_ROOT) && $(ZIG) build phase3-test --build-file zigux/tests/build.zig"
+        ]
+
+    return 0
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description="Validate the bounded Phase 3 slice catalog and metadata.")
     parser.add_argument("--slug", action="append", default=[], help="Only validate the named Phase 3 slug. Repeat to validate more than one.")
@@ -376,6 +441,9 @@ def main() -> int:
         if result != 0:
             return result
         result = _run_low_level_wrapper_barrier_marker_self_test()
+        if result != 0:
+            return result
+        result = _run_phase3_abi_makefile_exactness_self_test()
         if result != 0:
             return result
         result = _run_survey_aggregation_self_test()
@@ -424,6 +492,7 @@ def main() -> int:
                 },
             )
         )
+    issues.extend(_collect_phase3_abi_makefile_exactness_issues(ROOT))
     for script_name, failure_banner, issue_prefix, _ in SURVEY_VALIDATION_SCRIPTS:
         issues.extend(
             _collect_script_validation_issues(
