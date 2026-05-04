@@ -625,6 +625,24 @@ test "memparse preserves the header-level string helper contract" {
     try std.testing.expectEqualStrings("", saturated_suffix.rest);
 }
 
+test "memparse stays aligned with the cmdline safety parser" {
+    const cases = [_][]const u8{
+        "64KiB rest",
+        "-xyz",
+        "+nope",
+        "9223372036854775808",
+        "-9223372036854775809",
+        "18446744073709551615K",
+    };
+
+    for (cases) |case_text| {
+        const string_result = memparse(case_text);
+        const cmdline_result = cmdline.memparse(case_text);
+        try std.testing.expectEqual(cmdline_result.value, string_result.value);
+        try std.testing.expectEqualStrings(cmdline_result.rest, string_result.rest);
+    }
+}
+
 test "memchrInv scans aligned and misaligned long buffers" {
     var aligned = [_]u8{'a'} ** 24;
     aligned[17] = 'X';
