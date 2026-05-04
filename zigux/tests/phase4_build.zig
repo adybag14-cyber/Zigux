@@ -62,6 +62,12 @@ pub fn build(b: *std.Build) void {
     });
     bitmap_diff_module.addImport("bitmap", bitmap_module);
     bitmap_diff_module.addImport("find_bit", find_bit_module);
+    const bitmap_bench_module = b.createModule(.{
+        .root_source_file = b.path("phase4_bitmap_bench.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    bitmap_bench_module.addImport("bitmap_diff", bitmap_diff_module);
 
     const atomic64_diff_tests = b.addTest(.{
         .name = "phase4-runtime-atomic64-diff-tests",
@@ -121,6 +127,18 @@ pub fn build(b: *std.Build) void {
         "Run the bounded Phase 4 bitmap diff gate in isolation",
     );
     bitmap_step.dependOn(&run_bitmap_diff_tests.step);
+
+    const bitmap_bench = b.addExecutable(.{
+        .name = "phase4-bitmap-bench",
+        .root_module = bitmap_bench_module,
+    });
+    const run_bitmap_bench = b.addRunArtifact(bitmap_bench);
+    run_bitmap_bench.skip_foreign_checks = true;
+    const bitmap_bench_step = b.step(
+        "phase4-bitmap-bench",
+        "Run the isolated Phase 4 bitmap benchmark route for the deterministic threshold batch",
+    );
+    bitmap_bench_step.dependOn(&run_bitmap_bench.step);
 
     const test_step = b.step("test", "Run Phase 4 differential validation and survey tests");
     test_step.dependOn(&run_atomic64_diff_tests.step);
