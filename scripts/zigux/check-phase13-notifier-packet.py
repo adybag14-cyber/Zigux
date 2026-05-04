@@ -36,6 +36,7 @@ C_HEADER_MARKERS = [
     "struct zigux_notifier_chain_view",
     "struct zigux_notifier_chain_summary",
     "zigux_notifier_chain_view_from_head",
+    "zigux_notifier_chain_view_valid",
     "zigux_notifier_chain_empty",
     "zigux_notifier_chain_length_bounded",
     "zigux_notifier_chain_summarize",
@@ -54,8 +55,10 @@ HELPER_MARKERS = [
 REVIEWABILITY_MARKERS = [
     'test "phase13 notifier/list survey records the landed read-only generic notifier foothold"',
     'try std.testing.expectEqualStrings("P13-L19", manifest.lane_key);',
+    'try std.testing.expect(std.mem.indexOf(u8, notifier_c_header_text, "zigux_notifier_chain_view_valid") != null);',
     'try std.testing.expect(std.mem.indexOf(u8, notifier_c_header_text, "zigux_notifier_chain_summarize") != null);',
     'try std.testing.expect(std.mem.indexOf(u8, survey_note, "include/zigux/notifier_abi.h") != null);',
+    'try std.testing.expect(std.mem.indexOf(u8, survey_note, "`zigux_notifier_chain_view_valid()`") != null);',
     'try std.testing.expect(found_c_header_gap);',
 ]
 
@@ -76,6 +79,8 @@ SURVEY_MARKERS = [
     "lane key: `P13-L19`",
     "zigux/bindings/notifier_abi.zig",
     "include/zigux/notifier_abi.h",
+    "`zigux_notifier_chain_view_valid()`",
+    "reserved or zero-bounded views",
     "zigux/helpers/notifier_chain_view.zig",
     "`viewFromHead`, `isEmpty`, `length`, and `summarize`",
     "keeps the dedicated exported C header small",
