@@ -51,14 +51,14 @@
       "status": "starter_landed",
       "kind": "simple_driver_starter",
       "zigux_destination": "drivers/watchdog/dw_wdt.zig",
-      "why_now": "The bounded starter already derives fixed TOP timeout windows, mirrors reset-mode versus IRQ-mode timeout selection and pretimeout bookkeeping, and now exposes both a probe-time summary and a registration-facing handoff alongside register-image transitions, plus a bounded `summarizeRemoveHandoff()` packet for debugfs clear, unregister-device ordering, and reset-control-backed versus non-reset remove fallout without claiming platform-backed behavior."
+      "why_now": "The bounded starter already derives fixed TOP timeout windows, mirrors reset-mode versus IRQ-mode timeout selection and pretimeout bookkeeping, and now exposes both a probe-time summary and a registration-facing handoff alongside register-image transitions, plus a bounded `summarizeRemoveHandoff()` packet for the unconditional debugfs clear call site, unregister-device ordering, and reset-control-backed versus non-reset remove fallout without claiming live debugfs support or platform-backed behavior."
     },
     {
       "id": "phase11-dw-wdt-driver-tests",
       "status": "starter_landed",
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase11_dw_wdt.zig",
-      "why_now": "Dedicated Phase 11 tests now keep fixed-top limits, custom-top ordering, probe-time bookkeeping, registration-facing watchdog info and parent handoff details, platform-resource preflight and live resource-order sequencing, reset-mode and IRQ-mode timeout behavior, restart intent, non-stoppable stop semantics, and remove-handoff teardown parity reviewable around the landed starter."
+      "why_now": "Dedicated Phase 11 tests now keep fixed-top limits, custom-top ordering, probe-time bookkeeping, registration-facing watchdog info and parent handoff details, platform-resource preflight and live resource-order sequencing, reset-mode and IRQ-mode timeout behavior, restart intent, non-stoppable stop semantics, remove-handoff teardown parity, and the debugfs-clear call-site ownership boundary reviewable around the landed starter."
     },
     {
       "id": "phase11-dw-wdt-watchdog-header-boundary",
@@ -72,14 +72,14 @@
       "status": "starter_landed",
       "kind": "documentation",
       "zigux_destination": "Documentation/zigux/phase11-dw-wdt-slice.md",
-      "why_now": "The slice note now records the exact starter contract, including the bounded remove-handoff teardown packet, so the repo does not blur the current in-memory driver model into clock, reset, IRQ, debugfs, or hardware-backed parity."
+      "why_now": "The slice note now records the exact starter contract, including the bounded remove-handoff teardown packet and its debugfs-clear ownership boundary, so the repo does not blur the current in-memory driver model into clock, reset, IRQ, debugfs, or hardware-backed parity."
     },
     {
       "id": "phase11-dw-wdt-validation-matrix",
       "status": "starter_landed",
       "kind": "documentation",
       "zigux_destination": "Documentation/zigux/phase11-dw-wdt-validation-matrix.md",
-      "why_now": "A dedicated validation matrix now centralizes the shared Phase 11 test gate, fixed-TOP timeout evidence, IRQ pretimeout bookkeeping, imported running-state handoff evidence, bounded suspend-resume state-preservation evidence, non-stoppable stop failure-mode coverage, the landed remove-handoff teardown parity, the landed platform-resource preflight plus live resource-order summary, and the exact replay commands so the DesignWare lane does not overclaim platform-driver or PM parity."
+      "why_now": "A dedicated validation matrix now centralizes the shared Phase 11 test gate, fixed-TOP timeout evidence, IRQ pretimeout bookkeeping, imported running-state handoff evidence, bounded suspend-resume state-preservation evidence, non-stoppable stop failure-mode coverage, the landed remove-handoff teardown parity, the debugfs-clear call-site boundary, the landed platform-resource preflight plus live resource-order summary, and the exact replay commands so the DesignWare lane does not overclaim platform-driver or PM parity."
     },
     {
       "id": "phase11-dw-wdt-probe-summary",
