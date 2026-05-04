@@ -39,13 +39,17 @@ Phase 6 is where Zigux can keep proving low-risk in-kernel helper ports without 
 - `python3 scripts/zigux/check-phase6-hexdump-c-parity.py --self-test`
 - `python3 scripts/zigux/check-phase6-hexdump-c-parity.py`
 
-3. run the focused Zig Phase 6 helper tests
+3. run the shared checksum-plus-hexdump perf-marker guard when touching perf reporting, thresholds, or reference-path wording
+- `python3 scripts/zigux/check-phase6-checksum-hexdump-perf-markers.py --self-test`
+- `python3 scripts/zigux/check-phase6-checksum-hexdump-perf-markers.py`
+
+4. run the focused Zig Phase 6 helper tests
 - `zig build test --build-file zigux/tests/phase6_build.zig`
 
-4. keep the helper wired through the Zigux convenience target
+5. keep the helper wired through the Zigux convenience target
 - `make -C zigux phase6`
 
-5. replay the hexdump perf sanity harness when reviewing formatter-cost drift
+6. replay the hexdump perf sanity harness when reviewing formatter-cost drift
 - `zig build hexdump-perf --build-file zigux/tests/phase6_build.zig`
 - or `make -C zigux phase6-hexdump-perf`
 
@@ -85,6 +89,7 @@ The current tests check:
 - exact `required + 1` caller-buffer coverage for the non-truncating formatter path, keeping the grouped plain and grouped ASCII fast path aligned with the same fixture output and NUL-termination contract as the roomy replay
 - a replayable perf-sanity harness reports representative dump cost per call and per byte for plain, grouped, and ASCII formatter paths through the shared `zigux/tests/fixtures/phase6_hexdump_vectors.zig` perf-case table, including the native-endian 4-byte and 8-byte grouped ASCII branches
 - the same perf harness now measures helper output against the committed `fixtures.prepareExpectedLine(...)` reference path, keeping `16B-plain` at `max_slowdown_pct = 175` while the grouped ASCII `32B-ascii-g2` and `16B-ascii-g4` replays use `max_slowdown_pct = 550` and the wider native-endian `16B-ascii-g8` replay uses `max_slowdown_pct = 600`
+- the shared `python3 scripts/zigux/check-phase6-checksum-hexdump-perf-markers.py` guard now keeps that perf packet fail-closed around the per-call, per-byte, slowdown, required-length, and reference-path markers before broader Phase 6 replay claims stay green
 - an external C-vs-Zig spot check through `python3 scripts/zigux/check-phase6-hexdump-c-parity.py`, `zigux/tests/phase6_hexdump_c_parity.zig`, and `zigux/tests/fixtures/phase6_hexdump_c_harness.c`, now covering 29 deterministic lines across mixed-case decode, lower and upper whole-buffer encode, append-style encode, four length probes, ten formatter outputs, and four truncation paths, including the native-endian grouped-2 plain and ASCII formatter lines that were previously only proven inside the Zig-side review packet
 
 This is enough evidence to leave the bounded hexdump helper lane parked unless a concrete new parity, perf, or directly coupled review-packet gap appears in the live repo.
