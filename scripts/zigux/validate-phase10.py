@@ -191,6 +191,10 @@ RING_HELPER_MARKERS = [
     "pub fn resetGuardSummary(",
     "pub fn resetQueue(",
     "pub fn recoverBrokenQueue(",
+    "pub fn breakQueue(",
+    "pub fn unbreakQueue(",
+    "pub fn brokenSummary(",
+    "pub fn teardownSummary(",
 ]
 
 MMIO_HELPER_MARKERS = [
@@ -204,6 +208,11 @@ RING_TEST_MARKERS = [
     'test "phase10 virtio ring delays callbacks until most outstanding buffers are consumed" {',
     'test "phase10 virtio ring reset rejects queues with unpublished or unpolled work" {',
     'test "phase10 virtio ring reset clears drained queue bookkeeping without dropping queue shape" {',
+    'test "phase10 virtio ring blocks publish and kick work while the queue is marked broken" {',
+    'test "phase10 virtio ring keeps pending used debt reviewable but blocks poll helpers until unbreak" {',
+    'test "phase10 virtio ring can resume queue-local publish and kick bookkeeping after unbreak" {',
+    'test "phase10 virtio ring teardown summary marks drained broken queues ready for parked teardown" {',
+    'test "phase10 virtio ring teardown summary keeps publish and poll debt visible" {',
 ]
 
 RING_RESET_REUSE_TEST_MARKERS = [
@@ -742,6 +751,38 @@ def run_self_test() -> int:
         )
         write_fixture_tree(tmp_root)
 
+        ring_helper_path = tmp_root / "drivers/virtio/virtio_ring.zig"
+        ring_helper_path.write_text(
+            read_text(tmp_root, "drivers/virtio/virtio_ring.zig").replace(
+                "pub fn teardownSummary(",
+                "pub fn teardownDrift(",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "ring_teardown_helper_guard",
+            tmp_root,
+            "ring_helper:pub fn teardownSummary(",
+        )
+        write_fixture_tree(tmp_root)
+
+        ring_tests_path = tmp_root / "zigux/tests/phase10_virtio_ring.zig"
+        ring_tests_path.write_text(
+            read_text(tmp_root, "zigux/tests/phase10_virtio_ring.zig").replace(
+                'test "phase10 virtio ring keeps pending used debt reviewable but blocks poll helpers until unbreak" {',
+                'test "phase10 virtio ring broken-poll drift" {',
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "ring_broken_poll_test_guard",
+            tmp_root,
+            'ring_tests:test "phase10 virtio ring keeps pending used debt reviewable but blocks poll helpers until unbreak" {',
+        )
+        write_fixture_tree(tmp_root)
+
         input_manifest_path = tmp_root / "zigux/tests/phase10_virtio_input_manifest.json"
         input_manifest = json.loads(input_manifest_path.read_text(encoding="utf-8"))
         for gap in input_manifest["gaps"]:
@@ -910,7 +951,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE10_VALIDATOR_SELF_TEST=pass")
-    print("PHASE10_VALIDATOR_SELF_TEST_CASE_COUNT=17")
+    print("PHASE10_VALIDATOR_SELF_TEST_CASE_COUNT=19")
     return 0
 
 
