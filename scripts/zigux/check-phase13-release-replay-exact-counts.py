@@ -18,6 +18,7 @@ SHARED_REPLAY_STEPS = [
     "phase13-libfs-tests",
     "phase13-devres-tests",
     "phase13-devres-dma-coherent-tests",
+    "phase13-devres-scatterlist-tests",
     "phase13-devres-iounmap-reviewability-tests",
     "phase13-devres-iomap-reviewability-tests",
     "phase13-landlock-ruleset-tests",
@@ -33,7 +34,7 @@ SHARED_REPLAY_STEPS = [
 ]
 
 RELEASE_SURVEY_COUNT_MARKERS = [
-    "`PHASE13_SHARED_REPLAY_STEP_COUNT=15`",
+    "`PHASE13_SHARED_REPLAY_STEP_COUNT=16`",
     "The current shared replay inventory is:",
 ]
 
@@ -90,7 +91,7 @@ def run_self_test() -> int:
     release_survey_text = "\n".join([
         "# Phase 13 Release Notes Survey",
         "",
-        "- `PHASE13_SHARED_REPLAY_STEP_COUNT=15`",
+        "- `PHASE13_SHARED_REPLAY_STEP_COUNT=16`",
         "",
         "The current shared replay inventory is:",
         "",
@@ -122,7 +123,7 @@ def run_self_test() -> int:
         ),
         (
             "missing_replay_count_marker",
-            release_survey_text.replace("- `PHASE13_SHARED_REPLAY_STEP_COUNT=15`\n", "", 1),
+            release_survey_text.replace("- `PHASE13_SHARED_REPLAY_STEP_COUNT=16`\n", "", 1),
             build_text,
             makefile_text,
             workflow_text,
