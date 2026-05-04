@@ -200,6 +200,7 @@ PHASE2_KCONFIG_REQUIRED_SOURCE_MARKERS = [
     "compare_text_artifacts(default_actual, default_rebuild)",
     "input_path=trailing_cr_input",
     "input_path=final_unset_input",
+    "confdata bridge normalizes a trailing carriage return on the final unterminated line",
     "print('KCONFIG_BRIDGE_DETERMINISM=pass')",
 ]
 PHASE2_KCONFIG_REQUIRED_WORKFLOW_COUNTS = {
