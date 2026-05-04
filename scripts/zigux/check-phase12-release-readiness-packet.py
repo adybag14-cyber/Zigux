@@ -148,7 +148,22 @@ RAW_COVERAGE_MARKERS = [
     "scripts/zigux/check-phase12-raw-github-coverage.py",
     "zigux/tests/phase12_raw_github_coverage_manifest.json",
     "zigux/tests/phase12_raw_github_coverage_survey.zig",
+    "one anchor keeps a commit-pinned raw fallback catalog with a last bounded replay note: `Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md`",
+    "one anchor keeps a commit-pinned raw fallback map for the archived NVMe packet: `Documentation/zigux/phase12-nvme-pci-raw-github-fallback-map.md`",
+    "two anchors remain shared-tree-only fallback reads: `virtio_net` and `libbpf`",
+    "`PHASE12_COMMIT_PINNED_RAW_FALLBACK_COUNT=2`",
+    "`PHASE12_SHARED_TREE_ONLY_FALLBACK_COUNT=2`",
+    "`PHASE12_SHARED_TREE_READBACK_ROOT_COUNT=4`",
 ]
+
+RAW_COVERAGE_EXACT_COUNT_MARKERS = {
+    "one anchor keeps a commit-pinned raw fallback catalog with a last bounded replay note: `Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md`": 1,
+    "one anchor keeps a commit-pinned raw fallback map for the archived NVMe packet: `Documentation/zigux/phase12-nvme-pci-raw-github-fallback-map.md`": 1,
+    "two anchors remain shared-tree-only fallback reads: `virtio_net` and `libbpf`": 1,
+    "`PHASE12_COMMIT_PINNED_RAW_FALLBACK_COUNT=2`": 1,
+    "`PHASE12_SHARED_TREE_ONLY_FALLBACK_COUNT=2`": 1,
+    "`PHASE12_SHARED_TREE_READBACK_ROOT_COUNT=4`": 1,
+}
 
 
 def read_text(path: str) -> str:
@@ -213,6 +228,13 @@ def collect_missing(
     )
     missing.extend(collect_marker_misses(cross_smoke_text, CROSS_SMOKE_MARKERS, "cross_smoke"))
     missing.extend(collect_marker_misses(raw_coverage_text, RAW_COVERAGE_MARKERS, "raw_coverage"))
+    missing.extend(
+        collect_exact_count_misses(
+            raw_coverage_text,
+            RAW_COVERAGE_EXACT_COUNT_MARKERS,
+            "raw_coverage_count",
+        )
+    )
     return missing
 
 
@@ -614,6 +636,64 @@ def run_self_test() -> int:
     missing = collect_missing(
         **{
             **base_inputs,
+            "raw_coverage_text": base_inputs["raw_coverage_text"].replace(
+                "one anchor keeps a commit-pinned raw fallback catalog with a last bounded replay note: `Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md`\n",
+                "",
+                1,
+            ),
+        }
+    )
+    expect_contains(
+        "raw_coverage_catalog_split_detection",
+        missing,
+        "raw_coverage:one anchor keeps a commit-pinned raw fallback catalog with a last bounded replay note: `Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md`",
+    )
+
+    missing = collect_missing(
+        **{
+            **base_inputs,
+            "raw_coverage_text": base_inputs["raw_coverage_text"]
+            + "one anchor keeps a commit-pinned raw fallback map for the archived NVMe packet: `Documentation/zigux/phase12-nvme-pci-raw-github-fallback-map.md`\n",
+        }
+    )
+    expect_contains(
+        "raw_coverage_map_split_exact_count_detection",
+        missing,
+        "raw_coverage_count:one anchor keeps a commit-pinned raw fallback map for the archived NVMe packet: `Documentation/zigux/phase12-nvme-pci-raw-github-fallback-map.md`:expected=1:actual=2",
+    )
+
+    missing = collect_missing(
+        **{
+            **base_inputs,
+            "raw_coverage_text": base_inputs["raw_coverage_text"].replace(
+                "`PHASE12_SHARED_TREE_READBACK_ROOT_COUNT=4`\n",
+                "",
+                1,
+            ),
+        }
+    )
+    expect_contains(
+        "raw_coverage_readback_root_count_detection",
+        missing,
+        "raw_coverage_count:`PHASE12_SHARED_TREE_READBACK_ROOT_COUNT=4`:expected=1:actual=0",
+    )
+
+    missing = collect_missing(
+        **{
+            **base_inputs,
+            "raw_coverage_text": base_inputs["raw_coverage_text"]
+            + "two anchors remain shared-tree-only fallback reads: `virtio_net` and `libbpf`\n",
+        }
+    )
+    expect_contains(
+        "raw_coverage_shared_tree_split_exact_count_detection",
+        missing,
+        "raw_coverage_count:two anchors remain shared-tree-only fallback reads: `virtio_net` and `libbpf`:expected=1:actual=2",
+    )
+
+    missing = collect_missing(
+        **{
+            **base_inputs,
             "contract_note_text": base_inputs["contract_note_text"].replace(
                 CONTRACT_NOTE_MARKERS[0] + "\n",
                 "",
@@ -766,7 +846,7 @@ def run_self_test() -> int:
     expect_contains("raw_coverage_marker_detection", missing, "raw_coverage:shared-tree-only")
 
     print("PHASE12_RELEASE_READINESS_PACKET_SELF_TEST=pass")
-    print("PHASE12_RELEASE_READINESS_PACKET_SELF_TEST_CASE_COUNT=37")
+    print("PHASE12_RELEASE_READINESS_PACKET_SELF_TEST_CASE_COUNT=41")
     return 0
 
 
