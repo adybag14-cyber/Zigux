@@ -56,6 +56,13 @@
       "why_now": "A dedicated manifest keeps the roadmap anchor, bounded helper surface, shared fixture layer, and directly coupled survey packet machine-readable in the same way as the sibling Phase 7 helper lanes."
     },
     {
+      "id": "phase7-string-helpers-sample-boundary",
+      "status": "starter_landed",
+      "kind": "validation",
+      "zigux_destination": "zigux/tests/phase7_string_helpers_sample_boundary.zig",
+      "why_now": "A dedicated sample-boundary gate keeps the no-string-sample policy machine-checked beside the helper packet instead of leaving that review boundary implicit across the sample-root and slice notes."
+    },
+    {
       "id": "phase7-string-helpers-survey-gate",
       "status": "starter_landed",
       "kind": "validation",
