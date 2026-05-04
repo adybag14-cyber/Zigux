@@ -138,7 +138,7 @@ No additional helper should be called Phase 1 work unless this document and the 
 - rbtree iterator unit-test anchor: `tools/lib/rbtree.zig:test "rbtree iterateMatches streams only the duplicate range"`
 - rbtree reverse unit-test anchor: `tools/lib/rbtree.zig:test "rbtree iterateMatchesReverse streams only the duplicate range in reverse"`
 - rbtree postorder iterator unit-test anchor: `tools/lib/rbtree.zig:test "rbtree iteratePostorder streams the full postorder walk once"`
-- rbtree postorder safe unit-test anchor: `tools/lib/rbtree.zig:test "rbtree iteratePostorderSafe caches the next node before node invalidation"`
+- rbtree postorder safe unit-test anchor: `tools/lib/rbtree.zig:test "rbtree iteratePostorderSafe survives erase-driven rebalancing"`
 - rbtree postorder safe rebalance unit-test anchor: `tools/lib/rbtree.zig:test "rbtree iteratePostorderSafe survives erase-driven rebalancing"`
 
 - `PHASE1_RBTREE_FIXTURE=zigux/tests/fixtures/phase1_helpers.json`
