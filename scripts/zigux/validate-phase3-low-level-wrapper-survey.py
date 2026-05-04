@@ -468,6 +468,23 @@ def run_self_test() -> int:
         _write(root, MAKEFILE_REL, "\n".join(REQUIRED_MAKEFILE_SNIPPETS) + "\n")
         _write(
             root,
+            ATOMIC_REL,
+            "\n".join(
+                snippet
+                for snippet in REQUIRED_ATOMIC_SNIPPETS
+                if snippet
+                != "pub fn fetchMin(comptime T: type, ptr: *T, value: T, comptime order: std.builtin.AtomicOrder) T {"
+            ) + "\n",
+        )
+        issues = validate(root)
+        assert (
+            "missing_atomic_snippet:pub fn fetchMin(comptime T: type, ptr: *T, value: T, comptime order: std.builtin.AtomicOrder) T {"
+            in issues
+        )
+
+        _write(root, ATOMIC_REL, "\n".join(REQUIRED_ATOMIC_SNIPPETS) + "\n")
+        _write(
+            root,
             LOW_LEVEL_TEST_REL,
             "\n".join(
                 snippet
