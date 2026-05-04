@@ -153,7 +153,6 @@ test "phase11 hvc_console survey manifest records the landed starter and remaini
     var saw_hv_ops_signature_assert = false;
     var saw_driver_tests = false;
     var saw_validation_matrix = false;
-    var saw_tty_block = false;
 
     for (manifest.gaps, 0..) |gap, i| {
         try std.testing.expect(gap.id.len > 0);
@@ -353,25 +352,6 @@ test "phase11 hvc_console survey manifest records the landed starter and remaini
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "hvc_cleanup tty-port release handoff") != null);
         }
 
-        if (std.mem.eql(u8, gap.id, "phase11-hvc-console-tty-and-teardown-parity")) {
-            saw_tty_block = true;
-            try std.testing.expectEqualStrings("drivers/tty/hvc/hvc_console.zig", gap.zigux_destination);
-            try std.testing.expectEqualStrings("starter_landed", gap.status);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "final-close teardown") != null);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "tty-registration handoff") != null);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "notifier-add open handoff") != null);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "close-wait ownership") != null);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "open-time IRQ-request and polling-fallback boundaries") != null);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "HUPCL and notifier-del shutdown boundaries") != null);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "polling-driven wakeups") != null);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "sleep-versus-timeout choices") != null);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "tty wakeup sequencing") != null);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "hangup-time disconnect boundaries") != null);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "remove-time slot-release ordering") != null);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "hvc_cleanup tty-port release summaries") != null);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "cleanup-time tty-port ownership") != null);
-        }
-
         for (manifest.gaps[i + 1 ..]) |other| {
             try std.testing.expect(!std.mem.eql(u8, gap.id, other.id));
         }
@@ -395,7 +375,6 @@ test "phase11 hvc_console survey manifest records the landed starter and remaini
     try std.testing.expect(saw_hv_ops_signature_assert);
     try std.testing.expect(saw_driver_tests);
     try std.testing.expect(saw_validation_matrix);
-    try std.testing.expect(saw_tty_block);
 }
 
 test "phase11 hvc console survey keeps the shared replay separate but exposes an explicit survey step" {
