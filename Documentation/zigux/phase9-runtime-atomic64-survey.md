@@ -21,6 +21,7 @@ This document tracks the bounded Phase 9 runtime pilot-module survey around `lib
   - `Documentation/zigux/phase9-runtime-atomic64-survey.md`
   - `Documentation/zigux/phase9-runtime-atomic64-module-slice.md`
   - `Documentation/zigux/phase9-runtime-loader-gap-survey.md`
+  - `Documentation/zigux/phase9-runtime-loader-substrate-plan.md`
   - `Documentation/zigux/freeze-map.md`
 
 ## Why this slice exists
@@ -31,7 +32,9 @@ The live repo originally carried the Linux atomic64 runtime test without any ded
 
 The shared runtime-loader blocker that still governs this atomic64 packet also sits underneath the freeze map's study boundary. `Documentation/zigux/freeze-map.md` keeps `kernel/workqueue.c` in `Study / Boundary Only`, so this lane may ship a bounded in-memory starter, sample-side loader scaffold, and shared loader-request binding, but it must not imply workqueue parity, scheduler transport ownership, or any Architecture Council-approved status change for that study-only anchor.
 
-No parity scorecard entry or Architecture Council status-change request is attached to this Phase 9 atomic64 lane. The evidence here remains limited to the runtime starter, loader scaffold, shared request binding, the module-slice note that describes the starter packet, and the still-blocked shared loader-control posture that keeps the packet pre-execution.
+That blocked shared-loader packet now spans both `Documentation/zigux/phase9-runtime-loader-gap-survey.md` and `Documentation/zigux/phase9-runtime-loader-substrate-plan.md`. This atomic64 survey therefore keeps both notes in the same reviewable boundary packet whenever the adjacent loader-stage vocabulary, without-substrate fallback posture, or shared handoff wording changes under the same study-only `kernel/workqueue.c` rule.
+
+No parity scorecard entry or Architecture Council status-change request is attached to this Phase 9 atomic64 lane. The evidence here remains limited to the runtime starter, loader scaffold, shared request binding, the module-slice note that describes the starter packet, the paired loader-gap and loader-substrate-plan notes that describe the still-blocked shared loader packet, and the still-blocked shared loader-control posture that keeps the packet pre-execution.
 
 ## Survey findings
 
@@ -78,6 +81,7 @@ The manifest-backed ownership packet for this slice now keeps the current delive
 - `samples/zigux/runtime_atomic64_loader.zig` owns the sample-side loader projection, explicit shared `command_name` preservation, prepared counter-summary snapshot replay, `waiting_on_runtime_substrate` handoff, `released_without_substrate` fallback, and atomic64 payload summary
 - `zigux/kernel/runtime_loader.zig` owns the shared runtime-loader request contract that consumes the atomic64 loader handoff, allocator posture, staged entry and exit symbols, and prepared counter-summary snapshot replay
 - `Documentation/zigux/phase9-runtime-loader-gap-survey.md` owns the still-blocked shared command-name, argv-policy, and environment-derived activation-control posture that keeps this atomic64 packet pre-execution
+- `Documentation/zigux/phase9-runtime-loader-substrate-plan.md` owns the shared loader-stage vocabulary and the adjacent atomic64 handoff-alignment note that keep this packet coupled to the still-blocked shared loader review surface
 - `Documentation/zigux/freeze-map.md` owns the study-only `kernel/workqueue.c` boundary and the Architecture Council reopen rule that keep this atomic64 packet out of scheduler-facing parity claims
 
 ## Recorded gaps
