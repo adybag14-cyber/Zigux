@@ -87,7 +87,7 @@ This survey keeps that release reading aligned without inventing new helper prog
 
 The current Phase 13 release-facing reading is:
 
-- `fs/libfs.c`: helper slice landed, dedicated tests present, roadmap traceability present, manifest-backed survey present
+- `fs/libfs.c`: helper slice landed, dedicated tests present, roadmap traceability present, manifest-backed survey present, and the landed `generic_check_addressable()` planner keeps the last pure non-live addressability step explicit while deeper cursor traversal, inode lifecycle work, and pseudo-filesystem ownership stay blocked on live VFS state
 - `lib/devres.c`: helper slice landed, dedicated tests present, roadmap traceability present, manifest-backed survey present, and helper-first MMIO or resource planners keep live DMA-backed mappings and scatterlist ownership explicitly blocked
 - `security/landlock/ruleset.c`: helper slice landed, dedicated tests present, dedicated reviewability gate present, roadmap traceability present, manifest-backed survey present
 - `security/landlock/syscalls.c`: helper slice landed, dedicated tests present, dedicated reviewability gate present, roadmap traceability present, manifest-backed survey present
@@ -136,7 +136,7 @@ The current manifest lane ownership carried by the release packet is:
 
 Shared helper sequencing on top of those manifest-owner keys is now:
 
-- `fs/libfs.c`: keep the pure helper-next step under `P13-L01` for `generic_check_addressable()`, and keep `P13-L03` verification-only unless a real helper landing or traceability drift appears
+- `fs/libfs.c`: keep `P13-L01` narrowed to libfs survey-local or traceability-local drift now that `generic_check_addressable()` is already landed, and keep `P13-L03` verification-only unless a real packet-alignment failure or focused libfs replay regression appears
 - `lib/devres.c`: keep helper expansion parked behind `P13-L06` until a concrete exported-helper gap appears, and keep `P13-L07` verification-only unless a focused devres replay fails or a helper-local regression surfaces
 - `security/landlock/ruleset.c`: keep the remaining helper-only boundary work, if any, under `P13-L12` and do not reopen it from shared release notes unless the manifest-backed packet or shared replay drifts
 - `security/landlock/syscalls.c`: keep `P13-L16` narrowed to packet drift or tiny validation-only cleanup and do not widen it from the shared release packet into new syscall helper scope
