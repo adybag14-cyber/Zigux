@@ -59,7 +59,7 @@ Those files should keep the manifest-backed catalog, shared replay entrypoint, m
 The tests-root packet should continue to keep the shared `RuntimeLoadRequest` boundary explicit:
 - `samples/zigux/runtime_atomic64_loader.zig`, `samples/zigux/runtime_bitmap_loader.zig`, and `samples/zigux/runtime_kretprobe_loader.zig` should continue to route their bounded loader-plan evidence through `zigux/kernel/runtime_loader.zig` and its shared `RuntimeLoadRequest` surface.
 - `samples/zigux/runtime_trace_events_loader.zig` remains an adjacent scaffold until the blocked trace-events substrate handoff can truthfully adopt that same request path.
-- `zigux/tests/runtime_loader_gap_manifest.json` and `zigux/tests/runtime_loader_gap_survey.zig` should keep that shared-request boundary reviewable beside the same without-substrate fallback posture and the current sample-only blocked trace-events pilot.
+- `zigux/tests/runtime_loader_gap_manifest.json`, `zigux/tests/runtime_loader_gap_survey.zig`, `scripts/zigux/check-phase9-loader-substrate-plan.py`, and `Documentation/zigux/phase9-runtime-loader-substrate-plan.md` should keep that shared-request boundary reviewable beside the same manifest-backed catalog, ownership map, without-substrate fallback posture, and the current sample-only blocked trace-events pilot.
 - `Documentation/zigux/freeze-map.md` should keep `kernel/trace/ring_buffer.c` explicit as `Study / Boundary Only` beside that same blocked trace-events pilot until an Architecture Council decision reopens the boundary.
 
 ## Validator-first route
