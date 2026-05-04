@@ -34,7 +34,7 @@ The honest Phase 14 move here is therefore not to start a `ring_buffer.zig` file
 - `Documentation/trace/ring-buffer-map.rst` is present at 106 lines and adds mmap-facing reader, sub-buffer, and tracefs limitation behavior that would be easy to understate in a premature Zig wrapper.
 - `kernel/trace/simple_ring_buffer.c` exists as a much smaller 517-line companion, which reinforces that the full tracing ring buffer is the complex path and should not be treated like a straightforward helper port.
 - the live repo already had `zigux/tests/phase14_build.zig`, `zigux/Makefile` Phase 14 wiring, `Documentation/zigux/freeze-map.md`, and the workqueue bridge slice, so the highest-value non-overlapping ring-buffer step is a survey gate rather than another starter implementation.
-- the survey manifest now records a landed decision checklist around reserve or commit publication, head-page and reader-page handoff, remote-reader metadata, wakeup or mmap-facing publication, tracefs mapping limitations, reader-page consume boundaries, page-count resize workqueue coordination, and reset or clear-path governance so later runs can deepen the audit without inventing `kernel/trace/ring_buffer.zig`.
+- the survey manifest now records a landed decision checklist around reserve or commit publication, head-page and reader-page handoff, remote-reader metadata, wakeup or mmap-facing publication, tracefs mapping limitations, reader-page consume boundaries, tracefs reader serialization, page-count resize workqueue coordination, and reset or clear-path governance so later runs can deepen the audit without inventing `kernel/trace/ring_buffer.zig`.
 
 ## Decision checklist
 
@@ -196,6 +196,7 @@ The current lane state is:
 - landed `phase14-ring-buffer-tracing-disabled-recovery-followup`
 - landed `phase14-ring-buffer-map-dup-unmap-lifetime-followup`
 - landed `phase14-ring-buffer-cpu-hotplug-lifetime-followup`
+- landed `phase14-ring-buffer-reader-serialization-followup`
 - landed `phase14-ring-buffer-reset-governance-followup`
 - blocked `phase14-ring-buffer-zig-port-blocker`
 
@@ -228,4 +229,4 @@ This survey slice does not claim:
 
 ## Next bounded step
 
-Keep the Phase 14 ring-buffer packet parked unless it drifts again or a future study-only step can stay narrower than the existing remote-reader, resize, rollback, reader-page, mapped-reader, kill-switch-recovery, hotplug-lifetime, and reset-governance audits; the next honest follow-up would need another concrete source-of-truth drift or a still-smaller tracefs evidence gap instead of reopening bridge code or generic tracing UX work.
+Keep the Phase 14 ring-buffer packet parked unless it drifts again or a future study-only step can stay narrower than the existing remote-reader, resize, rollback, reader-page, mapped-reader, kill-switch-recovery, hotplug-lifetime, reader-serialization, and reset-governance audits; the next honest follow-up would need another concrete source-of-truth drift or a still-smaller tracefs evidence gap instead of reopening bridge code or generic tracing UX work.
