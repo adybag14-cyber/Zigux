@@ -69,8 +69,10 @@ SURVEY_MARKERS = [
 SLICE_MARKERS = [
     "dcache_dir_close() release planner",
     "simple_open() planner",
-    "The next honest bounded step in this same lane is a pure `generic_check_addressable()` addressability planner",
-    "After that, the remaining cursor-backed helpers plus inode and pseudo-filesystem lifecycle work stay blocked on live VFS state.",
+    "generic_check_addressable() addressability planner",
+    "The current helper packet now covers the landed addressability boundary too.",
+    "The next honest same-lane work, if any, is review-local only:",
+    "cursor-backed helpers plus inode and pseudo-filesystem lifecycle stay blocked on live VFS state.",
 ]
 
 TRACEABILITY_MARKERS = [
