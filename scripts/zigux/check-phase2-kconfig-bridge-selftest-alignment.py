@@ -41,6 +41,8 @@ EXPECTED_CONFDATA_CASES = [
     'escaped_low_control_bytes',
     'escaped_strings',
     'explicit_n_tristate',
+    'final_trailing_carriage_return',
+    'final_unterminated_unset_comment',
     'ignore_non_config_lines',
     'malformed_quoted_string',
     'negative_signed_numeric_kinds',
@@ -49,6 +51,7 @@ EXPECTED_CONFDATA_CASES = [
     'sample',
     'sample_crlf',
     'signed_numeric_kinds',
+    'trailing_escaped_backslash',
 ]
 BRIDGE_CHECKER_MARKERS = [
     "print('KCONFIG_BRIDGE_SELF_TEST=pass')",
@@ -142,8 +145,8 @@ def validate_cases(root: Path) -> list[str]:
 
     if len(conf_cases) != 16:
         issues.append(f'cases:conf_count={len(conf_cases)}:expected=16')
-    if len(confdata_cases) != 15:
-        issues.append(f'cases:confdata_count={len(confdata_cases)}:expected=15')
+    if len(confdata_cases) != 18:
+        issues.append(f'cases:confdata_count={len(confdata_cases)}:expected=18')
     if actual_conf_modes != EXPECTED_CONF_MODES:
         issues.append('cases:conf_modes=expected_exact_kconfig_conf_mode_list')
     if actual_confdata_names != EXPECTED_CONFDATA_CASES:
@@ -277,6 +280,12 @@ def run_self_test() -> int:
         clone_fixture_root(tmp_root)
 
         payload = json.loads(cases_path.read_text(encoding='utf-8'))
+        payload['confdata_cases'].pop()
+        cases_path.write_text(json.dumps(payload, indent=2) + '\n', encoding='utf-8')
+        expect_issue('confdata_case_count', tmp_root, 'cases:confdata_count=17:expected=18')
+        clone_fixture_root(tmp_root)
+
+        payload = json.loads(cases_path.read_text(encoding='utf-8'))
         payload['confdata_cases'][0], payload['confdata_cases'][1] = payload['confdata_cases'][1], payload['confdata_cases'][0]
         cases_path.write_text(json.dumps(payload, indent=2) + '\n', encoding='utf-8')
         expect_issue(
@@ -286,7 +295,7 @@ def run_self_test() -> int:
         )
 
     print('PHASE2_KCONFIG_BRIDGE_SELFTEST_ALIGNMENT_SELF_TEST=pass')
-    print('PHASE2_KCONFIG_BRIDGE_SELFTEST_ALIGNMENT_SELF_TEST_CASE_COUNT=4')
+    print('PHASE2_KCONFIG_BRIDGE_SELFTEST_ALIGNMENT_SELF_TEST_CASE_COUNT=5')
     return 0
 
 
