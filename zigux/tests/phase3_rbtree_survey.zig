@@ -28,7 +28,7 @@ test "phase3 rbtree survey records the landed dedicated boundary packet and narr
     defer parsed.deinit();
 
     const manifest = parsed.value;
-    try std.testing.expectEqualStrings("P3-L02", manifest.lane_key);
+    try std.testing.expectEqualStrings("P3-Y01", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 3", manifest.phase);
     try std.testing.expectEqualStrings("lib/rbtree.c", manifest.anchor);
     try std.testing.expectEqualStrings("dedicated_boundary_landed_shared_abi_followup_pending", manifest.status);
