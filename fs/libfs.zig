@@ -5,6 +5,8 @@ pub const name_max: u32 = 255;
 pub const simple_transaction_limit: usize = page_size;
 pub const dir_offset_first: i64 = 2;
 pub const dir_offset_eod: i64 = std.math.maxInt(i32);
+pub const sector_shift: u6 = 9;
+pub const page_shift: u6 = 12;
 
 pub const ModuleDescriptor = struct {
     name: []const u8,
@@ -21,6 +23,7 @@ pub const ModuleDescriptor = struct {
     provides_transaction_buffer_planning: bool,
     provides_transaction_read_release_planning: bool,
     provides_open_private_data_planning: bool,
+    provides_addressability_planning: bool,
     touches_live_dcache: bool,
     touches_live_inode_state: bool,
 };
@@ -225,7 +228,40 @@ pub const SimpleOpenPlan = struct {
     stores_inode_private_data: bool,
 };
 
+pub const AddressabilityStatus = enum {
+    empty_filesystem,
+    invalid_blocksize,
+    too_large_for_sector_index,
+    too_large_for_page_index,
+    addressable,
+};
+
+pub const AddressabilityLimits = struct {
+    sector_shift: u6 = 9,
+    page_shift: u6 = 12,
+    sector_index_bits: u7 = 64,
+    page_index_bits: u7 = 64,
+};
+
+pub const AddressabilityPlan = struct {
+    anchor: []const u8,
+    status: AddressabilityStatus,
+    blocksize_bits: u6,
+    num_blocks: u64,
+    last_fs_block: u64,
+    last_fs_page: u64,
+    sector_index_limit: u64,
+    page_index_limit: u64,
+};
+
 pub const LibFsHelperLab = struct {
+    fn maxValueForBits(bit_count: u7) u64 {
+        if (bit_count >= 64) {
+            return std.math.maxInt(u64);
+        }
+        return (@as(u64, 1) << @intCast(bit_count)) - 1;
+    }
+
     pub fn descriptor() ModuleDescriptor {
         return .{
             .name = "libfs_helper_lab",
@@ -242,6 +278,7 @@ pub const LibFsHelperLab = struct {
             .provides_transaction_buffer_planning = true,
             .provides_transaction_read_release_planning = true,
             .provides_open_private_data_planning = true,
+            .provides_addressability_planning = true,
             .touches_live_dcache = false,
             .touches_live_inode_state = false,
         };
@@ -654,6 +691,61 @@ pub const LibFsHelperLab = struct {
             .private_data_source = if (inode_has_private_data) .inode_private else .unchanged,
             .returns_zero = true,
             .stores_inode_private_data = inode_has_private_data,
+        };
+    }
+
+    pub fn genericCheckAddressablePlan(blocksize_bits: u6, num_blocks: u64, limits: AddressabilityLimits) AddressabilityPlan {
+        const blocksize_valid = blocksize_bits >= limits.sector_shift and blocksize_bits <= limits.page_shift;
+        const sector_index_limit = if (blocksize_valid)
+            maxValueForBits(limits.sector_index_bits) >> @intCast(blocksize_bits - limits.sector_shift)
+        else
+            0;
+        const page_index_limit = maxValueForBits(limits.page_index_bits);
+
+        if (num_blocks == 0) {
+            return .{
+                .anchor = descriptor().anchor,
+                .status = .empty_filesystem,
+                .blocksize_bits = blocksize_bits,
+                .num_blocks = num_blocks,
+                .last_fs_block = 0,
+                .last_fs_page = 0,
+                .sector_index_limit = sector_index_limit,
+                .page_index_limit = page_index_limit,
+            };
+        }
+
+        if (!blocksize_valid) {
+            return .{
+                .anchor = descriptor().anchor,
+                .status = .invalid_blocksize,
+                .blocksize_bits = blocksize_bits,
+                .num_blocks = num_blocks,
+                .last_fs_block = num_blocks - 1,
+                .last_fs_page = 0,
+                .sector_index_limit = 0,
+                .page_index_limit = page_index_limit,
+            };
+        }
+
+        const last_fs_block = num_blocks - 1;
+        const last_fs_page = last_fs_block >> @intCast(limits.page_shift - blocksize_bits);
+        const status: AddressabilityStatus = if (last_fs_block > sector_index_limit)
+            .too_large_for_sector_index
+        else if (last_fs_page > page_index_limit)
+            .too_large_for_page_index
+        else
+            .addressable;
+
+        return .{
+            .anchor = descriptor().anchor,
+            .status = status,
+            .blocksize_bits = blocksize_bits,
+            .num_blocks = num_blocks,
+            .last_fs_block = last_fs_block,
+            .last_fs_page = last_fs_page,
+            .sector_index_limit = sector_index_limit,
+            .page_index_limit = page_index_limit,
         };
     }
 };
