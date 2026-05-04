@@ -132,7 +132,7 @@ test "phase 15 architecture council review-process manifest records current trig
     try std.testing.expectEqualStrings("ownership_or_validation_changed", manifest.ownership_refresh_trigger);
     try std.testing.expectEqual(@as(usize, 2), manifest.ownership_refresh_fields.len);
     try std.testing.expectEqual(@as(usize, 4), manifest.decision_buckets.len);
-    try std.testing.expectEqual(@as(usize, 22), manifest.gaps.len);
+    try std.testing.expectEqual(@as(usize, 23), manifest.gaps.len);
 
     try std.testing.expectEqualStrings("requested decision bucket", manifest.approval_evidence_fields[0]);
     try std.testing.expectEqualStrings("decision record ID", manifest.approval_evidence_fields[1]);
@@ -185,10 +185,12 @@ test "phase 15 architecture council review-process manifest records current trig
     try std.testing.expect(std.mem.indexOf(u8, manifest.handoff_evidence.current_repo_handoff, "Documentation/zigux/README.md") != null);
     try std.testing.expect(std.mem.indexOf(u8, manifest.handoff_evidence.current_repo_handoff, "Documentation/zigux/review-checklist.md") != null);
     try std.testing.expect(std.mem.indexOf(u8, manifest.handoff_evidence.current_repo_handoff, "Documentation/zigux/phase15-indefinite-c-policy.md") != null);
+    try std.testing.expect(std.mem.indexOf(u8, manifest.handoff_evidence.current_repo_handoff, "Documentation/zigux/phase15-readiness-gate-survey.md") != null);
     try std.testing.expect(std.mem.indexOf(u8, manifest.handoff_evidence.current_repo_handoff, "Documentation/zigux/phase15-handoff-next-steps-survey.md") != null);
     try std.testing.expect(std.mem.indexOf(u8, manifest.handoff_evidence.current_repo_handoff, "scripts/zigux/README.md") != null);
     try std.testing.expect(std.mem.indexOf(u8, manifest.handoff_evidence.current_repo_handoff, "scripts/zigux/validate-phase15.py") != null);
     try std.testing.expect(std.mem.indexOf(u8, manifest.handoff_evidence.current_repo_handoff, "zigux/tests/README.md") != null);
+    try std.testing.expect(std.mem.indexOf(u8, manifest.handoff_evidence.current_repo_handoff, "zigux/tests/phase15_docs_root_reviewability.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, manifest.handoff_evidence.current_repo_handoff, "zigux/tests/phase15_build.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, manifest.handoff_evidence.current_repo_handoff, "make -C zigux phase15") != null);
     try std.testing.expect(std.mem.indexOf(u8, manifest.handoff_evidence.current_bounded_lane, expected_lane_key) != null);
@@ -201,6 +203,8 @@ test "phase 15 architecture council review-process manifest records current trig
     try std.testing.expect(std.mem.indexOf(u8, manifest.handoff_evidence.current_bounded_lane, expected_handoff_lane_provenance) != null);
     try std.testing.expect(std.mem.indexOf(u8, manifest.handoff_evidence.current_bounded_lane, "governance, approval, and ownership evidence verification") != null);
     try std.testing.expect(std.mem.indexOf(u8, manifest.handoff_evidence.current_bounded_lane, "current parked maintenance-mode Phase 15 packet") != null);
+    try std.testing.expect(std.mem.indexOf(u8, manifest.handoff_evidence.current_bounded_lane, "dedicated readiness packet") != null);
+    try std.testing.expect(std.mem.indexOf(u8, manifest.handoff_evidence.current_bounded_lane, "docs-root reviewability guard") != null);
     try std.testing.expect(std.mem.indexOf(u8, manifest.handoff_evidence.current_bounded_lane, "scripts-root validator path") != null);
     try std.testing.expect(std.mem.indexOf(u8, manifest.handoff_evidence.current_bounded_lane, "tests-root guidance path") != null);
     try std.testing.expect(std.mem.indexOf(u8, manifest.handoff_evidence.current_bounded_lane, "neighboring governance slices") != null);
@@ -232,6 +236,7 @@ test "phase 15 architecture council review-process manifest records current trig
     var saw_ownership_evidence_rollback_threshold_sync = false;
     var saw_freeze_map_governance_handoff_sync = false;
     var saw_scripts_tests_root_handoff_sync = false;
+    var saw_readiness_docs_root_handoff_sync = false;
     for (manifest.gaps, 0..) |gap, i| {
         try std.testing.expect(isAllowedStatus(gap.status));
         try std.testing.expect(gap.id.len > 0);
@@ -277,19 +282,26 @@ test "phase 15 architecture council review-process manifest records current trig
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "tests-root") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "shared release-discipline route") != null);
         }
+        if (std.mem.eql(u8, gap.id, "phase15-review-process-readiness-docs-root-handoff-sync")) {
+            saw_readiness_docs_root_handoff_sync = true;
+            try std.testing.expectEqualStrings("handoff_sync", gap.kind);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "readiness survey") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "docs-root reviewability guard") != null);
+        }
 
         for (manifest.gaps[i + 1 ..]) |other| {
             try std.testing.expect(!std.mem.eql(u8, gap.id, other.id));
         }
     }
 
-    try std.testing.expectEqual(@as(usize, 22), landed_count);
+    try std.testing.expectEqual(@as(usize, 23), landed_count);
     try std.testing.expect(saw_lane_identity_provenance_refresh);
     try std.testing.expect(saw_source_of_truth_field_gate);
     try std.testing.expect(saw_indefinite_c_evidence_sync);
     try std.testing.expect(saw_ownership_evidence_rollback_threshold_sync);
     try std.testing.expect(saw_freeze_map_governance_handoff_sync);
     try std.testing.expect(saw_scripts_tests_root_handoff_sync);
+    try std.testing.expect(saw_readiness_docs_root_handoff_sync);
 }
 
 test "phase 15 architecture council review-process note stays aligned with checklist and handoff language" {
@@ -396,13 +408,16 @@ test "phase 15 architecture council review-process note stays aligned with check
     );
     defer std.testing.allocator.free(expected_lane_handoff_provenance);
     try std.testing.expect(std.mem.indexOf(u8, review_process, expected_lane_handoff_provenance) != null);
+    try std.testing.expect(std.mem.indexOf(u8, review_process, "Documentation/zigux/phase15-readiness-gate-survey.md") != null);
     try std.testing.expect(std.mem.indexOf(u8, review_process, "Documentation/zigux/phase15-handoff-next-steps-survey.md") != null);
+    try std.testing.expect(std.mem.indexOf(u8, review_process, "zigux/tests/phase15_docs_root_reviewability.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, review_process, "shared Phase 15 replay drift") != null);
     try std.testing.expect(std.mem.indexOf(u8, review_process, "phase15-review-process-lane-identity-provenance-refresh") != null);
     try std.testing.expect(std.mem.indexOf(u8, review_process, "phase15-review-process-indefinite-c-evidence-path-sync") != null);
     try std.testing.expect(std.mem.indexOf(u8, review_process, "phase15-review-process-ownership-evidence-rollback-threshold-sync") != null);
     try std.testing.expect(std.mem.indexOf(u8, review_process, "phase15-review-process-freeze-map-governance-handoff-sync") != null);
     try std.testing.expect(std.mem.indexOf(u8, review_process, "phase15-review-process-scripts-tests-root-handoff-sync") != null);
+    try std.testing.expect(std.mem.indexOf(u8, review_process, "phase15-review-process-readiness-docs-root-handoff-sync") != null);
     try std.testing.expect(std.mem.indexOf(u8, review_process, "phase15-review-process-source-of-truth-field-gate") != null);
 
     try std.testing.expect(std.mem.indexOf(u8, checklist, "decision record ID, lane owner, rollback owner, validation gate summary, evidence archive path, latest blocker disposition, benchmark notes, and replay command explicit") != null);
