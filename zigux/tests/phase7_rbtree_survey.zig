@@ -56,6 +56,46 @@ test "phase 7 rbtree survey manifest records the landed runtime leaf surface and
     );
     defer std.testing.allocator.free(roadmap);
 
+    const docs_readme = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "Documentation/zigux/README.md",
+        std.testing.allocator,
+        .limited(128 * 1024),
+    );
+    defer std.testing.allocator.free(docs_readme);
+
+    const scripts_readme = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "scripts/zigux/README.md",
+        std.testing.allocator,
+        .limited(128 * 1024),
+    );
+    defer std.testing.allocator.free(scripts_readme);
+
+    const tests_readme = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "zigux/tests/README.md",
+        std.testing.allocator,
+        .limited(128 * 1024),
+    );
+    defer std.testing.allocator.free(tests_readme);
+
+    const samples_readme = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "samples/zigux/README.md",
+        std.testing.allocator,
+        .limited(128 * 1024),
+    );
+    defer std.testing.allocator.free(samples_readme);
+
+    const zigux_makefile = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "zigux/Makefile",
+        std.testing.allocator,
+        .limited(128 * 1024),
+    );
+    defer std.testing.allocator.free(zigux_makefile);
+
     const parsed = try std.json.parseFromSlice(Manifest, std.testing.allocator, manifest_json, .{});
     defer parsed.deinit();
 
@@ -113,6 +153,34 @@ test "phase 7 rbtree survey manifest records the landed runtime leaf surface and
     try expectContains(roadmap, "- `lib/rbtree.zig`");
     try expectContains(roadmap, "runtime-safe leaf helpers");
     try expectContains(roadmap, "integration with validation substrate");
+
+    try expectContains(docs_readme, "the same sample-root catalog also keeps the current no-`samples/zigux/*rbtree*` boundary explicit");
+    try expectContains(docs_readme, "rbtree evidence stays under the separate Phase 7 helper bundle rooted in `Documentation/zigux/phase7-rbtree-slice.md`, `lib/rbtree.zig`, `zigux/tests/phase7_rbtree.zig`, and `zigux/tests/phase7_build.zig` instead of looking like a missing Phase 5 sample port.");
+    try expectContains(docs_readme, "`python3 scripts/zigux/check-phase7-rbtree-parity.py --self-test`");
+    try expectContains(docs_readme, "`python3 scripts/zigux/check-phase7-rbtree-parity.py`");
+
+    try expectContains(scripts_readme, "`validate-phase7.py`");
+    try expectContains(scripts_readme, "`check-phase7-build-inventory.py`");
+    try expectContains(scripts_readme, "`check-phase7-make-wrapper.py`");
+    try expectContains(scripts_readme, "`check-phase7-rbtree-parity.py`");
+    try expectContains(scripts_readme, "`make -C zigux phase7-validate` is the validator-first entrypoint for the current Phase 7 flow.");
+
+    try expectContains(tests_readme, "zigux/tests/phase7_rbtree_survey.zig");
+    try expectContains(tests_readme, "`scripts/zigux/check-phase7-rbtree-parity.py --self-test`");
+    try expectContains(tests_readme, "`scripts/zigux/check-phase7-rbtree-parity.py`");
+    try expectContains(tests_readme, "helper roots in `zigux/tests/phase7_build.zig` receive `string_helpers`, `cmdline`, `argv_split`, and `rbtree` through `addImport(...)`");
+    try expectContains(tests_readme, "keep the current Phase 7 helper packet reviewable through `zigux/tests/phase7_build.zig`, `zigux/tests/fixtures/phase7_build_inventory.json`, `make -C zigux phase7-test`, `scripts/zigux/validate-phase7.py`, `scripts/zigux/check-phase7-build-inventory.py`, `scripts/zigux/check-phase7-argv-split-packet.py --self-test`, and `scripts/zigux/check-phase7-argv-split-packet.py`, `scripts/zigux/check-phase7-make-wrapper.py --self-test`, and `scripts/zigux/check-phase7-make-wrapper.py`, `scripts/zigux/check-phase7-cmdline-parity.py --self-test`, and `scripts/zigux/check-phase7-cmdline-parity.py`, `scripts/zigux/check-phase7-argv-split-parity.py --self-test`, and `scripts/zigux/check-phase7-argv-split-parity.py`, `scripts/zigux/check-phase7-rbtree-parity.py --self-test`, and `scripts/zigux/check-phase7-rbtree-parity.py` instead of widening into ad hoc helper-local bootstrap rules");
+
+    try expectContains(samples_readme, "current `master` still ships no `samples/zigux/*rbtree*` Phase 5 reference sample; keep rbtree evidence under the separate Phase 7 helper bundle rooted in `Documentation/zigux/phase7-rbtree-slice.md`, `lib/rbtree.zig`, `zigux/tests/phase7_rbtree.zig`, and `zigux/tests/phase7_build.zig` instead of looking like a missing Phase 5 sample port.");
+    try expectContains(samples_readme, "verify the shared docs still keep rbtree evidence in Phase 7 instead of `samples/zigux/`");
+
+    try expectContains(zigux_makefile, "phase7-validate:");
+    try expectContains(zigux_makefile, "python3 scripts/zigux/check-phase7-rbtree-parity.py --self-test");
+    try expectContains(zigux_makefile, "python3 scripts/zigux/check-phase7-rbtree-parity.py");
+    try expectContains(zigux_makefile, "phase7-test:");
+    try expectContains(zigux_makefile, "zig build test --build-file zigux/tests/phase7_build.zig --summary all");
+    try expectContains(zigux_makefile, "phase7: phase7-validate phase7-test");
+
     try std.testing.expectEqualStrings("P7-L13", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 7", manifest.phase);
     try std.testing.expectEqualStrings("c0b506e3254e63fe007a72d420bb275846a89093", manifest.surveyed_commit);
