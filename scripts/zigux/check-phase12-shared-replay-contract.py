@@ -61,6 +61,11 @@ SHARED_REPLAY_NOTE_MARKERS = [
     "zigux/tests/README.md",
 ]
 
+SHARED_REPLAY_NOTE_EXACT_COUNTS = {
+    "- `python3 scripts/zigux/check-phase12-shared-replay-contract.py --self-test`": 1,
+    "- `python3 scripts/zigux/check-phase12-shared-replay-contract.py`": 1,
+}
+
 DOCS_ROOT_MARKERS = [
     "Documentation/zigux/phase12-release-readiness-survey.md",
     "Documentation/zigux/phase12-cross-compile-smoke.md",
@@ -124,6 +129,11 @@ MAKEFILE_MARKERS = [
     "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase12.py",
 ]
 
+MAKEFILE_EXACT_COUNTS = {
+    MAKEFILE_MARKERS[13]: 1,
+    MAKEFILE_MARKERS[14]: 1,
+}
+
 WORKFLOW_MARKERS = [
     "Validate Phase 12 degraded-workflow bundle",
     "make -C zigux phase12-validate",
@@ -158,6 +168,16 @@ def read_text(root: Path, relpath: str) -> str:
     return (root / relpath).read_text(encoding="utf-8")
 
 
+def collect_exact_line_misses(text: str, expected_counts: dict[str, int], prefix: str) -> list[str]:
+    missing: list[str] = []
+    lines = text.splitlines()
+    for marker, expected_count in expected_counts.items():
+        actual_count = lines.count(marker)
+        if actual_count != expected_count:
+            missing.append(f"{prefix}:{marker}:expected={expected_count}:actual={actual_count}")
+    return missing
+
+
 def collect_missing(root: Path) -> list[str]:
     missing: list[str] = []
     for relpath in REQUIRED_FILES:
@@ -186,13 +206,20 @@ def collect_missing(root: Path) -> list[str]:
             if marker not in text:
                 missing.append(f"{label}:{marker}")
 
-    tests_readme_text = read_text(root, "zigux/tests/README.md")
-    for marker, expected_count in TESTS_README_EXACT_COUNTS.items():
-        actual_count = tests_readme_text.count(marker)
-        if actual_count != expected_count:
-            missing.append(
-                f"tests_readme_count:{marker}:expected={expected_count}:actual={actual_count}"
-            )
+    exact_count_groups = [
+        (
+            "shared_replay_note_count",
+            "Documentation/zigux/phase12-shared-replay-contract.md",
+            SHARED_REPLAY_NOTE_EXACT_COUNTS,
+        ),
+        ("makefile_count", "zigux/Makefile", MAKEFILE_EXACT_COUNTS),
+        ("tests_readme_count", "zigux/tests/README.md", TESTS_README_EXACT_COUNTS),
+    ]
+
+    for label, relpath, expected_counts in exact_count_groups:
+        missing.extend(
+            collect_exact_line_misses(read_text(root, relpath), expected_counts, label)
+        )
 
     return missing
 
@@ -243,9 +270,16 @@ def expect_missing(label: str, result: subprocess.CompletedProcess[str], marker:
 
 
 def write_fixture_tree(root: Path) -> None:
+    note_lines = list(SHARED_REPLAY_NOTE_MARKERS)
+    note_lines[note_lines.index("python3 scripts/zigux/check-phase12-shared-replay-contract.py --self-test")] = (
+        "- `python3 scripts/zigux/check-phase12-shared-replay-contract.py --self-test`"
+    )
+    note_lines[note_lines.index("python3 scripts/zigux/check-phase12-shared-replay-contract.py")] = (
+        "- `python3 scripts/zigux/check-phase12-shared-replay-contract.py`"
+    )
     write_text(
         root / "Documentation/zigux/phase12-shared-replay-contract.md",
-        "\n".join(SHARED_REPLAY_NOTE_MARKERS) + "\n",
+        "\n".join(note_lines) + "\n",
     )
     write_text(
         root / "Documentation/zigux/phase12-release-readiness-survey.md",
@@ -311,7 +345,7 @@ def run_self_test() -> int:
         write_text(
             note_path,
             note_backup.replace(
-                "python3 scripts/zigux/check-phase12-shared-replay-contract.py --self-test\n",
+                "- `python3 scripts/zigux/check-phase12-shared-replay-contract.py --self-test`\n",
                 "",
                 1,
             ),
@@ -320,6 +354,28 @@ def run_self_test() -> int:
             "missing_note_contract_checker_self_test",
             run_checker(tmp_root),
             "shared_replay_note:python3 scripts/zigux/check-phase12-shared-replay-contract.py --self-test",
+        )
+        write_text(note_path, note_backup)
+
+        write_text(
+            note_path,
+            note_backup + "- `python3 scripts/zigux/check-phase12-shared-replay-contract.py --self-test`\n",
+        )
+        expect_missing(
+            "duplicate_note_contract_checker_self_test",
+            run_checker(tmp_root),
+            "shared_replay_note_count:- `python3 scripts/zigux/check-phase12-shared-replay-contract.py --self-test`:expected=1:actual=2",
+        )
+        write_text(note_path, note_backup)
+
+        write_text(
+            note_path,
+            note_backup + "- `python3 scripts/zigux/check-phase12-shared-replay-contract.py`\n",
+        )
+        expect_missing(
+            "duplicate_note_contract_checker_live_route",
+            run_checker(tmp_root),
+            "shared_replay_note_count:- `python3 scripts/zigux/check-phase12-shared-replay-contract.py`:expected=1:actual=2",
         )
         write_text(note_path, note_backup)
 
@@ -421,6 +477,28 @@ def run_self_test() -> int:
         )
         write_text(makefile_path, makefile_backup)
 
+        write_text(
+            makefile_path,
+            makefile_backup + MAKEFILE_MARKERS[13] + "\n",
+        )
+        expect_missing(
+            "duplicate_makefile_contract_checker_self_test",
+            run_checker(tmp_root),
+            f"makefile_count:{MAKEFILE_MARKERS[13]}:expected=1:actual=2",
+        )
+        write_text(makefile_path, makefile_backup)
+
+        write_text(
+            makefile_path,
+            makefile_backup + MAKEFILE_MARKERS[14] + "\n",
+        )
+        expect_missing(
+            "duplicate_makefile_contract_checker_live_route",
+            run_checker(tmp_root),
+            f"makefile_count:{MAKEFILE_MARKERS[14]}:expected=1:actual=2",
+        )
+        write_text(makefile_path, makefile_backup)
+
         build_path = tmp_root / "zigux/tests/phase12_build.zig"
         build_backup = build_path.read_text(encoding="utf-8")
         write_text(
@@ -435,7 +513,7 @@ def run_self_test() -> int:
         write_text(build_path, build_backup)
 
     print("PHASE12_SHARED_REPLAY_CONTRACT_SELF_TEST=pass")
-    print("PHASE12_SHARED_REPLAY_CONTRACT_SELF_TEST_CASE_COUNT=11")
+    print("PHASE12_SHARED_REPLAY_CONTRACT_SELF_TEST_CASE_COUNT=15")
     return 0
 
 
