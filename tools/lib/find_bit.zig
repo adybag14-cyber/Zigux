@@ -229,6 +229,36 @@ test "find next and bit skips earlier shared matches in the same word" {
     try std.testing.expectEqual(@as(usize, nbits), findNextAndBit(&lhs, &rhs, nbits, bits_per_long + 5));
 }
 
+test "head-word boundary scans keep the last in-range bit reachable from an inclusive start" {
+    const nbits = bits_per_long * 2;
+    const boundary_bit = bits_per_long - 1;
+    const next_word_bit = bits_per_long + 2;
+
+    const set_bits = [_]Word{
+        @as(Word, 1) << boundary_bit,
+        @as(Word, 1) << 2,
+    };
+    try std.testing.expectEqual(@as(usize, boundary_bit), findNextBit(&set_bits, nbits, boundary_bit));
+    try std.testing.expectEqual(@as(usize, next_word_bit), findNextBit(&set_bits, nbits, boundary_bit + 1));
+
+    var zero_bits = [_]Word{ ~@as(Word, 0), ~@as(Word, 0) };
+    zero_bits[0] &= ~(@as(Word, 1) << boundary_bit);
+    zero_bits[1] &= ~(@as(Word, 1) << 2);
+    try std.testing.expectEqual(@as(usize, boundary_bit), findNextZeroBit(&zero_bits, nbits, boundary_bit));
+    try std.testing.expectEqual(@as(usize, next_word_bit), findNextZeroBit(&zero_bits, nbits, boundary_bit + 1));
+
+    const lhs = [_]Word{
+        @as(Word, 1) << boundary_bit,
+        @as(Word, 1) << 2,
+    };
+    const rhs = [_]Word{
+        @as(Word, 1) << boundary_bit,
+        @as(Word, 1) << 2,
+    };
+    try std.testing.expectEqual(@as(usize, boundary_bit), findNextAndBit(&lhs, &rhs, nbits, boundary_bit));
+    try std.testing.expectEqual(@as(usize, next_word_bit), findNextAndBit(&lhs, &rhs, nbits, boundary_bit + 1));
+}
+
 test "find zero bits respects the declared bit count" {
     var bitmap = [_]Word{ ~@as(Word, 0), ~@as(Word, 0) };
     bitmap[1] &= ~(@as(Word, 1) << 4);
