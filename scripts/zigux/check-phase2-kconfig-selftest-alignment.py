@@ -123,6 +123,9 @@ PHASE2_CLOSURE_VALIDATOR_MARKERS = [
     "PHASE2_KCONFIG_BRIDGE_DETERMINISM=check-kconfig-bridge.py replays conf and confdata outputs twice and compares a rebuilt confdata binary against the same JSON artifacts",
     "PHASE2_KCONFIG_BRIDGE_LOW_CONTROL_CASE=zigux/tests/fixtures/kconfig_bridge/escaped_low_control_bytes_expected.json",
     "PHASE2_KCONFIG_BRIDGE_MANIFEST_POLICY=check-kconfig-bridge.py rejects uncovered modes, malformed manifests, duplicate fixture references, orphaned fixture files, and non-canonical confdata names before replay",
+    "confdata bridge ignores suffix bytes after an embedded NUL",
+    "confdata bridge preserves carriage return before an embedded NUL on newline-terminated lines",
+    "PHASE2_KCONFIG_BRIDGE_EVIDENCE=artifact fixtures plus conf bridge mode coverage, allconfig env, mode-arg, manifest-determinism, confdata escaped-control decode, empty-string, empty-symbol, explicit-n, malformed-quote, signed-numeric, trailing-unset-comment, quoted-suffix, CRLF, embedded-NUL truncation, embedded-NUL carriage-return preservation, trailing-escaped-backslash, empty-path rejection, and low-control JSON emission anchors are required for closure",
 ]
 
 
