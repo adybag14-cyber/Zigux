@@ -163,6 +163,8 @@ MODULE_METADATA_SURVEY_MARKERS = [
 ]
 
 MODULE_METADATA_SURVEY_EXACT_ONCE_MARKERS = [
+    "- `python3 scripts/zigux/check-phase9-module-metadata-packet.py --self-test`\n",
+    "- `python3 scripts/zigux/check-phase9-module-metadata-packet.py`\n",
     "- `make -C zigux phase9-module-metadata-survey`\n",
 ]
 
@@ -723,6 +725,20 @@ def run_self_test() -> int:
                 "- `python3 scripts/zigux/check-phase9-module-metadata-packet.py --self-test`\n",
                 "",
                 "module_metadata_survey:- `python3 scripts/zigux/check-phase9-module-metadata-packet.py --self-test`\n",
+            ),
+            (
+                MODULE_METADATA_SURVEY_PATH,
+                "module_metadata_self_test_duplicate",
+                "- `python3 scripts/zigux/check-phase9-module-metadata-packet.py --self-test`\n",
+                "- `python3 scripts/zigux/check-phase9-module-metadata-packet.py --self-test`\n- `python3 scripts/zigux/check-phase9-module-metadata-packet.py --self-test`\n",
+                "module_metadata_survey_exact:- `python3 scripts/zigux/check-phase9-module-metadata-packet.py --self-test`\n",
+            ),
+            (
+                MODULE_METADATA_SURVEY_PATH,
+                "module_metadata_live_duplicate",
+                "- `python3 scripts/zigux/check-phase9-module-metadata-packet.py`\n",
+                "- `python3 scripts/zigux/check-phase9-module-metadata-packet.py`\n- `python3 scripts/zigux/check-phase9-module-metadata-packet.py`\n",
+                "module_metadata_survey_exact:- `python3 scripts/zigux/check-phase9-module-metadata-packet.py`\n",
             ),
             (
                 MODULE_METADATA_SURVEY_PATH,
