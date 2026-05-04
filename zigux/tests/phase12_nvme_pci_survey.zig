@@ -83,7 +83,7 @@ test "phase12 nvme pci survey manifest records the landed starter and remaining 
     try std.testing.expect(manifest.survey_summary.nvme_pci_survey_gate_present);
     try std.testing.expect(manifest.survey_summary.nvme_pci_survey_note_present);
     try std.testing.expect(manifest.survey_summary.nvme_pci_raw_fallback_map_present);
-    try std.testing.expectEqual(@as(usize, 13), manifest.gaps.len);
+    try std.testing.expectEqual(@as(usize, 14), manifest.gaps.len);
 
     const driver_source = try std.Io.Dir.cwd().readFileAlloc(
         io_instance.io(),
@@ -136,9 +136,11 @@ test "phase12 nvme pci survey manifest records the landed starter and remaining 
     try std.testing.expect(std.mem.indexOf(u8, driver_source, "pub const IoQueueCountPlanSummary") != null);
     try std.testing.expect(std.mem.indexOf(u8, driver_source, "pub const PrpMetadataPlanSummary") != null);
     try std.testing.expect(std.mem.indexOf(u8, driver_source, "pub const DoorbellWindowSummary") != null);
+    try std.testing.expect(std.mem.indexOf(u8, driver_source, "pub const QueueRecoveryReplaySummary") != null);
     try std.testing.expect(std.mem.indexOf(u8, driver_source, "pub fn planIoQueueCount(") != null);
     try std.testing.expect(std.mem.indexOf(u8, driver_source, "pub fn planPrpMetadata(") != null);
     try std.testing.expect(std.mem.indexOf(u8, driver_source, "pub fn planDoorbellWindow(") != null);
+    try std.testing.expect(std.mem.indexOf(u8, driver_source, "pub fn planQueueRecoveryReplay(") != null);
 
     try std.testing.expect(std.mem.indexOf(u8, driver_tests, "phase12 nvme pci io queue count helper negotiates controller and planner caps") != null);
     try std.testing.expect(std.mem.indexOf(u8, driver_tests, "phase12 nvme pci io queue count helper rejects empty negotiation and respects reset freeze") != null);
@@ -146,6 +148,8 @@ test "phase12 nvme pci survey manifest records the landed starter and remaining 
     try std.testing.expect(std.mem.indexOf(u8, driver_tests, "phase12 nvme pci prp metadata helper respects reset freeze and resumes after reset") != null);
     try std.testing.expect(std.mem.indexOf(u8, driver_tests, "phase12 nvme pci doorbell window helper summarizes planned admin and io register aperture") != null);
     try std.testing.expect(std.mem.indexOf(u8, driver_tests, "phase12 nvme pci doorbell window helper tracks reset state without claiming live irq routing") != null);
+    try std.testing.expect(std.mem.indexOf(u8, driver_tests, "phase12 nvme pci queue recovery replay helper summarizes capped io queues and host DMA") != null);
+    try std.testing.expect(std.mem.indexOf(u8, driver_tests, "phase12 nvme pci queue recovery replay helper requires admin state and survives reset freeze") != null);
 
     try std.testing.expect(std.mem.indexOf(u8, phase12_build, "phase12-nvme-pci-tests") != null);
     try std.testing.expect(std.mem.indexOf(u8, phase12_build, "phase12-nvme-pci-survey-tests") != null);
@@ -153,6 +157,7 @@ test "phase12 nvme pci survey manifest records the landed starter and remaining 
     try std.testing.expect(std.mem.indexOf(u8, phase12_build, "test_step.dependOn(&run_phase12_nvme_pci_survey_tests.step);") != null);
 
     try std.testing.expect(std.mem.indexOf(u8, slice_note, "doorbell-window helper") != null);
+    try std.testing.expect(std.mem.indexOf(u8, slice_note, "queue-recovery replay helper") != null);
     try std.testing.expect(std.mem.indexOf(u8, slice_note, "PRP metadata helper") != null);
     try std.testing.expect(std.mem.indexOf(u8, slice_note, "PRP-versus-SGL selection summary") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, current_surveyed_commit) != null);
@@ -160,19 +165,20 @@ test "phase12 nvme pci survey manifest records the landed starter and remaining 
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "packet-local verification head") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "current `master` tip") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase12-nvme-pci-doorbell-window-helper") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "queue planner, doorbell-window helper, PRP buffer-shape helper, PRP metadata helper, and pointer-selection helper") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase12-nvme-pci-queue-recovery-helper") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "queue-recovery replay helper") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "historical-only evidence") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "fresh owner-lane replay") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "focused NVMe driver replay against live readback") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase12-nvme-pci-survey-tests") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase12-nvme-pci-tests 15 pass (15 total)") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase12-nvme-pci-tests 17 pass (17 total)") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase12-nvme-pci-raw-github-fallback-map.md") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "current live starter now also carries one bounded doorbell-window helper") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "current live starter now also carries the bounded `phase12-nvme-pci-doorbell-window-helper` surface and the bounded `phase12-nvme-pci-queue-recovery-helper` surface") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "## Rollback And Reversible Delivery") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "owner: `NVMe PCI Lane`") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "rollback owner: `NVMe PCI Lane`") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "fallback path: keep `drivers/nvme/host/pci.c` as the source of truth") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "queue planner plus queue-count, doorbell-window, PRP buffer-shape, PRP metadata helper, and pointer-selection helpers reviewable in isolation") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "queue planner plus queue-count, doorbell-window, queue-recovery replay, PRP buffer-shape, PRP metadata helper, and pointer-selection helpers reviewable in isolation") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "rollback drill: run `make -C zigux phase12-validate`") != null);
 
     try std.testing.expect(std.mem.indexOf(u8, raw_fallback_map, "PHASE12_LANE_KEY=P12-L08") != null);
@@ -181,11 +187,13 @@ test "phase12 nvme pci survey manifest records the landed starter and remaining 
     try std.testing.expect(std.mem.indexOf(u8, raw_fallback_map, "## Tree Readback Roots") != null);
     try std.testing.expect(std.mem.indexOf(u8, raw_fallback_map, "## Raw Pinned URLs") != null);
     try std.testing.expect(std.mem.indexOf(u8, raw_fallback_map, "## Non-goals") != null);
+    try std.testing.expect(std.mem.indexOf(u8, raw_fallback_map, "queue-recovery replay helper") != null);
     try std.testing.expect(std.mem.indexOf(u8, raw_fallback_map, "The dedicated `zigux/tests/phase12_nvme_pci_survey.zig` gate reads this note back as part of the archived reviewability surface") != null);
 
     var starter_landed_count: usize = 0;
     var blocked_count: usize = 0;
     var saw_doorbell_window = false;
+    var saw_queue_recovery = false;
     var saw_blocker = false;
 
     for (manifest.gaps, 0..) |gap, i| {
@@ -209,13 +217,22 @@ test "phase12 nvme pci survey manifest records the landed starter and remaining 
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "MSI-X vector wiring") != null);
         }
 
+        if (std.mem.eql(u8, gap.id, "phase12-nvme-pci-queue-recovery-helper")) {
+            saw_queue_recovery = true;
+            try std.testing.expectEqualStrings("drivers/nvme/host/pci.zig", gap.zigux_destination);
+            try std.testing.expectEqualStrings("starter_landed", gap.status);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "aggregate host DMA") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "reset-frozen") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "IRQ-backed completion flow") != null);
+        }
+
         if (std.mem.eql(u8, gap.id, "phase12-nvme-pci-live-queue-and-dma")) {
             saw_blocker = true;
             try std.testing.expectEqualStrings("zigux/tests/phase12_nvme_pci_survey.zig", gap.zigux_destination);
             try std.testing.expectEqualStrings("blocked_on_dma_transport", gap.status);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "Host Memory Buffer") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "blk-mq") != null);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "doorbell-window helper") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "queue-recovery replay helper") != null);
         }
 
         for (manifest.gaps[i + 1 ..]) |other| {
@@ -223,8 +240,9 @@ test "phase12 nvme pci survey manifest records the landed starter and remaining 
         }
     }
 
-    try std.testing.expectEqual(@as(usize, 12), starter_landed_count);
+    try std.testing.expectEqual(@as(usize, 13), starter_landed_count);
     try std.testing.expectEqual(@as(usize, 1), blocked_count);
     try std.testing.expect(saw_doorbell_window);
+    try std.testing.expect(saw_queue_recovery);
     try std.testing.expect(saw_blocker);
 }
