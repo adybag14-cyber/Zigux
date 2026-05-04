@@ -413,6 +413,36 @@ test "phase12 virtio net queue resume planning distinguishes renegotiation from 
     try std.testing.expect(!reset_resume.requires_rss_reapply);
 }
 
+test "phase12 virtio net queue resume planning marks stale probe snapshots for refill recheck" {
+    var lab = try virtio_net.VirtioNetProbeLab.init(&.{
+        virtio_net.feature_mergeable_rx_buffers,
+        virtio_net.feature_control_vq,
+        virtio_net.feature_multiqueue,
+        virtio_net.feature_hash_report,
+        virtio_net.feature_rss,
+    });
+
+    _ = try lab.captureProbeSnapshot(.{
+        .driver_feature_bits = &.{
+            virtio_net.feature_mergeable_rx_buffers,
+            virtio_net.feature_control_vq,
+            virtio_net.feature_multiqueue,
+            virtio_net.feature_hash_report,
+            virtio_net.feature_rss,
+        },
+        .requested_queue_pairs = 6,
+        .max_queue_pairs = 4,
+        .mtu = 9_000,
+    });
+
+    _ = try lab.freezeForRecovery();
+    const resume_plan = try lab.planQueueResume();
+    try std.testing.expect(resume_plan.requires_fresh_probe_snapshot);
+    try std.testing.expect(resume_plan.requires_control_queue_restore);
+    try std.testing.expect(resume_plan.requires_rss_reapply);
+    try std.testing.expectEqual(virtio_net.QueueResumeScope.data_control_and_rss, resume_plan.rebuild_scope);
+}
+
 test "phase12 virtio net keeps hash-report-only requests visible" {
     var lab = try virtio_net.VirtioNetProbeLab.init(&.{
         virtio_net.feature_control_vq,
