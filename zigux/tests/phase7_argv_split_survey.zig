@@ -123,6 +123,14 @@ test "phase 7 argv_split survey manifest records the parked runtime leaf surface
     );
     defer std.testing.allocator.free(tests_readme);
 
+    const argv_split_packet_checker = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "scripts/zigux/check-phase7-argv-split-packet.py",
+        std.testing.allocator,
+        .limited(32 * 1024),
+    );
+    defer std.testing.allocator.free(argv_split_packet_checker);
+
     const argv_split_parity_checker = try std.Io.Dir.cwd().readFileAlloc(
         io_instance.io(),
         "scripts/zigux/check-phase7-argv-split-parity.py",
@@ -150,6 +158,7 @@ test "phase 7 argv_split survey manifest records the parked runtime leaf surface
     var ready_next_count: usize = 0;
     var saw_helper = false;
     var saw_shared_fixtures = false;
+    var saw_packet_checker = false;
     var saw_survey_gate = false;
 
     for (manifest.gaps, 0..) |gap, i| {
@@ -176,6 +185,12 @@ test "phase 7 argv_split survey manifest records the parked runtime leaf surface
             try std.testing.expectEqualStrings("zigux/tests/fixtures/phase7_argv_split_vectors.zig", gap.zigux_destination);
         }
 
+        if (std.mem.eql(u8, gap.id, "phase7-argv-split-packet-checker")) {
+            saw_packet_checker = true;
+            try std.testing.expectEqualStrings("starter_landed", gap.status);
+            try std.testing.expectEqualStrings("scripts/zigux/check-phase7-argv-split-packet.py", gap.zigux_destination);
+        }
+
         if (std.mem.eql(u8, gap.id, "phase7-argv-split-survey-gate")) {
             saw_survey_gate = true;
             try std.testing.expectEqualStrings("starter_landed", gap.status);
@@ -192,6 +207,7 @@ test "phase 7 argv_split survey manifest records the parked runtime leaf surface
     try std.testing.expectEqual(@as(usize, 0), ready_next_count);
     try std.testing.expect(saw_helper);
     try std.testing.expect(saw_shared_fixtures);
+    try std.testing.expect(saw_packet_checker);
     try std.testing.expect(saw_survey_gate);
     try std.testing.expect(std.mem.indexOf(u8, argv_split_helper, "pub fn argvFree") != null);
     try std.testing.expect(std.mem.indexOf(u8, argv_split_helper, "leading_nul_expected") != null);
@@ -228,13 +244,27 @@ test "phase 7 argv_split survey manifest records the parked runtime leaf surface
     try std.testing.expect(std.mem.indexOf(u8, argv_split_slice, "repeated teardown safety so an already-cleared `ArgvSplitResult` can be passed through `deinit()` again without freeing the shared empty sentinel state") != null);
     try std.testing.expect(std.mem.indexOf(u8, argv_split_slice, "allocator-failure cleanup that proves the shared Phase 7 gate also exercises the intermediate allocation teardown path already covered by the direct helper tests") != null);
     try expectContains(manifest_json, "\"id\": \"phase7-argv-split-shared-fixtures\"");
+    try expectContains(manifest_json, "\"id\": \"phase7-argv-split-packet-checker\"");
     try expectContains(phase7_build, "phase7-argv-split-survey-tests");
     try expectContains(phase7_build, "repo_root");
+    try expectContains(makefile, "scripts/zigux/check-phase7-argv-split-packet.py --self-test");
+    try expectContains(makefile, "scripts/zigux/check-phase7-argv-split-packet.py");
     try expectContains(makefile, "scripts/zigux/check-phase7-argv-split-parity.py --self-test");
     try expectContains(makefile, "scripts/zigux/check-phase7-argv-split-parity.py");
+    try expectContains(build_inventory_fixture, "\"scripts/zigux/check-phase7-argv-split-packet.py\"");
+    try expectContains(build_inventory_fixture, "\"scripts/zigux/check-phase7-argv-split-packet.py --self-test\"");
     try expectContains(build_inventory_fixture, "\"scripts/zigux/check-phase7-argv-split-parity.py\"");
     try expectContains(build_inventory_fixture, "\"scripts/zigux/check-phase7-argv-split-parity.py --self-test\"");
+    try expectContains(scripts_readme, "`check-phase7-argv-split-packet.py`");
     try expectContains(scripts_readme, "`check-phase7-argv-split-parity.py`");
+    try expectContains(
+        tests_readme,
+        "`scripts/zigux/check-phase7-argv-split-packet.py --self-test`",
+    );
+    try expectContains(
+        tests_readme,
+        "`scripts/zigux/check-phase7-argv-split-packet.py`",
+    );
     try expectContains(
         tests_readme,
         "`scripts/zigux/check-phase7-argv-split-parity.py --self-test`",
@@ -243,6 +273,12 @@ test "phase 7 argv_split survey manifest records the parked runtime leaf surface
         tests_readme,
         "`scripts/zigux/check-phase7-argv-split-parity.py`",
     );
+    try expectContains(argv_split_packet_checker, "ROOT / \"scripts\" / \"zigux\" / \"check-phase7-argv-split-parity.py\"");
+    try expectContains(argv_split_packet_checker, "ROOT / \"zigux\" / \"tests\" / \"phase7_argv_split_survey.zig\"");
+    try expectContains(argv_split_packet_checker, "ROOT / \"zigux\" / \"tests\" / \"phase7_argv_split_manifest.json\"");
+    try expectContains(argv_split_packet_checker, "\"phase7-argv-split-packet-checker\": \"scripts/zigux/check-phase7-argv-split-packet.py\"");
+    try expectContains(argv_split_packet_checker, "print(\"PHASE7_ARGV_SPLIT_PACKET_SELF_TEST=pass\")");
+    try expectContains(argv_split_packet_checker, "print(\"PHASE7_ARGV_SPLIT_PACKET=pass\")");
     try expectContains(argv_split_parity_checker, "SOURCE = ROOT / \"lib\" / \"argv_split.c\"");
     try expectContains(argv_split_parity_checker, "FIXTURE = ROOT / \"zigux\" / \"tests\" / \"fixtures\" / \"phase7_argv_split.json\"");
     try expectContains(argv_split_parity_checker, "HARNESS = ROOT / \"zigux\" / \"tests\" / \"fixtures\" / \"phase7_argv_split_c_harness.c\"");
