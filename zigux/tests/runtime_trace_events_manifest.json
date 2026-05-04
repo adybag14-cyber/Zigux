@@ -84,6 +84,12 @@
       "role": "owns the landed starter surface summary, direct sample and diff gate posture, the blocked loader-scaffold restatement, and the paired header-side macro boundary note for the trace-events packet"
     },
     {
+      "id": "runtime-trace-events-review-checklist",
+      "kind": "documentation",
+      "path": "Documentation/zigux/review-checklist.md",
+      "role": "owns the shared review prompt that keeps the study-only `kernel/trace/ring_buffer.c` boundary, the no-status-change posture, and the Architecture Council reopen rule explicit during trace-events review"
+    },
+    {
       "id": "runtime-trace-events-freeze-map",
       "kind": "governance",
       "path": "Documentation/zigux/freeze-map.md",
@@ -126,6 +132,10 @@
     {
       "surface": "Documentation/zigux/phase9-runtime-trace-events-module-slice.md",
       "owns": "landed starter surface summary, direct sample and diff gate posture, the blocked loader-scaffold restatement, and the paired header-side macro boundary note for the trace-events packet"
+    },
+    {
+      "surface": "Documentation/zigux/review-checklist.md",
+      "owns": "shared review prompt that keeps the study-only `kernel/trace/ring_buffer.c` boundary, the no-status-change posture, and the Architecture Council reopen rule explicit during trace-events review"
     },
     {
       "surface": "Documentation/zigux/freeze-map.md",
