@@ -41,6 +41,7 @@ Fresh repo inspection now shows that current `master` carries all four roadmap-a
 - the ongoing Phase 5 review job is to keep symbol choice, skip behavior, the one-word private timestamp record, duration bookkeeping, the fixed helper-backed `maxactive` budget, the `nmissed` summary, and the sample-owned lifecycle guards reviewable in memory while leaving probe registration and module plumbing out of scope.
 - the scripts-root Phase 5 flow in `scripts/zigux/README.md`, the shared sample-root catalog in `samples/zigux/README.md`, the top-level docs-root guide in `Documentation/zigux/README.md`, the shared tests-root guide in `zigux/tests/README.md`, and the shared `Documentation/zigux/review-checklist.md` prompts are part of that same contributor packet now, because together they keep this landed non-runtime `kretprobe` idiom visibly separate from the separate Phase 9 runtime starter `samples/zigux/runtime_kretprobe.zig` and its loader-side follow-on `samples/zigux/runtime_kretprobe_loader.zig` while naming the direct `zig test samples/zigux/kretprobe_example.zig` replay, the paired `zig test zigux/tests/phase5_kretprobe_example_survey.zig` replay, and the shared `zigux/tests/phase5_build.zig` entrypoint in one place.
 - the same contributor packet also has to keep the sample-owned `zigux/tests/phase5_kretprobe_example.zig` replay explicit as a `phase5_build.zig`-wired check: that focused replay imports `kretprobe_example_sample`, so reviewers should treat it as a focused shared-build replay rather than a standalone `zig test` command. The shared `Documentation/zigux/review-checklist.md` prompts are part of that boundary now, and the shared tests-root guide in `zigux/tests/README.md` is part of that same contributor packet now.
+- drift across the shared sample-root catalog, shared tests-root guide, or shared review checklist is therefore a real Phase 5 reviewability problem even when `samples/zigux/kretprobe_example.zig` itself does not change.
 
 ## Landed sample and exact checks
 
@@ -95,6 +96,11 @@ The exact checks currently recorded in `zigux/tests/phase5_kretprobe_example_man
     - `2/2 phase5_kretprobe_example_survey.test.phase 5 kretprobe contributor docs stay aligned with the shipped review surface...OK`
     - `All 2 tests passed.`
 - this lane-local refresh used a focused survey-packet scratch replay with the directly coupled note, manifest, shared sample-root catalog, shared tests-root guide, top-level docs-root guide, and shared review checklist; no live repo checkout was available for a fresh `zig test samples/zigux/kretprobe_example.zig` or `zig build test --build-file zigux/tests/phase5_build.zig --summary all` replay in this run
+- that focused survey-packet scratch replay still confirms the same contributor-facing contract:
+  - pre-init retargeting still uses `do_sys_openat2`
+  - timestamp-order recovery still rejects `199` after `200` and accepts `260` for a `60 ns` replay
+  - `runOwnershipBoundaryReplay()` still keeps `recordMissedInstance()`, `entryHandler()`, and `retHandler()` rejected after exit
+  - `runLifecycleGuardReplay()` still keeps the pre-init `runAnchorReplay()` and `exit()` rejection plus double `init()` and post-init retarget or recovery rejection explicit in the review packet
 - the focused `zigux/tests/phase5_kretprobe_example.zig` replay remains part of the shipped `phase5_build.zig` packet rather than a standalone direct `zig test` command, so this note now records the current survey-packet alignment pass while leaving that broader shared-build replay contract unchanged.
 
 ## Contributor refresh prompts for the landed sample
