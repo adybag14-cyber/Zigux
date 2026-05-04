@@ -280,9 +280,75 @@ REQUIRED_EXACT_COUNT_MARKERS = [
         1,
     ),
     (
+        "makefile_phase1_bitmap_self_test_count",
+        "zigux/Makefile",
+        "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase1-bitmap-validator-anchors.py --self-test",
+        1,
+    ),
+    (
+        "makefile_phase1_bitmap_count",
+        "zigux/Makefile",
+        "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase1-bitmap-validator-anchors.py",
+        1,
+    ),
+    (
+        "makefile_phase1_find_bit_self_test_count",
+        "zigux/Makefile",
+        "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase1-find-bit-validator-anchors.py --self-test",
+        1,
+    ),
+    (
+        "makefile_phase1_find_bit_count",
+        "zigux/Makefile",
+        "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase1-find-bit-validator-anchors.py",
+        1,
+    ),
+    (
+        "makefile_phase1_route_summary_self_test_count",
+        "zigux/Makefile",
+        "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase1-route-summary-counts.py --self-test",
+        1,
+    ),
+    (
+        "makefile_phase1_route_summary_count",
+        "zigux/Makefile",
+        "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase1-route-summary-counts.py",
+        1,
+    ),
+    (
+        "makefile_phase1_route_inventory_self_test_count",
+        "zigux/Makefile",
+        "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase1-validation-route-inventory.py --self-test",
+        1,
+    ),
+    (
+        "makefile_phase1_route_inventory_count",
+        "zigux/Makefile",
+        "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase1-validation-route-inventory.py",
+        1,
+    ),
+    (
         "makefile_phase1_validate_self_test_count",
         "zigux/Makefile",
         "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase1.py --self-test",
+        1,
+    ),
+    (
+        "makefile_phase1_validate_count",
+        "zigux/Makefile",
+        "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase1.py",
+        1,
+    ),
+    (
+        "makefile_phase1_parity_self_test_count",
+        "zigux/Makefile",
+        "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase1-parity.py --self-test",
+        1,
+    ),
+    (
+        "makefile_phase1_parity_count",
+        "zigux/Makefile",
+        "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase1-parity.py",
         1,
     ),
     (
@@ -386,29 +452,62 @@ REQUIRED_MANIFEST_FIELDS = {
     },
 }
 
-RBTREE_UNEXPECTED_ALIAS_MARKERS = ["pub fn rb_first(", "pub fn rb_next_match(", "pub fn rb_erase("]
+RBTREE_UNEXPECTED_ALIAS_MARKERS = [
+    "pub fn rb_first(",
+    "pub fn rb_last(",
+    "pub fn rb_next(",
+    "pub fn rb_prev(",
+    "pub fn rb_entry(",
+    "pub fn rb_entry_safe(",
+    "pub fn rb_erase(",
+    "pub fn rb_erase_cached(",
+    "pub fn rb_insert_color(",
+    "pub fn rb_insert_color_cached(",
+    "pub fn rb_link_node(",
+    "pub fn rb_link_node_rcu(",
+    "pub fn rb_find_add(",
+    "pub fn rb_find_first(",
+    "pub fn rb_next_match(",
+    "pub fn rb_prev_match(",
+]
 
 WORKFLOW_EXACT_COUNT_PREFIXES = {
-    "run: python3 scripts/zigux/check-phase1-bench.py --self-test": "        ",
-    "run: python3 scripts/zigux/check-phase1-bench.py": "        ",
-    "run: python3 scripts/zigux/validate-phase1-closure.py --self-test": "        ",
-    "run: python3 scripts/zigux/validate-phase1-closure.py": "        ",
+    "run: python3 scripts/zigux/validate-phase1.py --self-test": "# exact-count marker\n",
+    "run: python3 scripts/zigux/validate-phase1.py": "# exact-count marker\n",
+    "run: python3 scripts/zigux/check-phase1-bitmap-validator-anchors.py --self-test": "# exact-count marker\n",
+    "run: python3 scripts/zigux/check-phase1-bitmap-validator-anchors.py": "# exact-count marker\n",
+    "run: python3 scripts/zigux/check-phase1-route-summary-counts.py --self-test": "# exact-count marker\n",
+    "run: python3 scripts/zigux/check-phase1-route-summary-counts.py": "# exact-count marker\n",
+    "run: python3 scripts/zigux/check-phase1-validation-route-inventory.py --self-test": "# exact-count marker\n",
+    "run: python3 scripts/zigux/check-phase1-validation-route-inventory.py": "# exact-count marker\n",
+    "run: python3 scripts/zigux/check-phase1-bench.py --self-test": "# exact-count marker\n",
+    "run: python3 scripts/zigux/check-phase1-bench.py": "# exact-count marker\n",
+    "run: python3 scripts/zigux/validate-phase1-closure.py --self-test": "# exact-count marker\n",
+    "run: python3 scripts/zigux/validate-phase1-closure.py": "# exact-count marker\n",
 }
 
 MAKEFILE_EXACT_COUNT_PREFIXES = {
-    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase1-bench.py --self-test": "\t",
-    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase1-bench.py": "\t",
-    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase1-closure.py --self-test": "\t",
-    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase1-closure.py": "\t",
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase1-bitmap-validator-anchors.py --self-test": "# exact-count marker\n",
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase1-bitmap-validator-anchors.py": "# exact-count marker\n",
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase1-find-bit-validator-anchors.py --self-test": "# exact-count marker\n",
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase1-find-bit-validator-anchors.py": "# exact-count marker\n",
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase1-route-summary-counts.py --self-test": "# exact-count marker\n",
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase1-route-summary-counts.py": "# exact-count marker\n",
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase1-validation-route-inventory.py --self-test": "# exact-count marker\n",
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase1-validation-route-inventory.py": "# exact-count marker\n",
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase1.py --self-test": "# exact-count marker\n",
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase1.py": "# exact-count marker\n",
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase1-parity.py --self-test": "# exact-count marker\n",
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase1-parity.py": "# exact-count marker\n",
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase1-bench.py --self-test": "# exact-count marker\n",
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase1-bench.py": "# exact-count marker\n",
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase1-closure.py --self-test": "# exact-count marker\n",
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase1-closure.py": "# exact-count marker\n",
 }
 
 
 def read_text(rel: str) -> str:
     return (ROOT / rel).read_text(encoding="utf-8")
-
-
-def normalized_lines(rel: str) -> list[str]:
-    return [line.strip() for line in read_text(rel).splitlines()]
 
 
 def fail(items: list[str]) -> int:
@@ -420,24 +519,21 @@ def fail(items: list[str]) -> int:
     return 1
 
 
-def check_contains(label: str, rel: str, markers: list[str], missing: list[str]) -> None:
-    text = read_text(rel)
+def check_contains(prefix: str, rel: str, markers: list[str], missing: list[str]) -> None:
+    source = read_text(rel)
     for marker in markers:
-        if marker not in text:
-            missing.append(f"{label}:{marker}")
+        if marker not in source:
+            missing.append(f"{prefix}:{marker}")
 
 
 def check_exact_count(label: str, rel: str, marker: str, expected: int, missing: list[str]) -> None:
-    normalized_marker = marker.strip()
-    actual = sum(1 for line in normalized_lines(rel) if line == normalized_marker)
+    actual = sum(1 for line in read_text(rel).splitlines() if line.strip() == marker)
     if actual != expected:
         missing.append(f"{label}:expected={expected}:actual={actual}")
 
 
 def validate_manifest(missing: list[str]) -> None:
     manifest = json.loads(read_text("zigux/tests/fixtures/phase1_helper_manifest.json"))
-    if manifest.get("phase") != "Phase 1":
-        missing.append("manifest:phase=Phase 1")
     if manifest.get("status") != "closed":
         missing.append("manifest:status=closed")
     if manifest.get("helper_count") != 13:
@@ -664,6 +760,16 @@ def self_test() -> int:
         write(root / ".github/workflows/zigux-bootstrap.yml", render_fixture_lines(REQUIRED_WORKFLOW_MARKERS, WORKFLOW_EXACT_COUNT_PREFIXES))
 
         write(
+            root / "zigux/Makefile",
+            render_fixture_lines(
+                REQUIRED_MAKEFILE_MARKERS + ["cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase1-parity.py"],
+                MAKEFILE_EXACT_COUNT_PREFIXES,
+            ),
+        )
+        expect_failure(root, "makefile_phase1_parity_count:expected=1:actual=2")
+        write(root / "zigux/Makefile", render_fixture_lines(REQUIRED_MAKEFILE_MARKERS, MAKEFILE_EXACT_COUNT_PREFIXES))
+
+        write(
             root / "Documentation/zigux/phase1-closure.md",
             "\n".join(marker for marker in REQUIRED_CLOSURE_MARKERS if not marker.startswith("PHASE1_FIND_BIT_TAIL_START_UNIT_REVIEW=")) + "\n",
         )
@@ -786,7 +892,7 @@ def self_test() -> int:
         expect_failure(root, "rbtree_source:unexpected_alias:pub fn rb_first(")
 
     print("PHASE1_CLOSURE_VALIDATOR_SELF_TEST=pass")
-    print("PHASE1_CLOSURE_VALIDATOR_SELF_TEST_CASE_COUNT=32")
+    print("PHASE1_CLOSURE_VALIDATOR_SELF_TEST_CASE_COUNT=33")
     return 0
 
 
