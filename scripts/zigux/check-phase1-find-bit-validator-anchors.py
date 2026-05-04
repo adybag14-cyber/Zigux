@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import argparse
+import json
 import tempfile
 from pathlib import Path
 
@@ -17,6 +18,8 @@ DEFAULT_WORKFLOW = ROOT / ".github" / "workflows" / "zigux-bootstrap.yml"
 DEFAULT_MAKEFILE = ROOT / "zigux" / "Makefile"
 DEFAULT_SCRIPTS_README = ROOT / "scripts" / "zigux" / "README.md"
 DEFAULT_DOCS_README = ROOT / "Documentation" / "zigux" / "README.md"
+DEFAULT_FIND_BIT_SOURCE = ROOT / "tools" / "lib" / "find_bit.zig"
+DEFAULT_MANIFEST = ROOT / "zigux" / "tests" / "fixtures" / "phase1_helper_manifest.json"
 
 FIND_BIT_BENCH_KEYS = (
     "PHASE1_FIND_BIT_BENCH_KEYS=PHASE1_BENCH_FIND_NEXT_BIT_CHECKSUM,"
@@ -32,6 +35,16 @@ FIND_BIT_BENCH_ITERATIONS = (
 BENCH_SELF_TEST_COUNT = "print('PHASE1_BENCH_SELF_TEST_CASE_COUNT=18')"
 
 REQUIRED_VALIDATOR_SNIPPETS = {
+    "closure_small_bitmap_review": (
+        '"PHASE1_FIND_BIT_SMALL_BITMAP_UNIT_REVIEW=find_bit single-word set zero and shared-bit '
+        'scans keep Linux small-bitmap semantics aligned by masking out-of-range tail bits while '
+        'preserving inclusive in-range matches inside one word"'
+    ),
+    "closure_low_level_review": (
+        '"PHASE1_FIND_BIT_LOW_LEVEL_UNIT_REVIEW=find_bit low-level underscore entry points '
+        'preserve same-word inclusive starts and tail-clamped set, shared-bit, and zero-bit '
+        'scan behavior across the same caller-selected bit windows as the public helpers"'
+    ),
     "closure_tail_start_review": (
         '"PHASE1_FIND_BIT_TAIL_START_UNIT_REVIEW=find_bit tail-clamped set zero and shared-bit '
         'scans keep the last in-range bit reachable from an inclusive start while later starts '
@@ -87,6 +100,16 @@ REQUIRED_CLOSURE_VALIDATOR_SNIPPETS = {
 REQUIRED_CLOSURE_DOC_SNIPPETS = {
     "find_bit_bench_keys_marker": f"`{FIND_BIT_BENCH_KEYS}`",
     "find_bit_bench_iterations_marker": f"`{FIND_BIT_BENCH_ITERATIONS}`",
+    "find_bit_small_bitmap_review_marker": (
+        "PHASE1_FIND_BIT_SMALL_BITMAP_UNIT_REVIEW=find_bit single-word set zero and shared-bit scans keep Linux "
+        "small-bitmap semantics aligned by masking out-of-range tail bits while preserving inclusive in-range "
+        "matches inside one word"
+    ),
+    "find_bit_low_level_review_marker": (
+        "PHASE1_FIND_BIT_LOW_LEVEL_UNIT_REVIEW=find_bit low-level underscore entry points preserve same-word "
+        "inclusive starts and tail-clamped set, shared-bit, and zero-bit scan behavior across the same "
+        "caller-selected bit windows as the public helpers"
+    ),
 }
 
 REQUIRED_BENCH_CHECKER_SNIPPETS = {
@@ -121,6 +144,18 @@ REQUIRED_DOCS_README_LINES = {
     "phase1_closure_listing": "- `Documentation/zigux/phase1-closure.md`",
 }
 
+REQUIRED_FIND_BIT_SOURCE_SNIPPETS = {
+    "small_bitmap_anchor": 'test "single-word scans keep linux small-bitmap semantics" {',
+    "low_level_anchor": 'test "find low-level underscore entry points preserve same-word and tail-clamped scan semantics" {',
+}
+
+REQUIRED_MANIFEST_FIELDS = {
+    "small_bitmap_unit_test_anchor": 'tools/lib/find_bit.zig:test "single-word scans keep linux small-bitmap semantics"',
+    "small_bitmap_unit_test_contract": "Direct Zig unit coverage keeps single-word set, zero, and shared-bit scans aligned with Linux small-bitmap semantics by masking out-of-range tail bits while preserving inclusive in-range matches inside one word.",
+    "low_level_unit_test_anchor": 'tools/lib/find_bit.zig:test "find low-level underscore entry points preserve same-word and tail-clamped scan semantics"',
+    "low_level_unit_test_contract": "Direct Zig unit coverage keeps _find_first_bit(), _find_first_and_bit(), _find_first_zero_bit(), _find_next_bit(), _find_next_and_bit(), and _find_next_zero_bit() aligned with the public scan helpers across same-word inclusive starts and tail-clamped caller-selected bit windows.",
+}
+
 
 def read_text(path: Path) -> str:
     return path.read_text(encoding="utf-8")
@@ -153,6 +188,16 @@ def validate_snippet_counts(prefix: str, text: str, snippets: dict[str, str]) ->
     return missing
 
 
+def validate_manifest(prefix: str, text: str) -> list[str]:
+    missing: list[str] = []
+    manifest = json.loads(text)
+    review = manifest.get("helper_review_notes", {}).get("tools/lib/find_bit.zig", {})
+    for key, value in REQUIRED_MANIFEST_FIELDS.items():
+        if review.get(key) != value:
+            missing.append(f"{prefix}:{key}")
+    return missing
+
+
 def collect_missing(
     validator_text: str,
     closure_validator_text: str,
@@ -162,6 +207,8 @@ def collect_missing(
     makefile_text: str,
     scripts_readme_text: str,
     docs_readme_text: str,
+    find_bit_source_text: str,
+    manifest_text: str,
 ) -> list[str]:
     return [
         *validate_text("phase1_validator_find_bit", validator_text, REQUIRED_VALIDATOR_SNIPPETS),
@@ -205,6 +252,15 @@ def collect_missing(
             docs_readme_text,
             REQUIRED_DOCS_README_LINES,
         ),
+        *validate_text(
+            "phase1_find_bit_source",
+            find_bit_source_text,
+            REQUIRED_FIND_BIT_SOURCE_SNIPPETS,
+        ),
+        *validate_manifest(
+            "phase1_find_bit_manifest",
+            manifest_text,
+        ),
     ]
 
 
@@ -217,6 +273,8 @@ def run_check(
     makefile_path: Path,
     scripts_readme_path: Path,
     docs_readme_path: Path,
+    find_bit_source_path: Path,
+    manifest_path: Path,
 ) -> int:
     missing = collect_missing(
         read_text(validator_path),
@@ -227,6 +285,8 @@ def run_check(
         read_text(makefile_path),
         read_text(scripts_readme_path),
         read_text(docs_readme_path),
+        read_text(find_bit_source_path),
+        read_text(manifest_path),
     )
     if missing:
         print("PHASE1_FIND_BIT_VALIDATOR_ANCHOR_CHECK=fail")
@@ -239,7 +299,7 @@ def run_check(
     print("PHASE1_FIND_BIT_VALIDATOR_ANCHOR_CHECK=pass")
     print(
         "PHASE1_FIND_BIT_VALIDATOR_ANCHOR_COUNT="
-        f"{len(REQUIRED_VALIDATOR_SNIPPETS) + len(REQUIRED_CLOSURE_VALIDATOR_SNIPPETS) + len(REQUIRED_CLOSURE_DOC_SNIPPETS) + len(REQUIRED_BENCH_CHECKER_SNIPPETS) + len(REQUIRED_WORKFLOW_LINES) + len(REQUIRED_MAKEFILE_LINES) + len(REQUIRED_SCRIPTS_README_LINES) + len(REQUIRED_SCRIPTS_README_SNIPPETS) + len(REQUIRED_DOCS_README_LINES)}"
+        f"{len(REQUIRED_VALIDATOR_SNIPPETS) + len(REQUIRED_CLOSURE_VALIDATOR_SNIPPETS) + len(REQUIRED_CLOSURE_DOC_SNIPPETS) + len(REQUIRED_BENCH_CHECKER_SNIPPETS) + len(REQUIRED_WORKFLOW_LINES) + len(REQUIRED_MAKEFILE_LINES) + len(REQUIRED_SCRIPTS_README_LINES) + len(REQUIRED_SCRIPTS_README_SNIPPETS) + len(REQUIRED_DOCS_README_LINES) + len(REQUIRED_FIND_BIT_SOURCE_SNIPPETS) + len(REQUIRED_MANIFEST_FIELDS)}"
     )
     print(f"PHASE1_FIND_BIT_VALIDATOR_PATH={validator_path}")
     print(f"PHASE1_FIND_BIT_CLOSURE_VALIDATOR_PATH={closure_validator_path}")
@@ -249,6 +309,8 @@ def run_check(
     print(f"PHASE1_FIND_BIT_VALIDATOR_MAKEFILE_PATH={makefile_path}")
     print(f"PHASE1_FIND_BIT_VALIDATOR_SCRIPTS_README_PATH={scripts_readme_path}")
     print(f"PHASE1_FIND_BIT_VALIDATOR_DOCS_README_PATH={docs_readme_path}")
+    print(f"PHASE1_FIND_BIT_SOURCE_PATH={find_bit_source_path}")
+    print(f"PHASE1_FIND_BIT_MANIFEST_PATH={manifest_path}")
     return 0
 
 
@@ -262,6 +324,8 @@ def expect_missing(label: str, expected: str, **texts: str) -> None:
         texts["makefile_text"],
         texts["scripts_readme_text"],
         texts["docs_readme_text"],
+        texts["find_bit_source_text"],
+        texts["manifest_text"],
     )
     if expected not in missing:
         raise SystemExit(
@@ -283,6 +347,15 @@ def run_self_test() -> int:
         + "\n"
     )
     docs_readme_text = "\n".join(REQUIRED_DOCS_README_LINES.values()) + "\n"
+    find_bit_source_text = "\n".join(REQUIRED_FIND_BIT_SOURCE_SNIPPETS.values()) + "\n"
+    manifest_text = json.dumps(
+        {
+            "helper_review_notes": {
+                "tools/lib/find_bit.zig": dict(REQUIRED_MANIFEST_FIELDS),
+            }
+        },
+        indent=2,
+    ) + "\n"
 
     baseline_missing = collect_missing(
         validator_text,
@@ -293,6 +366,8 @@ def run_self_test() -> int:
         makefile_text,
         scripts_readme_text,
         docs_readme_text,
+        find_bit_source_text,
+        manifest_text,
     )
     if baseline_missing:
         raise SystemExit(
@@ -313,6 +388,8 @@ def run_self_test() -> int:
             makefile_text=makefile_text,
             scripts_readme_text=scripts_readme_text,
             docs_readme_text=docs_readme_text,
+            find_bit_source_text=find_bit_source_text,
+            manifest_text=manifest_text,
         )
         total_cases += 1
 
@@ -328,6 +405,8 @@ def run_self_test() -> int:
             makefile_text=makefile_text,
             scripts_readme_text=scripts_readme_text,
             docs_readme_text=docs_readme_text,
+            find_bit_source_text=find_bit_source_text,
+            manifest_text=manifest_text,
         )
         total_cases += 1
 
@@ -343,6 +422,8 @@ def run_self_test() -> int:
             makefile_text=makefile_text,
             scripts_readme_text=scripts_readme_text,
             docs_readme_text=docs_readme_text,
+            find_bit_source_text=find_bit_source_text,
+            manifest_text=manifest_text,
         )
         total_cases += 1
 
@@ -358,6 +439,8 @@ def run_self_test() -> int:
             makefile_text=makefile_text,
             scripts_readme_text=scripts_readme_text,
             docs_readme_text=docs_readme_text,
+            find_bit_source_text=find_bit_source_text,
+            manifest_text=manifest_text,
         )
         total_cases += 1
 
@@ -374,6 +457,8 @@ def run_self_test() -> int:
             makefile_text=makefile_text,
             scripts_readme_text=scripts_readme_text,
             docs_readme_text=docs_readme_text,
+            find_bit_source_text=find_bit_source_text,
+            manifest_text=manifest_text,
         )
         total_cases += 1
         expect_missing(
@@ -387,6 +472,8 @@ def run_self_test() -> int:
             makefile_text=makefile_text,
             scripts_readme_text=scripts_readme_text,
             docs_readme_text=docs_readme_text,
+            find_bit_source_text=find_bit_source_text,
+            manifest_text=manifest_text,
         )
         total_cases += 1
 
@@ -403,6 +490,8 @@ def run_self_test() -> int:
             makefile_text="\n".join(missing_lines) + "\n",
             scripts_readme_text=scripts_readme_text,
             docs_readme_text=docs_readme_text,
+            find_bit_source_text=find_bit_source_text,
+            manifest_text=manifest_text,
         )
         total_cases += 1
         expect_missing(
@@ -416,6 +505,8 @@ def run_self_test() -> int:
             makefile_text=makefile_text + line + "\n",
             scripts_readme_text=scripts_readme_text,
             docs_readme_text=docs_readme_text,
+            find_bit_source_text=find_bit_source_text,
+            manifest_text=manifest_text,
         )
         total_cases += 1
 
@@ -431,6 +522,8 @@ def run_self_test() -> int:
             makefile_text=makefile_text,
             scripts_readme_text=scripts_readme_text.replace(line, "", 1),
             docs_readme_text=docs_readme_text,
+            find_bit_source_text=find_bit_source_text,
+            manifest_text=manifest_text,
         )
         total_cases += 1
         expect_missing(
@@ -444,6 +537,8 @@ def run_self_test() -> int:
             makefile_text=makefile_text,
             scripts_readme_text=scripts_readme_text + line + "\n",
             docs_readme_text=docs_readme_text,
+            find_bit_source_text=find_bit_source_text,
+            manifest_text=manifest_text,
         )
         total_cases += 1
 
@@ -459,6 +554,8 @@ def run_self_test() -> int:
             makefile_text=makefile_text,
             scripts_readme_text=scripts_readme_text.replace(snippet, "", 1),
             docs_readme_text=docs_readme_text,
+            find_bit_source_text=find_bit_source_text,
+            manifest_text=manifest_text,
         )
         total_cases += 1
         expect_missing(
@@ -472,6 +569,8 @@ def run_self_test() -> int:
             makefile_text=makefile_text,
             scripts_readme_text=scripts_readme_text + snippet + "\n",
             docs_readme_text=docs_readme_text,
+            find_bit_source_text=find_bit_source_text,
+            manifest_text=manifest_text,
         )
         total_cases += 1
 
@@ -487,6 +586,8 @@ def run_self_test() -> int:
             makefile_text=makefile_text,
             scripts_readme_text=scripts_readme_text,
             docs_readme_text=docs_readme_text.replace(line, "", 1),
+            find_bit_source_text=find_bit_source_text,
+            manifest_text=manifest_text,
         )
         total_cases += 1
         expect_missing(
@@ -500,6 +601,44 @@ def run_self_test() -> int:
             makefile_text=makefile_text,
             scripts_readme_text=scripts_readme_text,
             docs_readme_text=docs_readme_text + line + "\n",
+            find_bit_source_text=find_bit_source_text,
+            manifest_text=manifest_text,
+        )
+        total_cases += 1
+
+    for label, snippet in REQUIRED_FIND_BIT_SOURCE_SNIPPETS.items():
+        expect_missing(
+            label,
+            f"phase1_find_bit_source:{label}",
+            validator_text=validator_text,
+            closure_validator_text=closure_validator_text,
+            closure_doc_text=closure_doc_text,
+            bench_checker_text=bench_checker_text,
+            workflow_text=workflow_text,
+            makefile_text=makefile_text,
+            scripts_readme_text=scripts_readme_text,
+            docs_readme_text=docs_readme_text,
+            find_bit_source_text=find_bit_source_text.replace(snippet, "", 1),
+            manifest_text=manifest_text,
+        )
+        total_cases += 1
+
+    for label in REQUIRED_MANIFEST_FIELDS:
+        manifest = json.loads(manifest_text)
+        manifest["helper_review_notes"]["tools/lib/find_bit.zig"][label] = "drift"
+        expect_missing(
+            label,
+            f"phase1_find_bit_manifest:{label}",
+            validator_text=validator_text,
+            closure_validator_text=closure_validator_text,
+            closure_doc_text=closure_doc_text,
+            bench_checker_text=bench_checker_text,
+            workflow_text=workflow_text,
+            makefile_text=makefile_text,
+            scripts_readme_text=scripts_readme_text,
+            docs_readme_text=docs_readme_text,
+            find_bit_source_text=find_bit_source_text,
+            manifest_text=json.dumps(manifest, indent=2) + "\n",
         )
         total_cases += 1
 
@@ -514,6 +653,8 @@ def run_self_test() -> int:
             "makefile": tmp_root / "Makefile",
             "scripts_readme": tmp_root / "README.md",
             "docs_readme": tmp_root / "docs-README.md",
+            "find_bit_source": tmp_root / "find_bit.zig",
+            "manifest": tmp_root / "phase1_helper_manifest.json",
         }
         paths["validator"].write_text(validator_text, encoding="utf-8")
         paths["closure_validator"].write_text(closure_validator_text, encoding="utf-8")
@@ -523,6 +664,8 @@ def run_self_test() -> int:
         paths["makefile"].write_text(makefile_text, encoding="utf-8")
         paths["scripts_readme"].write_text(scripts_readme_text, encoding="utf-8")
         paths["docs_readme"].write_text(docs_readme_text, encoding="utf-8")
+        paths["find_bit_source"].write_text(find_bit_source_text, encoding="utf-8")
+        paths["manifest"].write_text(manifest_text, encoding="utf-8")
         if (
             run_check(
                 paths["validator"],
@@ -533,6 +676,8 @@ def run_self_test() -> int:
                 paths["makefile"],
                 paths["scripts_readme"],
                 paths["docs_readme"],
+                paths["find_bit_source"],
+                paths["manifest"],
             )
             != 0
         ):
@@ -547,9 +692,9 @@ def run_self_test() -> int:
 def main() -> int:
     parser = argparse.ArgumentParser(
         description=(
-            "Fail closed if the Phase 1 find_bit validators, Makefile route, or docs-root index "
-            "stop naming the shipped tail-start, tail-word-boundary, zero-sized, or bench "
-            "workload-size evidence packet."
+            "Fail closed if the Phase 1 find_bit validators, manifest, helper source, Makefile route, or docs-root index "
+            "stop naming the shipped small-bitmap, low-level underscore, tail-start, tail-word-boundary, zero-sized, "
+            "or bench workload-size evidence packet."
         )
     )
     parser.add_argument("--validator", type=Path, default=DEFAULT_VALIDATOR)
@@ -560,6 +705,8 @@ def main() -> int:
     parser.add_argument("--makefile", type=Path, default=DEFAULT_MAKEFILE)
     parser.add_argument("--scripts-readme", type=Path, default=DEFAULT_SCRIPTS_README)
     parser.add_argument("--docs-readme", type=Path, default=DEFAULT_DOCS_README)
+    parser.add_argument("--find-bit-source", type=Path, default=DEFAULT_FIND_BIT_SOURCE)
+    parser.add_argument("--manifest", type=Path, default=DEFAULT_MANIFEST)
     parser.add_argument("--self-test", action="store_true")
     args = parser.parse_args()
 
@@ -575,6 +722,8 @@ def main() -> int:
         args.makefile,
         args.scripts_readme,
         args.docs_readme,
+        args.find_bit_source,
+        args.manifest,
     )
 
 
