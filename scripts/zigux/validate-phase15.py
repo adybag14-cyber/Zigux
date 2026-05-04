@@ -801,7 +801,7 @@ require(
 
 scorecard_manifest = load_json("zigux/tests/phase15_parity_scorecard.json")
 require(scorecard_manifest.get("phase") == "Phase 15", "scorecard_manifest:phase")
-require(scorecard_manifest.get("lane_key") == "P15-L04", "scorecard_manifest:lane_key")
+require(scorecard_manifest.get("lane_key") == "P15-L12", "scorecard_manifest:lane_key")
 
 if missing:
     print("PHASE15_VALIDATION=fail")
