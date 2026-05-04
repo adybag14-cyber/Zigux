@@ -2,9 +2,9 @@
   "lane_key": "P3-Y01",
   "phase": "Phase 3",
   "anchor": "lib/rbtree.c",
-  "status": "dedicated_boundary_landed_shared_abi_followup_pending",
+  "status": "dedicated_boundary_landed_shared_abi_lift_landed",
   "roadmap_destination": "zigux/helpers/rbtree_view.zig",
-  "remaining_gap": "shared-phase3-abi-rbtree-root-view-lift-still-missing",
+  "remaining_gap": "shared-phase3-abi-rbtree-root-view-lift-landed",
   "file_count": 13,
   "files": [
     "include/zigux/rbtree.h",
