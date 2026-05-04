@@ -102,6 +102,14 @@ test "phase 7 string helpers survey keeps the roadmap and sample-root boundary e
     );
     defer std.testing.allocator.free(string_helpers_tests);
 
+    const string_helpers_sample_boundary = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "zigux/tests/phase7_string_helpers_sample_boundary.zig",
+        std.testing.allocator,
+        .limited(16 * 1024),
+    );
+    defer std.testing.allocator.free(string_helpers_sample_boundary);
+
     const manifest_json = try std.Io.Dir.cwd().readFileAlloc(
         io_instance.io(),
         "zigux/tests/phase7_string_helpers_manifest.json",
@@ -219,12 +227,12 @@ test "phase 7 string helpers survey keeps the roadmap and sample-root boundary e
     try std.testing.expectEqualStrings("lib/string_helpers.c", manifest.anchor);
     try std.testing.expectEqual(@as(usize, 1), manifest.roadmap_destinations.len);
     try std.testing.expectEqualStrings("lib/string_helpers.zig", manifest.roadmap_destinations[0]);
-    try std.testing.expectEqual(@as(usize, 1), manifest.survey_summary.preexisting_phase7_test_files);
+    try std.testing.expectEqual(@as(usize, 2), manifest.survey_summary.preexisting_phase7_test_files);
     try std.testing.expectEqual(@as(usize, 1), manifest.survey_summary.preexisting_phase7_fixture_modules);
     try std.testing.expect(manifest.survey_summary.preexisting_phase7_build_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase7_doc_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase7_helper_present);
-    try std.testing.expect(manifest.gaps.len >= 7);
+    try std.testing.expectEqual(@as(usize, 8), manifest.gaps.len);
 
     var starter_landed_count: usize = 0;
     var ready_next_count: usize = 0;
@@ -234,6 +242,7 @@ test "phase 7 string helpers survey keeps the roadmap and sample-root boundary e
     var saw_shared_fixtures = false;
     var saw_slice_note = false;
     var saw_manifest_packet = false;
+    var saw_sample_boundary = false;
     var saw_survey_gate = false;
 
     for (manifest.gaps, 0..) |gap, i| {
@@ -296,6 +305,14 @@ test "phase 7 string helpers survey keeps the roadmap and sample-root boundary e
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "machine-readable") != null);
         }
 
+        if (std.mem.eql(u8, gap.id, "phase7-string-helpers-sample-boundary")) {
+            saw_sample_boundary = true;
+            try std.testing.expectEqualStrings("starter_landed", gap.status);
+            try std.testing.expectEqualStrings("validation", gap.kind);
+            try std.testing.expectEqualStrings("zigux/tests/phase7_string_helpers_sample_boundary.zig", gap.zigux_destination);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "machine-checked") != null);
+        }
+
         if (std.mem.eql(u8, gap.id, "phase7-string-helpers-survey-gate")) {
             saw_survey_gate = true;
             try std.testing.expectEqualStrings("starter_landed", gap.status);
@@ -310,7 +327,7 @@ test "phase 7 string helpers survey keeps the roadmap and sample-root boundary e
         }
     }
 
-    try std.testing.expect(starter_landed_count >= 7);
+    try std.testing.expectEqual(@as(usize, 8), starter_landed_count);
     try std.testing.expectEqual(@as(usize, 0), ready_next_count);
     try std.testing.expect(saw_build_gate);
     try std.testing.expect(saw_helper);
@@ -318,6 +335,7 @@ test "phase 7 string helpers survey keeps the roadmap and sample-root boundary e
     try std.testing.expect(saw_shared_fixtures);
     try std.testing.expect(saw_slice_note);
     try std.testing.expect(saw_manifest_packet);
+    try std.testing.expect(saw_sample_boundary);
     try std.testing.expect(saw_survey_gate);
 
     try expectContains(roadmap, "## Phase 5: Samples and Reference Patterns");
@@ -382,7 +400,8 @@ test "phase 7 string helpers survey keeps the roadmap and sample-root boundary e
     try expectContains(string_helpers_slice, "the four Phase 5 `samples/zigux/` anchors remain `bytestream_fifo`, `kobject_example`, `kretprobe_example`, and `trace_events_sample`.");
     try expectContains(string_helpers_slice, "zigux/tests/fixtures/phase7_string_helpers_escape_vectors.zig");
     try expectContains(string_helpers_slice, "zigux/tests/phase7_string_helpers_manifest.json");
-    try expectContains(string_helpers_slice, "integration with validation substrate through `scripts/zigux/validate-phase7.py`, `scripts/zigux/check-phase7-build-inventory.py`, `scripts/zigux/check-phase7-make-wrapper.py`, `zigux/tests/phase7_string_helpers.zig`, `zigux/tests/phase7_string_helpers_manifest.json`, `zigux/tests/phase7_string_helpers_survey.zig`, and `zigux/tests/phase7_build.zig`.");
+    try expectContains(string_helpers_slice, "zigux/tests/phase7_string_helpers_sample_boundary.zig");
+    try expectContains(string_helpers_slice, "integration with validation substrate through `scripts/zigux/validate-phase7.py`, `scripts/zigux/check-phase7-build-inventory.py`, `scripts/zigux/check-phase7-make-wrapper.py`, `zigux/tests/phase7_string_helpers.zig`, `zigux/tests/phase7_string_helpers_manifest.json`, `zigux/tests/phase7_string_helpers_survey.zig`, `zigux/tests/phase7_string_helpers_sample_boundary.zig`, and `zigux/tests/phase7_build.zig`.");
     try expectContains(string_helpers_slice, "`python3 scripts/zigux/validate-phase7.py --self-test`");
     try expectContains(string_helpers_slice, "`make -C zigux phase7-validate`");
     try expectContains(string_helpers_slice, "`zig build test --build-file zigux/tests/phase7_build.zig --summary all`");
@@ -410,10 +429,13 @@ test "phase 7 string helpers survey keeps the roadmap and sample-root boundary e
     try expectContains(makefile, "phase7-test:");
     try expectContains(makefile, "$(ZIG) build test --build-file zigux/tests/phase7_build.zig --summary all");
 
+    try expectContains(phase7_build, "phase7_string_helpers_sample_boundary.zig");
     try expectContains(phase7_build, "phase7_string_helpers_survey.zig");
     try expectContains(phase7_build, "phase7-string-helpers-tests");
     try expectContains(phase7_build, "phase7-string-helpers-survey-tests");
+    try expectContains(phase7_build, "phase7-string-helpers-sample-boundary-tests");
 
+    try expectContains(validate_phase7, "zigux/tests/phase7_string_helpers_sample_boundary.zig");
     try expectContains(validate_phase7, "check-phase7-build-inventory.py --self-test");
     try expectContains(validate_phase7, "zigux/tests/fixtures/phase7_build_inventory.json");
     try expectContains(validate_phase7, "(\"zigux/tests/phase7_string_helpers_survey.zig\", phase7_string_helpers_survey, required_phase7_string_helpers_survey_markers),");
@@ -454,11 +476,19 @@ test "phase 7 string helpers survey keeps the roadmap and sample-root boundary e
     try expectContains(string_helpers_tests, "phase 7 stringEscapeMem covers the bounded escape subset");
     try expectContains(string_helpers_tests, "phase 7 stringEscapeMem reports truncated output length without forcing a terminator");
 
+    try expectContains(string_helpers_sample_boundary, "phase 7 string helper sample boundary keeps the shipped build helper-only");
+    try expectContains(string_helpers_sample_boundary, "current `master` still ships no `samples/zigux/*string*` Phase 5 reference sample");
+    try expectContains(string_helpers_sample_boundary, "phase7-string-helpers-sample-boundary-tests");
+    try expectContains(string_helpers_sample_boundary, "phase7_string_helpers_sample_boundary.zig");
+
     try expectContains(manifest_json, "\"lane_key\": \"P7-Y01\"");
     try expectContains(manifest_json, "\"anchor\": \"lib/string_helpers.c\"");
+    try expectContains(manifest_json, "\"preexisting_phase7_test_files\": 2");
     try expectContains(manifest_json, "\"lib/string_helpers.zig\"");
     try expectContains(manifest_json, "\"phase7-string-helpers-manifest-packet\"");
+    try expectContains(manifest_json, "\"phase7-string-helpers-sample-boundary\"");
     try expectContains(manifest_json, "\"zigux/tests/phase7_string_helpers_manifest.json\"");
+    try expectContains(manifest_json, "\"zigux/tests/phase7_string_helpers_sample_boundary.zig\"");
     try expectContains(manifest_json, "\"zigux/tests/fixtures/phase7_string_helpers_escape_vectors.zig\"");
 
     try expectContains(escape_vectors, "pub const unescape_cases");
