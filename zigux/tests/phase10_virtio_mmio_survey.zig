@@ -48,7 +48,7 @@ fn isAllowedStatus(status: []const u8) bool {
         std.mem.eql(u8, status, "blocked_on_risky_transport");
 }
 
-test "phase10 virtio mmio survey manifest records the landed interrupt-ack rung and remaining transport gap" {
+test "phase10 virtio mmio survey manifest records the landed probe-preflight rung and remaining transport gap" {
     var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
     defer io_instance.deinit();
 
@@ -135,7 +135,7 @@ test "phase10 virtio mmio survey manifest records the landed interrupt-ack rung 
     try std.testing.expect(manifest.survey_summary.preexisting_virtio_input_test_present);
     try std.testing.expect(manifest.survey_summary.preexisting_virtio_input_survey_present);
     try std.testing.expect(manifest.survey_summary.preexisting_virtio_mmio_zig_present);
-    try std.testing.expectEqual(@as(usize, 19), manifest.gaps.len);
+    try std.testing.expectEqual(@as(usize, 20), manifest.gaps.len);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, manifest.surveyed_commit) != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase10_virtio_ring_reset_reuse.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "Documentation/zigux/phase10-virtio-ring-survey.md") != null);
@@ -143,6 +143,7 @@ test "phase10 virtio mmio survey manifest records the landed interrupt-ack rung 
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase10-virtio-ring-slice-note") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase10-mmio-config-write-helper") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase10-mmio-interrupt-ack-helper") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase10-mmio-probe-preflight-helper") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase10-virtio-mmio-slice-note") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase10-mmio-lifecycle-and-irq-paths") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "zigux/tests/phase10_virtio_mmio_queue_isolation.zig") != null);
@@ -164,10 +165,11 @@ test "phase10 virtio mmio survey manifest records the landed interrupt-ack rung 
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "zigux/kernel/") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "zigux/helpers/") != null);
     try std.testing.expect(std.mem.indexOf(u8, slice_note, "transport-identity snapshots") != null);
+    try std.testing.expect(std.mem.indexOf(u8, slice_note, "probe-preflight summary") != null);
     try std.testing.expect(std.mem.indexOf(u8, slice_note, "bounded interrupt-state summaries") != null);
     try std.testing.expect(std.mem.indexOf(u8, slice_note, "interrupt acknowledge") != null);
-    try std.testing.expect(std.mem.indexOf(u8, slice_note, "PHASE10_SLICE=virtio-mmio-interrupt-ack-helper") != null);
-    try std.testing.expect(std.mem.indexOf(u8, slice_note, "landed interrupt-state summary plus interrupt-ack rung") != null);
+    try std.testing.expect(std.mem.indexOf(u8, slice_note, "PHASE10_SLICE=virtio-mmio-probe-preflight-helper") != null);
+    try std.testing.expect(std.mem.indexOf(u8, slice_note, "transport-identity snapshot plus a bounded probe-preflight summary") != null);
     try std.testing.expect(std.mem.indexOf(u8, slice_note, "phase10-mmio-lifecycle-and-irq-paths") != null);
     try std.testing.expect(std.mem.indexOf(u8, slice_note, "add one small config-window write-planning helper next") == null);
     try std.testing.expect(std.mem.indexOf(u8, slice_note, "next honest follow-on after the config-write helper") == null);
@@ -185,6 +187,7 @@ test "phase10 virtio mmio survey manifest records the landed interrupt-ack rung 
         "phase10-mmio-config-window-helper",
         "phase10-mmio-config-write-helper",
         "phase10-mmio-interrupt-ack-helper",
+        "phase10-mmio-probe-preflight-helper",
     };
     try std.testing.expectEqual(expected_landed_mmio_helpers.len, mmio_helper_evidence.array.items.len);
     for (expected_landed_mmio_helpers, 0..) |helper_id, index| {
@@ -223,6 +226,7 @@ test "phase10 virtio mmio survey manifest records the landed interrupt-ack rung 
     var saw_mmio_config_window_helper = false;
     var saw_mmio_config_write_landed = false;
     var saw_mmio_interrupt_ack_landed = false;
+    var saw_mmio_probe_preflight_landed = false;
 
     for (manifest.gaps, 0..) |gap, i| {
         try std.testing.expect(gap.id.len > 0);
@@ -280,14 +284,14 @@ test "phase10 virtio mmio survey manifest records the landed interrupt-ack rung 
             saw_mmio_survey_note = true;
             try std.testing.expectEqualStrings("starter_landed", gap.status);
             try std.testing.expectEqualStrings("Documentation/zigux/phase10-virtio-mmio-survey.md", gap.zigux_destination);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "interrupt-ack helpers landed") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "probe-preflight helpers landed") != null);
         }
 
         if (std.mem.eql(u8, gap.id, "phase10-virtio-mmio-slice-note")) {
             saw_mmio_slice_note = true;
             try std.testing.expectEqualStrings("starter_landed", gap.status);
             try std.testing.expectEqualStrings("Documentation/zigux/phase10-virtio-mmio-slice.md", gap.zigux_destination);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "interrupt-ack surface") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "probe-preflight surface") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "config-window surface rather than the full transport driver") == null);
         }
 
@@ -350,13 +354,22 @@ test "phase10 virtio mmio survey manifest records the landed interrupt-ack rung 
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "queue and config interrupt bits") != null);
         }
 
+        if (std.mem.eql(u8, gap.id, "phase10-mmio-probe-preflight-helper")) {
+            saw_mmio_probe_preflight_landed = true;
+            try std.testing.expectEqualStrings("starter_landed", gap.status);
+            try std.testing.expectEqualStrings("drivers/virtio/virtio_mmio.zig", gap.zigux_destination);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "virtio_mmio_probe()") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "magic, version, device, vendor") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "interrupt-ack readiness") != null);
+        }
+
         if (std.mem.eql(u8, gap.id, "phase10-mmio-lifecycle-and-irq-paths")) {
             saw_mmio_blocker = true;
             try std.testing.expectEqualStrings("blocked_on_risky_transport", gap.status);
             try std.testing.expectEqualStrings("drivers/virtio/virtio_mmio.zig", gap.zigux_destination);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "interrupt acknowledgement") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "queue notify side effects") != null);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "interrupt-ack helpers are landed") != null or std.mem.indexOf(u8, gap.why_now, "config-space writes") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "interrupt-ack") != null or std.mem.indexOf(u8, gap.why_now, "config-space writes") != null);
         }
 
         for (manifest.gaps[i + 1 ..]) |other| {
@@ -364,7 +377,7 @@ test "phase10 virtio mmio survey manifest records the landed interrupt-ack rung 
         }
     }
 
-    try std.testing.expectEqual(@as(usize, 18), starter_landed_count);
+    try std.testing.expectEqual(@as(usize, 19), starter_landed_count);
     try std.testing.expectEqual(@as(usize, 0), ready_next_count);
     try std.testing.expectEqual(@as(usize, 1), blocked_count);
     try std.testing.expect(saw_ring_helper);
@@ -378,6 +391,7 @@ test "phase10 virtio mmio survey manifest records the landed interrupt-ack rung 
     try std.testing.expect(saw_mmio_config_window_helper);
     try std.testing.expect(saw_mmio_config_write_landed);
     try std.testing.expect(saw_mmio_interrupt_ack_landed);
+    try std.testing.expect(saw_mmio_probe_preflight_landed);
     try std.testing.expect(saw_mmio_survey_gate);
     try std.testing.expect(saw_mmio_survey_note);
     try std.testing.expect(saw_mmio_blocker);
