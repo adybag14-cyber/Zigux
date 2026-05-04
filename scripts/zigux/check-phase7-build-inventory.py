@@ -195,9 +195,9 @@ def run_self_test() -> int:
             raise SystemExit(
                 f"phase7-build-inventory:self-test:repo_root_cwd_baseline:{run_label}"
             )
-    if len(first["shared_validation_gates"]) != 6:
+    if len(first["shared_validation_gates"]) != 7:
         raise SystemExit("phase7-build-inventory:self-test:validation_gate_count")
-    if len(first["shared_validation_commands"]) != 12:
+    if len(first["shared_validation_commands"]) != 14:
         raise SystemExit("phase7-build-inventory:self-test:validation_command_count")
     if first["shared_validation_commands"][2:4] != [
         "scripts/zigux/check-phase7-build-inventory.py --self-test",
@@ -205,6 +205,11 @@ def run_self_test() -> int:
     ]:
         raise SystemExit("phase7-build-inventory:self-test:build_inventory_command_pair")
     if first["shared_validation_commands"][8:10] != [
+        "scripts/zigux/check-phase7-argv-split-packet.py --self-test",
+        "scripts/zigux/check-phase7-argv-split-packet.py",
+    ]:
+        raise SystemExit("phase7-build-inventory:self-test:argv_split_packet_command_pair")
+    if first["shared_validation_commands"][10:12] != [
         "scripts/zigux/check-phase7-argv-split-parity.py --self-test",
         "scripts/zigux/check-phase7-argv-split-parity.py",
     ]:
@@ -481,6 +486,28 @@ def run_self_test() -> int:
     if validation_command_pair_drift["shared_validation_gates"] != fixture["shared_validation_gates"]:
         raise SystemExit("phase7-build-inventory:self-test:validation_command_pair_gate_shape")
 
+    argv_split_packet_command_pair_drift_text = makefile_text.replace(
+        "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase7-argv-split-packet.py --self-test\n",
+        "",
+        1,
+    )
+    if argv_split_packet_command_pair_drift_text == makefile_text:
+        raise SystemExit("phase7-build-inventory:self-test:argv_split_packet_command_pair_drift_rewrite")
+
+    argv_split_packet_command_pair_drift = render_inventory_from_text(
+        build_text,
+        argv_split_packet_command_pair_drift_text,
+    )
+    if argv_split_packet_command_pair_drift == fixture:
+        raise SystemExit("phase7-build-inventory:self-test:argv_split_packet_command_pair_drift_detection")
+    if (
+        "scripts/zigux/check-phase7-argv-split-packet.py --self-test"
+        in argv_split_packet_command_pair_drift["shared_validation_commands"]
+    ):
+        raise SystemExit("phase7-build-inventory:self-test:argv_split_packet_command_pair_drift_shape")
+    if argv_split_packet_command_pair_drift["shared_validation_gates"] != fixture["shared_validation_gates"]:
+        raise SystemExit("phase7-build-inventory:self-test:argv_split_packet_command_pair_gate_shape")
+
     argv_split_command_pair_drift_text = makefile_text.replace(
         "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase7-argv-split-parity.py --self-test\n",
         "",
@@ -542,7 +569,7 @@ def run_self_test() -> int:
         raise SystemExit("phase7-build-inventory:self-test:shared_test_command_drift_shape")
 
     print("PHASE7_BUILD_INVENTORY_SELF_TEST=pass")
-    print("PHASE7_BUILD_INVENTORY_SELF_TEST_CASE_COUNT=22")
+    print("PHASE7_BUILD_INVENTORY_SELF_TEST_CASE_COUNT=23")
     return 0
 
 
@@ -592,6 +619,7 @@ def main(argv: list[str] | None = None) -> int:
         "scripts/zigux/check-phase7-build-inventory.py",
         "scripts/zigux/check-phase7-make-wrapper.py",
         "scripts/zigux/check-phase7-cmdline-parity.py",
+        "scripts/zigux/check-phase7-argv-split-packet.py",
         "scripts/zigux/check-phase7-argv-split-parity.py",
         "scripts/zigux/check-phase7-rbtree-parity.py",
     ]:
@@ -605,6 +633,8 @@ def main(argv: list[str] | None = None) -> int:
         "scripts/zigux/check-phase7-make-wrapper.py",
         "scripts/zigux/check-phase7-cmdline-parity.py --self-test",
         "scripts/zigux/check-phase7-cmdline-parity.py",
+        "scripts/zigux/check-phase7-argv-split-packet.py --self-test",
+        "scripts/zigux/check-phase7-argv-split-packet.py",
         "scripts/zigux/check-phase7-argv-split-parity.py --self-test",
         "scripts/zigux/check-phase7-argv-split-parity.py",
         "scripts/zigux/check-phase7-rbtree-parity.py --self-test",
