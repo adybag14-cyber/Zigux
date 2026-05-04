@@ -47,12 +47,15 @@ SHARED_ABI_BINDING_SNIPPETS = (
 )
 
 SHARED_CONTRACT_SNIPPETS = (
+    'const abi = @import("abi_bindings");',
+    'const rbtree = @import("rbtree_bindings");',
     "PHASE3_RBTREE_SHARED_LAYOUT_CONTRACT=zigux_rbtree_root_view-reused-unchanged-in-shared-phase3-abi-packet",
     "PHASE3_RBTREE_SHARED_CONSTANT_CONTRACT=root_flag_empty,root_flag_cached,root_flag_leftmost_valid",
     "PHASE3_RBTREE_SHARED_SAMPLE_RECORDS=empty-root,cached-leftmost-root,uncached-root",
-    "const empty_root = rbtree.empty();",
-    "const cached_root: rbtree.RootView = .{",
-    "const uncached_root: rbtree.RootView = .{",
+    "fn expectSameRootView(shared: abi.RbtreeRootView, dedicated: rbtree.RootView) !void {",
+    "try std.testing.expectEqual(@sizeOf(rbtree.RootView), @sizeOf(abi.RbtreeRootView));",
+    "try std.testing.expectEqual(abi.RBTREE_ROOT_FLAG_EMPTY, rbtree.ROOT_FLAG_EMPTY);",
+    "try expectSameRootView(empty_root, rbtree.empty());",
 )
 
 SHARED_PACKET_SNIPPETS = {
@@ -64,15 +67,15 @@ SHARED_PACKET_SNIPPETS = {
         "try std.testing.expect(isCanonicalRbtreeRootView(uncached_root));",
     ),
     SHARED_ABI_DUMP_REL: (
-        'try writer.writeAll("},\"records\":{\"rbtree_empty_root\":{\"root_addr\":");',
-        'try writer.writeAll(",\"reserved\":0},\"rbtree_cached_leftmost_root\":{\"root_addr\":");',
-        'try writer.writeAll(",\"reserved\":0},\"rbtree_uncached_root\":{\"root_addr\":");',
+        'try writer.writeAll("},\\\"records\\\":{\\\"rbtree_empty_root\\\":{\\\"root_addr\\\":");',
+        'try writer.writeAll(",\\\"reserved\\\":0},\\\"rbtree_cached_leftmost_root\\\":{\\\"root_addr\\\":");',
+        'try writer.writeAll(",\\\"reserved\\\":0},\\\"rbtree_uncached_root\\\":{\\\"root_addr\\\":");',
         'try writeStructLayout(writer, "zigux_rbtree_root_view", abi.RbtreeRootView, false);',
     ),
     SHARED_ABI_HARNESS_REL: (
-        'fputs("},\"records\":{\"rbtree_empty_root\":{\"root_addr\":", stdout);',
-        'fputs(",\"reserved\":0},\"rbtree_cached_leftmost_root\":{\"root_addr\":", stdout);',
-        'fputs(",\"reserved\":0},\"rbtree_uncached_root\":{\"root_addr\":", stdout);',
+        'fputs("},\\\"records\\\":{\\\"rbtree_empty_root\\\":{\\\"root_addr\\\":", stdout);',
+        'fputs(",\\\"reserved\\\":0},\\\"rbtree_cached_leftmost_root\\\":{\\\"root_addr\\\":", stdout);',
+        'fputs(",\\\"reserved\\\":0},\\\"rbtree_uncached_root\\\":{\\\"root_addr\\\":", stdout);',
         '{"zigux_rbtree_root_view", sizeof(struct zigux_rbtree_root_view), _Alignof(struct zigux_rbtree_root_view), ARRAY_SIZE(zigux_rbtree_root_view_fields), zigux_rbtree_root_view_fields},',
     ),
 }
