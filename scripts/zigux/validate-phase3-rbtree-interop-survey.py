@@ -24,7 +24,7 @@ REQUIRED_SURVEY_MARKERS = (
     "PHASE3_RBTREE_PHASE3_BOUNDARY_STATUS=dedicated-boundary-and-shared-abi-root-view-lift-landed",
     "PHASE3_RBTREE_NON_GOALS=no-balancing-port,no-export-shim-growth,no-uapi-growth",
     "PHASE3_RBTREE_NEXT_BOUNDED_STEP=align-remaining-phase3-rbtree-survey-wording-with-landed-shared-rbtree-lift",
-    "PHASE3_RBTREE_SHARED_REPLAY=zigux/tests/phase3_abi.zig,zigux/tests/phase3_abi_dump.zig,zigux/tests/fixtures/phase3_abi/phase3_abi_c_harness.c,zigux/tests/phase3_abi/expected.json",
+    "PHASE3_RBTREE_SHARED_REPLAY=zigux/tests/phase3_abi.zig,zigux/tests/phase3_abi_dump.zig,zigux/tests/fixtures/phase3_abi/phase3_abi_c_harness.c,zigux/tests/fixtures/phase3_abi/expected.json",
     "PHASE3_RBTREE_SHARED_LAYOUT_CONTRACT=zigux_rbtree_root_view-reused-unchanged-in-shared-phase3-abi-packet",
     "PHASE3_RBTREE_SHARED_CONSTANT_CONTRACT=root_flag_empty,root_flag_cached,root_flag_leftmost_valid",
     "PHASE3_RBTREE_SHARED_SAMPLE_RECORDS=empty-root,cached-leftmost-root,uncached-root",
@@ -39,7 +39,7 @@ REQUIRED_SURVEY_MARKERS = (
 EXACT_ONCE_SURVEY_MARKERS = (
     "PHASE3_RBTREE_PHASE3_BOUNDARY_STATUS=dedicated-boundary-and-shared-abi-root-view-lift-landed",
     "PHASE3_RBTREE_NEXT_BOUNDED_STEP=align-remaining-phase3-rbtree-survey-wording-with-landed-shared-rbtree-lift",
-    "PHASE3_RBTREE_SHARED_REPLAY=zigux/tests/phase3_abi.zig,zigux/tests/phase3_abi_dump.zig,zigux/tests/fixtures/phase3_abi/phase3_abi_c_harness.c,zigux/tests/phase3_abi/expected.json",
+    "PHASE3_RBTREE_SHARED_REPLAY=zigux/tests/phase3_abi.zig,zigux/tests/phase3_abi_dump.zig,zigux/tests/fixtures/phase3_abi/phase3_abi_c_harness.c,zigux/tests/fixtures/phase3_abi/expected.json",
     "PHASE3_RBTREE_SHARED_CONTRACT=zigux/tests/phase3_rbtree_shared_contract.zig",
     "PHASE3_RBTREE_SHARED_CONTRACT_CHECK=scripts/zigux/check-phase3-rbtree-shared-lift-contract.py",
     "PHASE3_RBTREE_SHARED_PACKET_CATALOG=phase3_abi_manifest-catalogs-dedicated-rbtree-boundary-shared-replay-and-shared-lift-guards",
@@ -105,7 +105,7 @@ REQUIRED_REPO_PATHS = (
 
 REQUIRED_ROADMAP_GAP_MARKERS = (
     "PHASE3_CURRENT_RBTREE_STATUS=phase3-dedicated-rbtree-boundary-and-shared-abi-root-view-lift-landed",
-    "PHASE3_CURRENT_SHARED_RBTREE_REPLAY=zigux/tests/phase3_abi.zig,zigux/tests/phase3_abi_dump.zig,zigux/tests/fixtures/phase3_abi/phase3_abi_c_harness.c,zigux/tests/phase3_abi/expected.json",
+    "PHASE3_CURRENT_SHARED_RBTREE_REPLAY=zigux/tests/phase3_abi.zig,zigux/tests/phase3_abi_dump.zig,zigux/tests/fixtures/phase3_abi/phase3_abi_c_harness.c,zigux/tests/fixtures/phase3_abi/expected.json",
     "PHASE3_INTEROP_GAP=survey-and-validator-wording-still-lag-the-landed-shared-rbtree-lift-while-chrdev-tail-growth-keeps-expanding",
     "PHASE3_NEXT_BOUNDED_STEP=align-shared-phase3-survey-and-validator-wording-before-more-chrdev-growth",
 )
@@ -295,6 +295,7 @@ def run_self_test() -> int:
         assert any(issue.startswith("missing_survey_marker:") for issue in issues)
         assert any(issue.startswith("missing_survey_snippet:") for issue in issues)
 
+        (root / SURVEY_REL).writeText if False else None
         (root / SURVEY_REL).write_text("\n".join((*REQUIRED_SURVEY_MARKERS, *REQUIRED_SURVEY_SNIPPETS)) + "\n", encoding="utf-8")
         (root / ROADMAP_GAP_SURVEY_REL).write_text(REQUIRED_ROADMAP_GAP_MARKERS[0] + "\n", encoding="utf-8")
         issues = validate(root)
