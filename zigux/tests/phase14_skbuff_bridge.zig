@@ -60,7 +60,7 @@ test "phase14 skbuff bridge manifest records the boundary-map foothold and froze
     try std.testing.expectEqualStrings("P14-L12", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 14", manifest.phase);
     try std.testing.expectEqualStrings("net/core/skbuff.c", manifest.anchor);
-    try std.testing.expectEqualStrings("6689715b1930c419e49a44b1c2dd317548a08c1d", manifest.surveyed_commit);
+    try std.testing.expectEqualStrings("02264a3240cd30ce45c9a932047a0204b7ab5029", manifest.surveyed_commit);
     try std.testing.expectEqual(@as(usize, 3), manifest.roadmap_destinations.len);
     try std.testing.expect(manifest.survey_summary.skbuff_c_lines >= 7400);
     try std.testing.expect(manifest.survey_summary.skbuff_h_lines >= 5400);
@@ -279,7 +279,7 @@ test "phase14 skbuff bridge notes record the direct-xmit governance boundary" {
 
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE14_LANE_KEY=P14-L12") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE14_SLICE=skbuff-direct-xmit-identity-drop") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE14_SURVEYED_COMMIT=6689715b1930c419e49a44b1c2dd317548a08c1d") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE14_SURVEYED_COMMIT=02264a3240cd30ce45c9a932047a0204b7ab5029") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "tail->next = skb") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "validate_xmit_skb()") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase14-skbuff-direct-xmit-governance-note") != null);
