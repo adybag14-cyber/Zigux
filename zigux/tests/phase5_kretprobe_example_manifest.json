@@ -1,19 +1,19 @@
 {
   "lane_key": "P5-L22",
   "phase": "Phase 5",
-  "surveyed_commit": "7c1e6840cf73a321e775e8e77448157b1304ee1d",
+  "surveyed_commit": "368dcb11d347e77c13bef6607bd99b313573e389",
   "anchor": "samples/kprobes/kretprobe_example.c",
   "sample_path": "samples/zigux/kretprobe_example.zig",
   "validation_entrypoint": "zig build test --build-file zigux/tests/phase5_build.zig --summary all",
   "review_prompts": [
     "descriptor keeps the Linux anchor path explicit and leaves requires_runtime_substrate false while provides_selfcheck stays true",
     "the manifest keeps surveyed_commit pinned to the exact inspected master head instead of a floating branch label so reviewability stays tied to one bounded repo state",
-    "the manifest and survey test still describe the exact skip, pre-init retargeting, timestamp-order boundary, return-value, duration, maxactive, missed-summary, and sample-owned runRetargetRecoveryReplay()/runMaxactiveBudgetReplay()/runOwnershipBoundaryReplay() contract run through phase5_build.zig",
+    "the manifest and survey test still describe the exact skip, pre-init and post-init lifecycle-guard boundaries, pre-init retargeting, timestamp-order boundary, return-value, duration, maxactive, missed-summary, and sample-owned runRetargetRecoveryReplay()/runMaxactiveBudgetReplay()/runOwnershipBoundaryReplay()/runLifecycleGuardReplay() contract run through phase5_build.zig",
     "the sample-backed survey note, shared sample-root catalog, shared tests-root guide, top-level Phase 5 README note, and shared review checklist still keep the landed Phase 5 kretprobe slice tied to the shared phase5_build.zig entrypoint and distinct from the separate Phase 9 runtime starter",
     "the sample keeps the Linux my_data-style private entry timestamp explicit and reviewable instead of burying it in unstructured state",
     "the sample keeps the Linux maxactive budget explicit through a fixed helper-backed reviewable ceiling for this in-memory-only reference slice instead of implying runtime pressure tuning",
     "symbol retargeting stays a pre-init in-memory choice instead of implying module_param or runtime registration parity",
-    "sample-behavior changes update the manifest-backed replay, zigux/tests/phase5_kretprobe_example.zig, and the direct runRetargetRecoveryReplay()/runMaxactiveBudgetReplay()/runOwnershipBoundaryReplay() helper contract instead of leaving reviewers to infer the new boundary from code alone",
+    "sample-behavior changes update the manifest-backed replay, zigux/tests/phase5_kretprobe_example.zig, and the direct runRetargetRecoveryReplay()/runMaxactiveBudgetReplay()/runOwnershipBoundaryReplay()/runLifecycleGuardReplay() helper contract instead of leaving reviewers to infer the new boundary from code alone",
     "docs and tests still keep register_kretprobe, unregister_kretprobe, pt_regs return extraction, and loadable module wiring out of scope for this Phase 5 sample"
   ],
   "exact_checks": [
@@ -51,6 +51,11 @@
       "id": "maxactive-budget",
       "kind": "anchor_shape",
       "expected": "the in-memory sample keeps the Linux maxactive budget explicit through runMaxactiveBudgetReplay() and maxactiveBudget() at 20 concurrent instances even though this Phase 5 slice does not model register_kretprobe pressure handling"
+    },
+    {
+      "id": "lifecycle-guard-boundaries",
+      "kind": "ownership_lifetime",
+      "expected": "runLifecycleGuardReplay rejects pre-init runAnchorReplay() and exit(), rejects double init plus post-init retarget and recovery replays, and leaves the sample initialized with one init run"
     },
     {
       "id": "missed-summary",
