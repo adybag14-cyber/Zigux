@@ -78,6 +78,7 @@
     "scripts/zigux/check-phase7-build-inventory.py",
     "scripts/zigux/check-phase7-make-wrapper.py",
     "scripts/zigux/check-phase7-cmdline-parity.py",
+    "scripts/zigux/check-phase7-argv-split-packet.py",
     "scripts/zigux/check-phase7-argv-split-parity.py",
     "scripts/zigux/check-phase7-rbtree-parity.py"
   ],
@@ -90,6 +91,8 @@
     "scripts/zigux/check-phase7-make-wrapper.py",
     "scripts/zigux/check-phase7-cmdline-parity.py --self-test",
     "scripts/zigux/check-phase7-cmdline-parity.py",
+    "scripts/zigux/check-phase7-argv-split-packet.py --self-test",
+    "scripts/zigux/check-phase7-argv-split-packet.py",
     "scripts/zigux/check-phase7-argv-split-parity.py --self-test",
     "scripts/zigux/check-phase7-argv-split-parity.py",
     "scripts/zigux/check-phase7-rbtree-parity.py --self-test",
