@@ -34,7 +34,9 @@ TEST_DECL_RE = re.compile(r'^\s*test\s*(?:"[^"]*"|\{)', re.M)
 LOCAL_ZIG_IMPORT_RE = re.compile(r'@import\("([^"]+\.zig)"\)')
 
 FORBIDDEN_BUILD_MARKERS: list[str] = []
-DEDICATED_SURVEY_REPLAYS: list[str] = []
+DEDICATED_SURVEY_REPLAYS = [
+    "phase12-libbpf-focused-replay",
+]
 
 
 def load_json(path: Path) -> dict[str, object]:
