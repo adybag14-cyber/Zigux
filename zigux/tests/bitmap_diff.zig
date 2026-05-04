@@ -263,11 +263,11 @@ test "bitmap diff gate replays bounded lib/test_bitmap.c range expectations" {
     try expectSet(&map, bits_per_long * 2);
 }
 
-test "bitmap diff survey keeps the current rounded fill drifts explicit against lib/test_bitmap.c and records the resolved 115-bit fill parity" {
+test "bitmap diff survey records the resolved rounded 115-bit fill parity against lib/test_bitmap.c" {
     var map = [_]Word{0} ** word_count;
 
-    // No longer true that the current Zig helper stops at bit 114; the 115-bit fill now rounds to the Linux two-word anchor.
-    // The Linux anchor rounds fill(115) to two whole words and the Zig helper now matches it.
+    // The current Zig helper matches the Linux two-word rounded fill anchor at 115 bits.
+    // Keep that resolved parity executable inside the Phase 4 bitmap gate.
     try std.testing.expectEqual(bits_per_long * 2, roundedPrefixLen(115));
     try expectCurrentFillPrefix(&map, 115, roundedPrefixLen(115), "0-127");
     try expectSet(&map, 114);
