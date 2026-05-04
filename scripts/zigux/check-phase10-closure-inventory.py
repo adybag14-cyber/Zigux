@@ -236,6 +236,38 @@ EXPECTED_LANDED_MMIO_HELPERS = {
     ]
 }
 
+EXPECTED_FOCUSED_HARNESS_REPLAYS = {
+    "zigux/tests/phase10_virtio_ring_reset_reuse.zig": [
+        "phase10 ring drained-reset reuse replay"
+    ],
+    "zigux/tests/phase10_virtio_input_multitouch_preflight.zig": [
+        "phase10 input multitouch-ready preflight replay"
+    ],
+    "zigux/tests/phase10_virtio_mmio_queue_isolation.zig": [
+        "phase10 mmio multi-queue isolation replay",
+        "phase10 mmio reset clears legacy and modern queue address plans after queue selection changes",
+    ],
+}
+
+EXPECTED_PHASE14_STUDY_ONLY_BOUNDARY = {
+    "status": "separate_phase14_lane",
+    "anchors": [
+        "kernel/workqueue.c",
+        "kernel/trace/ring_buffer.c",
+    ],
+    "required_phase14_evidence_features": [
+        "boundary maps",
+        "concurrency audits",
+        "explicit stay-in-C decisions where warranted",
+        "wrapper-first or study-only posture",
+    ],
+    "future_destinations": [
+        "kernel/workqueue_bridge.zig",
+        "kernel/trace/ring_buffer.zig",
+    ],
+    "future_destination_policy": "kernel/trace/ring_buffer.zig remains a future destination only if years of evidence justify it",
+}
+
 EXPECTED_BLOCKED_TRANSPORT_GAPS = {
     "zigux/tests/phase10_virtio_input_manifest.json": "phase10-virtio-input-registration-lifecycle",
     "zigux/tests/phase10_virtio_mmio_manifest.json": "phase10-mmio-lifecycle-and-irq-paths",
@@ -397,8 +429,10 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
         "landed_ring_helper_evidence": EXPECTED_LANDED_RING_HELPERS,
         "landed_input_helper_evidence": EXPECTED_LANDED_INPUT_HELPERS,
         "landed_mmio_helper_evidence": EXPECTED_LANDED_MMIO_HELPERS,
+        "focused_harness_replays": EXPECTED_FOCUSED_HARNESS_REPLAYS,
         "blocked_transport_gaps": EXPECTED_BLOCKED_TRANSPORT_GAPS,
         "ready_transport_followups": EXPECTED_READY_TRANSPORT_FOLLOWUPS,
+        "phase14_study_only_boundary": EXPECTED_PHASE14_STUDY_ONLY_BOUNDARY,
     }
     for key, value in expected_objects.items():
         if manifest.get(key) != value:
@@ -440,8 +474,10 @@ def write_fixture(root: Path) -> None:
                     "landed_ring_helper_evidence": EXPECTED_LANDED_RING_HELPERS,
                     "landed_input_helper_evidence": EXPECTED_LANDED_INPUT_HELPERS,
                     "landed_mmio_helper_evidence": EXPECTED_LANDED_MMIO_HELPERS,
+                    "focused_harness_replays": EXPECTED_FOCUSED_HARNESS_REPLAYS,
                     "blocked_transport_gaps": EXPECTED_BLOCKED_TRANSPORT_GAPS,
                     "ready_transport_followups": EXPECTED_READY_TRANSPORT_FOLLOWUPS,
+                    "phase14_study_only_boundary": EXPECTED_PHASE14_STUDY_ONLY_BOUNDARY,
                 }
             )
             path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
@@ -515,6 +551,30 @@ def run_self_test() -> int:
         }
         manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
         expect_missing_marker("core_helper_guard", root, "manifest:landed_core_helper_evidence")
+        write_fixture(root)
+
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        manifest["focused_harness_replays"] = {
+            "zigux/tests/phase10_virtio_ring_reset_reuse.zig": [
+                "phase10 ring drained-reset reuse replay"
+            ],
+            "zigux/tests/phase10_virtio_input_multitouch_preflight.zig": [
+                "phase10 input multitouch-ready preflight replay"
+            ],
+            "zigux/tests/phase10_virtio_mmio_queue_isolation.zig": [
+                "phase10 mmio multi-queue isolation drift"
+            ],
+        }
+        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+        expect_missing_marker("focused_harness_replays_guard", root, "manifest:focused_harness_replays")
+        write_fixture(root)
+
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        manifest["phase14_study_only_boundary"]["future_destinations"] = [
+            "kernel/workqueue_bridge.zig"
+        ]
+        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+        expect_missing_marker("phase14_study_only_boundary_guard", root, "manifest:phase14_study_only_boundary")
         write_fixture(root)
 
         manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
@@ -610,7 +670,7 @@ def run_self_test() -> int:
             raise SystemExit("required_file_guard_failed")
 
     print("PHASE10_CLOSURE_INVENTORY_SELF_TEST=pass")
-    print("PHASE10_CLOSURE_INVENTORY_SELF_TEST_CASE_COUNT=13")
+    print("PHASE10_CLOSURE_INVENTORY_SELF_TEST_CASE_COUNT=15")
     return 0
 
 
