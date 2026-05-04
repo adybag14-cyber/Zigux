@@ -72,7 +72,8 @@ Repo reality today is still bounded and review-first:
 - the shared runtime loader currently exposes three tagged loader lanes: `atomic64`, `bitmap`, and `kretprobe`
 - four landed loader-plan files now stay at `samples/zigux/runtime_atomic64_loader.zig`, `samples/zigux/runtime_bitmap_loader.zig`, `samples/zigux/runtime_kretprobe_loader.zig`, and `samples/zigux/runtime_trace_events_loader.zig`
 - the first three landed loader-plan files currently project `command_name = null` into `RuntimeLoadRequest`, so the optional command-name field is still reserved for a future shared activation surface rather than exercised by the shipped starter packet
-- the landed trace-events loader keeps its own loader-side metadata explicit through entry and exit symbols, `register_api`, `unregister_api`, thread labels, bounded lifecycle stage, and the current summary snapshot, but it does not yet emit the shared `RuntimeLoadRequest` contract
+- those same three loaders now also expose `planForWithCommandName` or `prepareWithCommandName` review helpers, and their shared-request plus release-without-substrate replays preserve explicit `perf-runtime-*` command names when reviewers choose to exercise that optional field
+- the landed trace-events loader keeps its own loader-side metadata explicit through entry and exit symbols, `register_api`, `unregister_api`, thread labels, bounded lifecycle stage, the current summary snapshot, and an optional review-only `command_name` that survives prepare, request, and release-without-substrate replays, but it does not yet emit the shared `RuntimeLoadRequest` contract
 
 This means the current runtime family has enough metadata for surveyable starter descriptors, one shared metadata surface for three loader families, and one dedicated fourth loader-side scaffold, but not enough for a real module-install or depmod story.
 
