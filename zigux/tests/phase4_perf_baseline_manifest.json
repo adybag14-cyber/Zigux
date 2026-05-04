@@ -28,6 +28,7 @@
       "threshold_ready_surface": "zigux/tests/runtime_atomic64_diff.zig keeps the post-selftest replay explicit for the current rollback gate",
       "benchmark_command": "unapproved_until_runtime_atomic64_scope_widens",
       "acceptable_limit": "unapproved_until_runtime_atomic64_scope_widens",
+      "next_threshold_step": "ABI and Runtime Team needs one broader atomic64 benchmark entrypoint beyond the current isolated replay before approving one benchmark command and one acceptable limit.",
       "status": "pending_scope_widening",
       "why_not_approved_yet": "The live atomic64 gate is still a bounded rollback-readiness slice, and `zigux/tests/runtime_atomic64_diff.zig` now keeps the post-selftest replay explicit, so Phase 4 keeps correctness-only coverage until ABI and Runtime Team lands one broader atomic64 benchmark entrypoint beyond the current isolated replay and then approves one benchmark command plus one acceptable limit for that route."
     },
@@ -40,6 +41,7 @@
       "threshold_ready_surface": "zigux/tests/bitmap_diff.zig exposes runThresholdReplay() as the deterministic bitmap threshold batch for future perf-baseline work",
       "benchmark_command": "unapproved_until_bitmap_gate_grows_beyond_bounded_correctness_checks",
       "acceptable_limit": "unapproved_until_bitmap_gate_grows_beyond_bounded_correctness_checks",
+      "next_threshold_step": "Shared Subsystems Pod needs to promote the current deterministic bitmap threshold batch into one isolated benchmark route before approving one benchmark command and one acceptable limit.",
       "status": "pending_bounded_benchmark",
       "why_not_approved_yet": "The live bitmap gate still carries a bounded correctness-first rollback packet, and `zigux/tests/bitmap_diff.zig` now keeps one deterministic threshold replay batch ready for a future perf-baseline lane, so Shared Subsystems Pod still needs to turn that batch into one isolated bitmap benchmark route before approving a benchmark command and acceptable limit for that route."
     }
