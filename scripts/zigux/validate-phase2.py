@@ -126,7 +126,7 @@ PHASE2_CROSS_REQUIRED_SOURCE_MARKERS = [
 ]
 PHASE2_TOOLCHAIN_PIN_SCOPE_REQUIRED_SOURCE_MARKERS = [
     "PHASE2_TOOLCHAIN_PIN_SCOPE_SELF_TEST=pass",
-    "PHASE2_TOOLCHAIN_PIN_SCOPE_SELF_TEST_CASE_COUNT=45",
+    "PHASE2_TOOLCHAIN_PIN_SCOPE_SELF_TEST_CASE_COUNT=48",
     "PHASE2_TOOLCHAIN_PIN_SCOPE=pass",
     '"python3 scripts/zigux/install-zig.py --self-test": 1',
     '"python3 scripts/zigux/check-zig-toolchain.py --self-test": 1',
