@@ -127,6 +127,7 @@ REVIEW_CHECKLIST_MARKERS = [
 
 SCRIPTS_ROOT_MARKERS = [
     "- `validate-phase1.py` is the validator-first entrypoint for the closed host-helper packet around `tools/lib/bitmap.zig`, `tools/lib/find_bit.zig`, `tools/lib/string.zig`, and `tools/lib/rbtree.zig` plus the bounded supporting helpers and committed `zigux/tests/fixtures/phase1_helpers.json` corpus.",
+    "- `Documentation/zigux/README.md`, `Documentation/zigux/phase1-closure.md`, `scripts/zigux/validate-phase1.py`, `scripts/zigux/validate-phase1-closure.py`, `zigux/tests/fixtures/phase1_helper_manifest.json`, `zigux/tests/phase1_helpers.zig`, `zigux/tests/phase1_bench.zig`, `zigux/Makefile`, and `.github/workflows/zigux-bootstrap.yml` stay aligned as the bounded Phase 1 helper inventory and validator-first replay packet.",
     "- `check-phase1-bitmap-validator-anchors.py --self-test`, `check-phase1-bitmap-validator-anchors.py`, `check-phase1-find-bit-validator-anchors.py --self-test`, `check-phase1-find-bit-validator-anchors.py`, `check-phase1-route-summary-counts.py --self-test`, `check-phase1-route-summary-counts.py`, `check-phase1-validation-route-inventory.py --self-test`, `check-phase1-validation-route-inventory.py`, `check-phase1-parity.py --self-test`, `check-phase1-parity.py`, `check-phase1-bench.py --self-test`, `check-phase1-bench.py`, `validate-phase1-closure.py --self-test`, and `validate-phase1-closure.py` are the bounded fail-closed review hooks around that same closed Phase 1 helper tranche.",
 ]
 
@@ -410,7 +411,7 @@ def self_test() -> int:
         write(fixture_path, json.dumps(fixture, indent=2) + "\n")
         expect_failure(root, "fixture:find_bit:tail_and_mixed_next:missing")
     print("PHASE1_VALIDATOR_SELF_TEST=pass")
-    print("PHASE1_VALIDATOR_SELF_TEST_CASE_COUNT=7")
+    print("PHASE1_VALIDATOR_SELF_TEST_CASE_COUNT=8")
     return 0
 
 
