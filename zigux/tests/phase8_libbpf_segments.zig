@@ -76,7 +76,7 @@ const expected_segment_destinations = [_][]const u8{
     "tools/lib/bpf/zigux_segments/type_names.zig",
     "tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig",
     "tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig",
-    "tools/lib/bpf/zigux_segments/cpu_mask.zig",
+    "tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig",
     "tools/lib/bpf/zigux_segments/cpu_mask.zig",
     "tools/lib/bpf/zigux_segments/skeleton.zig",
     "tools/lib/bpf/zigux_segments/object_loader.zig",
