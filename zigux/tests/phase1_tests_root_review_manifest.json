@@ -1,0 +1,48 @@
+{
+  "phase": "Phase 1",
+  "status": "closed",
+  "scope": "tests-root review surface for the closed host-side helper packet",
+  "shared_review_surfaces": [
+    "Documentation/zigux/README.md",
+    "Documentation/zigux/review-checklist.md",
+    "Documentation/zigux/phase1-closure.md",
+    "Documentation/zigux/phase1-tests-root-review-companion.md",
+    "scripts/zigux/README.md",
+    "zigux/tests/README.md",
+    "zigux/Makefile",
+    ".github/workflows/zigux-bootstrap.yml"
+  ],
+  "tests_root_ownership": [
+    "zigux/tests/build.zig",
+    "zigux/tests/phase1_helpers.zig",
+    "zigux/tests/phase1_bench.zig",
+    "zigux/tests/fixtures/phase1_helper_manifest.json",
+    "zigux/tests/fixtures/phase1_helpers.json",
+    "zigux/tests/fixtures/phase1_bench_expectations.json"
+  ],
+  "validator_first_route": [
+    "python3 scripts/zigux/validate-phase1.py",
+    "python3 scripts/zigux/validate-phase1-closure.py",
+    "make -C zigux phase1-validate",
+    "make -C zigux phase1-test",
+    "make -C zigux phase1-bench",
+    "make -C zigux phase1"
+  ],
+  "fail_closed_checker_stack": [
+    "python3 scripts/zigux/check-phase1-bitmap-validator-anchors.py --self-test",
+    "python3 scripts/zigux/check-phase1-bitmap-validator-anchors.py",
+    "python3 scripts/zigux/check-phase1-find-bit-validator-anchors.py --self-test",
+    "python3 scripts/zigux/check-phase1-find-bit-validator-anchors.py",
+    "python3 scripts/zigux/check-phase1-route-summary-counts.py --self-test",
+    "python3 scripts/zigux/check-phase1-route-summary-counts.py",
+    "python3 scripts/zigux/check-phase1-validation-route-inventory.py --self-test",
+    "python3 scripts/zigux/check-phase1-validation-route-inventory.py",
+    "python3 scripts/zigux/check-phase1-parity.py --self-test",
+    "python3 scripts/zigux/check-phase1-parity.py",
+    "python3 scripts/zigux/check-phase1-bench.py --self-test",
+    "python3 scripts/zigux/check-phase1-bench.py",
+    "python3 scripts/zigux/validate-phase1-closure.py --self-test",
+    "python3 scripts/zigux/validate-phase1-closure.py"
+  ],
+  "review_rule": "Keep this tests-root review manifest aligned with the dedicated Phase 1 tests-root companion note whenever the shared review surface, tests-root ownership packet, or validator-first route changes. Do not treat new helpers, alias families, or widened runtime claims as Phase 1 maintenance unless the dedicated closure packet is deliberately reopened."
+}
