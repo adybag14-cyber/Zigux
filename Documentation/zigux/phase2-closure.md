@@ -154,7 +154,7 @@ Phase 2 is only considered closed when all of the following are green:
 - `PHASE2_CROSS_MANIFEST_POLICY=check-phase2-cross.py rejects duplicate tool entries, duplicate requested targets, unexpected explicit targets, duplicate manifest targets, and manifest-count drift before live compile replay`
 - `PHASE2_TOOLCHAIN_PIN_SCOPE_SELF_TEST=python3 scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test`
 - `PHASE2_TOOLCHAIN_PIN_SCOPE_GATE=python3 scripts/zigux/check-phase2-toolchain-pin-scope.py`
-- `PHASE2_TOOLCHAIN_PIN_SCOPE_POLICY=scripts/zigux/zig-toolchain-policy.json keeps the bootstrap archive pin limited to x86_64-linux until a new runner target gains first-class workflow evidence`
+- `PHASE2_TOOLCHAIN_PIN_SCOPE_POLICY=scripts/zigux/zig-toolchain-policy.json keeps the bootstrap archive pin limited to x86_64-linux until a new bootstrap runner target gains first-class workflow evidence`
 - `PHASE2_SHARED_VALIDATOR=python3 scripts/zigux/validate-phase2.py`
 - `PHASE2_CLOSURE_GATE=python3 scripts/zigux/validate-phase2-closure.py`
 
@@ -232,6 +232,8 @@ The bounded `kconfig` bridge closure packet remains closed because the shared fi
   `confdata bridge distinguishes integer, hex, and fallback scalar values`
   `confdata bridge keeps quoted payloads before trailing suffix bytes`
   `confdata bridge accepts CRLF config lines`
+  `confdata bridge ignores suffix bytes after an embedded NUL`
+  `confdata bridge preserves carriage return before an embedded NUL on newline-terminated lines`
   `confdata bridge normalizes a trailing carriage return on the final unterminated line`
   `confdata bridge rejects empty config path arguments`
   `confdata bridge escapes low control bytes in emitted json`
@@ -243,7 +245,7 @@ The bounded `kconfig` bridge closure packet remains closed because the shared fi
 - `PHASE2_KCONFIG_BRIDGE_ARGUMENT_CASES=zigux/tests/fixtures/kconfig_bridge/defconfig_expected.json,zigux/tests/fixtures/kconfig_bridge/savedefconfig_expected.json`
 - `PHASE2_KCONFIG_BRIDGE_LOW_CONTROL_CASE=zigux/tests/fixtures/kconfig_bridge/escaped_low_control_bytes_expected.json`
 - `PHASE2_KCONFIG_BRIDGE_MANIFEST_POLICY=check-kconfig-bridge.py rejects uncovered modes, malformed manifests, duplicate fixture references, orphaned fixture files, and non-canonical confdata names before replay`
-- `PHASE2_KCONFIG_BRIDGE_EVIDENCE=artifact fixtures plus conf bridge mode coverage, allconfig env, mode-arg, manifest-determinism, confdata escaped-control decode, empty-string, empty-symbol, explicit-n, malformed-quote, signed-numeric, trailing-unset-comment, quoted-suffix, CRLF, trailing-escaped-backslash, empty-path rejection, and low-control JSON emission anchors are required for closure`
+- `PHASE2_KCONFIG_BRIDGE_EVIDENCE=artifact fixtures plus conf bridge mode coverage, allconfig env, mode-arg, manifest-determinism, confdata escaped-control decode, empty-string, empty-symbol, explicit-n, malformed-quote, signed-numeric, trailing-unset-comment, quoted-suffix, CRLF, embedded-NUL truncation, embedded-NUL carriage-return preservation, trailing-escaped-backslash, empty-path rejection, and low-control JSON emission anchors are required for closure`
 
 ## Linux-Style Entry Point
 
