@@ -12,6 +12,7 @@ This document records the bounded Phase 13 survey lane around `security/landlock
   - `security/landlock/syscalls.zig`
   - `zigux/tests/phase13_landlock_syscalls.zig`
   - `zigux/tests/phase13_landlock_syscalls_reviewability.zig`
+  - `zigux/tests/phase13_landlock_ruleset_fops_sync.zig`
   - `zigux/tests/phase13_landlock_syscalls_manifest.json`
   - `zigux/tests/phase13_build.zig`
   - `Documentation/zigux/phase13-landlock-syscalls-slice.md`
