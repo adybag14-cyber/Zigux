@@ -60,6 +60,7 @@ Review rules
 - current `master` still ships no `samples/zigux/*string*` Phase 5 reference sample; keep string-helper evidence under the separate Phase 7 helper bundle rooted in `Documentation/zigux/phase7-string-helpers-slice.md`, `lib/string_helpers.zig`, `zigux/tests/phase7_string_helpers.zig`, and `zigux/tests/phase7_build.zig`
 - treat any new `samples/zigux/*string*.zig` file as review-blocking until the roadmap-backed Phase 7 helper bundle is intentionally widened and the shared Phase 5 sample packet is updated to name that boundary change explicitly
 - current `master` still ships no `samples/zigux/*cmdline*` Phase 5 reference sample; keep cmdline evidence under the separate Phase 7 helper bundle rooted in `Documentation/zigux/phase7-cmdline-slice.md`, `lib/cmdline.zig`, `zigux/tests/phase7_cmdline.zig`, and `zigux/tests/phase7_build.zig` instead of looking like a missing Phase 5 sample port.
+- current `master` still ships no `samples/zigux/*rbtree*` Phase 5 reference sample; keep rbtree evidence under the separate Phase 7 helper bundle rooted in `Documentation/zigux/phase7-rbtree-slice.md`, `lib/rbtree.zig`, `zigux/tests/phase7_rbtree.zig`, and `zigux/tests/phase7_build.zig` instead of looking like a missing Phase 5 sample port.
 
 Focused local replays
 - verify the bytestream FIFO sample directly: `zig test samples/zigux/bytestream_fifo.zig`
@@ -85,5 +86,7 @@ Helper-boundary checks
 - verify the shared docs still keep string-helper evidence in Phase 7 instead of `samples/zigux/`: `rg -n "samples/zigux/\\*string\\*|Phase 7 helper bundle|helper-only under \`lib/string_helpers.zig\`|phase7_string_helpers.zig|phase7_build.zig" Documentation/zigux/README.md Documentation/zigux/review-checklist.md Documentation/zigux/phase7-string-helpers-slice.md samples/zigux/README.md`
 - verify no Phase 5 cmdline sample has appeared under this sample root: `find samples/zigux -maxdepth 1 -type f | sort | rg '/.*cmdline.*\.zig$'`
 - verify the shared docs still keep cmdline evidence in Phase 7 instead of `samples/zigux/`: `rg -n "samples/zigux/\\*cmdline\\*|Phase 7 helper bundle|lib/cmdline.zig|phase7_cmdline.zig|phase7_build.zig" Documentation/zigux/README.md Documentation/zigux/review-checklist.md Documentation/zigux/phase7-cmdline-slice.md samples/zigux/README.md`
+- verify no Phase 5 rbtree sample has appeared under this sample root: `find samples/zigux -maxdepth 1 -type f | sort | rg '/.*rbtree.*\.zig$'`
+- verify the shared docs still keep rbtree evidence in Phase 7 instead of `samples/zigux/`: `rg -n "samples/zigux/\\*rbtree\\*|Phase 7 helper bundle|lib/rbtree.zig|phase7_rbtree.zig|phase7_build.zig" Documentation/zigux/README.md Documentation/zigux/review-checklist.md Documentation/zigux/phase7-rbtree-slice.md samples/zigux/README.md zigux/tests/README.md`
 - verify the four shipped Phase 5 sample packets still pass together: `zig build test --build-file zigux/tests/phase5_build.zig --summary all`
-- verify the shipped string-helper and cmdline evidence still live under the separate Phase 7 helper bundle and shared build gate: `python3 scripts/zigux/validate-phase7.py`
+- verify the shipped string-helper, cmdline, and rbtree evidence still live under the separate Phase 7 helper bundle and shared build gate: `python3 scripts/zigux/validate-phase7.py`
