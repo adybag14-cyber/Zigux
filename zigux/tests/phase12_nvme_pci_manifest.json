@@ -54,14 +54,14 @@
       "status": "starter_landed",
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase12_nvme_pci.zig",
-      "why_now": "Dedicated driver tests now keep the starter honest around admin and I/O queue planning, DMA page rounding, invalid geometry rejection, reset-time queue freeze behavior, the PRP buffer-shape helper, the PRP metadata helper, the doorbell-window helper, and one tiny PRP-versus-SGL selection summary."
+      "why_now": "Dedicated driver tests now keep the starter honest around admin and I/O queue planning, DMA page rounding, invalid geometry rejection, reset-time queue freeze behavior, the queue-recovery replay helper, the PRP buffer-shape helper, the PRP metadata helper, the doorbell-window helper, and one tiny PRP-versus-SGL selection summary."
     },
     {
       "id": "phase12-nvme-pci-slice-note",
       "status": "starter_landed",
       "kind": "documentation",
       "zigux_destination": "Documentation/zigux/phase12-nvme-pci-slice.md",
-      "why_now": "The slice note records what the landed queue planner, doorbell-window helper, PRP buffer-shape helper, PRP metadata helper, and pointer-selection helper cover so the survey can focus on the remaining roadmap gap instead of re-explaining the starter surface."
+      "why_now": "The slice note records what the landed queue planner, doorbell-window helper, queue-recovery replay helper, PRP buffer-shape helper, PRP metadata helper, and pointer-selection helper cover so the survey can focus on the remaining roadmap gap instead of re-explaining the starter surface."
     },
     {
       "id": "phase12-virtio-net-driver-starter",
@@ -89,7 +89,7 @@
       "status": "starter_landed",
       "kind": "documentation",
       "zigux_destination": "Documentation/zigux/phase12-nvme-pci-survey.md",
-      "why_now": "The lane needs an archival note and pinned raw-read fallback map that compare the current starter against the roadmap so future runs do not mistake the bounded queue, doorbell-window, and data-pointer planning slice for a production PCI port or borrow another lane's fallback catalog."
+      "why_now": "The lane needs an archival note and pinned raw-read fallback map that compare the current starter against the roadmap so future runs do not mistake the bounded queue, recovery, doorbell-window, and data-pointer planning slice for a production PCI port or borrow another lane's fallback catalog."
     },
     {
       "id": "phase12-nvme-pci-prp-shape-helper",
@@ -106,6 +106,13 @@
       "why_now": "The landed doorbell-window helper now summarizes the bounded SQ/CQ register aperture across the admin queue and already-planned I/O queue pairs, including reset visibility, without claiming live MMIO access, MSI-X vector wiring, or hardware-backed queue creation."
     },
     {
+      "id": "phase12-nvme-pci-queue-recovery-helper",
+      "status": "starter_landed",
+      "kind": "complex_driver_starter",
+      "zigux_destination": "drivers/nvme/host/pci.zig",
+      "why_now": "The landed queue-recovery replay helper now summarizes capped I/O queue replay, preserved admin geometry, aggregate host DMA demand, and reset-frozen visibility after reset without claiming live PCI queue recreation, MMIO access, or IRQ-backed completion flow."
+    },
+    {
       "id": "phase12-nvme-pci-pointer-selection-helper",
       "status": "starter_landed",
       "kind": "complex_driver_starter",
@@ -117,7 +124,7 @@
       "status": "blocked_on_dma_transport",
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase12_nvme_pci_survey.zig",
-      "why_now": "Host Memory Buffer management, blk-mq queue_rq paths, live PCI queue creation, IRQ-driven completion polling, timeout recovery plumbing, and real PRP or SGL DMA mapping remain blocked even though the smaller queue planner, doorbell-window helper, PRP buffer-shape helper, PRP metadata helper, and pointer-selection helper are now landed and the roadmap-approved DMA-safe transport substrate is still missing."
+      "why_now": "Host Memory Buffer management, blk-mq queue_rq paths, live PCI queue creation, IRQ-driven completion polling, timeout recovery plumbing, and real PRP or SGL DMA mapping remain blocked even though the smaller queue planner, queue-recovery replay helper, doorbell-window helper, PRP buffer-shape helper, PRP metadata helper, and pointer-selection helper are now landed and the roadmap-approved DMA-safe transport substrate is still missing."
     }
   ]
 }
