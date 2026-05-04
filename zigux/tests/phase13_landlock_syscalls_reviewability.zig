@@ -66,7 +66,7 @@ test "phase13 landlock syscalls reviewability ties helper, survey, manifest, and
     try std.testing.expectEqualStrings("P13-L16", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 13", manifest.phase);
     try std.testing.expectEqualStrings("security/landlock/syscalls.c", manifest.anchor);
-    try std.testing.expectEqualStrings("9c17b0790799d8240ef9f964903f5ce2db64af89", manifest.surveyed_commit);
+    try std.testing.expectEqualStrings("672d03034b090ab859f4088396160ea13120e1d6", manifest.surveyed_commit);
     try std.testing.expectEqual(@as(usize, 3), manifest.roadmap_destinations.len);
     try std.testing.expect(manifest.survey_summary.syscalls_c_lines >= 500);
     try std.testing.expect(manifest.survey_summary.preexisting_phase13_build_present);
@@ -123,7 +123,7 @@ test "phase13 landlock syscalls reviewability ties helper, survey, manifest, and
 
     try expectContains(survey_note, "# Phase 13 Landlock Syscalls Survey");
     try expectContains(survey_note, "PHASE13_SLICE=landlock-syscalls-helper-pure-handoff-boundary");
-    try expectContains(survey_note, "PHASE13_SURVEYED_COMMIT=9c17b0790799d8240ef9f964903f5ce2db64af89");
+    try expectContains(survey_note, "PHASE13_SURVEYED_COMMIT=672d03034b090ab859f4088396160ea13120e1d6");
     try expectContains(survey_note, "`zigux/tests/phase13_landlock_syscalls_reviewability.zig`");
     try expectContains(survey_note, "- `zigux/tests/phase13_landlock_ruleset_fops_sync.zig`");
     try expectContains(survey_note, "`zigux/tests/phase13_landlock_ruleset_fops_sync.zig`");
