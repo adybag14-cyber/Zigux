@@ -65,7 +65,7 @@ test "phase 15 freeze-map governance manifest records the active lane and blocke
     const manifest = parsed.value;
     try std.testing.expectEqualStrings("P15-L04", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 15", manifest.phase);
-    try std.testing.expectEqualStrings("d918be7ded6383c13cbd5eea4ca4aa4f3cdafee4", manifest.surveyed_commit);
+    try std.testing.expectEqualStrings("5bf6598fadf90e6ab59b1d402fa5decc1c1c6b05", manifest.surveyed_commit);
     try std.testing.expectEqualStrings("Documentation/zigux/freeze-map.md", manifest.anchor);
     try std.testing.expectEqual(@as(usize, 4), manifest.roadmap_freeze_in_c_targets.len);
     try std.testing.expectEqual(@as(usize, 2), manifest.roadmap_study_only_targets.len);
@@ -174,7 +174,7 @@ test "phase 15 freeze-map governance note keeps the active lane, current head, o
     defer std.testing.allocator.free(note);
 
     try std.testing.expect(hasSubstring(note, "PHASE15_LANE_KEY=P15-L04"));
-    try std.testing.expect(hasSubstring(note, "d918be7ded6383c13cbd5eea4ca4aa4f3cdafee4"));
+    try std.testing.expect(hasSubstring(note, "5bf6598fadf90e6ab59b1d402fa5decc1c1c6b05"));
     try std.testing.expect(hasSubstring(note, "## Current blocker ownership"));
     try std.testing.expect(hasSubstring(note, "Architecture Council + PMO / Release Management"));
     try std.testing.expect(hasSubstring(note, "Architecture Council + Validation and Perf Team"));
