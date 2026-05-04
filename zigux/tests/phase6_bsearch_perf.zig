@@ -177,7 +177,8 @@ fn runPerfCase(case: fixtures.PerfCase, io: std.Io) !PerfResult {
 
     var total_compare_calls: usize = 0;
     var max_compare_calls: usize = 0;
-    const total_lookups = case.reps * fixtures.query_count * (typed_variants.len + raw_variants.len);
+    const lookups_per_query = 2 * (typed_variants.len + raw_variants.len);
+    const total_lookups = case.reps * fixtures.query_count * lookups_per_query;
     const started_at = benchTime(io);
     const max_compare_budget = std.math.log2_int_ceil(usize, case.len) + 1;
 
@@ -185,7 +186,7 @@ fn runPerfCase(case: fixtures.PerfCase, io: std.Io) !PerfResult {
         for (queries, expected_hits) |query, expected_hit| {
             for (typed_variants) |variant| {
                 compare_calls = 0;
-                const found = if (variant.compare_native) |compare|
+                const found_index = if (variant.compare_native) |compare|
                     bsearch.searchIndex(u32, u32, &query, variant.values, compare)
                 else
                     bsearch.searchIndex(u32, u32, &query, variant.values, variant.compare_c.?);
@@ -193,12 +194,22 @@ fn runPerfCase(case: fixtures.PerfCase, io: std.Io) !PerfResult {
                 max_compare_calls = @max(max_compare_calls, compare_calls);
 
                 try std.testing.expect(compare_calls <= max_compare_budget);
-                try expectFoundOrMiss(expected_hit, found, variant.values, query);
+
+                compare_calls = 0;
+                const found_ptr = if (variant.compare_native) |compare|
+                    bsearch.search(u32, u32, &query, variant.values, compare)
+                else
+                    bsearch.search(u32, u32, &query, variant.values, variant.compare_c.?);
+                total_compare_calls += compare_calls;
+                max_compare_calls = @max(max_compare_calls, compare_calls);
+
+                try std.testing.expect(compare_calls <= max_compare_budget);
+                try expectTypedIndexAndPointerParity(expected_hit, found_index, found_ptr, variant.values, query);
             }
 
             for (raw_variants) |variant| {
                 compare_calls = 0;
-                const found = if (variant.compare_native) |compare|
+                const found_index = if (variant.compare_native) |compare|
                     bsearch.bsearchIndex(&query, @ptrCast(variant.values.ptr), variant.values.len, @sizeOf(u32), compare)
                 else
                     bsearch.bsearchIndex(&query, @ptrCast(variant.values.ptr), variant.values.len, @sizeOf(u32), variant.compare_c.?);
@@ -206,7 +217,17 @@ fn runPerfCase(case: fixtures.PerfCase, io: std.Io) !PerfResult {
                 max_compare_calls = @max(max_compare_calls, compare_calls);
 
                 try std.testing.expect(compare_calls <= max_compare_budget);
-                try expectFoundOrMiss(expected_hit, found, variant.values, query);
+
+                compare_calls = 0;
+                const found_ptr = if (variant.compare_native) |compare|
+                    bsearch.bsearch(&query, @ptrCast(variant.values.ptr), variant.values.len, @sizeOf(u32), compare)
+                else
+                    bsearch.bsearch(&query, @ptrCast(variant.values.ptr), variant.values.len, @sizeOf(u32), variant.compare_c.?);
+                total_compare_calls += compare_calls;
+                max_compare_calls = @max(max_compare_calls, compare_calls);
+
+                try std.testing.expect(compare_calls <= max_compare_budget);
+                try expectRawIndexAndPointerParity(expected_hit, found_index, found_ptr, variant.values, query);
             }
         }
     }
@@ -225,12 +246,43 @@ fn runPerfCase(case: fixtures.PerfCase, io: std.Io) !PerfResult {
     };
 }
 
-fn expectFoundOrMiss(expected_hit: bool, found: ?usize, values: []const u32, query: u32) !void {
+fn expectTypedIndexAndPointerParity(
+    expected_hit: bool,
+    found_index: ?usize,
+    found_ptr: ?*const u32,
+    values: []const u32,
+    query: u32,
+) !void {
     if (expected_hit) {
-        const index = found orelse return error.TestUnexpectedResult;
+        const index = found_index orelse return error.TestUnexpectedResult;
+        const pointer = found_ptr orelse return error.TestUnexpectedResult;
         try std.testing.expect(index < values.len);
         try std.testing.expectEqual(query, values[index]);
+        try std.testing.expectEqual(@intFromPtr(&values[index]), @intFromPtr(pointer));
+        try std.testing.expectEqual(query, pointer.*);
     } else {
-        try std.testing.expect(found == null);
+        try std.testing.expect(found_index == null);
+        try std.testing.expect(found_ptr == null);
+    }
+}
+
+fn expectRawIndexAndPointerParity(
+    expected_hit: bool,
+    found_index: ?usize,
+    found_ptr: ?*const anyopaque,
+    values: []const u32,
+    query: u32,
+) !void {
+    if (expected_hit) {
+        const index = found_index orelse return error.TestUnexpectedResult;
+        const pointer = found_ptr orelse return error.TestUnexpectedResult;
+        const typed_pointer: *const u32 = @ptrCast(@alignCast(pointer));
+        try std.testing.expect(index < values.len);
+        try std.testing.expectEqual(query, values[index]);
+        try std.testing.expectEqual(@intFromPtr(&values[index]), @intFromPtr(typed_pointer));
+        try std.testing.expectEqual(query, typed_pointer.*);
+    } else {
+        try std.testing.expect(found_index == null);
+        try std.testing.expect(found_ptr == null);
     }
 }
