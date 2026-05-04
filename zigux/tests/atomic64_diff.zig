@@ -254,6 +254,12 @@ test "atomic64 diff wrapper keeps the dedicated phase4 gate-evidence checker exp
     try expectGateEvidenceMarker("`PHASE4_GATE_EVIDENCE_SELF_TEST=pass`");
     try expectGateEvidenceMarker("`PHASE4_GATE_EVIDENCE_CHECK=pass`");
     try expectGateEvidenceMarker("`PHASE4_GATE_EVIDENCE_TARGET_COUNT=17`");
+    try expectGateEvidenceMarker("`PHASE4_RUNTIME_ATOMIC64_MANIFEST_BLOB_SHA=");
+    try expectGateEvidenceMarker("`PHASE4_RUNTIME_ATOMIC64_SURVEY_BLOB_SHA=");
+    try expectGateEvidenceMarker("`make -C zigux phase4-runtime-atomic64-diff`");
+    try expectGateEvidenceMarker("`phase4-runtime-atomic64-diff-tests`");
+    try expectGateEvidenceMarker("`phase4-runtime-atomic64-diff-survey-tests`");
+    try expectGateEvidenceMarker("`runtime_atomic64_diff.zig` remains the single replay body");
     try expectGateEvidenceMarker("the dedicated `scripts/zigux/check-phase4-gate-evidence.py` checker");
     try expectGateEvidenceMarker("3ba64cd4e41a4de1c8fd8dbaecb23702ad9701a3");
 }
