@@ -47,6 +47,7 @@ RBTREE_SHARED_CHECKER_REL = "scripts/zigux/check-phase3-rbtree-shared-lift-contr
 README_TOOLING_INVENTORY_SCRIPT = "check-phase3-readme-tooling-inventory.py"
 TOOLING_PACKET_SCRIPT = "check-phase3-tooling-packet.py"
 VALIDATION_FLOW_SCRIPT = "check-phase3-validation-flow.py"
+BUILD_ROOTS_SCRIPT = "check-phase3-build-roots.py"
 ABI_LAYOUT_PACKET_SCRIPT = "check-phase3-abi-layout-packet.py"
 ABI_BINDING_CONSTANTS_SCRIPT = "check-phase3-abi-binding-constants.py"
 ABI_DUPLICATE_DECLARATIONS_SCRIPT = "check-phase3-abi-duplicate-declarations.py"
@@ -230,6 +231,23 @@ def _run_validation_flow_self_test() -> int:
     stdout_lines = result.stdout.splitlines()
     assert "PHASE3_VALIDATION_FLOW_SELF_TEST=pass" in stdout_lines
     assert "PHASE3_VALIDATION_FLOW_SELF_TEST_CASE_COUNT=67" in stdout_lines
+    return 0
+
+
+def _run_build_roots_self_test() -> int:
+    script_path = Path(__file__).resolve().with_name(BUILD_ROOTS_SCRIPT)
+    result = subprocess.run(
+        ["python3", str(script_path), "--self-test"],
+        text=True,
+        capture_output=True,
+        check=False,
+    )
+    assert result.returncode == 0, (
+        result.stdout if not result.stderr else result.stdout + "\n" + result.stderr
+    )
+    stdout_lines = result.stdout.splitlines()
+    assert "PHASE3_BUILD_ROOTS_SELF_TEST=pass" in stdout_lines
+    assert "PHASE3_BUILD_ROOTS_SELF_TEST_CASE_COUNT=2" in stdout_lines
     return 0
 
 
@@ -662,6 +680,7 @@ def run_self_test() -> int:
         assert _run_readme_tooling_inventory_self_test() == 0
         assert _run_tooling_packet_self_test() == 0
         assert _run_validation_flow_self_test() == 0
+        assert _run_build_roots_self_test() == 0
         assert _run_abi_layout_packet_self_test() == 0
         assert _run_abi_policy_unsafe_mmio_consumer_self_test() == 0
         assert _run_rbtree_interop_survey_self_test() == 0
@@ -702,7 +721,7 @@ def run_self_test() -> int:
             assert_missing_rbtree_shared_marker(missing_marker)
 
     print("PHASE3_VALIDATOR_SELF_TEST=pass")
-    print("PHASE3_VALIDATOR_SELF_TEST_CASE_COUNT=39")
+    print("PHASE3_VALIDATOR_SELF_TEST_CASE_COUNT=40")
     return 0
 
 
