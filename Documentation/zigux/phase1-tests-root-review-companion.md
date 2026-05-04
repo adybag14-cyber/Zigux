@@ -8,6 +8,7 @@ The closed Phase 1 packet should continue to agree across these shared review su
 - `Documentation/zigux/README.md`
 - `Documentation/zigux/review-checklist.md`
 - `Documentation/zigux/phase1-closure.md`
+- `Documentation/zigux/phase1-tests-root-review-companion.md`
 - `scripts/zigux/README.md`
 - `zigux/tests/README.md`
 - `zigux/Makefile`
@@ -53,4 +54,4 @@ The dedicated fail-closed checker stack remains explicit through these self-test
 
 ## Review rule
 
-If a change touches the closed Phase 1 helper packet, update this companion only when the tests-root ownership view or the shared reviewer surface changes too. Do not treat a new helper, a new alias family, or a widened runtime claim as Phase 1 maintenance unless the dedicated closure packet is deliberately reopened.
+If a change touches the closed Phase 1 helper packet, update this companion only when the tests-root ownership view or the shared reviewer surface changes too. Keep `zigux/tests/README.md` aligned when that shared tests-root review packet changes. Do not treat a new helper, a new alias family, or a widened runtime claim as Phase 1 maintenance unless the dedicated closure packet is deliberately reopened.
