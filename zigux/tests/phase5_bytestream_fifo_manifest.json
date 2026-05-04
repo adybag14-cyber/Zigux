@@ -16,7 +16,7 @@
     "descriptor keeps the Linux anchor path explicit, leaves requires_runtime_substrate false while provides_selfcheck stays true, and names the fixed embedded storage backing used by the sample",
     "the manifest keeps surveyed_commit pinned to the exact inspected master head and the sample-backed survey note carries the same PHASE5_SURVEYED_COMMIT marker instead of a floating branch label so reviewability stays tied to one bounded repo state",
     "the manifest, reference-pattern list, survey test, and sample-backed survey note still describe the exact queue-order replay, non-destructive snapshot, fixed embedded backing, lifecycle boundary, and bounded helper contract run through phase5_build.zig",
-    "phase5_bytestream_fifo.zig still keeps the separate bounded helper test surface explicit so empty-queue null handling, preview truncation, the capacity ceiling, and reset behavior stay reviewable outside the main replay path",
+    "phase5_bytestream_fifo.zig still keeps the separate bounded helper test surface explicit so available(), isEmpty(), and isFull() queue-state cues, empty-queue null handling, preview truncation, the capacity ceiling, and reset behavior stay reviewable outside the main replay path",
     "sample-behavior changes update the manifest-backed replay contract instead of leaving reviewers to infer it from code alone",
     "the top-level docs root still points reviewers back to the descriptor, manifest-backed survey, sample-backed survey note, the direct zig test samples/zigux/bytestream_fifo.zig replay, the direct zig test zigux/tests/phase5_bytestream_fifo.zig helper-review replay, the direct zig test zigux/tests/phase5_bytestream_fifo_survey.zig replay, and the shared phase5_build.zig entrypoint for this exact replay contract, while the review checklist still keeps the same sample family tied to the descriptor, manifest-backed survey, sample-backed survey note, and shared phase5_build.zig entrypoint",
     "samples/zigux/README.md still separates the four Phase 5 reference samples from the later runtime starters that share the same directory, and its dedicated bytestream FIFO review-packet stanza still calls out the exact replay contract, the exact checked_focus order bounded_fifo_order, wraparound_requeue, peek_and_skip, non_destructive_snapshot, preview_truncation, reset_and_replay, and ownership_and_lifetime, the helper-only review surface, and out-of-scope runtime claims so runtime follow-ons do not read like approved reference idioms",
@@ -76,7 +76,7 @@
     {
       "id": "bounded-helper-behavior",
       "kind": "helper_contract",
-      "expected": "peek and skip return null when empty, snapshotInto does not mutate queue order, pushing past capacity returns false, and reset restores an empty queue"
+      "expected": "available(), isEmpty(), and isFull() keep queue-state boundaries explicit, peek and skip return null when empty, snapshotInto does not mutate queue order, pushing past capacity returns false, and reset restores an empty queue"
     },
     {
       "id": "short-drain-prefix",
@@ -91,7 +91,7 @@
     {
       "id": "queue-only-reset",
       "kind": "helper_contract",
-      "expected": "reset clears buffered bytes back to an empty queue without rewinding lifecycle stage or the init_runs and exit_runs bookkeeping counters"
+      "expected": "reset clears buffered bytes back to an empty queue, restores full available space, and does not rewind lifecycle stage or the init_runs and exit_runs bookkeeping counters"
     },
     {
       "id": "checked-focus-list",
@@ -101,7 +101,7 @@
     {
       "id": "lifecycle-boundary",
       "kind": "ownership_lifetime",
-      "expected": "the sample starts cold, requires init before replay, marks replay_complete after the self-check, and exits back to an empty queue"
+      "expected": "the sample starts cold, requires init before replay, marks replay_complete after the self-check, and exits back to an empty queue with full available space"
     },
     {
       "id": "lifecycle-guards-and-counters",
