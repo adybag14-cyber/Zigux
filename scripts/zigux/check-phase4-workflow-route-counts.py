@@ -7,7 +7,7 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[2]
-SELF_TEST_CASE_COUNT = 17
+SELF_TEST_CASE_COUNT = 19
 
 WORKFLOW_PATH = Path(".github/workflows/zigux-bootstrap.yml")
 MAKEFILE_PATH = Path("zigux/Makefile")
@@ -75,6 +75,11 @@ REQUIRED_DOC_MARKERS = {
     ],
 }
 
+REQUIRED_SCRIPTS_README_COUNTS = {
+    "`make -C zigux phase4-bitmap-diff`": 1,
+    "`phase4-bitmap-diff-tests`": 1,
+}
+
 
 def read_text(root: Path, relative_path: Path) -> str:
     return (root / relative_path).read_text(encoding="utf-8")
@@ -122,6 +127,14 @@ def validate(root: Path) -> list[str]:
         for marker in markers:
             if marker not in file_text:
                 missing.append(f"doc_marker:{relative_path.as_posix()}:{marker}")
+        if relative_path == SCRIPTS_README_PATH:
+            for needle, expected_count in REQUIRED_SCRIPTS_README_COUNTS.items():
+                actual_count = count_occurrences(file_text, needle)
+                if actual_count != expected_count:
+                    missing.append(
+                        "scripts_readme_count:"
+                        f"{needle}:expected={expected_count}:actual={actual_count}"
+                    )
 
     return missing
 
@@ -190,7 +203,19 @@ def build_fixture_tree(root: Path) -> None:
         )
         + "\n",
     )
-    shared_readme_stub = "\n".join(
+    scripts_readme_stub = "\n".join(
+        [
+            "Phase 4 notes",
+            "`make -C zigux phase4-validate`",
+            "`make -C zigux phase4-test`",
+            "`make -C zigux phase4-kprobe-example-survey`",
+            "`make -C zigux phase4-test-fsmount-survey`",
+            "`make -C zigux phase4-perf-baseline-survey`",
+            "`make -C zigux phase4-bitmap-diff`",
+            "`phase4-bitmap-diff-tests`",
+        ]
+    ) + "\n"
+    tests_readme_stub = "\n".join(
         [
             "Phase 4 notes",
             "`make -C zigux phase4-validate`",
@@ -200,8 +225,8 @@ def build_fixture_tree(root: Path) -> None:
             "`make -C zigux phase4-perf-baseline-survey`",
         ]
     ) + "\n"
-    write(root, SCRIPTS_README_PATH, shared_readme_stub)
-    write(root, TESTS_README_PATH, shared_readme_stub)
+    write(root, SCRIPTS_README_PATH, scripts_readme_stub)
+    write(root, TESTS_README_PATH, tests_readme_stub)
 
 
 def expect_contains(items: list[str], needle: str) -> None:
@@ -456,6 +481,35 @@ def run_self_test() -> int:
             )
             count += 1
 
+            build_fixture_tree(root)
+            scripts_readme = root / SCRIPTS_README_PATH
+            scripts_readme.write_text(
+                scripts_readme.read_text(encoding="utf-8").replace(
+                    "`make -C zigux phase4-bitmap-diff`\n",
+                    "",
+                    1,
+                ),
+                encoding="utf-8",
+            )
+            expect_contains(
+                validate(root),
+                "scripts_readme_count:`make -C zigux phase4-bitmap-diff`:expected=1:actual=0",
+            )
+            count += 1
+
+            build_fixture_tree(root)
+            scripts_readme = root / SCRIPTS_README_PATH
+            scripts_readme.write_text(
+                scripts_readme.read_text(encoding="utf-8")
+                + "`phase4-bitmap-diff-tests`\n",
+                encoding="utf-8",
+            )
+            expect_contains(
+                validate(root),
+                "scripts_readme_count:`phase4-bitmap-diff-tests`:expected=1:actual=2",
+            )
+            count += 1
+
             if count != SELF_TEST_CASE_COUNT:
                 raise AssertionError(
                     f"expected {SELF_TEST_CASE_COUNT} self-test cases, got {count}"
@@ -493,7 +547,7 @@ def main() -> int:
     print(f"PHASE4_WORKFLOW_ROUTE_COUNTS_REQUIRED_FILE_COUNT={len(REQUIRED_FILES)}")
     print(
         "PHASE4_WORKFLOW_ROUTE_COUNTS_REQUIRED_CHECK_COUNT="
-        f"{len(REQUIRED_WORKFLOW_COUNTS) + len(REQUIRED_MAKEFILE_MARKERS) + len(REQUIRED_MAKEFILE_COUNTS) + sum(len(markers) for markers in REQUIRED_DOC_MARKERS.values())}"
+        f"{len(REQUIRED_WORKFLOW_COUNTS) + len(REQUIRED_MAKEFILE_MARKERS) + len(REQUIRED_MAKEFILE_COUNTS) + sum(len(markers) for markers in REQUIRED_DOC_MARKERS.values()) + len(REQUIRED_SCRIPTS_README_COUNTS)}"
     )
     return 0
 
