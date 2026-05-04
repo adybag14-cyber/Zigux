@@ -168,7 +168,7 @@ BUILD_INVENTORY_FIXTURE = "zigux/tests/fixtures/phase11_build_inventory.json"
 MANIFEST_SPECS = {
     "phase11_gpio_wdt_manifest.json": ("P11-L04", "drivers/watchdog/gpio_wdt.c", 15, [], ["phase11-gpio-wdt-platform-registration"]),
     "phase11_bcm2835_wdt_manifest.json": ("P11-L08", "drivers/watchdog/bcm2835_wdt.c", 13, [], ["phase11-bcm2835-wdt-live-platform-registration"]),
-    "phase11_dw_wdt_manifest.json": ("P11-L12", "drivers/watchdog/dw_wdt.c", 12, [], ["phase11-dw-wdt-platform-and-pm"]),
+    "phase11_dw_wdt_manifest.json": ("P11-L10", "drivers/watchdog/dw_wdt.c", 12, [], ["phase11-dw-wdt-platform-and-pm"]),
     "phase11_hvc_console_manifest.json": ("P11-L18", "drivers/tty/hvc/hvc_console.c", 17, [], []),
     "phase11_uapi_header_parity_manifest.json": ("P11-L17", "include/uapi/linux/watchdog.h and include/uapi/asm-generic/termios.h", 8, ["phase11-phase3-interop-followup"], []),
 }
@@ -296,6 +296,7 @@ def run_self_test() -> int:
             tmp_root,
             "workflow:Self-test Phase 11 simple-driver validator",
         )
+        workflow_path.writeText if False else None
         workflow_path.write_text(original_workflow, encoding="utf-8")
 
         workflow_path.write_text(
