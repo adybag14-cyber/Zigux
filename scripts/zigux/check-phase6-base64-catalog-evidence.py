@@ -15,7 +15,7 @@ CATALOG_PATH = Path("Documentation/zigux/phase6-helper-parity-catalog.md")
 MANIFEST_PATH = Path("zigux/tests/phase6_helper_parity_manifest.json")
 PARITY_SCRIPT_PATH = Path("scripts/zigux/check-phase6-base64-c-parity.py")
 
-SELF_TEST_CASE_COUNT = 10
+SELF_TEST_CASE_COUNT = 11
 PARITY_CASE_COUNT = 122
 VARIANT_ENCODE_VECTORS = 30
 VARIANT_DECODE_VECTORS = 20
@@ -94,8 +94,11 @@ def validate(root: Path) -> list[str]:
         missing.append("manifest:exact_checks")
     else:
         for check in EXPECTED_CHECKS:
-            if check not in exact_checks:
-                missing.append(f"manifest:exact_checks:missing:{check}")
+            actual_count = sum(1 for item in exact_checks if item == check)
+            if actual_count != 1:
+                missing.append(
+                    f"manifest:exact_checks:expected=1:actual={actual_count}:{check}"
+                )
 
     return missing
 
@@ -180,8 +183,25 @@ def run_self_test() -> int:
             manifest = json.loads(read_text(root, MANIFEST_PATH))
             manifest["exact_checks"] = manifest["exact_checks"][:-1]
             write(root, MANIFEST_PATH, json.dumps(manifest, indent=2) + "\n")
-            if "manifest:exact_checks:missing:python3 scripts/zigux/check-phase6-base64-catalog-evidence.py" not in "\n".join(validate(root)):
+            if (
+                "manifest:exact_checks:expected=1:actual=0:python3 scripts/zigux/check-phase6-base64-catalog-evidence.py"
+                not in validate(root)
+            ):
                 raise AssertionError("missing manifest exact-check failure")
+
+            build_self_test_tree(root)
+            manifest = json.loads(read_text(root, MANIFEST_PATH))
+            manifest["exact_checks"] = [
+                EXPECTED_CHECKS[0],
+                EXPECTED_CHECKS[0],
+                EXPECTED_CHECKS[1],
+            ]
+            write(root, MANIFEST_PATH, json.dumps(manifest, indent=2) + "\n")
+            if (
+                "manifest:exact_checks:expected=1:actual=2:python3 scripts/zigux/check-phase6-base64-catalog-evidence.py --self-test"
+                not in validate(root)
+            ):
+                raise AssertionError("missing manifest duplicate exact-check failure")
 
             build_self_test_tree(root)
             write(root, PARITY_SCRIPT_PATH, 'print("PHASE6_BASE64_C_PARITY_SELF_TEST=pass")\n')
