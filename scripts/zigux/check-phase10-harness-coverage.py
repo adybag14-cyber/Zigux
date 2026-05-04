@@ -550,7 +550,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE10_HARNESS_COVERAGE_SELF_TEST=pass")
-    print("PHASE10_HARNESS_COVERAGE_SELF_TEST_CASE_COUNT=13")
+    print("PHASE10_HARNESS_COVERAGE_SELF_TEST_CASE_COUNT=14")
     return 0
 
 
