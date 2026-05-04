@@ -30,6 +30,7 @@ RELEASE_BOUNDARY_LINES = [
 
 SURVEY_EXACT_LINE_SNIPPETS = [
     "- `PHASE14_COMBINED_ENTRYPOINT=make -C zigux phase14`",
+    "- `PHASE14_TEST_ENTRYPOINT=make -C zigux phase14-test`",
     "- `PHASE14_FULL_BUNDLE_DEPENDENCY_COUNT=5`",
     "- `PHASE14_FOCUSED_SHARD_COUNT=1`",
     "- `PHASE14_FOCUSED_SHARD_DEPENDENCY_COUNT=1`",
@@ -111,6 +112,7 @@ issues = require_exact_count("release_boundary", release_boundary_text, RELEASE_
 
     survey_text = """
 - `PHASE14_COMBINED_ENTRYPOINT=make -C zigux phase14`
+- `PHASE14_TEST_ENTRYPOINT=make -C zigux phase14-test`
 - `PHASE14_FULL_BUNDLE_DEPENDENCY_COUNT=5`
 - `PHASE14_FOCUSED_SHARD_COUNT=1`
 - `PHASE14_FOCUSED_SHARD_DEPENDENCY_COUNT=1`
@@ -153,7 +155,7 @@ phase14-validate:
     bad_survey = validate_alignment(
         docs_root_checker_text,
         release_boundary_text,
-        survey_text.replace("- `PHASE14_FOCUSED_SHARD_ONLY_ARTIFACT=phase14-end-to-end-smoke-tests`\n", "", 1),
+        survey_text.replace("- `PHASE14_TEST_ENTRYPOINT=make -C zigux phase14-test`\n", "", 1),
         makefile_text,
     )
     duplicate_survey = validate_alignment(
