@@ -9,6 +9,7 @@ import sys
 
 ROOT = Path(__file__).resolve().parents[2]
 HEX40 = re.compile(r"^[0-9a-f]{40}$")
+LANE_KEY_RE = re.compile(r"^P[0-9]+-[A-Z][0-9]+$")
 BUILD_TEST_NAME_RE = re.compile(r'\.name = "(phase14-[^"]+)"')
 BUILD_DEPEND_STEP_RE = re.compile(r"test_step\.dependOn\(&([A-Za-z0-9_]+)\.step\);")
 BUILD_SMOKE_DEPEND_STEP_RE = re.compile(r"phase14_smoke_step\.dependOn\(&([A-Za-z0-9_]+)\.step\);")
@@ -133,10 +134,10 @@ TESTS_ROOT_EXACT_LINE_MARKERS = [
 RELEASE_MARKERS = [
     "PHASE14_STATUS=active",
     "PHASE14_SLICE=end-to-end-smoke-verification",
-    "PHASE14_SHARED_LANE=P14-Y08",
     "PHASE14_SMOKE_VALIDATOR=present",
     "PHASE14_VALIDATE_SCRIPT=python3 scripts/zigux/validate-phase14.py",
     "PHASE14_VALIDATE_ENTRYPOINT=make -C zigux phase14-validate",
+    "PHASE14_TEST_ENTRYPOINT=make -C zigux phase14-test",
     "PHASE14_BUILD_ENTRYPOINT=zig build test --build-file zigux/tests/phase14_build.zig --summary all",
     "PHASE14_COMBINED_ENTRYPOINT=make -C zigux phase14",
     "PHASE14_ANCHOR_PACKET_COUNT=4",
@@ -344,8 +345,9 @@ manifest = load_json("zigux/tests/phase14_end_to_end_smoke_manifest.json", missi
 if not isinstance(manifest, dict):
     manifest = {}
     missing.append("manifest:unreadable")
-if manifest.get("lane_key") != "P14-Y08":
-    missing.append(f'manifest:lane_key={manifest.get("lane_key")}')
+manifest_lane_key = manifest.get("lane_key")
+if not isinstance(manifest_lane_key, str) or not LANE_KEY_RE.fullmatch(manifest_lane_key):
+    missing.append(f'manifest:lane_key={manifest_lane_key}')
 if manifest.get("phase") != "Phase 14":
     missing.append(f'manifest:phase={manifest.get("phase")}')
 surveyed_commit = str(manifest.get("surveyed_commit", ""))
@@ -550,6 +552,18 @@ if expected_verified_head_line not in survey_note:
 expected_manifest_commit_line = f"- shared smoke manifest surveyed commit: `{surveyed_commit}`"
 if expected_manifest_commit_line not in survey_note:
     missing.append("survey:shared_manifest_commit_line")
+if isinstance(manifest_lane_key, str):
+    expected_shared_lane_line = f"- shared smoke manifest lane key: `{manifest_lane_key}`"
+    if expected_shared_lane_line not in survey_note:
+        missing.append("survey:shared_manifest_lane_key_line")
+    expected_shared_lane_marker = f"PHASE14_SHARED_LANE={manifest_lane_key}"
+    if expected_shared_lane_marker not in survey_note:
+        missing.append("survey:shared_lane_marker")
+expected_test_entrypoint_marker = "PHASE14_TEST_ENTRYPOINT=make -C zigux phase14-test"
+if expected_test_entrypoint_marker not in survey_note:
+    missing.append("survey:phase14_test_entrypoint")
+if "`make -C zigux phase14-test`" not in scripts_readme_text:
+    missing.append("scripts_readme:phase14_test_entrypoint")
 for key, value in PRODUCTIZATION_KEYS.items():
     if value not in survey_note:
         missing.append(f"survey:productization:{key}")
