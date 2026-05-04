@@ -104,7 +104,9 @@ Use this note when a complex-driver or heavy-helper change touches the shared Ph
 
 The minimum agreement surface for that kind of change is:
 
+- `Documentation/zigux/README.md`
 - `Documentation/zigux/review-checklist.md`
+- `scripts/zigux/README.md`
 - `zigux/tests/README.md`
 - `scripts/zigux/validate-phase12.py`
 - `scripts/zigux/check-phase12-build-inventory.py`
