@@ -192,7 +192,9 @@ required_phase7_build_markers = [
     'const repo_root = b.path("../..");',
     "phase7_string_helpers_sample_boundary.zig",
     "phase7-string-helpers-sample-boundary-tests",
+    "phase7-cmdline-survey-tests",
     "phase7-argv-split-survey-tests",
+    "phase7-string-helpers-survey-tests",
     "phase7-rbtree-survey-tests",
     'b.step("test", "Run Phase 7 runtime helper tests")',
 ]
@@ -523,6 +525,38 @@ def run_self_test() -> int:
         )
         tests_readme_path.write_text(original_tests_readme, encoding="utf-8")
 
+        build_path = tmp_root / "zigux" / "tests" / "phase7_build.zig"
+        original_build = build_path.read_text(encoding="utf-8")
+        build_path.write_text(
+            original_build.replace(
+                '"phase7-cmdline-survey-tests"',
+                '"phase7-cmdline-standalone-tests"',
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "phase7_build_cmdline_survey_marker",
+            tmp_root,
+            "zigux/tests/phase7_build.zig: phase7-cmdline-survey-tests",
+        )
+        build_path.write_text(original_build, encoding="utf-8")
+
+        build_path.write_text(
+            original_build.replace(
+                '"phase7-string-helpers-survey-tests"',
+                '"phase7-string-helpers-standalone-tests"',
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "phase7_build_string_helpers_survey_marker",
+            tmp_root,
+            "zigux/tests/phase7_build.zig: phase7-string-helpers-survey-tests",
+        )
+        build_path.write_text(original_build, encoding="utf-8")
+
         build_inventory_path = tmp_root / "zigux" / "tests" / "fixtures" / "phase7_build_inventory.json"
         original_build_inventory = json.loads(build_inventory_path.read_text(encoding="utf-8"))
         drifted_build_inventory = dict(original_build_inventory)
@@ -568,7 +602,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE7_VALIDATOR_SELF_TEST=pass")
-    print("PHASE7_VALIDATOR_SELF_TEST_CASE_COUNT=19")
+    print("PHASE7_VALIDATOR_SELF_TEST_CASE_COUNT=21")
     return 0
 
 def main() -> int:
@@ -637,8 +671,12 @@ def main() -> int:
         build_inventory_errors.append("run_labels")
     if len(build_inventory.get("shared_test_depend_steps", [])) != 9:
         build_inventory_errors.append("shared_test_depend_steps")
+    if build_inventory.get("run_cwds", {}).get("phase7-cmdline-survey-tests") != "repo_root":
+        build_inventory_errors.append("run_cwds:phase7-cmdline-survey-tests")
     if build_inventory.get("run_cwds", {}).get("phase7-argv-split-survey-tests") != "repo_root":
         build_inventory_errors.append("run_cwds:phase7-argv-split-survey-tests")
+    if build_inventory.get("run_cwds", {}).get("phase7-string-helpers-survey-tests") != "repo_root":
+        build_inventory_errors.append("run_cwds:phase7-string-helpers-survey-tests")
     if build_inventory.get("run_cwds", {}).get("phase7-string-helpers-sample-boundary-tests") != "repo_root":
         build_inventory_errors.append("run_cwds:phase7-string-helpers-sample-boundary-tests")
     if build_inventory.get("run_cwds", {}).get("phase7-rbtree-survey-tests") != "repo_root":
