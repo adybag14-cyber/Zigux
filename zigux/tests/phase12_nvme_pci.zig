@@ -359,3 +359,62 @@ test "phase12 nvme pci doorbell window helper tracks reset state without claimin
     try std.testing.expect(!window.queues_frozen);
     try std.testing.expectEqual(@as(u32, 1), window.reset_generation);
 }
+
+test "phase12 nvme pci queue recovery replay helper summarizes capped io queues and host DMA" {
+    var lab = try nvme_pci.NvmePciQueueLab.init(4096, 16);
+    _ = try lab.planAdminQueue(32, 64, false);
+    _ = try lab.planIoQueue(512, 64, true);
+    _ = try lab.planIoQueue(128, 32, false);
+    _ = try lab.planIoQueue(64, 64, false);
+
+    const replay = try lab.planQueueRecoveryReplay(2);
+    try std.testing.expectEqualStrings("drivers/nvme/host/pci.c", replay.anchor);
+    try std.testing.expectEqual(@as(usize, 3), replay.planned_io_queues);
+    try std.testing.expectEqual(@as(usize, 2), replay.replay_io_queues);
+    try std.testing.expectEqual(@as(usize, 1), replay.dropped_io_queues);
+    try std.testing.expectEqual(@as(usize, 3), replay.total_queue_pairs);
+    try std.testing.expectEqual(@as(u16, 1), replay.first_io_queue_id);
+    try std.testing.expectEqual(@as(u16, 2), replay.last_io_queue_id);
+    try std.testing.expectEqual(@as(u16, 32), replay.admin_queue_depth);
+    try std.testing.expectEqual(@as(u16, 64), replay.admin_sq_entry_bytes);
+    try std.testing.expectEqual(@as(u32, 2560), replay.admin_host_dma_bytes);
+    try std.testing.expectEqual(@as(u32, 14336), replay.replay_io_host_dma_bytes);
+    try std.testing.expectEqual(@as(u32, 16896), replay.total_host_dma_bytes);
+    try std.testing.expect(replay.replay_uses_cmb_io_queue);
+    try std.testing.expect(replay.controller_limited);
+    try std.testing.expect(!replay.queues_frozen);
+    try std.testing.expectEqual(@as(u32, 0), replay.reset_generation);
+}
+
+test "phase12 nvme pci queue recovery replay helper requires admin state and survives reset freeze" {
+    var lab = try nvme_pci.NvmePciQueueLab.init(4096, 8);
+    try std.testing.expectError(error.AdminQueueNotPlanned, lab.planQueueRecoveryReplay(4));
+
+    _ = try lab.planAdminQueue(64, 64, false);
+    _ = try lab.planIoQueue(32, 64, false);
+    _ = try lab.planIoQueue(16, 64, true);
+    _ = lab.beginReset();
+
+    const replay = try lab.planQueueRecoveryReplay(8);
+    try std.testing.expectEqual(@as(usize, 2), replay.replay_io_queues);
+    try std.testing.expectEqual(@as(usize, 0), replay.dropped_io_queues);
+    try std.testing.expectEqual(@as(usize, 3), replay.total_queue_pairs);
+    try std.testing.expectEqual(@as(u32, 5120), replay.admin_host_dma_bytes);
+    try std.testing.expectEqual(@as(u32, 2816), replay.replay_io_host_dma_bytes);
+    try std.testing.expectEqual(@as(u32, 7936), replay.total_host_dma_bytes);
+    try std.testing.expect(replay.replay_uses_cmb_io_queue);
+    try std.testing.expect(!replay.controller_limited);
+    try std.testing.expect(replay.queues_frozen);
+    try std.testing.expectEqual(@as(u32, 1), replay.reset_generation);
+
+    _ = lab.completeReset();
+    const cleared = try lab.planQueueRecoveryReplay(8);
+    try std.testing.expectEqual(@as(usize, 0), cleared.replay_io_queues);
+    try std.testing.expectEqual(@as(usize, 1), cleared.total_queue_pairs);
+    try std.testing.expectEqual(@as(u16, 0), cleared.first_io_queue_id);
+    try std.testing.expectEqual(@as(u16, 0), cleared.last_io_queue_id);
+    try std.testing.expectEqual(@as(u32, 5120), cleared.total_host_dma_bytes);
+    try std.testing.expect(!cleared.replay_uses_cmb_io_queue);
+    try std.testing.expect(!cleared.queues_frozen);
+    try std.testing.expectEqual(@as(u32, 1), cleared.reset_generation);
+}
