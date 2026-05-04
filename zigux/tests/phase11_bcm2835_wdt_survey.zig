@@ -142,7 +142,7 @@ test "phase11 bcm2835_wdt survey manifest and validation matrix record the lande
     try std.testing.expect(std.mem.indexOf(u8, slice_doc, "tiny registration-outcome summary for register-device success versus failure, probe-error return intent, and poweroff-handler claim follow-through or blocking when registration does not complete") != null);
     try std.testing.expect(std.mem.indexOf(u8, slice_doc, "tiny platform-registration and PM-base handoff summary for parent attachment, PM base availability, drvdata handoff readiness, register-device intent, and poweroff claim-vs-conflict reviewability") != null);
     try std.testing.expect(std.mem.indexOf(u8, slice_doc, "tiny poweroff-path summary for shared system-poweroff callback ownership, Raspberry Pi halt-partition request bits, and the short restart arming sequence") != null);
-    try std.testing.expect(std.mem.indexOf(u8, slice_doc, "tiny remove-time teardown summary for devm-managed watchdog cleanup while clearing the shared poweroff handler only when the bcm2835 lane currently owns it") != null);
+    try std.testing.expect(std.mem.indexOf(u8, slice_doc, "tiny remove-time teardown summary for devm-managed watchdog cleanup while clearing the shared poweroff callback only when `pm_power_off` still points at `bcm2835_power_off`") != null);
     try std.testing.expect(std.mem.indexOf(u8, slice_doc, "registration-outcome failure handling") != null);
     try std.testing.expect(std.mem.indexOf(u8, slice_doc, "remaining gap is a later hardware-facing decision about whether to model any live platform registration or PM base plumbing") != null);
 
@@ -293,7 +293,8 @@ test "phase11 bcm2835_wdt survey manifest and validation matrix record the lande
             try std.testing.expectEqualStrings("starter_landed", gap.status);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "remove-time teardown summary") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "devm-managed") != null);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "currently owns it") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "pm_power_off") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "bcm2835_power_off") != null);
         }
 
         if (std.mem.eql(u8, gap.id, "phase11-bcm2835-wdt-live-platform-registration")) {
