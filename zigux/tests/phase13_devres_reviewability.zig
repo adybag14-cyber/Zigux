@@ -19,7 +19,11 @@ const SurveySummary = struct {
     preexisting_phase13_devres_slice_present: bool,
     preexisting_phase13_devres_reviewability_present: bool,
     preexisting_phase13_devres_iounmap_reviewability_present: bool,
+    preexisting_phase13_devres_iomap_reviewability_present: bool,
     preexisting_phase13_devres_survey_present: bool,
+    preexisting_devres_scatterlist_zig_present: bool,
+    preexisting_phase13_devres_scatterlist_test_present: bool,
+    preexisting_phase13_devres_scatterlist_slice_present: bool,
 };
 
 const Gap = struct {
@@ -95,8 +99,12 @@ test "phase13 devres manifest records the current helper boundary and explicit d
     try std.testing.expect(manifest.survey_summary.preexisting_phase13_devres_slice_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase13_devres_reviewability_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase13_devres_iounmap_reviewability_present);
+    try std.testing.expect(manifest.survey_summary.preexisting_phase13_devres_iomap_reviewability_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase13_devres_survey_present);
-    try std.testing.expectEqual(@as(usize, 21), manifest.gaps.len);
+    try std.testing.expect(manifest.survey_summary.preexisting_devres_scatterlist_zig_present);
+    try std.testing.expect(manifest.survey_summary.preexisting_phase13_devres_scatterlist_test_present);
+    try std.testing.expect(manifest.survey_summary.preexisting_phase13_devres_scatterlist_slice_present);
+    try std.testing.expectEqual(@as(usize, 22), manifest.gaps.len);
 
     const descriptor = devres.DevresHelperLab.descriptor();
     try std.testing.expectEqualStrings("lib/devres.c", descriptor.anchor);
@@ -174,6 +182,25 @@ test "phase13 devres manifest records the current helper boundary and explicit d
     try expectNotContains(dma_coherent_source, "sg_table");
     try std.testing.expectEqual(@as(usize, 0), std.mem.count(u8, dma_coherent_source, "sg_"));
 
+    const scatterlist_source = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "lib/devres_scatterlist.zig",
+        std.testing.allocator,
+        .limited(16 * 1024),
+    );
+    defer std.testing.allocator.free(scatterlist_source);
+
+    try expectContains(scatterlist_source, "provides_scatterlist_lifetime_planning = true");
+    try expectContains(scatterlist_source, "touches_live_dma = false");
+    try expectContains(scatterlist_source, "touches_live_scatterlist = false");
+    try expectContains(scatterlist_source, "planManagedScatterlistMap");
+    try expectContains(scatterlist_source, "planManagedScatterlistUnmap");
+    try expectNotContains(scatterlist_source, "dma_map_sgtable");
+    try expectNotContains(scatterlist_source, "dma_unmap_sgtable");
+    try expectNotContains(scatterlist_source, "struct scatterlist");
+    try expectNotContains(scatterlist_source, "sg_table");
+    try std.testing.expectEqual(@as(usize, 0), std.mem.count(u8, scatterlist_source, "sg_"));
+
     const slice_note = try std.Io.Dir.cwd().readFileAlloc(
         io_instance.io(),
         "Documentation/zigux/phase13-devres-slice.md",
@@ -189,6 +216,20 @@ test "phase13 devres manifest records the current helper boundary and explicit d
     try expectContains(slice_note, "does not expose `dmam_*`, `dma_map_*`, `dma_unmap_*`, `dma_map_sgtable()`, `struct scatterlist`, `sg_table`, or `sg_*` traversal behavior at all");
     try expectContains(slice_note, "does not claim live `devres_alloc_node()` ownership");
     try expectContains(slice_note, "adds one adjacent helper-first coherent DMA lifetime planner in `lib/devres_dma_coherent.zig`");
+
+    const scatterlist_slice_note = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "Documentation/zigux/phase13-devres-scatterlist-slice.md",
+        std.testing.allocator,
+        .limited(16 * 1024),
+    );
+    defer std.testing.allocator.free(scatterlist_slice_note);
+
+    try expectContains(scatterlist_slice_note, "# Phase 13 devres scatterlist helper slice");
+    try expectContains(scatterlist_slice_note, "`DevresScatterlistHelper.descriptor()` names the same `lib/devres.c` anchor while keeping `touches_live_dma = false` and `touches_live_scatterlist = false`");
+    try expectContains(scatterlist_slice_note, "`planManagedScatterlistMap()` models a helper-first retained-record decision around original segment count, mapped segment count, and detach-time unmap readiness");
+    try expectContains(scatterlist_slice_note, "`planManagedScatterlistUnmap()` keeps the release match exact across original and mapped segment counts so the detach bookkeeping surface stays reviewable");
+    try expectContains(scatterlist_slice_note, "no live `dma_map_sgtable()` or `dma_unmap_sgtable()` execution");
 
     const survey_note = try std.Io.Dir.cwd().readFileAlloc(
         io_instance.io(),
@@ -219,6 +260,8 @@ test "phase13 devres manifest records the current helper boundary and explicit d
     try expectContains(survey_note, "`lib/devres_dma_coherent.zig` plus `zigux/tests/phase13_devres_dma_coherent.zig` now keep the helper-first coherent-DMA lifetime packet reviewable on current `master`");
     try expectContains(survey_note, "the adjacent helper-first coherent-DMA lifetime planner in `lib/devres_dma_coherent.zig`");
     try expectContains(survey_note, "beyond the helper-first coherent-DMA lifetime planner's retained-record bookkeeping surface");
+    try expectContains(survey_note, "`lib/devres_scatterlist.zig`, `zigux/tests/phase13_devres_scatterlist.zig`, and `Documentation/zigux/phase13-devres-scatterlist-slice.md`");
+    try expectContains(survey_note, "the adjacent helper-first scatterlist bookkeeping slice in `lib/devres_scatterlist.zig`");
 
     const devres_tests = try std.Io.Dir.cwd().readFileAlloc(
         io_instance.io(),
@@ -244,6 +287,18 @@ test "phase13 devres manifest records the current helper boundary and explicit d
     try expectContains(dma_coherent_tests, "planManagedDmaCoherentAlloc");
     try expectContains(dma_coherent_tests, "planManagedDmaCoherentFree");
 
+    const scatterlist_tests = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "zigux/tests/phase13_devres_scatterlist.zig",
+        std.testing.allocator,
+        .limited(16 * 1024),
+    );
+    defer std.testing.allocator.free(scatterlist_tests);
+
+    try expectContains(scatterlist_tests, "phase13 devres descriptor records helper-first scatterlist planning");
+    try expectContains(scatterlist_tests, "planManagedScatterlistMap");
+    try expectContains(scatterlist_tests, "planManagedScatterlistUnmap");
+
     const phase13_build = try std.Io.Dir.cwd().readFileAlloc(
         io_instance.io(),
         "zigux/tests/phase13_build.zig",
@@ -255,6 +310,9 @@ test "phase13 devres manifest records the current helper boundary and explicit d
     try expectContains(phase13_build, "../../lib/devres_dma_coherent.zig");
     try expectContains(phase13_build, "phase13_devres_dma_coherent.zig");
     try expectContains(phase13_build, "phase13-devres-dma-coherent-tests");
+    try expectContains(phase13_build, "../../lib/devres_scatterlist.zig");
+    try expectContains(phase13_build, "phase13_devres_scatterlist.zig");
+    try expectContains(phase13_build, "phase13-devres-scatterlist-tests");
 
     var starter_landed_count: usize = 0;
     var blocked_live_mmio_count: usize = 0;
@@ -278,6 +336,7 @@ test "phase13 devres manifest records the current helper boundary and explicit d
     var saw_arch_phys_wc = false;
     var saw_arch_io_memtype = false;
     var saw_dma_coherent = false;
+    var saw_scatterlist = false;
     var saw_live_mmio_blocker = false;
     var saw_dma_blocker = false;
     var saw_scatterlist_blocker = false;
@@ -409,7 +468,16 @@ test "phase13 devres manifest records the current helper boundary and explicit d
             try std.testing.expectEqualStrings("lib/devres_dma_coherent.zig", gap.zigux_destination);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "dmam_alloc_coherent()") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "dmam_free_coherent()") != null);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "scatterlist ownership") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "scatterlist execution") != null);
+        }
+        if (std.mem.eql(u8, gap.id, "phase13-devres-scatterlist-lifetime-planner")) {
+            saw_scatterlist = true;
+            try std.testing.expectEqualStrings("starter_landed", gap.status);
+            try std.testing.expectEqualStrings("lib/devres_scatterlist.zig", gap.zigux_destination);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "planManagedScatterlistMap()") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "planManagedScatterlistUnmap()") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "dma_map_sgtable()") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "sg_table") != null);
         }
         if (std.mem.eql(u8, gap.id, "phase13-devres-live-mmio-side-effects")) {
             saw_live_mmio_blocker = true;
@@ -455,7 +523,7 @@ test "phase13 devres manifest records the current helper boundary and explicit d
         }
     }
 
-    try std.testing.expectEqual(@as(usize, 16), starter_landed_count);
+    try std.testing.expectEqual(@as(usize, 17), starter_landed_count);
     try std.testing.expectEqual(@as(usize, 1), blocked_live_mmio_count);
     try std.testing.expectEqual(@as(usize, 1), blocked_dma_count);
     try std.testing.expectEqual(@as(usize, 1), blocked_scatterlist_count);
@@ -477,6 +545,7 @@ test "phase13 devres manifest records the current helper boundary and explicit d
     try std.testing.expect(saw_arch_phys_wc);
     try std.testing.expect(saw_arch_io_memtype);
     try std.testing.expect(saw_dma_coherent);
+    try std.testing.expect(saw_scatterlist);
     try std.testing.expect(saw_live_mmio_blocker);
     try std.testing.expect(saw_dma_blocker);
     try std.testing.expect(saw_scatterlist_blocker);
