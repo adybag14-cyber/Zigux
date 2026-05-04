@@ -362,6 +362,40 @@ def self_test() -> int:
             expect_missing_and_duplicate(script, root, rel, baseline_entries, label, marker)
             total_cases += 2
 
+        missing_file_cases = [
+            (
+                "Documentation/zigux/README.md",
+                fixture_text(docs_markers),
+                "docs_root_phase1_closure_packet_count:missing_file:Documentation/zigux/README.md",
+            ),
+            (
+                "scripts/zigux/README.md",
+                fixture_text(scripts_markers),
+                "scripts_root_phase1_validator_first_count:missing_file:scripts/zigux/README.md",
+            ),
+            (
+                "zigux/Makefile",
+                fixture_text(makefile_markers),
+                "makefile_phase1_route_summary_self_test_count:missing_file:zigux/Makefile",
+            ),
+            (
+                ".github/workflows/zigux-bootstrap.yml",
+                fixture_text(workflow_markers),
+                "workflow_phase1_route_summary_self_test_count:missing_file:.github/workflows/zigux-bootstrap.yml",
+            ),
+            (
+                "Documentation/zigux/phase1-closure.md",
+                fixture_text(closure_markers),
+                "closure_phase1_parity_gate_count:missing_file:Documentation/zigux/phase1-closure.md",
+            ),
+        ]
+        for rel, baseline, expected in missing_file_cases:
+            path = root / rel
+            path.unlink()
+            expect_failure(script, root, expected)
+            write(path, baseline)
+            total_cases += 1
+
     print("PHASE1_ROUTE_SUMMARY_COUNTS_SELF_TEST=pass")
     print(f"PHASE1_ROUTE_SUMMARY_COUNTS_SELF_TEST_CASE_COUNT={total_cases}")
     return 0
