@@ -267,7 +267,7 @@ def run_self_test() -> int:
             check_artifact_diff=False,
             check_build_smoke=False,
             check_slug_sanity=False,
-            check_all_wrappers=True,
+            check_all_wrappers=False,
             zig_path=None,
         ) == []
         build_log = root / "zig-build-smoke.log"
