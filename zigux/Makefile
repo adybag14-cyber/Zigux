@@ -92,6 +92,8 @@ phase3-validate:
 	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase3.py --slug abi --check-build-smoke --zig $(ZIG)
 	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase3-policy-unsafe-survey.py --self-test
 	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase3-policy-unsafe-survey.py
+	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase3-low-level-wrapper-survey.py --self-test
+	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase3-low-level-wrapper-survey.py
 	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase3-abi-duplicate-declarations.py --self-test
 	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase3-abi-duplicate-declarations.py
 	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase3-validation-flow.py --self-test
