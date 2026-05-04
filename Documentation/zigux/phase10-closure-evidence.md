@@ -93,6 +93,8 @@ The same closure packet now also keeps the already-landed focused harness covera
 
 The shared closure manifest and the dedicated Phase 10 closure ledger already carry this provenance packet, but the main closure evidence note had still been leaving those exact lane owners and inspected heads implicit. Mirroring them here keeps the closure bundle reviewer-facing and self-contained, so the core, ring, input, and MMIO survey notes can be traced back to their bounded lane packets without hopping out to the JSON manifest first.
 
+The live repo now also ships `python3 scripts/zigux/check-phase10-survey-provenance.py` as a supporting provenance readback that compares the shared closure manifest's core, ring, input, and MMIO lane keys plus surveyed commits back against the four survey manifests. That narrower checker keeps the shared scoreboard from relying on manual manifest diffing alone even though it still sits outside the published exact shared replay packet.
+
 ## Roadmap Parity Scoreboard
 
 This scoreboard records the current parity evidence against the Phase 10 roadmap requirements rather than against full driver parity.
