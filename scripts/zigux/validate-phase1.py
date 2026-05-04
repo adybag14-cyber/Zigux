@@ -125,7 +125,7 @@ DOCS_ROOT_MARKERS = [
 ]
 
 REVIEW_CHECKLIST_MARKERS = [
-    "- if the change touches the closed Phase 1 host-helper packet, do `Documentation/zigux/phase1-closure.md`, `scripts/zigux/validate-phase1.py`, `scripts/zigux/check-phase1-bitmap-validator-anchors.py`, `scripts/zigux/check-phase1-find-bit-validator-anchors.py`, `scripts/zigux/check-phase1-route-summary-counts.py`, `scripts/zigux/check-phase1-validation-route-inventory.py`, `scripts/zigux/check-phase1-parity.py`, `scripts/zigux/check-phase1-bench.py`, `scripts/zigux/validate-phase1-closure.py`, `zigux/tests/fixtures/phase1_helper_manifest.json`, `zigux/tests/phase1_helpers.zig`, and `zigux/tests/phase1_bench.zig` still agree on the same closed helper inventory, validator-first replay path, and fail-closed checker stack?",
+    "- if the change touches the closed Phase 1 host-helper packet, do `Documentation/zigux/phase1-closure.md`, `Documentation/zigux/phase1-tests-root-review-companion.md`, `scripts/zigux/validate-phase1.py`, `scripts/zigux/check-phase1-bitmap-validator-anchors.py`, `scripts/zigux/check-phase1-find-bit-validator-anchors.py`, `scripts/zigux/check-phase1-route-summary-counts.py`, `scripts/zigux/check-phase1-validation-route-inventory.py`, `scripts/zigux/check-phase1-parity.py`, `scripts/zigux/check-phase1-bench.py`, `scripts/zigux/validate-phase1-closure.py`, `zigux/tests/fixtures/phase1_helper_manifest.json`, `zigux/tests/phase1_helpers.zig`, and `zigux/tests/phase1_bench.zig` still agree on the same closed helper inventory, validator-first replay path, and fail-closed checker stack?",
 ]
 
 SCRIPTS_ROOT_MARKERS = [
@@ -144,7 +144,7 @@ PHASE1_CLOSURE_MARKERS = [
     "PHASE1_BITMAP_ALLOCATOR_ALIAS_UNIT_REVIEW=bitmap bitmap_alloc bitmap_zalloc and bitmap_free stay aligned with bitmapAlloc bitmapZalloc and bitmapFree for partial-word sizing zero-filled allocation and optional-handle reset semantics",
     "PHASE1_BITMAP_XOR_UNIT_REVIEW=bitmap xorBits multiword-tail coverage proves callers can clamp the last word back to the in-range bits without leaking the out-of-range tail",
     "PHASE1_BITMAP_TAIL_MASK_UNIT_REVIEW=bitmap tail-masked reduction helpers ignore out-of-range differences while preserving the in-range window for andBits, andNotBits, equal, intersects, and subset",
-    "PHASE1_BITMAP_ZERO_BIT_UNIT_REVIEW=bitmap zero-length helper calls stay side-effect free so zero fill copy copyClearTail orBits xorBits scans and formatting leave caller-owned buffers untouched when nbits is zero",
+    "PHASE1_BITMAP_ZERO_BIT_UNIT_REVIEW=bitmap zero-length helper calls stay side-effect free so zero fill copy copyClearTail orBits scans and formatting leave caller-owned buffers untouched when nbits is zero",
     "PHASE1_BITMAP_EMPTY_UNIT_REVIEW=bitmap bitmap_scnprintf keeps a non-empty caller buffer untouched when no bits are set, matching the committed empty-bitmap parity fixture contract",
     "PHASE1_FIND_BIT_SMALL_BITMAP_UNIT_REVIEW=find_bit single-word set zero and shared-bit scans keep Linux small-bitmap semantics aligned by masking out-of-range tail bits while preserving inclusive in-range matches inside one word",
     "PHASE1_FIND_BIT_LOW_LEVEL_UNIT_REVIEW=find_bit low-level underscore entry points preserve same-word inclusive starts and tail-clamped set, shared-bit, and zero-bit scan behavior across the same caller-selected bit windows as the public helpers",
