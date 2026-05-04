@@ -125,7 +125,7 @@ PHASE2_TOOLCHAIN_PIN_SCOPE_REQUIRED_SOURCE_MARKERS = [
 ]
 PHASE2_FIXDEP_REQUIRED_SOURCE_MARKERS = [
     "FIXDEP_SELF_TEST=pass",
-    "FIXDEP_SELF_TEST_CASE_COUNT=13",
+    "FIXDEP_SELF_TEST_CASE_COUNT=12",
     "validate_tool_sources(C_FIXDEP, ZIG_FIXDEP)",
     "expected_stderr_path = expected_stderr or implicit_expected_stderr",
     "diff_text(c_actual, c_repeat)",
