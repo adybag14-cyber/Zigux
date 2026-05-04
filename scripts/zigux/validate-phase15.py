@@ -185,7 +185,7 @@ SURVEY_MARKERS = [
 ]
 
 HANDOFF_MARKERS = [
-    "PHASE15_LANE_KEY=P15-L11",
+    "PHASE15_LANE_KEY=P15-Y08",
     "## Current Handoff Surface",
     "## Open Handoff Gaps",
     "## Pending Next Steps",
@@ -217,7 +217,7 @@ BUILD_MARKERS = [
 ]
 
 HANDOFF_TEST_MARKERS = [
-    'try std.testing.expectEqualStrings("P15-L11", manifest.lane_key);',
+    'try std.testing.expectEqualStrings("P15-Y08", manifest.lane_key);',
     "phase15-deep-core-status-change-blocker",
     "make -C zigux phase15",
     "zig build test --build-file zigux/tests/phase15_build.zig",
@@ -517,7 +517,7 @@ require(
 
 handoff_manifest = load_json("zigux/tests/phase15_handoff_next_steps_manifest.json")
 require(handoff_manifest.get("phase") == "Phase 15", "handoff_manifest:phase")
-require(handoff_manifest.get("lane_key") == "P15-L11", "handoff_manifest:lane_key")
+require(handoff_manifest.get("lane_key") == "P15-Y08", "handoff_manifest:lane_key")
 require(
     isinstance(handoff_manifest.get("surveyed_commit"), str)
     and HEX40.fullmatch(handoff_manifest["surveyed_commit"]),
