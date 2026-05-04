@@ -297,6 +297,8 @@ test "atomic64 diff wrapper records the exact bounded runtime atomic64 checks" {
     try expectRuntimeMarker("post_selftest_summary.selftest_runs");
     try expectRuntimeMarker("exited_summary.exit_runs");
     try expectRuntimeMarker("error.InvalidLifecycleTransition, cold_module.exit()");
+    try expectRuntimeMarker("error.InvalidLifecycleTransition, cold_module.incNotZeroCounter()");
+    try expectRuntimeMarker("error.InvalidLifecycleTransition, cold_module.decIfPositiveCounter()");
     try expectRuntimeMarker("error.InvalidLifecycleTransition, module.init(11)");
     try expectRuntimeMarker("error.InvalidLifecycleTransition, module.init(13)");
     try expectRuntimeMarker("error.InvalidLifecycleTransition, module.addCounter(1)");
