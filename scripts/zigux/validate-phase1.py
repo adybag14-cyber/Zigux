@@ -52,6 +52,7 @@ REQUIRED_FILES = [
     "zigux/tests/fixtures/phase1_helper_manifest.json",
     "zigux/tests/fixtures/phase1_helpers.json",
     "zigux/tests/fixtures/phase1_helpers_c_harness.c",
+    "zigux/tests/README.md",
     "zigux/tests/phase1_bench.zig",
     "zigux/tests/phase1_helpers.zig",
 ]
@@ -127,6 +128,10 @@ REVIEW_CHECKLIST_MARKERS = [
 SCRIPTS_ROOT_MARKERS = [
     "- `validate-phase1.py` is the validator-first entrypoint for the closed host-helper packet around `tools/lib/bitmap.zig`, `tools/lib/find_bit.zig`, `tools/lib/string.zig`, and `tools/lib/rbtree.zig` plus the bounded supporting helpers and committed `zigux/tests/fixtures/phase1_helpers.json` corpus.",
     "- `check-phase1-bitmap-validator-anchors.py --self-test`, `check-phase1-bitmap-validator-anchors.py`, `check-phase1-find-bit-validator-anchors.py --self-test`, `check-phase1-find-bit-validator-anchors.py`, `check-phase1-route-summary-counts.py --self-test`, `check-phase1-route-summary-counts.py`, `check-phase1-validation-route-inventory.py --self-test`, `check-phase1-validation-route-inventory.py`, `check-phase1-parity.py --self-test`, `check-phase1-parity.py`, `check-phase1-bench.py --self-test`, `check-phase1-bench.py`, `validate-phase1-closure.py --self-test`, and `validate-phase1-closure.py` are the bounded fail-closed review hooks around that same closed Phase 1 helper tranche.",
+]
+
+TESTS_ROOT_MARKERS = [
+    "- keep the closed Phase 1 host-helper packet reviewable through `Documentation/zigux/phase1-closure.md`, `scripts/zigux/validate-phase1.py`, `scripts/zigux/check-phase1-bitmap-validator-anchors.py`, `scripts/zigux/check-phase1-find-bit-validator-anchors.py`, `scripts/zigux/check-phase1-route-summary-counts.py`, `scripts/zigux/check-phase1-validation-route-inventory.py`, `scripts/zigux/check-phase1-parity.py`, `scripts/zigux/check-phase1-bench.py`, `scripts/zigux/validate-phase1-closure.py`, `zigux/tests/fixtures/phase1_helper_manifest.json`, `zigux/tests/phase1_helpers.zig`, and `zigux/tests/phase1_bench.zig` so the tests root names the same validator-first replay and fail-closed checker stack as the docs root, scripts root, workflow, and Makefile surfaces.",
 ]
 
 PHASE1_CLOSURE_MARKERS = [
@@ -287,6 +292,11 @@ def validate_markers() -> list[str]:
         count = sum(1 for raw in scripts_root.splitlines() if raw.strip() == marker)
         if count != 1:
             issues.append(f"scripts_root:{marker}:expected_count=1:actual_count={count}")
+    tests_root = read_text("zigux/tests/README.md")
+    for marker in TESTS_ROOT_MARKERS:
+        count = sum(1 for raw in tests_root.splitlines() if raw.strip() == marker)
+        if count != 1:
+            issues.append(f"tests_root:{marker}:expected_count=1:actual_count={count}")
     closure = read_text("Documentation/zigux/phase1-closure.md")
     for marker in PHASE1_CLOSURE_MARKERS:
         if marker not in closure:
@@ -314,7 +324,7 @@ def main() -> int:
         return fail("MISSING_PHASE1_MARKERS", marker_issues)
     print("PHASE1_VALIDATION=pass")
     print(f"PHASE1_REQUIRED_FILE_COUNT={len(REQUIRED_FILES)}")
-    print(f"PHASE1_REQUIRED_MARKER_COUNT={len(DOCS_ROOT_MARKERS) + len(REVIEW_CHECKLIST_MARKERS) + len(SCRIPTS_ROOT_MARKERS) + len(PHASE1_CLOSURE_MARKERS) + len(WORKFLOW_LINES)}")
+    print(f"PHASE1_REQUIRED_MARKER_COUNT={len(DOCS_ROOT_MARKERS) + len(REVIEW_CHECKLIST_MARKERS) + len(SCRIPTS_ROOT_MARKERS) + len(TESTS_ROOT_MARKERS) + len(PHASE1_CLOSURE_MARKERS) + len(WORKFLOW_LINES)}")
     return 0
 
 
@@ -346,6 +356,7 @@ def self_test() -> int:
         write(root / "Documentation/zigux/README.md", "\n".join(DOCS_ROOT_MARKERS) + "\n")
         write(root / "Documentation/zigux/review-checklist.md", "\n".join(REVIEW_CHECKLIST_MARKERS) + "\n")
         write(root / "scripts/zigux/README.md", "\n".join(SCRIPTS_ROOT_MARKERS) + "\n")
+        write(root / "zigux/tests/README.md", "\n".join(TESTS_ROOT_MARKERS) + "\n")
         write(root / "Documentation/zigux/phase1-closure.md", "\n".join(PHASE1_CLOSURE_MARKERS) + "\n")
         write(root / ".github/workflows/zigux-bootstrap.yml", "\n".join(WORKFLOW_LINES.keys()) + "\n")
         write(root / "zigux/tests/fixtures/phase1_helpers.json", json.dumps({k: {x: 1 for x in v} for k, v in FIXTURE_SHAPE.items()}, indent=2) + "\n")
@@ -371,6 +382,11 @@ def self_test() -> int:
         review_checklist.write_text(review_checklist_text.replace(REVIEW_CHECKLIST_MARKERS[0] + "\n", "", 1), encoding="utf-8")
         expect_failure(root, REVIEW_CHECKLIST_MARKERS[0])
         write(review_checklist, review_checklist_text)
+        tests_readme = root / "zigux/tests/README.md"
+        tests_readme_text = tests_readme.read_text(encoding="utf-8")
+        tests_readme.write_text(tests_readme_text.replace(TESTS_ROOT_MARKERS[0] + "\n", "", 1), encoding="utf-8")
+        expect_failure(root, TESTS_ROOT_MARKERS[0])
+        write(tests_readme, tests_readme_text)
         closure = root / "Documentation/zigux/phase1-closure.md"
         closure_text = closure.read_text(encoding="utf-8")
         closure.write_text(closure_text.replace(PHASE1_CLOSURE_MARKERS[0] + "\n", "", 1), encoding="utf-8")
@@ -394,7 +410,7 @@ def self_test() -> int:
         write(fixture_path, json.dumps(fixture, indent=2) + "\n")
         expect_failure(root, "fixture:find_bit:tail_and_mixed_next:missing")
     print("PHASE1_VALIDATOR_SELF_TEST=pass")
-    print("PHASE1_VALIDATOR_SELF_TEST_CASE_COUNT=6")
+    print("PHASE1_VALIDATOR_SELF_TEST_CASE_COUNT=7")
     return 0
 
 
