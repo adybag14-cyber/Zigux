@@ -565,6 +565,20 @@ def run_self_test() -> int:
         )
         _write(root / MAKEFILE_REL, _fixture_makefile())
 
+        duplicate_phase6_live = _fixture_makefile().replace(
+            "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase6-base64-catalog-evidence.py\n",
+            "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase6-base64-catalog-evidence.py\n"
+            "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase6-base64-catalog-evidence.py\n",
+            1,
+        )
+        _write(root / MAKEFILE_REL, duplicate_phase6_live)
+        _assert_only(
+            validate(root),
+            ["unexpected_makefile_live_route_count:phase6-validate::2:check-phase6-base64-catalog-evidence.py"],
+            "duplicate_phase6_makefile_route_guard_failed",
+        )
+        _write(root / MAKEFILE_REL, _fixture_makefile())
+
         duplicate_phase7_self_test = _fixture_makefile().replace(
             "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase7-argv-split-parity.py --self-test\n",
             "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase7-argv-split-parity.py --self-test\n"
@@ -964,7 +978,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE3_README_TOOLING_INVENTORY_SELF_TEST=pass")
-    print("PHASE3_README_TOOLING_INVENTORY_SELF_TEST_CASE_COUNT=23")
+    print("PHASE3_README_TOOLING_INVENTORY_SELF_TEST_CASE_COUNT=24")
     return 0
 
 
