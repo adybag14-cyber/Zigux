@@ -37,6 +37,7 @@ The tests-root packet stays bounded behind the same validator-first route:
 - `make -C zigux phase1`
 
 The dedicated fail-closed checker stack remains explicit through these self-tests and live gates:
+- `python3 scripts/zigux/validate-phase1.py --self-test`
 - `python3 scripts/zigux/check-phase1-bitmap-validator-anchors.py --self-test`
 - `python3 scripts/zigux/check-phase1-bitmap-validator-anchors.py`
 - `python3 scripts/zigux/check-phase1-find-bit-validator-anchors.py --self-test`
