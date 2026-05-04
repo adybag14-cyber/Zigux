@@ -15,6 +15,7 @@ REQUIRED_FILES = {
     "tests_readme": "zigux/tests/README.md",
     "doc_readme": "Documentation/zigux/README.md",
     "perf_slice": "Documentation/zigux/phase8-perf-buffer-poll-slice.md",
+    "shared_help_kallsyms_build": "zigux/tests/phase8_help_kallsyms_only_build.zig",
     "focused_build": "zigux/tests/phase8_perf_buffer_poll_only_build.zig",
     "libbpf_segments_build": "zigux/tests/phase8_libbpf_segments_only_build.zig",
     "shared_build": "zigux/tests/phase8_build.zig",
@@ -26,6 +27,7 @@ REQUIRED_FILES = {
 TESTS_README_MARKERS = [
     "zigux/tests/phase8_exec_cmd_only_build.zig",
     "zigux/tests/phase8_help_only_build.zig",
+    "zigux/tests/phase8_help_kallsyms_only_build.zig",
     "zigux/tests/phase8_kallsyms_only_build.zig",
     "zigux/tests/phase8_libbpf_segments_only_build.zig",
     "zigux/tests/phase8_perf_buffer_poll_only_build.zig",
@@ -44,6 +46,7 @@ DOC_README_MARKERS = [
     "Phase 8 notes",
     "Documentation/zigux/phase8-perf-buffer-poll-slice.md",
     "tools/lib/bpf/zigux_segments/perf_buffer_poll.zig",
+    "zigux/tests/phase8_help_kallsyms_only_build.zig",
     "zigux/tests/phase8_bridge_boundary_survey.zig",
     "zigux/tests/phase8_file_path_handle_bridge.zig",
     "zigux/tests/phase8_bpf_type_names.zig",
@@ -57,6 +60,14 @@ PERF_SLICE_MARKERS = [
     "zigux/tests/phase8_perf_buffer_poll_only_build.zig",
     "phase8-perf-buffer-poll-tests",
     "make -C zigux phase8-perf-buffer-poll-test",
+]
+
+SHARED_HELP_KALLSYMS_BUILD_MARKERS = [
+    "phase8_help.zig",
+    "phase8_kallsyms.zig",
+    "phase8-help-tests",
+    "phase8-kallsyms-tests",
+    "Run focused Phase 8 help and kallsyms tests",
 ]
 
 FOCUSED_BUILD_MARKERS = [
@@ -94,6 +105,7 @@ SCRIPTS_README_MARKERS = [
     "check-phase8-tests-readme-alignment.py",
     "Phase 8 flow",
     "make -C zigux phase8-validate",
+    "zigux/tests/phase8_help_kallsyms_only_build.zig",
     "Documentation/zigux/phase8-perf-buffer-poll-slice.md",
     "tools/lib/bpf/zigux_segments/perf_buffer_poll.zig",
     "zigux/tests/phase8_bridge_boundary_survey.zig",
@@ -149,6 +161,9 @@ def validate(root: Path) -> list[str]:
     tests_readme = read_text(root, REQUIRED_FILES["tests_readme"])
     doc_readme = read_text(root, REQUIRED_FILES["doc_readme"])
     perf_slice = read_text(root, REQUIRED_FILES["perf_slice"])
+    shared_help_kallsyms_build = read_text(
+        root, REQUIRED_FILES["shared_help_kallsyms_build"]
+    )
     focused_build = read_text(root, REQUIRED_FILES["focused_build"])
     libbpf_segments_build = read_text(root, REQUIRED_FILES["libbpf_segments_build"])
     shared_build = read_text(root, REQUIRED_FILES["shared_build"])
@@ -167,6 +182,10 @@ def validate(root: Path) -> list[str]:
     for marker in PERF_SLICE_MARKERS:
         if marker not in perf_slice:
             missing.append(f"perf_slice:{marker}")
+
+    for marker in SHARED_HELP_KALLSYMS_BUILD_MARKERS:
+        if marker not in shared_help_kallsyms_build:
+            missing.append(f"shared_help_kallsyms_build:{marker}")
 
     for marker in FOCUSED_BUILD_MARKERS:
         if marker not in focused_build:
@@ -218,6 +237,7 @@ def clone_fixture_root(destination_root: Path) -> None:
                 "",
                 "- zigux/tests/phase8_exec_cmd_only_build.zig",
                 "- zigux/tests/phase8_help_only_build.zig",
+                "- zigux/tests/phase8_help_kallsyms_only_build.zig",
                 "- zigux/tests/phase8_kallsyms_only_build.zig",
                 "- zigux/tests/phase8_libbpf_segments.zig",
                 "- zigux/tests/phase8_libbpf_segments_only_build.zig",
@@ -246,6 +266,7 @@ def clone_fixture_root(destination_root: Path) -> None:
                 "## Phase 8 notes",
                 "- Documentation/zigux/phase8-perf-buffer-poll-slice.md",
                 "- tools/lib/bpf/zigux_segments/perf_buffer_poll.zig",
+                "- zigux/tests/phase8_help_kallsyms_only_build.zig",
                 "- zigux/tests/phase8_bridge_boundary_survey.zig",
                 "- zigux/tests/phase8_file_path_handle_bridge.zig",
                 "- zigux/tests/phase8_bpf_type_names.zig",
@@ -269,6 +290,22 @@ def clone_fixture_root(destination_root: Path) -> None:
                 "- zigux/tests/phase8_perf_buffer_poll_only_build.zig",
                 "- phase8-perf-buffer-poll-tests",
                 "- make -C zigux phase8-perf-buffer-poll-test",
+                "",
+            ]
+        ),
+        encoding="utf-8",
+    )
+
+    shared_help_kallsyms_build = destination_root / REQUIRED_FILES["shared_help_kallsyms_build"]
+    shared_help_kallsyms_build.parent.mkdir(parents=True, exist_ok=True)
+    shared_help_kallsyms_build.write_text(
+        "\n".join(
+            [
+                'const help_root = "phase8_help.zig";',
+                'const kallsyms_root = "phase8_kallsyms.zig";',
+                'const help_name = "phase8-help-tests";',
+                'const kallsyms_name = "phase8-kallsyms-tests";',
+                'const desc = "Run focused Phase 8 help and kallsyms tests";',
                 "",
             ]
         ),
@@ -351,6 +388,7 @@ def clone_fixture_root(destination_root: Path) -> None:
                 "",
                 "## Phase 8 flow",
                 "- make -C zigux phase8-validate",
+                "- zigux/tests/phase8_help_kallsyms_only_build.zig",
                 "- Documentation/zigux/phase8-perf-buffer-poll-slice.md",
                 "- tools/lib/bpf/zigux_segments/perf_buffer_poll.zig",
                 "- zigux/tests/phase8_bridge_boundary_survey.zig",
@@ -440,6 +478,21 @@ def run_self_test() -> int:
             "tests_readme_help_only_build",
             tmp_root,
             "tests_readme:zigux/tests/phase8_help_only_build.zig",
+        )
+        tests_readme_path.write_text(original_tests_readme, encoding="utf-8")
+
+        tests_readme_path.write_text(
+            original_tests_readme.replace(
+                "- zigux/tests/phase8_help_kallsyms_only_build.zig\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing(
+            "tests_readme_help_kallsyms_only_build",
+            tmp_root,
+            "tests_readme:zigux/tests/phase8_help_kallsyms_only_build.zig",
         )
         tests_readme_path.write_text(original_tests_readme, encoding="utf-8")
 
@@ -687,6 +740,21 @@ def run_self_test() -> int:
 
         doc_readme_path.write_text(
             original_doc_readme.replace(
+                "- zigux/tests/phase8_help_kallsyms_only_build.zig\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing(
+            "doc_readme_help_kallsyms_only_build",
+            tmp_root,
+            "doc_readme:zigux/tests/phase8_help_kallsyms_only_build.zig",
+        )
+        doc_readme_path.write_text(original_doc_readme, encoding="utf-8")
+
+        doc_readme_path.write_text(
+            original_doc_readme.replace(
                 "- Documentation/zigux/phase8-perf-buffer-poll-slice.md\n",
                 "",
                 1,
@@ -776,6 +844,28 @@ def run_self_test() -> int:
             "perf_slice:make -C zigux phase8-perf-buffer-poll-test",
         )
         perf_slice_path.write_text(original_perf_slice, encoding="utf-8")
+
+        shared_help_kallsyms_build_path = tmp_root / REQUIRED_FILES["shared_help_kallsyms_build"]
+        original_shared_help_kallsyms_build = shared_help_kallsyms_build_path.read_text(
+            encoding="utf-8"
+        )
+        shared_help_kallsyms_build_path.write_text(
+            original_shared_help_kallsyms_build.replace(
+                'const kallsyms_name = "phase8-kallsyms-tests";\n',
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing(
+            "shared_help_kallsyms_build_kallsyms_name",
+            tmp_root,
+            "shared_help_kallsyms_build:phase8-kallsyms-tests",
+        )
+        shared_help_kallsyms_build_path.write_text(
+            original_shared_help_kallsyms_build,
+            encoding="utf-8",
+        )
 
         focused_build_path = tmp_root / REQUIRED_FILES["focused_build"]
         original_focused_build = focused_build_path.read_text(encoding="utf-8")
@@ -969,6 +1059,21 @@ def run_self_test() -> int:
 
         scripts_readme_path.write_text(
             original_scripts_readme.replace(
+                "- zigux/tests/phase8_help_kallsyms_only_build.zig\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing(
+            "scripts_readme_help_kallsyms_only_build",
+            tmp_root,
+            "scripts_readme:zigux/tests/phase8_help_kallsyms_only_build.zig",
+        )
+        scripts_readme_path.write_text(original_scripts_readme, encoding="utf-8")
+
+        scripts_readme_path.write_text(
+            original_scripts_readme.replace(
                 "- zigux/tests/phase8_bridge_boundary_survey.zig\n",
                 "",
                 1,
@@ -1109,7 +1214,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE8_TESTS_README_ALIGNMENT_SELF_TEST=pass")
-    print("PHASE8_TESTS_README_ALIGNMENT_SELF_TEST_CASE_COUNT=45")
+    print("PHASE8_TESTS_README_ALIGNMENT_SELF_TEST_CASE_COUNT=49")
     return 0
 
 
