@@ -19,6 +19,11 @@ pub fn build(b: *std.Build) void {
         .target = target,
         .optimize = optimize,
     });
+    const devres_scatterlist_module = b.createModule(.{
+        .root_source_file = b.path("../../lib/devres_scatterlist.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
     const landlock_ruleset_module = b.createModule(.{
         .root_source_file = b.path("../../security/landlock/ruleset.zig"),
         .target = target,
@@ -47,6 +52,12 @@ pub fn build(b: *std.Build) void {
         .optimize = optimize,
     });
     phase13_devres_dma_coherent_module.addImport("devres_dma_coherent", devres_dma_coherent_module);
+    const phase13_devres_scatterlist_module = b.createModule(.{
+        .root_source_file = b.path("phase13_devres_scatterlist.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    phase13_devres_scatterlist_module.addImport("devres_scatterlist", devres_scatterlist_module);
     const phase13_devres_iounmap_reviewability_module = b.createModule(.{
         .root_source_file = b.path("phase13_devres_iounmap_reviewability.zig"),
         .target = target,
@@ -144,6 +155,11 @@ pub fn build(b: *std.Build) void {
         .root_module = phase13_devres_dma_coherent_module,
     });
     const run_phase13_devres_dma_coherent_tests = b.addRunArtifact(phase13_devres_dma_coherent_tests);
+    const phase13_devres_scatterlist_tests = b.addTest(.{
+        .name = "phase13-devres-scatterlist-tests",
+        .root_module = phase13_devres_scatterlist_module,
+    });
+    const run_phase13_devres_scatterlist_tests = b.addRunArtifact(phase13_devres_scatterlist_tests);
     const phase13_devres_iounmap_reviewability_tests = b.addTest(.{
         .name = "phase13-devres-iounmap-reviewability-tests",
         .root_module = phase13_devres_iounmap_reviewability_module,
@@ -209,6 +225,7 @@ pub fn build(b: *std.Build) void {
     test_step.dependOn(&run_phase13_libfs_tests.step);
     test_step.dependOn(&run_phase13_devres_tests.step);
     test_step.dependOn(&run_phase13_devres_dma_coherent_tests.step);
+    test_step.dependOn(&run_phase13_devres_scatterlist_tests.step);
     test_step.dependOn(&run_phase13_devres_iounmap_reviewability_tests.step);
     test_step.dependOn(&run_phase13_devres_iomap_reviewability_tests.step);
     test_step.dependOn(&run_phase13_landlock_ruleset_tests.step);
