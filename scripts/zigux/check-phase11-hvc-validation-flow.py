@@ -11,6 +11,8 @@ SCRIPT_NAME = "scripts/zigux/check-phase11-hvc-validation-flow.py"
 BUILD_INVENTORY_CHECKER_PATH = "scripts/zigux/check-phase11-build-inventory.py"
 LAYOUT_ASSERT_CHECKER_PATH = "scripts/zigux/check-phase11-layout-assert-surface.py"
 CHECKER_PATH = "scripts/zigux/check-phase11-hvc-cleanup-alignment.py"
+SHARED_REPLAY_CONTRACT_CHECKER_PATH = "scripts/zigux/check-phase11-shared-replay-contract.py"
+HEADER_BOUNDARY_PACKET_CHECKER_PATH = "scripts/zigux/check-phase11-header-boundary-packet.py"
 MAKEFILE_PATH = "zigux/Makefile"
 WORKFLOW_PATH = ".github/workflows/zigux-bootstrap.yml"
 
@@ -24,6 +26,10 @@ MAKEFILE_MARKERS = [
     "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase11-hvc-validation-flow.py",
     "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase11-hvc-cleanup-alignment.py --self-test",
     "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase11-hvc-cleanup-alignment.py",
+    "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase11-shared-replay-contract.py --self-test",
+    "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase11-shared-replay-contract.py",
+    "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase11-header-boundary-packet.py --self-test",
+    "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase11-header-boundary-packet.py",
 ]
 MAKEFILE_ORDERED_MARKERS = [
     "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase11-build-inventory.py --self-test",
@@ -34,6 +40,10 @@ MAKEFILE_ORDERED_MARKERS = [
     "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase11-hvc-validation-flow.py\n",
     "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase11-hvc-cleanup-alignment.py --self-test",
     "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase11-hvc-cleanup-alignment.py\n",
+    "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase11-shared-replay-contract.py --self-test",
+    "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase11-shared-replay-contract.py\n",
+    "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase11-header-boundary-packet.py --self-test",
+    "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase11-header-boundary-packet.py\n",
     "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase11.py --self-test",
     "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase11.py\n",
 ]
@@ -47,6 +57,14 @@ WORKFLOW_MARKERS = [
     "python3 scripts/zigux/check-phase11-hvc-validation-flow.py --self-test",
     "Self-test Phase 11 hvc cleanup alignment checker",
     "python3 scripts/zigux/check-phase11-hvc-cleanup-alignment.py --self-test",
+    "Self-test Phase 11 shared replay contract checker",
+    "python3 scripts/zigux/check-phase11-shared-replay-contract.py --self-test",
+    "Self-test Phase 11 header boundary packet checker",
+    "python3 scripts/zigux/check-phase11-header-boundary-packet.py --self-test",
+    "Validate Phase 11 shared replay contract",
+    "python3 scripts/zigux/check-phase11-shared-replay-contract.py",
+    "Validate Phase 11 header boundary packet",
+    "python3 scripts/zigux/check-phase11-header-boundary-packet.py",
     "Validate Phase 11 simple-driver bundle",
     "make -C zigux phase11-validate",
 ]
@@ -64,6 +82,8 @@ def validate(root: Path) -> list[str]:
         BUILD_INVENTORY_CHECKER_PATH,
         LAYOUT_ASSERT_CHECKER_PATH,
         CHECKER_PATH,
+        SHARED_REPLAY_CONTRACT_CHECKER_PATH,
+        HEADER_BOUNDARY_PACKET_CHECKER_PATH,
         MAKEFILE_PATH,
         WORKFLOW_PATH,
     ]:
@@ -134,6 +154,14 @@ def clone_fixture_root(destination_root: Path) -> None:
     checker_target.parent.mkdir(parents=True, exist_ok=True)
     checker_target.write_text("#!/usr/bin/env python3\nprint('placeholder')\n", encoding="utf-8")
 
+    shared_replay_contract_checker_target = destination_root / SHARED_REPLAY_CONTRACT_CHECKER_PATH
+    shared_replay_contract_checker_target.parent.mkdir(parents=True, exist_ok=True)
+    shared_replay_contract_checker_target.write_text("#!/usr/bin/env python3\nprint('placeholder')\n", encoding="utf-8")
+
+    header_boundary_packet_checker_target = destination_root / HEADER_BOUNDARY_PACKET_CHECKER_PATH
+    header_boundary_packet_checker_target.parent.mkdir(parents=True, exist_ok=True)
+    header_boundary_packet_checker_target.write_text("#!/usr/bin/env python3\nprint('placeholder')\n", encoding="utf-8")
+
     makefile_target = destination_root / MAKEFILE_PATH
     makefile_target.parent.mkdir(parents=True, exist_ok=True)
     makefile_target.write_text(
@@ -148,6 +176,10 @@ def clone_fixture_root(destination_root: Path) -> None:
                 "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase11-hvc-validation-flow.py",
                 "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase11-hvc-cleanup-alignment.py --self-test",
                 "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase11-hvc-cleanup-alignment.py",
+                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase11-shared-replay-contract.py --self-test",
+                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase11-shared-replay-contract.py",
+                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase11-header-boundary-packet.py --self-test",
+                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase11-header-boundary-packet.py",
                 "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase11.py --self-test",
                 "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase11.py",
                 "",
@@ -172,6 +204,14 @@ def clone_fixture_root(destination_root: Path) -> None:
                 "        run: python3 scripts/zigux/check-phase11-hvc-validation-flow.py --self-test",
                 "      - name: Self-test Phase 11 hvc cleanup alignment checker",
                 "        run: python3 scripts/zigux/check-phase11-hvc-cleanup-alignment.py --self-test",
+                "      - name: Self-test Phase 11 shared replay contract checker",
+                "        run: python3 scripts/zigux/check-phase11-shared-replay-contract.py --self-test",
+                "      - name: Self-test Phase 11 header boundary packet checker",
+                "        run: python3 scripts/zigux/check-phase11-header-boundary-packet.py --self-test",
+                "      - name: Validate Phase 11 shared replay contract",
+                "        run: python3 scripts/zigux/check-phase11-shared-replay-contract.py",
+                "      - name: Validate Phase 11 header boundary packet",
+                "        run: python3 scripts/zigux/check-phase11-header-boundary-packet.py",
                 "      - name: Validate Phase 11 simple-driver bundle",
                 "        run: make -C zigux phase11-validate",
                 "",
@@ -322,6 +362,36 @@ def run_self_test() -> int:
         )
         makefile_path.write_text(original_makefile, encoding="utf-8")
 
+        makefile_path.write_text(
+            original_makefile.replace(
+                "scripts/zigux/check-phase11-shared-replay-contract.py --self-test",
+                "scripts/zigux/check-phase11-build-inventory.py",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing(
+            "makefile_shared_replay_self_test_hook",
+            tmp_root,
+            "make:\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase11-shared-replay-contract.py --self-test",
+        )
+        makefile_path.write_text(original_makefile, encoding="utf-8")
+
+        makefile_path.write_text(
+            original_makefile.replace(
+                "scripts/zigux/check-phase11-header-boundary-packet.py --self-test",
+                "scripts/zigux/check-phase11-build-inventory.py",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing(
+            "makefile_header_boundary_self_test_hook",
+            tmp_root,
+            "make:\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase11-header-boundary-packet.py --self-test",
+        )
+        makefile_path.write_text(original_makefile, encoding="utf-8")
+
         workflow_path = tmp_root / WORKFLOW_PATH
         original_workflow = workflow_path.read_text(encoding="utf-8")
         workflow_path.write_text(
@@ -384,6 +454,36 @@ def run_self_test() -> int:
         )
         workflow_path.write_text(original_workflow, encoding="utf-8")
 
+        workflow_path.write_text(
+            original_workflow.replace(
+                "Validate Phase 11 shared replay contract",
+                "Validate Phase 11 replay contract",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing(
+            "workflow_shared_replay_validate_step",
+            tmp_root,
+            "workflow:Validate Phase 11 shared replay contract",
+        )
+        workflow_path.write_text(original_workflow, encoding="utf-8")
+
+        workflow_path.write_text(
+            original_workflow.replace(
+                "Validate Phase 11 header boundary packet",
+                "Validate Phase 11 header packet",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing(
+            "workflow_header_boundary_validate_step",
+            tmp_root,
+            "workflow:Validate Phase 11 header boundary packet",
+        )
+        workflow_path.write_text(original_workflow, encoding="utf-8")
+
         checker_path = tmp_root / CHECKER_PATH
         checker_path.unlink()
         expect_missing(
@@ -409,9 +509,27 @@ def run_self_test() -> int:
             tmp_root,
             f"missing:{LAYOUT_ASSERT_CHECKER_PATH}",
         )
+        clone_fixture_root(tmp_root)
+
+        shared_replay_contract_checker_path = tmp_root / SHARED_REPLAY_CONTRACT_CHECKER_PATH
+        shared_replay_contract_checker_path.unlink()
+        expect_missing(
+            "shared_replay_contract_checker_file_presence",
+            tmp_root,
+            f"missing:{SHARED_REPLAY_CONTRACT_CHECKER_PATH}",
+        )
+        clone_fixture_root(tmp_root)
+
+        header_boundary_packet_checker_path = tmp_root / HEADER_BOUNDARY_PACKET_CHECKER_PATH
+        header_boundary_packet_checker_path.unlink()
+        expect_missing(
+            "header_boundary_packet_checker_file_presence",
+            tmp_root,
+            f"missing:{HEADER_BOUNDARY_PACKET_CHECKER_PATH}",
+        )
 
     print("PHASE11_HVC_VALIDATION_FLOW_SELF_TEST=pass")
-    print("PHASE11_HVC_VALIDATION_FLOW_SELF_TEST_CASE_COUNT=12")
+    print("PHASE11_HVC_VALIDATION_FLOW_SELF_TEST_CASE_COUNT=18")
     return 0
 
 
