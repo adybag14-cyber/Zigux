@@ -508,6 +508,26 @@ def run_self_test() -> int:
         _write(
             root / MAKEFILE_REL,
             _fixture_makefile().replace(
+                '\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase6-base64-catalog-evidence.py --self-test\n',
+                '\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase6-base64-catalog-evidence.py --self-test\n'
+                '\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase6-base64-catalog-evidence.py --self-test\n',
+                1,
+            ),
+        )
+        issues = validate(root)
+        expected = [
+            "unexpected_makefile_self_test_route_count:phase6-validate::2:check-phase6-base64-catalog-evidence.py"
+        ]
+        if issues != expected:
+            raise SystemExit(
+                "phase3-readme-tooling-inventory-self-test:duplicate_phase6_self_test_route_guard_failed:"
+                + (",".join(issues) if issues else "none")
+            )
+        _write(root / MAKEFILE_REL, _fixture_makefile())
+
+        _write(
+            root / MAKEFILE_REL,
+            _fixture_makefile().replace(
                 '\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase11-shared-replay-contract.py\n',
                 '\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase11-shared-replay-contract.py\n'
                 '\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase11-shared-replay-contract.py\n',
@@ -923,7 +943,7 @@ def run_self_test() -> int:
             )
 
     print("PHASE3_README_TOOLING_INVENTORY_SELF_TEST=pass")
-    print("PHASE3_README_TOOLING_INVENTORY_SELF_TEST_CASE_COUNT=20")
+    print("PHASE3_README_TOOLING_INVENTORY_SELF_TEST_CASE_COUNT=21")
     return 0
 
 
