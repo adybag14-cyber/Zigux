@@ -9,6 +9,7 @@ This document records the current release-discipline reading for the active Phas
 - `PHASE13_RELEASE_SURVEY=present`
 - `PHASE13_RELEASE_VALIDATOR=present`
 - scope: roadmap traceability, shared helper replay entrypoints, the four manifest-backed survey packets already present on `master`, the adjacent notifier-list reviewability packet plus its landed read-only generic notifier foothold and dedicated exported C header, and the explicit helper-only `devres` DMA/scatterlist boundary plus its adjacent coherent DMA and `devm_iounmap()` plus `devm_of_iomap()` plus direct managed-ioremap-wrapper reviewability replays
+- adjacent same-anchor note boundary: `Documentation/zigux/phase13-devres-survey.md` and `Documentation/zigux/phase13-roadmap-traceability.md` already record the helper-first scatterlist bookkeeping slice beside `lib/devres.zig`, but that same-anchor evidence is still note-local and not yet promoted into `zigux/tests/phase13_devres_manifest.json` or `zigux/tests/phase13_build.zig`
 - product boundary:
   - `scripts/zigux/validate-phase13-release.py`
   - `scripts/zigux/check-phase13-libfs-packet.py`
@@ -89,6 +90,7 @@ The current Phase 13 release-facing reading is:
 
 - `fs/libfs.c`: helper slice landed, dedicated tests present, roadmap traceability present, manifest-backed survey present, and the landed `generic_check_addressable()` planner keeps the last pure non-live addressability step explicit while deeper cursor traversal, inode lifecycle work, and pseudo-filesystem ownership stay blocked on live VFS state
 - `lib/devres.c`: helper slice landed, dedicated tests present, roadmap traceability present, manifest-backed survey present, and helper-first MMIO or resource planners keep live DMA-backed mappings and scatterlist ownership explicitly blocked
+- current `master` also carries adjacent helper-first scatterlist bookkeeping evidence through `Documentation/zigux/phase13-devres-survey.md` and `Documentation/zigux/phase13-roadmap-traceability.md`, but that same-anchor slice is still note-local and not yet promoted into `zigux/tests/phase13_devres_manifest.json` or `zigux/tests/phase13_build.zig`, so the shared release packet still treats live scatterlist ownership as blocked rather than implied
 - `security/landlock/ruleset.c`: helper slice landed, dedicated tests present, dedicated reviewability gate present, roadmap traceability present, manifest-backed survey present
 - `security/landlock/syscalls.c`: helper slice landed, dedicated tests present, dedicated reviewability gate present, roadmap traceability present, manifest-backed survey present
 - the shared bootstrap workflow replays the same validator-plus-build contract through `Validate Phase 13 release-discipline packet` and `Run Phase 13 shared helper tests`
@@ -141,6 +143,7 @@ Shared helper sequencing on top of those manifest-owner keys is now:
 - `security/landlock/ruleset.c`: keep the remaining helper-only boundary work, if any, under `P13-L12` and do not reopen it from shared release notes unless the manifest-backed packet or shared replay drifts
 - `security/landlock/syscalls.c`: keep `P13-L16` narrowed to packet drift or tiny validation-only cleanup and do not widen it from the shared release packet into new syscall helper scope
 - shared release-discipline or docs-root follow-up should stay note-local and should not consume helper-local work already assigned to those narrower same-family lanes
+- current note-local devres follow-up should only reopen if the already-landed scatterlist bookkeeping slice gets promoted into the manifest-backed packet or shared replay, or if another shared release-facing drift appears around that same helper-first boundary
 
 The current shared replay inventory is:
 
