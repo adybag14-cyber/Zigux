@@ -9,7 +9,7 @@ import tempfile
 
 SCRIPT_PATH = Path(__file__).resolve()
 ROOT = SCRIPT_PATH.parents[2] if len(SCRIPT_PATH.parents) > 2 else SCRIPT_PATH.parent
-SELF_TEST_CASE_COUNT = 21
+SELF_TEST_CASE_COUNT = 23
 
 CHECKSUM_PERF_PATH = "zigux/tests/phase6_checksum_perf.zig"
 HEXDUMP_PERF_PATH = "zigux/tests/phase6_hexdump_perf.zig"
@@ -21,14 +21,14 @@ MAKEFILE_PATH = "zigux/Makefile"
 MANIFEST_PATH = "zigux/tests/phase6_helper_parity_manifest.json"
 
 CHECKSUM_PERF_MARKERS = [
-    '"phase6-checksum-perf {s} len={} reps={} helper_ns_per_call={} helper_ns_per_byte={d:.2} reference_ns_per_call={} reference_ns_per_byte={d:.2} slowdown_pct={} folded=0x{x:0>4} sink=0x{x:0>8}\\n"',
+    "\"phase6-checksum-perf {s} len={} reps={} helper_ns_per_call={} helper_ns_per_byte={d:.2} reference_ns_per_call={} reference_ns_per_byte={d:.2} slowdown_pct={} folded=0x{x:0>4} sink=0x{x:0>8}\\n\"",
     "const expected_partial = referencePartial(payload, case.seed);",
     "try std.testing.expectEqual(expected_partial, checksum.partial(payload, case.seed));",
     "const slowdown_pct = median3(",
 ]
 
 HEXDUMP_PERF_MARKERS = [
-    '"phase6-hexdump-perf {s} len={} rowsize={} groupsize={} ascii={} reps={} helper_ns_per_call={} helper_ns_per_byte={d:.2} reference_ns_per_call={} reference_ns_per_byte={d:.2} slowdown_pct={} required={} sink=0x{x:0>8}\\n"',
+    "\"phase6-hexdump-perf {s} len={} rowsize={} groupsize={} ascii={} reps={} helper_ns_per_call={} helper_ns_per_byte={d:.2} reference_ns_per_call={} reference_ns_per_byte={d:.2} slowdown_pct={} required={} sink=0x{x:0>8}\\n\"",
     "const expected = fixtures.prepareExpectedLine(expected_buf[0..], case.len, case.rowsize, case.groupsize, case.ascii);",
     "try std.testing.expectEqualSlices(u8, expected, std.mem.sliceTo(actual[0..], 0));",
     "const slowdown_pct = median3(",
@@ -73,13 +73,14 @@ def normalized_lines(content: str) -> list[str]:
     return [line.strip() for line in content.splitlines()]
 
 
-def missing_exact_lines(content: str, markers: list[str]) -> list[str]:
+def exact_line_count_failures(content: str, markers: list[str]) -> list[str]:
     lines = normalized_lines(content)
-    missing: list[str] = []
+    failures: list[str] = []
     for marker in markers:
-        if sum(1 for line in lines if line == marker) != 1:
-            missing.append(marker)
-    return missing
+        actual = sum(1 for line in lines if line == marker)
+        if actual != 1:
+            failures.append(f"expected=1:actual={actual}:{marker}")
+    return failures
 
 
 def drop_exact_line(content: str, marker: str) -> str:
@@ -132,38 +133,38 @@ def validate(root: Path) -> dict[str, object]:
     if not perf_survey_path.exists():
         missing_files.append(PERF_SURVEY_PATH)
     else:
-        for marker in missing_markers(text(root, PERF_SURVEY_PATH), PERF_SURVEY_MARKERS):
-            missing.append(f"perf_survey:missing:{marker}")
+        for marker in exact_line_count_failures(text(root, PERF_SURVEY_PATH), PERF_SURVEY_MARKERS):
+            missing.append(f"perf_survey:{marker}")
 
     if not catalog_path.exists():
         missing_files.append(CATALOG_PATH)
     else:
-        for marker in missing_markers(text(root, CATALOG_PATH), CATALOG_MARKERS):
-            missing.append(f"catalog:missing:{marker}")
+        for marker in exact_line_count_failures(text(root, CATALOG_PATH), CATALOG_MARKERS):
+            missing.append(f"catalog:{marker}")
 
     if not scripts_readme_path.exists():
         missing_files.append(SCRIPTS_README_PATH)
     else:
-        for marker in missing_exact_lines(text(root, SCRIPTS_README_PATH), SCRIPTS_README_MARKERS):
-            missing.append(f"scripts_readme:missing:{marker}")
+        for marker in exact_line_count_failures(text(root, SCRIPTS_README_PATH), SCRIPTS_README_MARKERS):
+            missing.append(f"scripts_readme:{marker}")
 
     if not tests_readme_path.exists():
         missing_files.append(TESTS_README_PATH)
     else:
-        for marker in missing_exact_lines(text(root, TESTS_README_PATH), TESTS_README_MARKERS):
-            missing.append(f"tests_readme:missing:{marker}")
+        for marker in exact_line_count_failures(text(root, TESTS_README_PATH), TESTS_README_MARKERS):
+            missing.append(f"tests_readme:{marker}")
 
     if not makefile_path.exists():
         missing_files.append(MAKEFILE_PATH)
     else:
-        for marker in missing_exact_lines(text(root, MAKEFILE_PATH), MAKEFILE_MARKERS):
-            missing.append(f"makefile:missing:{marker}")
+        for marker in exact_line_count_failures(text(root, MAKEFILE_PATH), MAKEFILE_MARKERS):
+            missing.append(f"makefile:{marker}")
 
     if not manifest_path.exists():
         missing_files.append(MANIFEST_PATH)
     else:
-        for marker in missing_exact_lines(text(root, MANIFEST_PATH), MANIFEST_MARKERS):
-            missing.append(f"manifest:missing:{marker}")
+        for marker in exact_line_count_failures(text(root, MANIFEST_PATH), MANIFEST_MARKERS):
+            missing.append(f"manifest:{marker}")
 
     return {
         "ok": not missing_files and not missing,
@@ -281,19 +282,37 @@ def run_self_test() -> int:
             build_self_test_tree(root)
             survey_path = root / PERF_SURVEY_PATH
             survey_path.write_text(
-                survey_path.read_text(encoding="utf-8").replace(PERF_SURVEY_MARKERS[0], "", 1),
+                drop_exact_line(survey_path.read_text(encoding="utf-8"), PERF_SURVEY_MARKERS[0]),
                 encoding="utf-8",
             )
-            expect_contains(validate(root), f"perf_survey:missing:{PERF_SURVEY_MARKERS[0]}")
+            expect_contains(validate(root), f"perf_survey:expected=1:actual=0:{PERF_SURVEY_MARKERS[0]}")
+            count += 1
+
+            build_self_test_tree(root)
+            survey_path = root / PERF_SURVEY_PATH
+            survey_path.write_text(
+                duplicate_exact_line(survey_path.read_text(encoding="utf-8"), PERF_SURVEY_MARKERS[0]),
+                encoding="utf-8",
+            )
+            expect_contains(validate(root), f"perf_survey:expected=1:actual=2:{PERF_SURVEY_MARKERS[0]}")
             count += 1
 
             build_self_test_tree(root)
             catalog_path = root / CATALOG_PATH
             catalog_path.write_text(
-                catalog_path.read_text(encoding="utf-8").replace(CATALOG_MARKERS[0], "", 1),
+                drop_exact_line(catalog_path.read_text(encoding="utf-8"), CATALOG_MARKERS[0]),
                 encoding="utf-8",
             )
-            expect_contains(validate(root), f"catalog:missing:{CATALOG_MARKERS[0]}")
+            expect_contains(validate(root), f"catalog:expected=1:actual=0:{CATALOG_MARKERS[0]}")
+            count += 1
+
+            build_self_test_tree(root)
+            catalog_path = root / CATALOG_PATH
+            catalog_path.write_text(
+                duplicate_exact_line(catalog_path.read_text(encoding="utf-8"), CATALOG_MARKERS[0]),
+                encoding="utf-8",
+            )
+            expect_contains(validate(root), f"catalog:expected=1:actual=2:{CATALOG_MARKERS[0]}")
             count += 1
 
             build_self_test_tree(root)
@@ -302,7 +321,7 @@ def run_self_test() -> int:
                 drop_exact_line(scripts_readme_path.read_text(encoding="utf-8"), SCRIPTS_README_MARKERS[0]),
                 encoding="utf-8",
             )
-            expect_contains(validate(root), f"scripts_readme:missing:{SCRIPTS_README_MARKERS[0]}")
+            expect_contains(validate(root), f"scripts_readme:expected=1:actual=0:{SCRIPTS_README_MARKERS[0]}")
             count += 1
 
             build_self_test_tree(root)
@@ -311,7 +330,7 @@ def run_self_test() -> int:
                 drop_exact_line(tests_readme_path.read_text(encoding="utf-8"), TESTS_README_MARKERS[0]),
                 encoding="utf-8",
             )
-            expect_contains(validate(root), f"tests_readme:missing:{TESTS_README_MARKERS[0]}")
+            expect_contains(validate(root), f"tests_readme:expected=1:actual=0:{TESTS_README_MARKERS[0]}")
             count += 1
 
             build_self_test_tree(root)
@@ -320,7 +339,7 @@ def run_self_test() -> int:
                 duplicate_exact_line(scripts_readme_path.read_text(encoding="utf-8"), SCRIPTS_README_MARKERS[0]),
                 encoding="utf-8",
             )
-            expect_contains(validate(root), f"scripts_readme:missing:{SCRIPTS_README_MARKERS[0]}")
+            expect_contains(validate(root), f"scripts_readme:expected=1:actual=2:{SCRIPTS_README_MARKERS[0]}")
             count += 1
 
             build_self_test_tree(root)
@@ -329,7 +348,7 @@ def run_self_test() -> int:
                 duplicate_exact_line(tests_readme_path.read_text(encoding="utf-8"), TESTS_README_MARKERS[0]),
                 encoding="utf-8",
             )
-            expect_contains(validate(root), f"tests_readme:missing:{TESTS_README_MARKERS[0]}")
+            expect_contains(validate(root), f"tests_readme:expected=1:actual=2:{TESTS_README_MARKERS[0]}")
             count += 1
 
             build_self_test_tree(root)
@@ -338,7 +357,7 @@ def run_self_test() -> int:
                 drop_exact_line(makefile_path.read_text(encoding="utf-8"), MAKEFILE_MARKERS[0]),
                 encoding="utf-8",
             )
-            expect_contains(validate(root), f"makefile:missing:{MAKEFILE_MARKERS[0]}")
+            expect_contains(validate(root), f"makefile:expected=1:actual=0:{MAKEFILE_MARKERS[0]}")
             count += 1
 
             build_self_test_tree(root)
@@ -347,7 +366,7 @@ def run_self_test() -> int:
                 duplicate_exact_line(makefile_path.read_text(encoding="utf-8"), MAKEFILE_MARKERS[0]),
                 encoding="utf-8",
             )
-            expect_contains(validate(root), f"makefile:missing:{MAKEFILE_MARKERS[0]}")
+            expect_contains(validate(root), f"makefile:expected=1:actual=2:{MAKEFILE_MARKERS[0]}")
             count += 1
 
             build_self_test_tree(root)
@@ -356,7 +375,7 @@ def run_self_test() -> int:
                 drop_exact_line(manifest_path.read_text(encoding="utf-8"), MANIFEST_MARKERS[0]),
                 encoding="utf-8",
             )
-            expect_contains(validate(root), f"manifest:missing:{MANIFEST_MARKERS[0]}")
+            expect_contains(validate(root), f"manifest:expected=1:actual=0:{MANIFEST_MARKERS[0]}")
             count += 1
 
             build_self_test_tree(root)
@@ -365,7 +384,7 @@ def run_self_test() -> int:
                 duplicate_exact_line(manifest_path.read_text(encoding="utf-8"), MANIFEST_MARKERS[0]),
                 encoding="utf-8",
             )
-            expect_contains(validate(root), f"manifest:missing:{MANIFEST_MARKERS[0]}")
+            expect_contains(validate(root), f"manifest:expected=1:actual=2:{MANIFEST_MARKERS[0]}")
             count += 1
 
             build_self_test_tree(root)
@@ -374,7 +393,7 @@ def run_self_test() -> int:
                 drop_exact_line(makefile_path.read_text(encoding="utf-8"), MAKEFILE_MARKERS[1]),
                 encoding="utf-8",
             )
-            expect_contains(validate(root), f"makefile:missing:{MAKEFILE_MARKERS[1]}")
+            expect_contains(validate(root), f"makefile:expected=1:actual=0:{MAKEFILE_MARKERS[1]}")
             count += 1
 
             build_self_test_tree(root)
@@ -383,7 +402,7 @@ def run_self_test() -> int:
                 drop_exact_line(manifest_path.read_text(encoding="utf-8"), MANIFEST_MARKERS[1]),
                 encoding="utf-8",
             )
-            expect_contains(validate(root), f"manifest:missing:{MANIFEST_MARKERS[1]}")
+            expect_contains(validate(root), f"manifest:expected=1:actual=0:{MANIFEST_MARKERS[1]}")
             count += 1
 
             if count != SELF_TEST_CASE_COUNT:
