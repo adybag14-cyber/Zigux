@@ -172,6 +172,34 @@ test "phase3 low-level wrappers stay inside the documented ABI surface" {
     try std.testing.expectError(error.UnsafeScopeDenied, mmio.readScopedWithPolicy(u64, none_policy, base64, 0));
 }
 
+test "phase3 low-level wrappers keep non-seq-cst atomic orderings reviewable" {
+    var release_value: u32 = 0;
+    atomic.store(u32, &release_value, 41, .release);
+    try std.testing.expectEqual(@as(u32, 41), atomic.load(u32, &release_value, .acquire));
+
+    var monotonic_value: u32 = 5;
+    try std.testing.expectEqual(@as(?u32, null), atomic.compareExchange(u32, &monotonic_value, 5, 7, .monotonic, .monotonic));
+    try std.testing.expectEqual(@as(u32, 7), monotonic_value);
+
+    var acq_rel_value: u32 = 7;
+    try std.testing.expectEqual(@as(?u32, null), atomic.compareExchange(u32, &acq_rel_value, 7, 11, .acq_rel, .acquire));
+    try std.testing.expectEqual(@as(u32, 11), acq_rel_value);
+
+    var weak_release_value: u32 = 13;
+    var weak_release_attempts: usize = 0;
+    while (true) {
+        weak_release_attempts += 1;
+        if (atomic.compareExchangeWeak(u32, &weak_release_value, 13, 19, .release, .monotonic) == null) break;
+        try std.testing.expectEqual(@as(u32, 13), weak_release_value);
+        try std.testing.expect(weak_release_attempts < 8);
+    }
+    try std.testing.expect(weak_release_attempts >= 1);
+    try std.testing.expectEqual(@as(u32, 19), weak_release_value);
+    const weak_release_mismatch = atomic.compareExchangeWeak(u32, &weak_release_value, 13, 23, .release, .monotonic);
+    try std.testing.expectEqual(@as(?u32, 19), weak_release_mismatch);
+    try std.testing.expectEqual(@as(u32, 19), weak_release_value);
+}
+
 test "phase3 low-level wrapper ABI range shape stays stable" {
     comptime {
         layout_assert.assertMmioRangeLayout();
