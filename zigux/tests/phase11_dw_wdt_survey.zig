@@ -189,7 +189,7 @@ test "phase11 dw_wdt survey manifest and validation matrix record the landed lif
     );
     defer std.testing.allocator.free(anchor_source);
 
-    try std.testing.expectEqualStrings("P11-L12", manifest.lane_key);
+    try std.testing.expectEqualStrings("P11-L10", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 11", manifest.phase);
     try std.testing.expectEqualStrings("drivers/watchdog/dw_wdt.c", manifest.anchor);
     try std.testing.expectEqualStrings("907e65f13e0035306d4106dec0ca3b3eb2fc7179", manifest.surveyed_commit);
