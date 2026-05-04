@@ -6,7 +6,7 @@ This document tracks the bounded Phase 8 userspace-adjacent tooling slice for Zi
 
 - `PHASE8_STATUS=active`
 - `PHASE8_SLICE=libbpf-cpu-mask-starter`
-- scope: injected CPU-mask string parsing, chunk-reader ingestion, set-bit counting, bounded perf-buffer auto-CPU sizing, pure online-CPU eligibility checks, pure caller-pinned positive CPU planning, and pure auto-selected CPU planning from already-injected masks only
+- scope: injected CPU-mask string parsing, chunk-reader ingestion, set-bit counting, bounded perf-buffer auto-CPU sizing, pure online-CPU eligibility checks, pure caller-supplied explicit perf-buffer target planning, bounded sequential positive-CPU fallback planning, and pure auto-selected CPU planning from already-injected masks only
 - product boundary:
   - `tools/lib/bpf/zigux_segments/cpu_mask.zig`
   - `zigux/tests/phase8_cpu_mask.zig`
@@ -58,7 +58,8 @@ The current starter slice covers:
 - counted possible-CPU reporting over the parsed mask
 - a bounded auto-CPU count clamp that mirrors libbpf's perf-buffer map-budget sizing without widening into `/sys` reads, online CPU filtering, perf-event-array updates, epoll-backed perf FD registration, or timeout-driven `perf_buffer__poll(timeout_ms)` waits that return ready-buffer counts
 - a pure online-CPU eligibility predicate that mirrors libbpf's automatic-budget offline skip rule without claiming direct `/sys/devices/system/cpu/online` reads, perf-event-array updates, or interrupt-routing ownership
-- a pure caller-pinned positive CPU planner that mirrors libbpf's explicit positive `cpu_cnt` branch as sequential CPU indices without claiming online-mask reads, perf-event-array updates, or interrupt-routing ownership
+- a pure caller-supplied perf-buffer target planner that keeps the explicit positive-branch `cpus[]` and `map_keys[]` pairs aligned without claiming perf-event-array updates, epoll registration, or interrupt-routing ownership
+- a bounded sequential positive-CPU fallback planner for synthetic callers that only need a pure CPU index list without claiming raw perf-buffer option parity
 - a pure auto-selected CPU planner that consumes already-injected possible and online masks, caps selection to the bounded auto-CPU budget, and keeps sparse or truncated mask handling explicit without claiming `/sys` reads, perf-event-array updates, or epoll-backed routing behavior
 
 The current tests check:
@@ -73,7 +74,8 @@ The current tests check:
 - reader contract failures such as zero-length chunks, oversized counts, and injected read errors
 - the bounded auto-CPU count clamp keeps possible-CPU sizing inside the map entry budget while still treating zero as the uncapped case
 - explicit online-mask eligibility behavior for zero-or-negative automatic CPU budgets versus positive caller-pinned CPU budgets
-- caller-pinned positive CPU budgets bypass injected online-mask filtering and keep the same sequential CPU plan implied by libbpf's explicit positive `cpu_cnt` branch
+- explicit caller-supplied CPU and map-key planning keeps pair ordering, count mismatches, and negative targets explicit without widening into perf-buffer routing
+- the synthetic sequential positive-CPU fallback remains available for pure non-routing callers that only need a bounded CPU index list
 - auto-selected CPU planning keeps only online possible CPUs, respects the bounded map-entry budget, and treats truncated injected online masks as offline instead of widening into direct sysfs reads
 
 ## Non-goals
