@@ -40,7 +40,7 @@ test "phase 5 kobject manifest records the exact bounded checks" {
     defer parsed.deinit();
 
     const manifest = parsed.value;
-    try std.testing.expectEqualStrings("P5-L12", manifest.lane_key);
+    try std.testing.expectEqualStrings("P5-L10", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 5", manifest.phase);
     try std.testing.expectEqual(@as(usize, 40), manifest.surveyed_commit.len);
     for (manifest.surveyed_commit) |char| {
@@ -302,7 +302,7 @@ test "phase 5 kobject contributor docs stay aligned with the shipped review surf
     try expectContains(survey_note, "phase5_kobject_example_manifest.json");
     try expectContains(survey_note, "phase5_kobject_example_survey.zig");
     try expectContains(survey_note, "phase5_build.zig");
-    try expectContains(survey_note, "PHASE5_LANE_KEY=P5-L12");
+    try expectContains(survey_note, "PHASE5_LANE_KEY=P5-L10");
     {
         const surveyed_commit_line = try std.fmt.allocPrint(
             std.testing.allocator,
