@@ -244,6 +244,7 @@ def main() -> int:
     else:
         for key in [
             "landed_generic_notifier_abi_present",
+            "landed_generic_notifier_build_surface_present",
             "landed_generic_notifier_helper_present",
             "landed_generic_notifier_c_header_surface_present",
         ]:
