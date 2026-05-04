@@ -26,6 +26,7 @@ This document records the current closure evidence for the active bounded Phase 
   - `zigux/tests/phase10_virtio_mmio_queue_isolation.zig`
   - `zigux/tests/phase10_virtio_mmio_survey.zig`
   - `zigux/tests/phase10_closure_manifest.json`
+  - `zigux-alpha/PHASE10_CLOSURE_LEDGER.md`
   - `scripts/zigux/check-phase10-harness-coverage.py`
   - `scripts/zigux/check-phase10-closure-inventory.py`
   - `scripts/zigux/validate-phase10-closure.py`
@@ -54,6 +55,8 @@ The current bounded Phase 10 evidence set is:
 - `zigux/tests/phase10_virtio_ring_manifest.json`
 - `zigux/tests/phase10_virtio_input_manifest.json`
 - `zigux/tests/phase10_virtio_mmio_manifest.json`
+- `zigux/tests/phase10_closure_manifest.json`
+- `zigux-alpha/PHASE10_CLOSURE_LEDGER.md`
 - `zigux/tests/phase10_virtio_core.zig`
 - `zigux/tests/phase10_virtio_core_survey.zig`
 - `zigux/tests/phase10_virtio_ring.zig`
