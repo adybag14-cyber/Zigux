@@ -132,6 +132,10 @@ EXPECTED_FOCUSED_HARNESS_REPLAYS = {
     ]
 }
 
+TESTS_README_MARKERS = [
+    "zigux-alpha/PHASE10_CLOSURE_LEDGER.md",
+]
+
 REQUIRED_FILES = [
     "Documentation/zigux/phase10-closure-evidence.md",
     "Documentation/zigux/README.md",
@@ -139,6 +143,7 @@ REQUIRED_FILES = [
     "Documentation/zigux/freeze-map.md",
     "scripts/zigux/check-phase10-harness-coverage.py",
     "scripts/zigux/check-phase10-closure-inventory.py",
+    "zigux/tests/README.md",
     "zigux-alpha/PHASE10_CLOSURE_LEDGER.md",
     "zigux/Makefile",
     ".github/workflows/zigux-bootstrap.yml",
@@ -344,10 +349,12 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
 
     closure_text = read_text(root, "Documentation/zigux/phase10-closure-evidence.md")
     docs_readme_text = read_text(root, "Documentation/zigux/README.md")
+    tests_readme_text = read_text(root, "zigux/tests/README.md")
     ledger_text = read_text(root, "zigux-alpha/PHASE10_CLOSURE_LEDGER.md")
 
     check_markers(missing, "closure", closure_text, CLOSURE_MARKERS)
     check_markers(missing, "docs_readme", docs_readme_text, DOCS_README_MARKERS)
+    check_markers(missing, "tests_readme", tests_readme_text, TESTS_README_MARKERS)
     check_markers(missing, "checklist", read_text(root, "Documentation/zigux/review-checklist.md"), CHECKLIST_MARKERS)
     check_markers(missing, "freeze_map", read_text(root, "Documentation/zigux/freeze-map.md"), FREEZE_MAP_MARKERS)
     check_markers(missing, "ledger", ledger_text, LEDGER_MARKERS)
@@ -424,6 +431,7 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
                     missing.append("closure_manifest:roadmap_parity_scoreboard:lab_only_driver_validation:evidence")
                 else:
                     for path in [
+                        "zigux/tests/phase10_build.zig",
                         "zigux/tests/phase10_virtio_input_multitouch_preflight.zig",
                         "zigux/tests/phase10_virtio_mmio_queue_isolation.zig",
                         "scripts/zigux/check-phase10-harness-coverage.py",
@@ -461,6 +469,7 @@ def write_fixture(root: Path) -> None:
     text_fixture = {
         "Documentation/zigux/phase10-closure-evidence.md": "\n".join(CLOSURE_MARKERS) + "\nPHASE10_TEST_COUNT=11\n",
         "Documentation/zigux/README.md": "\n".join(DOCS_README_MARKERS) + "\n",
+        "zigux/tests/README.md": "\n".join(TESTS_README_MARKERS) + "\n",
         "Documentation/zigux/review-checklist.md": "\n".join(CHECKLIST_MARKERS) + "\n",
         "Documentation/zigux/freeze-map.md": "\n".join(FREEZE_MAP_MARKERS) + "\n",
         "Documentation/zigux/phase10-virtio-core-survey.md": "\n".join(CORE_SURVEY_MARKERS) + "\n",
@@ -753,6 +762,23 @@ def run_self_test() -> int:
         )
         write_fixture(root)
 
+        tests_readme_path = root / "zigux/tests/README.md"
+        original_tests_readme = tests_readme_path.read_text(encoding="utf-8")
+        tests_readme_path.write_text(
+            original_tests_readme.replace(
+                "zigux-alpha/PHASE10_CLOSURE_LEDGER.md",
+                "zigux-alpha/PHASE10_LEDGER_DRIFT.md",
+                1,
+            ),
+            encoding="utf-8"
+        )
+        expect_missing_marker(
+            "tests_readme_closure_ledger_guard",
+            root,
+            "tests_readme:zigux-alpha/PHASE10_CLOSURE_LEDGER.md",
+        )
+        write_fixture(root)
+
         ledger_path = root / "zigux-alpha/PHASE10_CLOSURE_LEDGER.md"
         original_ledger = ledger_path.read_text(encoding="utf-8")
         ledger_path.write_text(
@@ -835,7 +861,7 @@ def run_self_test() -> int:
         expect_missing_file("queue_isolation_file_guard", root, "zigux/tests/phase10_virtio_mmio_queue_isolation.zig")
 
     print("PHASE10_CLOSURE_VALIDATOR_SELF_TEST=pass")
-    print("PHASE10_CLOSURE_VALIDATOR_SELF_TEST_CASE_COUNT=23")
+    print("PHASE10_CLOSURE_VALIDATOR_SELF_TEST_CASE_COUNT=24")
     return 0
 
 
@@ -863,6 +889,7 @@ total_markers = (
     + len(CLOSURE_EXACT_ONCE_MARKERS)
     + len(DOCS_README_MARKERS)
     + len(DOCS_README_EXACT_ONCE_MARKERS)
+    + len(TESTS_README_MARKERS)
     + len(CHECKLIST_MARKERS)
     + len(FREEZE_MAP_MARKERS)
     + len(LEDGER_MARKERS)
