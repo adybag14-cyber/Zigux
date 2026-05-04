@@ -43,6 +43,22 @@ test "runtime loader non-owner boundary survey keeps config-surface and export p
     );
     defer std.testing.allocator.free(manifest);
 
+    const phase9_build = try readWorkspaceFile(
+        io_instance.io(),
+        std.testing.allocator,
+        "zigux/tests/phase9_build.zig",
+        64 * 1024,
+    );
+    defer std.testing.allocator.free(phase9_build);
+
+    const scripts_readme = try readWorkspaceFile(
+        io_instance.io(),
+        std.testing.allocator,
+        "scripts/zigux/README.md",
+        256 * 1024,
+    );
+    defer std.testing.allocator.free(scripts_readme);
+
     const conf_bridge = try readWorkspaceFile(
         io_instance.io(),
         std.testing.allocator,
@@ -93,6 +109,21 @@ test "runtime loader non-owner boundary survey keeps config-surface and export p
         "\"boundary_kind\": \"export_boundary\"",
         "\"owning_phase\": \"Phase 2\"",
         "\"owning_phase\": \"Phase 3\"",
+    });
+    try expectContainsAll(phase9_build, &.{
+        "runtime_loader_allocator_init_flow.zig",
+        "runtime_loader_non_owner_boundary_survey.zig",
+        "phase9-runtime-loader-allocator-init-flow-tests",
+        "phase9-runtime-loader-non-owner-boundary-survey-tests",
+        "allocator-init-flow",
+        "non-owner-boundary",
+    });
+    try expectContainsAll(scripts_readme, &.{
+        "check-phase9-loader-substrate-plan.py --self-test",
+        "check-phase9-loader-substrate-plan.py",
+        "make -C zigux phase9-loader-gap-survey",
+        "make -C zigux phase9-loader-commit-alignment-survey",
+        "make -C zigux phase9-non-owner-boundary-survey",
     });
     try expectContainsAll(conf_bridge, &.{
         "pub const Mode = enum",
