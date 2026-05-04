@@ -91,6 +91,7 @@ EXPECTED_LANDED_MMIO_HELPERS = [
 EXPECTED_FOCUSED_HARNESS = {
     "zigux/tests/phase10_virtio_ring_reset_reuse.zig": ["phase10 ring drained-reset reuse replay"],
     "zigux/tests/phase10_virtio_input_multitouch_preflight.zig": ["phase10 input multitouch-ready preflight replay"],
+    "zigux/tests/phase10_virtio_input_registration_blocker_build.zig": ["phase10 input registration-blocker replay build"],
     "zigux/tests/phase10_virtio_mmio_queue_isolation.zig": [
         "phase10 mmio multi-queue isolation replay",
         "phase10 mmio reset clears legacy and modern queue address plans after queue selection changes",
