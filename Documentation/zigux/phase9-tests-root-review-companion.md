@@ -13,6 +13,7 @@ The active Phase 9 packet should continue to agree across these shared review su
 - `Documentation/zigux/phase9-tests-root-review-companion.md`
 - `scripts/zigux/README.md`
 - `zigux/tests/README.md`
+- `zigux/tests/phase9_build.zig`
 - `zigux/Makefile`
 - `.github/workflows/zigux-bootstrap.yml`
 
