@@ -105,6 +105,10 @@ TEXT_MARKERS = {
         "lib/cmdline.zig",
         "zigux/tests/phase7_cmdline.zig",
         "zigux/tests/phase7_build.zig",
+        "verify no Phase 5 rbtree sample has appeared under this sample root:",
+        "verify the shared docs still keep rbtree evidence in Phase 7 instead of `samples/zigux/`:",
+        "lib/rbtree.zig",
+        "zigux/tests/phase7_rbtree.zig",
     ],
     "Documentation/zigux/README.md": [
         "Phase 5 notes",
@@ -128,6 +132,9 @@ TEXT_MARKERS = {
         "zig test zigux/tests/phase5_trace_events_sample_survey.zig",
         "ships no `samples/zigux/*string*` reference sample",
         "no-`samples/zigux/*cmdline*` boundary explicit",
+        "no-`samples/zigux/*rbtree*` boundary explicit",
+        "lib/rbtree.zig",
+        "zigux/tests/phase7_rbtree.zig",
     ],
     "Documentation/zigux/review-checklist.md": [
         "phase5_build.zig",
@@ -135,6 +142,9 @@ TEXT_MARKERS = {
         "direct `zig test samples/zigux/...` replays and the paired `zig test zigux/tests/..._survey.zig` replays stay explicit",
         "ships no `samples/zigux/*string*` Phase 5 reference sample",
         "ships no `samples/zigux/*cmdline*` Phase 5 reference sample",
+        "ships no `samples/zigux/*rbtree*` Phase 5 reference sample",
+        "lib/rbtree.zig",
+        "zigux/tests/phase7_rbtree.zig",
         "runtime_bitmap_loader.zig",
         "bounded `samples/zigux/runtime_trace_events_loader.zig` scaffold is now shipped",
         "runtime-substrate handoff still blocked",
@@ -158,11 +168,15 @@ TEXT_MARKERS = {
         "approved payload-and-callback idiom",
         "current `master` still ships no `samples/zigux/*string*` Phase 5 reference sample",
         "current `master` still ships no `samples/zigux/*cmdline*` Phase 5 reference sample",
+        "current `master` still ships no `samples/zigux/*rbtree*` Phase 5 reference sample",
         "sample-only blocked Phase 9 pilot",
         "bounded `samples/zigux/runtime_trace_events_loader.zig` scaffold is shipped now",
         "- `samples/zigux/runtime_trace_events_loader.zig`",
         "verify the shared docs still keep string-helper evidence in Phase 7 instead of `samples/zigux/`:",
         "verify the shared docs still keep cmdline evidence in Phase 7 instead of `samples/zigux/`:",
+        "verify the shared docs still keep rbtree evidence in Phase 7 instead of `samples/zigux/`:",
+        "lib/rbtree.zig",
+        "zigux/tests/phase7_rbtree.zig",
         "python3 scripts/zigux/validate-phase7.py",
     ],
     "zigux/tests/phase5_build.zig": [
@@ -716,6 +730,21 @@ def run_self_test() -> int:
 
         tmp_root = Path(tmp)
         copy_tree(ROOT, tmp_root)
+        tests_readme = tmp_root / "zigux/tests/README.md"
+        text = tests_readme.read_text(encoding="utf-8").replace(
+            "verify the shared docs still keep rbtree evidence in Phase 7 instead of `samples/zigux/`:",
+            "verify the shared docs still keep helper-only evidence in Phase 7 instead of `samples/zigux/`:",
+            1,
+        )
+        tests_readme.write_text(text, encoding="utf-8")
+        missing = validate_phase5(tmp_root)
+        if missing["ok"] or "zigux/tests/README.md:missing:verify the shared docs still keep rbtree evidence in Phase 7 instead of `samples/zigux/`:" not in missing["missing"]:
+            print("PHASE5_VALIDATOR_SELF_TEST=fail")
+            print("PHASE5_VALIDATOR_SELF_TEST_REASON=tests-readme-rbtree-boundary-gap")
+            return 1
+
+        tmp_root = Path(tmp)
+        copy_tree(ROOT, tmp_root)
         docs_readme = tmp_root / "Documentation/zigux/README.md"
         text = docs_readme.read_text(encoding="utf-8").replace(
             "zig test zigux/tests/phase5_trace_events_sample_survey.zig",
@@ -763,6 +792,21 @@ def run_self_test() -> int:
         copy_tree(ROOT, tmp_root)
         docs_readme = tmp_root / "Documentation/zigux/README.md"
         text = docs_readme.read_text(encoding="utf-8").replace(
+            "no-`samples/zigux/*rbtree*` boundary explicit",
+            "rbtree helper evidence stays under the separate Phase 7 bundle",
+            1,
+        )
+        docs_readme.write_text(text, encoding="utf-8")
+        missing = validate_phase5(tmp_root)
+        if missing["ok"] or "Documentation/zigux/README.md:missing:no-`samples/zigux/*rbtree*` boundary explicit" not in missing["missing"]:
+            print("PHASE5_VALIDATOR_SELF_TEST=fail")
+            print("PHASE5_VALIDATOR_SELF_TEST_REASON=docs-readme-rbtree-boundary-gap")
+            return 1
+
+        tmp_root = Path(tmp)
+        copy_tree(ROOT, tmp_root)
+        docs_readme = tmp_root / "Documentation/zigux/README.md"
+        text = docs_readme.read_text(encoding="utf-8").replace(
             "zig test zigux/tests/phase5_bytestream_fifo.zig",
             "zig test zigux/tests/phase5_bytestream_fifo_review.zig",
             1,
@@ -772,6 +816,21 @@ def run_self_test() -> int:
         if missing["ok"] or "Documentation/zigux/README.md:missing:zig test zigux/tests/phase5_bytestream_fifo.zig" not in missing["missing"]:
             print("PHASE5_VALIDATOR_SELF_TEST=fail")
             print("PHASE5_VALIDATOR_SELF_TEST_REASON=docs-readme-bytestream-helper-replay-gap")
+            return 1
+
+        tmp_root = Path(tmp)
+        copy_tree(ROOT, tmp_root)
+        checklist = tmp_root / "Documentation/zigux/review-checklist.md"
+        text = checklist.read_text(encoding="utf-8").replace(
+            "ships no `samples/zigux/*rbtree*` Phase 5 reference sample",
+            "keeps rbtree helper evidence under the separate Phase 7 bundle",
+            1,
+        )
+        checklist.write_text(text, encoding="utf-8")
+        missing = validate_phase5(tmp_root)
+        if missing["ok"] or "Documentation/zigux/review-checklist.md:missing:ships no `samples/zigux/*rbtree*` Phase 5 reference sample" not in missing["missing"]:
+            print("PHASE5_VALIDATOR_SELF_TEST=fail")
+            print("PHASE5_VALIDATOR_SELF_TEST_REASON=review-checklist-rbtree-boundary-gap")
             return 1
 
         tmp_root = Path(tmp)
@@ -879,8 +938,23 @@ def run_self_test() -> int:
             print("PHASE5_VALIDATOR_SELF_TEST_REASON=sample-descriptor-gap")
             return 1
 
+        tmp_root = Path(tmp)
+        copy_tree(ROOT, tmp_root)
+        sample_root = tmp_root / "samples/zigux/README.md"
+        text = sample_root.read_text(encoding="utf-8").replace(
+            "current `master` still ships no `samples/zigux/*rbtree*` Phase 5 reference sample",
+            "current `master` keeps rbtree helper work separate",
+            1,
+        )
+        sample_root.write_text(text, encoding="utf-8")
+        missing = validate_phase5(tmp_root)
+        if missing["ok"] or "samples/zigux/README.md:missing:current `master` still ships no `samples/zigux/*rbtree*` Phase 5 reference sample" not in missing["missing"]:
+            print("PHASE5_VALIDATOR_SELF_TEST=fail")
+            print("PHASE5_VALIDATOR_SELF_TEST_REASON=sample-root-rbtree-boundary-gap")
+            return 1
+
     print("PHASE5_VALIDATOR_SELF_TEST=pass")
-    print("PHASE5_VALIDATOR_SELF_TEST_CASE_COUNT=29")
+    print("PHASE5_VALIDATOR_SELF_TEST_CASE_COUNT=33")
     return 0
 
 
