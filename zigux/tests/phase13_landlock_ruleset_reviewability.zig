@@ -59,7 +59,7 @@ test "phase13 landlock ruleset reviewability ties helper, slice, survey, and man
     try std.testing.expect(manifest.survey_summary.preexisting_phase13_build_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase13_landlock_test_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase13_landlock_slice_note_present);
-    try std.testing.expectEqual(@as(usize, 15), manifest.gaps.len);
+    try std.testing.expectEqual(@as(usize, 16), manifest.gaps.len);
 
     const descriptor = ruleset.RulesetHelperLab.descriptor();
     try std.testing.expectEqualStrings("landlock_ruleset_helper_lab", descriptor.name);
@@ -75,6 +75,7 @@ test "phase13 landlock ruleset reviewability ties helper, slice, survey, and man
     try std.testing.expect(descriptor.provides_rule_materialization_planning);
     try std.testing.expect(descriptor.provides_rule_replacement_planning);
     try std.testing.expect(descriptor.provides_rule_release_planning);
+    try std.testing.expect(descriptor.provides_rule_merge_tree_replay_planning);
     try std.testing.expect(!descriptor.touches_live_object_trees);
     try std.testing.expect(!descriptor.touches_live_hierarchy);
 
@@ -91,6 +92,8 @@ test "phase13 landlock ruleset reviewability ties helper, slice, survey, and man
     try expectContains(slice_note, "adds one bounded `landlock_find_rule()` lookup planner");
     try expectContains(slice_note, "`root->rb_node` descent");
     try expectContains(slice_note, "match-versus-null outcomes stay reviewable as data");
+    try expectContains(slice_note, "adds one bounded `merge_tree()` replay planner");
+    try expectContains(slice_note, "`insert_rule()` as pure data");
     try expectContains(slice_note, "The next honest bounded step in this same lane is blocked");
 
     const survey_note = try std.Io.Dir.cwd().readFileAlloc(
@@ -108,5 +111,7 @@ test "phase13 landlock ruleset reviewability ties helper, slice, survey, and man
     try expectContains(survey_note, "dedicated reviewability gate now ties the helper descriptor, manifest, and survey note together");
     try expectContains(survey_note, "landed `phase13-landlock-ruleset-reviewability-gate`");
     try expectContains(survey_note, "helper-only replacement planning");
+    try expectContains(survey_note, "landed `phase13-landlock-rule-merge-tree-replay-followup`");
+    try expectContains(survey_note, "one bounded `merge_tree()` replay planner");
     try expectContains(survey_note, "actual `rb_replace_node()` mutation");
 }
