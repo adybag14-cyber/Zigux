@@ -29,6 +29,7 @@ The bounded Phase 1 helper set is:
 
 - `PHASE1_HELPER_COUNT=13`
 - manifest: `zigux/tests/fixtures/phase1_helper_manifest.json`
+- reviewer surface: `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, `zigux/Makefile`, and `.github/workflows/zigux-bootstrap.yml` keep the same closed helper inventory, validator-first replay path, and fail-closed checker stack explicit for this bounded Phase 1 packet.
 
 No additional helper should be called Phase 1 work unless this document and the bootstrap validators are deliberately reopened.
 
