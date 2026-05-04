@@ -163,6 +163,7 @@ INDEFINITE_POLICY_NOTE_MARKERS = [
     "## Maintenance-Mode Handoff",
     "The current roadmap-vs-repo policy gap inside this lane is no longer a missing local governance artifact.",
     "That closes the current policy gap for the roadmap requirement `policy for code that remains in C indefinitely`.",
+    "the lane owner and rollback owner, refreshed when the trigger is `ownership_or_validation_changed`",
     "phase15-deep-core-status-change-blocker",
     "make -C zigux phase15",
 ]
