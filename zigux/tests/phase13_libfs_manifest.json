@@ -1,7 +1,7 @@
 {
   "lane_key": "P13-L04",
   "phase": "Phase 13",
-  "surveyed_commit": "6652be8dc1038fe40868a604ba9bd864620f5342",
+  "surveyed_commit": "a8bb936df1520e7be16d3fdf9ee1875de398ead6",
   "anchor": "fs/libfs.c",
   "roadmap_destinations": [
     "fs/libfs.zig",
@@ -45,7 +45,7 @@
       "status": "starter_landed",
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase13_libfs.zig",
-      "why_now": "Dedicated starter tests keep the current wrapper honest around split fsid packing, default statfs values, negative-dentry discard intent, casefold passthrough, buffer-copy accounting, seek-policy bounds, directory-close release bookkeeping, directory-open private-data handoff, and directory-emit handoff bookkeeping."
+      "why_now": "Dedicated starter tests keep the current wrapper honest around split fsid packing, default statfs values, negative-dentry discard intent, casefold passthrough, buffer-copy accounting, seek-policy bounds, directory-close release bookkeeping, directory-open private-data handoff, directory-emit handoff bookkeeping, and addressability planning."
     },
     {
       "id": "phase13-libfs-slice-note",
@@ -59,14 +59,14 @@
       "status": "starter_landed",
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase13_libfs_reviewability.zig",
-      "why_now": "A dedicated reviewability gate ties the current starter, tests, slice note, and survey note together so future runs can confirm the lane state before widening helper coverage."
+      "why_now": "A dedicated reviewability gate ties the current starter, tests, survey note, and roadmap traceability note together so future runs can confirm the lane state before widening helper coverage."
     },
     {
       "id": "phase13-libfs-survey-note",
       "status": "starter_landed",
       "kind": "documentation",
       "zigux_destination": "Documentation/zigux/phase13-libfs-survey.md",
-      "why_now": "The survey note now describes the landed helper slice truthfully and keeps the remaining deeper VFS-state gaps explicit after the close-path release bookkeeping step."
+      "why_now": "The survey note now describes the landed helper slice truthfully and keeps the remaining deeper VFS-state gaps explicit after the addressability helper landed."
     },
     {
       "id": "phase13-libfs-offset-seek-helper",
@@ -126,10 +126,10 @@
     },
     {
       "id": "phase13-libfs-addressability-helper",
-      "status": "ready_next",
+      "status": "starter_landed",
       "kind": "filesystem_helper_wrapper",
       "zigux_destination": "fs/libfs.zig",
-      "why_now": "The current packet still leaves one roadmap-aligned pure helper available before the live-state blockers take over: generic_check_addressable() is a bounded block-size, overflow, and addressability check that can be modeled without claiming live superblock, page-cache, or inode ownership."
+      "why_now": "The libfs helper lab now models generic_check_addressable() in pure planning form around block-size validation, last-block accounting, sector-index overflow, page-index overflow, and empty-filesystem handling without claiming live superblock, page-cache, or inode ownership."
     },
     {
       "id": "phase13-libfs-dcache-cursor-helpers",
