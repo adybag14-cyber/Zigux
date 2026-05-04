@@ -175,6 +175,8 @@
     "python3 scripts/zigux/check-phase6-base64-c-parity.py",
     "python3 scripts/zigux/check-phase6-base64-catalog-evidence.py --self-test",
     "python3 scripts/zigux/check-phase6-base64-catalog-evidence.py",
+    "python3 scripts/zigux/check-phase6-checksum-hexdump-perf-markers.py --self-test",
+    "python3 scripts/zigux/check-phase6-checksum-hexdump-perf-markers.py",
     "python3 scripts/zigux/check-phase6-bsearch-c-parity.py --self-test",
     "python3 scripts/zigux/check-phase6-bsearch-c-parity.py",
     "python3 scripts/zigux/check-phase6-checksum-c-parity.py --self-test",
