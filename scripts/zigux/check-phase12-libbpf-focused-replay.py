@@ -101,6 +101,10 @@ EXPECTED_TEST_ROOT_MODULES = [
         "root_module": "phase12_libbpf_reviewability_module",
     },
 ]
+BUILD_ALIAS_MARKERS = [
+    '"phase12-libbpf-focused-replay"',
+    "focused_replay_step.dependOn(test_step);",
+]
 REVIEWABILITY_MARKERS = [
     'const perf_buffer_poll = @import("../../tools/lib/bpf/zigux_segments/perf_buffer_poll.zig");',
     "const perf_summary = try perf_buffer_poll.summarizePoll(",
@@ -109,7 +113,7 @@ REVIEWABILITY_MARKERS = [
 SURVEY_NOTE_MARKERS = [
     "python3 scripts/zigux/check-phase12-libbpf-focused-replay.py --self-test",
     "python3 scripts/zigux/check-phase12-libbpf-focused-replay.py",
-    "zig build test --build-file zigux/tests/phase12_libbpf_only_build.zig --summary all",
+    "zig build --build-file zigux/tests/phase12_libbpf_only_build.zig phase12-libbpf-focused-replay --summary all",
 ]
 CONTRACT_NOTE_MARKERS = [
     "The focused libbpf-only replay checker is intentionally part of that stack before the broader validator runs",
@@ -288,6 +292,7 @@ def collect_missing(
 ) -> list[str]:
     missing = [f"missing_file:{path}" for path in REQUIRED_FILES if path not in present_files]
     missing.extend(collect_build_misses(build_text))
+    missing.extend(collect_marker_misses(build_text, BUILD_ALIAS_MARKERS, "build_alias"))
     missing.extend(collect_marker_misses(reviewability_text, REVIEWABILITY_MARKERS, "reviewability"))
     missing.extend(collect_marker_misses(survey_note_text, SURVEY_NOTE_MARKERS, "survey_note"))
     missing.extend(collect_marker_misses(contract_note_text, CONTRACT_NOTE_MARKERS, "contract_note"))
@@ -381,6 +386,15 @@ def build_synthetic_build_text() -> str:
         )
     for step in EXPECTED_DEPEND_STEPS:
         lines.append(f"test_step.dependOn(&{step}.step);")
+    lines.extend(
+        [
+            "const focused_replay_step = b.step(",
+            '    "phase12-libbpf-focused-replay",',
+            '    "Run focused Phase 12 libbpf survey and reviewability tests",',
+            ");",
+            "focused_replay_step.dependOn(test_step);",
+        ]
+    )
     return "\n".join(lines) + "\n"
 
 
@@ -564,6 +578,38 @@ def run_self_test() -> int:
     missing = collect_missing(
         **{
             **base_inputs,
+            "build_text": base_inputs["build_text"].replace(
+                '    "phase12-libbpf-focused-replay",\n',
+                '    "phase12-libbpf-focused-drift",\n',
+                1,
+            ),
+        }
+    )
+    expect_contains(
+        "build_alias_name_detection",
+        missing,
+        'build_alias:"phase12-libbpf-focused-replay"',
+    )
+
+    missing = collect_missing(
+        **{
+            **base_inputs,
+            "build_text": base_inputs["build_text"].replace(
+                "focused_replay_step.dependOn(test_step);\n",
+                "",
+                1,
+            ),
+        }
+    )
+    expect_contains(
+        "build_alias_dependency_detection",
+        missing,
+        "build_alias:focused_replay_step.dependOn(test_step);",
+    )
+
+    missing = collect_missing(
+        **{
+            **base_inputs,
             "reviewability_text": base_inputs["reviewability_text"].replace(
                 REVIEWABILITY_MARKERS[0] + "\n",
                 "",
@@ -623,6 +669,22 @@ def run_self_test() -> int:
         "survey_note_marker_detection",
         missing,
         "survey_note:python3 scripts/zigux/check-phase12-libbpf-focused-replay.py --self-test",
+    )
+
+    missing = collect_missing(
+        **{
+            **base_inputs,
+            "survey_note_text": base_inputs["survey_note_text"].replace(
+                "zig build --build-file zigux/tests/phase12_libbpf_only_build.zig phase12-libbpf-focused-replay --summary all\n",
+                "",
+                1,
+            ),
+        }
+    )
+    expect_contains(
+        "survey_note_alias_detection",
+        missing,
+        "survey_note:zig build --build-file zigux/tests/phase12_libbpf_only_build.zig phase12-libbpf-focused-replay --summary all",
     )
 
     missing = collect_missing(
@@ -1006,7 +1068,7 @@ def run_self_test() -> int:
     )
 
     print("PHASE12_LIBBPF_FOCUSED_REPLAY_SELF_TEST=pass")
-    print("PHASE12_LIBBPF_FOCUSED_REPLAY_SELF_TEST_CASE_COUNT=39")
+    print("PHASE12_LIBBPF_FOCUSED_REPLAY_SELF_TEST_CASE_COUNT=41")
     return 0
 
 
