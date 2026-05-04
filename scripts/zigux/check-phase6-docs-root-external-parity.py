@@ -9,13 +9,17 @@ from pathlib import Path
 
 SCRIPT_PATH = Path(__file__).resolve()
 ROOT = SCRIPT_PATH.parents[2] if len(SCRIPT_PATH.parents) > 2 else SCRIPT_PATH.parent
-SELF_TEST_CASE_COUNT = 13
+SELF_TEST_CASE_COUNT = 14
 
 DOCS_ROOT_PATH = Path("Documentation/zigux/README.md")
 SCRIPTS_README_PATH = Path("scripts/zigux/README.md")
 TESTS_README_PATH = Path("zigux/tests/README.md")
 MANIFEST_PATH = Path("zigux/tests/phase6_helper_parity_manifest.json")
 MAKEFILE_PATH = Path("zigux/Makefile")
+REQUIRED_REVIEW_HELPER_PATHS = [
+    Path("scripts/zigux/check-phase6-docs-root-external-parity.py"),
+    Path("scripts/zigux/check-phase6-base64-catalog-evidence.py"),
+]
 REQUIRED_SCRIPT_PATHS = [
     Path("scripts/zigux/check-phase6-base64-c-parity.py"),
     Path("scripts/zigux/check-phase6-bsearch-c-parity.py"),
@@ -56,7 +60,9 @@ REQUIRED_MAKEFILE_LINES = [
     "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase6-docs-root-external-parity.py --self-test",
     "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase6-docs-root-external-parity.py",
 ]
-REQUIRED_FILE_COUNT = 5 + len(REQUIRED_SCRIPT_PATHS)
+REQUIRED_FILE_COUNT = (
+    5 + len(REQUIRED_REVIEW_HELPER_PATHS) + len(REQUIRED_SCRIPT_PATHS)
+)
 REQUIRED_LINE_COUNT = (
     1
     + len(REQUIRED_SCRIPTS_README_LINES)
@@ -87,6 +93,7 @@ def validate(root: Path) -> list[str]:
         TESTS_README_PATH,
         MANIFEST_PATH,
         MAKEFILE_PATH,
+        *REQUIRED_REVIEW_HELPER_PATHS,
         *REQUIRED_SCRIPT_PATHS,
     ]
     for relative_path in required_paths:
@@ -163,7 +170,7 @@ def build_fixture_tree(root: Path) -> None:
         json.dumps({"exact_checks": REQUIRED_MANIFEST_EXACT_CHECKS}, indent=2) + "\n",
     )
     write(root, MAKEFILE_PATH, "\n".join(REQUIRED_MAKEFILE_LINES) + "\n")
-    for relative_path in REQUIRED_SCRIPT_PATHS:
+    for relative_path in [*REQUIRED_REVIEW_HELPER_PATHS, *REQUIRED_SCRIPT_PATHS]:
         write(root, relative_path, "# placeholder\n")
 
 
@@ -285,6 +292,14 @@ def run_self_test() -> int:
             expect_contains(
                 validate(root),
                 "missing_file:scripts/zigux/check-phase6-checksum-c-parity.py",
+            )
+            count += 1
+
+            build_fixture_tree(root)
+            (root / REQUIRED_REVIEW_HELPER_PATHS[1]).unlink()
+            expect_contains(
+                validate(root),
+                "missing_file:scripts/zigux/check-phase6-base64-catalog-evidence.py",
             )
             count += 1
 
