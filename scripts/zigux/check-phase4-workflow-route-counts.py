@@ -7,7 +7,7 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[2]
-SELF_TEST_CASE_COUNT = 16
+SELF_TEST_CASE_COUNT = 17
 
 WORKFLOW_PATH = Path(".github/workflows/zigux-bootstrap.yml")
 MAKEFILE_PATH = Path("zigux/Makefile")
@@ -259,6 +259,20 @@ def run_self_test() -> int:
             expect_contains(
                 validate(root),
                 "workflow_count:- name: Run Phase 4 diff tests:expected=1:actual=0",
+            )
+            count += 1
+
+            build_fixture_tree(root)
+            workflow = root / WORKFLOW_PATH
+            workflow.write_text(
+                workflow.read_text(encoding="utf-8").replace(
+                    "run: make -C zigux phase4-test\n", "", 1
+                ),
+                encoding="utf-8",
+            )
+            expect_contains(
+                validate(root),
+                "workflow_count:run: make -C zigux phase4-test:expected=1:actual=0",
             )
             count += 1
 
