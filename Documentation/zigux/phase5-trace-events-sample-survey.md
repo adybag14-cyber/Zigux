@@ -7,7 +7,7 @@ This sample-backed survey note tracks the bounded Phase 5 reference-sample surve
 - `PHASE5_STATUS=parked`
 - `PHASE5_SLICE=trace-events-reference-sample-starter`
 - `PHASE5_LANE_KEY=P5-L24`
-- `PHASE5_SURVEYED_COMMIT=c0b506e3254e63fe007a72d420bb275846a89093`
+- `PHASE5_SURVEYED_COMMIT=368dcb11d347e77c13bef6607bd99b313573e389`
 - scope: roadmap-vs-repo sample delivery, approved payload and callback idiom guidance, contributor refresh cues, and exact bounded checks for the landed `samples/zigux/` trace-events replay
 - product boundary:
   - `Documentation/zigux/phase5-trace-events-sample-survey.md`
@@ -78,7 +78,7 @@ The exact checks currently recorded in `zigux/tests/phase5_trace_events_sample_m
 
 ## Latest verification snapshot
 
-- inspected `master` head: `c0b506e3254e63fe007a72d420bb275846a89093`
+- inspected `master` head: `368dcb11d347e77c13bef6607bd99b313573e389`
 - attached Zig toolchain: `0.17.0-dev.87+9b177a7d2`
 - exact commands and observed results:
   - `zig test samples/zigux/trace_events_sample.zig`
@@ -135,7 +135,7 @@ The current gap is no longer "Zigux has no trace-events sample guidance." The mo
 - current `master` still has no separate formatting-helper sample under `samples/zigux/`, so roadmap-aligned review should treat the trace-events sample's selected-string and `iter=%d` surface as the approved formatting idiom cue and keep standalone formatting-helper evidence under `Documentation/zigux/phase1-closure.md`, `tools/lib/vsprintf.zig`, `zigux/tests/phase1_helpers.zig`, `Documentation/zigux/phase7-string-helpers-slice.md`, `lib/string_helpers.zig`, and `zigux/tests/phase7_build.zig`
 - this sample must remain visibly separate from the later Phase 9 runtime `trace-events` starter so contributors do not over-claim runtime substrate coverage
 - the Phase 5 roadmap's four named sample anchors are now all represented by bounded `samples/zigux/` reference readings, but that does not close the separate Phase 9 runtime pilot tranche
-- this approved payload-and-callback idiom is now pinned to `PHASE5_SURVEYED_COMMIT=c0b506e3254e63fe007a72d420bb275846a89093` so the sample-backed survey note, latest verification snapshot, shared scripts-root guide, sample-root catalog boundary, manifest-backed survey, and shared `phase5_build.zig` replay all point at the same inspected `master` head
+- this approved payload-and-callback idiom is now pinned to `PHASE5_SURVEYED_COMMIT=368dcb11d347e77c13bef6607bd99b313573e389` so the sample-backed survey note, latest verification snapshot, shared scripts-root guide, sample-root catalog boundary, manifest-backed survey, and shared `phase5_build.zig` replay all point at the same inspected `master` head
 
 ## Review gates for this survey
 
