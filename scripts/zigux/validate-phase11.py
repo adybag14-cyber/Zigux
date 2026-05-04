@@ -58,6 +58,7 @@ FILES = [
     "drivers/watchdog/bcm2835_wdt.zig",
     "drivers/watchdog/dw_wdt.zig",
     "drivers/tty/hvc/hvc_console.zig",
+    "drivers/tty/hvc/hvc_console_sysrq.zig",
     "zigux/tests/phase11_build.zig",
     "zigux/tests/phase11_gpio_wdt_manifest.json",
     "zigux/tests/phase11_bcm2835_wdt_manifest.json",
@@ -73,6 +74,8 @@ FILES = [
     "zigux/tests/phase11_bcm2835_wdt.zig",
     "zigux/tests/phase11_dw_wdt.zig",
     "zigux/tests/phase11_hvc_console.zig",
+    "zigux/tests/phase11_hvc_console_modem_control_split.zig",
+    "zigux/tests/phase11_hvc_console_poll_retry_split.zig",
     "zigux/tests/fixtures/phase11_build_inventory.json",
 ]
 
@@ -577,6 +580,33 @@ def run_self_test() -> int:
             "phase11_hvc_console_tests:    try std.testing.expect(hangup_drain.read_hangup_pending);",
         )
         hvc_test_path.write_text(original_hvc_test, encoding="utf-8")
+
+        hvc_sysrq_path = tmp_root / "drivers/tty/hvc/hvc_console_sysrq.zig"
+        hvc_sysrq_path.unlink()
+        expect_missing_marker(
+            "hvc_sysrq_helper_file_presence",
+            tmp_root,
+            "missing_file:drivers/tty/hvc/hvc_console_sysrq.zig",
+        )
+        clone_fixture_root(tmp_root)
+
+        hvc_modem_control_split_path = tmp_root / "zigux/tests/phase11_hvc_console_modem_control_split.zig"
+        hvc_modem_control_split_path.unlink()
+        expect_missing_marker(
+            "hvc_modem_control_split_file_presence",
+            tmp_root,
+            "missing_file:zigux/tests/phase11_hvc_console_modem_control_split.zig",
+        )
+        clone_fixture_root(tmp_root)
+
+        hvc_poll_retry_split_path = tmp_root / "zigux/tests/phase11_hvc_console_poll_retry_split.zig"
+        hvc_poll_retry_split_path.unlink()
+        expect_missing_marker(
+            "hvc_poll_retry_split_file_presence",
+            tmp_root,
+            "missing_file:zigux/tests/phase11_hvc_console_poll_retry_split.zig",
+        )
+        clone_fixture_root(tmp_root)
 
         matrix_path = tmp_root / "Documentation/zigux/phase11-hvc-console-validation-matrix.md"
         original_matrix = matrix_path.read_text(encoding="utf-8")
