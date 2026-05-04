@@ -84,7 +84,7 @@ PHASE2_GENKSYMS_BRIDGE_REQUIRED_SOURCE_MARKERS = [
     "print('GENKSYMS_BRIDGE_DETERMINISM=pass')",
 ]
 PHASE2_GENKSYMS_BRIDGE_ALIGNMENT_REQUIRED_SOURCE_MARKERS = [
-    "PHASE2_GENKSYMS_BRIDGE_SELFTEST_ALIGNMENT_SELF_TEST_CASE_COUNT=14",
+    "PHASE2_GENKSYMS_BRIDGE_SELFTEST_ALIGNMENT_SELF_TEST_CASE_COUNT=16",
     '"python3 scripts/zigux/check-phase2-genksyms-bridge-selftest-alignment.py --self-test": 1',
     '"python3 scripts/zigux/check-phase2-genksyms-bridge-selftest-alignment.py": 1',
 ]
