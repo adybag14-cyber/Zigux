@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 from __future__ import annotations
 
+import json
 from pathlib import Path
 import sys
 
@@ -165,6 +166,84 @@ RAW_COVERAGE_EXACT_COUNT_MARKERS = {
     "`PHASE12_SHARED_TREE_READBACK_ROOT_COUNT=4`": 1,
 }
 
+RAW_COVERAGE_EXPECTED_ROOTS = [
+    "https://github.com/adybag14-cyber/Zigux/tree/master/drivers/net",
+    "https://github.com/adybag14-cyber/Zigux/tree/master/tools/lib/bpf",
+    "https://github.com/adybag14-cyber/Zigux/tree/master/Documentation/zigux",
+    "https://github.com/adybag14-cyber/Zigux/tree/master/zigux/tests",
+]
+
+RAW_COVERAGE_EXPECTED_ANCHORS = {
+    "virtio_net": {
+        "anchor": "drivers/net/virtio_net.c",
+        "roadmap_destination": "drivers/net/virtio_net.zig",
+        "survey_note_path": "Documentation/zigux/phase12-virtio-net-survey.md",
+        "public_read_status": "shared_tree_only",
+        "raw_fallback_catalog_path": "",
+        "raw_fallback_map_path": "",
+    },
+    "nvme_pci": {
+        "anchor": "drivers/nvme/host/pci.c",
+        "roadmap_destination": "drivers/nvme/host/pci.zig",
+        "survey_note_path": "Documentation/zigux/phase12-nvme-pci-survey.md",
+        "public_read_status": "commit_pinned_raw_map",
+        "raw_fallback_catalog_path": "",
+        "raw_fallback_map_path": "Documentation/zigux/phase12-nvme-pci-raw-github-fallback-map.md",
+    },
+    "virtio_scsi": {
+        "anchor": "drivers/scsi/virtio_scsi.c",
+        "roadmap_destination": "drivers/scsi/virtio_scsi.zig",
+        "survey_note_path": "Documentation/zigux/phase12-virtio-scsi-survey.md",
+        "public_read_status": "commit_pinned_raw_catalog",
+        "raw_fallback_catalog_path": "Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md",
+        "raw_fallback_map_path": "",
+    },
+    "libbpf": {
+        "anchor": "tools/lib/bpf/libbpf.c",
+        "roadmap_destination": "tools/lib/bpf/zigux_segments/",
+        "survey_note_path": "Documentation/zigux/phase12-libbpf-segment-survey.md",
+        "public_read_status": "shared_tree_only",
+        "raw_fallback_catalog_path": "",
+        "raw_fallback_map_path": "",
+    },
+}
+
+RAW_COVERAGE_SURVEY_ZIG_MARKERS = [
+    'test "phase12 raw GitHub coverage survey keeps the roadmap-wide public-read split explicit" {',
+    'try std.testing.expectEqualStrings("P12-L07", manifest.lane_key);',
+    'try std.testing.expectEqualStrings("Phase 12", manifest.phase);',
+    'try std.testing.expectEqualStrings("bc2373f7deedf021c73beaae29555a9ac6b0536d", manifest.last_replayed_public_head);',
+    'try std.testing.expectEqual(@as(usize, 4), manifest.roadmap_anchor_count);',
+    'try std.testing.expectEqual(@as(usize, 1), manifest.commit_pinned_raw_fallback_catalog_count);',
+    'try std.testing.expectEqual(@as(usize, 1), manifest.commit_pinned_raw_fallback_map_count);',
+    'try std.testing.expectEqual(@as(usize, 2), manifest.shared_tree_only_anchor_count);',
+    'try std.testing.expectEqual(@as(usize, 4), manifest.shared_tree_readback_root_count);',
+    'try std.testing.expectEqual(@as(usize, 4), manifest.shared_tree_readback_roots.len);',
+    'try std.testing.expectEqual(@as(usize, 4), manifest.anchors.len);',
+    'try std.testing.expectEqual(@as(usize, 2), shared_tree_only_count);',
+    'try std.testing.expectEqual(@as(usize, 1), commit_pinned_catalog_count);',
+    'try std.testing.expectEqual(@as(usize, 1), commit_pinned_map_count);',
+    '"one anchor keeps a commit-pinned raw fallback catalog"',
+    '"one anchor keeps a commit-pinned raw fallback map"',
+    '"two anchors remain shared-tree-only fallback reads"',
+    '"PHASE12_SHARED_TREE_READBACK_ROOT_COUNT=4"',
+]
+
+RAW_COVERAGE_SURVEY_ZIG_EXACT_COUNT_MARKERS = {
+    'try std.testing.expectEqualStrings("P12-L07", manifest.lane_key);': 1,
+    'try std.testing.expectEqual(@as(usize, 4), manifest.roadmap_anchor_count);': 1,
+    'try std.testing.expectEqual(@as(usize, 1), manifest.commit_pinned_raw_fallback_catalog_count);': 1,
+    'try std.testing.expectEqual(@as(usize, 1), manifest.commit_pinned_raw_fallback_map_count);': 1,
+    'try std.testing.expectEqual(@as(usize, 2), manifest.shared_tree_only_anchor_count);': 1,
+    'try std.testing.expectEqual(@as(usize, 4), manifest.shared_tree_readback_root_count);': 1,
+    'try std.testing.expectEqual(@as(usize, 2), shared_tree_only_count);': 1,
+    'try std.testing.expectEqual(@as(usize, 1), commit_pinned_catalog_count);': 1,
+    'try std.testing.expectEqual(@as(usize, 1), commit_pinned_map_count);': 1,
+    '"one anchor keeps a commit-pinned raw fallback catalog"': 1,
+    '"one anchor keeps a commit-pinned raw fallback map"': 1,
+    '"two anchors remain shared-tree-only fallback reads"': 1,
+}
+
 
 def read_text(path: str) -> str:
     return (ROOT / path).read_text(encoding="utf-8")
@@ -183,6 +262,87 @@ def collect_exact_count_misses(text: str, expected_counts: dict[str, int], prefi
     return missing
 
 
+def collect_raw_coverage_manifest_misses(manifest_text: str, prefix: str) -> list[str]:
+    try:
+        manifest = json.loads(manifest_text)
+    except json.JSONDecodeError:
+        return [f"{prefix}:json_decode"]
+
+    missing: list[str] = []
+    expected_scalars = {
+        "lane_key": "P12-L07",
+        "phase": "Phase 12",
+        "scope": "raw GitHub fallback catalog survey public-read coverage gaps vs roadmap",
+        "public_read_boundary": "read_only_public_github_tree_and_raw_paths_only",
+        "last_replayed_public_head": "bc2373f7deedf021c73beaae29555a9ac6b0536d",
+        "roadmap_anchor_count": 4,
+        "commit_pinned_raw_fallback_catalog_count": 1,
+        "commit_pinned_raw_fallback_map_count": 1,
+        "shared_tree_only_anchor_count": 2,
+        "shared_tree_readback_root_count": 4,
+    }
+    for key, expected_value in expected_scalars.items():
+        actual_value = manifest.get(key)
+        if actual_value != expected_value:
+            missing.append(
+                f"{prefix}:{key}:expected={expected_value}:actual={actual_value}"
+            )
+
+    roots = manifest.get("shared_tree_readback_roots")
+    if roots != RAW_COVERAGE_EXPECTED_ROOTS:
+        missing.append(
+            f"{prefix}:shared_tree_readback_roots:expected={RAW_COVERAGE_EXPECTED_ROOTS}:actual={roots}"
+        )
+
+    anchors = manifest.get("anchors")
+    if not isinstance(anchors, list):
+        missing.append(f"{prefix}:anchors:not_list")
+        return missing
+    if len(anchors) != len(RAW_COVERAGE_EXPECTED_ANCHORS):
+        missing.append(
+            f"{prefix}:anchors:expected={len(RAW_COVERAGE_EXPECTED_ANCHORS)}:actual={len(anchors)}"
+        )
+
+    seen_ids: set[str] = set()
+    for anchor in anchors:
+        if not isinstance(anchor, dict):
+            missing.append(f"{prefix}:anchor:not_dict")
+            continue
+        anchor_id = anchor.get("id")
+        if not isinstance(anchor_id, str):
+            missing.append(f"{prefix}:anchor:missing_id")
+            continue
+        seen_ids.add(anchor_id)
+        expected_anchor = RAW_COVERAGE_EXPECTED_ANCHORS.get(anchor_id)
+        if expected_anchor is None:
+            missing.append(f"{prefix}:anchor:{anchor_id}:unexpected")
+            continue
+        for key, expected_value in expected_anchor.items():
+            actual_value = anchor.get(key)
+            if actual_value != expected_value:
+                missing.append(
+                    f"{prefix}:anchor:{anchor_id}:{key}:expected={expected_value}:actual={actual_value}"
+                )
+
+    missing_ids = set(RAW_COVERAGE_EXPECTED_ANCHORS) - seen_ids
+    if missing_ids:
+        missing.append(f"{prefix}:anchor_ids:missing={sorted(missing_ids)}")
+
+    return missing
+
+
+def collect_raw_coverage_survey_zig_misses(text: str, prefix: str) -> list[str]:
+    missing = collect_marker_misses(text, RAW_COVERAGE_SURVEY_ZIG_MARKERS, prefix)
+    missing.extend(
+        collect_exact_count_misses(
+            text,
+            RAW_COVERAGE_SURVEY_ZIG_EXACT_COUNT_MARKERS,
+            f"{prefix}_count",
+        )
+    )
+    return missing
+
+
 def collect_missing(
     *,
     present_files: set[str],
@@ -195,6 +355,8 @@ def collect_missing(
     makefile_text: str,
     cross_smoke_text: str,
     raw_coverage_text: str,
+    raw_coverage_manifest_text: str,
+    raw_coverage_survey_zig_text: str,
 ) -> list[str]:
     missing = [f"missing_file:{path}" for path in REQUIRED_FILES if path not in present_files]
     missing.extend(collect_marker_misses(survey_text, SURVEY_MARKERS, "survey"))
@@ -235,6 +397,18 @@ def collect_missing(
             "raw_coverage_count",
         )
     )
+    missing.extend(
+        collect_raw_coverage_manifest_misses(
+            raw_coverage_manifest_text,
+            "raw_coverage_manifest",
+        )
+    )
+    missing.extend(
+        collect_raw_coverage_survey_zig_misses(
+            raw_coverage_survey_zig_text,
+            "raw_coverage_survey_zig",
+        )
+    )
     return missing
 
 
@@ -253,6 +427,8 @@ def build_live_inputs() -> dict[str, object]:
         "validator_text": read_text("scripts/zigux/validate-phase12.py"),
         "cross_smoke_text": read_text("Documentation/zigux/phase12-cross-compile-smoke.md"),
         "raw_coverage_text": read_text("Documentation/zigux/phase12-raw-github-coverage-survey.md"),
+        "raw_coverage_manifest_text": read_text("zigux/tests/phase12_raw_github_coverage_manifest.json"),
+        "raw_coverage_survey_zig_text": read_text("zigux/tests/phase12_raw_github_coverage_survey.zig"),
         "makefile_text": read_text("zigux/Makefile"),
     }
 
@@ -266,14 +442,29 @@ def expect_contains(label: str, missing: list[str], expected_item: str) -> None:
 
 
 def run_self_test() -> int:
+    base_manifest = {
+        "lane_key": "P12-L07",
+        "phase": "Phase 12",
+        "scope": "raw GitHub fallback catalog survey public-read coverage gaps vs roadmap",
+        "public_read_boundary": "read_only_public_github_tree_and_raw_paths_only",
+        "last_replayed_public_head": "bc2373f7deedf021c73beaae29555a9ac6b0536d",
+        "roadmap_anchor_count": 4,
+        "commit_pinned_raw_fallback_catalog_count": 1,
+        "commit_pinned_raw_fallback_map_count": 1,
+        "shared_tree_only_anchor_count": 2,
+        "shared_tree_readback_root_count": 4,
+        "shared_tree_readback_roots": RAW_COVERAGE_EXPECTED_ROOTS,
+        "anchors": [
+            {"id": anchor_id, **anchor_spec}
+            for anchor_id, anchor_spec in RAW_COVERAGE_EXPECTED_ANCHORS.items()
+        ],
+    }
     base_inputs = {
         "present_files": set(REQUIRED_FILES),
         "survey_text": "\n".join(
             SURVEY_MARKERS
             + [
                 "scripts/zigux/check-phase12-cross.py",
-                "scripts/zigux/check-phase12-libbpf-snapshot.py",
-                "scripts/zigux/check-phase12-libbpf-packet.py",
                 "scripts/zigux/check-phase12-raw-github-coverage.py",
                 "zigux/tests/phase12_raw_github_coverage_manifest.json",
                 "zigux/tests/phase12_raw_github_coverage_survey.zig",
@@ -287,6 +478,8 @@ def run_self_test() -> int:
         "validator_text": "\n".join(VALIDATOR_MARKERS) + "\n",
         "cross_smoke_text": "\n".join(CROSS_SMOKE_MARKERS) + "\n",
         "raw_coverage_text": "\n".join(RAW_COVERAGE_MARKERS) + "\n",
+        "raw_coverage_manifest_text": json.dumps(base_manifest, indent=2),
+        "raw_coverage_survey_zig_text": "\n".join(RAW_COVERAGE_SURVEY_ZIG_MARKERS) + "\n",
         "makefile_text": "\n".join([MAKEFILE_SELF_TEST_MARKER, MAKEFILE_RUN_MARKER, "scripts/zigux/validate-phase12.py"]) + "\n",
     }
 
@@ -837,16 +1030,85 @@ def run_self_test() -> int:
         **{
             **base_inputs,
             "raw_coverage_text": base_inputs["raw_coverage_text"].replace(
-                "shared-tree-only\n",
+                "two anchors remain shared-tree-only fallback reads: `virtio_net` and `libbpf`\n",
                 "",
                 1,
             ),
         }
     )
-    expect_contains("raw_coverage_marker_detection", missing, "raw_coverage:shared-tree-only")
+    expect_contains(
+        "raw_coverage_marker_detection",
+        missing,
+        "raw_coverage:two anchors remain shared-tree-only fallback reads: `virtio_net` and `libbpf`",
+    )
+
+    missing = collect_missing(
+        **{
+            **base_inputs,
+            "raw_coverage_manifest_text": "{",
+        }
+    )
+    expect_contains("raw_coverage_manifest_json_detection", missing, "raw_coverage_manifest:json_decode")
+
+    drifted_manifest = dict(base_manifest)
+    drifted_manifest["shared_tree_only_anchor_count"] = 3
+    missing = collect_missing(
+        **{
+            **base_inputs,
+            "raw_coverage_manifest_text": json.dumps(drifted_manifest, indent=2),
+        }
+    )
+    expect_contains(
+        "raw_coverage_manifest_count_detection",
+        missing,
+        "raw_coverage_manifest:shared_tree_only_anchor_count:expected=2:actual=3",
+    )
+
+    drifted_manifest = json.loads(json.dumps(base_manifest))
+    drifted_manifest["anchors"][3]["public_read_status"] = "commit_pinned_raw_catalog"
+    missing = collect_missing(
+        **{
+            **base_inputs,
+            "raw_coverage_manifest_text": json.dumps(drifted_manifest, indent=2),
+        }
+    )
+    expect_contains(
+        "raw_coverage_manifest_anchor_status_detection",
+        missing,
+        "raw_coverage_manifest:anchor:libbpf:public_read_status:expected=shared_tree_only:actual=commit_pinned_raw_catalog",
+    )
+
+    missing = collect_missing(
+        **{
+            **base_inputs,
+            "raw_coverage_survey_zig_text": base_inputs["raw_coverage_survey_zig_text"].replace(
+                'try std.testing.expectEqual(@as(usize, 2), shared_tree_only_count);\n',
+                "",
+                1,
+            ),
+        }
+    )
+    expect_contains(
+        "raw_coverage_survey_zig_marker_detection",
+        missing,
+        "raw_coverage_survey_zig:try std.testing.expectEqual(@as(usize, 2), shared_tree_only_count);",
+    )
+
+    missing = collect_missing(
+        **{
+            **base_inputs,
+            "raw_coverage_survey_zig_text": base_inputs["raw_coverage_survey_zig_text"]
+            + '"two anchors remain shared-tree-only fallback reads"\n',
+        }
+    )
+    expect_contains(
+        "raw_coverage_survey_zig_exact_count_detection",
+        missing,
+        'raw_coverage_survey_zig_count:"two anchors remain shared-tree-only fallback reads":expected=1:actual=2',
+    )
 
     print("PHASE12_RELEASE_READINESS_PACKET_SELF_TEST=pass")
-    print("PHASE12_RELEASE_READINESS_PACKET_SELF_TEST_CASE_COUNT=41")
+    print("PHASE12_RELEASE_READINESS_PACKET_SELF_TEST_CASE_COUNT=46")
     return 0
 
 
