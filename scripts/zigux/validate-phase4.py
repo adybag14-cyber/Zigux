@@ -160,6 +160,22 @@ ARTIFACT_DIFF_NOTE_MARKERS = [
     "ARTIFACT_DIFF_CONTRACT_CASE_COUNT=27",
 ]
 
+GATE_EVIDENCE_STATUS_MARKERS = [
+    "PHASE4_GATE_EVIDENCE_SELF_TEST=pass",
+    "PHASE4_GATE_EVIDENCE_CHECK=pass",
+    "PHASE4_WORKFLOW_ROUTE_COUNTS_SELF_TEST=pass",
+    "PHASE4_WORKFLOW_ROUTE_COUNTS=pass",
+    "PHASE4_WORKFLOW_ROUTE_COUNTS_REQUIRED_FILE_COUNT=5",
+    "PHASE4_WORKFLOW_ROUTE_COUNTS_REQUIRED_CHECK_COUNT=36",
+]
+
+GATE_EVIDENCE_TARGET_COUNT_STATUS_LINE = "- `PHASE4_GATE_EVIDENCE_TARGET_COUNT=18`"
+
+GATE_EVIDENCE_WORKFLOW_ROUTE_NOTE_MARKERS = [
+    "`PHASE4_GATE_EVIDENCE_TARGET_COUNT=18` continues to describe the narrower gate-evidence-checker-enforced blob target set",
+    "the dedicated workflow-route checker file itself",
+]
+
 RUNTIME_ATOMIC64_MATRIX_NOTE_MARKERS = [
     "reversible-delivery evidence",
     "`lib/atomic64_test.c` anchor",
@@ -249,6 +265,16 @@ def validate_root(root: Path) -> list[str]:
     missing.extend(missing_text(tests_readme, "tests_readme", TESTS_README_MARKERS))
     missing.extend(missing_text(gate_evidence, "gate_evidence_atomic64", ATOMIC64_GATE_EVIDENCE_MARKERS))
     missing.extend(missing_text(gate_evidence, "gate_evidence_bitmap", BITMAP_GATE_EVIDENCE_MARKERS))
+    missing.extend(missing_text(gate_evidence, "gate_evidence_status", GATE_EVIDENCE_STATUS_MARKERS))
+    if GATE_EVIDENCE_TARGET_COUNT_STATUS_LINE not in gate_evidence:
+        missing.append(f"gate_evidence_status:{GATE_EVIDENCE_TARGET_COUNT_STATUS_LINE}")
+    missing.extend(
+        missing_text(
+            gate_evidence,
+            "gate_evidence_workflow_route_note",
+            GATE_EVIDENCE_WORKFLOW_ROUTE_NOTE_MARKERS,
+        )
+    )
     missing.extend(
         missing_text(
             kprobe_survey,
@@ -381,6 +407,9 @@ def write_fixture_tree(root: Path) -> None:
         "phase4-runtime-atomic64-diff-tests",
         "phase4-runtime-atomic64-diff-survey-tests",
         "runtime_atomic64_diff.zig` remains the single replay body",
+        *GATE_EVIDENCE_STATUS_MARKERS,
+        GATE_EVIDENCE_TARGET_COUNT_STATUS_LINE,
+        "`PHASE4_GATE_EVIDENCE_TARGET_COUNT=18` continues to describe the narrower gate-evidence-checker-enforced blob target set, which now includes the dedicated workflow-route checker file itself.",
     ]
     for marker, rel in GATE_EVIDENCE_TARGETS.items():
         evidence.append(f"{marker}={blob_sha((root / rel).read_bytes())}")
@@ -581,6 +610,39 @@ def run_self_test() -> int:
         )
         missing = validate_root(root)
         assert "gate_evidence:PHASE4_PERF_BASELINE_MANIFEST_BLOB_SHA:" in " ".join(missing), missing
+
+        write_fixture_tree(root)
+        gate_evidence = root / "Documentation/zigux/phase4-gate-evidence.md"
+        gate_evidence.write_text(
+            gate_evidence.read_text(encoding="utf-8").replace(
+                "PHASE4_GATE_EVIDENCE_TARGET_COUNT=18\n",
+                "",
+                1,
+            ).replace(
+                "- `PHASE4_GATE_EVIDENCE_TARGET_COUNT=18`\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        missing = validate_root(root)
+        assert "gate_evidence_status:- `PHASE4_GATE_EVIDENCE_TARGET_COUNT=18`" in missing, missing
+
+        write_fixture_tree(root)
+        gate_evidence = root / "Documentation/zigux/phase4-gate-evidence.md"
+        gate_evidence.write_text(
+            gate_evidence.read_text(encoding="utf-8").replace(
+                "the dedicated workflow-route checker file itself",
+                "the dedicated workflow checker artifact",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        missing = validate_root(root)
+        assert (
+            "gate_evidence_workflow_route_note:the dedicated workflow-route checker file itself"
+            in missing
+        ), missing
 
     print("PHASE4_VALIDATOR_SELF_TEST=pass")
     return 0
