@@ -48,7 +48,7 @@ The PMO reading should stay the same across those files:
 
 Before treating the Phase 12 PMO packet as reviewable, keep these summary surfaces aligned with the same release story:
 
-- `Documentation/zigux/README.md` should keep the active-not-closed Phase 12 posture and the validator-first replay route visible from the docs root
+- `Documentation/zigux/README.md` should keep this matrix, the active-not-closed Phase 12 posture, and the validator-first replay route visible from the docs root
 - `scripts/zigux/README.md` should keep the same owner split, focused libbpf replay shard, and validate-before-replay route visible from the scripts root
 - `zigux/tests/README.md` should explicitly name this matrix plus `Documentation/zigux/phase12-nvme-pci-raw-github-fallback-map.md`, `Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md`, `zigux/tests/phase12_raw_github_coverage_manifest.json`, and `zigux/tests/phase12_raw_github_coverage_survey.zig` so the tests root carries the same two commit-pinned versus two shared-tree-only fallback split and the same paired manifest-backed raw-coverage evidence instead of leaving the mixed mode implicit
 
