@@ -256,6 +256,12 @@ fn envValueOrDefault(value: ?[:0]const u8, fallback: []const u8) []const u8 {
     return nonEmptyEnvValue(value) orelse fallback;
 }
 
+fn assignFallbackIfMissing(field: *?[]const u8, fallback: ?[]const u8) void {
+    if (field.* == null) {
+        field.* = fallback;
+    }
+}
+
 fn applyModeEnvFallbacks(
     request: *Request,
     allconfig: ?[]const u8,
@@ -265,16 +271,16 @@ fn applyModeEnvFallbacks(
     autoheader: []const u8,
     nosilentupdate: ?[]const u8,
 ) void {
-    if (supportsAllConfig(request.mode) and request.allconfig == null) {
-        request.allconfig = allconfig;
+    if (supportsAllConfig(request.mode)) {
+        assignFallbackIfMissing(&request.allconfig, allconfig);
     }
     if (request.mode == .randconfig) {
-        request.seed = seed;
-        request.probability = probability;
+        assignFallbackIfMissing(&request.seed, seed);
+        assignFallbackIfMissing(&request.probability, probability);
     } else if (request.mode == .syncconfig) {
-        request.autoconfig = autoconfig;
-        request.autoheader = autoheader;
-        request.nosilentupdate = nosilentupdate;
+        assignFallbackIfMissing(&request.autoconfig, autoconfig);
+        assignFallbackIfMissing(&request.autoheader, autoheader);
+        assignFallbackIfMissing(&request.nosilentupdate, nosilentupdate);
     }
 }
 
@@ -685,6 +691,31 @@ test "conf bridge uses randconfig env fallback for seed and probability" {
     try std.testing.expectEqualStrings("10:20:30", request.probability.?);
 }
 
+test "conf bridge keeps explicit randconfig seed and probability over env fallback" {
+    var request: Request = .{
+        .mode = .randconfig,
+        .kconfig = "Kconfig",
+        .config = "rand/.config",
+        .arch = "x86",
+        .allconfig = "seed/explicit.config",
+        .seed = "0xBEEF",
+        .probability = "15:25:35",
+    };
+    applyModeEnvFallbacks(
+        &request,
+        "seed/allrandom.config",
+        "0xC0FFEE",
+        "10:20:30",
+        "include/config/auto.conf",
+        "include/generated/autoconf.h",
+        null,
+    );
+
+    try std.testing.expectEqualStrings("seed/explicit.config", request.allconfig.?);
+    try std.testing.expectEqualStrings("0xBEEF", request.seed.?);
+    try std.testing.expectEqualStrings("15:25:35", request.probability.?);
+}
+
 test "conf bridge uses syncconfig env fallbacks for output paths" {
     var request = try parseRequestArgs(&.{
         "conf_bridge",
@@ -706,6 +737,31 @@ test "conf bridge uses syncconfig env fallbacks for output paths" {
     try std.testing.expectEqualStrings("generated/phase2/auto-sync.conf", request.autoconfig.?);
     try std.testing.expectEqualStrings("generated/phase2/autoconf-sync.h", request.autoheader.?);
     try std.testing.expectEqualStrings("1", request.nosilentupdate.?);
+}
+
+test "conf bridge keeps explicit syncconfig outputs over env fallback" {
+    var request: Request = .{
+        .mode = .syncconfig,
+        .kconfig = "Kconfig",
+        .config = "out/.config",
+        .arch = "riscv64",
+        .autoconfig = "generated/explicit/auto.conf",
+        .autoheader = "generated/explicit/autoconf.h",
+        .nosilentupdate = "keep",
+    };
+    applyModeEnvFallbacks(
+        &request,
+        null,
+        null,
+        null,
+        "generated/phase2/auto-sync.conf",
+        "generated/phase2/autoconf-sync.h",
+        "1",
+    );
+
+    try std.testing.expectEqualStrings("generated/explicit/auto.conf", request.autoconfig.?);
+    try std.testing.expectEqualStrings("generated/explicit/autoconf.h", request.autoheader.?);
+    try std.testing.expectEqualStrings("keep", request.nosilentupdate.?);
 }
 
 test "conf bridge emits allmodconfig argv and env" {
