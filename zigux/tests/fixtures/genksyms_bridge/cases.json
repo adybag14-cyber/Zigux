@@ -224,6 +224,8 @@
     {
       "name": "missing_long_dump_types_argument",
       "argv": [
+        "--version",
+        "--ver",
         "--dump-types"
       ],
       "mode": "process_json",
