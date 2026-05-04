@@ -257,6 +257,7 @@ test "phase10 virtio ring survey manifest records the live queue-discipline pack
     try std.testing.expect(std.mem.indexOf(u8, core_survey_note, "phase10-config-generation-summary-helper") != null);
     try std.testing.expect(std.mem.indexOf(u8, core_survey_note, "phase10-config-delivery-disposition-helper") != null);
 
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE10_STATUS=parked") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, manifest.surveyed_commit) != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE10_RING_ROADMAP_SCOREBOARD_ROWS=3") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE10_RING_ROADMAP_VIRTQUEUE_WRAPPERS=starter_landed") != null);
