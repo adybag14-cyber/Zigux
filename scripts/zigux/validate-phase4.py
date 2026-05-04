@@ -96,6 +96,11 @@ README_MARKERS = [
     "phase4-perf-baseline-survey-tests",
 ]
 
+SCRIPTS_README_BITMAP_ROUTE_MARKERS = [
+    "make -C zigux phase4-bitmap-diff",
+    "phase4-bitmap-diff-tests",
+]
+
 ATOMIC64_DOCS_README_MARKERS = [
     "make -C zigux phase4-runtime-atomic64-diff",
     "phase4-runtime-atomic64-diff-tests",
@@ -178,6 +183,20 @@ def missing_text(text: str, prefix: str, markers: list[str]) -> list[str]:
     return [f"{prefix}:{m}" for m in markers if m not in text]
 
 
+def exact_count_mismatches(
+    text: str,
+    prefix: str,
+    markers: list[str],
+    expected_count: int = 1,
+) -> list[str]:
+    mismatches: list[str] = []
+    for marker in markers:
+        actual_count = text.count(marker)
+        if actual_count != expected_count:
+            mismatches.append(f"{prefix}:{marker}:{actual_count}")
+    return mismatches
+
+
 def find_gap_by_id(manifest: object, gap_id: str) -> dict[str, object] | None:
     if not isinstance(manifest, dict):
         return None
@@ -220,6 +239,13 @@ def validate_root(root: Path) -> list[str]:
     missing.extend(missing_text(docs_readme, "docs_readme_atomic64", ATOMIC64_DOCS_README_MARKERS))
     missing.extend(missing_text(scripts_readme, "scripts_readme", README_MARKERS[:-1]))
     missing.extend(missing_text(scripts_readme, "scripts_readme_atomic64", ATOMIC64_SCRIPTS_README_MARKERS))
+    missing.extend(
+        exact_count_mismatches(
+            scripts_readme,
+            "scripts_readme_bitmap_exact",
+            SCRIPTS_README_BITMAP_ROUTE_MARKERS,
+        )
+    )
     missing.extend(missing_text(tests_readme, "tests_readme", TESTS_README_MARKERS))
     missing.extend(missing_text(gate_evidence, "gate_evidence_atomic64", ATOMIC64_GATE_EVIDENCE_MARKERS))
     missing.extend(missing_text(gate_evidence, "gate_evidence_bitmap", BITMAP_GATE_EVIDENCE_MARKERS))
@@ -297,7 +323,12 @@ def write_fixture_tree(root: Path) -> None:
         + "\n",
         "Documentation/zigux/phase4-validation-matrix.md": "\n".join(MATRIX_MARKERS + BITMAP_MATRIX_MARKERS) + "\n",
         "Documentation/zigux/README.md": "\n".join(README_MARKERS + ATOMIC64_DOCS_README_MARKERS) + "\n",
-        "scripts/zigux/README.md": "\n".join(README_MARKERS[:-1] + ATOMIC64_SCRIPTS_README_MARKERS) + "\n",
+        "scripts/zigux/README.md": "\n".join(
+            README_MARKERS[:-1]
+            + ATOMIC64_SCRIPTS_README_MARKERS
+            + SCRIPTS_README_BITMAP_ROUTE_MARKERS
+        )
+        + "\n",
         "zigux/tests/README.md": "\n".join(TESTS_README_MARKERS) + "\n",
         "zigux/Makefile": "\n".join(MAKE_LINES) + "\n",
         ".github/workflows/zigux-bootstrap.yml": "Validate Phase 4 diff gates\nRun Phase 4 diff tests\n",
@@ -375,6 +406,22 @@ def run_self_test() -> int:
         )
         missing = validate_root(root)
         assert "docs_readme_atomic64:make -C zigux phase4-runtime-atomic64-diff" in missing, missing
+
+        write_fixture_tree(root)
+        scripts_readme = root / "scripts/zigux/README.md"
+        scripts_readme.write_text(
+            scripts_readme.read_text(encoding="utf-8").replace(
+                "make -C zigux phase4-bitmap-diff\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        missing = validate_root(root)
+        assert (
+            "scripts_readme_bitmap_exact:make -C zigux phase4-bitmap-diff:0"
+            in missing
+        ), missing
 
         write_fixture_tree(root)
         runtime_manifest = root / "zigux/tests/phase4_runtime_atomic64_diff_manifest.json"
@@ -549,6 +596,7 @@ def required_marker_count() -> int:
         + len(ATOMIC64_DOCS_README_MARKERS)
         + len(README_MARKERS[:-1])
         + len(ATOMIC64_SCRIPTS_README_MARKERS)
+        + len(SCRIPTS_README_BITMAP_ROUTE_MARKERS)
         + len(TESTS_README_MARKERS)
         + len(GATE_EVIDENCE_TARGETS)
         + len(ATOMIC64_GATE_EVIDENCE_MARKERS)
