@@ -178,8 +178,8 @@ SURVEY_MARKERS = [
     "make -C zigux phase15",
     "zig build test --build-file zigux/tests/phase15_build.zig",
     "zigux/tests/phase15_docs_root_reviewability.zig",
-    "zigux/tests/phase15_evidence_archive_templates.zig",
     "docs-root Phase 15 summary now matches the dedicated readiness and handoff packet",
+    "Later repo movement still requires a fresh bounded provenance refresh",
     "phase15-docs-root-summary-alignment",
 ]
 
@@ -198,6 +198,7 @@ HANDOFF_MARKERS = [
     "zigux/tests/phase15_docs_root_reviewability.zig",
     "docs-root release evidence now matches the dedicated maintenance packet",
     "phase15-docs-root-summary-alignment",
+    "reviewed-provenance head for this packet needs refresh",
     "phase15-deep-core-status-change-blocker",
     "make -C zigux phase15",
     "zig build test --build-file zigux/tests/phase15_build.zig",
@@ -219,7 +220,7 @@ HANDOFF_TEST_MARKERS = [
     "phase15-deep-core-status-change-blocker",
     "make -C zigux phase15",
     "zig build test --build-file zigux/tests/phase15_build.zig",
-    "docs_root_phase15_summary_aligned",
+    "docs_root_phase15_summary_aligned_at_reviewed_head",
 ]
 
 INDEFINITE_POLICY_TEST_MARKERS = [
@@ -495,7 +496,8 @@ repo_evidence = readiness_manifest.get("repo_evidence", {})
 require_true(repo_evidence, "manifest:repo_evidence", [
     "freeze_map_present", "review_checklist_present", "review_process_present", "parity_scorecard_present",
     "indefinite_c_policy_present", "handoff_next_steps_present", "phase15_build_present",
-    "phase15_make_target_present", "shared_ci_phase15_present", "phase15_replay_green_at_reviewed_head",
+    "phase15_validator_script_present", "phase15_validate_target_present", "phase15_make_target_present",
+    "shared_ci_phase15_present", "phase15_replay_green_at_reviewed_head",
     "docs_root_phase15_summary_aligned_at_reviewed_head", "current_master_provenance_refresh_required",
 ])
 require_false(repo_evidence, "manifest:repo_evidence", ["deep_core_status_change_ready"])
@@ -525,8 +527,8 @@ require_true(handoff_repo_evidence, "handoff_manifest:repo_evidence", [
     "freeze_map_governance_present", "review_process_present", "parity_scorecard_present",
     "indefinite_c_policy_present", "readiness_gate_present", "phase15_build_present",
     "phase15_make_target_present", "shared_ci_phase15_present", "docs_index_handoff_pointer_present",
-    "docs_root_reviewability_guard_present", "phase15_replay_green_on_current_master",
-    "docs_root_phase15_summary_aligned",
+    "docs_root_reviewability_guard_present", "phase15_replay_green_at_reviewed_head",
+    "docs_root_phase15_summary_aligned_at_reviewed_head", "current_master_provenance_refresh_required",
 ])
 require_false(handoff_repo_evidence, "handoff_manifest:repo_evidence", ["deep_core_status_change_ready"])
 open_handoff_gaps = handoff_manifest.get("open_handoff_gaps")
@@ -687,7 +689,7 @@ require(
     "review_process_note:lane_key",
 )
 require(
-    f"survey provenance refreshed against verified `master` head `{review_process_manifest.get('surveyed_commit')}`"
+    f"survey provenance last refreshed against reviewed `master` head `{review_process_manifest.get('surveyed_commit')}`"
     in review_process_note,
     "review_process_note:surveyed_commit",
 )
