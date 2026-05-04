@@ -228,8 +228,8 @@ test "atomic64 diff wrapper keeps standalone phase4 validator workflow evidence 
     try expectValidatorMarker("print(f'PHASE4_REQUIRED_MARKER_COUNT={required_marker_count()}')");
     try expectGateEvidenceMarker("`PHASE4_VALIDATOR_SELF_TEST=pass`");
     try expectGateEvidenceMarker("`PHASE4_VALIDATION=pass`");
-    try expectGateEvidenceMarker("`PHASE4_REQUIRED_FILE_COUNT=23`");
-    try expectGateEvidenceMarker("`PHASE4_REQUIRED_MARKER_COUNT=236`");
+    try expectGateEvidenceMarker("`PHASE4_REQUIRED_FILE_COUNT=27`");
+    try expectGateEvidenceMarker("`PHASE4_REQUIRED_MARKER_COUNT=55`");
 }
 
 test "atomic64 diff wrapper keeps the dedicated phase4 gate-evidence checker explicit" {
@@ -243,7 +243,7 @@ test "atomic64 diff wrapper keeps the dedicated phase4 gate-evidence checker exp
     try expectGateEvidenceMarker("`PHASE4_GATE_EVIDENCE_CHECKER_BLOB_SHA=");
     try expectGateEvidenceMarker("`PHASE4_GATE_EVIDENCE_SELF_TEST=pass`");
     try expectGateEvidenceMarker("`PHASE4_GATE_EVIDENCE_CHECK=pass`");
-    try expectGateEvidenceMarker("`PHASE4_GATE_EVIDENCE_TARGET_COUNT=15`");
+    try expectGateEvidenceMarker("`PHASE4_GATE_EVIDENCE_TARGET_COUNT=17`");
     try expectGateEvidenceMarker("the dedicated `scripts/zigux/check-phase4-gate-evidence.py` checker");
     try expectGateEvidenceMarker("3ba64cd4e41a4de1c8fd8dbaecb23702ad9701a3");
 }
