@@ -36,7 +36,7 @@ Exact reviewability cues remain explicit:
 Latest verification snapshot:
 
 - `zig test samples/zigux/kobject_example.zig`
-  - `All 5 tests passed.`
+  - `All 6 tests passed.`
 - `zig test zigux/tests/phase5_kobject_example_survey.zig`
   - `All 2 tests passed.`
 - the focused `zigux/tests/phase5_kobject_example.zig` replay remains part of the shipped `phase5_build.zig` packet rather than a standalone direct `zig test` command, so this note keeps that surface explicit without overstating a separate direct replay.
@@ -54,6 +54,7 @@ When a contributor updates `samples/zigux/kobject_example.zig` or its directly c
 - do the sample-backed survey note, `scripts/zigux/README.md`, `samples/zigux/README.md`, `zigux/tests/README.md`, `Documentation/zigux/README.md`, and `Documentation/zigux/review-checklist.md` still keep this landed Phase 5 kobject slice distinct from the later runtime starters while pointing reviewers back to the direct sample replay, the focused shared-build replay, the paired survey replay, and the shared `phase5_build.zig` entrypoint?
 - does `ownershipSummary()` still keep replay readiness plus the `cold`, `initialized`, `registered`, and `exited` lifecycle summary explicit without forcing reviewers to infer it from guards alone?
 - does the sample keep the pre-registration zero-active-attributes boundary, initialized-only abandonment path, registered teardown summary, and post-exit rejection boundaries explicit instead of leaving them to ad hoc test-body assembly?
+- do the direct sample self-checks still stay at six focused replays covering descriptor reviewability, shared dispatch plus parse failures, the pre-registration boundary, the ownership lifecycle replay, initialized-only abandonment, and post-exit rejection boundaries so ownership-and-lifetime drift is visible before the shared Phase 5 bundle runs?
 - if the sample behavior changes, is the manifest updated alongside the replay and teardown contract instead of leaving reviewers to infer the new boundary from code alone?
 - do the docs and tests still say clearly that sysfs creation, `kernel_kobj` integration, uevents, and loadable module registration remain out of scope for this Phase 5 sample?
 
