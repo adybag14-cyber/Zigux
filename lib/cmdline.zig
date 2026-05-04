@@ -186,8 +186,10 @@ pub fn nextArg(args: []u8) NextArgResult {
         }
     }
 
-    var value_start: ?usize = null;
+    var has_value = false;
+    var value_start: usize = 0;
     if (equals_index != 0) {
+        has_value = true;
         current[equals_index] = 0;
         var value_index = equals_index + 1;
         if (value_index < current.len and current[value_index] == '"') {
@@ -206,17 +208,21 @@ pub fn nextArg(args: []u8) NextArgResult {
     const rest_start = start + index;
     if (rest_start < args.len and args[rest_start] != 0) {
         args[rest_start] = 0;
+        const param = cStringPrefix(current);
+        const value = if (has_value) cStringPrefix(current[value_start..]) else null;
         return .{
             .rest = skipSpaces(args[rest_start + 1 ..]),
-            .param = cStringPrefix(current),
-            .value = if (value_start) |value_offset| cStringPrefix(current[value_offset..]) else null,
+            .param = param,
+            .value = value,
         };
     }
 
+    const param = cStringPrefix(current);
+    const value = if (has_value) cStringPrefix(current[value_start..]) else null;
     return .{
         .rest = skipSpaces(args[rest_start..]),
-        .param = cStringPrefix(current),
-        .value = if (value_start) |value_offset| cStringPrefix(current[value_offset..]) else null,
+        .param = param,
+        .value = value,
     };
 }
 
@@ -617,6 +623,22 @@ test "nextArg preserves leading equals sentinels and trims trailing spaces" {
     try std.testing.expectEqualStrings("", cStringPrefix(spaced.rest));
 }
 
+test "nextArg keeps explicit empty values as empty strings" {
+    var bare_empty = [_]u8{ 'm', 'o', 'd', 'e', '=', 0 };
+    const bare = nextArg(bare_empty[0..]);
+    try std.testing.expectEqualStrings("mode", bare.param);
+    try std.testing.expect(bare.value != null);
+    try std.testing.expectEqualStrings("", bare.value.?);
+    try std.testing.expectEqualStrings("", cStringPrefix(bare.rest));
+
+    var quoted_empty = [_]u8{ 'm', 'o', 'd', 'e', '=', '"', '"', 0 };
+    const quoted = nextArg(quoted_empty[0..]);
+    try std.testing.expectEqualStrings("mode", quoted.param);
+    try std.testing.expect(quoted.value != null);
+    try std.testing.expectEqualStrings("", quoted.value.?);
+    try std.testing.expectEqualStrings("", cStringPrefix(quoted.rest));
+}
+
 test "nextArg rewrites split delimiters in place and keeps slices in the caller buffer" {
     var input = [_]u8{ 'r', 'o', 'o', 't', '=', '"', '/', 'd', 'e', 'v', '/', 's', 'd', 'a', ' ', '1', '"', ' ', 'r', 'o', 0 };
     const parsed = nextArg(input[0..]);
@@ -695,8 +717,8 @@ test "getOption matches leading-integer pointer advance from the Linux KUnit cor
         .{ .input = "37''", .expected_rc = 1, .expected_rest = "''" },
         .{ .input = "37\"\",", .expected_rc = 1, .expected_rest = "\"\"," },
         .{ .input = "37\",\"", .expected_rc = 1, .expected_rest = "\",\"" },
-        .{ .input = "37-\"\"", .expected_rc = 3, .expected_rest = "-\"\"" },
         .{ .input = "37\"", .expected_rc = 1, .expected_rest = "\"" },
+        .{ .input = "37-\"\"", .expected_rc = 3, .expected_rest = "-\"\"" },
     };
 
     for (cases) |case| {
