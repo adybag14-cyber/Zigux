@@ -31,7 +31,10 @@ SURVEY_EXACT_LINE_COUNTS = {
 }
 
 SCRIPTS_README_EXACT_LINE_COUNTS = {
+    "- `check-phase14-docs-root-smoke-summary.py --self-test` and `check-phase14-docs-root-smoke-summary.py` keep the docs-root Phase 14 smoke summary and the shared smoke survey fail-closed around the same validator-backed `phase14-validate`, focused `phase14-smoke`, and study-only reviewability wording before the broader shared validator runs.": 1,
     "- `make -C zigux phase14-validate`, `make -C zigux phase14-smoke`, `zig build phase14-smoke --build-file zigux/tests/phase14_build.zig --summary all`, `zig build test --build-file zigux/tests/phase14_build.zig --summary all`, and `make -C zigux phase14` are the validator-first, focused wrapper, direct focused shard, shared full-bundle, and convenience entrypoints for the current study-only four-anchor packet, while the anchor-local manifests and survey notes keep the ready-next versus blocked posture explicit without widening into new bridge or deep-core claims.": 1,
+    "- `Documentation/zigux/phase14-release-boundary-survey.md`, `Documentation/zigux/phase14-end-to-end-smoke-survey.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/freeze-map.md`, `zigux/tests/phase14_end_to_end_smoke_manifest.json`, and `zigux/tests/phase14_end_to_end_smoke_survey.zig` keep the exact rollback threshold, automatic return-to-blocked trigger list, and ZAR-to-product transfer rationale visible from the docs root rather than relying on run memory.": 1,
+    "- attached-toolchain fallback commands stay explicit in the scripts index too: `make -C zigux phase14-validate PYTHON=python3 ZIG=<attached-zig-path>`, `make -C zigux phase14-smoke ZIG=<attached-zig-path>`, `make -C zigux phase14-test ZIG=<attached-zig-path>`, and `make -C zigux phase14 ZIG=<attached-zig-path>`.": 1,
 }
 
 RELEASE_BOUNDARY_LINES = [
@@ -114,7 +117,10 @@ Phase 14 notes
 
     scripts_readme_text = """
 Phase 14 flow
+- `check-phase14-docs-root-smoke-summary.py --self-test` and `check-phase14-docs-root-smoke-summary.py` keep the docs-root Phase 14 smoke summary and the shared smoke survey fail-closed around the same validator-backed `phase14-validate`, focused `phase14-smoke`, and study-only reviewability wording before the broader shared validator runs.
 - `make -C zigux phase14-validate`, `make -C zigux phase14-smoke`, `zig build phase14-smoke --build-file zigux/tests/phase14_build.zig --summary all`, `zig build test --build-file zigux/tests/phase14_build.zig --summary all`, and `make -C zigux phase14` are the validator-first, focused wrapper, direct focused shard, shared full-bundle, and convenience entrypoints for the current study-only four-anchor packet, while the anchor-local manifests and survey notes keep the ready-next versus blocked posture explicit without widening into new bridge or deep-core claims.
+- `Documentation/zigux/phase14-release-boundary-survey.md`, `Documentation/zigux/phase14-end-to-end-smoke-survey.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/freeze-map.md`, `zigux/tests/phase14_end_to_end_smoke_manifest.json`, and `zigux/tests/phase14_end_to_end_smoke_survey.zig` keep the exact rollback threshold, automatic return-to-blocked trigger list, and ZAR-to-product transfer rationale visible from the docs root rather than relying on run memory.
+- attached-toolchain fallback commands stay explicit in the scripts index too: `make -C zigux phase14-validate PYTHON=python3 ZIG=<attached-zig-path>`, `make -C zigux phase14-smoke ZIG=<attached-zig-path>`, `make -C zigux phase14-test ZIG=<attached-zig-path>`, and `make -C zigux phase14 ZIG=<attached-zig-path>`.
 """.strip()
 
     survey_text = """
@@ -170,7 +176,7 @@ phase14: phase14-validate phase14-test
         release_boundary_text,
         makefile_text,
     )
-    bad = validate_phase14_summary_surfaces(
+    missing_entrypoint = validate_phase14_summary_surfaces(
         docs_root_text,
         scripts_readme_text.replace(
             "`zig build phase14-smoke --build-file zigux/tests/phase14_build.zig --summary all`, ", "", 1
@@ -179,12 +185,31 @@ phase14: phase14-validate phase14-test
         release_boundary_text,
         makefile_text,
     )
-    if good or not bad:
+    missing_docs_packet = validate_phase14_summary_surfaces(
+        docs_root_text,
+        scripts_readme_text.replace(
+            "- `Documentation/zigux/phase14-release-boundary-survey.md`, `Documentation/zigux/phase14-end-to-end-smoke-survey.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/freeze-map.md`, `zigux/tests/phase14_end_to_end_smoke_manifest.json`, and `zigux/tests/phase14_end_to_end_smoke_survey.zig` keep the exact rollback threshold, automatic return-to-blocked trigger list, and ZAR-to-product transfer rationale visible from the docs root rather than relying on run memory.\n",
+            "",
+            1,
+        ),
+        survey_text,
+        release_boundary_text,
+        makefile_text,
+    )
+    duplicate_attached_toolchain = validate_phase14_summary_surfaces(
+        docs_root_text,
+        scripts_readme_text
+        + "\n- attached-toolchain fallback commands stay explicit in the scripts index too: `make -C zigux phase14-validate PYTHON=python3 ZIG=<attached-zig-path>`, `make -C zigux phase14-smoke ZIG=<attached-zig-path>`, `make -C zigux phase14-test ZIG=<attached-zig-path>`, and `make -C zigux phase14 ZIG=<attached-zig-path>`.",
+        survey_text,
+        release_boundary_text,
+        makefile_text,
+    )
+    if good or not missing_entrypoint or not missing_docs_packet or not duplicate_attached_toolchain:
         print("PHASE14_DOCS_ROOT_SMOKE_SUMMARY_SELF_TEST=fail")
         return 1
 
     print("PHASE14_DOCS_ROOT_SMOKE_SUMMARY_SELF_TEST=pass")
-    print("PHASE14_DOCS_ROOT_SMOKE_SUMMARY_SELF_TEST_CASE_COUNT=2")
+    print("PHASE14_DOCS_ROOT_SMOKE_SUMMARY_SELF_TEST_CASE_COUNT=4")
     return 0
 
 
