@@ -13,6 +13,7 @@ LAYOUT_ASSERT_CHECKER_PATH = "scripts/zigux/check-phase11-layout-assert-surface.
 CHECKER_PATH = "scripts/zigux/check-phase11-hvc-cleanup-alignment.py"
 SHARED_REPLAY_CONTRACT_CHECKER_PATH = "scripts/zigux/check-phase11-shared-replay-contract.py"
 HEADER_BOUNDARY_PACKET_CHECKER_PATH = "scripts/zigux/check-phase11-header-boundary-packet.py"
+VALIDATOR_PATH = "scripts/zigux/validate-phase11.py"
 MAKEFILE_PATH = "zigux/Makefile"
 WORKFLOW_PATH = ".github/workflows/zigux-bootstrap.yml"
 
@@ -84,6 +85,7 @@ def validate(root: Path) -> list[str]:
         CHECKER_PATH,
         SHARED_REPLAY_CONTRACT_CHECKER_PATH,
         HEADER_BOUNDARY_PACKET_CHECKER_PATH,
+        VALIDATOR_PATH,
         MAKEFILE_PATH,
         WORKFLOW_PATH,
     ]:
@@ -161,6 +163,10 @@ def clone_fixture_root(destination_root: Path) -> None:
     header_boundary_packet_checker_target = destination_root / HEADER_BOUNDARY_PACKET_CHECKER_PATH
     header_boundary_packet_checker_target.parent.mkdir(parents=True, exist_ok=True)
     header_boundary_packet_checker_target.write_text("#!/usr/bin/env python3\nprint('placeholder')\n", encoding="utf-8")
+
+    validator_target = destination_root / VALIDATOR_PATH
+    validator_target.parent.mkdir(parents=True, exist_ok=True)
+    validator_target.write_text("#!/usr/bin/env python3\nprint('placeholder')\n", encoding="utf-8")
 
     makefile_target = destination_root / MAKEFILE_PATH
     makefile_target.parent.mkdir(parents=True, exist_ok=True)
@@ -527,9 +533,18 @@ def run_self_test() -> int:
             tmp_root,
             f"missing:{HEADER_BOUNDARY_PACKET_CHECKER_PATH}",
         )
+        clone_fixture_root(tmp_root)
+
+        validator_path = tmp_root / VALIDATOR_PATH
+        validator_path.unlink()
+        expect_missing(
+            "validator_file_presence",
+            tmp_root,
+            f"missing:{VALIDATOR_PATH}",
+        )
 
     print("PHASE11_HVC_VALIDATION_FLOW_SELF_TEST=pass")
-    print("PHASE11_HVC_VALIDATION_FLOW_SELF_TEST_CASE_COUNT=18")
+    print("PHASE11_HVC_VALIDATION_FLOW_SELF_TEST_CASE_COUNT=19")
     return 0
 
 
