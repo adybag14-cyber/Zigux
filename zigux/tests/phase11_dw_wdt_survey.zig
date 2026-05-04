@@ -40,6 +40,16 @@ const SharedManifest = struct {
     gaps: []const Gap,
 };
 
+const BuildInventory = struct {
+    shared_split_replays: []const SharedReplay,
+    shared_adjunct_replays: []const SharedReplay,
+};
+
+const SharedReplay = struct {
+    @"test": []const u8,
+    path: []const u8,
+};
+
 fn findGap(manifest: Manifest, id: []const u8) ?Gap {
     for (manifest.gaps) |gap| {
         if (std.mem.eql(u8, gap.id, id)) return gap;
@@ -155,6 +165,18 @@ test "phase11 dw_wdt survey manifest and validation matrix record the landed lif
     );
     defer std.testing.allocator.free(phase11_build);
 
+    const build_inventory_json = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "zigux/tests/fixtures/phase11_build_inventory.json",
+        std.testing.allocator,
+        .limited(16 * 1024),
+    );
+    defer std.testing.allocator.free(build_inventory_json);
+
+    const parsed_inventory = try std.json.parseFromSlice(BuildInventory, std.testing.allocator, build_inventory_json, .{});
+    defer parsed_inventory.deinit();
+    const build_inventory = parsed_inventory.value;
+
     const parsed = try std.json.parseFromSlice(Manifest, std.testing.allocator, manifest_json, .{});
     defer parsed.deinit();
 
@@ -266,6 +288,13 @@ test "phase11 dw_wdt survey manifest and validation matrix record the landed lif
     try std.testing.expect(std.mem.indexOf(u8, phase11_build, "test_step.dependOn(&run_phase11_dw_wdt_suspend_resume_tests.step);") != null);
     try std.testing.expect(std.mem.indexOf(u8, phase11_build, "test_step.dependOn(&run_phase11_dw_wdt_remove_idle_split_tests.step);") != null);
     try std.testing.expect(std.mem.indexOf(u8, phase11_build, "test_step.dependOn(&run_phase11_dw_wdt_survey_tests.step);") != null);
+
+    try std.testing.expectEqual(@as(usize, 1), build_inventory.shared_adjunct_replays.len);
+    try std.testing.expectEqualStrings("phase11-dw-wdt-suspend-resume-tests", build_inventory.shared_adjunct_replays[0].@"test");
+    try std.testing.expectEqualStrings("zigux/tests/phase11_dw_wdt_suspend_resume.zig", build_inventory.shared_adjunct_replays[0].path);
+    try std.testing.expectEqual(@as(usize, 3), build_inventory.shared_split_replays.len);
+    try std.testing.expectEqualStrings("phase11-dw-wdt-remove-idle-split-tests", build_inventory.shared_split_replays[0].@"test");
+    try std.testing.expectEqualStrings("zigux/tests/phase11_dw_wdt_remove_idle_split.zig", build_inventory.shared_split_replays[0].path);
 
     var starter_landed_count: usize = 0;
     var ready_next_count: usize = 0;
