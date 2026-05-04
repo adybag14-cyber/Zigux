@@ -65,7 +65,7 @@ TARGETS = {
     ),
     "scripts_root_phase1_packet_alignment_count": (
         "scripts/zigux/README.md",
-        "- `Documentation/zigux/README.md`, `Documentation/zigux/phase1-closure.md`, `scripts/zigux/validate-phase1.py`, `scripts/zigux/validate-phase1-closure.py`, `zigux/tests/fixtures/phase1_helper_manifest.json`, `zigux/tests/phase1_helpers.zig`, `zigux/tests/phase1_bench.zig`, `zigux/Makefile`, and `.github/workflows/zigux-bootstrap.yml` stay aligned as the bounded Phase 1 helper inventory and validator-first replay packet.",
+        "- `Documentation/zigux/README.md`, `Documentation/zigux/phase1-closure.md`, `Documentation/zigux/phase1-tests-root-review-companion.md`, `scripts/zigux/validate-phase1.py`, `scripts/zigux/validate-phase1-closure.py`, `zigux/tests/fixtures/phase1_helper_manifest.json`, `zigux/tests/phase1_helpers.zig`, `zigux/tests/phase1_bench.zig`, `zigux/Makefile`, and `.github/workflows/zigux-bootstrap.yml` stay aligned as the bounded Phase 1 helper inventory and validator-first replay packet.",
         1,
     ),
     "scripts_root_phase1_review_hooks_count": (
