@@ -12,6 +12,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 C_HARNESS = ROOT / "zigux" / "tests" / "fixtures" / "phase6_bsearch_c_harness.c"
+HELPER_SOURCE = ROOT / "lib" / "bsearch.zig"
 ZIG_RUNNER = ROOT / "zigux" / "tests" / "phase6_bsearch_c_parity.zig"
 EXPECTED_SORTED_LINES = sorted(
     [
@@ -84,7 +85,7 @@ def build_zig_build_text() -> str:
             const optimize = b.standardOptimizeOption(.{{}});
 
             const bsearch_module = b.createModule(.{{
-                .root_source_file = .{{ .cwd_relative = \"{ROOT / 'lib' / 'bsearch.zig'}\" }},
+                .root_source_file = .{{ .cwd_relative = \"{HELPER_SOURCE}\" }},
                 .target = target,
                 .optimize = optimize,
             }});
@@ -167,6 +168,11 @@ def run_self_test() -> int:
         "missing harness: /tmp/phase6-missing-harness.c",
     )
     expect_system_exit(
+        "missing_helper_source",
+        lambda: validate_required_path(Path("/tmp/phase6-missing-bsearch.zig"), "helper source"),
+        "missing helper source: /tmp/phase6-missing-bsearch.zig",
+    )
+    expect_system_exit(
         "missing_runner",
         lambda: validate_required_path(Path("/tmp/phase6-missing-runner.zig"), "runner"),
         "missing runner: /tmp/phase6-missing-runner.zig",
@@ -187,7 +193,7 @@ def run_self_test() -> int:
     assert_equal(
         "build_text_paths_and_failure_aggregation",
         'root_module.addImport("bsearch", bsearch_module);' in build_text
-        and str(ROOT / "lib" / "bsearch.zig") in build_text
+        and str(HELPER_SOURCE) in build_text
         and str(ZIG_RUNNER) in build_text
         and len(EXPECTED_SORTED_LINES) == 29
         and descending_runtime_lines.issubset(EXPECTED_SORTED_LINES)
@@ -231,7 +237,7 @@ def run_self_test() -> int:
         "actual=['u32-hit\\t3\\t0', 'runtime-raw-hit\\t34\\tnull']",
     )
     print("PHASE6_BSEARCH_C_PARITY_SELF_TEST=pass")
-    print("PHASE6_BSEARCH_C_PARITY_SELF_TEST_CASE_COUNT=6")
+    print("PHASE6_BSEARCH_C_PARITY_SELF_TEST_CASE_COUNT=7")
     return 0
 
 
@@ -248,6 +254,7 @@ def main() -> int:
     cc = require_tool("cc", "CC")
 
     validate_required_path(C_HARNESS, "harness")
+    validate_required_path(HELPER_SOURCE, "helper source")
     validate_required_path(ZIG_RUNNER, "runner")
 
     out_dir = ROOT / ".zigux-cache" / "phase6-bsearch-c-parity"
