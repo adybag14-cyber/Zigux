@@ -12,6 +12,7 @@ This document tracks the bounded Phase 10 survey lane around `drivers/virtio/vir
 - product boundary:
   - `zigux/tests/phase10_virtio_input_manifest.json`
   - `zigux/tests/phase10_virtio_input_survey.zig`
+  - `zigux/tests/phase10_virtio_input_registration_blocker_build.zig`
   - `zigux/tests/phase10_build.zig`
   - `Documentation/zigux/phase10-virtio-input-survey.md`
 
@@ -108,7 +109,7 @@ The direct shared validator now appears here explicitly because the manifest-bac
 - `make -C zigux phase10`
 
 5. run the dedicated registration blocker replay
-- `zig test zigux/tests/phase10_virtio_input_registration_blocker.zig`
+- `zig build test --build-file zigux/tests/phase10_virtio_input_registration_blocker_build.zig --summary all`
 
 This keeps the input survey note aligned with the shared closure packet's exact test route instead of implying the direct build replay and combined convenience target are the only executable review surfaces for the current input packet.
 
