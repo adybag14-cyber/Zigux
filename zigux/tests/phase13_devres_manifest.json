@@ -27,7 +27,10 @@
     "preexisting_devres_dma_coherent_zig_present": true,
     "preexisting_phase13_devres_dma_coherent_test_present": true,
     "preexisting_phase13_devres_iounmap_reviewability_present": true,
-    "preexisting_phase13_devres_iomap_reviewability_present": true
+    "preexisting_phase13_devres_iomap_reviewability_present": true,
+    "preexisting_devres_scatterlist_zig_present": true,
+    "preexisting_phase13_devres_scatterlist_test_present": true,
+    "preexisting_phase13_devres_scatterlist_slice_present": true
   },
   "gaps": [
     {
