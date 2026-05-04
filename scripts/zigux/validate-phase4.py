@@ -146,6 +146,13 @@ BITMAP_GATE_EVIDENCE_MARKERS = [
     "the refreshed bitmap row still treats the 115-bit fill as resolved parity rather than an open survey-only mismatch",
 ]
 
+ARTIFACT_DIFF_NOTE_MARKERS = [
+    "ARTIFACT_DIFF_SELF_TEST_CASE_COUNT=18",
+    "ARTIFACT_DIFF_CONTRACT_BASE_CASE_COUNT=21",
+    "ARTIFACT_DIFF_CONTRACT_REPEAT_CASE_COUNT=4",
+    "ARTIFACT_DIFF_CONTRACT_CASE_COUNT=25",
+]
+
 
 def read_text(root: Path, rel: str) -> str:
     return (root / rel).read_text(encoding="utf-8")
@@ -165,6 +172,7 @@ def missing_text(text: str, prefix: str, markers: list[str]) -> list[str]:
 
 def validate_root(root: Path) -> list[str]:
     missing = [f"file:{p}" for p in REQUIRED_FILES if not (root / p).exists()]
+    artifact_diff_note = read_text(root, "Documentation/zigux/artifact-diff.md")
     makefile = read_text(root, "zigux/Makefile")
     workflow = read_text(root, ".github/workflows/zigux-bootstrap.yml")
     matrix = read_text(root, "Documentation/zigux/phase4-validation-matrix.md")
@@ -184,6 +192,7 @@ def validate_root(root: Path) -> list[str]:
             missing.append(f"make:{line}")
 
     missing.extend(missing_text(workflow, "workflow", ["Validate Phase 4 diff gates", "Run Phase 4 diff tests"]))
+    missing.extend(missing_text(artifact_diff_note, "artifact_diff_note", ARTIFACT_DIFF_NOTE_MARKERS))
     missing.extend(missing_text(build, "build", BUILD_MARKERS))
     missing.extend(missing_text(matrix, "matrix", MATRIX_MARKERS))
     missing.extend(missing_text(matrix, "matrix_bitmap", BITMAP_MATRIX_MARKERS))
@@ -242,7 +251,10 @@ def write_fixture_tree(root: Path) -> None:
         "scripts/zigux/check-phase4-kprobe-example-packet.py": "# ok\n",
         "scripts/zigux/check-phase4-workflow-route-counts.py": "# ok\n",
         "scripts/zigux/validate-phase4.py": "# placeholder\n",
-        "Documentation/zigux/artifact-diff.md": "Current Phase 4 use\n",
+        "Documentation/zigux/artifact-diff.md": "\n".join(
+            ["Current Phase 4 use", *ARTIFACT_DIFF_NOTE_MARKERS]
+        )
+        + "\n",
         "Documentation/zigux/phase4-validation-matrix.md": "\n".join(MATRIX_MARKERS + BITMAP_MATRIX_MARKERS) + "\n",
         "Documentation/zigux/README.md": "\n".join(README_MARKERS + ATOMIC64_DOCS_README_MARKERS) + "\n",
         "scripts/zigux/README.md": "\n".join(README_MARKERS[:-1] + ATOMIC64_SCRIPTS_README_MARKERS) + "\n",
@@ -377,6 +389,21 @@ def run_self_test() -> int:
         ), missing
 
         write_fixture_tree(root)
+        artifact_diff_note = root / "Documentation/zigux/artifact-diff.md"
+        artifact_diff_note.write_text(
+            artifact_diff_note.read_text(encoding="utf-8").replace(
+                "ARTIFACT_DIFF_CONTRACT_CASE_COUNT=25\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        missing = validate_root(root)
+        assert (
+            "artifact_diff_note:ARTIFACT_DIFF_CONTRACT_CASE_COUNT=25" in missing
+        ), missing
+
+        write_fixture_tree(root)
         gate_evidence = root / "Documentation/zigux/phase4-gate-evidence.md"
         gate_evidence.write_text(
             gate_evidence.read_text(encoding="utf-8").replace(
@@ -458,6 +485,7 @@ def required_marker_count() -> int:
         + len(GATE_EVIDENCE_TARGETS)
         + len(ATOMIC64_GATE_EVIDENCE_MARKERS)
         + len(BITMAP_GATE_EVIDENCE_MARKERS)
+        + len(ARTIFACT_DIFF_NOTE_MARKERS)
     )
 
 
