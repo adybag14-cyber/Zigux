@@ -285,7 +285,7 @@ test "phase 5 kretprobe contributor docs stay aligned with the shipped review su
     try expectContains(survey_note, "zig test samples/zigux/kretprobe_example.zig");
     try expectContains(survey_note, "All 1 tests passed.");
     try expectContains(survey_note, "zig test zigux/tests/phase5_kretprobe_example_survey.zig");
-    try expectContains(survey_note, "Build Summary: 17/17 steps succeeded; 28/28 tests passed");
+    try expectContains(survey_note, "Build Summary: 18/18 steps succeeded; 29/29 tests passed");
     try expectContains(survey_note, "phase5-kretprobe-example-tests 5 pass (5 total)");
     try expectContains(survey_note, "phase5-kretprobe-example-survey-tests 2 pass (2 total)");
     try expectContains(survey_note, "register_kretprobe()");
