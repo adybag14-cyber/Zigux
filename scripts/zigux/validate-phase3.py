@@ -40,6 +40,12 @@ SURVEY_VALIDATION_SCRIPTS = (
         "missing_layout_contract_marker:PHASE3_RBTREE_SHARED_LAYOUT_CONTRACT=zigux_rbtree_root_view-reused-unchanged-in-shared-phase3-abi-packet",
     ),
     (
+        "check-phase3-tests-root-companion.py",
+        "PHASE3_TESTS_ROOT_COMPANION=fail",
+        "tests-root-companion-gate",
+        'manifest:"scripts/zigux/check-phase3-tests-root-companion.py"',
+    ),
+    (
         "validate-phase3-export-uapi-survey.py",
         "PHASE3_EXPORT_UAPI_SURVEY=fail",
         "export-uapi-survey-gate",
