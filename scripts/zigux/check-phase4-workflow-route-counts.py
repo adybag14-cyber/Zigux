@@ -7,7 +7,7 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[2]
-SELF_TEST_CASE_COUNT = 19
+SELF_TEST_CASE_COUNT = 21
 
 WORKFLOW_PATH = Path(".github/workflows/zigux-bootstrap.yml")
 MAKEFILE_PATH = Path("zigux/Makefile")
@@ -38,6 +38,7 @@ REQUIRED_MAKEFILE_MARKERS = [
     "phase4-kprobe-example-survey:",
     "phase4-perf-baseline-survey:",
     "phase4-bitmap-diff:",
+    "phase4-bitmap-bench:",
     "phase4: phase4-validate phase4-test",
 ]
 
@@ -49,6 +50,7 @@ REQUIRED_MAKEFILE_COUNTS = {
     "\tcd $(ZIGUX_ROOT) && $(ZIG) build phase4-kprobe-example-survey --build-file zigux/tests/phase4_build.zig": 1,
     "\tcd $(ZIGUX_ROOT) && $(ZIG) build phase4-perf-baseline-survey --build-file zigux/tests/phase4_build.zig": 1,
     "\tcd $(ZIGUX_ROOT) && $(ZIG) build phase4-bitmap-diff --build-file zigux/tests/phase4_build.zig": 1,
+    "\tcd $(ZIGUX_ROOT) && $(ZIG) build phase4-bitmap-bench --build-file zigux/tests/phase4_build.zig": 1,
 }
 
 REQUIRED_DOC_MARKERS = {
@@ -183,6 +185,8 @@ def build_fixture_tree(root: Path) -> None:
                 "\tcd $(ZIGUX_ROOT) && $(ZIG) build phase4-perf-baseline-survey --build-file zigux/tests/phase4_build.zig",
                 "phase4-bitmap-diff:",
                 "\tcd $(ZIGUX_ROOT) && $(ZIG) build phase4-bitmap-diff --build-file zigux/tests/phase4_build.zig",
+                "phase4-bitmap-bench:",
+                "\tcd $(ZIGUX_ROOT) && $(ZIG) build phase4-bitmap-bench --build-file zigux/tests/phase4_build.zig",
                 "phase4: phase4-validate phase4-test",
             ]
         )
@@ -507,6 +511,35 @@ def run_self_test() -> int:
             expect_contains(
                 validate(root),
                 "scripts_readme_count:`phase4-bitmap-diff-tests`:expected=1:actual=2",
+            )
+            count += 1
+
+            build_fixture_tree(root)
+            makefile = root / MAKEFILE_PATH
+            makefile.write_text(
+                makefile.read_text(encoding="utf-8").replace(
+                    "phase4-bitmap-bench:\n",
+                    "",
+                    1,
+                ),
+                encoding="utf-8",
+            )
+            expect_contains(
+                validate(root),
+                "makefile_marker:phase4-bitmap-bench:",
+            )
+            count += 1
+
+            build_fixture_tree(root)
+            makefile = root / MAKEFILE_PATH
+            makefile.write_text(
+                makefile.read_text(encoding="utf-8")
+                + "\tcd $(ZIGUX_ROOT) && $(ZIG) build phase4-bitmap-bench --build-file zigux/tests/phase4_build.zig\n",
+                encoding="utf-8",
+            )
+            expect_contains(
+                validate(root),
+                "makefile_count:\tcd $(ZIGUX_ROOT) && $(ZIG) build phase4-bitmap-bench --build-file zigux/tests/phase4_build.zig:expected=1:actual=2",
             )
             count += 1
 
