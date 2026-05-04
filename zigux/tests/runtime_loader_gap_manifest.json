@@ -160,6 +160,18 @@
       "role": "keeps the shared loader-stage vocabulary, the sample-side loader catalog, the trace-events scaffold boundary, and the shared runtime request surface fail-closed beside the same Phase 9 runtime-loader packet"
     },
     {
+      "id": "runtime-loader-commit-alignment-checker",
+      "kind": "validation",
+      "path": "scripts/zigux/check-phase9-runtime-loader-commit-alignment.py",
+      "role": "keeps the surveyed-commit alignment between the loader-gap note, substrate-plan note, and manifest-backed catalog fail-closed before broader Phase 9 validation replays"
+    },
+    {
+      "id": "runtime-loader-non-owner-boundary-checker",
+      "kind": "validation",
+      "path": "scripts/zigux/check-phase9-loader-non-owner-boundary.py",
+      "role": "keeps the Phase 2 config bridges and Phase 3 export-boundary references explicit as non-owner surfaces inside the same runtime-loader packet"
+    },
+    {
       "id": "runtime-loader-review-checklist",
       "kind": "governance",
       "path": "Documentation/zigux/review-checklist.md",
@@ -232,6 +244,14 @@
     {
       "surface": "scripts/zigux/check-phase9-loader-substrate-plan.py",
       "owns": "fail-closed checker coverage for the shared loader-stage vocabulary, the sample-side loader catalog, the trace-events scaffold boundary, and the shared runtime request surface"
+    },
+    {
+      "surface": "scripts/zigux/check-phase9-runtime-loader-commit-alignment.py",
+      "owns": "focused surveyed-commit alignment replay for the loader-gap note, substrate-plan note, and manifest-backed catalog"
+    },
+    {
+      "surface": "scripts/zigux/check-phase9-loader-non-owner-boundary.py",
+      "owns": "focused non-owner boundary replay for the Phase 2 config bridges and Phase 3 export-boundary references inside the shared runtime-loader packet"
     },
     {
       "surface": "Documentation/zigux/review-checklist.md",
