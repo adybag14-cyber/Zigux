@@ -89,7 +89,9 @@ The minimum agreement surface for that kind of change is:
 - `zigux/tests/phase11_build.zig`
 - `zigux/tests/fixtures/phase11_build_inventory.json`
 - `scripts/zigux/check-phase11-build-inventory.py`
+- `scripts/zigux/check-phase11-layout-assert-surface.py`
 - `scripts/zigux/check-phase11-hvc-validation-flow.py`
+- `scripts/zigux/check-phase11-hvc-cleanup-alignment.py`
 - `scripts/zigux/check-phase11-shared-replay-contract.py`
 - `scripts/zigux/check-phase11-header-boundary-packet.py`
 - `scripts/zigux/validate-phase11.py`
