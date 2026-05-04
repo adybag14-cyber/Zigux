@@ -319,9 +319,37 @@ def run_self_test() -> int:
 
         (root / SLICE_REL).write_text("\n".join((*REQUIRED_SLICE_MARKERS, *REQUIRED_SLICE_SNIPPETS)) + "\n", encoding="utf-8")
         missing_repo_rel = REQUIRED_REPO_PATHS[-1]
-        (root / missing_repo_rel).unlink()
+        missing_repo_path = root / missing_repo_rel
+        missing_repo_path.unlink()
         issues = validate(root)
         assert f"missing_repo_path:{missing_repo_rel}" in issues
+
+        missing_repo_path.write_text("// ok\n", encoding="utf-8")
+        missing_shared_lift_check_snippet = REQUIRED_SHARED_LIFT_CHECK_SNIPPETS[0]
+        (root / SHARED_LIFT_CHECK_REL).write_text(
+            "\n".join(REQUIRED_SHARED_LIFT_CHECK_SNIPPETS[1:]) + "\n",
+            encoding="utf-8",
+        )
+        issues = validate(root)
+        assert (
+            "missing_shared_lift_check_snippet:" + missing_shared_lift_check_snippet
+            in issues
+        )
+
+        (root / SHARED_LIFT_CHECK_REL).write_text(
+            "\n".join(REQUIRED_SHARED_LIFT_CHECK_SNIPPETS) + "\n",
+            encoding="utf-8",
+        )
+        missing_manifest_entry = REQUIRED_ABI_MANIFEST_ENTRIES[0]
+        (root / ABI_MANIFEST_REL).write_text(
+            "\n".join(REQUIRED_ABI_MANIFEST_ENTRIES[1:]) + "\n",
+            encoding="utf-8",
+        )
+        issues = validate(root)
+        assert (
+            "missing_abi_manifest_entry:" + missing_manifest_entry.strip('"')
+            in issues
+        )
 
         print("PHASE3_RBTREE_INTEROP_SURVEY_SELF_TEST=pass")
         return 0
