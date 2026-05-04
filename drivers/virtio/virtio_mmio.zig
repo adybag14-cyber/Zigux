@@ -59,6 +59,19 @@ pub const DeviceIdentitySummary = struct {
     device_present: bool,
 };
 
+pub const ProbePreflightSummary = struct {
+    anchor: []const u8,
+    magic_matches: bool,
+    version_supported: bool,
+    device_present: bool,
+    vendor_id_present: bool,
+    requires_legacy_guest_page_size: bool,
+    legacy_guest_page_size_register_ready: bool,
+    bounded_queue_register_window_ready: bool,
+    interrupt_ack_ready: bool,
+    ready_for_probe_handoff: bool,
+};
+
 pub const FeatureWindowSummary = struct {
     anchor: []const u8,
     selected_device_page: u32,
@@ -256,6 +269,38 @@ pub const VirtioMmioRegisterWindowLab = struct {
             .magic_matches = self.magic_value == expected_magic_value,
             .version_supported = self.version == legacy_transport_version or self.version == modern_transport_version,
             .device_present = self.device_id != 0,
+        };
+    }
+
+    pub fn probePreflightSummary(self: *const Self) ProbePreflightSummary {
+        const identity = self.deviceIdentitySummary();
+        const requires_legacy_guest_page_size = identity.version == legacy_transport_version;
+        const vendor_id_present = identity.vendor_id != 0;
+        const legacy_guest_page_size_register_ready = @intFromEnum(Register.guest_page_size) == 0x028;
+        const bounded_queue_register_window_ready = supported_queues != 0 and
+            @intFromEnum(Register.queue_num_max) == 0x034 and
+            @intFromEnum(Register.queue_ready) == 0x044;
+        const interrupt_ack_ready = @intFromEnum(Register.interrupt_status) == 0x060 and
+            @intFromEnum(Register.interrupt_ack) == 0x064 and
+            supported_interrupt_bits == (queue_interrupt_bit | config_interrupt_bit);
+
+        return .{
+            .anchor = identity.anchor,
+            .magic_matches = identity.magic_matches,
+            .version_supported = identity.version_supported,
+            .device_present = identity.device_present,
+            .vendor_id_present = vendor_id_present,
+            .requires_legacy_guest_page_size = requires_legacy_guest_page_size,
+            .legacy_guest_page_size_register_ready = legacy_guest_page_size_register_ready,
+            .bounded_queue_register_window_ready = bounded_queue_register_window_ready,
+            .interrupt_ack_ready = interrupt_ack_ready,
+            .ready_for_probe_handoff = identity.magic_matches and
+                identity.version_supported and
+                identity.device_present and
+                vendor_id_present and
+                (!requires_legacy_guest_page_size or legacy_guest_page_size_register_ready) and
+                bounded_queue_register_window_ready and
+                interrupt_ack_ready,
         };
     }
 
@@ -600,6 +645,35 @@ test "register enum keeps the bounded mmio offsets reviewable" {
     try std.testing.expectEqual(@as(u32, 0x0a4), @intFromEnum(Register.queue_used_high));
     try std.testing.expectEqual(@as(u32, 0x0fc), @intFromEnum(Register.config_generation));
     try std.testing.expectEqual(@as(u32, 0x100), @intFromEnum(Register.config));
+}
+
+test "phase10 virtio mmio summarizes bounded probe preflight without claiming lifecycle parity" {
+    var window = VirtioMmioRegisterWindowLab.init(.{ 0, 0 }, 0);
+
+    _ = window.seedTransportIdentity(expected_magic_value, legacy_transport_version, 0x1040, 0x1af4);
+    var summary = window.probePreflightSummary();
+    try std.testing.expectEqualStrings("drivers/virtio/virtio_mmio.c", summary.anchor);
+    try std.testing.expect(summary.magic_matches);
+    try std.testing.expect(summary.version_supported);
+    try std.testing.expect(summary.device_present);
+    try std.testing.expect(summary.vendor_id_present);
+    try std.testing.expect(summary.requires_legacy_guest_page_size);
+    try std.testing.expect(summary.legacy_guest_page_size_register_ready);
+    try std.testing.expect(summary.bounded_queue_register_window_ready);
+    try std.testing.expect(summary.interrupt_ack_ready);
+    try std.testing.expect(summary.ready_for_probe_handoff);
+
+    _ = window.seedTransportIdentity(0, 3, 0, 0);
+    summary = window.probePreflightSummary();
+    try std.testing.expect(!summary.magic_matches);
+    try std.testing.expect(!summary.version_supported);
+    try std.testing.expect(!summary.device_present);
+    try std.testing.expect(!summary.vendor_id_present);
+    try std.testing.expect(!summary.requires_legacy_guest_page_size);
+    try std.testing.expect(summary.legacy_guest_page_size_register_ready);
+    try std.testing.expect(summary.bounded_queue_register_window_ready);
+    try std.testing.expect(summary.interrupt_ack_ready);
+    try std.testing.expect(!summary.ready_for_probe_handoff);
 }
 
 test "phase10 virtio mmio reset clears driver-owned queue state and feature writes while preserving queue maxima" {
