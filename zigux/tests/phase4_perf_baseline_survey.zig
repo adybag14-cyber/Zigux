@@ -30,8 +30,10 @@ const PendingThresholdPlan = struct {
     gate_rollback_owner: []const u8,
     threshold_posture: []const u8,
     current_correctness_replay: []const u8,
+    threshold_ready_surface: []const u8,
     benchmark_command: []const u8,
     acceptable_limit: []const u8,
+    next_threshold_step: []const u8,
     status: []const u8,
     why_not_approved_yet: []const u8,
 };
@@ -235,6 +237,24 @@ test "phase4 perf baseline survey manifest keeps the current unapproved threshol
         const expected_placeholder = expectedUnapprovedPlaceholder(pending_plan.threshold_posture) orelse unreachable;
         try std.testing.expectEqualStrings(expected_placeholder, pending_plan.benchmark_command);
         try std.testing.expectEqualStrings(expected_placeholder, pending_plan.acceptable_limit);
+
+        if (std.mem.eql(u8, pending_plan.surface, "zigux/tests/atomic64_diff.zig")) {
+            try std.testing.expectEqualStrings(
+                "zigux/tests/runtime_atomic64_diff.zig keeps the post-selftest replay explicit for the current rollback gate",
+                pending_plan.threshold_ready_surface,
+            );
+            try std.testing.expect(std.mem.indexOf(u8, pending_plan.next_threshold_step, "broader atomic64 benchmark entrypoint") != null);
+            try std.testing.expect(std.mem.indexOf(u8, pending_plan.next_threshold_step, "benchmark command and one acceptable limit") != null);
+        } else if (std.mem.eql(u8, pending_plan.surface, "zigux/tests/bitmap_diff.zig")) {
+            try std.testing.expectEqualStrings(
+                "zigux/tests/bitmap_diff.zig exposes runThresholdReplay() as the deterministic bitmap threshold batch for future perf-baseline work",
+                pending_plan.threshold_ready_surface,
+            );
+            try std.testing.expect(std.mem.indexOf(u8, pending_plan.next_threshold_step, "isolated bitmap benchmark route") != null);
+            try std.testing.expect(std.mem.indexOf(u8, pending_plan.next_threshold_step, "benchmark command and one acceptable limit") != null);
+        } else {
+            return error.TestUnexpectedResult;
+        }
     }
 
     try std.testing.expectEqualStrings(
@@ -258,6 +278,10 @@ test "phase4 perf baseline survey manifest keeps the current unapproved threshol
         manifest.pending_threshold_plans[0].current_correctness_replay,
     );
     try std.testing.expectEqualStrings(
+        "zigux/tests/runtime_atomic64_diff.zig keeps the post-selftest replay explicit for the current rollback gate",
+        manifest.pending_threshold_plans[0].threshold_ready_surface,
+    );
+    try std.testing.expectEqualStrings(
         "pending_scope_widening",
         manifest.pending_threshold_plans[0].status,
     );
@@ -269,6 +293,8 @@ test "phase4 perf baseline survey manifest keeps the current unapproved threshol
         "unapproved_until_runtime_atomic64_scope_widens",
         manifest.pending_threshold_plans[0].acceptable_limit,
     );
+    try std.testing.expect(std.mem.indexOf(u8, manifest.pending_threshold_plans[0].next_threshold_step, "broader atomic64 benchmark entrypoint") != null);
+    try std.testing.expect(std.mem.indexOf(u8, manifest.pending_threshold_plans[0].next_threshold_step, "benchmark command and one acceptable limit") != null);
     try std.testing.expect(std.mem.indexOf(u8, manifest.pending_threshold_plans[0].why_not_approved_yet, "correctness-only coverage") != null);
     try std.testing.expectEqualStrings(
         "zigux/tests/bitmap_diff.zig",
@@ -291,6 +317,10 @@ test "phase4 perf baseline survey manifest keeps the current unapproved threshol
         manifest.pending_threshold_plans[1].current_correctness_replay,
     );
     try std.testing.expectEqualStrings(
+        "zigux/tests/bitmap_diff.zig exposes runThresholdReplay() as the deterministic bitmap threshold batch for future perf-baseline work",
+        manifest.pending_threshold_plans[1].threshold_ready_surface,
+    );
+    try std.testing.expectEqualStrings(
         "pending_bounded_benchmark",
         manifest.pending_threshold_plans[1].status,
     );
@@ -302,6 +332,8 @@ test "phase4 perf baseline survey manifest keeps the current unapproved threshol
         "unapproved_until_bitmap_gate_grows_beyond_bounded_correctness_checks",
         manifest.pending_threshold_plans[1].acceptable_limit,
     );
+    try std.testing.expect(std.mem.indexOf(u8, manifest.pending_threshold_plans[1].next_threshold_step, "isolated bitmap benchmark route") != null);
+    try std.testing.expect(std.mem.indexOf(u8, manifest.pending_threshold_plans[1].next_threshold_step, "benchmark command and one acceptable limit") != null);
     try std.testing.expect(std.mem.indexOf(u8, manifest.pending_threshold_plans[1].why_not_approved_yet, "correctness-first rollback packet") != null);
     try std.testing.expect(std.mem.indexOf(u8, manifest.pending_threshold_plans[1].why_not_approved_yet, "acceptable limit") != null);
 
@@ -476,12 +508,16 @@ test "phase4 perf baseline survey manifest keeps the current unapproved threshol
     try std.testing.expect(std.mem.indexOf(u8, phase4_gate_evidence, "pending threshold-plan record per shipped rollback gate") != null);
     try std.testing.expect(std.mem.indexOf(u8, phase4_gate_evidence, "make -C zigux phase4-runtime-atomic64-diff") != null);
     try std.testing.expect(std.mem.indexOf(u8, phase4_gate_evidence, "make -C zigux phase4-bitmap-diff") != null);
+    try std.testing.expect(std.mem.indexOf(u8, phase4_gate_evidence, "zigux/tests/runtime_atomic64_diff.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, phase4_gate_evidence, "runThresholdReplay()") != null);
     try std.testing.expect(std.mem.indexOf(u8, phase4_gate_evidence, "threshold_pending_until_runtime_atomic64_scope_widens") != null);
     try std.testing.expect(std.mem.indexOf(u8, phase4_gate_evidence, "pending_scope_widening") != null);
     try std.testing.expect(std.mem.indexOf(u8, phase4_gate_evidence, "unapproved_until_runtime_atomic64_scope_widens") != null);
     try std.testing.expect(std.mem.indexOf(u8, phase4_gate_evidence, "threshold_pending_until_bitmap_gate_grows_beyond_bounded_correctness_checks") != null);
     try std.testing.expect(std.mem.indexOf(u8, phase4_gate_evidence, "pending_bounded_benchmark") != null);
     try std.testing.expect(std.mem.indexOf(u8, phase4_gate_evidence, "unapproved_until_bitmap_gate_grows_beyond_bounded_correctness_checks") != null);
+    try std.testing.expect(std.mem.indexOf(u8, phase4_gate_evidence, "broader atomic64 benchmark entrypoint") != null);
+    try std.testing.expect(std.mem.indexOf(u8, phase4_gate_evidence, "isolated bitmap benchmark route") != null);
 
     var starter_landed_count: usize = 0;
     var ready_next_count: usize = 0;
@@ -550,6 +586,10 @@ test "phase4 perf baseline survey manifest keeps the current unapproved threshol
     try std.testing.expect(std.mem.indexOf(u8, phase4_matrix, "perf_thresholds_unapproved_until_bounded_phase4_benchmarks_land") != null);
     try std.testing.expect(std.mem.indexOf(u8, phase4_matrix, "threshold_pending_until_runtime_atomic64_scope_widens") != null);
     try std.testing.expect(std.mem.indexOf(u8, phase4_matrix, "threshold_pending_until_bitmap_gate_grows_beyond_bounded_correctness_checks") != null);
+    try std.testing.expect(std.mem.indexOf(u8, phase4_matrix, "zigux/tests/runtime_atomic64_diff.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, phase4_matrix, "runThresholdReplay()") != null);
+    try std.testing.expect(std.mem.indexOf(u8, phase4_matrix, "broader atomic64 benchmark entrypoint") != null);
+    try std.testing.expect(std.mem.indexOf(u8, phase4_matrix, "isolated bitmap benchmark route") != null);
     try std.testing.expect(std.mem.indexOf(u8, doc_readme, "phase4_perf_baseline_manifest.json") != null);
     try std.testing.expect(std.mem.indexOf(u8, doc_readme, "make -C zigux phase4-perf-baseline-survey") != null);
     try std.testing.expect(std.mem.indexOf(u8, doc_readme, "phase4-perf-baseline-survey-tests") != null);
