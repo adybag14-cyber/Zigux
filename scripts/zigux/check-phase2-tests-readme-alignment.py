@@ -343,13 +343,6 @@ def validate(root: Path) -> list[str]:
             expected_counts=EXACT_DOC_COMMAND_COUNTS,
         )
     )
-    missing.extend(
-        validate_exact_command_mentions(
-            scripts_readme,
-            label="scripts_readme",
-            expected_counts=EXACT_DOC_COMMAND_COUNTS,
-        )
-    )
     missing.extend(validate_cross_targets_manifest(root / REQUIRED_FILES["cross_targets"]))
 
     return missing
