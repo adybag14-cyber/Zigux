@@ -39,7 +39,7 @@
       "benchmark_command": "unapproved_until_bitmap_gate_grows_beyond_bounded_correctness_checks",
       "acceptable_limit": "unapproved_until_bitmap_gate_grows_beyond_bounded_correctness_checks",
       "status": "pending_bounded_benchmark",
-      "why_not_approved_yet": "The live bitmap gate still carries a bounded correctness-first rollback packet, so Phase 4 keeps correctness-only coverage until one isolated bitmap benchmark command and acceptable limit are reviewed."
+      "why_not_approved_yet": "The live bitmap gate still carries a bounded correctness-first rollback packet, and `zigux/tests/bitmap_diff.zig` now keeps one deterministic threshold replay batch ready for a future perf-baseline lane, so Phase 4 still holds benchmark-command and acceptable-limit approval until one isolated bitmap benchmark route is reviewed."
     }
   ],
   "survey_summary": {
@@ -76,7 +76,7 @@
       "status": "ready_next",
       "kind": "perf_command",
       "zigux_destination": "zigux/tests/bitmap_diff.zig",
-      "why_now": "The bitmap rollback gate is still correctness-only, so the next bounded same-lane step is one benchmark command plus one acceptable limit for the existing bitmap replay before Phase 4 claims perf coverage."
+      "why_now": "The bitmap rollback gate is still correctness-only, but it now carries a deterministic threshold replay batch that pins the current benchmark-ready loop to the shipped replay surface, so the next bounded same-lane step is still one isolated bitmap benchmark command plus one acceptable limit before Phase 4 claims perf coverage."
     }
   ]
 }
