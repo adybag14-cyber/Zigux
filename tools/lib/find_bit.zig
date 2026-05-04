@@ -441,6 +441,17 @@ test "single-word scans ignore matches that exist only beyond nbits" {
     try std.testing.expectEqual(@as(usize, nbits), findNextAndBit(&lhs, &rhs, nbits, 0));
 }
 
+test "small bitmap mask keeps in-range bits and clears exhausted starts" {
+    const nbits: usize = 12;
+    const tail_bit: usize = nbits - 1;
+
+    try std.testing.expectEqual(lastWordMask(nbits), smallBitmapMask(nbits, 0));
+    try std.testing.expectEqual(lastWordMask(nbits) & firstWordMask(3), smallBitmapMask(nbits, 3));
+    try std.testing.expectEqual(@as(Word, 1) << tail_bit, smallBitmapMask(nbits, tail_bit));
+    try std.testing.expectEqual(@as(Word, 0), smallBitmapMask(nbits, nbits));
+    try std.testing.expectEqual(@as(Word, 0), smallBitmapMask(0, 0));
+}
+
 test "word helpers keep linux-style mask and sizing boundaries" {
     try std.testing.expectEqual(@as(usize, 0), bitsToWords(0));
     try std.testing.expectEqual(@as(usize, 1), bitsToWords(1));
