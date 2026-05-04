@@ -14,6 +14,13 @@ fn ensureStoreOrder(comptime order: std.builtin.AtomicOrder) void {
     }
 }
 
+fn ensureCompareExchangeSuccessOrder(comptime order: std.builtin.AtomicOrder) void {
+    switch (order) {
+        .monotonic, .acquire, .release, .acq_rel, .seq_cst => {},
+        .unordered => @compileError("compareExchange success ordering must be monotonic or stricter"),
+    }
+}
+
 fn ensureCompareExchangeFailureOrder(comptime order: std.builtin.AtomicOrder) void {
     switch (order) {
         .unordered, .monotonic, .acquire, .seq_cst => {},
@@ -71,6 +78,7 @@ pub fn compareExchange(
     comptime success_order: std.builtin.AtomicOrder,
     comptime failure_order: std.builtin.AtomicOrder,
 ) ?T {
+    ensureCompareExchangeSuccessOrder(success_order);
     ensureCompareExchangeFailureOrder(failure_order);
     return @cmpxchgStrong(T, ptr, expected_value, new_value, success_order, failure_order);
 }
@@ -83,6 +91,7 @@ pub fn compareExchangeWeak(
     comptime success_order: std.builtin.AtomicOrder,
     comptime failure_order: std.builtin.AtomicOrder,
 ) ?T {
+    ensureCompareExchangeSuccessOrder(success_order);
     ensureCompareExchangeFailureOrder(failure_order);
     return @cmpxchgWeak(T, ptr, expected_value, new_value, success_order, failure_order);
 }
@@ -137,4 +146,14 @@ test "phase3 atomic wrappers accept valid non-seq-cst orderings" {
     var cmp: u32 = 3;
     try std.testing.expectEqual(@as(?u32, null), compareExchange(u32, &cmp, 3, 5, .acq_rel, .acquire));
     try std.testing.expectEqual(@as(u32, 5), cmp);
+
+    var monotonic_cmp: u32 = 5;
+    try std.testing.expectEqual(@as(?u32, null), compareExchange(u32, &monotonic_cmp, 5, 7, .monotonic, .monotonic));
+    try std.testing.expectEqual(@as(u32, 7), monotonic_cmp);
+
+    var weak_cmp: u32 = 7;
+    while (compareExchangeWeak(u32, &weak_cmp, 7, 11, .release, .monotonic)) |_| {
+        try std.testing.expectEqual(@as(u32, 7), weak_cmp);
+    }
+    try std.testing.expectEqual(@as(u32, 11), weak_cmp);
 }
