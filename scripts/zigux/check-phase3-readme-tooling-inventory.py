@@ -401,8 +401,12 @@ def run_self_test() -> int:
             ("duplicate_phase7_makefile_route_guard_failed", "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase7-argv-split-parity.py\n", "unexpected_makefile_live_route_count:phase7-validate::2:check-phase7-argv-split-parity.py"),
             ("duplicate_phase11_makefile_route_guard_failed", "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase11-shared-replay-contract.py\n", "unexpected_makefile_live_route_count:phase11-validate::2:check-phase11-shared-replay-contract.py"),
             ("duplicate_phase11_self_test_route_guard_failed", "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase11-shared-replay-contract.py --self-test\n", "unexpected_makefile_self_test_route_count:phase11-validate::2:check-phase11-shared-replay-contract.py"),
+            ("duplicate_phase13_libfs_self_test_route_guard_failed", "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase13-libfs-packet.py --self-test\n", "unexpected_makefile_self_test_route_count:phase13-validate::2:check-phase13-libfs-packet.py"),
+            ("duplicate_phase13_libfs_makefile_route_guard_failed", "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase13-libfs-packet.py\n", "unexpected_makefile_live_route_count:phase13-validate::2:check-phase13-libfs-packet.py"),
             ("duplicate_phase13_devres_self_test_route_guard_failed", "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase13-devres-packet.py --self-test\n", "unexpected_makefile_self_test_route_count:phase13-validate::2:check-phase13-devres-packet.py"),
             ("duplicate_phase13_makefile_route_guard_failed", "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase13-devres-packet.py\n", "unexpected_makefile_live_route_count:phase13-validate::2:check-phase13-devres-packet.py"),
+            ("duplicate_phase13_notifier_self_test_route_guard_failed", "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase13-notifier-packet.py --self-test\n", "unexpected_makefile_self_test_route_count:phase13-validate::2:check-phase13-notifier-packet.py"),
+            ("duplicate_phase13_notifier_makefile_route_guard_failed", "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase13-notifier-packet.py\n", "unexpected_makefile_live_route_count:phase13-validate::2:check-phase13-notifier-packet.py"),
             ("duplicate_phase13_release_validator_route_guard_failed", "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase13-release.py\n", "unexpected_makefile_live_route_count:phase13-validate::2:validate-phase13-release.py"),
         )
         for label, line, expected in makefile_cases:
@@ -492,7 +496,7 @@ def run_self_test() -> int:
         _assert_only(validate(root), [f"missing_repo_file:{tooling_packet_rels[-1]}"], "missing_repo_file_guard_failed")
 
     print("PHASE3_README_TOOLING_INVENTORY_SELF_TEST=pass")
-    print("PHASE3_README_TOOLING_INVENTORY_SELF_TEST_CASE_COUNT=25")
+    print("PHASE3_README_TOOLING_INVENTORY_SELF_TEST_CASE_COUNT=29")
     return 0
 
 
