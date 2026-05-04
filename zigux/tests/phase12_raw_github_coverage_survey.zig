@@ -8,6 +8,7 @@ const Anchor = struct {
     public_read_status: []const u8,
     raw_fallback_catalog_path: []const u8,
     raw_fallback_map_path: []const u8,
+    shared_tree_branch_raw_path: []const u8,
 };
 
 const Manifest = struct {
@@ -21,7 +22,9 @@ const Manifest = struct {
     commit_pinned_raw_fallback_map_count: usize,
     shared_tree_only_anchor_count: usize,
     shared_tree_readback_root_count: usize,
+    shared_tree_branch_raw_path_count: usize,
     shared_tree_readback_roots: []const []const u8,
+    shared_tree_branch_raw_paths: []const []const u8,
     anchors: []const Anchor,
 };
 
@@ -84,7 +87,9 @@ test "phase12 raw GitHub coverage survey keeps the roadmap-wide public-read spli
     try std.testing.expectEqual(@as(usize, 1), manifest.commit_pinned_raw_fallback_map_count);
     try std.testing.expectEqual(@as(usize, 2), manifest.shared_tree_only_anchor_count);
     try std.testing.expectEqual(@as(usize, 4), manifest.shared_tree_readback_root_count);
+    try std.testing.expectEqual(@as(usize, 2), manifest.shared_tree_branch_raw_path_count);
     try std.testing.expectEqual(@as(usize, 4), manifest.shared_tree_readback_roots.len);
+    try std.testing.expectEqual(@as(usize, 2), manifest.shared_tree_branch_raw_paths.len);
     try std.testing.expectEqual(@as(usize, 4), manifest.anchors.len);
 
     for ([_][]const u8{
@@ -96,9 +101,17 @@ test "phase12 raw GitHub coverage survey keeps the roadmap-wide public-read spli
         try std.testing.expectEqualStrings(expected_root, manifest.shared_tree_readback_roots[index]);
     }
 
+    for ([_][]const u8{
+        "https://raw.githubusercontent.com/adybag14-cyber/Zigux/master/drivers/net/virtio_net.c",
+        "https://raw.githubusercontent.com/adybag14-cyber/Zigux/master/tools/lib/bpf/libbpf.c",
+    }, 0..) |expected_raw_path, index| {
+        try std.testing.expectEqualStrings(expected_raw_path, manifest.shared_tree_branch_raw_paths[index]);
+    }
+
     var shared_tree_only_count: usize = 0;
     var commit_pinned_catalog_count: usize = 0;
     var commit_pinned_map_count: usize = 0;
+    var shared_tree_branch_raw_path_count: usize = 0;
     var saw_virtio_net = false;
     var saw_nvme_pci = false;
     var saw_virtio_scsi = false;
@@ -108,14 +121,18 @@ test "phase12 raw GitHub coverage survey keeps the roadmap-wide public-read spli
             shared_tree_only_count += 1;
             try std.testing.expectEqual(@as(usize, 0), anchor.raw_fallback_catalog_path.len);
             try std.testing.expectEqual(@as(usize, 0), anchor.raw_fallback_map_path.len);
+            try std.testing.expect(anchor.shared_tree_branch_raw_path.len != 0);
+            shared_tree_branch_raw_path_count += 1;
         } else if (std.mem.eql(u8, anchor.public_read_status, "commit_pinned_raw_catalog")) {
             commit_pinned_catalog_count += 1;
             try std.testing.expect(std.mem.indexOf(u8, anchor.raw_fallback_catalog_path, "virtio-scsi-raw-github-fallback-catalog.md") != null);
             try std.testing.expectEqual(@as(usize, 0), anchor.raw_fallback_map_path.len);
+            try std.testing.expectEqual(@as(usize, 0), anchor.shared_tree_branch_raw_path.len);
         } else if (std.mem.eql(u8, anchor.public_read_status, "commit_pinned_raw_map")) {
             commit_pinned_map_count += 1;
             try std.testing.expectEqual(@as(usize, 0), anchor.raw_fallback_catalog_path.len);
             try std.testing.expect(std.mem.indexOf(u8, anchor.raw_fallback_map_path, "nvme-pci-raw-github-fallback-map.md") != null);
+            try std.testing.expectEqual(@as(usize, 0), anchor.shared_tree_branch_raw_path.len);
         } else {
             return error.UnexpectedStatus;
         }
@@ -126,6 +143,10 @@ test "phase12 raw GitHub coverage survey keeps the roadmap-wide public-read spli
             try std.testing.expectEqualStrings("drivers/net/virtio_net.zig", anchor.roadmap_destination);
             try std.testing.expectEqualStrings("Documentation/zigux/phase12-virtio-net-survey.md", anchor.survey_note_path);
             try std.testing.expectEqualStrings("shared_tree_only", anchor.public_read_status);
+            try std.testing.expectEqualStrings(
+                "https://raw.githubusercontent.com/adybag14-cyber/Zigux/master/drivers/net/virtio_net.c",
+                anchor.shared_tree_branch_raw_path,
+            );
         }
 
         if (std.mem.eql(u8, anchor.id, "nvme_pci")) {
@@ -144,12 +165,17 @@ test "phase12 raw GitHub coverage survey keeps the roadmap-wide public-read spli
             try std.testing.expectEqualStrings("tools/lib/bpf/zigux_segments/", anchor.roadmap_destination);
             try std.testing.expectEqualStrings("Documentation/zigux/phase12-libbpf-segment-survey.md", anchor.survey_note_path);
             try std.testing.expectEqualStrings("shared_tree_only", anchor.public_read_status);
+            try std.testing.expectEqualStrings(
+                "https://raw.githubusercontent.com/adybag14-cyber/Zigux/master/tools/lib/bpf/libbpf.c",
+                anchor.shared_tree_branch_raw_path,
+            );
         }
     }
 
     try std.testing.expectEqual(@as(usize, 2), shared_tree_only_count);
     try std.testing.expectEqual(@as(usize, 1), commit_pinned_catalog_count);
     try std.testing.expectEqual(@as(usize, 1), commit_pinned_map_count);
+    try std.testing.expectEqual(@as(usize, 2), shared_tree_branch_raw_path_count);
     try std.testing.expect(saw_virtio_net);
     try std.testing.expect(saw_nvme_pci);
     try std.testing.expect(saw_virtio_scsi);
@@ -170,7 +196,10 @@ test "phase12 raw GitHub coverage survey keeps the roadmap-wide public-read spli
         "https://github.com/adybag14-cyber/Zigux/tree/master/tools/lib/bpf",
         "https://github.com/adybag14-cyber/Zigux/tree/master/Documentation/zigux",
         "https://github.com/adybag14-cyber/Zigux/tree/master/zigux/tests",
+        "https://raw.githubusercontent.com/adybag14-cyber/Zigux/master/drivers/net/virtio_net.c",
+        "https://raw.githubusercontent.com/adybag14-cyber/Zigux/master/tools/lib/bpf/libbpf.c",
         "PHASE12_SHARED_TREE_READBACK_ROOT_COUNT=4",
+        "PHASE12_SHARED_TREE_BRANCH_RAW_PATH_COUNT=2",
     }) |marker| {
         try std.testing.expect(std.mem.indexOf(u8, survey_note, marker) != null);
     }
