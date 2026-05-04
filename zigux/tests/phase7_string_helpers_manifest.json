@@ -6,7 +6,7 @@
     "lib/string_helpers.zig"
   ],
   "survey_summary": {
-    "preexisting_phase7_test_files": 1,
+    "preexisting_phase7_test_files": 2,
     "preexisting_phase7_fixture_modules": 1,
     "preexisting_phase7_build_present": true,
     "preexisting_phase7_doc_present": true,
