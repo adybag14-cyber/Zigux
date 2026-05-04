@@ -61,14 +61,21 @@ SHARED_CONTRACT_SNIPPETS = (
 SHARED_PACKET_SNIPPETS = {
     SHARED_ABI_TEST_REL: (
         "fn isRbtreeEmpty(view: abi.RbtreeRootView) bool {",
-        "const empty_root: abi.RbtreeRootView = .{",
-        "const cached_root: abi.RbtreeRootView = .{",
-        "const uncached_root: abi.RbtreeRootView = .{",
-        "try std.testing.expect(isCanonicalRbtreeRootView(uncached_root));",
+        "try std.testing.expect(isValidRbtreeRootView(uncached_root));",
+        "try std.testing.expect(hasRbtreeRoot(uncached_root));",
     ),
 }
 
 SHARED_PACKET_EXACT_ONCE_SNIPPETS = {
+    SHARED_ABI_TEST_REL: (
+        "// PHASE3_SHARED_RBTREE_SAMPLE_RECORDS=empty-root,cached-leftmost-root,uncached-root",
+        "const empty_root: abi.RbtreeRootView = .{",
+        "const cached_root: abi.RbtreeRootView = .{",
+        "const uncached_root: abi.RbtreeRootView = .{",
+        "try std.testing.expect(isCanonicalRbtreeRootView(empty_root));",
+        "try std.testing.expect(isCanonicalRbtreeRootView(cached_root));",
+        "try std.testing.expect(isCanonicalRbtreeRootView(uncached_root));",
+    ),
     SHARED_ABI_DUMP_REL: (
         'try writer.writeAll("},\\\"records\\\":{\\\"rbtree_empty_root\\\":{\\\"root_addr\\\":");',
         'try writer.writeAll(",\\\"reserved\\\":0},\\\"rbtree_cached_leftmost_root\\\":{\\\"root_addr\\\":");',
@@ -204,7 +211,9 @@ def run_self_test() -> int:
         for rel, snippets in SHARED_PACKET_SNIPPETS.items():
             (root / rel).write_text("\n".join(snippets) + "\n", encoding="utf-8")
         for rel, snippets in SHARED_PACKET_EXACT_ONCE_SNIPPETS.items():
-            (root / rel).write_text("\n".join(snippets) + "\n", encoding="utf-8")
+            existing = (root / rel).read_text(encoding="utf-8") if (root / rel).exists() else ""
+            joined = "\n".join(snippets) + "\n"
+            (root / rel).write_text(existing + joined, encoding="utf-8")
         (root / MANIFEST_REL).write_text("\n".join(MANIFEST_ENTRIES) + "\n", encoding="utf-8")
         (root / SHARED_ABI_EXPECTED_REL).write_text(
             json.dumps(
@@ -249,11 +258,14 @@ def run_self_test() -> int:
         assert any(issue.startswith("missing_shared_abi_binding_snippet:") for issue in issues)
 
         (root / SHARED_ABI_BINDING_REL).write_text("\n".join(SHARED_ABI_BINDING_SNIPPETS) + "\n", encoding="utf-8")
+        (root / SHARED_ABI_TEST_REL).writeText = None
         (root / SHARED_ABI_TEST_REL).write_text(SHARED_PACKET_SNIPPETS[SHARED_ABI_TEST_REL][0] + "\n", encoding="utf-8")
         issues = validate(root)
         assert any(issue.startswith("missing_shared_packet:") for issue in issues)
 
-        (root / SHARED_ABI_TEST_REL).write_text("\n".join(SHARED_PACKET_SNIPPETS[SHARED_ABI_TEST_REL]) + "\n", encoding="utf-8")
+        base_shared_test_text = "\n".join(SHARED_PACKET_SNIPPETS[SHARED_ABI_TEST_REL]) + "\n"
+        exact_once_shared_test_text = "\n".join(SHARED_PACKET_EXACT_ONCE_SNIPPETS[SHARED_ABI_TEST_REL]) + "\n"
+        (root / SHARED_ABI_TEST_REL).write_text(base_shared_test_text + exact_once_shared_test_text, encoding="utf-8")
         exact_once_case_count = 0
         for rel, snippets in SHARED_PACKET_EXACT_ONCE_SNIPPETS.items():
             path = root / rel
