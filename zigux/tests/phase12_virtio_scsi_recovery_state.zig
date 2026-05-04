@@ -83,3 +83,41 @@ test "phase12 virtio scsi second freeze refreshes restore summary after replanni
     try std.testing.expect(restore.preserves_scsi_host_registration);
     try std.testing.expect(!restore.reruns_host_scan);
 }
+
+test "phase12 virtio scsi recovery event refill summary follows replanned frozen topology" {
+    var lab = virtio_scsi.VirtioScsiQueueLab.init();
+    try std.testing.expectError(error.TransportNotFrozen, lab.recoveryEventRefillSummary());
+
+    _ = try lab.planQueueLayout(6, 2);
+    _ = try lab.freezeForTransportReset();
+
+    const first = try lab.recoveryEventRefillSummary();
+    try std.testing.expectEqualStrings("drivers/scsi/virtio_scsi.c", first.anchor);
+    try std.testing.expectEqual(@as(u16, virtio_scsi.event_queue_index), first.event_queue_index);
+    try std.testing.expectEqual(@as(u16, virtio_scsi.event_buffer_count), first.event_buffer_count);
+    try std.testing.expectEqual(@as(u16, 6), first.request_queue_count);
+    try std.testing.expectEqual(@as(u16, 2), first.poll_queue_count);
+    try std.testing.expect(first.requires_event_queue_refill);
+    try std.testing.expect(first.requires_event_buffer_repost);
+    try std.testing.expect(first.requires_kick_event_all);
+
+    _ = try lab.restoreAfterTransportReset();
+
+    const replanned = try lab.planQueueLayout(3, 0);
+    try std.testing.expectEqual(@as(u16, 3), replanned.request_queues);
+    try std.testing.expectEqual(@as(u16, 0), replanned.poll_queues);
+    _ = try lab.freezeForTransportReset();
+
+    const second = try lab.recoveryEventRefillSummary();
+    try std.testing.expectEqualStrings("drivers/scsi/virtio_scsi.c", second.anchor);
+    try std.testing.expectEqual(@as(u16, virtio_scsi.event_queue_index), second.event_queue_index);
+    try std.testing.expectEqual(@as(u16, virtio_scsi.event_buffer_count), second.event_buffer_count);
+    try std.testing.expectEqual(@as(u16, 3), second.request_queue_count);
+    try std.testing.expectEqual(@as(u16, 0), second.poll_queue_count);
+    try std.testing.expect(second.requires_event_queue_refill);
+    try std.testing.expect(second.requires_event_buffer_repost);
+    try std.testing.expect(second.requires_kick_event_all);
+
+    _ = try lab.restoreAfterTransportReset();
+    try std.testing.expectError(error.TransportNotFrozen, lab.recoveryEventRefillSummary());
+}
