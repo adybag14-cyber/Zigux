@@ -87,6 +87,7 @@ KCONFIG_CHECKER_MARKERS = [
     "INVALID_KCONFIG_MANIFEST_START",
     "orphaned_fixture:",
     "expected_canonical_name",
+    "allconfig_env is not None and not isinstance(allconfig_env, str)",
     "compare_text_artifacts(actual, repeat)",
     "compare_text_artifacts(actual, rebuild)",
     "compare_text_artifacts(default_actual, default_repeat)",
@@ -199,6 +200,10 @@ def validate_cases(payload: dict[str, object]) -> list[str]:
     if allyesconfig.get("allconfig_env") != "arch/riscv/configs/allyes-seed.config":
         issues.append("cases:allyesconfig:allconfig_env=arch/riscv/configs/allyes-seed.config")
 
+    allmodconfig = by_name.get("allmodconfig", {})
+    if allmodconfig.get("allconfig_env") != "":
+        issues.append("cases:allmodconfig:allconfig_env=empty_string_trigger")
+
     randconfig = by_name.get("randconfig", {})
     if randconfig.get("allconfig") != "seed/allrandom.config":
         issues.append("cases:randconfig:allconfig=seed/allrandom.config")
@@ -242,7 +247,7 @@ def build_valid_cases_json() -> str:
             {"name": "savedefconfig"},
             {"name": "allnoconfig"},
             {"name": "allyesconfig", "allconfig_env": "arch/riscv/configs/allyes-seed.config"},
-            {"name": "allmodconfig"},
+            {"name": "allmodconfig", "allconfig_env": ""},
             {"name": "alldefconfig"},
             {
                 "name": "randconfig",
