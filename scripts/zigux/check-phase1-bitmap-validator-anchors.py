@@ -36,9 +36,8 @@ REQUIRED_CLOSURE_SNIPPETS = {
         "sizing zero-filled allocation and optional-handle reset semantics"
     ),
     "xor_review": (
-        "PHASE1_BITMAP_XOR_UNIT_REVIEW=bitmap xorBits caller-selected window coverage proves "
-        "partial-word and multiword-tail replays preserve only the in-range bits that callers "
-        "intentionally clamp"
+        "PHASE1_BITMAP_XOR_UNIT_REVIEW=bitmap xorBits multiword-tail coverage proves callers can "
+        "clamp the last word back to the in-range bits without leaking the out-of-range tail"
     ),
     "tail_mask_review": (
         "PHASE1_BITMAP_TAIL_MASK_UNIT_REVIEW=bitmap tail-masked reduction helpers ignore "
@@ -117,10 +116,10 @@ REQUIRED_MANIFEST_FIELDS = {
         "footprint."
     ),
     "xor_unit_test_anchor": (
-        'tools/lib/bitmap.zig:test "bitmap xor keeps caller-selected bit window"'
+        'tools/lib/bitmap.zig:test "bitmap xor across a multiword tail still lets callers clamp the last word"'
     ),
     "xor_unit_test_contract": (
-        "Direct Zig unit coverage keeps xorBits() aligned with the caller-selected bit window by proving partial-word and multiword-tail replays preserve only the in-range bits that callers intentionally clamp."
+        "Direct Zig unit coverage keeps xorBits() aligned across a multiword tail by proving callers can clamp the last word back to the in-range bits without leaking the out-of-range tail."
     ),
     "tail_mask_unit_test_anchor": (
         'tools/lib/bitmap.zig:test "bitmap tail-masked helpers ignore out-of-range differences"'
