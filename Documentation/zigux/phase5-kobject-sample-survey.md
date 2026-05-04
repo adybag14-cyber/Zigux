@@ -74,9 +74,11 @@ The current gap is no longer "Zigux has no kobject sample guidance." The more pr
    - `find samples/zigux -maxdepth 1 -type f | sort | rg "kobject_example|runtime_"`
 3. run the focused self-check that keeps the ownership-and-lifetime replay explicit
    - `zig test samples/zigux/kobject_example.zig`
-4. run the manifest-backed survey gate from the repo root so the exact-check record stays readable
+4. confirm the focused shared-build replay still stays wired through `zigux/tests/phase5_build.zig`
+   - `rg -n "phase5-kobject-example-tests|kobject_example_sample" zigux/tests/phase5_build.zig zigux/tests/phase5_kobject_example.zig`
+5. run the manifest-backed survey gate from the repo root so the exact-check record stays readable
    - `zig test zigux/tests/phase5_kobject_example_survey.zig`
-5. run the exact bounded Phase 5 sample checks
+6. run the exact bounded Phase 5 sample checks
    - `zig build test --build-file zigux/tests/phase5_build.zig --summary all`
 
 ## Non-goals
