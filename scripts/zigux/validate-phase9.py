@@ -18,6 +18,7 @@ REQUIRED_FILES = [
     "Documentation/zigux/README.md",
     "Documentation/zigux/review-checklist.md",
     "Documentation/zigux/phase9-runtime-loader-gap-survey.md",
+    "Documentation/zigux/phase9-module-metadata-depmod-bridge-survey.md",
     "Documentation/zigux/phase9-runtime-atomic64-survey.md",
     "Documentation/zigux/phase9-runtime-atomic64-module-slice.md",
     "Documentation/zigux/phase9-runtime-bitmap-survey.md",
@@ -43,6 +44,8 @@ REQUIRED_FILES = [
     "zigux/tests/runtime_kretprobe_diff.zig",
     "zigux/tests/runtime_loader_gap_manifest.json",
     "zigux/tests/runtime_loader_gap_survey.zig",
+    "zigux/tests/runtime_module_metadata_manifest.json",
+    "zigux/tests/runtime_module_metadata_survey.zig",
     "zigux/tests/runtime_trace_events_manifest.json",
     "zigux/tests/runtime_trace_events_survey.zig",
     "zigux/tests/runtime_trace_events_module.zig",
@@ -56,6 +59,7 @@ REQUIRED_FILES = [
     "samples/zigux/runtime_trace_events.zig",
     "zigux/kernel/runtime_loader.zig",
     "zigux/helpers/allocator_policy.zig",
+    "scripts/zigux/check-phase9-module-metadata-packet.py",
     ".github/workflows/zigux-bootstrap.yml",
 ]
 
@@ -143,6 +147,30 @@ def validate_bitmap_surveyed_commit_consistency(
         "bitmap_survey",
         "bitmap_module_slice",
     )
+
+
+def validate_module_metadata_manifest_surveyed_commit_consistency(
+    manifest_text: str,
+    survey_text: str,
+) -> list[str]:
+    try:
+        manifest = json.loads(manifest_text)
+    except json.JSONDecodeError:
+        return ["module_metadata_consistency:manifest_json_decode_failed"]
+
+    manifest_commit = manifest.get("surveyed_commit")
+    if not isinstance(manifest_commit, str) or not re.fullmatch(r"[0-9a-f]{40}", manifest_commit):
+        return ["module_metadata_consistency:manifest_invalid_surveyed_commit"]
+
+    survey_commit, survey_error = extract_markdown_surveyed_commit(
+        survey_text,
+        "module_metadata_survey",
+    )
+    if survey_error:
+        return [survey_error]
+    if survey_commit != manifest_commit:
+        return ["module_metadata_consistency:survey_doc_commit_mismatch"]
+    return []
 
 required_make_markers = [
     "PHONY += phase9-validate phase9-test phase9",
@@ -284,6 +312,7 @@ required_phase9_build_markers = [
     "phase9-runtime-kretprobe-diff-tests",
     "phase9-runtime-kretprobe-loader-tests",
     "phase9-runtime-kretprobe-survey-tests",
+    "phase9-runtime-module-metadata-survey-tests",
     "phase9-runtime-trace-events-module-tests",
     "phase9-runtime-trace-events-sample-tests",
     "phase9-runtime-trace-events-diff-tests",
@@ -382,6 +411,43 @@ required_loader_gap_manifest_markers = [
     '"COLUMNS"',
 ]
 
+required_module_metadata_survey_markers = [
+    "manifest-backed delivery catalog and ownership map",
+    "`PHASE9_SURVEYED_COMMIT=",
+    "Documentation/zigux/phase9-module-metadata-depmod-bridge-survey.md",
+    "zigux/tests/runtime_module_metadata_manifest.json",
+    "zigux/tests/runtime_module_metadata_survey.zig",
+    "scripts/zigux/check-phase9-module-metadata-packet.py",
+    "RuntimeLoadRequest",
+    "MODULE_INFO()",
+    "scripts/depmod.sh",
+    "phase9-module-metadata-survey",
+]
+
+required_module_metadata_manifest_markers = [
+    '"lane_key": "P9-L07"',
+    '"phase": "Phase 9"',
+    '"surveyed_commit": "',
+    '"path": "Documentation/zigux/phase9-module-metadata-depmod-bridge-survey.md"',
+    '"path": "zigux/tests/runtime_module_metadata_manifest.json"',
+    '"path": "zigux/tests/runtime_module_metadata_survey.zig"',
+    '"path": "scripts/zigux/check-phase9-module-metadata-packet.py"',
+    '"path": "zigux/tests/phase9_build.zig"',
+    '"path": "zigux/tests/README.md"',
+    '"path": "zigux/kernel/runtime_loader.zig"',
+    '"path": "samples/zigux/runtime_trace_events_loader.zig"',
+]
+
+required_module_metadata_survey_test_markers = [
+    'test "runtime module metadata survey keeps the shared phase9 validator route explicit" {',
+    '"Documentation/zigux/phase9-module-metadata-depmod-bridge-survey.md"',
+    '"zigux/tests/runtime_module_metadata_manifest.json"',
+    '"zigux/tests/runtime_module_metadata_survey.zig"',
+    '"scripts/zigux/check-phase9-module-metadata-packet.py"',
+    '"scripts/zigux/validate-phase9.py"',
+    '"phase9-runtime-module-metadata-survey-tests"',
+]
+
 required_atomic64_survey_markers = [
     "manifest-backed delivery catalog and ownership map",
     "`PHASE9_SURVEYED_COMMIT=",
@@ -468,132 +534,160 @@ required_bitmap_manifest_markers = [
     '"zigux_destination": "samples/zigux/runtime_bitmap_loader.zig"',
     '"id": "runtime-bitmap-live-loader-binding"',
     '"zigux_destination": "zigux/kernel/runtime_loader.zig"',
-    '"id": "runtime-bitmap-shared-loader-controls"',
-    '"status": "blocked_on_runtime_substrate"',
+    '"id": "runtime-bitmap-shared-phase9-build-gate"',
+    '"zigux_destination": "zigux/tests/phase9_build.zig"',
+    '"surface": "zigux/tests/runtime_bitmap_survey.zig"',
+    '"surface": "samples/zigux/runtime_bitmap.zig"',
+    '"surface": "samples/zigux/runtime_bitmap_loader.zig"',
+    '"surface": "zigux/kernel/runtime_loader.zig"',
 ]
 
 required_bitmap_survey_test_markers = [
-    'std.mem.indexOf(u8, check.expected, "phase9-runtime-bitmap-loader-tests")',
-    'std.mem.indexOf(u8, check.expected, "phase9-runtime-bitmap-sample-tests")',
-    'std.mem.indexOf(u8, survey_doc, "direct `phase9-runtime-bitmap-sample-tests` shared-build leg")',
-    'std.mem.indexOf(u8, survey_doc, "direct `phase9-runtime-bitmap-loader-tests` shared-build leg")',
-    'std.mem.indexOf(u8, survey_doc, "the direct sample leg replays sparse `nthSetBit()` iteration across bits `10`, `20`, `30`, `40`, `50`, `60`, `80`, and `123`")',
+    'test "runtime bitmap manifest keeps the direct sample, loader, and shared build packet aligned" {',
+    'test "runtime bitmap survey note keeps the lifecycle and loader bridge explicit" {',
+    'test "runtime bitmap sample and loader packet keep the runtime descriptor and bounded bitmap replay explicit" {',
+    'test "runtime bitmap module gate keeps post-selftest replay and loader bridge expectations explicit" {',
+    '"zigux/tests/runtime_bitmap_manifest.json"',
+    '"Documentation/zigux/phase9-runtime-bitmap-survey.md"',
+    '"Documentation/zigux/phase9-runtime-bitmap-module-slice.md"',
+    '"samples/zigux/runtime_bitmap.zig"',
+    '"samples/zigux/runtime_bitmap_loader.zig"',
+    '"zigux/kernel/runtime_loader.zig"',
+    '"phase9-runtime-bitmap-loader-tests"',
+    '"phase9-runtime-bitmap-survey-tests"',
+    '"bounded two-word runtime bitmap backing store"',
+    '"nthSetBit()"',
 ]
-
-KRETPROBE_LANE_KEY = "P9-L15"
-KRETPROBE_SURVEYED_COMMIT = "9ab58640ce44fd53534dd49e29fcce6e274dc3d0"
-TRACE_EVENTS_SURVEYED_COMMIT = "e7b3b515704dd521630df0b0f62396d033e38e02"
-BITMAP_SURVEYED_COMMIT = "456151afa8a38a088e3cc582187b35fe5c7b0445"
 
 required_kretprobe_survey_markers = [
-    f"`PHASE9_LANE_KEY={KRETPROBE_LANE_KEY}`",
-    f"`PHASE9_SURVEYED_COMMIT={KRETPROBE_SURVEYED_COMMIT}`",
-    f"the current survey packet is pinned to `master` commit `{KRETPROBE_SURVEYED_COMMIT}`",
     "manifest-backed delivery catalog and ownership map",
-    "remaining broader runtime-control blocker",
-    "shared Phase 9 build coverage",
-    "selftest-hook marker",
-    "first loadable Zigux runtime modules",
-    "runtime module lifecycle parity",
-    "register_kretprobe()",
-    "unregister_kretprobe()",
-]
-
-required_kretprobe_module_slice_markers = [
-    f"`PHASE9_SURVEYED_COMMIT={KRETPROBE_SURVEYED_COMMIT}`",
-    "bounded starter surface",
-    "loader handoff wording",
-    "shared-build-leg explanation",
-    "register_kretprobe",
-    "unregister_kretprobe",
+    "`PHASE9_SURVEYED_COMMIT=",
+    "the current survey packet is pinned to `master` commit `",
+    "Phase 5 sample packet",
+    "Phase 9 runtime pilot",
+    "runtime_kretprobe",
+    "bounded lifecycle parity",
+    "loader scaffold",
+    "phase9-runtime-kretprobe-loader-tests",
 ]
 
 required_kretprobe_manifest_markers = [
-    f'"surveyed_commit": "{KRETPROBE_SURVEYED_COMMIT}"',
+    '"surveyed_commit": "',
+    '"delivery_evidence_catalog": [',
+    '"id": "runtime-kretprobe-manifest"',
+    '"path": "zigux/tests/runtime_kretprobe_manifest.json"',
+    '"id": "runtime-kretprobe-survey-gate"',
+    '"path": "zigux/tests/runtime_kretprobe_survey.zig"',
+    '"id": "runtime-kretprobe-module-gate"',
+    '"path": "zigux/tests/runtime_kretprobe_module.zig"',
+    '"id": "runtime-kretprobe-diff-gate"',
+    '"path": "zigux/tests/runtime_kretprobe_diff.zig"',
     '"id": "runtime-kretprobe-loader-scaffold"',
-    '"id": "runtime-kretprobe-live-loader-binding"',
-    '"status": "blocked_on_runtime_substrate"',
+    '"path": "samples/zigux/runtime_kretprobe_loader.zig"',
 ]
 
 required_kretprobe_survey_test_markers = [
-    'std.mem.indexOf(u8, survey_doc, "remaining broader runtime-control blocker")',
-    'std.mem.indexOf(u8, survey_doc, "shared Phase 9 build coverage")',
-    'std.mem.indexOf(u8, survey_doc, "selftest-hook marker")',
-    'std.mem.indexOf(u8, survey_doc, "first loadable Zigux runtime modules")',
-    'std.mem.indexOf(u8, survey_doc, "runtime module lifecycle parity")',
-    'std.mem.indexOf(u8, survey_doc, "register_kretprobe()")',
-    'std.mem.indexOf(u8, survey_doc, "unregister_kretprobe()")',
-    'std.mem.indexOf(u8, module_doc, "register_kretprobe")',
-    'std.mem.indexOf(u8, module_doc, "unregister_kretprobe")',
-    'std.mem.indexOf(u8, gap.why_now, "pre-execution")',
+    'test "runtime kretprobe manifest keeps the direct sample, runtime module, loader scaffold, and shared build packet aligned" {',
+    'test "runtime kretprobe survey note keeps the roadmap and loader handoff posture explicit" {',
+    'test "runtime kretprobe sample and runtime module packet keep the bounded lifecycle and replay surface explicit" {',
+    'test "runtime kretprobe loader packet keeps the runtime substrate bridge and blocker posture explicit" {',
+    '"zigux/tests/runtime_kretprobe_manifest.json"',
+    '"Documentation/zigux/phase9-runtime-kretprobe-survey.md"',
+    '"Documentation/zigux/phase9-runtime-kretprobe-module-slice.md"',
+    '"samples/zigux/runtime_kretprobe.zig"',
+    '"samples/zigux/runtime_kretprobe_loader.zig"',
+    '"zigux/kernel/runtime_loader.zig"',
+    '"phase9-runtime-kretprobe-loader-tests"',
+    '"phase9-runtime-kretprobe-survey-tests"',
+    '"register_kretprobe"',
+    '"pre-execution"',
+]
+
+required_kretprobe_module_slice_markers = [
+    "loader-side scaffold under `samples/zigux/runtime_kretprobe_loader.zig`",
+    "shared runtime-loader request binding under `zigux/kernel/runtime_loader.zig`",
+    "direct post-selftest mutation replay proof",
+    "fixed `maxactive`",
+    "`nmissed` replay",
 ]
 
 required_trace_events_survey_markers = [
-    f"`PHASE9_SURVEYED_COMMIT={TRACE_EVENTS_SURVEYED_COMMIT}`",
-    f"the current survey packet is pinned to `master` commit `{TRACE_EVENTS_SURVEYED_COMMIT}`",
     "manifest-backed delivery catalog and ownership map",
-    "trace-core freeze boundary",
+    "`PHASE9_SURVEYED_COMMIT=",
+    "the current survey packet is pinned to `master` commit `",
+    "blocked loader scaffold",
     "`kernel/trace/ring_buffer.c`",
+    "Study / Boundary Only",
     "Architecture Council decision",
-    "`init_runs`",
-    "`selftest_runs`",
-    "`exit_runs`",
+    "phase9-runtime-trace-events-module-tests",
+    "phase9-runtime-trace-events-survey-tests",
 ]
 
 required_trace_events_module_slice_markers = [
-    f"`PHASE9_SURVEYED_COMMIT={TRACE_EVENTS_SURVEYED_COMMIT}`",
-    "bounded event-emission and registration behavior",
-    "diagnostics summary",
-    "main-thread and function-thread event totals",
-    "replay run counters",
-    "failed-exit rollback proof",
-    "sample-only blocked pilot",
+    "direct module-facing replay under `zigux/tests/runtime_trace_events_module.zig`",
+    "direct diff gate under `zigux/tests/runtime_trace_events_diff.zig`",
+    "blocked loader scaffold under `samples/zigux/runtime_trace_events_loader.zig`",
+    "study-only `kernel/trace/ring_buffer.c` boundary",
+    "keep future work narrowly aimed at the remaining runtime substrate handoff or lifecycle-parity blocker",
 ]
 
 required_trace_events_manifest_markers = [
-    f'"surveyed_commit": "{TRACE_EVENTS_SURVEYED_COMMIT}"',
+    '"surveyed_commit": "',
+    '"delivery_evidence_catalog": [',
     '"id": "runtime-trace-events-manifest"',
+    '"path": "zigux/tests/runtime_trace_events_manifest.json"',
     '"id": "runtime-trace-events-survey-gate"',
-    '"id": "runtime-trace-events-sample"',
-    '"id": "runtime-trace-events-module"',
-    '"id": "runtime-trace-events-diff"',
-    '"sample_only_blocker": "samples/zigux/runtime_trace_events_loader.zig"',
+    '"path": "zigux/tests/runtime_trace_events_survey.zig"',
+    '"id": "runtime-trace-events-module-gate"',
+    '"path": "zigux/tests/runtime_trace_events_module.zig"',
+    '"id": "runtime-trace-events-diff-gate"',
+    '"path": "zigux/tests/runtime_trace_events_diff.zig"',
+    '"id": "freeze-map-note"',
+    '"path": "Documentation/zigux/freeze-map.md"',
 ]
 
 required_trace_events_survey_test_markers = [
-    'std.mem.indexOf(u8, survey_doc, "trace-core freeze boundary")',
-    'std.mem.indexOf(u8, survey_doc, "`kernel/trace/ring_buffer.c`")',
-    'std.mem.indexOf(u8, survey_doc, "Delivery ownership map")',
-    'std.mem.indexOf(u8, survey_doc, surveyed_commit)',
-    f'std.mem.indexOf(u8, survey_doc, "the current survey packet is pinned to `master` commit `{TRACE_EVENTS_SURVEYED_COMMIT}`")',
-    'std.mem.indexOf(u8, survey_doc, "`init_runs`")',
-    'std.mem.indexOf(u8, survey_doc, "`selftest_runs`")',
-    'std.mem.indexOf(u8, survey_doc, "`exit_runs`")',
-    'std.mem.indexOf(u8, module_doc, surveyed_commit)',
-    'std.mem.indexOf(u8, module_doc, "`init_runs`")',
-    'std.mem.indexOf(u8, module_doc, "`selftest_runs`")',
-    'std.mem.indexOf(u8, module_doc, "`exit_runs`")',
-    'std.mem.indexOf(u8, module_doc, "`kernel/trace/ring_buffer.c`")',
+    'test "runtime trace-events manifest keeps the direct sample, module, diff, and freeze-map packet aligned" {',
+    'test "runtime trace-events survey note keeps the trace-core boundary and shared build packet explicit" {',
+    'test "runtime trace-events sample and module packet keep the bounded lifecycle and callback replay explicit" {',
+    'test "runtime trace-events diff packet keeps the post-selftest drift gate explicit" {',
+    '"zigux/tests/runtime_trace_events_manifest.json"',
+    '"Documentation/zigux/phase9-runtime-trace-events-survey.md"',
+    '"Documentation/zigux/phase9-runtime-trace-events-module-slice.md"',
+    '"samples/zigux/runtime_trace_events.zig"',
+    '"zigux/tests/runtime_trace_events_module.zig"',
+    '"zigux/tests/runtime_trace_events_diff.zig"',
+    '"phase9-runtime-trace-events-module-tests"',
+    '"phase9-runtime-trace-events-survey-tests"',
+    '"kernel/trace/ring_buffer.c"',
+    '"Architecture Council decision"',
 ]
 
 required_trace_events_sample_markers = [
-    ".provides_selftest_hook = true,",
-    "init_runs: usize,",
-    "selftest_runs: usize,",
-    "exit_runs: usize,",
-    "self.init_runs += 1;",
-    "self.selftest_runs += 1;",
-    "self.exit_runs += 1;",
-    'test "runtime trace-events sample keeps failed exit rollback explicit" {',
+    'pub const ModuleDescriptor = struct',
+    '.name = "runtime_trace_events"',
+    '.anchor = "samples/trace_events/trace-events-sample.c"',
+    '.requires_runtime_substrate = true',
+    '.provides_selftest_hook = true',
+    'pub const ModuleStage = enum',
+    'pub const RuntimeTraceEventsSummary = struct',
+    'pub fn runSelftest(self: *RuntimeTraceEventsSample) !RuntimeTraceEventsSummary',
+    'pub fn emitMainIteration(self: *RuntimeTraceEventsSample, count: i32) !usize',
+    'pub fn emitFunctionIteration(self: *RuntimeTraceEventsSample, count: i32) !usize',
 ]
 
 required_trace_events_module_markers = [
-    'test "runtime trace-events sample enforces lifecycle transitions and bounded event emission" {',
+    'test "runtime trace-events sample advertises the bounded pilot-module contract" {',
+    'test "runtime trace-events sample keeps gated main-thread replay and lifecycle state honest" {',
+    'test "runtime trace-events sample keeps replay-summary continuity explicit after selftest completion" {',
+    'test "runtime trace-events sample keeps registration balance and failed-exit rollback explicit" {',
+    'test "runtime trace-events module gate keeps selftest-ready failed-exit rollback explicit" {',
     'try std.testing.expectEqual(@as(usize, 1), initialized_summary.init_runs);',
     'try std.testing.expectEqual(@as(usize, 1), selftest_summary.selftest_runs);',
     'try std.testing.expectEqual(@as(usize, 1), exited_summary.exit_runs);',
     'test "runtime trace-events sample keeps registration balance explicit" {',
 ]
+
 
 def required_marker_count() -> int:
     return (
@@ -609,6 +703,10 @@ def required_marker_count() -> int:
         + len(forbidden_phase9_build_markers)
         + len(required_loader_gap_survey_test_markers)
         + len(required_loader_gap_manifest_markers)
+        + len(required_module_metadata_survey_markers)
+        + len(required_module_metadata_manifest_markers)
+        + len(required_module_metadata_survey_test_markers)
+        + 1
         + len(required_atomic64_survey_markers)
         + len(required_atomic64_module_slice_markers)
         + len(required_atomic64_manifest_markers)
@@ -643,6 +741,9 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
     doc_readme = read_text(root, "Documentation/zigux/README.md")
     review_checklist = read_text(root, "Documentation/zigux/review-checklist.md")
     loader_gap_survey = read_text(root, "Documentation/zigux/phase9-runtime-loader-gap-survey.md")
+    module_metadata_survey = read_text(root, "Documentation/zigux/phase9-module-metadata-depmod-bridge-survey.md")
+    module_metadata_manifest = read_text(root, "zigux/tests/runtime_module_metadata_manifest.json")
+    module_metadata_survey_test = read_text(root, "zigux/tests/runtime_module_metadata_survey.zig")
     atomic64_survey = read_text(root, "Documentation/zigux/phase9-runtime-atomic64-survey.md")
     atomic64_module_slice = read_text(root, "Documentation/zigux/phase9-runtime-atomic64-module-slice.md")
     bitmap_survey = read_text(root, "Documentation/zigux/phase9-runtime-bitmap-survey.md")
@@ -703,6 +804,21 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
     for marker in required_loader_gap_manifest_markers:
         if marker not in loader_gap_manifest:
             missing_markers.append(f"loader_gap_manifest:{marker}")
+    for marker in required_module_metadata_survey_markers:
+        if marker not in module_metadata_survey:
+            missing_markers.append(f"module_metadata_survey:{marker}")
+    for marker in required_module_metadata_manifest_markers:
+        if marker not in module_metadata_manifest:
+            missing_markers.append(f"module_metadata_manifest:{marker}")
+    for marker in required_module_metadata_survey_test_markers:
+        if marker not in module_metadata_survey_test:
+            missing_markers.append(f"module_metadata_survey_test:{marker}")
+    missing_markers.extend(
+        validate_module_metadata_manifest_surveyed_commit_consistency(
+            module_metadata_manifest,
+            module_metadata_survey,
+        )
+    )
     for marker in required_atomic64_survey_markers:
         if marker not in atomic64_survey:
             missing_markers.append(f"atomic64_survey:{marker}")
@@ -844,6 +960,40 @@ def run_self_test() -> int:
             "make:scripts/zigux/validate-phase9.py --self-test",
         )
         makefile_path.write_text(original_makefile, encoding="utf-8")
+
+        module_metadata_survey_test_path = tmp_root / "zigux/tests/runtime_module_metadata_survey.zig"
+        original_module_metadata_survey_test = module_metadata_survey_test_path.read_text(encoding="utf-8")
+        module_metadata_survey_test_path.write_text(
+            original_module_metadata_survey_test.replace(
+                '"scripts/zigux/validate-phase9.py"',
+                '"scripts/zigux/phase9-validator.py"',
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "module_metadata_survey_test_shared_validator_route",
+            tmp_root,
+            'module_metadata_survey_test:"scripts/zigux/validate-phase9.py"',
+        )
+        module_metadata_survey_test_path.write_text(original_module_metadata_survey_test, encoding="utf-8")
+
+        module_metadata_manifest_path = tmp_root / "zigux/tests/runtime_module_metadata_manifest.json"
+        original_module_metadata_manifest = module_metadata_manifest_path.read_text(encoding="utf-8")
+        module_metadata_manifest_path.write_text(
+            original_module_metadata_manifest.replace(
+                '"surveyed_commit": "949994db4046ec70abf044d1b2ea874fde9bc4a6"',
+                '"surveyed_commit": "0000000000000000000000000000000000000000"',
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "module_metadata_manifest_surveyed_commit_consistency",
+            tmp_root,
+            "module_metadata_consistency:survey_doc_commit_mismatch",
+        )
+        module_metadata_manifest_path.write_text(original_module_metadata_manifest, encoding="utf-8")
 
         trace_events_survey_path = tmp_root / "Documentation/zigux/phase9-runtime-trace-events-survey.md"
         original_trace_events_survey = trace_events_survey_path.read_text(encoding="utf-8")
@@ -1032,7 +1182,7 @@ def run_self_test() -> int:
         trace_events_manifest_path.write_text(original_trace_events_manifest, encoding="utf-8")
 
     print("PHASE9_VALIDATOR_SELF_TEST=pass")
-    print("PHASE9_VALIDATOR_SELF_TEST_CASE_COUNT=13")
+    print("PHASE9_VALIDATOR_SELF_TEST_CASE_COUNT=15")
     return 0
 
 
