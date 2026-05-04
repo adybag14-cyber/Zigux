@@ -152,7 +152,7 @@ Current repo evidence:
 - reviewability gate: `zigux/tests/phase13_landlock_syscalls_reviewability.zig`
 - same-family sync guard: `zigux/tests/phase13_landlock_ruleset_fops_sync.zig`
 - manifest: `zigux/tests/phase13_landlock_syscalls_manifest.json`
-- manifest `surveyed_commit`: `9c17b0790799d8240ef9f964903f5ce2db64af89`
+- manifest `surveyed_commit`: `672d03034b090ab859f4088396160ea13120e1d6`
 - shared build entry: `zigux/tests/phase13_build.zig`
 - slice note: `Documentation/zigux/phase13-landlock-syscalls-slice.md`
 - survey note: `Documentation/zigux/phase13-landlock-syscalls-survey.md`
