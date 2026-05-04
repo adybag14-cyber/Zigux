@@ -100,6 +100,12 @@ pub fn build(b: *std.Build) void {
         optimize,
         "phase7_string_helpers_survey.zig",
     );
+    const string_helpers_sample_boundary_root_module = createStandaloneTestRoot(
+        b,
+        target,
+        optimize,
+        "phase7_string_helpers_sample_boundary.zig",
+    );
     const rbtree_root_module = createImportedTestRoot(
         b,
         target,
@@ -151,6 +157,12 @@ pub fn build(b: *std.Build) void {
         string_helpers_survey_root_module,
         repo_root,
     );
+    const run_string_helpers_sample_boundary_tests = addTestRun(
+        b,
+        "phase7-string-helpers-sample-boundary-tests",
+        string_helpers_sample_boundary_root_module,
+        repo_root,
+    );
     const run_rbtree_tests = addTestRun(
         b,
         "phase7-rbtree-tests",
@@ -171,6 +183,7 @@ pub fn build(b: *std.Build) void {
     test_step.dependOn(&run_argv_split_tests.step);
     test_step.dependOn(&run_argv_split_survey_tests.step);
     test_step.dependOn(&run_string_helpers_survey_tests.step);
+    test_step.dependOn(&run_string_helpers_sample_boundary_tests.step);
     test_step.dependOn(&run_rbtree_tests.step);
     test_step.dependOn(&run_rbtree_survey_tests.step);
 }
