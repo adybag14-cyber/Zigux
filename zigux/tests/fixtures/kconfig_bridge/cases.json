@@ -69,6 +69,7 @@
       "kconfig": "Kconfig",
       "config": "mod/.config",
       "arch": "arm",
+      "allconfig_env": "",
       "expected": "allmodconfig_expected.json"
     },
     {
