@@ -30,6 +30,7 @@ SURVEY_LINES = [
 ]
 
 RELEASE_BOUNDARY_LINES = [
+    "PHASE14_RELEASE_BOUNDARY=present",
     "PHASE14_SHARED_REPLAY_PRESENT=yes",
     "shared smoke packet: `Documentation/zigux/phase14-end-to-end-smoke-survey.md`, `Documentation/zigux/phase14-release-boundary-survey.md`, `zigux/tests/phase14_end_to_end_smoke_manifest.json`, `scripts/zigux/validate-phase14.py`, `make -C zigux phase14-validate`, `make -C zigux phase14-smoke`, and `zig build test --build-file zigux/tests/phase14_build.zig --summary all` now keep the four-anchor boundary map, the focused smoke shard, and the shared full-bundle replay explicit from a study-only posture",
     "compile-shard matrix: one focused `phase14-smoke` shard still covers only `phase14-end-to-end-smoke-tests`, while `phase14-workqueue-bridge-tests`, `phase14-skbuff-bridge-tests`, `phase14-ring-buffer-survey-tests`, and `phase14-rcu-tree-survey-tests` remain `full_bundle_only` under `zig build test --build-file zigux/tests/phase14_build.zig --summary all`",
@@ -120,6 +121,7 @@ Phase 14 notes
 """.strip()
 
     release_boundary_text = """
+- PHASE14_RELEASE_BOUNDARY=present
 - PHASE14_SHARED_REPLAY_PRESENT=yes
 - shared smoke packet: `Documentation/zigux/phase14-end-to-end-smoke-survey.md`, `Documentation/zigux/phase14-release-boundary-survey.md`, `zigux/tests/phase14_end_to_end_smoke_manifest.json`, `scripts/zigux/validate-phase14.py`, `make -C zigux phase14-validate`, `make -C zigux phase14-smoke`, and `zig build test --build-file zigux/tests/phase14_build.zig --summary all` now keep the four-anchor boundary map, the focused smoke shard, and the shared full-bundle replay explicit from a study-only posture
 - compile-shard matrix: one focused `phase14-smoke` shard still covers only `phase14-end-to-end-smoke-tests`, while `phase14-workqueue-bridge-tests`, `phase14-skbuff-bridge-tests`, `phase14-ring-buffer-survey-tests`, and `phase14-rcu-tree-survey-tests` remain `full_bundle_only` under `zig build test --build-file zigux/tests/phase14_build.zig --summary all`
@@ -193,6 +195,14 @@ Phase 14 flow
             survey_text
             + "\n- survey provenance captured against verified `master` head `bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb`",
             release_boundary_text,
+            scripts_readme_text,
+            True,
+        ),
+        (
+            "missing_release_boundary_marker",
+            docs_root_text,
+            survey_text,
+            release_boundary_text.replace("- PHASE14_RELEASE_BOUNDARY=present\n", ""),
             scripts_readme_text,
             True,
         ),
