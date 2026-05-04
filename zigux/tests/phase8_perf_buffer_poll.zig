@@ -40,7 +40,46 @@ test "phase 8 perf-buffer poll docs keep the bounded wait-result helper explicit
     try expectContains(note, "no standalone clockevent helper");
 }
 
-test "phase 8 perf-buffer poll helper keeps the final return-path bookkeeping below routing parity" {
+test "phase 8 perf-buffer poll helper stays wired into focused and shared Phase 8 builds" {
+    const focused_build = try readWorkspaceFile(
+        std.testing.allocator,
+        "zigux/tests/phase8_perf_buffer_poll_only_build.zig",
+        16 * 1024,
+    );
+    defer std.testing.allocator.free(focused_build);
+    try expectContains(focused_build, "../../tools/lib/bpf/zigux_segments/perf_buffer_poll.zig");
+    try expectContains(focused_build, "phase8_perf_buffer_poll.zig");
+    try expectContains(focused_build, "phase8-perf-buffer-poll-tests");
+    try expectContains(focused_build, "Run focused Phase 8 perf-buffer poll tests");
+
+    const shared_build = try readWorkspaceFile(
+        std.testing.allocator,
+        "zigux/tests/phase8_build.zig",
+        32 * 1024,
+    );
+    defer std.testing.allocator.free(shared_build);
+    try expectContains(shared_build, "../../tools/lib/bpf/zigux_segments/perf_buffer_poll.zig");
+    try expectContains(shared_build, "phase8_perf_buffer_poll.zig");
+    try expectContains(shared_build, "phase8-perf-buffer-poll-tests");
+
+    const makefile = try readWorkspaceFile(
+        std.testing.allocator,
+        "zigux/Makefile",
+        32 * 1024,
+    );
+    defer std.testing.allocator.free(makefile);
+    try expectContains(makefile, "phase8-perf-buffer-poll-test:");
+    try expectContains(
+        makefile,
+        "$(ZIG) build test --build-file zigux/tests/phase8_perf_buffer_poll_only_build.zig --summary all",
+    );
+    try expectContains(
+        makefile,
+        "phase8: phase8-validate phase8-exec-cmd-test phase8-help-test phase8-kallsyms-test phase8-libbpf-segments-test phase8-perf-buffer-poll-test phase8-test",
+    );
+}
+
+test "phase 8 perf-buffer poll helper keeps execution bookkeeping aligned with the observed ready-event budget" {
     const success = try perf_buffer_poll.summarizePollExecutionResultFromWaitResult(12, 3, &.{
         .{ .ready = true },
         .{ .ready = true },
@@ -67,4 +106,22 @@ test "phase 8 perf-buffer poll helper keeps the final return-path bookkeeping be
     );
     try std.testing.expectEqual(@as(i32, -11), processing_failure.return_value);
     try std.testing.expectEqual(@as(?usize, 1), processing_failure.execution.first_process_error_index);
+}
+
+test "phase 8 perf-buffer poll helper rejects impossible post-wait record processing" {
+    try std.testing.expectError(
+        perf_buffer_poll.PollError.NonReadyWaitHasProcessedRecords,
+        perf_buffer_poll.summarizePollExecution(0, .timed_out, &.{}, &.{.{ .records_processed = 1 }}),
+    );
+    try std.testing.expectError(
+        perf_buffer_poll.PollError.NonReadyWaitHasProcessedRecords,
+        perf_buffer_poll.summarizePollExecution(-1, .interrupted, &.{}, &.{.{ .records_processed = 1 }}),
+    );
+    try std.testing.expectError(
+        perf_buffer_poll.PollError.ReadyBufferProcessingExceedsObservedEvents,
+        perf_buffer_poll.summarizePollExecution(5, .{ .ready_events = 1 }, &.{.{ .ready = true }}, &.{
+            .{ .records_processed = 1 },
+            .{ .records_processed = 2 },
+        }),
+    );
 }
