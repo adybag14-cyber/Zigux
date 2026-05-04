@@ -7,7 +7,7 @@ This document tracks the bounded Phase 9 runtime pilot-module survey around `sam
 - `PHASE9_STATUS=active`
 - `PHASE9_SLICE=runtime-kretprobe-survey`
 - `PHASE9_LANE_KEY=P9-L16`
-- `PHASE9_SURVEYED_COMMIT=fe8a43ea2e186da0da152198b571dff57ea3c38c`
+- `PHASE9_SURVEYED_COMMIT=0bd402fd6ca83ba2ace6b21e9e57459401b631cd`
 - scope: survey manifest, manifest-backed delivery catalog and ownership map, a direct embedded sample replay, dedicated survey and diff gates, the bounded pre-init `configureMaxactive()` starter contract, the bounded loader-handoff scaffold, explicit shared `command_name` preservation, explicit no-substrate rollback evidence, the landed shared loader-request binding, explicit `phase9-runtime-kretprobe-{sample,module,diff,loader,survey}-tests` shared-build legs, and the lane-level note that records the remaining broader runtime-control blocker plus the exact Phase 9 roadmap gap it still leaves open
 - product boundary:
   - `samples/zigux/runtime_kretprobe.zig`
@@ -26,9 +26,9 @@ This document tracks the bounded Phase 9 runtime pilot-module survey around `sam
 
 The roadmap names `samples/kprobes/kretprobe_example.c` twice: first as a Phase 5 sample-reference anchor and later as a Phase 9 runtime pilot anchor. This lane stays strictly inside the Phase 9 reading of that roadmap entry.
 
-This `P9-L16` verification pass keeps the survey artifacts anchored to the current manifest, catalog, and ownership lane for the runtime kretprobe packet after replaying the current sample, module, diff, loader, and survey behavior against `master` head `fe8a43ea2e186da0da152198b571dff57ea3c38c`. That keeps the ownership history honest while still recording the full live review surface.
+This `P9-L16` verification pass keeps the survey artifacts anchored to the current manifest, catalog, and ownership lane for the runtime kretprobe packet after replaying the current sample, module, diff, loader, and survey behavior against `master` head `0bd402fd6ca83ba2ace6b21e9e57459401b631cd`. That keeps the ownership history honest while still recording the full live review surface.
 
-In other words, the current survey packet is pinned to `master` commit `fe8a43ea2e186da0da152198b571dff57ea3c38c` while this bounded helper-step replay remains under review.
+In other words, the current survey packet is pinned to `master` commit `0bd402fd6ca83ba2ace6b21e9e57459401b631cd` while this bounded helper-step replay remains under review.
 
 The live repo now has a bounded `runtime_kretprobe` starter, a direct embedded sample replay, dedicated module tests, a dedicated diff gate, a bounded loader-handoff scaffold, a shared loader-request binding under `zigux/kernel/runtime_loader.zig`, and shared Phase 9 build coverage, so this survey note keeps that shipped packet reviewable through a manifest-backed delivery catalog and ownership map instead of leaving the sample and shared-build surface implied.
 
@@ -98,7 +98,7 @@ The manifest-backed review prompts for this lane now also keep one rollback ques
 
 ## Latest verification snapshot
 
-- verified against `master` head `fe8a43ea2e186da0da152198b571dff57ea3c38c`
+- verified against `master` head `0bd402fd6ca83ba2ace6b21e9e57459401b631cd`
 - direct sample replay in the lane-local scratch packet passed: `zig test samples/zigux/runtime_kretprobe.zig`
 - formatting stayed clean for the shipped sample: `zig fmt --check samples/zigux/runtime_kretprobe.zig`
 - the dedicated survey packet stays directly replayable through the shipped standalone survey gate: `zig test zigux/tests/runtime_kretprobe_survey.zig`
