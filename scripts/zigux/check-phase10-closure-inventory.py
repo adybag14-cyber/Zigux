@@ -579,6 +579,12 @@ def run_self_test() -> int:
         write_fixture(root)
 
         manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        manifest["survey_provenance"]["surveyed_commits"]["input"] = "0000000000000000000000000000000000000000"
+        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+        expect_missing_marker("survey_commit_guard", root, "manifest:survey_provenance")
+        write_fixture(root)
+
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
         manifest["landed_core_helper_evidence"] = {
             "zigux/tests/phase10_virtio_core_manifest.json": [
                 "phase10-config-generation-summary-helper",
@@ -758,7 +764,7 @@ def run_self_test() -> int:
             raise SystemExit("required_file_guard_failed")
 
     print("PHASE10_CLOSURE_INVENTORY_SELF_TEST=pass")
-    print("PHASE10_CLOSURE_INVENTORY_SELF_TEST_CASE_COUNT=22")
+    print("PHASE10_CLOSURE_INVENTORY_SELF_TEST_CASE_COUNT=23")
     return 0
 
 
