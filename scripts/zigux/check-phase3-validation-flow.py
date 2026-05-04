@@ -175,6 +175,15 @@ EXACT_ONCE_DOCS_ROOT_SNIPPETS = REQUIRED_DOCS_ROOT_SNIPPETS
 
 EXPECTED_PHASE3_README_FLOW_COUNT = 2
 EXPECTED_CROSS_PHASE_README_FLOW_COUNT = 3
+DEFAULT_PHASE3_README_FLOW_SNIPPETS = (
+    "`validate-phase3.py`, `make -C zigux phase3-validate`, and the bootstrap workflow keep the bounded ABI substrate packet aligned across `scripts/zigux/README.md`, `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/phase3-abi-slice.md`, `zigux/tests/fixtures/phase3_abi_manifest.json`, and the shared Phase 3 build roots before broader interop replay claims closure.",
+    "the supporting survey and contract checks stay inside that same validator-first route: `validate-phase3-roadmap-gap-survey.py`, `validate-phase3-rbtree-interop-survey.py`, `check-phase3-rbtree-shared-lift-contract.py`, `validate-phase3-export-uapi-survey.py`, `validate-phase3-low-level-wrapper-survey.py`, `validate-phase3-policy-unsafe-survey.py`, `check-phase3-policy-unsafe-mmio-consumer.py`, `check-phase3-abi-duplicate-declarations.py`, `check-phase3-abi-layout-packet.py`, `check-phase3-abi-binding-constants.py`, `check-phase3-tooling-packet.py`, `check-phase3-readme-tooling-inventory.py`, `check-phase3-validation-flow.py`, `check-phase3-build-roots.py`, and `check-phase3-canonical-survey-manifest.py`.",
+)
+DEFAULT_CROSS_PHASE_README_FLOW_SNIPPETS = (
+    "`validate-phase6.py` keeps the shipped Phase 6 leaf-helper packet aligned across `scripts/zigux/README.md`, `Documentation/zigux/README.md`, `Documentation/zigux/phase6-helper-parity-catalog.md`, `zigux/tests/phase6_helper_parity_manifest.json`, `zigux/tests/phase6_build.zig`, `zigux/Makefile`, the bootstrap workflow, and the four helper-local slice notes before any shared replay claims stay green.",
+    "`validate-phase8.py` is the validator-first entrypoint for the parked repo-hosted tooling packet across `tools/lib/subcmd/exec-cmd.zig`, `tools/lib/subcmd/help.zig`, `tools/lib/symbol/kallsyms.zig`, the helper-first `tools/lib/bpf/zigux_segments/` rollout, and the bounded `perf_buffer__poll(timeout_ms)` bookkeeping adjunct.",
+    "`validate-phase9.py` is the validator-first entrypoint for the shared runtime-pilot packet across `scripts/zigux/README.md`, `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/phase9-runtime-loader-gap-survey.md`, `Documentation/zigux/phase9-module-metadata-depmod-bridge-survey.md`, `zigux/tests/README.md`, `zigux/tests/phase9_build.zig`, `zigux/Makefile`, and `.github/workflows/zigux-bootstrap.yml`.",
+)
 
 _FIXTURE_README_FLOW_SNIPPETS: tuple[tuple[str, ...], tuple[str, ...]] | None = None
 
@@ -276,11 +285,36 @@ def _load_cross_phase_readme_flow_snippets(root: Path) -> tuple[tuple[str, ...],
     )
 
 
+def _load_default_fixture_snippets(
+    snippets: tuple[str, ...],
+    expected_count: int,
+    count_issue_prefix: str,
+    duplicate_issue_prefix: str,
+) -> tuple[tuple[str, ...], list[str]]:
+    issues: list[str] = []
+    if len(snippets) != expected_count:
+        issues.append(f"{count_issue_prefix}:{len(snippets)}:{expected_count}")
+
+    duplicates = _find_duplicate_snippets(snippets)
+    issues.extend(f"{duplicate_issue_prefix}:{snippet}" for snippet in duplicates)
+    return snippets, issues
+
+
 def _load_fixture_readme_flow_snippets() -> tuple[tuple[str, ...], tuple[str, ...]]:
     global _FIXTURE_README_FLOW_SNIPPETS
     if _FIXTURE_README_FLOW_SNIPPETS is None:
-        phase3_snippets, phase3_issues = _load_phase3_readme_flow_snippets(ROOT)
-        cross_phase_snippets, cross_phase_issues = _load_cross_phase_readme_flow_snippets(ROOT)
+        phase3_snippets, phase3_issues = _load_default_fixture_snippets(
+            DEFAULT_PHASE3_README_FLOW_SNIPPETS,
+            EXPECTED_PHASE3_README_FLOW_COUNT,
+            "unexpected_default_phase3_flow_fixture_count",
+            "duplicate_default_phase3_flow_fixture_snippet",
+        )
+        cross_phase_snippets, cross_phase_issues = _load_default_fixture_snippets(
+            DEFAULT_CROSS_PHASE_README_FLOW_SNIPPETS,
+            EXPECTED_CROSS_PHASE_README_FLOW_COUNT,
+            "unexpected_default_cross_phase_flow_fixture_count",
+            "duplicate_default_cross_phase_flow_fixture_snippet",
+        )
         issues = phase3_issues + cross_phase_issues
         if issues:
             raise SystemExit(
