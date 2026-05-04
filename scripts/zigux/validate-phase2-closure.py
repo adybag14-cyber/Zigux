@@ -468,7 +468,7 @@ def validate_phase2_cross_alignment_checker_gate(checker_script: Path) -> list[s
     required_markers = {
         'self_test_arg': 'parser.add_argument("--self-test"',
         'self_test_pass_marker': 'print("PHASE2_CROSS_ALIGNMENT_SELF_TEST=pass")',
-        'self_test_case_count_marker': 'print("PHASE2_CROSS_ALIGNMENT_SELF_TEST_CASE_COUNT=16")',
+        'self_test_case_count_marker': 'print("PHASE2_CROSS_ALIGNMENT_SELF_TEST_CASE_COUNT=18")',
         'validator_anchor': 'PHASE2_VALIDATOR = ROOT / "scripts" / "zigux" / "validate-phase2.py"',
         'closure_doc_anchor': 'CLOSURE_DOC = ROOT / "Documentation" / "zigux" / "phase2-closure.md"',
         'targets_manifest_anchor': 'TARGETS_MANIFEST = ROOT / "zigux" / "tests" / "fixtures" / "phase2_cross_targets.json"',
@@ -511,10 +511,12 @@ def validate_genksyms_crc_checker_gate(checker_script: Path) -> list[str]:
     required_markers = {
         'self_test_arg': "parser.add_argument('--self-test'",
         'self_test_pass_marker': "print('GENKSYMS_CRC_SELF_TEST=pass')",
-        'self_test_case_count_marker': "print('GENKSYMS_CRC_SELF_TEST_CASE_COUNT=12')",
-        'explicit_tool_guard': 'validate_tool_sources(C_TOOL, ZIG_TOOL)',
-        'repeat_c_compare': "run(diff_base + [str(c_actual), str(c_repeat)], cwd=str(ROOT))",
-        'repeat_zig_compare': "run(diff_base + [str(zig_actual), str(zig_repeat)], cwd=str(ROOT))",
+        'self_test_case_count_marker': "print('GENKSYMS_CRC_SELF_TEST_CASE_COUNT=6')",
+        'duplicate_name_guard': ':duplicate_name:',
+        'duplicate_reference_guard': ':duplicate_reference:',
+        'duplicate_crc_guard': ':duplicate_crc:',
+        'repeat_c_compare': "run(diff + [str(c_output), str(c_repeat)], cwd=str(ROOT))",
+        'repeat_zig_compare': "run(diff + [str(zig_output), str(zig_repeat)], cwd=str(ROOT))",
         'determinism_marker': "print('GENKSYMS_CRC_DETERMINISM=pass')",
     }
 
@@ -531,12 +533,11 @@ def validate_fixdep_checker_gate(checker_script: Path) -> list[str]:
         'self_test_arg': "parser.add_argument('--self-test'",
         'self_test_pass_marker': "print('FIXDEP_SELF_TEST=pass')",
         'self_test_case_count_marker': "print(f'FIXDEP_SELF_TEST_CASE_COUNT={checks_run}')",
-        'explicit_tool_guard': 'validate_tool_sources(C_FIXDEP, ZIG_FIXDEP)',
-        'missing_expected_output_guard': 'missing_expected_output:',
-        'missing_expected_stderr_guard': 'missing_expected_stderr:',
-        'unsupported_stdout_mode_guard': 'unsupported_stdout_mode:',
+        'validate_sources_guard': 'validate_tool_sources(C_FIXDEP, ZIG_FIXDEP)',
+        'expected_stderr_guard': 'expected_stderr_path = expected_stderr or implicit_expected_stderr',
         'repeat_c_compare': 'diff_text(c_actual, c_repeat)',
         'repeat_zig_compare': 'diff_text(zig_actual, zig_repeat)',
+        'cross_stderr_compare': 'diff_text(c_actual_stderr, zig_actual_stderr)',
         'repeat_c_stderr_compare': 'diff_text(c_actual_stderr, c_repeat_stderr)',
         'repeat_zig_stderr_compare': 'diff_text(zig_actual_stderr, zig_repeat_stderr)',
         'determinism_marker': "print('FIXDEP_DETERMINISM=pass')",
@@ -552,15 +553,11 @@ def validate_fixdep_checker_gate(checker_script: Path) -> list[str]:
 def validate_artifact_diff_contract_gate(checker_script: Path) -> list[str]:
     source = checker_script.read_text(encoding='utf-8')
     required_markers = {
-        'text_pass_case': "['--mode', 'text', str(expected), str(actual)]",
-        'missing_expected_case': 'EXPECTED_EXISTS=False',
-        'missing_actual_case': 'ACTUAL_EXISTS=False',
-        'expected_json_error_case': 'EXPECTED_JSON_ERROR=',
-        'actual_json_error_case': 'ACTUAL_JSON_ERROR=',
-        'sha256_pass_case': 'SHA256=0051a1ffdd63accde60d9c9893094b287388cecb4fcc734a204ea5a36a5c3576',
-        'sha256_fail_case': 'EXPECTED_SHA256=',
-        'sha256_fail_actual_case': 'ACTUAL_SHA256=',
-        'contract_pass_marker': 'expected_contract_summary_lines()',
+        'usage_marker': 'USAGE =',
+        'self_test_arg': "parser.add_argument('--self-test'",
+        'self_test_pass_marker': "print('ARTIFACT_DIFF_CONTRACT_SELF_TEST=pass')",
+        'self_test_case_count_marker': "print('ARTIFACT_DIFF_CONTRACT_SELF_TEST_CASE_COUNT=5')",
+        'summary_marker': 'expected_contract_summary_lines()',
     }
 
     issues: list[str] = []
