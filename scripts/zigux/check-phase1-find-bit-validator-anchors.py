@@ -2,6 +2,8 @@
 from __future__ import annotations
 
 import argparse
+import contextlib
+import io
 import json
 import tempfile
 from pathlib import Path
@@ -161,6 +163,14 @@ def read_text(path: Path) -> str:
     return path.read_text(encoding="utf-8")
 
 
+def validate_required_files(required_files: dict[str, Path]) -> list[str]:
+    missing: list[str] = []
+    for rel, path in required_files.items():
+        if not path.exists():
+            missing.append(f"missing_file:{rel}")
+    return missing
+
+
 def validate_text(prefix: str, text: str, snippets: dict[str, str]) -> list[str]:
     missing: list[str] = []
     for label, snippet in snippets.items():
@@ -276,6 +286,27 @@ def run_check(
     find_bit_source_path: Path,
     manifest_path: Path,
 ) -> int:
+    required_files = {
+        "scripts/zigux/validate-phase1.py": validator_path,
+        "scripts/zigux/validate-phase1-closure.py": closure_validator_path,
+        "Documentation/zigux/phase1-closure.md": closure_doc_path,
+        "scripts/zigux/check-phase1-bench.py": bench_checker_path,
+        ".github/workflows/zigux-bootstrap.yml": workflow_path,
+        "zigux/Makefile": makefile_path,
+        "scripts/zigux/README.md": scripts_readme_path,
+        "Documentation/zigux/README.md": docs_readme_path,
+        "tools/lib/find_bit.zig": find_bit_source_path,
+        "zigux/tests/fixtures/phase1_helper_manifest.json": manifest_path,
+    }
+    missing_files = validate_required_files(required_files)
+    if missing_files:
+        print("PHASE1_FIND_BIT_VALIDATOR_ANCHOR_CHECK=fail")
+        print("MISSING_PHASE1_FIND_BIT_VALIDATOR_ANCHORS_START")
+        for item in missing_files:
+            print(item)
+        print("MISSING_PHASE1_FIND_BIT_VALIDATOR_ANCHORS_END")
+        return 1
+
     missing = collect_missing(
         read_text(validator_path),
         read_text(closure_validator_path),
@@ -330,6 +361,33 @@ def expect_missing(label: str, expected: str, **texts: str) -> None:
     if expected not in missing:
         raise SystemExit(
             f"phase1-find-bit-validator-self-test:{label}:expected={expected!r}:actual={missing!r}"
+        )
+
+
+def expect_run_check_failure(paths: dict[str, Path], expected: str) -> None:
+    buffer = io.StringIO()
+    with contextlib.redirect_stdout(buffer):
+        result = run_check(
+            paths["validator"],
+            paths["closure_validator"],
+            paths["closure_doc"],
+            paths["bench_checker"],
+            paths["workflow"],
+            paths["makefile"],
+            paths["scripts_readme"],
+            paths["docs_readme"],
+            paths["find_bit_source"],
+            paths["manifest"],
+        )
+    output = buffer.getvalue()
+    if result == 0:
+        raise SystemExit(
+            f"phase1-find-bit-validator-self-test:expected_failure:{expected}"
+        )
+    if expected not in output:
+        raise SystemExit(
+            "phase1-find-bit-validator-self-test:missing_expected_output:"
+            f"expected={expected!r}:actual={output!r}"
         )
 
 
@@ -682,6 +740,10 @@ def run_self_test() -> int:
             != 0
         ):
             raise SystemExit("phase1-find-bit-validator-self-test:file_check_failed")
+        total_cases += 1
+
+        paths["validator"].unlink()
+        expect_run_check_failure(paths, "missing_file:scripts/zigux/validate-phase1.py")
         total_cases += 1
 
     print("PHASE1_FIND_BIT_VALIDATOR_ANCHOR_SELF_TEST=pass")
