@@ -185,7 +185,7 @@
         "string.memchr_inv_index",
         "string.memchr_inv_none"
       ],
-      "summary": "Committed C-backed parity coverage includes Linux-style bool parsing for true, false, and invalid forms, C-string-aware strlcpy length and truncation behavior, in-place whitespace and replacement helpers including embedded-NUL remove_spaces handling, and first-mismatch memchrInv detection, while direct Zig review anchors now also record strscpy, deeper memchrInv cutoff, dirty-word, high-bit, and zero-value boundary coverage, sysfs newline-equivalence, prefix, prefix-length, suffix, and memparse binary-unit-tail coverage for the newer helper surface already shipped on master.",
+      "summary": "Committed C-backed parity coverage includes Linux-style bool parsing for true, false, and invalid forms, C-string-aware strlcpy length and truncation behavior, in-place whitespace and replacement helpers including embedded-NUL remove_spaces handling, and first-mismatch memchrInv detection, while direct Zig review anchors now also record C-string equality, explicit strstrip alias, and deeper whitespace-trimming coverage plus strscpy, deeper memchrInv cutoff, prefix-tail, dirty-word, high-bit, and zero-value boundary coverage, sysfs newline-equivalence, prefix, prefix-length, suffix, and memparse binary-unit-tail coverage for the newer helper surface already shipped on master.",
       "unit_test_anchor": "tools/lib/string.zig:test \"memchrInv scans aligned and misaligned long buffers\"",
       "unit_test_contract": "Direct Zig unit coverage keeps memchrInv honest across aligned and misaligned long buffers, the short-versus-long cutoff boundary, earliest dirty-word mismatch selection, high-bit byte scans, and zero-value word-boundary scans beyond the short C-backed fixture cases.",
       "cstring_unit_test_anchor": "tools/lib/string.zig:test \"strlcpy stops at the first embedded NUL in the source\"",
@@ -198,6 +198,8 @@
       "sysfs_unit_test_contract": "Direct Zig unit coverage keeps sysfsStreq() and sysfs_streq() aligned by treating a single trailing newline as equivalent to C-string termination while still rejecting non-terminal newline and content mismatches.",
       "alias_unit_test_anchor": "tools/lib/string.zig:test \"trimSpaces and strim trim trailing whitespace before an embedded NUL\"",
       "alias_unit_test_contract": "Direct Zig unit coverage keeps trimSpaces and strim aligned with C-string semantics by trimming trailing whitespace that appears before the first embedded NUL while preserving bytes beyond that terminator.",
+      "strstrip_unit_test_anchor": "tools/lib/string.zig:test \"strstrip aliases strim with the same C-string trimming semantics\"",
+      "strstrip_unit_test_contract": "Direct Zig unit coverage keeps strstrip aligned with strim by preserving the same C-string trimming semantics, including trailing-whitespace removal before the first embedded NUL and empty-whitespace handling without touching bytes beyond that terminator.",
       "prefix_unit_test_anchor": "tools/lib/string.zig:test \"strstarts matches kernel prefix semantics\"",
       "prefix_unit_test_contract": "Direct Zig unit coverage keeps strStarts and strstarts aligned with kernel-style prefix semantics for exact, empty-prefix, shorter-input, and case-sensitive comparisons.",
       "prefix_length_unit_test_anchor": "tools/lib/string.zig:test \"strHasPrefix returns the matched prefix length with C-string semantics\"",
