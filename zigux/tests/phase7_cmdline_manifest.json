@@ -51,6 +51,13 @@
       "why_now": "The committed parity layer and C harness keep representative get_option(), get_options(), memparse(), parse_option_str(), and next_arg() behavior externally reviewable against lib/cmdline.c through the dedicated parity checker."
     },
     {
+      "id": "phase7-cmdline-parity-checker",
+      "status": "starter_landed",
+      "kind": "validation",
+      "zigux_destination": "scripts/zigux/check-phase7-cmdline-parity.py",
+      "why_now": "The dedicated parity checker is already part of the landed cmdline review path through the shared validator, Makefile, docs root, and tests root, so the manifest-backed ownership record should name that fail-closed review hook explicitly instead of leaving it implied by the parity fixture layer alone."
+    },
+    {
       "id": "phase7-cmdline-slice-note",
       "status": "starter_landed",
       "kind": "documentation",
