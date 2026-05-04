@@ -47,6 +47,26 @@ test "phase 7 argvSplit token buffer does not alias the source text" {
     try std.testing.expectEqualStrings("rw", split.argv[1]);
 }
 
+test "phase 7 argvSplit keeps every shared token pointer inside the owned storage copy" {
+    var split = try argv_split.argvSplit(std.testing.allocator, "console=ttyS0 root=/dev/vda rw");
+    defer split.deinit(std.testing.allocator);
+
+    const storage_start = @intFromPtr(split.storage.ptr);
+    const storage_end = storage_start + split.storage.len;
+    const c_argv = split.cArgv();
+
+    for (split.argv, 0..) |token, index| {
+        const token_start = @intFromPtr(token.ptr);
+        const token_end = token_start + token.len;
+        const offset = token_start - storage_start;
+
+        try std.testing.expect(token_start >= storage_start);
+        try std.testing.expect(token_end <= storage_end);
+        try std.testing.expectEqual(@intFromPtr(token.ptr), @intFromPtr(c_argv[index].?));
+        try std.testing.expectEqual(@as(u8, 0), split.storage[offset + token.len]);
+    }
+}
+
 test "phase 7 argvSplitWithArgc reports the split length through the optional out parameter" {
     var argc: usize = 99;
     var split = try argv_split.argvSplitWithArgc(std.testing.allocator, "console=ttyS0 root=/dev/vda rw", &argc);
