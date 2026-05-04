@@ -69,7 +69,7 @@
     {
       "id": "loader-request-surface",
       "kind": "runtime_loader_contract",
-      "expected": "the loader scaffold keeps entry symbol zigux_runtime_atomic64_init, exit symbol zigux_runtime_atomic64_exit, waiting_on_runtime_substrate handoff, released_without_substrate fallback, kernel_heap allocator flow, and the four-field atomic64 payload summary machine-checkable through the shared runtime-loader request surface"
+      "expected": "the loader scaffold keeps entry symbol zigux_runtime_atomic64_init, exit symbol zigux_runtime_atomic64_exit, a prepared four-field atomic64 payload summary snapshot, waiting_on_runtime_substrate handoff, released_without_substrate fallback, and kernel_heap allocator flow machine-checkable through the shared runtime-loader request surface before later sample mutation"
     },
     {
       "id": "loader-command-name-preservation",
