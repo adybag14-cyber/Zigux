@@ -70,18 +70,21 @@ test "phase 5 trace-events sample keeps payload and callback boundaries explicit
     try module.init();
     try std.testing.expectError(error.InvalidIterationCount, module.replayMainIteration(-1));
 
-    try module.replayMainIteration(4);
-    try std.testing.expectEqual(@as(i32, 1), module.array_payload[0]);
-    try std.testing.expectEqual(@as(i32, 2), module.array_payload[1]);
-    try std.testing.expectEqual(@as(i32, 3), module.array_payload[2]);
-    try std.testing.expectEqual(@as(i32, 4), module.array_payload[3]);
-    try std.testing.expectEqual(@as(i32, 0), module.array_payload[4]);
-    try std.testing.expectEqualStrings("One ring to rule them all", module.selected_string);
-    try std.testing.expectEqual(@as(usize, 4), module.selected_string_slot);
-    try std.testing.expectEqualStrings("iter=4", module.formattedMessage());
-    try std.testing.expect(module.saw_vararg_payload);
-    try std.testing.expect(module.saw_rel_loc_payload);
-    try std.testing.expect(module.saw_conditional_path);
+    const payload_boundary = try module.runPayloadBoundaryReplay(4);
+    try std.testing.expectEqual(sample.SampleStage.initialized, payload_boundary.stage_before_replay);
+    try std.testing.expectEqual(sample.SampleStage.initialized, payload_boundary.stage_after_replay);
+    try std.testing.expectEqual(@as(i32, 4), payload_boundary.iteration_count);
+    try std.testing.expectEqualSlices(i32, &.{ 1, 2, 3, 4 }, payload_boundary.payload_preview[0..payload_boundary.payload_preview_len]);
+    try std.testing.expectEqual(@as(usize, 4), payload_boundary.payload_preview_len);
+    try std.testing.expectEqual(@as(usize, 4), payload_boundary.payload_len);
+    try std.testing.expectEqual(@as(i32, 0), payload_boundary.array_sentinel);
+    try std.testing.expectEqualStrings("One ring to rule them all", payload_boundary.selected_string);
+    try std.testing.expectEqual(@as(usize, 4), payload_boundary.selected_string_slot);
+    try std.testing.expectEqualStrings("iter=4", payload_boundary.formatted_message);
+    try std.testing.expect(payload_boundary.vararg_payload_path_checked);
+    try std.testing.expect(payload_boundary.relative_location_path_checked);
+    try std.testing.expect(payload_boundary.conditional_paths_checked);
+    try std.testing.expectEqual(@as(usize, sample.TraceEventsReferenceSample.event_family_count), payload_boundary.total_event_calls_after_replay);
 
     const callback_boundary = try module.runCallbackBoundaryRecoveryReplay();
     try std.testing.expectEqual(sample.SampleStage.initialized, callback_boundary.stage_before_replay);
