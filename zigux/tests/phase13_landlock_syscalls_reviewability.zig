@@ -109,6 +109,8 @@ test "phase13 landlock syscalls reviewability ties helper, survey, manifest, and
     try expectContains(slice_note, "PHASE13_OWNERSHIP_BOUNDARY=ruleset-fd-handoff-helper-only");
     try expectContains(slice_note, "landlock_put_ruleset()");
     try expectContains(slice_note, "fop_ruleset_release()");
+    try expectContains(slice_note, "`zigux/tests/phase13_landlock_ruleset_fops_sync.zig`");
+    try expectContains(slice_note, "same-family `zigux/tests/phase13_landlock_ruleset_fops_sync.zig` guard");
     try expectContains(slice_note, "live FD-table ownership remains with the C implementation");
 
     const survey_note = try std.Io.Dir.cwd().readFileAlloc(
@@ -123,6 +125,7 @@ test "phase13 landlock syscalls reviewability ties helper, survey, manifest, and
     try expectContains(survey_note, "PHASE13_SLICE=landlock-syscalls-helper-pure-handoff-boundary");
     try expectContains(survey_note, "PHASE13_SURVEYED_COMMIT=9c17b0790799d8240ef9f964903f5ce2db64af89");
     try expectContains(survey_note, "`zigux/tests/phase13_landlock_syscalls_reviewability.zig`");
+    try expectContains(survey_note, "- `zigux/tests/phase13_landlock_ruleset_fops_sync.zig`");
     try expectContains(survey_note, "`zigux/tests/phase13_landlock_ruleset_fops_sync.zig`");
     try expectContains(survey_note, "dedicated reviewability gate now ties the helper surface, manifest, survey note, the same-family `phase13_landlock_ruleset_fops_sync.zig` evidence, and shared Phase 13 build wiring together");
     try expectContains(survey_note, "landed `phase13-landlock-syscalls-reviewability-gate`");
