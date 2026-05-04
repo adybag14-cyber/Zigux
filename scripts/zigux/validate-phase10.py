@@ -744,7 +744,7 @@ def run_self_test() -> int:
 
         ring_manifest = json.loads(ring_manifest_path.read_text(encoding="utf-8"))
         ring_manifest["freeze_boundary_status"] = "drifted"
-        ring_manifest_path.writeText(json.dumps(ring_manifest, indent=2) + "\n", encoding="utf-8")
+        ring_manifest_path.write_text(json.dumps(ring_manifest, indent=2) + "\n", encoding="utf-8")
         expect_missing_marker(
             "ring_freeze_boundary_status_guard",
             tmp_root,
