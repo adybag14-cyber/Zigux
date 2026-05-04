@@ -201,6 +201,7 @@ The bounded `genksyms` closure packet remains closed because both the shared bri
 - `PHASE2_GENKSYMS_BRIDGE_MISSING_SHORT_DUMP_TYPES_CASE=zigux/tests/fixtures/genksyms_bridge/missing_dump_types_argument_expected.json`
 - `PHASE2_GENKSYMS_BRIDGE_POSITIONAL_CASES=zigux/tests/fixtures/genksyms_bridge/lone_dash_passthrough_expected.json,zigux/tests/fixtures/genksyms_bridge/explicit_terminator_positional_passthrough_expected.json`
 - `PHASE2_GENKSYMS_BRIDGE_STDERR_POLICY=success-path stderr silence plus repeat-run stderr determinism are required for closure`
+- `PHASE2_GENKSYMS_IMPLEMENTATION_BOUNDARY=scripts/genksyms/genksyms.c remains authoritative for parser-heavy symbol parsing and export semantics while scripts/zigux/genksyms.zig stays a bounded wrapper-first getopt bridge`
 - `PHASE2_GENKSYMS_BRIDGE_EVIDENCE=artifact fixtures plus abbreviated-long, inline-short, clustered-short-inline, missing-short-dump-types, lone-dash, explicit-terminator, empty-long-name, abbreviated-dump-types, and reference-limit coverage are required for closure`
 
 ## Kconfig Bridge Evidence
