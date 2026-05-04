@@ -25,6 +25,9 @@ The adjacent shared runtime-loader blocker also remains underneath the freeze ma
 
 No parity scorecard entry or Architecture Council status-change request is attached to this runtime atomic64 starter packet. The reviewable evidence here remains limited to the shipped starter, its direct sample, module, diff, and loader build legs, the shared loader-request binding, and the still-blocked shared loader-control posture that keeps the packet pre-execution.
 
+The current module-slice packet is pinned to `master` commit `d46fb91493e6e9126d5111bf0e5b21184e0ec1d1`.
+This keeps later starter-surface or governance edits from silently drifting past this note.
+
 ## Landed starter surface
 
 - module descriptor metadata naming the `lib/atomic64_test.c` anchor
