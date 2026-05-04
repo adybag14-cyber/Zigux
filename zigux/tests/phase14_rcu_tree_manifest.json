@@ -56,6 +56,7 @@
     "review_blocker_status": "blocked_on_stay_in_c_evidence",
     "owner": "Core-Adjacent Pod",
     "rollback_owner": "Repo Tooling Pod",
+    "fallback_path": "Keep `kernel/rcu/tree.c` as the product source of truth, keep `kernel/rcu/tree_bridge.zig` absent from active delivery, and fall back to the blocked freeze-in-C survey packet if the reopen record, parity evidence, replay command, blocker disposition, or rollback owner stops being explicit.",
     "required_evidence": [
       "Architecture Council reopen record linked from the reviewable packet",
       "parity scorecard evidence and benchmark notes attached to the same review packet",
@@ -258,7 +259,7 @@
       "status": "starter_landed",
       "kind": "rollback_guardrail",
       "zigux_destination": "zigux/tests/phase14_rcu_tree_manifest.json",
-      "why_now": "The manifest now carries the rollback-threshold guardrail so any future Architecture Council reopen record for `kernel/rcu/tree_bridge.zig` must travel with the same parity evidence, replay commands, blocker disposition, placeholder wrapper warnings, and rollback owner instead of drifting into implied bridge momentum."
+      "why_now": "The manifest now carries the rollback-threshold guardrail so any future Architecture Council reopen record for `kernel/rcu/tree_bridge.zig` must travel with the same parity evidence, replay commands, blocker disposition, placeholder wrapper warnings, rollback fallback path, and rollback owner instead of drifting into implied bridge momentum."
     },
     {
       "id": "phase14-rcu-tree-bridge-blocker",
