@@ -290,7 +290,6 @@ def run_self_test() -> int:
             in issues
         )
 
-        expected_path.writeText = None
         expected_path.write_text(
             json.dumps(
                 {
