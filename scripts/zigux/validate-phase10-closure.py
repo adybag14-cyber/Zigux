@@ -76,6 +76,7 @@ EXPECTED_LANDED_INPUT_HELPERS = [
     "phase10-virtio-input-registration-preflight-helper",
     "phase10-virtio-input-queue-callback-preflight-helper",
     "phase10-virtio-input-probe-preflight-helper",
+    "phase10-virtio-input-registration-blocker-helper",
 ]
 EXPECTED_LANDED_MMIO_HELPERS = [
     "phase10-mmio-register-window-helper",
