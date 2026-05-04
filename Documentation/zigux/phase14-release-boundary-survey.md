@@ -15,12 +15,16 @@ This document records the current release-planning reading for the roadmap's Pha
   - `Documentation/zigux/review-checklist.md`
   - `Documentation/zigux/phase14-release-boundary-survey.md`
   - `Documentation/zigux/phase14-end-to-end-smoke-survey.md`
-  - `zigux/tests/phase14_end_to_end_smoke_manifest.json`
+  - `Documentation/zigux/README.md`
+  - `scripts/zigux/README.md`
   - `scripts/zigux/check-phase14-docs-root-smoke-summary.py`
   - `scripts/zigux/check-phase14-release-boundary-exact-counts.py`
   - `scripts/zigux/validate-phase14.py`
+  - `zigux/tests/phase14_end_to_end_smoke_manifest.json`
+  - `zigux/tests/phase14_end_to_end_smoke_survey.zig`
   - `zigux/tests/phase14_build.zig`
-  - `Documentation/zigux/README.md`
+  - `zigux/Makefile`
+  - `.github/workflows/zigux-bootstrap.yml`
   - `Documentation/zigux/phase15-readiness-gate-survey.md`
   - `Documentation/zigux/phase15-handoff-next-steps-survey.md`
 
