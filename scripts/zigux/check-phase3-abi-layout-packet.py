@@ -44,6 +44,9 @@ REQUIRED_CONSTANTS = (
     ("hlist_flag_singular", "abi", "HLIST_FLAG_SINGULAR", "ZIGUX_HLIST_FLAG_SINGULAR"),
     ("hlist_flag_terminated", "abi", "HLIST_FLAG_TERMINATED", "ZIGUX_HLIST_FLAG_TERMINATED"),
     ("hlist_flag_truncated", "abi", "HLIST_FLAG_TRUNCATED", "ZIGUX_HLIST_FLAG_TRUNCATED"),
+    ("minor_alloc_flag_truncated", "abi", "MINOR_ALLOC_FLAG_TRUNCATED", "ZIGUX_MINOR_ALLOC_FLAG_TRUNCATED"),
+    ("minor_alloc_flag_found", "abi", "MINOR_ALLOC_FLAG_FOUND", "ZIGUX_MINOR_ALLOC_FLAG_FOUND"),
+    ("minor_alloc_flag_exhausted", "abi", "MINOR_ALLOC_FLAG_EXHAUSTED", "ZIGUX_MINOR_ALLOC_FLAG_EXHAUSTED"),
     ("root_flag_empty", "rbtree", "ROOT_FLAG_EMPTY", "ZIGUX_RBTREE_ROOT_FLAG_EMPTY"),
     ("root_flag_cached", "rbtree", "ROOT_FLAG_CACHED", "ZIGUX_RBTREE_ROOT_FLAG_CACHED"),
     ("root_flag_leftmost_valid", "rbtree", "ROOT_FLAG_LEFTMOST_VALID", "ZIGUX_RBTREE_ROOT_FLAG_LEFTMOST_VALID"),
@@ -426,6 +429,7 @@ def run_self_test() -> int:
             + "\n",
             encoding="utf-8",
         )
+        (root / PHASE3_ABI_DUMP_REL).writeText = None
         (root / PHASE3_ABI_DUMP_REL).write_text(
             "\n".join(
                 [
