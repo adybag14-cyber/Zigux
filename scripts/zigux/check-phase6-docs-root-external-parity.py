@@ -9,7 +9,7 @@ from pathlib import Path
 
 SCRIPT_PATH = Path(__file__).resolve()
 ROOT = SCRIPT_PATH.parents[2] if len(SCRIPT_PATH.parents) > 2 else SCRIPT_PATH.parent
-SELF_TEST_CASE_COUNT = 22
+SELF_TEST_CASE_COUNT = 28
 
 DOCS_ROOT_PATH = Path("Documentation/zigux/README.md")
 SCRIPTS_README_PATH = Path("scripts/zigux/README.md")
@@ -19,6 +19,7 @@ MAKEFILE_PATH = Path("zigux/Makefile")
 REQUIRED_REVIEW_HELPER_PATHS = [
     Path("scripts/zigux/check-phase6-docs-root-external-parity.py"),
     Path("scripts/zigux/check-phase6-base64-catalog-evidence.py"),
+    Path("scripts/zigux/check-phase6-checksum-hexdump-perf-markers.py"),
 ]
 REQUIRED_SCRIPT_PATHS = [
     Path("scripts/zigux/check-phase6-base64-c-parity.py"),
@@ -43,6 +44,7 @@ DOCS_ROOT_VALIDATOR_LINE = (
 REQUIRED_SCRIPTS_README_LINES = [
     "- `check-phase6-docs-root-external-parity.py`",
     "- `check-phase6-base64-catalog-evidence.py`",
+    "- `check-phase6-checksum-hexdump-perf-markers.py`",
 ]
 SCRIPTS_README_SELF_TEST_LINE = (
     "`validate-phase6.py --self-test` exercises the shared Phase 6 marker walk "
@@ -53,6 +55,7 @@ SCRIPTS_README_SELF_TEST_LINE = (
 REQUIRED_TESTS_README_LINES = [
     "- `scripts/zigux/check-phase6-docs-root-external-parity.py`",
     "- `scripts/zigux/check-phase6-base64-catalog-evidence.py`",
+    "- `scripts/zigux/check-phase6-checksum-hexdump-perf-markers.py`",
     "- `zigux/tests/phase6_base64_c_parity.zig`",
     "- `zigux/tests/phase6_base64_c_casegen.zig`",
     "- `zigux/tests/fixtures/phase6_base64_c_harness.c`",
@@ -68,12 +71,16 @@ REQUIRED_MANIFEST_EXACT_CHECKS = [
     "python3 scripts/zigux/check-phase6-docs-root-external-parity.py",
     "python3 scripts/zigux/check-phase6-base64-catalog-evidence.py --self-test",
     "python3 scripts/zigux/check-phase6-base64-catalog-evidence.py",
+    "python3 scripts/zigux/check-phase6-checksum-hexdump-perf-markers.py --self-test",
+    "python3 scripts/zigux/check-phase6-checksum-hexdump-perf-markers.py",
 ]
 REQUIRED_MAKEFILE_LINES = [
     "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase6-docs-root-external-parity.py --self-test",
     "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase6-docs-root-external-parity.py",
     "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase6-base64-catalog-evidence.py --self-test",
     "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase6-base64-catalog-evidence.py",
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase6-checksum-hexdump-perf-markers.py --self-test",
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase6-checksum-hexdump-perf-markers.py",
 ]
 REQUIRED_FILE_COUNT = (
     5 + len(REQUIRED_REVIEW_HELPER_PATHS) + len(REQUIRED_SCRIPT_PATHS)
@@ -292,7 +299,7 @@ def run_self_test() -> int:
             scripts_readme = root / SCRIPTS_README_PATH
             scripts_readme.write_text(
                 "- `check-phase6-docs-root-external-parity.py`\n- `check-phase6-docs-root-external-parity.py`\n"
-                f"- `check-phase6-base64-catalog-evidence.py`\n{SCRIPTS_README_SELF_TEST_LINE}\n",
+                f"- `check-phase6-base64-catalog-evidence.py`\n- `check-phase6-checksum-hexdump-perf-markers.py`\n{SCRIPTS_README_SELF_TEST_LINE}\n",
                 encoding="utf-8",
             )
             expect_contains(
@@ -304,7 +311,9 @@ def run_self_test() -> int:
             build_fixture_tree(root)
             scripts_readme = root / SCRIPTS_README_PATH
             scripts_readme.write_text(
-                f"- `check-phase6-docs-root-external-parity.py`\n{SCRIPTS_README_SELF_TEST_LINE}\n",
+                "- `check-phase6-docs-root-external-parity.py`\n"
+                "- `check-phase6-checksum-hexdump-perf-markers.py`\n"
+                f"{SCRIPTS_README_SELF_TEST_LINE}\n",
                 encoding="utf-8",
             )
             expect_contains(
@@ -319,6 +328,7 @@ def run_self_test() -> int:
                 "- `check-phase6-docs-root-external-parity.py`\n"
                 "- `check-phase6-base64-catalog-evidence.py`\n"
                 "- `check-phase6-base64-catalog-evidence.py`\n"
+                "- `check-phase6-checksum-hexdump-perf-markers.py`\n"
                 f"{SCRIPTS_README_SELF_TEST_LINE}\n",
                 encoding="utf-8",
             )
@@ -504,6 +514,94 @@ def run_self_test() -> int:
             expect_contains(
                 validate(root),
                 "makefile_checker_line:expected=1:actual=0:cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase6-base64-catalog-evidence.py",
+            )
+            count += 1
+
+            build_fixture_tree(root)
+            scripts_readme = root / SCRIPTS_README_PATH
+            scripts_readme.write_text(
+                "- `check-phase6-docs-root-external-parity.py`\n"
+                "- `check-phase6-base64-catalog-evidence.py`\n"
+                f"{SCRIPTS_README_SELF_TEST_LINE}\n",
+                encoding="utf-8",
+            )
+            expect_contains(
+                validate(root),
+                "scripts_readme_checker_line:expected=1:actual=0:- `check-phase6-checksum-hexdump-perf-markers.py`",
+            )
+            count += 1
+
+            build_fixture_tree(root)
+            scripts_readme = root / SCRIPTS_README_PATH
+            scripts_readme.write_text(
+                "- `check-phase6-docs-root-external-parity.py`\n"
+                "- `check-phase6-base64-catalog-evidence.py`\n"
+                "- `check-phase6-checksum-hexdump-perf-markers.py`\n"
+                "- `check-phase6-checksum-hexdump-perf-markers.py`\n"
+                f"{SCRIPTS_README_SELF_TEST_LINE}\n",
+                encoding="utf-8",
+            )
+            expect_contains(
+                validate(root),
+                "scripts_readme_checker_line:expected=1:actual=2:- `check-phase6-checksum-hexdump-perf-markers.py`",
+            )
+            count += 1
+
+            build_fixture_tree(root)
+            tests_readme = root / TESTS_README_PATH
+            tests_readme.write_text(
+                "\n".join(
+                    [
+                        REQUIRED_TESTS_README_LINES[0],
+                        REQUIRED_TESTS_README_LINES[1],
+                        *REQUIRED_TESTS_README_LINES[3:],
+                    ]
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+            expect_contains(
+                validate(root),
+                "tests_readme_external_portability_line:expected=1:actual=0:- `scripts/zigux/check-phase6-checksum-hexdump-perf-markers.py`",
+            )
+            count += 1
+
+            build_fixture_tree(root)
+            (root / REQUIRED_REVIEW_HELPER_PATHS[2]).unlink()
+            expect_contains(
+                validate(root),
+                "missing_file:scripts/zigux/check-phase6-checksum-hexdump-perf-markers.py",
+            )
+            count += 1
+
+            build_fixture_tree(root)
+            manifest_path = root / MANIFEST_PATH
+            manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+            kept_checks = [
+                item
+                for item in manifest["exact_checks"]
+                if item
+                != "python3 scripts/zigux/check-phase6-checksum-hexdump-perf-markers.py --self-test"
+            ]
+            manifest["exact_checks"] = kept_checks
+            manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+            expect_contains(
+                validate(root),
+                "manifest_exact_checks:expected=1:actual=0:python3 scripts/zigux/check-phase6-checksum-hexdump-perf-markers.py --self-test",
+            )
+            count += 1
+
+            build_fixture_tree(root)
+            makefile = root / MAKEFILE_PATH
+            kept_lines = [
+                line
+                for line in makefile.read_text(encoding="utf-8").splitlines()
+                if line != REQUIRED_MAKEFILE_LINES[4]
+            ]
+            makefile.write_text("\n".join(kept_lines) + "\n", encoding="utf-8")
+            expect_contains(
+                validate(root),
+                "makefile_checker_line:expected=1:actual=0:cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase6-checksum-hexdump-perf-markers.py --self-test",
             )
             count += 1
 
