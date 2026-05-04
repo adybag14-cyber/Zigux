@@ -16,6 +16,8 @@ HEX40 = re.compile(r"^[0-9a-f]{40}$")
 FILES = [
     "scripts/zigux/validate-phase10.py",
     "scripts/zigux/validate-phase10-closure.py",
+    "scripts/zigux/check-phase10-closure-inventory.py",
+    "scripts/zigux/check-phase10-core-packet.py",
     "scripts/zigux/README.md",
     "Documentation/zigux/README.md",
     "Documentation/zigux/phase10-virtio-ring-slice.md",
@@ -97,6 +99,8 @@ FORBIDDEN_SCRIPT_README_MARKERS = [
 
 TESTS_README_MARKERS = [
     "scripts/zigux/validate-phase10.py",
+    "scripts/zigux/check-phase10-closure-inventory.py",
+    "scripts/zigux/check-phase10-core-packet.py",
     "zigux/tests/phase10_virtio_core_survey.zig",
     "zigux/tests/phase10_virtio_ring_reset_reuse.zig",
     "zigux/tests/phase10_virtio_ring_manifest.json",
@@ -647,6 +651,8 @@ def write_fixture_tree(root: Path) -> None:
         "zigux/tests/phase10_virtio_mmio_survey.zig": "\n".join(MMIO_SURVEY_TEST_MARKERS) + "\n",
         "scripts/zigux/validate-phase10.py": "fixture\n",
         "scripts/zigux/validate-phase10-closure.py": "fixture\n",
+        "scripts/zigux/check-phase10-closure-inventory.py": "fixture\n",
+        "scripts/zigux/check-phase10-core-packet.py": "fixture\n",
     }
 
     manifests = {
@@ -826,6 +832,36 @@ def run_self_test() -> int:
         )
 
         write_fixture_tree(tmp_root)
+        tests_readme_path.write_text(
+            read_text(tmp_root, "zigux/tests/README.md").replace(
+                "scripts/zigux/check-phase10-closure-inventory.py",
+                "scripts/zigux/check-phase10-closure-inventory-drift.py",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "tests_readme_closure_inventory_guard",
+            tmp_root,
+            "tests_readme:scripts/zigux/check-phase10-closure-inventory.py",
+        )
+
+        write_fixture_tree(tmp_root)
+        tests_readme_path.write_text(
+            read_text(tmp_root, "zigux/tests/README.md").replace(
+                "scripts/zigux/check-phase10-core-packet.py",
+                "scripts/zigux/check-phase10-core-packet-drift.py",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "tests_readme_core_packet_guard",
+            tmp_root,
+            "tests_readme:scripts/zigux/check-phase10-core-packet.py",
+        )
+
+        write_fixture_tree(tmp_root)
         script_readme_path = tmp_root / "scripts/zigux/README.md"
         script_readme_path.write_text(
             read_text(tmp_root, "scripts/zigux/README.md")
@@ -874,7 +910,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE10_VALIDATOR_SELF_TEST=pass")
-    print("PHASE10_VALIDATOR_SELF_TEST_CASE_COUNT=15")
+    print("PHASE10_VALIDATOR_SELF_TEST_CASE_COUNT=17")
     return 0
 
 
