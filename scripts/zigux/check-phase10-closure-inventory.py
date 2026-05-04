@@ -18,6 +18,7 @@ HARNESS_CHECKER = "scripts/zigux/check-phase10-harness-coverage.py"
 CORE_PACKET_CHECKER = "scripts/zigux/check-phase10-core-packet.py"
 SHARED_VALIDATOR = "scripts/zigux/validate-phase10.py"
 CLOSURE_VALIDATOR = "scripts/zigux/validate-phase10-closure.py"
+INPUT_BLOCKER_BUILD = "zigux/tests/phase10_virtio_input_registration_blocker_build.zig"
 
 EXPECTED_DOCS = [
     "Documentation/zigux/phase10-virtio-core-slice.md",
@@ -129,6 +130,7 @@ EXPECTED_SCOREBOARD = {
             "zigux/tests/phase10_build.zig",
             "zigux/tests/phase10_virtio_ring_reset_reuse.zig",
             "zigux/tests/phase10_virtio_input_multitouch_preflight.zig",
+            "zigux/tests/phase10_virtio_input_registration_blocker_build.zig",
             "zigux/tests/phase10_virtio_mmio_queue_isolation.zig",
             "scripts/zigux/check-phase10-harness-coverage.py",
             "scripts/zigux/check-phase10-closure-inventory.py",
@@ -313,6 +315,7 @@ REQUIRED_FILES = [
     CORE_PACKET_CHECKER,
     SHARED_VALIDATOR,
     CLOSURE_VALIDATOR,
+    INPUT_BLOCKER_BUILD,
     *EXPECTED_DOCS,
     *EXPECTED_MANIFESTS,
     *EXPECTED_DRIVERS,
@@ -328,6 +331,7 @@ CLOSURE_NOTE_MARKERS = [
     "PHASE10_SURVEY_MMIO_LANE=P10-L18",
     "PHASE10_HARNESS_COVERAGE_GATE=python3 scripts/zigux/check-phase10-harness-coverage.py",
     "PHASE10_CROSS_PHASE_SCOREBOARD_BOUNDARY=phase5_reference_samples_and_phase9_runtime_starters_do_not_count_as_phase10_virtio_driver_evidence",
+    "zigux/tests/phase10_virtio_input_registration_blocker_build.zig",
     "phase10-core-probe-remove-lifecycle",
     "phase10-virtio-input-registration-lifecycle",
     "phase10-mmio-lifecycle-and-irq-paths",
@@ -354,6 +358,7 @@ LEDGER_MARKERS = [
     "PHASE10_LEDGER_SURVEY_INPUT_LANE=P10-L13",
     "PHASE10_LEDGER_SURVEY_MMIO_LANE=P10-L18",
     "PHASE10_LEDGER_ALLOWED_ROADMAP_DESTINATIONS=drivers/virtio/*.zig,zigux/kernel/,zigux/helpers/",
+    "PHASE10_LEDGER_INPUT_REGISTRATION_BLOCKER_BUILD=zigux/tests/phase10_virtio_input_registration_blocker_build.zig",
     "PHASE10_LEDGER_BLOCKERS=phase10-core-probe-remove-lifecycle,phase10-virtio-input-registration-lifecycle,phase10-mmio-lifecycle-and-irq-paths",
     "PHASE10_LEDGER_LANDED_CORE_HELPERS=phase10-config-generation-summary-helper,phase10-config-delivery-disposition-helper,phase10-config-driver-toggle-guard-helper",
     "PHASE10_LEDGER_HARNESS_COVERAGE_VALIDATE=scripts/zigux/check-phase10-harness-coverage.py",
