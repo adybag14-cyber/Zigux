@@ -51,6 +51,7 @@ TESTS_README_MARKERS = [
     "zigux/tests/phase10_virtio_mmio_queue_isolation.zig",
     "scripts/zigux/check-phase10-closure-inventory.py",
     "scripts/zigux/check-phase10-core-packet.py",
+    "zigux-alpha/PHASE10_CLOSURE_LEDGER.md",
     "four lane survey manifests plus the shared `zigux/tests/phase10_closure_manifest.json`",
 ]
 
@@ -354,6 +355,21 @@ def run_self_test() -> int:
         expect_missing_marker("tests_readme_ring_entry", root, "tests_readme:zigux/tests/phase10_virtio_ring_reset_reuse.zig")
         tests_readme_path.write_text(original_tests_readme, encoding="utf-8")
 
+        tests_readme_path.write_text(
+            original_tests_readme.replace(
+                "zigux-alpha/PHASE10_CLOSURE_LEDGER.md",
+                "zigux-alpha/PHASE10_LEDGER_DRIFT.md",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "tests_readme_closure_ledger_entry",
+            root,
+            "tests_readme:zigux-alpha/PHASE10_CLOSURE_LEDGER.md",
+        )
+        tests_readme_path.write_text(original_tests_readme, encoding="utf-8")
+
         docs_readme_path = root / "Documentation/zigux/README.md"
         original_docs_readme = docs_readme_path.read_text(encoding="utf-8")
         docs_readme_path.write_text(
@@ -432,7 +448,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE10_HARNESS_COVERAGE_SELF_TEST=pass")
-    print("PHASE10_HARNESS_COVERAGE_SELF_TEST_CASE_COUNT=8")
+    print("PHASE10_HARNESS_COVERAGE_SELF_TEST_CASE_COUNT=9")
     return 0
 
 
