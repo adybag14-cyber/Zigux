@@ -81,6 +81,9 @@ Keep the pre-replay checker stack explicit:
 Keep these evidence surfaces aligned in the same review:
 - `scripts/zigux/README.md`
 - `Documentation/zigux/phase11-shared-replay-contract.md`
+- `Documentation/zigux/phase11-gpio-wdt-validation-matrix.md`
+- `Documentation/zigux/phase11-bcm2835-wdt-validation-matrix.md`
+- `Documentation/zigux/phase11-dw-wdt-validation-matrix.md`
 - `Documentation/zigux/phase11-hvc-console-validation-matrix.md`
 - `Documentation/zigux/phase11-uapi-header-parity-survey.md`
 - `Documentation/zigux/review-checklist.md`
@@ -106,9 +109,9 @@ Keep these evidence surfaces aligned in the same review:
 - `.github/workflows/zigux-bootstrap.yml`
 
 Reviewer prompts:
-- Does the scripts-root Phase 11 flow still name the same pre-replay checker stack, the shared `phase11-validate` plus `phase11` routes, the dedicated `phase11-hvc-survey` route, and the same manifest plus split-replay evidence bundle that this guide and the tests-root companion carry?
+- Does the scripts-root Phase 11 flow still name the same pre-replay checker stack, the shared `phase11-validate` plus `phase11` routes, the dedicated `phase11-hvc-survey` route, and the same four roadmap-backed validation matrices plus manifest and split-replay evidence bundle that this guide and the tests-root companion carry?
 - Does the shared Phase 11 replay still stay separate from the dedicated archival `hvc_console` survey while the shared starter packet explicitly includes `zigux/tests/phase11_dw_wdt_suspend_resume.zig`, `zigux/tests/phase11_dw_wdt_remove_idle_split.zig`, `zigux/tests/phase11_hvc_console_modem_control_split.zig`, and `zigux/tests/phase11_hvc_console_poll_retry_split.zig`?
-- Do the pre-replay checkers still describe the same delivery contract that the shared build inventory, the shared header-boundary packet, the active review checklist prompt, and the Phase 11 manifests claim?
+- Do the pre-replay checkers still describe the same delivery contract that the shared build inventory, the shared header-boundary packet, the active review checklist prompt, the four roadmap-backed driver matrices, and the Phase 11 manifests claim?
 
 ## Phase 13: Shared-helper release packet
 
@@ -167,7 +170,7 @@ Keep these evidence surfaces aligned in the same review:
 - `.github/workflows/zigux-bootstrap.yml`
 
 Reviewer prompt:
-- Does the shared Phase 13 packet still route through the libfs, devres, notifier, and exact-count guards plus the release validator before the fifteen-step replay bundle, with the scripts index, docs-root summary, review checklist, the dedicated libfs packet guard, the dedicated devres packet guard, the dedicated notifier packet guard, the shared replay-count guard, the direct libfs, devres, landlock-ruleset, and landlock-syscalls helper replays, the dedicated Landlock ruleset reviewability gate, the devres coherent-DMA plus plain-helper, `iounmap`, `iomap`, and wrapper reviewability gates, the Landlock ruleset plus ruleset-fops-sync plus syscall reviewability gates, the adjacent notifier reviewability packet, the dedicated exported C header in `include/zigux/notifier_abi.h`, the Zig notifier ABI foothold in `zigux/bindings/notifier_abi.zig`, and the direct notifier-chain-view replay through `zigux/helpers/notifier_chain_view.zig` all naming the same shared helper surfaces rather than letting those release surfaces drift apart?
+- Does the shared Phase 13 packet still route through the libfs, devres, notifier, and exact-count guards plus the release validator before the fifteen-step replay bundle, with the scripts index, docs-root summary, review checklist, the dedicated libfs packet guard, the dedicated devres packet guard, the dedicated notifier packet guard, the shared replay-count guard, the direct libfs, devres, landlock-ruleset, and landlock-syscalls helper replays, the dedicated Landlock ruleset reviewability gate, the devres coherent-DMA plus `iounmap`, `iomap`, and wrapper reviewability gates, the Landlock ruleset plus ruleset-fops-sync plus syscall reviewability gates, the adjacent notifier reviewability packet, the dedicated exported C header in `include/zigux/notifier_abi.h`, the Zig notifier ABI foothold in `zigux/bindings/notifier_abi.zig`, and the direct notifier-chain-view replay through `zigux/helpers/notifier_chain_view.zig` all naming the same shared helper surfaces rather than letting those release surfaces drift apart?
 
 ## Checklist carryover prompts
 
