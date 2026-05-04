@@ -11,6 +11,7 @@ pub const ModuleDescriptor = struct {
     posture: []const u8,
     provides_boundary_map: bool,
     provides_lifetime_audit_outline: bool,
+    provides_concurrency_audit_outline: bool,
     provides_stay_in_c_decisions: bool,
     touches_live_allocators: bool,
     touches_live_refcounts: bool,
@@ -60,6 +61,31 @@ pub const LifetimeAudit = struct {
     anchor: []const u8,
     posture: []const u8,
     checkpoints: []const AuditCheckpoint,
+    blocked_live_behaviors: []const []const u8,
+    next_step: []const u8,
+};
+
+pub const ConcurrencyGuard = enum {
+    napi_alloc_cache_bh_lock_scope,
+    napi_skb_cache_bulk_refill_contract,
+    drop_reason_rcu_publication,
+    defer_free_remote_cpu_handoff,
+};
+
+pub const ConcurrencyCheckpoint = struct {
+    id: []const u8,
+    anchor_symbol: []const u8,
+    summary: []const u8,
+    guard: ConcurrencyGuard,
+    observed_fields: []const []const u8,
+    blocked_by: []const u8,
+    ownership: Ownership,
+};
+
+pub const ConcurrencyAudit = struct {
+    anchor: []const u8,
+    posture: []const u8,
+    checkpoints: []const ConcurrencyCheckpoint,
     blocked_live_behaviors: []const []const u8,
     next_step: []const u8,
 };
@@ -273,6 +299,52 @@ const blocked_live_behaviors = [_][]const u8{
     "__dev_direct_xmit identity-drop ownership after validate_xmit_skb_list",
 };
 
+const concurrency_checkpoints = [_]ConcurrencyCheckpoint{
+    .{
+        .id = "napi-frag-cache-lock-scope",
+        .anchor_symbol = "__napi_alloc_frag_align/local_lock_nested_bh",
+        .summary = "Record the per-CPU page-frag allocator lock scope before any wrapper claims concurrency ownership.",
+        .guard = .napi_alloc_cache_bh_lock_scope,
+        .observed_fields = &[_][]const u8{ "napi_alloc_cache.bh_lock", "nc->page", "fragsz", "align_mask" },
+        .blocked_by = "__napi_alloc_frag_align() enters local_lock_nested_bh(&napi_alloc_cache.bh_lock) before touching nc->page through __page_frag_alloc_align(), so Zigux should record that BH-local lock scope instead of claiming live allocator concurrency control.",
+        .ownership = .stay_in_c,
+    },
+    .{
+        .id = "napi-skb-cache-bulk-refill",
+        .anchor_symbol = "napi_skb_cache_get_bulk/kmem_cache_alloc_bulk",
+        .summary = "Track the refill and drain contract for the per-CPU skb head cache under the BH-local lock.",
+        .guard = .napi_skb_cache_bulk_refill_contract,
+        .observed_fields = &[_][]const u8{ "nc->skb_count", "nc->skb_cache", "NAPI_SKB_CACHE_BULK", "NAPI_SKB_CACHE_SIZE" },
+        .blocked_by = "napi_skb_cache_get() and napi_skb_cache_get_bulk() both refill nc->skb_cache with kmem_cache_alloc_bulk() while napi_alloc_cache.bh_lock is held, then publish or drain nc->skb_count as a per-CPU cache contract, so Zigux should keep that cache concurrency path in C while only naming the checkpoint.",
+        .ownership = .stay_in_c,
+    },
+    .{
+        .id = "drop-reason-rcu-publication",
+        .anchor_symbol = "drop_reasons_register_subsys/RCU_INIT_POINTER",
+        .summary = "Capture the RCU publication and teardown boundary for drop-reason subsystem registration.",
+        .guard = .drop_reason_rcu_publication,
+        .observed_fields = &[_][]const u8{ "drop_reasons_by_subsys", "RCU_INIT_POINTER", "subsys", "synchronize_rcu" },
+        .blocked_by = "drop_reasons_register_subsys() and drop_reasons_unregister_subsys() publish and clear subsystem tables through RCU_INIT_POINTER(), with synchronize_rcu() sealing teardown, so Zigux should keep that publication ordering in C instead of claiming live RCU ownership.",
+        .ownership = .stay_in_c,
+    },
+    .{
+        .id = "defer-free-remote-cpu-handoff",
+        .anchor_symbol = "skb_attempt_defer_free/kick_defer_list_purge",
+        .summary = "Track the remote-CPU defer-free handoff before any bridge code claims list or softirq ownership.",
+        .guard = .defer_free_remote_cpu_handoff,
+        .observed_fields = &[_][]const u8{ "skb->alloc_cpu", "sdn->defer_count", "sdn->defer_list", "defer_max", "kick" },
+        .blocked_by = "skb_attempt_defer_free() routes skb freeing onto the allocating CPU, increments sdn->defer_count, pushes onto sdn->defer_list, and may trigger kick_defer_list_purge(cpu) to force NET_RX_SOFTIRQ handling, so Zigux should record that remote-CPU handoff instead of claiming live queue or softirq ownership.",
+        .ownership = .stay_in_c,
+    },
+};
+
+const blocked_live_concurrency_behaviors = [_][]const u8{
+    "per-CPU NAPI page-frag allocator lock ownership",
+    "per-CPU skb head-cache refill and drain ordering",
+    "drop-reason subsystem RCU publication and teardown ordering",
+    "remote-CPU deferred-free list ownership and softirq handoff",
+};
+
 pub const SkbuffBridgeLab = struct {
     pub fn descriptor() ModuleDescriptor {
         return .{
@@ -281,6 +353,7 @@ pub const SkbuffBridgeLab = struct {
             .posture = "boundary_map_only",
             .provides_boundary_map = true,
             .provides_lifetime_audit_outline = true,
+            .provides_concurrency_audit_outline = true,
             .provides_stay_in_c_decisions = true,
             .touches_live_allocators = false,
             .touches_live_refcounts = false,
@@ -306,6 +379,16 @@ pub const SkbuffBridgeLab = struct {
         };
     }
 
+    pub fn concurrencyAudit() ConcurrencyAudit {
+        return .{
+            .anchor = descriptor().anchor,
+            .posture = descriptor().posture,
+            .checkpoints = concurrency_checkpoints[0..],
+            .blocked_live_behaviors = blocked_live_concurrency_behaviors[0..],
+            .next_step = concurrencyNextStep(),
+        };
+    }
+
     pub fn stayInCDecisionCount() usize {
         var count: usize = 0;
         for (boundary_areas) |area| {
@@ -320,12 +403,20 @@ pub const SkbuffBridgeLab = struct {
         return audit_checkpoints.len;
     }
 
+    pub fn concurrencyCheckpointCount() usize {
+        return concurrency_checkpoints.len;
+    }
+
     pub fn hasReadyNextStep() bool {
         return false;
     }
 
     pub fn nextAuditFocus() []const u8 {
         return "Park the landed __dev_direct_xmit() identity-drop checkpoint as an observational-only stay-in-C boundary: keep skb = validate_xmit_skb_list(...), skb != orig_skb, the final return-or-drop ownership decision, qdisc publication, queue ownership, and skb lifetime ownership in C unless a future review packet refreshes the whole bridge set together.";
+    }
+
+    pub fn concurrencyNextStep() []const u8 {
+        return "Keep the new concurrency surface review-only: refresh the per-CPU NAPI cache, drop-reason RCU publication, and remote defer-free handoff checkpoints together if a future packet studies lock ordering in __alloc_skb(), napi_skb_cache_get_bulk(), and skb_attempt_defer_free() as one bounded concurrency set.";
     }
 };
 
@@ -337,6 +428,7 @@ test "skbuff bridge descriptor stays boundary-map only" {
     try std.testing.expectEqualStrings("boundary_map_only", descriptor.posture);
     try std.testing.expect(descriptor.provides_boundary_map);
     try std.testing.expect(descriptor.provides_lifetime_audit_outline);
+    try std.testing.expect(descriptor.provides_concurrency_audit_outline);
     try std.testing.expect(descriptor.provides_stay_in_c_decisions);
     try std.testing.expect(!descriptor.touches_live_allocators);
     try std.testing.expect(!descriptor.touches_live_refcounts);
@@ -454,4 +546,38 @@ test "skbuff bridge lifetime audit stays review-only" {
     try std.testing.expect(std.mem.indexOf(u8, audit.checkpoints[11].blocked_by, "skb = validate_xmit_skb_list(...)") != null);
     try std.testing.expect(std.mem.indexOf(u8, audit.checkpoints[11].blocked_by, "skb != orig_skb") != null);
     try std.testing.expect(std.mem.indexOf(u8, audit.checkpoints[11].blocked_by, "return-or-drop ownership decision") != null);
+}
+
+test "skbuff bridge concurrency audit stays review-only" {
+    const audit = SkbuffBridgeLab.concurrencyAudit();
+
+    try std.testing.expectEqualStrings("net/core/skbuff.c", audit.anchor);
+    try std.testing.expectEqualStrings("boundary_map_only", audit.posture);
+    try std.testing.expectEqual(@as(usize, 4), audit.checkpoints.len);
+    try std.testing.expectEqual(@as(usize, 4), audit.blocked_live_behaviors.len);
+    try std.testing.expectEqual(@as(usize, 4), SkbuffBridgeLab.concurrencyCheckpointCount());
+    try std.testing.expect(!SkbuffBridgeLab.hasReadyNextStep());
+    try std.testing.expect(std.mem.indexOf(u8, audit.next_step, "__alloc_skb()") != null);
+    try std.testing.expect(std.mem.indexOf(u8, audit.next_step, "napi_skb_cache_get_bulk()") != null);
+    try std.testing.expect(std.mem.indexOf(u8, audit.next_step, "skb_attempt_defer_free()") != null);
+
+    try std.testing.expectEqualStrings("napi-frag-cache-lock-scope", audit.checkpoints[0].id);
+    try std.testing.expect(audit.checkpoints[0].guard == .napi_alloc_cache_bh_lock_scope);
+    try std.testing.expectEqualStrings("napi_alloc_cache.bh_lock", audit.checkpoints[0].observed_fields[0]);
+    try std.testing.expect(std.mem.indexOf(u8, audit.checkpoints[0].blocked_by, "__page_frag_alloc_align()") != null);
+
+    try std.testing.expectEqualStrings("napi-skb-cache-bulk-refill", audit.checkpoints[1].id);
+    try std.testing.expect(audit.checkpoints[1].guard == .napi_skb_cache_bulk_refill_contract);
+    try std.testing.expectEqualStrings("nc->skb_count", audit.checkpoints[1].observed_fields[0]);
+    try std.testing.expect(std.mem.indexOf(u8, audit.checkpoints[1].blocked_by, "kmem_cache_alloc_bulk()") != null);
+
+    try std.testing.expectEqualStrings("drop-reason-rcu-publication", audit.checkpoints[2].id);
+    try std.testing.expect(audit.checkpoints[2].guard == .drop_reason_rcu_publication);
+    try std.testing.expectEqualStrings("synchronize_rcu", audit.checkpoints[2].observed_fields[3]);
+    try std.testing.expect(std.mem.indexOf(u8, audit.checkpoints[2].blocked_by, "RCU_INIT_POINTER()") != null);
+
+    try std.testing.expectEqualStrings("defer-free-remote-cpu-handoff", audit.checkpoints[3].id);
+    try std.testing.expect(audit.checkpoints[3].guard == .defer_free_remote_cpu_handoff);
+    try std.testing.expectEqualStrings("skb->alloc_cpu", audit.checkpoints[3].observed_fields[0]);
+    try std.testing.expect(std.mem.indexOf(u8, audit.checkpoints[3].blocked_by, "kick_defer_list_purge(cpu)") != null);
 }
