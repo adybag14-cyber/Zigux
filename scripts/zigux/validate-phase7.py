@@ -30,6 +30,7 @@ required_files = [
     ROOT / "zigux" / "tests" / "phase7_build.zig",
     ROOT / "zigux" / "tests" / "phase7_string_helpers.zig",
     ROOT / "zigux" / "tests" / "phase7_string_helpers_survey.zig",
+    ROOT / "zigux" / "tests" / "phase7_string_helpers_sample_boundary.zig",
     ROOT / "zigux" / "tests" / "phase7_string_helpers_manifest.json",
     ROOT / "zigux" / "tests" / "phase7_cmdline.zig",
     ROOT / "zigux" / "tests" / "phase7_cmdline_survey.zig",
@@ -188,6 +189,8 @@ required_phase7_build_markers = [
     "fn addTestRun(",
     "run.setCwd(path);",
     'const repo_root = b.path("../..");',
+    "phase7_string_helpers_sample_boundary.zig",
+    "phase7-string-helpers-sample-boundary-tests",
     "phase7-argv-split-survey-tests",
     "phase7-rbtree-survey-tests",
     'b.step("test", "Run Phase 7 runtime helper tests")',
@@ -211,7 +214,7 @@ expected_argv_split_fixture = {
     "leading_nul_stays_empty": {"argc": 0, "argv": []},
     "quote_characters_stay_literal": {
         "argc": 3,
-        "argv": ['root="/dev/sda', '1"', "single"],
+        "argv": ['root=\"/dev/sda', '1\"', "single"],
     },
     "whitespace_collapse": {
         "argc": 3,
@@ -621,12 +624,14 @@ def main() -> int:
         build_inventory_errors.append("shared_validation_commands")
     if build_inventory.get("unexpected_build_markers") != unexpected_phase7_build_markers:
         build_inventory_errors.append("unexpected_build_markers")
-    if len(build_inventory.get("run_labels", [])) != 8:
+    if len(build_inventory.get("run_labels", [])) != 9:
         build_inventory_errors.append("run_labels")
-    if len(build_inventory.get("shared_test_depend_steps", [])) != 8:
+    if len(build_inventory.get("shared_test_depend_steps", [])) != 9:
         build_inventory_errors.append("shared_test_depend_steps")
     if build_inventory.get("run_cwds", {}).get("phase7-argv-split-survey-tests") != "repo_root":
         build_inventory_errors.append("run_cwds:phase7-argv-split-survey-tests")
+    if build_inventory.get("run_cwds", {}).get("phase7-string-helpers-sample-boundary-tests") != "repo_root":
+        build_inventory_errors.append("run_cwds:phase7-string-helpers-sample-boundary-tests")
     if build_inventory.get("run_cwds", {}).get("phase7-rbtree-survey-tests") != "repo_root":
         build_inventory_errors.append("run_cwds:phase7-rbtree-survey-tests")
     if build_inventory_errors:
