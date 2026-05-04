@@ -133,7 +133,7 @@ TESTS_ROOT_EXACT_LINE_MARKERS = [
 RELEASE_MARKERS = [
     "PHASE14_STATUS=active",
     "PHASE14_SLICE=end-to-end-smoke-verification",
-    "PHASE14_SHARED_LANE=P14-L01",
+    "PHASE14_SHARED_LANE=P14-Y08",
     "PHASE14_SMOKE_VALIDATOR=present",
     "PHASE14_VALIDATE_SCRIPT=python3 scripts/zigux/validate-phase14.py",
     "PHASE14_VALIDATE_ENTRYPOINT=make -C zigux phase14-validate",
@@ -344,7 +344,7 @@ manifest = load_json("zigux/tests/phase14_end_to_end_smoke_manifest.json", missi
 if not isinstance(manifest, dict):
     manifest = {}
     missing.append("manifest:unreadable")
-if manifest.get("lane_key") != "P14-L01":
+if manifest.get("lane_key") != "P14-Y08":
     missing.append(f'manifest:lane_key={manifest.get("lane_key")}')
 if manifest.get("phase") != "Phase 14":
     missing.append(f'manifest:phase={manifest.get("phase")}')
