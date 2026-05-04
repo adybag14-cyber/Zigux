@@ -39,6 +39,10 @@ test "phase15 docs-root reviewability keeps the current handoff alignment explic
     try expectContains(readiness_doc, "Documentation/zigux/phase15-architecture-council-review-process.md");
     try expectContains(readiness_doc, "Documentation/zigux/phase15-parity-scorecard.md");
     try expectContains(readiness_doc, "Documentation/zigux/phase15-indefinite-c-policy.md");
+    try expectContains(readiness_doc, "python3 scripts/zigux/validate-phase15.py");
+    try expectContains(readiness_doc, "make -C zigux phase15-validate");
+    try expectContains(readiness_doc, "make -C zigux phase15");
+    try expectContains(readiness_doc, "zigux/tests/phase15_docs_root_reviewability.zig");
     try expectContains(readiness_doc, "docs-root Phase 15 summary now matches the dedicated readiness and handoff packet");
     try expectContains(readiness_doc, "phase15-docs-root-summary-alignment");
     try expectContains(readiness_doc, "phase15-deep-core-status-change-blocker");
@@ -47,6 +51,11 @@ test "phase15 docs-root reviewability keeps the current handoff alignment explic
     try expectContains(handoff_doc, "Documentation/zigux/phase15-architecture-council-review-process.md");
     try expectContains(handoff_doc, "Documentation/zigux/phase15-parity-scorecard.md");
     try expectContains(handoff_doc, "Documentation/zigux/phase15-indefinite-c-policy.md");
+    try expectContains(handoff_doc, "python3 scripts/zigux/validate-phase15.py");
+    try expectContains(handoff_doc, "make -C zigux phase15-validate");
+    try expectContains(handoff_doc, "zigux/tests/phase15_docs_root_reviewability.zig");
+    try expectContains(handoff_doc, "make -C zigux phase15");
+    try expectContains(handoff_doc, "zig build test --build-file zigux/tests/phase15_build.zig");
     try expectContains(handoff_doc, "docs-root release evidence now matches the dedicated maintenance packet");
     try expectContains(handoff_doc, "phase15-docs-root-summary-alignment");
     try expectContains(handoff_doc, "phase15-deep-core-status-change-blocker");
