@@ -283,19 +283,24 @@ def expect_missing_fixture(label: str, fixture_name: str, expected_message: str)
 
 
 def run_self_test() -> int:
+    checks_run = 0
     valid_cases = validate_cases(load_cases(CASES_PATH))
+    checks_run += 1
     validate_tool_sources(C_FIXDEP, ZIG_FIXDEP)
+    checks_run += 1
 
     expect_failure(
         'non_list_cases',
         lambda: validate_cases({'cases': valid_cases}),
         f'{CASES_PATH}:expected_non_empty_json_list',
     )
+    checks_run += 1
     expect_failure(
         'empty_cases',
         lambda: validate_cases([]),
         f'{CASES_PATH}:expected_non_empty_json_list',
     )
+    checks_run += 1
 
     duplicate_name_cases = copy_valid_cases(valid_cases)
     duplicate_name_cases[1]['name'] = duplicate_name_cases[0]['name']
@@ -304,6 +309,7 @@ def run_self_test() -> int:
         lambda: validate_cases(duplicate_name_cases),
         f'{CASES_PATH}:duplicate_name:{valid_cases[0]["name"]}',
     )
+    checks_run += 1
 
     unexpected_name_cases = copy_valid_cases(valid_cases)
     unexpected_name_cases[0]['name'] = 'unexpected_fixdep_case'
@@ -312,6 +318,7 @@ def run_self_test() -> int:
         lambda: validate_cases(unexpected_name_cases),
         f'{CASES_PATH}:unexpected_name:unexpected_fixdep_case',
     )
+    checks_run += 1
 
     missing_stderr_cases = copy_valid_cases(valid_cases)
     find_case(missing_stderr_cases, 'sample_comment_only').pop('expected_stderr', None)
@@ -320,6 +327,7 @@ def run_self_test() -> int:
         lambda: validate_cases(missing_stderr_cases),
         f'{CASES_PATH}:sample_comment_only:expected_stderr=None,expected='"'"'sample_comment_only_expected.stderr.txt'"'"'',
     )
+    checks_run += 1
 
     unsupported_stdout_mode_cases = copy_valid_cases(valid_cases)
     find_case(unsupported_stdout_mode_cases, 'sample_comment_only_stdout_full')['stdout_mode'] = 'pipe_full'
@@ -328,6 +336,7 @@ def run_self_test() -> int:
         lambda: validate_cases(unsupported_stdout_mode_cases),
         f"{CASES_PATH}:sample_comment_only_stdout_full:stdout_mode='pipe_full',expected='dev_full'",
     )
+    checks_run += 1
 
     missing_depfile_cases = copy_valid_cases(valid_cases)
     find_case(missing_depfile_cases, 'sample')['depfile'] = 'missing_depfile.d'
@@ -336,33 +345,38 @@ def run_self_test() -> int:
         lambda: validate_cases(missing_depfile_cases),
         f"{CASES_PATH}:sample:depfile='missing_depfile.d',expected='sample.d'",
     )
+    checks_run += 1
 
     expect_missing_fixture(
         'missing_depfile_fixture',
         'sample.d',
         f'{CASES_PATH}:missing_depfile:sample.d',
     )
+    checks_run += 1
 
     expect_missing_fixture(
         'missing_expected_output_file',
         'sample_expected.txt',
         f'{CASES_PATH}:missing_expected_output:sample_expected.txt',
     )
+    checks_run += 1
 
     expect_missing_fixture(
         'missing_expected_stderr_file',
         'sample_comment_only_expected.stderr.txt',
         f'{CASES_PATH}:missing_expected_stderr:sample_comment_only_expected.stderr.txt',
     )
+    checks_run += 1
 
     expect_failure(
         'explicit_tool_drift',
         lambda: validate_tool_sources(C_FIXDEP.with_name('fixdep-mismatch.c'), ZIG_FIXDEP),
         f'fixdep:c_tool={C_FIXDEP.with_name("fixdep-mismatch.c")},expected={EXPECTED_C_FIXDEP}',
     )
+    checks_run += 1
 
     print('FIXDEP_SELF_TEST=pass')
-    print('FIXDEP_SELF_TEST_CASE_COUNT=12')
+    print(f'FIXDEP_SELF_TEST_CASE_COUNT={checks_run}')
     return 0
 
 
