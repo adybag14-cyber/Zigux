@@ -54,8 +54,8 @@ No parity scorecard entry or Architecture Council status-change request is attac
 - the bounded `samples/zigux/runtime_trace_events_loader.zig` scaffold now keeps the review-only `foo_bar_reg` and `foo_bar_unreg` labels, explicit `waiting_on_runtime_substrate` to `released_without_substrate` fallback, and the optional review-only `perf-runtime-trace-events` command-name override with empty-name rejection visible without claiming any shared runtime-loader binding, runtime activation control, or executable runtime substrate.
 - the manifest-backed review packet now also records an explicit sample path, the shared Phase 9 validation entrypoint, review prompts, a delivery_evidence_catalog, an ownership_map, exact checks, and non-goals so reviewers can tell which parts of the starter, blocked loader scaffold, paired module-slice note, review checklist, and freeze-boundary packet are shipped contract versus still-blocked runtime substrate.
 - the review-side freeze-boundary packet also now keeps `Documentation/zigux/review-checklist.md` explicit beside `Documentation/zigux/freeze-map.md`, so the trace-core study boundary is carried by both the lane note and the shared review prompts instead of being implied through the freeze map alone.
-- the shared `zigux/tests/phase9_build.zig` bundle still avoids any trace-events loader test target, so the trace-events loader scaffold remains a loader-free blocker inside the shared build packet while runtime task ownership, polling and event-loop substrate, thread creation, and tracepoint-registration lifecycle wiring remain blocked.
-- the paired module-slice note now repeats that blocked loader-scaffold handoff explicitly so the dedicated docs cannot drift into implying a shared loader target or scheduler-facing substrate before the shared runtime handoff exists.
+- the shared `zigux/tests/phase9_build.zig` bundle now replays `phase9-runtime-trace-events-loader-tests` beside the starter, module, diff, and survey targets, so the trace-events loader scaffold is part of the shared build packet even while runtime task ownership, shared runtime-loader binding, polling and event-loop substrate, thread creation, and tracepoint-registration lifecycle wiring all remain blocked.
+- the paired module-slice note now repeats that blocked loader-scaffold handoff explicitly so the dedicated docs cannot drift into implying a shared runtime-loader binding or scheduler-facing substrate before the shared runtime handoff exists.
 - the same lane also stays under the freeze-map study boundary for `kernel/trace/ring_buffer.c`, so the shipped survey evidence must keep ring-buffer parity, trace transport ownership, and any freeze-map status change out of scope until the Architecture Council explicitly reopens that anchor.
 - no parity scorecard entry or Architecture Council status-change request is attached to this Phase 9 lane, so the current trace-events packet remains a study-boundary note rather than a freeze-map reopen request.
 
@@ -67,9 +67,9 @@ The manifest-backed delivery packet now names which surface owns each part of th
 - `samples/zigux/runtime_trace_events_loader.zig` owns the bounded loader-plan scaffold, the optional review-only command-name override with empty-name rejection, review-only register/unregister labels, and the explicit release-without-substrate fallback while shared runtime-substrate ownership stays blocked
 - `zigux/tests/runtime_trace_events_module.zig` owns the dedicated lifecycle, summary-surface, registration-label, conditional-replay, and failed-exit rollback checks for the starter
 - `zigux/tests/runtime_trace_events_diff.zig` owns the bounded payload and function-callback replay checks against the Linux sample anchor
-- `zigux/tests/runtime_trace_events_survey.zig` owns the machine-checkable replay of the manifest, review prompts, exact checks, loader-free blocker, and freeze-map boundary
+- `zigux/tests/runtime_trace_events_survey.zig` owns the machine-checkable replay of the manifest, review prompts, blocked loader boundary, and freeze-map boundary
 - `zigux/tests/runtime_trace_events_manifest.json` owns the manifest-backed delivery catalog, ownership map, exact checks, and non-goal packet for this slice
-- `zigux/tests/phase9_build.zig` owns the shared Phase 9 runtime bundle entrypoint for the trace-events starter while the trace-events loader target stays absent
+- `zigux/tests/phase9_build.zig` owns the shared Phase 9 runtime bundle entrypoint for the trace-events starter and loader scaffold while shared runtime-loader binding still stays absent
 - `Documentation/zigux/phase9-runtime-trace-events-survey.md` owns the lane history, recorded gaps, delivery ownership map, and bounded blocker posture for the survey packet
 - `Documentation/zigux/phase9-runtime-trace-events-module-slice.md` owns the landed starter surface summary, direct sample and diff gate posture, the blocked loader-scaffold restatement, and the paired header-side macro boundary note for `samples/trace_events/trace-events-sample.h`
 - `Documentation/zigux/review-checklist.md` owns the shared review prompt that keeps the `kernel/trace/ring_buffer.c` study boundary, the no-status-change posture, and the Architecture Council reopen rule explicit during review
@@ -89,7 +89,7 @@ The manifest started as a survey-only inventory and now records:
 - the landed `runtime-trace-events-diff-gate`
 - the blocked `runtime-trace-events-freeze-map-boundary`
 - the still-blocked runtime substrate handoff
-- review prompts that keep the bounded summary surface, loader-free blocker, and freeze-map boundary explicit
+- review prompts that keep the bounded summary surface, blocked loader boundary, and freeze-map boundary explicit
 - review prompts that keep the `samples/trace_events/trace-events-sample.h` header-side macro boundary explicit without implying generated tracepoint macro parity
 - exact checks for the descriptor contract, diagnostics summary, main-thread payload replay, function-callback registration balance, selftest family order, failed-exit rollback, the header-side macro boundary, governance boundary, and the blocked loader scaffold inside the shared build packet
 - non-goals that keep loadable-module, event-loop, ring-buffer, macro-generation, and full selftest parity claims out of scope
@@ -105,7 +105,7 @@ This keeps the survey useful after the first starter slice lands without pretend
 
 2. run the shared Phase 9 runtime packet replay
 - `zig build test --build-file zigux/tests/phase9_build.zig --summary all`
-- this shared build now includes `phase9-runtime-trace-events-sample-tests`, `phase9-runtime-trace-events-module-tests`, `phase9-runtime-trace-events-diff-tests`, and `phase9-runtime-trace-events-survey-tests` so the starter, diff, and survey evidence stay explicit in one shared packet while `phase9-runtime-trace-events-loader-tests` remains absent
+- this shared build now includes `phase9-runtime-trace-events-sample-tests`, `phase9-runtime-trace-events-module-tests`, `phase9-runtime-trace-events-diff-tests`, `phase9-runtime-trace-events-loader-tests`, and `phase9-runtime-trace-events-survey-tests` so the starter, blocked loader scaffold, diff, and survey evidence stay explicit in one shared packet while shared runtime-loader binding still stays absent
 
 3. run the convenience target
 - `make -C zigux phase9`
