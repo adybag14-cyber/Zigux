@@ -241,7 +241,7 @@ LEDGER_EXACT_ONCE_MARKERS = [
     "PHASE10_LEDGER_HARNESS_COVERAGE_VALIDATE=scripts/zigux/check-phase10-harness-coverage.py",
     "PHASE10_LEDGER_INPUT_MULTITOUCH_PREFLIGHT_GATE=zigux/tests/phase10_virtio_input_multitouch_preflight.zig",
     "PHASE10_LEDGER_MMIO_QUEUE_ISOLATION_GATE=zigux/tests/phase10_virtio_mmio_queue_isolation.zig",
-    "PHASE10_LEDGER_EXACT_CHECK_3=python3 scripts/zigux/check-phase10-harness-coverage.py"
+    "PHASE10_LEDGER_EXACT_CHECK_4=python3 scripts/zigux/check-phase10-harness-coverage.py"
 ]
 
 MAKEFILE_MARKERS = [
