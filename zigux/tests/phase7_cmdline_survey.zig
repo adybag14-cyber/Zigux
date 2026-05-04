@@ -177,6 +177,8 @@ test "phase 7 cmdline survey keeps the helper-only handoff explicit" {
     try expectContains(tests_readme, "zigux/tests/phase7_cmdline_survey.zig");
     try expectContains(tests_readme, "zigux/tests/fixtures/phase7_cmdline_next_arg_vectors.zig");
     try expectContains(tests_readme, "zigux/tests/fixtures/phase7_cmdline_c_harness.c");
+    try expectContains(tests_readme, "scripts/zigux/validate-phase7.py --self-test");
+    try expectContains(tests_readme, "scripts/zigux/check-phase7-build-inventory.py --self-test");
     try expectContains(tests_readme, "scripts/zigux/check-phase7-cmdline-parity.py");
     try expectContains(tests_readme, "scripts/zigux/check-phase7-argv-split-packet.py");
     try expectContains(tests_readme, "helper roots in `zigux/tests/phase7_build.zig` receive `string_helpers`, `cmdline`, `argv_split`, and `rbtree` through `addImport(...)`");
