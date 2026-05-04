@@ -146,6 +146,12 @@ pub fn build(b: *std.Build) void {
     const run_phase5_trace_events_sample_tests = addTestRun(
         b,
         "phase5-trace-events-sample-tests",
+        trace_events_sample_module,
+        null,
+    );
+    const run_phase5_trace_events_tests = addTestRun(
+        b,
+        "phase5-trace-events-tests",
         phase5_trace_events_sample_module,
         null,
     );
@@ -167,5 +173,6 @@ pub fn build(b: *std.Build) void {
     test_step.dependOn(&run_phase5_kretprobe_example_tests.step);
     test_step.dependOn(&run_phase5_kretprobe_example_survey_tests.step);
     test_step.dependOn(&run_phase5_trace_events_sample_tests.step);
+    test_step.dependOn(&run_phase5_trace_events_tests.step);
     test_step.dependOn(&run_phase5_trace_events_sample_survey_tests.step);
 }
