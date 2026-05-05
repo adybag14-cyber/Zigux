@@ -4,7 +4,7 @@ This document tracks the bounded Phase 10 survey lane around `drivers/virtio/vir
 
 ## Status
 
-- `PHASE10_STATUS=active`
+- `PHASE10_STATUS=parked`
 - `PHASE10_SLICE=virtio-mmio-survey`
 - scope: survey manifest, dedicated survey gate, shared Phase 10 build wiring, and a lane-level note that records what is present in the live repo plus the remaining MMIO transport gap against the roadmap
 - product boundary:
