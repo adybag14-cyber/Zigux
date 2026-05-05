@@ -5,7 +5,7 @@ This document tracks the bounded Phase 8 userspace-adjacent tooling slice for Zi
 ## Status
 
 - `PHASE8_STATUS=parked`
-- `PHASE8_SLICE=kallsyms-parse-wrapper-starter`
+- `PHASE8_SLICE=kallsyms-parse-wrapper-parked`
 - scope: symbol-type helpers, injected line parsing, chunked reader iteration, thin reader or path adapters, and one direct parse wrapper only
 - product boundary:
   - `tools/lib/symbol/kallsyms.zig`
@@ -18,7 +18,9 @@ This document tracks the bounded Phase 8 userspace-adjacent tooling slice for Zi
 
 The Phase 8 roadmap explicitly names `tools/lib/symbol/kallsyms.c` as a userspace-adjacent tooling anchor and recommends `tools/lib/symbol/*.zig` as a bounded Zigux destination for this tranche.
 
-The live repo already had the parse-first `kallsyms.zig` starter plus the injected chunked reader surface, and the previous bounded follow-up added thin reader-backed and path-backed adapters. The remaining lane-local gap was one direct `kallsymsParse()`-adjacent wrapper that keeps the file-oriented callback shape visible to callers without widening into ELF emission or downstream symbol plumbing.
+This parked packet is helper-first expansion inside that `tools/lib/symbol/*.zig` family. Its review surface stays on output-stable tooling behavior rather than downstream symbol plumbing.
+
+The live repo already had the parse-first `kallsyms.zig` surface plus the injected chunked reader path, and the previous bounded follow-up added thin reader-backed and path-backed adapters. The remaining lane-local gap was one direct `kallsymsParse()`-adjacent wrapper that keeps the file-oriented callback shape visible to callers without widening into ELF emission or downstream symbol plumbing.
 
 ## Gates
 
@@ -39,7 +41,7 @@ The live repo already had the parse-first `kallsyms.zig` starter plus the inject
 
 ## Current parity surface
 
-The current starter slice covers:
+The current parked parser-and-wrapper slice covers:
 
 - `kallsyms2elf_binding()`-adjacent binding classification
 - `kallsyms2elf_type()`-adjacent symbol-type classification
@@ -49,7 +51,7 @@ The current starter slice covers:
 - thin reader-backed parsing that reuses the same malformed-line and callback semantics
 - thin path-backed parsing that opens a file and feeds the same reader-backed path
 - one direct `kallsymsParse()` wrapper that accepts a path plus a C-shaped callback contract and stops on the same integer callback result the C helper returns
-- a bounded symbol-name length guard that keeps the starter parser honest
+- a bounded symbol-name length guard that keeps the parked parser honest
 
 The current tests check:
 
@@ -62,7 +64,7 @@ The current tests check:
 - the focused `phase8_kallsyms_only_build.zig` shard keeps the parked parser-and-wrapper packet reviewable without rerunning the whole Phase 8 bundle
 - the focused `phase8_help_kallsyms_only_build.zig` shard keeps the parked help-and-kallsyms packet reviewable without widening into unrelated Phase 8 tooling slices
 - oversized symbol names raise an explicit bounded error instead of silently widening the lane
-- injected callback failures bubble out unchanged so the starter parser does not hide downstream review or tooling errors
+- injected callback failures bubble out unchanged so the parked parser does not hide downstream review or tooling errors
 
 ## Non-goals
 
