@@ -23,6 +23,7 @@ Key entrypoints
 - `zigux/tests/phase6_bsearch.zig`
 - `zigux/tests/phase6_checksum.zig`
 - `zigux/tests/phase6_hexdump.zig`
+- `zigux/tests/phase6_checksum_perf.zig`
 - `zigux/tests/phase7_build.zig`
 - `zigux/tests/phase7_string_helpers.zig`
 - `zigux/tests/phase7_string_helpers_sample_boundary.zig`
