@@ -80,6 +80,12 @@ jobs:
       - name: Self-test Phase 4 validator
         run: python3 scripts/zigux/validate-phase4.py --self-test
 
+      - name: Self-test artifact diff helper
+        run: python3 scripts/zigux/artifact_diff.py --self-test
+
+      - name: Self-test artifact diff contract checker
+        run: python3 scripts/zigux/check-artifact-diff-contract.py --self-test
+
       - name: Self-test Phase 3 validator
         run: python3 scripts/zigux/validate-phase3.py --self-test
 
