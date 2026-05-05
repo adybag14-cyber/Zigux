@@ -38,8 +38,51 @@ fn isAllowedStatus(status: []const u8) bool {
         std.mem.eql(u8, status, "deferred_high_risk");
 }
 
+fn isLowerHexCommitSha(value: []const u8) bool {
+    if (value.len != 40) {
+        return false;
+    }
+
+    for (value) |byte| {
+        if (std.ascii.isDigit(byte)) {
+            continue;
+        }
+        if (byte >= 'a' and byte <= 'f') {
+            continue;
+        }
+        return false;
+    }
+
+    return true;
+}
+
 fn expectContains(haystack: []const u8, needle: []const u8) !void {
     try std.testing.expect(std.mem.indexOf(u8, haystack, needle) != null);
+}
+
+fn expectCompanionCatalog(companion_c_files: []const CompanionFile) !void {
+    const expected_paths = [_][]const u8{
+        "tools/lib/bpf/bpf.c",
+        "tools/lib/bpf/btf.c",
+        "tools/lib/bpf/features.c",
+        "tools/lib/bpf/libbpf_utils.c",
+        "tools/lib/bpf/linker.c",
+        "tools/lib/bpf/netlink.c",
+        "tools/lib/bpf/nlattr.c",
+        "tools/lib/bpf/ringbuf.c",
+    };
+
+    try std.testing.expectEqual(expected_paths.len, companion_c_files.len);
+
+    for (expected_paths, 0..) |expected_path, index| {
+        const companion = companion_c_files[index];
+        try std.testing.expectEqualStrings(expected_path, companion.path);
+        try std.testing.expect(companion.lines > 0);
+
+        for (companion_c_files[index + 1 ..]) |other| {
+            try std.testing.expect(!std.mem.eql(u8, companion.path, other.path));
+        }
+    }
 }
 
 test "phase 8 libbpf segment manifest records the roadmap gap and bounded next slices" {
@@ -60,11 +103,12 @@ test "phase 8 libbpf segment manifest records the roadmap gap and bounded next s
     const manifest = parsed.value;
     try std.testing.expectEqualStrings("P8-L13", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 8", manifest.phase);
+    try std.testing.expect(isLowerHexCommitSha(manifest.surveyed_commit));
     try std.testing.expectEqualStrings("tools/lib/bpf/libbpf.c", manifest.anchor);
     try std.testing.expect(manifest.survey_summary.libbpf_c_lines >= 14000);
     try std.testing.expect(!manifest.survey_summary.preexisting_zigux_segments_present);
     try std.testing.expect(!manifest.survey_summary.preexisting_phase8_libbpf_note_present);
-    try std.testing.expect(manifest.survey_summary.companion_c_files.len >= 5);
+    try expectCompanionCatalog(manifest.survey_summary.companion_c_files);
     try std.testing.expectEqual(@as(usize, 6), manifest.segments.len);
 
     var ready_next_count: usize = 0;
