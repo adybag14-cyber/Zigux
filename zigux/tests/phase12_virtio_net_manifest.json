@@ -1,5 +1,5 @@
 {
-  "lane_key": "P12-L01",
+  "lane_key": "P12-L02",
   "phase": "Phase 12",
   "surveyed_commit": "7361ac51374149a96b7a7a2c6ea3c995d8cc1231",
   "anchor": "drivers/net/virtio_net.c",
@@ -85,10 +85,10 @@
     },
     {
       "id": "phase12-virtio-net-transmit-recycle-followup",
-      "status": "ready_next",
+      "status": "starter_landed",
       "kind": "complex_driver_followup",
       "zigux_destination": "drivers/net/virtio_net.zig",
-      "why_now": "With receive-refill planning explicit, the next honest virtio_net step is one bounded completion-side packet recycle follow-up around completion-side packet recycle ordering, control-virtqueue refill coordination, or RSS-aware queue reuse before any live DMA, NAPI, or netdev lifecycle work."
+      "why_now": "The transmit-recycle follow-up is now landed as one bounded completion-side queue-reuse step that keeps packet return ordering, control-virtqueue restore ordering, RSS-aware queue reuse, and receive-refill coordination explicit before any live DMA, NAPI, or netdev lifecycle work."
     },
     {
       "id": "phase12-virtio-net-runtime-data-path",
