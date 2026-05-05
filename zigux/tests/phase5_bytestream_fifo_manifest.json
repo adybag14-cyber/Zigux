@@ -8,7 +8,7 @@
   "review_prompts": [
     "descriptor keeps the Linux anchor path explicit and leaves requires_runtime_substrate false while provides_selfcheck stays true",
     "the contributor packet still frames the landed sample as an approved Phase 5 in-memory FIFO idiom instead of a runtime-substrate claim",
-    "the manifest and survey test still describe the exact queue-order replay, lifecycle boundary, and bounded helper contract run through phase5_build.zig",
+    "the manifest and survey test still describe the exact queue-order replay, non-destructive snapshot, lifecycle boundary, and bounded helper contract run through phase5_build.zig",
     "sample-behavior changes update the manifest-backed replay contract instead of leaving reviewers to infer it from code alone",
     "docs and tests still keep procfs, user-copy, locking, and runtime registration out of scope for this Phase 5 sample"
   ],
@@ -37,6 +37,11 @@
       "id": "fill-to-capacity",
       "kind": "bounded_capacity",
       "expected": "tail fill succeeds for bytes 20 through 42 inclusive and then stops at the 32-byte capacity"
+    },
+    {
+      "id": "non-destructive-snapshot",
+      "kind": "queue_snapshot",
+      "expected": "snapshotInto captures [3,4,5,6,7,8,9,0,1,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42] before the final drain without mutating queue state"
     },
     {
       "id": "final-drain-sequence",
