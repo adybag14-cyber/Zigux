@@ -10,6 +10,7 @@ ROOT = Path(__file__).resolve().parents[2] if len(Path(__file__).resolve().paren
 
 README_REL = "scripts/zigux/README.md"
 MAKEFILE_REL = "zigux/Makefile"
+WORKFLOW_REL = ".github/workflows/zigux-bootstrap.yml"
 REVIEW_CHECKLIST_REL = "Documentation/zigux/review-checklist.md"
 REVIEW_PROCESS_NOTE_REL = "Documentation/zigux/phase15-architecture-council-review-process.md"
 HANDOFF_CHECKER_REL = "scripts/zigux/check-phase15-review-process-handoff.py"
@@ -18,6 +19,7 @@ BUILD_REL = "zigux/tests/phase15_build.zig"
 REQUIRED_FILES = (
     README_REL,
     MAKEFILE_REL,
+    WORKFLOW_REL,
     REVIEW_CHECKLIST_REL,
     REVIEW_PROCESS_NOTE_REL,
     HANDOFF_CHECKER_REL,
@@ -33,17 +35,22 @@ REQUIRED_FILES = (
 )
 
 README_SNIPPETS = (
-    "- the current shared Phase 15 governance surface on `master` is `Documentation/zigux/freeze-map.md`, `Documentation/zigux/phase15-freeze-map-governance.md`, `Documentation/zigux/phase15-architecture-council-review-process.md`, `Documentation/zigux/phase15-parity-scorecard.md`, `Documentation/zigux/phase15-indefinite-c-policy.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/check-phase15-review-process-handoff.py`, `zigux/tests/phase15_freeze_map_governance.zig`, `zigux/tests/phase15_parity_scorecard.zig`, `zigux/tests/phase15_indefinite_c_policy.json`, `zigux/tests/phase15_indefinite_c_policy.zig`, and `zigux/tests/phase15_build.zig`.",
+    "- the current shared Phase 15 governance surface on `master` is `Documentation/zigux/freeze-map.md`, `Documentation/zigux/phase15-freeze-map-governance.md`, `Documentation/zigux/phase15-architecture-council-review-process.md`, `Documentation/zigux/phase15-parity-scorecard.md`, `Documentation/zigux/phase15-indefinite-c-policy.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/check-phase15-review-process-handoff.py`, `zigux/tests/phase15_architecture_council_review_process_manifest.json`, `zigux/tests/phase15_freeze_map_governance.zig`, `zigux/tests/phase15_parity_scorecard.zig`, `zigux/tests/phase15_architecture_council_review_process.zig`, `zigux/tests/phase15_indefinite_c_policy.json`, `zigux/tests/phase15_indefinite_c_policy.zig`, and `zigux/tests/phase15_build.zig`.",
     "- `check-phase15-review-process-handoff.py` keeps the dedicated review-process note and its manifest-backed handoff evidence aligned around the self-reference, product-boundary, and parked-route markers that keep the Architecture Council packet reviewable without inventing a broader governance surface.",
     "- `zig build test --build-file zigux/tests/phase15_build.zig` and `make -C zigux phase15` rerun the parked freeze-map governance, Architecture Council review-process, parity-scorecard, and dedicated indefinite-C policy packet without implying any new approval claim for a freeze-map anchor.",
     "- the current bounded Phase 15 decision is still to leave the lane parked unless a named reopen trigger fires or the deep-core blocker posture changes enough to justify another Architecture Council slice.",
 )
 
 MAKEFILE_REQUIRED = (
-    "PHONY += phase15-test phase15",
+    "PHONY += phase15-validate phase15-test phase15",
+    "phase15-validate:",
+    "scripts/zigux/check-phase15-scripts-readme-alignment.py --self-test",
+    "scripts/zigux/check-phase15-scripts-readme-alignment.py",
+    "scripts/zigux/check-phase15-review-process-handoff.py --self-test",
+    "scripts/zigux/check-phase15-review-process-handoff.py",
     "phase15-test:",
     "$(ZIG) build test --build-file zigux/tests/phase15_build.zig",
-    "phase15: phase15-test",
+    "phase15: phase15-validate phase15-test",
 )
 
 HANDOFF_CHECKER_MARKERS = (
@@ -58,6 +65,13 @@ REVIEW_CHECKLIST_MARKERS = (
     "scripts/zigux/check-phase15-review-process-handoff.py",
     "make -C zigux phase15",
     "no-approval-yet posture",
+)
+
+WORKFLOW_MARKERS = (
+    "Validate Phase 15 governance packet",
+    "run: make -C zigux phase15-validate\n",
+    "Run Phase 15 governance tests",
+    "run: make -C zigux phase15-test\n",
 )
 
 REVIEW_PROCESS_NOTE_MARKERS = (
@@ -110,6 +124,7 @@ def validate(root: Path) -> list[str]:
 
     readme = _read(root / README_REL)
     makefile = _read(root / MAKEFILE_REL)
+    workflow = _read(root / WORKFLOW_REL)
     handoff_checker = _read(root / HANDOFF_CHECKER_REL)
     review_checklist = _read(root / REVIEW_CHECKLIST_REL)
     review_process_note = _read(root / REVIEW_PROCESS_NOTE_REL)
@@ -117,6 +132,7 @@ def validate(root: Path) -> list[str]:
 
     _require_markers_exact_once(readme, README_SNIPPETS, "readme", issues)
     _require_markers_present(makefile, MAKEFILE_REQUIRED, "makefile", issues)
+    _require_markers_exact_once(workflow, WORKFLOW_MARKERS, "workflow", issues)
     _require_markers_present(handoff_checker, HANDOFF_CHECKER_MARKERS, "handoff_checker", issues)
     _require_markers_present(review_checklist, REVIEW_CHECKLIST_MARKERS, "review_checklist", issues)
     _require_markers_present(review_process_note, REVIEW_PROCESS_NOTE_MARKERS, "review_process_note", issues)
@@ -140,12 +156,34 @@ def _baseline_readme() -> str:
 def _baseline_makefile() -> str:
     return "\n".join(
         (
-            "PHONY += phase15-test phase15",
+            "PHONY += phase15-validate phase15-test phase15",
+            "",
+            "phase15-validate:",
+            "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase15-scripts-readme-alignment.py --self-test",
+            "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase15-scripts-readme-alignment.py",
+            "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase15-review-process-handoff.py --self-test",
+            "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase15-review-process-handoff.py",
             "",
             "phase15-test:",
             "\tcd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase15_build.zig",
             "",
-            "phase15: phase15-test",
+            "phase15: phase15-validate phase15-test",
+            "",
+        )
+    )
+
+
+def _baseline_workflow() -> str:
+    return "\n".join(
+        (
+            "jobs:",
+            "  bootstrap:",
+            "    steps:",
+            "      - name: Validate Phase 15 governance packet",
+            "        run: make -C zigux phase15-validate",
+            "",
+            "      - name: Run Phase 15 governance tests",
+            "        run: make -C zigux phase15-test",
             "",
         )
     )
@@ -202,6 +240,7 @@ def _baseline_build() -> str:
 def _seed_fixture_tree(root: Path) -> None:
     _write(root / README_REL, _baseline_readme())
     _write(root / MAKEFILE_REL, _baseline_makefile())
+    _write(root / WORKFLOW_REL, _baseline_workflow())
     _write(root / HANDOFF_CHECKER_REL, _baseline_handoff_checker())
     _write(root / REVIEW_CHECKLIST_REL, _baseline_review_checklist())
     _write(root / REVIEW_PROCESS_NOTE_REL, _baseline_review_process_note())
@@ -258,13 +297,30 @@ def run_self_test() -> int:
 
         makefile_path = root / MAKEFILE_REL
         baseline_makefile = _read(makefile_path)
-        _write(root / MAKEFILE_REL, baseline_makefile.replace("phase15: phase15-test", "phase15:", 1))
+        _write(
+            root / MAKEFILE_REL,
+            baseline_makefile.replace("phase15: phase15-validate phase15-test", "phase15:", 1),
+        )
         _assert_only(
             validate(root),
-            ["makefile:missing:phase15: phase15-test"],
+            ["makefile:missing:phase15: phase15-validate phase15-test"],
             "missing_makefile_marker_guard_failed",
         )
         _write(root / MAKEFILE_REL, baseline_makefile)
+        case_count += 1
+
+        workflow_path = root / WORKFLOW_REL
+        baseline_workflow = _read(workflow_path)
+        _write(
+            root / WORKFLOW_REL,
+            baseline_workflow.replace("      - name: Validate Phase 15 governance packet\n", "", 1),
+        )
+        _assert_only(
+            validate(root),
+            ["workflow:missing:Validate Phase 15 governance packet"],
+            "missing_workflow_marker_guard_failed",
+        )
+        _write(root / WORKFLOW_REL, baseline_workflow)
         case_count += 1
 
         checker_path = root / HANDOFF_CHECKER_REL
