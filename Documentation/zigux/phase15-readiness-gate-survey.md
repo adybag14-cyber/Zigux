@@ -13,6 +13,7 @@ This document records the bounded Phase 15 readiness lane for surveying the rema
   - `zigux-alpha/BOOTSTRAP_COMMIT_LEDGER.md`
   - `Documentation/zigux/freeze-map.md`
   - `Documentation/zigux/review-checklist.md`
+  - `Documentation/zigux/phase15-freeze-map-governance.md`
   - `Documentation/zigux/phase15-architecture-council-review-process.md`
   - `Documentation/zigux/phase15-parity-scorecard.md`
   - `Documentation/zigux/phase15-indefinite-c-policy.md`
@@ -61,6 +62,7 @@ At reviewed `master` head `d918be7ded6383c13cbd5eea4ca4aa4f3cdafee4`, the repo a
 
 - `Documentation/zigux/freeze-map.md` is present and keeps the freeze-in-C and study-only anchors explicit
 - `Documentation/zigux/review-checklist.md` is present and now asks for parity-scorecard evidence, decision records, rollback ownership, retained stay-in-C state, reopen triggers, and current lane ownership when freeze-map anchors are reviewed
+- `Documentation/zigux/phase15-freeze-map-governance.md` is present and records the freeze-map governance posture, retained discussion state, automatic return-to-blocked trigger, and shared replay coverage for the deep-core blocker packet
 - `Documentation/zigux/phase15-architecture-council-review-process.md` is present and records the required review packet plus bounded decision buckets
 - `scripts/zigux/check-phase15-review-process-handoff.py` is present and keeps the dedicated review-process handoff inventory, readiness packet, docs-root reviewability guard, scripts-root validator path, dedicated handoff-checker route, and tests-root guidance path explicit before the broader validator-first and shared replay route is trusted
 - `Documentation/zigux/phase15-parity-scorecard.md` is present and records the four freeze-in-C anchors, their lane owners, evidence thresholds, rollback owners, archive paths, and blocker dispositions
