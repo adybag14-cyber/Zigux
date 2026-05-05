@@ -62,7 +62,7 @@ test "phase10 virtio ring survey manifest records the live queue-wrapper gap" {
     try std.testing.expect(manifest.survey_summary.preexisting_phase10_core_doc_present);
     try std.testing.expect(manifest.survey_summary.preexisting_virtio_ring_zig_present);
     try std.testing.expect(manifest.survey_summary.preexisting_virtio_ring_doc_present);
-    try std.testing.expect(manifest.gaps.len >= 7);
+    try std.testing.expect(manifest.gaps.len >= 8);
 
     var starter_landed_count: usize = 0;
     var ready_next_count: usize = 0;
@@ -70,8 +70,9 @@ test "phase10 virtio ring survey manifest records the live queue-wrapper gap" {
     var saw_ring_helper = false;
     var saw_used_buffer_polling = false;
     var saw_callback_enable_helper = false;
-    var saw_callback_delay_next = false;
-    var saw_mmio_blocker = false;
+    var saw_callback_delay_helper = false;
+    var saw_mmio_register_next = false;
+    var saw_mmio_lifecycle_blocker = false;
     var saw_ring_slice_note = false;
     var saw_core_progress_note = false;
 
@@ -110,10 +111,10 @@ test "phase10 virtio ring survey manifest records the live queue-wrapper gap" {
         }
 
         if (std.mem.eql(u8, gap.id, "phase10-callback-delay-helper")) {
-            saw_callback_delay_next = true;
-            try std.testing.expectEqualStrings("ready_next", gap.status);
+            saw_callback_delay_helper = true;
+            try std.testing.expectEqualStrings("starter_landed", gap.status);
             try std.testing.expectEqualStrings("drivers/virtio/virtio_ring.zig", gap.zigux_destination);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "callback re-enable") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "virtqueue_enable_cb_delayed()") != null);
         }
 
         if (std.mem.eql(u8, gap.id, "phase10-virtio-core-lab-starter")) {
@@ -122,11 +123,19 @@ test "phase10 virtio ring survey manifest records the live queue-wrapper gap" {
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "notification accounting") != null);
         }
 
-        if (std.mem.eql(u8, gap.id, "phase10-mmio-wrapper-lane")) {
-            saw_mmio_blocker = true;
+        if (std.mem.eql(u8, gap.id, "phase10-mmio-register-window-helper")) {
+            saw_mmio_register_next = true;
+            try std.testing.expectEqualStrings("ready_next", gap.status);
+            try std.testing.expectEqualStrings("drivers/virtio/virtio_mmio.zig", gap.zigux_destination);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "MMIO register-window helper") != null);
+        }
+
+        if (std.mem.eql(u8, gap.id, "phase10-mmio-lifecycle-and-irq-paths")) {
+            saw_mmio_lifecycle_blocker = true;
             try std.testing.expectEqualStrings("blocked_on_risky_transport", gap.status);
             try std.testing.expectEqualStrings("drivers/virtio/virtio_mmio.zig", gap.zigux_destination);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "callback-delay") != null or std.mem.indexOf(u8, gap.why_now, "callback re-enable") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "interrupt acknowledgement") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "probe or remove lifecycle") != null);
         }
 
         if (std.mem.eql(u8, gap.id, "phase10-virtio-ring-slice-note")) {
@@ -140,14 +149,15 @@ test "phase10 virtio ring survey manifest records the live queue-wrapper gap" {
         }
     }
 
-    try std.testing.expect(starter_landed_count >= 4);
-    try std.testing.expect(ready_next_count >= 1);
-    try std.testing.expect(blocked_count >= 1);
+    try std.testing.expect(starter_landed_count >= 8);
+    try std.testing.expectEqual(@as(usize, 1), ready_next_count);
+    try std.testing.expectEqual(@as(usize, 1), blocked_count);
     try std.testing.expect(saw_core_progress_note);
     try std.testing.expect(saw_ring_helper);
     try std.testing.expect(saw_used_buffer_polling);
     try std.testing.expect(saw_callback_enable_helper);
-    try std.testing.expect(saw_callback_delay_next);
+    try std.testing.expect(saw_callback_delay_helper);
+    try std.testing.expect(saw_mmio_register_next);
+    try std.testing.expect(saw_mmio_lifecycle_blocker);
     try std.testing.expect(saw_ring_slice_note);
-    try std.testing.expect(saw_mmio_blocker);
 }
