@@ -192,7 +192,7 @@ pub const HvcConsoleLab = struct {
             .name = "hvc_console_lab",
             .anchor = "drivers/tty/hvc/hvc_console.c",
             .provides_simple_driver_starter = true,
-            .touches_tty_registration = false,
+            .touches_tty_registration = true,
             .touches_polling_kthread = false,
             .touches_live_hypervisor_io = false,
         };
