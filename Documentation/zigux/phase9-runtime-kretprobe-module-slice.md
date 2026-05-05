@@ -35,6 +35,7 @@ The live repo already had runtime pilot starters for atomic64, bitmap, and trace
 - bounded entry-handler skip behavior for kernel-thread-like contexts, return-value and duration bookkeeping, and explicit `nmissed` tracking
 - a dedicated `runtime_kretprobe_diff` gate that replays skip, elapsed-time, and missed-instance expectations from `samples/kprobes/kretprobe_example.c`
 - a bounded `runtime_kretprobe_loader` scaffold that keeps the planned `register_kretprobe()` and `unregister_kretprobe()` labels, entry or exit symbol names, and per-instance private-data size explicit as metadata-only pre-execution handoff details while the runtime substrate remains unavailable
+- the loader handoff refuses to prepare a shared request while an entry timestamp is armed or a probe instance is still active, requiring an idle registration snapshot before the shared runtime-loader boundary
 - the shared `runtime_loader` facade, `runtime_loader_contract`, and `runtime_loader_allocator_init_flow` replay that keep the kernel-heap allocator handoff, init-flow counts, and release-without-substrate path reviewable across the whole shipped Phase 9 loader packet
 - dedicated Phase 9 tests and manifest coverage wired into the shared `zigux/tests/phase9_build.zig` gate and `make -C zigux phase9`
 
