@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-
 """Fail-closed Phase 6 shared-surface checks for the leaf-helper packet."""
 
 from __future__ import annotations
@@ -15,7 +14,8 @@ class ValidationError(RuntimeError):
 
 REQUIRED_SNIPPETS = {
     "Documentation/zigux/README.md": [
-        "- `Documentation/zigux/review-checklist.md`, `zigux/tests/README.md`, `scripts/zigux/README.md`, `scripts/zigux/check-phase6-shared-surface.py`, `zigux/tests/phase6_build.zig`, `zigux/tests/phase6_base64.zig`, `zigux/tests/phase6_bsearch.zig`, `zigux/tests/phase6_checksum.zig`, `zigux/tests/phase6_hexdump.zig`, `zigux/tests/phase6_checksum_perf.zig`, `zigux/tests/phase6_hexdump_perf.zig`, `zigux/Makefile`, `.github/workflows/zigux-bootstrap.yml`, `make -C zigux phase6-validate`, `make -C zigux phase6`, `make -C zigux phase6-checksum-perf`, and `make -C zigux phase6-hexdump-perf` now keep the current base64, bsearch, checksum, and hexdump helper bundle reviewable",
+        "- `Documentation/zigux/review-checklist.md`, `zigux/tests/README.md`, `scripts/zigux/README.md`, `scripts/zigux/check-phase6-shared-surface.py`, `zigux/tests/phase6_build.zig`, `zigux/tests/phase6_base64.zig`, `zigux/tests/phase6_bsearch.zig`, `zigux/tests/phase6_checksum.zig`, `zigux/tests/phase6_hexdump.zig`, `zigux/tests/phase6_checksum_perf.zig`, `zigux/tests/phase6_hexdump_perf.zig`, `zigux/Makefile`, `.github/workflows/zigux-bootstrap.yml`, `make -C zigux phase6-validate`, `make -C zigux phase6`, `make -C zigux phase6-checksum-perf`, and `make -C zigux phase6-hexdump-perf` now keep the current base64, bsearch, checksum, and hexdump helper bundle reviewable through the shared surface checker, the bundled replay, the dedicated checksum and hexdump perf gates, and the Linux-style helper lane together, so new helper slices should only land when that shared packet stays green as one unit.",
+        "- the current bounded Phase 6 decision is no longer whether one more tiny external fixture is still worth carrying; the live leaf-helper lane is the bundled `base64`, `bsearch`, `checksum`, and `hexdump` packet already kept reviewable through `zigux/tests/phase6_build.zig`, `zigux/tests/phase6_base64.zig`, `zigux/tests/phase6_bsearch.zig`, `zigux/tests/phase6_checksum.zig`, `zigux/tests/phase6_hexdump.zig`, `zigux/tests/phase6_checksum_perf.zig`, `zigux/tests/phase6_hexdump_perf.zig`, `make -C zigux phase6`, `make -C zigux phase6-checksum-perf`, and `make -C zigux phase6-hexdump-perf`, so future follow-up here should reopen only for a concrete parity gap or another similarly small helper-first step inside that same packet.",
     ],
     "scripts/zigux/README.md": [
         "Phase 6 flow - the current shared Phase 6 review surface on `master` is the four slice notes (`Documentation/zigux/phase6-base64-slice.md`, `Documentation/zigux/phase6-bsearch-slice.md`, `Documentation/zigux/phase6-checksum-slice.md`, and `Documentation/zigux/phase6-hexdump-slice.md`) plus `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `zigux/tests/README.md`, `scripts/zigux/check-phase6-shared-surface.py`, `zigux/tests/phase6_build.zig`, `zigux/Makefile`, and `.github/workflows/zigux-bootstrap.yml`.",
@@ -25,10 +25,11 @@ REQUIRED_SNIPPETS = {
         "- there is no separate shared `validate-phase6.py`, external portability checker packet beyond `check-phase6-shared-surface.py`, or aggregated `phase6-perf` target on `master`; the shipped dedicated perf replays are `make -C zigux phase6-checksum-perf` and `make -C zigux phase6-hexdump-perf`, which keep the checksum slowdown ceiling and the formatter-sensitive hexdump fixture packet wired into Linux-style entrypoints without overstating perf coverage for the rest of the Phase 6 helper packet.",
     ],
     "Documentation/zigux/review-checklist.md": [
-        "- if the change touches the shared Phase 6 leaf-helper packet, do `Documentation/zigux/README.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, `Documentation/zigux/phase6-base64-slice.md`, `Documentation/zigux/phase6-bsearch-slice.md`, `Documentation/zigux/phase6-checksum-slice.md`, `Documentation/zigux/phase6-hexdump-slice.md`, `scripts/zigux/check-phase6-shared-surface.py`, `zigux/tests/phase6_build.zig`, `zigux/tests/phase6_base64.zig`, `zigux/tests/phase6_bsearch.zig`, `zigux/tests/phase6_checksum.zig`, `zigux/tests/phase6_hexdump.zig`, `zigux/tests/phase6_checksum_perf.zig`, `zigux/tests/phase6_hexdump_perf.zig`, `zigux/Makefile`, `.github/workflows/zigux-bootstrap.yml`, `make -C zigux phase6-validate`, `make -C zigux phase6`, `make -C zigux phase6-checksum-perf`, and `make -C zigux phase6-hexdump-perf` still agree on the same bundled `base64`, `bsearch`, `checksum`, and `hexdump` helper packet without implying a removed shared `validate-phase6.py`, a broader external parity checker beyond `check-phase6-shared-surface.py`, or an aggregated `phase6-perf` route?",
+        "  * if the change touches the shared Phase 6 leaf-helper packet, do `Documentation/zigux/README.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, `Documentation/zigux/phase6-base64-slice.md`, `Documentation/zigux/phase6-bsearch-slice.md`, `Documentation/zigux/phase6-checksum-slice.md`, `Documentation/zigux/phase6-hexdump-slice.md`, `scripts/zigux/check-phase6-shared-surface.py`, `zigux/tests/phase6_build.zig`, `zigux/tests/phase6_base64.zig`, `zigux/tests/phase6_bsearch.zig`, `zigux/tests/phase6_checksum.zig`, `zigux/tests/phase6_hexdump.zig`, `zigux/tests/phase6_checksum_perf.zig`, `zigux/tests/phase6_hexdump_perf.zig`, `zigux/Makefile`, `.github/workflows/zigux-bootstrap.yml`, `make -C zigux phase6-validate`, `make -C zigux phase6`, `make -C zigux phase6-checksum-perf`, and `make -C zigux phase6-hexdump-perf` still agree on the same bundled `base64`, `bsearch`, `checksum`, and `hexdump` helper packet without implying a removed shared `validate-phase6.py`, a broader external parity checker beyond `check-phase6-shared-surface.py`, or an aggregated `phase6-perf` route?",
     ],
     "zigux/tests/README.md": [
-        "- keep the shared Phase 6 leaf-helper packet wired through `zigux/tests/phase6_build.zig`, including `zigux/tests/phase6_base64.zig`, `zigux/tests/phase6_bsearch.zig`, `zigux/tests/phase6_checksum.zig`, and `zigux/tests/phase6_hexdump.zig`, so the landed `base64`, `bsearch`, `checksum`, and `hexdump` bundle stays reviewable through one bounded helper gate, and keep `zigux/tests/phase6_checksum_perf.zig`, `zigux/tests/phase6_hexdump_perf.zig`, `make -C zigux phase6-checksum-perf`, and `make -C zigux phase6-hexdump-perf` explicit as the dedicated checksum and hexdump perf routes rather than implying a broader Phase 6 packet-wide perf target",
+        "  * `zigux/tests/phase6_hexdump_perf.zig`",
+        "  * keep the shared Phase 6 leaf-helper packet wired through `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, `scripts/zigux/check-phase6-shared-surface.py`, `zigux/tests/phase6_build.zig`, including `zigux/tests/phase6_base64.zig`, `zigux/tests/phase6_bsearch.zig`, `zigux/tests/phase6_checksum.zig`, and `zigux/tests/phase6_hexdump.zig`, `zigux/Makefile`, `.github/workflows/zigux-bootstrap.yml`, `make -C zigux phase6-validate`, and `make -C zigux phase6`, so the landed `base64`, `bsearch`, `checksum`, and `hexdump` bundle stays reviewable through one bounded helper gate, and keep `zigux/tests/phase6_checksum_perf.zig` plus `make -C zigux phase6-checksum-perf` and `zigux/tests/phase6_hexdump_perf.zig` plus `make -C zigux phase6-hexdump-perf` explicit as the dedicated checksum and hexdump perf routes rather than implying a broader Phase 6 packet-wide perf target",
     ],
     "zigux/tests/phase6_build.zig": [
         'const test_step = b.step("test", "Run Phase 6 leaf helper tests");',
@@ -49,11 +50,29 @@ REQUIRED_SNIPPETS = {
         "phase6: phase6-validate phase6-test",
     ],
     ".github/workflows/zigux-bootstrap.yml": [
-        "- name: Self-test Phase 6 shared-surface checker\n run: python3 scripts/zigux/check-phase6-shared-surface.py --self-test",
-        "- name: Check Phase 6 shared surface\n run: python3 scripts/zigux/check-phase6-shared-surface.py",
-        "- name: Run Phase 6 leaf helper tests\n run: zig build test --build-file zigux/tests/phase6_build.zig --summary all",
-        "- name: Run Phase 6 checksum perf gate\n run: zig build phase6-checksum-perf --build-file zigux/tests/phase6_build.zig -Doptimize=ReleaseSafe",
-        "- name: Run Phase 6 hexdump perf gate\n run: zig build phase6-hexdump-perf --build-file zigux/tests/phase6_build.zig -Doptimize=ReleaseSafe",
+        "- name: Self-test Phase 6 shared-surface checker\n        run: python3 scripts/zigux/check-phase6-shared-surface.py --self-test",
+        "- name: Check Phase 6 shared surface\n        run: python3 scripts/zigux/check-phase6-shared-surface.py",
+        "- name: Run Phase 6 leaf helper tests\n        run: zig build test --build-file zigux/tests/phase6_build.zig --summary all",
+        "- name: Run Phase 6 checksum perf gate\n        run: zig build phase6-checksum-perf --build-file zigux/tests/phase6_build.zig -Doptimize=ReleaseSafe --summary all",
+        "- name: Run Phase 6 hexdump perf gate\n        run: zig build phase6-hexdump-perf --build-file zigux/tests/phase6_build.zig -Doptimize=ReleaseSafe --summary all",
+    ],
+}
+
+EXACT_COUNT_MARKERS = {
+    "zigux/Makefile": [
+        "PHONY += phase6-validate phase6-test phase6-checksum-perf phase6-hexdump-perf phase6",
+        "phase6-validate:\n\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase6-shared-surface.py",
+        "phase6-test:\n\tcd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase6_build.zig",
+        "phase6-checksum-perf:\n\tcd $(ZIGUX_ROOT) && $(ZIG) build phase6-checksum-perf --build-file zigux/tests/phase6_build.zig -Doptimize=ReleaseSafe",
+        "phase6-hexdump-perf:\n\tcd $(ZIGUX_ROOT) && $(ZIG) build phase6-hexdump-perf --build-file zigux/tests/phase6_build.zig -Doptimize=ReleaseSafe",
+        "phase6: phase6-validate phase6-test",
+    ],
+    ".github/workflows/zigux-bootstrap.yml": [
+        "- name: Self-test Phase 6 shared-surface checker\n        run: python3 scripts/zigux/check-phase6-shared-surface.py --self-test",
+        "- name: Check Phase 6 shared surface\n        run: python3 scripts/zigux/check-phase6-shared-surface.py",
+        "- name: Run Phase 6 leaf helper tests\n        run: zig build test --build-file zigux/tests/phase6_build.zig --summary all",
+        "- name: Run Phase 6 checksum perf gate\n        run: zig build phase6-checksum-perf --build-file zigux/tests/phase6_build.zig -Doptimize=ReleaseSafe --summary all",
+        "- name: Run Phase 6 hexdump perf gate\n        run: zig build phase6-hexdump-perf --build-file zigux/tests/phase6_build.zig -Doptimize=ReleaseSafe --summary all",
     ],
 }
 
@@ -81,6 +100,15 @@ def run_checks(repo_root: Path) -> None:
                     f"missing expected Phase 6 marker in {rel_path}: {snippet}"
                 )
 
+    for rel_path, markers in EXACT_COUNT_MARKERS.items():
+        content = read_text(repo_root / rel_path)
+        for marker in markers:
+            occurrences = content.count(marker)
+            if occurrences != 1:
+                raise ValidationError(
+                    f"expected exactly one Phase 6 marker in {rel_path}, found {occurrences}: {marker}"
+                )
+
     for rel_path in REMOVED_PATHS:
         if (repo_root / rel_path).exists():
             raise ValidationError(
@@ -93,11 +121,27 @@ def write(path: Path, content: str) -> None:
     path.write_text(content, encoding="utf-8")
 
 
+def unique_preserving_order(values: list[str]) -> list[str]:
+    seen: set[str] = set()
+    result: list[str] = []
+    for value in values:
+        if value in seen:
+            continue
+        seen.add(value)
+        result.append(value)
+    return result
+
+
 def run_self_test() -> None:
     with tempfile.TemporaryDirectory() as tmpdir:
         root = Path(tmpdir)
+
         for rel_path, snippets in REQUIRED_SNIPPETS.items():
-            write(root / rel_path, "\n".join(snippets) + "\n")
+            exact_markers = EXACT_COUNT_MARKERS.get(rel_path, [])
+            write(
+                root / rel_path,
+                "\n".join(unique_preserving_order(snippets + exact_markers)) + "\n",
+            )
 
         run_checks(root)
 
@@ -107,9 +151,7 @@ def run_self_test() -> None:
             run_checks(root)
         except ValidationError as exc:
             if REMOVED_PATHS[0] not in str(exc):
-                raise AssertionError(
-                    f"unexpected removed-path failure: {exc}"
-                ) from exc
+                raise AssertionError(f"unexpected removed-path failure: {exc}") from exc
         else:
             raise AssertionError("expected removed-path failure")
         removed_path.unlink()
@@ -128,12 +170,29 @@ def run_self_test() -> None:
             run_checks(root)
         except ValidationError as exc:
             if "scripts/zigux/README.md" not in str(exc):
-                raise AssertionError(
-                    f"unexpected scripts README failure: {exc}"
-                ) from exc
+                raise AssertionError(f"unexpected scripts README failure: {exc}") from exc
         else:
             raise AssertionError("expected scripts README failure")
         scripts_readme.write_text(original_scripts_readme, encoding="utf-8")
+
+        docs_readme = root / "Documentation/zigux/README.md"
+        original_docs_readme = docs_readme.read_text(encoding="utf-8")
+        docs_readme.write_text(
+            original_docs_readme.replace(
+                "phase6-hexdump-perf",
+                "phase6-hexdump-bench",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        try:
+            run_checks(root)
+        except ValidationError as exc:
+            if "Documentation/zigux/README.md" not in str(exc):
+                raise AssertionError(f"unexpected docs README failure: {exc}") from exc
+        else:
+            raise AssertionError("expected docs README failure")
+        docs_readme.write_text(original_docs_readme, encoding="utf-8")
 
         workflow = root / ".github/workflows/zigux-bootstrap.yml"
         original_workflow = workflow.read_text(encoding="utf-8")
@@ -148,11 +207,26 @@ def run_self_test() -> None:
             run_checks(root)
         except ValidationError as exc:
             if ".github/workflows/zigux-bootstrap.yml" not in str(exc):
-                raise AssertionError(
-                    f"unexpected workflow failure: {exc}"
-                ) from exc
+                raise AssertionError(f"unexpected workflow failure: {exc}") from exc
         else:
             raise AssertionError("expected workflow failure")
+        workflow.write_text(original_workflow, encoding="utf-8")
+
+        workflow.write_text(
+            original_workflow
+            + "- name: Run Phase 6 hexdump perf gate\n"
+            + "        run: zig build phase6-hexdump-perf --build-file zigux/tests/phase6_build.zig -Doptimize=ReleaseSafe --summary all\n",
+            encoding="utf-8",
+        )
+        try:
+            run_checks(root)
+        except ValidationError as exc:
+            if ".github/workflows/zigux-bootstrap.yml" not in str(exc):
+                raise AssertionError(
+                    f"unexpected workflow duplicate failure: {exc}"
+                ) from exc
+        else:
+            raise AssertionError("expected workflow duplicate failure")
         workflow.write_text(original_workflow, encoding="utf-8")
 
         makefile = root / "zigux/Makefile"
@@ -169,11 +243,45 @@ def run_self_test() -> None:
             run_checks(root)
         except ValidationError as exc:
             if "zigux/Makefile" not in str(exc):
-                raise AssertionError(
-                    f"unexpected Makefile failure: {exc}"
-                ) from exc
+                raise AssertionError(f"unexpected Makefile failure: {exc}") from exc
         else:
             raise AssertionError("expected Makefile failure")
+        makefile.write_text(original_makefile, encoding="utf-8")
+
+        makefile.write_text(
+            original_makefile
+            + "\nphase6-hexdump-perf:\n\tcd $(ZIGUX_ROOT) && $(ZIG) build phase6-hexdump-perf --build-file zigux/tests/phase6_build.zig -Doptimize=ReleaseSafe\n",
+            encoding="utf-8",
+        )
+        try:
+            run_checks(root)
+        except ValidationError as exc:
+            if "zigux/Makefile" not in str(exc):
+                raise AssertionError(
+                    f"unexpected Makefile duplicate failure: {exc}"
+                ) from exc
+        else:
+            raise AssertionError("expected Makefile duplicate failure")
+        makefile.write_text(original_makefile, encoding="utf-8")
+
+        tests_readme = root / "zigux/tests/README.md"
+        original_tests_readme = tests_readme.read_text(encoding="utf-8")
+        tests_readme.write_text(
+            original_tests_readme.replace(
+                "phase6_hexdump_perf.zig",
+                "phase6_hexdump_bench.zig",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        try:
+            run_checks(root)
+        except ValidationError as exc:
+            if "zigux/tests/README.md" not in str(exc):
+                raise AssertionError(f"unexpected tests README failure: {exc}") from exc
+        else:
+            raise AssertionError("expected tests README failure")
+        tests_readme.write_text(original_tests_readme, encoding="utf-8")
 
     print("self-test passed")
 
