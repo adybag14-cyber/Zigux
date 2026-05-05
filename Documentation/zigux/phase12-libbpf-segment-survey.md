@@ -46,6 +46,7 @@ The survey manifest now records:
 - the landed `phase12-libbpf-segment-manifest-foundation`
 - the landed `phase12-libbpf-type-name-helper-foundation`
 - the landed `phase12-libbpf-cpu-mask-helper-foundation`
+- the landed `phase12-libbpf-perf-buffer-poll-helper-foundation`
 - the landed `phase12-libbpf-logging-helper-foundation`
 - the landed `phase12-libbpf-pin-path-helper-foundation`
 - the landed `phase12-libbpf-survey-gate`
