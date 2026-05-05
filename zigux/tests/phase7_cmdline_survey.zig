@@ -20,7 +20,7 @@ test "phase 7 cmdline survey keeps the roadmap-backed helper packet reviewable" 
     try expectContains(slice_note, "zig build test --build-file zigux/tests/phase7_build.zig");
     try expectContains(slice_note, "runtime-safe parsing helpers that:");
     try expectContains(slice_note, "- do not allocate");
-    try expectContains(slice_note, "serialized `next_arg()` edge cases covering quoted values");
+    try expectContains(slice_note, "serialized `next_arg()` edge cases covering quoted values, quoted bare tokens, empty quoted or whitespace-only values, unquoted punctuation-rich values, first-equals splitting, leading-equals sentinel handling, unterminated quoted values, mixed-whitespace rest trimming, and empty-rest termination");
     try expectContains(slice_note, "the dedicated survey gate keeps the roadmap anchor, focused helper replay, and shared `phase7_build.zig` compile-check path aligned around the same parked cmdline packet");
 
     const build_file = try readRepoFile(allocator, "zigux/tests/phase7_build.zig");
