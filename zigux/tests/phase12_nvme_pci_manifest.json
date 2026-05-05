@@ -92,17 +92,17 @@
     },
     {
       "id": "phase12-nvme-pci-prp-shape-helper",
-      "status": "ready_next",
+      "status": "starter_landed",
       "kind": "complex_driver_starter",
       "zigux_destination": "drivers/nvme/host/pci.zig",
-      "why_now": "The next honest nvme PCI step is one tiny PRP buffer-shape helper that records first-page offset, rounded span, and page-list bound checks without crossing into SGL setup, live DMA mapping, request submission, or hardware-backed queue setup."
+      "why_now": "The bounded nvme PCI packet now includes one tiny PRP buffer-shape helper that records first-page offset, rounded span, PRP tail-page count, and PRP list bound checks without crossing into SGL setup, live DMA mapping, request submission, or hardware-backed queue setup."
     },
     {
       "id": "phase12-nvme-pci-live-queue-and-dma",
       "status": "blocked_on_dma_transport",
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase12_nvme_pci_survey.zig",
-      "why_now": "Host Memory Buffer management, blk-mq queue_rq paths, live PCI queue creation, IRQ-driven completion polling, timeout recovery plumbing, and real PRP or SGL DMA mapping remain blocked until one smaller PRP buffer-shape helper exists and the roadmap-approved DMA-safe transport substrate is in place."
+      "why_now": "Host Memory Buffer management, blk-mq queue_rq paths, live PCI queue creation, IRQ-driven completion polling, timeout recovery plumbing, and real PRP or SGL DMA mapping remain blocked until the roadmap-approved DMA-safe transport substrate is in place beyond the now-landed queue-planning and PRP-shape helpers."
     }
   ]
 }
