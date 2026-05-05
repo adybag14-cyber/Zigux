@@ -72,6 +72,66 @@ test "phase11 dw_wdt probe summary reports fixed versus custom top sourcing" {
     try std.testing.expectEqual(@as(u32, 12), probe.timeout_sec);
 }
 
+test "phase11 dw_wdt registration summary selects the basic info profile before registration" {
+    var watchdog = try dw_wdt.DwWdtLab.initFixedTops(65_536, false);
+    const registration = try watchdog.registrationSummary(.{
+        .nowayout = true,
+        .requested_timeout_sec = 9,
+        .stop_on_reboot = true,
+    }, false);
+
+    try std.testing.expectEqualStrings("drivers/watchdog/dw_wdt.c", registration.anchor);
+    try std.testing.expectEqualStrings("watchdog_register_device", registration.registration_call);
+    try std.testing.expectEqualStrings("platform_device.dev", registration.parent_anchor);
+    try std.testing.expectEqualStrings("Synopsys DesignWare Watchdog", registration.info.identity);
+    try std.testing.expect(registration.info.supports_keepalive_ping);
+    try std.testing.expect(registration.info.supports_set_timeout);
+    try std.testing.expect(registration.info.supports_magic_close);
+    try std.testing.expect(!registration.info.supports_pretimeout);
+    try std.testing.expect(registration.ops.start);
+    try std.testing.expect(registration.ops.stop);
+    try std.testing.expect(registration.ops.ping);
+    try std.testing.expect(registration.ops.set_timeout);
+    try std.testing.expect(registration.ops.set_pretimeout);
+    try std.testing.expect(registration.ops.get_timeleft);
+    try std.testing.expect(registration.ops.restart);
+    try std.testing.expectEqual(dw_wdt.ProbeTimeoutOrigin.default_selection, registration.timeout_origin);
+    try std.testing.expect(registration.needs_timeout_programming);
+    try std.testing.expect(!registration.imported_running_state);
+    try std.testing.expectEqual(@as(u32, 16), registration.timeout_sec);
+    try std.testing.expectEqual(@as(u32, 0), registration.pretimeout_sec);
+    try std.testing.expect(registration.nowayout);
+    try std.testing.expect(registration.stop_on_reboot);
+    try std.testing.expectEqual(dw_wdt.default_restart_priority, registration.restart_priority);
+    try std.testing.expect(!registration.can_stop);
+    try std.testing.expectEqual(@as(u32, 1), registration.min_timeout_sec);
+    try std.testing.expectEqual(@as(u32, 32_768_000), registration.max_hw_heartbeat_ms);
+}
+
+test "phase11 dw_wdt registration summary preserves pretimeout and imported-running selection" {
+    var watchdog = try dw_wdt.DwWdtLab.initFixedTops(65_536, true);
+    _ = watchdog.loadRegisters(.{
+        .control = dw_wdt.control_reg_wdt_en_mask | dw_wdt.control_reg_resp_mode_mask,
+        .timeout_range = 0x33,
+        .current_count = 2 * 65_536,
+    });
+
+    const registration = try watchdog.registrationSummary(.{
+        .nowayout = false,
+        .stop_on_reboot = true,
+    }, true);
+
+    try std.testing.expect(registration.info.supports_pretimeout);
+    try std.testing.expectEqual(dw_wdt.ProbeTimeoutOrigin.imported_running_state, registration.timeout_origin);
+    try std.testing.expect(registration.imported_running_state);
+    try std.testing.expect(!registration.needs_timeout_programming);
+    try std.testing.expect(registration.hardware_running);
+    try std.testing.expect(registration.can_stop);
+    try std.testing.expectEqual(@as(u32, 16), registration.timeout_sec);
+    try std.testing.expectEqual(@as(u32, 8), registration.pretimeout_sec);
+    try std.testing.expect(!registration.nowayout);
+}
+
 test "phase11 dw_wdt start and ping select the nearest fixed top in reset mode" {
     var watchdog = try dw_wdt.DwWdtLab.initFixedTops(65_536, false);
     const config = try watchdog.setTimeout(9);
