@@ -93,6 +93,12 @@ test "phase3 atomic wrappers behave predictably" {
     try std.testing.expectEqual(@as(u32, 11), fetchMax(u32, &value, 17, .seq_cst));
     try std.testing.expectEqual(@as(u32, 17), value);
 
+    var signed_value: i32 = 4;
+    try std.testing.expectEqual(@as(i32, 4), fetchMin(i32, &signed_value, -3, .seq_cst));
+    try std.testing.expectEqual(@as(i32, -3), signed_value);
+    try std.testing.expectEqual(@as(i32, -3), fetchMax(i32, &signed_value, 6, .seq_cst));
+    try std.testing.expectEqual(@as(i32, 6), signed_value);
+
     try std.testing.expectEqual(@as(?u32, null), compareExchange(u32, &value, 17, 19, .seq_cst, .seq_cst));
     try std.testing.expectEqual(@as(u32, 19), value);
 
