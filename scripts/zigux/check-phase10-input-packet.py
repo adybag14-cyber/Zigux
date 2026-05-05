@@ -62,7 +62,10 @@ EXPECTED_STATUS_DRAIN_MARKERS = [
 
 EXPECTED_SURVEY_TEST_MARKERS = [
     'test "phase10 virtio input survey manifest records the live starter and remaining gap" {',
-    'try std.testing.expectEqualStrings("P10-Y04", manifest.lane_key);',
+    'try std.testing.expectEqualStrings("P10-L13", manifest.lane_key);',
+    'try std.testing.expect(std.mem.indexOf(u8, survey_note, "lab-only driver validation") != null);',
+    'if (std.mem.eql(u8, gap.id, "phase10-virtio-input-survey-note")) {',
+    'try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "lab-only driver validation evidence") != null);',
     'try std.testing.expectEqual(@as(usize, 6), manifest.survey_summary.preexisting_phase10_test_files);',
     '"phase10-virtio-input-status-drain-helper"',
     'try std.testing.expectEqual(@as(usize, 0), ready_next_count);',
@@ -83,12 +86,13 @@ EXPECTED_MODULE_MARKERS = [
 
 EXPECTED_SURVEY_NOTE_MARKERS = [
     "PHASE10_STATUS=parked",
-    "PHASE10_LANE_KEY=P10-Y04",
+    "PHASE10_LANE_KEY=P10-L13",
     "phase10-virtio-input-registration-preflight-helper",
     "phase10-virtio-input-status-drain-helper",
     "phase10-virtio-input-registration-lifecycle",
     "real event delivery",
     "transport-backed status completion callbacks",
+    "lab-only driver validation",
 ]
 
 EXPECTED_GAPS = {
@@ -161,8 +165,8 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
             missing_markers.append(f"survey_note:{marker}")
 
     manifest = json.loads(read_text(root, "zigux/tests/phase10_virtio_input_manifest.json"))
-    if manifest.get("lane_key") != "P10-Y04":
-        missing_markers.append("manifest:lane_key=P10-Y04")
+    if manifest.get("lane_key") != "P10-L13":
+        missing_markers.append("manifest:lane_key=P10-L13")
     if manifest.get("phase") != "Phase 10":
         missing_markers.append("manifest:phase=Phase 10")
     if manifest.get("anchor") != "drivers/virtio/virtio_input.c":
@@ -233,11 +237,11 @@ def run_self_test() -> int:
         manifest_path = tmp_root / "zigux/tests/phase10_virtio_input_manifest.json"
         original_manifest = manifest_path.read_text(encoding="utf-8")
         manifest_path.write_text(
-            original_manifest.replace('"lane_key": "P10-Y04"', '"lane_key": "P10-drift"', 1),
+            original_manifest.replace('"lane_key": "P10-L13"', '"lane_key": "P10-drift"', 1),
             encoding="utf-8",
         )
         _, missing_markers = validate(tmp_root)
-        if "manifest:lane_key=P10-Y04" not in missing_markers:
+        if "manifest:lane_key=P10-L13" not in missing_markers:
             raise SystemExit("phase10-input-self-test:expected_lane_key_marker_missing")
         manifest_path.write_text(original_manifest, encoding="utf-8")
 
