@@ -10,7 +10,7 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[2]
-PHASE3_VALIDATOR_SELF_TEST_CASE_COUNT = 9
+PHASE3_VALIDATOR_SELF_TEST_CASE_COUNT = 10
 
 
 @dataclass(frozen=True)
@@ -186,6 +186,21 @@ def run_self_test() -> int:
         issues = run_targets(runner_marker_root)
         assert (
             "missing_pass_marker:scripts/zigux/run-phase3-checks.py:PHASE3_RUNNER_SELF_TEST=pass"
+            in issues
+        )
+
+        wrapper_marker_root = Path(tmp_dir) / "wrapper-marker"
+        for target in SELF_TEST_TARGETS:
+            marker = (
+                "WRONG_MARKER=pass"
+                if target.relpath.endswith("generate-phase3-check-wrappers.py")
+                else (target.marker or "PASS")
+            )
+            write_script(wrapper_marker_root / target.relpath, marker)
+        issues = run_targets(wrapper_marker_root)
+        assert (
+            "missing_pass_marker:scripts/zigux/generate-phase3-check-wrappers.py:"
+            "PHASE3_WRAPPER_SELF_TEST=pass"
             in issues
         )
 
