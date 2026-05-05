@@ -67,7 +67,7 @@ required_workflow_markers = [
     'Run Phase 12 complex driver tests',
     'zigux/tests/phase12_build.zig',
     'Run Phase 13 shared helper tests',
-    'zigux/tests/phase13_build.zig',
+    'make -C zigux phase13-test',
 ]
 missing_workflow_markers = [marker for marker in required_workflow_markers if marker not in workflow]
 if missing_workflow_markers:
