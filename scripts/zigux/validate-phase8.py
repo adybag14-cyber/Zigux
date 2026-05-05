@@ -24,6 +24,12 @@ REQUIRED_MARKERS = {
     "Documentation/zigux/phase8-libbpf-segment-survey.md": [
         "perf-buffer-online-cpu-routing",
         "standalone timer or clockevent helper behavior",
+        "make -C zigux phase8-libbpf-segments-test",
+        "zig build test --build-file zigux/tests/phase8_libbpf_segments_only_build.zig --summary all",
+        "make -C zigux phase8-perf-buffer-poll-test",
+        "zig build test --build-file zigux/tests/phase8_perf_buffer_poll_only_build.zig --summary all",
+        "make -C zigux phase8-test",
+        "zig build test --build-file zigux/tests/phase8_build.zig --summary all",
     ],
     "Documentation/zigux/phase8-perf-buffer-poll-slice.md": [
         "perf_buffer__poll(timeout_ms)",
@@ -36,7 +42,12 @@ REQUIRED_MARKERS = {
         "phase8-validate:",
         "scripts/zigux/validate-phase8.py --self-test",
         "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase8.py",
+        "phase8-libbpf-segments-test:",
+        "$(ZIG) build test --build-file zigux/tests/phase8_libbpf_segments_only_build.zig --summary all",
+        "phase8-perf-buffer-poll-test:",
+        "$(ZIG) build test --build-file zigux/tests/phase8_perf_buffer_poll_only_build.zig --summary all",
         "phase8-test:",
+        "$(ZIG) build test --build-file zigux/tests/phase8_build.zig --summary all",
         "phase8: phase8-validate phase8-test",
     ],
     "zigux/tests/phase8_build.zig": [
@@ -62,7 +73,10 @@ REQUIRED_MARKERS = {
 
 FIXTURE_OVERRIDES = {
     "scripts/zigux/validate-phase8.py": "# fixture\n",
-    "tools/lib/bpf/zigux_segments/perf_buffer_poll.zig": "\n".join(REQUIRED_MARKERS["tools/lib/bpf/zigux_segments/perf_buffer_poll.zig"]) + "\n",
+    "tools/lib/bpf/zigux_segments/perf_buffer_poll.zig": "\n".join(
+        REQUIRED_MARKERS["tools/lib/bpf/zigux_segments/perf_buffer_poll.zig"]
+    )
+    + "\n",
 }
 
 
@@ -129,8 +143,16 @@ def run_self_test() -> None:
     marker_cases = [
         ("makefile_validate_target", "zigux/Makefile", "phase8-validate:", "", "zigux/Makefile: phase8-validate:"),
         ("makefile_self_test_hook", "zigux/Makefile", "scripts/zigux/validate-phase8.py --self-test", "", "zigux/Makefile: scripts/zigux/validate-phase8.py --self-test"),
+        ("makefile_libbpf_wrapper_target", "zigux/Makefile", "phase8-libbpf-segments-test:", "", "zigux/Makefile: phase8-libbpf-segments-test:"),
+        ("makefile_libbpf_wrapper_command", "zigux/Makefile", "$(ZIG) build test --build-file zigux/tests/phase8_libbpf_segments_only_build.zig --summary all", "$(ZIG) build test --build-file zigux/tests/phase8_libbpf_segments_build.zig --summary all", "zigux/Makefile: $(ZIG) build test --build-file zigux/tests/phase8_libbpf_segments_only_build.zig --summary all"),
+        ("makefile_perf_buffer_wrapper_target", "zigux/Makefile", "phase8-perf-buffer-poll-test:", "", "zigux/Makefile: phase8-perf-buffer-poll-test:"),
+        ("makefile_perf_buffer_wrapper_command", "zigux/Makefile", "$(ZIG) build test --build-file zigux/tests/phase8_perf_buffer_poll_only_build.zig --summary all", "$(ZIG) build test --build-file zigux/tests/phase8_perf_buffer_poll_build.zig --summary all", "zigux/Makefile: $(ZIG) build test --build-file zigux/tests/phase8_perf_buffer_poll_only_build.zig --summary all"),
         ("makefile_phase8_wrapper", "zigux/Makefile", "phase8: phase8-validate phase8-test", "phase8: phase8-test", "zigux/Makefile: phase8: phase8-validate phase8-test"),
+        ("makefile_phase8_shared_summary", "zigux/Makefile", "$(ZIG) build test --build-file zigux/tests/phase8_build.zig --summary all", "$(ZIG) build test --build-file zigux/tests/phase8_build.zig", "zigux/Makefile: $(ZIG) build test --build-file zigux/tests/phase8_build.zig --summary all"),
         ("survey_timer_boundary", "Documentation/zigux/phase8-libbpf-segment-survey.md", "standalone timer or clockevent helper behavior", "", "Documentation/zigux/phase8-libbpf-segment-survey.md: standalone timer or clockevent helper behavior"),
+        ("survey_libbpf_wrapper", "Documentation/zigux/phase8-libbpf-segment-survey.md", "make -C zigux phase8-libbpf-segments-test", "make -C zigux phase8-libbpf-survey-test", "Documentation/zigux/phase8-libbpf-segment-survey.md: make -C zigux phase8-libbpf-segments-test"),
+        ("survey_perf_buffer_wrapper", "Documentation/zigux/phase8-libbpf-segment-survey.md", "make -C zigux phase8-perf-buffer-poll-test", "make -C zigux phase8-perf-buffer-test", "Documentation/zigux/phase8-libbpf-segment-survey.md: make -C zigux phase8-perf-buffer-poll-test"),
+        ("survey_phase8_test_wrapper", "Documentation/zigux/phase8-libbpf-segment-survey.md", "make -C zigux phase8-test", "make -C zigux phase8-shared-test", "Documentation/zigux/phase8-libbpf-segment-survey.md: make -C zigux phase8-test"),
         ("perf_buffer_poll_note_boundary", "Documentation/zigux/phase8-perf-buffer-poll-slice.md", "ready-buffer processing attempts cannot exceed observed ready events", "", "Documentation/zigux/phase8-perf-buffer-poll-slice.md: ready-buffer processing attempts cannot exceed observed ready events"),
         ("segments_test_timer_boundary", "zigux/tests/phase8_libbpf_segments.zig", "standalone timer or clockevent helper behavior", "", "zigux/tests/phase8_libbpf_segments.zig: standalone timer or clockevent helper behavior"),
         ("phase8_build_perf_buffer_poll_source", "zigux/tests/phase8_build.zig", "\"phase8_perf_buffer_poll.zig\"", "\"phase8_perf_buffer_poll_drift.zig\"", "zigux/tests/phase8_build.zig: \"phase8_perf_buffer_poll.zig\""),
@@ -156,7 +178,7 @@ def run_self_test() -> None:
             write_fixture_root(tmp_root)
 
     print("PHASE8_VALIDATOR_SELF_TEST=pass")
-    print("PHASE8_VALIDATOR_SELF_TEST_CASE_COUNT=17")
+    print("PHASE8_VALIDATOR_SELF_TEST_CASE_COUNT=24")
 
 
 def main() -> int:
