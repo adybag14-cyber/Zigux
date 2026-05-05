@@ -84,8 +84,8 @@ Phase 12 should not be described as release-closed until all of the following ar
 
 Keep the current Phase 12 PMO packet truthfulness-first.
 
-The docs-root, scripts-root, and tests-root wording repairs are already landed on `master`, so the next bounded same-lane follow-through is now drift control rather than another naming pass:
-- rerun `python3 scripts/zigux/check-build-only-phase12-surface.py --self-test` and the live checker after any shared Phase 12 docs-root, scripts-root, tests-root, workflow, or Makefile edit so the shipped build-only contract stays fail-closed
+The docs-root, review-checklist, scripts-root, and tests-root wording repairs are already landed on `master`, so the next bounded same-lane follow-through is now drift control rather than another naming pass:
+- rerun `python3 scripts/zigux/check-build-only-phase12-surface.py --self-test` and the live checker after any shared Phase 12 docs-root, review-checklist, scripts-root, tests-root, workflow, or Makefile edit so the shipped build-only contract stays fail-closed
 - keep `make -C zigux phase12-smoke` documented as the focused preflight shard that now sits ahead of the full `zig build test --build-file zigux/tests/phase12_build.zig --summary all` and `make -C zigux phase12` release replays, rather than letting the new smoke route drift back into Makefile-only knowledge
 - keep this sequencing note aligned with `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, `.github/workflows/zigux-bootstrap.yml`, `zigux/Makefile`, and the bounded `Documentation/zigux/phase12-virtio-scsi-slice.md` rollback-drill wording instead of reopening already-landed naming repairs or inventing removed validator surfaces
 - if the lane reopens for another degraded-workflow drift, start by diffing those shipped packet surfaces and rerunning `scripts/zigux/check-build-only-phase12-surface.py` before widening into any driver-local or helper-local Phase 12 work
