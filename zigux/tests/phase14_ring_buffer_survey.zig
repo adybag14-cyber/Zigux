@@ -82,7 +82,7 @@ test "phase 14 ring-buffer survey manifest records the study-only gap without in
     try std.testing.expect(manifest.survey_summary.preexisting_phase14_ring_buffer_survey_test_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase14_ring_buffer_survey_note_present);
     try std.testing.expectEqual(@as(usize, 5), manifest.decision_checklist.len);
-    try std.testing.expectEqual(@as(usize, 13), manifest.gaps.len);
+    try std.testing.expectEqual(@as(usize, 14), manifest.gaps.len);
 
     var landed_count: usize = 0;
     var ready_next_count: usize = 0;
@@ -94,6 +94,7 @@ test "phase 14 ring-buffer survey manifest records the study-only gap without in
     var saw_mapped_reader_ioctl_followup = false;
     var saw_reader_page_consume_followup = false;
     var saw_reset_governance_followup = false;
+    var saw_tracefs_instance_clear_followup = false;
     var saw_port_blocker = false;
 
     for (manifest.gaps, 0..) |gap, i| {
@@ -154,10 +155,17 @@ test "phase 14 ring-buffer survey manifest records the study-only gap without in
         }
         if (std.mem.eql(u8, gap.id, "phase14-ring-buffer-reset-governance-followup")) {
             saw_reset_governance_followup = true;
-            try std.testing.expectEqualStrings("ready_next", gap.status);
+            try std.testing.expectEqualStrings("starter_landed", gap.status);
             try std.testing.expectEqualStrings("Documentation/zigux/phase14-ring-buffer-survey.md", gap.zigux_destination);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "ring_buffer_reset_cpu()") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "ring_buffer_reset()") != null);
+        }
+        if (std.mem.eql(u8, gap.id, "phase14-ring-buffer-tracefs-instance-clear-followup")) {
+            saw_tracefs_instance_clear_followup = true;
+            try std.testing.expectEqualStrings("ready_next", gap.status);
+            try std.testing.expectEqualStrings("Documentation/zigux/phase14-ring-buffer-survey.md", gap.zigux_destination);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "tracing_reset_online_cpus()") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "tracing_reset_all_online_cpus_unlocked()") != null);
         }
         if (std.mem.eql(u8, gap.id, "phase14-ring-buffer-zig-port-blocker")) {
             saw_port_blocker = true;
@@ -170,7 +178,7 @@ test "phase 14 ring-buffer survey manifest records the study-only gap without in
         }
     }
 
-    try std.testing.expectEqual(@as(usize, 11), landed_count);
+    try std.testing.expectEqual(@as(usize, 12), landed_count);
     try std.testing.expectEqual(@as(usize, 1), ready_next_count);
     try std.testing.expectEqual(@as(usize, 1), blocked_count);
     try std.testing.expect(saw_boundary_checklist);
@@ -180,6 +188,7 @@ test "phase 14 ring-buffer survey manifest records the study-only gap without in
     try std.testing.expect(saw_mapped_reader_ioctl_followup);
     try std.testing.expect(saw_reader_page_consume_followup);
     try std.testing.expect(saw_reset_governance_followup);
+    try std.testing.expect(saw_tracefs_instance_clear_followup);
     try std.testing.expect(saw_port_blocker);
 }
 
