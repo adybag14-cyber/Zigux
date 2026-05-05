@@ -7,6 +7,24 @@
     "drivers/virtio/*.zig",
     "zigux/helpers/"
   ],
+  "freeze_map": "Documentation/zigux/freeze-map.md",
+  "freeze_boundary_status": "aligned",
+  "freeze_status_change_claimed": false,
+  "risky_transport_posture": "blocked_on_risky_transport",
+  "allowed_evidence_kinds": [
+    "driver_local_lab_slices",
+    "survey_manifests",
+    "shared_validation_gates"
+  ],
+  "forbidden_transport_claims": [
+    "queue_setup_reset_paths",
+    "irq_parity",
+    "dma_paths",
+    "input_registration_lifecycle",
+    "probe_remove_lifecycle"
+  ],
+  "architecture_council_reopen_required": true,
+  "architecture_council_reopen_attached": false,
   "survey_summary": {
     "virtio_mmio_c_lines": 829,
     "preexisting_phase10_test_files": 7,
