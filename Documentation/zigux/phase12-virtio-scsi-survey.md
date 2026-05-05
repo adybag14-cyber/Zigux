@@ -6,7 +6,7 @@ This document records the bounded Phase 12 survey lane around `drivers/scsi/virt
 
 - `PHASE12_STATUS=active`
 - `PHASE12_SLICE=virtio-scsi-survey`
-- `PHASE12_LANE=P12-L09`
+- `PHASE12_LANE=P12-L12`
 - scope: survey manifest, dedicated survey gate, shared Phase 12 build wiring, and a lane note that compares the live repo state against the roadmap for `drivers/scsi/virtio_scsi.zig`
 - fallback note role: `Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md` is read-only replay evidence for degraded reads and does not own the active survey packet
 - product boundary:
