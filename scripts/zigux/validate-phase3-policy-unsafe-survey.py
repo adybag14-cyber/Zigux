@@ -10,6 +10,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 SURVEY_REL = "Documentation/zigux/phase3-policy-unsafe-boundary-survey.md"
 MAKEFILE_REL = "zigux/Makefile"
+ALLOCATOR_POLICY_REL = "zigux/helpers/allocator_policy.zig"
 
 PATH_MARKERS = {
     "PHASE3_LAYOUT_ASSERT_PATH": "zigux/helpers/layout_assert.zig",
@@ -29,6 +30,17 @@ STATIC_MARKERS = (
     "PHASE3_VALIDATE_GATE=python3 scripts/zigux/validate-phase3.py --slug abi",
     "PHASE3_INTEROP_GATE=python3 scripts/zigux/run-phase3-checks.py --slug abi",
     "PHASE3_TEST_GATE=zig build phase3-test --build-file zigux/tests/build.zig",
+)
+
+REQUIRED_ALLOCATOR_POLICY_SNIPPETS = (
+    "pub fn requiresExplicitCaller(mode: abi.AllocatorMode) bool {",
+    "return mode == .caller_provided;",
+    "pub fn permitsGlobalFallback(mode: abi.AllocatorMode) bool {",
+    ".caller_provided => false,",
+    '.kernel_heap, .arena => true,',
+    'test "phase3 allocator policy stays explicit" {',
+    "try std.testing.expect(requiresExplicitCaller(.caller_provided));",
+    "try std.testing.expect(!permitsGlobalFallback(.caller_provided));",
 )
 
 BLOB_MARKERS = {
@@ -59,6 +71,7 @@ def validate(root: Path) -> list[str]:
     issues: list[str] = []
     survey_path = root / SURVEY_REL
     makefile_path = root / MAKEFILE_REL
+    allocator_policy_path = root / ALLOCATOR_POLICY_REL
 
     try:
         survey = survey_path.read_text(encoding="utf-8")
@@ -86,6 +99,15 @@ def validate(root: Path) -> list[str]:
             issues.append(f"stale_blob_marker:{marker}")
 
     try:
+        allocator_policy = allocator_policy_path.read_text(encoding="utf-8")
+    except FileNotFoundError:
+        issues.append(f"missing_file:{ALLOCATOR_POLICY_REL}")
+    else:
+        for snippet in REQUIRED_ALLOCATOR_POLICY_SNIPPETS:
+            if snippet not in allocator_policy:
+                issues.append(f"missing_allocator_policy_snippet:{snippet}")
+
+    try:
         makefile = makefile_path.read_text(encoding="utf-8")
     except FileNotFoundError:
         issues.append(f"missing_makefile:{MAKEFILE_REL}")
@@ -107,7 +129,7 @@ def build_valid_workspace(root: Path) -> None:
     content_by_rel = {
         "zigux/helpers/layout_assert.zig": "// layout\n",
         "zigux/helpers/panic_policy.zig": "// panic\n",
-        "zigux/helpers/allocator_policy.zig": "// allocator\n",
+        ALLOCATOR_POLICY_REL: "\n".join(REQUIRED_ALLOCATOR_POLICY_SNIPPETS) + "\n",
         "zigux/helpers/mmio.zig": "// mmio\n",
         "zigux/unsafe/narrow.zig": "// narrow\n",
         "zigux/tests/phase3_abi.zig": "// abi test\n",
@@ -159,6 +181,19 @@ def run_self_test() -> int:
         assert "stale_blob_marker:PHASE3_MMIO_BLOB_SHA" in issues
 
         build_valid_workspace(root)
+        broken_allocator_policy = (root / ALLOCATOR_POLICY_REL).read_text(encoding="utf-8").replace(
+            "try std.testing.expect(requiresExplicitCaller(.caller_provided));\n",
+            "",
+            1,
+        )
+        write_file(root / ALLOCATOR_POLICY_REL, broken_allocator_policy)
+        issues = validate(root)
+        assert (
+            "missing_allocator_policy_snippet:try std.testing.expect(requiresExplicitCaller(.caller_provided));"
+            in issues
+        )
+
+        build_valid_workspace(root)
         broken_makefile = (root / MAKEFILE_REL).read_text(encoding="utf-8").replace(
             MAKEFILE_REQUIRED_LINES[1] + "\n",
             "",
@@ -172,7 +207,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE3_POLICY_UNSAFE_SURVEY_SELF_TEST=pass")
-    print("PHASE3_POLICY_UNSAFE_SURVEY_SELF_TEST_CASE_COUNT=3")
+    print("PHASE3_POLICY_UNSAFE_SURVEY_SELF_TEST_CASE_COUNT=4")
     return 0
 
 
