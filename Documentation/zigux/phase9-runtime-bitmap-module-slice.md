@@ -6,6 +6,7 @@ This document tracks the first bounded Phase 9 runtime bitmap starter under `sam
 
 - `PHASE9_STATUS=active`
 - `PHASE9_SLICE=runtime-bitmap-module-starter`
+- `PHASE9_LANE_KEY=P9-L08`
 - scope: lifecycle starter, sample-side loader scaffold, bitmap range mutation and copy behavior, bounded differential coverage, dedicated Phase 9 survey and test wiring, and lane-local survey-note plus manifest closure only
 - product boundary:
   - `samples/zigux/runtime_bitmap.zig`
