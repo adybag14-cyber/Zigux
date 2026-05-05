@@ -8,6 +8,7 @@ This document records the bounded Phase 15 governance lane for the deep-core fre
 - `PHASE15_SLICE=parity-scorecard-stale-evidence-cleanup`
 - scope: a reviewable scorecard that captures council inputs, evidence thresholds, validation gates, rollback ownership, evidence-archive reporting, reserved per-anchor decision-record templates, retained stay-in-C closeout state, and explicit per-anchor owner tracking for the active freeze-in-C anchors
 - survey provenance refreshed against verified `master` head `39cdd038909f9834a8702070a697a0bf2111cb66`
+- required review-process record fields tracked in the manifest: `10`
 - product boundary:
   - `Documentation/zigux/freeze-map.md`
   - `Documentation/zigux/review-checklist.md`
@@ -29,7 +30,7 @@ That gap matters because the current anchors are still large and deeply coupled:
 - roadmap source: `zigux-alpha/ZAR_TO_ZIGUX_PRODUCT_ROADMAP.md` Phase 15, `Full-Parity Blockers and Long-Term Governance`
 - roadmap handoff: Phase 15 must keep the freeze map, Architecture Council review process, parity scorecard, and policy for code that remains in C indefinitely visible as one honest governance bundle
 - bootstrap ledger anchor: `docs(zigux): add documentation root, review checklist, and freeze map`
-- current repo handoff: the ledger's documentation root and freeze-map start point is now carried forward by the landed Phase 15 review-process note, parity scorecard, evidence-archive templates, dedicated Zig manifest and test, shared `zigux/tests/phase15_build.zig` gate, and `make -C zigux phase15` convenience target
+- current repo handoff: the ledger's documentation root and freeze-map start point is now carried forward by the landed Phase 15 review-process note, parity scorecard, evidence-archive templates, shared validator-first gate through `scripts/zigux/validate-phase15.py` and `make -C zigux phase15-validate`, dedicated Zig manifest and test, shared `zigux/tests/phase15_build.zig` gate, and `make -C zigux phase15` convenience target
 - maintenance-mode next step: keep the Phase 15 governance lane parked until one of the named reopen triggers fires or the deep-core blocker posture changes
 
 ## Scorecard Entries
@@ -160,9 +161,11 @@ The current lane state is:
 - landed `phase15-anchor-owner-tracking`
 - landed `phase15-stay-in-c-retirement-rule`
 - landed `phase15-reopen-trigger-catalog-followup`
+- landed `phase15-roadmap-handoff-evidence-followup`
+- landed `phase15-review-gate-benchmark-replay-field-sync`
 - blocked `phase15-deep-core-status-change-blocker`
 
-This keeps the lane honest: Zigux now has a reviewable Phase 15 scorecard for the frozen anchors, a concrete reporting block that says where Architecture Council evidence belongs, reserved packet templates at those paths, and one explicit retained stay-in-C closeout state for anchors that leave active discussion without leaving C, but it still does not claim a scheduler slice, allocator slice, new RCU bridge, or direct skbuff rewrite.
+This keeps the lane honest: Zigux now has a reviewable Phase 15 scorecard for the frozen anchors, a concrete reporting block that says where Architecture Council evidence belongs, reserved packet templates at those paths, one explicit retained stay-in-C closeout state for anchors that leave active discussion without leaving C, and a machine-counted review-gate field list that keeps benchmark-note and replay-command reporting explicit, but it still does not claim a scheduler slice, allocator slice, new RCU bridge, or direct skbuff rewrite.
 
 ## Architecture Council Review Gate
 
@@ -170,12 +173,13 @@ Before a freeze-in-C anchor can enter active status-review discussion, the score
 
 - the decision record ID and the lane owner responsible for the proposed seam
 - the current validation gate set and the rollback owner who would return the anchor to C-only operation
-- the evidence archive path that preserves linked surveys and blocker follow-ups, benchmark notes, and replay commands
+- the evidence archive path that preserves linked surveys and blocker follow-ups
+- the benchmark-notes status and replay command that reviewers must use to understand and replay the current packet
 - the latest blocker disposition stating whether the anchor remains blocked, is ready for narrower follow-up, or has been rejected for status change
 - the retained discussion state showing whether the anchor closes review as `retired_from_active_discussion`
 - the reopen triggers that name which evidence changes can reopen the stay-in-C discussion later without implying approval
 
-A frozen anchor leaves active discussion only after the Architecture Council sign-off, validation evidence links, rollback ownership, evidence archive path, latest blocker disposition, retained discussion state, and reopen triggers are all recorded together in the scorecard.
+A frozen anchor leaves active discussion only after the Architecture Council sign-off, validation evidence links, rollback ownership, evidence archive path, benchmark-notes status, replay command, latest blocker disposition, retained discussion state, and reopen triggers are all recorded together in the scorecard.
 
 If any one of those fields is missing, stale, or contradicted by the linked evidence, the anchor remains in the freeze-in-C set and the review closes with an explicit stay-in-C outcome.
 
