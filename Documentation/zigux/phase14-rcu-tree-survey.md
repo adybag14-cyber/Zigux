@@ -142,9 +142,17 @@ This survey slice does not claim:
 - CPU hotplug or callback migration ownership
 
 ## Gates
-1. run the dedicated Phase 14 build
-   - `zig build test --build-file zigux/tests/phase14_build.zig`
-2. run the convenience target
+
+This anchor-local packet stays tied to the shared Phase 14 replay routes rather than a standalone RCU-only build target.
+1. run the shared validator
+   - `make -C zigux phase14-validate`
+2. run the focused smoke shard
+   - `make -C zigux phase14-smoke`
+   - `zig build phase14-smoke --build-file zigux/tests/phase14_build.zig --summary all`
+3. run the shared full-bundle replay
+   - `make -C zigux phase14-test`
+   - `zig build test --build-file zigux/tests/phase14_build.zig --summary all`
+4. run the convenience wrapper
    - `make -C zigux phase14`
 
 ## Next bounded step
