@@ -16,6 +16,7 @@
 - `Documentation/zigux/phase11-hvc-console-validation-matrix.md`
 - `Documentation/zigux/phase11-shared-replay-contract.md`
 - `drivers/tty/hvc/hvc_console.zig`
+- `drivers/tty/hvc/hvc_console.h`
 
 ## Boundary Packet
 
@@ -24,7 +25,7 @@
 - `phase11-dw-wdt-watchdog-header-boundary`: `struct watchdog_info` remains the bounded public watchdog header checkpoint.
 - `phase11-dw-wdt-watchdog-info-layout-assert`: size `40`, alignment `4`, field offsets `0`, `4`, and `8`.
 - `phase11-hvc-console-winsize-layout-assert`: `struct winsize` remains size `8`, alignment `2`, with field offsets `0`, `2`, `4`, and `6`.
-- `phase11-hvc-console-export-signature-assert`: the shared survey checks the exported `hvc_instantiate`, `hvc_alloc`, `hvc_remove`, `hvc_poll`, `hvc_kick`, `__hvc_resize`, `notifier_add_irq`, and `notifier_del_irq` surface.
+- `phase11-hvc-console-export-signature-assert`: the shared survey checks the exported `hvc_instantiate`, `hvc_alloc`, `hvc_remove`, `hvc_poll`, `hvc_kick`, `__hvc_resize`, `notifier_add_irq`, `notifier_del_irq`, and `notifier_hangup_irq` surface.
 
 ## Shared Versus Dedicated Replay
 
