@@ -95,6 +95,23 @@ test "phase 8 perf-buffer poll helper normalizes observed wait results before su
     );
 }
 
+test "phase 8 perf-buffer poll helper rejects more ready buffers than the observed wait result" {
+    try std.testing.expectError(
+        perf_buffer_poll.PollError.ReadyCountExceedsObservedEvents,
+        perf_buffer_poll.summarizePoll(5, .{ .ready_events = 1 }, &.{
+            .{ .ready = true },
+            .{ .ready = true },
+        }),
+    );
+    try std.testing.expectError(
+        perf_buffer_poll.PollError.ReadyCountExceedsObservedEvents,
+        perf_buffer_poll.summarizePollFromWaitResult(5, 1, &.{
+            .{ .ready = true },
+            .{ .ready = true },
+        }),
+    );
+}
+
 test "phase 8 perf-buffer poll helper keeps ready-buffer processing fail-fast below epoll parity" {
     const failure = perf_buffer_poll.summarizeProcessRecords(&.{
         .{ .records_processed = 5 },
