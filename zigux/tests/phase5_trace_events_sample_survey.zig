@@ -22,6 +22,18 @@ fn expectContains(haystack: []const u8, needle: []const u8) !void {
     try std.testing.expect(std.mem.indexOf(u8, haystack, needle) != null);
 }
 
+fn isLowerHexCommitSha(value: []const u8) bool {
+    if (value.len != 40) return false;
+
+    for (value) |byte| {
+        if (!std.ascii.isDigit(byte) and (byte < 'a' or byte > 'f')) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
 test "phase 5 trace-events manifest records the exact bounded checks" {
     var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
     defer io_instance.deinit();
@@ -40,7 +52,7 @@ test "phase 5 trace-events manifest records the exact bounded checks" {
     const manifest = parsed.value;
     try std.testing.expectEqualStrings("P5-L20", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 5", manifest.phase);
-    try std.testing.expect(manifest.surveyed_commit.len > 0);
+    try std.testing.expect(isLowerHexCommitSha(manifest.surveyed_commit));
     try std.testing.expectEqualStrings("samples/trace_events/trace-events-sample.c", manifest.anchor);
     try std.testing.expectEqualStrings("samples/zigux/trace_events_sample.zig", manifest.sample_path);
     try expectContains(manifest.validation_entrypoint, "phase5_build.zig");
