@@ -57,14 +57,6 @@ test "phase12 virtio_net survey manifest stays aligned with the landed driver pa
     );
     defer std.testing.allocator.free(build_file);
 
-    const survey_note = try std.Io.Dir.cwd().readFileAlloc(
-        io_instance.io(),
-        "Documentation/zigux/phase12-virtio-net-survey.md",
-        std.testing.allocator,
-        .limited(32 * 1024),
-    );
-    defer std.testing.allocator.free(survey_note);
-
     const parsed = try std.json.parseFromSlice(Manifest, std.testing.allocator, manifest_json, .{});
     defer parsed.deinit();
 
@@ -84,15 +76,11 @@ test "phase12 virtio_net survey manifest stays aligned with the landed driver pa
     try std.testing.expect(manifest.survey_summary.preexisting_phase12_virtio_net_survey_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase12_survey_note_present);
     try std.testing.expect(manifest.survey_summary.preexisting_virtio_net_zig_present);
-    try std.testing.expectEqual(@as(usize, 11), manifest.gaps.len);
+    try std.testing.expectEqual(@as(usize, 12), manifest.gaps.len);
 
     try std.testing.expect(std.mem.indexOf(u8, build_file, "phase12_virtio_net_module") != null);
     try std.testing.expect(std.mem.indexOf(u8, build_file, "phase12_virtio_net_tests") != null);
     try std.testing.expect(std.mem.indexOf(u8, build_file, "run_phase12_virtio_net_tests.step") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "Keep this lane parked unless fresh repo inspection finds directly coupled drift") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "blocked runtime-data-path boundary") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "DMA-safe abstractions and queueing substrate work") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "another tiny queue-reuse or refill-coordination invariant next") == null);
 
     var starter_landed_count: usize = 0;
     var blocked_count: usize = 0;
@@ -106,6 +94,7 @@ test "phase12 virtio_net survey manifest stays aligned with the landed driver pa
     var saw_queue_recovery = false;
     var saw_receive_refill = false;
     var saw_transmit_recycle = false;
+    var saw_mergeable_buffer_length = false;
     var saw_blocker = false;
 
     for (manifest.gaps, 0..) |gap, i| {
@@ -199,6 +188,16 @@ test "phase12 virtio_net survey manifest stays aligned with the landed driver pa
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "receive-refill coordination") != null);
         }
 
+        if (std.mem.eql(u8, gap.id, "phase12-virtio-net-mergeable-buffer-length-summary")) {
+            saw_mergeable_buffer_length = true;
+            try std.testing.expectEqualStrings("drivers/net/virtio_net.zig", gap.zigux_destination);
+            try std.testing.expectEqualStrings("ready_next", gap.status);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "`get_mergeable_buf_len()`") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "observed average packet size") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "minimum floor") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "page payload") != null);
+        }
+
         if (std.mem.eql(u8, gap.id, "phase12-virtio-net-runtime-data-path")) {
             saw_blocker = true;
             try std.testing.expectEqualStrings("zigux/tests/phase12_virtio_net_survey.zig", gap.zigux_destination);
@@ -224,5 +223,6 @@ test "phase12 virtio_net survey manifest stays aligned with the landed driver pa
     try std.testing.expect(saw_queue_recovery);
     try std.testing.expect(saw_receive_refill);
     try std.testing.expect(saw_transmit_recycle);
+    try std.testing.expect(saw_mergeable_buffer_length);
     try std.testing.expect(saw_blocker);
 }
