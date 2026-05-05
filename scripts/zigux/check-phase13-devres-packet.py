@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import argparse
+import json
 import tempfile
 from pathlib import Path
 
@@ -13,70 +14,42 @@ REQUIRED_FILES = [
     "lib/devres.zig",
     "zigux/tests/phase13_build.zig",
     "zigux/tests/phase13_devres.zig",
+    "zigux/tests/phase13_devres_dma_coherent.zig",
+    "zigux/tests/phase13_devres_iomap_reviewability.zig",
     "zigux/tests/phase13_devres_manifest.json",
-    "zigux/tests/phase13_devres_reviewability.zig",
     "scripts/zigux/validate-phase13-release.py",
     "zigux/Makefile",
-]
-
-SLICE_REQUIRED_MARKERS = [
-    "This bounded Phase 13 slice starts `lib/devres.zig` with a pure helper-first foothold anchored to `lib/devres.c`.",
-    "devm_of_iomap()` bridge as a pure planner",
-    "devm_arch_io_reserve_memtype_wc()",
-    "This slice does not claim live `devres_alloc_node()` ownership",
-]
-
-DEVRES_REQUIRED_MARKERS = [
-    "pub const ManagedMemtypeReserveInput = struct",
-    "pub const DeviceTreeIomapInput = struct",
-    "fail_pretty_name_allocation: bool = false,",
-    ".fail_pretty_name_allocation = input.fail_pretty_name_allocation,",
-    ".provides_arch_io_wc_memtype_planning = true,",
-    "pub fn planDeviceTreeIomap",
-    "pub fn planArchIoReserveMemtypeWc",
-]
-
-TEST_REQUIRED_MARKERS = [
-    'test "phase13 devres plans devm_of_iomap around translated resources and optional size reporting"',
-    'test "phase13 devres preserves translated size when devm_of_iomap hits downstream remap failure"',
-    'test "phase13 devres retains memtype release records on successful WC reservation"',
-    'test "phase13 devres rejects memtype planning when the release record cannot be allocated"',
-]
-
-REVIEWABILITY_REQUIRED_MARKERS = [
-    'test "phase13 devres reviewability packet records the helper-only DMA/scatterlist boundary"',
-    'try std.testing.expectEqualStrings("P13-L07", manifest.lane_key);',
-    'try std.testing.expectEqual(@as(usize, 16), manifest.gaps.len);',
-    '"phase13-devres-arch-phys-wc-token-planner"',
-    '"phase13-devres-live-dma-backed-helpers"',
-    '"phase13-devres-live-scatterlist-ownership"',
-    '"blocked_on_dma_state"',
-    '"blocked_on_scatterlist_state"',
 ]
 
 BUILD_REQUIRED_MARKERS = [
     'b.path("../../lib/devres.zig")',
     'b.path("phase13_devres.zig")',
-    'b.path("phase13_devres_reviewability.zig")',
-    'const phase13_devres_reviewability_module = b.createModule(.{',
-    'phase13_devres_reviewability_module.addImport("devres", devres_module);',
+    'b.path("phase13_devres_dma_coherent.zig")',
     'const phase13_devres_tests = b.addTest(.{',
-    'const phase13_devres_reviewability_tests = b.addTest(.{',
-    '.name = "phase13-devres-reviewability-tests"',
-    "const run_phase13_devres_reviewability_tests = b.addRunArtifact(phase13_devres_reviewability_tests);",
-    "test_step.dependOn(&run_phase13_devres_tests.step);",
-    "test_step.dependOn(&run_phase13_devres_reviewability_tests.step);",
+    'const phase13_devres_dma_coherent_tests = b.addTest(.{',
+    'test_step.dependOn(&run_phase13_devres_tests.step);',
+    'test_step.dependOn(&run_phase13_devres_dma_coherent_tests.step);',
 ]
 
-VALIDATOR_REQUIRED_MARKERS = [
-    '"zigux/tests/phase13_devres.zig",',
-    '"zigux/tests/phase13_devres_manifest.json",',
+DMA_COHERENT_REQUIRED_MARKERS = [
+    "test \"phase13 devres coherent-dma boundary packet records blocked dma and scatterlist ownership\"",
+    "test \"phase13 devres coherent-dma boundary note keeps dma and scatterlist out of scope\"",
+    "\"preexisting_devres_dma_coherent_zig_present\": true",
+    "\"preexisting_phase13_devres_dma_coherent_test_present\": true",
+    "\"preexisting_phase13_devres_iomap_reviewability_test_present\": true",
+    "\"id\": \"phase13-devres-live-dma-backed-mappings\"",
+    "\"id\": \"phase13-devres-live-scatterlist-ownership\"",
 ]
 
 MAKE_REQUIRED_MARKERS = [
     "phase13-validate:",
     "scripts/zigux/validate-phase13-release.py",
     "scripts/zigux/check-phase13-devres-packet.py",
+]
+
+VALIDATOR_REQUIRED_MARKERS = [
+    "\"zigux/tests/phase13_devres.zig\",",
+    "\"zigux/tests/phase13_devres_manifest.json\",",
 ]
 
 
@@ -93,6 +66,40 @@ def _collect_missing_markers(text: str, markers: list[str], prefix: str) -> list
     return [f"{prefix}:{marker}" for marker in markers if marker not in text]
 
 
+def _validate_manifest(text: str) -> list[str]:
+    issues: list[str] = []
+    try:
+        manifest = json.loads(text)
+    except json.JSONDecodeError as exc:
+        return [f"phase13-devres-manifest:json:{exc.msg}"]
+
+    summary = manifest.get("survey_summary", {})
+    for key in (
+        "preexisting_devres_dma_coherent_zig_present",
+        "preexisting_phase13_devres_dma_coherent_test_present",
+        "preexisting_phase13_devres_iomap_reviewability_test_present",
+    ):
+        if summary.get(key) is not True:
+            issues.append(f"phase13-devres-manifest-summary:{key}")
+
+    gaps = {gap.get("id"): gap for gap in manifest.get("gaps", []) if isinstance(gap, dict)}
+    for gap_id in (
+        "phase13-devres-dma-coherent-boundary-replay",
+        "phase13-devres-live-dma-backed-mappings",
+        "phase13-devres-live-scatterlist-ownership",
+    ):
+        if gap_id not in gaps:
+            issues.append(f"phase13-devres-manifest-gap:{gap_id}")
+    for gap_id in (
+        "phase13-devres-live-dma-backed-mappings",
+        "phase13-devres-live-scatterlist-ownership",
+    ):
+        if gaps.get(gap_id, {}).get("status") != "blocked_on_live_resource_state":
+            issues.append(f"phase13-devres-manifest-gap-status:{gap_id}")
+
+    return issues
+
+
 def validate(root: Path) -> list[str]:
     issues: list[str] = []
     for rel in REQUIRED_FILES:
@@ -101,26 +108,33 @@ def validate(root: Path) -> list[str]:
     if issues:
         return issues
 
-    issues.extend(_collect_missing_markers(_read(root / "Documentation/zigux/phase13-devres-slice.md"), SLICE_REQUIRED_MARKERS, "phase13-devres-slice"))
-    issues.extend(_collect_missing_markers(_read(root / "lib/devres.zig"), DEVRES_REQUIRED_MARKERS, "lib-devres"))
-    issues.extend(_collect_missing_markers(_read(root / "zigux/tests/phase13_devres.zig"), TEST_REQUIRED_MARKERS, "phase13-devres-test"))
-    issues.extend(_collect_missing_markers(_read(root / "zigux/tests/phase13_devres_reviewability.zig"), REVIEWABILITY_REQUIRED_MARKERS, "phase13-devres-reviewability"))
     issues.extend(_collect_missing_markers(_read(root / "zigux/tests/phase13_build.zig"), BUILD_REQUIRED_MARKERS, "phase13-build"))
-    issues.extend(_collect_missing_markers(_read(root / "scripts/zigux/validate-phase13-release.py"), VALIDATOR_REQUIRED_MARKERS, "phase13-release-validator"))
+    issues.extend(_collect_missing_markers(_read(root / "zigux/tests/phase13_devres_dma_coherent.zig"), DMA_COHERENT_REQUIRED_MARKERS, "phase13-devres-dma-coherent"))
     issues.extend(_collect_missing_markers(_read(root / "zigux/Makefile"), MAKE_REQUIRED_MARKERS, "makefile"))
+    issues.extend(_collect_missing_markers(_read(root / "scripts/zigux/validate-phase13-release.py"), VALIDATOR_REQUIRED_MARKERS, "phase13-release-validator"))
+    issues.extend(_validate_manifest(_read(root / "zigux/tests/phase13_devres_manifest.json")))
     return issues
 
 
 def _seed_fixture_tree(root: Path) -> None:
-    _write(root / "Documentation/zigux/phase13-devres-slice.md", "\n".join(SLICE_REQUIRED_MARKERS) + "\n")
-    _write(root / "Documentation/zigux/phase13-devres-survey.md", "# survey stub\n")
-    _write(root / "lib/devres.zig", "\n".join(DEVRES_REQUIRED_MARKERS) + "\n")
-    _write(root / "zigux/tests/phase13_devres.zig", "\n".join(TEST_REQUIRED_MARKERS) + "\n")
+    for rel in REQUIRED_FILES:
+        _write(root / rel, "// stub\n")
     _write(root / "zigux/tests/phase13_build.zig", "\n".join(BUILD_REQUIRED_MARKERS) + "\n")
-    _write(root / "zigux/tests/phase13_devres_manifest.json", "{}\n")
-    _write(root / "zigux/tests/phase13_devres_reviewability.zig", "\n".join(REVIEWABILITY_REQUIRED_MARKERS) + "\n")
-    _write(root / "scripts/zigux/validate-phase13-release.py", "\n".join(VALIDATOR_REQUIRED_MARKERS) + "\n")
+    _write(root / "zigux/tests/phase13_devres_dma_coherent.zig", "\n".join(DMA_COHERENT_REQUIRED_MARKERS) + "\n")
     _write(root / "zigux/Makefile", "\n".join(MAKE_REQUIRED_MARKERS) + "\n")
+    _write(root / "scripts/zigux/validate-phase13-release.py", "\n".join(VALIDATOR_REQUIRED_MARKERS) + "\n")
+    _write(root / "zigux/tests/phase13_devres_manifest.json", json.dumps({
+        "survey_summary": {
+            "preexisting_devres_dma_coherent_zig_present": True,
+            "preexisting_phase13_devres_dma_coherent_test_present": True,
+            "preexisting_phase13_devres_iomap_reviewability_test_present": True,
+        },
+        "gaps": [
+            {"id": "phase13-devres-dma-coherent-boundary-replay", "status": "starter_landed"},
+            {"id": "phase13-devres-live-dma-backed-mappings", "status": "blocked_on_live_resource_state"},
+            {"id": "phase13-devres-live-scatterlist-ownership", "status": "blocked_on_live_resource_state"},
+        ],
+    }, indent=2) + "\n")
 
 
 def _assert_only(issues: list[str], expected: list[str], label: str) -> None:
@@ -138,83 +152,46 @@ def run_self_test() -> int:
         _assert_only(validate(root), [], "baseline_failed")
         case_count += 1
 
-        makefile_path = root / "zigux/Makefile"
-        makefile_path.write_text("phase13-test:\n\t@true\n", encoding="utf-8")
-        _assert_only(
-            validate(root),
-            [
-                "makefile:phase13-validate:",
-                "makefile:scripts/zigux/validate-phase13-release.py",
-                "makefile:scripts/zigux/check-phase13-devres-packet.py",
-            ],
-            "makefile_route_guard_failed",
-        )
+        (root / "zigux/tests/phase13_build.zig").write_text('b.path("phase13_devres.zig")\n', encoding="utf-8")
+        _assert_only(validate(root), [
+            "phase13-build:b.path(\"../../lib/devres.zig\")",
+            "phase13-build:b.path(\"phase13_devres_dma_coherent.zig\")",
+            "phase13-build:const phase13_devres_tests = b.addTest(.{",
+            "phase13-build:const phase13_devres_dma_coherent_tests = b.addTest(.{",
+            "phase13-build:test_step.dependOn(&run_phase13_devres_tests.step);",
+            "phase13-build:test_step.dependOn(&run_phase13_devres_dma_coherent_tests.step);",
+        ], "build_guard_failed")
         _seed_fixture_tree(root)
         case_count += 1
 
-        validator_path = root / "scripts/zigux/validate-phase13-release.py"
-        validator_path.write_text("# stub\n", encoding="utf-8")
-        _assert_only(
-            validate(root),
-            [
-                'phase13-release-validator:"zigux/tests/phase13_devres.zig",',
-                'phase13-release-validator:"zigux/tests/phase13_devres_manifest.json",',
-            ],
-            "validator_marker_guard_failed",
-        )
+        (root / "zigux/tests/phase13_devres_manifest.json").write_text(json.dumps({"survey_summary": {}}, indent=2) + "\n", encoding="utf-8")
+        _assert_only(validate(root), [
+            "phase13-devres-manifest-summary:preexisting_devres_dma_coherent_zig_present",
+            "phase13-devres-manifest-summary:preexisting_phase13_devres_dma_coherent_test_present",
+            "phase13-devres-manifest-summary:preexisting_phase13_devres_iomap_reviewability_test_present",
+            "phase13-devres-manifest-gap:phase13-devres-dma-coherent-boundary-replay",
+            "phase13-devres-manifest-gap:phase13-devres-live-dma-backed-mappings",
+            "phase13-devres-manifest-gap:phase13-devres-live-scatterlist-ownership",
+            "phase13-devres-manifest-gap-status:phase13-devres-live-dma-backed-mappings",
+            "phase13-devres-manifest-gap-status:phase13-devres-live-scatterlist-ownership",
+        ], "manifest_guard_failed")
         _seed_fixture_tree(root)
         case_count += 1
 
-        (root / "lib/devres.zig").unlink()
-        _assert_only(validate(root), ["missing_file:lib/devres.zig"], "required_file_guard_failed")
+        (root / "zigux/tests/phase13_devres_dma_coherent.zig").write_text('test "phase13 devres coherent-dma boundary packet records blocked dma and scatterlist ownership" {}\n', encoding="utf-8")
+        _assert_only(validate(root), [
+            "phase13-devres-dma-coherent:test \"phase13 devres coherent-dma boundary note keeps dma and scatterlist out of scope\"",
+            "phase13-devres-dma-coherent:\"preexisting_devres_dma_coherent_zig_present\": true",
+            "phase13-devres-dma-coherent:\"preexisting_phase13_devres_dma_coherent_test_present\": true",
+            "phase13-devres-dma-coherent:\"preexisting_phase13_devres_iomap_reviewability_test_present\": true",
+            "phase13-devres-dma-coherent:\"id\": \"phase13-devres-live-dma-backed-mappings\"",
+            "phase13-devres-dma-coherent:\"id\": \"phase13-devres-live-scatterlist-ownership\"",
+        ], "dma_guard_failed")
         _seed_fixture_tree(root)
         case_count += 1
 
-        devres_test_path = root / "zigux/tests/phase13_devres.zig"
-        devres_test_path.write_text(TEST_REQUIRED_MARKERS[0] + "\n", encoding="utf-8")
-        _assert_only(
-            validate(root),
-            [
-                'phase13-devres-test:test "phase13 devres preserves translated size when devm_of_iomap hits downstream remap failure"',
-                'phase13-devres-test:test "phase13 devres retains memtype release records on successful WC reservation"',
-                'phase13-devres-test:test "phase13 devres rejects memtype planning when the release record cannot be allocated"',
-            ],
-            "devres_test_marker_guard_failed",
-        )
-        _seed_fixture_tree(root)
-        case_count += 1
-
-        reviewability_path = root / "zigux/tests/phase13_devres_reviewability.zig"
-        reviewability_path.write_text(REVIEWABILITY_REQUIRED_MARKERS[0] + "\n", encoding="utf-8")
-        _assert_only(
-            validate(root),
-            [
-                'phase13-devres-reviewability:try std.testing.expectEqualStrings("P13-L07", manifest.lane_key);',
-                'phase13-devres-reviewability:try std.testing.expectEqual(@as(usize, 16), manifest.gaps.len);',
-                'phase13-devres-reviewability:"phase13-devres-arch-phys-wc-token-planner"',
-                'phase13-devres-reviewability:"phase13-devres-live-dma-backed-helpers"',
-                'phase13-devres-reviewability:"phase13-devres-live-scatterlist-ownership"',
-                'phase13-devres-reviewability:"blocked_on_dma_state"',
-                'phase13-devres-reviewability:"blocked_on_scatterlist_state"',
-            ],
-            "reviewability_marker_guard_failed",
-        )
-        _seed_fixture_tree(root)
-        case_count += 1
-
-        devres_path = root / "lib/devres.zig"
-        devres_path.write_text("pub const DeviceTreeIomapInput = struct\npub fn planDeviceTreeIomap\n", encoding="utf-8")
-        _assert_only(
-            validate(root),
-            [
-                "lib-devres:pub const ManagedMemtypeReserveInput = struct",
-                "lib-devres:fail_pretty_name_allocation: bool = false,",
-                "lib-devres:.fail_pretty_name_allocation = input.fail_pretty_name_allocation,",
-                "lib-devres:.provides_arch_io_wc_memtype_planning = true,",
-                "lib-devres:pub fn planArchIoReserveMemtypeWc",
-            ],
-            "devres_marker_guard_failed",
-        )
+        (root / "zigux/tests/phase13_devres_dma_coherent.zig").unlink()
+        _assert_only(validate(root), ["missing_file:zigux/tests/phase13_devres_dma_coherent.zig"], "required_file_guard_failed")
         case_count += 1
 
     print("PHASE13_DEVRES_PACKET=pass")
@@ -227,6 +204,7 @@ def main() -> int:
     parser.add_argument("--self-test", action="store_true", help="Run isolated fixture coverage.")
     parser.add_argument("--root", type=Path, default=ROOT, help="Repository root to validate.")
     args = parser.parse_args()
+
     if args.self_test:
         return run_self_test()
 
@@ -238,7 +216,6 @@ def main() -> int:
 
     print("PHASE13_DEVRES_PACKET=pass")
     return 0
-
 
 if __name__ == "__main__":
     raise SystemExit(main())
