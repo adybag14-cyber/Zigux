@@ -7,6 +7,8 @@ This note records the bounded Phase 2 bootstrap archive-pin contract.
 - guard: `python3 scripts/zigux/check-phase2-toolchain-pin-scope.py`
 - workflow installer self-test: `python3 scripts/zigux/install-zig.py --self-test`
 - workflow verifier self-test: `python3 scripts/zigux/check-zig-toolchain.py --self-test`
+- compile-matrix self-test: `python3 scripts/zigux/check-phase2-cross.py --self-test`
+- compile-matrix guard: `python3 scripts/zigux/check-phase2-cross.py`
 - shared validator gate: `python3 scripts/zigux/validate-phase2.py`
 - closure validator gate: `python3 scripts/zigux/validate-phase2-closure.py`
 - Linux-style validator entrypoint: `make -C zigux phase2-validate`
@@ -22,6 +24,6 @@ This note records the bounded Phase 2 bootstrap archive-pin contract.
 - current pinned bootstrap archive sha256 (`x86_64-linux`): `313b231e76f3cc9b718044602dbc3c42b531693507203a6baf2fa892c9533e77`
 - the archive pin must stay limited to `x86_64-linux` until a new bootstrap runner target gains first-class workflow evidence
 - the three-target compile matrix in `zigux/tests/fixtures/phase2_cross_targets.json` stays separate from the `x86_64-linux` bootstrap archive pin
-- `python3 scripts/zigux/check-phase2-cross-selftest-alignment.py --self-test` and `python3 scripts/zigux/check-phase2-cross-selftest-alignment.py` keep `Documentation/zigux/README.md`, `zigux/tests/fixtures/phase2_cross_targets.json`, `scripts/zigux/validate-phase2.py`, `scripts/zigux/validate-phase2-closure.py`, `zigux/Makefile`, and `.github/workflows/zigux-bootstrap.yml` aligned around that three-target compile matrix without broadening the pinned bootstrap archive beyond `x86_64-linux`
+- `python3 scripts/zigux/check-phase2-cross.py --self-test`, `python3 scripts/zigux/check-phase2-cross.py`, `python3 scripts/zigux/check-phase2-cross-selftest-alignment.py --self-test`, and `python3 scripts/zigux/check-phase2-cross-selftest-alignment.py` keep `Documentation/zigux/phase2-closure.md`, `zigux/tests/fixtures/phase2_cross_targets.json`, `scripts/zigux/validate-phase2.py`, `scripts/zigux/validate-phase2-closure.py`, `zigux/Makefile`, and `.github/workflows/zigux-bootstrap.yml` aligned around that three-target compile matrix without broadening the pinned bootstrap archive beyond `x86_64-linux`
 - the shared and closure validators above, together with `Documentation/zigux/README.md` and `Documentation/zigux/review-checklist.md`, are the fail-closed route that keeps this note in the bounded Phase 2 toolchain tranche instead of leaving it as stand-alone reference text
 - the Linux-style `make -C zigux phase2-validate` and `make -C zigux phase2` routes keep the dedicated note tied to the same kbuild-facing replay surface named by the docs-root summary, the shared validators, the closure note, and the shared review checklist
