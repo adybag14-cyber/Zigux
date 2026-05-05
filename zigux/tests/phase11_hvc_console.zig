@@ -126,6 +126,20 @@ test "phase11 hvc_console adds carriage returns and keeps final flush intent on 
     try std.testing.expectEqual(hvc_console.FlushIntent.final_drain, write.flush_intent);
     try std.testing.expectEqual(hvc_console.FlushProgress.fully_written, write.flush_progress);
     try std.testing.expect(!write.dropped_on_error);
+
+    write = try console.stageWrite("a\n\nb", 6);
+    try std.testing.expectEqual(@as(usize, 6), write.framed_len);
+    try std.testing.expectEqualStrings("a\r\n\r\nb", write.framed[0..write.framed_len]);
+    try std.testing.expectEqual(@as(usize, 0), write.remaining_len);
+    try std.testing.expectEqual(hvc_console.FlushIntent.final_drain, write.flush_intent);
+    try std.testing.expectEqual(hvc_console.FlushProgress.fully_written, write.flush_progress);
+
+    write = try console.stageWrite("a\r\nb", 4);
+    try std.testing.expectEqual(@as(usize, 4), write.framed_len);
+    try std.testing.expectEqualStrings("a\r\nb", write.framed[0..write.framed_len]);
+    try std.testing.expectEqual(@as(usize, 0), write.remaining_len);
+    try std.testing.expectEqual(hvc_console.FlushIntent.final_drain, write.flush_intent);
+    try std.testing.expectEqual(hvc_console.FlushProgress.fully_written, write.flush_progress);
 }
 
 test "phase11 hvc_console keeps retry intent on eagain and clears the slot on teardown" {
