@@ -4,18 +4,17 @@ This document records the bounded Phase 12 survey lane around `tools/lib/bpf/lib
 ## Status
 - `PHASE12_STATUS=active`
 - `PHASE12_SLICE=libbpf-segment-survey`
-- scope: Phase 12 survey manifest, dedicated survey gate, focused libbpf-only replay packet, shared build wiring, and a lane note that compares the current `zigux_segments/` footing against the roadmap's heavy-helper consumer plan
+- scope: Phase 12 survey manifest, dedicated survey gate, shared build wiring, the shipped build-only Phase 12 surface checker, and a lane note that compares the current `zigux_segments/` footing against the roadmap's heavy-helper consumer plan
 - product boundary:
-  - `scripts/zigux/check-phase12-libbpf-focused-replay.py`
-  - `scripts/zigux/check-phase12-libbpf-snapshot.py`
-  - `scripts/zigux/check-phase12-libbpf-packet.py`
+  - `scripts/zigux/check-build-only-phase12-surface.py`
   - `zigux/tests/phase12_libbpf_manifest.json`
   - `zigux/tests/phase12_libbpf_segments.zig`
   - `zigux/tests/phase12_libbpf_reviewability.zig`
-  - `zigux/tests/phase12_libbpf_only_build.zig`
   - `zigux/tests/phase12_build.zig`
+  - `zigux/Makefile`
   - `Documentation/zigux/phase12-libbpf-segment-survey.md`
 - public fallback posture: shared-tree-only anchor; unlike `Documentation/zigux/phase12-nvme-pci-raw-github-fallback-map.md` and `Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md`, this libbpf note is not a commit-pinned raw GitHub fallback artifact.
+- rollback owner and reversible-delivery drill: this shared survey packet rolls back by restoring the last truthful libbpf-survey wording in this note and then rerunning `python3 scripts/zigux/check-build-only-phase12-surface.py`, `zig build test --build-file zigux/tests/phase12_build.zig`, and `make -C zigux phase12` so the shared build-only Phase 12 contract stays reversible without inventing a dedicated libbpf-only replay route that current `master` does not ship.
 
 ## Why this slice exists
 The roadmap now places `tools/lib/bpf/libbpf.c` in Phase 12, alongside the other high-risk production-facing consumers, because the file is both large and semantically dense even though it lives under `tools/`.
@@ -24,7 +23,7 @@ That matters because the live repo already has real helper-first progress under 
 
 Those are useful footholds, but they still need a current Phase 12 survey checkpoint that explains how the earlier helper work fits the modern roadmap instead of leaving libbpf stranded in older Phase 8 wording or stale Phase 12 reviewability assumptions.
 
-The highest-value honest step in this lane is therefore a survey checkpoint that records the existing segmented footing, keeps the Phase 12 build gate and focused libbpf-only replay packet aware of it, verifies that the landed helper files still match the segment plan, and points to the next helper-sized slice without widening into object loading, relocation, or syscall-backed behavior.
+The highest-value honest step in this lane is therefore a survey checkpoint that records the existing segmented footing, keeps the shared Phase 12 build-and-make packet aware of it, verifies that the landed helper files still match the segment plan, and points to the next helper-sized slice without widening into object loading, relocation, or syscall-backed behavior.
 
 ## Survey findings
 - `tools/lib/bpf/libbpf.c` is present on `master` at 14,771 lines, which is large enough to cross helper, loader, object-model, relocation, and verifier-facing concerns in one file.
@@ -35,7 +34,8 @@ The highest-value honest step in this lane is therefore a survey checkpoint that
   - `pin_path.zig` for bounded bpffs path joining, pin-name and root-path validation, and dot-sanitization without directory or syscall parity
   - `perf_buffer_poll.zig` for bounded wait-result normalization, ready-buffer bookkeeping, and per-buffer slot access that still stops short of epoll wiring, mmap-backed ring ownership, online-CPU routing, or callback delivery
 - the earlier Phase 8 tooling lane proved that helper-first segmentation works for libbpf, but the current roadmap places the broader heavy-consumer rollout in Phase 12 because the remaining work depends on object-model discipline, loader boundaries, and high-risk validation gates.
-- the current Phase 12 build and focused libbpf-only replay packet now re-check the landed helper-first foundations directly by compiling `type_names.zig`, `cpu_mask.zig`, `logging.zig`, `pin_path.zig`, and `perf_buffer_poll.zig` through the shared reviewability gate, by confirming that the manifest's landed versus deferred file expectations match the real `tools/lib/bpf/zigux_segments/` directory, and by keeping the dedicated focused replay, snapshot, and packet checkers visible in the same bounded survey surface.
+- the current Phase 12 build-only packet now re-checks the landed helper-first foundations directly through `zigux/tests/phase12_libbpf_reviewability.zig`, the shared `zigux/tests/phase12_build.zig` route, `make -C zigux phase12`, and `scripts/zigux/check-build-only-phase12-surface.py`, which together keep the manifest-backed helper set reviewable without implying a dedicated libbpf-only replay, packet checker, or shared validator route that current `master` does not ship.
+- the reversible-delivery posture for this note is now the same as the rest of the shared Phase 12 packet: keep the shared-tree fallback explicit, rerun the build-only checker plus the shared build and make route after note edits, and only widen beyond survey truthfulness if live repo evidence lands a new shipped replay surface first.
 - the repo still has no `skeleton.zig`, `object_loader.zig`, or relocation-facing Zig slice, and it still intentionally avoids direct ELF collection, `bpf_object` parity, BTF relocation, and load-time verifier interactions.
 - the current risk split is now explicit again: `skeleton.zig` remains the nearest post-helper cluster but is still blocked on the missing object model, while loader and program-load work stay blocked behind that boundary and the verifier-facing relocation cluster stays deferred as its own later risk bucket.
 - with the bounded helper-first utility slices now landed, the next honest libbpf-facing step is to keep reviewability aligned and avoid collapsing the nearer skeleton-population blocker into the broader loader risk unless fresh repo reality changes the actual segment boundaries.
@@ -69,16 +69,12 @@ This survey slice does not claim:
 - syscall-backed libbpf runtime behavior
 
 ## Gates
-1. run the focused Phase 12 libbpf packet checks
-- `python3 scripts/zigux/check-phase12-libbpf-focused-replay.py`
-- `python3 scripts/zigux/check-phase12-libbpf-snapshot.py`
-- `python3 scripts/zigux/check-phase12-libbpf-packet.py`
-2. run the focused libbpf-only build
-- `zig build test --build-file zigux/tests/phase12_libbpf_only_build.zig`
-3. run the dedicated Phase 12 build
+1. run the shared build-only Phase 12 surface checker
+- `python3 scripts/zigux/check-build-only-phase12-surface.py`
+2. run the dedicated Phase 12 build
 - `zig build test --build-file zigux/tests/phase12_build.zig`
-4. run the convenience target
+3. run the convenience target
 - `make -C zigux phase12`
 
 ## Next bounded step
-Keep the Phase 12 libbpf survey, focused libbpf-only replay packet, and reviewability lane aligned with the live helper set and the current blocked-risk split, and only reopen `tools/lib/bpf/zigux_segments/` for another bounded utility slice if fresh repo reality shows something materially smaller than the still-blocked skeleton, loader, and relocation work.
+Keep the Phase 12 libbpf survey, the shared build-only replay contract, and the reviewability lane aligned with the live helper set and the current blocked-risk split, and only reopen `tools/lib/bpf/zigux_segments/` for another bounded utility slice if fresh repo reality shows something materially smaller than the still-blocked skeleton, loader, and relocation work.
