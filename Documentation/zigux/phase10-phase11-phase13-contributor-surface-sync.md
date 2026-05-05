@@ -43,8 +43,17 @@ For the active simple-driver contributor packet, confirm wording still matches:
 - `Documentation/zigux/phase11-shared-replay-contract.md`
 - `zigux/tests/fixtures/phase11_build_inventory.json`
 - `scripts/zigux/check-phase11-build-inventory.py`
+- `scripts/zigux/check-phase11-layout-assert-surface.py`
+- `scripts/zigux/check-phase11-hvc-validation-flow.py`
+- `scripts/zigux/check-phase11-hvc-cleanup-alignment.py`
 - `scripts/zigux/check-phase11-shared-replay-contract.py`
 - `scripts/zigux/check-phase11-header-boundary-packet.py`
+- `scripts/zigux/validate-phase11.py`
+- `zigux/tests/phase11_gpio_wdt_manifest.json`
+- `zigux/tests/phase11_bcm2835_wdt_manifest.json`
+- `zigux/tests/phase11_dw_wdt_manifest.json`
+- `zigux/tests/phase11_hvc_console_manifest.json`
+- `zigux/tests/phase11_uapi_header_parity_manifest.json`
 - `zigux/tests/phase11_hvc_console_survey.zig`
 
 ## Phase 13 anchors
@@ -68,6 +77,7 @@ Before closing a contributor-guidance change, ask:
 - Did a short-form companion note gain wording that the broad tests-root prompt still skips?
 - Did a checklist prompt keep an old replay count after the validator-first guide changed?
 - Did docs-root or scripts-root add a new replay, checker, manifest, or survey file that the shared contributor prompts still compress into older shorthand?
+- Did a broad Phase 11 prompt stop naming the full pre-replay checker stack, `validate-phase11.py`, or one of the four driver-local manifests even though the shared replay contract and validator still require that active packet?
 - Did a broad Phase 13 tests-root prompt keep saying `the extra devres and Landlock reviewability gates` after the smaller companion or validator-first note started naming the direct devres plain-helper replay, the devres `iounmap`, `iomap`, and wrapper reviewability gates, the Landlock ruleset-fops-sync replay, or the shared replay-count guard explicitly?
 
 If the answer is yes, finish the shared-surface sync before treating the packet as review-ready.
