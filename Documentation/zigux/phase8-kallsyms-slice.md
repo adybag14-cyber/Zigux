@@ -22,6 +22,8 @@ This parked packet is helper-first expansion inside that `tools/lib/symbol/*.zig
 
 The live repo already had the parse-first `kallsyms.zig` surface plus the injected chunked reader path, and the previous bounded follow-up added thin reader-backed and path-backed adapters. The remaining lane-local gap was one direct `kallsymsParse()`-adjacent wrapper that keeps the file-oriented callback shape visible to callers without widening into ELF emission or downstream symbol plumbing.
 
+The live C anchor for this family still concentrates review around `kallsyms2elf_type()`, `kallsyms__is_function()`, and `kallsyms__parse()` on top of `api/io.h`. This parked Zigux packet keeps those symbol-classification and parse-callback cues visible without claiming direct `api/io.h` parity or downstream symbol-emission ownership.
+
 ## Gates
 
 1. run the focused Zig module tests
