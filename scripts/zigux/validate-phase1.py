@@ -75,6 +75,11 @@ REQUIRED_HELPER_TEST_ANCHORS = [
 ]
 
 REQUIRED_PHASE1_PARITY_REPLAY_MARKERS = [
+    "fixture.find_bit.tail_clamped_first",
+    "fixture.find_bit.tail_clamped_next",
+    "fixture.find_bit.tail_zero_clamped_first",
+    "fixture.find_bit.tail_zero_clamped_next",
+    "fixture.find_bit.tail_and_clamped_first",
     "fixture.find_bit.tail_and_clamped_next",
     "fixture.bitmap.partial_xor_masked_values",
     "fixture.string.replace_char_end",
@@ -304,7 +309,7 @@ def run_self_test() -> None:
             encoding="utf-8",
         )
         missing_markers = collect_missing_markers(tmp_root)
-        assert "phase1_parity_replay_marker:fixture.find_bit.tail_and_clamped_next:expected=1:actual=0" in missing_markers
+        assert "phase1_parity_replay_marker:fixture.find_bit.tail_clamped_first:expected=1:actual=0" in missing_markers
 
         make_fixture_root(tmp_root)
         test_path.write_text(
