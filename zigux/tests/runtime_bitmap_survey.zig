@@ -48,7 +48,7 @@ test "phase 9 runtime bitmap survey manifest records the roadmap selftest hook, 
     defer parsed.deinit();
 
     const manifest = parsed.value;
-    try std.testing.expectEqualStrings("P9-L08", manifest.lane_key);
+    try std.testing.expectEqualStrings("P9-Y05", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 9", manifest.phase);
     try std.testing.expectEqualStrings("lib/test_bitmap.c", manifest.anchor);
     try std.testing.expectEqual(@as(usize, 2), manifest.roadmap_destinations.len);
@@ -149,7 +149,7 @@ test "phase 9 runtime bitmap survey note keeps the phase boundary and exact chec
     );
     defer std.testing.allocator.free(note);
 
-    try std.testing.expect(std.mem.indexOf(u8, note, "PHASE9_LANE_KEY=P9-L08") != null);
+    try std.testing.expect(std.mem.indexOf(u8, note, "PHASE9_LANE_KEY=P9-Y05") != null);
     try std.testing.expect(std.mem.indexOf(u8, note, "not as a fifth approved Phase 5 reference idiom under `samples/zigux/`") != null);
     try std.testing.expect(std.mem.indexOf(u8, note, "the live repo still keeps that runtime bitmap family outside the four approved Phase 5 reference samples") != null);
     try std.testing.expect(std.mem.indexOf(u8, note, "a Phase 5 approved `samples/zigux/` reference idiom") != null);
@@ -178,7 +178,7 @@ test "phase 9 runtime bitmap module slice keeps the loader-backed survey packet 
     );
     defer std.testing.allocator.free(note);
 
-    try std.testing.expect(std.mem.indexOf(u8, note, "PHASE9_LANE_KEY=P9-L08") != null);
+    try std.testing.expect(std.mem.indexOf(u8, note, "PHASE9_LANE_KEY=P9-Y05") != null);
     try std.testing.expect(std.mem.indexOf(u8, note, "sample-side loader scaffold") != null);
     try std.testing.expect(std.mem.indexOf(u8, note, "dedicated Phase 9 survey and test wiring") != null);
     try std.testing.expect(std.mem.indexOf(u8, note, "Documentation/zigux/phase9-runtime-bitmap-survey.md") != null);
