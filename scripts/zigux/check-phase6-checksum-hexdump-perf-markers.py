@@ -9,7 +9,7 @@ import tempfile
 
 SCRIPT_PATH = Path(__file__).resolve()
 ROOT = SCRIPT_PATH.parents[2] if len(SCRIPT_PATH.parents) > 2 else SCRIPT_PATH.parent
-SELF_TEST_CASE_COUNT = 26
+SELF_TEST_CASE_COUNT = 28
 
 CHECKSUM_PERF_PATH = "zigux/tests/phase6_checksum_perf.zig"
 HEXDUMP_PERF_PATH = "zigux/tests/phase6_hexdump_perf.zig"
@@ -267,6 +267,16 @@ def run_self_test() -> int:
             build_self_test_tree(root)
             (root / DOCS_ROOT_PATH).unlink()
             expect_missing_file(validate(root), DOCS_ROOT_PATH)
+            count += 1
+
+            build_self_test_tree(root)
+            (root / SCRIPTS_README_PATH).unlink()
+            expect_missing_file(validate(root), SCRIPTS_README_PATH)
+            count += 1
+
+            build_self_test_tree(root)
+            (root / TESTS_README_PATH).unlink()
+            expect_missing_file(validate(root), TESTS_README_PATH)
             count += 1
 
             build_self_test_tree(root)
