@@ -1,5 +1,5 @@
 {
-  "lane_key": "P9-L13",
+  "lane_key": "P9-L16",
   "phase": "Phase 9",
   "surveyed_commit": "248bfeaa7f2beddc283c3e398fc36fec3c841242",
   "anchor": "samples/kprobes/kretprobe_example.c",
@@ -16,6 +16,7 @@
   },
   "lifecycle_boundary_summary": {
     "pre_execution_handoff_only": true,
+    "requires_idle_registration_snapshot": true,
     "metadata_only_registration_labels": [
       "register_kretprobe",
       "unregister_kretprobe"
@@ -64,7 +65,7 @@
       "status": "starter_landed",
       "kind": "runtime_loader_scaffold",
       "zigux_destination": "samples/zigux/runtime_kretprobe_loader.zig",
-      "why_now": "A bounded loader handoff keeps the planned register_kretprobe and unregister_kretprobe lifecycle, entry or exit symbol naming, and private-data size explicit while the real runtime substrate is still unavailable."
+      "why_now": "A bounded loader handoff keeps the planned register_kretprobe and unregister_kretprobe lifecycle, entry or exit symbol naming, private-data size, and idle registration snapshot explicit while the real runtime substrate is still unavailable."
     },
     {
       "id": "runtime-kretprobe-substrate-handoff",
