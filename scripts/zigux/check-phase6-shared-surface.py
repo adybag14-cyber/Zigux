@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Fail-closed Phase 6 shared-surface checks for the simplified helper bundle."""
+"""Fail-closed Phase 6 shared-surface checks for the current helper packet."""
 
 from __future__ import annotations
 
@@ -29,13 +29,12 @@ REQUIRED_SNIPPETS = {
         "- the current shared Phase 6 review surface on `master` is the four slice notes (`Documentation/zigux/phase6-base64-slice.md`, `Documentation/zigux/phase6-bsearch-slice.md`, `Documentation/zigux/phase6-checksum-slice.md`, and `Documentation/zigux/phase6-hexdump-slice.md`) plus `Documentation/zigux/README.md`, `zigux/tests/README.md`, `zigux/tests/phase6_build.zig`, and `zigux/Makefile`.",
         "- `zig build test --build-file zigux/tests/phase6_build.zig` is the bundled helper replay for the current `base64`, `bsearch`, `checksum`, and `hexdump` packet.",
         "- `make -C zigux phase6` keeps that same bundled helper replay wired through the Zigux convenience target.",
-        "- there is no separate shared `validate-phase6.py`, external portability checker packet, or `phase6-perf` make target on `master`; if those gates land later, document them here only after the files and targets ship.",
     ],
     "zigux/tests/README.md": [
         "- keep the shared Phase 6 leaf-helper packet wired through `zigux/tests/phase6_build.zig`, including `zigux/tests/phase6_base64.zig`, `zigux/tests/phase6_bsearch.zig`, `zigux/tests/phase6_checksum.zig`, and `zigux/tests/phase6_hexdump.zig`, so the landed `base64`, `bsearch`, `checksum`, and `hexdump` bundle stays reviewable through one bounded helper gate",
     ],
     "Documentation/zigux/review-checklist.md": [
-        "- if the change touches the shared Phase 6 leaf-helper packet, do `Documentation/zigux/README.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, `Documentation/zigux/phase6-base64-slice.md`, `Documentation/zigux/phase6-bsearch-slice.md`, `Documentation/zigux/phase6-checksum-slice.md`, `Documentation/zigux/phase6-hexdump-slice.md`, `zigux/tests/phase6_build.zig`, `zigux/tests/phase6_base64.zig`, `zigux/tests/phase6_bsearch.zig`, `zigux/tests/phase6_checksum.zig`, `zigux/tests/phase6_hexdump.zig`, `zigux/Makefile`, and `make -C zigux phase6` still agree on the same bundled `base64`, `bsearch`, `checksum`, and `hexdump` helper packet without implying a removed shared `validate-phase6.py`, external parity checker, or `phase6-perf` route?",
+        "- if the change touches the shared Phase 6 leaf-helper packet, do `Documentation/zigux/README.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, `Documentation/zigux/phase6-base64-slice.md`, `Documentation/zigux/phase6-bsearch-slice.md`, `Documentation/zigux/phase6-checksum-slice.md`, `Documentation/zigux/phase6-hexdump-slice.md`, `zigux/tests/phase6_build.zig`, `zigux/tests/phase6_base64.zig`, `zigux/tests/phase6_bsearch.zig`, `zigux/tests/phase6_checksum.zig`, `zigux/tests/phase6_hexdump.zig`, `zigux/Makefile`, and `make -C zigux phase6` still agree on the same bundled `base64`, `bsearch`, `checksum`, and `hexdump` helper packet?",
     ],
     "zigux/tests/phase6_build.zig": [
         'const test_step = b.step("test", "Run Phase 6 leaf helper tests");',
@@ -71,11 +70,15 @@ REQUIRED_SNIPPETS = {
     ],
 }
 
-REMOVED_PATHS = [
+REQUIRED_EXISTING_PATHS = [
     "Documentation/zigux/phase6-helper-parity-catalog.md",
     "Documentation/zigux/phase6-perf-gate-survey.md",
     "zigux/tests/phase6_helper_parity_manifest.json",
     "scripts/zigux/validate-phase6.py",
+    "zigux/tests/phase6_bsearch_perf.zig",
+    "zigux/tests/fixtures/phase6_bsearch_vectors.zig",
+    "zigux/tests/phase6_bsearch_c_parity.zig",
+    "zigux/tests/fixtures/phase6_bsearch_c_harness.c",
 ]
 
 
@@ -93,9 +96,9 @@ def run_checks(repo_root: Path) -> None:
             if snippet not in content:
                 raise ValidationError(f"missing expected Phase 6 marker in {rel_path}: {snippet}")
 
-    for rel_path in REMOVED_PATHS:
-        if (repo_root / rel_path).exists():
-            raise ValidationError(f"removed Phase 6 shared-surface file unexpectedly present: {rel_path}")
+    for rel_path in REQUIRED_EXISTING_PATHS:
+        if not (repo_root / rel_path).exists():
+            raise ValidationError(f"missing expected Phase 6 shared-surface file: {rel_path}")
 
 
 def write(path: Path, content: str) -> None:
@@ -108,30 +111,20 @@ def run_self_test() -> None:
         root = Path(tmpdir)
         for rel_path, snippets in REQUIRED_SNIPPETS.items():
             write(root / rel_path, "\n".join(snippets) + "\n")
+        for rel_path in REQUIRED_EXISTING_PATHS:
+            write(root / rel_path, "present\n")
 
         run_checks(root)
 
-        write(root / REMOVED_PATHS[0], "stale\n")
+        (root / REQUIRED_EXISTING_PATHS[0]).unlink()
         try:
             run_checks(root)
         except ValidationError as exc:
-            if REMOVED_PATHS[0] not in str(exc):
-                raise AssertionError(f"unexpected removed-path failure: {exc}") from exc
+            if REQUIRED_EXISTING_PATHS[0] not in str(exc):
+                raise AssertionError(f"unexpected required-path failure: {exc}") from exc
         else:
-            raise AssertionError("expected removed-path failure")
-        (root / REMOVED_PATHS[0]).unlink()
-
-        scripts_readme = root / "scripts/zigux/README.md"
-        original = scripts_readme.read_text(encoding="utf-8")
-        scripts_readme.write_text(original.replace("there is no separate shared `validate-phase6.py`", "there is still a shared `validate-phase6.py`"), encoding="utf-8")
-        try:
-            run_checks(root)
-        except ValidationError as exc:
-            if "scripts/zigux/README.md" not in str(exc):
-                raise AssertionError(f"unexpected scripts README failure: {exc}") from exc
-        else:
-            raise AssertionError("expected scripts README failure")
-        scripts_readme.write_text(original, encoding="utf-8")
+            raise AssertionError("expected required-path failure")
+        write(root / REQUIRED_EXISTING_PATHS[0], "present\n")
 
         makefile = root / "zigux/Makefile"
         original_makefile = makefile.read_text(encoding="utf-8")
