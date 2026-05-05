@@ -4,44 +4,59 @@ This document records the first bounded hardware-validation matrix for the Zigux
 
 ## Status
 
-- `PHASE11_BCM2835_WDT_STATUS=hardware_validation_matrix_landed`
-- scope: keep the current `bcm2835_wdt` starter honest about what is already validated, name the next kernel-facing checkpoints, and avoid overclaiming platform registration or poweroff plumbing before those behaviors exist in Zigux
+- `PHASE11_BCM2835_WDT_STATUS=platform_handoff_landed`
+- reviewed against live `master` `55568844ac3ce835b0e0bef624c24c17f22b78a1`
+- scope: keep the current `bcm2835_wdt` starter honest about what is already validated, name the current keepalive-ping and timeout-rearm evidence alongside the registration-outcome, platform-handoff, poweroff-path, and remove-time callback-identity evidence, and avoid overclaiming live platform registration, PM wiring, or poweroff coordination before those behaviors exist in Zigux
+- latest focused replays: `zig test zigux/tests/phase11_bcm2835_wdt.zig` and `zig test zigux/tests/phase11_bcm2835_wdt_survey.zig` still pass for the bounded bcm2835 packet on current `master`
+- shared replay boundary: `zig build test --build-file zigux/tests/phase11_build.zig --summary all` still includes `phase11-bcm2835-wdt-tests` and `phase11-bcm2835-wdt-survey-tests`, but this watchdog-local matrix no longer claims that the whole current shared Phase 11 replay is green when unrelated non-watchdog drift can reopen elsewhere on `master`
 - current repo reality:
   - `drivers/watchdog/bcm2835_wdt.zig`
   - `zigux/tests/phase11_bcm2835_wdt.zig`
   - `zigux/tests/phase11_bcm2835_wdt_manifest.json`
   - `zigux/tests/phase11_bcm2835_wdt_survey.zig`
   - `zigux/tests/phase11_build.zig`
-  - `Documentation/zigux/phase11-shared-replay-contract.md`
-  - `Documentation/zigux/phase11-bcm2835-wdt-slice.md`
-  - `Documentation/zigux/phase11-bcm2835-wdt-survey.md`
+  - `.github/workflows/zigux-bootstrap.yml`
 
 ## Why This Exists
 
-The bounded starter now covers timeout-window validation, running-bit detection, start and stop register-image transitions, restart intent, halt-partition bookkeeping, a tiny probe-time summary, a registration-facing handoff summary, an explicit get-timeleft helper, and a remove-time ownership summary. The live shared Phase 11 packet already couples this watchdog starter to `Documentation/zigux/phase11-shared-replay-contract.md`, which keeps the wider shared replay route explicit beside the dedicated HVC archival surfaces. This matrix keeps one reviewable note that explains:
+The bounded starter now covers watchdog metadata, timeout encoding, running-bit detection, start and stop register-image transitions, keepalive ping, timeout rearm, restart intent, halt-partition bookkeeping, probe-time watchdog-core bookkeeping, registration-facing poweroff ownership outcomes, a tiny registration-outcome summary for register-device success-versus-failure and probe-error blocking, a tiny platform-registration and PM-base handoff summary, a tiny poweroff-path summary, and remove-time teardown summaries. The live repo still needs one reviewable note that explains:
 
 - which parts of the lane are already exercised by the shared Phase 11 gate
-- which poweroff-facing and watchdog-core-facing behaviors are already reviewable in bounded form versus still deferred
-- which shared replay surfaces on `master` keep this lane aligned with the rest of the shipped simple-driver packet
-- which areas must remain out of scope until a later platform-facing handoff lands
+- which platform-facing and hardware-facing checkpoints are the next follow-up rather than live behavior
+- which areas must remain out of scope until a later handoff lands
 
-This matrix keeps the current validation posture in one place while the next driver-local step stays below live platform registration.
+Without this matrix, the slice and survey named the right next step but did not yet preserve the validation posture in one place.
 
-## Kernel-Integration Matrix
+## Hardware-Validation Matrix
 
 | lane surface | current evidence | shared gate today | next bounded follow-up | out of scope for now |
 | --- | --- | --- | --- | --- |
-| timeout window and running-state bookkeeping | `drivers/watchdog/bcm2835_wdt.zig` validates timeout bounds, tick conversion, running-bit detection, start and stop register writes, and time-left snapshots through `Bcm2835WatchdogLab.init()`, `loadRegisters()`, `getTimeleft()`, `start()`, `stop()`, and `runtimeSnapshot()` | `zig build test --build-file zigux/tests/phase11_build.zig --summary all` via the timeout, start, stop, and running-state checks in `zigux/tests/phase11_bcm2835_wdt.zig` inside the shared Phase 11 replay packet recorded by `Documentation/zigux/phase11-shared-replay-contract.md` | keep the same register-image evidence stable while the lane stays parked for another comparably small hardware-validation or handoff note | MMIO-backed register access, platform probe wiring, and live watchdog-core registration |
-| restart and halt-partition intent | `armRestart()` and the restart-path coverage in `zigux/tests/phase11_bcm2835_wdt.zig` keep the short reset timeout, full-reset request, and Raspberry Pi halt-partition state reviewable without claiming live restart execution | `zig build test --build-file zigux/tests/phase11_build.zig --summary all` via the restart-intent checks in `zigux/tests/phase11_bcm2835_wdt.zig` inside the shared Phase 11 replay packet | leave the restart boundary parked unless another similarly small host-free bookkeeping summary is needed | hardware-backed restart timing, PM base plumbing, and board-level reboot behavior |
-| probe-time watchdog-core bookkeeping | `probeSummary()` records bootloader-carried running state, nowayout posture, watchdog-core heartbeat-init intent, stop-on-reboot setup, parent linkage, restart priority, and system-power-controller eligibility | `zig build test --build-file zigux/tests/phase11_build.zig --summary all` via the probe-summary checks in `zigux/tests/phase11_bcm2835_wdt.zig` inside the shared Phase 11 replay packet | keep the same probe-time evidence wired into any future platform-registration handoff summary | live probe ordering, PM base discovery, watchdog parent registration, and watchdog-core side effects |
-| registration-facing handoff and poweroff ownership | `registrationSummary()` keeps watchdog registration intent plus poweroff-handler claim-versus-conflict outcomes reviewable without claiming live watchdog-core or poweroff registration | `zig build test --build-file zigux/tests/phase11_build.zig --summary all` via the registration-summary checks in `zigux/tests/phase11_bcm2835_wdt.zig` inside the shared Phase 11 replay packet | use this bounded handoff as the base for any later platform-registration summary rather than widening straight into poweroff plumbing | live watchdog registration, system poweroff handler installation, and conflicting owner arbitration across real devices |
-| explicit get-timeleft parity | `getTimeleft()` now mirrors the C driver's `WDOG_TICKS_TO_SECS` readback over the bounded register image so the lane exposes time-left behavior directly instead of only through the larger runtime snapshot | `zig build test --build-file zigux/tests/phase11_build.zig --summary all` via the direct `getTimeleft()` checks in `zigux/tests/phase11_bcm2835_wdt.zig` inside the shared Phase 11 replay packet | keep the same helper stable and reuse it if a later platform-facing handoff needs direct time-left wording | live MMIO reads, watchdog-core callback plumbing, and hardware-backed countdown sampling |
-| platform registration and PM-base behavior | no live Zigux implementation yet; the current repo only records these as the next kernel-facing checkpoint in the slice, survey, manifest, and shared replay contract | none beyond the survey or manifest guard that keeps the missing work explicit | land one tiny platform-facing handoff note that names registration intent, PM-base ownership, and poweroff boundary rules without claiming hardware-backed execution | platform-driver registration, PM base mapping, hardware-backed timeout programming, watchdog-core device lifetime, and full poweroff integration |
+| watchdog metadata surface | `watchdogMetadataSummary()` records the Linux watchdog identity string, the `WDIOF_SETTIMEOUT`, `WDIOF_MAGICCLOSE`, and `WDIOF_KEEPALIVEPING` option coverage, the bounded start or stop or get_timeleft or restart ops surface, and the static timeout bounds from `bcm2835_wdt_wdd` without claiming real watchdog-core registration | `zig build test --build-file zigux/tests/phase11_build.zig --summary all` via the watchdog-metadata checks in `zigux/tests/phase11_bcm2835_wdt.zig` | keep the metadata summary aligned with any later platform-registration decision so the bounded starter still exposes the same Linux-facing contract before live registration exists | real watchdog-core registration, live watchdog_info wiring, and hardware-backed ioctl exposure |
+| timeout window and register-image transitions | `drivers/watchdog/bcm2835_wdt.zig` validates the 1-15 second timeout window plus `PM_RSTC`, `PM_RSTS`, and `PM_WDOG` register-image transitions through `init()`, `loadRegisters()`, `start()`, `ping()`, `setTimeout()`, `stop()`, and `armRestart()` | `zig build test --build-file zigux/tests/phase11_build.zig --summary all` via `zigux/tests/phase11_bcm2835_wdt.zig` in `.github/workflows/zigux-bootstrap.yml` | keep the same timeout and keepalive-rearm register-image evidence wired into any later live platform-registration choice | live MMIO access, platform-driver probe, and restart-side effect execution |
+| probe-time watchdog-core bookkeeping | `probeSummary()` records bootloader-carried running state, timeout and nowayout initialization, restart priority, stop-on-reboot intent, parent linkage, and system-power-controller eligibility without claiming real watchdog-core calls | `zig build test --build-file zigux/tests/phase11_build.zig --summary all` via the probe-summary checks in `zigux/tests/phase11_bcm2835_wdt.zig` | keep the probe bookkeeping stable while any later lane decides whether PM base wiring is worth widening into | live watchdog-core registration, PM base acquisition, and backend power-controller integration |
+| registration and poweroff ownership boundary | `registrationSummary()` records register-device intent plus poweroff-handler claim-vs-conflict outcomes without claiming `devm_watchdog_register_device()` or a real system poweroff hook | `zig build test --build-file zigux/tests/phase11_build.zig --summary all` via the registration-summary checks in `zigux/tests/phase11_bcm2835_wdt.zig` | keep the ownership and conflict outcomes stable while live platform registration stays blocked | real watchdog registration, platform driver binding, and shared handler installation |
+| registration outcome failure boundary | `registrationOutcomeSummary()` records register-device success versus failure, probe-error return intent, and whether the bcm2835 lane can claim or must leave the shared poweroff handler alone when registration does not complete, without claiming a live `devm_watchdog_register_device()` result path | `zig build test --build-file zigux/tests/phase11_build.zig --summary all` via the registration-outcome checks in `zigux/tests/phase11_bcm2835_wdt.zig` | keep the success-versus-failure split aligned with any later platform-registration decision so probe error handling and poweroff ownership do not get blurred together | live watchdog registration failure injection, platform probe return behavior, and hardware-backed rollback |
+| platform registration and PM-base handoff | `platformHandoffSummary()` now records parent attachment, PM-base availability, drvdata handoff readiness, register-device intent, and poweroff claim-vs-conflict reviewability without claiming platform-driver execution or live MMIO | `zig build test --build-file zigux/tests/phase11_build.zig --summary all` via the platform-handoff checks in `zigux/tests/phase11_bcm2835_wdt.zig` | keep the handoff summary honest while a future lane decides whether to model any live platform registration or PM base plumbing | full platform registration, PM base ioremap, watchdog-core lifecycle, suspend or resume handling, and hardware-backed execution |
+| poweroff path summary | `poweroffSummary()` records the shared system-poweroff callback ownership preconditions, writes the Raspberry Pi halt-partition bits into `PM_RSTS`, and reuses the short watchdog restart arming sequence only when the bcm2835 lane currently owns the callback | `zig build test --build-file zigux/tests/phase11_build.zig --summary all` via the poweroff-summary checks in `zigux/tests/phase11_bcm2835_wdt.zig` | keep the poweroff-path summary tied to the same later platform or PM-base decision rather than widening into callback installation | live poweroff callback registration, PM base wiring, and hardware-backed shutdown execution |
+| remove-time teardown boundary | `removeSummary()` records that watchdog teardown stays devm-managed while the explicit remove callback only clears the shared poweroff callback when `pm_power_off` still matches `bcm2835_power_off`, leaving conflicting or unrelated callback ownership in place | `zig build test --build-file zigux/tests/phase11_build.zig --summary all` via the remove-summary checks in `zigux/tests/phase11_bcm2835_wdt.zig` | keep the remove-time teardown scope tied to the same later live platform decision rather than widening this starter lane further | live remove callbacks beyond ownership cleanup, reboot-time ordering, and hardware-backed poweroff release |
+
+## Shared Replay Surface
+
+- current shared replay wiring on `master` includes both `phase11-bcm2835-wdt-tests` and `phase11-bcm2835-wdt-survey-tests`
+- exact shared command:
+  - `zig build test --build-file zigux/tests/phase11_build.zig --summary all`
+- shared replay posture for this watchdog lane:
+  - `phase11-bcm2835-wdt-tests` and `phase11-bcm2835-wdt-survey-tests` remain the shared Phase 11 artifacts that cover this bcm2835 packet
+  - full-bundle green status for the wider current Phase 11 replay is intentionally tracked outside this watchdog-local matrix because unrelated non-watchdog drift can reopen elsewhere on `master`
+- included bcm2835 artifacts:
+  - `phase11-bcm2835-wdt-tests`
+  - `phase11-bcm2835-wdt-survey-tests`
+- focused survey replay command:
+  - `zig test zigux/tests/phase11_bcm2835_wdt_survey.zig`
 
 ## Review Rules
 
-- treat this lane as a bounded driver-starter plus validation-note lane until a platform-facing handoff actually lands
-- keep `Documentation/zigux/phase11-shared-replay-contract.md`, `zigux/tests/phase11_build.zig`, and `zigux/Makefile` aligned so this matrix does not drift away from the shipped shared Phase 11 replay route
+- treat this lane as a bounded starter plus validation-note lane even after the platform-registration and PM-base handoff summary lands
 - keep `zigux/tests/phase11_build.zig` as the shared replay path for the current starter instead of adding ad hoc Phase 11 CI steps
-- do not claim platform-driver registration, PM base wiring, watchdog-core registration, hardware-backed timeout programming, or live poweroff-handler coordination until the Zig surface and tests for those behaviors exist
-- when the next platform-facing handoff lands, update this matrix, the slice note, the survey note, and the survey manifest together so the lane keeps one truthful next step
+- do not claim PM base wiring, watchdog-core registration, poweroff handler installation, or live restart or poweroff coverage until the Zig surface and tests for those behaviors exist
+- if a later lane chooses live platform registration or PM base plumbing, update this matrix, the slice note, the survey note, and the survey manifest together so the lane keeps one truthful next step
