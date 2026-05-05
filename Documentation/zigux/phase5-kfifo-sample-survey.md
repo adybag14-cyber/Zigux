@@ -5,6 +5,8 @@ This document tracks the bounded Phase 5 reference-sample survey for the roadmap
 ## Status
 
 - `PHASE5_STATUS=active`
+- `PHASE5_LANE_KEY=P5-L01`
+- `PHASE5_SURVEYED_COMMIT=c9b956c155281407bf86bf56d122b08d6fc634ea`
 - `PHASE5_SLICE=kfifo-reference-sample-starter`
 - scope: roadmap-vs-repo sample delivery, approved reference-sample idiom guidance, and exact bounded checks for the first `samples/zigux/` kfifo-style replay
 - product boundary:
@@ -122,7 +124,7 @@ A focused current-`master` replay was re-run on 2026-05-05 with the attached Zig
 ## Review gates for this survey
 
 1. confirm the Phase 5 anchor is still the Linux bytestream example
-- `rg -n "samples/kfifo/bytestream-example.c|Phase 5" Documentation/zigux samples`
+- `rg -n "samples/kfifo/bytestream-example.c|PHASE5_LANE_KEY=P5-L01|PHASE5_SURVEYED_COMMIT=c9b956c155281407bf86bf56d122b08d6fc634ea|Phase 5" Documentation/zigux samples zigux/tests`
 
 2. confirm the current `samples/zigux/` surface stays distinct from this reference-sample lane
 - `find samples/zigux -maxdepth 1 -type f | sort`
