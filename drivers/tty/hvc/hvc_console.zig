@@ -143,6 +143,29 @@ pub const SysrqHandoffSnapshot = struct {
     remove_handoff_still_required: bool,
 };
 
+pub const NotifierHandoffRequest = struct {
+    tty_registration_ready: bool = true,
+    sysrq_dispatch_requested: bool = true,
+    notifier_target_present: bool = true,
+};
+
+pub const NotifierHandoffSnapshot = struct {
+    anchor: []const u8,
+    slot_index: usize,
+    vtermno: u32,
+    adapter_present: bool,
+    tty_registration_ready: bool,
+    sysrq_dispatch_requested: bool,
+    notifier_target_present: bool,
+    notifier_registration_reviewable: bool,
+    notifier_registration_requested: bool,
+    notifier_callbacks_deferred: bool,
+    notifier_unregister_deferred: bool,
+    khvcd_worker_execution_deferred: bool,
+    host_io_deferred: bool,
+    remove_handoff_still_required: bool,
+};
+
 pub const WriteSnapshot = struct {
     anchor: []const u8,
     slot_index: usize,
@@ -322,8 +345,8 @@ pub const HvcConsoleLab = struct {
 
         return .{
             .anchor = descriptor().anchor,
-            .slot_index = slot.slot_index,
-            .vtermno = slot.vtermno,
+            .slot_index = self.slot_index,
+            .vtermno = self.vtermno,
             .adapter_present = slot.adapter_present,
             .console_index_matches_boot_console = request.console_index_matches_boot_console,
             .sysrq_break_seen = request.sysrq_break_seen,
@@ -331,6 +354,36 @@ pub const HvcConsoleLab = struct {
             .sysrq_dispatch_requested = sysrq_dispatch_requested,
             .notifier_target_present = request.notifier_target_present,
             .notifier_callbacks_deferred = request.notifier_target_present,
+            .khvcd_worker_execution_deferred = true,
+            .host_io_deferred = true,
+            .remove_handoff_still_required = true,
+        };
+    }
+
+    pub fn summarizeNotifierHandoff(
+        self: *const Self,
+        request: NotifierHandoffRequest,
+    ) !NotifierHandoffSnapshot {
+        const slot = self.slotSnapshot();
+        if (!slot.usable_for_console) return error.ConsoleUnavailable;
+
+        const notifier_registration_requested = request.tty_registration_ready and
+            request.notifier_target_present;
+        const notifier_callbacks_deferred = request.sysrq_dispatch_requested and
+            request.notifier_target_present;
+
+        return .{
+            .anchor = descriptor().anchor,
+            .slot_index = self.slot_index,
+            .vtermno = self.vtermno,
+            .adapter_present = self.adapter_present,
+            .tty_registration_ready = request.tty_registration_ready,
+            .sysrq_dispatch_requested = request.sysrq_dispatch_requested,
+            .notifier_target_present = request.notifier_target_present,
+            .notifier_registration_reviewable = true,
+            .notifier_registration_requested = notifier_registration_requested,
+            .notifier_callbacks_deferred = notifier_callbacks_deferred,
+            .notifier_unregister_deferred = request.notifier_target_present,
             .khvcd_worker_execution_deferred = true,
             .host_io_deferred = true,
             .remove_handoff_still_required = true,
