@@ -42,7 +42,8 @@ The sample intentionally stays small:
 - it keeps the Linux anchor path explicit in `KretprobeExampleSample.descriptor()`
 - it models only the default symbol name, a pre-init retarget hook, kernel-thread skip behavior, a single per-instance timestamp record, return-duration replay, and a bounded `nmissed` summary in memory
 - it uses a tiny `init()` -> `entryHandler()` -> `retHandler()` -> `recordMissedInstance()` -> `exit()` lifecycle so ownership and teardown stay explicit
-- it provides one bounded self-check through `runAnchorReplay()` instead of implying a runtime-ready kretprobe implementation
+- it provides `runAnchorReplay()` for the bounded skip, private-data, return-duration, and missed-summary contract
+- it provides `runLifecycleGuardReplay()` so pre-init rejection, double-init rejection, and post-init retarget rejection stay reviewable without implying a runtime-ready kretprobe implementation
 
 The exact checks currently recorded in `zigux/tests/phase5_kretprobe_example_manifest.json` and exercised through `zigux/tests/phase5_build.zig` are:
 
@@ -72,6 +73,7 @@ When a contributor updates `samples/zigux/kretprobe_example.zig` or its directly
 
 - does `KretprobeExampleSample.descriptor()` still name `samples/kprobes/kretprobe_example.c` and keep `requires_runtime_substrate = false` plus `provides_selfcheck = true`?
 - do `zigux/tests/phase5_kretprobe_example_manifest.json` and `zigux/tests/phase5_kretprobe_example_survey.zig` still describe the exact skip, private-data, return-value, duration, and missed-summary contract run through `zigux/tests/phase5_build.zig`?
+- do the survey note and focused survey gate still name both `runAnchorReplay()` and `runLifecycleGuardReplay()` so the sample-owned replay and lifecycle-guard surfaces stay explicit?
 - does symbol retargeting stay a pre-init in-memory choice instead of implying `module_param` or runtime registration parity?
 - if the sample behavior changes, is the manifest updated alongside the replay and teardown contract instead of leaving reviewers to infer the new boundary from code alone?
 - do the docs and tests still say clearly that `register_kretprobe()`, `unregister_kretprobe()`, `pt_regs` return extraction, and loadable module wiring remain out of scope for this Phase 5 sample?
