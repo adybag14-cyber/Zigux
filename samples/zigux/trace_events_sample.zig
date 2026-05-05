@@ -48,6 +48,20 @@ pub const ReplaySummary = struct {
     checked_focus: []const SampleFocus,
 };
 
+pub const PayloadBoundarySummary = struct {
+    stage_before_iteration: SampleStage,
+    stage_after_iteration: SampleStage,
+    formatted_message: []const u8,
+    selected_string: []const u8,
+    payload_prefix_len: usize,
+    payload_prefix: [4]i32,
+    payload_sentinel: i32,
+    main_thread_event_calls: usize,
+    conditional_paths_checked: bool,
+    vararg_payload_path_checked: bool,
+    relative_location_path_checked: bool,
+};
+
 pub const TraceEventsReferenceSample = struct {
     const Self = @This();
 
@@ -219,6 +233,32 @@ pub const TraceEventsReferenceSample = struct {
         };
     }
 
+    pub fn runPayloadBoundaryReplay(self: *Self) !PayloadBoundarySummary {
+        if (self.stage() != .initialized) return error.InvalidLifecycleTransition;
+
+        const events_before = self.total_event_calls;
+        try self.replayMainIteration(4);
+
+        return .{
+            .stage_before_iteration = .initialized,
+            .stage_after_iteration = self.stage(),
+            .formatted_message = self.formattedMessage(),
+            .selected_string = self.selected_string,
+            .payload_prefix_len = 4,
+            .payload_prefix = .{
+                self.array_payload[0],
+                self.array_payload[1],
+                self.array_payload[2],
+                self.array_payload[3],
+            },
+            .payload_sentinel = self.array_payload[4],
+            .main_thread_event_calls = self.total_event_calls - events_before,
+            .conditional_paths_checked = self.saw_conditional_path,
+            .vararg_payload_path_checked = self.saw_vararg_payload,
+            .relative_location_path_checked = self.saw_rel_loc_payload,
+        };
+    }
+
     pub fn exit(self: *Self) !void {
         switch (self.stage()) {
             .initialized, .replay_complete => {},
@@ -278,21 +318,27 @@ test "trace-events sample replay keeps the anchor reviewable and non-runtime" {
 test "trace-events sample keeps payload and callback boundaries explicit" {
     var module = TraceEventsReferenceSample{};
 
+    try std.testing.expectError(error.InvalidLifecycleTransition, module.runPayloadBoundaryReplay());
     try std.testing.expectError(error.InvalidLifecycleTransition, module.replayMainIteration(0));
     try module.init();
     try std.testing.expectError(error.InvalidIterationCount, module.replayMainIteration(-1));
 
-    try module.replayMainIteration(4);
-    try std.testing.expectEqual(@as(i32, 1), module.array_payload[0]);
-    try std.testing.expectEqual(@as(i32, 2), module.array_payload[1]);
-    try std.testing.expectEqual(@as(i32, 3), module.array_payload[2]);
-    try std.testing.expectEqual(@as(i32, 4), module.array_payload[3]);
-    try std.testing.expectEqual(@as(i32, 0), module.array_payload[4]);
-    try std.testing.expectEqualStrings("One ring to rule them all", module.selected_string);
-    try std.testing.expectEqualStrings("iter=4", module.formattedMessage());
-    try std.testing.expect(module.saw_vararg_payload);
-    try std.testing.expect(module.saw_rel_loc_payload);
-    try std.testing.expect(module.saw_conditional_path);
+    const payload_boundary = try module.runPayloadBoundaryReplay();
+    try std.testing.expectEqual(SampleStage.initialized, payload_boundary.stage_before_iteration);
+    try std.testing.expectEqual(SampleStage.initialized, payload_boundary.stage_after_iteration);
+    try std.testing.expectEqualStrings("iter=4", payload_boundary.formatted_message);
+    try std.testing.expectEqualStrings("One ring to rule them all", payload_boundary.selected_string);
+    try std.testing.expectEqual(@as(usize, 4), payload_boundary.payload_prefix_len);
+    try std.testing.expectEqual(@as(i32, 1), payload_boundary.payload_prefix[0]);
+    try std.testing.expectEqual(@as(i32, 2), payload_boundary.payload_prefix[1]);
+    try std.testing.expectEqual(@as(i32, 3), payload_boundary.payload_prefix[2]);
+    try std.testing.expectEqual(@as(i32, 4), payload_boundary.payload_prefix[3]);
+    try std.testing.expectEqual(@as(i32, 0), payload_boundary.payload_sentinel);
+    try std.testing.expectEqual(TraceEventsReferenceSample.event_family_count, payload_boundary.main_thread_event_calls);
+    try std.testing.expect(payload_boundary.vararg_payload_path_checked);
+    try std.testing.expect(payload_boundary.relative_location_path_checked);
+    try std.testing.expect(payload_boundary.conditional_paths_checked);
+    try std.testing.expectEqual(SampleStage.initialized, module.stage());
 
     try std.testing.expectError(error.FunctionCallbackNotRegistered, module.replayFunctionIteration(0));
     try std.testing.expectError(error.RegistrationUnderflow, module.unregisterFunctionCallback());
