@@ -43,6 +43,7 @@ pub fn build(b: *std.Build) void {
         .optimize = optimize,
     });
     runtime_atomic64_loader_module.addImport("runtime_atomic64_sample", runtime_atomic64_sample_module);
+    runtime_atomic64_loader_module.addImport("runtime_loader", runtime_loader_contract_module);
     const runtime_bitmap_sample_module = b.createModule(.{
         .root_source_file = b.path("../../samples/zigux/runtime_bitmap.zig"),
         .target = target,
@@ -130,7 +131,7 @@ pub fn build(b: *std.Build) void {
         .target = target,
         .optimize = optimize,
     });
-    runtime_loader_allocator_init_flow_module.addImport("runtime_loader_contract", runtime_loader_contract_module);
+    runtime_loader_allocator_init_flow_module.addImport("runtime_loader", runtime_loader_contract_module);
 
     const runtime_atomic64_survey_module = b.createModule(.{
         .root_source_file = b.path("runtime_atomic64_survey.zig"),
