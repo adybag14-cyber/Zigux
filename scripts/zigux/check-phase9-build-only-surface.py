@@ -448,7 +448,7 @@ def run_self_test() -> int:
             "missing_trace_events_loader_scaffold",
         )
 
-        write_fixtureTree(root)
+        write_fixture_tree(root)
         (root / "Documentation/zigux/phase9-runtime-trace-events-module-slice.md").unlink()
         expect_failure(
             root,
