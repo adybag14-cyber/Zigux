@@ -91,6 +91,13 @@
       "why_now": "The transmit-recycle follow-up is now landed as one bounded completion-side queue-reuse step that keeps packet return ordering, control-virtqueue restore ordering, RSS-aware queue reuse, and receive-refill coordination explicit before any live DMA, NAPI, or netdev lifecycle work."
     },
     {
+      "id": "phase12-virtio-net-mergeable-buffer-length-summary",
+      "status": "ready_next",
+      "kind": "complex_driver_followup",
+      "zigux_destination": "drivers/net/virtio_net.zig",
+      "why_now": "The next honest throughput-facing handoff is still a bounded mergeable-buffer-length summary that mirrors `get_mergeable_buf_len()` decisions by recording whether mergeable receive buffers stay at the observed average packet size, clamp to the minimum floor, or cap at page payload before any live page-pool DMA, refill loop, or NAPI execution."
+    },
+    {
       "id": "phase12-virtio-net-runtime-data-path",
       "status": "blocked_on_dma_transport",
       "kind": "validation",
