@@ -57,6 +57,14 @@ test "phase12 virtio_net survey manifest stays aligned with the landed driver pa
     );
     defer std.testing.allocator.free(build_file);
 
+    const survey_note = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "Documentation/zigux/phase12-virtio-net-survey.md",
+        std.testing.allocator,
+        .limited(32 * 1024),
+    );
+    defer std.testing.allocator.free(survey_note);
+
     const parsed = try std.json.parseFromSlice(Manifest, std.testing.allocator, manifest_json, .{});
     defer parsed.deinit();
 
@@ -76,11 +84,14 @@ test "phase12 virtio_net survey manifest stays aligned with the landed driver pa
     try std.testing.expect(manifest.survey_summary.preexisting_phase12_virtio_net_survey_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase12_survey_note_present);
     try std.testing.expect(manifest.survey_summary.preexisting_virtio_net_zig_present);
-    try std.testing.expectEqual(@as(usize, 12), manifest.gaps.len);
+    try std.testing.expectEqual(@as(usize, 13), manifest.gaps.len);
 
     try std.testing.expect(std.mem.indexOf(u8, build_file, "phase12_virtio_net_module") != null);
     try std.testing.expect(std.mem.indexOf(u8, build_file, "phase12_virtio_net_tests") != null);
     try std.testing.expect(std.mem.indexOf(u8, build_file, "run_phase12_virtio_net_tests.step") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "segmented rollout boundary") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "runtime-data-path boundary remains blocked") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase12-virtio-net-segmented-rollout-boundary") != null);
 
     var starter_landed_count: usize = 0;
     var blocked_count: usize = 0;
@@ -95,6 +106,7 @@ test "phase12 virtio_net survey manifest stays aligned with the landed driver pa
     var saw_receive_refill = false;
     var saw_transmit_recycle = false;
     var saw_mergeable_buffer_length = false;
+    var saw_segmented_rollout_boundary = false;
     var saw_blocker = false;
 
     for (manifest.gaps, 0..) |gap, i| {
@@ -200,6 +212,15 @@ test "phase12 virtio_net survey manifest stays aligned with the landed driver pa
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "`skb_shared_info`") != null);
         }
 
+        if (std.mem.eql(u8, gap.id, "phase12-virtio-net-segmented-rollout-boundary")) {
+            saw_segmented_rollout_boundary = true;
+            try std.testing.expectEqualStrings("Documentation/zigux/phase12-virtio-net-survey.md", gap.zigux_destination);
+            try std.testing.expectEqualStrings("starter_landed", gap.status);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "segmented rollout") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "mergeable-buffer-length") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "runtime data path remains blocked") != null);
+        }
+
         if (std.mem.eql(u8, gap.id, "phase12-virtio-net-runtime-data-path")) {
             saw_blocker = true;
             try std.testing.expectEqualStrings("zigux/tests/phase12_virtio_net_survey.zig", gap.zigux_destination);
@@ -213,7 +234,7 @@ test "phase12 virtio_net survey manifest stays aligned with the landed driver pa
         }
     }
 
-    try std.testing.expectEqual(@as(usize, 11), starter_landed_count);
+    try std.testing.expectEqual(@as(usize, 12), starter_landed_count);
     try std.testing.expectEqual(@as(usize, 1), blocked_count);
     try std.testing.expect(saw_build_gate);
     try std.testing.expect(saw_make_target);
@@ -226,6 +247,7 @@ test "phase12 virtio_net survey manifest stays aligned with the landed driver pa
     try std.testing.expect(saw_receive_refill);
     try std.testing.expect(saw_transmit_recycle);
     try std.testing.expect(saw_mergeable_buffer_length);
+    try std.testing.expect(saw_segmented_rollout_boundary);
     try std.testing.expect(saw_blocker);
 
     const driver_file = try std.Io.Dir.cwd().readFileAlloc(
@@ -235,14 +257,6 @@ test "phase12 virtio_net survey manifest stays aligned with the landed driver pa
         .limited(64 * 1024),
     );
     defer std.testing.allocator.free(driver_file);
-
-    const survey_note = try std.Io.Dir.cwd().readFileAlloc(
-        io_instance.io(),
-        "Documentation/zigux/phase12-virtio-net-survey.md",
-        std.testing.allocator,
-        .limited(32 * 1024),
-    );
-    defer std.testing.allocator.free(survey_note);
 
     try std.testing.expect(std.mem.indexOf(u8, driver_file, "pub const MergeableBufferLengthSummary = struct") != null);
     try std.testing.expect(std.mem.indexOf(u8, driver_file, "pub fn planMergeableBufferLength") != null);
