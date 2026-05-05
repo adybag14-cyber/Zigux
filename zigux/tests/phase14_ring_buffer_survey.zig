@@ -62,9 +62,9 @@ test "phase 14 ring-buffer survey manifest records the study-only gap without in
 
     const parsed = try std.json.parseFromSlice(Manifest, std.testing.allocator, manifest_json, .{});
     defer parsed.deinit();
-
     const manifest = parsed.value;
-    try std.testing.expectEqualStrings("P14-L06", manifest.lane_key);
+
+    try std.testing.expectEqualStrings("P14-Y02", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 14", manifest.phase);
     try std.testing.expectEqualStrings("kernel/trace/ring_buffer.c", manifest.anchor);
     try std.testing.expectEqualStrings("946d5c73fdb763ba860a20879b05da54e1896e8c", manifest.surveyed_commit);
@@ -82,7 +82,7 @@ test "phase 14 ring-buffer survey manifest records the study-only gap without in
     try std.testing.expect(manifest.survey_summary.preexisting_phase14_ring_buffer_survey_test_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase14_ring_buffer_survey_note_present);
     try std.testing.expectEqual(@as(usize, 5), manifest.decision_checklist.len);
-    try std.testing.expectEqual(@as(usize, 12), manifest.gaps.len);
+    try std.testing.expectEqual(@as(usize, 13), manifest.gaps.len);
 
     var landed_count: usize = 0;
     var ready_next_count: usize = 0;
@@ -93,6 +93,7 @@ test "phase 14 ring-buffer survey manifest records the study-only gap without in
     var saw_splice_resize_followup = false;
     var saw_mapped_reader_ioctl_followup = false;
     var saw_reader_page_consume_followup = false;
+    var saw_reset_governance_followup = false;
     var saw_port_blocker = false;
 
     for (manifest.gaps, 0..) |gap, i| {
@@ -146,10 +147,17 @@ test "phase 14 ring-buffer survey manifest records the study-only gap without in
         }
         if (std.mem.eql(u8, gap.id, "phase14-ring-buffer-reader-page-consume-followup")) {
             saw_reader_page_consume_followup = true;
-            try std.testing.expectEqualStrings("ready_next", gap.status);
+            try std.testing.expectEqualStrings("starter_landed", gap.status);
             try std.testing.expectEqualStrings("Documentation/zigux/phase14-ring-buffer-survey.md", gap.zigux_destination);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "rb_get_reader_page()") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "ring_buffer_consume()") != null);
+        }
+        if (std.mem.eql(u8, gap.id, "phase14-ring-buffer-reset-governance-followup")) {
+            saw_reset_governance_followup = true;
+            try std.testing.expectEqualStrings("ready_next", gap.status);
+            try std.testing.expectEqualStrings("Documentation/zigux/phase14-ring-buffer-survey.md", gap.zigux_destination);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "ring_buffer_reset_cpu()") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "ring_buffer_reset()") != null);
         }
         if (std.mem.eql(u8, gap.id, "phase14-ring-buffer-zig-port-blocker")) {
             saw_port_blocker = true;
@@ -162,7 +170,7 @@ test "phase 14 ring-buffer survey manifest records the study-only gap without in
         }
     }
 
-    try std.testing.expectEqual(@as(usize, 10), landed_count);
+    try std.testing.expectEqual(@as(usize, 11), landed_count);
     try std.testing.expectEqual(@as(usize, 1), ready_next_count);
     try std.testing.expectEqual(@as(usize, 1), blocked_count);
     try std.testing.expect(saw_boundary_checklist);
@@ -171,6 +179,7 @@ test "phase 14 ring-buffer survey manifest records the study-only gap without in
     try std.testing.expect(saw_splice_resize_followup);
     try std.testing.expect(saw_mapped_reader_ioctl_followup);
     try std.testing.expect(saw_reader_page_consume_followup);
+    try std.testing.expect(saw_reset_governance_followup);
     try std.testing.expect(saw_port_blocker);
 }
 
@@ -188,8 +197,8 @@ test "phase 14 ring-buffer survey exposes the landed stay-in-c checklist" {
 
     const parsed = try std.json.parseFromSlice(Manifest, std.testing.allocator, manifest_json, .{});
     defer parsed.deinit();
-
     const checklist = parsed.value.decision_checklist;
+
     try std.testing.expectEqualStrings("reserve-commit-publication", checklist[0].id);
     try std.testing.expectEqualStrings("stay_in_c", checklist[0].ownership);
     try std.testing.expectEqualStrings("ring_buffer_lock_reserve", checklist[0].anchor_symbols[0]);
