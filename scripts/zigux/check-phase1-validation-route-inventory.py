@@ -404,6 +404,7 @@ def self_test() -> int:
             "scripts/zigux/check-phase1-bitmap-validator-anchors.py": "// fixture\n",
             "scripts/zigux/check-phase1-find-bit-validator-anchors.py": "// fixture\n",
             "scripts/zigux/check-phase1-route-summary-counts.py": "// fixture\n",
+            "scripts/zigux/check-phase1-validation-route-inventory.py": "// fixture\n",
             "scripts/zigux/check-phase1-parity.py": "// fixture\n",
             "scripts/zigux/check-phase1-bench.py": "// fixture\n",
             "scripts/zigux/validate-phase1-closure.py": "// fixture\n",
