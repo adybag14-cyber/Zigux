@@ -140,6 +140,7 @@ pub fn build(b: *std.Build) void {
         .optimize = optimize,
     });
     runtime_loader_allocator_init_flow_module.addImport("runtime_loader", runtime_loader_contract_module);
+    runtime_loader_allocator_init_flow_module.addImport("runtime_loader_contract", runtime_loader_contract_module);
 
     const runtime_atomic64_survey_module = b.createModule(.{
         .root_source_file = b.path("runtime_atomic64_survey.zig"),
@@ -242,6 +243,11 @@ pub fn build(b: *std.Build) void {
         .root_module = runtime_kretprobe_loader_module,
     });
     const run_runtime_kretprobe_loader_tests = b.addRunArtifact(runtime_kretprobe_loader_tests);
+    const runtime_loader_contract_tests = b.addTest(.{
+        .name = "phase9-runtime-loader-contract-tests",
+        .root_module = runtime_loader_contract_module,
+    });
+    const run_runtime_loader_contract_tests = b.addRunArtifact(runtime_loader_contract_tests);
     const runtime_loader_facade_tests = b.addTest(.{
         .name = "phase9-runtime-loader-facade-tests",
         .root_module = runtime_loader_facade_module,
@@ -254,8 +260,9 @@ pub fn build(b: *std.Build) void {
     const run_runtime_loader_allocator_init_flow_tests = b.addRunArtifact(runtime_loader_allocator_init_flow_tests);
     const runtime_loader_shared_tests_step = b.step(
         "phase9-runtime-loader-shared-tests",
-        "Run the focused Phase 9 runtime-loader facade and allocator/init-flow contract tests",
+        "Run the focused Phase 9 runtime-loader facade, contract, and allocator/init-flow tests",
     );
+    runtime_loader_shared_tests_step.dependOn(&run_runtime_loader_contract_tests.step);
     runtime_loader_shared_tests_step.dependOn(&run_runtime_loader_facade_tests.step);
     runtime_loader_shared_tests_step.dependOn(&run_runtime_loader_allocator_init_flow_tests.step);
 
@@ -280,7 +287,7 @@ pub fn build(b: *std.Build) void {
     });
     const run_runtime_kretprobe_survey_tests = b.addRunArtifact(runtime_kretprobe_survey_tests);
 
-    const test_step = b.step("test", "Run Phase 9 runtime atomic64, bitmap, trace-events, kretprobe, runtime-loader facade, and allocator/init-flow contract tests");
+    const test_step = b.step("test", "Run Phase 9 runtime atomic64, bitmap, trace-events, kretprobe, runtime-loader facade, contract, and allocator/init-flow tests");
     test_step.dependOn(&run_runtime_atomic64_sample_tests.step);
     test_step.dependOn(&run_runtime_atomic64_module_tests.step);
     test_step.dependOn(&run_runtime_atomic64_loader_tests.step);
@@ -297,6 +304,7 @@ pub fn build(b: *std.Build) void {
     test_step.dependOn(&run_runtime_kretprobe_module_tests.step);
     test_step.dependOn(&run_runtime_kretprobe_diff_tests.step);
     test_step.dependOn(&run_runtime_kretprobe_loader_tests.step);
+    test_step.dependOn(&run_runtime_loader_contract_tests.step);
     test_step.dependOn(&run_runtime_loader_facade_tests.step);
     test_step.dependOn(&run_runtime_loader_allocator_init_flow_tests.step);
     test_step.dependOn(&run_runtime_atomic64_survey_tests.step);
