@@ -186,8 +186,8 @@ def validate_cases(root: Path) -> list[str]:
     help_case = by_name.get("help", {})
     if help_case.get("mode") != "process_json":
         issues.append("cases:help:mode=process_json")
-    if help_case.get("argv") != ["--hel"]:
-        issues.append("cases:help:argv=['--hel']")
+    if help_case.get("argv") != ["--version", "--hel"]:
+        issues.append("cases:help:argv=['--version', '--hel']")
 
     version_case = by_name.get("version", {})
     if version_case.get("mode") != "process_json":
@@ -287,7 +287,7 @@ def build_fixture_cases() -> str:
     for name in CASE_NAME_ORDER:
         case: dict[str, object] = {"name": name, "argv": [], "expected": f"{name}_expected.json"}
         if name == "help":
-            case["argv"] = ["--hel"]
+            case["argv"] = ["--version", "--hel"]
             case["mode"] = "process_json"
             case["expected"] = "help_expected.json"
         elif name == "version":
@@ -515,7 +515,7 @@ def run_self_test() -> int:
         payload = json.loads(cases_path.read_text(encoding="utf-8"))
         payload["cases"][11]["argv"] = ["--help"]
         write(cases_path, json.dumps(payload, indent=2) + "\n")
-        expect_issue("case_sentinel", root, "cases:help:argv=['--hel']")
+        expect_issue("case_sentinel", root, "cases:help:argv=['--version', '--hel']")
         clone_fixture_root(root)
 
         cases_path = root / REQUIRED_FILES["cases"]
