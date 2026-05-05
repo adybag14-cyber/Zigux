@@ -11,8 +11,8 @@ pub const ModuleStage = enum(u8) {
 pub const OperationFamily = enum {
     clear_set,
     copy,
-    parse_and_print,
-    iteration_and_ranges,
+    summary,
+    lifecycle,
 };
 
 pub const SampleFocus = enum {
@@ -56,7 +56,7 @@ pub const SelftestSummary = struct {
     anchor: []const u8,
     operation_families: []const OperationFamily,
     checked_range_mutations: bool,
-    checked_iteration_paths: bool,
+    checked_lifecycle_paths: bool,
 };
 
 pub const RuntimeBitmapSample = struct {
@@ -184,11 +184,11 @@ pub const RuntimeBitmapSample = struct {
             .operation_families = &.{
                 .clear_set,
                 .copy,
-                .parse_and_print,
-                .iteration_and_ranges,
+                .summary,
+                .lifecycle,
             },
             .checked_range_mutations = true,
-            .checked_iteration_paths = true,
+            .checked_lifecycle_paths = true,
         };
     }
 
@@ -238,8 +238,10 @@ test "runtime bitmap sample review contract stays aligned with the selftest pack
     try std.testing.expectEqual(@as(usize, 4), selftest.operation_families.len);
     try std.testing.expectEqual(OperationFamily.clear_set, selftest.operation_families[0]);
     try std.testing.expectEqual(OperationFamily.copy, selftest.operation_families[1]);
-    try std.testing.expectEqual(OperationFamily.parse_and_print, selftest.operation_families[2]);
-    try std.testing.expectEqual(OperationFamily.iteration_and_ranges, selftest.operation_families[3]);
+    try std.testing.expectEqual(OperationFamily.summary, selftest.operation_families[2]);
+    try std.testing.expectEqual(OperationFamily.lifecycle, selftest.operation_families[3]);
+    try std.testing.expect(selftest.checked_range_mutations);
+    try std.testing.expect(selftest.checked_lifecycle_paths);
 }
 
 test "runtime bitmap sample keeps bounded view summaries stable" {
