@@ -16,6 +16,7 @@ from pathlib import Path
 
 MARKER = "PHASE14_VALIDATE_PACKET=shared_smoke"
 CHECKER_MARKER = "PHASE14_CHECK_PACKET=rollback_threshold_sequencing"
+RELEASE_BOUNDARY_CHECKER_MARKER = "PHASE14_CHECK_PACKET=release_boundary_exact_counts"
 REQUIRED_COMMANDS = [
     "make -C zigux phase14-validate",
     "make -C zigux phase14-smoke",
@@ -40,6 +41,7 @@ REQUIRED_FILE_MARKERS = {
     ],
     "scripts/zigux/validate-phase14.py": [MARKER],
     "scripts/zigux/check-phase14-rollback-threshold-sequencing.py": [CHECKER_MARKER],
+    "scripts/zigux/check-phase14-release-boundary-exact-counts.py": [RELEASE_BOUNDARY_CHECKER_MARKER],
     "zigux/tests/phase14_end_to_end_smoke_survey.zig": [
         "make -C zigux phase14-validate",
         "phase14: phase14-validate phase14-smoke phase14-test",
@@ -63,8 +65,8 @@ def read_text(path: Path) -> str:
     return path.read_text(encoding="utf-8")
 
 
-def run_guardrail_checker(root: Path) -> list[str]:
-    checker = root / "scripts/zigux/check-phase14-rollback-threshold-sequencing.py"
+def run_checker(root: Path, relative_path: str) -> list[str]:
+    checker = root / relative_path
     if not checker.exists():
         return [f"missing file: {checker.relative_to(root).as_posix()}"]
 
@@ -86,7 +88,7 @@ def run_guardrail_checker(root: Path) -> list[str]:
     elif stdout:
         details.extend(stdout)
     else:
-        details.append("phase14 rollback-threshold sequencing checker failed without output")
+        details.append(f"{relative_path} failed without output")
     return details
 
 
@@ -96,7 +98,8 @@ def check(root: Path) -> list[str]:
     if not manifest_path.exists():
         return [f"missing file: {manifest_path.as_posix()}"]
 
-    errors.extend(run_guardrail_checker(root))
+    errors.extend(run_checker(root, "scripts/zigux/check-phase14-rollback-threshold-sequencing.py"))
+    errors.extend(run_checker(root, "scripts/zigux/check-phase14-release-boundary-exact-counts.py"))
 
     try:
         manifest = json.loads(read_text(manifest_path))
@@ -163,6 +166,12 @@ def run_self_test() -> int:
             root / "scripts/zigux/check-phase14-rollback-threshold-sequencing.py",
             "#!/usr/bin/env python3\n"
             f"\"\"\"{CHECKER_MARKER}\"\"\"\n"
+            "raise SystemExit(0)\n",
+        )
+        write_text(
+            root / "scripts/zigux/check-phase14-release-boundary-exact-counts.py",
+            "#!/usr/bin/env python3\n"
+            f"\"\"\"{RELEASE_BOUNDARY_CHECKER_MARKER}\"\"\"\n"
             "raise SystemExit(0)\n",
         )
         for rel_path, markers in REQUIRED_FILE_MARKERS.items():
