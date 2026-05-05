@@ -15,6 +15,7 @@ NOTES_DOC = ROOT / "Documentation" / "zigux" / "phase2-toolchain-bootstrap-notes
 WORKFLOW = ROOT / ".github" / "workflows" / "zigux-bootstrap.yml"
 README = ROOT / "scripts" / "zigux" / "README.md"
 DOCS_ROOT_README = ROOT / "Documentation" / "zigux" / "README.md"
+TESTS_README = ROOT / "zigux" / "tests" / "README.md"
 REVIEW_CHECKLIST = ROOT / "Documentation" / "zigux" / "review-checklist.md"
 CLOSURE_DOC = ROOT / "Documentation" / "zigux" / "phase2-closure.md"
 PHASE2_VALIDATOR = ROOT / "scripts" / "zigux" / "validate-phase2.py"
@@ -56,6 +57,16 @@ DOCS_ROOT_MARKERS = [
     "scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test",
     "scripts/zigux/check-phase2-toolchain-pin-scope.py",
     "pinned Zig toolchain",
+    "make -C zigux phase2-validate",
+    "make -C zigux phase2",
+]
+
+TESTS_README_MARKERS = [
+    "Documentation/zigux/phase2-toolchain-bootstrap-notes.md",
+    "scripts/zigux/check-phase2-toolchain-pin-scope.py",
+    "pinned `x86_64-linux` bootstrap archive note",
+    "bounded three-target compile matrix",
+    "kbuild-facing replay surface",
     "make -C zigux phase2-validate",
     "make -C zigux phase2",
 ]
@@ -244,6 +255,14 @@ def run_self_test() -> int:
     ):
         raise SystemExit("phase2-toolchain-pin-scope:self-test:valid_docs_root")
 
+    valid_tests_readme = "\n".join(TESTS_README_MARKERS)
+    if validate_required_markers(
+        valid_tests_readme,
+        label="tests_readme",
+        markers=TESTS_README_MARKERS,
+    ):
+        raise SystemExit("phase2-toolchain-pin-scope:self-test:valid_tests_readme")
+
     valid_review_checklist = "\n".join(REVIEW_CHECKLIST_MARKERS)
     if validate_required_markers(
         valid_review_checklist,
@@ -376,6 +395,14 @@ def run_self_test() -> int:
     if not any(issue.startswith("docs_root_readme:missing_marker:") for issue in docs_root_issues):
         raise SystemExit("phase2-toolchain-pin-scope:self-test:docs_root_marker_failure")
 
+    tests_readme_issues = validate_required_markers(
+        "Documentation/zigux/phase2-toolchain-bootstrap-notes.md\nscripts/zigux/check-phase2-toolchain-pin-scope.py",
+        label="tests_readme",
+        markers=TESTS_README_MARKERS,
+    )
+    if not any(issue.startswith("tests_readme:missing_marker:") for issue in tests_readme_issues):
+        raise SystemExit("phase2-toolchain-pin-scope:self-test:tests_readme_marker_failure")
+
     review_issues = validate_required_markers(
         "if the change touches the shared Phase 2 toolchain packet\npython3 scripts/zigux/install-zig.py --self-test",
         label="review_checklist",
@@ -409,7 +436,7 @@ def run_self_test() -> int:
             raise SystemExit("phase2-toolchain-pin-scope:self-test:json_round_trip")
 
     print("PHASE2_TOOLCHAIN_PIN_SCOPE_SELF_TEST=pass")
-    print("PHASE2_TOOLCHAIN_PIN_SCOPE_SELF_TEST_CASE_COUNT=22")
+    print("PHASE2_TOOLCHAIN_PIN_SCOPE_SELF_TEST_CASE_COUNT=24")
     return 0
 
 
@@ -430,6 +457,7 @@ def main() -> int:
         WORKFLOW,
         README,
         DOCS_ROOT_README,
+        TESTS_README,
         REVIEW_CHECKLIST,
         CLOSURE_DOC,
         PHASE2_VALIDATOR,
@@ -465,6 +493,13 @@ def main() -> int:
             DOCS_ROOT_README.read_text(encoding="utf-8"),
             label="docs_root_readme",
             markers=DOCS_ROOT_MARKERS,
+        )
+    )
+    issues.extend(
+        validate_required_markers(
+            TESTS_README.read_text(encoding="utf-8"),
+            label="tests_readme",
+            markers=TESTS_README_MARKERS,
         )
     )
     issues.extend(
