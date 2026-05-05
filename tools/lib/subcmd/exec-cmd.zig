@@ -198,10 +198,8 @@ fn appendPathEntry(
     const normalized = try makeNonrelativePath(allocator, cwd, path);
     defer allocator.free(normalized);
 
-    if (builder.items.len != 0) {
-        try builder.append(allocator, ':');
-    }
     try builder.appendSlice(allocator, normalized);
+    try builder.append(allocator, ':');
 }
 
 pub fn buildSearchPath(
@@ -219,12 +217,10 @@ pub fn buildSearchPath(
         try appendPathEntry(&builder, allocator, cwd, path);
     }
 
-    const tail = old_path orelse "/usr/local/bin:/usr/bin:/bin";
-    if (tail.len != 0) {
-        if (builder.items.len != 0) {
-            try builder.append(allocator, ':');
-        }
+    if (old_path) |tail| {
         try builder.appendSlice(allocator, tail);
+    } else {
+        try builder.appendSlice(allocator, "/usr/local/bin:/usr/bin:/bin");
     }
 
     return builder.toOwnedSlice(allocator);
@@ -367,6 +363,22 @@ test "buildSearchPath rewrites relative entries against the working directory" {
     try std.testing.expectEqualStrings(
         "/opt/perf/bin:/usr/local/bin:/usr/bin:/bin",
         fallback,
+    );
+}
+
+test "buildSearchPath preserves the C helper's trailing colon when PATH exists but is empty" {
+    const built = try buildSearchPath(
+        std.testing.allocator,
+        "/work/tree",
+        "tools/bin",
+        "scripts",
+        "",
+    );
+    defer std.testing.allocator.free(built);
+
+    try std.testing.expectEqualStrings(
+        "/work/tree/tools/bin:/work/tree/scripts:",
+        built,
     );
 }
 
@@ -514,6 +526,35 @@ test "setupPath updates PATH using stored exec path, argv0 path, and fallback de
         fallback,
     );
     try std.testing.expectEqualStrings(fallback, fallback_env.get("PATH").?);
+}
+
+test "setupPath preserves the C helper's trailing colon when PATH is set to an empty string" {
+    const config = Config{
+        .exec_name = "perf",
+        .prefix = "/usr/libexec/perf-core",
+        .exec_path = "libexec/perf-core",
+        .exec_path_env = "PERF_EXEC_PATH",
+    };
+
+    var env = EnvMap.init(std.testing.allocator);
+    defer env.deinit();
+
+    var state = ExecCmdState{};
+    defer state.deinit(std.testing.allocator);
+
+    try execCmdInit(&env, config);
+    try setArgvExecPath(std.testing.allocator, &env, &state, config, "tools/bin");
+    try setArgv0Path(std.testing.allocator, &state, "scripts");
+    try env.set("PATH", "");
+
+    const updated = try setupPath(std.testing.allocator, &env, state, config, "/repo");
+    defer std.testing.allocator.free(updated);
+
+    try std.testing.expectEqualStrings(
+        "/repo/tools/bin:/repo/scripts:",
+        updated,
+    );
+    try std.testing.expectEqualStrings(updated, env.get("PATH").?);
 }
 
 test "choosePwdCwd prefers PWD only when it points at the same location" {
