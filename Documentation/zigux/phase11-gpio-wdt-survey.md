@@ -1,5 +1,7 @@
 # Phase 11 GPIO Watchdog Survey
 
+- `PHASE11_LANE_KEY=P11-Y07`
+
 This survey note now tracks the landed Phase 11 `gpio_wdt` starter anchored to `drivers/watchdog/gpio_wdt.c`.
 
 The live repo state is now:
