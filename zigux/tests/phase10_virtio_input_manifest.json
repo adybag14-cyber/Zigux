@@ -1,5 +1,5 @@
 {
-  "lane_key": "P10-Y04",
+  "lane_key": "P10-L13",
   "phase": "Phase 10",
   "surveyed_commit": "7361ac51374149a96b7a7a2c6ea3c995d8cc1231",
   "anchor": "drivers/virtio/virtio_input.c",
@@ -92,7 +92,7 @@
       "status": "starter_landed",
       "kind": "documentation",
       "zigux_destination": "Documentation/zigux/phase10-virtio-input-survey.md",
-      "why_now": "The lane needs a Phase 10 note that compares the live starter against the roadmap and prevents the repo from overstating input-driver progress."
+      "why_now": "The lane needs a Phase 10 note that compares the live starter against the roadmap, states the current lab-only driver validation evidence plainly, and prevents the repo from overstating input-driver progress."
     },
     {
       "id": "phase10-virtio-input-capability-setup-helper",
