@@ -682,6 +682,47 @@ test "rbtree eraseInit clears detached nodes after erase" {
     try std.testing.expectEqualSlices(i32, &[_]i32{ 5, 20 }, order[0..count]);
 }
 
+test "rbtree replaceNode keeps displaced nodes non-empty until cleared" {
+    const Entry = struct {
+        key: i32,
+        node: Node = Node.init(),
+    };
+
+    const less = struct {
+        fn compare(lhs: *const Node, rhs: *const Node) bool {
+            const lhs_entry: *const Entry = @fieldParentPtr("node", lhs);
+            const rhs_entry: *const Entry = @fieldParentPtr("node", rhs);
+            return lhs_entry.key < rhs_entry.key;
+        }
+    }.compare;
+
+    var entries = [_]Entry{
+        .{ .key = 10 },
+        .{ .key = 20 },
+        .{ .key = 5 },
+        .{ .key = 15 },
+    };
+    var replacement = Entry{ .key = 10 };
+    var root = Root.init();
+
+    for (&entries) |*entry| {
+        add(&entry.node, &root, less);
+    }
+
+    replaceNode(&entries[0].node, &replacement.node, &root);
+
+    try std.testing.expect(!emptyNode(&entries[0].node));
+    try std.testing.expectEqual(@as(?*Node, &entries[2].node), first(&root));
+    try std.testing.expectEqual(@as(?*Node, &replacement.node), next(&entries[2].node));
+    try std.testing.expectEqual(@as(?*Node, &entries[3].node), next(&entries[0].node));
+    try std.testing.expectEqual(@as(?*Node, &entries[2].node), prev(&entries[0].node));
+
+    clearNode(&entries[0].node);
+    try std.testing.expect(emptyNode(&entries[0].node));
+    try std.testing.expectEqual(@as(?*Node, null), next(&entries[0].node));
+    try std.testing.expectEqual(@as(?*Node, null), prev(&entries[0].node));
+}
+
 test "rbtree postorder and empty node helpers behave" {
     const Entry = struct {
         key: i32,
