@@ -36,6 +36,10 @@ pub fn chars(nbytes: usize, padding: bool) usize {
     };
 }
 
+pub fn bytes(src: []const u8, padding: bool, variant: Variant) DecodeError!usize {
+    return decodedLength(src, padding, variant);
+}
+
 pub fn encode(dst: []u8, src: []const u8, padding: bool, variant: Variant) EncodeError!usize {
     const needed = chars(src.len, padding);
     if (dst.len < needed) {
@@ -89,7 +93,7 @@ pub fn encode(dst: []u8, src: []const u8, padding: bool, variant: Variant) Encod
 }
 
 pub fn decode(dst: []u8, src: []const u8, padding: bool, variant: Variant) DecodeError!usize {
-    const exact_len = try decodedLength(src, padding, variant);
+    const exact_len = try bytes(src, padding, variant);
     if (dst.len < exact_len) {
         return DecodeError.DestinationTooSmall;
     }
@@ -273,10 +277,13 @@ fn expectExhaustiveTailCanonicality(padding: bool, variant: Variant) !void {
 
             const tail = if (padding) encoded[0..4] else encoded[0..2];
             if ((b & 0x0f) == 0) {
+                const exact_len = try bytes(tail, padding, variant);
+                try std.testing.expectEqual(@as(usize, 1), exact_len);
                 const written = try decode(decoded[0..], tail, padding, variant);
                 try std.testing.expectEqual(@as(usize, 1), written);
                 try std.testing.expectEqual(@as(u8, @intCast((a << 2) | (b >> 4))), decoded[0]);
             } else {
+                try std.testing.expectError(DecodeError.InvalidInput, bytes(tail, padding, variant));
                 try std.testing.expectError(DecodeError.InvalidInput, decode(decoded[0..], tail, padding, variant));
             }
         }
@@ -294,11 +301,14 @@ fn expectExhaustiveTailCanonicality(padding: bool, variant: Variant) !void {
 
                 const tail = if (padding) encoded[0..4] else encoded[0..3];
                 if ((c & 0x03) == 0) {
+                    const exact_len = try bytes(tail, padding, variant);
+                    try std.testing.expectEqual(@as(usize, 2), exact_len);
                     const written = try decode(decoded[0..], tail, padding, variant);
                     try std.testing.expectEqual(@as(usize, 2), written);
                     try std.testing.expectEqual(@as(u8, @intCast((a << 2) | (b >> 4))), decoded[0]);
                     try std.testing.expectEqual(@as(u8, @intCast(((b & 0x0f) << 4) | (c >> 2))), decoded[1]);
                 } else {
+                    try std.testing.expectError(DecodeError.InvalidInput, bytes(tail, padding, variant));
                     try std.testing.expectError(DecodeError.InvalidInput, decode(decoded[0..], tail, padding, variant));
                 }
             }
@@ -314,6 +324,7 @@ fn expectExhaustiveShortRoundtrip(padding: bool, variant: Variant) !void {
         const input = [_]u8{@intCast(a)};
         const encoded_len = try encode(encoded[0..], input[0..], padding, variant);
         try std.testing.expectEqual(chars(input.len, padding), encoded_len);
+        try std.testing.expectEqual(@as(usize, input.len), try bytes(encoded[0..encoded_len], padding, variant));
 
         const decoded_len = try decode(decoded[0..], encoded[0..encoded_len], padding, variant);
         try std.testing.expectEqual(@as(usize, 1), decoded_len);
@@ -325,6 +336,7 @@ fn expectExhaustiveShortRoundtrip(padding: bool, variant: Variant) !void {
             const input = [_]u8{ @intCast(a), @intCast(b) };
             const encoded_len = try encode(encoded[0..], input[0..], padding, variant);
             try std.testing.expectEqual(chars(input.len, padding), encoded_len);
+            try std.testing.expectEqual(@as(usize, input.len), try bytes(encoded[0..encoded_len], padding, variant));
 
             const decoded_len = try decode(decoded[0..], encoded[0..encoded_len], padding, variant);
             try std.testing.expectEqual(@as(usize, 2), decoded_len);
@@ -345,6 +357,22 @@ test "chars matches padded and unpadded output sizes" {
     try std.testing.expectEqual(@as(usize, 3), chars(2, false));
     try std.testing.expectEqual(@as(usize, 4), chars(3, false));
     try std.testing.expectEqual(@as(usize, 6), chars(4, false));
+}
+
+test "bytes matches canonical padded and unpadded decode sizes" {
+    try std.testing.expectEqual(@as(usize, 13), try bytes("SGVsbG8sIHdvcmxkIQ==", true, .std));
+    try std.testing.expectEqual(@as(usize, 6), try bytes("Zm9vYmFy", false, .std));
+    try std.testing.expectEqual(@as(usize, 5), try bytes("APv_f4A", false, .urlsafe));
+    try std.testing.expectEqual(@as(usize, 5), try bytes("APv,f4A=", true, .imap));
+}
+
+test "bytes rejects malformed input and non-canonical tails" {
+    try std.testing.expectError(DecodeError.InvalidInput, bytes("Zg", true, .std));
+    try std.testing.expectError(DecodeError.InvalidInput, bytes("Zg=!", true, .std));
+    try std.testing.expectError(DecodeError.InvalidInput, bytes("Zm9v====", false, .std));
+    try std.testing.expectError(DecodeError.InvalidInput, bytes("Zg==", false, .urlsafe));
+    try std.testing.expectError(DecodeError.InvalidInput, bytes("Zh==", true, .std));
+    try std.testing.expectError(DecodeError.InvalidInput, bytes("Zm9", false, .std));
 }
 
 test "encode covers standard and variant alphabets" {
