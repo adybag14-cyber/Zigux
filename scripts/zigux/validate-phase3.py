@@ -361,7 +361,6 @@ def run_self_test() -> int:
             encoding="utf-8",
             newline="\n",
         )
-        (paths.docs_dir / "phase3-alpha-slice.md").writeText = None
         (paths.docs_dir / "phase3-alpha-slice.md").write_text(
             "\n".join(
                 [
