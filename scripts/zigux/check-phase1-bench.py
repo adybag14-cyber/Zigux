@@ -27,21 +27,110 @@ def find_zig(explicit: str | None) -> str:
     raise SystemExit('zig not found; pass --zig or add zig to PATH')
 
 
-def parse_output(stdout: str) -> dict[str, str]:
+def parse_output(stdout: str) -> tuple[dict[str, str], dict[str, int]]:
     parsed: dict[str, str] = {}
+    counts: dict[str, int] = {}
     for raw_line in stdout.splitlines():
         line = raw_line.strip()
         if not line or '=' not in line:
             continue
         key, value = line.split('=', 1)
         parsed[key] = value
-    return parsed
+        counts[key] = counts.get(key, 0) + 1
+    return parsed, counts
+
+
+def validate_output(expectations: dict[str, object], stdout: str) -> tuple[str, object]:
+    parsed, counts = parse_output(stdout)
+    required_keys = {
+        'PHASE1_BENCH',
+        *expectations['iterations'].keys(),
+        *expectations['checksums'],
+    }
+    duplicate = sorted(key for key in required_keys if counts.get(key, 0) > 1)
+    if duplicate:
+        return ('duplicate', duplicate)
+
+    actual_status = parsed.get('PHASE1_BENCH')
+    if actual_status != expectations['status']:
+        return ('status', (expectations['status'], actual_status))
+
+    missing = []
+    for key, value in expectations['iterations'].items():
+        actual = parsed.get(key)
+        if actual is None:
+            missing.append(key)
+            continue
+        if int(actual) != int(value):
+            return ('iteration_mismatch', (key, value, actual))
+
+    for key in expectations['checksums']:
+        actual = parsed.get(key)
+        if actual is None:
+            missing.append(key)
+            continue
+        if int(actual) <= 0:
+            return ('nonpositive_checksum', (key, actual))
+
+    if missing:
+        return ('missing', missing)
+
+    return ('pass', parsed)
+
+
+def run_self_test() -> None:
+    expectations = {
+        'status': 'pass',
+        'iterations': {
+            'PHASE1_BENCH_BITMAP_WEIGHT_ITERATIONS': 20000,
+        },
+        'checksums': [
+            'PHASE1_BENCH_BITMAP_WEIGHT_CHECKSUM',
+        ],
+    }
+
+    ok_output = '\n'.join([
+        'PHASE1_BENCH=pass',
+        'PHASE1_BENCH_BITMAP_WEIGHT_ITERATIONS=20000',
+        'PHASE1_BENCH_BITMAP_WEIGHT_CHECKSUM=7',
+    ])
+    duplicate_status_output = '\n'.join([
+        'PHASE1_BENCH=pass',
+        'PHASE1_BENCH=pass',
+        'PHASE1_BENCH_BITMAP_WEIGHT_ITERATIONS=20000',
+        'PHASE1_BENCH_BITMAP_WEIGHT_CHECKSUM=7',
+    ])
+    duplicate_iteration_output = '\n'.join([
+        'PHASE1_BENCH=pass',
+        'PHASE1_BENCH_BITMAP_WEIGHT_ITERATIONS=20000',
+        'PHASE1_BENCH_BITMAP_WEIGHT_ITERATIONS=20000',
+        'PHASE1_BENCH_BITMAP_WEIGHT_CHECKSUM=7',
+    ])
+
+    kind, _ = validate_output(expectations, ok_output)
+    assert kind == 'pass'
+
+    kind, payload = validate_output(expectations, duplicate_status_output)
+    assert kind == 'duplicate'
+    assert payload == ['PHASE1_BENCH']
+
+    kind, payload = validate_output(expectations, duplicate_iteration_output)
+    assert kind == 'duplicate'
+    assert payload == ['PHASE1_BENCH_BITMAP_WEIGHT_ITERATIONS']
+
+    print('PHASE1_BENCH_CHECK_SELF_TEST=pass')
+    print('PHASE1_BENCH_CHECK_SELF_TEST_CASE_COUNT=3')
 
 
 def main() -> int:
     parser = argparse.ArgumentParser(description='Run and validate the bounded Phase 1 benchmark smoke output.')
     parser.add_argument('--zig', help='Path to Zig executable')
+    parser.add_argument('--self-test', action='store_true', help='Run checker self-test cases without invoking Zig.')
     args = parser.parse_args()
+
+    if args.self_test:
+        run_self_test()
+        return 0
 
     zig = find_zig(args.zig)
     expectations = json.loads(EXPECTATIONS.read_text(encoding='utf-8'))
@@ -52,42 +141,37 @@ def main() -> int:
         capture_output=True,
     )
 
-    parsed = parse_output(result.stdout)
-
-    if parsed.get('PHASE1_BENCH') != expectations['status']:
+    kind, payload = validate_output(expectations, result.stdout)
+    if kind == 'duplicate':
         print('PHASE1_BENCH_CHECK=fail')
-        print(f"EXPECTED_STATUS={expectations['status']}")
-        print(f"ACTUAL_STATUS={parsed.get('PHASE1_BENCH')}")
+        print('DUPLICATE_PHASE1_BENCH_KEYS_START')
+        for key in payload:
+            print(key)
+        print('DUPLICATE_PHASE1_BENCH_KEYS_END')
         return 1
-
-    missing = []
-    for key, value in expectations['iterations'].items():
-        actual = parsed.get(key)
-        if actual is None:
-            missing.append(key)
-            continue
-        if int(actual) != int(value):
-            print('PHASE1_BENCH_CHECK=fail')
-            print(f'ITERATION_MISMATCH={key}')
-            print(f'EXPECTED={value}')
-            print(f'ACTUAL={actual}')
-            return 1
-
-    for key in expectations['checksums']:
-        actual = parsed.get(key)
-        if actual is None:
-            missing.append(key)
-            continue
-        if int(actual) <= 0:
-            print('PHASE1_BENCH_CHECK=fail')
-            print(f'NONPOSITIVE_CHECKSUM={key}')
-            print(f'ACTUAL={actual}')
-            return 1
-
-    if missing:
+    if kind == 'status':
+        expected, actual = payload
+        print('PHASE1_BENCH_CHECK=fail')
+        print(f'EXPECTED_STATUS={expected}')
+        print(f'ACTUAL_STATUS={actual}')
+        return 1
+    if kind == 'iteration_mismatch':
+        key, expected, actual = payload
+        print('PHASE1_BENCH_CHECK=fail')
+        print(f'ITERATION_MISMATCH={key}')
+        print(f'EXPECTED={expected}')
+        print(f'ACTUAL={actual}')
+        return 1
+    if kind == 'nonpositive_checksum':
+        key, actual = payload
+        print('PHASE1_BENCH_CHECK=fail')
+        print(f'NONPOSITIVE_CHECKSUM={key}')
+        print(f'ACTUAL={actual}')
+        return 1
+    if kind == 'missing':
         print('PHASE1_BENCH_CHECK=fail')
         print('MISSING_PHASE1_BENCH_KEYS_START')
-        for key in missing:
+        for key in payload:
             print(key)
         print('MISSING_PHASE1_BENCH_KEYS_END')
         return 1
