@@ -80,7 +80,7 @@ test "phase10 virtio mmio survey manifest records the live helper-backed transpo
     defer parsed.deinit();
 
     const manifest = parsed.value;
-    try std.testing.expectEqualStrings("P10-L13", manifest.lane_key);
+    try std.testing.expectEqualStrings("P10-L16", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 10", manifest.phase);
     try std.testing.expectEqualStrings("drivers/virtio/virtio_mmio.c", manifest.anchor);
     try std.testing.expectEqualStrings("5f476437a4a3b91d840dd75fca0bf684d1ccc4dd", manifest.surveyed_commit);
