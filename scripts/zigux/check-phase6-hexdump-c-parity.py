@@ -10,8 +10,13 @@ import textwrap
 from pathlib import Path
 
 
+def derive_root(script_path: Path) -> Path:
+    resolved = script_path.resolve()
+    return resolved.parents[2] if len(resolved.parents) > 2 else resolved.parent
+
+
 SCRIPT_PATH = Path(__file__).resolve()
-ROOT = SCRIPT_PATH.parents[2] if len(SCRIPT_PATH.parents) > 2 else SCRIPT_PATH.parent
+ROOT = derive_root(SCRIPT_PATH)
 C_HARNESS = ROOT / "zigux" / "tests" / "fixtures" / "phase6_hexdump_c_harness.c"
 HELPER_SOURCE = ROOT / "lib" / "hexdump.zig"
 FIXTURE_SOURCE = ROOT / "zigux" / "tests" / "fixtures" / "phase6_hexdump_vectors.zig"
@@ -177,13 +182,15 @@ def run_self_test() -> int:
     )
     build_text = build_zig_build_text()
     assert_equal(
-        "tool_env_build_text_runner_helper_fixture_paths_and_normalization",
+        "tool_env_build_text_runner_helper_fixture_paths_root_derivation_and_normalization",
         require_tool("zig", "PHASE6_SELFTEST_TOOL") == "/tmp/zig-self-test"
         and 'root_module.addImport("hexdump", hexdump_module);' in build_text
         and 'root_module.addImport("phase6_hexdump_vectors", fixtures_module);' in build_text
         and str(HELPER_SOURCE) in build_text
         and str(FIXTURE_SOURCE) in build_text
         and str(ZIG_RUNNER) in build_text
+        and derive_root(Path("/tmp/phase6-checker.py")) == Path("/tmp")
+        and derive_root(Path("/tmp/a/b/c/phase6-checker.py")) == Path("/tmp/a")
         and len(EXPECTED_SORTED_LINES) == 29
         and sorted_lines("hexToBin\tA\t10\ndump\tplain\t3\tabc\n") == ["dump\tplain\t3\tabc", "hexToBin\tA\t10"],
         True,
@@ -214,8 +221,8 @@ def run_self_test() -> int:
             "self-test-mismatch",
         ),
         "phase6-hexdump-c-parity:self-test-mismatch:c_output_mismatch:"
-        "expected=['hexToBin\tA\t10', 'length\tplain\t33']:"
-        "actual=['hexToBin\tA\t10', 'length\tplain\t34']",
+        "expected=['hexToBin\\tA\\t10', 'length\\tplain\\t33']:"
+        "actual=['hexToBin\\tA\\t10', 'length\\tplain\\t34']",
     )
 
     print("PHASE6_HEXDUMP_C_PARITY_SELF_TEST=pass")
