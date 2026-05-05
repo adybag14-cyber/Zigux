@@ -127,3 +127,62 @@ test "phase 9 runtime trace-events survey manifest records the landed loader sca
     try std.testing.expect(saw_loader_scaffold);
     try std.testing.expect(saw_live_loader_blocker);
 }
+
+test "phase 9 runtime trace-events survey keeps loader-backed shared build coverage explicit" {
+    var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
+    defer io_instance.deinit();
+
+    const survey_note = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "Documentation/zigux/phase9-runtime-trace-events-survey.md",
+        std.testing.allocator,
+        .limited(32 * 1024),
+    );
+    defer std.testing.allocator.free(survey_note);
+
+    const module_slice = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "Documentation/zigux/phase9-runtime-trace-events-module-slice.md",
+        std.testing.allocator,
+        .limited(32 * 1024),
+    );
+    defer std.testing.allocator.free(module_slice);
+
+    const loader_source = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "samples/zigux/runtime_trace_events_loader.zig",
+        std.testing.allocator,
+        .limited(32 * 1024),
+    );
+    defer std.testing.allocator.free(loader_source);
+
+    const phase9_build = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "zigux/tests/phase9_build.zig",
+        std.testing.allocator,
+        .limited(64 * 1024),
+    );
+    defer std.testing.allocator.free(phase9_build);
+
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "shared `zigux/tests/phase9_build.zig` coverage for the trace-events starter lane") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "the current loader scaffold now records explicit tracepoint register and unregister API names") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "the no-substrate release path without claiming a real shared runtime loader already exists") != null);
+
+    try std.testing.expect(std.mem.indexOf(u8, module_slice, "a loader-handoff scaffold") != null);
+    try std.testing.expect(std.mem.indexOf(u8, module_slice, "samples/zigux/runtime_trace_events_loader.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, module_slice, "zigux/tests/runtime_trace_events_survey.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, module_slice, "zigux/tests/phase9_build.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, module_slice, "shared runtime loader substrate can consume the bounded loader-handoff plan") != null);
+
+    try std.testing.expect(std.mem.indexOf(u8, loader_source, ".entry_symbol = \"zigux_runtime_trace_events_init\"") != null);
+    try std.testing.expect(std.mem.indexOf(u8, loader_source, ".exit_symbol = \"zigux_runtime_trace_events_exit\"") != null);
+    try std.testing.expect(std.mem.indexOf(u8, loader_source, ".register_api = \"tracepoint_probe_register\"") != null);
+    try std.testing.expect(std.mem.indexOf(u8, loader_source, ".unregister_api = \"tracepoint_probe_unregister\"") != null);
+    try std.testing.expect(std.mem.indexOf(u8, loader_source, "self.stage_state = .waiting_on_runtime_substrate;") != null);
+    try std.testing.expect(std.mem.indexOf(u8, loader_source, "self.stage_state = .released_without_substrate;") != null);
+    try std.testing.expect(std.mem.indexOf(u8, loader_source, "test \"runtime trace-events loader keeps the prepared snapshot stable across later sample mutation\"") != null);
+
+    try std.testing.expect(std.mem.indexOf(u8, phase9_build, "runtime_trace_events_loader_module") != null);
+    try std.testing.expect(std.mem.indexOf(u8, phase9_build, "phase9-runtime-trace-events-loader-tests") != null);
+    try std.testing.expect(std.mem.indexOf(u8, phase9_build, "run_runtime_trace_events_loader_tests.step") != null);
+}
