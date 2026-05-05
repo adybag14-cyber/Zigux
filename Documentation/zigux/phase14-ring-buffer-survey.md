@@ -4,8 +4,10 @@ This document records the bounded Phase 14 survey lane around `kernel/trace/ring
 
 ## Status
 
+- `PHASE14_LANE_KEY=P14-Y02`
 - `PHASE14_STATUS=study_only`
 - `PHASE14_SLICE=ring-buffer-survey-gap`
+- `PHASE14_SURVEYED_COMMIT=946d5c73fdb763ba860a20879b05da54e1896e8c`
 - scope: the dedicated Phase 14 ring-buffer survey gate, its manifest, the shared Phase 14 build wiring, and this lane note that keeps the roadmap gap explicit without shipping a Zig bridge
 - survey provenance refreshed against verified `master` head `946d5c73fdb763ba860a20879b05da54e1896e8c`
 - product boundary:
@@ -17,9 +19,9 @@ This document records the bounded Phase 14 survey lane around `kernel/trace/ring
 
 ## Why this slice exists
 
-The Phase 14 roadmap explicitly names `kernel/trace/ring_buffer.c` as a boundary-study target first, not a rewrite target. It also says `kernel/trace/ring_buffer.zig` is only appropriate if years of evidence justify it.
+The Phase 14 roadmap explicitly names `kernel/trace/ring_buffer.c` as a boundary-study target first, not a rewrite target.
 
-That caution matters because the live anchor is already 8,103 lines, its surrounding tracing surface is even larger, and the supporting docs expose consumer-facing behavior that sits on top of deep per-CPU page rotation, reserve and commit sequencing, reader handoff, overwrite and lost-event accounting, wakeups, mmap-facing state, and tracefs mapping lockouts around resize, snapshot, and splice behavior.
+It also says `kernel/trace/ring_buffer.zig` is only appropriate if years of evidence justify it. That caution matters because the live anchor is already 8,103 lines, its surrounding tracing surface is even larger, and the supporting docs expose consumer-facing behavior that sits on top of deep per-CPU page rotation, reserve and commit sequencing, reader handoff, overwrite and lost-event accounting, wakeups, mmap-facing state, and tracefs mapping lockouts around resize, snapshot, and splice behavior.
 
 The honest Phase 14 move here is therefore not to start a `ring_buffer.zig` file. It is to make the blocked state reviewable and record the first stay-in-C checklist seams so future runs can stay disciplined about what remains study-only.
 
@@ -31,7 +33,7 @@ The honest Phase 14 move here is therefore not to start a `ring_buffer.zig` file
 - `Documentation/trace/ring-buffer-map.rst` is present at 106 lines and adds mmap-facing reader, sub-buffer, and tracefs limitation behavior that would be easy to understate in a premature Zig wrapper.
 - `kernel/trace/simple_ring_buffer.c` exists as a much smaller 517-line companion, which reinforces that the full tracing ring buffer is the complex path and should not be treated like a straightforward helper port.
 - the live repo already had `zigux/tests/phase14_build.zig`, `zigux/Makefile` Phase 14 wiring, `Documentation/zigux/freeze-map.md`, and the workqueue bridge slice, so the highest-value non-overlapping ring-buffer step is a survey gate rather than another starter implementation.
-- the survey manifest now records a landed decision checklist around reserve or commit publication, head-page and reader-page handoff, remote-reader metadata, wakeup or mmap-facing publication, and tracefs mapping limitations so later runs can deepen the audit without inventing `kernel/trace/ring_buffer.zig`.
+- the survey manifest now records a landed decision checklist around reserve or commit publication, head-page and reader-page handoff, remote-reader metadata, wakeup or mmap-facing publication, tracefs mapping limitations, and reader-page consumption boundaries so later runs can deepen the audit without inventing `kernel/trace/ring_buffer.zig`.
 
 ## Decision checklist
 
@@ -72,6 +74,14 @@ The honest Phase 14 move here is therefore not to start a `ring_buffer.zig` file
 - Lost-event and metadata publication stay in the same C-owned handoff. When missed events exist, `ring_buffer_map_get_reader()` tries to encode them into the exported page state, then flushes the mapped range and calls `rb_update_meta_page()` before releasing `reader_lock`, so user space still depends on one combined kernel handoff for page contents, loss accounting, and meta-page refresh.
 - The concurrent-reader warning in `Documentation/trace/ring-buffer-map.rst` lines up with the implementation details. Multiple user mappings increment `user_mapped`, `ring_buffer_map_dup()` preserves that shared state across duplicated mappings, and the docs still call the resulting output unpredictable, which confirms that `TRACE_MMAP_IOCTL_GET_READER` remains part of a shared reader-competition contract rather than a clean Zig bridge seam.
 
+## Reader-page consume audit
+
+- `__rb_get_reader_page()` is already a stay-in-C state machine, not a lightweight accessor. Under local IRQ disable and `cpu_buffer->lock`, it returns the current reader page only when unread bytes remain, otherwise it zeroes the out-of-ring reader page, splices that page around the current head, retries while writers are moving the head marker, and only then updates `reader_page`, `read_stamp`, and page counters.
+- Lost-event publication is attached to that same reader-page swap. `__rb_get_reader_page()` snapshots `overrun` after the new reader-page links are prepared, compares it with `last_overrun` after the replacement succeeds, and stores the delta in `lost_events`, which means page acquisition and reader-visible loss accounting are still one combined handoff.
+- `ring_buffer_consume()` builds directly on that shared handoff instead of exposing a smaller seam. It enters under `reader_lock`, peeks through `rb_buffer_peek()`, clears `cpu_buffer->lost_events` only after a concrete event is returned, and then advances the in-kernel reader with `rb_advance_reader()`, so consuming reads remain coupled to the same reader-page rotation and lost-event lifecycle as the acquisition path.
+- Non-consuming iteration stays tied to the same boundary. `ring_buffer_read_start()` allocates an iterator, increments `resize_disabled`, takes `reader_lock` plus `cpu_buffer->lock`, and resets the iterator against the live reader state, so even the supposedly observational path still pins resize behavior and shares the same reader serialization contract.
+- The design docs back up that code-level coupling. `Documentation/trace/ring-buffer-design.rst` says no two readers may run at the same time and describes the dedicated reader page swapping with the head page, which matches the implementation detail that consuming and non-consuming readers still revolve around one C-owned reader-page choreography instead of a wrapper-first helper surface.
+
 ## Recorded gaps
 
 The current lane state is:
@@ -86,7 +96,8 @@ The current lane state is:
 - landed `phase14-ring-buffer-wakeup-mmap-followup`
 - landed `phase14-ring-buffer-splice-resize-followup`
 - landed `phase14-ring-buffer-mapped-reader-ioctl-followup`
-- ready-next `phase14-ring-buffer-reader-page-consume-followup`
+- landed `phase14-ring-buffer-reader-page-consume-followup`
+- ready-next `phase14-ring-buffer-reset-governance-followup`
 - blocked `phase14-ring-buffer-zig-port-blocker`
 
 This keeps the lane honest: Zigux now has an explicit reviewable record that `kernel/trace/ring_buffer.c` belongs in the study-only set for now, and that the repo still does not ship `kernel/trace/ring_buffer.zig`.
@@ -105,11 +116,10 @@ This survey slice does not claim:
 ## Gates
 
 1. run the dedicated Phase 14 build
-- `zig build test --build-file zigux/tests/phase14_build.zig`
-
+   - `zig build test --build-file zigux/tests/phase14_build.zig`
 2. run the convenience target
-- `make -C zigux phase14`
+   - `make -C zigux phase14`
 
 ## Next bounded step
 
-Stay in the Phase 14 ring-buffer lane and add one small study-only reader-page follow-up next, limited to `rb_get_reader_page()`, `ring_buffer_read_start()`, and `ring_buffer_consume()` before anyone proposes `kernel/trace/ring_buffer.zig`.
+Stay in the Phase 14 ring-buffer lane and add one small study-only reset and clear-path governance follow-up next, limited to `ring_buffer_reset_cpu()`, `ring_buffer_reset_online_cpus()`, `ring_buffer_reset()`, and tracefs-owned clear semantics before anyone proposes `kernel/trace/ring_buffer.zig`.
