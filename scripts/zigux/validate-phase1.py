@@ -1,59 +1,52 @@
 #!/usr/bin/env python3
+from __future__ import annotations
+
+import argparse
 from pathlib import Path
-import sys
+import tempfile
 
 
-ROOT = Path(__file__).resolve().parents[2]
+_SELF_PATH = Path(__file__).resolve()
+ROOT = _SELF_PATH.parents[2] if len(_SELF_PATH.parents) >= 3 else _SELF_PATH.parent
 
-required_files = [
-    ROOT / 'tools' / 'lib' / 'bitmap.zig',
-    ROOT / 'tools' / 'lib' / 'find_bit.zig',
-    ROOT / 'tools' / 'lib' / 'string.zig',
-    ROOT / 'tools' / 'lib' / 'rbtree.zig',
-    ROOT / 'tools' / 'lib' / 'argv_split.zig',
-    ROOT / 'tools' / 'lib' / 'cmdline.zig',
-    ROOT / 'tools' / 'lib' / 'ctype.zig',
-    ROOT / 'tools' / 'lib' / 'hweight.zig',
-    ROOT / 'tools' / 'lib' / 'list_sort.zig',
-    ROOT / 'tools' / 'lib' / 'slab.zig',
-    ROOT / 'tools' / 'lib' / 'str_error_r.zig',
-    ROOT / 'tools' / 'lib' / 'vsprintf.zig',
-    ROOT / 'tools' / 'lib' / 'zalloc.zig',
-    ROOT / 'scripts' / 'zigux' / 'artifact_diff.py',
-    ROOT / 'scripts' / 'zigux' / 'check-phase1-parity.py',
-    ROOT / 'zigux' / 'tests' / 'build.zig',
-    ROOT / 'zigux' / 'tests' / 'phase1_helpers.zig',
-    ROOT / 'zigux' / 'tests' / 'fixtures' / 'phase1_helpers_c_harness.c',
-    ROOT / 'zigux' / 'tests' / 'fixtures' / 'phase1_helpers.json',
+REQUIRED_FILES = [
+    "tools/lib/bitmap.zig",
+    "tools/lib/find_bit.zig",
+    "tools/lib/string.zig",
+    "tools/lib/rbtree.zig",
+    "tools/lib/argv_split.zig",
+    "tools/lib/cmdline.zig",
+    "tools/lib/ctype.zig",
+    "tools/lib/hweight.zig",
+    "tools/lib/list_sort.zig",
+    "tools/lib/slab.zig",
+    "tools/lib/str_error_r.zig",
+    "tools/lib/vsprintf.zig",
+    "tools/lib/zalloc.zig",
+    "scripts/zigux/artifact_diff.py",
+    "scripts/zigux/check-phase1-parity.py",
+    "zigux/tests/build.zig",
+    "zigux/tests/phase1_helpers.zig",
+    "zigux/tests/fixtures/phase1_helpers_c_harness.c",
+    "zigux/tests/fixtures/phase1_helpers.json",
 ]
 
-missing = [str(path.relative_to(ROOT)) for path in required_files if not path.exists()]
-if missing:
-    print('PHASE1_VALIDATION=fail')
-    print('MISSING_PHASE1_FILES_START')
-    for item in missing:
-        print(item)
-    print('MISSING_PHASE1_FILES_END')
-    sys.exit(1)
-
-ledger = (ROOT / 'zigux-alpha' / 'BOOTSTRAP_COMMIT_LEDGER.md').read_text(encoding='utf-8')
-workflow = (ROOT / '.github' / 'workflows' / 'zigux-bootstrap.yml').read_text(encoding='utf-8')
-test_root = (ROOT / 'zigux' / 'tests' / 'phase1_helpers.zig').read_text(encoding='utf-8')
-
-required_ledger_markers = [
-    'feat(tools/lib): start phase-1 helper ports',
-    'test(zigux): add phase-1 helper harness and workflow gate',
-    'feat(tools/lib): expand phase-1 helper batch',
-    'test(zigux): add phase-1 golden parity fixtures and artifact diff gate',
-    'feat(tools/lib): complete bounded phase-1 helper coverage',
+REQUIRED_LEDGER_MARKERS = [
+    "feat(tools/lib): start phase-1 helper ports",
+    "test(zigux): add phase-1 helper harness and workflow gate",
+    "feat(tools/lib): expand phase-1 helper batch",
+    "test(zigux): add phase-1 golden parity fixtures and artifact diff gate",
+    "feat(tools/lib): complete bounded phase-1 helper coverage",
 ]
-required_workflow_markers = [
-    'tools/lib/*.zig',
-    'python3 scripts/zigux/validate-phase1.py',
-    'python3 scripts/zigux/check-phase1-parity.py',
-    'zig build test --build-file zigux/tests/build.zig',
+
+REQUIRED_WORKFLOW_MARKERS = [
+    "tools/lib/*.zig",
+    "python3 scripts/zigux/validate-phase1.py",
+    "python3 scripts/zigux/check-phase1-parity.py",
+    "zig build test --build-file zigux/tests/build.zig",
 ]
-required_test_markers = [
+
+REQUIRED_TEST_MARKERS = [
     '@import("argv_split")',
     '@import("bitmap")',
     '@import("cmdline")',
@@ -70,25 +63,107 @@ required_test_markers = [
     '@embedFile("fixtures/phase1_helpers.json")',
 ]
 
-missing_markers = []
-for marker in required_ledger_markers:
-    if marker not in ledger:
-        missing_markers.append(f'ledger:{marker}')
-for marker in required_workflow_markers:
-    if marker not in workflow:
-        missing_markers.append(f'workflow:{marker}')
-for marker in required_test_markers:
-    if marker not in test_root:
-        missing_markers.append(f'test:{marker}')
 
-if missing_markers:
-    print('PHASE1_VALIDATION=fail')
-    print('MISSING_PHASE1_MARKERS_START')
-    for marker in missing_markers:
-        print(marker)
-    print('MISSING_PHASE1_MARKERS_END')
-    sys.exit(1)
+def collect_missing_files(root: Path) -> list[str]:
+    missing: list[str] = []
+    for rel in REQUIRED_FILES:
+        if not (root / rel).exists():
+            missing.append(rel)
+    return missing
 
-print('PHASE1_VALIDATION=pass')
-print(f'PHASE1_REQUIRED_FILE_COUNT={len(required_files)}')
-print(f'PHASE1_REQUIRED_MARKER_COUNT={len(required_ledger_markers) + len(required_workflow_markers) + len(required_test_markers)}')
+
+def collect_missing_markers(root: Path) -> list[str]:
+    ledger = (root / "zigux-alpha" / "BOOTSTRAP_COMMIT_LEDGER.md").read_text(encoding="utf-8")
+    workflow = (root / ".github" / "workflows" / "zigux-bootstrap.yml").read_text(encoding="utf-8")
+    test_root = (root / "zigux" / "tests" / "phase1_helpers.zig").read_text(encoding="utf-8")
+
+    missing_markers: list[str] = []
+    for marker in REQUIRED_LEDGER_MARKERS:
+        if marker not in ledger:
+            missing_markers.append(f"ledger:{marker}")
+    for marker in REQUIRED_WORKFLOW_MARKERS:
+        if marker not in workflow:
+            missing_markers.append(f"workflow:{marker}")
+    for marker in REQUIRED_TEST_MARKERS:
+        if marker not in test_root:
+            missing_markers.append(f"test:{marker}")
+    return missing_markers
+
+
+def make_fixture_root(tmp_root: Path) -> None:
+    for rel in REQUIRED_FILES:
+        path = tmp_root / rel
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text("// fixture\n", encoding="utf-8")
+
+    workflow_path = tmp_root / ".github" / "workflows" / "zigux-bootstrap.yml"
+    workflow_path.parent.mkdir(parents=True, exist_ok=True)
+    workflow_path.write_text("\n".join(REQUIRED_WORKFLOW_MARKERS) + "\n", encoding="utf-8")
+
+    ledger_path = tmp_root / "zigux-alpha" / "BOOTSTRAP_COMMIT_LEDGER.md"
+    ledger_path.parent.mkdir(parents=True, exist_ok=True)
+    ledger_path.write_text("\n".join(REQUIRED_LEDGER_MARKERS) + "\n", encoding="utf-8")
+
+    test_path = tmp_root / "zigux" / "tests" / "phase1_helpers.zig"
+    test_path.parent.mkdir(parents=True, exist_ok=True)
+    test_path.write_text("\n".join(REQUIRED_TEST_MARKERS) + "\n", encoding="utf-8")
+
+
+def run_self_test() -> None:
+    with tempfile.TemporaryDirectory(prefix="zigux_phase1_validator_") as tmp_dir_str:
+        tmp_root = Path(tmp_dir_str)
+        make_fixture_root(tmp_root)
+
+        assert collect_missing_files(tmp_root) == []
+        assert collect_missing_markers(tmp_root) == []
+
+        missing_file = "tools/lib/bitmap.zig"
+        (tmp_root / missing_file).unlink()
+        assert collect_missing_files(tmp_root) == [missing_file]
+        make_fixture_root(tmp_root)
+
+        workflow_path = tmp_root / ".github" / "workflows" / "zigux-bootstrap.yml"
+        workflow_path.write_text("tools/lib/*.zig\npython3 scripts/zigux/validate-phase1.py\n", encoding="utf-8")
+        missing_markers = collect_missing_markers(tmp_root)
+        assert "workflow:python3 scripts/zigux/check-phase1-parity.py" in missing_markers
+        assert "workflow:zig build test --build-file zigux/tests/build.zig" in missing_markers
+
+    print("PHASE1_VALIDATION_SELF_TEST=pass")
+    print("PHASE1_VALIDATION_SELF_TEST_CASE_COUNT=3")
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(description="Validate the bounded Phase 1 helper packet.")
+    parser.add_argument("--self-test", action="store_true", help="Run validator self-test cases without reading repo files.")
+    args = parser.parse_args()
+
+    if args.self_test:
+        run_self_test()
+        return 0
+
+    missing = collect_missing_files(ROOT)
+    if missing:
+        print("PHASE1_VALIDATION=fail")
+        print("MISSING_PHASE1_FILES_START")
+        for item in missing:
+            print(item)
+        print("MISSING_PHASE1_FILES_END")
+        return 1
+
+    missing_markers = collect_missing_markers(ROOT)
+    if missing_markers:
+        print("PHASE1_VALIDATION=fail")
+        print("MISSING_PHASE1_MARKERS_START")
+        for marker in missing_markers:
+            print(marker)
+        print("MISSING_PHASE1_MARKERS_END")
+        return 1
+
+    print("PHASE1_VALIDATION=pass")
+    print(f"PHASE1_REQUIRED_FILE_COUNT={len(REQUIRED_FILES)}")
+    print(f"PHASE1_REQUIRED_MARKER_COUNT={len(REQUIRED_LEDGER_MARKERS) + len(REQUIRED_WORKFLOW_MARKERS) + len(REQUIRED_TEST_MARKERS)}")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
