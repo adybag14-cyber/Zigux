@@ -206,11 +206,10 @@ test "phase 5 kobject survey note stays repo-local, lane-scoped, and keeps the a
     defer std.testing.allocator.free(review_checklist);
 
     const checklist_markers = [_][]const u8{
-        "no standalone `samples/zigux/*rbtree*` reference sample",
-        "Documentation/zigux/phase7-rbtree-slice.md",
-        "lib/rbtree.zig",
-        "zigux/tests/phase7_rbtree.zig",
-        "zigux/tests/phase7_build.zig",
+        "if the change is a reference sample under `samples/zigux/`, is the self-check or behavior replay explicit and small enough to stay reviewable?",
+        "if the change updates an existing Phase 5 sample, do the descriptor, manifest, and shared `phase5_build.zig` entrypoint still agree on the same Linux anchor and exact replay contract?",
+        "if the change updates a landed Phase 5 sample that keeps a Linux concurrency or private-data cue only for reviewability, does the note or checklist still say clearly what remains in-memory-only and what runtime parity is still out of scope?",
+        "if the change is a landed Phase 5 sample, does it update the directly coupled survey note or manifest-backed contributor prompts when the sample contract changes?",
     };
 
     for (checklist_markers) |needle| {
