@@ -191,11 +191,13 @@ test "phase12 virtio_net survey manifest stays aligned with the landed driver pa
         if (std.mem.eql(u8, gap.id, "phase12-virtio-net-mergeable-buffer-length-summary")) {
             saw_mergeable_buffer_length = true;
             try std.testing.expectEqualStrings("drivers/net/virtio_net.zig", gap.zigux_destination);
-            try std.testing.expectEqualStrings("ready_next", gap.status);
+            try std.testing.expectEqualStrings("starter_landed", gap.status);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "`get_mergeable_buf_len()`") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "observed average packet size") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "minimum floor") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "page payload") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "page-minus-room") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "`skb_shared_info`") != null);
         }
 
         if (std.mem.eql(u8, gap.id, "phase12-virtio-net-runtime-data-path")) {
@@ -211,7 +213,7 @@ test "phase12 virtio_net survey manifest stays aligned with the landed driver pa
         }
     }
 
-    try std.testing.expectEqual(@as(usize, 10), starter_landed_count);
+    try std.testing.expectEqual(@as(usize, 11), starter_landed_count);
     try std.testing.expectEqual(@as(usize, 1), blocked_count);
     try std.testing.expect(saw_build_gate);
     try std.testing.expect(saw_make_target);
@@ -225,4 +227,29 @@ test "phase12 virtio_net survey manifest stays aligned with the landed driver pa
     try std.testing.expect(saw_transmit_recycle);
     try std.testing.expect(saw_mergeable_buffer_length);
     try std.testing.expect(saw_blocker);
+
+    const driver_file = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "drivers/net/virtio_net.zig",
+        std.testing.allocator,
+        .limited(64 * 1024),
+    );
+    defer std.testing.allocator.free(driver_file);
+
+    const survey_note = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "Documentation/zigux/phase12-virtio-net-survey.md",
+        std.testing.allocator,
+        .limited(32 * 1024),
+    );
+    defer std.testing.allocator.free(survey_note);
+
+    try std.testing.expect(std.mem.indexOf(u8, driver_file, "pub const MergeableBufferLengthSummary = struct") != null);
+    try std.testing.expect(std.mem.indexOf(u8, driver_file, "pub fn planMergeableBufferLength") != null);
+    try std.testing.expect(std.mem.indexOf(u8, driver_file, "fn summarizeMergeableBufferLength(") != null);
+
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "mergeable-buffer-length follow-up") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "page-minus-room") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "`skb_shared_info`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "ready-next `phase12-virtio-net-mergeable-buffer-length-summary`") == null);
 }
