@@ -7,7 +7,7 @@ This document tracks the bounded Phase 9 runtime pilot-module survey around `lib
 - `PHASE9_STATUS=active`
 - `PHASE9_SLICE=runtime-atomic64-survey`
 - `PHASE9_SURVEYED_COMMIT=ee124761ef3ef5fcc6bb9cd8b7fe8d1fce326839`
-- scope: survey manifest, dedicated runtime survey gate, landed sample-backed module starter, landed module gate, landed diff gate, the bounded sample-side loader scaffold, and the lane-level review note that keeps the remaining runtime-loader blocker explicit without claiming loadable-module parity
+- scope: survey manifest, dedicated runtime survey gate, landed sample-backed module starter, landed module gate, landed diff gate, the bounded sample-side loader scaffold, and the lane-level review note that keeps the still-unlanded shared runtime-loader substrate explicit without claiming loadable-module parity
 - product boundary:
   - `samples/zigux/runtime_atomic64.zig`
   - `samples/zigux/runtime_atomic64_loader.zig`
@@ -32,6 +32,7 @@ The live repo now has a bounded `runtime_atomic64` starter, dedicated module tes
 - the live repo now ships `samples/zigux/runtime_atomic64.zig`, `samples/zigux/runtime_atomic64_loader.zig`, `zigux/tests/runtime_atomic64_module.zig`, `zigux/tests/runtime_atomic64_diff.zig`, `zigux/tests/runtime_atomic64_survey.zig`, and the shared `zigux/tests/phase9_build.zig` coverage for this lane.
 - the bounded starter keeps atomic exchange, compare-swap, add-unless, and selftest-hook behavior reviewable without claiming a real loadable runtime module.
 - the bounded sample-side loader scaffold now records explicit init and exit symbol names, a prepared handoff summary, and the no-substrate release path without claiming that a shared runtime loader already exists.
+- there is still no shared `zigux/kernel/runtime_loader.zig` on `master`, so the lane intentionally stops at sample-side handoff evidence plus the shared Phase 9 build instead of claiming a live runtime-loader substrate.
 - runtime substrate work is still missing, so the lane intentionally stops at bounded lifecycle, selftest-hook, and loader-handoff behavior rather than claiming real module registration parity.
 
 ## Recorded gaps
@@ -46,7 +47,7 @@ The survey manifest now records:
 - the landed `runtime-atomic64-loader-scaffold`
 - the still-blocked `runtime-atomic64-live-loader-binding`
 
-This keeps the lane concrete without pretending that Zigux already has a live `zigux/kernel/runtime_loader.zig` binding or full runtime module lifecycle parity.
+This keeps the lane concrete without pretending that Zigux already ships a shared `zigux/kernel/runtime_loader.zig` substrate or full runtime module lifecycle parity.
 
 ## Gates
 
@@ -67,4 +68,4 @@ This survey slice does not yet claim:
 
 ## Next bounded step
 
-Stay in the Phase 9 runtime atomic64 lane and keep broader work blocked until a shared runtime loader substrate can consume the bounded init and exit handoff plan.
+Stay in the Phase 9 runtime atomic64 lane and keep broader work blocked until a shared runtime-loader substrate actually lands on `master` and can consume the bounded init and exit handoff plan.
