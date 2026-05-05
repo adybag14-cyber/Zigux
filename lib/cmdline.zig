@@ -238,21 +238,30 @@ fn parseUnsignedPrefix(s: []const u8) ?struct { value: u64, len: usize } {
 
     var base: u8 = 10;
     var start: usize = 0;
+    var prefix_len: usize = 0;
 
-    if (s.len >= 2 and s[0] == '0' and (s[1] == 'x' or s[1] == 'X')) {
-        base = 16;
-        start = 2;
-    } else if (s[0] == '0') {
-        base = 8;
+    if (s[0] == '+') {
+        prefix_len = 1;
         start = 1;
+        if (s.len == 1) {
+            return null;
+        }
+    }
+
+    if (s.len >= start + 2 and s[start] == '0' and (s[start + 1] == 'x' or s[start + 1] == 'X')) {
+        base = 16;
+        start += 2;
+    } else if (s[start] == '0') {
+        base = 8;
+        start += 1;
     }
 
     var index = start;
     while (index < s.len and isDigitForBase(s[index], base)) : (index += 1) {}
 
     if (index == start) {
-        if (start == 1) {
-            return .{ .value = 0, .len = 1 };
+        if (start == prefix_len + 1) {
+            return .{ .value = 0, .len = prefix_len + 1 };
         }
         return null;
     }
@@ -313,19 +322,25 @@ test "getOption parses signed integers and updates the remaining slice" {
     try std.testing.expectEqualStrings("tail", rest);
 }
 
-test "getOption reports ranges and consumes a standalone leading hyphen" {
+test "getOption reports ranges, accepts leading plus, and consumes a standalone leading hyphen" {
     var range_rest: []const u8 = "1-3";
     var range_value: i32 = 0;
     try std.testing.expectEqual(@as(u8, 3), getOption(&range_rest, &range_value));
     try std.testing.expectEqual(@as(i32, 1), range_value);
     try std.testing.expectEqualStrings("-3", range_rest);
 
+    var plus_rest: []const u8 = "+7";
+    var plus_value: i32 = 0;
+    try std.testing.expectEqual(@as(u8, 1), getOption(&plus_rest, &plus_value));
+    try std.testing.expectEqual(@as(i32, 7), plus_value);
+    try std.testing.expectEqualStrings("", plus_rest);
+
     var hyphen_only: []const u8 = "-";
     try std.testing.expectEqual(@as(u8, 0), getOption(&hyphen_only, null));
     try std.testing.expectEqualStrings("", hyphen_only);
 }
 
-test "getOptions expands ranges and supports validation-only counting" {
+test "getOptions expands ranges, supports validation-only counting, and accepts leading plus" {
     var values = [_]i32{ 0, 0, 0, 0, 0 };
     const rest = getOptions("1-3,5", values.len, &values);
     try std.testing.expectEqualStrings("", rest);
@@ -345,6 +360,16 @@ test "getOptions expands ranges and supports validation-only counting" {
     const single_validate_rest = getOptions("1-1", 0, &single_validate);
     try std.testing.expectEqualStrings("", single_validate_rest);
     try std.testing.expectEqual(@as(i32, 1), single_validate[0]);
+
+    var plus_values = [_]i32{ 0, 0, 0 };
+    const plus_options_rest = getOptions("+7", plus_values.len, &plus_values);
+    try std.testing.expectEqualStrings("", plus_options_rest);
+    try std.testing.expectEqualSlices(i32, &[_]i32{ 1, 7, 0 }, &plus_values);
+
+    var plus_validate = [_]i32{0};
+    const plus_validate_rest = getOptions("+7", 0, &plus_validate);
+    try std.testing.expectEqualStrings("", plus_validate_rest);
+    try std.testing.expectEqual(@as(i32, 1), plus_validate[0]);
 }
 
 test "getOptions stops on descending ranges and unparseable suffixes" {
@@ -359,13 +384,16 @@ test "getOptions stops on descending ranges and unparseable suffixes" {
     try std.testing.expectEqualSlices(i32, &[_]i32{ 1, 8, 0 }, &partial);
 }
 
-test "memparse handles size suffixes and reports where parsing stopped" {
+test "memparse handles size suffixes, accepts leading plus, and reports where parsing stopped" {
     var index: usize = 999;
     try std.testing.expectEqual(@as(u64, 2 * 1024 * 1024), memparse("2M", &index));
     try std.testing.expectEqual(@as(usize, 2), index);
 
     try std.testing.expectEqual(@as(u64, 16 * 1024), memparse("0x10Krest", &index));
     try std.testing.expectEqual(@as(usize, 5), index);
+
+    try std.testing.expectEqual(@as(u64, 1024), memparse("+1K", &index));
+    try std.testing.expectEqual(@as(usize, 3), index);
 
     try std.testing.expectEqual(@as(u64, 0), memparse("bad", &index));
     try std.testing.expectEqual(@as(usize, 0), index);
