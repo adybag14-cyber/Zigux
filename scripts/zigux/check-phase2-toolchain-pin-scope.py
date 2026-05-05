@@ -11,6 +11,7 @@ import tempfile
 ROOT = Path(__file__).resolve().parents[2]
 
 POLICY = ROOT / "scripts" / "zigux" / "zig-toolchain-policy.json"
+NOTES_DOC = ROOT / "Documentation" / "zigux" / "phase2-toolchain-bootstrap-notes.md"
 WORKFLOW = ROOT / ".github" / "workflows" / "zigux-bootstrap.yml"
 README = ROOT / "scripts" / "zigux" / "README.md"
 CLOSURE_DOC = ROOT / "Documentation" / "zigux" / "phase2-closure.md"
@@ -21,6 +22,12 @@ EXPECTED_PIN_TARGETS = [
 ]
 
 ARCHIVE_SHA256_RE = re.compile(r"^[0-9a-f]{64}$")
+
+NOTE_STATIC_MARKERS = [
+    "the archive pin must stay limited to `x86_64-linux` until a new bootstrap runner target gains first-class workflow evidence",
+    "the three-target compile matrix in `zigux/tests/fixtures/phase2_cross_targets.json` stays separate from the `x86_64-linux` bootstrap archive pin",
+    "the Linux-style `make -C zigux phase2-validate` and `make -C zigux phase2` routes keep the dedicated note tied to the same kbuild-facing replay surface named by the docs-root summary, the shared validators, the closure note, and the shared review checklist",
+]
 
 EXACT_WORKFLOW_RUN_COUNTS = {
     "python3 scripts/zigux/install-zig.py --dest .zig-toolchain": 2,
@@ -66,10 +73,19 @@ def load_json_object(path: Path, *, label: str) -> dict[str, object]:
     return payload
 
 
+
 def validate_policy(payload: dict[str, object]) -> list[str]:
     issues: list[str] = []
     if payload.get("phase") != "Phase 2":
         issues.append(f"policy:phase={payload.get('phase')!r}:expected='Phase 2'")
+
+    channel = payload.get("channel")
+    if not isinstance(channel, str) or not channel:
+        issues.append("policy:channel:expected_nonempty_string")
+
+    minimum_version = payload.get("minimum_version")
+    if not isinstance(minimum_version, str) or not minimum_version:
+        issues.append("policy:minimum_version:expected_nonempty_string")
 
     archive_sha256 = payload.get("archive_sha256")
     if not isinstance(archive_sha256, dict):
@@ -86,12 +102,55 @@ def validate_policy(payload: dict[str, object]) -> list[str]:
     return issues
 
 
+
+def validate_phase2_notes(text: str, *, payload: dict[str, object]) -> list[str]:
+    issues: list[str] = []
+
+    channel = payload.get("channel")
+    if not isinstance(channel, str) or not channel:
+        issues.append("policy:channel:expected_nonempty_string")
+    else:
+        marker = f"- current pinned Zig channel: `{channel}`"
+        if marker not in text:
+            issues.append(f"phase2_toolchain_notes:missing_marker:{marker}")
+
+    minimum_version = payload.get("minimum_version")
+    if not isinstance(minimum_version, str) or not minimum_version:
+        issues.append("policy:minimum_version:expected_nonempty_string")
+    else:
+        marker = f"- current minimum Zig version: `{minimum_version}`"
+        if marker not in text:
+            issues.append(f"phase2_toolchain_notes:missing_marker:{marker}")
+
+    archive_sha256 = payload.get("archive_sha256")
+    if isinstance(archive_sha256, dict):
+        pin_target = EXPECTED_PIN_TARGETS[0]
+        target_marker = f"- current pinned bootstrap archive target: `{pin_target}`"
+        if target_marker not in text:
+            issues.append(f"phase2_toolchain_notes:missing_marker:{target_marker}")
+
+        digest = archive_sha256.get(pin_target)
+        if isinstance(digest, str):
+            digest_marker = (
+                f"- current pinned bootstrap archive sha256 (`{pin_target}`): `{digest}`"
+            )
+            if digest_marker not in text:
+                issues.append(f"phase2_toolchain_notes:missing_marker:{digest_marker}")
+
+    for marker in NOTE_STATIC_MARKERS:
+        if marker not in text:
+            issues.append(f"phase2_toolchain_notes:missing_marker:{marker}")
+    return issues
+
+
+
 def validate_required_markers(text: str, *, label: str, markers: list[str]) -> list[str]:
     issues: list[str] = []
     for marker in markers:
         if marker not in text:
             issues.append(f"{label}:missing_marker:{marker}")
     return issues
+
 
 
 def validate_exact_workflow_runs(text: str) -> list[str]:
@@ -108,15 +167,32 @@ def validate_exact_workflow_runs(text: str) -> list[str]:
     return issues
 
 
+
 def run_self_test() -> int:
     valid_policy = {
         "phase": "Phase 2",
+        "channel": "0.17.0-dev.87+9b177a7d2",
+        "minimum_version": "0.17.0-dev.87+9b177a7d2",
         "archive_sha256": {
             "x86_64-linux": "313b231e76f3cc9b718044602dbc3c42b531693507203a6baf2fa892c9533e77",
         },
     }
     if validate_policy(valid_policy):
         raise SystemExit("phase2-toolchain-pin-scope:self-test:valid_policy")
+
+    valid_notes = "\n".join(
+        [
+            "- current pinned Zig channel: `0.17.0-dev.87+9b177a7d2`",
+            "- current minimum Zig version: `0.17.0-dev.87+9b177a7d2`",
+            "- current pinned bootstrap archive target: `x86_64-linux`",
+            "- current pinned bootstrap archive sha256 (`x86_64-linux`): `313b231e76f3cc9b718044602dbc3c42b531693507203a6baf2fa892c9533e77`",
+            "- the archive pin must stay limited to `x86_64-linux` until a new bootstrap runner target gains first-class workflow evidence",
+            "- the three-target compile matrix in `zigux/tests/fixtures/phase2_cross_targets.json` stays separate from the `x86_64-linux` bootstrap archive pin",
+            "- the Linux-style `make -C zigux phase2-validate` and `make -C zigux phase2` routes keep the dedicated note tied to the same kbuild-facing replay surface named by the docs-root summary, the shared validators, the closure note, and the shared review checklist",
+        ]
+    )
+    if validate_phase2_notes(valid_notes, payload=valid_policy):
+        raise SystemExit("phase2-toolchain-pin-scope:self-test:valid_notes")
 
     bad_phase = dict(valid_policy)
     bad_phase["phase"] = "Phase 3"
@@ -126,6 +202,8 @@ def run_self_test() -> int:
 
     bad_keys = {
         "phase": "Phase 2",
+        "channel": "0.17.0-dev.87+9b177a7d2",
+        "minimum_version": "0.17.0-dev.87+9b177a7d2",
         "archive_sha256": {
             "x86_64-linux": "313b231e76f3cc9b718044602dbc3c42b531693507203a6baf2fa892c9533e77",
             "aarch64-linux": "313b231e76f3cc9b718044602dbc3c42b531693507203a6baf2fa892c9533e77",
@@ -137,6 +215,8 @@ def run_self_test() -> int:
 
     bad_digest = {
         "phase": "Phase 2",
+        "channel": "0.17.0-dev.87+9b177a7d2",
+        "minimum_version": "0.17.0-dev.87+9b177a7d2",
         "archive_sha256": {
             "x86_64-linux": "not-a-digest",
         },
@@ -144,6 +224,18 @@ def run_self_test() -> int:
     issues = validate_policy(bad_digest)
     if "policy:archive_sha256:x86_64-linux:expected_sha256_hex" not in issues:
         raise SystemExit("phase2-toolchain-pin-scope:self-test:digest_shape")
+
+    bad_notes = valid_notes.replace(
+        "313b231e76f3cc9b718044602dbc3c42b531693507203a6baf2fa892c9533e77",
+        "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    )
+    issues = validate_phase2_notes(bad_notes, payload=valid_policy)
+    expected_note_issue = (
+        "phase2_toolchain_notes:missing_marker:- current pinned bootstrap archive sha256 "
+        "(`x86_64-linux`): `313b231e76f3cc9b718044602dbc3c42b531693507203a6baf2fa892c9533e77`"
+    )
+    if expected_note_issue not in issues:
+        raise SystemExit("phase2-toolchain-pin-scope:self-test:note_sha_mismatch")
 
     workflow_text = "\n".join(
         [
@@ -187,8 +279,9 @@ def run_self_test() -> int:
             raise SystemExit("phase2-toolchain-pin-scope:self-test:json_round_trip")
 
     print("PHASE2_TOOLCHAIN_PIN_SCOPE_SELF_TEST=pass")
-    print("PHASE2_TOOLCHAIN_PIN_SCOPE_SELF_TEST_CASE_COUNT=8")
+    print("PHASE2_TOOLCHAIN_PIN_SCOPE_SELF_TEST_CASE_COUNT=11")
     return 0
+
 
 
 def main() -> int:
@@ -203,6 +296,7 @@ def main() -> int:
 
     required_files = [
         POLICY,
+        NOTES_DOC,
         WORKFLOW,
         README,
         CLOSURE_DOC,
@@ -217,8 +311,16 @@ def main() -> int:
         print("MISSING_PHASE2_TOOLCHAIN_PIN_SCOPE_FILES_END")
         return 1
 
+    policy_payload = load_json_object(POLICY, label="policy")
+
     issues: list[str] = []
-    issues.extend(validate_policy(load_json_object(POLICY, label="policy")))
+    issues.extend(validate_policy(policy_payload))
+    issues.extend(
+        validate_phase2_notes(
+            NOTES_DOC.read_text(encoding="utf-8"),
+            payload=policy_payload,
+        )
+    )
     issues.extend(
         validate_required_markers(
             README.read_text(encoding="utf-8"),
