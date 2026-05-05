@@ -10,7 +10,7 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[2]
-PHASE3_VALIDATOR_SELF_TEST_CASE_COUNT = 12
+PHASE3_VALIDATOR_SELF_TEST_CASE_COUNT = 13
 
 
 @dataclass(frozen=True)
@@ -186,6 +186,21 @@ def run_self_test() -> int:
         assert (
             "missing_pass_marker:scripts/zigux/validate-phase3-policy-unsafe-survey.py:"
             "PHASE3_POLICY_UNSAFE_SURVEY_SELF_TEST=pass"
+            in issues
+        )
+
+        low_level_wrapper_marker_root = Path(tmp_dir) / "low-level-wrapper-marker"
+        for target in SELF_TEST_TARGETS:
+            marker = (
+                "WRONG_MARKER=pass"
+                if target.relpath.endswith("validate-phase3-low-level-wrapper-survey.py")
+                else (target.marker or "PASS")
+            )
+            write_script(low_level_wrapper_marker_root / target.relpath, marker)
+        issues = run_targets(low_level_wrapper_marker_root)
+        assert (
+            "missing_pass_marker:scripts/zigux/validate-phase3-low-level-wrapper-survey.py:"
+            "PHASE3_LOW_LEVEL_WRAPPER_SURVEY_SELF_TEST=pass"
             in issues
         )
 
