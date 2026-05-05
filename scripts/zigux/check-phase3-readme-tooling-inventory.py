@@ -24,6 +24,7 @@ REQUIRED_HELPERS = (
     "validate-phase3.py",
     "validate_phase3_selftest.py",
     "check-phase3-selftest-surface.py",
+    "check-phase3-readme-tooling-inventory.py",
     "validate-phase3-policy-unsafe-survey.py",
     "validate-phase3-low-level-wrapper-survey.py",
     "validate-phase4.py",
