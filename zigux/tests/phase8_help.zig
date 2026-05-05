@@ -1,8 +1,17 @@
 const std = @import("std");
 const help = @import("help");
 
+const phase8_help_slice = @embedFile("../../Documentation/zigux/phase8-help-slice.md");
+
 test "phase 8 help module imports cleanly" {
     _ = help;
+}
+
+test "phase 8 help slice note keeps helper-first output-stable tooling posture explicit" {
+    try std.testing.expect(std.mem.containsAtLeast(u8, phase8_help_slice, 1, "serious repo-hosted tooling"));
+    try std.testing.expect(std.mem.containsAtLeast(u8, phase8_help_slice, 1, "output-stable tooling behavior"));
+    try std.testing.expect(std.mem.containsAtLeast(u8, phase8_help_slice, 1, "output-stable pretty-print emission"));
+    try std.testing.expect(std.mem.containsAtLeast(u8, phase8_help_slice, 1, "full `cmd_help()`-adjacent CLI surface"));
 }
 
 test "phase 8 help starter slice covers command-list ownership, filtering, exclusion, terminal sizing, and layout planning" {
