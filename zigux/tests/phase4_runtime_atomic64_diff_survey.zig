@@ -47,27 +47,27 @@ test "phase 4 atomic64 survey keeps wrapper handoff and remaining shared drift e
     try std.testing.expect(manifest.roadmap_atomic64_wrapper_targets_runtime_diff);
 
     try std.testing.expectEqualStrings("zigux/tests/runtime_atomic64_diff.zig", manifest.live_gate_path);
-    try std.testing.expectEqualStrings("d65abeb53eb0248e1f0978a54cc48a7f561b148e", manifest.live_gate_blob_sha);
-    try std.testing.expectEqual(@as(usize, 155), manifest.live_gate_line_count);
+    try std.testing.expectEqualStrings("6dd5b8e0a84fe2f775011d552b629b20da222166", manifest.live_gate_blob_sha);
+    try std.testing.expectEqual(@as(usize, 204), manifest.live_gate_line_count);
 
     try std.testing.expectEqualStrings("zigux/tests/runtime_atomic64_diff.zig", manifest.runtime_replay_path);
-    try std.testing.expectEqualStrings("d65abeb53eb0248e1f0978a54cc48a7f561b148e", manifest.runtime_replay_blob_sha);
-    try std.testing.expectEqual(@as(usize, 155), manifest.runtime_replay_line_count);
+    try std.testing.expectEqualStrings("6dd5b8e0a84fe2f775011d552b629b20da222166", manifest.runtime_replay_blob_sha);
+    try std.testing.expectEqual(@as(usize, 204), manifest.runtime_replay_line_count);
 
     try std.testing.expect(manifest.phase4_build_present);
     try std.testing.expect(manifest.phase4_build_uses_atomic64_wrapper);
-    try std.testing.expectEqualStrings("ca6672b21f08b77305ecf048346026fe474aff43", manifest.phase4_build_blob_sha);
+    try std.testing.expectEqualStrings("33d3ed8db4e40283212daa115a46e989df28ce6f", manifest.phase4_build_blob_sha);
 
     try std.testing.expect(manifest.phase4_validator_atomic64_diff_present);
     try std.testing.expect(manifest.phase4_validator_runtime_atomic64_diff_present);
-    try std.testing.expectEqualStrings("497f0aa0d873777d5183b563e30056b95256a021", manifest.phase4_validator_blob_sha);
+    try std.testing.expectEqualStrings("7d09a4957fde591f53e7b32dbfa3d5f1a3e9a1c0", manifest.phase4_validator_blob_sha);
 
     try std.testing.expect(manifest.phase9_build_present);
-    try std.testing.expectEqualStrings("81b28841525ba42104b0d65e3d45c73c87bb23cd", manifest.phase9_build_blob_sha);
+    try std.testing.expectEqualStrings("a8c05b67b7ab5a56beb41a06e311782602adf241", manifest.phase9_build_blob_sha);
 
     try std.testing.expect(manifest.phase4_validation_matrix_atomic64_diff_note_present);
     try std.testing.expect(manifest.phase4_validation_matrix_runtime_atomic64_note_present);
-    try std.testing.expectEqualStrings("ab41bb2d0dc190ef56597a1620d2f411783e4f7b", manifest.phase4_validation_matrix_blob_sha);
+    try std.testing.expectEqualStrings("bc3c5cb7a184fe6313ffd628426deeb920cb80c6", manifest.phase4_validation_matrix_blob_sha);
     try std.testing.expectEqualStrings(
         "threshold_pending_until_runtime_atomic64_scope_widens",
         manifest.threshold_posture,
