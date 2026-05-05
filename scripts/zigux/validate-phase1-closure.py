@@ -46,15 +46,51 @@ required_files = [
 ]
 
 required_closure_markers = [
-    'PHASE1_STATUS=closed',
-    'PHASE1_HELPER_COUNT=13',
-    'manifest: `zigux/tests/fixtures/phase1_helper_manifest.json`',
-    'PHASE1_PARITY_GATE=python3 scripts/zigux/check-phase1-parity.py',
-    'PHASE1_UNIT_GATE=zig build test --build-file zigux/tests/build.zig',
-    'PHASE1_BENCH_GATE=zig build bench --build-file zigux/tests/build.zig',
-    'PHASE1_BENCH_CHECK_GATE=python3 scripts/zigux/check-phase1-bench.py',
-    'PHASE1_CLOSURE_GATE=python3 scripts/zigux/validate-phase1-closure.py',
-    'PHASE1_ROLLBACK=keep C authoritative and remove failing Zig helper from test/build wiring',
+    (
+        'closure_status_count',
+        'PHASE1_STATUS=closed',
+        1,
+    ),
+    (
+        'closure_helper_count_count',
+        'PHASE1_HELPER_COUNT=13',
+        1,
+    ),
+    (
+        'closure_manifest_line_count',
+        'manifest: `zigux/tests/fixtures/phase1_helper_manifest.json`',
+        1,
+    ),
+    (
+        'closure_parity_gate_count',
+        'PHASE1_PARITY_GATE=python3 scripts/zigux/check-phase1-parity.py',
+        1,
+    ),
+    (
+        'closure_unit_gate_count',
+        'PHASE1_UNIT_GATE=zig build test --build-file zigux/tests/build.zig',
+        1,
+    ),
+    (
+        'closure_bench_gate_count',
+        'PHASE1_BENCH_GATE=zig build bench --build-file zigux/tests/build.zig',
+        1,
+    ),
+    (
+        'closure_bench_check_gate_count',
+        'PHASE1_BENCH_CHECK_GATE=python3 scripts/zigux/check-phase1-bench.py',
+        1,
+    ),
+    (
+        'closure_closure_gate_count',
+        'PHASE1_CLOSURE_GATE=python3 scripts/zigux/validate-phase1-closure.py',
+        1,
+    ),
+    (
+        'closure_rollback_count',
+        'PHASE1_ROLLBACK=keep C authoritative and remove failing Zig helper from test/build wiring',
+        1,
+    ),
 ]
 required_workflow_markers = [
     'FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true',
@@ -98,11 +134,23 @@ required_phase1_workflow_markers = [
     ),
 ]
 required_build_markers = [
-    'phase1_bench.zig',
-    'const bench_step = b.step("bench", "Run Phase 1 helper benchmark smoke");',
+    (
+        'build_phase1_bench_source_count',
+        'phase1_bench.zig',
+        1,
+    ),
+    (
+        'build_phase1_bench_step_count',
+        'const bench_step = b.step("bench", "Run Phase 1 helper benchmark smoke");',
+        1,
+    ),
 ]
 required_ledger_markers = [
-    'docs(zigux): close bounded phase-1 helper tranche',
+    (
+        'ledger_phase1_closure_commit_count',
+        'docs(zigux): close bounded phase-1 helper tranche',
+        1,
+    ),
 ]
 required_makefile_markers = [
     (
@@ -294,6 +342,27 @@ def run_self_test() -> None:
         assert f'manifest:missing_helper={EXPECTED_HELPERS[-1]}' in unexpected_markers
         assert f'manifest:unexpected_helper={unexpected_helper}' in unexpected_markers
 
+        valid_closure = render_marker_fixture(required_closure_markers)
+        assert collect_exact_count_markers(valid_closure, required_closure_markers) == []
+
+        duplicate_closure_status = valid_closure + 'PHASE1_STATUS=closed\n'
+        duplicate_closure_markers = collect_exact_count_markers(
+            duplicate_closure_status,
+            required_closure_markers,
+        )
+        assert 'closure_status_count:expected=1:actual=2' in duplicate_closure_markers
+
+        missing_closure_gate = valid_closure.replace(
+            'PHASE1_CLOSURE_GATE=python3 scripts/zigux/validate-phase1-closure.py\n',
+            '',
+            1,
+        )
+        missing_closure_gate_markers = collect_exact_count_markers(
+            missing_closure_gate,
+            required_closure_markers,
+        )
+        assert 'closure_closure_gate_count:expected=1:actual=0' in missing_closure_gate_markers
+
         valid_phase1_workflow = render_marker_fixture(required_phase1_workflow_markers)
         assert collect_exact_count_markers(valid_phase1_workflow, required_phase1_workflow_markers) == []
         assert WORKFLOW_INSTALL_ZIG_RE.search(
@@ -334,6 +403,16 @@ def run_self_test() -> None:
             required_phase1_workflow_markers,
         )
         assert 'workflow_phase1_unit_replay_count:expected=1:actual=0' in missing_phase1_unit_replay_markers
+
+        valid_build = render_marker_fixture(required_build_markers)
+        assert collect_exact_count_markers(valid_build, required_build_markers) == []
+
+        duplicate_build_source = valid_build + 'phase1_bench.zig\n'
+        duplicate_build_markers = collect_exact_count_markers(
+            duplicate_build_source,
+            required_build_markers,
+        )
+        assert 'build_phase1_bench_source_count:expected=1:actual=2' in duplicate_build_markers
 
         valid_makefile = render_marker_fixture(required_makefile_markers)
         assert collect_exact_count_markers(valid_makefile, required_makefile_markers) == []
@@ -405,6 +484,16 @@ def run_self_test() -> None:
         missing_tests_markers = collect_exact_count_markers('', required_tests_readme_markers)
         assert 'tests_readme_phase1_packet:expected=1:actual=0' in missing_tests_markers
 
+        valid_ledger = render_marker_fixture(required_ledger_markers)
+        assert collect_exact_count_markers(valid_ledger, required_ledger_markers) == []
+
+        duplicate_ledger = valid_ledger + 'docs(zigux): close bounded phase-1 helper tranche\n'
+        duplicate_ledger_markers = collect_exact_count_markers(
+            duplicate_ledger,
+            required_ledger_markers,
+        )
+        assert 'ledger_phase1_closure_commit_count:expected=1:actual=2' in duplicate_ledger_markers
+
         make_fixture_root(tmp_root)
         missing_workflow = '.github/workflows/zigux-bootstrap.yml'
         (tmp_root / missing_workflow).unlink()
@@ -421,7 +510,7 @@ def run_self_test() -> None:
         assert collect_missing_files(tmp_root) == [required_ledger]
 
     print('PHASE1_CLOSURE_VALIDATOR_SELF_TEST=pass')
-    print('PHASE1_CLOSURE_VALIDATOR_SELF_TEST_CASE_COUNT=19')
+    print('PHASE1_CLOSURE_VALIDATOR_SELF_TEST_CASE_COUNT=26')
 
 
 def main() -> int:
@@ -453,9 +542,6 @@ def main() -> int:
     manifest = json.loads((ROOT / 'zigux' / 'tests' / 'fixtures' / 'phase1_helper_manifest.json').read_text(encoding='utf-8'))
 
     missing_markers = []
-    for marker in required_closure_markers:
-        if marker not in closure:
-            missing_markers.append(f'closure:{marker}')
     for marker in required_workflow_markers:
         if marker not in workflow:
             missing_markers.append(f'workflow:{marker}')
@@ -463,12 +549,10 @@ def main() -> int:
         missing_markers.append(
             'workflow:python3 scripts/zigux/install-zig.py --channel <explicit> --dest .zig-toolchain'
         )
-    for marker in required_build_markers:
-        if marker not in tests_build:
-            missing_markers.append(f'build:{marker}')
-    for marker in required_ledger_markers:
-        if marker not in ledger:
-            missing_markers.append(f'ledger:{marker}')
+
+    missing_markers.extend(collect_exact_count_markers(closure, required_closure_markers))
+    missing_markers.extend(collect_exact_count_markers(tests_build, required_build_markers))
+    missing_markers.extend(collect_exact_count_markers(ledger, required_ledger_markers))
 
     if 'mlugg/setup-zig@' in workflow:
         missing_markers.append('workflow:remove mlugg/setup-zig@')
