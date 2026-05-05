@@ -62,6 +62,19 @@ pub const PollExecutionSummary = struct {
     first_process_error: ?i32,
 };
 
+pub const PollReturnDisposition = enum {
+    ready_count,
+    interrupted_error,
+    wait_error,
+    processing_error,
+};
+
+pub const PollExecutionResult = struct {
+    execution: PollExecutionSummary,
+    disposition: PollReturnDisposition,
+    return_value: i32,
+};
+
 pub const PollError = error{
     InvalidTimeout,
     ReadyCountExceedsObservedEvents,
@@ -72,6 +85,7 @@ pub const PollError = error{
     ReadyBufferProcessingExceedsReadyCount,
     ReadyBufferProcessingExceedsObservedEvents,
     NonReadyWaitHasProcessedRecords,
+    FailedWaitMissingError,
 };
 
 fn hasAnyBufferState(summary: ReadyBufferSummary) bool {
@@ -279,6 +293,72 @@ pub fn summarizePollExecutionFromWaitResult(
     );
 }
 
+pub fn resolvePollExecutionResult(execution: PollExecutionSummary) PollError!PollExecutionResult {
+    return switch (execution.poll.outcome) {
+        .ready => {
+            if (execution.first_process_error) |err| {
+                return .{
+                    .execution = execution,
+                    .disposition = .processing_error,
+                    .return_value = err,
+                };
+            }
+
+            return .{
+                .execution = execution,
+                .disposition = .ready_count,
+                .return_value = @intCast(execution.poll.observed_ready_events),
+            };
+        },
+        .timeout => .{
+            .execution = execution,
+            .disposition = .ready_count,
+            .return_value = 0,
+        },
+        .interrupted => .{
+            .execution = execution,
+            .disposition = .interrupted_error,
+            .return_value = -@as(i32, @intFromEnum(std.os.linux.E.INTR)),
+        },
+        .failed => {
+            const err = execution.poll.first_error orelse return PollError.FailedWaitMissingError;
+            return .{
+                .execution = execution,
+                .disposition = .wait_error,
+                .return_value = err,
+            };
+        },
+    };
+}
+
+pub fn resolvePollExecutionResultFromWaitResult(
+    timeout_ms: i32,
+    wait_result: i32,
+    buffers: []const BufferObservation,
+    process_observations: []const ProcessRecordObservation,
+) PollError!PollExecutionResult {
+    return resolvePollExecutionResult(try summarizePollExecutionFromWaitResult(
+        timeout_ms,
+        wait_result,
+        buffers,
+        process_observations,
+    ));
+}
+
+pub fn summarizePollExecutionResultFromWaitResult(
+    timeout_ms: i32,
+    wait_result: i32,
+    buffers: []const BufferObservation,
+    process_observations: []const ProcessRecordObservation,
+) PollError!PollExecutionResult {
+    return resolvePollExecutionResultFromWaitResult(
+        timeout_ms,
+        wait_result,
+        buffers,
+        process_observations,
+    );
+}
+
 test "classifyWaitClass keeps perf_buffer__poll timeout classes explicit" {
     try std.testing.expectEqual(WaitClass.indefinite, try classifyWaitClass(-1));
     try std.testing.expectEqual(WaitClass.nonblocking, try classifyWaitClass(0));
@@ -442,6 +522,56 @@ test "summarizePollExecutionFromWaitResult keeps raw wait-result normalization c
     try std.testing.expectEqual(@as(?i32, -11), summary.first_process_error);
 }
 
+test "resolvePollExecutionResult keeps perf_buffer__poll return-path choices explicit" {
+    const successful_execution = try summarizePollExecution(12, .{ .ready_events = 3 }, &.{
+        .{ .ready = true },
+        .{ .ready = true },
+        .{ .error_code = -32 },
+    }, &.{
+        .{ .records_processed = 4 },
+        .{ .records_processed = 2 },
+    });
+    const successful_result = try resolvePollExecutionResult(successful_execution);
+    try std.testing.expectEqual(PollReturnDisposition.ready_count, successful_result.disposition);
+    try std.testing.expectEqual(@as(i32, 3), successful_result.return_value);
+
+    const failed_execution = try summarizePollExecution(12, .{ .ready_events = 3 }, &.{
+        .{ .ready = true },
+        .{ .ready = true },
+        .{ .error_code = -32 },
+    }, &.{
+        .{ .records_processed = 4 },
+        .{ .result = -11 },
+    });
+    const failed_result = try resolvePollExecutionResult(failed_execution);
+    try std.testing.expectEqual(PollReturnDisposition.processing_error, failed_result.disposition);
+    try std.testing.expectEqual(@as(i32, -11), failed_result.return_value);
+}
+
+test "summarizePollExecutionResultFromWaitResult keeps ready-count versus first-processing-failure return rules explicit" {
+    const successful_result = try summarizePollExecutionResultFromWaitResult(12, 3, &.{
+        .{ .ready = true },
+        .{ .ready = true },
+        .{ .error_code = -32 },
+    }, &.{
+        .{ .records_processed = 4 },
+        .{ .records_processed = 2 },
+    });
+    try std.testing.expectEqual(PollReturnDisposition.ready_count, successful_result.disposition);
+    try std.testing.expectEqual(@as(i32, 3), successful_result.return_value);
+
+    const failed_result = try summarizePollExecutionResultFromWaitResult(12, 3, &.{
+        .{ .ready = true },
+        .{ .ready = true },
+        .{ .error_code = -32 },
+    }, &.{
+        .{ .records_processed = 4 },
+        .{ .result = -11 },
+    });
+    try std.testing.expectEqual(PollReturnDisposition.processing_error, failed_result.disposition);
+    try std.testing.expectEqual(@as(i32, -11), failed_result.return_value);
+}
+
 test "summarizePollExecution rejects impossible processing outside the live perf_buffer__poll wait result" {
     try std.testing.expectError(
         PollError.NonReadyWaitHasProcessedRecords,
@@ -452,10 +582,52 @@ test "summarizePollExecution rejects impossible processing outside the live perf
         summarizePollExecution(-1, .interrupted, &.{}, &.{.{ .records_processed = 1 }}),
     );
     try std.testing.expectError(
-        PollError.ReadyBufferProcessingExceedsObservedEvents,
+        PollError.ReadyBufferProcessingExceedsReadyCount,
         summarizePollExecution(5, .{ .ready_events = 1 }, &.{.{ .ready = true }}, &.{
             .{ .records_processed = 1 },
             .{ .records_processed = 2 },
+        }),
+    );
+}
+
+test "resolvePollExecutionResult keeps interrupted and failed wait outcomes explicit" {
+    const interrupted_result = try resolvePollExecutionResult(try summarizePollExecution(
+        -1,
+        .interrupted,
+        &.{},
+        &.{},
+    ));
+    try std.testing.expectEqual(PollReturnDisposition.interrupted_error, interrupted_result.disposition);
+    try std.testing.expectEqual(
+        -@as(i32, @intFromEnum(std.os.linux.E.INTR)),
+        interrupted_result.return_value,
+    );
+
+    const failed_result = try resolvePollExecutionResult(try summarizePollExecution(
+        5,
+        .{ .failed = -22 },
+        &.{},
+        &.{},
+    ));
+    try std.testing.expectEqual(PollReturnDisposition.wait_error, failed_result.disposition);
+    try std.testing.expectEqual(@as(i32, -22), failed_result.return_value);
+
+    try std.testing.expectError(
+        PollError.FailedWaitMissingError,
+        resolvePollExecutionResult(.{
+            .poll = .{
+                .wait_class = .bounded,
+                .outcome = .failed,
+                .observed_ready_events = 0,
+                .ready_count = 0,
+                .first_ready_index = null,
+                .first_error = null,
+            },
+            .attempted_ready_buffer_count = 0,
+            .completed_ready_buffer_count = 0,
+            .processed_record_count = 0,
+            .first_process_error_index = null,
+            .first_process_error = null,
         }),
     );
 }
