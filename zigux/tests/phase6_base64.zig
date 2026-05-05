@@ -72,9 +72,9 @@ test "phase 6 base64 standard encode parity matches kernel vectors" {
     }
 }
 
-test "phase 6 base64 variant alphabets match the kernel mappings" {
+test "phase 6 base64 variant alphabets match the kernel mappings with and without padding" {
     for (fixtures.variant_cases) |case| {
-        try expectEncode(&fixtures.variant_sample, case.expected, false, fixtureVariant(case.variant_name));
+        try expectEncode(&fixtures.variant_sample, case.expected, case.padding, fixtureVariant(case.variant_name));
     }
 }
 
@@ -96,7 +96,7 @@ test "phase 6 base64 decode rejects invalid kernel-style vectors" {
     }
 }
 
-test "phase 6 base64 variant decode parity matches the kernel mappings" {
+test "phase 6 base64 variant decode parity matches the kernel mappings with and without padding" {
     for (fixtures.variant_decode_cases) |case| {
         try expectDecode(.{
             .input = case.input,
