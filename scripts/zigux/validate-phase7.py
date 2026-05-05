@@ -29,6 +29,7 @@ REQUIRED_FILES = [
     "zigux/tests/phase7_string_helpers_sample_boundary.zig",
     "zigux/tests/phase7_cmdline.zig",
     "zigux/tests/phase7_cmdline_survey.zig",
+    "zigux/tests/fixtures/phase7_cmdline_next_arg_vectors.zig",
     "zigux/tests/phase7_argv_split.zig",
     "zigux/tests/fixtures/phase7_argv_split_vectors.zig",
     "zigux/tests/phase7_rbtree.zig",
@@ -137,6 +138,10 @@ REQUIRED_MARKERS = {
         "phase7-rbtree-survey-tests",
         "run_rbtree_survey_tests.setCwd(b.path(\"../..\"));",
     ],
+    "zigux/tests/phase7_cmdline_survey.zig": [
+        "zigux/tests/fixtures/phase7_cmdline_next_arg_vectors.zig",
+        "const next_arg_vectors = @import(\"fixtures/phase7_cmdline_next_arg_vectors.zig\");",
+    ],
     "zigux/tests/phase7_rbtree_survey.zig": [
         "scripts/zigux/validate-phase7.py",
         "scripts/zigux/check-phase7-rbtree-parity.py",
@@ -153,7 +158,7 @@ FIXTURE_OVERRIDES = {
     "zigux/tests/phase7_string_helpers.zig": "// fixture\n",
     "zigux/tests/phase7_string_helpers_sample_boundary.zig": "// fixture\n",
     "zigux/tests/phase7_cmdline.zig": "// fixture\n",
-    "zigux/tests/phase7_cmdline_survey.zig": "// fixture\n",
+    "zigux/tests/fixtures/phase7_cmdline_next_arg_vectors.zig": "// fixture\n",
     "zigux/tests/phase7_argv_split.zig": "// fixture\n",
     "zigux/tests/fixtures/phase7_argv_split_vectors.zig": "// fixture\n",
     "zigux/tests/phase7_rbtree.zig": "// fixture\n",
@@ -226,6 +231,7 @@ def run_self_test() -> None:
         ("missing_scripts_readme", "scripts/zigux/README.md"),
         ("missing_phase7_workflow", ".github/workflows/zigux-bootstrap.yml"),
         ("missing_argv_split_vectors_fixture", "zigux/tests/fixtures/phase7_argv_split_vectors.zig"),
+        ("missing_cmdline_next_arg_vectors_fixture", "zigux/tests/fixtures/phase7_cmdline_next_arg_vectors.zig"),
         ("missing_string_helpers_sample_boundary", "zigux/tests/phase7_string_helpers_sample_boundary.zig"),
         ("missing_cmdline_survey", "zigux/tests/phase7_cmdline_survey.zig"),
     ]
@@ -244,6 +250,8 @@ def run_self_test() -> None:
         ("makefile_argv_split_packet_self_test_hook", "zigux/Makefile", "scripts/zigux/check-phase7-argv-split-packet.py --self-test", "", "zigux/Makefile: scripts/zigux/check-phase7-argv-split-packet.py --self-test"),
         ("makefile_parity_self_test_hook", "zigux/Makefile", "scripts/zigux/check-phase7-rbtree-parity.py --self-test", "", "zigux/Makefile: scripts/zigux/check-phase7-rbtree-parity.py --self-test"),
         ("argv_split_slice_checker_gate", "Documentation/zigux/phase7-argv-split-slice.md", "python3 scripts/zigux/check-phase7-argv-split-packet.py", "", "Documentation/zigux/phase7-argv-split-slice.md: python3 scripts/zigux/check-phase7-argv-split-packet.py"),
+        ("cmdline_survey_fixture_path", "zigux/tests/phase7_cmdline_survey.zig", "zigux/tests/fixtures/phase7_cmdline_next_arg_vectors.zig", "", "zigux/tests/phase7_cmdline_survey.zig: zigux/tests/fixtures/phase7_cmdline_next_arg_vectors.zig"),
+        ("cmdline_survey_fixture_import", "zigux/tests/phase7_cmdline_survey.zig", "const next_arg_vectors = @import(\"fixtures/phase7_cmdline_next_arg_vectors.zig\");", "const next_arg_vectors = @import(\"fixtures/phase7_cmdline_vectors_drift.zig\");", "zigux/tests/phase7_cmdline_survey.zig: const next_arg_vectors = @import(\"fixtures/phase7_cmdline_next_arg_vectors.zig\");"),
         ("rbtree_survey_validator_reference", "zigux/tests/phase7_rbtree_survey.zig", "scripts/zigux/validate-phase7.py", "", "zigux/tests/phase7_rbtree_survey.zig: scripts/zigux/validate-phase7.py"),
         ("cmdline_review_surface", "Documentation/zigux/phase7-cmdline-slice.md", "exact bare-option matching for comma-delimited flags", "", "Documentation/zigux/phase7-cmdline-slice.md: exact bare-option matching for comma-delimited flags"),
         ("tests_readme_phase7_rbtree_survey_marker", "zigux/tests/README.md", "zigux/tests/phase7_rbtree_survey.zig", "", "zigux/tests/README.md: zigux/tests/phase7_rbtree_survey.zig"),
@@ -275,7 +283,7 @@ def run_self_test() -> None:
             write_fixture_root(tmp_root)
 
     print("PHASE7_VALIDATOR_SELF_TEST=pass")
-    print("PHASE7_VALIDATOR_SELF_TEST_CASE_COUNT=35")
+    print("PHASE7_VALIDATOR_SELF_TEST_CASE_COUNT=37")
 
 
 def main() -> int:
