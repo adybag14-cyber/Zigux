@@ -56,7 +56,7 @@ fn expectContains(haystack: []const u8, needle: []const u8) !void {
     try std.testing.expect(std.mem.indexOf(u8, haystack, needle) != null);
 }
 
-test "phase11 shared header parity survey manifest records the restored packet cleanly" {
+test "phase11 shared header parity survey manifest records the maintained packet cleanly" {
     const manifest_json = try readFileAlloc(std.testing.allocator, "zigux/tests/phase11_uapi_header_parity_manifest.json", 32 * 1024);
     defer std.testing.allocator.free(manifest_json);
 
@@ -64,7 +64,7 @@ test "phase11 shared header parity survey manifest records the restored packet c
     defer parsed.deinit();
     const manifest = parsed.value;
 
-    try std.testing.expectEqualStrings("P11-L08", manifest.lane_key);
+    try std.testing.expectEqualStrings("P11-L16", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 11", manifest.phase);
     try std.testing.expectEqualStrings("ee124761ef3ef5fcc6bb9cd8b7fe8d1fce326839", manifest.surveyed_commit);
     try std.testing.expect(manifest.roadmap_destinations.len >= 4);
@@ -148,6 +148,7 @@ test "phase11 shared header parity survey keeps the note pinned to the manifest 
 
     try expectContains(note, parsed.value.surveyed_commit);
     try expectContains(note, "PHASE11_HEADER_BOUNDARY_STATUS=shared_header_packet_restored");
+    try expectContains(note, "lane: `P11-L16`");
     try expectContains(note, "phase11-dw-wdt-watchdog-info-layout-assert");
     try expectContains(note, "phase11-hvc-console-winsize-layout-assert");
     try expectContains(note, "phase11-hvc-console-export-signature-assert");
