@@ -10,7 +10,7 @@ It is a release-coordination artifact, not a closure claim.
 - `PHASE12_RELEASE_CLOSED=no`
 - shared build replay entrypoint: `zig build test --build-file zigux/tests/phase12_build.zig --summary all`
 - Linux-style replay entrypoint: `make -C zigux phase12`
-- shipped shared release surfaces on `master`: `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/phase12-release-sequencing.md`, `Documentation/zigux/phase12-nvme-pci-slice.md`, `Documentation/zigux/phase12-nvme-pci-survey.md`, `Documentation/zigux/phase12-virtio-net-survey.md`, `Documentation/zigux/phase12-virtio-scsi-slice.md`, `Documentation/zigux/phase12-virtio-scsi-survey.md`, `Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md`, `Documentation/zigux/phase12-libbpf-segment-survey.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, `zigux/tests/phase12_build.zig`, `zigux/Makefile`, and the committed Phase 12 manifests under `zigux/tests/`
+- shipped shared release surfaces on `master`: `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/phase12-release-sequencing.md`, `Documentation/zigux/phase12-nvme-pci-slice.md`, `Documentation/zigux/phase12-nvme-pci-survey.md`, `Documentation/zigux/phase12-nvme-pci-raw-github-fallback-map.md`, `Documentation/zigux/phase12-virtio-net-survey.md`, `Documentation/zigux/phase12-virtio-scsi-slice.md`, `Documentation/zigux/phase12-virtio-scsi-survey.md`, `Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md`, `Documentation/zigux/phase12-libbpf-segment-survey.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, `zigux/tests/phase12_build.zig`, `zigux/Makefile`, and the committed Phase 12 manifests under `zigux/tests/`
 - current public fallback split: two commit-pinned artifacts (`Documentation/zigux/phase12-nvme-pci-raw-github-fallback-map.md`, `Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md`) and two shared-tree-only anchors (`virtio_net`, `libbpf`)
 
 ## Release order
@@ -45,6 +45,7 @@ Today the shipped release packet is centered on:
 - `Documentation/zigux/phase12-release-sequencing.md`
 - `Documentation/zigux/phase12-nvme-pci-slice.md`
 - `Documentation/zigux/phase12-nvme-pci-survey.md`
+- `Documentation/zigux/phase12-nvme-pci-raw-github-fallback-map.md`
 - `Documentation/zigux/phase12-virtio-net-survey.md`
 - `Documentation/zigux/phase12-virtio-scsi-slice.md`
 - `Documentation/zigux/phase12-virtio-scsi-survey.md`
