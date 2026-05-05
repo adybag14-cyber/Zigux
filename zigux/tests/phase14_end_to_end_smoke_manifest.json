@@ -5,6 +5,7 @@
   "focus": "study_only_shared_smoke_packet",
   "rollback_owner": "keep the freeze-map anchors in C and reopen only with stronger evidence",
   "commands": [
+    "make -C zigux phase14-validate",
     "make -C zigux phase14-smoke",
     "zig build phase14-smoke --build-file zigux/tests/phase14_build.zig --summary all",
     "make -C zigux phase14-test",
@@ -25,8 +26,20 @@
       "required_marker": "shared Phase 14 smoke packet"
     },
     {
+      "path": "scripts/zigux/README.md",
+      "required_marker": "make -C zigux phase14-validate"
+    },
+    {
+      "path": "scripts/zigux/validate-phase14.py",
+      "required_marker": "PHASE14_VALIDATE_PACKET=shared_smoke"
+    },
+    {
       "path": "Documentation/zigux/freeze-map.md",
       "required_marker": "kernel/workqueue.c"
+    },
+    {
+      "path": ".github/workflows/zigux-bootstrap.yml",
+      "required_marker": "Validate Phase 14 shared smoke packet"
     },
     {
       "path": "zigux/tests/README.md",
