@@ -62,6 +62,9 @@ REQUIRED_MARKERS = {
     ],
     "Documentation/zigux/phase7-string-helpers-slice.md": [
         "string_escape_mem()",
+        "zigux/tests/phase7_string_helpers_sample_boundary.zig",
+        "This is intentionally not a Phase 5 `samples/zigux/` reference-sample lane.",
+        "no `samples/zigux/*string*` Phase 5 reference sample is expected here;",
     ],
     "Documentation/zigux/phase7-cmdline-slice.md": [
         "exact bare-option matching for comma-delimited flags",
@@ -148,6 +151,12 @@ REQUIRED_MARKERS = {
         "phase7-rbtree-survey-tests",
         "run_rbtree_survey_tests.setCwd(b.path(\"../..\"));",
     ],
+    "zigux/tests/phase7_string_helpers_sample_boundary.zig": [
+        "samples/zigux/string_helpers_sample.zig",
+        "std.mem.indexOf(u8, entry.name, \"string\") != null",
+        "This is intentionally not a Phase 5 `samples/zigux/` reference-sample lane.",
+        "no `samples/zigux/*string*` Phase 5 reference sample is expected here;",
+    ],
     "zigux/tests/phase7_cmdline_survey.zig": [
         "zigux/tests/fixtures/phase7_cmdline_next_arg_vectors.zig",
         "const next_arg_vectors = @import(\"fixtures/phase7_cmdline_next_arg_vectors.zig\");",
@@ -171,7 +180,10 @@ REQUIRED_MARKERS = {
 FIXTURE_OVERRIDES = {
     "scripts/zigux/validate-phase7.py": "# fixture\n",
     "zigux/tests/phase7_string_helpers.zig": "// fixture\n",
-    "zigux/tests/phase7_string_helpers_sample_boundary.zig": "// fixture\n",
+    "zigux/tests/phase7_string_helpers_sample_boundary.zig": "\n".join(
+        REQUIRED_MARKERS["zigux/tests/phase7_string_helpers_sample_boundary.zig"]
+    )
+    + "\n",
     "zigux/tests/phase7_cmdline.zig": "// fixture\n",
     "zigux/tests/fixtures/phase7_cmdline_next_arg_vectors.zig": "// fixture\n",
     "zigux/tests/phase7_argv_split.zig": "// fixture\n",
@@ -272,7 +284,11 @@ def run_self_test() -> None:
         ("makefile_make_wrapper_hook", "zigux/Makefile", "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase7-make-wrapper.py", "", "zigux/Makefile: cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase7-make-wrapper.py"),
         ("makefile_argv_split_packet_self_test_hook", "zigux/Makefile", "scripts/zigux/check-phase7-argv-split-packet.py --self-test", "", "zigux/Makefile: scripts/zigux/check-phase7-argv-split-packet.py --self-test"),
         ("makefile_parity_self_test_hook", "zigux/Makefile", "scripts/zigux/check-phase7-rbtree-parity.py --self-test", "", "zigux/Makefile: scripts/zigux/check-phase7-rbtree-parity.py --self-test"),
+        ("string_helpers_slice_boundary_guard_marker", "Documentation/zigux/phase7-string-helpers-slice.md", "zigux/tests/phase7_string_helpers_sample_boundary.zig", "", "Documentation/zigux/phase7-string-helpers-slice.md: zigux/tests/phase7_string_helpers_sample_boundary.zig"),
+        ("string_helpers_slice_phase5_boundary_marker", "Documentation/zigux/phase7-string-helpers-slice.md", "This is intentionally not a Phase 5 `samples/zigux/` reference-sample lane.", "", "Documentation/zigux/phase7-string-helpers-slice.md: This is intentionally not a Phase 5 `samples/zigux/` reference-sample lane."),
         ("argv_split_slice_checker_gate", "Documentation/zigux/phase7-argv-split-slice.md", "python3 scripts/zigux/check-phase7-argv-split-packet.py", "", "Documentation/zigux/phase7-argv-split-slice.md: python3 scripts/zigux/check-phase7-argv-split-packet.py"),
+        ("string_helpers_boundary_missing_sample_path", "zigux/tests/phase7_string_helpers_sample_boundary.zig", "samples/zigux/string_helpers_sample.zig", "", "zigux/tests/phase7_string_helpers_sample_boundary.zig: samples/zigux/string_helpers_sample.zig"),
+        ("string_helpers_boundary_string_scan_marker", "zigux/tests/phase7_string_helpers_sample_boundary.zig", "std.mem.indexOf(u8, entry.name, \"string\") != null", "std.mem.indexOf(u8, entry.name, \"str\") != null", "zigux/tests/phase7_string_helpers_sample_boundary.zig: std.mem.indexOf(u8, entry.name, \"string\") != null"),
         ("cmdline_survey_fixture_path", "zigux/tests/phase7_cmdline_survey.zig", "zigux/tests/fixtures/phase7_cmdline_next_arg_vectors.zig", "", "zigux/tests/phase7_cmdline_survey.zig: zigux/tests/fixtures/phase7_cmdline_next_arg_vectors.zig"),
         ("cmdline_survey_fixture_import", "zigux/tests/phase7_cmdline_survey.zig", "const next_arg_vectors = @import(\"fixtures/phase7_cmdline_next_arg_vectors.zig\");", "const next_arg_vectors = @import(\"fixtures/phase7_cmdline_vectors_drift.zig\");", "zigux/tests/phase7_cmdline_survey.zig: const next_arg_vectors = @import(\"fixtures/phase7_cmdline_next_arg_vectors.zig\");"),
         ("argv_split_survey_manifest_marker", "zigux/tests/phase7_argv_split_survey.zig", "zigux/tests/phase7_argv_split_manifest.json", "", "zigux/tests/phase7_argv_split_survey.zig: zigux/tests/phase7_argv_split_manifest.json"),
