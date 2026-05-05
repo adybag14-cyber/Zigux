@@ -13,6 +13,7 @@ ROOT = Path(__file__).resolve().parents[2]
 FILES = [
     "scripts/zigux/check-phase10-core-packet.py",
     "zigux/Makefile",
+    "zigux/tests/README.md",
     "zigux/tests/phase10_build.zig",
     "zigux/tests/phase10_virtio_core_reset_queue.zig",
     "zigux/tests/phase10_virtio_core_manifest.json",
@@ -32,6 +33,13 @@ EXPECTED_MAKEFILE_MARKERS = [
     "scripts/zigux/check-phase10-core-packet.py --self-test",
     "scripts/zigux/check-phase10-core-packet.py",
     "cd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase10_build.zig",
+]
+
+EXPECTED_TESTS_README_MARKERS = [
+    "phase10_virtio_core.zig",
+    "phase10_virtio_core_reset_queue.zig",
+    "phase10_virtio_core_survey.zig",
+    "phase10_virtio_driver_id.zig",
 ]
 
 EXPECTED_NOTE_MARKERS = [
@@ -94,6 +102,11 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
     for marker in EXPECTED_MAKEFILE_MARKERS:
         if marker not in makefile_text:
             missing_markers.append(f"makefile:{marker}")
+
+    tests_readme_text = read_text(root, "zigux/tests/README.md")
+    for marker in EXPECTED_TESTS_README_MARKERS:
+        if marker not in tests_readme_text:
+            missing_markers.append(f"tests_readme:{marker}")
 
     reset_queue_text = read_text(root, "zigux/tests/phase10_virtio_core_reset_queue.zig")
     for marker in EXPECTED_RESET_QUEUE_MARKERS:
@@ -165,6 +178,7 @@ def run_self_test() -> int:
     fixture = {
         "scripts/zigux/check-phase10-core-packet.py": read_text(ROOT, "scripts/zigux/check-phase10-core-packet.py"),
         "zigux/Makefile": read_text(ROOT, "zigux/Makefile"),
+        "zigux/tests/README.md": read_text(ROOT, "zigux/tests/README.md"),
         "zigux/tests/phase10_build.zig": read_text(ROOT, "zigux/tests/phase10_build.zig"),
         "zigux/tests/phase10_virtio_core_reset_queue.zig": read_text(ROOT, "zigux/tests/phase10_virtio_core_reset_queue.zig"),
         "zigux/tests/phase10_virtio_core_manifest.json": read_text(ROOT, "zigux/tests/phase10_virtio_core_manifest.json"),
@@ -222,6 +236,21 @@ def run_self_test() -> int:
         if "makefile:cd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase10_build.zig" not in missing_markers:
             raise SystemExit("phase10-core-self-test:expected_makefile_marker_missing")
         makefile_path.write_text(original_makefile, encoding="utf-8")
+
+        tests_readme_path = tmp_root / "zigux/tests/README.md"
+        original_tests_readme = tests_readme_path.read_text(encoding="utf-8")
+        tests_readme_path.write_text(
+            original_tests_readme.replace(
+                "phase10_virtio_core_reset_queue.zig",
+                "phase10_virtio_core_reset_queue_drift.zig",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        _, missing_markers = validate(tmp_root)
+        if "tests_readme:phase10_virtio_core_reset_queue.zig" not in missing_markers:
+            raise SystemExit("phase10-core-self-test:expected_tests_readme_reset_queue_marker_missing")
+        tests_readme_path.write_text(original_tests_readme, encoding="utf-8")
 
         reset_queue_path = tmp_root / "zigux/tests/phase10_virtio_core_reset_queue.zig"
         original_reset_queue = reset_queue_path.read_text(encoding="utf-8")
@@ -287,7 +316,7 @@ def run_self_test() -> int:
             raise SystemExit("phase10-core-self-test:expected_helpers_survey_marker_missing")
 
     print("PHASE10_CORE_PACKET_SELF_TEST=pass")
-    print("PHASE10_CORE_PACKET_SELF_TEST_CASE_COUNT=9")
+    print("PHASE10_CORE_PACKET_SELF_TEST_CASE_COUNT=10")
     return 0
 
 
