@@ -74,6 +74,8 @@ PHASE13_VALIDATE_HELPERS = (
 
 PHASE15_VALIDATE_TARGET = "phase15-validate"
 PHASE15_VALIDATE_COMMANDS = (
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase15-scripts-readme-alignment.py --self-test",
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase15-scripts-readme-alignment.py",
     "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase15-review-process-handoff.py --self-test",
     "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase15-review-process-handoff.py",
 )
@@ -308,6 +310,8 @@ def _baseline_makefile() -> str:
             "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase13-devres-packet.py",
             "",
             "phase15-validate:",
+            "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase15-scripts-readme-alignment.py --self-test",
+            "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase15-scripts-readme-alignment.py",
             "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase15-review-process-handoff.py --self-test",
             "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase15-review-process-handoff.py",
             "",
@@ -548,6 +552,45 @@ def run_self_test() -> int:
             validate(root),
             ["unexpected_makefile_helper:phase13-validate:unexpected-phase13.py"],
             "unexpected_phase13_helper_guard_failed",
+        )
+        _write(root / MAKEFILE_REL, baseline_makefile)
+        case_count += 1
+
+        _write(
+            root / MAKEFILE_REL,
+            baseline_makefile.replace(
+                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase15-scripts-readme-alignment.py --self-test\n",
+                "",
+                1,
+            ),
+        )
+        _assert_only(
+            validate(root),
+            [
+                "missing_makefile_command:phase15-validate:cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase15-scripts-readme-alignment.py --self-test",
+                "makefile_command_order_drift:phase15-validate",
+            ],
+            "missing_phase15_alignment_self_test_command_guard_failed",
+        )
+        _write(root / MAKEFILE_REL, baseline_makefile)
+        case_count += 1
+
+        _write(
+            root / MAKEFILE_REL,
+            baseline_makefile.replace(
+                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase15-scripts-readme-alignment.py\n",
+                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase15-scripts-readme-alignment.py\n"
+                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase15-scripts-readme-alignment.py\n",
+                1,
+            ),
+        )
+        _assert_only(
+            validate(root),
+            [
+                "unexpected_makefile_command_count:phase15-validate:2:cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase15-scripts-readme-alignment.py",
+                "makefile_command_order_drift:phase15-validate",
+            ],
+            "duplicate_phase15_alignment_command_guard_failed",
         )
         _write(root / MAKEFILE_REL, baseline_makefile)
         case_count += 1
