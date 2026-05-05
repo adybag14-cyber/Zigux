@@ -1,0 +1,234 @@
+const std = @import("std");
+
+pub const AllocatorHandoff = enum {
+    caller_provided,
+    arena,
+    kernel_heap,
+};
+
+pub const HandoffStage = enum(u8) {
+    initialized,
+    selftest_complete,
+};
+
+pub const RequestState = enum(u8) {
+    prepared,
+    waiting_on_runtime_substrate,
+    released_without_substrate,
+};
+
+pub const InitFlow = struct {
+    handoff_stage: HandoffStage,
+    init_runs: usize,
+    selftest_runs: usize,
+    exit_runs: usize,
+
+    pub fn readyForRuntimeLoad(self: InitFlow) bool {
+        if (self.init_runs == 0 or self.exit_runs != 0) return false;
+
+        return switch (self.handoff_stage) {
+            .initialized => self.selftest_runs == 0,
+            .selftest_complete => self.selftest_runs > 0,
+        };
+    }
+};
+
+pub const LoadPlan = struct {
+    module_name: []const u8,
+    anchor: []const u8,
+    entry_symbol: []const u8,
+    exit_symbol: []const u8,
+    requires_runtime_substrate: bool,
+    provides_selftest_hook: bool,
+    allocator_handoff: AllocatorHandoff,
+    init_flow: InitFlow,
+};
+
+pub const PreparedRequest = struct {
+    state: RequestState = .prepared,
+    plan: LoadPlan,
+
+    pub fn requestRuntimeLoad(self: *PreparedRequest) !LoadPlan {
+        if (self.state != .prepared) return error.InvalidLoaderState;
+
+        self.state = .waiting_on_runtime_substrate;
+        return self.plan;
+    }
+
+    pub fn releaseWithoutSubstrate(self: *PreparedRequest) !void {
+        if (self.state != .waiting_on_runtime_substrate) return error.InvalidLoaderState;
+        self.state = .released_without_substrate;
+    }
+};
+
+pub fn prepareRequest(plan: LoadPlan) !PreparedRequest {
+    if (!plan.requires_runtime_substrate) return error.LoaderNotRequired;
+    if (!plan.init_flow.readyForRuntimeLoad()) return error.InvalidInitFlow;
+
+    return .{ .plan = plan };
+}
+
+pub fn keepsAllocatorInitFlowConsistent(
+    plan: LoadPlan,
+    allocator_handoff: AllocatorHandoff,
+    init_flow: InitFlow,
+) bool {
+    return plan.allocator_handoff == allocator_handoff and
+        plan.init_flow.handoff_stage == init_flow.handoff_stage and
+        plan.init_flow.init_runs == init_flow.init_runs and
+        plan.init_flow.selftest_runs == init_flow.selftest_runs and
+        plan.init_flow.exit_runs == init_flow.exit_runs;
+}
+
+test "shared runtime loader contract keeps allocator and init flow explicit across handoff variants" {
+    const cases = [_]LoadPlan{
+        .{
+            .module_name = "runtime_atomic64",
+            .anchor = "lib/atomic64_test.c",
+            .entry_symbol = "zigux_runtime_atomic64_init",
+            .exit_symbol = "zigux_runtime_atomic64_exit",
+            .requires_runtime_substrate = true,
+            .provides_selftest_hook = true,
+            .allocator_handoff = .caller_provided,
+            .init_flow = .{
+                .handoff_stage = .selftest_complete,
+                .init_runs = 1,
+                .selftest_runs = 1,
+                .exit_runs = 0,
+            },
+        },
+        .{
+            .module_name = "runtime_bitmap",
+            .anchor = "lib/test_bitmap.c",
+            .entry_symbol = "zigux_runtime_bitmap_init",
+            .exit_symbol = "zigux_runtime_bitmap_exit",
+            .requires_runtime_substrate = true,
+            .provides_selftest_hook = true,
+            .allocator_handoff = .arena,
+            .init_flow = .{
+                .handoff_stage = .initialized,
+                .init_runs = 1,
+                .selftest_runs = 0,
+                .exit_runs = 0,
+            },
+        },
+        .{
+            .module_name = "runtime_kretprobe",
+            .anchor = "samples/kprobes/kretprobe_example.c",
+            .entry_symbol = "zigux_runtime_kretprobe_init",
+            .exit_symbol = "zigux_runtime_kretprobe_exit",
+            .requires_runtime_substrate = true,
+            .provides_selftest_hook = true,
+            .allocator_handoff = .kernel_heap,
+            .init_flow = .{
+                .handoff_stage = .selftest_complete,
+                .init_runs = 1,
+                .selftest_runs = 1,
+                .exit_runs = 0,
+            },
+        },
+    };
+
+    for (cases) |plan| {
+        var request = try prepareRequest(plan);
+        try std.testing.expectEqual(RequestState.prepared, request.state);
+        try std.testing.expect(keepsAllocatorInitFlowConsistent(
+            plan,
+            plan.allocator_handoff,
+            plan.init_flow,
+        ));
+
+        const pending_plan = try request.requestRuntimeLoad();
+        try std.testing.expectEqual(RequestState.waiting_on_runtime_substrate, request.state);
+        try std.testing.expectEqualStrings(plan.module_name, pending_plan.module_name);
+        try std.testing.expectEqual(plan.allocator_handoff, pending_plan.allocator_handoff);
+        try std.testing.expectEqual(plan.init_flow.handoff_stage, pending_plan.init_flow.handoff_stage);
+
+        try request.releaseWithoutSubstrate();
+        try std.testing.expectEqual(RequestState.released_without_substrate, request.state);
+    }
+}
+
+test "shared runtime loader contract rejects impossible or stale handoff flows" {
+    const missing_init = LoadPlan{
+        .module_name = "runtime_atomic64",
+        .anchor = "lib/atomic64_test.c",
+        .entry_symbol = "zigux_runtime_atomic64_init",
+        .exit_symbol = "zigux_runtime_atomic64_exit",
+        .requires_runtime_substrate = true,
+        .provides_selftest_hook = true,
+        .allocator_handoff = .caller_provided,
+        .init_flow = .{
+            .handoff_stage = .initialized,
+            .init_runs = 0,
+            .selftest_runs = 0,
+            .exit_runs = 0,
+        },
+    };
+    try std.testing.expectError(error.InvalidInitFlow, prepareRequest(missing_init));
+
+    const exited_plan = LoadPlan{
+        .module_name = "runtime_bitmap",
+        .anchor = "lib/test_bitmap.c",
+        .entry_symbol = "zigux_runtime_bitmap_init",
+        .exit_symbol = "zigux_runtime_bitmap_exit",
+        .requires_runtime_substrate = true,
+        .provides_selftest_hook = true,
+        .allocator_handoff = .arena,
+        .init_flow = .{
+            .handoff_stage = .selftest_complete,
+            .init_runs = 1,
+            .selftest_runs = 1,
+            .exit_runs = 1,
+        },
+    };
+    try std.testing.expectError(error.InvalidInitFlow, prepareRequest(exited_plan));
+
+    const mismatched_selftest = LoadPlan{
+        .module_name = "runtime_kretprobe",
+        .anchor = "samples/kprobes/kretprobe_example.c",
+        .entry_symbol = "zigux_runtime_kretprobe_init",
+        .exit_symbol = "zigux_runtime_kretprobe_exit",
+        .requires_runtime_substrate = true,
+        .provides_selftest_hook = true,
+        .allocator_handoff = .kernel_heap,
+        .init_flow = .{
+            .handoff_stage = .selftest_complete,
+            .init_runs = 1,
+            .selftest_runs = 0,
+            .exit_runs = 0,
+        },
+    };
+    try std.testing.expectError(error.InvalidInitFlow, prepareRequest(mismatched_selftest));
+
+    const stable_plan = LoadPlan{
+        .module_name = "runtime_atomic64",
+        .anchor = "lib/atomic64_test.c",
+        .entry_symbol = "zigux_runtime_atomic64_init",
+        .exit_symbol = "zigux_runtime_atomic64_exit",
+        .requires_runtime_substrate = true,
+        .provides_selftest_hook = true,
+        .allocator_handoff = .caller_provided,
+        .init_flow = .{
+            .handoff_stage = .selftest_complete,
+            .init_runs = 1,
+            .selftest_runs = 1,
+            .exit_runs = 0,
+        },
+    };
+    try std.testing.expect(!keepsAllocatorInitFlowConsistent(
+        stable_plan,
+        .arena,
+        stable_plan.init_flow,
+    ));
+    try std.testing.expect(!keepsAllocatorInitFlowConsistent(
+        stable_plan,
+        .caller_provided,
+        .{
+            .handoff_stage = .initialized,
+            .init_runs = 1,
+            .selftest_runs = 1,
+            .exit_runs = 0,
+        },
+    ));
+}
