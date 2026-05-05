@@ -15,13 +15,13 @@
   "phase4_build_blob_sha": "b1ff06326c59dfe6190663a378b6cb60d64f457f",
   "phase4_validator_atomic64_diff_present": true,
   "phase4_validator_runtime_atomic64_diff_present": true,
-  "phase4_validator_blob_sha": "e6184bd1e756e18bc2db7b5a83769378882dbb2e",
+  "phase4_validator_blob_sha": "354e9c35204b41d1f418c5de6a51d996fd4812dd",
   "phase9_build_present": true,
   "phase9_build_blob_sha": "8ecef19acf5953dce1bd9c59a9662e23c0da1f60",
   "phase4_validation_matrix_atomic64_diff_note_present": true,
   "phase4_validation_matrix_runtime_atomic64_note_present": true,
-  "phase4_validation_matrix_blob_sha": "e48abf8f94355c460faace966f980503fc879721",
+  "phase4_validation_matrix_blob_sha": "e16da27b564f61d358a8c4c419b369d23173b547",
   "threshold_posture": "threshold_pending_until_runtime_atomic64_scope_widens",
-  "roadmap_gap_summary": "the roadmap target zigux/tests/atomic64_diff.zig is now present as the Phase 4 wrapper and zigux/tests/phase4_build.zig runs through it, while zigux/tests/runtime_atomic64_diff.zig remains the single bounded replay body and the Phase 9 plus Phase 4 reviewer packet still anchor their exact operation inventory on that runtime path",
-  "ready_next": "leave this packet parked unless zigux/tests/atomic64_diff.zig, zigux/tests/runtime_atomic64_diff.zig, zigux/tests/phase4_build.zig, scripts/zigux/validate-phase4.py, or Documentation/zigux/phase4-validation-matrix.md drifts again; if it reopens, refresh the wrapper manifest and survey before widening runtime operation coverage"
+  "roadmap_gap_summary": "the roadmap target zigux/tests/atomic64_diff.zig is now present as the Phase 4 wrapper and zigux/tests/phase4_build.zig runs through it, while zigux/tests/runtime_atomic64_diff.zig remains the single bounded replay body that the Phase 9 runtime packet still imports directly and the wider Phase 4 reviewer packet should keep that shared runtime-backed handoff explicit",
+  "ready_next": "keep zigux/tests/atomic64_diff.zig, zigux/tests/runtime_atomic64_diff.zig, zigux/tests/phase4_build.zig, scripts/zigux/validate-phase4.py, Documentation/zigux/phase4-validation-matrix.md, and the wrapper manifest and survey aligned so the canonical wrapper stays explicit while the shared runtime operation coverage remains the single bounded replay body until a broader runtime move is intentional"
 }
