@@ -214,6 +214,11 @@ REQUIRED_REVIEW_MARKERS = [
 ]
 
 
+def workflow_has_run_marker(workflow_run_lines: list[str], marker: str) -> bool:
+    expected = f"run: {marker}"
+    return any(line == expected or line.startswith(expected + " ") for line in workflow_run_lines)
+
+
 def validate_root(root: Path) -> list[str]:
     missing = [str(path.relative_to(root)) for path in required_files(root) if not path.exists()]
     if missing:
@@ -230,9 +235,9 @@ def validate_root(root: Path) -> list[str]:
     for marker in REQUIRED_LEDGER_MARKERS:
         if marker not in ledger:
             missing_markers.append(f"ledger:{marker}")
-    workflow_run_lines = {line.strip() for line in workflow.splitlines()}
+    workflow_run_lines = [line.strip() for line in workflow.splitlines()]
     for marker in REQUIRED_WORKFLOW_MARKERS:
-        if f"run: {marker}" not in workflow_run_lines:
+        if not workflow_has_run_marker(workflow_run_lines, marker):
             missing_markers.append(f"workflow:{marker}")
     for marker in REQUIRED_DOC_MARKERS:
         if marker not in artifact_doc:
@@ -453,6 +458,14 @@ def run_self_test() -> int:
         build_self_test_root(root)
         workflow_path = root / ".github/workflows/zigux-bootstrap.yml"
         workflow_text = workflow_path.read_text(encoding="utf-8").replace(
+            "run: python3 scripts/zigux/check-phase2-cross.py --target\n",
+            "run: python3 scripts/zigux/check-phase2-cross.py --target ${{ matrix.zig_target }}\n",
+        )
+        write_text(workflow_path, workflow_text)
+        assert validate_root(root) == []
+
+        build_self_test_root(root)
+        workflow_text = workflow_path.read_text(encoding="utf-8").replace(
             "python3 scripts/zigux/check-phase2-tests-readme-alignment.py\n",
             "",
         )
@@ -494,7 +507,7 @@ def run_self_test() -> int:
         assert any(issue.startswith("guard_marker:") for issue in issues)
 
     print("PHASE2_VALIDATION_SELF_TEST=pass")
-    print("PHASE2_VALIDATION_SELF_TEST_CASE_COUNT=5")
+    print("PHASE2_VALIDATION_SELF_TEST_CASE_COUNT=6")
     return 0
 
 
