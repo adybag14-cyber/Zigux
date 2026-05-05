@@ -30,6 +30,15 @@ const Manifest = struct {
     gaps: []const Gap,
 };
 
+fn readPacketFile(io: std.Io, path: []const u8, allocator: std.mem.Allocator) ![]u8 {
+    return std.Io.Dir.cwd().readFileAlloc(
+        io,
+        path,
+        allocator,
+        .limited(32 * 1024),
+    );
+}
+
 fn isAllowedStatus(status: []const u8) bool {
     return std.mem.eql(u8, status, "starter_landed") or
         std.mem.eql(u8, status, "ready_next") or
@@ -58,7 +67,7 @@ test "phase13 libfs manifest records the landed helper surfaces and remaining he
     defer parsed.deinit();
 
     const manifest = parsed.value;
-    try std.testing.expectEqualStrings("P13-L03", manifest.lane_key);
+    try std.testing.expectEqualStrings("P13-L04", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 13", manifest.phase);
     try std.testing.expectEqualStrings("fs/libfs.c", manifest.anchor);
     try std.testing.expectEqualStrings("master-reviewability", manifest.surveyed_commit);
@@ -214,4 +223,27 @@ test "phase13 libfs manifest records the landed helper surfaces and remaining he
     try std.testing.expect(saw_transaction_helper);
     try std.testing.expect(saw_transaction_publish_helper);
     try std.testing.expect(saw_transaction_release_followup);
+
+    const survey_note = try readPacketFile(
+        io_instance.io(),
+        "Documentation/zigux/phase13-libfs-survey.md",
+        std.testing.allocator,
+    );
+    defer std.testing.allocator.free(survey_note);
+
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "ready-next `phase13-libfs-transaction-release-helper`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "blocked `phase13-libfs-dcache-cursor-helpers`") == null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "blocked `phase13-libfs-inode-and-pseudofs-lifecycle`") == null);
+
+    const traceability_note = try readPacketFile(
+        io_instance.io(),
+        "Documentation/zigux/phase13-roadmap-traceability.md",
+        std.testing.allocator,
+    );
+    defer std.testing.allocator.free(traceability_note);
+
+    try std.testing.expect(std.mem.indexOf(u8, traceability_note, "## Libfs lane traceability") != null);
+    try std.testing.expect(std.mem.indexOf(u8, traceability_note, "zigux/tests/phase13_libfs_reviewability.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, traceability_note, "simple_transaction_release()") != null);
+    try std.testing.expect(std.mem.indexOf(u8, traceability_note, "helper-first filesystem planning") != null);
 }
