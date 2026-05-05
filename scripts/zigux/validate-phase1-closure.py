@@ -6,6 +6,7 @@ import json
 from pathlib import Path
 import re
 import tempfile
+from typing import Any
 
 
 _SELF_PATH = Path(__file__).resolve()
@@ -398,6 +399,15 @@ def collect_bench_expectation_markers(expectations: object) -> list[str]:
     return missing_markers
 
 
+def load_json_file(path: Path, label: str) -> tuple[Any | None, list[str]]:
+    try:
+        return json.loads(path.read_text(encoding="utf-8")), []
+    except json.JSONDecodeError as exc:
+        return None, [
+            f"{label}:json_decode_error:{exc.msg}:line={exc.lineno}:column={exc.colno}"
+        ]
+
+
 def collect_exact_count_markers(text: str, markers: list[tuple[str, str, int]]) -> list[str]:
     missing_markers: list[str] = []
     for label, marker, expected_count in markers:
@@ -516,6 +526,12 @@ def run_self_test() -> None:
             "iterations": dict(EXPECTED_BENCH_ITERATIONS),
             "checksums": list(EXPECTED_BENCH_CHECKSUMS) + ["PHASE1_BENCH_FAKE_CHECKSUM"],
         }
+        malformed_manifest_path = tmp_root / "zigux" / "tests" / "fixtures" / "phase1_helper_manifest.json"
+        malformed_manifest_path.parent.mkdir(parents=True, exist_ok=True)
+        malformed_manifest_path.write_text('{"phase": "Phase 1",\n', encoding="utf-8")
+        malformed_bench_path = tmp_root / "zigux" / "tests" / "fixtures" / "phase1_bench_expectations.json"
+        malformed_bench_path.parent.mkdir(parents=True, exist_ok=True)
+        malformed_bench_path.write_text('{"status": "pass",\n', encoding="utf-8")
 
         assert collect_manifest_markers(valid_manifest, tmp_root) == []
         duplicate_markers = collect_manifest_markers(duplicate_manifest, tmp_root)
@@ -547,6 +563,26 @@ def run_self_test() -> None:
         assert (
             "bench_expectations:unexpected_checksum=PHASE1_BENCH_FAKE_CHECKSUM"
             in collect_bench_expectation_markers(unexpected_bench_checksum)
+        )
+
+        parsed_manifest, manifest_parse_markers = load_json_file(
+            malformed_manifest_path,
+            "manifest",
+        )
+        assert parsed_manifest is None
+        assert (
+            "manifest:json_decode_error:Expecting property name enclosed in double quotes:line=2:column=1"
+            in manifest_parse_markers
+        )
+
+        parsed_bench, bench_parse_markers = load_json_file(
+            malformed_bench_path,
+            "bench_expectations",
+        )
+        assert parsed_bench is None
+        assert (
+            "bench_expectations:json_decode_error:Expecting property name enclosed in double quotes:line=2:column=1"
+            in bench_parse_markers
         )
 
         valid_closure = render_marker_fixture(required_closure_markers)
@@ -901,7 +937,7 @@ def run_self_test() -> None:
         assert collect_missing_files(repo_root_from_arg(str(tmp_root))) == [required_phase1_parity]
 
     print("PHASE1_CLOSURE_VALIDATOR_SELF_TEST=pass")
-    print("PHASE1_CLOSURE_VALIDATOR_SELF_TEST_CASE_COUNT=49")
+    print("PHASE1_CLOSURE_VALIDATOR_SELF_TEST_CASE_COUNT=51")
 
 
 def main() -> int:
@@ -936,11 +972,19 @@ def main() -> int:
     tests_readme = (root / "zigux" / "tests" / "README.md").read_text(encoding="utf-8")
     ledger = (root / "zigux-alpha" / "BOOTSTRAP_COMMIT_LEDGER.md").read_text(encoding="utf-8")
     makefile = (root / "zigux" / "Makefile").read_text(encoding="utf-8")
-    manifest = json.loads((root / "zigux" / "tests" / "fixtures" / "phase1_helper_manifest.json").read_text(encoding="utf-8"))
-    bench_expectations = json.loads((root / "zigux" / "tests" / "fixtures" / "phase1_bench_expectations.json").read_text(encoding="utf-8"))
+    manifest, manifest_parse_markers = load_json_file(
+        root / "zigux" / "tests" / "fixtures" / "phase1_helper_manifest.json",
+        "manifest",
+    )
+    bench_expectations, bench_parse_markers = load_json_file(
+        root / "zigux" / "tests" / "fixtures" / "phase1_bench_expectations.json",
+        "bench_expectations",
+    )
     bootstrap_workflow = extract_workflow_job(workflow, "bootstrap")
 
     missing_markers = collect_workflow_markers(workflow)
+    missing_markers.extend(manifest_parse_markers)
+    missing_markers.extend(bench_parse_markers)
     missing_markers.extend(
         collect_exact_line_count_markers(workflow, [required_exact_workflow_markers[0]])
     )
@@ -952,8 +996,10 @@ def main() -> int:
     missing_markers.extend(collect_exact_count_markers(tests_build, required_build_markers))
     missing_markers.extend(collect_exact_count_markers(ledger, required_ledger_markers))
 
-    missing_markers.extend(collect_manifest_markers(manifest, root))
-    missing_markers.extend(collect_bench_expectation_markers(bench_expectations))
+    if manifest is not None:
+        missing_markers.extend(collect_manifest_markers(manifest, root))
+    if bench_expectations is not None:
+        missing_markers.extend(collect_bench_expectation_markers(bench_expectations))
     missing_markers.extend(
         collect_exact_line_count_markers(bootstrap_workflow, required_phase1_workflow_markers)
     )
