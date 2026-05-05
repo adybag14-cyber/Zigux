@@ -18,6 +18,13 @@ MARKER = "PHASE14_VALIDATE_PACKET=shared_smoke"
 CHECKER_MARKER = "PHASE14_CHECK_PACKET=rollback_threshold_sequencing"
 RELEASE_BOUNDARY_CHECKER_MARKER = "PHASE14_CHECK_PACKET=release_boundary_exact_counts"
 EXPECTED_LANE_KEY = "P14-L07"
+TRACEABILITY_PATH = "Documentation/zigux/phase14-core-boundary-traceability.md"
+TRACEABILITY_TITLE = "# Phase 14 Core Boundary Traceability"
+TRACEABILITY_MANIFEST_PATHS = [
+    "zigux/tests/phase14_ring_buffer_manifest.json",
+    "zigux/tests/phase14_skbuff_bridge_manifest.json",
+    "zigux/tests/phase14_rcu_tree_manifest.json",
+]
 REQUIRED_COMMANDS = [
     "make -C zigux phase14-validate",
     "make -C zigux phase14-smoke",
@@ -27,16 +34,19 @@ REQUIRED_COMMANDS = [
     "make -C zigux phase14",
 ]
 REQUIRED_SURFACES = {
-    "scripts/zigux/README.md": "make -C zigux phase14-validate",
+    TRACEABILITY_PATH: TRACEABILITY_TITLE,
+    "scripts/zigux/README.md": "Phase 14 flow",
     "scripts/zigux/validate-phase14.py": MARKER,
-    ".github/workflows/zigux-bootstrap.yml": "Validate Phase 14 shared smoke packet",
+    "scripts/zigux/check-phase14-rollback-threshold-sequencing.py": CHECKER_MARKER,
+    "scripts/zigux/check-phase14-release-boundary-exact-counts.py": RELEASE_BOUNDARY_CHECKER_MARKER,
 }
 REQUIRED_FILE_MARKERS = {
     "Documentation/zigux/phase14-end-to-end-smoke-survey.md": [
         "PHASE14_VALIDATE_ENTRYPOINT=make -C zigux phase14-validate",
         "PHASE14_VALIDATE_SCRIPT=python3 scripts/zigux/validate-phase14.py",
-        "PHASE14_SHARED_LANE=P14-L07",
+        "Documentation/zigux/phase14-core-boundary-traceability.md",
     ],
+    TRACEABILITY_PATH: [TRACEABILITY_TITLE],
     "scripts/zigux/README.md": [
         "python3 scripts/zigux/validate-phase14.py",
         "make -C zigux phase14-validate",
@@ -47,7 +57,7 @@ REQUIRED_FILE_MARKERS = {
     "zigux/tests/phase14_end_to_end_smoke_survey.zig": [
         "make -C zigux phase14-validate",
         "phase14: phase14-validate phase14-smoke phase14-test",
-        "\"P14-L07\"",
+        "Documentation/zigux/phase14-core-boundary-traceability.md",
     ],
     "zigux/Makefile": [
         "phase14-validate:",
@@ -68,8 +78,92 @@ def read_text(path: Path) -> str:
     return path.read_text(encoding="utf-8")
 
 
-def run_checker(root: Path, relative_path: str) -> list[str]:
-    checker = root / relative_path
+def load_json_file(path: Path) -> dict:
+    return json.loads(read_text(path))
+
+
+def blocked_gap_id(manifest: dict) -> str | None:
+    for gap in manifest.get("gaps", []):
+        status = str(gap.get("status", ""))
+        if status.startswith("blocked"):
+            gap_id = gap.get("id")
+            if isinstance(gap_id, str):
+                return gap_id
+    return None
+
+
+def ready_next_gap_id(manifest: dict) -> str | None:
+    for gap in manifest.get("gaps", []):
+        if gap.get("status") == "ready_next":
+            gap_id = gap.get("id")
+            if isinstance(gap_id, str):
+                return gap_id
+    return None
+
+
+def traceability_expected_markers(root: Path) -> tuple[list[str], list[str]]:
+    errors: list[str] = []
+    markers = [
+        TRACEABILITY_TITLE,
+        "- validator entrypoint: `make -C zigux phase14-validate`",
+        "- convenience target: `make -C zigux phase14`",
+    ]
+
+    for manifest_rel_path in TRACEABILITY_MANIFEST_PATHS:
+        manifest_path = root / manifest_rel_path
+        if not manifest_path.exists():
+            errors.append(f"missing file: {manifest_rel_path}")
+            continue
+        try:
+            manifest = load_json_file(manifest_path)
+        except json.JSONDecodeError as exc:
+            errors.append(f"invalid json in {manifest_rel_path}: {exc}")
+            continue
+
+        lane_key = manifest.get("lane_key")
+        surveyed_commit = manifest.get("surveyed_commit")
+        if not isinstance(lane_key, str):
+            errors.append(f"missing lane_key in {manifest_rel_path}")
+        if not isinstance(surveyed_commit, str):
+            errors.append(f"missing surveyed_commit in {manifest_rel_path}")
+
+        blocked_gap = blocked_gap_id(manifest)
+        if blocked_gap is None:
+            errors.append(f"missing blocked gap in {manifest_rel_path}")
+
+        ready_next_gap = ready_next_gap_id(manifest)
+        markers.append(f"- manifest: `{manifest_rel_path}`")
+        if isinstance(lane_key, str):
+            markers.append(f"- lane key: `{lane_key}`")
+        if isinstance(surveyed_commit, str):
+            markers.append(f"- surveyed commit: `{surveyed_commit}`")
+        if ready_next_gap is None:
+            markers.append("- ready-next gap: none currently recorded")
+        else:
+            markers.append(f"- ready-next gap: `{ready_next_gap}`")
+        if blocked_gap is not None:
+            markers.append(f"- blocked gap: `{blocked_gap}`")
+
+    return markers, errors
+
+
+def check_traceability_note(root: Path) -> list[str]:
+    errors: list[str] = []
+    traceability_path = root / TRACEABILITY_PATH
+    if not traceability_path.exists():
+        return [f"missing file: {TRACEABILITY_PATH}"]
+
+    text = read_text(traceability_path)
+    expected_markers, marker_errors = traceability_expected_markers(root)
+    errors.extend(marker_errors)
+    for marker in expected_markers:
+        if marker not in text:
+            errors.append(f"missing marker in {TRACEABILITY_PATH}: {marker}")
+    return errors
+
+
+def run_guardrail_checker(root: Path) -> list[str]:
+    checker = root / "scripts/zigux/check-phase14-rollback-threshold-sequencing.py"
     if not checker.exists():
         return [f"missing file: {checker.relative_to(root).as_posix()}"]
 
@@ -91,7 +185,34 @@ def run_checker(root: Path, relative_path: str) -> list[str]:
     elif stdout:
         details.extend(stdout)
     else:
-        details.append(f"{relative_path} failed without output")
+        details.append("phase14 rollback-threshold sequencing checker failed without output")
+    return details
+
+
+def run_release_boundary_checker(root: Path) -> list[str]:
+    checker = root / "scripts/zigux/check-phase14-release-boundary-exact-counts.py"
+    if not checker.exists():
+        return [f"missing file: {checker.relative_to(root).as_posix()}"]
+
+    result = subprocess.run(
+        [sys.executable, str(checker)],
+        cwd=root,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    if result.returncode == 0:
+        return []
+
+    details: list[str] = []
+    stderr = [line.strip() for line in result.stderr.splitlines() if line.strip()]
+    stdout = [line.strip() for line in result.stdout.splitlines() if line.strip()]
+    if stderr:
+        details.extend(stderr)
+    elif stdout:
+        details.extend(stdout)
+    else:
+        details.append("phase14 release-boundary exact-counts checker failed without output")
     return details
 
 
@@ -101,18 +222,16 @@ def check(root: Path) -> list[str]:
     if not manifest_path.exists():
         return [f"missing file: {manifest_path.as_posix()}"]
 
-    errors.extend(run_checker(root, "scripts/zigux/check-phase14-rollback-threshold-sequencing.py"))
-    errors.extend(run_checker(root, "scripts/zigux/check-phase14-release-boundary-exact-counts.py"))
+    errors.extend(run_guardrail_checker(root))
+    errors.extend(run_release_boundary_checker(root))
 
     try:
-        manifest = json.loads(read_text(manifest_path))
+        manifest = load_json_file(manifest_path)
     except json.JSONDecodeError as exc:
         return [f"invalid json in {manifest_path.as_posix()}: {exc}"]
 
     if manifest.get("lane_key") != EXPECTED_LANE_KEY:
-        errors.append(
-            "phase14 shared smoke manifest lane_key drifted from the current shared-lane owner"
-        )
+        errors.append("phase14 shared smoke manifest lane_key drifted from the current shared-lane owner")
 
     commands = manifest.get("commands")
     if commands != REQUIRED_COMMANDS:
@@ -136,6 +255,8 @@ def check(root: Path) -> list[str]:
         for marker in markers:
             if marker not in text:
                 errors.append(f"missing marker in {rel_path}: {marker}")
+
+    errors.extend(check_traceability_note(root))
 
     return errors
 
@@ -182,6 +303,41 @@ def run_self_test() -> int:
             f"\"\"\"{RELEASE_BOUNDARY_CHECKER_MARKER}\"\"\"\n"
             "raise SystemExit(0)\n",
         )
+
+        anchor_manifests = {
+            "zigux/tests/phase14_ring_buffer_manifest.json": {
+                "lane_key": "P14-L08",
+                "surveyed_commit": "946d5c73fdb763ba860a20879b05da54e1896e8c",
+                "gaps": [
+                    {"id": "phase14-ring-buffer-reader-page-consume-followup", "status": "ready_next"},
+                    {"id": "phase14-ring-buffer-zig-port-blocker", "status": "blocked_on_stay_in_c_evidence"},
+                ],
+            },
+            "zigux/tests/phase14_skbuff_bridge_manifest.json": {
+                "lane_key": "P14-L11",
+                "surveyed_commit": "f05e02445443e7743c3675a6f8ca4f70f6e736fb",
+                "gaps": [
+                    {"id": "phase14-skbuff-live-ownership-blocker", "status": "blocked_on_stay_in_c_evidence"},
+                ],
+            },
+            "zigux/tests/phase14_rcu_tree_manifest.json": {
+                "lane_key": "P14-L16",
+                "surveyed_commit": "4c889233d157960514b241bcd5aff7cac5fda312",
+                "gaps": [
+                    {"id": "phase14-rcu-tree-bridge-blocker", "status": "blocked_on_stay_in_c_evidence"},
+                ],
+            },
+        }
+        for rel_path, data in anchor_manifests.items():
+            write_text(root / rel_path, json.dumps(data, indent=2) + "\n")
+
+        expected_markers, errors = traceability_expected_markers(root)
+        if errors:
+            for error in errors:
+                print(error, file=sys.stderr)
+            return 1
+        write_text(root / TRACEABILITY_PATH, "\n".join(expected_markers) + "\n")
+
         for rel_path, markers in REQUIRED_FILE_MARKERS.items():
             path = root / rel_path
             if path.exists():
@@ -195,10 +351,18 @@ def run_self_test() -> int:
                 print(f"- {error}", file=sys.stderr)
             return 1
 
-        broken_path = root / "zigux/tests/phase14_end_to_end_smoke_manifest.json"
-        broken_manifest = json.loads(broken_path.read_text(encoding="utf-8"))
+        broken_path = root / TRACEABILITY_PATH
+        broken_path.writeText = None
+        broken_path.write_text(f"{TRACEABILITY_TITLE}\n", encoding="utf-8")
+        errors = check(root)
+        if not errors or not any("missing marker in Documentation/zigux/phase14-core-boundary-traceability.md: - lane key: `P14-L08`" in error for error in errors):
+            print("self-test expected failure when traceability note drifted", file=sys.stderr)
+            return 1
+
+        broken_manifest_path = root / "zigux/tests/phase14_end_to_end_smoke_manifest.json"
+        broken_manifest = json.loads(broken_manifest_path.read_text(encoding="utf-8"))
         broken_manifest["lane_key"] = "core-adjacent"
-        broken_path.write_text(json.dumps(broken_manifest, indent=2) + "\n", encoding="utf-8")
+        broken_manifest_path.write_text(json.dumps(broken_manifest, indent=2) + "\n", encoding="utf-8")
         errors = check(root)
         if not errors or not any("lane_key drifted" in error for error in errors):
             print("self-test expected failure when manifest lane owner drifted", file=sys.stderr)
