@@ -71,7 +71,7 @@ test "phase10 virtio ring survey manifest records the live queue-wrapper gap" {
     var saw_used_buffer_polling = false;
     var saw_callback_enable_helper = false;
     var saw_callback_delay_helper = false;
-    var saw_mmio_register_next = false;
+    var saw_mmio_register_landed = false;
     var saw_mmio_lifecycle_blocker = false;
     var saw_ring_slice_note = false;
     var saw_core_progress_note = false;
@@ -124,10 +124,10 @@ test "phase10 virtio ring survey manifest records the live queue-wrapper gap" {
         }
 
         if (std.mem.eql(u8, gap.id, "phase10-mmio-register-window-helper")) {
-            saw_mmio_register_next = true;
-            try std.testing.expectEqualStrings("ready_next", gap.status);
+            saw_mmio_register_landed = true;
+            try std.testing.expectEqualStrings("starter_landed", gap.status);
             try std.testing.expectEqualStrings("drivers/virtio/virtio_mmio.zig", gap.zigux_destination);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "MMIO register-window helper") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "already landed") != null);
         }
 
         if (std.mem.eql(u8, gap.id, "phase10-mmio-lifecycle-and-irq-paths")) {
@@ -149,15 +149,15 @@ test "phase10 virtio ring survey manifest records the live queue-wrapper gap" {
         }
     }
 
-    try std.testing.expect(starter_landed_count >= 8);
-    try std.testing.expectEqual(@as(usize, 1), ready_next_count);
+    try std.testing.expect(starter_landed_count >= 9);
+    try std.testing.expectEqual(@as(usize, 0), ready_next_count);
     try std.testing.expectEqual(@as(usize, 1), blocked_count);
     try std.testing.expect(saw_core_progress_note);
     try std.testing.expect(saw_ring_helper);
     try std.testing.expect(saw_used_buffer_polling);
     try std.testing.expect(saw_callback_enable_helper);
     try std.testing.expect(saw_callback_delay_helper);
-    try std.testing.expect(saw_mmio_register_next);
+    try std.testing.expect(saw_mmio_register_landed);
     try std.testing.expect(saw_mmio_lifecycle_blocker);
     try std.testing.expect(saw_ring_slice_note);
 }
