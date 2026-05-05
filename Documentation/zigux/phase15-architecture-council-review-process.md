@@ -9,9 +9,13 @@ This document records the bounded Phase 15 governance lane around the Architectu
 - scope: one review-process note, one dedicated manifest and Zig test, the shared Phase 15 build wiring, and a small review-checklist update that now also names the retained stay-in-C closeout state and reopen triggers
 - survey provenance refreshed against verified `master` head `3eac40e856ac7673f705447a1d6025f3d0193b5e`
 - product boundary:
+  - `Documentation/zigux/freeze-map.md`
+  - `Documentation/zigux/phase15-freeze-map-governance.md`
   - `Documentation/zigux/phase15-architecture-council-review-process.md`
   - `Documentation/zigux/phase15-parity-scorecard.md`
+  - `Documentation/zigux/phase15-indefinite-c-policy.md`
   - `Documentation/zigux/review-checklist.md`
+  - `scripts/zigux/check-phase15-review-process-handoff.py`
   - `zigux/tests/phase15_architecture_council_review_process_manifest.json`
   - `zigux/tests/phase15_architecture_council_review_process.zig`
   - `zigux/tests/phase15_build.zig`
