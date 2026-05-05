@@ -74,10 +74,15 @@ test "phase 5 kobject sample makes ownership and lifetime boundaries explicit" {
 
     try module.init();
     try std.testing.expectEqual(sample.SampleStage.initialized, module.stage());
+    try std.testing.expectEqual(@as(usize, 0), module.activeAttrCount());
+    try std.testing.expectError(error.InvalidLifecycleTransition, module.showValue("foo"));
+    try std.testing.expectError(error.InvalidLifecycleTransition, module.storeValue("foo", "1\n"));
     try std.testing.expectError(error.InvalidLifecycleTransition, module.init());
 
     try module.registerAttributes();
     try std.testing.expectEqual(@as(usize, 3), module.activeAttrCount());
+    try std.testing.expectEqual(@as(usize, 2), try module.storeValue("foo", "8\n"));
+    try std.testing.expectEqualStrings("8\n", (try module.showValue("foo")).text[0..2]);
     try std.testing.expectError(error.InvalidLifecycleTransition, module.registerAttributes());
 
     try module.exit();
