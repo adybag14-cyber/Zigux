@@ -1,4 +1,5 @@
 const std = @import("std");
+const layout_assert = @import("layout_assert");
 
 const SurveySummary = struct {
     shared_phase11_build_present: bool,
@@ -98,6 +99,7 @@ test "phase11 shared header parity survey manifest records the restored packet c
         }
         if (std.mem.eql(u8, gap.id, "phase11-hvc-console-export-signature-assert")) {
             saw_export_surface = true;
+            try expectContains(gap.why_now, "notifier_hangup_irq");
         }
     }
 
@@ -108,20 +110,31 @@ test "phase11 shared header parity survey manifest records the restored packet c
 }
 
 test "phase11 shared header parity survey keeps a bounded watchdog_info layout proof" {
-    try std.testing.expectEqual(@as(usize, 40), @sizeOf(WatchdogInfo));
-    try std.testing.expectEqual(@as(usize, 4), @alignOf(WatchdogInfo));
-    try std.testing.expectEqual(@as(usize, 0), @offsetOf(WatchdogInfo, "options"));
-    try std.testing.expectEqual(@as(usize, 4), @offsetOf(WatchdogInfo, "firmware_version"));
-    try std.testing.expectEqual(@as(usize, 8), @offsetOf(WatchdogInfo, "identity"));
+    comptime {
+        layout_assert.assertSize(WatchdogInfo, 40);
+        layout_assert.assertAlign(WatchdogInfo, 4);
+        layout_assert.assertFieldType(WatchdogInfo, "options", u32);
+        layout_assert.assertFieldType(WatchdogInfo, "firmware_version", u32);
+        layout_assert.assertFieldType(WatchdogInfo, "identity", [32]u8);
+        layout_assert.assertOffset(WatchdogInfo, "options", 0);
+        layout_assert.assertOffset(WatchdogInfo, "firmware_version", 4);
+        layout_assert.assertOffset(WatchdogInfo, "identity", 8);
+    }
 }
 
 test "phase11 shared header parity survey keeps a bounded winsize layout proof" {
-    try std.testing.expectEqual(@as(usize, 8), @sizeOf(WinSize));
-    try std.testing.expectEqual(@as(usize, 2), @alignOf(WinSize));
-    try std.testing.expectEqual(@as(usize, 0), @offsetOf(WinSize, "ws_row"));
-    try std.testing.expectEqual(@as(usize, 2), @offsetOf(WinSize, "ws_col"));
-    try std.testing.expectEqual(@as(usize, 4), @offsetOf(WinSize, "ws_xpixel"));
-    try std.testing.expectEqual(@as(usize, 6), @offsetOf(WinSize, "ws_ypixel"));
+    comptime {
+        layout_assert.assertSize(WinSize, 8);
+        layout_assert.assertAlign(WinSize, 2);
+        layout_assert.assertFieldType(WinSize, "ws_row", u16);
+        layout_assert.assertFieldType(WinSize, "ws_col", u16);
+        layout_assert.assertFieldType(WinSize, "ws_xpixel", u16);
+        layout_assert.assertFieldType(WinSize, "ws_ypixel", u16);
+        layout_assert.assertOffset(WinSize, "ws_row", 0);
+        layout_assert.assertOffset(WinSize, "ws_col", 2);
+        layout_assert.assertOffset(WinSize, "ws_xpixel", 4);
+        layout_assert.assertOffset(WinSize, "ws_ypixel", 6);
+    }
 }
 
 test "phase11 shared header parity survey keeps the note pinned to the manifest provenance" {
@@ -139,6 +152,7 @@ test "phase11 shared header parity survey keeps the note pinned to the manifest 
     try expectContains(note, "phase11-hvc-console-winsize-layout-assert");
     try expectContains(note, "phase11-hvc-console-export-signature-assert");
     try expectContains(note, "phase11-uapi-header-parity-surface");
+    try expectContains(note, "notifier_hangup_irq");
 }
 
 test "phase11 shared header parity survey keeps shared replay markers explicit without a missing inventory fixture" {
@@ -159,11 +173,15 @@ test "phase11 shared header parity survey keeps shared replay markers explicit w
     try expectContains(build_file, "phase11-hvc-console-tests");
     try expectContains(build_file, "phase11-hvc-cleanup-tests");
     try expectContains(build_file, "phase11-hvc-console-survey-tests");
+    try expectContains(build_file, "layout_assert_module");
+    try expectContains(build_file, "phase11_uapi_header_parity_survey_module.addImport(\"layout_assert\", layout_assert_module);");
 }
 
 test "phase11 shared header parity survey keeps the exported hvc surface explicit" {
     const hvc_console = try readFileAlloc(std.testing.allocator, "drivers/tty/hvc/hvc_console.zig", 256 * 1024);
     defer std.testing.allocator.free(hvc_console);
+    const hvc_header = try readFileAlloc(std.testing.allocator, "drivers/tty/hvc/hvc_console.h", 64 * 1024);
+    defer std.testing.allocator.free(hvc_header);
 
     try expectContains(hvc_console, "MAX_NR_HVC_CONSOLES");
     try expectContains(hvc_console, "HVC_ALLOC_TTY_ADAPTERS");
@@ -175,6 +193,7 @@ test "phase11 shared header parity survey keeps the exported hvc surface explici
     try expectContains(hvc_console, "pub fn __hvc_resize");
     try expectContains(hvc_console, "pub fn notifier_add_irq");
     try expectContains(hvc_console, "pub fn notifier_del_irq");
+    try expectContains(hvc_header, "extern void notifier_hangup_irq");
 }
 
 test "phase11 shared header parity survey keeps the shared build hook explicit" {
