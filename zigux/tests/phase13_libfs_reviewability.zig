@@ -36,7 +36,7 @@ fn isAllowedStatus(status: []const u8) bool {
         std.mem.eql(u8, status, "blocked_on_vfs_state");
 }
 
-test "phase13 libfs manifest records the landed starter and remaining helper-surface gap" {
+test "phase13 libfs manifest records the landed starter and remaining wrapper gap" {
     var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
     defer io_instance.deinit();
 
@@ -65,7 +65,7 @@ test "phase13 libfs manifest records the landed starter and remaining helper-sur
     try std.testing.expect(manifest.survey_summary.preexisting_phase13_slice_note_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase13_reviewability_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase13_survey_note_present);
-    try std.testing.expectEqual(@as(usize, 10), manifest.gaps.len);
+    try std.testing.expectEqual(@as(usize, 11), manifest.gaps.len);
 
     const descriptor = libfs.LibFsHelperLab.descriptor();
     try std.testing.expectEqualStrings("fs/libfs.c", descriptor.anchor);
@@ -74,6 +74,7 @@ test "phase13 libfs manifest records the landed starter and remaining helper-sur
     try std.testing.expect(descriptor.provides_buffer_copy_helpers);
     try std.testing.expect(descriptor.provides_offset_seek_helpers);
     try std.testing.expect(descriptor.provides_directory_emit_planning);
+    try std.testing.expect(descriptor.provides_transaction_buffer_planning);
     try std.testing.expect(!descriptor.touches_live_dcache);
     try std.testing.expect(!descriptor.touches_live_inode_state);
 
@@ -89,7 +90,8 @@ test "phase13 libfs manifest records the landed starter and remaining helper-sur
     var saw_survey_note = false;
     var saw_offset_followup = false;
     var saw_emit_followup = false;
-    var saw_transaction_followup = false;
+    var saw_transaction_helper = false;
+    var saw_transaction_publish_helper = false;
 
     for (manifest.gaps, 0..) |gap, i| {
         try std.testing.expect(gap.id.len > 0);
@@ -116,7 +118,6 @@ test "phase13 libfs manifest records the landed starter and remaining helper-sur
         if (std.mem.eql(u8, gap.id, "phase13-libfs-starter")) {
             saw_starter = true;
             try std.testing.expectEqualStrings("starter_landed", gap.status);
-            try std.testing.expectEqualStrings("filesystem_helper_surface", gap.kind);
             try std.testing.expectEqualStrings("fs/libfs.zig", gap.zigux_destination);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "simple_statfs") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "simple_lookup") != null);
@@ -144,7 +145,6 @@ test "phase13 libfs manifest records the landed starter and remaining helper-sur
         if (std.mem.eql(u8, gap.id, "phase13-libfs-offset-seek-helper")) {
             saw_offset_followup = true;
             try std.testing.expectEqualStrings("starter_landed", gap.status);
-            try std.testing.expectEqualStrings("filesystem_helper_surface", gap.kind);
             try std.testing.expectEqualStrings("fs/libfs.zig", gap.zigux_destination);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "dcache_dir_lseek") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "offset_dir_llseek") != null);
@@ -152,18 +152,23 @@ test "phase13 libfs manifest records the landed starter and remaining helper-sur
         if (std.mem.eql(u8, gap.id, "phase13-libfs-directory-emit-helper")) {
             saw_emit_followup = true;
             try std.testing.expectEqualStrings("starter_landed", gap.status);
-            try std.testing.expectEqualStrings("filesystem_helper_surface", gap.kind);
             try std.testing.expectEqualStrings("fs/libfs.zig", gap.zigux_destination);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "dcache_readdir") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "dir_emit_dots") != null);
         }
-        if (std.mem.eql(u8, gap.id, "phase13-libfs-transaction-buffer-followup")) {
-            saw_transaction_followup = true;
-            try std.testing.expectEqualStrings("ready_next", gap.status);
-            try std.testing.expectEqualStrings("filesystem_helper_surface", gap.kind);
+        if (std.mem.eql(u8, gap.id, "phase13-libfs-transaction-buffer-helper")) {
+            saw_transaction_helper = true;
+            try std.testing.expectEqualStrings("starter_landed", gap.status);
             try std.testing.expectEqualStrings("fs/libfs.zig", gap.zigux_destination);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "simple_transaction") != null);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "staging buffer") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "simple_transaction_get") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "single-write-per-open") != null);
+        }
+        if (std.mem.eql(u8, gap.id, "phase13-libfs-transaction-publish-helper")) {
+            saw_transaction_publish_helper = true;
+            try std.testing.expectEqualStrings("ready_next", gap.status);
+            try std.testing.expectEqualStrings("fs/libfs.zig", gap.zigux_destination);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "simple_transaction_set") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "publish") != null);
         }
 
         for (manifest.gaps[i + 1 ..]) |other| {
@@ -171,7 +176,7 @@ test "phase13 libfs manifest records the landed starter and remaining helper-sur
         }
     }
 
-    try std.testing.expectEqual(@as(usize, 9), starter_landed_count);
+    try std.testing.expectEqual(@as(usize, 10), starter_landed_count);
     try std.testing.expectEqual(@as(usize, 1), ready_next_count);
     try std.testing.expectEqual(@as(usize, 0), blocked_count);
     try std.testing.expect(saw_build_gate);
@@ -183,5 +188,6 @@ test "phase13 libfs manifest records the landed starter and remaining helper-sur
     try std.testing.expect(saw_survey_note);
     try std.testing.expect(saw_offset_followup);
     try std.testing.expect(saw_emit_followup);
-    try std.testing.expect(saw_transaction_followup);
+    try std.testing.expect(saw_transaction_helper);
+    try std.testing.expect(saw_transaction_publish_helper);
 }
