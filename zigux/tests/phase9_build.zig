@@ -197,6 +197,11 @@ pub fn build(b: *std.Build) void {
         .root_module = runtime_bitmap_loader_module,
     });
     const run_runtime_bitmap_loader_tests = b.addRunArtifact(runtime_bitmap_loader_tests);
+    const runtime_trace_events_sample_tests = b.addTest(.{
+        .name = "phase9-runtime-trace-events-sample-tests",
+        .root_module = runtime_trace_events_sample_module,
+    });
+    const run_runtime_trace_events_sample_tests = b.addRunArtifact(runtime_trace_events_sample_tests);
     const runtime_trace_events_module_tests = b.addTest(.{
         .name = "phase9-runtime-trace-events-module-tests",
         .root_module = runtime_trace_events_module,
@@ -268,6 +273,7 @@ pub fn build(b: *std.Build) void {
     test_step.dependOn(&run_runtime_bitmap_module_tests.step);
     test_step.dependOn(&run_runtime_bitmap_diff_tests.step);
     test_step.dependOn(&run_runtime_bitmap_loader_tests.step);
+    test_step.dependOn(&run_runtime_trace_events_sample_tests.step);
     test_step.dependOn(&run_runtime_trace_events_module_tests.step);
     test_step.dependOn(&run_runtime_trace_events_diff_tests.step);
     test_step.dependOn(&run_runtime_trace_events_loader_tests.step);
