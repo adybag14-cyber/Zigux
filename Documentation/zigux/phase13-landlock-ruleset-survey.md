@@ -5,6 +5,7 @@ This document records the bounded Phase 13 survey lane around `security/landlock
 ## Status
 
 - `PHASE13_STATUS=active`
+- `PHASE13_LANE_KEY=P13-L12`
 - `PHASE13_SLICE=landlock-ruleset-helper-lab`
 - scope: the landed `security/landlock/ruleset.zig` helper lab, its dedicated Phase 13 test gate and manifest, the shared Phase 13 build wiring, and the lane notes that compare the current helper boundary against the roadmap
 - product boundary:
