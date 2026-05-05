@@ -39,7 +39,7 @@ ABI_MANIFEST_REQUIRED_FILES = (
     ABI_TEST_REL,
     LOW_LEVEL_TEST_REL,
 )
-PHASE3_LOW_LEVEL_WRAPPER_SURVEY_SELF_TEST_CASE_COUNT = 15
+PHASE3_LOW_LEVEL_WRAPPER_SURVEY_SELF_TEST_CASE_COUNT = 17
 
 
 def blob_sha(path: Path) -> str:
@@ -51,6 +51,16 @@ def require_tokens(issues: list[str], text: str, prefix: str, tokens: tuple[str,
     for token in tokens:
         if token not in text:
             issues.append(f"{prefix}:{token}")
+
+
+def require_exact_line_count(issues: list[str], text: str, prefix: str, line: str, expected_count: int = 1) -> None:
+    count = text.splitlines().count(line)
+    if count == expected_count:
+        return
+    if count == 0:
+        issues.append(f"missing_{prefix}:{line}")
+        return
+    issues.append(f"duplicate_{prefix}:{line}:{count}")
 
 
 def load_manifest(root: Path, issues: list[str]) -> dict[str, object] | None:
@@ -113,8 +123,7 @@ def validate(root: Path) -> list[str]:
         "PHASE3_ABI_DUMP_PATH": ABI_DUMP_REL,
     }
     for key, rel in required_paths.items():
-        if f"{key}={rel}" not in doc:
-            issues.append(f"missing_doc_marker:{key}={rel}")
+        require_exact_line_count(issues, doc, "doc_marker", f"{key}={rel}")
         if not (root / rel).exists():
             issues.append(f"missing_file:{rel}")
 
@@ -139,8 +148,7 @@ def validate(root: Path) -> list[str]:
         "PHASE3_NEXT_BOUNDED_STEP=keep-this-survey-the-focused-replay-and-the-shared-abi-packet-aligned-when-helper-surface-moves",
     )
     for marker in required_doc_markers:
-        if marker not in doc:
-            issues.append(f"missing_doc_marker:{marker}")
+        require_exact_line_count(issues, doc, "doc_marker", marker)
 
     for key, rel in (
         ("PHASE3_ATOMIC_BLOB_SHA", ATOMIC_REL),
@@ -154,10 +162,14 @@ def validate(root: Path) -> list[str]:
         ("PHASE3_ABI_SLICE_DOC_BLOB_SHA", ABI_SLICE_DOC_REL),
     ):
         marker = f"{key}="
-        line = next((entry for entry in doc.splitlines() if marker in entry), "")
-        if not line:
+        matching_lines = [entry for entry in doc.splitlines() if entry.startswith(marker)]
+        if not matching_lines:
             issues.append(f"missing_doc_marker:{marker}<sha>")
             continue
+        if len(matching_lines) != 1:
+            issues.append(f"duplicate_doc_marker:{marker}<sha>:{len(matching_lines)}")
+            continue
+        line = matching_lines[0]
         actual = line.split(marker, 1)[1].strip().rstrip("`")
         expected = blob_sha(root / rel)
         if actual != expected:
@@ -529,6 +541,33 @@ def run_self_test() -> int:
         )
         issues = validate(root)
         assert "missing_doc_marker:PHASE3_LOW_LEVEL_TEST_BLOB_SHA=<sha>" in issues
+
+        (root / DOC_REL).write_text(
+            valid_doc.replace(
+                f"PHASE3_MMIO_PATH={MMIO_REL}",
+                f"PHASE3_MMIO_PATH={MMIO_REL}\nPHASE3_MMIO_PATH={MMIO_REL}",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        issues = validate(root)
+        assert f"duplicate_doc_marker:PHASE3_MMIO_PATH={MMIO_REL}:2" in issues
+
+        (root / DOC_REL).write_text(
+            valid_doc.replace(
+                f"PHASE3_ABI_MANIFEST_BLOB_SHA={blob_sha(root / ABI_MANIFEST_REL)}",
+                "\n".join(
+                    [
+                        f"PHASE3_ABI_MANIFEST_BLOB_SHA={blob_sha(root / ABI_MANIFEST_REL)}",
+                        f"PHASE3_ABI_MANIFEST_BLOB_SHA={blob_sha(root / ABI_MANIFEST_REL)}",
+                    ]
+                ),
+                1,
+            ),
+            encoding="utf-8",
+        )
+        issues = validate(root)
+        assert "duplicate_doc_marker:PHASE3_ABI_MANIFEST_BLOB_SHA=<sha>:2" in issues
 
         (root / DOC_REL).write_text(valid_doc, encoding="utf-8")
         (root / LOW_LEVEL_TEST_REL).write_text(
