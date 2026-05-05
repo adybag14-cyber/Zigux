@@ -33,7 +33,7 @@ It is to make the blocked state reviewable and record the first stay-in-C checkl
 - `Documentation/trace/ring-buffer-map.rst` is present at 106 lines and adds mmap-facing reader, sub-buffer, and tracefs limitation behavior that would be easy to understate in a premature Zig wrapper.
 - `kernel/trace/simple_ring_buffer.c` exists as a much smaller 517-line companion, which reinforces that the full tracing ring buffer is the complex path and should not be treated like a straightforward helper port.
 - the live repo already had `zigux/tests/phase14_build.zig`, `zigux/Makefile` Phase 14 wiring, `Documentation/zigux/freeze-map.md`, and the workqueue bridge slice, so the highest-value non-overlapping ring-buffer step is a survey gate rather than another starter implementation.
-- the survey manifest now records a landed decision checklist around reserve or commit publication, head-page and reader-page handoff, remote-reader metadata, wakeup or mmap-facing publication, and tracefs mapping limitations so later runs can deepen the audit without inventing `kernel/trace/ring_buffer.zig`.
+- the survey manifest now records a landed decision checklist around reserve or commit publication, head-page and reader-page handoff, remote-reader metadata, wakeup or mmap-facing publication, tracefs mapping limitations, and the new reader-page consume audit so later runs can deepen the audit without inventing `kernel/trace/ring_buffer.zig`.
 
 ## Decision checklist
 
@@ -91,6 +91,17 @@ When missed events exist, `ring_buffer_map_get_reader()` tries to encode them in
 - The concurrent-reader warning in `Documentation/trace/ring-buffer-map.rst` lines up with the implementation details.
 Multiple user mappings increment `user_mapped`, `ring_buffer_map_dup()` preserves that shared state across duplicated mappings, and the docs still call the resulting output unpredictable, which confirms that `TRACE_MMAP_IOCTL_GET_READER` remains part of a shared reader-competition contract rather than a clean Zig bridge seam.
 
+## Reader-page consume audit
+
+- `rb_get_reader_page()` is still the shared page-rotation gate for both mapped and ordinary readers.
+`rb_buffer_peek()` reaches it before exposing events, `ring_buffer_map_get_reader()` reaches it before mapped-page export, and the design docs still say the reader can only swap pages once the current reader page is exhausted and the commit page has moved on, so reader-page rotation remains one C-owned contract.
+- `ring_buffer_consume()` does not own a separate page-lifetime path.
+It serializes through `reader_lock`, peeks through the same reader-page machinery, skips internal padding and timestamp events by retrying, only advances the read position after a real data event is surfaced, and reports lost events beside that data event, so consuming reads stay coupled to the internal event-decoding and commit-page gating rules already documented upstream.
+- The non-consuming read path built around `ring_buffer_read_start()` stays on that same shared choreography instead of establishing an isolated snapshot helper.
+Iterator state has to reset when consuming reads or page updates change the cached `reader_page`, `read`, or removed-page view, and the read-side code gives up after a few retries if active writers keep disturbing that view, so review-only iteration still depends on the live buffer and writer-interference rules in C.
+- The design docs reinforce the same stop condition.
+If the reader meets the last full commit, the buffer is considered empty until another full commit finishes, which is why both `ring_buffer_consume()` and `ring_buffer_read_start()` still sit behind the existing reader-page swap and commit-page serialization instead of becoming wrapper-first ownership claims.
+
 ## Recorded gaps
 
 The current lane state is:
@@ -105,7 +116,8 @@ The current lane state is:
 - landed `phase14-ring-buffer-wakeup-mmap-followup`
 - landed `phase14-ring-buffer-splice-resize-followup`
 - landed `phase14-ring-buffer-mapped-reader-ioctl-followup`
-- ready-next `phase14-ring-buffer-reader-page-consume-followup`
+- landed `phase14-ring-buffer-reader-page-consume-followup`
+- ready-next `phase14-ring-buffer-read-page-copy-followup`
 - blocked `phase14-ring-buffer-zig-port-blocker`
 
 This keeps the lane honest: Zigux now has an explicit reviewable record that `kernel/trace/ring_buffer.c` belongs in the study-only set for now, and that the repo still does not ship `kernel/trace/ring_buffer.zig`.
@@ -130,4 +142,4 @@ This survey slice does not claim:
 
 ## Next bounded step
 
-Stay in the Phase 14 ring-buffer lane and add one small study-only reader-page follow-up next, limited to `rb_get_reader_page()`, `ring_buffer_read_start()`, and `ring_buffer_consume()` before anyone proposes `kernel/trace/ring_buffer.zig`.
+Stay in the Phase 14 ring-buffer lane and add one small study-only exported-page follow-up next, limited to `ring_buffer_read_page()`, partially read pages, and the forced copy path for mapped, remote, undersized, or writer-busy reads before anyone proposes `kernel/trace/ring_buffer.zig`.
