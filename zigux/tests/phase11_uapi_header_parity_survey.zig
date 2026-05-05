@@ -64,7 +64,7 @@ test "phase11 shared header parity survey manifest records the maintained packet
     defer parsed.deinit();
     const manifest = parsed.value;
 
-    try std.testing.expectEqualStrings("P11-L16", manifest.lane_key);
+    try std.testing.expectEqualStrings("P11-L18", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 11", manifest.phase);
     try std.testing.expectEqualStrings("ee124761ef3ef5fcc6bb9cd8b7fe8d1fce326839", manifest.surveyed_commit);
     try std.testing.expect(manifest.roadmap_destinations.len >= 4);
@@ -148,7 +148,7 @@ test "phase11 shared header parity survey keeps the note pinned to the manifest 
 
     try expectContains(note, parsed.value.surveyed_commit);
     try expectContains(note, "PHASE11_HEADER_BOUNDARY_STATUS=shared_header_packet_restored");
-    try expectContains(note, "lane: `P11-L16`");
+    try expectContains(note, "lane: `P11-L18`");
     try expectContains(note, "phase11-dw-wdt-watchdog-info-layout-assert");
     try expectContains(note, "phase11-hvc-console-winsize-layout-assert");
     try expectContains(note, "phase11-hvc-console-export-signature-assert");
@@ -178,21 +178,25 @@ test "phase11 shared header parity survey keeps shared replay markers explicit w
     try expectContains(build_file, "phase11_uapi_header_parity_survey_module.addImport(\"layout_assert\", layout_assert_module);");
 }
 
-test "phase11 shared header parity survey keeps the exported hvc surface explicit" {
-    const hvc_console = try readFileAlloc(std.testing.allocator, "drivers/tty/hvc/hvc_console.zig", 256 * 1024);
-    defer std.testing.allocator.free(hvc_console);
+test "phase11 shared header parity survey keeps the exported hvc header declarations explicit" {
     const hvc_header = try readFileAlloc(std.testing.allocator, "drivers/tty/hvc/hvc_console.h", 64 * 1024);
     defer std.testing.allocator.free(hvc_header);
 
-    try expectContains(hvc_console, "pub fn hvc_instantiate");
-    try expectContains(hvc_console, "pub fn hvc_alloc");
-    try expectContains(hvc_console, "pub fn hvc_remove");
-    try expectContains(hvc_console, "pub fn hvc_poll");
-    try expectContains(hvc_console, "pub fn hvc_kick");
-    try expectContains(hvc_console, "pub fn __hvc_resize");
-    try expectContains(hvc_console, "pub fn notifier_add_irq");
-    try expectContains(hvc_console, "pub fn notifier_del_irq");
-    try expectContains(hvc_header, "extern void notifier_hangup_irq");
+    try expectContains(
+        hvc_header,
+        "extern int hvc_instantiate(uint32_t vtermno, int index,\n\t\t\t   const struct hv_ops *ops);",
+    );
+    try expectContains(
+        hvc_header,
+        "extern struct hvc_struct * hvc_alloc(uint32_t vtermno, int data,\n\t\t\t\t     const struct hv_ops *ops, int outbuf_size);",
+    );
+    try expectContains(hvc_header, "extern void hvc_remove(struct hvc_struct *hp);");
+    try expectContains(hvc_header, "int hvc_poll(struct hvc_struct *hp);");
+    try expectContains(hvc_header, "void hvc_kick(void);");
+    try expectContains(hvc_header, "extern void __hvc_resize(struct hvc_struct *hp, struct winsize ws);");
+    try expectContains(hvc_header, "extern int notifier_add_irq(struct hvc_struct *hp, int data);");
+    try expectContains(hvc_header, "extern void notifier_del_irq(struct hvc_struct *hp, int data);");
+    try expectContains(hvc_header, "extern void notifier_hangup_irq(struct hvc_struct *hp, int data);");
 }
 
 test "phase11 shared header parity survey keeps the shared build hook explicit" {
