@@ -74,6 +74,9 @@ jobs:
       - name: Validate Phase 4 diff gates
         run: python3 scripts/zigux/validate-phase4.py
 
+      - name: Self-test Phase 4 validator
+        run: python3 scripts/zigux/validate-phase4.py --self-test
+
       - name: Self-test Phase 3 validator
         run: python3 scripts/zigux/validate-phase3.py --self-test
 
