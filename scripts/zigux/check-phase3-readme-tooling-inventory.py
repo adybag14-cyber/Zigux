@@ -430,6 +430,24 @@ def run_self_test() -> int:
         _write(root / "scripts" / "zigux" / "validate-phase4.py", "# stub\n")
         case_count += 1
 
+        (root / "scripts" / "zigux" / "validate-phase13-release.py").unlink()
+        _assert_only(
+            validate(root),
+            ["missing_repo_file:scripts/zigux/validate-phase13-release.py"],
+            "missing_phase13_release_repo_file_guard_failed",
+        )
+        _write(root / "scripts" / "zigux" / "validate-phase13-release.py", "# stub\n")
+        case_count += 1
+
+        (root / "scripts" / "zigux" / "check-phase15-scripts-readme-alignment.py").unlink()
+        _assert_only(
+            validate(root),
+            ["missing_repo_file:scripts/zigux/check-phase15-scripts-readme-alignment.py"],
+            "missing_phase15_alignment_repo_file_guard_failed",
+        )
+        _write(root / "scripts" / "zigux" / "check-phase15-scripts-readme-alignment.py", "# stub\n")
+        case_count += 1
+
         _write(root / MAKEFILE_REL, baseline_makefile.replace("phase6-validate:\n", "", 1))
         _assert_only(
             validate(root),
