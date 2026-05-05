@@ -80,7 +80,7 @@ More specifically, it is still evidence for commit-train entry `26`, `feat(zigux
 
 - the original substrate ledger entry already named `zigux/helpers/layout_assert.zig`, `zigux/helpers/panic_policy.zig`, `zigux/helpers/allocator_policy.zig`, and `zigux/unsafe/narrow.zig` as part of the permanent Phase 3 boundary
 - current `master` now also keeps the typed interop-policy, raw-pointer bridge readers, read-only typed value helpers, scoped MMIO policy evidence, the shared ABI dump anchors, the local unsafe-scope ABI parity proof, and the focused `rbtree.RootView` compile-time layout proof inside that same packet through `zigux/helpers/interop_policy.zig`, `zigux/helpers/mmio.zig`, `zigux/helpers/layout_assert.zig`, `zigux/unsafe/narrow.zig`, `zigux/tests/phase3_abi_dump.zig`, `zigux/tests/phase3_policy_unsafe_build.zig`, and the focused `zigux/tests/phase3_policy_unsafe.zig` replay
-- the dedicated survey gate `scripts/zigux/validate-phase3-policy-unsafe-survey.py` still keeps that boundary packet reviewable at the survey layer through packet-local blob IDs first and `PHASE3_SURVEYED_COMMIT` fallback second, so packet-local drift can fail before the broader ABI validator is asked to explain it even on shallow checkouts
+- the shared Phase 3 validator-first route still keeps that boundary packet reviewable through the focused build gate, the canonical ABI dump path, and the packet-local blob markers, so boundary-local drift can be spotted before the broader ABI replay is asked to explain it even on shallow checkouts
 
 ## Current Boundary Gap
 
