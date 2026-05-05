@@ -438,6 +438,7 @@ def validate_expected_fixdep_cases(cases_path: Path) -> list[str]:
             "stdout_mode": "dev_full",
         },
     }
+    expected_case_order = tuple(expected_cases)
 
     issues: list[str] = []
     seen_names: set[str] = set()
@@ -459,6 +460,17 @@ def validate_expected_fixdep_cases(cases_path: Path) -> list[str]:
         if expected_case is None:
             issues.append(f"fixdep_cases:unexpected_name:{name}")
             continue
+
+        expected_name = expected_case_order[index]
+        if name != expected_name:
+            issues.append(
+                f"fixdep_cases:entry[{index}]:name={name!r},expected_order={expected_name!r}"
+            )
+
+        allowed_fields = {"name", *expected_case.keys()}
+        unexpected_fields = sorted(set(case) - allowed_fields)
+        if unexpected_fields:
+            issues.append(f"fixdep_cases:{name}:unexpected_field:{unexpected_fields[0]}")
 
         for field_name, expected_value in expected_case.items():
             actual_value = case.get(field_name, 0 if field_name == "expected_exit_code" else None)
