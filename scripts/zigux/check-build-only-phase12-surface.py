@@ -36,10 +36,14 @@ REQUIRED_SCRIPT_README_MARKERS = [
     "there is no dedicated shared `validate-phase12.py`, `check-phase12-*.py`, or `phase12-validate` target on `master`",
 ]
 
+REQUIRED_SCRIPT_README_EXACT_COUNTS = {
+    "`zigux/tests/README.md`, `scripts/zigux/check-build-only-phase12-surface.py`, `.github/workflows/zigux-bootstrap.yml`, `zigux/tests/phase12_build.zig`, `zigux/Makefile`": 1,
+}
+
 REQUIRED_DOCS_README_MARKERS = [
     "Phase 12 notes",
     "`Documentation/zigux/phase12-release-sequencing.md`",
-    "`Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, `scripts/zigux/check-build-only-phase12-surface.py`, `.github/workflows/zigux-bootstrap.yml`, `zigux/tests/README.md`, `zigux/tests/phase12_build.zig`, and `make -C zigux phase12` now keep the current nvme pci, virtio_net, virtio_scsi, and libbpf survey-backed complex-driver bundle reviewable through the shipped Phase 12 release packet instead of implying removed validator or PMO checker surfaces.",
+    "`Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, `scripts/zigux/check-build-only-phase12-surface.py`, `.github/workflows/zigux-bootstrap.yml`, `zigux/tests/README.md`, `zigux/tests/phase12_build.zig`, `zigux/tests/phase12_nvme_pci_manifest.json`, `zigux/tests/phase12_nvme_pci.zig`, `zigux/tests/phase12_nvme_pci_survey.zig`, `zigux/tests/phase12_virtio_net_manifest.json`, `zigux/tests/phase12_virtio_net.zig`, `zigux/tests/phase12_virtio_net_survey.zig`, `zigux/tests/phase12_virtio_scsi_manifest.json`, `zigux/tests/phase12_virtio_scsi.zig`, `zigux/tests/phase12_virtio_scsi_survey.zig`, `zigux/tests/phase12_libbpf_manifest.json`, `zigux/tests/phase12_libbpf_segments.zig`, `zigux/tests/phase12_libbpf_reviewability.zig`, `tools/lib/bpf/zigux_segments/manifest.json`, `zigux/Makefile`, and `make -C zigux phase12` now keep the current nvme pci, virtio_net, virtio_scsi, and libbpf survey-backed complex-driver bundle reviewable through the shipped build-only contract plus the shared build-and-make replay route instead of implying removed validator, PMO checker, or raw-coverage-survey surfaces.",
     "`scripts/zigux/README.md`, `scripts/zigux/check-build-only-phase12-surface.py`, `.github/workflows/zigux-bootstrap.yml`, `zigux/tests/README.md`, `zigux/tests/phase12_build.zig`",
     "there is no dedicated shared `validate-phase12.py`, `check-phase12-*.py`, or `phase12-validate` target on `master`",
 ]
@@ -192,6 +196,8 @@ def validate(root: Path) -> list[str]:
         expect_exact_count(makefile, marker, count, "makefile_exact_count", failures)
     for marker, count in REQUIRED_WORKFLOW_EXACT_COUNTS.items():
         expect_exact_count(workflow, marker, count, "workflow_exact_count", failures)
+    for marker, count in REQUIRED_SCRIPT_README_EXACT_COUNTS.items():
+        expect_exact_count(scripts_readme, marker, count, "scripts_readme_exact_count", failures)
     for marker in FORBIDDEN_MAKEFILE_MARKERS:
         if marker in makefile:
             failures.append(f"makefile_forbidden:{marker}")
@@ -223,7 +229,7 @@ def write_fixture_tree(root: Path) -> None:
 
 Phase 12 notes
 - `Documentation/zigux/phase12-release-sequencing.md`
-- `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, `scripts/zigux/check-build-only-phase12-surface.py`, `.github/workflows/zigux-bootstrap.yml`, `zigux/tests/README.md`, `zigux/tests/phase12_build.zig`, and `make -C zigux phase12` now keep the current nvme pci, virtio_net, virtio_scsi, and libbpf survey-backed complex-driver bundle reviewable through the shipped Phase 12 release packet instead of implying removed validator or PMO checker surfaces.
+- `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, `scripts/zigux/check-build-only-phase12-surface.py`, `.github/workflows/zigux-bootstrap.yml`, `zigux/tests/README.md`, `zigux/tests/phase12_build.zig`, `zigux/tests/phase12_nvme_pci_manifest.json`, `zigux/tests/phase12_nvme_pci.zig`, `zigux/tests/phase12_nvme_pci_survey.zig`, `zigux/tests/phase12_virtio_net_manifest.json`, `zigux/tests/phase12_virtio_net.zig`, `zigux/tests/phase12_virtio_net_survey.zig`, `zigux/tests/phase12_virtio_scsi_manifest.json`, `zigux/tests/phase12_virtio_scsi.zig`, `zigux/tests/phase12_virtio_scsi_survey.zig`, `zigux/tests/phase12_libbpf_manifest.json`, `zigux/tests/phase12_libbpf_segments.zig`, `zigux/tests/phase12_libbpf_reviewability.zig`, `tools/lib/bpf/zigux_segments/manifest.json`, `zigux/Makefile`, and `make -C zigux phase12` now keep the current nvme pci, virtio_net, virtio_scsi, and libbpf survey-backed complex-driver bundle reviewable through the shipped build-only contract plus the shared build-and-make replay route instead of implying removed validator, PMO checker, or raw-coverage-survey surfaces.
 - the current shared Phase 12 review surface on `master` is `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/phase12-release-sequencing.md`, `Documentation/zigux/phase12-nvme-pci-slice.md`, `Documentation/zigux/phase12-nvme-pci-survey.md`, `Documentation/zigux/phase12-nvme-pci-raw-github-fallback-map.md`, `Documentation/zigux/phase12-virtio-net-survey.md`, `Documentation/zigux/phase12-virtio-scsi-slice.md`, `Documentation/zigux/phase12-virtio-scsi-survey.md`, `Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md`, `Documentation/zigux/phase12-libbpf-segment-survey.md`, `scripts/zigux/README.md`, `scripts/zigux/check-build-only-phase12-surface.py`, `.github/workflows/zigux-bootstrap.yml`, `zigux/tests/README.md`, `zigux/tests/phase12_build.zig`, the bounded Phase 12 nvme, virtio_net, virtio_scsi, and libbpf test modules wired through that build, the committed Phase 12 manifests under `zigux/tests/`, `tools/lib/bpf/zigux_segments/manifest.json`, and `zigux/Makefile`.
 - there is no dedicated shared `validate-phase12.py`, `check-phase12-*.py`, or `phase12-validate` target on `master`; future Phase 12 reviewability claims should name only shipped survey, build, and make surfaces until new validator files actually land.
 """,
@@ -357,8 +363,19 @@ phase12: phase12-test
             "duplicate_phase12_workflow_step",
         )
 
+        write(
+            root / SCRIPTS_README_PATH,
+            (root / SCRIPTS_README_PATH).read_text(encoding="utf-8")
+            + "\n- `zigux/tests/README.md`, `scripts/zigux/check-build-only-phase12-surface.py`, `.github/workflows/zigux-bootstrap.yml`, `zigux/tests/phase12_build.zig`, `zigux/Makefile`\n",
+        )
+        expect_failure(
+            root,
+            "scripts_readme_exact_count:`zigux/tests/README.md`, `scripts/zigux/check-build-only-phase12-surface.py`, `.github/workflows/zigux-bootstrap.yml`, `zigux/tests/phase12_build.zig`, `zigux/Makefile`:count=2:expected=1",
+            "duplicate_phase12_scripts_surface_line",
+        )
+
     print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST=pass")
-    print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST_CASE_COUNT=18")
+    print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST_CASE_COUNT=19")
     return 0
 
 
