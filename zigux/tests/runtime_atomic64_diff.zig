@@ -27,6 +27,21 @@ const AddUnlessCase = struct {
     changed: bool,
 };
 
+const BitwiseOp = enum {
+    and_mask,
+    or_mask,
+    xor_mask,
+};
+
+const BitwiseCase = struct {
+    name: []const u8,
+    op: BitwiseOp,
+    seed: i64,
+    mask: i64,
+    previous: i64,
+    final: i64,
+};
+
 fn expectExchangeCase(case: DiffCase) !void {
     var module = sample.RuntimeAtomic64Sample{};
     try module.init(case.seed);
@@ -60,7 +75,21 @@ fn expectAddUnlessCase(case: AddUnlessCase) !void {
     try std.testing.expectEqual(case.final, module.snapshotCounter());
 }
 
-test "runtime atomic64 diff gate replays bounded atomic64_test.c exchange, cmpxchg, and add_unless expectations" {
+fn expectBitwiseCase(case: BitwiseCase) !void {
+    var module = sample.RuntimeAtomic64Sample{};
+    try module.init(case.seed);
+
+    const previous = switch (case.op) {
+        .and_mask => try module.andCounter(case.mask),
+        .or_mask => try module.orCounter(case.mask),
+        .xor_mask => try module.xorCounter(case.mask),
+    };
+
+    try std.testing.expectEqual(case.previous, previous);
+    try std.testing.expectEqual(case.final, module.snapshotCounter());
+}
+
+test "runtime atomic64 diff gate replays bounded atomic64_test.c exchange, cmpxchg, add_unless, and bitwise expectations" {
     const cases = [_]DiffCase{
         .{
             .name = "v0 to v1 keeps the original counter visible as the exchange return value",
@@ -80,6 +109,7 @@ test "runtime atomic64 diff gate replays bounded atomic64_test.c exchange, cmpxc
     };
 
     for (cases) |case| {
+        _ = case.name;
         try expectExchangeCase(case);
     }
 
@@ -105,6 +135,7 @@ test "runtime atomic64 diff gate replays bounded atomic64_test.c exchange, cmpxc
     };
 
     for (compare_swap_cases) |case| {
+        _ = case.name;
         try expectCompareSwapCase(case);
     }
 
@@ -130,7 +161,40 @@ test "runtime atomic64 diff gate replays bounded atomic64_test.c exchange, cmpxc
     };
 
     for (add_unless_cases) |case| {
+        _ = case.name;
         try expectAddUnlessCase(case);
+    }
+
+    const bitwise_cases = [_]BitwiseCase{
+        .{
+            .name = "and preserves only the masked bits from an all-ones starter",
+            .op = .and_mask,
+            .seed = -1,
+            .mask = 0x00ff_00ff_00ff_00ff,
+            .previous = -1,
+            .final = 0x00ff_00ff_00ff_00ff,
+        },
+        .{
+            .name = "or lifts high and low flags into the running counter",
+            .op = .or_mask,
+            .seed = 0x2000_0000_0000_0001,
+            .mask = 0x0100_0000_0000_0006,
+            .previous = 0x2000_0000_0000_0001,
+            .final = 0x2100_0000_0000_0007,
+        },
+        .{
+            .name = "xor toggles separated flag groups without losing the wide value shape",
+            .op = .xor_mask,
+            .seed = 0x00ff_0000_00ff_0000,
+            .mask = 0x0000_ff00_0000_00ff,
+            .previous = 0x00ff_0000_00ff_0000,
+            .final = 0x00ff_ff00_00ff_00ff,
+        },
+    };
+
+    for (bitwise_cases) |case| {
+        _ = case.name;
+        try expectBitwiseCase(case);
     }
 }
 
@@ -147,9 +211,11 @@ test "runtime atomic64 diff gate keeps selftest family coverage explicit" {
     try std.testing.expectEqual(sample.OperationFamily.swap_ops, summary.operation_families[3]);
     try std.testing.expectEqual(sample.OperationFamily.guard_ops, summary.operation_families[4]);
     try std.testing.expect(summary.checked_returning_paths);
+    try std.testing.expect(summary.checked_bitwise_paths);
     try std.testing.expect(summary.checked_guard_paths);
 
     try module.exit();
     try std.testing.expectEqual(sample.ModuleStage.exited, module.stage());
     try std.testing.expectError(error.InvalidLifecycleTransition, module.swapCounter(7));
+    try std.testing.expectError(error.InvalidLifecycleTransition, module.andCounter(7));
 }
