@@ -13,6 +13,19 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 ARTIFACT_DIFF_PATH = ROOT / "scripts/zigux/artifact_diff.py"
+EXPECTED_CONTRACT_CASES = [
+    "text_match",
+    "text_mismatch",
+    "json_canonical_match",
+    "json_mismatch",
+    "sha256_match",
+    "sha256_drift",
+    "sha256_missing_expected",
+    "sha256_missing_both",
+    "cli_invalid_mode_choice",
+    "text_match_repeat",
+    "sha256_missing_both_repeat",
+]
 
 
 def load_artifact_diff_module():
@@ -37,10 +50,9 @@ def expect_lines(lines: list[str], required: list[str]) -> None:
             raise AssertionError(f"missing line {item!r} in {lines!r}")
 
 
-def run_contract_checks() -> tuple[list[str], list[str]]:
+def run_contract_checks() -> list[str]:
     module = load_artifact_diff_module()
-    base_cases: list[str] = []
-    repeat_cases: list[str] = []
+    observed_cases: list[str] = []
 
     with tempfile.TemporaryDirectory(prefix="zigux_artifact_diff_contract_") as tmp_dir_str:
         tmp_dir = Path(tmp_dir_str)
@@ -68,7 +80,7 @@ def run_contract_checks() -> tuple[list[str], list[str]]:
                 f"ACTUAL={text_b}",
             ],
         )
-        base_cases.append("text_match")
+        observed_cases.append("text_match")
         text_match_lines = list(lines)
 
         text_b.write_text("alpha\nBETA\n", encoding="utf-8", newline="\n")
@@ -85,7 +97,7 @@ def run_contract_checks() -> tuple[list[str], list[str]]:
                 f"ACTUAL={text_b}",
             ],
         )
-        base_cases.append("text_mismatch")
+        observed_cases.append("text_mismatch")
 
         json_a.write_text('{"alpha": 1, "beta": [2, 3]}\n', encoding="utf-8", newline="\n")
         json_b.write_text('{\n  "beta": [2, 3],\n  "alpha": 1\n}\n', encoding="utf-8", newline="\n")
@@ -102,7 +114,7 @@ def run_contract_checks() -> tuple[list[str], list[str]]:
                 f"ACTUAL={json_b}",
             ],
         )
-        base_cases.append("json_canonical_match")
+        observed_cases.append("json_canonical_match")
 
         json_b.write_text('{"alpha": 1, "beta": [2, 4]}\n', encoding="utf-8", newline="\n")
         matched, details = module.compare_artifacts("json", json_a, json_b)
@@ -118,7 +130,7 @@ def run_contract_checks() -> tuple[list[str], list[str]]:
                 f"ACTUAL={json_b}",
             ],
         )
-        base_cases.append("json_mismatch")
+        observed_cases.append("json_mismatch")
 
         blob_a.write_bytes(b"zigux-artifact-diff")
         blob_b.write_bytes(b"zigux-artifact-diff")
@@ -136,7 +148,7 @@ def run_contract_checks() -> tuple[list[str], list[str]]:
                 f"SHA256={module.sha256_digest(blob_a)}",
             ],
         )
-        base_cases.append("sha256_match")
+        observed_cases.append("sha256_match")
 
         blob_b.write_bytes(b"zigux-artifact-diff-drift")
         matched, details = module.compare_artifacts("sha256", blob_a, blob_b)
@@ -154,7 +166,7 @@ def run_contract_checks() -> tuple[list[str], list[str]]:
                 f"ACTUAL_SHA256={module.sha256_digest(blob_b)}",
             ],
         )
-        base_cases.append("sha256_drift")
+        observed_cases.append("sha256_drift")
 
         matched, details = module.compare_artifacts("sha256", missing_a, blob_b)
         exit_code, lines = capture_emit(module, matched, details)
@@ -171,7 +183,7 @@ def run_contract_checks() -> tuple[list[str], list[str]]:
                 "ACTUAL_EXISTS=True",
             ],
         )
-        base_cases.append("sha256_missing_expected")
+        observed_cases.append("sha256_missing_expected")
 
         matched, details = module.compare_artifacts("sha256", missing_a, missing_b)
         exit_code, lines = capture_emit(module, matched, details)
@@ -188,7 +200,7 @@ def run_contract_checks() -> tuple[list[str], list[str]]:
                 "ACTUAL_EXISTS=False",
             ],
         )
-        base_cases.append("sha256_missing_both")
+        observed_cases.append("sha256_missing_both")
         sha256_missing_both_lines = list(lines)
 
         cli = subprocess.run(
@@ -207,22 +219,27 @@ def run_contract_checks() -> tuple[list[str], list[str]]:
         )
         if cli.returncode == 0 or "invalid choice" not in cli.stderr:
             raise AssertionError("cli invalid-mode contract regressed")
-        base_cases.append("cli_invalid_mode_choice")
+        observed_cases.append("cli_invalid_mode_choice")
 
         text_b.write_text("alpha\nbeta\n", encoding="utf-8", newline="\n")
         matched, details = module.compare_artifacts("text", text_a, text_b)
         exit_code, lines = capture_emit(module, matched, details)
         if exit_code != 0 or lines != text_match_lines:
             raise AssertionError("repeat text match contract regressed")
-        repeat_cases.append("text_match_repeat")
+        observed_cases.append("text_match_repeat")
 
         matched, details = module.compare_artifacts("sha256", missing_a, missing_b)
         exit_code, lines = capture_emit(module, matched, details)
         if exit_code != 1 or lines != sha256_missing_both_lines:
             raise AssertionError("repeat sha256 missing both contract regressed")
-        repeat_cases.append("sha256_missing_both_repeat")
+        observed_cases.append("sha256_missing_both_repeat")
 
-    return base_cases, repeat_cases
+    if observed_cases != EXPECTED_CONTRACT_CASES:
+        raise AssertionError(
+            "contract case catalog drifted: "
+            f"expected {EXPECTED_CONTRACT_CASES!r}, observed {observed_cases!r}"
+        )
+    return observed_cases
 
 
 def main() -> int:
@@ -234,12 +251,10 @@ def main() -> int:
     )
     _ = parser.parse_args()
 
-    base_cases, repeat_cases = run_contract_checks()
+    observed_cases = run_contract_checks()
     print("ARTIFACT_DIFF_CONTRACT=pass")
-    print(f"ARTIFACT_DIFF_CONTRACT_BASE_CASE_COUNT={len(base_cases)}")
-    print(f"ARTIFACT_DIFF_CONTRACT_REPEAT_CASE_COUNT={len(repeat_cases)}")
-    print(f"ARTIFACT_DIFF_CONTRACT_CASE_COUNT={len(base_cases) + len(repeat_cases)}")
-    print("ARTIFACT_DIFF_CONTRACT_CASES=" + ",".join(base_cases + repeat_cases))
+    print(f"ARTIFACT_DIFF_CONTRACT_CASE_COUNT={len(EXPECTED_CONTRACT_CASES)}")
+    print("ARTIFACT_DIFF_CONTRACT_CASES=" + ",".join(observed_cases))
     return 0
 
 
