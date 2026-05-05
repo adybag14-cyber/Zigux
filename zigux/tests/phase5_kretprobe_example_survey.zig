@@ -52,17 +52,19 @@ test "phase 5 kretprobe manifest records the exact bounded checks" {
     try std.testing.expectEqualStrings("samples/kprobes/kretprobe_example.c", manifest.anchor);
     try std.testing.expectEqualStrings("samples/zigux/kretprobe_example.zig", manifest.sample_path);
     try std.testing.expect(std.mem.indexOf(u8, manifest.validation_entrypoint, "phase5_build.zig") != null);
-    try std.testing.expectEqual(@as(usize, 6), manifest.review_prompts.len);
-    try std.testing.expectEqual(@as(usize, 7), manifest.exact_checks.len);
+    try std.testing.expectEqual(@as(usize, 7), manifest.review_prompts.len);
+    try std.testing.expectEqual(@as(usize, 8), manifest.exact_checks.len);
     try std.testing.expectEqual(@as(usize, 4), manifest.non_goals.len);
 
     var saw_descriptor_prompt = false;
     var saw_private_data_prompt = false;
     var saw_symbol_prompt = false;
+    var saw_ownership_prompt = false;
     var saw_non_goal_prompt = false;
     var saw_private_data_check = false;
     var saw_symbol_check = false;
     var saw_duration_check = false;
+    var saw_ownership_check = false;
     var saw_exit_check = false;
 
     for (manifest.review_prompts) |prompt| {
@@ -79,6 +81,11 @@ test "phase 5 kretprobe manifest records the exact bounded checks" {
             std.mem.indexOf(u8, prompt, "module_param") != null)
         {
             saw_symbol_prompt = true;
+        }
+        if (std.mem.indexOf(u8, prompt, "ownershipSummary") != null and
+            std.mem.indexOf(u8, prompt, "replay_complete") != null)
+        {
+            saw_ownership_prompt = true;
         }
         if (std.mem.indexOf(u8, prompt, "register_kretprobe") != null and
             std.mem.indexOf(u8, prompt, "pt_regs") != null)
@@ -106,6 +113,11 @@ test "phase 5 kretprobe manifest records the exact bounded checks" {
             try std.testing.expect(std.mem.indexOf(u8, check.expected, "retval 42") != null);
             try std.testing.expect(std.mem.indexOf(u8, check.expected, "75 ns") != null);
         }
+        if (std.mem.eql(u8, check.id, "ownership-summary-snapshots")) {
+            saw_ownership_check = true;
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "cold, initialized, armed, replay_complete, and exited") != null);
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "entry-timestamp state") != null);
+        }
         if (std.mem.eql(u8, check.id, "post-exit-rejection")) {
             saw_exit_check = true;
             try std.testing.expect(std.mem.indexOf(u8, check.expected, "after exit") != null);
@@ -119,10 +131,12 @@ test "phase 5 kretprobe manifest records the exact bounded checks" {
     try std.testing.expect(saw_descriptor_prompt);
     try std.testing.expect(saw_private_data_prompt);
     try std.testing.expect(saw_symbol_prompt);
+    try std.testing.expect(saw_ownership_prompt);
     try std.testing.expect(saw_non_goal_prompt);
     try std.testing.expect(saw_private_data_check);
     try std.testing.expect(saw_symbol_check);
     try std.testing.expect(saw_duration_check);
+    try std.testing.expect(saw_ownership_check);
     try std.testing.expect(saw_exit_check);
     try std.testing.expect(std.mem.eql(u8, manifest.non_goals[0], "register_kretprobe parity"));
     try std.testing.expect(std.mem.eql(u8, manifest.non_goals[1], "unregister_kretprobe parity"));
@@ -148,8 +162,8 @@ test "phase 5 kretprobe survey packet stays repo-local and keeps shared review s
         "zig fmt --check",
         "zig test samples/zigux/kretprobe_example.zig",
         "zig build test --build-file zigux/tests/build.zig --summary all",
-        "passed `1/1` sample self-check",
-        "passed `5/5` build steps and `6/6` tests",
+        "passed `3/3` sample self-checks",
+        "passed `5/5` build steps and `7/7` tests",
         "symbol_name = kernel_clone",
         "private_data_size_bytes = 8",
         "return_value = 42",
@@ -162,6 +176,10 @@ test "phase 5 kretprobe survey packet stays repo-local and keeps shared review s
         "double_init_rejected = true",
         "post_init_retarget_rejected = true",
         "stage_after_init = initialized",
+        "ownershipSummary()",
+        "cold`, `initialized`, `armed`, `replay_complete`, and `exited`",
+        "active_instances = 1",
+        "entry_timestamp_armed = true",
         "entryHandler(false, 11) still skips the kernel-thread path",
         "entryHandler(true, 120) still rejects an outstanding tracked instance",
         "retHandler(37, 145) still yields duration 45",
