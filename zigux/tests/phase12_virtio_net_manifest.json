@@ -98,6 +98,13 @@
       "why_now": "The mergeable-buffer-length follow-up is now landed as one bounded throughput-facing handoff that mirrors `get_mergeable_buf_len()` by recording whether mergeable receive buffers stay at the observed average packet size, clamp to the minimum floor, cap at page payload, or switch to page-minus-room sizing once XDP headroom reserves room for `skb_shared_info`, all before any live page-pool DMA, refill loop, or NAPI execution."
     },
     {
+      "id": "phase12-virtio-net-segmented-rollout-boundary",
+      "status": "starter_landed",
+      "kind": "documentation",
+      "zigux_destination": "Documentation/zigux/phase12-virtio-net-survey.md",
+      "why_now": "The Phase 12 roadmap requires segmented rollout for complex drivers, so the active virtio_net packet now records a first-class boundary marker that keeps the landed probe, queue-recovery, receive-refill, transmit-recycle, and mergeable-buffer-length steps reviewable while the runtime data path remains blocked behind DMA-safe abstractions and queueing substrate work."
+    },
+    {
       "id": "phase12-virtio-net-runtime-data-path",
       "status": "blocked_on_dma_transport",
       "kind": "validation",
