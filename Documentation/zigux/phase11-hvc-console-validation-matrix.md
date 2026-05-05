@@ -44,6 +44,6 @@ Without this matrix, the slice named the right next step but did not yet preserv
 - treat this lane as a bounded driver-starter plus handoff-note lane while live notifier registration, callback execution, and host-backed I/O stay out of scope
 - treat `zigux/tests/phase11_hvc_console_manifest.json` and `Documentation/zigux/phase11-hvc-console-survey.md` as the archival landing checkpoint for the bounded starter, not as a rolling promise about the current `master` head
 - keep `Documentation/zigux/phase11-shared-replay-contract.md` aligned with this matrix whenever the shared-versus-dedicated HVC replay split changes so the dedicated `hvc_cleanup()` teardown replay stays explicit inside the wider Phase 11 packet
-- keep `zigux/tests/phase11_build.zig` as the shared replay path for the current starter instead of adding ad hoc Phase 11 CI steps
+- keep `zigux/tests/phase11_build.zig` as the shared replay path for the current starter while the dedicated archival `make -C zigux phase11-hvc-survey` bootstrap replay remains the only extra CI step for the separate survey route
 - do not claim notifier callbacks, khvcd execution, live sysrq dispatch, or host-backed I/O coverage until the Zig surface and tests for those behaviors exist
 - when a later callback-execution slice lands, update this matrix, the slice note, the survey note, and the survey manifest together so the lane keeps one truthful next step
