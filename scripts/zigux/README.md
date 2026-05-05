@@ -173,5 +173,5 @@ Phase 15 flow
 - the current bounded Phase 15 decision is still to leave the lane parked unless a named reopen trigger fires or the deep-core blocker posture changes enough to justify another Architecture Council slice.
 
 Windows note
-- a Linux-scale checkout on NTFS must use a case-sensitive directory
+- a Linux-scale checkout on NTFS must use a case-sensitive directory or a Linux filesystem
 - otherwise case-colliding Linux paths will create false working-tree dirt on Windows
