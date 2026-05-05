@@ -127,13 +127,15 @@ REQUIRED_MARKERS = {
         "phase7-string-helpers-tests",
         "phase7-string-helpers-sample-boundary-tests",
         "\"phase7_string_helpers_sample_boundary.zig\"",
-        "setCwd(b.path(\"../..\"))",
+        "run_string_helpers_sample_boundary_tests.setCwd(b.path(\"../..\"));",
         "phase7-cmdline-tests",
         "phase7-cmdline-survey-tests",
         "\"phase7_cmdline_survey.zig\"",
+        "run_cmdline_survey_tests.setCwd(b.path(\"../..\"));",
         "phase7-argv-split-tests",
         "phase7-rbtree-tests",
         "phase7-rbtree-survey-tests",
+        "run_rbtree_survey_tests.setCwd(b.path(\"../..\"));",
     ],
     "zigux/tests/phase7_rbtree_survey.zig": [
         "scripts/zigux/validate-phase7.py",
@@ -250,9 +252,11 @@ def run_self_test() -> None:
         ("build_rbtree_survey_gate", "zigux/tests/phase7_build.zig", "phase7-rbtree-survey-tests", "", "zigux/tests/phase7_build.zig: phase7-rbtree-survey-tests"),
         ("build_string_helpers_sample_boundary_gate", "zigux/tests/phase7_build.zig", "phase7-string-helpers-sample-boundary-tests", "", "zigux/tests/phase7_build.zig: phase7-string-helpers-sample-boundary-tests"),
         ("build_string_helpers_sample_boundary_source", "zigux/tests/phase7_build.zig", '"phase7_string_helpers_sample_boundary.zig"', '"phase7_string_helpers_sample_boundary_drift.zig"', 'zigux/tests/phase7_build.zig: "phase7_string_helpers_sample_boundary.zig"'),
-        ("build_string_helpers_sample_boundary_cwd", "zigux/tests/phase7_build.zig", 'setCwd(b.path("../.."))', "", 'zigux/tests/phase7_build.zig: setCwd(b.path("../.."))'),
+        ("build_string_helpers_sample_boundary_cwd", "zigux/tests/phase7_build.zig", 'run_string_helpers_sample_boundary_tests.setCwd(b.path("../.."));', 'run_string_helpers_sample_boundary_tests.setCwd(b.path("."));', 'zigux/tests/phase7_build.zig: run_string_helpers_sample_boundary_tests.setCwd(b.path("../.."));'),
         ("build_cmdline_survey_gate", "zigux/tests/phase7_build.zig", "phase7-cmdline-survey-tests", "", "zigux/tests/phase7_build.zig: phase7-cmdline-survey-tests"),
         ("build_cmdline_survey_source", "zigux/tests/phase7_build.zig", '"phase7_cmdline_survey.zig"', '"phase7_cmdline_survey_drift.zig"', 'zigux/tests/phase7_build.zig: "phase7_cmdline_survey.zig"'),
+        ("build_cmdline_survey_cwd", "zigux/tests/phase7_build.zig", 'run_cmdline_survey_tests.setCwd(b.path("../.."));', 'run_cmdline_survey_tests.setCwd(b.path("."));', 'zigux/tests/phase7_build.zig: run_cmdline_survey_tests.setCwd(b.path("../.."));'),
+        ("build_rbtree_survey_cwd", "zigux/tests/phase7_build.zig", 'run_rbtree_survey_tests.setCwd(b.path("../.."));', 'run_rbtree_survey_tests.setCwd(b.path("."));', 'zigux/tests/phase7_build.zig: run_rbtree_survey_tests.setCwd(b.path("../.."));'),
     ]
 
     with tempfile.TemporaryDirectory(prefix="zigux_phase7_validator_") as tmp_dir_str:
@@ -271,7 +275,7 @@ def run_self_test() -> None:
             write_fixture_root(tmp_root)
 
     print("PHASE7_VALIDATOR_SELF_TEST=pass")
-    print("PHASE7_VALIDATOR_SELF_TEST_CASE_COUNT=33")
+    print("PHASE7_VALIDATOR_SELF_TEST_CASE_COUNT=35")
 
 
 def main() -> int:
