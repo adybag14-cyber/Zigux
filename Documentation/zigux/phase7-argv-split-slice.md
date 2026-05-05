@@ -6,6 +6,7 @@ This document tracks the bounded Phase 7 runtime leaf-helper slice for Zigux aro
 
 - `PHASE7_STATUS=parked`
 - `PHASE7_SLICE=argv-split-runtime-leaf`
+- `PHASE7_LANE_KEY=P7-Y06`
 - scope: first low-risk argv tokenization helpers only
 - lane state: helper and fixture slice landed; parked unless a new `argv_split.c` parity issue appears
 - product boundary:
@@ -67,4 +68,4 @@ This slice still does not yet claim:
 
 ## Next bounded step
 
-Move the next Phase 7 schedule to another unfinished leaf helper family. Reopen this lane only if fresh repo inspection finds one more real `argv_split.c` parity gap inside the existing helper, fixture, dedicated checker, or shared gate surface.
+Keep this helper-family packet parked unless fresh repo inspection finds one more real `argv_split.c` parity gap inside the existing helper, fixture, dedicated checker, or shared gate surface. Review-only sequencing drift for other Phase 7 helper families should stay outside this packet.
