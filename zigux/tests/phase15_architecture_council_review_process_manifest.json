@@ -56,7 +56,7 @@
     "defer_or_reject"
   ],
   "handoff_evidence": {
-    "current_repo_handoff": "The current repo handoff explicitly names Documentation/zigux/freeze-map.md, Documentation/zigux/phase15-freeze-map-governance.md, Documentation/zigux/phase15-architecture-council-review-process.md, Documentation/zigux/phase15-parity-scorecard.md, Documentation/zigux/phase15-indefinite-c-policy.md, Documentation/zigux/review-checklist.md, scripts/zigux/check-phase15-review-process-handoff.py, zigux/tests/phase15_architecture_council_review_process_manifest.json, zigux/tests/phase15_freeze_map_governance.zig, zigux/tests/phase15_parity_scorecard.zig, zigux/tests/phase15_architecture_council_review_process.zig, zigux/tests/phase15_indefinite_c_policy.json, zigux/tests/phase15_indefinite_c_policy.zig, and zigux/tests/phase15_build.zig as the parked governance packet boundary.",
+    "current_repo_handoff": "The current repo handoff explicitly names Documentation/zigux/freeze-map.md, Documentation/zigux/phase15-freeze-map-governance.md, Documentation/zigux/phase15-architecture-council-review-process.md, Documentation/zigux/phase15-parity-scorecard.md, Documentation/zigux/phase15-indefinite-c-policy.md, Documentation/zigux/review-checklist.md, scripts/zigux/check-phase15-review-process-handoff.py, zigux/tests/phase15_architecture_council_review_process_manifest.json, zigux/tests/phase15_freeze_map_governance.zig, zigux/tests/phase15_parity_scorecard.zig, zigux/tests/phase15_architecture_council_review_process.zig, zigux/tests/phase15_indefinite_c_policy.json, zigux/tests/phase15_indefinite_c_policy.zig, zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig, and zigux/tests/phase15_build.zig as the parked governance packet boundary.",
     "current_bounded_lane": "The parked Architecture Council packet stays aligned with its scripts-root validator path, its Linux-style `make -C zigux phase15-validate` route, its tests-root guidance path, and its dedicated handoff-checker route."
   },
   "gaps": [
@@ -129,6 +129,13 @@
       "kind": "governance",
       "zigux_destination": "Documentation/zigux/phase15-architecture-council-review-process.md",
       "why_now": "The roadmap says every active commit series should declare phase, status bucket, validation gate, owner, and rollback owner, so the parked review-process packet now records those minimum fields explicitly in its current evidence inventory as well as its requested review packet schema."
+    },
+    {
+      "id": "phase15-lane-owner-alignment-replay-visible",
+      "status": "starter_landed",
+      "kind": "validation",
+      "zigux_destination": "zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig",
+      "why_now": "The shared Phase 15 build already carries a focused lane-owner vocabulary alignment replay, so the parked Architecture Council handoff should name that replay directly instead of understating the current governance packet boundary."
     }
   ]
 }
