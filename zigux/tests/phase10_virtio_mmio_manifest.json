@@ -140,6 +140,13 @@
       "why_now": "The same helper now summarizes the earliest virtio_mmio_probe()-style preflight checks around identity constants, device presence, vendor presence, legacy guest-page-size intent, bounded queue-register readiness, and interrupt-ack readiness without widening into lifecycle, DMA, or IRQ-delivery parity."
     },
     {
+      "id": "phase10-mmio-config-write-disposition-helper",
+      "status": "starter_landed",
+      "kind": "transport_wrapper",
+      "zigux_destination": "drivers/virtio/virtio_mmio.zig",
+      "why_now": "With config-write planning already landed, the live MMIO helper can now summarize which bytes a prepared config-word write would change, including the absolute window end offset and a byte-change mask, without mutating config space or claiming interrupt acknowledgement, queue discovery, reset flows, or probe or remove lifecycle behavior."
+    },
+    {
       "id": "phase10-mmio-lifecycle-and-irq-paths",
       "status": "blocked_on_risky_transport",
       "kind": "transport_wrapper",
