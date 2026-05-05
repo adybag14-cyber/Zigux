@@ -191,8 +191,11 @@ jobs:
       - name: Run Phase 12 complex driver tests
         run: zig build test --build-file zigux/tests/phase12_build.zig --summary all
 
+      - name: Validate Phase 13 release-discipline packet
+        run: make -C zigux phase13-validate
+
       - name: Run Phase 13 shared helper tests
-        run: zig build test --build-file zigux/tests/phase13_build.zig --summary all
+        run: make -C zigux phase13-test
 
       - name: Run Phase 14 internal bridge tests
         run: zig build test --build-file zigux/tests/phase14_build.zig --summary all
