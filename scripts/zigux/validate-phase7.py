@@ -1,0 +1,263 @@
+#!/usr/bin/env python3
+from __future__ import annotations
+
+import argparse
+from pathlib import Path
+import tempfile
+
+
+SELF_PATH = Path(__file__).resolve()
+ROOT = SELF_PATH.parents[2] if len(SELF_PATH.parents) >= 3 else SELF_PATH.parent
+
+REQUIRED_FILES = [
+    "Documentation/zigux/README.md",
+    "Documentation/zigux/phase7-string-helpers-slice.md",
+    "Documentation/zigux/phase7-cmdline-slice.md",
+    "Documentation/zigux/phase7-argv-split-slice.md",
+    "Documentation/zigux/phase7-rbtree-slice.md",
+    "scripts/zigux/validate-phase7.py",
+    "scripts/zigux/check-phase7-rbtree-parity.py",
+    "zigux/Makefile",
+    "zigux/tests/README.md",
+    "zigux/tests/phase7_build.zig",
+    "zigux/tests/phase7_string_helpers.zig",
+    "zigux/tests/phase7_cmdline.zig",
+    "zigux/tests/phase7_argv_split.zig",
+    "zigux/tests/phase7_rbtree.zig",
+    "zigux/tests/phase7_rbtree_survey.zig",
+    "zigux/tests/phase7_rbtree_manifest.json",
+    "zigux/tests/fixtures/phase7_rbtree.json",
+    "zigux/tests/fixtures/phase7_rbtree_c_harness.c",
+    "lib/string_helpers.zig",
+    "lib/cmdline.zig",
+    "lib/argv_split.zig",
+    "lib/rbtree.zig",
+]
+
+REQUIRED_MARKERS = {
+    "Documentation/zigux/README.md": [
+        "Documentation/zigux/phase7-string-helpers-slice.md",
+        "Documentation/zigux/phase7-cmdline-slice.md",
+        "Documentation/zigux/phase7-argv-split-slice.md",
+        "Documentation/zigux/phase7-rbtree-slice.md",
+        "zigux/tests/phase7_build.zig",
+        "make -C zigux phase7",
+    ],
+    "Documentation/zigux/phase7-string-helpers-slice.md": [
+        "string_escape_mem()",
+    ],
+    "Documentation/zigux/phase7-cmdline-slice.md": [
+        "exact bare-option matching for comma-delimited flags",
+    ],
+    "Documentation/zigux/phase7-argv-split-slice.md": [
+        "null-terminated pointer-vector access through `cArgv()`",
+    ],
+    "Documentation/zigux/phase7-rbtree-slice.md": [
+        "python3 scripts/zigux/check-phase7-rbtree-parity.py",
+        "zig build test --build-file zigux/tests/phase7_build.zig",
+    ],
+    "zigux/tests/README.md": [
+        "zigux/tests/phase7_build.zig",
+        "zigux/tests/phase7_string_helpers.zig",
+        "zigux/tests/phase7_cmdline.zig",
+        "zigux/tests/phase7_argv_split.zig",
+        "zigux/tests/phase7_rbtree.zig",
+        "zigux/tests/phase7_rbtree_survey.zig",
+    ],
+    "zigux/Makefile": [
+        "phase7-validate:",
+        "scripts/zigux/validate-phase7.py --self-test",
+        "scripts/zigux/validate-phase7.py",
+        "scripts/zigux/check-phase7-rbtree-parity.py",
+        "phase7-test:",
+        "zig build test --build-file zigux/tests/phase7_build.zig",
+        "phase7: phase7-validate phase7-test",
+    ],
+    "zigux/tests/phase7_build.zig": [
+        "phase7-string-helpers-tests",
+        "phase7-cmdline-tests",
+        "phase7-argv-split-tests",
+        "phase7-rbtree-tests",
+        "phase7-rbtree-survey-tests",
+    ],
+    "zigux/tests/phase7_rbtree_survey.zig": [
+        "scripts/zigux/validate-phase7.py",
+        "scripts/zigux/check-phase7-rbtree-parity.py",
+        "zigux/tests/phase7_rbtree.zig",
+        "zigux/tests/phase7_rbtree_survey.zig",
+        "zigux/tests/phase7_rbtree_manifest.json",
+        "python3 scripts/zigux/check-phase7-rbtree-parity.py --self-test",
+        "python3 scripts/zigux/check-phase7-rbtree-parity.py",
+    ],
+}
+
+
+def collect_missing_files(root: Path) -> list[str]:
+    missing: list[str] = []
+    for rel in REQUIRED_FILES:
+        if not (root / rel).exists():
+            missing.append(rel)
+    return missing
+
+
+def collect_missing_markers(root: Path) -> list[str]:
+    missing: list[str] = []
+    for rel, markers in REQUIRED_MARKERS.items():
+        text = (root / rel).read_text(encoding="utf-8")
+        for marker in markers:
+            if marker not in text:
+                missing.append(f"{rel}: {marker}")
+    return missing
+
+
+def validate(root: Path) -> tuple[list[str], list[str]]:
+    missing_files = collect_missing_files(root)
+    if missing_files:
+        return missing_files, []
+    return missing_files, collect_missing_markers(root)
+
+
+def write_fixture_root(tmp_root: Path) -> None:
+    fixture_text = {
+        "Documentation/zigux/README.md": "\n".join(REQUIRED_MARKERS["Documentation/zigux/README.md"]) + "\n",
+        "Documentation/zigux/phase7-string-helpers-slice.md": "\n".join(REQUIRED_MARKERS["Documentation/zigux/phase7-string-helpers-slice.md"]) + "\n",
+        "Documentation/zigux/phase7-cmdline-slice.md": "\n".join(REQUIRED_MARKERS["Documentation/zigux/phase7-cmdline-slice.md"]) + "\n",
+        "Documentation/zigux/phase7-argv-split-slice.md": "\n".join(REQUIRED_MARKERS["Documentation/zigux/phase7-argv-split-slice.md"]) + "\n",
+        "Documentation/zigux/phase7-rbtree-slice.md": "\n".join(REQUIRED_MARKERS["Documentation/zigux/phase7-rbtree-slice.md"]) + "\n",
+        "scripts/zigux/validate-phase7.py": "# fixture\n",
+        "scripts/zigux/check-phase7-rbtree-parity.py": "# fixture\n",
+        "zigux/Makefile": "\n".join(REQUIRED_MARKERS["zigux/Makefile"]) + "\n",
+        "zigux/tests/README.md": "\n".join(REQUIRED_MARKERS["zigux/tests/README.md"]) + "\n",
+        "zigux/tests/phase7_build.zig": "\n".join(REQUIRED_MARKERS["zigux/tests/phase7_build.zig"]) + "\n",
+        "zigux/tests/phase7_string_helpers.zig": "// fixture\n",
+        "zigux/tests/phase7_cmdline.zig": "// fixture\n",
+        "zigux/tests/phase7_argv_split.zig": "// fixture\n",
+        "zigux/tests/phase7_rbtree.zig": "// fixture\n",
+        "zigux/tests/phase7_rbtree_survey.zig": "\n".join(REQUIRED_MARKERS["zigux/tests/phase7_rbtree_survey.zig"]) + "\n",
+        "zigux/tests/phase7_rbtree_manifest.json": "{}\n",
+        "zigux/tests/fixtures/phase7_rbtree.json": "{}\n",
+        "zigux/tests/fixtures/phase7_rbtree_c_harness.c": "/* fixture */\n",
+        "lib/string_helpers.zig": "// fixture\n",
+        "lib/cmdline.zig": "// fixture\n",
+        "lib/argv_split.zig": "// fixture\n",
+        "lib/rbtree.zig": "// fixture\n",
+    }
+
+    for rel in REQUIRED_FILES:
+        path = tmp_root / rel
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(fixture_text.get(rel, "// fixture\n"), encoding="utf-8")
+
+
+def expect_missing_file(case: str, tmp_root: Path, rel: str) -> None:
+    missing_files, missing_markers = validate(tmp_root)
+    assert missing_markers == [], case
+    assert missing_files == [rel], case
+
+
+def expect_missing_marker(case: str, tmp_root: Path, marker: str) -> None:
+    missing_files, missing_markers = validate(tmp_root)
+    assert missing_files == [], case
+    assert missing_markers == [marker], case
+
+
+def run_self_test() -> None:
+    with tempfile.TemporaryDirectory(prefix="zigux_phase7_validator_") as tmp_dir_str:
+        tmp_root = Path(tmp_dir_str)
+        write_fixture_root(tmp_root)
+        assert validate(tmp_root) == ([], [])
+
+        parity_path = tmp_root / "scripts" / "zigux" / "check-phase7-rbtree-parity.py"
+        parity_path.unlink()
+        expect_missing_file("missing_parity_checker", tmp_root, "scripts/zigux/check-phase7-rbtree-parity.py")
+        write_fixture_root(tmp_root)
+
+        makefile_path = tmp_root / "zigux" / "Makefile"
+        original_makefile = makefile_path.read_text(encoding="utf-8")
+        makefile_path.write_text(
+            original_makefile.replace("scripts/zigux/validate-phase7.py --self-test", "", 1),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "makefile_validator_self_test_hook",
+            tmp_root,
+            "zigux/Makefile: scripts/zigux/validate-phase7.py --self-test",
+        )
+        makefile_path.write_text(original_makefile, encoding="utf-8")
+
+        rbtree_survey_path = tmp_root / "zigux" / "tests" / "phase7_rbtree_survey.zig"
+        original_rbtree_survey = rbtree_survey_path.read_text(encoding="utf-8")
+        rbtree_survey_path.write_text(
+            original_rbtree_survey.replace("scripts/zigux/validate-phase7.py", "", 1),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "rbtree_survey_validator_reference",
+            tmp_root,
+            "zigux/tests/phase7_rbtree_survey.zig: scripts/zigux/validate-phase7.py",
+        )
+        rbtree_survey_path.write_text(original_rbtree_survey, encoding="utf-8")
+
+        cmdline_doc_path = tmp_root / "Documentation" / "zigux" / "phase7-cmdline-slice.md"
+        original_cmdline_doc = cmdline_doc_path.read_text(encoding="utf-8")
+        cmdline_doc_path.write_text(
+            original_cmdline_doc.replace("exact bare-option matching for comma-delimited flags", "", 1),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "cmdline_review_surface",
+            tmp_root,
+            "Documentation/zigux/phase7-cmdline-slice.md: exact bare-option matching for comma-delimited flags",
+        )
+        cmdline_doc_path.write_text(original_cmdline_doc, encoding="utf-8")
+
+        build_path = tmp_root / "zigux" / "tests" / "phase7_build.zig"
+        original_build = build_path.read_text(encoding="utf-8")
+        build_path.write_text(
+            original_build.replace("phase7-rbtree-survey-tests", "", 1),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "build_rbtree_survey_gate",
+            tmp_root,
+            "zigux/tests/phase7_build.zig: phase7-rbtree-survey-tests",
+        )
+
+    print("PHASE7_VALIDATOR_SELF_TEST=pass")
+    print("PHASE7_VALIDATOR_SELF_TEST_CASE_COUNT=5")
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(description="Validate the current shared Phase 7 helper packet.")
+    parser.add_argument("--self-test", action="store_true", help="Run validator self-test cases without reading repo files.")
+    args = parser.parse_args()
+
+    if args.self_test:
+        run_self_test()
+        return 0
+
+    missing_files, missing_markers = validate(ROOT)
+    if missing_files:
+        print("PHASE7_VALIDATION=fail")
+        print("MISSING_PHASE7_FILES_START")
+        for item in missing_files:
+            print(item)
+        print("MISSING_PHASE7_FILES_END")
+        return 1
+
+    if missing_markers:
+        print("PHASE7_VALIDATION=fail")
+        print("MISSING_PHASE7_MARKERS_START")
+        for item in missing_markers:
+            print(item)
+        print("MISSING_PHASE7_MARKERS_END")
+        return 1
+
+    print("PHASE7_VALIDATION=pass")
+    print(f"PHASE7_REQUIRED_FILE_COUNT={len(REQUIRED_FILES)}")
+    print(f"PHASE7_REQUIRED_MARKER_COUNT={sum(len(markers) for markers in REQUIRED_MARKERS.values())}")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
