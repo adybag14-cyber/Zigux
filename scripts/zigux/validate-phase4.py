@@ -79,15 +79,19 @@ REQUIRED_SCRIPT_README_MARKERS = [
     "phase4_runtime_atomic64_diff_survey.zig",
     "Phase 4 flow",
     "phase4_build.zig",
+    "phase4-gate-evidence.md",
     "phase4-validation-matrix.md",
+    "intentionally unapproved perf-threshold posture",
 ]
 REQUIRED_DOC_README_MARKERS = [
     "Phase 4 notes",
     "validate-phase4.py",
+    "phase4-gate-evidence.md",
     "phase4-validation-matrix.md",
     "atomic64_diff.zig",
     "runtime_atomic64_diff.zig",
     "phase4_runtime_atomic64_diff_survey.zig",
+    "intentionally unapproved perf-threshold posture",
 ]
 REQUIRED_PHASE4_MATRIX_MARKERS = [
     "atomic64_diff.zig",
@@ -124,15 +128,19 @@ EXACT_ONCE_TESTS_README_MARKERS = [
 ]
 EXACT_ONCE_SCRIPT_README_MARKERS = [
     "Phase 4 flow",
+    "phase4-gate-evidence.md",
     "phase4-validation-matrix.md",
     "phase4_runtime_atomic64_diff_survey.zig",
+    "intentionally unapproved perf-threshold posture",
 ]
 EXACT_ONCE_DOC_README_MARKERS = [
     "Phase 4 notes",
     "validate-phase4.py",
+    "phase4-gate-evidence.md",
     "phase4-validation-matrix.md",
     "runtime_atomic64_diff.zig",
     "phase4_runtime_atomic64_diff_survey.zig",
+    "intentionally unapproved perf-threshold posture",
 ]
 
 EXPECTED_ARTIFACT_DIFF_CONTRACT_CASES = [
@@ -627,10 +635,12 @@ def _write_phase4_fixture_docs(root: Path) -> None:
             [
                 "Phase 4 notes",
                 "validate-phase4.py",
+                "phase4-gate-evidence.md",
                 "phase4-validation-matrix.md",
                 "atomic64_diff.zig",
                 "runtime_atomic64_diff.zig",
                 "phase4_runtime_atomic64_diff_survey.zig",
+                "intentionally unapproved perf-threshold posture",
                 "",
             ]
         ),
@@ -645,7 +655,9 @@ def _write_phase4_fixture_docs(root: Path) -> None:
                 "phase4_runtime_atomic64_diff_survey.zig",
                 "Phase 4 flow",
                 "phase4_build.zig",
+                "phase4-gate-evidence.md",
                 "phase4-validation-matrix.md",
+                "intentionally unapproved perf-threshold posture",
                 "",
             ]
         ),
