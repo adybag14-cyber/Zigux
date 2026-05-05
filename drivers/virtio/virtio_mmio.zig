@@ -2,6 +2,7 @@ const std = @import("std");
 
 pub const queue_capacity: usize = 8;
 pub const feature_word_capacity: usize = 2;
+pub const config_window_capacity: usize = 16;
 pub const max_queue_size: u16 = 1024;
 pub const mmio_window_bytes: u32 = 0x100;
 pub const mmio_magic_value: u32 = 0x7472_6976;
@@ -57,6 +58,14 @@ pub const RegisterWriteSummary = struct {
     value: u32,
 };
 
+pub const ConfigReadSummary = struct {
+    anchor: []const u8,
+    absolute_offset: u32,
+    relative_offset: u32,
+    config_generation: u32,
+    value: u32,
+};
+
 pub const VirtioMmioLab = struct {
     const Self = @This();
 
@@ -64,7 +73,9 @@ pub const VirtioMmioLab = struct {
     queue_num: [queue_capacity]u16 = [_]u16{0} ** queue_capacity,
     queue_ready: [queue_capacity]bool = [_]bool{false} ** queue_capacity,
     device_feature_words: [feature_word_capacity]u32 = [_]u32{0} ** feature_word_capacity,
+    config_window: [config_window_capacity]u8 = [_]u8{0} ** config_window_capacity,
     configured_queue_count: usize = 0,
+    config_window_size: usize = 0,
     selected_queue: u16 = 0,
     selected_device_feature_word: u32 = 0,
     status: u8 = 0,
@@ -178,6 +189,25 @@ pub const VirtioMmioLab = struct {
         };
     }
 
+    pub fn readConfigOffset(self: *const Self, offset: u32) !ConfigReadSummary {
+        const relative_offset = try checkedConfigWindowOffset(offset);
+        const start = try self.checkedConfigWordRange(relative_offset);
+        return .{
+            .anchor = descriptor().anchor,
+            .absolute_offset = offset,
+            .relative_offset = relative_offset,
+            .config_generation = self.config_generation,
+            .value = readLittleU32(self.config_window[start .. start + 4]),
+        };
+    }
+
+    pub fn stageConfigBytes(self: *Self, bytes: []const u8) !void {
+        if (bytes.len > config_window_capacity) return error.ConfigWindowTooLarge;
+        @memset(self.config_window[0..], 0);
+        @memcpy(self.config_window[0..bytes.len], bytes);
+        self.config_window_size = bytes.len;
+    }
+
     pub fn windowSummary(self: *const Self) RegisterWindowSummary {
         return .{
             .anchor = descriptor().anchor,
@@ -210,6 +240,13 @@ pub const VirtioMmioLab = struct {
     fn checkedQueueIndex(self: *const Self, queue_index: u16) !usize {
         if (queue_index >= self.configured_queue_count) return error.QueueSelectionOutOfRange;
         return @intCast(queue_index);
+    }
+
+    fn checkedConfigWordRange(self: *const Self, relative_offset: u32) !usize {
+        if (relative_offset > std.math.maxInt(usize)) return error.ConfigWindowReadOutOfRange;
+        const start: usize = @intCast(relative_offset);
+        if (start + 4 > self.config_window_size) return error.ConfigWindowReadOutOfRange;
+        return start;
     }
 };
 
@@ -257,6 +294,20 @@ fn checkedFeatureWordSelector(value: u32) !u32 {
 fn checkedFeatureWordIndex(word_index: u32) !usize {
     if (word_index >= feature_word_capacity) return error.FeatureWordSelectionOutOfRange;
     return @intCast(word_index);
+}
+
+fn checkedConfigWindowOffset(offset: u32) !u32 {
+    if (offset < mmio_window_bytes) return error.ConfigOffsetBeforeWindow;
+    const relative_offset = offset - mmio_window_bytes;
+    if ((relative_offset & 0x3) != 0) return error.UnalignedConfigOffset;
+    return relative_offset;
+}
+
+fn readLittleU32(bytes: []const u8) u32 {
+    return @as(u32, bytes[0]) |
+        (@as(u32, bytes[1]) << 8) |
+        (@as(u32, bytes[2]) << 16) |
+        (@as(u32, bytes[3]) << 24);
 }
 
 fn boolToU32(value: bool) u32 {
