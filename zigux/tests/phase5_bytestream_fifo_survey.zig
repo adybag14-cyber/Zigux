@@ -40,7 +40,7 @@ test "phase 5 bytestream fifo manifest records the exact bounded checks" {
     try std.testing.expectEqualStrings("samples/zigux/bytestream_fifo.zig", manifest.sample_path);
     try std.testing.expect(std.mem.indexOf(u8, manifest.validation_entrypoint, "phase5_build.zig") != null);
     try std.testing.expectEqual(@as(usize, 5), manifest.review_prompts.len);
-    try std.testing.expectEqual(@as(usize, 9), manifest.exact_checks.len);
+    try std.testing.expectEqual(@as(usize, 10), manifest.exact_checks.len);
     try std.testing.expectEqual(@as(usize, 4), manifest.non_goals.len);
 
     var saw_descriptor_prompt = false;
@@ -50,6 +50,7 @@ test "phase 5 bytestream fifo manifest records the exact bounded checks" {
     var saw_capacity = false;
     var saw_helper_boundary = false;
     var saw_snapshot = false;
+    var saw_short_drain_prefix = false;
     var saw_lifecycle = false;
 
     for (manifest.review_prompts) |prompt| {
@@ -71,6 +72,10 @@ test "phase 5 bytestream fifo manifest records the exact bounded checks" {
         try std.testing.expect(check.kind.len > 0);
         try std.testing.expect(check.expected.len > 0);
 
+        if (std.mem.eql(u8, check.id, "final-drain-sequence")) {
+            saw_exact_sequence = true;
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "3,4,5,6,7,8,9,0,1,20") != null);
+        }
         if (std.mem.eql(u8, check.id, "fill-to-capacity")) {
             saw_capacity = true;
             try std.testing.expect(std.mem.indexOf(u8, check.expected, "20 through 42 inclusive") != null);
@@ -86,9 +91,11 @@ test "phase 5 bytestream fifo manifest records the exact bounded checks" {
             try std.testing.expect(std.mem.indexOf(u8, check.expected, "skip-at-capacity returns 0") != null);
             try std.testing.expect(std.mem.indexOf(u8, check.expected, "pop-after-reset null") != null);
         }
-        if (std.mem.eql(u8, check.id, "final-drain-sequence")) {
-            saw_exact_sequence = true;
-            try std.testing.expect(std.mem.indexOf(u8, check.expected, "3,4,5,6,7,8,9,0,1,20") != null);
+        if (std.mem.eql(u8, check.id, "short-drain-prefix")) {
+            saw_short_drain_prefix = true;
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "\"hel\"") != null);
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "\"lo\"") != null);
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "returns 0") != null);
         }
         if (std.mem.eql(u8, check.id, "lifecycle-boundary")) {
             saw_lifecycle = true;
@@ -103,10 +110,11 @@ test "phase 5 bytestream fifo manifest records the exact bounded checks" {
     try std.testing.expect(saw_descriptor_prompt);
     try std.testing.expect(saw_approved_idiom_prompt);
     try std.testing.expect(saw_manifest_prompt);
+    try std.testing.expect(saw_exact_sequence);
     try std.testing.expect(saw_capacity);
     try std.testing.expect(saw_helper_boundary);
     try std.testing.expect(saw_snapshot);
-    try std.testing.expect(saw_exact_sequence);
+    try std.testing.expect(saw_short_drain_prefix);
     try std.testing.expect(saw_lifecycle);
     try std.testing.expect(std.mem.eql(u8, manifest.non_goals[0], "procfs parity"));
     try std.testing.expect(std.mem.eql(u8, manifest.non_goals[1], "kfifo_from_user or kfifo_to_user parity"));
@@ -141,13 +149,24 @@ test "phase 5 bytestream fifo survey note keeps later runtime starters and loade
     }
 
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "/workspace/agent_files") == null);
-    try std.testing.expect(
-        std.mem.indexOf(
-            u8,
-            survey_note,
-            "rg -n \"samples/kfifo/bytestream-example.c|Phase 5\" Documentation/zigux samples",
-        ) != null,
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "samples/kfifo/bytestream-example.c|Phase 5") != null);
+}
+
+test "phase 5 bytestream fifo survey note records the short-drain helper contract" {
+    var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
+    defer io_instance.deinit();
+
+    const survey_note = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "Documentation/zigux/phase5-kfifo-sample-survey.md",
+        std.testing.allocator,
+        .limited(64 * 1024),
     );
+    defer std.testing.allocator.free(survey_note);
+
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "draining a three-byte destination from the queued string `\"hello\"` yields `\"hel\"`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "leaves the remaining prefix `\"lo\"` queued in order") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "follow-up drain on the now-empty queue returns `0`") != null);
 }
 
 test "phase 5 bytestream fifo survey note records the latest verification snapshot" {
@@ -166,8 +185,8 @@ test "phase 5 bytestream fifo survey note records the latest verification snapsh
         "## Latest verification snapshot",
         "0.17.0-dev.87+9b177a7d2",
         "zig test samples/zigux/bytestream_fifo.zig",
-        "passed `1/1` sample self-checks",
-        "passed `5/5` build steps and `5/5` tests",
+        "passed `3/3` sample self-checks",
+        "passed `5/5` build steps and `8/8` tests",
         "len_after_initial_fill = 15",
         "first_out = \"hello\"",
         "second_out = {0, 1}",
