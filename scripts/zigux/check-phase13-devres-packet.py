@@ -13,6 +13,7 @@ REQUIRED_FILES = [
     "lib/devres.zig",
     "zigux/tests/phase13_build.zig",
     "zigux/tests/phase13_devres.zig",
+    "zigux/tests/phase13_devres_manifest.json",
     "scripts/zigux/validate-phase13-release.py",
     "zigux/Makefile",
 ]
@@ -48,6 +49,7 @@ BUILD_REQUIRED_MARKERS = [
 
 VALIDATOR_REQUIRED_MARKERS = [
     '"zigux/tests/phase13_devres.zig",',
+    '"zigux/tests/phase13_devres_manifest.json",',
 ]
 
 MAKE_REQUIRED_MARKERS = [
@@ -141,6 +143,7 @@ def _seed_fixture_tree(root: Path) -> None:
         root / "zigux/tests/phase13_build.zig",
         "\n".join(BUILD_REQUIRED_MARKERS) + "\n",
     )
+    _write(root / "zigux/tests/phase13_devres_manifest.json", "{}\n")
     _write(
         root / "scripts/zigux/validate-phase13-release.py",
         "\n".join(VALIDATOR_REQUIRED_MARKERS) + "\n",
@@ -184,7 +187,10 @@ def run_self_test() -> int:
         validator_path.write_text("# stub\n", encoding="utf-8")
         _assert_only(
             validate(root),
-            ['phase13-release-validator:"zigux/tests/phase13_devres.zig",'],
+            [
+                'phase13-release-validator:"zigux/tests/phase13_devres.zig",',
+                'phase13-release-validator:"zigux/tests/phase13_devres_manifest.json",',
+            ],
             "validator_marker_guard_failed",
         )
         _seed_fixture_tree(root)
