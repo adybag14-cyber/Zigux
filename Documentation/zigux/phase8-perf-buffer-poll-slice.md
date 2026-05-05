@@ -43,6 +43,7 @@ The current bounded helper covers:
 - ordered `perf_buffer__process_records()` pass summaries
 - cumulative processed-record count across attempted ready buffers
 - first failing ready buffer and its error code
+- final return-path choice between a successful ready count and the first processing failure
 - ready-buffer processing attempts cannot exceed observed ready events
 - non-ready wait observations cannot claim record processing
 - reject impossible post-wait buffer state combinations
@@ -54,6 +55,7 @@ The current tests check:
 - stable ready-buffer counting with the first error preserved for reviewability
 - fail-fast processing summaries that stop on the first failing ready buffer
 - helper-local execution summaries that keep processed-record totals compact
+- return-path helpers that preserve the successful ready count until the first processing failure wins instead
 - impossible processing paths that overrun the observed ready-event budget
 - impossible post-wait buffer state combinations that must stay rejected
 
@@ -61,8 +63,8 @@ The current tests check:
 
 This slice does not yet claim:
 
-- standalone timer helper behavior
-- standalone clockevent helper behavior
+- no standalone timer helper behavior
+- no standalone clockevent helper behavior
 - direct `perf_event_open()` setup or enablement
 - epoll registration or wakeup-loop ownership
 - mmap-backed ring creation or teardown
