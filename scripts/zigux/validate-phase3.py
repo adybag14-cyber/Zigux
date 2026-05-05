@@ -32,6 +32,19 @@ ABI_REQUIRED_MANIFEST_FILES = (
     "zigux/helpers/mmio.zig",
     "zigux/unsafe/narrow.zig",
 )
+LOW_LEVEL_WRAPPER_TEST_REL = "zigux/tests/phase3_low_level_wrappers.zig"
+LOW_LEVEL_WRAPPER_REQUIRED_MARKERS = (
+    "atomic.load(u32, &value, .seq_cst)",
+    "atomic.store(u32, &value, 8, .seq_cst)",
+    "atomic.exchange(u32, &value, 13, .seq_cst)",
+    "atomic.compareExchange(u32, &value, 13, 21, .seq_cst, .seq_cst)",
+    "barrier.acquire();",
+    "barrier.release();",
+    "barrier.full();",
+    "const desc = mmio.range(base, 8, 4);",
+    "mmio.write32(base, @sizeOf(u32), 0xfeedbeef);",
+    "mmio.read32(base, @sizeOf(u32))",
+)
 
 
 def _is_legacy_wrapper_manifest_file(rel: str) -> bool:
@@ -119,7 +132,20 @@ def validate_wrapper_template(root: Path, script_path: Path, slug: str, issues: 
     expected = render_wrapper_stub()
     current = script_path.read_text(encoding="utf-8")
     if current != expected:
-        issues.append(f"{slug}:wrapper_template_mismatch:{script_path.relative_to(root).as_posix()}" )
+        issues.append(f"{slug}:wrapper_template_mismatch:{script_path.relative_to(root).as_posix()}")
+
+
+def validate_low_level_wrapper_markers(root: Path, slug: str, issues: list[str]) -> None:
+    if slug != "abi":
+        return
+    wrapper_test_path = root / LOW_LEVEL_WRAPPER_TEST_REL
+    if not wrapper_test_path.exists():
+        issues.append(f"{slug}:missing_low_level_wrapper_test:{LOW_LEVEL_WRAPPER_TEST_REL}")
+        return
+    source = wrapper_test_path.read_text(encoding="utf-8")
+    for marker in LOW_LEVEL_WRAPPER_REQUIRED_MARKERS:
+        if marker not in source:
+            issues.append(f"{slug}:missing_low_level_wrapper_marker={marker}")
 
 
 def _has_build_step(build_file: Path, step_name: str) -> bool:
@@ -205,6 +231,7 @@ def validate_slices(
         manifest = validate_manifest(root, entry.manifest_path, entry.slug, issues)
         validate_doc_markers(root, entry.doc_path, entry.slug, manifest, issues)
         validate_wrapper_template(root, entry.check_script, entry.slug, issues)
+        validate_low_level_wrapper_markers(root, entry.slug, issues)
 
     validate_build_steps(root, slices, issues)
     validate_obsolete_wrappers(root, slices, issues, check_all_wrappers=check_all_wrappers)
@@ -246,6 +273,11 @@ def run_self_test() -> int:
                     "",
                 ]
             ),
+            encoding="utf-8",
+            newline="\n",
+        )
+        (paths.tests_dir / "phase3_low_level_wrappers.zig").write_text(
+            "\n".join([*LOW_LEVEL_WRAPPER_REQUIRED_MARKERS, ""]),
             encoding="utf-8",
             newline="\n",
         )
@@ -314,6 +346,7 @@ def run_self_test() -> int:
             newline="\n",
         )
         (paths.scripts_dir / "check-phase3-alpha.py").write_text(render_wrapper_stub(), encoding="utf-8", newline="\n")
+        (paths.tests_dir / "phase3_alpha_dump.zig").writeText = None
         (paths.tests_dir / "phase3_alpha_dump.zig").write_text("// alpha\n", encoding="utf-8", newline="\n")
         (fixture_dir / "expected.json").write_text("{}\n", encoding="utf-8", newline="\n")
         (fixture_dir / "phase3_alpha_c_harness.c").write_text("int main(void) { return 0; }\n", encoding="utf-8", newline="\n")
@@ -345,6 +378,19 @@ def run_self_test() -> int:
         else:
             raise AssertionError("expected missing slug to fail")
         assert validate_slices(root, slices, check_artifact_diff=True) == []
+
+        (paths.tests_dir / "phase3_low_level_wrappers.zig").write_text(
+            "\n".join(LOW_LEVEL_WRAPPER_REQUIRED_MARKERS[:-1]) + "\n",
+            encoding="utf-8",
+            newline="\n",
+        )
+        issues = validate_slices(root, slices, check_artifact_diff=False)
+        assert f"abi:missing_low_level_wrapper_marker={LOW_LEVEL_WRAPPER_REQUIRED_MARKERS[-1]}" in issues
+        (paths.tests_dir / "phase3_low_level_wrappers.zig").write_text(
+            "\n".join([*LOW_LEVEL_WRAPPER_REQUIRED_MARKERS, ""]),
+            encoding="utf-8",
+            newline="\n",
+        )
 
         paths.scripts_dir.joinpath("check-phase3-alpha.py").unlink()
         assert validate_slices(root, slices, check_artifact_diff=True) == []
