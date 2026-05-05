@@ -177,7 +177,7 @@ def run_self_test() -> int:
         case_count += 1
 
         reviewability_path = root / "zigux/tests/phase13_devres_reviewability.zig"
-        reviewability_path.writeText(REVIEWABILITY_REQUIRED_MARKERS[0] + "\n", encoding="utf-8")
+        reviewability_path.write_text(REVIEWABILITY_REQUIRED_MARKERS[0] + "\n", encoding="utf-8")
         _assert_only(
             validate(root),
             [
