@@ -720,7 +720,6 @@ def run_self_test() -> None:
 
         hexdump_vectors = root / "zigux/tests/fixtures/phase6_hexdump_vectors.zig"
         original_hexdump_vectors = hexdump_vectors.read_text(encoding="utf-8")
-        hexdump_vectors.writeText = None
         hexdump_vectors.write_text(
             original_hexdump_vectors.replace(
                 '.label = "16B-ascii-g8"',
