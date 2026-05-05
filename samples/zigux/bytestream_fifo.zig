@@ -85,6 +85,14 @@ pub const BytestreamFifoSample = struct {
         return self.stage_state;
     }
 
+    pub fn isEmpty(self: *const Self) bool {
+        return self.len == 0;
+    }
+
+    pub fn isFull(self: *const Self) bool {
+        return self.len == capacity;
+    }
+
     pub fn reset(self: *Self) void {
         self.head = 0;
         self.len = 0;
@@ -285,6 +293,9 @@ pub const expected_anchor_result = [_]u8{
 test "bytestream fifo sample replays the Linux anchor result sequence" {
     var sample = BytestreamFifoSample{};
     try sample.init();
+    try std.testing.expect(sample.isEmpty());
+    try std.testing.expect(!sample.isFull());
+
     const replay = try sample.runAnchorReplay();
 
     try std.testing.expectEqual(SampleStage.initialized, replay.stage_before_replay);
@@ -302,11 +313,15 @@ test "bytestream fifo sample replays the Linux anchor result sequence" {
     try std.testing.expectEqualSlices(u8, expected_anchor_result[0..], replay.final_sequence[0..]);
     try std.testing.expectEqual(SampleStage.replay_complete, sample.stage());
     try std.testing.expectEqual(@as(usize, 1), sample.init_runs);
+    try std.testing.expect(sample.isEmpty());
+    try std.testing.expect(!sample.isFull());
 
     try sample.exit();
     try std.testing.expectEqual(SampleStage.exited, sample.stage());
     try std.testing.expectEqual(@as(usize, 0), sample.count());
     try std.testing.expectEqual(@as(usize, 1), sample.exit_runs);
+    try std.testing.expect(sample.isEmpty());
+    try std.testing.expect(!sample.isFull());
 }
 
 test "bytestream fifo sample replays bounded helper behavior without runtime claims" {
@@ -325,4 +340,41 @@ test "bytestream fifo sample replays bounded helper behavior without runtime cla
     try std.testing.expectEqual(@as(?u8, null), replay.pop_after_reset);
     try std.testing.expectEqual(@as(usize, 0), sample.count());
     try std.testing.expectEqual(SampleStage.cold, sample.stage());
+    try std.testing.expect(sample.isEmpty());
+    try std.testing.expect(!sample.isFull());
+}
+
+test "bytestream fifo sample exposes empty and full state boundaries explicitly" {
+    var sample = BytestreamFifoSample{};
+
+    try std.testing.expect(sample.isEmpty());
+    try std.testing.expect(!sample.isFull());
+
+    try sample.init();
+    try std.testing.expect(sample.isEmpty());
+    try std.testing.expect(!sample.isFull());
+
+    try std.testing.expectEqual(@as(usize, 5), sample.enqueueSlice("hello"));
+    try std.testing.expect(!sample.isEmpty());
+    try std.testing.expect(!sample.isFull());
+
+    var value: u8 = 0;
+    while (!sample.isFull()) : (value +%= 1) {
+        try std.testing.expect(sample.pushByte(value));
+    }
+    try std.testing.expect(sample.isFull());
+    try std.testing.expect(!sample.isEmpty());
+    try std.testing.expect(!sample.pushByte(255));
+
+    _ = sample.skipByte() orelse unreachable;
+    try std.testing.expect(!sample.isFull());
+    try std.testing.expect(!sample.isEmpty());
+
+    sample.reset();
+    try std.testing.expect(sample.isEmpty());
+    try std.testing.expect(!sample.isFull());
+
+    try sample.exit();
+    try std.testing.expect(sample.isEmpty());
+    try std.testing.expect(!sample.isFull());
 }
