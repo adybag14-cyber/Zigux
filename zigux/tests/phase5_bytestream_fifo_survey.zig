@@ -133,7 +133,7 @@ test "phase 5 bytestream fifo manifest records the exact bounded checks" {
     try std.testing.expect(std.mem.eql(u8, manifest.non_goals[1], "kfifo_from_user or kfifo_to_user parity"));
 }
 
-test "phase 5 bytestream fifo survey note keeps manifest-backed provenance and later runtime starters explicit" {
+test "phase 5 bytestream fifo survey packet stays repo-local and keeps shared review surfaces explicit" {
     var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
     defer io_instance.deinit();
 
@@ -197,6 +197,66 @@ test "phase 5 bytestream fifo survey note keeps manifest-backed provenance and l
     try std.testing.expect(std.mem.indexOf(u8, survey_note, surveyed_commit_marker) != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "/workspace/agent_files") == null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "samples/kfifo/bytestream-example.c|PHASE5_LANE_KEY=P5-L01|PHASE5_SURVEYED_COMMIT=c9b956c155281407bf86bf56d122b08d6fc634ea|Phase 5") != null);
+
+    const docs_root = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "Documentation/zigux/README.md",
+        std.testing.allocator,
+        .limited(128 * 1024),
+    );
+    defer std.testing.allocator.free(docs_root);
+
+    const docs_root_markers = [_][]const u8{
+        "Documentation/zigux/phase5-kfifo-sample-survey.md",
+        "samples/zigux/bytestream_fifo.zig",
+        "exact replay checks",
+        "remaining non-goals around procfs, user-copy, and module registration parity",
+        "descriptor, manifest, and shared build-entrypoint prompts",
+    };
+
+    for (docs_root_markers) |needle| {
+        try std.testing.expect(std.mem.indexOf(u8, docs_root, needle) != null);
+    }
+
+    const review_checklist = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "Documentation/zigux/review-checklist.md",
+        std.testing.allocator,
+        .limited(128 * 1024),
+    );
+    defer std.testing.allocator.free(review_checklist);
+
+    const checklist_markers = [_][]const u8{
+        "if the change is a reference sample under `samples/zigux/`, is the self-check or behavior replay explicit and small enough to stay reviewable?",
+        "if the change updates an existing Phase 5 sample, do the descriptor, manifest, and shared `phase5_build.zig` entrypoint still agree on the same Linux anchor and exact replay contract?",
+        "if the change updates a landed Phase 5 sample that keeps a Linux concurrency or private-data cue only for reviewability, does the note or checklist still say clearly what remains in-memory-only and what runtime parity is still out of scope?",
+        "if the change is a landed Phase 5 sample, does it update the directly coupled survey note or manifest-backed contributor prompts when the sample contract changes?",
+    };
+
+    for (checklist_markers) |needle| {
+        try std.testing.expect(std.mem.indexOf(u8, review_checklist, needle) != null);
+    }
+
+    const build_zig = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "zigux/tests/phase5_build.zig",
+        std.testing.allocator,
+        .limited(32 * 1024),
+    );
+    defer std.testing.allocator.free(build_zig);
+
+    const build_markers = [_][]const u8{
+        "../../samples/zigux/bytestream_fifo.zig",
+        "phase5_bytestream_fifo_survey.zig",
+        "phase5-bytestream-fifo-tests",
+        "phase5-bytestream-fifo-survey-tests",
+        "run_phase5_bytestream_fifo_tests.step",
+        "run_phase5_bytestream_fifo_survey_tests.step",
+    };
+
+    for (build_markers) |needle| {
+        try std.testing.expect(std.mem.indexOf(u8, build_zig, needle) != null);
+    }
 }
 
 test "phase 5 bytestream fifo survey note records the short-drain helper contract" {
