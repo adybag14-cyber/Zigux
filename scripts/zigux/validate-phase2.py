@@ -196,6 +196,9 @@ REQUIRED_SCRIPT_MARKERS = [
     "check-mk-elfconfig-diff.py",
     "mk_elfconfig.zig",
 ]
+REQUIRED_SCRIPT_HELPER_INDEX_MARKERS = [
+    "- `check-kconfig-bridge.py`\n- `check-phase2-tests-readme-alignment.py`\n- `check-phase2-cross-selftest-alignment.py`\n- `check-phase2-toolchain-pin-scope.py`\n- `check-phase2-cross.py`\n- `check-mk-elfconfig-diff.py`",
+]
 REQUIRED_DOCS_ROOT_MARKERS = [
     "Documentation/zigux/phase2-closure.md",
     "scripts/zigux/check-phase2-tests-readme-alignment.py",
@@ -252,6 +255,9 @@ def validate_root(root: Path) -> list[str]:
     for marker in REQUIRED_SCRIPT_MARKERS:
         if marker not in script_readme:
             missing_markers.append(f"scripts:{marker}")
+    for marker in REQUIRED_SCRIPT_HELPER_INDEX_MARKERS:
+        if marker not in script_readme:
+            missing_markers.append("scripts_helper_index:phase2_helper_block")
     for marker in REQUIRED_DOCS_ROOT_MARKERS:
         if marker not in docs_root:
             missing_markers.append(f"docs_root:{marker}")
@@ -332,6 +338,40 @@ def write_stub_guard(path: Path, *, self_test_marker: str, live_markers: list[st
     for marker in live_markers:
         lines.append(f"    print({marker!r})")
     write_text(path, "\n".join(lines) + "\n")
+
+
+def build_script_readme_text() -> str:
+    return "\n".join(
+        [
+            "check-zig-toolchain.py",
+            "install-zig.py",
+            "check-phase2-tests-readme-alignment.py",
+            "check-phase2-cross-selftest-alignment.py",
+            "check-phase2-toolchain-pin-scope.py",
+            "validate-phase2.py",
+            "validate-phase2-closure.py",
+            "check-fixdep-diff.py",
+            "check-genksyms-bridge.py",
+            "check-genksyms-crc-diff.py",
+            "check-kconfig-bridge.py",
+            "check-phase2-tests-readme-alignment.py",
+            "check-phase2-cross-selftest-alignment.py",
+            "check-phase2-toolchain-pin-scope.py",
+            "check-phase2-cross.py",
+            "check-mk-elfconfig-diff.py",
+            "genksyms.zig",
+            "genksyms_crc.zig",
+            "kconfig/conf_bridge.zig",
+            "kconfig/confdata_bridge.zig",
+            "mk_elfconfig.zig",
+            "- `check-kconfig-bridge.py`",
+            "- `check-phase2-tests-readme-alignment.py`",
+            "- `check-phase2-cross-selftest-alignment.py`",
+            "- `check-phase2-toolchain-pin-scope.py`",
+            "- `check-phase2-cross.py`",
+            "- `check-mk-elfconfig-diff.py`",
+        ]
+    ) + "\n"
 
 
 def build_self_test_root(root: Path) -> None:
@@ -448,11 +488,11 @@ def build_self_test_root(root: Path) -> None:
 
     write_text(root / "zigux-alpha/BOOTSTRAP_COMMIT_LEDGER.md", "\n".join(REQUIRED_LEDGER_MARKERS) + "\n")
     write_text(
-        root / ".github/workflows/zigux-bootstrap.yml",
+        root / ".github" / "workflows" / "zigux-bootstrap.yml",
         "\n".join(f"run: {marker}" for marker in REQUIRED_WORKFLOW_MARKERS) + "\n",
     )
     write_text(root / "Documentation/zigux/artifact-diff.md", "\n".join(REQUIRED_DOC_MARKERS) + "\n")
-    write_text(root / "scripts/zigux/README.md", "\n".join(REQUIRED_SCRIPT_MARKERS) + "\n")
+    write_text(root / "scripts/zigux/README.md", build_script_readme_text())
     write_text(root / "Documentation/zigux/README.md", "\n".join(REQUIRED_DOCS_ROOT_MARKERS) + "\n")
     write_text(root / "Documentation/zigux/review-checklist.md", "\n".join(REQUIRED_REVIEW_MARKERS) + "\n")
 
@@ -567,8 +607,16 @@ def run_self_test() -> int:
         issues = validate_root(root)
         assert any(issue.startswith("guard_marker:") for issue in issues)
 
+        build_self_test_root(root)
+        write_text(
+            root / "scripts/zigux/README.md",
+            build_script_readme_text().replace("- `check-phase2-cross-selftest-alignment.py`\n", ""),
+        )
+        issues = validate_root(root)
+        assert "scripts_helper_index:phase2_helper_block" in issues
+
     print("PHASE2_VALIDATION_SELF_TEST=pass")
-    print("PHASE2_VALIDATION_SELF_TEST_CASE_COUNT=10")
+    print("PHASE2_VALIDATION_SELF_TEST_CASE_COUNT=11")
     return 0
 
 
@@ -604,7 +652,7 @@ def main() -> int:
     print(f"PHASE2_REQUIRED_FILE_COUNT={len(required_files(ROOT))}")
     print(
         "PHASE2_REQUIRED_MARKER_COUNT="
-        f"{len(REQUIRED_LEDGER_MARKERS) + len(REQUIRED_WORKFLOW_MARKERS) + len(REQUIRED_DOC_MARKERS) + len(REQUIRED_SCRIPT_MARKERS) + len(REQUIRED_DOCS_ROOT_MARKERS) + len(REQUIRED_REVIEW_MARKERS)}"
+        f"{len(REQUIRED_LEDGER_MARKERS) + len(REQUIRED_WORKFLOW_MARKERS) + len(REQUIRED_DOC_MARKERS) + len(REQUIRED_SCRIPT_MARKERS) + len(REQUIRED_SCRIPT_HELPER_INDEX_MARKERS) + len(REQUIRED_DOCS_ROOT_MARKERS) + len(REQUIRED_REVIEW_MARKERS)}"
     )
     return 0
 
