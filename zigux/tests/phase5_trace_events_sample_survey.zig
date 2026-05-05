@@ -18,6 +18,10 @@ const Manifest = struct {
     non_goals: []const []const u8,
 };
 
+fn expectContains(haystack: []const u8, needle: []const u8) !void {
+    try std.testing.expect(std.mem.indexOf(u8, haystack, needle) != null);
+}
+
 test "phase 5 trace-events manifest records the exact bounded checks" {
     var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
     defer io_instance.deinit();
@@ -39,10 +43,24 @@ test "phase 5 trace-events manifest records the exact bounded checks" {
     try std.testing.expect(manifest.surveyed_commit.len > 0);
     try std.testing.expectEqualStrings("samples/trace_events/trace-events-sample.c", manifest.anchor);
     try std.testing.expectEqualStrings("samples/zigux/trace_events_sample.zig", manifest.sample_path);
-    try std.testing.expect(std.mem.indexOf(u8, manifest.validation_entrypoint, "phase5_build.zig") != null);
+    try expectContains(manifest.validation_entrypoint, "phase5_build.zig");
     try std.testing.expectEqual(@as(usize, 6), manifest.review_prompts.len);
     try std.testing.expectEqual(@as(usize, 8), manifest.exact_checks.len);
     try std.testing.expectEqual(@as(usize, 4), manifest.non_goals.len);
+
+    const build_zig = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "zigux/tests/phase5_build.zig",
+        std.testing.allocator,
+        .limited(32 * 1024),
+    );
+    defer std.testing.allocator.free(build_zig);
+
+    try expectContains(build_zig, "../../samples/zigux/trace_events_sample.zig");
+    try expectContains(build_zig, "phase5_trace_events_sample_survey.zig");
+    try expectContains(build_zig, "phase5-trace-events-sample-survey-tests");
+    try expectContains(build_zig, "run_phase5_trace_events_sample_tests.step");
+    try expectContains(build_zig, "run_phase5_trace_events_sample_survey_tests.step");
 
     var saw_descriptor_prompt = false;
     var saw_payload_prompt = false;
@@ -93,42 +111,42 @@ test "phase 5 trace-events manifest records the exact bounded checks" {
 
         if (std.mem.eql(u8, check.id, "descriptor-anchor")) {
             saw_descriptor_check = true;
-            try std.testing.expect(std.mem.indexOf(u8, check.expected, "samples/trace_events/trace-events-sample.c") != null);
-            try std.testing.expect(std.mem.indexOf(u8, check.expected, "non-runtime reference-sample lane") != null);
+            try expectContains(check.expected, "samples/trace_events/trace-events-sample.c");
+            try expectContains(check.expected, "non-runtime reference-sample lane");
         }
         if (std.mem.eql(u8, check.id, "message-and-string-shape")) {
             saw_message_check = true;
-            try std.testing.expect(std.mem.indexOf(u8, check.expected, "iter=7") != null);
-            try std.testing.expect(std.mem.indexOf(u8, check.expected, "Gandalf") != null);
+            try expectContains(check.expected, "iter=7");
+            try expectContains(check.expected, "Gandalf");
         }
         if (std.mem.eql(u8, check.id, "array-and-sentinel-shape")) {
             saw_array_check = true;
-            try std.testing.expect(std.mem.indexOf(u8, check.expected, "1,2 payload prefix") != null);
-            try std.testing.expect(std.mem.indexOf(u8, check.expected, "zero sentinel") != null);
+            try expectContains(check.expected, "1,2 payload prefix");
+            try expectContains(check.expected, "zero sentinel");
         }
         if (std.mem.eql(u8, check.id, "bitmask-and-rel-loc")) {
             saw_rel_loc_check = true;
-            try std.testing.expect(std.mem.indexOf(u8, check.expected, "0xdeadbeef") != null);
-            try std.testing.expect(std.mem.indexOf(u8, check.expected, "relative-location") != null);
+            try expectContains(check.expected, "0xdeadbeef");
+            try expectContains(check.expected, "relative-location");
         }
         if (std.mem.eql(u8, check.id, "vararg-payload-path")) {
             saw_vararg_check = true;
-            try std.testing.expect(std.mem.indexOf(u8, check.expected, "vararg payload") != null);
-            try std.testing.expect(std.mem.indexOf(u8, check.expected, "va_list") != null);
+            try expectContains(check.expected, "vararg payload");
+            try expectContains(check.expected, "va_list");
         }
         if (std.mem.eql(u8, check.id, "event-family-counts")) {
             saw_counts_check = true;
-            try std.testing.expect(std.mem.indexOf(u8, check.expected, "six") != null);
-            try std.testing.expect(std.mem.indexOf(u8, check.expected, "eight") != null);
+            try expectContains(check.expected, "six");
+            try expectContains(check.expected, "eight");
         }
         if (std.mem.eql(u8, check.id, "callback-registration-balance")) {
             saw_callback_balance_check = true;
-            try std.testing.expect(std.mem.indexOf(u8, check.expected, "callback path") != null);
-            try std.testing.expect(std.mem.indexOf(u8, check.expected, "zero") != null);
+            try expectContains(check.expected, "callback path");
+            try expectContains(check.expected, "zero");
         }
         if (std.mem.eql(u8, check.id, "post-exit-rejection")) {
             saw_exit_check = true;
-            try std.testing.expect(std.mem.indexOf(u8, check.expected, "after exit") != null);
+            try expectContains(check.expected, "after exit");
         }
 
         for (manifest.exact_checks[i + 1 ..]) |other| {
