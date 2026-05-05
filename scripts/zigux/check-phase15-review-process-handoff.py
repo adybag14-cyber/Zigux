@@ -49,6 +49,7 @@ REQUIRED_DOCS_README_MARKERS = [
     "`Documentation/zigux/phase15-architecture-council-review-process.md`",
     "`Documentation/zigux/phase15-parity-scorecard.md`",
     "`Documentation/zigux/phase15-indefinite-c-policy.md`",
+    "`zigux/tests/phase15_architecture_council_review_process_manifest.json`",
     "`zigux/tests/phase15_build.zig`",
     "`make -C zigux phase15`",
     "no Architecture Council approval is recorded yet",
@@ -90,6 +91,7 @@ REQUIRED_TESTS_README_MARKERS = [
     "Documentation/zigux/phase15-indefinite-c-policy.md",
     "Documentation/zigux/review-checklist.md",
     "scripts/zigux/check-phase15-review-process-handoff.py",
+    "zigux/tests/phase15_architecture_council_review_process_manifest.json",
     "zigux/tests/phase15_build.zig",
     "zigux/tests/phase15_architecture_council_review_process.zig",
     "zigux/Makefile",
@@ -221,6 +223,7 @@ Phase 15 notes
 - `Documentation/zigux/phase15-architecture-council-review-process.md`
 - `Documentation/zigux/phase15-parity-scorecard.md`
 - `Documentation/zigux/phase15-indefinite-c-policy.md`
+- `zigux/tests/phase15_architecture_council_review_process_manifest.json`
 - `zigux/tests/phase15_build.zig`
 - `make -C zigux phase15`
 - no Architecture Council approval is recorded yet
@@ -293,6 +296,7 @@ keep the parked Phase 15 governance packet explicit in the tests root too
 - Documentation/zigux/phase15-indefinite-c-policy.md
 - Documentation/zigux/review-checklist.md
 - scripts/zigux/check-phase15-review-process-handoff.py
+- zigux/tests/phase15_architecture_council_review_process_manifest.json
 - zigux/tests/phase15_build.zig
 - zigux/tests/phase15_architecture_council_review_process.zig
 - zigux/Makefile
@@ -408,6 +412,18 @@ def run_self_test() -> int:
         )
 
         write_fixture_tree(tmp_root)
+        docs_readme = docs_readme_path.read_text(encoding="utf-8")
+        docs_readme_path.write_text(
+            docs_readme.replace("`zigux/tests/phase15_architecture_council_review_process_manifest.json`\n", "", 1),
+            encoding="utf-8",
+        )
+        expect_failure(
+            tmp_root,
+            "docs_readme:`zigux/tests/phase15_architecture_council_review_process_manifest.json`",
+            "missing_docs_readme_manifest_marker",
+        )
+
+        write_fixture_tree(tmp_root)
         review_checklist_path = tmp_root / REVIEW_CHECKLIST_PATH
         review_checklist = review_checklist_path.read_text(encoding="utf-8")
         review_checklist_path.write_text(
@@ -434,6 +450,18 @@ def run_self_test() -> int:
         )
 
         write_fixture_tree(tmp_root)
+        tests_readme = tests_readme_path.read_text(encoding="utf-8")
+        tests_readme_path.write_text(
+            tests_readme.replace("zigux/tests/phase15_architecture_council_review_process_manifest.json\n", "", 1),
+            encoding="utf-8",
+        )
+        expect_failure(
+            tmp_root,
+            "tests_readme:zigux/tests/phase15_architecture_council_review_process_manifest.json",
+            "missing_tests_readme_manifest_marker",
+        )
+
+        write_fixture_tree(tmp_root)
         makefile_path = tmp_root / MAKEFILE_PATH
         makefile = makefile_path.read_text(encoding="utf-8")
         makefile_path.write_text(
@@ -451,7 +479,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE15_REVIEW_PROCESS_HANDOFF_SELF_TEST=pass")
-    print("PHASE15_REVIEW_PROCESS_HANDOFF_SELF_TEST_CASE_COUNT=10")
+    print("PHASE15_REVIEW_PROCESS_HANDOFF_SELF_TEST_CASE_COUNT=12")
     return 0
 
 
