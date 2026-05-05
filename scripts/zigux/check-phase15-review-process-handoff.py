@@ -392,7 +392,7 @@ if the change touches the shared Phase 15 governance packet
             ),
         },
     }
-    (root / MANIFEST_PATH).writeText(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+    (root / MANIFEST_PATH).write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
 
     script_readme = """# scripts/zigux
 Phase 15 flow
