@@ -242,6 +242,10 @@ test "phase 9 runtime bitmap survey source-checks the direct sample evidence pac
     try std.testing.expect(std.mem.indexOf(u8, loader_source, ".exit_symbol = \"zigux_runtime_bitmap_exit\"") != null);
     try std.testing.expect(std.mem.indexOf(u8, loader_source, "self.stage_state = .waiting_on_runtime_substrate;") != null);
     try std.testing.expect(std.mem.indexOf(u8, loader_source, "self.stage_state = .released_without_substrate;") != null);
+    try std.testing.expect(std.mem.indexOf(u8, loader_source, "@import(\"runtime_loader\")") == null);
+    try std.testing.expect(std.mem.indexOf(u8, loader_source, "toSharedLoadPlan(") == null);
+    try std.testing.expect(std.mem.indexOf(u8, loader_source, "prepareRequest(") == null);
+    try std.testing.expect(std.mem.indexOf(u8, loader_source, "keepsAllocatorInitFlowConsistent(") == null);
     try std.testing.expect(std.mem.indexOf(u8, loader_source, ".summary = module.summary(),") != null);
     try std.testing.expect(std.mem.indexOf(u8, loader_source, "test \"runtime bitmap loader keeps the prepared snapshot stable across later bitmap mutation\"") != null);
     try std.testing.expect(std.mem.indexOf(u8, loader_source, "try module.clearRange(0, 1);") != null);
