@@ -6,7 +6,7 @@ test "phase11 hvc_console exposes the bounded descriptor and slot validation" {
     try std.testing.expectEqualStrings("hvc_console_lab", descriptor.name);
     try std.testing.expectEqualStrings("drivers/tty/hvc/hvc_console.c", descriptor.anchor);
     try std.testing.expect(descriptor.provides_simple_driver_starter);
-    try std.testing.expect(!descriptor.touches_tty_registration);
+    try std.testing.expect(descriptor.touches_tty_registration);
     try std.testing.expect(!descriptor.touches_polling_kthread);
     try std.testing.expect(!descriptor.touches_live_hypervisor_io);
 
