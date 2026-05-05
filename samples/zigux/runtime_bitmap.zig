@@ -15,6 +15,29 @@ pub const OperationFamily = enum {
     iteration_and_ranges,
 };
 
+pub const SampleFocus = enum {
+    descriptor_and_anchor,
+    summary_replay,
+    selftest_lifecycle,
+};
+
+pub const sample_review_focus = [_]SampleFocus{
+    .descriptor_and_anchor,
+    .summary_replay,
+    .selftest_lifecycle,
+};
+
+pub const sample_review_non_goals = [_][]const u8{
+    "loadable runtime bitmap module parity",
+    "shared runtime-loader command-name or argv-policy controls",
+    "real runtime execution through a live substrate",
+};
+
+pub const ReviewContract = struct {
+    focus: []const SampleFocus,
+    non_goals: []const []const u8,
+};
+
 pub const ModuleDescriptor = struct {
     name: []const u8,
     anchor: []const u8,
@@ -54,6 +77,13 @@ pub const RuntimeBitmapSample = struct {
             .anchor = "lib/test_bitmap.c",
             .requires_runtime_substrate = true,
             .provides_selftest_hook = true,
+        };
+    }
+
+    pub fn reviewContract() ReviewContract {
+        return .{
+            .focus = &sample_review_focus,
+            .non_goals = &sample_review_non_goals,
         };
     }
 
@@ -172,6 +202,45 @@ pub const RuntimeBitmapSample = struct {
         self.stage_state = .exited;
     }
 };
+
+test "runtime bitmap sample review contract keeps bounded starter focus explicit" {
+    const descriptor = RuntimeBitmapSample.descriptor();
+    const contract = RuntimeBitmapSample.reviewContract();
+
+    try std.testing.expectEqualStrings("runtime_bitmap", descriptor.name);
+    try std.testing.expectEqualStrings("lib/test_bitmap.c", descriptor.anchor);
+    try std.testing.expect(descriptor.requires_runtime_substrate);
+    try std.testing.expect(descriptor.provides_selftest_hook);
+
+    try std.testing.expectEqual(@as(usize, sample_review_focus.len), contract.focus.len);
+    for (sample_review_focus, contract.focus) |expected, actual| {
+        try std.testing.expectEqual(expected, actual);
+    }
+
+    try std.testing.expectEqual(@as(usize, sample_review_non_goals.len), contract.non_goals.len);
+    for (sample_review_non_goals, contract.non_goals) |expected, actual| {
+        try std.testing.expectEqualStrings(expected, actual);
+    }
+}
+
+test "runtime bitmap sample review contract stays aligned with the selftest packet" {
+    var module = RuntimeBitmapSample{};
+    try module.initWithSetBits(&.{ 0, 5, bitmap_view.bits_per_long, bitmap_view.bits_per_long + 6 });
+
+    const contract = RuntimeBitmapSample.reviewContract();
+    const selftest = try module.runSelftest();
+
+    try std.testing.expectEqual(@as(usize, 3), contract.focus.len);
+    try std.testing.expectEqual(SampleFocus.descriptor_and_anchor, contract.focus[0]);
+    try std.testing.expectEqual(SampleFocus.summary_replay, contract.focus[1]);
+    try std.testing.expectEqual(SampleFocus.selftest_lifecycle, contract.focus[2]);
+    try std.testing.expectEqualStrings(RuntimeBitmapSample.descriptor().anchor, selftest.anchor);
+    try std.testing.expectEqual(@as(usize, 4), selftest.operation_families.len);
+    try std.testing.expectEqual(OperationFamily.clear_set, selftest.operation_families[0]);
+    try std.testing.expectEqual(OperationFamily.copy, selftest.operation_families[1]);
+    try std.testing.expectEqual(OperationFamily.parse_and_print, selftest.operation_families[2]);
+    try std.testing.expectEqual(OperationFamily.iteration_and_ranges, selftest.operation_families[3]);
+}
 
 test "runtime bitmap sample keeps bounded view summaries stable" {
     var module = RuntimeBitmapSample{};
