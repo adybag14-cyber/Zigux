@@ -259,3 +259,60 @@ test "phase13 landlock ruleset tree-link planner rejects matching-rule search re
 
     try std.testing.expectError(error.RuleAlreadyExists, ruleset.RulesetHelperLab.planRuleTreeLink(search_plan));
 }
+
+test "phase13 landlock ruleset insertion rejects duplicate incoming layers" {
+    try std.testing.expectError(
+        error.DuplicateLayer,
+        ruleset.RulesetHelperLab.planRuleInsertion(null, &.{
+            .{ .level = 1, .access = 0x1 },
+            .{ .level = 1, .access = 0x2 },
+        }, 0),
+    );
+}
+
+test "phase13 landlock ruleset insertion rejects mixed global and hierarchical layers" {
+    try std.testing.expectError(
+        error.InvalidLayer,
+        ruleset.RulesetHelperLab.planRuleInsertion(null, &.{
+            .{ .level = 0, .access = 0x1 },
+            .{ .level = 2, .access = 0x2 },
+        }, 0),
+    );
+}
+
+test "phase13 landlock ruleset insertion rejects duplicate merged layer levels" {
+    const existing = ruleset.RulePlan{
+        .num_layers = 2,
+        .layers = [_]ruleset.Layer{
+            .{ .level = 1, .access = 0x1 },
+            .{ .level = 3, .access = 0x4 },
+        } ++ ([_]ruleset.Layer{.{ .level = 0, .access = 0 }} ** (ruleset.max_num_layers - 2)),
+    };
+
+    try std.testing.expectError(
+        error.DuplicateLayer,
+        ruleset.RulesetHelperLab.planRuleInsertion(existing, &.{
+            .{ .level = 3, .access = 0x8 },
+        }, 6),
+    );
+}
+
+test "phase13 landlock ruleset insertion appends a new higher layer" {
+    const existing = ruleset.RulePlan{
+        .num_layers = 2,
+        .layers = [_]ruleset.Layer{
+            .{ .level = 1, .access = 0x1 },
+            .{ .level = 3, .access = 0x4 },
+        } ++ ([_]ruleset.Layer{.{ .level = 0, .access = 0 }} ** (ruleset.max_num_layers - 2)),
+    };
+
+    const plan = try ruleset.RulesetHelperLab.planRuleInsertion(existing, &.{
+        .{ .level = 5, .access = 0x10 },
+    }, 6);
+
+    try std.testing.expectEqual(ruleset.RuleInsertionMode.append_merged_layer, plan.mode);
+    try std.testing.expectEqual(@as(usize, 3), plan.resulting_rule.num_layers);
+    try std.testing.expectEqual(@as(u16, 5), plan.resulting_rule.layers[2].level);
+    try std.testing.expectEqual(@as(u32, 0x10), plan.resulting_rule.layers[2].access);
+    try std.testing.expectEqual(@as(u32, 6), plan.resulting_num_rules);
+}
