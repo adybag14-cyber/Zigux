@@ -56,15 +56,23 @@ test "phase 5 kretprobe sample keeps symbol retargeting and handler boundaries e
 }
 
 test "phase 5 kretprobe sample makes ownership and teardown boundaries explicit" {
+    var guard_module = sample.KretprobeExampleSample{};
+    const lifecycle_guards = try guard_module.runLifecycleGuardReplay();
+    try std.testing.expectEqualStrings("samples/kprobes/kretprobe_example.c", lifecycle_guards.anchor);
+    try std.testing.expectEqualStrings(sample.KretprobeExampleSample.default_symbol_name, lifecycle_guards.symbol_name);
+    try std.testing.expectEqual(sample.SampleStage.cold, lifecycle_guards.stage_before_init);
+    try std.testing.expectEqual(sample.SampleStage.initialized, lifecycle_guards.stage_after_init);
+    try std.testing.expect(lifecycle_guards.pre_init_anchor_rejected);
+    try std.testing.expect(lifecycle_guards.pre_init_exit_rejected);
+    try std.testing.expect(lifecycle_guards.double_init_rejected);
+    try std.testing.expect(lifecycle_guards.post_init_retarget_rejected);
+    try std.testing.expectEqual(@as(usize, 1), lifecycle_guards.init_runs);
+
     var module = sample.KretprobeExampleSample{};
 
     try std.testing.expectEqual(sample.SampleStage.cold, module.stage());
-    try std.testing.expectError(error.InvalidLifecycleTransition, module.runAnchorReplay());
-    try std.testing.expectError(error.InvalidLifecycleTransition, module.exit());
-
     try module.init();
     try std.testing.expectEqual(sample.SampleStage.initialized, module.stage());
-    try std.testing.expectError(error.InvalidLifecycleTransition, module.init());
     try std.testing.expect(try module.entryHandler(true, 200));
     try std.testing.expectError(error.OutstandingProbeInstance, module.exit());
     try std.testing.expectError(error.InvalidTimestampOrder, module.retHandler(9, 199));
