@@ -78,6 +78,7 @@ pub fn build(b: *std.Build) void {
         .optimize = optimize,
     });
     runtime_kretprobe_loader_module.addImport("runtime_kretprobe_sample", runtime_kretprobe_sample_module);
+    runtime_kretprobe_loader_module.addImport("runtime_loader", runtime_loader_contract_module);
     const runtime_atomic64_module = b.createModule(.{
         .root_source_file = b.path("runtime_atomic64_module.zig"),
         .target = target,
