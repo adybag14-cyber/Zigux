@@ -121,6 +121,34 @@ test "phase 7 stringEscapeMem keeps only and append behavior deterministic" {
     try std.testing.expectEqualSlices(u8, "A\\x0aZ", out[0..append_len]);
 }
 
+test "phase 7 kasprintfStrarray returns sequential owned strings with a null-pointer terminator" {
+    var names = try string_helpers.kasprintfStrarray(std.testing.allocator, "cpu", 3);
+    defer names.deinit(std.testing.allocator);
+
+    try std.testing.expectEqual(@as(usize, 3), names.names.len);
+    try std.testing.expectEqualStrings("cpu-0", names.names[0]);
+    try std.testing.expectEqualStrings("cpu-1", names.names[1]);
+    try std.testing.expectEqualStrings("cpu-2", names.names[2]);
+    try std.testing.expectEqualStrings("cpu-1", std.mem.span(names.cArray()[1].?));
+    try std.testing.expectEqual(@as(?[*:0]const u8, null), names.cArray()[3]);
+}
+
+test "phase 7 kfreeStrarray keeps first-NUL prefixes, zero-count reuse, and repeated teardown safe" {
+    var prefixed = try string_helpers.kasprintfStrarray(std.testing.allocator, "tty\x00ignored", 2);
+    try std.testing.expectEqualStrings("tty-0", prefixed.names[0]);
+    try std.testing.expectEqualStrings("tty-1", prefixed.names[1]);
+    string_helpers.kfreeStrarray(std.testing.allocator, &prefixed);
+    try std.testing.expectEqual(@as(usize, 0), prefixed.names.len);
+    try std.testing.expectEqual(@as(?[*:0]const u8, null), prefixed.cArray()[0]);
+    string_helpers.kfreeStrarray(std.testing.allocator, &prefixed);
+
+    var empty = try string_helpers.kasprintfStrarray(std.testing.allocator, "cpu", 0);
+    try std.testing.expectEqual(@as(usize, 0), empty.names.len);
+    try std.testing.expectEqual(@as(?[*:0]const u8, null), empty.cArray()[0]);
+    string_helpers.kfreeStrarray(std.testing.allocator, &empty);
+    string_helpers.kfreeStrarray(std.testing.allocator, &empty);
+}
+
 test "phase 7 skipSpaces and strim honor C-string whitespace bounds" {
     try std.testing.expectEqualStrings("ready", string_helpers.skipSpaces(" \t\nready\x00tail"));
 
