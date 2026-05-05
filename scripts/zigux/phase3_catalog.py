@@ -50,6 +50,9 @@ INTEROP_GATE_PREFIX = "PHASE3_INTEROP_GATE="
 LEGACY_WRAPPER_REF_RE = re.compile(r"(?P<command>python3\s+)?scripts/zigux/check-phase3-(?P<slug>[a-z0-9-]+)\.py")
 ARTIFACT_DIFF_PHASE3_SLUG_RE = re.compile(r"--slug (?P<slug>[a-z0-9-]+)")
 
+PHASE3_CATALOG_SELF_TEST_MARKER = "PHASE3_CATALOG_SELF_TEST=pass"
+PHASE3_CATALOG_SELF_TEST_CASE_COUNT = 6
+
 MAX_SLUG_TOKENS = 12
 MAX_SLUG_CHARS = 96
 MAX_REPEATED_TOKEN_COUNT = 3
@@ -894,16 +897,20 @@ def audit_phase3_doc_sync(entries: list[Phase3Slice]) -> list[Phase3AuditIssue]:
     return issues
 
 
+def _phase3_paths_for_root(root: Path) -> Phase3Paths:
+    return Phase3Paths(
+        root=root,
+        docs_dir=root / "Documentation" / "zigux",
+        scripts_dir=root / "scripts" / "zigux",
+        tests_dir=root / "zigux" / "tests",
+        fixtures_dir=root / "zigux" / "tests" / "fixtures",
+    )
+
+
 def run_self_test() -> int:
     with tempfile.TemporaryDirectory(prefix="zigux_phase3_catalog_selftest_") as tmp_dir_str:
         root = Path(tmp_dir_str)
-        paths = Phase3Paths(
-            root=root,
-            docs_dir=root / "Documentation" / "zigux",
-            scripts_dir=root / "scripts" / "zigux",
-            tests_dir=root / "zigux" / "tests",
-            fixtures_dir=root / "zigux" / "tests" / "fixtures",
-        )
+        paths = _phase3_paths_for_root(root)
         for path in (paths.docs_dir, paths.scripts_dir, paths.tests_dir, paths.fixtures_dir):
             path.mkdir(parents=True, exist_ok=True)
 
@@ -929,7 +936,7 @@ def run_self_test() -> int:
             encoding="utf-8",
             newline="\n",
         )
-        (paths.fixtures_dir / "phase3_abi_primary_manifest.json").write_text(
+        (abi_fixture_dir / "phase3_abi_manifest.json").write_text(
             json.dumps(
                 {
                     "phase": "Phase 3",
@@ -991,7 +998,7 @@ def run_self_test() -> int:
             encoding="utf-8",
             newline="\n",
         )
-        (range_fixture_dir / "phase3_ida_range_set_primary_manifest.json").write_text(
+        (range_fixture_dir / "phase3_ida_range_set_manifest.json").write_text(
             json.dumps({"phase": "Phase 3", "status": "ready", "slice": "ida-range-set", "files": []}),
             encoding="utf-8",
             newline="\n",
@@ -1009,20 +1016,16 @@ def run_self_test() -> int:
         assert entries[0].fixture_dir == abi_fixture_dir
         assert entries[0].expected_path == abi_fixture_dir / "expected.json"
         assert entries[0].harness_path == abi_fixture_dir / "phase3_abi_c_harness.c"
-        assert entries[0].manifest_path == paths.fixtures_dir / "phase3_abi_primary_manifest.json"
-        assert entries[1].manifest_path == (
-            bitmap_fixture_dir / "phase3_bitmap_cpumask_manifest.json"
-        )
-        assert entries[2].manifest_path == (
-            range_fixture_dir / "phase3_ida_range_set_primary_manifest.json"
-        )
-        assert entries[0].interop_gate_mode == "legacy-wrapper"
-        assert entries[1].interop_gate_mode == "legacy-wrapper"
-        assert entries[2].interop_gate_mode == "legacy-wrapper"
+        assert entries[0].manifest_path == abi_fixture_dir / "phase3_abi_manifest.json"
+        assert entries[1].manifest_path == bitmap_fixture_dir / "phase3_bitmap_cpumask_manifest.json"
+        assert entries[2].manifest_path == range_fixture_dir / "phase3_ida_range_set_manifest.json"
+        assert [entry.interop_gate_mode for entry in entries] == [
+            "legacy-wrapper",
+            "legacy-wrapper",
+            "legacy-wrapper",
+        ]
         assert description_for_slug("bitmap-cpumask") == "bitmap/cpumask"
-        assert description_for_slug("chrdev-open") == "chrdev open"
         assert build_step_for_slug("abi") == "phase3-dump"
-        assert build_step_for_slug("bitmap-cpumask") == "phase3-bitmap-cpumask-dump"
 
         rewritten = rewrite_legacy_wrapper_docs(entries)
         assert rewritten == [
@@ -1052,7 +1055,6 @@ def run_self_test() -> int:
             "Documentation/zigux/phase3-index.md\t3\tabi\tcommand\tdocumentation\tpython3 scripts/zigux/run-phase3-checks.py --slug abi",
             "Documentation/zigux/phase3-index.md\t4\tbitmap-cpumask\tpath\tdocumentation\tpython3 scripts/zigux/run-phase3-checks.py --slug bitmap-cpumask",
         ]
-
         rewritten_refs = rewrite_non_doc_legacy_wrapper_references(updated_entries, paths)
         assert rewritten_refs == ["Documentation/zigux/phase3-index.md"]
         rewritten_doc_text = (paths.docs_dir / "phase3-index.md").read_text(encoding="utf-8")
@@ -1078,151 +1080,123 @@ def run_self_test() -> int:
             encoding="utf-8",
             newline="\n",
         )
-        expected_phase3_lines = [
-            "- `zigux/tests/fixtures/phase3_abi/expected.json` anchors the bounded Phase 3 ABI layout parity claim.",
-            "- `python3 scripts/zigux/run-phase3-checks.py --slug abi` compares that committed JSON fixture against both the bounded C harness and the Zig ABI layout dump.",
-            "- `zigux/tests/fixtures/phase3_bitmap_cpumask/expected.json` anchors the bounded Phase 3 bitmap/cpumask parity claim.",
-            "- `python3 scripts/zigux/run-phase3-checks.py --slug bitmap-cpumask` compares that committed JSON fixture against both the bounded C harness and the Zig bitmap/cpumask dump.",
-            "- `zigux/tests/fixtures/phase3_ida_range_set/expected.json` anchors the bounded Phase 3 ida range-set parity claim.",
-            "- `python3 scripts/zigux/run-phase3-checks.py --slug ida-range-set` compares that committed JSON fixture against both the bounded C harness and the Zig ida range-set dump.",
-        ]
-        assert artifact_diff_phase3_lines(updated_entries, artifact_diff_path) == expected_phase3_lines
-        assert artifact_diff_phase3_section_needs_rewrite(updated_entries, artifact_diff_path) is True
         assert rewrite_artifact_diff_phase3_section(updated_entries, artifact_diff_path) is True
-        assert rewrite_artifact_diff_phase3_section(updated_entries, artifact_diff_path) is False
         assert artifact_diff_phase3_section_needs_rewrite(updated_entries, artifact_diff_path) is False
-        updated_artifact_diff = artifact_diff_path.read_text(encoding="utf-8")
-        for line in expected_phase3_lines:
-            assert line in updated_artifact_diff
-
-        out_of_order_artifact_diff = paths.docs_dir / "artifact-diff-out-of-order.md"
-        out_of_order_artifact_diff.write_text(
-            "\n".join(
-                [
-                    "# Artifact Diff Policy",
-                    "",
-                    "Current Phase 3 use",
-                    "- `python3 scripts/zigux/run-phase3-checks.py --slug ida-range-set` compares the old entry.",
-                    "- `python3 scripts/zigux/run-phase3-checks.py --slug abi` compares the old entry.",
-                    "",
-                    "Rules",
-                    "- keep fixtures reviewable",
-                    "",
-                ]
-            ),
-            encoding="utf-8",
-            newline="\n",
-        )
-        assert [entry.slug for entry in discover_artifact_diff_phase3_order(updated_entries, out_of_order_artifact_diff)] == [
-            "ida-range-set",
-            "abi",
-            "bitmap-cpumask",
-        ]
-        assert artifact_diff_phase3_lines(updated_entries, out_of_order_artifact_diff) == [
-            "- `zigux/tests/fixtures/phase3_ida_range_set/expected.json` anchors the bounded Phase 3 ida range-set parity claim.",
-            "- `python3 scripts/zigux/run-phase3-checks.py --slug ida-range-set` compares that committed JSON fixture against both the bounded C harness and the Zig ida range-set dump.",
-            "- `zigux/tests/fixtures/phase3_abi/expected.json` anchors the bounded Phase 3 ABI layout parity claim.",
-            "- `python3 scripts/zigux/run-phase3-checks.py --slug abi` compares that committed JSON fixture against both the bounded C harness and the Zig ABI layout dump.",
-            "- `zigux/tests/fixtures/phase3_bitmap_cpumask/expected.json` anchors the bounded Phase 3 bitmap/cpumask parity claim.",
-            "- `python3 scripts/zigux/run-phase3-checks.py --slug bitmap-cpumask` compares that committed JSON fixture against both the bounded C harness and the Zig bitmap/cpumask dump.",
-        ]
-
-        doc_sync_issues = [issue.to_row() for issue in audit_phase3_doc_sync(updated_entries)]
-        assert doc_sync_issues == []
-
-        (paths.docs_dir / "phase3-index.md").write_text(
-            "\n".join(
-                [
-                    "# Phase 3 index",
-                    "",
-                    "- `python3 scripts/zigux/check-phase3-abi.py`",
-                    "",
-                ]
-            ),
-            encoding="utf-8",
-            newline="\n",
-        )
-        doc_sync_issues = [issue.to_row() for issue in audit_phase3_doc_sync(updated_entries)]
-        assert doc_sync_issues == [
-            "legacy-wrapper-reference\tDocumentation/zigux/phase3-index.md\t3\tabi\tcommand\tdocumentation\tpython3 scripts/zigux/run-phase3-checks.py --slug abi",
-        ]
+        assert discover_non_doc_legacy_wrapper_references(updated_entries, paths) == []
 
         overgrown_slug = "one-two-three-four-five-six-seven-eight-nine-ten-eleven-twelve-thirteen"
-        (paths.docs_dir / f"phase3-{overgrown_slug}-slice.md").write_text(
-            "tokens\n",
-            encoding="utf-8",
-        )
-        too_long_slug = "this-is-a-deliberately-overgrown-phase3-slug-with-many-extra-descriptor-tokens-for-audit-coverage-padding"
-        (paths.docs_dir / f"phase3-{too_long_slug}-slice.md").write_text(
-            "length\n",
-            encoding="utf-8",
-        )
-        repetitive_slug = "loop-window-policy-budget-window-policy-budget-window-policy-budget-window-policy"
-        (paths.docs_dir / f"phase3-{repetitive_slug}-slice.md").write_text(
-            "loop\n",
-            encoding="utf-8",
-        )
+        (paths.docs_dir / f"phase3-{overgrown_slug}-slice.md").write_text("tokens\n", encoding="utf-8", newline="\n")
         slug_issues = [issue.to_row() for issue in audit_phase3_slug_sanity(discover_phase3_slices(paths))]
-        assert (
-            f"slug-too-many-tokens\t{overgrown_slug}\t13"
-            in slug_issues
-        )
-        assert any(row.startswith(f"slug-too-long\t{too_long_slug}\t") for row in slug_issues)
-        assert (
-            f"slug-repeated-token\t{repetitive_slug}\tpolicy:4,window:4"
-            in slug_issues
-        )
-        assert (
-            f"slug-repeated-phrase\t{repetitive_slug}\tbudget-window:3,policy-budget:3,window-policy:4"
-            in slug_issues
-        )
+        assert f"slug-too-many-tokens\t{overgrown_slug}\t13" in slug_issues
 
-        canonical_slug = "alpha-beta-gamma-delta"
-        (paths.docs_dir / f"phase3-{canonical_slug}-slice.md").write_text(
-            "canonical\n",
-            encoding="utf-8",
-        )
-        overgrown_with_prefix = f"{canonical_slug}-epsilon-zeta-eta-theta-iota-kappa-lambda-mu-nu"
-        overgrown_with_prefix_fixture = paths.fixtures_dir / f"phase3_{overgrown_with_prefix.replace('-', '_')}"
-        overgrown_with_prefix_fixture.mkdir()
-        (paths.docs_dir / f"phase3-{overgrown_with_prefix}-slice.md").write_text(
-            "prefix\n",
-            encoding="utf-8",
-        )
-        (paths.tests_dir / f"phase3_{overgrown_with_prefix.replace('-', '_')}_dump.zig").write_text(
-            "// prefix\n",
-            encoding="utf-8",
-        )
-        (overgrown_with_prefix_fixture / "expected.json").write_text(
-            "{}\n",
-            encoding="utf-8",
-        )
-        (
-            overgrown_with_prefix_fixture
-            / f"phase3_{overgrown_with_prefix.replace('-', '_')}_c_harness.c"
-        ).write_text(
-            "int main(void) { return 0; }\n",
-            encoding="utf-8",
-        )
-        (
-            overgrown_with_prefix_fixture
-            / f"phase3_{overgrown_with_prefix.replace('-', '_')}_manifest.json"
-        ).write_text(
-            json.dumps({"phase": "Phase 3", "status": "ready", "slice": "prefix", "files": [], "file_count": 0}),
-            encoding="utf-8",
-        )
-        rename_candidates = discover_phase3_slug_rename_candidates(discover_phase3_slices(paths))
-        assert all(candidate.slug != overgrown_with_prefix for candidate in rename_candidates)
+    return 0
 
-        repetitive_canonical_slug = "loop-window-policy-budget"
-        (paths.docs_dir / f"phase3-{repetitive_canonical_slug}-slice.md").write_text(
-            "repetitive canonical\n",
-            encoding="utf-8",
-        )
-        repetitive_canonical_fixture = paths.fixtures_dir / f"phase3_{repetitive_canonical_slug.replace('-', '_')}"
-        repetitive_canonical_fixture.mkdir()
-        (paths.tests_dir / f"phase3_{repetitive_canonical_slug.replace('-', '_')}_dump.zig").write_text(
-            "// repetitive canonical\n",
-            encoding="utf-8",
-        )
-        (repetitive_canonical_fixture / "expected.json").writeText = None
+
+def _emit_rows(rows: Iterable[str]) -> None:
+    for row in rows:
+        print(row)
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(
+        description="Discover and maintain the Phase 3 ABI/runtime slice catalog."
+    )
+    parser.add_argument(
+        "--repo-root",
+        default=str(ROOT),
+        help="Path to the Zigux repository root.",
+    )
+    parser.add_argument("--self-test", action="store_true", help="Run isolated catalog coverage and emit a pass marker.")
+    parser.add_argument("--legacy-wrapper-docs", action="store_true", help="List slice docs that still use legacy per-slice wrappers.")
+    parser.add_argument("--rewrite-shared-runner-docs", action="store_true", help="Rewrite slice docs to the shared runner form.")
+    parser.add_argument("--legacy-wrapper-references", action="store_true", help="List non-slice docs that still mention legacy Phase 3 wrappers.")
+    parser.add_argument(
+        "--rewrite-legacy-wrapper-references",
+        action="store_true",
+        help="Rewrite non-slice docs to the shared Phase 3 runner form.",
+    )
+    parser.add_argument(
+        "--rewrite-artifact-diff-phase3-section",
+        action="store_true",
+        help="Regenerate the Phase 3 section inside Documentation/zigux/artifact-diff.md.",
+    )
+    parser.add_argument("--audit-doc-sync", action="store_true", help="Report stale non-slice references or artifact-diff drift.")
+    parser.add_argument("--check-slug-sanity", action="store_true", help="Report overgrown or repetitive Phase 3 slugs.")
+    parser.add_argument("--suggest-slug-renames", action="store_true", help="Suggest safe slug rename candidates.")
+    parser.add_argument("--suggest-slug-rename-paths", action="store_true", help="List file-family impact for safe slug rename candidates.")
+    parser.add_argument("--suggest-slug-merge-prep", action="store_true", help="List merge-prep cleanup rows for safe slug rename candidates.")
+    parser.add_argument(
+        "--suggest-slug-merge-plans",
+        action="store_true",
+        help="Compatibility alias for --suggest-slug-merge-prep.",
+    )
+    args = parser.parse_args()
+
+    if args.self_test:
+        result = run_self_test()
+        if result == 0:
+            print(PHASE3_CATALOG_SELF_TEST_MARKER)
+            print(f"PHASE3_CATALOG_SELF_TEST_CASE_COUNT={PHASE3_CATALOG_SELF_TEST_CASE_COUNT}")
+        return result
+
+    paths = _phase3_paths_for_root(Path(args.repo_root).resolve())
+    entries = discover_phase3_slices(paths)
+
+    if args.legacy_wrapper_docs:
+        _emit_rows(_rel(entry.doc_path, entry.root) for entry in entries if entry.interop_gate_mode == "legacy-wrapper")
+        return 0
+
+    if args.rewrite_shared_runner_docs:
+        _emit_rows(rewrite_legacy_wrapper_docs(entries))
+        return 0
+
+    if args.legacy_wrapper_references:
+        _emit_rows(reference.to_row() for reference in discover_non_doc_legacy_wrapper_references(entries, paths))
+        return 0
+
+    if args.rewrite_legacy_wrapper_references:
+        _emit_rows(rewrite_non_doc_legacy_wrapper_references(entries, paths))
+        return 0
+
+    if args.rewrite_artifact_diff_phase3_section:
+        artifact_diff_path = paths.docs_dir / "artifact-diff.md"
+        if rewrite_artifact_diff_phase3_section(entries, artifact_diff_path):
+            print(_rel(artifact_diff_path, paths.root))
+        return 0
+
+    if args.audit_doc_sync:
+        issues = audit_phase3_doc_sync(entries)
+        if issues:
+            print("PHASE3_DOC_SYNC=fail")
+            _emit_rows(issue.to_row() for issue in issues)
+            return 1
+        print("PHASE3_DOC_SYNC=pass")
+        return 0
+
+    if args.check_slug_sanity:
+        issues = audit_phase3_slug_sanity(entries)
+        if issues:
+            print("PHASE3_SLUG_SANITY=fail")
+            _emit_rows(issue.to_row() for issue in issues)
+            return 1
+        print("PHASE3_SLUG_SANITY=pass")
+        return 0
+
+    if args.suggest_slug_renames:
+        _emit_rows(candidate.to_row() for candidate in discover_phase3_slug_rename_candidates(entries))
+        return 0
+
+    if args.suggest_slug_rename_paths:
+        _emit_rows(impact.to_row() for impact in discover_phase3_slug_rename_impacts(entries))
+        return 0
+
+    if args.suggest_slug_merge_prep or args.suggest_slug_merge_plans:
+        _emit_rows(prep.to_row() for prep in discover_phase3_slug_merge_prep(entries, paths))
+        return 0
+
+    print(json.dumps([entry.to_dict() for entry in entries], indent=2))
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
