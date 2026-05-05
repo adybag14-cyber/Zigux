@@ -43,6 +43,27 @@ test "phase10 virtio mmio exposes a queue-selected register window in memory onl
     try std.testing.expectEqual(@as(u32, 1), summary.value);
 }
 
+test "phase10 virtio mmio exposes a bounded device-feature selector read window" {
+    var device = try virtio_mmio.VirtioMmioLab.init(41, &[_]u16{ 8, 16 });
+
+    try device.stageDeviceFeatureWord(0, 0xa5a5_0001);
+    try device.stageDeviceFeatureWord(1, 0x5a5a_0002);
+
+    var summary = try device.readRegister(.device_features);
+    try std.testing.expectEqual(virtio_mmio.Register.device_features, summary.register);
+    try std.testing.expectEqual(@as(u32, 0xa5a5_0001), summary.value);
+
+    _ = try device.writeRegister(.device_features_sel, 1);
+    summary = try device.readRegister(.device_features_sel);
+    try std.testing.expectEqual(@as(u32, 1), summary.value);
+    summary = try device.readRegister(.device_features);
+    try std.testing.expectEqual(@as(u32, 0x5a5a_0002), summary.value);
+
+    try std.testing.expectError(error.FeatureWordSelectionOutOfRange, device.writeRegister(.device_features_sel, 2));
+    try std.testing.expectError(error.FeatureWordSelectionOutOfRange, device.stageDeviceFeatureWord(2, 0));
+    try std.testing.expectError(error.ReadOnlyRegister, device.writeRegister(.device_features, 0));
+}
+
 test "phase10 virtio mmio bounds queue selection and queue sizing before lifecycle work" {
     var device = try virtio_mmio.VirtioMmioLab.init(24, &[_]u16{8});
 
@@ -58,6 +79,7 @@ test "phase10 virtio mmio keeps status and config-generation bookkeeping inside 
 
     _ = try device.writeRegister(.status, 3);
     _ = try device.writeRegister(.driver_features, 0x55aa);
+    _ = try device.writeRegister(.device_features_sel, 1);
     device.stageInterruptStatus(0x3);
     device.bumpConfigGeneration();
     device.bumpConfigGeneration();
@@ -65,6 +87,7 @@ test "phase10 virtio mmio keeps status and config-generation bookkeeping inside 
     const summary = device.windowSummary();
     try std.testing.expectEqualStrings("drivers/virtio/virtio_mmio.c", summary.anchor);
     try std.testing.expectEqual(@as(usize, 2), summary.configured_queue_count);
+    try std.testing.expectEqual(@as(u32, 1), summary.selected_device_feature_word);
     try std.testing.expectEqual(@as(u8, 3), summary.status);
     try std.testing.expectEqual(@as(u32, 0x3), summary.interrupt_status);
     try std.testing.expectEqual(@as(u32, 2), summary.config_generation);
