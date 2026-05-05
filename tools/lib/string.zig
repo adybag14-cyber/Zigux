@@ -324,6 +324,21 @@ pub fn memchr_inv(buf: []const u8, value: u8) ?usize {
     return memchrInv(buf, value);
 }
 
+test "memchrInv finds a first-byte mismatch at the aligned dirty-word boundary" {
+    var aligned = [_]u8{'a'} ** 24;
+    aligned[0] = 'X';
+    aligned[8] = 'Y';
+    try std.testing.expectEqual(@as(?usize, 0), memchrInv(&aligned, 'a'));
+
+    var misaligned_storage = [_]u8{'a'} ** 32;
+    const start = (1 -% (@as(usize, @intCast(@intFromPtr(misaligned_storage[0..].ptr) & 7)))) & 7;
+    const misaligned = misaligned_storage[start .. start + 24];
+    try std.testing.expect((@intFromPtr(misaligned.ptr) & 7) == 1);
+    misaligned[7] = 'X';
+    misaligned[15] = 'Y';
+    try std.testing.expectEqual(@as(?usize, 7), memchrInv(misaligned, 'a'));
+}
+
 test "strtobool accepts common Linux forms" {
     try std.testing.expect(try strtobool("y"));
     try std.testing.expect(try strtobool("On"));
