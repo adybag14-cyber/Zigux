@@ -1,4 +1,5 @@
 const std = @import("std");
+const layout_assert = @import("layout_assert");
 
 const SurveySummary = struct {
     hvc_console_c_lines: usize,
@@ -8,6 +9,7 @@ const SurveySummary = struct {
     hvc_console_test_present: bool,
     hvc_console_survey_gate_present: bool,
     hvc_console_survey_note_present: bool,
+    winsize_layout_assert_present: bool,
 };
 
 const Gap = struct {
@@ -28,6 +30,13 @@ const Manifest = struct {
     gaps: []const Gap,
 };
 
+const WinSize = extern struct {
+    ws_row: u16,
+    ws_col: u16,
+    ws_xpixel: u16,
+    ws_ypixel: u16,
+};
+
 fn isAllowedStatus(status: []const u8) bool {
     return std.mem.eql(u8, status, "starter_landed") or
         std.mem.eql(u8, status, "ready_next") or
@@ -35,15 +44,26 @@ fn isAllowedStatus(status: []const u8) bool {
         std.mem.eql(u8, status, "blocked_on_kernel_integration");
 }
 
-test "phase11 hvc_console survey manifest records the landed starter and tty handoff cleanly" {
-    var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
+fn readFileAlloc(allocator: std.mem.Allocator, path: []const u8, limit: usize) ![]u8 {
+    var io_instance: std.Io.Threaded = .init(allocator, .{});
     defer io_instance.deinit();
-
-    const manifest_json = try std.Io.Dir.cwd().readFileAlloc(
+    return std.Io.Dir.cwd().readFileAlloc(
         io_instance.io(),
-        "zigux/tests/phase11_hvc_console_manifest.json",
+        path,
+        allocator,
+        .limited(limit),
+    );
+}
+
+fn expectContains(haystack: []const u8, needle: []const u8) !void {
+    try std.testing.expect(std.mem.indexOf(u8, haystack, needle) != null);
+}
+
+test "phase11 hvc_console survey manifest records the landed starter and tty handoff cleanly" {
+    const manifest_json = try readFileAlloc(
         std.testing.allocator,
-        .limited(32 * 1024),
+        "zigux/tests/phase11_hvc_console_manifest.json",
+        32 * 1024,
     );
     defer std.testing.allocator.free(manifest_json);
 
@@ -51,7 +71,7 @@ test "phase11 hvc_console survey manifest records the landed starter and tty han
     defer parsed.deinit();
 
     const manifest = parsed.value;
-    try std.testing.expectEqualStrings("P11-L13", manifest.lane_key);
+    try std.testing.expectEqualStrings("P11-L14", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 11", manifest.phase);
     try std.testing.expectEqualStrings("drivers/tty/hvc/hvc_console.c", manifest.anchor);
     try std.testing.expectEqualStrings("ee124761ef3ef5fcc6bb9cd8b7fe8d1fce326839", manifest.surveyed_commit);
@@ -63,13 +83,15 @@ test "phase11 hvc_console survey manifest records the landed starter and tty han
     try std.testing.expect(manifest.survey_summary.hvc_console_test_present);
     try std.testing.expect(manifest.survey_summary.hvc_console_survey_gate_present);
     try std.testing.expect(manifest.survey_summary.hvc_console_survey_note_present);
-    try std.testing.expectEqual(@as(usize, 11), manifest.gaps.len);
+    try std.testing.expect(manifest.survey_summary.winsize_layout_assert_present);
+    try std.testing.expectEqual(@as(usize, 12), manifest.gaps.len);
 
     var starter_landed_count: usize = 0;
     var ready_next_count: usize = 0;
     var blocked_count: usize = 0;
     var saw_build_gate = false;
     var saw_survey_gate = false;
+    var saw_winsize_layout = false;
     var saw_note = false;
     var saw_starter_gap = false;
     var saw_cleanup_handoff = false;
@@ -110,6 +132,14 @@ test "phase11 hvc_console survey manifest records the landed starter and tty han
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "tty-registration handoff helper") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "sysrq handoff helper") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "notifier handoff helper") != null);
+        }
+
+        if (std.mem.eql(u8, gap.id, "phase11-hvc-console-winsize-layout-assert")) {
+            saw_winsize_layout = true;
+            try std.testing.expectEqualStrings("zigux/tests/phase11_hvc_console_survey.zig", gap.zigux_destination);
+            try std.testing.expectEqualStrings("starter_landed", gap.status);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "struct winsize") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "resize boundary") != null);
         }
 
         if (std.mem.eql(u8, gap.id, "phase11-hvc-console-survey-note")) {
@@ -211,11 +241,12 @@ test "phase11 hvc_console survey manifest records the landed starter and tty han
         }
     }
 
-    try std.testing.expectEqual(@as(usize, 11), starter_landed_count);
+    try std.testing.expectEqual(@as(usize, 12), starter_landed_count);
     try std.testing.expectEqual(@as(usize, 0), ready_next_count);
     try std.testing.expectEqual(@as(usize, 0), blocked_count);
     try std.testing.expect(saw_build_gate);
     try std.testing.expect(saw_survey_gate);
+    try std.testing.expect(saw_winsize_layout);
     try std.testing.expect(saw_note);
     try std.testing.expect(saw_starter_gap);
     try std.testing.expect(saw_cleanup_handoff);
@@ -227,15 +258,50 @@ test "phase11 hvc_console survey manifest records the landed starter and tty han
     try std.testing.expect(saw_notifier_handoff);
 }
 
-test "phase11 hvc_console survey gate proves validation matrix coverage directly" {
-    var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
-    defer io_instance.deinit();
+test "phase11 hvc console survey keeps a bounded winsize layout proof" {
+    comptime {
+        layout_assert.assertSize(WinSize, 8);
+        layout_assert.assertAlign(WinSize, 2);
+        layout_assert.assertFieldType(WinSize, "ws_row", u16);
+        layout_assert.assertFieldType(WinSize, "ws_col", u16);
+        layout_assert.assertFieldType(WinSize, "ws_xpixel", u16);
+        layout_assert.assertFieldType(WinSize, "ws_ypixel", u16);
+        layout_assert.assertOffset(WinSize, "ws_row", 0);
+        layout_assert.assertOffset(WinSize, "ws_col", 2);
+        layout_assert.assertOffset(WinSize, "ws_xpixel", 4);
+        layout_assert.assertOffset(WinSize, "ws_ypixel", 6);
+    }
+}
 
-    const matrix = try std.Io.Dir.cwd().readFileAlloc(
-        io_instance.io(),
-        "Documentation/zigux/phase11-hvc-console-validation-matrix.md",
+test "phase11 hvc console survey note records the winsize checkpoint" {
+    const manifest_json = try readFileAlloc(
         std.testing.allocator,
-        .limited(32 * 1024),
+        "zigux/tests/phase11_hvc_console_manifest.json",
+        32 * 1024,
+    );
+    defer std.testing.allocator.free(manifest_json);
+
+    const parsed = try std.json.parseFromSlice(Manifest, std.testing.allocator, manifest_json, .{});
+    defer parsed.deinit();
+
+    const note = try readFileAlloc(
+        std.testing.allocator,
+        "Documentation/zigux/phase11-hvc-console-survey.md",
+        32 * 1024,
+    );
+    defer std.testing.allocator.free(note);
+
+    try expectContains(note, parsed.value.surveyed_commit);
+    try expectContains(note, "struct winsize");
+    try expectContains(note, "resize boundary");
+    try expectContains(note, "host-free hvc ABI checkpoint");
+}
+
+test "phase11 hvc_console survey gate proves validation matrix coverage directly" {
+    const matrix = try readFileAlloc(
+        std.testing.allocator,
+        "Documentation/zigux/phase11-hvc-console-validation-matrix.md",
+        32 * 1024,
     );
     defer std.testing.allocator.free(matrix);
 
