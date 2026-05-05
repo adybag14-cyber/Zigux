@@ -258,6 +258,7 @@ const Processor = struct {
     }
 
     fn parseDepFile(self: *Processor, writer: anytype, dep_text: []const u8, target: []const u8) !void {
+        const scan_text = bytesBeforeFirstNull(dep_text);
         var saw_any_target = false;
         var is_target = true;
         var is_source = false;
@@ -265,12 +266,12 @@ const Processor = struct {
         var token = try std.ArrayList(u8).initCapacity(self.arena.allocator(), 64);
         defer token.deinit(self.arena.allocator());
 
-        while (index < dep_text.len) {
-            switch (dep_text[index]) {
+        while (index < scan_text.len) {
+            switch (scan_text[index]) {
                 '#' => {
                     index += 1;
-                    while (index < dep_text.len and dep_text[index] != '\n') {
-                        if (dep_text[index] == '\\' and index + 1 < dep_text.len) {
+                    while (index < scan_text.len and scan_text[index] != '\n') {
+                        if (scan_text[index] == '\\' and index + 1 < scan_text.len) {
                             index += 1;
                         }
                         index += 1;
@@ -282,7 +283,7 @@ const Processor = struct {
                     continue;
                 },
                 '\\' => {
-                    if (index + 1 < dep_text.len and dep_text[index + 1] == '\n') {
+                    if (index + 1 < scan_text.len and scan_text[index + 1] == '\n') {
                         index += 2;
                         continue;
                     }
@@ -303,27 +304,27 @@ const Processor = struct {
 
             token.clearRetainingCapacity();
             var cursor = index;
-            while (cursor < dep_text.len and dep_text[cursor] != ' ' and dep_text[cursor] != '\t' and dep_text[cursor] != '\n' and dep_text[cursor] != '#' and dep_text[cursor] != ':') {
-                if (dep_text[cursor] == '\\') {
-                    if (cursor + 1 < dep_text.len and dep_text[cursor + 1] == '\n') {
+            while (cursor < scan_text.len and scan_text[cursor] != ' ' and scan_text[cursor] != '\t' and scan_text[cursor] != '\n' and scan_text[cursor] != '#' and scan_text[cursor] != ':') {
+                if (scan_text[cursor] == '\\') {
+                    if (cursor + 1 < scan_text.len and scan_text[cursor + 1] == '\n') {
                         break;
                     }
-                    if (cursor + 1 < dep_text.len and (dep_text[cursor + 1] == '#' or dep_text[cursor + 1] == ':')) {
+                    if (cursor + 1 < scan_text.len and (scan_text[cursor + 1] == '#' or scan_text[cursor + 1] == ':')) {
                         cursor += 1;
-                        try token.append(self.arena.allocator(), dep_text[cursor]);
+                        try token.append(self.arena.allocator(), scan_text[cursor]);
                         cursor += 1;
                         continue;
                     }
-                    if (cursor + 1 < dep_text.len and (dep_text[cursor + 1] == ' ' or dep_text[cursor + 1] == '\t')) {
-                        try token.append(self.arena.allocator(), dep_text[cursor]);
+                    if (cursor + 1 < scan_text.len and (scan_text[cursor + 1] == ' ' or scan_text[cursor + 1] == '\t')) {
+                        try token.append(self.arena.allocator(), scan_text[cursor]);
                         cursor += 1;
-                        try token.append(self.arena.allocator(), dep_text[cursor]);
+                        try token.append(self.arena.allocator(), scan_text[cursor]);
                         cursor += 1;
                         continue;
                     }
                 }
 
-                try token.append(self.arena.allocator(), dep_text[cursor]);
+                try token.append(self.arena.allocator(), scan_text[cursor]);
                 cursor += 1;
             }
 
@@ -545,6 +546,52 @@ test "dep parsing returns NoTargets for comment-only depfiles" {
         processor.parseDepFile(&capture, "# comment only\n# still no targets\n", "sample.o"),
     );
     try std.testing.expectEqual(@as(usize, 0), capture.list.items.len);
+}
+
+test "dep parsing skips bytes after the first embedded NUL" {
+    const Capture = struct {
+        list: std.ArrayList(u8),
+        allocator: std.mem.Allocator,
+
+        fn init(allocator: std.mem.Allocator) !@This() {
+            return .{
+                .list = try std.ArrayList(u8).initCapacity(allocator, 128),
+                .allocator = allocator,
+            };
+        }
+
+        fn deinit(self: *@This()) void {
+            self.list.deinit(self.allocator);
+        }
+
+        fn print(self: *@This(), comptime fmt: []const u8, args: anytype) !void {
+            const rendered = try std.fmt.allocPrint(self.allocator, fmt, args);
+            defer self.allocator.free(rendered);
+            try self.list.appendSlice(self.allocator, rendered);
+        }
+    };
+
+    var processor = Processor.init(std.testing.allocator, std.testing.io);
+    defer processor.deinit();
+
+    var capture = try Capture.init(std.testing.allocator);
+    defer capture.deinit();
+
+    try processor.parseDepFile(
+        &capture,
+        "embedded_nul.o: visible.rmeta visible_dep.so\x00embedded_nul.o: hidden.rmeta hidden_dep.so\n",
+        "embedded_nul.o",
+    );
+
+    try std.testing.expectEqualStrings(
+        "source_embedded_nul.o := visible.rmeta\n\n" ++
+            "deps_embedded_nul.o := \\\n" ++
+            "  visible_dep.so \\\n" ++
+            "\n" ++
+            "embedded_nul.o: $(deps_embedded_nul.o)\n\n" ++
+            "$(deps_embedded_nul.o):\n",
+        capture.list.items,
+    );
 }
 
 test "dep parsing skips escaped-newline comments before the first target" {
