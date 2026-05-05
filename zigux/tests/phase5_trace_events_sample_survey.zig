@@ -198,7 +198,9 @@ test "phase 5 trace-events survey note stays repo-local and keeps the build-wire
     defer std.testing.allocator.free(survey_note);
 
     const required_mentions = [_][]const u8{
-        "samples/trace_events/trace-events-sample.c|Phase 5",
+        "samples/trace_events/trace-events-sample.c|PHASE5_SLICE|phase5_trace_events_sample|Phase 5",
+        "Documentation/zigux samples/zigux zigux/tests",
+        "phase5_trace_events_sample_manifest.json",
         "phase5_build.zig",
         "runtime_trace_events",
     };
