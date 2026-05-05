@@ -12,15 +12,16 @@ SELF_PATH = Path(__file__).resolve()
 ROOT = SELF_PATH.parents[2] if len(SELF_PATH.parents) > 2 else SELF_PATH.parent
 
 DOCS_README_PATH = "Documentation/zigux/README.md"
+PHASE12_SEQUENCE_PATH = "Documentation/zigux/phase12-release-sequencing.md"
 SCRIPTS_README_PATH = "scripts/zigux/README.md"
 TESTS_README_PATH = "zigux/tests/README.md"
 MAKEFILE_PATH = "zigux/Makefile"
 WORKFLOW_PATH = ".github/workflows/zigux-bootstrap.yml"
 
 FORBIDDEN_LITERAL_COUNTS = {
-    "validate-phase12.py": 3,
-    "check-phase12-*.py": 3,
-    "phase12-validate": 3,
+    "validate-phase12.py": 5,
+    "check-phase12-*.py": 5,
+    "phase12-validate": 5,
 }
 
 REQUIRED_SCRIPT_README_MARKERS = [
@@ -37,8 +38,16 @@ REQUIRED_SCRIPT_README_MARKERS = [
 REQUIRED_DOCS_README_MARKERS = [
     "Phase 12 notes",
     "`Documentation/zigux/phase12-release-sequencing.md`",
-    "`zigux/tests/phase12_build.zig` and `make -C zigux phase12` now keep the current nvme pci, virtio_net, virtio_scsi, and libbpf survey-backed complex-driver bundle reviewable through the shipped Phase 12 build-and-make lane instead of implying removed validator or PMO checker surfaces.",
+    "`Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, `scripts/zigux/check-build-only-phase12-surface.py`, `zigux/tests/phase12_build.zig`, and `make -C zigux phase12` now keep the current nvme pci, virtio_net, virtio_scsi, and libbpf survey-backed complex-driver bundle reviewable through the shipped Phase 12 release packet instead of implying removed validator or PMO checker surfaces.",
     "there is no dedicated shared `validate-phase12.py`, `check-phase12-*.py`, or `phase12-validate` target on `master`",
+]
+
+REQUIRED_SEQUENCE_MARKERS = [
+    "`Documentation/zigux/review-checklist.md`",
+    "`scripts/zigux/check-build-only-phase12-surface.py` must continue to keep that build-only contract fail-closed rather than implying an unshipped validator stack.",
+    "current public fallback split: two commit-pinned artifacts (`Documentation/zigux/phase12-nvme-pci-raw-github-fallback-map.md`, `Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md`) and two shared-tree-only anchors (`virtio_net`, `libbpf`)",
+    "`scripts/zigux/check-build-only-phase12-surface.py` is a shipped build-only contract checker, not a broader validator-first release gate",
+    "there is no shipped shared `scripts/zigux/validate-phase12.py`, no `check-phase12-*.py` release packet, and no `make -C zigux phase12-validate` target on `master`",
 ]
 
 REQUIRED_TESTS_README_MARKERS = [
@@ -93,6 +102,7 @@ def validate(root: Path) -> list[str]:
 
     for rel_path in [
         DOCS_README_PATH,
+        PHASE12_SEQUENCE_PATH,
         SCRIPTS_README_PATH,
         TESTS_README_PATH,
         MAKEFILE_PATH,
@@ -117,6 +127,7 @@ def validate(root: Path) -> list[str]:
         return failures
 
     docs_readme = read_text(root, DOCS_README_PATH)
+    phase12_sequence = read_text(root, PHASE12_SEQUENCE_PATH)
     scripts_readme = read_text(root, SCRIPTS_README_PATH)
     tests_readme = read_text(root, TESTS_README_PATH)
     makefile = read_text(root, MAKEFILE_PATH)
@@ -125,6 +136,9 @@ def validate(root: Path) -> list[str]:
     for marker in REQUIRED_DOCS_README_MARKERS:
         if marker not in docs_readme:
             failures.append(f"docs_readme:{marker}")
+    for marker in REQUIRED_SEQUENCE_MARKERS:
+        if marker not in phase12_sequence:
+            failures.append(f"phase12_sequence:{marker}")
     for marker in REQUIRED_SCRIPT_README_MARKERS:
         if marker not in scripts_readme:
             failures.append(f"scripts_readme:{marker}")
@@ -141,7 +155,7 @@ def validate(root: Path) -> list[str]:
         if marker in makefile:
             failures.append(f"makefile_forbidden:{marker}")
 
-    combined_claim_surface = "\n".join([docs_readme, scripts_readme, tests_readme])
+    combined_claim_surface = "\n".join([docs_readme, phase12_sequence, scripts_readme, tests_readme])
     for marker, count in FORBIDDEN_LITERAL_COUNTS.items():
         expect_exact_count(combined_claim_surface, marker, count, "claim_surface", failures)
 
@@ -162,8 +176,20 @@ def write_fixture_tree(root: Path) -> None:
 
 Phase 12 notes
 - `Documentation/zigux/phase12-release-sequencing.md`
-- `zigux/tests/phase12_build.zig` and `make -C zigux phase12` now keep the current nvme pci, virtio_net, virtio_scsi, and libbpf survey-backed complex-driver bundle reviewable through the shipped Phase 12 build-and-make lane instead of implying removed validator or PMO checker surfaces.
+- `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, `scripts/zigux/check-build-only-phase12-surface.py`, `zigux/tests/phase12_build.zig`, and `make -C zigux phase12` now keep the current nvme pci, virtio_net, virtio_scsi, and libbpf survey-backed complex-driver bundle reviewable through the shipped Phase 12 release packet instead of implying removed validator or PMO checker surfaces.
 - there is no dedicated shared `validate-phase12.py`, `check-phase12-*.py`, or `phase12-validate` target on `master`; future Phase 12 reviewability claims should name only shipped survey, build, and make surfaces until new validator files actually land.
+""",
+    )
+    write(
+        root / PHASE12_SEQUENCE_PATH,
+        """# Phase 12 Release Sequencing
+
+- `Documentation/zigux/review-checklist.md`
+- `scripts/zigux/check-build-only-phase12-surface.py` must continue to keep that build-only contract fail-closed rather than implying an unshipped validator stack.
+- current public fallback split: two commit-pinned artifacts (`Documentation/zigux/phase12-nvme-pci-raw-github-fallback-map.md`, `Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md`) and two shared-tree-only anchors (`virtio_net`, `libbpf`)
+- `scripts/zigux/check-build-only-phase12-surface.py` is a shipped build-only contract checker, not a broader validator-first release gate
+- there is no shipped shared `scripts/zigux/validate-phase12.py`, no `check-phase12-*.py` release packet, and no `make -C zigux phase12-validate` target on `master`
+- future notes should not invent `validate-phase12.py`, `check-phase12-*.py`, or `phase12-validate` surfaces before they land
 """,
     )
     write(
@@ -171,7 +197,7 @@ Phase 12 notes
         """# scripts/zigux
 
 Phase 12 flow
-- the current shared Phase 12 review surface on `master` is `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/phase12-release-sequencing.md`, `Documentation/zigux/phase12-nvme-pci-slice.md`, `Documentation/zigux/phase12-nvme-pci-survey.md`, `Documentation/zigux/phase12-nvme-pci-raw-github-fallback-map.md`, `Documentation/zigux/phase12-virtio-net-survey.md`, `Documentation/zigux/phase12-virtio-scsi-slice.md`, `Documentation/zigux/phase12-virtio-scsi-survey.md`, `Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md`, `Documentation/zigux/phase12-libbpf-segment-survey.md`, `zigux/tests/README.md`, `zigux/tests/phase12_build.zig`, the bounded Phase 12 nvme, virtio_net, virtio_scsi, and libbpf test modules wired through that build, the committed Phase 12 manifests under `zigux/tests/`, `tools/lib/bpf/zigux_segments/manifest.json`, and `zigux/Makefile`.
+- the current shared Phase 12 review surface on `master` is `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/phase12-release-sequencing.md`, `Documentation/zigux/phase12-nvme-pci-slice.md`, `Documentation/zigux/phase12-nvme-pci-survey.md`, `Documentation/zigux/phase12-nvme-pci-raw-github-fallback-map.md`, `Documentation/zigux/phase12-virtio-net-survey.md`, `Documentation/zigux/phase12-virtio-scsi-slice.md`, `Documentation/zigux/phase12-virtio-scsi-survey.md`, `Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md`, `Documentation/zigux/phase12-libbpf-segment-survey.md`, `zigux/tests/README.md`, `zigux/tests/phase12_build.zig`, the bounded Phase 12 nvme, virtio_net, virtio_scsi, and libbpf test modules wired through that build, the committed Phase 12 manifests under `zigux/tests/`, and `tools/lib/bpf/zigux_segments/manifest.json`.
 - `check-build-only-phase12-surface.py --self-test` and `check-build-only-phase12-surface.py` keep the docs-root, scripts-root, tests-root, and Makefile build-only contract fail-closed while `.github/workflows/zigux-bootstrap.yml` reruns that same self-test plus the live checker in CI.
 - `zig build test --build-file zigux/tests/phase12_build.zig --summary all` and `make -C zigux phase12` rerun that same bounded survey-backed tranche.
 - there is no dedicated shared `validate-phase12.py`, `check-phase12-*.py`, or `phase12-validate` target on `master`; future Phase 12 reviewability claims should name only shipped survey, build, and make surfaces until new validator files actually land.
@@ -228,6 +254,40 @@ def run_self_test() -> int:
             root,
             "unexpected_file:scripts/zigux/validate-phase12.py",
             "unexpected_validate_script",
+        )
+
+        write_fixture_tree(root)
+        phase12_sequence_path = root / PHASE12_SEQUENCE_PATH
+        phase12_sequence = phase12_sequence_path.read_text(encoding="utf-8")
+        phase12_sequence_path.write_text(
+            phase12_sequence.replace(
+                "phase12-virtio-scsi-raw-github-fallback-catalog.md",
+                "phase12-virtio-scsi-raw-github-fallback-catalog.txt",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_failure(
+            root,
+            "phase12_sequence:current public fallback split: two commit-pinned artifacts (`Documentation/zigux/phase12-nvme-pci-raw-github-fallback-map.md`, `Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md`) and two shared-tree-only anchors (`virtio_net`, `libbpf`)",
+            "missing_sequence_fallback_catalog_marker",
+        )
+
+        write_fixture_tree(root)
+        phase12_sequence_path = root / PHASE12_SEQUENCE_PATH
+        phase12_sequence = phase12_sequence_path.read_text(encoding="utf-8")
+        phase12_sequence_path.write_text(
+            phase12_sequence.replace(
+                "`scripts/zigux/check-build-only-phase12-surface.py` is a shipped build-only contract checker, not a broader validator-first release gate",
+                "`scripts/zigux/check-build-only-phase12-surface.py` is a shipped Phase 12 checker",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_failure(
+            root,
+            "phase12_sequence:`scripts/zigux/check-build-only-phase12-surface.py` is a shipped build-only contract checker, not a broader validator-first release gate",
+            "missing_sequence_checker_scope_marker",
         )
 
         write_fixture_tree(root)
@@ -294,7 +354,7 @@ def run_self_test() -> int:
             docs_readme.replace("`phase12-validate` target on `master`", "`phase12` target on `master`", 1),
             encoding="utf-8",
         )
-        expect_failure(root, "claim_surface:phase12-validate:count=2:expected=3", "claim_count_drift")
+        expect_failure(root, "claim_surface:phase12-validate:count=4:expected=5", "claim_count_drift")
 
         write_fixture_tree(root)
         workflow_path = root / WORKFLOW_PATH
@@ -323,7 +383,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST=pass")
-    print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST_CASE_COUNT=8")
+    print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST_CASE_COUNT=11")
     return 0
 
 
@@ -359,7 +419,7 @@ def main() -> int:
     print("PHASE12_BUILD_ONLY_SURFACE=pass")
     print(
         "PHASE12_BUILD_ONLY_SURFACE_MARKER_COUNT="
-        f"{len(REQUIRED_DOCS_README_MARKERS) + len(REQUIRED_SCRIPT_README_MARKERS) + len(REQUIRED_TESTS_README_MARKERS) + len(REQUIRED_MAKEFILE_MARKERS) + len(REQUIRED_WORKFLOW_MARKERS) + len(FORBIDDEN_LITERAL_COUNTS)}"
+        f"{len(REQUIRED_DOCS_README_MARKERS) + len(REQUIRED_SEQUENCE_MARKERS) + len(REQUIRED_SCRIPT_README_MARKERS) + len(REQUIRED_TESTS_README_MARKERS) + len(REQUIRED_MAKEFILE_MARKERS) + len(REQUIRED_WORKFLOW_MARKERS) + len(FORBIDDEN_LITERAL_COUNTS)}"
     )
     return 0
 
