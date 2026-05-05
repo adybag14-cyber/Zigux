@@ -17,6 +17,11 @@ Key entrypoints
 - `zigux/tests/phase1_bench.zig`
 - `zigux/tests/phase6_build.zig`
 - `zigux/tests/phase6_checksum.zig`
+- `zigux/tests/phase7_build.zig`
+- `zigux/tests/phase7_string_helpers.zig`
+- `zigux/tests/phase7_cmdline.zig`
+- `zigux/tests/phase7_argv_split.zig`
+- `zigux/tests/phase7_rbtree.zig`
 - `zigux/tests/phase9_build.zig`
 - `zigux/tests/runtime_atomic64_survey.zig`
 - `zigux/tests/runtime_bitmap_survey.zig`
@@ -49,5 +54,6 @@ Guidance
 - keep parity fixtures committed and readable
 - prefer discovery-based validation over hard-coded file inventories when adding new Phase 3 slices
 - keep the shared Phase 5 reference-sample checks wired through `zigux/tests/phase5_build.zig` so the four shipped sample-backed surveys stay reviewable without implying runtime-substrate closure
+- keep the shared Phase 7 leaf-helper packet wired through `zigux/tests/phase7_build.zig` so the landed `string_helpers`, `cmdline`, `argv_split`, and `rbtree` bundle stays reviewable through one bounded runtime-safe entrypoint
 - keep the bounded Phase 9 runtime surveys wired through `zigux/tests/phase9_build.zig` so the loader-handoff packet stays reviewable without implying shared runtime substrate closure
-- keep new leaf-helper tests small, explicit, and tied to the owning helper path when Phase 6 work starts
+- keep new Phase 6 and Phase 7 leaf-helper tests small, explicit, and tied to the owning helper path when those helper lanes reopen
