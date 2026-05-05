@@ -10,7 +10,9 @@ This note records the current shared contributor replay surface for the shipped 
 ## Current Shared Review Surface On `master`
 
 - `Documentation/zigux/README.md`
+- `scripts/zigux/README.md`
 - `zigux/tests/README.md`
+- `Documentation/zigux/review-checklist.md`
 - `Documentation/zigux/phase11-bcm2835-wdt-validation-matrix.md`
 - `Documentation/zigux/phase11-gpio-wdt-validation-matrix.md`
 - `Documentation/zigux/phase11-dw-wdt-validation-matrix.md`
