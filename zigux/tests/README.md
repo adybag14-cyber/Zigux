@@ -11,7 +11,7 @@ Key entrypoints
 - `zigux/tests/build.zig`
 - `zigux/tests/atomic64_diff.zig`
 - `zigux/tests/runtime_atomic64_diff.zig`
-- `zigux/tests/phase4_runtime_atomic64_diff_survey.zig`
+- the Phase 4 atomic64 survey gate that keeps the wrapper handoff reviewable
 - `zigux/tests/bitmap_diff.zig`
 - `zigux/tests/phase4_bitmap_live_helper_replay.zig`
 - `zigux/tests/phase4_build.zig`
