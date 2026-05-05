@@ -28,7 +28,7 @@ The highest-value honest step in this lane is therefore a very small probe snaps
 - `drivers/net/virtio_net.c` is present on `master` and is much larger than the earlier Phase 10 and Phase 11 starter anchors, which makes a direct first-pass Zig port a poor fit for the roadmap's bounded-delivery rule.
 - the live repo already ships the Phase 10 virtio groundwork in `drivers/virtio/virtio.zig`, `drivers/virtio/virtio_ring.zig`, `drivers/virtio/virtio_input.zig`, and the matching `zigux/tests/phase10_build.zig` path.
 - that Phase 10 footing now reaches core-side status sequencing, feature negotiation, queue callback bookkeeping, descriptor-shape metadata, notification accounting, ring-local queue-shape and notification bookkeeping, and input-side queue planning. It still does not cover the DMA-safe abstractions, queueing correctness, recovery behavior, or segmented rollout controls that the roadmap requires before real virtio_net data-path work can land honestly.
-- the Phase 12 lane now consists of a dedicated build file, `make -C zigux phase12`, the survey gate, this note, `drivers/net/virtio_net.zig`, and focused direct tests for the probe starter, the bounded queue-recovery follow-up, the bounded receive-refill planning follow-up, the bounded transmit-recycle follow-up, and the bounded mergeable-buffer-length follow-up. The shared Phase 12 build should run both the survey gate and the direct probe-starter gate so stale build wiring cannot quietly park the driver slice.
+- the Phase 12 lane now consists of the focused `make -C zigux phase12-smoke` preflight, the dedicated build file, `make -C zigux phase12`, the survey gate, this note, `drivers/net/virtio_net.zig`, and focused direct tests for the probe starter, the bounded queue-recovery follow-up, the bounded receive-refill planning follow-up, the bounded transmit-recycle follow-up, and the bounded mergeable-buffer-length follow-up. The shared Phase 12 build should run both the survey gate and the direct probe-starter gate so stale build wiring cannot quietly park the driver slice, while the smoke preflight keeps the direct driver packet explicit ahead of the broader survey-backed replay.
 - the landed starter records one bounded queueing and recovery-facing step from `virtnet_probe()`: negotiated feature counts, queue-pair fallback, control-virtqueue presence, mergeable-buffer mode, RSS or hash-report capability, whether probe should treat the device as stable, renegotiate features, or reset-required, and a narrow freeze or resume summary that keeps queue rebuild scope explicit for data queues, control-vq restore, RSS reapply, and fresh probe replay after recovery.
 - the newly landed receive-refill follow-up keeps one more packet-path step explicit without widening into live DMA or NAPI work: buffer mode stays visible as single-buffer versus mergeable-buffer refill, receive queue counts survive the frozen recovery snapshot, clamp-versus-single-queue recovery intent survives into the refill plan, control-vq restore and RSS reapply needs remain attached to that plan, and post-restore probe replay is still required before the lane can pretend a live refill path exists.
 - the newly landed transmit-recycle follow-up keeps one more completion-side step explicit without widening into live DMA or NAPI work: packet return ordering stays visible as data-only reuse versus control-queue restore or RSS-reapply ordering, transmit queue counts survive the frozen recovery snapshot, and receive-refill coordination remains explicit before the lane can pretend a live completion path exists.
@@ -68,10 +68,14 @@ This survey slice does not claim:
 
 ## Gates
 
-1. run the dedicated Phase 12 build
+1. run the focused smoke preflight
+- `make -C zigux phase12-smoke`
+- this reruns the direct `virtio_net` probe-and-follow-up packet ahead of the broader survey-backed replay route.
+
+2. run the dedicated Phase 12 build
 - `zig build test --build-file zigux/tests/phase12_build.zig --summary all`
 
-2. run the convenience target
+3. run the convenience target
 - `make -C zigux phase12`
 
 ## Next bounded step
