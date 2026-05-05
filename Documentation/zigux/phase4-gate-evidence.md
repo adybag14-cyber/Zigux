@@ -6,7 +6,7 @@ This note records one exact readback snapshot for the current Phase 4 rollback-o
 - `PHASE4_EVIDENCE_MODE=github_connector_readback`
 - `PHASE4_EVIDENCE_SCOPE=rollback_ownership_and_lab_matrix_current_gate_definitions`
 - `PHASE4_EXACT_READBACK_REF=master`
-- `PHASE4_VALIDATION_MATRIX_BLOB_SHA=ab41bb2d0dc190ef56597a1620d2f411783e4f7b`
+- `PHASE4_VALIDATION_MATRIX_BLOB_SHA=1806bad4982cb8bb0433164d091b09d45a0609ba`
 - `PHASE4_VALIDATOR_BLOB_SHA=497f0aa0d873777d5183b563e30056b95256a021`
 - `PHASE4_ARTIFACT_DIFF_DOC_BLOB_SHA=417421e73aafe2f8e443e8260913a3b4f7cf551a`
 - `PHASE4_ARTIFACT_DIFF_CONTRACT_CHECKER_BLOB_SHA=31cf8c2b2c8da86e823fbc8c8a39fe61c530312f`
@@ -31,12 +31,12 @@ This note records one exact readback snapshot for the current Phase 4 rollback-o
 
 ## Exact Readback Evidence
 - `Documentation/zigux/artifact-diff.md`, `Documentation/zigux/README.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md` now all name the same shipped Phase 4 rollback-readiness packet surfaces that the current validator and shared build route still own on `master`.
-- `scripts/zigux/check-phase4-gate-evidence.py` is present and this note now exact-pins the same current narrower packet that checker audits: the validator, artifact-diff contract surfaces, the shared build entrypoint, the three root README summaries, and the manifest-backed runtime atomic64 survey pair.
+- `scripts/zigux/check-phase4-gate-evidence.py` is present, and `Documentation/zigux/phase4-validation-matrix.md` now names it as the dedicated Phase 4 rollback-ownership gate while this note exact-pins the same current narrower packet: the validator, artifact-diff contract surfaces, the shared build entrypoint, the three root README summaries, and the manifest-backed runtime atomic64 survey pair.
 - `zigux/tests/phase4_runtime_atomic64_diff_manifest.json` and `zigux/tests/phase4_runtime_atomic64_diff_survey.zig` remain the manifest-backed runtime atomic64 handoff pair, and the shared build still exposes `phase4-runtime-atomic64-diff-survey-tests` and `phase4-bitmap-live-helper-replay-tests` beside the synthetic rollback gates.
 - The exact-readback set is now current for the shipped validator-backed packet, and the manifest-backed runtime atomic64 survey pair now pins the same current `validate-phase4.py` and `phase4-validation-matrix.md` blobs that this note names.
 - Current `master` still treats the roadmap-backed sample follow-ups as open gaps rather than shipped gate-evidence targets: `samples/zigux/kprobe_example.zig` remains absent and `samples/zigux/test_fsmount.zig` remains absent.
 
 ## Current Conclusion
 - The live Phase 4 exact-readback packet is limited to the files that `master` actually ships for rollback ownership, matrix wording, validator wiring, the artifact-diff contract, the gate-evidence note, the shared build route, the helper-backed bitmap replay, and the runtime atomic64 wrapper handoff plus its manifest-backed survey evidence.
-- The dedicated gate-evidence note and the separate runtime atomic64 manifest-backed survey packet are back in sync with the same current validator-backed blob-pin set.
+- The dedicated gate-evidence note, its explicit rollback-owner row in `Documentation/zigux/phase4-validation-matrix.md`, and the separate runtime atomic64 manifest-backed survey packet are back in sync with the same current validator-backed blob-pin set.
 - hard perf thresholds for the shipped atomic64 and bitmap rollback gates remain intentionally unapproved.
