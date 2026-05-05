@@ -37,6 +37,7 @@ const RepoEvidence = struct {
 
 const ReviewProcess = struct {
     decision_record_required: bool,
+    required_record_field_count: usize,
     required_record_fields: []const []const u8,
     reopen_trigger_catalog: []const []const u8,
     retirement_rule: []const u8,
@@ -125,10 +126,14 @@ test "phase 15 parity scorecard manifest records all freeze-map anchors and deci
     try std.testing.expectEqualStrings("Phase 15", manifest.phase);
     try std.testing.expectEqualStrings("39cdd038909f9834a8702070a697a0bf2111cb66", manifest.surveyed_commit);
     try std.testing.expect(manifest.review_process.decision_record_required);
-    try std.testing.expectEqual(@as(usize, 8), manifest.review_process.required_record_fields.len);
+    try std.testing.expectEqual(@as(usize, 10), manifest.review_process.required_record_field_count);
+    try std.testing.expectEqual(manifest.review_process.required_record_field_count, manifest.review_process.required_record_fields.len);
+    try std.testing.expectEqual(@as(usize, 10), manifest.review_process.required_record_fields.len);
     try std.testing.expectEqual(@as(usize, 3), manifest.review_process.reopen_trigger_catalog.len);
     try std.testing.expect(std.mem.indexOf(u8, manifest.review_process.retirement_rule, "active discussion") != null);
     try std.testing.expect(std.mem.indexOf(u8, manifest.review_process.retirement_rule, "evidence archive path") != null);
+    try std.testing.expect(std.mem.indexOf(u8, manifest.review_process.retirement_rule, "benchmark-notes status") != null);
+    try std.testing.expect(std.mem.indexOf(u8, manifest.review_process.retirement_rule, "replay command") != null);
     try std.testing.expect(std.mem.indexOf(u8, manifest.review_process.retirement_rule, "retained discussion state") != null);
     try std.testing.expect(std.mem.indexOf(u8, manifest.review_process.retirement_rule, "reopen triggers") != null);
     try std.testing.expectEqualStrings("narrower_followup_answers_blocker", manifest.review_process.reopen_trigger_catalog[0]);
@@ -147,6 +152,8 @@ test "phase 15 parity scorecard manifest records all freeze-map anchors and deci
     try std.testing.expect(std.mem.indexOf(u8, manifest.handoff_evidence.bootstrap_ledger_anchor, "freeze map") != null);
     try std.testing.expect(std.mem.indexOf(u8, manifest.handoff_evidence.current_repo_handoff, "review-process note") != null);
     try std.testing.expect(std.mem.indexOf(u8, manifest.handoff_evidence.current_repo_handoff, "parity scorecard") != null);
+    try std.testing.expect(std.mem.indexOf(u8, manifest.handoff_evidence.current_repo_handoff, "validate-phase15.py") != null);
+    try std.testing.expect(std.mem.indexOf(u8, manifest.handoff_evidence.current_repo_handoff, "phase15-validate") != null);
     try std.testing.expect(std.mem.indexOf(u8, manifest.handoff_evidence.current_repo_handoff, "make -C zigux phase15") != null);
     try std.testing.expect(std.mem.indexOf(u8, manifest.handoff_evidence.maintenance_mode_next_step, "named reopen triggers") != null);
     try std.testing.expect(std.mem.indexOf(u8, manifest.handoff_evidence.maintenance_mode_next_step, "deep-core blocker posture") != null);
@@ -162,9 +169,11 @@ test "phase 15 parity scorecard manifest records all freeze-map anchors and deci
     try std.testing.expect(manifest.repo_evidence.phase15_scorecard_manifest_present);
     try std.testing.expect(manifest.repo_evidence.phase15_build_present);
     try std.testing.expect(manifest.repo_evidence.phase15_make_target_present);
-    try std.testing.expectEqualStrings("retained discussion state", manifest.review_process.required_record_fields[6]);
-    try std.testing.expectEqualStrings("reopen triggers", manifest.review_process.required_record_fields[7]);
-    try std.testing.expectEqual(@as(usize, 16), manifest.gaps.len);
+    try std.testing.expectEqualStrings("benchmark notes", manifest.review_process.required_record_fields[5]);
+    try std.testing.expectEqualStrings("replay command", manifest.review_process.required_record_fields[6]);
+    try std.testing.expectEqualStrings("retained discussion state", manifest.review_process.required_record_fields[8]);
+    try std.testing.expectEqualStrings("reopen triggers", manifest.review_process.required_record_fields[9]);
+    try std.testing.expectEqual(@as(usize, 17), manifest.gaps.len);
 
     var saw_sched = false;
     var saw_page_alloc = false;
@@ -256,6 +265,7 @@ test "phase 15 parity scorecard gaps stay bounded and blocker-focused" {
     var saw_retirement_rule = false;
     var saw_reopen_trigger_followup = false;
     var saw_roadmap_handoff_followup = false;
+    var saw_review_gate_field_sync = false;
     var saw_blocker = false;
 
     for (gaps, 0..) |gap, i| {
@@ -300,7 +310,7 @@ test "phase 15 parity scorecard gaps stay bounded and blocker-focused" {
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "template headings aligned") != null);
         }
         if (std.mem.eql(u8, gap.id, "phase15-anchor-owner-tracking")) {
-            saw_anchor_owner_tracking = true;
+            saw_anchor_ownerTracking = true;
             try std.testing.expectEqualStrings("starter_landed", gap.status);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "explicit ownership discipline") != null);
         }
@@ -321,6 +331,13 @@ test "phase 15 parity scorecard gaps stay bounded and blocker-focused" {
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "bootstrap ledger anchor") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "parked next step") != null);
         }
+        if (std.mem.eql(u8, gap.id, "phase15-review-gate-benchmark-replay-field-sync")) {
+            saw_review_gate_field_sync = true;
+            try std.testing.expectEqualStrings("starter_landed", gap.status);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "benchmark notes") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "replay command") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "machine-counts") != null);
+        }
         if (std.mem.eql(u8, gap.id, "phase15-deep-core-status-change-blocker")) {
             saw_blocker = true;
             try std.testing.expectEqualStrings("blocked_on_stay_in_c_evidence", gap.status);
@@ -332,7 +349,7 @@ test "phase 15 parity scorecard gaps stay bounded and blocker-focused" {
         }
     }
 
-    try std.testing.expectEqual(@as(usize, 15), landed_count);
+    try std.testing.expectEqual(@as(usize, 16), landed_count);
     try std.testing.expectEqual(@as(usize, 0), ready_next_count);
     try std.testing.expectEqual(@as(usize, 1), blocked_count);
     try std.testing.expect(saw_scorecard_note);
@@ -344,6 +361,7 @@ test "phase 15 parity scorecard gaps stay bounded and blocker-focused" {
     try std.testing.expect(saw_retirement_rule);
     try std.testing.expect(saw_reopen_trigger_followup);
     try std.testing.expect(saw_roadmap_handoff_followup);
+    try std.testing.expect(saw_review_gate_field_sync);
     try std.testing.expect(saw_blocker);
 }
 
@@ -378,6 +396,7 @@ test "phase 15 council review gate stays aligned between the scorecard and check
     const parsed = try std.json.parseFromSlice(Manifest, std.testing.allocator, manifest_json, .{});
     defer parsed.deinit();
 
+    try std.testing.expect(std.mem.indexOf(u8, scorecard_doc, "required review-process record fields tracked in the manifest: `10`") != null);
     try std.testing.expect(std.mem.indexOf(u8, scorecard_doc, "## Architecture Council Review Gate") != null);
     try std.testing.expect(std.mem.indexOf(u8, scorecard_doc, "## Reopen Trigger Catalog") != null);
     try std.testing.expect(std.mem.indexOf(u8, scorecard_doc, "## Evidence Archive Reporting Standard") != null);
@@ -395,13 +414,15 @@ test "phase 15 council review gate stays aligned between the scorecard and check
     try std.testing.expect(std.mem.indexOf(u8, scorecard_doc, "ABI and Runtime Team") != null);
     try std.testing.expect(std.mem.indexOf(u8, scorecard_doc, "Shared Subsystems Pod") != null);
     try std.testing.expect(std.mem.indexOf(u8, scorecard_doc, "evidence archive path") != null);
+    try std.testing.expect(std.mem.indexOf(u8, scorecard_doc, "benchmark-notes status") != null);
+    try std.testing.expect(std.mem.indexOf(u8, scorecard_doc, "replay command") != null);
     try std.testing.expect(std.mem.indexOf(u8, scorecard_doc, "latest blocker disposition") != null);
     try std.testing.expect(std.mem.indexOf(u8, scorecard_doc, "benchmark notes") != null);
-    try std.testing.expect(std.mem.indexOf(u8, scorecard_doc, "replay command") != null);
     try std.testing.expect(std.mem.indexOf(u8, scorecard_doc, "phase15-anchor-owner-tracking") != null);
     try std.testing.expect(std.mem.indexOf(u8, scorecard_doc, "phase15-template-field-sync-followup") != null);
     try std.testing.expect(std.mem.indexOf(u8, scorecard_doc, "phase15-stay-in-c-retirement-rule") != null);
     try std.testing.expect(std.mem.indexOf(u8, scorecard_doc, "phase15-reopen-trigger-catalog-followup") != null);
+    try std.testing.expect(std.mem.indexOf(u8, scorecard_doc, "phase15-review-gate-benchmark-replay-field-sync") != null);
     try std.testing.expect(std.mem.indexOf(u8, scorecard_doc, "narrower_followup_answers_blocker") != null);
     try std.testing.expect(std.mem.indexOf(u8, scorecard_doc, "evidence_packet_stale_or_contradictory") != null);
     try std.testing.expect(std.mem.indexOf(u8, scorecard_doc, "ownership_or_validation_changed") != null);
