@@ -161,6 +161,30 @@ fn expectContains(haystack: []const u8, needle: []const u8) !void {
     try std.testing.expect(std.mem.indexOf(u8, haystack, needle) != null);
 }
 
+fn countOccurrences(haystack: []const u8, needle: []const u8) usize {
+    if (needle.len == 0) return 0;
+
+    var count: usize = 0;
+    var start: usize = 0;
+    while (std.mem.indexOfPos(u8, haystack, start, needle)) |index| {
+        count += 1;
+        start = index + needle.len;
+    }
+
+    return count;
+}
+
+fn expectContainsExactlyOnce(haystack: []const u8, needle: []const u8) !void {
+    try std.testing.expectEqual(@as(usize, 1), countOccurrences(haystack, needle));
+}
+
+fn requireSection(haystack: []const u8, start_marker: []const u8, end_marker: []const u8) ![]const u8 {
+    const start = std.mem.indexOf(u8, haystack, start_marker) orelse return error.MissingSectionStart;
+    const content_start = start + start_marker.len;
+    const end = std.mem.indexOfPos(u8, haystack, content_start, end_marker) orelse return error.MissingSectionEnd;
+    return haystack[content_start..end];
+}
+
 fn expectCompanionCatalog(companion_c_files: []const CompanionFile) !void {
     try std.testing.expectEqual(expected_companion_c_files.len, companion_c_files.len);
 
@@ -258,6 +282,12 @@ test "phase 8 libbpf survey note stays aligned with the landed helper packet" {
     );
     defer std.testing.allocator.free(type_names_note);
 
+    const product_boundary = try requireSection(
+        phase8_note,
+        "product boundary:\n",
+        "\n## Why this slice exists",
+    );
+
     try expectContains(phase8_note, expected_surveyed_commit);
     try expectContains(phase8_note, "PHASE8_STATUS=parked");
     try expectContains(phase8_note, "tools/lib/bpf/zigux_segments/manifest.json");
@@ -271,7 +301,10 @@ test "phase 8 libbpf survey note stays aligned with the landed helper packet" {
     try expectContains(phase8_note, "zigux/tests/phase8_bpf_type_names.zig");
     try expectContains(phase8_note, "zigux/tests/phase8_perf_buffer_poll.zig");
     try expectContains(phase8_note, "zigux/tests/phase8_perf_buffer_poll_only_build.zig");
-    try expectContains(phase8_note, "zigux/tests/phase8_libbpf_segments_only_build.zig");
+    try expectContainsExactlyOnce(
+        product_boundary,
+        "  - `zigux/tests/phase8_libbpf_segments_only_build.zig`\n",
+    );
     try expectContains(phase8_note, "make -C zigux phase8-libbpf-segments-test");
     try expectContains(phase8_note, "zig build test --build-file zigux/tests/phase8_libbpf_segments_only_build.zig --summary all");
     try expectContains(phase8_note, "make -C zigux phase8-perf-buffer-poll-test");
