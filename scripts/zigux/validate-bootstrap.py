@@ -87,7 +87,7 @@ required_workflow_markers = [
     'Run Phase 8 tooling tests',
     'zigux/tests/phase8_build.zig',
     'Run Phase 9 runtime helper tests',
-    'zigux/tests/phase9_build.zig',
+    'make -C zigux phase9',
     'Run Phase 10 virtio helper tests',
     'zigux/tests/phase10_build.zig',
     'Run Phase 11 watchdog and console tests',
