@@ -106,15 +106,17 @@ test "phase10 virtio mmio survey manifest records the live helper-backed transpo
     try std.testing.expect(manifest.survey_summary.preexisting_virtio_input_survey_present);
     try std.testing.expect(manifest.survey_summary.preexisting_virtio_mmio_zig_present);
     try std.testing.expect(manifest.survey_summary.preexisting_virtio_mmio_test_present);
-    try std.testing.expect(manifest.gaps.len >= 13);
+    try std.testing.expect(manifest.gaps.len >= 14);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE10_STATUS=parked") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "drivers/virtio/virtio_mmio.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "shorter restaged config window clears stale second-word data") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "plans one bounded config-word write") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "without mutating config space") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "probe-preflight summary flips from ready to blocked") != null);
     try std.testing.expect(std.mem.indexOf(u8, slice_note, "PHASE10_STATUS=parked") != null);
     try std.testing.expect(std.mem.indexOf(u8, slice_note, "drivers/virtio/virtio_mmio.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, slice_note, "config-word write planning summary") != null);
+    try std.testing.expect(std.mem.indexOf(u8, slice_note, "probe-preflight summary") != null);
 
     var starter_landed_count: usize = 0;
     var ready_next_count: usize = 0;
@@ -127,6 +129,7 @@ test "phase10 virtio mmio survey manifest records the live helper-backed transpo
     var saw_mmio_feature_selector = false;
     var saw_mmio_config_window = false;
     var saw_mmio_config_write_plan = false;
+    var saw_mmio_probe_preflight = false;
     var saw_mmio_lifecycle_blocker = false;
     var saw_ring_helper = false;
 
@@ -207,6 +210,15 @@ test "phase10 virtio mmio survey manifest records the live helper-backed transpo
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "without mutating config space") != null);
         }
 
+        if (std.mem.eql(u8, gap.id, "phase10-mmio-probe-preflight-helper")) {
+            saw_mmio_probe_preflight = true;
+            try std.testing.expectEqualStrings("starter_landed", gap.status);
+            try std.testing.expectEqualStrings("drivers/virtio/virtio_mmio.zig", gap.zigux_destination);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "virtio_mmio_probe()") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "interrupt-ack readiness") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "without widening into lifecycle") != null);
+        }
+
         if (std.mem.eql(u8, gap.id, "phase10-mmio-lifecycle-and-irq-paths")) {
             saw_mmio_lifecycle_blocker = true;
             try std.testing.expectEqualStrings("blocked_on_risky_transport", gap.status);
@@ -220,7 +232,7 @@ test "phase10 virtio mmio survey manifest records the live helper-backed transpo
         }
     }
 
-    try std.testing.expect(starter_landed_count >= 13);
+    try std.testing.expect(starter_landed_count >= 14);
     try std.testing.expectEqual(@as(usize, 0), ready_next_count);
     try std.testing.expectEqual(@as(usize, 1), blocked_count);
     try std.testing.expect(saw_ring_helper);
@@ -232,5 +244,6 @@ test "phase10 virtio mmio survey manifest records the live helper-backed transpo
     try std.testing.expect(saw_mmio_feature_selector);
     try std.testing.expect(saw_mmio_config_window);
     try std.testing.expect(saw_mmio_config_write_plan);
+    try std.testing.expect(saw_mmio_probe_preflight);
     try std.testing.expect(saw_mmio_lifecycle_blocker);
 }
