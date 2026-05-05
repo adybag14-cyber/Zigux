@@ -19,6 +19,7 @@ FULL_SUPPORTING_CHECKS_SNIPPET = (
     "`python3 scripts/zigux/validate-phase3-low-level-wrapper-survey.py`, "
     "`python3 scripts/zigux/validate-phase3-policy-unsafe-survey.py`, "
     "`python3 scripts/zigux/check-phase3-policy-unsafe-mmio-consumer.py`, "
+    "`python3 scripts/zigux/check-phase3-abi-duplicate-declarations.py`, "
     "`python3 scripts/zigux/check-phase3-abi-layout-packet.py`, "
     "`python3 scripts/zigux/check-phase3-abi-binding-constants.py`, "
     "`python3 scripts/zigux/check-phase3-tooling-packet.py`, "
