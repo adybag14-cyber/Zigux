@@ -9,6 +9,7 @@ The starter stays intentionally narrow:
 - mirrors the bounded `is_running`, `start`, `stop`, `get_timeleft`, and restart behavior through register-image transitions only
 - adds a tiny probe-time summary for bootloader-carried running status, watchdog-core timeout and nowayout initialization, restart priority, stop-on-reboot setup, watchdog parent linkage, and system-power-controller eligibility
 - adds a tiny registration-facing handoff summary for watchdog registration intent plus poweroff-handler claim-vs-conflict outcomes
+- adds an explicit get-timeleft helper so the bounded `WDOG_TICKS_TO_SECS` parity is reviewable as its own driver-local surface instead of only through `runtimeSnapshot()`
 - adds a tiny remove-time ownership summary for clearing the shared poweroff handler only when the bcm2835 lane currently owns it
 - preserves the Raspberry Pi halt-partition state in the lab snapshot without claiming full poweroff plumbing
 
