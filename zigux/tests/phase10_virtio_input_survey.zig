@@ -66,14 +66,15 @@ test "phase10 virtio input survey manifest records the live starter and remainin
     defer std.testing.allocator.free(survey_note);
 
     const manifest = parsed.value;
-    try std.testing.expectEqualStrings("P10-Y04", manifest.lane_key);
+    try std.testing.expectEqualStrings("P10-L13", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 10", manifest.phase);
     try std.testing.expectEqualStrings("drivers/virtio/virtio_input.c", manifest.anchor);
     try std.testing.expectEqualStrings("7361ac51374149a96b7a7a2c6ea3c995d8cc1231", manifest.surveyed_commit);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE10_STATUS=parked") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE10_LANE_KEY=P10-Y04") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE10_LANE_KEY=P10-L13") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, manifest.surveyed_commit) != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE10_SURVEYED_COMMIT=") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "lab-only driver validation") != null);
     try std.testing.expectEqual(@as(usize, 2), manifest.roadmap_destinations.len);
     try std.testing.expect(manifest.survey_summary.virtio_input_c_lines >= 400);
     try std.testing.expectEqual(@as(usize, 6), manifest.survey_summary.preexisting_phase10_test_files);
@@ -93,6 +94,7 @@ test "phase10 virtio input survey manifest records the live starter and remainin
     var saw_helper = false;
     var saw_gate = false;
     var saw_survey_gate = false;
+    var saw_survey_note = false;
     var saw_slot_helper = false;
     var saw_preflight_helper = false;
     var saw_status_drain_helper = false;
@@ -132,6 +134,13 @@ test "phase10 virtio input survey manifest records the live starter and remainin
             saw_survey_gate = true;
             try std.testing.expectEqualStrings("starter_landed", gap.status);
             try std.testing.expectEqualStrings("zigux/tests/phase10_virtio_input_survey.zig", gap.zigux_destination);
+        }
+
+        if (std.mem.eql(u8, gap.id, "phase10-virtio-input-survey-note")) {
+            saw_survey_note = true;
+            try std.testing.expectEqualStrings("starter_landed", gap.status);
+            try std.testing.expectEqualStrings("Documentation/zigux/phase10-virtio-input-survey.md", gap.zigux_destination);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "lab-only driver validation evidence") != null);
         }
 
         if (std.mem.eql(u8, gap.id, "phase10-virtio-input-capability-setup-helper")) {
@@ -185,6 +194,7 @@ test "phase10 virtio input survey manifest records the live starter and remainin
     try std.testing.expect(saw_helper);
     try std.testing.expect(saw_gate);
     try std.testing.expect(saw_survey_gate);
+    try std.testing.expect(saw_survey_note);
     try std.testing.expect(saw_slot_helper);
     try std.testing.expect(saw_preflight_helper);
     try std.testing.expect(saw_status_drain_helper);
