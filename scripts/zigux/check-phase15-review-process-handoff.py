@@ -61,6 +61,7 @@ REQUIRED_REVIEW_PACKET_FIELD_MARKERS = [
 
 OPTIONAL_LANE_ROUTE_MARKERS = [
     "scripts-root validator path",
+    "Linux-style `make -C zigux phase15-validate` route",
     "tests-root guidance path",
     "dedicated handoff-checker route",
 ]
@@ -139,7 +140,6 @@ REQUIRED_TESTS_README_MARKERS = [
     "zigux/tests/phase15_architecture_council_review_process.zig",
     "zigux/tests/phase15_indefinite_c_policy.json",
     "zigux/tests/phase15_indefinite_c_policy.zig",
-    "zigux/tests/phase15_build.zig",
     "zigux/Makefile",
     "zig build test --build-file zigux/tests/phase15_build.zig",
     "make -C zigux phase15",
@@ -345,7 +345,7 @@ if the change touches the shared Phase 15 governance packet
             ),
             "current_bounded_lane": (
                 "The parked Architecture Council packet stays aligned with its "
-                "scripts-root validator path, its tests-root guidance path, and its "
+                "scripts-root validator path, its Linux-style `make -C zigux phase15-validate` route, its tests-root guidance path, and its "
                 "dedicated handoff-checker route."
             ),
         },
@@ -354,7 +354,9 @@ if the change touches the shared Phase 15 governance packet
 
     script_readme = """# scripts/zigux
 Phase 15 flow
-- the current shared Phase 15 governance surface on `master` is `Documentation/zigux/freeze-map.md`, `Documentation/zigux/phase15-freeze-map-governance.md`, `Documentation/zigux/phase15-architecture-council-review-process.md`, `Documentation/zigux/phase15-parity-scorecard.md`, `Documentation/zigux/phase15-indefinite-c-policy.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/check-phase15-review-process-handoff.py`, `zigux/tests/phase15_architecture_council_review_process_manifest.json`, `zigux/tests/phase15_freeze_map_governance.zig`, `zigux/tests/phase15_parity_scorecard.zig`, `zigux/tests/phase15_architecture_council_review_process.zig`, `zigux/tests/phase15_indefinite_c_policy.json`, `zigux/tests/phase15_indefinite_c_policy.zig`, `zigux/tests/phase15_build.zig`, and `make -C zigux phase15`.
+- the current shared Phase 15 governance surface on `master` is `Documentation/zigux/freeze-map.md`, `Documentation/zigux/phase15-freeze-map-governance.md`, `Documentation/zigux/phase15-architecture-council-review-process.md`, `Documentation/zigux/phase15-parity-scorecard.md`, `Documentation/zigux/phase15-indefinite-c-policy.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/check-phase15-review-process-handoff.py`, `zigux/tests/phase15_architecture_council_review_process_manifest.json`, `zigux/tests/phase15_freeze_map_governance.zig`, `zigux/tests/phase15_parity_scorecard.zig`, `zigux/tests/phase15_architecture_council_review_process.zig`, `zigux/tests/phase15_indefinite_c_policy.json`, `zigux/tests/phase15_indefinite_c_policy.zig`, and `zigux/tests/phase15_build.zig`.
+- `check-phase15-review-process-handoff.py` keeps the dedicated review-process note and its manifest-backed handoff evidence aligned around the self-reference, product-boundary, and parked-route markers that keep the Architecture Council packet reviewable without inventing a broader governance surface.
+- `zig build test --build-file zigux/tests/phase15_build.zig` and `make -C zigux phase15` rerun the parked freeze-map governance, Architecture Council review-process, parity-scorecard, and dedicated indefinite-C policy packet without implying any new approval claim for a freeze-map anchor.
 """
     (root / SCRIPT_README_PATH).write_text(script_readme, encoding="utf-8")
 
@@ -464,12 +466,22 @@ def run_self_test() -> int:
 
         write_fixture_tree(tmp_root)
         manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
-        manifest["handoff_evidence"]["current_bounded_lane"] = "The parked packet stays aligned."
+        manifest["handoff_evidence"]["current_bounded_lane"] = "The parked Architecture Council packet stays aligned with its Linux-style `make -C zigux phase15-validate` route, its tests-root guidance path, and its dedicated handoff-checker route."
         manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
         expect_failure(
             tmp_root,
             "manifest_lane:scripts-root validator path",
             "missing_manifest_lane_route_marker",
+        )
+
+        write_fixture_tree(tmp_root)
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        manifest["handoff_evidence"]["current_bounded_lane"] = "The parked Architecture Council packet stays aligned with its scripts-root validator path, its tests-root guidance path, and its dedicated handoff-checker route."
+        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+        expect_failure(
+            tmp_root,
+            "manifest_lane:Linux-style `make -C zigux phase15-validate` route",
+            "missing_manifest_validate_route_marker",
         )
 
         write_fixture_tree(tmp_root)
@@ -590,7 +602,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE15_REVIEW_PROCESS_HANDOFF_SELF_TEST=pass")
-    print("PHASE15_REVIEW_PROCESS_HANDOFF_SELF_TEST_CASE_COUNT=15")
+    print("PHASE15_REVIEW_PROCESS_HANDOFF_SELF_TEST_CASE_COUNT=16")
     return 0
 
 
