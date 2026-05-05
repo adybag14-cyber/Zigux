@@ -187,3 +187,67 @@ pub const RuntimeAtomic64Sample = struct {
         self.setStage(.exited);
     }
 };
+
+test "runtime atomic64 sample keeps selftest-complete replay local to the sample" {
+    const descriptor = RuntimeAtomic64Sample.descriptor();
+    try std.testing.expectEqualStrings("runtime_atomic64", descriptor.name);
+    try std.testing.expectEqualStrings("lib/atomic64_test.c", descriptor.anchor);
+    try std.testing.expect(descriptor.requires_runtime_substrate);
+    try std.testing.expect(descriptor.provides_selftest_hook);
+
+    var module = RuntimeAtomic64Sample{};
+    try std.testing.expectEqual(ModuleStage.cold, module.stage());
+    try std.testing.expectError(error.InvalidLifecycleTransition, module.runSelftest());
+
+    try module.init(0x1111_1111_2222_2222);
+    try std.testing.expectEqual(ModuleStage.initialized, module.stage());
+    try std.testing.expectEqual(@as(i64, 0x1111_1111_2222_2222), module.snapshotCounter());
+    try std.testing.expectEqual(@as(usize, 1), module.init_runs);
+
+    const seeded_swap = try module.swapCounter(-9);
+    try std.testing.expectEqual(@as(i64, 0x1111_1111_2222_2222), seeded_swap);
+    try std.testing.expectEqual(@as(i64, -9), module.snapshotCounter());
+
+    const initialized_compare = try module.compareSwapCounter(-9, 17);
+    try std.testing.expect(initialized_compare.stored);
+    try std.testing.expectEqual(@as(i64, -9), initialized_compare.previous);
+    try std.testing.expectEqual(@as(i64, 17), module.snapshotCounter());
+
+    const initialized_summary = try module.runSelftest();
+    try std.testing.expectEqual(ModuleStage.selftest_complete, module.stage());
+    try std.testing.expectEqualStrings("lib/atomic64_test.c", initialized_summary.anchor);
+    try std.testing.expectEqual(@as(usize, 5), initialized_summary.operation_families.len);
+    try std.testing.expect(initialized_summary.checked_returning_paths);
+    try std.testing.expect(initialized_summary.checked_bitwise_paths);
+    try std.testing.expect(initialized_summary.checked_guard_paths);
+    try std.testing.expectEqual(@as(usize, 1), module.selftest_runs);
+    try std.testing.expectError(error.InvalidLifecycleTransition, module.runSelftest());
+
+    const replay_swap = try module.swapCounter(23);
+    try std.testing.expectEqual(@as(i64, 17), replay_swap);
+    try std.testing.expectEqual(@as(i64, 23), module.snapshotCounter());
+
+    const replay_compare = try module.compareSwapCounter(23, 31);
+    try std.testing.expect(replay_compare.stored);
+    try std.testing.expectEqual(@as(i64, 23), replay_compare.previous);
+    try std.testing.expectEqual(@as(i64, 31), module.snapshotCounter());
+
+    const replay_add_unless = try module.addUnlessCounter(4, 99);
+    try std.testing.expect(replay_add_unless.changed);
+    try std.testing.expectEqual(@as(i64, 31), replay_add_unless.previous);
+    try std.testing.expectEqual(@as(i64, 35), module.snapshotCounter());
+
+    const and_previous = try module.andCounter(0b1_1111);
+    try std.testing.expectEqual(@as(i64, 35), and_previous);
+    try std.testing.expectEqual(@as(i64, 3), module.snapshotCounter());
+
+    const xor_previous = try module.xorCounter(0b1_0010);
+    try std.testing.expectEqual(@as(i64, 3), xor_previous);
+    try std.testing.expectEqual(@as(i64, 17), module.snapshotCounter());
+
+    try module.exit();
+    try std.testing.expectEqual(ModuleStage.exited, module.stage());
+    try std.testing.expectEqual(@as(usize, 1), module.exit_runs);
+    try std.testing.expectError(error.InvalidLifecycleTransition, module.swapCounter(7));
+    try std.testing.expectError(error.InvalidLifecycleTransition, module.addUnlessCounter(1, 17));
+}
