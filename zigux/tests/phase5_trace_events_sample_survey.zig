@@ -206,6 +206,8 @@ test "phase 5 trace-events survey note stays repo-local and keeps the formatting
     try expectContains(survey_note, "selected-string plus `iter=%d` replay");
     try expectContains(survey_note, "tools/lib/vsprintf.zig");
     try expectContains(survey_note, "string_get_size()");
+    try expectContains(survey_note, "if this survey note moves again, does it still say there is no standalone `samples/zigux/*printf*`, `*vsprintf*`, or `*format*` Phase 5 reference sample");
+    try expectContains(survey_note, "does it keep the selected-string plus `iter=%d` replay tied to the closed Phase 1 `tools/lib/vsprintf.zig` packet plus the bounded Phase 7 `string_get_size()` helper packet");
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "/workspace/agent_files") == null);
 
     const docs_root = try std.Io.Dir.cwd().readFileAlloc(
