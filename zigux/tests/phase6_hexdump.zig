@@ -96,6 +96,29 @@ test "phase 6 hexdump serialized required-length vectors stay in sync" {
     }
 }
 
+test "phase 6 hexdump uppercase nibble helpers stay aligned with byte packing" {
+    const sample = [_]u8{ 0x00, 0x09, 0x3c, 0xbe, 0xff };
+    var lower: [2]u8 = undefined;
+    var upper: [2]u8 = undefined;
+    var tiny: [1]u8 = undefined;
+
+    for (sample) |byte| {
+        const lower_rest = try hexdump.hexBytePack(lower[0..], byte);
+        const upper_rest = try hexdump.hexBytePackUpper(upper[0..], byte);
+
+        try std.testing.expectEqual(@as(usize, 0), lower_rest.len);
+        try std.testing.expectEqual(@as(usize, 0), upper_rest.len);
+        try std.testing.expectEqual(hexdump.hexAscHi(byte), lower[0]);
+        try std.testing.expectEqual(hexdump.hexAscLo(byte), lower[1]);
+        try std.testing.expectEqual(hexdump.hexAscUpperHi(byte), upper[0]);
+        try std.testing.expectEqual(hexdump.hexAscUpperLo(byte), upper[1]);
+        try std.testing.expectEqual(std.ascii.toUpper(lower[0]), upper[0]);
+        try std.testing.expectEqual(std.ascii.toUpper(lower[1]), upper[1]);
+    }
+
+    try std.testing.expectError(hexdump.HexError.DestinationTooSmall, hexdump.hexBytePackUpper(tiny[0..], 0xbe));
+}
+
 test "phase 6 hexdump parity matrix matches kernel fixture preparation" {
     const rowsizes = [_]usize{ 16, 32 };
     const groupsizes = [_]usize{ 1, 2, 4, 8 };
