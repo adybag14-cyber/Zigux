@@ -84,10 +84,14 @@ For the active shared-helper release packet, keep the shared validator-first rep
 - `Documentation/zigux/phase13-notifier-list-survey.md`
 - `zigux/tests/README.md`
 - `zigux/tests/phase13_build.zig`
+- `zigux/tests/phase13_libfs.zig`
 - `zigux/tests/phase13_libfs_manifest.json`
 - `zigux/tests/phase13_libfs_reviewability.zig`
 - `zigux/tests/phase13_devres.zig`
+- `zigux/tests/phase13_devres_manifest.json`
+- `zigux/tests/phase13_landlock_ruleset.zig`
 - `zigux/tests/phase13_landlock_ruleset_manifest.json`
+- `zigux/tests/phase13_landlock_syscalls.zig`
 - `zigux/tests/phase13_landlock_syscalls_manifest.json`
 - `zigux/tests/phase13_notifier_list_manifest.json`
 - `zigux/bindings/notifier_abi.zig`
@@ -104,7 +108,7 @@ Before closing a contributor-guidance change, ask:
 - Did a short-form companion note gain wording that the broad tests-root prompt still skips?
 - Did a checklist prompt keep an old replay count after the docs-root summary changed?
 - Did docs-root or scripts-root add a new replay, checker, manifest, or survey file that the shared contributor prompts still compress into older shorthand?
-- Did one shared Phase 13 prompt add `Documentation/zigux/phase13-release-notes-survey.md`, `Documentation/zigux/phase13-roadmap-traceability.md`, `Documentation/zigux/phase13-notifier-list-survey.md`, `zigux/tests/phase13_devres_manifest.json`, `zigux/tests/phase13_notifier_list_manifest.json`, `scripts/zigux/check-phase13-notifier-packet.py`, `zigux/bindings/notifier_abi.zig`, `include/zigux/notifier_abi.h`, or `zigux/helpers/notifier_chain_view.zig` even though those surfaces do not currently round-trip on `master`?
+- Did one shared Phase 13 prompt turn shipped adjacent release-surface evidence such as `Documentation/zigux/phase13-release-notes-survey.md`, `Documentation/zigux/phase13-roadmap-traceability.md`, `Documentation/zigux/phase13-notifier-list-survey.md`, `zigux/tests/phase13_notifier_list_manifest.json`, `zigux/bindings/notifier_abi.zig`, `include/zigux/notifier_abi.h`, or `zigux/helpers/notifier_chain_view.zig` into extra replay steps, or add the unshipped `scripts/zigux/check-phase13-notifier-packet.py` route?
 - Do any shared Phase 13 prompts still imply `scripts/zigux/check-phase13-release-replay-exact-counts.py` as a shipped surface even though that exact-count checker does not currently round-trip on `master`?
 
 If the answer is yes, finish the shared-surface sync before treating the packet as review-ready.
