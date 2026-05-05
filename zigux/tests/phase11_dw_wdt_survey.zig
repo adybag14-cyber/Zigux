@@ -36,7 +36,7 @@ fn isAllowedStatus(status: []const u8) bool {
         std.mem.eql(u8, status, "blocked_on_driver_scaffold");
 }
 
-test "phase11 dw_wdt survey manifest records the landed probe summary and remaining registration gap" {
+test "phase11 dw_wdt survey manifest records the landed registration handoff and remaining platform gap" {
     var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
     defer io_instance.deinit();
 
@@ -66,7 +66,7 @@ test "phase11 dw_wdt survey manifest records the landed probe summary and remain
     try std.testing.expect(manifest.survey_summary.dw_wdt_slice_note_present);
     try std.testing.expect(manifest.survey_summary.dw_wdt_survey_gate_present);
     try std.testing.expect(manifest.survey_summary.dw_wdt_survey_note_present);
-    try std.testing.expectEqual(@as(usize, 9), manifest.gaps.len);
+    try std.testing.expectEqual(@as(usize, 10), manifest.gaps.len);
 
     var starter_landed_count: usize = 0;
     var ready_next_count: usize = 0;
@@ -78,7 +78,8 @@ test "phase11 dw_wdt survey manifest records the landed probe summary and remain
     var saw_slice_note = false;
     var saw_platform_blocker = false;
     var saw_probe_summary = false;
-    var saw_registration_gap = false;
+    var saw_registration_handoff = false;
+    var saw_next_platform_step = false;
 
     for (manifest.gaps, 0..) |gap, i| {
         try std.testing.expect(gap.id.len > 0);
@@ -135,11 +136,20 @@ test "phase11 dw_wdt survey manifest records the landed probe summary and remain
         }
 
         if (std.mem.eql(u8, gap.id, "phase11-dw-wdt-registration-handoff")) {
-            saw_registration_gap = true;
+            saw_registration_handoff = true;
             try std.testing.expectEqualStrings("drivers/watchdog/dw_wdt.zig", gap.zigux_destination);
-            try std.testing.expectEqualStrings("ready_next", gap.status);
+            try std.testing.expectEqualStrings("starter_landed", gap.status);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "watchdog info selection") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "parent linkage") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "register-device handoff") != null);
+        }
+
+        if (std.mem.eql(u8, gap.id, "phase11-dw-wdt-next-platform-bridge")) {
+            saw_next_platform_step = true;
+            try std.testing.expectEqualStrings("Documentation/zigux/phase11-dw-wdt-survey.md", gap.zigux_destination);
+            try std.testing.expectEqualStrings("ready_next", gap.status);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "platform-backed registration") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "hardware-validation plan") != null);
         }
 
         if (std.mem.eql(u8, gap.id, "phase11-dw-wdt-platform-and-pm")) {
@@ -155,7 +165,7 @@ test "phase11 dw_wdt survey manifest records the landed probe summary and remain
         }
     }
 
-    try std.testing.expectEqual(@as(usize, 7), starter_landed_count);
+    try std.testing.expectEqual(@as(usize, 8), starter_landed_count);
     try std.testing.expectEqual(@as(usize, 1), ready_next_count);
     try std.testing.expectEqual(@as(usize, 1), blocked_count);
     try std.testing.expect(saw_build_gate);
@@ -164,7 +174,8 @@ test "phase11 dw_wdt survey manifest records the landed probe summary and remain
     try std.testing.expect(saw_driver_tests);
     try std.testing.expect(saw_slice_note);
     try std.testing.expect(saw_probe_summary);
-    try std.testing.expect(saw_registration_gap);
+    try std.testing.expect(saw_registration_handoff);
+    try std.testing.expect(saw_next_platform_step);
     try std.testing.expect(saw_platform_blocker);
 }
 
@@ -190,9 +201,9 @@ test "phase11 dw_wdt survey note and validation matrix stay aligned" {
 
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase11-dw-wdt-validation-matrix.md") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "bounded hardware-validation posture") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "Hardware-validation coverage remains bounded to the review matrix already recorded for the current starter") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "registration-facing handoff") != null);
 
     try std.testing.expect(std.mem.indexOf(u8, validation_matrix, "PHASE11_DW_WDT_STATUS=hardware_validation_matrix_landed") != null);
-    try std.testing.expect(std.mem.indexOf(u8, validation_matrix, "probeSummary()") != null);
-    try std.testing.expect(std.mem.indexOf(u8, validation_matrix, "phase11_dw_wdt.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, validation_matrix, "registrationSummary()") != null);
+    try std.testing.expect(std.mem.indexOf(u8, validation_matrix, "watchdog_register_device") != null);
 }
