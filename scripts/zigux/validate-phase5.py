@@ -80,6 +80,7 @@ TEXT_MARKERS = {
         "samples/zigux/runtime_trace_events.zig",
         "samples/zigux/runtime_trace_events_loader.zig",
         "runtime-substrate handoff still stays blocked",
+        "current `master` still ships no standalone `samples/zigux/*printf*`, `samples/zigux/*vsprintf*`, or `samples/zigux/*format*` Phase 5 reference sample",
     ],
     "zigux/tests/README.md": [
         "zigux/tests/phase5_build.zig",
@@ -436,6 +437,7 @@ def run_self_test() -> int:
             ("Documentation/zigux/README.md", "zig test zigux/tests/phase5_trace_events_sample_survey.zig", "zig test zigux/tests/phase5_trace_events_review.zig", "Documentation/zigux/README.md:missing:zig test zigux/tests/phase5_trace_events_sample_survey.zig", "docs-readme-survey-replay-gap"),
             ("scripts/zigux/README.md", "zig test samples/zigux/kobject_example.zig", "zig test samples/zigux/kobject_review.zig", "scripts/zigux/README.md:missing:zig test samples/zigux/kobject_example.zig", "scripts-readme-direct-replay-gap"),
             ("scripts/zigux/README.md", "zigux/tests/phase5_kretprobe_example.zig", "zigux/tests/phase5_kretprobe_review.zig", "scripts/zigux/README.md:missing:zigux/tests/phase5_kretprobe_example.zig", "scripts-readme-focused-replay-gap"),
+            ("scripts/zigux/README.md", "current `master` still ships no standalone `samples/zigux/*printf*`, `samples/zigux/*vsprintf*`, or `samples/zigux/*format*` Phase 5 reference sample", "current `master` keeps standalone formatting samples out of Phase 5", "scripts/zigux/README.md:missing:current `master` still ships no standalone `samples/zigux/*printf*`, `samples/zigux/*vsprintf*`, or `samples/zigux/*format*` Phase 5 reference sample", "scripts-readme-formatting-boundary-gap"),
             ("scripts/zigux/README.md", "runtime-substrate handoff still stays blocked", "runtime-substrate handoff now cleared", "scripts/zigux/README.md:missing:runtime-substrate handoff still stays blocked", "scripts-readme-runtime-handoff-gap"),
             ("samples/zigux/README.md", "zigux/tests/phase5_kretprobe_example.zig", "zigux/tests/phase5_kretprobe_review.zig", "samples/zigux/README.md:missing:zigux/tests/phase5_kretprobe_example.zig", "sample-root-focused-replay-gap"),
             ("zigux/tests/phase5_build.zig", '"phase5-kretprobe-example-sample-tests"', '"phase5-kretprobe-example-sample-review"', "zigux/tests/phase5_build.zig:missing:phase5-kretprobe-example-sample-tests", "phase5-build-kretprobe-sample-gap"),
