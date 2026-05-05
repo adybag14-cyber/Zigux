@@ -286,7 +286,6 @@ def run_self_test() -> int:
         (root / "lib").mkdir(parents=True, exist_ok=True)
         (root / "tools" / "lib").mkdir(parents=True, exist_ok=True)
 
-        (root / SURVEY_REL).writeText if False else None
         (root / SURVEY_REL).write_text("\n".join((*REQUIRED_SURVEY_MARKERS, *REQUIRED_SURVEY_SNIPPETS)) + "\n", encoding="utf-8")
         (root / ROADMAP_GAP_SURVEY_REL).write_text("\n".join(REQUIRED_ROADMAP_GAP_MARKERS) + "\n", encoding="utf-8")
         (root / SLICE_REL).write_text("\n".join((*REQUIRED_SLICE_MARKERS, *REQUIRED_SLICE_SNIPPETS)) + "\n", encoding="utf-8")
