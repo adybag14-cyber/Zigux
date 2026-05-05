@@ -256,7 +256,7 @@ def validate_root(root: Path) -> list[str]:
             [sys.executable, str(root / "scripts" / "zigux" / "check-phase2-tests-readme-alignment.py"), "--self-test"],
             [
                 "PHASE2_TESTS_README_ALIGNMENT_SELF_TEST=pass",
-                "PHASE2_TESTS_README_ALIGNMENT_SELF_TEST_CASE_COUNT=7",
+                "PHASE2_TESTS_README_ALIGNMENT_SELF_TEST_CASE_COUNT=8",
             ],
         )
     )
@@ -425,7 +425,7 @@ def build_self_test_root(root: Path) -> None:
 
     write_stub_guard(
         root / "scripts/zigux/check-phase2-tests-readme-alignment.py",
-        self_test_marker="PHASE2_TESTS_README_ALIGNMENT_SELF_TEST=pass\nPHASE2_TESTS_README_ALIGNMENT_SELF_TEST_CASE_COUNT=7",
+        self_test_marker="PHASE2_TESTS_README_ALIGNMENT_SELF_TEST=pass\nPHASE2_TESTS_README_ALIGNMENT_SELF_TEST_CASE_COUNT=8",
         live_markers=[
             "PHASE2_TESTS_README_ALIGNMENT=pass",
             "PHASE2_TESTS_README_ALIGNMENT_MARKER_COUNT=1",
@@ -438,7 +438,7 @@ def build_self_test_root(root: Path) -> None:
     )
     write_stub_guard(
         root / "scripts/zigux/check-phase2-toolchain-pin-scope.py",
-        self_test_marker="PHASE2_TOOLCHAIN_PIN_SCOPE_SELF_TEST=pass",
+        self_test_marker="PHASE2_TOOLCHAIN_PIN_SCOPE_SELF_TEST=pass\nPHASE2_TOOLCHAIN_PIN_SCOPE_SELF_TEST_CASE_COUNT=14",
         live_markers=["PHASE2_TOOLCHAIN_PIN_SCOPE=pass"],
     )
 
@@ -479,6 +479,11 @@ def run_self_test() -> int:
         assert "workflow:python3 scripts/zigux/check-phase2-toolchain-pin-scope.py" in issues
 
         build_self_test_root(root)
+        write_text(root / "Documentation/zigux/review-checklist.md", "\n".join(REQUIRED_REVIEW_MARKERS[1:]) + "\n")
+        issues = validate_root(root)
+        assert "review:scripts/zigux/check-phase2-tests-readme-alignment.py" in issues
+
+        build_self_test_root(root)
         checker_path = root / "scripts" / "zigux" / "check-phase2-tests-readme-alignment.py"
         write_stub_guard(
             checker_path,
@@ -489,7 +494,7 @@ def run_self_test() -> int:
         assert any(issue.startswith("guard_marker:") for issue in issues)
 
     print("PHASE2_VALIDATION_SELF_TEST=pass")
-    print("PHASE2_VALIDATION_SELF_TEST_CASE_COUNT=4")
+    print("PHASE2_VALIDATION_SELF_TEST_CASE_COUNT=5")
     return 0
 
 
