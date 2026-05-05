@@ -51,8 +51,10 @@ The current tests check:
 - strict non-goal behavior where quote characters stay inside the returned tokens
 - null-terminated pointer-vector access through `cArgv()`
 - copied-buffer ownership so later source mutation does not affect split results
+- blank-input sentinel reuse and repeatable teardown through both `deinit()` and `argvFree()`
+- exported storage and argv views resetting back to the canonical empty sentinels after teardown
 
-The dedicated Phase 7 review gate now imports a focused fixture module under `zigux/tests/fixtures/phase7_argv_split_vectors.zig`, while the helper self-tests keep the same bounded parity surface local to `lib/argv_split.zig`. The dedicated packet checker now keeps that slice note, the shared build gate, the focused fixture module, and the helper test entrypoint aligned.
+The dedicated Phase 7 review gate now imports a focused fixture module under `zigux/tests/fixtures/phase7_argv_split_vectors.zig`, while the helper self-tests keep the same bounded parity surface local to `lib/argv_split.zig`. The dedicated packet checker now keeps that slice note, the shared build gate, the focused fixture module, and the helper test entrypoint aligned, including the parked ownership proofs around blank-input sentinel reuse and cleared exported views.
 
 ## Non-goals
 
