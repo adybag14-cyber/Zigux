@@ -364,7 +364,7 @@ test "phase10 virtio input reset clears queue plan and returns to default bus id
     try device.markReady();
     _ = try device.sendStatus(0x11, 0x01, 1);
     try device.configureConfigBitmap(.prop_bits, 0, &[_]u16{ 0, 5 });
-    try device.configureConfigBitmap(.ev_bits, virtio_input.ev_abs, &[_]u16{ virtio_input.abs_mt_slot });
+    try device.configureConfigBitmap(.ev_bits, virtio_input.ev_abs, &[_]u16{virtio_input.abs_mt_slot});
     try device.configureAbsInfo(virtio_input.abs_mt_slot, .{
         .minimum = 0,
         .maximum = 7,
@@ -374,6 +374,16 @@ test "phase10 virtio input reset clears queue plan and returns to default bus id
 
     device.reset();
 
+    const reset_snapshot = device.configSnapshot();
+    try std.testing.expectEqualStrings(snapshot.anchor, reset_snapshot.anchor);
+    try std.testing.expectEqualStrings(snapshot.name, reset_snapshot.name);
+    try std.testing.expectEqualStrings(snapshot.serial, reset_snapshot.serial);
+    try std.testing.expectEqualStrings(snapshot.phys, reset_snapshot.phys);
+    try std.testing.expectEqual(snapshot.ids.bustype, reset_snapshot.ids.bustype);
+    try std.testing.expectEqual(snapshot.ids.vendor, reset_snapshot.ids.vendor);
+    try std.testing.expectEqual(snapshot.ids.product, reset_snapshot.ids.product);
+    try std.testing.expectEqual(snapshot.ids.version, reset_snapshot.ids.version);
+    try std.testing.expectEqual(@as(u16, virtio_input.bus_virtual), reset_snapshot.ids.bustype);
     try std.testing.expectError(error.EventQueueNotConfigured, device.queuePlanSummary());
     try std.testing.expectError(error.StatusQueueNotConfigured, device.sendStatus(0x11, 0x01, 1));
     try std.testing.expectError(error.ConfigBitmapNotConfigured, device.configBitmapSummary(.prop_bits, 0));
