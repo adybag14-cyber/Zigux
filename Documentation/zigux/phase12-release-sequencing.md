@@ -46,8 +46,7 @@ It is a release-coordination artifact, not a closure claim.
 ## Owner map
 
 - `Network Driver Lane`: bounded `virtio_net` packet against `drivers/net/virtio_net.c`
-- `NVMe PCI Lane`: bounded `nvme_pci` packet against `drivers/nvme/host/pci.c`
-- `Virtio SCSI Lane`: bounded `virtio_scsi` packet against `drivers/scsi/virtio_scsi.c`
+- `Storage Driver Lane`: bounded `nvme_pci` and `virtio_scsi` packets against `drivers/nvme/host/pci.c` and `drivers/scsi/virtio_scsi.c`
 - `BPF Tooling Lane`: bounded libbpf helper packet against `tools/lib/bpf/libbpf.c`
 - `PMO / Release Management`: release-facing survey, checklist, sequencing, and tranche-readiness coordination artifacts
 
