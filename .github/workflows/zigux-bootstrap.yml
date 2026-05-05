@@ -269,6 +269,12 @@ jobs:
       - name: Run Phase 14 internal bridge tests
         run: zig build test --build-file zigux/tests/phase14_build.zig --summary all
 
+      - name: Validate Phase 15 governance packet
+        run: make -C zigux phase15-validate
+
+      - name: Run Phase 15 governance tests
+        run: make -C zigux phase15-test
+
   phase2-cross:
     runs-on: ubuntu-latest
     strategy:
