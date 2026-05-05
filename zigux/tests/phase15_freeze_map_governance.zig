@@ -57,7 +57,7 @@ test "phase 15 freeze-map governance manifest records the bounded governance sli
     defer parsed.deinit();
 
     const manifest = parsed.value;
-    try std.testing.expectEqualStrings("P15-Y01", manifest.lane_key);
+    try std.testing.expectEqualStrings("P15-L04", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 15", manifest.phase);
     try std.testing.expectEqualStrings("9342905d34fb98d6fcd88cf2e88efed7355131d2", manifest.surveyed_commit);
     try std.testing.expectEqualStrings("Documentation/zigux/freeze-map.md", manifest.anchor);
@@ -211,7 +211,7 @@ test "phase 15 freeze-map governance note records the current blocker posture ho
     );
     defer std.testing.allocator.free(governance_note);
 
-    try std.testing.expect(std.mem.indexOf(u8, governance_note, "PHASE15_LANE_KEY=P15-Y01") != null);
+    try std.testing.expect(std.mem.indexOf(u8, governance_note, "PHASE15_LANE_KEY=P15-L04") != null);
     try std.testing.expect(std.mem.indexOf(u8, governance_note, "## Freeze-In-C Anchor Ownership Inventory") != null);
     try std.testing.expect(std.mem.indexOf(u8, governance_note, "kernel scheduler maintainers") != null);
     try std.testing.expect(std.mem.indexOf(u8, governance_note, "memory-management maintainers") != null);
