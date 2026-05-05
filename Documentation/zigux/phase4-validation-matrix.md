@@ -93,9 +93,9 @@ The same validator-first route also keeps `Documentation/zigux/artifact-diff.md`
 
 - `samples/zigux/kprobe_example.zig` is still absent behind the current C anchor at `samples/kprobes/kprobe_example.c`
 - `samples/zigux/test_fsmount.zig` is still absent behind the current C anchor at `samples/vfs/test-fsmount.c`
-- hard perf thresholds and acceptable limits for the atomic64 and bitmap gates remain intentionally unapproved, while the interim threshold packet stays under `Validation and Perf Team` ownership and rollback ownership through `zigux/tests/phase4_perf_baseline_manifest.json` and `zigux/tests/phase4_perf_baseline_survey.zig`
+- hard perf thresholds and acceptable limits for the atomic64 and bitmap gates remain intentionally unapproved on current `master`; there is not yet a committed dedicated perf-baseline manifest or survey packet that promotes those limits into the shipped Phase 4 replay surface
 
-`Documentation/zigux/phase4-gate-evidence.md` remains the exact-readback ledger for these still-pending roadmap rows until a later Phase 4 lane either lands the bounded sample starters or approves the missing perf thresholds.
+This matrix, `scripts/zigux/validate-phase4.py`, and the shared `zigux/tests/phase4_build.zig` entrypoint should stay aligned around that still-pending threshold posture until a later Phase 4 lane intentionally lands a committed threshold-approval packet.
 
 ## Review Rules
 
