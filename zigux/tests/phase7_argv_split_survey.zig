@@ -131,6 +131,14 @@ test "phase 7 argv_split survey manifest records the parked runtime leaf surface
     );
     defer std.testing.allocator.free(tests_readme);
 
+    const validate_phase7 = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "scripts/zigux/validate-phase7.py",
+        std.testing.allocator,
+        .limited(64 * 1024),
+    );
+    defer std.testing.allocator.free(validate_phase7);
+
     const argv_split_packet_checker = try std.Io.Dir.cwd().readFileAlloc(
         io_instance.io(),
         "scripts/zigux/check-phase7-argv-split-packet.py",
@@ -291,6 +299,11 @@ test "phase 7 argv_split survey manifest records the parked runtime leaf surface
         tests_readme,
         "`scripts/zigux/check-phase7-argv-split-parity.py`",
     );
+    try expectContains(validate_phase7, 'ROOT / "scripts" / "zigux" / "check-phase7-argv-split-packet.py"');
+    try expectContains(validate_phase7, 'ROOT / "scripts" / "zigux" / "check-phase7-argv-split-parity.py"');
+    try expectContains(validate_phase7, 'ROOT / "zigux" / "tests" / "phase7_argv_split.zig"');
+    try expectContains(validate_phase7, 'ROOT / "zigux" / "tests" / "phase7_argv_split_survey.zig"');
+    try expectContains(validate_phase7, 'ROOT / "zigux" / "tests" / "phase7_argv_split_manifest.json"');
     try expectContains(argv_split_packet_checker, "ROOT / \"scripts\" / \"zigux\" / \"check-phase7-argv-split-parity.py\"");
     try expectContains(argv_split_packet_checker, "ROOT / \"zigux\" / \"tests\" / \"phase7_argv_split_survey.zig\"");
     try expectContains(argv_split_packet_checker, "ROOT / \"zigux\" / \"tests\" / \"phase7_argv_split_manifest.json\"");
