@@ -29,6 +29,27 @@ test "phase 5 kobject sample replays bounded attribute registration and roundtri
     try std.testing.expectEqual(sample.SampleStage.registered, module.stage());
 }
 
+test "phase 5 kobject sample keeps the ordered attribute group shape explicit" {
+    const specs = sample.KobjectExampleSample.attributeSpecs();
+    try std.testing.expectEqual(@as(usize, 3), specs.len);
+    try std.testing.expectEqualStrings("foo", specs[0].name);
+    try std.testing.expectEqualStrings("baz", specs[1].name);
+    try std.testing.expectEqualStrings("bar", specs[2].name);
+    try std.testing.expectEqual(@as(u16, 0o664), specs[0].mode);
+    try std.testing.expectEqual(@as(u16, 0o664), specs[1].mode);
+    try std.testing.expectEqual(@as(u16, 0o664), specs[2].mode);
+    try std.testing.expect(!specs[0].uses_shared_b_handlers);
+    try std.testing.expect(specs[1].uses_shared_b_handlers);
+    try std.testing.expect(specs[2].uses_shared_b_handlers);
+
+    var module = sample.KobjectExampleSample{};
+    try module.init();
+    const replay = try module.runAnchorReplay();
+    try std.testing.expectEqualStrings("foo", replay.attribute_specs[0].name);
+    try std.testing.expectEqualStrings("baz", replay.attribute_specs[1].name);
+    try std.testing.expectEqualStrings("bar", replay.attribute_specs[2].name);
+}
+
 test "phase 5 kobject sample keeps shared attribute dispatch and parse failures explicit" {
     var module = sample.KobjectExampleSample{};
     try module.init();
