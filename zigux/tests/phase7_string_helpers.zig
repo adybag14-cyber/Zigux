@@ -120,3 +120,13 @@ test "phase 7 stringEscapeMem keeps only and append behavior deterministic" {
     try std.testing.expectEqual(@as(usize, 6), append_len);
     try std.testing.expectEqualSlices(u8, "A\\x0aZ", out[0..append_len]);
 }
+
+test "phase 7 skipSpaces and strim honor C-string whitespace bounds" {
+    try std.testing.expectEqualStrings("ready", string_helpers.skipSpaces(" \t\nready\x00tail"));
+
+    var padded = [_]u8{ ' ', '\t', 'o', 'k', ' ', '\n', 0, 'x', ' ' };
+    const trimmed = string_helpers.strim(&padded);
+    try std.testing.expectEqualStrings("ok", trimmed);
+    try std.testing.expectEqual(@as(u8, 0), padded[4]);
+    try std.testing.expectEqual(@as(u8, 'x'), padded[7]);
+}
