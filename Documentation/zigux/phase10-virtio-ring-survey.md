@@ -18,13 +18,13 @@ This document tracks the bounded Phase 10 survey lane around `drivers/virtio/vir
 
 The Phase 10 roadmap names `drivers/virtio/virtio_ring.c` as a primary anchor, but it also says to prove virtqueue wrappers before widening into MMIO or other risky transport work.
 
-The live repo already has a bounded `drivers/virtio/virtio.zig` core starter with queue callback bookkeeping, descriptor-shape metadata, and notification accounting. This survey started by making the missing ring-helper gap explicit, and it now records that the first `drivers/virtio/virtio_ring.zig` lab slice has landed plus small used-buffer polling, callback re-enable, delayed-callback pacing, and broken-queue poll-discipline follow-ups without pretending queue lifecycle parity is complete.
+The live repo already has a bounded `drivers/virtio/virtio.zig` core starter with queue callback bookkeeping, descriptor-shape metadata, and notification accounting. This survey started by making the missing ring-helper gap explicit, and it now records that the first `drivers/virtio/virtio_ring.zig` lab slice has landed plus small used-buffer polling, callback re-enable, delayed-callback pacing, and broken-queue discipline follow-ups without pretending queue lifecycle parity is complete.
 
 ## Survey findings
 
 - `drivers/virtio/virtio_ring.c` is present on `master` at 3940 lines and spans split rings, packed rings, descriptor state, DMA mapping helpers, callback toggling, notification bookkeeping, queue reset, resize, and break or unbreak handling.
 - the live repo already ships `drivers/virtio/virtio.zig`, `zigux/tests/phase10_virtio_core.zig`, `zigux/tests/phase10_build.zig`, and `Documentation/zigux/phase10-virtio-core-slice.md`, and that core slice now covers queue callback bookkeeping, descriptor-shape metadata, and notification accounting.
-- the current Zigux VirtIO surface now includes a bounded `drivers/virtio/virtio_ring.zig` helper for queue registration, layout metadata, outstanding-chain accounting, used-buffer polling, callback re-enable bookkeeping, delayed-callback pacing, broken-queue poll guarding, and notify-prepare bookkeeping.
+- the current Zigux VirtIO surface now includes a bounded `drivers/virtio/virtio_ring.zig` helper for queue registration, layout metadata, outstanding-chain accounting, used-buffer polling, callback re-enable bookkeeping, delayed-callback pacing, broken-queue discipline that blocks fresh publish, kick, poll, and callback snapshots, and notify-prepare bookkeeping.
 - the live Phase 10 packet also now records the tiny in-memory `drivers/virtio/virtio_mmio.zig` register-window foothold as landed, so the ring survey no longer needs to treat that MMIO step as merely proposed.
 - the live repo still does not model real descriptor tables, DMA helpers, interrupt callbacks, or transport-backed queue reset semantics.
 - this leaves only the riskier MMIO lifecycle, IRQ, queue-discovery, and reset follow-up blocked behind the already-landed queue-wrapper and MMIO footholds.
@@ -46,7 +46,7 @@ The survey manifest now records:
 - the still-blocked `phase10-mmio-lifecycle-and-irq-paths`
 - the landed `phase10-virtio-ring-slice-note`
 
-This keeps the lane concrete and reviewable without overstating `virtio_ring` progress: the queue-shape foothold is real, used-buffer polling, callback re-enable, delayed-callback pacing, broken-queue poll discipline, and the bounded MMIO register window are all landed, and the risky transport-facing lifecycle work is still intentionally blocked. That blocked MMIO lifecycle and IRQ follow-up remains owned by the adjacent `virtio_mmio` packet plus shared Phase 10 closure evidence, not by this queue-local ring survey note.
+This keeps the lane concrete and reviewable without overstating `virtio_ring` progress: the queue-shape foothold is real, used-buffer polling, callback re-enable, delayed-callback pacing, broken-queue discipline, and the bounded MMIO register window are all landed, and the risky transport-facing lifecycle work is still intentionally blocked. That blocked MMIO lifecycle and IRQ follow-up remains owned by the adjacent `virtio_mmio` packet plus shared Phase 10 closure evidence, not by this queue-local ring survey note.
 
 ## Freeze boundary
 
