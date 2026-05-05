@@ -9,7 +9,7 @@
   ],
   "survey_summary": {
     "kretprobe_example_c_lines": 108,
-    "preexisting_runtime_kretprobe_test_files": 2,
+    "preexisting_runtime_kretprobe_test_files": 3,
     "preexisting_runtime_kretprobe_sample_present": true,
     "preexisting_phase9_build_present": true,
     "preexisting_runtime_kretprobe_doc_present": true
