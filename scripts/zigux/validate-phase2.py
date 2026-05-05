@@ -228,8 +228,18 @@ if missing_markers:
 
 guard_issues: list[str] = []
 guard_issues.extend(run_guard(
+    [sys.executable, str(TESTS_README_ALIGNMENT_CHECKER), '--self-test'],
+    [
+        'PHASE2_TESTS_README_ALIGNMENT_SELF_TEST=pass',
+        'PHASE2_TESTS_README_ALIGNMENT_SELF_TEST_CASE_COUNT=5',
+    ],
+))
+guard_issues.extend(run_guard(
     [sys.executable, str(TESTS_README_ALIGNMENT_CHECKER)],
-    ['PHASE2_TESTS_README_ALIGNMENT=pass'],
+    [
+        'PHASE2_TESTS_README_ALIGNMENT=pass',
+        'PHASE2_TESTS_README_ALIGNMENT_MARKER_COUNT=',
+    ],
 ))
 guard_issues.extend(run_guard(
     [sys.executable, str(CHECK_PHASE2_CROSS_SELFTEST_ALIGNMENT), '--self-test'],
