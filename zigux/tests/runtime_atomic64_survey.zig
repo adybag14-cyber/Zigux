@@ -254,12 +254,17 @@ test "phase 9 runtime atomic64 survey source-checks the direct sample evidence p
 
     try std.testing.expect(std.mem.indexOf(u8, loader_source, ".entry_symbol = \"zigux_runtime_atomic64_init\"") != null);
     try std.testing.expect(std.mem.indexOf(u8, loader_source, ".exit_symbol = \"zigux_runtime_atomic64_exit\"") != null);
+    try std.testing.expect(std.mem.indexOf(u8, loader_source, "pub fn toSharedLoadPlan(plan: RuntimeAtomic64LoadPlan) runtime_loader.LoadPlan {") != null);
+    try std.testing.expect(std.mem.indexOf(u8, loader_source, "pub fn keepsSharedLoadPlanSnapshotExplicit(") != null);
+    try std.testing.expect(std.mem.indexOf(u8, loader_source, ".allocator_handoff = .caller_provided,") != null);
+    try std.testing.expect(std.mem.indexOf(u8, loader_source, "const shared_request = try runtime_loader.prepareRequest(shared_plan);") != null);
     try std.testing.expect(std.mem.indexOf(u8, loader_source, "self.stage_state = .waiting_on_runtime_substrate;") != null);
     try std.testing.expect(std.mem.indexOf(u8, loader_source, "self.stage_state = .released_without_substrate;") != null);
-    try std.testing.expect(std.mem.indexOf(u8, loader_source, "test \"runtime atomic64 loader keeps the prepared snapshot stable across later counter mutation\"") != null);
+    try std.testing.expect(std.mem.indexOf(u8, loader_source, "test \"runtime atomic64 loader emits the shared runtime-loader contract plan\"") != null);
+    try std.testing.expect(std.mem.indexOf(u8, loader_source, "test \"runtime atomic64 loader rejects shared-load-plan snapshot drift\"") != null);
     try std.testing.expect(std.mem.indexOf(u8, loader_source, "const swapped = try module.swapCounter(-9);") != null);
     try std.testing.expect(std.mem.indexOf(u8, loader_source, "const compare = try module.compareSwapCounter(-9, 33);") != null);
     try std.testing.expect(std.mem.indexOf(u8, loader_source, "const add_unless = try module.addUnlessCounter(4, 99);") != null);
-    try std.testing.expect(std.mem.indexOf(u8, loader_source, "try std.testing.expectEqual(@as(i64, 37), live_counter);") != null);
+    try std.testing.expect(std.mem.indexOf(u8, loader_source, "try std.testing.expectEqual(@as(i64, 15), live_counter);") != null);
     try std.testing.expect(std.mem.indexOf(u8, loader_source, "try std.testing.expectEqual(@as(i64, 17), pending_plan.summary.counter_snapshot);") != null);
 }
