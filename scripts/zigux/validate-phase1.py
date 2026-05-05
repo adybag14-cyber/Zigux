@@ -369,6 +369,17 @@ def run_self_test() -> None:
 
         make_fixture_root(tmp_root)
         find_bit_path.write_text(
+            "\n".join(REQUIRED_FIND_BIT_TEST_ANCHORS + [REQUIRED_FIND_BIT_TEST_ANCHORS[3]]) + "\n",
+            encoding="utf-8",
+        )
+        missing_markers = collect_missing_markers(tmp_root)
+        assert (
+            'find_bit_test_anchor:test "single-word next scans honor start masks":expected=1:actual=2'
+            in missing_markers
+        )
+
+        make_fixture_root(tmp_root)
+        find_bit_path.write_text(
             "\n".join(REQUIRED_FIND_BIT_TEST_ANCHORS + [REQUIRED_FIND_BIT_TEST_ANCHORS[2]]) + "\n",
             encoding="utf-8",
         )
@@ -500,7 +511,7 @@ def run_self_test() -> None:
         )
 
         print("PHASE1_VALIDATION_SELF_TEST=pass")
-        print("PHASE1_VALIDATION_SELF_TEST_CASE_COUNT=24")
+        print("PHASE1_VALIDATION_SELF_TEST_CASE_COUNT=25")
 
 
 def main() -> int:
