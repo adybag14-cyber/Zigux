@@ -58,6 +58,8 @@ The current starter slice covers:
 - `string_get_size()`
 - `string_unescape()`
 - `string_escape_mem()` over the bounded runtime-safe escape subset
+- `kasprintf_strarray()` over the bounded sequential prefix-index ownership path
+- `kfree_strarray()` over the bounded repeated-teardown-safe release path
 
 The current tests check:
 
@@ -77,6 +79,8 @@ The current tests check:
 - dictionary-limited `only` filtering plus `ESCAPE_APPEND` behavior for one newline-focused printable escape proof
 - printable, non-printable, non-ascii, and non-printable-or-non-ascii passthrough filters over a hex-escaped bounded subset
 - truncation accounting that returns the full would-be escaped length without promising an appended terminator
+- one allocator-backed `kasprintf_strarray()` proof that returns sequential `prefix-index` owned strings together with a trailing null-pointer view for C-style callers
+- one `kfree_strarray()` proof that keeps first-NUL prefix handling, zero-count sentinel reuse, repeated teardown, and setup-failure cleanup safe
 - the Phase 5-versus-Phase 7 boundary check that keeps `samples/zigux/` free of approved string-helper reference samples while pointing reviewers back to this helper packet
 
 ## Non-goals
@@ -84,7 +88,7 @@ The current tests check:
 This slice does not yet claim:
 
 - integer parsing helpers
-- allocation-backed duplication helpers
+- the broader allocation-backed duplication and string-array family beyond the current bounded starters
 - task-owned, file-owned, or device-managed quotable helper surfaces
 - a new `samples/zigux/` string-helper reference sample
 
@@ -92,4 +96,4 @@ This slice does not yet claim:
 
 Leave this lane parked unless fresh repo inspection finds one more concrete Phase 7 helper need or a renewed Phase 5-versus-Phase 7 boundary drift.
 
-If the string-helper family reopens, prefer one bounded integer parsing step before quotable, allocator-heavy, task-owned, file-owned, or device-managed follow-on work, because the live helper packet already covers the whitespace leaf pair, the bounded escape subset, and `string_get_size()` sizing-path reviewability.
+If the string-helper family reopens, prefer one bounded integer parsing step before broader quotable, allocator-heavy, task-owned, file-owned, or device-managed follow-on work, because the live helper packet already covers the whitespace leaf pair, the bounded escape subset, `string_get_size()` sizing-path reviewability, and one ownership-safe string-array starter.
