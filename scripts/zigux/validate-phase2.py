@@ -288,7 +288,10 @@ def validate_root(root: Path) -> list[str]:
         run_guard(
             root,
             [sys.executable, str(root / "scripts" / "zigux" / "check-phase2-toolchain-pin-scope.py"), "--self-test"],
-            ["PHASE2_TOOLCHAIN_PIN_SCOPE_SELF_TEST=pass"],
+            [
+                "PHASE2_TOOLCHAIN_PIN_SCOPE_SELF_TEST=pass",
+                "PHASE2_TOOLCHAIN_PIN_SCOPE_SELF_TEST_CASE_COUNT=14",
+            ],
         )
     )
     guard_issues.extend(
@@ -476,7 +479,7 @@ def run_self_test() -> int:
         assert "workflow:python3 scripts/zigux/check-phase2-toolchain-pin-scope.py" in issues
 
         build_self_test_root(root)
-        checker_path = root / "scripts/zigux/check-phase2-tests-readme-alignment.py"
+        checker_path = root / "scripts" / "zigux" / "check-phase2-tests-readme-alignment.py"
         write_stub_guard(
             checker_path,
             self_test_marker="PHASE2_TESTS_README_ALIGNMENT_SELF_TEST=pass",
