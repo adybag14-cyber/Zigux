@@ -43,8 +43,10 @@ Phase 2 notes
 - `scripts/zigux/validate-phase2.py`
 - `scripts/zigux/validate-phase2-closure.py`
 - `scripts/zigux/check-phase2-tests-readme-alignment.py`
+- `scripts/zigux/check-phase2-cross-selftest-alignment.py`
+- `scripts/zigux/check-phase2-toolchain-pin-scope.py`
 - `zigux/Makefile`
-- `python3 scripts/zigux/install-zig.py --self-test`, `python3 scripts/zigux/check-zig-toolchain.py --self-test`, `python3 scripts/zigux/check-phase2-cross.py`, `make -C zigux phase2-validate`, and `make -C zigux phase2` now keep the pinned Zig toolchain, the bounded `fixdep`, `genksyms`, `genksyms_crc`, `kconfig`, and `mk_elfconfig` helper packet, and the shared tests-root plus review-checklist replay surface visible from the docs root instead of leaving the active Phase 2 tranche split across scripts, tests, and workflow wiring alone.
+- `python3 scripts/zigux/install-zig.py --self-test`, `python3 scripts/zigux/check-zig-toolchain.py --self-test`, `python3 scripts/zigux/check-phase2-cross.py`, `python3 scripts/zigux/check-phase2-cross-selftest-alignment.py --self-test`, `python3 scripts/zigux/check-phase2-cross-selftest-alignment.py`, `python3 scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test`, `python3 scripts/zigux/check-phase2-toolchain-pin-scope.py`, `make -C zigux phase2-validate`, and `make -C zigux phase2` now keep the pinned Zig toolchain, the bounded `fixdep`, `genksyms`, `genksyms_crc`, `kconfig`, and `mk_elfconfig` helper packet, the three-target compile matrix, and the shared tests-root plus review-checklist replay surface visible from the docs root instead of leaving the active Phase 2 tranche split across scripts, tests, and workflow wiring alone.
 
 Phase 5 notes
 - `Documentation/zigux/phase5-kfifo-sample-survey.md` now records the landed `samples/zigux/bytestream_fifo.zig` reference sample, its exact replay checks, and the remaining non-goals around procfs, user-copy, and module registration parity.
