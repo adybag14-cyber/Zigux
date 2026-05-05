@@ -60,6 +60,9 @@ pub const ConfigChangeSummary = struct {
     core_enabled: bool,
     driver_disabled: bool,
     change_pending: bool,
+    generation: u32,
+    acknowledged_generation: u32,
+    has_unacknowledged_generation: bool,
     delivery_count: usize,
 };
 
@@ -88,6 +91,8 @@ pub const VirtioCoreLabDevice = struct {
     config_driver_disabled: bool = false,
     config_change_pending: bool = false,
     config_change_delivery_count: usize = 0,
+    config_generation: u32 = 0,
+    acknowledged_config_generation: u32 = 0,
     transport_accepts_features: bool = true,
     registered_queue_count: usize = 0,
     reset_count: usize = 0,
@@ -121,6 +126,8 @@ pub const VirtioCoreLabDevice = struct {
         self.config_driver_disabled = false;
         self.config_change_pending = false;
         self.config_change_delivery_count = 0;
+        self.config_generation = 0;
+        self.acknowledged_config_generation = 0;
         self.registered_queue_count = 0;
         self.reset_count += 1;
     }
@@ -348,7 +355,19 @@ pub const VirtioCoreLabDevice = struct {
 
     pub fn noteConfigChanged(self: *Self) !void {
         if (!self.hasStatus(DeviceStatus.driver)) return error.DriverNotAttached;
+        self.config_generation +%= 1;
         self.handleConfigChanged();
+    }
+
+    pub fn acknowledgeConfigGeneration(self: *Self, generation: u32) !void {
+        if (!self.hasStatus(DeviceStatus.driver)) return error.DriverNotAttached;
+        if (generation == 0 or generation > self.config_generation) return error.UnknownConfigGeneration;
+        if (self.config_change_pending and generation == self.config_generation) {
+            return error.ConfigGenerationPendingDelivery;
+        }
+        if (generation < self.config_generation) return error.StaleConfigGeneration;
+
+        self.acknowledged_config_generation = generation;
     }
 
     pub fn configChangeSummary(self: *const Self) ConfigChangeSummary {
@@ -357,6 +376,9 @@ pub const VirtioCoreLabDevice = struct {
             .core_enabled = self.config_core_enabled,
             .driver_disabled = self.config_driver_disabled,
             .change_pending = self.config_change_pending,
+            .generation = self.config_generation,
+            .acknowledged_generation = self.acknowledged_config_generation,
+            .has_unacknowledged_generation = self.config_generation != self.acknowledged_config_generation,
             .delivery_count = self.config_change_delivery_count,
         };
     }
