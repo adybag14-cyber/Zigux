@@ -32,6 +32,8 @@ test "phase 8 perf-buffer poll docs keep the bounded wait-result helper explicit
     try expectContains(note, "ordered `perf_buffer__process_records()` pass");
     try expectContains(note, "cumulative processed-record count");
     try expectContains(note, "first failing ready buffer");
+    try expectContains(note, "successful ready count");
+    try expectContains(note, "first processing failure");
     try expectContains(note, "ready-buffer processing attempts cannot exceed observed ready events");
     try expectContains(note, "non-ready wait observations cannot claim record processing");
     try expectContains(note, "reject impossible post-wait buffer state combinations");
@@ -135,6 +137,30 @@ test "phase 8 perf-buffer poll helper keeps execution bookkeeping aligned with t
     try std.testing.expectEqual(@as(?i32, -11), summary.first_process_error);
 }
 
+test "phase 8 perf-buffer poll helper keeps the final return-path choice explicit" {
+    const successful = try perf_buffer_poll.summarizePollExecutionResultFromWaitResult(12, 3, &.{
+        .{ .ready = true },
+        .{ .ready = true },
+        .{ .error_code = -32 },
+    }, &.{
+        .{ .records_processed = 4 },
+        .{ .records_processed = 2 },
+    });
+    try std.testing.expectEqual(perf_buffer_poll.PollReturnDisposition.ready_count, successful.disposition);
+    try std.testing.expectEqual(@as(i32, 3), successful.return_value);
+
+    const failed = try perf_buffer_poll.resolvePollExecutionResultFromWaitResult(12, 3, &.{
+        .{ .ready = true },
+        .{ .ready = true },
+        .{ .error_code = -32 },
+    }, &.{
+        .{ .records_processed = 4 },
+        .{ .result = -11 },
+    });
+    try std.testing.expectEqual(perf_buffer_poll.PollReturnDisposition.processing_error, failed.disposition);
+    try std.testing.expectEqual(@as(i32, -11), failed.return_value);
+}
+
 test "phase 8 perf-buffer poll helper rejects processing beyond counted ready buffers" {
     try std.testing.expectError(
         perf_buffer_poll.PollError.ReadyBufferProcessingExceedsReadyCount,
@@ -155,7 +181,7 @@ test "phase 8 perf-buffer poll helper rejects impossible post-wait record proces
         perf_buffer_poll.summarizePollExecution(0, .timed_out, &.{}, &.{.{ .records_processed = 1 }}),
     );
     try std.testing.expectError(
-        perf_buffer_poll.PollError.ReadyBufferProcessingExceedsObservedEvents,
+        perf_buffer_poll.PollError.ReadyBufferProcessingExceedsReadyCount,
         perf_buffer_poll.summarizePollExecution(5, .{ .ready_events = 1 }, &.{.{ .ready = true }}, &.{
             .{ .records_processed = 1 },
             .{ .records_processed = 2 },
