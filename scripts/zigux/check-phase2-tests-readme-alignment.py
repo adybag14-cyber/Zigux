@@ -33,6 +33,9 @@ DOCS_ROOT_MARKERS = [
     "scripts/zigux/check-phase2-tests-readme-alignment.py",
     "python3 scripts/zigux/install-zig.py --self-test",
     "python3 scripts/zigux/check-zig-toolchain.py --self-test",
+    "python3 scripts/zigux/check-phase2-cross.py",
+    "python3 scripts/zigux/check-phase2-cross-selftest-alignment.py --self-test",
+    "python3 scripts/zigux/check-phase2-cross-selftest-alignment.py",
     "make -C zigux phase2-validate",
     "make -C zigux phase2",
 ]
@@ -153,8 +156,26 @@ def run_self_test() -> int:
 
         assert validate_root(root) == []
 
+        write_text(
+            root / "Documentation/zigux/README.md",
+            "\n".join(
+                [
+                    "Documentation/zigux/phase2-toolchain-bootstrap-notes.md",
+                    "Documentation/zigux/phase2-closure.md",
+                    "scripts/zigux/check-phase2-tests-readme-alignment.py",
+                    "python3 scripts/zigux/install-zig.py --self-test",
+                    "python3 scripts/zigux/check-zig-toolchain.py --self-test",
+                    "make -C zigux phase2-validate",
+                    "make -C zigux phase2",
+                ]
+            )
+            + "\n",
+        )
         write_text(root / "zigux/Makefile", "phase2-validate:\n")
         issues = validate_root(root)
+        assert "docs_root:python3 scripts/zigux/check-phase2-cross.py" in issues
+        assert "docs_root:python3 scripts/zigux/check-phase2-cross-selftest-alignment.py --self-test" in issues
+        assert "docs_root:python3 scripts/zigux/check-phase2-cross-selftest-alignment.py" in issues
         assert "makefile:check-phase2-tests-readme-alignment.py" in issues
         assert "makefile:phase2: phase2-validate phase2-tools phase2-kconfig phase2-cross" in issues
 
