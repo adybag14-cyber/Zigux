@@ -1,6 +1,6 @@
 # Phase 6 Hexdump Slice
 
-This document starts a bounded Phase 6 leaf-helper validation slice for Zigux.
+This document records a bounded Phase 6 leaf-helper validation slice for Zigux.
 
 ## Status
 
@@ -9,11 +9,11 @@ This document starts a bounded Phase 6 leaf-helper validation slice for Zigux.
 - scope: first low-risk hexdump helper coverage only
 - lane state: helper and fixture slice landed; parked unless a new `hexdump.c` parity issue appears
 - product boundary:
-- `lib/hexdump.zig`
-- `zigux/tests/phase6_hexdump.zig`
-- `zigux/tests/fixtures/phase6_hexdump_vectors.zig`
-- `zigux/tests/phase6_build.zig`
-- `zigux/Makefile`
+  - `lib/hexdump.zig`
+  - `zigux/tests/phase6_hexdump.zig`
+  - `zigux/tests/fixtures/phase6_hexdump_vectors.zig`
+  - `zigux/tests/phase6_build.zig`
+  - `zigux/Makefile`
 
 ## Why this slice exists
 
