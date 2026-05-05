@@ -3,7 +3,7 @@ PHONY += phase2-validate phase2-tools phase2-kconfig phase2-cross phase2
 PHONY += phase3-validate phase3-abi phase3-interop phase3
 PHONY += phase4-validate phase4-test phase4
 PHONY += phase6-test phase6
-PHONY += phase7-test phase7
+PHONY += phase7-validate phase7-test phase7
 PHONY += phase8-test phase8
 PHONY += phase9-test phase9
 PHONY += phase10-test phase10
@@ -91,10 +91,13 @@ phase6-test:
 
 phase6: phase6-test
 
+phase7-validate:
+	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase7-rbtree-parity.py
+
 phase7-test:
 	cd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase7_build.zig
 
-phase7: phase7-test
+phase7: phase7-validate phase7-test
 
 phase8-test:
 	cd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase8_build.zig
