@@ -375,23 +375,26 @@ def self_test() -> int:
 
     with tempfile.TemporaryDirectory(prefix="phase1-validation-route-inventory-") as tmp:
         root = Path(tmp)
+        runner = root / "scripts/zigux/check-phase1-validation-route-inventory-runner.py"
         script = root / "scripts/zigux/check-phase1-validation-route-inventory.py"
         for rel in REQUIRED_FILES:
             write(root / rel, "// fixture\n")
-        write(script, Path(__file__).read_text(encoding="utf-8"))
+        source = Path(__file__).read_text(encoding="utf-8")
+        write(runner, source)
+        write(script, source)
         for rel, entries in baseline_by_file.items():
             write(root / rel, fixture_text(entries))
         write(root / "zigux-alpha/BOOTSTRAP_COMMIT_LEDGER.md", "phase1 ledger fixture\n")
 
         env = dict(os.environ)
         env["ZIGUX_PHASE1_ROOT"] = str(root)
-        baseline = subprocess.run([sys.executable, str(script)], env=env, capture_output=True, text=True, check=False)
+        baseline = subprocess.run([sys.executable, str(runner)], env=env, capture_output=True, text=True, check=False)
         if baseline.returncode != 0:
             raise SystemExit(f"phase1-validation-route-inventory-self-test:baseline:{baseline.stdout or baseline.stderr}")
 
         total_cases = 1
         for label, (rel, marker, _expected) in TARGETS.items():
-            expect_missing_and_duplicate(script, root, rel, baseline_by_file[rel], label, marker)
+            expect_missing_and_duplicate(runner, root, rel, baseline_by_file[rel], label, marker)
             total_cases += 2
 
         missing_file_cases = {
@@ -416,7 +419,7 @@ def self_test() -> int:
         for rel, baseline_text in missing_file_cases.items():
             path = root / rel
             path.unlink()
-            expect_failure(script, root, f"missing_file:{rel}")
+            expect_failure(runner, root, f"missing_file:{rel}")
             write(path, baseline_text)
             total_cases += 1
 
