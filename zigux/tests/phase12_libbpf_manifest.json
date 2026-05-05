@@ -108,6 +108,13 @@
       "kind": "core_loader",
       "zigux_destination": "tools/lib/bpf/zigux_segments/object_loader.zig",
       "why_now": "ELF collection, loader setup, relocation recording, and load-time verifier interactions remain a broader follow-on risk even after the nearer skeleton-population cluster, so the roadmap keeps this heavier slice blocked behind more object-model progress."
+    },
+    {
+      "id": "phase12-libbpf-btf-relocation-and-program-load",
+      "status": "deferred_high_risk",
+      "kind": "verifier_facing",
+      "zigux_destination": "tools/lib/bpf/zigux_segments/relocation.zig",
+      "why_now": "BTF fixups, extern resolution, relocation recording, and load-time verifier interactions remain a distinct verifier-facing cluster after the nearer skeleton and object-model blockers, so the Phase 12 manifest should keep that deferred surface explicit instead of implying object-loader work is the final blocked libbpf segment."
     }
   ]
 }
