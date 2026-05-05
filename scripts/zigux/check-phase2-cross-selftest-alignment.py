@@ -75,12 +75,27 @@ WORKFLOW_MARKERS = [
     "python3 scripts/zigux/check-phase2-cross-selftest-alignment.py",
 ]
 
+EXACT_WORKFLOW_RUN_COUNTS = {
+    "python3 scripts/zigux/check-phase2-cross.py --self-test": 1,
+    "python3 scripts/zigux/check-phase2-cross.py --target ${{ matrix.zig_target }}": 1,
+    "python3 scripts/zigux/check-phase2-cross-selftest-alignment.py --self-test": 1,
+    "python3 scripts/zigux/check-phase2-cross-selftest-alignment.py": 1,
+}
+
 MAKEFILE_MARKERS = [
     "check-phase2-cross.py --self-test",
     "check-phase2-cross-selftest-alignment.py --self-test",
     "check-phase2-cross-selftest-alignment.py",
     "phase2-cross:",
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-cross.py",
 ]
+
+EXACT_MAKEFILE_RUN_COUNTS = {
+    "scripts/zigux/check-phase2-cross.py --self-test": 1,
+    "scripts/zigux/check-phase2-cross-selftest-alignment.py --self-test": 1,
+    "scripts/zigux/check-phase2-cross-selftest-alignment.py": 1,
+    "scripts/zigux/check-phase2-cross.py": 1,
+}
 
 
 def abspath(root: Path, rel: Path) -> Path:
@@ -96,6 +111,32 @@ def load_json_object(path: Path, *, label: str) -> dict[str, object]:
 
 def collect_missing_markers(text: str, markers: list[str], *, prefix: str) -> list[str]:
     return [f"{prefix}:{marker}" for marker in markers if marker not in text]
+
+
+def validate_exact_workflow_runs(text: str) -> list[str]:
+    issues: list[str] = []
+    lines = [line.strip() for line in text.splitlines()]
+    for command, expected_count in EXACT_WORKFLOW_RUN_COUNTS.items():
+        expected_line = f"run: {command}"
+        count = sum(1 for line in lines if line == expected_line)
+        if count != expected_count:
+            issues.append(
+                f"workflow_exact_run:{command}:count={count}:expected={expected_count}"
+            )
+    return issues
+
+
+def validate_exact_makefile_runs(text: str) -> list[str]:
+    issues: list[str] = []
+    lines = [line.strip() for line in text.splitlines()]
+    for command, expected_count in EXACT_MAKEFILE_RUN_COUNTS.items():
+        expected_line = f"cd $(ZIGUX_ROOT) && $(PYTHON) {command}"
+        count = sum(1 for line in lines if line == expected_line)
+        if count != expected_count:
+            issues.append(
+                f"makefile_exact_run:{command}:count={count}:expected={expected_count}"
+            )
+    return issues
 
 
 def validate_targets_manifest(path: Path) -> list[str]:
@@ -159,20 +200,24 @@ def validate_root(root: Path) -> list[str]:
             prefix="validate_phase2_closure",
         )
     )
+    workflow_text = abspath(root, WORKFLOW).read_text(encoding="utf-8")
     issues.extend(
         collect_missing_markers(
-            abspath(root, WORKFLOW).read_text(encoding="utf-8"),
+            workflow_text,
             WORKFLOW_MARKERS,
             prefix="workflow",
         )
     )
+    issues.extend(validate_exact_workflow_runs(workflow_text))
+    makefile_text = abspath(root, MAKEFILE).read_text(encoding="utf-8")
     issues.extend(
         collect_missing_markers(
-            abspath(root, MAKEFILE).read_text(encoding="utf-8"),
+            makefile_text,
             MAKEFILE_MARKERS,
             prefix="makefile",
         )
     )
+    issues.extend(validate_exact_makefile_runs(makefile_text))
     issues.extend(validate_targets_manifest(abspath(root, TARGETS)))
     return issues
 
@@ -191,8 +236,23 @@ def build_self_test_root(root: Path) -> None:
         abspath(root, VALIDATE_PHASE2_CLOSURE),
         "\n".join(VALIDATE_PHASE2_CLOSURE_MARKERS) + "\n",
     )
-    write_text(abspath(root, WORKFLOW), "\n".join(WORKFLOW_MARKERS) + "\n")
-    write_text(abspath(root, MAKEFILE), "\n".join(MAKEFILE_MARKERS) + "\n")
+    write_text(
+        abspath(root, WORKFLOW),
+        "\n".join(f"run: {command}" for command in EXACT_WORKFLOW_RUN_COUNTS) + "\n",
+    )
+    write_text(
+        abspath(root, MAKEFILE),
+        "\n".join(
+            [
+                "phase2-cross:",
+                "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-cross.py --self-test",
+                "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-cross-selftest-alignment.py --self-test",
+                "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-cross-selftest-alignment.py",
+                "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-cross.py",
+            ]
+        )
+        + "\n",
+    )
     write_text(
         abspath(root, TARGETS),
         json.dumps(
@@ -261,14 +321,55 @@ def run_self_test() -> int:
         )
 
         build_self_test_root(root)
-        write_text(abspath(root, WORKFLOW), "python3 scripts/zigux/check-phase2-cross.py --target\n")
+        write_text(abspath(root, WORKFLOW), "run: python3 scripts/zigux/check-phase2-cross.py --target ${{ matrix.zig_target }}\n")
         issues = validate_root(root)
         assert "workflow:python3 scripts/zigux/check-phase2-cross.py --self-test" in issues
+
+        build_self_test_root(root)
+        write_text(
+            abspath(root, WORKFLOW),
+            "\n".join(
+                [
+                    "run: python3 scripts/zigux/check-phase2-cross.py --self-test",
+                    "run: python3 scripts/zigux/check-phase2-cross.py --self-test",
+                    "run: python3 scripts/zigux/check-phase2-cross.py --target ${{ matrix.zig_target }}",
+                    "run: python3 scripts/zigux/check-phase2-cross-selftest-alignment.py --self-test",
+                    "run: python3 scripts/zigux/check-phase2-cross-selftest-alignment.py",
+                ]
+            )
+            + "\n",
+        )
+        issues = validate_root(root)
+        assert (
+            "workflow_exact_run:python3 scripts/zigux/check-phase2-cross.py --self-test:count=2:expected=1"
+            in issues
+        )
 
         build_self_test_root(root)
         write_text(abspath(root, MAKEFILE), "phase2-cross:\n")
         issues = validate_root(root)
         assert "makefile:check-phase2-cross.py --self-test" in issues
+
+        build_self_test_root(root)
+        write_text(
+            abspath(root, MAKEFILE),
+            "\n".join(
+                [
+                    "phase2-cross:",
+                    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-cross.py --self-test",
+                    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-cross-selftest-alignment.py --self-test",
+                    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-cross-selftest-alignment.py",
+                    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-cross.py",
+                    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-cross.py",
+                ]
+            )
+            + "\n",
+        )
+        issues = validate_root(root)
+        assert (
+            "makefile_exact_run:scripts/zigux/check-phase2-cross.py:count=2:expected=1"
+            in issues
+        )
 
         build_self_test_root(root)
         write_text(abspath(root, TOOLCHAIN_NOTES), "python3 scripts/zigux/check-phase2-cross.py\n")
@@ -281,7 +382,7 @@ def run_self_test() -> int:
         assert "missing_file:zigux/tests/fixtures/phase2_cross_targets.json" in issues
 
     print("PHASE2_CROSS_SELFTEST_ALIGNMENT_SELF_TEST=pass")
-    print("PHASE2_CROSS_SELFTEST_ALIGNMENT_SELF_TEST_CASE_COUNT=10")
+    print("PHASE2_CROSS_SELFTEST_ALIGNMENT_SELF_TEST_CASE_COUNT=14")
     return 0
 
 
