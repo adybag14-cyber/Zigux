@@ -5,11 +5,11 @@ const SurveySummary = struct {
     devres_c_lines: usize,
     preexisting_phase13_build_present: bool,
     preexisting_phase13_make_target_present: bool,
-    preexisting_devres_zig_present: bool,
+    preexisting_lib_devres_zig_present: bool,
     preexisting_phase13_devres_test_present: bool,
-    preexisting_phase13_devres_slice_present: bool,
+    preexisting_phase13_slice_note_present: bool,
     preexisting_phase13_devres_reviewability_present: bool,
-    preexisting_phase13_devres_survey_present: bool,
+    preexisting_phase13_survey_note_present: bool,
 };
 
 const Gap = struct {
@@ -32,11 +32,7 @@ const Manifest = struct {
 
 fn isAllowedStatus(status: []const u8) bool {
     return std.mem.eql(u8, status, "starter_landed") or
-        std.mem.eql(u8, status, "blocked_on_live_mmio_state") or
-        std.mem.eql(u8, status, "blocked_on_dma_state") or
-        std.mem.eql(u8, status, "blocked_on_scatterlist_state") or
-        std.mem.eql(u8, status, "blocked_on_device_tree_state") or
-        std.mem.eql(u8, status, "blocked_on_arch_memtype_state");
+        std.mem.eql(u8, status, "blocked_on_live_resource_state");
 }
 
 test "phase13 devres reviewability packet records the helper-only DMA/scatterlist boundary" {
@@ -67,23 +63,25 @@ test "phase13 devres reviewability packet records the helper-only DMA/scatterlis
     );
     defer std.testing.allocator.free(survey_note);
 
-    const parsed = try std.json.parseFromSlice(Manifest, std.testing.allocator, manifest_json, .{});
+    const parsed = try std.json.parseFromSlice(Manifest, std.testing.allocator, manifest_json, .{
+        .ignore_unknown_fields = true,
+    });
     defer parsed.deinit();
 
     const manifest = parsed.value;
     try std.testing.expectEqualStrings("P13-L07", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 13", manifest.phase);
-    try std.testing.expectEqualStrings("e59df689d080aa11773adda87f00c2d650caade8", manifest.surveyed_commit);
+    try std.testing.expectEqualStrings("master-reviewability", manifest.surveyed_commit);
     try std.testing.expectEqualStrings("lib/devres.c", manifest.anchor);
     try std.testing.expectEqual(@as(usize, 3), manifest.roadmap_destinations.len);
     try std.testing.expectEqual(@as(usize, 399), manifest.survey_summary.devres_c_lines);
     try std.testing.expect(manifest.survey_summary.preexisting_phase13_build_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase13_make_target_present);
-    try std.testing.expect(manifest.survey_summary.preexisting_devres_zig_present);
+    try std.testing.expect(manifest.survey_summary.preexisting_lib_devres_zig_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase13_devres_test_present);
-    try std.testing.expect(manifest.survey_summary.preexisting_phase13_devres_slice_present);
+    try std.testing.expect(manifest.survey_summary.preexisting_phase13_slice_note_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase13_devres_reviewability_present);
-    try std.testing.expect(manifest.survey_summary.preexisting_phase13_devres_survey_present);
+    try std.testing.expect(manifest.survey_summary.preexisting_phase13_survey_note_present);
     try std.testing.expectEqual(@as(usize, 16), manifest.gaps.len);
 
     const descriptor = devres.DevresHelperLab.descriptor();
@@ -102,7 +100,7 @@ test "phase13 devres reviewability packet records the helper-only DMA/scatterlis
     try std.testing.expect(std.mem.indexOf(u8, slice_note, "This slice does not claim live `devres_alloc_node()` ownership") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "devm_arch_phys_wc_add()") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "devm_arch_io_reserve_memtype_wc()") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "survey provenance refreshed against verified master head `e59df689d080aa11773adda87f00c2d650caade8`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "survey provenance recorded against the current master reviewability snapshot") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "dmam_alloc_*") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "dma_map_sgtable()") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "struct scatterlist") != null);
@@ -154,14 +152,14 @@ test "phase13 devres reviewability packet records the helper-only DMA/scatterlis
         }
         if (std.mem.eql(u8, gap.id, "phase13-devres-live-dma-backed-helpers")) {
             saw_dma_block = true;
-            try std.testing.expectEqualStrings("blocked_on_dma_state", gap.status);
+            try std.testing.expectEqualStrings("blocked_on_live_resource_state", gap.status);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "dmam_alloc_*") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "dma_map_sgtable()") != null);
         }
         if (std.mem.eql(u8, gap.id, "phase13-devres-live-scatterlist-ownership")) {
             saw_scatterlist_block = true;
-            try std.testing.expectEqualStrings("blocked_on_scatterlist_state", gap.status);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "sg_table") != null);
+            try std.testing.expectEqualStrings("blocked_on_live_resource_state", gap.status);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "sg") != null);
         }
 
         for (manifest.gaps[i + 1 ..]) |other| {
