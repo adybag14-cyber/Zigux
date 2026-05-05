@@ -10,6 +10,7 @@ This document starts a bounded Phase 7 runtime leaf-helper slice for Zigux.
 - product boundary:
   - `lib/string_helpers.zig`
   - `zigux/tests/phase7_string_helpers.zig`
+  - `zigux/tests/phase7_string_helpers_sample_boundary.zig`
   - `zigux/tests/phase7_build.zig`
   - `zigux/Makefile`
 
@@ -23,6 +24,10 @@ Phase 7 is where Zigux starts moving from earlier standalone helper ports into r
 - benefit from explicit pointer and termination handling
 - can be validated with a focused Zig gate before deeper formatting, escaping, or allocation-backed helpers are attempted
 
+This is intentionally not a Phase 5 `samples/zigux/` reference-sample lane.
+
+The Phase 5 roadmap keeps approved reference idioms under four sample anchors in `samples/zigux/`, and no `samples/zigux/*string*` Phase 5 reference sample is expected here; treat any new `samples/zigux/*string*.zig` claim as a separate roadmap-boundary decision instead of silently folding it into this helper slice.
+
 ## Gates
 
 1. run the focused Zig Phase 7 helper tests
@@ -30,6 +35,9 @@ Phase 7 is where Zigux starts moving from earlier standalone helper ports into r
 
 2. keep the helper wired through the Zigux convenience target
 - `make -C zigux phase7`
+
+3. keep the dedicated no-string-sample boundary guard reviewable
+- `zigux/tests/phase7_string_helpers_sample_boundary.zig`
 
 ## Current parity surface
 
@@ -61,6 +69,7 @@ The current tests check:
 - dictionary-limited `only` filtering plus `ESCAPE_APPEND` behavior for one newline-focused printable escape proof
 - printable, non-printable, non-ascii, and non-printable-or-non-ascii passthrough filters over a hex-escaped bounded subset
 - truncation accounting that returns the full would-be escaped length without promising an appended terminator
+- the Phase 5-versus-Phase 7 boundary check that keeps `samples/zigux/` free of approved string-helper reference samples while pointing reviewers back to this helper packet
 
 ## Non-goals
 
@@ -69,7 +78,8 @@ This slice does not yet claim:
 - parity for `string_get_size()`
 - integer parsing helpers
 - allocation-backed duplication helpers
+- a new `samples/zigux/` string-helper reference sample
 
 ## Next bounded step
 
-Leave this lane parked unless fresh repo inspection finds one more concrete need to reopen beyond the current bounded `string_escape_mem()` proof, such as a small `string_get_size()` or parsing helper requirement that is still clearly Phase 7-sized.
+Leave this lane parked unless fresh repo inspection finds one more concrete Phase 7 helper need or a renewed Phase 5-versus-Phase 7 boundary drift, such as a small `string_get_size()` or parsing helper requirement that is still clearly Phase 7-sized.
