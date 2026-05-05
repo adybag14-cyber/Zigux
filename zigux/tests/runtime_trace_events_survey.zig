@@ -189,6 +189,7 @@ test "phase 9 runtime trace-events survey keeps the manifest-backed surveyed com
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "the live repo now also carries `zigux/kernel/runtime_loader.zig` as the shared request surface for the bounded Phase 9 loader-handoff packet") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "the trace-events starter still stops at the sample-side loader scaffold and the no-substrate release path instead of claiming a real module-loading substrate") != null);
 
+    try std.testing.expectEqual(@as(usize, 1), std.mem.count(u8, module_slice, surveyed_commit_marker));
     try std.testing.expect(std.mem.indexOf(u8, module_slice, "a loader-handoff scaffold") != null);
     try std.testing.expect(std.mem.indexOf(u8, module_slice, "samples/zigux/runtime_trace_events_loader.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, module_slice, "zigux/tests/runtime_trace_events_survey.zig") != null);
