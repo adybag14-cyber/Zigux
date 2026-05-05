@@ -1,5 +1,5 @@
 {
-  "lane_key": "P12-L08",
+  "lane_key": "P12-Y02",
   "phase": "Phase 12",
   "surveyed_commit": "f7d8ad3bf36fd42ee03b041bbf1bbbb7dccc6200",
   "anchor": "drivers/nvme/host/pci.c",
@@ -46,21 +46,21 @@
       "status": "starter_landed",
       "kind": "complex_driver_starter",
       "zigux_destination": "drivers/nvme/host/pci.zig",
-      "why_now": "The first bounded starter is now landed around a lab-only queue planner that validates queue geometry, computes DMA page demand, assigns monotonic queue identifiers, and tracks doorbell offsets without claiming live PCI behavior."
+      "why_now": "The first bounded starter is now landed around a lab-only queue planner that validates queue geometry, computes DMA page demand, assigns monotonic queue identifiers, tracks doorbell offsets, and now also records tiny PRP buffer-shape and PRP metadata summaries without claiming live PCI behavior."
     },
     {
       "id": "phase12-nvme-pci-driver-tests",
       "status": "starter_landed",
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase12_nvme_pci.zig",
-      "why_now": "Dedicated driver tests now give the roadmap's queueing correctness requirement one bounded foothold by keeping the starter honest around admin and I/O queue planning, DMA page rounding, invalid geometry rejection, and reset-time queue freeze behavior."
+      "why_now": "Dedicated driver tests now keep the starter honest around admin and I/O queue planning, DMA page rounding, invalid geometry rejection, reset-time queue freeze behavior, the PRP buffer-shape helper, and the PRP metadata helper."
     },
     {
       "id": "phase12-nvme-pci-slice-note",
       "status": "starter_landed",
       "kind": "documentation",
       "zigux_destination": "Documentation/zigux/phase12-nvme-pci-slice.md",
-      "why_now": "The slice note records what the landed queue planner covers so the survey can focus on the remaining roadmap gap instead of re-explaining the starter surface."
+      "why_now": "The slice note records what the landed queue planner, PRP buffer-shape helper, and PRP metadata helper cover so the survey can focus on the remaining roadmap gap instead of re-explaining the starter surface."
     },
     {
       "id": "phase12-virtio-net-driver-starter",
@@ -81,28 +81,35 @@
       "status": "starter_landed",
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase12_nvme_pci_survey.zig",
-      "why_now": "A dedicated survey gate is the smallest truthful way to record that the first nvme PCI starter has landed while the deeper transport and DMA roadmap work remains intentionally incomplete."
+      "why_now": "A dedicated survey gate is the smallest truthful way to record that the current nvme PCI starter has landed while the deeper transport and DMA roadmap work remains intentionally incomplete."
     },
     {
       "id": "phase12-nvme-pci-survey-note",
       "status": "starter_landed",
       "kind": "documentation",
       "zigux_destination": "Documentation/zigux/phase12-nvme-pci-survey.md",
-      "why_now": "The lane needs an archival note that compares the current starter against the roadmap's segmented-rollout rule so future runs do not mistake the queue planner for a production PCI port."
+      "why_now": "The lane needs an archival note that compares the current starter against the roadmap's segmented-rollout rule so future runs do not mistake the queue planner and PRP helpers for a production PCI port."
     },
     {
       "id": "phase12-nvme-pci-prp-shape-helper",
       "status": "starter_landed",
       "kind": "complex_driver_starter",
       "zigux_destination": "drivers/nvme/host/pci.zig",
-      "why_now": "The bounded nvme PCI packet now includes one tiny PRP buffer-shape helper that records first-page offset, rounded span, PRP tail-page count, and PRP list bound checks without crossing into SGL setup, live DMA mapping, request submission, or hardware-backed queue setup."
+      "why_now": "The bounded nvme PCI packet includes one tiny PRP buffer-shape helper that records first-page offset, rounded span, PRP tail-page count, and PRP list bound checks without crossing into live PRP list construction, request submission, or hardware-backed queue setup."
+    },
+    {
+      "id": "phase12-nvme-pci-prp-metadata-helper",
+      "status": "starter_landed",
+      "kind": "complex_driver_starter",
+      "zigux_destination": "drivers/nvme/host/pci.zig",
+      "why_now": "The landed PRP metadata helper now quantifies command-inline data pointers, PRP-list-covered pages, extra descriptor DMA footprint, total DMA bytes, and reset-time descriptor rebuild need without claiming live PRP allocation, DMA mapping, or queue submission."
     },
     {
       "id": "phase12-nvme-pci-dma-safe-transport-gap",
       "status": "blocked_on_dma_transport",
       "kind": "roadmap_gap",
       "zigux_destination": "Documentation/zigux/phase12-nvme-pci-survey.md",
-      "why_now": "The roadmap's DMA-safe abstractions requirement is still blocked because Host Memory Buffer policy, real PRP or SGL DMA mapping, and live PCI queue creation still need a transport-safe substrate beyond the now-landed queue-planning and PRP-shape helpers."
+      "why_now": "The roadmap's DMA-safe abstractions requirement is still blocked because Host Memory Buffer policy, real PRP or SGL DMA mapping, and live PCI queue creation still need a transport-safe substrate beyond the now-landed queue-planning, PRP buffer-shape, and PRP metadata helpers."
     },
     {
       "id": "phase12-nvme-pci-throughput-and-recovery-gap",
