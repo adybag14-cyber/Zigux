@@ -1,0 +1,235 @@
+#!/usr/bin/env python3
+from __future__ import annotations
+
+import argparse
+import json
+from pathlib import Path
+import sys
+import tempfile
+
+
+SELF_PATH = Path(__file__).resolve()
+ROOT = SELF_PATH.parents[2] if len(SELF_PATH.parents) > 2 else SELF_PATH.parent
+
+NOTE_PATH = "Documentation/zigux/phase15-architecture-council-review-process.md"
+MANIFEST_PATH = "zigux/tests/phase15_architecture_council_review_process_manifest.json"
+SELF_REFERENCE_MARKER = "Documentation/zigux/phase15-architecture-council-review-process.md"
+PRODUCT_BOUNDARY_MARKER = (
+    "product boundary:\n"
+    "  - `Documentation/zigux/phase15-architecture-council-review-process.md`"
+)
+OPTIONAL_LANE_ROUTE_MARKERS = [
+    "scripts-root validator path",
+    "tests-root guidance path",
+    "dedicated handoff-checker route",
+]
+
+
+def read_text(root: Path, rel_path: str) -> str:
+    return (root / rel_path).read_text(encoding="utf-8")
+
+
+def load_json(root: Path, rel_path: str) -> dict:
+    return json.loads(read_text(root, rel_path))
+
+
+def expect_exact_once(text: str, marker: str, label: str, failures: list[str]) -> None:
+    count = text.count(marker)
+    if count != 1:
+        failures.append(f"{label}:{marker}:count={count}")
+
+
+def validate(root: Path) -> list[str]:
+    failures: list[str] = []
+
+    note_path = root / NOTE_PATH
+    manifest_path = root / MANIFEST_PATH
+    if not note_path.exists():
+        failures.append(f"missing_file:{NOTE_PATH}")
+        return failures
+    if not manifest_path.exists():
+        failures.append(f"missing_file:{MANIFEST_PATH}")
+        return failures
+
+    note = read_text(root, NOTE_PATH)
+    manifest = load_json(root, MANIFEST_PATH)
+
+    expect_exact_once(note, SELF_REFERENCE_MARKER, "note_self_reference", failures)
+    if PRODUCT_BOUNDARY_MARKER not in note:
+        failures.append("note:product_boundary_self_reference")
+
+    handoff = manifest.get("handoff_evidence")
+    if handoff is None:
+        return failures
+    if not isinstance(handoff, dict):
+        failures.append("manifest:handoff_evidence:not_object")
+        return failures
+
+    current_repo_handoff = handoff.get("current_repo_handoff")
+    if current_repo_handoff is not None:
+        if not isinstance(current_repo_handoff, str):
+            failures.append("manifest:handoff_evidence.current_repo_handoff:not_string")
+        else:
+            expect_exact_once(
+                current_repo_handoff,
+                SELF_REFERENCE_MARKER,
+                "manifest_self_reference",
+                failures,
+            )
+
+    current_bounded_lane = handoff.get("current_bounded_lane")
+    if current_bounded_lane is not None:
+        if not isinstance(current_bounded_lane, str):
+            failures.append("manifest:handoff_evidence.current_bounded_lane:not_string")
+        else:
+            for marker in OPTIONAL_LANE_ROUTE_MARKERS:
+                if marker not in current_bounded_lane:
+                    failures.append(f"manifest_lane:{marker}")
+
+    return failures
+
+
+def write_fixture_tree(root: Path) -> None:
+    (root / "Documentation/zigux").mkdir(parents=True, exist_ok=True)
+    (root / "zigux/tests").mkdir(parents=True, exist_ok=True)
+
+    note = """# Phase 15 Architecture Council Review Process Survey
+
+## Status
+
+- product boundary:
+  - `Documentation/zigux/phase15-architecture-council-review-process.md`
+  - `Documentation/zigux/phase15-parity-scorecard.md`
+"""
+    (root / NOTE_PATH).write_text(note, encoding="utf-8")
+
+    manifest = {
+        "lane_key": "P15-L14",
+        "phase": "Phase 15",
+        "handoff_evidence": {
+            "current_repo_handoff": (
+                "The current repo handoff explicitly names "
+                "Documentation/zigux/phase15-architecture-council-review-process.md "
+                "beside the neighboring governance packet."
+            ),
+            "current_bounded_lane": (
+                "The parked Architecture Council packet stays aligned with its "
+                "scripts-root validator path, its tests-root guidance path, and its "
+                "dedicated handoff-checker route."
+            ),
+        },
+    }
+    (root / MANIFEST_PATH).write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+
+
+def expect_failure(root: Path, expected: str, label: str) -> None:
+    failures = validate(root)
+    if expected not in failures:
+        actual = ",".join(failures) if failures else "none"
+        raise SystemExit(f"{label}:expected={expected}:actual={actual}")
+
+
+def run_self_test() -> int:
+    with tempfile.TemporaryDirectory(prefix="zigux_phase15_handoff_") as tmp_dir:
+        tmp_root = Path(tmp_dir)
+        write_fixture_tree(tmp_root)
+
+        baseline = validate(tmp_root)
+        if baseline:
+            raise SystemExit("baseline_failed:" + ",".join(baseline))
+
+        note_path = tmp_root / NOTE_PATH
+        original_note = note_path.read_text(encoding="utf-8")
+        note_path.write_text(
+            original_note.replace(
+                "`Documentation/zigux/phase15-architecture-council-review-process.md`",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_failure(
+            tmp_root,
+            "note_self_reference:Documentation/zigux/phase15-architecture-council-review-process.md:count=0",
+            "missing_note_self_reference",
+        )
+        note_path.write_text(original_note, encoding="utf-8")
+
+        note_path.write_text(
+            original_note.replace(
+                "product boundary:\n  - `Documentation/zigux/phase15-architecture-council-review-process.md`",
+                "product boundary:",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_failure(
+            tmp_root,
+            "note:product_boundary_self_reference",
+            "missing_product_boundary_marker",
+        )
+        note_path.write_text(original_note, encoding="utf-8")
+
+        manifest_path = tmp_root / MANIFEST_PATH
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        manifest["handoff_evidence"]["current_repo_handoff"] = manifest["handoff_evidence"][
+            "current_repo_handoff"
+        ].replace(SELF_REFERENCE_MARKER, "this review-process note", 1)
+        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+        expect_failure(
+            tmp_root,
+            "manifest_self_reference:Documentation/zigux/phase15-architecture-council-review-process.md:count=0",
+            "missing_manifest_self_reference",
+        )
+
+        write_fixture_tree(tmp_root)
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        manifest["handoff_evidence"]["current_bounded_lane"] = "The parked packet stays aligned."
+        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+        expect_failure(
+            tmp_root,
+            "manifest_lane:scripts-root validator path",
+            "missing_manifest_lane_route_marker",
+        )
+
+    print("PHASE15_REVIEW_PROCESS_HANDOFF_SELF_TEST=pass")
+    print("PHASE15_REVIEW_PROCESS_HANDOFF_SELF_TEST_CASE_COUNT=5")
+    return 0
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(
+        description="Validate the Phase 15 Architecture Council review-process handoff surfaces."
+    )
+    parser.add_argument(
+        "--root",
+        type=Path,
+        default=ROOT,
+        help="Repository root to validate. Defaults to the current directory.",
+    )
+    parser.add_argument(
+        "--self-test",
+        action="store_true",
+        help="Run the fixture-backed self-test.",
+    )
+    args = parser.parse_args()
+
+    if args.self_test:
+        return run_self_test()
+
+    failures = validate(args.root)
+    if failures:
+        print("PHASE15_REVIEW_PROCESS_HANDOFF=fail")
+        print("PHASE15_REVIEW_PROCESS_HANDOFF_FAILURES_START")
+        for failure in failures:
+            print(failure)
+        print("PHASE15_REVIEW_PROCESS_HANDOFF_FAILURES_END")
+        return 1
+
+    print("PHASE15_REVIEW_PROCESS_HANDOFF=pass")
+    print("PHASE15_REVIEW_PROCESS_HANDOFF_MARKER_COUNT=5")
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())
