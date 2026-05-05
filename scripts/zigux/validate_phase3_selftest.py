@@ -197,7 +197,7 @@ def _run_readme_tooling_inventory_self_test() -> int:
     )
     stdout_lines = result.stdout.splitlines()
     assert "PHASE3_README_TOOLING_INVENTORY_SELF_TEST=pass" in stdout_lines
-    assert "PHASE3_README_TOOLING_INVENTORY_SELF_TEST_CASE_COUNT=23" in stdout_lines
+    assert "PHASE3_README_TOOLING_INVENTORY_SELF_TEST_CASE_COUNT=77" in stdout_lines
     return 0
 
 
@@ -231,7 +231,7 @@ def _run_validation_flow_self_test() -> int:
     )
     stdout_lines = result.stdout.splitlines()
     assert "PHASE3_VALIDATION_FLOW_SELF_TEST=pass" in stdout_lines
-    assert "PHASE3_VALIDATION_FLOW_SELF_TEST_CASE_COUNT=67" in stdout_lines
+    assert "PHASE3_VALIDATION_FLOW_SELF_TEST_CASE_COUNT=69" in stdout_lines
     return 0
 
 
