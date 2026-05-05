@@ -139,3 +139,36 @@ test "runtime kretprobe loader keeps unavailable substrate and lifecycle guards 
     try module.exit();
     try std.testing.expectError(error.InvalidModuleLifecycleForLoader, RuntimeKretprobeLoader.planFor(&module));
 }
+
+test "runtime kretprobe loader keeps the prepared snapshot stable across later sample mutation" {
+    var module = runtime_kretprobe_sample.RuntimeKretprobeSample{};
+    try module.retargetSymbol("do_sys_openat2");
+    try module.init();
+    _ = try module.runSelftest();
+
+    var loader = RuntimeKretprobeLoader{};
+    const prepared = try loader.prepare(&module);
+
+    try std.testing.expect(try module.entryHandler(true, 300));
+    const updated = try module.retHandler(12, 380);
+    try module.recordMissedInstance();
+
+    const live_summary = module.summary();
+    const pending_plan = try loader.requestRuntimeLoad();
+
+    try std.testing.expectEqual(LoaderStage.waiting_on_runtime_substrate, loader.stage());
+    try std.testing.expectEqual(@as(usize, 12), updated.retval);
+    try std.testing.expectEqual(@as(i64, 80), updated.duration_ns);
+    try std.testing.expectEqual(@as(usize, 2), live_summary.nmissed);
+    try std.testing.expectEqual(@as(usize, 1), pending_plan.summary.nmissed);
+    try std.testing.expectEqual(@as(usize, 12), live_summary.last_retval);
+    try std.testing.expectEqual(@as(usize, 42), pending_plan.summary.last_retval);
+    try std.testing.expectEqual(@as(i64, 80), live_summary.last_duration_ns);
+    try std.testing.expectEqual(@as(i64, 75), pending_plan.summary.last_duration_ns);
+    try std.testing.expectEqual(@as(usize, 1), live_summary.selftest_runs);
+    try std.testing.expectEqual(@as(usize, 1), pending_plan.summary.selftest_runs);
+    try std.testing.expect(!live_summary.entry_timestamp_armed);
+    try std.testing.expect(!pending_plan.summary.entry_timestamp_armed);
+
+    _ = prepared;
+}
