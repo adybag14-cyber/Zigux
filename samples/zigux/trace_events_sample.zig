@@ -312,7 +312,13 @@ test "trace-events sample replay keeps the anchor reviewable and non-runtime" {
     try std.testing.expect(replay.registration_balance_restored);
     try std.testing.expectEqual(@as(usize, 6), replay.checked_focus.len);
     try std.testing.expectEqual(SampleFocus.payload_shape, replay.checked_focus[0]);
+    try std.testing.expectEqual(SampleFocus.string_selection, replay.checked_focus[1]);
+    try std.testing.expectEqual(SampleFocus.formatted_message, replay.checked_focus[2]);
+    try std.testing.expectEqual(SampleFocus.conditional_event_families, replay.checked_focus[3]);
+    try std.testing.expectEqual(SampleFocus.function_callback_registration, replay.checked_focus[4]);
     try std.testing.expectEqual(SampleFocus.ownership_and_lifetime, replay.checked_focus[5]);
+    try std.testing.expectEqual(SampleStage.replay_complete, sample.stage());
+    try std.testing.expectEqual(@as(usize, 1), sample.replay_runs);
 }
 
 test "trace-events sample keeps payload and callback boundaries explicit" {
