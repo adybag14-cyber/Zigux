@@ -366,6 +366,16 @@ def validate_root(root: Path) -> list[str]:
             ["PHASE2_TOOLCHAIN_PIN_SCOPE=pass"],
         )
     )
+    guard_issues.extend(
+        run_guard(
+            root,
+            [sys.executable, str(root / "scripts" / "zigux" / "check-kconfig-bridge.py"), "--self-test"],
+            [
+                "KCONFIG_BRIDGE_SELF_TEST=pass",
+                "KCONFIG_BRIDGE_SELF_TEST_CASE_COUNT=4",
+            ],
+        )
+    )
     return guard_issues
 
 
@@ -401,9 +411,6 @@ def build_script_readme_text() -> str:
             "check-genksyms-bridge.py",
             "check-genksyms-crc-diff.py",
             "check-kconfig-bridge.py",
-            "check-phase2-tests-readme-alignment.py",
-            "check-phase2-cross-selftest-alignment.py",
-            "check-phase2-toolchain-pin-scope.py",
             "check-phase2-cross.py",
             "check-mk-elfconfig-diff.py",
             "genksyms.zig",
@@ -569,6 +576,11 @@ def build_self_test_root(root: Path) -> None:
         self_test_marker="PHASE2_TOOLCHAIN_PIN_SCOPE_SELF_TEST=pass\nPHASE2_TOOLCHAIN_PIN_SCOPE_SELF_TEST_CASE_COUNT=28",
         live_markers=["PHASE2_TOOLCHAIN_PIN_SCOPE=pass"],
     )
+    write_stub_guard(
+        root / "scripts/zigux/check-kconfig-bridge.py",
+        self_test_marker="KCONFIG_BRIDGE_SELF_TEST=pass\nKCONFIG_BRIDGE_SELF_TEST_CASE_COUNT=4",
+        live_markers=["KCONFIG_BRIDGE_DIFF=pass"],
+    )
 
 
 def run_self_test() -> int:
@@ -716,8 +728,22 @@ def run_self_test() -> int:
         issues = validate_root(root)
         assert "scripts_helper_index:phase2_helper_block" in issues
 
+        build_self_test_root(root)
+        checker_path = root / "scripts" / "zigux" / "check-kconfig-bridge.py"
+        write_stub_guard(
+            checker_path,
+            self_test_marker="KCONFIG_BRIDGE_SELF_TEST=pass",
+            live_markers=["KCONFIG_BRIDGE_DIFF=pass"],
+        )
+        issues = validate_root(root)
+        assert any(
+            issue.startswith("guard_marker:")
+            and "check-kconfig-bridge.py --self-test:KCONFIG_BRIDGE_SELF_TEST_CASE_COUNT=4" in issue
+            for issue in issues
+        )
+
     print("PHASE2_VALIDATION_SELF_TEST=pass")
-    print("PHASE2_VALIDATION_SELF_TEST_CASE_COUNT=16")
+    print("PHASE2_VALIDATION_SELF_TEST_CASE_COUNT=17")
     return 0
 
 
