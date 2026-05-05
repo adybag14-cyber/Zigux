@@ -1,12 +1,12 @@
 # Phase 12 Virtio Net Survey
 
-This document records the bounded Phase 12 survey lane around `drivers/net/virtio_net.c`, the first landed Zigux starter tied to it, and the directly coupled queue-recovery follow-ups that keep the lane reviewable without widening into runtime data-path work.
+This document records the bounded Phase 12 survey lane around `drivers/net/virtio_net.c`, the first landed Zigux starter tied to it, and the directly coupled queue-recovery, receive-refill, transmit-recycle, and mergeable-buffer-length follow-ups that keep the lane reviewable without widening into runtime data-path work.
 
 ## Status
 
 - `PHASE12_STATUS=active`
 - `PHASE12_SLICE=virtio-net-survey`
-- scope: survey manifest, dedicated survey gate, shared Phase 12 build wiring, the `drivers/net/virtio_net.zig` probe snapshot starter plus its queue-recovery, receive-refill, and transmit-recycle follow-ups, the next bounded mergeable-buffer-length handoff, and a lane note that compares the live repo state against the roadmap for the broader driver
+- scope: survey manifest, dedicated survey gate, shared Phase 12 build wiring, the `drivers/net/virtio_net.zig` probe snapshot starter plus its queue-recovery, receive-refill, transmit-recycle, and mergeable-buffer-length follow-ups, and a lane note that compares the live repo state against the roadmap for the broader driver
 - product boundary:
   - `zigux/tests/phase12_virtio_net_manifest.json`
   - `zigux/tests/phase12_virtio_net_survey.zig`
@@ -28,10 +28,11 @@ The highest-value honest step in this lane is therefore a very small probe snaps
 - `drivers/net/virtio_net.c` is present on `master` and is much larger than the earlier Phase 10 and Phase 11 starter anchors, which makes a direct first-pass Zig port a poor fit for the roadmap's bounded-delivery rule.
 - the live repo already ships the Phase 10 virtio groundwork in `drivers/virtio/virtio.zig`, `drivers/virtio/virtio_ring.zig`, `drivers/virtio/virtio_input.zig`, and the matching `zigux/tests/phase10_build.zig` path.
 - that Phase 10 footing now reaches core-side status sequencing, feature negotiation, queue callback bookkeeping, descriptor-shape metadata, notification accounting, ring-local queue-shape and notification bookkeeping, and input-side queue planning. It still does not cover the DMA-safe abstractions, queueing correctness, recovery behavior, or segmented rollout controls that the roadmap requires before real virtio_net data-path work can land honestly.
-- the Phase 12 lane now consists of a dedicated build file, `make -C zigux phase12`, the survey gate, this note, `drivers/net/virtio_net.zig`, and focused direct tests for the probe starter, the bounded queue-recovery follow-up, the bounded receive-refill planning follow-up, and the bounded transmit-recycle follow-up. The shared Phase 12 build should run both the survey gate and the direct probe-starter gate so stale build wiring cannot quietly park the driver slice.
+- the Phase 12 lane now consists of a dedicated build file, `make -C zigux phase12`, the survey gate, this note, `drivers/net/virtio_net.zig`, and focused direct tests for the probe starter, the bounded queue-recovery follow-up, the bounded receive-refill planning follow-up, the bounded transmit-recycle follow-up, and the bounded mergeable-buffer-length follow-up. The shared Phase 12 build should run both the survey gate and the direct probe-starter gate so stale build wiring cannot quietly park the driver slice.
 - the landed starter records one bounded queueing and recovery-facing step from `virtnet_probe()`: negotiated feature counts, queue-pair fallback, control-virtqueue presence, mergeable-buffer mode, RSS or hash-report capability, whether probe should treat the device as stable, renegotiate features, or reset-required, and a narrow freeze or resume summary that keeps queue rebuild scope explicit for data queues, control-vq restore, RSS reapply, and fresh probe replay after recovery.
 - the newly landed receive-refill follow-up keeps one more packet-path step explicit without widening into live DMA or NAPI work: buffer mode stays visible as single-buffer versus mergeable-buffer refill, receive queue counts survive the frozen recovery snapshot, clamp-versus-single-queue recovery intent survives into the refill plan, control-vq restore and RSS reapply needs remain attached to that plan, and post-restore probe replay is still required before the lane can pretend a live refill path exists.
 - the newly landed transmit-recycle follow-up keeps one more completion-side step explicit without widening into live DMA or NAPI work: packet return ordering stays visible as data-only reuse versus control-queue restore or RSS-reapply ordering, transmit queue counts survive the frozen recovery snapshot, and receive-refill coordination remains explicit before the lane can pretend a live completion path exists.
+- the newly landed mergeable-buffer-length follow-up keeps one more throughput-facing handoff explicit without widening into live DMA or NAPI work: once a frozen mergeable snapshot exists, the lab can mirror `get_mergeable_buf_len()` by recording whether the selected buffer length stays at the observed average packet size, clamps to the minimum floor, caps at page payload, or falls back to page-minus-room sizing when XDP headroom reserves aligned room for `skb_shared_info`.
 
 ## Recorded gaps
 
@@ -47,10 +48,10 @@ The survey manifest now records:
 - the landed `phase12-virtio-net-queue-recovery-followup`
 - the landed `phase12-virtio-net-receive-refill-followup`
 - the landed `phase12-virtio-net-transmit-recycle-followup`
-- the ready-next `phase12-virtio-net-mergeable-buffer-length-summary`
+- the landed `phase12-virtio-net-mergeable-buffer-length-summary`
 - the still-blocked `phase12-virtio-net-runtime-data-path`
 
-This keeps the lane explicit without overstating progress: Zigux now has a reviewable Phase 12 probe snapshot starter, a bounded queue-recovery follow-up, a bounded receive-refill planning follow-up, and a bounded transmit-recycle follow-up, while the next truthful same-family gap is still a mergeable-buffer-length summary that stays below live DMA-backed queue setup, NAPI, control-virtqueue commands, or a usable net-driver lifecycle.
+This keeps the lane explicit without overstating progress: Zigux now has a reviewable Phase 12 probe snapshot starter, a bounded queue-recovery follow-up, a bounded receive-refill planning follow-up, a bounded transmit-recycle follow-up, and a bounded mergeable-buffer-length follow-up, while the broader runtime-data-path boundary still stays below live DMA-backed queue setup, NAPI, control-virtqueue commands, or a usable net-driver lifecycle.
 
 ## Non-goals
 
@@ -73,6 +74,6 @@ This survey slice does not claim:
 
 ## Next bounded step
 
-Keep this lane parked unless fresh repo inspection finds directly coupled drift in the landed probe snapshot, queue-recovery, receive-refill, or transmit-recycle packet, or until the lane is ready to land the still-missing mergeable-buffer-length summary.
+Keep this lane parked unless fresh repo inspection finds directly coupled drift in the landed probe snapshot, queue-recovery, receive-refill, transmit-recycle, or mergeable-buffer-length packet.
 
-The next honest same-family move is a bounded mergeable-buffer-length summary that mirrors `get_mergeable_buf_len()` decisions for observed average packet size, minimum floor, and page-payload cap handling before any live page-pool DMA, refill loop, or NAPI execution. The broader runtime-data-path boundary remains blocked after that until roadmap-approved DMA-safe abstractions and queueing substrate work are in place.
+The next honest same-family move after this reviewability step stays on the blocked runtime-data-path boundary: any future follow-up still needs roadmap-approved DMA-safe abstractions and queueing substrate work before Zigux can claim live page-pool DMA, refill loops, XDP execution, NAPI, control-virtqueue commands, or net-device lifecycle behavior.
