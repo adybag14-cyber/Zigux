@@ -20,6 +20,33 @@ fn assertBitmapLen(bitmap: []const Word, nbits: usize) void {
     std.debug.assert(bitmap.len >= bitsToWords(nbits));
 }
 
+pub fn alloc(allocator: std.mem.Allocator, nbits: usize) !?[]Word {
+    const nwords = bitsToWords(nbits);
+    if (nwords == 0) {
+        return null;
+    }
+
+    return try allocator.alloc(Word, nwords);
+}
+
+pub fn zalloc(allocator: std.mem.Allocator, nbits: usize) !?[]Word {
+    const nwords = bitsToWords(nbits);
+    if (nwords == 0) {
+        return null;
+    }
+
+    const bitmap = try allocator.alloc(Word, nwords);
+    @memset(bitmap, 0);
+    return bitmap;
+}
+
+pub fn free(allocator: std.mem.Allocator, bitmap: *?[]Word) void {
+    if (bitmap.*) |slice| {
+        allocator.free(slice);
+    }
+    bitmap.* = null;
+}
+
 pub fn zero(dst: []Word, nbits: usize) void {
     assertBitmapLen(dst, nbits);
     @memset(dst[0..bitsToWords(nbits)], 0);
@@ -299,6 +326,32 @@ pub fn scnprintf(bitmap: []const Word, nbits: usize, buffer: []u8) usize {
     }
 
     return written;
+}
+
+test "bitmap allocator helpers size zero and free their buffers" {
+    const allocator = std.testing.allocator;
+    const nbits = bits_per_long + 5;
+
+    var allocated = try alloc(allocator, nbits);
+    defer free(allocator, &allocated);
+    try std.testing.expect(allocated != null);
+    try std.testing.expectEqual(bitsToWords(nbits), allocated.?.len);
+
+    var zero_allocated = try zalloc(allocator, nbits);
+    defer free(allocator, &zero_allocated);
+    try std.testing.expect(zero_allocated != null);
+    try std.testing.expectEqual(bitsToWords(nbits), zero_allocated.?.len);
+    for (zero_allocated.?) |word| {
+        try std.testing.expectEqual(@as(Word, 0), word);
+    }
+
+    free(allocator, &zero_allocated);
+    try std.testing.expect(zero_allocated == null);
+
+    const empty_alloc = try alloc(allocator, 0);
+    try std.testing.expect(empty_alloc == null);
+    const empty_zalloc = try zalloc(allocator, 0);
+    try std.testing.expect(empty_zalloc == null);
 }
 
 test "bitmap set clear weight and empty full helpers" {
