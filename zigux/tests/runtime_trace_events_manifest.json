@@ -37,6 +37,13 @@
       "why_now": "A sample-backed lifecycle starter is the first honest runtime-facing trace-events step that can model event emission and callback registration without pretending full macro or thread parity exists."
     },
     {
+      "id": "runtime-trace-events-selftest-hook",
+      "status": "starter_landed",
+      "kind": "selftest_hook",
+      "zigux_destination": "samples/zigux/runtime_trace_events.zig",
+      "why_now": "The Phase 9 roadmap explicitly calls for selftest hooks, and the bounded runtime_trace_events sample already keeps that requirement reviewable through descriptor metadata plus runSelftest()."
+    },
+    {
       "id": "runtime-trace-events-module-tests",
       "status": "starter_landed",
       "kind": "validation",
