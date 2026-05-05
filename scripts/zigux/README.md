@@ -78,8 +78,8 @@ Phase 3 flow
 - `phase3_check_lib.py` holds the shared Phase 3 parity execution logic used by every wrapper and the shared runner.
 
 Phase 4 flow
-- `validate-phase4.py` checks that the bounded Phase 4 differential gates, the canonical `zigux/tests/atomic64_diff.zig` wrapper, their shared `zigux/tests/phase4_build.zig` entrypoint, and the directly coupled documentation and workflow markers stay aligned.
-- `zigux/tests/phase4_build.zig` runs the live `zigux/tests/atomic64_diff.zig` wrapper, `zigux/tests/bitmap_diff.zig` rollback-readiness gate, and `zigux/tests/phase4_bitmap_live_helper_replay.zig` helper-backed bitmap rollback replay together, while the wrapper keeps `zigux/tests/runtime_atomic64_diff.zig` as the single shared runtime-backed replay body that Phase 9 still imports directly.
+- `validate-phase4.py` checks that the bounded Phase 4 differential gates, the canonical `zigux/tests/atomic64_diff.zig` wrapper, the manifest-backed `zigux/tests/phase4_runtime_atomic64_diff_survey.zig` handoff survey, the helper-backed `zigux/tests/phase4_bitmap_live_helper_replay.zig` replay, their shared `zigux/tests/phase4_build.zig` entrypoint, and the directly coupled documentation and workflow markers stay aligned.
+- `zigux/tests/phase4_build.zig` runs the live `zigux/tests/atomic64_diff.zig` wrapper, `zigux/tests/phase4_runtime_atomic64_diff_survey.zig` reviewability gate, `zigux/tests/bitmap_diff.zig` rollback-readiness gate, and `zigux/tests/phase4_bitmap_live_helper_replay.zig` helper-backed bitmap rollback replay together, while the wrapper keeps `zigux/tests/runtime_atomic64_diff.zig` as the single shared runtime-backed replay body that Phase 9 still imports directly.
 - `Documentation/zigux/phase4-validation-matrix.md` keeps the current rollback owners, threshold posture, and lab or CI replay matrix explicit for the shipped Phase 4 gates.
 
 Phase 6 flow
