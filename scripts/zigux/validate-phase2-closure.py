@@ -31,11 +31,15 @@ PHASE2_TESTS_README_ALIGNMENT_REQUIRED_SOURCE_MARKERS = [
     'PHASE2_TESTS_README_ALIGNMENT_GATE=python3 scripts/zigux/check-phase2-tests-readme-alignment.py',
 ]
 PHASE2_MAKEFILE_RUN_COUNTS = {
+    'scripts/zigux/validate-phase2.py': 1,
+    'scripts/zigux/validate-phase2-closure.py': 1,
     'scripts/zigux/check-phase2-tests-readme-alignment.py': 1,
     'scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test': 1,
     'scripts/zigux/check-phase2-toolchain-pin-scope.py': 1,
 }
 PHASE2_WORKFLOW_RUN_COUNTS = {
+    'python3 scripts/zigux/validate-phase2.py': 1,
+    'python3 scripts/zigux/validate-phase2-closure.py': 1,
     'python3 scripts/zigux/check-phase2-tests-readme-alignment.py': 1,
     'python3 scripts/zigux/check-phase2-cross.py --target ${{ matrix.zig_target }}': 1,
     'python3 scripts/zigux/check-phase2-cross-selftest-alignment.py --self-test': 1,
@@ -47,11 +51,15 @@ PHASE2_WORKFLOW_RUN_COUNTS = {
 
 def run_self_test() -> int:
     make_ok = '\n'.join([
+        'cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase2.py',
+        'cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase2-closure.py',
         'cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-tests-readme-alignment.py',
         'cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test',
         'cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-toolchain-pin-scope.py',
     ])
     workflow_ok = '\n'.join([
+        'run: python3 scripts/zigux/validate-phase2.py',
+        'run: python3 scripts/zigux/validate-phase2-closure.py',
         'run: python3 scripts/zigux/check-phase2-tests-readme-alignment.py',
         'run: python3 scripts/zigux/check-phase2-cross.py --target ${{ matrix.zig_target }}',
         'run: python3 scripts/zigux/check-phase2-cross-selftest-alignment.py --self-test',
@@ -62,6 +70,22 @@ def run_self_test() -> int:
     cases = [
         ('make_ok', validate_exact_makefile_runs(make_ok), []),
         (
+            'make_duplicate_validate_phase2',
+            validate_exact_makefile_runs(
+                make_ok
+                + '\ncd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase2.py'
+            ),
+            ['make_exact_run:scripts/zigux/validate-phase2.py:count=2:expected=1'],
+        ),
+        (
+            'make_duplicate_validate_phase2_closure',
+            validate_exact_makefile_runs(
+                make_ok
+                + '\ncd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase2-closure.py'
+            ),
+            ['make_exact_run:scripts/zigux/validate-phase2-closure.py:count=2:expected=1'],
+        ),
+        (
             'make_duplicate_tests_readme_alignment',
             validate_exact_makefile_runs(
                 make_ok
@@ -70,6 +94,20 @@ def run_self_test() -> int:
             ['make_exact_run:scripts/zigux/check-phase2-tests-readme-alignment.py:count=2:expected=1'],
         ),
         ('workflow_ok', validate_exact_workflow_runs(workflow_ok), []),
+        (
+            'workflow_duplicate_validate_phase2',
+            validate_exact_workflow_runs(
+                workflow_ok + 'run: python3 scripts/zigux/validate-phase2.py\n'
+            ),
+            ['workflow_exact_run:python3 scripts/zigux/validate-phase2.py:count=2:expected=1'],
+        ),
+        (
+            'workflow_duplicate_validate_phase2_closure',
+            validate_exact_workflow_runs(
+                workflow_ok + 'run: python3 scripts/zigux/validate-phase2-closure.py\n'
+            ),
+            ['workflow_exact_run:python3 scripts/zigux/validate-phase2-closure.py:count=2:expected=1'],
+        ),
         (
             'workflow_duplicate_tests_readme_alignment',
             validate_exact_workflow_runs(
