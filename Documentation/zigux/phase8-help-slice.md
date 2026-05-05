@@ -18,7 +18,7 @@ This document tracks the bounded Phase 8 userspace-adjacent tooling slice for Zi
 
 The Phase 8 roadmap explicitly names `tools/lib/subcmd/help.c` as a userspace-adjacent tooling anchor and recommends `tools/lib/subcmd/*.zig` as the first Zigux destination for this tranche.
 
-This lane keeps the shipped `help.zig` starter slice aligned with the stable command-list manipulation logic from `help.c`, because that surface is still easier to validate honestly than terminal-size probing, directory walking, environment inspection, or output emission.
+This lane keeps the shipped `help.zig` starter slice aligned with the stable command-list manipulation, injected raw-`PATH` handling, terminal-dimensions resolution, and output-stable pretty-print emission already carved out of `help.c`, because those helper-first surfaces are still easier to validate honestly than direct directory walking, environment inspection, terminal probing, or a full `cmd_help()`-adjacent CLI surface.
 
 ## Gates
 
