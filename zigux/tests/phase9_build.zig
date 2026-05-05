@@ -31,6 +31,11 @@ pub fn build(b: *std.Build) void {
         .target = target,
         .optimize = optimize,
     });
+    const runtime_loader_facade_module = b.createModule(.{
+        .root_source_file = b.path("../kernel/runtime_loader.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
     const runtime_atomic64_sample_module = b.createModule(.{
         .root_source_file = b.path("../../samples/zigux/runtime_atomic64.zig"),
         .target = target,
@@ -237,6 +242,11 @@ pub fn build(b: *std.Build) void {
         .root_module = runtime_kretprobe_loader_module,
     });
     const run_runtime_kretprobe_loader_tests = b.addRunArtifact(runtime_kretprobe_loader_tests);
+    const runtime_loader_facade_tests = b.addTest(.{
+        .name = "phase9-runtime-loader-facade-tests",
+        .root_module = runtime_loader_facade_module,
+    });
+    const run_runtime_loader_facade_tests = b.addRunArtifact(runtime_loader_facade_tests);
     const runtime_loader_allocator_init_flow_tests = b.addTest(.{
         .name = "phase9-runtime-loader-allocator-init-flow-tests",
         .root_module = runtime_loader_allocator_init_flow_module,
@@ -264,7 +274,7 @@ pub fn build(b: *std.Build) void {
     });
     const run_runtime_kretprobe_survey_tests = b.addRunArtifact(runtime_kretprobe_survey_tests);
 
-    const test_step = b.step("test", "Run Phase 9 runtime atomic64, bitmap, trace-events, kretprobe, and allocator/init-flow contract tests");
+    const test_step = b.step("test", "Run Phase 9 runtime atomic64, bitmap, trace-events, kretprobe, runtime-loader facade, and allocator/init-flow contract tests");
     test_step.dependOn(&run_runtime_atomic64_sample_tests.step);
     test_step.dependOn(&run_runtime_atomic64_module_tests.step);
     test_step.dependOn(&run_runtime_atomic64_loader_tests.step);
@@ -281,6 +291,7 @@ pub fn build(b: *std.Build) void {
     test_step.dependOn(&run_runtime_kretprobe_module_tests.step);
     test_step.dependOn(&run_runtime_kretprobe_diff_tests.step);
     test_step.dependOn(&run_runtime_kretprobe_loader_tests.step);
+    test_step.dependOn(&run_runtime_loader_facade_tests.step);
     test_step.dependOn(&run_runtime_loader_allocator_init_flow_tests.step);
     test_step.dependOn(&run_runtime_atomic64_survey_tests.step);
     test_step.dependOn(&run_runtime_bitmap_survey_tests.step);
