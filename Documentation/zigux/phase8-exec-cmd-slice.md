@@ -30,8 +30,8 @@ The live repo had no Zig slice under `tools/lib/subcmd/`, so the most valuable b
 3. run the bundled Phase 8 tooling gate
 - `zig build test --build-file zigux/tests/phase8_build.zig --summary all`
 
-4. run the convenience target
-- `make -C zigux phase8`
+4. run the focused convenience target
+- `make -C zigux phase8-exec-cmd-test`
 
 ## Current parity surface
 
@@ -55,7 +55,7 @@ The current tests check:
 - `choosePwdCwd()` prefers `PWD` only when the caller proves it matches the physical cwd
 - prepared argv vectors start with the configured executable name and keep a trailing null terminator, including the empty-tail case
 - the pure `execl_cmd()` collector preserves the command head, stops at the first null terminator, and rejects the C helper's overflow shape before any real `execvp()` call exists
-- the focused `phase8_exec_cmd_only_build.zig` replay isolates the parked `exec-cmd` slice from the broader Phase 8 tooling packet when review needs a smaller build-backed proof
+- the focused `phase8_exec_cmd_only_build.zig` replay isolates the parked `exec-cmd` slice from the broader Phase 8 tooling packet when review needs a smaller build-backed proof, and the published `make -C zigux phase8-exec-cmd-test` wrapper now exposes that replay as a one-command route
 
 ## Non-goals
 
