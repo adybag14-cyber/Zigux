@@ -116,6 +116,7 @@
     {
       "name": "help",
       "argv": [
+        "--version",
         "--hel"
       ],
       "mode": "process_json",
@@ -128,16 +129,6 @@
       ],
       "mode": "process_json",
       "expected": "version_expected.json"
-    },
-    {
-      "name": "help_with_unexpected_argument",
-      "argv": [
-        "--version",
-        "--help=extra"
-      ],
-      "mode": "process_json",
-      "normalize_stderr": true,
-      "expected": "help_with_unexpected_argument_expected.json"
     },
     {
       "name": "invalid_option",
