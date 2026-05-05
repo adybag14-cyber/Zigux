@@ -134,6 +134,7 @@ def validate_doc_markers(root: Path, doc_path: Path, slug: str, manifest: dict[s
         issues.append(f"{slug}:missing_doc:{doc_path.relative_to(root).as_posix()}")
         return
     doc = doc_path.read_text(encoding="utf-8")
+    normalized_lines = Counter(_normalize_doc_marker_line(line) for line in doc.splitlines())
     required_markers = [
         "PHASE3_VALIDATE_GATE=python3 scripts/zigux/validate-phase3.py",
         "PHASE3_TEST_GATE=zig build phase3-test --build-file zigux/tests/build.zig",
@@ -142,12 +143,29 @@ def validate_doc_markers(root: Path, doc_path: Path, slug: str, manifest: dict[s
         required_markers.insert(0, f"PHASE3_STATUS={manifest.get('status')}")
         required_markers.insert(1, f"PHASE3_SLICE={manifest.get('slice')}")
     for marker in required_markers:
-        if marker not in doc:
+        marker_count = normalized_lines.get(marker, 0)
+        if marker_count == 0:
             issues.append(f"{slug}:missing_doc_marker={marker}")
+        elif marker_count != 1:
+            issues.append(f"{slug}:duplicate_doc_marker={marker}")
 
     interop_markers = [shared_runner_gate_for_slug(slug), legacy_wrapper_gate_for_slug(slug)]
-    if not any(marker in doc for marker in interop_markers):
+    interop_count = sum(normalized_lines.get(marker, 0) for marker in interop_markers)
+    if interop_count == 0:
         issues.append(f"{slug}:missing_doc_marker_one_of={'|'.join(interop_markers)}")
+    elif interop_count != 1:
+        issues.append(f"{slug}:duplicate_doc_marker_one_of={'|'.join(interop_markers)}")
+
+
+def _normalize_doc_marker_line(line: str) -> str:
+    normalized = line.strip()
+    if normalized.startswith("- "):
+        normalized = normalized[2:].lstrip()
+    if normalized.startswith("* "):
+        normalized = normalized[2:].lstrip()
+    if normalized.startswith("`") and normalized.endswith("`") and len(normalized) >= 2:
+        normalized = normalized[1:-1]
+    return normalized
 
 
 def validate_wrapper_template(root: Path, script_path: Path, slug: str, issues: list[str]) -> None:
@@ -514,6 +532,49 @@ def run_self_test() -> int:
         assert "alpha:missing_doc_marker=PHASE3_VALIDATE_GATE=python3 scripts/zigux/validate-phase3.py" in issues
         assert (
             "alpha:missing_doc_marker_one_of="
+            "PHASE3_INTEROP_GATE=python3 scripts/zigux/run-phase3-checks.py --slug alpha"
+            "|PHASE3_INTEROP_GATE=python3 scripts/zigux/check-phase3-alpha.py"
+        ) in issues
+
+        (paths.docs_dir / "phase3-alpha-slice.md").write_text(
+            "\n".join(
+                [
+                    "- `PHASE3_STATUS=ready`",
+                    "- `PHASE3_SLICE=alpha-slice`",
+                    "- `PHASE3_VALIDATE_GATE=python3 scripts/zigux/validate-phase3.py`",
+                    "- `PHASE3_VALIDATE_GATE=python3 scripts/zigux/validate-phase3.py`",
+                    "- `PHASE3_INTEROP_GATE=python3 scripts/zigux/run-phase3-checks.py --slug alpha`",
+                    "- `PHASE3_TEST_GATE=zig build phase3-test --build-file zigux/tests/build.zig`",
+                    "",
+                ]
+            ),
+            encoding="utf-8",
+            newline="\n",
+        )
+        issues = validate_slices(root, slices, check_artifact_diff=True)
+        assert (
+            "alpha:duplicate_doc_marker=PHASE3_VALIDATE_GATE=python3 scripts/zigux/validate-phase3.py"
+            in issues
+        )
+
+        (paths.docs_dir / "phase3-alpha-slice.md").write_text(
+            "\n".join(
+                [
+                    "- `PHASE3_STATUS=ready`",
+                    "- `PHASE3_SLICE=alpha-slice`",
+                    "- `PHASE3_VALIDATE_GATE=python3 scripts/zigux/validate-phase3.py`",
+                    "- `PHASE3_INTEROP_GATE=python3 scripts/zigux/run-phase3-checks.py --slug alpha`",
+                    "- `PHASE3_INTEROP_GATE=python3 scripts/zigux/check-phase3-alpha.py`",
+                    "- `PHASE3_TEST_GATE=zig build phase3-test --build-file zigux/tests/build.zig`",
+                    "",
+                ]
+            ),
+            encoding="utf-8",
+            newline="\n",
+        )
+        issues = validate_slices(root, slices, check_artifact_diff=True)
+        assert (
+            "alpha:duplicate_doc_marker_one_of="
             "PHASE3_INTEROP_GATE=python3 scripts/zigux/run-phase3-checks.py --slug alpha"
             "|PHASE3_INTEROP_GATE=python3 scripts/zigux/check-phase3-alpha.py"
         ) in issues
