@@ -52,6 +52,9 @@ For the active simple-driver contributor packet, confirm wording still matches:
 For the active shared-helper release packet, confirm wording still matches:
 - `Documentation/zigux/phase13-release-notes-survey.md`
 - `Documentation/zigux/phase13-roadmap-traceability.md`
+- `Documentation/zigux/phase13-libfs-survey.md`
+- `Documentation/zigux/phase13-landlock-ruleset-survey.md`
+- `Documentation/zigux/phase13-landlock-syscalls-survey.md`
 - `Documentation/zigux/phase13-notifier-list-survey.md`
 - `Documentation/zigux/phase13-devres-scatterlist-slice.md`
 - `scripts/zigux/check-phase13-libfs-packet.py`
@@ -66,5 +69,6 @@ Before closing a contributor-guidance change, ask:
 - Did a short-form companion note gain wording that the broad tests-root prompt still skips?
 - Did a checklist prompt keep an old replay count after the docs-root summary changed?
 - Did docs-root or scripts-root add a new replay, checker, manifest, or survey file that the shared contributor prompts still compress into older shorthand?
+- Did the live Phase 13 packet gain another helper-family survey note, such as libfs or a Landlock boundary, that the shared contributor guide still omits even though the docs root and checklist already surface it?
 
 If the answer is yes, finish the shared-surface sync before treating the packet as review-ready.
