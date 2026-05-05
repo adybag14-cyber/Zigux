@@ -168,6 +168,14 @@ def run_self_test() -> int:
         assert "tests_readme:x86_64-linux" in issues
 
         build_self_test_root(root)
+        write_text(
+            root / "Documentation/zigux/review-checklist.md",
+            "\n".join(REVIEW_CHECKLIST_MARKERS[1:]) + "\n",
+        )
+        issues = validate_root(root)
+        assert "review_checklist:scripts/zigux/check-phase2-tests-readme-alignment.py" in issues
+
+        build_self_test_root(root)
         (root / "scripts/zigux/check-phase2-tests-readme-alignment.py").unlink()
         issues = validate_root(root)
         assert "missing_file:scripts/zigux/check-phase2-tests-readme-alignment.py" in issues
@@ -188,7 +196,7 @@ def run_self_test() -> int:
         assert "missing_file:zigux/tests/fixtures/phase2_cross_targets.json" in issues
 
     print("PHASE2_TESTS_README_ALIGNMENT_SELF_TEST=pass")
-    print("PHASE2_TESTS_README_ALIGNMENT_SELF_TEST_CASE_COUNT=7")
+    print("PHASE2_TESTS_README_ALIGNMENT_SELF_TEST_CASE_COUNT=8")
     return 0
 
 
