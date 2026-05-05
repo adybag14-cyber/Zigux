@@ -124,6 +124,14 @@ That means `test "bitmap scnprintf reports full length while truncating the buff
 
 - `PHASE1_BITMAP_SCNPRINTF_TRUNCATION_REVIEW=helper-local bitmap.scnprintf truncation proof stays explicit through the direct bitmap test anchor because the shared Phase 1 parity fixture only locks the full rendered range string`
 
+The helper-local bitmap copy alias proof must also stay explicit through:
+
+- `tools/lib/bitmap.zig`
+
+That means `test "bitmap copy aliases preserve tail clearing and extension semantics"` stays present and review-visible whenever `bitmap_copy_clear_tail()` or `bitmap_copy_and_extend()` changes. This helper-local test is the bounded proof that the alias entrypoints preserve last-word tail masking and zero-filled extension instead of drifting away from `copyClearTail()` and `copyAndExtend()`.
+
+- `PHASE1_BITMAP_COPY_ALIAS_REVIEW=helper-local bitmap copy alias proof stays explicit through the direct bitmap test anchor so bitmap_copy_clear_tail and bitmap_copy_and_extend preserve tail masking and zero-filled extension semantics`
+
 ## Rollback
 
 Rollback owner:
