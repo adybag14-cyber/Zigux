@@ -87,8 +87,9 @@ Phase 8 notes
 - `Documentation/zigux/phase8-kallsyms-slice.md`
 - `Documentation/zigux/phase8-libbpf-cpu-mask-slice.md`
 - `Documentation/zigux/phase8-bpf-type-names-slice.md`
+- `Documentation/zigux/phase8-perf-buffer-poll-slice.md`
 - `Documentation/zigux/phase8-libbpf-segment-survey.md`
-- `zigux/tests/phase8_build.zig` and `make -C zigux phase8` now gate the current exec-cmd, help, kallsyms, libbpf cpu-mask, libbpf logging, libbpf pin-path, libbpf type-name, and segment-survey bundle together, so new Phase 8 tooling work should stay reviewable through that shared lane instead of widening into ad hoc per-slice checks.
+- `zigux/tests/phase8_build.zig` and `make -C zigux phase8` now gate the current exec-cmd, help, kallsyms, libbpf cpu-mask, libbpf logging, libbpf pin-path, libbpf type-name, libbpf perf-buffer-poll bookkeeping, and segment-survey bundle together, so new Phase 8 tooling work should stay reviewable through that shared lane instead of widening into ad hoc per-slice checks.
 - the current bounded Phase 8 decision is no longer whether `exec-cmd` still needs its pure `execl_cmd()` parity helper, whether `kallsyms.zig` still needs a direct parse wrapper, or whether `help.zig` still needs its pure pretty-print emission surface; those slices are now parked, so the next follow-up should come from the next helper-first libbpf segment or another still-active Phase 8 tooling slice.
 
 Phase 9 notes
