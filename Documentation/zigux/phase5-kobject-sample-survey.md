@@ -40,7 +40,7 @@ Until a bounded runtime substrate exists, the landed Phase 5 `samples/zigux/` re
 
 - model only the directory name, unnamed attribute group shape, integer-backed attributes, and lifecycle in memory
 - keep the Linux anchor path explicit in a descriptor or note
-- include a tiny self-check or manifest-backed replay for the registration, integer roundtrip, and teardown expectations that make the sample useful to reviewers
+- include a tiny self-check or manifest-backed replay for the registration, integer roundtrip, teardown expectations, and pre-registration access boundary that make the sample useful to reviewers
 - show ownership and lifetime boundaries clearly, especially `init()`, `registerAttributes()`, and `exit()`
 - keep sysfs creation, `kernel_kobj` integration, uevents, and module-registration claims out of scope unless a later lane lands the required substrate first
 
@@ -55,12 +55,14 @@ The sample intentionally stays small:
 - it keeps the Linux anchor path explicit in `KobjectExampleSample.descriptor()`
 - it models only the directory name, the unnamed attribute group shape, integer roundtrips, and the shared `baz` or `bar` dispatch path in memory
 - it uses a tiny `init()` -> `registerAttributes()` -> `showValue()` or `storeValue()` -> `exit()` lifecycle so ownership and teardown remain explicit
+- before `registerAttributes()`, the sample still reports zero active attributes and blocks `showValue()` or `storeValue()`, so the initialized-but-not-registered boundary stays as explicit as the exit boundary
 - it provides one bounded self-check through `runAnchorReplay()` instead of implying a runtime-ready sysfs or module implementation
 
 The exact checks currently recorded in `zigux/tests/phase5_kobject_example_manifest.json` and exercised through `zigux/tests/phase5_build.zig` are:
 
 - the in-memory sample keeps the Linux directory name `kobject_example` and an unnamed attribute group
 - `runAnchorReplay()` requires `init()` first, registers exactly three attributes, and leaves the sample in the `registered` stage
+- after `init()` but before `registerAttributes()`, `activeAttrCount()` stays zero and `showValue()` or `storeValue()` still return `InvalidLifecycleTransition`
 - storing `42` into `foo` renders back as `42\n`
 - `baz` and `bar` share the same show and store path while still rendering `7\n` and `-5\n` through their own attribute names
 - non-integer writes return `InvalidInteger`, and unknown attribute names remain explicit errors
@@ -71,7 +73,8 @@ The exact checks currently recorded in `zigux/tests/phase5_kobject_example_manif
 When a contributor updates `samples/zigux/kobject_example.zig` or its directly coupled Phase 5 test files, keep these prompts explicit:
 
 - does `KobjectExampleSample.descriptor()` still name `samples/kobject/kobject-example.c` and keep `requires_runtime_substrate = false` plus `provides_selfcheck = true`?
-- do `zigux/tests/phase5_kobject_example_manifest.json` and `zigux/tests/phase5_kobject_example_survey.zig` still describe the approved Phase 5 in-memory ownership-and-lifetime idiom: the exact registration, integer roundtrip, and shared `baz` and `bar` dispatch contract run through `zigux/tests/phase5_build.zig`?
+- do `zigux/tests/phase5_kobject_example_manifest.json` and `zigux/tests/phase5_kobject_example_survey.zig` still describe the approved Phase 5 in-memory ownership-and-lifetime idiom: the exact registration, integer roundtrip, shared `baz` and `bar` dispatch, and pre-registration access boundary run through `zigux/tests/phase5_build.zig`?
+- do the manifest prompts still keep the initialized-but-not-registered zero-active-attributes plus no-show-or-store boundary explicit before `registerAttributes()` opens the sample?
 - do the manifest prompts and exact checks still keep the unnamed attribute group shape plus the post-`exit()` show or store rejection boundary explicit instead of implying sysfs registration?
 - if the sample behavior changes, is the manifest updated alongside the registration and lifecycle contract instead of leaving reviewers to infer the new boundary from code alone?
 - do the docs and tests still say clearly that sysfs creation, `kernel_kobj` integration, uevents, and loadable module registration remain out of scope for this Phase 5 sample?
@@ -80,7 +83,7 @@ When a contributor updates `samples/zigux/kobject_example.zig` or its directly c
 
 The current gap is not "Zigux has no kobject sample guidance." The more precise remaining job is:
 
-- the repo now has a reviewable Phase 5 `kobject_example` sample plus manifest-backed checks for registration, dispatch, parse failures, and teardown
+- the repo now has a reviewable Phase 5 `kobject_example` sample plus manifest-backed checks for registration, pre-registration access blocking, dispatch, parse failures, and teardown
 - contributor guidance still needs to keep the approved Phase 5 in-memory ownership-and-lifetime idiom visibly separate from real sysfs or module substrate claims
 - the broader roadmap still expects the last Phase 5 reference-sample anchor, so this sample must stay explicit about its own boundary rather than implying the whole tranche is done
 
