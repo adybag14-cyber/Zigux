@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 from __future__ import annotations
 
+import argparse
 from pathlib import Path
 import json
 import sys
@@ -37,6 +38,51 @@ PHASE2_MAKEFILE_RUN_COUNTS = {
 PHASE2_WORKFLOW_RUN_COUNTS = {
     'python3 scripts/zigux/check-phase2-tests-readme-alignment.py': 1,
 }
+
+
+def run_self_test() -> int:
+    make_ok = '\n'.join([
+        'cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-tests-readme-alignment.py',
+        'cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test',
+        'cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-toolchain-pin-scope.py',
+    ])
+    workflow_ok = 'run: python3 scripts/zigux/check-phase2-tests-readme-alignment.py\n'
+    cases = [
+        ('make_ok', validate_exact_makefile_runs(make_ok), []),
+        (
+            'make_duplicate_tests_readme_alignment',
+            validate_exact_makefile_runs(
+                make_ok
+                + '\ncd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-tests-readme-alignment.py'
+            ),
+            ['make_exact_run:scripts/zigux/check-phase2-tests-readme-alignment.py:count=2:expected=1'],
+        ),
+        ('workflow_ok', validate_exact_workflow_runs(workflow_ok), []),
+        (
+            'workflow_duplicate_tests_readme_alignment',
+            validate_exact_workflow_runs(
+                workflow_ok + 'run: python3 scripts/zigux/check-phase2-tests-readme-alignment.py\n'
+            ),
+            ['workflow_exact_run:python3 scripts/zigux/check-phase2-tests-readme-alignment.py:count=2:expected=1'],
+        ),
+    ]
+
+    failures: list[str] = []
+    for name, actual, expected in cases:
+        if actual != expected:
+            failures.append(f'{name}:expected={expected}:actual={actual}')
+
+    if failures:
+        print('PHASE2_CLOSURE_SELF_TEST=fail')
+        print('PHASE2_CLOSURE_SELF_TEST_FAILURES_START')
+        for failure in failures:
+            print(failure)
+        print('PHASE2_CLOSURE_SELF_TEST_FAILURES_END')
+        return 1
+
+    print('PHASE2_CLOSURE_SELF_TEST=pass')
+    print(f'PHASE2_CLOSURE_SELF_TEST_CASE_COUNT={len(cases)}')
+    return 0
 
 required_files = [
     ROOT / 'Documentation' / 'zigux' / 'phase2-closure.md',
@@ -133,161 +179,173 @@ def validate_exact_workflow_runs(text: str) -> list[str]:
     return issues
 
 
-missing = [str(path.relative_to(ROOT)) for path in required_files if not path.exists()]
-if missing:
-    print('PHASE2_CLOSURE_VALIDATION=fail')
-    print('MISSING_PHASE2_CLOSURE_FILES_START')
-    for item in missing:
-        print(item)
-    print('MISSING_PHASE2_CLOSURE_FILES_END')
-    sys.exit(1)
+def main() -> int:
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--self-test', action='store_true')
+    args = parser.parse_args()
 
-genksyms_cases_payload = load_json_object(GENKSYMS_CASES, label='genksyms_cases')
-genksyms_expected_files, genksyms_case_issues = collect_genksyms_expected_files(
-    genksyms_cases_payload
-)
-if genksyms_case_issues:
-    print('PHASE2_CLOSURE_VALIDATION=fail')
-    print('MISSING_PHASE2_CLOSURE_MARKERS_START')
-    for item in genksyms_case_issues:
-        print(item)
-    print('MISSING_PHASE2_CLOSURE_MARKERS_END')
-    sys.exit(1)
+    if args.self_test:
+        return run_self_test()
+    missing = [str(path.relative_to(ROOT)) for path in required_files if not path.exists()]
+    if missing:
+        print('PHASE2_CLOSURE_VALIDATION=fail')
+        print('MISSING_PHASE2_CLOSURE_FILES_START')
+        for item in missing:
+            print(item)
+        print('MISSING_PHASE2_CLOSURE_FILES_END')
+        return 1
 
-missing_genksyms_expected = [
-    str(path.relative_to(ROOT)) for path in genksyms_expected_files if not path.exists()
-]
-if missing_genksyms_expected:
-    print('PHASE2_CLOSURE_VALIDATION=fail')
-    print('MISSING_PHASE2_CLOSURE_FILES_START')
-    for item in missing_genksyms_expected:
-        print(item)
-    print('MISSING_PHASE2_CLOSURE_FILES_END')
-    sys.exit(1)
+    genksyms_cases_payload = load_json_object(GENKSYMS_CASES, label='genksyms_cases')
+    genksyms_expected_files, genksyms_case_issues = collect_genksyms_expected_files(
+        genksyms_cases_payload
+    )
+    if genksyms_case_issues:
+        print('PHASE2_CLOSURE_VALIDATION=fail')
+        print('MISSING_PHASE2_CLOSURE_MARKERS_START')
+        for item in genksyms_case_issues:
+            print(item)
+        print('MISSING_PHASE2_CLOSURE_MARKERS_END')
+        return 1
 
-closure = (ROOT / 'Documentation' / 'zigux' / 'phase2-closure.md').read_text(encoding='utf-8')
-workflow = (ROOT / '.github' / 'workflows' / 'zigux-bootstrap.yml').read_text(encoding='utf-8')
-ledger = (ROOT / 'zigux-alpha' / 'BOOTSTRAP_COMMIT_LEDGER.md').read_text(encoding='utf-8')
-script_readme = (ROOT / 'scripts' / 'zigux' / 'README.md').read_text(encoding='utf-8')
-artifact_doc = (ROOT / 'Documentation' / 'zigux' / 'artifact-diff.md').read_text(encoding='utf-8')
-makefile = (ROOT / 'zigux' / 'Makefile').read_text(encoding='utf-8')
-tool_manifest = json.loads((ROOT / 'zigux' / 'tests' / 'fixtures' / 'phase2_tool_manifest.json').read_text(encoding='utf-8'))
-targets_manifest = json.loads((ROOT / 'zigux' / 'tests' / 'fixtures' / 'phase2_cross_targets.json').read_text(encoding='utf-8'))
+    missing_genksyms_expected = [
+        str(path.relative_to(ROOT)) for path in genksyms_expected_files if not path.exists()
+    ]
+    if missing_genksyms_expected:
+        print('PHASE2_CLOSURE_VALIDATION=fail')
+        print('MISSING_PHASE2_CLOSURE_FILES_START')
+        for item in missing_genksyms_expected:
+            print(item)
+        print('MISSING_PHASE2_CLOSURE_FILES_END')
+        return 1
 
-required_closure_markers = [
-    'PHASE2_STATUS=closed',
-    'PHASE2_TOOL_COUNT=6',
-    'PHASE2_CROSS_TARGET_COUNT=3',
-    'PHASE2_GENKSYMS_BRIDGE_GATE=python3 scripts/zigux/check-genksyms-bridge.py',
-    'PHASE2_KCONFIG_BRIDGE_GATE=python3 scripts/zigux/check-kconfig-bridge.py',
-    'PHASE2_CROSS_SELF_TEST=python3 scripts/zigux/check-phase2-cross.py --self-test',
-    'PHASE2_CROSS_GATE=python3 scripts/zigux/check-phase2-cross.py',
-    'PHASE2_CROSS_MANIFEST_POLICY=check-phase2-cross.py rejects duplicate tool entries, duplicate requested targets, unexpected explicit targets, duplicate manifest targets, and manifest-count drift before live compile replay',
-    'PHASE2_TOOLCHAIN_PIN_SCOPE_POLICY=scripts/zigux/zig-toolchain-policy.json',
-    'scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test',
-    'scripts/zigux/check-phase2-toolchain-pin-scope.py',
-    'x86_64-linux',
-    'PHASE2_CLOSURE_GATE=python3 scripts/zigux/validate-phase2-closure.py',
-    'PHASE2_ROLLBACK=keep C kbuild tools authoritative and remove failing Zigux bridge/tool from workflow wiring',
-]
-required_closure_markers.extend(PHASE2_CROSS_ALIGNMENT_REQUIRED_SOURCE_MARKERS)
-required_closure_markers.extend(PHASE2_TOOLCHAIN_PIN_SCOPE_REQUIRED_SOURCE_MARKERS)
-required_closure_markers.extend(PHASE2_TESTS_README_ALIGNMENT_REQUIRED_SOURCE_MARKERS)
-required_workflow_markers = [
-    'python3 scripts/zigux/check-genksyms-bridge.py',
-    'python3 scripts/zigux/check-kconfig-bridge.py',
-    'python3 scripts/zigux/check-phase2-tests-readme-alignment.py',
-    'python3 scripts/zigux/check-phase2-cross.py --target',
-    'python3 scripts/zigux/validate-phase2-closure.py',
-    'zig test scripts/zigux/genksyms.zig',
-    'zig test scripts/zigux/kconfig/conf_bridge.zig',
-    'zig test scripts/zigux/kconfig/confdata_bridge.zig',
-]
-required_ledger_markers = [
-    'feat(scripts/zigux): add bounded Phase 2 genksyms wrapper lane',
-    'ci(zigux): widen Phase 2 closure matrix',
-    'docs(zigux): reopen and close broadened Phase 2 tranche',
-    'feat(scripts/zigux): add bounded Phase 2 kconfig bridge scaffolding',
-    'ci(zigux): add Phase 2 cross-arch build matrix',
-    'docs(zigux): close bounded Phase 2 toolchain tranche',
-]
-required_readme_markers = [
-    'check-genksyms-bridge.py',
-    'check-kconfig-bridge.py',
-    'check-phase2-cross.py',
-    'genksyms.zig',
-    'kconfig/conf_bridge.zig',
-    'kconfig/confdata_bridge.zig',
-]
-required_doc_markers = [
-    'genksyms_bridge',
-    'kconfig_bridge',
-    'phase2_cross_targets.json',
-]
-required_makefile_markers = [
-    'phase2-validate:',
-    'phase2-kconfig:',
-    'phase2-cross:',
-    'check-phase2-tests-readme-alignment.py',
-    'check-phase2-cross-selftest-alignment.py --self-test',
-    'check-phase2-cross-selftest-alignment.py',
-    'check-phase2-toolchain-pin-scope.py --self-test',
-    'check-phase2-toolchain-pin-scope.py',
-    'check-genksyms-bridge.py',
-    '$(ZIG) test scripts/zigux/genksyms.zig',
-]
+    closure = (ROOT / 'Documentation' / 'zigux' / 'phase2-closure.md').read_text(encoding='utf-8')
+    workflow = (ROOT / '.github' / 'workflows' / 'zigux-bootstrap.yml').read_text(encoding='utf-8')
+    ledger = (ROOT / 'zigux-alpha' / 'BOOTSTRAP_COMMIT_LEDGER.md').read_text(encoding='utf-8')
+    script_readme = (ROOT / 'scripts' / 'zigux' / 'README.md').read_text(encoding='utf-8')
+    artifact_doc = (ROOT / 'Documentation' / 'zigux' / 'artifact-diff.md').read_text(encoding='utf-8')
+    makefile = (ROOT / 'zigux' / 'Makefile').read_text(encoding='utf-8')
+    tool_manifest = json.loads((ROOT / 'zigux' / 'tests' / 'fixtures' / 'phase2_tool_manifest.json').read_text(encoding='utf-8'))
+    targets_manifest = json.loads((ROOT / 'zigux' / 'tests' / 'fixtures' / 'phase2_cross_targets.json').read_text(encoding='utf-8'))
 
-missing_markers = []
-for marker in required_closure_markers:
-    if marker not in closure:
-        missing_markers.append(f'closure:{marker}')
-for marker in required_workflow_markers:
-    if marker not in workflow:
-        missing_markers.append(f'workflow:{marker}')
-for marker in required_ledger_markers:
-    if marker not in ledger:
-        missing_markers.append(f'ledger:{marker}')
-for marker in required_readme_markers:
-    if marker not in script_readme:
-        missing_markers.append(f'scripts:{marker}')
-for marker in required_doc_markers:
-    if marker not in artifact_doc:
-        missing_markers.append(f'doc:{marker}')
-for marker in required_makefile_markers:
-    if marker not in makefile:
-        missing_markers.append(f'make:{marker}')
-missing_markers.extend(validate_exact_makefile_runs(makefile))
-missing_markers.extend(validate_exact_workflow_runs(workflow))
+    required_closure_markers = [
+        'PHASE2_STATUS=closed',
+        'PHASE2_TOOL_COUNT=6',
+        'PHASE2_CROSS_TARGET_COUNT=3',
+        'PHASE2_GENKSYMS_BRIDGE_GATE=python3 scripts/zigux/check-genksyms-bridge.py',
+        'PHASE2_KCONFIG_BRIDGE_GATE=python3 scripts/zigux/check-kconfig-bridge.py',
+        'PHASE2_CROSS_SELF_TEST=python3 scripts/zigux/check-phase2-cross.py --self-test',
+        'PHASE2_CROSS_GATE=python3 scripts/zigux/check-phase2-cross.py',
+        'PHASE2_CROSS_MANIFEST_POLICY=check-phase2-cross.py rejects duplicate tool entries, duplicate requested targets, unexpected explicit targets, duplicate manifest targets, and manifest-count drift before live compile replay',
+        'PHASE2_TOOLCHAIN_PIN_SCOPE_POLICY=scripts/zigux/zig-toolchain-policy.json',
+        'scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test',
+        'scripts/zigux/check-phase2-toolchain-pin-scope.py',
+        'x86_64-linux',
+        'PHASE2_CLOSURE_GATE=python3 scripts/zigux/validate-phase2-closure.py',
+        'PHASE2_ROLLBACK=keep C kbuild tools authoritative and remove failing Zigux bridge/tool from workflow wiring',
+    ]
+    required_closure_markers.extend(PHASE2_CROSS_ALIGNMENT_REQUIRED_SOURCE_MARKERS)
+    required_closure_markers.extend(PHASE2_TOOLCHAIN_PIN_SCOPE_REQUIRED_SOURCE_MARKERS)
+    required_closure_markers.extend(PHASE2_TESTS_README_ALIGNMENT_REQUIRED_SOURCE_MARKERS)
+    required_workflow_markers = [
+        'python3 scripts/zigux/check-genksyms-bridge.py',
+        'python3 scripts/zigux/check-kconfig-bridge.py',
+        'python3 scripts/zigux/check-phase2-tests-readme-alignment.py',
+        'python3 scripts/zigux/check-phase2-cross.py --target',
+        'python3 scripts/zigux/validate-phase2-closure.py',
+        'zig test scripts/zigux/genksyms.zig',
+        'zig test scripts/zigux/kconfig/conf_bridge.zig',
+        'zig test scripts/zigux/kconfig/confdata_bridge.zig',
+    ]
+    required_ledger_markers = [
+        'feat(scripts/zigux): add bounded Phase 2 genksyms wrapper lane',
+        'ci(zigux): widen Phase 2 closure matrix',
+        'docs(zigux): reopen and close broadened Phase 2 tranche',
+        'feat(scripts/zigux): add bounded Phase 2 kconfig bridge scaffolding',
+        'ci(zigux): add Phase 2 cross-arch build matrix',
+        'docs(zigux): close bounded Phase 2 toolchain tranche',
+    ]
+    required_readme_markers = [
+        'check-genksyms-bridge.py',
+        'check-kconfig-bridge.py',
+        'check-phase2-cross.py',
+        'genksyms.zig',
+        'kconfig/conf_bridge.zig',
+        'kconfig/confdata_bridge.zig',
+    ]
+    required_doc_markers = [
+        'genksyms_bridge',
+        'kconfig_bridge',
+        'phase2_cross_targets.json',
+    ]
+    required_makefile_markers = [
+        'phase2-validate:',
+        'phase2-kconfig:',
+        'phase2-cross:',
+        'check-phase2-tests-readme-alignment.py',
+        'check-phase2-cross-selftest-alignment.py --self-test',
+        'check-phase2-cross-selftest-alignment.py',
+        'check-phase2-toolchain-pin-scope.py --self-test',
+        'check-phase2-toolchain-pin-scope.py',
+        'check-genksyms-bridge.py',
+        '$(ZIG) test scripts/zigux/genksyms.zig',
+    ]
 
-if tool_manifest.get('phase') != 'Phase 2':
-    missing_markers.append('manifest:phase=Phase 2')
-if tool_manifest.get('status') != 'closed':
-    missing_markers.append('manifest:status=closed')
-if tool_manifest.get('tool_count') != 6:
-    missing_markers.append('manifest:tool_count=6')
-if len(tool_manifest.get('tools', [])) != 6:
-    missing_markers.append(f'manifest:tools_len={len(tool_manifest.get("tools", []))}')
-for rel in tool_manifest.get('tools', []):
-    if not (ROOT / rel).exists():
-        missing_markers.append(f'manifest_file:{rel}')
+    missing_markers = []
+    for marker in required_closure_markers:
+        if marker not in closure:
+            missing_markers.append(f'closure:{marker}')
+    for marker in required_workflow_markers:
+        if marker not in workflow:
+            missing_markers.append(f'workflow:{marker}')
+    for marker in required_ledger_markers:
+        if marker not in ledger:
+            missing_markers.append(f'ledger:{marker}')
+    for marker in required_readme_markers:
+        if marker not in script_readme:
+            missing_markers.append(f'scripts:{marker}')
+    for marker in required_doc_markers:
+        if marker not in artifact_doc:
+            missing_markers.append(f'doc:{marker}')
+    for marker in required_makefile_markers:
+        if marker not in makefile:
+            missing_markers.append(f'make:{marker}')
+    missing_markers.extend(validate_exact_makefile_runs(makefile))
+    missing_markers.extend(validate_exact_workflow_runs(workflow))
 
-if targets_manifest.get('phase') != 'Phase 2':
-    missing_markers.append('targets:phase=Phase 2')
-if targets_manifest.get('status') != 'closed':
-    missing_markers.append('targets:status=closed')
-if targets_manifest.get('target_count') != 3:
-    missing_markers.append('targets:target_count=3')
-if len(targets_manifest.get('targets', [])) != 3:
-    missing_markers.append(f'targets:len={len(targets_manifest.get("targets", []))}')
+    if tool_manifest.get('phase') != 'Phase 2':
+        missing_markers.append('manifest:phase=Phase 2')
+    if tool_manifest.get('status') != 'closed':
+        missing_markers.append('manifest:status=closed')
+    if tool_manifest.get('tool_count') != 6:
+        missing_markers.append('manifest:tool_count=6')
+    if len(tool_manifest.get('tools', [])) != 6:
+        missing_markers.append(f'manifest:tools_len={len(tool_manifest.get("tools", []))}')
+    for rel in tool_manifest.get('tools', []):
+        if not (ROOT / rel).exists():
+            missing_markers.append(f'manifest_file:{rel}')
 
-if missing_markers:
-    print('PHASE2_CLOSURE_VALIDATION=fail')
-    print('MISSING_PHASE2_CLOSURE_MARKERS_START')
-    for marker in missing_markers:
-        print(marker)
-    print('MISSING_PHASE2_CLOSURE_MARKERS_END')
-    sys.exit(1)
+    if targets_manifest.get('phase') != 'Phase 2':
+        missing_markers.append('targets:phase=Phase 2')
+    if targets_manifest.get('status') != 'closed':
+        missing_markers.append('targets:status=closed')
+    if targets_manifest.get('target_count') != 3:
+        missing_markers.append('targets:target_count=3')
+    if len(targets_manifest.get('targets', [])) != 3:
+        missing_markers.append(f'targets:len={len(targets_manifest.get("targets", []))}')
 
-print('PHASE2_CLOSURE_VALIDATION=pass')
-print(f'PHASE2_CLOSURE_REQUIRED_FILE_COUNT={len(required_files) + len(genksyms_expected_files)}')
-print(f'PHASE2_CLOSURE_REQUIRED_MARKER_COUNT={len(required_closure_markers) + len(required_workflow_markers) + len(required_ledger_markers) + len(required_readme_markers) + len(required_doc_markers) + len(required_makefile_markers)}')
+    if missing_markers:
+        print('PHASE2_CLOSURE_VALIDATION=fail')
+        print('MISSING_PHASE2_CLOSURE_MARKERS_START')
+        for marker in missing_markers:
+            print(marker)
+        print('MISSING_PHASE2_CLOSURE_MARKERS_END')
+        return 1
+
+    print('PHASE2_CLOSURE_VALIDATION=pass')
+    print(f'PHASE2_CLOSURE_REQUIRED_FILE_COUNT={len(required_files) + len(genksyms_expected_files)}')
+    print(f'PHASE2_CLOSURE_REQUIRED_MARKER_COUNT={len(required_closure_markers) + len(required_workflow_markers) + len(required_ledger_markers) + len(required_readme_markers) + len(required_doc_markers) + len(required_makefile_markers)}')
+    return 0
+
+
+if __name__ == '__main__':
+    sys.exit(main())
