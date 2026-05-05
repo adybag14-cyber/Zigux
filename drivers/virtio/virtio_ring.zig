@@ -79,6 +79,23 @@ pub const BrokenQueueSummary = struct {
     outstanding_chain_count: u16,
 };
 
+pub const QueueResetSummary = struct {
+    anchor: []const u8,
+    queue_index: u16,
+    descriptor_count: u16,
+    layout: QueueLayout,
+    uses_event_idx: bool,
+    uses_indirect_descriptors: bool,
+    callback_enabled: bool,
+    avail_idx_shadow: u16,
+    last_used_idx: u16,
+    last_polled_used_idx: u16,
+    outstanding_chain_count: u16,
+    unpublished_chain_count: u16,
+    pending_used_chain_count: u16,
+    notification_count: usize,
+};
+
 pub const VirtioRingLab = struct {
     const Self = @This();
     const QueueSlot = struct {
@@ -181,7 +198,6 @@ pub const VirtioRingLab = struct {
     pub fn pollUsedBuffers(self: *Self, queue_index: u16) !UsedBufferPollSummary {
         const slot = try self.checkedQueueSlot(queue_index);
         if (slot.broken) return error.QueueBroken;
-
         const previous_poll_idx = slot.last_polled_used_idx;
         const newly_used_chain_count = slot.last_used_idx -% previous_poll_idx;
 
@@ -206,7 +222,6 @@ pub const VirtioRingLab = struct {
     pub fn enableCallback(self: *Self, queue_index: u16) !CallbackEnableSummary {
         const slot = try self.checkedQueueSlot(queue_index);
         if (slot.broken) return error.QueueBroken;
-
         slot.callback_enabled = true;
 
         const pending_used_chain_count = slot.last_used_idx -% slot.last_polled_used_idx;
@@ -224,7 +239,6 @@ pub const VirtioRingLab = struct {
     pub fn enableCallbackDelayed(self: *Self, queue_index: u16) !DelayedCallbackSummary {
         const slot = try self.checkedQueueSlot(queue_index);
         if (slot.broken) return error.QueueBroken;
-
         slot.callback_enabled = true;
 
         const pending_used_chain_count = slot.last_used_idx -% slot.last_polled_used_idx;
@@ -240,6 +254,39 @@ pub const VirtioRingLab = struct {
             .delayed_event_target_idx = slot.last_used_idx +% delay_budget_count,
             .pending_used_chain_count = pending_used_chain_count,
             .should_poll = pending_used_chain_count > delay_budget_count,
+        };
+    }
+
+    pub fn resetQueue(self: *Self, queue_index: u16) !QueueResetSummary {
+        const slot = try self.checkedQueueSlot(queue_index);
+        const pending_used_chain_count = slot.last_used_idx -% slot.last_polled_used_idx;
+
+        if (slot.broken) return error.QueueResetWhileBroken;
+        if (slot.num_added != 0) return error.QueueResetHasUnpublishedChains;
+        if (slot.outstanding_chain_count != 0) return error.QueueResetHasOutstandingChains;
+        if (pending_used_chain_count != 0) return error.QueueResetHasUnpolledUsedChains;
+
+        slot.avail_idx_shadow = 0;
+        slot.last_used_idx = 0;
+        slot.last_polled_used_idx = 0;
+        slot.callback_enabled = true;
+        slot.notification_count = 0;
+
+        return .{
+            .anchor = descriptor().anchor,
+            .queue_index = queue_index,
+            .descriptor_count = slot.descriptor_count,
+            .layout = slot.layout,
+            .uses_event_idx = slot.uses_event_idx,
+            .uses_indirect_descriptors = slot.uses_indirect_descriptors,
+            .callback_enabled = slot.callback_enabled,
+            .avail_idx_shadow = slot.avail_idx_shadow,
+            .last_used_idx = slot.last_used_idx,
+            .last_polled_used_idx = slot.last_polled_used_idx,
+            .outstanding_chain_count = slot.outstanding_chain_count,
+            .unpublished_chain_count = slot.num_added,
+            .pending_used_chain_count = 0,
+            .notification_count = slot.notification_count,
         };
     }
 
