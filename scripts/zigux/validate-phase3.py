@@ -330,7 +330,21 @@ def run_self_test() -> int:
         )
         abi_issues = []
         validate_manifest(root, abi_manifest_path, "abi", abi_issues)
+        validate_low_level_wrapper_markers(root, "abi", abi_issues)
         assert abi_issues == []
+        (paths.tests_dir / "phase3_low_level_wrappers.zig").write_text(
+            "\n".join(LOW_LEVEL_WRAPPER_REQUIRED_MARKERS[:-1]) + "\n",
+            encoding="utf-8",
+            newline="\n",
+        )
+        marker_issues: list[str] = []
+        validate_low_level_wrapper_markers(root, "abi", marker_issues)
+        assert marker_issues == [f"abi:missing_low_level_wrapper_marker={LOW_LEVEL_WRAPPER_REQUIRED_MARKERS[-1]}"]
+        (paths.tests_dir / "phase3_low_level_wrappers.zig").write_text(
+            "\n".join([*LOW_LEVEL_WRAPPER_REQUIRED_MARKERS, ""]),
+            encoding="utf-8",
+            newline="\n",
+        )
         (paths.docs_dir / "phase3-alpha-slice.md").write_text(
             "\n".join(
                 [
@@ -377,19 +391,6 @@ def run_self_test() -> int:
         else:
             raise AssertionError("expected missing slug to fail")
         assert validate_slices(root, slices, check_artifact_diff=True) == []
-
-        (paths.tests_dir / "phase3_low_level_wrappers.zig").write_text(
-            "\n".join(LOW_LEVEL_WRAPPER_REQUIRED_MARKERS[:-1]) + "\n",
-            encoding="utf-8",
-            newline="\n",
-        )
-        issues = validate_slices(root, slices, check_artifact_diff=False)
-        assert f"abi:missing_low_level_wrapper_marker={LOW_LEVEL_WRAPPER_REQUIRED_MARKERS[-1]}" in issues
-        (paths.tests_dir / "phase3_low_level_wrappers.zig").write_text(
-            "\n".join([*LOW_LEVEL_WRAPPER_REQUIRED_MARKERS, ""]),
-            encoding="utf-8",
-            newline="\n",
-        )
 
         paths.scripts_dir.joinpath("check-phase3-alpha.py").unlink()
         assert validate_slices(root, slices, check_artifact_diff=True) == []
@@ -524,7 +525,7 @@ def run_self_test() -> int:
         loop_fixture_dir = paths.fixtures_dir / "phase3_loop_window_policy_budget_window_policy_budget_window_policy_budget_window_policy"
         loop_fixture_dir.mkdir(parents=True, exist_ok=True)
         loop_manifest_rel = f"{loop_fixture_dir.relative_to(root).as_posix()}/expected.json"
-        (loop_fixture_dir / "phase3_loop_window_policy_budget_window_policy_budget_window_policy_budget_window_policy_manifest.json").write_text(
+        (loop_fixture_dir / "phase3_loop_window_policy_budget_window_policy_budget_window_POLICY_budget_window_policy_manifest.json").write_text(
             json.dumps(
                 {
                     "phase": "Phase 3",
