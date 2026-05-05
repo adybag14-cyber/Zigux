@@ -32,6 +32,7 @@ The live repo originally had no matching trace-events survey artifact, no dedica
 - the repo had zero `zigux/tests/runtime_trace_events*` files before this survey landed.
 - the repo now carries `samples/zigux/runtime_trace_events.zig`, `samples/zigux/runtime_trace_events_loader.zig`, `zigux/tests/runtime_trace_events_module.zig`, the survey manifest and gate, and shared `zigux/tests/phase9_build.zig` coverage for the trace-events starter lane.
 - the current bounded starter now exports a stable `RuntimeTraceEventsSummary`, and the focused diff gate uses that summary to keep the concrete main-thread payload literals, function-callback payload labels, and selftest totals machine-checkable without reaching back into raw payload-only state.
+- the current bounded starter still advertises `requires_runtime_substrate=true` and `provides_selftest_hook=true`, so the roadmap's selftest-hook requirement stays explicit in the sample descriptor while the pilot remains an in-memory starter.
 - the current loader scaffold now records explicit tracepoint register and unregister API names, the prepared handoff-stage summary, a prepared snapshot that stays stable even if later sample replay mutates local counters before runtime handoff, and the no-substrate release path without claiming a real shared runtime loader already exists.
 - the live repo now also carries `zigux/kernel/runtime_loader.zig` as the shared request surface for the bounded Phase 9 loader-handoff packet, but the trace-events starter still stops at the sample-side loader scaffold and the no-substrate release path instead of claiming a real module-loading substrate.
 
@@ -42,6 +43,7 @@ The manifest started as a survey-only inventory and now records:
 - the landed `phase9-build-gate`
 - the landed `runtime-trace-events-survey-gate`
 - the landed `runtime-trace-events-sample-module` starter
+- the landed `runtime-trace-events-selftest-hook`
 - the landed `runtime-trace-events-module-tests`
 - the landed `runtime-trace-events-diff-gate`
 - the landed `runtime-trace-events-loader-scaffold`
