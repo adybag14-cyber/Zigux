@@ -35,11 +35,15 @@ REQUIRED_SCRIPT_README_MARKERS = [
     "`zigux/tests/phase12_build.zig`",
     "Documentation/zigux/phase12-nvme-pci-raw-github-fallback-map.md",
     "`check-build-only-phase12-surface.py --self-test` and `check-build-only-phase12-surface.py` keep the docs-root, scripts-root, tests-root, and Makefile build-only contract fail-closed while `.github/workflows/zigux-bootstrap.yml` reruns that same self-test plus the live checker in CI.",
+    "`make -C zigux phase12-smoke`",
+    "`zig build smoke --build-file zigux/tests/phase12_build.zig --summary all`",
     "there is no dedicated shared `validate-phase12.py`, `check-phase12-*.py`, or `phase12-validate` target on `master`",
 ]
 
 REQUIRED_SCRIPT_README_EXACT_COUNTS = {
     "`zigux/tests/README.md`, `scripts/zigux/check-build-only-phase12-surface.py`, `.github/workflows/zigux-bootstrap.yml`, `zigux/tests/phase12_build.zig`, `zigux/Makefile`": 1,
+    "`make -C zigux phase12-smoke`": 1,
+    "`zig build smoke --build-file zigux/tests/phase12_build.zig --summary all`": 1,
 }
 
 REQUIRED_DOCS_README_MARKERS = [
@@ -348,6 +352,7 @@ Phase 12 flow
 - `zigux/tests/phase12_build.zig`
 - Documentation/zigux/phase12-nvme-pci-raw-github-fallback-map.md
 - `check-build-only-phase12-surface.py --self-test` and `check-build-only-phase12-surface.py` keep the docs-root, scripts-root, tests-root, and Makefile build-only contract fail-closed while `.github/workflows/zigux-bootstrap.yml` reruns that same self-test plus the live checker in CI.
+- `zig build smoke --build-file zigux/tests/phase12_build.zig --summary all`, `make -C zigux phase12-smoke`, `zig build test --build-file zigux/tests/phase12_build.zig --summary all`, and `make -C zigux phase12` rerun that same bounded survey-backed tranche, with the shared smoke shard staying explicit beside the full replay route.
 - there is no dedicated shared `validate-phase12.py`, `check-phase12-*.py`, or `phase12-validate` target on `master`
 """,
     )
