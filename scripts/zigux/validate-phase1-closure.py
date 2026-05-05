@@ -130,14 +130,28 @@ def run_self_test() -> None:
             'helper_count': len(EXPECTED_HELPERS),
             'helpers': EXPECTED_HELPERS[:-1] + [EXPECTED_HELPERS[0]],
         }
+        unexpected_helper = 'tools/lib/not_phase1.zig'
+        unexpected_path = tmp_root / unexpected_helper
+        unexpected_path.parent.mkdir(parents=True, exist_ok=True)
+        unexpected_path.write_text('// out of scope fixture\n', encoding='utf-8')
+        unexpected_manifest = {
+            'phase': 'Phase 1',
+            'status': 'closed',
+            'helper_count': len(EXPECTED_HELPERS) + 1,
+            'helpers': EXPECTED_HELPERS[:-1] + [unexpected_helper],
+        }
 
         assert collect_manifest_markers(valid_manifest, tmp_root) == []
         duplicate_markers = collect_manifest_markers(duplicate_manifest, tmp_root)
         assert f'manifest:duplicate_helper={EXPECTED_HELPERS[0]}' in duplicate_markers
         assert f'manifest:missing_helper={EXPECTED_HELPERS[-1]}' in duplicate_markers
+        unexpected_markers = collect_manifest_markers(unexpected_manifest, tmp_root)
+        assert f'manifest:helper_count={len(EXPECTED_HELPERS)}' in unexpected_markers
+        assert f'manifest:missing_helper={EXPECTED_HELPERS[-1]}' in unexpected_markers
+        assert f'manifest:unexpected_helper={unexpected_helper}' in unexpected_markers
 
     print('PHASE1_CLOSURE_VALIDATOR_SELF_TEST=pass')
-    print('PHASE1_CLOSURE_VALIDATOR_SELF_TEST_CASE_COUNT=2')
+    print('PHASE1_CLOSURE_VALIDATOR_SELF_TEST_CASE_COUNT=3')
 
 
 def main() -> int:
