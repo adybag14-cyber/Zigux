@@ -381,6 +381,12 @@ test "runtime trace-events loader surfaces shared request drift before any live 
     shared_request.plan.module_name = "runtime_trace_events_drift";
 
     try std.testing.expectError(error.SharedLoadPlanDrift, loader.requestSharedRuntimeLoad(&shared_request));
+    try std.testing.expectEqual(LoaderStage.waiting_on_runtime_substrate, loader.stage());
+    try std.testing.expectEqual(runtime_loader.RequestState.waiting_on_runtime_substrate, shared_request.state);
+
+    try loader.releaseSharedWithoutSubstrate(&shared_request);
+    try std.testing.expectEqual(LoaderStage.released_without_substrate, loader.stage());
+    try std.testing.expectEqual(runtime_loader.RequestState.released_without_substrate, shared_request.state);
 }
 
 test "runtime trace-events loader rejects shared-load-plan snapshot drift" {
