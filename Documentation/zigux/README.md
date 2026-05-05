@@ -145,6 +145,7 @@ Phase 12 notes
 
 Phase 13 notes
 - `Documentation/zigux/phase10-phase11-phase13-contributor-surface-sync.md`
+- `Documentation/zigux/phase13-contributor-workflow-guide.md`
 - `Documentation/zigux/phase13-libfs-slice.md`
 - `Documentation/zigux/phase13-libfs-survey.md`
 - `Documentation/zigux/phase13-devres-slice.md`
@@ -156,8 +157,8 @@ Phase 13 notes
 - `Documentation/zigux/phase13-release-notes-survey.md`
 - `Documentation/zigux/phase13-roadmap-traceability.md`
 - `Documentation/zigux/phase13-notifier-list-survey.md`
-- `Documentation/zigux/review-checklist.md`, `zigux/tests/phase13_build.zig`, `scripts/zigux/validate-phase13-release.py`, `scripts/zigux/check-phase13-devres-packet.py`, `zigux/tests/phase13_libfs_manifest.json`, `zigux/tests/phase13_devres_manifest.json`, `zigux/tests/phase13_landlock_ruleset_manifest.json`, `zigux/tests/phase13_landlock_syscalls_manifest.json`, `zigux/tests/phase13_notifier_list_manifest.json`, `zigux/bindings/notifier_abi.zig`, `include/zigux/notifier_abi.h`, `zigux/helpers/notifier_chain_view.zig`, `zigux/Makefile`, `make -C zigux phase13-validate`, and `make -C zigux phase13` now keep the current libfs, devres, landlock ruleset, and landlock syscalls helper tranche reviewable through one shared Phase 13 validator-first release packet instead of leaving the active shared-subsystems lane visible only in packet-local surveys.
-- the same top-level Phase 13 packet now also keeps the contributor-surface sync note, the five Phase 13 manifests, the devres survey, the release-notes survey, the roadmap-traceability note, the notifier-list survey, the notifier ABI/helper packet, and the shared validator-first replay route visible from the docs root without understating the live release surface on `master`.
+- `Documentation/zigux/review-checklist.md`, `Documentation/zigux/phase13-contributor-workflow-guide.md`, `zigux/tests/phase13_build.zig`, `scripts/zigux/validate-phase13-release.py`, `scripts/zigux/check-phase13-devres-packet.py`, `zigux/tests/phase13_libfs_manifest.json`, `zigux/tests/phase13_devres_manifest.json`, `zigux/tests/phase13_landlock_ruleset_manifest.json`, `zigux/tests/phase13_landlock_syscalls_manifest.json`, `zigux/tests/phase13_notifier_list_manifest.json`, `zigux/bindings/notifier_abi.zig`, `include/zigux/notifier_abi.h`, `zigux/helpers/notifier_chain_view.zig`, `zigux/Makefile`, `make -C zigux phase13-validate`, and `make -C zigux phase13` now keep the current libfs, devres, landlock ruleset, and landlock syscalls helper tranche reviewable through one shared Phase 13 validator-first release packet instead of leaving the active shared-subsystems lane visible only in packet-local surveys.
+- the same top-level Phase 13 packet now also keeps the contributor-surface sync note, the contributor workflow guide, the five Phase 13 manifests, the devres survey, the release-notes survey, the roadmap-traceability note, the notifier-list survey, the notifier ABI/helper packet, and the shared validator-first replay route visible from the docs root without understating the live release surface on `master`.
 - the current bounded Phase 13 decision is no longer whether the lane still needs its first shared-helper footholds; those starters and survey-backed replay surfaces are already present on `master`, so the next follow-up should stay inside one tiny release-surface, validator, or helper-truthfulness repair before any wider subsystem claims are reopened.
 
 Phase 14 notes
