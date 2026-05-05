@@ -319,6 +319,10 @@ test "phase12 virtio net receive refill planning keeps buffer mode and replay ne
     try std.testing.expectEqual(@as(u16, 3), active_refill.refill_rx_queue_count);
     try std.testing.expectEqual(@as(u16, 7), active_refill.refill_total_queue_count);
     try std.testing.expectEqual(@as(?u16, 6), active_refill.resume_control_queue_index);
+    try std.testing.expectEqual(
+        virtio_net.QueueRecoveryAction.none,
+        active_refill.remembered_queue_recovery_action,
+    );
     try std.testing.expect(active_refill.requires_control_queue_restore);
     try std.testing.expect(active_refill.requires_rss_reapply);
     try std.testing.expect(active_refill.requires_mergeable_buffer_headroom);
@@ -348,11 +352,52 @@ test "phase12 virtio net receive refill planning keeps buffer mode and replay ne
     try std.testing.expectEqual(@as(u16, 1), single_queue_refill.refill_rx_queue_count);
     try std.testing.expectEqual(@as(u16, 2), single_queue_refill.refill_total_queue_count);
     try std.testing.expectEqual(@as(?u16, null), single_queue_refill.resume_control_queue_index);
+    try std.testing.expectEqual(
+        virtio_net.QueueRecoveryAction.degrade_to_single_queue,
+        single_queue_refill.remembered_queue_recovery_action,
+    );
     try std.testing.expect(!single_queue_refill.requires_control_queue_restore);
     try std.testing.expect(!single_queue_refill.requires_rss_reapply);
     try std.testing.expect(single_queue_refill.requires_mergeable_buffer_headroom);
     try std.testing.expect(single_queue_refill.requires_fresh_probe_snapshot);
     try std.testing.expect(single_queue_refill.requires_post_restore_probe_replay);
+
+    var clamp_lab = try virtio_net.VirtioNetProbeLab.init(&.{
+        virtio_net.feature_mergeable_rx_buffers,
+        virtio_net.feature_control_vq,
+        virtio_net.feature_multiqueue,
+        virtio_net.feature_hash_report,
+        virtio_net.feature_rss,
+    });
+    _ = try clamp_lab.captureProbeSnapshot(.{
+        .driver_feature_bits = &.{
+            virtio_net.feature_mergeable_rx_buffers,
+            virtio_net.feature_control_vq,
+            virtio_net.feature_multiqueue,
+            virtio_net.feature_hash_report,
+            virtio_net.feature_rss,
+        },
+        .requested_queue_pairs = 6,
+        .max_queue_pairs = 4,
+    });
+    _ = try clamp_lab.freezeForRecovery();
+    const clamp_refill = try clamp_lab.planReceiveRefill();
+    try std.testing.expectEqual(virtio_net.QueueResumeReadiness.ready, clamp_refill.readiness);
+    try std.testing.expectEqual(virtio_net.QueueResumeScope.data_control_and_rss, clamp_refill.resume_scope);
+    try std.testing.expectEqual(virtio_net.ReceiveBufferMode.mergeable_rx_buffers, clamp_refill.buffer_mode);
+    try std.testing.expectEqual(@as(u16, 4), clamp_refill.refill_queue_pairs);
+    try std.testing.expectEqual(@as(u16, 4), clamp_refill.refill_rx_queue_count);
+    try std.testing.expectEqual(@as(u16, 9), clamp_refill.refill_total_queue_count);
+    try std.testing.expectEqual(@as(?u16, 8), clamp_refill.resume_control_queue_index);
+    try std.testing.expectEqual(
+        virtio_net.QueueRecoveryAction.clamp_queue_pairs,
+        clamp_refill.remembered_queue_recovery_action,
+    );
+    try std.testing.expect(clamp_refill.requires_control_queue_restore);
+    try std.testing.expect(clamp_refill.requires_rss_reapply);
+    try std.testing.expect(clamp_refill.requires_mergeable_buffer_headroom);
+    try std.testing.expect(clamp_refill.requires_fresh_probe_snapshot);
+    try std.testing.expect(clamp_refill.requires_post_restore_probe_replay);
 
     var reset_lab = try virtio_net.VirtioNetProbeLab.init(&.{
         virtio_net.feature_control_vq,
@@ -376,6 +421,10 @@ test "phase12 virtio net receive refill planning keeps buffer mode and replay ne
     try std.testing.expectEqual(@as(u16, 2), reset_refill.refill_rx_queue_count);
     try std.testing.expectEqual(@as(u16, 5), reset_refill.refill_total_queue_count);
     try std.testing.expectEqual(@as(?u16, 4), reset_refill.resume_control_queue_index);
+    try std.testing.expectEqual(
+        virtio_net.QueueRecoveryAction.require_reset,
+        reset_refill.remembered_queue_recovery_action,
+    );
     try std.testing.expect(reset_refill.requires_control_queue_restore);
     try std.testing.expect(!reset_refill.requires_rss_reapply);
     try std.testing.expect(!reset_refill.requires_mergeable_buffer_headroom);
