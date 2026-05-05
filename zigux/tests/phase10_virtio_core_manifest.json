@@ -35,14 +35,14 @@
       "status": "starter_landed",
       "kind": "lab_driver_starter",
       "zigux_destination": "drivers/virtio/virtio.zig",
-      "why_now": "The live helper already covers status sequencing, bounded feature negotiation, queue callback bookkeeping, config bookkeeping, interrupt bookkeeping, lifecycle guards, and reset replay in memory only."
+      "why_now": "The live helper already covers status sequencing, bounded feature negotiation, driver-validation narrowing, queue callback bookkeeping, config bookkeeping, interrupt bookkeeping, lifecycle guards, and reset replay in memory only."
     },
     {
       "id": "phase10-virtio-core-lab-gate",
       "status": "starter_landed",
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase10_virtio_core.zig",
-      "why_now": "Dedicated core tests already replay the bounded handshake, queue bookkeeping, config-generation, interrupt, lifecycle-guard, and reset-replay branches."
+      "why_now": "Dedicated core tests already replay the bounded handshake, driver-side feature-validation narrowing, queue bookkeeping, config-generation, interrupt, lifecycle-guard, and reset-replay branches."
     },
     {
       "id": "phase10-virtio-core-reset-queue-gate",
@@ -113,6 +113,13 @@
       "kind": "lab_driver_starter",
       "zigux_destination": "drivers/virtio/virtio.zig",
       "why_now": "The lifecycle guard summary keeps attach, negotiation, readiness, queue-registration, and reset-required blockers explicit for review."
+    },
+    {
+      "id": "phase10-driver-validation-narrowing-helper",
+      "status": "starter_landed",
+      "kind": "lab_driver_starter",
+      "zigux_destination": "drivers/virtio/virtio.zig",
+      "why_now": "The core helper already replays how driver-side validation can narrow an offered feature set before the final FEATURES_OK handshake is accepted."
     },
     {
       "id": "phase10-reset-replay-bookkeeping-helper",
