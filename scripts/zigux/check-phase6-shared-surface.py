@@ -33,6 +33,7 @@ REQUIRED_SNIPPETS = {
         "- incremental checksum replacement parity for payload word updates, 16-bit IPv4 header field replacement, diff-based checksum repair, and 32-bit IPv4 address replacement",
         "- helper-local perf smoke on patterned 64-byte and 1501-byte payloads keeps `checksum.compute` within a 150% slowdown ceiling versus the bounded reference loop",
         "- `zig build phase6-checksum-perf --build-file zigux/tests/phase6_build.zig -Doptimize=ReleaseSafe`",
+        "- `make -C zigux phase6-checksum-perf`",
         "- The fixture layer stays intentionally small.",
     ],
     "Documentation/zigux/phase6-hexdump-slice.md": [
@@ -45,7 +46,7 @@ REQUIRED_SNIPPETS = {
         "- `make -C zigux phase6-validate` keeps the shared Phase 6 surface checker wired through the Zigux convenience target.",
         "- `zig build test --build-file zigux/tests/phase6_build.zig` is the bundled helper replay for the current `base64`, `bsearch`, `checksum`, and `hexdump` packet.",
         "- `make -C zigux phase6` keeps that same shared-surface check plus bundled helper replay wired through the Zigux convenience target.",
-        "- there is no separate shared `validate-phase6.py`, external portability checker packet beyond `check-phase6-shared-surface.py`, or standalone `phase6-perf` make target on `master`; if those gates land later, document them here only after the files and targets ship.",
+        "- there is no separate shared `validate-phase6.py`, external portability checker packet beyond `check-phase6-shared-surface.py`, or aggregated `phase6-perf` target on `master`; the shipped dedicated perf replay is `make -C zigux phase6-checksum-perf`, which keeps the checksum slowdown ceiling wired into a Linux-style entrypoint without overstating perf coverage for the rest of the Phase 6 helper packet.",
     ],
     "zigux/tests/README.md": [
         "- keep the shared Phase 6 leaf-helper packet wired through `zigux/tests/phase6_build.zig`, including `zigux/tests/phase6_base64.zig`, `zigux/tests/phase6_bsearch.zig`, `zigux/tests/phase6_checksum.zig`, and `zigux/tests/phase6_hexdump.zig`, so the landed `base64`, `bsearch`, `checksum`, and `hexdump` bundle stays reviewable through one bounded helper gate",
@@ -87,14 +88,16 @@ REQUIRED_SNIPPETS = {
         'try stdout_writer.interface.print("PHASE6_CHECKSUM_PERF={s}\\n", .{if (failed) "fail" else "pass"});',
     ],
     "zigux/Makefile": [
-        "PHONY += phase6-validate phase6-test phase6",
+        "PHONY += phase6-validate phase6-test phase6-checksum-perf phase6",
         "phase6-validate:\n\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase6-shared-surface.py",
+        "phase6-checksum-perf:\n\tcd $(ZIGUX_ROOT) && $(ZIG) build phase6-checksum-perf --build-file zigux/tests/phase6_build.zig -Doptimize=ReleaseSafe",
         "phase6: phase6-validate phase6-test",
     ],
     ".github/workflows/zigux-bootstrap.yml": [
         "- name: Self-test Phase 6 shared-surface checker\n        run: python3 scripts/zigux/check-phase6-shared-surface.py --self-test",
         "- name: Check Phase 6 shared surface\n        run: python3 scripts/zigux/check-phase6-shared-surface.py",
         "- name: Run Phase 6 leaf helper tests\n        run: zig build test --build-file zigux/tests/phase6_build.zig --summary all",
+        "- name: Run Phase 6 checksum perf gate\n        run: zig build phase6-checksum-perf --build-file zigux/tests/phase6_build.zig -Doptimize=ReleaseSafe --summary all",
     ],
 }
 
@@ -180,6 +183,22 @@ def run_self_test() -> None:
                 raise AssertionError(f"unexpected Makefile failure: {exc}") from exc
         else:
             raise AssertionError("expected Makefile failure")
+        makefile.write_text(original_makefile, encoding="utf-8")
+
+        makefile.write_text(
+            original_makefile.replace(
+                'phase6-checksum-perf:\n\tcd $(ZIGUX_ROOT) && $(ZIG) build phase6-checksum-perf --build-file zigux/tests/phase6_build.zig -Doptimize=ReleaseSafe',
+                'phase6-checksum-bench:\n\tcd $(ZIGUX_ROOT) && $(ZIG) build phase6-checksum-perf --build-file zigux/tests/phase6_build.zig -Doptimize=ReleaseSafe',
+            ),
+            encoding="utf-8",
+        )
+        try:
+            run_checks(root)
+        except ValidationError as exc:
+            if "zigux/Makefile" not in str(exc):
+                raise AssertionError(f"unexpected checksum perf target failure: {exc}") from exc
+        else:
+            raise AssertionError("expected checksum perf target failure")
         makefile.write_text(original_makefile, encoding="utf-8")
 
         base64_slice = root / "Documentation/zigux/phase6-base64-slice.md"
