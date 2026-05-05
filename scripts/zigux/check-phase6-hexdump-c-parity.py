@@ -159,6 +159,20 @@ def validate_matching_surface(c_lines: list[str], zig_lines: list[str], label: s
         )
 
 
+def collect_failures(c_lines: list[str], zig_lines: list[str]) -> list[str]:
+    failures: list[str] = []
+    for label, lines in (("c", c_lines), ("zig", zig_lines)):
+        try:
+            validate_expected_surface(lines, label)
+        except SystemExit as exc:
+            failures.append(str(exc))
+    try:
+        validate_matching_surface(c_lines, zig_lines, "c-vs-zig")
+    except SystemExit as exc:
+        failures.append(str(exc))
+    return failures
+
+
 def run_self_test() -> int:
     expect_system_exit(
         "missing_harness",
@@ -181,8 +195,12 @@ def run_self_test() -> int:
         "missing fixture source: /tmp/phase6-missing-fixture.zig",
     )
     build_text = build_zig_build_text()
+    aggregate_failures = collect_failures(
+        ["hexToBin\tA\t10", "length\tplain\t33"],
+        ["hexToBin\tA\t10", "length\tplain\t34", "unexpected-extra\tbogus\t0\t"],
+    )
     assert_equal(
-        "tool_env_build_text_runner_helper_fixture_paths_root_derivation_and_normalization",
+        "tool_env_build_text_root_derivation_aggregation_and_normalization",
         require_tool("zig", "PHASE6_SELFTEST_TOOL") == "/tmp/zig-self-test"
         and 'root_module.addImport("hexdump", hexdump_module);' in build_text
         and 'root_module.addImport("phase6_hexdump_vectors", fixtures_module);' in build_text
@@ -192,7 +210,14 @@ def run_self_test() -> int:
         and derive_root(Path("/tmp/phase6-checker.py")) == Path("/tmp")
         and derive_root(Path("/tmp/a/b/c/phase6-checker.py")) == Path("/tmp/a")
         and len(EXPECTED_SORTED_LINES) == 29
-        and sorted_lines("hexToBin\tA\t10\ndump\tplain\t3\tabc\n") == ["dump\tplain\t3\tabc", "hexToBin\tA\t10"],
+        and sorted_lines("hexToBin\tA\t10\ndump\tplain\t3\tabc\n") == ["dump\tplain\t3\tabc", "hexToBin\tA\t10"]
+        and len(aggregate_failures) == 3
+        and aggregate_failures[0].startswith("phase6-hexdump-c-parity:c:unexpected_output:")
+        and aggregate_failures[1].startswith("phase6-hexdump-c-parity:zig:unexpected_output:")
+        and aggregate_failures[2]
+        == "phase6-hexdump-c-parity:c-vs-zig:c_output_mismatch:"
+        "expected=['hexToBin\\tA\\t10', 'length\\tplain\\t33']:"
+        "actual=['hexToBin\\tA\\t10', 'length\\tplain\\t34', 'unexpected-extra\\tbogus\\t0\\t']",
         True,
     )
     unexpected_lines = EXPECTED_SORTED_LINES + ["unexpected-extra\tbogus\t0\t"]
@@ -273,16 +298,7 @@ def main() -> int:
 
     c_lines = sorted_lines(c_run.stdout)
     zig_lines = sorted_lines(zig_run.stdout)
-    failures: list[str] = []
-    for label, lines in (("c", c_lines), ("zig", zig_lines)):
-        try:
-            validate_expected_surface(lines, label)
-        except SystemExit as exc:
-            failures.append(str(exc))
-    try:
-        validate_matching_surface(c_lines, zig_lines, "c-vs-zig")
-    except SystemExit as exc:
-        failures.append(str(exc))
+    failures = collect_failures(c_lines, zig_lines)
 
     if failures:
         print("PHASE6_HEXDUMP_C_PARITY=fail")
