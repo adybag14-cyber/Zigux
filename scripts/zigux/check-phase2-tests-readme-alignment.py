@@ -38,6 +38,7 @@ DOCS_ROOT_MARKERS = [
 ]
 
 REVIEW_CHECKLIST_MARKERS = [
+    "zigux/tests/README.md",
     "scripts/zigux/check-phase2-tests-readme-alignment.py",
     "python3 scripts/zigux/install-zig.py --self-test",
     "python3 scripts/zigux/check-zig-toolchain.py --self-test",
@@ -173,7 +174,7 @@ def run_self_test() -> int:
             "\n".join(REVIEW_CHECKLIST_MARKERS[1:]) + "\n",
         )
         issues = validate_root(root)
-        assert "review_checklist:scripts/zigux/check-phase2-tests-readme-alignment.py" in issues
+        assert "review_checklist:zigux/tests/README.md" in issues
 
         build_self_test_root(root)
         (root / "scripts/zigux/check-phase2-tests-readme-alignment.py").unlink()
