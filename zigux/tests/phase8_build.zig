@@ -87,6 +87,17 @@ pub fn build(b: *std.Build) void {
         .optimize = optimize,
     });
     bpf_type_names_root_module.addImport("bpf_type_names", bpf_type_names_module);
+    const perf_buffer_poll_module = b.createModule(.{
+        .root_source_file = b.path("../../tools/lib/bpf/zigux_segments/perf_buffer_poll.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    const perf_buffer_poll_root_module = b.createModule(.{
+        .root_source_file = b.path("phase8_perf_buffer_poll.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    perf_buffer_poll_root_module.addImport("perf_buffer_poll", perf_buffer_poll_module);
 
     const exec_cmd_tests = b.addTest(.{
         .name = "phase8-exec-cmd-tests",
@@ -120,6 +131,10 @@ pub fn build(b: *std.Build) void {
         .name = "phase8-bpf-type-names-tests",
         .root_module = bpf_type_names_root_module,
     });
+    const perf_buffer_poll_tests = b.addTest(.{
+        .name = "phase8-perf-buffer-poll-tests",
+        .root_module = perf_buffer_poll_root_module,
+    });
 
     const run_exec_cmd_tests = b.addRunArtifact(exec_cmd_tests);
     const run_help_tests = b.addRunArtifact(help_tests);
@@ -129,6 +144,7 @@ pub fn build(b: *std.Build) void {
     const run_pin_path_tests = b.addRunArtifact(pin_path_tests);
     const run_libbpf_segments_tests = b.addRunArtifact(libbpf_segments_tests);
     const run_bpf_type_names_tests = b.addRunArtifact(bpf_type_names_tests);
+    const run_perf_buffer_poll_tests = b.addRunArtifact(perf_buffer_poll_tests);
 
     const test_step = b.step("test", "Run Phase 8 tooling expansion tests");
     test_step.dependOn(&run_exec_cmd_tests.step);
@@ -139,4 +155,5 @@ pub fn build(b: *std.Build) void {
     test_step.dependOn(&run_pin_path_tests.step);
     test_step.dependOn(&run_libbpf_segments_tests.step);
     test_step.dependOn(&run_bpf_type_names_tests.step);
+    test_step.dependOn(&run_perf_buffer_poll_tests.step);
 }
