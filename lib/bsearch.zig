@@ -89,6 +89,17 @@ pub fn search(
     return &items[index];
 }
 
+pub fn searchMutable(
+    comptime Key: type,
+    comptime T: type,
+    key: *const Key,
+    items: []T,
+    compare: anytype,
+) ?*T {
+    const index = searchIndex(Key, T, key, items, compare) orelse return null;
+    return &items[index];
+}
+
 pub fn bsearchIndex(
     key: *const anyopaque,
     base: [*]const u8,
@@ -135,6 +146,17 @@ pub fn bsearch(
     return @ptrCast(base + (index * member_size));
 }
 
+pub fn bsearchMutable(
+    key: *const anyopaque,
+    base: [*]u8,
+    num_members: usize,
+    member_size: usize,
+    compare: anytype,
+) ?*anyopaque {
+    const index = bsearchIndex(key, base, num_members, member_size, compare) orelse return null;
+    return @ptrCast(base + (index * member_size));
+}
+
 fn compareInt(key: *const i32, item: *const i32) i32 {
     return switch (std.math.order(key.*, item.*)) {
         .lt => -1,
@@ -149,6 +171,12 @@ fn compareIntAlias(key: *const i32, item: *const i32) i32 {
 
 fn compareIntC(key: *const i32, item: *const i32) callconv(.c) i32 {
     return compareInt(key, item);
+}
+
+fn compareOpaqueInt(key: *const anyopaque, item: *const anyopaque) i32 {
+    const typed_key: *const i32 = @ptrCast(@alignCast(key));
+    const typed_item: *const i32 = @ptrCast(@alignCast(item));
+    return compareInt(typed_key, typed_item);
 }
 
 const Entry = struct {
@@ -187,6 +215,15 @@ test "search returns a pointer to the matching element" {
     const found = search(i32, i32, &@as(i32, 18), values[0..], compareInt) orelse return error.TestUnexpectedResult;
 
     try std.testing.expectEqual(@as(i32, 18), found.*);
+    try std.testing.expectEqual(@intFromPtr(&values[3]), @intFromPtr(found));
+}
+
+test "searchMutable returns a mutable pointer to the matching element" {
+    var values = [_]i32{ 5, 9, 12, 18, 27 };
+    const found = searchMutable(i32, i32, &@as(i32, 18), values[0..], compareInt) orelse return error.TestUnexpectedResult;
+
+    found.* = 19;
+    try std.testing.expectEqual(@as(i32, 19), values[3]);
     try std.testing.expectEqual(@intFromPtr(&values[3]), @intFromPtr(found));
 }
 
@@ -235,4 +272,14 @@ test "search accepts explicitly typed c abi comparator pointers" {
         const found = search(i32, i32, &@as(i32, 7), values[0..], compare) orelse return error.TestUnexpectedResult;
         try std.testing.expectEqual(@as(i32, 7), found.*);
     }
+}
+
+test "bsearchMutable returns a mutable pointer to the matching element" {
+    var values = [_]i32{ 2, 4, 7, 11, 16, 23, 42 };
+    const found = bsearchMutable(&@as(i32, 16), @ptrCast(values[0..].ptr), values.len, @sizeOf(i32), compareOpaqueInt) orelse return error.TestUnexpectedResult;
+    const typed_found: *i32 = @ptrCast(@alignCast(found));
+
+    typed_found.* = 17;
+    try std.testing.expectEqual(@as(i32, 17), values[4]);
+    try std.testing.expectEqual(@intFromPtr(&values[4]), @intFromPtr(typed_found));
 }
