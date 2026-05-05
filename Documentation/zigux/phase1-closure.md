@@ -114,6 +114,14 @@ For `tools/lib/bitmap.zig`, reviewers must also keep the committed partial-windo
 
 That means `partial_xor_nbits` and `partial_xor_masked_values` stay present and review-visible whenever the helper or its paired replay changes. Those two fields are the bounded proof that caller-selected bit windows remain masked instead of silently leaking tail bits beyond `nbits`.
 
+The helper-local `bitmap.scnprintf()` truncation proof must also stay explicit through:
+
+- `tools/lib/bitmap.zig`
+
+That means `test "bitmap scnprintf reports full length while truncating the buffer"` stays present and review-visible whenever `bitmap.scnprintf()` changes. The shared Phase 1 parity fixture only locks the full rendered range string, so this helper-local test is the bounded proof that shorter caller buffers still receive the full logical length while preserving NUL-terminated truncation.
+
+- `PHASE1_BITMAP_SCNPRINTF_TRUNCATION_REVIEW=helper-local bitmap.scnprintf truncation proof stays explicit through the direct bitmap test anchor because the shared Phase 1 parity fixture only locks the full rendered range string`
+
 ## Rollback
 
 Rollback owner:
