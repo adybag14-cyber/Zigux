@@ -259,3 +259,13 @@ test "head-word boundary scans keep the last in-range bit reachable from an incl
     try std.testing.expectEqual(@as(usize, boundary), findNextAndBit(&and_lhs, &and_rhs, nbits, boundary));
     try std.testing.expectEqual(@as(usize, boundary), findNextZeroBit(&zero_map, nbits, boundary));
 }
+
+test "find next and bit masks earlier and out-of-range tail matches" {
+    const nbits = bits_per_long + 5;
+    const lhs = [_]Word{ 0, (@as(Word, 1) << 2) | (@as(Word, 1) << 4) | (@as(Word, 1) << 9) };
+    const rhs = [_]Word{ 0, (@as(Word, 1) << 2) | (@as(Word, 1) << 4) | (@as(Word, 1) << 9) };
+
+    try std.testing.expectEqual(@as(usize, bits_per_long + 2), findNextAndBit(&lhs, &rhs, nbits, bits_per_long + 2));
+    try std.testing.expectEqual(@as(usize, bits_per_long + 4), findNextAndBit(&lhs, &rhs, nbits, bits_per_long + 3));
+    try std.testing.expectEqual(@as(usize, nbits), findNextAndBit(&lhs, &rhs, nbits, bits_per_long + 5));
+}
