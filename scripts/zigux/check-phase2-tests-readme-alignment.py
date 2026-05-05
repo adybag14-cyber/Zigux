@@ -72,6 +72,7 @@ REVIEW_CHECKLIST_MARKERS = [
     "Documentation/zigux/phase2-toolchain-bootstrap-notes.md",
     "scripts/zigux/zig-toolchain-policy.json",
     "scripts/zigux/check-phase2-toolchain-pin-scope.py",
+    "scripts/zigux/check-phase2-tests-readme-alignment.py",
     "zigux/tests/fixtures/phase2_cross_targets.json",
     "scripts/zigux/check-phase2-cross.py",
     "scripts/zigux/check-phase2-cross-selftest-alignment.py",
@@ -79,6 +80,7 @@ REVIEW_CHECKLIST_MARKERS = [
     "scripts/zigux/validate-phase2-closure.py",
     ".github/workflows/zigux-bootstrap.yml",
     "zigux/Makefile",
+    "dedicated tests-root alignment guard",
     "make -C zigux phase2-validate",
     "make -C zigux phase2",
 ]
@@ -439,6 +441,7 @@ def clone_fixture_root(destination_root: Path) -> None:
                 "- Documentation/zigux/phase2-toolchain-bootstrap-notes.md",
                 "- scripts/zigux/zig-toolchain-policy.json",
                 "- scripts/zigux/check-phase2-toolchain-pin-scope.py",
+                "- scripts/zigux/check-phase2-tests-readme-alignment.py",
                 "- zigux/tests/fixtures/phase2_cross_targets.json",
                 "- scripts/zigux/check-phase2-cross.py",
                 "- scripts/zigux/check-phase2-cross-selftest-alignment.py",
@@ -446,6 +449,7 @@ def clone_fixture_root(destination_root: Path) -> None:
                 "- scripts/zigux/validate-phase2-closure.py",
                 "- .github/workflows/zigux-bootstrap.yml",
                 "- zigux/Makefile",
+                "- dedicated tests-root alignment guard",
                 "- make -C zigux phase2-validate",
                 "- make -C zigux phase2",
                 "",
@@ -747,6 +751,28 @@ def run_self_test() -> int:
 
         review_checklist_path = tmp_root / REQUIRED_FILES["review_checklist"]
         original_review_checklist = review_checklist_path.read_text(encoding="utf-8")
+        review_checklist_path.write_text(
+            original_review_checklist.replace("- scripts/zigux/check-phase2-tests-readme-alignment.py\n", "", 1),
+            encoding="utf-8",
+        )
+        expect_missing(
+            "review_checklist_tests_readme_checker",
+            tmp_root,
+            "review_checklist:scripts/zigux/check-phase2-tests-readme-alignment.py",
+        )
+        review_checklist_path.write_text(original_review_checklist, encoding="utf-8")
+
+        review_checklist_path.write_text(
+            original_review_checklist.replace("- dedicated tests-root alignment guard\n", "", 1),
+            encoding="utf-8",
+        )
+        expect_missing(
+            "review_checklist_tests_readme_guard",
+            tmp_root,
+            "review_checklist:dedicated tests-root alignment guard",
+        )
+        review_checklist_path.write_text(original_review_checklist, encoding="utf-8")
+
         review_checklist_path.write_text(
             original_review_checklist.replace("- scripts/zigux/check-phase2-cross-selftest-alignment.py\n", "", 1),
             encoding="utf-8",
@@ -1071,7 +1097,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE2_TESTS_README_ALIGNMENT_SELF_TEST=pass")
-    print("PHASE2_TESTS_README_ALIGNMENT_SELF_TEST_CASE_COUNT=30")
+    print("PHASE2_TESTS_README_ALIGNMENT_SELF_TEST_CASE_COUNT=32")
     return 0
 
 
