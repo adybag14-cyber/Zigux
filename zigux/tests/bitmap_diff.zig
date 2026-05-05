@@ -551,8 +551,8 @@ test "bitmap diff gate keeps a deterministic threshold replay batch ready for fu
     try std.testing.expectEqual(@as(u32, 97), single.final_first_zero);
     try std.testing.expectEqual(@as(u32, 993), single.final_weight);
     try std.testing.expectEqual(@as(u32, 123), single.final_nth_seven);
-    try std.testing.expect(single.checksum != 0);
-    try std.testing.expect(repeated.checksum != 0);
+    try std.testing.expectEqual(@as(u64, 6872226231820490607), single.checksum);
+    try std.testing.expectEqual(@as(u64, 17675807730989546160), repeated.checksum);
     try std.testing.expect(repeated.checksum != single.checksum);
     try std.testing.expectEqualDeep(repeated, try runThresholdReplay(4));
 }
