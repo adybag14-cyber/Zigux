@@ -99,6 +99,7 @@ That asymmetry is still honest for current `master`: the repo has starter-module
 - `zigux/kernel/runtime_loader.zig` proves the shared request contract and also proves that the metadata still stays inside Zigux-local handoff structs
 - `zigux/tests/runtime_module_metadata_manifest.json` records the exact file set and the absent depmod markers
 - `zigux/tests/runtime_module_metadata_survey.zig` replays the same evidence as a standalone check
+- `scripts/zigux/check-phase9-module-metadata-packet.py` keeps this dedicated note, the manifest-backed file inventory, the standalone survey gate, and the README hooks aligned as one fail-closed review packet
 
 ## Non-goals
 
