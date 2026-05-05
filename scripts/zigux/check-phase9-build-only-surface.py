@@ -91,6 +91,7 @@ REQUIRED_WORKFLOW_MARKERS = [
     "Check Phase 9 build-only surface",
     "python3 scripts/zigux/check-phase9-build-only-surface.py",
     "Run Phase 9 runtime helper tests",
+    "make -C zigux phase9",
 ]
 
 REQUIRED_PHASE9_BUILD_MARKERS = [
@@ -298,7 +299,7 @@ phase9: phase9-test
       - name: Check Phase 9 build-only surface
         run: python3 scripts/zigux/check-phase9-build-only-surface.py
       - name: Run Phase 9 runtime helper tests
-        run: zig build test --build-file zigux/tests/phase9_build.zig --summary all
+        run: make -C zigux phase9
 """,
     )
     write_text(
@@ -440,6 +441,19 @@ def run_self_test() -> int:
             root,
             "makefile:$(PYTHON) scripts/zigux/check-phase9-build-only-surface.py",
             "missing_makefile_checker_call",
+        )
+
+        write_fixture_tree(root)
+        workflow_path = root / WORKFLOW_PATH
+        workflow = workflow_path.read_text(encoding="utf-8")
+        workflow_path.write_text(
+            workflow.replace("make -C zigux phase9", "zig build test --build-file zigux/tests/phase9_build.zig --summary all", 1),
+            encoding="utf-8",
+        )
+        expect_failure(
+            root,
+            "workflow:make -C zigux phase9",
+            "missing_workflow_make_route",
         )
 
         write_fixture_tree(root)
