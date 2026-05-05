@@ -7,7 +7,7 @@ import sys
 import tempfile
 
 
-ROOT = Path(__file__).resolve().parents[2]
+ROOT = Path(__file__).resolve().parents[2] if len(Path(__file__).resolve().parents) >= 3 else Path.cwd()
 
 REQUIRED_FILES = [
     "scripts/zigux/validate-phase8.py",
@@ -416,7 +416,7 @@ def run_self_test() -> int:
         expect_missing_marker(
             "tests_readme_perf_buffer_poll_only_build",
             tmp_root,
-            "zigux/tests/README.md:`zigux/tests/phase8_perf_BUFFER_POLL_ONLY_BUILD.ZIG`".lower().replace("perf_buffer_poll_only_build.zig", "phase8_perf_buffer_poll_only_build.zig"),
+            "zigux/tests/README.md:`zigux/tests/phase8_perf_buffer_poll_only_build.zig`",
         )
         tests_readme_path.write_text(original_tests_readme, encoding="utf-8")
 
