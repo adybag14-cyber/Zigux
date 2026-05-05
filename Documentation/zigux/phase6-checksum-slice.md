@@ -33,6 +33,7 @@ Phase 6 is where Zigux can start proving low-risk in-kernel helper ports without
 
 2. run the focused checksum perf gate when the math-sensitive lane reopens
 - `zig build phase6-checksum-perf --build-file zigux/tests/phase6_build.zig -Doptimize=ReleaseSafe`
+- `make -C zigux phase6-checksum-perf`
 
 3. keep the helper wired through the Zigux convenience target
 - `make -C zigux phase6`
