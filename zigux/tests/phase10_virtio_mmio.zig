@@ -109,6 +109,32 @@ test "phase10 virtio mmio clears stale config words when a shorter window is res
     try std.testing.expectError(error.ConfigWindowReadOutOfRange, device.readConfigOffset(virtio_mmio.mmio_window_bytes + 4));
 }
 
+test "phase10 virtio mmio plans a bounded config-word write without mutating config space" {
+    var device = try virtio_mmio.VirtioMmioLab.init(54, &[_]u16{ 8, 16 });
+
+    try device.stageConfigBytes(&[_]u8{
+        0x78, 0x56, 0x34, 0x12,
+        0xef, 0xcd, 0xab, 0x90,
+    });
+    device.bumpConfigGeneration();
+
+    const plan = try device.planConfigWriteOffset(virtio_mmio.mmio_window_bytes + 4, 0x1122_3344);
+    try std.testing.expectEqualStrings("drivers/virtio/virtio_mmio.c", plan.anchor);
+    try std.testing.expectEqual(virtio_mmio.mmio_window_bytes + 4, plan.absolute_offset);
+    try std.testing.expectEqual(@as(u32, 4), plan.relative_offset);
+    try std.testing.expectEqual(@as(u32, 1), plan.config_generation);
+    try std.testing.expectEqual(@as(u32, 0x90ab_cdef), plan.previous_value);
+    try std.testing.expectEqual(@as(u32, 0x1122_3344), plan.planned_value);
+
+    const config_summary = try device.readConfigOffset(virtio_mmio.mmio_window_bytes + 4);
+    try std.testing.expectEqual(@as(u32, 0x90ab_cdef), config_summary.value);
+    try std.testing.expectEqual(@as(u32, 1), config_summary.config_generation);
+
+    try std.testing.expectError(error.ConfigOffsetBeforeWindow, device.planConfigWriteOffset(@intFromEnum(virtio_mmio.Register.status), 0));
+    try std.testing.expectError(error.UnalignedConfigOffset, device.planConfigWriteOffset(virtio_mmio.mmio_window_bytes + 2, 0));
+    try std.testing.expectError(error.ConfigWindowReadOutOfRange, device.planConfigWriteOffset(virtio_mmio.mmio_window_bytes + 8, 0));
+}
+
 test "phase10 virtio mmio bounds queue selection and queue sizing before lifecycle work" {
     var device = try virtio_mmio.VirtioMmioLab.init(24, &[_]u16{8});
 
