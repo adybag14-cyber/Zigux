@@ -33,7 +33,7 @@ REQUIRED_MANIFEST_BOUNDARY_MARKERS = [
     "scripts/zigux/check-phase15-review-process-handoff.py",
     "zigux/tests/phase15_architecture_council_review_process_manifest.json",
     "zigux/tests/phase15_freeze_map_governance.zig",
-    "zigux/tests/phase15_parity_SCORECARD.zig",
+    "zigux/tests/phase15_parity_scorecard.zig",
     "zigux/tests/phase15_architecture_council_review_process.zig",
     "zigux/tests/phase15_indefinite_c_policy.json",
     "zigux/tests/phase15_indefinite_c_policy.zig",
