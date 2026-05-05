@@ -6,6 +6,7 @@ test "phase12 nvme pci descriptor and admin queue plan stay anchored to pci.c" {
     try std.testing.expectEqualStrings("nvme_pci_queue_lab", descriptor.name);
     try std.testing.expectEqualStrings("drivers/nvme/host/pci.c", descriptor.anchor);
     try std.testing.expect(descriptor.provides_lab_queue_planner);
+    try std.testing.expect(descriptor.provides_prp_metadata_helper);
     try std.testing.expect(!descriptor.touches_live_dma);
     try std.testing.expect(!descriptor.touches_pci_probe);
     try std.testing.expect(!descriptor.touches_irq_recovery);
@@ -93,6 +94,48 @@ test "phase12 nvme pci rejects invalid PRP offsets and oversized list shapes" {
     try std.testing.expectError(error.InvalidTransferSize, lab.planPrpBufferShape(0, 0));
     try std.testing.expectError(error.InvalidPrpOffset, lab.planPrpBufferShape(4096, 4096));
     try std.testing.expectError(error.PrpListTooLong, lab.planPrpBufferShape(4096 * 515, 0));
+}
+
+test "phase12 nvme pci prp metadata helper quantifies descriptor DMA footprint" {
+    var lab = try nvme_pci.NvmePciQueueLab.init(4096, 8);
+
+    const metadata = try lab.planPrpMetadata(9000, 128);
+    try std.testing.expectEqualStrings("drivers/nvme/host/pci.c", metadata.anchor);
+    try std.testing.expectEqual(@as(u32, 9000), metadata.total_transfer_bytes);
+    try std.testing.expectEqual(@as(u32, 128), metadata.first_page_offset);
+    try std.testing.expectEqual(@as(u16, 3), metadata.spanned_pages);
+    try std.testing.expect(metadata.uses_prp_list);
+    try std.testing.expectEqual(@as(u16, 2), metadata.command_prp_words);
+    try std.testing.expectEqual(@as(u16, 1), metadata.prp_list_entries);
+    try std.testing.expectEqual(@as(u32, 4096), metadata.metadata_dma_bytes);
+    try std.testing.expectEqual(@as(u32, 16384), metadata.total_dma_bytes);
+    try std.testing.expect(metadata.requires_descriptor_rebuild_after_reset);
+    try std.testing.expectEqual(@as(u32, 0), metadata.reset_generation);
+
+    const inline_only = try lab.planPrpMetadata(4096, 128);
+    try std.testing.expectEqual(@as(u16, 2), inline_only.spanned_pages);
+    try std.testing.expect(!inline_only.uses_prp_list);
+    try std.testing.expectEqual(@as(u16, 2), inline_only.command_prp_words);
+    try std.testing.expectEqual(@as(u16, 0), inline_only.prp_list_entries);
+    try std.testing.expectEqual(@as(u32, 0), inline_only.metadata_dma_bytes);
+    try std.testing.expectEqual(@as(u32, 8192), inline_only.total_dma_bytes);
+    try std.testing.expect(!inline_only.requires_descriptor_rebuild_after_reset);
+}
+
+test "phase12 nvme pci prp metadata helper respects reset freeze and resumes after reset" {
+    var lab = try nvme_pci.NvmePciQueueLab.init(4096, 8);
+    _ = lab.beginReset();
+    try std.testing.expectError(error.QueuePlanningBlockedByReset, lab.planPrpMetadata(8192, 128));
+
+    _ = lab.completeReset();
+    const metadata = try lab.planPrpMetadata(12288, 1024);
+    try std.testing.expectEqual(@as(u16, 4), metadata.spanned_pages);
+    try std.testing.expect(metadata.uses_prp_list);
+    try std.testing.expectEqual(@as(u16, 2), metadata.prp_list_entries);
+    try std.testing.expectEqual(@as(u32, 4096), metadata.metadata_dma_bytes);
+    try std.testing.expectEqual(@as(u32, 20480), metadata.total_dma_bytes);
+    try std.testing.expect(metadata.requires_descriptor_rebuild_after_reset);
+    try std.testing.expectEqual(@as(u32, 1), metadata.reset_generation);
 }
 
 test "phase12 nvme pci rejects invalid queue geometry and excessive io queue plans" {
