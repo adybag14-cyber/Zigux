@@ -4,6 +4,7 @@ const bpf_type_names = @import("bpf_type_names");
 const logging = @import("logging");
 const pin_path = @import("pin_path");
 const perf_buffer_poll = @import("perf_buffer_poll");
+
 const Gap = struct {
     id: []const u8,
     status: []const u8,
@@ -11,12 +12,14 @@ const Gap = struct {
     zigux_destination: []const u8,
     why_now: []const u8,
 };
+
 const Manifest = struct {
     lane_key: []const u8,
     phase: []const u8,
     surveyed_commit: []const u8,
     gaps: []const Gap,
 };
+
 const LegacySegment = struct {
     id: []const u8,
     slug: []const u8,
@@ -25,12 +28,14 @@ const LegacySegment = struct {
     zigux_destination: []const u8,
     why_now: []const u8,
 };
+
 const LegacyManifest = struct {
     lane_key: []const u8,
     phase: []const u8,
     surveyed_commit: []const u8,
     segments: []const LegacySegment,
 };
+
 fn pathExists(io: std.Io, path: []const u8) !bool {
     std.Io.Dir.cwd().access(io, path, .{}) catch |err| switch (err) {
         error.FileNotFound => return false,
@@ -38,6 +43,7 @@ fn pathExists(io: std.Io, path: []const u8) !bool {
     };
     return true;
 }
+
 test "phase12 libbpf reviewability gate matches the current zigux_segments file state" {
     var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
     defer io_instance.deinit();
@@ -55,6 +61,12 @@ test "phase12 libbpf reviewability gate matches the current zigux_segments file 
     const manifest = parsed.value;
     try std.testing.expectEqualStrings("P12-L15", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 12", manifest.phase);
+    try std.testing.expectEqualStrings("c0ae127363e3d4e5feeb36efb665a12ece3392c7", manifest.surveyed_commit);
+    try std.testing.expectEqual(@as(usize, 18), manifest.gaps.len);
+    var starter_landed_count: usize = 0;
+    var ready_next_count: usize = 0;
+    var blocked_count: usize = 0;
+    var deferred_count: usize = 0;
     var saw_landed_manifest = false;
     var saw_landed_type_names = false;
     var saw_landed_cpu_mask = false;
@@ -68,7 +80,19 @@ test "phase12 libbpf reviewability gate matches the current zigux_segments file 
     var saw_blocked_skeleton = false;
     var saw_blocked_object_loader = false;
     var saw_blocked_relocation = false;
-    for (manifest.gaps) |gap| {
+    for (manifest.gaps, 0..) |gap, i| {
+        if (std.mem.eql(u8, gap.status, "starter_landed")) {
+            starter_landed_count += 1;
+        } else if (std.mem.eql(u8, gap.status, "ready_next")) {
+            ready_next_count += 1;
+        } else if (std.mem.eql(u8, gap.status, "blocked_on_object_model")) {
+            blocked_count += 1;
+        } else if (std.mem.eql(u8, gap.status, "deferred_high_risk")) {
+            deferred_count += 1;
+        }
+        for (manifest.gaps[i + 1 ..]) |other| {
+            try std.testing.expect(!std.mem.eql(u8, gap.id, other.id));
+        }
         if (!std.mem.startsWith(u8, gap.zigux_destination, "tools/lib/bpf/zigux_segments/")) {
             continue;
         }
@@ -133,6 +157,10 @@ test "phase12 libbpf reviewability gate matches the current zigux_segments file 
             try std.testing.expect(!exists);
         }
     }
+    try std.testing.expectEqual(@as(usize, 11), starter_landed_count);
+    try std.testing.expectEqual(@as(usize, 2), ready_next_count);
+    try std.testing.expectEqual(@as(usize, 2), blocked_count);
+    try std.testing.expectEqual(@as(usize, 3), deferred_count);
     try std.testing.expect(saw_landed_manifest);
     try std.testing.expect(saw_landed_type_names);
     try std.testing.expect(saw_landed_cpu_mask);
@@ -147,6 +175,7 @@ test "phase12 libbpf reviewability gate matches the current zigux_segments file 
     try std.testing.expect(saw_blocked_object_loader);
     try std.testing.expect(saw_blocked_relocation);
 }
+
 test "phase12 libbpf reviewability gate still compiles the landed helper foundations" {
     const parsed = try cpu_mask.parseCpuMaskString(std.testing.allocator, "0-1,3");
     defer parsed.deinit(std.testing.allocator);
@@ -186,6 +215,7 @@ test "phase12 libbpf reviewability gate still compiles the landed helper foundat
     try std.testing.expectEqual(@as(usize, 1), poll_summary.ready_count);
     try std.testing.expectEqual(@as(?i32, -11), poll_summary.first_error);
 }
+
 test "phase12 libbpf reviewability gate cross-checks the legacy segment catalog" {
     var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
     defer io_instance.deinit();
@@ -203,6 +233,12 @@ test "phase12 libbpf reviewability gate cross-checks the legacy segment catalog"
     const manifest = parsed.value;
     try std.testing.expectEqualStrings("P8-L15", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 8", manifest.phase);
+    try std.testing.expectEqualStrings("897cdd2f62c4428d2a050275a187950e161b66eb", manifest.surveyed_commit);
+    try std.testing.expectEqual(@as(usize, 12), manifest.segments.len);
+    var starter_landed_count: usize = 0;
+    var ready_next_count: usize = 0;
+    var blocked_count: usize = 0;
+    var deferred_count: usize = 0;
     var saw_logging = false;
     var saw_pin_path = false;
     var saw_cpu_mask = false;
@@ -215,7 +251,20 @@ test "phase12 libbpf reviewability gate cross-checks the legacy segment catalog"
     var saw_skeleton = false;
     var saw_object_loader = false;
     var saw_relocation = false;
-    for (manifest.segments) |segment| {
+    for (manifest.segments, 0..) |segment, i| {
+        if (std.mem.eql(u8, segment.status, "starter_landed")) {
+            starter_landed_count += 1;
+        } else if (std.mem.eql(u8, segment.status, "ready_next")) {
+            ready_next_count += 1;
+        } else if (std.mem.eql(u8, segment.status, "blocked_on_object_model")) {
+            blocked_count += 1;
+        } else if (std.mem.eql(u8, segment.status, "deferred_high_risk")) {
+            deferred_count += 1;
+        }
+        for (manifest.segments[i + 1 ..]) |other| {
+            try std.testing.expect(!std.mem.eql(u8, segment.id, other.id));
+            try std.testing.expect(!std.mem.eql(u8, segment.slug, other.slug));
+        }
         const exists = try pathExists(io_instance.io(), segment.zigux_destination);
         if (std.mem.eql(u8, segment.slug, "logging-version-and-errno")) {
             saw_logging = true;
@@ -278,6 +327,10 @@ test "phase12 libbpf reviewability gate cross-checks the legacy segment catalog"
             try std.testing.expect(!exists);
         }
     }
+    try std.testing.expectEqual(@as(usize, 5), starter_landed_count);
+    try std.testing.expectEqual(@as(usize, 2), ready_next_count);
+    try std.testing.expectEqual(@as(usize, 1), blocked_count);
+    try std.testing.expectEqual(@as(usize, 4), deferred_count);
     try std.testing.expect(saw_logging);
     try std.testing.expect(saw_pin_path);
     try std.testing.expect(saw_cpu_mask);
