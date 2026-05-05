@@ -54,6 +54,7 @@ REQUIRED_MARKERS = {
         "zig build test --build-file zigux/tests/phase7_build.zig --summary all",
     ],
     "Documentation/zigux/README.md": [
+        "Phase 7 notes -",
         "Documentation/zigux/phase7-string-helpers-slice.md",
         "Documentation/zigux/phase7-cmdline-slice.md",
         "Documentation/zigux/phase7-argv-split-slice.md",
@@ -195,6 +196,21 @@ REQUIRED_MARKERS = {
     ],
 }
 
+EXACT_COUNT_MARKERS = {
+    "Documentation/zigux/README.md": [
+        ("Phase 7 notes -", 1),
+        ("Documentation/zigux/phase7-argv-split-slice.md", 1),
+        ("make -C zigux phase7", 1),
+    ],
+    "scripts/zigux/README.md": [
+        ("scripts/zigux/check-phase7-make-wrapper.py", 1),
+        ("scripts/zigux/check-phase7-argv-split-packet.py", 1),
+        ("scripts/zigux/check-phase7-rbtree-parity.py", 1),
+        ("zigux/tests/phase7_cmdline_survey.zig", 1),
+        ("make -C zigux phase7-validate", 1),
+    ],
+}
+
 FIXTURE_OVERRIDES = {
     "scripts/zigux/validate-phase7.py": "# fixture\n",
     "zigux/tests/phase7_string_helpers.zig": "// fixture\n",
@@ -230,6 +246,14 @@ def collect_missing_markers(root: Path) -> list[str]:
         for marker in markers:
             if marker not in text:
                 missing.append(f"{rel}: {marker}")
+    for rel, marker_counts in EXACT_COUNT_MARKERS.items():
+        text = (root / rel).read_text(encoding="utf-8")
+        for marker, expected_count in marker_counts:
+            actual_count = text.count(marker)
+            if actual_count != expected_count:
+                missing.append(
+                    f"{rel}: {marker}:expected={expected_count}:actual={actual_count}"
+                )
     return missing
 
 
@@ -258,7 +282,11 @@ def expect_missing_file(case: str, tmp_root: Path, rel: str) -> None:
 def expect_missing_marker(case: str, tmp_root: Path, marker: str) -> None:
     missing_files, missing_markers = validate(tmp_root)
     assert missing_files == [], case
-    assert missing_markers == [marker], case
+    assert marker in missing_markers, case
+
+
+def duplicate_first_marker(text: str, marker: str) -> str:
+    return text.replace(marker, f"{marker}\n{marker}", 1)
 
 
 def mutate_file(tmp_root: Path, rel: str, old: str, new: str, case: str) -> None:
@@ -343,6 +371,14 @@ def run_self_test() -> None:
         ("build_rbtree_survey_cwd", "zigux/tests/phase7_build.zig", "run_rbtree_survey_tests.setCwd(b.path(\"../..\"));", "run_rbtree_survey_tests.setCwd(b.path(\".\"));", "zigux/tests/phase7_build.zig: run_rbtree_survey_tests.setCwd(b.path(\"../..\"));"),
     ]
 
+    exact_count_cases = [
+        ("docs_readme_phase7_notes_exact_count", "Documentation/zigux/README.md", "Phase 7 notes -", "Documentation/zigux/README.md: Phase 7 notes -:expected=1:actual=2"),
+        ("docs_readme_phase7_make_exact_count", "Documentation/zigux/README.md", "make -C zigux phase7", "Documentation/zigux/README.md: make -C zigux phase7:expected=1:actual=2"),
+        ("scripts_readme_make_wrapper_exact_count", "scripts/zigux/README.md", "scripts/zigux/check-phase7-make-wrapper.py", "scripts/zigux/README.md: scripts/zigux/check-phase7-make-wrapper.py:expected=1:actual=2"),
+        ("scripts_readme_argv_split_packet_exact_count", "scripts/zigux/README.md", "scripts/zigux/check-phase7-argv-split-packet.py", "scripts/zigux/README.md: scripts/zigux/check-phase7-argv-split-packet.py:expected=1:actual=2"),
+        ("scripts_readme_phase7_validate_exact_count", "scripts/zigux/README.md", "make -C zigux phase7-validate", "scripts/zigux/README.md: make -C zigux phase7-validate:expected=1:actual=2"),
+    ]
+
     with tempfile.TemporaryDirectory(prefix="zigux_phase7_validator_") as tmp_dir_str:
         tmp_root = Path(tmp_dir_str)
         write_fixture_root(tmp_root)
@@ -358,7 +394,16 @@ def run_self_test() -> None:
             expect_missing_marker(case, tmp_root, expected)
             write_fixture_root(tmp_root)
 
-    case_count = len(missing_file_cases) + len(marker_cases)
+        for case, rel, marker, expected in exact_count_cases:
+            path = tmp_root / rel
+            original = path.read_text(encoding="utf-8")
+            updated = duplicate_first_marker(original, marker)
+            assert updated != original, case
+            path.write_text(updated, encoding="utf-8")
+            expect_missing_marker(case, tmp_root, expected)
+            write_fixture_root(tmp_root)
+
+    case_count = len(missing_file_cases) + len(marker_cases) + len(exact_count_cases)
     print("PHASE7_VALIDATOR_SELF_TEST=pass")
     print("PHASE7_VALIDATOR_SELF_TEST_CASE_COUNT=%d" % case_count)
 
