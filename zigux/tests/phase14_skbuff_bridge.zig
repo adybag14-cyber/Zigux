@@ -207,3 +207,60 @@ test "phase14 skbuff bridge descriptor stays at boundary-map posture" {
     try std.testing.expect(audit.checkpoints[7].guard == .segmentation_checksum_data_offset_crossover);
     try std.testing.expect(audit.checkpoints[8].guard == .segmentation_tail_publication_consumer_contract);
 }
+
+test "phase14 skbuff bridge notes and code agree the live ownership blocker is next" {
+    var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
+    defer io_instance.deinit();
+
+    const survey_note = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "Documentation/zigux/phase14-skbuff-bridge-survey.md",
+        std.testing.allocator,
+        .limited(32 * 1024),
+    );
+    defer std.testing.allocator.free(survey_note);
+
+    const slice_note = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "Documentation/zigux/phase14-skbuff-bridge-slice.md",
+        std.testing.allocator,
+        .limited(16 * 1024),
+    );
+    defer std.testing.allocator.free(slice_note);
+
+    try std.testing.expect(std.mem.indexOf(
+        u8,
+        skbuff_bridge.SkbuffBridgeLab.nextAuditFocus(),
+        "No smaller review-only skbuff checkpoint remains",
+    ) != null);
+    try std.testing.expect(std.mem.indexOf(
+        u8,
+        skbuff_bridge.SkbuffBridgeLab.nextAuditFocus(),
+        "qdisc publication",
+    ) != null);
+    try std.testing.expect(std.mem.indexOf(
+        u8,
+        survey_note,
+        "PHASE14_SLICE=skbuff-boundary-map-tail-publication-followup",
+    ) != null);
+    try std.testing.expect(std.mem.indexOf(
+        u8,
+        survey_note,
+        "no smaller review-only skbuff follow-up remains before the live ownership blocker",
+    ) != null);
+    try std.testing.expect(std.mem.indexOf(
+        u8,
+        survey_note,
+        "blocked `phase14-skbuff-live-ownership-blocker`",
+    ) != null);
+    try std.testing.expect(std.mem.indexOf(
+        u8,
+        slice_note,
+        "no smaller review-only skbuff follow-up remains inside this bridge packet",
+    ) != null);
+    try std.testing.expect(std.mem.indexOf(
+        u8,
+        slice_note,
+        "qdisc-facing publication",
+    ) != null);
+}
