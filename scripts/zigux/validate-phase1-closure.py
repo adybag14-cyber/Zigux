@@ -246,6 +246,14 @@ def render_marker_fixture(markers: list[tuple[str, str, int]]) -> str:
     return '\n'.join(marker for _, marker, _ in markers) + '\n'
 
 
+def make_fixture_root(tmp_root: Path) -> None:
+    for path in required_files:
+        rel = path.relative_to(ROOT)
+        fixture_path = tmp_root / rel
+        fixture_path.parent.mkdir(parents=True, exist_ok=True)
+        fixture_path.write_text('// fixture\n', encoding='utf-8')
+
+
 def run_self_test() -> None:
     with tempfile.TemporaryDirectory(prefix='zigux_phase1_closure_') as tmp_dir_str:
         tmp_root = Path(tmp_dir_str)
