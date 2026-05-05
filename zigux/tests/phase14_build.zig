@@ -16,6 +16,12 @@ pub fn build(b: *std.Build) void {
         .optimize = optimize,
     });
 
+    const phase14_end_to_end_smoke_survey_module = b.createModule(.{
+        .root_source_file = b.path("phase14_end_to_end_smoke_survey.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+
     const workqueue_bridge_module = b.createModule(.{
         .root_source_file = b.path("../../kernel/workqueue_bridge.zig"),
         .target = target,
@@ -66,9 +72,19 @@ pub fn build(b: *std.Build) void {
     });
     const run_phase14_rcu_tree_survey_tests = b.addRunArtifact(phase14_rcu_tree_survey_tests);
 
+    const phase14_end_to_end_smoke_tests = b.addTest(.{
+        .name = "phase14-end-to-end-smoke-tests",
+        .root_module = phase14_end_to_end_smoke_survey_module,
+    });
+    const run_phase14_end_to_end_smoke_tests = b.addRunArtifact(phase14_end_to_end_smoke_tests);
+
+    const smoke_step = b.step("phase14-smoke", "Run the focused Phase 14 end-to-end smoke survey");
+    smoke_step.dependOn(&run_phase14_end_to_end_smoke_tests.step);
+
     const test_step = b.step("test", "Run Phase 14 bounded internal bridge tests");
     test_step.dependOn(&run_phase14_workqueue_bridge_tests.step);
     test_step.dependOn(&run_phase14_skbuff_bridge_tests.step);
     test_step.dependOn(&run_phase14_ring_buffer_survey_tests.step);
     test_step.dependOn(&run_phase14_rcu_tree_survey_tests.step);
+    test_step.dependOn(&run_phase14_end_to_end_smoke_tests.step);
 }
