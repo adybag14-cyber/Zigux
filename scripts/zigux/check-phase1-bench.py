@@ -116,6 +116,12 @@ def run_self_test() -> None:
         'PHASE1_BENCH_BITMAP_WEIGHT_ITERATIONS=20000',
         'PHASE1_BENCH_BITMAP_WEIGHT_CHECKSUM=7',
     ])
+    duplicate_checksum_output = '\n'.join([
+        'PHASE1_BENCH=pass',
+        'PHASE1_BENCH_BITMAP_WEIGHT_ITERATIONS=20000',
+        'PHASE1_BENCH_BITMAP_WEIGHT_CHECKSUM=7',
+        'PHASE1_BENCH_BITMAP_WEIGHT_CHECKSUM=11',
+    ])
 
     kind, _ = validate_output(expectations, ok_output)
     assert kind == 'pass'
@@ -128,8 +134,12 @@ def run_self_test() -> None:
     assert kind == 'duplicate'
     assert payload == ['PHASE1_BENCH_BITMAP_WEIGHT_ITERATIONS']
 
+    kind, payload = validate_output(expectations, duplicate_checksum_output)
+    assert kind == 'duplicate'
+    assert payload == ['PHASE1_BENCH_BITMAP_WEIGHT_CHECKSUM']
+
     print('PHASE1_BENCH_CHECK_SELF_TEST=pass')
-    print('PHASE1_BENCH_CHECK_SELF_TEST_CASE_COUNT=3')
+    print('PHASE1_BENCH_CHECK_SELF_TEST_CASE_COUNT=4')
 
 
 def main() -> int:
