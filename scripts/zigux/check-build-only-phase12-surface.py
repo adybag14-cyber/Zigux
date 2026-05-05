@@ -12,6 +12,7 @@ SELF_PATH = Path(__file__).resolve()
 ROOT = SELF_PATH.parents[2] if len(SELF_PATH.parents) > 2 else SELF_PATH.parent
 
 DOCS_README_PATH = "Documentation/zigux/README.md"
+REVIEW_CHECKLIST_PATH = "Documentation/zigux/review-checklist.md"
 PHASE12_SEQUENCE_PATH = "Documentation/zigux/phase12-release-sequencing.md"
 SCRIPTS_README_PATH = "scripts/zigux/README.md"
 TESTS_README_PATH = "zigux/tests/README.md"
@@ -19,8 +20,8 @@ MAKEFILE_PATH = "zigux/Makefile"
 WORKFLOW_PATH = ".github/workflows/zigux-bootstrap.yml"
 
 FORBIDDEN_LITERAL_COUNTS = {
-    "validate-phase12.py": 5,
-    "check-phase12-*.py": 5,
+    "validate-phase12.py": 6,
+    "check-phase12-*.py": 6,
     "phase12-validate": 5,
 }
 
@@ -40,6 +41,11 @@ REQUIRED_DOCS_README_MARKERS = [
     "`Documentation/zigux/phase12-release-sequencing.md`",
     "`Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, `scripts/zigux/check-build-only-phase12-surface.py`, `zigux/tests/phase12_build.zig`, and `make -C zigux phase12` now keep the current nvme pci, virtio_net, virtio_scsi, and libbpf survey-backed complex-driver bundle reviewable through the shipped Phase 12 release packet instead of implying removed validator or PMO checker surfaces.",
     "there is no dedicated shared `validate-phase12.py`, `check-phase12-*.py`, or `phase12-validate` target on `master`",
+]
+
+REQUIRED_REVIEW_CHECKLIST_MARKERS = [
+    "- if the change touches the shared Phase 12 complex-driver packet, do `Documentation/zigux/README.md`, `zigux/tests/README.md`, `scripts/zigux/README.md`, `scripts/zigux/check-build-only-phase12-surface.py`, `Documentation/zigux/phase12-release-sequencing.md`",
+    "`make -C zigux phase12` still agree on the same shipped nvme, virtio_net, virtio_scsi, and libbpf survey packet plus the active release-order note without implying removed `validate-phase12.py`, `check-phase12-*.py`, raw-coverage, or focused-libbpf-only replay surfaces that are not on `master`?",
 ]
 
 REQUIRED_SEQUENCE_MARKERS = [
@@ -102,6 +108,7 @@ def validate(root: Path) -> list[str]:
 
     for rel_path in [
         DOCS_README_PATH,
+        REVIEW_CHECKLIST_PATH,
         PHASE12_SEQUENCE_PATH,
         SCRIPTS_README_PATH,
         TESTS_README_PATH,
@@ -127,6 +134,7 @@ def validate(root: Path) -> list[str]:
         return failures
 
     docs_readme = read_text(root, DOCS_README_PATH)
+    review_checklist = read_text(root, REVIEW_CHECKLIST_PATH)
     phase12_sequence = read_text(root, PHASE12_SEQUENCE_PATH)
     scripts_readme = read_text(root, SCRIPTS_README_PATH)
     tests_readme = read_text(root, TESTS_README_PATH)
@@ -136,6 +144,9 @@ def validate(root: Path) -> list[str]:
     for marker in REQUIRED_DOCS_README_MARKERS:
         if marker not in docs_readme:
             failures.append(f"docs_readme:{marker}")
+    for marker in REQUIRED_REVIEW_CHECKLIST_MARKERS:
+        if marker not in review_checklist:
+            failures.append(f"review_checklist:{marker}")
     for marker in REQUIRED_SEQUENCE_MARKERS:
         if marker not in phase12_sequence:
             failures.append(f"phase12_sequence:{marker}")
@@ -155,7 +166,13 @@ def validate(root: Path) -> list[str]:
         if marker in makefile:
             failures.append(f"makefile_forbidden:{marker}")
 
-    combined_claim_surface = "\n".join([docs_readme, phase12_sequence, scripts_readme, tests_readme])
+    combined_claim_surface = "\n".join([
+        docs_readme,
+        review_checklist,
+        phase12_sequence,
+        scripts_readme,
+        tests_readme,
+    ])
     for marker, count in FORBIDDEN_LITERAL_COUNTS.items():
         expect_exact_count(combined_claim_surface, marker, count, "claim_surface", failures)
 
@@ -178,6 +195,14 @@ Phase 12 notes
 - `Documentation/zigux/phase12-release-sequencing.md`
 - `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, `scripts/zigux/check-build-only-phase12-surface.py`, `zigux/tests/phase12_build.zig`, and `make -C zigux phase12` now keep the current nvme pci, virtio_net, virtio_scsi, and libbpf survey-backed complex-driver bundle reviewable through the shipped Phase 12 release packet instead of implying removed validator or PMO checker surfaces.
 - there is no dedicated shared `validate-phase12.py`, `check-phase12-*.py`, or `phase12-validate` target on `master`; future Phase 12 reviewability claims should name only shipped survey, build, and make surfaces until new validator files actually land.
+""",
+    )
+    write(
+        root / REVIEW_CHECKLIST_PATH,
+        """# Zigux Review Checklist
+
+## Validation
+- if the change touches the shared Phase 12 complex-driver packet, do `Documentation/zigux/README.md`, `zigux/tests/README.md`, `scripts/zigux/README.md`, `scripts/zigux/check-build-only-phase12-surface.py`, `Documentation/zigux/phase12-release-sequencing.md`, `Documentation/zigux/phase12-nvme-pci-slice.md`, `Documentation/zigux/phase12-nvme-pci-survey.md`, `Documentation/zigux/phase12-nvme-pci-raw-github-fallback-map.md`, `Documentation/zigux/phase12-virtio-net-survey.md`, `Documentation/zigux/phase12-virtio-scsi-slice.md`, `Documentation/zigux/phase12-virtio-scsi-survey.md`, `Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md`, `Documentation/zigux/phase12-libbpf-segment-survey.md`, `zigux/tests/phase12_build.zig`, `zigux/tests/phase12_nvme_pci.zig`, `zigux/tests/phase12_nvme_pci_survey.zig`, `zigux/tests/phase12_virtio_net.zig`, `zigux/tests/phase12_virtio_net_survey.zig`, `zigux/tests/phase12_virtio_scsi.zig`, `zigux/tests/phase12_virtio_scsi_survey.zig`, `zigux/tests/phase12_libbpf_segments.zig`, `zigux/tests/phase12_libbpf_reviewability.zig`, `zigux/tests/phase12_nvme_pci_manifest.json`, `zigux/tests/phase12_virtio_net_manifest.json`, `zigux/tests/phase12_virtio_scsi_manifest.json`, `zigux/tests/phase12_libbpf_manifest.json`, `tools/lib/bpf/zigux_segments/manifest.json`, and `make -C zigux phase12` still agree on the same shipped nvme, virtio_net, virtio_scsi, and libbpf survey packet plus the active release-order note without implying removed `validate-phase12.py`, `check-phase12-*.py`, raw-coverage, or focused-libbpf-only replay surfaces that are not on `master`?
 """,
     )
     write(
@@ -254,6 +279,19 @@ def run_self_test() -> int:
             root,
             "unexpected_file:scripts/zigux/validate-phase12.py",
             "unexpected_validate_script",
+        )
+
+        write_fixture_tree(root)
+        review_checklist_path = root / REVIEW_CHECKLIST_PATH
+        review_checklist = review_checklist_path.read_text(encoding="utf-8")
+        review_checklist_path.write_text(
+            review_checklist.replace("`scripts/zigux/check-build-only-phase12-surface.py`, ", "", 1),
+            encoding="utf-8",
+        )
+        expect_failure(
+            root,
+            "review_checklist:- if the change touches the shared Phase 12 complex-driver packet, do `Documentation/zigux/README.md`, `zigux/tests/README.md`, `scripts/zigux/README.md`, `scripts/zigux/check-build-only-phase12-surface.py`, `Documentation/zigux/phase12-release-sequencing.md`",
+            "missing_review_checklist_checker_marker",
         )
 
         write_fixture_tree(root)
@@ -400,7 +438,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST=pass")
-    print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST_CASE_COUNT=12")
+    print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST_CASE_COUNT=13")
     return 0
 
 
@@ -436,7 +474,7 @@ def main() -> int:
     print("PHASE12_BUILD_ONLY_SURFACE=pass")
     print(
         "PHASE12_BUILD_ONLY_SURFACE_MARKER_COUNT="
-        f"{len(REQUIRED_DOCS_README_MARKERS) + len(REQUIRED_SEQUENCE_MARKERS) + len(REQUIRED_SCRIPT_README_MARKERS) + len(REQUIRED_TESTS_README_MARKERS) + len(REQUIRED_MAKEFILE_MARKERS) + len(REQUIRED_WORKFLOW_MARKERS) + len(FORBIDDEN_LITERAL_COUNTS)}"
+        f"{len(REQUIRED_DOCS_README_MARKERS) + len(REQUIRED_REVIEW_CHECKLIST_MARKERS) + len(REQUIRED_SEQUENCE_MARKERS) + len(REQUIRED_SCRIPT_README_MARKERS) + len(REQUIRED_TESTS_README_MARKERS) + len(REQUIRED_MAKEFILE_MARKERS) + len(REQUIRED_WORKFLOW_MARKERS) + len(FORBIDDEN_LITERAL_COUNTS)}"
     )
     return 0
 
