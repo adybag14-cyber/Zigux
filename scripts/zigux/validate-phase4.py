@@ -51,6 +51,7 @@ REQUIRED_DOC_MARKERS = [
     "scripts/zigux/check-phase4-gate-evidence.py",
     "zigux/tests/atomic64_diff.zig",
     "zigux/tests/runtime_atomic64_diff.zig",
+    "zigux/tests/phase4_runtime_atomic64_diff_survey.zig",
     "zigux/tests/bitmap_diff.zig",
     "zigux/tests/phase4_bitmap_live_helper_replay.zig",
     "zigux/tests/phase4_build.zig",
@@ -170,6 +171,13 @@ EXACT_ONCE_DOC_README_MARKERS = [
 ]
 EXACT_ONCE_REVIEW_CHECKLIST_MARKERS = [
     "if the change touches the shared Phase 4 validation packet",
+]
+EXACT_ONCE_ARTIFACT_DOC_MARKERS = [
+    "scripts/zigux/check-phase4-gate-evidence.py",
+    "zigux/tests/runtime_atomic64_diff.zig",
+    "zigux/tests/phase4_runtime_atomic64_diff_survey.zig",
+    "zigux/tests/phase4_bitmap_live_helper_replay.zig",
+    "scripts/zigux/validate-phase4.py",
 ]
 
 EXPECTED_ARTIFACT_DIFF_CONTRACT_CASES = [
@@ -338,6 +346,8 @@ def validate_root(root: Path) -> list[str]:
             missing_markers.append(f"phase4_build:{marker}")
 
     _require_exact_once(artifact_doc, "Current Phase 4 use", "doc", missing_markers)
+    for marker in EXACT_ONCE_ARTIFACT_DOC_MARKERS:
+        _require_exact_once(artifact_doc, marker, "doc", missing_markers)
     for marker in EXACT_ONCE_TESTS_README_MARKERS:
         _require_exact_once(tests_readme, marker, "tests_readme", missing_markers)
     for marker in EXACT_ONCE_SCRIPT_README_MARKERS:
@@ -625,6 +635,7 @@ def _write_phase4_fixture_docs(root: Path) -> None:
                 "- `scripts/zigux/check-phase4-gate-evidence.py` and `Documentation/zigux/phase4-gate-evidence.md` keep the dedicated exact-readback companion packet explicit beside the validator-backed rollback surfaces.",
                 "- `zigux/tests/atomic64_diff.zig`",
                 "- `zigux/tests/runtime_atomic64_diff.zig`",
+                "- `zigux/tests/phase4_runtime_atomic64_diff_survey.zig`",
                 "- `zigux/tests/bitmap_diff.zig`",
                 "- `zigux/tests/phase4_bitmap_live_helper_replay.zig`",
                 "- `zigux/tests/phase4_build.zig`",
@@ -833,7 +844,18 @@ def run_self_test() -> int:
             ),
         )
         assert validate_root(root) == [
-            "doc:scripts/zigux/check-phase4-gate-evidence.py"
+            "doc:scripts/zigux/check-phase4-gate-evidence.py",
+            "doc:exact_once:scripts/zigux/check-phase4-gate-evidence.py:0",
+        ]
+
+        _write_phase4_fixture_docs(root)
+        _write(
+            artifact_doc_path,
+            artifact_doc_path.read_text(encoding="utf-8")
+            + "- `zigux/tests/phase4_runtime_atomic64_diff_survey.zig`\n",
+        )
+        assert validate_root(root) == [
+            "doc:exact_once:zigux/tests/phase4_runtime_atomic64_diff_survey.zig:2"
         ]
 
         _write_phase4_fixture_docs(root)
