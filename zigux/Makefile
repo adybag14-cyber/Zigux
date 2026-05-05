@@ -1,3 +1,4 @@
+PHONY += phase1-validate phase1-test phase1-bench phase1
 PHONY += phase2-validate phase2-tools phase2-kconfig phase2-cross phase2
 PHONY += phase3-validate phase3-abi phase3-interop phase3
 PHONY += phase4-validate phase4-test phase4
@@ -15,6 +16,20 @@ PHONY += phase15-test phase15
 PYTHON ?= python3
 ZIG ?= zig
 ZIGUX_ROOT := $(abspath $(dir $(lastword $(MAKEFILE_LIST)))/..)
+
+phase1-validate:
+	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase1.py
+	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase1-closure.py
+
+phase1-test:
+	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase1-parity.py
+	cd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/build.zig
+
+phase1-bench:
+	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase1-bench.py
+	cd $(ZIGUX_ROOT) && $(ZIG) build bench --build-file zigux/tests/build.zig
+
+phase1: phase1-validate phase1-test phase1-bench
 
 phase2-validate:
 	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase2.py
