@@ -195,6 +195,7 @@ const ThresholdReplaySummary = struct {
     final_first_set: u32,
     final_first_zero: u32,
     final_weight: u32,
+    final_nth_seven: u32,
 };
 
 fn mixThresholdChecksum(checksum: *u64, value: anytype) void {
@@ -278,7 +279,13 @@ pub fn runThresholdReplay(iterations: usize) !ThresholdReplaySummary {
     var bitmap = BitmapHarness{};
     var source = BitmapHarness{};
     var destination = BitmapHarness{};
+    var short_source = BitmapHarness{};
+    var short_destination = BitmapHarness{};
+    var nth_probe = BitmapHarness{};
     var checksum: u64 = 0;
+
+    const starter_bits = [_]u32{ 10, 20, 30, 40, 50, 60, 80, 123 };
+    const nth_limit = BitmapHarness.bits_per_long * 3;
 
     var iteration: usize = 0;
     while (iteration < iterations) : (iteration += 1) {
@@ -307,6 +314,21 @@ pub fn runThresholdReplay(iterations: usize) !ThresholdReplaySummary {
         const copy_summary = destination.summary();
         mixThresholdChecksum(&checksum, copy_summary.first_zero);
         mixThresholdChecksum(&checksum, copy_summary.weight);
+
+        try short_source.initWithSetBits(&.{});
+        try short_source.setRange(0, 19);
+        try short_destination.initWithSetBits(&.{});
+        try short_destination.setRange(0, 23);
+        try short_destination.copyFrom(&short_source, 23);
+        const short_copy_summary = short_destination.summary();
+        mixThresholdChecksum(&checksum, short_copy_summary.first_zero);
+        mixThresholdChecksum(&checksum, short_copy_summary.weight);
+
+        try nth_probe.initWithSetBits(&starter_bits);
+        const nth_seven = try nth_probe.findNthSet(nth_limit, 7);
+        const nth_end = try nth_probe.findNthSet(nth_limit, 8);
+        mixThresholdChecksum(&checksum, nth_seven);
+        mixThresholdChecksum(&checksum, nth_end);
     }
 
     const final_summary = destination.summary();
@@ -316,6 +338,7 @@ pub fn runThresholdReplay(iterations: usize) !ThresholdReplaySummary {
         .final_first_set = final_summary.first_set,
         .final_first_zero = final_summary.first_zero,
         .final_weight = final_summary.weight,
+        .final_nth_seven = try nth_probe.findNthSet(nth_limit, 7),
     };
 }
 
@@ -532,6 +555,7 @@ test "bitmap diff gate keeps a deterministic threshold replay batch ready for fu
     try std.testing.expectEqual(@as(u32, 0), single.final_first_set);
     try std.testing.expectEqual(@as(u32, 97), single.final_first_zero);
     try std.testing.expectEqual(@as(u32, 993), single.final_weight);
+    try std.testing.expectEqual(@as(u32, 123), single.final_nth_seven);
     try std.testing.expect(single.checksum != 0);
     try std.testing.expect(repeated.checksum != 0);
     try std.testing.expect(repeated.checksum != single.checksum);
