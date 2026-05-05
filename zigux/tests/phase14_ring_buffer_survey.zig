@@ -242,3 +242,23 @@ test "phase 14 ring-buffer survey exposes the landed stay-in-c checklist" {
     try std.testing.expectEqualStrings("tracing_buffers_splice_read", checklist[4].anchor_symbols[4]);
     try std.testing.expect(std.mem.indexOf(u8, checklist[4].rationale, "resize_disabled") != null);
 }
+
+test "phase 14 ring-buffer survey note records reset and clear ownership evidence" {
+    var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
+    defer io_instance.deinit();
+
+    const note = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "Documentation/zigux/phase14-ring-buffer-survey.md",
+        std.testing.allocator,
+        .limited(32 * 1024),
+    );
+    defer std.testing.allocator.free(note);
+
+    try std.testing.expect(std.mem.indexOf(u8, note, "## Reset and clear-path governance audit") != null);
+    try std.testing.expect(std.mem.indexOf(u8, note, "ring_buffer_reset_online_cpus()") != null);
+    try std.testing.expect(std.mem.indexOf(u8, note, "RESET_BIT") != null);
+    try std.testing.expect(std.mem.indexOf(u8, note, "tracing_reset_all_online_cpus_unlocked()") != null);
+    try std.testing.expect(std.mem.indexOf(u8, note, "tracefs-visible clear semantics sit one layer higher in `kernel/trace/trace.c`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, note, "ready-next `phase14-ring-buffer-tracefs-instance-clear-followup`") != null);
+}
