@@ -75,11 +75,15 @@ The current tests check:
 
 This slice does not yet claim:
 
+- parity for `skip_spaces()` and `strim()`
 - parity for `string_get_size()`
 - integer parsing helpers
 - allocation-backed duplication helpers
+- task-owned, file-owned, or device-managed quotable helper surfaces
 - a new `samples/zigux/` string-helper reference sample
 
 ## Next bounded step
 
-Leave this lane parked unless fresh repo inspection finds one more concrete Phase 7 helper need or a renewed Phase 5-versus-Phase 7 boundary drift, such as a small `string_get_size()` or parsing helper requirement that is still clearly Phase 7-sized.
+Leave this lane parked unless fresh repo inspection finds one more concrete Phase 7 helper need or a renewed Phase 5-versus-Phase 7 boundary drift.
+
+If the string-helper family reopens, prefer `skip_spaces()` or `strim()` before heavier `string_get_size()` or parsing work, because those two helpers remain the smallest live `lib/string_helpers.c` leaf helpers that still fit the current runtime-safe Phase 7 boundary without widening into allocator-heavy, task-owned, file-owned, or device-managed surfaces.
