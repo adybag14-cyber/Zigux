@@ -272,6 +272,45 @@ pub fn clearRange(map: []Word, start: usize, len: usize) void {
     }
 }
 
+pub fn copyClearTail(dst: []Word, src: []const Word, nbits: usize) void {
+    assertBitmapLen(dst, nbits);
+    assertBitmapLen(src, nbits);
+
+    const nwords = bitsToWords(nbits);
+    if (nwords == 0) {
+        return;
+    }
+
+    @memcpy(dst[0..nwords], src[0..nwords]);
+    if ((nbits & (bits_per_long - 1)) != 0) {
+        dst[nwords - 1] &= lastWordMask(nbits);
+    }
+}
+
+pub fn bitmap_copy_clear_tail(dst: []Word, src: []const Word, nbits: usize) void {
+    copyClearTail(dst, src, nbits);
+}
+
+pub fn copyAndExtend(dst: []Word, src: []const Word, count: usize, size: usize) void {
+    std.debug.assert(size >= count);
+    assertBitmapLen(dst, size);
+    assertBitmapLen(src, count);
+
+    const copy_words = bitsToWords(count);
+    if (copy_words != 0) {
+        @memcpy(dst[0..copy_words], src[0..copy_words]);
+        if ((count & (bits_per_long - 1)) != 0) {
+            dst[copy_words - 1] &= lastWordMask(count);
+        }
+    }
+
+    @memset(dst[copy_words..bitsToWords(size)], 0);
+}
+
+pub fn bitmap_copy_and_extend(dst: []Word, src: []const Word, count: usize, size: usize) void {
+    copyAndExtend(dst, src, count, size);
+}
+
 fn appendSlice(buffer: []u8, written: *usize, text: []const u8) void {
     if (buffer.len == 0) {
         return;
@@ -431,4 +470,21 @@ test "bitmap scnprintf reports full length while truncating the buffer" {
     try std.testing.expectEqual(@as(usize, 7), len);
     try std.testing.expectEqualStrings("1-3,7,1", buffer[0 .. buffer.len - 1]);
     try std.testing.expectEqual(@as(u8, 0), buffer[buffer.len - 1]);
+}
+
+test "bitmap copy aliases preserve tail clearing and extension semantics" {
+    const count = bits_per_long + 5;
+    const size = bits_per_long * 3;
+    const src = [_]Word{ ~@as(Word, 0), ~@as(Word, 0), ~@as(Word, 0) };
+
+    var cleared = [_]Word{ 0, 0, 0 };
+    bitmap_copy_clear_tail(&cleared, &src, count);
+    try std.testing.expectEqual(@as(Word, ~@as(Word, 0)), cleared[0]);
+    try std.testing.expectEqual(lastWordMask(count), cleared[1]);
+
+    var extended = [_]Word{ ~@as(Word, 0), ~@as(Word, 0), ~@as(Word, 0) };
+    bitmap_copy_and_extend(&extended, &src, count, size);
+    try std.testing.expectEqual(@as(Word, ~@as(Word, 0)), extended[0]);
+    try std.testing.expectEqual(lastWordMask(count), extended[1]);
+    try std.testing.expectEqual(@as(Word, 0), extended[2]);
 }
