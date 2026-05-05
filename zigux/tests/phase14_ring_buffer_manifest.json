@@ -1,5 +1,5 @@
 {
-  "lane_key": "P14-Y02",
+  "lane_key": "P14-L08",
   "phase": "Phase 14",
   "surveyed_commit": "946d5c73fdb763ba860a20879b05da54e1896e8c",
   "anchor": "kernel/trace/ring_buffer.c",
@@ -137,7 +137,7 @@
       "status": "starter_landed",
       "kind": "boundary_audit",
       "zigux_destination": "Documentation/zigux/phase14-ring-buffer-survey.md",
-      "why_now": "The lane now records a narrow wakeup and mmap audit around `rb_wake_up_waiters()`, `ring_buffer_wait()`, and `rb_update_meta_page()` so tracefs wait queues, watermark state, and mapped-reader publication remain explicit stay-in-C seams."
+      "why_now": "The lane now records a narrow wakeup and mmap audit around `rb_wake_up_waiters()`, `rb_watermark_hit()`, `ring_buffer_wait()`, `ring_buffer_poll_wait()`, and meta-page refresh so tracefs wait queues, watermark state, and mapped-reader publication remain explicit stay-in-C seams."
     },
     {
       "id": "phase14-ring-buffer-splice-resize-followup",
@@ -155,31 +155,17 @@
     },
     {
       "id": "phase14-ring-buffer-reader-page-consume-followup",
-      "status": "starter_landed",
-      "kind": "boundary_audit",
-      "zigux_destination": "Documentation/zigux/phase14-ring-buffer-survey.md",
-      "why_now": "With the mapped-reader ioctl path recorded, this lane now closes the next small reader-page follow-up around `rb_get_reader_page()`, `ring_buffer_read_start()`, and `ring_buffer_consume()` so consuming and observational reader paths remain explicit stay-in-C handoffs."
-    },
-    {
-      "id": "phase14-ring-buffer-reset-governance-followup",
-      "status": "starter_landed",
-      "kind": "boundary_audit",
-      "zigux_destination": "Documentation/zigux/phase14-ring-buffer-survey.md",
-      "why_now": "With reader-page consumption now recorded, the lane now closes one narrow reset and clear-path governance audit around `ring_buffer_reset_cpu()`, `ring_buffer_reset_online_cpus()`, `ring_buffer_reset()`, and tracefs-owned clear semantics so writer quiescence, online-CPU gating, and trace-array clear ownership stay explicit before any bridge candidate is entertained."
-    },
-    {
-      "id": "phase14-ring-buffer-tracefs-instance-clear-followup",
       "status": "ready_next",
       "kind": "boundary_audit",
       "zigux_destination": "Documentation/zigux/phase14-ring-buffer-survey.md",
-      "why_now": "With the reset-governance audit recorded, the next honest study-only step is a narrow tracefs instance clear-dispatch follow-up around `tracing_reset_cpu()`, `tracing_reset_online_cpus()`, `tracing_reset_all_cpus()`, and `tracing_reset_all_online_cpus_unlocked()` so per-instance clear ownership stays explicit before any bridge candidate is entertained."
+      "why_now": "With the mapped-reader ioctl path recorded, the next honest study-only step is a narrow reader-page follow-up around `rb_get_reader_page()`, `ring_buffer_read_start()`, and `ring_buffer_consume()` before any bridge candidate is entertained."
     },
     {
       "id": "phase14-ring-buffer-zig-port-blocker",
       "status": "blocked_on_stay_in_c_evidence",
       "kind": "freeze_map",
       "zigux_destination": "kernel/trace/ring_buffer.zig",
-      "why_now": "The roadmap allows `kernel/trace/ring_buffer.zig` only if years of evidence justify it, and the current survey still shows deep commit, per-CPU page, reader, wakeup, mmap, overwrite, and reset coupling that should remain in the C implementation."
+      "why_now": "The roadmap allows `kernel/trace/ring_buffer.zig` only if years of evidence justify it, and the current survey still shows deep commit, per-CPU page, reader, wakeup, mmap, and overwrite coupling that should remain in the C implementation."
     }
   ]
 }
