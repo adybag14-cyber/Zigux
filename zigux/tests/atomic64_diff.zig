@@ -43,7 +43,7 @@ test "atomic64 diff canonical wrapper keeps the shipped runtime gate wired in" {
 test "atomic64 diff wrapper records the current bounded runtime checks" {
     try expectMarker(
         runtime_atomic64_diff_source,
-        "runtime atomic64 diff gate replays bounded atomic64_test.c exchange, cmpxchg, and add_unless expectations",
+        "runtime atomic64 diff gate replays bounded atomic64_test.c exchange, cmpxchg, add_unless, and bitwise expectations",
     );
     try expectMarker(
         runtime_atomic64_diff_source,
@@ -84,7 +84,6 @@ test "atomic64 diff wrapper keeps the current manifest handoff explicit" {
     );
     try expectMarker(phase4_runtime_atomic64_manifest_source, "\"phase4_build_present\": true");
     try expectMarker(phase4_runtime_atomic64_manifest_source, "\"phase4_build_uses_atomic64_wrapper\": true");
-    try expectMarker(phase4_runtime_atomic64_manifest_source, "\"phase9_build_present\": true");
     try expectMarker(
         phase4_runtime_atomic64_manifest_source,
         "\"phase4_validator_atomic64_diff_present\": true",
@@ -95,7 +94,7 @@ test "atomic64 diff wrapper keeps the current manifest handoff explicit" {
     );
     try expectMarker(
         phase4_runtime_atomic64_manifest_source,
-        "\"phase4_validator_blob_sha\": \"adf7a83fe8a944dbeed522e691d989f31cc1ce7d\"",
+        "\"phase4_validator_blob_sha\": \"7d09a4957fde591f53e7b32dbfa3d5f1a3e9a1c0\"",
     );
     try expectMarker(
         phase4_runtime_atomic64_manifest_source,
@@ -107,7 +106,7 @@ test "atomic64 diff wrapper keeps the current manifest handoff explicit" {
     );
     try expectMarker(
         phase4_runtime_atomic64_manifest_source,
-        "\"phase4_validation_matrix_blob_sha\": \"ab41bb2d0dc190ef56597a1620d2f411783e4f7b\"",
+        "\"phase4_validation_matrix_blob_sha\": \"bc3c5cb7a184fe6313ffd628426deeb920cb80c6\"",
     );
     try expectMarker(
         phase4_runtime_atomic64_manifest_source,
@@ -116,8 +115,8 @@ test "atomic64 diff wrapper keeps the current manifest handoff explicit" {
     try expectMarker(phase4_runtime_atomic64_manifest_source, "single bounded replay body");
     try expectMarker(phase4_runtime_atomic64_manifest_source, "Phase 9 runtime packet");
     try expectMarker(phase4_runtime_atomic64_manifest_source, "Phase 4 reviewer packet");
-    try expectMarker(phase4_runtime_atomic64_manifest_source, "canonical wrapper");
-    try expectMarker(phase4_runtime_atomic64_manifest_source, "runtime operation coverage");
+    try expectMarker(phase4_runtime_atomic64_manifest_source, "current wrapper-first rollback surface");
+    try expectMarker(phase4_runtime_atomic64_manifest_source, "shared runtime replay body");
 }
 
 test "atomic64 diff wrapper keeps the current phase4 and phase9 build routing explicit" {
@@ -141,7 +140,12 @@ test "atomic64 diff wrapper pins the current bounded runtime case groups" {
     );
     try expectRuntimeCaseGroupCardinality(
         "const add_unless_cases = [_]AddUnlessCase{",
-        "for (add_unless_cases) |case| {",
+        "const bitwise_cases = [_]BitwiseCase{",
         2,
+    );
+    try expectRuntimeCaseGroupCardinality(
+        "const bitwise_cases = [_]BitwiseCase{",
+        "for (bitwise_cases) |case| {",
+        3,
     );
 }
