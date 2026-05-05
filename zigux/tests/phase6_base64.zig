@@ -148,12 +148,21 @@ test "phase 6 base64 variant decode parity keeps bytes and decode aligned with k
 }
 
 test "phase 6 base64 reports destination bounds before encoding" {
-    var buf: [3]u8 = undefined;
-    try std.testing.expectError(base64.EncodeError.DestinationTooSmall, base64.encode(buf[0..], "f", true, .std));
-    try std.testing.expectError(base64.EncodeError.DestinationTooSmall, base64.encode(buf[0..], "foo", false, .std));
+    var padded_buf = [_]u8{0xaa} ** 3;
+    try std.testing.expectError(base64.EncodeError.DestinationTooSmall, base64.encode(padded_buf[0..], "f", true, .std));
+    try std.testing.expectEqualSlices(u8, &[_]u8{ 0xaa, 0xaa, 0xaa }, padded_buf[0..]);
+
+    var unpadded_buf = [_]u8{0xbb} ** 3;
+    try std.testing.expectError(base64.EncodeError.DestinationTooSmall, base64.encode(unpadded_buf[0..], "foo", false, .std));
+    try std.testing.expectEqualSlices(u8, &[_]u8{ 0xbb, 0xbb, 0xbb }, unpadded_buf[0..]);
 }
 
 test "phase 6 base64 reports destination bounds before decoding" {
-    var buf: [2]u8 = undefined;
-    try std.testing.expectError(base64.DecodeError.DestinationTooSmall, base64.decode(buf[0..], "Zm9v", false, .std));
+    var padded_buf = [_]u8{0xcc} ** 1;
+    try std.testing.expectError(base64.DecodeError.DestinationTooSmall, base64.decode(padded_buf[0..], "Zm8=", true, .std));
+    try std.testing.expectEqualSlices(u8, &[_]u8{0xcc}, padded_buf[0..]);
+
+    var unpadded_buf = [_]u8{0xdd} ** 2;
+    try std.testing.expectError(base64.DecodeError.DestinationTooSmall, base64.decode(unpadded_buf[0..], "Zm9v", false, .std));
+    try std.testing.expectEqualSlices(u8, &[_]u8{ 0xdd, 0xdd }, unpadded_buf[0..]);
 }
