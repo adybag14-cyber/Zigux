@@ -125,6 +125,7 @@ test "phase 15 architecture council review-process doc and manifest stay aligned
     try expectContains(survey_doc, "`scripts/zigux/check-phase15-review-process-handoff.py`");
     try expectContains(survey_doc, "`zigux/tests/phase15_architecture_council_review_process_manifest.json`");
     try expectContains(survey_doc, "`zigux/tests/phase15_architecture_council_review_process.zig`");
+    try expectContains(survey_doc, "`zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig`");
     try expectContains(survey_doc, "`zigux/tests/phase15_build.zig`");
     try expectContains(survey_doc, "`make -C zigux phase15-validate`");
     try expectContains(
@@ -136,6 +137,7 @@ test "phase 15 architecture council review-process doc and manifest stay aligned
     try expectContains(survey_doc, "`current status bucket`");
     try expectContains(survey_doc, "`validation gate summary`");
     try expectContains(survey_doc, "landed `phase15-roadmap-minimum-field-sync`");
+    try expectContains(survey_doc, "landed `phase15-lane-owner-alignment-replay-visible`");
 
     try expectContains(script_readme, "Phase 15 flow");
     try expectContains(
@@ -232,6 +234,8 @@ test "phase 15 architecture council review-process doc and manifest stay aligned
         "zigux/tests/phase15_architecture_council_review_process.zig",
     );
     try expectContains(manifest_doc, "zigux/tests/phase15_indefinite_c_policy.json");
+    try expectContains(manifest_doc, "zigux/tests/phase15_indefinite_c_policy.zig");
+    try expectContains(manifest_doc, "zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig");
     try expectContains(manifest_doc, "zigux/tests/phase15_build.zig");
     try expectContains(manifest_doc, "\"current_bounded_lane\"");
     try expectContains(manifest_doc, "scripts-root validator path");
@@ -239,4 +243,5 @@ test "phase 15 architecture council review-process doc and manifest stay aligned
     try expectContains(manifest_doc, "tests-root guidance path");
     try expectContains(manifest_doc, "dedicated handoff-checker route");
     try expectContains(manifest_doc, "phase15-roadmap-minimum-field-sync");
+    try expectContains(manifest_doc, "phase15-lane-owner-alignment-replay-visible");
 }
