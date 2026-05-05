@@ -10,6 +10,7 @@ const SurveySummary = struct {
 
 const LifecycleBoundarySummary = struct {
     pre_execution_handoff_only: bool,
+    requires_idle_registration_snapshot: bool,
     metadata_only_registration_labels: []const []const u8,
     shared_request_surface: []const u8,
     live_registration_parity: []const u8,
@@ -72,6 +73,14 @@ test "phase 9 runtime kretprobe survey manifest records the landed loader plan a
     );
     defer std.testing.allocator.free(module_slice_doc);
 
+    const loader_source = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "samples/zigux/runtime_kretprobe_loader.zig",
+        std.testing.allocator,
+        .limited(32 * 1024),
+    );
+    defer std.testing.allocator.free(loader_source);
+
     const runtime_loader_source = try std.Io.Dir.cwd().readFileAlloc(
         io_instance.io(),
         "zigux/kernel/runtime_loader.zig",
@@ -100,7 +109,7 @@ test "phase 9 runtime kretprobe survey manifest records the landed loader plan a
     defer parsed.deinit();
 
     const manifest = parsed.value;
-    try std.testing.expectEqualStrings("P9-L13", manifest.lane_key);
+    try std.testing.expectEqualStrings("P9-L16", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 9", manifest.phase);
     try std.testing.expectEqualStrings("samples/kprobes/kretprobe_example.c", manifest.anchor);
     try std.testing.expectEqual(@as(usize, 2), manifest.roadmap_destinations.len);
@@ -110,6 +119,7 @@ test "phase 9 runtime kretprobe survey manifest records the landed loader plan a
     try std.testing.expect(manifest.survey_summary.preexisting_phase9_build_present);
     try std.testing.expect(manifest.survey_summary.preexisting_runtime_kretprobe_doc_present);
     try std.testing.expect(manifest.lifecycle_boundary_summary.pre_execution_handoff_only);
+    try std.testing.expect(manifest.lifecycle_boundary_summary.requires_idle_registration_snapshot);
     try std.testing.expectEqual(@as(usize, 2), manifest.lifecycle_boundary_summary.metadata_only_registration_labels.len);
     try std.testing.expectEqualStrings(
         "register_kretprobe",
@@ -130,11 +140,13 @@ test "phase 9 runtime kretprobe survey manifest records the landed loader plan a
     try std.testing.expect(manifest.gaps.len >= 6);
 
     try expectContains(survey_doc, "PHASE9_SLICE=runtime-kretprobe-survey");
+    try expectContains(survey_doc, "P9-L16");
     try expectContains(survey_doc, "samples/zigux/runtime_kretprobe_loader.zig");
     try expectContains(survey_doc, "zigux/kernel/runtime_loader.zig");
     try expectContains(survey_doc, "zigux/kernel/runtime_loader_contract.zig");
     try expectContains(survey_doc, "zigux/tests/runtime_loader_allocator_init_flow.zig");
     try expectContains(survey_doc, "metadata-only labels");
+    try expectContains(survey_doc, "idle registration snapshot");
     try expectContains(survey_doc, "make -C zigux phase9");
 
     try expectContains(module_slice_doc, "PHASE9_SLICE=runtime-kretprobe-module-starter");
@@ -144,6 +156,10 @@ test "phase 9 runtime kretprobe survey manifest records the landed loader plan a
     try expectContains(module_slice_doc, "zigux/tests/runtime_loader_allocator_init_flow.zig");
     try expectContains(module_slice_doc, "register_kretprobe()");
     try expectContains(module_slice_doc, "unregister_kretprobe()");
+    try expectContains(module_slice_doc, "idle registration snapshot");
+
+    try expectContains(loader_source, "error.OutstandingProbeStateForLoader");
+    try expectContains(loader_source, "summary.active_instances != 0 or summary.entry_timestamp_armed");
 
     try expectContains(runtime_loader_source, "pub const AllocatorHandoff = contract.AllocatorHandoff;");
     try expectContains(runtime_loader_source, "pub const LoadPlan = contract.LoadPlan;");
@@ -201,6 +217,7 @@ test "phase 9 runtime kretprobe survey manifest records the landed loader plan a
             saw_loader_plan = true;
             try std.testing.expectEqualStrings("starter_landed", gap.status);
             try std.testing.expectEqualStrings("samples/zigux/runtime_kretprobe_loader.zig", gap.zigux_destination);
+            try expectContains(gap.why_now, "idle registration snapshot");
         }
 
         for (manifest.gaps[i + 1 ..]) |other| {
