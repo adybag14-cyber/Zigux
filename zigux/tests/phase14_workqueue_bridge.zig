@@ -39,16 +39,20 @@ fn isAllowedStatus(status: []const u8) bool {
         std.mem.eql(u8, status, "blocked_on_live_concurrency");
 }
 
-test "phase14 workqueue bridge manifest records the boundary-map foothold and remaining gap" {
-    var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
+fn readFixture(allocator: std.mem.Allocator, path: []const u8) ![]u8 {
+    var io_instance: std.Io.Threaded = .init(allocator, .{});
     defer io_instance.deinit();
 
-    const manifest_json = try std.Io.Dir.cwd().readFileAlloc(
+    return std.Io.Dir.cwd().readFileAlloc(
         io_instance.io(),
-        "zigux/tests/phase14_workqueue_bridge_manifest.json",
-        std.testing.allocator,
+        path,
+        allocator,
         .limited(32 * 1024),
     );
+}
+
+test "phase14 workqueue bridge manifest records the boundary-map foothold and remaining gap" {
+    const manifest_json = try readFixture(std.testing.allocator, "zigux/tests/phase14_workqueue_bridge_manifest.json");
     defer std.testing.allocator.free(manifest_json);
 
     const parsed = try std.json.parseFromSlice(Manifest, std.testing.allocator, manifest_json, .{});
@@ -202,6 +206,18 @@ test "phase14 workqueue bridge manifest records the boundary-map foothold and re
     try std.testing.expect(saw_pending_bit_followup);
     try std.testing.expect(saw_delayed_submission_followup);
     try std.testing.expect(saw_blocker);
+}
+
+test "phase14 workqueue bridge survey note pins the lane key and surveyed commit" {
+    const survey_note = try readFixture(std.testing.allocator, "Documentation/zigux/phase14-workqueue-bridge-survey.md");
+    defer std.testing.allocator.free(survey_note);
+
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE14_STATUS=active") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE14_LANE_KEY=P14-L01") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE14_SURVEYED_COMMIT=9e278f632d6d5097cb8cfc2dc61744ae105baa8c") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE14_SLICE=workqueue-pending-bit-audit") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase14-workqueue-pending-bit-followup") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase14-workqueue-delayed-submission-alias-followup") != null);
 }
 
 test "phase14 workqueue bridge descriptor stays at boundary-map posture" {
