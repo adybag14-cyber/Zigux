@@ -156,11 +156,13 @@ test "phase 5 kretprobe survey note stays repo-local and keeps the build-wired b
         "retHandler(9, 260) still recovers with duration 60",
         "cold -> initialized -> replay_complete",
         "cold -> initialized -> exited",
+        "runLifecycleGuardReplay()",
     };
 
     for (required_mentions) |needle| {
         try std.testing.expect(std.mem.indexOf(u8, survey_note, needle) != null);
     }
 
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "one bounded self-check through `runAnchorReplay()`") == null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "/workspace/agent_files") == null);
 }
