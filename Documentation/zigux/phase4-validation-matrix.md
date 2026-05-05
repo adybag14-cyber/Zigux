@@ -5,11 +5,13 @@ This document records the live Phase 4 differential-validation ownership and rep
 ## Status
 
 - `PHASE4_STATUS=differential_validation_matrix_landed`
-- scope: keep the currently shipped Phase 4 rollback-readiness gates, the host-side artifact-diff contract replay, and the manifest-backed runtime atomic64 handoff survey reviewable, name the rollback owners for each bounded gate or survey, and make the current CI and local replay paths explicit
+- scope: keep the currently shipped Phase 4 rollback-readiness gates, the host-side artifact-diff contract replay, the dedicated exact-readback gate-evidence packet, and the manifest-backed runtime atomic64 handoff survey reviewable, name the rollback owners for each bounded gate or survey, and make the current CI and local replay paths explicit
 - current repo reality:
   - `scripts/zigux/artifact_diff.py`
   - `scripts/zigux/check-artifact-diff-contract.py`
+  - `scripts/zigux/check-phase4-gate-evidence.py`
   - `Documentation/zigux/artifact-diff.md`
+  - `Documentation/zigux/phase4-gate-evidence.md`
   - `zigux/tests/atomic64_diff.zig`
   - `zigux/tests/runtime_atomic64_diff.zig`
   - `zigux/tests/phase4_runtime_atomic64_diff_manifest.json`
@@ -28,7 +30,7 @@ The roadmap says Phase 4 must make future Zigux ports measurable and reversible.
 - the bounded rollback owner for each live Phase 4 gate
 - the current perf threshold status for those gates
 - the manifest-backed survey packet that keeps the atomic64 wrapper-to-runtime handoff measurable
-- the shipped host-side artifact-diff contract packet that the broader validator already depends on
+- the shipped host-side artifact-diff contract packet and the dedicated gate-evidence checker-plus-note packet that the broader validator already depends on
 - the remaining roadmap-backed gaps that are still intentionally outside the shipped Phase 4 packet
 
 Without that record, Phase 4 validation exists in code but not yet as a product-facing ownership note.
@@ -87,7 +89,7 @@ Without that record, Phase 4 validation exists in code but not yet as a product-
 
 The shared `zigux/tests/phase4_build.zig` entrypoint now runs `zigux/tests/phase4_runtime_atomic64_diff_survey.zig` beside `zigux/tests/atomic64_diff.zig`, `zigux/tests/bitmap_diff.zig`, and `zigux/tests/phase4_bitmap_live_helper_replay.zig` so the manifest-backed wrapper handoff and the shipped helper-backed bitmap semantics stay reviewable on the same bounded Phase 4 replay surface.
 
-The same validator-first route also keeps `Documentation/zigux/artifact-diff.md` aligned with the shipped host-side helper contract instead of leaving that packet implied.
+The same validator-first route also keeps `Documentation/zigux/artifact-diff.md` aligned with the shipped host-side helper contract and `Documentation/zigux/phase4-gate-evidence.md` aligned with the dedicated exact-readback checker instead of leaving either packet implied.
 
 ## Remaining Roadmap Gaps
 
