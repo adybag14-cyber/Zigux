@@ -2,13 +2,15 @@
 from __future__ import annotations
 
 import argparse
+import json
 from pathlib import Path
 import subprocess
 import sys
 import tempfile
 
 
-ROOT = Path(__file__).resolve().parents[2]
+SCRIPT_PATH = Path(__file__).resolve()
+ROOT = SCRIPT_PATH.parents[2] if len(SCRIPT_PATH.parents) > 2 else SCRIPT_PATH.parent
 
 REQUIRED_FILES = [
     "scripts/zigux/artifact_diff.py",
@@ -187,6 +189,10 @@ EXPECTED_ARTIFACT_DIFF_CONTRACT_SELF_TEST_CASES = [
     "contract_summary_case_order_drift",
 ]
 EXPECTED_PHASE4_GATE_EVIDENCE_TARGET_COUNT = 16
+PHASE4_RUNTIME_ATOMIC64_PIN_TARGETS = {
+    "phase4_validator_blob_sha": "scripts/zigux/validate-phase4.py",
+    "phase4_validation_matrix_blob_sha": "Documentation/zigux/phase4-validation-matrix.md",
+}
 
 
 def _missing_files(root: Path) -> list[str]:
@@ -216,6 +222,13 @@ def _line_value(lines: list[str], prefix: str) -> str | None:
 
 def _expected_case_line(cases: list[str]) -> str:
     return ",".join(cases)
+
+
+def _git_blob_sha1(payload: bytes) -> str:
+    import hashlib
+
+    header = f"blob {len(payload)}\0".encode("utf-8")
+    return hashlib.sha1(header + payload).hexdigest()
 
 
 def validate_root(root: Path) -> list[str]:
@@ -404,6 +417,37 @@ def run_phase4_gate_evidence_self_test_check(root: Path) -> list[str]:
     return []
 
 
+def run_phase4_runtime_atomic64_packet_check(root: Path) -> list[str]:
+    manifest_path = root / "zigux/tests/phase4_runtime_atomic64_diff_manifest.json"
+    survey_path = root / "zigux/tests/phase4_runtime_atomic64_diff_survey.zig"
+
+    try:
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    except json.JSONDecodeError as exc:
+        return [f"phase4_runtime_atomic64_packet:invalid_manifest_json:{exc.msg}"]
+
+    survey_text = survey_path.read_text(encoding="utf-8")
+    missing: list[str] = []
+
+    for field, relative_path in PHASE4_RUNTIME_ATOMIC64_PIN_TARGETS.items():
+        expected = _git_blob_sha1((root / relative_path).read_bytes())
+        actual = manifest.get(field)
+        if actual is None:
+            missing.append(f"phase4_runtime_atomic64_packet:missing_manifest_field:{field}")
+            continue
+        if actual != expected:
+            missing.append(
+                f"phase4_runtime_atomic64_packet:unexpected_manifest_sha:{field}:{actual}:{expected}"
+            )
+        count = survey_text.count(expected)
+        if count != 1:
+            missing.append(
+                f"phase4_runtime_atomic64_packet:survey_sha_exact_count:{field}:{expected}:{count}"
+            )
+
+    return missing
+
+
 def _write(path: Path, content: str) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(content, encoding="utf-8", newline="\n")
@@ -454,6 +498,35 @@ def _write_contract_checker_fixture(
     if cases is not None:
         lines.append("print('ARTIFACT_DIFF_CONTRACT_CASES=" + ",".join(cases) + "')")
     _write(path, "\n".join(lines) + "\n")
+
+
+def _write_phase4_runtime_atomic64_packet_fixture(root: Path) -> None:
+    validator_sha = _git_blob_sha1((root / "scripts/zigux/validate-phase4.py").read_bytes())
+    matrix_sha = _git_blob_sha1(
+        (root / "Documentation/zigux/phase4-validation-matrix.md").read_bytes()
+    )
+    manifest = {
+        "phase4_validator_blob_sha": validator_sha,
+        "phase4_validation_matrix_blob_sha": matrix_sha,
+    }
+    _write(
+        root / "zigux/tests/phase4_runtime_atomic64_diff_manifest.json",
+        json.dumps(manifest, indent=2) + "\n",
+    )
+    _write(
+        root / "zigux/tests/phase4_runtime_atomic64_diff_survey.zig",
+        "\n".join(
+            [
+                "const std = @import(\"std\");",
+                "",
+                "test \"fixture keeps current validator and matrix pins\" {",
+                f"    // validator pin {validator_sha}",
+                f"    // matrix pin {matrix_sha}",
+                "}",
+                "",
+            ]
+        ),
+    )
 
 
 def run_self_test() -> int:
@@ -584,8 +657,6 @@ def run_self_test() -> int:
         )
         _write(root / "zigux/tests/atomic64_diff.zig", "// wrapper gate\n")
         _write(root / "zigux/tests/runtime_atomic64_diff.zig", "// runtime gate\n")
-        _write(root / "zigux/tests/phase4_runtime_atomic64_diff_manifest.json", "{}\n")
-        _write(root / "zigux/tests/phase4_runtime_atomic64_diff_survey.zig", "// survey gate\n")
         _write(root / "zigux/tests/bitmap_diff.zig", "// bitmap gate\n")
         _write(root / "zigux/tests/phase4_bitmap_live_helper_replay.zig", "// helper replay gate\n")
         _write(
@@ -647,6 +718,7 @@ def run_self_test() -> int:
                 ]
             ),
         )
+        _write_phase4_runtime_atomic64_packet_fixture(root)
 
         assert _missing_files(root) == []
         assert validate_root(root) == []
@@ -654,6 +726,7 @@ def run_self_test() -> int:
         assert run_artifact_diff_contract_self_test_check(root) == []
         assert run_phase4_gate_evidence_check(root) == []
         assert run_phase4_gate_evidence_self_test_check(root) == []
+        assert run_phase4_runtime_atomic64_packet_check(root) == []
 
         _write_contract_checker_fixture(
             root / "scripts/zigux/check-artifact-diff-contract.py",
@@ -902,6 +975,51 @@ def run_self_test() -> int:
             "phase4_gate_evidence_self_test:missing_pass_marker"
         ]
 
+        _write(
+            root / "zigux/tests/phase4_runtime_atomic64_diff_manifest.json",
+            json.dumps({"phase4_validation_matrix_blob_sha": "placeholder"}, indent=2) + "\n",
+        )
+        assert run_phase4_runtime_atomic64_packet_check(root) == [
+            "phase4_runtime_atomic64_packet:missing_manifest_field:phase4_validator_blob_sha",
+            "phase4_runtime_atomic64_packet:unexpected_manifest_sha:phase4_validation_matrix_blob_sha:placeholder:"
+            + _git_blob_sha1((root / "Documentation/zigux/phase4-validation-matrix.md").read_bytes()),
+        ]
+
+        _write_phase4_runtime_atomic64_packet_fixture(root)
+        manifest = json.loads(
+            (root / "zigux/tests/phase4_runtime_atomic64_diff_manifest.json").read_text(
+                encoding="utf-8"
+            )
+        )
+        manifest["phase4_validator_blob_sha"] = "0000000000000000000000000000000000000000"
+        _write(
+            root / "zigux/tests/phase4_runtime_atomic64_diff_manifest.json",
+            json.dumps(manifest, indent=2) + "\n",
+        )
+        validator_sha = _git_blob_sha1((root / "scripts/zigux/validate-phase4.py").read_bytes())
+        assert run_phase4_runtime_atomic64_packet_check(root) == [
+            "phase4_runtime_atomic64_packet:unexpected_manifest_sha:phase4_validator_blob_sha:"
+            "0000000000000000000000000000000000000000:"
+            + validator_sha
+        ]
+
+        _write_phase4_runtime_atomic64_packet_fixture(root)
+        survey_text = (root / "zigux/tests/phase4_runtime_atomic64_diff_survey.zig").read_text(
+            encoding="utf-8"
+        )
+        matrix_sha = _git_blob_sha1(
+            (root / "Documentation/zigux/phase4-validation-matrix.md").read_bytes()
+        )
+        _write(
+            root / "zigux/tests/phase4_runtime_atomic64_diff_survey.zig",
+            survey_text.replace(matrix_sha, "1111111111111111111111111111111111111111", 1),
+        )
+        assert run_phase4_runtime_atomic64_packet_check(root) == [
+            "phase4_runtime_atomic64_packet:survey_sha_exact_count:phase4_validation_matrix_blob_sha:"
+            + matrix_sha
+            + ":0"
+        ]
+
     print("PHASE4_VALIDATE_SELF_TEST=pass")
     return 0
 
@@ -970,6 +1088,15 @@ def main() -> int:
         for item in gate_evidence_self_test_failures:
             print(item)
         print("PHASE4_GATE_EVIDENCE_SELF_TEST_CHECK_END")
+        return 1
+
+    runtime_atomic64_packet_failures = run_phase4_runtime_atomic64_packet_check(ROOT)
+    if runtime_atomic64_packet_failures:
+        print("PHASE4_VALIDATION=fail")
+        print("PHASE4_RUNTIME_ATOMIC64_PACKET_CHECK_START")
+        for item in runtime_atomic64_packet_failures:
+            print(item)
+        print("PHASE4_RUNTIME_ATOMIC64_PACKET_CHECK_END")
         return 1
 
     print("PHASE4_VALIDATION=pass")
