@@ -119,6 +119,40 @@ pub fn makeNonrelativePath(allocator: std.mem.Allocator, cwd: []const u8, path: 
     return std.fmt.allocPrint(allocator, "{s}/{s}", .{ cwd, path });
 }
 
+pub fn sameLocation(cwd: []const u8, pwd: []const u8) bool {
+    if (cwd.len == 0 or pwd.len == 0) {
+        return false;
+    }
+
+    const linux = std.os.linux;
+    var cwd_path_buf: [std.posix.PATH_MAX]u8 = undefined;
+    var pwd_path_buf: [std.posix.PATH_MAX]u8 = undefined;
+
+    const cwd_z = std.fmt.bufPrintZ(&cwd_path_buf, "{s}", .{cwd}) catch return false;
+    const pwd_z = std.fmt.bufPrintZ(&pwd_path_buf, "{s}", .{pwd}) catch return false;
+
+    var cwd_statx = std.mem.zeroes(linux.Statx);
+    if (linux.errno(linux.statx(linux.AT.FDCWD, cwd_z, linux.AT.NO_AUTOMOUNT, .{
+        .INO = true,
+        .MNT_ID = true,
+    }, &cwd_statx)) != .SUCCESS) {
+        return false;
+    }
+
+    var pwd_statx = std.mem.zeroes(linux.Statx);
+    if (linux.errno(linux.statx(linux.AT.FDCWD, pwd_z, linux.AT.NO_AUTOMOUNT, .{
+        .INO = true,
+        .MNT_ID = true,
+    }, &pwd_statx)) != .SUCCESS) {
+        return false;
+    }
+
+    return cwd_statx.mnt_id == pwd_statx.mnt_id and
+        cwd_statx.ino == pwd_statx.ino and
+        cwd_statx.dev_major == pwd_statx.dev_major and
+        cwd_statx.dev_minor == pwd_statx.dev_minor;
+}
+
 pub fn choosePwdCwd(cwd: []const u8, pwd: ?[]const u8, same_location: bool) []const u8 {
     const pwd_value = pwd orelse return cwd;
     if (pwd_value.len == 0) {
@@ -128,6 +162,20 @@ pub fn choosePwdCwd(cwd: []const u8, pwd: ?[]const u8, same_location: bool) []co
         return cwd;
     }
     if (same_location) {
+        return pwd_value;
+    }
+    return cwd;
+}
+
+pub fn choosePwdCwdFromFilesystem(cwd: []const u8, pwd: ?[]const u8) []const u8 {
+    const pwd_value = pwd orelse return cwd;
+    if (pwd_value.len == 0) {
+        return cwd;
+    }
+    if (std.mem.eql(u8, pwd_value, cwd)) {
+        return cwd;
+    }
+    if (sameLocation(cwd, pwd_value)) {
         return pwd_value;
     }
     return cwd;
@@ -222,7 +270,6 @@ pub fn buildSearchPath(
     } else {
         try builder.appendSlice(allocator, "/usr/local/bin:/usr/bin:/bin");
     }
-
     return builder.toOwnedSlice(allocator);
 }
 
@@ -557,7 +604,7 @@ test "setupPath preserves the C helper's trailing colon when PATH is set to an e
     try std.testing.expectEqualStrings(updated, env.get("PATH").?);
 }
 
-test "choosePwdCwd prefers PWD only when it points at the same location" {
+test "choosePwdCwd prefers PWD only when the caller proves it matches cwd" {
     try std.testing.expectEqualStrings(
         "/repo",
         choosePwdCwd("/repo", null, false),
@@ -574,4 +621,29 @@ test "choosePwdCwd prefers PWD only when it points at the same location" {
         "/repo",
         choosePwdCwd("/repo", "/other", false),
     );
+}
+
+test "sameLocation and choosePwdCwdFromFilesystem honor logical PWD aliases" {
+    const linux = std.os.linux;
+    var root_buf: [std.posix.PATH_MAX]u8 = undefined;
+    const root = try std.fmt.bufPrintZ(&root_buf, "/tmp/zigux-p8-l06-{d}", .{linux.getpid()});
+    try std.testing.expectEqual(.SUCCESS, linux.errno(linux.mkdirat(linux.AT.FDCWD, root, 0o755)));
+    defer _ = linux.rmdir(root);
+
+    var repo_buf: [std.posix.PATH_MAX]u8 = undefined;
+    const repo = try std.fmt.bufPrintZ(&repo_buf, "{s}/repo", .{root});
+    try std.testing.expectEqual(.SUCCESS, linux.errno(linux.mkdirat(linux.AT.FDCWD, repo, 0o755)));
+    defer _ = linux.rmdir(repo);
+
+    var link_buf: [std.posix.PATH_MAX]u8 = undefined;
+    const link = try std.fmt.bufPrintZ(&link_buf, "{s}/repo-link", .{root});
+    try std.testing.expectEqual(.SUCCESS, linux.errno(linux.symlinkat(repo, linux.AT.FDCWD, link)));
+    defer _ = linux.unlinkat(linux.AT.FDCWD, link, 0);
+
+    const cwd = repo[0..repo.len];
+    const logical_pwd = link[0..link.len];
+
+    try std.testing.expect(sameLocation(cwd, logical_pwd));
+    try std.testing.expectEqualStrings(logical_pwd, choosePwdCwdFromFilesystem(cwd, logical_pwd));
+    try std.testing.expectEqualStrings(cwd, choosePwdCwdFromFilesystem(cwd, "/definitely/missing"));
 }
