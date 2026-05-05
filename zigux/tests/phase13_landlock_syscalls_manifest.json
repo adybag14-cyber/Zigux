@@ -38,7 +38,7 @@
       "status": "starter_landed",
       "kind": "security_helper_pilot",
       "zigux_destination": "security/landlock/syscalls.zig",
-      "why_now": "The first honest `syscalls.zig` foothold stays in-memory around `build_check_abi()`, `landlock_create_ruleset()`, and `landlock_restrict_self()` so Zigux can model ABI sizing, query handling, mask validation, and logging-flag translation before any file-descriptor lookup, path import, or credential mutation is attempted."
+      "why_now": "The first honest `syscalls.zig` foothold stays in-memory around `build_check_abi()`, `landlock_create_ruleset()`, and `landlock_restrict_self()` so Zigux can model ABI sizing, query handling, mask validation, and logging-flag translation including the special `ruleset_fd == -1` mute-subdomains-only case before any file-descriptor lookup, path import, or credential mutation is attempted."
     },
     {
       "id": "phase13-landlock-syscalls-test-gate",
