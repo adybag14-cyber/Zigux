@@ -43,6 +43,7 @@ def validate(root: Path) -> list[str]:
         "PHASE3_ATOMIC_PATH": ATOMIC_REL,
         "PHASE3_BARRIER_PATH": BARRIER_REL,
         "PHASE3_MMIO_PATH": MMIO_REL,
+        "PHASE3_LOW_LEVEL_TEST_PATH": LOW_LEVEL_TEST_REL,
         "PHASE3_ABI_TEST_PATH": ABI_TEST_REL,
         "PHASE3_ABI_DUMP_PATH": ABI_DUMP_REL,
     }
@@ -52,7 +53,7 @@ def validate(root: Path) -> list[str]:
         if not (root / rel).exists():
             issues.append(f"missing_file:{rel}")
 
-    for rel in (LOW_LEVEL_TEST_REL, ABI_EXPECTED_REL, ABI_MANIFEST_REL, ABI_SLICE_DOC_REL):
+    for rel in (ABI_EXPECTED_REL, ABI_MANIFEST_REL, ABI_SLICE_DOC_REL):
         if not (root / rel).exists():
             issues.append(f"missing_file:{rel}")
 
@@ -64,11 +65,13 @@ def validate(root: Path) -> list[str]:
         "PHASE3_BARRIER_STATUS=local-sentinel-probe-only",
         "PHASE3_MMIO_SCOPE=range-read8-write8-read32-write32",
         "PHASE3_MMIO_STATUS=byte-and-32-bit-mmio-through-narrow-pointer-bridge",
+        "PHASE3_LOW_LEVEL_TEST_SCOPE=focused-atomic-barrier-mmio-replay",
+        "PHASE3_LOW_LEVEL_TEST_STATUS=dedicated-focused-replay-landed",
         "PHASE3_VALIDATE_GATE=python3 scripts/zigux/validate-phase3.py --slug abi",
         "PHASE3_LOW_LEVEL_WRAPPER_SURVEY_GATE=python3 scripts/zigux/validate-phase3-low-level-wrapper-survey.py",
-        "PHASE3_BOUNDARY_SCOPE=shared-abi-compile-layout-dump-packet",
-        "PHASE3_BOUNDARY_GAP=shared-abi-packet-covers-current-low-level-wrapper-surface-without-a-dedicated-low-level-wrapper-replay",
-        "PHASE3_NEXT_BOUNDED_STEP=keep-the-shared-abi-packet-and-this-survey-aligned-until-a-real-dedicated-low-level-wrapper-replay-lands",
+        "PHASE3_BOUNDARY_SCOPE=focused-low-level-replay-plus-shared-abi-compile-layout-dump-packet",
+        "PHASE3_BOUNDARY_GAP=focused-low-level-replay-remains-narrower-than-helper-local-atomic-and-mmio-width-coverage",
+        "PHASE3_NEXT_BOUNDED_STEP=keep-this-survey-and-the-focused-low-level-replay-aligned-until-real-wrapper-surface-growth-lands",
     )
     for marker in required_doc_markers:
         if marker not in doc:
@@ -78,6 +81,7 @@ def validate(root: Path) -> list[str]:
         ("PHASE3_ATOMIC_BLOB_SHA", ATOMIC_REL),
         ("PHASE3_BARRIER_BLOB_SHA", BARRIER_REL),
         ("PHASE3_MMIO_BLOB_SHA", MMIO_REL),
+        ("PHASE3_LOW_LEVEL_TEST_BLOB_SHA", LOW_LEVEL_TEST_REL),
         ("PHASE3_ABI_TEST_BLOB_SHA", ABI_TEST_REL),
         ("PHASE3_ABI_DUMP_BLOB_SHA", ABI_DUMP_REL),
         ("PHASE3_ABI_EXPECTED_BLOB_SHA", ABI_EXPECTED_REL),
@@ -370,29 +374,33 @@ def run_self_test() -> int:
                 [
                     "PHASE3_SURVEY_PROVENANCE=packet-local-blob-first-current-head-sha-unavailable-in-connector-run",
                     f"PHASE3_ATOMIC_PATH={ATOMIC_REL}",
-                    f"PHASE3_BARRIER_PATH={BARRIER_REL}",
-                    f"PHASE3_MMIO_PATH={MMIO_REL}",
-                    f"PHASE3_ABI_TEST_PATH={ABI_TEST_REL}",
-                    f"PHASE3_ABI_DUMP_PATH={ABI_DUMP_REL}",
                     "PHASE3_ATOMIC_SCOPE=load-store-exchange-fetch-add-fetch-sub-fetch-and-fetch-or-fetch-xor-fetch-min-fetch-max-compare-exchange-compare-exchange-weak",
                     "PHASE3_ATOMIC_STATUS=bounded-helper-surface-landed",
                     f"PHASE3_ATOMIC_BLOB_SHA={blob_sha(root / ATOMIC_REL)}",
+                    f"PHASE3_BARRIER_PATH={BARRIER_REL}",
                     "PHASE3_BARRIER_SCOPE=acquire-release-full-acquire-release-pair",
                     "PHASE3_BARRIER_STATUS=local-sentinel-probe-only",
                     f"PHASE3_BARRIER_BLOB_SHA={blob_sha(root / BARRIER_REL)}",
+                    f"PHASE3_MMIO_PATH={MMIO_REL}",
                     "PHASE3_MMIO_SCOPE=range-read8-write8-read32-write32",
                     "PHASE3_MMIO_STATUS=byte-and-32-bit-mmio-through-narrow-pointer-bridge",
                     f"PHASE3_MMIO_BLOB_SHA={blob_sha(root / MMIO_REL)}",
+                    f"PHASE3_LOW_LEVEL_TEST_PATH={LOW_LEVEL_TEST_REL}",
+                    "PHASE3_LOW_LEVEL_TEST_SCOPE=focused-atomic-barrier-mmio-replay",
+                    "PHASE3_LOW_LEVEL_TEST_STATUS=dedicated-focused-replay-landed",
+                    f"PHASE3_LOW_LEVEL_TEST_BLOB_SHA={blob_sha(root / LOW_LEVEL_TEST_REL)}",
+                    f"PHASE3_ABI_TEST_PATH={ABI_TEST_REL}",
                     f"PHASE3_ABI_TEST_BLOB_SHA={blob_sha(root / ABI_TEST_REL)}",
+                    f"PHASE3_ABI_DUMP_PATH={ABI_DUMP_REL}",
                     f"PHASE3_ABI_DUMP_BLOB_SHA={blob_sha(root / ABI_DUMP_REL)}",
                     f"PHASE3_ABI_EXPECTED_BLOB_SHA={blob_sha(root / ABI_EXPECTED_REL)}",
                     f"PHASE3_ABI_MANIFEST_BLOB_SHA={blob_sha(root / ABI_MANIFEST_REL)}",
                     f"PHASE3_ABI_SLICE_DOC_BLOB_SHA={blob_sha(root / ABI_SLICE_DOC_REL)}",
                     "PHASE3_VALIDATE_GATE=python3 scripts/zigux/validate-phase3.py --slug abi",
                     "PHASE3_LOW_LEVEL_WRAPPER_SURVEY_GATE=python3 scripts/zigux/validate-phase3-low-level-wrapper-survey.py",
-                    "PHASE3_BOUNDARY_SCOPE=shared-abi-compile-layout-dump-packet",
-                    "PHASE3_BOUNDARY_GAP=shared-abi-packet-covers-current-low-level-wrapper-surface-without-a-dedicated-low-level-wrapper-replay",
-                    "PHASE3_NEXT_BOUNDED_STEP=keep-the-shared-abi-packet-and-this-survey-aligned-until-a-real-dedicated-low-level-wrapper-replay-lands",
+                    "PHASE3_BOUNDARY_SCOPE=focused-low-level-replay-plus-shared-abi-compile-layout-dump-packet",
+                    "PHASE3_BOUNDARY_GAP=focused-low-level-replay-remains-narrower-than-helper-local-atomic-and-mmio-width-coverage",
+                    "PHASE3_NEXT_BOUNDED_STEP=keep-this-survey-and-the-focused-low-level-replay-aligned-until-real-wrapper-surface-growth-lands",
                     "",
                 ]
             ),
@@ -402,12 +410,14 @@ def run_self_test() -> int:
         issues = validate(root)
         assert issues == [], issues
 
-        (root / LOW_LEVEL_TEST_REL).write_text(
-            (root / LOW_LEVEL_TEST_REL).read_text(encoding="utf-8").replace("    barrier.full();\n", ""),
+        (root / DOC_REL).write_text(
+            (root / DOC_REL).read_text(encoding="utf-8").replace(
+                "PHASE3_LOW_LEVEL_TEST_BLOB_SHA=", "PHASE3_LOW_LEVEL_TEST_SHA="
+            ),
             encoding="utf-8",
         )
         issues = validate(root)
-        assert "low_level_test_missing_token:barrier.full();" in issues
+        assert "missing_doc_marker:PHASE3_LOW_LEVEL_TEST_BLOB_SHA=<sha>" in issues
 
     print("PHASE3_LOW_LEVEL_WRAPPER_SURVEY_SELF_TEST=pass")
     return 0
