@@ -112,6 +112,11 @@ pub const RuntimeBitmapLoader = struct {
         return plan;
     }
 
+    pub fn prepareSharedRequest(self: *Self, module: *const runtime_bitmap_sample.RuntimeBitmapSample) !runtime_loader.PreparedRequest {
+        const plan = try self.prepare(module);
+        return runtime_loader.prepareRequest(toSharedLoadPlan(plan));
+    }
+
     pub fn requestRuntimeLoad(self: *Self) !RuntimeBitmapLoadPlan {
         if (self.stage_state != .prepared) return error.InvalidLoaderState;
 
@@ -119,9 +124,29 @@ pub const RuntimeBitmapLoader = struct {
         return self.cached_plan orelse error.MissingLoadPlan;
     }
 
+    pub fn requestSharedRuntimeLoad(
+        self: *Self,
+        shared_request: *runtime_loader.PreparedRequest,
+    ) !runtime_loader.LoadPlan {
+        const plan = try self.requestRuntimeLoad();
+        const shared_plan = try shared_request.requestRuntimeLoad();
+        if (!keepsSharedLoadPlanSnapshotExplicit(plan, shared_plan)) {
+            return error.SharedLoadPlanDrift;
+        }
+        return shared_plan;
+    }
+
     pub fn releaseWithoutSubstrate(self: *Self) !void {
         if (self.stage_state != .waiting_on_runtime_substrate) return error.InvalidLoaderState;
         self.stage_state = .released_without_substrate;
+    }
+
+    pub fn releaseSharedWithoutSubstrate(
+        self: *Self,
+        shared_request: *runtime_loader.PreparedRequest,
+    ) !void {
+        try self.releaseWithoutSubstrate();
+        try shared_request.releaseWithoutSubstrate();
     }
 };
 
@@ -175,7 +200,7 @@ test "runtime bitmap loader keeps the prepared snapshot stable across later bitm
     _ = try module.runSelftest();
 
     var loader = RuntimeBitmapLoader{};
-    const prepared = try loader.prepare(&module);
+    _ = try loader.prepare(&module);
 
     try module.clearRange(0, 1);
     try module.setRange(9, 4);
@@ -192,8 +217,6 @@ test "runtime bitmap loader keeps the prepared snapshot stable across later bitm
     try std.testing.expectEqual(@as(u32, 4), pending_plan.summary.weight);
     try std.testing.expectEqual(runtime_bitmap_sample.RuntimeBitmapSample.bitmap_nbits, live_summary.nbits);
     try std.testing.expectEqual(runtime_bitmap_sample.RuntimeBitmapSample.bitmap_nbits, pending_plan.summary.nbits);
-
-    _ = prepared;
 }
 
 test "runtime bitmap loader emits the shared runtime-loader contract plan" {
@@ -248,6 +271,49 @@ test "runtime bitmap loader keeps initialized-stage shared contract plans explic
         .arena,
         shared_plan.init_flow,
     ));
+}
+
+test "runtime bitmap loader bridges the shared request lifecycle without widening bitmap claims" {
+    var module = runtime_bitmap_sample.RuntimeBitmapSample{};
+    try module.initWithSetBits(&.{ 0, 5, 64, 70 });
+    _ = try module.runSelftest();
+
+    var loader = RuntimeBitmapLoader{};
+    var shared_request = try loader.prepareSharedRequest(&module);
+    try std.testing.expectEqual(LoaderStage.prepared, loader.stage());
+    try std.testing.expectEqual(runtime_loader.RequestState.prepared, shared_request.state);
+
+    const pending_plan = try loader.requestSharedRuntimeLoad(&shared_request);
+    try std.testing.expectEqual(LoaderStage.waiting_on_runtime_substrate, loader.stage());
+    try std.testing.expectEqual(runtime_loader.RequestState.waiting_on_runtime_substrate, shared_request.state);
+    try std.testing.expectEqualStrings("runtime_bitmap", pending_plan.module_name);
+    try std.testing.expectEqualStrings("lib/test_bitmap.c", pending_plan.anchor);
+    try std.testing.expect(runtime_loader.keepsAllocatorInitFlowConsistent(
+        pending_plan,
+        .arena,
+        .{
+            .handoff_stage = .selftest_complete,
+            .init_runs = 1,
+            .selftest_runs = 1,
+            .exit_runs = 0,
+        },
+    ));
+
+    try loader.releaseSharedWithoutSubstrate(&shared_request);
+    try std.testing.expectEqual(LoaderStage.released_without_substrate, loader.stage());
+    try std.testing.expectEqual(runtime_loader.RequestState.released_without_substrate, shared_request.state);
+}
+
+test "runtime bitmap loader surfaces shared request drift before any live bitmap claim" {
+    var module = runtime_bitmap_sample.RuntimeBitmapSample{};
+    try module.initWithSetBits(&.{ 0, 5, 64, 70 });
+    _ = try module.runSelftest();
+
+    var loader = RuntimeBitmapLoader{};
+    var shared_request = try loader.prepareSharedRequest(&module);
+    shared_request.plan.module_name = "runtime_bitmap_drift";
+
+    try std.testing.expectError(error.SharedLoadPlanDrift, loader.requestSharedRuntimeLoad(&shared_request));
 }
 
 test "runtime bitmap loader rejects shared-load-plan snapshot drift" {
