@@ -64,6 +64,42 @@ REQUIRED_SNIPPETS = {
         'test "phase 6 bsearch accepts runtime-selected raw c abi comparator pointers"',
         'test "phase 6 bsearch mutable raw c abi lookup supports write-through"',
     ],
+    "zigux/tests/phase6_checksum.zig": [
+        'test "fixture-backed compute parity covers the current checksum vectors"',
+        'test "partial sums compose across the fixture split matrix"',
+        'test "blockSub reverses blockAdd across odd and even fragment boundaries"',
+        'test "seeded partial accumulation matches the fixture-backed reference"',
+        'test "kunit-inspired carry discipline stays stable on the helper surface"',
+        'test "fixture-backed negate cases keep the public checksum helper reviewable"',
+        'test "from32to16 folds unfolded sums before the final complement"',
+        'test "pseudo header accumulation matches the fixture-backed reference checksum"',
+        'test "incremental checksum replacement helpers match direct recomputation"',
+    ],
+    "zigux/tests/phase6_checksum_perf.zig": [
+        'try stdout_writer.interface.print("PHASE6_CHECKSUM_PERF_CASE_COUNT={d}\\n", .{perf_cases.len});',
+        'try stdout_writer.interface.print("PHASE6_CHECKSUM_PERF_{s}_SLOWDOWN_PCT={d}\\n", .{ case.label, slowdown_pct });',
+        'try stdout_writer.interface.print("PHASE6_CHECKSUM_PERF_{s}_THRESHOLD_PCT={d}\\n", .{ case.label, case.max_slowdown_pct });',
+        'try stdout_writer.interface.print("PHASE6_CHECKSUM_PERF_{s}_CHECKSUM={d}\\n", .{ case.label, helper_result.checksum_accumulator });',
+        'if (helper_expected != reference_expected) {',
+        'if (helper_result.checksum_accumulator != reference_result.checksum_accumulator) {',
+        'if (slowdown_pct > case.max_slowdown_pct) {',
+        'try stdout_writer.interface.print("PHASE6_CHECKSUM_PERF={s}\\n", .{if (failed) "fail" else "pass"});',
+        'if (failed) return error.ChecksumPerfRegression;',
+    ],
+    "zigux/tests/fixtures/phase6_checksum_vectors.zig": [
+        "pub const compute_cases = [_]ComputeCase{",
+        '.name = "carry-heavy payload"',
+        "pub const composition_cases = [_]CompositionCase{",
+        '.name = "odd split"',
+        "pub const seeded_cases = [_]SeededCase{",
+        '.name = "carry-heavy payload with unfolded seed"',
+        "pub const pseudo_header_cases = [_]PseudoHeaderCase{",
+        '.name = "udp pseudo header"',
+        "pub const carry_discipline_cases = [_]CarryDisciplineCase{",
+        '.name = "two-byte no-carry seed stays one step below overflow"',
+        "pub const negate_cases = [_]NegateCase{",
+        '.name = "mixed payload preserves ones complement carry"',
+    ],
     "zigux/tests/phase6_hexdump.zig": [
         'test "phase 6 hexdump serialized linux-derived vectors stay in sync"',
         'test "phase 6 hexdump serialized overflow vectors stay in sync"',
@@ -377,6 +413,69 @@ def run_self_test() -> None:
             raise AssertionError("expected bsearch replay failure")
         bsearch_tests.write_text(original_bsearch_tests, encoding="utf-8")
 
+        checksum_tests = root / "zigux/tests/phase6_checksum.zig"
+        original_checksum_tests = checksum_tests.read_text(encoding="utf-8")
+        checksum_tests.write_text(
+            original_checksum_tests.replace(
+                'test "pseudo header accumulation matches the fixture-backed reference checksum"',
+                'test "pseudo header accumulation matches the reference checksum"',
+                1,
+            ),
+            encoding="utf-8",
+        )
+        try:
+            run_checks(root)
+        except ValidationError as exc:
+            if "zigux/tests/phase6_checksum.zig" not in str(exc):
+                raise AssertionError(
+                    f"unexpected checksum replay failure: {exc}"
+                ) from exc
+        else:
+            raise AssertionError("expected checksum replay failure")
+        checksum_tests.write_text(original_checksum_tests, encoding="utf-8")
+
+        checksum_perf = root / "zigux/tests/phase6_checksum_perf.zig"
+        original_checksum_perf = checksum_perf.read_text(encoding="utf-8")
+        checksum_perf.write_text(
+            original_checksum_perf.replace(
+                "PHASE6_CHECKSUM_PERF={s}",
+                "PHASE6_CHECKSUM_BENCH={s}",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        try:
+            run_checks(root)
+        except ValidationError as exc:
+            if "zigux/tests/phase6_checksum_perf.zig" not in str(exc):
+                raise AssertionError(
+                    f"unexpected checksum perf failure: {exc}"
+                ) from exc
+        else:
+            raise AssertionError("expected checksum perf failure")
+        checksum_perf.write_text(original_checksum_perf, encoding="utf-8")
+
+        checksum_vectors = root / "zigux/tests/fixtures/phase6_checksum_vectors.zig"
+        original_checksum_vectors = checksum_vectors.read_text(encoding="utf-8")
+        checksum_vectors.write_text(
+            original_checksum_vectors.replace(
+                '.name = "odd split"',
+                '.name = "middle split"',
+                1,
+            ),
+            encoding="utf-8",
+        )
+        try:
+            run_checks(root)
+        except ValidationError as exc:
+            if "zigux/tests/fixtures/phase6_checksum_vectors.zig" not in str(exc):
+                raise AssertionError(
+                    f"unexpected checksum fixture failure: {exc}"
+                ) from exc
+        else:
+            raise AssertionError("expected checksum fixture failure")
+        checksum_vectors.write_text(original_checksum_vectors, encoding="utf-8")
+
         hexdump_tests = root / "zigux/tests/phase6_hexdump.zig"
         original_hexdump_tests = hexdump_tests.read_text(encoding="utf-8")
         hexdump_tests.write_text(
@@ -423,8 +522,8 @@ def run_self_test() -> None:
         original_hexdump_perf = hexdump_perf.read_text(encoding="utf-8")
         hexdump_perf.write_text(
             original_hexdump_perf.replace(
-                'PHASE6_HEXDUMP_PERF={s}',
-                'PHASE6_HEXDUMP_BENCH={s}',
+                "PHASE6_HEXDUMP_PERF={s}",
+                "PHASE6_HEXDUMP_BENCH={s}",
                 1,
             ),
             encoding="utf-8",
