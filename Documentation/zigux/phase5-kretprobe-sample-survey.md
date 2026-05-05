@@ -74,6 +74,7 @@ When a contributor updates `samples/zigux/kretprobe_example.zig` or its directly
 - does `KretprobeExampleSample.descriptor()` still name `samples/kprobes/kretprobe_example.c` and keep `requires_runtime_substrate = false` plus `provides_selfcheck = true`?
 - do `zigux/tests/phase5_kretprobe_example_manifest.json` and `zigux/tests/phase5_kretprobe_example_survey.zig` still describe the exact skip, private-data, return-value, duration, and missed-summary contract run through `zigux/tests/phase5_build.zig`?
 - do the survey note and focused survey gate still name both `runAnchorReplay()` and `runLifecycleGuardReplay()` so the sample-owned replay and lifecycle-guard surfaces stay explicit?
+- do the sample-owned prompts still keep the fixed `maxactive = 20` cue, timestamp-order rejection and recovery, and post-exit handler rejection explicit instead of leaving those probe-lifecycle boundaries implied?
 - does symbol retargeting stay a pre-init in-memory choice instead of implying `module_param` or runtime registration parity?
 - if the sample behavior changes, is the manifest updated alongside the replay and teardown contract instead of leaving reviewers to infer the new boundary from code alone?
 - do the docs and tests still say clearly that `register_kretprobe()`, `unregister_kretprobe()`, `pt_regs` return extraction, and loadable module wiring remain out of scope for this Phase 5 sample?
