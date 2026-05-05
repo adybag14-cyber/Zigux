@@ -6,7 +6,7 @@ This document tracks the bounded Phase 8 userspace-adjacent tooling survey for Z
 
 - `PHASE8_STATUS=parked`
 - `PHASE8_SLICE=libbpf-segment-survey`
-- surveyed commit: `7361ac51374149a96b7a7a2c6ea3c995d8cc1231`
+- surveyed commit: `897cdd2f62c4428d2a050275a187950e161b66eb`
 - scope: segment manifest plus five landed bounded slices across four helper-first starters and one perf-buffer poll adjunct
 - product boundary:
   - `tools/lib/bpf/zigux_segments/manifest.json`
