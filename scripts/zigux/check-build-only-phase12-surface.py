@@ -28,8 +28,8 @@ REQUIRED_SCRIPT_README_MARKERS = [
     "Phase 12 flow",
     "`Documentation/zigux/review-checklist.md`",
     "`zigux/tests/README.md`",
+    "`zigux/tests/README.md`, `scripts/zigux/check-build-only-phase12-surface.py`, `zigux/tests/phase12_build.zig`",
     "`zigux/tests/phase12_build.zig`",
-    "`make -C zigux phase12`",
     "Documentation/zigux/phase12-nvme-pci-raw-github-fallback-map.md",
     "`check-build-only-phase12-surface.py --self-test` and `check-build-only-phase12-surface.py` keep the docs-root, scripts-root, tests-root, and Makefile build-only contract fail-closed while `.github/workflows/zigux-bootstrap.yml` reruns that same self-test plus the live checker in CI.",
     "there is no dedicated shared `validate-phase12.py`, `check-phase12-*.py`, or `phase12-validate` target on `master`",
@@ -197,7 +197,7 @@ Phase 12 notes
         """# scripts/zigux
 
 Phase 12 flow
-- the current shared Phase 12 review surface on `master` is `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/phase12-release-sequencing.md`, `Documentation/zigux/phase12-nvme-pci-slice.md`, `Documentation/zigux/phase12-nvme-pci-survey.md`, `Documentation/zigux/phase12-nvme-pci-raw-github-fallback-map.md`, `Documentation/zigux/phase12-virtio-net-survey.md`, `Documentation/zigux/phase12-virtio-scsi-slice.md`, `Documentation/zigux/phase12-virtio-scsi-survey.md`, `Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md`, `Documentation/zigux/phase12-libbpf-segment-survey.md`, `zigux/tests/README.md`, `zigux/tests/phase12_build.zig`, the bounded Phase 12 nvme, virtio_net, virtio_scsi, and libbpf test modules wired through that build, the committed Phase 12 manifests under `zigux/tests/`, and `tools/lib/bpf/zigux_segments/manifest.json`.
+- the current shared Phase 12 review surface on `master` is `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/phase12-release-sequencing.md`, `Documentation/zigux/phase12-nvme-pci-slice.md`, `Documentation/zigux/phase12-nvme-pci-survey.md`, `Documentation/zigux/phase12-nvme-pci-raw-github-fallback-map.md`, `Documentation/zigux/phase12-virtio-net-survey.md`, `Documentation/zigux/phase12-virtio-scsi-slice.md`, `Documentation/zigux/phase12-virtio-scsi-survey.md`, `Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md`, `Documentation/zigux/phase12-libbpf-segment-survey.md`, `zigux/tests/README.md`, `scripts/zigux/check-build-only-phase12-surface.py`, `zigux/tests/phase12_build.zig`, the bounded Phase 12 nvme, virtio_net, virtio_scsi, and libbpf test modules wired through that build, the committed Phase 12 manifests under `zigux/tests/`, and `tools/lib/bpf/zigux_segments/manifest.json`.
 - `check-build-only-phase12-surface.py --self-test` and `check-build-only-phase12-surface.py` keep the docs-root, scripts-root, tests-root, and Makefile build-only contract fail-closed while `.github/workflows/zigux-bootstrap.yml` reruns that same self-test plus the live checker in CI.
 - `zig build test --build-file zigux/tests/phase12_build.zig --summary all` and `make -C zigux phase12` rerun that same bounded survey-backed tranche.
 - there is no dedicated shared `validate-phase12.py`, `check-phase12-*.py`, or `phase12-validate` target on `master`; future Phase 12 reviewability claims should name only shipped survey, build, and make surfaces until new validator files actually land.
@@ -307,6 +307,23 @@ def run_self_test() -> int:
         scripts_readme_path = root / SCRIPTS_README_PATH
         scripts_readme = scripts_readme_path.read_text(encoding="utf-8")
         scripts_readme_path.write_text(
+            scripts_readme.replace(
+                "`zigux/tests/README.md`, `scripts/zigux/check-build-only-phase12-surface.py`, `zigux/tests/phase12_build.zig`",
+                "`zigux/tests/README.md`, `zigux/tests/phase12_build.zig`",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_failure(
+            root,
+            "scripts_readme:`zigux/tests/README.md`, `scripts/zigux/check-build-only-phase12-surface.py`, `zigux/tests/phase12_build.zig`",
+            "missing_scripts_checker_surface_marker",
+        )
+
+        write_fixture_tree(root)
+        scripts_readme_path = root / SCRIPTS_README_PATH
+        scripts_readme = scripts_readme_path.read_text(encoding="utf-8")
+        scripts_readme_path.write_text(
             scripts_readme.replace("`Documentation/zigux/phase12-nvme-pci-raw-github-fallback-map.md`, ", "", 1),
             encoding="utf-8",
         )
@@ -383,7 +400,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST=pass")
-    print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST_CASE_COUNT=11")
+    print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST_CASE_COUNT=12")
     return 0
 
 
