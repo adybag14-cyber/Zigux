@@ -9,11 +9,13 @@ required_files = [
     ROOT / "Documentation" / "zigux" / "freeze-map.md",
     ROOT / "scripts" / "zigux" / "validate-phase9.py",
     ROOT / "scripts" / "zigux" / "README.md",
+    ROOT / "scripts" / "zigux" / "check-phase9-module-metadata-packet.py",
     ROOT / "Documentation" / "zigux" / "README.md",
     ROOT / "Documentation" / "zigux" / "review-checklist.md",
     ROOT / "Documentation" / "zigux" / "phase9-runtime-loader-gap-survey.md",
     ROOT / "Documentation" / "zigux" / "phase9-runtime-trace-events-survey.md",
     ROOT / "Documentation" / "zigux" / "phase9-runtime-trace-events-module-slice.md",
+    ROOT / "Documentation" / "zigux" / "phase9-module-metadata-depmod-bridge-survey.md",
     ROOT / "zigux" / "Makefile",
     ROOT / "zigux" / "tests" / "README.md",
     ROOT / "zigux" / "tests" / "phase9_build.zig",
@@ -21,6 +23,8 @@ required_files = [
     ROOT / "zigux" / "tests" / "runtime_loader_gap_survey.zig",
     ROOT / "zigux" / "tests" / "runtime_trace_events_manifest.json",
     ROOT / "zigux" / "tests" / "runtime_trace_events_survey.zig",
+    ROOT / "zigux" / "tests" / "runtime_module_metadata_manifest.json",
+    ROOT / "zigux" / "tests" / "runtime_module_metadata_survey.zig",
     ROOT / ".github" / "workflows" / "zigux-bootstrap.yml",
 ]
 
@@ -43,11 +47,15 @@ review_checklist = (ROOT / "Documentation" / "zigux" / "review-checklist.md").re
 loader_gap_survey = (ROOT / "Documentation" / "zigux" / "phase9-runtime-loader-gap-survey.md").read_text(encoding="utf-8")
 trace_events_survey = (ROOT / "Documentation" / "zigux" / "phase9-runtime-trace-events-survey.md").read_text(encoding="utf-8")
 trace_events_module_slice = (ROOT / "Documentation" / "zigux" / "phase9-runtime-trace-events-module-slice.md").read_text(encoding="utf-8")
+module_metadata_survey_doc = (ROOT / "Documentation" / "zigux" / "phase9-module-metadata-depmod-bridge-survey.md").read_text(encoding="utf-8")
 phase9_build = (ROOT / "zigux" / "tests" / "phase9_build.zig").read_text(encoding="utf-8")
 loader_gap_survey_test = (ROOT / "zigux" / "tests" / "runtime_loader_gap_survey.zig").read_text(encoding="utf-8")
 loader_gap_manifest = (ROOT / "zigux" / "tests" / "runtime_loader_gap_manifest.json").read_text(encoding="utf-8")
 trace_events_manifest = (ROOT / "zigux" / "tests" / "runtime_trace_events_manifest.json").read_text(encoding="utf-8")
 trace_events_survey_test = (ROOT / "zigux" / "tests" / "runtime_trace_events_survey.zig").read_text(encoding="utf-8")
+module_metadata_manifest = (ROOT / "zigux" / "tests" / "runtime_module_metadata_manifest.json").read_text(encoding="utf-8")
+module_metadata_survey_test = (ROOT / "zigux" / "tests" / "runtime_module_metadata_survey.zig").read_text(encoding="utf-8")
+module_metadata_checker = (ROOT / "scripts" / "zigux" / "check-phase9-module-metadata-packet.py").read_text(encoding="utf-8")
 
 required_make_markers = [
     "PHONY += phase9-validate phase9-test phase9",
@@ -71,6 +79,8 @@ required_script_readme_markers = [
     "make -C zigux phase9-validate",
     "phase9_build.zig",
     "phase9-runtime-loader-gap-survey.md",
+    "phase9-module-metadata-depmod-bridge-survey.md",
+    "check-phase9-module-metadata-packet.py",
     "review-checklist.md",
     "manifest-backed catalog and ownership map",
 ]
@@ -79,6 +89,9 @@ required_tests_readme_markers = [
     "zigux/tests/phase9_build.zig",
     "zigux/tests/runtime_loader_gap_survey.zig",
     "zigux/tests/runtime_loader_gap_manifest.json",
+    "zigux/tests/runtime_module_metadata_manifest.json",
+    "zigux/tests/runtime_module_metadata_survey.zig",
+    "scripts/zigux/check-phase9-module-metadata-packet.py",
     "scripts/zigux/validate-phase9.py",
     "manifest-backed catalog and ownership map",
 ]
@@ -195,6 +208,36 @@ required_trace_events_survey_test_markers = [
     'std.mem.indexOf(u8, module_doc, "`kernel/trace/ring_buffer.c`")',
 ]
 
+required_module_metadata_doc_markers = [
+    "PHASE9_SLICE=module-metadata-depmod-bridge-survey",
+    "zigux/tests/runtime_module_metadata_manifest.json",
+    "zigux/tests/runtime_module_metadata_survey.zig",
+    "scripts/zigux/check-phase9-module-metadata-packet.py",
+]
+
+required_module_metadata_manifest_markers = [
+    '"lane_key": "P9-L09"',
+    '"runtime_sample_files": [',
+    '"runtime_loader_files": [',
+    '"absent_depmod_markers": [',
+    '"trace_events_loader_present": false',
+    '"depmod_bridge_present": false',
+]
+
+required_module_metadata_survey_markers = [
+    'Documentation/zigux/phase9-module-metadata-depmod-bridge-survey.md',
+    'zigux/tests/runtime_module_metadata_manifest.json',
+    'scripts/zigux/check-phase9-module-metadata-packet.py',
+    'module metadata survey doc records the exact evidence and missing depmod bridge',
+]
+
+required_module_metadata_checker_markers = [
+    'PHASE9_MODULE_METADATA_PACKET=pass',
+    'Documentation/zigux/phase9-module-metadata-depmod-bridge-survey.md',
+    'zigux/tests/runtime_module_metadata_manifest.json',
+    'zigux/tests/runtime_module_metadata_survey.zig',
+]
+
 missing_markers = []
 
 for marker in required_make_markers:
@@ -242,6 +285,18 @@ for marker in required_trace_events_manifest_markers:
 for marker in required_trace_events_survey_test_markers:
     if marker not in trace_events_survey_test:
         missing_markers.append(f"trace_events_survey_test:{marker}")
+for marker in required_module_metadata_doc_markers:
+    if marker not in module_metadata_survey_doc:
+        missing_markers.append(f"module_metadata_survey_doc:{marker}")
+for marker in required_module_metadata_manifest_markers:
+    if marker not in module_metadata_manifest:
+        missing_markers.append(f"module_metadata_manifest:{marker}")
+for marker in required_module_metadata_survey_markers:
+    if marker not in module_metadata_survey_test:
+        missing_markers.append(f"module_metadata_survey_test:{marker}")
+for marker in required_module_metadata_checker_markers:
+    if marker not in module_metadata_checker:
+        missing_markers.append(f"module_metadata_checker:{marker}")
 
 if missing_markers:
     print("PHASE9_VALIDATION=fail")
@@ -255,5 +310,5 @@ print("PHASE9_VALIDATION=pass")
 print(f"PHASE9_REQUIRED_FILE_COUNT={len(required_files)}")
 print(
     "PHASE9_REQUIRED_MARKER_COUNT="
-    f"{len(required_make_markers) + len(required_workflow_markers) + len(required_script_readme_markers) + len(required_tests_readme_markers) + len(required_doc_readme_markers) + len(required_freeze_map_markers) + len(required_review_checklist_markers) + len(required_loader_gap_survey_markers) + len(required_phase9_build_markers) + len(required_loader_gap_survey_test_markers) + len(required_loader_gap_manifest_markers) + len(required_trace_events_survey_markers) + len(required_trace_events_module_slice_markers) + len(required_trace_events_manifest_markers) + len(required_trace_events_survey_test_markers)}"
+    f"{len(required_make_markers) + len(required_workflow_markers) + len(required_script_readme_markers) + len(required_tests_readme_markers) + len(required_doc_readme_markers) + len(required_freeze_map_markers) + len(required_review_checklist_markers) + len(required_loader_gap_survey_markers) + len(required_phase9_build_markers) + len(required_loader_gap_survey_test_markers) + len(required_loader_gap_manifest_markers) + len(required_trace_events_survey_markers) + len(required_trace_events_module_slice_markers) + len(required_trace_events_manifest_markers) + len(required_trace_events_survey_test_markers) + len(required_module_metadata_doc_markers) + len(required_module_metadata_manifest_markers) + len(required_module_metadata_survey_markers) + len(required_module_metadata_checker_markers)}"
 )
