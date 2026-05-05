@@ -697,3 +697,29 @@ test "pretty-print layout follows the same column math as help.c" {
     try std.testing.expectEqual(@as(usize, 2), env_layout.rows);
     try std.testing.expectEqual(@as(usize, 8), env_layout.spacing);
 }
+
+test "writePrettyPrintWithLayout keeps sparse rows and the last printed column single-spaced" {
+    var cmds = CmdNames.init(std.testing.allocator);
+    defer cmds.deinit();
+    try cmds.addCmdName("alpha", 5);
+    try cmds.addCmdName("beta", 4);
+    try cmds.addCmdName("gamma", 5);
+    try cmds.addCmdName("delta", 5);
+    try cmds.addCmdName("omega", 5);
+    cmds.sort();
+
+    var rendered: std.Io.Writer.Allocating = .init(std.testing.allocator);
+    defer rendered.deinit();
+
+    try writePrettyPrintWithLayout(&rendered.writer, cmds, .{
+        .cols = 3,
+        .rows = 2,
+        .spacing = 7,
+    });
+
+    try std.testing.expectEqualStrings(
+        "  alpha  delta  omega\n" ++
+            "  beta   gamma\n",
+        rendered.writer.buffered(),
+    );
+}
