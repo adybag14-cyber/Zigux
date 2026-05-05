@@ -140,19 +140,16 @@ Phase 12 notes
 - there is no dedicated shared `validate-phase12.py`, `check-phase12-*.py`, or `phase12-validate` target on `master`; future Phase 12 reviewability claims should name only shipped survey, build, and make surfaces until new validator files actually land.
 
 Phase 13 notes
-- `Documentation/zigux/phase13-release-notes-survey.md`
-- `Documentation/zigux/phase13-roadmap-traceability.md`
+- `Documentation/zigux/phase10-phase11-phase13-contributor-surface-sync.md`
 - `Documentation/zigux/phase13-libfs-slice.md`
 - `Documentation/zigux/phase13-libfs-survey.md`
 - `Documentation/zigux/phase13-devres-slice.md`
-- `Documentation/zigux/phase13-devres-survey.md`
 - `Documentation/zigux/phase13-landlock-ruleset-slice.md`
 - `Documentation/zigux/phase13-landlock-ruleset-survey.md`
 - `Documentation/zigux/phase13-landlock-syscalls-slice.md`
 - `Documentation/zigux/phase13-landlock-syscalls-survey.md`
-- `Documentation/zigux/phase13-notifier-list-survey.md`
 - `Documentation/zigux/review-checklist.md`, `zigux/tests/phase13_build.zig`, `scripts/zigux/validate-phase13-release.py`, `scripts/zigux/check-phase13-devres-packet.py`, `zigux/Makefile`, `make -C zigux phase13-validate`, and `make -C zigux phase13` now keep the current libfs, devres, landlock ruleset, and landlock syscalls helper tranche reviewable through one shared Phase 13 validator-first release packet instead of leaving the active shared-subsystems lane visible only in packet-local surveys.
-- the same top-level Phase 13 packet now also keeps the roadmap traceability note, the release survey, the four manifest-backed anchor packets, and the adjacent notifier-list reviewability packet visible from the docs root without changing the roadmap's four-anchor count.
+- the same top-level Phase 13 packet now also keeps the contributor-surface sync note, the three manifest-backed anchor packets named by the shipped validator, and the shared validator-first replay route visible from the docs root without implying missing devres-survey, release-note, roadmap-traceability, or notifier surfaces on `master`.
 - the current bounded Phase 13 decision is no longer whether the lane still needs its first shared-helper footholds; those starters and survey-backed replay surfaces are already present on `master`, so the next follow-up should stay inside one tiny release-surface, validator, or helper-truthfulness repair before any wider subsystem claims are reopened.
 
 Phase 14 notes
