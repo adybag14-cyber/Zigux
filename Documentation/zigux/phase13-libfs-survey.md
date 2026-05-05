@@ -47,8 +47,6 @@ The current lane state is:
 - landed `phase13-libfs-transaction-buffer-helper`
 - landed `phase13-libfs-transaction-publish-helper`
 - ready-next `phase13-libfs-transaction-release-helper`
-- blocked `phase13-libfs-dcache-cursor-helpers`
-- blocked `phase13-libfs-inode-and-pseudofs-lifecycle`
 
 This keeps the lane explicit without overstating progress: Zigux now has a real `fs/libfs.zig` helper foothold plus a reviewability checkpoint, but it still does not claim live dcache parity, pseudo-filesystem mounting, inode lifecycle work, rename-state behavior, or cursor-backed directory traversal.
 
