@@ -19,6 +19,7 @@ ABI_DUMP_REL = "zigux/tests/phase3_abi_dump.zig"
 ABI_EXPECTED_REL = "zigux/tests/fixtures/phase3_abi/expected.json"
 ABI_MANIFEST_REL = "zigux/tests/fixtures/phase3_abi_manifest.json"
 ABI_SLICE_DOC_REL = "Documentation/zigux/phase3-abi-slice.md"
+PHASE3_LOW_LEVEL_WRAPPER_SURVEY_SELF_TEST_CASE_COUNT = 4
 
 
 def blob_sha(path: Path) -> str:
@@ -405,19 +406,56 @@ def run_self_test() -> int:
             encoding="utf-8",
         )
 
+        valid_doc = (root / DOC_REL).read_text(encoding="utf-8")
+        valid_low_level_test = (root / LOW_LEVEL_TEST_REL).read_text(encoding="utf-8")
+        valid_manifest = (root / ABI_MANIFEST_REL).read_text(encoding="utf-8")
+        expected_mmio_blob_sha = blob_sha(root / MMIO_REL)
+
         issues = validate(root)
         assert issues == [], issues
 
         (root / DOC_REL).write_text(
-            (root / DOC_REL).read_text(encoding="utf-8").replace(
-                "PHASE3_LOW_LEVEL_TEST_BLOB_SHA=", "PHASE3_LOW_LEVEL_TEST_SHA="
+            valid_doc.replace(
+                f"PHASE3_MMIO_BLOB_SHA={expected_mmio_blob_sha}",
+                "PHASE3_MMIO_BLOB_SHA=stale-mmio-sha",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        issues = validate(root)
+        assert (
+            f"stale_blob_marker:PHASE3_MMIO_BLOB_SHA:stale-mmio-sha!={expected_mmio_blob_sha}" in issues
+        )
+
+        (root / DOC_REL).write_text(
+            valid_doc.replace(
+                "PHASE3_LOW_LEVEL_TEST_BLOB_SHA=", "PHASE3_LOW_LEVEL_TEST_SHA=", 1
             ),
             encoding="utf-8",
         )
         issues = validate(root)
         assert "missing_doc_marker:PHASE3_LOW_LEVEL_TEST_BLOB_SHA=<sha>" in issues
 
+        (root / DOC_REL).write_text(valid_doc, encoding="utf-8")
+        (root / LOW_LEVEL_TEST_REL).write_text(
+            valid_low_level_test.replace("    _ = mmio.read8;\n", "", 1),
+            encoding="utf-8",
+        )
+        issues = validate(root)
+        assert "low_level_test_missing_token:mmio.read8" in issues
+
+        (root / LOW_LEVEL_TEST_REL).write_text(valid_low_level_test, encoding="utf-8")
+        (root / ABI_MANIFEST_REL).write_text(
+            valid_manifest.replace(f', "{MMIO_REL}"', "", 1),
+            encoding="utf-8",
+        )
+        issues = validate(root)
+        assert f"manifest_missing_entry:{MMIO_REL}" in issues
+
     print("PHASE3_LOW_LEVEL_WRAPPER_SURVEY_SELF_TEST=pass")
+    print(
+        f"PHASE3_LOW_LEVEL_WRAPPER_SURVEY_SELF_TEST_CASE_COUNT={PHASE3_LOW_LEVEL_WRAPPER_SURVEY_SELF_TEST_CASE_COUNT}"
+    )
     return 0
 
 
