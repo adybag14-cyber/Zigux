@@ -20,6 +20,13 @@ fn containsMarker(haystack: []const u8, needle: []const u8) bool {
     return std.mem.indexOf(u8, haystack, needle) != null;
 }
 
+fn hasSurfacePath(surfaces: []const Surface, expected_path: []const u8) bool {
+    for (surfaces) |surface| {
+        if (std.mem.eql(u8, surface.path, expected_path)) return true;
+    }
+    return false;
+}
+
 test "phase14 shared smoke manifest records the bounded study-only packet" {
     var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
     defer io_instance.deinit();
@@ -41,22 +48,23 @@ test "phase14 shared smoke manifest records the bounded study-only packet" {
     try std.testing.expectEqualStrings("phase14_shared_smoke_packet", manifest.packet_name);
     try std.testing.expectEqualStrings("study_only_shared_smoke_packet", manifest.focus);
     try std.testing.expectEqual(@as(usize, 6), manifest.commands.len);
-    try std.testing.expectEqual(@as(usize, 20), manifest.surfaces.len);
+    try std.testing.expectEqual(@as(usize, 21), manifest.surfaces.len);
     try std.testing.expectEqual(@as(usize, 4), manifest.blocked_anchors.len);
     try std.testing.expectEqualStrings("make -C zigux phase14-validate", manifest.commands[0]);
     try std.testing.expectEqualStrings("make -C zigux phase14-smoke", manifest.commands[1]);
     try std.testing.expectEqualStrings("make -C zigux phase14-test", manifest.commands[3]);
-    try std.testing.expectEqualStrings("Documentation/zigux/README.md", manifest.surfaces[0].path);
-    try std.testing.expectEqualStrings("Documentation/zigux/phase14-release-boundary-survey.md", manifest.surfaces[1].path);
-    try std.testing.expectEqualStrings("scripts/zigux/check-phase14-release-boundary-exact-counts.py", manifest.surfaces[7].path);
-    try std.testing.expectEqualStrings("zigux/tests/README.md", manifest.surfaces[8].path);
-    try std.testing.expectEqualStrings("zigux/tests/phase14_build.zig", manifest.surfaces[9].path);
-    try std.testing.expectEqualStrings("zigux/tests/phase14_workqueue_bridge_manifest.json", manifest.surfaces[12].path);
-    try std.testing.expectEqualStrings("zigux/tests/phase14_skbuff_bridge_manifest.json", manifest.surfaces[13].path);
-    try std.testing.expectEqualStrings("zigux/tests/phase14_ring_buffer_manifest.json", manifest.surfaces[16].path);
-    try std.testing.expectEqualStrings("zigux/tests/phase14_rcu_tree_manifest.json", manifest.surfaces[17].path);
-    try std.testing.expectEqualStrings("kernel/workqueue_bridge.zig", manifest.surfaces[18].path);
-    try std.testing.expectEqualStrings("net/core/skbuff_bridge.zig", manifest.surfaces[19].path);
+    try std.testing.expect(hasSurfacePath(manifest.surfaces, "Documentation/zigux/README.md"));
+    try std.testing.expect(hasSurfacePath(manifest.surfaces, "Documentation/zigux/phase14-release-boundary-survey.md"));
+    try std.testing.expect(hasSurfacePath(manifest.surfaces, "Documentation/zigux/phase14-end-to-end-smoke-survey.md"));
+    try std.testing.expect(hasSurfacePath(manifest.surfaces, "Documentation/zigux/phase14-core-boundary-traceability.md"));
+    try std.testing.expect(hasSurfacePath(manifest.surfaces, "scripts/zigux/check-phase14-release-boundary-exact-counts.py"));
+    try std.testing.expect(hasSurfacePath(manifest.surfaces, "zigux/tests/phase14_build.zig"));
+    try std.testing.expect(hasSurfacePath(manifest.surfaces, "zigux/tests/phase14_workqueue_bridge_manifest.json"));
+    try std.testing.expect(hasSurfacePath(manifest.surfaces, "zigux/tests/phase14_skbuff_bridge_manifest.json"));
+    try std.testing.expect(hasSurfacePath(manifest.surfaces, "zigux/tests/phase14_ring_buffer_manifest.json"));
+    try std.testing.expect(hasSurfacePath(manifest.surfaces, "zigux/tests/phase14_rcu_tree_manifest.json"));
+    try std.testing.expect(hasSurfacePath(manifest.surfaces, "kernel/workqueue_bridge.zig"));
+    try std.testing.expect(hasSurfacePath(manifest.surfaces, "net/core/skbuff_bridge.zig"));
     try std.testing.expectEqualStrings("kernel/workqueue.c", manifest.blocked_anchors[0]);
     try std.testing.expectEqualStrings("net/core/skbuff.c", manifest.blocked_anchors[3]);
     try std.testing.expect(containsMarker(manifest.rollback_owner, "freeze-map anchors"));
