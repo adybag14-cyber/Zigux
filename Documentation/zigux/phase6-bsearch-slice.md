@@ -38,6 +38,8 @@ The current bsearch helper surface exercised by this slice covers:
 
 - `searchIndex`
 - `search`
+- `bsearchIndex`
+- `bsearch`
 
 The current tests check:
 
@@ -45,11 +47,13 @@ The current tests check:
 - misses below, between, and above known values
 - comparator-driven descending-order lookup without widening the helper surface
 - heterogeneous-key lookup where the key type differs from the element type
-- pointer-return parity for successful lookups
+- pointer-return parity for successful typed lookups
 - duplicate-key found-or-null parity without claiming stable duplicate selection
 - representative lookup work stays inside a bounded binary-search comparison budget
 - runtime-selected native comparator pointer parity
 - runtime-selected C ABI comparator pointer parity
+- runtime-selected raw native comparator pointer parity
+- runtime-selected raw C ABI comparator pointer parity, including pointer-return duplicate hits and null misses
 
 The current packet intentionally keeps its representative sorted inputs inline in `zigux/tests/phase6_bsearch.zig` instead of a separate fixture module so the helper bundle stays small and directly reviewable.
 
