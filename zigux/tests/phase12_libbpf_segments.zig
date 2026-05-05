@@ -77,7 +77,7 @@ test "phase12 libbpf survey manifest records the heavy-helper segmentation gap" 
     try std.testing.expect(manifest.survey_summary.preexisting_phase12_libbpf_survey_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase12_survey_note_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase12_reviewability_gate_present);
-    try std.testing.expectEqual(@as(usize, 14), manifest.gaps.len);
+    try std.testing.expectEqual(@as(usize, 18), manifest.gaps.len);
 
     var starter_landed_count: usize = 0;
     var ready_next_count: usize = 0;
@@ -91,9 +91,13 @@ test "phase12 libbpf survey manifest records the heavy-helper segmentation gap" 
     var saw_perf_buffer_poll_foundation = false;
     var saw_logging_foundation = false;
     var saw_pin_path_foundation = false;
+    var saw_fdinfo_ready_next = false;
+    var saw_map_reuse_ready_next = false;
     var saw_survey_gate = false;
     var saw_reviewability_gate = false;
     var saw_survey_note = false;
+    var saw_file_path_handle_bridge = false;
+    var saw_perf_buffer_online_cpu_routing = false;
     var saw_skeleton_blocker = false;
     var saw_object_loader_blocker = false;
     var saw_relocation_blocker = false;
@@ -179,6 +183,22 @@ test "phase12 libbpf survey manifest records the heavy-helper segmentation gap" 
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "object-loader") != null);
         }
 
+        if (std.mem.eql(u8, gap.id, "phase12-libbpf-fdinfo-map-info-helper-ready-next")) {
+            saw_fdinfo_ready_next = true;
+            try std.testing.expectEqualStrings("tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig", gap.zigux_destination);
+            try std.testing.expectEqualStrings("ready_next", gap.status);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "fdinfo text parsing") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "descriptor ownership") != null);
+        }
+
+        if (std.mem.eql(u8, gap.id, "phase12-libbpf-map-reuse-compatibility-ready-next")) {
+            saw_map_reuse_ready_next = true;
+            try std.testing.expectEqualStrings("tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig", gap.zigux_destination);
+            try std.testing.expectEqualStrings("ready_next", gap.status);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "reused-map name chooser") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "close-on-replacement") != null);
+        }
+
         if (std.mem.eql(u8, gap.id, "phase12-libbpf-skeleton-population")) {
             saw_skeleton_blocker = true;
             try std.testing.expectEqualStrings("tools/lib/bpf/zigux_segments/skeleton.zig", gap.zigux_destination);
@@ -208,6 +228,22 @@ test "phase12 libbpf survey manifest records the heavy-helper segmentation gap" 
             try std.testing.expectEqualStrings("starter_landed", gap.status);
         }
 
+        if (std.mem.eql(u8, gap.id, "phase12-libbpf-file-path-and-handle-bridge")) {
+            saw_file_path_handle_bridge = true;
+            try std.testing.expectEqualStrings("tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig", gap.zigux_destination);
+            try std.testing.expectEqualStrings("deferred_high_risk", gap.status);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "token creation") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "fd ownership semantics") != null);
+        }
+
+        if (std.mem.eql(u8, gap.id, "phase12-libbpf-perf-buffer-online-cpu-routing")) {
+            saw_perf_buffer_online_cpu_routing = true;
+            try std.testing.expectEqualStrings("tools/lib/bpf/zigux_segments/perf_buffer_poll.zig", gap.zigux_destination);
+            try std.testing.expectEqualStrings("deferred_high_risk", gap.status);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "perf_event_open") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "queueing-risk bucket") != null);
+        }
+
         if (std.mem.eql(u8, gap.id, "phase12-libbpf-object-loader-and-program-load")) {
             saw_object_loader_blocker = true;
             try std.testing.expectEqualStrings("tools/lib/bpf/zigux_segments/object_loader.zig", gap.zigux_destination);
@@ -231,9 +267,9 @@ test "phase12 libbpf survey manifest records the heavy-helper segmentation gap" 
     }
 
     try std.testing.expectEqual(@as(usize, 11), starter_landed_count);
-    try std.testing.expectEqual(@as(usize, 0), ready_next_count);
+    try std.testing.expectEqual(@as(usize, 2), ready_next_count);
     try std.testing.expectEqual(@as(usize, 2), blocked_count);
-    try std.testing.expectEqual(@as(usize, 1), deferred_count);
+    try std.testing.expectEqual(@as(usize, 3), deferred_count);
     try std.testing.expect(saw_build_gate);
     try std.testing.expect(saw_make_target);
     try std.testing.expect(saw_manifest_foundation);
@@ -242,9 +278,13 @@ test "phase12 libbpf survey manifest records the heavy-helper segmentation gap" 
     try std.testing.expect(saw_perf_buffer_poll_foundation);
     try std.testing.expect(saw_logging_foundation);
     try std.testing.expect(saw_pin_path_foundation);
+    try std.testing.expect(saw_fdinfo_ready_next);
+    try std.testing.expect(saw_map_reuse_ready_next);
     try std.testing.expect(saw_survey_gate);
     try std.testing.expect(saw_reviewability_gate);
     try std.testing.expect(saw_survey_note);
+    try std.testing.expect(saw_file_path_handle_bridge);
+    try std.testing.expect(saw_perf_buffer_online_cpu_routing);
     try std.testing.expect(saw_skeleton_blocker);
     try std.testing.expect(saw_object_loader_blocker);
     try std.testing.expect(saw_relocation_blocker);
@@ -265,4 +305,8 @@ test "phase12 libbpf survey note records the full landed helper set" {
     try std.testing.expect(std.mem.indexOf(u8, note, "five landed helper slices") != null);
     try std.testing.expect(std.mem.indexOf(u8, note, "`perf_buffer_poll.zig`") != null);
     try std.testing.expect(std.mem.indexOf(u8, note, "phase12-libbpf-perf-buffer-poll-helper-foundation") != null);
+    try std.testing.expect(std.mem.indexOf(u8, note, "phase12-libbpf-fdinfo-map-info-helper-ready-next") != null);
+    try std.testing.expect(std.mem.indexOf(u8, note, "phase12-libbpf-map-reuse-compatibility-ready-next") != null);
+    try std.testing.expect(std.mem.indexOf(u8, note, "phase12-libbpf-file-path-and-handle-bridge") != null);
+    try std.testing.expect(std.mem.indexOf(u8, note, "phase12-libbpf-perf-buffer-online-cpu-routing") != null);
 }
