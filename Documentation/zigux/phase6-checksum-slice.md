@@ -11,6 +11,7 @@ This document starts a bounded Phase 6 leaf-helper port for Zigux.
 - product boundary:
   - `lib/checksum.zig`
   - `zigux/tests/phase6_checksum.zig`
+  - `zigux/tests/phase6_checksum_perf.zig`
   - `zigux/tests/fixtures/phase6_checksum_vectors.zig`
   - `zigux/tests/phase6_build.zig`
   - `zigux/Makefile`
@@ -30,7 +31,10 @@ Phase 6 is where Zigux can start proving low-risk in-kernel helper ports without
 1. run the focused Zig checksum tests
 - `zig build test --build-file zigux/tests/phase6_build.zig`
 
-2. keep the helper wired through the Zigux convenience target
+2. run the focused checksum perf gate when the math-sensitive lane reopens
+- `zig build phase6-checksum-perf --build-file zigux/tests/phase6_build.zig -Doptimize=ReleaseSafe`
+
+3. keep the helper wired through the Zigux convenience target
 - `make -C zigux phase6`
 
 ## Current parity surface
@@ -60,6 +64,7 @@ The current tests check:
 - a tiny KUnit-inspired carry-discipline matrix covering all-ones and no-spurious-carry seeded cases
 - pseudo-header accumulation parity between `tcpUdpNofold` and manual `partial` plus `blockAdd`
 - incremental checksum replacement parity for payload word updates, 16-bit IPv4 header field replacement, diff-based checksum repair, and 32-bit IPv4 address replacement
+- helper-local perf smoke on patterned 64-byte and 1501-byte payloads keeps `checksum.compute` within a 150% slowdown ceiling versus the bounded reference loop
 
 The fixture layer stays intentionally small. It names representative Phase 6 parity cases in one place and now borrows a small carry-discipline shape from `lib/tests/checksum_kunit.c` without claiming a full KUnit surface port.
 
@@ -73,4 +78,4 @@ This slice does not yet claim:
 
 ## Next bounded step
 
-Keep the next Phase 6 follow-up inside the shared bundled `base64`, `bsearch`, `checksum`, and `hexdump` packet already gated by `zigux/tests/phase6_build.zig` and `make -C zigux phase6`. Reopen this slice only if fresh repo inspection finds a concrete new `checksum.c` parity gap inside `lib/checksum.zig`, `zigux/tests/phase6_checksum.zig`, the shared fixture module, or that existing bundled gate.
+Keep the next Phase 6 follow-up inside the shared bundled `base64`, `bsearch`, `checksum`, and `hexdump` packet already gated by `zigux/tests/phase6_build.zig` and `make -C zigux phase6`. Reopen this slice only if fresh repo inspection finds a concrete new `checksum.c` parity gap inside `lib/checksum.zig`, `zigux/tests/phase6_checksum.zig`, `zigux/tests/phase6_checksum_perf.zig`, the shared fixture module, or that existing bundled gate.
