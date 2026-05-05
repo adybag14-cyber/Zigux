@@ -56,7 +56,10 @@ REQUIRED_TESTS_README_MARKERS = [
 ]
 
 REQUIRED_REVIEW_CHECKLIST_MARKERS = [
-    "no dedicated `validate-phase9.py` posture",
+    "`scripts/zigux/check-phase9-build-only-surface.py`",
+    "the shipped build-only surface checker",
+    "workflow-backed `make -C zigux phase9` route",
+    "no-dedicated-`validate-phase9.py` posture",
 ]
 
 REQUIRED_MAKEFILE_MARKERS = [
@@ -184,7 +187,7 @@ Phase 9 flow
         root / REVIEW_CHECKLIST_PATH,
         """# Zigux Review Checklist
 
-- if the change touches the shared Phase 9 runtime-loader packet, do `Documentation/zigux/README.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, `Documentation/zigux/review-checklist.md`, the four runtime survey-and-module note pairs, `zigux/kernel/runtime_loader.zig`, `zigux/kernel/runtime_loader_contract.zig`, `zigux/tests/runtime_loader_allocator_init_flow.zig`, `zigux/tests/phase9_build.zig`, `zigux/Makefile`, and the four `samples/zigux/runtime_*_loader.zig` scaffolds still agree on the same bounded loader-handoff packet and no dedicated `validate-phase9.py` posture without recasting those earlier-phase references as Phase 9 runtime evidence or understating the shipped shared runtime-loader facade, contract, or allocator/init-flow replay on `master`?
+- if the change touches the shared Phase 9 runtime-loader packet, do `Documentation/zigux/README.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, `Documentation/zigux/review-checklist.md`, the four runtime survey-and-module note pairs, `zigux/kernel/runtime_loader.zig`, `zigux/kernel/runtime_loader_contract.zig`, `zigux/tests/runtime_loader_allocator_init_flow.zig`, `scripts/zigux/check-phase9-build-only-surface.py`, `zigux/tests/phase9_build.zig`, `zigux/Makefile`, `.github/workflows/zigux-bootstrap.yml`, the four `samples/zigux/runtime_*_loader.zig` scaffolds, the Phase 2 config-surface references `scripts/zigux/kconfig/conf_bridge.zig` and `scripts/zigux/kconfig/confdata_bridge.zig`, and the Phase 3 export-boundary references `rust/exports.c` and `zigux/kernel/export_shim.zig` still agree on the same bounded loader-handoff packet, the shipped build-only surface checker, and the no-dedicated-`validate-phase9.py` posture without recasting those earlier-phase references as Phase 9 runtime evidence or understating the shipped shared runtime-loader facade, contract, allocator/init-flow replay, or workflow-backed `make -C zigux phase9` route on `master`?
 """,
     )
     write_text(
