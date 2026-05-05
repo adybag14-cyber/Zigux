@@ -8,7 +8,7 @@ This note records the current release-facing reading for the active Phase 13 sha
 - `PHASE13_TRANCHE=shared-helper-bundle`
 - `PHASE13_RELEASE_SURVEY=present`
 - `PHASE13_RELEASE_VALIDATOR=present`
-- scope: roadmap traceability, validator-first entrypoints, the four manifest-backed roadmap anchors already present on `master`, the roadmap-adjacent notifier-list reviewability packet, and the helper-first `devres` DMA or scatterlist boundary plus its adjacent coherent-DMA, scatterlist, `devm_iounmap()`, `devm_of_iomap()`, and direct managed-wrapper reviewability replays
+- scope: roadmap traceability, validator-first entrypoints, the four manifest-backed roadmap anchors already present on `master`, the roadmap-adjacent notifier-list reviewability packet documented in `Documentation/zigux/phase13-notifier-list-survey.md`, and the helper-first `devres` DMA or scatterlist boundary plus its adjacent coherent-DMA, scatterlist, `devm_iounmap()`, `devm_of_iomap()`, and direct managed-wrapper reviewability replays
 - adjacent same-anchor boundary: current `master` already promotes the helper-first scatterlist bookkeeping slice into `zigux/tests/phase13_devres_manifest.json` and `zigux/tests/phase13_build.zig`, so the shared release packet now treats that slice as bounded release evidence while continuing to block live DMA-backed mappings and live scatterlist ownership
 - product boundary:
   - `scripts/zigux/validate-phase13-release.py`
@@ -19,6 +19,7 @@ This note records the current release-facing reading for the active Phase 13 sha
   - `scripts/zigux/check-phase13-release-replay-exact-counts.py`
   - `Documentation/zigux/phase13-release-notes-survey.md`
   - `Documentation/zigux/phase13-roadmap-traceability.md`
+  - `Documentation/zigux/phase13-notifier-list-survey.md`
   - `Documentation/zigux/phase13-devres-survey.md`
   - `Documentation/zigux/phase13-devres-scatterlist-slice.md`
   - `.github/workflows/zigux-bootstrap.yml`
@@ -68,7 +69,7 @@ The live repo already carries real helper code, dedicated tests, manifest-backed
 - the shared replay now also keeps the dedicated `phase13-devres-iounmap-reviewability-tests`, `phase13-devres-iomap-reviewability-tests`, and `phase13-devres-wrapper-reviewability-tests` gates visible so the helper-advertised `devres` release, device-tree iomap, and direct managed-wrapper surfaces do not look smaller than the actual shared replay on current `master`
 - `security/landlock/ruleset.c`: helper slice landed, dedicated tests present, dedicated reviewability gate present, roadmap traceability present, and manifest-backed survey present
 - `security/landlock/syscalls.c`: helper slice landed, dedicated tests present, dedicated reviewability gate present, roadmap traceability present, and manifest-backed survey present
-- the roadmap-adjacent notifier-list packet remains useful release evidence through `zigux/tests/phase13_notifier_list_reviewability.zig`, `zigux/bindings/notifier_abi.zig`, `include/zigux/notifier_abi.h`, and `zigux/helpers/notifier_chain_view.zig`, but it does not change the roadmap anchor count
+- the roadmap-adjacent notifier-list packet remains useful release evidence through `Documentation/zigux/phase13-notifier-list-survey.md`, `zigux/tests/phase13_notifier_list_reviewability.zig`, `zigux/bindings/notifier_abi.zig`, `include/zigux/notifier_abi.h`, and `zigux/helpers/notifier_chain_view.zig`, but it does not change the roadmap anchor count
 - `python3 scripts/zigux/validate-phase13-release.py`, `make -C zigux phase13-validate`, `zig build test --build-file zigux/tests/phase13_build.zig --summary all`, and `make -C zigux phase13` are the published validator-first and shared replay path for the current packet
 - the shared release packet also keeps the dedicated `scripts/zigux/check-phase13-libfs-packet.py`, `scripts/zigux/check-phase13-devres-packet.py`, `scripts/zigux/check-phase13-devres-inventory-contract.py`, `scripts/zigux/check-phase13-notifier-packet.py`, and `scripts/zigux/check-phase13-release-replay-exact-counts.py` guards visible, so route, manifest, and replay-count drift fail closed before the shared build claims reviewable coverage
 
@@ -125,6 +126,7 @@ The current bounded release-evidence set is:
 - `scripts/zigux/check-phase13-release-replay-exact-counts.py`
 - `Documentation/zigux/phase13-release-notes-survey.md`
 - `Documentation/zigux/phase13-roadmap-traceability.md`
+- `Documentation/zigux/phase13-notifier-list-survey.md`
 - `Documentation/zigux/phase13-devres-survey.md`
 - `Documentation/zigux/phase13-devres-scatterlist-slice.md`
 - `.github/workflows/zigux-bootstrap.yml`
