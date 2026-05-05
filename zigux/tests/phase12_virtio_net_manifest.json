@@ -71,10 +71,17 @@
     },
     {
       "id": "phase12-virtio-net-queue-recovery-followup",
+      "status": "starter_landed",
+      "kind": "complex_driver_followup",
+      "zigux_destination": "drivers/net/virtio_net.zig",
+      "why_now": "The next honest virtio_net step after the probe snapshot is now landed as one bounded queue-recovery follow-up that freezes the probe snapshot, records queue rebuild scope, and keeps reset-required plus control-vq or RSS resume intent explicit before any live DMA, NAPI, or netdev lifecycle work."
+    },
+    {
+      "id": "phase12-virtio-net-receive-refill-followup",
       "status": "ready_next",
       "kind": "complex_driver_followup",
       "zigux_destination": "drivers/net/virtio_net.zig",
-      "why_now": "The next honest virtio_net step after the probe snapshot is one bounded queue-recovery follow-up around reset-required propagation, control-vq loss fallback, or RSS downgrade summaries before any live DMA, NAPI, or netdev lifecycle work."
+      "why_now": "After queue-recovery scope is explicit, the next honest virtio_net step is one bounded receive-refill planning follow-up around mergeable-buffer headroom, fresh probe replay after restore, or RSS reapply notes before any live DMA, NAPI, or netdev lifecycle work."
     },
     {
       "id": "phase12-virtio-net-runtime-data-path",
