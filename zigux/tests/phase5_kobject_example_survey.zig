@@ -34,7 +34,7 @@ test "phase 5 kobject manifest records the exact bounded checks" {
     defer parsed.deinit();
 
     const manifest = parsed.value;
-    try std.testing.expectEqualStrings("P5-L08", manifest.lane_key);
+    try std.testing.expectEqualStrings("P5-Y03", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 5", manifest.phase);
     try std.testing.expectEqualStrings("samples/kobject/kobject-example.c", manifest.anchor);
     try std.testing.expectEqualStrings("samples/zigux/kobject_example.zig", manifest.sample_path);
@@ -96,4 +96,22 @@ test "phase 5 kobject manifest records the exact bounded checks" {
     try std.testing.expect(saw_exit);
     try std.testing.expect(std.mem.eql(u8, manifest.non_goals[0], "sysfs file creation parity"));
     try std.testing.expect(std.mem.eql(u8, manifest.non_goals[1], "kernel_kobj integration"));
+}
+
+test "phase 5 kobject survey note stays repo-local and lane-scoped" {
+    var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
+    defer io_instance.deinit();
+
+    const survey_note = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "Documentation/zigux/phase5-kobject-sample-survey.md",
+        std.testing.allocator,
+        .limited(32 * 1024),
+    );
+    defer std.testing.allocator.free(survey_note);
+
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE5_LANE_KEY=P5-Y03") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "samples/kobject/kobject-example.c") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "zig build test --build-file zigux/tests/phase5_build.zig --summary all") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "/workspace/agent_files") == null);
 }
