@@ -7,7 +7,7 @@ This document tracks the bounded Phase 8 userspace-adjacent tooling slice for Zi
 - `PHASE8_STATUS=parked`
 - `PHASE8_SLICE=exec-cmd-deferred-exec-packet`
 - roadmap posture: prove Zigux inside serious repo-hosted tooling, not just tiny helpers
-- scope: path-resolution, injected environment setup, `get_pwd_cwd()`-style cwd choice, null-terminated command-vector preparation, and pure `execl_cmd()`-style argv collection only
+- scope: path-resolution, injected environment setup, `get_pwd_cwd()`-style cwd choice, null-terminated command-vector preparation, pure deferred `execv_cmd()`-style handoff planning, and pure `execl_cmd()`-style argv collection and handoff planning only
 - product boundary:
   - `tools/lib/subcmd/exec-cmd.zig`
   - `zigux/tests/phase8_exec_cmd.zig`
