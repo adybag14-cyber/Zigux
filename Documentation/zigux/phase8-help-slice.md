@@ -10,6 +10,7 @@ This document tracks the bounded Phase 8 userspace-adjacent tooling slice for Zi
 - product boundary:
   - `tools/lib/subcmd/help.zig`
   - `zigux/tests/phase8_help.zig`
+  - `zigux/tests/phase8_help_only_build.zig`
   - `zigux/tests/phase8_build.zig`
 
 ## Why this slice exists
@@ -23,10 +24,13 @@ This lane keeps the shipped `help.zig` starter slice aligned with the stable com
 1. run the focused Zig module tests
 - `zig test tools/lib/subcmd/help.zig`
 
-2. run the dedicated Phase 8 tooling gate
+2. run the focused shard replay
+- `zig build test --build-file zigux/tests/phase8_help_only_build.zig --summary all`
+
+3. run the dedicated Phase 8 tooling gate
 - `zig build test --build-file zigux/tests/phase8_build.zig`
 
-3. run the convenience target
+4. run the convenience target
 - `make -C zigux phase8`
 
 ## Current parity surface
@@ -55,6 +59,7 @@ The current tests check:
 - raw `PATH` splitting keeps leading, repeated, and trailing empty segments explicit so later injected population can follow the same branch shape as `help.c`
 - terminal-dimensions resolution only accepts non-zero `LINES` plus `COLUMNS` pairs, otherwise falls back to injected terminal sizes or the `25x80` default
 - membership and longest-name tracking stay aligned with stored entries
+- the focused `phase8_help_only_build.zig` shard keeps the parked command-source and stable-output packet reviewable without rerunning the whole Phase 8 bundle
 - layout planning preserves the same column math used before printing, including the single-column fallback for narrow terminals, the empty-list row contract, and environment-driven column selection through the injected terminal helper
 - pretty-print output stays testable without `printf()` by reusing the injected terminal-dimensions path and emitting the same row text the C helper would print
 
