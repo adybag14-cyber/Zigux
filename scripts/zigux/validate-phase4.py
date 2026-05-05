@@ -72,6 +72,7 @@ REQUIRED_PHASE4_GATE_EVIDENCE_MARKERS = [
     "PHASE4_SHARED_VALIDATOR_EXPECTED_GATE_EVIDENCE_SELF_TEST_CASE_COUNT=14",
     "PHASE4_SHARED_TEST_FSMOUNT_SURVEY_PACKET_PRESENT=false",
     "PHASE4_SHARED_PERF_BASELINE_SURVEY_PACKET_PRESENT=false",
+    "hard perf thresholds for the shipped atomic64 and bitmap rollback gates remain intentionally unapproved.",
 ]
 REQUIRED_TESTS_README_MARKERS = [
     "zigux/tests/atomic64_diff.zig",
@@ -658,6 +659,9 @@ def _write_phase4_fixture_docs(root: Path) -> None:
                 "- `zigux/tests/phase4_runtime_atomic64_diff_manifest.json` stays in the packet.",
                 "- `zigux/tests/phase4_runtime_atomic64_diff_survey.zig` stays in the packet.",
                 "",
+                "## Current Conclusion",
+                "- hard perf thresholds for the shipped atomic64 and bitmap rollback gates remain intentionally unapproved.",
+                "",
             ]
         ),
     )
@@ -879,6 +883,19 @@ def run_self_test() -> int:
         )
         assert validate_root(root) == [
             "gate_evidence:PHASE4_SHARED_VALIDATOR_EXPECTED_GATE_EVIDENCE_SELF_TEST_CASE_COUNT=14"
+        ]
+
+        _write_phase4_fixture_docs(root)
+        _write(
+            gate_evidence_path,
+            gate_evidence_path.read_text(encoding="utf-8").replace(
+                "- hard perf thresholds for the shipped atomic64 and bitmap rollback gates remain intentionally unapproved.\n",
+                "",
+                1,
+            ),
+        )
+        assert validate_root(root) == [
+            "gate_evidence:hard perf thresholds for the shipped atomic64 and bitmap rollback gates remain intentionally unapproved."
         ]
 
         _write_phase4_fixture_docs(root)
