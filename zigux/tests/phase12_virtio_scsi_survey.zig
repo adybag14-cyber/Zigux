@@ -40,6 +40,10 @@ fn isAllowedStatus(status: []const u8) bool {
         std.mem.eql(u8, status, "blocked_on_dma_transport");
 }
 
+fn expectContains(haystack: []const u8, needle: []const u8) !void {
+    try std.testing.expect(std.mem.indexOf(u8, haystack, needle) != null);
+}
+
 test "phase12 virtio_scsi survey manifest records the landed queue starter and probe snapshot follow-up" {
     var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
     defer io_instance.deinit();
@@ -223,4 +227,47 @@ test "phase12 virtio_scsi survey note keeps the active lane identity and fallbac
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE12_LANE=P12-L09") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase12-virtio-scsi-raw-github-fallback-catalog.md") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "does not own the active survey packet") != null);
+}
+
+test "phase12 virtio_scsi raw fallback catalog stays aligned with the shipped build-only replay surface" {
+    var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
+    defer io_instance.deinit();
+
+    const catalog = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md",
+        std.testing.allocator,
+        .limited(32 * 1024),
+    );
+    defer std.testing.allocator.free(catalog);
+
+    const expected_fragments = [_][]const u8{
+        "`PHASE12_STATUS=active`",
+        "`PHASE12_SLICE=virtio-scsi-raw-github-fallback-catalog`",
+        "https://github.com/adybag14-cyber/Zigux/blob/master/drivers/scsi/virtio_scsi.zig",
+        "https://github.com/adybag14-cyber/Zigux/blob/master/Documentation/zigux/phase12-virtio-scsi-survey.md",
+        "https://github.com/adybag14-cyber/Zigux/blob/master/zigux/tests/phase12_build.zig",
+        "https://github.com/adybag14-cyber/Zigux/blob/master/zigux/tests/phase12_virtio_scsi.zig",
+        "https://github.com/adybag14-cyber/Zigux/blob/master/zigux/tests/phase12_virtio_scsi_survey.zig",
+        "https://github.com/adybag14-cyber/Zigux/blob/master/zigux/tests/phase12_virtio_scsi_manifest.json",
+        "https://github.com/adybag14-cyber/Zigux/blob/master/scripts/zigux/README.md",
+        "https://github.com/adybag14-cyber/Zigux/blob/master/Documentation/zigux/README.md",
+        "https://github.com/adybag14-cyber/Zigux/blob/master/zigux/Makefile",
+        "https://raw.githubusercontent.com/adybag14-cyber/Zigux/master/drivers/scsi/virtio_scsi.zig",
+        "https://raw.githubusercontent.com/adybag14-cyber/Zigux/master/Documentation/zigux/phase12-virtio-scsi-survey.md",
+        "https://raw.githubusercontent.com/adybag14-cyber/Zigux/master/zigux/tests/phase12_build.zig",
+        "https://raw.githubusercontent.com/adybag14-cyber/Zigux/master/zigux/tests/phase12_virtio_scsi.zig",
+        "https://raw.githubusercontent.com/adybag14-cyber/Zigux/master/zigux/tests/phase12_virtio_scsi_survey.zig",
+        "https://raw.githubusercontent.com/adybag14-cyber/Zigux/master/zigux/tests/phase12_virtio_scsi_manifest.json",
+        "https://raw.githubusercontent.com/adybag14-cyber/Zigux/master/scripts/zigux/README.md",
+        "https://raw.githubusercontent.com/adybag14-cyber/Zigux/master/Documentation/zigux/README.md",
+        "https://raw.githubusercontent.com/adybag14-cyber/Zigux/master/zigux/Makefile",
+        "1. `zig build test --build-file zigux/tests/phase12_build.zig --summary all`",
+        "2. `make -C zigux phase12`",
+        "This catalog should stay read-only and should not be used to imply an unshipped `validate-phase12.py`, any `check-phase12-*.py` packet, or a `make -C zigux phase12-validate` target.",
+    };
+
+    for (expected_fragments) |fragment| {
+        try expectContains(catalog, fragment);
+    }
 }
