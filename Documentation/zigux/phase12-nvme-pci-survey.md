@@ -22,7 +22,7 @@ This survey note records the current bounded Phase 12 checkpoint around `drivers
 
 The Phase 12 roadmap explicitly names `drivers/nvme/host/pci.c` as a complex production-driver target, and the live repo now has a first bounded `drivers/nvme/host/pci.zig` starter.
 
-That starter is real progress, but it is still only a narrow queue planner plus PRP-shape helper. The Linux anchor is 4,293 lines and mixes quirk parsing, admin-queue bring-up, MSI and MSI-X planning, blk-mq queue mapping, PRP and SGL setup, Host Memory Buffer controls, timeout and reset policy, PCI queue creation, completion polling, and suspend or teardown flows.
+That starter is real progress, but it is still only a narrow queue planner plus PRP helpers. The Linux anchor is 4,293 lines and mixes quirk parsing, admin-queue bring-up, MSI and MSI-X planning, blk-mq queue mapping, PRP and SGL setup, Host Memory Buffer controls, timeout and reset policy, PCI queue creation, completion polling, and suspend or teardown flows.
 
 This survey keeps that difference explicit so the lane does not overclaim production-driver progress.
 
@@ -31,10 +31,9 @@ This survey keeps that difference explicit so the lane does not overclaim produc
 - `drivers/nvme/host/pci.c` is present on `master` and remains a high-risk complex-driver anchor whose live behavior stretches far beyond the current Zigux starter.
 - the live repo now ships `drivers/nvme/host/pci.zig`, `zigux/tests/phase12_nvme_pci.zig`, `Documentation/zigux/phase12-nvme-pci-slice.md`, shared `zigux/tests/phase12_build.zig` wiring, and the tranche-level `phase12` make target in `zigux/Makefile`.
 - the broader Phase 12 tranche is now further along than this survey's earlier checkpoint: `drivers/net/virtio_net.zig` and `drivers/scsi/virtio_scsi.zig` are both landed bounded starters, so NVMe PCI should now be compared against peer driver starters rather than only against survey scaffolding.
-- the landed starter stays intentionally narrow: it validates queue geometry, computes combined queue bytes and rounded DMA page demand, assigns monotonic admin and I/O queue identifiers, derives doorbell offsets, freezes queue planning across reset generations, and now records a bounded PRP buffer shape through first-page offset, rounded span, tail-page count, and PRP list bound checks.
-- the driver now exposes an explicit ownership summary so the packet says out loud that the landed queue-planning and PRP-shape work belongs to `P12-Y02`, while blocked DMA and recovery transport work remains owned by the broader Phase 12 transport substrate.
+- the landed starter stays intentionally narrow: it validates queue geometry, computes combined queue bytes and rounded DMA page demand, assigns monotonic admin and I/O queue identifiers, derives doorbell offsets, freezes queue planning across reset generations, records a bounded PRP buffer shape through first-page offset, rounded span, tail-page count, and PRP list bound checks, and now also records a bounded PRP metadata helper through command-inline data pointers, PRP-list-covered pages, extra descriptor DMA footprint, total DMA bytes, and reset-time descriptor rebuild need before any live DMA-backed queue work.
 - that footing is useful, but it still does not cover PRP or SGL descriptor construction, Host Memory Buffer policy, blk-mq request submission, live PCI queue creation, IRQ routing, MMIO access, or recovery parity.
-- the next honest driver-facing step is no longer another queue-planner helper inside this packet; the lane should stay parked until an explicitly approved transport-facing follow-up is ready beyond the now-landed PRP-shape helper.
+- the next honest driver-facing step is no longer another queue-planner helper inside this packet; the lane should stay parked until an explicitly approved transport-facing follow-up is ready beyond the now-landed PRP buffer-shape and PRP metadata helpers.
 
 ## Recorded gaps
 
@@ -50,9 +49,11 @@ The survey manifest now records:
 - the landed `phase12-nvme-pci-survey-gate`
 - the landed `phase12-nvme-pci-survey-note`
 - the landed `phase12-nvme-pci-prp-shape-helper`
-- the still-blocked `phase12-nvme-pci-live-queue-and-dma`
+- the landed `phase12-nvme-pci-prp-metadata-helper`
+- the still-blocked `phase12-nvme-pci-dma-safe-transport-gap`
+- the still-blocked `phase12-nvme-pci-throughput-and-recovery-gap`
 
-This keeps the lane concrete and reviewable without overstating progress: the queue-planner-plus-PRP-shape starter is real, but the transport-heavy roadmap work is still intentionally blocked.
+This keeps the lane concrete and reviewable without overstating progress: the queue-planner plus PRP-shape plus PRP-metadata starters are real, but the transport-heavy roadmap work is still intentionally blocked.
 
 ## Non-goals
 
@@ -75,4 +76,4 @@ This survey slice does not claim:
 
 ## Next bounded step
 
-Keep this Phase 12 nvme PCI lane parked unless the roadmap explicitly approves a transport-facing follow-up beyond the now-landed queue-planning and PRP-shape helpers. Any reopen should stay below live DMA mapping, blk-mq submission, and PCI queue lifecycle work until that broader substrate is ready.
+Keep this Phase 12 nvme PCI lane parked unless the roadmap explicitly approves a transport-facing follow-up beyond the now-landed queue-planning, PRP buffer-shape, and PRP metadata helpers. Any reopen should stay below live DMA mapping, blk-mq submission, and PCI queue lifecycle work until that broader substrate is ready.
