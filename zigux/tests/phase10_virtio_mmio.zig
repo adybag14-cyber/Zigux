@@ -1,0 +1,81 @@
+const std = @import("std");
+const virtio_mmio = @import("virtio_mmio");
+
+test "phase10 virtio mmio descriptor stays anchored to virtio_mmio.c" {
+    const descriptor = virtio_mmio.VirtioMmioLab.descriptor();
+
+    try std.testing.expectEqualStrings("virtio_mmio_lab", descriptor.name);
+    try std.testing.expectEqualStrings("drivers/virtio/virtio_mmio.c", descriptor.anchor);
+    try std.testing.expect(descriptor.provides_lab_validation);
+    try std.testing.expect(descriptor.touches_transport_mmio);
+    try std.testing.expect(!descriptor.touches_dma_paths);
+}
+
+test "phase10 virtio mmio rejects unaligned or unsupported register offsets" {
+    var device = try virtio_mmio.VirtioMmioLab.init(18, &[_]u16{ 8, 16 });
+
+    try std.testing.expectError(error.UnalignedRegisterOffset, device.readOffset(0x031));
+    try std.testing.expectError(error.UnsupportedRegisterOffset, device.readOffset(0x040));
+    try std.testing.expectError(error.RegisterOffsetOutOfRange, device.writeOffset(virtio_mmio.mmio_window_bytes, 0));
+}
+
+test "phase10 virtio mmio exposes a queue-selected register window in memory only" {
+    var device = try virtio_mmio.VirtioMmioLab.init(18, &[_]u16{ 8, 16 });
+
+    var summary = try device.readRegister(.queue_num_max);
+    try std.testing.expectEqualStrings("drivers/virtio/virtio_mmio.c", summary.anchor);
+    try std.testing.expectEqual(virtio_mmio.Register.queue_num_max, summary.register);
+    try std.testing.expectEqual(@as(u16, 0), summary.selected_queue);
+    try std.testing.expectEqual(@as(u32, 8), summary.value);
+
+    _ = try device.writeOffset(@intFromEnum(virtio_mmio.Register.queue_sel), 1);
+    summary = try device.readRegister(.queue_num_max);
+    try std.testing.expectEqual(@as(u16, 1), summary.selected_queue);
+    try std.testing.expectEqual(@as(u32, 16), summary.value);
+
+    _ = try device.writeRegister(.queue_num, 8);
+    _ = try device.writeRegister(.queue_ready, 1);
+
+    summary = try device.readRegister(.queue_num);
+    try std.testing.expectEqual(@as(u32, 8), summary.value);
+
+    summary = try device.readRegister(.queue_ready);
+    try std.testing.expectEqual(@as(u32, 1), summary.value);
+}
+
+test "phase10 virtio mmio bounds queue selection and queue sizing before lifecycle work" {
+    var device = try virtio_mmio.VirtioMmioLab.init(24, &[_]u16{8});
+
+    try std.testing.expectError(error.QueueSelectionOutOfRange, device.writeRegister(.queue_sel, 1));
+    try std.testing.expectError(error.EmptyQueueSize, device.writeRegister(.queue_num, 0));
+    try std.testing.expectError(error.QueueSizeMustBePowerOfTwo, device.writeRegister(.queue_num, 3));
+    try std.testing.expectError(error.QueueSizeExceedsMaximum, device.writeRegister(.queue_num, 16));
+    try std.testing.expectError(error.QueueReadyValueOutOfRange, device.writeRegister(.queue_ready, 2));
+}
+
+test "phase10 virtio mmio keeps status and config-generation bookkeeping inside the helper" {
+    var device = try virtio_mmio.VirtioMmioLab.init(33, &[_]u16{ 8, 32 });
+
+    _ = try device.writeRegister(.status, 3);
+    _ = try device.writeRegister(.driver_features, 0x55aa);
+    device.stageInterruptStatus(0x3);
+    device.bumpConfigGeneration();
+    device.bumpConfigGeneration();
+
+    const summary = device.windowSummary();
+    try std.testing.expectEqualStrings("drivers/virtio/virtio_mmio.c", summary.anchor);
+    try std.testing.expectEqual(@as(usize, 2), summary.configured_queue_count);
+    try std.testing.expectEqual(@as(u8, 3), summary.status);
+    try std.testing.expectEqual(@as(u32, 0x3), summary.interrupt_status);
+    try std.testing.expectEqual(@as(u32, 2), summary.config_generation);
+
+    var read_summary = try device.readRegister(.driver_features);
+    try std.testing.expectEqual(@as(u32, 0x55aa), read_summary.value);
+    read_summary = try device.readRegister(.interrupt_status);
+    try std.testing.expectEqual(@as(u32, 0x3), read_summary.value);
+    read_summary = try device.readRegister(.config_generation);
+    try std.testing.expectEqual(@as(u32, 2), read_summary.value);
+
+    try std.testing.expectError(error.ReadOnlyRegister, device.writeRegister(.interrupt_status, 0));
+    try std.testing.expectError(error.ReadOnlyRegister, device.writeRegister(.queue_num_max, 8));
+}
