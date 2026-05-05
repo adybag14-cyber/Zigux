@@ -52,6 +52,12 @@ fn sharedHandoffStage(stage: runtime_trace_events_sample.ModuleStage) runtime_lo
     };
 }
 
+fn ensureIdleRegistrationSnapshot(summary: RuntimeTraceEventsLoadSummary) !void {
+    if (summary.registration_depth != 0) {
+        return error.OutstandingRegistrationForLoader;
+    }
+}
+
 pub fn toSharedLoadPlan(plan: RuntimeTraceEventsLoadPlan) runtime_loader.LoadPlan {
     return .{
         .module_name = plan.module_name,
@@ -122,6 +128,8 @@ pub const RuntimeTraceEventsLoader = struct {
         }
 
         if (!descriptor.requires_runtime_substrate) return error.LoaderNotRequired;
+        const summary = buildSummary(module);
+        try ensureIdleRegistrationSnapshot(summary);
 
         return .{
             .module_name = descriptor.name,
@@ -133,7 +141,7 @@ pub const RuntimeTraceEventsLoader = struct {
             .requires_runtime_substrate = descriptor.requires_runtime_substrate,
             .provides_selftest_hook = descriptor.provides_selftest_hook,
             .handoff_stage = module_stage,
-            .summary = buildSummary(module),
+            .summary = summary,
         };
     }
 
@@ -399,4 +407,17 @@ test "runtime trace-events loader rejects shared-load-plan snapshot drift" {
     var drifted_selftest = shared_plan;
     drifted_selftest.init_flow.selftest_runs += 1;
     try std.testing.expect(!keepsSharedLoadPlanSnapshotExplicit(plan, drifted_selftest));
+}
+
+test "runtime trace-events loader rejects non-idle registration state at the metadata-only handoff boundary" {
+    var module = runtime_trace_events_sample.RuntimeTraceEventsSample{};
+    try module.init();
+    try module.registerFunctionThread();
+
+    try std.testing.expectError(error.OutstandingRegistrationForLoader, RuntimeTraceEventsLoader.planFor(&module));
+
+    try module.unregisterFunctionThread();
+    const recovered_plan = try RuntimeTraceEventsLoader.planFor(&module);
+    try std.testing.expectEqual(@as(usize, 0), recovered_plan.summary.registration_depth);
+    try std.testing.expect(!recovered_plan.summary.registration_paths_checked);
 }
