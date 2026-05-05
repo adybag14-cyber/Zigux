@@ -507,16 +507,18 @@ test "phase13 devres rejects phys WC token planning when the release record cann
 
 test "phase13 devres manifest records the current dma/scatterlist boundary packet" {
     try expectContains(manifest_text, "\"lane_key\": \"P13-L07\"");
-    try expectContains(manifest_text, "\"surveyed_commit\": \"e59df689d080aa11773adda87f00c2d650caade8\"");
+    try expectContains(manifest_text, "\"surveyed_commit\": \"master-reviewability\"");
+    try expectContains(manifest_text, "\"preexisting_phase13_devres_reviewability_present\": true");
+    try expectContains(manifest_text, "\"id\": \"phase13-devres-reviewability-gate\"");
     try expectContains(manifest_text, "\"id\": \"phase13-devres-arch-phys-wc-token-planner\"");
     try expectContains(manifest_text, "\"id\": \"phase13-devres-live-dma-backed-helpers\"");
     try expectContains(manifest_text, "\"id\": \"phase13-devres-live-scatterlist-ownership\"");
     try expectContains(manifest_text, "\"status\": \"starter_landed\"");
-    try expectContains(manifest_text, "\"status\": \"blocked_on_dma_state\"");
-    try expectContains(manifest_text, "\"status\": \"blocked_on_scatterlist_state\"");
+    try expectContains(manifest_text, "\"status\": \"blocked_on_live_resource_state\"");
     try expectContains(manifest_text, "dmam_alloc_*");
-    try expectContains(manifest_text, "dma_map_sgtable() ownership");
+    try expectContains(manifest_text, "machine-checkable");
+    try expectContains(manifest_text, "arch_phys_wc_del()");
+    try expectContains(manifest_text, "dma_map_sgtable()");
     try expectContains(manifest_text, "struct scatterlist");
-    try expectContains(manifest_text, "sg_table");
-    try expectContains(manifest_text, "sg_* lifecycle state");
+    try expectContains(manifest_text, "sg list allocation");
 }
