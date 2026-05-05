@@ -333,9 +333,11 @@ test "phase 7 rbtree survey manifest records the landed runtime leaf surface and
     try expectContains(build_inventory_fixture, "\"run_rbtree_tests\"");
     try expectContains(build_inventory_fixture, "\"run_rbtree_survey_tests\"");
     try expectContains(build_inventory_fixture, "\"../../lib/rbtree.zig\"");
+    try expectContains(build_inventory_fixture, "\"scripts/zigux/check-phase7-rbtree-parity.py --self-test\"");
     try expectContains(rbtree_parity_checker, "SOURCE = ROOT / \"lib\" / \"rbtree.c\"");
     try expectContains(rbtree_parity_checker, "FIXTURE = ROOT / \"zigux\" / \"tests\" / \"fixtures\" / \"phase7_rbtree.json\"");
     try expectContains(rbtree_parity_checker, "HARNESS = ROOT / \"zigux\" / \"tests\" / \"fixtures\" / \"phase7_rbtree_c_harness.c\"");
+    try expectContains(rbtree_parity_checker, "PHASE7_RBTREE_PARITY_SELF_TEST_CASE_COUNT=4");
     try std.testing.expect(std.mem.indexOf(u8, rbtree_slice, "detached-node ownership discipline after `erase()` and `replaceNode()`, where callers must still run `clearNode()` before `emptyNode()` becomes true") != null);
     try std.testing.expect(std.mem.indexOf(u8, rbtree_slice, "detached-node clearing semantics") != null);
     try std.testing.expect(std.mem.indexOf(u8, rbtree_slice, "duplicate-aware find-or-insert behavior via `findAdd()`") != null);
