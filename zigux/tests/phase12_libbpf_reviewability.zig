@@ -3,6 +3,7 @@ const cpu_mask = @import("cpu_mask");
 const bpf_type_names = @import("bpf_type_names");
 const logging = @import("logging");
 const pin_path = @import("pin_path");
+const perf_buffer_poll = @import("perf_buffer_poll");
 
 const Gap = struct {
     id: []const u8,
@@ -69,6 +70,7 @@ test "phase12 libbpf reviewability gate matches the current zigux_segments file 
     var saw_landed_cpu_mask = false;
     var saw_landed_logging = false;
     var saw_landed_pin_path = false;
+    var saw_landed_perf_buffer_poll = false;
     var saw_blocked_skeleton = false;
     var saw_blocked_object_loader = false;
     var saw_blocked_relocation = false;
@@ -105,6 +107,10 @@ test "phase12 libbpf reviewability gate matches the current zigux_segments file 
             saw_landed_pin_path = true;
             try std.testing.expect(exists);
         }
+        if (std.mem.eql(u8, gap.id, "phase12-libbpf-perf-buffer-poll-helper-foundation")) {
+            saw_landed_perf_buffer_poll = true;
+            try std.testing.expect(exists);
+        }
         if (std.mem.eql(u8, gap.id, "phase12-libbpf-skeleton-population")) {
             saw_blocked_skeleton = true;
             try std.testing.expect(!exists);
@@ -124,6 +130,7 @@ test "phase12 libbpf reviewability gate matches the current zigux_segments file 
     try std.testing.expect(saw_landed_cpu_mask);
     try std.testing.expect(saw_landed_logging);
     try std.testing.expect(saw_landed_pin_path);
+    try std.testing.expect(saw_landed_perf_buffer_poll);
     try std.testing.expect(saw_blocked_skeleton);
     try std.testing.expect(saw_blocked_object_loader);
     try std.testing.expect(saw_blocked_relocation);
@@ -134,6 +141,10 @@ test "phase12 libbpf reviewability gate still compiles the landed helper foundat
     defer parsed.deinit(std.testing.allocator);
     var path_buffer: [64]u8 = undefined;
     var error_buffer: [64]u8 = undefined;
+    const ready_buffers = [_]perf_buffer_poll.BufferObservation{
+        .{ .ready = true },
+        .{ .error_code = -11 },
+    };
 
     try std.testing.expectEqual(@as(usize, 3), cpu_mask.countPossibleCpus(parsed.values));
     try std.testing.expectEqualStrings("xdp", bpf_type_names.libbpfBpfAttachTypeStr(37).?);
@@ -155,6 +166,16 @@ test "phase12 libbpf reviewability gate still compiles the landed helper foundat
         error.InvalidRootPath,
         pin_path.buildValidatedSanitizedMapPinPath(&path_buffer, "tmp/bpf", "demo.map"),
     );
+    try std.testing.expectEqualDeep(
+        perf_buffer_poll.WaitObservation{ .ready_events = 2 },
+        perf_buffer_poll.classifyObservedWaitResult(2),
+    );
+
+    const poll_summary = try perf_buffer_poll.summarizePoll(7, .{ .ready_events = 2 }, &ready_buffers);
+    try std.testing.expectEqual(perf_buffer_poll.WaitClass.bounded, poll_summary.wait_class);
+    try std.testing.expectEqual(perf_buffer_poll.PollOutcome.ready, poll_summary.outcome);
+    try std.testing.expectEqual(@as(usize, 1), poll_summary.ready_count);
+    try std.testing.expectEqual(@as(?i32, -11), poll_summary.first_error);
 }
 
 test "phase12 libbpf reviewability gate cross-checks the legacy segment catalog" {
@@ -181,6 +202,7 @@ test "phase12 libbpf reviewability gate cross-checks the legacy segment catalog"
     var saw_logging = false;
     var saw_pin_path = false;
     var saw_cpu_mask = false;
+    var saw_perf_buffer_poll = false;
     var saw_skeleton = false;
     var saw_object_loader = false;
     var saw_relocation = false;
@@ -200,6 +222,11 @@ test "phase12 libbpf reviewability gate cross-checks the legacy segment catalog"
         }
         if (std.mem.eql(u8, segment.slug, "cpu-mask-parsing")) {
             saw_cpu_mask = true;
+            try std.testing.expectEqualStrings("starter_landed", segment.status);
+            try std.testing.expect(exists);
+        }
+        if (std.mem.eql(u8, segment.slug, "perf-buffer-poll-bookkeeping")) {
+            saw_perf_buffer_poll = true;
             try std.testing.expectEqualStrings("starter_landed", segment.status);
             try std.testing.expect(exists);
         }
@@ -223,6 +250,7 @@ test "phase12 libbpf reviewability gate cross-checks the legacy segment catalog"
     try std.testing.expect(saw_logging);
     try std.testing.expect(saw_pin_path);
     try std.testing.expect(saw_cpu_mask);
+    try std.testing.expect(saw_perf_buffer_poll);
     try std.testing.expect(saw_skeleton);
     try std.testing.expect(saw_object_loader);
     try std.testing.expect(saw_relocation);
