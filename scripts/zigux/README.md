@@ -37,6 +37,9 @@ Current bootstrap helpers
 - `check-genksyms-bridge.py`
 - `check-genksyms-crc-diff.py`
 - `check-kconfig-bridge.py`
+- `check-phase2-tests-readme-alignment.py`
+- `check-phase2-cross-selftest-alignment.py`
+- `check-phase2-toolchain-pin-scope.py`
 - `check-phase2-cross.py`
 - `check-mk-elfconfig-diff.py`
 
