@@ -19,6 +19,11 @@ pub const RecoveryState = enum {
     reset_frozen,
 };
 
+pub const OwnershipBoundary = enum {
+    starter_packet,
+    dma_transport_substrate,
+};
+
 pub const ModuleDescriptor = struct {
     name: []const u8,
     anchor: []const u8,
@@ -26,6 +31,15 @@ pub const ModuleDescriptor = struct {
     touches_live_dma: bool,
     touches_pci_probe: bool,
     touches_irq_recovery: bool,
+};
+
+pub const OwnershipSummary = struct {
+    anchor: []const u8,
+    owner_lane: []const u8,
+    queue_planning_owner: OwnershipBoundary,
+    prp_shape_owner: OwnershipBoundary,
+    live_dma_owner: OwnershipBoundary,
+    recovery_transport_owner: OwnershipBoundary,
 };
 
 pub const QueuePairPlanSummary = struct {
@@ -86,6 +100,17 @@ pub const NvmePciQueueLab = struct {
             .touches_live_dma = false,
             .touches_pci_probe = false,
             .touches_irq_recovery = false,
+        };
+    }
+
+    pub fn ownershipSummary() OwnershipSummary {
+        return .{
+            .anchor = descriptor().anchor,
+            .owner_lane = "P12-Y02",
+            .queue_planning_owner = .starter_packet,
+            .prp_shape_owner = .starter_packet,
+            .live_dma_owner = .dma_transport_substrate,
+            .recovery_transport_owner = .dma_transport_substrate,
         };
     }
 
