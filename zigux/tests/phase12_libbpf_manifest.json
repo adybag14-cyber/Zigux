@@ -103,6 +103,34 @@
       "why_now": "The landed pin-path helper keeps bpffs path joining and dot-sanitization reviewable through bounded buffer APIs before any mkdir, statfs, unlink, or object-loader work enters the lane."
     },
     {
+      "id": "phase12-libbpf-fdinfo-map-info-helper-ready-next",
+      "status": "ready_next",
+      "kind": "helper_first",
+      "zigux_destination": "tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig",
+      "why_now": "The fdinfo map-info parser remains the nearest bounded shared-bridge follow-up once Zigux chooses to materialize the existing file-path handle surface, because the pathname shaping and fdinfo text parsing stay materially smaller than direct procfs reads, descriptor ownership, or pinned-object reopen flow."
+    },
+    {
+      "id": "phase12-libbpf-map-reuse-compatibility-ready-next",
+      "status": "ready_next",
+      "kind": "helper_first",
+      "zigux_destination": "tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig",
+      "why_now": "The reused-map name chooser and compatibility comparison remain a second bounded shared-bridge follow-up once the same file-path handle surface exists, because they stay reviewable without widening into FD duplication, close-on-replacement, or pinned-map reopen side effects."
+    },
+    {
+      "id": "phase12-libbpf-file-path-and-handle-bridge",
+      "status": "deferred_high_risk",
+      "kind": "resource_boundary",
+      "zigux_destination": "tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig",
+      "why_now": "The heavier shared file-path and handle bridge still crosses real procfs reads, bpffs opens, token creation, `bpf_obj_get()` reopen flow, and fd ownership semantics, so Phase 12 should keep it explicit as its own deferred bridge bucket instead of folding it into the later object-model blockers."
+    },
+    {
+      "id": "phase12-libbpf-perf-buffer-online-cpu-routing",
+      "status": "deferred_high_risk",
+      "kind": "interrupt_routing",
+      "zigux_destination": "tools/lib/bpf/zigux_segments/perf_buffer_poll.zig",
+      "why_now": "The online-CPU routing path still combines sysfs reads, `perf_event_open` setup, mmap-backed ring state, map updates, epoll registration, and timeout-sensitive polling, so it stays a separate deferred queueing-risk bucket beside the bounded poll bookkeeping helper."
+    },
+    {
       "id": "phase12-libbpf-skeleton-population",
       "status": "blocked_on_object_model",
       "kind": "object_adjacent",
