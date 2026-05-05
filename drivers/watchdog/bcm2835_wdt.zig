@@ -184,6 +184,11 @@ pub const Bcm2835WatchdogLab = struct {
         return (self.registers.rstc & pm_rstc_wrcfg_full_reset) != 0;
     }
 
+    pub fn getTimeleft(self: *const Self) u32 {
+        if (!self.isRunning()) return 0;
+        return ticksToSeconds(self.registers.wdog & pm_wdog_time_set);
+    }
+
     pub fn start(self: *Self) RuntimeSnapshot {
         self.registers.wdog = pm_password | (secondsToTicks(self.timeout_sec) & pm_wdog_time_set);
         self.registers.rstc = pm_password | (self.registers.rstc & pm_rstc_wrcfg_clr) | pm_rstc_wrcfg_full_reset;
@@ -203,15 +208,14 @@ pub const Bcm2835WatchdogLab = struct {
 
     pub fn runtimeSnapshot(self: *const Self) RuntimeSnapshot {
         const running = self.isRunning();
-        const raw_ticks = self.registers.wdog & pm_wdog_time_set;
         return .{
             .anchor = descriptor().anchor,
             .running = running,
             .full_reset_requested = running,
-            .restart_armed = running and raw_ticks == restart_ticks,
+            .restart_armed = running and (self.registers.wdog & pm_wdog_time_set) == restart_ticks,
             .halt_partition_requested = (self.registers.rsts & pm_rsts_halt) == pm_rsts_halt,
             .timeout_sec = self.timeout_sec,
-            .time_left_sec = if (running) ticksToSeconds(raw_ticks) else 0,
+            .time_left_sec = self.getTimeleft(),
             .registers = self.registers,
         };
     }
