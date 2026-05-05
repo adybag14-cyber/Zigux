@@ -116,6 +116,25 @@ pub const MultitouchSlotSummary = struct {
     multitouch_enabled: bool,
 };
 
+pub const RegistrationBlocker = enum {
+    event_queue_unconfigured,
+    status_queue_unconfigured,
+    event_buffers_unfilled,
+    device_not_ready,
+    capability_setup_incomplete,
+    multitouch_slots_unplanned,
+};
+
+pub const RegistrationPreflightSummary = struct {
+    anchor: []const u8,
+    queue_plan_ready: bool,
+    device_ready: bool,
+    capability_setup_ready: bool,
+    multitouch_slots_ready: bool,
+    blocker: ?RegistrationBlocker,
+    ready_for_registration: bool,
+};
+
 pub const VirtioInputLab = struct {
     const Self = @This();
     const ConfigBitmapBitSet = std.StaticBitSet(config_bitmap_bit_capacity);
@@ -383,6 +402,38 @@ pub const VirtioInputLab = struct {
         };
     }
 
+    pub fn registrationPreflightSummary(self: *const Self) RegistrationPreflightSummary {
+        const queue_plan_ready = self.event_descriptor_count != 0 and self.status_descriptor_count != 0 and self.queued_event_buffer_count != 0;
+        const device_ready = self.ready;
+        const capability_setup_ready = self.capabilitySetupReady();
+        const multitouch_slots_ready = !self.multitouchSlotsRequired() or self.planned_multitouch_slots != 0;
+
+        const blocker: ?RegistrationBlocker = if (self.event_descriptor_count == 0)
+            .event_queue_unconfigured
+        else if (self.status_descriptor_count == 0)
+            .status_queue_unconfigured
+        else if (self.queued_event_buffer_count == 0)
+            .event_buffers_unfilled
+        else if (!self.ready)
+            .device_not_ready
+        else if (!capability_setup_ready)
+            .capability_setup_incomplete
+        else if (!multitouch_slots_ready)
+            .multitouch_slots_unplanned
+        else
+            null;
+
+        return .{
+            .anchor = descriptor().anchor,
+            .queue_plan_ready = queue_plan_ready,
+            .device_ready = device_ready,
+            .capability_setup_ready = capability_setup_ready,
+            .multitouch_slots_ready = multitouch_slots_ready,
+            .blocker = blocker,
+            .ready_for_registration = blocker == null,
+        };
+    }
+
     pub fn sendStatus(self: *Self, event_type: u16, code: u16, value: i32) !StatusSendSummary {
         if (self.status_descriptor_count == 0) return error.StatusQueueNotConfigured;
         if (!self.ready) return error.DeviceNotReady;
@@ -426,6 +477,16 @@ pub const VirtioInputLab = struct {
         if (descriptor_count == 0) return error.EmptyDescriptorCount;
         if (descriptor_count > max_descriptor_count) return error.DescriptorCountTooLarge;
         if (!std.math.isPowerOfTwo(descriptor_count)) return error.DescriptorCountMustBePowerOfTwo;
+    }
+
+    fn capabilitySetupReady(self: *const Self) bool {
+        _ = self.capabilitySetupSummary() catch return false;
+        return true;
+    }
+
+    fn multitouchSlotsRequired(self: *const Self) bool {
+        const abs_index = self.findConfigBitmapIndex(.ev_bits, ev_abs) orelse return false;
+        return self.config_bitmaps[abs_index].supported_bits.isSet(abs_mt_slot);
     }
 
     fn allocateConfigBitmapRecord(self: *Self) !*ConfigBitmapRecord {
