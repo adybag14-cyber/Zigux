@@ -75,9 +75,13 @@ For the active shared-helper release packet, keep the shared validator-first rep
 - `Documentation/zigux/README.md`
 - `Documentation/zigux/review-checklist.md`
 - `Documentation/zigux/phase13-contributor-workflow-guide.md`
+- `Documentation/zigux/phase13-libfs-slice.md`
 - `Documentation/zigux/phase13-libfs-survey.md`
+- `Documentation/zigux/phase13-devres-slice.md`
 - `Documentation/zigux/phase13-devres-survey.md`
+- `Documentation/zigux/phase13-landlock-ruleset-slice.md`
 - `Documentation/zigux/phase13-landlock-ruleset-survey.md`
+- `Documentation/zigux/phase13-landlock-syscalls-slice.md`
 - `Documentation/zigux/phase13-landlock-syscalls-survey.md`
 - `Documentation/zigux/phase13-release-notes-survey.md`
 - `Documentation/zigux/phase13-roadmap-traceability.md`
