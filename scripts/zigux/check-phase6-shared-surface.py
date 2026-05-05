@@ -25,6 +25,16 @@ REQUIRED_SNIPPETS = {
         "- shared kernel-derived encode, decode, variant, and invalid-input fixtures stored in `zigux/tests/fixtures/phase6_base64_vectors.zig`",
         "- a separate external C-vs-Zig parity packet on `master`",
     ],
+    "Documentation/zigux/phase6-checksum-slice.md": [
+        "- `zigux/tests/fixtures/phase6_checksum_vectors.zig`",
+        "- fixture-backed checksum vectors for empty, even, odd, and carry-heavy inputs",
+        "- The fixture layer stays intentionally small.",
+    ],
+    "Documentation/zigux/phase6-hexdump-slice.md": [
+        "- `zigux/tests/fixtures/phase6_hexdump_vectors.zig`",
+        "- serialized fixture vectors derived from `lib/test_hexdump.c`",
+        "- serialized required-length vectors for `hexDumpLineLength` and zero-buffer `hexDumpToBuffer`",
+    ],
     "scripts/zigux/README.md": [
         "- the current shared Phase 6 review surface on `master` is the four slice notes (`Documentation/zigux/phase6-base64-slice.md`, `Documentation/zigux/phase6-bsearch-slice.md`, `Documentation/zigux/phase6-checksum-slice.md`, and `Documentation/zigux/phase6-hexdump-slice.md`) plus `Documentation/zigux/README.md`, `zigux/tests/README.md`, `zigux/tests/phase6_build.zig`, and `zigux/Makefile`.",
         "- `zig build test --build-file zigux/tests/phase6_build.zig` is the bundled helper replay for the current `base64`, `bsearch`, `checksum`, and `hexdump` packet.",
@@ -34,7 +44,7 @@ REQUIRED_SNIPPETS = {
         "- keep the shared Phase 6 leaf-helper packet wired through `zigux/tests/phase6_build.zig`, including `zigux/tests/phase6_base64.zig`, `zigux/tests/phase6_bsearch.zig`, `zigux/tests/phase6_checksum.zig`, and `zigux/tests/phase6_hexdump.zig`, so the landed `base64`, `bsearch`, `checksum`, and `hexdump` bundle stays reviewable through one bounded helper gate",
     ],
     "Documentation/zigux/review-checklist.md": [
-        "- if the change touches the shared Phase 6 leaf-helper packet, do `Documentation/zigux/README.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, `Documentation/zigux/phase6-base64-slice.md`, `Documentation/zigux/phase6-bsearch-slice.md`, `Documentation/zigux/phase6-checksum-slice.md`, `Documentation/zigux/phase6-hexdump-slice.md`, `zigux/tests/phase6_build.zig`, `zigux/tests/phase6_base64.zig`, `zigux/tests/phase6_bsearch.zig`, `zigux/tests/phase6_checksum.zig`, `zigux/tests/phase6_hexdump.zig`, `zigux/Makefile`, and `make -C zigux phase6` still agree on the same bundled `base64`, `bsearch`, `checksum`, and `hexdump` helper packet?",
+        "- if the change touches the shared Phase 6 leaf-helper packet, do `Documentation/zigux/README.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, `Documentation/zigux/phase6-base64-slice.md`, `Documentation/zigux/phase6-bsearch-slice.md`, `Documentation/zigux/phase6-checksum-slice.md`, `Documentation/zigux/phase6-hexdump-slice.md`, `zigux/tests/phase6_build.zig`, `zigux/tests/phase6_base64.zig`, `zigux/tests/phase6_bsearch.zig`, `zigux/tests/phase6_checksum.zig`, `zigux/tests/phase6_hexdump.zig`, `zigux/Makefile`, and `make -C zigux phase6` still agree on the same bundled `base64`, `bsearch`, `checksum`, and `hexdump` helper packet without implying a removed shared `validate-phase6.py`, external parity checker, or `phase6-perf` route?",
     ],
     "zigux/tests/phase6_build.zig": [
         'const test_step = b.step("test", "Run Phase 6 leaf helper tests");',
@@ -71,14 +81,8 @@ REQUIRED_SNIPPETS = {
 }
 
 REQUIRED_EXISTING_PATHS = [
-    "Documentation/zigux/phase6-helper-parity-catalog.md",
-    "Documentation/zigux/phase6-perf-gate-survey.md",
-    "zigux/tests/phase6_helper_parity_manifest.json",
-    "scripts/zigux/validate-phase6.py",
-    "zigux/tests/phase6_bsearch_perf.zig",
-    "zigux/tests/fixtures/phase6_bsearch_vectors.zig",
-    "zigux/tests/phase6_bsearch_c_parity.zig",
-    "zigux/tests/fixtures/phase6_bsearch_c_harness.c",
+    "zigux/tests/fixtures/phase6_checksum_vectors.zig",
+    "zigux/tests/fixtures/phase6_hexdump_vectors.zig",
 ]
 
 
@@ -155,6 +159,24 @@ def run_self_test() -> None:
         else:
             raise AssertionError("expected base64 slice failure")
         base64_slice.write_text(original_base64_slice, encoding="utf-8")
+
+        checksum_slice = root / "Documentation/zigux/phase6-checksum-slice.md"
+        original_checksum_slice = checksum_slice.read_text(encoding="utf-8")
+        checksum_slice.write_text(
+            original_checksum_slice.replace(
+                "- fixture-backed checksum vectors for empty, even, odd, and carry-heavy inputs",
+                "- checksum vectors are somewhere else",
+            ),
+            encoding="utf-8",
+        )
+        try:
+            run_checks(root)
+        except ValidationError as exc:
+            if "Documentation/zigux/phase6-checksum-slice.md" not in str(exc):
+                raise AssertionError(f"unexpected checksum slice failure: {exc}") from exc
+        else:
+            raise AssertionError("expected checksum slice failure")
+        checksum_slice.write_text(original_checksum_slice, encoding="utf-8")
 
         base64_test = root / "zigux/tests/phase6_base64.zig"
         original_base64_test = base64_test.read_text(encoding="utf-8")
