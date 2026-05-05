@@ -58,6 +58,8 @@ pub const RuntimeTraceEventsSummary = struct {
     exit_runs: usize,
     last_main_count: i32,
     last_fn_count: i32,
+    last_main_emitted_events: usize,
+    last_fn_emitted_events: usize,
     saw_vararg_payload: bool,
     saw_rel_loc_payload: bool,
     saw_conditional_path: bool,
@@ -78,6 +80,8 @@ pub const RuntimeTraceEventsSample = struct {
     exit_runs: usize = 0,
     last_main_count: i32 = -1,
     last_fn_count: i32 = -1,
+    last_main_emitted_events: usize = 0,
+    last_fn_emitted_events: usize = 0,
     saw_vararg_payload: bool = false,
     saw_rel_loc_payload: bool = false,
     saw_conditional_path: bool = false,
@@ -109,6 +113,8 @@ pub const RuntimeTraceEventsSample = struct {
             .exit_runs = self.exit_runs,
             .last_main_count = self.last_main_count,
             .last_fn_count = self.last_fn_count,
+            .last_main_emitted_events = self.last_main_emitted_events,
+            .last_fn_emitted_events = self.last_fn_emitted_events,
             .saw_vararg_payload = self.saw_vararg_payload,
             .saw_rel_loc_payload = self.saw_rel_loc_payload,
             .saw_conditional_path = self.saw_conditional_path,
@@ -133,6 +139,8 @@ pub const RuntimeTraceEventsSample = struct {
         self.total_events = 0;
         self.last_main_count = -1;
         self.last_fn_count = -1;
+        self.last_main_emitted_events = 0;
+        self.last_fn_emitted_events = 0;
         self.saw_vararg_payload = false;
         self.saw_rel_loc_payload = false;
         self.saw_conditional_path = false;
@@ -158,6 +166,7 @@ pub const RuntimeTraceEventsSample = struct {
 
         self.main_iterations += 1;
         self.last_main_count = count;
+        self.last_main_emitted_events = 6;
         self.saw_vararg_payload = true;
         self.saw_rel_loc_payload = true;
         self.saw_conditional_path = true;
@@ -180,6 +189,7 @@ pub const RuntimeTraceEventsSample = struct {
 
         self.fn_iterations += 1;
         self.last_fn_count = count;
+        self.last_fn_emitted_events = 2;
         self.last_function_payload = .{
             .foo_bar_message = "Look at me",
             .template_message = "Look at me too",
