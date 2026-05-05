@@ -17,6 +17,7 @@ from pathlib import Path
 MARKER = "PHASE14_VALIDATE_PACKET=shared_smoke"
 CHECKER_MARKER = "PHASE14_CHECK_PACKET=rollback_threshold_sequencing"
 RELEASE_BOUNDARY_CHECKER_MARKER = "PHASE14_CHECK_PACKET=release_boundary_exact_counts"
+EXPECTED_LANE_KEY = "P14-L07"
 REQUIRED_COMMANDS = [
     "make -C zigux phase14-validate",
     "make -C zigux phase14-smoke",
@@ -34,6 +35,7 @@ REQUIRED_FILE_MARKERS = {
     "Documentation/zigux/phase14-end-to-end-smoke-survey.md": [
         "PHASE14_VALIDATE_ENTRYPOINT=make -C zigux phase14-validate",
         "PHASE14_VALIDATE_SCRIPT=python3 scripts/zigux/validate-phase14.py",
+        "PHASE14_SHARED_LANE=P14-L07",
     ],
     "scripts/zigux/README.md": [
         "python3 scripts/zigux/validate-phase14.py",
@@ -45,6 +47,7 @@ REQUIRED_FILE_MARKERS = {
     "zigux/tests/phase14_end_to_end_smoke_survey.zig": [
         "make -C zigux phase14-validate",
         "phase14: phase14-validate phase14-smoke phase14-test",
+        "\"P14-L07\"",
     ],
     "zigux/Makefile": [
         "phase14-validate:",
@@ -106,6 +109,11 @@ def check(root: Path) -> list[str]:
     except json.JSONDecodeError as exc:
         return [f"invalid json in {manifest_path.as_posix()}: {exc}"]
 
+    if manifest.get("lane_key") != EXPECTED_LANE_KEY:
+        errors.append(
+            "phase14 shared smoke manifest lane_key drifted from the current shared-lane owner"
+        )
+
     commands = manifest.get("commands")
     if commands != REQUIRED_COMMANDS:
         errors.append("phase14 manifest commands drifted from the shared validate/smoke/test packet")
@@ -141,7 +149,7 @@ def run_self_test() -> int:
     with tempfile.TemporaryDirectory() as tmpdir:
         root = Path(tmpdir)
         manifest = {
-            "lane_key": "core-adjacent",
+            "lane_key": EXPECTED_LANE_KEY,
             "phase": "Phase 14",
             "packet_name": "phase14_shared_smoke_packet",
             "focus": "study_only_shared_smoke_packet",
@@ -187,11 +195,13 @@ def run_self_test() -> int:
                 print(f"- {error}", file=sys.stderr)
             return 1
 
-        broken_path = root / "Documentation/zigux/phase14-end-to-end-smoke-survey.md"
-        broken_path.write_text("PHASE14_VALIDATE_ENTRYPOINT=absent_on_master\n", encoding="utf-8")
+        broken_path = root / "zigux/tests/phase14_end_to_end_smoke_manifest.json"
+        broken_manifest = json.loads(broken_path.read_text(encoding="utf-8"))
+        broken_manifest["lane_key"] = "core-adjacent"
+        broken_path.write_text(json.dumps(broken_manifest, indent=2) + "\n", encoding="utf-8")
         errors = check(root)
-        if not errors or not any("PHASE14_VALIDATE_SCRIPT=python3 scripts/zigux/validate-phase14.py" in error for error in errors):
-            print("self-test expected failure when survey markers drifted", file=sys.stderr)
+        if not errors or not any("lane_key drifted" in error for error in errors):
+            print("self-test expected failure when manifest lane owner drifted", file=sys.stderr)
             return 1
 
     return 0
