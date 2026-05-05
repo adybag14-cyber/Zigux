@@ -123,6 +123,11 @@ test "phase10 virtio ring survey manifest records the live queue-wrapper gap and
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "`Documentation/zigux/freeze-map.md`") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "freeze-boundary owner: `P10-L10`") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "rollback owner") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "`zigux/Makefile`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "shared `zigux/tests/phase10_build.zig` and `zigux/Makefile` replay surface") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "shared `zigux/tests/phase10_build.zig` and `zigux/Makefile` replay route aligned") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "shared Phase 10 closure evidence") == null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "shared Phase 10 closure packet") == null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "`drivers/virtio/*.zig`") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "`zigux/kernel/`") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "`zigux/helpers/`") != null);
