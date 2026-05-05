@@ -32,7 +32,7 @@ fn isAllowedStatus(status: []const u8) bool {
         std.mem.eql(u8, status, "blocked_on_runtime_substrate");
 }
 
-test "phase 9 runtime atomic64 survey manifest records the landed diff gate and remaining blocker" {
+test "phase 9 runtime atomic64 survey manifest records the landed loader scaffold and remaining blocker" {
     var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
     defer io_instance.deinit();
 
@@ -56,8 +56,8 @@ test "phase 9 runtime atomic64 survey manifest records the landed diff gate and 
     try std.testing.expectEqual(@as(usize, 3), manifest.survey_summary.preexisting_runtime_test_files);
     try std.testing.expect(manifest.survey_summary.preexisting_samples_zigux_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase9_build_present);
-    try std.testing.expect(!manifest.survey_summary.preexisting_phase9_doc_present);
-    try std.testing.expect(manifest.gaps.len >= 5);
+    try std.testing.expect(manifest.survey_summary.preexisting_phase9_doc_present);
+    try std.testing.expect(manifest.gaps.len >= 6);
 
     var runtime_test_destination_count: usize = 0;
     var starter_landed_count: usize = 0;
@@ -65,7 +65,8 @@ test "phase 9 runtime atomic64 survey manifest records the landed diff gate and 
     var blocked_count: usize = 0;
     var saw_sample_module = false;
     var saw_diff_gate = false;
-    var saw_substrate_handoff = false;
+    var saw_loader_scaffold = false;
+    var saw_live_loader_blocker = false;
 
     for (manifest.gaps, 0..) |gap, i| {
         try std.testing.expect(gap.id.len > 0);
@@ -75,8 +76,10 @@ test "phase 9 runtime atomic64 survey manifest records the landed diff gate and 
 
         if (std.mem.startsWith(u8, gap.zigux_destination, "zigux/tests/")) {
             runtime_test_destination_count += 1;
+        } else if (std.mem.startsWith(u8, gap.zigux_destination, "samples/zigux/")) {
+            // Sample-side starter and loader handoff scaffolds stay under samples.
         } else {
-            try std.testing.expect(std.mem.startsWith(u8, gap.zigux_destination, "samples/zigux/"));
+            try std.testing.expect(std.mem.startsWith(u8, gap.zigux_destination, "zigux/kernel/"));
         }
 
         if (std.mem.eql(u8, gap.status, "ready_next")) {
@@ -97,10 +100,16 @@ test "phase 9 runtime atomic64 survey manifest records the landed diff gate and 
             try std.testing.expectEqualStrings("starter_landed", gap.status);
             try std.testing.expectEqualStrings("zigux/tests/runtime_atomic64_diff.zig", gap.zigux_destination);
         }
-        if (std.mem.eql(u8, gap.id, "runtime-atomic64-substrate-handoff")) {
-            saw_substrate_handoff = true;
+        if (std.mem.eql(u8, gap.id, "runtime-atomic64-loader-scaffold")) {
+            saw_loader_scaffold = true;
+            try std.testing.expectEqualStrings("starter_landed", gap.status);
+            try std.testing.expectEqualStrings("samples/zigux/runtime_atomic64_loader.zig", gap.zigux_destination);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "requires_runtime_substrate") != null);
+        }
+        if (std.mem.eql(u8, gap.id, "runtime-atomic64-live-loader-binding")) {
+            saw_live_loader_blocker = true;
             try std.testing.expectEqualStrings("blocked_on_runtime_substrate", gap.status);
-            try std.testing.expectEqualStrings("samples/zigux/runtime_*", gap.zigux_destination);
+            try std.testing.expectEqualStrings("zigux/kernel/runtime_loader.zig", gap.zigux_destination);
         }
 
         for (manifest.gaps[i + 1 ..]) |other| {
@@ -110,10 +119,29 @@ test "phase 9 runtime atomic64 survey manifest records the landed diff gate and 
     }
 
     try std.testing.expect(runtime_test_destination_count >= 4);
-    try std.testing.expect(starter_landed_count >= 5);
+    try std.testing.expect(starter_landed_count >= 6);
     try std.testing.expectEqual(@as(usize, 0), ready_next_count);
-    try std.testing.expectEqual(@as(usize, 1), blocked_count);
+    try std.testing.expect(blocked_count >= 1);
     try std.testing.expect(saw_sample_module);
     try std.testing.expect(saw_diff_gate);
-    try std.testing.expect(saw_substrate_handoff);
+    try std.testing.expect(saw_loader_scaffold);
+    try std.testing.expect(saw_live_loader_blocker);
+}
+
+test "phase 9 runtime atomic64 survey note keeps the loader scaffold and blocker explicit" {
+    var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
+    defer io_instance.deinit();
+
+    const note = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "Documentation/zigux/phase9-runtime-atomic64-survey.md",
+        std.testing.allocator,
+        .limited(32 * 1024),
+    );
+    defer std.testing.allocator.free(note);
+
+    try std.testing.expect(std.mem.indexOf(u8, note, "samples/zigux/runtime_atomic64_loader.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, note, "zigux/kernel/runtime_loader.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, note, "bounded sample-side loader scaffold") != null);
+    try std.testing.expect(std.mem.indexOf(u8, note, "prepared handoff summary") != null);
 }
