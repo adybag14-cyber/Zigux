@@ -8,6 +8,12 @@ const SurveySummary = struct {
     preexisting_phase10_core_doc_present: bool,
     preexisting_virtio_ring_zig_present: bool,
     preexisting_virtio_ring_doc_present: bool,
+    preexisting_virtio_input_zig_present: bool,
+    preexisting_virtio_input_test_present: bool,
+    preexisting_virtio_input_survey_present: bool,
+    preexisting_virtio_mmio_zig_present: bool,
+    preexisting_virtio_mmio_test_present: bool,
+    preexisting_virtio_mmio_survey_present: bool,
 };
 
 const Gap = struct {
@@ -65,10 +71,10 @@ test "phase10 virtio ring survey manifest records the live queue-wrapper gap and
     defer parsed.deinit();
 
     const manifest = parsed.value;
-    try std.testing.expectEqualStrings("P10-L06", manifest.lane_key);
+    try std.testing.expectEqualStrings("P10-L08", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 10", manifest.phase);
     try std.testing.expectEqualStrings("drivers/virtio/virtio_ring.c", manifest.anchor);
-    try std.testing.expectEqualStrings("62207c4108fc2658728a26341e2b533bde0c97d3", manifest.surveyed_commit);
+    try std.testing.expectEqualStrings("e42103fc02f544e1bd23a5ec2e5b584734f5af7d", manifest.surveyed_commit);
     try std.testing.expectEqual(@as(usize, 2), manifest.roadmap_destinations.len);
     try std.testing.expect(containsString(manifest.roadmap_destinations, "drivers/virtio/*.zig"));
     try std.testing.expect(containsString(manifest.roadmap_destinations, "zigux/helpers/"));
@@ -89,13 +95,19 @@ test "phase10 virtio ring survey manifest records the live queue-wrapper gap and
     try std.testing.expect(manifest.architecture_council_reopen_required);
     try std.testing.expect(!manifest.architecture_council_reopen_attached);
     try std.testing.expect(manifest.survey_summary.virtio_ring_c_lines >= 3000);
-    try std.testing.expectEqual(@as(usize, 3), manifest.survey_summary.preexisting_phase10_test_files);
+    try std.testing.expectEqual(@as(usize, 7), manifest.survey_summary.preexisting_phase10_test_files);
     try std.testing.expect(manifest.survey_summary.preexisting_virtio_core_zig_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase10_build_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase10_core_doc_present);
     try std.testing.expect(manifest.survey_summary.preexisting_virtio_ring_zig_present);
     try std.testing.expect(manifest.survey_summary.preexisting_virtio_ring_doc_present);
-    try std.testing.expect(manifest.gaps.len >= 9);
+    try std.testing.expect(manifest.survey_summary.preexisting_virtio_input_zig_present);
+    try std.testing.expect(manifest.survey_summary.preexisting_virtio_input_test_present);
+    try std.testing.expect(manifest.survey_summary.preexisting_virtio_input_survey_present);
+    try std.testing.expect(manifest.survey_summary.preexisting_virtio_mmio_zig_present);
+    try std.testing.expect(manifest.survey_summary.preexisting_virtio_mmio_test_present);
+    try std.testing.expect(manifest.survey_summary.preexisting_virtio_mmio_survey_present);
+    try std.testing.expect(manifest.gaps.len >= 15);
 
     const survey_note = try std.Io.Dir.cwd().readFileAlloc(
         io_instance.io(),
@@ -113,6 +125,8 @@ test "phase10 virtio ring survey manifest records the live queue-wrapper gap and
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "`kernel/trace/ring_buffer.c`") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "freeze-map status change") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "Architecture Council reopen request") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "feature-word") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "config-word window") != null);
 
     var starter_landed_count: usize = 0;
     var ready_next_count: usize = 0;
@@ -123,6 +137,9 @@ test "phase10 virtio ring survey manifest records the live queue-wrapper gap and
     var saw_callback_delay_helper = false;
     var saw_broken_queue_poll_guard = false;
     var saw_mmio_register_landed = false;
+    var saw_mmio_queue_size_helper = false;
+    var saw_mmio_feature_word_helper = false;
+    var saw_mmio_config_window_helper = false;
     var saw_mmio_lifecycle_blocker = false;
     var saw_ring_slice_note = false;
     var saw_core_progress_note = false;
@@ -189,11 +206,34 @@ test "phase10 virtio ring survey manifest records the live queue-wrapper gap and
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "already landed") != null);
         }
 
+        if (std.mem.eql(u8, gap.id, "phase10-mmio-queue-size-helper")) {
+            saw_mmio_queue_size_helper = true;
+            try std.testing.expectEqualStrings("starter_landed", gap.status);
+            try std.testing.expectEqualStrings("drivers/virtio/virtio_mmio.zig", gap.zigux_destination);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "queue_num_max") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "queue discovery") != null);
+        }
+
+        if (std.mem.eql(u8, gap.id, "phase10-mmio-feature-word-selector-helper")) {
+            saw_mmio_feature_word_helper = true;
+            try std.testing.expectEqualStrings("starter_landed", gap.status);
+            try std.testing.expectEqualStrings("drivers/virtio/virtio_mmio.zig", gap.zigux_destination);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "device-feature selector") != null);
+        }
+
+        if (std.mem.eql(u8, gap.id, "phase10-mmio-config-window-helper")) {
+            saw_mmio_config_window_helper = true;
+            try std.testing.expectEqualStrings("starter_landed", gap.status);
+            try std.testing.expectEqualStrings("drivers/virtio/virtio_mmio.zig", gap.zigux_destination);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "config-word window") != null);
+        }
+
         if (std.mem.eql(u8, gap.id, "phase10-mmio-lifecycle-and-irq-paths")) {
             saw_mmio_lifecycle_blocker = true;
             try std.testing.expectEqualStrings("blocked_on_risky_transport", gap.status);
             try std.testing.expectEqualStrings("drivers/virtio/virtio_mmio.zig", gap.zigux_destination);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "interrupt acknowledgement") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "Interrupt acknowledgement") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "queue discovery") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "probe or remove lifecycle") != null);
         }
 
@@ -208,7 +248,7 @@ test "phase10 virtio ring survey manifest records the live queue-wrapper gap and
         }
     }
 
-    try std.testing.expect(starter_landed_count >= 10);
+    try std.testing.expect(starter_landed_count >= 14);
     try std.testing.expectEqual(@as(usize, 0), ready_next_count);
     try std.testing.expectEqual(@as(usize, 1), blocked_count);
     try std.testing.expect(saw_core_progress_note);
@@ -218,6 +258,9 @@ test "phase10 virtio ring survey manifest records the live queue-wrapper gap and
     try std.testing.expect(saw_callback_delay_helper);
     try std.testing.expect(saw_broken_queue_poll_guard);
     try std.testing.expect(saw_mmio_register_landed);
+    try std.testing.expect(saw_mmio_queue_size_helper);
+    try std.testing.expect(saw_mmio_feature_word_helper);
+    try std.testing.expect(saw_mmio_config_window_helper);
     try std.testing.expect(saw_mmio_lifecycle_blocker);
     try std.testing.expect(saw_ring_slice_note);
 }
