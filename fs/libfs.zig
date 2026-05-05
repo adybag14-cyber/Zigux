@@ -13,6 +13,7 @@ pub const ModuleDescriptor = struct {
     provides_offset_seek_helpers: bool,
     provides_directory_emit_planning: bool,
     provides_transaction_buffer_planning: bool,
+    provides_transaction_publish_planning: bool,
     touches_live_dcache: bool,
     touches_live_inode_state: bool,
 };
@@ -99,6 +100,15 @@ pub const TransactionBufferAcquirePlan = struct {
     response_size: usize,
 };
 
+pub const TransactionBufferPublishPlan = struct {
+    anchor: []const u8,
+    response_size: usize,
+    transaction_limit: usize,
+    requires_private_data: bool,
+    uses_publish_barrier: bool,
+    keeps_size_zero_until_ready: bool,
+};
+
 pub const LibFsHelperLab = struct {
     pub fn descriptor() ModuleDescriptor {
         return .{
@@ -110,6 +120,7 @@ pub const LibFsHelperLab = struct {
             .provides_offset_seek_helpers = true,
             .provides_directory_emit_planning = true,
             .provides_transaction_buffer_planning = true,
+            .provides_transaction_publish_planning = true,
             .touches_live_dcache = false,
             .touches_live_inode_state = false,
         };
@@ -321,6 +332,24 @@ pub const LibFsHelperLab = struct {
             .allocates_zeroed_page = true,
             .requires_empty_private_data = true,
             .response_size = 0,
+        };
+    }
+
+    pub fn simpleTransactionSetPlan(response_size: usize, private_data_present: bool) !TransactionBufferPublishPlan {
+        if (response_size > simple_transaction_limit) {
+            return error.InputTooLarge;
+        }
+        if (!private_data_present) {
+            return error.MissingTransactionBuffer;
+        }
+
+        return .{
+            .anchor = descriptor().anchor,
+            .response_size = response_size,
+            .transaction_limit = simple_transaction_limit,
+            .requires_private_data = true,
+            .uses_publish_barrier = true,
+            .keeps_size_zero_until_ready = true,
         };
     }
 };
