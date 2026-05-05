@@ -1,0 +1,131 @@
+{
+  "lane_key": "P10-Y01",
+  "phase": "Phase 10",
+  "surveyed_commit": "7a4454d0474106972cad7e164b79293bd54a40c6",
+  "anchor": "drivers/virtio/virtio.c",
+  "roadmap_destinations": [
+    "drivers/virtio/*.zig",
+    "zigux/helpers/"
+  ],
+  "survey_summary": {
+    "virtio_c_lines": 730,
+    "preexisting_phase10_test_files": 9,
+    "preexisting_phase10_build_present": true,
+    "preexisting_virtio_core_zig_present": true,
+    "preexisting_virtio_core_test_present": true,
+    "preexisting_virtio_core_reset_queue_test_present": true,
+    "preexisting_virtio_driver_id_zig_present": true,
+    "preexisting_virtio_driver_id_test_present": true,
+    "preexisting_virtio_core_slice_note_present": true,
+    "preexisting_virtio_ring_survey_present": true,
+    "preexisting_virtio_input_survey_present": true,
+    "preexisting_virtio_mmio_survey_present": true
+  },
+  "gaps": [
+    {
+      "id": "phase10-build-gate",
+      "status": "starter_landed",
+      "kind": "validation",
+      "zigux_destination": "zigux/tests/phase10_build.zig",
+      "why_now": "The shared Phase 10 build is still the narrowest honest place to keep the virtio core packet reviewable beside ring, input, and MMIO coverage."
+    },
+    {
+      "id": "phase10-virtio-core-lab-starter",
+      "status": "starter_landed",
+      "kind": "lab_driver_starter",
+      "zigux_destination": "drivers/virtio/virtio.zig",
+      "why_now": "The live helper already covers status sequencing, bounded feature negotiation, queue callback bookkeeping, config bookkeeping, interrupt bookkeeping, lifecycle guards, and reset replay in memory only."
+    },
+    {
+      "id": "phase10-virtio-core-lab-gate",
+      "status": "starter_landed",
+      "kind": "validation",
+      "zigux_destination": "zigux/tests/phase10_virtio_core.zig",
+      "why_now": "Dedicated core tests already replay the bounded handshake, queue bookkeeping, config-generation, interrupt, lifecycle-guard, and reset-replay branches."
+    },
+    {
+      "id": "phase10-virtio-core-reset-queue-gate",
+      "status": "starter_landed",
+      "kind": "validation",
+      "zigux_destination": "zigux/tests/phase10_virtio_core_reset_queue.zig",
+      "why_now": "The reset-queue replay keeps reset-required queue and driver-model blockers explicit without widening into transport-backed teardown behavior."
+    },
+    {
+      "id": "phase10-virtio-core-slice-note",
+      "status": "starter_landed",
+      "kind": "documentation",
+      "zigux_destination": "Documentation/zigux/phase10-virtio-core-slice.md",
+      "why_now": "The slice note records the bounded implementation surface and now needs to describe the restored manifest-backed survey packet instead of a slice-note-only review path."
+    },
+    {
+      "id": "phase10-virtio-core-survey-gate",
+      "status": "starter_landed",
+      "kind": "validation",
+      "zigux_destination": "zigux/tests/phase10_virtio_core_survey.zig",
+      "why_now": "A dedicated survey gate makes the core lane machine-checkable again after the manifest-backed review packet drifted out of current master."
+    },
+    {
+      "id": "phase10-virtio-core-survey-note",
+      "status": "starter_landed",
+      "kind": "documentation",
+      "zigux_destination": "Documentation/zigux/phase10-virtio-core-survey.md",
+      "why_now": "The lane needs a Phase 10 note that records the restored core governance packet against the current inspected head without widening into ring or MMIO work."
+    },
+    {
+      "id": "phase10-driver-id-helper",
+      "status": "starter_landed",
+      "kind": "lab_driver_starter",
+      "zigux_destination": "drivers/virtio/virtio_driver_id.zig",
+      "why_now": "The live driver-id helper keeps bounded register_virtio_device(), virtio_uevent(), virtio_id_match(), and virtio_dev_match() identity strings and wildcard decisions reviewable in memory only."
+    },
+    {
+      "id": "phase10-driver-id-gate",
+      "status": "starter_landed",
+      "kind": "validation",
+      "zigux_destination": "zigux/tests/phase10_virtio_driver_id.zig",
+      "why_now": "Dedicated driver-id tests already cover exact, wildcard-device, wildcard-vendor, and unmatched identity-table paths."
+    },
+    {
+      "id": "phase10-queue-shape-bookkeeping-helper",
+      "status": "starter_landed",
+      "kind": "lab_driver_starter",
+      "zigux_destination": "drivers/virtio/virtio.zig",
+      "why_now": "The live helper already records queue descriptor-shape metadata so adjacent ring work can build on a reviewable core-side queue contract."
+    },
+    {
+      "id": "phase10-config-generation-bookkeeping-helper",
+      "status": "starter_landed",
+      "kind": "lab_driver_starter",
+      "zigux_destination": "drivers/virtio/virtio.zig",
+      "why_now": "The current core packet already records config-generation increments, acknowledgements, and pending visibility before any transport-backed reads are claimed."
+    },
+    {
+      "id": "phase10-interrupt-ack-bookkeeping-helper",
+      "status": "starter_landed",
+      "kind": "lab_driver_starter",
+      "zigux_destination": "drivers/virtio/virtio.zig",
+      "why_now": "The current core packet already records bounded queue-used and config-change interrupt reasons plus acknowledgements without claiming IRQ wiring."
+    },
+    {
+      "id": "phase10-lifecycle-guard-bookkeeping-helper",
+      "status": "starter_landed",
+      "kind": "lab_driver_starter",
+      "zigux_destination": "drivers/virtio/virtio.zig",
+      "why_now": "The lifecycle guard summary keeps attach, negotiation, readiness, queue-registration, and reset-required blockers explicit for review."
+    },
+    {
+      "id": "phase10-reset-replay-bookkeeping-helper",
+      "status": "starter_landed",
+      "kind": "lab_driver_starter",
+      "zigux_destination": "drivers/virtio/virtio.zig",
+      "why_now": "The reset replay summary keeps negotiated-feature, queue-callback, config, and interrupt state visible before reset clears it."
+    },
+    {
+      "id": "phase10-core-probe-remove-lifecycle",
+      "status": "blocked_on_risky_transport",
+      "kind": "lab_driver_starter",
+      "zigux_destination": "drivers/virtio/virtio.zig",
+      "why_now": "Broader virtio.c parity still mixes probe, full remove, reset, and transport-backed lifecycle state, so the lane remains intentionally blocked before those risky paths."
+    }
+  ]
+}
