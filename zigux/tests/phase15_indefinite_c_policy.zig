@@ -61,7 +61,7 @@ test "phase 15 indefinite-C policy manifest records current policy, exception, a
     defer parsed.deinit();
 
     const manifest = parsed.value;
-    try std.testing.expectEqualStrings("P15-L08", manifest.lane_key);
+    try std.testing.expectEqualStrings("P15-L16", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 15", manifest.phase);
     try std.testing.expectEqualStrings("7b5519444e8f73f84c68dc3e63580fcaef06ffb6", manifest.surveyed_commit);
     try std.testing.expectEqualStrings("policy for code that remains in C indefinitely", manifest.roadmap_requirement);
@@ -141,7 +141,7 @@ test "phase 15 indefinite-C policy doc and linked artifacts keep exception and b
     defer io_instance.deinit();
 
     try expectContains(io_instance.io(), "Documentation/zigux/phase15-indefinite-c-policy.md", &.{
-        "PHASE15_LANE_KEY=P15-L08",
+        "PHASE15_LANE_KEY=P15-L16",
         "survey provenance refreshed against verified `master` head `7b5519444e8f73f84c68dc3e63580fcaef06ffb6`",
         "## When the indefinite-C policy applies",
         "## Required recorded fields",
