@@ -72,6 +72,7 @@ REQUIRED_REVIEW_CHECKLIST_EXACT_COUNTS = {
 
 REQUIRED_SEQUENCE_MARKERS = [
     "`Documentation/zigux/review-checklist.md`",
+    "focused smoke preflight entrypoint: `make -C zigux phase12-smoke`",
     "`scripts/zigux/check-build-only-phase12-surface.py` plus `.github/workflows/zigux-bootstrap.yml` keep the build-only contract fail-closed rather than implying an unshipped validator stack.",
     "current public fallback split: two commit-pinned artifacts (`Documentation/zigux/phase12-nvme-pci-raw-github-fallback-map.md`, `Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md`) and two shared-tree-only anchors (`virtio_net`, `libbpf`)",
     "`scripts/zigux/check-build-only-phase12-surface.py` is a shipped build-only contract checker, not a broader validator-first release gate",
@@ -82,6 +83,7 @@ REQUIRED_SEQUENCE_MARKERS = [
 ]
 
 REQUIRED_SEQUENCE_EXACT_COUNTS = {
+    "focused smoke preflight entrypoint: `make -C zigux phase12-smoke`": 1,
     "The docs-root, review-checklist, scripts-root, and tests-root wording repairs are already landed on `master`, so the next bounded same-lane follow-through is now drift control rather than another naming pass:": 1,
     "keep this sequencing note aligned with `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/phase12-nvme-pci-raw-github-fallback-map.md`, `Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md`, `Documentation/zigux/phase12-virtio-net-survey.md`, `Documentation/zigux/phase12-libbpf-segment-survey.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, `.github/workflows/zigux-bootstrap.yml`, `zigux/Makefile`, and the bounded `Documentation/zigux/phase12-virtio-scsi-slice.md` rollback-drill wording instead of reopening already-landed naming repairs or inventing removed validator surfaces": 1,
 }
@@ -342,6 +344,7 @@ Phase 12 notes
         root / PHASE12_SEQUENCE_PATH,
         """# Phase 12 Release Sequencing
 - `Documentation/zigux/review-checklist.md`
+- focused smoke preflight entrypoint: `make -C zigux phase12-smoke`
 - `scripts/zigux/check-build-only-phase12-surface.py` plus `.github/workflows/zigux-bootstrap.yml` keep the build-only contract fail-closed rather than implying an unshipped validator stack.
 - current public fallback split: two commit-pinned artifacts (`Documentation/zigux/phase12-nvme-pci-raw-github-fallback-map.md`, `Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md`) and two shared-tree-only anchors (`virtio_net`, `libbpf`)
 - `scripts/zigux/check-build-only-phase12-surface.py` is a shipped build-only contract checker, not a broader validator-first release gate
@@ -503,6 +506,9 @@ def run_self_test() -> int:
         makefile_path.write_text(original_makefile, encoding="utf-8")
         sequence_path = root / PHASE12_SEQUENCE_PATH
         original_sequence = sequence_path.read_text(encoding="utf-8")
+        sequence_smoke_marker = (
+            "focused smoke preflight entrypoint: `make -C zigux phase12-smoke`"
+        )
         sequence_marker = (
             "The docs-root, review-checklist, scripts-root, and tests-root wording repairs are already landed on `master`, so the next bounded same-lane follow-through is now drift control rather than another naming pass:"
         )
@@ -510,6 +516,45 @@ def run_self_test() -> int:
             "keep this sequencing note aligned with `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/phase12-nvme-pci-raw-github-fallback-map.md`, `Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md`, `Documentation/zigux/phase12-virtio-net-survey.md`, `Documentation/zigux/phase12-libbpf-segment-survey.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, `.github/workflows/zigux-bootstrap.yml`, `zigux/Makefile`, and the bounded `Documentation/zigux/phase12-virtio-scsi-slice.md` rollback-drill wording instead of reopening already-landed naming repairs or inventing removed validator surfaces"
         )
 
+        missing_sequence_smoke = original_sequence.replace(
+            f"- {sequence_smoke_marker}\n",
+            "",
+            1,
+        )
+        sequence_path.write_text(missing_sequence_smoke, encoding="utf-8")
+        failures = validate(root)
+        expected_sequence_smoke_missing = f"phase12_sequence:{sequence_smoke_marker}"
+        expected_sequence_smoke_missing_exact = (
+            f"phase12_sequence_exact_count:{sequence_smoke_marker}:count=0:expected=1"
+        )
+        if (
+            expected_sequence_smoke_missing not in failures
+            or expected_sequence_smoke_missing_exact not in failures
+        ):
+            print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST=fail")
+            print("phase12-sequence-smoke-missing-guard")
+            for failure in failures:
+                print(failure)
+            return 1
+
+        duplicate_sequence_smoke = original_sequence.replace(
+            f"- {sequence_smoke_marker}\n",
+            f"- {sequence_smoke_marker}\n- {sequence_smoke_marker}\n",
+            1,
+        )
+        sequence_path.write_text(duplicate_sequence_smoke, encoding="utf-8")
+        failures = validate(root)
+        expected_sequence_smoke_duplicate = (
+            f"phase12_sequence_exact_count:{sequence_smoke_marker}:count=2:expected=1"
+        )
+        if expected_sequence_smoke_duplicate not in failures:
+            print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST=fail")
+            print("phase12-sequence-smoke-duplicate-guard")
+            for failure in failures:
+                print(failure)
+            return 1
+
+        sequence_path.write_text(original_sequence, encoding="utf-8")
         missing_sequence = original_sequence.replace(
             f"- {sequence_marker}\n",
             "",
