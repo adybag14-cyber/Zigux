@@ -3,24 +3,25 @@ from __future__ import annotations
 
 import argparse
 import json
-from pathlib import Path
 import tempfile
+from pathlib import Path
 
 
-THIS_FILE = Path(__file__).resolve()
-ROOT = THIS_FILE.parents[2] if len(THIS_FILE.parents) > 2 else THIS_FILE.parent
+ROOT = Path(__file__).resolve().parents[2]
 
-NOTES = ROOT / "Documentation" / "zigux" / "phase2-toolchain-bootstrap-notes.md"
-CLOSURE = ROOT / "Documentation" / "zigux" / "phase2-closure.md"
-REVIEW = ROOT / "Documentation" / "zigux" / "review-checklist.md"
-WORKFLOW = ROOT / ".github" / "workflows" / "zigux-bootstrap.yml"
-MAKEFILE = ROOT / "zigux" / "Makefile"
-TARGETS = ROOT / "zigux" / "tests" / "fixtures" / "phase2_cross_targets.json"
-PHASE2_CLOSURE_VALIDATOR = ROOT / "scripts" / "zigux" / "validate-phase2-closure.py"
-PHASE2_CROSS_CHECKER = ROOT / "scripts" / "zigux" / "check-phase2-cross.py"
-TOOLCHAIN_PIN_SCOPE_CHECKER = ROOT / "scripts" / "zigux" / "check-phase2-toolchain-pin-scope.py"
-INSTALL_ZIG = ROOT / "scripts" / "zigux" / "install-zig.py"
-CHECK_ZIG_TOOLCHAIN = ROOT / "scripts" / "zigux" / "check-zig-toolchain.py"
+REQUIRED_FILES = [
+    "Documentation/zigux/README.md",
+    "Documentation/zigux/review-checklist.md",
+    "Documentation/zigux/phase2-toolchain-bootstrap-notes.md",
+    "scripts/zigux/check-phase2-cross.py",
+    "scripts/zigux/check-phase2-cross-selftest-alignment.py",
+    "scripts/zigux/validate-phase2.py",
+    "scripts/zigux/validate-phase2-closure.py",
+    "zigux/Makefile",
+    "zigux/tests/README.md",
+    "zigux/tests/fixtures/phase2_cross_targets.json",
+    ".github/workflows/zigux-bootstrap.yml",
+]
 
 EXPECTED_TARGETS = [
     "x86_64-linux-musl",
@@ -28,59 +29,58 @@ EXPECTED_TARGETS = [
     "riscv64-linux-musl",
 ]
 
-NOTES_MARKERS = [
+DOCS_ROOT_MARKERS = [
+    "scripts/zigux/validate-phase2.py",
+    "scripts/zigux/validate-phase2-closure.py",
+    "scripts/zigux/check-phase2-tests-readme-alignment.py",
+    "python3 scripts/zigux/check-phase2-cross.py",
+    "make -C zigux phase2-validate",
+    "make -C zigux phase2",
+]
+
+TOOLCHAIN_NOTE_MARKERS = [
     "python3 scripts/zigux/check-phase2-cross-selftest-alignment.py --self-test",
     "python3 scripts/zigux/check-phase2-cross-selftest-alignment.py",
     "zigux/tests/fixtures/phase2_cross_targets.json",
+    "Documentation/zigux/README.md",
     "scripts/zigux/validate-phase2.py",
     "scripts/zigux/validate-phase2-closure.py",
     "zigux/Makefile",
     ".github/workflows/zigux-bootstrap.yml",
 ]
 
-CLOSURE_MARKERS = [
-    "PHASE2_CROSS_ALIGNMENT_SELF_TEST=python3 scripts/zigux/check-phase2-cross-selftest-alignment.py --self-test",
-    "PHASE2_CROSS_ALIGNMENT_GATE=python3 scripts/zigux/check-phase2-cross-selftest-alignment.py",
+REVIEW_CHECKLIST_MARKERS = [
+    "scripts/zigux/check-phase2-cross-selftest-alignment.py",
 ]
 
-REVIEW_MARKERS = [
-    "scripts/zigux/check-phase2-cross-selftest-alignment.py",
-    "scripts/zigux/check-phase2-toolchain-pin-scope.py",
-    "scripts/zigux/check-phase2-cross.py",
+TESTS_README_MARKERS = [
+    "Documentation/zigux/phase2-toolchain-bootstrap-notes.md",
     "make -C zigux phase2-validate",
     "make -C zigux phase2",
 ]
 
+VALIDATE_PHASE2_MARKERS = [
+    "python3 scripts/zigux/validate-phase2.py",
+    "python3 scripts/zigux/check-phase2-cross.py --target",
+]
+
+VALIDATE_PHASE2_CLOSURE_MARKERS = [
+    "CHECK_PHASE2_CROSS_SELFTEST_ALIGNMENT = ROOT / 'scripts' / 'zigux' / 'check-phase2-cross-selftest-alignment.py'",
+    "PHASE2_CROSS_ALIGNMENT_SELF_TEST=python3 scripts/zigux/check-phase2-cross-selftest-alignment.py --self-test",
+    "PHASE2_CROSS_ALIGNMENT_GATE=python3 scripts/zigux/check-phase2-cross-selftest-alignment.py",
+]
+
 MAKEFILE_MARKERS = [
+    "phase2-validate:",
+    "check-phase2-tests-readme-alignment.py",
     "phase2-cross:",
     "scripts/zigux/check-phase2-cross.py",
-    "phase2: phase2-validate phase2-tools phase2-kconfig phase2-cross",
 ]
 
-PHASE2_CLOSURE_VALIDATOR_MARKERS = [
-    "CHECK_PHASE2_CROSS_SELFTEST_ALIGNMENT = ROOT / 'scripts' / 'zigux' / 'check-phase2-cross-selftest-alignment.py'",
-    "'PHASE2_CROSS_ALIGNMENT_SELF_TEST=python3 scripts/zigux/check-phase2-cross-selftest-alignment.py --self-test'",
-    "'PHASE2_CROSS_ALIGNMENT_GATE=python3 scripts/zigux/check-phase2-cross-selftest-alignment.py'",
-]
-
-PHASE2_CROSS_CHECKER_MARKERS = [
-    "PHASE2_CROSS_SELF_TEST=pass",
-    "PHASE2_CROSS=pass",
-    "phase2_cross_targets.json",
-]
-
-TOOLCHAIN_PIN_SCOPE_MARKERS = [
-    "phase2_cross_targets.json",
-    "check-phase2-cross-selftest-alignment.py --self-test",
-    "check-phase2-cross-selftest-alignment.py",
-]
-
-INSTALL_ZIG_MARKERS = [
-    "ZIG_INSTALL_SELF_TEST=pass",
-]
-
-CHECK_ZIG_TOOLCHAIN_MARKERS = [
-    "ZIG_TOOLCHAIN_SELF_TEST=pass",
+WORKFLOW_MARKERS = [
+    "python3 scripts/zigux/validate-phase2.py",
+    "python3 scripts/zigux/validate-phase2-closure.py",
+    "python3 scripts/zigux/check-phase2-cross.py --target",
 ]
 
 
@@ -91,123 +91,94 @@ def load_json_object(path: Path, *, label: str) -> dict[str, object]:
     return payload
 
 
-def collect_missing_markers(text: str, *, label: str, markers: list[str]) -> list[str]:
-    return [f"{label}:missing_marker:{marker}" for marker in markers if marker not in text]
+def collect_missing_markers(text: str, markers: list[str], *, prefix: str) -> list[str]:
+    return [f"{prefix}:{marker}" for marker in markers if marker not in text]
 
 
 def validate_targets_manifest(path: Path) -> list[str]:
     payload = load_json_object(path, label="phase2_cross_targets")
     issues: list[str] = []
-
     if payload.get("phase") != "Phase 2":
-        issues.append("phase2_cross_targets:phase:expected=Phase 2")
+        issues.append(f"targets:phase={payload.get('phase')!r}:expected='Phase 2'")
     if payload.get("status") != "closed":
-        issues.append("phase2_cross_targets:status:expected=closed")
-
-    targets = payload.get("targets")
-    if not isinstance(targets, list):
-        issues.append("phase2_cross_targets:targets:expected_list")
-        return issues
-
-    if payload.get("target_count") != len(targets):
+        issues.append(f"targets:status={payload.get('status')!r}:expected='closed'")
+    if payload.get("target_count") != len(EXPECTED_TARGETS):
         issues.append(
-            f"phase2_cross_targets:target_count={payload.get('target_count')}:expected={len(targets)}"
+            "targets:target_count="
+            f"{payload.get('target_count')!r}:expected={len(EXPECTED_TARGETS)}"
         )
-
-    seen: set[str] = set()
-    discovered: list[str] = []
-    for index, item in enumerate(targets):
-        if not isinstance(item, str) or not item:
-            issues.append(f"phase2_cross_targets:targets[{index}]:expected_nonempty_string")
-            continue
-        if item in seen:
-            issues.append(f"phase2_cross_targets:duplicate_target:{item}")
-            continue
-        seen.add(item)
-        discovered.append(item)
-
-    if discovered != EXPECTED_TARGETS:
-        issues.append(f"phase2_cross_targets:targets={discovered!r}:expected={EXPECTED_TARGETS!r}")
-    return issues
-
-
-def validate_workflow(text: str) -> list[str]:
-    issues: list[str] = []
-    if "phase2-cross:" in text:
-        issues.append("workflow:unexpected_makefile_fragment:phase2-cross:")
-
-    required_fragments = [
-        "name: phase2-cross",
-        "python3 scripts/zigux/check-phase2-cross.py --target ${{ matrix.zig_target }}",
-    ]
-    issues.extend(collect_missing_markers(text, label="workflow", markers=required_fragments))
-
-    for target in EXPECTED_TARGETS:
-        if target not in text:
-            issues.append(f"workflow:missing_target:{target}")
+    targets = payload.get("targets")
+    if targets != EXPECTED_TARGETS:
+        issues.append(f"targets:list={targets!r}:expected={EXPECTED_TARGETS!r}")
     return issues
 
 
 def validate_root(root: Path) -> list[str]:
-    required_files = [
-        NOTES,
-        CLOSURE,
-        REVIEW,
-        WORKFLOW,
-        MAKEFILE,
-        TARGETS,
-        PHASE2_CLOSURE_VALIDATOR,
-        PHASE2_CROSS_CHECKER,
-        TOOLCHAIN_PIN_SCOPE_CHECKER,
-        INSTALL_ZIG,
-        CHECK_ZIG_TOOLCHAIN,
-    ]
-    missing_files = [str(path.relative_to(ROOT)) for path in required_files if not path.exists()]
-    if missing_files:
-        return [f"missing_file:{item}" for item in missing_files]
-
     issues: list[str] = []
-    issues.extend(collect_missing_markers(NOTES.read_text(encoding="utf-8"), label="notes", markers=NOTES_MARKERS))
-    issues.extend(collect_missing_markers(CLOSURE.read_text(encoding="utf-8"), label="closure", markers=CLOSURE_MARKERS))
-    issues.extend(collect_missing_markers(REVIEW.read_text(encoding="utf-8"), label="review", markers=REVIEW_MARKERS))
-    issues.extend(collect_missing_markers(MAKEFILE.read_text(encoding="utf-8"), label="makefile", markers=MAKEFILE_MARKERS))
+
+    for rel in REQUIRED_FILES:
+        if not (root / rel).exists():
+            issues.append(f"missing_file:{rel}")
+
+    if issues:
+        return issues
+
+    docs_root = (root / "Documentation/zigux/README.md").read_text(encoding="utf-8")
+    toolchain_notes = (
+        root / "Documentation/zigux/phase2-toolchain-bootstrap-notes.md"
+    ).read_text(encoding="utf-8")
+    review = (root / "Documentation/zigux/review-checklist.md").read_text(encoding="utf-8")
+    tests_readme = (root / "zigux/tests/README.md").read_text(encoding="utf-8")
+    validate_phase2 = (root / "scripts/zigux/validate-phase2.py").read_text(encoding="utf-8")
+    validate_phase2_closure = (
+        root / "scripts/zigux/validate-phase2-closure.py"
+    ).read_text(encoding="utf-8")
+    makefile = (root / "zigux/Makefile").read_text(encoding="utf-8")
+    workflow = (
+        root / ".github/workflows/zigux-bootstrap.yml"
+    ).read_text(encoding="utf-8")
+
+    issues.extend(collect_missing_markers(docs_root, DOCS_ROOT_MARKERS, prefix="docs_root"))
     issues.extend(
         collect_missing_markers(
-            PHASE2_CLOSURE_VALIDATOR.read_text(encoding="utf-8"),
-            label="phase2_closure_validator",
-            markers=PHASE2_CLOSURE_VALIDATOR_MARKERS,
+            toolchain_notes,
+            TOOLCHAIN_NOTE_MARKERS,
+            prefix="toolchain_notes",
         )
     )
     issues.extend(
         collect_missing_markers(
-            PHASE2_CROSS_CHECKER.read_text(encoding="utf-8"),
-            label="phase2_cross_checker",
-            markers=PHASE2_CROSS_CHECKER_MARKERS,
+            review,
+            REVIEW_CHECKLIST_MARKERS,
+            prefix="review_checklist",
         )
     )
     issues.extend(
         collect_missing_markers(
-            TOOLCHAIN_PIN_SCOPE_CHECKER.read_text(encoding="utf-8"),
-            label="toolchain_pin_scope_checker",
-            markers=TOOLCHAIN_PIN_SCOPE_MARKERS,
+            tests_readme,
+            TESTS_README_MARKERS,
+            prefix="tests_readme",
         )
     )
     issues.extend(
         collect_missing_markers(
-            INSTALL_ZIG.read_text(encoding="utf-8"),
-            label="install_zig",
-            markers=INSTALL_ZIG_MARKERS,
+            validate_phase2,
+            VALIDATE_PHASE2_MARKERS,
+            prefix="validate_phase2",
         )
     )
     issues.extend(
         collect_missing_markers(
-            CHECK_ZIG_TOOLCHAIN.read_text(encoding="utf-8"),
-            label="check_zig_toolchain",
-            markers=CHECK_ZIG_TOOLCHAIN_MARKERS,
+            validate_phase2_closure,
+            VALIDATE_PHASE2_CLOSURE_MARKERS,
+            prefix="validate_phase2_closure",
         )
     )
-    issues.extend(validate_targets_manifest(TARGETS))
-    issues.extend(validate_workflow(WORKFLOW.read_text(encoding="utf-8")))
+    issues.extend(collect_missing_markers(makefile, MAKEFILE_MARKERS, prefix="makefile"))
+    issues.extend(collect_missing_markers(workflow, WORKFLOW_MARKERS, prefix="workflow"))
+    issues.extend(
+        validate_targets_manifest(root / "zigux/tests/fixtures/phase2_cross_targets.json")
+    )
     return issues
 
 
@@ -217,54 +188,40 @@ def write_text(path: Path, content: str) -> None:
 
 
 def build_self_test_root(root: Path) -> None:
+    for rel in REQUIRED_FILES:
+        write_text(root / rel, "")
+
     write_text(
-        root / "Documentation/zigux/phase2-toolchain-bootstrap-notes.md",
-        "\n".join(NOTES_MARKERS) + "\n",
+        root / "Documentation/zigux/README.md",
+        "\n".join(DOCS_ROOT_MARKERS) + "\n",
     )
     write_text(
-        root / "Documentation/zigux/phase2-closure.md",
-        "\n".join(CLOSURE_MARKERS) + "\n",
+        root / "Documentation/zigux/phase2-toolchain-bootstrap-notes.md",
+        "\n".join(TOOLCHAIN_NOTE_MARKERS) + "\n",
     )
     write_text(
         root / "Documentation/zigux/review-checklist.md",
-        "\n".join(REVIEW_MARKERS) + "\n",
+        "\n".join(REVIEW_CHECKLIST_MARKERS) + "\n",
     )
     write_text(
-        root / ".github/workflows/zigux-bootstrap.yml",
-        "\n".join(
-            [
-                "name: phase2-cross",
-                "x86_64-linux-musl",
-                "aarch64-linux-musl",
-                "riscv64-linux-musl",
-                "python3 scripts/zigux/check-phase2-cross.py --target ${{ matrix.zig_target }}",
-            ]
-        )
-        + "\n",
+        root / "zigux/tests/README.md",
+        "\n".join(TESTS_README_MARKERS) + "\n",
+    )
+    write_text(
+        root / "scripts/zigux/validate-phase2.py",
+        "\n".join(VALIDATE_PHASE2_MARKERS) + "\n",
+    )
+    write_text(
+        root / "scripts/zigux/validate-phase2-closure.py",
+        "\n".join(VALIDATE_PHASE2_CLOSURE_MARKERS) + "\n",
     )
     write_text(
         root / "zigux/Makefile",
         "\n".join(MAKEFILE_MARKERS) + "\n",
     )
     write_text(
-        root / "scripts/zigux/validate-phase2-closure.py",
-        "\n".join(PHASE2_CLOSURE_VALIDATOR_MARKERS) + "\n",
-    )
-    write_text(
-        root / "scripts/zigux/check-phase2-cross.py",
-        "\n".join(PHASE2_CROSS_CHECKER_MARKERS) + "\n",
-    )
-    write_text(
-        root / "scripts/zigux/check-phase2-toolchain-pin-scope.py",
-        "\n".join(TOOLCHAIN_PIN_SCOPE_MARKERS) + "\n",
-    )
-    write_text(
-        root / "scripts/zigux/install-zig.py",
-        "\n".join(INSTALL_ZIG_MARKERS) + "\n",
-    )
-    write_text(
-        root / "scripts/zigux/check-zig-toolchain.py",
-        "\n".join(CHECK_ZIG_TOOLCHAIN_MARKERS) + "\n",
+        root / ".github/workflows/zigux-bootstrap.yml",
+        "\n".join(WORKFLOW_MARKERS) + "\n",
     )
     write_text(
         root / "zigux/tests/fixtures/phase2_cross_targets.json",
@@ -272,7 +229,7 @@ def build_self_test_root(root: Path) -> None:
             {
                 "phase": "Phase 2",
                 "status": "closed",
-                "target_count": 3,
+                "target_count": len(EXPECTED_TARGETS),
                 "targets": EXPECTED_TARGETS,
             }
         ),
@@ -280,97 +237,68 @@ def build_self_test_root(root: Path) -> None:
 
 
 def run_self_test() -> int:
-    with tempfile.TemporaryDirectory(prefix="phase2_cross_alignment_") as tmp_dir:
+    with tempfile.TemporaryDirectory(prefix="phase2_cross_selftest_alignment_") as tmp_dir:
         root = Path(tmp_dir)
-        global ROOT, NOTES, CLOSURE, REVIEW, WORKFLOW, MAKEFILE, TARGETS
-        global PHASE2_CLOSURE_VALIDATOR, PHASE2_CROSS_CHECKER
-        global TOOLCHAIN_PIN_SCOPE_CHECKER, INSTALL_ZIG, CHECK_ZIG_TOOLCHAIN
+        build_self_test_root(root)
 
-        original_root = ROOT
-        original_paths = (
-            NOTES,
-            CLOSURE,
-            REVIEW,
-            WORKFLOW,
-            MAKEFILE,
-            TARGETS,
-            PHASE2_CLOSURE_VALIDATOR,
-            PHASE2_CROSS_CHECKER,
-            TOOLCHAIN_PIN_SCOPE_CHECKER,
-            INSTALL_ZIG,
-            CHECK_ZIG_TOOLCHAIN,
+        assert validate_root(root) == []
+
+        write_text(root / "Documentation/zigux/README.md", "scripts/zigux/validate-phase2.py\n")
+        issues = validate_root(root)
+        assert "docs_root:make -C zigux phase2-validate" in issues
+
+        build_self_test_root(root)
+        write_text(
+            root / "zigux/tests/fixtures/phase2_cross_targets.json",
+            json.dumps(
+                {
+                    "phase": "Phase 2",
+                    "status": "closed",
+                    "target_count": 2,
+                    "targets": EXPECTED_TARGETS[:2],
+                }
+            ),
+        )
+        issues = validate_root(root)
+        assert "targets:target_count=2:expected=3" in issues
+
+        build_self_test_root(root)
+        write_text(
+            root / "scripts/zigux/validate-phase2-closure.py",
+            "PHASE2_CROSS_ALIGNMENT_GATE=python3 scripts/zigux/check-phase2-cross-selftest-alignment.py\n",
+        )
+        issues = validate_root(root)
+        assert (
+            "validate_phase2_closure:PHASE2_CROSS_ALIGNMENT_SELF_TEST=python3 scripts/zigux/check-phase2-cross-selftest-alignment.py --self-test"
+            in issues
         )
 
-        ROOT = root
-        NOTES = ROOT / "Documentation" / "zigux" / "phase2-toolchain-bootstrap-notes.md"
-        CLOSURE = ROOT / "Documentation" / "zigux" / "phase2-closure.md"
-        REVIEW = ROOT / "Documentation" / "zigux" / "review-checklist.md"
-        WORKFLOW = ROOT / ".github" / "workflows" / "zigux-bootstrap.yml"
-        MAKEFILE = ROOT / "zigux" / "Makefile"
-        TARGETS = ROOT / "zigux" / "tests" / "fixtures" / "phase2_cross_targets.json"
-        PHASE2_CLOSURE_VALIDATOR = ROOT / "scripts" / "zigux" / "validate-phase2-closure.py"
-        PHASE2_CROSS_CHECKER = ROOT / "scripts" / "zigux" / "check-phase2-cross.py"
-        TOOLCHAIN_PIN_SCOPE_CHECKER = ROOT / "scripts" / "zigux" / "check-phase2-toolchain-pin-scope.py"
-        INSTALL_ZIG = ROOT / "scripts" / "zigux" / "install-zig.py"
-        CHECK_ZIG_TOOLCHAIN = ROOT / "scripts" / "zigux" / "check-zig-toolchain.py"
+        build_self_test_root(root)
+        (root / "scripts/zigux/check-phase2-cross-selftest-alignment.py").unlink()
+        issues = validate_root(root)
+        assert (
+            "missing_file:scripts/zigux/check-phase2-cross-selftest-alignment.py"
+            in issues
+        )
 
-        try:
-            build_self_test_root(root)
-            assert validate_root(root) == []
-
-            write_text(WORKFLOW, "name: phase2-cross\n")
-            issues = validate_root(root)
-            assert "workflow:missing_target:x86_64-linux-musl" in issues
-            assert (
-                "workflow:missing_marker:python3 scripts/zigux/check-phase2-cross.py --target ${{ matrix.zig_target }}"
-                in issues
-            )
-
-            build_self_test_root(root)
-            write_text(
-                TARGETS,
-                json.dumps(
-                    {
-                        "phase": "Phase 2",
-                        "status": "closed",
-                        "target_count": 3,
-                        "targets": ["x86_64-linux-musl", "x86_64-linux-musl", "riscv64-linux-musl"],
-                    }
-                ),
-            )
-            issues = validate_root(root)
-            assert "phase2_cross_targets:duplicate_target:x86_64-linux-musl" in issues
-
-            build_self_test_root(root)
-            write_text(REVIEW, "scripts/zigux/check-phase2-cross.py\n")
-            issues = validate_root(root)
-            assert "review:missing_marker:scripts/zigux/check-phase2-cross-selftest-alignment.py" in issues
-        finally:
-            ROOT = original_root
-            (
-                NOTES,
-                CLOSURE,
-                REVIEW,
-                WORKFLOW,
-                MAKEFILE,
-                TARGETS,
-                PHASE2_CLOSURE_VALIDATOR,
-                PHASE2_CROSS_CHECKER,
-                TOOLCHAIN_PIN_SCOPE_CHECKER,
-                INSTALL_ZIG,
-                CHECK_ZIG_TOOLCHAIN,
-            ) = original_paths
-
-    print("PHASE2_CROSS_ALIGNMENT_SELF_TEST=pass")
-    print("PHASE2_CROSS_ALIGNMENT_SELF_TEST_CASE_COUNT=4")
+    print("PHASE2_CROSS_SELFTEST_ALIGNMENT_SELF_TEST=pass")
+    print("PHASE2_CROSS_SELFTEST_ALIGNMENT_SELF_TEST_CASE_COUNT=5")
     return 0
 
 
 def main() -> int:
     parser = argparse.ArgumentParser(
-        description="Keep the bounded Phase 2 cross-target self-test contract aligned across docs, workflow, and validators."
+        description=(
+            "Keep the Phase 2 cross-target self-test note and closure references "
+            "aligned with the current docs, validators, Makefile, workflow, and "
+            "three-target compile manifest."
+        )
     )
-    parser.add_argument("--self-test", action="store_true", help="Run built-in alignment coverage without a repo checkout.")
+    parser.add_argument(
+        "--self-test",
+        action="store_true",
+        help="Run built-in alignment coverage without a repo checkout.",
+    )
     args = parser.parse_args()
 
     if args.self_test:
@@ -378,15 +306,18 @@ def main() -> int:
 
     issues = validate_root(ROOT)
     if issues:
-        print("PHASE2_CROSS_ALIGNMENT=fail")
-        print("PHASE2_CROSS_ALIGNMENT_ISSUES_START")
+        print("PHASE2_CROSS_SELFTEST_ALIGNMENT=fail")
+        print("PHASE2_CROSS_SELFTEST_ALIGNMENT_ISSUES_START")
         for issue in issues:
             print(issue)
-        print("PHASE2_CROSS_ALIGNMENT_ISSUES_END")
+        print("PHASE2_CROSS_SELFTEST_ALIGNMENT_ISSUES_END")
         return 1
 
-    print("PHASE2_CROSS_ALIGNMENT=pass")
-    print("PHASE2_CROSS_ALIGNMENT_TARGET_COUNT=3")
+    print("PHASE2_CROSS_SELFTEST_ALIGNMENT=pass")
+    print(
+        "PHASE2_CROSS_SELFTEST_ALIGNMENT_MARKER_COUNT="
+        f"{len(DOCS_ROOT_MARKERS) + len(TOOLCHAIN_NOTE_MARKERS) + len(REVIEW_CHECKLIST_MARKERS) + len(TESTS_README_MARKERS) + len(VALIDATE_PHASE2_MARKERS) + len(VALIDATE_PHASE2_CLOSURE_MARKERS) + len(MAKEFILE_MARKERS) + len(WORKFLOW_MARKERS) + len(EXPECTED_TARGETS)}"
+    )
     return 0
 
 
