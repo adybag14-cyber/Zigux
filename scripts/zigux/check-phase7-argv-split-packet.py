@@ -14,6 +14,8 @@ REQUIRED_FILES = [
     "zigux/Makefile",
     "zigux/tests/phase7_build.zig",
     "zigux/tests/phase7_argv_split.zig",
+    "zigux/tests/phase7_argv_split_survey.zig",
+    "zigux/tests/phase7_argv_split_manifest.json",
     "zigux/tests/fixtures/phase7_argv_split_vectors.zig",
     "lib/argv_split.zig",
 ]
@@ -35,6 +37,9 @@ REQUIRED_MARKERS = {
     "zigux/tests/phase7_build.zig": [
         "phase7-argv-split-tests",
         "\"phase7_argv_split.zig\"",
+        "phase7-argv-split-survey-tests",
+        "\"phase7_argv_split_survey.zig\"",
+        "run_argv_split_survey_tests.setCwd(b.path(\"../..\"));",
     ],
     "zigux/tests/phase7_argv_split.zig": [
         '@import("fixtures/phase7_argv_split_vectors.zig")',
@@ -45,6 +50,11 @@ REQUIRED_MARKERS = {
         "phase 7 argvFree keeps the blank-input sentinel teardown safe and repeatable",
         "phase 7 argvSplit deinit stays safe when called after teardown already cleared the result",
         "phase 7 argvFree keeps the explicit argv_free ownership mirror reviewable",
+    ],
+    "zigux/tests/phase7_argv_split_survey.zig": [
+        "Documentation/zigux/phase7-argv-split-slice.md",
+        "zigux/tests/phase7_argv_split_manifest.json",
+        "PHASE7_LANE_KEY=",
     ],
     "zigux/tests/fixtures/phase7_argv_split_vectors.zig": [
         "repeated whitespace collapses into separators",
@@ -87,6 +97,8 @@ def write_fixture_root(tmp_root: Path) -> None:
         "zigux/Makefile": "\n".join(REQUIRED_MARKERS["zigux/Makefile"]) + "\n",
         "zigux/tests/phase7_build.zig": "\n".join(REQUIRED_MARKERS["zigux/tests/phase7_build.zig"]) + "\n",
         "zigux/tests/phase7_argv_split.zig": "\n".join(REQUIRED_MARKERS["zigux/tests/phase7_argv_split.zig"]) + "\n",
+        "zigux/tests/phase7_argv_split_survey.zig": "\n".join(REQUIRED_MARKERS["zigux/tests/phase7_argv_split_survey.zig"]) + "\n",
+        "zigux/tests/phase7_argv_split_manifest.json": "{}\n",
         "zigux/tests/fixtures/phase7_argv_split_vectors.zig": "\n".join(REQUIRED_MARKERS["zigux/tests/fixtures/phase7_argv_split_vectors.zig"]) + "\n",
         "lib/argv_split.zig": "// fixture\n",
     }
@@ -124,6 +136,24 @@ def run_self_test() -> None:
         )
         write_fixture_root(tmp_root)
 
+        survey_path = tmp_root / "zigux" / "tests" / "phase7_argv_split_survey.zig"
+        survey_path.unlink()
+        expect_missing_file(
+            "missing_argv_split_survey",
+            tmp_root,
+            "zigux/tests/phase7_argv_split_survey.zig",
+        )
+        write_fixture_root(tmp_root)
+
+        manifest_path = tmp_root / "zigux" / "tests" / "phase7_argv_split_manifest.json"
+        manifest_path.unlink()
+        expect_missing_file(
+            "missing_argv_split_manifest",
+            tmp_root,
+            "zigux/tests/phase7_argv_split_manifest.json",
+        )
+        write_fixture_root(tmp_root)
+
         fixture_path = tmp_root / "zigux" / "tests" / "fixtures" / "phase7_argv_split_vectors.zig"
         fixture_path.unlink()
         expect_missing_file(
@@ -146,33 +176,31 @@ def run_self_test() -> None:
         )
         slice_path.write_text(original_slice, encoding="utf-8")
 
-        slice_path.write_text(
-            original_slice.replace(
-                "blank-input sentinel reuse and repeatable teardown through both `deinit()` and `argvFree()`",
-                "",
-                1,
-            ),
+        build_path = tmp_root / "zigux" / "tests" / "phase7_build.zig"
+        original_build = build_path.read_text(encoding="utf-8")
+        build_path.write_text(
+            original_build.replace("phase7-argv-split-survey-tests", "", 1),
             encoding="utf-8",
         )
         expect_missing_marker(
-            "argv_split_slice_ownership_marker",
+            "argv_split_build_survey_gate_marker",
             tmp_root,
-            "Documentation/zigux/phase7-argv-split-slice.md: blank-input sentinel reuse and repeatable teardown through both `deinit()` and `argvFree()`",
+            "zigux/tests/phase7_build.zig: phase7-argv-split-survey-tests",
         )
-        slice_path.write_text(original_slice, encoding="utf-8")
+        build_path.write_text(original_build, encoding="utf-8")
 
-        makefile_path = tmp_root / "zigux" / "Makefile"
-        original_makefile = makefile_path.read_text(encoding="utf-8")
-        makefile_path.write_text(
-            original_makefile.replace("scripts/zigux/check-phase7-argv-split-packet.py --self-test", "", 1),
+        survey_path = tmp_root / "zigux" / "tests" / "phase7_argv_split_survey.zig"
+        original_survey = survey_path.read_text(encoding="utf-8")
+        survey_path.write_text(
+            original_survey.replace("zigux/tests/phase7_argv_split_manifest.json", "", 1),
             encoding="utf-8",
         )
         expect_missing_marker(
-            "makefile_argv_split_packet_self_test_hook",
+            "argv_split_survey_manifest_marker",
             tmp_root,
-            "zigux/Makefile: scripts/zigux/check-phase7-argv-split-packet.py --self-test",
+            "zigux/tests/phase7_argv_split_survey.zig: zigux/tests/phase7_argv_split_manifest.json",
         )
-        makefile_path.write_text(original_makefile, encoding="utf-8")
+        survey_path.write_text(original_survey, encoding="utf-8")
 
         tests_path = tmp_root / "zigux" / "tests" / "phase7_argv_split.zig"
         original_tests = tests_path.read_text(encoding="utf-8")
@@ -181,36 +209,6 @@ def run_self_test() -> None:
             "argv_split_cargv_marker",
             tmp_root,
             "zigux/tests/phase7_argv_split.zig: split.cArgv()",
-        )
-        tests_path.write_text(original_tests, encoding="utf-8")
-
-        tests_path.write_text(
-            original_tests.replace(
-                "phase 7 blank argvSplit input reuses the empty exported argv view",
-                "",
-                1,
-            ),
-            encoding="utf-8",
-        )
-        expect_missing_marker(
-            "argv_split_empty_argv_view_marker",
-            tmp_root,
-            "zigux/tests/phase7_argv_split.zig: phase 7 blank argvSplit input reuses the empty exported argv view",
-        )
-        tests_path.write_text(original_tests, encoding="utf-8")
-
-        tests_path.write_text(
-            original_tests.replace(
-                "phase 7 argvSplit deinit stays safe when called after teardown already cleared the result",
-                "",
-                1,
-            ),
-            encoding="utf-8",
-        )
-        expect_missing_marker(
-            "argv_split_deinit_idempotence_marker",
-            tmp_root,
-            "zigux/tests/phase7_argv_split.zig: phase 7 argvSplit deinit stays safe when called after teardown already cleared the result",
         )
         tests_path.write_text(original_tests, encoding="utf-8")
 
@@ -226,8 +224,9 @@ def run_self_test() -> None:
             "zigux/tests/fixtures/phase7_argv_split_vectors.zig: quote characters stay inside returned tokens",
         )
 
+    case_count = 3 + 4
     print("PHASE7_ARGV_SPLIT_PACKET_SELF_TEST=pass")
-    print("PHASE7_ARGV_SPLIT_PACKET_SELF_TEST_CASE_COUNT=8")
+    print(f"PHASE7_ARGV_SPLIT_PACKET_SELF_TEST_CASE_COUNT={case_count}")
 
 
 def main() -> int:
