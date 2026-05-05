@@ -44,10 +44,11 @@ It is a fallback-read map, not a closure claim and not a validator-first route.
 
 ## Shared replay reminder
 
-The shipped Phase 12 replay route on `master` remains:
+The shipped Phase 12 release order on `master` remains:
 
-1. `zig build test --build-file zigux/tests/phase12_build.zig --summary all`
-2. `make -C zigux phase12`
+1. `make -C zigux phase12-smoke`
+2. `zig build test --build-file zigux/tests/phase12_build.zig --summary all`
+3. `make -C zigux phase12`
 
 This map should stay read-only and should not be used to imply an unshipped `validate-phase12.py`, any `check-phase12-*.py` packet, or a `make -C zigux phase12-validate` target.
 
