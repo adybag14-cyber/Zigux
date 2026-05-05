@@ -45,6 +45,7 @@ ABI_SLICE_MARKERS = [
 
 SCRIPTS_README_MARKERS = [
     "validate_phase3_selftest.py",
+    "The live support packet inside that same validator-first route is `check-phase3-readme-tooling-inventory.py`",
     "phase3_catalog.py --self-test",
     "make -C zigux phase3-selftest",
     "manual or targeted safety check instead of duplicating the default validation route",
@@ -181,6 +182,10 @@ def run_self_test() -> int:
         build_self_test_root(root)
         write_text(root / "scripts/zigux/README.md", "validate_phase3_selftest.py\n")
         issues = validate_root(root)
+        assert (
+            "scripts_readme:The live support packet inside that same validator-first route is `check-phase3-readme-tooling-inventory.py`"
+            in issues
+        )
         assert "scripts_readme:phase3_catalog.py --self-test" in issues
         assert "scripts_readme:make -C zigux phase3-selftest" in issues
 
