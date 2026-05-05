@@ -6,7 +6,7 @@ This note records the current policy and narrow-unsafe boundary for the bounded 
 
 - `PHASE3_LAYOUT_ASSERT_PATH=zigux/helpers/layout_assert.zig`
 - `PHASE3_LAYOUT_ASSERT_SCOPE=canonical-bindings`
-- `PHASE3_LAYOUT_ASSERT_BLOB_SHA=6d9918cf5fdff20d4bef9ddc2bc913401cbf2e55`
+- `PHASE3_LAYOUT_ASSERT_BLOB_SHA=f6983bff6f0da19a8aa76240da55f178c3ec9858`
 - `PHASE3_PANIC_POLICY_PATH=zigux/helpers/panic_policy.zig`
 - `PHASE3_PANIC_POLICY=explicit-modes-only`
 - `PHASE3_PANIC_POLICY_BLOB_SHA=94e0d91cd9673d137bd302a8c2aba1034d948805`
