@@ -76,7 +76,7 @@ test "phase10 virtio input survey manifest records the live starter and remainin
     var saw_helper = false;
     var saw_gate = false;
     var saw_survey_gate = false;
-    var saw_ready_next = false;
+    var saw_slot_helper = false;
     var saw_blocker = false;
 
     for (manifest.gaps) |gap| {
@@ -124,10 +124,11 @@ test "phase10 virtio input survey manifest records the live starter and remainin
         }
 
         if (std.mem.eql(u8, gap.id, "phase10-virtio-input-multitouch-slot-helper")) {
-            saw_ready_next = true;
-            try std.testing.expectEqualStrings("ready_next", gap.status);
+            saw_slot_helper = true;
+            try std.testing.expectEqualStrings("starter_landed", gap.status);
             try std.testing.expectEqualStrings("drivers/virtio/virtio_input.zig", gap.zigux_destination);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "ABS_MT_SLOT") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "slot-planning helper") != null);
         }
 
         if (std.mem.eql(u8, gap.id, "phase10-virtio-input-registration-lifecycle")) {
@@ -139,12 +140,12 @@ test "phase10 virtio input survey manifest records the live starter and remainin
         }
     }
 
-    try std.testing.expect(starter_landed_count >= 9);
-    try std.testing.expectEqual(@as(usize, 1), ready_next_count);
+    try std.testing.expect(starter_landed_count >= 10);
+    try std.testing.expectEqual(@as(usize, 0), ready_next_count);
     try std.testing.expectEqual(@as(usize, 1), blocked_count);
     try std.testing.expect(saw_helper);
     try std.testing.expect(saw_gate);
     try std.testing.expect(saw_survey_gate);
-    try std.testing.expect(saw_ready_next);
+    try std.testing.expect(saw_slot_helper);
     try std.testing.expect(saw_blocker);
 }
