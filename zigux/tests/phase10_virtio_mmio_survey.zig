@@ -51,6 +51,14 @@ test "phase10 virtio mmio survey manifest records the live transport gap" {
     );
     defer std.testing.allocator.free(manifest_json);
 
+    const survey_note = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "Documentation/zigux/phase10-virtio-mmio-survey.md",
+        std.testing.allocator,
+        .limited(32 * 1024),
+    );
+    defer std.testing.allocator.free(survey_note);
+
     const parsed = try std.json.parseFromSlice(Manifest, std.testing.allocator, manifest_json, .{});
     defer parsed.deinit();
 
@@ -73,6 +81,8 @@ test "phase10 virtio mmio survey manifest records the live transport gap" {
     try std.testing.expect(manifest.survey_summary.preexisting_virtio_input_survey_present);
     try std.testing.expect(!manifest.survey_summary.preexisting_virtio_mmio_zig_present);
     try std.testing.expect(manifest.gaps.len >= 10);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE10_STATUS=parked") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE10_STATUS=active") == null);
 
     var starter_landed_count: usize = 0;
     var ready_next_count: usize = 0;
