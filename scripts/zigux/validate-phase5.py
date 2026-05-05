@@ -174,6 +174,8 @@ TEXT_MARKERS = {
         "current `master` still ships no `samples/zigux/*string*` Phase 5 reference sample",
         "current `master` still ships no `samples/zigux/*cmdline*` Phase 5 reference sample",
         "current `master` still ships no `samples/zigux/*rbtree*` Phase 5 reference sample",
+        "current `master` still ships no standalone `samples/zigux/*printf*`, `*vsprintf*`, or `*format*` Phase 5 reference sample",
+        "closed Phase 1 `tools/lib/vsprintf.zig` packet plus the bounded Phase 7 `string_get_size()` helper packet",
         "sample-only blocked Phase 9 pilot",
         "bounded `samples/zigux/runtime_trace_events_loader.zig` scaffold is shipped now",
         "- `samples/zigux/runtime_trace_events_loader.zig`",
@@ -422,6 +424,7 @@ def run_self_test() -> int:
             ("Documentation/zigux/phase5-kfifo-sample-survey.md", MANIFEST_EXPECTATIONS["zigux/tests/phase5_bytestream_fifo_manifest.json"]["survey_summary"], "Build Summary: 17/17 steps succeeded; 99/99 tests passed", "zigux/tests/phase5_bytestream_fifo_manifest.json:survey_note:Build Summary: 17/17 steps succeeded; 99/99 tests passed", "survey-summary-gap"),
             ("samples/zigux/README.md", "current `master` still ships no `samples/zigux/*cmdline*` Phase 5 reference sample", "current `master` keeps cmdline helper work separate", "samples/zigux/README.md:missing:current `master` still ships no `samples/zigux/*cmdline*` Phase 5 reference sample", "sample-root-cmdline-boundary-gap"),
             ("samples/zigux/README.md", "current `master` still ships no `samples/zigux/*rbtree*` Phase 5 reference sample", "current `master` keeps rbtree helper work separate", "samples/zigux/README.md:missing:current `master` still ships no `samples/zigux/*rbtree*` Phase 5 reference sample", "sample-root-rbtree-boundary-gap"),
+            ("samples/zigux/README.md", "current `master` still ships no standalone `samples/zigux/*printf*`, `*vsprintf*`, or `*format*` Phase 5 reference sample", "current `master` keeps standalone formatting samples out of Phase 5", "samples/zigux/README.md:missing:current `master` still ships no standalone `samples/zigux/*printf*`, `*vsprintf*`, or `*format*` Phase 5 reference sample", "sample-root-formatting-boundary-gap"),
             ("Documentation/zigux/README.md", "no-`samples/zigux/*rbtree*` boundary explicit", "rbtree helper boundary tracked elsewhere", "Documentation/zigux/README.md:missing:no-`samples/zigux/*rbtree*` boundary explicit", "docs-readme-rbtree-boundary-gap"),
             ("Documentation/zigux/review-checklist.md", "ships no `samples/zigux/*rbtree*` Phase 5 reference sample", "treat rbtree as a separate helper packet", "Documentation/zigux/review-checklist.md:missing:ships no `samples/zigux/*rbtree*` Phase 5 reference sample", "review-checklist-rbtree-boundary-gap"),
             ("zigux/tests/README.md", "verify no Phase 5 rbtree sample has appeared under this sample root:", "phase5 rbtree sample boundary is recorded elsewhere", "zigux/tests/README.md:missing:verify no Phase 5 rbtree sample has appeared under this sample root:", "tests-readme-rbtree-boundary-gap"),
@@ -443,7 +446,7 @@ def run_self_test() -> int:
                 return 1
 
     print("PHASE5_VALIDATOR_SELF_TEST=pass")
-    print("PHASE5_VALIDATOR_SELF_TEST_CASE_COUNT=16")
+    print("PHASE5_VALIDATOR_SELF_TEST_CASE_COUNT=17")
     return 0
 
 
