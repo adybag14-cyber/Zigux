@@ -26,6 +26,11 @@ pub fn build(b: *std.Build) void {
     });
     bitmap_view_module.addImport("abi_bindings", abi_bindings_module);
     bitmap_view_module.addImport("narrow_unsafe", narrow_unsafe_module);
+    const runtime_loader_contract_module = b.createModule(.{
+        .root_source_file = b.path("../kernel/runtime_loader_contract.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
     const runtime_atomic64_sample_module = b.createModule(.{
         .root_source_file = b.path("../../samples/zigux/runtime_atomic64.zig"),
         .target = target,
@@ -114,6 +119,12 @@ pub fn build(b: *std.Build) void {
         .optimize = optimize,
     });
     runtime_kretprobe_diff_module.addImport("runtime_kretprobe_sample", runtime_kretprobe_sample_module);
+    const runtime_loader_allocator_init_flow_module = b.createModule(.{
+        .root_source_file = b.path("runtime_loader_allocator_init_flow.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    runtime_loader_allocator_init_flow_module.addImport("runtime_loader_contract", runtime_loader_contract_module);
 
     const runtime_atomic64_survey_module = b.createModule(.{
         .root_source_file = b.path("runtime_atomic64_survey.zig"),
@@ -191,6 +202,11 @@ pub fn build(b: *std.Build) void {
         .root_module = runtime_kretprobe_loader_module,
     });
     const run_runtime_kretprobe_loader_tests = b.addRunArtifact(runtime_kretprobe_loader_tests);
+    const runtime_loader_allocator_init_flow_tests = b.addTest(.{
+        .name = "phase9-runtime-loader-allocator-init-flow-tests",
+        .root_module = runtime_loader_allocator_init_flow_module,
+    });
+    const run_runtime_loader_allocator_init_flow_tests = b.addRunArtifact(runtime_loader_allocator_init_flow_tests);
 
     const runtime_atomic64_survey_tests = b.addTest(.{
         .name = "phase9-runtime-atomic64-survey-tests",
@@ -213,7 +229,7 @@ pub fn build(b: *std.Build) void {
     });
     const run_runtime_kretprobe_survey_tests = b.addRunArtifact(runtime_kretprobe_survey_tests);
 
-    const test_step = b.step("test", "Run Phase 9 runtime atomic64, bitmap, trace-events, and kretprobe pilot-module tests");
+    const test_step = b.step("test", "Run Phase 9 runtime atomic64, bitmap, trace-events, kretprobe, and allocator/init-flow contract tests");
     test_step.dependOn(&run_runtime_atomic64_module_tests.step);
     test_step.dependOn(&run_runtime_atomic64_loader_tests.step);
     test_step.dependOn(&run_runtime_atomic64_diff_tests.step);
@@ -225,6 +241,7 @@ pub fn build(b: *std.Build) void {
     test_step.dependOn(&run_runtime_kretprobe_module_tests.step);
     test_step.dependOn(&run_runtime_kretprobe_diff_tests.step);
     test_step.dependOn(&run_runtime_kretprobe_loader_tests.step);
+    test_step.dependOn(&run_runtime_loader_allocator_init_flow_tests.step);
     test_step.dependOn(&run_runtime_atomic64_survey_tests.step);
     test_step.dependOn(&run_runtime_bitmap_survey_tests.step);
     test_step.dependOn(&run_runtime_trace_events_survey_tests.step);
