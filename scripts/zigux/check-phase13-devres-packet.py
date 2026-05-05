@@ -5,7 +5,6 @@ import argparse
 import tempfile
 from pathlib import Path
 
-
 ROOT = Path(__file__).resolve().parents[2] if len(Path(__file__).resolve().parents) > 2 else Path.cwd()
 
 REQUIRED_FILES = [
@@ -26,9 +25,11 @@ SLICE_REQUIRED_MARKERS = [
 ]
 
 DEVRES_REQUIRED_MARKERS = [
-    'pub const ManagedMemtypeReserveInput = struct',
-    'pub const DeviceTreeIomapInput = struct',
-    '.provides_arch_io_wc_memtype_planning = true,',
+    "pub const ManagedMemtypeReserveInput = struct",
+    "pub const DeviceTreeIomapInput = struct",
+    "fail_pretty_name_allocation: bool = false,",
+    ".fail_pretty_name_allocation = input.fail_pretty_name_allocation,",
+    ".provides_arch_io_wc_memtype_planning = true,",
     "pub fn planDeviceTreeIomap",
     "pub fn planArchIoReserveMemtypeWc",
 ]
@@ -74,84 +75,29 @@ def _collect_missing_markers(text: str, markers: list[str], prefix: str) -> list
 
 def validate(root: Path) -> list[str]:
     issues: list[str] = []
-
     for rel in REQUIRED_FILES:
         if not (root / rel).exists():
             issues.append(f"missing_file:{rel}")
     if issues:
         return issues
 
-    issues.extend(
-        _collect_missing_markers(
-            _read(root / "Documentation/zigux/phase13-devres-slice.md"),
-            SLICE_REQUIRED_MARKERS,
-            "phase13-devres-slice",
-        )
-    )
-    issues.extend(
-        _collect_missing_markers(
-            _read(root / "lib/devres.zig"),
-            DEVRES_REQUIRED_MARKERS,
-            "lib-devres",
-        )
-    )
-    issues.extend(
-        _collect_missing_markers(
-            _read(root / "zigux/tests/phase13_devres.zig"),
-            TEST_REQUIRED_MARKERS,
-            "phase13-devres-test",
-        )
-    )
-    issues.extend(
-        _collect_missing_markers(
-            _read(root / "zigux/tests/phase13_build.zig"),
-            BUILD_REQUIRED_MARKERS,
-            "phase13-build",
-        )
-    )
-    issues.extend(
-        _collect_missing_markers(
-            _read(root / "scripts/zigux/validate-phase13-release.py"),
-            VALIDATOR_REQUIRED_MARKERS,
-            "phase13-release-validator",
-        )
-    )
-    issues.extend(
-        _collect_missing_markers(
-            _read(root / "zigux/Makefile"),
-            MAKE_REQUIRED_MARKERS,
-            "makefile",
-        )
-    )
+    issues.extend(_collect_missing_markers(_read(root / "Documentation/zigux/phase13-devres-slice.md"), SLICE_REQUIRED_MARKERS, "phase13-devres-slice"))
+    issues.extend(_collect_missing_markers(_read(root / "lib/devres.zig"), DEVRES_REQUIRED_MARKERS, "lib-devres"))
+    issues.extend(_collect_missing_markers(_read(root / "zigux/tests/phase13_devres.zig"), TEST_REQUIRED_MARKERS, "phase13-devres-test"))
+    issues.extend(_collect_missing_markers(_read(root / "zigux/tests/phase13_build.zig"), BUILD_REQUIRED_MARKERS, "phase13-build"))
+    issues.extend(_collect_missing_markers(_read(root / "scripts/zigux/validate-phase13-release.py"), VALIDATOR_REQUIRED_MARKERS, "phase13-release-validator"))
+    issues.extend(_collect_missing_markers(_read(root / "zigux/Makefile"), MAKE_REQUIRED_MARKERS, "makefile"))
     return issues
 
 
 def _seed_fixture_tree(root: Path) -> None:
-    _write(
-        root / "Documentation/zigux/phase13-devres-slice.md",
-        "\n".join(SLICE_REQUIRED_MARKERS) + "\n",
-    )
-    _write(
-        root / "lib/devres.zig",
-        "\n".join(DEVRES_REQUIRED_MARKERS) + "\n",
-    )
-    _write(
-        root / "zigux/tests/phase13_devres.zig",
-        "\n".join(TEST_REQUIRED_MARKERS) + "\n",
-    )
-    _write(
-        root / "zigux/tests/phase13_build.zig",
-        "\n".join(BUILD_REQUIRED_MARKERS) + "\n",
-    )
+    _write(root / "Documentation/zigux/phase13-devres-slice.md", "\n".join(SLICE_REQUIRED_MARKERS) + "\n")
+    _write(root / "lib/devres.zig", "\n".join(DEVRES_REQUIRED_MARKERS) + "\n")
+    _write(root / "zigux/tests/phase13_devres.zig", "\n".join(TEST_REQUIRED_MARKERS) + "\n")
+    _write(root / "zigux/tests/phase13_build.zig", "\n".join(BUILD_REQUIRED_MARKERS) + "\n")
     _write(root / "zigux/tests/phase13_devres_manifest.json", "{}\n")
-    _write(
-        root / "scripts/zigux/validate-phase13-release.py",
-        "\n".join(VALIDATOR_REQUIRED_MARKERS) + "\n",
-    )
-    _write(
-        root / "zigux/Makefile",
-        "\n".join(MAKE_REQUIRED_MARKERS) + "\n",
-    )
+    _write(root / "scripts/zigux/validate-phase13-release.py", "\n".join(VALIDATOR_REQUIRED_MARKERS) + "\n")
+    _write(root / "zigux/Makefile", "\n".join(MAKE_REQUIRED_MARKERS) + "\n")
 
 
 def _assert_only(issues: list[str], expected: list[str], label: str) -> None:
@@ -197,19 +143,12 @@ def run_self_test() -> int:
         case_count += 1
 
         (root / "lib/devres.zig").unlink()
-        _assert_only(
-            validate(root),
-            ["missing_file:lib/devres.zig"],
-            "required_file_guard_failed",
-        )
+        _assert_only(validate(root), ["missing_file:lib/devres.zig"], "required_file_guard_failed")
         _seed_fixture_tree(root)
         case_count += 1
 
         devres_test_path = root / "zigux/tests/phase13_devres.zig"
-        devres_test_path.write_text(
-            TEST_REQUIRED_MARKERS[0] + "\n",
-            encoding="utf-8",
-        )
+        devres_test_path.write_text(TEST_REQUIRED_MARKERS[0] + "\n", encoding="utf-8")
         _assert_only(
             validate(root),
             [
@@ -219,6 +158,22 @@ def run_self_test() -> int:
             ],
             "devres_test_marker_guard_failed",
         )
+        _seed_fixture_tree(root)
+        case_count += 1
+
+        devres_path = root / "lib/devres.zig"
+        devres_path.write_text("pub const DeviceTreeIomapInput = struct\npub fn planDeviceTreeIomap\n", encoding="utf-8")
+        _assert_only(
+            validate(root),
+            [
+                "lib-devres:pub const ManagedMemtypeReserveInput = struct",
+                "lib-devres:fail_pretty_name_allocation: bool = false,",
+                "lib-devres:.fail_pretty_name_allocation = input.fail_pretty_name_allocation,",
+                "lib-devres:.provides_arch_io_wc_memtype_planning = true,",
+                "lib-devres:pub fn planArchIoReserveMemtypeWc",
+            ],
+            "devres_marker_guard_failed",
+        )
         case_count += 1
 
     print("PHASE13_DEVRES_PACKET=pass")
@@ -227,30 +182,20 @@ def run_self_test() -> int:
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(
-        description="Validate the current shipped Phase 13 devres packet surfaces."
-    )
+    parser = argparse.ArgumentParser(description="Validate the current shipped Phase 13 devres packet surfaces.")
     parser.add_argument("--self-test", action="store_true", help="Run isolated fixture coverage.")
     parser.add_argument("--root", type=Path, default=ROOT, help="Repository root to validate.")
     args = parser.parse_args()
-
     if args.self_test:
         return run_self_test()
 
     issues = validate(args.root)
     if issues:
-        print("PHASE13_DEVRES_PACKET=fail")
-        print("PHASE13_DEVRES_PACKET_ISSUES_START")
         for issue in issues:
-            print(issue)
-        print("PHASE13_DEVRES_PACKET_ISSUES_END")
+            print(f"PHASE13_DEVRES_PACKET_ISSUE={issue}")
         return 1
 
     print("PHASE13_DEVRES_PACKET=pass")
-    print(
-        "PHASE13_DEVRES_PACKET_MARKER_COUNT="
-        f"{len(REQUIRED_FILES) + len(SLICE_REQUIRED_MARKERS) + len(DEVRES_REQUIRED_MARKERS) + len(TEST_REQUIRED_MARKERS) + len(BUILD_REQUIRED_MARKERS) + len(VALIDATOR_REQUIRED_MARKERS) + len(MAKE_REQUIRED_MARKERS)}"
-    )
     return 0
 
 
