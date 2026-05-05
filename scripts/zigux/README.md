@@ -25,7 +25,10 @@ Current bootstrap helpers
 - `check-phase3-catalog-selftest.py`
 - `validate-phase3-policy-unsafe-survey.py`
 - `validate-phase3-low-level-wrapper-survey.py`
+- `artifact_diff.py`
+- `check-artifact-diff-contract.py`
 - `validate-phase4.py`
+- `check-phase4-gate-evidence.py`
 - `check-phase6-shared-surface.py`
 - `check-phase9-build-only-surface.py`
 - `check-phase10-core-packet.py`
@@ -98,9 +101,9 @@ Phase 3 flow
 - `phase3_check_lib.py` holds the shared Phase 3 parity execution logic used by every wrapper and the shared runner.
 
 Phase 4 flow
-- `validate-phase4.py` checks that the bounded Phase 4 differential gates, the canonical `zigux/tests/atomic64_diff.zig` wrapper, the manifest-backed `zigux/tests/phase4_runtime_atomic64_diff_survey.zig` handoff survey, the helper-backed `zigux/tests/phase4_bitmap_live_helper_replay.zig` replay, the dedicated `scripts/zigux/check-phase4-gate-evidence.py` exact-readback gate, their shared `zigux/tests/phase4_build.zig` entrypoint, and the directly coupled documentation and workflow markers stay aligned.
-- The shared Phase 4 build entrypoint runs the live `zigux/tests/atomic64_diff.zig` wrapper, that reviewability gate, `zigux/tests/bitmap_diff.zig` rollback-readiness gate, and `zigux/tests/phase4_bitmap_live_helper_replay.zig` helper-backed bitmap rollback replay together, while the wrapper keeps `zigux/tests/runtime_atomic64_diff.zig` as the single shared runtime-backed replay body that Phase 9 still imports directly.
-- `Documentation/zigux/phase4-gate-evidence.md` and `Documentation/zigux/phase4-validation-matrix.md` keep the current rollback owners, exact-readback packet, intentionally unapproved perf-threshold posture, and lab or CI replay matrix explicit for the shipped Phase 4 gates.
+- `validate-phase4.py` checks that the bounded Phase 4 differential gates, the shared `scripts/zigux/artifact_diff.py` contract replay owned by `scripts/zigux/check-artifact-diff-contract.py`, the canonical `zigux/tests/atomic64_diff.zig` wrapper, the manifest-backed `zigux/tests/phase4_runtime_atomic64_diff_survey.zig` handoff survey, the helper-backed `zigux/tests/phase4_bitmap_live_helper_replay.zig` replay, the dedicated `scripts/zigux/check-phase4-gate-evidence.py` exact-readback gate, their shared `zigux/tests/phase4_build.zig` entrypoint, and the directly coupled documentation and workflow markers stay aligned.
+- The shared Phase 4 validator-first packet reruns `python3 scripts/zigux/check-artifact-diff-contract.py` before the live `zigux/tests/atomic64_diff.zig` wrapper, that reviewability gate, `zigux/tests/bitmap_diff.zig` rollback-readiness gate, and `zigux/tests/phase4_bitmap_live_helper_replay.zig` helper-backed bitmap rollback replay, while the wrapper keeps `zigux/tests/runtime_atomic64_diff.zig` as the single shared runtime-backed replay body that Phase 9 still imports directly.
+- `Documentation/zigux/artifact-diff.md`, `Documentation/zigux/phase4-gate-evidence.md`, and `Documentation/zigux/phase4-validation-matrix.md` keep the host-side helper contract, current rollback owners, exact-readback packet, intentionally unapproved perf-threshold posture, and lab or CI replay matrix explicit for the shipped Phase 4 gates.
 - `zigux/Makefile` keeps `make -C zigux phase4-validate`, `make -C zigux phase4-test`, `make -C zigux phase4-runtime-atomic64-diff`, `make -C zigux phase4-runtime-atomic64-diff-survey`, `make -C zigux phase4-bitmap-diff`, and `make -C zigux phase4` aligned with that same validator-first packet instead of leaving the Linux-style replay routes implicit in the shared build file alone.
 
 Phase 5 flow
