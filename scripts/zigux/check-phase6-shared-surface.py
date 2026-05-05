@@ -48,7 +48,25 @@ REQUIRED_SNIPPETS = {
         "- name: Self-test Phase 6 shared-surface checker\n        run: python3 scripts/zigux/check-phase6-shared-surface.py --self-test",
         "- name: Check Phase 6 shared surface\n        run: python3 scripts/zigux/check-phase6-shared-surface.py",
         "- name: Run Phase 6 leaf helper tests\n        run: zig build test --build-file zigux/tests/phase6_build.zig --summary all",
-        "- name: Run Phase 6 checksum perf gate\n        run: zig build phase6-checksum-perf --build-file zigux/tests/phase6_build.zig -Doptimize=ReleaseSafe",
+        "- name: Run Phase 6 checksum perf gate\n        run: zig build phase6-checksum-perf --build-file zigux/tests/phase6_build.zig -Doptimize=ReleaseSafe --summary all",
+        "- name: Run Phase 6 hexdump perf gate\n        run: zig build phase6-hexdump-perf --build-file zigux/tests/phase6_build.zig -Doptimize=ReleaseSafe --summary all",
+    ],
+}
+
+EXACT_COUNT_MARKERS = {
+    "zigux/Makefile": [
+        "PHONY += phase6-validate phase6-test phase6-checksum-perf phase6-hexdump-perf phase6",
+        "phase6-validate:\n\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase6-shared-surface.py",
+        "phase6-test:\n\tcd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase6_build.zig",
+        "phase6-checksum-perf:\n\tcd $(ZIGUX_ROOT) && $(ZIG) build phase6-checksum-perf --build-file zigux/tests/phase6_build.zig -Doptimize=ReleaseSafe",
+        "phase6-hexdump-perf:\n\tcd $(ZIGUX_ROOT) && $(ZIG) build phase6-hexdump-perf --build-file zigux/tests/phase6_build.zig -Doptimize=ReleaseSafe",
+        "phase6: phase6-validate phase6-test",
+    ],
+    ".github/workflows/zigux-bootstrap.yml": [
+        "- name: Self-test Phase 6 shared-surface checker\n        run: python3 scripts/zigux/check-phase6-shared-surface.py --self-test",
+        "- name: Check Phase 6 shared surface\n        run: python3 scripts/zigux/check-phase6-shared-surface.py",
+        "- name: Run Phase 6 leaf helper tests\n        run: zig build test --build-file zigux/tests/phase6_build.zig --summary all",
+        "- name: Run Phase 6 checksum perf gate\n        run: zig build phase6-checksum-perf --build-file zigux/tests/phase6_build.zig -Doptimize=ReleaseSafe --summary all",
         "- name: Run Phase 6 hexdump perf gate\n        run: zig build phase6-hexdump-perf --build-file zigux/tests/phase6_build.zig -Doptimize=ReleaseSafe --summary all",
     ],
 }
@@ -77,6 +95,15 @@ def run_checks(repo_root: Path) -> None:
                     f"missing expected Phase 6 marker in {rel_path}: {snippet}"
                 )
 
+    for rel_path, markers in EXACT_COUNT_MARKERS.items():
+        content = read_text(repo_root / rel_path)
+        for marker in markers:
+            occurrences = content.count(marker)
+            if occurrences != 1:
+                raise ValidationError(
+                    f"expected exactly one Phase 6 marker in {rel_path}, found {occurrences}: {marker}"
+                )
+
     for rel_path in REMOVED_PATHS:
         if (repo_root / rel_path).exists():
             raise ValidationError(
@@ -89,12 +116,27 @@ def write(path: Path, content: str) -> None:
     path.write_text(content, encoding="utf-8")
 
 
+def unique_preserving_order(values: list[str]) -> list[str]:
+    seen: set[str] = set()
+    result: list[str] = []
+    for value in values:
+        if value in seen:
+            continue
+        seen.add(value)
+        result.append(value)
+    return result
+
+
 def run_self_test() -> None:
     with tempfile.TemporaryDirectory() as tmpdir:
         root = Path(tmpdir)
 
         for rel_path, snippets in REQUIRED_SNIPPETS.items():
-            write(root / rel_path, "\n".join(snippets) + "\n")
+            exact_markers = EXACT_COUNT_MARKERS.get(rel_path, [])
+            write(
+                root / rel_path,
+                "\n".join(unique_preserving_order(snippets + exact_markers)) + "\n",
+            )
 
         run_checks(root)
 
@@ -165,6 +207,23 @@ def run_self_test() -> None:
             raise AssertionError("expected workflow failure")
         workflow.write_text(original_workflow, encoding="utf-8")
 
+        workflow.write_text(
+            original_workflow
+            + "- name: Run Phase 6 hexdump perf gate\n"
+            + "        run: zig build phase6-hexdump-perf --build-file zigux/tests/phase6_build.zig -Doptimize=ReleaseSafe --summary all\n",
+            encoding="utf-8",
+        )
+        try:
+            run_checks(root)
+        except ValidationError as exc:
+            if ".github/workflows/zigux-bootstrap.yml" not in str(exc):
+                raise AssertionError(
+                    f"unexpected workflow duplicate failure: {exc}"
+                ) from exc
+        else:
+            raise AssertionError("expected workflow duplicate failure")
+        workflow.write_text(original_workflow, encoding="utf-8")
+
         makefile = root / "zigux/Makefile"
         original_makefile = makefile.read_text(encoding="utf-8")
         makefile.write_text(
@@ -182,6 +241,22 @@ def run_self_test() -> None:
                 raise AssertionError(f"unexpected Makefile failure: {exc}") from exc
         else:
             raise AssertionError("expected Makefile failure")
+        makefile.write_text(original_makefile, encoding="utf-8")
+
+        makefile.write_text(
+            original_makefile
+            + "\nphase6-hexdump-perf:\n\tcd $(ZIGUX_ROOT) && $(ZIG) build phase6-hexdump-perf --build-file zigux/tests/phase6_build.zig -Doptimize=ReleaseSafe\n",
+            encoding="utf-8",
+        )
+        try:
+            run_checks(root)
+        except ValidationError as exc:
+            if "zigux/Makefile" not in str(exc):
+                raise AssertionError(
+                    f"unexpected Makefile duplicate failure: {exc}"
+                ) from exc
+        else:
+            raise AssertionError("expected Makefile duplicate failure")
         makefile.write_text(original_makefile, encoding="utf-8")
 
         tests_readme = root / "zigux/tests/README.md"
