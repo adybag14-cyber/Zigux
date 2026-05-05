@@ -48,6 +48,14 @@
       "required_marker": "phase 14 rcu tree survey manifest records the freeze-boundary gap without inventing a bridge"
     },
     {
+      "path": "zigux/tests/phase14_ring_buffer_manifest.json",
+      "required_marker": "phase14-ring-buffer-zig-port-blocker"
+    },
+    {
+      "path": "zigux/tests/phase14_rcu_tree_manifest.json",
+      "required_marker": "phase14-rcu-tree-bridge-blocker"
+    },
+    {
       "path": "kernel/workqueue_bridge.zig",
       "required_marker": "workqueue bridge boundary map records stay-in-c decisions"
     },
