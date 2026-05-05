@@ -285,6 +285,10 @@ test "phase 8 libbpf survey note stays aligned with the landed helper packet" {
     try expectContains(phase8_note, "The manifest currently records twelve bounded segments");
     try expectContains(phase8_note, "five landed bounded slices");
     try expectContains(phase8_note, "stay queued helper-first catalog entries");
+    try expectContains(phase8_note, "no longer because the bridge packet paths are missing");
+    try expectContains(phase8_note, "bounded fdinfo helper packet");
+    try expectContains(phase8_note, "fdinfo-only surface");
+    try expectContains(phase8_note, "resource-boundary packet still stays deferred");
     try expectContains(phase8_note, "standalone timer or clockevent helper behavior");
 
     try expectContains(cpu_mask_note, "PHASE8_STATUS=parked");
