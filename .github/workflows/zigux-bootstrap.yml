@@ -228,7 +228,7 @@ jobs:
         run: python3 scripts/zigux/check-phase9-build-only-surface.py
 
       - name: Run Phase 9 runtime helper tests
-        run: zig build test --build-file zigux/tests/phase9_build.zig --summary all
+        run: make -C zigux phase9
 
       - name: Run Phase 10 virtio helper tests
         run: zig build test --build-file zigux/tests/phase10_build.zig --summary all
