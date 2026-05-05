@@ -127,8 +127,29 @@ test "module metadata survey doc records the exact evidence and missing depmod b
         "modules.builtin.modinfo",
         "MODULE_LICENSE",
         "MODULE_ALIAS",
+        "scripts/zigux/check-phase9-module-metadata-packet.py",
         "four runtime starter samples exist",
         "three loader-plan files exist",
         "runtime_trace_events.zig` does not yet have a sibling loader-plan file",
+    });
+}
+
+test "module metadata packet stays discoverable through the shared readmes" {
+    const tests_readme = try readFileAlloc(std.testing.allocator, "zigux/tests/README.md", 32 * 1024);
+    defer std.testing.allocator.free(tests_readme);
+
+    const scripts_readme = try readFileAlloc(std.testing.allocator, "scripts/zigux/README.md", 32 * 1024);
+    defer std.testing.allocator.free(scripts_readme);
+
+    try expectContainsAll(tests_readme, &.{
+        "zigux/tests/runtime_module_metadata_manifest.json",
+        "zigux/tests/runtime_module_metadata_survey.zig",
+        "scripts/zigux/check-phase9-module-metadata-packet.py",
+    });
+
+    try expectContainsAll(scripts_readme, &.{
+        "check-phase9-module-metadata-packet.py",
+        "phase9-module-metadata-depmod-bridge-survey.md",
+        "runtime_module_metadata_survey.zig",
     });
 }
