@@ -36,6 +36,7 @@ test "phase 5 trace-events manifest records the exact bounded checks" {
     const manifest = parsed.value;
     try std.testing.expectEqualStrings("P5-L20", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 5", manifest.phase);
+    try std.testing.expect(manifest.surveyed_commit.len > 0);
     try std.testing.expectEqualStrings("samples/trace_events/trace-events-sample.c", manifest.anchor);
     try std.testing.expectEqualStrings("samples/zigux/trace_events_sample.zig", manifest.sample_path);
     try std.testing.expect(std.mem.indexOf(u8, manifest.validation_entrypoint, "phase5_build.zig") != null);
@@ -46,8 +47,11 @@ test "phase 5 trace-events manifest records the exact bounded checks" {
     var saw_descriptor_prompt = false;
     var saw_payload_prompt = false;
     var saw_callback_prompt = false;
+    var saw_contract_prompt = false;
     var saw_non_goal_prompt = false;
+    var saw_descriptor_check = false;
     var saw_message_check = false;
+    var saw_array_check = false;
     var saw_rel_loc_check = false;
     var saw_vararg_check = false;
     var saw_counts_check = false;
@@ -70,6 +74,11 @@ test "phase 5 trace-events manifest records the exact bounded checks" {
         {
             saw_callback_prompt = true;
         }
+        if (std.mem.indexOf(u8, prompt, "manifest-backed replay contract") != null and
+            std.mem.indexOf(u8, prompt, "infer the new boundary from code alone") != null)
+        {
+            saw_contract_prompt = true;
+        }
         if (std.mem.indexOf(u8, prompt, "CREATE_TRACE_POINTS") != null and
             std.mem.indexOf(u8, prompt, "tracepoint macros") != null)
         {
@@ -82,10 +91,20 @@ test "phase 5 trace-events manifest records the exact bounded checks" {
         try std.testing.expect(check.kind.len > 0);
         try std.testing.expect(check.expected.len > 0);
 
+        if (std.mem.eql(u8, check.id, "descriptor-anchor")) {
+            saw_descriptor_check = true;
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "samples/trace_events/trace-events-sample.c") != null);
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "non-runtime reference-sample lane") != null);
+        }
         if (std.mem.eql(u8, check.id, "message-and-string-shape")) {
             saw_message_check = true;
             try std.testing.expect(std.mem.indexOf(u8, check.expected, "iter=7") != null);
             try std.testing.expect(std.mem.indexOf(u8, check.expected, "Gandalf") != null);
+        }
+        if (std.mem.eql(u8, check.id, "array-and-sentinel-shape")) {
+            saw_array_check = true;
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "1,2 payload prefix") != null);
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "zero sentinel") != null);
         }
         if (std.mem.eql(u8, check.id, "bitmask-and-rel-loc")) {
             saw_rel_loc_check = true;
@@ -120,8 +139,11 @@ test "phase 5 trace-events manifest records the exact bounded checks" {
     try std.testing.expect(saw_descriptor_prompt);
     try std.testing.expect(saw_payload_prompt);
     try std.testing.expect(saw_callback_prompt);
+    try std.testing.expect(saw_contract_prompt);
     try std.testing.expect(saw_non_goal_prompt);
+    try std.testing.expect(saw_descriptor_check);
     try std.testing.expect(saw_message_check);
+    try std.testing.expect(saw_array_check);
     try std.testing.expect(saw_rel_loc_check);
     try std.testing.expect(saw_vararg_check);
     try std.testing.expect(saw_counts_check);
@@ -129,4 +151,6 @@ test "phase 5 trace-events manifest records the exact bounded checks" {
     try std.testing.expect(saw_exit_check);
     try std.testing.expect(std.mem.eql(u8, manifest.non_goals[0], "CREATE_TRACE_POINTS parity"));
     try std.testing.expect(std.mem.eql(u8, manifest.non_goals[1], "tracepoint macro parity from trace-events-sample.h"));
+    try std.testing.expect(std.mem.eql(u8, manifest.non_goals[2], "kernel thread scheduling or timeout parity"));
+    try std.testing.expect(std.mem.eql(u8, manifest.non_goals[3], "module registration or unregister wiring parity"));
 }
