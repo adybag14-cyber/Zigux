@@ -26,6 +26,7 @@ pub fn build(b: *std.Build) void {
         .optimize = optimize,
     });
     runtime_atomic64_sample_module.addImport("atomic", atomic_module);
+    // Keep the shared runtime_atomic64_diff.zig replay explicit beside the wrapper entrypoint.
     const atomic64_diff_module = b.createModule(.{
         .root_source_file = b.path("atomic64_diff.zig"),
         .target = target,
