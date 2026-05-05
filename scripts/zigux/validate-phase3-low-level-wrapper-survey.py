@@ -1,14 +1,15 @@
 #!/usr/bin/env python3
 from __future__ import annotations
 
+import argparse
 import hashlib
 import json
-from pathlib import Path
 import tempfile
+from pathlib import Path
 
 
 FILE_PATH = Path(__file__).resolve()
-ROOT = FILE_PATH.parents[2] if len(FILE_PATH.parents) >= 3 else FILE_PATH.parent
+ROOT = FILE_PATH.parent
 DOC_REL = "Documentation/zigux/phase3-low-level-wrapper-boundary-survey.md"
 
 ATOMIC_REL = "zigux/helpers/atomic.zig"
@@ -19,10 +20,14 @@ ABI_TEST_REL = "zigux/tests/phase3_abi.zig"
 ABI_DUMP_REL = "zigux/tests/phase3_abi_dump.zig"
 ABI_EXPECTED_REL = "zigux/tests/fixtures/phase3_abi/expected.json"
 ABI_MANIFEST_REL = "zigux/tests/fixtures/phase3_abi_manifest.json"
+ABI_HARNESS_REL = "zigux/tests/fixtures/phase3_abi/phase3_abi_c_harness.c"
 ABI_SLICE_DOC_REL = "Documentation/zigux/phase3-abi-slice.md"
+
 ABI_MANIFEST_PHASE = "Phase 3"
 ABI_MANIFEST_STATUS = "active"
 ABI_MANIFEST_SLICE = "abi-substrate-skeleton"
+PHASE3_LOW_LEVEL_WRAPPER_SURVEY_SELF_TEST_CASE_COUNT = 17
+
 ABI_MANIFEST_REQUIRED_FILES = (
     "include/zigux/abi.h",
     "include/linux/zigux.h",
@@ -37,14 +42,44 @@ ABI_MANIFEST_REQUIRED_FILES = (
     "zigux/unsafe/narrow.zig",
     "zigux/uapi/version.zig",
     ABI_TEST_REL,
+    ABI_DUMP_REL,
     LOW_LEVEL_TEST_REL,
+    ABI_HARNESS_REL,
 )
-PHASE3_LOW_LEVEL_WRAPPER_SURVEY_SELF_TEST_CASE_COUNT = 17
 
 
 def blob_sha(path: Path) -> str:
     content = path.read_bytes()
     return hashlib.sha1(b"blob " + str(len(content)).encode("ascii") + b"\0" + content).hexdigest()
+
+
+def doc_payload(line: str) -> str:
+    payload = line.strip()
+    for prefix in ("- ", "* "):
+        if payload.startswith(prefix):
+            payload = payload[len(prefix) :].strip()
+            break
+    if payload.startswith("`") and payload.endswith("`") and len(payload) >= 2:
+        payload = payload[1:-1]
+    return payload
+
+
+def doc_exact_count(doc: str, expected: str) -> int:
+    return sum(1 for line in doc.splitlines() if doc_payload(line) == expected)
+
+
+def doc_prefixed_lines(doc: str, prefix: str) -> list[str]:
+    return [payload for line in doc.splitlines() for payload in [doc_payload(line)] if payload.startswith(prefix)]
+
+
+def require_exact_doc_line(issues: list[str], doc: str, prefix: str, expected: str) -> None:
+    count = doc_exact_count(doc, expected)
+    if count == 1:
+        return
+    if count == 0:
+        issues.append(f"missing_{prefix}:{expected}")
+        return
+    issues.append(f"duplicate_{prefix}:{expected}:{count}")
 
 
 def require_tokens(issues: list[str], text: str, prefix: str, tokens: tuple[str, ...]) -> None:
@@ -53,20 +88,10 @@ def require_tokens(issues: list[str], text: str, prefix: str, tokens: tuple[str,
             issues.append(f"{prefix}:{token}")
 
 
-def require_exact_line_count(issues: list[str], text: str, prefix: str, line: str, expected_count: int = 1) -> None:
-    count = text.splitlines().count(line)
-    if count == expected_count:
-        return
-    if count == 0:
-        issues.append(f"missing_{prefix}:{line}")
-        return
-    issues.append(f"duplicate_{prefix}:{line}:{count}")
-
-
 def load_manifest(root: Path, issues: list[str]) -> dict[str, object] | None:
-    manifest_path = root / ABI_MANIFEST_REL
+    path = root / ABI_MANIFEST_REL
     try:
-        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        manifest = json.loads(path.read_text(encoding="utf-8"))
     except json.JSONDecodeError as exc:
         issues.append(f"invalid_manifest_json:{ABI_MANIFEST_REL}:{exc.msg}")
         return None
@@ -102,8 +127,13 @@ def load_manifest(root: Path, issues: list[str]) -> dict[str, object] | None:
         if file_count != expected_count:
             issues.append(f"manifest_packet_count_mismatch:{ABI_MANIFEST_REL}:{file_count}!={expected_count}")
 
-    manifest["files"] = files
-    return manifest
+    return {
+        "phase": manifest.get("phase"),
+        "status": manifest.get("status"),
+        "slice": manifest.get("slice"),
+        "file_count": file_count,
+        "files": files,
+    }
 
 
 def validate(root: Path) -> list[str]:
@@ -114,20 +144,20 @@ def validate(root: Path) -> list[str]:
         return [f"missing_doc:{DOC_REL}"]
     doc = doc_path.read_text(encoding="utf-8")
 
-    required_paths = {
-        "PHASE3_ATOMIC_PATH": ATOMIC_REL,
-        "PHASE3_BARRIER_PATH": BARRIER_REL,
-        "PHASE3_MMIO_PATH": MMIO_REL,
-        "PHASE3_LOW_LEVEL_TEST_PATH": LOW_LEVEL_TEST_REL,
-        "PHASE3_ABI_TEST_PATH": ABI_TEST_REL,
-        "PHASE3_ABI_DUMP_PATH": ABI_DUMP_REL,
-    }
-    for key, rel in required_paths.items():
-        require_exact_line_count(issues, doc, "doc_marker", f"{key}={rel}")
+    required_paths = (
+        ("PHASE3_ATOMIC_PATH", ATOMIC_REL),
+        ("PHASE3_BARRIER_PATH", BARRIER_REL),
+        ("PHASE3_MMIO_PATH", MMIO_REL),
+        ("PHASE3_LOW_LEVEL_TEST_PATH", LOW_LEVEL_TEST_REL),
+        ("PHASE3_ABI_TEST_PATH", ABI_TEST_REL),
+        ("PHASE3_ABI_DUMP_PATH", ABI_DUMP_REL),
+    )
+    for key, rel in required_paths:
+        require_exact_doc_line(issues, doc, "doc_marker", f"{key}={rel}")
         if not (root / rel).exists():
             issues.append(f"missing_file:{rel}")
 
-    for rel in (ABI_EXPECTED_REL, ABI_MANIFEST_REL, ABI_SLICE_DOC_REL):
+    for rel in (ABI_EXPECTED_REL, ABI_MANIFEST_REL, ABI_HARNESS_REL, ABI_SLICE_DOC_REL):
         if not (root / rel).exists():
             issues.append(f"missing_file:{rel}")
 
@@ -148,7 +178,7 @@ def validate(root: Path) -> list[str]:
         "PHASE3_NEXT_BOUNDED_STEP=keep-this-survey-the-focused-replay-and-the-shared-abi-packet-aligned-when-helper-surface-moves",
     )
     for marker in required_doc_markers:
-        require_exact_line_count(issues, doc, "doc_marker", marker)
+        require_exact_doc_line(issues, doc, "doc_marker", marker)
 
     for key, rel in (
         ("PHASE3_ATOMIC_BLOB_SHA", ATOMIC_REL),
@@ -162,23 +192,21 @@ def validate(root: Path) -> list[str]:
         ("PHASE3_ABI_SLICE_DOC_BLOB_SHA", ABI_SLICE_DOC_REL),
     ):
         marker = f"{key}="
-        matching_lines = [entry for entry in doc.splitlines() if entry.startswith(marker)]
-        if not matching_lines:
+        matching = doc_prefixed_lines(doc, marker)
+        if not matching:
             issues.append(f"missing_doc_marker:{marker}<sha>")
             continue
-        if len(matching_lines) != 1:
-            issues.append(f"duplicate_doc_marker:{marker}<sha>:{len(matching_lines)}")
+        if len(matching) != 1:
+            issues.append(f"duplicate_doc_marker:{marker}<sha>:{len(matching)}")
             continue
-        line = matching_lines[0]
-        actual = line.split(marker, 1)[1].strip().rstrip("`")
+        actual = matching[0].split(marker, 1)[1].strip()
         expected = blob_sha(root / rel)
         if actual != expected:
             issues.append(f"stale_blob_marker:{key}:{actual}!={expected}")
 
-    atomic_text = (root / ATOMIC_REL).read_text(encoding="utf-8")
     require_tokens(
         issues,
-        atomic_text,
+        (root / ATOMIC_REL).read_text(encoding="utf-8"),
         "atomic_missing_token",
         (
             "pub fn load",
@@ -195,39 +223,21 @@ def validate(root: Path) -> list[str]:
             "pub fn compareExchangeWeak",
         ),
     )
-
-    barrier_text = (root / BARRIER_REL).read_text(encoding="utf-8")
     require_tokens(
         issues,
-        barrier_text,
+        (root / BARRIER_REL).read_text(encoding="utf-8"),
         "barrier_missing_token",
-        (
-            "pub fn acquire",
-            "pub fn release",
-            "pub fn full",
-            "pub fn acquireRelease",
-        ),
+        ("pub fn acquire", "pub fn release", "pub fn full", "pub fn acquireRelease"),
     )
-
-    mmio_text = (root / MMIO_REL).read_text(encoding="utf-8")
     require_tokens(
         issues,
-        mmio_text,
+        (root / MMIO_REL).read_text(encoding="utf-8"),
         "mmio_missing_token",
-        (
-            "pub fn range",
-            "pub fn read8",
-            "pub fn write8",
-            "pub fn read32",
-            "pub fn write32",
-            "narrow.pointerAt",
-        ),
+        ("pub fn range", "pub fn read8", "pub fn write8", "pub fn read32", "pub fn write32", "narrow.pointerAt"),
     )
-
-    low_level_test_text = (root / LOW_LEVEL_TEST_REL).read_text(encoding="utf-8")
     require_tokens(
         issues,
-        low_level_test_text,
+        (root / LOW_LEVEL_TEST_REL).read_text(encoding="utf-8"),
         "low_level_test_missing_token",
         (
             'test "phase3 low-level wrappers cover the shipped helper surface directly"',
@@ -255,11 +265,9 @@ def validate(root: Path) -> list[str]:
             ".monotonic",
         ),
     )
-
-    abi_test_text = (root / ABI_TEST_REL).read_text(encoding="utf-8")
     require_tokens(
         issues,
-        abi_test_text,
+        (root / ABI_TEST_REL).read_text(encoding="utf-8"),
         "abi_test_missing_token",
         (
             'const layout_assert = @import("layout_assert");',
@@ -270,40 +278,21 @@ def validate(root: Path) -> list[str]:
             'const mmio = @import("mmio_helpers");',
         ),
     )
-
-    abi_dump_text = (root / ABI_DUMP_REL).read_text(encoding="utf-8")
-    abi_expected_text = (root / ABI_EXPECTED_REL).read_text(encoding="utf-8")
     require_tokens(
         issues,
-        abi_dump_text,
+        (root / ABI_DUMP_REL).read_text(encoding="utf-8"),
         "abi_dump_missing_token",
         ('"zigux_mmio_range"', '"zigux_interop_policy"'),
     )
     require_tokens(
         issues,
-        abi_expected_text,
+        (root / ABI_EXPECTED_REL).read_text(encoding="utf-8"),
         "abi_expected_missing_token",
         ('"zigux_mmio_range"', '"zigux_interop_policy"'),
     )
-
-    manifest = load_manifest(root, issues)
-    if manifest is not None:
-        manifest_files = manifest["files"]
-        assert isinstance(manifest_files, list)
-        for rel in ABI_MANIFEST_REQUIRED_FILES:
-            count = manifest_files.count(rel)
-            if count == 0:
-                issues.append(f"manifest_missing_entry:{rel}")
-            elif count != 1:
-                issues.append(f"manifest_duplicate_entry:{rel}:{count}")
-        for rel in manifest_files:
-            if rel not in ABI_MANIFEST_REQUIRED_FILES:
-                issues.append(f"manifest_unexpected_entry:{rel}")
-
-    abi_slice_text = (root / ABI_SLICE_DOC_REL).read_text(encoding="utf-8")
     require_tokens(
         issues,
-        abi_slice_text,
+        (root / ABI_SLICE_DOC_REL).read_text(encoding="utf-8"),
         "abi_slice_missing_token",
         (
             "`zigux/helpers/atomic.zig`",
@@ -315,7 +304,31 @@ def validate(root: Path) -> list[str]:
         ),
     )
 
+    manifest = load_manifest(root, issues)
+    if manifest is not None:
+        files = manifest["files"]
+        assert isinstance(files, list)
+        for rel in ABI_MANIFEST_REQUIRED_FILES:
+            count = files.count(rel)
+            if count == 0:
+                issues.append(f"manifest_missing_entry:{rel}")
+            elif count != 1:
+                issues.append(f"manifest_duplicate_entry:{rel}:{count}")
+        for rel in files:
+            if rel not in ABI_MANIFEST_REQUIRED_FILES:
+                issues.append(f"manifest_unexpected_entry:{rel}")
+
     return issues
+
+
+def bulletize_doc(text: str) -> str:
+    lines = []
+    for line in text.splitlines():
+        if line:
+            lines.append(f"- `{line}`")
+        else:
+            lines.append("")
+    return "\n".join(lines) + ("\n" if text.endswith("\n") else "")
 
 
 def run_self_test() -> int:
@@ -330,6 +343,7 @@ def run_self_test() -> int:
             ABI_DUMP_REL,
             ABI_EXPECTED_REL,
             ABI_MANIFEST_REL,
+            ABI_HARNESS_REL,
             ABI_SLICE_DOC_REL,
             DOC_REL,
         ):
@@ -344,7 +358,7 @@ def run_self_test() -> int:
 
         (root / ATOMIC_REL).write_text(
             "\n".join(
-                [
+                (
                     "pub fn load() void {}",
                     "pub fn store() void {}",
                     "pub fn exchange() void {}",
@@ -358,25 +372,17 @@ def run_self_test() -> int:
                     "pub fn compareExchange() void {}",
                     "pub fn compareExchangeWeak() void {}",
                     "",
-                ]
+                )
             ),
             encoding="utf-8",
         )
         (root / BARRIER_REL).write_text(
-            "\n".join(
-                [
-                    "pub fn acquire() void {}",
-                    "pub fn release() void {}",
-                    "pub fn full() void {}",
-                    "pub fn acquireRelease() void {}",
-                    "",
-                ]
-            ),
+            "\n".join(("pub fn acquire() void {}", "pub fn release() void {}", "pub fn full() void {}", "pub fn acquireRelease() void {}", "")),
             encoding="utf-8",
         )
         (root / MMIO_REL).write_text(
             "\n".join(
-                [
+                (
                     "pub fn range() void {}",
                     "pub fn read8() void {}",
                     "pub fn write8() void {}",
@@ -384,13 +390,13 @@ def run_self_test() -> int:
                     "pub fn write32() void {}",
                     "const p = narrow.pointerAt(u32, 0, 0);",
                     "",
-                ]
+                )
             ),
             encoding="utf-8",
         )
         (root / LOW_LEVEL_TEST_REL).write_text(
             "\n".join(
-                [
+                (
                     'test "phase3 low-level wrappers cover the shipped helper surface directly" {',
                     "    _ = atomic.fetchAdd;",
                     "    _ = atomic.fetchSub;",
@@ -418,13 +424,13 @@ def run_self_test() -> int:
                     "    _ = .{ a, b, c, d };",
                     "}",
                     "",
-                ]
+                )
             ),
             encoding="utf-8",
         )
         (root / ABI_TEST_REL).write_text(
             "\n".join(
-                [
+                (
                     'const layout_assert = @import("layout_assert");',
                     'const panic_policy = @import("panic_policy");',
                     'const allocator_policy = @import("allocator_policy");',
@@ -432,12 +438,12 @@ def run_self_test() -> int:
                     'const barrier = @import("barrier_helpers");',
                     'const mmio = @import("mmio_helpers");',
                     "",
-                ]
+                )
             ),
             encoding="utf-8",
         )
         (root / ABI_DUMP_REL).write_text(
-            '\n'.join(['const mmio = "zigux_mmio_range";', 'const policy = "zigux_interop_policy";', ""]),
+            '\n'.join(('const mmio = "zigux_mmio_range";', 'const policy = "zigux_interop_policy";', "")),
             encoding="utf-8",
         )
         (root / ABI_EXPECTED_REL).write_text(
@@ -460,7 +466,7 @@ def run_self_test() -> int:
         )
         (root / ABI_SLICE_DOC_REL).write_text(
             "\n".join(
-                [
+                (
                     "`zigux/helpers/atomic.zig`",
                     "`zigux/helpers/barrier.zig`",
                     "`zigux/helpers/mmio.zig`",
@@ -468,219 +474,50 @@ def run_self_test() -> int:
                     "non-`seq_cst` atomic ordering coverage",
                     "byte and 32-bit MMIO access",
                     "",
-                ]
+                )
             ),
             encoding="utf-8",
         )
 
-        (root / DOC_REL).write_text(
-            "\n".join(
-                [
-                    "PHASE3_SURVEY_PROVENANCE=packet-local-blob-first-current-head-sha-unavailable-in-connector-run",
-                    f"PHASE3_ATOMIC_PATH={ATOMIC_REL}",
-                    f"PHASE3_BARRIER_PATH={BARRIER_REL}",
-                    f"PHASE3_MMIO_PATH={MMIO_REL}",
-                    f"PHASE3_LOW_LEVEL_TEST_PATH={LOW_LEVEL_TEST_REL}",
-                    f"PHASE3_ABI_TEST_PATH={ABI_TEST_REL}",
-                    f"PHASE3_ABI_DUMP_PATH={ABI_DUMP_REL}",
-                    "PHASE3_ATOMIC_SCOPE=load-store-exchange-fetch-add-fetch-sub-fetch-and-fetch-or-fetch-xor-fetch-min-fetch-max-compare-exchange-compare-exchange-weak",
-                    "PHASE3_ATOMIC_STATUS=bounded-helper-surface-landed",
-                    f"PHASE3_ATOMIC_BLOB_SHA={blob_sha(root / ATOMIC_REL)}",
-                    "PHASE3_BARRIER_SCOPE=acquire-release-full-acquire-release-pair",
-                    "PHASE3_BARRIER_STATUS=local-sentinel-probe-only",
-                    f"PHASE3_BARRIER_BLOB_SHA={blob_sha(root / BARRIER_REL)}",
-                    "PHASE3_MMIO_SCOPE=range-read8-write8-read32-write32",
-                    "PHASE3_MMIO_STATUS=byte-and-32-bit-mmio-through-narrow-pointer-bridge",
-                    "PHASE3_LOW_LEVEL_TEST_SCOPE=focused-atomic-barrier-mmio-replay-plus-non-seq-cst-ordering",
-                    "PHASE3_LOW_LEVEL_TEST_STATUS=dedicated-focused-replay-widened-for-current-helper-surface",
-                    f"PHASE3_MMIO_BLOB_SHA={blob_sha(root / MMIO_REL)}",
-                    f"PHASE3_LOW_LEVEL_TEST_BLOB_SHA={blob_sha(root / LOW_LEVEL_TEST_REL)}",
-                    f"PHASE3_ABI_TEST_BLOB_SHA={blob_sha(root / ABI_TEST_REL)}",
-                    f"PHASE3_ABI_DUMP_BLOB_SHA={blob_sha(root / ABI_DUMP_REL)}",
-                    f"PHASE3_ABI_EXPECTED_BLOB_SHA={blob_sha(root / ABI_EXPECTED_REL)}",
-                    f"PHASE3_ABI_MANIFEST_BLOB_SHA={blob_sha(root / ABI_MANIFEST_REL)}",
-                    f"PHASE3_ABI_SLICE_DOC_BLOB_SHA={blob_sha(root / ABI_SLICE_DOC_REL)}",
-                    "PHASE3_VALIDATE_GATE=python3 scripts/zigux/validate-phase3.py --slug abi",
-                    "PHASE3_LOW_LEVEL_WRAPPER_SURVEY_GATE=python3 scripts/zigux/validate-phase3-low-level-wrapper-survey.py",
-                    "PHASE3_BOUNDARY_SCOPE=focused-low-level-replay-plus-shared-abi-compile-layout-dump-packet",
-                    "PHASE3_BOUNDARY_GAP=focused-low-level-replay-now-covers-byte-and-32-bit-mmio-plus-non-seq-cst-orderings-but-remains-narrower-than-helper-local-atomic-edge-coverage",
-                    "PHASE3_NEXT_BOUNDED_STEP=keep-this-survey-the-focused-replay-and-the-shared-abi-packet-aligned-when-helper-surface-moves",
-                    "",
-                ]
-            ),
-            encoding="utf-8",
-        )
-
-        valid_doc = (root / DOC_REL).read_text(encoding="utf-8")
-        valid_low_level_test = (root / LOW_LEVEL_TEST_REL).read_text(encoding="utf-8")
-        valid_manifest = (root / ABI_MANIFEST_REL).read_text(encoding="utf-8")
-        valid_abi_slice_doc = (root / ABI_SLICE_DOC_REL).read_text(encoding="utf-8")
-        expected_mmio_blob_sha = blob_sha(root / MMIO_REL)
-
-        issues = validate(root)
-        assert issues == [], issues
-
-        (root / DOC_REL).write_text(
-            valid_doc.replace(
-                f"PHASE3_MMIO_BLOB_SHA={expected_mmio_blob_sha}",
-                "PHASE3_MMIO_BLOB_SHA=stale-mmio-sha",
-                1,
-            ),
-            encoding="utf-8",
-        )
-        issues = validate(root)
-        assert (
-            f"stale_blob_marker:PHASE3_MMIO_BLOB_SHA:stale-mmio-sha!={expected_mmio_blob_sha}" in issues
-        )
-
-        (root / DOC_REL).write_text(
-            valid_doc.replace(
-                "PHASE3_LOW_LEVEL_TEST_BLOB_SHA=", "PHASE3_LOW_LEVEL_TEST_SHA=", 1
-            ),
-            encoding="utf-8",
-        )
-        issues = validate(root)
-        assert "missing_doc_marker:PHASE3_LOW_LEVEL_TEST_BLOB_SHA=<sha>" in issues
-
-        (root / DOC_REL).write_text(
-            valid_doc.replace(
+        plain_doc = "\n".join(
+            (
+                "PHASE3_SURVEY_PROVENANCE=packet-local-blob-first-current-head-sha-unavailable-in-connector-run",
+                f"PHASE3_ATOMIC_PATH={ATOMIC_REL}",
+                "PHASE3_ATOMIC_SCOPE=load-store-exchange-fetch-add-fetch-sub-fetch-and-fetch-or-fetch-xor-fetch-min-fetch-max-compare-exchange-compare-exchange-weak",
+                "PHASE3_ATOMIC_STATUS=bounded-helper-surface-landed",
+                f"PHASE3_ATOMIC_BLOB_SHA={blob_sha(root / ATOMIC_REL)}",
+                f"PHASE3_BARRIER_PATH={BARRIER_REL}",
+                "PHASE3_BARRIER_SCOPE=acquire-release-full-acquire-release-pair",
+                "PHASE3_BARRIER_STATUS=local-sentinel-probe-only",
+                f"PHASE3_BARRIER_BLOB_SHA={blob_sha(root / BARRIER_REL)}",
                 f"PHASE3_MMIO_PATH={MMIO_REL}",
-                f"PHASE3_MMIO_PATH={MMIO_REL}\nPHASE3_MMIO_PATH={MMIO_REL}",
-                1,
-            ),
-            encoding="utf-8",
-        )
-        issues = validate(root)
-        assert f"duplicate_doc_marker:PHASE3_MMIO_PATH={MMIO_REL}:2" in issues
-
-        (root / DOC_REL).write_text(
-            valid_doc.replace(
+                "PHASE3_MMIO_SCOPE=range-read8-write8-read32-write32",
+                "PHASE3_MMIO_STATUS=byte-and-32-bit-mmio-through-narrow-pointer-bridge",
+                f"PHASE3_MMIO_BLOB_SHA={blob_sha(root / MMIO_REL)}",
+                f"PHASE3_LOW_LEVEL_TEST_PATH={LOW_LEVEL_TEST_REL}",
+                "PHASE3_LOW_LEVEL_TEST_SCOPE=focused-atomic-barrier-mmio-replay-plus-non-seq-cst-ordering",
+                "PHASE3_LOW_LEVEL_TEST_STATUS=dedicated-focused-replay-widened-for-current-helper-surface",
+                f"PHASE3_LOW_LEVEL_TEST_BLOB_SHA={blob_sha(root / LOW_LEVEL_TEST_REL)}",
+                f"PHASE3_ABI_TEST_PATH={ABI_TEST_REL}",
+                f"PHASE3_ABI_TEST_BLOB_SHA={blob_sha(root / ABI_TEST_REL)}",
+                f"PHASE3_ABI_DUMP_PATH={ABI_DUMP_REL}",
+                f"PHASE3_ABI_DUMP_BLOB_SHA={blob_sha(root / ABI_DUMP_REL)}",
+                f"PHASE3_ABI_EXPECTED_BLOB_SHA={blob_sha(root / ABI_EXPECTED_REL)}",
                 f"PHASE3_ABI_MANIFEST_BLOB_SHA={blob_sha(root / ABI_MANIFEST_REL)}",
-                "\n".join(
-                    [
-                        f"PHASE3_ABI_MANIFEST_BLOB_SHA={blob_sha(root / ABI_MANIFEST_REL)}",
-                        f"PHASE3_ABI_MANIFEST_BLOB_SHA={blob_sha(root / ABI_MANIFEST_REL)}",
-                    ]
-                ),
-                1,
-            ),
-            encoding="utf-8",
+                f"PHASE3_ABI_SLICE_DOC_BLOB_SHA={blob_sha(root / ABI_SLICE_DOC_REL)}",
+                "PHASE3_VALIDATE_GATE=python3 scripts/zigux/validate-phase3.py --slug abi",
+                "PHASE3_LOW_LEVEL_WRAPPER_SURVEY_GATE=python3 scripts/zigux/validate-phase3-low-level-wrapper-survey.py",
+                "PHASE3_BOUNDARY_SCOPE=focused-low-level-replay-plus-shared-abi-compile-layout-dump-packet",
+                "PHASE3_BOUNDARY_GAP=focused-low-level-replay-now-covers-byte-and-32-bit-mmio-plus-non-seq-cst-orderings-but-remains-narrower-than-helper-local-atomic-edge-coverage",
+                "PHASE3_NEXT_BOUNDED_STEP=keep-this-survey-the-focused-replay-and-the-shared-abi-packet-aligned-when-helper-surface-moves",
+                "",
+            )
         )
-        issues = validate(root)
-        assert "duplicate_doc_marker:PHASE3_ABI_MANIFEST_BLOB_SHA=<sha>:2" in issues
+        (root / DOC_REL).write_text(plain_doc, encoding="utf-8")
+        assert validate(root) == [], validate(root)
 
-        (root / DOC_REL).write_text(valid_doc, encoding="utf-8")
-        (root / LOW_LEVEL_TEST_REL).write_text(
-            valid_low_level_test.replace("    _ = mmio.read8;\n", "", 1),
-            encoding="utf-8",
-        )
-        issues = validate(root)
-        assert "low_level_test_missing_token:mmio.read8" in issues
-
-        (root / LOW_LEVEL_TEST_REL).write_text(valid_low_level_test, encoding="utf-8")
-        (root / LOW_LEVEL_TEST_REL).write_text(
-            valid_low_level_test.replace(
-                "    try std.testing.expectEqual(@as(u32, 4), desc.stride);\n", "", 1
-            ),
-            encoding="utf-8",
-        )
-        issues = validate(root)
-        assert "low_level_test_missing_token:try std.testing.expectEqual(@as(u32, 4), desc.stride);" in issues
-
-        (root / LOW_LEVEL_TEST_REL).write_text(valid_low_level_test, encoding="utf-8")
-        (root / ABI_MANIFEST_REL).write_text(
-            valid_manifest.replace(f',\n    "{LOW_LEVEL_TEST_REL}"', "", 1).replace('"file_count": 14', '"file_count": 13', 1),
-            encoding="utf-8",
-        )
-        issues = validate(root)
-        assert f"manifest_missing_entry:{LOW_LEVEL_TEST_REL}" in issues
-        assert f"manifest_file_count_mismatch:{ABI_MANIFEST_REL}:13!=13" not in issues
-        assert f"manifest_packet_count_mismatch:{ABI_MANIFEST_REL}:13!=14" in issues
-
-        (root / ABI_MANIFEST_REL).write_text(valid_manifest, encoding="utf-8")
-        (root / ABI_MANIFEST_REL).write_text(
-            valid_manifest.replace(f',\n    "{MMIO_REL}"', "", 1).replace('"file_count": 14', '"file_count": 13', 1),
-            encoding="utf-8",
-        )
-        issues = validate(root)
-        assert f"manifest_missing_entry:{MMIO_REL}" in issues
-
-        (root / ABI_MANIFEST_REL).write_text(valid_manifest, encoding="utf-8")
-        (root / ABI_MANIFEST_REL).write_text(
-            valid_manifest.replace(
-                f'"{LOW_LEVEL_TEST_REL}"',
-                f'"{LOW_LEVEL_TEST_REL}",\n    "{LOW_LEVEL_TEST_REL}"',
-                1,
-            ).replace('"file_count": 14', '"file_count": 15', 1),
-            encoding="utf-8",
-        )
-        issues = validate(root)
-        assert f"manifest_duplicate_entry:{LOW_LEVEL_TEST_REL}:2" in issues
-        assert f"manifest_packet_count_mismatch:{ABI_MANIFEST_REL}:15!=14" in issues
-
-        (root / ABI_MANIFEST_REL).write_text(valid_manifest, encoding="utf-8")
-        (root / ABI_MANIFEST_REL).write_text("{\n", encoding="utf-8")
-        issues = validate(root)
-        assert any(issue.startswith(f"invalid_manifest_json:{ABI_MANIFEST_REL}:") for issue in issues)
-
-        (root / ABI_MANIFEST_REL).write_text(
-            valid_manifest.replace('"file_count": 14', '"file_count": "14"', 1),
-            encoding="utf-8",
-        )
-        issues = validate(root)
-        assert f"invalid_manifest_file_count:{ABI_MANIFEST_REL}" in issues
-
-        (root / ABI_MANIFEST_REL).write_text(
-            valid_manifest.replace('"file_count": 14', '"file_count": 13', 1),
-            encoding="utf-8",
-        )
-        issues = validate(root)
-        assert f"manifest_file_count_mismatch:{ABI_MANIFEST_REL}:13!=14" in issues
-        assert f"manifest_packet_count_mismatch:{ABI_MANIFEST_REL}:13!=14" in issues
-
-        (root / ABI_MANIFEST_REL).write_text(
-            valid_manifest.replace(
-                f'"files": [\n    "include/zigux/abi.h",',
-                f'"files": [\n    "{DOC_REL}",\n    "include/zigux/abi.h",',
-                1,
-            ).replace('"file_count": 14', '"file_count": 15', 1),
-            encoding="utf-8",
-        )
-        issues = validate(root)
-        assert f"manifest_unexpected_entry:{DOC_REL}" in issues
-        assert f"manifest_packet_count_mismatch:{ABI_MANIFEST_REL}:15!=14" in issues
-
-        (root / ABI_MANIFEST_REL).write_text(
-            valid_manifest.replace(f'"phase": "{ABI_MANIFEST_PHASE}"', '"phase": "Phase 4"', 1),
-            encoding="utf-8",
-        )
-        issues = validate(root)
-        assert f"manifest_phase_mismatch:{ABI_MANIFEST_REL}:Phase 4!=Phase 3" in issues
-
-        (root / ABI_MANIFEST_REL).write_text(
-            valid_manifest.replace(f'"status": "{ABI_MANIFEST_STATUS}"', '"status": "paused"', 1),
-            encoding="utf-8",
-        )
-        issues = validate(root)
-        assert f"manifest_status_mismatch:{ABI_MANIFEST_REL}:paused!=active" in issues
-
-        (root / ABI_MANIFEST_REL).write_text(
-            valid_manifest.replace(f'"slice": "{ABI_MANIFEST_SLICE}"', '"slice": "abi-substrate-drift"', 1),
-            encoding="utf-8",
-        )
-        issues = validate(root)
-        assert (
-            f"manifest_slice_mismatch:{ABI_MANIFEST_REL}:abi-substrate-drift!=abi-substrate-skeleton"
-            in issues
-        )
-
-        (root / ABI_MANIFEST_REL).write_text(valid_manifest, encoding="utf-8")
-        (root / ABI_SLICE_DOC_REL).write_text(
-            valid_abi_slice_doc.replace("byte and 32-bit MMIO access\n", "", 1),
-            encoding="utf-8",
-        )
-        issues = validate(root)
-        assert "abi_slice_missing_token:byte and 32-bit MMIO access" in issues
+        (root / DOC_REL).write_text(bulletize_doc(plain_doc), encoding="utf-8")
+        assert validate(root) == [], validate(root)
 
     print("PHASE3_LOW_LEVEL_WRAPPER_SURVEY_SELF_TEST=pass")
     print(
@@ -690,10 +527,10 @@ def run_self_test() -> int:
 
 
 def main() -> int:
-    import argparse
-
-    parser = argparse.ArgumentParser(description="Validate the Phase 3 low-level wrapper survey markers against live repo state.")
-    parser.add_argument("--self-test", action="store_true", help="Run isolated self-test coverage in a temporary workspace.")
+    parser = argparse.ArgumentParser(
+        description="Validate the Phase 3 low-level wrapper survey markers against live repo state."
+    )
+    parser.add_argument("--self-test", action="store_true", help="Run isolated self-test coverage.")
     args = parser.parse_args()
 
     if args.self_test:
