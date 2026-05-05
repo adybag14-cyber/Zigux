@@ -4,11 +4,11 @@ This survey note now tracks the landed Phase 11 `gpio_wdt` starter anchored to `
 
 The live repo state is now:
 
-- `drivers/watchdog/gpio_wdt.zig` models `hw_algo` parsing, heartbeat-margin validation, the narrow start, ping, stop, and disable transitions from the Linux GPIO watchdog driver, a small probe-time summary for startup and registration-facing bookkeeping, a tiny nowayout-aware stop helper that separates watchdog-core policy blocking from hardware `always-running` behavior, and a registration handoff summary
-- `zigux/tests/phase11_gpio_wdt.zig` keeps the toggle and level algorithms reviewable without claiming GPIO registration or hardware-backed execution, and now checks always-running startup, pre-registration bookkeeping, stop-request outcomes, and registration handoff reporting
+- `drivers/watchdog/gpio_wdt.zig` models `hw_algo` parsing, heartbeat-margin validation, the narrow start, ping, stop, and disable transitions from the Linux GPIO watchdog driver, a small probe-time summary for startup and registration-facing bookkeeping, a tiny `descriptorPreflightSummary()` helper for the `devm_gpiod_get()` flag choice and probe ordering, a tiny nowayout-aware stop helper that separates watchdog-core policy blocking from hardware `always-running` behavior, and a registration handoff summary
+- `zigux/tests/phase11_gpio_wdt.zig` keeps the toggle and level algorithms reviewable without claiming GPIO registration or hardware-backed execution, and now checks always-running startup, descriptor preflight ordering, pre-registration bookkeeping, stop-request outcomes, and registration handoff reporting
 - `zigux/tests/phase11_build.zig` runs the starter and survey paths together so lane-local freshness drift shows up in one place
 - `Documentation/zigux/phase11-gpio-wdt-validation-matrix.md` now records the bounded validation posture for the landed starter and the still-deferred kernel-facing follow-up
 
-This remains intentionally small. The lane still does not claim platform-driver registration, GPIO descriptor acquisition, watchdog core registration, reboot hooks, module parameters beyond summary bookkeeping, live GPIO execution, or hardware-backed validation beyond the bounded matrix evidence already recorded for the current starter.
+This remains intentionally small. The lane still does not claim platform-driver registration, live GPIO descriptor lookup, watchdog core registration, reboot hooks, module parameters beyond summary bookkeeping, live GPIO execution, or hardware-backed validation beyond the bounded matrix evidence already recorded for the current starter.
 
-The next honest bounded step inside the same lane is to pick the first real registration surface and the minimum validation plan around it, while still avoiding live GPIO and platform glue until the handoff bookkeeping is no longer the blocker.
+The next honest bounded step inside the same lane is to pick one tiny timeout-property or drvdata-order checkpoint that stays immediately adjacent to the new descriptor preflight boundary, while still avoiding live GPIO and platform glue until the handoff bookkeeping is no longer the blocker.
