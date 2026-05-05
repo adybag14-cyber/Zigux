@@ -21,6 +21,7 @@ This file records code that should not move into active Zigux delivery without a
 - the existing C implementation remains the product source of truth for every freeze-in-C anchor
 - allowed near-term Zigux work on those anchors is limited to survey notes, boundary manifests, validation gates, and explicit non-goal records
 - wrapper-first or helper-first experiments may continue only for study-only anchors, and they still must keep scheduler, MM, RCU, skbuff, and other deep-core ownership explicit
+- the shared Phase 9 runtime-loader packet stays review-only beside `kernel/workqueue.c` and `kernel/trace/ring_buffer.c`: `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, `scripts/zigux/check-phase9-build-only-surface.py`, `zigux/tests/phase9_build.zig`, `zigux/kernel/runtime_loader.zig`, `zigux/kernel/runtime_loader_contract.zig`, and the four `samples/zigux/runtime_*_loader.zig` scaffolds keep the bounded loader handoff explicit without implying scheduler-facing substrate closure or a freeze-map status change
 - if validation is incomplete, contradictory, or too weak to justify a status change, keep the code in C and record the blocker
 - closing a freeze-in-C review without a status change must retain the blocker, record the closeout as `retired_from_active_discussion`, and keep the reopen triggers attached to the evidence archive
 - there is no silent exception path around the stay-in-C policy; only an explicit Architecture Council reopen request with fresh linked evidence may reopen status review
