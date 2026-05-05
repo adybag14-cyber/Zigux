@@ -5,10 +5,11 @@ This note records the current shipped Phase 13 release-facing helper packet on `
 ## Status
 
 - `PHASE13_RELEASE_PACKET_STATUS=active`
-- `PHASE13_SHARED_REPLAY_STEP_COUNT=5`
+- `PHASE13_SHARED_REPLAY_STEP_COUNT=6`
 - shared replay files:
   - `zigux/tests/phase13_libfs.zig`
   - `zigux/tests/phase13_devres.zig`
+  - `zigux/tests/phase13_devres_reviewability.zig`
   - `zigux/tests/phase13_landlock_ruleset.zig`
   - `zigux/tests/phase13_landlock_syscalls.zig`
   - `zigux/tests/phase13_libfs_reviewability.zig`
@@ -22,13 +23,13 @@ This note records the current shipped Phase 13 release-facing helper packet on `
 
 The current shipped Phase 13 helper packet stays validator-first and replay-backed.
 
-The shared replay on `master` is still the five-test bundle wired by `zigux/tests/phase13_build.zig`. That bundle covers the helper-first `libfs`, `devres`, `landlock/ruleset`, `landlock/syscalls`, and `libfs` reviewability anchors without adding extra replay steps for adjacent release evidence.
+The shared replay on `master` is now the six-test bundle wired by `zigux/tests/phase13_build.zig`. That bundle covers the helper-first `libfs`, `devres`, `devres` reviewability, `landlock/ruleset`, `landlock/syscalls`, and `libfs` reviewability anchors without adding extra replay steps for adjacent release evidence.
 
 Inside that packet, the Phase 13 `devres` lane remains bounded to helper-only planning around `lib/devres.c`. The shipped `lib/devres.zig` lab and `zigux/tests/phase13_devres.zig` replay keep MMIO-adjacent behavior explicit for managed ioremap lifetime planning, `__devm_ioremap_resource()` sizing and failure shaping, `devm_of_iomap()` translated-resource planning, and WC memtype reservation bookkeeping while still blocking live MMIO, live device-tree walking, DMA-backed mapping, and live arch memtype mutation.
 
 ## Adjacent release evidence
 
-These files are shipped adjacent release-surface evidence on `master`, but they do not add extra shared replay steps beyond the five-test route above:
+These files are shipped adjacent release-surface evidence on `master`, but they do not add extra shared replay steps beyond the six-test route above:
 
 - `Documentation/zigux/phase13-release-notes-survey.md`
 - `Documentation/zigux/phase13-roadmap-traceability.md`
