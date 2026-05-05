@@ -1,7 +1,7 @@
 {
   "lane_key": "P9-L01",
   "phase": "Phase 9",
-  "surveyed_commit": "80d9c2e8e72aafdaea9aac36b5b0b2bb31f98dfa",
+  "surveyed_commit": "ee124761ef3ef5fcc6bb9cd8b7fe8d1fce326839",
   "anchor": "lib/atomic64_test.c",
   "roadmap_destinations": [
     "zigux/tests/runtime_*",
@@ -12,7 +12,7 @@
     "preexisting_runtime_test_files": 3,
     "preexisting_samples_zigux_present": true,
     "preexisting_phase9_build_present": true,
-    "preexisting_phase9_doc_present": false
+    "preexisting_phase9_doc_present": true
   },
   "gaps": [
     {
@@ -27,7 +27,7 @@
       "status": "starter_landed",
       "kind": "validation",
       "zigux_destination": "zigux/tests/runtime_atomic64_survey.zig",
-      "why_now": "The survey gate keeps the roadmap anchor and remaining runtime-substrate blockers explicit while the lane is still narrow."
+      "why_now": "The survey gate keeps the roadmap anchor, landed loader scaffold, and remaining runtime-loader blocker explicit while the lane stays narrow."
     },
     {
       "id": "runtime-atomic64-sample-module",
@@ -51,11 +51,18 @@
       "why_now": "A narrow differential gate now captures selected atomic64_test.c expectations for wide-value exchange and cmpxchg behavior plus selftest-family coverage before any broader runtime substrate work."
     },
     {
-      "id": "runtime-atomic64-substrate-handoff",
+      "id": "runtime-atomic64-loader-scaffold",
+      "status": "starter_landed",
+      "kind": "runtime_loader_scaffold",
+      "zigux_destination": "samples/zigux/runtime_atomic64_loader.zig",
+      "why_now": "A bounded sample-side loader scaffold now makes the existing requires_runtime_substrate contract reviewable through explicit entry and exit symbol names, prepared handoff summaries, and a no-substrate release path without pretending a real runtime loader already exists."
+    },
+    {
+      "id": "runtime-atomic64-live-loader-binding",
       "status": "blocked_on_runtime_substrate",
       "kind": "runtime_substrate",
-      "zigux_destination": "samples/zigux/runtime_*",
-      "why_now": "A future loadable handoff inside the runtime sample family still depends on runtime substrate pieces that the repo has not started yet."
+      "zigux_destination": "zigux/kernel/runtime_loader.zig",
+      "why_now": "A real loadable module entry point and lifecycle parity still depend on shared runtime substrate pieces that the repo has not started yet."
     }
   ]
 }
