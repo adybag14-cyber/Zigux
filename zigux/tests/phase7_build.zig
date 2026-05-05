@@ -38,6 +38,7 @@ pub fn build(b: *std.Build) void {
         .root_module = cmdline_survey_root_module,
     });
     const run_cmdline_survey_tests = b.addRunArtifact(cmdline_survey_tests);
+    run_cmdline_survey_tests.setCwd(b.path("../.."));
 
     const argv_split_module = b.createModule(.{
         .root_source_file = b.path("../../lib/argv_split.zig"),
@@ -73,6 +74,7 @@ pub fn build(b: *std.Build) void {
         .root_module = rbtree_survey_root_module,
     });
     const run_rbtree_survey_tests = b.addRunArtifact(rbtree_survey_tests);
+    run_rbtree_survey_tests.setCwd(b.path("../.."));
 
     const string_helpers_sample_boundary_root_module = b.createModule(.{
         .root_source_file = b.path("phase7_string_helpers_sample_boundary.zig"),
