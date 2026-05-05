@@ -78,6 +78,23 @@ fn expectGapStatusAndWhyNow(
     try std.testing.expect(std.mem.indexOf(u8, gap.why_now, why_now_fragment) != null);
 }
 
+fn expectExactLoadPlanParity(
+    expected: runtime_loader.LoadPlan,
+    actual: runtime_loader.LoadPlan,
+) !void {
+    try std.testing.expectEqualStrings(expected.module_name, actual.module_name);
+    try std.testing.expectEqualStrings(expected.anchor, actual.anchor);
+    try std.testing.expectEqualStrings(expected.entry_symbol, actual.entry_symbol);
+    try std.testing.expectEqualStrings(expected.exit_symbol, actual.exit_symbol);
+    try std.testing.expectEqual(expected.requires_runtime_substrate, actual.requires_runtime_substrate);
+    try std.testing.expectEqual(expected.provides_selftest_hook, actual.provides_selftest_hook);
+    try std.testing.expectEqual(expected.allocator_handoff, actual.allocator_handoff);
+    try std.testing.expectEqual(expected.init_flow.handoff_stage, actual.init_flow.handoff_stage);
+    try std.testing.expectEqual(expected.init_flow.init_runs, actual.init_flow.init_runs);
+    try std.testing.expectEqual(expected.init_flow.selftest_runs, actual.init_flow.selftest_runs);
+    try std.testing.expectEqual(expected.init_flow.exit_runs, actual.init_flow.exit_runs);
+}
+
 test "phase 9 runtime loader allocator/init-flow replay covers all shipped runtime pilot handoffs" {
     const plans = [_]runtime_loader.LoadPlan{
         makePlan(
@@ -137,6 +154,7 @@ test "phase 9 runtime loader allocator/init-flow replay covers all shipped runti
     for (plans) |plan| {
         var request = try runtime_loader.prepareRequest(plan);
         const pending_plan = try request.requestRuntimeLoad();
+        try expectExactLoadPlanParity(plan, pending_plan);
         try std.testing.expect(runtime_loader.keepsAllocatorInitFlowConsistent(
             pending_plan,
             plan.allocator_handoff,
