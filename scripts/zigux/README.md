@@ -45,6 +45,7 @@ Current bootstrap helpers
 - `check-mk-elfconfig-diff.py`
 - `check-phase6-base64-c-parity.py`
 - `check-phase6-bsearch-c-parity.py`
+- `check-phase9-module-metadata-packet.py`
 
 Zig toolchain gate
 - `check-zig-toolchain.py` verifies that the selected Zig binary exists and satisfies the configured minimum version.
@@ -102,11 +103,12 @@ Phase 8 flow
 - the same Phase 8 README packet keeps the deferred `file-path-and-handle-bridge` and `perf-buffer-online-cpu-routing` boundaries explicit so the helper-first libbpf rollout does not quietly widen into bpffs handle ownership or perf-buffer routing claims, and so the parked command-side helpers do not quietly widen into direct process-launch or terminal-probing behavior either.
 
 Phase 9 flow
-- `validate-phase9.py` keeps the shared Phase 9 runtime bundle aligned before replay by checking the published notes, the workflow, `zigux/Makefile`, `zigux/tests/phase9_build.zig`, the trace-events freeze-map boundary packet, and the shared runtime-loader release-discipline evidence.
+- `validate-phase9.py` keeps the shared Phase 9 runtime bundle aligned before replay by checking the published notes, the workflow, `zigux/Makefile`, `zigux/tests/phase9_build.zig`, the trace-events freeze-map boundary packet, the dedicated module-metadata packet, and the shared runtime-loader release-discipline evidence.
 - `make -C zigux phase9-validate` is the fail-fast bundle check for the current runtime atomic64, bitmap, trace-events, kretprobe, and shared loader-gap packet.
 - `make -C zigux phase9` keeps that same runtime lane reviewable through one shared bundle instead of ad hoc slice-local checks.
 - `Documentation/zigux/phase9-runtime-loader-gap-survey.md` and `Documentation/zigux/review-checklist.md` carry the shared Phase 9 loader-handoff release-discipline evidence for the current runtime bundle.
 - `zigux/tests/runtime_loader_gap_manifest.json` keeps the manifest-backed catalog and ownership map for the shared runtime-loader evidence packet, so reviewers can see which file owns the survey note, the review checklist, the shared request contract, the sample-side loader plans, and the shared `phase9_build.zig` replay path before the lane widens again.
+- `Documentation/zigux/phase9-module-metadata-depmod-bridge-survey.md`, `zigux/tests/runtime_module_metadata_manifest.json`, `zigux/tests/runtime_module_metadata_survey.zig`, and `check-phase9-module-metadata-packet.py` keep the dedicated starter-descriptor and loader-plan evidence reviewable without implying a landed depmod bridge.
 
 Phase 10 flow
 - `validate-phase10.py` keeps the current virtio_input registration boundary explicit before replay by checking the published Phase 10 notes, the workflow wiring, `zigux/Makefile`, `drivers/virtio/virtio_input.zig`, `zigux/tests/phase10_virtio_input.zig`, and `zigux/tests/phase10_virtio_input_manifest.json`.
