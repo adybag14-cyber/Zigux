@@ -20,9 +20,9 @@ MAKEFILE_PATH = "zigux/Makefile"
 WORKFLOW_PATH = ".github/workflows/zigux-bootstrap.yml"
 
 FORBIDDEN_LITERAL_COUNTS = {
-    "validate-phase12.py": 6,
-    "check-phase12-*.py": 6,
-    "phase12-validate": 5,
+    "validate-phase12.py": 5,
+    "check-phase12-*.py": 5,
+    "phase12-validate": 4,
 }
 
 REQUIRED_SCRIPT_README_MARKERS = [
@@ -51,10 +51,17 @@ REQUIRED_REVIEW_CHECKLIST_MARKERS = [
 
 REQUIRED_SEQUENCE_MARKERS = [
     "`Documentation/zigux/review-checklist.md`",
-    "`scripts/zigux/check-build-only-phase12-surface.py` must continue to keep that build-only contract fail-closed rather than implying an unshipped validator stack.",
+    "`scripts/zigux/check-build-only-phase12-surface.py` plus `.github/workflows/zigux-bootstrap.yml` keep the build-only contract fail-closed rather than implying an unshipped validator stack.",
     "current public fallback split: two commit-pinned artifacts (`Documentation/zigux/phase12-nvme-pci-raw-github-fallback-map.md`, `Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md`) and two shared-tree-only anchors (`virtio_net`, `libbpf`)",
     "`scripts/zigux/check-build-only-phase12-surface.py` is a shipped build-only contract checker, not a broader validator-first release gate",
     "there is no shipped shared `scripts/zigux/validate-phase12.py`, no `check-phase12-*.py` release packet, and no `make -C zigux phase12-validate` target on `master`",
+    "The docs-root, scripts-root, and tests-root wording repairs are already landed on `master`, so the next bounded same-lane follow-through is now drift control rather than another naming pass:",
+    "if the lane reopens for another degraded-workflow drift, start by diffing those shipped packet surfaces and rerunning `scripts/zigux/check-build-only-phase12-surface.py` before widening into any driver-local or helper-local Phase 12 work",
+]
+
+FORBIDDEN_SEQUENCE_MARKERS = [
+    "The scripts-root and tests-root wording repairs are already landed on `master`, so the next bounded same-lane follow-through is smaller and docs-root specific:",
+    "- refresh `Documentation/zigux/README.md` so its Phase 12 notes explicitly keep `.github/workflows/zigux-bootstrap.yml` beside `scripts/zigux/check-build-only-phase12-surface.py`, `zigux/tests/README.md`, `zigux/tests/phase12_build.zig`, and `make -C zigux phase12`, matching the workflow-backed checker contract already named in this sequencing note and the tests root",
 ]
 
 REQUIRED_TESTS_README_MARKERS = [
@@ -152,6 +159,9 @@ def validate(root: Path) -> list[str]:
     for marker in REQUIRED_SEQUENCE_MARKERS:
         if marker not in phase12_sequence:
             failures.append(f"phase12_sequence:{marker}")
+    for marker in FORBIDDEN_SEQUENCE_MARKERS:
+        if marker in phase12_sequence:
+            failures.append(f"phase12_sequence_forbidden:{marker}")
     for marker in REQUIRED_SCRIPT_README_MARKERS:
         if marker not in scripts_readme:
             failures.append(f"scripts_readme:{marker}")
@@ -213,11 +223,12 @@ Phase 12 notes
         """# Phase 12 Release Sequencing
 
 - `Documentation/zigux/review-checklist.md`
-- `scripts/zigux/check-build-only-phase12-surface.py` must continue to keep that build-only contract fail-closed rather than implying an unshipped validator stack.
+- `scripts/zigux/check-build-only-phase12-surface.py` plus `.github/workflows/zigux-bootstrap.yml` keep the build-only contract fail-closed rather than implying an unshipped validator stack.
 - current public fallback split: two commit-pinned artifacts (`Documentation/zigux/phase12-nvme-pci-raw-github-fallback-map.md`, `Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md`) and two shared-tree-only anchors (`virtio_net`, `libbpf`)
 - `scripts/zigux/check-build-only-phase12-surface.py` is a shipped build-only contract checker, not a broader validator-first release gate
 - there is no shipped shared `scripts/zigux/validate-phase12.py`, no `check-phase12-*.py` release packet, and no `make -C zigux phase12-validate` target on `master`
-- future notes should not invent `validate-phase12.py`, `check-phase12-*.py`, or `phase12-validate` surfaces before they land
+- The docs-root, scripts-root, and tests-root wording repairs are already landed on `master`, so the next bounded same-lane follow-through is now drift control rather than another naming pass:
+- if the lane reopens for another degraded-workflow drift, start by diffing those shipped packet surfaces and rerunning `scripts/zigux/check-build-only-phase12-surface.py` before widening into any driver-local or helper-local Phase 12 work
 """,
     )
     write(
@@ -283,9 +294,23 @@ def run_self_test() -> int:
             "unexpected_file:scripts/zigux/validate-phase12.py",
             "unexpected_validate_script",
         )
+        (root / "scripts/zigux/validate-phase12.py").unlink()
+
+        write(
+            root / PHASE12_SEQUENCE_PATH,
+            (root / PHASE12_SEQUENCE_PATH).read_text(encoding="utf-8").replace(
+                "The docs-root, scripts-root, and tests-root wording repairs are already landed on `master`, so the next bounded same-lane follow-through is now drift control rather than another naming pass:",
+                "The scripts-root and tests-root wording repairs are already landed on `master`, so the next bounded same-lane follow-through is smaller and docs-root specific:",
+            ),
+        )
+        expect_failure(
+            root,
+            "phase12_sequence:The docs-root, scripts-root, and tests-root wording repairs are already landed on `master`, so the next bounded same-lane follow-through is now drift control rather than another naming pass:",
+            "stale_next_step_marker",
+        )
 
     print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST=pass")
-    print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST_CASE_COUNT=15")
+    print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST_CASE_COUNT=16")
     return 0
 
 
