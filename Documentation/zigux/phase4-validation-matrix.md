@@ -12,6 +12,9 @@ This document records the live Phase 4 differential-validation ownership and rep
   - `scripts/zigux/check-phase4-gate-evidence.py`
   - `Documentation/zigux/artifact-diff.md`
   - `Documentation/zigux/phase4-gate-evidence.md`
+  - `Documentation/zigux/README.md`
+  - `scripts/zigux/README.md`
+  - `zigux/tests/README.md`
   - `zigux/tests/atomic64_diff.zig`
   - `zigux/tests/runtime_atomic64_diff.zig`
   - `zigux/tests/phase4_runtime_atomic64_diff_manifest.json`
@@ -21,7 +24,7 @@ This document records the live Phase 4 differential-validation ownership and rep
   - `zigux/tests/phase4_build.zig`
   - `scripts/zigux/validate-phase4.py`
   - `.github/workflows/zigux-bootstrap.yml`
-- roadmap note: live `master` now carries the roadmap-named Phase 4 entrypoints at `zigux/tests/atomic64_diff.zig` and `zigux/tests/bitmap_diff.zig`, while the manifest-backed `phase4_runtime_atomic64_diff` survey packet keeps the wrapper-to-runtime atomic64 handoff measurable until the still-absent `samples/zigux/kprobe_example.zig` and `samples/zigux/test_fsmount.zig` follow-up work is intentionally opened
+- roadmap note: live `master` now carries the roadmap-named Phase 4 entrypoints at `zigux/tests/atomic64_diff.zig` and `zigux/tests/bitmap_diff.zig`, while the manifest-backed `phase4_runtime_atomic64_diff` survey packet keeps the wrapper-to-runtime atomic64 handoff measurable until the still-absent `samples/zigux/kprobe_example.zig` and `samples/zigux/test_fsmount.zig` follow-up work is intentionally opened, and `Documentation/zigux/README.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md` keep that validator-first packet visible from the three shared root summaries
 
 ## Why this exists
 
@@ -100,7 +103,7 @@ Without that record, Phase 4 validation exists in code but not yet as a product-
 
 The shared `zigux/tests/phase4_build.zig` entrypoint now runs `zigux/tests/phase4_runtime_atomic64_diff_survey.zig` beside `zigux/tests/atomic64_diff.zig`, `zigux/tests/bitmap_diff.zig`, and `zigux/tests/phase4_bitmap_live_helper_replay.zig` so the manifest-backed wrapper handoff and the shipped helper-backed bitmap semantics stay reviewable on the same bounded Phase 4 replay surface.
 
-The same validator-first route also keeps `Documentation/zigux/artifact-diff.md` aligned with the shipped host-side helper contract and `Documentation/zigux/phase4-gate-evidence.md` aligned with the dedicated exact-readback checker instead of leaving either packet implied.
+The same validator-first route also keeps `Documentation/zigux/artifact-diff.md` aligned with the shipped host-side helper contract, `Documentation/zigux/phase4-gate-evidence.md` aligned with the dedicated exact-readback checker, and the three shared root README summaries aligned with that same narrower validator-backed packet instead of leaving any of those review surfaces implied.
 
 ## Remaining Roadmap Gaps
 
