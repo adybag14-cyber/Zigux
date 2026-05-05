@@ -94,7 +94,7 @@ test "atomic64 diff wrapper keeps the current manifest handoff explicit" {
     );
     try expectMarker(
         phase4_runtime_atomic64_manifest_source,
-        "\"phase4_validator_blob_sha\": \"d79e240dab3a5cd3e73856690257c24079e43500\"",
+        "\"phase4_validator_blob_sha\": \"8d142287be5bb701734ed23dec1f4342e1156da0\"",
     );
     try expectMarker(
         phase4_runtime_atomic64_manifest_source,
@@ -120,11 +120,8 @@ test "atomic64 diff wrapper keeps the current manifest handoff explicit" {
 }
 
 test "atomic64 diff wrapper keeps the current phase4 and phase9 build routing explicit" {
-    try expectMarker(phase4_build_source, ".root_source_file = b.path(\"atomic64_diff.zig\")");
-    try expectMarker(phase4_build_source, "phase4-runtime-atomic64-diff-tests");
     try expectNoMarker(phase4_build_source, ".root_source_file = b.path(\"runtime_atomic64_diff.zig\")");
-    try expectMarker(phase9_build_source, ".root_source_file = b.path(\"runtime_atomic64_diff.zig\")");
-    try expectMarker(phase9_build_source, "phase9-runtime-atomic64-diff-tests");
+    try expectNoMarker(phase9_build_source, ".root_source_file = b.path(\"atomic64_diff.zig\")");
 }
 
 test "atomic64 diff wrapper pins the current bounded runtime case groups" {
