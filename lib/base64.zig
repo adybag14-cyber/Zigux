@@ -306,6 +306,33 @@ fn expectExhaustiveTailCanonicality(padding: bool, variant: Variant) !void {
     }
 }
 
+fn expectExhaustiveShortRoundtrip(padding: bool, variant: Variant) !void {
+    var encoded: [4]u8 = undefined;
+    var decoded: [2]u8 = undefined;
+
+    for (0..256) |a| {
+        const input = [_]u8{@intCast(a)};
+        const encoded_len = try encode(encoded[0..], input[0..], padding, variant);
+        try std.testing.expectEqual(chars(input.len, padding), encoded_len);
+
+        const decoded_len = try decode(decoded[0..], encoded[0..encoded_len], padding, variant);
+        try std.testing.expectEqual(@as(usize, 1), decoded_len);
+        try std.testing.expectEqualSlices(u8, input[0..], decoded[0..decoded_len]);
+    }
+
+    for (0..256) |a| {
+        for (0..256) |b| {
+            const input = [_]u8{ @intCast(a), @intCast(b) };
+            const encoded_len = try encode(encoded[0..], input[0..], padding, variant);
+            try std.testing.expectEqual(chars(input.len, padding), encoded_len);
+
+            const decoded_len = try decode(decoded[0..], encoded[0..encoded_len], padding, variant);
+            try std.testing.expectEqual(@as(usize, 2), decoded_len);
+            try std.testing.expectEqualSlices(u8, input[0..], decoded[0..decoded_len]);
+        }
+    }
+}
+
 test "chars matches padded and unpadded output sizes" {
     try std.testing.expectEqual(@as(usize, 0), chars(0, true));
     try std.testing.expectEqual(@as(usize, 4), chars(1, true));
@@ -374,4 +401,11 @@ test "decode exhaustively accepts only canonical unpadded tails" {
     try expectExhaustiveTailCanonicality(false, .std);
     try expectExhaustiveTailCanonicality(false, .urlsafe);
     try expectExhaustiveTailCanonicality(false, .imap);
+}
+
+test "encode and decode roundtrip every short payload across variants" {
+    inline for (.{ Variant.std, Variant.urlsafe, Variant.imap }) |variant| {
+        try expectExhaustiveShortRoundtrip(true, variant);
+        try expectExhaustiveShortRoundtrip(false, variant);
+    }
 }
