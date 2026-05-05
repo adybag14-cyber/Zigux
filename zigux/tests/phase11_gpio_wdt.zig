@@ -165,6 +165,33 @@ test "phase11 gpio_wdt stop requests distinguish nowayout gating from always-run
     try std.testing.expectEqual(@as(usize, 0), kept_running.disable_count);
 }
 
+test "phase11 gpio_wdt descriptor preflight keeps the first devm_gpiod_get boundary explicit" {
+    var toggle_watchdog = try gpio_wdt.GpioWatchdogLab.init(.toggle, 20, true);
+    const toggle_preflight = toggle_watchdog.descriptorPreflightSummary();
+    try std.testing.expectEqual(gpio_wdt.HardwareAlgorithm.toggle, toggle_preflight.hw_algo);
+    try std.testing.expectEqual(gpio_wdt.ProbeLineRequest.input, toggle_preflight.requested_line);
+    try std.testing.expectEqual(gpio_wdt.DescriptorRequestFlags.in, toggle_preflight.descriptor_flags);
+    try std.testing.expect(toggle_preflight.descriptor_lookup_required);
+    try std.testing.expect(toggle_preflight.hw_algo_selected_before_lookup);
+    try std.testing.expect(toggle_preflight.lookup_precedes_margin_validation);
+    try std.testing.expect(toggle_preflight.lookup_precedes_always_running_read);
+    try std.testing.expect(toggle_preflight.lookup_precedes_registration_handoff);
+    try std.testing.expect(toggle_preflight.blocked_on_live_gpio_lookup);
+    try std.testing.expect(toggle_preflight.blocked_on_platform_registration);
+
+    var level_watchdog = try gpio_wdt.GpioWatchdogLab.init(.level, 500, false);
+    const level_preflight = level_watchdog.descriptorPreflightSummary();
+    try std.testing.expectEqual(gpio_wdt.HardwareAlgorithm.level, level_preflight.hw_algo);
+    try std.testing.expectEqual(gpio_wdt.ProbeLineRequest.output_low, level_preflight.requested_line);
+    try std.testing.expectEqual(gpio_wdt.DescriptorRequestFlags.out_low, level_preflight.descriptor_flags);
+    try std.testing.expect(level_preflight.descriptor_lookup_required);
+    try std.testing.expect(level_preflight.lookup_precedes_margin_validation);
+    try std.testing.expect(level_preflight.lookup_precedes_always_running_read);
+    try std.testing.expect(level_preflight.lookup_precedes_registration_handoff);
+    try std.testing.expect(level_preflight.blocked_on_live_gpio_lookup);
+    try std.testing.expect(level_preflight.blocked_on_platform_registration);
+}
+
 test "phase11 gpio_wdt registration handoff summary records startup state, stop policy, and watchdog metadata" {
     var prestarted_watchdog = try gpio_wdt.GpioWatchdogLab.init(.toggle, 20, true);
     const prestarted_handoff = prestarted_watchdog.registrationHandoffSummary(true);
