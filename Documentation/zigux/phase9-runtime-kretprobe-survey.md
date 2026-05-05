@@ -28,7 +28,8 @@ The live repo now has a bounded `runtime_kretprobe` starter, dedicated module te
 - `samples/kprobes/kretprobe_example.c` is present on `master` at 108 lines.
 - the Linux sample is module-oriented, centered on `register_kretprobe`, `unregister_kretprobe`, `entry_handler`, `ret_handler`, `maxactive`, and `nmissed`.
 - the live repo now ships `samples/zigux/runtime_kretprobe.zig`, `samples/zigux/runtime_kretprobe_loader.zig`, `zigux/tests/runtime_kretprobe_module.zig`, `zigux/tests/runtime_kretprobe_diff.zig`, `zigux/tests/runtime_kretprobe_survey.zig`, and the shared `zigux/tests/phase9_build.zig` coverage for this lane.
-- runtime substrate work is still missing, so the starter intentionally stops at bounded lifecycle, bookkeeping, and loader-handoff behavior rather than claiming real module registration parity.
+- the landed loader scaffold keeps `register_kretprobe` and `unregister_kretprobe` explicit as metadata-only labels inside a pre-execution handoff plan, together with the retargeted symbol name and private-data size, rather than claiming live initcall or runtime registration behavior.
+- runtime substrate work is still missing, so the starter intentionally stops at bounded lifecycle, bookkeeping, metadata-only registration labels, and loader-handoff behavior rather than claiming real module registration parity.
 
 ## Recorded gaps
 
