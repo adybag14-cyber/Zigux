@@ -250,6 +250,63 @@ test "phase10 virtio input stages capability setup from config bitmaps and ABS m
     try std.testing.expect(summary.stages_abs_params);
 }
 
+test "phase10 virtio input plans multitouch slots from ABS_MT_SLOT before registration work" {
+    var missing_abs_device = try virtio_input.VirtioInputLab.init("tablet", "serial-8", 8, null);
+    try std.testing.expectError(error.AbsCapabilitiesNotConfigured, missing_abs_device.planMultitouchSlots());
+
+    var missing_slot_bit_device = try virtio_input.VirtioInputLab.init("tablet", "serial-9", 9, null);
+    try missing_slot_bit_device.configureConfigBitmap(.ev_bits, virtio_input.ev_abs, &[_]u16{0});
+    try std.testing.expectError(error.MultitouchSlotCapabilityMissing, missing_slot_bit_device.planMultitouchSlots());
+
+    var negative_max_device = try virtio_input.VirtioInputLab.init("tablet", "serial-10", 10, null);
+    try negative_max_device.configureConfigBitmap(.ev_bits, virtio_input.ev_abs, &[_]u16{virtio_input.abs_mt_slot});
+    try negative_max_device.configureAbsInfo(virtio_input.abs_mt_slot, .{
+        .minimum = -1,
+        .maximum = -1,
+    });
+    try std.testing.expectError(error.MultitouchSlotMaximumNegative, negative_max_device.planMultitouchSlots());
+
+    var nonzero_min_device = try virtio_input.VirtioInputLab.init("tablet", "serial-11", 11, null);
+    try nonzero_min_device.configureConfigBitmap(.ev_bits, virtio_input.ev_abs, &[_]u16{virtio_input.abs_mt_slot});
+    try nonzero_min_device.configureAbsInfo(virtio_input.abs_mt_slot, .{
+        .minimum = 1,
+        .maximum = 4,
+    });
+    try std.testing.expectError(error.MultitouchSlotMinimumMustBeZero, nonzero_min_device.planMultitouchSlots());
+
+    var oversized_device = try virtio_input.VirtioInputLab.init("tablet", "serial-12", 12, null);
+    try oversized_device.configureConfigBitmap(.ev_bits, virtio_input.ev_abs, &[_]u16{virtio_input.abs_mt_slot});
+    try oversized_device.configureAbsInfo(virtio_input.abs_mt_slot, .{
+        .minimum = 0,
+        .maximum = virtio_input.multitouch_slot_capacity,
+    });
+    try std.testing.expectError(error.MultitouchSlotCountTooLarge, oversized_device.planMultitouchSlots());
+
+    var ready_device = try virtio_input.VirtioInputLab.init("tablet", "serial-13", 13, null);
+    try ready_device.configureConfigBitmap(.ev_bits, virtio_input.ev_abs, &[_]u16{ 0, virtio_input.abs_mt_slot });
+    try ready_device.configureAbsInfo(virtio_input.abs_mt_slot, .{
+        .minimum = 0,
+        .maximum = 9,
+    });
+
+    const slot_summary = try ready_device.planMultitouchSlots();
+    try std.testing.expectEqualStrings("drivers/virtio/virtio_input.c", slot_summary.anchor);
+    try std.testing.expectEqual(@as(u16, virtio_input.abs_mt_slot), slot_summary.abs_code);
+    try std.testing.expectEqual(@as(u16, 9), slot_summary.advertised_slot_max);
+    try std.testing.expectEqual(@as(u16, 10), slot_summary.planned_slot_count);
+    try std.testing.expect(slot_summary.multitouch_enabled);
+
+    try ready_device.configureEventQueue(8);
+    try ready_device.configureStatusQueue(4);
+    _ = try ready_device.fillEventBuffers();
+    try ready_device.markReady();
+
+    const status_summary = try ready_device.sendStatus(virtio_input.ev_msc, virtio_input.msc_timestamp, 1);
+    try std.testing.expect(!status_summary.sent);
+    try std.testing.expect(status_summary.suppressed_msc_timestamp);
+    try std.testing.expectEqual(@as(usize, 1), status_summary.suppressed_status_count);
+}
+
 test "phase10 virtio input reset clears queue plan and returns to default bus identity" {
     var device = try virtio_input.VirtioInputLab.init("keyboard", "serial-3", 3, null);
     const snapshot = device.configSnapshot();
@@ -261,19 +318,20 @@ test "phase10 virtio input reset clears queue plan and returns to default bus id
     try device.markReady();
     _ = try device.sendStatus(0x11, 0x01, 1);
     try device.configureConfigBitmap(.prop_bits, 0, &[_]u16{ 0, 5 });
-    try device.configureConfigBitmap(.ev_bits, virtio_input.ev_abs, &[_]u16{0});
-    try device.configureAbsInfo(0x00, .{
+    try device.configureConfigBitmap(.ev_bits, virtio_input.ev_abs, &[_]u16{ virtio_input.abs_mt_slot });
+    try device.configureAbsInfo(virtio_input.abs_mt_slot, .{
         .minimum = 0,
-        .maximum = 1024,
+        .maximum = 7,
         .resolution = 16,
     });
-    device.setMultitouch(true);
+    _ = try device.planMultitouchSlots();
 
     device.reset();
 
     try std.testing.expectError(error.EventQueueNotConfigured, device.queuePlanSummary());
     try std.testing.expectError(error.StatusQueueNotConfigured, device.sendStatus(0x11, 0x01, 1));
     try std.testing.expectError(error.ConfigBitmapNotConfigured, device.configBitmapSummary(.prop_bits, 0));
-    try std.testing.expectError(error.AbsInfoNotConfigured, device.absInfoSummary(0x00));
+    try std.testing.expectError(error.AbsInfoNotConfigured, device.absInfoSummary(virtio_input.abs_mt_slot));
     try std.testing.expectError(error.CapabilityConfigNotConfigured, device.capabilitySetupSummary());
+    try std.testing.expectError(error.AbsCapabilitiesNotConfigured, device.planMultitouchSlots());
 }
