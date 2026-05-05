@@ -91,10 +91,17 @@
     },
     {
       "id": "phase13-libfs-transaction-publish-helper",
+      "status": "starter_landed",
+      "kind": "filesystem_helper_surface",
+      "zigux_destination": "fs/libfs.zig",
+      "why_now": "The libfs helper lab now models the pure `simple_transaction_set()` publish path, including response-size validation up to `SIMPLE_TRANSACTION_LIMIT`, the requirement that the transaction buffer already exist, and the barrier-backed rule that the readable response size stays hidden until publish bookkeeping is complete."
+    },
+    {
+      "id": "phase13-libfs-transaction-read-helper",
       "status": "ready_next",
       "kind": "filesystem_helper_surface",
       "zigux_destination": "fs/libfs.zig",
-      "why_now": "The next honest transaction-family step is a tiny `simple_transaction_set()` publish planner that keeps the work in response-size validation and publish bookkeeping before any live readback or release state is modeled."
+      "why_now": "The next honest transaction-family step is a tiny `simple_transaction_read()` planner that keeps the work in empty-private-data handling, response-size passthrough, and delegated `simple_read_from_buffer()` handoff before any release lifecycle or broader file operation state is modeled."
     }
   ]
 }
