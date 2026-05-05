@@ -63,6 +63,7 @@ pub const PreparedRequest = struct {
 
 pub fn prepareRequest(plan: LoadPlan) !PreparedRequest {
     if (!plan.requires_runtime_substrate) return error.LoaderNotRequired;
+    if (!keepsSelftestHookEvidenceConsistent(plan)) return error.InvalidSelftestHookEvidence;
     if (!plan.init_flow.readyForRuntimeLoad()) return error.InvalidInitFlow;
 
     return .{ .plan = plan };
@@ -80,7 +81,16 @@ pub fn keepsAllocatorInitFlowConsistent(
         plan.init_flow.exit_runs == init_flow.exit_runs;
 }
 
-test "shared runtime loader contract keeps allocator and init flow explicit across handoff variants" {
+pub fn keepsSelftestHookEvidenceConsistent(plan: LoadPlan) bool {
+    if (!plan.provides_selftest_hook and plan.init_flow.selftest_runs > 0) return false;
+
+    return switch (plan.init_flow.handoff_stage) {
+        .initialized => true,
+        .selftest_complete => plan.provides_selftest_hook,
+    };
+}
+
+test "shared runtime loader contract keeps allocator, init flow, and selftest-hook evidence explicit across handoff variants" {
     const cases = [_]LoadPlan{
         .{
             .module_name = "runtime_atomic64",
@@ -152,6 +162,7 @@ test "shared runtime loader contract keeps allocator and init flow explicit acro
             plan.allocator_handoff,
             plan.init_flow,
         ));
+        try std.testing.expect(keepsSelftestHookEvidenceConsistent(plan));
 
         const pending_plan = try request.requestRuntimeLoad();
         try std.testing.expectEqual(RequestState.waiting_on_runtime_substrate, request.state);
@@ -164,7 +175,7 @@ test "shared runtime loader contract keeps allocator and init flow explicit acro
     }
 }
 
-test "shared runtime loader contract rejects impossible or stale handoff flows" {
+test "shared runtime loader contract rejects impossible, stale, or selftest-hook-inconsistent handoff flows" {
     const missing_init = LoadPlan{
         .module_name = "runtime_atomic64",
         .anchor = "lib/atomic64_test.c",
@@ -215,6 +226,42 @@ test "shared runtime loader contract rejects impossible or stale handoff flows" 
         },
     };
     try std.testing.expectError(error.InvalidInitFlow, prepareRequest(mismatched_selftest));
+
+    const missing_selftest_hook = LoadPlan{
+        .module_name = "runtime_trace_events",
+        .anchor = "samples/trace_events/trace-events-sample.c",
+        .entry_symbol = "zigux_runtime_trace_events_init",
+        .exit_symbol = "zigux_runtime_trace_events_exit",
+        .requires_runtime_substrate = true,
+        .provides_selftest_hook = false,
+        .allocator_handoff = .caller_provided,
+        .init_flow = .{
+            .handoff_stage = .selftest_complete,
+            .init_runs = 1,
+            .selftest_runs = 1,
+            .exit_runs = 0,
+        },
+    };
+    try std.testing.expect(!keepsSelftestHookEvidenceConsistent(missing_selftest_hook));
+    try std.testing.expectError(error.InvalidSelftestHookEvidence, prepareRequest(missing_selftest_hook));
+
+    const selftest_runs_without_hook = LoadPlan{
+        .module_name = "runtime_bitmap",
+        .anchor = "lib/test_bitmap.c",
+        .entry_symbol = "zigux_runtime_bitmap_init",
+        .exit_symbol = "zigux_runtime_bitmap_exit",
+        .requires_runtime_substrate = true,
+        .provides_selftest_hook = false,
+        .allocator_handoff = .arena,
+        .init_flow = .{
+            .handoff_stage = .initialized,
+            .init_runs = 1,
+            .selftest_runs = 1,
+            .exit_runs = 0,
+        },
+    };
+    try std.testing.expect(!keepsSelftestHookEvidenceConsistent(selftest_runs_without_hook));
+    try std.testing.expectError(error.InvalidSelftestHookEvidence, prepareRequest(selftest_runs_without_hook));
 
     const stable_plan = LoadPlan{
         .module_name = "runtime_atomic64",
