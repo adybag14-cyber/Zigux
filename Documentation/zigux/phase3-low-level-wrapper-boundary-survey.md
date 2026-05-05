@@ -17,6 +17,10 @@ This note records the current atomic, barrier, and MMIO boundary for the bounded
 - `PHASE3_MMIO_SCOPE=range-read8-write8-read32-write32`
 - `PHASE3_MMIO_STATUS=byte-and-32-bit-mmio-through-narrow-pointer-bridge`
 - `PHASE3_MMIO_BLOB_SHA=b4d56107ff0f3d2845d7c26dac87d5f594602a28`
+- `PHASE3_LOW_LEVEL_TEST_PATH=zigux/tests/phase3_low_level_wrappers.zig`
+- `PHASE3_LOW_LEVEL_TEST_SCOPE=focused-atomic-barrier-mmio-replay`
+- `PHASE3_LOW_LEVEL_TEST_STATUS=dedicated-focused-replay-landed`
+- `PHASE3_LOW_LEVEL_TEST_BLOB_SHA=866bc896e2aa5985871061feb60bd36615f69761`
 - `PHASE3_ABI_TEST_PATH=zigux/tests/phase3_abi.zig`
 - `PHASE3_ABI_TEST_BLOB_SHA=7c3c7887bb23d1acccd835ed3bb71eba3824c45d`
 - `PHASE3_ABI_DUMP_PATH=zigux/tests/phase3_abi_dump.zig`
@@ -26,9 +30,9 @@ This note records the current atomic, barrier, and MMIO boundary for the bounded
 - `PHASE3_ABI_SLICE_DOC_BLOB_SHA=f08a3b62b483ee5f9bea0c9ce9fc9a1dbeb41452`
 - `PHASE3_VALIDATE_GATE=python3 scripts/zigux/validate-phase3.py --slug abi`
 - `PHASE3_LOW_LEVEL_WRAPPER_SURVEY_GATE=python3 scripts/zigux/validate-phase3-low-level-wrapper-survey.py`
-- `PHASE3_BOUNDARY_SCOPE=shared-abi-compile-layout-dump-packet`
-- `PHASE3_BOUNDARY_GAP=shared-abi-packet-covers-current-low-level-wrapper-surface-without-a-dedicated-low-level-wrapper-replay`
-- `PHASE3_NEXT_BOUNDED_STEP=keep-the-shared-abi-packet-and-this-survey-aligned-until-a-real-dedicated-low-level-wrapper-replay-lands`
+- `PHASE3_BOUNDARY_SCOPE=focused-low-level-replay-plus-shared-abi-compile-layout-dump-packet`
+- `PHASE3_BOUNDARY_GAP=focused-low-level-replay-remains-narrower-than-helper-local-atomic-and-mmio-width-coverage`
+- `PHASE3_NEXT_BOUNDED_STEP=keep-this-survey-and-the-focused-low-level-replay-aligned-until-real-wrapper-surface-growth-lands`
 
 ## Roadmap Contract
 
@@ -38,9 +42,9 @@ For this lane, the roadmap requirements are still narrow:
 
 - approved atomic, barrier, and MMIO wrappers
 - explicit narrow-unsafe review instead of hidden raw-pointer expansion
-- compile, layout, and dump evidence that tells reviewers exactly how much of the low-level wrapper family is actually proven on the shared ABI packet
+- compile, layout, dump, and focused replay evidence that tells reviewers exactly how much of the low-level wrapper family is actually proven on current `master`
 
-That does not require a broad kernel-style low-level helper family yet. It does require the repo to say clearly which low-level wrappers are already shipped and which proof surfaces are real on current `master`.
+That still does not require a broad kernel-style low-level helper family. It does require the repo to say clearly which low-level wrappers are already shipped, which focused replay is real, and which broader proof still comes from the shared ABI packet.
 
 ## Live Repo Reality
 
@@ -48,32 +52,34 @@ This survey is anchored to packet-local blob IDs because the current connector r
 
 The current tree carries a real low-level wrapper packet:
 
-- `zigux/helpers/atomic.zig` exposes `load`, `store`, `exchange`, `fetchAdd`, `fetchSub`, `fetchAnd`, `fetchOr`, `fetchXor`, `fetchMin`, `fetchMax`, `compareExchange`, and `compareExchangeWeak`, all parameterized by Zig atomic order instead of a broader kernel-style helper family.
+- `zigux/helpers/atomic.zig` exposes `load`, `store`, `exchange`, `fetchAdd`, `fetchSub`, `fetchAnd`, `fetchOr`, `fetchXor`, `fetchMin`, `fetchMax`, `compareExchange`, and `compareExchangeWeak`, with helper-local tests that also keep non-`seq_cst` orderings reviewable.
 - `zigux/helpers/barrier.zig` exposes `acquire`, `release`, `full`, and `acquireRelease()` through local sentinel-backed probes.
-- `zigux/helpers/mmio.zig` exposes `range`, `read8`, `write8`, `read32`, and `write32`, all routed through the narrow pointer bridge in `zigux/unsafe/narrow.zig`.
-- The current shared compile, layout, and dump proof for this packet lives in `zigux/tests/phase3_abi.zig`, `zigux/tests/phase3_abi_dump.zig`, `zigux/tests/fixtures/phase3_abi/expected.json`, and `zigux/tests/fixtures/phase3_abi_manifest.json`.
-- The broader ABI slice note still carries older low-level-wrapper wording, so this survey is the tighter packet-local source of truth until that note is deliberately resurveyed.
+- `zigux/helpers/mmio.zig` exposes `range`, direct `read8` and `write8`, and direct `read32` and `write32`, all routed through the narrow pointer bridge in `zigux/unsafe/narrow.zig`.
+- `zigux/tests/phase3_low_level_wrappers.zig` is now a real dedicated focused replay for this lane's packet, directly exercising the current atomic, barrier, and MMIO starter surface while staying narrower than the helper-local tests.
+- The broader shared compile, layout, and dump proof for this packet still lives in `zigux/tests/phase3_abi.zig`, `zigux/tests/phase3_abi_dump.zig`, `zigux/tests/fixtures/phase3_abi/expected.json`, and `zigux/tests/fixtures/phase3_abi_manifest.json`.
+- `Documentation/zigux/phase3-abi-slice.md` already describes the focused low-level wrapper gate as narrower than the helper-local tests, so this survey now matches the current shared note instead of lagging behind it.
 
 ## Ledger Alignment
 
 This low-level wrapper packet still belongs to the same bounded Phase 3 ABI substrate family recorded in `BOOTSTRAP_COMMIT_LEDGER.md` entry `26`, `feat(zigux): start bounded Phase 3 abi substrate skeleton`.
 
-That keeps this lane inside shared-packet survey and validator maintenance rather than a new helper tranche.
+The focused low-level replay does not open a new tranche by itself. It is still the same bounded ABI substrate packet, now with one dedicated proof surface in addition to the shared ABI compile, layout, and dump packet.
 
 ## Current Boundary Gap
 
-The live gap is no longer helper absence.
+The live gap is no longer the absence of a dedicated low-level replay.
 
 The current reviewability gap is narrower:
 
 - the helper files already ship the bounded atomic, barrier, and MMIO surface listed above
-- the current proof packet is shared through the ABI compile, layout, and dump gates rather than a dedicated low-level-wrapper replay
-- the older low-level survey validator and some surrounding note wording can drift unless they are kept aligned with the current helper packet
+- the repo now has a dedicated focused replay for that starter packet in `zigux/tests/phase3_low_level_wrappers.zig`
+- the focused replay is still intentionally narrower than the helper-local atomic ordering coverage and the helper-local MMIO width coverage
+- the shared ABI packet remains the broader compile, layout, and dump proof surface for this family
 
-That repo reality still fits the roadmap's wrapper-first posture, but it does not justify inventing a missing focused replay file family when the real proof today is the shared ABI packet.
+That repo reality still fits the roadmap's wrapper-first posture, but it means this survey should describe the dedicated focused replay honestly instead of pretending the shared ABI packet is the only proof surface left.
 
 ## Next Bounded Step
 
-- leave this lane parked unless one of the directly coupled helper files or shared ABI proof files moves again
-- if a dedicated low-level-wrapper replay lands later, resurvey this note against the exact live files before claiming broader closure
-- keep any follow-up inside the same survey-or-validator packet unless a separate lane explicitly opens low-level wrapper implementation work
+- leave this lane parked unless one of the directly coupled helper files, the dedicated focused replay, or the shared ABI proof files moves again
+- if the dedicated focused replay widens later, resurvey this note against the exact live files before claiming broader closure
+- keep any follow-up inside the same note-only packet unless a separate lane explicitly opens validator or helper implementation work
