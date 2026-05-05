@@ -105,7 +105,7 @@
       "status": "starter_landed",
       "kind": "transport_wrapper",
       "zigux_destination": "drivers/virtio/virtio_mmio.zig",
-      "why_now": "The same helper now stages one small transport-backed config-word window in memory so VM-friendly lab validation can replay bounded config reads without implying interrupt acknowledgement, queue discovery, reset flows, or probe lifecycle behavior."
+      "why_now": "The same helper now stages one small transport-backed config-word window in memory so VM-friendly lab validation can replay bounded config reads, including the shorter restaged config window that clears stale second-word data and shrinks the readable config window, without implying interrupt acknowledgement, queue discovery, reset flows, or probe lifecycle behavior."
     },
     {
       "id": "phase10-mmio-lifecycle-and-irq-paths",
