@@ -6,6 +6,15 @@ const GovernanceRequirement = struct {
     required_terms: []const []const u8,
 };
 
+const BlockerOwnership = struct {
+    anchor: []const u8,
+    owner: []const u8,
+    phase: []const u8,
+    status_bucket: []const u8,
+    validation_gate: []const u8,
+    rollback_owner: []const u8,
+};
+
 const Gap = struct {
     id: []const u8,
     status: []const u8,
@@ -22,6 +31,7 @@ const Manifest = struct {
     freeze_in_c_targets: []const []const u8,
     study_only_targets: []const []const u8,
     governance_requirements: []const GovernanceRequirement,
+    blocker_ownership: []const BlockerOwnership,
     gaps: []const Gap,
 };
 
@@ -47,14 +57,15 @@ test "phase 15 freeze-map governance manifest records the bounded governance sli
     defer parsed.deinit();
 
     const manifest = parsed.value;
-    try std.testing.expectEqualStrings("P15-L01", manifest.lane_key);
+    try std.testing.expectEqualStrings("P15-Y01", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 15", manifest.phase);
     try std.testing.expectEqualStrings("9342905d34fb98d6fcd88cf2e88efed7355131d2", manifest.surveyed_commit);
     try std.testing.expectEqualStrings("Documentation/zigux/freeze-map.md", manifest.anchor);
     try std.testing.expectEqual(@as(usize, 4), manifest.freeze_in_c_targets.len);
     try std.testing.expectEqual(@as(usize, 2), manifest.study_only_targets.len);
     try std.testing.expectEqual(@as(usize, 5), manifest.governance_requirements.len);
-    try std.testing.expectEqual(@as(usize, 7), manifest.gaps.len);
+    try std.testing.expectEqual(@as(usize, 4), manifest.blocker_ownership.len);
+    try std.testing.expectEqual(@as(usize, 8), manifest.gaps.len);
 
     try std.testing.expectEqualStrings("kernel/sched/core.c", manifest.freeze_in_c_targets[0]);
     try std.testing.expectEqualStrings("mm/page_alloc.c", manifest.freeze_in_c_targets[1]);
@@ -62,6 +73,20 @@ test "phase 15 freeze-map governance manifest records the bounded governance sli
     try std.testing.expectEqualStrings("net/core/skbuff.c", manifest.freeze_in_c_targets[3]);
     try std.testing.expectEqualStrings("kernel/workqueue.c", manifest.study_only_targets[0]);
     try std.testing.expectEqualStrings("kernel/trace/ring_buffer.c", manifest.study_only_targets[1]);
+
+    for (manifest.blocker_ownership, 0..) |ownership, i| {
+        try std.testing.expect(ownership.anchor.len > 0);
+        try std.testing.expect(ownership.owner.len > 0);
+        try std.testing.expectEqualStrings("Phase 15", ownership.phase);
+        try std.testing.expectEqualStrings("freeze_in_c", ownership.status_bucket);
+        try std.testing.expectEqualStrings("Phase 15 parity scorecard plus Architecture Council reopen record", ownership.validation_gate);
+        try std.testing.expectEqualStrings("Architecture Council freeze-map owner", ownership.rollback_owner);
+        try std.testing.expectEqualStrings(manifest.freeze_in_c_targets[i], ownership.anchor);
+
+        for (manifest.blocker_ownership[i + 1 ..]) |other| {
+            try std.testing.expect(!std.mem.eql(u8, ownership.anchor, other.anchor));
+        }
+    }
 
     var landed_count: usize = 0;
     var ready_next_count: usize = 0;
@@ -72,6 +97,7 @@ test "phase 15 freeze-map governance manifest records the bounded governance sli
     var saw_make = false;
     var saw_closeout_sync = false;
     var saw_governance_family_alignment = false;
+    var saw_blocker_ownership_sync = false;
     var saw_blocker = false;
 
     for (manifest.gaps, 0..) |gap, i| {
@@ -119,6 +145,12 @@ test "phase 15 freeze-map governance manifest records the bounded governance sli
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "already landed") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "indefinite-C policy") != null);
         }
+        if (std.mem.eql(u8, gap.id, "phase15-blocker-ownership-sync")) {
+            saw_blocker_ownership_sync = true;
+            try std.testing.expectEqualStrings("starter_landed", gap.status);
+            try std.testing.expectEqualStrings("Documentation/zigux/phase15-freeze-map-governance.md", gap.zigux_destination);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "owner, validation-gate, and rollback-owner inventory") != null);
+        }
         if (std.mem.eql(u8, gap.id, "phase15-deep-core-status-change-blocker")) {
             saw_blocker = true;
             try std.testing.expectEqualStrings("blocked_on_stay_in_c_evidence", gap.status);
@@ -131,7 +163,7 @@ test "phase 15 freeze-map governance manifest records the bounded governance sli
         }
     }
 
-    try std.testing.expectEqual(@as(usize, 6), landed_count);
+    try std.testing.expectEqual(@as(usize, 7), landed_count);
     try std.testing.expectEqual(@as(usize, 0), ready_next_count);
     try std.testing.expectEqual(@as(usize, 1), blocked_count);
     try std.testing.expect(saw_freeze_doc);
@@ -140,6 +172,7 @@ test "phase 15 freeze-map governance manifest records the bounded governance sli
     try std.testing.expect(saw_make);
     try std.testing.expect(saw_closeout_sync);
     try std.testing.expect(saw_governance_family_alignment);
+    try std.testing.expect(saw_blocker_ownership_sync);
     try std.testing.expect(saw_blocker);
 }
 
@@ -178,6 +211,13 @@ test "phase 15 freeze-map governance note records the current blocker posture ho
     );
     defer std.testing.allocator.free(governance_note);
 
+    try std.testing.expect(std.mem.indexOf(u8, governance_note, "PHASE15_LANE_KEY=P15-Y01") != null);
+    try std.testing.expect(std.mem.indexOf(u8, governance_note, "## Freeze-In-C Anchor Ownership Inventory") != null);
+    try std.testing.expect(std.mem.indexOf(u8, governance_note, "kernel scheduler maintainers") != null);
+    try std.testing.expect(std.mem.indexOf(u8, governance_note, "memory-management maintainers") != null);
+    try std.testing.expect(std.mem.indexOf(u8, governance_note, "RCU maintainers") != null);
+    try std.testing.expect(std.mem.indexOf(u8, governance_note, "network buffer maintainers") != null);
+    try std.testing.expect(std.mem.indexOf(u8, governance_note, "Architecture Council freeze-map owner") != null);
     try std.testing.expect(std.mem.indexOf(u8, governance_note, "## Current blocker posture") != null);
     try std.testing.expect(std.mem.indexOf(u8, governance_note, "no bounded scheduler seam") != null);
     try std.testing.expect(std.mem.indexOf(u8, governance_note, "no bounded allocator seam") != null);
@@ -206,6 +246,14 @@ test "phase 15 governance manifest required terms stay aligned with the freeze m
     );
     defer std.testing.allocator.free(freeze_map);
 
+    const governance_note = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "Documentation/zigux/phase15-freeze-map-governance.md",
+        std.testing.allocator,
+        .limited(20 * 1024),
+    );
+    defer std.testing.allocator.free(governance_note);
+
     const parsed = try std.json.parseFromSlice(Manifest, std.testing.allocator, manifest_json, .{});
     defer parsed.deinit();
 
@@ -217,5 +265,12 @@ test "phase 15 governance manifest required terms stay aligned with the freeze m
         for (requirement.required_terms) |term| {
             try std.testing.expect(std.mem.indexOf(u8, freeze_map, term) != null);
         }
+    }
+
+    for (parsed.value.blocker_ownership) |ownership| {
+        try std.testing.expect(std.mem.indexOf(u8, governance_note, ownership.anchor) != null);
+        try std.testing.expect(std.mem.indexOf(u8, governance_note, ownership.owner) != null);
+        try std.testing.expect(std.mem.indexOf(u8, governance_note, ownership.validation_gate) != null);
+        try std.testing.expect(std.mem.indexOf(u8, governance_note, ownership.rollback_owner) != null);
     }
 }
