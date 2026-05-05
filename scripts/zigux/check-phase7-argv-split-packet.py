@@ -56,6 +56,10 @@ REQUIRED_MARKERS = {
         "zigux/tests/phase7_argv_split_manifest.json",
         "PHASE7_LANE_KEY=",
     ],
+    "zigux/tests/phase7_argv_split_manifest.json": [
+        "\"id\": \"phase7-argv-split-packet-checker\"",
+        "\"zigux_destination\": \"scripts/zigux/check-phase7-argv-split-packet.py\"",
+    ],
     "zigux/tests/fixtures/phase7_argv_split_vectors.zig": [
         "repeated whitespace collapses into separators",
         "blank input stays empty",
@@ -98,7 +102,7 @@ def write_fixture_root(tmp_root: Path) -> None:
         "zigux/tests/phase7_build.zig": "\n".join(REQUIRED_MARKERS["zigux/tests/phase7_build.zig"]) + "\n",
         "zigux/tests/phase7_argv_split.zig": "\n".join(REQUIRED_MARKERS["zigux/tests/phase7_argv_split.zig"]) + "\n",
         "zigux/tests/phase7_argv_split_survey.zig": "\n".join(REQUIRED_MARKERS["zigux/tests/phase7_argv_split_survey.zig"]) + "\n",
-        "zigux/tests/phase7_argv_split_manifest.json": "{}\n",
+        "zigux/tests/phase7_argv_split_manifest.json": "\n".join(REQUIRED_MARKERS["zigux/tests/phase7_argv_split_manifest.json"]) + "\n",
         "zigux/tests/fixtures/phase7_argv_split_vectors.zig": "\n".join(REQUIRED_MARKERS["zigux/tests/fixtures/phase7_argv_split_vectors.zig"]) + "\n",
         "lib/argv_split.zig": "// fixture\n",
     }
@@ -258,6 +262,36 @@ def run_self_test() -> None:
             "argv_split_quote_fixture_marker",
             tmp_root,
             "zigux/tests/fixtures/phase7_argv_split_vectors.zig: quote characters stay inside returned tokens",
+        )
+        case_count += 1
+        fixture_path.write_text(original_fixture, encoding="utf-8")
+
+        manifest_path = tmp_root / "zigux" / "tests" / "phase7_argv_split_manifest.json"
+        original_manifest = manifest_path.read_text(encoding="utf-8")
+        manifest_path.write_text(
+            original_manifest.replace("\"id\": \"phase7-argv-split-packet-checker\"", "\"id\": \"phase7-argv-split-missing-checker\"", 1),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "argv_split_manifest_checker_id_marker",
+            tmp_root,
+            "zigux/tests/phase7_argv_split_manifest.json: \"id\": \"phase7-argv-split-packet-checker\"",
+        )
+        case_count += 1
+        manifest_path.write_text(original_manifest, encoding="utf-8")
+
+        manifest_path.write_text(
+            original_manifest.replace(
+                "\"zigux_destination\": \"scripts/zigux/check-phase7-argv-split-packet.py\"",
+                "\"zigux_destination\": \"scripts/zigux/check-phase7-argv-split-packet-drift.py\"",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "argv_split_manifest_checker_destination_marker",
+            tmp_root,
+            "zigux/tests/phase7_argv_split_manifest.json: \"zigux_destination\": \"scripts/zigux/check-phase7-argv-split-packet.py\"",
         )
         case_count += 1
 
