@@ -41,11 +41,13 @@ test "phase14 shared smoke manifest records the bounded study-only packet" {
     try std.testing.expectEqualStrings("phase14_shared_smoke_packet", manifest.packet_name);
     try std.testing.expectEqualStrings("study_only_shared_smoke_packet", manifest.focus);
     try std.testing.expectEqual(@as(usize, 4), manifest.commands.len);
-    try std.testing.expectEqual(@as(usize, 11), manifest.surfaces.len);
+    try std.testing.expectEqual(@as(usize, 13), manifest.surfaces.len);
     try std.testing.expectEqual(@as(usize, 4), manifest.blocked_anchors.len);
     try std.testing.expectEqualStrings("make -C zigux phase14-smoke", manifest.commands[0]);
     try std.testing.expectEqualStrings("Documentation/zigux/README.md", manifest.surfaces[0].path);
     try std.testing.expectEqualStrings("zigux/tests/phase14_build.zig", manifest.surfaces[4].path);
+    try std.testing.expectEqualStrings("zigux/tests/phase14_ring_buffer_manifest.json", manifest.surfaces[9].path);
+    try std.testing.expectEqualStrings("zigux/tests/phase14_rcu_tree_manifest.json", manifest.surfaces[10].path);
     try std.testing.expectEqualStrings("kernel/workqueue.c", manifest.blocked_anchors[0]);
     try std.testing.expectEqualStrings("net/core/skbuff.c", manifest.blocked_anchors[3]);
     try std.testing.expect(containsMarker(manifest.rollback_owner, "freeze-map anchors"));
