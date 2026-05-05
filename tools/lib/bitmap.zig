@@ -472,6 +472,20 @@ test "bitmap scnprintf reports full length while truncating the buffer" {
     try std.testing.expectEqual(@as(u8, 0), buffer[buffer.len - 1]);
 }
 
+test "bitmap scnprintf handles terminator-only and zero-length caller views" {
+    var map = [_]Word{0};
+    setRange(&map, 9, 1);
+
+    var terminator_only = [_]u8{0xaa};
+    const terminator_only_len = scnprintf(&map, 32, &terminator_only);
+    try std.testing.expectEqual(@as(usize, 0), terminator_only_len);
+    try std.testing.expectEqual(@as(u8, 0), terminator_only[0]);
+
+    var zero_length = [_]u8{};
+    const zero_length_len = scnprintf(&map, 32, &zero_length);
+    try std.testing.expectEqual(@as(usize, 0), zero_length_len);
+}
+
 test "bitmap copy aliases preserve tail clearing and extension semantics" {
     const count = bits_per_long + 5;
     const size = bits_per_long * 3;
