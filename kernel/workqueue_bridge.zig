@@ -34,8 +34,8 @@ pub const BoundaryMap = struct {
 pub const AuditGuard = enum {
     pool_lock_held,
     pool_lock_released_and_reacquired,
-    pending_bit_claim_before_pool_selection,
-    unbound_pwq_refcount_retry,
+    pending_bit_claim_window,
+    unbound_pwq_refcnt_retry,
     last_pool_lock_handoff,
     callback_execution_outside_pool_lock,
     idle_sleep_transition,
@@ -130,19 +130,19 @@ const audit_checkpoints = [_]AuditCheckpoint{
     .{
         .id = "pending-bit-claim-handoff",
         .anchor_symbol = "try_to_grab_pending/queue_work_on",
-        .summary = "Record that queue_work_on() first has to claim or observe the pending bit before it can hand work over to __queue_work().",
-        .guard = .pending_bit_claim_before_pool_selection,
-        .observed_fields = &[_][]const u8{ "work->data", "WORK_STRUCT_PENDING_BIT", "req_cpu", "last_pool" },
-        .blocked_by = "queue_work_on() only reaches __queue_work() after try_to_grab_pending() arbitrates the pending bit, cancel state, and CPU request against the existing work->data ownership, so Zigux should record that submission claim boundary instead of pretending a wrapper can safely bypass it.",
+        .summary = "Keep the pending-bit claim window and disable-or-offline checks under the existing irq-disabled handoff before pool routing begins.",
+        .guard = .pending_bit_claim_window,
+        .observed_fields = &[_][]const u8{ "work->data", "WORK_STRUCT_PENDING", "WORK_OFFQ_DISABLE_BITS" },
+        .blocked_by = "queue_work_on() relies on try_to_grab_pending() to claim PENDING while irq state, cancel state, and off-queue disable bits are still authoritative, so Zigux should record the claim window instead of pretending a wrapper can safely own the first submission race.",
         .ownership = .stay_in_c,
     },
     .{
-        .id = "unbound-pwq-refcount-retry",
+        .id = "unbound-pwq-refcnt-retry",
         .anchor_symbol = "__queue_work",
-        .summary = "Capture the unbound queue_work retry path that has to drop and reacquire routing state when pwq->refcnt can no longer be pinned.",
-        .guard = .unbound_pwq_refcount_retry,
-        .observed_fields = &[_][]const u8{ "pwq->refcnt", "pwq->wq->flags", "work->data", "cpu" },
-        .blocked_by = "The unbound __queue_work() path may need to drop the transient pwq reference, recompute routing, and retry until a stable pwq->refcnt pin exists, so Phase 14 should name that retry contract rather than claim live ownership of unbound submission.",
+        .summary = "Record the retry contract that keeps an unbound pwq referenced while pool selection can be retried under changing affinity or pod state.",
+        .guard = .unbound_pwq_refcnt_retry,
+        .observed_fields = &[_][]const u8{ "pwq->refcnt", "wq->dfl_pwq", "pwq->pool" },
+        .blocked_by = "Unbound __queue_work() can loop until get_unbound_pool() and the selected pwq remain stable, and that retry depends on pwq->refcnt ownership plus pool selection that still belongs to the C worker topology.",
         .ownership = .stay_in_c,
     },
     .{
@@ -248,7 +248,7 @@ pub const WorkqueueBridgeLab = struct {
     }
 
     pub fn nextAuditFocus() []const u8 {
-        return "Audit queue_delayed_work_on(), mod_delayed_work_on(), and __queue_delayed_work() next so delayed submission aliases are recorded before any wrapper leaves the boundary-map-only posture.";
+        return "Audit queue_delayed_work_on(), mod_delayed_work_on(), and __queue_delayed_work() so the bridge records delayed-submission aliases before any wrapper leaves the boundary-map-only posture.";
     }
 };
 
@@ -318,12 +318,14 @@ test "workqueue bridge concurrency audit stays review-only" {
     try std.testing.expect(std.mem.indexOf(u8, audit.checkpoints[2].blocked_by, "ordered-workqueue") != null);
 
     try std.testing.expectEqualStrings("pending-bit-claim-handoff", audit.checkpoints[3].id);
-    try std.testing.expect(audit.checkpoints[3].guard == .pending_bit_claim_before_pool_selection);
-    try std.testing.expectEqualStrings("WORK_STRUCT_PENDING_BIT", audit.checkpoints[3].observed_fields[1]);
+    try std.testing.expect(audit.checkpoints[3].guard == .pending_bit_claim_window);
+    try std.testing.expectEqualStrings("WORK_STRUCT_PENDING", audit.checkpoints[3].observed_fields[1]);
+    try std.testing.expect(std.mem.indexOf(u8, audit.checkpoints[3].blocked_by, "first submission race") != null);
 
-    try std.testing.expectEqualStrings("unbound-pwq-refcount-retry", audit.checkpoints[4].id);
-    try std.testing.expect(audit.checkpoints[4].guard == .unbound_pwq_refcount_retry);
+    try std.testing.expectEqualStrings("unbound-pwq-refcnt-retry", audit.checkpoints[4].id);
+    try std.testing.expect(audit.checkpoints[4].guard == .unbound_pwq_refcnt_retry);
     try std.testing.expectEqualStrings("pwq->refcnt", audit.checkpoints[4].observed_fields[0]);
+    try std.testing.expect(std.mem.indexOf(u8, audit.checkpoints[4].blocked_by, "get_unbound_pool()") != null);
 
     try std.testing.expectEqualStrings("last-pool-reentrancy-handoff", audit.checkpoints[5].id);
     try std.testing.expect(audit.checkpoints[5].guard == .last_pool_lock_handoff);
