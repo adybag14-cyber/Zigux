@@ -30,7 +30,7 @@ That gap matters because the current anchors are still large and deeply coupled:
 - roadmap source: `zigux-alpha/ZAR_TO_ZIGUX_PRODUCT_ROADMAP.md` Phase 15, `Full-Parity Blockers and Long-Term Governance`
 - roadmap handoff: Phase 15 must keep the freeze map, Architecture Council review process, parity scorecard, and policy for code that remains in C indefinitely visible as one honest governance bundle
 - bootstrap ledger anchor: `docs(zigux): add documentation root, review checklist, and freeze map`
-- current repo handoff: the ledger's documentation root and freeze-map start point is now carried forward by the landed Phase 15 review-process note, parity scorecard, evidence-archive templates, shared validator-first gate through `scripts/zigux/validate-phase15.py` and `make -C zigux phase15-validate`, dedicated Zig manifest and test, shared `zigux/tests/phase15_build.zig` gate, and `make -C zigux phase15` convenience target
+- current repo handoff: the ledger's documentation root and freeze-map start point is now carried forward by the landed Phase 15 review-process note, parity scorecard, evidence-archive templates, shared validator-first gate through `scripts/zigux/check-phase15-scripts-readme-alignment.py`, `scripts/zigux/check-phase15-review-process-handoff.py`, and `make -C zigux phase15-validate`, dedicated Zig manifest and test, shared `zigux/tests/phase15_build.zig` gate, and `make -C zigux phase15` convenience target
 - maintenance-mode next step: keep the Phase 15 governance lane parked until one of the named reopen triggers fires or the deep-core blocker posture changes
 
 ## Scorecard Entries
@@ -242,7 +242,8 @@ This scorecard slice does not claim:
 ## Gates
 
 1. run the shared validator-first gate
-- `python3 scripts/zigux/validate-phase15.py`
+- `python3 scripts/zigux/check-phase15-scripts-readme-alignment.py`
+- `python3 scripts/zigux/check-phase15-review-process-handoff.py`
 - `make -C zigux phase15-validate`
 
 2. run the dedicated Phase 15 build
