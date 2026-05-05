@@ -134,9 +134,13 @@ REQUIRED_SNIPPETS = {
     "zigux/tests/fixtures/phase6_hexdump_vectors.zig": [
         "pub const perf_cases = [_]PerfCase{",
         '.label = "16B-plain-g1"',
+        ".max_slowdown_pct = 175,",
         '.label = "32B-ascii-g2"',
+        ".max_slowdown_pct = 550,",
         '.label = "16B-ascii-g4"',
+        ".max_slowdown_pct = 550,",
         '.label = "16B-ascii-g8"',
+        ".max_slowdown_pct = 600,",
     ],
     "zigux/tests/phase6_checksum_perf.zig": [
         "const perf_cases = [_]PerfCase{",
@@ -518,7 +522,7 @@ def run_self_test() -> None:
             if "zigux/tests/phase6_hexdump.zig" not in str(exc):
                 raise AssertionError(f"unexpected hexdump parity failure: {exc}") from exc
         else:
-            raise AssertionError("expected hexdump test failure")
+            raise AssertionError("expected hexdump parity failure")
         hexdump_test.write_text(original_hexdump_test, encoding="utf-8")
 
         hexdump_vectors = root / "zigux/tests/fixtures/phase6_hexdump_vectors.zig"
@@ -538,6 +542,23 @@ def run_self_test() -> None:
                 raise AssertionError(f"unexpected hexdump vectors failure: {exc}") from exc
         else:
             raise AssertionError("expected hexdump vectors failure")
+        hexdump_vectors.write_text(original_hexdump_vectors, encoding="utf-8")
+
+        hexdump_vectors.write_text(
+            original_hexdump_vectors.replace(
+                ".max_slowdown_pct = 600,",
+                ".max_slowdown_pct = 650,",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        try:
+            run_checks(root)
+        except ValidationError as exc:
+            if "zigux/tests/fixtures/phase6_hexdump_vectors.zig" not in str(exc):
+                raise AssertionError(f"unexpected hexdump slowdown failure: {exc}") from exc
+        else:
+            raise AssertionError("expected hexdump slowdown failure")
 
     print("self-test passed")
 
