@@ -139,6 +139,8 @@ test "runtime trace-events loader prepares a bounded registration handoff plan" 
     try std.testing.expectEqual(@as(usize, 6), plan.summary.main_thread_events);
     try std.testing.expectEqual(@as(usize, 2), plan.summary.fn_thread_events);
     try std.testing.expectEqual(@as(usize, 8), plan.summary.total_events);
+    try std.testing.expectEqual(@as(?usize, 6), plan.summary.last_main_emitted_events);
+    try std.testing.expectEqual(@as(?usize, 2), plan.summary.last_fn_emitted_events);
     try std.testing.expectEqual(@as(usize, 1), plan.summary.init_runs);
     try std.testing.expectEqual(@as(usize, 1), plan.summary.selftest_runs);
     try std.testing.expectEqual(@as(usize, 0), plan.summary.exit_runs);
@@ -161,12 +163,16 @@ test "runtime trace-events loader keeps unavailable substrate and lifecycle guar
     try std.testing.expectEqual(@as(usize, 1), prepared.summary.init_runs);
     try std.testing.expectEqual(@as(usize, 0), prepared.summary.selftest_runs);
     try std.testing.expectEqual(@as(usize, 0), prepared.summary.exit_runs);
+    try std.testing.expectEqual(@as(?usize, null), prepared.summary.last_main_emitted_events);
+    try std.testing.expectEqual(@as(?usize, null), prepared.summary.last_fn_emitted_events);
 
     try std.testing.expectError(error.LoaderAlreadyPrepared, loader.prepare(&module));
 
     const pending_plan = try loader.requestRuntimeLoad();
     try std.testing.expectEqual(LoaderStage.waiting_on_runtime_substrate, loader.stage());
     try std.testing.expectEqual(runtime_trace_events_sample.ModuleStage.initialized, pending_plan.handoff_stage);
+    try std.testing.expectEqual(prepared.summary.last_main_emitted_events, pending_plan.summary.last_main_emitted_events);
+    try std.testing.expectEqual(prepared.summary.last_fn_emitted_events, pending_plan.summary.last_fn_emitted_events);
 
     try loader.releaseWithoutSubstrate();
     try std.testing.expectEqual(LoaderStage.released_without_substrate, loader.stage());
@@ -189,6 +195,8 @@ test "runtime trace-events loader keeps the released fallback snapshot stable af
     try std.testing.expectEqual(@as(usize, 6), pending_plan.summary.main_thread_events);
     try std.testing.expectEqual(@as(usize, 2), pending_plan.summary.fn_thread_events);
     try std.testing.expectEqual(@as(usize, 8), pending_plan.summary.total_events);
+    try std.testing.expectEqual(@as(?usize, 6), pending_plan.summary.last_main_emitted_events);
+    try std.testing.expectEqual(@as(?usize, 2), pending_plan.summary.last_fn_emitted_events);
     try std.testing.expectEqual(@as(usize, 0), pending_plan.summary.registration_depth);
     try std.testing.expectEqual(@as(usize, 1), pending_plan.summary.selftest_runs);
     try std.testing.expectEqual(@as(usize, 0), pending_plan.summary.exit_runs);
@@ -209,6 +217,8 @@ test "runtime trace-events loader keeps the released fallback snapshot stable af
     try std.testing.expectEqual(@as(usize, 10), mutated_summary.main_thread_events);
     try std.testing.expectEqual(@as(usize, 4), mutated_summary.fn_thread_events);
     try std.testing.expectEqual(@as(usize, 14), mutated_summary.total_events);
+    try std.testing.expectEqual(@as(?usize, 4), mutated_summary.last_main_emitted_events);
+    try std.testing.expectEqual(@as(?usize, 2), mutated_summary.last_fn_emitted_events);
     try std.testing.expectEqual(@as(i32, 5), mutated_summary.last_main_count);
     try std.testing.expectEqual(@as(i32, 13), mutated_summary.last_fn_count);
     try std.testing.expectEqualStrings("foo_bar_reg", mutated_summary.last_register_label orelse return error.ExpectedFunctionPayload);
@@ -226,6 +236,8 @@ test "runtime trace-events loader keeps the released fallback snapshot stable af
     try std.testing.expectEqual(prepared.summary.main_thread_events, released_plan.summary.main_thread_events);
     try std.testing.expectEqual(prepared.summary.fn_thread_events, released_plan.summary.fn_thread_events);
     try std.testing.expectEqual(prepared.summary.total_events, released_plan.summary.total_events);
+    try std.testing.expectEqual(prepared.summary.last_main_emitted_events, released_plan.summary.last_main_emitted_events);
+    try std.testing.expectEqual(prepared.summary.last_fn_emitted_events, released_plan.summary.last_fn_emitted_events);
     try std.testing.expectEqual(prepared.summary.last_main_count, released_plan.summary.last_main_count);
     try std.testing.expectEqual(prepared.summary.last_fn_count, released_plan.summary.last_fn_count);
     try std.testing.expectEqual(prepared.summary.selftest_runs, released_plan.summary.selftest_runs);
@@ -251,6 +263,10 @@ test "runtime trace-events loader keeps the released fallback snapshot stable af
     try std.testing.expectEqual(@as(usize, 1), mutated_summary.registration_depth);
     try std.testing.expectEqual(@as(usize, 8), released_plan.summary.total_events);
     try std.testing.expectEqual(@as(usize, 14), mutated_summary.total_events);
+    try std.testing.expectEqual(@as(?usize, 6), released_plan.summary.last_main_emitted_events);
+    try std.testing.expectEqual(@as(?usize, 2), released_plan.summary.last_fn_emitted_events);
+    try std.testing.expectEqual(@as(?usize, 4), mutated_summary.last_main_emitted_events);
+    try std.testing.expectEqual(@as(?usize, 2), mutated_summary.last_fn_emitted_events);
     try std.testing.expectEqual(@as(i32, 0), released_plan.summary.last_main_count);
     try std.testing.expectEqual(@as(i32, 5), mutated_summary.last_main_count);
     try std.testing.expectEqual(@as(i32, 1), released_plan.summary.last_fn_count);
@@ -273,6 +289,8 @@ test "runtime trace-events loader keeps initialized-stage fallback snapshots exp
     try std.testing.expectEqual(@as(usize, 1), prepared.summary.init_runs);
     try std.testing.expectEqual(@as(usize, 0), prepared.summary.selftest_runs);
     try std.testing.expectEqual(@as(usize, 0), prepared.summary.exit_runs);
+    try std.testing.expectEqual(@as(?usize, null), prepared.summary.last_main_emitted_events);
+    try std.testing.expectEqual(@as(?usize, null), prepared.summary.last_fn_emitted_events);
     try std.testing.expectEqual(@as(usize, 0), prepared.summary.registration_depth);
     try std.testing.expectEqual(@as(usize, 0), prepared.summary.main_iterations);
     try std.testing.expectEqual(@as(usize, 0), prepared.summary.fn_iterations);
@@ -295,6 +313,8 @@ test "runtime trace-events loader keeps initialized-stage fallback snapshots exp
     try std.testing.expectEqual(prepared.summary.main_thread_events, pending_plan.summary.main_thread_events);
     try std.testing.expectEqual(prepared.summary.fn_thread_events, pending_plan.summary.fn_thread_events);
     try std.testing.expectEqual(prepared.summary.total_events, pending_plan.summary.total_events);
+    try std.testing.expectEqual(prepared.summary.last_main_emitted_events, pending_plan.summary.last_main_emitted_events);
+    try std.testing.expectEqual(prepared.summary.last_fn_emitted_events, pending_plan.summary.last_fn_emitted_events);
     try std.testing.expectEqual(prepared.summary.last_main_count, pending_plan.summary.last_main_count);
     try std.testing.expectEqual(prepared.summary.last_fn_count, pending_plan.summary.last_fn_count);
     try std.testing.expectEqual(prepared.summary.selftest_runs, pending_plan.summary.selftest_runs);
@@ -317,6 +337,8 @@ test "runtime trace-events loader keeps initialized-stage fallback snapshots exp
     try std.testing.expectEqual(@as(usize, 4), mutated_summary.main_thread_events);
     try std.testing.expectEqual(@as(usize, 2), mutated_summary.fn_thread_events);
     try std.testing.expectEqual(@as(usize, 6), mutated_summary.total_events);
+    try std.testing.expectEqual(@as(?usize, 4), mutated_summary.last_main_emitted_events);
+    try std.testing.expectEqual(@as(?usize, 2), mutated_summary.last_fn_emitted_events);
     try std.testing.expectEqual(@as(i32, 7), mutated_summary.last_main_count);
     try std.testing.expectEqual(@as(i32, 11), mutated_summary.last_fn_count);
     try std.testing.expectEqualStrings("foo_bar_reg", mutated_summary.last_register_label orelse return error.ExpectedFunctionPayload);
@@ -336,12 +358,16 @@ test "runtime trace-events loader keeps initialized-stage fallback snapshots exp
     try std.testing.expectEqual(prepared.summary.main_thread_events, released_plan.summary.main_thread_events);
     try std.testing.expectEqual(prepared.summary.fn_thread_events, released_plan.summary.fn_thread_events);
     try std.testing.expectEqual(prepared.summary.total_events, released_plan.summary.total_events);
+    try std.testing.expectEqual(prepared.summary.last_main_emitted_events, released_plan.summary.last_main_emitted_events);
+    try std.testing.expectEqual(prepared.summary.last_fn_emitted_events, released_plan.summary.last_fn_emitted_events);
     try std.testing.expectEqual(prepared.summary.last_main_count, released_plan.summary.last_main_count);
     try std.testing.expectEqual(prepared.summary.last_fn_count, released_plan.summary.last_fn_count);
     try std.testing.expectEqual(prepared.summary.selftest_runs, released_plan.summary.selftest_runs);
     try std.testing.expectEqual(prepared.summary.exit_runs, released_plan.summary.exit_runs);
     try std.testing.expectEqual(prepared.summary.last_register_label, released_plan.summary.last_register_label);
     try std.testing.expectEqual(prepared.summary.last_unregister_label, released_plan.summary.last_unregister_label);
+    try std.testing.expectEqual(@as(?usize, null), released_plan.summary.last_main_emitted_events);
+    try std.testing.expectEqual(@as(?usize, null), released_plan.summary.last_fn_emitted_events);
     try std.testing.expectEqual(@as(usize, 0), released_plan.summary.main_thread_events);
     try std.testing.expectEqual(@as(usize, 6), mutated_summary.total_events);
     try std.testing.expectEqual(@as(i32, -1), released_plan.summary.last_main_count);
@@ -403,6 +429,8 @@ test "runtime trace-events loader keeps the release-without-substrate fallback e
     try std.testing.expectEqual(@as(usize, 6), released_plan.summary.main_thread_events);
     try std.testing.expectEqual(@as(usize, 2), released_plan.summary.fn_thread_events);
     try std.testing.expectEqual(@as(usize, 8), released_plan.summary.total_events);
+    try std.testing.expectEqual(@as(?usize, 6), released_plan.summary.last_main_emitted_events);
+    try std.testing.expectEqual(@as(?usize, 2), released_plan.summary.last_fn_emitted_events);
     try std.testing.expectEqual(@as(usize, 1), released_plan.summary.init_runs);
     try std.testing.expectEqual(@as(usize, 1), released_plan.summary.selftest_runs);
     try std.testing.expectEqual(@as(usize, 0), released_plan.summary.exit_runs);
