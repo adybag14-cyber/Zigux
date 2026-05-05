@@ -118,6 +118,10 @@ ATOMIC64_SCRIPTS_README_MARKERS = [
 TESTS_README_MARKERS = [
     "zigux/tests/phase4_kprobe_example_manifest.json",
     "zigux/tests/phase4_kprobe_example_survey.zig",
+    "scripts/zigux/validate-phase4.py",
+    "scripts/zigux/check-phase4-gate-evidence.py",
+    "scripts/zigux/check-phase4-kprobe-example-packet.py",
+    "scripts/zigux/check-phase4-workflow-route-counts.py",
     "make -C zigux phase4-kprobe-example-survey",
     "phase4-kprobe-example-survey-tests",
     "c_anchor_only_until_kprobe_example_starter_lands",
@@ -500,19 +504,15 @@ def write_fixture_tree(root: Path) -> None:
         "samples/vfs/test-fsmount.c": "test-fsmount\n",
         "zigux/tests/atomic64_diff.zig": "atomic64\n",
         "zigux/tests/runtime_atomic64_diff.zig": "runtime atomic64 diff gate keeps post-selftest replay explicit\n",
-        "zigux/tests/phase4_runtime_atomic64_diff_manifest.json": json.dumps(
-            {
-                "anchor": "lib/atomic64_test.c",
-                "gaps": [
-                    {
-                        "id": "phase4-validation-matrix-note",
-                        "status": "starter_landed",
-                        "zigux_destination": "Documentation/zigux/phase4-validation-matrix.md",
-                        "why_now": "The validation matrix already names the reversible-delivery evidence that keeps the current `lib/atomic64_test.c` anchor plus the shared `phase4_build.zig` entrypoint explicit.",
-                    }
-                ],
-            }
-        ),
+        "zigux/tests/phase4_runtime_atomic64_diff_manifest.json": json.dumps({
+            "anchor": "lib/atomic64_test.c",
+            "gaps": [{
+                "id": "phase4-validation-matrix-note",
+                "status": "starter_landed",
+                "zigux_destination": "Documentation/zigux/phase4-validation-matrix.md",
+                "why_now": "The validation matrix already names the reversible-delivery evidence that keeps the current `lib/atomic64_test.c` anchor plus the shared `phase4_build.zig` entrypoint explicit.",
+            }]
+        }),
         "zigux/tests/phase4_runtime_atomic64_diff_survey.zig": "phase4-runtime-atomic64-diff-survey-tests\n",
         "zigux/tests/phase4_kprobe_example_manifest.json": json.dumps({"shared_build_replay": "phase4-kprobe-example-survey-tests", "threshold_posture": "c_anchor_only_until_kprobe_example_starter_lands"}),
         "zigux/tests/phase4_kprobe_example_survey.zig": "\n".join([
@@ -631,6 +631,22 @@ def run_self_test() -> int:
         missing = validate_root(root)
         assert (
             "scripts_readme_bitmap_exact:make -C zigux phase4-bitmap-diff:0"
+            in missing
+        ), missing
+
+        write_fixture_tree(root)
+        tests_readme = root / "zigux/tests/README.md"
+        tests_readme.write_text(
+            tests_readme.read_text(encoding="utf-8").replace(
+                "scripts/zigux/check-phase4-workflow-route-counts.py\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        missing = validate_root(root)
+        assert (
+            "tests_readme:scripts/zigux/check-phase4-workflow-route-counts.py"
             in missing
         ), missing
 
@@ -953,7 +969,7 @@ def run_self_test() -> int:
             in missing
         ), missing
 
-        write_fixture_tree(root)
+        write_fixtureTree(root)
         perf_manifest = root / "zigux/tests/phase4_perf_baseline_manifest.json"
         perf_manifest.write_text(
             perf_manifest.read_text(encoding="utf-8").replace(
