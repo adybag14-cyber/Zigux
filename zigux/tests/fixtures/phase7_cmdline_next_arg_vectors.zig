@@ -36,6 +36,13 @@ pub const next_arg_cases = [_]NextArgCase{
         .expected_rest = "quiet",
     },
     .{
+        .name = "empty whitespace-separated value stays on the current token",
+        .input = "foo= bar",
+        .expected_param = "foo",
+        .expected_value = "",
+        .expected_rest = "bar",
+    },
+    .{
         .name = "first equals wins inside the value",
         .input = "key=alpha=beta tail",
         .expected_param = "key",
@@ -48,6 +55,20 @@ pub const next_arg_cases = [_]NextArgCase{
         .expected_param = "mode",
         .expected_value = "fast boot",
         .expected_rest = "",
+    },
+    .{
+        .name = "unterminated quoted value stays bounded to the current token",
+        .input = "key=\"alpha beta",
+        .expected_param = "key",
+        .expected_value = "alpha beta",
+        .expected_rest = "",
+    },
+    .{
+        .name = "mixed trailing whitespace is trimmed from rest",
+        .input = "root=/dev/sda1 \t\nro",
+        .expected_param = "root",
+        .expected_value = "/dev/sda1",
+        .expected_rest = "ro",
     },
     .{
         .name = "leading equals sign stays in the parameter token",
