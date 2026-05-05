@@ -32,12 +32,14 @@ test "phase11 bcm2835_wdt mirrors running-state detection and start or stop regi
     try std.testing.expect(runtime.running);
     try std.testing.expectEqual(@as(u32, 7), runtime.time_left_sec);
     try std.testing.expect(runtime.full_reset_requested);
+    try std.testing.expectEqual(@as(u32, 7), watchdog.getTimeleft());
 
     runtime = watchdog.loadRegisters(.{
         .rstc = 0x1234_5608,
         .wdog = 0,
     });
     try std.testing.expect(!runtime.running);
+    try std.testing.expectEqual(@as(u32, 0), watchdog.getTimeleft());
 
     runtime = watchdog.start();
     try std.testing.expect(runtime.running);
@@ -52,6 +54,7 @@ test "phase11 bcm2835_wdt mirrors running-state detection and start or stop regi
         runtime.registers.rstc,
     );
     try std.testing.expectEqual(@as(u32, 9), runtime.time_left_sec);
+    try std.testing.expectEqual(@as(u32, 9), watchdog.getTimeleft());
 
     runtime = watchdog.stop();
     try std.testing.expect(!runtime.running);
@@ -60,6 +63,7 @@ test "phase11 bcm2835_wdt mirrors running-state detection and start or stop regi
         runtime.registers.rstc,
     );
     try std.testing.expectEqual(@as(u32, 0), runtime.time_left_sec);
+    try std.testing.expectEqual(@as(u32, 0), watchdog.getTimeleft());
 }
 
 test "phase11 bcm2835_wdt restart path uses the short reset timeout and preserves halt partition state" {
@@ -84,6 +88,7 @@ test "phase11 bcm2835_wdt restart path uses the short reset timeout and preserve
         runtime.registers.rstc,
     );
     try std.testing.expectEqual(@as(u32, 0), runtime.time_left_sec);
+    try std.testing.expectEqual(@as(u32, 0), watchdog.getTimeleft());
 }
 
 test "phase11 bcm2835_wdt probe summary keeps probe-time watchdog-core bookkeeping reviewable" {
