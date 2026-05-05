@@ -108,3 +108,31 @@ test "phase3 atomic wrappers behave predictably" {
         try std.testing.expectEqual(@as(u32, 19), value);
     }
 }
+
+test "phase3 atomic wrappers keep non-seq-cst orderings reviewable" {
+    var handoff_value: u32 = 0;
+    store(u32, &handoff_value, 41, .release);
+    try std.testing.expectEqual(@as(u32, 41), load(u32, &handoff_value, .acquire));
+
+    var monotonic_value: u32 = 5;
+    try std.testing.expectEqual(@as(?u32, null), compareExchange(u32, &monotonic_value, 5, 7, .monotonic, .monotonic));
+    try std.testing.expectEqual(@as(u32, 7), monotonic_value);
+
+    var acq_rel_value: u32 = 7;
+    try std.testing.expectEqual(@as(?u32, null), compareExchange(u32, &acq_rel_value, 7, 11, .acq_rel, .acquire));
+    try std.testing.expectEqual(@as(u32, 11), acq_rel_value);
+
+    var weak_release_value: u32 = 13;
+    var attempts: usize = 0;
+    while (true) {
+        attempts += 1;
+        if (compareExchangeWeak(u32, &weak_release_value, 13, 19, .release, .monotonic) == null) break;
+        try std.testing.expectEqual(@as(u32, 13), weak_release_value);
+        try std.testing.expect(attempts < 16);
+    }
+    try std.testing.expectEqual(@as(u32, 19), weak_release_value);
+
+    const weak_mismatch = compareExchangeWeak(u32, &weak_release_value, 13, 23, .release, .monotonic);
+    try std.testing.expectEqual(@as(?u32, 19), weak_mismatch);
+    try std.testing.expectEqual(@as(u32, 19), weak_release_value);
+}
