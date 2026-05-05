@@ -16,6 +16,14 @@ fn compareU32(key: *const u32, item: *const u32) i32 {
     };
 }
 
+fn compareDescendingU32(key: *const u32, item: *const u32) i32 {
+    return switch (std.math.order(item.*, key.*)) {
+        .lt => -1,
+        .eq => 0,
+        .gt => 1,
+    };
+}
+
 fn compareSymbolName(key: *const []const u8, item: *const Symbol) i32 {
     return switch (std.mem.order(u8, key.*, item.name)) {
         .lt => -1,
@@ -47,6 +55,18 @@ test "phase 6 bsearch rejects missing integer keys without widening the contract
     try std.testing.expectEqual(@as(?usize, null), bsearch.searchIndex(u32, u32, &@as(u32, 0), values[0..], compareU32));
     try std.testing.expectEqual(@as(?usize, null), bsearch.searchIndex(u32, u32, &@as(u32, 15), values[0..], compareU32));
     try std.testing.expectEqual(@as(?usize, null), bsearch.searchIndex(u32, u32, &@as(u32, 40), values[0..], compareU32));
+}
+
+test "phase 6 bsearch honors comparator-driven descending order" {
+    const values = [_]u32{ 89, 55, 34, 21, 13, 8, 3 };
+
+    try std.testing.expectEqual(@as(?usize, 0), bsearch.searchIndex(u32, u32, &@as(u32, 89), values[0..], compareDescendingU32));
+    try std.testing.expectEqual(@as(?usize, 3), bsearch.searchIndex(u32, u32, &@as(u32, 21), values[0..], compareDescendingU32));
+    try std.testing.expectEqual(@as(?usize, 6), bsearch.searchIndex(u32, u32, &@as(u32, 3), values[0..], compareDescendingU32));
+
+    const found = bsearch.search(u32, u32, &@as(u32, 34), values[0..], compareDescendingU32) orelse return error.TestUnexpectedResult;
+    try std.testing.expectEqual(@as(u32, 34), found.*);
+    try std.testing.expect(bsearch.search(u32, u32, &@as(u32, 22), values[0..], compareDescendingU32) == null);
 }
 
 test "phase 6 bsearch supports string keys against sorted records" {
