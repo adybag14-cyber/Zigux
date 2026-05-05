@@ -1,7 +1,7 @@
 {
   "lane_key": "P13-L07",
   "phase": "Phase 13",
-  "surveyed_commit": "master-reviewability",
+  "surveyed_commit": "e59df689d080aa11773adda87f00c2d650caade8",
   "anchor": "lib/devres.c",
   "roadmap_destinations": [
     "lib/devres.zig",
@@ -108,14 +108,14 @@
       "status": "blocked_on_dma_state",
       "kind": "runtime_boundary",
       "zigux_destination": "lib/devres.zig",
-      "why_now": "Live DMA-backed helpers remain blocked because the current helper packet does not model dmam_alloc_* ownership or live DMA mapping state, and the roadmap still prefers bounded reviewability over premature DMA parity."
+      "why_now": "Live DMA-backed helpers remain blocked because the current helper packet does not model dmam_alloc_*, dma_map_*, dma_unmap_*, or dma_map_sgtable() ownership or live DMA mapping state, and the roadmap still prefers bounded reviewability over premature DMA parity."
     },
     {
       "id": "phase13-devres-live-scatterlist-ownership",
       "status": "blocked_on_scatterlist_state",
       "kind": "runtime_boundary",
       "zigux_destination": "lib/devres.zig",
-      "why_now": "Live scatter-gather ownership remains blocked because the current helper lab does not own sg_table or sg_* lifecycle state and should keep scatterlist behavior outside the shipped packet."
+      "why_now": "Live scatter-gather ownership remains blocked because the current helper lab does not own struct scatterlist, sg_table, or sg_* lifecycle state and should keep scatterlist behavior outside the shipped packet."
     },
     {
       "id": "phase13-devres-live-device-tree-walk",
