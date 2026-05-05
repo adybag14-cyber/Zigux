@@ -16,6 +16,7 @@ This document starts the first bounded Phase 3 slice for Zigux.
   - `zigux/unsafe/narrow.zig`
   - `zigux/uapi/version.zig`
   - `zigux/tests/phase3_abi.zig`
+  - `zigux/tests/phase3_low_level_wrappers.zig`
 
 ## Why this slice exists
 
@@ -30,7 +31,7 @@ It is a small substrate that makes future ports measurable:
 - explicit panic and allocator policies
 - explicit atomic, barrier, and MMIO wrappers
 - one narrow unsafe layer
-- one C-vs-Zig layout gate
+- one shared C-vs-Zig layout gate plus one focused low-level wrapper replay
 
 ## Gates
 
