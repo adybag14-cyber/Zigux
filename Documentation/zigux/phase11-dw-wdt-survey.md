@@ -7,8 +7,9 @@ The live repo state is now:
 - `drivers/watchdog/gpio_wdt.zig` and `drivers/watchdog/bcm2835_wdt.zig` already give the simple-driver watchdog tranche two landed Phase 11 footholds
 - `drivers/watchdog/dw_wdt.zig` now ships the bounded DesignWare starter for fixed TOP timeout windows, reset-mode versus IRQ-mode timeout selection, pretimeout bookkeeping, register-image transitions, non-stoppable stop semantics, and a tiny probe-time summary for fixed-versus-custom TOP sourcing plus already-running watchdog metadata
 - `zigux/tests/phase11_dw_wdt.zig` and `Documentation/zigux/phase11-dw-wdt-slice.md` keep that starter reviewable without claiming platform registration, live MMIO, IRQ wiring, PM behavior, or hardware-backed execution
+- `Documentation/zigux/phase11-dw-wdt-validation-matrix.md` now records the bounded hardware-validation posture for the current starter so the shared replay path and deferred ownership boundaries stay reviewable in one place
 - `zigux/tests/phase11_build.zig` now runs the gpio starter checks, bcm2835 starter and survey checks, the dw_wdt starter checks, and the dw_wdt survey check together so watchdog-lane drift is visible in one place
 
-This lane still does not claim platform-driver registration, clock or reset acquisition, IRQ registration, suspend or resume handling, debugfs support, live MMIO access, or hardware validation coverage.
+This lane still does not claim platform-driver registration, clock or reset acquisition, IRQ registration, suspend or resume handling, debugfs support, or live MMIO access. Hardware-validation coverage remains bounded to the review matrix already recorded for the current starter rather than any hardware-backed validation beyond the bounded matrix evidence already recorded for the current starter.
 
 The next honest bounded step inside the same lane is to add a small registration-facing handoff around watchdog info selection, parent linkage, and register-device intent before any platform-backed behavior lands.
