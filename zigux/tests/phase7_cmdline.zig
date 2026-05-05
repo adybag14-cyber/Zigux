@@ -39,6 +39,16 @@ test "phase 7 getOption and getOptions preserve Linux-style range parsing" {
     const rest = cmdline.getOptions("3-5,8", values.len, &values);
     try std.testing.expectEqualStrings("", rest);
     try std.testing.expectEqualSlices(i32, &[_]i32{ 4, 3, 4, 5, 8 }, &values);
+
+    var single = [_]i32{ 0, 0, 0 };
+    const single_rest = cmdline.getOptions("1-1", single.len, &single);
+    try std.testing.expectEqualStrings("", single_rest);
+    try std.testing.expectEqualSlices(i32, &[_]i32{ 1, 1, 0 }, &single);
+
+    var validate = [_]i32{0};
+    const validate_rest = cmdline.getOptions("1-1", 0, &validate);
+    try std.testing.expectEqualStrings("", validate_rest);
+    try std.testing.expectEqual(@as(i32, 1), validate[0]);
 }
 
 test "phase 7 memparse preserves suffix scaling and stop index semantics" {
