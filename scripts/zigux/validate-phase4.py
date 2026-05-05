@@ -90,6 +90,10 @@ REQUIRED_SCRIPT_README_MARKERS = [
     "phase4-validation-matrix.md",
     "intentionally unapproved perf-threshold posture",
 ]
+FORBIDDEN_SCRIPT_README_MARKERS = [
+    "make -C zigux phase4-perf-baseline-survey",
+    "phase4-perf-baseline-survey",
+]
 REQUIRED_DOC_README_MARKERS = [
     "Phase 4 notes",
     "validate-phase4.py",
@@ -312,6 +316,10 @@ def validate_root(root: Path) -> list[str]:
     for marker in REQUIRED_SCRIPT_README_MARKERS:
         if marker not in script_readme:
             missing_markers.append(f"script_readme:{marker}")
+    for marker in FORBIDDEN_SCRIPT_README_MARKERS:
+        count = _count_marker(script_readme, marker)
+        if count != 0:
+            missing_markers.append(f"script_readme:forbidden:{marker}:{count}")
     for marker in REQUIRED_DOC_README_MARKERS:
         if marker not in doc_readme:
             missing_markers.append(f"doc_readme:{marker}")
@@ -813,6 +821,18 @@ def run_self_test() -> int:
         )
         assert validate_root(root) == [
             "review_checklist:intentionally unapproved perf-threshold posture"
+        ]
+
+        _write_phase4_fixture_docs(root)
+        script_readme_path = root / "scripts/zigux/README.md"
+        _write(
+            script_readme_path,
+            script_readme_path.read_text(encoding="utf-8")
+            + "make -C zigux phase4-perf-baseline-survey\n",
+        )
+        assert validate_root(root) == [
+            "script_readme:forbidden:make -C zigux phase4-perf-baseline-survey:1",
+            "script_readme:forbidden:phase4-perf-baseline-survey:1",
         ]
 
         _write_phase4_fixture_docs(root)
