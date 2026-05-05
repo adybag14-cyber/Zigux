@@ -366,6 +366,9 @@ pub const HvcConsoleLab = struct {
     ) !NotifierHandoffSnapshot {
         const slot = self.slotSnapshot();
         if (!slot.usable_for_console) return error.ConsoleUnavailable;
+        if (request.sysrq_dispatch_requested and !request.tty_registration_ready) {
+            return error.NotifierDispatchRequiresTtyRegistration;
+        }
 
         const notifier_registration_requested = request.tty_registration_ready and
             request.notifier_target_present;
