@@ -30,7 +30,7 @@ The live repo originally had no matching trace-events survey artifact, no dedica
 - the Linux ftrace selftests already reference `trace-events-sample` as a modprobe and event-enabling target in at least two places.
 - the repo had zero `zigux/tests/runtime_trace_events*` files before this survey landed.
 - the repo now carries `samples/zigux/runtime_trace_events.zig`, `samples/zigux/runtime_trace_events_loader.zig`, `zigux/tests/runtime_trace_events_module.zig`, the survey manifest and gate, and shared `zigux/tests/phase9_build.zig` coverage for the trace-events starter lane.
-- the current bounded starter now records concrete main-thread payload literals for `foo_bar`, template, conditional, template-print, and relative-location replay paths, plus explicit function-callback payload labels and the exported `iter=%d` format template.
+- the current bounded starter now exports a stable `RuntimeTraceEventsSummary`, and the focused diff gate uses that summary to keep the concrete main-thread payload literals, function-callback payload labels, and selftest totals machine-checkable without reaching back into raw payload-only state.
 - the current loader scaffold now records explicit tracepoint register and unregister API names, the prepared handoff-stage summary, and the no-substrate release path without claiming a real shared runtime loader already exists.
 
 ## Recorded gaps
