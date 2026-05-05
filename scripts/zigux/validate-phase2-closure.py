@@ -29,7 +29,8 @@ PHASE2_TOOLCHAIN_PIN_SCOPE_REQUIRED_SOURCE_MARKERS = [
 PHASE2_TESTS_README_ALIGNMENT_REQUIRED_SOURCE_MARKERS = [
     'PHASE2_TESTS_README_ALIGNMENT_GATE=python3 scripts/zigux/check-phase2-tests-readme-alignment.py',
 ]
-PHASE2_TOOLCHAIN_PIN_SCOPE_MAKEFILE_RUN_COUNTS = {
+PHASE2_MAKEFILE_RUN_COUNTS = {
+    'scripts/zigux/check-phase2-tests-readme-alignment.py': 1,
     'scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test': 1,
     'scripts/zigux/check-phase2-toolchain-pin-scope.py': 1,
 }
@@ -106,7 +107,7 @@ def collect_genksyms_expected_files(cases_payload: dict[str, object]) -> tuple[l
 def validate_exact_makefile_runs(text: str) -> list[str]:
     issues: list[str] = []
     lines = [line.strip() for line in text.splitlines()]
-    for command, expected_count in PHASE2_TOOLCHAIN_PIN_SCOPE_MAKEFILE_RUN_COUNTS.items():
+    for command, expected_count in PHASE2_MAKEFILE_RUN_COUNTS.items():
         expected_line = f'cd $(ZIGUX_ROOT) && $(PYTHON) {command}'
         count = sum(1 for line in lines if line == expected_line)
         if count != expected_count:
