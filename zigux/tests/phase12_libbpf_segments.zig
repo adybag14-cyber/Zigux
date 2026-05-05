@@ -309,4 +309,8 @@ test "phase12 libbpf survey note records the full landed helper set" {
     try std.testing.expect(std.mem.indexOf(u8, note, "phase12-libbpf-map-reuse-compatibility-ready-next") != null);
     try std.testing.expect(std.mem.indexOf(u8, note, "phase12-libbpf-file-path-and-handle-bridge") != null);
     try std.testing.expect(std.mem.indexOf(u8, note, "phase12-libbpf-perf-buffer-online-cpu-routing") != null);
+    try std.testing.expect(std.mem.indexOf(u8, note, "public fallback posture: shared-tree-only anchor") != null);
+    try std.testing.expect(std.mem.indexOf(u8, note, "rollback owner and reversible-delivery drill") != null);
+    try std.testing.expect(std.mem.indexOf(u8, note, "python3 scripts/zigux/check-build-only-phase12-surface.py") != null);
+    try std.testing.expect(std.mem.indexOf(u8, note, "make -C zigux phase12") != null);
 }
