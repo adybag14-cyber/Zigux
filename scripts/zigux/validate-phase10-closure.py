@@ -37,9 +37,10 @@ TESTS = [
     "zigux/tests/phase10_virtio_ring_survey.zig",
     "zigux/tests/phase10_virtio_input.zig",
     "zigux/tests/phase10_virtio_input_multitouch_preflight.zig",
+    INPUT_BLOCKER_BUILD,
+    "zigux/tests/phase10_virtio_input_survey.zig",
     "zigux/tests/phase10_virtio_mmio.zig",
     "zigux/tests/phase10_virtio_mmio_queue_isolation.zig",
-    "zigux/tests/phase10_virtio_input_survey.zig",
     "zigux/tests/phase10_virtio_mmio_survey.zig",
 ]
 EXPECTED_EXACT_CHECKS = [
@@ -51,7 +52,7 @@ EXPECTED_EXACT_CHECKS = [
     "zig build test --build-file zigux/tests/phase10_build.zig --summary all",
     "make -C zigux phase10-validate",
     "make -C zigux phase10-test",
-    "make -C zigux phase10",
+    "make -C zigux phase10"
 ]
 EXPECTED_ALLOWED_ROADMAP_DESTINATIONS = ["drivers/virtio/*.zig", "zigux/kernel/", "zigux/helpers/"]
 EXPECTED_ALLOWED_EVIDENCE_KINDS = ["driver_local_lab_slices", "survey_manifests", "shared_validation_gates"]
@@ -210,7 +211,7 @@ TEXT_MARKERS = {
 EXACT_ONCE = {
     "Documentation/zigux/phase10-closure-evidence.md": [
         "PHASE10_HARNESS_COVERAGE_GATE=python3 scripts/zigux/check-phase10-harness-coverage.py",
-        "PHASE10_TEST_COUNT=11",
+        "PHASE10_TEST_COUNT=12",
     ],
     "Documentation/zigux/README.md": ["python3 scripts/zigux/check-phase10-harness-coverage.py", "focused harness replays", "queue-handling and ready-state gate"],
     "zigux-alpha/PHASE10_CLOSURE_LEDGER.md": [
@@ -255,7 +256,7 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
         "doc_count": 9,
         "manifest_count": 4,
         "driver_count": 4,
-        "test_count": 11,
+        "test_count": 12,
         "has_virtio_mmio_zig": True,
         "freeze_map": "Documentation/zigux/freeze-map.md",
         "freeze_boundary_status": "aligned",
@@ -385,7 +386,7 @@ def write_fixture(root: Path) -> None:
         "doc_count": 9,
         "manifest_count": 4,
         "driver_count": 4,
-        "test_count": 11,
+        "test_count": 12,
         "has_virtio_mmio_zig": True,
         "freeze_map": "Documentation/zigux/freeze-map.md",
         "freeze_boundary_status": "aligned",
