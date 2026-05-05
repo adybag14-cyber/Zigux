@@ -78,6 +78,16 @@ def validate_output(expectations: dict[str, object], stdout: str) -> tuple[str, 
     return ('pass', parsed)
 
 
+def print_command_output(label: str, output: str | None) -> None:
+    if not output:
+        return
+    print(f'{label}_START')
+    text = output.rstrip('\n')
+    if text:
+        print(text)
+    print(f'{label}_END')
+
+
 def run_self_test() -> None:
     expectations = {
         'status': 'pass',
@@ -135,11 +145,18 @@ def main() -> int:
     zig = find_zig(args.zig)
     expectations = json.loads(EXPECTATIONS.read_text(encoding='utf-8'))
 
-    result = run(
+    result = subprocess.run(
         [zig, 'build', 'bench', '--build-file', 'zigux/tests/build.zig', '-Doptimize=ReleaseSafe'],
         cwd=str(ROOT),
         capture_output=True,
+        text=True,
     )
+    if result.returncode != 0:
+        print('PHASE1_BENCH_CHECK=fail')
+        print(f'BENCH_COMMAND_EXIT={result.returncode}')
+        print_command_output('PHASE1_BENCH_STDOUT', result.stdout)
+        print_command_output('PHASE1_BENCH_STDERR', result.stderr)
+        return 1
 
     kind, payload = validate_output(expectations, result.stdout)
     if kind == 'duplicate':
