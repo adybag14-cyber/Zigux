@@ -39,8 +39,11 @@ REQUIRED_LEDGER_MARKERS = [
     "feat(tools/lib): complete bounded phase-1 helper coverage",
 ]
 
-REQUIRED_WORKFLOW_MARKERS = [
+REQUIRED_WORKFLOW_PRESENCE_MARKERS = [
     "tools/lib/*.zig",
+]
+
+REQUIRED_WORKFLOW_EXACT_MARKERS = [
     "python3 scripts/zigux/validate-phase1.py",
     "python3 scripts/zigux/check-phase1-parity.py",
     "zig build test --build-file zigux/tests/build.zig",
@@ -72,6 +75,15 @@ def collect_missing_files(root: Path) -> list[str]:
     return missing
 
 
+def collect_presence_markers(text: str, label: str, markers: list[str]) -> list[str]:
+    missing: list[str] = []
+    for marker in markers:
+        count = text.count(marker)
+        if count < 1:
+            missing.append(f"{label}:{marker}:expected>=1:actual={count}")
+    return missing
+
+
 def collect_exact_count_markers(text: str, label: str, markers: list[str]) -> list[str]:
     mismatches: list[str] = []
     for marker in markers:
@@ -91,7 +103,12 @@ def collect_missing_markers(root: Path) -> list[str]:
         if marker not in ledger:
             missing_markers.append(f"ledger:{marker}")
 
-    missing_markers.extend(collect_exact_count_markers(workflow, "workflow", REQUIRED_WORKFLOW_MARKERS))
+    missing_markers.extend(
+        collect_presence_markers(workflow, "workflow", REQUIRED_WORKFLOW_PRESENCE_MARKERS)
+    )
+    missing_markers.extend(
+        collect_exact_count_markers(workflow, "workflow", REQUIRED_WORKFLOW_EXACT_MARKERS)
+    )
     missing_markers.extend(collect_exact_count_markers(test_root, "test", REQUIRED_TEST_MARKERS))
     return missing_markers
 
@@ -104,7 +121,10 @@ def make_fixture_root(tmp_root: Path) -> None:
 
     workflow_path = tmp_root / ".github" / "workflows" / "zigux-bootstrap.yml"
     workflow_path.parent.mkdir(parents=True, exist_ok=True)
-    workflow_path.write_text("\n".join(REQUIRED_WORKFLOW_MARKERS) + "\n", encoding="utf-8")
+    workflow_path.write_text(
+        "\n".join(REQUIRED_WORKFLOW_PRESENCE_MARKERS + REQUIRED_WORKFLOW_EXACT_MARKERS) + "\n",
+        encoding="utf-8",
+    )
 
     ledger_path = tmp_root / "zigux-alpha" / "BOOTSTRAP_COMMIT_LEDGER.md"
     ledger_path.parent.mkdir(parents=True, exist_ok=True)
@@ -129,14 +149,34 @@ def run_self_test() -> None:
         make_fixture_root(tmp_root)
 
         workflow_path = tmp_root / ".github" / "workflows" / "zigux-bootstrap.yml"
-        workflow_path.write_text("tools/lib/*.zig\npython3 scripts/zigux/validate-phase1.py\n", encoding="utf-8")
+        workflow_path.write_text(
+            "\n".join(REQUIRED_WORKFLOW_PRESENCE_MARKERS + REQUIRED_WORKFLOW_EXACT_MARKERS[:-2]) + "\n",
+            encoding="utf-8",
+        )
         missing_markers = collect_missing_markers(tmp_root)
         assert "workflow:python3 scripts/zigux/check-phase1-parity.py:expected=1:actual=0" in missing_markers
         assert "workflow:zig build test --build-file zigux/tests/build.zig:expected=1:actual=0" in missing_markers
         make_fixture_root(tmp_root)
 
         workflow_path.write_text(
-            "\n".join(REQUIRED_WORKFLOW_MARKERS + [REQUIRED_WORKFLOW_MARKERS[2]]) + "\n",
+            "\n".join(
+                REQUIRED_WORKFLOW_PRESENCE_MARKERS
+                + REQUIRED_WORKFLOW_EXACT_MARKERS
+                + REQUIRED_WORKFLOW_PRESENCE_MARKERS
+            )
+            + "\n",
+            encoding="utf-8",
+        )
+        assert collect_missing_markers(tmp_root) == []
+        make_fixture_root(tmp_root)
+
+        workflow_path.write_text(
+            "\n".join(
+                REQUIRED_WORKFLOW_PRESENCE_MARKERS
+                + REQUIRED_WORKFLOW_EXACT_MARKERS
+                + [REQUIRED_WORKFLOW_EXACT_MARKERS[1]]
+            )
+            + "\n",
             encoding="utf-8",
         )
         missing_markers = collect_missing_markers(tmp_root)
@@ -152,7 +192,7 @@ def run_self_test() -> None:
         assert 'test:@import("find_bit"):expected=1:actual=2' in missing_markers
 
     print("PHASE1_VALIDATION_SELF_TEST=pass")
-    print("PHASE1_VALIDATION_SELF_TEST_CASE_COUNT=5")
+    print("PHASE1_VALIDATION_SELF_TEST_CASE_COUNT=6")
 
 
 def main() -> int:
@@ -184,7 +224,10 @@ def main() -> int:
 
     print("PHASE1_VALIDATION=pass")
     print(f"PHASE1_REQUIRED_FILE_COUNT={len(REQUIRED_FILES)}")
-    print(f"PHASE1_REQUIRED_MARKER_COUNT={len(REQUIRED_LEDGER_MARKERS) + len(REQUIRED_WORKFLOW_MARKERS) + len(REQUIRED_TEST_MARKERS)}")
+    print(
+        "PHASE1_REQUIRED_MARKER_COUNT="
+        f"{len(REQUIRED_LEDGER_MARKERS) + len(REQUIRED_WORKFLOW_PRESENCE_MARKERS) + len(REQUIRED_WORKFLOW_EXACT_MARKERS) + len(REQUIRED_TEST_MARKERS)}"
+    )
     return 0
 
 
