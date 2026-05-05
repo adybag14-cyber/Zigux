@@ -6,9 +6,10 @@ This document tracks the first bounded Phase 9 runtime atomic64 starter under `s
 
 - `PHASE9_STATUS=active`
 - `PHASE9_SLICE=runtime-atomic64-module-starter`
-- scope: lifecycle starter, selftest summary, dedicated Phase 9 test wiring, and survey-manifest closure only
+- scope: lifecycle starter, selftest summary, dedicated Phase 9 test wiring, a bounded loader-handoff scaffold, and survey-manifest closure only
 - product boundary:
   - `samples/zigux/runtime_atomic64.zig`
+  - `samples/zigux/runtime_atomic64_loader.zig`
   - `zigux/tests/runtime_atomic64_module.zig`
   - `zigux/tests/runtime_atomic64_manifest.json`
   - `zigux/tests/phase9_build.zig`
@@ -26,6 +27,7 @@ The live Phase 9 tree had already identified `lib/atomic64_test.c` as the runtim
 - a selftest summary that groups the C anchor into arithmetic, bitwise, returning, swap, and guard-operation families
 - a narrow `add_unless` guard-path pilot on top of the existing atomic helpers without pretending broader runtime-substrate support
 - a narrow differential gate under `zigux/tests/runtime_atomic64_diff.zig` for selected exchange, cmpxchg, and `add_unless` expectations
+- a bounded `runtime_atomic64_loader` scaffold that names the planned init and exit handoff, the current atomic64 operation-family summary, and the no-substrate release path while the shared runtime-loader surface remains unavailable
 - dedicated Phase 9 tests and a `make -C zigux phase9` entry
 
 ## Non-goals
@@ -46,4 +48,4 @@ This slice does not yet claim:
 
 ## Next bounded step
 
-Stay in the Phase 9 runtime atomic64 lane and expose one more honest guard-path expectation next, most likely `inc_not_zero` or `dec_if_positive`, through the existing starter sample before attempting any broader runtime substrate work.
+Stay in the Phase 9 runtime atomic64 lane and keep broader work blocked until a shared runtime loader substrate can consume the bounded loader-handoff plan.
