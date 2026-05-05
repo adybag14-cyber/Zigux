@@ -11,6 +11,7 @@ This document tracks the bounded Phase 8 userspace-adjacent tooling slice for Zi
   - `tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig`
   - `zigux/tests/phase8_file_path_handle_bridge.zig`
   - `zigux/tests/phase8_file_path_handle_bridge_only_build.zig`
+  - `zigux/tests/phase8_build.zig`
 
 ## Why this slice exists
 
@@ -29,7 +30,11 @@ The Phase 8 roadmap still calls for a segmented libbpf rollout under `tools/lib/
 3. run the focused Phase 8 file-path handle bridge shard
 - `zig build test --build-file zigux/tests/phase8_file_path_handle_bridge_only_build.zig --summary all`
 
-4. run the convenience target
+4. run the shared Phase 8 replay
+- `make -C zigux phase8-test`
+- `zig build test --build-file zigux/tests/phase8_build.zig --summary all`
+
+5. run the convenience target
 - `make -C zigux phase8`
 
 ## Current parity surface
@@ -52,6 +57,7 @@ The current tests check:
 - repeated field handling that keeps the latest parsed value
 - explicit malformed line and malformed integer failures
 - focused build wiring for the new Phase 8 helper packet
+- shared build wiring for the active stable-output Phase 8 tooling packet
 
 ## Non-goals
 
