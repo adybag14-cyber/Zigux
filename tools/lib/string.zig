@@ -99,9 +99,10 @@ pub fn strscpy_pad(dest: []u8, src: []const u8) isize {
 }
 
 pub fn skipSpaces(str: []const u8) []const u8 {
+    const limit = cStringLen(str);
     var idx: usize = 0;
-    while (idx < str.len and std.ascii.isWhitespace(str[idx])) : (idx += 1) {}
-    return str[idx..];
+    while (idx < limit and std.ascii.isWhitespace(str[idx])) : (idx += 1) {}
+    return str[idx..limit];
 }
 
 pub fn skip_spaces(str: []const u8) []const u8 {
@@ -411,6 +412,14 @@ test "strlcpy stops at the first embedded NUL in the source" {
 test "skip trim remove and replace spaces work in place" {
     try std.testing.expectEqualStrings("hello", skipSpaces("   hello"));
     try std.testing.expectEqualStrings("hello", skip_spaces("   hello"));
+
+    const skip_empty_cstr = [_]u8{ ' ', '\t', 0, 'x' };
+    try std.testing.expectEqual(@as(usize, 0), skipSpaces(&skip_empty_cstr).len);
+    try std.testing.expectEqual(@as(usize, 0), skip_spaces(&skip_empty_cstr).len);
+
+    const skip_text_cstr = [_]u8{ ' ', '\t', 'o', 'k', 0, 'x' };
+    try std.testing.expectEqualStrings("ok", skipSpaces(&skip_text_cstr));
+    try std.testing.expectEqualStrings("ok", skip_spaces(&skip_text_cstr));
 
     var trim_buf = [_]u8{ ' ', '\t', 'h', 'i', ' ', '\n' };
     try std.testing.expectEqualStrings("hi", trimSpaces(&trim_buf));
