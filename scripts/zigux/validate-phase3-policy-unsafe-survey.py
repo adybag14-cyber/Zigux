@@ -31,6 +31,8 @@ STATIC_MARKERS = (
     "PHASE3_VALIDATE_GATE=python3 scripts/zigux/validate-phase3.py --slug abi",
     "PHASE3_INTEROP_GATE=python3 scripts/zigux/run-phase3-checks.py --slug abi",
     "PHASE3_TEST_GATE=zig build phase3-test --build-file zigux/tests/build.zig",
+    "PHASE3_BOUNDARY_GAP=no-dedicated-policy-unsafe-subslice-beyond-the-shared-abi-packet",
+    "PHASE3_NEXT_BOUNDED_STEP=keep-this-note-aligned-with-the-shared-abi-packet-until-a-real-policy-or-unsafe-helper-expansion-lands",
 )
 
 BLOB_MARKERS = {
@@ -237,6 +239,32 @@ def run_self_test() -> int:
         assert "stale_blob_marker:PHASE3_MMIO_BLOB_SHA" in issues
 
         build_valid_workspace(root)
+        missing_boundary_gap = (root / SURVEY_REL).read_text(encoding="utf-8").replace(
+            "- `PHASE3_BOUNDARY_GAP=no-dedicated-policy-unsafe-subslice-beyond-the-shared-abi-packet`\n",
+            "",
+            1,
+        )
+        write_file(root / SURVEY_REL, missing_boundary_gap)
+        issues = validate(root)
+        assert (
+            "missing_marker:PHASE3_BOUNDARY_GAP=no-dedicated-policy-unsafe-subslice-beyond-the-shared-abi-packet"
+            in issues
+        )
+
+        build_valid_workspace(root)
+        missing_next_step = (root / SURVEY_REL).read_text(encoding="utf-8").replace(
+            "- `PHASE3_NEXT_BOUNDED_STEP=keep-this-note-aligned-with-the-shared-abi-packet-until-a-real-policy-or-unsafe-helper-expansion-lands`\n",
+            "",
+            1,
+        )
+        write_file(root / SURVEY_REL, missing_next_step)
+        issues = validate(root)
+        assert (
+            "missing_marker:PHASE3_NEXT_BOUNDED_STEP=keep-this-note-aligned-with-the-shared-abi-packet-until-a-real-policy-or-unsafe-helper-expansion-lands"
+            in issues
+        )
+
+        build_valid_workspace(root)
         broken_allocator_policy = (root / ALLOCATOR_POLICY_REL).read_text(encoding="utf-8").replace(
             "try std.testing.expect(requiresExplicitCaller(.caller_provided));\n",
             "",
@@ -276,7 +304,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE3_POLICY_UNSAFE_SURVEY_SELF_TEST=pass")
-    print("PHASE3_POLICY_UNSAFE_SURVEY_SELF_TEST_CASE_COUNT=5")
+    print("PHASE3_POLICY_UNSAFE_SURVEY_SELF_TEST_CASE_COUNT=7")
     return 0
 
 
