@@ -16,6 +16,10 @@
       "required_marker": "Phase 14 notes"
     },
     {
+      "path": "Documentation/zigux/phase14-release-boundary-survey.md",
+      "required_marker": "PHASE14_RELEASE_BOUNDARY=present"
+    },
+    {
       "path": "Documentation/zigux/review-checklist.md",
       "required_marker": "shared Phase 14 smoke packet"
     },
