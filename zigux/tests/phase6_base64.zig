@@ -66,6 +66,25 @@ test "phase 6 base64 chars reports exact padded and unpadded lengths" {
     }
 }
 
+test "phase 6 base64 bytes reports exact decoded lengths for kernel-aligned vectors" {
+    const cases = [_]struct {
+        input: []const u8,
+        padding: bool,
+        variant: base64.Variant,
+        expected: usize,
+    }{
+        .{ .input = "TQ==", .padding = true, .variant = .std, .expected = 1 },
+        .{ .input = "TWE=", .padding = true, .variant = .std, .expected = 2 },
+        .{ .input = "TWFu", .padding = false, .variant = .std, .expected = 3 },
+        .{ .input = "APv_f4A", .padding = false, .variant = .urlsafe, .expected = 5 },
+        .{ .input = "APv,f4A=", .padding = true, .variant = .imap, .expected = 5 },
+    };
+
+    for (cases) |case| {
+        try std.testing.expectEqual(case.expected, try base64.bytes(case.input, case.padding, case.variant));
+    }
+}
+
 test "phase 6 base64 standard encode parity matches kernel vectors" {
     for (fixtures.standard_cases) |case| {
         try expectEncode(case.input, case.expected, case.padding, .std);
@@ -93,6 +112,23 @@ test "phase 6 base64 decode rejects invalid kernel-style vectors" {
     var buf: [128]u8 = undefined;
     for (fixtures.invalid_decode_cases) |case| {
         try std.testing.expectError(base64.DecodeError.InvalidInput, base64.decode(buf[0..], case.input, case.padding, fixtureVariant(case.variant_name)));
+    }
+}
+
+test "phase 6 base64 bytes rejects malformed kernel-style vectors" {
+    const cases = [_]struct {
+        input: []const u8,
+        padding: bool,
+        variant: base64.Variant,
+    }{
+        .{ .input = "A", .padding = false, .variant = .std },
+        .{ .input = "Zh==", .padding = true, .variant = .std },
+        .{ .input = "Zm9=", .padding = false, .variant = .std },
+        .{ .input = "Zg==", .padding = false, .variant = .urlsafe },
+    };
+
+    for (cases) |case| {
+        try std.testing.expectError(base64.DecodeError.InvalidInput, base64.bytes(case.input, case.padding, case.variant));
     }
 }
 
