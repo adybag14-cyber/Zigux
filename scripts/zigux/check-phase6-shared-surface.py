@@ -241,8 +241,7 @@ def run_self_test() -> None:
 
         checksum_slice = root / "Documentation/zigux/phase6-checksum-slice.md"
         original_checksum_slice = checksum_slice.read_text(encoding="utf-8")
-        checksum_slice.writeText = checksum_slice.write_text
-        checksum_slice.writeText(
+        checksum_slice.write_text(
             original_checksum_slice.replace(
                 "- helper-local perf smoke on patterned 64-byte and 1501-byte payloads keeps `checksum.compute` within a 150% slowdown ceiling versus the bounded reference loop",
                 "- checksum perf details are omitted",
