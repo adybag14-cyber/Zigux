@@ -7,7 +7,7 @@
   "validation_entrypoint": "zig build test --build-file zigux/tests/phase5_build.zig --summary all",
   "review_prompts": [
     "descriptor keeps the Linux anchor path explicit and leaves requires_runtime_substrate false while provides_selfcheck stays true",
-    "the manifest and survey test still describe the exact registration, integer roundtrip, and shared baz/bar dispatch contract run through phase5_build.zig",
+    "the manifest and survey test still describe the approved Phase 5 in-memory ownership-and-lifetime idiom: the exact registration, integer roundtrip, and shared baz/bar dispatch contract run through phase5_build.zig",
     "the manifest prompts keep the unnamed attribute group shape and post-exit show/store rejection boundary explicit instead of implying sysfs registration",
     "sample-behavior changes update the manifest-backed registration and lifecycle contract instead of leaving reviewers to infer it from code alone",
     "docs and tests still keep sysfs creation, kernel_kobj integration, uevents, and module registration out of scope for this Phase 5 sample"
