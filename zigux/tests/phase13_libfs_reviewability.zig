@@ -71,7 +71,7 @@ test "phase13 libfs manifest records the landed helper surfaces and remaining he
     try std.testing.expect(manifest.survey_summary.preexisting_phase13_slice_note_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase13_reviewability_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase13_survey_note_present);
-    try std.testing.expectEqual(@as(usize, 11), manifest.gaps.len);
+    try std.testing.expectEqual(@as(usize, 12), manifest.gaps.len);
 
     const descriptor = libfs.LibFsHelperLab.descriptor();
     try std.testing.expectEqualStrings("fs/libfs.c", descriptor.anchor);
@@ -81,6 +81,7 @@ test "phase13 libfs manifest records the landed helper surfaces and remaining he
     try std.testing.expect(descriptor.provides_offset_seek_helpers);
     try std.testing.expect(descriptor.provides_directory_emit_planning);
     try std.testing.expect(descriptor.provides_transaction_buffer_planning);
+    try std.testing.expect(descriptor.provides_transaction_publish_planning);
     try std.testing.expect(!descriptor.touches_live_dcache);
     try std.testing.expect(!descriptor.touches_live_inode_state);
 
@@ -98,7 +99,8 @@ test "phase13 libfs manifest records the landed helper surfaces and remaining he
     var saw_offset_followup = false;
     var saw_emit_followup = false;
     var saw_transaction_helper = false;
-    var saw_transaction_publish_followup = false;
+    var saw_transaction_publish_helper = false;
+    var saw_transaction_read_followup = false;
 
     for (manifest.gaps, 0..) |gap, i| {
         try std.testing.expect(gap.id.len > 0);
@@ -177,11 +179,18 @@ test "phase13 libfs manifest records the landed helper surfaces and remaining he
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "single-write-per-open") != null);
         }
         if (std.mem.eql(u8, gap.id, "phase13-libfs-transaction-publish-helper")) {
-            saw_transaction_publish_followup = true;
-            try std.testing.expectEqualStrings("ready_next", gap.status);
+            saw_transaction_publish_helper = true;
+            try std.testing.expectEqualStrings("starter_landed", gap.status);
             try std.testing.expectEqualStrings("fs/libfs.zig", gap.zigux_destination);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "simple_transaction_set") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "publish bookkeeping") != null);
+        }
+        if (std.mem.eql(u8, gap.id, "phase13-libfs-transaction-read-helper")) {
+            saw_transaction_read_followup = true;
+            try std.testing.expectEqualStrings("ready_next", gap.status);
+            try std.testing.expectEqualStrings("fs/libfs.zig", gap.zigux_destination);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "simple_transaction_read") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "simple_read_from_buffer") != null);
         }
 
         for (manifest.gaps[i + 1 ..]) |other| {
@@ -189,10 +198,10 @@ test "phase13 libfs manifest records the landed helper surfaces and remaining he
         }
     }
 
-    try std.testing.expectEqual(@as(usize, 10), starter_landed_count);
+    try std.testing.expectEqual(@as(usize, 11), starter_landed_count);
     try std.testing.expectEqual(@as(usize, 1), ready_next_count);
     try std.testing.expectEqual(@as(usize, 0), blocked_count);
-    try std.testing.expectEqual(@as(usize, 5), helper_surface_count);
+    try std.testing.expectEqual(@as(usize, 6), helper_surface_count);
     try std.testing.expect(saw_build_gate);
     try std.testing.expect(saw_make_target);
     try std.testing.expect(saw_starter);
@@ -203,5 +212,6 @@ test "phase13 libfs manifest records the landed helper surfaces and remaining he
     try std.testing.expect(saw_offset_followup);
     try std.testing.expect(saw_emit_followup);
     try std.testing.expect(saw_transaction_helper);
-    try std.testing.expect(saw_transaction_publish_followup);
+    try std.testing.expect(saw_transaction_publish_helper);
+    try std.testing.expect(saw_transaction_read_followup);
 }
