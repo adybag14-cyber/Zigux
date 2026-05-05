@@ -27,7 +27,7 @@ This slice stays intentionally narrow and ports the first practical runtime-safe
 - explicit node linking
 - balancing and ordered insertion helpers
 - comparison-based plain-tree lookup helpers
-- ordered erase plus direct node replacement
+- ordered erase, erase-and-detach, and direct node replacement
 - in-order and postorder traversal helpers
 
 ## Gates
@@ -60,6 +60,7 @@ The current starter slice covers:
 - `rb_find_first()` via `findFirst()`
 - `rb_next_match()` via `nextMatch()`
 - `rb_erase()` via `erase()`
+- `rb_erase_init()` via `eraseInit()`
 - `rb_first()`
 - `rb_last()`
 - `rb_next()`
@@ -70,11 +71,12 @@ The current starter slice covers:
 
 The current tests check:
 
-- committed C-vs-Zig parity for ordered insert, reverse traversal, replace, duplicate-range lookup order, and postorder traversal
+- committed C-vs-Zig parity for ordered insert, reverse traversal, replace, duplicate-key lookup order, and postorder traversal
 - ordered inserts and sorted forward traversal
 - reverse traversal via `last()` and `prev()`
 - duplicate-key lookup ranges via `findFirst()` and `nextMatch()`
 - erase-and-replace consistency after structural updates
+- erase-and-detach ownership reset via `eraseInit()`
 - postorder walking on a minimally balanced tree
 - detached-node clearing semantics
 - a machine-checked manifest that records the `lib/rbtree.c` anchor, the landed Phase 7 review surfaces, and the next parity-fixture follow-up
@@ -89,4 +91,4 @@ This slice still does not claim:
 
 ## Next bounded step
 
-Leave this lane parked unless fresh repo inspection finds a concrete need for one tiny additional C-vs-Zig parity shape over the existing insert, duplicate-key lookup, erase, replace, reverse traversal, or postorder surface.
+Leave this lane parked unless fresh repo inspection finds a concrete need for one tiny additional C-vs-Zig parity shape over the existing insert, duplicate-key lookup, erase, erase-and-detach, replace, reverse traversal, or postorder surface.
