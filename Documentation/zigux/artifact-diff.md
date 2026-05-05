@@ -82,7 +82,8 @@ Current Phase 4 use
 - `zigux/tests/atomic64_diff.zig` keeps the roadmap-named Phase 4 atomic64 entrypoint explicit as the thin wrapper over the shared runtime-backed replay.
 - `zigux/tests/runtime_atomic64_diff.zig` currently carries the single live bounded atomic64 rollback-readiness replay body that the Phase 4 wrapper and the Phase 9 starter both reuse.
 - `zigux/tests/bitmap_diff.zig` anchors the bounded bitmap rollback-readiness parity checks.
-- `zigux/tests/phase4_build.zig` keeps the two Phase 4 diff gates on one shared `zig build test --build-file zigux/tests/phase4_build.zig` entrypoint.
+- `zigux/tests/phase4_bitmap_live_helper_replay.zig` keeps the shipped helper-backed exact-fill versus rounded-zero bitmap semantics reviewable beside the synthetic bitmap rollback gate.
+- `zigux/tests/phase4_build.zig` keeps the three shipped Phase 4 rollback-readiness replays on one shared `zig build test --build-file zigux/tests/phase4_build.zig` entrypoint.
 - `scripts/zigux/validate-phase4.py` keeps the shared Phase 4 build entrypoint, workflow wiring, and Phase 4 documentation markers aligned before the Zig tests run.
 - `Documentation/zigux/phase4-validation-matrix.md` records the current rollback owners, threshold posture, and lab/CI replay matrix for the shipped Phase 4 gates.
 
