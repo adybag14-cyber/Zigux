@@ -19,16 +19,17 @@ REQUIRED_FILES = [
     "zigux/tests/phase13_libfs_manifest.json",
     "zigux/tests/phase13_landlock_ruleset_manifest.json",
     "zigux/tests/phase13_landlock_syscalls_manifest.json",
+    "scripts/zigux/check-phase13-devres-packet.py",
 ]
 
 MAKE_REQUIRED_LINES = [
     "phase13-validate:",
     "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase13-release.py",
+    "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase13-devres-packet.py",
     "phase13: phase13-validate phase13-test",
 ]
 
 MAKE_FORBIDDEN_LINES = [
-    "scripts/zigux/check-phase13-devres-packet.py",
     "scripts/zigux/check-phase13-release-replay-exact-counts.py",
 ]
 
@@ -69,6 +70,7 @@ def _baseline_makefile() -> str:
         (
             "phase13-validate:",
             "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase13-release.py",
+            "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase13-devres-packet.py",
             "",
             "phase13-test:",
             "\tcd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase13_build.zig",
@@ -103,12 +105,12 @@ def run_self_test() -> int:
         makefile_path = root / "zigux/Makefile"
         baseline_makefile = _read(makefile_path)
         makefile_path.write_text(
-            baseline_makefile + "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase13-devres-packet.py\n",
+            baseline_makefile + "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase13-release-replay-exact-counts.py\n",
             encoding="utf-8",
         )
         _assert_only(
             validate(root),
-            ["makefile:forbidden_route:scripts/zigux/check-phase13-devres-packet.py"],
+            ["makefile:forbidden_route:scripts/zigux/check-phase13-release-replay-exact-counts.py"],
             "forbidden_makefile_route_guard_failed",
         )
         makefile_path.write_text(baseline_makefile, encoding="utf-8")
@@ -120,6 +122,7 @@ def run_self_test() -> int:
             [
                 "makefile:phase13-validate:",
                 "makefile:\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase13-release.py",
+                "makefile:\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase13-devres-packet.py",
                 "makefile:phase13: phase13-validate phase13-test",
             ],
             "missing_makefile_marker_guard_failed",
@@ -127,13 +130,13 @@ def run_self_test() -> int:
         _write(root / "zigux/Makefile", baseline_makefile)
         case_count += 1
 
-        (root / "zigux/tests/phase13_landlock_syscalls_manifest.json").unlink()
+        (root / "scripts/zigux/check-phase13-devres-packet.py").unlink()
         _assert_only(
             validate(root),
-            ["missing_file:zigux/tests/phase13_landlock_syscalls_manifest.json"],
+            ["missing_file:scripts/zigux/check-phase13-devres-packet.py"],
             "missing_required_file_guard_failed",
         )
-        _write(root / "zigux/tests/phase13_landlock_syscalls_manifest.json", "{}\n")
+        _write(root / "scripts/zigux/check-phase13-devres-packet.py", "# stub\n")
         case_count += 1
 
     print("PHASE13_RELEASE_VALIDATOR_SELF_TEST=pass")
