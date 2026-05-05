@@ -1,7 +1,7 @@
 {
-  "lane_key": "P13-L17",
+  "lane_key": "P13-L18",
   "phase": "Phase 13",
-  "surveyed_commit": "master-reviewability",
+  "surveyed_commit": "master-read-only-helper",
   "anchors": [
     "include/linux/list.h",
     "include/linux/notifier.h",
@@ -14,7 +14,7 @@
     "preexisting_list_view_present": true,
     "preexisting_hlist_view_present": true,
     "preexisting_exported_list_abi_present": true,
-    "preexisting_notifier_helper_present": false,
+    "preexisting_notifier_helper_present": true,
     "preexisting_exported_notifier_abi_present": false,
     "preexisting_phase13_notifier_reviewability_present": true,
     "preexisting_phase13_notifier_survey_note_present": true
@@ -70,18 +70,18 @@
       "why_now": "The docs tree needs an explicit note that matches the live binding-only notifier and list-helper state instead of implying extra missing packet members."
     },
     {
-      "id": "phase13-notifier-helper-gap",
-      "status": "ready_next",
+      "id": "phase13-notifier-helper-surface",
+      "status": "starter_landed",
       "kind": "helper",
       "zigux_destination": "zigux/helpers/notifier_chain_view.zig",
-      "why_now": "The next same-family product step belongs to `P13-L18`: a read-only notifier-chain helper rather than callback or registration behavior."
+      "why_now": "The next same-lane product step was a read-only notifier-chain helper rather than callback or registration behavior, and it is now present."
     },
     {
       "id": "phase13-exported-notifier-c-header-gap",
       "status": "ready_next",
       "kind": "header",
       "zigux_destination": "include/zigux/notifier_abi.h",
-      "why_now": "The paired exported-C follow-up also stays with `P13-L18`: the current exported C side still lacks a dedicated notifier header even though the Zig binding foothold exists."
+      "why_now": "The current exported C side still lacks a dedicated notifier header even though the Zig notifier helper foothold is now present."
     }
   ]
 }
