@@ -67,7 +67,7 @@ test "phase 4 atomic64 survey keeps wrapper handoff and remaining shared drift e
 
     try std.testing.expect(manifest.phase4_validation_matrix_atomic64_diff_note_present);
     try std.testing.expect(manifest.phase4_validation_matrix_runtime_atomic64_note_present);
-    try std.testing.expectEqualStrings("bc3c5cb7a184fe6313ffd628426deeb920cb80c6", manifest.phase4_validation_matrix_blob_sha);
+    try std.testing.expectEqualStrings("44210bb96e9ae1946b6ad827b4ab48452fed30e4", manifest.phase4_validation_matrix_blob_sha);
     try std.testing.expectEqualStrings(
         "threshold_pending_until_runtime_atomic64_scope_widens",
         manifest.threshold_posture,
