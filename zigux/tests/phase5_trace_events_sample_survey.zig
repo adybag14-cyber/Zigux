@@ -184,3 +184,28 @@ test "phase 5 trace-events manifest records the exact bounded checks" {
     try std.testing.expect(std.mem.eql(u8, manifest.non_goals[2], "kernel thread scheduling or timeout parity"));
     try std.testing.expect(std.mem.eql(u8, manifest.non_goals[3], "module registration or unregister wiring parity"));
 }
+
+test "phase 5 trace-events survey note stays repo-local and keeps the build-wired boundary explicit" {
+    var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
+    defer io_instance.deinit();
+
+    const survey_note = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "Documentation/zigux/phase5-trace-events-sample-survey.md",
+        std.testing.allocator,
+        .limited(64 * 1024),
+    );
+    defer std.testing.allocator.free(survey_note);
+
+    const required_mentions = [_][]const u8{
+        "samples/trace_events/trace-events-sample.c|Phase 5",
+        "phase5_build.zig",
+        "runtime_trace_events",
+    };
+
+    for (required_mentions) |needle| {
+        try std.testing.expect(std.mem.indexOf(u8, survey_note, needle) != null);
+    }
+
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "/workspace/agent_files") == null);
+}
