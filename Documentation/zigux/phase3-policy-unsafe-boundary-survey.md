@@ -14,7 +14,7 @@ This note records the current policy and narrow-unsafe boundary for the bounded 
 - `PHASE3_ALLOCATOR_POLICY=explicit-modes-only`
 - `PHASE3_ALLOCATOR_POLICY_BLOB_SHA=e91de23f1980a5d4acb7b415c04388114d7f2970`
 - `PHASE3_MMIO_PATH=zigux/helpers/mmio.zig`
-- `PHASE3_MMIO_BLOB_SHA=51cbee2b49cf551b051eb5427c4917b2fe74e6a9`
+- `PHASE3_MMIO_BLOB_SHA=b4d56107ff0f3d2845d7c26dac87d5f594602a28`
 - `PHASE3_UNSAFE_PATH=zigux/unsafe/narrow.zig`
 - `PHASE3_UNSAFE_SCOPE=narrow-mmio-and-raw-pointer-bridge`
 - `PHASE3_UNSAFE_BLOB_SHA=a8d31d05e1495393b787afe02038008d37a2ea57`
@@ -23,7 +23,7 @@ This note records the current policy and narrow-unsafe boundary for the bounded 
 - `PHASE3_ABI_DUMP_PATH=zigux/tests/phase3_abi_dump.zig`
 - `PHASE3_ABI_DUMP_BLOB_SHA=77eeb1a928ae2032b72960546277290d5116ab0b`
 - `PHASE3_ABI_MANIFEST_BLOB_SHA=86ca818027f58c85c296cf39214bd1804ca55b4d`
-- `PHASE3_ABI_SLICE_DOC_BLOB_SHA=7b9e7f33bfb4024e0c7e761d64c4920dfb92dc83`
+- `PHASE3_ABI_SLICE_DOC_BLOB_SHA=8c0aabd79bac7189c6e50544156e91fcd7667f51`
 - `PHASE3_VALIDATE_GATE=python3 scripts/zigux/validate-phase3.py --slug abi`
 - `PHASE3_INTEROP_GATE=python3 scripts/zigux/run-phase3-checks.py --slug abi`
 - `PHASE3_TEST_GATE=zig build phase3-test --build-file zigux/tests/build.zig`
@@ -52,7 +52,7 @@ The current tree still carries a real bounded policy-and-unsafe packet, but it i
 - `zigux/helpers/panic_policy.zig` keeps panic action explicit through `abort`, `bug`, and `warn`, and its focused test still proves the return policy directly from those enum values.
 - `zigux/helpers/allocator_policy.zig` keeps caller-provided ownership and global-fallback policy explicit through the current helper-local predicates.
 - `zigux/unsafe/narrow.zig` stays deliberately small: address math, pointer formation, const slice reads, const pointer reads, and direct value writes remain the whole explicit raw-pointer bridge.
-- `zigux/helpers/mmio.zig` consumes that same narrow layer for `range()`, `read32()`, and `write32()` rather than widening into a larger policy substrate.
+- `zigux/helpers/mmio.zig` consumes that same narrow layer for `range()`, `read8()`, `write8()`, `read32()`, and `write32()` rather than widening into a larger policy substrate.
 - `zigux/tests/phase3_abi.zig` is the live shared Zig proof packet that imports these helpers today, and `zigux/tests/phase3_abi_dump.zig` keeps the ABI-side `InteropPolicy` and `MmioRange` layout and constant evidence visible on the shared dump path.
 - `zigux/tests/fixtures/phase3_abi_manifest.json`, `Documentation/zigux/phase3-abi-slice.md`, and `scripts/zigux/validate-phase3.py` already treat these helpers as part of the shared `abi` slice.
 
