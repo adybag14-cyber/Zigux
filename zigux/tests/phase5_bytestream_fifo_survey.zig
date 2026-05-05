@@ -48,6 +48,7 @@ test "phase 5 bytestream fifo manifest records the exact bounded checks" {
     var saw_manifest_prompt = false;
     var saw_exact_sequence = false;
     var saw_capacity = false;
+    var saw_helper_boundary = false;
     var saw_lifecycle = false;
 
     for (manifest.review_prompts) |prompt| {
@@ -77,6 +78,12 @@ test "phase 5 bytestream fifo manifest records the exact bounded checks" {
             saw_capacity = true;
             try std.testing.expect(std.mem.indexOf(u8, check.expected, "20 through 42 inclusive") != null);
         }
+        if (std.mem.eql(u8, check.id, "bounded-helper-behavior")) {
+            saw_helper_boundary = true;
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "empty enqueue copies 0 bytes") != null);
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "skip-at-capacity returns 0") != null);
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "pop-after-reset null") != null);
+        }
         if (std.mem.eql(u8, check.id, "lifecycle-boundary")) {
             saw_lifecycle = true;
             try std.testing.expect(std.mem.indexOf(u8, check.expected, "requires init before replay") != null);
@@ -92,6 +99,7 @@ test "phase 5 bytestream fifo manifest records the exact bounded checks" {
     try std.testing.expect(saw_manifest_prompt);
     try std.testing.expect(saw_exact_sequence);
     try std.testing.expect(saw_capacity);
+    try std.testing.expect(saw_helper_boundary);
     try std.testing.expect(saw_lifecycle);
     try std.testing.expect(std.mem.eql(u8, manifest.non_goals[0], "procfs parity"));
     try std.testing.expect(std.mem.eql(u8, manifest.non_goals[1], "kfifo_from_user or kfifo_to_user parity"));
@@ -156,6 +164,10 @@ test "phase 5 bytestream fifo survey note records the latest verification snapsh
         "fill_end = 42",
         "final_len = 32",
         "peek and skip returned `null`",
+        "empty enqueue copied `0` bytes",
+        "overflow push was rejected at the 32-byte capacity",
+        "skip-at-capacity returned `0`",
+        "pop-after-reset returned `null`",
         "cold -> initialized -> replay_complete -> exited",
     };
 
