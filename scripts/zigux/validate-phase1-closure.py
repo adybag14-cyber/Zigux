@@ -59,6 +59,38 @@ required_workflow_markers = [
     'python3 scripts/zigux/check-phase1-bench.py',
     'zig build bench --build-file zigux/tests/build.zig',
 ]
+required_phase1_workflow_markers = [
+    (
+        'workflow_phase1_validate_count',
+        'python3 scripts/zigux/validate-phase1.py',
+        1,
+    ),
+    (
+        'workflow_phase1_closure_count',
+        'python3 scripts/zigux/validate-phase1-closure.py',
+        1,
+    ),
+    (
+        'workflow_phase1_parity_count',
+        'python3 scripts/zigux/check-phase1-parity.py',
+        1,
+    ),
+    (
+        'workflow_phase1_bench_count',
+        'python3 scripts/zigux/check-phase1-bench.py',
+        1,
+    ),
+    (
+        'workflow_phase1_unit_replay_count',
+        'zig build test --build-file zigux/tests/build.zig',
+        1,
+    ),
+    (
+        'workflow_phase1_bench_replay_count',
+        'zig build bench --build-file zigux/tests/build.zig',
+        1,
+    ),
+]
 required_build_markers = [
     'phase1_bench.zig',
     'const bench_step = b.step("bench", "Run Phase 1 helper benchmark smoke");',
@@ -239,6 +271,38 @@ def run_self_test() -> None:
         assert f'manifest:missing_helper={EXPECTED_HELPERS[-1]}' in unexpected_markers
         assert f'manifest:unexpected_helper={unexpected_helper}' in unexpected_markers
 
+        valid_phase1_workflow = render_marker_fixture(required_phase1_workflow_markers)
+        assert collect_exact_count_markers(valid_phase1_workflow, required_phase1_workflow_markers) == []
+
+        missing_phase1_validate = valid_phase1_workflow.replace(
+            'python3 scripts/zigux/validate-phase1.py\n',
+            '',
+            1,
+        )
+        missing_phase1_validate_markers = collect_exact_count_markers(
+            missing_phase1_validate,
+            required_phase1_workflow_markers,
+        )
+        assert 'workflow_phase1_validate_count:expected=1:actual=0' in missing_phase1_validate_markers
+
+        duplicate_phase1_parity = valid_phase1_workflow + 'python3 scripts/zigux/check-phase1-parity.py\n'
+        duplicate_phase1_parity_markers = collect_exact_count_markers(
+            duplicate_phase1_parity,
+            required_phase1_workflow_markers,
+        )
+        assert 'workflow_phase1_parity_count:expected=1:actual=2' in duplicate_phase1_parity_markers
+
+        missing_phase1_unit_replay = valid_phase1_workflow.replace(
+            'zig build test --build-file zigux/tests/build.zig\n',
+            '',
+            1,
+        )
+        missing_phase1_unit_replay_markers = collect_exact_count_markers(
+            missing_phase1_unit_replay,
+            required_phase1_workflow_markers,
+        )
+        assert 'workflow_phase1_unit_replay_count:expected=1:actual=0' in missing_phase1_unit_replay_markers
+
         valid_makefile = render_marker_fixture(required_makefile_markers)
         assert collect_exact_count_markers(valid_makefile, required_makefile_markers) == []
 
@@ -278,7 +342,7 @@ def run_self_test() -> None:
         assert 'tests_readme_phase1_packet:expected=1:actual=0' in missing_tests_markers
 
     print('PHASE1_CLOSURE_VALIDATOR_SELF_TEST=pass')
-    print('PHASE1_CLOSURE_VALIDATOR_SELF_TEST_CASE_COUNT=9')
+    print('PHASE1_CLOSURE_VALIDATOR_SELF_TEST_CASE_COUNT=12')
 
 
 def main() -> int:
@@ -327,6 +391,7 @@ def main() -> int:
         missing_markers.append('workflow:remove mlugg/setup-zig@')
 
     missing_markers.extend(collect_manifest_markers(manifest, ROOT))
+    missing_markers.extend(collect_exact_count_markers(workflow, required_phase1_workflow_markers))
     missing_markers.extend(collect_exact_count_markers(makefile, required_makefile_markers))
     missing_markers.extend(collect_exact_count_markers(docs_root, required_docs_root_markers))
     missing_markers.extend(collect_exact_count_markers(scripts_readme, required_scripts_readme_markers))
@@ -344,7 +409,7 @@ def main() -> int:
     print(f'PHASE1_CLOSURE_REQUIRED_FILE_COUNT={len(required_files)}')
     print(
         'PHASE1_CLOSURE_REQUIRED_MARKER_COUNT='
-        f'{len(required_closure_markers) + len(required_workflow_markers) + len(required_build_markers) + len(required_ledger_markers) + len(required_makefile_markers) + len(required_docs_root_markers) + len(required_scripts_readme_markers) + len(required_tests_readme_markers)}'
+        f'{len(required_closure_markers) + len(required_workflow_markers) + len(required_phase1_workflow_markers) + len(required_build_markers) + len(required_ledger_markers) + len(required_makefile_markers) + len(required_docs_root_markers) + len(required_scripts_readme_markers) + len(required_tests_readme_markers)}'
     )
     return 0
 
