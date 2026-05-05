@@ -20,6 +20,7 @@ test "phase11 dw_wdt exposes the bounded descriptor and fixed-top limits" {
     try std.testing.expectEqual(@as(u32, 1), config.min_timeout_sec);
     try std.testing.expectEqual(@as(u32, 32_768_000), config.max_hw_heartbeat_ms);
     try std.testing.expect(!config.can_stop);
+    try std.testing.expectError(error.WatchdogNotRunning, watchdog.ping());
 }
 
 test "phase11 dw_wdt exposes the fixed-top timeout matrix in ascending order" {
