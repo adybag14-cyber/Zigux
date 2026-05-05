@@ -210,6 +210,14 @@ PHASE2_FIXDEP_REQUIRED_SOURCE_MARKERS = [
     "diff_text(c_actual_stderr, c_repeat_stderr)",
     "diff_text(zig_actual_stderr, zig_repeat_stderr)",
     "print('FIXDEP_DETERMINISM=pass')",
+    "'duplicate_name',",
+    "'unexpected_order',",
+    "'unexpected_name',",
+    "'unexpected_field',",
+    "'missing_depfile_fixture',",
+    "'missing_expected_output_file',",
+    "'missing_expected_stderr_file',",
+    "'explicit_tool_drift',",
 ]
 PHASE2_FIXDEP_REQUIRED_WORKFLOW_COUNTS = {
     "python3 scripts/zigux/check-fixdep-diff.py --self-test": 1,
