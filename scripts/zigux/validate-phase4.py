@@ -969,7 +969,7 @@ def run_self_test() -> int:
             in missing
         ), missing
 
-        write_fixtureTree(root)
+        write_fixture_tree(root)
         perf_manifest = root / "zigux/tests/phase4_perf_baseline_manifest.json"
         perf_manifest.write_text(
             perf_manifest.read_text(encoding="utf-8").replace(
