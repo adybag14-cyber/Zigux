@@ -93,6 +93,8 @@ test "phase10 virtio mmio survey manifest records the live helper-backed transpo
     try std.testing.expect(manifest.gaps.len >= 12);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE10_STATUS=parked") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "drivers/virtio/virtio_mmio.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "shorter restaged config window clears stale second-word data") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "shrinks the readable config window") != null);
     try std.testing.expect(std.mem.indexOf(u8, slice_note, "PHASE10_STATUS=parked") != null);
     try std.testing.expect(std.mem.indexOf(u8, slice_note, "drivers/virtio/virtio_mmio.zig") != null);
 
@@ -173,6 +175,8 @@ test "phase10 virtio mmio survey manifest records the live helper-backed transpo
             try std.testing.expectEqualStrings("starter_landed", gap.status);
             try std.testing.expectEqualStrings("drivers/virtio/virtio_mmio.zig", gap.zigux_destination);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "config-word window") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "shorter restaged config window") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "shrinks the readable config window") != null);
         }
 
         if (std.mem.eql(u8, gap.id, "phase10-mmio-lifecycle-and-irq-paths")) {
