@@ -8,10 +8,12 @@ This document tracks the bounded Phase 7 runtime leaf-helper slice for Zigux aro
 - `PHASE7_SLICE=argv-split-runtime-leaf`
 - `PHASE7_LANE_KEY=P7-Y07`
 - scope: first low-risk argv tokenization helpers only
-- lane state: helper and fixture slice landed; parked unless a new `argv_split.c` parity issue appears
+- lane state: helper, fixture, survey, and manifest slice landed; parked unless a new `argv_split.c` parity issue appears
 - product boundary:
   - `lib/argv_split.zig`
   - `zigux/tests/phase7_argv_split.zig`
+  - `zigux/tests/phase7_argv_split_survey.zig`
+  - `zigux/tests/phase7_argv_split_manifest.json`
   - `zigux/tests/fixtures/phase7_argv_split_vectors.zig`
   - `zigux/tests/phase7_build.zig`
 
@@ -34,7 +36,10 @@ This current slice keeps the work bounded to the smallest runtime-safe ownership
 2. run the shared Phase 7 helper gate
 - `zig build test --build-file zigux/tests/phase7_build.zig`
 
-3. keep the dedicated packet surface machine-checked
+3. run the dedicated Phase 7 survey gate
+- `zig test zigux/tests/phase7_argv_split_survey.zig`
+
+4. keep the dedicated packet surface machine-checked
 - `python3 scripts/zigux/check-phase7-argv-split-packet.py`
 
 ## Current parity surface
@@ -55,7 +60,7 @@ The current tests check:
 - blank-input sentinel reuse and repeatable teardown through both `deinit()` and `argvFree()`
 - exported storage and argv views resetting back to the canonical empty sentinels after teardown
 
-The dedicated Phase 7 review gate now imports a focused fixture module under `zigux/tests/fixtures/phase7_argv_split_vectors.zig`, while the helper self-tests keep the same bounded parity surface local to `lib/argv_split.zig`. The dedicated packet checker now keeps that slice note, the shared build gate, the focused fixture module, and the helper test entrypoint aligned, including the parked ownership proofs around blank-input sentinel reuse and cleared exported views.
+The dedicated Phase 7 survey gate now imports the committed manifest under `zigux/tests/phase7_argv_split_manifest.json`, while the dedicated packet checker keeps that survey, the slice note, the shared build gate, the focused fixture module under `zigux/tests/fixtures/phase7_argv_split_vectors.zig`, and the helper test entrypoint aligned, including the parked ownership proofs around blank-input sentinel reuse and cleared exported views.
 
 ## Non-goals
 
@@ -68,4 +73,4 @@ This slice still does not yet claim:
 
 ## Next bounded step
 
-Keep this helper-family packet parked unless fresh repo inspection finds one more real `argv_split.c` parity gap inside the existing helper, fixture, dedicated checker, or shared gate surface. Review-only sequencing drift for other Phase 7 helper families should stay outside this packet.
+Keep this helper-family packet parked unless fresh repo inspection finds one more real `argv_split.c` parity gap inside the existing helper, fixture, dedicated survey, dedicated manifest, packet checker, or shared gate surface. Review-only sequencing drift for other Phase 7 helper families should stay outside this packet.
