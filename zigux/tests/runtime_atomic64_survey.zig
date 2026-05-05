@@ -48,7 +48,7 @@ test "phase 9 runtime atomic64 survey manifest records the roadmap selftest hook
     defer parsed.deinit();
 
     const manifest = parsed.value;
-    try std.testing.expectEqualStrings("P9-L01", manifest.lane_key);
+    try std.testing.expectEqualStrings("P9-L02", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 9", manifest.phase);
     try std.testing.expectEqualStrings("lib/atomic64_test.c", manifest.anchor);
     try std.testing.expectEqual(@as(usize, 2), manifest.roadmap_destinations.len);
@@ -77,7 +77,9 @@ test "phase 9 runtime atomic64 survey manifest records the roadmap selftest hook
 
         if (std.mem.startsWith(u8, gap.zigux_destination, "zigux/tests/")) {
             runtime_test_destination_count += 1;
-        } else if (std.mem.startsWith(u8, gap.zigux_destination, "samples/zigux/")) {} else {
+        } else if (std.mem.startsWith(u8, gap.zigux_destination, "samples/zigux/")) {
+            // Sample-side starter and loader handoff scaffolds stay under samples.
+        } else {
             try std.testing.expect(std.mem.startsWith(u8, gap.zigux_destination, "zigux/kernel/"));
         }
 
@@ -110,6 +112,8 @@ test "phase 9 runtime atomic64 survey manifest records the roadmap selftest hook
             try std.testing.expectEqualStrings("starter_landed", gap.status);
             try std.testing.expectEqualStrings("samples/zigux/runtime_atomic64_loader.zig", gap.zigux_destination);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "requires_runtime_substrate") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "toSharedLoadPlan()") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "runtime_loader.prepareRequest()") != null);
         }
         if (std.mem.eql(u8, gap.id, "runtime-atomic64-live-loader-binding")) {
             saw_live_loader_blocker = true;
@@ -149,6 +153,13 @@ test "phase 9 runtime atomic64 survey note keeps exact selftest and loader snaps
     const parsed = try std.json.parseFromSlice(Manifest, std.testing.allocator, manifest_json, .{});
     defer parsed.deinit();
 
+    const lane_key_marker = try std.fmt.allocPrint(
+        std.testing.allocator,
+        "`PHASE9_LANE_KEY={s}`",
+        .{parsed.value.lane_key},
+    );
+    defer std.testing.allocator.free(lane_key_marker);
+
     const surveyed_commit_marker = try std.fmt.allocPrint(
         std.testing.allocator,
         "`PHASE9_SURVEYED_COMMIT={s}`",
@@ -164,7 +175,9 @@ test "phase 9 runtime atomic64 survey note keeps exact selftest and loader snaps
     );
     defer std.testing.allocator.free(note);
 
+    try std.testing.expectEqual(@as(usize, 1), std.mem.count(u8, note, lane_key_marker));
     try std.testing.expectEqual(@as(usize, 1), std.mem.count(u8, note, surveyed_commit_marker));
+    try std.testing.expect(std.mem.indexOf(u8, note, "The survey artifacts now advance to `P9-L02` because the bounded sample-side loader scaffold and shared request-surface proof are landed and reviewable on `master`.") != null);
     try std.testing.expect(std.mem.indexOf(u8, note, "The current direct atomic64 sample contract is verified through these exact checks:") != null);
     try std.testing.expect(std.mem.indexOf(u8, note, "the roadmap's selftest-hook requirement is already landed through the sample descriptor and `runSelftest()` contract in `samples/zigux/runtime_atomic64.zig`.") != null);
     try std.testing.expect(std.mem.indexOf(u8, note, "guarded init, selftest, and exit transitions plus the bounded loader handoff make lifecycle evidence reviewable, but full runtime module lifecycle parity still depends on the shared runtime substrate.") != null);
@@ -189,6 +202,7 @@ test "phase 9 runtime atomic64 module slice keeps the loader-backed survey packe
     );
     defer std.testing.allocator.free(note);
 
+    try std.testing.expect(std.mem.indexOf(u8, note, "`PHASE9_LANE_KEY=P9-L02`") != null);
     try std.testing.expect(std.mem.indexOf(u8, note, "selftest hook surface") != null);
     try std.testing.expect(std.mem.indexOf(u8, note, "guarded lifecycle parity evidence") != null);
     try std.testing.expect(std.mem.indexOf(u8, note, "bounded loader-handoff scaffold") != null);
