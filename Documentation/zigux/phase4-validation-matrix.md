@@ -10,6 +10,7 @@ This document records the live Phase 4 differential-validation ownership and rep
   - `zigux/tests/atomic64_diff.zig`
   - `zigux/tests/runtime_atomic64_diff.zig`
   - `zigux/tests/bitmap_diff.zig`
+  - `zigux/tests/phase4_bitmap_live_helper_replay.zig`
   - `zigux/tests/phase4_build.zig`
   - `scripts/zigux/validate-phase4.py`
   - `.github/workflows/zigux-bootstrap.yml`
@@ -43,6 +44,7 @@ Without that record, Phase 4 validation existed in code but not yet as a product
 - phase bucket: `Phase 4 differential validation for the broad bitmap rollback gate`
 - owner: `Shared Subsystems Pod`
 - rollback owner: `Shared Subsystems Pod`
+- implementation note: `zigux/tests/bitmap_diff.zig` remains the roadmap-named synthetic rollback gate, while `zigux/tests/phase4_bitmap_live_helper_replay.zig` now keeps the shipped `tools/lib/bitmap.zig` and `tools/lib/find_bit.zig` semantics explicit on the same shared `phase4_build.zig` entrypoint without changing the rollback owner or widening this lane into direct helper implementation ownership
 - fallback path: keep the current C anchor as the source of truth and drop back to the existing broad bitmap parity checks if the Zig replay gate regresses
 - perf threshold status: correctness-only gate today; no hard timing threshold is approved until the lane grows past the current bounded range, prefix, and copy-behavior checkpoints
 
@@ -52,6 +54,8 @@ Without that record, Phase 4 validation existed in code but not yet as a product
 | --- | --- | --- | --- | --- | --- | --- |
 | `zigux/tests/atomic64_diff.zig` | bounded atomic64 exchange, cmpxchg, add_unless, and selftest-family replay via the shared runtime-backed gate | `ABI and Runtime Team` | `ABI and Runtime Team` | `python3 scripts/zigux/validate-phase4.py` then `zig build test --build-file zigux/tests/phase4_build.zig` in `.github/workflows/zigux-bootstrap.yml` | `python3 scripts/zigux/validate-phase4.py` then `zig build test --build-file zigux/tests/phase4_build.zig` | `threshold_pending_until_runtime_atomic64_scope_widens` |
 | `zigux/tests/bitmap_diff.zig` | bounded broad bitmap rollback-readiness replay | `Shared Subsystems Pod` | `Shared Subsystems Pod` | `python3 scripts/zigux/validate-phase4.py` then `zig build test --build-file zigux/tests/phase4_build.zig` in `.github/workflows/zigux-bootstrap.yml` | `python3 scripts/zigux/validate-phase4.py` then `zig build test --build-file zigux/tests/phase4_build.zig` | `threshold_pending_until_bitmap_gate_grows_beyond_bounded_correctness_checks` |
+
+The shared `zigux/tests/phase4_build.zig` entrypoint now also runs `zigux/tests/phase4_bitmap_live_helper_replay.zig`, which keeps the shipped helper-backed exact-fill versus rounded-zero bitmap semantics reviewable beside the roadmap-named `zigux/tests/bitmap_diff.zig` gate without changing the matrix row ownership or threshold posture.
 
 ## Review Rules
 
