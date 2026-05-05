@@ -10,7 +10,7 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[2]
-PHASE3_VALIDATOR_SELF_TEST_CASE_COUNT = 5
+PHASE3_VALIDATOR_SELF_TEST_CASE_COUNT = 6
 
 
 @dataclass(frozen=True)
@@ -120,6 +120,21 @@ def run_self_test() -> int:
         issues = run_targets(marker_root)
         assert (
             "missing_pass_marker:scripts/zigux/phase3_check_lib.py:PHASE3_CHECK_LIB_SELF_TEST=pass"
+            in issues
+        )
+
+        surface_marker_root = Path(tmp_dir) / "surface-marker"
+        for target in SELF_TEST_TARGETS:
+            marker = (
+                "WRONG_MARKER=pass"
+                if target.relpath.endswith("check-phase3-selftest-surface.py")
+                else (target.marker or "PASS")
+            )
+            write_script(surface_marker_root / target.relpath, marker)
+        issues = run_targets(surface_marker_root)
+        assert (
+            "missing_pass_marker:scripts/zigux/check-phase3-selftest-surface.py:"
+            "PHASE3_SELFTEST_SURFACE_SELF_TEST=pass"
             in issues
         )
 
