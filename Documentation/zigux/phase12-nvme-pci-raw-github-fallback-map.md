@@ -9,8 +9,10 @@ It is a fallback-read map, not a closure claim and not a validator-first route.
 ## Status
 
 - `PHASE12_STATUS=active`
+- `PHASE12_LANE_KEY=P12-Y02`
 - `PHASE12_SLICE=nvme-pci-raw-github-fallback-map`
 - scope: public tree and raw URL coverage for the shipped `nvme_pci` starter, survey, build wiring, manifest, and shared replay surfaces
+- active owner lane: `P12-Y02`
 
 ## Tree views
 
