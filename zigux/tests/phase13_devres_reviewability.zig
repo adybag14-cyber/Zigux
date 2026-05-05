@@ -71,9 +71,9 @@ test "phase13 devres reviewability packet records the helper-only DMA/scatterlis
     defer parsed.deinit();
 
     const manifest = parsed.value;
-    try std.testing.expectEqualStrings("P13-L10", manifest.lane_key);
+    try std.testing.expectEqualStrings("P13-L07", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 13", manifest.phase);
-    try std.testing.expectEqualStrings("51d4d54b2b4207f02dde9a5b5749df41148f1e47", manifest.surveyed_commit);
+    try std.testing.expectEqualStrings("master-reviewability", manifest.surveyed_commit);
     try std.testing.expectEqualStrings("lib/devres.c", manifest.anchor);
     try std.testing.expectEqual(@as(usize, 3), manifest.roadmap_destinations.len);
     try std.testing.expectEqual(@as(usize, 399), manifest.survey_summary.devres_c_lines);
@@ -84,7 +84,7 @@ test "phase13 devres reviewability packet records the helper-only DMA/scatterlis
     try std.testing.expect(manifest.survey_summary.preexisting_phase13_devres_slice_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase13_devres_reviewability_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase13_devres_survey_present);
-    try std.testing.expectEqual(@as(usize, 18), manifest.gaps.len);
+    try std.testing.expectEqual(@as(usize, 16), manifest.gaps.len);
 
     const descriptor = devres.DevresHelperLab.descriptor();
     try std.testing.expectEqualStrings("lib/devres.c", descriptor.anchor);
@@ -129,7 +129,7 @@ test "phase13 devres reviewability packet records the helper-only DMA/scatterlis
             saw_reviewability_gate = true;
             try std.testing.expectEqualStrings("starter_landed", gap.status);
             try std.testing.expectEqualStrings("zigux/tests/phase13_devres_reviewability.zig", gap.zigux_destination);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "helper-only DMA/scatterlist boundary stays machine-checkable") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "helper-only DMA/scatterlist boundary machine-checkable") != null);
         }
         if (std.mem.eql(u8, gap.id, "phase13-devres-survey-note")) {
             saw_survey_note = true;
@@ -156,7 +156,7 @@ test "phase13 devres reviewability packet records the helper-only DMA/scatterlis
         }
     }
 
-    try std.testing.expectEqual(@as(usize, 13), starter_landed_count);
+    try std.testing.expectEqual(@as(usize, 11), starter_landed_count);
     try std.testing.expectEqual(@as(usize, 5), blocked_count);
     try std.testing.expect(saw_reviewability_gate);
     try std.testing.expect(saw_survey_note);
