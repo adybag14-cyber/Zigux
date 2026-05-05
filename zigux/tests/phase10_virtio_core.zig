@@ -388,3 +388,93 @@ test "phase10 virtio core rejects stale and unknown config generation acknowledg
     try std.testing.expect(!summary.has_unacknowledged_generation);
     try std.testing.expectEqual(@as(usize, 2), summary.delivery_count);
 }
+
+test "phase10 virtio core keeps bounded interrupt-ack bookkeeping visible" {
+    var device = try virtio_core.VirtioCoreLabDevice.init(&.{ 8, 15 });
+
+    device.acknowledge();
+    try device.attachDriver();
+    try device.noteInterruptReason(virtio_core.VirtioInterruptReason.queue_used);
+
+    var summary = device.interruptAckSummary();
+    try std.testing.expectEqualStrings("drivers/virtio/virtio.c", summary.anchor);
+    try std.testing.expect(summary.interrupt_pending);
+    try std.testing.expectEqual(virtio_core.VirtioInterruptReason.queue_used, summary.pending_reason_bits);
+    try std.testing.expectEqual(@as(u8, 0), summary.acknowledged_reason_bits);
+    try std.testing.expectEqual(@as(usize, 0), summary.ack_count);
+    try std.testing.expectEqual(@as(usize, 1), summary.unacknowledged_interrupt_count);
+
+    try device.acknowledgeInterrupt(virtio_core.VirtioInterruptReason.queue_used);
+    summary = device.interruptAckSummary();
+    try std.testing.expect(!summary.interrupt_pending);
+    try std.testing.expectEqual(@as(u8, 0), summary.pending_reason_bits);
+    try std.testing.expectEqual(virtio_core.VirtioInterruptReason.queue_used, summary.acknowledged_reason_bits);
+    try std.testing.expectEqual(@as(usize, 1), summary.ack_count);
+    try std.testing.expectEqual(@as(usize, 1), summary.unacknowledged_interrupt_count);
+}
+
+test "phase10 virtio core coalesces repeated interrupt reasons and tracks mixed acknowledgements" {
+    var device = try virtio_core.VirtioCoreLabDevice.init(&.{ 9, 16 });
+
+    device.acknowledge();
+    try device.attachDriver();
+    try device.noteInterruptReason(virtio_core.VirtioInterruptReason.queue_used);
+    try device.noteInterruptReason(virtio_core.VirtioInterruptReason.queue_used);
+    try device.noteInterruptReason(virtio_core.VirtioInterruptReason.config_change);
+
+    var summary = device.interruptAckSummary();
+    try std.testing.expect(summary.interrupt_pending);
+    try std.testing.expectEqual(
+        virtio_core.VirtioInterruptReason.queue_used | virtio_core.VirtioInterruptReason.config_change,
+        summary.pending_reason_bits,
+    );
+    try std.testing.expectEqual(@as(usize, 2), summary.unacknowledged_interrupt_count);
+
+    try device.acknowledgeInterrupt(virtio_core.VirtioInterruptReason.queue_used);
+    summary = device.interruptAckSummary();
+    try std.testing.expect(summary.interrupt_pending);
+    try std.testing.expectEqual(virtio_core.VirtioInterruptReason.config_change, summary.pending_reason_bits);
+    try std.testing.expectEqual(virtio_core.VirtioInterruptReason.queue_used, summary.acknowledged_reason_bits);
+    try std.testing.expectEqual(@as(usize, 1), summary.ack_count);
+    try std.testing.expectEqual(@as(usize, 2), summary.unacknowledged_interrupt_count);
+
+    try device.acknowledgeInterrupt(virtio_core.VirtioInterruptReason.config_change);
+    summary = device.interruptAckSummary();
+    try std.testing.expect(!summary.interrupt_pending);
+    try std.testing.expectEqual(@as(u8, 0), summary.pending_reason_bits);
+    try std.testing.expectEqual(
+        virtio_core.VirtioInterruptReason.queue_used | virtio_core.VirtioInterruptReason.config_change,
+        summary.acknowledged_reason_bits,
+    );
+    try std.testing.expectEqual(@as(usize, 2), summary.ack_count);
+    try std.testing.expectEqual(@as(usize, 2), summary.unacknowledged_interrupt_count);
+}
+
+test "phase10 virtio core rejects invalid interrupt acknowledgements and clears them on reset" {
+    var device = try virtio_core.VirtioCoreLabDevice.init(&.{ 10, 17 });
+
+    try std.testing.expectError(
+        error.DriverNotAttached,
+        device.noteInterruptReason(virtio_core.VirtioInterruptReason.queue_used),
+    );
+
+    device.acknowledge();
+    try device.attachDriver();
+
+    try std.testing.expectError(error.EmptyInterruptReason, device.noteInterruptReason(0));
+    try std.testing.expectError(error.InterruptReasonOutOfRange, device.noteInterruptReason(4));
+
+    try device.noteInterruptReason(virtio_core.VirtioInterruptReason.queue_used);
+    try std.testing.expectError(error.EmptyInterruptReason, device.acknowledgeInterrupt(0));
+    try std.testing.expectError(error.InterruptReasonOutOfRange, device.acknowledgeInterrupt(4));
+    try std.testing.expectError(error.InterruptReasonNotPending, device.acknowledgeInterrupt(virtio_core.VirtioInterruptReason.config_change));
+
+    device.reset();
+
+    const summary = device.interruptAckSummary();
+    try std.testing.expect(!summary.interrupt_pending);
+    try std.testing.expectEqual(@as(u8, 0), summary.pending_reason_bits);
+    try std.testing.expectEqual(@as(u8, 0), summary.acknowledged_reason_bits);
+    try std.testing.expectEqual(@as(usize, 0), summary.ack_count);
+    try std.testing.expectEqual(@as(usize, 0), summary.unacknowledged_interrupt_count);
+}
