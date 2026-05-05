@@ -1,11 +1,20 @@
 const std = @import("std");
 const kallsyms = @import("kallsyms");
 
+const phase8_kallsyms_slice = @embedFile("../../Documentation/zigux/phase8-kallsyms-slice.md");
+
 test "phase 8 kallsyms module imports cleanly" {
     _ = kallsyms;
 }
 
-test "phase 8 kallsyms starter slice covers symbol helpers and injected record parsing" {
+test "phase 8 kallsyms slice note keeps helper-first output-stable tooling posture explicit" {
+    try std.testing.expect(std.mem.containsAtLeast(u8, phase8_kallsyms_slice, 1, "PHASE8_SLICE=kallsyms-parse-wrapper-parked"));
+    try std.testing.expect(std.mem.containsAtLeast(u8, phase8_kallsyms_slice, 1, "helper-first expansion"));
+    try std.testing.expect(std.mem.containsAtLeast(u8, phase8_kallsyms_slice, 1, "output-stable tooling behavior"));
+    try std.testing.expect(std.mem.containsAtLeast(u8, phase8_kallsyms_slice, 1, "one direct `kallsymsParse()` wrapper"));
+}
+
+test "phase 8 kallsyms parked slice covers symbol helpers and injected record parsing" {
     try std.testing.expectEqual(kallsyms.elf_stb_weak, kallsyms.kallsyms2ElfBinding('W'));
     try std.testing.expectEqual(kallsyms.elf_stb_global, kallsyms.kallsyms2ElfBinding('T'));
     try std.testing.expectEqual(kallsyms.elf_stb_local, kallsyms.kallsyms2ElfBinding('t'));
