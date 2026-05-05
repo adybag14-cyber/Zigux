@@ -1,5 +1,5 @@
 {
-  "lane_key": "P13-L13",
+  "lane_key": "P13-L17",
   "phase": "Phase 13",
   "surveyed_commit": "master-reviewability",
   "anchors": [
@@ -74,14 +74,14 @@
       "status": "ready_next",
       "kind": "helper",
       "zigux_destination": "zigux/helpers/notifier_chain_view.zig",
-      "why_now": "The next same-lane product step would be a read-only notifier-chain helper rather than callback or registration behavior."
+      "why_now": "The next same-family product step belongs to `P13-L18`: a read-only notifier-chain helper rather than callback or registration behavior."
     },
     {
       "id": "phase13-exported-notifier-c-header-gap",
       "status": "ready_next",
       "kind": "header",
       "zigux_destination": "include/zigux/notifier_abi.h",
-      "why_now": "The current exported C side still lacks a dedicated notifier header even though the Zig binding foothold exists."
+      "why_now": "The paired exported-C follow-up also stays with `P13-L18`: the current exported C side still lacks a dedicated notifier header even though the Zig binding foothold exists."
     }
   ]
 }
