@@ -179,6 +179,24 @@ test "find and bit returns the first shared set bit" {
     try std.testing.expectEqual(@as(usize, bits_per_long + 2), findNextAndBit(&lhs, &rhs, bits_per_long * 2, 10));
 }
 
+test "single-word next scans honor start masks" {
+    const nbits = bits_per_long;
+    const set_bits = [_]Word{(@as(Word, 1) << 2) | (@as(Word, 1) << 7) | (@as(Word, 1) << 11)};
+    const zero_bits = [_]Word{~((@as(Word, 1) << 4) | (@as(Word, 1) << 9))};
+    const and_lhs = [_]Word{(@as(Word, 1) << 1) | (@as(Word, 1) << 9) | (@as(Word, 1) << 12)};
+    const and_rhs = [_]Word{(@as(Word, 1) << 0) | (@as(Word, 1) << 9) | (@as(Word, 1) << 12)};
+
+    try std.testing.expectEqual(@as(usize, 7), findNextBit(&set_bits, nbits, 3));
+    try std.testing.expectEqual(@as(usize, 11), findNextBit(&set_bits, nbits, 8));
+    try std.testing.expectEqual(@as(usize, 4), findNextZeroBit(&zero_bits, nbits, 1));
+    try std.testing.expectEqual(@as(usize, 9), findNextZeroBit(&zero_bits, nbits, 5));
+    try std.testing.expectEqual(@as(usize, 9), findNextAndBit(&and_lhs, &and_rhs, nbits, 2));
+    try std.testing.expectEqual(@as(usize, 12), findNextAndBit(&and_lhs, &and_rhs, nbits, 10));
+    try std.testing.expectEqual(nbits, findNextBit(&set_bits, nbits, nbits));
+    try std.testing.expectEqual(nbits, findNextZeroBit(&zero_bits, nbits, nbits));
+    try std.testing.expectEqual(nbits, findNextAndBit(&and_lhs, &and_rhs, nbits, nbits));
+}
+
 test "tail mask ignores set bits beyond nbits" {
     const nbits = bits_per_long + 5;
     var bitmap = [_]Word{ 0, (@as(Word, 1) << 3) | (@as(Word, 1) << 10) };
