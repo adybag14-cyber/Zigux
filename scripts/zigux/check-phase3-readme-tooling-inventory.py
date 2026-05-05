@@ -33,6 +33,7 @@ REQUIRED_HELPERS = (
     "check-build-only-phase12-surface.py",
     "validate-phase13-release.py",
     "check-phase13-devres-packet.py",
+    "check-phase15-review-process-handoff.py",
     "run-phase3-checks.py",
     "phase3_catalog.py",
     "phase3_check_lib.py",
