@@ -441,6 +441,22 @@ test "nextArg keeps unquoted values and empty quoted values bounded to the curre
     try std.testing.expectEqualStrings("quiet", cStringPrefix(parsed_empty.rest));
 }
 
+test "nextArg trims mixed trailing whitespace from rest and leaves whitespace-only tails empty" {
+    var mixed_ws = [_]u8{ 'r', 'o', 'o', 't', '=', '/', 'd', 'e', 'v', '/', 's', 'd', 'a', '1', ' ', '\t', '\n', 'r', 'o', 0 };
+    const parsed_mixed_ws = nextArg(&mixed_ws);
+
+    try std.testing.expectEqualStrings("root", parsed_mixed_ws.param);
+    try std.testing.expectEqualStrings("/dev/sda1", parsed_mixed_ws.value.?);
+    try std.testing.expectEqualStrings("ro", cStringPrefix(parsed_mixed_ws.rest));
+
+    var whitespace_only = [_]u8{ 'q', 'u', 'i', 'e', 't', ' ', '\t', '\n', 0 };
+    const parsed_whitespace_only = nextArg(&whitespace_only);
+
+    try std.testing.expectEqualStrings("quiet", parsed_whitespace_only.param);
+    try std.testing.expectEqual(@as(?[]const u8, null), parsed_whitespace_only.value);
+    try std.testing.expectEqualStrings("", cStringPrefix(parsed_whitespace_only.rest));
+}
+
 test "nextArg does not treat a leading equals sign as a value separator" {
     var buffer = [_]u8{ '=', 'b', 'a', 'd', ' ', 'n', 'e', 'x', 't', 0 };
     const parsed = nextArg(&buffer);
