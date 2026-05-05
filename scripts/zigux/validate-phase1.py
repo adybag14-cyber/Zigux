@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+import json
 from pathlib import Path
 import tempfile
 
@@ -87,6 +88,15 @@ REQUIRED_PHASE1_PARITY_REPLAY_MARKERS = [
     "fixture.rbtree.replace_order",
 ]
 
+REQUIRED_FIND_BIT_TAIL_CLAMP_FIELDS = [
+    "tail_clamped_first",
+    "tail_clamped_next",
+    "tail_zero_clamped_first",
+    "tail_zero_clamped_next",
+    "tail_and_clamped_first",
+    "tail_and_clamped_next",
+]
+
 REQUIRED_FIND_BIT_TEST_ANCHORS = [
     'test "find first and next set bits across words"',
     'test "find zero bits respects the declared bit count"',
@@ -154,6 +164,40 @@ def collect_exact_count_markers(text: str, label: str, markers: list[str]) -> li
     return mismatches
 
 
+def collect_find_bit_fixture_mismatches(root: Path) -> list[str]:
+    fixture_path = root / "zigux" / "tests" / "fixtures" / "phase1_helpers.json"
+    fixture = json.loads(fixture_path.read_text(encoding="utf-8"))
+    find_bit_fixture = fixture.get("find_bit")
+    if not isinstance(find_bit_fixture, dict):
+        return ["phase1_fixture_find_bit:find_bit:expected=object:actual=missing"]
+
+    bits_per_long = find_bit_fixture.get("bits_per_long")
+    if not isinstance(bits_per_long, int) or bits_per_long <= 0:
+        return [
+            "phase1_fixture_find_bit:bits_per_long:expected=positive-integer:"
+            f"actual={bits_per_long!r}"
+        ]
+
+    tail_nbits = bits_per_long + 5
+    expected_values = {
+        "tail_clamped_first": bits_per_long + 3,
+        "tail_clamped_next": tail_nbits,
+        "tail_zero_clamped_first": tail_nbits,
+        "tail_zero_clamped_next": tail_nbits,
+        "tail_and_clamped_first": bits_per_long + 3,
+        "tail_and_clamped_next": tail_nbits,
+    }
+
+    mismatches: list[str] = []
+    for field, expected in expected_values.items():
+        actual = find_bit_fixture.get(field)
+        if actual != expected:
+            mismatches.append(
+                f"phase1_fixture_find_bit:{field}:expected={expected}:actual={actual!r}"
+            )
+    return mismatches
+
+
 def collect_missing_markers(root: Path) -> list[str]:
     ledger = (root / "zigux-alpha" / "BOOTSTRAP_COMMIT_LEDGER.md").read_text(encoding="utf-8")
     workflow = (root / ".github" / "workflows" / "zigux-bootstrap.yml").read_text(encoding="utf-8")
@@ -162,7 +206,9 @@ def collect_missing_markers(root: Path) -> list[str]:
     bitmap_source = (root / "tools" / "lib" / "bitmap.zig").read_text(encoding="utf-8")
     string_source = (root / "tools" / "lib" / "string.zig").read_text(encoding="utf-8")
     rbtree_source = (root / "tools" / "lib" / "rbtree.zig").read_text(encoding="utf-8")
-    review_checklist = (root / "Documentation" / "zigux" / "review-checklist.md").read_text(encoding="utf-8")
+    review_checklist = (root / "Documentation" / "zigux" / "review-checklist.md").read_text(
+        encoding="utf-8"
+    )
 
     missing_markers: list[str] = []
     for marker in REQUIRED_LEDGER_MARKERS:
@@ -189,6 +235,7 @@ def collect_missing_markers(root: Path) -> list[str]:
             test_root, "phase1_parity_replay_marker", REQUIRED_PHASE1_PARITY_REPLAY_MARKERS
         )
     )
+    missing_markers.extend(collect_find_bit_fixture_mismatches(root))
     missing_markers.extend(
         collect_exact_count_markers(find_bit_source, "find_bit_test_anchor", REQUIRED_FIND_BIT_TEST_ANCHORS)
     )
@@ -238,6 +285,26 @@ def make_fixture_root(tmp_root: Path) -> None:
             + REQUIRED_PHASE1_PARITY_REPLAY_MARKERS
         )
         + "\n",
+        encoding="utf-8",
+    )
+
+    fixture_path = tmp_root / "zigux" / "tests" / "fixtures" / "phase1_helpers.json"
+    fixture_path.parent.mkdir(parents=True, exist_ok=True)
+    fixture_path.write_text(
+        json.dumps(
+            {
+                "find_bit": {
+                    "bits_per_long": 64,
+                    "tail_clamped_first": 67,
+                    "tail_clamped_next": 69,
+                    "tail_zero_clamped_first": 69,
+                    "tail_zero_clamped_next": 69,
+                    "tail_and_clamped_first": 67,
+                    "tail_and_clamped_next": 69,
+                }
+            },
+            separators=(",", ":"),
+        ),
         encoding="utf-8",
     )
 
@@ -344,6 +411,31 @@ def run_self_test() -> None:
         missing_markers = collect_missing_markers(tmp_root)
         assert (
             'helper_test_anchor:test "phase 1 string replaceChar stops at embedded NUL":expected=1:actual=0'
+            in missing_markers
+        )
+
+        make_fixture_root(tmp_root)
+        fixture_path = tmp_root / "zigux" / "tests" / "fixtures" / "phase1_helpers.json"
+        fixture = json.loads(fixture_path.read_text(encoding="utf-8"))
+        fixture["find_bit"]["tail_clamped_first"] = 69
+        fixture_path.write_text(json.dumps(fixture, separators=(",", ":")), encoding="utf-8")
+        missing_markers = collect_missing_markers(tmp_root)
+        assert "phase1_fixture_find_bit:tail_clamped_first:expected=67:actual=69" in missing_markers
+
+        make_fixture_root(tmp_root)
+        fixture = json.loads(fixture_path.read_text(encoding="utf-8"))
+        fixture["find_bit"]["tail_and_clamped_next"] = 67
+        fixture_path.write_text(json.dumps(fixture, separators=(",", ":")), encoding="utf-8")
+        missing_markers = collect_missing_markers(tmp_root)
+        assert "phase1_fixture_find_bit:tail_and_clamped_next:expected=69:actual=67" in missing_markers
+
+        make_fixture_root(tmp_root)
+        fixture = json.loads(fixture_path.read_text(encoding="utf-8"))
+        fixture["find_bit"]["bits_per_long"] = 0
+        fixture_path.write_text(json.dumps(fixture, separators=(",", ":")), encoding="utf-8")
+        missing_markers = collect_missing_markers(tmp_root)
+        assert (
+            "phase1_fixture_find_bit:bits_per_long:expected=positive-integer:actual=0"
             in missing_markers
         )
 
@@ -511,7 +603,7 @@ def run_self_test() -> None:
         )
 
         print("PHASE1_VALIDATION_SELF_TEST=pass")
-        print("PHASE1_VALIDATION_SELF_TEST_CASE_COUNT=25")
+        print("PHASE1_VALIDATION_SELF_TEST_CASE_COUNT=28")
 
 
 def main() -> int:
@@ -545,7 +637,7 @@ def main() -> int:
     print(f"PHASE1_REQUIRED_FILE_COUNT={len(REQUIRED_FILES)}")
     print(
         "PHASE1_REQUIRED_MARKER_COUNT="
-        f"{len(REQUIRED_LEDGER_MARKERS) + len(REQUIRED_WORKFLOW_PRESENCE_MARKERS) + len(REQUIRED_WORKFLOW_EXACT_MARKERS) + len(REQUIRED_TEST_MARKERS) + len(REQUIRED_PHASE1_PARITY_TEST_ANCHORS) + len(REQUIRED_HELPER_TEST_ANCHORS) + len(REQUIRED_PHASE1_PARITY_REPLAY_MARKERS) + len(REQUIRED_FIND_BIT_TEST_ANCHORS) + len(REQUIRED_BITMAP_TEST_ANCHORS) + len(REQUIRED_STRING_TEST_ANCHORS) + len(REQUIRED_RBTREE_TEST_ANCHORS) + len(REQUIRED_REVIEW_CHECKLIST_MARKERS)}"
+        f"{len(REQUIRED_LEDGER_MARKERS) + len(REQUIRED_WORKFLOW_PRESENCE_MARKERS) + len(REQUIRED_WORKFLOW_EXACT_MARKERS) + len(REQUIRED_TEST_MARKERS) + len(REQUIRED_PHASE1_PARITY_TEST_ANCHORS) + len(REQUIRED_HELPER_TEST_ANCHORS) + len(REQUIRED_PHASE1_PARITY_REPLAY_MARKERS) + len(REQUIRED_FIND_BIT_TAIL_CLAMP_FIELDS) + len(REQUIRED_FIND_BIT_TEST_ANCHORS) + len(REQUIRED_BITMAP_TEST_ANCHORS) + len(REQUIRED_STRING_TEST_ANCHORS) + len(REQUIRED_RBTREE_TEST_ANCHORS) + len(REQUIRED_REVIEW_CHECKLIST_MARKERS)}"
     )
     return 0
 
