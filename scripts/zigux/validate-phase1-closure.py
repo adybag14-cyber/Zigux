@@ -511,6 +511,12 @@ def run_self_test() -> None:
         assert collect_exact_count_markers(valid_docs_root, required_docs_root_markers) == []
         missing_docs_root = collect_exact_count_markers("", required_docs_root_markers)
         assert "docs_root_phase1_packet:expected=1:actual=0" in missing_docs_root
+        duplicate_docs_root = valid_docs_root + valid_docs_root
+        duplicate_docs_root_markers = collect_exact_count_markers(
+            duplicate_docs_root,
+            required_docs_root_markers,
+        )
+        assert "docs_root_phase1_packet:expected=1:actual=2" in duplicate_docs_root_markers
 
         valid_scripts_readme = render_marker_fixture(required_scripts_readme_markers)
         assert collect_exact_count_markers(valid_scripts_readme, required_scripts_readme_markers) == []
@@ -520,6 +526,8 @@ def run_self_test() -> None:
             required_scripts_readme_markers,
         )
         assert "scripts_readme_phase1_packet:expected=1:actual=2" in duplicate_scripts_markers
+        missing_scripts_markers = collect_exact_count_markers("", required_scripts_readme_markers)
+        assert "scripts_readme_phase1_packet:expected=1:actual=0" in missing_scripts_markers
 
         valid_tests_readme = render_marker_fixture(required_tests_readme_markers)
         assert collect_exact_count_markers(valid_tests_readme, required_tests_readme_markers) == []
@@ -559,7 +567,7 @@ def run_self_test() -> None:
         assert collect_missing_files(repo_root_from_arg(str(tmp_root))) == [required_ledger]
 
     print("PHASE1_CLOSURE_VALIDATOR_SELF_TEST=pass")
-    print("PHASE1_CLOSURE_VALIDATOR_SELF_TEST_CASE_COUNT=31")
+    print("PHASE1_CLOSURE_VALIDATOR_SELF_TEST_CASE_COUNT=33")
 
 
 def main() -> int:
