@@ -273,6 +273,7 @@ test "phase10 virtio core delivers config changes immediately and keeps generati
     var summary = device.configChangeSummary();
 
     try std.testing.expectEqualStrings("drivers/virtio/virtio.c", summary.anchor);
+    try std.testing.expect(!summary.reset_required);
     try std.testing.expect(summary.core_enabled);
     try std.testing.expect(!summary.driver_disabled);
     try std.testing.expect(!summary.change_pending);
@@ -296,6 +297,7 @@ test "phase10 virtio core keeps config generations pending while the driver path
     try device.noteConfigChanged();
 
     var summary = device.configChangeSummary();
+    try std.testing.expect(!summary.reset_required);
     try std.testing.expect(summary.core_enabled);
     try std.testing.expect(summary.driver_disabled);
     try std.testing.expect(summary.change_pending);
@@ -319,6 +321,7 @@ test "phase10 virtio core keeps config generations pending while the driver path
     device.reset();
 
     summary = device.configChangeSummary();
+    try std.testing.expect(!summary.reset_required);
     try std.testing.expect(summary.core_enabled);
     try std.testing.expect(!summary.driver_disabled);
     try std.testing.expect(!summary.change_pending);
@@ -337,6 +340,7 @@ test "phase10 virtio core keeps config generations pending while the core path i
     try device.noteConfigChanged();
 
     var summary = device.configChangeSummary();
+    try std.testing.expect(!summary.reset_required);
     try std.testing.expect(!summary.core_enabled);
     try std.testing.expect(!summary.driver_disabled);
     try std.testing.expect(summary.change_pending);
@@ -360,6 +364,7 @@ test "phase10 virtio core keeps config generations pending while the core path i
     device.reset();
 
     summary = device.configChangeSummary();
+    try std.testing.expect(!summary.reset_required);
     try std.testing.expect(summary.core_enabled);
     try std.testing.expect(!summary.driver_disabled);
     try std.testing.expect(!summary.change_pending);
@@ -389,6 +394,30 @@ test "phase10 virtio core rejects stale and unknown config generation acknowledg
     try std.testing.expectEqual(@as(usize, 2), summary.delivery_count);
 }
 
+test "phase10 virtio core blocks config bookkeeping once reset is required" {
+    var device = try virtio_core.VirtioCoreLabDevice.init(&.{ 7, 18 });
+
+    device.acknowledge();
+    try device.attachDriver();
+    try device.noteConfigChanged();
+    device.noteNeedsReset();
+
+    var summary = device.configChangeSummary();
+    try std.testing.expect(summary.reset_required);
+    try std.testing.expectEqual(@as(u32, 1), summary.generation);
+    try std.testing.expectError(error.ResetRequired, device.noteConfigChanged());
+    try std.testing.expectError(error.ResetRequired, device.disableConfigDriver());
+    try std.testing.expectError(error.ResetRequired, device.acknowledgeConfigGeneration(1));
+
+    device.reset();
+    device.acknowledge();
+    try device.attachDriver();
+    try device.noteConfigChanged();
+    summary = device.configChangeSummary();
+    try std.testing.expect(!summary.reset_required);
+    try std.testing.expectEqual(@as(u32, 1), summary.generation);
+}
+
 test "phase10 virtio core keeps bounded interrupt-ack bookkeeping visible" {
     var device = try virtio_core.VirtioCoreLabDevice.init(&.{ 8, 15 });
 
@@ -398,6 +427,7 @@ test "phase10 virtio core keeps bounded interrupt-ack bookkeeping visible" {
 
     var summary = device.interruptAckSummary();
     try std.testing.expectEqualStrings("drivers/virtio/virtio.c", summary.anchor);
+    try std.testing.expect(!summary.reset_required);
     try std.testing.expect(summary.interrupt_pending);
     try std.testing.expectEqual(virtio_core.VirtioInterruptReason.queue_used, summary.pending_reason_bits);
     try std.testing.expectEqual(@as(u8, 0), summary.acknowledged_reason_bits);
@@ -450,6 +480,38 @@ test "phase10 virtio core coalesces repeated interrupt reasons and tracks mixed 
     try std.testing.expectEqual(@as(usize, 2), summary.unacknowledged_interrupt_count);
 }
 
+test "phase10 virtio core blocks interrupt bookkeeping once reset is required" {
+    var device = try virtio_core.VirtioCoreLabDevice.init(&.{ 10, 19 });
+
+    device.acknowledge();
+    try device.attachDriver();
+    try device.noteInterruptReason(virtio_core.VirtioInterruptReason.queue_used);
+    device.noteNeedsReset();
+
+    var summary = device.interruptAckSummary();
+    try std.testing.expect(summary.reset_required);
+    try std.testing.expect(summary.interrupt_pending);
+    try std.testing.expectEqual(virtio_core.VirtioInterruptReason.queue_used, summary.pending_reason_bits);
+    try std.testing.expectError(
+        error.ResetRequired,
+        device.acknowledgeInterrupt(virtio_core.VirtioInterruptReason.queue_used),
+    );
+    try std.testing.expectError(
+        error.ResetRequired,
+        device.noteInterruptReason(virtio_core.VirtioInterruptReason.config_change),
+    );
+
+    device.reset();
+    device.acknowledge();
+    try device.attachDriver();
+    try device.noteInterruptReason(virtio_core.VirtioInterruptReason.config_change);
+    summary = device.interruptAckSummary();
+    try std.testing.expect(!summary.reset_required);
+    try std.testing.expect(summary.interrupt_pending);
+    try std.testing.expectEqual(virtio_core.VirtioInterruptReason.config_change, summary.pending_reason_bits);
+    try std.testing.expectEqual(@as(u8, 0), summary.acknowledged_reason_bits);
+}
+
 test "phase10 virtio core rejects invalid interrupt acknowledgements and clears them on reset" {
     var device = try virtio_core.VirtioCoreLabDevice.init(&.{ 10, 17 });
 
@@ -472,6 +534,7 @@ test "phase10 virtio core rejects invalid interrupt acknowledgements and clears 
     device.reset();
 
     const summary = device.interruptAckSummary();
+    try std.testing.expect(!summary.reset_required);
     try std.testing.expect(!summary.interrupt_pending);
     try std.testing.expectEqual(@as(u8, 0), summary.pending_reason_bits);
     try std.testing.expectEqual(@as(u8, 0), summary.acknowledged_reason_bits);
