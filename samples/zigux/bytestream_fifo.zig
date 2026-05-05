@@ -9,13 +9,52 @@ pub const SampleStage = enum(u8) {
     exited,
 };
 
+pub const StorageBacking = enum {
+    embedded_fixed_buffer,
+};
+
 pub const SampleFocus = enum {
     bounded_fifo_order,
     wraparound_requeue,
     peek_and_skip,
     non_destructive_snapshot,
+    preview_truncation,
     reset_and_replay,
     ownership_and_lifetime,
+};
+
+const sample_review_focus = [_]SampleFocus{
+    .bounded_fifo_order,
+    .wraparound_requeue,
+    .peek_and_skip,
+    .non_destructive_snapshot,
+    .preview_truncation,
+    .reset_and_replay,
+    .ownership_and_lifetime,
+};
+
+const preview_boundary_focus = [_]SampleFocus{
+    .wraparound_requeue,
+    .non_destructive_snapshot,
+    .preview_truncation,
+};
+
+pub const sample_review_non_goals = [_][]const u8{
+    "procfs parity",
+    "kfifo_from_user or kfifo_to_user parity",
+    "loadable module registration",
+    "locking or blocking semantics",
+};
+
+pub const ReviewContract = struct {
+    focus: []const SampleFocus,
+    non_goals: []const []const u8,
+};
+
+pub const PreviewResult = struct {
+    copied: usize,
+    total_visible: usize,
+    truncated: bool,
 };
 
 pub const SampleDescriptor = struct {
@@ -23,23 +62,45 @@ pub const SampleDescriptor = struct {
     anchor: []const u8,
     requires_runtime_substrate: bool,
     provides_selfcheck: bool,
+    storage_backing: StorageBacking,
 };
 
 pub const ReplaySummary = struct {
     anchor: []const u8,
     stage_before_replay: SampleStage,
     stage_after_replay: SampleStage,
+    initial_string_copy_count: usize,
     len_after_initial_fill: usize,
     first_out: [5]u8,
+    first_drain_count: usize,
     second_out: [2]u8,
+    second_drain_count: usize,
+    requeue_count: usize,
     skipped_byte: u8,
     peek_value: u8,
-    fill_start: u8,
-    fill_end: u8,
+    preview_len: usize,
+    preview_truncated: bool,
+    preview_prefix: [8]u8,
     snapshot_len: usize,
     snapshot_sequence: [fifo_capacity]u8,
+    fill_start: u8,
+    fill_end: u8,
     final_len: usize,
     final_sequence: [fifo_capacity]u8,
+    checked_focus: []const SampleFocus,
+    storage_backing: StorageBacking,
+};
+
+pub const PreviewBoundarySummary = struct {
+    stage_before_replay: SampleStage,
+    stage_after_replay: SampleStage,
+    snapshot_len: usize,
+    snapshot_prefix: [4]u8,
+    preview_len: usize,
+    preview_total_visible: usize,
+    preview_truncated: bool,
+    preview_prefix: [8]u8,
+    queue_len_after_preview: usize,
     checked_focus: []const SampleFocus,
 };
 
@@ -54,6 +115,14 @@ pub const HelperBoundarySummary = struct {
     count_after_skip: usize,
     count_after_reset: usize,
     pop_after_reset: ?u8,
+};
+
+pub const LifecycleSummary = struct {
+    stage: SampleStage,
+    init_run_count: usize,
+    exit_run_count: usize,
+    queue_len: usize,
+    storage_backing: StorageBacking,
 };
 
 pub const BytestreamFifoSample = struct {
@@ -74,6 +143,14 @@ pub const BytestreamFifoSample = struct {
             .anchor = "samples/kfifo/bytestream-example.c",
             .requires_runtime_substrate = false,
             .provides_selfcheck = true,
+            .storage_backing = .embedded_fixed_buffer,
+        };
+    }
+
+    pub fn reviewContract() ReviewContract {
+        return .{
+            .focus = &sample_review_focus,
+            .non_goals = &sample_review_non_goals,
         };
     }
 
@@ -91,6 +168,16 @@ pub const BytestreamFifoSample = struct {
 
     pub fn isFull(self: *const Self) bool {
         return self.len == capacity;
+    }
+
+    pub fn lifecycleSummary(self: *const Self) LifecycleSummary {
+        return .{
+            .stage = self.stage(),
+            .init_run_count = self.init_runs,
+            .exit_run_count = self.exit_runs,
+            .queue_len = self.count(),
+            .storage_backing = .embedded_fixed_buffer,
+        };
     }
 
     pub fn reset(self: *Self) void {
@@ -162,6 +249,15 @@ pub const BytestreamFifoSample = struct {
         return copied;
     }
 
+    pub fn previewInto(self: *const Self, dest: []u8) PreviewResult {
+        const copied = self.snapshotInto(dest);
+        return .{
+            .copied = copied,
+            .total_visible = self.len,
+            .truncated = copied < self.len,
+        };
+    }
+
     pub fn drain(self: *Self, dest: []u8) usize {
         return self.dequeueSlice(dest);
     }
@@ -215,11 +311,15 @@ pub const BytestreamFifoSample = struct {
         const len_after_initial_fill = self.count();
 
         var first_out: [5]u8 = undefined;
-        if (self.dequeueSlice(first_out[0..]) != first_out.len) return error.UnexpectedFirstDrainCount;
+        const first_drain_count = self.dequeueSlice(first_out[0..]);
+        if (first_drain_count != first_out.len) return error.UnexpectedFirstDrainCount;
 
         var second_out: [2]u8 = undefined;
-        if (self.dequeueSlice(second_out[0..]) != second_out.len) return error.UnexpectedSecondDrainCount;
-        if (self.enqueueSlice(second_out[0..]) != second_out.len) return error.UnexpectedRequeueCount;
+        const second_drain_count = self.dequeueSlice(second_out[0..]);
+        if (second_drain_count != second_out.len) return error.UnexpectedSecondDrainCount;
+
+        const requeue_count = self.enqueueSlice(second_out[0..]);
+        if (requeue_count != second_out.len) return error.UnexpectedRequeueCount;
 
         const skipped = self.skipByte() orelse return error.UnexpectedSkipOnEmpty;
 
@@ -228,6 +328,9 @@ pub const BytestreamFifoSample = struct {
         const fill_end = fill_value - 1;
 
         const peek_value = self.peekByte() orelse return error.UnexpectedPeekOnEmpty;
+
+        var preview_prefix: [8]u8 = [_]u8{0} ** 8;
+        const preview = self.previewInto(preview_prefix[0..]);
 
         var snapshot_sequence: [capacity]u8 = [_]u8{0} ** capacity;
         const snapshot_len = self.snapshotInto(snapshot_sequence[0..]);
@@ -241,25 +344,26 @@ pub const BytestreamFifoSample = struct {
             .anchor = descriptor().anchor,
             .stage_before_replay = .initialized,
             .stage_after_replay = .replay_complete,
+            .initial_string_copy_count = hello_len,
             .len_after_initial_fill = len_after_initial_fill,
             .first_out = first_out,
+            .first_drain_count = first_drain_count,
             .second_out = second_out,
+            .second_drain_count = second_drain_count,
+            .requeue_count = requeue_count,
             .skipped_byte = skipped,
             .peek_value = peek_value,
-            .fill_start = 20,
-            .fill_end = fill_end,
+            .preview_len = preview.copied,
+            .preview_truncated = preview.truncated,
+            .preview_prefix = preview_prefix,
             .snapshot_len = snapshot_len,
             .snapshot_sequence = snapshot_sequence,
+            .fill_start = 20,
+            .fill_end = fill_end,
             .final_len = final_len,
             .final_sequence = final_sequence,
-            .checked_focus = &.{
-                .bounded_fifo_order,
-                .wraparound_requeue,
-                .peek_and_skip,
-                .non_destructive_snapshot,
-                .reset_and_replay,
-                .ownership_and_lifetime,
-            },
+            .checked_focus = &sample_review_focus,
+            .storage_backing = .embedded_fixed_buffer,
         };
     }
 
@@ -269,6 +373,46 @@ pub const BytestreamFifoSample = struct {
         const replay = try self.runAnchorReplayInternal();
         self.stage_state = .replay_complete;
         return replay;
+    }
+
+    pub fn runPreviewBoundaryReplay(self: *Self) !PreviewBoundarySummary {
+        if (self.stage() != .initialized) return error.InvalidLifecycleTransition;
+
+        self.reset();
+
+        const hello_len = self.enqueueSlice("hello");
+        if (hello_len != 5) return error.UnexpectedInitialCopyCount;
+
+        var value: u8 = 0;
+        while (value < 10) : (value += 1) {
+            if (!self.pushByte(value)) return error.UnexpectedInitialFillFailure;
+        }
+
+        var discard: [7]u8 = undefined;
+        const discard_count = self.dequeueSlice(discard[0..]);
+        if (discard_count != discard.len) return error.UnexpectedBoundaryDiscardCount;
+
+        const requeue_count = self.enqueueSlice(&.{ 0, 1 });
+        if (requeue_count != 2) return error.UnexpectedRequeueCount;
+
+        var snapshot_prefix: [4]u8 = undefined;
+        const snapshot_len = self.snapshotInto(snapshot_prefix[0..]);
+
+        var preview_prefix: [8]u8 = [_]u8{0} ** 8;
+        const preview = self.previewInto(preview_prefix[0..]);
+
+        return .{
+            .stage_before_replay = .initialized,
+            .stage_after_replay = .initialized,
+            .snapshot_len = snapshot_len,
+            .snapshot_prefix = snapshot_prefix,
+            .preview_len = preview.copied,
+            .preview_total_visible = preview.total_visible,
+            .preview_truncated = preview.truncated,
+            .preview_prefix = preview_prefix,
+            .queue_len_after_preview = self.count(),
+            .checked_focus = &preview_boundary_focus,
+        };
     }
 
     pub fn exit(self: *Self) !void {
@@ -292,40 +436,57 @@ pub const expected_anchor_result = [_]u8{
 
 test "bytestream fifo sample replays the Linux anchor result sequence" {
     var sample = BytestreamFifoSample{};
+    const descriptor = BytestreamFifoSample.descriptor();
+    const review_contract = BytestreamFifoSample.reviewContract();
+    try std.testing.expectEqualStrings("samples/kfifo/bytestream-example.c", descriptor.anchor);
+    try std.testing.expectEqual(StorageBacking.embedded_fixed_buffer, descriptor.storage_backing);
+    try std.testing.expectEqual(@as(usize, 7), review_contract.focus.len);
+
     try sample.init();
     try std.testing.expect(sample.isEmpty());
     try std.testing.expect(!sample.isFull());
-
     const replay = try sample.runAnchorReplay();
 
     try std.testing.expectEqual(SampleStage.initialized, replay.stage_before_replay);
     try std.testing.expectEqual(SampleStage.replay_complete, replay.stage_after_replay);
+    try std.testing.expectEqual(@as(usize, 5), replay.initial_string_copy_count);
     try std.testing.expectEqual(@as(usize, 15), replay.len_after_initial_fill);
     try std.testing.expectEqualStrings("hello", replay.first_out[0..]);
+    try std.testing.expectEqual(@as(usize, 5), replay.first_drain_count);
     try std.testing.expectEqualSlices(u8, &.{ 0, 1 }, replay.second_out[0..]);
+    try std.testing.expectEqual(@as(usize, 2), replay.second_drain_count);
+    try std.testing.expectEqual(@as(usize, 2), replay.requeue_count);
     try std.testing.expectEqual(@as(u8, 2), replay.skipped_byte);
     try std.testing.expectEqual(@as(u8, 3), replay.peek_value);
-    try std.testing.expectEqual(@as(u8, 20), replay.fill_start);
-    try std.testing.expectEqual(@as(u8, 42), replay.fill_end);
+    try std.testing.expectEqual(@as(usize, 8), replay.preview_len);
+    try std.testing.expect(replay.preview_truncated);
+    try std.testing.expectEqualSlices(u8, expected_anchor_result[0..8], replay.preview_prefix[0..]);
     try std.testing.expectEqual(@as(usize, fifo_capacity), replay.snapshot_len);
     try std.testing.expectEqualSlices(u8, expected_anchor_result[0..], replay.snapshot_sequence[0..]);
     try std.testing.expectEqual(@as(usize, fifo_capacity), replay.final_len);
+    try std.testing.expectEqual(StorageBacking.embedded_fixed_buffer, replay.storage_backing);
+    try std.testing.expectEqual(@as(usize, 7), replay.checked_focus.len);
     try std.testing.expectEqualSlices(u8, expected_anchor_result[0..], replay.final_sequence[0..]);
     try std.testing.expectEqual(SampleStage.replay_complete, sample.stage());
-    try std.testing.expectEqual(@as(usize, 1), sample.init_runs);
-    try std.testing.expect(sample.isEmpty());
-    try std.testing.expect(!sample.isFull());
 
     try sample.exit();
     try std.testing.expectEqual(SampleStage.exited, sample.stage());
     try std.testing.expectEqual(@as(usize, 0), sample.count());
+    try std.testing.expectEqual(@as(usize, 1), sample.init_runs);
     try std.testing.expectEqual(@as(usize, 1), sample.exit_runs);
     try std.testing.expect(sample.isEmpty());
     try std.testing.expect(!sample.isFull());
 }
 
-test "bytestream fifo sample replays bounded helper behavior without runtime claims" {
+test "bytestream fifo sample keeps bounded helper behavior without runtime claims" {
     var sample = BytestreamFifoSample{};
+    var preview_buf: [4]u8 = [_]u8{ 0xaa, 0xaa, 0xaa, 0xaa };
+    const empty_preview = sample.previewInto(preview_buf[0..]);
+    try std.testing.expectEqual(@as(usize, 0), empty_preview.copied);
+    try std.testing.expectEqual(@as(usize, 0), empty_preview.total_visible);
+    try std.testing.expect(!empty_preview.truncated);
+    try std.testing.expectEqualSlices(u8, &.{ 0xaa, 0xaa, 0xaa, 0xaa }, preview_buf[0..]);
+
     const replay = sample.runHelperBoundaryReplay();
 
     try std.testing.expectEqual(@as(?u8, null), replay.peek_before_fill);
@@ -340,8 +501,29 @@ test "bytestream fifo sample replays bounded helper behavior without runtime cla
     try std.testing.expectEqual(@as(?u8, null), replay.pop_after_reset);
     try std.testing.expectEqual(@as(usize, 0), sample.count());
     try std.testing.expectEqual(SampleStage.cold, sample.stage());
-    try std.testing.expect(sample.isEmpty());
-    try std.testing.expect(!sample.isFull());
+}
+
+test "bytestream fifo sample keeps preview truncation explicit" {
+    var sample = BytestreamFifoSample{};
+    try std.testing.expectError(error.InvalidLifecycleTransition, sample.runPreviewBoundaryReplay());
+
+    try sample.init();
+    const preview = try sample.runPreviewBoundaryReplay();
+
+    try std.testing.expectEqual(SampleStage.initialized, preview.stage_before_replay);
+    try std.testing.expectEqual(SampleStage.initialized, preview.stage_after_replay);
+    try std.testing.expectEqual(@as(usize, 4), preview.snapshot_len);
+    try std.testing.expectEqualSlices(u8, &.{ 2, 3, 4, 5 }, preview.snapshot_prefix[0..]);
+    try std.testing.expectEqual(@as(usize, 8), preview.preview_len);
+    try std.testing.expectEqual(@as(usize, 10), preview.preview_total_visible);
+    try std.testing.expect(preview.preview_truncated);
+    try std.testing.expectEqualSlices(u8, &.{ 2, 3, 4, 5, 6, 7, 8, 9 }, preview.preview_prefix[0..]);
+    try std.testing.expectEqual(@as(usize, 10), preview.queue_len_after_preview);
+    try std.testing.expectEqual(@as(usize, 3), preview.checked_focus.len);
+    try std.testing.expectEqual(SampleFocus.wraparound_requeue, preview.checked_focus[0]);
+    try std.testing.expectEqual(SampleFocus.non_destructive_snapshot, preview.checked_focus[1]);
+    try std.testing.expectEqual(SampleFocus.preview_truncation, preview.checked_focus[2]);
+    try std.testing.expectEqual(SampleStage.initialized, sample.stage());
 }
 
 test "bytestream fifo sample exposes empty and full state boundaries explicitly" {
@@ -377,4 +559,35 @@ test "bytestream fifo sample exposes empty and full state boundaries explicitly"
     try sample.exit();
     try std.testing.expect(sample.isEmpty());
     try std.testing.expect(!sample.isFull());
+}
+
+test "bytestream fifo sample makes ownership and lifetime boundaries explicit" {
+    var sample = BytestreamFifoSample{};
+
+    try std.testing.expectEqual(SampleStage.cold, sample.stage());
+    try std.testing.expectError(error.InvalidLifecycleTransition, sample.runAnchorReplay());
+
+    try sample.init();
+    try std.testing.expectEqual(SampleStage.initialized, sample.stage());
+    try std.testing.expectError(error.InvalidLifecycleTransition, sample.init());
+
+    _ = try sample.runPreviewBoundaryReplay();
+    try std.testing.expectEqual(SampleStage.initialized, sample.stage());
+
+    _ = try sample.runAnchorReplay();
+    try std.testing.expectEqual(SampleStage.replay_complete, sample.stage());
+    const replay_lifecycle = sample.lifecycleSummary();
+    try std.testing.expectEqual(SampleStage.replay_complete, replay_lifecycle.stage);
+    try std.testing.expectEqual(@as(usize, 1), replay_lifecycle.init_run_count);
+    try std.testing.expectEqual(@as(usize, 0), replay_lifecycle.exit_run_count);
+    try std.testing.expectEqual(@as(usize, 0), replay_lifecycle.queue_len);
+    try std.testing.expectEqual(StorageBacking.embedded_fixed_buffer, replay_lifecycle.storage_backing);
+
+    try sample.exit();
+    try std.testing.expectEqual(SampleStage.exited, sample.stage());
+    try std.testing.expectEqual(@as(usize, 0), sample.count());
+    try std.testing.expectEqual(@as(usize, 1), sample.init_runs);
+    try std.testing.expectEqual(@as(usize, 1), sample.exit_runs);
+    try std.testing.expectError(error.InvalidLifecycleTransition, sample.runPreviewBoundaryReplay());
+    try std.testing.expectError(error.InvalidLifecycleTransition, sample.exit());
 }
