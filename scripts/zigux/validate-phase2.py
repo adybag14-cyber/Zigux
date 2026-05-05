@@ -207,6 +207,7 @@ REQUIRED_DOCS_ROOT_MARKERS = [
 ]
 REQUIRED_REVIEW_MARKERS = [
     "zigux/tests/README.md",
+    "zigux/tests/fixtures/phase2_cross_targets.json",
     "scripts/zigux/check-phase2-tests-readme-alignment.py",
     "scripts/zigux/check-phase2-cross.py",
     "scripts/zigux/check-phase2-cross-selftest-alignment.py",
@@ -229,7 +230,7 @@ def validate_root(root: Path) -> list[str]:
         return [f"missing_file:{item}" for item in missing]
 
     ledger = (root / "zigux-alpha" / "BOOTSTRAP_COMMIT_LEDGER.md").read_text(encoding="utf-8")
-    workflow = (root / ".github/workflows/zigux-bootstrap.yml").read_text(encoding="utf-8")
+    workflow = (root / ".github" / "workflows" / "zigux-bootstrap.yml").read_text(encoding="utf-8")
     artifact_doc = (root / "Documentation" / "zigux" / "artifact-diff.md").read_text(encoding="utf-8")
     script_readme = (root / "scripts" / "zigux" / "README.md").read_text(encoding="utf-8")
     docs_root = (root / "Documentation" / "zigux" / "README.md").read_text(encoding="utf-8")
@@ -481,7 +482,7 @@ def run_self_test() -> int:
         assert validate_root(root) == []
 
         build_self_test_root(root)
-        workflow_path = root / ".github/workflows/zigux-bootstrap.yml"
+        workflow_path = root / ".github" / "workflows" / "zigux-bootstrap.yml"
         workflow_text = workflow_path.read_text(encoding="utf-8").replace(
             "run: python3 scripts/zigux/check-phase2-cross.py --target\n",
             "run: python3 scripts/zigux/check-phase2-cross.py --target ${{ matrix.zig_target }}\n",
@@ -529,7 +530,18 @@ def run_self_test() -> int:
         build_self_test_root(root)
         write_text(
             root / "Documentation/zigux/review-checklist.md",
-            "\n".join(REQUIRED_REVIEW_MARKERS[:1] + REQUIRED_REVIEW_MARKERS[2:]) + "\n",
+            "\n".join([
+                REQUIRED_REVIEW_MARKERS[0],
+                *REQUIRED_REVIEW_MARKERS[2:],
+            ]) + "\n",
+        )
+        issues = validate_root(root)
+        assert "review:zigux/tests/fixtures/phase2_cross_targets.json" in issues
+
+        build_self_test_root(root)
+        write_text(
+            root / "Documentation/zigux/review-checklist.md",
+            "\n".join(REQUIRED_REVIEW_MARKERS[:2] + REQUIRED_REVIEW_MARKERS[3:]) + "\n",
         )
         issues = validate_root(root)
         assert "review:scripts/zigux/check-phase2-tests-readme-alignment.py" in issues
@@ -545,7 +557,7 @@ def run_self_test() -> int:
         assert any(issue.startswith("guard_marker:") for issue in issues)
 
     print("PHASE2_VALIDATION_SELF_TEST=pass")
-    print("PHASE2_VALIDATION_SELF_TEST_CASE_COUNT=8")
+    print("PHASE2_VALIDATION_SELF_TEST_CASE_COUNT=9")
     return 0
 
 
