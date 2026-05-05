@@ -17,6 +17,7 @@ REQUIRED_FILES = [
     "Documentation/zigux/phase7-rbtree-slice.md",
     "samples/zigux/README.md",
     "scripts/zigux/validate-phase7.py",
+    "scripts/zigux/check-phase7-argv-split-packet.py",
     "scripts/zigux/check-phase7-rbtree-parity.py",
     "zigux/Makefile",
     "zigux/tests/README.md",
@@ -25,6 +26,7 @@ REQUIRED_FILES = [
     "zigux/tests/phase7_string_helpers_sample_boundary.zig",
     "zigux/tests/phase7_cmdline.zig",
     "zigux/tests/phase7_argv_split.zig",
+    "zigux/tests/fixtures/phase7_argv_split_vectors.zig",
     "zigux/tests/phase7_rbtree.zig",
     "zigux/tests/phase7_rbtree_survey.zig",
     "zigux/tests/phase7_rbtree_manifest.json",
@@ -53,6 +55,7 @@ REQUIRED_MARKERS = {
     ],
     "Documentation/zigux/phase7-argv-split-slice.md": [
         "null-terminated pointer-vector access through `cArgv()`",
+        "python3 scripts/zigux/check-phase7-argv-split-packet.py",
     ],
     "Documentation/zigux/phase7-rbtree-slice.md": [
         "python3 scripts/zigux/check-phase7-rbtree-parity.py",
@@ -64,6 +67,10 @@ REQUIRED_MARKERS = {
         "Documentation/zigux/phase7-string-helpers-slice.md",
         "lib/string_helpers.zig",
         "zigux/tests/phase7_build.zig",
+    ],
+    "scripts/zigux/check-phase7-argv-split-packet.py": [
+        "--self-test",
+        "PHASE7_ARGV_SPLIT_PACKET_SELF_TEST=pass",
     ],
     "scripts/zigux/check-phase7-rbtree-parity.py": [
         "--self-test",
@@ -82,6 +89,8 @@ REQUIRED_MARKERS = {
         "phase7-validate:",
         "scripts/zigux/validate-phase7.py --self-test",
         "scripts/zigux/validate-phase7.py",
+        "scripts/zigux/check-phase7-argv-split-packet.py --self-test",
+        "scripts/zigux/check-phase7-argv-split-packet.py",
         "scripts/zigux/check-phase7-rbtree-parity.py --self-test",
         "scripts/zigux/check-phase7-rbtree-parity.py",
         "phase7-test:",
@@ -144,6 +153,7 @@ def write_fixture_root(tmp_root: Path) -> None:
         "Documentation/zigux/phase7-rbtree-slice.md": "\n".join(REQUIRED_MARKERS["Documentation/zigux/phase7-rbtree-slice.md"]) + "\n",
         "samples/zigux/README.md": "\n".join(REQUIRED_MARKERS["samples/zigux/README.md"]) + "\n",
         "scripts/zigux/validate-phase7.py": "# fixture\n",
+        "scripts/zigux/check-phase7-argv-split-packet.py": "\n".join(REQUIRED_MARKERS["scripts/zigux/check-phase7-argv-split-packet.py"]) + "\n",
         "scripts/zigux/check-phase7-rbtree-parity.py": "\n".join(REQUIRED_MARKERS["scripts/zigux/check-phase7-rbtree-parity.py"]) + "\n",
         "zigux/Makefile": "\n".join(REQUIRED_MARKERS["zigux/Makefile"]) + "\n",
         "zigux/tests/README.md": "\n".join(REQUIRED_MARKERS["zigux/tests/README.md"]) + "\n",
@@ -152,6 +162,7 @@ def write_fixture_root(tmp_root: Path) -> None:
         "zigux/tests/phase7_string_helpers_sample_boundary.zig": "// fixture\n",
         "zigux/tests/phase7_cmdline.zig": "// fixture\n",
         "zigux/tests/phase7_argv_split.zig": "// fixture\n",
+        "zigux/tests/fixtures/phase7_argv_split_vectors.zig": "// fixture\n",
         "zigux/tests/phase7_rbtree.zig": "// fixture\n",
         "zigux/tests/phase7_rbtree_survey.zig": "\n".join(REQUIRED_MARKERS["zigux/tests/phase7_rbtree_survey.zig"]) + "\n",
         "zigux/tests/phase7_rbtree_manifest.json": "{}\n",
@@ -192,9 +203,27 @@ def run_self_test() -> None:
         expect_missing_file("missing_parity_checker", tmp_root, "scripts/zigux/check-phase7-rbtree-parity.py")
         write_fixture_root(tmp_root)
 
+        argv_split_packet_path = tmp_root / "scripts" / "zigux" / "check-phase7-argv-split-packet.py"
+        argv_split_packet_path.unlink()
+        expect_missing_file(
+            "missing_argv_split_packet_checker",
+            tmp_root,
+            "scripts/zigux/check-phase7-argv-split-packet.py",
+        )
+        write_fixture_root(tmp_root)
+
         samples_readme_path = tmp_root / "samples" / "zigux" / "README.md"
         samples_readme_path.unlink()
         expect_missing_file("missing_samples_readme", tmp_root, "samples/zigux/README.md")
+        write_fixture_root(tmp_root)
+
+        argv_split_vectors_path = tmp_root / "zigux" / "tests" / "fixtures" / "phase7_argv_split_vectors.zig"
+        argv_split_vectors_path.unlink()
+        expect_missing_file(
+            "missing_argv_split_vectors_fixture",
+            tmp_root,
+            "zigux/tests/fixtures/phase7_argv_split_vectors.zig",
+        )
         write_fixture_root(tmp_root)
 
         parity_path = tmp_root / "scripts" / "zigux" / "check-phase7-rbtree-parity.py"
@@ -247,6 +276,17 @@ def run_self_test() -> None:
         makefile_path.write_text(original_makefile, encoding="utf-8")
 
         makefile_path.write_text(
+            original_makefile.replace("scripts/zigux/check-phase7-argv-split-packet.py --self-test", "", 1),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "makefile_argv_split_packet_self_test_hook",
+            tmp_root,
+            "zigux/Makefile: scripts/zigux/check-phase7-argv-split-packet.py --self-test",
+        )
+        makefile_path.write_text(original_makefile, encoding="utf-8")
+
+        makefile_path.write_text(
             original_makefile.replace("scripts/zigux/check-phase7-rbtree-parity.py --self-test", "", 1),
             encoding="utf-8",
         )
@@ -256,6 +296,19 @@ def run_self_test() -> None:
             "zigux/Makefile: scripts/zigux/check-phase7-rbtree-parity.py --self-test",
         )
         makefile_path.write_text(original_makefile, encoding="utf-8")
+
+        argv_split_slice_path = tmp_root / "Documentation" / "zigux" / "phase7-argv-split-slice.md"
+        original_argv_split_slice = argv_split_slice_path.read_text(encoding="utf-8")
+        argv_split_slice_path.write_text(
+            original_argv_split_slice.replace("python3 scripts/zigux/check-phase7-argv-split-packet.py", "", 1),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "argv_split_slice_checker_gate",
+            tmp_root,
+            "Documentation/zigux/phase7-argv-split-slice.md: python3 scripts/zigux/check-phase7-argv-split-packet.py",
+        )
+        argv_split_slice_path.write_text(original_argv_split_slice, encoding="utf-8")
 
         rbtree_survey_path = tmp_root / "zigux" / "tests" / "phase7_rbtree_survey.zig"
         original_rbtree_survey = rbtree_survey_path.read_text(encoding="utf-8")
@@ -353,7 +406,7 @@ def run_self_test() -> None:
         )
 
     print("PHASE7_VALIDATOR_SELF_TEST=pass")
-    print("PHASE7_VALIDATOR_SELF_TEST_CASE_COUNT=15")
+    print("PHASE7_VALIDATOR_SELF_TEST_CASE_COUNT=19")
 
 
 def main() -> int:
