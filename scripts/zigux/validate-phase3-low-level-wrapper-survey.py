@@ -5,7 +5,6 @@ import hashlib
 from pathlib import Path
 import tempfile
 
-
 FILE_PATH = Path(__file__).resolve()
 ROOT = FILE_PATH.parents[2] if len(FILE_PATH.parents) >= 3 else FILE_PATH.parent
 DOC_REL = "Documentation/zigux/phase3-low-level-wrapper-boundary-survey.md"
@@ -13,6 +12,7 @@ DOC_REL = "Documentation/zigux/phase3-low-level-wrapper-boundary-survey.md"
 ATOMIC_REL = "zigux/helpers/atomic.zig"
 BARRIER_REL = "zigux/helpers/barrier.zig"
 MMIO_REL = "zigux/helpers/mmio.zig"
+LOW_LEVEL_TEST_REL = "zigux/tests/phase3_low_level_wrappers.zig"
 ABI_TEST_REL = "zigux/tests/phase3_abi.zig"
 ABI_DUMP_REL = "zigux/tests/phase3_abi_dump.zig"
 ABI_EXPECTED_REL = "zigux/tests/fixtures/phase3_abi/expected.json"
@@ -52,7 +52,7 @@ def validate(root: Path) -> list[str]:
         if not (root / rel).exists():
             issues.append(f"missing_file:{rel}")
 
-    for rel in (ABI_EXPECTED_REL, ABI_MANIFEST_REL, ABI_SLICE_DOC_REL):
+    for rel in (LOW_LEVEL_TEST_REL, ABI_EXPECTED_REL, ABI_MANIFEST_REL, ABI_SLICE_DOC_REL):
         if not (root / rel).exists():
             issues.append(f"missing_file:{rel}")
 
@@ -112,6 +112,12 @@ def validate(root: Path) -> list[str]:
             "pub fn fetchMax",
             "pub fn compareExchange",
             "pub fn compareExchangeWeak",
+            'test "phase3 atomic wrappers keep non-seq-cst orderings reviewable"',
+            'store(u32, &handoff_value, 41, .release);',
+            'load(u32, &handoff_value, .acquire)',
+            'compareExchange(u32, &monotonic_value, 5, 7, .monotonic, .monotonic)',
+            'compareExchange(u32, &acq_rel_value, 7, 11, .acq_rel, .acquire)',
+            'compareExchangeWeak(u32, &weak_release_value, 13, 19, .release, .monotonic)',
         ),
     )
 
@@ -140,6 +146,30 @@ def validate(root: Path) -> list[str]:
             "pub fn read32",
             "pub fn write32",
             "narrow.pointerAt",
+        ),
+    )
+
+    low_level_test_text = (root / LOW_LEVEL_TEST_REL).read_text(encoding="utf-8")
+    require_tokens(
+        issues,
+        low_level_test_text,
+        "low_level_test_missing_token",
+        (
+            'const atomic = @import("atomic_helpers");',
+            'const barrier = @import("barrier_helpers");',
+            'const mmio = @import("mmio_helpers");',
+            'const narrow = @import("narrow_unsafe");',
+            'test "phase3 low-level wrappers stay inside the current helper surface"',
+            "atomic.load(u32, &value, .seq_cst)",
+            "atomic.store(u32, &value, 8, .seq_cst);",
+            "atomic.exchange(u32, &value, 13, .seq_cst)",
+            "atomic.compareExchange(u32, &value, 13, 21, .seq_cst, .seq_cst)",
+            "barrier.acquire();",
+            "barrier.release();",
+            "barrier.full();",
+            "mmio.range(base, 8, 4)",
+            "mmio.write32(base, @sizeOf(u32), 0xfeedbeef);",
+            "mmio.read32(base, @sizeOf(u32))",
         ),
     )
 
@@ -201,6 +231,7 @@ def run_self_test() -> int:
             ATOMIC_REL,
             BARRIER_REL,
             MMIO_REL,
+            LOW_LEVEL_TEST_REL,
             ABI_TEST_REL,
             ABI_DUMP_REL,
             ABI_EXPECTED_REL,
@@ -226,6 +257,13 @@ def run_self_test() -> int:
                     "pub fn fetchMax() void {}",
                     "pub fn compareExchange() void {}",
                     "pub fn compareExchangeWeak() void {}",
+                    'test "phase3 atomic wrappers keep non-seq-cst orderings reviewable" {',
+                    '    store(u32, &handoff_value, 41, .release);',
+                    '    _ = load(u32, &handoff_value, .acquire);',
+                    '    _ = compareExchange(u32, &monotonic_value, 5, 7, .monotonic, .monotonic);',
+                    '    _ = compareExchange(u32, &acq_rel_value, 7, 11, .acq_rel, .acquire);',
+                    '    _ = compareExchangeWeak(u32, &weak_release_value, 13, 19, .release, .monotonic);',
+                    '}',
                     "",
                 ]
             ),
@@ -252,6 +290,30 @@ def run_self_test() -> int:
                     "pub fn read32() void {}",
                     "pub fn write32() void {}",
                     "const p = narrow.pointerAt(u32, 0, 0);",
+                    "",
+                ]
+            ),
+            encoding="utf-8",
+        )
+        (root / LOW_LEVEL_TEST_REL).write_text(
+            "\n".join(
+                [
+                    'const atomic = @import("atomic_helpers");',
+                    'const barrier = @import("barrier_helpers");',
+                    'const mmio = @import("mmio_helpers");',
+                    'const narrow = @import("narrow_unsafe");',
+                    'test "phase3 low-level wrappers stay inside the current helper surface" {',
+                    '    _ = atomic.load(u32, &value, .seq_cst);',
+                    '    atomic.store(u32, &value, 8, .seq_cst);',
+                    '    _ = atomic.exchange(u32, &value, 13, .seq_cst);',
+                    '    _ = atomic.compareExchange(u32, &value, 13, 21, .seq_cst, .seq_cst);',
+                    '    barrier.acquire();',
+                    '    barrier.release();',
+                    '    barrier.full();',
+                    '    _ = mmio.range(base, 8, 4);',
+                    '    mmio.write32(base, @sizeOf(u32), 0xfeedbeef);',
+                    '    _ = mmio.read32(base, @sizeOf(u32));',
+                    '}',
                     "",
                 ]
             ),
@@ -340,14 +402,12 @@ def run_self_test() -> int:
         issues = validate(root)
         assert issues == [], issues
 
-        (root / DOC_REL).write_text(
-            (root / DOC_REL).read_text(encoding="utf-8").replace(
-                "PHASE3_ABI_SLICE_DOC_BLOB_SHA=", "PHASE3_ABI_SLICE_DOC_SHA="
-            ),
+        (root / LOW_LEVEL_TEST_REL).write_text(
+            (root / LOW_LEVEL_TEST_REL).read_text(encoding="utf-8").replace("    barrier.full();\n", ""),
             encoding="utf-8",
         )
         issues = validate(root)
-        assert "missing_doc_marker:PHASE3_ABI_SLICE_DOC_BLOB_SHA=<sha>" in issues
+        assert "low_level_test_missing_token:barrier.full();" in issues
 
     print("PHASE3_LOW_LEVEL_WRAPPER_SURVEY_SELF_TEST=pass")
     return 0
