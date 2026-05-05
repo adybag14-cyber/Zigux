@@ -22,8 +22,8 @@ REQUIRED_COMMANDS = [
     "make -C zigux phase14-smoke",
     "zig build phase14-smoke --build-file zigux/tests/phase14_build.zig --summary all",
     "make -C zigux phase14-test",
-    "make -C zigux phase14",
     "zig build test --build-file zigux/tests/phase14_build.zig --summary all",
+    "make -C zigux phase14",
 ]
 REQUIRED_SURFACES = {
     "scripts/zigux/README.md": "make -C zigux phase14-validate",
