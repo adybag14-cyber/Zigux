@@ -169,3 +169,70 @@ test "phase 9 runtime bitmap module slice keeps the loader-backed survey packet 
     try std.testing.expect(std.mem.indexOf(u8, note, "samples/zigux/runtime_bitmap_loader.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, note, "zigux/tests/runtime_bitmap_survey.zig") != null);
 }
+
+test "phase 9 runtime bitmap survey source-checks the direct sample evidence packet" {
+    var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
+    defer io_instance.deinit();
+
+    const sample_source = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "samples/zigux/runtime_bitmap.zig",
+        std.testing.allocator,
+        .limited(32 * 1024),
+    );
+    defer std.testing.allocator.free(sample_source);
+
+    const loader_source = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "samples/zigux/runtime_bitmap_loader.zig",
+        std.testing.allocator,
+        .limited(32 * 1024),
+    );
+    defer std.testing.allocator.free(loader_source);
+
+    const module_tests = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "zigux/tests/runtime_bitmap_module.zig",
+        std.testing.allocator,
+        .limited(32 * 1024),
+    );
+    defer std.testing.allocator.free(module_tests);
+
+    const diff_tests = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "zigux/tests/runtime_bitmap_diff.zig",
+        std.testing.allocator,
+        .limited(32 * 1024),
+    );
+    defer std.testing.allocator.free(diff_tests);
+
+    try std.testing.expect(std.mem.indexOf(u8, sample_source, ".name = \"runtime_bitmap\"") != null);
+    try std.testing.expect(std.mem.indexOf(u8, sample_source, ".anchor = \"lib/test_bitmap.c\"") != null);
+    try std.testing.expect(std.mem.indexOf(u8, sample_source, ".requires_runtime_substrate = true") != null);
+    try std.testing.expect(std.mem.indexOf(u8, sample_source, ".provides_selftest_hook = true") != null);
+    try std.testing.expect(std.mem.indexOf(u8, sample_source, ".parse_and_print,") != null);
+    try std.testing.expect(std.mem.indexOf(u8, sample_source, ".iteration_and_ranges,") != null);
+    try std.testing.expect(std.mem.indexOf(u8, sample_source, "try std.testing.expectEqual(@as(u32, 4), summary.weight);") != null);
+    try std.testing.expect(std.mem.indexOf(u8, sample_source, "try std.testing.expectEqual(RuntimeBitmapSample.bitmap_nbits, summary.nbits);") != null);
+
+    try std.testing.expect(std.mem.indexOf(u8, module_tests, "try module.clearRange(second_word_base, 2);") != null);
+    try std.testing.expect(std.mem.indexOf(u8, module_tests, "try module.setRange(9, 4);") != null);
+    try std.testing.expect(std.mem.indexOf(u8, module_tests, "try std.testing.expectEqual(@as(u32, 7), summary.weight);") != null);
+    try std.testing.expect(std.mem.indexOf(u8, module_tests, "try std.testing.expectEqual(@as(usize, 4), selftest.operation_families.len);") != null);
+    try std.testing.expect(std.mem.indexOf(u8, module_tests, "try std.testing.expectError(error.InvalidLifecycleTransition, module.initWithSetBits(&.{ 1, 2 }));") != null);
+    try std.testing.expect(std.mem.indexOf(u8, module_tests, "try std.testing.expectError(error.BitRangeOutOfBounds, module.setRange(sample.RuntimeBitmapSample.bitmap_nbits - 1, 2));") != null);
+    try std.testing.expect(std.mem.indexOf(u8, module_tests, "try std.testing.expectError(error.InvalidSourceLifecycle, module.copyFrom(&cold_source));") != null);
+    try std.testing.expect(std.mem.indexOf(u8, module_tests, "try std.testing.expectError(error.InvalidSourceLifecycle, module.copyFrom(&exited_source));") != null);
+
+    try std.testing.expect(std.mem.indexOf(u8, diff_tests, ".name = \"test_fill_set single-word starter\"") != null);
+    try std.testing.expect(std.mem.indexOf(u8, diff_tests, ".clear_ranges = &.{.{ .start = 79, .len = 19 }},") != null);
+    try std.testing.expect(std.mem.indexOf(u8, diff_tests, ".init_bits = &.{ 10, 20, 30, 40, 50, 60, 80, 123 },") != null);
+    try std.testing.expect(std.mem.indexOf(u8, diff_tests, "try source.setRange(0, 109);") != null);
+    try std.testing.expect(std.mem.indexOf(u8, diff_tests, "try std.testing.expectEqual(@as(u32, 109), summary.first_zero);") != null);
+
+    try std.testing.expect(std.mem.indexOf(u8, loader_source, ".entry_symbol = \"zigux_runtime_bitmap_init\"") != null);
+    try std.testing.expect(std.mem.indexOf(u8, loader_source, ".exit_symbol = \"zigux_runtime_bitmap_exit\"") != null);
+    try std.testing.expect(std.mem.indexOf(u8, loader_source, "self.stage_state = .waiting_on_runtime_substrate;") != null);
+    try std.testing.expect(std.mem.indexOf(u8, loader_source, "self.stage_state = .released_without_substrate;") != null);
+    try std.testing.expect(std.mem.indexOf(u8, loader_source, ".summary = module.summary(),") != null);
+}
