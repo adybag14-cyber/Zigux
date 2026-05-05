@@ -21,6 +21,7 @@ REQUIRED_FILES = [
 
 DOCS_ROOT_MARKERS = [
     "scripts/zigux/validate_phase3_selftest.py",
+    "scripts/zigux/check-phase3-selftest-surface.py",
     "make -C zigux phase3-selftest",
     "without duplicating the default `phase3-validate` route",
 ]
@@ -118,6 +119,7 @@ def run_self_test() -> int:
         write_text(root / "Documentation/zigux/README.md", "make -C zigux phase3-selftest\n")
         issues = validate_root(root)
         assert "docs_root:scripts/zigux/validate_phase3_selftest.py" in issues
+        assert "docs_root:scripts/zigux/check-phase3-selftest-surface.py" in issues
         assert "docs_root:without duplicating the default `phase3-validate` route" in issues
 
         build_self_test_root(root)
