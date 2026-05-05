@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 from pathlib import Path
 import subprocess
@@ -133,6 +134,7 @@ EXACT_ONCE_DOC_README_MARKERS = [
     "runtime_atomic64_diff.zig",
     "phase4_runtime_atomic64_diff_survey.zig",
 ]
+
 EXPECTED_ARTIFACT_DIFF_CONTRACT_CASES = [
     "helper_self_test",
     "helper_self_test_repeat",
@@ -189,6 +191,15 @@ EXPECTED_ARTIFACT_DIFF_CONTRACT_SELF_TEST_CASES = [
     "contract_summary_case_order_drift",
 ]
 EXPECTED_PHASE4_GATE_EVIDENCE_TARGET_COUNT = 16
+EXPECTED_PHASE4_GATE_EVIDENCE_SELF_TEST_CASES = [
+    "baseline_round_trip",
+    "shipped_target_count_drift",
+    "missing_exact_readback_heading",
+    "validator_blob_pin_drift",
+    "phase4_build_manifest_blob_pin_drift",
+    "phase4_build_survey_blob_pin_drift",
+    "missing_note_file",
+]
 PHASE4_RUNTIME_ATOMIC64_PIN_TARGETS = {
     "phase4_validator_blob_sha": "scripts/zigux/validate-phase4.py",
     "phase4_validation_matrix_blob_sha": "Documentation/zigux/phase4-validation-matrix.md",
@@ -196,11 +207,7 @@ PHASE4_RUNTIME_ATOMIC64_PIN_TARGETS = {
 
 
 def _missing_files(root: Path) -> list[str]:
-    missing = []
-    for rel in REQUIRED_FILES:
-        if not (root / rel).exists():
-            missing.append(rel)
-    return missing
+    return [rel for rel in REQUIRED_FILES if not (root / rel).exists()]
 
 
 def _count_marker(text: str, marker: str) -> int:
@@ -216,7 +223,7 @@ def _require_exact_once(text: str, marker: str, prefix: str, missing_markers: li
 def _line_value(lines: list[str], prefix: str) -> str | None:
     for line in lines:
         if line.startswith(prefix):
-            return line[len(prefix):]
+            return line[len(prefix) :]
     return None
 
 
@@ -225,8 +232,6 @@ def _expected_case_line(cases: list[str]) -> str:
 
 
 def _git_blob_sha1(payload: bytes) -> str:
-    import hashlib
-
     header = f"blob {len(payload)}\0".encode("utf-8")
     return hashlib.sha1(header + payload).hexdigest()
 
@@ -287,74 +292,47 @@ def validate_root(root: Path) -> list[str]:
     return missing_markers
 
 
-def run_artifact_diff_contract_check(root: Path) -> list[str]:
-    checker = root / "scripts/zigux/check-artifact-diff-contract.py"
+def _run_python_script(root: Path, relative_path: str, *args: str) -> tuple[int, list[str]]:
     result = subprocess.run(
-        [sys.executable, str(checker)],
+        [sys.executable, str(root / relative_path), *args],
         cwd=root,
         capture_output=True,
         text=True,
         check=False,
     )
-    if result.returncode != 0:
-        return [f"artifact_diff_contract:exit:{result.returncode}"]
+    return result.returncode, result.stdout.splitlines()
 
-    lines = result.stdout.splitlines()
+
+def run_artifact_diff_contract_check(root: Path) -> list[str]:
+    returncode, lines = _run_python_script(root, "scripts/zigux/check-artifact-diff-contract.py")
+    if returncode != 0:
+        return [f"artifact_diff_contract:exit:{returncode}"]
     if "ARTIFACT_DIFF_CONTRACT=pass" not in lines:
         return ["artifact_diff_contract:missing_pass_marker"]
 
-    base_case_count = _line_value(lines, "ARTIFACT_DIFF_CONTRACT_BASE_CASE_COUNT=")
-    if base_case_count is None:
-        return ["artifact_diff_contract:missing_base_case_count_marker"]
-    if base_case_count != str(len(EXPECTED_ARTIFACT_DIFF_CONTRACT_BASE_CASES)):
-        return [f"artifact_diff_contract:unexpected_base_case_count:{base_case_count}"]
-
-    base_cases = _line_value(lines, "ARTIFACT_DIFF_CONTRACT_BASE_CASES=")
-    if base_cases is None:
-        return ["artifact_diff_contract:missing_base_cases_marker"]
-    if base_cases != _expected_case_line(EXPECTED_ARTIFACT_DIFF_CONTRACT_BASE_CASES):
-        return [f"artifact_diff_contract:unexpected_base_cases:{base_cases}"]
-
-    repeat_case_count = _line_value(lines, "ARTIFACT_DIFF_CONTRACT_REPEAT_CASE_COUNT=")
-    if repeat_case_count is None:
-        return ["artifact_diff_contract:missing_repeat_case_count_marker"]
-    if repeat_case_count != str(len(EXPECTED_ARTIFACT_DIFF_CONTRACT_REPEAT_CASES)):
-        return [f"artifact_diff_contract:unexpected_repeat_case_count:{repeat_case_count}"]
-
-    repeat_cases = _line_value(lines, "ARTIFACT_DIFF_CONTRACT_REPEAT_CASES=")
-    if repeat_cases is None:
-        return ["artifact_diff_contract:missing_repeat_cases_marker"]
-    if repeat_cases != _expected_case_line(EXPECTED_ARTIFACT_DIFF_CONTRACT_REPEAT_CASES):
-        return [f"artifact_diff_contract:unexpected_repeat_cases:{repeat_cases}"]
-
-    case_count = _line_value(lines, "ARTIFACT_DIFF_CONTRACT_CASE_COUNT=")
-    if case_count is None:
-        return ["artifact_diff_contract:missing_case_count_marker"]
-    if case_count != str(len(EXPECTED_ARTIFACT_DIFF_CONTRACT_CASES)):
-        return [f"artifact_diff_contract:unexpected_case_count:{case_count}"]
-
-    cases = _line_value(lines, "ARTIFACT_DIFF_CONTRACT_CASES=")
-    if cases is None:
-        return ["artifact_diff_contract:missing_cases_marker"]
-    if cases != _expected_case_line(EXPECTED_ARTIFACT_DIFF_CONTRACT_CASES):
-        return [f"artifact_diff_contract:unexpected_cases:{cases}"]
-
+    expected = [
+        ("ARTIFACT_DIFF_CONTRACT_BASE_CASE_COUNT=", str(len(EXPECTED_ARTIFACT_DIFF_CONTRACT_BASE_CASES)), "missing_base_case_count_marker", "unexpected_base_case_count"),
+        ("ARTIFACT_DIFF_CONTRACT_BASE_CASES=", _expected_case_line(EXPECTED_ARTIFACT_DIFF_CONTRACT_BASE_CASES), "missing_base_cases_marker", "unexpected_base_cases"),
+        ("ARTIFACT_DIFF_CONTRACT_REPEAT_CASE_COUNT=", str(len(EXPECTED_ARTIFACT_DIFF_CONTRACT_REPEAT_CASES)), "missing_repeat_case_count_marker", "unexpected_repeat_case_count"),
+        ("ARTIFACT_DIFF_CONTRACT_REPEAT_CASES=", _expected_case_line(EXPECTED_ARTIFACT_DIFF_CONTRACT_REPEAT_CASES), "missing_repeat_cases_marker", "unexpected_repeat_cases"),
+        ("ARTIFACT_DIFF_CONTRACT_CASE_COUNT=", str(len(EXPECTED_ARTIFACT_DIFF_CONTRACT_CASES)), "missing_case_count_marker", "unexpected_case_count"),
+        ("ARTIFACT_DIFF_CONTRACT_CASES=", _expected_case_line(EXPECTED_ARTIFACT_DIFF_CONTRACT_CASES), "missing_cases_marker", "unexpected_cases"),
+    ]
+    for prefix, expected_value, missing_code, drift_code in expected:
+        actual = _line_value(lines, prefix)
+        if actual is None:
+            return [f"artifact_diff_contract:{missing_code}"]
+        if actual != expected_value:
+            return [f"artifact_diff_contract:{drift_code}:{actual}"]
     return []
 
 
 def run_artifact_diff_contract_self_test_check(root: Path) -> list[str]:
-    checker = root / "scripts/zigux/check-artifact-diff-contract.py"
-    result = subprocess.run(
-        [sys.executable, str(checker), "--self-test"],
-        cwd=root,
-        capture_output=True,
-        text=True,
-        check=False,
+    returncode, lines = _run_python_script(
+        root, "scripts/zigux/check-artifact-diff-contract.py", "--self-test"
     )
-    if result.returncode != 0:
-        return [f"artifact_diff_contract_self_test:exit:{result.returncode}"]
-
-    lines = result.stdout.splitlines()
+    if returncode != 0:
+        return [f"artifact_diff_contract_self_test:exit:{returncode}"]
     if "ARTIFACT_DIFF_CONTRACT_SELF_TEST=pass" not in lines:
         return ["artifact_diff_contract_self_test:missing_pass_marker"]
 
@@ -369,23 +347,13 @@ def run_artifact_diff_contract_self_test_check(root: Path) -> list[str]:
         return ["artifact_diff_contract_self_test:missing_cases_marker"]
     if cases != _expected_case_line(EXPECTED_ARTIFACT_DIFF_CONTRACT_SELF_TEST_CASES):
         return [f"artifact_diff_contract_self_test:unexpected_cases:{cases}"]
-
     return []
 
 
 def run_phase4_gate_evidence_check(root: Path) -> list[str]:
-    checker = root / "scripts/zigux/check-phase4-gate-evidence.py"
-    result = subprocess.run(
-        [sys.executable, str(checker)],
-        cwd=root,
-        capture_output=True,
-        text=True,
-        check=False,
-    )
-    if result.returncode != 0:
-        return [f"phase4_gate_evidence:exit:{result.returncode}"]
-
-    lines = result.stdout.splitlines()
+    returncode, lines = _run_python_script(root, "scripts/zigux/check-phase4-gate-evidence.py")
+    if returncode != 0:
+        return [f"phase4_gate_evidence:exit:{returncode}"]
     if "PHASE4_GATE_EVIDENCE_CHECK=pass" not in lines:
         return ["phase4_gate_evidence:missing_pass_marker"]
 
@@ -394,33 +362,35 @@ def run_phase4_gate_evidence_check(root: Path) -> list[str]:
         return ["phase4_gate_evidence:missing_target_count_marker"]
     if target_count != str(EXPECTED_PHASE4_GATE_EVIDENCE_TARGET_COUNT):
         return [f"phase4_gate_evidence:unexpected_target_count:{target_count}"]
-
     return []
 
 
 def run_phase4_gate_evidence_self_test_check(root: Path) -> list[str]:
-    checker = root / "scripts/zigux/check-phase4-gate-evidence.py"
-    result = subprocess.run(
-        [sys.executable, str(checker), "--self-test"],
-        cwd=root,
-        capture_output=True,
-        text=True,
-        check=False,
+    returncode, lines = _run_python_script(
+        root, "scripts/zigux/check-phase4-gate-evidence.py", "--self-test"
     )
-    if result.returncode != 0:
-        return [f"phase4_gate_evidence_self_test:exit:{result.returncode}"]
-
-    lines = result.stdout.splitlines()
+    if returncode != 0:
+        return [f"phase4_gate_evidence_self_test:exit:{returncode}"]
     if "PHASE4_GATE_EVIDENCE_SELF_TEST=pass" not in lines:
         return ["phase4_gate_evidence_self_test:missing_pass_marker"]
 
+    case_count = _line_value(lines, "PHASE4_GATE_EVIDENCE_SELF_TEST_CASE_COUNT=")
+    if case_count is None:
+        return ["phase4_gate_evidence_self_test:missing_case_count_marker"]
+    if case_count != str(len(EXPECTED_PHASE4_GATE_EVIDENCE_SELF_TEST_CASES)):
+        return [f"phase4_gate_evidence_self_test:unexpected_case_count:{case_count}"]
+
+    cases = _line_value(lines, "PHASE4_GATE_EVIDENCE_SELF_TEST_CASES=")
+    if cases is None:
+        return ["phase4_gate_evidence_self_test:missing_cases_marker"]
+    if cases != _expected_case_line(EXPECTED_PHASE4_GATE_EVIDENCE_SELF_TEST_CASES):
+        return [f"phase4_gate_evidence_self_test:unexpected_cases:{cases}"]
     return []
 
 
 def run_phase4_runtime_atomic64_packet_check(root: Path) -> list[str]:
     manifest_path = root / "zigux/tests/phase4_runtime_atomic64_diff_manifest.json"
     survey_path = root / "zigux/tests/phase4_runtime_atomic64_diff_survey.zig"
-
     try:
         manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
     except json.JSONDecodeError as exc:
@@ -428,7 +398,6 @@ def run_phase4_runtime_atomic64_packet_check(root: Path) -> list[str]:
 
     survey_text = survey_path.read_text(encoding="utf-8")
     missing: list[str] = []
-
     for field, relative_path in PHASE4_RUNTIME_ATOMIC64_PIN_TARGETS.items():
         expected = _git_blob_sha1((root / relative_path).read_bytes())
         actual = manifest.get(field)
@@ -444,7 +413,6 @@ def run_phase4_runtime_atomic64_packet_check(root: Path) -> list[str]:
             missing.append(
                 f"phase4_runtime_atomic64_packet:survey_sha_exact_count:{field}:{expected}:{count}"
             )
-
     return missing
 
 
@@ -471,9 +439,7 @@ def _write_contract_checker_fixture(
     if include_self_test_pass:
         lines.append("    print('ARTIFACT_DIFF_CONTRACT_SELF_TEST=pass')")
     if self_test_case_count is not None:
-        lines.append(
-            f"    print('ARTIFACT_DIFF_CONTRACT_SELF_TEST_CASE_COUNT={self_test_case_count}')"
-        )
+        lines.append(f"    print('ARTIFACT_DIFF_CONTRACT_SELF_TEST_CASE_COUNT={self_test_case_count}')")
     if self_test_cases is not None:
         lines.append(
             "    print('ARTIFACT_DIFF_CONTRACT_SELF_TEST_CASES="
@@ -490,9 +456,7 @@ def _write_contract_checker_fixture(
     if repeat_case_count is not None:
         lines.append(f"print('ARTIFACT_DIFF_CONTRACT_REPEAT_CASE_COUNT={repeat_case_count}')")
     if repeat_cases is not None:
-        lines.append(
-            "print('ARTIFACT_DIFF_CONTRACT_REPEAT_CASES=" + ",".join(repeat_cases) + "')"
-        )
+        lines.append("print('ARTIFACT_DIFF_CONTRACT_REPEAT_CASES=" + ",".join(repeat_cases) + "')")
     if case_count is not None:
         lines.append(f"print('ARTIFACT_DIFF_CONTRACT_CASE_COUNT={case_count}')")
     if cases is not None:
@@ -500,11 +464,37 @@ def _write_contract_checker_fixture(
     _write(path, "\n".join(lines) + "\n")
 
 
+def _write_phase4_gate_evidence_checker_fixture(
+    path: Path,
+    *,
+    include_check_pass: bool = True,
+    target_count: str | None = str(EXPECTED_PHASE4_GATE_EVIDENCE_TARGET_COUNT),
+    include_self_test_pass: bool = True,
+    self_test_case_count: str | None = None,
+    self_test_cases: list[str] | None = None,
+) -> None:
+    lines = ["#!/usr/bin/env python3", "import sys", "if '--self-test' in sys.argv:"]
+    if include_self_test_pass:
+        lines.append("    print('PHASE4_GATE_EVIDENCE_SELF_TEST=pass')")
+    if self_test_case_count is not None:
+        lines.append(f"    print('PHASE4_GATE_EVIDENCE_SELF_TEST_CASE_COUNT={self_test_case_count}')")
+    if self_test_cases is not None:
+        lines.append(
+            "    print('PHASE4_GATE_EVIDENCE_SELF_TEST_CASES="
+            + ",".join(self_test_cases)
+            + "')"
+        )
+    lines.append("else:")
+    if include_check_pass:
+        lines.append("    print('PHASE4_GATE_EVIDENCE_CHECK=pass')")
+    if target_count is not None:
+        lines.append(f"    print('PHASE4_GATE_EVIDENCE_TARGET_COUNT={target_count}')")
+    _write(path, "\n".join(lines) + "\n")
+
+
 def _write_phase4_runtime_atomic64_packet_fixture(root: Path) -> None:
     validator_sha = _git_blob_sha1((root / "scripts/zigux/validate-phase4.py").read_bytes())
-    matrix_sha = _git_blob_sha1(
-        (root / "Documentation/zigux/phase4-validation-matrix.md").read_bytes()
-    )
+    matrix_sha = _git_blob_sha1((root / "Documentation/zigux/phase4-validation-matrix.md").read_bytes())
     manifest = {
         "phase4_validator_blob_sha": validator_sha,
         "phase4_validation_matrix_blob_sha": matrix_sha,
@@ -517,9 +507,9 @@ def _write_phase4_runtime_atomic64_packet_fixture(root: Path) -> None:
         root / "zigux/tests/phase4_runtime_atomic64_diff_survey.zig",
         "\n".join(
             [
-                "const std = @import(\"std\");",
+                'const std = @import("std");',
                 "",
-                "test \"fixture keeps current validator and matrix pins\" {",
+                'test "fixture keeps current validator and matrix pins" {',
                 f"    // validator pin {validator_sha}",
                 f"    // matrix pin {matrix_sha}",
                 "}",
@@ -529,11 +519,152 @@ def _write_phase4_runtime_atomic64_packet_fixture(root: Path) -> None:
     )
 
 
+def _write_phase4_fixture_docs(root: Path) -> None:
+    _write(
+        root / "Documentation/zigux/artifact-diff.md",
+        "\n".join(
+            [
+                "# Artifact Diff Policy",
+                "",
+                "Current Phase 4 use",
+                "- `scripts/zigux/artifact_diff.py`",
+                "- `zigux/tests/atomic64_diff.zig`",
+                "- `zigux/tests/runtime_atomic64_diff.zig`",
+                "- `zigux/tests/bitmap_diff.zig`",
+                "- `zigux/tests/phase4_bitmap_live_helper_replay.zig`",
+                "- `zigux/tests/phase4_build.zig`",
+                "- `scripts/zigux/validate-phase4.py`",
+                "- `Documentation/zigux/phase4-validation-matrix.md`",
+                "",
+            ]
+        ),
+    )
+    _write(
+        root / "Documentation/zigux/phase4-gate-evidence.md",
+        "\n".join(
+            [
+                "# Phase 4 Gate Evidence",
+                "",
+                "## Status",
+                "- `PHASE4_EVIDENCE_SCOPE=rollback_ownership_and_lab_matrix_current_gate_definitions`",
+                "- `PHASE4_VALIDATOR_BLOB_SHA=placeholder`",
+                "- `PHASE4_SEPARATE_GATE_EVIDENCE_CHECKER_PRESENT=true`",
+                "- `PHASE4_SHARED_TEST_FSMOUNT_SURVEY_PACKET_PRESENT=false`",
+                "- `PHASE4_SHARED_PERF_BASELINE_SURVEY_PACKET_PRESENT=false`",
+                "",
+                "## Exact Readback Evidence",
+                "- `zigux/tests/phase4_runtime_atomic64_diff_manifest.json` stays in the packet.",
+                "- `zigux/tests/phase4_runtime_atomic64_diff_survey.zig` stays in the packet.",
+                "",
+            ]
+        ),
+    )
+    _write(
+        root / "Documentation/zigux/phase4-validation-matrix.md",
+        "\n".join(
+            [
+                "# Phase 4 Validation Matrix",
+                "",
+                "atomic64_diff.zig",
+                "runtime_atomic64_diff.zig",
+                "phase4_runtime_atomic64_diff_manifest.json",
+                "phase4_runtime_atomic64_diff_survey.zig",
+                "bitmap_diff.zig",
+                "phase4_bitmap_live_helper_replay.zig",
+                "rollback owner",
+                "Lab And CI Matrix",
+                "threshold posture",
+                "zig build test --build-file zigux/tests/phase4_build.zig",
+                "Remaining Roadmap Gaps",
+                "samples/zigux/kprobe_example.zig",
+                "samples/kprobes/kprobe_example.c",
+                "samples/zigux/test_fsmount.zig",
+                "samples/vfs/test-fsmount.c",
+                "hard perf thresholds and acceptable limits for the atomic64 and bitmap gates remain intentionally unapproved",
+                "",
+            ]
+        ),
+    )
+    _write(
+        root / "Documentation/zigux/README.md",
+        "\n".join(
+            [
+                "Phase 4 notes",
+                "validate-phase4.py",
+                "phase4-validation-matrix.md",
+                "atomic64_diff.zig",
+                "runtime_atomic64_diff.zig",
+                "phase4_runtime_atomic64_diff_survey.zig",
+                "",
+            ]
+        ),
+    )
+    _write(
+        root / "scripts/zigux/README.md",
+        "\n".join(
+            [
+                "validate-phase4.py",
+                "atomic64_diff.zig",
+                "runtime_atomic64_diff.zig",
+                "phase4_runtime_atomic64_diff_survey.zig",
+                "Phase 4 flow",
+                "phase4_build.zig",
+                "phase4-validation-matrix.md",
+                "",
+            ]
+        ),
+    )
+    _write(
+        root / "zigux/tests/README.md",
+        "\n".join(
+            [
+                "zigux/tests/atomic64_diff.zig",
+                "zigux/tests/runtime_atomic64_diff.zig",
+                "zigux/tests/phase4_runtime_atomic64_diff_survey.zig",
+                "zigux/tests/bitmap_diff.zig",
+                "zigux/tests/phase4_build.zig",
+                "scripts/zigux/validate-phase4.py",
+                "",
+            ]
+        ),
+    )
+
+
+def _write_phase4_fixture_sources(root: Path) -> None:
+    _write(root / "scripts/zigux/artifact_diff.py", "# placeholder\n")
+    _write(root / "scripts/zigux/validate-phase4.py", "# placeholder\n")
+    _write(root / "zigux/Makefile", "PHONY += phase4-validate phase4-test\nphase4-validate:\n\tscripts/zigux/validate-phase4.py\nphase4-test:\n\tzigux/tests/phase4_build.zig\n")
+    _write(
+        root / ".github/workflows/zigux-bootstrap.yml",
+        "python3 scripts/zigux/validate-phase4.py\npython3 scripts/zigux/validate-phase4.py --self-test\nzig build test --build-file zigux/tests/phase4_build.zig\n",
+    )
+    _write(root / "zigux/tests/atomic64_diff.zig", "// wrapper gate\n")
+    _write(root / "zigux/tests/runtime_atomic64_diff.zig", "// runtime gate\n")
+    _write(root / "zigux/tests/bitmap_diff.zig", "// bitmap gate\n")
+    _write(root / "zigux/tests/phase4_bitmap_live_helper_replay.zig", "// helper replay gate\n")
+    _write(
+        root / "zigux/tests/phase4_build.zig",
+        "\n".join(
+            [
+                "atomic64_diff.zig",
+                "phase4_runtime_atomic64_diff_survey.zig",
+                "bitmap_diff.zig",
+                "phase4_bitmap_live_helper_replay.zig",
+                "phase4-runtime-atomic64-diff-tests",
+                "phase4-runtime-atomic64-diff-survey-tests",
+                "phase4-bitmap-diff-tests",
+                "phase4-bitmap-live-helper-replay-tests",
+                "",
+            ]
+        ),
+    )
+
+
 def run_self_test() -> int:
     with tempfile.TemporaryDirectory(prefix="zigux_phase4_validator_selftest_") as tmp_dir_str:
         root = Path(tmp_dir_str)
-
-        _write(root / "scripts/zigux/artifact_diff.py", "# placeholder\n")
+        _write_phase4_fixture_sources(root)
+        _write_phase4_fixture_docs(root)
         _write_contract_checker_fixture(
             root / "scripts/zigux/check-artifact-diff-contract.py",
             base_case_count=str(len(EXPECTED_ARTIFACT_DIFF_CONTRACT_BASE_CASES)),
@@ -545,178 +676,10 @@ def run_self_test() -> int:
             self_test_case_count=str(len(EXPECTED_ARTIFACT_DIFF_CONTRACT_SELF_TEST_CASES)),
             self_test_cases=EXPECTED_ARTIFACT_DIFF_CONTRACT_SELF_TEST_CASES,
         )
-        _write(
+        _write_phase4_gate_evidence_checker_fixture(
             root / "scripts/zigux/check-phase4-gate-evidence.py",
-            "\n".join(
-                [
-                    "#!/usr/bin/env python3",
-                    "import sys",
-                    "if '--self-test' in sys.argv:",
-                    "    print('PHASE4_GATE_EVIDENCE_SELF_TEST=pass')",
-                    "else:",
-                    "    print('PHASE4_GATE_EVIDENCE_CHECK=pass')",
-                    f"    print('PHASE4_GATE_EVIDENCE_TARGET_COUNT={EXPECTED_PHASE4_GATE_EVIDENCE_TARGET_COUNT}')",
-                    "",
-                ]
-            ),
-        )
-        _write(root / "scripts/zigux/validate-phase4.py", "# placeholder\n")
-        _write(
-            root / "Documentation/zigux/artifact-diff.md",
-            "\n".join(
-                [
-                    "# Artifact Diff Policy",
-                    "",
-                    "Current Phase 4 use",
-                    "- `scripts/zigux/artifact_diff.py` stays the shared host-side comparison helper.",
-                    "- `zigux/tests/atomic64_diff.zig` remains in the packet as the roadmap-named wrapper.",
-                    "- `zigux/tests/runtime_atomic64_diff.zig` remains in the packet as the shared replay body.",
-                    "- `zigux/tests/bitmap_diff.zig` remains in the packet.",
-                    "- `zigux/tests/phase4_bitmap_live_helper_replay.zig` remains in the packet.",
-                    "- `zigux/tests/phase4_build.zig` remains in the packet.",
-                    "- `scripts/zigux/validate-phase4.py` remains in the packet.",
-                    "- `Documentation/zigux/phase4-validation-matrix.md` remains in the packet.",
-                    "",
-                ]
-            )
-            + "\n",
-        )
-        _write(
-            root / "Documentation/zigux/phase4-gate-evidence.md",
-            "\n".join(
-                [
-                    "# Phase 4 Gate Evidence",
-                    "",
-                    "- `PHASE4_EVIDENCE_SCOPE=rollback_ownership_and_lab_matrix_current_gate_definitions`",
-                    "- `PHASE4_VALIDATOR_BLOB_SHA=placeholder`",
-                    "- `zigux/tests/phase4_runtime_atomic64_diff_manifest.json` stays in the packet.",
-                    "- `zigux/tests/phase4_runtime_atomic64_diff_survey.zig` stays in the packet.",
-                    "- `PHASE4_SEPARATE_GATE_EVIDENCE_CHECKER_PRESENT=true`",
-                    "- `PHASE4_SHARED_TEST_FSMOUNT_SURVEY_PACKET_PRESENT=false`",
-                    "- `PHASE4_SHARED_PERF_BASELINE_SURVEY_PACKET_PRESENT=false`",
-                    "",
-                ]
-            )
-            + "\n",
-        )
-        _write(
-            root / "Documentation/zigux/phase4-validation-matrix.md",
-            "\n".join(
-                [
-                    "# Phase 4 Validation Matrix",
-                    "",
-                    "atomic64_diff.zig",
-                    "runtime_atomic64_diff.zig",
-                    "phase4_runtime_atomic64_diff_manifest.json",
-                    "phase4_runtime_atomic64_diff_survey.zig",
-                    "bitmap_diff.zig",
-                    "phase4_bitmap_live_helper_replay.zig",
-                    "rollback owner",
-                    "Lab And CI Matrix",
-                    "threshold posture",
-                    "zig build test --build-file zigux/tests/phase4_build.zig",
-                    "Remaining Roadmap Gaps",
-                    "samples/zigux/kprobe_example.zig",
-                    "samples/kprobes/kprobe_example.c",
-                    "samples/zigux/test_fsmount.zig",
-                    "samples/vfs/test-fsmount.c",
-                    "hard perf thresholds and acceptable limits for the atomic64 and bitmap gates remain intentionally unapproved",
-                    "",
-                ]
-            ),
-        )
-        _write(
-            root / "zigux/Makefile",
-            "\n".join(
-                [
-                    "PHONY += phase4-validate phase4-test",
-                    "phase4-validate:",
-                    "\tpython3 scripts/zigux/validate-phase4.py",
-                    "phase4-test:",
-                    "\tzig build test --build-file zigux/tests/phase4_build.zig",
-                    "",
-                ]
-            ),
-        )
-        _write(
-            root / ".github/workflows/zigux-bootstrap.yml",
-            "\n".join(
-                [
-                    "jobs:",
-                    "  bootstrap:",
-                    "    steps:",
-                    "      - name: Validate Phase 4 diff gates",
-                    "        run: python3 scripts/zigux/validate-phase4.py",
-                    "      - name: Self-test Phase 4 validator",
-                    "        run: python3 scripts/zigux/validate-phase4.py --self-test",
-                    "      - name: Run Phase 4 diff tests",
-                    "        run: zig build test --build-file zigux/tests/phase4_build.zig",
-                    "",
-                ]
-            ),
-        )
-        _write(root / "zigux/tests/atomic64_diff.zig", "// wrapper gate\n")
-        _write(root / "zigux/tests/runtime_atomic64_diff.zig", "// runtime gate\n")
-        _write(root / "zigux/tests/bitmap_diff.zig", "// bitmap gate\n")
-        _write(root / "zigux/tests/phase4_bitmap_live_helper_replay.zig", "// helper replay gate\n")
-        _write(
-            root / "zigux/tests/phase4_build.zig",
-            "\n".join(
-                [
-                    "atomic64_diff.zig",
-                    "phase4_runtime_atomic64_diff_survey.zig",
-                    "bitmap_diff.zig",
-                    "phase4_bitmap_live_helper_replay.zig",
-                    "phase4-runtime-atomic64-diff-tests",
-                    "phase4-runtime-atomic64-diff-survey-tests",
-                    "phase4-bitmap-diff-tests",
-                    "phase4-bitmap-live-helper-replay-tests",
-                    "",
-                ]
-            ),
-        )
-        _write(
-            root / "zigux/tests/README.md",
-            "\n".join(
-                [
-                    "zigux/tests/atomic64_diff.zig",
-                    "zigux/tests/runtime_atomic64_diff.zig",
-                    "zigux/tests/phase4_runtime_atomic64_diff_survey.zig",
-                    "zigux/tests/bitmap_diff.zig",
-                    "zigux/tests/phase4_build.zig",
-                    "scripts/zigux/validate-phase4.py",
-                    "",
-                ]
-            ),
-        )
-        _write(
-            root / "scripts/zigux/README.md",
-            "\n".join(
-                [
-                    "validate-phase4.py",
-                    "atomic64_diff.zig",
-                    "runtime_atomic64_diff.zig",
-                    "phase4_runtime_atomic64_diff_survey.zig",
-                    "Phase 4 flow",
-                    "phase4_build.zig",
-                    "phase4-validation-matrix.md",
-                    "",
-                ]
-            ),
-        )
-        _write(
-            root / "Documentation/zigux/README.md",
-            "\n".join(
-                [
-                    "Phase 4 notes",
-                    "validate-phase4.py",
-                    "phase4-validation-matrix.md",
-                    "atomic64_diff.zig",
-                    "runtime_atomic64_diff.zig",
-                    "phase4_runtime_atomic64_diff_survey.zig",
-                    "",
-                ]
-            ),
+            self_test_case_count=str(len(EXPECTED_PHASE4_GATE_EVIDENCE_SELF_TEST_CASES)),
+            self_test_cases=EXPECTED_PHASE4_GATE_EVIDENCE_SELF_TEST_CASES,
         )
         _write_phase4_runtime_atomic64_packet_fixture(root)
 
@@ -728,299 +691,54 @@ def run_self_test() -> int:
         assert run_phase4_gate_evidence_self_test_check(root) == []
         assert run_phase4_runtime_atomic64_packet_check(root) == []
 
-        _write_contract_checker_fixture(
-            root / "scripts/zigux/check-artifact-diff-contract.py",
-            base_case_count=str(len(EXPECTED_ARTIFACT_DIFF_CONTRACT_BASE_CASES)),
-            base_cases=EXPECTED_ARTIFACT_DIFF_CONTRACT_BASE_CASES,
-            repeat_case_count=str(len(EXPECTED_ARTIFACT_DIFF_CONTRACT_REPEAT_CASES)),
-            repeat_cases=EXPECTED_ARTIFACT_DIFF_CONTRACT_REPEAT_CASES,
-            case_count=str(len(EXPECTED_ARTIFACT_DIFF_CONTRACT_CASES)),
-            cases=EXPECTED_ARTIFACT_DIFF_CONTRACT_CASES,
-            self_test_case_count=str(len(EXPECTED_ARTIFACT_DIFF_CONTRACT_SELF_TEST_CASES)),
-            self_test_cases=EXPECTED_ARTIFACT_DIFF_CONTRACT_SELF_TEST_CASES,
+        _write_phase4_gate_evidence_checker_fixture(
+            root / "scripts/zigux/check-phase4-gate-evidence.py",
             include_self_test_pass=False,
-        )
-        assert run_artifact_diff_contract_self_test_check(root) == [
-            "artifact_diff_contract_self_test:missing_pass_marker"
-        ]
-
-        _write_contract_checker_fixture(
-            root / "scripts/zigux/check-artifact-diff-contract.py",
-            base_case_count=str(len(EXPECTED_ARTIFACT_DIFF_CONTRACT_BASE_CASES)),
-            base_cases=EXPECTED_ARTIFACT_DIFF_CONTRACT_BASE_CASES,
-            repeat_case_count=str(len(EXPECTED_ARTIFACT_DIFF_CONTRACT_REPEAT_CASES)),
-            repeat_cases=EXPECTED_ARTIFACT_DIFF_CONTRACT_REPEAT_CASES,
-            case_count=str(len(EXPECTED_ARTIFACT_DIFF_CONTRACT_CASES)),
-            cases=EXPECTED_ARTIFACT_DIFF_CONTRACT_CASES,
-            self_test_case_count=None,
-            self_test_cases=EXPECTED_ARTIFACT_DIFF_CONTRACT_SELF_TEST_CASES,
-        )
-        assert run_artifact_diff_contract_self_test_check(root) == [
-            "artifact_diff_contract_self_test:missing_case_count_marker"
-        ]
-
-        _write_contract_checker_fixture(
-            root / "scripts/zigux/check-artifact-diff-contract.py",
-            base_case_count=str(len(EXPECTED_ARTIFACT_DIFF_CONTRACT_BASE_CASES)),
-            base_cases=EXPECTED_ARTIFACT_DIFF_CONTRACT_BASE_CASES,
-            repeat_case_count=str(len(EXPECTED_ARTIFACT_DIFF_CONTRACT_REPEAT_CASES)),
-            repeat_cases=EXPECTED_ARTIFACT_DIFF_CONTRACT_REPEAT_CASES,
-            case_count=str(len(EXPECTED_ARTIFACT_DIFF_CONTRACT_CASES)),
-            cases=EXPECTED_ARTIFACT_DIFF_CONTRACT_CASES,
-            self_test_case_count="14",
-            self_test_cases=EXPECTED_ARTIFACT_DIFF_CONTRACT_SELF_TEST_CASES,
-        )
-        assert run_artifact_diff_contract_self_test_check(root) == [
-            "artifact_diff_contract_self_test:unexpected_case_count:14"
-        ]
-
-        _write_contract_checker_fixture(
-            root / "scripts/zigux/check-artifact-diff-contract.py",
-            base_case_count=str(len(EXPECTED_ARTIFACT_DIFF_CONTRACT_BASE_CASES)),
-            base_cases=EXPECTED_ARTIFACT_DIFF_CONTRACT_BASE_CASES,
-            repeat_case_count=str(len(EXPECTED_ARTIFACT_DIFF_CONTRACT_REPEAT_CASES)),
-            repeat_cases=EXPECTED_ARTIFACT_DIFF_CONTRACT_REPEAT_CASES,
-            case_count=str(len(EXPECTED_ARTIFACT_DIFF_CONTRACT_CASES)),
-            cases=EXPECTED_ARTIFACT_DIFF_CONTRACT_CASES,
-            self_test_case_count=str(len(EXPECTED_ARTIFACT_DIFF_CONTRACT_SELF_TEST_CASES)),
-            self_test_cases=None,
-        )
-        assert run_artifact_diff_contract_self_test_check(root) == [
-            "artifact_diff_contract_self_test:missing_cases_marker"
-        ]
-
-        _write_contract_checker_fixture(
-            root / "scripts/zigux/check-artifact-diff-contract.py",
-            base_case_count=str(len(EXPECTED_ARTIFACT_DIFF_CONTRACT_BASE_CASES)),
-            base_cases=EXPECTED_ARTIFACT_DIFF_CONTRACT_BASE_CASES,
-            repeat_case_count=str(len(EXPECTED_ARTIFACT_DIFF_CONTRACT_REPEAT_CASES)),
-            repeat_cases=EXPECTED_ARTIFACT_DIFF_CONTRACT_REPEAT_CASES,
-            case_count=str(len(EXPECTED_ARTIFACT_DIFF_CONTRACT_CASES)),
-            cases=EXPECTED_ARTIFACT_DIFF_CONTRACT_CASES,
-            self_test_case_count=str(len(EXPECTED_ARTIFACT_DIFF_CONTRACT_SELF_TEST_CASES)),
-            self_test_cases=EXPECTED_ARTIFACT_DIFF_CONTRACT_SELF_TEST_CASES[1:],
-        )
-        assert run_artifact_diff_contract_self_test_check(root) == [
-            "artifact_diff_contract_self_test:unexpected_cases:"
-            + _expected_case_line(EXPECTED_ARTIFACT_DIFF_CONTRACT_SELF_TEST_CASES[1:])
-        ]
-
-        _write_contract_checker_fixture(
-            root / "scripts/zigux/check-artifact-diff-contract.py",
-            base_case_count="20",
-            base_cases=EXPECTED_ARTIFACT_DIFF_CONTRACT_BASE_CASES,
-            repeat_case_count=str(len(EXPECTED_ARTIFACT_DIFF_CONTRACT_REPEAT_CASES)),
-            repeat_cases=EXPECTED_ARTIFACT_DIFF_CONTRACT_REPEAT_CASES,
-            case_count=str(len(EXPECTED_ARTIFACT_DIFF_CONTRACT_CASES)),
-            cases=EXPECTED_ARTIFACT_DIFF_CONTRACT_CASES,
-            self_test_case_count=str(len(EXPECTED_ARTIFACT_DIFF_CONTRACT_SELF_TEST_CASES)),
-            self_test_cases=EXPECTED_ARTIFACT_DIFF_CONTRACT_SELF_TEST_CASES,
-        )
-        assert run_artifact_diff_contract_check(root) == [
-            "artifact_diff_contract:unexpected_base_case_count:20"
-        ]
-
-        _write_contract_checker_fixture(
-            root / "scripts/zigux/check-artifact-diff-contract.py",
-            base_case_count=str(len(EXPECTED_ARTIFACT_DIFF_CONTRACT_BASE_CASES)),
-            base_cases=EXPECTED_ARTIFACT_DIFF_CONTRACT_BASE_CASES[1:],
-            repeat_case_count=str(len(EXPECTED_ARTIFACT_DIFF_CONTRACT_REPEAT_CASES)),
-            repeat_cases=EXPECTED_ARTIFACT_DIFF_CONTRACT_REPEAT_CASES,
-            case_count=str(len(EXPECTED_ARTIFACT_DIFF_CONTRACT_CASES)),
-            cases=EXPECTED_ARTIFACT_DIFF_CONTRACT_CASES,
-            self_test_case_count=str(len(EXPECTED_ARTIFACT_DIFF_CONTRACT_SELF_TEST_CASES)),
-            self_test_cases=EXPECTED_ARTIFACT_DIFF_CONTRACT_SELF_TEST_CASES,
-        )
-        assert run_artifact_diff_contract_check(root) == [
-            "artifact_diff_contract:unexpected_base_cases:"
-            + _expected_case_line(EXPECTED_ARTIFACT_DIFF_CONTRACT_BASE_CASES[1:])
-        ]
-
-        _write_contract_checker_fixture(
-            root / "scripts/zigux/check-artifact-diff-contract.py",
-            base_case_count=str(len(EXPECTED_ARTIFACT_DIFF_CONTRACT_BASE_CASES)),
-            base_cases=EXPECTED_ARTIFACT_DIFF_CONTRACT_BASE_CASES,
-            repeat_case_count="3",
-            repeat_cases=EXPECTED_ARTIFACT_DIFF_CONTRACT_REPEAT_CASES,
-            case_count=str(len(EXPECTED_ARTIFACT_DIFF_CONTRACT_CASES)),
-            cases=EXPECTED_ARTIFACT_DIFF_CONTRACT_CASES,
-            self_test_case_count=str(len(EXPECTED_ARTIFACT_DIFF_CONTRACT_SELF_TEST_CASES)),
-            self_test_cases=EXPECTED_ARTIFACT_DIFF_CONTRACT_SELF_TEST_CASES,
-        )
-        assert run_artifact_diff_contract_check(root) == [
-            "artifact_diff_contract:unexpected_repeat_case_count:3"
-        ]
-
-        _write_contract_checker_fixture(
-            root / "scripts/zigux/check-artifact-diff-contract.py",
-            base_case_count=str(len(EXPECTED_ARTIFACT_DIFF_CONTRACT_BASE_CASES)),
-            base_cases=EXPECTED_ARTIFACT_DIFF_CONTRACT_BASE_CASES,
-            repeat_case_count=str(len(EXPECTED_ARTIFACT_DIFF_CONTRACT_REPEAT_CASES)),
-            repeat_cases=EXPECTED_ARTIFACT_DIFF_CONTRACT_REPEAT_CASES[1:],
-            case_count=str(len(EXPECTED_ARTIFACT_DIFF_CONTRACT_CASES)),
-            cases=EXPECTED_ARTIFACT_DIFF_CONTRACT_CASES,
-            self_test_case_count=str(len(EXPECTED_ARTIFACT_DIFF_CONTRACT_SELF_TEST_CASES)),
-            self_test_cases=EXPECTED_ARTIFACT_DIFF_CONTRACT_SELF_TEST_CASES,
-        )
-        assert run_artifact_diff_contract_check(root) == [
-            "artifact_diff_contract:unexpected_repeat_cases:"
-            + _expected_case_line(EXPECTED_ARTIFACT_DIFF_CONTRACT_REPEAT_CASES[1:])
-        ]
-
-        _write_contract_checker_fixture(
-            root / "scripts/zigux/check-artifact-diff-contract.py",
-            base_case_count=str(len(EXPECTED_ARTIFACT_DIFF_CONTRACT_BASE_CASES)),
-            base_cases=EXPECTED_ARTIFACT_DIFF_CONTRACT_BASE_CASES,
-            repeat_case_count=str(len(EXPECTED_ARTIFACT_DIFF_CONTRACT_REPEAT_CASES)),
-            repeat_cases=EXPECTED_ARTIFACT_DIFF_CONTRACT_REPEAT_CASES,
-            case_count="24",
-            cases=EXPECTED_ARTIFACT_DIFF_CONTRACT_CASES,
-            self_test_case_count=str(len(EXPECTED_ARTIFACT_DIFF_CONTRACT_SELF_TEST_CASES)),
-            self_test_cases=EXPECTED_ARTIFACT_DIFF_CONTRACT_SELF_TEST_CASES,
-        )
-        assert run_artifact_diff_contract_check(root) == [
-            "artifact_diff_contract:unexpected_case_count:24"
-        ]
-
-        _write_contract_checker_fixture(
-            root / "scripts/zigux/check-artifact-diff-contract.py",
-            base_case_count=str(len(EXPECTED_ARTIFACT_DIFF_CONTRACT_BASE_CASES)),
-            base_cases=EXPECTED_ARTIFACT_DIFF_CONTRACT_BASE_CASES,
-            repeat_case_count=str(len(EXPECTED_ARTIFACT_DIFF_CONTRACT_REPEAT_CASES)),
-            repeat_cases=EXPECTED_ARTIFACT_DIFF_CONTRACT_REPEAT_CASES,
-            case_count=str(len(EXPECTED_ARTIFACT_DIFF_CONTRACT_CASES)),
-            cases=EXPECTED_ARTIFACT_DIFF_CONTRACT_CASES[1:],
-            self_test_case_count=str(len(EXPECTED_ARTIFACT_DIFF_CONTRACT_SELF_TEST_CASES)),
-            self_test_cases=EXPECTED_ARTIFACT_DIFF_CONTRACT_SELF_TEST_CASES,
-        )
-        assert run_artifact_diff_contract_check(root) == [
-            "artifact_diff_contract:unexpected_cases:"
-            + _expected_case_line(EXPECTED_ARTIFACT_DIFF_CONTRACT_CASES[1:])
-        ]
-
-        _write_contract_checker_fixture(
-            root / "scripts/zigux/check-artifact-diff-contract.py",
-            base_case_count=None,
-            base_cases=EXPECTED_ARTIFACT_DIFF_CONTRACT_BASE_CASES,
-            repeat_case_count=str(len(EXPECTED_ARTIFACT_DIFF_CONTRACT_REPEAT_CASES)),
-            repeat_cases=EXPECTED_ARTIFACT_DIFF_CONTRACT_REPEAT_CASES,
-            case_count=str(len(EXPECTED_ARTIFACT_DIFF_CONTRACT_CASES)),
-            cases=EXPECTED_ARTIFACT_DIFF_CONTRACT_CASES,
-            self_test_case_count=str(len(EXPECTED_ARTIFACT_DIFF_CONTRACT_SELF_TEST_CASES)),
-            self_test_cases=EXPECTED_ARTIFACT_DIFF_CONTRACT_SELF_TEST_CASES,
-        )
-        assert run_artifact_diff_contract_check(root) == [
-            "artifact_diff_contract:missing_base_case_count_marker"
-        ]
-
-        _write(
-            root / "scripts/zigux/check-phase4-gate-evidence.py",
-            "\n".join(
-                [
-                    "#!/usr/bin/env python3",
-                    "print('PHASE4_GATE_EVIDENCE_TARGET_COUNT=16')",
-                    "",
-                ]
-            ),
-        )
-        assert run_phase4_gate_evidence_check(root) == [
-            "phase4_gate_evidence:missing_pass_marker"
-        ]
-
-        _write(
-            root / "scripts/zigux/check-phase4-gate-evidence.py",
-            "\n".join(
-                [
-                    "#!/usr/bin/env python3",
-                    "print('PHASE4_GATE_EVIDENCE_CHECK=pass')",
-                    "",
-                ]
-            ),
-        )
-        assert run_phase4_gate_evidence_check(root) == [
-            "phase4_gate_evidence:missing_target_count_marker"
-        ]
-
-        _write(
-            root / "scripts/zigux/check-phase4-gate-evidence.py",
-            "\n".join(
-                [
-                    "#!/usr/bin/env python3",
-                    "print('PHASE4_GATE_EVIDENCE_CHECK=pass')",
-                    "print('PHASE4_GATE_EVIDENCE_TARGET_COUNT=15')",
-                    "",
-                ]
-            ),
-        )
-        assert run_phase4_gate_evidence_check(root) == [
-            "phase4_gate_evidence:unexpected_target_count:15"
-        ]
-
-        _write(
-            root / "scripts/zigux/check-phase4-gate-evidence.py",
-            "\n".join(
-                [
-                    "#!/usr/bin/env python3",
-                    "import sys",
-                    "if '--self-test' in sys.argv:",
-                    "    print('PHASE4_GATE_EVIDENCE_CHECK=pass')",
-                    "else:",
-                    "    print('PHASE4_GATE_EVIDENCE_CHECK=pass')",
-                    f"    print('PHASE4_GATE_EVIDENCE_TARGET_COUNT={EXPECTED_PHASE4_GATE_EVIDENCE_TARGET_COUNT}')",
-                    "",
-                ]
-            ),
+            self_test_case_count=str(len(EXPECTED_PHASE4_GATE_EVIDENCE_SELF_TEST_CASES)),
+            self_test_cases=EXPECTED_PHASE4_GATE_EVIDENCE_SELF_TEST_CASES,
         )
         assert run_phase4_gate_evidence_self_test_check(root) == [
             "phase4_gate_evidence_self_test:missing_pass_marker"
         ]
 
-        _write(
-            root / "zigux/tests/phase4_runtime_atomic64_diff_manifest.json",
-            json.dumps({"phase4_validation_matrix_blob_sha": "placeholder"}, indent=2) + "\n",
+        _write_phase4_gate_evidence_checker_fixture(
+            root / "scripts/zigux/check-phase4-gate-evidence.py",
+            self_test_case_count=None,
+            self_test_cases=EXPECTED_PHASE4_GATE_EVIDENCE_SELF_TEST_CASES,
         )
-        assert run_phase4_runtime_atomic64_packet_check(root) == [
-            "phase4_runtime_atomic64_packet:missing_manifest_field:phase4_validator_blob_sha",
-            "phase4_runtime_atomic64_packet:unexpected_manifest_sha:phase4_validation_matrix_blob_sha:placeholder:"
-            + _git_blob_sha1((root / "Documentation/zigux/phase4-validation-matrix.md").read_bytes()),
+        assert run_phase4_gate_evidence_self_test_check(root) == [
+            "phase4_gate_evidence_self_test:missing_case_count_marker"
         ]
 
-        _write_phase4_runtime_atomic64_packet_fixture(root)
-        manifest = json.loads(
-            (root / "zigux/tests/phase4_runtime_atomic64_diff_manifest.json").read_text(
-                encoding="utf-8"
-            )
+        _write_phase4_gate_evidence_checker_fixture(
+            root / "scripts/zigux/check-phase4-gate-evidence.py",
+            self_test_case_count="6",
+            self_test_cases=EXPECTED_PHASE4_GATE_EVIDENCE_SELF_TEST_CASES,
         )
-        manifest["phase4_validator_blob_sha"] = "0000000000000000000000000000000000000000"
-        _write(
-            root / "zigux/tests/phase4_runtime_atomic64_diff_manifest.json",
-            json.dumps(manifest, indent=2) + "\n",
-        )
-        validator_sha = _git_blob_sha1((root / "scripts/zigux/validate-phase4.py").read_bytes())
-        assert run_phase4_runtime_atomic64_packet_check(root) == [
-            "phase4_runtime_atomic64_packet:unexpected_manifest_sha:phase4_validator_blob_sha:"
-            "0000000000000000000000000000000000000000:"
-            + validator_sha
+        assert run_phase4_gate_evidence_self_test_check(root) == [
+            "phase4_gate_evidence_self_test:unexpected_case_count:6"
         ]
 
-        _write_phase4_runtime_atomic64_packet_fixture(root)
-        survey_text = (root / "zigux/tests/phase4_runtime_atomic64_diff_survey.zig").read_text(
-            encoding="utf-8"
+        _write_phase4_gate_evidence_checker_fixture(
+            root / "scripts/zigux/check-phase4-gate-evidence.py",
+            self_test_case_count=str(len(EXPECTED_PHASE4_GATE_EVIDENCE_SELF_TEST_CASES)),
+            self_test_cases=None,
         )
-        matrix_sha = _git_blob_sha1(
-            (root / "Documentation/zigux/phase4-validation-matrix.md").read_bytes()
-        )
-        _write(
-            root / "zigux/tests/phase4_runtime_atomic64_diff_survey.zig",
-            survey_text.replace(matrix_sha, "1111111111111111111111111111111111111111", 1),
-        )
-        assert run_phase4_runtime_atomic64_packet_check(root) == [
-            "phase4_runtime_atomic64_packet:survey_sha_exact_count:phase4_validation_matrix_blob_sha:"
-            + matrix_sha
-            + ":0"
+        assert run_phase4_gate_evidence_self_test_check(root) == [
+            "phase4_gate_evidence_self_test:missing_cases_marker"
         ]
 
-    print("PHASE4_VALIDATE_SELF_TEST=pass")
+        _write_phase4_gate_evidence_checker_fixture(
+            root / "scripts/zigux/check-phase4-gate-evidence.py",
+            self_test_case_count=str(len(EXPECTED_PHASE4_GATE_EVIDENCE_SELF_TEST_CASES)),
+            self_test_cases=EXPECTED_PHASE4_GATE_EVIDENCE_SELF_TEST_CASES[1:],
+        )
+        assert run_phase4_gate_evidence_self_test_check(root) == [
+            "phase4_gate_evidence_self_test:unexpected_cases:"
+            + _expected_case_line(EXPECTED_PHASE4_GATE_EVIDENCE_SELF_TEST_CASES[1:])
+        ]
+
+        print("PHASE4_VALIDATE_SELF_TEST=pass")
     return 0
 
 
@@ -1054,50 +772,20 @@ def main() -> int:
         print("MISSING_PHASE4_MARKERS_END")
         return 1
 
-    contract_failures = run_artifact_diff_contract_check(ROOT)
-    if contract_failures:
-        print("PHASE4_VALIDATION=fail")
-        print("ARTIFACT_DIFF_CONTRACT_CHECK_START")
-        for item in contract_failures:
-            print(item)
-        print("ARTIFACT_DIFF_CONTRACT_CHECK_END")
-        return 1
-
-    contract_self_test_failures = run_artifact_diff_contract_self_test_check(ROOT)
-    if contract_self_test_failures:
-        print("PHASE4_VALIDATION=fail")
-        print("ARTIFACT_DIFF_CONTRACT_SELF_TEST_CHECK_START")
-        for item in contract_self_test_failures:
-            print(item)
-        print("ARTIFACT_DIFF_CONTRACT_SELF_TEST_CHECK_END")
-        return 1
-
-    gate_evidence_failures = run_phase4_gate_evidence_check(ROOT)
-    if gate_evidence_failures:
-        print("PHASE4_VALIDATION=fail")
-        print("PHASE4_GATE_EVIDENCE_CHECK_START")
-        for item in gate_evidence_failures:
-            print(item)
-        print("PHASE4_GATE_EVIDENCE_CHECK_END")
-        return 1
-
-    gate_evidence_self_test_failures = run_phase4_gate_evidence_self_test_check(ROOT)
-    if gate_evidence_self_test_failures:
-        print("PHASE4_VALIDATION=fail")
-        print("PHASE4_GATE_EVIDENCE_SELF_TEST_CHECK_START")
-        for item in gate_evidence_self_test_failures:
-            print(item)
-        print("PHASE4_GATE_EVIDENCE_SELF_TEST_CHECK_END")
-        return 1
-
-    runtime_atomic64_packet_failures = run_phase4_runtime_atomic64_packet_check(ROOT)
-    if runtime_atomic64_packet_failures:
-        print("PHASE4_VALIDATION=fail")
-        print("PHASE4_RUNTIME_ATOMIC64_PACKET_CHECK_START")
-        for item in runtime_atomic64_packet_failures:
-            print(item)
-        print("PHASE4_RUNTIME_ATOMIC64_PACKET_CHECK_END")
-        return 1
+    for label, failures in [
+        ("ARTIFACT_DIFF_CONTRACT_CHECK", run_artifact_diff_contract_check(ROOT)),
+        ("ARTIFACT_DIFF_CONTRACT_SELF_TEST_CHECK", run_artifact_diff_contract_self_test_check(ROOT)),
+        ("PHASE4_GATE_EVIDENCE_CHECK", run_phase4_gate_evidence_check(ROOT)),
+        ("PHASE4_GATE_EVIDENCE_SELF_TEST_CHECK", run_phase4_gate_evidence_self_test_check(ROOT)),
+        ("PHASE4_RUNTIME_ATOMIC64_PACKET_CHECK", run_phase4_runtime_atomic64_packet_check(ROOT)),
+    ]:
+        if failures:
+            print("PHASE4_VALIDATION=fail")
+            print(f"{label}_START")
+            for item in failures:
+                print(item)
+            print(f"{label}_END")
+            return 1
 
     print("PHASE4_VALIDATION=pass")
     print(f"PHASE4_REQUIRED_FILE_COUNT={len(REQUIRED_FILES)}")
