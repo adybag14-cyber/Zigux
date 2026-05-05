@@ -128,7 +128,7 @@ test "phase 9 runtime atomic64 survey manifest records the landed loader scaffol
     try std.testing.expect(saw_live_loader_blocker);
 }
 
-test "phase 9 runtime atomic64 survey note keeps the manifest-backed surveyed commit, loader scaffold, and blocker explicit" {
+test "phase 9 runtime atomic64 survey note keeps exact selftest and loader snapshot checks explicit" {
     var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
     defer io_instance.deinit();
 
@@ -159,13 +159,14 @@ test "phase 9 runtime atomic64 survey note keeps the manifest-backed surveyed co
     defer std.testing.allocator.free(note);
 
     try std.testing.expectEqual(@as(usize, 1), std.mem.count(u8, note, surveyed_commit_marker));
+    try std.testing.expect(std.mem.indexOf(u8, note, "The current direct atomic64 sample contract is verified through these exact checks:") != null);
+    try std.testing.expect(std.mem.indexOf(u8, note, "descriptor contract: the sample still advertises `name=runtime_atomic64`, `anchor=lib/atomic64_test.c`, `requires_runtime_substrate=true`, and `provides_selftest_hook=true`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, note, "lifecycle and counter path: the sample still starts cold, rejects selftest before init, records one init run, swaps the seeded `0x1111_1111_2222_2222` counter down to `-9`, proves both compare-swap store and mismatch visibility, drives the blocked and changed `add_unless` branches, and finishes the bitwise path at counter `19`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, note, "selftest closure: `runSelftest()` still reports the ordered operation families `arithmetic`, `bitwise`, `returning_ops`, `swap_ops`, and `guard_ops`, keeps the counter stable at `19`, records one selftest run, and leaves later swap or second-selftest attempts blocked after exit") != null);
+    try std.testing.expect(std.mem.indexOf(u8, note, "loader snapshot stability: after `prepare()` captures the selftest-complete handoff with counter snapshot `17`, later sample mutation still leaves the pending loader handoff at snapshot `17` even while the live sample moves through swap, compare-swap, `add_unless`, `and`, and `xor` to the visible counter `15` before `requestRuntimeLoad()`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, note, "shared loader-request binding: `toSharedLoadPlan()` and `runtime_loader.prepareRequest()` still preserve the caller-provided allocator handoff, the bounded init-flow counts, the `waiting_on_runtime_substrate` transition, and the exact prepared snapshot without claiming a real loadable runtime substrate on `master`") != null);
     try std.testing.expect(std.mem.indexOf(u8, note, "samples/zigux/runtime_atomic64_loader.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, note, "zigux/kernel/runtime_loader.zig") != null);
-    try std.testing.expect(std.mem.indexOf(u8, note, "bounded sample-side loader scaffold") != null);
-    try std.testing.expect(std.mem.indexOf(u8, note, "prepared handoff summary") != null);
-    try std.testing.expect(std.mem.indexOf(u8, note, "the live repo now also carries `zigux/kernel/runtime_loader.zig`") != null);
-    try std.testing.expect(std.mem.indexOf(u8, note, "shared request surface still stops short of a real module-loading substrate") != null);
-    try std.testing.expect(std.mem.indexOf(u8, note, "there is still no shared `zigux/kernel/runtime_loader.zig` on `master`") == null);
 }
 
 test "phase 9 runtime atomic64 module slice keeps the loader-backed survey packet explicit" {
@@ -257,7 +258,7 @@ test "phase 9 runtime atomic64 survey source-checks the direct sample evidence p
     try std.testing.expect(std.mem.indexOf(u8, loader_source, "pub fn toSharedLoadPlan(plan: RuntimeAtomic64LoadPlan) runtime_loader.LoadPlan {") != null);
     try std.testing.expect(std.mem.indexOf(u8, loader_source, "pub fn keepsSharedLoadPlanSnapshotExplicit(") != null);
     try std.testing.expect(std.mem.indexOf(u8, loader_source, ".allocator_handoff = .caller_provided,") != null);
-    try std.testing.expect(std.mem.indexOf(u8, loader_source, "const shared_request = try runtime_loader.prepareRequest(shared_plan);") != null);
+    try std.testing.expect(std.mem.indexOf(u8, loader_source, "var shared_request = try runtime_loader.prepareRequest(shared_plan);") != null);
     try std.testing.expect(std.mem.indexOf(u8, loader_source, "self.stage_state = .waiting_on_runtime_substrate;") != null);
     try std.testing.expect(std.mem.indexOf(u8, loader_source, "self.stage_state = .released_without_substrate;") != null);
     try std.testing.expect(std.mem.indexOf(u8, loader_source, "test \"runtime atomic64 loader emits the shared runtime-loader contract plan\"") != null);
