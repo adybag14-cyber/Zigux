@@ -12,7 +12,8 @@ The current helper stays intentionally narrow:
 - adds one tiny `dcache_readdir()`-adjacent emit planner that models the `dir_emit_dots()` handoff, the transition into positive entry scanning, emitted-entry position accounting, and the early stop case before any live cursor dentries or inode-backed state are touched
 - adds the landed transaction acquire helper surface around `simple_transaction_get()` by keeping the work in page-bounded staging-buffer sizing, single-write-per-open gating, and empty-response start-state bookkeeping before any live publish, read, or release behavior is claimed
 - adds the landed transaction publish helper surface around `simple_transaction_set()` by keeping the work in response-size validation, required private-data handoff, publish-barrier ordering, and published-size bookkeeping before any live readback or release behavior is claimed
+- adds the landed transaction release helper surface around `simple_transaction_release()` by keeping the work in page-backed private-data cleanup, release bookkeeping, and the zero return path before any live file lifecycle, readback, or cursor-backed state is claimed
 
-This slice does not claim `d_add()` side effects, cursor-backed directory iteration, inode allocation, pseudo-fs mounting, simple-transaction release state, or any other live VFS plumbing from the wider `fs/libfs.c` body.
+This slice does not claim `d_add()` side effects, cursor-backed directory iteration, inode allocation, pseudo-fs mounting, or any other live VFS plumbing from the wider `fs/libfs.c` body.
 
-The next honest bounded step in this same lane is to stay helper-first and add one small transaction release helper surface that still avoids live readback, dentries, inode-backed state, and pseudo-filesystem lifecycle work.
+The next honest bounded step in this same lane is no longer another transaction helper. It is the first bounded dcache cursor helper packet around `dcache_dir_open()` and deeper `dcache_readdir()` cursor preconditions, which should remain blocked until the cursor-dentry, sibling-traversal, and lock-ordering boundaries are spelled out without pretending to own live VFS state.
