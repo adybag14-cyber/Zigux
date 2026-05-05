@@ -2,7 +2,7 @@
   "phase": "Phase 3",
   "status": "active",
   "slice": "abi-substrate-skeleton",
-  "file_count": 12,
+  "file_count": 13,
   "files": [
     "include/zigux/abi.h",
     "include/linux/zigux.h",
@@ -15,6 +15,7 @@
     "zigux/helpers/mmio.zig",
     "zigux/kernel/export_shim.zig",
     "zigux/unsafe/narrow.zig",
-    "zigux/uapi/version.zig"
+    "zigux/uapi/version.zig",
+    "zigux/tests/phase3_abi.zig"
   ]
 }
