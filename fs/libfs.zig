@@ -2,6 +2,7 @@ const std = @import("std");
 
 pub const page_size: u32 = 4096;
 pub const name_max: u32 = 255;
+pub const simple_transaction_limit: usize = @as(usize, page_size) - @sizeOf(isize);
 
 pub const ModuleDescriptor = struct {
     name: []const u8,
@@ -11,6 +12,7 @@ pub const ModuleDescriptor = struct {
     provides_buffer_copy_helpers: bool,
     provides_offset_seek_helpers: bool,
     provides_directory_emit_planning: bool,
+    provides_transaction_buffer_planning: bool,
     touches_live_dcache: bool,
     touches_live_inode_state: bool,
 };
@@ -88,6 +90,15 @@ pub const DirectoryEmitPlan = struct {
     should_stop: bool,
 };
 
+pub const TransactionBufferAcquirePlan = struct {
+    anchor: []const u8,
+    requested_size: usize,
+    transaction_limit: usize,
+    allocates_zeroed_page: bool,
+    requires_empty_private_data: bool,
+    response_size: usize,
+};
+
 pub const LibFsHelperLab = struct {
     pub fn descriptor() ModuleDescriptor {
         return .{
@@ -98,6 +109,7 @@ pub const LibFsHelperLab = struct {
             .provides_buffer_copy_helpers = true,
             .provides_offset_seek_helpers = true,
             .provides_directory_emit_planning = true,
+            .provides_transaction_buffer_planning = true,
             .touches_live_dcache = false,
             .touches_live_inode_state = false,
         };
@@ -291,6 +303,24 @@ pub const LibFsHelperLab = struct {
             .emitted_any_entries = emitted_entries != 0,
             .stays_in_dots_window = new_pos <= 2,
             .should_stop = emitted_entries == 0,
+        };
+    }
+
+    pub fn simpleTransactionGetPlan(request_size: usize, private_data_already_set: bool) !TransactionBufferAcquirePlan {
+        if (request_size > simple_transaction_limit - 1) {
+            return error.InputTooLarge;
+        }
+        if (private_data_already_set) {
+            return error.Busy;
+        }
+
+        return .{
+            .anchor = descriptor().anchor,
+            .requested_size = request_size,
+            .transaction_limit = simple_transaction_limit,
+            .allocates_zeroed_page = true,
+            .requires_empty_private_data = true,
+            .response_size = 0,
         };
     }
 };
