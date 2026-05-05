@@ -209,6 +209,9 @@ jobs:
       - name: Run Phase 6 checksum perf gate
         run: zig build phase6-checksum-perf --build-file zigux/tests/phase6_build.zig -Doptimize=ReleaseSafe --summary all
 
+      - name: Run Phase 6 hexdump perf gate
+        run: zig build phase6-hexdump-perf --build-file zigux/tests/phase6_build.zig -Doptimize=ReleaseSafe --summary all
+
       - name: Validate Phase 7 runtime helper gates
         run: make -C zigux phase7-validate
 
