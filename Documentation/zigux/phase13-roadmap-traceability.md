@@ -15,6 +15,20 @@ The active shipped anchors on current `master` are:
 
 The shared replay packet for those anchors is still the five-test route wired by `zigux/tests/phase13_build.zig` and invoked through `make -C zigux phase13`.
 
+## Libfs lane traceability
+
+The Phase 13 `libfs` lane remains a helper-first review packet anchored to `fs/libfs.c`.
+
+Current `master` keeps that anchor reviewable through:
+
+- `Documentation/zigux/phase13-libfs-slice.md`
+- `Documentation/zigux/phase13-libfs-survey.md`
+- `zigux/tests/phase13_libfs_manifest.json`
+- `zigux/tests/phase13_libfs.zig`
+- `zigux/tests/phase13_libfs_reviewability.zig`
+
+That packet is truthful to the roadmap because it exposes only reviewable helper planning and explicit next-step posture. It currently covers the landed statfs, lookup, buffer-copy, seek-policy, directory-emit, and transaction acquire or publish helpers, while leaving the next bounded libfs follow-up on the tiny `simple_transaction_release()` lifetime planner before any live file lifecycle, cursor dentry ownership, inode state, or pseudo-filesystem mounting is claimed.
+
 ## Devres lane traceability
 
 The Phase 13 `devres` lane remains a helper-first safety packet anchored to `lib/devres.c`.
@@ -49,5 +63,6 @@ The honest current roadmap read is:
 
 - Phase 13 is active, not closed
 - the shared replay packet is real and build-backed
+- `libfs` remains bounded to helper-first filesystem planning
 - `devres` remains bounded to helper-first MMIO-adjacent planning
 - release-facing docs must keep the shared replay count and the adjacent-evidence split exact so contributors do not mistake missing docs or implied replay expansion for product progress
