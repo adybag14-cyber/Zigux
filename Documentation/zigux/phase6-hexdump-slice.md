@@ -7,10 +7,11 @@ This document records a bounded Phase 6 leaf-helper validation slice for Zigux.
 - `PHASE6_STATUS=parked`
 - `PHASE6_SLICE=hexdump-leaf-helper`
 - scope: first low-risk hexdump helper coverage only
-- lane state: helper and fixture slice landed; parked unless a new `hexdump.c` parity issue appears
+- lane state: helper, fixture, and dedicated perf gate slices landed; parked unless a new `hexdump.c` parity issue appears
 - product boundary:
   - `lib/hexdump.zig`
   - `zigux/tests/phase6_hexdump.zig`
+  - `zigux/tests/phase6_hexdump_perf.zig`
   - `zigux/tests/fixtures/phase6_hexdump_vectors.zig`
   - `zigux/tests/phase6_build.zig`
   - `zigux/Makefile`
@@ -30,7 +31,11 @@ Phase 6 is where Zigux can keep proving low-risk in-kernel helper ports without 
 1. run the focused Zig Phase 6 helper tests
 - `zig build test --build-file zigux/tests/phase6_build.zig`
 
-2. keep the helper wired through the Zigux convenience target
+2. run the dedicated hexdump perf gate when the formatter-sensitive lane reopens
+- `zig build phase6-hexdump-perf --build-file zigux/tests/phase6_build.zig -Doptimize=ReleaseSafe`
+- `make -C zigux phase6-hexdump-perf`
+
+3. keep the helper wired through the Zigux convenience targets
 - `make -C zigux phase6`
 
 ## Current parity surface
@@ -62,7 +67,7 @@ The current tests check:
 - normalization behavior for rowsize and groupsize fallback cases lifted from `lib/test_hexdump.c`
 - empty-buffer required-length behavior for normalized fallback paths
 - truncation behavior while still reporting the full required line length
-- a machine-readable four-case perf fixture packet kept alongside the hexdump vectors so grouped formatter follow-ups reuse one bounded case roster instead of growing ad hoc
+- a dedicated perf replay that benchmarks the existing four-case perf fixture packet against the committed `fixtures.prepareExpectedLine(...)` reference path
 
 The current perf fixture packet in `zigux/tests/fixtures/phase6_hexdump_vectors.zig` stays bounded to:
 
@@ -81,4 +86,4 @@ This slice does not yet claim:
 
 ## Next bounded step
 
-Keep the next Phase 6 follow-up inside the shared bundled `base64`, `bsearch`, `checksum`, and `hexdump` packet already gated by `zigux/tests/phase6_build.zig` and `make -C zigux phase6`. Reopen this slice only if fresh repo inspection finds a concrete new `hexdump.c` parity gap inside `lib/hexdump.zig`, `zigux/tests/phase6_hexdump.zig`, the shared fixture module, or that existing bundled gate.
+Keep the next Phase 6 follow-up inside the shared bundled `base64`, `bsearch`, `checksum`, and `hexdump` packet already gated by `zigux/tests/phase6_build.zig` and `make -C zigux phase6`. Reopen this slice only if fresh repo inspection finds a concrete new `hexdump.c` parity gap inside `lib/hexdump.zig`, `zigux/tests/phase6_hexdump.zig`, `zigux/tests/phase6_hexdump_perf.zig`, the shared fixture module, or that existing bundled gate.
