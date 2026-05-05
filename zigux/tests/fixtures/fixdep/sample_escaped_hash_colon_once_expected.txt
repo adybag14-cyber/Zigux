@@ -1,0 +1,16 @@
+savedcmd_sample_escaped_hash_colon_once.o := clang -c zigux/tests/fixtures/fixdep/sample:escaped_hash_colon_once_source.c -o sample_escaped_hash_colon_once.o
+
+source_sample_escaped_hash_colon_once.o := zigux/tests/fixtures/fixdep/sample:escaped_hash_colon_once_source.c
+
+deps_sample_escaped_hash_colon_once.o := \\
+    $(wildcard include/config/ZIGUX_ESCAPED_SOURCE) \\
+  zigux/tests/fixtures/fixdep/shared#config.h \\
+    $(wildcard include/config/ZIGUX_HASH) \\
+    $(wildcard include/config/ZIGUX_SHARED_HASH) \\
+  zigux/tests/fixtures/fixdep/generated:two.h \\
+    $(wildcard include/config/ZIGUX_GENERATED_COLON) \\
+    $(wildcard include/config/ZIGUX_SHARED_COLON) \\
+
+sample_escaped_hash_colon_once.o: $(deps_sample_escaped_hash_colon_once.o)
+
+$(deps_sample_escaped_hash_colon_once.o):
