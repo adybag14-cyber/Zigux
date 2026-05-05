@@ -21,6 +21,20 @@ Current closure records
 - `Documentation/zigux/phase1-closure.md`
 - `Documentation/zigux/phase2-closure.md`
 
+Phase 1 notes
+- `Documentation/zigux/phase1-closure.md`
+- `scripts/zigux/README.md`
+- `zigux/tests/build.zig`
+- `zigux/tests/phase1_helpers.zig`
+- `zigux/tests/phase1_bench.zig`
+- `zigux/tests/fixtures/phase1_helper_manifest.json`
+- `zigux/tests/fixtures/phase1_bench_expectations.json`
+- `scripts/zigux/validate-phase1.py`
+- `scripts/zigux/validate-phase1-closure.py`
+- `scripts/zigux/check-phase1-parity.py`
+- `scripts/zigux/check-phase1-bench.py`
+- `zig build test --build-file zigux/tests/build.zig` and `zig build bench --build-file zigux/tests/build.zig` keep the closed host-side helper packet reviewable through the shared helper build entrypoint, while `Documentation/zigux/phase1-closure.md` and `scripts/zigux/README.md` keep the closure and validator-first contract explicit from the docs root instead of leaving the Phase 1 packet split across later review surfaces.
+
 Phase 5 notes
 - `Documentation/zigux/phase5-kfifo-sample-survey.md` now records the landed `samples/zigux/bytestream_fifo.zig` reference sample, its exact replay checks, and the remaining non-goals around procfs, user-copy, and module registration parity.
 - the same Phase 5 survey note now doubles as the sample-backed contributor guide for the landed bytestream FIFO slice by naming the descriptor, manifest, and shared build-entrypoint prompts that reviewers should keep in sync.
