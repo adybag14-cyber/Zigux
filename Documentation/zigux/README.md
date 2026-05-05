@@ -169,13 +169,19 @@ Phase 14 notes
 - `Documentation/zigux/review-checklist.md`
 - `zigux/tests/README.md`
 - `zigux/tests/phase14_build.zig`
+- `zigux/tests/phase14_workqueue_bridge.zig`
+- `zigux/tests/phase14_skbuff_bridge.zig`
+- `zigux/tests/phase14_ring_buffer_survey.zig`
+- `zigux/tests/phase14_rcu_tree_survey.zig`
 - `zigux/tests/phase14_end_to_end_smoke_survey.zig`
 - `zigux/tests/phase14_end_to_end_smoke_manifest.json`
+- `zigux/tests/phase14_ring_buffer_manifest.json`
+- `zigux/tests/phase14_rcu_tree_manifest.json`
 - `make -C zigux phase14-smoke`
 - `zig build phase14-smoke --build-file zigux/tests/phase14_build.zig --summary all`
 - `make -C zigux phase14-test`
 - `zig build test --build-file zigux/tests/phase14_build.zig --summary all`
-- `make -C zigux phase14` now keep the current workqueue, ring-buffer, rcu-tree, and skbuff-adjacent smoke packet reviewable through the shipped smoke-only and full replay routes instead of implying a removed validator stack or a direct deep-core port commitment.
+- `make -C zigux phase14` now keep the current workqueue bridge, skbuff bridge, ring-buffer survey, RCU-tree survey, and manifest-backed end-to-end smoke packet reviewable through the shipped smoke-only and full replay routes instead of implying a removed validator stack or a direct deep-core port commitment.
 - the current bounded Phase 14 decision is not whether `kernel/rcu/tree.c`, `net/core/skbuff.c`, or other freeze-map anchors are ready for a direct Zigux port; the active packet stays parked on shared smoke and release-boundary evidence, so the next follow-up should remain one tiny survey, manifest, docs-root, or tests-root truthfulness repair inside that study-only lane.
 
 Phase 15 notes
