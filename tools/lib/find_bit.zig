@@ -232,3 +232,16 @@ test "tail mask ignores shared bits beyond nbits" {
     lhs[1] &= ~(@as(Word, 1) << 3);
     try std.testing.expectEqual(@as(usize, nbits), findFirstAndBit(&lhs, &rhs, nbits));
 }
+
+test "head-word boundary scans keep the last in-range bit reachable from an inclusive start" {
+    const boundary = bits_per_long - 1;
+    const nbits = bits_per_long * 2;
+    const set_map = [_]Word{ (@as(Word, 1) << @intCast(boundary)), 0 };
+    const and_lhs = [_]Word{ (@as(Word, 1) << @intCast(boundary)), 0 };
+    const and_rhs = [_]Word{ (@as(Word, 1) << @intCast(boundary)), 0 };
+    const zero_map = [_]Word{ ~(@as(Word, 1) << @intCast(boundary)), ~@as(Word, 0) };
+
+    try std.testing.expectEqual(@as(usize, boundary), findNextBit(&set_map, nbits, boundary));
+    try std.testing.expectEqual(@as(usize, boundary), findNextAndBit(&and_lhs, &and_rhs, nbits, boundary));
+    try std.testing.expectEqual(@as(usize, boundary), findNextZeroBit(&zero_map, nbits, boundary));
+}
