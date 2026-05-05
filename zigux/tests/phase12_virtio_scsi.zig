@@ -100,6 +100,35 @@ test "phase12 virtio scsi freeze blocks queue planning until restore clears layo
     try std.testing.expectEqual(@as(u16, 1), replanned.poll_queues);
 }
 
+test "phase12 virtio scsi restore summary mirrors virtscsi_restore ordering" {
+    var lab = virtio_scsi.VirtioScsiQueueLab.init();
+
+    try std.testing.expectError(error.TransportNotFrozen, lab.recoveryRestoreSummary());
+
+    _ = try lab.planQueueLayout(6, 2);
+    _ = try lab.freezeForTransportReset();
+
+    const summary = try lab.recoveryRestoreSummary();
+    try std.testing.expectEqualStrings("drivers/scsi/virtio_scsi.c", summary.anchor);
+    try std.testing.expectEqual(@as(u16, 6), summary.request_queues);
+    try std.testing.expectEqual(@as(u16, 4), summary.default_queues);
+    try std.testing.expectEqual(@as(u16, 2), summary.poll_queues);
+    try std.testing.expectEqual(@as(u16, 8), summary.total_queues);
+    try std.testing.expectEqual(@as(u16, virtio_scsi.control_queue_index), summary.control_queue_index);
+    try std.testing.expectEqual(@as(u16, virtio_scsi.event_queue_index), summary.event_queue_index);
+    try std.testing.expectEqual(@as(u16, virtio_scsi.request_queue_base), summary.first_request_queue_index);
+    try std.testing.expectEqual(@as(?u16, 6), summary.first_poll_queue_index);
+    try std.testing.expectEqual(@as(u16, virtio_scsi.event_buffer_count), summary.event_buffer_count);
+    try std.testing.expect(summary.requires_find_vqs);
+    try std.testing.expect(summary.find_vqs_before_device_ready);
+    try std.testing.expect(summary.device_ready_before_event_rearm);
+    try std.testing.expect(summary.preserves_scsi_host_registration);
+    try std.testing.expect(!summary.reruns_host_scan);
+
+    _ = try lab.restoreAfterTransportReset();
+    try std.testing.expectError(error.TransportNotFrozen, lab.recoveryRestoreSummary());
+}
+
 test "phase12 virtio scsi rejects invalid freeze restore sequencing" {
     var lab = virtio_scsi.VirtioScsiQueueLab.init();
 
