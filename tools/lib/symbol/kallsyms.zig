@@ -189,6 +189,57 @@ pub fn forEachParsedFile(
     try forEachParsedReader(allocator, &adapter, scratch_buffer, process_context, process_symbol);
 }
 
+const CallbackState = struct {
+    context: ?*anyopaque,
+    process_symbol: ProcessSymbolFn,
+    result: i32 = 0,
+
+    fn process(self: *@This(), symbol: ParsedSymbol) anyerror!void {
+        var name_buffer: [KSYM_NAME_LEN + 1:0]u8 = undefined;
+        @memcpy(name_buffer[0..symbol.name.len], symbol.name);
+        name_buffer[symbol.name.len] = 0;
+
+        const callback_result = self.process_symbol(
+            self.context,
+            name_buffer[0..symbol.name.len :0],
+            symbol.symbol_type,
+            symbol.start,
+        );
+        if (callback_result != 0) {
+            self.result = callback_result;
+            return error.StopParsing;
+        }
+    }
+};
+
+pub fn kallsymsParseFile(
+    allocator: std.mem.Allocator,
+    io: std.Io,
+    file: std.Io.File,
+    scratch_buffer: []u8,
+    context: ?*anyopaque,
+    process_symbol: ProcessSymbolFn,
+) !i32 {
+    var callback_state = CallbackState{
+        .context = context,
+        .process_symbol = process_symbol,
+    };
+
+    forEachParsedFile(
+        allocator,
+        io,
+        file,
+        scratch_buffer,
+        &callback_state,
+        CallbackState.process,
+    ) catch |err| switch (err) {
+        error.StopParsing => return callback_state.result,
+        else => return err,
+    };
+
+    return callback_state.result;
+}
+
 pub fn forEachParsedPath(
     allocator: std.mem.Allocator,
     io: std.Io,
@@ -212,49 +263,18 @@ pub fn kallsymsParse(
     context: ?*anyopaque,
     process_symbol: ProcessSymbolFn,
 ) !i32 {
-    const CallbackState = struct {
-        context: ?*anyopaque,
-        process_symbol: ProcessSymbolFn,
-        result: i32 = 0,
-
-        fn process(self: *@This(), symbol: ParsedSymbol) anyerror!void {
-            var name_buffer: [KSYM_NAME_LEN + 1:0]u8 = undefined;
-            @memcpy(name_buffer[0..symbol.name.len], symbol.name);
-            name_buffer[symbol.name.len] = 0;
-
-            const callback_result = self.process_symbol(
-                self.context,
-                name_buffer[0..symbol.name.len :0],
-                symbol.symbol_type,
-                symbol.start,
-            );
-            if (callback_result != 0) {
-                self.result = callback_result;
-                return error.StopParsing;
-            }
-        }
-    };
+    const file = try dir.openFile(io, sub_path, .{});
+    defer file.close(io);
 
     var scratch_buffer: [default_reader_chunk_len]u8 = undefined;
-    var callback_state = CallbackState{
-        .context = context,
-        .process_symbol = process_symbol,
-    };
-
-    forEachParsedPath(
+    return kallsymsParseFile(
         allocator,
         io,
-        dir,
-        sub_path,
+        file,
         &scratch_buffer,
-        &callback_state,
-        CallbackState.process,
-    ) catch |err| switch (err) {
-        error.StopParsing => return callback_state.result,
-        else => return err,
-    };
-
-    return callback_state.result;
+        context,
+        process_symbol,
+    );
 }
 
 const ChunkFixtureState = struct {
@@ -521,8 +541,8 @@ test "forEachParsedReader and path reuse the same malformed-line skipping semant
     ));
 }
 
-test "kallsymsParse preserves callback contract and stop codes" {
-    const CallbackState = struct {
+test "kallsymsParseFile preserves the callback contract on already-open files" {
+    const CallbackStateFixture = struct {
         names: std.ArrayList([]u8),
         symbol_types: std.ArrayList(u8),
         starts: std.ArrayList(u64),
@@ -575,7 +595,95 @@ test "kallsymsParse preserves callback contract and stop codes" {
         try writer.interface.flush();
     }
 
-    var callback_state = CallbackState.init();
+    const file = try temp_dir.dir.openFile(io, "kallsyms.map", .{});
+    defer file.close(io);
+
+    var scratch_buffer: [13]u8 = undefined;
+    var callback_state = CallbackStateFixture.init();
+    defer callback_state.deinit(std.testing.allocator);
+
+    const result = try kallsymsParseFile(
+        std.testing.allocator,
+        io,
+        file,
+        &scratch_buffer,
+        &callback_state,
+        CallbackStateFixture.collect,
+    );
+
+    try std.testing.expectEqual(@as(i32, 17), result);
+    try std.testing.expectEqual(@as(usize, 2), callback_state.names.items.len);
+    try std.testing.expectEqualStrings("startup_64", callback_state.names.items[0]);
+    try std.testing.expectEqualStrings("weak_handler", callback_state.names.items[1]);
+    try std.testing.expectEqual(@as(u8, 'W'), callback_state.symbol_types.items[1]);
+    try std.testing.expectEqual(@as(u64, 0xffffffff81000200), callback_state.starts.items[1]);
+
+    var empty_scratch_buffer: [0]u8 = .{};
+    try std.testing.expectError(error.EmptyScratchBuffer, kallsymsParseFile(
+        std.testing.allocator,
+        io,
+        file,
+        &empty_scratch_buffer,
+        &callback_state,
+        CallbackStateFixture.collect,
+    ));
+}
+
+test "kallsymsParse preserves callback contract and stop codes" {
+    const CallbackStateFixture = struct {
+        names: std.ArrayList([]u8),
+        symbol_types: std.ArrayList(u8),
+        starts: std.ArrayList(u64),
+
+        fn init() @This() {
+            return .{
+                .names = std.ArrayList([]u8).empty,
+                .symbol_types = std.ArrayList(u8).empty,
+                .starts = std.ArrayList(u64).empty,
+            };
+        }
+
+        fn deinit(self: *@This(), allocator: std.mem.Allocator) void {
+            for (self.names.items) |name| {
+                allocator.free(name);
+            }
+            self.names.deinit(allocator);
+            self.symbol_types.deinit(allocator);
+            self.starts.deinit(allocator);
+            self.* = undefined;
+        }
+
+        fn collect(context: ?*anyopaque, name: [:0]const u8, symbol_type: u8, start: u64) i32 {
+            const self: *@This() = @ptrCast(@alignCast(context.?));
+            self.names.append(std.testing.allocator, std.testing.allocator.dupe(u8, name) catch return -99) catch return -98;
+            self.symbol_types.append(std.testing.allocator, symbol_type) catch return -97;
+            self.starts.append(std.testing.allocator, start) catch return -96;
+            if (symbol_type == 'W') {
+                return 23;
+            }
+            return 0;
+        }
+    };
+
+    var temp_dir = std.testing.tmpDir(.{});
+    defer temp_dir.cleanup();
+    const io = std.testing.io;
+
+    {
+        const file = try temp_dir.dir.createFile(io, "kallsyms.map", .{ .read = true });
+        defer file.close(io);
+        var writer_buffer: [128]u8 = undefined;
+        var writer: std.Io.File.Writer = .init(file, io, &writer_buffer);
+        try writer.interface.writeAll(
+            "ffffffff81000000 T startup_64\n" ++
+                "garbage\n" ++
+                "ffffffff81000200 W weak_handler\n" ++
+                "ffffffff81000300 t ignored_after_stop\n",
+        );
+        try writer.interface.flush();
+    }
+
+    var callback_state = CallbackStateFixture.init();
     defer callback_state.deinit(std.testing.allocator);
 
     const result = try kallsymsParse(
@@ -584,10 +692,10 @@ test "kallsymsParse preserves callback contract and stop codes" {
         temp_dir.dir,
         "kallsyms.map",
         &callback_state,
-        CallbackState.collect,
+        CallbackStateFixture.collect,
     );
 
-    try std.testing.expectEqual(@as(i32, 17), result);
+    try std.testing.expectEqual(@as(i32, 23), result);
     try std.testing.expectEqual(@as(usize, 2), callback_state.names.items.len);
     try std.testing.expectEqualStrings("startup_64", callback_state.names.items[0]);
     try std.testing.expectEqualStrings("weak_handler", callback_state.names.items[1]);
