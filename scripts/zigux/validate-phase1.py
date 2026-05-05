@@ -70,6 +70,14 @@ REQUIRED_HELPER_TEST_ANCHORS = [
     'test "phase 1 string replaceChar stops at embedded NUL"',
 ]
 
+REQUIRED_FIND_BIT_TEST_ANCHORS = [
+    'test "find first and next set bits across words"',
+    'test "find zero bits respects the declared bit count"',
+    'test "find and bit returns the first shared set bit"',
+    'test "tail mask ignores set bits beyond nbits"',
+    'test "tail mask ignores zero bits beyond nbits"',
+]
+
 
 def collect_missing_files(root: Path) -> list[str]:
     missing: list[str] = []
@@ -101,6 +109,7 @@ def collect_missing_markers(root: Path) -> list[str]:
     ledger = (root / "zigux-alpha" / "BOOTSTRAP_COMMIT_LEDGER.md").read_text(encoding="utf-8")
     workflow = (root / ".github" / "workflows" / "zigux-bootstrap.yml").read_text(encoding="utf-8")
     test_root = (root / "zigux" / "tests" / "phase1_helpers.zig").read_text(encoding="utf-8")
+    find_bit_source = (root / "tools" / "lib" / "find_bit.zig").read_text(encoding="utf-8")
 
     missing_markers: list[str] = []
     for marker in REQUIRED_LEDGER_MARKERS:
@@ -119,6 +128,13 @@ def collect_missing_markers(root: Path) -> list[str]:
             test_root,
             "helper_test_anchor",
             REQUIRED_HELPER_TEST_ANCHORS,
+        )
+    )
+    missing_markers.extend(
+        collect_exact_count_markers(
+            find_bit_source,
+            "find_bit_test_anchor",
+            REQUIRED_FIND_BIT_TEST_ANCHORS,
         )
     )
     return missing_markers
@@ -145,6 +161,13 @@ def make_fixture_root(tmp_root: Path) -> None:
     test_path.parent.mkdir(parents=True, exist_ok=True)
     test_path.write_text(
         "\n".join(REQUIRED_TEST_MARKERS + REQUIRED_HELPER_TEST_ANCHORS) + "\n",
+        encoding="utf-8",
+    )
+
+    find_bit_path = tmp_root / "tools" / "lib" / "find_bit.zig"
+    find_bit_path.parent.mkdir(parents=True, exist_ok=True)
+    find_bit_path.write_text(
+        "\n".join(REQUIRED_FIND_BIT_TEST_ANCHORS) + "\n",
         encoding="utf-8",
     )
 
@@ -212,9 +235,32 @@ def run_self_test() -> None:
             'helper_test_anchor:test "phase 1 string replaceChar stops at embedded NUL":expected=1:actual=0'
             in missing_markers
         )
+        make_fixture_root(tmp_root)
+
+        find_bit_path = tmp_root / "tools" / "lib" / "find_bit.zig"
+        find_bit_path.write_text(
+            "\n".join(REQUIRED_FIND_BIT_TEST_ANCHORS[1:]) + "\n",
+            encoding="utf-8",
+        )
+        missing_markers = collect_missing_markers(tmp_root)
+        assert (
+            'find_bit_test_anchor:test "find first and next set bits across words":expected=1:actual=0'
+            in missing_markers
+        )
+        make_fixture_root(tmp_root)
+
+        find_bit_path.write_text(
+            "\n".join(REQUIRED_FIND_BIT_TEST_ANCHORS + [REQUIRED_FIND_BIT_TEST_ANCHORS[2]]) + "\n",
+            encoding="utf-8",
+        )
+        missing_markers = collect_missing_markers(tmp_root)
+        assert (
+            'find_bit_test_anchor:test "find and bit returns the first shared set bit":expected=1:actual=2'
+            in missing_markers
+        )
 
     print("PHASE1_VALIDATION_SELF_TEST=pass")
-    print("PHASE1_VALIDATION_SELF_TEST_CASE_COUNT=7")
+    print("PHASE1_VALIDATION_SELF_TEST_CASE_COUNT=9")
 
 
 def main() -> int:
@@ -248,7 +294,7 @@ def main() -> int:
     print(f"PHASE1_REQUIRED_FILE_COUNT={len(REQUIRED_FILES)}")
     print(
         "PHASE1_REQUIRED_MARKER_COUNT="
-        f"{len(REQUIRED_LEDGER_MARKERS) + len(REQUIRED_WORKFLOW_PRESENCE_MARKERS) + len(REQUIRED_WORKFLOW_EXACT_MARKERS) + len(REQUIRED_TEST_MARKERS) + len(REQUIRED_HELPER_TEST_ANCHORS)}"
+        f"{len(REQUIRED_LEDGER_MARKERS) + len(REQUIRED_WORKFLOW_PRESENCE_MARKERS) + len(REQUIRED_WORKFLOW_EXACT_MARKERS) + len(REQUIRED_TEST_MARKERS) + len(REQUIRED_HELPER_TEST_ANCHORS) + len(REQUIRED_FIND_BIT_TEST_ANCHORS)}"
     )
     return 0
 
