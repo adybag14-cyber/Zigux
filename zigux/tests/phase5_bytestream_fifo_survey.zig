@@ -96,3 +96,25 @@ test "phase 5 bytestream fifo manifest records the exact bounded checks" {
     try std.testing.expect(std.mem.eql(u8, manifest.non_goals[0], "procfs parity"));
     try std.testing.expect(std.mem.eql(u8, manifest.non_goals[1], "kfifo_from_user or kfifo_to_user parity"));
 }
+
+test "phase 5 bytestream fifo survey note stays repo-local" {
+    var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
+    defer io_instance.deinit();
+
+    const survey_note = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "Documentation/zigux/phase5-kfifo-sample-survey.md",
+        std.testing.allocator,
+        .limited(32 * 1024),
+    );
+    defer std.testing.allocator.free(survey_note);
+
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "/workspace/agent_files") == null);
+    try std.testing.expect(
+        std.mem.indexOf(
+            u8,
+            survey_note,
+            "rg -n \"samples/kfifo/bytestream-example.c|Phase 5\" Documentation/zigux samples",
+        ) != null,
+    );
+}
