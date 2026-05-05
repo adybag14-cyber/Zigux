@@ -5,7 +5,8 @@ This document records the bounded Phase 15 governance lane around `Documentation
 ## Status
 
 - `PHASE15_STATUS=governance_slice_landed`
-- `PHASE15_SLICE=freeze-map-governance-blocker-verification`
+- `PHASE15_LANE_KEY=P15-Y01`
+- `PHASE15_SLICE=freeze-map-governance-blocker-ownership-sync`
 - scope: the live freeze map, the existing dedicated Phase 15 manifest and test gate, and one bounded maintenance follow-up that keeps the root freeze-map note aligned with the already-landed parity-scorecard, review-process, indefinite-C policy, retained stay-in-C closeout, and current blocker posture
 - survey provenance refreshed against verified `master` head `9342905d34fb98d6fcd88cf2e88efed7355131d2`
 - product boundary:
@@ -36,6 +37,13 @@ The honest bounded step is therefore maintenance, not expansion: refresh the fre
 - a freeze-in-C review that closes without a status change must retain the blocker, record `retired_from_active_discussion`, and keep the documented reopen triggers attached to the evidence archive
 - there is no silent exception path around the stay-in-C policy; only an explicit Architecture Council reopen request with fresh linked evidence may reopen status review
 
+## Freeze-In-C Anchor Ownership Inventory
+
+- `kernel/sched/core.c`: owner `kernel scheduler maintainers`; phase `Phase 15`; status bucket `freeze_in_c`; validation gate `Phase 15 parity scorecard plus Architecture Council reopen record`; rollback owner `Architecture Council freeze-map owner`
+- `mm/page_alloc.c`: owner `memory-management maintainers`; phase `Phase 15`; status bucket `freeze_in_c`; validation gate `Phase 15 parity scorecard plus Architecture Council reopen record`; rollback owner `Architecture Council freeze-map owner`
+- `kernel/rcu/tree.c`: owner `RCU maintainers`; phase `Phase 15`; status bucket `freeze_in_c`; validation gate `Phase 15 parity scorecard plus Architecture Council reopen record`; rollback owner `Architecture Council freeze-map owner`
+- `net/core/skbuff.c`: owner `network buffer maintainers`; phase `Phase 15`; status bucket `freeze_in_c`; validation gate `Phase 15 parity scorecard plus Architecture Council reopen record`; rollback owner `Architecture Council freeze-map owner`
+
 ## Current blocker posture
 
 - `kernel/sched/core.c` remains blocked because the repo still has no bounded scheduler seam
@@ -54,6 +62,7 @@ The current lane state is:
 - landed `phase15-make-target`
 - landed `phase15-stay-in-c-closeout-sync`
 - landed `phase15-governance-family-alignment`
+- landed `phase15-blocker-ownership-sync`
 - blocked `phase15-deep-core-status-change-blocker`
 
 This keeps the lane tight: Zigux now has a reviewable and runnable governance rule for the freeze map that matches the current stay-in-C policy family and the already-landed broader governance artifacts. What remains blocked is any deep-core status change, not the governance scaffolding itself.
