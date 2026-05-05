@@ -39,4 +39,4 @@ This note records one exact readback snapshot for the current Phase 4 rollback-o
 ## Current Conclusion
 - The live Phase 4 exact-readback packet is limited to the files that `master` actually ships for rollback ownership, matrix wording, validator wiring, the artifact-diff contract, the gate-evidence note, the shared build route, the helper-backed bitmap replay, and the runtime atomic64 wrapper handoff plus its manifest-backed survey evidence.
 - The dedicated gate-evidence note is back in sync with the current shipped blob-pin set, while the separate runtime atomic64 manifest-backed survey packet remains the next same-lane review surface to refresh if we want every validator blob reference in the Phase 4 packet to point at the same current head.
-- Hard perf thresholds for the shipped atomic64 and bitmap rollback gates remain intentionally unapproved.
+- hard perf thresholds for the shipped atomic64 and bitmap rollback gates remain intentionally unapproved.
