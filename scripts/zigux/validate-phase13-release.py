@@ -33,6 +33,8 @@ REQUIRED_FILES = [
     "zigux/tests/phase13_landlock_syscalls_manifest.json",
     "zigux/tests/phase13_notifier_list_manifest.json",
     "zigux/bindings/notifier_abi.zig",
+    "include/zigux/notifier_abi.h",
+    "zigux/helpers/notifier_chain_view.zig",
     "scripts/zigux/check-phase13-devres-packet.py",
 ]
 
@@ -488,6 +490,15 @@ def run_self_test() -> int:
             "missing_contributor_workflow_guide_guard_failed",
         )
         _write(root / "Documentation/zigux/phase13-contributor-workflow-guide.md", "# stub\n")
+        case_count += 1
+
+        (root / "include/zigux/notifier_abi.h").unlink()
+        _assert_only(
+            validate(root),
+            ["missing_file:include/zigux/notifier_abi.h"],
+            "missing_notifier_header_guard_failed",
+        )
+        _write(root / "include/zigux/notifier_abi.h", "// stub\n")
         case_count += 1
 
         (root / "zigux/tests/phase13_devres_manifest.json").unlink()
