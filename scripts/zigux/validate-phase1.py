@@ -29,6 +29,7 @@ REQUIRED_FILES = [
     "zigux/tests/phase1_helpers.zig",
     "zigux/tests/fixtures/phase1_helpers_c_harness.c",
     "zigux/tests/fixtures/phase1_helpers.json",
+    "Documentation/zigux/review-checklist.md",
 ]
 
 REQUIRED_LEDGER_MARKERS = [
@@ -121,6 +122,10 @@ REQUIRED_RBTREE_TEST_ANCHORS = [
     'test "rbtree findAdd keeps the first duplicate and inserts new keys"',
 ]
 
+REQUIRED_REVIEW_CHECKLIST_MARKERS = [
+    "  * if the change touches the closed Phase 1 host-tools packet, do `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/phase1-closure.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, `zigux/tests/phase1_helpers.zig`, `zigux/tests/phase1_bench.zig`, `zigux/tests/fixtures/phase1_helper_manifest.json`, `zigux/tests/fixtures/phase1_bench_expectations.json`, `scripts/zigux/validate-phase1.py`, `scripts/zigux/validate-phase1-closure.py`, `scripts/zigux/check-phase1-parity.py`, `scripts/zigux/check-phase1-bench.py`, `.github/workflows/zigux-bootstrap.yml`, `zigux/Makefile`, `zig build test --build-file zigux/tests/build.zig`, `zig build bench --build-file zigux/tests/build.zig`, `make -C zigux phase1-validate`, `make -C zigux phase1-test`, `make -C zigux phase1-bench`, and `make -C zigux phase1` still agree on the same closed helper tranche and validator-first replay path without widening Phase 1 beyond the bounded host-side helper packet?",
+]
+
 
 def collect_missing_files(root: Path) -> list[str]:
     missing: list[str] = []
@@ -156,6 +161,7 @@ def collect_missing_markers(root: Path) -> list[str]:
     bitmap_source = (root / "tools" / "lib" / "bitmap.zig").read_text(encoding="utf-8")
     string_source = (root / "tools" / "lib" / "string.zig").read_text(encoding="utf-8")
     rbtree_source = (root / "tools" / "lib" / "rbtree.zig").read_text(encoding="utf-8")
+    review_checklist = (root / "Documentation" / "zigux" / "review-checklist.md").read_text(encoding="utf-8")
 
     missing_markers: list[str] = []
     for marker in REQUIRED_LEDGER_MARKERS:
@@ -194,6 +200,13 @@ def collect_missing_markers(root: Path) -> list[str]:
     missing_markers.extend(
         collect_exact_count_markers(rbtree_source, "rbtree_test_anchor", REQUIRED_RBTREE_TEST_ANCHORS)
     )
+    missing_markers.extend(
+        collect_exact_count_markers(
+            review_checklist,
+            "review_checklist_phase1_packet",
+            REQUIRED_REVIEW_CHECKLIST_MARKERS,
+        )
+    )
     return missing_markers
 
 
@@ -224,6 +237,13 @@ def make_fixture_root(tmp_root: Path) -> None:
             + REQUIRED_PHASE1_PARITY_REPLAY_MARKERS
         )
         + "\n",
+        encoding="utf-8",
+    )
+
+    review_checklist_path = tmp_root / "Documentation" / "zigux" / "review-checklist.md"
+    review_checklist_path.parent.mkdir(parents=True, exist_ok=True)
+    review_checklist_path.write_text(
+        "\n".join(REQUIRED_REVIEW_CHECKLIST_MARKERS) + "\n",
         encoding="utf-8",
     )
 
@@ -458,8 +478,17 @@ def run_self_test() -> None:
             in missing_markers
         )
 
+        make_fixture_root(tmp_root)
+        review_checklist_path = tmp_root / "Documentation" / "zigux" / "review-checklist.md"
+        review_checklist_path.write_text("", encoding="utf-8")
+        missing_markers = collect_missing_markers(tmp_root)
+        assert (
+            "review_checklist_phase1_packet:  * if the change touches the closed Phase 1 host-tools packet, do `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/phase1-closure.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, `zigux/tests/phase1_helpers.zig`, `zigux/tests/phase1_bench.zig`, `zigux/tests/fixtures/phase1_helper_manifest.json`, `zigux/tests/fixtures/phase1_bench_expectations.json`, `scripts/zigux/validate-phase1.py`, `scripts/zigux/validate-phase1-closure.py`, `scripts/zigux/check-phase1-parity.py`, `scripts/zigux/check-phase1-bench.py`, `.github/workflows/zigux-bootstrap.yml`, `zigux/Makefile`, `zig build test --build-file zigux/tests/build.zig`, `zig build bench --build-file zigux/tests/build.zig`, `make -C zigux phase1-validate`, `make -C zigux phase1-test`, `make -C zigux phase1-bench`, and `make -C zigux phase1` still agree on the same closed helper tranche and validator-first replay path without widening Phase 1 beyond the bounded host-side helper packet?:expected=1:actual=0"
+            in missing_markers
+        )
+
         print("PHASE1_VALIDATION_SELF_TEST=pass")
-        print("PHASE1_VALIDATION_SELF_TEST_CASE_COUNT=22")
+        print("PHASE1_VALIDATION_SELF_TEST_CASE_COUNT=23")
 
 
 def main() -> int:
@@ -493,7 +522,7 @@ def main() -> int:
     print(f"PHASE1_REQUIRED_FILE_COUNT={len(REQUIRED_FILES)}")
     print(
         "PHASE1_REQUIRED_MARKER_COUNT="
-        f"{len(REQUIRED_LEDGER_MARKERS) + len(REQUIRED_WORKFLOW_PRESENCE_MARKERS) + len(REQUIRED_WORKFLOW_EXACT_MARKERS) + len(REQUIRED_TEST_MARKERS) + len(REQUIRED_PHASE1_PARITY_TEST_ANCHORS) + len(REQUIRED_HELPER_TEST_ANCHORS) + len(REQUIRED_PHASE1_PARITY_REPLAY_MARKERS) + len(REQUIRED_FIND_BIT_TEST_ANCHORS) + len(REQUIRED_BITMAP_TEST_ANCHORS) + len(REQUIRED_STRING_TEST_ANCHORS) + len(REQUIRED_RBTREE_TEST_ANCHORS)}"
+        f"{len(REQUIRED_LEDGER_MARKERS) + len(REQUIRED_WORKFLOW_PRESENCE_MARKERS) + len(REQUIRED_WORKFLOW_EXACT_MARKERS) + len(REQUIRED_TEST_MARKERS) + len(REQUIRED_PHASE1_PARITY_TEST_ANCHORS) + len(REQUIRED_HELPER_TEST_ANCHORS) + len(REQUIRED_PHASE1_PARITY_REPLAY_MARKERS) + len(REQUIRED_FIND_BIT_TEST_ANCHORS) + len(REQUIRED_BITMAP_TEST_ANCHORS) + len(REQUIRED_STRING_TEST_ANCHORS) + len(REQUIRED_RBTREE_TEST_ANCHORS) + len(REQUIRED_REVIEW_CHECKLIST_MARKERS)}"
     )
     return 0
 
