@@ -215,6 +215,7 @@ test "phase 15 architecture council review-process doc and manifest stay aligned
         manifest_doc,
         "zigux/tests/phase15_architecture_council_review_process.zig",
     );
+    try expectContains(manifest_doc, "zigux/tests/phase15_indefinite_c_policy.json");
     try expectContains(manifest_doc, "zigux/tests/phase15_build.zig");
     try expectContains(manifest_doc, "\"current_bounded_lane\"");
     try expectContains(manifest_doc, "scripts-root validator path");
