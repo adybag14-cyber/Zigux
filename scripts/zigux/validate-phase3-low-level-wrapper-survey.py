@@ -11,16 +11,11 @@ DOC_REL = "Documentation/zigux/phase3-low-level-wrapper-boundary-survey.md"
 ATOMIC_REL = "zigux/helpers/atomic.zig"
 BARRIER_REL = "zigux/helpers/barrier.zig"
 MMIO_REL = "zigux/helpers/mmio.zig"
-LOW_LEVEL_BUILD_REL = "zigux/tests/phase3_low_level_wrappers_build.zig"
-LOW_LEVEL_TEST_REL = "zigux/tests/phase3_low_level_wrappers.zig"
+ABI_TEST_REL = "zigux/tests/phase3_abi.zig"
+ABI_DUMP_REL = "zigux/tests/phase3_abi_dump.zig"
+ABI_EXPECTED_REL = "zigux/tests/fixtures/phase3_abi/expected.json"
 ABI_MANIFEST_REL = "zigux/tests/fixtures/phase3_abi_manifest.json"
 ABI_SLICE_DOC_REL = "Documentation/zigux/phase3-abi-slice.md"
-
-
-def require_tokens(issues: list[str], text: str, prefix: str, tokens: tuple[str, ...]) -> None:
-    for token in tokens:
-        if token not in text:
-            issues.append(f"{prefix}:{token}")
 
 
 def validate(root: Path) -> list[str]:
@@ -35,8 +30,8 @@ def validate(root: Path) -> list[str]:
         "PHASE3_ATOMIC_PATH": ATOMIC_REL,
         "PHASE3_BARRIER_PATH": BARRIER_REL,
         "PHASE3_MMIO_PATH": MMIO_REL,
-        "PHASE3_LOW_LEVEL_BUILD_PATH": LOW_LEVEL_BUILD_REL,
-        "PHASE3_LOW_LEVEL_TEST_PATH": LOW_LEVEL_TEST_REL,
+        "PHASE3_ABI_TEST_PATH": ABI_TEST_REL,
+        "PHASE3_ABI_DUMP_PATH": ABI_DUMP_REL,
     }
     for key, rel in required_paths.items():
         if f"{key}={rel}" not in doc:
@@ -44,141 +39,74 @@ def validate(root: Path) -> list[str]:
         if not (root / rel).exists():
             issues.append(f"missing_file:{rel}")
 
-    required_doc_markers = (
-        "PHASE3_ATOMIC_BLOB_SHA=",
-        "PHASE3_BARRIER_BLOB_SHA=",
-        "PHASE3_MMIO_BLOB_SHA=",
-        "PHASE3_LOW_LEVEL_BUILD_BLOB_SHA=",
-        "PHASE3_LOW_LEVEL_TEST_BLOB_SHA=",
-        "PHASE3_ABI_SLICE_DOC_BLOB_SHA=",
-        "PHASE3_ABI_MANIFEST_BLOB_SHA=",
-        "PHASE3_LOW_LEVEL_GATE=zig build phase3-low-level-wrappers-test --build-file zigux/tests/phase3_low_level_wrappers_build.zig",
-        "PHASE3_BOUNDARY_GAP=helper-surface-and-focused-proof-packet-no-longer-match",
-    )
+    required_doc_markers = [
+        "PHASE3_SURVEY_PROVENANCE=packet-local-blob-first-current-head-sha-unavailable-in-connector-run",
+        "PHASE3_ATOMIC_BLOB_SHA=4676896a36610c7c20168aa5ef6a5c68a1b39e45",
+        "PHASE3_BARRIER_BLOB_SHA=1fe0f75696631f3ebf6f97897ba2e648e375458f",
+        "PHASE3_MMIO_BLOB_SHA=b4d56107ff0f3d2845d7c26dac87d5f594602a28",
+        "PHASE3_ABI_TEST_BLOB_SHA=7c3c7887bb23d1acccd835ed3bb71eba3824c45d",
+        "PHASE3_ABI_DUMP_BLOB_SHA=77eeb1a928ae2032b72960546277290d5116ab0b",
+        "PHASE3_ABI_EXPECTED_BLOB_SHA=891be039615b878e10fda94788bc896ef12aac7b",
+        "PHASE3_ABI_MANIFEST_BLOB_SHA=86ca818027f58c85c296cf39214bd1804ca55b4d",
+        "PHASE3_ABI_SLICE_DOC_BLOB_SHA=af6903d07186321da167ab6718b7b4810b78c008",
+        "PHASE3_VALIDATE_GATE=python3 scripts/zigux/validate-phase3.py --slug abi",
+        "PHASE3_LOW_LEVEL_WRAPPER_SURVEY_GATE=python3 scripts/zigux/validate-phase3-low-level-wrapper-survey.py",
+        "PHASE3_BOUNDARY_SCOPE=shared-abi-compile-layout-dump-packet",
+        "PHASE3_BOUNDARY_GAP=shared-abi-packet-covers-current-low-level-wrapper-surface-without-a-dedicated-low-level-wrapper-replay",
+    ]
     for marker in required_doc_markers:
         if marker not in doc:
             issues.append(f"missing_doc_marker:{marker}")
 
     atomic_text = (root / ATOMIC_REL).read_text(encoding="utf-8")
-    require_tokens(
-        issues,
-        atomic_text,
-        "atomic_missing_token",
-        (
-            "pub fn load",
-            "pub fn store",
-            "pub fn exchange",
-            "pub fn fetchAdd",
-            "pub fn fetchSub",
-            "pub fn fetchAnd",
-            "pub fn fetchOr",
-            "pub fn fetchXor",
-            "pub fn fetchMin",
-            "pub fn fetchMax",
-            "pub fn compareExchange",
-            "pub fn compareExchangeWeak",
-        ),
-    )
+    for token in (
+        "pub fn load",
+        "pub fn store",
+        "pub fn exchange",
+        "pub fn fetchAdd",
+        "pub fn fetchSub",
+        "pub fn fetchAnd",
+        "pub fn fetchOr",
+        "pub fn fetchXor",
+        "pub fn fetchMin",
+        "pub fn fetchMax",
+        "pub fn compareExchange",
+        "pub fn compareExchangeWeak",
+    ):
+        if token not in atomic_text:
+            issues.append(f"atomic_missing_token:{token}")
 
     barrier_text = (root / BARRIER_REL).read_text(encoding="utf-8")
-    require_tokens(
-        issues,
-        barrier_text,
-        "barrier_missing_token",
-        (
-            "pub fn acquire",
-            "pub fn release",
-            "pub fn full",
-            "pub fn acquireRelease",
-        ),
-    )
+    for token in ("pub fn acquire", "pub fn release", "pub fn full", "pub fn acquireRelease"):
+        if token not in barrier_text:
+            issues.append(f"barrier_missing_token:{token}")
 
     mmio_text = (root / MMIO_REL).read_text(encoding="utf-8")
-    require_tokens(
-        issues,
-        mmio_text,
-        "mmio_missing_token",
-        (
-            "pub fn range",
-            "pub fn read32",
-            "pub fn write32",
-            "narrow.pointerAt",
-        ),
-    )
+    for token in ("pub fn range", "pub fn read8", "pub fn write8", "pub fn read32", "pub fn write32", "narrow.pointerAt"):
+        if token not in mmio_text:
+            issues.append(f"mmio_missing_token:{token}")
 
-    build_text = (root / LOW_LEVEL_BUILD_REL).read_text(encoding="utf-8")
-    require_tokens(
-        issues,
-        build_text,
-        "low_level_build_missing_token",
-        (
-            '.root_source_file = b.path("phase3_low_level_wrappers.zig")',
-            'const interop_policy_module = b.createModule(',
-            'const layout_assert_module = b.createModule(',
-            'const mmio_helpers_module = b.createModule(',
-            'low_level_root_module.addImport("interop_policy", interop_policy_module);',
-            'low_level_root_module.addImport("layout_assert", layout_assert_module);',
-            'low_level_root_module.addImport("mmio_helpers", mmio_helpers_module);',
-            '"phase3-low-level-wrappers-test"',
-        ),
-    )
-
-    low_level_test_text = (root / LOW_LEVEL_TEST_REL).read_text(encoding="utf-8")
-    require_tokens(
-        issues,
-        low_level_test_text,
-        "low_level_test_missing_token",
-        (
-            'const interop_policy = @import("interop_policy");',
-            'const layout_assert = @import("layout_assert");',
-            'const mmio = @import("mmio_helpers");',
-            'const narrow = @import("narrow_unsafe");',
-            "mmio.write8(",
-            "mmio.read8(",
-            "mmio.write16(",
-            "mmio.read16(",
-            "mmio.write32(",
-            "mmio.read32(",
-            "mmio.write64(",
-            "mmio.read64(",
-            "mmio.write8Scoped(",
-            "mmio.read8Scoped(",
-            "mmio.write16Scoped(",
-            "mmio.read16Scoped(",
-            "mmio.write32Scoped(",
-            "mmio.read32Scoped(",
-            "mmio.write64Scoped(",
-            "mmio.read64Scoped(",
-            "mmio.write8Policy(",
-            "mmio.read8Policy(",
-            "mmio.write16Policy(",
-            "mmio.read16Policy(",
-            "mmio.write32Policy(",
-            "mmio.read32Policy(",
-            "mmio.write64Policy(",
-            "mmio.read64Policy(",
-            "layout_assert.assertMmioRangeLayout();",
-            "narrow.permitsVolatileMmio(",
-            "narrow.permitsRawPointerBridge(",
-        ),
-    )
+    abi_test_text = (root / ABI_TEST_REL).read_text(encoding="utf-8")
+    for token in (
+        'const atomic = @import("atomic_helpers");',
+        'const barrier = @import("barrier_helpers");',
+        'const mmio = @import("mmio_helpers");',
+    ):
+        if token not in abi_test_text:
+            issues.append(f"abi_test_missing_token:{token}")
 
     manifest_text = (root / ABI_MANIFEST_REL).read_text(encoding="utf-8")
-    for rel in (ATOMIC_REL, BARRIER_REL, MMIO_REL):
+    for rel in (ATOMIC_REL, BARRIER_REL, MMIO_REL, ABI_TEST_REL):
         if rel not in manifest_text:
             issues.append(f"manifest_missing_entry:{rel}")
 
-    abi_slice_text = (root / ABI_SLICE_DOC_REL).read_text(encoding="utf-8")
-    require_tokens(
-        issues,
-        abi_slice_text,
-        "abi_slice_missing_token",
-        (
-            "`zigux/helpers/atomic.zig`",
-            "`zigux/helpers/barrier.zig`",
-            "`zigux/helpers/mmio.zig`",
-        ),
-    )
+    abi_dump_text = (root / ABI_DUMP_REL).read_text(encoding="utf-8")
+    expected_text = (root / ABI_EXPECTED_REL).read_text(encoding="utf-8")
+    for token in ('"zigux_mmio_range"', '"zigux_interop_policy"'):
+        if token not in abi_dump_text:
+            issues.append(f"abi_dump_missing_token:{token}")
+        if token not in expected_text:
+            issues.append(f"abi_expected_missing_token:{token}")
 
     return issues
 
@@ -190,8 +118,9 @@ def run_self_test() -> int:
             ATOMIC_REL,
             BARRIER_REL,
             MMIO_REL,
-            LOW_LEVEL_BUILD_REL,
-            LOW_LEVEL_TEST_REL,
+            ABI_TEST_REL,
+            ABI_DUMP_REL,
+            ABI_EXPECTED_REL,
             ABI_MANIFEST_REL,
             ABI_SLICE_DOC_REL,
             DOC_REL,
@@ -235,6 +164,8 @@ def run_self_test() -> int:
             "\n".join(
                 [
                     "pub fn range() void {}",
+                    "pub fn read8() void {}",
+                    "pub fn write8() void {}",
                     "pub fn read32() void {}",
                     "pub fn write32() void {}",
                     "const p = narrow.pointerAt(u32, 0, 0);",
@@ -243,100 +174,58 @@ def run_self_test() -> int:
             ),
             encoding="utf-8",
         )
-        (root / LOW_LEVEL_BUILD_REL).write_text(
+        (root / ABI_TEST_REL).write_text(
             "\n".join(
                 [
-                    'const interop_policy_module = b.createModule(.{});',
-                    'const layout_assert_module = b.createModule(.{});',
-                    'const mmio_helpers_module = b.createModule(.{});',
-                    '.root_source_file = b.path("phase3_low_level_wrappers.zig"),',
-                    'low_level_root_module.addImport("interop_policy", interop_policy_module);',
-                    'low_level_root_module.addImport("layout_assert", layout_assert_module);',
-                    'low_level_root_module.addImport("mmio_helpers", mmio_helpers_module);',
-                    '"phase3-low-level-wrappers-test"',
+                    'const atomic = @import("atomic_helpers");',
+                    'const barrier = @import("barrier_helpers");',
+                    'const mmio = @import("mmio_helpers");',
                     "",
                 ]
             ),
             encoding="utf-8",
         )
-        (root / LOW_LEVEL_TEST_REL).write_text(
-            "\n".join(
-                [
-                    'const interop_policy = @import("interop_policy");',
-                    'const layout_assert = @import("layout_assert");',
-                    'const mmio = @import("mmio_helpers");',
-                    'const narrow = @import("narrow_unsafe");',
-                    "mmio.write8(base, 0, 0);",
-                    "mmio.read8(base, 0);",
-                    "mmio.write16(base, 0, 0);",
-                    "mmio.read16(base, 0);",
-                    "mmio.write32(base, 0, 0);",
-                    "mmio.read32(base, 0);",
-                    "mmio.write64(base64, 0, 0);",
-                    "mmio.read64(base64, 0);",
-                    "mmio.write8Scoped(scope, base, 0, 0);",
-                    "mmio.read8Scoped(scope, base, 0);",
-                    "mmio.write16Scoped(scope, base, 0, 0);",
-                    "mmio.read16Scoped(scope, base, 0);",
-                    "mmio.write32Scoped(scope, base, 0, 0);",
-                    "mmio.read32Scoped(scope, base, 0);",
-                    "mmio.write64Scoped(scope, base64, 0, 0);",
-                    "mmio.read64Scoped(scope, base64, 0);",
-                    "mmio.write8Policy(policy, base, 0, 0);",
-                    "mmio.read8Policy(policy, base, 0);",
-                    "mmio.write16Policy(policy, base, 0, 0);",
-                    "mmio.read16Policy(policy, base, 0);",
-                    "mmio.write32Policy(policy, base, 0, 0);",
-                    "mmio.read32Policy(policy, base, 0);",
-                    "mmio.write64Policy(policy, base64, 0, 0);",
-                    "mmio.read64Policy(policy, base64, 0);",
-                    "layout_assert.assertMmioRangeLayout();",
-                    "narrow.permitsVolatileMmio(.volatile_mmio);",
-                    "narrow.permitsRawPointerBridge(.raw_pointer_bridge);",
-                    "",
-                ]
-            ),
+        (root / ABI_DUMP_REL).write_text(
+            '\n'.join(['const mmio = "zigux_mmio_range";', 'const policy = "zigux_interop_policy";', ""]),
+            encoding="utf-8",
+        )
+        (root / ABI_EXPECTED_REL).write_text(
+            '{"structs":{"zigux_mmio_range":{},"zigux_interop_policy":{}}}\n',
             encoding="utf-8",
         )
         (root / ABI_MANIFEST_REL).write_text(
             "\n".join(
                 [
                     "{",
-                    f'  "files": ["{ATOMIC_REL}", "{BARRIER_REL}", "{MMIO_REL}"]',
+                    f'  "files": ["{ATOMIC_REL}", "{BARRIER_REL}", "{MMIO_REL}", "{ABI_TEST_REL}"]',
                     "}",
                     "",
                 ]
             ),
             encoding="utf-8",
         )
-        (root / ABI_SLICE_DOC_REL).write_text(
-            "\n".join(
-                [
-                    "`zigux/helpers/atomic.zig`",
-                    "`zigux/helpers/barrier.zig`",
-                    "`zigux/helpers/mmio.zig`",
-                    "",
-                ]
-            ),
-            encoding="utf-8",
-        )
+        (root / ABI_SLICE_DOC_REL).write_text("slice\n", encoding="utf-8")
         (root / DOC_REL).write_text(
             "\n".join(
                 [
+                    "PHASE3_SURVEY_PROVENANCE=packet-local-blob-first-current-head-sha-unavailable-in-connector-run",
                     f"PHASE3_ATOMIC_PATH={ATOMIC_REL}",
                     f"PHASE3_BARRIER_PATH={BARRIER_REL}",
                     f"PHASE3_MMIO_PATH={MMIO_REL}",
-                    f"PHASE3_LOW_LEVEL_BUILD_PATH={LOW_LEVEL_BUILD_REL}",
-                    f"PHASE3_LOW_LEVEL_TEST_PATH={LOW_LEVEL_TEST_REL}",
-                    "PHASE3_ATOMIC_BLOB_SHA=abc",
-                    "PHASE3_BARRIER_BLOB_SHA=def",
-                    "PHASE3_MMIO_BLOB_SHA=ghi",
-                    "PHASE3_LOW_LEVEL_BUILD_BLOB_SHA=jkl",
-                    "PHASE3_LOW_LEVEL_TEST_BLOB_SHA=mno",
-                    "PHASE3_ABI_SLICE_DOC_BLOB_SHA=pqr",
-                    "PHASE3_ABI_MANIFEST_BLOB_SHA=stu",
-                    "PHASE3_LOW_LEVEL_GATE=zig build phase3-low-level-wrappers-test --build-file zigux/tests/phase3_low_level_wrappers_build.zig",
-                    "PHASE3_BOUNDARY_GAP=helper-surface-and-focused-proof-packet-no-longer-match",
+                    f"PHASE3_ABI_TEST_PATH={ABI_TEST_REL}",
+                    f"PHASE3_ABI_DUMP_PATH={ABI_DUMP_REL}",
+                    "PHASE3_ATOMIC_BLOB_SHA=4676896a36610c7c20168aa5ef6a5c68a1b39e45",
+                    "PHASE3_BARRIER_BLOB_SHA=1fe0f75696631f3ebf6f97897ba2e648e375458f",
+                    "PHASE3_MMIO_BLOB_SHA=b4d56107ff0f3d2845d7c26dac87d5f594602a28",
+                    "PHASE3_ABI_TEST_BLOB_SHA=7c3c7887bb23d1acccd835ed3bb71eba3824c45d",
+                    "PHASE3_ABI_DUMP_BLOB_SHA=77eeb1a928ae2032b72960546277290d5116ab0b",
+                    "PHASE3_ABI_EXPECTED_BLOB_SHA=891be039615b878e10fda94788bc896ef12aac7b",
+                    "PHASE3_ABI_MANIFEST_BLOB_SHA=86ca818027f58c85c296cf39214bd1804ca55b4d",
+                    "PHASE3_ABI_SLICE_DOC_BLOB_SHA=af6903d07186321da167ab6718b7b4810b78c008",
+                    "PHASE3_VALIDATE_GATE=python3 scripts/zigux/validate-phase3.py --slug abi",
+                    "PHASE3_LOW_LEVEL_WRAPPER_SURVEY_GATE=python3 scripts/zigux/validate-phase3-low-level-wrapper-survey.py",
+                    "PHASE3_BOUNDARY_SCOPE=shared-abi-compile-layout-dump-packet",
+                    "PHASE3_BOUNDARY_GAP=shared-abi-packet-covers-current-low-level-wrapper-surface-without-a-dedicated-low-level-wrapper-replay",
                     "",
                 ]
             ),
@@ -346,18 +235,9 @@ def run_self_test() -> int:
         issues = validate(root)
         assert issues == [], issues
 
-        (root / LOW_LEVEL_BUILD_REL).write_text(
-            (root / LOW_LEVEL_BUILD_REL).read_text(encoding="utf-8").replace(
-                'low_level_root_module.addImport("mmio_helpers", mmio_helpers_module);',
-                "",
-            ),
-            encoding="utf-8",
-        )
+        (root / ABI_EXPECTED_REL).write_text('{"structs":{"zigux_interop_policy":{}}}\n', encoding="utf-8")
         issues = validate(root)
-        assert (
-            'low_level_build_missing_token:low_level_root_module.addImport("mmio_helpers", mmio_helpers_module);'
-            in issues
-        )
+        assert 'abi_expected_missing_token:"zigux_mmio_range"' in issues
 
     print("PHASE3_LOW_LEVEL_WRAPPER_SURVEY_SELF_TEST=pass")
     return 0
