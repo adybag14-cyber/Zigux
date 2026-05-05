@@ -95,17 +95,17 @@
     },
     {
       "id": "phase10-mmio-feature-word-selector-helper",
-      "status": "ready_next",
+      "status": "starter_landed",
       "kind": "transport_wrapper",
       "zigux_destination": "drivers/virtio/virtio_mmio.zig",
-      "why_now": "With the register window and queue-size snapshot footholds already landed, the next honest MMIO step is one bounded device-feature selector and read window before interrupt acknowledgement, reset flows, or probe lifecycle work."
+      "why_now": "The live helper now carries one bounded device-feature selector and read window so VM-friendly lab validation can replay feature-word reads without widening into interrupt acknowledgement, reset flows, or probe lifecycle work."
     },
     {
       "id": "phase10-mmio-lifecycle-and-irq-paths",
       "status": "blocked_on_risky_transport",
       "kind": "transport_wrapper",
       "zigux_destination": "drivers/virtio/virtio_mmio.zig",
-      "why_now": "Interrupt acknowledgement, queue discovery, reset flows, and probe or remove lifecycle behavior remain too transport-facing to start honestly until after the smaller feature-selector follow-up lands."
+      "why_now": "Interrupt acknowledgement, transport-backed config-space access, queue discovery, reset flows, and probe or remove lifecycle behavior remain too transport-facing to start honestly inside this lab helper packet."
     }
   ]
 }
