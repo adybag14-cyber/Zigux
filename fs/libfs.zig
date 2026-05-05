@@ -14,6 +14,7 @@ pub const ModuleDescriptor = struct {
     provides_directory_emit_planning: bool,
     provides_transaction_buffer_planning: bool,
     provides_transaction_publish_planning: bool,
+    provides_transaction_release_planning: bool,
     touches_live_dcache: bool,
     touches_live_inode_state: bool,
 };
@@ -109,6 +110,13 @@ pub const TransactionBufferPublishPlan = struct {
     published_response_size: usize,
 };
 
+pub const TransactionBufferReleasePlan = struct {
+    anchor: []const u8,
+    frees_private_data_page: bool,
+    consumes_private_data_lifetime: bool,
+    return_code: i32,
+};
+
 pub const LibFsHelperLab = struct {
     pub fn descriptor() ModuleDescriptor {
         return .{
@@ -121,6 +129,7 @@ pub const LibFsHelperLab = struct {
             .provides_directory_emit_planning = true,
             .provides_transaction_buffer_planning = true,
             .provides_transaction_publish_planning = true,
+            .provides_transaction_release_planning = true,
             .touches_live_dcache = false,
             .touches_live_inode_state = false,
         };
@@ -350,6 +359,15 @@ pub const LibFsHelperLab = struct {
             .requires_private_data = true,
             .publishes_after_barrier = true,
             .published_response_size = response_size,
+        };
+    }
+
+    pub fn simpleTransactionReleasePlan() TransactionBufferReleasePlan {
+        return .{
+            .anchor = descriptor().anchor,
+            .frees_private_data_page = true,
+            .consumes_private_data_lifetime = true,
+            .return_code = 0,
         };
     }
 };
