@@ -22,7 +22,7 @@ EXPECTED_MAKE_EXPANSIONS = {
         "python3 scripts/zigux/check-phase7-rbtree-parity.py",
     ],
     "phase7-test": [
-        "zig build test --build-file zigux/tests/phase7_build.zig",
+        "zig build test --build-file zigux/tests/phase7_build.zig --summary all",
     ],
     "phase7": [
         "python3 scripts/zigux/validate-phase7.py --self-test",
@@ -33,7 +33,7 @@ EXPECTED_MAKE_EXPANSIONS = {
         "python3 scripts/zigux/check-phase7-argv-split-packet.py",
         "python3 scripts/zigux/check-phase7-rbtree-parity.py --self-test",
         "python3 scripts/zigux/check-phase7-rbtree-parity.py",
-        "zig build test --build-file zigux/tests/phase7_build.zig",
+        "zig build test --build-file zigux/tests/phase7_build.zig --summary all",
     ],
 }
 
@@ -51,9 +51,11 @@ UNEXPECTED_MAKE_EXPANSIONS = {
         "python3 scripts/zigux/check-phase7-argv-split-packet.py",
         "python3 scripts/zigux/check-phase7-rbtree-parity.py --self-test",
         "python3 scripts/zigux/check-phase7-rbtree-parity.py",
+        "zig build test --build-file zigux/tests/phase7_build.zig",
         "zig build test --build-file zigux/tests/build.zig",
     ],
     "phase7": [
+        "zig build test --build-file zigux/tests/phase7_build.zig",
         "zig build test --build-file zigux/tests/build.zig",
     ],
 }
@@ -233,7 +235,23 @@ def run_self_test() -> int:
             "duplicate_phase7_test_wrapper_line",
             tmp_root,
             fake_make_env,
-            "phase7-test: expected wrapper expansion count drift: zig build test --build-file zigux/tests/phase7_build.zig (2 != 1)",
+            "phase7-test: expected wrapper expansion count drift: zig build test --build-file zigux/tests/phase7_build.zig --summary all (2 != 1)",
+        )
+
+        make_fake_make(
+            fake_make_path,
+            {
+                **EXPECTED_MAKE_EXPANSIONS,
+                "phase7-test": [
+                    "zig build test --build-file zigux/tests/phase7_build.zig",
+                ],
+            },
+        )
+        expect_failure(
+            "stale_unsummarized_phase7_test",
+            tmp_root,
+            fake_make_env,
+            "phase7-test: missing expected wrapper expansion: zig build test --build-file zigux/tests/phase7_build.zig --summary all",
         )
 
         make_fake_make(
@@ -289,7 +307,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE7_MAKE_WRAPPER_SELF_TEST=pass")
-    print("PHASE7_MAKE_WRAPPER_SELF_TEST_CASE_COUNT=6")
+    print("PHASE7_MAKE_WRAPPER_SELF_TEST_CASE_COUNT=7")
     return 0
 
 
