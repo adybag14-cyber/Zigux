@@ -22,6 +22,8 @@ The live repo still benefits from keeping `exec-cmd` parked as a helper-first, o
 
 That same parked command-boundary packet now also sits inside the shared Phase 8 validator-first route, so reviewers can recheck the command slice through `make -C zigux phase8-validate` before widening back out to the broader tooling bundle.
 
+That validator-first coverage still needs a strict boundary. This Phase 8 slice stops before any ownership of `execv_cmd()` or `execvp()`, avoids scheduler-facing transport or queue claims, and leaves `kernel/workqueue.c` in the later Phase 14 boundary-study tranche rather than treating this tooling helper as an early workqueue port.
+
 ## Gates
 
 1. run the focused Zig module tests
@@ -50,7 +52,7 @@ The current starter slice covers:
 - `setup_path()`-adjacent path assembly plus `PATH` environment updates via relative-to-cwd normalization
 - a pure `choosePwdCwd()` helper for caller-provided same-location decisions plus a stat-backed `sameLocation()` and `choosePwdCwdFromFilesystem()` pair that mirror the C helper's logical-`PWD` acceptance rule without widening into broader process or environment side effects
 - `prepare_exec_cmd()`-style argv prefixing with a trailing null slot for later `execv()` plumbing
-- a pure `collectExeclArgs()` helper that models the `execl_cmd()` argument collector and its legacy `MAX_ARGS` guard without claiming any direct process-launch behavior
+- a pure `collectExeclArgs()` helper that models the `execl_cmd()` argument collector and its legacy `MAX_ARGS` guard without claiming any direct process-launch behavior, scheduler-facing transport, or workqueue-facing deferred-execution ownership
 
 The current tests check:
 
@@ -69,8 +71,10 @@ The current tests check:
 
 This slice still does not claim:
 
-- direct `execvp()` parity or process-launch behavior
+- direct `execvp()` parity, `execv_cmd()` ownership, or process-launch behavior
 - direct OS environment reads or writes
+- deferred queue ownership or scheduler-facing transport
+- the later `kernel/workqueue.c` Phase 14 boundary-study target
 - the terminal/help listing surface from `tools/lib/subcmd/help.c`
 - the larger Phase 8 anchors in `tools/lib/symbol/` or `tools/lib/bpf/`
 
