@@ -194,10 +194,28 @@ test "phase 15 architecture council review-process doc and manifest stay aligned
     try expectContains(makefile, "zigux/tests/phase15_build.zig");
 
     try expectContains(manifest_doc, "\"current_repo_handoff\"");
+    try expectContains(manifest_doc, "Documentation/zigux/freeze-map.md");
+    try expectContains(
+        manifest_doc,
+        "Documentation/zigux/phase15-freeze-map-governance.md",
+    );
     try expectContains(
         manifest_doc,
         "Documentation/zigux/phase15-architecture-council-review-process.md",
     );
+    try expectContains(manifest_doc, "Documentation/zigux/phase15-parity-scorecard.md");
+    try expectContains(manifest_doc, "Documentation/zigux/phase15-indefinite-c-policy.md");
+    try expectContains(manifest_doc, "Documentation/zigux/review-checklist.md");
+    try expectContains(manifest_doc, "scripts/zigux/check-phase15-review-process-handoff.py");
+    try expectContains(
+        manifest_doc,
+        "zigux/tests/phase15_architecture_council_review_process_manifest.json",
+    );
+    try expectContains(
+        manifest_doc,
+        "zigux/tests/phase15_architecture_council_review_process.zig",
+    );
+    try expectContains(manifest_doc, "zigux/tests/phase15_build.zig");
     try expectContains(manifest_doc, "\"current_bounded_lane\"");
     try expectContains(manifest_doc, "scripts-root validator path");
     try expectContains(manifest_doc, "tests-root guidance path");
