@@ -226,3 +226,25 @@ test "phase11 hvc_console survey manifest records the landed starter and tty han
     try std.testing.expect(saw_sysrq_handoff);
     try std.testing.expect(saw_notifier_handoff);
 }
+
+test "phase11 hvc_console survey gate proves validation matrix coverage directly" {
+    var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
+    defer io_instance.deinit();
+
+    const matrix = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "Documentation/zigux/phase11-hvc-console-validation-matrix.md",
+        std.testing.allocator,
+        .limited(32 * 1024),
+    );
+    defer std.testing.allocator.free(matrix);
+
+    try std.testing.expect(std.mem.indexOf(u8, matrix, "PHASE11_HVC_CONSOLE_STATUS=hvc_notifier_handoff_landed") != null);
+    try std.testing.expect(std.mem.indexOf(u8, matrix, "zigux/tests/phase11_hvc_cleanup.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, matrix, "Documentation/zigux/phase11-shared-replay-contract.md") != null);
+    try std.testing.expect(std.mem.indexOf(u8, matrix, "zig build test --build-file zigux/tests/phase11_build.zig --summary all") != null);
+    try std.testing.expect(std.mem.indexOf(u8, matrix, "notifier callback boundary") != null);
+    try std.testing.expect(std.mem.indexOf(u8, matrix, "deferred callback ownership") != null);
+    try std.testing.expect(std.mem.indexOf(u8, matrix, "do not claim notifier callbacks, khvcd execution, live sysrq dispatch, or host-backed I/O coverage until the Zig surface and tests for those behaviors exist") != null);
+    try std.testing.expect(std.mem.indexOf(u8, matrix, "keep this handoff stable while the next follow-through stays inside shared review truthfulness instead of widening into live callback execution") != null);
+}
