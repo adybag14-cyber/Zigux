@@ -11,7 +11,9 @@ Key entrypoints
 - `zigux/tests/build.zig`
 - `zigux/tests/atomic64_diff.zig`
 - `zigux/tests/runtime_atomic64_diff.zig`
+- `zigux/tests/phase4_runtime_atomic64_diff_survey.zig`
 - `zigux/tests/bitmap_diff.zig`
+- `zigux/tests/phase4_bitmap_live_helper_replay.zig`
 - `zigux/tests/phase4_build.zig`
 - `zigux/tests/phase5_build.zig`
 - `zigux/tests/phase1_helpers.zig`
@@ -77,7 +79,7 @@ Guidance
 - keep parity fixtures committed and readable
 - keep the closed Phase 1 host-tools packet explicit in the tests root too: `Documentation/zigux/phase1-closure.md`, `scripts/zigux/README.md`, `zigux/tests/phase1_helpers.zig`, `zigux/tests/phase1_bench.zig`, `zigux/tests/fixtures/phase1_helper_manifest.json`, `zigux/tests/fixtures/phase1_bench_expectations.json`, `scripts/zigux/validate-phase1.py`, `scripts/zigux/validate-phase1-closure.py`, `scripts/zigux/check-phase1-parity.py`, `scripts/zigux/check-phase1-bench.py`, `zig build test --build-file zigux/tests/build.zig`, and `zig build bench --build-file zigux/tests/build.zig` should continue to keep the closed helper tranche reviewable from the tests root instead of leaving the host-tools closure stack split across the docs root and scripts root
 - prefer discovery-based validation over hard-coded file inventories when adding new Phase 3 slices
-- keep the canonical Phase 4 atomic64 wrapper explicit: `zigux/tests/phase4_build.zig` should continue to run `zigux/tests/atomic64_diff.zig` as the roadmap entrypoint, `zigux/tests/atomic64_diff.zig` should remain the thin wrapper over `zigux/tests/runtime_atomic64_diff.zig`, and `Documentation/zigux/phase4-validation-matrix.md` should keep that wrapper-versus-runtime handoff reviewable without cloning the shared replay body
+- keep the canonical Phase 4 atomic64 wrapper explicit: `zigux/tests/phase4_build.zig` should continue to run `zigux/tests/atomic64_diff.zig` as the roadmap entrypoint, `zigux/tests/atomic64_diff.zig` should remain the thin wrapper over `zigux/tests/runtime_atomic64_diff.zig`, `zigux/tests/phase4_runtime_atomic64_diff_survey.zig` should keep the manifest-backed wrapper handoff reviewable beside that same wrapper gate, `zigux/tests/phase4_bitmap_live_helper_replay.zig` should keep the helper-backed bitmap rollback checkpoints explicit, and `Documentation/zigux/phase4-validation-matrix.md` should keep that wrapper-versus-runtime handoff reviewable without cloning the shared replay body
 - keep the shared Phase 5 reference-sample checks wired through `zigux/tests/phase5_build.zig` so the four shipped sample-backed surveys stay reviewable without implying runtime-substrate closure
 - keep the shared Phase 6 leaf-helper packet wired through `zigux/tests/phase6_build.zig`, including `zigux/tests/phase6_base64.zig`, `zigux/tests/phase6_bsearch.zig`, `zigux/tests/phase6_checksum.zig`, and `zigux/tests/phase6_hexdump.zig`, so the landed `base64`, `bsearch`, `checksum`, and `hexdump` bundle stays reviewable through one bounded helper gate
 - keep the shared Phase 7 leaf-helper packet wired through `zigux/tests/phase7_build.zig`, including the dedicated `zigux/tests/phase7_rbtree_survey.zig` survey gate, so the landed `string_helpers`, `cmdline`, `argv_split`, and `rbtree` bundle stays reviewable through one bounded runtime-safe entrypoint
