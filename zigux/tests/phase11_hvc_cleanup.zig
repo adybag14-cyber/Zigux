@@ -18,7 +18,6 @@ test "phase11 hvc console keeps hvc_cleanup tty-port release boundaries reviewab
 
     const hangup_cleanup = try console.summarizeCleanupHandoff(.{
         .hung_up = true,
-        .final_close = false,
     });
     try std.testing.expect(hangup_cleanup.close_skipped);
     try std.testing.expect(!hangup_cleanup.final_close);
