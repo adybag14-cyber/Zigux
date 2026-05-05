@@ -38,6 +38,7 @@ FILES = [
     "zigux/tests/phase10_virtio_ring_manifest.json",
     "zigux/tests/phase10_virtio_input.zig",
     "zigux/tests/phase10_virtio_input_multitouch_preflight.zig",
+    "zigux/tests/phase10_virtio_input_registration_blocker_build.zig",
     "zigux/tests/phase10_virtio_input_registration_blocker.zig",
     "zigux/tests/phase10_virtio_input_survey.zig",
     "zigux/tests/phase10_virtio_input_manifest.json",
@@ -305,6 +306,9 @@ EXPECTED_FOCUSED_HARNESS_REPLAYS = {
     "zigux/tests/phase10_virtio_input_multitouch_preflight.zig": [
         "phase10 input multitouch-ready preflight replay"
     ],
+    "zigux/tests/phase10_virtio_input_registration_blocker_build.zig": [
+        "phase10 input registration-blocker replay build"
+    ],
     "zigux/tests/phase10_virtio_mmio_queue_isolation.zig": [
         "phase10 mmio multi-queue isolation replay",
         "phase10 mmio reset clears legacy and modern queue address plans after queue selection changes",
@@ -535,13 +539,13 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
         ("script_readme", "scripts/zigux/README.md", SCRIPT_README_MARKERS),
         ("tests_readme", "zigux/tests/README.md", TESTS_README_MARKERS),
         ("doc_readme", "Documentation/zigux/README.md", DOC_README_MARKERS),
-        ("ring_slice_doc", "Documentation/zigux/phase10-virtio-ring-slice.md", RING_SLICE_MARKERS),
-        ("ring_survey_doc", "Documentation/zigux/phase10-virtio-ring-survey.md", RING_SURVEY_MARKERS),
-        ("slice_doc", "Documentation/zigux/phase10-virtio-input-slice.md", SLICE_MARKERS),
-        ("module_slice_doc", "Documentation/zigux/phase10-virtio-input-module-slice.md", MODULE_SLICE_MARKERS),
-        ("survey_doc", "Documentation/zigux/phase10-virtio-input-survey.md", SURVEY_MARKERS),
-        ("mmio_slice_doc", "Documentation/zigux/phase10-virtio-mmio-slice.md", MMIO_SLICE_MARKERS),
-        ("mmio_survey_doc", "Documentation/zigux/phase10-virtio-mmio-survey.md", MMIO_SURVEY_MARKERS),
+        ("ring_slice", "Documentation/zigux/phase10-virtio-ring-slice.md", RING_SLICE_MARKERS),
+        ("ring_survey", "Documentation/zigux/phase10-virtio-ring-survey.md", RING_SURVEY_MARKERS),
+        ("slice", "Documentation/zigux/phase10-virtio-input-slice.md", SLICE_MARKERS),
+        ("survey", "Documentation/zigux/phase10-virtio-input-survey.md", SURVEY_MARKERS),
+        ("module_slice", "Documentation/zigux/phase10-virtio-input-module-slice.md", MODULE_SLICE_MARKERS),
+        ("mmio_slice", "Documentation/zigux/phase10-virtio-mmio-slice.md", MMIO_SLICE_MARKERS),
+        ("mmio_survey", "Documentation/zigux/phase10-virtio-mmio-survey.md", MMIO_SURVEY_MARKERS),
         ("ring_helper", "drivers/virtio/virtio_ring.zig", RING_HELPER_MARKERS),
         ("helper", "drivers/virtio/virtio_input.zig", HELPER_MARKERS),
         (
@@ -684,6 +688,7 @@ def write_fixture_tree(root: Path) -> None:
         "zigux/tests/phase10_virtio_ring_survey.zig": "\n".join(RING_SURVEY_TEST_MARKERS) + "\n",
         "zigux/tests/phase10_virtio_input.zig": "\n".join(TEST_MARKERS) + "\n",
         "zigux/tests/phase10_virtio_input_multitouch_preflight.zig": "fixture\n",
+        "zigux/tests/phase10_virtio_input_registration_blocker_build.zig": "fixture\n",
         "zigux/tests/phase10_virtio_input_registration_blocker.zig": "\n".join(BLOCKER_TEST_MARKERS) + "\n",
         "zigux/tests/phase10_virtio_input_survey.zig": "\n".join(SURVEY_TEST_MARKERS) + "\n",
         "zigux/tests/phase10_virtio_mmio.zig": "\n".join(MMIO_TEST_MARKERS) + "\n",
@@ -1005,6 +1010,15 @@ def run_self_test() -> int:
         )
 
         write_fixture_tree(tmp_root)
+        blocker_build_path = tmp_root / "zigux/tests/phase10_virtio_input_registration_blocker_build.zig"
+        blocker_build_path.unlink()
+        expect_missing_file(
+            "input_registration_blocker_build_file_guard",
+            tmp_root,
+            "zigux/tests/phase10_virtio_input_registration_blocker_build.zig",
+        )
+
+        write_fixture_tree(tmp_root)
         mmio_queue_isolation_path = tmp_root / "zigux/tests/phase10_virtio_mmio_queue_isolation.zig"
         mmio_queue_isolation_path.unlink()
         expect_missing_file(
@@ -1014,7 +1028,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE10_VALIDATOR_SELF_TEST=pass")
-    print("PHASE10_VALIDATOR_SELF_TEST_CASE_COUNT=22")
+    print("PHASE10_VALIDATOR_SELF_TEST_CASE_COUNT=23")
     return 0
 
 
