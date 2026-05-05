@@ -54,7 +54,7 @@ CLOSURE_MARKERS = [
     "PHASE2_TOOLCHAIN_PIN_TARGETS=x86_64-linux",
     "PHASE2_TOOLCHAIN_PIN_SCOPE_SELF_TEST=python3 scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test",
     "PHASE2_TOOLCHAIN_PIN_SCOPE_GATE=python3 scripts/zigux/check-phase2-toolchain-pin-scope.py",
-    "PHASE2_TOOLCHAIN_PIN_SCOPE_POLICY=current archive sha pin stays limited to the bootstrap host target until another bootstrap runner target is explicitly wired",
+    "PHASE2_TOOLCHAIN_PIN_SCOPE_POLICY=scripts/zigux/zig-toolchain-policy.json",
 ]
 
 PHASE2_VALIDATOR_MARKERS = [
