@@ -4,10 +4,12 @@ This note records the current shipped Phase 13 release-facing helper packet on `
 
 ## Status
 - `PHASE13_RELEASE_PACKET_STATUS=active`
-- `PHASE13_SHARED_REPLAY_STEP_COUNT=5`
+- `PHASE13_SHARED_REPLAY_STEP_COUNT=7`
 - shared replay files:
   - `zigux/tests/phase13_libfs.zig`
   - `zigux/tests/phase13_devres.zig`
+  - `zigux/tests/phase13_devres_reviewability.zig`
+  - `zigux/tests/phase13_devres_dma_coherent.zig`
   - `zigux/tests/phase13_landlock_ruleset.zig`
   - `zigux/tests/phase13_landlock_syscalls.zig`
   - `zigux/tests/phase13_libfs_reviewability.zig`
@@ -21,15 +23,15 @@ This note records the current shipped Phase 13 release-facing helper packet on `
 
 The current shipped Phase 13 helper packet stays validator-first and replay-backed.
 
-The shared replay on `master` is now the five-test bundle wired by `zigux/tests/phase13_build.zig`. That bundle covers the helper-first `libfs`, `devres`, `landlock/ruleset`, and `landlock/syscalls` anchors plus the bounded `libfs` reviewability replay without adding extra shared replay steps for adjacent release evidence.
+The shared replay on `master` is now the seven-test bundle wired by `zigux/tests/phase13_build.zig`. That bundle covers the helper-first `libfs`, `devres`, `landlock/ruleset`, and `landlock/syscalls` anchors plus the bounded `devres` reviewability replay, the bounded `devres` DMA-coherent replay, and the bounded `libfs` reviewability replay without turning the adjacent release evidence into extra shared replay steps.
 
 Inside that packet, the Phase 13 `devres` lane remains bounded to helper-only planning around `lib/devres.c`.
 
-The shipped `lib/devres.zig` lab and `zigux/tests/phase13_devres.zig` replay keep MMIO-adjacent behavior explicit for managed ioremap lifetime planning, `__devm_ioremap_resource()` sizing and failure shaping, `devm_of_iomap()` translated-resource planning, and WC memtype reservation bookkeeping while still blocking live MMIO, live device-tree walking, DMA-backed mapping, and live arch memtype mutation.
+The shipped `lib/devres.zig` lab plus the paired `zigux/tests/phase13_devres.zig`, `zigux/tests/phase13_devres_reviewability.zig`, and `zigux/tests/phase13_devres_dma_coherent.zig` replays keep MMIO-adjacent behavior explicit for managed ioremap lifetime planning, `__devm_ioremap_resource()` sizing and failure shaping, `devm_of_iomap()` translated-resource planning, coherent DMA reservation bookkeeping, and WC memtype reservation bookkeeping while still blocking live MMIO, live device-tree walking, DMA-backed mapping beyond the bounded coherent replay, scatterlist ownership, and live arch memtype mutation.
 
 ## Adjacent release evidence
 
-These files are shipped adjacent release-surface evidence on `master`, but they do not add extra shared replay steps beyond the five-test route above:
+These files are shipped adjacent release-surface evidence on `master`, but they do not add extra shared replay steps beyond the seven-test route above:
 - `Documentation/zigux/phase13-release-notes-survey.md`
 - `Documentation/zigux/phase13-roadmap-traceability.md`
 - `Documentation/zigux/phase13-notifier-list-survey.md`
@@ -44,8 +46,8 @@ The current Phase 13 packet does not claim closure.
 
 It remains an active helper-first release packet while these boundaries stay explicit:
 - `lib/devres.zig` does not claim live MMIO mappings or unmap side effects
-- `lib/devres.zig` does not claim live OF tree walking or overlapping resource arbitration
-- `lib/devres.zig` does not claim live DMA-backed mapping or scatterlist ownership
+- `lib/devres.zig` does not claim live device-tree walking or overlapping resource arbitration
+- `lib/devres.zig` does not claim live DMA-backed mapping beyond the bounded coherent replay or scatterlist ownership
 - `lib/devres.zig` does not claim live arch memtype state mutation
 - the notifier surfaces remain adjacent release evidence rather than extra shared replay steps
 
