@@ -17,6 +17,27 @@ pub const SampleFocus = enum {
     ownership_and_lifetime,
 };
 
+pub const ReviewContract = struct {
+    focus: []const SampleFocus,
+    non_goals: []const []const u8,
+};
+
+const sample_review_focus = [_]SampleFocus{
+    .symbol_selection,
+    .entry_timestamp,
+    .private_data_shape,
+    .return_duration,
+    .missed_summary,
+    .ownership_and_lifetime,
+};
+
+pub const sample_review_non_goals = [_][]const u8{
+    "register_kretprobe parity",
+    "unregister_kretprobe parity",
+    "pt_regs or regs_return_value parity",
+    "runtime module wiring",
+};
+
 pub const SampleDescriptor = struct {
     name: []const u8,
     anchor: []const u8,
@@ -83,6 +104,13 @@ pub const KretprobeExampleSample = struct {
             .anchor = "samples/kprobes/kretprobe_example.c",
             .requires_runtime_substrate = false,
             .provides_selfcheck = true,
+        };
+    }
+
+    pub fn reviewContract() ReviewContract {
+        return .{
+            .focus = &sample_review_focus,
+            .non_goals = &sample_review_non_goals,
         };
     }
 
@@ -181,14 +209,7 @@ pub const KretprobeExampleSample = struct {
             .duration_ns = result.duration_ns,
             .nmissed = self.nmissed,
             .maxactive = self.maxactive,
-            .checked_focus = &.{
-                .symbol_selection,
-                .entry_timestamp,
-                .private_data_shape,
-                .return_duration,
-                .missed_summary,
-                .ownership_and_lifetime,
-            },
+            .checked_focus = reviewContract().focus,
         };
     }
 
@@ -257,6 +278,24 @@ pub const KretprobeExampleSample = struct {
         self.stage_state = .exited;
     }
 };
+
+test "kretprobe sample review contract keeps focus and non-goals explicit" {
+    const contract = KretprobeExampleSample.reviewContract();
+
+    try std.testing.expectEqual(@as(usize, 6), contract.focus.len);
+    try std.testing.expectEqual(SampleFocus.symbol_selection, contract.focus[0]);
+    try std.testing.expectEqual(SampleFocus.entry_timestamp, contract.focus[1]);
+    try std.testing.expectEqual(SampleFocus.private_data_shape, contract.focus[2]);
+    try std.testing.expectEqual(SampleFocus.return_duration, contract.focus[3]);
+    try std.testing.expectEqual(SampleFocus.missed_summary, contract.focus[4]);
+    try std.testing.expectEqual(SampleFocus.ownership_and_lifetime, contract.focus[5]);
+
+    try std.testing.expectEqual(@as(usize, 4), contract.non_goals.len);
+    try std.testing.expectEqualStrings("register_kretprobe parity", contract.non_goals[0]);
+    try std.testing.expectEqualStrings("unregister_kretprobe parity", contract.non_goals[1]);
+    try std.testing.expectEqualStrings("pt_regs or regs_return_value parity", contract.non_goals[2]);
+    try std.testing.expectEqualStrings("runtime module wiring", contract.non_goals[3]);
+}
 
 test "kretprobe sample replay keeps the anchor reviewable and non-runtime" {
     var sample = KretprobeExampleSample{};
