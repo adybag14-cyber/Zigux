@@ -9,7 +9,7 @@
   ],
   "survey_summary": {
     "trace_events_sample_c_lines": 153,
-    "preexisting_runtime_trace_events_test_files": 2,
+    "preexisting_runtime_trace_events_test_files": 3,
     "preexisting_runtime_trace_events_sample_present": true,
     "preexisting_phase9_build_present": true,
     "preexisting_runtime_trace_events_doc_present": true
@@ -20,14 +20,14 @@
       "status": "starter_landed",
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase9_build.zig",
-      "why_now": "The existing Phase 9 build step is the smallest honest place to widen runtime pilot coverage from atomic64 and bitmap into the trace-events sample lane."
+      "why_now": "The existing Phase 9 build step is the smallest honest place to widen runtime pilot coverage from atomic64 and bitmap into the trace-events starter lane."
     },
     {
       "id": "runtime-trace-events-survey-gate",
       "status": "starter_landed",
       "kind": "validation",
       "zigux_destination": "zigux/tests/runtime_trace_events_survey.zig",
-      "why_now": "A trace-events survey gate keeps the Linux sample anchor, starter status, and remaining runtime-substrate blocker explicit while the pilot surface stays small."
+      "why_now": "A trace-events survey gate keeps the Linux sample anchor, landed starter status, the bounded loader scaffold, and the remaining runtime-substrate blocker explicit while the pilot surface stays small."
     },
     {
       "id": "runtime-trace-events-sample-module",
@@ -51,11 +51,18 @@
       "why_now": "A narrow differential gate now captures a few foo_bar, template, and function-callback expectations from the Linux sample before any broader runtime substrate work."
     },
     {
+      "id": "runtime-trace-events-loader-scaffold",
+      "status": "starter_landed",
+      "kind": "runtime_loader_scaffold",
+      "zigux_destination": "samples/zigux/runtime_trace_events_loader.zig",
+      "why_now": "A bounded sample-side loader scaffold now makes the existing requires_runtime_substrate contract reviewable through explicit tracepoint register and unregister APIs, a prepared handoff summary, and a no-substrate release path without pretending a real runtime loader already exists."
+    },
+    {
       "id": "runtime-trace-events-substrate-handoff",
       "status": "blocked_on_runtime_substrate",
       "kind": "runtime_substrate",
-      "zigux_destination": "samples/zigux/runtime_trace_events_loader.zig",
-      "why_now": "A loadable module entry point, thread creation, and tracepoint registration parity still depend on runtime substrate pieces that the repo has not started yet."
+      "zigux_destination": "zigux/kernel/runtime_loader.zig",
+      "why_now": "A real loadable module entry point, thread creation parity, and tracepoint registration lifecycle still depend on shared runtime substrate pieces that the repo has not started yet."
     }
   ]
 }
