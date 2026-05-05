@@ -16,6 +16,11 @@ pub const ProbeLineRequest = enum {
     output_low,
 };
 
+pub const DescriptorRequestFlags = enum {
+    in,
+    out_low,
+};
+
 pub const ProbeStartMode = enum {
     register_only,
     start_before_register,
@@ -126,6 +131,20 @@ pub const RegistrationHandoffSummary = struct {
     supported_ops: [3]WatchdogOp,
 };
 
+pub const DescriptorPreflightSummary = struct {
+    anchor: []const u8,
+    hw_algo: HardwareAlgorithm,
+    requested_line: ProbeLineRequest,
+    descriptor_flags: DescriptorRequestFlags,
+    descriptor_lookup_required: bool,
+    hw_algo_selected_before_lookup: bool,
+    lookup_precedes_margin_validation: bool,
+    lookup_precedes_always_running_read: bool,
+    lookup_precedes_registration_handoff: bool,
+    blocked_on_live_gpio_lookup: bool,
+    blocked_on_platform_registration: bool,
+};
+
 pub const GpioWatchdogLab = struct {
     const Self = @This();
 
@@ -192,10 +211,6 @@ pub const GpioWatchdogLab = struct {
     }
 
     pub fn probeSummary(self: *const Self, nowayout: bool) ProbeSummary {
-        const requested_line: ProbeLineRequest = switch (self.hw_algo) {
-            .toggle => .input,
-            .level => .output_low,
-        };
         const starts_during_probe = self.always_running;
 
         return .{
@@ -204,7 +219,7 @@ pub const GpioWatchdogLab = struct {
             .hw_margin_ms = self.hw_margin_ms,
             .always_running = self.always_running,
             .nowayout = nowayout,
-            .requested_line = requested_line,
+            .requested_line = self.requestedLine(),
             .start_mode = if (starts_during_probe) .start_before_register else .register_only,
             .starts_during_probe = starts_during_probe,
             .pre_registration_running = starts_during_probe,
@@ -314,6 +329,22 @@ pub const GpioWatchdogLab = struct {
         };
     }
 
+    pub fn descriptorPreflightSummary(self: *const Self) DescriptorPreflightSummary {
+        return .{
+            .anchor = descriptor().anchor,
+            .hw_algo = self.hw_algo,
+            .requested_line = self.requestedLine(),
+            .descriptor_flags = self.descriptorRequestFlags(),
+            .descriptor_lookup_required = true,
+            .hw_algo_selected_before_lookup = true,
+            .lookup_precedes_margin_validation = true,
+            .lookup_precedes_always_running_read = true,
+            .lookup_precedes_registration_handoff = true,
+            .blocked_on_live_gpio_lookup = true,
+            .blocked_on_platform_registration = true,
+        };
+    }
+
     pub fn registrationHandoffSummary(self: *const Self, nowayout: bool) RegistrationHandoffSummary {
         const probe = self.probeSummary(nowayout);
         return .{
@@ -353,6 +384,20 @@ pub const GpioWatchdogLab = struct {
         if (self.hw_algo == .toggle) {
             self.line_is_output = false;
         }
+    }
+
+    fn requestedLine(self: *const Self) ProbeLineRequest {
+        return switch (self.hw_algo) {
+            .toggle => .input,
+            .level => .output_low,
+        };
+    }
+
+    fn descriptorRequestFlags(self: *const Self) DescriptorRequestFlags {
+        return switch (self.hw_algo) {
+            .toggle => .in,
+            .level => .out_low,
+        };
     }
 };
 
