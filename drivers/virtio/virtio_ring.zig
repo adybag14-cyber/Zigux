@@ -155,6 +155,7 @@ pub const VirtioRingLab = struct {
 
     pub fn publishDescriptorChain(self: *Self, queue_index: u16) !void {
         const slot = try self.checkedQueueSlot(queue_index);
+        if (slot.broken) return error.QueueBroken;
         if (slot.outstanding_chain_count == slot.descriptor_count) return error.QueueFull;
 
         slot.avail_idx_shadow +%= 1;
@@ -166,6 +167,7 @@ pub const VirtioRingLab = struct {
         const index = try checkedQueueIndex(queue_index);
         const slot = &self.queues[index];
         if (!slot.active) return error.QueueNotDefined;
+        if (slot.broken) return error.QueueBroken;
 
         const needs_kick = slot.num_added != 0;
         if (needs_kick) {
