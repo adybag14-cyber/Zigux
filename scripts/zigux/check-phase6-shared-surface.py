@@ -73,122 +73,122 @@ REQUIRED_SNIPPETS = {
         "- if the change touches the shared Phase 6 leaf-helper packet, do `Documentation/zigux/README.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, `Documentation/zigux/phase6-base64-slice.md`, `Documentation/zigux/phase6-bsearch-slice.md`, `Documentation/zigux/phase6-checksum-slice.md`, `Documentation/zigux/phase6-hexdump-slice.md`, `scripts/zigux/check-phase6-shared-surface.py`, `zigux/tests/phase6_build.zig`, `zigux/tests/phase6_base64.zig`, `zigux/tests/phase6_bsearch.zig`, `zigux/tests/phase6_checksum.zig`, `zigux/tests/phase6_hexdump.zig`, `zigux/tests/phase6_checksum_perf.zig`, `zigux/Makefile`, `.github/workflows/zigux-bootstrap.yml`, `make -C zigux phase6-validate`, `make -C zigux phase6`, and `make -C zigux phase6-checksum-perf` still agree on the same bundled `base64`, `bsearch`, `checksum`, and `hexdump` helper packet without implying a removed shared `validate-phase6.py`, a broader external parity checker beyond `check-phase6-shared-surface.py`, or an aggregated `phase6-perf` route?",
     ],
     "zigux/tests/phase6_build.zig": [
-        "const test_step = b.step(\"test\", \"Run Phase 6 leaf helper tests\");",
-        ".name = \"phase6-base64-tests\"",
-        ".name = \"phase6-bsearch-tests\"",
-        ".name = \"phase6-checksum-tests\"",
-        ".root_source_file = b.path(\"phase6_checksum_perf.zig\"),",
-        "const checksum_perf_step = b.step(\"phase6-checksum-perf\", \"Run Phase 6 checksum perf gate\");",
-        ".name = \"phase6-hexdump-tests\"",
+        'const test_step = b.step("test", "Run Phase 6 leaf helper tests");',
+        '.name = "phase6-base64-tests"',
+        '.name = "phase6-bsearch-tests"',
+        '.name = "phase6-checksum-tests"',
+        '.root_source_file = b.path("phase6_checksum_perf.zig"),',
+        'const checksum_perf_step = b.step("phase6-checksum-perf", "Run Phase 6 checksum perf gate");',
+        '.name = "phase6-hexdump-tests"',
     ],
     "zigux/tests/phase6_base64.zig": [
-        "test \"phase 6 base64 chars reports exact padded and unpadded lengths\" {",
-        "test \"phase 6 base64 bytes reports exact decoded lengths for kernel-aligned vectors\" {",
-        "const fixtures = @import(\"fixtures/phase6_base64_vectors.zig\");",
-        "for (fixtures.standard_cases) |case| {",
-        "for (fixtures.variant_cases) |case| {",
-        "for (fixtures.standard_decode_cases) |case| {",
-        "for (fixtures.invalid_decode_cases) |case| {",
-        "for (fixtures.variant_decode_cases) |case| {",
-        "test \"phase 6 base64 reports destination bounds before encoding\" {",
-        "test \"phase 6 base64 reports destination bounds before decoding\" {",
+        'test "phase 6 base64 chars reports exact padded and unpadded lengths" {',
+        'test "phase 6 base64 bytes reports exact decoded lengths for kernel-aligned vectors" {',
+        'const fixtures = @import("fixtures/phase6_base64_vectors.zig");',
+        'for (fixtures.standard_cases) |case| {',
+        'for (fixtures.variant_cases) |case| {',
+        'for (fixtures.standard_decode_cases) |case| {',
+        'for (fixtures.invalid_decode_cases) |case| {',
+        'for (fixtures.variant_decode_cases) |case| {',
+        'test "phase 6 base64 reports destination bounds before encoding" {',
+        'test "phase 6 base64 reports destination bounds before decoding" {',
     ],
     "zigux/tests/phase6_bsearch.zig": [
-        "test \"phase 6 bsearch finds integer keys across the slice\" {",
-        "test \"phase 6 bsearch rejects missing integer keys without widening the contract\" {",
-        "test \"phase 6 bsearch honors comparator-driven descending order\" {",
-        "test \"phase 6 bsearch supports string keys against sorted records\" {",
-        "test \"phase 6 bsearch mutable typed lookup supports write-through\" {",
-        "test \"phase 6 bsearch treats duplicate keys as found-or-null without claiming stable selection\" {",
-        "test \"phase 6 bsearch keeps representative work inside a binary-search budget\" {",
-        "test \"phase 6 bsearch raw lookup returns null for empty input without invoking the comparator\" {",
-        "test \"phase 6 bsearch raw lookup keeps representative work inside a binary-search budget\" {",
-        "test \"phase 6 bsearch accepts runtime-selected native comparator pointers\" {",
-        "test \"phase 6 bsearch accepts runtime-selected c abi comparator pointers\" {",
-        "test \"phase 6 bsearch accepts runtime-selected raw native comparator pointers\" {",
-        "test \"phase 6 bsearch mutable raw lookup supports descending write-through\" {",
-        "test \"phase 6 bsearch accepts runtime-selected raw c abi comparator pointers\" {",
-        "test \"phase 6 bsearch mutable raw c abi lookup supports write-through\" {",
+        'test "phase 6 bsearch finds integer keys across the slice" {',
+        'test "phase 6 bsearch rejects missing integer keys without widening the contract" {',
+        'test "phase 6 bsearch honors comparator-driven descending order" {',
+        'test "phase 6 bsearch supports string keys against sorted records" {',
+        'test "phase 6 bsearch mutable typed lookup supports write-through" {',
+        'test "phase 6 bsearch treats duplicate keys as found-or-null without claiming stable selection" {',
+        'test "phase 6 bsearch keeps representative work inside a binary-search budget" {',
+        'test "phase 6 bsearch raw lookup returns null for empty input without invoking the comparator" {',
+        'test "phase 6 bsearch raw lookup keeps representative work inside a binary-search budget" {',
+        'test "phase 6 bsearch accepts runtime-selected native comparator pointers" {',
+        'test "phase 6 bsearch accepts runtime-selected c abi comparator pointers" {',
+        'test "phase 6 bsearch accepts runtime-selected raw native comparator pointers" {',
+        'test "phase 6 bsearch mutable raw lookup supports descending write-through" {',
+        'test "phase 6 bsearch accepts runtime-selected raw c abi comparator pointers" {',
+        'test "phase 6 bsearch mutable raw c abi lookup supports write-through" {',
     ],
     "zigux/tests/phase6_checksum.zig": [
-        "test \"fixture-backed compute parity covers the current checksum vectors\" {",
-        "test \"partial sums compose across the fixture split matrix\" {",
-        "test \"blockSub reverses blockAdd across odd and even fragment boundaries\" {",
-        "test \"seeded partial accumulation matches the fixture-backed reference\" {",
-        "test \"kunit-inspired carry discipline stays stable on the helper surface\" {",
-        "test \"fixture-backed negate cases keep the public checksum helper reviewable\" {",
-        "test \"pseudo header accumulation matches the fixture-backed reference checksum\" {",
-        "test \"incremental checksum replacement helpers match direct recomputation\" {",
+        'test "fixture-backed compute parity covers the current checksum vectors" {',
+        'test "partial sums compose across the fixture split matrix" {',
+        'test "blockSub reverses blockAdd across odd and even fragment boundaries" {',
+        'test "seeded partial accumulation matches the fixture-backed reference" {',
+        'test "kunit-inspired carry discipline stays stable on the helper surface" {',
+        'test "fixture-backed negate cases keep the public checksum helper reviewable" {',
+        'test "pseudo header accumulation matches the fixture-backed reference checksum" {',
+        'test "incremental checksum replacement helpers match direct recomputation" {',
     ],
     "zigux/tests/phase6_hexdump.zig": [
-        "test \"phase 6 hexdump serialized linux-derived vectors stay in sync\" {",
-        "try std.testing.expectEqual(@as(usize, 10), fixtures.parity_cases.len);",
-        "test \"phase 6 hexdump serialized overflow vectors stay in sync\" {",
-        "test \"phase 6 hexdump serialized required-length vectors stay in sync\" {",
-        "try std.testing.expectEqual(@as(usize, 9), fixtures.length_cases.len);",
-        "test \"phase 6 hexdump perf fixture packet stays in sync\" {",
-        "try std.testing.expectEqual(@as(usize, 4), fixtures.perf_cases.len);",
-        "test \"phase 6 hexdump uppercase nibble helpers stay aligned with byte packing\" {",
-        "test \"phase 6 hexdump parity matrix matches kernel fixture preparation\" {",
-        "test \"phase 6 hexdump overflow contract matches truncation expectations\" {",
-        "test \"phase 6 hexdump grouped ASCII output stays intact when buffer capacity is exact\" {",
-        "test \"phase 6 hexdump covers normalization and empty-buffer edge cases\" {",
+        'test "phase 6 hexdump serialized linux-derived vectors stay in sync" {',
+        'try std.testing.expectEqual(@as(usize, 10), fixtures.parity_cases.len);',
+        'test "phase 6 hexdump serialized overflow vectors stay in sync" {',
+        'test "phase 6 hexdump serialized required-length vectors stay in sync" {',
+        'try std.testing.expectEqual(@as(usize, 9), fixtures.length_cases.len);',
+        'test "phase 6 hexdump perf fixture packet stays in sync" {',
+        'try std.testing.expectEqual(@as(usize, 4), fixtures.perf_cases.len);',
+        'test "phase 6 hexdump uppercase nibble helpers stay aligned with byte packing" {',
+        'test "phase 6 hexdump parity matrix matches kernel fixture preparation" {',
+        'test "phase 6 hexdump overflow contract matches truncation expectations" {',
+        'test "phase 6 hexdump grouped ASCII output stays intact when buffer capacity is exact" {',
+        'test "phase 6 hexdump covers normalization and empty-buffer edge cases" {',
     ],
     "zigux/tests/fixtures/phase6_base64_vectors.zig": [
         "const invalid_with_nul = [_]u8{ 'Z', 'g', 0, '=' };",
-        "pub const standard_cases = [_]EncodeCase{",
-        "pub const variant_cases = [_]VariantCase{",
-        "pub const standard_decode_cases = [_]DecodeCase{",
-        ".{ .input = \"Zg==\", .expected = \"f\", .padding = true, .variant_name = \"std\" },",
-        ".{ .input = \"Zm8=\", .expected = \"fo\", .padding = true, .variant_name = \"std\" },",
-        ".{ .input = \"Zg\", .expected = \"f\", .padding = false, .variant_name = \"std\" },",
-        ".{ .input = \"Zm8\", .expected = \"fo\", .padding = false, .variant_name = \"std\" },",
-        "pub const invalid_decode_cases = [_]InvalidDecodeCase{",
-        ".{ .input = \"Zh==\", .padding = true, .variant_name = \"std\" },",
-        ".{ .input = \"Zm9=\", .padding = true, .variant_name = \"std\" },",
-        ".{ .input = invalid_with_nul[0..], .padding = true, .variant_name = \"std\" },",
-        ".{ .input = \"Zh\", .padding = false, .variant_name = \"std\" },",
-        ".{ .input = \"Zm9\", .padding = false, .variant_name = \"std\" },",
-        ".{ .input = invalid_with_nul[0..], .padding = false, .variant_name = \"std\" },",
-        ".{ .input = \"Zg==\", .padding = false, .variant_name = \"urlsafe\" },",
-        ".{ .input = \"Zg==\", .padding = false, .variant_name = \"imap\" },",
-        "pub const variant_decode_cases = [_]DecodeCase{",
-        ".{ .input = \"APv_f4A=\", .expected = &variant_sample, .padding = true, .variant_name = \"urlsafe\" },",
-        ".{ .input = \"APv,f4A=\", .expected = &variant_sample, .padding = true, .variant_name = \"imap\" },",
-        ".{ .input = \"APv_f4A\", .expected = &variant_sample, .padding = false, .variant_name = \"urlsafe\" },",
-        ".{ .input = \"APv,f4A\", .expected = &variant_sample, .padding = false, .variant_name = \"imap\" },",
+        'pub const standard_cases = [_]EncodeCase{',
+        'pub const variant_cases = [_]VariantCase{',
+        'pub const standard_decode_cases = [_]DecodeCase{',
+        '.{ .input = "Zg==", .expected = "f", .padding = true, .variant_name = "std" },',
+        '.{ .input = "Zm8=", .expected = "fo", .padding = true, .variant_name = "std" },',
+        '.{ .input = "Zg", .expected = "f", .padding = false, .variant_name = "std" },',
+        '.{ .input = "Zm8", .expected = "fo", .padding = false, .variant_name = "std" },',
+        'pub const invalid_decode_cases = [_]InvalidDecodeCase{',
+        '.{ .input = "Zh==", .padding = true, .variant_name = "std" },',
+        '.{ .input = "Zm9=", .padding = true, .variant_name = "std" },',
+        '.{ .input = invalid_with_nul[0..], .padding = true, .variant_name = "std" },',
+        '.{ .input = "Zh", .padding = false, .variant_name = "std" },',
+        '.{ .input = "Zm9", .padding = false, .variant_name = "std" },',
+        '.{ .input = invalid_with_nul[0..], .padding = false, .variant_name = "std" },',
+        '.{ .input = "Zg==", .padding = false, .variant_name = "urlsafe" },',
+        '.{ .input = "Zg==", .padding = false, .variant_name = "imap" },',
+        'pub const variant_decode_cases = [_]DecodeCase{',
+        '.{ .input = "APv_f4A=", .expected = &variant_sample, .padding = true, .variant_name = "urlsafe" },',
+        '.{ .input = "APv,f4A=", .expected = &variant_sample, .padding = true, .variant_name = "imap" },',
+        '.{ .input = "APv_f4A", .expected = &variant_sample, .padding = false, .variant_name = "urlsafe" },',
+        '.{ .input = "APv,f4A", .expected = &variant_sample, .padding = false, .variant_name = "imap" },',
     ],
     "zigux/tests/fixtures/phase6_hexdump_vectors.zig": [
-        "pub const perf_cases = [_]PerfCase{",
-        ".label = \"16B-plain-g1\"",
-        ".max_slowdown_pct = 175,",
-        ".label = \"32B-ascii-g2\"",
-        ".max_slowdown_pct = 550,",
-        ".label = \"16B-ascii-g4\"",
-        ".max_slowdown_pct = 550,",
-        ".label = \"16B-ascii-g8\"",
-        ".max_slowdown_pct = 600,",
+        'pub const perf_cases = [_]PerfCase{',
+        '.label = "16B-plain-g1"',
+        '.max_slowdown_pct = 175,',
+        '.label = "32B-ascii-g2"',
+        '.max_slowdown_pct = 550,',
+        '.label = "16B-ascii-g4"',
+        '.max_slowdown_pct = 550,',
+        '.label = "16B-ascii-g8"',
+        '.max_slowdown_pct = 600,',
     ],
     "zigux/tests/phase6_checksum_perf.zig": [
-        "const perf_cases = [_]PerfCase{",
-        ".label = \"64B\"",
-        ".label = \"1501B\"",
-        ".max_slowdown_pct = 150,",
-        "try stdout_writer.interface.print(\"PHASE6_CHECKSUM_PERF_CASE_COUNT={d}\\n\", .{perf_cases.len});",
-        "try stdout_writer.interface.print(\"PHASE6_CHECKSUM_PERF_{s}_THRESHOLD_PCT={d}\\n\", .{ case.label, case.max_slowdown_pct });",
-        "try stdout_writer.interface.print(\"PHASE6_CHECKSUM_PERF={s}\\n\", .{if (failed) \"fail\" else \"pass\"});",
+        'const perf_cases = [_]PerfCase{',
+        '.label = "64B"',
+        '.label = "1501B"',
+        '.max_slowdown_pct = 150,',
+        'try stdout_writer.interface.print("PHASE6_CHECKSUM_PERF_CASE_COUNT={d}\\n", .{perf_cases.len});',
+        'try stdout_writer.interface.print("PHASE6_CHECKSUM_PERF_{s}_THRESHOLD_PCT={d}\\n", .{ case.label, case.max_slowdown_pct });',
+        'try stdout_writer.interface.print("PHASE6_CHECKSUM_PERF={s}\\n", .{if (failed) "fail" else "pass"});',
     ],
     "zigux/Makefile": [
-        "PHONY += phase6-validate phase6-test phase6-checksum-perf phase6",
-        "phase6-validate:\n\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase6-shared-surface.py",
-        "phase6-checksum-perf:\n\tcd $(ZIGUX_ROOT) && $(ZIG) build phase6-checksum-perf --build-file zigux/tests/phase6_build.zig -Doptimize=ReleaseSafe",
-        "phase6: phase6-validate phase6-test",
+        'PHONY += phase6-validate phase6-test phase6-checksum-perf phase6',
+        'phase6-validate:\n\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase6-shared-surface.py',
+        'phase6-checksum-perf:\n\tcd $(ZIGUX_ROOT) && $(ZIG) build phase6-checksum-perf --build-file zigux/tests/phase6_build.zig -Doptimize=ReleaseSafe',
+        'phase6: phase6-validate phase6-test',
     ],
     ".github/workflows/zigux-bootstrap.yml": [
-        "- name: Self-test Phase 6 shared-surface checker\n        run: python3 scripts/zigux/check-phase6-shared-surface.py --self-test",
-        "- name: Check Phase 6 shared surface\n        run: python3 scripts/zigux/check-phase6-shared-surface.py",
-        "- name: Run Phase 6 leaf helper tests\n        run: zig build test --build-file zigux/tests/phase6_build.zig --summary all",
-        "- name: Run Phase 6 checksum perf gate\n        run: zig build phase6-checksum-perf --build-file zigux/tests/phase6_build.zig -Doptimize=ReleaseSafe --summary all",
+        '- name: Self-test Phase 6 shared-surface checker\n        run: python3 scripts/zigux/check-phase6-shared-surface.py --self-test',
+        '- name: Check Phase 6 shared surface\n        run: python3 scripts/zigux/check-phase6-shared-surface.py',
+        '- name: Run Phase 6 leaf helper tests\n        run: zig build test --build-file zigux/tests/phase6_build.zig --summary all',
+        '- name: Run Phase 6 checksum perf gate\n        run: zig build phase6-checksum-perf --build-file zigux/tests/phase6_build.zig -Doptimize=ReleaseSafe --summary all',
     ],
 }
 
@@ -289,7 +289,7 @@ def run_self_test() -> None:
             raise AssertionError("expected Makefile failure")
         makefile.write_text(original_makefile, encoding="utf-8")
 
-        makefile.writeText(
+        makefile.write_text(
             original_makefile.replace(
                 "phase6-checksum-perf:\n\tcd $(ZIGUX_ROOT) && $(ZIG) build phase6-checksum-perf --build-file zigux/tests/phase6_build.zig -Doptimize=ReleaseSafe",
                 "phase6-checksum-bench:\n\tcd $(ZIGUX_ROOT) && $(ZIG) build phase6-checksum-perf --build-file zigux/tests/phase6_build.zig -Doptimize=ReleaseSafe",
@@ -450,8 +450,8 @@ def run_self_test() -> None:
         original_phase6_build = phase6_build.read_text(encoding="utf-8")
         phase6_build.write_text(
             original_phase6_build.replace(
-                "const checksum_perf_step = b.step(\"phase6-checksum-perf\", \"Run Phase 6 checksum perf gate\");",
-                "const checksum_perf_step = b.step(\"phase6-checksum-bench\", \"Run Phase 6 checksum perf gate\");",
+                'const checksum_perf_step = b.step("phase6-checksum-perf", "Run Phase 6 checksum perf gate");',
+                'const checksum_perf_step = b.step("phase6-checksum-bench", "Run Phase 6 checksum perf gate");',
             ),
             encoding="utf-8",
         )
@@ -487,8 +487,8 @@ def run_self_test() -> None:
         original_checksum_test = checksum_test.read_text(encoding="utf-8")
         checksum_test.write_text(
             original_checksum_test.replace(
-                "test \"pseudo header accumulation matches the fixture-backed reference checksum\" {",
-                "test \"pseudo header coverage moved elsewhere\" {",
+                'test "pseudo header accumulation matches the fixture-backed reference checksum" {',
+                'test "pseudo header coverage moved elsewhere" {',
             ),
             encoding="utf-8",
         )
@@ -505,8 +505,8 @@ def run_self_test() -> None:
         original_base64_test = base64_test.read_text(encoding="utf-8")
         base64_test.write_text(
             original_base64_test.replace(
-                "for (fixtures.invalid_decode_cases) |case| {",
-                "for (inline_invalid_decode_cases) |case| {",
+                'for (fixtures.invalid_decode_cases) |case| {',
+                'for (inline_invalid_decode_cases) |case| {',
             ),
             encoding="utf-8",
         )
@@ -521,8 +521,8 @@ def run_self_test() -> None:
 
         base64_test.write_text(
             original_base64_test.replace(
-                "test \"phase 6 base64 chars reports exact padded and unpadded lengths\" {",
-                "test \"phase 6 base64 chars drifted\" {",
+                'test "phase 6 base64 chars reports exact padded and unpadded lengths" {',
+                'test "phase 6 base64 chars drifted" {',
             ),
             encoding="utf-8",
         )
@@ -537,8 +537,8 @@ def run_self_test() -> None:
 
         base64_test.write_text(
             original_base64_test.replace(
-                "test \"phase 6 base64 bytes reports exact decoded lengths for kernel-aligned vectors\" {",
-                "test \"phase 6 base64 bytes length coverage moved elsewhere\" {",
+                'test "phase 6 base64 bytes reports exact decoded lengths for kernel-aligned vectors" {',
+                'test "phase 6 base64 bytes length coverage moved elsewhere" {',
             ),
             encoding="utf-8",
         )
@@ -553,8 +553,8 @@ def run_self_test() -> None:
 
         base64_test.write_text(
             original_base64_test.replace(
-                "test \"phase 6 base64 reports destination bounds before encoding\" {",
-                "test \"phase 6 base64 omits encode bound checks\" {",
+                'test "phase 6 base64 reports destination bounds before encoding" {',
+                'test "phase 6 base64 omits encode bound checks" {',
             ),
             encoding="utf-8",
         )
@@ -569,8 +569,8 @@ def run_self_test() -> None:
 
         base64_test.write_text(
             original_base64_test.replace(
-                "test \"phase 6 base64 reports destination bounds before decoding\" {",
-                "test \"phase 6 base64 omits decode bound checks\" {",
+                'test "phase 6 base64 reports destination bounds before decoding" {',
+                'test "phase 6 base64 omits decode bound checks" {',
             ),
             encoding="utf-8",
         )
@@ -587,8 +587,8 @@ def run_self_test() -> None:
         original_base64_vectors = base64_vectors.read_text(encoding="utf-8")
         base64_vectors.write_text(
             original_base64_vectors.replace(
-                ".{ .input = \"Zg==\", .padding = false, .variant_name = \"urlsafe\" },",
-                ".{ .input = \"Zm9v\", .padding = false, .variant_name = \"urlsafe\" },",
+                '.{ .input = "Zg==", .padding = false, .variant_name = "urlsafe" },',
+                '.{ .input = "Zm9v", .padding = false, .variant_name = "urlsafe" },',
                 1,
             ),
             encoding="utf-8",
@@ -604,8 +604,8 @@ def run_self_test() -> None:
 
         base64_vectors.write_text(
             original_base64_vectors.replace(
-                ".{ .input = \"Zg\", .expected = \"f\", .padding = false, .variant_name = \"std\" },",
-                ".{ .input = \"Zg\", .expected = \"g\", .padding = false, .variant_name = \"std\" },",
+                '.{ .input = "Zg", .expected = "f", .padding = false, .variant_name = "std" },',
+                '.{ .input = "Zg", .expected = "g", .padding = false, .variant_name = "std" },',
                 1,
             ),
             encoding="utf-8",
@@ -621,8 +621,8 @@ def run_self_test() -> None:
 
         base64_vectors.write_text(
             original_base64_vectors.replace(
-                ".{ .input = \"APv,f4A=\", .expected = &variant_sample, .padding = true, .variant_name = \"imap\" },",
-                ".{ .input = \"APv.f4A=\", .expected = &variant_sample, .padding = true, .variant_name = \"imap\" },",
+                '.{ .input = "APv,f4A=", .expected = &variant_sample, .padding = true, .variant_name = "imap" },',
+                '.{ .input = "APv.f4A=", .expected = &variant_sample, .padding = true, .variant_name = "imap" },',
                 1,
             ),
             encoding="utf-8",
@@ -640,8 +640,8 @@ def run_self_test() -> None:
         original_bsearch_test = bsearch_test.read_text(encoding="utf-8")
         bsearch_test.write_text(
             original_bsearch_test.replace(
-                "test \"phase 6 bsearch mutable typed lookup supports write-through\" {",
-                "test \"phase 6 bsearch mutable typed lookup drifted\" {",
+                'test "phase 6 bsearch mutable typed lookup supports write-through" {',
+                'test "phase 6 bsearch mutable typed lookup drifted" {',
             ),
             encoding="utf-8",
         )
@@ -656,8 +656,8 @@ def run_self_test() -> None:
 
         bsearch_test.write_text(
             original_bsearch_test.replace(
-                "test \"phase 6 bsearch treats duplicate keys as found-or-null without claiming stable selection\" {",
-                "test \"phase 6 bsearch duplicate handling drifted\" {",
+                'test "phase 6 bsearch treats duplicate keys as found-or-null without claiming stable selection" {',
+                'test "phase 6 bsearch duplicate handling drifted" {',
             ),
             encoding="utf-8",
         )
@@ -672,8 +672,8 @@ def run_self_test() -> None:
 
         bsearch_test.write_text(
             original_bsearch_test.replace(
-                "test \"phase 6 bsearch mutable raw lookup supports descending write-through\" {",
-                "test \"phase 6 bsearch mutable raw lookup drifted\" {",
+                'test "phase 6 bsearch mutable raw lookup supports descending write-through" {',
+                'test "phase 6 bsearch mutable raw lookup drifted" {',
             ),
             encoding="utf-8",
         )
@@ -688,8 +688,8 @@ def run_self_test() -> None:
 
         bsearch_test.write_text(
             original_bsearch_test.replace(
-                "test \"phase 6 bsearch mutable raw c abi lookup supports write-through\" {",
-                "test \"phase 6 bsearch mutable raw c abi lookup drifted\" {",
+                'test "phase 6 bsearch mutable raw c abi lookup supports write-through" {',
+                'test "phase 6 bsearch mutable raw c abi lookup drifted" {',
             ),
             encoding="utf-8",
         )
@@ -704,8 +704,8 @@ def run_self_test() -> None:
 
         bsearch_test.write_text(
             original_bsearch_test.replace(
-                "test \"phase 6 bsearch rejects missing integer keys without widening the contract\" {",
-                "test \"phase 6 bsearch missing-key drifted\" {",
+                'test "phase 6 bsearch rejects missing integer keys without widening the contract" {',
+                'test "phase 6 bsearch missing-key drifted" {',
             ),
             encoding="utf-8",
         )
@@ -722,8 +722,8 @@ def run_self_test() -> None:
         original_hexdump_test = hexdump_test.read_text(encoding="utf-8")
         hexdump_test.write_text(
             original_hexdump_test.replace(
-                "try std.testing.expectEqual(@as(usize, 4), fixtures.perf_cases.len);",
-                "try std.testing.expectEqual(@as(usize, 3), fixtures.perf_cases.len);",
+                'try std.testing.expectEqual(@as(usize, 4), fixtures.perf_cases.len);',
+                'try std.testing.expectEqual(@as(usize, 3), fixtures.perf_cases.len);',
             ),
             encoding="utf-8",
         )
@@ -738,8 +738,8 @@ def run_self_test() -> None:
 
         hexdump_test.write_text(
             original_hexdump_test.replace(
-                "try std.testing.expectEqual(@as(usize, 10), fixtures.parity_cases.len);",
-                "try std.testing.expectEqual(@as(usize, 11), fixtures.parity_cases.len);",
+                'try std.testing.expectEqual(@as(usize, 10), fixtures.parity_cases.len);',
+                'try std.testing.expectEqual(@as(usize, 11), fixtures.parity_cases.len);',
             ),
             encoding="utf-8",
         )
@@ -756,8 +756,8 @@ def run_self_test() -> None:
         original_hexdump_vectors = hexdump_vectors.read_text(encoding="utf-8")
         hexdump_vectors.write_text(
             original_hexdump_vectors.replace(
-                ".label = \"16B-ascii-g8\"",
-                ".label = \"16B-ascii-g16\"",
+                '.label = "16B-ascii-g8"',
+                '.label = "16B-ascii-g16"',
                 1,
             ),
             encoding="utf-8",
@@ -773,8 +773,8 @@ def run_self_test() -> None:
 
         hexdump_vectors.write_text(
             original_hexdump_vectors.replace(
-                ".max_slowdown_pct = 600,",
-                ".max_slowdown_pct = 650,",
+                '.max_slowdown_pct = 600,',
+                '.max_slowdown_pct = 650,',
                 1,
             ),
             encoding="utf-8",
