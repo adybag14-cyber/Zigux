@@ -109,7 +109,7 @@ REQUIRED_MAKEFILE_MARKERS = [
     "phase11-validate:",
     "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase11-build-inventory.py --self-test",
     "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase11-build-inventory.py",
-    "\tcd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase11_build.zig",
+    "\tcd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase11_build.zig --summary all",
     "phase11: phase11-validate phase11-test phase11-hvc-survey",
 ]
 
