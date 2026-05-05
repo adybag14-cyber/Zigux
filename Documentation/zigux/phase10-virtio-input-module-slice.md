@@ -11,7 +11,8 @@ The starter stays intentionally narrow:
 - models the fixed two-queue plan used by the Linux driver: events and status
 - caps prequeued event buffers to the static 64-entry event pool used by the C driver
 - keeps status sending in-memory only and suppresses `EV_MSC` plus `MSC_TIMESTAMP` loops when multitouch forwarding is enabled
+- reclaims queued status completions in memory through a bounded status-drain helper that leaves suppressed multitouch counters untouched
 
 This slice does not claim MMIO transport work, DMA-facing queue plumbing, input core capability registration, transport-backed config reads, or probe and remove lifecycle parity yet.
 
-The next honest bounded step inside the same lane is to prefer one small validation, survey, manifest, or helper-test truthfulness repair before widening into input-device registration, queue callbacks, or broader transport glue.
+The next honest bounded step inside the same lane is to prefer one small manifest, survey, or helper-test truthfulness repair before widening into input-device registration, queue callbacks, or broader transport glue.
