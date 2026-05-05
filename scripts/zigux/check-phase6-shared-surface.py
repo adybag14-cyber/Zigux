@@ -72,65 +72,71 @@ REQUIRED_SNIPPETS = {
         "- if the change touches the shared Phase 6 leaf-helper packet, do `Documentation/zigux/README.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, `Documentation/zigux/phase6-base64-slice.md`, `Documentation/zigux/phase6-bsearch-slice.md`, `Documentation/zigux/phase6-checksum-slice.md`, `Documentation/zigux/phase6-hexdump-slice.md`, `scripts/zigux/check-phase6-shared-surface.py`, `zigux/tests/phase6_build.zig`, `zigux/tests/phase6_base64.zig`, `zigux/tests/phase6_bsearch.zig`, `zigux/tests/phase6_checksum.zig`, `zigux/tests/phase6_hexdump.zig`, `zigux/tests/phase6_checksum_perf.zig`, `zigux/Makefile`, `.github/workflows/zigux-bootstrap.yml`, `make -C zigux phase6-validate`, `make -C zigux phase6`, and `make -C zigux phase6-checksum-perf` still agree on the same bundled `base64`, `bsearch`, `checksum`, and `hexdump` helper packet without implying a removed shared `validate-phase6.py`, a broader external parity checker beyond `check-phase6-shared-surface.py`, or an aggregated `phase6-perf` route?",
     ],
     "zigux/tests/phase6_build.zig": [
-        'const test_step = b.step("test", "Run Phase 6 leaf helper tests");',
-        '.name = "phase6-base64-tests"',
-        '.name = "phase6-bsearch-tests"',
-        '.name = "phase6-checksum-tests"',
-        '.root_source_file = b.path("phase6_checksum_perf.zig"),',
-        'const checksum_perf_step = b.step("phase6-checksum-perf", "Run Phase 6 checksum perf gate");',
-        '.name = "phase6-hexdump-tests"',
+        "const test_step = b.step(\"test\", \"Run Phase 6 leaf helper tests\");",
+        ".name = \"phase6-base64-tests\"",
+        ".name = \"phase6-bsearch-tests\"",
+        ".name = \"phase6-checksum-tests\"",
+        ".root_source_file = b.path(\"phase6_checksum_perf.zig\"),",
+        "const checksum_perf_step = b.step(\"phase6-checksum-perf\", \"Run Phase 6 checksum perf gate\");",
+        ".name = \"phase6-hexdump-tests\"",
     ],
     "zigux/tests/phase6_base64.zig": [
-        'const fixtures = @import("fixtures/phase6_base64_vectors.zig");',
-        'for (fixtures.standard_cases) |case| {',
-        'for (fixtures.variant_cases) |case| {',
-        'for (fixtures.standard_decode_cases) |case| {',
-        'for (fixtures.invalid_decode_cases) |case| {',
-        'for (fixtures.variant_decode_cases) |case| {',
-        'test "phase 6 base64 reports destination bounds before encoding" {',
-        'test "phase 6 base64 reports destination bounds before decoding" {',
+        "const fixtures = @import(\"fixtures/phase6_base64_vectors.zig\");",
+        "for (fixtures.standard_cases) |case| {",
+        "for (fixtures.variant_cases) |case| {",
+        "for (fixtures.standard_decode_cases) |case| {",
+        "for (fixtures.invalid_decode_cases) |case| {",
+        "for (fixtures.variant_decode_cases) |case| {",
+        "test \"phase 6 base64 reports destination bounds before encoding\" {",
+        "test \"phase 6 base64 reports destination bounds before decoding\" {",
     ],
     "zigux/tests/phase6_bsearch.zig": [
-        'test "phase 6 bsearch honors comparator-driven descending order" {',
-        'test "phase 6 bsearch supports string keys against sorted records" {',
-        'test "phase 6 bsearch keeps representative work inside a binary-search budget" {',
-        'test "phase 6 bsearch raw lookup returns null for empty input without invoking the comparator" {',
-        'test "phase 6 bsearch raw lookup keeps representative work inside a binary-search budget" {',
-        'test "phase 6 bsearch accepts runtime-selected native comparator pointers" {',
-        'test "phase 6 bsearch accepts runtime-selected c abi comparator pointers" {',
-        'test "phase 6 bsearch accepts runtime-selected raw native comparator pointers" {',
-        'test "phase 6 bsearch accepts runtime-selected raw c abi comparator pointers" {',
+        "test \"phase 6 bsearch finds integer keys across the slice\" {",
+        "test \"phase 6 bsearch rejects missing integer keys without widening the contract\" {",
+        "test \"phase 6 bsearch honors comparator-driven descending order\" {",
+        "test \"phase 6 bsearch supports string keys against sorted records\" {",
+        "test \"phase 6 bsearch mutable typed lookup supports write-through\" {",
+        "test \"phase 6 bsearch treats duplicate keys as found-or-null without claiming stable selection\" {",
+        "test \"phase 6 bsearch keeps representative work inside a binary-search budget\" {",
+        "test \"phase 6 bsearch raw lookup returns null for empty input without invoking the comparator\" {",
+        "test \"phase 6 bsearch raw lookup keeps representative work inside a binary-search budget\" {",
+        "test \"phase 6 bsearch accepts runtime-selected native comparator pointers\" {",
+        "test \"phase 6 bsearch accepts runtime-selected c abi comparator pointers\" {",
+        "test \"phase 6 bsearch accepts runtime-selected raw native comparator pointers\" {",
+        "test \"phase 6 bsearch mutable raw lookup supports descending write-through\" {",
+        "test \"phase 6 bsearch accepts runtime-selected raw c abi comparator pointers\" {",
+        "test \"phase 6 bsearch mutable raw c abi lookup supports write-through\" {",
     ],
     "zigux/tests/phase6_checksum.zig": [
-        'test "fixture-backed compute parity covers the current checksum vectors" {',
-        'test "partial sums compose across the fixture split matrix" {',
-        'test "blockSub reverses blockAdd across odd and even fragment boundaries" {',
-        'test "seeded partial accumulation matches the fixture-backed reference" {',
-        'test "kunit-inspired carry discipline stays stable on the helper surface" {',
-        'test "fixture-backed negate cases keep the public checksum helper reviewable" {',
-        'test "pseudo header accumulation matches the fixture-backed reference checksum" {',
-        'test "incremental checksum replacement helpers match direct recomputation" {',
+        "test \"fixture-backed compute parity covers the current checksum vectors\" {",
+        "test \"partial sums compose across the fixture split matrix\" {",
+        "test \"blockSub reverses blockAdd across odd and even fragment boundaries\" {",
+        "test \"seeded partial accumulation matches the fixture-backed reference\" {",
+        "test \"kunit-inspired carry discipline stays stable on the helper surface\" {",
+        "test \"fixture-backed negate cases keep the public checksum helper reviewable\" {",
+        "test \"pseudo header accumulation matches the fixture-backed reference checksum\" {",
+        "test \"incremental checksum replacement helpers match direct recomputation\" {",
     ],
     "zigux/tests/phase6_hexdump.zig": [
-        'test "phase 6 hexdump serialized linux-derived vectors stay in sync" {',
-        'try std.testing.expectEqual(@as(usize, 10), fixtures.parity_cases.len);',
-        'test "phase 6 hexdump serialized overflow vectors stay in sync" {',
-        'test "phase 6 hexdump serialized required-length vectors stay in sync" {',
-        'try std.testing.expectEqual(@as(usize, 9), fixtures.length_cases.len);',
-        'test "phase 6 hexdump perf fixture packet stays in sync" {',
-        'try std.testing.expectEqual(@as(usize, 4), fixtures.perf_cases.len);',
-        'test "phase 6 hexdump uppercase nibble helpers stay aligned with byte packing" {',
-        'test "phase 6 hexdump parity matrix matches kernel fixture preparation" {',
-        'test "phase 6 hexdump overflow contract matches truncation expectations" {',
-        'test "phase 6 hexdump grouped ASCII output stays intact when buffer capacity is exact" {',
-        'test "phase 6 hexdump covers normalization and empty-buffer edge cases" {',
+        "test \"phase 6 hexdump serialized linux-derived vectors stay in sync\" {",
+        "try std.testing.expectEqual(@as(usize, 10), fixtures.parity_cases.len);",
+        "test \"phase 6 hexdump serialized overflow vectors stay in sync\" {",
+        "test \"phase 6 hexdump serialized required-length vectors stay in sync\" {",
+        "try std.testing.expectEqual(@as(usize, 9), fixtures.length_cases.len);",
+        "test \"phase 6 hexdump perf fixture packet stays in sync\" {",
+        "try std.testing.expectEqual(@as(usize, 4), fixtures.perf_cases.len);",
+        "test \"phase 6 hexdump uppercase nibble helpers stay aligned with byte packing\" {",
+        "test \"phase 6 hexdump parity matrix matches kernel fixture preparation\" {",
+        "test \"phase 6 hexdump overflow contract matches truncation expectations\" {",
+        "test \"phase 6 hexdump grouped ASCII output stays intact when buffer capacity is exact\" {",
+        "test \"phase 6 hexdump covers normalization and empty-buffer edge cases\" {",
     ],
     "zigux/tests/fixtures/phase6_base64_vectors.zig": [
-        'const invalid_with_nul = [_]u8{ \'Z\', \'g\', 0, \'=\' };',
-        'pub const standard_cases = [_]EncodeCase{',
-        'pub const variant_cases = [_]VariantCase{',
-        'pub const standard_decode_cases = [_]DecodeCase{',
-        'pub const invalid_decode_cases = [_]InvalidDecodeCase{',
+        "const invalid_with_nul = [_]u8{ 'Z', 'g', 0, '=' };",
+        "pub const standard_cases = [_]EncodeCase{",
+        "pub const variant_cases = [_]VariantCase{",
+        "pub const standard_decode_cases = [_]DecodeCase{",
+        "pub const invalid_decode_cases = [_]InvalidDecodeCase{",
         '.{ .input = "Zh==", .padding = true, .variant_name = "std" },',
         '.{ .input = "Zm9=", .padding = true, .variant_name = "std" },',
         '.{ .input = invalid_with_nul[0..], .padding = true, .variant_name = "std" },',
@@ -139,7 +145,7 @@ REQUIRED_SNIPPETS = {
         '.{ .input = invalid_with_nul[0..], .padding = false, .variant_name = "std" },',
         '.{ .input = "Zg==", .padding = false, .variant_name = "urlsafe" },',
         '.{ .input = "Zg==", .padding = false, .variant_name = "imap" },',
-        'pub const variant_decode_cases = [_]DecodeCase{',
+        "pub const variant_decode_cases = [_]DecodeCase{",
     ],
     "zigux/tests/fixtures/phase6_hexdump_vectors.zig": [
         "pub const perf_cases = [_]PerfCase{",
@@ -272,6 +278,7 @@ def run_self_test() -> None:
             raise AssertionError("expected Makefile failure")
         makefile.write_text(original_makefile, encoding="utf-8")
 
+        makefile.writeText = None
         makefile.write_text(
             original_makefile.replace(
                 'phase6-checksum-perf:\n\tcd $(ZIGUX_ROOT) && $(ZIG) build phase6-checksum-perf --build-file zigux/tests/phase6_build.zig -Doptimize=ReleaseSafe',
@@ -541,8 +548,8 @@ def run_self_test() -> None:
         original_bsearch_test = bsearch_test.read_text(encoding="utf-8")
         bsearch_test.write_text(
             original_bsearch_test.replace(
-                'test "phase 6 bsearch accepts runtime-selected raw c abi comparator pointers" {',
-                'test "phase 6 bsearch accepts raw comparator pointers" {',
+                'test "phase 6 bsearch mutable typed lookup supports write-through" {',
+                'test "phase 6 bsearch mutable typed lookup drifted" {',
             ),
             encoding="utf-8",
         )
@@ -550,9 +557,73 @@ def run_self_test() -> None:
             run_checks(root)
         except ValidationError as exc:
             if "zigux/tests/phase6_bsearch.zig" not in str(exc):
-                raise AssertionError(f"unexpected bsearch test failure: {exc}") from exc
+                raise AssertionError(f"unexpected bsearch mutable typed failure: {exc}") from exc
         else:
-            raise AssertionError("expected bsearch test failure")
+            raise AssertionError("expected bsearch mutable typed failure")
+        bsearch_test.write_text(original_bsearch_test, encoding="utf-8")
+
+        bsearch_test.write_text(
+            original_bsearch_test.replace(
+                'test "phase 6 bsearch treats duplicate keys as found-or-null without claiming stable selection" {',
+                'test "phase 6 bsearch duplicate handling drifted" {',
+            ),
+            encoding="utf-8",
+        )
+        try:
+            run_checks(root)
+        except ValidationError as exc:
+            if "zigux/tests/phase6_bsearch.zig" not in str(exc):
+                raise AssertionError(f"unexpected bsearch duplicate failure: {exc}") from exc
+        else:
+            raise AssertionError("expected bsearch duplicate failure")
+        bsearch_test.write_text(original_bsearch_test, encoding="utf-8")
+
+        bsearch_test.write_text(
+            original_bsearch_test.replace(
+                'test "phase 6 bsearch mutable raw lookup supports descending write-through" {',
+                'test "phase 6 bsearch mutable raw lookup drifted" {',
+            ),
+            encoding="utf-8",
+        )
+        try:
+            run_checks(root)
+        except ValidationError as exc:
+            if "zigux/tests/phase6_bsearch.zig" not in str(exc):
+                raise AssertionError(f"unexpected bsearch mutable raw failure: {exc}") from exc
+        else:
+            raise AssertionError("expected bsearch mutable raw failure")
+        bsearch_test.write_text(original_bsearch_test, encoding="utf-8")
+
+        bsearch_test.write_text(
+            original_bsearch_test.replace(
+                'test "phase 6 bsearch mutable raw c abi lookup supports write-through" {',
+                'test "phase 6 bsearch mutable raw c abi lookup drifted" {',
+            ),
+            encoding="utf-8",
+        )
+        try:
+            run_checks(root)
+        except ValidationError as exc:
+            if "zigux/tests/phase6_bsearch.zig" not in str(exc):
+                raise AssertionError(f"unexpected bsearch mutable raw c abi failure: {exc}") from exc
+        else:
+            raise AssertionError("expected bsearch mutable raw c abi failure")
+        bsearch_test.write_text(original_bsearch_test, encoding="utf-8")
+
+        bsearch_test.write_text(
+            original_bsearch_test.replace(
+                'test "phase 6 bsearch rejects missing integer keys without widening the contract" {',
+                'test "phase 6 bsearch missing-key drifted" {',
+            ),
+            encoding="utf-8",
+        )
+        try:
+            run_checks(root)
+        except ValidationError as exc:
+            if "zigux/tests/phase6_bsearch.zig" not in str(exc):
+                raise AssertionError(f"unexpected bsearch missing-key failure: {exc}") from exc
+        else:
+            raise AssertionError("expected bsearch missing-key failure")
         bsearch_test.write_text(original_bsearch_test, encoding="utf-8")
 
         hexdump_test = root / "zigux/tests/phase6_hexdump.zig"
