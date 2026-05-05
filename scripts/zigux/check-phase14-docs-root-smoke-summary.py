@@ -69,7 +69,9 @@ RELEASE_BOUNDARY_LINES = [
     "PHASE14_RELEASE_CLOSED=no",
     "shared smoke packet: `Documentation/zigux/phase14-end-to-end-smoke-survey.md`, `Documentation/zigux/phase14-release-boundary-survey.md`, `zigux/tests/phase14_end_to_end_smoke_manifest.json`, `scripts/zigux/check-phase14-docs-root-smoke-summary.py`, `scripts/zigux/check-phase14-release-boundary-exact-counts.py`, `scripts/zigux/validate-phase14.py`, `make -C zigux phase14-validate`, `make -C zigux phase14-smoke`, `zig build phase14-smoke --build-file zigux/tests/phase14_build.zig --summary all`, and `zig build test --build-file zigux/tests/phase14_build.zig --summary all` now keep the four-anchor boundary map, the focused smoke shard, and the shared full-bundle replay explicit from a study-only posture",
     "compile-shard matrix: one focused `phase14-smoke` shard still covers only `phase14-end-to-end-smoke-tests`, while `phase14-workqueue-bridge-tests`, `phase14-skbuff-bridge-tests`, `phase14-ring-buffer-survey-tests`, and `phase14-rcu-tree-survey-tests` remain `full_bundle_only` under `zig build test --build-file zigux/tests/phase14_build.zig --summary all`",
+    "bounded-internal sequencing guard: only `kernel/workqueue.c` and `kernel/trace/ring_buffer.c` remain eligible for same-phase bounded follow-up inside the current Phase 14 study packet, while `net/core/skbuff.c` and `kernel/rcu/tree.c` stay governed by the Phase 15 freeze-in-C packet and are not bounded-internal next-step lanes",
     "combined shared replay entrypoint: `make -C zigux phase14` remains the published convenience route for the validator-backed smoke packet, so release-facing review and local replay still name the same one-command path as the shared smoke note and manifest instead of leaving that wrapper path implicit in `zigux/Makefile`",
+    "wrapper-backed full-bundle replay: `make -C zigux phase14-test` remains the smallest make-surface route for the shared full-bundle compile matrix, so release-facing review can name the same wrapper-backed internal-bridge replay that `zigux/Makefile` and `Documentation/zigux/phase14-end-to-end-smoke-survey.md` already publish instead of relying only on the raw `zig build test --build-file zigux/tests/phase14_build.zig --summary all` command",
     "PHASE14_SHARED_SMOKE_GATE_COUNT=1",
     "PHASE14_ACTIVE_DELIVERY_GATE_COUNT=0",
 ]
@@ -228,7 +230,9 @@ Phase 14 flow
 - PHASE14_RELEASE_CLOSED=no
 - shared smoke packet: `Documentation/zigux/phase14-end-to-end-smoke-survey.md`, `Documentation/zigux/phase14-release-boundary-survey.md`, `zigux/tests/phase14_end_to_end_smoke_manifest.json`, `scripts/zigux/check-phase14-docs-root-smoke-summary.py`, `scripts/zigux/check-phase14-release-boundary-exact-counts.py`, `scripts/zigux/validate-phase14.py`, `make -C zigux phase14-validate`, `make -C zigux phase14-smoke`, `zig build phase14-smoke --build-file zigux/tests/phase14_build.zig --summary all`, and `zig build test --build-file zigux/tests/phase14_build.zig --summary all` now keep the four-anchor boundary map, the focused smoke shard, and the shared full-bundle replay explicit from a study-only posture
 - compile-shard matrix: one focused `phase14-smoke` shard still covers only `phase14-end-to-end-smoke-tests`, while `phase14-workqueue-bridge-tests`, `phase14-skbuff-bridge-tests`, `phase14-ring-buffer-survey-tests`, and `phase14-rcu-tree-survey-tests` remain `full_bundle_only` under `zig build test --build-file zigux/tests/phase14_build.zig --summary all`
+- bounded-internal sequencing guard: only `kernel/workqueue.c` and `kernel/trace/ring_buffer.c` remain eligible for same-phase bounded follow-up inside the current Phase 14 study packet, while `net/core/skbuff.c` and `kernel/rcu/tree.c` stay governed by the Phase 15 freeze-in-C packet and are not bounded-internal next-step lanes
 - combined shared replay entrypoint: `make -C zigux phase14` remains the published convenience route for the validator-backed smoke packet, so release-facing review and local replay still name the same one-command path as the shared smoke note and manifest instead of leaving that wrapper path implicit in `zigux/Makefile`
+- wrapper-backed full-bundle replay: `make -C zigux phase14-test` remains the smallest make-surface route for the shared full-bundle compile matrix, so release-facing review can name the same wrapper-backed internal-bridge replay that `zigux/Makefile` and `Documentation/zigux/phase14-end-to-end-smoke-survey.md` already publish instead of relying only on the raw `zig build test --build-file zigux/tests/phase14_build.zig --summary all` command
 - PHASE14_SHARED_SMOKE_GATE_COUNT=1
 - PHASE14_ACTIVE_DELIVERY_GATE_COUNT=0
 """.strip()
@@ -359,6 +363,30 @@ phase14: phase14-validate phase14-test
         release_boundary_text,
         makefile_text,
     )
+    missing_bounded_internal_guard = validate_phase14_summary_surfaces(
+        docs_root_text,
+        tests_root_text,
+        scripts_readme_text,
+        survey_text,
+        release_boundary_text.replace(
+            "- bounded-internal sequencing guard: only `kernel/workqueue.c` and `kernel/trace/ring_buffer.c` remain eligible for same-phase bounded follow-up inside the current Phase 14 study packet, while `net/core/skbuff.c` and `kernel/rcu/tree.c` stay governed by the Phase 15 freeze-in-C packet and are not bounded-internal next-step lanes\n",
+            "",
+            1,
+        ),
+        makefile_text,
+    )
+    missing_wrapper_backed_full_bundle = validate_phase14_summary_surfaces(
+        docs_root_text,
+        tests_root_text,
+        scripts_readme_text,
+        survey_text,
+        release_boundary_text.replace(
+            "- wrapper-backed full-bundle replay: `make -C zigux phase14-test` remains the smallest make-surface route for the shared full-bundle compile matrix, so release-facing review can name the same wrapper-backed internal-bridge replay that `zigux/Makefile` and `Documentation/zigux/phase14-end-to-end-smoke-survey.md` already publish instead of relying only on the raw `zig build test --build-file zigux/tests/phase14_build.zig --summary all` command\n",
+            "",
+            1,
+        ),
+        makefile_text,
+    )
     if (
         good
         or not missing_entrypoint
@@ -370,12 +398,14 @@ phase14: phase14-validate phase14-test
         or not stray_boundary_entry
         or not missing_phase14_test_entrypoint
         or not missing_phase14_test_gate
+        or not missing_bounded_internal_guard
+        or not missing_wrapper_backed_full_bundle
     ):
         print("PHASE14_DOCS_ROOT_SMOKE_SUMMARY_SELF_TEST=fail")
         return 1
 
     print("PHASE14_DOCS_ROOT_SMOKE_SUMMARY_SELF_TEST=pass")
-    print("PHASE14_DOCS_ROOT_SMOKE_SUMMARY_SELF_TEST_CASE_COUNT=10")
+    print("PHASE14_DOCS_ROOT_SMOKE_SUMMARY_SELF_TEST_CASE_COUNT=12")
     return 0
 
 
