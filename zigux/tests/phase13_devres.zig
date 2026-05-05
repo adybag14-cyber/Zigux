@@ -1,5 +1,10 @@
 const std = @import("std");
 const devres = @import("devres");
+const manifest_text = @embedFile("phase13_devres_manifest.json");
+
+fn expectContains(haystack: []const u8, needle: []const u8) !void {
+    try std.testing.expect(std.mem.indexOf(u8, haystack, needle) != null);
+}
 
 test "phase13 devres descriptor stays anchored to lib/devres.c" {
     const descriptor = devres.DevresHelperLab.descriptor();
@@ -410,4 +415,14 @@ test "phase13 devres rejects memtype planning when the release record cannot be 
         .release_record_allocated = false,
         .reserve_result = 0,
     }));
+}
+
+test "phase13 devres manifest records the current iomap mmio safety packet" {
+    try expectContains(manifest_text, "\"lane_key\": \"P13-L03\"");
+    try expectContains(manifest_text, "\"surveyed_commit\": \"2964efeee67f9ff93656196d755bbc022683c046\"");
+    try expectContains(manifest_text, "\"descriptor_keeps_live_mmio_blocked\": true");
+    try expectContains(manifest_text, "\"phase13_devres_test_replays_iomap_failures\": true");
+    try expectContains(manifest_text, "\"phase13_devres_test_replays_wc_memtype_reservation\": true");
+    try expectContains(manifest_text, "\"status\": \"blocked_on_live_mmio_state\"");
+    try expectContains(manifest_text, "\"status\": \"not_claimed_on_current_master\"");
 }
