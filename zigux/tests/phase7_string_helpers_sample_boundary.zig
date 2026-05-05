@@ -63,4 +63,14 @@ test "phase 7 helper packet keeps the dedicated sample-boundary guard wired" {
     try expectContains(build_file, "setCwd(b.path(\"../..\"))");
     try expectNotContains(build_file, "\"phase7_string_helpers_sample.zig\"");
     try expectNotContains(build_file, "\"phase7-string-helpers-sample-tests\"");
+
+    const tests_readme = try readRepoFile(allocator, "zigux/tests/README.md");
+    defer allocator.free(tests_readme);
+    try expectContains(tests_readme, "zigux/tests/phase7_string_helpers_sample_boundary.zig");
+    try expectContains(tests_readme, "the dedicated `zigux/tests/phase7_string_helpers_sample_boundary.zig` boundary replay");
+
+    const scripts_readme = try readRepoFile(allocator, "scripts/zigux/README.md");
+    defer allocator.free(scripts_readme);
+    try expectContains(scripts_readme, "zigux/tests/phase7_string_helpers_sample_boundary.zig");
+    try expectContains(scripts_readme, "there is no separate shared `check-phase7-build-inventory.py`, `phase7_build_inventory.json`, or broader packet-checker stack on `master`;");
 }
