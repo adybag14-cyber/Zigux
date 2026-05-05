@@ -87,6 +87,7 @@ REQUIRED_FIND_BIT_TEST_ANCHORS = [
     'test "find and bit returns the first shared set bit"',
     'test "tail mask ignores set bits beyond nbits"',
     'test "tail mask ignores zero bits beyond nbits"',
+    'test "tail mask ignores shared bits beyond nbits"',
 ]
 
 REQUIRED_BITMAP_TEST_ANCHORS = [
@@ -337,6 +338,17 @@ def run_self_test() -> None:
         )
 
         make_fixture_root(tmp_root)
+        find_bit_path.write_text(
+            "\n".join(REQUIRED_FIND_BIT_TEST_ANCHORS[:-1]) + "\n",
+            encoding="utf-8",
+        )
+        missing_markers = collect_missing_markers(tmp_root)
+        assert (
+            'find_bit_test_anchor:test "tail mask ignores shared bits beyond nbits":expected=1:actual=0'
+            in missing_markers
+        )
+
+        make_fixture_root(tmp_root)
         bitmap_path = tmp_root / "tools" / "lib" / "bitmap.zig"
         bitmap_path.write_text("\n".join(REQUIRED_BITMAP_TEST_ANCHORS[1:]) + "\n", encoding="utf-8")
         missing_markers = collect_missing_markers(tmp_root)
@@ -394,7 +406,7 @@ def run_self_test() -> None:
         )
 
         print("PHASE1_VALIDATION_SELF_TEST=pass")
-        print("PHASE1_VALIDATION_SELF_TEST_CASE_COUNT=17")
+        print("PHASE1_VALIDATION_SELF_TEST_CASE_COUNT=18")
 
 
 def main() -> int:
