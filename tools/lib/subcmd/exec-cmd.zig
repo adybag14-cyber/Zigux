@@ -288,9 +288,10 @@ pub fn setupPath(
     );
     defer allocator.free(argv_exec_path);
 
+    const effective_cwd = choosePwdCwdFromFilesystem(cwd, env.get("PWD"));
     const new_path = try buildSearchPath(
         allocator,
-        cwd,
+        effective_cwd,
         argv_exec_path,
         state.argv0_path,
         env.get("PATH"),
@@ -573,6 +574,58 @@ test "setupPath updates PATH using stored exec path, argv0 path, and fallback de
         fallback,
     );
     try std.testing.expectEqualStrings(fallback, fallback_env.get("PATH").?);
+}
+
+test "setupPath preserves the C helper's logical PWD alias when PATH entries are relative" {
+    const linux = std.os.linux;
+    var root_buf: [std.posix.PATH_MAX]u8 = undefined;
+    const root = try std.fmt.bufPrintZ(&root_buf, "/tmp/zigux-p8-l02-{d}", .{linux.getpid()});
+    try std.testing.expectEqual(.SUCCESS, linux.errno(linux.mkdirat(linux.AT.FDCWD, root, 0o755)));
+    defer _ = linux.rmdir(root);
+
+    var repo_buf: [std.posix.PATH_MAX]u8 = undefined;
+    const repo = try std.fmt.bufPrintZ(&repo_buf, "{s}/repo", .{root});
+    try std.testing.expectEqual(.SUCCESS, linux.errno(linux.mkdirat(linux.AT.FDCWD, repo, 0o755)));
+    defer _ = linux.rmdir(repo);
+
+    var link_buf: [std.posix.PATH_MAX]u8 = undefined;
+    const link = try std.fmt.bufPrintZ(&link_buf, "{s}/repo-link", .{root});
+    try std.testing.expectEqual(.SUCCESS, linux.errno(linux.symlinkat(repo, linux.AT.FDCWD, link)));
+    defer _ = linux.unlinkat(linux.AT.FDCWD, link, 0);
+
+    const cwd = repo[0..repo.len];
+    const logical_pwd = link[0..link.len];
+
+    const config = Config{
+        .exec_name = "perf",
+        .prefix = "/usr/libexec/perf-core",
+        .exec_path = "libexec/perf-core",
+        .exec_path_env = "PERF_EXEC_PATH",
+    };
+
+    var env = EnvMap.init(std.testing.allocator);
+    defer env.deinit();
+
+    var state = ExecCmdState{};
+    defer state.deinit(std.testing.allocator);
+
+    try execCmdInit(&env, config);
+    try setArgvExecPath(std.testing.allocator, &env, &state, config, "tools/bin");
+    try setArgv0Path(std.testing.allocator, &state, "scripts");
+    try env.set("PWD", logical_pwd);
+    try env.set("PATH", "/usr/bin:/bin");
+
+    const updated = try setupPath(std.testing.allocator, &env, state, config, cwd);
+    defer std.testing.allocator.free(updated);
+
+    const expected = try std.fmt.allocPrint(
+        std.testing.allocator,
+        "{s}/tools/bin:{s}/scripts:/usr/bin:/bin",
+        .{ logical_pwd, logical_pwd },
+    );
+    defer std.testing.allocator.free(expected);
+
+    try std.testing.expectEqualStrings(expected, updated);
 }
 
 test "setupPath preserves the C helper's trailing colon when PATH is set to an empty string" {
