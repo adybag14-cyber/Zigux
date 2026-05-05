@@ -30,6 +30,7 @@ REQUIRED_HELPERS = (
     "validate-phase4.py",
     "check-phase6-shared-surface.py",
     "check-phase9-build-only-surface.py",
+    "check-phase10-core-packet.py",
     "check-build-only-phase12-surface.py",
     "validate-phase13-release.py",
     "check-phase13-devres-packet.py",
