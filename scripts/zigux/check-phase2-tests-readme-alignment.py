@@ -10,6 +10,8 @@ ROOT = Path(__file__).resolve().parents[2]
 
 REQUIRED_FILES = [
     "Documentation/zigux/README.md",
+    "Documentation/zigux/phase2-toolchain-bootstrap-notes.md",
+    "Documentation/zigux/phase2-closure.md",
     "Documentation/zigux/review-checklist.md",
     "scripts/zigux/README.md",
     "scripts/zigux/check-phase2-tests-readme-alignment.py",
@@ -17,8 +19,12 @@ REQUIRED_FILES = [
     "scripts/zigux/validate-phase2-closure.py",
     "scripts/zigux/install-zig.py",
     "scripts/zigux/check-zig-toolchain.py",
+    "scripts/zigux/check-phase2-cross.py",
+    "scripts/zigux/check-phase2-cross-selftest-alignment.py",
+    "scripts/zigux/check-phase2-toolchain-pin-scope.py",
     "zigux/Makefile",
     "zigux/tests/README.md",
+    "zigux/tests/fixtures/phase2_cross_targets.json",
 ]
 
 DOCS_ROOT_MARKERS = [
@@ -40,6 +46,8 @@ REVIEW_CHECKLIST_MARKERS = [
 ]
 
 SCRIPTS_README_MARKERS = [
+    "check-zig-toolchain.py",
+    "install-zig.py",
     "check-phase2-tests-readme-alignment.py",
     "validate-phase2.py",
     "validate-phase2-closure.py",
@@ -164,8 +172,23 @@ def run_self_test() -> int:
         issues = validate_root(root)
         assert "missing_file:scripts/zigux/check-phase2-tests-readme-alignment.py" in issues
 
+        build_self_test_root(root)
+        (root / "Documentation/zigux/phase2-toolchain-bootstrap-notes.md").unlink()
+        issues = validate_root(root)
+        assert "missing_file:Documentation/zigux/phase2-toolchain-bootstrap-notes.md" in issues
+
+        build_self_test_root(root)
+        (root / "scripts/zigux/check-zig-toolchain.py").unlink()
+        issues = validate_root(root)
+        assert "missing_file:scripts/zigux/check-zig-toolchain.py" in issues
+
+        build_self_test_root(root)
+        (root / "zigux/tests/fixtures/phase2_cross_targets.json").unlink()
+        issues = validate_root(root)
+        assert "missing_file:zigux/tests/fixtures/phase2_cross_targets.json" in issues
+
     print("PHASE2_TESTS_README_ALIGNMENT_SELF_TEST=pass")
-    print("PHASE2_TESTS_README_ALIGNMENT_SELF_TEST_CASE_COUNT=5")
+    print("PHASE2_TESTS_README_ALIGNMENT_SELF_TEST_CASE_COUNT=7")
     return 0
 
 
