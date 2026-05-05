@@ -12,7 +12,7 @@ PHONY += phase11-contract phase11-test phase11-hvc-survey phase11
 PHONY += phase12-smoke
 PHONY += phase12-test phase12
 PHONY += phase13-validate phase13-test phase13
-PHONY += phase14-smoke phase14-test phase14
+PHONY += phase14-validate phase14-smoke phase14-test phase14
 PHONY += phase15-validate phase15-test phase15
 
 PYTHON ?= python3
@@ -215,13 +215,16 @@ phase13-test:
 
 phase13: phase13-validate phase13-test
 
+phase14-validate:
+	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase14.py
+
 phase14-smoke:
 	cd $(ZIGUX_ROOT) && $(ZIG) build phase14-smoke --build-file zigux/tests/phase14_build.zig --summary all
 
 phase14-test:
 	cd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase14_build.zig
 
-phase14: phase14-smoke phase14-test
+phase14: phase14-validate phase14-test
 
 phase15-validate:
 	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase15-review-process-handoff.py --self-test
