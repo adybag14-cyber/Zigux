@@ -33,13 +33,23 @@ REQUIRED_HELPERS = (
     "validate-phase4.py",
     "check-phase4-gate-evidence.py",
     "check-phase6-shared-surface.py",
+    "validate-phase7.py",
+    "check-phase7-make-wrapper.py",
+    "check-phase7-argv-split-packet.py",
+    "check-phase7-rbtree-parity.py",
+    "validate-phase8.py",
+    "check-phase8-exec-cmd-packet.py",
     "check-phase9-build-only-surface.py",
     "check-phase10-core-packet.py",
     "check-phase10-input-packet.py",
+    "check-phase10-mmio-packet.py",
     "check-phase11-shared-replay-contract.py",
     "check-build-only-phase12-surface.py",
     "validate-phase13-release.py",
     "check-phase13-devres-packet.py",
+    "validate-phase14.py",
+    "check-phase14-rollback-threshold-sequencing.py",
+    "check-phase14-release-boundary-exact-counts.py",
     "check-phase15-review-process-handoff.py",
     "check-phase15-scripts-readme-alignment.py",
     "run-phase3-checks.py",
@@ -407,6 +417,21 @@ def run_self_test() -> int:
 
         _write(
             root / README_REL,
+            baseline_readme.replace("- `validate-phase7.py`\n", "", 1),
+        )
+        _assert_only(
+            validate(root),
+            [
+                "missing_readme_helper_entry:validate-phase7.py",
+                "readme_helper_order_drift",
+            ],
+            "missing_phase7_validator_helper_entry_guard_failed",
+        )
+        _write(root / README_REL, baseline_readme)
+        case_count += 1
+
+        _write(
+            root / README_REL,
             baseline_readme.replace(
                 "- `check-mk-elfconfig-diff.py`\n",
                 "- `check-mk-elfconfig-diff.py`\n- `unexpected-helper.py`\n",
@@ -446,6 +471,15 @@ def run_self_test() -> int:
             "missing_phase15_alignment_repo_file_guard_failed",
         )
         _write(root / "scripts" / "zigux" / "check-phase15-scripts-readme-alignment.py", "# stub\n")
+        case_count += 1
+
+        (root / "scripts" / "zigux" / "check-phase10-mmio-packet.py").unlink()
+        _assert_only(
+            validate(root),
+            ["missing_repo_file:scripts/zigux/check-phase10-mmio-packet.py"],
+            "missing_phase10_mmio_repo_file_guard_failed",
+        )
+        _write(root / "scripts" / "zigux" / "check-phase10-mmio-packet.py", "# stub\n")
         case_count += 1
 
         _write(root / MAKEFILE_REL, baseline_makefile.replace("phase6-validate:\n", "", 1))
