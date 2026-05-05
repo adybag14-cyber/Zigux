@@ -8,6 +8,7 @@
   "review_prompts": [
     "descriptor keeps the Linux anchor path explicit and leaves requires_runtime_substrate false while provides_selfcheck stays true",
     "the manifest and survey test still describe the exact vararg-payload, message, relative-location, callback-path, and teardown contract run through phase5_build.zig",
+    "the contributor packet still names runPayloadBoundaryReplay() as the approved public count-4 payload-boundary helper instead of implying private field inspection for the 1,2,3,4 prefix, zero sentinel, iter=%d replay, and selected-string branch",
     "the in-memory replay still keeps the array payload, selected string, and iter-format message reviewable instead of hiding them behind runtime thread state",
     "function-callback replay stays a balanced register-then-unregister idiom rather than implying kthread creation or tracepoint enablement parity",
     "sample-behavior changes update the manifest-backed replay contract instead of leaving reviewers to infer the new boundary from code alone",
@@ -28,6 +29,11 @@
       "id": "array-and-sentinel-shape",
       "kind": "bounded_payload",
       "expected": "the replay keeps a 1,2 payload prefix with a zero sentinel in the next slot so the Linux array idiom remains reviewable in memory"
+    },
+    {
+      "id": "public-payload-boundary-helper",
+      "kind": "bounded_payload",
+      "expected": "runPayloadBoundaryReplay keeps the count-4 iter=4 payload boundary public by returning the 1,2,3,4 prefix, zero sentinel, selected string One ring to rule them all, and initialized-stage boundary without private sample-state reads"
     },
     {
       "id": "bitmask-and-rel-loc",
