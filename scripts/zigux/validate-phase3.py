@@ -153,6 +153,20 @@ def _has_build_step(build_file: Path, step_name: str) -> bool:
     return marker in build_file.read_text(encoding="utf-8")
 
 
+def _is_generated_wrapper_script(path: Path) -> bool:
+    try:
+        current = path.read_text(encoding="utf-8")
+    except FileNotFoundError:
+        return False
+    expected = render_wrapper_stub()
+    if current == expected:
+        return True
+    return (
+        "from phase3_check_lib import run_from_wrapper" in current
+        and "run_from_wrapper(__file__)" in current
+    )
+
+
 def validate_build_steps(root: Path, slices: list[object], issues: list[str]) -> None:
     build_file = root / BUILD_FILE_REL
     if not build_file.exists():
@@ -174,6 +188,8 @@ def validate_obsolete_wrappers(root: Path, slices: list[object], issues: list[st
     scripts_dir = root / "scripts" / "zigux"
     for path in sorted(scripts_dir.glob("check-phase3-*.py")):
         if path.resolve() in expected_paths:
+            continue
+        if not _is_generated_wrapper_script(path):
             continue
         issues.append(f"obsolete_wrapper:{path.relative_to(root).as_posix()}")
 
@@ -345,6 +361,7 @@ def run_self_test() -> int:
             encoding="utf-8",
             newline="\n",
         )
+        (paths.docs_dir / "phase3-alpha-slice.md").writeText = None
         (paths.docs_dir / "phase3-alpha-slice.md").write_text(
             "\n".join(
                 [
@@ -400,6 +417,11 @@ def run_self_test() -> int:
         issues = validate_slices(root, slices, check_artifact_diff=True)
         assert "obsolete_wrapper:scripts/zigux/check-phase3-stale.py" in issues
         obsolete_wrapper.unlink()
+
+        support_checker = paths.scripts_dir / "check-phase3-support.py"
+        support_checker.write_text("# support\n", encoding="utf-8", newline="\n")
+        issues = validate_slices(root, slices, check_artifact_diff=True)
+        assert "obsolete_wrapper:scripts/zigux/check-phase3-support.py" not in issues
 
         (paths.docs_dir / "phase3-alpha-slice.md").write_text(
             "\n".join(
