@@ -29,6 +29,7 @@ pub const ModuleDescriptor = struct {
     anchor: []const u8,
     provides_lab_queue_planner: bool,
     provides_prp_metadata_helper: bool,
+    provides_recovery_replay_helper: bool,
     touches_live_dma: bool,
     touches_pci_probe: bool,
     touches_irq_recovery: bool,
@@ -97,6 +98,24 @@ pub const RecoverySummary = struct {
     last_admin_queue_depth: u16,
 };
 
+pub const RecoveryReplayRequest = struct {
+    cached_prp_metadata_generation: u32,
+    had_admin_queue_plan: bool,
+};
+
+pub const RecoveryReplaySummary = struct {
+    anchor: []const u8,
+    state: RecoveryState,
+    reset_generation: u32,
+    queue_planning_blocked: bool,
+    cached_prp_metadata_stale: bool,
+    admin_queue_must_be_replanned: bool,
+    io_queues_must_be_rebuilt: bool,
+    io_queues_dropped_by_reset: usize,
+    next_io_queue_id: u16,
+    last_admin_queue_depth: u16,
+};
+
 pub const NvmePciQueueLab = struct {
     const Self = @This();
 
@@ -107,6 +126,7 @@ pub const NvmePciQueueLab = struct {
     planned_io_queues: usize = 0,
     reset_generation: u32 = 0,
     last_admin_queue_depth: u16 = min_queue_depth,
+    last_reset_io_queue_count: usize = 0,
 
     pub fn descriptor() ModuleDescriptor {
         return .{
@@ -114,6 +134,7 @@ pub const NvmePciQueueLab = struct {
             .anchor = "drivers/nvme/host/pci.c",
             .provides_lab_queue_planner = true,
             .provides_prp_metadata_helper = true,
+            .provides_recovery_replay_helper = true,
             .touches_live_dma = false,
             .touches_pci_probe = false,
             .touches_irq_recovery = false,
@@ -243,6 +264,7 @@ pub const NvmePciQueueLab = struct {
     }
 
     pub fn beginReset(self: *Self) RecoverySummary {
+        self.last_reset_io_queue_count = self.planned_io_queues;
         self.recovery_state = .reset_frozen;
         self.reset_generation += 1;
         return self.recoverySummary();
@@ -262,6 +284,29 @@ pub const NvmePciQueueLab = struct {
             .queues_frozen = self.recovery_state != .running,
             .planned_io_queues = self.planned_io_queues,
             .reset_generation = self.reset_generation,
+            .last_admin_queue_depth = self.last_admin_queue_depth,
+        };
+    }
+
+    pub fn summarizeRecoveryReplay(
+        self: *const Self,
+        request: RecoveryReplayRequest,
+    ) RecoveryReplaySummary {
+        const io_queues_dropped_by_reset = if (self.recovery_state == .reset_frozen)
+            self.planned_io_queues
+        else
+            self.last_reset_io_queue_count;
+
+        return .{
+            .anchor = descriptor().anchor,
+            .state = self.recovery_state,
+            .reset_generation = self.reset_generation,
+            .queue_planning_blocked = self.recovery_state != .running,
+            .cached_prp_metadata_stale = request.cached_prp_metadata_generation != self.reset_generation,
+            .admin_queue_must_be_replanned = request.had_admin_queue_plan and self.reset_generation != 0,
+            .io_queues_must_be_rebuilt = io_queues_dropped_by_reset != 0 and self.reset_generation != 0,
+            .io_queues_dropped_by_reset = io_queues_dropped_by_reset,
+            .next_io_queue_id = self.next_io_queue_id,
             .last_admin_queue_depth = self.last_admin_queue_depth,
         };
     }
