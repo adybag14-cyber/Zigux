@@ -21,12 +21,12 @@ REQUIRED_FILES = [
 ]
 
 PHASE4_GATE_EXPECTATIONS = {
-    "runtime_atomic64_diff.zig": {
+    "atomic64_diff.zig": {
         "owner": "ABI and Runtime Team",
         "rollback_owner": "ABI and Runtime Team",
         "fallback_path": "keep the current C anchor plus the existing Phase 9 runtime atomic64 starter surface as the source of truth if the Zig replay gate regresses",
         "threshold_posture": "threshold_pending_until_runtime_atomic64_scope_widens",
-        "matrix_purpose": "bounded atomic64 exchange, cmpxchg, add_unless, and selftest-family replay",
+        "matrix_purpose": "bounded atomic64 exchange, cmpxchg, add_unless, and selftest-family replay via the shared runtime-backed gate",
     },
     "bitmap_diff.zig": {
         "owner": "Shared Subsystems Pod",
@@ -75,6 +75,7 @@ REQUIRED_DOC_README_MARKERS = [
     "phase4-validation-matrix.md",
 ]
 REQUIRED_PHASE4_MATRIX_MARKERS = [
+    "atomic64_diff.zig",
     "runtime_atomic64_diff.zig",
     "bitmap_diff.zig",
     "rollback owner",
@@ -217,10 +218,11 @@ def run_self_test() -> int:
                     "perf threshold status",
                     "zig build test --build-file zigux/tests/phase4_build.zig",
                     "",
-                    "### `zigux/tests/runtime_atomic64_diff.zig`",
+                    "### `zigux/tests/atomic64_diff.zig`",
                     "",
                     "- owner: `ABI and Runtime Team`",
                     "- rollback owner: `ABI and Runtime Team`",
+                    "- implementation note: `zigux/tests/atomic64_diff.zig` imports `zigux/tests/runtime_atomic64_diff.zig` so Phase 4 keeps the roadmap path without cloning the shared runtime-backed replay logic that Phase 9 already reuses directly",
                     "- fallback path: keep the current C anchor plus the existing Phase 9 runtime atomic64 starter surface as the source of truth if the Zig replay gate regresses",
                     "",
                     "### `zigux/tests/bitmap_diff.zig`",
@@ -233,7 +235,7 @@ def run_self_test() -> int:
                     "",
                     "| lane surface | purpose | owner | rollback owner | bootstrap CI replay | local lab replay | threshold posture |",
                     "| --- | --- | --- | --- | --- | --- | --- |",
-                    "| `zigux/tests/runtime_atomic64_diff.zig` | bounded atomic64 exchange, cmpxchg, add_unless, and selftest-family replay | `ABI and Runtime Team` | `ABI and Runtime Team` | `python3 scripts/zigux/validate-phase4.py` then `zig build test --build-file zigux/tests/phase4_build.zig` in `.github/workflows/zigux-bootstrap.yml` | `python3 scripts/zigux/validate-phase4.py` then `zig build test --build-file zigux/tests/phase4_build.zig` | `threshold_pending_until_runtime_atomic64_scope_widens` |",
+                    "| `zigux/tests/atomic64_diff.zig` | bounded atomic64 exchange, cmpxchg, add_unless, and selftest-family replay via the shared runtime-backed gate | `ABI and Runtime Team` | `ABI and Runtime Team` | `python3 scripts/zigux/validate-phase4.py` then `zig build test --build-file zigux/tests/phase4_build.zig` in `.github/workflows/zigux-bootstrap.yml` | `python3 scripts/zigux/validate-phase4.py` then `zig build test --build-file zigux/tests/phase4_build.zig` | `threshold_pending_until_runtime_atomic64_scope_widens` |",
                     "| `zigux/tests/bitmap_diff.zig` | bounded broad bitmap rollback-readiness replay | `Shared Subsystems Pod` | `Shared Subsystems Pod` | `python3 scripts/zigux/validate-phase4.py` then `zig build test --build-file zigux/tests/phase4_build.zig` in `.github/workflows/zigux-bootstrap.yml` | `python3 scripts/zigux/validate-phase4.py` then `zig build test --build-file zigux/tests/phase4_build.zig` | `threshold_pending_until_bitmap_gate_grows_beyond_bounded_correctness_checks` |",
                     "",
                 ]
@@ -359,7 +361,7 @@ def run_self_test() -> int:
 
         matrix_path.write_text(
             original_matrix.replace(
-                "bounded atomic64 exchange, cmpxchg, add_unless, and selftest-family replay",
+                "bounded atomic64 exchange, cmpxchg, add_unless, and selftest-family replay via the shared runtime-backed gate",
                 "bounded atomic64 exchange, cmpxchg, and selftest-family replay",
                 1,
             ),
@@ -368,7 +370,7 @@ def run_self_test() -> int:
         )
         issues = validate_root(root)
         assert (
-            "phase4_matrix:matrix_purpose:runtime_atomic64_diff.zig:bounded atomic64 exchange, cmpxchg, add_unless, and selftest-family replay"
+            "phase4_matrix:matrix_purpose:atomic64_diff.zig:bounded atomic64 exchange, cmpxchg, add_unless, and selftest-family replay via the shared runtime-backed gate"
             in issues
         )
 
