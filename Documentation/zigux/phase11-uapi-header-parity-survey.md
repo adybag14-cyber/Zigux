@@ -4,8 +4,8 @@
 
 - `PHASE11_HEADER_BOUNDARY_STATUS=shared_header_packet_restored`
 - `surveyed_commit=ee124761ef3ef5fcc6bb9cd8b7fe8d1fce326839`
-- lane: `P11-L08`
-- scope: restore the paired UAPI header parity packet that keeps the public `watchdog_info`, `winsize`, and exported `hvc_*` helper surface reviewable without widening into tty-core or watchdog core ownership
+- lane: `P11-L16`
+- scope: keep the maintained shared UAPI header parity packet reviewable for `watchdog_info`, `winsize`, and the exported `hvc_*` helper surface without widening into tty-core or watchdog core ownership
 
 ## Current Repo Reality
 
