@@ -175,7 +175,7 @@ phase11-test:
 phase11: phase11-test
 
 phase12-test:
-	cd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase12_build.zig
+	cd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase12_build.zig --summary all
 
 phase12: phase12-test
 
