@@ -70,6 +70,15 @@ pub const ExtractArgv0Result = struct {
     }
 };
 
+pub const DeferredExecCall = struct {
+    argv: []const ?[]const u8,
+
+    pub fn deinit(self: *DeferredExecCall, allocator: std.mem.Allocator) void {
+        allocator.free(self.argv);
+        self.* = undefined;
+    }
+};
+
 pub const max_execl_slots: usize = 32;
 pub const CollectExeclArgsError = error{
     MissingNullTerminator,
@@ -342,6 +351,38 @@ pub fn collectExeclArgs(
     return error.MissingNullTerminator;
 }
 
+fn buildDeferredCallFromNullTerminatedArgs(
+    allocator: std.mem.Allocator,
+    config: Config,
+    args: []const ?[]const u8,
+) !DeferredExecCall {
+    var deferred = try allocator.alloc(?[]const u8, args.len + 1);
+    deferred[0] = config.exec_name;
+    for (args, 0..) |arg, index| {
+        deferred[index + 1] = arg;
+    }
+    return .{ .argv = deferred };
+}
+
+pub fn buildDeferredExecvCall(
+    allocator: std.mem.Allocator,
+    config: Config,
+    argv: []const []const u8,
+) !DeferredExecCall {
+    return .{ .argv = try prepareExecCmd(allocator, config, argv) };
+}
+
+pub fn buildDeferredExeclCall(
+    allocator: std.mem.Allocator,
+    config: Config,
+    cmd: []const u8,
+    argv_tail: []const ?[]const u8,
+) (CollectExeclArgsError || std.mem.Allocator.Error)!DeferredExecCall {
+    const args = try collectExeclArgs(allocator, cmd, argv_tail);
+    defer allocator.free(args);
+    return buildDeferredCallFromNullTerminatedArgs(allocator, config, args);
+}
+
 test "systemPath and getArgvExecPath preserve C-style precedence" {
     const config = Config{
         .exec_name = "perf",
@@ -466,6 +507,71 @@ test "prepareExecCmd keeps the null terminator even when no subcommand args are 
     try std.testing.expectEqual(@as(usize, 2), prepared.len);
     try std.testing.expectEqualStrings("perf", prepared[0].?);
     try std.testing.expectEqual(@as(?[]const u8, null), prepared[1]);
+}
+
+test "buildDeferredExecvCall models a pure deferred execv-style handoff" {
+    const config = Config{
+        .exec_name = "perf",
+        .prefix = "/unused",
+        .exec_path = "unused",
+        .exec_path_env = "PERF_EXEC_PATH",
+    };
+
+    var deferred = try buildDeferredExecvCall(
+        std.testing.allocator,
+        config,
+        &[_][]const u8{ "record", "-a" },
+    );
+    defer deferred.deinit(std.testing.allocator);
+
+    try std.testing.expectEqual(@as(usize, 4), deferred.argv.len);
+    try std.testing.expectEqualStrings("perf", deferred.argv[0].?);
+    try std.testing.expectEqualStrings("record", deferred.argv[1].?);
+    try std.testing.expectEqualStrings("-a", deferred.argv[2].?);
+    try std.testing.expectEqual(@as(?[]const u8, null), deferred.argv[3]);
+}
+
+test "buildDeferredExeclCall models a pure deferred execl-style handoff" {
+    const config = Config{
+        .exec_name = "perf",
+        .prefix = "/unused",
+        .exec_path = "unused",
+        .exec_path_env = "PERF_EXEC_PATH",
+    };
+
+    var deferred = try buildDeferredExeclCall(
+        std.testing.allocator,
+        config,
+        "record",
+        &[_]?[]const u8{ "-a", "--stdio", null, "--ignored" },
+    );
+    defer deferred.deinit(std.testing.allocator);
+
+    try std.testing.expectEqual(@as(usize, 5), deferred.argv.len);
+    try std.testing.expectEqualStrings("perf", deferred.argv[0].?);
+    try std.testing.expectEqualStrings("record", deferred.argv[1].?);
+    try std.testing.expectEqualStrings("-a", deferred.argv[2].?);
+    try std.testing.expectEqualStrings("--stdio", deferred.argv[3].?);
+    try std.testing.expectEqual(@as(?[]const u8, null), deferred.argv[4]);
+}
+
+test "buildDeferredExeclCall keeps the legacy collector guards before launch exists" {
+    const config = Config{
+        .exec_name = "perf",
+        .prefix = "/unused",
+        .exec_path = "unused",
+        .exec_path_env = "PERF_EXEC_PATH",
+    };
+
+    try std.testing.expectError(
+        error.MissingNullTerminator,
+        buildDeferredExeclCall(
+            std.testing.allocator,
+            config,
+            "record",
+            &[_]?[]const u8{ "-a", "--stdio" },
+        ),
+    );
 }
 
 test "collectExeclArgs keeps the command head and first null terminator" {
