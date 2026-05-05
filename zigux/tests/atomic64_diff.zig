@@ -94,7 +94,7 @@ test "atomic64 diff wrapper keeps the current manifest handoff explicit" {
     );
     try expectMarker(
         phase4_runtime_atomic64_manifest_source,
-        "\"phase4_validator_blob_sha\": \"8d142287be5bb701734ed23dec1f4342e1156da0\"",
+        "\"phase4_validator_blob_sha\": \"5f95efd379b1b19bb7671f74dc0f7d0a233d12e6\"",
     );
     try expectMarker(
         phase4_runtime_atomic64_manifest_source,
@@ -106,7 +106,7 @@ test "atomic64 diff wrapper keeps the current manifest handoff explicit" {
     );
     try expectMarker(
         phase4_runtime_atomic64_manifest_source,
-        "\"phase4_validation_matrix_blob_sha\": \"44210bb96e9ae1946b6ad827b4ab48452fed30e4\"",
+        "\"phase4_validation_matrix_blob_sha\": \"9f01421b7ca24c16808195ceef449d9bd5d06970\"",
     );
     try expectMarker(
         phase4_runtime_atomic64_manifest_source,
