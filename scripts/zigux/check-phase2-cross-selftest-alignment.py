@@ -214,6 +214,20 @@ def run_self_test() -> int:
         assert validate_root(root) == []
 
         payload = load_json_object(abspath(root, TARGETS), label="phase2_cross_targets")
+        payload["phase"] = "Phase 3"
+        write_text(abspath(root, TARGETS), json.dumps(payload) + "\n")
+        issues = validate_root(root)
+        assert "targets:phase='Phase 3':expected='Phase 2'" in issues
+
+        build_self_test_root(root)
+        payload = load_json_object(abspath(root, TARGETS), label="phase2_cross_targets")
+        payload["status"] = "open"
+        write_text(abspath(root, TARGETS), json.dumps(payload) + "\n")
+        issues = validate_root(root)
+        assert "targets:status='open':expected='closed'" in issues
+
+        build_self_test_root(root)
+        payload = load_json_object(abspath(root, TARGETS), label="phase2_cross_targets")
         payload["target_count"] = 2
         write_text(abspath(root, TARGETS), json.dumps(payload) + "\n")
         issues = validate_root(root)
@@ -267,7 +281,7 @@ def run_self_test() -> int:
         assert "missing_file:zigux/tests/fixtures/phase2_cross_targets.json" in issues
 
     print("PHASE2_CROSS_SELFTEST_ALIGNMENT_SELF_TEST=pass")
-    print("PHASE2_CROSS_SELFTEST_ALIGNMENT_SELF_TEST_CASE_COUNT=8")
+    print("PHASE2_CROSS_SELFTEST_ALIGNMENT_SELF_TEST_CASE_COUNT=10")
     return 0
 
 
