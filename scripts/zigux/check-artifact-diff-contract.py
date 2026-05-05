@@ -18,6 +18,7 @@ EXPECTED_CONTRACT_CASES = [
     "text_mismatch",
     "json_canonical_match",
     "json_mismatch",
+    "json_malformed_actual",
     "sha256_match",
     "sha256_drift",
     "sha256_missing_expected",
@@ -131,6 +132,42 @@ def run_contract_checks() -> list[str]:
             ],
         )
         observed_cases.append("json_mismatch")
+
+        json_b.write_text('{"beta": [2, }\n', encoding="utf-8", newline="\n")
+        cli = subprocess.run(
+            [
+                sys.executable,
+                str(ARTIFACT_DIFF_PATH),
+                "--mode",
+                "json",
+                str(json_a),
+                str(json_b),
+            ],
+            cwd=ROOT,
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        if cli.returncode != 1:
+            raise AssertionError("json malformed contract regressed")
+        malformed_lines = cli.stdout.splitlines()
+        expect_lines(
+            malformed_lines,
+            [
+                "ARTIFACT_DIFF=fail",
+                "MODE=json",
+                f"EXPECTED={json_a}",
+                f"ACTUAL={json_b}",
+            ],
+        )
+        if any(
+            line.startswith("SHA256=")
+            or line.startswith("EXPECTED_EXISTS=")
+            or line.startswith("ACTUAL_EXISTS=")
+            for line in malformed_lines
+        ):
+            raise AssertionError("json malformed contract emitted unexpected extra markers")
+        observed_cases.append("json_malformed_actual")
 
         blob_a.write_bytes(b"zigux-artifact-diff")
         blob_b.write_bytes(b"zigux-artifact-diff")
