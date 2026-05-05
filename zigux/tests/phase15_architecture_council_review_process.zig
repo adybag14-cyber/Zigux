@@ -132,6 +132,10 @@ test "phase 15 architecture council review-process doc and manifest stay aligned
         "no Architecture Council approval is currently recorded for a freeze-map status change",
     );
     try expectContains(survey_doc, "`retired_from_active_discussion`");
+    try expectContains(survey_doc, "current review-process evidence is limited to named `phase`");
+    try expectContains(survey_doc, "`current status bucket`");
+    try expectContains(survey_doc, "`validation gate summary`");
+    try expectContains(survey_doc, "landed `phase15-roadmap-minimum-field-sync`");
 
     try expectContains(script_readme, "Phase 15 flow");
     try expectContains(
@@ -201,6 +205,10 @@ test "phase 15 architecture council review-process doc and manifest stay aligned
     try expectContains(makefile, "phase15-test:");
     try expectContains(makefile, "zigux/tests/phase15_build.zig");
 
+    try expectContains(manifest_doc, "\"ownership_evidence_fields\"");
+    try expectContains(manifest_doc, "\"phase\"");
+    try expectContains(manifest_doc, "\"current status bucket\"");
+    try expectContains(manifest_doc, "\"validation gate summary\"");
     try expectContains(manifest_doc, "\"current_repo_handoff\"");
     try expectContains(manifest_doc, "Documentation/zigux/freeze-map.md");
     try expectContains(
@@ -230,4 +238,5 @@ test "phase 15 architecture council review-process doc and manifest stay aligned
     try expectContains(manifest_doc, "make -C zigux phase15-validate");
     try expectContains(manifest_doc, "tests-root guidance path");
     try expectContains(manifest_doc, "dedicated handoff-checker route");
+    try expectContains(manifest_doc, "phase15-roadmap-minimum-field-sync");
 }
