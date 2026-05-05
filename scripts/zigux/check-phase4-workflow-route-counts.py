@@ -7,7 +7,7 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[2]
-SELF_TEST_CASE_COUNT = 21
+SELF_TEST_CASE_COUNT = 23
 
 WORKFLOW_PATH = Path(".github/workflows/zigux-bootstrap.yml")
 MAKEFILE_PATH = Path("zigux/Makefile")
@@ -82,6 +82,14 @@ REQUIRED_SCRIPTS_README_COUNTS = {
     "`phase4-bitmap-diff-tests`": 1,
 }
 
+REQUIRED_TESTS_README_COUNTS = {
+    "`make -C zigux phase4-validate`": 1,
+    "`make -C zigux phase4-test`": 1,
+    "`make -C zigux phase4-kprobe-example-survey`": 1,
+    "`make -C zigux phase4-test-fsmount-survey`": 1,
+    "`make -C zigux phase4-perf-baseline-survey`": 1,
+}
+
 
 def read_text(root: Path, relative_path: Path) -> str:
     return (root / relative_path).read_text(encoding="utf-8")
@@ -135,6 +143,14 @@ def validate(root: Path) -> list[str]:
                 if actual_count != expected_count:
                     missing.append(
                         "scripts_readme_count:"
+                        f"{needle}:expected={expected_count}:actual={actual_count}"
+                    )
+        if relative_path == TESTS_README_PATH:
+            for needle, expected_count in REQUIRED_TESTS_README_COUNTS.items():
+                actual_count = count_occurrences(file_text, needle)
+                if actual_count != expected_count:
+                    missing.append(
+                        "tests_readme_count:"
                         f"{needle}:expected={expected_count}:actual={actual_count}"
                     )
 
@@ -543,6 +559,38 @@ def run_self_test() -> int:
             )
             count += 1
 
+            build_fixture_tree(root)
+            tests_readme = root / TESTS_README_PATH
+            tests_readme.write_text(
+                tests_readme.read_text(encoding="utf-8").replace(
+                    "`make -C zigux phase4-test`\n",
+                    "`make -C zigux phase4-test`\n`make -C zigux phase4-test`\n",
+                    1,
+                ),
+                encoding="utf-8",
+            )
+            expect_contains(
+                validate(root),
+                "tests_readme_count:`make -C zigux phase4-test`:expected=1:actual=2",
+            )
+            count += 1
+
+            build_fixture_tree(root)
+            tests_readme = root / TESTS_README_PATH
+            tests_readme.write_text(
+                tests_readme.read_text(encoding="utf-8").replace(
+                    "`make -C zigux phase4-kprobe-example-survey`\n",
+                    "`make -C zigux phase4-kprobe-example-survey`\n`make -C zigux phase4-kprobe-example-survey`\n",
+                    1,
+                ),
+                encoding="utf-8",
+            )
+            expect_contains(
+                validate(root),
+                "tests_readme_count:`make -C zigux phase4-kprobe-example-survey`:expected=1:actual=2",
+            )
+            count += 1
+
             if count != SELF_TEST_CASE_COUNT:
                 raise AssertionError(
                     f"expected {SELF_TEST_CASE_COUNT} self-test cases, got {count}"
@@ -580,7 +628,7 @@ def main() -> int:
     print(f"PHASE4_WORKFLOW_ROUTE_COUNTS_REQUIRED_FILE_COUNT={len(REQUIRED_FILES)}")
     print(
         "PHASE4_WORKFLOW_ROUTE_COUNTS_REQUIRED_CHECK_COUNT="
-        f"{len(REQUIRED_WORKFLOW_COUNTS) + len(REQUIRED_MAKEFILE_MARKERS) + len(REQUIRED_MAKEFILE_COUNTS) + sum(len(markers) for markers in REQUIRED_DOC_MARKERS.values()) + len(REQUIRED_SCRIPTS_README_COUNTS)}"
+        f"{len(REQUIRED_WORKFLOW_COUNTS) + len(REQUIRED_MAKEFILE_MARKERS) + len(REQUIRED_MAKEFILE_COUNTS) + sum(len(markers) for markers in REQUIRED_DOC_MARKERS.values()) + len(REQUIRED_SCRIPTS_README_COUNTS) + len(REQUIRED_TESTS_README_COUNTS)}"
     )
     return 0
 
