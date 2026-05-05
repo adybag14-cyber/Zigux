@@ -79,6 +79,29 @@ pub const RemoveHandoffSnapshot = struct {
     host_io_pending: bool,
 };
 
+pub const TtyRegistrationRequest = struct {
+    console_index_matches_boot_console: bool = true,
+    notifier_target_present: bool = true,
+};
+
+pub const TtyRegistrationHandoffSnapshot = struct {
+    anchor: []const u8,
+    slot_index: usize,
+    vtermno: u32,
+    adapter_present: bool,
+    tty_driver_registration_requested: bool,
+    tty_device_registration_requested: bool,
+    console_registration_requested: bool,
+    keeps_console_binding_until_remove: bool,
+    close_wait_owned_by_hvc_close: bool,
+    khvcd_wakeup_reviewable: bool,
+    khvcd_worker_execution_deferred: bool,
+    notifier_target_present: bool,
+    notifier_callbacks_deferred: bool,
+    host_io_deferred: bool,
+    remove_handoff_still_required: bool,
+};
+
 pub const WriteSnapshot = struct {
     anchor: []const u8,
     slot_index: usize,
@@ -189,6 +212,32 @@ pub const HvcConsoleLab = struct {
             .tty_kref_put_after_vhangup = request.tty_present,
             .teardown_via_hangup_pending = request.tty_present,
             .host_io_pending = request.tty_present,
+        };
+    }
+
+    pub fn summarizeTtyRegistrationHandoff(
+        self: *const Self,
+        request: TtyRegistrationRequest,
+    ) !TtyRegistrationHandoffSnapshot {
+        const slot = self.slotSnapshot();
+        if (!slot.usable_for_console) return error.ConsoleUnavailable;
+
+        return .{
+            .anchor = descriptor().anchor,
+            .slot_index = slot.slot_index,
+            .vtermno = slot.vtermno,
+            .adapter_present = slot.adapter_present,
+            .tty_driver_registration_requested = true,
+            .tty_device_registration_requested = true,
+            .console_registration_requested = request.console_index_matches_boot_console,
+            .keeps_console_binding_until_remove = request.console_index_matches_boot_console,
+            .close_wait_owned_by_hvc_close = true,
+            .khvcd_wakeup_reviewable = true,
+            .khvcd_worker_execution_deferred = true,
+            .notifier_target_present = request.notifier_target_present,
+            .notifier_callbacks_deferred = request.notifier_target_present,
+            .host_io_deferred = true,
+            .remove_handoff_still_required = true,
         };
     }
 
