@@ -142,3 +142,14 @@ test "phase 8 exec-cmd models the pure execl-style argv collector and guard" {
         exec_cmd.collectExeclArgs(std.testing.allocator, "record", &overflowing_tail),
     );
 }
+
+test "phase 8 exec-cmd rejects execl-style tails that never terminate" {
+    try std.testing.expectError(
+        error.MissingNullTerminator,
+        exec_cmd.collectExeclArgs(
+            std.testing.allocator,
+            "record",
+            &[_]?[]const u8{ "-a", "--stdio" },
+        ),
+    );
+}
