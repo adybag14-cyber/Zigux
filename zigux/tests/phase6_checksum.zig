@@ -123,6 +123,18 @@ test "kunit-inspired carry discipline stays stable on the helper surface" {
     }
 }
 
+test "fixture-backed negate cases keep the public checksum helper reviewable" {
+    try std.testing.expectEqual(@as(usize, 4), fixtures.negate_cases.len);
+    try std.testing.expectEqualStrings("zero stays zero", fixtures.negate_cases[0].name);
+    try std.testing.expectEqualStrings("mixed payload preserves ones complement carry", fixtures.negate_cases[3].name);
+
+    for (fixtures.negate_cases) |case| {
+        const negated = checksum.negate(case.sum);
+        try std.testing.expectEqual(case.expected_negate, negated);
+        try std.testing.expectEqual(case.expected_add_with_negate, checksum.add(case.sum, negated));
+    }
+}
+
 test "from32to16 folds unfolded sums before the final complement" {
     const Case = struct {
         name: []const u8,
