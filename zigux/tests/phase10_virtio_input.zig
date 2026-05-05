@@ -390,4 +390,10 @@ test "phase10 virtio input reset clears queue plan and returns to default bus id
     try std.testing.expectError(error.AbsInfoNotConfigured, device.absInfoSummary(virtio_input.abs_mt_slot));
     try std.testing.expectError(error.CapabilityConfigNotConfigured, device.capabilitySetupSummary());
     try std.testing.expectError(error.AbsCapabilitiesNotConfigured, device.planMultitouchSlots());
+
+    const preflight = device.registrationPreflightSummary();
+    try std.testing.expectEqual(virtio_input.RegistrationBlocker.event_queue_unconfigured, preflight.blocker.?);
+    try std.testing.expect(!preflight.queue_plan_ready);
+    try std.testing.expect(!preflight.device_ready);
+    try std.testing.expect(!preflight.ready_for_registration);
 }
