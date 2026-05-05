@@ -39,7 +39,7 @@ ABI_MANIFEST_REQUIRED_FILES = (
     ABI_TEST_REL,
     LOW_LEVEL_TEST_REL,
 )
-PHASE3_LOW_LEVEL_WRAPPER_SURVEY_SELF_TEST_CASE_COUNT = 14
+PHASE3_LOW_LEVEL_WRAPPER_SURVEY_SELF_TEST_CASE_COUNT = 15
 
 
 def blob_sha(path: Path) -> str:
@@ -231,6 +231,12 @@ def validate(root: Path) -> list[str]:
             "barrier.acquireRelease",
             "mmio.write8",
             "mmio.read8",
+            "try std.testing.expectEqual(base, byte_desc.base_addr);",
+            "try std.testing.expectEqual(@as(u32, 8), byte_desc.length);",
+            "try std.testing.expectEqual(@as(u32, 1), byte_desc.stride);",
+            "try std.testing.expectEqual(base, desc.base_addr);",
+            "try std.testing.expectEqual(@as(u32, 8), desc.length);",
+            "try std.testing.expectEqual(@as(u32, 4), desc.stride);",
             ".acq_rel",
             ".acquire",
             ".release",
@@ -385,6 +391,12 @@ def run_self_test() -> int:
                     "    barrier.acquireRelease();",
                     "    _ = mmio.write8;",
                     "    _ = mmio.read8;",
+                    "    try std.testing.expectEqual(base, byte_desc.base_addr);",
+                    "    try std.testing.expectEqual(@as(u32, 8), byte_desc.length);",
+                    "    try std.testing.expectEqual(@as(u32, 1), byte_desc.stride);",
+                    "    try std.testing.expectEqual(base, desc.base_addr);",
+                    "    try std.testing.expectEqual(@as(u32, 8), desc.length);",
+                    "    try std.testing.expectEqual(@as(u32, 4), desc.stride);",
                     "}",
                     'test "phase3 low-level wrappers keep non-seq-cst orderings reviewable" {',
                     "    const a = .acq_rel;",
@@ -525,6 +537,16 @@ def run_self_test() -> int:
         )
         issues = validate(root)
         assert "low_level_test_missing_token:mmio.read8" in issues
+
+        (root / LOW_LEVEL_TEST_REL).write_text(valid_low_level_test, encoding="utf-8")
+        (root / LOW_LEVEL_TEST_REL).write_text(
+            valid_low_level_test.replace(
+                "    try std.testing.expectEqual(@as(u32, 4), desc.stride);\n", "", 1
+            ),
+            encoding="utf-8",
+        )
+        issues = validate(root)
+        assert "low_level_test_missing_token:try std.testing.expectEqual(@as(u32, 4), desc.stride);" in issues
 
         (root / LOW_LEVEL_TEST_REL).write_text(valid_low_level_test, encoding="utf-8")
         (root / ABI_MANIFEST_REL).write_text(
