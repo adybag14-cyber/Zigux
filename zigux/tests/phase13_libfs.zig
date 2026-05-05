@@ -12,6 +12,7 @@ test "phase13 libfs exposes the statfs starter anchored to libfs.c" {
     try std.testing.expect(descriptor.provides_directory_emit_planning);
     try std.testing.expect(descriptor.provides_transaction_buffer_planning);
     try std.testing.expect(descriptor.provides_transaction_publish_planning);
+    try std.testing.expect(descriptor.provides_transaction_release_planning);
     try std.testing.expect(!descriptor.touches_live_dcache);
     try std.testing.expect(!descriptor.touches_live_inode_state);
 
@@ -236,4 +237,12 @@ test "phase13 libfs transaction publish planning validates response size and pub
 
     try std.testing.expectError(error.InputTooLarge, libfs.LibFsHelperLab.simpleTransactionSetPlan(libfs.simple_transaction_limit + 1, true));
     try std.testing.expectError(error.MissingPrivateData, libfs.LibFsHelperLab.simpleTransactionSetPlan(8, false));
+}
+
+test "phase13 libfs transaction release planning frees page-backed private data" {
+    const plan = libfs.LibFsHelperLab.simpleTransactionReleasePlan();
+    try std.testing.expectEqualStrings("fs/libfs.c", plan.anchor);
+    try std.testing.expect(plan.frees_private_data_page);
+    try std.testing.expect(plan.consumes_private_data_lifetime);
+    try std.testing.expectEqual(@as(i32, 0), plan.return_code);
 }
