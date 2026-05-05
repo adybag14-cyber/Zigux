@@ -71,6 +71,7 @@ REQUIRED_REVIEW_CHECKLIST_MARKERS = [
     "Documentation/zigux/phase15-indefinite-c-policy.md",
     "Documentation/zigux/review-checklist.md",
     "scripts/zigux/check-phase15-review-process-handoff.py",
+    "zigux/tests/phase15_architecture_council_review_process_manifest.json",
     "zigux/tests/phase15_freeze_map_governance.zig",
     "zigux/tests/phase15_parity_scorecard.zig",
     "zigux/tests/phase15_architecture_council_review_process.zig",
@@ -253,7 +254,7 @@ Phase 15 notes
 
     review_checklist = """# Zigux Review Checklist
 
-- if the change touches the shared Phase 15 governance packet, do `Documentation/zigux/freeze-map.md`, `Documentation/zigux/phase15-freeze-map-governance.md`, `Documentation/zigux/phase15-architecture-council-review-process.md`, `Documentation/zigux/phase15-parity-scorecard.md`, `Documentation/zigux/phase15-indefinite-c-policy.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/check-phase15-review-process-handoff.py`, `zigux/tests/phase15_freeze_map_governance.zig`, `zigux/tests/phase15_parity_scorecard.zig`, `zigux/tests/phase15_architecture_council_review_process.zig`, `zigux/tests/phase15_indefinite_c_policy.json`, `zigux/tests/phase15_indefinite_c_policy.zig`, `zigux/tests/phase15_build.zig`, and `make -C zigux phase15` still agree on the same parked governance packet?
+- if the change touches the shared Phase 15 governance packet, do `Documentation/zigux/freeze-map.md`, `Documentation/zigux/phase15-freeze-map-governance.md`, `Documentation/zigux/phase15-architecture-council-review-process.md`, `Documentation/zigux/phase15-parity-scorecard.md`, `Documentation/zigux/phase15-indefinite-c-policy.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/check-phase15-review-process-handoff.py`, `zigux/tests/phase15_architecture_council_review_process_manifest.json`, `zigux/tests/phase15_freeze_map_governance.zig`, `zigux/tests/phase15_parity_scorecard.zig`, `zigux/tests/phase15_architecture_council_review_process.zig`, `zigux/tests/phase15_indefinite_c_policy.json`, `zigux/tests/phase15_indefinite_c_policy.zig`, `zigux/tests/phase15_build.zig`, and `make -C zigux phase15` still agree on the same parked governance packet?
 """
     (root / REVIEW_CHECKLIST_PATH).write_text(review_checklist, encoding="utf-8")
 
@@ -476,6 +477,22 @@ def run_self_test() -> int:
         review_checklist = review_checklist_path.read_text(encoding="utf-8")
         review_checklist_path.write_text(
             review_checklist.replace(
+                "`zigux/tests/phase15_architecture_council_review_process_manifest.json`, ",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_failure(
+            tmp_root,
+            "review_checklist:zigux/tests/phase15_architecture_council_review_process_manifest.json",
+            "missing_review_checklist_review_process_manifest_marker",
+        )
+
+        write_fixture_tree(tmp_root)
+        review_checklist = review_checklist_path.read_text(encoding="utf-8")
+        review_checklist_path.write_text(
+            review_checklist.replace(
                 "`zigux/tests/phase15_architecture_council_review_process.zig`, ",
                 "",
                 1,
@@ -519,7 +536,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE15_REVIEW_PROCESS_HANDOFF_SELF_TEST=pass")
-    print("PHASE15_REVIEW_PROCESS_HANDOFF_SELF_TEST_CASE_COUNT=14")
+    print("PHASE15_REVIEW_PROCESS_HANDOFF_SELF_TEST_CASE_COUNT=15")
     return 0
 
 
