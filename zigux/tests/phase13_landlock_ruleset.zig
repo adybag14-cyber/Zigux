@@ -52,7 +52,7 @@ test "phase13 landlock ruleset manifest records the shipped helper lab and remai
     defer parsed.deinit();
 
     const manifest = parsed.value;
-    try std.testing.expectEqualStrings("P13-L09", manifest.lane_key);
+    try std.testing.expectEqualStrings("P13-Y03", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 13", manifest.phase);
     try std.testing.expectEqualStrings("security/landlock/ruleset.c", manifest.anchor);
     try std.testing.expectEqualStrings("a957197f5bc4f965fa792b64a090a5330f45b770", manifest.surveyed_commit);
