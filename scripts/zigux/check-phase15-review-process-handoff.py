@@ -21,8 +21,20 @@ MAKEFILE_PATH = "zigux/Makefile"
 SELF_REFERENCE_MARKER = "Documentation/zigux/phase15-architecture-council-review-process.md"
 PRODUCT_BOUNDARY_MARKER = (
     "product boundary:\n"
-    " - `Documentation/zigux/phase15-architecture-council-review-process.md`"
+    "  - `Documentation/zigux/freeze-map.md`"
 )
+REQUIRED_MANIFEST_BOUNDARY_MARKERS = [
+    "Documentation/zigux/freeze-map.md",
+    "Documentation/zigux/phase15-freeze-map-governance.md",
+    "Documentation/zigux/phase15-architecture-council-review-process.md",
+    "Documentation/zigux/phase15-parity-scorecard.md",
+    "Documentation/zigux/phase15-indefinite-c-policy.md",
+    "Documentation/zigux/review-checklist.md",
+    "scripts/zigux/check-phase15-review-process-handoff.py",
+    "zigux/tests/phase15_architecture_council_review_process_manifest.json",
+    "zigux/tests/phase15_architecture_council_review_process.zig",
+    "zigux/tests/phase15_build.zig",
+]
 
 OPTIONAL_LANE_ROUTE_MARKERS = [
     "scripts-root validator path",
@@ -67,7 +79,6 @@ REQUIRED_SCRIPT_README_MARKERS = [
 
 EXACT_ONCE_SCRIPT_README_MARKERS = [
     "Phase 15 flow",
-    "check-phase15-review-process-handoff.py",
 ]
 
 REQUIRED_TESTS_README_MARKERS = [
@@ -181,12 +192,9 @@ def validate(root: Path) -> list[str]:
         if not isinstance(current_repo_handoff, str):
             failures.append("manifest:handoff_evidence.current_repo_handoff:not_string")
         else:
-            expect_exact_once(
-                current_repo_handoff,
-                SELF_REFERENCE_MARKER,
-                "manifest_self_reference",
-                failures,
-            )
+            for marker in REQUIRED_MANIFEST_BOUNDARY_MARKERS:
+                if marker not in current_repo_handoff:
+                    failures.append(f"manifest_handoff:{marker}")
 
     current_bounded_lane = handoff.get("current_bounded_lane")
     if current_bounded_lane is not None:
@@ -238,8 +246,9 @@ if the change touches the shared Phase 15 governance packet
     note = """# Phase 15 Architecture Council Review Process Survey
 ## Status
 - product boundary:
- - `Documentation/zigux/phase15-architecture-council-review-process.md`
- - `Documentation/zigux/phase15-parity-scorecard.md`
+  - `Documentation/zigux/freeze-map.md`
+  - `Documentation/zigux/phase15-architecture-council-review-process.md`
+  - `Documentation/zigux/phase15-parity-scorecard.md`
 """
     (root / NOTE_PATH).write_text(note, encoding="utf-8")
 
@@ -249,8 +258,16 @@ if the change touches the shared Phase 15 governance packet
         "handoff_evidence": {
             "current_repo_handoff": (
                 "The current repo handoff explicitly names "
-                "Documentation/zigux/phase15-architecture-council-review-process.md "
-                "beside the neighboring governance packet."
+                "Documentation/zigux/freeze-map.md, "
+                "Documentation/zigux/phase15-freeze-map-governance.md, "
+                "Documentation/zigux/phase15-architecture-council-review-process.md, "
+                "Documentation/zigux/phase15-parity-scorecard.md, "
+                "Documentation/zigux/phase15-indefinite-c-policy.md, "
+                "Documentation/zigux/review-checklist.md, "
+                "scripts/zigux/check-phase15-review-process-handoff.py, "
+                "zigux/tests/phase15_architecture_council_review_process_manifest.json, "
+                "zigux/tests/phase15_architecture_council_review_process.zig, "
+                "and zigux/tests/phase15_build.zig as the parked governance packet boundary."
             ),
             "current_bounded_lane": (
                 "The parked Architecture Council packet stays aligned with its "
@@ -329,7 +346,7 @@ def run_self_test() -> int:
         note_path.write_text(original_note, encoding="utf-8")
         note_path.write_text(
             original_note.replace(
-                "product boundary:\n - `Documentation/zigux/phase15-architecture-council-review-process.md`",
+                "product boundary:\n  - `Documentation/zigux/freeze-map.md`",
                 "product boundary:",
                 1,
             ),
@@ -346,12 +363,12 @@ def run_self_test() -> int:
         manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
         manifest["handoff_evidence"]["current_repo_handoff"] = manifest["handoff_evidence"][
             "current_repo_handoff"
-        ].replace(SELF_REFERENCE_MARKER, "this review-process note", 1)
+        ].replace("zigux/tests/phase15_build.zig", "zigux/tests/phase15_phase_build.zig", 1)
         manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
         expect_failure(
             tmp_root,
-            "manifest_self_reference:Documentation/zigux/phase15-architecture-council-review-process.md:count=0",
-            "missing_manifest_self_reference",
+            "manifest_handoff:zigux/tests/phase15_build.zig",
+            "missing_manifest_boundary_marker",
         )
 
         write_fixture_tree(tmp_root)
@@ -470,7 +487,7 @@ def main() -> int:
     print("PHASE15_REVIEW_PROCESS_HANDOFF=pass")
     print(
         "PHASE15_REVIEW_PROCESS_HANDOFF_MARKER_COUNT="
-        f"{2 + len(OPTIONAL_LANE_ROUTE_MARKERS) + len(REQUIRED_DOCS_README_MARKERS) + len(REQUIRED_REVIEW_CHECKLIST_MARKERS) + len(REQUIRED_SCRIPT_README_MARKERS) + len(EXACT_ONCE_SCRIPT_README_MARKERS) + len(REQUIRED_TESTS_README_MARKERS) + len(REQUIRED_MAKEFILE_MARKERS) + len(EXACT_ONCE_MAKEFILE_MARKERS)}"
+        f"{2 + len(REQUIRED_MANIFEST_BOUNDARY_MARKERS) + len(OPTIONAL_LANE_ROUTE_MARKERS) + len(REQUIRED_DOCS_README_MARKERS) + len(REQUIRED_REVIEW_CHECKLIST_MARKERS) + len(REQUIRED_SCRIPT_README_MARKERS) + len(EXACT_ONCE_SCRIPT_README_MARKERS) + len(REQUIRED_TESTS_README_MARKERS) + len(REQUIRED_MAKEFILE_MARKERS) + len(EXACT_ONCE_MAKEFILE_MARKERS)}"
     )
     return 0
 
