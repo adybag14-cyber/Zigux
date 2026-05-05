@@ -252,3 +252,95 @@ test "phase12 virtio net queue resume planning keeps rebuild scope explicit" {
     try std.testing.expect(!reset_resume.requires_rss_reapply);
     try std.testing.expect(reset_resume.requires_fresh_probe_snapshot);
 }
+
+test "phase12 virtio net receive refill planning keeps buffer mode and replay needs explicit" {
+    var active_lab = try virtio_net.VirtioNetProbeLab.init(&.{
+        virtio_net.feature_mergeable_rx_buffers,
+        virtio_net.feature_control_vq,
+        virtio_net.feature_multiqueue,
+        virtio_net.feature_hash_report,
+        virtio_net.feature_rss,
+    });
+    _ = try active_lab.captureProbeSnapshot(.{
+        .driver_feature_bits = &.{
+            virtio_net.feature_mergeable_rx_buffers,
+            virtio_net.feature_control_vq,
+            virtio_net.feature_multiqueue,
+            virtio_net.feature_hash_report,
+            virtio_net.feature_rss,
+        },
+        .requested_queue_pairs = 3,
+        .max_queue_pairs = 3,
+    });
+    _ = try active_lab.freezeForRecovery();
+    const active_refill = try active_lab.planReceiveRefill();
+    try std.testing.expectEqual(virtio_net.QueueResumeReadiness.ready, active_refill.readiness);
+    try std.testing.expectEqual(virtio_net.QueueResumeScope.data_control_and_rss, active_refill.resume_scope);
+    try std.testing.expectEqual(virtio_net.ReceiveBufferMode.mergeable_rx_buffers, active_refill.buffer_mode);
+    try std.testing.expectEqual(@as(u16, 3), active_refill.refill_queue_pairs);
+    try std.testing.expectEqual(@as(u16, 3), active_refill.refill_rx_queue_count);
+    try std.testing.expectEqual(@as(u16, 7), active_refill.refill_total_queue_count);
+    try std.testing.expectEqual(@as(?u16, 6), active_refill.resume_control_queue_index);
+    try std.testing.expect(active_refill.requires_control_queue_restore);
+    try std.testing.expect(active_refill.requires_rss_reapply);
+    try std.testing.expect(active_refill.requires_mergeable_buffer_headroom);
+    try std.testing.expect(active_refill.requires_fresh_probe_snapshot);
+    try std.testing.expect(active_refill.requires_post_restore_probe_replay);
+
+    var single_queue_lab = try virtio_net.VirtioNetProbeLab.init(&.{
+        virtio_net.feature_mergeable_rx_buffers,
+        virtio_net.feature_multiqueue,
+        virtio_net.feature_rss,
+    });
+    _ = try single_queue_lab.captureProbeSnapshot(.{
+        .driver_feature_bits = &.{
+            virtio_net.feature_mergeable_rx_buffers,
+            virtio_net.feature_multiqueue,
+            virtio_net.feature_rss,
+        },
+        .requested_queue_pairs = 4,
+        .max_queue_pairs = 8,
+    });
+    _ = try single_queue_lab.freezeForRecovery();
+    const single_queue_refill = try single_queue_lab.planReceiveRefill();
+    try std.testing.expectEqual(virtio_net.QueueResumeReadiness.ready, single_queue_refill.readiness);
+    try std.testing.expectEqual(virtio_net.QueueResumeScope.data_queues_only, single_queue_refill.resume_scope);
+    try std.testing.expectEqual(virtio_net.ReceiveBufferMode.mergeable_rx_buffers, single_queue_refill.buffer_mode);
+    try std.testing.expectEqual(@as(u16, 1), single_queue_refill.refill_queue_pairs);
+    try std.testing.expectEqual(@as(u16, 1), single_queue_refill.refill_rx_queue_count);
+    try std.testing.expectEqual(@as(u16, 2), single_queue_refill.refill_total_queue_count);
+    try std.testing.expectEqual(@as(?u16, null), single_queue_refill.resume_control_queue_index);
+    try std.testing.expect(!single_queue_refill.requires_control_queue_restore);
+    try std.testing.expect(!single_queue_refill.requires_rss_reapply);
+    try std.testing.expect(single_queue_refill.requires_mergeable_buffer_headroom);
+    try std.testing.expect(single_queue_refill.requires_fresh_probe_snapshot);
+    try std.testing.expect(single_queue_refill.requires_post_restore_probe_replay);
+
+    var reset_lab = try virtio_net.VirtioNetProbeLab.init(&.{
+        virtio_net.feature_control_vq,
+        virtio_net.feature_multiqueue,
+    });
+    _ = try reset_lab.captureProbeSnapshot(.{
+        .driver_feature_bits = &.{
+            virtio_net.feature_control_vq,
+            virtio_net.feature_multiqueue,
+        },
+        .requested_queue_pairs = 2,
+        .max_queue_pairs = 2,
+        .device_signals_reset = true,
+    });
+    _ = try reset_lab.freezeForRecovery();
+    const reset_refill = try reset_lab.planReceiveRefill();
+    try std.testing.expectEqual(virtio_net.QueueResumeReadiness.requires_reset, reset_refill.readiness);
+    try std.testing.expectEqual(virtio_net.QueueResumeScope.data_and_control_queue, reset_refill.resume_scope);
+    try std.testing.expectEqual(virtio_net.ReceiveBufferMode.one_buffer_per_rx, reset_refill.buffer_mode);
+    try std.testing.expectEqual(@as(u16, 2), reset_refill.refill_queue_pairs);
+    try std.testing.expectEqual(@as(u16, 2), reset_refill.refill_rx_queue_count);
+    try std.testing.expectEqual(@as(u16, 5), reset_refill.refill_total_queue_count);
+    try std.testing.expectEqual(@as(?u16, 4), reset_refill.resume_control_queue_index);
+    try std.testing.expect(reset_refill.requires_control_queue_restore);
+    try std.testing.expect(!reset_refill.requires_rss_reapply);
+    try std.testing.expect(!reset_refill.requires_mergeable_buffer_headroom);
+    try std.testing.expect(reset_refill.requires_fresh_probe_snapshot);
+    try std.testing.expect(reset_refill.requires_post_restore_probe_replay);
+}
