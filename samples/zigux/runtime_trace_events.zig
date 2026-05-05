@@ -47,6 +47,24 @@ pub const EmissionSummary = struct {
     registration_paths_checked: bool,
 };
 
+pub const RuntimeTraceEventsSummary = struct {
+    stage: ModuleStage,
+    registration_depth: usize,
+    main_iterations: usize,
+    fn_iterations: usize,
+    total_events: usize,
+    init_runs: usize,
+    selftest_runs: usize,
+    exit_runs: usize,
+    last_main_count: i32,
+    last_fn_count: i32,
+    saw_vararg_payload: bool,
+    saw_rel_loc_payload: bool,
+    saw_conditional_path: bool,
+    last_main_payload: ?MainThreadPayload,
+    last_function_payload: ?FunctionThreadPayload,
+};
+
 pub const RuntimeTraceEventsSample = struct {
     const Self = @This();
 
@@ -77,6 +95,26 @@ pub const RuntimeTraceEventsSample = struct {
 
     pub fn stage(self: *const Self) ModuleStage {
         return self.stage_state;
+    }
+
+    pub fn summary(self: *const Self) RuntimeTraceEventsSummary {
+        return .{
+            .stage = self.stage_state,
+            .registration_depth = self.registration_depth,
+            .main_iterations = self.main_iterations,
+            .fn_iterations = self.fn_iterations,
+            .total_events = self.total_events,
+            .init_runs = self.init_runs,
+            .selftest_runs = self.selftest_runs,
+            .exit_runs = self.exit_runs,
+            .last_main_count = self.last_main_count,
+            .last_fn_count = self.last_fn_count,
+            .saw_vararg_payload = self.saw_vararg_payload,
+            .saw_rel_loc_payload = self.saw_rel_loc_payload,
+            .saw_conditional_path = self.saw_conditional_path,
+            .last_main_payload = self.last_main_payload,
+            .last_function_payload = self.last_function_payload,
+        };
     }
 
     fn ensureMutable(self: *const Self) !void {
