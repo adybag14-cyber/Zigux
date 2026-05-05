@@ -12,6 +12,7 @@ Boundary notes
 - current `master` still ships no `samples/zigux/*string*` Phase 5 reference sample; treat any new `samples/zigux/*string*.zig` file as review-blocking until the roadmap boundary is revisited
 - the separate string-helper packet lives under `Documentation/zigux/phase7-string-helpers-slice.md`, `lib/string_helpers.zig`, and `zigux/tests/phase7_build.zig`
 - the Phase 5 trace-events packet keeps `samples/zigux/trace_events_sample.zig` as the approved payload-and-callback idiom for the non-runtime selected-string, `iter=%d`, relative-location, and balanced register-then-unregister callback review surface
+- review the four landed Phase 5 reference packets through `zig build test --build-file zigux/tests/phase5_build.zig --summary all`; keep any sample-local direct `zig test` replay and paired survey gate aligned with that shared packet instead of implying a separate runtime validation lane
 - the Phase 5 trace-events packet still ships no standalone `samples/zigux/*printf*`, `*vsprintf*`, or `*format*` reference sample, so keep treating the selected-string plus `iter=%d` replay in `samples/zigux/trace_events_sample.zig` as the approved formatting idiom cue
 - standalone formatting-helper evidence stays under the closed Phase 1 `tools/lib/vsprintf.zig` packet plus the bounded Phase 7 `string_get_size()` helper packet
 - later runtime follow-ons stay under the separate Phase 9 `samples/zigux/runtime_*` family and should not be counted as extra Phase 5 reference anchors
