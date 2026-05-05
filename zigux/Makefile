@@ -204,7 +204,7 @@ phase12-smoke:
 phase12-test:
 	cd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase12_build.zig --summary all
 
-phase12: phase12-test
+phase12: phase12-smoke phase12-test
 
 phase13-validate:
 	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase13-release.py
