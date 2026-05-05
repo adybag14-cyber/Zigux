@@ -15,7 +15,7 @@ This document records the bounded Phase 12 survey lane around `tools/lib/bpf/lib
   - `zigux/Makefile`
   - `Documentation/zigux/phase12-libbpf-segment-survey.md`
 - public fallback posture: shared-tree-only anchor; unlike `Documentation/zigux/phase12-nvme-pci-raw-github-fallback-map.md` and `Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md`, this libbpf note is not a commit-pinned raw GitHub fallback artifact.
-- rollback owner and reversible-delivery drill: this shared survey packet rolls back by restoring the last truthful libbpf-survey wording in this note and then rerunning `python3 scripts/zigux/check-build-only-phase12-surface.py`, `zig build test --build-file zigux/tests/phase12_build.zig`, and `make -C zigux phase12` so the shared build-only Phase 12 contract stays reversible without inventing a dedicated libbpf-only replay route that current `master` does not ship.
+- rollback owner and reversible-delivery drill: this shared survey packet rolls back by restoring the last truthful libbpf-survey wording in this note and then rerunning `python3 scripts/zigux/check-build-only-phase12-surface.py`, `zig build test --build-file zigux/tests/phase12_build.zig --summary all`, and `make -C zigux phase12` so the shared build-only Phase 12 contract stays reversible without inventing a dedicated libbpf-only replay route that current `master` does not ship.
 
 ## Why this slice exists
 The roadmap now places `tools/lib/bpf/libbpf.c` in Phase 12, alongside the other high-risk production-facing consumers, because the file is both large and semantically dense even though it lives under `tools/`.
@@ -78,7 +78,7 @@ This survey slice does not claim:
 1. run the shared build-only Phase 12 surface checker
 - `python3 scripts/zigux/check-build-only-phase12-surface.py`
 2. run the dedicated Phase 12 build
-- `zig build test --build-file zigux/tests/phase12_build.zig`
+- `zig build test --build-file zigux/tests/phase12_build.zig --summary all`
 3. run the convenience target
 - `make -C zigux phase12`
 
