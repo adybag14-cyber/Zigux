@@ -120,6 +120,14 @@ test "phase 7 cmdline survey keeps the helper-only handoff explicit" {
     );
     defer std.testing.allocator.free(phase7_build);
 
+    const validate_phase7 = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "scripts/zigux/validate-phase7.py",
+        std.testing.allocator,
+        .limited(64 * 1024),
+    );
+    defer std.testing.allocator.free(validate_phase7);
+
     const helper_cmdline = try std.Io.Dir.cwd().readFileAlloc(
         io_instance.io(),
         "lib/cmdline.zig",
@@ -222,6 +230,13 @@ test "phase 7 cmdline survey keeps the helper-only handoff explicit" {
     try expectContains(zigux_makefile, "phase7-test:");
     try expectContains(zigux_makefile, "zig build test --build-file zigux/tests/phase7_build.zig --summary all");
     try expectContains(zigux_makefile, "phase7: phase7-validate phase7-test");
+
+    try expectContains(validate_phase7, 'ROOT / "scripts" / "zigux" / "check-phase7-cmdline-parity.py"');
+    try expectContains(validate_phase7, 'ROOT / "zigux" / "tests" / "phase7_cmdline.zig"');
+    try expectContains(validate_phase7, 'ROOT / "zigux" / "tests" / "phase7_cmdline_survey.zig"');
+    try expectContains(validate_phase7, 'ROOT / "zigux" / "tests" / "phase7_cmdline_manifest.json"');
+    try expectContains(validate_phase7, 'python3 scripts/zigux/check-phase7-cmdline-parity.py --self-test');
+    try expectContains(validate_phase7, 'python3 scripts/zigux/check-phase7-cmdline-parity.py');
 
     try expectContains(build_inventory, "\"repo_root_path\": \"../..\"");
     try expectContains(build_inventory, "\"phase7_cmdline_survey.zig\"");
