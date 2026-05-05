@@ -25,7 +25,7 @@ The live repo already had atomic64 and bitmap starters under the same Phase 9 re
 
 ## Landed starter surface
 
-- module descriptor metadata naming the `samples/trace_events/trace-events-sample.c` anchor
+- module descriptor metadata naming the `samples/trace_events/trace-events-sample.c` anchor and keeping the roadmap-required selftest hook explicit through `provides_selftest_hook=true`
 - guarded lifecycle transitions for `cold`, `initialized`, `selftest_complete`, and `exited`
 - bounded main-thread and function-thread event emission counters for the sample's primary tracepoint families
 - explicit registration-balance checks for the function-callback path
