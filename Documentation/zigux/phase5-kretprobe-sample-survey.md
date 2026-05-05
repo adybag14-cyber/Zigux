@@ -5,11 +5,14 @@ This document tracks the bounded Phase 5 reference-sample survey for the roadmap
 ## Status
 
 - `PHASE5_STATUS=active`
+- `PHASE5_LANE_KEY=P5-L18`
+- `PHASE5_SURVEYED_COMMIT=7361ac51374149a96b7a7a2c6ea3c995d8cc1231`
 - `PHASE5_SLICE=kretprobe-reference-sample-starter`
 - scope: roadmap-vs-repo sample delivery, approved probe-lifecycle guidance, and exact bounded checks for the first `samples/zigux/` kretprobe-style replay
 - product boundary:
   - `Documentation/zigux/phase5-kretprobe-sample-survey.md`
   - `Documentation/zigux/README.md`
+  - `Documentation/zigux/review-checklist.md`
   - `samples/zigux/kretprobe_example.zig`
   - `zigux/tests/phase5_build.zig`
   - `zigux/tests/phase5_kretprobe_example.zig`
