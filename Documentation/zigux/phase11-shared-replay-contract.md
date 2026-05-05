@@ -20,6 +20,7 @@ This note records the current shared contributor replay surface for the shipped 
 - `Documentation/zigux/phase11-hvc-console-validation-matrix.md`
 - `Documentation/zigux/phase11-hvc-console-survey.md`
 - `Documentation/zigux/phase11-uapi-header-parity-survey.md`
+- `scripts/zigux/check-phase11-shared-replay-contract.py`
 - `scripts/zigux/check-phase11-header-boundary-packet.py`
 - `zigux/tests/phase11_build.zig`
 - `zigux/tests/phase11_hvc_cleanup.zig`
@@ -27,6 +28,7 @@ This note records the current shared contributor replay surface for the shipped 
 - `zigux/tests/phase11_uapi_header_parity_manifest.json`
 - `zigux/tests/phase11_uapi_header_parity_survey.zig`
 - `zigux/Makefile`
+- `.github/workflows/zigux-bootstrap.yml`
 
 ## Shared Replay Commands
 
