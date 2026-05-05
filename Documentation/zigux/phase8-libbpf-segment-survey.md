@@ -130,4 +130,4 @@ This survey slice does not yet claim:
 
 ## Next bounded step
 
-Treat the Phase 8 helper-first entry as substantively landed for now: keep the shared Phase 8 gate honest, and only reopen `tools/lib/bpf/zigux_segments/` for another bounded helper if fresh repo reality exposes one that is smaller and lower risk than the currently blocked object-model and loader-facing work.
+Treat the current starter packet as substantively landed for now: keep the shared Phase 8 gate honest, queue `fdinfo-map-info-helpers` or `map-reuse-compatibility` as the next bounded helper-first follow-up when fresh repo reality justifies reopening `tools/lib/bpf/zigux_segments/`, and keep `file-path-and-handle-bridge` deferred until the procfs-read, bpffs-open, token-creation, reopen-flow, and fd-ownership resource boundary can be reviewed as one tighter packet ahead of the still-blocked object-model and loader-facing work.
