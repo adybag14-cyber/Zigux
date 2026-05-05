@@ -13,4 +13,4 @@ The current helper stays intentionally narrow:
 
 This slice does not claim `d_add()` side effects, cursor-backed directory iteration, inode allocation, pseudo-fs mounting, simple-transaction state, or any other live VFS plumbing from the wider `fs/libfs.c` body.
 
-The next honest bounded step in this same lane is to stay helper-first and add one small transaction-buffer wrapper that still avoids live dentries, inode-backed state, and pseudo-filesystem lifecycle work.
+The next honest bounded step in this same lane is to stay helper-first and add one small transaction-buffer helper that still avoids live dentries, inode-backed state, and pseudo-filesystem lifecycle work.
