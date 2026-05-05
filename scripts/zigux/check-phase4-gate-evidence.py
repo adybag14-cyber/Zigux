@@ -60,6 +60,14 @@ REQUIRED_NOTE_MARKERS = [
     "hard perf thresholds for the shipped atomic64 and bitmap rollback gates remain intentionally unapproved",
 ]
 
+SELF_TEST_CASES = [
+    "baseline_round_trip",
+    "shipped_target_count_drift",
+    "missing_exact_readback_heading",
+    "validator_blob_pin_drift",
+    "missing_note_file",
+]
+
 
 def git_blob_sha1(payload: bytes) -> str:
     header = f"blob {len(payload)}\0".encode("utf-8")
@@ -148,7 +156,7 @@ def build_fixture_note(root: Path) -> str:
             "## Exact Readback Evidence",
             "- `Documentation/zigux/artifact-diff.md` and `Documentation/zigux/README.md` stay aligned with the shipped packet.",
             "- `scripts/zigux/check-phase4-gate-evidence.py` now exact-counts the current narrower packet.",
-            "- `zigux/tests/phase4_runtime_atomic64_diff_manifest.json` and `zigux/tests/phase4_runtime_atomic64_diff_survey.zig` remain pinned as the manifest-backed runtime atomic64 survey pair.",
+            "- `zigux/tests/phase4_runtime_atomic64_diff_manifest.json` and `zigux/tests/phase4_runtime_atomic64_diff_survey.zig` remain the manifest-backed runtime atomic64 survey pair.",
             "- The shared build packet still exposes `phase4-runtime-atomic64-diff-survey-tests` and `phase4-bitmap-live-helper-replay-tests`.",
             "- Current `master` still treats the missing roadmap-backed sample gates as gaps: `samples/zigux/kprobe_example.zig` remains absent and `samples/zigux/test_fsmount.zig` remains absent.",
             "",
@@ -185,7 +193,39 @@ def run_self_test() -> int:
             "phase4_gate_evidence:status_exact_count:PHASE4_SHIPPED_GATE_BLOB_TARGET_COUNT=16:0"
         ], missing
 
+        write_text(root / NOTE_PATH, build_fixture_note(root))
+        write_text(
+            root / NOTE_PATH,
+            read_text(root, NOTE_PATH).replace("## Exact Readback Evidence\n", "", 1),
+        )
+        missing = validate_root(root)
+        assert missing == ["phase4_gate_evidence:## Exact Readback Evidence"], missing
+
+        write_text(root / NOTE_PATH, build_fixture_note(root))
+        validator_blob_sha = git_blob_sha1(
+            read_bytes(root, PHASE4_GATE_EVIDENCE_BLOB_TARGETS["PHASE4_VALIDATOR_BLOB_SHA"])
+        )
+        write_text(
+            root / NOTE_PATH,
+            read_text(root, NOTE_PATH).replace(
+                f"PHASE4_VALIDATOR_BLOB_SHA={validator_blob_sha}",
+                "PHASE4_VALIDATOR_BLOB_SHA=0000000000000000000000000000000000000000",
+                1,
+            ),
+        )
+        missing = validate_root(root)
+        assert missing == [
+            f"phase4_gate_evidence:blob_exact_count:PHASE4_VALIDATOR_BLOB_SHA:{validator_blob_sha}:0"
+        ], missing
+
+        write_text(root / NOTE_PATH, build_fixture_note(root))
+        (root / NOTE_PATH).unlink()
+        missing = validate_root(root)
+        assert missing == [f"file:{NOTE_PATH}"], missing
+
     print("PHASE4_GATE_EVIDENCE_SELF_TEST=pass")
+    print(f"PHASE4_GATE_EVIDENCE_SELF_TEST_CASE_COUNT={len(SELF_TEST_CASES)}")
+    print("PHASE4_GATE_EVIDENCE_SELF_TEST_CASES=" + ",".join(SELF_TEST_CASES))
     return 0
 
 
