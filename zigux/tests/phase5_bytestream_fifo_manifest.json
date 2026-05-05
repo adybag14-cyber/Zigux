@@ -49,6 +49,11 @@
       "expected": "empty peek and skip return null, empty enqueue copies 0 bytes, overflow push is rejected at the 32-byte capacity, skip-at-capacity returns 0, and reset restores an empty queue with pop-after-reset null"
     },
     {
+      "id": "short-drain-prefix",
+      "kind": "helper_contract",
+      "expected": "draining a three-byte destination from the queued string \"hello\" yields exactly \"hel\", leaves the remaining prefix \"lo\" queued in order, and a follow-up drain on the now-empty queue returns 0"
+    },
+    {
       "id": "lifecycle-boundary",
       "kind": "ownership_lifetime",
       "expected": "the sample starts cold, requires init before replay, marks replay_complete after the self-check, and exits back to an empty queue"
