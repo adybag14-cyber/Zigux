@@ -60,7 +60,7 @@ test "phase12 virtio_scsi survey manifest records the landed queue starter and p
     defer parsed.deinit();
 
     const manifest = parsed.value;
-    try std.testing.expectEqualStrings("P12-L12", manifest.lane_key);
+    try std.testing.expectEqualStrings("P12-L13", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 12", manifest.phase);
     try std.testing.expectEqualStrings("drivers/scsi/virtio_scsi.c", manifest.anchor);
     try std.testing.expectEqualStrings("ee64eec272a352da1d967999c99bb3c3560c9b97", manifest.surveyed_commit);
@@ -224,7 +224,7 @@ test "phase12 virtio_scsi survey note keeps the active lane identity and fallbac
     );
     defer std.testing.allocator.free(survey_note);
 
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE12_LANE=P12-L12") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE12_LANE=P12-L13") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase12-virtio-scsi-raw-github-fallback-catalog.md") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "does not own the active survey packet") != null);
 }
@@ -243,7 +243,7 @@ test "phase12 virtio_scsi raw fallback catalog stays aligned with the shipped bu
 
     const expected_fragments = [_][]const u8{
         "`PHASE12_STATUS=active`",
-        "`active_survey_lane: P12-L12`",
+        "`active_survey_lane: P12-L13`",
         "`historical_fallback_lane: P12-L09`",
         "`PHASE12_SLICE=virtio-scsi-raw-github-fallback-catalog`",
         "https://github.com/adybag14-cyber/Zigux/blob/master/drivers/scsi/virtio_scsi.zig",
