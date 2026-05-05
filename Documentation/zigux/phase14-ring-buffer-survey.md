@@ -4,9 +4,9 @@ This document records the bounded Phase 14 survey lane around `kernel/trace/ring
 
 ## Status
 
-- `PHASE14_LANE_KEY=P14-Y02`
 - `PHASE14_STATUS=study_only`
 - `PHASE14_SLICE=ring-buffer-survey-gap`
+- `PHASE14_LANE_KEY=P14-L08`
 - `PHASE14_SURVEYED_COMMIT=946d5c73fdb763ba860a20879b05da54e1896e8c`
 - scope: the dedicated Phase 14 ring-buffer survey gate, its manifest, the shared Phase 14 build wiring, and this lane note that keeps the roadmap gap explicit without shipping a Zig bridge
 - survey provenance refreshed against verified `master` head `946d5c73fdb763ba860a20879b05da54e1896e8c`
@@ -20,10 +20,10 @@ This document records the bounded Phase 14 survey lane around `kernel/trace/ring
 ## Why this slice exists
 
 The Phase 14 roadmap explicitly names `kernel/trace/ring_buffer.c` as a boundary-study target first, not a rewrite target.
-
-It also says `kernel/trace/ring_buffer.zig` is only appropriate if years of evidence justify it. That caution matters because the live anchor is already 8,103 lines, its surrounding tracing surface is even larger, and the supporting docs expose consumer-facing behavior that sits on top of deep per-CPU page rotation, reserve and commit sequencing, reader handoff, overwrite and lost-event accounting, wakeups, mmap-facing state, and tracefs mapping lockouts around resize, snapshot, and splice behavior.
-
-The honest Phase 14 move here is therefore not to start a `ring_buffer.zig` file. It is to make the blocked state reviewable and record the first stay-in-C checklist seams so future runs can stay disciplined about what remains study-only.
+It also says `kernel/trace/ring_buffer.zig` is only appropriate if years of evidence justify it.
+That caution matters because the live anchor is already 8,103 lines, its surrounding tracing surface is even larger, and the supporting docs expose consumer-facing behavior that sits on top of deep per-CPU page rotation, reserve and commit sequencing, reader handoff, overwrite and lost-event accounting, wakeups, mmap-facing state, and tracefs mapping lockouts around resize, snapshot, and splice behavior.
+The honest Phase 14 move here is therefore not to start a `ring_buffer.zig` file.
+It is to make the blocked state reviewable and record the first stay-in-C checklist seams so future runs can stay disciplined about what remains study-only.
 
 ## Survey findings
 
@@ -33,7 +33,7 @@ The honest Phase 14 move here is therefore not to start a `ring_buffer.zig` file
 - `Documentation/trace/ring-buffer-map.rst` is present at 106 lines and adds mmap-facing reader, sub-buffer, and tracefs limitation behavior that would be easy to understate in a premature Zig wrapper.
 - `kernel/trace/simple_ring_buffer.c` exists as a much smaller 517-line companion, which reinforces that the full tracing ring buffer is the complex path and should not be treated like a straightforward helper port.
 - the live repo already had `zigux/tests/phase14_build.zig`, `zigux/Makefile` Phase 14 wiring, `Documentation/zigux/freeze-map.md`, and the workqueue bridge slice, so the highest-value non-overlapping ring-buffer step is a survey gate rather than another starter implementation.
-- the survey manifest now records a landed decision checklist around reserve or commit publication, head-page and reader-page handoff, remote-reader metadata, wakeup or mmap-facing publication, tracefs mapping limitations, and reader-page consumption boundaries so later runs can deepen the audit without inventing `kernel/trace/ring_buffer.zig`.
+- the survey manifest now records a landed decision checklist around reserve or commit publication, head-page and reader-page handoff, remote-reader metadata, wakeup or mmap-facing publication, and tracefs mapping limitations so later runs can deepen the audit without inventing `kernel/trace/ring_buffer.zig`.
 
 ## Decision checklist
 
@@ -46,50 +46,50 @@ The honest Phase 14 move here is therefore not to start a `ring_buffer.zig` file
 
 ## Overwrite and lost-event audit
 
-- `rb_move_tail()` is still the key overwrite boundary. When the tail page catches the head page and overwrite mode is disabled, the writer increments `dropped_events` and backs out. When overwrite mode is enabled, it must move the head-page state forward before the write can proceed, which keeps the overwrite path coupled to the same reader-visible page choreography described in `Documentation/trace/ring-buffer-design.rst`.
-- The overwrite toggle is not a tiny local policy bit. `ring_buffer_change_overwrite()` changes whether the full-buffer path drops new events or advances the head to evict old ones, so the Phase 14 lane should keep overwrite behavior as a traced C-owned contract instead of implying a Zig-side helper can safely own it.
-- Lost-event reporting is finalized on the reader side, not at the overwrite point itself. After the reader swaps in the next page, the code compares `overrun` against `last_overrun` and publishes the delta through `lost_events`, which means overwrite accounting stays coupled to reader-page replacement and should remain study-only for now.
+- `rb_move_tail()` is still the key overwrite boundary.
+When the tail page catches the head page and overwrite mode is disabled, the writer increments `dropped_events` and backs out. When overwrite mode is enabled, it must move the head-page state forward before the write can proceed, which keeps the overwrite path coupled to the same reader-visible page choreography described in `Documentation/trace/ring-buffer-design.rst`.
+- The overwrite toggle is not a tiny local policy bit.
+`ring_buffer_change_overwrite()` changes whether the full-buffer path drops new events or advances the head to evict old ones, so the Phase 14 lane should keep overwrite behavior as a traced C-owned contract instead of implying a Zig-side helper can safely own it.
+- Lost-event reporting is finalized on the reader side, not at the overwrite point itself.
+After the reader swaps in the next page, the code compares `overrun` against `last_overrun` and publishes the delta through `lost_events`, which means overwrite accounting stays coupled to reader-page replacement and should remain study-only for now.
 - The supporting docs line up with that code path: `Documentation/trace/ring-buffer-design.rst` explains that overwrite mode must move the head page before the tail can advance, and `Documentation/trace/ftrace.rst` distinguishes dropped events from overwritten or unread data in the exposed trace stats.
 
 ## Wakeup and mmap audit
 
-- `ring_buffer_wait()` and `ring_buffer_poll_wait()` are not just passive wrappers around a waitqueue. They share `rb_wait_cond()` and `rb_watermark_hit()` and use `waiters_pending`, `full_waiters_pending`, `wakeup_full`, and `shortest_full` state to decide whether normal readers or watermark-triggered readers should wake, which keeps the visible wait contract coupled to the same buffer fullness accounting that writers update.
-- `rb_wake_up_waiters()` finalizes that contract through `irq_work`. It fans out to both ordinary waiters and full-buffer waiters, clears pending flags, and only promotes the full-wakeup path after the watermark checks have been published, so the wakeup side is still inseparable from the C-owned irq-work and memory-ordering choreography.
-- The mmap path extends that same reader contract instead of simplifying it. `Documentation/trace/ring-buffer-map.rst` says mapped readers consume the tracefs `trace_pipe_raw` interface through a meta-page plus sub-buffer mapping, then advance the reader with `TRACE_MMAP_IOCTL_GET_READER`, which means mapped-reader publication still depends on the same `reader.id`, `lost_events`, and page-handoff state that `rb_update_meta_page()` and `rb_read_remote_meta_page()` maintain.
-- Concurrent readers remain another reason to stay cautious. The mapping docs say they are allowed but not recommended because they compete for the same ring buffer and make output unpredictable, which confirms that wakeup and mapped-reader publication still depend on shared global behavior rather than an isolated helper seam.
+- `ring_buffer_wait()` and `ring_buffer_poll_wait()` are not just passive wrappers around a waitqueue.
+They share `rb_wait_cond()` and `rb_watermark_hit()` and use `waiters_pending`, `full_waiters_pending`, `wakeup_full`, and `shortest_full` state to decide whether normal readers or watermark-triggered readers should wake, which keeps the visible wait contract coupled to the same buffer fullness accounting that writers update.
+- `rb_wake_up_waiters()` finalizes that contract through `irq_work`.
+It fans out to both ordinary waiters and full-buffer waiters, clears pending flags, and only promotes the full-wakeup path after the watermark checks have been published, so the wakeup side is still inseparable from the C-owned irq-work and memory-ordering choreography.
+- The mmap path extends that same reader contract instead of simplifying it.
+`Documentation/trace/ring-buffer-map.rst` says mapped readers consume the tracefs `trace_pipe_raw` interface through a meta-page plus sub-buffer mapping, then advance the reader with `TRACE_MMAP_IOCTL_GET_READER`, which means mapped-reader publication still depends on the same `reader.id`, `lost_events`, and page-handoff state that `rb_update_meta_page()` and `rb_read_remote_meta_page()` maintain.
+- Concurrent readers remain another reason to stay cautious.
+The mapping docs say they are allowed but not recommended because they compete for the same ring buffer and make output unpredictable, which confirms that wakeup and mapped-reader publication still depend on shared global behavior rather than an isolated helper seam.
 
 ## Tracefs mapping limitations audit
 
-- The tracefs mapping docs make the first boundary explicit: once a buffer is mapped, it cannot be resized, snapshot mode is unavailable, and splice falls back to copying instead of the copyless page swap. That limitation is product-visible behavior, not a hidden implementation detail.
-- The C implementation keeps that lockout wired directly into the buffer state. `ring_buffer_map()` increments `resize_disabled` before the user mapping is published, and `ring_buffer_resize()` refuses to proceed when `resize_disabled` is set because a mapped reader expects stable page layout while it is active.
-- Snapshot behavior stays coupled to the same mapping state. `ring_buffer_swap_cpu()` rejects mapped buffers outright, and `kernel/trace/trace.c` only allocates snapshot buffers for non-mapped instances, which means snapshot support still depends on shared trace-array and mapped-buffer coordination rather than a local wrapper seam.
-- Splice behavior also remains tied to the mapped-reader contract. The docs say mapped buffers lose the copyless swap path, and `tracing_buffers_splice_read()` falls back to allocating read pages, calling `ring_buffer_read_page()`, and pushing those pages through `splice_to_pipe()`, so the tracefs read path stays coupled to the same mapped-reader bookkeeping instead of exposing a separate zero-copy bridge candidate.
-- `TRACE_MMAP_IOCTL_GET_READER` reinforces that this is still one shared boundary. The ioctl waits through `ring_buffer_wait()` when blocking reads are allowed and then delegates to `ring_buffer_map_get_reader()`, so mapped-reader advancement, wakeups, lost-event publication, and the resize or snapshot lockouts all remain coordinated in C.
+- The tracefs mapping docs make the first boundary explicit: once a buffer is mapped, it cannot be resized, snapshot mode is unavailable, and splice falls back to copying instead of the copyless page swap.
+That limitation is product-visible behavior, not a hidden implementation detail.
+- The C implementation keeps that lockout wired directly into the buffer state.
+`ring_buffer_map()` increments `resize_disabled` before the user mapping is published, and `ring_buffer_resize()` refuses to proceed when `resize_disabled` is set because a mapped reader expects stable page layout while it is active.
+- Snapshot behavior stays coupled to the same mapping state.
+`ring_buffer_swap_cpu()` rejects mapped buffers outright, and `kernel/trace/trace.c` only allocates snapshot buffers for non-mapped instances, which means snapshot support still depends on shared trace-array and mapped-buffer coordination rather than a local wrapper seam.
+- Splice behavior also remains tied to the mapped-reader contract.
+The docs say mapped buffers lose the copyless swap path, and `tracing_buffers_splice_read()` falls back to allocating read pages, calling `ring_buffer_read_page()`, and pushing those pages through `splice_to_pipe()`, so the tracefs read path stays coupled to the same mapped-reader bookkeeping instead of exposing a separate zero-copy bridge candidate.
+- `TRACE_MMAP_IOCTL_GET_READER` reinforces that this is still one shared boundary.
+The ioctl waits through `ring_buffer_wait()` when blocking reads are allowed and then delegates to `ring_buffer_map_get_reader()`, so mapped-reader advancement, wakeups, lost-event publication, and the resize or snapshot lockouts all remain coordinated in C.
 
 ## Mapped-reader ioctl audit
 
-- `tracing_buffers_ioctl()` keeps the mapped-reader handoff attached to the existing wait and wake contract. Blocking callers of `TRACE_MMAP_IOCTL_GET_READER` first go through `ring_buffer_wait()`, while non-blocking callers skip straight to the same reader handoff, so the ioctl does not create an independent reader-visible policy surface.
-- `ring_buffer_map_get_reader()` also refuses to operate on an unmapped buffer. It enters through `rb_get_mapped_buffer()`, which depends on the mapping state built by `ring_buffer_map()`, and then serializes the reader transition under `reader_lock`, so the ioctl path still shares ownership with the same mapped-buffer lifetime rules and lock choreography as the rest of the tracefs mapping surface.
-- The handoff is not a tiny pointer swap. If the current reader page still has unread bytes, `ring_buffer_map_get_reader()` advances the in-page reader to the end before it will consider a new page, and if the reader has already caught up with `commit_page` it stops instead of fabricating a handoff. Only when a new page is truly needed does it call `rb_get_reader_page()`, which keeps mapped-reader advancement coupled to the same reader-page rotation rules that already block wrapper-first ownership elsewhere in the survey.
-- Lost-event and metadata publication stay in the same C-owned handoff. When missed events exist, `ring_buffer_map_get_reader()` tries to encode them into the exported page state, then flushes the mapped range and calls `rb_update_meta_page()` before releasing `reader_lock`, so user space still depends on one combined kernel handoff for page contents, loss accounting, and meta-page refresh.
-- The concurrent-reader warning in `Documentation/trace/ring-buffer-map.rst` lines up with the implementation details. Multiple user mappings increment `user_mapped`, `ring_buffer_map_dup()` preserves that shared state across duplicated mappings, and the docs still call the resulting output unpredictable, which confirms that `TRACE_MMAP_IOCTL_GET_READER` remains part of a shared reader-competition contract rather than a clean Zig bridge seam.
-
-## Reader-page consume audit
-
-- `__rb_get_reader_page()` is already a stay-in-C state machine, not a lightweight accessor. Under local IRQ disable and `cpu_buffer->lock`, it returns the current reader page only when unread bytes remain, otherwise it zeroes the out-of-ring reader page, splices that page around the current head, retries while writers are moving the head marker, and only then updates `reader_page`, `read_stamp`, and page counters.
-- Lost-event publication is attached to that same reader-page swap. `__rb_get_reader_page()` snapshots `overrun` after the new reader-page links are prepared, compares it with `last_overrun` after the replacement succeeds, and stores the delta in `lost_events`, which means page acquisition and reader-visible loss accounting are still one combined handoff.
-- `ring_buffer_consume()` builds directly on that shared handoff instead of exposing a smaller seam. It enters under `reader_lock`, peeks through `rb_buffer_peek()`, clears `cpu_buffer->lost_events` only after a concrete event is returned, and then advances the in-kernel reader with `rb_advance_reader()`, so consuming reads remain coupled to the same reader-page rotation and lost-event lifecycle as the acquisition path.
-- Non-consuming iteration stays tied to the same boundary. `ring_buffer_read_start()` allocates an iterator, increments `resize_disabled`, takes `reader_lock` plus `cpu_buffer->lock`, and resets the iterator against the live reader state, so even the supposedly observational path still pins resize behavior and shares the same reader serialization contract.
-- The design docs back up that code-level coupling. `Documentation/trace/ring-buffer-design.rst` says no two readers may run at the same time and describes the dedicated reader page swapping with the head page, which matches the implementation detail that consuming and non-consuming readers still revolve around one C-owned reader-page choreography instead of a wrapper-first helper surface.
-
-## Reset and clear-path governance audit
-
-- `ring_buffer_reset_cpu()` is not an isolated clear helper. It first rejects CPUs outside the buffer cpumask, then takes `buffer->mutex`, increments both `resize_disabled` and `record_disabled`, waits through `synchronize_rcu()`, and only then calls `reset_disabled_cpu_buffer()`, so even the per-CPU clear path stays coupled to resize exclusion, writer quiescence, and the locked reader-page reset sequence.
-- `reset_disabled_cpu_buffer()` shows why that coupling should stay in C. Under `reader_lock` and `cpu_buffer->lock` it refuses to proceed while `committing` is still nonzero, then calls `rb_reset_cpu()` to clear the head, commit, tail, reader, and meta-page state together instead of treating reset as a wrapper-friendly field update.
-- `ring_buffer_reset_online_cpus()` adds another topology-sensitive rule. It tags only currently online buffers with `RESET_BIT` in `resize_disabled` before the RCU grace period, then skips any CPU that came online during that wait, which means the online-only clear path is deliberately tied to CPU-hotplug state and cannot be reduced to a generic Zig-side reset shim.
-- `ring_buffer_reset()` widens the same contract to every buffer CPU, but it still uses the same `record_disabled`, `resize_disabled`, and post-RCU reset choreography. The all-CPU path therefore shares ownership with the same commit-drain and reader-page reset rules as the narrower helpers instead of opening a cleaner wrapper seam.
-- The tracefs-visible clear semantics sit one layer higher in `kernel/trace/trace.c`, not inside a future `ring_buffer.zig`. `tracing_reset_cpu()`, `tracing_reset_online_cpus()`, and `tracing_reset_all_cpus()` all disable recording, wait for in-flight commits to finish, and then delegate to the ring-buffer reset helpers; the online and all-CPU variants also refresh `buf->time_start`, and `tracing_reset_all_online_cpus_unlocked()` only clears instances that set `tr->clear_trace`, including snapshot buffers. That keeps user-visible clear behavior attached to trace-array policy plus the existing C-owned reset choreography.
-- The tracefs docs reinforce that ownership boundary. `trace` is documented as the file whose contents are cleared by `echo > trace`, while histogram trigger docs separately describe a `clear` parameter that resets trigger contents without changing pause state, which means user-facing clear behavior already spans multiple tracefs policy surfaces and should stay review-only instead of being recast as a small ring-buffer bridge.
+- `tracing_buffers_ioctl()` keeps the mapped-reader handoff attached to the existing wait and wake contract.
+Blocking callers of `TRACE_MMAP_IOCTL_GET_READER` first go through `ring_buffer_wait()`, while non-blocking callers skip straight to the same reader handoff, so the ioctl does not create an independent reader-visible policy surface.
+- `ring_buffer_map_get_reader()` also refuses to operate on an unmapped buffer.
+It enters through `rb_get_mapped_buffer()`, which depends on the mapping state built by `ring_buffer_map()`, and then serializes the reader transition under `reader_lock`, so the ioctl path still shares ownership with the same mapped-buffer lifetime rules and lock choreography as the rest of the tracefs mapping surface.
+- The handoff is not a tiny pointer swap.
+If the current reader page still has unread bytes, `ring_buffer_map_get_reader()` advances the in-page reader to the end before it will consider a new page, and if the reader has already caught up with `commit_page` it stops instead of fabricating a handoff. Only when a new page is truly needed does it call `rb_get_reader_page()`, which keeps mapped-reader advancement coupled to the same reader-page rotation rules that already block wrapper-first ownership elsewhere in the survey.
+- Lost-event and metadata publication stay in the same C-owned handoff.
+When missed events exist, `ring_buffer_map_get_reader()` tries to encode them into the exported page state, then flushes the mapped range and calls `rb_update_meta_page()` before releasing `reader_lock`, so user space still depends on one combined kernel handoff for page contents, loss accounting, and meta-page refresh.
+- The concurrent-reader warning in `Documentation/trace/ring-buffer-map.rst` lines up with the implementation details.
+Multiple user mappings increment `user_mapped`, `ring_buffer_map_dup()` preserves that shared state across duplicated mappings, and the docs still call the resulting output unpredictable, which confirms that `TRACE_MMAP_IOCTL_GET_READER` remains part of a shared reader-competition contract rather than a clean Zig bridge seam.
 
 ## Recorded gaps
 
@@ -105,9 +105,7 @@ The current lane state is:
 - landed `phase14-ring-buffer-wakeup-mmap-followup`
 - landed `phase14-ring-buffer-splice-resize-followup`
 - landed `phase14-ring-buffer-mapped-reader-ioctl-followup`
-- landed `phase14-ring-buffer-reader-page-consume-followup`
-- landed `phase14-ring-buffer-reset-governance-followup`
-- ready-next `phase14-ring-buffer-tracefs-instance-clear-followup`
+- ready-next `phase14-ring-buffer-reader-page-consume-followup`
 - blocked `phase14-ring-buffer-zig-port-blocker`
 
 This keeps the lane honest: Zigux now has an explicit reviewable record that `kernel/trace/ring_buffer.c` belongs in the study-only set for now, and that the repo still does not ship `kernel/trace/ring_buffer.zig`.
@@ -132,4 +130,4 @@ This survey slice does not claim:
 
 ## Next bounded step
 
-Stay in the Phase 14 ring-buffer lane and, if it reopens, add one small study-only tracefs instance clear-dispatch follow-up next, limited to `tracing_reset_cpu()`, `tracing_reset_online_cpus()`, `tracing_reset_all_cpus()`, and `tracing_reset_all_online_cpus_unlocked()` so per-instance clear ownership stays explicit before anyone proposes `kernel/trace/ring_buffer.zig`.
+Stay in the Phase 14 ring-buffer lane and add one small study-only reader-page follow-up next, limited to `rb_get_reader_page()`, `ring_buffer_read_start()`, and `ring_buffer_consume()` before anyone proposes `kernel/trace/ring_buffer.zig`.
