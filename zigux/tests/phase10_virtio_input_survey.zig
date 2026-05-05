@@ -65,6 +65,7 @@ test "phase10 virtio input survey manifest records the live starter and remainin
     try std.testing.expectEqualStrings("Phase 10", manifest.phase);
     try std.testing.expectEqualStrings("drivers/virtio/virtio_input.c", manifest.anchor);
     try std.testing.expectEqualStrings("7361ac51374149a96b7a7a2c6ea3c995d8cc1231", manifest.surveyed_commit);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE10_STATUS=parked") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, manifest.surveyed_commit) != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE10_SURVEYED_COMMIT=") != null);
     try std.testing.expectEqual(@as(usize, 2), manifest.roadmap_destinations.len);
