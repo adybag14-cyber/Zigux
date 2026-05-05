@@ -15,6 +15,7 @@ SURVEY_NOTE_PATH = Path("Documentation/zigux/phase11-uapi-header-parity-survey.m
 SURVEY_ZIG_PATH = Path("zigux/tests/phase11_uapi_header_parity_survey.zig")
 MANIFEST_PATH = Path("zigux/tests/phase11_uapi_header_parity_manifest.json")
 HVC_MATRIX_PATH = Path("Documentation/zigux/phase11-hvc-console-validation-matrix.md")
+SLICE_NOTE_PATH = Path("Documentation/zigux/phase11-hvc-console-slice.md")
 SHARED_REPLAY_NOTE_PATH = Path("Documentation/zigux/phase11-shared-replay-contract.md")
 REVIEW_GUIDE_PATH = Path("Documentation/zigux/phase10-phase11-phase13-validator-first-review-guide.md")
 REVIEW_CHECKLIST_PATH = Path("Documentation/zigux/review-checklist.md")
@@ -49,6 +50,12 @@ SURVEY_ZIG_MARKERS = [
 HVC_MATRIX_MARKERS = [
     "dedicated survey replay still passes separately from the shared Phase 11 replay",
     "shared-versus-dedicated replay",
+]
+
+SLICE_NOTE_MARKERS = [
+    "keeps a small header-parity snapshot for `drivers/tty/hvc/hvc_console.h`",
+    "the bounded `hvc_kick` plus notifier-IRQ helper surface",
+    "The next honest bounded step inside the same Phase 11 lane is to leave this starter parked unless another comparably small host-free notifier callback or khvcd handoff becomes obvious; otherwise avoid widening straight into live tty teardown, live khvcd worker behavior, or host-backed teardown.",
 ]
 
 SHARED_REPLAY_NOTE_MARKERS = [
@@ -106,6 +113,7 @@ def validate_packet(root: Path) -> int:
         ("survey_note", root / SURVEY_NOTE_PATH, SURVEY_NOTE_MARKERS),
         ("survey_zig", root / SURVEY_ZIG_PATH, SURVEY_ZIG_MARKERS),
         ("hvc_matrix", root / HVC_MATRIX_PATH, HVC_MATRIX_MARKERS),
+        ("slice_note", root / SLICE_NOTE_PATH, SLICE_NOTE_MARKERS),
         ("shared_replay_note", root / SHARED_REPLAY_NOTE_PATH, SHARED_REPLAY_NOTE_MARKERS),
         ("review_guide", root / REVIEW_GUIDE_PATH, REVIEW_GUIDE_MARKERS),
         ("review_checklist", root / REVIEW_CHECKLIST_PATH, REVIEW_CHECKLIST_MARKERS),
@@ -219,6 +227,8 @@ def validate_packet(root: Path) -> int:
     print("PHASE11_HEADER_BOUNDARY_PACKET=pass")
     print(f"PHASE11_HEADER_BOUNDARY_SURVEY_MARKER_COUNT={len(SURVEY_NOTE_MARKERS)}")
     print(f"PHASE11_HEADER_BOUNDARY_ZIG_MARKER_COUNT={len(SURVEY_ZIG_MARKERS)}")
+    print(f"PHASE11_HEADER_BOUNDARY_HVC_MATRIX_MARKER_COUNT={len(HVC_MATRIX_MARKERS)}")
+    print(f"PHASE11_HEADER_BOUNDARY_SLICE_NOTE_MARKER_COUNT={len(SLICE_NOTE_MARKERS)}")
     print(f"PHASE11_HEADER_BOUNDARY_SHARED_REPLAY_NOTE_MARKER_COUNT={len(SHARED_REPLAY_NOTE_MARKERS)}")
     print(f"PHASE11_HEADER_BOUNDARY_REVIEW_GUIDE_MARKER_COUNT={len(REVIEW_GUIDE_MARKERS)}")
     print(f"PHASE11_HEADER_BOUNDARY_REVIEW_CHECKLIST_MARKER_COUNT={len(REVIEW_CHECKLIST_MARKERS)}")
@@ -270,6 +280,7 @@ def write_fixture_tree(root: Path) -> None:
     )
     write_text(root / SURVEY_ZIG_PATH, "\n".join(SURVEY_ZIG_MARKERS) + "\n")
     write_text(root / HVC_MATRIX_PATH, "\n".join(HVC_MATRIX_MARKERS) + "\n")
+    write_text(root / SLICE_NOTE_PATH, "\n".join(SLICE_NOTE_MARKERS) + "\n")
     write_text(root / SHARED_REPLAY_NOTE_PATH, "\n".join(SHARED_REPLAY_NOTE_MARKERS) + "\n")
     write_text(root / REVIEW_GUIDE_PATH, "\n".join(REVIEW_GUIDE_MARKERS) + "\n")
     write_text(root / REVIEW_CHECKLIST_PATH, "\n".join(REVIEW_CHECKLIST_MARKERS) + "\n")
@@ -563,6 +574,19 @@ def run_self_test() -> int:
         )
         write_text(tests_companion_path, tests_companion_backup)
 
+        slice_note_path = tmp_root / SLICE_NOTE_PATH
+        slice_note_backup = text(slice_note_path)
+        write_text(
+            slice_note_path,
+            slice_note_backup.replace(SLICE_NOTE_MARKERS[1] + "\n", "", 1),
+        )
+        expect_missing(
+            "missing_slice_note_header_surface",
+            run_checker(tmp_root),
+            f"slice_note:{SLICE_NOTE_MARKERS[1]}",
+        )
+        write_text(slice_note_path, slice_note_backup)
+
         build_inventory_path = tmp_root / BUILD_INVENTORY_PATH
         inventory_backup = json.loads(text(build_inventory_path))
         broken_inventory = dict(inventory_backup)
@@ -588,7 +612,7 @@ def run_self_test() -> int:
         write_text(build_inventory_path, json.dumps(inventory_backup, indent=2) + "\n")
 
     print("PHASE11_HEADER_BOUNDARY_PACKET_SELF_TEST=pass")
-    print("PHASE11_HEADER_BOUNDARY_PACKET_SELF_TEST_CASE_COUNT=15")
+    print("PHASE11_HEADER_BOUNDARY_PACKET_SELF_TEST_CASE_COUNT=16")
     return 0
 
 
