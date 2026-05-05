@@ -28,6 +28,11 @@ REQUIRED_SNIPPETS = {
     "Documentation/zigux/phase6-checksum-slice.md": [
         "- `zigux/tests/fixtures/phase6_checksum_vectors.zig`",
         "- fixture-backed checksum vectors for empty, even, odd, and carry-heavy inputs",
+        "- a tiny KUnit-inspired carry-discipline matrix covering all-ones and no-spurious-carry seeded cases",
+        "- pseudo-header accumulation parity between `tcpUdpNofold` and manual `partial` plus `blockAdd`",
+        "- incremental checksum replacement parity for payload word updates, 16-bit IPv4 header field replacement, diff-based checksum repair, and 32-bit IPv4 address replacement",
+        "- helper-local perf smoke on patterned 64-byte and 1501-byte payloads keeps `checksum.compute` within a 150% slowdown ceiling versus the bounded reference loop",
+        "- `zig build phase6-checksum-perf --build-file zigux/tests/phase6_build.zig -Doptimize=ReleaseSafe`",
         "- The fixture layer stays intentionally small.",
     ],
     "Documentation/zigux/phase6-hexdump-slice.md": [
@@ -47,14 +52,16 @@ REQUIRED_SNIPPETS = {
         "- if the change touches the shared Phase 6 leaf-helper packet, do `Documentation/zigux/README.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, `Documentation/zigux/phase6-base64-slice.md`, `Documentation/zigux/phase6-bsearch-slice.md`, `Documentation/zigux/phase6-checksum-slice.md`, `Documentation/zigux/phase6-hexdump-slice.md`, `zigux/tests/phase6_build.zig`, `zigux/tests/phase6_base64.zig`, `zigux/tests/phase6_bsearch.zig`, `zigux/tests/phase6_checksum.zig`, `zigux/tests/phase6_hexdump.zig`, `zigux/Makefile`, and `make -C zigux phase6` still agree on the same bundled `base64`, `bsearch`, `checksum`, and `hexdump` helper packet without implying a removed shared `validate-phase6.py`, external parity checker, or `phase6-perf` route?",
     ],
     "zigux/tests/phase6_build.zig": [
-        'const test_step = b.step("test", "Run Phase 6 leaf helper tests");',
-        '.name = "phase6-base64-tests"',
-        '.name = "phase6-bsearch-tests"',
-        '.name = "phase6-checksum-tests"',
-        '.name = "phase6-hexdump-tests"',
+        "const test_step = b.step(\"test\", \"Run Phase 6 leaf helper tests\");",
+        ".name = \"phase6-base64-tests\"",
+        ".name = \"phase6-bsearch-tests\"",
+        ".name = \"phase6-checksum-tests\"",
+        ".root_source_file = b.path(\"phase6_checksum_perf.zig\"),",
+        "const checksum_perf_step = b.step(\"phase6-checksum-perf\", \"Run Phase 6 checksum perf gate\");",
+        ".name = \"phase6-hexdump-tests\"",
     ],
     "zigux/tests/phase6_base64.zig": [
-        'const fixtures = @import("fixtures/phase6_base64_vectors.zig");',
+        "const fixtures = @import(\"fixtures/phase6_base64_vectors.zig\");",
         "for (fixtures.standard_cases) |case| {",
         "for (fixtures.variant_cases) |case| {",
         "for (fixtures.standard_decode_cases) |case| {",
@@ -186,8 +193,8 @@ def run_self_test() -> None:
         original_checksum_slice = checksum_slice.read_text(encoding="utf-8")
         checksum_slice.write_text(
             original_checksum_slice.replace(
-                "- fixture-backed checksum vectors for empty, even, odd, and carry-heavy inputs",
-                "- checksum vectors are somewhere else",
+                "- helper-local perf smoke on patterned 64-byte and 1501-byte payloads keeps `checksum.compute` within a 150% slowdown ceiling versus the bounded reference loop",
+                "- checksum perf details are omitted",
             ),
             encoding="utf-8",
         )
@@ -199,6 +206,24 @@ def run_self_test() -> None:
         else:
             raise AssertionError("expected checksum slice failure")
         checksum_slice.write_text(original_checksum_slice, encoding="utf-8")
+
+        phase6_build = root / "zigux/tests/phase6_build.zig"
+        original_phase6_build = phase6_build.read_text(encoding="utf-8")
+        phase6_build.write_text(
+            original_phase6_build.replace(
+                'const checksum_perf_step = b.step("phase6-checksum-perf", "Run Phase 6 checksum perf gate");',
+                'const checksum_perf_step = b.step("phase6-checksum-bench", "Run Phase 6 checksum perf gate");',
+            ),
+            encoding="utf-8",
+        )
+        try:
+            run_checks(root)
+        except ValidationError as exc:
+            if "zigux/tests/phase6_build.zig" not in str(exc):
+                raise AssertionError(f"unexpected phase6 build failure: {exc}") from exc
+        else:
+            raise AssertionError("expected phase6 build failure")
+        phase6_build.write_text(original_phase6_build, encoding="utf-8")
 
         base64_test = root / "zigux/tests/phase6_base64.zig"
         original_base64_test = base64_test.read_text(encoding="utf-8")
