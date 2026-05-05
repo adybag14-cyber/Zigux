@@ -196,4 +196,24 @@ test "phase 5 kobject survey note stays repo-local, lane-scoped, and keeps the a
 
     try std.testing.expect(std.mem.indexOf(u8, survey_note, surveyed_commit_marker) != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "/workspace/agent_files") == null);
+
+    const review_checklist = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "Documentation/zigux/review-checklist.md",
+        std.testing.allocator,
+        .limited(128 * 1024),
+    );
+    defer std.testing.allocator.free(review_checklist);
+
+    const checklist_markers = [_][]const u8{
+        "no standalone `samples/zigux/*rbtree*` reference sample",
+        "Documentation/zigux/phase7-rbtree-slice.md",
+        "lib/rbtree.zig",
+        "zigux/tests/phase7_rbtree.zig",
+        "zigux/tests/phase7_build.zig",
+    };
+
+    for (checklist_markers) |needle| {
+        try std.testing.expect(std.mem.indexOf(u8, review_checklist, needle) != null);
+    }
 }
