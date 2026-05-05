@@ -20,3 +20,10 @@ Boundary notes
 - the Phase 5 trace-events packet still ships no standalone `samples/zigux/*printf*`, `*vsprintf*`, or `*format*` reference sample, so keep treating the selected-string plus `iter=%d` replay in `samples/zigux/trace_events_sample.zig` as the approved formatting idiom cue
 - standalone formatting-helper evidence stays under the closed Phase 1 `tools/lib/vsprintf.zig` packet plus the bounded Phase 7 `string_get_size()` helper packet
 - later runtime follow-ons stay under the separate Phase 9 `samples/zigux/runtime_*` family and should not be counted as extra Phase 5 reference anchors
+
+Separate Phase 9 runtime pilot family
+- `samples/zigux/runtime_atomic64.zig` and `samples/zigux/runtime_atomic64_loader.zig` keep the `lib/atomic64_test.c` starter and loader handoff distinct from the Phase 5 sample packet
+- `samples/zigux/runtime_bitmap.zig` and `samples/zigux/runtime_bitmap_loader.zig` keep the `lib/test_bitmap.c` starter and loader handoff distinct from the Phase 5 sample packet
+- `samples/zigux/runtime_trace_events.zig` and `samples/zigux/runtime_trace_events_loader.zig` keep the runtime trace-events pilot separate from the approved non-runtime `samples/zigux/trace_events_sample.zig` reference sample
+- `samples/zigux/runtime_kretprobe.zig` and `samples/zigux/runtime_kretprobe_loader.zig` keep the runtime kretprobe pilot separate from the approved non-runtime `samples/zigux/kretprobe_example.zig` reference sample
+- review the shipped Phase 9 runtime pilot family through `zigux/tests/phase9_build.zig`, `zigux/tests/runtime_loader_allocator_init_flow.zig`, `zigux/kernel/runtime_loader.zig`, `zigux/kernel/runtime_loader_contract.zig`, and `make -C zigux phase9`; keep those shared loader-handoff surfaces explicit instead of implying a dedicated `validate-phase9.py` route or a cleared runtime-substrate handoff on current `master`
