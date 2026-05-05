@@ -252,6 +252,12 @@ pub fn build(b: *std.Build) void {
         .root_module = runtime_loader_allocator_init_flow_module,
     });
     const run_runtime_loader_allocator_init_flow_tests = b.addRunArtifact(runtime_loader_allocator_init_flow_tests);
+    const runtime_loader_shared_tests_step = b.step(
+        "phase9-runtime-loader-shared-tests",
+        "Run the focused Phase 9 runtime-loader facade and allocator/init-flow contract tests",
+    );
+    runtime_loader_shared_tests_step.dependOn(&run_runtime_loader_facade_tests.step);
+    runtime_loader_shared_tests_step.dependOn(&run_runtime_loader_allocator_init_flow_tests.step);
 
     const runtime_atomic64_survey_tests = b.addTest(.{
         .name = "phase9-runtime-atomic64-survey-tests",
