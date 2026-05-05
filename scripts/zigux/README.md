@@ -89,10 +89,11 @@ Phase 4 flow
 - `Documentation/zigux/phase4-validation-matrix.md` keeps the current rollback owners, threshold posture, and lab or CI replay matrix explicit for the shipped Phase 4 gates.
 
 Phase 6 flow
-- the current shared Phase 6 review surface on `master` is the four slice notes (`Documentation/zigux/phase6-base64-slice.md`, `Documentation/zigux/phase6-bsearch-slice.md`, `Documentation/zigux/phase6-checksum-slice.md`, and `Documentation/zigux/phase6-hexdump-slice.md`) plus `Documentation/zigux/README.md`, `zigux/tests/README.md`, `zigux/tests/phase6_build.zig`, and `zigux/Makefile`.
+- the current shared Phase 6 review surface on `master` is the four slice notes (`Documentation/zigux/phase6-base64-slice.md`, `Documentation/zigux/phase6-bsearch-slice.md`, `Documentation/zigux/phase6-checksum-slice.md`, and `Documentation/zigux/phase6-hexdump-slice.md`) plus `Documentation/zigux/README.md`, `zigux/tests/README.md`, `scripts/zigux/check-phase6-shared-surface.py`, `zigux/tests/phase6_build.zig`, `zigux/Makefile`, and `.github/workflows/zigux-bootstrap.yml`.
+- `make -C zigux phase6-validate` keeps the shared Phase 6 surface checker wired through the Zigux convenience target.
 - `zig build test --build-file zigux/tests/phase6_build.zig` is the bundled helper replay for the current `base64`, `bsearch`, `checksum`, and `hexdump` packet.
-- `make -C zigux phase6` keeps that same bundled helper replay wired through the Zigux convenience target.
-- there is no separate shared `validate-phase6.py`, external portability checker packet, or `phase6-perf` make target on `master`; if those gates land later, document them here only after the files and targets ship.
+- `make -C zigux phase6` keeps that same shared-surface check plus bundled helper replay wired through the Zigux convenience target.
+- there is no separate shared `validate-phase6.py`, external portability checker packet beyond `check-phase6-shared-surface.py`, or standalone `phase6-perf` make target on `master`; if those gates land later, document them here only after the files and targets ship.
 
 Phase 8 flow
 - the current shared Phase 8 review surface on `master` is `Documentation/zigux/README.md`, `Documentation/zigux/phase8-exec-cmd-slice.md`, `Documentation/zigux/phase8-help-slice.md`, `Documentation/zigux/phase8-kallsyms-slice.md`, `Documentation/zigux/phase8-libbpf-cpu-mask-slice.md`, `Documentation/zigux/phase8-bpf-type-names-slice.md`, `Documentation/zigux/phase8-libbpf-segment-survey.md`, `zigux/tests/README.md`, `zigux/tests/phase8_build.zig`, `zigux/tests/phase8_exec_cmd.zig`, `zigux/tests/phase8_help.zig`, `zigux/tests/phase8_kallsyms.zig`, `zigux/tests/phase8_cpu_mask.zig`, `zigux/tests/phase8_logging.zig`, `zigux/tests/phase8_pin_path.zig`, `zigux/tests/phase8_bpf_type_names.zig`, `zigux/tests/phase8_libbpf_segments.zig`, `tools/lib/bpf/zigux_segments/manifest.json`, and `zigux/Makefile`.
