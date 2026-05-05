@@ -47,14 +47,38 @@ test "phase11 bcm2835_wdt survey manifest records the landed get-timeleft summar
     );
     defer std.testing.allocator.free(manifest_json);
 
+    const driver_source = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "drivers/watchdog/bcm2835_wdt.zig",
+        std.testing.allocator,
+        .limited(32 * 1024),
+    );
+    defer std.testing.allocator.free(driver_source);
+
+    const driver_tests = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "zigux/tests/phase11_bcm2835_wdt.zig",
+        std.testing.allocator,
+        .limited(32 * 1024),
+    );
+    defer std.testing.allocator.free(driver_tests);
+
+    const shared_phase11_build = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "zigux/tests/phase11_build.zig",
+        std.testing.allocator,
+        .limited(32 * 1024),
+    );
+    defer std.testing.allocator.free(shared_phase11_build);
+
     const parsed = try std.json.parseFromSlice(Manifest, std.testing.allocator, manifest_json, .{});
     defer parsed.deinit();
 
     const manifest = parsed.value;
-    try std.testing.expectEqualStrings("P11-L06", manifest.lane_key);
+    try std.testing.expectEqualStrings("P11-L08", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 11", manifest.phase);
     try std.testing.expectEqualStrings("drivers/watchdog/bcm2835_wdt.c", manifest.anchor);
-    try std.testing.expectEqualStrings("994722771929e467dc5da31c0820cf26dfbb7c66", manifest.surveyed_commit);
+    try std.testing.expectEqual(@as(usize, 40), manifest.surveyed_commit.len);
     try std.testing.expectEqual(@as(usize, 3), manifest.roadmap_destinations.len);
     try std.testing.expect(manifest.survey_summary.bcm2835_wdt_c_lines >= 240);
     try std.testing.expect(manifest.survey_summary.preexisting_phase11_build_present);
@@ -65,6 +89,18 @@ test "phase11 bcm2835_wdt survey manifest records the landed get-timeleft summar
     try std.testing.expect(manifest.survey_summary.bcm2835_wdt_survey_gate_present);
     try std.testing.expect(manifest.survey_summary.bcm2835_wdt_survey_note_present);
     try std.testing.expectEqual(@as(usize, 10), manifest.gaps.len);
+
+    try std.testing.expect(std.mem.indexOf(u8, driver_source, "pub fn registrationSummary(") != null);
+    try std.testing.expect(std.mem.indexOf(u8, driver_source, "pub fn getTimeleft(") != null);
+    try std.testing.expect(std.mem.indexOf(u8, driver_source, "pub fn removeSummary(") != null);
+    try std.testing.expect(std.mem.indexOf(u8, driver_source, "clear_poweroff_handler_requested") != null);
+
+    try std.testing.expect(std.mem.indexOf(u8, driver_tests, "phase11 bcm2835_wdt registration summary records watchdog registration and poweroff ownership outcomes") != null);
+    try std.testing.expect(std.mem.indexOf(u8, driver_tests, "phase11 bcm2835_wdt remove summary only clears the shared poweroff handler when bcm2835 owns it") != null);
+
+    try std.testing.expect(std.mem.indexOf(u8, shared_phase11_build, "phase11-bcm2835-wdt-tests") != null);
+    try std.testing.expect(std.mem.indexOf(u8, shared_phase11_build, "phase11-bcm2835-wdt-survey-tests") != null);
+    try std.testing.expect(std.mem.indexOf(u8, shared_phase11_build, "../../drivers/watchdog/bcm2835_wdt.zig") != null);
 
     var starter_landed_count: usize = 0;
     var ready_next_count: usize = 0;
@@ -214,6 +250,7 @@ test "phase11 bcm2835_wdt survey docs keep the landed validation matrix and next
 
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase11-bcm2835-wdt-validation-matrix.md") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "hardware validation coverage beyond the bounded matrix") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "focused survey gate now reads the live driver, dedicated test, and shared Phase 11 build packet directly") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "tiny platform-facing handoff note") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "explicit get-timeleft helper") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "add a tiny hardware-validation matrix") == null);
