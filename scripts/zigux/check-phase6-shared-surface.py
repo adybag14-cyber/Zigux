@@ -18,7 +18,7 @@ REQUIRED_SNIPPETS = {
         "- `Documentation/zigux/phase6-bsearch-slice.md`",
         "- `Documentation/zigux/phase6-checksum-slice.md`",
         "- `Documentation/zigux/phase6-hexdump-slice.md`",
-        "- `zigux/tests/phase6_build.zig`, `zigux/tests/phase6_base64.zig`, `zigux/tests/phase6_bsearch.zig`, `zigux/tests/phase6_checksum.zig`, `zigux/tests/phase6_hexdump.zig`, and `make -C zigux phase6` now keep the current base64, bsearch, checksum, and hexdump helper bundle reviewable through the shared surface checker, the bundled replay, and the Linux-style helper lane together, so new helper slices should only land when that shared packet stays green as one unit.",
+        "- `zigux/tests/phase6_build.zig`, `zigux/tests/phase6_base64.zig`, `zigux/tests/phase6_bsearch.zig`, `zigux/tests/phase6_checksum.zig`, and `make -C zigux phase6` now keep the current base64, bsearch, checksum, and hexdump helper bundle reviewable through the shared surface checker, the bundled replay, and the Linux-style helper lane together, so new helper slices should only land when that shared packet stays green as one unit.",
     ],
     "Documentation/zigux/phase6-base64-slice.md": [
         "- `zigux/tests/fixtures/phase6_base64_vectors.zig`",
@@ -71,38 +71,48 @@ REQUIRED_SNIPPETS = {
         "- if the change touches the shared Phase 6 leaf-helper packet, do `Documentation/zigux/README.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, `Documentation/zigux/phase6-base64-slice.md`, `Documentation/zigux/phase6-bsearch-slice.md`, `Documentation/zigux/phase6-checksum-slice.md`, `Documentation/zigux/phase6-hexdump-slice.md`, `zigux/tests/phase6_build.zig`, `zigux/tests/phase6_base64.zig`, `zigux/tests/phase6_bsearch.zig`, `zigux/tests/phase6_checksum.zig`, `zigux/tests/phase6_hexdump.zig`, `zigux/Makefile`, and `make -C zigux phase6` still agree on the same bundled `base64`, `bsearch`, `checksum`, and `hexdump` helper packet without implying a removed shared `validate-phase6.py`, external parity checker, or `phase6-perf` route?",
     ],
     "zigux/tests/phase6_build.zig": [
-        "const test_step = b.step(\"test\", \"Run Phase 6 leaf helper tests\");",
-        ".name = \"phase6-base64-tests\"",
-        ".name = \"phase6-bsearch-tests\"",
-        ".name = \"phase6-checksum-tests\"",
-        ".root_source_file = b.path(\"phase6_checksum_perf.zig\"),",
-        "const checksum_perf_step = b.step(\"phase6-checksum-perf\", \"Run Phase 6 checksum perf gate\");",
-        ".name = \"phase6-hexdump-tests\"",
+        'const test_step = b.step("test", "Run Phase 6 leaf helper tests");',
+        '.name = "phase6-base64-tests"',
+        '.name = "phase6-bsearch-tests"',
+        '.name = "phase6-checksum-tests"',
+        '.root_source_file = b.path("phase6_checksum_perf.zig"),',
+        'const checksum_perf_step = b.step("phase6-checksum-perf", "Run Phase 6 checksum perf gate");',
+        '.name = "phase6-hexdump-tests"',
     ],
     "zigux/tests/phase6_base64.zig": [
-        "const fixtures = @import(\"fixtures/phase6_base64_vectors.zig\");",
-        "for (fixtures.standard_cases) |case| {",
-        "for (fixtures.variant_cases) |case| {",
-        "for (fixtures.standard_decode_cases) |case| {",
-        "for (fixtures.invalid_decode_cases) |case| {",
-        "for (fixtures.variant_decode_cases) |case| {",
+        'const fixtures = @import("fixtures/phase6_base64_vectors.zig");',
+        'for (fixtures.standard_cases) |case| {',
+        'for (fixtures.variant_cases) |case| {',
+        'for (fixtures.standard_decode_cases) |case| {',
+        'for (fixtures.invalid_decode_cases) |case| {',
+        'for (fixtures.variant_decode_cases) |case| {',
     ],
     "zigux/tests/phase6_bsearch.zig": [
-        "test \"phase 6 bsearch honors comparator-driven descending order\" {",
-        "test \"phase 6 bsearch supports string keys against sorted records\" {",
-        "test \"phase 6 bsearch keeps representative lookup work inside a binary-search budget\" {",
-        "test \"phase 6 bsearch raw lookup returns null for empty input without invoking the comparator\" {",
-        "test \"phase 6 bsearch raw lookup keeps representative work inside a binary-search budget\" {",
-        "test \"phase 6 bsearch accepts runtime-selected native comparator pointers\" {",
-        "test \"phase 6 bsearch accepts runtime-selected c abi comparator pointers\" {",
-        "test \"phase 6 bsearch accepts runtime-selected raw native comparator pointers\" {",
-        "test \"phase 6 bsearch accepts runtime-selected raw c abi comparator pointers\" {",
+        'test "phase 6 bsearch honors comparator-driven descending order" {',
+        'test "phase 6 bsearch supports string keys against sorted records" {',
+        'test "phase 6 bsearch keeps representative lookup work inside a binary-search budget" {',
+        'test "phase 6 bsearch raw lookup returns null for empty input without invoking the comparator" {',
+        'test "phase 6 bsearch raw lookup keeps representative work inside a binary-search budget" {',
+        'test "phase 6 bsearch accepts runtime-selected native comparator pointers" {',
+        'test "phase 6 bsearch accepts runtime-selected c abi comparator pointers" {',
+        'test "phase 6 bsearch accepts runtime-selected raw native comparator pointers" {',
+        'test "phase 6 bsearch accepts runtime-selected raw c abi comparator pointers" {',
+    ],
+    "zigux/tests/phase6_checksum.zig": [
+        'test "fixture-backed compute parity covers the current checksum vectors" {',
+        'test "partial sums compose across the fixture split matrix" {',
+        'test "blockSub reverses blockAdd across odd and even fragment boundaries" {',
+        'test "seeded partial accumulation matches the fixture-backed reference" {',
+        'test "kunit-inspired carry discipline stays stable on the helper surface" {',
+        'test "fixture-backed negate cases keep the public checksum helper reviewable" {',
+        'test "pseudo header accumulation matches the fixture-backed reference checksum" {',
+        'test "incremental checksum replacement helpers match direct recomputation" {',
     ],
     "zigux/tests/phase6_hexdump.zig": [
-        "test \"phase 6 hexdump perf fixture packet stays in sync\" {",
-        "try std.testing.expectEqual(@as(usize, 4), fixtures.perf_cases.len);",
-        "test \"phase 6 hexdump grouped ASCII output stays intact when buffer capacity is exact\" {",
-        "test \"phase 6 hexdump covers normalization and empty-buffer edge cases\" {",
+        'test "phase 6 hexdump perf fixture packet stays in sync" {',
+        'try std.testing.expectEqual(@as(usize, 4), fixtures.perf_cases.len);',
+        'test "phase 6 hexdump grouped ASCII output stays intact when buffer capacity is exact" {',
+        'test "phase 6 hexdump covers normalization and empty-buffer edge cases" {',
     ],
     "zigux/tests/fixtures/phase6_base64_vectors.zig": [
         "pub const standard_cases = [_]EncodeCase{",
@@ -113,12 +123,12 @@ REQUIRED_SNIPPETS = {
     ],
     "zigux/tests/phase6_checksum_perf.zig": [
         "const perf_cases = [_]PerfCase{",
-        ".label = \"64B\"",
-        ".label = \"1501B\"",
+        '.label = "64B"',
+        '.label = "1501B"',
         ".max_slowdown_pct = 150,",
-        "try stdout_writer.interface.print(\"PHASE6_CHECKSUM_PERF_CASE_COUNT={d}\\n\", .{perf_cases.len});",
-        "try stdout_writer.interface.print(\"PHASE6_CHECKSUM_PERF_{s}_THRESHOLD_PCT={d}\\n\", .{ case.label, case.max_slowdown_pct });",
-        "try stdout_writer.interface.print(\"PHASE6_CHECKSUM_PERF={s}\\n\", .{if (failed) \"fail\" else \"pass\"});",
+        'try stdout_writer.interface.print("PHASE6_CHECKSUM_PERF_CASE_COUNT={d}\\n", .{perf_cases.len});',
+        'try stdout_writer.interface.print("PHASE6_CHECKSUM_PERF_{s}_THRESHOLD_PCT={d}\\n", .{ case.label, case.max_slowdown_pct });',
+        'try stdout_writer.interface.print("PHASE6_CHECKSUM_PERF={s}\\n", .{if (failed) "fail" else "pass"});',
     ],
     "zigux/Makefile": [
         "PHONY += phase6-validate phase6-test phase6-checksum-perf phase6",
@@ -373,6 +383,24 @@ def run_self_test() -> None:
         else:
             raise AssertionError("expected checksum perf failure")
         checksum_perf.write_text(original_checksum_perf, encoding="utf-8")
+
+        checksum_test = root / "zigux/tests/phase6_checksum.zig"
+        original_checksum_test = checksum_test.read_text(encoding="utf-8")
+        checksum_test.write_text(
+            original_checksum_test.replace(
+                'test "pseudo header accumulation matches the fixture-backed reference checksum" {',
+                'test "pseudo header coverage moved elsewhere" {',
+            ),
+            encoding="utf-8",
+        )
+        try:
+            run_checks(root)
+        except ValidationError as exc:
+            if "zigux/tests/phase6_checksum.zig" not in str(exc):
+                raise AssertionError(f"unexpected checksum test failure: {exc}") from exc
+        else:
+            raise AssertionError("expected checksum test failure")
+        checksum_test.write_text(original_checksum_test, encoding="utf-8")
 
         base64_test = root / "zigux/tests/phase6_base64.zig"
         original_base64_test = base64_test.read_text(encoding="utf-8")
