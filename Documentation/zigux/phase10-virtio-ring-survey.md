@@ -11,6 +11,7 @@ This document tracks the bounded Phase 10 survey lane around `drivers/virtio/vir
   - `zigux/tests/phase10_virtio_ring_manifest.json`
   - `zigux/tests/phase10_virtio_ring_survey.zig`
   - `zigux/tests/phase10_build.zig`
+  - `Documentation/zigux/phase10-virtio-ring-slice.md`
   - `Documentation/zigux/phase10-virtio-ring-survey.md`
 
 ## Why this slice exists
@@ -45,7 +46,7 @@ The survey manifest now records:
 - the still-blocked `phase10-mmio-lifecycle-and-irq-paths`
 - the landed `phase10-virtio-ring-slice-note`
 
-This keeps the lane concrete and reviewable without overstating `virtio_ring` progress: the queue-shape foothold is real, used-buffer polling, callback re-enable, delayed-callback pacing, broken-queue poll discipline, and the bounded MMIO register window are all landed, and the risky transport-facing lifecycle work is still intentionally blocked.
+This keeps the lane concrete and reviewable without overstating `virtio_ring` progress: the queue-shape foothold is real, used-buffer polling, callback re-enable, delayed-callback pacing, broken-queue poll discipline, and the bounded MMIO register window are all landed, and the risky transport-facing lifecycle work is still intentionally blocked. That blocked MMIO lifecycle and IRQ follow-up remains owned by the adjacent `virtio_mmio` packet plus shared Phase 10 closure evidence, not by this queue-local ring survey note.
 
 ## Non-goals
 
