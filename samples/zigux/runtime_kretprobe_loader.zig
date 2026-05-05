@@ -47,6 +47,12 @@ fn sharedHandoffStage(stage: runtime_kretprobe_sample.ModuleStage) runtime_loade
     };
 }
 
+fn ensureIdleRegistrationSnapshot(summary: runtime_kretprobe_sample.RuntimeKretprobeSummary) !void {
+    if (summary.active_instances != 0 or summary.entry_timestamp_armed) {
+        return error.OutstandingProbeStateForLoader;
+    }
+}
+
 pub fn toSharedLoadPlan(plan: RuntimeKretprobeLoadPlan) runtime_loader.LoadPlan {
     return .{
         .module_name = plan.module_name,
@@ -136,6 +142,7 @@ pub const RuntimeKretprobeLoader = struct {
         if (!descriptor.requires_runtime_substrate) return error.LoaderNotRequired;
 
         const summary = module.summary();
+        try ensureIdleRegistrationSnapshot(summary);
         return .{
             .module_name = descriptor.name,
             .anchor = descriptor.anchor,
@@ -462,4 +469,20 @@ test "runtime kretprobe loader rejects registration snapshot drift" {
     var drifted_summary = snapshot;
     drifted_summary.nmissed += 1;
     try std.testing.expect(!keepsRegistrationSnapshotExplicit(plan, drifted_summary));
+}
+
+test "runtime kretprobe loader rejects non-idle probe state at the metadata-only handoff boundary" {
+    var module = runtime_kretprobe_sample.RuntimeKretprobeSample{};
+    try module.init();
+    try std.testing.expect(try module.entryHandler(true, 500));
+
+    try std.testing.expectError(error.OutstandingProbeStateForLoader, RuntimeKretprobeLoader.planFor(&module));
+
+    const drained = try module.retHandler(17, 560);
+    try std.testing.expectEqual(@as(usize, 17), drained.retval);
+    try std.testing.expectEqual(@as(i64, 60), drained.duration_ns);
+
+    const recovered_plan = try RuntimeKretprobeLoader.planFor(&module);
+    try std.testing.expectEqual(@as(usize, 0), recovered_plan.summary.active_instances);
+    try std.testing.expect(!recovered_plan.summary.entry_timestamp_armed);
 }
