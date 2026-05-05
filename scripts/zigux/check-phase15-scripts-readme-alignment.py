@@ -32,6 +32,7 @@ REQUIRED_FILES = (
     "zigux/tests/phase15_parity_scorecard.zig",
     "zigux/tests/phase15_indefinite_c_policy.json",
     "zigux/tests/phase15_indefinite_c_policy.zig",
+    "zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig",
 )
 
 README_SNIPPETS = (
@@ -85,6 +86,7 @@ BUILD_MARKERS = (
     'b.path("phase15_parity_scorecard.zig")',
     'b.path("phase15_architecture_council_review_process.zig")',
     'b.path("phase15_indefinite_c_policy.zig")',
+    'b.path("phase15_indefinite_c_lane_owner_alignment.zig")',
     'b.step("test", "Run Phase 15 governance tests")',
 )
 
@@ -231,6 +233,7 @@ def _baseline_build() -> str:
             'const b1 = b.path("phase15_parity_scorecard.zig");',
             'const c = b.path("phase15_architecture_council_review_process.zig");',
             'const d = b.path("phase15_indefinite_c_policy.zig");',
+            'const e = b.path("phase15_indefinite_c_lane_owner_alignment.zig");',
             'const step = b.step("test", "Run Phase 15 governance tests");',
             "",
         )
@@ -254,6 +257,7 @@ def _seed_fixture_tree(root: Path) -> None:
         "zigux/tests/phase15_parity_scorecard.zig",
         "zigux/tests/phase15_indefinite_c_policy.json",
         "zigux/tests/phase15_indefinite_c_policy.zig",
+        "zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig",
     ):
         _write(root / rel, "{}\n" if rel.endswith(".json") else "// stub\n")
 
@@ -341,11 +345,11 @@ def run_self_test() -> int:
         baseline_build = _read(build_path)
         _write(
             root / BUILD_REL,
-            baseline_build.replace('const d = b.path("phase15_indefinite_c_policy.zig");\n', "", 1),
+            baseline_build.replace('const e = b.path("phase15_indefinite_c_lane_owner_alignment.zig");\n', "", 1),
         )
         _assert_only(
             validate(root),
-            ['build:missing:b.path("phase15_indefinite_c_policy.zig")'],
+            ['build:missing:b.path("phase15_indefinite_c_lane_owner_alignment.zig")'],
             "missing_build_marker_guard_failed",
         )
         _write(root / BUILD_REL, baseline_build)
