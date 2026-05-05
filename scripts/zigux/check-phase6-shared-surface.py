@@ -49,6 +49,13 @@ REQUIRED_SNIPPETS = {
         "- `zigux/tests/fixtures/phase6_hexdump_vectors.zig`",
         "- serialized fixture vectors derived from `lib/test_hexdump.c`",
         "- serialized required-length vectors for `hexDumpLineLength` and zero-buffer `hexDumpToBuffer`",
+        "- native-endian grouped output for 2, 4, and 8 byte cases",
+        "- grouped ASCII output stays intact when buffer capacity is exact",
+        "- a machine-readable four-case perf fixture packet kept alongside the hexdump vectors so grouped formatter follow-ups reuse one bounded case roster instead of growing ad hoc",
+        "- `16B-plain-g1`",
+        "- `32B-ascii-g2`",
+        "- `16B-ascii-g4`",
+        "- `16B-ascii-g8`",
     ],
     "scripts/zigux/README.md": [
         "- the current shared Phase 6 review surface on `master` is the four slice notes (`Documentation/zigux/phase6-base64-slice.md`, `Documentation/zigux/phase6-bsearch-slice.md`, `Documentation/zigux/phase6-checksum-slice.md`, and `Documentation/zigux/phase6-hexdump-slice.md`) plus `Documentation/zigux/README.md`, `zigux/tests/README.md`, `scripts/zigux/check-phase6-shared-surface.py`, `zigux/tests/phase6_build.zig`, `zigux/Makefile`, and `.github/workflows/zigux-bootstrap.yml`.",
@@ -90,6 +97,12 @@ REQUIRED_SNIPPETS = {
         "test \"phase 6 bsearch accepts runtime-selected c abi comparator pointers\" {",
         "test \"phase 6 bsearch accepts runtime-selected raw native comparator pointers\" {",
         "test \"phase 6 bsearch accepts runtime-selected raw c abi comparator pointers\" {",
+    ],
+    "zigux/tests/phase6_hexdump.zig": [
+        "test \"phase 6 hexdump perf fixture packet stays in sync\" {",
+        "try std.testing.expectEqual(@as(usize, 4), fixtures.perf_cases.len);",
+        "test \"phase 6 hexdump grouped ASCII output stays intact when buffer capacity is exact\" {",
+        "test \"phase 6 hexdump covers normalization and empty-buffer edge cases\" {",
     ],
     "zigux/tests/fixtures/phase6_base64_vectors.zig": [
         "pub const standard_cases = [_]EncodeCase{",
@@ -306,6 +319,24 @@ def run_self_test() -> None:
             raise AssertionError("expected checksum slice failure")
         checksum_slice.write_text(original_checksum_slice, encoding="utf-8")
 
+        hexdump_slice = root / "Documentation/zigux/phase6-hexdump-slice.md"
+        original_hexdump_slice = hexdump_slice.read_text(encoding="utf-8")
+        hexdump_slice.write_text(
+            original_hexdump_slice.replace(
+                "- grouped ASCII output stays intact when buffer capacity is exact",
+                "- grouped ASCII output note removed",
+            ),
+            encoding="utf-8",
+        )
+        try:
+            run_checks(root)
+        except ValidationError as exc:
+            if "Documentation/zigux/phase6-hexdump-slice.md" not in str(exc):
+                raise AssertionError(f"unexpected hexdump slice failure: {exc}") from exc
+        else:
+            raise AssertionError("expected hexdump slice failure")
+        hexdump_slice.write_text(original_hexdump_slice, encoding="utf-8")
+
         phase6_build = root / "zigux/tests/phase6_build.zig"
         original_phase6_build = phase6_build.read_text(encoding="utf-8")
         phase6_build.write_text(
@@ -377,6 +408,24 @@ def run_self_test() -> None:
                 raise AssertionError(f"unexpected bsearch test failure: {exc}") from exc
         else:
             raise AssertionError("expected bsearch test failure")
+        bsearch_test.write_text(original_bsearch_test, encoding="utf-8")
+
+        hexdump_test = root / "zigux/tests/phase6_hexdump.zig"
+        original_hexdump_test = hexdump_test.read_text(encoding="utf-8")
+        hexdump_test.write_text(
+            original_hexdump_test.replace(
+                'try std.testing.expectEqual(@as(usize, 4), fixtures.perf_cases.len);',
+                'try std.testing.expectEqual(@as(usize, 3), fixtures.perf_cases.len);',
+            ),
+            encoding="utf-8",
+        )
+        try:
+            run_checks(root)
+        except ValidationError as exc:
+            if "zigux/tests/phase6_hexdump.zig" not in str(exc):
+                raise AssertionError(f"unexpected hexdump test failure: {exc}") from exc
+        else:
+            raise AssertionError("expected hexdump test failure")
 
     print("self-test passed")
 
