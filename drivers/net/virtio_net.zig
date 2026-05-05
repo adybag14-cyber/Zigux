@@ -7,6 +7,11 @@ pub const feature_multiqueue: u16 = 22;
 pub const feature_hash_report: u16 = 57;
 pub const feature_rss: u16 = 60;
 
+pub const RecoveryAction = enum {
+    freeze,
+    restore,
+};
+
 pub const ModuleDescriptor = struct {
     name: []const u8,
     anchor: []const u8,
@@ -28,6 +33,21 @@ pub const RecoveryState = enum {
     stable,
     renegotiate_features,
     reset_required,
+};
+
+pub const RssRecoveryState = enum {
+    not_requested,
+    requested_but_unavailable,
+    downgraded_single_queue,
+    active,
+};
+
+pub const QueueRecoveryAction = enum {
+    none,
+    clamp_queue_pairs,
+    degrade_to_single_queue,
+    renegotiate_features,
+    require_reset,
 };
 
 pub const ProbeRequest = struct {
@@ -52,8 +72,55 @@ pub const ProbeSnapshot = struct {
     mergeable_rx_buffers: bool,
     has_rss: bool,
     has_rss_hash_report: bool,
+    rss_recovery_state: RssRecoveryState,
     fallback_reason: QueueFallbackReason,
     recovery_state: RecoveryState,
+    queue_recovery_action: QueueRecoveryAction,
+};
+
+pub const QueueRecoverySummary = struct {
+    anchor: []const u8,
+    action: RecoveryAction,
+    was_frozen: bool,
+    is_frozen: bool,
+    planned_queue_pairs_available: bool,
+    remembered_planned_queue_pairs: u16,
+    remembered_total_queue_count: u16,
+    remembered_control_queue_index: ?u16,
+    remembered_rss_recovery_state: RssRecoveryState,
+    remembered_fallback_reason: QueueFallbackReason,
+    remembered_recovery_state: RecoveryState,
+    remembered_queue_recovery_action: QueueRecoveryAction,
+    recovery_generation: u16,
+};
+
+pub const QueueResumeReadiness = enum {
+    ready,
+    requires_feature_renegotiation,
+    requires_reset,
+};
+
+pub const QueueResumeScope = enum {
+    data_queues_only,
+    data_and_control_queue,
+    data_control_and_rss,
+};
+
+pub const QueueResumeSummary = struct {
+    anchor: []const u8,
+    is_frozen: bool,
+    recovery_generation: u16,
+    readiness: QueueResumeReadiness,
+    rebuild_scope: QueueResumeScope,
+    resume_queue_pairs: u16,
+    resume_total_queue_count: u16,
+    resume_control_queue_index: ?u16,
+    remembered_rss_recovery_state: RssRecoveryState,
+    remembered_fallback_reason: QueueFallbackReason,
+    remembered_queue_recovery_action: QueueRecoveryAction,
+    requires_control_queue_restore: bool,
+    requires_rss_reapply: bool,
+    requires_fresh_probe_snapshot: bool,
 };
 
 pub const VirtioNetProbeLab = struct {
@@ -61,6 +128,9 @@ pub const VirtioNetProbeLab = struct {
 
     core: virtio.VirtioCoreLabDevice,
     last_snapshot: ?ProbeSnapshot = null,
+    frozen_snapshot: ?ProbeSnapshot = null,
+    transport_recovery_frozen: bool = false,
+    recovery_generation: u16 = 0,
 
     pub fn descriptor() ModuleDescriptor {
         return .{
@@ -70,7 +140,7 @@ pub const VirtioNetProbeLab = struct {
             .touches_live_dma = false,
             .touches_napi_poll = false,
             .touches_netdev_lifecycle = false,
-            .touches_transport_recovery = false,
+            .touches_transport_recovery = true,
         };
     }
 
@@ -81,6 +151,7 @@ pub const VirtioNetProbeLab = struct {
     }
 
     pub fn captureProbeSnapshot(self: *Self, request: ProbeRequest) !ProbeSnapshot {
+        if (self.transport_recovery_frozen) return error.TransportRecoveryFrozen;
         if (request.requested_queue_pairs == 0) return error.InvalidRequestedQueuePairs;
 
         self.core.reset();
@@ -145,11 +216,51 @@ pub const VirtioNetProbeLab = struct {
             .mergeable_rx_buffers = mergeable_rx_buffers,
             .has_rss = has_rss,
             .has_rss_hash_report = has_hash_report,
+            .rss_recovery_state = summarizeRssRecoveryState(
+                featureRequested(request.driver_feature_bits, feature_rss),
+                has_rss,
+                request.requested_queue_pairs,
+                planned_queue_pairs,
+            ),
             .fallback_reason = fallback_reason,
             .recovery_state = recovery_state,
+            .queue_recovery_action = summarizeQueueRecoveryAction(
+                recovery_state,
+                request.requested_queue_pairs,
+                planned_queue_pairs,
+            ),
         };
         self.last_snapshot = snapshot;
         return snapshot;
+    }
+
+    pub fn freezeForRecovery(self: *Self) !QueueRecoverySummary {
+        if (self.transport_recovery_frozen) return error.TransportRecoveryAlreadyFrozen;
+
+        const snapshot = self.last_snapshot orelse return error.ProbeSnapshotUnavailable;
+        self.transport_recovery_frozen = true;
+        self.frozen_snapshot = snapshot;
+
+        return summarizeRecovery(.freeze, false, true, false, snapshot, self.recovery_generation);
+    }
+
+    pub fn restoreAfterRecovery(self: *Self) !QueueRecoverySummary {
+        if (!self.transport_recovery_frozen) return error.TransportRecoveryNotFrozen;
+
+        const snapshot = self.frozen_snapshot orelse return error.ProbeSnapshotUnavailable;
+        self.transport_recovery_frozen = false;
+        self.frozen_snapshot = null;
+        self.last_snapshot = null;
+        self.recovery_generation = try checkedAddU16(self.recovery_generation, 1);
+
+        return summarizeRecovery(.restore, true, false, true, snapshot, self.recovery_generation);
+    }
+
+    pub fn planQueueResume(self: *Self) !QueueResumeSummary {
+        if (!self.transport_recovery_frozen) return error.TransportRecoveryNotFrozen;
+
+        const snapshot = self.frozen_snapshot orelse return error.ProbeSnapshotUnavailable;
+        return summarizeQueueResume(snapshot, self.recovery_generation);
     }
 
     fn checkedMulU16(lhs: u16, rhs: u16) !u16 {
@@ -160,5 +271,100 @@ pub const VirtioNetProbeLab = struct {
     fn checkedAddU16(lhs: u16, rhs: u16) !u16 {
         const value = @as(u32, lhs) + rhs;
         return std.math.cast(u16, value) orelse error.QueueCountOverflow;
+    }
+
+    fn featureRequested(feature_bits: []const u16, wanted: u16) bool {
+        for (feature_bits) |feature_bit| {
+            if (feature_bit == wanted) return true;
+        }
+        return false;
+    }
+
+    fn summarizeRssRecoveryState(
+        requested_rss: bool,
+        has_rss: bool,
+        requested_queue_pairs: u16,
+        planned_queue_pairs: u16,
+    ) RssRecoveryState {
+        if (!requested_rss) return .not_requested;
+        if (has_rss and planned_queue_pairs > 1) return .active;
+        if (has_rss and requested_queue_pairs > planned_queue_pairs) return .downgraded_single_queue;
+        return .requested_but_unavailable;
+    }
+
+    fn summarizeQueueRecoveryAction(
+        recovery_state: RecoveryState,
+        requested_queue_pairs: u16,
+        planned_queue_pairs: u16,
+    ) QueueRecoveryAction {
+        return switch (recovery_state) {
+            .reset_required => .require_reset,
+            .renegotiate_features => .renegotiate_features,
+            .stable => if (planned_queue_pairs < requested_queue_pairs)
+                if (planned_queue_pairs <= 1) .degrade_to_single_queue else .clamp_queue_pairs
+            else
+                .none,
+        };
+    }
+
+    fn summarizeRecovery(
+        action: RecoveryAction,
+        was_frozen: bool,
+        is_frozen: bool,
+        planned_queue_pairs_available: bool,
+        snapshot: ProbeSnapshot,
+        recovery_generation: u16,
+    ) QueueRecoverySummary {
+        return .{
+            .anchor = descriptor().anchor,
+            .action = action,
+            .was_frozen = was_frozen,
+            .is_frozen = is_frozen,
+            .planned_queue_pairs_available = planned_queue_pairs_available,
+            .remembered_planned_queue_pairs = snapshot.planned_queue_pairs,
+            .remembered_total_queue_count = snapshot.total_queue_count,
+            .remembered_control_queue_index = snapshot.control_queue_index,
+            .remembered_rss_recovery_state = snapshot.rss_recovery_state,
+            .remembered_fallback_reason = snapshot.fallback_reason,
+            .remembered_recovery_state = snapshot.recovery_state,
+            .remembered_queue_recovery_action = snapshot.queue_recovery_action,
+            .recovery_generation = recovery_generation,
+        };
+    }
+
+    fn summarizeQueueResume(
+        snapshot: ProbeSnapshot,
+        recovery_generation: u16,
+    ) QueueResumeSummary {
+        const readiness: QueueResumeReadiness = switch (snapshot.recovery_state) {
+            .stable => .ready,
+            .renegotiate_features => .requires_feature_renegotiation,
+            .reset_required => .requires_reset,
+        };
+        const requires_control_queue_restore = snapshot.control_queue_index != null;
+        const requires_rss_reapply = snapshot.rss_recovery_state == .active;
+        const rebuild_scope: QueueResumeScope = if (requires_rss_reapply)
+            .data_control_and_rss
+        else if (requires_control_queue_restore)
+            .data_and_control_queue
+        else
+            .data_queues_only;
+
+        return .{
+            .anchor = descriptor().anchor,
+            .is_frozen = true,
+            .recovery_generation = recovery_generation,
+            .readiness = readiness,
+            .rebuild_scope = rebuild_scope,
+            .resume_queue_pairs = snapshot.planned_queue_pairs,
+            .resume_total_queue_count = snapshot.total_queue_count,
+            .resume_control_queue_index = snapshot.control_queue_index,
+            .remembered_rss_recovery_state = snapshot.rss_recovery_state,
+            .remembered_fallback_reason = snapshot.fallback_reason,
+            .remembered_queue_recovery_action = snapshot.queue_recovery_action,
+            .requires_control_queue_restore = requires_control_queue_restore,
+            .requires_rss_reapply = requires_rss_reapply,
+            .requires_fresh_probe_snapshot = true,
+        };
     }
 };
