@@ -91,6 +91,24 @@ test "phase10 virtio mmio exposes a bounded config-word window before irq or lif
     try std.testing.expectError(error.ConfigWindowTooLarge, device.stageConfigBytes(&[_]u8{0} ** (virtio_mmio.config_window_capacity + 1)));
 }
 
+test "phase10 virtio mmio clears stale config words when a shorter window is restaged" {
+    var device = try virtio_mmio.VirtioMmioLab.init(53, &[_]u16{ 8, 16 });
+
+    try device.stageConfigBytes(&[_]u8{
+        0x78, 0x56, 0x34, 0x12,
+        0xef, 0xcd, 0xab, 0x90,
+    });
+    var config_summary = try device.readConfigOffset(virtio_mmio.mmio_window_bytes + 4);
+    try std.testing.expectEqual(@as(u32, 0x90ab_cdef), config_summary.value);
+
+    try device.stageConfigBytes(&[_]u8{
+        0xaa, 0xbb, 0xcc, 0xdd,
+    });
+    config_summary = try device.readConfigOffset(virtio_mmio.mmio_window_bytes);
+    try std.testing.expectEqual(@as(u32, 0xddcc_bbaa), config_summary.value);
+    try std.testing.expectError(error.ConfigWindowReadOutOfRange, device.readConfigOffset(virtio_mmio.mmio_window_bytes + 4));
+}
+
 test "phase10 virtio mmio bounds queue selection and queue sizing before lifecycle work" {
     var device = try virtio_mmio.VirtioMmioLab.init(24, &[_]u16{8});
 
