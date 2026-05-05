@@ -49,7 +49,12 @@ test "phase10 virtio input survey manifest records the live starter and remainin
     );
     defer std.testing.allocator.free(manifest_json);
 
-    const parsed = try std.json.parseFromSlice(Manifest, std.testing.allocator, manifest_json, .{});
+    const parsed = try std.json.parseFromSlice(
+        Manifest,
+        std.testing.allocator,
+        manifest_json,
+        .{ .ignore_unknown_fields = true },
+    );
     defer parsed.deinit();
 
     const survey_note = try std.Io.Dir.cwd().readFileAlloc(
