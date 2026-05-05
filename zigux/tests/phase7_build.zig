@@ -28,6 +28,17 @@ pub fn build(b: *std.Build) void {
     });
     cmdline_root_module.addImport("cmdline", cmdline_module);
 
+    const cmdline_survey_root_module = b.createModule(.{
+        .root_source_file = b.path("phase7_cmdline_survey.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    const cmdline_survey_tests = b.addTest(.{
+        .name = "phase7-cmdline-survey-tests",
+        .root_module = cmdline_survey_root_module,
+    });
+    const run_cmdline_survey_tests = b.addRunArtifact(cmdline_survey_tests);
+
     const argv_split_module = b.createModule(.{
         .root_source_file = b.path("../../lib/argv_split.zig"),
         .target = target,
@@ -103,6 +114,7 @@ pub fn build(b: *std.Build) void {
     test_step.dependOn(&run_string_helpers_tests.step);
     test_step.dependOn(&run_string_helpers_sample_boundary_tests.step);
     test_step.dependOn(&run_cmdline_tests.step);
+    test_step.dependOn(&run_cmdline_survey_tests.step);
     test_step.dependOn(&run_argv_split_tests.step);
     test_step.dependOn(&run_rbtree_tests.step);
     test_step.dependOn(&run_rbtree_survey_tests.step);
