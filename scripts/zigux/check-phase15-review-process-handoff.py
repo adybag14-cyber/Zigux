@@ -13,6 +13,8 @@ ROOT = SELF_PATH.parents[2] if len(SELF_PATH.parents) > 2 else SELF_PATH.parent
 
 NOTE_PATH = "Documentation/zigux/phase15-architecture-council-review-process.md"
 MANIFEST_PATH = "zigux/tests/phase15_architecture_council_review_process_manifest.json"
+SCRIPT_README_PATH = "scripts/zigux/README.md"
+MAKEFILE_PATH = "zigux/Makefile"
 SELF_REFERENCE_MARKER = "Documentation/zigux/phase15-architecture-council-review-process.md"
 PRODUCT_BOUNDARY_MARKER = (
     "product boundary:\n"
@@ -22,6 +24,30 @@ OPTIONAL_LANE_ROUTE_MARKERS = [
     "scripts-root validator path",
     "tests-root guidance path",
     "dedicated handoff-checker route",
+]
+REQUIRED_SCRIPT_README_MARKERS = [
+    "Phase 15 flow",
+    "phase15-architecture-council-review-process.md",
+    "check-phase15-review-process-handoff.py",
+    "phase15_build.zig",
+    "make -C zigux phase15",
+]
+EXACT_ONCE_SCRIPT_README_MARKERS = [
+    "Phase 15 flow",
+    "check-phase15-review-process-handoff.py",
+]
+REQUIRED_MAKEFILE_MARKERS = [
+    "PHONY += phase15-validate phase15-test phase15",
+    "phase15-validate:",
+    "scripts/zigux/check-phase15-review-process-handoff.py --self-test",
+    "scripts/zigux/check-phase15-review-process-handoff.py",
+    "phase15-test:",
+    "zigux/tests/phase15_build.zig",
+]
+EXACT_ONCE_MAKEFILE_MARKERS = [
+    "PHONY += phase15-validate phase15-test phase15",
+    "phase15-validate:",
+    "phase15-test:",
 ]
 
 
@@ -44,19 +70,41 @@ def validate(root: Path) -> list[str]:
 
     note_path = root / NOTE_PATH
     manifest_path = root / MANIFEST_PATH
+    script_readme_path = root / SCRIPT_README_PATH
+    makefile_path = root / MAKEFILE_PATH
     if not note_path.exists():
         failures.append(f"missing_file:{NOTE_PATH}")
         return failures
     if not manifest_path.exists():
         failures.append(f"missing_file:{MANIFEST_PATH}")
         return failures
+    if not script_readme_path.exists():
+        failures.append(f"missing_file:{SCRIPT_README_PATH}")
+        return failures
+    if not makefile_path.exists():
+        failures.append(f"missing_file:{MAKEFILE_PATH}")
+        return failures
 
     note = read_text(root, NOTE_PATH)
     manifest = load_json(root, MANIFEST_PATH)
+    script_readme = read_text(root, SCRIPT_README_PATH)
+    makefile = read_text(root, MAKEFILE_PATH)
 
     expect_exact_once(note, SELF_REFERENCE_MARKER, "note_self_reference", failures)
     if PRODUCT_BOUNDARY_MARKER not in note:
         failures.append("note:product_boundary_self_reference")
+
+    for marker in REQUIRED_SCRIPT_README_MARKERS:
+        if marker not in script_readme:
+            failures.append(f"script_readme:{marker}")
+    for marker in EXACT_ONCE_SCRIPT_README_MARKERS:
+        expect_exact_once(script_readme, marker, "script_readme_exact_once", failures)
+
+    for marker in REQUIRED_MAKEFILE_MARKERS:
+        if marker not in makefile:
+            failures.append(f"makefile:{marker}")
+    for marker in EXACT_ONCE_MAKEFILE_MARKERS:
+        expect_exact_once(makefile, marker, "makefile_exact_once", failures)
 
     handoff = manifest.get("handoff_evidence")
     if handoff is None:
@@ -92,6 +140,8 @@ def validate(root: Path) -> list[str]:
 def write_fixture_tree(root: Path) -> None:
     (root / "Documentation/zigux").mkdir(parents=True, exist_ok=True)
     (root / "zigux/tests").mkdir(parents=True, exist_ok=True)
+    (root / "scripts/zigux").mkdir(parents=True, exist_ok=True)
+    (root / "zigux").mkdir(parents=True, exist_ok=True)
 
     note = """# Phase 15 Architecture Council Review Process Survey
 
@@ -120,6 +170,26 @@ def write_fixture_tree(root: Path) -> None:
         },
     }
     (root / MANIFEST_PATH).write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+
+    script_readme = """# scripts/zigux
+
+Phase 15 flow
+- the current shared Phase 15 governance surface on `master` is `Documentation/zigux/phase15-architecture-council-review-process.md`, `scripts/zigux/check-phase15-review-process-handoff.py`, `zigux/tests/phase15_build.zig`, and `make -C zigux phase15`.
+"""
+    (root / SCRIPT_README_PATH).write_text(script_readme, encoding="utf-8")
+
+    makefile = """PHONY += phase15-validate phase15-test phase15
+
+phase15-validate:
+\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase15-review-process-handoff.py --self-test
+\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase15-review-process-handoff.py
+
+phase15-test:
+\tcd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase15_build.zig
+
+phase15: phase15-validate phase15-test
+"""
+    (root / MAKEFILE_PATH).write_text(makefile, encoding="utf-8")
 
 
 def expect_failure(root: Path, expected: str, label: str) -> None:
@@ -192,8 +262,38 @@ def run_self_test() -> int:
             "missing_manifest_lane_route_marker",
         )
 
+        write_fixture_tree(tmp_root)
+        script_readme_path = tmp_root / SCRIPT_README_PATH
+        script_readme = script_readme_path.read_text(encoding="utf-8")
+        script_readme_path.write_text(
+            script_readme.replace("check-phase15-review-process-handoff.py", "", 1),
+            encoding="utf-8",
+        )
+        expect_failure(
+            tmp_root,
+            "script_readme:check-phase15-review-process-handoff.py",
+            "missing_script_readme_checker_marker",
+        )
+
+        write_fixture_tree(tmp_root)
+        makefile_path = tmp_root / MAKEFILE_PATH
+        makefile = makefile_path.read_text(encoding="utf-8")
+        makefile_path.write_text(
+            makefile.replace(
+                "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase15-review-process-handoff.py --self-test\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_failure(
+            tmp_root,
+            "makefile:scripts/zigux/check-phase15-review-process-handoff.py --self-test",
+            "missing_makefile_self_test_marker",
+        )
+
     print("PHASE15_REVIEW_PROCESS_HANDOFF_SELF_TEST=pass")
-    print("PHASE15_REVIEW_PROCESS_HANDOFF_SELF_TEST_CASE_COUNT=5")
+    print("PHASE15_REVIEW_PROCESS_HANDOFF_SELF_TEST_CASE_COUNT=7")
     return 0
 
 
@@ -227,7 +327,10 @@ def main() -> int:
         return 1
 
     print("PHASE15_REVIEW_PROCESS_HANDOFF=pass")
-    print("PHASE15_REVIEW_PROCESS_HANDOFF_MARKER_COUNT=5")
+    print(
+        "PHASE15_REVIEW_PROCESS_HANDOFF_MARKER_COUNT="
+        f"{2 + len(OPTIONAL_LANE_ROUTE_MARKERS) + len(REQUIRED_SCRIPT_README_MARKERS) + len(EXACT_ONCE_SCRIPT_README_MARKERS) + len(REQUIRED_MAKEFILE_MARKERS) + len(EXACT_ONCE_MAKEFILE_MARKERS)}"
+    )
     return 0
 
 
