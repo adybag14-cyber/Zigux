@@ -310,7 +310,7 @@ test "phase 15 parity scorecard gaps stay bounded and blocker-focused" {
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "template headings aligned") != null);
         }
         if (std.mem.eql(u8, gap.id, "phase15-anchor-owner-tracking")) {
-            saw_anchor_ownerTracking = true;
+            saw_anchor_owner_tracking = true;
             try std.testing.expectEqualStrings("starter_landed", gap.status);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "explicit ownership discipline") != null);
         }
