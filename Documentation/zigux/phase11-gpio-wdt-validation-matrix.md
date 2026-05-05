@@ -12,7 +12,7 @@ This document records the first bounded hardware-validation matrix for the Zigux
   - `zigux/tests/phase11_gpio_wdt_manifest.json`
   - `zigux/tests/phase11_gpio_wdt_survey.zig`
   - `zigux/tests/phase11_build.zig`
-  - `Documentation/zigux/phase11-gpio-wdt-slice.md`
+  - `Documentation/zigux/phase11-gpio-wdt-module-slice.md`
   - `Documentation/zigux/phase11-gpio-wdt-survey.md`
 
 ## Why This Exists
@@ -41,4 +41,4 @@ Without this matrix, the slice and survey named the right next step but did not 
 - treat this lane as a bounded driver-starter plus validation-note lane until a registration-facing or live GPIO handoff actually lands
 - keep `zigux/tests/phase11_build.zig` as the shared replay path for the current starter instead of adding ad hoc Phase 11 CI steps
 - do not claim platform-driver registration, GPIO descriptor lookup, watchdog-core registration, reboot integration, or hardware-backed execution until the Zig surface and tests for those behaviors exist
-- when the next registration-facing or live GPIO handoff lands, update this matrix, the slice note, the survey note, and the survey manifest together so the lane keeps one truthful next step
+- when the next registration-facing or live GPIO handoff lands, update this matrix, the module-slice note, the survey note, and the survey manifest together so the lane keeps one truthful next step
