@@ -17,6 +17,7 @@ VIRTIO_NET_SURVEY_PATH = "Documentation/zigux/phase12-virtio-net-survey.md"
 LIBBPF_SURVEY_PATH = "Documentation/zigux/phase12-libbpf-segment-survey.md"
 SCRIPTS_README_PATH = "scripts/zigux/README.md"
 TESTS_README_PATH = "zigux/tests/README.md"
+PHASE12_BUILD_PATH = "zigux/tests/phase12_build.zig"
 MAKEFILE_PATH = "zigux/Makefile"
 WORKFLOW_PATH = ".github/workflows/zigux-bootstrap.yml"
 
@@ -99,6 +100,35 @@ REQUIRED_TESTS_README_EXACT_COUNTS = {
     "`scripts/zigux/check-build-only-phase12-surface.py`, `.github/workflows/zigux-bootstrap.yml`, `zigux/tests/phase12_nvme_pci_manifest.json`": 1,
 }
 
+REQUIRED_PHASE12_BUILD_MARKERS = [
+    'const phase12_virtio_net_syntax_lab_module = b.createModule(.{',
+    'const phase12_libbpf_reviewability_module = b.createModule(.{',
+    'const smoke_step = b.step("smoke", "Run Phase 12 direct driver and syntax-lab smoke tests");',
+    'const test_step = b.step("test", "Run Phase 12 driver and survey tests");',
+]
+
+REQUIRED_PHASE12_BUILD_EXACT_COUNTS = {
+    'const phase12_nvme_pci_tests = b.addTest(.{': 1,
+    'const phase12_nvme_pci_survey_tests = b.addTest(.{': 1,
+    'const phase12_virtio_net_tests = b.addTest(.{': 1,
+    'const phase12_virtio_net_syntax_lab_tests = b.addTest(.{': 1,
+    'const phase12_virtio_net_survey_tests = b.addTest(.{': 1,
+    'const phase12_virtio_scsi_tests = b.addTest(.{': 1,
+    'const phase12_virtio_scsi_survey_tests = b.addTest(.{': 1,
+    'const phase12_libbpf_segments_tests = b.addTest(.{': 1,
+    'const phase12_libbpf_reviewability_tests = b.addTest(.{': 1,
+    'smoke_step.dependOn(&run_phase12_nvme_pci_tests.step);': 1,
+    'smoke_step.dependOn(&run_phase12_virtio_net_tests.step);': 1,
+    'smoke_step.dependOn(&run_phase12_virtio_net_syntax_lab_tests.step);': 1,
+    'smoke_step.dependOn(&run_phase12_virtio_scsi_tests.step);': 1,
+    'test_step.dependOn(smoke_step);': 1,
+    'test_step.dependOn(&run_phase12_nvme_pci_survey_tests.step);': 1,
+    'test_step.dependOn(&run_phase12_virtio_net_survey_tests.step);': 1,
+    'test_step.dependOn(&run_phase12_virtio_scsi_survey_tests.step);': 1,
+    'test_step.dependOn(&run_phase12_libbpf_segments_tests.step);': 1,
+    'test_step.dependOn(&run_phase12_libbpf_reviewability_tests.step);': 1,
+}
+
 REQUIRED_MAKEFILE_MARKERS = [
     "PHONY += phase12-test phase12",
     "phase12-test:",
@@ -160,6 +190,7 @@ def validate(root: Path) -> list[str]:
         LIBBPF_SURVEY_PATH,
         SCRIPTS_README_PATH,
         TESTS_README_PATH,
+        PHASE12_BUILD_PATH,
         MAKEFILE_PATH,
         WORKFLOW_PATH,
     ]:
@@ -188,6 +219,7 @@ def validate(root: Path) -> list[str]:
     libbpf_survey = read_text(root, LIBBPF_SURVEY_PATH)
     scripts_readme = read_text(root, SCRIPTS_README_PATH)
     tests_readme = read_text(root, TESTS_README_PATH)
+    phase12_build = read_text(root, PHASE12_BUILD_PATH)
     makefile = read_text(root, MAKEFILE_PATH)
     workflow = read_text(root, WORKFLOW_PATH)
 
@@ -215,6 +247,9 @@ def validate(root: Path) -> list[str]:
     for marker in REQUIRED_TESTS_README_MARKERS:
         if marker not in tests_readme:
             failures.append(f"tests_readme:{marker}")
+    for marker in REQUIRED_PHASE12_BUILD_MARKERS:
+        if marker not in phase12_build:
+            failures.append(f"phase12_build:{marker}")
     for marker in REQUIRED_MAKEFILE_MARKERS:
         if marker not in makefile:
             failures.append(f"makefile:{marker}")
@@ -232,6 +267,8 @@ def validate(root: Path) -> list[str]:
         expect_exact_count(docs_readme, marker, count, "docs_readme_exact_count", failures)
     for marker, count in REQUIRED_TESTS_README_EXACT_COUNTS.items():
         expect_exact_count(tests_readme, marker, count, "tests_readme_exact_count", failures)
+    for marker, count in REQUIRED_PHASE12_BUILD_EXACT_COUNTS.items():
+        expect_exact_count(phase12_build, marker, count, "phase12_build_exact_count", failures)
     for marker in FORBIDDEN_MAKEFILE_MARKERS:
         if marker in makefile:
             failures.append(f"makefile_forbidden:{marker}")
@@ -317,6 +354,33 @@ keep the active Phase 12 survey-backed complex-driver packet explicit in the tes
 """,
     )
     write(
+        root / PHASE12_BUILD_PATH,
+        """const phase12_virtio_net_syntax_lab_module = b.createModule(.{
+const phase12_libbpf_reviewability_module = b.createModule(.{
+const phase12_nvme_pci_tests = b.addTest(.{
+const phase12_nvme_pci_survey_tests = b.addTest(.{
+const phase12_virtio_net_tests = b.addTest(.{
+const phase12_virtio_net_syntax_lab_tests = b.addTest(.{
+const phase12_virtio_net_survey_tests = b.addTest(.{
+const phase12_virtio_scsi_tests = b.addTest(.{
+const phase12_virtio_scsi_survey_tests = b.addTest(.{
+const phase12_libbpf_segments_tests = b.addTest(.{
+const phase12_libbpf_reviewability_tests = b.addTest(.{
+const smoke_step = b.step("smoke", "Run Phase 12 direct driver and syntax-lab smoke tests");
+smoke_step.dependOn(&run_phase12_nvme_pci_tests.step);
+smoke_step.dependOn(&run_phase12_virtio_net_tests.step);
+smoke_step.dependOn(&run_phase12_virtio_net_syntax_lab_tests.step);
+smoke_step.dependOn(&run_phase12_virtio_scsi_tests.step);
+const test_step = b.step("test", "Run Phase 12 driver and survey tests");
+test_step.dependOn(smoke_step);
+test_step.dependOn(&run_phase12_nvme_pci_survey_tests.step);
+test_step.dependOn(&run_phase12_virtio_net_survey_tests.step);
+test_step.dependOn(&run_phase12_virtio_scsi_survey_tests.step);
+test_step.dependOn(&run_phase12_libbpf_segments_tests.step);
+test_step.dependOn(&run_phase12_libbpf_reviewability_tests.step);
+""",
+    )
+    write(
         root / MAKEFILE_PATH,
         "PHONY += phase12-test phase12\nphase12-test:\n\t$(ZIG) build test --build-file zigux/tests/phase12_build.zig --summary all\nphase12: phase12-test\n",
     )
@@ -383,6 +447,7 @@ def main() -> int:
         + len(REQUIRED_LIBBPF_SURVEY_MARKERS)
         + len(REQUIRED_SCRIPT_README_MARKERS)
         + len(REQUIRED_TESTS_README_MARKERS)
+        + len(REQUIRED_PHASE12_BUILD_MARKERS)
         + len(REQUIRED_MAKEFILE_MARKERS)
         + len(REQUIRED_WORKFLOW_MARKERS)
         + len(REQUIRED_MAKEFILE_EXACT_COUNTS)
@@ -390,6 +455,7 @@ def main() -> int:
         + len(REQUIRED_SCRIPT_README_EXACT_COUNTS)
         + len(REQUIRED_DOCS_README_EXACT_COUNTS)
         + len(REQUIRED_TESTS_README_EXACT_COUNTS)
+        + len(REQUIRED_PHASE12_BUILD_EXACT_COUNTS)
         + len(FORBIDDEN_LITERAL_COUNTS)
     )
     print("PHASE12_BUILD_ONLY_SURFACE=pass")
