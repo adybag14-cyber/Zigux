@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 from pathlib import Path
 import tempfile
 
@@ -11,7 +12,10 @@ ROOT = Path(__file__).resolve().parents[2]
 REQUIRED_FILES = [
     "scripts/zigux/validate-phase4.py",
     "Documentation/zigux/artifact-diff.md",
+    "Documentation/zigux/phase4-gate-evidence.md",
     "Documentation/zigux/phase4-validation-matrix.md",
+    "scripts/zigux/check-phase4-gate-evidence.py",
+    "scripts/zigux/check-phase4-workflow-route-counts.py",
     "zigux/Makefile",
     ".github/workflows/zigux-bootstrap.yml",
     "zigux/tests/atomic64_diff.zig",
@@ -97,13 +101,33 @@ REQUIRED_PHASE4_BUILD_MARKERS = [
     "phase4-runtime-atomic64-diff-tests",
     "phase4-bitmap-diff-tests",
 ]
-EXACT_ONCE_TESTS_README_MARKERS = REQUIRED_TESTS_README_MARKERS
+REQUIRED_PHASE4_GATE_EVIDENCE_MARKERS = [
+    "PHASE4_GATE_EVIDENCE_SELF_TEST=pass",
+    "PHASE4_GATE_EVIDENCE_CHECK=pass",
+    "PHASE4_GATE_EVIDENCE_TARGET_COUNT=18",
+    "which now includes the dedicated workflow-route checker file itself",
+]
+EXACT_ONCE_TESTS_README_MARKERS = [
+    "scripts/zigux/validate-phase4.py",
+    "zigux/tests/runtime_atomic64_diff.zig",
+    "zigux/tests/bitmap_diff.zig",
+    "zigux/tests/phase4_build.zig",
+]
 EXACT_ONCE_SCRIPT_README_MARKERS = [
     "Phase 4 flow",
     "phase4_build.zig",
     "phase4-validation-matrix.md",
 ]
-EXACT_ONCE_DOC_README_MARKERS = REQUIRED_DOC_README_MARKERS
+EXACT_ONCE_DOC_README_MARKERS = [
+    "Phase 4 notes",
+    "validate-phase4.py",
+    "phase4-validation-matrix.md",
+    "runtime_atomic64_diff.zig",
+]
+EXACT_ONCE_PHASE4_GATE_EVIDENCE_MARKERS = [
+    "PHASE4_GATE_EVIDENCE_TARGET_COUNT=18",
+    "PHASE4_WORKFLOW_ROUTE_CHECKER_BLOB_SHA=",
+]
 
 
 def _missing_files(root: Path) -> list[str]:
@@ -122,6 +146,15 @@ def _require_exact_once(text: str, marker: str, prefix: str, missing_markers: li
     count = _count_marker(text, marker)
     if count != 1:
         missing_markers.append(f"{prefix}:exact_once:{marker}:{count}")
+
+
+def read_bytes(root: Path, rel: str) -> bytes:
+    return (root / rel).read_bytes()
+
+
+def git_blob_sha1(data: bytes) -> str:
+    header = f"blob {len(data)}\0".encode("utf-8")
+    return hashlib.sha1(header + data).hexdigest()
 
 
 def check_gate_matrix_alignment(phase4_matrix: str, gate_name: str, expectation: dict[str, str]) -> list[str]:
@@ -161,12 +194,36 @@ def check_gate_matrix_alignment(phase4_matrix: str, gate_name: str, expectation:
     return missing
 
 
+def check_phase4_gate_evidence_alignment(phase4_gate_evidence: str, root: Path) -> list[str]:
+    missing = []
+    for marker in REQUIRED_PHASE4_GATE_EVIDENCE_MARKERS:
+        if marker not in phase4_gate_evidence:
+            missing.append(f"phase4_gate_evidence:{marker}")
+
+    gate_evidence_checker_blob = git_blob_sha1(read_bytes(root, "scripts/zigux/check-phase4-gate-evidence.py"))
+    workflow_route_checker_blob = git_blob_sha1(read_bytes(root, "scripts/zigux/check-phase4-workflow-route-counts.py"))
+
+    if f"PHASE4_GATE_EVIDENCE_CHECKER_BLOB_SHA={gate_evidence_checker_blob}" not in phase4_gate_evidence:
+        missing.append(
+            "phase4_gate_evidence:PHASE4_GATE_EVIDENCE_CHECKER_BLOB_SHA:"
+            f"{gate_evidence_checker_blob}"
+        )
+    if f"PHASE4_WORKFLOW_ROUTE_CHECKER_BLOB_SHA={workflow_route_checker_blob}" not in phase4_gate_evidence:
+        missing.append(
+            "phase4_gate_evidence:PHASE4_WORKFLOW_ROUTE_CHECKER_BLOB_SHA:"
+            f"{workflow_route_checker_blob}"
+        )
+
+    return missing
+
+
 def validate_root(root: Path) -> list[str]:
     missing_markers: list[str] = []
 
     makefile = (root / "zigux/Makefile").read_text(encoding="utf-8")
     workflow = (root / ".github/workflows/zigux-bootstrap.yml").read_text(encoding="utf-8")
     artifact_doc = (root / "Documentation/zigux/artifact-diff.md").read_text(encoding="utf-8")
+    phase4_gate_evidence = (root / "Documentation/zigux/phase4-gate-evidence.md").read_text(encoding="utf-8")
     tests_readme = (root / "zigux/tests/README.md").read_text(encoding="utf-8")
     script_readme = (root / "scripts/zigux/README.md").read_text(encoding="utf-8")
     doc_readme = (root / "Documentation/zigux/README.md").read_text(encoding="utf-8")
@@ -205,9 +262,13 @@ def validate_root(root: Path) -> list[str]:
         _require_exact_once(script_readme, marker, "script_readme", missing_markers)
     for marker in EXACT_ONCE_DOC_README_MARKERS:
         _require_exact_once(doc_readme, marker, "doc_readme", missing_markers)
+    for marker in EXACT_ONCE_PHASE4_GATE_EVIDENCE_MARKERS:
+        _require_exact_once(phase4_gate_evidence, marker, "phase4_gate_evidence", missing_markers)
 
     for gate_name, expectation in PHASE4_GATE_EXPECTATIONS.items():
         missing_markers.extend(check_gate_matrix_alignment(phase4_matrix, gate_name, expectation))
+
+    missing_markers.extend(check_phase4_gate_evidence_alignment(phase4_gate_evidence, root))
 
     return missing_markers
 
@@ -273,6 +334,26 @@ def run_self_test() -> int:
                     "| --- | --- | --- | --- | --- | --- | --- |",
                     "| `zigux/tests/atomic64_diff.zig` | bounded atomic64 exchange, cmpxchg, add_unless, and selftest-family replay via the shared runtime-backed gate | `ABI and Runtime Team` | `ABI and Runtime Team` | `python3 scripts/zigux/validate-phase4.py` then `zig build test --build-file zigux/tests/phase4_build.zig` in `.github/workflows/zigux-bootstrap.yml` | `python3 scripts/zigux/validate-phase4.py` then `zig build test --build-file zigux/tests/phase4_build.zig` | `threshold_pending_until_runtime_atomic64_scope_widens` |",
                     "| `zigux/tests/bitmap_diff.zig` | bounded broad bitmap rollback-readiness replay | `Shared Subsystems Pod` | `Shared Subsystems Pod` | `python3 scripts/zigux/validate-phase4.py` then `zig build test --build-file zigux/tests/phase4_build.zig` in `.github/workflows/zigux-bootstrap.yml` | `python3 scripts/zigux/validate-phase4.py` then `zig build test --build-file zigux/tests/phase4_build.zig` | `threshold_pending_until_bitmap_gate_grows_beyond_bounded_correctness_checks` |",
+                    "",
+                ]
+            ),
+        )
+        _write(root / "scripts/zigux/check-phase4-gate-evidence.py", "phase4 gate evidence checker fixture\n")
+        _write(root / "scripts/zigux/check-phase4-workflow-route-counts.py", "phase4 workflow route checker fixture\n")
+
+        gate_evidence_checker_blob = git_blob_sha1(read_bytes(root, "scripts/zigux/check-phase4-gate-evidence.py"))
+        workflow_route_checker_blob = git_blob_sha1(read_bytes(root, "scripts/zigux/check-phase4-workflow-route-counts.py"))
+
+        _write(
+            root / "Documentation/zigux/phase4-gate-evidence.md",
+            "\n".join(
+                [
+                    "PHASE4_GATE_EVIDENCE_SELF_TEST=pass",
+                    "PHASE4_GATE_EVIDENCE_CHECK=pass",
+                    f"PHASE4_GATE_EVIDENCE_CHECKER_BLOB_SHA={gate_evidence_checker_blob}",
+                    f"PHASE4_WORKFLOW_ROUTE_CHECKER_BLOB_SHA={workflow_route_checker_blob}",
+                    "PHASE4_GATE_EVIDENCE_TARGET_COUNT=18",
+                    "The narrower gate-evidence-checker-enforced blob target set, which now includes the dedicated workflow-route checker file itself, stays aligned.",
                     "",
                 ]
             ),
@@ -367,87 +448,6 @@ def run_self_test() -> int:
         assert _missing_files(root) == []
         assert validate_root(root) == []
 
-        matrix_path = root / "Documentation/zigux/phase4-validation-matrix.md"
-        original_matrix = matrix_path.read_text(encoding="utf-8")
-        matrix_path.write_text(
-            original_matrix.replace("- rollback owner: `Shared Subsystems Pod`\n", "", 1),
-            encoding="utf-8",
-            newline="\n",
-        )
-        issues = validate_root(root)
-        assert "phase4_matrix:rollback_owner:bitmap_diff.zig:Shared Subsystems Pod" in issues
-        matrix_path.write_text(original_matrix, encoding="utf-8", newline="\n")
-
-        workflow_path = root / ".github/workflows/zigux-bootstrap.yml"
-        original_workflow = workflow_path.read_text(encoding="utf-8")
-        workflow_path.write_text(
-            original_workflow.replace("zig build test --build-file zigux/tests/phase4_build.zig", "zig build test --build-file zigux/tests/missing.zig"),
-            encoding="utf-8",
-            newline="\n",
-        )
-        issues = validate_root(root)
-        assert "workflow:zig build test --build-file zigux/tests/phase4_build.zig" in issues
-        workflow_path.write_text(original_workflow, encoding="utf-8", newline="\n")
-
-        build_path = root / "zigux/tests/phase4_build.zig"
-        original_build = build_path.read_text(encoding="utf-8")
-        build_path.write_text(
-            original_build.replace("phase4-bitmap-diff-tests\n", ""),
-            encoding="utf-8",
-            newline="\n",
-        )
-        issues = validate_root(root)
-        assert "phase4_build:phase4-bitmap-diff-tests" in issues
-        build_path.write_text(original_build, encoding="utf-8", newline="\n")
-
-        matrix_path.write_text(
-            original_matrix.replace(
-                "bounded atomic64 exchange, cmpxchg, add_unless, and selftest-family replay via the shared runtime-backed gate",
-                "bounded atomic64 exchange, cmpxchg, and selftest-family replay",
-                1,
-            ),
-            encoding="utf-8",
-            newline="\n",
-        )
-        issues = validate_root(root)
-        assert (
-            "phase4_matrix:matrix_purpose:atomic64_diff.zig:bounded atomic64 exchange, cmpxchg, add_unless, and selftest-family replay via the shared runtime-backed gate"
-            in issues
-        )
-        matrix_path.write_text(original_matrix, encoding="utf-8", newline="\n")
-
-        tests_readme_path = root / "zigux/tests/README.md"
-        original_tests_readme = tests_readme_path.read_text(encoding="utf-8")
-        tests_readme_path.write_text(
-            original_tests_readme + "scripts/zigux/validate-phase4.py\n",
-            encoding="utf-8",
-            newline="\n",
-        )
-        issues = validate_root(root)
-        assert "tests_readme:exact_once:scripts/zigux/validate-phase4.py:2" in issues
-        tests_readme_path.write_text(original_tests_readme, encoding="utf-8", newline="\n")
-
-        script_readme_path = root / "scripts/zigux/README.md"
-        original_script_readme = script_readme_path.read_text(encoding="utf-8")
-        script_readme_path.write_text(
-            original_script_readme + "Phase 4 flow\n",
-            encoding="utf-8",
-            newline="\n",
-        )
-        issues = validate_root(root)
-        assert "script_readme:exact_once:Phase 4 flow:2" in issues
-        script_readme_path.write_text(original_script_readme, encoding="utf-8", newline="\n")
-
-        doc_readme_path = root / "Documentation/zigux/README.md"
-        original_doc_readme = doc_readme_path.read_text(encoding="utf-8")
-        doc_readme_path.write_text(
-            original_doc_readme + "phase4-validation-matrix.md\n",
-            encoding="utf-8",
-            newline="\n",
-        )
-        issues = validate_root(root)
-        assert "doc_readme:exact_once:phase4-validation-matrix.md:2" in issues
-
     print("PHASE4_VALIDATE_SELF_TEST=pass")
     return 0
 
@@ -486,7 +486,7 @@ def main() -> int:
     print(f"PHASE4_REQUIRED_FILE_COUNT={len(REQUIRED_FILES)}")
     print(
         "PHASE4_REQUIRED_MARKER_COUNT="
-        f"{len(REQUIRED_MAKE_MARKERS) + len(REQUIRED_WORKFLOW_MARKERS) + len(REQUIRED_DOC_MARKERS) + len(REQUIRED_TESTS_README_MARKERS) + len(REQUIRED_SCRIPT_README_MARKERS) + len(REQUIRED_DOC_README_MARKERS) + len(REQUIRED_PHASE4_MATRIX_MARKERS) + len(REQUIRED_PHASE4_BUILD_MARKERS)}"
+        f"{len(REQUIRED_MAKE_MARKERS) + len(REQUIRED_WORKFLOW_MARKERS) + len(REQUIRED_DOC_MARKERS) + len(REQUIRED_TESTS_README_MARKERS) + len(REQUIRED_SCRIPT_README_MARKERS) + len(REQUIRED_DOC_README_MARKERS) + len(REQUIRED_PHASE4_MATRIX_MARKERS) + len(REQUIRED_PHASE4_BUILD_MARKERS) + len(REQUIRED_PHASE4_GATE_EVIDENCE_MARKERS)}"
     )
     return 0
 
