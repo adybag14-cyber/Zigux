@@ -13,7 +13,7 @@ The active shipped anchors on current `master` are:
 - `security/landlock/ruleset.c` through `security/landlock/ruleset.zig`
 - `security/landlock/syscalls.c` through `security/landlock/syscalls.zig`
 
-The shared replay packet for those anchors is still the five-test route wired by `zigux/tests/phase13_build.zig` and invoked through `make -C zigux phase13`.
+The shared replay packet for those anchors is now the seven-test route wired by `zigux/tests/phase13_build.zig` and invoked through `make -C zigux phase13`.
 
 ## Libfs lane traceability
 
@@ -27,7 +27,7 @@ Current `master` keeps that anchor reviewable through:
 - `zigux/tests/phase13_libfs.zig`
 - `zigux/tests/phase13_libfs_reviewability.zig`
 
-That packet is truthful to the roadmap because it exposes only reviewable helper planning and explicit next-step posture. It currently covers the landed statfs, lookup, buffer-copy, seek-policy, directory-emit, and `simple_transaction_get()`, `simple_transaction_set()`, or `simple_transaction_release()` helpers, while leaving the next bounded libfs follow-up on blocked `dcache_dir_open()` and deeper `dcache_readdir()` cursor-precondition work before any live file lifecycle, cursor dentry ownership, inode state, or pseudo-filesystem mounting is claimed.
+That packet is truthful to the roadmap because it exposes only reviewable helper planning and explicit next-step posture. It currently covers the landed statfs, lookup, buffer-copy, seek-policy, directory-emit, and transaction acquire or publish helpers, while leaving the next bounded libfs follow-up on the tiny `simple_transaction_release()` lifetime planner before any live file lifecycle, cursor dentry ownership, inode state, or pseudo-filesystem mounting is claimed.
 
 ## Devres lane traceability
 
@@ -39,6 +39,8 @@ Current `master` keeps that anchor reviewable through:
 - `Documentation/zigux/phase13-devres-survey.md`
 - `zigux/tests/phase13_devres_manifest.json`
 - `zigux/tests/phase13_devres.zig`
+- `zigux/tests/phase13_devres_reviewability.zig`
+- `zigux/tests/phase13_devres_dma_coherent.zig`
 - `scripts/zigux/check-phase13-devres-packet.py`
 
 That packet is truthful to the roadmap because it exposes only reviewable helper planning and explicit blocker posture. It does not overclaim live MMIO mappings, live device-tree walking, DMA-backed helpers, scatterlist ownership, or live arch memtype mutation.
@@ -55,7 +57,7 @@ The broader shipped Phase 13 release surface also includes adjacent evidence tha
 - `include/zigux/notifier_abi.h`
 - `zigux/helpers/notifier_chain_view.zig`
 
-These files keep the shipped release surface reviewable, but they do not change the fact that the active shared replay remains the five-test helper packet.
+These files keep the shipped release surface reviewable, but they do not change the fact that the active shared replay remains the seven-test helper packet.
 
 ## Current decision
 
