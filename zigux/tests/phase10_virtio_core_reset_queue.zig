@@ -49,3 +49,44 @@ test "phase10 virtio core blocks queue teardown and reshaping once reset is requ
     try std.testing.expectEqual(@as(u16, 2), shape_summary.writable_descriptor_count);
     try std.testing.expect(!shape_summary.uses_indirect_descriptors);
 }
+
+test "phase10 virtio core blocks driver-model progression once reset is required" {
+    var device = try virtio_core.VirtioCoreLabDevice.init(&.{ 1, 7, 11 });
+    device.acknowledge();
+    try device.attachDriverNamed("virtio_blk_lab");
+    device.noteNeedsReset();
+
+    try std.testing.expectError(error.ResetRequired, device.offerDriverFeature(1));
+    try std.testing.expectError(error.ResetRequired, device.finalizeFeatures());
+    try std.testing.expectError(error.ResetRequired, device.markDriverReady());
+
+    var summary = device.lifecycleGuardSummary();
+    try std.testing.expect(summary.reset_required);
+    try std.testing.expect(summary.driver_attached);
+    try std.testing.expect(!summary.features_negotiated);
+    try std.testing.expect(!summary.driver_ready);
+    try std.testing.expectEqual(virtio_core.DriverLifecycleBlocker.reset_required, summary.blocker.?);
+
+    device.reset();
+    device.acknowledge();
+    try device.attachDriverNamed("virtio_blk_lab");
+    try device.offerDriverFeature(1);
+    _ = try device.finalizeFeatures();
+    try device.markDriverReady();
+
+    summary = device.lifecycleGuardSummary();
+    try std.testing.expect(!summary.reset_required);
+    try std.testing.expect(summary.features_negotiated);
+    try std.testing.expect(summary.driver_ready);
+}
+
+test "phase10 virtio core blocks fresh driver attachment once reset is required" {
+    var device = try virtio_core.VirtioCoreLabDevice.init(&.{1});
+    device.acknowledge();
+    device.noteNeedsReset();
+
+    try std.testing.expectError(error.ResetRequired, device.attachDriver());
+    const summary = device.driverBindingSummary();
+    try std.testing.expectEqualStrings("", summary.driver_name);
+    try std.testing.expect(!summary.driver_attached);
+}
