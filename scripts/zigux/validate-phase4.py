@@ -105,6 +105,20 @@ EXACT_ONCE_DOC_README_MARKERS = [
     "phase4-validation-matrix.md",
     "runtime_atomic64_diff.zig",
 ]
+EXPECTED_ARTIFACT_DIFF_CONTRACT_CASES = [
+    "text_match",
+    "text_mismatch",
+    "json_canonical_match",
+    "json_mismatch",
+    "json_malformed_actual",
+    "sha256_match",
+    "sha256_drift",
+    "sha256_missing_expected",
+    "sha256_missing_both",
+    "cli_invalid_mode_choice",
+    "text_match_repeat",
+    "sha256_missing_both_repeat",
+]
 
 
 def _missing_files(root: Path) -> list[str]:
@@ -123,6 +137,13 @@ def _require_exact_once(text: str, marker: str, prefix: str, missing_markers: li
     count = _count_marker(text, marker)
     if count != 1:
         missing_markers.append(f"{prefix}:exact_once:{marker}:{count}")
+
+
+def _line_value(lines: list[str], prefix: str) -> str | None:
+    for line in lines:
+        if line.startswith(prefix):
+            return line[len(prefix):]
+    return None
 
 
 def validate_root(root: Path) -> list[str]:
@@ -184,8 +205,25 @@ def run_artifact_diff_contract_check(root: Path) -> list[str]:
     )
     if result.returncode != 0:
         return [f"artifact_diff_contract:exit:{result.returncode}"]
-    if "ARTIFACT_DIFF_CONTRACT=pass" not in result.stdout:
+
+    lines = result.stdout.splitlines()
+    if "ARTIFACT_DIFF_CONTRACT=pass" not in lines:
         return ["artifact_diff_contract:missing_pass_marker"]
+
+    case_count = _line_value(lines, "ARTIFACT_DIFF_CONTRACT_CASE_COUNT=")
+    if case_count is None:
+        return ["artifact_diff_contract:missing_case_count_marker"]
+    if case_count != str(len(EXPECTED_ARTIFACT_DIFF_CONTRACT_CASES)):
+        return [f"artifact_diff_contract:unexpected_case_count:{case_count}"]
+
+    cases = _line_value(lines, "ARTIFACT_DIFF_CONTRACT_CASES=")
+    if cases is None:
+        return ["artifact_diff_contract:missing_cases_marker"]
+
+    expected_cases = ",".join(EXPECTED_ARTIFACT_DIFF_CONTRACT_CASES)
+    if cases != expected_cases:
+        return [f"artifact_diff_contract:unexpected_cases:{cases}"]
+
     return []
 
 
@@ -194,14 +232,32 @@ def _write(path: Path, content: str) -> None:
     path.write_text(content, encoding="utf-8", newline="\n")
 
 
+def _write_contract_checker_fixture(
+    path: Path,
+    *,
+    case_count: str | None = None,
+    cases: list[str] | None = None,
+    include_pass: bool = True,
+) -> None:
+    lines = ["#!/usr/bin/env python3"]
+    if include_pass:
+        lines.append("print('ARTIFACT_DIFF_CONTRACT=pass')")
+    if case_count is not None:
+        lines.append(f"print('ARTIFACT_DIFF_CONTRACT_CASE_COUNT={case_count}')")
+    if cases is not None:
+        lines.append("print('ARTIFACT_DIFF_CONTRACT_CASES=" + ",".join(cases) + "')")
+    _write(path, "\n".join(lines) + "\n")
+
+
 def run_self_test() -> int:
     with tempfile.TemporaryDirectory(prefix="zigux_phase4_validator_selftest_") as tmp_dir_str:
         root = Path(tmp_dir_str)
 
         _write(root / "scripts/zigux/artifact_diff.py", "# placeholder\n")
-        _write(
+        _write_contract_checker_fixture(
             root / "scripts/zigux/check-artifact-diff-contract.py",
-            "#!/usr/bin/env python3\nprint('ARTIFACT_DIFF_CONTRACT=pass')\n",
+            case_count=str(len(EXPECTED_ARTIFACT_DIFF_CONTRACT_CASES)),
+            cases=EXPECTED_ARTIFACT_DIFF_CONTRACT_CASES,
         )
         _write(root / "scripts/zigux/validate-phase4.py", "# placeholder\n")
         _write(
@@ -335,11 +391,33 @@ def run_self_test() -> int:
         assert validate_root(root) == []
         assert run_artifact_diff_contract_check(root) == []
 
-        _write(
+        _write_contract_checker_fixture(
             root / "scripts/zigux/check-artifact-diff-contract.py",
-            "#!/usr/bin/env python3\nraise SystemExit(1)\n",
+            case_count="11",
+            cases=EXPECTED_ARTIFACT_DIFF_CONTRACT_CASES,
         )
-        assert run_artifact_diff_contract_check(root) == ["artifact_diff_contract:exit:1"]
+        assert run_artifact_diff_contract_check(root) == [
+            "artifact_diff_contract:unexpected_case_count:11"
+        ]
+
+        _write_contract_checker_fixture(
+            root / "scripts/zigux/check-artifact-diff-contract.py",
+            case_count=str(len(EXPECTED_ARTIFACT_DIFF_CONTRACT_CASES)),
+            cases=EXPECTED_ARTIFACT_DIFF_CONTRACT_CASES[1:],
+        )
+        assert run_artifact_diff_contract_check(root) == [
+            "artifact_diff_contract:unexpected_cases:"
+            + ",".join(EXPECTED_ARTIFACT_DIFF_CONTRACT_CASES[1:])
+        ]
+
+        _write_contract_checker_fixture(
+            root / "scripts/zigux/check-artifact-diff-contract.py",
+            case_count=None,
+            cases=EXPECTED_ARTIFACT_DIFF_CONTRACT_CASES,
+        )
+        assert run_artifact_diff_contract_check(root) == [
+            "artifact_diff_contract:missing_case_count_marker"
+        ]
 
     print("PHASE4_VALIDATE_SELF_TEST=pass")
     return 0
