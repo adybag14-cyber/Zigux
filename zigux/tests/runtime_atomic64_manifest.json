@@ -37,6 +37,13 @@
       "why_now": "A sample-backed lifecycle starter is the first honest runtime-facing step that can reuse existing atomic helpers without pretending the full module substrate already exists."
     },
     {
+      "id": "runtime-atomic64-selftest-hook",
+      "status": "starter_landed",
+      "kind": "selftest_hook",
+      "zigux_destination": "samples/zigux/runtime_atomic64.zig",
+      "why_now": "The Phase 9 roadmap explicitly calls for selftest hooks, and the bounded runtime_atomic64 sample already keeps that requirement reviewable through descriptor metadata plus runSelftest()."
+    },
+    {
       "id": "runtime-atomic64-module-tests",
       "status": "starter_landed",
       "kind": "validation",
@@ -62,7 +69,7 @@
       "status": "blocked_on_runtime_substrate",
       "kind": "runtime_substrate",
       "zigux_destination": "zigux/kernel/runtime_loader.zig",
-      "why_now": "A real loadable module entry point and lifecycle parity still depend on shared runtime substrate pieces that the repo has not started yet."
+      "why_now": "A real loadable module entry point and full runtime module lifecycle parity still depend on shared runtime substrate pieces that the repo has not started yet."
     }
   ]
 }
