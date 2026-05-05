@@ -26,6 +26,12 @@ EXPECTED_BUILD_MARKERS = [
     "phase10_virtio_core_survey_module",
     'phase10-virtio-core-survey-tests',
     "run_phase10_virtio_core_survey_tests",
+    "phase10_virtio_core_reset_queue_module",
+    'phase10-virtio-core-reset-queue-tests',
+    "run_phase10_virtio_core_reset_queue_tests",
+    "phase10_virtio_driver_id_module",
+    'phase10-virtio-driver-id-tests',
+    "run_phase10_virtio_driver_id_tests",
 ]
 
 EXPECTED_MAKEFILE_MARKERS = [
@@ -222,6 +228,24 @@ def run_self_test() -> int:
             raise SystemExit("phase10-core-self-test:expected_build_marker_missing")
         build_path.write_text(original_build, encoding="utf-8")
 
+        build_path.write_text(
+            original_build.replace('run_phase10_virtio_core_reset_queue_tests', 'run_phase10_virtio_core_reset_queue_drift', 2),
+            encoding="utf-8",
+        )
+        _, missing_markers = validate(tmp_root)
+        if 'build:run_phase10_virtio_core_reset_queue_tests' not in missing_markers:
+            raise SystemExit("phase10-core-self-test:expected_reset_queue_build_marker_missing")
+        build_path.write_text(original_build, encoding="utf-8")
+
+        build_path.write_text(
+            original_build.replace('run_phase10_virtio_driver_id_tests', 'run_phase10_virtio_driver_id_drift', 2),
+            encoding="utf-8",
+        )
+        _, missing_markers = validate(tmp_root)
+        if 'build:run_phase10_virtio_driver_id_tests' not in missing_markers:
+            raise SystemExit("phase10-core-self-test:expected_driver_id_build_marker_missing")
+        build_path.write_text(original_build, encoding="utf-8")
+
         makefile_path = tmp_root / "zigux/Makefile"
         original_makefile = makefile_path.read_text(encoding="utf-8")
         makefile_path.write_text(
@@ -316,7 +340,7 @@ def run_self_test() -> int:
             raise SystemExit("phase10-core-self-test:expected_helpers_survey_marker_missing")
 
     print("PHASE10_CORE_PACKET_SELF_TEST=pass")
-    print("PHASE10_CORE_PACKET_SELF_TEST_CASE_COUNT=10")
+    print("PHASE10_CORE_PACKET_SELF_TEST_CASE_COUNT=12")
     return 0
 
 
