@@ -4,7 +4,7 @@ This document tracks the first bounded `drivers/virtio/virtio_mmio.c` lab helper
 
 ## Status
 
-- `PHASE10_STATUS=active`
+- `PHASE10_STATUS=parked`
 - `PHASE10_SLICE=virtio-mmio-lab-helper`
 - scope: identity-register reads, one bounded device-feature selector and read window, one bounded transport-backed config-word window, queue-selected register reads, queue_num_max and queue_num bookkeeping, queue_ready bookkeeping, helper-local status and config-generation bookkeeping, helper-local interrupt-status staging, dedicated Phase 10 MMIO tests, and a slice note only
 - product boundary:
