@@ -121,6 +121,28 @@ pub const TtyRegistrationHandoffSnapshot = struct {
     remove_handoff_still_required: bool,
 };
 
+pub const SysrqHandoffRequest = struct {
+    console_index_matches_boot_console: bool = true,
+    sysrq_break_seen: bool = true,
+    notifier_target_present: bool = true,
+};
+
+pub const SysrqHandoffSnapshot = struct {
+    anchor: []const u8,
+    slot_index: usize,
+    vtermno: u32,
+    adapter_present: bool,
+    console_index_matches_boot_console: bool,
+    sysrq_break_seen: bool,
+    sysrq_dispatch_reviewable: bool,
+    sysrq_dispatch_requested: bool,
+    notifier_target_present: bool,
+    notifier_callbacks_deferred: bool,
+    khvcd_worker_execution_deferred: bool,
+    host_io_deferred: bool,
+    remove_handoff_still_required: bool,
+};
+
 pub const WriteSnapshot = struct {
     anchor: []const u8,
     slot_index: usize,
@@ -283,6 +305,33 @@ pub const HvcConsoleLab = struct {
             .khvcd_worker_execution_deferred = true,
             .notifier_target_present = request.notifier_target_present,
             .notifier_callbacks_deferred = request.notifier_target_present,
+            .host_io_deferred = true,
+            .remove_handoff_still_required = true,
+        };
+    }
+
+    pub fn summarizeSysrqHandoff(
+        self: *const Self,
+        request: SysrqHandoffRequest,
+    ) !SysrqHandoffSnapshot {
+        const slot = self.slotSnapshot();
+        if (!slot.usable_for_console) return error.ConsoleUnavailable;
+
+        const sysrq_dispatch_requested = request.console_index_matches_boot_console and
+            request.sysrq_break_seen;
+
+        return .{
+            .anchor = descriptor().anchor,
+            .slot_index = slot.slot_index,
+            .vtermno = slot.vtermno,
+            .adapter_present = slot.adapter_present,
+            .console_index_matches_boot_console = request.console_index_matches_boot_console,
+            .sysrq_break_seen = request.sysrq_break_seen,
+            .sysrq_dispatch_reviewable = true,
+            .sysrq_dispatch_requested = sysrq_dispatch_requested,
+            .notifier_target_present = request.notifier_target_present,
+            .notifier_callbacks_deferred = request.notifier_target_present,
+            .khvcd_worker_execution_deferred = true,
             .host_io_deferred = true,
             .remove_handoff_still_required = true,
         };
