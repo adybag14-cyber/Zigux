@@ -39,6 +39,7 @@ DEVRES_REQUIRED_MARKERS = [
 TEST_REQUIRED_MARKERS = [
     'test "phase13 devres plans devm_of_iomap around translated resources and optional size reporting"',
     'test "phase13 devres preserves translated size when devm_of_iomap hits downstream remap failure"',
+    'test "phase13 devres propagates pretty-name allocation failure through devm_of_iomap planning"',
     'test "phase13 devres retains memtype release records on successful WC reservation"',
     'test "phase13 devres rejects memtype planning when the release record cannot be allocated"',
 ]
@@ -166,6 +167,7 @@ def run_self_test() -> int:
             validate(root),
             [
                 'phase13-devres-test:test "phase13 devres preserves translated size when devm_of_iomap hits downstream remap failure"',
+                'phase13-devres-test:test "phase13 devres propagates pretty-name allocation failure through devm_of_iomap planning"',
                 'phase13-devres-test:test "phase13 devres retains memtype release records on successful WC reservation"',
                 'phase13-devres-test:test "phase13 devres rejects memtype planning when the release record cannot be allocated"',
             ],
@@ -175,7 +177,7 @@ def run_self_test() -> int:
         case_count += 1
 
         reviewability_path = root / "zigux/tests/phase13_devres_reviewability.zig"
-        reviewability_path.write_text(REVIEWABILITY_REQUIRED_MARKERS[0] + "\n", encoding="utf-8")
+        reviewability_path.writeText(REVIEWABILITY_REQUIRED_MARKERS[0] + "\n", encoding="utf-8")
         _assert_only(
             validate(root),
             [
