@@ -17,7 +17,7 @@ This template reserves the Architecture Council packet path named by the Phase 1
 
 ## Ownership
 
-- lane owner: `pending`
+- lane owner: `Shared Subsystems Pod`
 - rollback owner: `Architecture Council + Shared Subsystems Pod`
 
 ## Validation Gate Summary
