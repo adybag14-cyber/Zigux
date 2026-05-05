@@ -170,6 +170,10 @@ TEXT_MARKERS = {
         "zig test zigux/tests/phase5_kobject_example_survey.zig",
         "zig test zigux/tests/phase5_kretprobe_example_survey.zig",
         "zig test zigux/tests/phase5_trace_events_sample_survey.zig",
+        "zigux/tests/phase5_kobject_example.zig",
+        "zigux/tests/phase5_kretprobe_example.zig",
+        "zigux/tests/phase5_trace_events_sample.zig",
+        "shared-build-only checks",
         "approved payload-and-callback idiom",
         "current `master` still ships no `samples/zigux/*string*` Phase 5 reference sample",
         "current `master` still ships no `samples/zigux/*cmdline*` Phase 5 reference sample",
@@ -433,6 +437,7 @@ def run_self_test() -> int:
             ("scripts/zigux/README.md", "zig test samples/zigux/kobject_example.zig", "zig test samples/zigux/kobject_review.zig", "scripts/zigux/README.md:missing:zig test samples/zigux/kobject_example.zig", "scripts-readme-direct-replay-gap"),
             ("scripts/zigux/README.md", "zigux/tests/phase5_kretprobe_example.zig", "zigux/tests/phase5_kretprobe_review.zig", "scripts/zigux/README.md:missing:zigux/tests/phase5_kretprobe_example.zig", "scripts-readme-focused-replay-gap"),
             ("scripts/zigux/README.md", "runtime-substrate handoff still stays blocked", "runtime-substrate handoff now cleared", "scripts/zigux/README.md:missing:runtime-substrate handoff still stays blocked", "scripts-readme-runtime-handoff-gap"),
+            ("samples/zigux/README.md", "zigux/tests/phase5_kretprobe_example.zig", "zigux/tests/phase5_kretprobe_review.zig", "samples/zigux/README.md:missing:zigux/tests/phase5_kretprobe_example.zig", "sample-root-focused-replay-gap"),
             ("zigux/tests/phase5_build.zig", '"phase5-kretprobe-example-sample-tests"', '"phase5-kretprobe-example-sample-review"', "zigux/tests/phase5_build.zig:missing:phase5-kretprobe-example-sample-tests", "phase5-build-kretprobe-sample-gap"),
             ("samples/zigux/trace_events_sample.zig", ".requires_runtime_substrate = false", ".requires_runtime_substrate = true", "samples/zigux/trace_events_sample.zig:missing:.requires_runtime_substrate = false", "sample-descriptor-gap"),
         ]:
@@ -446,7 +451,7 @@ def run_self_test() -> int:
                 return 1
 
     print("PHASE5_VALIDATOR_SELF_TEST=pass")
-    print("PHASE5_VALIDATOR_SELF_TEST_CASE_COUNT=17")
+    print("PHASE5_VALIDATOR_SELF_TEST_CASE_COUNT=18")
     return 0
 
 
