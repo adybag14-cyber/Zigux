@@ -36,7 +36,7 @@ fn isAllowedStatus(status: []const u8) bool {
         std.mem.eql(u8, status, "blocked_on_vfs_state");
 }
 
-test "phase13 libfs manifest records the landed starter and remaining wrapper gap" {
+test "phase13 libfs manifest records the landed starter and remaining helper-surface gap" {
     var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
     defer io_instance.deinit();
 
@@ -116,6 +116,7 @@ test "phase13 libfs manifest records the landed starter and remaining wrapper ga
         if (std.mem.eql(u8, gap.id, "phase13-libfs-starter")) {
             saw_starter = true;
             try std.testing.expectEqualStrings("starter_landed", gap.status);
+            try std.testing.expectEqualStrings("filesystem_helper_surface", gap.kind);
             try std.testing.expectEqualStrings("fs/libfs.zig", gap.zigux_destination);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "simple_statfs") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "simple_lookup") != null);
@@ -143,6 +144,7 @@ test "phase13 libfs manifest records the landed starter and remaining wrapper ga
         if (std.mem.eql(u8, gap.id, "phase13-libfs-offset-seek-helper")) {
             saw_offset_followup = true;
             try std.testing.expectEqualStrings("starter_landed", gap.status);
+            try std.testing.expectEqualStrings("filesystem_helper_surface", gap.kind);
             try std.testing.expectEqualStrings("fs/libfs.zig", gap.zigux_destination);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "dcache_dir_lseek") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "offset_dir_llseek") != null);
@@ -150,6 +152,7 @@ test "phase13 libfs manifest records the landed starter and remaining wrapper ga
         if (std.mem.eql(u8, gap.id, "phase13-libfs-directory-emit-helper")) {
             saw_emit_followup = true;
             try std.testing.expectEqualStrings("starter_landed", gap.status);
+            try std.testing.expectEqualStrings("filesystem_helper_surface", gap.kind);
             try std.testing.expectEqualStrings("fs/libfs.zig", gap.zigux_destination);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "dcache_readdir") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "dir_emit_dots") != null);
@@ -157,6 +160,7 @@ test "phase13 libfs manifest records the landed starter and remaining wrapper ga
         if (std.mem.eql(u8, gap.id, "phase13-libfs-transaction-buffer-followup")) {
             saw_transaction_followup = true;
             try std.testing.expectEqualStrings("ready_next", gap.status);
+            try std.testing.expectEqualStrings("filesystem_helper_surface", gap.kind);
             try std.testing.expectEqualStrings("fs/libfs.zig", gap.zigux_destination);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "simple_transaction") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "staging buffer") != null);
