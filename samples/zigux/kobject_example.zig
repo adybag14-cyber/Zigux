@@ -226,3 +226,19 @@ test "kobject sample replay keeps the anchor reviewable and non-runtime" {
     try std.testing.expectEqualStrings("-5\n", replay.bar_value.text[0..replay.bar_value.len]);
     try std.testing.expectEqual(@as(usize, 5), replay.checked_focus.len);
 }
+
+test "kobject sample keeps attributes inaccessible until registration" {
+    var sample = KobjectExampleSample{};
+
+    try sample.init();
+    try std.testing.expectEqual(SampleStage.initialized, sample.stage());
+    try std.testing.expectEqual(@as(usize, 0), sample.activeAttrCount());
+    try std.testing.expectError(error.InvalidLifecycleTransition, sample.showValue("foo"));
+    try std.testing.expectError(error.InvalidLifecycleTransition, sample.storeValue("foo", "1\n"));
+
+    try sample.registerAttributes();
+    try std.testing.expectEqual(@as(usize, 3), sample.activeAttrCount());
+    _ = try sample.storeValue("foo", "1\n");
+    const rendered = try sample.showValue("foo");
+    try std.testing.expectEqualStrings("1\n", rendered.text[0..rendered.len]);
+}
