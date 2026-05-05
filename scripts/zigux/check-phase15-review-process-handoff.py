@@ -33,6 +33,7 @@ REQUIRED_MANIFEST_BOUNDARY_MARKERS = [
     "scripts/zigux/check-phase15-review-process-handoff.py",
     "zigux/tests/phase15_architecture_council_review_process_manifest.json",
     "zigux/tests/phase15_architecture_council_review_process.zig",
+    "zigux/tests/phase15_indefinite_c_policy.json",
     "zigux/tests/phase15_build.zig",
 ]
 
@@ -270,6 +271,7 @@ if the change touches the shared Phase 15 governance packet
                 "scripts/zigux/check-phase15-review-process-handoff.py, "
                 "zigux/tests/phase15_architecture_council_review_process_manifest.json, "
                 "zigux/tests/phase15_architecture_council_review_process.zig, "
+                "zigux/tests/phase15_indefinite_c_policy.json, "
                 "and zigux/tests/phase15_build.zig as the parked governance packet boundary."
             ),
             "current_bounded_lane": (
