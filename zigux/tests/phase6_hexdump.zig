@@ -76,11 +76,14 @@ fn assertFixtureLengthCase(case: fixtures.LengthCase) !void {
 
 fn assertFixturePerfCase(case: fixtures.PerfCase) !void {
     var actual: [test_hexdump_buf_size]u8 = undefined;
+    var expected: [test_hexdump_buf_size]u8 = undefined;
     const required = hexdump.hexDumpToBuffer(test_data_b[0..case.len], case.rowsize, case.groupsize, actual[0..], case.ascii);
+    const want = fixtures.prepareExpectedLine(expected[0..], case.len, case.rowsize, case.groupsize, case.ascii);
 
-    try std.testing.expect(case.iterations > 0);
-    try std.testing.expectEqual(case.expected_length, required);
-    try std.testing.expectEqualSlices(u8, case.expected_text.current(), std.mem.sliceTo(actual[0..], 0));
+    try std.testing.expect(case.reps > 0);
+    try std.testing.expect(case.max_slowdown_pct > 0);
+    try std.testing.expectEqual(fixtures.expectedLength(case.len, case.rowsize, case.groupsize, case.ascii), required);
+    try std.testing.expectEqualSlices(u8, want, std.mem.sliceTo(actual[0..], 0));
 }
 
 test "phase 6 hexdump module imports cleanly" {
