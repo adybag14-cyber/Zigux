@@ -19,6 +19,7 @@ REQUIRED_FILES = [
     "samples/zigux/README.md",
     "scripts/zigux/README.md",
     "scripts/zigux/validate-phase7.py",
+    "scripts/zigux/check-phase7-make-wrapper.py",
     "scripts/zigux/check-phase7-argv-split-packet.py",
     "scripts/zigux/check-phase7-rbtree-parity.py",
     "zigux/Makefile",
@@ -77,10 +78,15 @@ REQUIRED_MARKERS = {
         "zigux/tests/phase7_build.zig",
     ],
     "scripts/zigux/README.md": [
+        "scripts/zigux/check-phase7-make-wrapper.py",
         "scripts/zigux/check-phase7-argv-split-packet.py",
         "scripts/zigux/check-phase7-rbtree-parity.py",
         "make -C zigux phase7-validate",
         "there is no separate shared `check-phase7-build-inventory.py`",
+    ],
+    "scripts/zigux/check-phase7-make-wrapper.py": [
+        "--self-test",
+        "PHASE7_MAKE_WRAPPER_SELF_TEST=pass",
     ],
     "scripts/zigux/check-phase7-argv-split-packet.py": [
         "--self-test",
@@ -169,6 +175,7 @@ def write_fixture_root(tmp_root: Path) -> None:
         "samples/zigux/README.md": "\n".join(REQUIRED_MARKERS["samples/zigux/README.md"]) + "\n",
         "scripts/zigux/README.md": "\n".join(REQUIRED_MARKERS["scripts/zigux/README.md"]) + "\n",
         "scripts/zigux/validate-phase7.py": "# fixture\n",
+        "scripts/zigux/check-phase7-make-wrapper.py": "\n".join(REQUIRED_MARKERS["scripts/zigux/check-phase7-make-wrapper.py"]) + "\n",
         "scripts/zigux/check-phase7-argv-split-packet.py": "\n".join(REQUIRED_MARKERS["scripts/zigux/check-phase7-argv-split-packet.py"]) + "\n",
         "scripts/zigux/check-phase7-rbtree-parity.py": "\n".join(REQUIRED_MARKERS["scripts/zigux/check-phase7-rbtree-parity.py"]) + "\n",
         "zigux/Makefile": "\n".join(REQUIRED_MARKERS["zigux/Makefile"]) + "\n",
@@ -219,6 +226,15 @@ def run_self_test() -> None:
         expect_missing_file("missing_parity_checker", tmp_root, "scripts/zigux/check-phase7-rbtree-parity.py")
         write_fixture_root(tmp_root)
 
+        make_wrapper_path = tmp_root / "scripts" / "zigux" / "check-phase7-make-wrapper.py"
+        make_wrapper_path.unlink()
+        expect_missing_file(
+            "missing_make_wrapper_checker",
+            tmp_root,
+            "scripts/zigux/check-phase7-make-wrapper.py",
+        )
+        write_fixture_root(tmp_root)
+
         argv_split_packet_path = tmp_root / "scripts" / "zigux" / "check-phase7-argv-split-packet.py"
         argv_split_packet_path.unlink()
         expect_missing_file(
@@ -262,6 +278,19 @@ def run_self_test() -> None:
         )
         parity_path.write_text(original_parity_text, encoding="utf-8")
 
+        make_wrapper_path = tmp_root / "scripts" / "zigux" / "check-phase7-make-wrapper.py"
+        original_make_wrapper_text = make_wrapper_path.read_text(encoding="utf-8")
+        make_wrapper_path.write_text(
+            original_make_wrapper_text.replace("--self-test", "", 1),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "make_wrapper_checker_self_test_flag",
+            tmp_root,
+            "scripts/zigux/check-phase7-make-wrapper.py: --self-test",
+        )
+        make_wrapper_path.write_text(original_make_wrapper_text, encoding="utf-8")
+
         boundary_path = tmp_root / "zigux" / "tests" / "phase7_string_helpers_sample_boundary.zig"
         boundary_path.unlink()
         expect_missing_file(
@@ -290,6 +319,17 @@ def run_self_test() -> None:
 
         scripts_readme_path = tmp_root / "scripts" / "zigux" / "README.md"
         original_scripts_readme = scripts_readme_path.read_text(encoding="utf-8")
+        scripts_readme_path.write_text(
+            original_scripts_readme.replace("scripts/zigux/check-phase7-make-wrapper.py", "", 1),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "scripts_readme_make_wrapper_marker",
+            tmp_root,
+            "scripts/zigux/README.md: scripts/zigux/check-phase7-make-wrapper.py",
+        )
+        scripts_readme_path.write_text(original_scripts_readme, encoding="utf-8")
+
         scripts_readme_path.write_text(
             original_scripts_readme.replace("scripts/zigux/check-phase7-argv-split-packet.py", "", 1),
             encoding="utf-8",
@@ -458,7 +498,7 @@ def run_self_test() -> None:
         )
 
     print("PHASE7_VALIDATOR_SELF_TEST=pass")
-    print("PHASE7_VALIDATOR_SELF_TEST_CASE_COUNT=23")
+    print("PHASE7_VALIDATOR_SELF_TEST_CASE_COUNT=26")
 
 
 def main() -> int:
