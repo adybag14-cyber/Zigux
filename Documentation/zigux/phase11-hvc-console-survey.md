@@ -4,7 +4,7 @@ This survey note now serves as the archival checkpoint for the original Phase 11
 
 The live repo state is now:
 
-- reviewed against live `master` `c9b956c155281407bf86bf56d122b08d6fc634ea`
+- reviewed against live `master` `ee124761ef3ef5fcc6bb9cd8b7fe8d1fce326839`
 - `drivers/tty/hvc/hvc_console.zig` and `zigux/tests/phase11_hvc_console.zig` now land the first bounded starter around setup-state slot validation, CRLF write framing, flush intent, teardown gating, final-close wait summaries, and a tiny remove-path handoff summary
 - `Documentation/zigux/phase11-hvc-console-slice.md` records the active starter scope, while `Documentation/zigux/phase11-hvc-console-validation-matrix.md` now names the current shared gate, the landed remove-path handoff, and the still-pending tty-registration follow-up
 - this survey note remains as the checkpoint for the original gap that the bounded starter closed
