@@ -102,6 +102,7 @@ pub const VirtioMmioLab = struct {
     queue_ready: [queue_capacity]bool = [_]bool{false} ** queue_capacity,
     device_feature_words: [feature_word_capacity]u32 = [_]u32{0} ** feature_word_capacity,
     config_window: [config_window_capacity]u8 = [_]u8{0} ** config_window_capacity,
+    pending_config_write: ?ConfigWritePlanSummary = null,
     configured_queue_count: usize = 0,
     config_window_size: usize = 0,
     selected_queue: u16 = 0,
@@ -229,10 +230,10 @@ pub const VirtioMmioLab = struct {
         };
     }
 
-    pub fn planConfigWriteOffset(self: *const Self, offset: u32, planned_value: u32) !ConfigWritePlanSummary {
+    pub fn planConfigWriteOffset(self: *Self, offset: u32, planned_value: u32) !ConfigWritePlanSummary {
         const relative_offset = try checkedConfigWindowOffset(offset);
         const start = try self.checkedConfigWordRange(relative_offset);
-        return .{
+        const plan = ConfigWritePlanSummary{
             .anchor = descriptor().anchor,
             .absolute_offset = offset,
             .relative_offset = relative_offset,
@@ -240,6 +241,8 @@ pub const VirtioMmioLab = struct {
             .previous_value = readLittleU32(self.config_window[start .. start + 4]),
             .planned_value = planned_value,
         };
+        self.pending_config_write = plan;
+        return plan;
     }
 
     pub fn probePreflightSummary(self: *const Self) ProbePreflightSummary {
@@ -298,6 +301,7 @@ pub const VirtioMmioLab = struct {
 
     pub fn bumpConfigGeneration(self: *Self) void {
         self.config_generation +%= 1;
+        self.pending_config_write = null;
     }
 
     pub fn stageInterruptStatus(self: *Self, bits: u32) void {
@@ -388,4 +392,31 @@ fn readLittleU32(bytes: []const u8) u32 {
 
 fn boolToU32(value: bool) u32 {
     return if (value) 1 else 0;
+}
+
+test "phase10 virtio mmio config-generation bumps clear stale planned config writes" {
+    var device = try VirtioMmioLab.init(56, &[_]u16{ 8, 16 });
+
+    try device.stageConfigBytes(&[_]u8{
+        0x78, 0x56, 0x34, 0x12,
+        0xef, 0xcd, 0xab, 0x90,
+    });
+    device.bumpConfigGeneration();
+
+    const original = try device.readConfigOffset(mmio_window_bytes + 4);
+    const plan = try device.planConfigWriteOffset(mmio_window_bytes + 4, 0x1122_3344);
+    try std.testing.expectEqual(@as(u32, 1), plan.config_generation);
+    try std.testing.expectEqual(plan, device.pending_config_write.?);
+
+    device.bumpConfigGeneration();
+    try std.testing.expectEqual(@as(?ConfigWritePlanSummary, null), device.pending_config_write);
+
+    const unchanged = try device.readConfigOffset(mmio_window_bytes + 4);
+    try std.testing.expectEqual(original.value, unchanged.value);
+    try std.testing.expectEqual(@as(u32, 2), unchanged.config_generation);
+
+    const refreshed = try device.planConfigWriteOffset(mmio_window_bytes + 4, 0x5566_7788);
+    try std.testing.expectEqual(@as(u32, 2), refreshed.config_generation);
+    try std.testing.expectEqual(original.value, refreshed.previous_value);
+    try std.testing.expectEqual(@as(u32, 0x5566_7788), refreshed.planned_value);
 }
