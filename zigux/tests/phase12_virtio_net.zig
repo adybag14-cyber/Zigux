@@ -84,6 +84,44 @@ test "phase12 virtio net falls back to one queue pair without control virtqueue"
     );
 }
 
+test "phase12 virtio net keeps invalid max_queue_pairs fallback explicit" {
+    var lab = try virtio_net.VirtioNetProbeLab.init(&.{
+        virtio_net.feature_control_vq,
+        virtio_net.feature_multiqueue,
+        virtio_net.feature_rss,
+    });
+
+    const snapshot = try lab.captureProbeSnapshot(.{
+        .driver_feature_bits = &.{
+            virtio_net.feature_control_vq,
+            virtio_net.feature_multiqueue,
+            virtio_net.feature_rss,
+        },
+        .requested_queue_pairs = 4,
+        .max_queue_pairs = 0,
+    });
+
+    try std.testing.expectEqual(@as(u16, 1), snapshot.max_queue_pairs);
+    try std.testing.expectEqual(@as(u16, 1), snapshot.planned_queue_pairs);
+    try std.testing.expectEqual(@as(u16, 1), snapshot.rx_queue_count);
+    try std.testing.expectEqual(@as(u16, 1), snapshot.tx_queue_count);
+    try std.testing.expectEqual(@as(u16, 3), snapshot.total_queue_count);
+    try std.testing.expectEqual(@as(?u16, 2), snapshot.control_queue_index);
+    try std.testing.expectEqual(
+        virtio_net.RssRecoveryState.downgraded_single_queue,
+        snapshot.rss_recovery_state,
+    );
+    try std.testing.expectEqual(
+        virtio_net.QueueFallbackReason.invalid_max_queue_pairs,
+        snapshot.fallback_reason,
+    );
+    try std.testing.expectEqual(virtio_net.RecoveryState.stable, snapshot.recovery_state);
+    try std.testing.expectEqual(
+        virtio_net.QueueRecoveryAction.degrade_to_single_queue,
+        snapshot.queue_recovery_action,
+    );
+}
+
 test "phase12 virtio net distinguishes renegotiation from reset-required recovery" {
     var renegotiate_lab = try virtio_net.VirtioNetProbeLab.init(&.{
         virtio_net.feature_control_vq,
