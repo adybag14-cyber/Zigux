@@ -46,6 +46,23 @@ test "phase12 virtio scsi clamps poll queues and classifies request families" {
     try std.testing.expectEqual(virtio_scsi.RequestQueueKind.request_poll, fourth.kind);
 }
 
+test "phase12 virtio scsi rejects invalid queue counts and unavailable request lookups" {
+    var lab = virtio_scsi.VirtioScsiQueueLab.init();
+
+    try std.testing.expectError(error.InvalidRequestQueueCount, lab.planQueueLayout(0, 0));
+    try std.testing.expectError(error.QueueLayoutUnavailable, lab.requestQueue(0));
+    try std.testing.expectError(
+        error.QueueCountOverflow,
+        lab.planQueueLayout(std.math.maxInt(u16), 0),
+    );
+
+    _ = try lab.planQueueLayout(1, 4);
+    try std.testing.expectEqual(@as(u16, 1), lab.last_layout.?.default_queues);
+    try std.testing.expectEqual(@as(u16, 0), lab.last_layout.?.poll_queues);
+    try std.testing.expectEqual(@as(?u16, null), lab.last_layout.?.first_poll_queue_index);
+    try std.testing.expectError(error.RequestQueueIndexOutOfRange, lab.requestQueue(1));
+}
+
 test "phase12 virtio scsi freeze blocks queue planning until restore clears layout" {
     var lab = virtio_scsi.VirtioScsiQueueLab.init();
     _ = try lab.planQueueLayout(6, 2);
