@@ -6,6 +6,7 @@ This document records the bounded Phase 13 survey lane around `lib/devres.c`.
 
 - `PHASE13_STATUS=active`
 - `PHASE13_SLICE=devres-dma-scatterlist-boundary-survey`
+- survey provenance refreshed against verified master head `e59df689d080aa11773adda87f00c2d650caade8`
 - scope: the landed `lib/devres.zig` helper lab, its dedicated Phase 13 test, the focused reviewability gate, the shared Phase 13 build and make wiring, and the lane notes that compare the current helper-only DMA/scatterlist boundary against the roadmap
 - product boundary:
   - `lib/devres.zig`
@@ -32,6 +33,7 @@ The live Zigux tree is no longer survey-only here. It already carries a helper-f
 - the adjacent `devm_arch_io_reserve_memtype_wc()` planner already records detach-time cleanup intent for WC reservations while keeping live arch memtype mutation out of scope.
 - the matching `devm_arch_phys_wc_add()` token planner now records retained removal tokens on success and frees release records on negative token returns while keeping `arch_phys_wc_del()` reviewable and out of live side-effect territory.
 - the shared Phase 13 build and make target already replay the devres packet, so the remaining lane-local gap is not new helper behavior first. It is keeping the helper-only DMA/scatterlist boundary explicit and machine-checkable wherever the survey packet records current Phase 13 evidence.
+- exact boundary evidence on current `master`: `lib/devres.zig` still exposes no `dmam_alloc_*`, `dma_map_*`, `dma_unmap_*`, `dma_map_sgtable()`, `struct scatterlist`, `sg_table`, or `sg_*` ownership surface; the shipped planner set still stops at helper-first ioremap, translated-resource, and WC memtype bookkeeping.
 
 ## Recorded gaps
 
