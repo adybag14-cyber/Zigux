@@ -6,7 +6,7 @@ This document tracks the first bounded `drivers/virtio/virtio_input.c` lab helpe
 
 - `PHASE10_STATUS=active`
 - `PHASE10_SLICE=virtio-input-lab-helper`
-- scope: config identity snapshots, bounded property and event config bitmap summaries, bounded ABS metadata summaries, bounded capability-setup staging, event and status queue planning, static event-buffer fill behavior, ready-state gating, multitouch timestamp suppression, dedicated Phase 10 input tests, and a slice note only
+- scope: config identity snapshots, bounded property and event config bitmap summaries, bounded ABS metadata summaries, bounded capability-setup staging, bounded multitouch slot planning, event and status queue planning, static event-buffer fill behavior, ready-state gating, multitouch timestamp suppression, dedicated Phase 10 input tests, and a slice note only
 - product boundary:
   - `drivers/virtio/virtio_input.zig`
   - `zigux/tests/phase10_virtio_input.zig`
@@ -26,6 +26,7 @@ The live repo now has a bounded `drivers/virtio/virtio_input.zig` helper plus de
 - in-memory property-bit and event-bit config bitmap summaries keyed by selector and subselector, including the event-type surfacing rule from `virtinput_cfg_bits()`
 - in-memory ABS metadata summaries for min, max, fuzz, flat, and resolution keyed by ABS code, mirroring the bounded `virtinput_cfg_abs()` readout without claiming real `input_dev` mutation
 - in-memory capability-setup staging that only advances when event-bit configuration exists and keeps ABS parameter intent gated on matching `EV_ABS` capability bits
+- one bounded in-memory multitouch slot-planning helper keyed off `ABS_MT_SLOT`, turning the staged ABS metadata into a capped slot count before any registration or transport work
 - event and status queue descriptor-count validation with power-of-two bounds
 - static event-buffer fill accounting capped to the helper's in-memory event-buffer capacity
 - ready-state gating so status sends stay blocked until both queues are configured
@@ -38,7 +39,6 @@ This slice does not yet claim:
 
 - real config-space bitmap or ABS metadata reads from transport-backed config space
 - `input_dev` registration or capability setup
-- multitouch slot initialization from `ABS_MT_SLOT`
 - real virtqueue buffers, interrupts, or DMA-facing queue behavior
 - transport-backed probe, remove, freeze, restore, or reset paths
 
@@ -52,4 +52,4 @@ This slice does not yet claim:
 
 ## Next bounded step
 
-Stay in the Phase 10 virtio_input lane and add one small in-memory multitouch slot-planning helper next so the lab slice can build on the landed capability staging without claiming transport, interrupt, or input-device registration work.
+Stay in the Phase 10 virtio_input lane and prefer one small validation, survey, manifest, or helper-test truthfulness repair next so the lab slice stays reviewable before any transport, interrupt, or input-device registration work.
