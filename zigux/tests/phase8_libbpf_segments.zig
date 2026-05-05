@@ -271,6 +271,7 @@ test "phase 8 libbpf survey note stays aligned with the landed helper packet" {
     try expectContains(phase8_note, "zigux/tests/phase8_bpf_type_names.zig");
     try expectContains(phase8_note, "zigux/tests/phase8_perf_buffer_poll.zig");
     try expectContains(phase8_note, "zigux/tests/phase8_perf_buffer_poll_only_build.zig");
+    try expectContains(phase8_note, "zigux/tests/phase8_libbpf_segments_only_build.zig");
     try expectContains(phase8_note, "make -C zigux phase8-libbpf-segments-test");
     try expectContains(phase8_note, "zig build test --build-file zigux/tests/phase8_libbpf_segments_only_build.zig --summary all");
     try expectContains(phase8_note, "make -C zigux phase8-perf-buffer-poll-test");
