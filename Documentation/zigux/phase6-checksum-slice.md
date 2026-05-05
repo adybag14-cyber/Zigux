@@ -4,9 +4,10 @@ This document starts a bounded Phase 6 leaf-helper port for Zigux.
 
 ## Status
 
-- `PHASE6_STATUS=active`
+- `PHASE6_STATUS=parked`
 - `PHASE6_SLICE=checksum-leaf-helper`
 - scope: first low-risk checksum helper only
+- lane state: helper and fixture slice landed; parked unless a new `checksum.c` parity issue appears
 - product boundary:
   - `lib/checksum.zig`
   - `zigux/tests/phase6_checksum.zig`
@@ -67,4 +68,4 @@ This slice does not yet claim:
 
 ## Next bounded step
 
-Checksum now has a small KUnit-inspired carry-discipline foothold alongside the existing compute, composition, seeded-partial, and pseudo-header fixtures. The next honest decision is whether that is enough to park this Phase 6 leaf-helper lane, or whether one more equally small external parity nibble belongs here before moving to the next unfinished Phase 6 helper.
+Keep the next Phase 6 follow-up inside the shared bundled `base64`, `bsearch`, `checksum`, and `hexdump` packet already gated by `zigux/tests/phase6_build.zig` and `make -C zigux phase6`. Reopen this slice only if fresh repo inspection finds a concrete new `checksum.c` parity gap inside `lib/checksum.zig`, `zigux/tests/phase6_checksum.zig`, the shared fixture module, or that existing bundled gate.
