@@ -194,6 +194,39 @@ test "phase10 virtio ring delays callbacks until most outstanding buffers are co
     try std.testing.expect(delayed_summary.should_poll);
 }
 
+test "phase10 virtio ring blocks poll and callback snapshots while a queue is broken" {
+    var ring = virtio_ring.VirtioRingLab{};
+    try ring.defineQueue(1, 8, .split, true, false);
+
+    try ring.disableCallback(1);
+    try ring.publishDescriptorChain(1);
+    try ring.recordUsedChains(1, 1);
+
+    var broken_summary = try ring.markBroken(1);
+    try std.testing.expectEqualStrings("drivers/virtio/virtio_ring.c", broken_summary.anchor);
+    try std.testing.expectEqual(@as(u16, 1), broken_summary.queue_index);
+    try std.testing.expect(broken_summary.broken);
+    try std.testing.expect(!broken_summary.callback_enabled);
+    try std.testing.expectEqual(@as(u16, 1), broken_summary.last_used_idx);
+    try std.testing.expectEqual(@as(u16, 0), broken_summary.last_polled_used_idx);
+    try std.testing.expectEqual(@as(u16, 0), broken_summary.outstanding_chain_count);
+
+    try std.testing.expectError(error.QueueBroken, ring.pollUsedBuffers(1));
+    try std.testing.expectError(error.QueueBroken, ring.enableCallback(1));
+    try std.testing.expectError(error.QueueBroken, ring.enableCallbackDelayed(1));
+
+    broken_summary = try ring.clearBroken(1);
+    try std.testing.expect(!broken_summary.broken);
+    try std.testing.expect(!broken_summary.callback_enabled);
+
+    const poll_summary = try ring.pollUsedBuffers(1);
+    try std.testing.expectEqual(@as(u16, 1), poll_summary.last_used_idx);
+    try std.testing.expectEqual(@as(u16, 0), poll_summary.last_polled_used_idx);
+    try std.testing.expectEqual(@as(u16, 1), poll_summary.newly_used_chain_count);
+    try std.testing.expectEqual(@as(u16, 0), poll_summary.outstanding_chain_count);
+    try std.testing.expect(poll_summary.has_newly_used_chains);
+}
+
 test "phase10 virtio ring wraps avail used and poll bookkeeping at u16 boundaries" {
     var ring = virtio_ring.VirtioRingLab{};
     try ring.defineQueue(0, 1, .split, true, false);
