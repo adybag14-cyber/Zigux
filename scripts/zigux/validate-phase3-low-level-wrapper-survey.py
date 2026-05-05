@@ -19,7 +19,7 @@ ABI_DUMP_REL = "zigux/tests/phase3_abi_dump.zig"
 ABI_EXPECTED_REL = "zigux/tests/fixtures/phase3_abi/expected.json"
 ABI_MANIFEST_REL = "zigux/tests/fixtures/phase3_abi_manifest.json"
 ABI_SLICE_DOC_REL = "Documentation/zigux/phase3-abi-slice.md"
-PHASE3_LOW_LEVEL_WRAPPER_SURVEY_SELF_TEST_CASE_COUNT = 5
+PHASE3_LOW_LEVEL_WRAPPER_SURVEY_SELF_TEST_CASE_COUNT = 6
 
 
 def blob_sha(path: Path) -> str:
@@ -206,7 +206,7 @@ def validate(root: Path) -> list[str]:
     )
 
     manifest_text = (root / ABI_MANIFEST_REL).read_text(encoding="utf-8")
-    for rel in (ATOMIC_REL, BARRIER_REL, MMIO_REL, ABI_TEST_REL):
+    for rel in (ATOMIC_REL, BARRIER_REL, MMIO_REL, ABI_TEST_REL, LOW_LEVEL_TEST_REL):
         if rel not in manifest_text:
             issues.append(f"manifest_missing_entry:{rel}")
 
@@ -346,7 +346,7 @@ def run_self_test() -> int:
             "\n".join(
                 [
                     "{",
-                    f'  "files": ["{ATOMIC_REL}", "{BARRIER_REL}", "{MMIO_REL}", "{ABI_TEST_REL}"]',
+                    f'  "files": ["{ATOMIC_REL}", "{BARRIER_REL}", "{MMIO_REL}", "{ABI_TEST_REL}", "{LOW_LEVEL_TEST_REL}"]',
                     "}",
                     "",
                 ]
@@ -446,6 +446,14 @@ def run_self_test() -> int:
         assert "low_level_test_missing_token:mmio.read8" in issues
 
         (root / LOW_LEVEL_TEST_REL).write_text(valid_low_level_test, encoding="utf-8")
+        (root / ABI_MANIFEST_REL).write_text(
+            valid_manifest.replace(f', "{LOW_LEVEL_TEST_REL}"', "", 1),
+            encoding="utf-8",
+        )
+        issues = validate(root)
+        assert f"manifest_missing_entry:{LOW_LEVEL_TEST_REL}" in issues
+
+        (root / ABI_MANIFEST_REL).write_text(valid_manifest, encoding="utf-8")
         (root / ABI_MANIFEST_REL).write_text(
             valid_manifest.replace(f', "{MMIO_REL}"', "", 1),
             encoding="utf-8",
