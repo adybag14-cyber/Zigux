@@ -352,7 +352,6 @@ def run_self_test() -> int:
         case_count += 1
 
         scripts_readme_path = root / "scripts/zigux/README.md"
-        scripts_readme_path.writeText = None
         scripts_readme_path.write_text("validate-phase13-release.py\n", encoding="utf-8")
         _assert_only(
             validate(root),
