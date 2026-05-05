@@ -14,6 +14,70 @@
     "preexisting_phase9_build_present": true,
     "preexisting_runtime_trace_events_doc_present": true
   },
+  "delivery_evidence_catalog": [
+    {
+      "id": "trace-events-survey-note",
+      "kind": "review_note",
+      "path": "Documentation/zigux/phase9-runtime-trace-events-survey.md",
+      "why_now": "The survey note is the human-readable review anchor for the shipped starter packet and blocked substrate handoff."
+    },
+    {
+      "id": "trace-events-module-slice-note",
+      "kind": "review_note",
+      "path": "Documentation/zigux/phase9-runtime-trace-events-module-slice.md",
+      "why_now": "The module-slice note keeps the starter sample, loader scaffold, and bounded tests reviewable in one Phase 9 packet."
+    },
+    {
+      "id": "trace-events-survey-gate",
+      "kind": "validation",
+      "path": "zigux/tests/runtime_trace_events_survey.zig",
+      "why_now": "The dedicated survey gate fails closed when the manifest, note, loader scaffold, or ownership packet drifts."
+    },
+    {
+      "id": "trace-events-shared-build-gate",
+      "kind": "validation",
+      "path": "zigux/tests/phase9_build.zig",
+      "why_now": "The shared Phase 9 build bundle keeps the trace-events packet wired beside the other runtime pilot surfaces."
+    }
+  ],
+  "ownership_map": [
+    {
+      "surface": "Documentation/zigux/phase9-runtime-trace-events-survey.md",
+      "role": "survey_note",
+      "owner": "P9-L12",
+      "boundary": "Records the shipped starter packet and keeps the blocked runtime-substrate boundary explicit for reviewers."
+    },
+    {
+      "surface": "Documentation/zigux/phase9-runtime-trace-events-module-slice.md",
+      "role": "module_slice_note",
+      "owner": "P9-L12",
+      "boundary": "Tracks the bounded starter sample, loader scaffold, and directly coupled tests without widening into runtime implementation."
+    },
+    {
+      "surface": "samples/zigux/runtime_trace_events.zig",
+      "role": "starter_sample",
+      "owner": "P9-L12",
+      "boundary": "Owns the in-memory trace-events starter and selftest hook without claiming live runtime-substrate parity."
+    },
+    {
+      "surface": "samples/zigux/runtime_trace_events_loader.zig",
+      "role": "loader_scaffold",
+      "owner": "P9-L12",
+      "boundary": "Owns the sample-side loader-handoff scaffold and release-without-substrate behavior, while shared runtime loading stays separate."
+    },
+    {
+      "surface": "zigux/tests/runtime_trace_events_survey.zig",
+      "role": "survey_gate",
+      "owner": "P9-L12",
+      "boundary": "Fail-closes when the trace-events manifest, survey note, loader scaffold, or ownership packet drifts."
+    },
+    {
+      "surface": "zigux/tests/phase9_build.zig",
+      "role": "shared_build_bundle",
+      "owner": "P9-L12",
+      "boundary": "Keeps the existing trace-events survey, sample, module, diff, and loader tests wired into the shared Phase 9 replay bundle only."
+    }
+  ],
   "gaps": [
     {
       "id": "phase9-build-gate",
