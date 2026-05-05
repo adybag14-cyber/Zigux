@@ -43,7 +43,7 @@ fn isAllowedStatus(status: []const u8) bool {
         std.mem.eql(u8, status, "blocked_on_dma_transport");
 }
 
-test "phase12 nvme pci survey manifest records the landed starter surfaces and remaining roadmap gaps" {
+test "phase12 nvme pci survey manifest records the landed starter surfaces and remaining transport gap" {
     var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
     defer io_instance.deinit();
 
@@ -59,7 +59,7 @@ test "phase12 nvme pci survey manifest records the landed starter surfaces and r
     defer parsed.deinit();
 
     const manifest = parsed.value;
-    try std.testing.expectEqualStrings("P12-L05", manifest.lane_key);
+    try std.testing.expectEqualStrings("P12-Y02", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 12", manifest.phase);
     try std.testing.expectEqualStrings("drivers/nvme/host/pci.c", manifest.anchor);
     try std.testing.expectEqualStrings("f7d8ad3bf36fd42ee03b041bbf1bbbb7dccc6200", manifest.surveyed_commit);
@@ -80,7 +80,7 @@ test "phase12 nvme pci survey manifest records the landed starter surfaces and r
     try std.testing.expect(manifest.survey_summary.nvme_pci_slice_note_present);
     try std.testing.expect(manifest.survey_summary.nvme_pci_survey_gate_present);
     try std.testing.expect(manifest.survey_summary.nvme_pci_survey_note_present);
-    try std.testing.expectEqual(@as(usize, 12), manifest.gaps.len);
+    try std.testing.expectEqual(@as(usize, 11), manifest.gaps.len);
 
     var starter_landed_count: usize = 0;
     var ready_next_count: usize = 0;
@@ -95,8 +95,7 @@ test "phase12 nvme pci survey manifest records the landed starter surfaces and r
     var saw_survey_gate = false;
     var saw_survey_note = false;
     var saw_prp_shape_helper = false;
-    var saw_dma_transport_gap = false;
-    var saw_throughput_recovery_gap = false;
+    var saw_blocker = false;
 
     for (manifest.gaps, 0..) |gap, i| {
         try std.testing.expect(gap.id.len > 0);
@@ -136,7 +135,6 @@ test "phase12 nvme pci survey manifest records the landed starter surfaces and r
             saw_tests = true;
             try std.testing.expectEqualStrings("zigux/tests/phase12_nvme_pci.zig", gap.zigux_destination);
             try std.testing.expectEqualStrings("starter_landed", gap.status);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "queueing correctness") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "DMA page rounding") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "reset") != null);
         }
@@ -171,7 +169,6 @@ test "phase12 nvme pci survey manifest records the landed starter surfaces and r
             saw_survey_note = true;
             try std.testing.expectEqualStrings("Documentation/zigux/phase12-nvme-pci-survey.md", gap.zigux_destination);
             try std.testing.expectEqualStrings("starter_landed", gap.status);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "segmented-rollout") != null);
         }
 
         if (std.mem.eql(u8, gap.id, "phase12-nvme-pci-prp-shape-helper")) {
@@ -183,24 +180,13 @@ test "phase12 nvme pci survey manifest records the landed starter surfaces and r
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "PRP list bound checks") != null);
         }
 
-        if (std.mem.eql(u8, gap.id, "phase12-nvme-pci-dma-safe-transport-gap")) {
-            saw_dma_transport_gap = true;
-            try std.testing.expectEqualStrings("Documentation/zigux/phase12-nvme-pci-survey.md", gap.zigux_destination);
+        if (std.mem.eql(u8, gap.id, "phase12-nvme-pci-live-queue-and-dma")) {
+            saw_blocker = true;
+            try std.testing.expectEqualStrings("zigux/tests/phase12_nvme_pci_survey.zig", gap.zigux_destination);
             try std.testing.expectEqualStrings("blocked_on_dma_transport", gap.status);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "DMA-safe abstractions") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "Host Memory Buffer") != null);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "PRP or SGL DMA mapping") != null);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "transport-safe substrate") != null);
-        }
-
-        if (std.mem.eql(u8, gap.id, "phase12-nvme-pci-throughput-and-recovery-gap")) {
-            saw_throughput_recovery_gap = true;
-            try std.testing.expectEqualStrings("Documentation/zigux/phase12-nvme-pci-survey.md", gap.zigux_destination);
-            try std.testing.expectEqualStrings("blocked_on_dma_transport", gap.status);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "throughput and recovery parity") != null);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "blk-mq queue_rq flow") != null);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "IRQ-driven completion polling") != null);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "timeout recovery plumbing") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "blk-mq") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "roadmap-approved DMA-safe transport substrate") != null);
         }
 
         for (manifest.gaps[i + 1 ..]) |other| {
@@ -210,7 +196,7 @@ test "phase12 nvme pci survey manifest records the landed starter surfaces and r
 
     try std.testing.expectEqual(@as(usize, 10), starter_landed_count);
     try std.testing.expectEqual(@as(usize, 0), ready_next_count);
-    try std.testing.expectEqual(@as(usize, 2), blocked_count);
+    try std.testing.expectEqual(@as(usize, 1), blocked_count);
     try std.testing.expect(saw_build_gate);
     try std.testing.expect(saw_make_target);
     try std.testing.expect(saw_starter);
@@ -221,6 +207,56 @@ test "phase12 nvme pci survey manifest records the landed starter surfaces and r
     try std.testing.expect(saw_survey_gate);
     try std.testing.expect(saw_survey_note);
     try std.testing.expect(saw_prp_shape_helper);
-    try std.testing.expect(saw_dma_transport_gap);
-    try std.testing.expect(saw_throughput_recovery_gap);
+    try std.testing.expect(saw_blocker);
+}
+
+test "phase12 nvme pci survey packet records the active ownership lane and blocked transport boundary" {
+    var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
+    defer io_instance.deinit();
+
+    const driver_source = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "drivers/nvme/host/pci.zig",
+        std.testing.allocator,
+        .limited(32 * 1024),
+    );
+    defer std.testing.allocator.free(driver_source);
+
+    const survey_note = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "Documentation/zigux/phase12-nvme-pci-survey.md",
+        std.testing.allocator,
+        .limited(32 * 1024),
+    );
+    defer std.testing.allocator.free(survey_note);
+
+    const slice_note = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "Documentation/zigux/phase12-nvme-pci-slice.md",
+        std.testing.allocator,
+        .limited(16 * 1024),
+    );
+    defer std.testing.allocator.free(slice_note);
+
+    const fallback_map = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "Documentation/zigux/phase12-nvme-pci-raw-github-fallback-map.md",
+        std.testing.allocator,
+        .limited(32 * 1024),
+    );
+    defer std.testing.allocator.free(fallback_map);
+
+    try std.testing.expect(std.mem.indexOf(u8, driver_source, "pub const OwnershipBoundary") != null);
+    try std.testing.expect(std.mem.indexOf(u8, driver_source, "pub const OwnershipSummary") != null);
+    try std.testing.expect(std.mem.indexOf(u8, driver_source, "pub fn ownershipSummary() OwnershipSummary") != null);
+    try std.testing.expect(std.mem.indexOf(u8, driver_source, ".owner_lane = \"P12-Y02\"") != null);
+    try std.testing.expect(std.mem.indexOf(u8, driver_source, ".live_dma_owner = .dma_transport_substrate") != null);
+    try std.testing.expect(std.mem.indexOf(u8, driver_source, ".recovery_transport_owner = .dma_transport_substrate") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE12_LANE_KEY=P12-Y02") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "owner lane: `P12-Y02`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "blocked DMA and recovery transport work remains owned by the broader Phase 12 transport substrate") != null);
+    try std.testing.expect(std.mem.indexOf(u8, slice_note, "Ownership boundary") != null);
+    try std.testing.expect(std.mem.indexOf(u8, slice_note, "`P12-Y02` owns only the queue-planning and PRP-shape starter surface") != null);
+    try std.testing.expect(std.mem.indexOf(u8, fallback_map, "PHASE12_LANE_KEY=P12-Y02") != null);
+    try std.testing.expect(std.mem.indexOf(u8, fallback_map, "active owner lane: `P12-Y02`") != null);
 }
