@@ -103,7 +103,7 @@ This slice closes the `kfifo` survey-only gap by landing the first sample-backed
 ## Review gates for this survey
 
 1. confirm the Phase 5 anchor is still the Linux bytestream example
-- `rg -n "samples/kfifo/bytestream-example.c|Phase 5" Documentation/zigux samples /workspace/agent_files/ZAR_TO_ZIGUX_PRODUCT_ROADMAP\ \(1\).md`
+- `rg -n "samples/kfifo/bytestream-example.c|Phase 5" Documentation/zigux samples`
 
 2. confirm the current `samples/zigux/` surface stays distinct from this reference-sample lane
 - `find samples/zigux -maxdepth 1 -type f | sort`
