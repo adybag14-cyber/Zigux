@@ -31,6 +31,7 @@ Fresh repo inspection already showed landed Phase 5 FIFO, kobject, and kretprobe
   - function-callback registration and unregister balance for the second thread path
   - real runtime substrate through `CREATE_TRACE_POINTS`, tracepoint macros, `kthread_run()`, `schedule_timeout()`, and module init or exit hooks
 - the honest Phase 5 move is to make the payload shape, chosen string, formatted message, family counts, and callback-registration balance reviewable in memory while leaving runtime thread creation and tracepoint macro wiring out of scope.
+- current `master` still ships no standalone `samples/zigux/*printf*`, `*vsprintf*`, or `*format*` Phase 5 reference sample, so the approved formatting idiom cue in this lane remains the selected-string plus `iter=%d` replay in `samples/zigux/trace_events_sample.zig`; standalone formatting-helper evidence stays under the closed Phase 1 `tools/lib/vsprintf.zig` packet plus the bounded Phase 7 `string_get_size()` helper packet.
 
 ## Landed sample and exact checks
 
@@ -65,12 +66,14 @@ When a contributor updates `samples/zigux/trace_events_sample.zig` or its direct
 - does function-callback replay stay a balanced register-then-unregister idiom rather than implying `kthread_run()`, thread scheduling, or tracepoint enablement parity?
 - if the sample behavior changes, is the manifest updated alongside the replay contract instead of leaving reviewers to infer the new boundary from code alone?
 - do the docs and tests still say clearly that `CREATE_TRACE_POINTS`, tracepoint macros from `trace-events-sample.h`, kernel scheduling, and module registration wiring remain out of scope for this Phase 5 sample?
+- if this survey note moves again, does it still say there is no standalone `samples/zigux/*printf*`, `*vsprintf*`, or `*format*` Phase 5 reference sample, and does it keep the selected-string plus `iter=%d` replay tied to the closed Phase 1 `tools/lib/vsprintf.zig` packet plus the bounded Phase 7 `string_get_size()` helper packet instead of implying a new standalone formatting helper sample?
 
 ## Recorded gap vs roadmap
 
 The current gap is no longer "Zigux has no trace-events sample guidance." The more precise state is:
 
 - the repo now has a reviewable Phase 5 `trace_events_sample` reference sample plus manifest-backed checks for payload shape, string selection, formatted messages, bounded family counts, vararg-payload coverage, relative-location coverage, callback-path coverage, and teardown
+- the repo still ships no standalone `samples/zigux/*printf*`, `*vsprintf*`, or `*format*` Phase 5 reference sample, so reviewers should keep treating the selected-string plus `iter=%d` replay in `samples/zigux/trace_events_sample.zig` as the approved formatting idiom cue while standalone formatting-helper evidence stays under the closed Phase 1 `tools/lib/vsprintf.zig` packet plus the bounded Phase 7 `string_get_size()` helper packet
 - this sample must remain visibly separate from the later Phase 9 runtime `trace-events` starter so contributors do not over-claim runtime substrate coverage
 - the Phase 5 roadmap's four named sample anchors are now all represented by bounded `samples/zigux/` reference readings, but that does not close the separate Phase 9 runtime pilot tranche
 
