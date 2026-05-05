@@ -10,12 +10,14 @@ SELF_PATH = Path(__file__).resolve()
 ROOT = SELF_PATH.parents[2] if len(SELF_PATH.parents) >= 3 else SELF_PATH.parent
 
 REQUIRED_FILES = [
+    ".github/workflows/zigux-bootstrap.yml",
     "Documentation/zigux/README.md",
     "Documentation/zigux/phase7-string-helpers-slice.md",
     "Documentation/zigux/phase7-cmdline-slice.md",
     "Documentation/zigux/phase7-argv-split-slice.md",
     "Documentation/zigux/phase7-rbtree-slice.md",
     "samples/zigux/README.md",
+    "scripts/zigux/README.md",
     "scripts/zigux/validate-phase7.py",
     "scripts/zigux/check-phase7-argv-split-packet.py",
     "scripts/zigux/check-phase7-rbtree-parity.py",
@@ -39,6 +41,12 @@ REQUIRED_FILES = [
 ]
 
 REQUIRED_MARKERS = {
+    ".github/workflows/zigux-bootstrap.yml": [
+        "Validate Phase 7 runtime helper gates",
+        "make -C zigux phase7-validate",
+        "Run Phase 7 runtime helper tests",
+        "zig build test --build-file zigux/tests/phase7_build.zig --summary all",
+    ],
     "Documentation/zigux/README.md": [
         "Documentation/zigux/phase7-string-helpers-slice.md",
         "Documentation/zigux/phase7-cmdline-slice.md",
@@ -67,6 +75,12 @@ REQUIRED_MARKERS = {
         "Documentation/zigux/phase7-string-helpers-slice.md",
         "lib/string_helpers.zig",
         "zigux/tests/phase7_build.zig",
+    ],
+    "scripts/zigux/README.md": [
+        "scripts/zigux/check-phase7-argv-split-packet.py",
+        "scripts/zigux/check-phase7-rbtree-parity.py",
+        "make -C zigux phase7-validate",
+        "there is no separate shared `check-phase7-build-inventory.py`",
     ],
     "scripts/zigux/check-phase7-argv-split-packet.py": [
         "--self-test",
@@ -146,12 +160,14 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
 
 def write_fixture_root(tmp_root: Path) -> None:
     fixture_text = {
+        ".github/workflows/zigux-bootstrap.yml": "\n".join(REQUIRED_MARKERS[".github/workflows/zigux-bootstrap.yml"]) + "\n",
         "Documentation/zigux/README.md": "\n".join(REQUIRED_MARKERS["Documentation/zigux/README.md"]) + "\n",
         "Documentation/zigux/phase7-string-helpers-slice.md": "\n".join(REQUIRED_MARKERS["Documentation/zigux/phase7-string-helpers-slice.md"]) + "\n",
         "Documentation/zigux/phase7-cmdline-slice.md": "\n".join(REQUIRED_MARKERS["Documentation/zigux/phase7-cmdline-slice.md"]) + "\n",
         "Documentation/zigux/phase7-argv-split-slice.md": "\n".join(REQUIRED_MARKERS["Documentation/zigux/phase7-argv-split-slice.md"]) + "\n",
         "Documentation/zigux/phase7-rbtree-slice.md": "\n".join(REQUIRED_MARKERS["Documentation/zigux/phase7-rbtree-slice.md"]) + "\n",
         "samples/zigux/README.md": "\n".join(REQUIRED_MARKERS["samples/zigux/README.md"]) + "\n",
+        "scripts/zigux/README.md": "\n".join(REQUIRED_MARKERS["scripts/zigux/README.md"]) + "\n",
         "scripts/zigux/validate-phase7.py": "# fixture\n",
         "scripts/zigux/check-phase7-argv-split-packet.py": "\n".join(REQUIRED_MARKERS["scripts/zigux/check-phase7-argv-split-packet.py"]) + "\n",
         "scripts/zigux/check-phase7-rbtree-parity.py": "\n".join(REQUIRED_MARKERS["scripts/zigux/check-phase7-rbtree-parity.py"]) + "\n",
@@ -217,6 +233,16 @@ def run_self_test() -> None:
         expect_missing_file("missing_samples_readme", tmp_root, "samples/zigux/README.md")
         write_fixture_root(tmp_root)
 
+        scripts_readme_path = tmp_root / "scripts" / "zigux" / "README.md"
+        scripts_readme_path.unlink()
+        expect_missing_file("missing_scripts_readme", tmp_root, "scripts/zigux/README.md")
+        write_fixture_root(tmp_root)
+
+        workflow_path = tmp_root / ".github" / "workflows" / "zigux-bootstrap.yml"
+        workflow_path.unlink()
+        expect_missing_file("missing_phase7_workflow", tmp_root, ".github/workflows/zigux-bootstrap.yml")
+        write_fixture_root(tmp_root)
+
         argv_split_vectors_path = tmp_root / "zigux" / "tests" / "fixtures" / "phase7_argv_split_vectors.zig"
         argv_split_vectors_path.unlink()
         expect_missing_file(
@@ -261,6 +287,32 @@ def run_self_test() -> None:
             "samples/zigux/README.md: treat any new `samples/zigux/*string*.zig` file as review-blocking",
         )
         samples_readme_path.write_text(original_samples_readme, encoding="utf-8")
+
+        scripts_readme_path = tmp_root / "scripts" / "zigux" / "README.md"
+        original_scripts_readme = scripts_readme_path.read_text(encoding="utf-8")
+        scripts_readme_path.write_text(
+            original_scripts_readme.replace("scripts/zigux/check-phase7-argv-split-packet.py", "", 1),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "scripts_readme_argv_split_packet_marker",
+            tmp_root,
+            "scripts/zigux/README.md: scripts/zigux/check-phase7-argv-split-packet.py",
+        )
+        scripts_readme_path.write_text(original_scripts_readme, encoding="utf-8")
+
+        workflow_path = tmp_root / ".github" / "workflows" / "zigux-bootstrap.yml"
+        original_workflow = workflow_path.read_text(encoding="utf-8")
+        workflow_path.write_text(
+            original_workflow.replace("Validate Phase 7 runtime helper gates", "", 1),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "workflow_phase7_validate_step",
+            tmp_root,
+            ".github/workflows/zigux-bootstrap.yml: Validate Phase 7 runtime helper gates",
+        )
+        workflow_path.write_text(original_workflow, encoding="utf-8")
 
         makefile_path = tmp_root / "zigux" / "Makefile"
         original_makefile = makefile_path.read_text(encoding="utf-8")
@@ -406,7 +458,7 @@ def run_self_test() -> None:
         )
 
     print("PHASE7_VALIDATOR_SELF_TEST=pass")
-    print("PHASE7_VALIDATOR_SELF_TEST_CASE_COUNT=19")
+    print("PHASE7_VALIDATOR_SELF_TEST_CASE_COUNT=23")
 
 
 def main() -> int:
