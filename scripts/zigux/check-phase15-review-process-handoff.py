@@ -39,6 +39,25 @@ REQUIRED_MANIFEST_BOUNDARY_MARKERS = [
     "zigux/tests/phase15_indefinite_c_policy.zig",
     "zigux/tests/phase15_build.zig",
 ]
+REQUIRED_REVIEW_PACKET_FIELD_MARKERS = [
+    "linux anchor path",
+    "phase",
+    "current status bucket",
+    "requested decision bucket",
+    "decision record ID",
+    "owner",
+    "rollback owner",
+    "validation gate summary",
+    "evidence archive path",
+    "latest blocker disposition",
+    "benchmark notes",
+    "replay command",
+    "retained discussion state",
+    "reopen triggers",
+    "parity scorecard link or blocker record",
+    "explicit non-goals",
+    "written rationale",
+]
 
 OPTIONAL_LANE_ROUTE_MARKERS = [
     "scripts-root validator path",
@@ -209,6 +228,16 @@ def validate(root: Path) -> list[str]:
     for marker in EXACT_ONCE_MAKEFILE_MARKERS:
         expect_exact_once(makefile, marker, "makefile_exact_once", failures)
 
+    required_review_packet_fields = manifest.get("required_review_packet_fields")
+    if required_review_packet_fields is None:
+        failures.append("manifest:required_review_packet_fields:missing")
+    elif not isinstance(required_review_packet_fields, list):
+        failures.append("manifest:required_review_packet_fields:not_list")
+    else:
+        for marker in REQUIRED_REVIEW_PACKET_FIELD_MARKERS:
+            if marker not in required_review_packet_fields:
+                failures.append(f"manifest_required_review_packet_fields:{marker}")
+
     handoff = manifest.get("handoff_evidence")
     if handoff is None:
         return failures
@@ -295,6 +324,7 @@ if the change touches the shared Phase 15 governance packet
     manifest = {
         "lane_key": "P15-L14",
         "phase": "Phase 15",
+        "required_review_packet_fields": REQUIRED_REVIEW_PACKET_FIELD_MARKERS,
         "handoff_evidence": {
             "current_repo_handoff": (
                 "The current repo handoff explicitly names "
@@ -409,6 +439,18 @@ def run_self_test() -> int:
 
         note_path.write_text(original_note, encoding="utf-8")
         manifest_path = tmp_root / MANIFEST_PATH
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        manifest["required_review_packet_fields"] = [
+            field for field in manifest["required_review_packet_fields"] if field != "rollback owner"
+        ]
+        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+        expect_failure(
+            tmp_root,
+            "manifest_required_review_packet_fields:rollback owner",
+            "missing_required_review_packet_field",
+        )
+
+        write_fixture_tree(tmp_root)
         manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
         manifest["handoff_evidence"]["current_repo_handoff"] = manifest["handoff_evidence"][
             "current_repo_handoff"
@@ -548,7 +590,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE15_REVIEW_PROCESS_HANDOFF_SELF_TEST=pass")
-    print("PHASE15_REVIEW_PROCESS_HANDOFF_SELF_TEST_CASE_COUNT=14")
+    print("PHASE15_REVIEW_PROCESS_HANDOFF_SELF_TEST_CASE_COUNT=15")
     return 0
 
 
@@ -584,7 +626,7 @@ def main() -> int:
     print("PHASE15_REVIEW_PROCESS_HANDOFF=pass")
     print(
         "PHASE15_REVIEW_PROCESS_HANDOFF_MARKER_COUNT="
-        f"{2 + len(REQUIRED_MANIFEST_BOUNDARY_MARKERS) + len(OPTIONAL_LANE_ROUTE_MARKERS) + len(REQUIRED_DOCS_README_MARKERS) + len(REQUIRED_REVIEW_CHECKLIST_MARKERS) + len(REQUIRED_SCRIPT_README_MARKERS) + len(EXACT_ONCE_SCRIPT_README_MARKERS) + len(REQUIRED_TESTS_README_MARKERS) + len(REQUIRED_MAKEFILE_MARKERS) + len(EXACT_ONCE_MAKEFILE_MARKERS)}"
+        f"{2 + len(REQUIRED_MANIFEST_BOUNDARY_MARKERS) + len(REQUIRED_REVIEW_PACKET_FIELD_MARKERS) + len(OPTIONAL_LANE_ROUTE_MARKERS) + len(REQUIRED_DOCS_README_MARKERS) + len(REQUIRED_REVIEW_CHECKLIST_MARKERS) + len(REQUIRED_SCRIPT_README_MARKERS) + len(EXACT_ONCE_SCRIPT_README_MARKERS) + len(REQUIRED_TESTS_README_MARKERS) + len(REQUIRED_MAKEFILE_MARKERS) + len(EXACT_ONCE_MAKEFILE_MARKERS)}"
     )
     return 0
 
