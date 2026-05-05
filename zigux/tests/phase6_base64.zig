@@ -119,6 +119,16 @@ test "phase 6 base64 invalid vectors fail bytes and decode together" {
     }
 }
 
+test "phase 6 base64 invalid decode vectors leave destination bytes untouched" {
+    for (fixtures.invalid_decode_cases) |case| {
+        const variant = fixtureVariant(case.variant_name);
+        var buf = [_]u8{0xee} ** 32;
+
+        try std.testing.expectError(base64.DecodeError.InvalidInput, base64.decode(buf[0..], case.input, case.padding, variant));
+        try std.testing.expectEqualSlices(u8, &([_]u8{0xee} ** 32), buf[0..]);
+    }
+}
+
 test "phase 6 base64 bytes rejects malformed kernel-style vectors" {
     const cases = [_]struct {
         input: []const u8,
