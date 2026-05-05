@@ -21,7 +21,7 @@ fn makePlan(
     };
 }
 
-test "phase 9 runtime loader allocator/init-flow replay covers caller, arena, and kernel-heap handoffs" {
+test "phase 9 runtime loader allocator/init-flow replay covers all shipped runtime pilot handoffs" {
     const plans = [_]runtime_loader.LoadPlan{
         makePlan(
             "runtime_atomic64",
@@ -46,6 +46,19 @@ test "phase 9 runtime loader allocator/init-flow replay covers caller, arena, an
                 .handoff_stage = .initialized,
                 .init_runs = 1,
                 .selftest_runs = 0,
+                .exit_runs = 0,
+            },
+        ),
+        makePlan(
+            "runtime_trace_events",
+            "samples/trace_events/trace-events-sample.c",
+            "zigux_runtime_trace_events_init",
+            "zigux_runtime_trace_events_exit",
+            .caller_provided,
+            .{
+                .handoff_stage = .selftest_complete,
+                .init_runs = 1,
+                .selftest_runs = 1,
                 .exit_runs = 0,
             },
         ),
