@@ -64,7 +64,7 @@ test "phase12 virtio_net survey manifest stays aligned with the landed probe sta
     try std.testing.expectEqualStrings("P12-L01", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 12", manifest.phase);
     try std.testing.expectEqualStrings("drivers/net/virtio_net.c", manifest.anchor);
-    try std.testing.expectEqualStrings("200651a73be45b091b8103c174d7bcd0738950a1", manifest.surveyed_commit);
+    try std.testing.expectEqualStrings("7361ac51374149a96b7a7a2c6ea3c995d8cc1231", manifest.surveyed_commit);
     try std.testing.expectEqual(@as(usize, 2), manifest.roadmap_destinations.len);
     try std.testing.expect(manifest.survey_summary.virtio_net_c_lines >= 7000);
     try std.testing.expectEqual(@as(usize, 7), manifest.survey_summary.preexisting_phase10_test_files);
