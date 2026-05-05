@@ -35,6 +35,16 @@ Phase 1 notes
 - `scripts/zigux/check-phase1-bench.py`
 - `zig build test --build-file zigux/tests/build.zig` and `zig build bench --build-file zigux/tests/build.zig` keep the closed host-side helper packet reviewable through the shared helper build entrypoint, while `Documentation/zigux/phase1-closure.md` and `scripts/zigux/README.md` keep the closure and validator-first contract explicit from the docs root instead of leaving the Phase 1 packet split across later review surfaces.
 
+Phase 2 notes
+- `Documentation/zigux/phase2-toolchain-bootstrap-notes.md`
+- `Documentation/zigux/phase2-closure.md`
+- `scripts/zigux/README.md`
+- `scripts/zigux/validate-phase2.py`
+- `scripts/zigux/validate-phase2-closure.py`
+- `scripts/zigux/check-phase2-tests-readme-alignment.py`
+- `zigux/Makefile`
+- `python3 scripts/zigux/install-zig.py --self-test`, `python3 scripts/zigux/check-zig-toolchain.py --self-test`, `python3 scripts/zigux/check-phase2-cross.py`, `make -C zigux phase2-validate`, and `make -C zigux phase2` now keep the pinned Zig toolchain, the bounded `fixdep`, `genksyms`, `genksyms_crc`, `kconfig`, and `mk_elfconfig` helper packet, and the shared tests-root plus review-checklist replay surface visible from the docs root instead of leaving the active Phase 2 tranche split across scripts, tests, and workflow wiring alone.
+
 Phase 5 notes
 - `Documentation/zigux/phase5-kfifo-sample-survey.md` now records the landed `samples/zigux/bytestream_fifo.zig` reference sample, its exact replay checks, and the remaining non-goals around procfs, user-copy, and module registration parity.
 - the same Phase 5 survey note now doubles as the sample-backed contributor guide for the landed bytestream FIFO slice by naming the descriptor, manifest, and shared build-entrypoint prompts that reviewers should keep in sync.
