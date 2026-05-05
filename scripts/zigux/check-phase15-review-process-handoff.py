@@ -20,10 +20,19 @@ TESTS_README_PATH = "zigux/tests/README.md"
 MAKEFILE_PATH = "zigux/Makefile"
 
 SELF_REFERENCE_MARKER = "Documentation/zigux/phase15-architecture-council-review-process.md"
-PRODUCT_BOUNDARY_MARKER = (
-    "product boundary:\n"
-    "  - `Documentation/zigux/phase15-architecture-council-review-process.md`"
-)
+PRODUCT_BOUNDARY_MARKER = "product boundary:"
+REQUIRED_NOTE_BOUNDARY_MARKERS = [
+    "`Documentation/zigux/freeze-map.md`",
+    "`Documentation/zigux/phase15-freeze-map-governance.md`",
+    "`Documentation/zigux/phase15-architecture-council-review-process.md`",
+    "`Documentation/zigux/phase15-parity-scorecard.md`",
+    "`Documentation/zigux/phase15-indefinite-c-policy.md`",
+    "`Documentation/zigux/review-checklist.md`",
+    "`scripts/zigux/check-phase15-review-process-handoff.py`",
+    "`zigux/tests/phase15_architecture_council_review_process_manifest.json`",
+    "`zigux/tests/phase15_architecture_council_review_process.zig`",
+    "`zigux/tests/phase15_build.zig`",
+]
 OPTIONAL_LANE_ROUTE_MARKERS = [
     "scripts-root validator path",
     "tests-root guidance path",
@@ -163,7 +172,10 @@ def validate(root: Path) -> list[str]:
 
     expect_exact_once(note, SELF_REFERENCE_MARKER, "note_self_reference", failures)
     if PRODUCT_BOUNDARY_MARKER not in note:
-        failures.append("note:product_boundary_self_reference")
+        failures.append("note:product_boundary_section")
+    for marker in REQUIRED_NOTE_BOUNDARY_MARKERS:
+        if marker not in note:
+            failures.append(f"note:{marker}")
 
     for marker in REQUIRED_SCRIPT_README_MARKERS:
         if marker not in script_readme:
@@ -248,8 +260,16 @@ Phase 15 notes
 ## Status
 
 - product boundary:
+  - `Documentation/zigux/freeze-map.md`
+  - `Documentation/zigux/phase15-freeze-map-governance.md`
   - `Documentation/zigux/phase15-architecture-council-review-process.md`
   - `Documentation/zigux/phase15-parity-scorecard.md`
+  - `Documentation/zigux/phase15-indefinite-c-policy.md`
+  - `Documentation/zigux/review-checklist.md`
+  - `scripts/zigux/check-phase15-review-process-handoff.py`
+  - `zigux/tests/phase15_architecture_council_review_process_manifest.json`
+  - `zigux/tests/phase15_architecture_council_review_process.zig`
+  - `zigux/tests/phase15_build.zig`
 """
     (root / NOTE_PATH).write_text(note, encoding="utf-8")
 
@@ -347,16 +367,32 @@ def run_self_test() -> int:
 
         note_path.write_text(
             original_note.replace(
-                "product boundary:\n  - `Documentation/zigux/phase15-architecture-council-review-process.md`",
                 "product boundary:",
+                "governance packet:",
                 1,
             ),
             encoding="utf-8",
         )
         expect_failure(
             tmp_root,
-            "note:product_boundary_self_reference",
+            "note:product_boundary_section",
             "missing_product_boundary_marker",
+        )
+
+        write_fixture_tree(tmp_root)
+        note_path = tmp_root / NOTE_PATH
+        note_path.write_text(
+            note_path.read_text(encoding="utf-8").replace(
+                "  - `zigux/tests/phase15_architecture_council_review_process_manifest.json`\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_failure(
+            tmp_root,
+            "note:`zigux/tests/phase15_architecture_council_review_process_manifest.json`",
+            "missing_note_manifest_marker",
         )
 
         write_fixture_tree(tmp_root)
@@ -469,7 +505,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE15_REVIEW_PROCESS_HANDOFF_SELF_TEST=pass")
-    print("PHASE15_REVIEW_PROCESS_HANDOFF_SELF_TEST_CASE_COUNT=12")
+    print("PHASE15_REVIEW_PROCESS_HANDOFF_SELF_TEST_CASE_COUNT=13")
     return 0
 
 
@@ -505,7 +541,7 @@ def main() -> int:
     print("PHASE15_REVIEW_PROCESS_HANDOFF=pass")
     print(
         "PHASE15_REVIEW_PROCESS_HANDOFF_MARKER_COUNT="
-        f"{2 + len(OPTIONAL_LANE_ROUTE_MARKERS) + len(REQUIRED_DOCS_README_MARKERS) + len(REQUIRED_SCRIPT_README_MARKERS) + len(EXACT_ONCE_SCRIPT_README_MARKERS) + len(REQUIRED_REVIEW_CHECKLIST_MARKERS) + len(REQUIRED_TESTS_README_MARKERS) + len(REQUIRED_MAKEFILE_MARKERS) + len(EXACT_ONCE_MAKEFILE_MARKERS)}"
+        f"{2 + len(REQUIRED_NOTE_BOUNDARY_MARKERS) + len(OPTIONAL_LANE_ROUTE_MARKERS) + len(REQUIRED_DOCS_README_MARKERS) + len(REQUIRED_SCRIPT_README_MARKERS) + len(EXACT_ONCE_SCRIPT_README_MARKERS) + len(REQUIRED_REVIEW_CHECKLIST_MARKERS) + len(REQUIRED_TESTS_README_MARKERS) + len(REQUIRED_MAKEFILE_MARKERS) + len(EXACT_ONCE_MAKEFILE_MARKERS)}"
     )
     return 0
 
