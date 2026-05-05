@@ -188,9 +188,18 @@ test "phase 6 bsearch accepts runtime-selected raw c abi comparator pointers" {
         const index = bsearch.bsearchIndex(&@as(u32, 7), @ptrCast(values[0..].ptr), values.len, @sizeOf(u32), compare) orelse return error.TestUnexpectedResult;
         try std.testing.expect(index >= 1 and index <= 3);
         try std.testing.expectEqual(@as(u32, 7), values[index]);
+
+        const found = bsearch.bsearch(&@as(u32, 7), @ptrCast(values[0..].ptr), values.len, @sizeOf(u32), compare) orelse return error.TestUnexpectedResult;
+        const typed_found: *const u32 = @ptrCast(@alignCast(found));
+        const found_index = (@intFromPtr(typed_found) - @intFromPtr(&values[0])) / @sizeOf(u32);
+        try std.testing.expect(found_index >= 1 and found_index <= 3);
+        try std.testing.expectEqual(@as(u32, 7), typed_found.*);
         try std.testing.expectEqual(
             @as(?usize, null),
             bsearch.bsearchIndex(&@as(u32, 8), @ptrCast(values[0..].ptr), values.len, @sizeOf(u32), compare),
+        );
+        try std.testing.expect(
+            bsearch.bsearch(&@as(u32, 8), @ptrCast(values[0..].ptr), values.len, @sizeOf(u32), compare) == null,
         );
     }
 }
