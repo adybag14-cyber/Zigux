@@ -45,6 +45,19 @@ pub const QueuePairPlanSummary = struct {
     reset_generation: u32,
 };
 
+pub const PrpBufferShapeSummary = struct {
+    anchor: []const u8,
+    total_transfer_bytes: u32,
+    first_page_offset: u32,
+    first_prp_bytes: u32,
+    rounded_span_bytes: u32,
+    spanned_pages: u16,
+    tail_page_count: u16,
+    uses_prp_list: bool,
+    prp_list_entries: u16,
+    prp_list_capacity: u16,
+};
+
 pub const RecoverySummary = struct {
     anchor: []const u8,
     state: RecoveryState,
@@ -114,6 +127,42 @@ pub const NvmePciQueueLab = struct {
         self.next_io_queue_id += 1;
         self.planned_io_queues += 1;
         return summary;
+    }
+
+    pub fn planPrpBufferShape(
+        self: *const Self,
+        total_transfer_bytes: u32,
+        first_page_offset: u32,
+    ) !PrpBufferShapeSummary {
+        if (total_transfer_bytes == 0) return error.InvalidTransferSize;
+        if (first_page_offset >= self.page_size) return error.InvalidPrpOffset;
+
+        const covered_by_first_prp = self.page_size - first_page_offset;
+        const first_prp_bytes = @min(total_transfer_bytes, covered_by_first_prp);
+        const end_offset = try checkedAddU32(first_page_offset, total_transfer_bytes);
+        const rounded_span_bytes = try checkedAlignForwardU32(end_offset, self.page_size);
+        const spanned_pages_u32 = rounded_span_bytes / self.page_size;
+        const spanned_pages = std.math.cast(u16, spanned_pages_u32) orelse return error.PrpShapeOverflow;
+        const tail_page_count = spanned_pages - 1;
+        const uses_prp_list = tail_page_count > 1;
+        const prp_list_entries = if (uses_prp_list) tail_page_count - 1 else 0;
+        const prp_list_capacity_u32 = self.page_size / @sizeOf(u64);
+        const prp_list_capacity = std.math.cast(u16, prp_list_capacity_u32) orelse return error.PrpShapeOverflow;
+
+        if (prp_list_entries > prp_list_capacity) return error.PrpListTooLong;
+
+        return .{
+            .anchor = descriptor().anchor,
+            .total_transfer_bytes = total_transfer_bytes,
+            .first_page_offset = first_page_offset,
+            .first_prp_bytes = first_prp_bytes,
+            .rounded_span_bytes = rounded_span_bytes,
+            .spanned_pages = spanned_pages,
+            .tail_page_count = tail_page_count,
+            .uses_prp_list = uses_prp_list,
+            .prp_list_entries = prp_list_entries,
+            .prp_list_capacity = prp_list_capacity,
+        };
     }
 
     pub fn beginReset(self: *Self) RecoverySummary {
@@ -215,5 +264,12 @@ pub const NvmePciQueueLab = struct {
         const rounded = @as(u64, bytes) + page_size - 1;
         const pages = rounded / page_size;
         return std.math.cast(u16, pages) orelse error.QueueBytesOverflow;
+    }
+
+    fn checkedAlignForwardU32(value: u32, alignment: u32) !u32 {
+        if (alignment == 0 or !std.math.isPowerOfTwo(alignment)) return error.InvalidPageSize;
+        const addend = alignment - 1;
+        const rounded = try checkedAddU32(value, addend);
+        return rounded & ~addend;
     }
 };
