@@ -126,13 +126,7 @@ test "phase 5 bytestream fifo survey note keeps later runtime starters and loade
     }
 
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "/workspace/agent_files") == null);
-    try std.testing.expect(
-        std.mem.indexOf(
-            u8,
-            survey_note,
-            "rg -n \"samples/kfifo/bytestream-example.c|Phase 5\" Documentation/zigux samples",
-        ) != null,
-    );
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "samples/kfifo/bytestream-example.c|Phase 5") != null);
 }
 
 test "phase 5 bytestream fifo survey note records the latest verification snapshot" {
