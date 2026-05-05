@@ -74,6 +74,18 @@ The shared `zigux/tests/phase4_build.zig` entrypoint now also runs `zigux/tests/
 
 The same validator-first route also keeps `Documentation/zigux/artifact-diff.md` aligned with the shipped host-side helper contract instead of leaving that packet implied.
 
+## Remaining Roadmap Gaps
+
+This shared matrix only lists the Phase 4 rollback gates that are currently shipped through `zigux/tests/phase4_build.zig` plus the directly coupled host-side artifact-diff contract replay that the same validator-first route already depends on. The roadmap still names three measurable rows that should stay reviewable here even though they are not yet promoted to shipped shared-gate status on `master`.
+
+| roadmap row | current measurable state on `master` | why it is not a shipped shared-gate row yet |
+| --- | --- | --- |
+| `samples/zigux/kprobe_example.zig` | still absent; the current repo only carries survey and evidence bookkeeping around the C anchor family, not a landed Zig starter in the shared Phase 4 build packet | no promoted `phase4_build.zig` replay route or approved Zig sample starter has landed yet |
+| `samples/zigux/test_fsmount.zig` | still absent; the current repo still treats this as a roadmap-tracked gap rather than a shipped shared-gate sample row | no promoted `phase4_build.zig` replay route or approved Zig sample starter has landed yet |
+| perf thresholds for `zigux/tests/atomic64_diff.zig` and `zigux/tests/bitmap_diff.zig` | still pending by design; the two shipped rollback gates above remain correctness-first only until a later lane approves benchmark commands plus acceptable limits | no threshold command-and-limit pair is approved yet, so the matrix keeps only the pending posture markers in the shipped gate rows above |
+
+`Documentation/zigux/phase4-gate-evidence.md` remains the exact-readback ledger for these still-pending roadmap rows until a later Phase 4 lane either lands the bounded sample starters or approves the missing perf thresholds.
+
 ## Review Rules
 
 - Phase 4 remains a rollback-readiness lane first, not a performance-claim lane
