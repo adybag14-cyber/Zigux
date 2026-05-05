@@ -95,6 +95,20 @@ pub fn build(b: *std.Build) void {
     });
     const run_hexdump_tests = b.addRunArtifact(hexdump_tests);
 
+    const hexdump_perf_root_module = b.createModule(.{
+        .root_source_file = b.path("phase6_hexdump_perf.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    hexdump_perf_root_module.addImport("hexdump", hexdump_module);
+    hexdump_perf_root_module.addImport("phase6_hexdump_vectors", hexdump_vectors_module);
+
+    const hexdump_perf = b.addExecutable(.{
+        .name = "phase6-hexdump-perf",
+        .root_module = hexdump_perf_root_module,
+    });
+    const run_hexdump_perf = b.addRunArtifact(hexdump_perf);
+
     const test_step = b.step("test", "Run Phase 6 leaf helper tests");
     test_step.dependOn(&run_base64_tests.step);
     test_step.dependOn(&run_bsearch_tests.step);
@@ -103,4 +117,7 @@ pub fn build(b: *std.Build) void {
 
     const checksum_perf_step = b.step("phase6-checksum-perf", "Run Phase 6 checksum perf gate");
     checksum_perf_step.dependOn(&run_checksum_perf.step);
+
+    const hexdump_perf_step = b.step("phase6-hexdump-perf", "Run Phase 6 hexdump perf gate");
+    hexdump_perf_step.dependOn(&run_hexdump_perf.step);
 }
