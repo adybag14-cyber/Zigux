@@ -10,6 +10,7 @@ This document tracks the bounded Phase 8 userspace-adjacent tooling slice for Zi
 - product boundary:
   - `tools/lib/subcmd/exec-cmd.zig`
   - `zigux/tests/phase8_exec_cmd.zig`
+  - `zigux/tests/phase8_exec_cmd_only_build.zig`
   - `zigux/tests/phase8_build.zig`
 
 ## Why this slice exists
@@ -23,10 +24,13 @@ The live repo had no Zig slice under `tools/lib/subcmd/`, so the most valuable b
 1. run the focused Zig module tests
 - `zig test tools/lib/subcmd/exec-cmd.zig`
 
-2. run the dedicated Phase 8 tooling gate
-- `zig build test --build-file zigux/tests/phase8_build.zig`
+2. run the focused exec-cmd shared replay
+- `zig build test --build-file zigux/tests/phase8_exec_cmd_only_build.zig --summary all`
 
-3. run the convenience target
+3. run the bundled Phase 8 tooling gate
+- `zig build test --build-file zigux/tests/phase8_build.zig --summary all`
+
+4. run the convenience target
 - `make -C zigux phase8`
 
 ## Current parity surface
@@ -51,6 +55,7 @@ The current tests check:
 - `choosePwdCwd()` prefers `PWD` only when the caller proves it matches the physical cwd
 - prepared argv vectors start with the configured executable name and keep a trailing null terminator, including the empty-tail case
 - the pure `execl_cmd()` collector preserves the command head, stops at the first null terminator, and rejects the C helper's overflow shape before any real `execvp()` call exists
+- the focused `phase8_exec_cmd_only_build.zig` replay isolates the parked `exec-cmd` slice from the broader Phase 8 tooling packet when review needs a smaller build-backed proof
 
 ## Non-goals
 
@@ -63,4 +68,4 @@ This slice still does not claim:
 
 ## Next bounded step
 
-Keep `tools/lib/subcmd/exec-cmd.zig` parked unless repo review specifically wants one more bounded parity step for direct `get_pwd_cwd()` stat-based same-location proof or another tiny helper-only guard inside this file family; otherwise continue Phase 8 work in sibling files.
+Keep `tools/lib/subcmd/exec-cmd.zig` parked unless repo review specifically wants one more bounded parity step for direct `get_pwd_cwd()` stat-based same-location proof or another tiny helper-only guard inside this file family; if the lane reopens on reviewability alone, keep it to one equally small update around the focused replay surface instead of widening into sibling Phase 8 anchors.
