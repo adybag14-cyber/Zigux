@@ -122,6 +122,8 @@ def expect_missing_marker(case: str, tmp_root: Path, marker: str) -> None:
 
 
 def run_self_test() -> None:
+    case_count = 0
+
     with tempfile.TemporaryDirectory(prefix="zigux_phase7_argv_split_packet_") as tmp_dir_str:
         tmp_root = Path(tmp_dir_str)
         write_fixture_root(tmp_root)
@@ -134,6 +136,7 @@ def run_self_test() -> None:
             tmp_root,
             "scripts/zigux/check-phase7-argv-split-packet.py",
         )
+        case_count += 1
         write_fixture_root(tmp_root)
 
         survey_path = tmp_root / "zigux" / "tests" / "phase7_argv_split_survey.zig"
@@ -143,6 +146,7 @@ def run_self_test() -> None:
             tmp_root,
             "zigux/tests/phase7_argv_split_survey.zig",
         )
+        case_count += 1
         write_fixture_root(tmp_root)
 
         manifest_path = tmp_root / "zigux" / "tests" / "phase7_argv_split_manifest.json"
@@ -152,6 +156,7 @@ def run_self_test() -> None:
             tmp_root,
             "zigux/tests/phase7_argv_split_manifest.json",
         )
+        case_count += 1
         write_fixture_root(tmp_root)
 
         fixture_path = tmp_root / "zigux" / "tests" / "fixtures" / "phase7_argv_split_vectors.zig"
@@ -161,6 +166,7 @@ def run_self_test() -> None:
             tmp_root,
             "zigux/tests/fixtures/phase7_argv_split_vectors.zig",
         )
+        case_count += 1
         write_fixture_root(tmp_root)
 
         slice_path = tmp_root / "Documentation" / "zigux" / "phase7-argv-split-slice.md"
@@ -174,6 +180,7 @@ def run_self_test() -> None:
             tmp_root,
             "Documentation/zigux/phase7-argv-split-slice.md: python3 scripts/zigux/check-phase7-argv-split-packet.py",
         )
+        case_count += 1
         slice_path.write_text(original_slice, encoding="utf-8")
 
         build_path = tmp_root / "zigux" / "tests" / "phase7_build.zig"
@@ -187,6 +194,7 @@ def run_self_test() -> None:
             tmp_root,
             "zigux/tests/phase7_build.zig: phase7-argv-split-survey-tests",
         )
+        case_count += 1
         build_path.write_text(original_build, encoding="utf-8")
 
         survey_path = tmp_root / "zigux" / "tests" / "phase7_argv_split_survey.zig"
@@ -200,6 +208,7 @@ def run_self_test() -> None:
             tmp_root,
             "zigux/tests/phase7_argv_split_survey.zig: zigux/tests/phase7_argv_split_manifest.json",
         )
+        case_count += 1
         survey_path.write_text(original_survey, encoding="utf-8")
 
         tests_path = tmp_root / "zigux" / "tests" / "phase7_argv_split.zig"
@@ -210,6 +219,7 @@ def run_self_test() -> None:
             tmp_root,
             "zigux/tests/phase7_argv_split.zig: split.cArgv()",
         )
+        case_count += 1
         tests_path.write_text(original_tests, encoding="utf-8")
 
         fixture_path = tmp_root / "zigux" / "tests" / "fixtures" / "phase7_argv_split_vectors.zig"
@@ -223,8 +233,8 @@ def run_self_test() -> None:
             tmp_root,
             "zigux/tests/fixtures/phase7_argv_split_vectors.zig: quote characters stay inside returned tokens",
         )
+        case_count += 1
 
-    case_count = 3 + 4
     print("PHASE7_ARGV_SPLIT_PACKET_SELF_TEST=pass")
     print(f"PHASE7_ARGV_SPLIT_PACKET_SELF_TEST_CASE_COUNT={case_count}")
 
