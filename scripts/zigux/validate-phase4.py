@@ -61,7 +61,13 @@ REQUIRED_PHASE4_GATE_EVIDENCE_MARKERS = [
     "PHASE4_VALIDATOR_BLOB_SHA=",
     "zigux/tests/phase4_runtime_atomic64_diff_manifest.json",
     "zigux/tests/phase4_runtime_atomic64_diff_survey.zig",
+    "PHASE4_GATE_EVIDENCE_SELF_TEST_CASE_COUNT=14",
+    "PHASE4_GATE_EVIDENCE_SELF_TEST_CASES=",
     "PHASE4_SEPARATE_GATE_EVIDENCE_CHECKER_PRESENT=true",
+    "PHASE4_SHARED_VALIDATOR_RERUNS_GATE_EVIDENCE_CHECK=true",
+    "PHASE4_SHARED_VALIDATOR_RERUNS_GATE_EVIDENCE_SELF_TEST=true",
+    "PHASE4_SHARED_VALIDATOR_EXPECTED_GATE_EVIDENCE_TARGET_COUNT=16",
+    "PHASE4_SHARED_VALIDATOR_EXPECTED_GATE_EVIDENCE_SELF_TEST_CASE_COUNT=14",
     "PHASE4_SHARED_TEST_FSMOUNT_SURVEY_PACKET_PRESENT=false",
     "PHASE4_SHARED_PERF_BASELINE_SURVEY_PACKET_PRESENT=false",
 ]
@@ -224,6 +230,11 @@ EXPECTED_PHASE4_GATE_EVIDENCE_SELF_TEST_CASES = [
     "phase4_build_survey_blob_pin_drift",
     "phase9_build_manifest_blob_pin_drift",
     "phase9_build_survey_blob_pin_drift",
+    "gate_evidence_self_test_case_count_drift",
+    "gate_evidence_self_test_cases_drift",
+    "shared_validator_reruns_gate_evidence_self_test_drift",
+    "shared_validator_expected_target_count_drift",
+    "shared_validator_expected_self_test_case_count_drift",
     "missing_note_file",
 ]
 PHASE4_RUNTIME_ATOMIC64_PIN_TARGETS = {
@@ -616,7 +627,15 @@ def _write_phase4_fixture_docs(root: Path) -> None:
                 "## Status",
                 "- `PHASE4_EVIDENCE_SCOPE=rollback_ownership_and_lab_matrix_current_gate_definitions`",
                 "- `PHASE4_VALIDATOR_BLOB_SHA=placeholder`",
+                "- `PHASE4_GATE_EVIDENCE_SELF_TEST_CASE_COUNT=14`",
+                "- `PHASE4_GATE_EVIDENCE_SELF_TEST_CASES="
+                + ",".join(EXPECTED_PHASE4_GATE_EVIDENCE_SELF_TEST_CASES)
+                + "`",
                 "- `PHASE4_SEPARATE_GATE_EVIDENCE_CHECKER_PRESENT=true`",
+                "- `PHASE4_SHARED_VALIDATOR_RERUNS_GATE_EVIDENCE_CHECK=true`",
+                "- `PHASE4_SHARED_VALIDATOR_RERUNS_GATE_EVIDENCE_SELF_TEST=true`",
+                "- `PHASE4_SHARED_VALIDATOR_EXPECTED_GATE_EVIDENCE_TARGET_COUNT=16`",
+                "- `PHASE4_SHARED_VALIDATOR_EXPECTED_GATE_EVIDENCE_SELF_TEST_CASE_COUNT=14`",
                 "- `PHASE4_SHARED_TEST_FSMOUNT_SURVEY_PACKET_PRESENT=false`",
                 "- `PHASE4_SHARED_PERF_BASELINE_SURVEY_PACKET_PRESENT=false`",
                 "",
@@ -795,8 +814,33 @@ def run_self_test() -> int:
         assert validate_root(root) == [
             "review_checklist:intentionally unapproved perf-threshold posture"
         ]
-        _write_phase4_fixture_docs(root)
 
+        _write_phase4_fixture_docs(root)
+        gate_evidence_path = root / "Documentation/zigux/phase4-gate-evidence.md"
+        _write(
+            gate_evidence_path,
+            gate_evidence_path.read_text(encoding="utf-8").replace(
+                "- `PHASE4_GATE_EVIDENCE_SELF_TEST_CASE_COUNT=14`\n", "", 1
+            ),
+        )
+        assert validate_root(root) == [
+            "gate_evidence:PHASE4_GATE_EVIDENCE_SELF_TEST_CASE_COUNT=14"
+        ]
+
+        _write_phase4_fixture_docs(root)
+        _write(
+            gate_evidence_path,
+            gate_evidence_path.read_text(encoding="utf-8").replace(
+                "- `PHASE4_SHARED_VALIDATOR_EXPECTED_GATE_EVIDENCE_SELF_TEST_CASE_COUNT=14`\n",
+                "",
+                1,
+            ),
+        )
+        assert validate_root(root) == [
+            "gate_evidence:PHASE4_SHARED_VALIDATOR_EXPECTED_GATE_EVIDENCE_SELF_TEST_CASE_COUNT=14"
+        ]
+
+        _write_phase4_fixture_docs(root)
         manifest = json.loads(
             (root / "zigux/tests/phase4_runtime_atomic64_diff_manifest.json").read_text(
                 encoding="utf-8"
