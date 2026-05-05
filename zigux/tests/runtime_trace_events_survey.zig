@@ -32,7 +32,7 @@ fn isAllowedStatus(status: []const u8) bool {
         std.mem.eql(u8, status, "blocked_on_runtime_substrate");
 }
 
-test "phase 9 runtime trace-events survey manifest stays anchored to the survey lane while recording the landed diff gate and blocker" {
+test "phase 9 runtime trace-events survey manifest records the landed loader scaffold and remaining blocker" {
     var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
     defer io_instance.deinit();
 
@@ -53,11 +53,11 @@ test "phase 9 runtime trace-events survey manifest stays anchored to the survey 
     try std.testing.expectEqualStrings("samples/trace_events/trace-events-sample.c", manifest.anchor);
     try std.testing.expectEqual(@as(usize, 2), manifest.roadmap_destinations.len);
     try std.testing.expect(manifest.survey_summary.trace_events_sample_c_lines >= 150);
-    try std.testing.expectEqual(@as(usize, 2), manifest.survey_summary.preexisting_runtime_trace_events_test_files);
+    try std.testing.expectEqual(@as(usize, 3), manifest.survey_summary.preexisting_runtime_trace_events_test_files);
     try std.testing.expect(manifest.survey_summary.preexisting_runtime_trace_events_sample_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase9_build_present);
     try std.testing.expect(manifest.survey_summary.preexisting_runtime_trace_events_doc_present);
-    try std.testing.expect(manifest.gaps.len >= 5);
+    try std.testing.expect(manifest.gaps.len >= 7);
 
     var runtime_test_destination_count: usize = 0;
     var starter_landed_count: usize = 0;
@@ -65,6 +65,8 @@ test "phase 9 runtime trace-events survey manifest stays anchored to the survey 
     var blocked_count: usize = 0;
     var saw_sample_module = false;
     var saw_diff_gate = false;
+    var saw_loader_scaffold = false;
+    var saw_live_loader_blocker = false;
 
     for (manifest.gaps, 0..) |gap, i| {
         try std.testing.expect(gap.id.len > 0);
@@ -74,8 +76,10 @@ test "phase 9 runtime trace-events survey manifest stays anchored to the survey 
 
         if (std.mem.startsWith(u8, gap.zigux_destination, "zigux/tests/")) {
             runtime_test_destination_count += 1;
+        } else if (std.mem.startsWith(u8, gap.zigux_destination, "samples/zigux/")) {
+            // Sample-side starter and loader scaffolds stay under samples.
         } else {
-            try std.testing.expect(std.mem.startsWith(u8, gap.zigux_destination, "samples/zigux/"));
+            try std.testing.expect(std.mem.startsWith(u8, gap.zigux_destination, "zigux/kernel/"));
         }
 
         if (std.mem.eql(u8, gap.status, "ready_next")) {
@@ -96,6 +100,17 @@ test "phase 9 runtime trace-events survey manifest stays anchored to the survey 
             try std.testing.expectEqualStrings("starter_landed", gap.status);
             try std.testing.expectEqualStrings("zigux/tests/runtime_trace_events_diff.zig", gap.zigux_destination);
         }
+        if (std.mem.eql(u8, gap.id, "runtime-trace-events-loader-scaffold")) {
+            saw_loader_scaffold = true;
+            try std.testing.expectEqualStrings("starter_landed", gap.status);
+            try std.testing.expectEqualStrings("samples/zigux/runtime_trace_events_loader.zig", gap.zigux_destination);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "tracepoint register and unregister APIs") != null);
+        }
+        if (std.mem.eql(u8, gap.id, "runtime-trace-events-substrate-handoff")) {
+            saw_live_loader_blocker = true;
+            try std.testing.expectEqualStrings("blocked_on_runtime_substrate", gap.status);
+            try std.testing.expectEqualStrings("zigux/kernel/runtime_loader.zig", gap.zigux_destination);
+        }
 
         for (manifest.gaps[i + 1 ..]) |other| {
             try std.testing.expect(!std.mem.eql(u8, gap.id, other.id));
@@ -104,9 +119,11 @@ test "phase 9 runtime trace-events survey manifest stays anchored to the survey 
     }
 
     try std.testing.expect(runtime_test_destination_count >= 4);
-    try std.testing.expect(starter_landed_count >= 5);
+    try std.testing.expect(starter_landed_count >= 6);
     try std.testing.expectEqual(@as(usize, 0), ready_next_count);
     try std.testing.expect(blocked_count >= 1);
     try std.testing.expect(saw_sample_module);
     try std.testing.expect(saw_diff_gate);
+    try std.testing.expect(saw_loader_scaffold);
+    try std.testing.expect(saw_live_loader_blocker);
 }
