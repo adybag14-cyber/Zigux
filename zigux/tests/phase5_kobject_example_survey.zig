@@ -44,6 +44,7 @@ test "phase 5 kobject manifest records the exact bounded checks" {
     try std.testing.expectEqual(@as(usize, 4), manifest.non_goals.len);
 
     var saw_descriptor_prompt = false;
+    var saw_approved_idiom_prompt = false;
     var saw_dispatch_prompt = false;
     var saw_group_boundary_prompt = false;
     var saw_directory = false;
@@ -54,6 +55,9 @@ test "phase 5 kobject manifest records the exact bounded checks" {
         try std.testing.expect(prompt.len > 0);
         if (std.mem.indexOf(u8, prompt, "requires_runtime_substrate false") != null) {
             saw_descriptor_prompt = true;
+        }
+        if (std.mem.indexOf(u8, prompt, "approved Phase 5 in-memory ownership-and-lifetime idiom") != null) {
+            saw_approved_idiom_prompt = true;
         }
         if (std.mem.indexOf(u8, prompt, "shared baz/bar dispatch") != null) {
             saw_dispatch_prompt = true;
@@ -89,6 +93,7 @@ test "phase 5 kobject manifest records the exact bounded checks" {
     }
 
     try std.testing.expect(saw_descriptor_prompt);
+    try std.testing.expect(saw_approved_idiom_prompt);
     try std.testing.expect(saw_dispatch_prompt);
     try std.testing.expect(saw_group_boundary_prompt);
     try std.testing.expect(saw_directory);
@@ -98,7 +103,7 @@ test "phase 5 kobject manifest records the exact bounded checks" {
     try std.testing.expect(std.mem.eql(u8, manifest.non_goals[1], "kernel_kobj integration"));
 }
 
-test "phase 5 kobject survey note stays repo-local and lane-scoped" {
+test "phase 5 kobject survey note stays repo-local, lane-scoped, and keeps the approved idiom explicit" {
     var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
     defer io_instance.deinit();
 
@@ -106,12 +111,23 @@ test "phase 5 kobject survey note stays repo-local and lane-scoped" {
         io_instance.io(),
         "Documentation/zigux/phase5-kobject-sample-survey.md",
         std.testing.allocator,
-        .limited(32 * 1024),
+        .limited(64 * 1024),
     );
     defer std.testing.allocator.free(survey_note);
 
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE5_LANE_KEY=P5-Y03") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "samples/kobject/kobject-example.c") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "zig build test --build-file zigux/tests/phase5_build.zig --summary all") != null);
+    const required_markers = [_][]const u8{
+        "PHASE5_LANE_KEY=P5-Y03",
+        "## Approved idiom for the landed kobject-style sample",
+        "approved Phase 5 in-memory ownership-and-lifetime idiom",
+        "model only the directory name, unnamed attribute group shape, integer-backed attributes, and lifecycle in memory",
+        "manifest-backed replay",
+        "keep sysfs creation, `kernel_kobj` integration, uevents, and module-registration claims out of scope",
+        "zig build test --build-file zigux/tests/phase5_build.zig --summary all",
+    };
+
+    for (required_markers) |needle| {
+        try std.testing.expect(std.mem.indexOf(u8, survey_note, needle) != null);
+    }
+
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "/workspace/agent_files") == null);
 }
