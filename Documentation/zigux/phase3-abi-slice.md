@@ -49,6 +49,15 @@ It is a small substrate that makes future ports measurable:
 - `PHASE3_INTEROP_GATE=python3 scripts/zigux/run-phase3-checks.py --slug abi`
 - `PHASE3_TEST_GATE=zig build phase3-test --build-file zigux/tests/build.zig`
 
+## Low-Level Wrapper Reality
+
+The current Phase 3 low-level wrapper packet is narrower than some older survey wording claimed:
+
+- `zigux/helpers/atomic.zig` exposes the bounded ordered atomic helper set through `compareExchangeWeak()`.
+- `zigux/helpers/barrier.zig` currently exposes only `acquire`, `release`, and `full`, and still does so through a module-global `fence_word`.
+- `zigux/helpers/mmio.zig` currently exposes only `range`, `read32`, and `write32`.
+- The dedicated low-level wrapper survey should be treated as the current source of truth for this packet until the focused test and validator surfaces are brought back into line with the inspected helper files.
+
 ## Interop rules
 
 - `include/zigux/abi.h` is the authoritative C-facing layout surface for this slice.
