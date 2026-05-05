@@ -26,10 +26,16 @@ REQUIRED_FILE_MARKERS = {
         "`PHASE14_STAY_IN_C_BOUNDARY=explicit`",
         "- rollback owner: `keep the freeze-map anchors in C and reopen only with stronger evidence`",
         "- fallback path: keep `kernel/workqueue.c`, `net/core/skbuff.c`, `kernel/trace/ring_buffer.c`, and `kernel/rcu/tree.c` as the source of truth",
+        "Leave this shared smoke lane parked unless one of the four anchor-local manifests, the shared replay wiring, or the paired Phase 14 docs surfaces drift.",
+        "- review blocker status: `blocked_on_stay_in_c_evidence`",
     ],
     "Documentation/zigux/phase14-release-boundary-survey.md": [
         "`PHASE14_STUDY_ONLY_ANCHOR_COUNT=2`",
         "`PHASE14_FREEZE_IN_C_GOVERNED_COUNT=2`",
+        "`kernel/workqueue.c`: boundary-study-only anchor",
+        "`kernel/trace/ring_buffer.c`: boundary-study-only anchor",
+        "`kernel/rcu/tree.c`: remains blocked from active delivery",
+        "`net/core/skbuff.c`: remains blocked from active delivery",
         "reviewability packet rather than a release-closure or status-change claim",
     ],
     "Documentation/zigux/review-checklist.md": [
