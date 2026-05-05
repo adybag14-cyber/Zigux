@@ -246,6 +246,11 @@ test "phase14 skbuff bridge notes and code agree the live ownership blocker is n
     try std.testing.expect(std.mem.indexOf(
         u8,
         survey_note,
+        "PHASE14_LANE_KEY=P14-L11",
+    ) != null);
+    try std.testing.expect(std.mem.indexOf(
+        u8,
+        survey_note,
         "PHASE14_SLICE=skbuff-boundary-map-tail-publication-followup",
     ) != null);
     try std.testing.expect(std.mem.indexOf(
