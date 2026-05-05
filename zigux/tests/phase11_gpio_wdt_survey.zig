@@ -161,3 +161,22 @@ test "phase11 gpio_wdt survey manifest records the refreshed starter state and r
     try std.testing.expect(saw_handoff_followup);
     try std.testing.expect(saw_blocker);
 }
+
+test "phase11 gpio_wdt survey docs keep the landed hardware-validation matrix explicit" {
+    var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
+    defer io_instance.deinit();
+
+    const validation_matrix = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "Documentation/zigux/phase11-gpio-wdt-validation-matrix.md",
+        std.testing.allocator,
+        .limited(32 * 1024),
+    );
+    defer std.testing.allocator.free(validation_matrix);
+
+    try std.testing.expect(std.mem.indexOf(u8, validation_matrix, "PHASE11_GPIO_WDT_STATUS=hardware_validation_matrix_landed") != null);
+    try std.testing.expect(std.mem.indexOf(u8, validation_matrix, "registration-facing handoff summary") != null);
+    try std.testing.expect(std.mem.indexOf(u8, validation_matrix, "keep `zigux/tests/phase11_build.zig` as the shared replay path") != null);
+    try std.testing.expect(std.mem.indexOf(u8, validation_matrix, "do not claim platform-driver registration, GPIO descriptor lookup, watchdog-core registration, reboot integration, or hardware-backed execution") != null);
+    try std.testing.expect(std.mem.indexOf(u8, validation_matrix, "land one tiny registration-facing or validation-plan note") != null);
+}
