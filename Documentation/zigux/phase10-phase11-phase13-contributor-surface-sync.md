@@ -33,13 +33,25 @@ Also refresh the packet-local docs-root or scripts-root note when the wording ch
 
 ## Phase 10 anchors
 
-For the active virtio contributor packet, confirm wording still matches:
-- `Documentation/zigux/phase10-closure-evidence.md`
-- `zigux/tests/phase10_closure_manifest.json`
-- `zigux-alpha/PHASE10_CLOSURE_LEDGER.md`
-- `scripts/zigux/check-phase10-closure-inventory.py`
+For the active virtio contributor packet, confirm wording still matches the current build-backed Phase 10 surface on `master`:
+- `Documentation/zigux/README.md`
+- `Documentation/zigux/review-checklist.md`
+- `Documentation/zigux/phase10-virtio-core-slice.md`
+- `Documentation/zigux/phase10-virtio-core-survey.md`
+- `Documentation/zigux/phase10-virtio-ring-slice.md`
+- `Documentation/zigux/phase10-virtio-ring-survey.md`
+- `Documentation/zigux/phase10-virtio-input-slice.md`
+- `Documentation/zigux/phase10-virtio-input-module-slice.md`
+- `Documentation/zigux/phase10-virtio-input-survey.md`
+- `Documentation/zigux/phase10-virtio-mmio-slice.md`
+- `Documentation/zigux/phase10-virtio-mmio-survey.md`
+- `scripts/zigux/README.md`
+- `zigux/tests/README.md`
+- `zigux/tests/phase10_build.zig`
 - `scripts/zigux/check-phase10-core-packet.py`
-- `scripts/zigux/check-phase10-harness-coverage.py`
+- `zigux/Makefile`
+
+Keep the shared wording honest about what is not shipped on `master`: there is still no dedicated shared `validate-phase10.py`, `check-phase10-harness-coverage.py`, `check-phase10-closure-inventory.py`, `phase10_closure_manifest.json`, or closure-ledger-backed replay route.
 
 ## Phase 11 anchors
 
