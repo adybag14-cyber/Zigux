@@ -257,6 +257,55 @@ fn decodeValue(ch: u8, variant: Variant) DecodeError!u8 {
     };
 }
 
+fn expectExhaustiveTailCanonicality(padding: bool, variant: Variant) !void {
+    const table = alphabet(variant);
+    var encoded: [4]u8 = undefined;
+    var decoded: [2]u8 = undefined;
+
+    for (0..64) |a| {
+        for (0..64) |b| {
+            encoded[0] = table[a];
+            encoded[1] = table[b];
+            if (padding) {
+                encoded[2] = '=';
+                encoded[3] = '=';
+            }
+
+            const tail = if (padding) encoded[0..4] else encoded[0..2];
+            if ((b & 0x0f) == 0) {
+                const written = try decode(decoded[0..], tail, padding, variant);
+                try std.testing.expectEqual(@as(usize, 1), written);
+                try std.testing.expectEqual(@as(u8, @intCast((a << 2) | (b >> 4))), decoded[0]);
+            } else {
+                try std.testing.expectError(DecodeError.InvalidInput, decode(decoded[0..], tail, padding, variant));
+            }
+        }
+    }
+
+    for (0..64) |a| {
+        for (0..64) |b| {
+            for (0..64) |c| {
+                encoded[0] = table[a];
+                encoded[1] = table[b];
+                encoded[2] = table[c];
+                if (padding) {
+                    encoded[3] = '=';
+                }
+
+                const tail = if (padding) encoded[0..4] else encoded[0..3];
+                if ((c & 0x03) == 0) {
+                    const written = try decode(decoded[0..], tail, padding, variant);
+                    try std.testing.expectEqual(@as(usize, 2), written);
+                    try std.testing.expectEqual(@as(u8, @intCast((a << 2) | (b >> 4))), decoded[0]);
+                    try std.testing.expectEqual(@as(u8, @intCast(((b & 0x0f) << 4) | (c >> 2))), decoded[1]);
+                } else {
+                    try std.testing.expectError(DecodeError.InvalidInput, decode(decoded[0..], tail, padding, variant));
+                }
+            }
+        }
+    }
+}
+
 test "chars matches padded and unpadded output sizes" {
     try std.testing.expectEqual(@as(usize, 0), chars(0, true));
     try std.testing.expectEqual(@as(usize, 4), chars(1, true));
@@ -313,4 +362,16 @@ test "decode rejects malformed input and reports destination bounds" {
     try std.testing.expectError(DecodeError.InvalidInput, decode(buf[0..], "Zg=!", true, .std));
     try std.testing.expectError(DecodeError.InvalidInput, decode(buf[0..], "Zm9v====", false, .std));
     try std.testing.expectError(DecodeError.InvalidInput, decode(buf[0..], "Zg==", false, .urlsafe));
+}
+
+test "decode exhaustively accepts only canonical padded tails" {
+    try expectExhaustiveTailCanonicality(true, .std);
+    try expectExhaustiveTailCanonicality(true, .urlsafe);
+    try expectExhaustiveTailCanonicality(true, .imap);
+}
+
+test "decode exhaustively accepts only canonical unpadded tails" {
+    try expectExhaustiveTailCanonicality(false, .std);
+    try expectExhaustiveTailCanonicality(false, .urlsafe);
+    try expectExhaustiveTailCanonicality(false, .imap);
 }
