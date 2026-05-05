@@ -111,6 +111,27 @@ test "phase11 gpio_wdt level mode records pulses and keeps always-running hardwa
     try std.testing.expectEqual(@as(usize, 2), runtime.pulse_count);
 }
 
+test "phase11 gpio_wdt level stop keeps disable-state teardown reviewable" {
+    var watchdog = try gpio_wdt.GpioWatchdogLab.init(.level, 500, false);
+
+    var runtime = try watchdog.start();
+    try std.testing.expect(runtime.running);
+    try std.testing.expect(runtime.line_is_output);
+    try std.testing.expect(!runtime.line_state);
+    try std.testing.expect(runtime.last_ping_was_pulse);
+    try std.testing.expectEqual(@as(u32, gpio_wdt.level_pulse_width_usec), runtime.last_pulse_width_usec);
+
+    runtime = watchdog.stop();
+    try std.testing.expect(!runtime.running);
+    try std.testing.expect(runtime.line_is_output);
+    try std.testing.expect(runtime.line_state);
+    try std.testing.expectEqual(@as(usize, 1), runtime.disable_count);
+    try std.testing.expectEqual(@as(usize, 1), runtime.ping_count);
+    try std.testing.expectEqual(@as(usize, 1), runtime.pulse_count);
+    try std.testing.expect(!runtime.last_ping_was_pulse);
+    try std.testing.expectEqual(@as(u32, 0), runtime.last_pulse_width_usec);
+}
+
 test "phase11 gpio_wdt stop requests distinguish nowayout gating from always-running hardware" {
     var blocked_watchdog = try gpio_wdt.GpioWatchdogLab.init(.toggle, 50, false);
     _ = try blocked_watchdog.start();
