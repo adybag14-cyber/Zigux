@@ -36,7 +36,7 @@ fn allowsSharedDestination(first_id: []const u8, second_id: []const u8) bool {
     return (std.mem.eql(u8, first_id, "runtime-trace-events-sample-module") and
         std.mem.eql(u8, second_id, "runtime-trace-events-selftest-hook")) or
         (std.mem.eql(u8, first_id, "runtime-trace-events-selftest-hook") and
-        std.mem.eql(u8, second_id, "runtime-trace-events-sample-module"));
+            std.mem.eql(u8, second_id, "runtime-trace-events-sample-module"));
 }
 
 test "phase 9 runtime trace-events survey manifest records the landed loader scaffold and remaining blocker" {
