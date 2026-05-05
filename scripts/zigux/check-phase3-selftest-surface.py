@@ -63,8 +63,15 @@ MAKEFILE_MARKERS = [
 ]
 
 
-def collect_missing_markers(text: str, markers: list[str], *, prefix: str) -> list[str]:
-    return [f"{prefix}:{marker}" for marker in markers if marker not in text]
+def collect_marker_count_issues(text: str, markers: list[str], *, prefix: str) -> list[str]:
+    issues: list[str] = []
+    for marker in markers:
+        count = text.count(marker)
+        if count == 0:
+            issues.append(f"{prefix}:{marker}")
+        elif count != 1:
+            issues.append(f"duplicate_{prefix}_marker:{count}:{marker}")
+    return issues
 
 
 def validate_root(root: Path) -> list[str]:
@@ -84,18 +91,19 @@ def validate_root(root: Path) -> list[str]:
     tests_readme = (root / "zigux/tests/README.md").read_text(encoding="utf-8")
     makefile = (root / "zigux/Makefile").read_text(encoding="utf-8")
 
-    issues.extend(collect_missing_markers(docs_root, DOCS_ROOT_MARKERS, prefix="docs_root"))
-    issues.extend(collect_missing_markers(review, REVIEW_CHECKLIST_MARKERS, prefix="review_checklist"))
-    issues.extend(collect_missing_markers(abi_slice, ABI_SLICE_MARKERS, prefix="abi_slice"))
-    issues.extend(collect_missing_markers(scripts_readme, SCRIPTS_README_MARKERS, prefix="scripts_readme"))
-    issues.extend(collect_missing_markers(tests_readme, TESTS_README_MARKERS, prefix="tests_readme"))
-    issues.extend(collect_missing_markers(makefile, MAKEFILE_MARKERS, prefix="makefile"))
+    issues.extend(collect_marker_count_issues(docs_root, DOCS_ROOT_MARKERS, prefix="docs_root"))
+    issues.extend(collect_marker_count_issues(review, REVIEW_CHECKLIST_MARKERS, prefix="review_checklist"))
+    issues.extend(collect_marker_count_issues(abi_slice, ABI_SLICE_MARKERS, prefix="abi_slice"))
+    issues.extend(collect_marker_count_issues(scripts_readme, SCRIPTS_README_MARKERS, prefix="scripts_readme"))
+    issues.extend(collect_marker_count_issues(tests_readme, TESTS_README_MARKERS, prefix="tests_readme"))
+    issues.extend(collect_marker_count_issues(makefile, MAKEFILE_MARKERS, prefix="makefile"))
     return issues
 
 
 def write_text(path: Path, content: str) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(content, encoding="utf-8")
+
 
 
 def build_self_test_root(root: Path) -> None:
@@ -109,6 +117,7 @@ def build_self_test_root(root: Path) -> None:
     write_text(root / "zigux/tests/README.md", "\n".join(TESTS_README_MARKERS) + "\n")
     write_text(root / "zigux/Makefile", "\n".join(MAKEFILE_MARKERS) + "\n")
     write_text(root / "scripts/zigux/validate_phase3_selftest.py", "present\n")
+
 
 
 def run_self_test() -> int:
@@ -126,10 +135,46 @@ def run_self_test() -> int:
         assert "docs_root:without duplicating the default `phase3-validate` route" in issues
 
         build_self_test_root(root)
+        write_text(
+            root / "Documentation/zigux/README.md",
+            "\n".join(DOCS_ROOT_MARKERS + [DOCS_ROOT_MARKERS[0]]) + "\n",
+        )
+        issues = validate_root(root)
+        assert (
+            "duplicate_docs_root_marker:2:scripts/zigux/validate_phase3_selftest.py"
+            in issues
+        )
+
+        build_self_test_root(root)
         write_text(root / "Documentation/zigux/review-checklist.md", "scripts/zigux/validate_phase3_selftest.py\n")
         issues = validate_root(root)
         assert "review_checklist:scripts/zigux/check-phase3-selftest-surface.py" in issues
         assert "review_checklist:make -C zigux phase3-selftest" in issues
+
+        build_self_test_root(root)
+        write_text(
+            root / "Documentation/zigux/review-checklist.md",
+            "\n".join(REVIEW_CHECKLIST_MARKERS + [REVIEW_CHECKLIST_MARKERS[2]]) + "\n",
+        )
+        issues = validate_root(root)
+        assert "duplicate_review_checklist_marker:2:make -C zigux phase3-selftest" in issues
+
+        build_self_test_root(root)
+        write_text(root / "Documentation/zigux/phase3-abi-slice.md", "python3 scripts/zigux/validate_phase3_selftest.py\n")
+        issues = validate_root(root)
+        assert "abi_slice:python3 scripts/zigux/check-phase3-selftest-surface.py" in issues
+        assert "abi_slice:make -C zigux phase3-selftest" in issues
+
+        build_self_test_root(root)
+        write_text(
+            root / "Documentation/zigux/phase3-abi-slice.md",
+            "\n".join(ABI_SLICE_MARKERS + [ABI_SLICE_MARKERS[1]]) + "\n",
+        )
+        issues = validate_root(root)
+        assert (
+            "duplicate_abi_slice_marker:2:python3 scripts/zigux/check-phase3-selftest-surface.py"
+            in issues
+        )
 
         build_self_test_root(root)
         write_text(root / "scripts/zigux/README.md", "validate_phase3_selftest.py\n")
@@ -138,12 +183,31 @@ def run_self_test() -> int:
         assert "scripts_readme:make -C zigux phase3-selftest" in issues
 
         build_self_test_root(root)
+        write_text(
+            root / "scripts/zigux/README.md",
+            "\n".join(SCRIPTS_README_MARKERS + [SCRIPTS_README_MARKERS[0]]) + "\n",
+        )
+        issues = validate_root(root)
+        assert "duplicate_scripts_readme_marker:2:validate_phase3_selftest.py" in issues
+
+        build_self_test_root(root)
         write_text(root / "zigux/tests/README.md", "scripts/zigux/validate_phase3_selftest.py\n")
         issues = validate_root(root)
         assert "tests_readme:scripts/zigux/phase3_catalog.py --self-test" in issues
         assert "tests_readme:make -C zigux phase3-selftest" in issues
         assert (
             "tests_readme:opt-in safety check that complements but does not duplicate `make -C zigux phase3-validate`"
+            in issues
+        )
+
+        build_self_test_root(root)
+        write_text(
+            root / "zigux/tests/README.md",
+            "\n".join(TESTS_README_MARKERS + [TESTS_README_MARKERS[1]]) + "\n",
+        )
+        issues = validate_root(root)
+        assert (
+            "duplicate_tests_readme_marker:2:scripts/zigux/phase3_catalog.py --self-test"
             in issues
         )
 
@@ -157,13 +221,25 @@ def run_self_test() -> int:
         assert "makefile:phase3: phase3-validate phase3-abi phase3-interop" in issues
 
         build_self_test_root(root)
+        write_text(
+            root / "zigux/Makefile",
+            "\n".join(MAKEFILE_MARKERS + [MAKEFILE_MARKERS[0]]) + "\n",
+        )
+        issues = validate_root(root)
+        assert (
+            "duplicate_makefile_marker:2:PHONY += phase3-validate phase3-selftest phase3-abi phase3-interop phase3"
+            in issues
+        )
+
+        build_self_test_root(root)
         (root / "scripts/zigux/validate_phase3_selftest.py").unlink()
         issues = validate_root(root)
         assert "missing_file:scripts/zigux/validate_phase3_selftest.py" in issues
 
     print("PHASE3_SELFTEST_SURFACE_SELF_TEST=pass")
-    print("PHASE3_SELFTEST_SURFACE_SELF_TEST_CASE_COUNT=7")
+    print("PHASE3_SELFTEST_SURFACE_SELF_TEST_CASE_COUNT=13")
     return 0
+
 
 
 def main() -> int:
