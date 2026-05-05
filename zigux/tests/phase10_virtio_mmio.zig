@@ -64,6 +64,33 @@ test "phase10 virtio mmio exposes a bounded device-feature selector read window"
     try std.testing.expectError(error.ReadOnlyRegister, device.writeRegister(.device_features, 0));
 }
 
+test "phase10 virtio mmio exposes a bounded config-word window before irq or lifecycle work" {
+    var device = try virtio_mmio.VirtioMmioLab.init(52, &[_]u16{ 8, 16 });
+
+    try device.stageConfigBytes(&[_]u8{
+        0x78, 0x56, 0x34, 0x12,
+        0xef, 0xcd, 0xab, 0x90,
+    });
+    device.bumpConfigGeneration();
+    device.bumpConfigGeneration();
+
+    var config_summary = try device.readConfigOffset(virtio_mmio.mmio_window_bytes);
+    try std.testing.expectEqualStrings("drivers/virtio/virtio_mmio.c", config_summary.anchor);
+    try std.testing.expectEqual(virtio_mmio.mmio_window_bytes, config_summary.absolute_offset);
+    try std.testing.expectEqual(@as(u32, 0), config_summary.relative_offset);
+    try std.testing.expectEqual(@as(u32, 2), config_summary.config_generation);
+    try std.testing.expectEqual(@as(u32, 0x1234_5678), config_summary.value);
+
+    config_summary = try device.readConfigOffset(virtio_mmio.mmio_window_bytes + 4);
+    try std.testing.expectEqual(@as(u32, 4), config_summary.relative_offset);
+    try std.testing.expectEqual(@as(u32, 0x90ab_cdef), config_summary.value);
+
+    try std.testing.expectError(error.ConfigOffsetBeforeWindow, device.readConfigOffset(@intFromEnum(virtio_mmio.Register.status)));
+    try std.testing.expectError(error.UnalignedConfigOffset, device.readConfigOffset(virtio_mmio.mmio_window_bytes + 2));
+    try std.testing.expectError(error.ConfigWindowReadOutOfRange, device.readConfigOffset(virtio_mmio.mmio_window_bytes + 8));
+    try std.testing.expectError(error.ConfigWindowTooLarge, device.stageConfigBytes(&[_]u8{0} ** (virtio_mmio.config_window_capacity + 1)));
+}
+
 test "phase10 virtio mmio bounds queue selection and queue sizing before lifecycle work" {
     var device = try virtio_mmio.VirtioMmioLab.init(24, &[_]u16{8});
 
