@@ -20,6 +20,9 @@ ABI_DUMP_REL = "zigux/tests/phase3_abi_dump.zig"
 ABI_EXPECTED_REL = "zigux/tests/fixtures/phase3_abi/expected.json"
 ABI_MANIFEST_REL = "zigux/tests/fixtures/phase3_abi_manifest.json"
 ABI_SLICE_DOC_REL = "Documentation/zigux/phase3-abi-slice.md"
+ABI_MANIFEST_PHASE = "Phase 3"
+ABI_MANIFEST_STATUS = "active"
+ABI_MANIFEST_SLICE = "abi-substrate-skeleton"
 ABI_MANIFEST_REQUIRED_FILES = (
     "include/zigux/abi.h",
     "include/linux/zigux.h",
@@ -36,7 +39,7 @@ ABI_MANIFEST_REQUIRED_FILES = (
     ABI_TEST_REL,
     LOW_LEVEL_TEST_REL,
 )
-PHASE3_LOW_LEVEL_WRAPPER_SURVEY_SELF_TEST_CASE_COUNT = 11
+PHASE3_LOW_LEVEL_WRAPPER_SURVEY_SELF_TEST_CASE_COUNT = 14
 
 
 def blob_sha(path: Path) -> str:
@@ -50,13 +53,29 @@ def require_tokens(issues: list[str], text: str, prefix: str, tokens: tuple[str,
             issues.append(f"{prefix}:{token}")
 
 
-def load_manifest_files(root: Path, issues: list[str]) -> list[str] | None:
+def load_manifest(root: Path, issues: list[str]) -> dict[str, object] | None:
     manifest_path = root / ABI_MANIFEST_REL
     try:
         manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
     except json.JSONDecodeError as exc:
         issues.append(f"invalid_manifest_json:{ABI_MANIFEST_REL}:{exc.msg}")
         return None
+
+    if manifest.get("phase") != ABI_MANIFEST_PHASE:
+        issues.append(
+            f"manifest_phase_mismatch:{ABI_MANIFEST_REL}:{manifest.get('phase')}!={ABI_MANIFEST_PHASE}"
+        )
+    status = manifest.get("status")
+    if not isinstance(status, str):
+        issues.append(f"invalid_manifest_status:{ABI_MANIFEST_REL}")
+    elif status != ABI_MANIFEST_STATUS:
+        issues.append(f"manifest_status_mismatch:{ABI_MANIFEST_REL}:{status}!={ABI_MANIFEST_STATUS}")
+
+    slice_name = manifest.get("slice")
+    if not isinstance(slice_name, str):
+        issues.append(f"invalid_manifest_slice:{ABI_MANIFEST_REL}")
+    elif slice_name != ABI_MANIFEST_SLICE:
+        issues.append(f"manifest_slice_mismatch:{ABI_MANIFEST_REL}:{slice_name}!={ABI_MANIFEST_SLICE}")
 
     files = manifest.get("files")
     if not isinstance(files, list) or not all(isinstance(entry, str) for entry in files):
@@ -72,7 +91,9 @@ def load_manifest_files(root: Path, issues: list[str]) -> list[str] | None:
         expected_count = len(ABI_MANIFEST_REQUIRED_FILES)
         if file_count != expected_count:
             issues.append(f"manifest_packet_count_mismatch:{ABI_MANIFEST_REL}:{file_count}!={expected_count}")
-    return files
+
+    manifest["files"] = files
+    return manifest
 
 
 def validate(root: Path) -> list[str]:
@@ -247,8 +268,10 @@ def validate(root: Path) -> list[str]:
         ('"zigux_mmio_range"', '"zigux_interop_policy"'),
     )
 
-    manifest_files = load_manifest_files(root, issues)
-    if manifest_files is not None:
+    manifest = load_manifest(root, issues)
+    if manifest is not None:
+        manifest_files = manifest["files"]
+        assert isinstance(manifest_files, list)
         for rel in ABI_MANIFEST_REQUIRED_FILES:
             count = manifest_files.count(rel)
             if count == 0:
@@ -400,9 +423,9 @@ def run_self_test() -> int:
         (root / ABI_MANIFEST_REL).write_text(
             json.dumps(
                 {
-                    "phase": "Phase 3",
-                    "status": "active",
-                    "slice": "abi-substrate-skeleton",
+                    "phase": ABI_MANIFEST_PHASE,
+                    "status": ABI_MANIFEST_STATUS,
+                    "slice": ABI_MANIFEST_SLICE,
                     "file_count": len(ABI_MANIFEST_REQUIRED_FILES),
                     "files": list(ABI_MANIFEST_REQUIRED_FILES),
                 },
@@ -565,6 +588,30 @@ def run_self_test() -> int:
         issues = validate(root)
         assert f"manifest_unexpected_entry:{DOC_REL}" in issues
         assert f"manifest_packet_count_mismatch:{ABI_MANIFEST_REL}:15!=14" in issues
+
+        (root / ABI_MANIFEST_REL).write_text(
+            valid_manifest.replace(f'"phase": "{ABI_MANIFEST_PHASE}"', '"phase": "Phase 4"', 1),
+            encoding="utf-8",
+        )
+        issues = validate(root)
+        assert f"manifest_phase_mismatch:{ABI_MANIFEST_REL}:Phase 4!=Phase 3" in issues
+
+        (root / ABI_MANIFEST_REL).write_text(
+            valid_manifest.replace(f'"status": "{ABI_MANIFEST_STATUS}"', '"status": "paused"', 1),
+            encoding="utf-8",
+        )
+        issues = validate(root)
+        assert f"manifest_status_mismatch:{ABI_MANIFEST_REL}:paused!=active" in issues
+
+        (root / ABI_MANIFEST_REL).write_text(
+            valid_manifest.replace(f'"slice": "{ABI_MANIFEST_SLICE}"', '"slice": "abi-substrate-drift"', 1),
+            encoding="utf-8",
+        )
+        issues = validate(root)
+        assert (
+            f"manifest_slice_mismatch:{ABI_MANIFEST_REL}:abi-substrate-drift!=abi-substrate-skeleton"
+            in issues
+        )
 
         (root / ABI_MANIFEST_REL).write_text(valid_manifest, encoding="utf-8")
         (root / ABI_SLICE_DOC_REL).write_text(
