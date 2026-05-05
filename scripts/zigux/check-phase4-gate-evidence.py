@@ -37,7 +37,6 @@ PHASE4_RUNTIME_ATOMIC64_PACKET_BLOB_TARGETS = {
     "phase4_validation_matrix_blob_sha": "Documentation/zigux/phase4-validation-matrix.md",
     "phase9_build_blob_sha": "zigux/tests/phase9_build.zig",
 }
-
 SELF_TEST_CASES = [
     "baseline_round_trip",
     "shipped_target_count_drift",
@@ -47,6 +46,11 @@ SELF_TEST_CASES = [
     "phase4_build_survey_blob_pin_drift",
     "phase9_build_manifest_blob_pin_drift",
     "phase9_build_survey_blob_pin_drift",
+    "gate_evidence_self_test_case_count_drift",
+    "gate_evidence_self_test_cases_drift",
+    "shared_validator_reruns_gate_evidence_self_test_drift",
+    "shared_validator_expected_target_count_drift",
+    "shared_validator_expected_self_test_case_count_drift",
     "missing_note_file",
 ]
 
@@ -56,7 +60,7 @@ REQUIRED_STATUS_LINES = [
     "PHASE4_EXACT_READBACK_REF=master",
     f"PHASE4_SHIPPED_GATE_BLOB_TARGET_COUNT={len(PHASE4_GATE_EVIDENCE_BLOB_TARGETS)}",
     f"PHASE4_GATE_EVIDENCE_SELF_TEST_CASE_COUNT={len(SELF_TEST_CASES)}",
-    f"PHASE4_GATE_EVIDENCE_SELF_TEST_CASES={','.join(SELF_TEST_CASES)}",
+    "PHASE4_GATE_EVIDENCE_SELF_TEST_CASES=" + ",".join(SELF_TEST_CASES),
     "PHASE4_SEPARATE_GATE_EVIDENCE_CHECKER_PRESENT=true",
     "PHASE4_SHARED_VALIDATOR_RERUNS_GATE_EVIDENCE_CHECK=true",
     "PHASE4_SHARED_VALIDATOR_RERUNS_GATE_EVIDENCE_SELF_TEST=true",
@@ -202,12 +206,16 @@ def build_fixture_note(root: Path) -> str:
         [
             f"- `PHASE4_SHIPPED_GATE_BLOB_TARGET_COUNT={len(PHASE4_GATE_EVIDENCE_BLOB_TARGETS)}`",
             f"- `PHASE4_GATE_EVIDENCE_SELF_TEST_CASE_COUNT={len(SELF_TEST_CASES)}`",
-            f"- `PHASE4_GATE_EVIDENCE_SELF_TEST_CASES={','.join(SELF_TEST_CASES)}`",
+            "- `PHASE4_GATE_EVIDENCE_SELF_TEST_CASES=" + ",".join(SELF_TEST_CASES) + "`",
             "- `PHASE4_SEPARATE_GATE_EVIDENCE_CHECKER_PRESENT=true`",
             "- `PHASE4_SHARED_VALIDATOR_RERUNS_GATE_EVIDENCE_CHECK=true`",
             "- `PHASE4_SHARED_VALIDATOR_RERUNS_GATE_EVIDENCE_SELF_TEST=true`",
-            f"- `PHASE4_SHARED_VALIDATOR_EXPECTED_GATE_EVIDENCE_TARGET_COUNT={len(PHASE4_GATE_EVIDENCE_BLOB_TARGETS)}`",
-            f"- `PHASE4_SHARED_VALIDATOR_EXPECTED_GATE_EVIDENCE_SELF_TEST_CASE_COUNT={len(SELF_TEST_CASES)}`",
+            "- `PHASE4_SHARED_VALIDATOR_EXPECTED_GATE_EVIDENCE_TARGET_COUNT="
+            + str(len(PHASE4_GATE_EVIDENCE_BLOB_TARGETS))
+            + "`",
+            "- `PHASE4_SHARED_VALIDATOR_EXPECTED_GATE_EVIDENCE_SELF_TEST_CASE_COUNT="
+            + str(len(SELF_TEST_CASES))
+            + "`",
             "- `PHASE4_RUNTIME_ATOMIC64_SURVEY_PACKET_PRESENT=true`",
             "- `PHASE4_SHARED_KPROBE_SURVEY_PACKET_PRESENT=false`",
             "- `PHASE4_SHARED_TEST_FSMOUNT_SURVEY_PACKET_PRESENT=false`",
@@ -304,6 +312,23 @@ def run_self_test() -> int:
             f"phase4_gate_evidence:blob_exact_count:PHASE4_VALIDATOR_BLOB_SHA:{validator_blob_sha}:0"
         ], missing
 
+        write_text(root / NOTE_PATH, build_fixture_note(root))
+        matrix_blob_sha = git_blob_sha1(
+            read_bytes(root, PHASE4_GATE_EVIDENCE_BLOB_TARGETS["PHASE4_VALIDATION_MATRIX_BLOB_SHA"])
+        )
+        write_text(
+            root / NOTE_PATH,
+            read_text(root, NOTE_PATH).replace(
+                f"PHASE4_VALIDATION_MATRIX_BLOB_SHA={matrix_blob_sha}",
+                "PHASE4_VALIDATION_MATRIX_BLOB_SHA=0000000000000000000000000000000000000000",
+                1,
+            ),
+        )
+        missing = validate_root(root)
+        assert missing == [
+            f"phase4_gate_evidence:blob_exact_count:PHASE4_VALIDATION_MATRIX_BLOB_SHA:{matrix_blob_sha}:0"
+        ], missing
+
         write_runtime_atomic64_packet_fixture(root)
         write_text(root / NOTE_PATH, build_fixture_note(root))
         manifest = json.loads(read_text(root, MANIFEST_PATH))
@@ -343,7 +368,10 @@ def run_self_test() -> int:
         write_text(root / NOTE_PATH, build_fixture_note(root))
         manifest = json.loads(read_text(root, MANIFEST_PATH))
         phase4_validation_matrix_sha = git_blob_sha1(
-            read_bytes(root, PHASE4_RUNTIME_ATOMIC64_PACKET_BLOB_TARGETS["phase4_validation_matrix_blob_sha"])
+            read_bytes(
+                root,
+                PHASE4_RUNTIME_ATOMIC64_PACKET_BLOB_TARGETS["phase4_validation_matrix_blob_sha"],
+            )
         )
         manifest["phase4_validation_matrix_blob_sha"] = "0000000000000000000000000000000000000000"
         write_text(root / MANIFEST_PATH, json.dumps(manifest, indent=2) + "\n")
@@ -407,6 +435,89 @@ def run_self_test() -> int:
             f"{survey_blob_sha}:0",
             "phase4_gate_evidence:runtime_atomic64_survey_blob_exact_count:"
             f"phase9_build_blob_sha:{phase9_build_sha}:0",
+        ], missing
+
+        write_runtime_atomic64_packet_fixture(root)
+        write_text(root / NOTE_PATH, build_fixture_note(root))
+        write_text(
+            root / NOTE_PATH,
+            read_text(root, NOTE_PATH).replace(
+                f"PHASE4_GATE_EVIDENCE_SELF_TEST_CASE_COUNT={len(SELF_TEST_CASES)}",
+                "PHASE4_GATE_EVIDENCE_SELF_TEST_CASE_COUNT=13",
+                1,
+            ),
+        )
+        missing = validate_root(root)
+        assert missing == [
+            "phase4_gate_evidence:status_exact_count:"
+            f"PHASE4_GATE_EVIDENCE_SELF_TEST_CASE_COUNT={len(SELF_TEST_CASES)}:0"
+        ], missing
+
+        write_runtime_atomic64_packet_fixture(root)
+        write_text(root / NOTE_PATH, build_fixture_note(root))
+        write_text(
+            root / NOTE_PATH,
+            read_text(root, NOTE_PATH).replace(
+                "PHASE4_GATE_EVIDENCE_SELF_TEST_CASES=" + ",".join(SELF_TEST_CASES),
+                "PHASE4_GATE_EVIDENCE_SELF_TEST_CASES="
+                + ",".join(SELF_TEST_CASES[:-1]),
+                1,
+            ),
+        )
+        missing = validate_root(root)
+        assert missing == [
+            "phase4_gate_evidence:status_exact_count:"
+            "PHASE4_GATE_EVIDENCE_SELF_TEST_CASES="
+            + ",".join(SELF_TEST_CASES)
+            + ":0"
+        ], missing
+
+        write_runtime_atomic64_packet_fixture(root)
+        write_text(root / NOTE_PATH, build_fixture_note(root))
+        write_text(
+            root / NOTE_PATH,
+            read_text(root, NOTE_PATH).replace(
+                "PHASE4_SHARED_VALIDATOR_RERUNS_GATE_EVIDENCE_SELF_TEST=true",
+                "PHASE4_SHARED_VALIDATOR_RERUNS_GATE_EVIDENCE_SELF_TEST=false",
+                1,
+            ),
+        )
+        missing = validate_root(root)
+        assert missing == [
+            "phase4_gate_evidence:status_exact_count:"
+            "PHASE4_SHARED_VALIDATOR_RERUNS_GATE_EVIDENCE_SELF_TEST=true:0"
+        ], missing
+
+        write_runtime_atomic64_packet_fixture(root)
+        write_text(root / NOTE_PATH, build_fixture_note(root))
+        write_text(
+            root / NOTE_PATH,
+            read_text(root, NOTE_PATH).replace(
+                f"PHASE4_SHARED_VALIDATOR_EXPECTED_GATE_EVIDENCE_TARGET_COUNT={len(PHASE4_GATE_EVIDENCE_BLOB_TARGETS)}",
+                "PHASE4_SHARED_VALIDATOR_EXPECTED_GATE_EVIDENCE_TARGET_COUNT=15",
+                1,
+            ),
+        )
+        missing = validate_root(root)
+        assert missing == [
+            "phase4_gate_evidence:status_exact_count:"
+            f"PHASE4_SHARED_VALIDATOR_EXPECTED_GATE_EVIDENCE_TARGET_COUNT={len(PHASE4_GATE_EVIDENCE_BLOB_TARGETS)}:0"
+        ], missing
+
+        write_runtime_atomic64_packet_fixture(root)
+        write_text(root / NOTE_PATH, build_fixture_note(root))
+        write_text(
+            root / NOTE_PATH,
+            read_text(root, NOTE_PATH).replace(
+                f"PHASE4_SHARED_VALIDATOR_EXPECTED_GATE_EVIDENCE_SELF_TEST_CASE_COUNT={len(SELF_TEST_CASES)}",
+                "PHASE4_SHARED_VALIDATOR_EXPECTED_GATE_EVIDENCE_SELF_TEST_CASE_COUNT=13",
+                1,
+            ),
+        )
+        missing = validate_root(root)
+        assert missing == [
+            "phase4_gate_evidence:status_exact_count:"
+            f"PHASE4_SHARED_VALIDATOR_EXPECTED_GATE_EVIDENCE_SELF_TEST_CASE_COUNT={len(SELF_TEST_CASES)}:0"
         ], missing
 
         write_text(root / NOTE_PATH, build_fixture_note(root))
