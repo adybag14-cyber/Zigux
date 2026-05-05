@@ -84,7 +84,7 @@ test "phase10 virtio ring reset clears queue bookkeeping but preserves queue sha
     try std.testing.expectEqual(@as(usize, 1), kick_summary.notification_count);
 }
 
-test "phase10 virtio ring blocks poll and callback snapshots while a queue is broken" {
+test "phase10 virtio ring blocks publish, kick, poll, and callback snapshots while a queue is broken" {
     var ring = virtio_ring.VirtioRingLab{};
     try ring.defineQueue(3, 8, .split, true, false);
 
@@ -101,19 +101,31 @@ test "phase10 virtio ring blocks poll and callback snapshots while a queue is br
     try std.testing.expectEqual(@as(u16, 0), broken_summary.last_polled_used_idx);
     try std.testing.expectEqual(@as(u16, 0), broken_summary.outstanding_chain_count);
 
+    try std.testing.expectError(error.QueueBroken, ring.publishDescriptorChain(3));
+    try std.testing.expectError(error.QueueBroken, ring.prepareKick(3));
     try std.testing.expectError(error.QueueBroken, ring.pollUsedBuffers(3));
     try std.testing.expectError(error.QueueBroken, ring.enableCallback(3));
     try std.testing.expectError(error.QueueBroken, ring.enableCallbackDelayed(3));
     try std.testing.expectError(error.QueueResetWhileBroken, ring.resetQueue(3));
 
+    const summary_while_broken = try ring.notificationSummary(3);
+    try std.testing.expectEqual(@as(u16, 1), summary_while_broken.num_added);
+    try std.testing.expectEqual(@as(usize, 0), summary_while_broken.notification_count);
+
     broken_summary = try ring.clearBroken(3);
     try std.testing.expect(!broken_summary.broken);
     try std.testing.expect(!broken_summary.callback_enabled);
+
+    try ring.publishDescriptorChain(3);
+    const kick_summary = try ring.prepareKick(3);
+    try std.testing.expect(kick_summary.needs_kick);
+    try std.testing.expectEqual(@as(u16, 2), kick_summary.num_added);
+    try std.testing.expectEqual(@as(usize, 1), kick_summary.notification_count);
 
     const poll_summary = try ring.pollUsedBuffers(3);
     try std.testing.expectEqual(@as(u16, 1), poll_summary.last_used_idx);
     try std.testing.expectEqual(@as(u16, 0), poll_summary.last_polled_used_idx);
     try std.testing.expectEqual(@as(u16, 1), poll_summary.newly_used_chain_count);
-    try std.testing.expectEqual(@as(u16, 0), poll_summary.outstanding_chain_count);
+    try std.testing.expectEqual(@as(u16, 1), poll_summary.outstanding_chain_count);
     try std.testing.expect(poll_summary.has_newly_used_chains);
 }
