@@ -40,6 +40,7 @@ test "runtime trace-events sample enforces lifecycle transitions and bounded eve
     try std.testing.expectEqualStrings("iter=%d", main_payload.format_template);
 
     try module.registerFunctionThread();
+    try std.testing.expectError(error.FunctionThreadAlreadyRegistered, module.registerFunctionThread());
     const fn_events = try module.emitFunctionIteration(9);
     try std.testing.expectEqual(@as(usize, 2), fn_events);
     try std.testing.expectEqual(@as(usize, 1), module.fn_iterations);
@@ -81,6 +82,7 @@ test "runtime trace-events sample keeps registration balance explicit" {
 
     try std.testing.expectError(error.RegistrationUnderflow, module.unregisterFunctionThread());
     try module.registerFunctionThread();
+    try std.testing.expectError(error.FunctionThreadAlreadyRegistered, module.registerFunctionThread());
     try std.testing.expectError(error.OutstandingRegistration, module.exit());
     try module.unregisterFunctionThread();
     try module.exit();
