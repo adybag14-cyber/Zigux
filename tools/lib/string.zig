@@ -83,6 +83,21 @@ pub fn strscpy(dest: []u8, src: []const u8) isize {
     return @as(isize, @intCast(copy_len));
 }
 
+pub fn strscpyPad(dest: []u8, src: []const u8) isize {
+    const written = strscpy(dest, src);
+    if (written >= 0) {
+        const len: usize = @intCast(written);
+        if (len + 1 < dest.len) {
+            @memset(dest[len + 1 ..], 0);
+        }
+    }
+    return written;
+}
+
+pub fn strscpy_pad(dest: []u8, src: []const u8) isize {
+    return strscpyPad(dest, src);
+}
+
 pub fn skipSpaces(str: []const u8) []const u8 {
     var idx: usize = 0;
     while (idx < str.len and std.ascii.isWhitespace(str[idx])) : (idx += 1) {}
@@ -345,6 +360,35 @@ test "strscpy mirrors bounded kernel copy semantics" {
 
     var zero_sized = [_]u8{0xaa};
     try std.testing.expectEqual(strscpy_e2big, strscpy(zero_sized[0..0], "x"));
+    try std.testing.expectEqual(@as(u8, 0xaa), zero_sized[0]);
+}
+
+test "strscpyPad zero-fills the remaining destination tail on success" {
+    var dst = [_]u8{ 0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa };
+    try std.testing.expectEqual(@as(isize, 2), strscpyPad(&dst, "ok"));
+    try std.testing.expectEqualSlices(u8, &[_]u8{ 'o', 'k', 0, 0, 0, 0 }, &dst);
+}
+
+test "strscpyPad preserves embedded-NUL C-string semantics and zero-fills after the terminator" {
+    const src = [_]u8{ 'o', 'k', 0, 'x' };
+    var dst = [_]u8{ 0xaa, 0xaa, 0xaa, 0xaa, 0xaa };
+    try std.testing.expectEqual(@as(isize, 2), strscpyPad(&dst, &src));
+    try std.testing.expectEqualSlices(u8, &[_]u8{ 'o', 'k', 0, 0, 0 }, &dst);
+}
+
+test "strscpy_pad alias matches the padded copy semantics" {
+    var dst = [_]u8{ 0xaa, 0xaa, 0xaa, 0xaa };
+    try std.testing.expectEqual(@as(isize, 1), strscpy_pad(&dst, "z"));
+    try std.testing.expectEqualSlices(u8, &[_]u8{ 'z', 0, 0, 0 }, &dst);
+}
+
+test "strscpyPad keeps truncation behavior unchanged" {
+    var dst = [_]u8{ 0xaa, 0xaa, 0xaa, 0xaa };
+    try std.testing.expectEqual(strscpy_e2big, strscpyPad(&dst, "hello"));
+    try std.testing.expectEqualSlices(u8, &[_]u8{ 'h', 'e', 'l', 0 }, &dst);
+
+    var zero_sized = [_]u8{0xaa};
+    try std.testing.expectEqual(strscpy_e2big, strscpyPad(zero_sized[0..0], "x"));
     try std.testing.expectEqual(@as(u8, 0xaa), zero_sized[0]);
 }
 
