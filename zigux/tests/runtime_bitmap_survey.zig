@@ -150,6 +150,7 @@ test "phase 9 runtime bitmap survey note keeps the phase boundary and exact chec
     try std.testing.expect(std.mem.indexOf(u8, note, "descriptor contract: the sample still advertises `name=runtime_bitmap`, `anchor=lib/test_bitmap.c`, `requires_runtime_substrate=true`, and `provides_selftest_hook=true`") != null);
     try std.testing.expect(std.mem.indexOf(u8, note, "copy and selftest path: a second initialized sample can mirror the mutated bitmap, `runSelftest()` still reports the four ordered operation families `clear_set`, `copy`, `summary`, and `lifecycle`, and selftest leaves the bitmap summary unchanged") != null);
     try std.testing.expect(std.mem.indexOf(u8, note, "loader snapshot stability: after `prepare()` captures the `0,5,64,70` bitmap summary, later sample mutation still leaves the pending loader handoff at `first_set=0`, `first_zero=1`, and `weight=4` even while the live sample moves to `first_set=5`, `first_zero=0`, and `weight=7` before `requestRuntimeLoad()`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, note, "shared-loader contract replay: the loader still imports `runtime_loader`, maps initialized and selftest-complete sample stages into the shared handoff flow, fixes `allocator_handoff=.arena`, keeps `init_runs=1` and `exit_runs=0`, and rejects snapshot drift in module name, allocator handoff, handoff stage, or selftest count") != null);
     try std.testing.expect(std.mem.indexOf(u8, note, "review-contract boundary: the direct sample still exposes the ordered review focus `descriptor_and_anchor`, `summary_replay`, and `selftest_lifecycle`; it does not claim standalone `initFromBitList()`, `formatSetBits()`, parse/print differential parity, or a loadable runtime bitmap module on `master`") != null);
     try std.testing.expect(std.mem.indexOf(u8, note, "diff-gate replay: the bounded parity cases still cover the single-word fill starter, the `79..97` cross-boundary clear cutout, the sparse `10,20,30,40,50,60,80,123` population replay, and the copied `0..108` tail-clear snapshot with `first_zero=109`") != null);
 }
@@ -242,12 +243,15 @@ test "phase 9 runtime bitmap survey source-checks the direct sample evidence pac
     try std.testing.expect(std.mem.indexOf(u8, loader_source, ".exit_symbol = \"zigux_runtime_bitmap_exit\"") != null);
     try std.testing.expect(std.mem.indexOf(u8, loader_source, "self.stage_state = .waiting_on_runtime_substrate;") != null);
     try std.testing.expect(std.mem.indexOf(u8, loader_source, "self.stage_state = .released_without_substrate;") != null);
-    try std.testing.expect(std.mem.indexOf(u8, loader_source, "@import(\"runtime_loader\")") == null);
-    try std.testing.expect(std.mem.indexOf(u8, loader_source, "toSharedLoadPlan(") == null);
-    try std.testing.expect(std.mem.indexOf(u8, loader_source, "prepareRequest(") == null);
-    try std.testing.expect(std.mem.indexOf(u8, loader_source, "keepsAllocatorInitFlowConsistent(") == null);
+    try std.testing.expect(std.mem.indexOf(u8, loader_source, "@import(\"runtime_loader\")") != null);
+    try std.testing.expect(std.mem.indexOf(u8, loader_source, "toSharedLoadPlan(") != null);
+    try std.testing.expect(std.mem.indexOf(u8, loader_source, "prepareRequest(") != null);
+    try std.testing.expect(std.mem.indexOf(u8, loader_source, "keepsAllocatorInitFlowConsistent(") != null);
     try std.testing.expect(std.mem.indexOf(u8, loader_source, ".summary = module.summary(),") != null);
     try std.testing.expect(std.mem.indexOf(u8, loader_source, "test \"runtime bitmap loader keeps the prepared snapshot stable across later bitmap mutation\"") != null);
+    try std.testing.expect(std.mem.indexOf(u8, loader_source, "test \"runtime bitmap loader emits the shared runtime-loader contract plan\"") != null);
+    try std.testing.expect(std.mem.indexOf(u8, loader_source, "test \"runtime bitmap loader keeps initialized-stage shared contract plans explicit\"") != null);
+    try std.testing.expect(std.mem.indexOf(u8, loader_source, "test \"runtime bitmap loader rejects shared-load-plan snapshot drift\"") != null);
     try std.testing.expect(std.mem.indexOf(u8, loader_source, "try module.clearRange(0, 1);") != null);
     try std.testing.expect(std.mem.indexOf(u8, loader_source, "try module.setRange(9, 4);") != null);
     try std.testing.expect(std.mem.indexOf(u8, loader_source, "try std.testing.expectEqual(@as(u32, 5), live_summary.first_set);") != null);
