@@ -1,5 +1,7 @@
 const std = @import("std");
 
+const active_lane_key = "P7-Y05";
+
 const SurveySummary = struct {
     rbtree_c_lines: usize,
     preexisting_phase7_test_files: usize,
@@ -48,6 +50,14 @@ test "phase 7 rbtree survey manifest records the landed runtime leaf surface and
     );
     defer std.testing.allocator.free(manifest_json);
 
+    const slice_note = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "Documentation/zigux/phase7-rbtree-slice.md",
+        std.testing.allocator,
+        .limited(16 * 1024),
+    );
+    defer std.testing.allocator.free(slice_note);
+
     const validate_phase7 = try std.Io.Dir.cwd().readFileAlloc(
         io_instance.io(),
         "scripts/zigux/validate-phase7.py",
@@ -60,7 +70,7 @@ test "phase 7 rbtree survey manifest records the landed runtime leaf surface and
     defer parsed.deinit();
 
     const manifest = parsed.value;
-    try std.testing.expectEqualStrings("P7-L13", manifest.lane_key);
+    try std.testing.expectEqualStrings(active_lane_key, manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 7", manifest.phase);
     try std.testing.expectEqualStrings("4fac7134c088bb86b0b3a024491814954a5a63fc", manifest.surveyed_commit);
     try std.testing.expectEqualStrings("lib/rbtree.c", manifest.anchor);
@@ -112,6 +122,7 @@ test "phase 7 rbtree survey manifest records the landed runtime leaf surface and
         }
     }
 
+    try expectContains(slice_note, "PHASE7_LANE_KEY=P7-Y05");
     try expectContains(validate_phase7, "ROOT / \"scripts\" / \"zigux\" / \"check-phase7-rbtree-parity.py\"");
     try expectContains(validate_phase7, "ROOT / \"zigux\" / \"tests\" / \"phase7_rbtree.zig\"");
     try expectContains(validate_phase7, "ROOT / \"zigux\" / \"tests\" / \"phase7_rbtree_survey.zig\"");
