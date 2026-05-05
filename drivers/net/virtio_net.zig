@@ -123,6 +123,28 @@ pub const QueueResumeSummary = struct {
     requires_fresh_probe_snapshot: bool,
 };
 
+pub const ReceiveBufferMode = enum {
+    one_buffer_per_rx,
+    mergeable_rx_buffers,
+};
+
+pub const ReceiveRefillSummary = struct {
+    anchor: []const u8,
+    recovery_generation: u16,
+    readiness: QueueResumeReadiness,
+    resume_scope: QueueResumeScope,
+    buffer_mode: ReceiveBufferMode,
+    refill_queue_pairs: u16,
+    refill_rx_queue_count: u16,
+    refill_total_queue_count: u16,
+    resume_control_queue_index: ?u16,
+    requires_control_queue_restore: bool,
+    requires_rss_reapply: bool,
+    requires_mergeable_buffer_headroom: bool,
+    requires_fresh_probe_snapshot: bool,
+    requires_post_restore_probe_replay: bool,
+};
+
 pub const VirtioNetProbeLab = struct {
     const Self = @This();
 
@@ -263,6 +285,14 @@ pub const VirtioNetProbeLab = struct {
         return summarizeQueueResume(snapshot, self.recovery_generation);
     }
 
+    pub fn planReceiveRefill(self: *Self) !ReceiveRefillSummary {
+        if (!self.transport_recovery_frozen) return error.TransportRecoveryNotFrozen;
+
+        const snapshot = self.frozen_snapshot orelse return error.ProbeSnapshotUnavailable;
+        const resume_summary = summarizeQueueResume(snapshot, self.recovery_generation);
+        return summarizeReceiveRefill(snapshot, resume_summary);
+    }
+
     fn checkedMulU16(lhs: u16, rhs: u16) !u16 {
         const value = @as(u32, lhs) * rhs;
         return std.math.cast(u16, value) orelse error.QueueCountOverflow;
@@ -365,6 +395,28 @@ pub const VirtioNetProbeLab = struct {
             .requires_control_queue_restore = requires_control_queue_restore,
             .requires_rss_reapply = requires_rss_reapply,
             .requires_fresh_probe_snapshot = true,
+        };
+    }
+
+    fn summarizeReceiveRefill(
+        snapshot: ProbeSnapshot,
+        resume_summary: QueueResumeSummary,
+    ) ReceiveRefillSummary {
+        return .{
+            .anchor = descriptor().anchor,
+            .recovery_generation = resume_summary.recovery_generation,
+            .readiness = resume_summary.readiness,
+            .resume_scope = resume_summary.rebuild_scope,
+            .buffer_mode = if (snapshot.mergeable_rx_buffers) .mergeable_rx_buffers else .one_buffer_per_rx,
+            .refill_queue_pairs = snapshot.planned_queue_pairs,
+            .refill_rx_queue_count = snapshot.rx_queue_count,
+            .refill_total_queue_count = snapshot.total_queue_count,
+            .resume_control_queue_index = snapshot.control_queue_index,
+            .requires_control_queue_restore = resume_summary.requires_control_queue_restore,
+            .requires_rss_reapply = resume_summary.requires_rss_reapply,
+            .requires_mergeable_buffer_headroom = snapshot.mergeable_rx_buffers,
+            .requires_fresh_probe_snapshot = resume_summary.requires_fresh_probe_snapshot,
+            .requires_post_restore_probe_replay = true,
         };
     }
 };
