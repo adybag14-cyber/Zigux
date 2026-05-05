@@ -2,6 +2,7 @@
 import argparse
 import json
 from pathlib import Path
+import re
 import subprocess
 import sys
 import tempfile
@@ -220,6 +221,7 @@ REQUIRED_REVIEW_MARKERS = [
     "make -C zigux phase2-validate",
     "make -C zigux phase2",
 ]
+PHASE2_REVIEW_PACKET_LEAD = "if the change touches the shared Phase 2 toolchain packet"
 
 
 def workflow_has_run_marker(workflow_run_lines: list[str], marker: str) -> bool:
@@ -227,6 +229,36 @@ def workflow_has_run_marker(workflow_run_lines: list[str], marker: str) -> bool:
     if marker.endswith("--target"):
         return any(line == expected or line.startswith(expected + " ") for line in workflow_run_lines)
     return expected in workflow_run_lines
+
+
+def count_marker_occurrences(text: str, marker: str) -> int:
+    pattern = rf"(?<![A-Za-z0-9_./-]){re.escape(marker)}(?![A-Za-z0-9_./-])"
+    return len(re.findall(pattern, text))
+
+
+def build_phase2_review_checklist_line(markers: list[str]) -> str:
+    quoted_markers = ", ".join(f"`{marker}`" for marker in markers[:-2])
+    return (
+        f"  * {PHASE2_REVIEW_PACKET_LEAD}, do {quoted_markers}, "
+        f"and `{markers[-2]}` plus `{markers[-1]}` still agree on the same pinned toolchain "
+        "and bounded kbuild-facing replay surface?\n"
+    )
+
+
+def extract_phase2_review_packet_line(review_checklist: str) -> str | None:
+    for line in review_checklist.splitlines():
+        if PHASE2_REVIEW_PACKET_LEAD in line:
+            return line
+    return None
+
+
+def validate_exact_review_markers(text: str) -> list[str]:
+    issues: list[str] = []
+    for marker in REQUIRED_REVIEW_MARKERS:
+        count = count_marker_occurrences(text, marker)
+        if count != 1:
+            issues.append(f"review_exact_marker:{marker}:count={count}:expected=1")
+    return issues
 
 
 def validate_root(root: Path) -> list[str]:
@@ -240,6 +272,7 @@ def validate_root(root: Path) -> list[str]:
     script_readme = (root / "scripts" / "zigux" / "README.md").read_text(encoding="utf-8")
     docs_root = (root / "Documentation" / "zigux" / "README.md").read_text(encoding="utf-8")
     review_checklist = (root / "Documentation" / "zigux" / "review-checklist.md").read_text(encoding="utf-8")
+    review_phase2_line = extract_phase2_review_packet_line(review_checklist)
 
     missing_markers = []
     for marker in REQUIRED_LEDGER_MARKERS:
@@ -261,9 +294,13 @@ def validate_root(root: Path) -> list[str]:
     for marker in REQUIRED_DOCS_ROOT_MARKERS:
         if marker not in docs_root:
             missing_markers.append(f"docs_root:{marker}")
+    if review_phase2_line is None:
+        missing_markers.append(f"review_packet:{PHASE2_REVIEW_PACKET_LEAD}")
     for marker in REQUIRED_REVIEW_MARKERS:
-        if marker not in review_checklist:
+        if review_phase2_line is None or marker not in review_phase2_line:
             missing_markers.append(f"review:{marker}")
+    if review_phase2_line is not None:
+        missing_markers.extend(validate_exact_review_markers(review_phase2_line))
     if missing_markers:
         return missing_markers
 
@@ -488,13 +525,16 @@ def build_self_test_root(root: Path) -> None:
 
     write_text(root / "zigux-alpha/BOOTSTRAP_COMMIT_LEDGER.md", "\n".join(REQUIRED_LEDGER_MARKERS) + "\n")
     write_text(
-        root / ".github" / "workflows" / "zigux-bootstrap.yml",
+        root / ".github/workflows/zigux-bootstrap.yml",
         "\n".join(f"run: {marker}" for marker in REQUIRED_WORKFLOW_MARKERS) + "\n",
     )
     write_text(root / "Documentation/zigux/artifact-diff.md", "\n".join(REQUIRED_DOC_MARKERS) + "\n")
     write_text(root / "scripts/zigux/README.md", build_script_readme_text())
     write_text(root / "Documentation/zigux/README.md", "\n".join(REQUIRED_DOCS_ROOT_MARKERS) + "\n")
-    write_text(root / "Documentation/zigux/review-checklist.md", "\n".join(REQUIRED_REVIEW_MARKERS) + "\n")
+    write_text(
+        root / "Documentation/zigux/review-checklist.md",
+        build_phase2_review_checklist_line(REQUIRED_REVIEW_MARKERS),
+    )
 
     write_stub_guard(
         root / "scripts/zigux/check-phase2-tests-readme-alignment.py",
@@ -565,17 +605,20 @@ def run_self_test() -> int:
         assert "missing_file:zigux/tests/fixtures/phase2_tool_manifest.json" in issues
 
         build_self_test_root(root)
-        write_text(root / "Documentation/zigux/review-checklist.md", "\n".join(REQUIRED_REVIEW_MARKERS[1:]) + "\n")
+        write_text(
+            root / "Documentation/zigux/review-checklist.md",
+            build_phase2_review_checklist_line(REQUIRED_REVIEW_MARKERS[1:]),
+        )
         issues = validate_root(root)
         assert "review:zigux/tests/README.md" in issues
 
         build_self_test_root(root)
         write_text(
             root / "Documentation/zigux/review-checklist.md",
-            "\n".join([
+            build_phase2_review_checklist_line([
                 REQUIRED_REVIEW_MARKERS[0],
                 *REQUIRED_REVIEW_MARKERS[2:],
-            ]) + "\n",
+            ]),
         )
         issues = validate_root(root)
         assert "review:zigux/tests/fixtures/phase2_cross_targets.json" in issues
@@ -583,7 +626,7 @@ def run_self_test() -> int:
         build_self_test_root(root)
         write_text(
             root / "Documentation/zigux/review-checklist.md",
-            "\n".join(REQUIRED_REVIEW_MARKERS[:-2]) + "\n",
+            build_phase2_review_checklist_line(REQUIRED_REVIEW_MARKERS[:-2]),
         )
         issues = validate_root(root)
         assert "review:make -C zigux phase2-validate" in issues
@@ -592,10 +635,26 @@ def run_self_test() -> int:
         build_self_test_root(root)
         write_text(
             root / "Documentation/zigux/review-checklist.md",
-            "\n".join(REQUIRED_REVIEW_MARKERS[:2] + REQUIRED_REVIEW_MARKERS[3:]) + "\n",
+            build_phase2_review_checklist_line(REQUIRED_REVIEW_MARKERS[:2] + REQUIRED_REVIEW_MARKERS[3:]),
         )
         issues = validate_root(root)
         assert "review:scripts/zigux/check-phase2-tests-readme-alignment.py" in issues
+
+        build_self_test_root(root)
+        write_text(
+            root / "Documentation/zigux/review-checklist.md",
+            build_phase2_review_checklist_line(REQUIRED_REVIEW_MARKERS + [REQUIRED_REVIEW_MARKERS[1]]),
+        )
+        issues = validate_root(root)
+        assert "review_exact_marker:zigux/tests/fixtures/phase2_cross_targets.json:count=2:expected=1" in issues
+
+        build_self_test_root(root)
+        write_text(
+            root / "Documentation/zigux/review-checklist.md",
+            build_phase2_review_checklist_line(REQUIRED_REVIEW_MARKERS + [REQUIRED_REVIEW_MARKERS[-1]]),
+        )
+        issues = validate_root(root)
+        assert "review_exact_marker:make -C zigux phase2:count=2:expected=1" in issues
 
         build_self_test_root(root)
         write_text(
@@ -629,7 +688,7 @@ def run_self_test() -> int:
         assert "scripts_helper_index:phase2_helper_block" in issues
 
     print("PHASE2_VALIDATION_SELF_TEST=pass")
-    print("PHASE2_VALIDATION_SELF_TEST_CASE_COUNT=13")
+    print("PHASE2_VALIDATION_SELF_TEST_CASE_COUNT=15")
     return 0
 
 
