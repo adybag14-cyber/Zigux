@@ -110,7 +110,7 @@ Phase 10 notes
 - `Documentation/zigux/phase10-virtio-input-module-slice.md`
 - `Documentation/zigux/phase10-virtio-input-survey.md`
 - `Documentation/zigux/phase10-virtio-mmio-survey.md`
-- `zigux/tests/phase10_build.zig` and `make -C zigux phase10` now gate the current virtio core, virtio ring, virtio input, and virtio mmio survey bundle together, so new Phase 10 virtio work should stay reviewable through that shared lane instead of widening into ad hoc per-slice checks.
+- `scripts/zigux/README.md`, `zigux/tests/README.md`, `Documentation/zigux/review-checklist.md`, `zigux/tests/phase10_build.zig`, `zigux/tests/phase10_virtio_core.zig`, `zigux/tests/phase10_virtio_ring.zig`, `zigux/tests/phase10_virtio_ring_survey.zig`, `zigux/tests/phase10_virtio_input.zig`, `zigux/tests/phase10_virtio_input_survey.zig`, `zigux/tests/phase10_virtio_mmio.zig`, `zigux/tests/phase10_virtio_mmio_survey.zig`, and `make -C zigux phase10` now keep the current virtio core, virtio ring, virtio input, and virtio mmio packet reviewable through the shared build-and-make lane, and there is still no dedicated shared `validate-phase10.py`, `check-phase10-harness-coverage.py`, or `phase10-validate` target on `master`.
 - the current bounded Phase 10 decision is no longer whether the virtio core lane still needs config-change bookkeeping or reset-proof coverage; those pieces are now landed, so the next follow-up should stay in the smallest core-only or survey-backed virtio step that sharpens queue or device bookkeeping without widening into transport implementation churn.
 
 Phase 11 notes
