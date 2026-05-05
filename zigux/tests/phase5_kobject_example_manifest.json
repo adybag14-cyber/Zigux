@@ -8,7 +8,7 @@
   "review_prompts": [
     "descriptor keeps the Linux anchor path explicit and leaves requires_runtime_substrate false while provides_selfcheck stays true",
     "the manifest and survey test still describe the approved Phase 5 in-memory ownership-and-lifetime idiom: the exact registration, integer roundtrip, shared baz/bar dispatch, and pre-registration access boundary run through phase5_build.zig",
-    "the manifest prompts keep the initialized-but-not-registered zero-active-attributes and no-show-or-store boundary explicit before registerAttributes() opens the sample",
+    "the manifest prompts keep the initialized-but-not-registered zero-active-attributes boundary explicit, including both the no-show-or-store guard before registerAttributes() and the initialized-only abandonment path",
     "the manifest prompts keep the unnamed attribute group shape and post-exit show/store rejection boundary explicit instead of implying sysfs registration",
     "sample-behavior changes update the manifest-backed registration and lifecycle contract instead of leaving reviewers to infer it from code alone",
     "docs and tests still keep sysfs creation, kernel_kobj integration, uevents, and module registration out of scope for this Phase 5 sample"
@@ -28,6 +28,11 @@
       "id": "pre-registration-boundary",
       "kind": "ownership_lifetime",
       "expected": "after init but before registerAttributes(), activeAttrCount stays zero and show or store calls still return InvalidLifecycleTransition"
+    },
+    {
+      "id": "initialized-exit-boundary",
+      "kind": "ownership_lifetime",
+      "expected": "exit from the initialized stage clears the tracked values, leaves register_runs at zero, and still rejects later show or store calls"
     },
     {
       "id": "foo-roundtrip",
