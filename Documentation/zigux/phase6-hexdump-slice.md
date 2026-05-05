@@ -37,16 +37,24 @@ Phase 6 is where Zigux can keep proving low-risk in-kernel helper ports without 
 
 The current hexdump helper surface exercised by this slice covers:
 
+- `hexAscHi`
+- `hexAscLo`
+- `hexAscUpperHi`
+- `hexAscUpperLo`
+- `hexBytePack`
+- `hexBytePackUpper`
 - `hexToBin`
 - `hex2bin`
 - `bin2hex`
+- `hexDumpLineLength`
 - `hexDumpToBuffer`
 
 The current tests check:
 
 - mixed-case hex digit decoding
+- lowercase and uppercase nibble helpers stay aligned with the byte-pack paths on representative inputs
 - encode/decode round-trips on bounded fixtures
-- malformed source and destination handling
+- malformed source and destination handling, including undersized uppercase byte-pack buffers
 - serialized fixture vectors derived from `lib/test_hexdump.c`
 - serialized required-length vectors for `hexDumpLineLength` and zero-buffer `hexDumpToBuffer`
 - kernel-style one-line hex and ASCII formatting
