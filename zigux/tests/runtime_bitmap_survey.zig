@@ -128,7 +128,7 @@ test "phase 9 runtime bitmap survey manifest records the landed diff gate and re
     try std.testing.expect(saw_live_loader_blocker);
 }
 
-test "phase 9 runtime bitmap survey note keeps the phase boundary explicit" {
+test "phase 9 runtime bitmap survey note keeps the phase boundary and exact checks explicit" {
     var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
     defer io_instance.deinit();
 
@@ -145,4 +145,8 @@ test "phase 9 runtime bitmap survey note keeps the phase boundary explicit" {
     try std.testing.expect(std.mem.indexOf(u8, note, "a Phase 5 approved `samples/zigux/` reference idiom") != null);
     try std.testing.expect(std.mem.indexOf(u8, note, "samples/zigux/runtime_bitmap.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, note, "samples/zigux/runtime_bitmap_loader.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, note, "The current direct bitmap sample contract is verified through these exact checks:") != null);
+    try std.testing.expect(std.mem.indexOf(u8, note, "summary stability: initializing bits `0`, `5`, `64`, and `70` still yields `first_set=0`, `first_zero=1`, `weight=4`, and `nbits=128`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, note, "descriptor contract: the sample still advertises `name=runtime_bitmap`, `anchor=lib/test_bitmap.c`, `requires_runtime_substrate=true`, and `provides_selftest_hook=true`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, note, "diff-gate replay: the bounded parity cases still cover the single-word fill starter, the `79..97` cross-boundary clear cutout, the sparse `10,20,30,40,50,60,80,123` population replay, and the copied `0..108` tail-clear snapshot with `first_zero=109`") != null);
 }
