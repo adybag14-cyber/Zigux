@@ -20,6 +20,7 @@ When a Phase 13 change is real, keep these surfaces aligned together:
   * shared replay entrypoint: `zigux/tests/phase13_build.zig`
   * manifest-backed anchor packets: `zigux/tests/phase13_libfs_manifest.json`, `zigux/tests/phase13_devres_manifest.json`, `zigux/tests/phase13_landlock_ruleset_manifest.json`, and `zigux/tests/phase13_landlock_syscalls_manifest.json`
   * direct replay files: `zigux/tests/phase13_libfs.zig`, `zigux/tests/phase13_devres.zig`, `zigux/tests/phase13_landlock_ruleset.zig`, `zigux/tests/phase13_landlock_syscalls.zig`, and `zigux/tests/phase13_libfs_reviewability.zig`
+  * adjacent shipped release-surface evidence: `Documentation/zigux/phase13-release-notes-survey.md`, `Documentation/zigux/phase13-roadmap-traceability.md`, `Documentation/zigux/phase13-notifier-list-survey.md`, `zigux/tests/phase13_notifier_list_manifest.json`, `zigux/bindings/notifier_abi.zig`, `include/zigux/notifier_abi.h`, and `zigux/helpers/notifier_chain_view.zig`
 
 ## Required Replay Order
 
@@ -57,9 +58,9 @@ If you update the shared release packet or convenience workflow:
 ## Boundaries That Must Stay Explicit
 
 Do not quietly erase these active Phase 13 limits from manifests, notes, or contributor guidance:
-  * the current shared release packet covers only `libfs`, `devres`, `landlock/ruleset`, `landlock/syscalls`, and `libfs` reviewability
+  * the current shared validator-first replay route covers only `libfs`, `devres`, `landlock/ruleset`, `landlock/syscalls`, and `libfs` reviewability
   * the dedicated `devres` boundary checker remains part of the validator-first route through `scripts/zigux/check-phase13-devres-packet.py`
-  * notifier ABI footholds and broader notifier reviewability are not part of the current shipped shared Phase 13 release route
+  * `Documentation/zigux/phase13-release-notes-survey.md`, `Documentation/zigux/phase13-roadmap-traceability.md`, `Documentation/zigux/phase13-notifier-list-survey.md`, `zigux/tests/phase13_notifier_list_manifest.json`, `zigux/bindings/notifier_abi.zig`, `include/zigux/notifier_abi.h`, and `zigux/helpers/notifier_chain_view.zig` are shipped adjacent release-surface evidence on `master`, but they do not add extra shared replay steps beyond the validator-first route above
   * the Phase 13 release packet stays active until the shared replay and the remaining blocker posture say otherwise together
 
 ## Fast Review Checklist
@@ -68,9 +69,9 @@ Before calling a Phase 13 change ready, confirm all of the following:
   * the docs, validator scripts, build entrypoint, and Make targets still name the same four manifest-backed anchors
   * `zigux/tests/phase13_build.zig` still exposes the same five-test shared replay inventory or the contributor guidance explains the intentional change
   * the validator-first command order is unchanged across this guide, `scripts/zigux/README.md`, and `zigux/Makefile`
-  * the change does not imply notifier, release-notes, roadmap-traceability, or extra reviewability surfaces in the current shared release route unless those files and checks are actually shipped
+  * the change keeps the shipped release-notes, roadmap-traceability, and notifier evidence truthful without miscasting those files as extra replay steps or omitting them from the broader shared release surface
   * the change does not overstate runtime parity or global Phase 13 closure
 
 ## Next Safe Follow-up
 
-The next contributor-facing improvement after this guide is to tighten the broader tests-root and checklist wording so they stop naming non-shipped Phase 13 release-note, roadmap-traceability, notifier, and replay-count surfaces as part of the current shared release route.
+The next contributor-facing improvement after this guide is to tighten `Documentation/zigux/README.md` and `Documentation/zigux/phase10-phase11-phase13-contributor-surface-sync.md` so they describe the same split between the shared validator-first replay route and the broader shipped release-surface evidence.
