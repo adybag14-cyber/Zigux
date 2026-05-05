@@ -123,7 +123,7 @@ Phase 11 notes
 - `Documentation/zigux/phase11-hvc-console-slice.md`
 - `Documentation/zigux/phase11-hvc-console-survey.md`
 - `zigux/tests/phase11_build.zig` and `make -C zigux phase11` now gate the current bcm2835, gpio, and dw watchdog slices together with the hvc console tranche, so new Phase 11 work should stay reviewable through that shared lane instead of widening into ad hoc per-slice checks.
-- `Documentation/zigux/phase11-shared-replay-contract.md` now records that same shared contributor packet, including `Documentation/zigux/phase11-bcm2835-wdt-validation-matrix.md`, `Documentation/zigux/phase11-gpio-wdt-validation-matrix.md`, `Documentation/zigux/phase11-dw-wdt-validation-matrix.md`, `Documentation/zigux/phase11-hvc-console-validation-matrix.md`, and the dedicated `Documentation/zigux/phase11-hvc-console-survey.md` boundary beside the shared replay route.
+- `Documentation/zigux/phase11-shared-replay-contract.md` now records that same shared contributor packet, including `Documentation/zigux/phase11-bcm2835-wdt-validation-matrix.md`, `Documentation/zigux/phase11-gpio-wdt-validation-matrix.md`, `Documentation/zigux/phase11-dw-wdt-validation-matrix.md`, and `Documentation/zigux/phase11-hvc-console-validation-matrix.md`, and the dedicated `Documentation/zigux/phase11-hvc-console-survey.md` boundary beside the shared replay route.
 - the current bounded Phase 11 decision is no longer whether the bcm2835 watchdog lane needs another ownership summary helper; those pieces are now landed, so the next follow-up should stay in one tiny hardware-validation matrix before any platform registration, PM base plumbing, or live poweroff-handler coordination is attempted.
 
 Phase 12 notes
@@ -153,6 +153,20 @@ Phase 13 notes
 - `zigux/tests/phase13_build.zig`, `scripts/zigux/validate-phase13-release.py`, and `make -C zigux phase13` now keep the current libfs, devres, landlock ruleset, and landlock syscalls helper tranche reviewable through one shared Phase 13 release packet instead of leaving the active shared-subsystems lane visible only in packet-local surveys.
 - the same top-level Phase 13 packet now also keeps the roadmap traceability note, the release survey, the four manifest-backed anchor packets, and the adjacent notifier-list reviewability packet visible from the docs root without changing the roadmap's four-anchor count.
 - the current bounded Phase 13 decision is no longer whether the lane still needs its first shared-helper footholds; those starters and survey-backed replay surfaces are already present on `master`, so the next follow-up should stay inside one tiny release-surface, validator, or helper-truthfulness repair before any wider subsystem claims are reopened.
+
+Phase 14 notes
+- `Documentation/zigux/phase14-end-to-end-smoke-survey.md`
+- `Documentation/zigux/phase14-release-boundary-survey.md`
+- `Documentation/zigux/freeze-map.md`
+- `Documentation/zigux/review-checklist.md`
+- `zigux/tests/phase14_build.zig`
+- `zigux/tests/phase14_end_to_end_smoke_survey.zig`
+- `zigux/tests/phase14_end_to_end_smoke_manifest.json`
+- `scripts/zigux/validate-phase14.py`
+- `make -C zigux phase14-validate`
+- `make -C zigux phase14-smoke`
+- `make -C zigux phase14` now keep the current workqueue, ring-buffer, and skbuff-adjacent smoke packet reviewable through one bounded study-only lane instead of implying a direct deep-core port commitment.
+- the current bounded Phase 14 decision is not whether `kernel/rcu/tree.c`, `net/core/skbuff.c`, or other freeze-map anchors are ready for a direct Zigux port; the active packet stays parked on shared smoke and release-boundary evidence, so the next follow-up should remain one tiny survey, manifest, validator, or docs-root truthfulness repair inside that study-only lane.
 
 Phase 15 notes
 - `Documentation/zigux/freeze-map.md`
