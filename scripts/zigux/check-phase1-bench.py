@@ -173,6 +173,15 @@ def validate_expectations_shape(expectations: dict[str, object]) -> None:
                 'phase1-bench:expectations:iterations:find_bit_required:'
                 f'{iteration_key}:{checksum_key}'
             )
+        if iteration_key in metric_groups['iterations']:
+            missing_exact_checksums = sorted(
+                exact_checksum_keys - metric_groups['exact_checksums']
+            )
+            if missing_exact_checksums:
+                raise SystemExit(
+                    'phase1-bench:expectations:exact_checksums:find_bit_required:'
+                    f'{iteration_key}:{missing_exact_checksums[0]}'
+                )
 
     rbtree_exact_checksum = next(
         (
@@ -438,20 +447,24 @@ def run_self_test() -> int:
     else:
         raise SystemExit('phase1-bench:self-test:invalid_bitmap_optional:unexpected_pass')
 
-    invalid_bitmap_missing_iterations = {
-        **bitmap_expectations,
-        'iterations': {},
+    invalid_find_bit_missing_exact_checksum = {
+        **find_bit_expectations,
+        'exact_checksums': {
+            key: value
+            for key, value in find_bit_expectations['exact_checksums'].items()
+            if key != 'PHASE1_BENCH_FIND_TAIL_WINDOW_CHECKSUM'
+        },
     }
     try:
-        validate_expectations_shape(invalid_bitmap_missing_iterations)
+        validate_expectations_shape(invalid_find_bit_missing_exact_checksum)
     except SystemExit as exc:
         assert_equal(
-            'invalid_bitmap_missing_iterations',
+            'invalid_find_bit_missing_exact_checksum',
             str(exc),
-            'phase1-bench:expectations:iterations:bitmap_required:PHASE1_BENCH_BITMAP_WEIGHT_ITERATIONS',
+            'phase1-bench:expectations:exact_checksums:find_bit_required:PHASE1_BENCH_FIND_NEXT_BIT_ITERATIONS:PHASE1_BENCH_FIND_TAIL_WINDOW_CHECKSUM',
         )
     else:
-        raise SystemExit('phase1-bench:self-test:invalid_bitmap_missing_iterations:unexpected_pass')
+        raise SystemExit('phase1-bench:self-test:invalid_find_bit_missing_exact_checksum:unexpected_pass')
 
     invalid_find_bit_optional = {
         **find_bit_expectations,
