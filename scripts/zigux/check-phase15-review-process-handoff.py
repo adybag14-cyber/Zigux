@@ -47,6 +47,7 @@ REQUIRED_DOCS_README_MARKERS = [
     "Documentation/zigux/phase15-indefinite-c-policy.md",
     "zigux/tests/phase15_build.zig",
     "make -C zigux phase15",
+    "no Architecture Council approval is recorded yet",
 ]
 REQUIRED_SCRIPT_README_MARKERS = [
     "Phase 15 flow",
@@ -246,6 +247,7 @@ Phase 15 notes
 - `Documentation/zigux/phase15-parity-scorecard.md`
 - `Documentation/zigux/phase15-indefinite-c-policy.md`
 - `zigux/tests/phase15_build.zig` and `make -C zigux phase15` keep the parked governance packet reviewable.
+- no Architecture Council approval is recorded yet.
 """
     (root / DOCS_README_PATH).write_text(docs_readme, encoding="utf-8")
 
@@ -345,6 +347,18 @@ def run_self_test() -> int:
             tmp_root,
             "docs_readme:Documentation/zigux/phase15-parity-scorecard.md",
             "missing_docs_readme_phase15_marker",
+        )
+
+        write_fixture_tree(tmp_root)
+        docs_readme = docs_readme_path.read_text(encoding="utf-8")
+        docs_readme_path.write_text(
+            docs_readme.replace("- no Architecture Council approval is recorded yet.\n", "", 1),
+            encoding="utf-8",
+        )
+        expect_failure(
+            tmp_root,
+            "docs_readme:no Architecture Council approval is recorded yet",
+            "missing_docs_readme_no_approval_marker",
         )
 
         write_fixture_tree(tmp_root)
@@ -478,7 +492,7 @@ def run_self_test() -> int:
         tests_readme_path = tmp_root / TESTS_README_PATH
         tests_readme = tests_readme_path.read_text(encoding="utf-8")
         tests_readme_path.write_text(
-            tests_readme.replace("`zigux/tests/phase15_architecture_council_review_process.zig`, ", "", 1),
+            tests_readme.replace("`zigux/tests/phase15_architecture_council_review_process.zig`, ", ""),
             encoding="utf-8",
         )
         expect_failure(
@@ -505,7 +519,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE15_REVIEW_PROCESS_HANDOFF_SELF_TEST=pass")
-    print("PHASE15_REVIEW_PROCESS_HANDOFF_SELF_TEST_CASE_COUNT=13")
+    print("PHASE15_REVIEW_PROCESS_HANDOFF_SELF_TEST_CASE_COUNT=14")
     return 0
 
 
