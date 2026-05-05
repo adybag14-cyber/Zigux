@@ -111,6 +111,11 @@ def run_self_test() -> int:
         assert matched
         assert details['expected_sha256'] == details['actual_sha256']
 
+        blob_b.write_bytes(b'zigux-artifact-DRIFT')
+        matched, details = compare_artifacts('sha256', blob_a, blob_b)
+        assert not matched
+        assert details['expected_sha256'] != details['actual_sha256']
+
         matched, details = compare_artifacts('text', missing, text_a)
         assert not matched
         assert details['expected_exists'] is False
