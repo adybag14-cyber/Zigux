@@ -107,6 +107,8 @@ test "phase13 landlock syscalls manifest records the starter and remaining gap" 
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "build_check_abi()") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "landlock_create_ruleset()") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "landlock_restrict_self()") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "ruleset_fd == -1") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "mute-subdomains-only case") != null);
         }
         if (std.mem.eql(u8, gap.id, "phase13-landlock-syscalls-test-gate")) {
             saw_test_gate = true;
@@ -201,6 +203,7 @@ test "phase13 landlock syscalls survey note records the active lane key" {
     defer std.testing.allocator.free(survey_note);
 
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "`PHASE13_LANE_KEY=P13-Y04`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "special `ruleset_fd == -1` mute-subdomains-only case") != null);
 }
 
 test "phase13 landlock syscalls abi shape report matches build_check_abi expectations" {
