@@ -21,7 +21,7 @@ test "phase 8 cpu mask starter slice parses dense masks and counts possible CPUs
 }
 
 test "phase 8 cpu mask starter slice keeps delimiter skipping bounded and rejects malformed ranges" {
-    const parsed = try cpu_mask.parseCpuMaskString(std.testing.allocator, "\n0-1,,4\r\n6\n");
+    const parsed = try cpu_mask.parseCpuMaskString(std.testing.allocator, "\n0-1,,4\n6\n");
     defer parsed.deinit(std.testing.allocator);
 
     try std.testing.expectEqual(@as(usize, 4), cpu_mask.countPossibleCpus(parsed.values));
@@ -33,6 +33,7 @@ test "phase 8 cpu mask starter slice keeps delimiter skipping bounded and reject
     try std.testing.expectError(error.EmptyCpuRange, cpu_mask.parseCpuMaskString(std.testing.allocator, ",\n"));
     try std.testing.expectError(error.InvalidCpuRange, cpu_mask.parseCpuMaskString(std.testing.allocator, "2-1"));
     try std.testing.expectError(error.InvalidCpuRange, cpu_mask.parseCpuMaskString(std.testing.allocator, "cpu0"));
+    try std.testing.expectError(error.InvalidCpuRange, cpu_mask.parseCpuMaskString(std.testing.allocator, "\r0-1"));
 }
 
 test "phase 8 cpu mask reader interface accepts chunked sysfs-style input" {
@@ -72,6 +73,35 @@ test "phase 8 cpu mask reader interface accepts chunked sysfs-style input" {
     try std.testing.expect(!parsed.values[6]);
     try std.testing.expect(parsed.values[7]);
     try std.testing.expect(parsed.values[8]);
+}
+
+test "phase 8 cpu mask reader interface rejects carriage-return-delimited chunks" {
+    const ReaderState = struct {
+        chunks: []const []const u8,
+        index: usize = 0,
+
+        fn read(context: ?*anyopaque, buffer: []u8) !?usize {
+            const self: *@This() = @ptrCast(@alignCast(context.?));
+            if (self.index >= self.chunks.len) {
+                return null;
+            }
+
+            const chunk = self.chunks[self.index];
+            self.index += 1;
+            std.mem.copyForwards(u8, buffer[0..chunk.len], chunk);
+            return chunk.len;
+        }
+    };
+
+    var state = ReaderState{
+        .chunks = &.{ "0-3,\r", "5\n" },
+    };
+    var scratch: [8]u8 = undefined;
+
+    try std.testing.expectError(error.InvalidCpuRange, cpu_mask.parseCpuMaskFromReader(std.testing.allocator, &scratch, .{
+        .context = &state,
+        .readFn = ReaderState.read,
+    }));
 }
 
 test "phase 8 cpu mask reader interface keeps failures explicit" {
