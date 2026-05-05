@@ -146,6 +146,11 @@ pub const RuntimeTraceEventsLoader = struct {
         return plan;
     }
 
+    pub fn prepareSharedRequest(self: *Self, module: *const runtime_trace_events_sample.RuntimeTraceEventsSample) !runtime_loader.PreparedRequest {
+        const plan = try self.prepare(module);
+        return runtime_loader.prepareRequest(toSharedLoadPlan(plan));
+    }
+
     pub fn requestRuntimeLoad(self: *Self) !RuntimeTraceEventsLoadPlan {
         if (self.stage_state != .prepared) return error.InvalidLoaderState;
 
@@ -153,9 +158,29 @@ pub const RuntimeTraceEventsLoader = struct {
         return self.cached_plan orelse error.MissingLoadPlan;
     }
 
+    pub fn requestSharedRuntimeLoad(
+        self: *Self,
+        shared_request: *runtime_loader.PreparedRequest,
+    ) !runtime_loader.LoadPlan {
+        const plan = try self.requestRuntimeLoad();
+        const shared_plan = try shared_request.requestRuntimeLoad();
+        if (!keepsSharedLoadPlanSnapshotExplicit(plan, shared_plan)) {
+            return error.SharedLoadPlanDrift;
+        }
+        return shared_plan;
+    }
+
     pub fn releaseWithoutSubstrate(self: *Self) !void {
         if (self.stage_state != .waiting_on_runtime_substrate) return error.InvalidLoaderState;
         self.stage_state = .released_without_substrate;
+    }
+
+    pub fn releaseSharedWithoutSubstrate(
+        self: *Self,
+        shared_request: *runtime_loader.PreparedRequest,
+    ) !void {
+        try self.releaseWithoutSubstrate();
+        try shared_request.releaseWithoutSubstrate();
     }
 };
 
@@ -305,6 +330,49 @@ test "runtime trace-events loader keeps initialized-stage shared contract plans 
         .caller_provided,
         shared_plan.init_flow,
     ));
+}
+
+test "runtime trace-events loader bridges the shared request lifecycle without widening registration claims" {
+    var module = runtime_trace_events_sample.RuntimeTraceEventsSample{};
+    try module.init();
+    _ = try module.runSelftest();
+
+    var loader = RuntimeTraceEventsLoader{};
+    var shared_request = try loader.prepareSharedRequest(&module);
+    try std.testing.expectEqual(LoaderStage.prepared, loader.stage());
+    try std.testing.expectEqual(runtime_loader.RequestState.prepared, shared_request.state);
+
+    const pending_plan = try loader.requestSharedRuntimeLoad(&shared_request);
+    try std.testing.expectEqual(LoaderStage.waiting_on_runtime_substrate, loader.stage());
+    try std.testing.expectEqual(runtime_loader.RequestState.waiting_on_runtime_substrate, shared_request.state);
+    try std.testing.expectEqualStrings("runtime_trace_events", pending_plan.module_name);
+    try std.testing.expectEqualStrings("samples/trace_events/trace-events-sample.c", pending_plan.anchor);
+    try std.testing.expect(runtime_loader.keepsAllocatorInitFlowConsistent(
+        pending_plan,
+        .caller_provided,
+        .{
+            .handoff_stage = .selftest_complete,
+            .init_runs = 1,
+            .selftest_runs = 1,
+            .exit_runs = 0,
+        },
+    ));
+
+    try loader.releaseSharedWithoutSubstrate(&shared_request);
+    try std.testing.expectEqual(LoaderStage.released_without_substrate, loader.stage());
+    try std.testing.expectEqual(runtime_loader.RequestState.released_without_substrate, shared_request.state);
+}
+
+test "runtime trace-events loader surfaces shared request drift before any live registration claim" {
+    var module = runtime_trace_events_sample.RuntimeTraceEventsSample{};
+    try module.init();
+    _ = try module.runSelftest();
+
+    var loader = RuntimeTraceEventsLoader{};
+    var shared_request = try loader.prepareSharedRequest(&module);
+    shared_request.plan.module_name = "runtime_trace_events_drift";
+
+    try std.testing.expectError(error.SharedLoadPlanDrift, loader.requestSharedRuntimeLoad(&shared_request));
 }
 
 test "runtime trace-events loader rejects shared-load-plan snapshot drift" {
