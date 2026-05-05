@@ -8,8 +8,9 @@ This document tracks the bounded Phase 10 survey lane around `drivers/virtio/vir
 - `PHASE10_SLICE=virtio-input-survey`
 - `PHASE10_LANE_KEY=P10-Y04`
 - `PHASE10_SURVEYED_COMMIT=7361ac51374149a96b7a7a2c6ea3c995d8cc1231`
-- scope: survey manifest, dedicated survey gate, shared Phase 10 build wiring, and a lane-level note that compares the already-landed starter against the remaining roadmap gap
+- scope: survey manifest, dedicated survey gate, dedicated `check-phase10-input-packet.py` review guard, shared Phase 10 build wiring, and a lane-level note that compares the already-landed starter against the remaining roadmap gap
 - product boundary:
+  - `scripts/zigux/check-phase10-input-packet.py`
   - `zigux/tests/phase10_virtio_input_manifest.json`
   - `zigux/tests/phase10_virtio_input_survey.zig`
   - `zigux/tests/phase10_build.zig`
@@ -20,6 +21,8 @@ This document tracks the bounded Phase 10 survey lane around `drivers/virtio/vir
 The Phase 10 roadmap names `drivers/virtio/virtio_input.c` as a lab-driver anchor, but the repo has already moved past a blank starting point: the live tree now ships a bounded `drivers/virtio/virtio_input.zig` helper, dedicated tests, and slice notes.
 
 This survey exists so the lane can compare that live starter against the roadmap and record the next honest gap without pretending the helper is either absent or already close to full driver parity.
+
+A dedicated `scripts/zigux/check-phase10-input-packet.py` guard now keeps the manifest, survey gate, slice notes, and survey note aligned so future same-lane edits can catch review drift without reopening transport-facing helper growth.
 
 ## Survey findings
 
@@ -59,12 +62,16 @@ This survey slice does not yet claim:
 
 ## Gates
 
-1. run the dedicated Phase 10 build
+1. run the dedicated input-packet review guard
+- `python3 scripts/zigux/check-phase10-input-packet.py --self-test`
+- `python3 scripts/zigux/check-phase10-input-packet.py`
+
+2. run the dedicated Phase 10 build
 - `zig build test --build-file zigux/tests/phase10_build.zig`
 
-2. run the convenience target
+3. run the convenience target
 - `make -C zigux phase10`
 
 ## Next bounded step
 
-Keep the Phase 10 virtio_input lane narrow and prefer one bounded validation, manifest, survey, or helper-test truthfulness repair next before widening into `input_register_device()` lifecycle, queue callbacks, or transport-backed work.
+Keep the Phase 10 virtio_input lane narrow and prefer one bounded manifest, survey, helper-test, or checker truthfulness repair next before widening into `input_register_device()` lifecycle, queue callbacks, or transport-backed work.
