@@ -1,7 +1,7 @@
 # Phase 10, 11, and 13 Tests-Root Review Companion
 
 Use this note when a change touches the active Phase 10 virtio lab packet, the active Phase 11 simple-driver packet, or the active Phase 13 shared-helper release packet and the review needs a compact tests-root checklist.
-Keep `zigux/tests/README.md`, `Documentation/zigux/review-checklist.md`, and `Documentation/zigux/phase10-phase11-phase13-validator-first-review-guide.md` aligned with this note when they describe the same packet so the shared reviewer prompts do not drift across docs-root, tests-root, and checklist-facing guidance.
+Keep `zigux/tests/README.md`, `Documentation/zigux/review-checklist.md`, and `Documentation/zigux/phase10-phase11-phase13-contributor-surface-sync.md` aligned with this note when they describe the same packet so the shared reviewer prompts do not drift across docs-root, tests-root, and checklist-facing guidance.
 ## Phase 10 tests-root packet
 
 Keep the tests-root replay packet explicit:
