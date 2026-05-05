@@ -5,7 +5,7 @@ This document records the bounded Phase 15 governance lane around `Documentation
 ## Status
 
 - `PHASE15_STATUS=governance_slice_landed`
-- `PHASE15_LANE_KEY=P15-Y01`
+- `PHASE15_LANE_KEY=P15-L04`
 - `PHASE15_SLICE=freeze-map-governance-blocker-ownership-sync`
 - scope: the live freeze map, the existing dedicated Phase 15 manifest and test gate, and one bounded maintenance follow-up that keeps the root freeze-map note aligned with the already-landed parity-scorecard, review-process, indefinite-C policy, retained stay-in-C closeout, and current blocker posture
 - survey provenance refreshed against verified `master` head `9342905d34fb98d6fcd88cf2e88efed7355131d2`
