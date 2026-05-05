@@ -57,6 +57,10 @@ REQUIRED_MARKERS = {
         "python3 scripts/zigux/check-phase7-rbtree-parity.py",
         "zig build test --build-file zigux/tests/phase7_build.zig",
     ],
+    "scripts/zigux/check-phase7-rbtree-parity.py": [
+        "--self-test",
+        "PHASE7_RBTREE_PARITY_SELF_TEST=pass",
+    ],
     "zigux/tests/README.md": [
         "zigux/tests/phase7_build.zig",
         "zigux/tests/phase7_string_helpers.zig",
@@ -69,6 +73,7 @@ REQUIRED_MARKERS = {
         "phase7-validate:",
         "scripts/zigux/validate-phase7.py --self-test",
         "scripts/zigux/validate-phase7.py",
+        "scripts/zigux/check-phase7-rbtree-parity.py --self-test",
         "scripts/zigux/check-phase7-rbtree-parity.py",
         "phase7-test:",
         "zig build test --build-file zigux/tests/phase7_build.zig",
@@ -129,7 +134,7 @@ def write_fixture_root(tmp_root: Path) -> None:
         "Documentation/zigux/phase7-argv-split-slice.md": "\n".join(REQUIRED_MARKERS["Documentation/zigux/phase7-argv-split-slice.md"]) + "\n",
         "Documentation/zigux/phase7-rbtree-slice.md": "\n".join(REQUIRED_MARKERS["Documentation/zigux/phase7-rbtree-slice.md"]) + "\n",
         "scripts/zigux/validate-phase7.py": "# fixture\n",
-        "scripts/zigux/check-phase7-rbtree-parity.py": "# fixture\n",
+        "scripts/zigux/check-phase7-rbtree-parity.py": "\n".join(REQUIRED_MARKERS["scripts/zigux/check-phase7-rbtree-parity.py"]) + "\n",
         "zigux/Makefile": "\n".join(REQUIRED_MARKERS["zigux/Makefile"]) + "\n",
         "zigux/tests/README.md": "\n".join(REQUIRED_MARKERS["zigux/tests/README.md"]) + "\n",
         "zigux/tests/phase7_build.zig": "\n".join(REQUIRED_MARKERS["zigux/tests/phase7_build.zig"]) + "\n",
@@ -177,6 +182,16 @@ def run_self_test() -> None:
         expect_missing_file("missing_parity_checker", tmp_root, "scripts/zigux/check-phase7-rbtree-parity.py")
         write_fixture_root(tmp_root)
 
+        parity_path = tmp_root / "scripts" / "zigux" / "check-phase7-rbtree-parity.py"
+        original_parity_text = parity_path.read_text(encoding="utf-8")
+        parity_path.write_text(original_parity_text.replace("--self-test", "", 1), encoding="utf-8")
+        expect_missing_marker(
+            "parity_checker_self_test_flag",
+            tmp_root,
+            "scripts/zigux/check-phase7-rbtree-parity.py: --self-test",
+        )
+        parity_path.write_text(original_parity_text, encoding="utf-8")
+
         boundary_path = tmp_root / "zigux" / "tests" / "phase7_string_helpers_sample_boundary.zig"
         boundary_path.unlink()
         expect_missing_file(
@@ -196,6 +211,17 @@ def run_self_test() -> None:
             "makefile_validator_self_test_hook",
             tmp_root,
             "zigux/Makefile: scripts/zigux/validate-phase7.py --self-test",
+        )
+        makefile_path.write_text(original_makefile, encoding="utf-8")
+
+        makefile_path.write_text(
+            original_makefile.replace("scripts/zigux/check-phase7-rbtree-parity.py --self-test", "", 1),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "makefile_parity_self_test_hook",
+            tmp_root,
+            "zigux/Makefile: scripts/zigux/check-phase7-rbtree-parity.py --self-test",
         )
         makefile_path.write_text(original_makefile, encoding="utf-8")
 
@@ -271,7 +297,7 @@ def run_self_test() -> None:
         )
 
     print("PHASE7_VALIDATOR_SELF_TEST=pass")
-    print("PHASE7_VALIDATOR_SELF_TEST_CASE_COUNT=9")
+    print("PHASE7_VALIDATOR_SELF_TEST_CASE_COUNT=11")
 
 
 def main() -> int:
