@@ -375,6 +375,17 @@ def run_self_test() -> None:
         missing_bench_markers = collect_exact_count_markers(missing_bench_check, required_makefile_markers)
         assert 'makefile_phase1_bench_check:expected=1:actual=0' in missing_bench_markers
 
+        missing_bench_replay = valid_makefile.replace(
+            'cd $(ZIGUX_ROOT) && $(ZIG) build bench --build-file zigux/tests/build.zig\n',
+            '',
+            1,
+        )
+        missing_bench_replay_markers = collect_exact_count_markers(
+            missing_bench_replay,
+            required_makefile_markers,
+        )
+        assert 'makefile_phase1_bench_replay:expected=1:actual=0' in missing_bench_replay_markers
+
         valid_docs_root = render_marker_fixture(required_docs_root_markers)
         assert collect_exact_count_markers(valid_docs_root, required_docs_root_markers) == []
         missing_docs_root = collect_exact_count_markers('', required_docs_root_markers)
@@ -410,7 +421,7 @@ def run_self_test() -> None:
         assert collect_missing_files(tmp_root) == [required_ledger]
 
     print('PHASE1_CLOSURE_VALIDATOR_SELF_TEST=pass')
-    print('PHASE1_CLOSURE_VALIDATOR_SELF_TEST_CASE_COUNT=18')
+    print('PHASE1_CLOSURE_VALIDATOR_SELF_TEST_CASE_COUNT=19')
 
 
 def main() -> int:
