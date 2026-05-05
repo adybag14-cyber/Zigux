@@ -11,6 +11,7 @@ test "phase11 hvc console keeps hvc_cleanup tty-port release boundaries reviewab
     try std.testing.expect(final_cleanup.adapter_present);
     try std.testing.expect(!final_cleanup.close_skipped);
     try std.testing.expect(final_cleanup.final_close);
+    try std.testing.expect(final_cleanup.tty_port_reference_live);
     try std.testing.expect(final_cleanup.tty_port_put_requested);
     try std.testing.expect(final_cleanup.drops_tty_port_reference);
     try std.testing.expect(final_cleanup.deferred_final_release);
@@ -21,12 +22,16 @@ test "phase11 hvc console keeps hvc_cleanup tty-port release boundaries reviewab
     });
     try std.testing.expect(hangup_cleanup.close_skipped);
     try std.testing.expect(!hangup_cleanup.final_close);
+    try std.testing.expect(hangup_cleanup.tty_port_reference_live);
     try std.testing.expect(hangup_cleanup.tty_port_put_requested);
     try std.testing.expect(hangup_cleanup.drops_tty_port_reference);
     try std.testing.expect(hangup_cleanup.deferred_final_release);
 
     try std.testing.expectError(error.CleanupRequiresFinalCloseOrHangup, console.summarizeCleanupHandoff(.{
         .final_close = false,
+    }));
+    try std.testing.expectError(error.CleanupRequiresTtyPortReference, console.summarizeCleanupHandoff(.{
+        .tty_port_reference_live = false,
     }));
 
     _ = console.teardown();
