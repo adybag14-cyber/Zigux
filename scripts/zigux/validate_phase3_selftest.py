@@ -10,7 +10,7 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[2]
-PHASE3_VALIDATOR_SELF_TEST_CASE_COUNT = 13
+PHASE3_VALIDATOR_SELF_TEST_CASE_COUNT = 14
 
 
 @dataclass(frozen=True)
@@ -28,6 +28,10 @@ SELF_TEST_TARGETS = (
     SelfTestTarget(
         "scripts/zigux/check-phase3-readme-tooling-inventory.py",
         "PHASE3_README_TOOLING_INVENTORY_SELF_TEST=pass",
+    ),
+    SelfTestTarget(
+        "scripts/zigux/check-phase3-catalog-selftest.py",
+        "PHASE3_CATALOG_SELF_TEST=pass",
     ),
     SelfTestTarget(
         "scripts/zigux/validate-phase3-policy-unsafe-survey.py",
@@ -171,6 +175,21 @@ def run_self_test() -> int:
         assert (
             "missing_pass_marker:scripts/zigux/check-phase3-readme-tooling-inventory.py:"
             "PHASE3_README_TOOLING_INVENTORY_SELF_TEST=pass"
+            in issues
+        )
+
+        catalog_selftest_marker_root = Path(tmp_dir) / "catalog-selftest-marker"
+        for target in SELF_TEST_TARGETS:
+            marker = (
+                "WRONG_MARKER=pass"
+                if target.relpath.endswith("check-phase3-catalog-selftest.py")
+                else (target.marker or "PASS")
+            )
+            write_script(catalog_selftest_marker_root / target.relpath, marker)
+        issues = run_targets(catalog_selftest_marker_root)
+        assert (
+            "missing_pass_marker:scripts/zigux/check-phase3-catalog-selftest.py:"
+            "PHASE3_CATALOG_SELF_TEST=pass"
             in issues
         )
 
