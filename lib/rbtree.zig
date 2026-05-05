@@ -445,10 +445,10 @@ pub fn prev(node: *const Node) ?*Node {
 
 pub fn replaceNode(victim: *Node, new: *Node, root: *Root) void {
     const parent = victim.parent;
-    new.parent = parent;
-    new.left = victim.left;
-    new.right = victim.right;
-    new.color = victim.color;
+
+    // Match the C helper by copying the full node shape before reconnecting
+    // neighboring links, so stale detached-node state cannot leak into the tree.
+    new.* = victim.*;
 
     if (victim.left) |left| {
         left.parent = new;
@@ -574,6 +574,49 @@ test "rbtree erase and replace keep traversal consistent" {
     }
 
     try std.testing.expectEqualSlices(i32, &[_]i32{ 5, 10, 15, 25 }, order[0..count]);
+}
+
+test "rbtree replaceNode copies victim links over dirty replacement nodes" {
+    const Entry = struct {
+        key: i32,
+        node: Node = Node.init(),
+    };
+
+    const less = struct {
+        fn compare(lhs: *const Node, rhs: *const Node) bool {
+            const lhs_entry: *const Entry = @fieldParentPtr("node", lhs);
+            const rhs_entry: *const Entry = @fieldParentPtr("node", rhs);
+            return lhs_entry.key < rhs_entry.key;
+        }
+    }.compare;
+
+    var root_entry = Entry{ .key = 10 };
+    var left_entry = Entry{ .key = 5 };
+    var right_entry = Entry{ .key = 15 };
+    var replacement = Entry{ .key = 5 };
+    var stale_parent = Node.init();
+    var stale_left = Node.init();
+    var stale_right = Node.init();
+    var root = Root.init();
+
+    add(&root_entry.node, &root, less);
+    add(&left_entry.node, &root, less);
+    add(&right_entry.node, &root, less);
+
+    replacement.node.parent = &stale_parent;
+    replacement.node.left = &stale_left;
+    replacement.node.right = &stale_right;
+    replacement.node.color = .red;
+
+    replaceNode(&left_entry.node, &replacement.node, &root);
+
+    try std.testing.expectEqual(@as(?*Node, &replacement.node), root_entry.node.left);
+    try std.testing.expectEqual(@as(?*Node, &root_entry.node), replacement.node.parent);
+    try std.testing.expectEqual(@as(?*Node, null), replacement.node.left);
+    try std.testing.expectEqual(@as(?*Node, null), replacement.node.right);
+    try std.testing.expectEqual(left_entry.node.color, replacement.node.color);
+    try std.testing.expectEqual(@as(?*Node, &replacement.node), prev(&root_entry.node));
+    try std.testing.expectEqual(@as(?*Node, &root_entry.node), next(&replacement.node));
 }
 
 test "rbtree find helpers return duplicate-key ranges" {
