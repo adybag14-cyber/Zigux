@@ -6,13 +6,20 @@ This document tracks the bounded Phase 9 runtime pilot-module survey around `sam
 
 - `PHASE9_STATUS=active`
 - `PHASE9_SLICE=runtime-kretprobe-survey`
-- scope: survey manifest, dedicated survey and diff gates, the bounded loader-handoff scaffold, shared Phase 9 build wiring, and the lane-level note that now records the landed runtime starter plus the remaining substrate blocker
+- `PHASE9_SURVEYED_COMMIT=248bfeaa7f2beddc283c3e398fc36fec3c841242`
+- scope: survey manifest, starter sample, dedicated module, survey, and diff gates, the bounded loader-handoff scaffold, the shared runtime-loader facade and allocator/init-flow contract replay, shared Phase 9 build wiring, and the lane-level note that now records the landed runtime starter plus the remaining substrate blocker
 - product boundary:
+  - `samples/zigux/runtime_kretprobe.zig`
   - `samples/zigux/runtime_kretprobe_loader.zig`
+  - `zigux/tests/runtime_kretprobe_module.zig`
   - `zigux/tests/runtime_kretprobe_manifest.json`
   - `zigux/tests/runtime_kretprobe_survey.zig`
   - `zigux/tests/runtime_kretprobe_diff.zig`
+  - `zigux/kernel/runtime_loader.zig`
+  - `zigux/kernel/runtime_loader_contract.zig`
+  - `zigux/tests/runtime_loader_allocator_init_flow.zig`
   - `zigux/tests/phase9_build.zig`
+  - `zigux/Makefile`
   - `Documentation/zigux/phase9-runtime-kretprobe-survey.md`
 
 ## Why this slice exists
@@ -21,7 +28,7 @@ The roadmap names `samples/kprobes/kretprobe_example.c` twice: first as a Phase 
 
 The survey artifacts stay anchored to the original `P9-L13` survey lane even though later neighboring runs landed the `runtime_kretprobe` starter, dedicated module tests, diff gate, and now the loader-handoff scaffold. That keeps the survey history honest while still recording the full live review surface.
 
-The live repo now has a bounded `runtime_kretprobe` starter, dedicated module tests, a dedicated diff gate, a bounded loader-handoff scaffold, and shared Phase 9 build coverage, so this survey note should reflect the landed pilot review surface instead of still reading like the lane is waiting on sample-level differential checks.
+The live repo now has a bounded `runtime_kretprobe` starter, dedicated module tests, a dedicated diff gate, a bounded loader-handoff scaffold, the shared runtime-loader facade and allocator/init-flow replay, and shared Phase 9 build coverage, so this survey note should reflect the landed pilot review surface instead of still reading like the lane is waiting on sample-level differential checks.
 
 ## Survey findings
 
@@ -29,6 +36,7 @@ The live repo now has a bounded `runtime_kretprobe` starter, dedicated module te
 - the Linux sample is module-oriented, centered on `register_kretprobe`, `unregister_kretprobe`, `entry_handler`, `ret_handler`, `maxactive`, and `nmissed`.
 - the live repo now ships `samples/zigux/runtime_kretprobe.zig`, `samples/zigux/runtime_kretprobe_loader.zig`, `zigux/tests/runtime_kretprobe_module.zig`, `zigux/tests/runtime_kretprobe_diff.zig`, `zigux/tests/runtime_kretprobe_survey.zig`, and the shared `zigux/tests/phase9_build.zig` coverage for this lane.
 - the landed loader scaffold keeps `register_kretprobe` and `unregister_kretprobe` explicit as metadata-only labels inside a pre-execution handoff plan, together with the retargeted symbol name and private-data size, rather than claiming live initcall or runtime registration behavior.
+- the shared runtime-loader packet is now live on `master`: `zigux/kernel/runtime_loader.zig`, `zigux/kernel/runtime_loader_contract.zig`, `zigux/tests/runtime_loader_allocator_init_flow.zig`, and `make -C zigux phase9` all keep the allocator handoff, init-flow counts, release-without-substrate path, and shared request-surface proof explicit for the shipped four-pilot bundle.
 - runtime substrate work is still missing, so the starter intentionally stops at bounded lifecycle, bookkeeping, metadata-only registration labels, and loader-handoff behavior rather than claiming real module registration parity.
 
 ## Recorded gaps
