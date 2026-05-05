@@ -242,6 +242,7 @@ EXPECTED_PHASE4_GATE_EVIDENCE_SELF_TEST_CASES = [
     "missing_note_file",
 ]
 PHASE4_RUNTIME_ATOMIC64_PIN_TARGETS = {
+    "phase4_build_blob_sha": "zigux/tests/phase4_build.zig",
     "phase4_validator_blob_sha": "scripts/zigux/validate-phase4.py",
     "phase4_validation_matrix_blob_sha": "Documentation/zigux/phase4-validation-matrix.md",
     "phase9_build_blob_sha": "zigux/tests/phase9_build.zig",
@@ -577,10 +578,12 @@ def _write_phase4_gate_evidence_checker_fixture(
 
 
 def _write_phase4_runtime_atomic64_packet_fixture(root: Path) -> None:
+    phase4_build_sha = _git_blob_sha1((root / "zigux/tests/phase4_build.zig").read_bytes())
     validator_sha = _git_blob_sha1((root / "scripts/zigux/validate-phase4.py").read_bytes())
     matrix_sha = _git_blob_sha1((root / "Documentation/zigux/phase4-validation-matrix.md").read_bytes())
     phase9_build_sha = _git_blob_sha1((root / "zigux/tests/phase9_build.zig").read_bytes())
     manifest = {
+        "phase4_build_blob_sha": phase4_build_sha,
         "phase4_validator_blob_sha": validator_sha,
         "phase4_validation_matrix_blob_sha": matrix_sha,
         "phase9_build_blob_sha": phase9_build_sha,
@@ -595,7 +598,8 @@ def _write_phase4_runtime_atomic64_packet_fixture(root: Path) -> None:
             [
                 'const std = @import("std");',
                 "",
-                'test "fixture keeps current validator, matrix, and phase9 build pins" {',
+                'test "fixture keeps current phase4 build, validator, matrix, and phase9 build pins" {',
+                f"    // phase4 build pin {phase4_build_sha}",
                 f"    // validator pin {validator_sha}",
                 f"    // matrix pin {matrix_sha}",
                 f"    // phase9 build pin {phase9_build_sha}",
@@ -866,7 +870,38 @@ def run_self_test() -> int:
                 encoding="utf-8"
             )
         )
+        phase4_build_sha = _git_blob_sha1((root / "zigux/tests/phase4_build.zig").read_bytes())
         phase9_build_sha = _git_blob_sha1((root / "zigux/tests/phase9_build.zig").read_bytes())
+        manifest["phase4_build_blob_sha"] = "1111111111111111111111111111111111111111"
+        _write(
+            root / "zigux/tests/phase4_runtime_atomic64_diff_manifest.json",
+            json.dumps(manifest, indent=2) + "\n",
+        )
+        assert run_phase4_runtime_atomic64_packet_check(root) == [
+            "phase4_runtime_atomic64_packet:unexpected_manifest_sha:phase4_build_blob_sha:"
+            "1111111111111111111111111111111111111111:"
+            f"{phase4_build_sha}"
+        ]
+
+        _write_phase4_runtime_atomic64_packet_fixture(root)
+        survey_path = root / "zigux/tests/phase4_runtime_atomic64_diff_survey.zig"
+        _write(
+            survey_path,
+            survey_path.read_text(encoding="utf-8").replace(
+                phase4_build_sha, "1111111111111111111111111111111111111111", 1
+            ),
+        )
+        assert run_phase4_runtime_atomic64_packet_check(root) == [
+            "phase4_runtime_atomic64_packet:survey_sha_exact_count:"
+            f"phase4_build_blob_sha:{phase4_build_sha}:0"
+        ]
+
+        _write_phase4_runtime_atomic64_packet_fixture(root)
+        manifest = json.loads(
+            (root / "zigux/tests/phase4_runtime_atomic64_diff_manifest.json").read_text(
+                encoding="utf-8"
+            )
+        )
         manifest["phase9_build_blob_sha"] = "0000000000000000000000000000000000000000"
         _write(
             root / "zigux/tests/phase4_runtime_atomic64_diff_manifest.json",
@@ -879,7 +914,6 @@ def run_self_test() -> int:
         ]
 
         _write_phase4_runtime_atomic64_packet_fixture(root)
-        survey_path = root / "zigux/tests/phase4_runtime_atomic64_diff_survey.zig"
         _write(
             survey_path,
             survey_path.read_text(encoding="utf-8").replace(
