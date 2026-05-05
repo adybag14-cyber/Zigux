@@ -26,6 +26,10 @@
       "required_marker": "PHASE14_VALIDATE_ENTRYPOINT=make -C zigux phase14-validate"
     },
     {
+      "path": "Documentation/zigux/phase14-core-boundary-traceability.md",
+      "required_marker": "# Phase 14 Core Boundary Traceability"
+    },
+    {
       "path": "Documentation/zigux/freeze-map.md",
       "required_marker": "kernel/workqueue.c"
     },
