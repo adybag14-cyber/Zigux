@@ -1,7 +1,7 @@
 {
-  "lane_key": "P10-L06",
+  "lane_key": "P10-L08",
   "phase": "Phase 10",
-  "surveyed_commit": "62207c4108fc2658728a26341e2b533bde0c97d3",
+  "surveyed_commit": "e42103fc02f544e1bd23a5ec2e5b584734f5af7d",
   "anchor": "drivers/virtio/virtio_ring.c",
   "roadmap_destinations": [
     "drivers/virtio/*.zig",
@@ -27,12 +27,18 @@
   "architecture_council_reopen_attached": false,
   "survey_summary": {
     "virtio_ring_c_lines": 3940,
-    "preexisting_phase10_test_files": 3,
+    "preexisting_phase10_test_files": 7,
     "preexisting_virtio_core_zig_present": true,
     "preexisting_phase10_build_present": true,
     "preexisting_phase10_core_doc_present": true,
     "preexisting_virtio_ring_zig_present": true,
-    "preexisting_virtio_ring_doc_present": true
+    "preexisting_virtio_ring_doc_present": true,
+    "preexisting_virtio_input_zig_present": true,
+    "preexisting_virtio_input_test_present": true,
+    "preexisting_virtio_input_survey_present": true,
+    "preexisting_virtio_mmio_zig_present": true,
+    "preexisting_virtio_mmio_test_present": true,
+    "preexisting_virtio_mmio_survey_present": true
   },
   "gaps": [
     {
@@ -89,14 +95,14 @@
       "status": "starter_landed",
       "kind": "queue_wrapper",
       "zigux_destination": "drivers/virtio/virtio_ring.zig",
-      "why_now": "The live ring slice now also adds a bounded delayed-callback helper that mirrors the `virtqueue_enable_cb_delayed()` threshold shape while staying queue-local and in memory only before any MMIO register-window work."
+      "why_now": "The live ring slice now also adds a bounded delayed-callback helper that mirrors the virtqueue_enable_cb_delayed() threshold shape while staying queue-local and in memory only before any MMIO register-window work."
     },
     {
       "id": "phase10-broken-queue-poll-guard",
       "status": "starter_landed",
       "kind": "queue_wrapper",
       "zigux_destination": "drivers/virtio/virtio_ring.zig",
-      "why_now": "The live ring slice now keeps a queue marked broken from accepting fresh publish, kick-preparation, poll, or callback re-enable work, which mirrors the bounded `virtqueue_is_broken()` posture in memory without claiming transport recovery or device reset execution."
+      "why_now": "The live ring slice now keeps a queue marked broken from accepting fresh publish, kick-preparation, poll, or callback re-enable work, which mirrors the bounded virtqueue_is_broken() posture in memory without claiming transport recovery or device reset execution."
     },
     {
       "id": "phase10-mmio-register-window-helper",
@@ -106,11 +112,32 @@
       "why_now": "The ring survey now records that the tiny in-memory MMIO register-window helper already landed, so the queue-wrapper packet can point at that real transport foothold without pretending it is still only the next proposed step."
     },
     {
+      "id": "phase10-mmio-queue-size-helper",
+      "status": "starter_landed",
+      "kind": "transport_wrapper",
+      "zigux_destination": "drivers/virtio/virtio_mmio.zig",
+      "why_now": "The adjacent MMIO helper now stages queue_num_max, queue_num, and queue_ready in memory, which gives the ring survey a real queue-size follow-up foothold without widening into queue discovery or reset flows."
+    },
+    {
+      "id": "phase10-mmio-feature-word-selector-helper",
+      "status": "starter_landed",
+      "kind": "transport_wrapper",
+      "zigux_destination": "drivers/virtio/virtio_mmio.zig",
+      "why_now": "The adjacent MMIO helper now carries one bounded device-feature selector and read window so the ring packet can point at a live transport-backed feature-word foothold instead of an older register-window-only note."
+    },
+    {
+      "id": "phase10-mmio-config-window-helper",
+      "status": "starter_landed",
+      "kind": "transport_wrapper",
+      "zigux_destination": "drivers/virtio/virtio_mmio.zig",
+      "why_now": "The same MMIO helper now stages one small transport-backed config-word window in memory, so the ring survey can acknowledge that broader bounded transport foothold without claiming config writes, lifecycle work, or IRQ parity."
+    },
+    {
       "id": "phase10-mmio-lifecycle-and-irq-paths",
       "status": "blocked_on_risky_transport",
       "kind": "transport_wrapper",
       "zigux_destination": "drivers/virtio/virtio_mmio.zig",
-      "why_now": "With the bounded MMIO register-window helper already landed, interrupt acknowledgement, queue discovery, reset flows, and probe or remove lifecycle behavior remain the still-blocked transport-facing follow-up."
+      "why_now": "Interrupt acknowledgement, queue discovery, reset flows, and probe or remove lifecycle behavior remain too transport-facing to start honestly inside this queue-local packet."
     },
     {
       "id": "phase10-virtio-ring-slice-note",
