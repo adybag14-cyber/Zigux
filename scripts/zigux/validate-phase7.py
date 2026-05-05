@@ -72,6 +72,7 @@ REQUIRED_MARKERS = {
     "zigux/tests/README.md": [
         "zigux/tests/phase7_build.zig",
         "zigux/tests/phase7_string_helpers.zig",
+        "zigux/tests/phase7_string_helpers_sample_boundary.zig",
         "zigux/tests/phase7_cmdline.zig",
         "zigux/tests/phase7_argv_split.zig",
         "zigux/tests/phase7_rbtree.zig",
@@ -295,6 +296,17 @@ def run_self_test() -> None:
         )
         tests_readme_path.write_text(original_tests_readme, encoding="utf-8")
 
+        tests_readme_path.write_text(
+            original_tests_readme.replace("zigux/tests/phase7_string_helpers_sample_boundary.zig", "", 1),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "tests_readme_phase7_string_helpers_sample_boundary_marker",
+            tmp_root,
+            "zigux/tests/README.md: zigux/tests/phase7_string_helpers_sample_boundary.zig",
+        )
+        tests_readme_path.write_text(original_tests_readme, encoding="utf-8")
+
         build_path = tmp_root / "zigux" / "tests" / "phase7_build.zig"
         original_build = build_path.read_text(encoding="utf-8")
         build_path.write_text(
@@ -341,7 +353,7 @@ def run_self_test() -> None:
         )
 
     print("PHASE7_VALIDATOR_SELF_TEST=pass")
-    print("PHASE7_VALIDATOR_SELF_TEST_CASE_COUNT=14")
+    print("PHASE7_VALIDATOR_SELF_TEST_CASE_COUNT=15")
 
 
 def main() -> int:
