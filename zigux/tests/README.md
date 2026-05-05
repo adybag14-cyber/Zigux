@@ -54,6 +54,7 @@ Key entrypoints
 - `zigux/tests/phase14_ring_buffer_survey.zig`
 - `zigux/tests/phase14_skbuff_bridge.zig`
 - `zigux/tests/phase14_workqueue_bridge.zig`
+- `zigux/tests/phase14_end_to_end_smoke_survey.zig`
 - `scripts/zigux/validate-phase3.py`
 - `scripts/zigux/validate-phase4.py`
 - `Documentation/zigux/phase4-validation-matrix.md`
