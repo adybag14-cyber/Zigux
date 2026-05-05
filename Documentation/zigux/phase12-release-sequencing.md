@@ -16,30 +16,41 @@ It is a release-coordination artifact, not a closure claim.
 
 ## Release order
 
-1. Run the dedicated PMO packet guard first.
+1. Run the raw-GitHub coverage checker first.
+   - `python3 scripts/zigux/check-phase12-raw-github-coverage.py --self-test`
+   - `python3 scripts/zigux/check-phase12-raw-github-coverage.py`
+   - This keeps the current two commit-pinned versus two shared-tree-only fallback split fail-closed before broader PMO or replay claims.
+
+2. Run the dedicated PMO packet guard.
    - `python3 scripts/zigux/check-phase12-release-readiness-packet.py --self-test`
    - `python3 scripts/zigux/check-phase12-release-readiness-packet.py`
    - This keeps the active-not-closed posture, approved musl smoke set, mixed fallback split, and review-checklist summary fail-closed before broader replay claims.
 
-2. Run the shared validator path.
+3. Run the shared replay-contract checker.
+   - `python3 scripts/zigux/check-phase12-shared-replay-contract.py --self-test`
+   - `python3 scripts/zigux/check-phase12-shared-replay-contract.py`
+   - This keeps the shared-versus-focused replay boundary and validate-before-replay route aligned before the broader validator runs.
+
+4. Run the shared validator path.
    - `python3 scripts/zigux/validate-phase12.py`
    - `make -C zigux phase12-validate`
    - This is the shared release gate for the four bounded roadmap anchors plus the current cross-smoke and degraded-workflow packet.
 
-3. Reconfirm the non-native smoke packet.
+5. Reconfirm the non-native smoke packet.
    - `python3 scripts/zigux/check-phase12-cross.py --zig <zig-path>`
    - This stays limited to the approved `x86_64-linux-musl`, `aarch64-linux-musl`, and `riscv64-linux-musl` replay set.
 
-4. Reconfirm the focused libbpf-only shard.
+6. Reconfirm the focused libbpf-only shard.
    - `python3 scripts/zigux/check-phase12-libbpf-focused-replay.py`
+   - `zig build --build-file zigux/tests/phase12_libbpf_only_build.zig phase12-libbpf-focused-replay --summary all`
    - `zig build test --build-file zigux/tests/phase12_libbpf_only_build.zig --summary all`
    - This keeps the narrower heavy-helper replay visible before the broader shared Phase 12 replay runs.
 
-5. Run the shared Phase 12 build replay.
+7. Run the shared Phase 12 build replay.
    - `zig build test --build-file zigux/tests/phase12_build.zig --summary all`
    - This is the current tranche-wide Zig replay surface for the bounded `virtio_net`, `nvme_pci`, `virtio_scsi`, and libbpf survey packet.
 
-6. Run the combined Linux-style entrypoint last.
+8. Run the combined Linux-style entrypoint last.
    - `make -C zigux phase12`
    - This should remain the summary entrypoint rather than the only place release coordination is inferred.
 
