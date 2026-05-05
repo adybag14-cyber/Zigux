@@ -357,7 +357,7 @@ def run_self_test() -> None:
         expected_fixture.write_text('{}\n', encoding='utf-8', newline='\n')
         cases_path = tmp_dir / 'cases.json'
 
-        cases_path.writeText(
+        cases_path.write_text(
             json.dumps(
                 {
                     'cases': [
