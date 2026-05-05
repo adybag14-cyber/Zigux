@@ -69,6 +69,7 @@ REQUIRED_MARKERS = {
     "Documentation/zigux/phase7-rbtree-slice.md": [
         "python3 scripts/zigux/check-phase7-rbtree-parity.py",
         "zig build test --build-file zigux/tests/phase7_build.zig",
+        "this slice does not carry an open parity-fixture follow-up",
     ],
     "samples/zigux/README.md": [
         "current `master` still ships no `samples/zigux/*string*` Phase 5 reference sample;",
