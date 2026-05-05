@@ -287,6 +287,14 @@ test "phase 9 runtime trace-events survey keeps the manifest-backed surveyed com
     );
     defer std.testing.allocator.free(module_slice);
 
+    const freeze_map = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "Documentation/zigux/freeze-map.md",
+        std.testing.allocator,
+        .limited(32 * 1024),
+    );
+    defer std.testing.allocator.free(freeze_map);
+
     const loader_source = try std.Io.Dir.cwd().readFileAlloc(
         io_instance.io(),
         "samples/zigux/runtime_trace_events_loader.zig",
@@ -327,6 +335,11 @@ test "phase 9 runtime trace-events survey keeps the manifest-backed surveyed com
     try std.testing.expect(std.mem.indexOf(u8, module_slice, "zigux/tests/phase9_build.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, module_slice, "shared runtime loader substrate can consume the bounded loader-handoff plan") != null);
     try std.testing.expect(std.mem.indexOf(u8, module_slice, "keeping the roadmap-required selftest hook explicit through `provides_selftest_hook=true`") != null);
+
+    try std.testing.expect(std.mem.indexOf(u8, freeze_map, "`kernel/workqueue.c`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, freeze_map, "`kernel/trace/ring_buffer.c`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, freeze_map, "the shared Phase 9 runtime-loader packet stays review-only beside `kernel/workqueue.c` and `kernel/trace/ring_buffer.c`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, freeze_map, "the four `samples/zigux/runtime_*_loader.zig` scaffolds keep the bounded loader handoff explicit without implying scheduler-facing substrate closure or a freeze-map status change") != null);
 
     try std.testing.expect(std.mem.indexOf(u8, loader_source, ".entry_symbol = \"zigux_runtime_trace_events_init\"") != null);
     try std.testing.expect(std.mem.indexOf(u8, loader_source, ".exit_symbol = \"zigux_runtime_trace_events_exit\"") != null);
