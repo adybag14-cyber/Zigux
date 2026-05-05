@@ -21,6 +21,7 @@ REQUIRED_FILES = [
     "Documentation/zigux/artifact-diff.md",
     "Documentation/zigux/phase4-gate-evidence.md",
     "Documentation/zigux/phase4-validation-matrix.md",
+    "Documentation/zigux/review-checklist.md",
     "zigux/Makefile",
     ".github/workflows/zigux-bootstrap.yml",
     "zigux/tests/atomic64_diff.zig",
@@ -93,6 +94,18 @@ REQUIRED_DOC_README_MARKERS = [
     "phase4_runtime_atomic64_diff_survey.zig",
     "intentionally unapproved perf-threshold posture",
 ]
+REQUIRED_REVIEW_CHECKLIST_MARKERS = [
+    "if the change touches the shared Phase 4 validation packet",
+    "Documentation/zigux/phase4-validation-matrix.md",
+    "Documentation/zigux/phase4-gate-evidence.md",
+    "scripts/zigux/check-phase4-gate-evidence.py",
+    "scripts/zigux/validate-phase4.py",
+    "zigux/tests/phase4_runtime_atomic64_diff_manifest.json",
+    "zigux/tests/phase4_runtime_atomic64_diff_survey.zig",
+    "zigux/tests/phase4_bitmap_live_helper_replay.zig",
+    "zig build test --build-file zigux/tests/phase4_build.zig",
+    "intentionally unapproved perf-threshold posture",
+]
 REQUIRED_PHASE4_MATRIX_MARKERS = [
     "atomic64_diff.zig",
     "runtime_atomic64_diff.zig",
@@ -141,6 +154,9 @@ EXACT_ONCE_DOC_README_MARKERS = [
     "runtime_atomic64_diff.zig",
     "phase4_runtime_atomic64_diff_survey.zig",
     "intentionally unapproved perf-threshold posture",
+]
+EXACT_ONCE_REVIEW_CHECKLIST_MARKERS = [
+    "if the change touches the shared Phase 4 validation packet",
 ]
 
 EXPECTED_ARTIFACT_DIFF_CONTRACT_CASES = [
@@ -259,6 +275,9 @@ def validate_root(root: Path) -> list[str]:
     tests_readme = (root / "zigux/tests/README.md").read_text(encoding="utf-8")
     script_readme = (root / "scripts/zigux/README.md").read_text(encoding="utf-8")
     doc_readme = (root / "Documentation/zigux/README.md").read_text(encoding="utf-8")
+    review_checklist = (root / "Documentation/zigux/review-checklist.md").read_text(
+        encoding="utf-8"
+    )
     phase4_matrix = (root / "Documentation/zigux/phase4-validation-matrix.md").read_text(
         encoding="utf-8"
     )
@@ -285,6 +304,9 @@ def validate_root(root: Path) -> list[str]:
     for marker in REQUIRED_DOC_README_MARKERS:
         if marker not in doc_readme:
             missing_markers.append(f"doc_readme:{marker}")
+    for marker in REQUIRED_REVIEW_CHECKLIST_MARKERS:
+        if marker not in review_checklist:
+            missing_markers.append(f"review_checklist:{marker}")
     for marker in REQUIRED_PHASE4_MATRIX_MARKERS:
         if marker not in phase4_matrix:
             missing_markers.append(f"phase4_matrix:{marker}")
@@ -299,6 +321,8 @@ def validate_root(root: Path) -> list[str]:
         _require_exact_once(script_readme, marker, "script_readme", missing_markers)
     for marker in EXACT_ONCE_DOC_README_MARKERS:
         _require_exact_once(doc_readme, marker, "doc_readme", missing_markers)
+    for marker in EXACT_ONCE_REVIEW_CHECKLIST_MARKERS:
+        _require_exact_once(review_checklist, marker, "review_checklist", missing_markers)
 
     return missing_markers
 
@@ -646,6 +670,24 @@ def _write_phase4_fixture_docs(root: Path) -> None:
         ),
     )
     _write(
+        root / "Documentation/zigux/review-checklist.md",
+        "\n".join(
+            [
+                "if the change touches the shared Phase 4 validation packet",
+                "Documentation/zigux/phase4-validation-matrix.md",
+                "Documentation/zigux/phase4-gate-evidence.md",
+                "scripts/zigux/check-phase4-gate-evidence.py",
+                "scripts/zigux/validate-phase4.py",
+                "zigux/tests/phase4_runtime_atomic64_diff_manifest.json",
+                "zigux/tests/phase4_runtime_atomic64_diff_survey.zig",
+                "zigux/tests/phase4_bitmap_live_helper_replay.zig",
+                "zig build test --build-file zigux/tests/phase4_build.zig",
+                "intentionally unapproved perf-threshold posture",
+                "",
+            ]
+        ),
+    )
+    _write(
         root / "scripts/zigux/README.md",
         "\n".join(
             [
@@ -742,6 +784,18 @@ def run_self_test() -> int:
         assert run_phase4_gate_evidence_check(root) == []
         assert run_phase4_gate_evidence_self_test_check(root) == []
         assert run_phase4_runtime_atomic64_packet_check(root) == []
+
+        review_checklist_path = root / "Documentation/zigux/review-checklist.md"
+        _write(
+            review_checklist_path,
+            review_checklist_path.read_text(encoding="utf-8").replace(
+                "intentionally unapproved perf-threshold posture", "removed threshold note", 1
+            ),
+        )
+        assert validate_root(root) == [
+            "review_checklist:intentionally unapproved perf-threshold posture"
+        ]
+        _write_phase4_fixture_docs(root)
 
         manifest = json.loads(
             (root / "zigux/tests/phase4_runtime_atomic64_diff_manifest.json").read_text(
@@ -873,7 +927,7 @@ def main() -> int:
     print(f"PHASE4_REQUIRED_FILE_COUNT={len(REQUIRED_FILES)}")
     print(
         "PHASE4_REQUIRED_MARKER_COUNT="
-        f"{len(REQUIRED_MAKE_MARKERS) + len(REQUIRED_WORKFLOW_MARKERS) + len(REQUIRED_DOC_MARKERS) + len(REQUIRED_PHASE4_GATE_EVIDENCE_MARKERS) + len(REQUIRED_TESTS_README_MARKERS) + len(REQUIRED_SCRIPT_README_MARKERS) + len(REQUIRED_DOC_README_MARKERS) + len(REQUIRED_PHASE4_MATRIX_MARKERS) + len(REQUIRED_PHASE4_BUILD_MARKERS)}"
+        f"{len(REQUIRED_MAKE_MARKERS) + len(REQUIRED_WORKFLOW_MARKERS) + len(REQUIRED_DOC_MARKERS) + len(REQUIRED_PHASE4_GATE_EVIDENCE_MARKERS) + len(REQUIRED_TESTS_README_MARKERS) + len(REQUIRED_SCRIPT_README_MARKERS) + len(REQUIRED_DOC_README_MARKERS) + len(REQUIRED_REVIEW_CHECKLIST_MARKERS) + len(REQUIRED_PHASE4_MATRIX_MARKERS) + len(REQUIRED_PHASE4_BUILD_MARKERS)}"
     )
     return 0
 
