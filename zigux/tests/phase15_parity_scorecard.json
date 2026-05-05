@@ -4,12 +4,15 @@
   "surveyed_commit": "39cdd038909f9834a8702070a697a0bf2111cb66",
   "review_process": {
     "decision_record_required": true,
+    "required_record_field_count": 10,
     "required_record_fields": [
       "decision record ID",
       "lane owner",
       "validation gate set",
       "rollback owner",
       "evidence archive path",
+      "benchmark notes",
+      "replay command",
       "latest blocker disposition",
       "retained discussion state",
       "reopen triggers"
@@ -19,11 +22,11 @@
       "evidence_packet_stale_or_contradictory",
       "ownership_or_validation_changed"
     ],
-    "retirement_rule": "A frozen anchor leaves active discussion only after Architecture Council sign-off, validation evidence links, rollback ownership, evidence archive path, latest blocker disposition, retained discussion state, and reopen triggers are all recorded together in the scorecard.",
+    "retirement_rule": "A frozen anchor leaves active discussion only after Architecture Council sign-off, validation evidence links, rollback ownership, evidence archive path, benchmark-notes status, replay command, latest blocker disposition, retained discussion state, and reopen triggers are all recorded together in the scorecard.",
     "archive_requirements": [
       "linked surveys and blocker follow-ups",
       "benchmark notes",
-      "replay commands"
+      "replay command"
     ]
   },
   "handoff_evidence": {
@@ -292,6 +295,13 @@
       "kind": "handoff",
       "zigux_destination": "Documentation/zigux/phase15-parity-scorecard.md",
       "why_now": "The maintenance-mode handoff now keeps the roadmap source, the bootstrap ledger anchor, and the parked next step visible together so later runs can see why the Phase 15 governance bundle stays landed without reopening deep-core scope."
+    },
+    {
+      "id": "phase15-review-gate-benchmark-replay-field-sync",
+      "status": "starter_landed",
+      "kind": "reporting",
+      "zigux_destination": "zigux/tests/phase15_parity_scorecard.json",
+      "why_now": "The scorecard now machine-counts benchmark notes and replay command as required review-gate fields so the manifest matches the note and checklist instead of leaving those reporting cues implicit."
     },
     {
       "id": "phase15-deep-core-status-change-blocker",
