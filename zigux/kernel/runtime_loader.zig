@@ -20,15 +20,135 @@ pub fn keepsAllocatorInitFlowConsistent(
     return contract.keepsAllocatorInitFlowConsistent(plan, allocator_handoff, init_flow);
 }
 
-test "runtime loader facade keeps the shared loader contract reachable from the Phase 9 kernel surface" {
-    const plan = LoadPlan{
-        .module_name = "runtime_atomic64",
-        .anchor = "lib/atomic64_test.c",
-        .entry_symbol = "zigux_runtime_atomic64_init",
-        .exit_symbol = "zigux_runtime_atomic64_exit",
+test "runtime loader facade keeps the shared loader contract reachable for every shipped runtime pilot handoff" {
+    const plans = [_]LoadPlan{
+        .{
+            .module_name = "runtime_atomic64",
+            .anchor = "lib/atomic64_test.c",
+            .entry_symbol = "zigux_runtime_atomic64_init",
+            .exit_symbol = "zigux_runtime_atomic64_exit",
+            .requires_runtime_substrate = true,
+            .provides_selftest_hook = true,
+            .allocator_handoff = .caller_provided,
+            .init_flow = .{
+                .handoff_stage = .selftest_complete,
+                .init_runs = 1,
+                .selftest_runs = 1,
+                .exit_runs = 0,
+            },
+        },
+        .{
+            .module_name = "runtime_bitmap",
+            .anchor = "lib/test_bitmap.c",
+            .entry_symbol = "zigux_runtime_bitmap_init",
+            .exit_symbol = "zigux_runtime_bitmap_exit",
+            .requires_runtime_substrate = true,
+            .provides_selftest_hook = true,
+            .allocator_handoff = .arena,
+            .init_flow = .{
+                .handoff_stage = .initialized,
+                .init_runs = 1,
+                .selftest_runs = 0,
+                .exit_runs = 0,
+            },
+        },
+        .{
+            .module_name = "runtime_trace_events",
+            .anchor = "samples/trace_events/trace-events-sample.c",
+            .entry_symbol = "zigux_runtime_trace_events_init",
+            .exit_symbol = "zigux_runtime_trace_events_exit",
+            .requires_runtime_substrate = true,
+            .provides_selftest_hook = true,
+            .allocator_handoff = .caller_provided,
+            .init_flow = .{
+                .handoff_stage = .selftest_complete,
+                .init_runs = 1,
+                .selftest_runs = 1,
+                .exit_runs = 0,
+            },
+        },
+        .{
+            .module_name = "runtime_kretprobe",
+            .anchor = "samples/kprobes/kretprobe_example.c",
+            .entry_symbol = "zigux_runtime_kretprobe_init",
+            .exit_symbol = "zigux_runtime_kretprobe_exit",
+            .requires_runtime_substrate = true,
+            .provides_selftest_hook = true,
+            .allocator_handoff = .kernel_heap,
+            .init_flow = .{
+                .handoff_stage = .selftest_complete,
+                .init_runs = 1,
+                .selftest_runs = 1,
+                .exit_runs = 0,
+            },
+        },
+    };
+
+    for (plans) |plan| {
+        var request = try prepareRequest(plan);
+        try std.testing.expectEqual(RequestState.prepared, request.state);
+
+        const pending_plan = try request.requestRuntimeLoad();
+        try std.testing.expectEqual(RequestState.waiting_on_runtime_substrate, request.state);
+        try std.testing.expectEqualStrings(plan.module_name, pending_plan.module_name);
+        try std.testing.expectEqualStrings(plan.anchor, pending_plan.anchor);
+        try std.testing.expectEqualStrings(plan.entry_symbol, pending_plan.entry_symbol);
+        try std.testing.expectEqualStrings(plan.exit_symbol, pending_plan.exit_symbol);
+        try std.testing.expectEqual(plan.allocator_handoff, pending_plan.allocator_handoff);
+        try std.testing.expect(keepsAllocatorInitFlowConsistent(
+            pending_plan,
+            plan.allocator_handoff,
+            plan.init_flow,
+        ));
+
+        try request.releaseWithoutSubstrate();
+        try std.testing.expectEqual(RequestState.released_without_substrate, request.state);
+    }
+}
+
+test "runtime loader facade preserves the shared loader lifecycle guards" {
+    const invalid_init = LoadPlan{
+        .module_name = "runtime_trace_events",
+        .anchor = "samples/trace_events/trace-events-sample.c",
+        .entry_symbol = "zigux_runtime_trace_events_init",
+        .exit_symbol = "zigux_runtime_trace_events_exit",
         .requires_runtime_substrate = true,
         .provides_selftest_hook = true,
         .allocator_handoff = .caller_provided,
+        .init_flow = .{
+            .handoff_stage = .selftest_complete,
+            .init_runs = 0,
+            .selftest_runs = 1,
+            .exit_runs = 0,
+        },
+    };
+    try std.testing.expectError(error.InvalidInitFlow, prepareRequest(invalid_init));
+
+    const no_loader_needed = LoadPlan{
+        .module_name = "runtime_bitmap",
+        .anchor = "lib/test_bitmap.c",
+        .entry_symbol = "zigux_runtime_bitmap_init",
+        .exit_symbol = "zigux_runtime_bitmap_exit",
+        .requires_runtime_substrate = false,
+        .provides_selftest_hook = true,
+        .allocator_handoff = .arena,
+        .init_flow = .{
+            .handoff_stage = .initialized,
+            .init_runs = 1,
+            .selftest_runs = 0,
+            .exit_runs = 0,
+        },
+    };
+    try std.testing.expectError(error.LoaderNotRequired, prepareRequest(no_loader_needed));
+
+    const stable_plan = LoadPlan{
+        .module_name = "runtime_kretprobe",
+        .anchor = "samples/kprobes/kretprobe_example.c",
+        .entry_symbol = "zigux_runtime_kretprobe_init",
+        .exit_symbol = "zigux_runtime_kretprobe_exit",
+        .requires_runtime_substrate = true,
+        .provides_selftest_hook = true,
+        .allocator_handoff = .kernel_heap,
         .init_flow = .{
             .handoff_stage = .selftest_complete,
             .init_runs = 1,
@@ -37,23 +157,13 @@ test "runtime loader facade keeps the shared loader contract reachable from the 
         },
     };
 
-    var request = try prepareRequest(plan);
-    try std.testing.expectEqual(RequestState.prepared, request.state);
+    var request = try prepareRequest(stable_plan);
+    try std.testing.expectError(error.InvalidLoaderState, request.releaseWithoutSubstrate());
 
-    const pending_plan = try request.requestRuntimeLoad();
-    try std.testing.expectEqual(RequestState.waiting_on_runtime_substrate, request.state);
-    try std.testing.expectEqualStrings("runtime_atomic64", pending_plan.module_name);
-    try std.testing.expect(keepsAllocatorInitFlowConsistent(
-        pending_plan,
-        .caller_provided,
-        .{
-            .handoff_stage = .selftest_complete,
-            .init_runs = 1,
-            .selftest_runs = 1,
-            .exit_runs = 0,
-        },
-    ));
+    _ = try request.requestRuntimeLoad();
+    try std.testing.expectError(error.InvalidLoaderState, request.requestRuntimeLoad());
 
     try request.releaseWithoutSubstrate();
     try std.testing.expectEqual(RequestState.released_without_substrate, request.state);
+    try std.testing.expectError(error.InvalidLoaderState, request.releaseWithoutSubstrate());
 }
