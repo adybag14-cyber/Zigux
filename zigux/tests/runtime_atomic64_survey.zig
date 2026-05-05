@@ -128,9 +128,27 @@ test "phase 9 runtime atomic64 survey manifest records the landed loader scaffol
     try std.testing.expect(saw_live_loader_blocker);
 }
 
-test "phase 9 runtime atomic64 survey note keeps the loader scaffold and blocker explicit" {
+test "phase 9 runtime atomic64 survey note keeps the manifest-backed surveyed commit, loader scaffold, and blocker explicit" {
     var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
     defer io_instance.deinit();
+
+    const manifest_json = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "zigux/tests/runtime_atomic64_manifest.json",
+        std.testing.allocator,
+        .limited(32 * 1024),
+    );
+    defer std.testing.allocator.free(manifest_json);
+
+    const parsed = try std.json.parseFromSlice(Manifest, std.testing.allocator, manifest_json, .{});
+    defer parsed.deinit();
+
+    const surveyed_commit_marker = try std.fmt.allocPrint(
+        std.testing.allocator,
+        "`PHASE9_SURVEYED_COMMIT={s}`",
+        .{parsed.value.surveyed_commit},
+    );
+    defer std.testing.allocator.free(surveyed_commit_marker);
 
     const note = try std.Io.Dir.cwd().readFileAlloc(
         io_instance.io(),
@@ -140,6 +158,7 @@ test "phase 9 runtime atomic64 survey note keeps the loader scaffold and blocker
     );
     defer std.testing.allocator.free(note);
 
+    try std.testing.expectEqual(@as(usize, 1), std.mem.count(u8, note, surveyed_commit_marker));
     try std.testing.expect(std.mem.indexOf(u8, note, "samples/zigux/runtime_atomic64_loader.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, note, "zigux/kernel/runtime_loader.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, note, "bounded sample-side loader scaffold") != null);
