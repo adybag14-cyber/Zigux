@@ -124,6 +124,7 @@ test "phase 15 architecture council review-process doc and manifest stay aligned
     try expectContains(survey_doc, "`zigux/tests/phase15_architecture_council_review_process_manifest.json`");
     try expectContains(survey_doc, "`zigux/tests/phase15_architecture_council_review_process.zig`");
     try expectContains(survey_doc, "`zigux/tests/phase15_build.zig`");
+    try expectContains(survey_doc, "`make -C zigux phase15-validate`");
     try expectContains(
         survey_doc,
         "no Architecture Council approval is currently recorded for a freeze-map status change",
@@ -219,6 +220,7 @@ test "phase 15 architecture council review-process doc and manifest stay aligned
     try expectContains(manifest_doc, "zigux/tests/phase15_build.zig");
     try expectContains(manifest_doc, "\"current_bounded_lane\"");
     try expectContains(manifest_doc, "scripts-root validator path");
+    try expectContains(manifest_doc, "make -C zigux phase15-validate");
     try expectContains(manifest_doc, "tests-root guidance path");
     try expectContains(manifest_doc, "dedicated handoff-checker route");
 }
