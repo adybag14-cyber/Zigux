@@ -26,6 +26,9 @@ PHASE2_TOOLCHAIN_PIN_SCOPE_REQUIRED_SOURCE_MARKERS = [
     'PHASE2_TOOLCHAIN_PIN_SCOPE_SELF_TEST=python3 scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test',
     'PHASE2_TOOLCHAIN_PIN_SCOPE_GATE=python3 scripts/zigux/check-phase2-toolchain-pin-scope.py',
 ]
+PHASE2_TESTS_README_ALIGNMENT_REQUIRED_SOURCE_MARKERS = [
+    'PHASE2_TESTS_README_ALIGNMENT_GATE=python3 scripts/zigux/check-phase2-tests-readme-alignment.py',
+]
 PHASE2_TOOLCHAIN_PIN_SCOPE_MAKEFILE_RUN_COUNTS = {
     'scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test': 1,
     'scripts/zigux/check-phase2-toolchain-pin-scope.py': 1,
@@ -172,9 +175,11 @@ required_closure_markers = [
 ]
 required_closure_markers.extend(PHASE2_CROSS_ALIGNMENT_REQUIRED_SOURCE_MARKERS)
 required_closure_markers.extend(PHASE2_TOOLCHAIN_PIN_SCOPE_REQUIRED_SOURCE_MARKERS)
+required_closure_markers.extend(PHASE2_TESTS_README_ALIGNMENT_REQUIRED_SOURCE_MARKERS)
 required_workflow_markers = [
     'python3 scripts/zigux/check-genksyms-bridge.py',
     'python3 scripts/zigux/check-kconfig-bridge.py',
+    'python3 scripts/zigux/check-phase2-tests-readme-alignment.py',
     'python3 scripts/zigux/check-phase2-cross.py --target',
     'python3 scripts/zigux/validate-phase2-closure.py',
     'zig test scripts/zigux/genksyms.zig',
@@ -206,6 +211,7 @@ required_makefile_markers = [
     'phase2-validate:',
     'phase2-kconfig:',
     'phase2-cross:',
+    'check-phase2-tests-readme-alignment.py',
     'check-phase2-cross-selftest-alignment.py --self-test',
     'check-phase2-cross-selftest-alignment.py',
     'check-phase2-toolchain-pin-scope.py --self-test',
