@@ -91,6 +91,7 @@ test "phase 6 hexdump module imports cleanly" {
 }
 
 test "phase 6 hexdump serialized linux-derived vectors stay in sync" {
+    try std.testing.expectEqual(@as(usize, 10), fixtures.parity_cases.len);
     for (fixtures.parity_cases) |case| {
         try assertFixtureParityCase(case);
     }
@@ -103,6 +104,7 @@ test "phase 6 hexdump serialized overflow vectors stay in sync" {
 }
 
 test "phase 6 hexdump serialized required-length vectors stay in sync" {
+    try std.testing.expectEqual(@as(usize, 9), fixtures.length_cases.len);
     for (fixtures.length_cases) |case| {
         try assertFixtureLengthCase(case);
     }
