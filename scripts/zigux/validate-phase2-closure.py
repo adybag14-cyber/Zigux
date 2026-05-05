@@ -37,6 +37,7 @@ PHASE2_MAKEFILE_RUN_COUNTS = {
 }
 PHASE2_WORKFLOW_RUN_COUNTS = {
     'python3 scripts/zigux/check-phase2-tests-readme-alignment.py': 1,
+    'python3 scripts/zigux/check-phase2-cross.py --target ${{ matrix.zig_target }}': 1,
     'python3 scripts/zigux/check-phase2-cross-selftest-alignment.py --self-test': 1,
     'python3 scripts/zigux/check-phase2-cross-selftest-alignment.py': 1,
     'python3 scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test': 1,
@@ -52,6 +53,7 @@ def run_self_test() -> int:
     ])
     workflow_ok = '\n'.join([
         'run: python3 scripts/zigux/check-phase2-tests-readme-alignment.py',
+        'run: python3 scripts/zigux/check-phase2-cross.py --target ${{ matrix.zig_target }}',
         'run: python3 scripts/zigux/check-phase2-cross-selftest-alignment.py --self-test',
         'run: python3 scripts/zigux/check-phase2-cross-selftest-alignment.py',
         'run: python3 scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test',
@@ -74,6 +76,14 @@ def run_self_test() -> int:
                 workflow_ok + 'run: python3 scripts/zigux/check-phase2-tests-readme-alignment.py\n'
             ),
             ['workflow_exact_run:python3 scripts/zigux/check-phase2-tests-readme-alignment.py:count=2:expected=1'],
+        ),
+        (
+            'workflow_duplicate_phase2_cross_matrix_gate',
+            validate_exact_workflow_runs(
+                workflow_ok
+                + 'run: python3 scripts/zigux/check-phase2-cross.py --target ${{ matrix.zig_target }}\n'
+            ),
+            ['workflow_exact_run:python3 scripts/zigux/check-phase2-cross.py --target ${{ matrix.zig_target }}:count=2:expected=1'],
         ),
         (
             'workflow_duplicate_cross_alignment_self_test',
