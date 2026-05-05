@@ -11,17 +11,17 @@ This note records one exact readback snapshot for the current Phase 4 rollback-o
 - `PHASE4_ARTIFACT_DIFF_DOC_BLOB_SHA=417421e73aafe2f8e443e8260913a3b4f7cf551a`
 - `PHASE4_ARTIFACT_DIFF_CONTRACT_CHECKER_BLOB_SHA=31cf8c2b2c8da86e823fbc8c8a39fe61c530312f`
 - `PHASE4_BUILD_BLOB_SHA=33d3ed8db4e40283212daa115a46e989df28ce6f`
-- `PHASE4_MAKEFILE_BLOB_SHA=a04edcc9becb87b4e692b8454e537be554e9cb98`
-- `PHASE4_WORKFLOW_BLOB_SHA=b390d5a5886f4861a0be1987d4c8a66570809841`
-- `PHASE4_DOC_README_BLOB_SHA=7b55d653cfefb334875790de9b173f1fa04060dd`
-- `PHASE4_SCRIPT_README_BLOB_SHA=756fb8088cd2f4ba1a477c2b0442fe43570b5a24`
-- `PHASE4_TESTS_README_BLOB_SHA=3105349ef4eb293575e51891e658e8d51e766895`
+- `PHASE4_MAKEFILE_BLOB_SHA=c7a332fdb1aef3bd5a1939f7feee29a19c63ce06`
+- `PHASE4_WORKFLOW_BLOB_SHA=8a531a604e5bc5a447570af566dcb6e0946970b1`
+- `PHASE4_DOC_README_BLOB_SHA=bb2b59731722971db631172e1a51127e55e3e627`
+- `PHASE4_SCRIPT_README_BLOB_SHA=94cef04987602b6110e0df5073183e64f27a92f5`
+- `PHASE4_TESTS_README_BLOB_SHA=9f335f8d8ec155d7faf7b47f378786ce7b543105`
 - `PHASE4_ATOMIC64_DIFF_BLOB_SHA=2b98cc492f6a505e076632106187228e05e4ee36`
 - `PHASE4_RUNTIME_ATOMIC64_DIFF_BLOB_SHA=6dd5b8e0a84fe2f775011d552b629b20da222166`
 - `PHASE4_BITMAP_DIFF_BLOB_SHA=9d35b967233469b4a13975a67191483e89c75288`
 - `PHASE4_BITMAP_LIVE_HELPER_REPLAY_BLOB_SHA=75d26e94d322da8b9c14e5a9e53cded8576432d3`
-- `PHASE4_RUNTIME_ATOMIC64_MANIFEST_BLOB_SHA=9babcbdae2a73da3368087648f3d752d6da85b9a`
-- `PHASE4_RUNTIME_ATOMIC64_SURVEY_BLOB_SHA=2b35d4d9d6c251d9d7bc93f853e07ae7feb1d4ae`
+- `PHASE4_RUNTIME_ATOMIC64_MANIFEST_BLOB_SHA=85ba97c875343f3155d19bb74af8b15729ddb39a`
+- `PHASE4_RUNTIME_ATOMIC64_SURVEY_BLOB_SHA=0b312c416aaf5ae471c98e519e3391fd777e3e0b`
 - `PHASE4_SHIPPED_GATE_BLOB_TARGET_COUNT=16`
 - `PHASE4_SEPARATE_GATE_EVIDENCE_CHECKER_PRESENT=true`
 - `PHASE4_RUNTIME_ATOMIC64_SURVEY_PACKET_PRESENT=true`
@@ -33,7 +33,7 @@ This note records one exact readback snapshot for the current Phase 4 rollback-o
 - `Documentation/zigux/artifact-diff.md`, `Documentation/zigux/README.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md` now all name the same shipped Phase 4 rollback-readiness packet surfaces that the current validator and shared build route still own on `master`.
 - `scripts/zigux/check-phase4-gate-evidence.py` is present, and `Documentation/zigux/phase4-validation-matrix.md` now names it as the dedicated Phase 4 rollback-ownership gate while this note exact-pins the same current narrower packet: the validator, artifact-diff contract surfaces, the shared build entrypoint, the three root README summaries, and the manifest-backed runtime atomic64 survey pair.
 - `zigux/tests/phase4_runtime_atomic64_diff_manifest.json` and `zigux/tests/phase4_runtime_atomic64_diff_survey.zig` remain the manifest-backed runtime atomic64 handoff pair, and the shared build still exposes `phase4-runtime-atomic64-diff-survey-tests` and `phase4-bitmap-live-helper-replay-tests` beside the synthetic rollback gates.
-- The exact-readback set is now current for the shipped validator-backed packet, and the manifest-backed runtime atomic64 survey pair now pins the same current `validate-phase4.py` and `phase4-validation-matrix.md` blobs that this note names.
+- The exact-readback set is now current for the shipped validator-backed packet, and the manifest-backed runtime atomic64 survey pair now pins the same current `validate-phase4.py`, `phase4-validation-matrix.md`, and `phase9_build.zig` blobs that this note names.
 - Current `master` still treats the roadmap-backed sample follow-ups as open gaps rather than shipped gate-evidence targets: `samples/zigux/kprobe_example.zig` remains absent and `samples/zigux/test_fsmount.zig` remains absent.
 
 ## Current Conclusion
