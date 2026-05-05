@@ -7,6 +7,9 @@ import sys
 
 
 ROOT = Path(__file__).resolve().parents[2]
+GENKSYMS_CASES = (
+    ROOT / 'zigux' / 'tests' / 'fixtures' / 'genksyms_bridge' / 'cases.json'
+)
 
 required_files = [
     ROOT / 'Documentation' / 'zigux' / 'phase2-closure.md',
@@ -18,11 +21,7 @@ required_files = [
     ROOT / 'scripts' / 'zigux' / 'kconfig' / 'conf_bridge.zig',
     ROOT / 'scripts' / 'zigux' / 'kconfig' / 'confdata_bridge.zig',
     ROOT / 'zigux' / 'Makefile',
-    ROOT / 'zigux' / 'tests' / 'fixtures' / 'genksyms_bridge' / 'cases.json',
-    ROOT / 'zigux' / 'tests' / 'fixtures' / 'genksyms_bridge' / 'minimal_expected.json',
-    ROOT / 'zigux' / 'tests' / 'fixtures' / 'genksyms_bridge' / 'debug_reference_types_expected.json',
-    ROOT / 'zigux' / 'tests' / 'fixtures' / 'genksyms_bridge' / 'long_options_expected.json',
-    ROOT / 'zigux' / 'tests' / 'fixtures' / 'genksyms_bridge' / 'quiet_overrides_warning_expected.json',
+    GENKSYMS_CASES,
     ROOT / 'zigux' / 'tests' / 'fixtures' / 'kconfig_bridge' / 'cases.json',
     ROOT / 'zigux' / 'tests' / 'fixtures' / 'kconfig_bridge' / 'alldefconfig_expected.json',
     ROOT / 'zigux' / 'tests' / 'fixtures' / 'kconfig_bridge' / 'olddefconfig_expected.json',
@@ -33,11 +32,75 @@ required_files = [
     ROOT / 'zigux' / 'tests' / 'fixtures' / 'phase2_cross_targets.json',
 ]
 
+
+def load_json_object(path: Path, *, label: str) -> dict[str, object]:
+    payload = json.loads(path.read_text(encoding='utf-8'))
+    if not isinstance(payload, dict):
+        raise SystemExit(f'{label}:expected_object')
+    return payload
+
+
+def collect_genksyms_expected_files(cases_payload: dict[str, object]) -> tuple[list[Path], list[str]]:
+    issues: list[str] = []
+    cases = cases_payload.get('cases')
+    if not isinstance(cases, list):
+        return [], ['genksyms_cases:cases:expected_list']
+    if not cases:
+        return [], ['genksyms_cases:cases:empty']
+
+    expected_files: list[Path] = []
+    seen_expected: set[str] = set()
+    for index, case in enumerate(cases):
+        if not isinstance(case, dict):
+            issues.append(f'genksyms_cases:cases[{index}]:expected_object')
+            continue
+
+        name = case.get('name')
+        if not isinstance(name, str) or not name:
+            issues.append(f'genksyms_cases:cases[{index}]:name:expected_nonempty_string')
+            continue
+
+        expected = case.get('expected')
+        if not isinstance(expected, str) or not expected:
+            issues.append(f'genksyms_cases:{name}:expected:expected_nonempty_string')
+            continue
+        if expected in seen_expected:
+            issues.append(f'genksyms_cases:{name}:expected:duplicate_reference:{expected}')
+            continue
+        seen_expected.add(expected)
+        expected_files.append(GENKSYMS_CASES.parent / expected)
+
+    return expected_files, issues
+
+
 missing = [str(path.relative_to(ROOT)) for path in required_files if not path.exists()]
 if missing:
     print('PHASE2_CLOSURE_VALIDATION=fail')
     print('MISSING_PHASE2_CLOSURE_FILES_START')
     for item in missing:
+        print(item)
+    print('MISSING_PHASE2_CLOSURE_FILES_END')
+    sys.exit(1)
+
+genksyms_cases_payload = load_json_object(GENKSYMS_CASES, label='genksyms_cases')
+genksyms_expected_files, genksyms_case_issues = collect_genksyms_expected_files(
+    genksyms_cases_payload
+)
+if genksyms_case_issues:
+    print('PHASE2_CLOSURE_VALIDATION=fail')
+    print('MISSING_PHASE2_CLOSURE_MARKERS_START')
+    for item in genksyms_case_issues:
+        print(item)
+    print('MISSING_PHASE2_CLOSURE_MARKERS_END')
+    sys.exit(1)
+
+missing_genksyms_expected = [
+    str(path.relative_to(ROOT)) for path in genksyms_expected_files if not path.exists()
+]
+if missing_genksyms_expected:
+    print('PHASE2_CLOSURE_VALIDATION=fail')
+    print('MISSING_PHASE2_CLOSURE_FILES_START')
+    for item in missing_genksyms_expected:
         print(item)
     print('MISSING_PHASE2_CLOSURE_FILES_END')
     sys.exit(1)
@@ -149,5 +212,5 @@ if missing_markers:
     sys.exit(1)
 
 print('PHASE2_CLOSURE_VALIDATION=pass')
-print(f'PHASE2_CLOSURE_REQUIRED_FILE_COUNT={len(required_files)}')
+print(f'PHASE2_CLOSURE_REQUIRED_FILE_COUNT={len(required_files) + len(genksyms_expected_files)}')
 print(f'PHASE2_CLOSURE_REQUIRED_MARKER_COUNT={len(required_closure_markers) + len(required_workflow_markers) + len(required_ledger_markers) + len(required_readme_markers) + len(required_doc_markers) + len(required_makefile_markers)}')
