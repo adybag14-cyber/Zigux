@@ -174,7 +174,7 @@ Phase 14 notes
 - `zig build phase14-smoke --build-file zigux/tests/phase14_build.zig --summary all`
 - `make -C zigux phase14-test`
 - `zig build test --build-file zigux/tests/phase14_build.zig --summary all`
-- `make -C zigux phase14` now keep the current workqueue, ring-buffer, and skbuff-adjacent smoke packet reviewable through the shipped smoke-only and full replay routes instead of implying a removed validator stack or a direct deep-core port commitment.
+- `make -C zigux phase14` now keep the current workqueue, ring-buffer, rcu-tree, and skbuff-adjacent smoke packet reviewable through the shipped smoke-only and full replay routes instead of implying a removed validator stack or a direct deep-core port commitment.
 - the current bounded Phase 14 decision is not whether `kernel/rcu/tree.c`, `net/core/skbuff.c`, or other freeze-map anchors are ready for a direct Zigux port; the active packet stays parked on shared smoke and release-boundary evidence, so the next follow-up should remain one tiny survey, manifest, docs-root, or tests-root truthfulness repair inside that study-only lane.
 
 Phase 15 notes
