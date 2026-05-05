@@ -27,6 +27,7 @@ pub const SelftestSummary = struct {
     anchor: []const u8,
     operation_families: []const OperationFamily,
     checked_returning_paths: bool,
+    checked_bitwise_paths: bool,
     checked_guard_paths: bool,
 };
 
@@ -81,6 +82,27 @@ pub const RuntimeAtomic64Sample = struct {
     pub fn swapCounter(self: *Self, next: i64) !i64 {
         return switch (self.stage()) {
             .initialized, .selftest_complete => atomic.exchange(i64, &self.counter, next, .seq_cst),
+            else => error.InvalidLifecycleTransition,
+        };
+    }
+
+    pub fn andCounter(self: *Self, mask: i64) !i64 {
+        return switch (self.stage()) {
+            .initialized, .selftest_complete => atomic.fetchAnd(i64, &self.counter, mask, .seq_cst),
+            else => error.InvalidLifecycleTransition,
+        };
+    }
+
+    pub fn orCounter(self: *Self, mask: i64) !i64 {
+        return switch (self.stage()) {
+            .initialized, .selftest_complete => atomic.fetchOr(i64, &self.counter, mask, .seq_cst),
+            else => error.InvalidLifecycleTransition,
+        };
+    }
+
+    pub fn xorCounter(self: *Self, mask: i64) !i64 {
+        return switch (self.stage()) {
+            .initialized, .selftest_complete => atomic.fetchXor(i64, &self.counter, mask, .seq_cst),
             else => error.InvalidLifecycleTransition,
         };
     }
@@ -150,6 +172,7 @@ pub const RuntimeAtomic64Sample = struct {
                 .guard_ops,
             },
             .checked_returning_paths = true,
+            .checked_bitwise_paths = true,
             .checked_guard_paths = true,
         };
     }
