@@ -187,31 +187,34 @@ def validate(root: Path) -> list[str]:
 
     handoff = manifest.get("handoff_evidence")
     if handoff is None:
+        failures.append("manifest:handoff_evidence:missing")
         return failures
     if not isinstance(handoff, dict):
         failures.append("manifest:handoff_evidence:not_object")
         return failures
 
     current_repo_handoff = handoff.get("current_repo_handoff")
-    if current_repo_handoff is not None:
-        if not isinstance(current_repo_handoff, str):
-            failures.append("manifest:handoff_evidence.current_repo_handoff:not_string")
-        else:
-            expect_exact_once(
-                current_repo_handoff,
-                SELF_REFERENCE_MARKER,
-                "manifest_self_reference",
-                failures,
-            )
+    if current_repo_handoff is None:
+        failures.append("manifest:handoff_evidence.current_repo_handoff:missing")
+    elif not isinstance(current_repo_handoff, str):
+        failures.append("manifest:handoff_evidence.current_repo_handoff:not_string")
+    else:
+        expect_exact_once(
+            current_repo_handoff,
+            SELF_REFERENCE_MARKER,
+            "manifest_self_reference",
+            failures,
+        )
 
     current_bounded_lane = handoff.get("current_bounded_lane")
-    if current_bounded_lane is not None:
-        if not isinstance(current_bounded_lane, str):
-            failures.append("manifest:handoff_evidence.current_bounded_lane:not_string")
-        else:
-            for marker in OPTIONAL_LANE_ROUTE_MARKERS:
-                if marker not in current_bounded_lane:
-                    failures.append(f"manifest_lane:{marker}")
+    if current_bounded_lane is None:
+        failures.append("manifest:handoff_evidence.current_bounded_lane:missing")
+    elif not isinstance(current_bounded_lane, str):
+        failures.append("manifest:handoff_evidence.current_bounded_lane:not_string")
+    else:
+        for marker in OPTIONAL_LANE_ROUTE_MARKERS:
+            if marker not in current_bounded_lane:
+                failures.append(f"manifest_lane:{marker}")
 
     return failures
 
@@ -359,6 +362,16 @@ def run_self_test() -> int:
         write_fixture_tree(tmp_root)
         manifest_path = tmp_root / MANIFEST_PATH
         manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        del manifest["handoff_evidence"]
+        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+        expect_failure(
+            tmp_root,
+            "manifest:handoff_evidence:missing",
+            "missing_manifest_handoff_block",
+        )
+
+        write_fixture_tree(tmp_root)
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
         manifest["handoff_evidence"]["current_repo_handoff"] = manifest["handoff_evidence"][
             "current_repo_handoff"
         ].replace(SELF_REFERENCE_MARKER, "this review-process note", 1)
@@ -456,7 +469,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE15_REVIEW_PROCESS_HANDOFF_SELF_TEST=pass")
-    print("PHASE15_REVIEW_PROCESS_HANDOFF_SELF_TEST_CASE_COUNT=11")
+    print("PHASE15_REVIEW_PROCESS_HANDOFF_SELF_TEST_CASE_COUNT=12")
     return 0
 
 
