@@ -21,6 +21,24 @@ PHASE9_BUILD_PATH = "zigux/tests/phase9_build.zig"
 RUNTIME_LOADER_PATH = "zigux/kernel/runtime_loader.zig"
 RUNTIME_LOADER_CONTRACT_PATH = "zigux/kernel/runtime_loader_contract.zig"
 
+REQUIRED_PHASE9_NOTE_PATHS = [
+    "Documentation/zigux/phase9-runtime-atomic64-module-slice.md",
+    "Documentation/zigux/phase9-runtime-atomic64-survey.md",
+    "Documentation/zigux/phase9-runtime-bitmap-module-slice.md",
+    "Documentation/zigux/phase9-runtime-bitmap-survey.md",
+    "Documentation/zigux/phase9-runtime-kretprobe-module-slice.md",
+    "Documentation/zigux/phase9-runtime-kretprobe-survey.md",
+    "Documentation/zigux/phase9-runtime-trace-events-module-slice.md",
+    "Documentation/zigux/phase9-runtime-trace-events-survey.md",
+]
+
+REQUIRED_PHASE9_LOADER_SCAFFOLD_PATHS = [
+    "samples/zigux/runtime_atomic64_loader.zig",
+    "samples/zigux/runtime_bitmap_loader.zig",
+    "samples/zigux/runtime_trace_events_loader.zig",
+    "samples/zigux/runtime_kretprobe_loader.zig",
+]
+
 REQUIRED_DOCS_README_MARKERS = [
     "Phase 9 notes",
     "`Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, `zigux/kernel/runtime_loader.zig`, `zigux/kernel/runtime_loader_contract.zig`, `zigux/tests/runtime_loader_allocator_init_flow.zig`, `zigux/tests/phase9_build.zig`, `zigux/Makefile`, and the four `samples/zigux/runtime_*_loader.zig` scaffolds now keep the current runtime atomic64, bitmap, trace-events, and kretprobe pilot bundle reviewable through one shared runtime-loader lane together with the shipped loader facade, contract, shared build, and Linux-style `make -C zigux phase9` replay route instead of widening into ad hoc per-slice checks or overstating removed loader-gap or dedicated-validator surfaces on `master`.",
@@ -89,6 +107,8 @@ def validate(root: Path) -> list[str]:
         PHASE9_BUILD_PATH,
         RUNTIME_LOADER_PATH,
         RUNTIME_LOADER_CONTRACT_PATH,
+        *REQUIRED_PHASE9_NOTE_PATHS,
+        *REQUIRED_PHASE9_LOADER_SCAFFOLD_PATHS,
     ]:
         if not (root / rel_path).exists():
             failures.append(f"missing_file:{rel_path}")
@@ -194,6 +214,10 @@ phase9: phase9-test
     write_text(root / PHASE9_BUILD_PATH, "const std = @import(\"std\");\n")
     write_text(root / RUNTIME_LOADER_PATH, "pub fn placeholder() void {}\n")
     write_text(root / RUNTIME_LOADER_CONTRACT_PATH, "pub fn placeholder() void {}\n")
+    for rel_path in REQUIRED_PHASE9_NOTE_PATHS:
+        write_text(root / rel_path, "# Phase 9 note\n")
+    for rel_path in REQUIRED_PHASE9_LOADER_SCAFFOLD_PATHS:
+        write_text(root / rel_path, "pub fn placeholder() void {}\n")
 
 
 def expect_failure(root: Path, expected: str, label: str) -> None:
@@ -222,6 +246,7 @@ def run_self_test() -> int:
         write_fixture_tree(root)
         makefile_path = root / MAKEFILE_PATH
         makefile = makefile_path.read_text(encoding="utf-8")
+        makefile_path.writeText = None
         makefile_path.write_text(
             makefile.replace(
                 "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase9-build-only-surface.py\n",
@@ -259,8 +284,24 @@ def run_self_test() -> int:
             "unexpected_phase9_validate_target",
         )
 
+        write_fixture_tree(root)
+        (root / "samples/zigux/runtime_trace_events_loader.zig").unlink()
+        expect_failure(
+            root,
+            "missing_file:samples/zigux/runtime_trace_events_loader.zig",
+            "missing_trace_events_loader_scaffold",
+        )
+
+        write_fixture_tree(root)
+        (root / "Documentation/zigux/phase9-runtime-trace-events-module-slice.md").unlink()
+        expect_failure(
+            root,
+            "missing_file:Documentation/zigux/phase9-runtime-trace-events-module-slice.md",
+            "missing_trace_events_module_slice",
+        )
+
     print("PHASE9_BUILD_ONLY_SURFACE_SELF_TEST=pass")
-    print("PHASE9_BUILD_ONLY_SURFACE_SELF_TEST_CASE_COUNT=4")
+    print("PHASE9_BUILD_ONLY_SURFACE_SELF_TEST_CASE_COUNT=6")
     return 0
 
 
