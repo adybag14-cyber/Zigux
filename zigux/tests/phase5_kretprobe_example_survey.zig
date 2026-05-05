@@ -161,7 +161,7 @@ test "phase 5 kretprobe survey packet stays repo-local and keeps shared review s
         "## Latest verification snapshot",
         "zig fmt --check",
         "zig test samples/zigux/kretprobe_example.zig",
-        "zig build test --build-file zigux/tests/build.zig --summary all",
+        "zig build test --build-file zigux/tests/phase5_build.zig --summary all",
         "passed `3/3` sample self-checks",
         "passed `5/5` build steps and `7/7` tests",
         "symbol_name = kernel_clone",
