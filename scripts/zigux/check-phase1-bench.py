@@ -12,6 +12,24 @@ import sys
 
 ROOT = Path(__file__).resolve().parents[2]
 EXPECTATIONS = ROOT / 'zigux' / 'tests' / 'fixtures' / 'phase1_bench_expectations.json'
+EXPECTED_ITERATIONS = {
+    'PHASE1_BENCH_BITMAP_WEIGHT_ITERATIONS': 20000,
+    'PHASE1_BENCH_BITMAP_WINDOW_ITERATIONS': 20000,
+    'PHASE1_BENCH_FIND_NEXT_BIT_ITERATIONS': 20000,
+    'PHASE1_BENCH_STRING_ITERATIONS': 40000,
+    'PHASE1_BENCH_HWEIGHT_ITERATIONS': 100000,
+    'PHASE1_BENCH_LIST_SORT_ITERATIONS': 1000,
+    'PHASE1_BENCH_RBTREE_ITERATIONS': 4000,
+}
+EXPECTED_CHECKSUMS = [
+    'PHASE1_BENCH_BITMAP_WEIGHT_CHECKSUM',
+    'PHASE1_BENCH_BITMAP_WINDOW_CHECKSUM',
+    'PHASE1_BENCH_FIND_NEXT_BIT_CHECKSUM',
+    'PHASE1_BENCH_STRING_CHECKSUM',
+    'PHASE1_BENCH_HWEIGHT_CHECKSUM',
+    'PHASE1_BENCH_LIST_SORT_CHECKSUM',
+    'PHASE1_BENCH_RBTREE_CHECKSUM',
+]
 
 
 def run(cmd: list[str], **kwargs) -> subprocess.CompletedProcess[str]:
@@ -38,6 +56,64 @@ def parse_output(stdout: str) -> tuple[dict[str, str], dict[str, int]]:
         parsed[key] = value
         counts[key] = counts.get(key, 0) + 1
     return parsed, counts
+
+
+def validate_expectations(expectations: object) -> tuple[str, object]:
+    if not isinstance(expectations, dict):
+        return ('expectations_type', type(expectations).__name__)
+
+    if expectations.get('status') != 'pass':
+        return ('expectations_status', expectations.get('status'))
+
+    iterations = expectations.get('iterations')
+    if not isinstance(iterations, dict):
+        return ('expectations_iterations_type', type(iterations).__name__)
+
+    actual_iteration_keys = set()
+    for key, value in iterations.items():
+        if not isinstance(key, str):
+            return ('expectations_iteration_key_type', type(key).__name__)
+        if not isinstance(value, int):
+            return ('expectations_iteration_value_type', (key, type(value).__name__))
+        actual_iteration_keys.add(key)
+        expected_value = EXPECTED_ITERATIONS.get(key)
+        if expected_value is None:
+            return ('expectations_unexpected_iteration', key)
+        if value != expected_value:
+            return ('expectations_iteration_value', (key, expected_value, value))
+
+    missing_iterations = sorted(set(EXPECTED_ITERATIONS) - actual_iteration_keys)
+    if missing_iterations:
+        return ('expectations_missing_iterations', missing_iterations)
+
+    checksums = expectations.get('checksums')
+    if not isinstance(checksums, list):
+        return ('expectations_checksums_type', type(checksums).__name__)
+
+    seen: set[str] = set()
+    duplicates: list[str] = []
+    actual_checksums: list[str] = []
+    for item in checksums:
+        if not isinstance(item, str):
+            return ('expectations_checksum_type', type(item).__name__)
+        actual_checksums.append(item)
+        if item in seen and item not in duplicates:
+            duplicates.append(item)
+        seen.add(item)
+
+    if duplicates:
+        return ('expectations_duplicate_checksums', duplicates)
+
+    actual_checksum_set = set(actual_checksums)
+    missing_checksums = sorted(set(EXPECTED_CHECKSUMS) - actual_checksum_set)
+    if missing_checksums:
+        return ('expectations_missing_checksums', missing_checksums)
+
+    unexpected_checksums = sorted(actual_checksum_set - set(EXPECTED_CHECKSUMS))
+    if unexpected_checksums:
+        return ('expectations_unexpected_checksums', unexpected_checksums)
+
+    return ('pass', expectations)
 
 
 def validate_output(expectations: dict[str, object], stdout: str) -> tuple[str, object]:
@@ -105,6 +181,11 @@ def run_self_test() -> None:
         'checksums': [
             'PHASE1_BENCH_BITMAP_WEIGHT_CHECKSUM',
         ],
+    }
+    full_expectations = {
+        'status': 'pass',
+        'iterations': dict(EXPECTED_ITERATIONS),
+        'checksums': list(EXPECTED_CHECKSUMS),
     }
 
     ok_output = '\n'.join([
@@ -200,8 +281,80 @@ def run_self_test() -> None:
     assert kind == 'nonpositive_checksum'
     assert payload == ('PHASE1_BENCH_BITMAP_WEIGHT_CHECKSUM', '0')
 
+    kind, _ = validate_expectations(full_expectations)
+    assert kind == 'pass'
+
+    kind, payload = validate_expectations([])
+    assert kind == 'expectations_type'
+    assert payload == 'list'
+
+    kind, payload = validate_expectations({'status': 'fail', 'iterations': {}, 'checksums': []})
+    assert kind == 'expectations_status'
+    assert payload == 'fail'
+
+    kind, payload = validate_expectations({'status': 'pass', 'iterations': [], 'checksums': []})
+    assert kind == 'expectations_iterations_type'
+    assert payload == 'list'
+
+    missing_iteration_expectations = {
+        'status': 'pass',
+        'iterations': dict(EXPECTED_ITERATIONS),
+        'checksums': list(EXPECTED_CHECKSUMS),
+    }
+    del missing_iteration_expectations['iterations']['PHASE1_BENCH_RBTREE_ITERATIONS']
+    kind, payload = validate_expectations(missing_iteration_expectations)
+    assert kind == 'expectations_missing_iterations'
+    assert payload == ['PHASE1_BENCH_RBTREE_ITERATIONS']
+
+    unexpected_iteration_expectations = {
+        'status': 'pass',
+        'iterations': dict(EXPECTED_ITERATIONS),
+        'checksums': list(EXPECTED_CHECKSUMS),
+    }
+    unexpected_iteration_expectations['iterations']['PHASE1_BENCH_FAKE_ITERATIONS'] = 1
+    kind, payload = validate_expectations(unexpected_iteration_expectations)
+    assert kind == 'expectations_unexpected_iteration'
+    assert payload == 'PHASE1_BENCH_FAKE_ITERATIONS'
+
+    wrong_iteration_value_expectations = {
+        'status': 'pass',
+        'iterations': dict(EXPECTED_ITERATIONS),
+        'checksums': list(EXPECTED_CHECKSUMS),
+    }
+    wrong_iteration_value_expectations['iterations']['PHASE1_BENCH_STRING_ITERATIONS'] = 1
+    kind, payload = validate_expectations(wrong_iteration_value_expectations)
+    assert kind == 'expectations_iteration_value'
+    assert payload == ('PHASE1_BENCH_STRING_ITERATIONS', 40000, 1)
+
+    duplicate_checksum_expectations = {
+        'status': 'pass',
+        'iterations': dict(EXPECTED_ITERATIONS),
+        'checksums': list(EXPECTED_CHECKSUMS) + [EXPECTED_CHECKSUMS[0]],
+    }
+    kind, payload = validate_expectations(duplicate_checksum_expectations)
+    assert kind == 'expectations_duplicate_checksums'
+    assert payload == [EXPECTED_CHECKSUMS[0]]
+
+    missing_checksum_expectations = {
+        'status': 'pass',
+        'iterations': dict(EXPECTED_ITERATIONS),
+        'checksums': list(EXPECTED_CHECKSUMS[:-1]),
+    }
+    kind, payload = validate_expectations(missing_checksum_expectations)
+    assert kind == 'expectations_missing_checksums'
+    assert payload == ['PHASE1_BENCH_RBTREE_CHECKSUM']
+
+    unexpected_checksum_expectations = {
+        'status': 'pass',
+        'iterations': dict(EXPECTED_ITERATIONS),
+        'checksums': list(EXPECTED_CHECKSUMS) + ['PHASE1_BENCH_FAKE_CHECKSUM'],
+    }
+    kind, payload = validate_expectations(unexpected_checksum_expectations)
+    assert kind == 'expectations_unexpected_checksums'
+    assert payload == ['PHASE1_BENCH_FAKE_CHECKSUM']
+
     print('PHASE1_BENCH_CHECK_SELF_TEST=pass')
-    print('PHASE1_BENCH_CHECK_SELF_TEST_CASE_COUNT=10')
+    print('PHASE1_BENCH_CHECK_SELF_TEST_CASE_COUNT=19')
 
 
 def main() -> int:
@@ -214,8 +367,87 @@ def main() -> int:
         run_self_test()
         return 0
 
+    try:
+        expectations = json.loads(EXPECTATIONS.read_text(encoding='utf-8'))
+    except json.JSONDecodeError as exc:
+        print('PHASE1_BENCH_CHECK=fail')
+        print(f'EXPECTATIONS_JSON_ERROR={exc.msg}')
+        print(f'EXPECTATIONS_JSON_LINE={exc.lineno}')
+        print(f'EXPECTATIONS_JSON_COLUMN={exc.colno}')
+        return 1
+
+    kind, payload = validate_expectations(expectations)
+    if kind == 'expectations_type':
+        print('PHASE1_BENCH_CHECK=fail')
+        print(f'EXPECTATIONS_TYPE={payload}')
+        return 1
+    if kind == 'expectations_status':
+        print('PHASE1_BENCH_CHECK=fail')
+        print(f'EXPECTATIONS_STATUS={payload}')
+        return 1
+    if kind == 'expectations_iterations_type':
+        print('PHASE1_BENCH_CHECK=fail')
+        print(f'EXPECTATIONS_ITERATIONS_TYPE={payload}')
+        return 1
+    if kind == 'expectations_iteration_key_type':
+        print('PHASE1_BENCH_CHECK=fail')
+        print(f'EXPECTATIONS_ITERATION_KEY_TYPE={payload}')
+        return 1
+    if kind == 'expectations_iteration_value_type':
+        key, value_type = payload
+        print('PHASE1_BENCH_CHECK=fail')
+        print(f'EXPECTATIONS_ITERATION_VALUE_KEY={key}')
+        print(f'EXPECTATIONS_ITERATION_VALUE_TYPE={value_type}')
+        return 1
+    if kind == 'expectations_unexpected_iteration':
+        print('PHASE1_BENCH_CHECK=fail')
+        print(f'UNEXPECTED_EXPECTATION_ITERATION={payload}')
+        return 1
+    if kind == 'expectations_iteration_value':
+        key, expected, actual = payload
+        print('PHASE1_BENCH_CHECK=fail')
+        print(f'EXPECTATIONS_ITERATION_VALUE_MISMATCH={key}')
+        print(f'EXPECTED={expected}')
+        print(f'ACTUAL={actual}')
+        return 1
+    if kind == 'expectations_missing_iterations':
+        print('PHASE1_BENCH_CHECK=fail')
+        print('MISSING_EXPECTATION_ITERATIONS_START')
+        for key in payload:
+            print(key)
+        print('MISSING_EXPECTATION_ITERATIONS_END')
+        return 1
+    if kind == 'expectations_checksums_type':
+        print('PHASE1_BENCH_CHECK=fail')
+        print(f'EXPECTATIONS_CHECKSUMS_TYPE={payload}')
+        return 1
+    if kind == 'expectations_checksum_type':
+        print('PHASE1_BENCH_CHECK=fail')
+        print(f'EXPECTATIONS_CHECKSUM_TYPE={payload}')
+        return 1
+    if kind == 'expectations_duplicate_checksums':
+        print('PHASE1_BENCH_CHECK=fail')
+        print('DUPLICATE_EXPECTATION_CHECKSUMS_START')
+        for key in payload:
+            print(key)
+        print('DUPLICATE_EXPECTATION_CHECKSUMS_END')
+        return 1
+    if kind == 'expectations_missing_checksums':
+        print('PHASE1_BENCH_CHECK=fail')
+        print('MISSING_EXPECTATION_CHECKSUMS_START')
+        for key in payload:
+            print(key)
+        print('MISSING_EXPECTATION_CHECKSUMS_END')
+        return 1
+    if kind == 'expectations_unexpected_checksums':
+        print('PHASE1_BENCH_CHECK=fail')
+        print('UNEXPECTED_EXPECTATION_CHECKSUMS_START')
+        for key in payload:
+            print(key)
+        print('UNEXPECTED_EXPECTATION_CHECKSUMS_END')
+        return 1
+
     zig = find_zig(args.zig)
-    expectations = json.loads(EXPECTATIONS.read_text(encoding='utf-8'))
 
     result = subprocess.run(
         [zig, 'build', 'bench', '--build-file', 'zigux/tests/build.zig', '-Doptimize=ReleaseSafe'],
