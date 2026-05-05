@@ -58,7 +58,7 @@ test "phase13 libfs manifest records the landed helper surfaces and remaining he
     defer parsed.deinit();
 
     const manifest = parsed.value;
-    try std.testing.expectEqualStrings("P13-L04", manifest.lane_key);
+    try std.testing.expectEqualStrings("P13-L03", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 13", manifest.phase);
     try std.testing.expectEqualStrings("fs/libfs.c", manifest.anchor);
     try std.testing.expectEqualStrings("master-reviewability", manifest.surveyed_commit);
@@ -100,7 +100,7 @@ test "phase13 libfs manifest records the landed helper surfaces and remaining he
     var saw_emit_followup = false;
     var saw_transaction_helper = false;
     var saw_transaction_publish_helper = false;
-    var saw_transaction_read_followup = false;
+    var saw_transaction_release_followup = false;
 
     for (manifest.gaps, 0..) |gap, i| {
         try std.testing.expect(gap.id.len > 0);
@@ -185,12 +185,12 @@ test "phase13 libfs manifest records the landed helper surfaces and remaining he
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "simple_transaction_set") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "publish bookkeeping") != null);
         }
-        if (std.mem.eql(u8, gap.id, "phase13-libfs-transaction-read-helper")) {
-            saw_transaction_read_followup = true;
+        if (std.mem.eql(u8, gap.id, "phase13-libfs-transaction-release-helper")) {
+            saw_transaction_release_followup = true;
             try std.testing.expectEqualStrings("ready_next", gap.status);
             try std.testing.expectEqualStrings("fs/libfs.zig", gap.zigux_destination);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "simple_transaction_read") != null);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "simple_read_from_buffer") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "simple_transaction_release") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "release bookkeeping") != null);
         }
 
         for (manifest.gaps[i + 1 ..]) |other| {
@@ -213,5 +213,5 @@ test "phase13 libfs manifest records the landed helper surfaces and remaining he
     try std.testing.expect(saw_emit_followup);
     try std.testing.expect(saw_transaction_helper);
     try std.testing.expect(saw_transaction_publish_helper);
-    try std.testing.expect(saw_transaction_read_followup);
+    try std.testing.expect(saw_transaction_release_followup);
 }
