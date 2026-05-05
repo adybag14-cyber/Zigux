@@ -1,7 +1,7 @@
 {
   "lane_key": "P13-Y04",
   "phase": "Phase 13",
-  "surveyed_commit": "02f3325b2e289b7d492e022db0dbe7b61f2e22c3",
+  "surveyed_commit": "3c2928980cc1847d86f8a152f2a71350de0da0d1",
   "anchor": "security/landlock/syscalls.c",
   "roadmap_destinations": [
     "security/landlock/syscalls.zig",
@@ -84,10 +84,17 @@
     },
     {
       "id": "phase13-landlock-path-beneath-handoff-followup",
+      "status": "starter_landed",
+      "kind": "security_helper_pilot",
+      "zigux_destination": "security/landlock/syscalls.zig",
+      "why_now": "The syscall helper now includes one tiny in-memory planner around `add_rule_path_beneath()` that combines copied path-beneath attrs with the bounded `get_path_from_fd()` handoff and the later `put_path()` responsibility before any live rule insertion or inode ownership changes are attempted."
+    },
+    {
+      "id": "phase13-landlock-net-port-import-followup",
       "status": "ready_next",
       "kind": "security_helper_pilot",
       "zigux_destination": "security/landlock/syscalls.zig",
-      "why_now": "The next honest syscall step is one tiny in-memory planner around `add_rule_path_beneath()` that combines copied path-beneath attrs with the bounded `get_path_from_fd()` handoff and the later `put_path()` responsibility before any live rule insertion or inode ownership changes are attempted."
+      "why_now": "The next honest syscall step is one tiny in-memory planner around `add_rule_net_port()` that reuses the bounded net-port validation path and keeps the copied attrs plus `landlock_append_net_rule()` handoff explicit before any live rule insertion, socket state, or domain mutation is attempted."
     }
   ]
 }
