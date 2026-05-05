@@ -6,6 +6,7 @@ This document tracks the bounded Phase 8 userspace-adjacent tooling slice for Zi
 
 - `PHASE8_STATUS=parked`
 - `PHASE8_SLICE=exec-cmd-tooling-starter`
+- roadmap posture: prove Zigux inside serious repo-hosted tooling, not just tiny helpers
 - scope: path-resolution, injected environment setup, `get_pwd_cwd()`-style cwd choice, null-terminated command-vector preparation, and pure `execl_cmd()`-style argv collection only
 - product boundary:
   - `tools/lib/subcmd/exec-cmd.zig`
@@ -15,9 +16,9 @@ This document tracks the bounded Phase 8 userspace-adjacent tooling slice for Zi
 
 ## Why this slice exists
 
-The Phase 8 roadmap explicitly calls for `tools/lib/subcmd/*.zig` as the first product foothold in repo-hosted userspace-adjacent tooling.
+The Phase 8 roadmap explicitly calls for `tools/lib/subcmd/*.zig` as the first product foothold in repo-hosted userspace-adjacent tooling and says the goal is to prove Zigux inside serious repo-hosted tooling, not just tiny helpers.
 
-The live repo had no Zig slice under `tools/lib/subcmd/`, so the most valuable bounded step was to start `exec-cmd` with the helper-first surface that is easiest to validate without widening into process-launch side effects or unrelated `help.c` behavior.
+The live repo still benefits from keeping `exec-cmd` parked as a helper-first, output-stable deferred-exec planning packet: it makes the path-choice, environment-shaping, and argv-shape contracts reviewable without widening into process-launch side effects or unrelated `help.c` behavior.
 
 ## Gates
 
