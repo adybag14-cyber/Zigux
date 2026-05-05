@@ -1,0 +1,185 @@
+#!/usr/bin/env python3
+from __future__ import annotations
+
+import argparse
+import tempfile
+from pathlib import Path
+
+
+SCRIPT_PATH = Path(__file__).resolve()
+ROOT = SCRIPT_PATH.parents[2] if len(SCRIPT_PATH.parents) > 2 else SCRIPT_PATH.parent
+
+REQUIRED_FILES = [
+    "Documentation/zigux/README.md",
+    "Documentation/zigux/review-checklist.md",
+    "Documentation/zigux/phase3-abi-slice.md",
+    "scripts/zigux/README.md",
+    "scripts/zigux/validate_phase3_selftest.py",
+    "zigux/Makefile",
+    "zigux/tests/README.md",
+]
+
+DOCS_ROOT_MARKERS = [
+    "scripts/zigux/validate_phase3_selftest.py",
+    "make -C zigux phase3-selftest",
+    "without duplicating the default `phase3-validate` route",
+]
+
+REVIEW_CHECKLIST_MARKERS = [
+    "scripts/zigux/validate_phase3_selftest.py",
+    "make -C zigux phase3-selftest",
+    "manual-only support-script rerun",
+    "without implying that `phase3-selftest` is part of the default `phase3-validate` route",
+]
+
+ABI_SLICE_MARKERS = [
+    "python3 scripts/zigux/validate_phase3_selftest.py",
+    "make -C zigux phase3-selftest",
+    "focused support-script safety check only; `make -C zigux phase3-validate` already invokes the underlying helper self-tests directly.",
+]
+
+SCRIPTS_README_MARKERS = [
+    "validate_phase3_selftest.py",
+    "make -C zigux phase3-selftest",
+    "manual or targeted safety check instead of duplicating the default validation route",
+]
+
+TESTS_README_MARKERS = [
+    "scripts/zigux/validate_phase3_selftest.py",
+    "make -C zigux phase3-selftest",
+    "opt-in safety check that complements but does not duplicate `make -C zigux phase3-validate`",
+]
+
+MAKEFILE_MARKERS = [
+    "PHONY += phase3-validate phase3-selftest phase3-abi phase3-interop phase3",
+    "phase3-selftest:\n\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate_phase3_selftest.py",
+    "phase3: phase3-validate phase3-abi phase3-interop",
+]
+
+
+def collect_missing_markers(text: str, markers: list[str], *, prefix: str) -> list[str]:
+    return [f"{prefix}:{marker}" for marker in markers if marker not in text]
+
+
+def validate_root(root: Path) -> list[str]:
+    issues: list[str] = []
+
+    for rel in REQUIRED_FILES:
+        if not (root / rel).exists():
+            issues.append(f"missing_file:{rel}")
+
+    if issues:
+        return issues
+
+    docs_root = (root / "Documentation/zigux/README.md").read_text(encoding="utf-8")
+    review = (root / "Documentation/zigux/review-checklist.md").read_text(encoding="utf-8")
+    abi_slice = (root / "Documentation/zigux/phase3-abi-slice.md").read_text(encoding="utf-8")
+    scripts_readme = (root / "scripts/zigux/README.md").read_text(encoding="utf-8")
+    tests_readme = (root / "zigux/tests/README.md").read_text(encoding="utf-8")
+    makefile = (root / "zigux/Makefile").read_text(encoding="utf-8")
+
+    issues.extend(collect_missing_markers(docs_root, DOCS_ROOT_MARKERS, prefix="docs_root"))
+    issues.extend(collect_missing_markers(review, REVIEW_CHECKLIST_MARKERS, prefix="review_checklist"))
+    issues.extend(collect_missing_markers(abi_slice, ABI_SLICE_MARKERS, prefix="abi_slice"))
+    issues.extend(collect_missing_markers(scripts_readme, SCRIPTS_README_MARKERS, prefix="scripts_readme"))
+    issues.extend(collect_missing_markers(tests_readme, TESTS_README_MARKERS, prefix="tests_readme"))
+    issues.extend(collect_missing_markers(makefile, MAKEFILE_MARKERS, prefix="makefile"))
+    return issues
+
+
+def write_text(path: Path, content: str) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(content, encoding="utf-8")
+
+
+def build_self_test_root(root: Path) -> None:
+    for rel in REQUIRED_FILES:
+        write_text(root / rel, "")
+
+    write_text(root / "Documentation/zigux/README.md", "\n".join(DOCS_ROOT_MARKERS) + "\n")
+    write_text(root / "Documentation/zigux/review-checklist.md", "\n".join(REVIEW_CHECKLIST_MARKERS) + "\n")
+    write_text(root / "Documentation/zigux/phase3-abi-slice.md", "\n".join(ABI_SLICE_MARKERS) + "\n")
+    write_text(root / "scripts/zigux/README.md", "\n".join(SCRIPTS_README_MARKERS) + "\n")
+    write_text(root / "zigux/tests/README.md", "\n".join(TESTS_README_MARKERS) + "\n")
+    write_text(root / "zigux/Makefile", "\n".join(MAKEFILE_MARKERS) + "\n")
+    write_text(root / "scripts/zigux/validate_phase3_selftest.py", "present\n")
+
+
+def run_self_test() -> int:
+    with tempfile.TemporaryDirectory(prefix="phase3_selftest_surface_") as tmp_dir:
+        root = Path(tmp_dir)
+        build_self_test_root(root)
+
+        assert validate_root(root) == []
+
+        write_text(root / "Documentation/zigux/README.md", "make -C zigux phase3-selftest\n")
+        issues = validate_root(root)
+        assert "docs_root:scripts/zigux/validate_phase3_selftest.py" in issues
+        assert "docs_root:without duplicating the default `phase3-validate` route" in issues
+
+        build_self_test_root(root)
+        write_text(root / "zigux/tests/README.md", "scripts/zigux/validate_phase3_selftest.py\n")
+        issues = validate_root(root)
+        assert "tests_readme:make -C zigux phase3-selftest" in issues
+        assert (
+            "tests_readme:opt-in safety check that complements but does not duplicate `make -C zigux phase3-validate`"
+            in issues
+        )
+
+        build_self_test_root(root)
+        write_text(root / "zigux/Makefile", "phase3-selftest:\n")
+        issues = validate_root(root)
+        assert (
+            "makefile:PHONY += phase3-validate phase3-selftest phase3-abi phase3-interop phase3"
+            in issues
+        )
+        assert "makefile:phase3: phase3-validate phase3-abi phase3-interop" in issues
+
+        build_self_test_root(root)
+        (root / "scripts/zigux/validate_phase3_selftest.py").unlink()
+        issues = validate_root(root)
+        assert "missing_file:scripts/zigux/validate_phase3_selftest.py" in issues
+
+    print("PHASE3_SELFTEST_SURFACE_SELF_TEST=pass")
+    print("PHASE3_SELFTEST_SURFACE_SELF_TEST_CASE_COUNT=5")
+    return 0
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(
+        description="Check that the shipped Phase 3 selftest review surface stays aligned."
+    )
+    parser.add_argument(
+        "--repo-root",
+        default=str(ROOT),
+        help="Path to the Zigux repository root.",
+    )
+    parser.add_argument(
+        "--self-test",
+        action="store_true",
+        help="Run built-in coverage without a repository checkout.",
+    )
+    args = parser.parse_args()
+
+    if args.self_test:
+        return run_self_test()
+
+    issues = validate_root(Path(args.repo_root).resolve())
+    if issues:
+        print("PHASE3_SELFTEST_SURFACE=fail")
+        print("PHASE3_SELFTEST_SURFACE_ISSUES_START")
+        for issue in issues:
+            print(issue)
+        print("PHASE3_SELFTEST_SURFACE_ISSUES_END")
+        return 1
+
+    print("PHASE3_SELFTEST_SURFACE=pass")
+    print(
+        "PHASE3_SELFTEST_SURFACE_MARKER_COUNT="
+        f"{len(DOCS_ROOT_MARKERS) + len(REVIEW_CHECKLIST_MARKERS) + len(ABI_SLICE_MARKERS) + len(SCRIPTS_README_MARKERS) + len(TESTS_README_MARKERS) + len(MAKEFILE_MARKERS)}"
+    )
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
