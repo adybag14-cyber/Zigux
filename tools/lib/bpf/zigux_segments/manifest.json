@@ -1,7 +1,7 @@
 {
-  "lane_key": "P8-L13",
+  "lane_key": "P8-L15",
   "phase": "Phase 8",
-  "surveyed_commit": "63799ed231dfdbe5dbafe32bdcaac1fc78afcfc1",
+  "surveyed_commit": "897cdd2f62c4428d2a050275a187950e161b66eb",
   "anchor": "tools/lib/bpf/libbpf.c",
   "survey_summary": {
     "libbpf_c_lines": 14771,
@@ -44,7 +44,7 @@
   },
   "segments": [
     {
-      "id": "P8-L13-S01",
+      "id": "P8-L15-S01",
       "slug": "logging-version-and-errno",
       "status": "starter_landed",
       "kind": "helper_first",
@@ -56,7 +56,7 @@
       "why_now": "This slice is mostly string tables, log-level gating, and version reporting, so it gives Zigux a low-risk libbpf foothold with stable output semantics."
     },
     {
-      "id": "P8-L13-S02",
+      "id": "P8-L15-S02",
       "slug": "pin-path-helpers",
       "status": "starter_landed",
       "kind": "helper_first",
@@ -68,7 +68,7 @@
       "why_now": "Path concatenation and bpffs-style pin-name sanitization are bounded helpers that can be validated without entering mkdir, statfs, unlink, or verifier-facing behavior."
     },
     {
-      "id": "P8-L13-S03",
+      "id": "P8-L15-S03",
       "slug": "cpu-mask-parsing",
       "status": "starter_landed",
       "kind": "helper_first",
@@ -79,7 +79,62 @@
       "why_now": "The CPU mask parser is self-contained text processing that future perf-buffer and feature probes can share, which makes it a good first real port after the survey scaffold."
     },
     {
-      "id": "P8-L13-S04",
+      "id": "P8-L15-S04",
+      "slug": "type-name-helpers",
+      "status": "starter_landed",
+      "kind": "helper_first",
+      "anchor_ranges": [
+        "tools/lib/bpf/libbpf.c: exported attach, link, map, and program type string tables"
+      ],
+      "zigux_destination": "tools/lib/bpf/zigux_segments/type_names.zig",
+      "why_now": "The exported enum-to-name tables are dense lookups with stable output behavior, so they extend the helper-first libbpf foothold without widening into object loading, verifier work, or syscall-backed state."
+    },
+    {
+      "id": "P8-L15-S05",
+      "slug": "fdinfo-map-info-helpers",
+      "status": "starter_landed",
+      "kind": "helper_first",
+      "anchor_ranges": [
+        "tools/lib/bpf/libbpf.c: bpf_get_map_info_from_fdinfo() pathname and fdinfo text parsing"
+      ],
+      "zigux_destination": "tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig",
+      "why_now": "The fdinfo helper keeps procfs path construction and bounded map metadata parsing reviewable without claiming direct file reads, descriptor ownership, or pinned-object reopen flow."
+    },
+    {
+      "id": "P8-L15-S06",
+      "slug": "map-reuse-compatibility",
+      "status": "starter_landed",
+      "kind": "helper_first",
+      "anchor_ranges": [
+        "tools/lib/bpf/libbpf.c: bpf_map__reuse_fd() name selection and bpf_object__reuse_map() compatibility checks"
+      ],
+      "zigux_destination": "tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig",
+      "why_now": "The bounded reused-map-name chooser and map-compatibility comparison keep libbpf's DEVMAP readonly-prog exception explicit without widening into FD duplication, close-on-replacement, or pinned-map reopen side effects."
+    },
+    {
+      "id": "P8-L15-S07",
+      "slug": "file-path-and-handle-bridge",
+      "status": "deferred_high_risk",
+      "kind": "resource_boundary",
+      "anchor_ranges": [
+        "tools/lib/bpf/libbpf.c: bpf_object_prepare_token() and bpf_object__reuse_map() handle-bridging paths"
+      ],
+      "zigux_destination": "tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig",
+      "why_now": "This remaining file-path and handle bridge still crosses real procfs reads, bpffs opens, token creation, bpf_obj_get() reopen flow, and fd ownership semantics, so the helper-first packet should keep it deferred."
+    },
+    {
+      "id": "P8-L15-S08",
+      "slug": "perf-buffer-online-cpu-routing",
+      "status": "deferred_high_risk",
+      "kind": "interrupt_routing",
+      "anchor_ranges": [
+        "tools/lib/bpf/libbpf.c: perf_buffer__new() online-CPU routing and perf_event setup"
+      ],
+      "zigux_destination": "tools/lib/bpf/zigux_segments/perf_buffer_poll.zig",
+      "why_now": "The online-CPU routing path still combines sysfs reads, perf_event_open setup, mmap-backed ring state, map updates, epoll registration, and timeout-sensitive polling, so it stays deferred beside the bounded perf-buffer poll bookkeeping adjunct."
+    },
+    {
+      "id": "P8-L15-S09",
       "slug": "skeleton-population",
       "status": "blocked_on_object_model",
       "kind": "object_adjacent",
@@ -87,10 +142,10 @@
         "tools/lib/bpf/libbpf.c:14482-14771"
       ],
       "zigux_destination": "tools/lib/bpf/zigux_segments/skeleton.zig",
-      "why_now": "This is still a bounded cluster, but it depends on bpf_object, bpf_map, and bpf_program model parity that the repo has not started yet."
+      "why_now": "This remains the nearest post-helper cluster, but it depends on bpf_object, bpf_map, and bpf_program model parity that the repo has not started yet."
     },
     {
-      "id": "P8-L13-S05",
+      "id": "P8-L15-S10",
       "slug": "object-and-elf-loader",
       "status": "deferred_high_risk",
       "kind": "core_loader",
@@ -99,10 +154,10 @@
         "tools/lib/bpf/libbpf.c:3705-4514"
       ],
       "zigux_destination": "tools/lib/bpf/zigux_segments/object_loader.zig",
-      "why_now": "The object-model and ELF collection surface is the first place mirror-tree sprawl becomes likely, so it should stay deferred until helper-first segments are proven."
+      "why_now": "The object-model and ELF collection surface is where mirror-tree sprawl becomes likely, so it should stay deferred until the smaller helper-first segments and the nearer skeleton blocker are fully settled."
     },
     {
-      "id": "P8-L13-S06",
+      "id": "P8-L15-S11",
       "slug": "btf-relocation-and-program-load",
       "status": "deferred_high_risk",
       "kind": "verifier_facing",
@@ -111,7 +166,7 @@
         "tools/lib/bpf/libbpf.c:4572-9049"
       ],
       "zigux_destination": "tools/lib/bpf/zigux_segments/relocation.zig",
-      "why_now": "BTF fixups, extern resolution, relocation recording, and load-time verifier interactions are the densest libbpf surface and need proven helper segments ahead of them."
+      "why_now": "BTF fixups, extern resolution, relocation recording, and load-time verifier interactions remain the densest libbpf surface and still need the smaller helper-first and object-model boundaries to stay explicit ahead of them."
     }
   ]
 }
