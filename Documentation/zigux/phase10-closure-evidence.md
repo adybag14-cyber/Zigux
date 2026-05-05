@@ -74,7 +74,7 @@ The current bounded Phase 10 evidence set is:
 - `PHASE10_DOC_COUNT=9`
 - `PHASE10_MANIFEST_COUNT=4`
 - `PHASE10_DRIVER_COUNT=4`
-- `PHASE10_TEST_COUNT=12`
+- `PHASE10_TEST_COUNT=11`
 - `PHASE10_HAS_VIRTIO_MMIO_ZIG=yes`
 
 The shared closure manifest now carries explicit landed-helper evidence for the core config summaries plus the non-nestable driver-side config-toggle guard, the ring queue-discipline ladder through broken-queue recovery, the input capability-setup, multitouch-slot, teardown-observation, and preflight ladder through probe preflight, and the MMIO helper ladder through bounded interrupt acknowledgement plus probe preflight. The shared closure guards therefore keep the current ring, input, and MMIO helper ladders explicit at the shared-packet boundary, while the dedicated input survey packet, the focused registration-blocker replay build, and the broader shared Phase 10 validator keep the newer registration-blocker helper reviewable without letting that parked lifecycle fence disappear.
