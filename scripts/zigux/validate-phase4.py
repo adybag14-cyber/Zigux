@@ -519,6 +519,100 @@ def run_self_test() -> int:
         assert validate_root(root) == []
         assert run_artifact_diff_contract_check(root) == []
 
+        _write_contract_checker_fixture(
+            root / "scripts/zigux/check-artifact-diff-contract.py",
+            base_case_count="20",
+            base_cases=EXPECTED_ARTIFACT_DIFF_CONTRACT_BASE_CASES,
+            repeat_case_count=str(len(EXPECTED_ARTIFACT_DIFF_CONTRACT_REPEAT_CASES)),
+            repeat_cases=EXPECTED_ARTIFACT_DIFF_CONTRACT_REPEAT_CASES,
+            case_count=str(len(EXPECTED_ARTIFACT_DIFF_CONTRACT_CASES)),
+            cases=EXPECTED_ARTIFACT_DIFF_CONTRACT_CASES,
+        )
+        assert run_artifact_diff_contract_check(root) == [
+            "artifact_diff_contract:unexpected_base_case_count:20"
+        ]
+
+        _write_contract_checker_fixture(
+            root / "scripts/zigux/check-artifact-diff-contract.py",
+            base_case_count=str(len(EXPECTED_ARTIFACT_DIFF_CONTRACT_BASE_CASES)),
+            base_cases=EXPECTED_ARTIFACT_DIFF_CONTRACT_BASE_CASES[1:],
+            repeat_case_count=str(len(EXPECTED_ARTIFACT_DIFF_CONTRACT_REPEAT_CASES)),
+            repeat_cases=EXPECTED_ARTIFACT_DIFF_CONTRACT_REPEAT_CASES,
+            case_count=str(len(EXPECTED_ARTIFACT_DIFF_CONTRACT_CASES)),
+            cases=EXPECTED_ARTIFACT_DIFF_CONTRACT_CASES,
+        )
+        assert run_artifact_diff_contract_check(root) == [
+            "artifact_diff_contract:unexpected_base_cases:"
+            + _expected_case_line(EXPECTED_ARTIFACT_DIFF_CONTRACT_BASE_CASES[1:])
+        ]
+
+        _write_contract_checker_fixture(
+            root / "scripts/zigux/check-artifact-diff-contract.py",
+            base_case_count=str(len(EXPECTED_ARTIFACT_DIFF_CONTRACT_BASE_CASES)),
+            base_cases=EXPECTED_ARTIFACT_DIFF_CONTRACT_BASE_CASES,
+            repeat_case_count="3",
+            repeat_cases=EXPECTED_ARTIFACT_DIFF_CONTRACT_REPEAT_CASES,
+            case_count=str(len(EXPECTED_ARTIFACT_DIFF_CONTRACT_CASES)),
+            cases=EXPECTED_ARTIFACT_DIFF_CONTRACT_CASES,
+        )
+        assert run_artifact_diff_contract_check(root) == [
+            "artifact_diff_contract:unexpected_repeat_case_count:3"
+        ]
+
+        _write_contract_checker_fixture(
+            root / "scripts/zigux/check-artifact-diff-contract.py",
+            base_case_count=str(len(EXPECTED_ARTIFACT_DIFF_CONTRACT_BASE_CASES)),
+            base_cases=EXPECTED_ARTIFACT_DIFF_CONTRACT_BASE_CASES,
+            repeat_case_count=str(len(EXPECTED_ARTIFACT_DIFF_CONTRACT_REPEAT_CASES)),
+            repeat_cases=EXPECTED_ARTIFACT_DIFF_CONTRACT_REPEAT_CASES[1:],
+            case_count=str(len(EXPECTED_ARTIFACT_DIFF_CONTRACT_CASES)),
+            cases=EXPECTED_ARTIFACT_DIFF_CONTRACT_CASES,
+        )
+        assert run_artifact_diff_contract_check(root) == [
+            "artifact_diff_contract:unexpected_repeat_cases:"
+            + _expected_case_line(EXPECTED_ARTIFACT_DIFF_CONTRACT_REPEAT_CASES[1:])
+        ]
+
+        _write_contract_checker_fixture(
+            root / "scripts/zigux/check-artifact-diff-contract.py",
+            base_case_count=str(len(EXPECTED_ARTIFACT_DIFF_CONTRACT_BASE_CASES)),
+            base_cases=EXPECTED_ARTIFACT_DIFF_CONTRACT_BASE_CASES,
+            repeat_case_count=str(len(EXPECTED_ARTIFACT_DIFF_CONTRACT_REPEAT_CASES)),
+            repeat_cases=EXPECTED_ARTIFACT_DIFF_CONTRACT_REPEAT_CASES,
+            case_count="24",
+            cases=EXPECTED_ARTIFACT_DIFF_CONTRACT_CASES,
+        )
+        assert run_artifact_diff_contract_check(root) == [
+            "artifact_diff_contract:unexpected_case_count:24"
+        ]
+
+        _write_contract_checker_fixture(
+            root / "scripts/zigux/check-artifact-diff-contract.py",
+            base_case_count=str(len(EXPECTED_ARTIFACT_DIFF_CONTRACT_BASE_CASES)),
+            base_cases=EXPECTED_ARTIFACT_DIFF_CONTRACT_BASE_CASES,
+            repeat_case_count=str(len(EXPECTED_ARTIFACT_DIFF_CONTRACT_REPEAT_CASES)),
+            repeat_cases=EXPECTED_ARTIFACT_DIFF_CONTRACT_REPEAT_CASES,
+            case_count=str(len(EXPECTED_ARTIFACT_DIFF_CONTRACT_CASES)),
+            cases=EXPECTED_ARTIFACT_DIFF_CONTRACT_CASES[1:],
+        )
+        assert run_artifact_diff_contract_check(root) == [
+            "artifact_diff_contract:unexpected_cases:"
+            + _expected_case_line(EXPECTED_ARTIFACT_DIFF_CONTRACT_CASES[1:])
+        ]
+
+        _write_contract_checker_fixture(
+            root / "scripts/zigux/check-artifact-diff-contract.py",
+            base_case_count=None,
+            base_cases=EXPECTED_ARTIFACT_DIFF_CONTRACT_BASE_CASES,
+            repeat_case_count=str(len(EXPECTED_ARTIFACT_DIFF_CONTRACT_REPEAT_CASES)),
+            repeat_cases=EXPECTED_ARTIFACT_DIFF_CONTRACT_REPEAT_CASES,
+            case_count=str(len(EXPECTED_ARTIFACT_DIFF_CONTRACT_CASES)),
+            cases=EXPECTED_ARTIFACT_DIFF_CONTRACT_CASES,
+        )
+        assert run_artifact_diff_contract_check(root) == [
+            "artifact_diff_contract:missing_base_case_count_marker"
+        ]
+
     print("PHASE4_VALIDATE_SELF_TEST=pass")
     return 0
 
