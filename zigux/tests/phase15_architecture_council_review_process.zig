@@ -181,6 +181,11 @@ test "phase 15 architecture council review-process doc records the required proc
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "## Decision Buckets") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "## Reopen Trigger Catalog") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "## Current Approval Posture") != null);
+    try std.testing.expect(std.mem.indexOf(
+        u8,
+        survey_doc,
+        "product boundary:\n  - `Documentation/zigux/phase15-architecture-council-review-process.md`",
+    ) != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "no Architecture Council approval is currently recorded for a freeze-map status change") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "current review-process evidence is limited to named `owner`, `rollback owner`, evidence archive, blocker-disposition, benchmark-notes, replay-command, retained-discussion-state, and reopen-trigger records") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "retained discussion state") != null);
