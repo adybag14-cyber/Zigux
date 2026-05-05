@@ -191,7 +191,7 @@ test "phase10 virtio core can disable and re-enable queue callbacks without tran
     try device.enableQueueCallback(0);
     try std.testing.expect(try device.notifyQueueUsed(0));
 
-    summary = try device.queueRegistrationSummary(0);
+    summary = device.queueRegistrationSummary(0);
     try std.testing.expect(summary.callback_enabled);
     try std.testing.expectEqual(@as(usize, 1), summary.callback_invocation_count);
     try std.testing.expectEqual(@as(usize, 2), summary.notification_count);
@@ -540,4 +540,78 @@ test "phase10 virtio core rejects invalid interrupt acknowledgements and clears 
     try std.testing.expectEqual(@as(u8, 0), summary.acknowledged_reason_bits);
     try std.testing.expectEqual(@as(usize, 0), summary.ack_count);
     try std.testing.expectEqual(@as(usize, 0), summary.unacknowledged_interrupt_count);
+}
+
+test "phase10 virtio core exposes reset replay bookkeeping before reset clears state" {
+    var device = try virtio_core.VirtioCoreLabDevice.init(&.{ 11, 21 });
+
+    device.acknowledge();
+    try device.attachDriver();
+    try device.offerDriverFeature(11);
+    _ = try device.finalizeFeatures();
+    try device.markDriverReady();
+    try device.registerQueueCallback(2, 8, "rx_done");
+    try device.noteConfigChanged();
+    try device.noteInterruptReason(virtio_core.VirtioInterruptReason.queue_used);
+    device.noteNeedsReset();
+
+    var summary = device.resetReplaySummary();
+    try std.testing.expectEqualStrings("drivers/virtio/virtio.c", summary.anchor);
+    try std.testing.expect(summary.reset_required);
+    try std.testing.expect(summary.driver_attached);
+    try std.testing.expect(summary.features_negotiated);
+    try std.testing.expect(summary.driver_ready);
+    try std.testing.expectEqual(@as(usize, 1), summary.registered_queue_count);
+    try std.testing.expect(!summary.change_pending);
+    try std.testing.expectEqual(@as(u32, 1), summary.generation);
+    try std.testing.expectEqual(@as(u32, 0), summary.acknowledged_generation);
+    try std.testing.expect(summary.has_unacknowledged_generation);
+    try std.testing.expectEqual(virtio_core.VirtioInterruptReason.queue_used, summary.pending_interrupt_reason_bits);
+    try std.testing.expect(summary.will_clear_negotiated_features);
+    try std.testing.expect(summary.will_clear_queue_callbacks);
+    try std.testing.expect(summary.will_clear_config_bookkeeping);
+    try std.testing.expect(summary.will_clear_interrupts);
+
+    device.reset();
+    summary = device.resetReplaySummary();
+    try std.testing.expect(!summary.reset_required);
+    try std.testing.expect(!summary.driver_attached);
+    try std.testing.expect(!summary.features_negotiated);
+    try std.testing.expect(!summary.driver_ready);
+    try std.testing.expectEqual(@as(usize, 0), summary.registered_queue_count);
+    try std.testing.expect(!summary.change_pending);
+    try std.testing.expectEqual(@as(u32, 0), summary.generation);
+    try std.testing.expectEqual(@as(u32, 0), summary.acknowledged_generation);
+    try std.testing.expect(!summary.has_unacknowledged_generation);
+    try std.testing.expectEqual(@as(u8, 0), summary.pending_interrupt_reason_bits);
+    try std.testing.expect(!summary.will_clear_negotiated_features);
+    try std.testing.expect(!summary.will_clear_queue_callbacks);
+    try std.testing.expect(!summary.will_clear_config_bookkeeping);
+    try std.testing.expect(!summary.will_clear_interrupts);
+}
+
+test "phase10 virtio core keeps pending config generations visible in reset replay bookkeeping" {
+    var device = try virtio_core.VirtioCoreLabDevice.init(&.{ 12, 22 });
+
+    device.acknowledge();
+    try device.attachDriver();
+    try device.disableConfigDriver();
+    try device.noteConfigChanged();
+    device.noteNeedsReset();
+
+    const summary = device.resetReplaySummary();
+    try std.testing.expect(summary.reset_required);
+    try std.testing.expect(summary.driver_attached);
+    try std.testing.expect(!summary.features_negotiated);
+    try std.testing.expect(!summary.driver_ready);
+    try std.testing.expectEqual(@as(usize, 0), summary.registered_queue_count);
+    try std.testing.expect(summary.change_pending);
+    try std.testing.expectEqual(@as(u32, 1), summary.generation);
+    try std.testing.expectEqual(@as(u32, 0), summary.acknowledged_generation);
+    try std.testing.expect(summary.has_unacknowledged_generation);
+    try std.testing.expectEqual(@as(u8, 0), summary.pending_interrupt_reason_bits);
+    try std.testing.expect(!summary.will_clear_negotiated_features);
+    try std.testing.expect(!summary.will_clear_queue_callbacks);
+    try std.testing.expect(summary.will_clear_config_bookkeeping);
+    try std.testing.expect(!summary.will_clear_interrupts);
 }
