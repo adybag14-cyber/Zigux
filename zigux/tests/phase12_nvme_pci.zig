@@ -149,6 +149,7 @@ test "phase12 nvme pci recovery replay summary marks cached metadata stale durin
     _ = lab.beginReset();
     const frozen_summary = lab.summarizeRecoveryReplay(.{
         .cached_prp_metadata_generation = 0,
+        .had_prp_metadata_plan = true,
         .had_admin_queue_plan = true,
     });
     try std.testing.expectEqualStrings("drivers/nvme/host/pci.c", frozen_summary.anchor);
@@ -165,6 +166,7 @@ test "phase12 nvme pci recovery replay summary marks cached metadata stale durin
     _ = lab.completeReset();
     const replay_summary = lab.summarizeRecoveryReplay(.{
         .cached_prp_metadata_generation = 0,
+        .had_prp_metadata_plan = true,
         .had_admin_queue_plan = true,
     });
     try std.testing.expectEqual(nvme_pci.RecoveryState.running, replay_summary.state);
@@ -183,6 +185,7 @@ test "phase12 nvme pci recovery replay summary clears rollback gate after helper
 
     const before_reset = lab.summarizeRecoveryReplay(.{
         .cached_prp_metadata_generation = 0,
+        .had_prp_metadata_plan = false,
         .had_admin_queue_plan = true,
     });
     try std.testing.expectEqual(nvme_pci.RecoveryState.running, before_reset.state);
@@ -199,6 +202,7 @@ test "phase12 nvme pci recovery replay summary clears rollback gate after helper
     const current_generation = lab.recoverySummary().reset_generation;
     const after_refresh = lab.summarizeRecoveryReplay(.{
         .cached_prp_metadata_generation = current_generation,
+        .had_prp_metadata_plan = false,
         .had_admin_queue_plan = false,
     });
     try std.testing.expectEqual(@as(u32, 1), after_refresh.reset_generation);
@@ -207,6 +211,33 @@ test "phase12 nvme pci recovery replay summary clears rollback gate after helper
     try std.testing.expect(!after_refresh.io_queues_must_be_rebuilt);
     try std.testing.expectEqual(@as(usize, 0), after_refresh.io_queues_dropped_by_reset);
     try std.testing.expectEqual(@as(u16, 1), after_refresh.next_io_queue_id);
+}
+
+test "phase12 nvme pci recovery replay does not overclaim stale metadata when none was cached" {
+    var lab = try nvme_pci.NvmePciQueueLab.init(4096, 8);
+    _ = try lab.planAdminQueue(16, 64, false);
+    _ = try lab.planIoQueue(8, 64, false);
+
+    _ = lab.beginReset();
+    const frozen_summary = lab.summarizeRecoveryReplay(.{
+        .cached_prp_metadata_generation = 0,
+        .had_prp_metadata_plan = false,
+        .had_admin_queue_plan = true,
+    });
+    try std.testing.expect(!frozen_summary.cached_prp_metadata_stale);
+    try std.testing.expect(frozen_summary.admin_queue_must_be_replanned);
+    try std.testing.expect(frozen_summary.io_queues_must_be_rebuilt);
+
+    _ = lab.completeReset();
+    const replay_summary = lab.summarizeRecoveryReplay(.{
+        .cached_prp_metadata_generation = 0,
+        .had_prp_metadata_plan = false,
+        .had_admin_queue_plan = true,
+    });
+    try std.testing.expect(!replay_summary.cached_prp_metadata_stale);
+    try std.testing.expect(replay_summary.admin_queue_must_be_replanned);
+    try std.testing.expect(replay_summary.io_queues_must_be_rebuilt);
+    try std.testing.expectEqual(@as(usize, 1), replay_summary.io_queues_dropped_by_reset);
 }
 
 test "phase12 nvme pci rejects invalid queue geometry and excessive io queue plans" {
