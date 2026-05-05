@@ -44,7 +44,7 @@ When an anchor is recorded under the indefinite-C policy, the reviewable record 
 
 - the Linux anchor path and the current roadmap phase
 - the current status bucket and the requested decision bucket
-- the decision record ID, the named owner, and the rollback owner
+- the decision record ID, the lane owner, and the rollback owner
 - the validation gate summary, the evidence archive path, and the replay command reviewers should use
 - the latest blocker disposition and the written rationale for why the anchor remains in C
 - the retained discussion state that closes the packet as `retired_from_active_discussion` when active review ends without a status change
