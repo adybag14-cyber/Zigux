@@ -81,7 +81,7 @@
       "status": "starter_landed",
       "kind": "complex_driver_followup",
       "zigux_destination": "drivers/net/virtio_net.zig",
-      "why_now": "The receive-refill follow-up is now landed as one bounded packet-path step that keeps mergeable-buffer headroom, fresh probe replay after restore, and RSS-aware refill requirements explicit before any live DMA, NAPI, or netdev lifecycle work."
+      "why_now": "The receive-refill follow-up is now landed as one bounded packet-path step that keeps mergeable-buffer headroom, fresh probe replay after restore, RSS-aware refill requirements, and clamp-versus-single-queue recovery intent explicit before any live DMA, NAPI, or netdev lifecycle work."
     },
     {
       "id": "phase12-virtio-net-transmit-recycle-followup",
