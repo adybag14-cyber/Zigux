@@ -63,7 +63,7 @@ REQUIRED_SCRIPT_README_MARKERS = [
 ]
 
 REQUIRED_TESTS_README_MARKERS = [
-    "keep the bounded Phase 9 runtime-loader packet wired through `Documentation/zigux/README.md`, `scripts/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `zigux/tests/phase9_build.zig`, `zigux/tests/runtime_loader_allocator_init_flow.zig`, `make -C zigux phase9`, the four survey entrypoints `zigux/tests/runtime_atomic64_survey.zig`, `zigux/tests/runtime_bitmap_survey.zig`, `zigux/tests/runtime_trace_events_survey.zig`, and `zigux/tests/runtime_kretprobe_survey.zig`, the four `samples/zigux/runtime_*_loader.zig` scaffolds, and the shared `zigux/kernel/runtime_loader.zig` plus `zigux/kernel/runtime_loader_contract.zig` surfaces so the loader-handoff packet stays reviewable without implying shared runtime substrate closure or a dedicated `validate-phase9.py` surface that does not exist on `master`",
+    "keep the bounded Phase 9 runtime-loader packet wired through `Documentation/zigux/README.md`, `scripts/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/check-phase9-build-only-surface.py`, `zigux/tests/phase9_build.zig`, `zigux/tests/runtime_loader_allocator_init_flow.zig`, `zigux/Makefile`, `.github/workflows/zigux-bootstrap.yml`, `make -C zigux phase9`, the four survey entrypoints `zigux/tests/runtime_atomic64_survey.zig`, `zigux/tests/runtime_bitmap_survey.zig`, `zigux/tests/runtime_trace_events_survey.zig`, and `zigux/tests/runtime_kretprobe_survey.zig`, the four `samples/zigux/runtime_*_loader.zig` scaffolds, and the shared `zigux/kernel/runtime_loader.zig` plus `zigux/kernel/runtime_loader_contract.zig` surfaces so the loader-handoff packet stays reviewable through the same shipped build-only checker and workflow-backed replay route without implying shared runtime substrate closure or a dedicated `validate-phase9.py` surface that does not exist on `master`",
 ]
 
 REQUIRED_REVIEW_CHECKLIST_MARKERS = [
@@ -230,7 +230,7 @@ Phase 9 flow
         root / TESTS_README_PATH,
         """# zigux/tests
 
-- keep the bounded Phase 9 runtime-loader packet wired through `Documentation/zigux/README.md`, `scripts/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `zigux/tests/phase9_build.zig`, `zigux/tests/runtime_loader_allocator_init_flow.zig`, `make -C zigux phase9`, the four survey entrypoints `zigux/tests/runtime_atomic64_survey.zig`, `zigux/tests/runtime_bitmap_survey.zig`, `zigux/tests/runtime_trace_events_survey.zig`, and `zigux/tests/runtime_kretprobe_survey.zig`, the four `samples/zigux/runtime_*_loader.zig` scaffolds, and the shared `zigux/kernel/runtime_loader.zig` plus `zigux/kernel/runtime_loader_contract.zig` surfaces so the loader-handoff packet stays reviewable without implying shared runtime substrate closure or a dedicated `validate-phase9.py` surface that does not exist on `master`
+- keep the bounded Phase 9 runtime-loader packet wired through `Documentation/zigux/README.md`, `scripts/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/check-phase9-build-only-surface.py`, `zigux/tests/phase9_build.zig`, `zigux/tests/runtime_loader_allocator_init_flow.zig`, `zigux/Makefile`, `.github/workflows/zigux-bootstrap.yml`, `make -C zigux phase9`, the four survey entrypoints `zigux/tests/runtime_atomic64_survey.zig`, `zigux/tests/runtime_bitmap_survey.zig`, `zigux/tests/runtime_trace_events_survey.zig`, and `zigux/tests/runtime_kretprobe_survey.zig`, the four `samples/zigux/runtime_*_loader.zig` scaffolds, and the shared `zigux/kernel/runtime_loader.zig` plus `zigux/kernel/runtime_loader_contract.zig` surfaces so the loader-handoff packet stays reviewable through the same shipped build-only checker and workflow-backed replay route without implying shared runtime substrate closure or a dedicated `validate-phase9.py` surface that does not exist on `master`
 """,
     )
     write_text(
@@ -381,6 +381,31 @@ def run_self_test() -> int:
             root,
             "scripts_readme:there is no dedicated shared `validate-phase9.py`, `check-phase9-validation-flow.py`, `check-phase9-runtime-loader-commit-alignment.py`, or `phase9-validate` target on `master`",
             "missing_scripts_removed_checker_marker",
+        )
+
+        write_fixture_tree(root)
+        tests_readme_path = root / TESTS_README_PATH
+        tests_readme = tests_readme_path.read_text(encoding="utf-8")
+        tests_readme_path.write_text(
+            tests_readme.replace(
+                "`scripts/zigux/check-phase9-build-only-surface.py`, ",
+                "",
+                1,
+            ).replace(
+                "`zigux/Makefile`, `.github/workflows/zigux-bootstrap.yml`, `make -C zigux phase9`,",
+                "`make -C zigux phase9`,",
+                1,
+            ).replace(
+                "through the same shipped build-only checker and workflow-backed replay route",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_failure(
+            root,
+            "tests_readme:keep the bounded Phase 9 runtime-loader packet wired through `Documentation/zigux/README.md`, `scripts/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/check-phase9-build-only-surface.py`, `zigux/tests/phase9_build.zig`, `zigux/tests/runtime_loader_allocator_init_flow.zig`, `zigux/Makefile`, `.github/workflows/zigux-bootstrap.yml`, `make -C zigux phase9`, the four survey entrypoints `zigux/tests/runtime_atomic64_survey.zig`, `zigux/tests/runtime_bitmap_survey.zig`, `zigux/tests/runtime_trace_events_survey.zig`, and `zigux/tests/runtime_kretprobe_survey.zig`, the four `samples/zigux/runtime_*_loader.zig` scaffolds, and the shared `zigux/kernel/runtime_loader.zig` plus `zigux/kernel/runtime_loader_contract.zig` surfaces so the loader-handoff packet stays reviewable through the same shipped build-only checker and workflow-backed replay route without implying shared runtime substrate closure or a dedicated `validate-phase9.py` surface that does not exist on `master`",
+            "missing_tests_build_only_surface_marker",
         )
 
         write_fixture_tree(root)
