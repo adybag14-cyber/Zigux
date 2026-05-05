@@ -192,14 +192,14 @@ def build_fixture() -> dict[str, str]:
         "survey_summary": {
             "virtio_input_c_lines": 421,
             "preexisting_phase10_test_files": 5,
-            "preexisting_phase10_build_present": true,
-            "preexisting_virtio_core_zig_present": true,
-            "preexisting_virtio_ring_zig_present": true,
-            "preexisting_virtio_mmio_survey_present": true,
-            "preexisting_virtio_input_zig_present": true,
-            "preexisting_virtio_input_test_present": true,
-            "preexisting_virtio_input_slice_note_present": true,
-            "preexisting_virtio_input_module_note_present": true
+            "preexisting_phase10_build_present": True,
+            "preexisting_virtio_core_zig_present": True,
+            "preexisting_virtio_ring_zig_present": True,
+            "preexisting_virtio_mmio_survey_present": True,
+            "preexisting_virtio_input_zig_present": True,
+            "preexisting_virtio_input_test_present": True,
+            "preexisting_virtio_input_slice_note_present": True,
+            "preexisting_virtio_input_module_note_present": True,
         },
         "gaps": [
             {"id": gap_id, "status": status}
