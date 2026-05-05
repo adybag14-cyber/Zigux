@@ -1,7 +1,7 @@
 {
   "lane_key": "P5-L18",
   "phase": "Phase 5",
-  "surveyed_commit": "master",
+  "surveyed_commit": "7361ac51374149a96b7a7a2c6ea3c995d8cc1231",
   "anchor": "samples/kprobes/kretprobe_example.c",
   "sample_path": "samples/zigux/kretprobe_example.zig",
   "validation_entrypoint": "zig build test --build-file zigux/tests/phase5_build.zig --summary all",
