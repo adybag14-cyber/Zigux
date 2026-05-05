@@ -68,6 +68,16 @@ SCRIPTS_REQUIRED_MARKERS = [
     "zigux/helpers/notifier_chain_view.zig",
     "validate-phase13-release.py",
     "check-phase13-devres-packet.py",
+    "zigux/tests/phase13_build.zig",
+    "phase13_libfs.zig",
+    "phase13_devres.zig",
+    "phase13_landlock_ruleset.zig",
+    "phase13_landlock_syscalls.zig",
+    "phase13_libfs_reviewability.zig",
+    "make -C zigux phase13-validate",
+    "make -C zigux phase13",
+    "the five-test shared helper replay",
+    "adjacent review evidence instead of adding extra shared replay steps on `master`",
 ]
 
 MAKE_REQUIRED_LINES = [
@@ -252,6 +262,16 @@ def run_self_test() -> int:
                 "scripts-readme:include/zigux/notifier_abi.h",
                 "scripts-readme:zigux/helpers/notifier_chain_view.zig",
                 "scripts-readme:check-phase13-devres-packet.py",
+                "scripts-readme:zigux/tests/phase13_build.zig",
+                "scripts-readme:phase13_libfs.zig",
+                "scripts-readme:phase13_devres.zig",
+                "scripts-readme:phase13_landlock_ruleset.zig",
+                "scripts-readme:phase13_landlock_syscalls.zig",
+                "scripts-readme:phase13_libfs_reviewability.zig",
+                "scripts-readme:make -C zigux phase13-validate",
+                "scripts-readme:make -C zigux phase13",
+                "scripts-readme:the five-test shared helper replay",
+                "scripts-readme:adjacent review evidence instead of adding extra shared replay steps on `master`",
             ],
             "scripts_marker_guard_failed",
         )
