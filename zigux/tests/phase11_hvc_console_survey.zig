@@ -54,7 +54,7 @@ test "phase11 hvc_console survey manifest records the landed starter and remaini
     try std.testing.expectEqualStrings("P11-L13", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 11", manifest.phase);
     try std.testing.expectEqualStrings("drivers/tty/hvc/hvc_console.c", manifest.anchor);
-    try std.testing.expectEqualStrings("c9b956c155281407bf86bf56d122b08d6fc634ea", manifest.surveyed_commit);
+    try std.testing.expectEqualStrings("ee124761ef3ef5fcc6bb9cd8b7fe8d1fce326839", manifest.surveyed_commit);
     try std.testing.expectEqual(@as(usize, 3), manifest.roadmap_destinations.len);
     try std.testing.expect(manifest.survey_summary.hvc_console_c_lines >= 1000);
     try std.testing.expect(manifest.survey_summary.preexisting_phase11_build_present);
