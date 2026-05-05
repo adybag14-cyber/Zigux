@@ -7,7 +7,7 @@ This document records the bounded Phase 15 governance lane around `Documentation
 - `PHASE15_STATUS=governance_slice_landed`
 - `PHASE15_SLICE=freeze-map-governance-blocker-verification`
 - scope: the live freeze map, the existing dedicated Phase 15 manifest and test gate, and one bounded maintenance follow-up that keeps the root freeze-map note aligned with the already-landed parity-scorecard, review-process, indefinite-C policy, retained stay-in-C closeout, and current blocker posture
-- survey provenance refreshed against verified `master` head `7d902693be04d2f88566befd198ffc6750b275a1`
+- survey provenance refreshed against verified `master` head `9342905d34fb98d6fcd88cf2e88efed7355131d2`
 - product boundary:
   - `Documentation/zigux/freeze-map.md`
   - `Documentation/zigux/phase15-freeze-map-governance.md`
