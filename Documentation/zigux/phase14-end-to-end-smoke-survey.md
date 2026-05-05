@@ -46,6 +46,7 @@ Shared smoke boundary:
 - `zigux/tests/phase14_end_to_end_smoke_survey.zig`
 - `zigux/tests/phase14_end_to_end_smoke_manifest.json`
 - `zigux/Makefile`
+- `.github/workflows/zigux-bootstrap.yml`
 
 ## Why This Slice Exists
 
