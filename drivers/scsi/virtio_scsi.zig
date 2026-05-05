@@ -60,6 +60,24 @@ pub const RecoverySummary = struct {
     recovery_generation: u16,
 };
 
+pub const RecoveryRestoreSummary = struct {
+    anchor: []const u8,
+    request_queues: u16,
+    default_queues: u16,
+    poll_queues: u16,
+    total_queues: u16,
+    control_queue_index: u16,
+    event_queue_index: u16,
+    first_request_queue_index: u16,
+    first_poll_queue_index: ?u16,
+    event_buffer_count: u16,
+    requires_find_vqs: bool,
+    find_vqs_before_device_ready: bool,
+    device_ready_before_event_rearm: bool,
+    preserves_scsi_host_registration: bool,
+    reruns_host_scan: bool,
+};
+
 pub const VirtioScsiQueueLab = struct {
     const Self = @This();
 
@@ -160,6 +178,31 @@ pub const VirtioScsiQueueLab = struct {
             .remembered_poll_queues = layout.poll_queues,
             .remembered_event_buffer_count = layout.event_buffer_count,
             .recovery_generation = self.recovery_generation,
+        };
+    }
+
+    pub fn recoveryRestoreSummary(self: *const Self) !RecoveryRestoreSummary {
+        if (!self.transport_frozen) {
+            return error.TransportNotFrozen;
+        }
+
+        const layout = self.frozen_layout orelse return error.QueueLayoutUnavailable;
+        return .{
+            .anchor = descriptor().anchor,
+            .request_queues = layout.request_queues,
+            .default_queues = layout.default_queues,
+            .poll_queues = layout.poll_queues,
+            .total_queues = layout.total_queues,
+            .control_queue_index = layout.control_queue_index,
+            .event_queue_index = layout.event_queue_index,
+            .first_request_queue_index = layout.first_request_queue_index,
+            .first_poll_queue_index = layout.first_poll_queue_index,
+            .event_buffer_count = layout.event_buffer_count,
+            .requires_find_vqs = true,
+            .find_vqs_before_device_ready = true,
+            .device_ready_before_event_rearm = true,
+            .preserves_scsi_host_registration = true,
+            .reruns_host_scan = false,
         };
     }
 
