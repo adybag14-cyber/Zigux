@@ -233,8 +233,41 @@ jobs:
       - name: Run Phase 10 virtio helper tests
         run: zig build test --build-file zigux/tests/phase10_build.zig --summary all
 
+      - name: Self-test Phase 11 simple-driver validator
+        run: python3 scripts/zigux/validate-phase11.py --self-test
+
+      - name: Self-test Phase 11 build inventory checker
+        run: python3 scripts/zigux/check-phase11-build-inventory.py --self-test
+
+      - name: Self-test Phase 11 hvc validation flow checker
+        run: python3 scripts/zigux/check-phase11-hvc-validation-flow.py --self-test
+
+      - name: Self-test Phase 11 hvc cleanup alignment checker
+        run: python3 scripts/zigux/check-phase11-hvc-cleanup-alignment.py --self-test
+
+      - name: Self-test Phase 11 layout assert surface checker
+        run: python3 scripts/zigux/check-phase11-layout-assert-surface.py --self-test
+
+      - name: Self-test Phase 11 shared replay contract checker
+        run: python3 scripts/zigux/check-phase11-shared-replay-contract.py --self-test
+
+      - name: Self-test Phase 11 header boundary packet checker
+        run: python3 scripts/zigux/check-phase11-header-boundary-packet.py --self-test
+
+      - name: Validate Phase 11 shared replay contract
+        run: python3 scripts/zigux/check-phase11-shared-replay-contract.py
+
+      - name: Validate Phase 11 header boundary packet
+        run: python3 scripts/zigux/check-phase11-header-boundary-packet.py
+
+      - name: Validate Phase 11 simple-driver bundle
+        run: make -C zigux phase11-validate
+
       - name: Run Phase 11 watchdog and console tests
         run: zig build test --build-file zigux/tests/phase11_build.zig --summary all
+
+      - name: Run dedicated Phase 11 hvc survey replay
+        run: make -C zigux phase11-hvc-survey
 
       - name: Self-test Phase 12 build-only surface checker
         run: python3 scripts/zigux/check-build-only-phase12-surface.py --self-test
