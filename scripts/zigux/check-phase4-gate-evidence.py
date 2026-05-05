@@ -33,7 +33,8 @@ PHASE4_GATE_EVIDENCE_BLOB_TARGETS = {
     "PHASE4_RUNTIME_ATOMIC64_SURVEY_BLOB_SHA": "zigux/tests/phase4_runtime_atomic64_diff_survey.zig",
 }
 PHASE4_RUNTIME_ATOMIC64_PACKET_BLOB_TARGETS = {
-    "phase4_build_blob_sha": "zigux/tests/phase4_build.zig",
+    "phase4_validator_blob_sha": "scripts/zigux/validate-phase4.py",
+    "phase4_validation_matrix_blob_sha": "Documentation/zigux/phase4-validation-matrix.md",
     "phase9_build_blob_sha": "zigux/tests/phase9_build.zig",
 }
 
@@ -204,7 +205,7 @@ def build_fixture_note(root: Path) -> str:
             "- `Documentation/zigux/artifact-diff.md` and `Documentation/zigux/README.md` stay aligned with the shipped packet.",
             "- `scripts/zigux/check-phase4-gate-evidence.py` now exact-counts the current narrower packet.",
             "- `zigux/tests/phase4_runtime_atomic64_diff_manifest.json` and `zigux/tests/phase4_runtime_atomic64_diff_survey.zig` remain the manifest-backed runtime atomic64 survey pair.",
-            "- The shared build packet still exposes `phase4-runtime-atomic64-diff-survey-tests` and `phase4-bitmap-live-helper-replay-tests`.",
+            "- The shared build still exposes `phase4-runtime-atomic64-diff-survey-tests` and `phase4-bitmap-live-helper-replay-tests`.",
             "- Current `master` still treats the missing roadmap-backed sample gates as gaps: `samples/zigux/kprobe_example.zig` remains absent and `samples/zigux/test_fsmount.zig` remains absent.",
             "",
             "## Current Conclusion",
@@ -226,8 +227,9 @@ def write_runtime_atomic64_packet_fixture(root: Path) -> None:
             [
                 'const std = @import("std");',
                 "",
-                'test "fixture keeps current phase4 and phase9 build pins" {',
-                f"    // phase4 build pin {manifest['phase4_build_blob_sha']}",
+                'test "fixture keeps current validator, matrix, and phase9 build pins" {',
+                f"    // validator pin {manifest['phase4_validator_blob_sha']}",
+                f"    // matrix pin {manifest['phase4_validation_matrix_blob_sha']}",
                 f"    // phase9 build pin {manifest['phase9_build_blob_sha']}",
                 "}",
                 "",
@@ -293,19 +295,19 @@ def run_self_test() -> int:
         write_runtime_atomic64_packet_fixture(root)
         write_text(root / NOTE_PATH, build_fixture_note(root))
         manifest = json.loads(read_text(root, MANIFEST_PATH))
-        phase4_build_sha = git_blob_sha1(
-            read_bytes(root, PHASE4_RUNTIME_ATOMIC64_PACKET_BLOB_TARGETS["phase4_build_blob_sha"])
+        phase4_validator_sha = git_blob_sha1(
+            read_bytes(root, PHASE4_RUNTIME_ATOMIC64_PACKET_BLOB_TARGETS["phase4_validator_blob_sha"])
         )
-        manifest["phase4_build_blob_sha"] = "0000000000000000000000000000000000000000"
+        manifest["phase4_validator_blob_sha"] = "0000000000000000000000000000000000000000"
         write_text(root / MANIFEST_PATH, json.dumps(manifest, indent=2) + "\n")
         manifest_blob_sha = git_blob_sha1(read_bytes(root, MANIFEST_PATH))
         missing = validate_root(root)
         assert missing == [
             "phase4_gate_evidence:blob_exact_count:PHASE4_RUNTIME_ATOMIC64_MANIFEST_BLOB_SHA:"
             f"{manifest_blob_sha}:0",
-            "phase4_gate_evidence:runtime_atomic64_manifest_blob:phase4_build_blob_sha:"
+            "phase4_gate_evidence:runtime_atomic64_manifest_blob:phase4_validator_blob_sha:"
             "0000000000000000000000000000000000000000:"
-            f"{phase4_build_sha}",
+            f"{phase4_validator_sha}",
         ], missing
 
         write_runtime_atomic64_packet_fixture(root)
@@ -313,7 +315,7 @@ def run_self_test() -> int:
         write_text(
             root / SURVEY_PATH,
             read_text(root, SURVEY_PATH).replace(
-                phase4_build_sha, "1111111111111111111111111111111111111111", 1
+                phase4_validator_sha, "1111111111111111111111111111111111111111", 1
             ),
         )
         survey_blob_sha = git_blob_sha1(read_bytes(root, SURVEY_PATH))
@@ -322,7 +324,7 @@ def run_self_test() -> int:
             "phase4_gate_evidence:blob_exact_count:PHASE4_RUNTIME_ATOMIC64_SURVEY_BLOB_SHA:"
             f"{survey_blob_sha}:0",
             "phase4_gate_evidence:runtime_atomic64_survey_blob_exact_count:"
-            f"phase4_build_blob_sha:{phase4_build_sha}:0",
+            f"phase4_validator_blob_sha:{phase4_validator_sha}:0",
         ], missing
 
         write_runtime_atomic64_packet_fixture(root)
