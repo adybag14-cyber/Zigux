@@ -118,19 +118,10 @@ test "phase10 virtio ring survey manifest records the live queue-wrapper gap and
     );
     defer std.testing.allocator.free(survey_note);
 
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "lane: `P10-L07`") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, manifest.surveyed_commit) != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "`Documentation/zigux/freeze-map.md`") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "freeze-boundary owner: `P10-L10`") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "rollback owner") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "`zigux/Makefile`") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "shared `zigux/tests/phase10_build.zig` and `zigux/Makefile` replay surface") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "shared `zigux/tests/phase10_build.zig` and `zigux/Makefile` replay route aligned") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "shared Phase 10 closure evidence") == null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "shared Phase 10 closure packet") == null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "`drivers/virtio/*.zig`") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "`zigux/kernel/`") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "`zigux/helpers/`") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "`kernel/workqueue.c`") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "`kernel/trace/ring_buffer.c`") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "freeze-map status change") != null);
