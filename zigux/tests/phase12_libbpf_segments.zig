@@ -249,3 +249,20 @@ test "phase12 libbpf survey manifest records the heavy-helper segmentation gap" 
     try std.testing.expect(saw_object_loader_blocker);
     try std.testing.expect(saw_relocation_blocker);
 }
+
+test "phase12 libbpf survey note records the full landed helper set" {
+    var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
+    defer io_instance.deinit();
+
+    const note = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "Documentation/zigux/phase12-libbpf-segment-survey.md",
+        std.testing.allocator,
+        .limited(32 * 1024),
+    );
+    defer std.testing.allocator.free(note);
+
+    try std.testing.expect(std.mem.indexOf(u8, note, "five landed helper slices") != null);
+    try std.testing.expect(std.mem.indexOf(u8, note, "`perf_buffer_poll.zig`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, note, "phase12-libbpf-perf-buffer-poll-helper-foundation") != null);
+}
