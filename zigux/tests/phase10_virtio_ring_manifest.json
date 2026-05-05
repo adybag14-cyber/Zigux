@@ -1,10 +1,11 @@
 {
-  "lane_key": "P10-L08",
+  "lane_key": "P10-L07",
   "phase": "Phase 10",
   "surveyed_commit": "e42103fc02f544e1bd23a5ec2e5b584734f5af7d",
   "anchor": "drivers/virtio/virtio_ring.c",
   "roadmap_destinations": [
     "drivers/virtio/*.zig",
+    "zigux/kernel/",
     "zigux/helpers/"
   ],
   "freeze_map": "Documentation/zigux/freeze-map.md",
@@ -60,14 +61,14 @@
       "status": "starter_landed",
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase10_virtio_ring_survey.zig",
-      "why_now": "A dedicated survey gate keeps the live roadmap gap explicit and reviewable now that the repo has both the core slice and the first ring-local helper, so the lane can track the remaining in-memory queue behavior honestly."
+      "why_now": "A dedicated survey gate keeps the live roadmap gap explicit and reviewable now that the repo has both the core slice and the first ring-local helper, so the lane can track the remaining in-memory queue behavior and roadmap-boundary evidence honestly."
     },
     {
       "id": "phase10-virtio-ring-survey-note",
       "status": "starter_landed",
       "kind": "documentation",
       "zigux_destination": "Documentation/zigux/phase10-virtio-ring-survey.md",
-      "why_now": "The lane needs a Phase 10 note that records the current ring-helper and adjacent MMIO footholds against the remaining transport-facing gap and prevents the repo from overstating virtio_ring progress."
+      "why_now": "The lane needs a Phase 10 note that records the current ring-helper, adjacent MMIO footholds, and roadmap-backed destination evidence against the remaining transport-facing gap and prevents the repo from overstating virtio_ring progress."
     },
     {
       "id": "phase10-virtqueue-shape-helper",
