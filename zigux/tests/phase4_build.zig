@@ -49,6 +49,11 @@ pub fn build(b: *std.Build) void {
     });
     bitmap_live_helper_replay_module.addImport("bitmap", bitmap_module);
     bitmap_live_helper_replay_module.addImport("find_bit", find_bit_module);
+    const phase4_perf_baseline_survey_module = b.createModule(.{
+        .root_source_file = b.path("phase4_perf_baseline_survey.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
 
     const atomic64_diff_tests = b.addTest(.{
         .name = "phase4-runtime-atomic64-diff-tests",
@@ -74,11 +79,18 @@ pub fn build(b: *std.Build) void {
     });
     const run_bitmap_live_helper_replay_tests = b.addRunArtifact(bitmap_live_helper_replay_tests);
 
+    const phase4_perf_baseline_survey_tests = b.addTest(.{
+        .name = "phase4-perf-baseline-survey-tests",
+        .root_module = phase4_perf_baseline_survey_module,
+    });
+    const run_phase4_perf_baseline_survey_tests = b.addRunArtifact(phase4_perf_baseline_survey_tests);
+
     const test_step = b.step("test", "Run Phase 4 differential validation tests");
     test_step.dependOn(&run_atomic64_diff_tests.step);
     test_step.dependOn(&run_runtime_atomic64_diff_survey_tests.step);
     test_step.dependOn(&run_bitmap_diff_tests.step);
     test_step.dependOn(&run_bitmap_live_helper_replay_tests.step);
+    test_step.dependOn(&run_phase4_perf_baseline_survey_tests.step);
 
     const runtime_atomic64_diff_step = b.step(
         "phase4-runtime-atomic64-diff",
@@ -100,4 +112,10 @@ pub fn build(b: *std.Build) void {
         "Run the helper-backed Phase 4 bitmap rollback replay",
     );
     bitmap_live_helper_replay_step.dependOn(&run_bitmap_live_helper_replay_tests.step);
+
+    const phase4_perf_baseline_survey_step = b.step(
+        "phase4-perf-baseline-survey",
+        "Run the manifest-backed Phase 4 perf baseline ownership survey",
+    );
+    phase4_perf_baseline_survey_step.dependOn(&run_phase4_perf_baseline_survey_tests.step);
 }
