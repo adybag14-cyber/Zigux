@@ -248,6 +248,8 @@ test "phase 5 trace-events survey note stays repo-local and keeps the formatting
     defer std.testing.allocator.free(samples_root);
 
     try expectContains(samples_root, "samples/zigux/trace_events_sample.zig");
+    try expectContains(samples_root, "approved payload-and-callback idiom");
+    try expectContains(samples_root, "balanced register-then-unregister callback review surface");
     try expectContains(samples_root, "no standalone `samples/zigux/*printf*`, `*vsprintf*`, or `*format*` reference sample");
     try expectContains(samples_root, "selected-string plus `iter=%d` replay");
     try expectContains(samples_root, "closed Phase 1 `tools/lib/vsprintf.zig` packet");
