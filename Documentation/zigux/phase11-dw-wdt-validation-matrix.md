@@ -1,0 +1,45 @@
+# Phase 11 DesignWare Watchdog Validation Matrix
+
+This document records the first bounded hardware-validation matrix for the Zigux `dw_wdt` lane.
+
+## Status
+
+- `PHASE11_DW_WDT_STATUS=hardware_validation_matrix_landed`
+- scope: keep the current `dw_wdt` starter honest about what is already validated, name the next kernel-facing checkpoints, and avoid overclaiming platform registration, clock or reset wiring, IRQ handling, or live MMIO behavior before those surfaces exist in Zigux
+- current repo reality:
+  - `drivers/watchdog/dw_wdt.zig`
+  - `zigux/tests/phase11_dw_wdt.zig`
+  - `zigux/tests/phase11_dw_wdt_manifest.json`
+  - `zigux/tests/phase11_dw_wdt_survey.zig`
+  - `zigux/tests/phase11_build.zig`
+  - `Documentation/zigux/phase11-dw-wdt-slice.md`
+  - `Documentation/zigux/phase11-dw-wdt-survey.md`
+
+## Why This Exists
+
+The bounded starter now covers fixed TOP timeout derivation, custom TOP ordering, reset-mode versus IRQ-mode timeout selection, pretimeout bookkeeping, imported running-state snapshots, register-image transitions for start, ping, stop, and restart, and the non-stoppable stop boundary when reset control is unavailable. The live repo still needed one reviewable note that explains:
+
+- which parts of the lane are already exercised by the shared Phase 11 gate
+- which watchdog-core-facing behaviors are already reviewable in bounded form versus still deferred
+- which areas must remain out of scope until a later registration-facing handoff lands
+
+Without this matrix, the slice, survey, manifest, and shared review surfaces all pointed at a Phase 11 DesignWare validation matrix that did not yet exist on `master`.
+
+## Kernel-Integration Matrix
+
+| lane surface | current evidence | shared gate today | next bounded follow-up | out of scope for now |
+| --- | --- | --- | --- | --- |
+| fixed and custom TOP timeout windows | `drivers/watchdog/dw_wdt.zig` derives fixed TOP timeout windows from the input clock, sorts bounded custom TOP arrays, and exposes the ordered timeout table through `initFixedTops()`, `initCustomTops()`, and `timeoutWindows()` | `zig build test --build-file zigux/tests/phase11_build.zig --summary all` via the fixed-top limit and custom-ordering checks in `zigux/tests/phase11_dw_wdt.zig` | keep the same timeout-window evidence stable while the lane chooses the first registration-facing handoff | devicetree TOP parsing, clock acquisition, and hardware-backed timeout programming |
+| reset versus IRQ mode timeout selection | `setTimeout()` and `setResponseMode()` keep the reset-mode versus IRQ-mode timeout choice, nearest-TOP selection, and pretimeout bookkeeping reviewable without claiming live interrupt handling | `zig build test --build-file zigux/tests/phase11_build.zig --summary all` via the reset-mode and IRQ-mode timeout checks in `zigux/tests/phase11_dw_wdt.zig` | preserve this timeout-selection split when the lane grows the first watchdog-registration handoff instead of widening into IRQ execution | live IRQ registration, interrupt delivery, and watchdog-core callback execution |
+| imported running-state snapshots | `loadRegisters()`, `syncStateFromRegisters()`, and `runtimeSnapshot()` re-derive running state, response mode, timeout bookkeeping, and time-left snapshots from the bounded register image | `zig build test --build-file zigux/tests/phase11_build.zig --summary all` via the imported running-state and probe-summary checks in `zigux/tests/phase11_dw_wdt.zig` | keep the imported-state evidence wired into any later registration-facing handoff summary | live MMIO reads, watchdog-core state import, and suspend or resume recovery |
+| start, ping, stop, and restart register images | `start()`, `ping()`, `stop()`, and `armRestart()` keep restart kicks, control-bit transitions, timeout-range programming, and restart intent reviewable without claiming live hardware access | `zig build test --build-file zigux/tests/phase11_build.zig --summary all` via the start, ping, stop, and restart checks in `zigux/tests/phase11_dw_wdt.zig` | leave the same register-image evidence parked unless another comparably small handoff summary is needed | live MMIO writes, restart timing, and hardware-backed reboot behavior |
+| non-stoppable stop semantics | `stop()` keeps the reset-control split explicit by preserving hardware-running state when the lane has no reset control and clearing runtime state only when stopping is actually supported | `zig build test --build-file zigux/tests/phase11_build.zig --summary all` via the stoppable versus non-stoppable stop checks in `zigux/tests/phase11_dw_wdt.zig` | keep this stop boundary stable while the lane stays host-free and registration-first | reset-controller acquisition, reboot notifier ordering, and hardware-backed shutdown behavior |
+| probe-time watchdog-core bookkeeping | `probeSummary()` records fixed-versus-custom TOP sourcing, requested timeout origin, nowayout posture, restart priority, stop-on-reboot intent, and already-running watchdog state before registration | `zig build test --build-file zigux/tests/phase11_build.zig --summary all` via the probe-summary checks in `zigux/tests/phase11_dw_wdt.zig` and the manifest-backed survey assertions in `zigux/tests/phase11_dw_wdt_survey.zig` | land one tiny registration-facing handoff around watchdog info selection, parent linkage, and register-device intent before any platform-backed behavior | watchdog registration, parent-device lifetime, clock and reset ownership, and IRQ wiring |
+| platform registration and PM behavior | no live Zigux implementation yet; the current repo only records these as the next kernel-facing checkpoint in the slice, survey, and manifest | none beyond the survey or manifest guard that keeps the missing work explicit | keep the next step narrowed to one registration-facing handoff or reviewability note before any platform-backed scaffold | platform-driver registration, clock and reset acquisition, IRQ registration, debugfs support, suspend or resume handling, and live MMIO validation |
+
+## Review Rules
+
+- treat this lane as a bounded driver-starter plus validation-note lane until a registration-facing handoff actually lands
+- keep `zigux/tests/phase11_build.zig` as the shared replay path for the current starter instead of adding ad hoc Phase 11 CI steps
+- do not claim platform-driver registration, watchdog-core registration, clock or reset ownership, IRQ registration, suspend or resume handling, debugfs support, or live MMIO execution until the Zig surface and tests for those behaviors exist
+- when the next registration-facing handoff lands, update this matrix, the slice note, the survey note, and the survey manifest together so the lane keeps one truthful next step
