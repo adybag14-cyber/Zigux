@@ -89,6 +89,6 @@ test "phase14 shared smoke survey confirms the current packet surfaces" {
 
     try std.testing.expect(containsMarker(makefile_text, "phase14-smoke:"));
     try std.testing.expect(containsMarker(makefile_text, "phase14-test:"));
-    try std.testing.expect(containsMarker(makefile_text, "phase14: phase14-validate phase14-smoke phase14-test"));
+    try std.testing.expect(containsMarker(makefile_text, "phase14: phase14-smoke phase14-test"));
     try std.testing.expect(containsMarker(makefile_text, "zigux/tests/phase14_build.zig"));
 }
