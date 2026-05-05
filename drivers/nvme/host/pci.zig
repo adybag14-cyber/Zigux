@@ -79,8 +79,9 @@ pub const PrpMetadataPlanSummary = struct {
     first_page_offset: u32,
     spanned_pages: u16,
     uses_prp_list: bool,
-    command_prp_words: u16,
-    prp_list_entries: u16,
+    command_data_prp_entries: u16,
+    prp_list_covered_pages: u16,
+    prp_list_pages: u16,
     metadata_dma_bytes: u32,
     total_dma_bytes: u32,
     requires_descriptor_rebuild_after_reset: bool,
@@ -214,8 +215,15 @@ pub const NvmePciQueueLab = struct {
         if (self.recovery_state != .running) return error.QueuePlanningBlockedByReset;
 
         const shape = try self.planPrpBufferShape(total_transfer_bytes, first_page_offset);
-        const command_prp_words: u16 = if (shape.spanned_pages == 1) 1 else 2;
-        const metadata_dma_bytes = if (shape.uses_prp_list) self.page_size else 0;
+        const command_data_prp_entries: u16 = if (shape.spanned_pages == 1)
+            1
+        else if (shape.uses_prp_list)
+            1
+        else
+            2;
+        const prp_list_covered_pages: u16 = if (shape.uses_prp_list) shape.tail_page_count else 0;
+        const prp_list_pages: u16 = if (shape.uses_prp_list) 1 else 0;
+        const metadata_dma_bytes = try checkedMulU16ByU32(prp_list_pages, self.page_size);
         const total_dma_bytes = try checkedAddU32(shape.rounded_span_bytes, metadata_dma_bytes);
 
         return .{
@@ -224,8 +232,9 @@ pub const NvmePciQueueLab = struct {
             .first_page_offset = shape.first_page_offset,
             .spanned_pages = shape.spanned_pages,
             .uses_prp_list = shape.uses_prp_list,
-            .command_prp_words = command_prp_words,
-            .prp_list_entries = shape.prp_list_entries,
+            .command_data_prp_entries = command_data_prp_entries,
+            .prp_list_covered_pages = prp_list_covered_pages,
+            .prp_list_pages = prp_list_pages,
             .metadata_dma_bytes = metadata_dma_bytes,
             .total_dma_bytes = total_dma_bytes,
             .requires_descriptor_rebuild_after_reset = shape.uses_prp_list,
@@ -314,6 +323,11 @@ pub const NvmePciQueueLab = struct {
     }
 
     fn checkedMulU32(lhs: u16, rhs: u16) !u32 {
+        const value = @as(u64, lhs) * rhs;
+        return std.math.cast(u32, value) orelse error.QueueBytesOverflow;
+    }
+
+    fn checkedMulU16ByU32(lhs: u16, rhs: u32) !u32 {
         const value = @as(u64, lhs) * rhs;
         return std.math.cast(u32, value) orelse error.QueueBytesOverflow;
     }
