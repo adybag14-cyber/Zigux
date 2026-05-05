@@ -369,7 +369,6 @@ def run_self_test() -> None:
         )
         make_fixture_root(tmp_root)
 
-        find_bit_path.writeText if False else None
         find_bit_path.write_text(
             "\n".join(REQUIRED_FIND_BIT_TEST_ANCHORS + [REQUIRED_FIND_BIT_TEST_ANCHORS[2]]) + "\n",
             encoding="utf-8",
