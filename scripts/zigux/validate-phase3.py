@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import argparse
+from collections import Counter
 import json
 from pathlib import Path
 import tempfile
@@ -111,6 +112,9 @@ def validate_manifest(root: Path, path: Path | None, slug: str, issues: list[str
     if not isinstance(files, list) or not all(isinstance(item, str) for item in files):
         issues.append(f"{slug}:manifest_files={type(files).__name__}")
         return data
+    duplicate_files = sorted(rel for rel, count in Counter(files).items() if count > 1)
+    for rel in duplicate_files:
+        issues.append(f"{slug}:manifest_duplicate_file={rel}")
     file_count = data.get("file_count")
     if file_count != len(files):
         issues.append(f"{slug}:manifest_file_count={file_count}")
@@ -399,6 +403,27 @@ def run_self_test() -> int:
         (paths.tests_dir / "phase3_alpha_dump.zig").write_text("// alpha\n", encoding="utf-8", newline="\n")
         (fixture_dir / "expected.json").write_text("{}\n", encoding="utf-8", newline="\n")
         (fixture_dir / "phase3_alpha_c_harness.c").write_text("int main(void) { return 0; }\n", encoding="utf-8", newline="\n")
+        (fixture_dir / "phase3_alpha_manifest.json").write_text(
+            json.dumps(
+                {
+                    "phase": "Phase 3",
+                    "status": "ready",
+                    "slice": "alpha-slice",
+                    "files": [manifest_rel, manifest_rel],
+                    "file_count": 2,
+                }
+            ),
+            encoding="utf-8",
+            newline="\n",
+        )
+        duplicate_issues: list[str] = []
+        validate_manifest(root, fixture_dir / "phase3_alpha_manifest.json", "alpha", duplicate_issues)
+        assert duplicate_issues == [f"alpha:manifest_duplicate_file={manifest_rel}"]
+        (fixture_dir / "phase3_alpha_manifest.json").write_text(
+            json.dumps(manifest),
+            encoding="utf-8",
+            newline="\n",
+        )
         (paths.docs_dir / "artifact-diff.md").write_text(
             "\n".join(
                 [
