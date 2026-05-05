@@ -29,12 +29,16 @@ EXPECTED_NOTE_MARKERS = [
     "phase10_virtio_core_manifest.json",
     "phase10_virtio_core_survey.zig",
     "check-phase10-core-packet.py",
+    "phase10_virtio_core_reset_queue.zig",
+    "phase10_virtio_driver_id.zig",
 ]
 
 EXPECTED_SURVEY_MARKERS = [
     "lane: `P10-Y01`",
     "phase10-driver-id-helper",
     "phase10-core-probe-remove-lifecycle",
+    "phase10_virtio_core_reset_queue.zig",
+    "phase10_virtio_driver_id.zig",
 ]
 
 EXPECTED_GAPS = {
@@ -165,9 +169,31 @@ def run_self_test() -> int:
         _, missing_markers = validate(tmp_root)
         if 'build:phase10-virtio-core-survey-tests' not in missing_markers:
             raise SystemExit("phase10-core-self-test:expected_build_marker_missing")
+        build_path.write_text(original_build, encoding="utf-8")
+
+        slice_path = tmp_root / "Documentation/zigux/phase10-virtio-core-slice.md"
+        original_slice = slice_path.read_text(encoding="utf-8")
+        slice_path.write_text(
+            original_slice.replace("phase10_virtio_core_reset_queue.zig", "phase10_virtio_core_reset_queue_drift.zig", 1),
+            encoding="utf-8",
+        )
+        _, missing_markers = validate(tmp_root)
+        if "slice_note:phase10_virtio_core_reset_queue.zig" not in missing_markers:
+            raise SystemExit("phase10-core-self-test:expected_reset_queue_slice_marker_missing")
+        slice_path.write_text(original_slice, encoding="utf-8")
+
+        survey_path = tmp_root / "Documentation/zigux/phase10-virtio-core-survey.md"
+        original_survey = survey_path.read_text(encoding="utf-8")
+        survey_path.write_text(
+            original_survey.replace("phase10_virtio_driver_id.zig", "phase10_virtio_driver_id_drift.zig", 1),
+            encoding="utf-8",
+        )
+        _, missing_markers = validate(tmp_root)
+        if "survey_note:phase10_virtio_driver_id.zig" not in missing_markers:
+            raise SystemExit("phase10-core-self-test:expected_driver_id_survey_marker_missing")
 
     print("PHASE10_CORE_PACKET_SELF_TEST=pass")
-    print("PHASE10_CORE_PACKET_SELF_TEST_CASE_COUNT=2")
+    print("PHASE10_CORE_PACKET_SELF_TEST_CASE_COUNT=4")
     return 0
 
 
