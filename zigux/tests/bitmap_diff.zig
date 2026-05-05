@@ -1,5 +1,7 @@
 const std = @import("std");
 
+const bitmap_diff_source = @embedFile("bitmap_diff.zig");
+
 const SummaryExpectation = struct {
     first_set: u32,
     first_zero: u32,
@@ -197,6 +199,33 @@ const ThresholdReplaySummary = struct {
 
 fn mixThresholdChecksum(checksum: *u64, value: anytype) void {
     checksum.* = checksum.* *% 0x9e3779b185ebca87 +% @as(u64, @intCast(value));
+}
+
+fn expectMarker(haystack: []const u8, marker: []const u8) !void {
+    try std.testing.expect(std.mem.indexOf(u8, haystack, marker) != null);
+}
+
+fn countOccurrences(haystack: []const u8, needle: []const u8) usize {
+    var count: usize = 0;
+    var start: usize = 0;
+    while (std.mem.indexOfPos(u8, haystack, start, needle)) |index| {
+        count += 1;
+        start = index + needle.len;
+    }
+    return count;
+}
+
+fn expectSourceCaseGroupCardinality(
+    group_header: []const u8,
+    next_header: []const u8,
+    expected_case_count: usize,
+) !void {
+    const section_start = std.mem.indexOf(u8, bitmap_diff_source, group_header) orelse
+        return error.MissingBitmapCaseGroupHeader;
+    const section_end = std.mem.indexOfPos(u8, bitmap_diff_source, section_start, next_header) orelse
+        return error.MissingBitmapCaseGroupBoundary;
+    const section = bitmap_diff_source[section_start..section_end];
+    try std.testing.expectEqual(expected_case_count, countOccurrences(section, ".name = "));
 }
 
 fn expectSummary(summary: SummaryExpectation, expected: SummaryExpectation) !void {
@@ -539,6 +568,25 @@ test "bitmap diff gate records exact bounded copy checks" {
     for (cases) |case| {
         try expectCopyCase(case);
     }
+}
+
+test "bitmap diff gate keeps the current bounded source inventory explicit" {
+    try expectSourceCaseGroupCardinality(
+        "const cases = [_]DiffCase{",
+        "test \"bitmap diff gate records exact bounded find_nth_bit checks\"",
+        9,
+    );
+    try expectSourceCaseGroupCardinality(
+        "const cases = [_]CopyCase{",
+        "test \"bitmap diff gate keeps a deterministic threshold replay batch ready for future perf baselines\"",
+        5,
+    );
+    try expectMarker(bitmap_diff_source, "test_fill_set bitmap_fill keeps the exact 35-bit prefix");
+    try expectMarker(bitmap_diff_source, "test_fill_set bitmap_fill keeps the exact 115-bit prefix");
+    try expectMarker(bitmap_diff_source, "test_copy exact 23-bit replay clears the stale tail in the destination word");
+    try expectMarker(bitmap_diff_source, "test_zero_nbits zero-length copy leaves destination unchanged");
+    try expectMarker(bitmap_diff_source, "try std.testing.expectEqual(@as(u64, 6872226231820490607), single.checksum);");
+    try expectMarker(bitmap_diff_source, "try std.testing.expectEqual(@as(u64, 17675807730989546160), repeated.checksum);");
 }
 
 test "bitmap diff gate keeps a deterministic threshold replay batch ready for future perf baselines" {
