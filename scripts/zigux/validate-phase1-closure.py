@@ -442,6 +442,13 @@ def run_self_test() -> None:
         )
         assert 'makefile_phase1_test_replay:expected=1:actual=2' in duplicate_phase1_test_replay_markers
 
+        missing_bench_target = valid_makefile.replace('phase1-bench:\n', '', 1)
+        missing_bench_target_markers = collect_exact_count_markers(
+            missing_bench_target,
+            required_makefile_markers,
+        )
+        assert 'makefile_phase1_bench_target:expected=1:actual=0' in missing_bench_target_markers
+
         duplicate_phase1_target = valid_makefile + 'phase1: phase1-validate phase1-test phase1-bench\n'
         duplicate_phase1_markers = collect_exact_count_markers(duplicate_phase1_target, required_makefile_markers)
         assert 'makefile_phase1_target:expected=1:actual=2' in duplicate_phase1_markers
@@ -510,7 +517,7 @@ def run_self_test() -> None:
         assert collect_missing_files(tmp_root) == [required_ledger]
 
     print('PHASE1_CLOSURE_VALIDATOR_SELF_TEST=pass')
-    print('PHASE1_CLOSURE_VALIDATOR_SELF_TEST_CASE_COUNT=26')
+    print('PHASE1_CLOSURE_VALIDATOR_SELF_TEST_CASE_COUNT=27')
 
 
 def main() -> int:
