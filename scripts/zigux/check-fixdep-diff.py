@@ -16,7 +16,7 @@ ARTIFACT_DIFF = ROOT / 'scripts' / 'zigux' / 'artifact_diff.py'
 C_FIXDEP = ROOT / 'scripts' / 'basic' / 'fixdep.c'
 ZIG_FIXDEP = ROOT / 'scripts' / 'zigux' / 'fixdep.zig'
 FIXTURE_DIR = ROOT / 'zigux' / 'tests' / 'fixtures' / 'fixdep'
-CASES = json.loads((FIXTURE_DIR / 'cases.json').read_text(encoding='utf-8'))
+CASES_PATH = FIXTURE_DIR / 'cases.json'
 
 
 def run(cmd: list[str], **kwargs) -> subprocess.CompletedProcess[str]:
@@ -50,6 +50,59 @@ def find_zig(explicit: str | None) -> str:
     if fallback.exists():
         return str(fallback)
     raise FileNotFoundError('no zig executable found; set --zig or ZIG')
+
+
+def load_cases(cases_path: Path, fixture_dir: Path) -> list[dict[str, object]]:
+    cases = json.loads(cases_path.read_text(encoding='utf-8'))
+    if not isinstance(cases, list):
+        raise RuntimeError(f'{cases_path} must contain a JSON list of fixdep cases')
+
+    validated: list[dict[str, object]] = []
+    seen_names: set[str] = set()
+    for index, raw_case in enumerate(cases):
+        label = f'cases[{index}]'
+        if not isinstance(raw_case, dict):
+            raise RuntimeError(f'{label} must be a JSON object')
+
+        case = dict(raw_case)
+        for field in ('name', 'depfile', 'target', 'cmdline', 'expected'):
+            value = case.get(field)
+            if not isinstance(value, str) or not value:
+                raise RuntimeError(f'{label}.{field} must be a non-empty string')
+
+        name = case['name']
+        if name in seen_names:
+            raise RuntimeError(f'duplicate fixdep case name: {name}')
+        seen_names.add(name)
+
+        expected_stdout_name = case.get('expected_stdout', case['expected'])
+        if not isinstance(expected_stdout_name, str) or not expected_stdout_name:
+            raise RuntimeError(f'{label}.expected_stdout must be a non-empty string when provided')
+
+        for field, file_name in (
+            ('depfile', case['depfile']),
+            ('expected', case['expected']),
+            ('expected_stdout', expected_stdout_name),
+        ):
+            path = fixture_dir / file_name
+            if not path.is_file():
+                raise RuntimeError(f'{label}.{field} missing fixture file: {path}')
+
+        expected_stderr_name = case.get('expected_stderr')
+        if expected_stderr_name is not None:
+            if not isinstance(expected_stderr_name, str) or not expected_stderr_name:
+                raise RuntimeError(f'{label}.expected_stderr must be a non-empty string when provided')
+            stderr_path = fixture_dir / expected_stderr_name
+            if not stderr_path.is_file():
+                raise RuntimeError(f'{label}.expected_stderr missing fixture file: {stderr_path}')
+
+        expected_exit_code = case.get('expected_exit_code', 0)
+        if not isinstance(expected_exit_code, int) or expected_exit_code < 0:
+            raise RuntimeError(f'{label}.expected_exit_code must be a non-negative integer')
+
+        validated.append(case)
+
+    return validated
 
 
 def windows_to_wsl(path: Path) -> str:
@@ -135,17 +188,95 @@ def diff_text(expected: Path, actual: Path) -> None:
     run([sys.executable, str(ARTIFACT_DIFF), '--mode', 'text', str(expected), str(actual)], cwd=str(ROOT))
 
 
+def run_self_test() -> int:
+    with tempfile.TemporaryDirectory(prefix='fixdep_checker_selftest_') as tmp_dir_str:
+        tmp_dir = Path(tmp_dir_str)
+        fixture_dir = tmp_dir / 'fixdep'
+        fixture_dir.mkdir(parents=True, exist_ok=True)
+
+        for file_name in ('sample.d', 'sample_expected.txt', 'sample.stderr.txt'):
+            (fixture_dir / file_name).write_text('fixture\n', encoding='utf-8')
+
+        good_cases = [
+            {
+                'name': 'sample',
+                'depfile': 'sample.d',
+                'target': 'sample.o',
+                'cmdline': 'clang -c sample.c -o sample.o',
+                'expected': 'sample_expected.txt',
+            },
+            {
+                'name': 'sample_error',
+                'depfile': 'sample.d',
+                'target': 'sample_error.o',
+                'cmdline': 'clang -c sample_error.c -o sample_error.o',
+                'expected': 'sample_expected.txt',
+                'expected_stderr': 'sample.stderr.txt',
+                'expected_exit_code': 2,
+            },
+        ]
+
+        cases_path = tmp_dir / 'cases.json'
+        cases_path.write_text(json.dumps(good_cases), encoding='utf-8')
+        loaded_cases = load_cases(cases_path, fixture_dir)
+        if len(loaded_cases) != 2:
+            raise RuntimeError('self-test expected two validated cases')
+
+        duplicate_cases = good_cases + [dict(good_cases[0])]
+        duplicate_cases[-1]['target'] = 'dup.o'
+        cases_path.write_text(json.dumps(duplicate_cases), encoding='utf-8')
+        try:
+            load_cases(cases_path, fixture_dir)
+        except RuntimeError as exc:
+            if 'duplicate fixdep case name' not in str(exc):
+                raise
+        else:
+            raise RuntimeError('self-test expected duplicate case name failure')
+
+        missing_fixture_cases = [dict(good_cases[0])]
+        missing_fixture_cases[0]['expected'] = 'missing_expected.txt'
+        cases_path.write_text(json.dumps(missing_fixture_cases), encoding='utf-8')
+        try:
+            load_cases(cases_path, fixture_dir)
+        except RuntimeError as exc:
+            if 'missing fixture file' not in str(exc):
+                raise
+        else:
+            raise RuntimeError('self-test expected missing fixture failure')
+
+        bad_exit_code_cases = [dict(good_cases[0])]
+        bad_exit_code_cases[0]['expected_exit_code'] = -1
+        cases_path.write_text(json.dumps(bad_exit_code_cases), encoding='utf-8')
+        try:
+            load_cases(cases_path, fixture_dir)
+        except RuntimeError as exc:
+            if 'expected_exit_code must be a non-negative integer' not in str(exc):
+                raise
+        else:
+            raise RuntimeError('self-test expected bad exit code failure')
+
+    print('FIXDEP_DIFF_SELF_TEST=pass')
+    print('FIXDEP_DIFF_SELF_TEST_CASE_COUNT=4')
+    return 0
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description='Check bounded fixdep C/Zig artifact parity.')
     parser.add_argument('--refresh', action='store_true', help='Refresh the committed expected output from current C fixdep.')
     parser.add_argument('--cc', help='Explicit C compiler path to use.')
     parser.add_argument('--zig', help='Explicit zig executable path to use.')
+    parser.add_argument('--self-test', action='store_true', help='Run built-in checker self-tests.')
     args = parser.parse_args()
+
+    if args.self_test:
+        return run_self_test()
+
+    cases = load_cases(CASES_PATH, FIXTURE_DIR)
 
     compiler = args.cc or os.environ.get('CC') or ('gcc' if os.name == 'nt' and shutil.which('wsl') else find_compiler(None))
     zig = find_zig(args.zig)
 
-    for case in CASES:
+    for case in cases:
         depfile = FIXTURE_DIR / case['depfile']
         expected_stdout = FIXTURE_DIR / case.get('expected_stdout', case['expected'])
         expected_stderr_name = case.get('expected_stderr')
