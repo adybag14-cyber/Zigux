@@ -83,12 +83,26 @@ REQUIRED_MAKEFILE_MARKERS = [
     "phase12: phase12-test",
 ]
 
+REQUIRED_MAKEFILE_EXACT_COUNTS = {
+    "PHONY += phase12-test phase12": 1,
+    "phase12-test:": 1,
+    "$(ZIG) build test --build-file zigux/tests/phase12_build.zig --summary all": 1,
+    "phase12: phase12-test": 1,
+}
+
 REQUIRED_WORKFLOW_MARKERS = [
     "Self-test Phase 12 build-only surface checker",
     "python3 scripts/zigux/check-build-only-phase12-surface.py --self-test",
     "Check Phase 12 build-only surface",
     "python3 scripts/zigux/check-build-only-phase12-surface.py",
 ]
+
+REQUIRED_WORKFLOW_EXACT_COUNTS = {
+    "Self-test Phase 12 build-only surface checker": 1,
+    "run: python3 scripts/zigux/check-build-only-phase12-surface.py --self-test\n": 1,
+    "Check Phase 12 build-only surface": 1,
+    "run: python3 scripts/zigux/check-build-only-phase12-surface.py\n": 1,
+}
 
 FORBIDDEN_MAKEFILE_MARKERS = [
     "PHONY += phase12-validate",
@@ -174,6 +188,10 @@ def validate(root: Path) -> list[str]:
     for marker in REQUIRED_WORKFLOW_MARKERS:
         if marker not in workflow:
             failures.append(f"workflow:{marker}")
+    for marker, count in REQUIRED_MAKEFILE_EXACT_COUNTS.items():
+        expect_exact_count(makefile, marker, count, "makefile_exact_count", failures)
+    for marker, count in REQUIRED_WORKFLOW_EXACT_COUNTS.items():
+        expect_exact_count(workflow, marker, count, "workflow_exact_count", failures)
     for marker in FORBIDDEN_MAKEFILE_MARKERS:
         if marker in makefile:
             failures.append(f"makefile_forbidden:{marker}")
@@ -309,8 +327,38 @@ def run_self_test() -> int:
             "stale_next_step_marker",
         )
 
+        write(
+            root / MAKEFILE_PATH,
+            (root / MAKEFILE_PATH).read_text(encoding="utf-8")
+            + "phase12: phase12-test\n",
+        )
+        expect_failure(
+            root,
+            "makefile_exact_count:phase12: phase12-test:count=2:expected=1",
+            "duplicate_phase12_make_target",
+        )
+        write(root / MAKEFILE_PATH, """PHONY += phase12-test phase12
+
+phase12-test:
+	cd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase12_build.zig --summary all
+
+phase12: phase12-test
+""")
+
+        write(
+            root / WORKFLOW_PATH,
+            (root / WORKFLOW_PATH).read_text(encoding="utf-8")
+            + "      - name: Check Phase 12 build-only surface\n"
+            + "        run: python3 scripts/zigux/check-build-only-phase12-surface.py\n",
+        )
+        expect_failure(
+            root,
+            "workflow_exact_count:Check Phase 12 build-only surface:count=2:expected=1",
+            "duplicate_phase12_workflow_step",
+        )
+
     print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST=pass")
-    print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST_CASE_COUNT=16")
+    print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST_CASE_COUNT=18")
     return 0
 
 
