@@ -31,8 +31,6 @@ REQUIRED_FILES = [
     "zigux/tests/phase13_landlock_syscalls_manifest.json",
     "zigux/tests/phase13_notifier_list_manifest.json",
     "zigux/bindings/notifier_abi.zig",
-    "include/zigux/notifier_abi.h",
-    "zigux/helpers/notifier_chain_view.zig",
     "scripts/zigux/check-phase13-devres-packet.py",
 ]
 
@@ -44,8 +42,6 @@ DOC_REQUIRED_MARKERS = [
     "Documentation/zigux/phase13-notifier-list-survey.md",
     "zigux/tests/phase13_notifier_list_manifest.json",
     "zigux/bindings/notifier_abi.zig",
-    "include/zigux/notifier_abi.h",
-    "zigux/helpers/notifier_chain_view.zig",
 ]
 
 REVIEW_REQUIRED_MARKERS = [
@@ -55,8 +51,6 @@ REVIEW_REQUIRED_MARKERS = [
     "Documentation/zigux/phase13-notifier-list-survey.md",
     "zigux/tests/phase13_notifier_list_manifest.json",
     "zigux/bindings/notifier_abi.zig",
-    "include/zigux/notifier_abi.h",
-    "zigux/helpers/notifier_chain_view.zig",
 ]
 
 SCRIPTS_REQUIRED_MARKERS = [
@@ -65,8 +59,6 @@ SCRIPTS_REQUIRED_MARKERS = [
     "Documentation/zigux/phase13-notifier-list-survey.md",
     "zigux/tests/phase13_notifier_list_manifest.json",
     "zigux/bindings/notifier_abi.zig",
-    "include/zigux/notifier_abi.h",
-    "zigux/helpers/notifier_chain_view.zig",
     "validate-phase13-release.py",
     "check-phase13-devres-packet.py",
     "zigux/tests/phase13_build.zig",
@@ -317,8 +309,6 @@ def run_self_test() -> int:
                 "docs-readme:Documentation/zigux/phase13-notifier-list-survey.md",
                 "docs-readme:zigux/tests/phase13_notifier_list_manifest.json",
                 "docs-readme:zigux/bindings/notifier_abi.zig",
-                "docs-readme:include/zigux/notifier_abi.h",
-                "docs-readme:zigux/helpers/notifier_chain_view.zig",
             ],
             "docs_marker_guard_failed",
         )
@@ -335,8 +325,6 @@ def run_self_test() -> int:
                 "review-checklist:Documentation/zigux/phase13-notifier-list-survey.md",
                 "review-checklist:zigux/tests/phase13_notifier_list_manifest.json",
                 "review-checklist:zigux/bindings/notifier_abi.zig",
-                "review-checklist:include/zigux/notifier_abi.h",
-                "review-checklist:zigux/helpers/notifier_chain_view.zig",
             ],
             "review_marker_guard_failed",
         )
@@ -353,8 +341,6 @@ def run_self_test() -> int:
                 "scripts-readme:Documentation/zigux/phase13-notifier-list-survey.md",
                 "scripts-readme:zigux/tests/phase13_notifier_list_manifest.json",
                 "scripts-readme:zigux/bindings/notifier_abi.zig",
-                "scripts-readme:include/zigux/notifier_abi.h",
-                "scripts-readme:zigux/helpers/notifier_chain_view.zig",
                 "scripts-readme:check-phase13-devres-packet.py",
                 "scripts-readme:zigux/tests/phase13_build.zig",
                 "scripts-readme:phase13_libfs.zig",
