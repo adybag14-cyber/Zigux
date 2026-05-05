@@ -40,6 +40,19 @@ pub const ReplaySummary = struct {
     checked_focus: []const SampleFocus,
 };
 
+pub const HelperBoundarySummary = struct {
+    peek_before_fill: ?u8,
+    skip_before_fill: ?u8,
+    empty_enqueue_len: usize,
+    count_at_capacity: usize,
+    overflow_rejected: bool,
+    peek_at_capacity: u8,
+    skipped_at_capacity: u8,
+    count_after_skip: usize,
+    count_after_reset: usize,
+    pop_after_reset: ?u8,
+};
+
 pub const BytestreamFifoSample = struct {
     const Self = @This();
 
@@ -132,6 +145,40 @@ pub const BytestreamFifoSample = struct {
 
     pub fn drain(self: *Self, dest: []u8) usize {
         return self.dequeueSlice(dest);
+    }
+
+    pub fn runHelperBoundaryReplay(self: *Self) HelperBoundarySummary {
+        self.reset();
+
+        const peek_before_fill = self.peekByte();
+        const skip_before_fill = self.skipByte();
+        const empty_enqueue_len = self.enqueueSlice(&.{});
+
+        var fill_value: u8 = 0;
+        while (fill_value < capacity) : (fill_value += 1) {
+            std.debug.assert(self.pushByte(fill_value));
+        }
+
+        const overflow_rejected = !self.pushByte(255);
+        const count_at_capacity = self.count();
+        const peek_at_capacity = self.peekByte() orelse unreachable;
+        const skipped_at_capacity = self.skipByte() orelse unreachable;
+        const count_after_skip = self.count();
+
+        self.reset();
+
+        return .{
+            .peek_before_fill = peek_before_fill,
+            .skip_before_fill = skip_before_fill,
+            .empty_enqueue_len = empty_enqueue_len,
+            .count_at_capacity = count_at_capacity,
+            .overflow_rejected = overflow_rejected,
+            .peek_at_capacity = peek_at_capacity,
+            .skipped_at_capacity = skipped_at_capacity,
+            .count_after_skip = count_after_skip,
+            .count_after_reset = self.count(),
+            .pop_after_reset = self.popByte(),
+        };
     }
 
     fn runAnchorReplayInternal(self: *Self) !ReplaySummary {
