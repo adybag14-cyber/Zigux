@@ -306,6 +306,7 @@ pub const VirtioCoreLabDevice = struct {
         if (!self.hasStatus(DeviceStatus.features_ok)) return error.MissingFeaturesOk;
         if (descriptor_count == 0) return error.EmptyQueueDescriptorSet;
         if (callback_name.len == 0) return error.EmptyQueueCallbackName;
+        try self.ensureQueueLifecycleActive();
 
         const index = try checkedQueueIndex(queue_index);
         const slot = &self.queues[index];
@@ -321,6 +322,8 @@ pub const VirtioCoreLabDevice = struct {
     }
 
     pub fn unregisterQueueCallback(self: *Self, queue_index: u16) !void {
+        try self.ensureQueueLifecycleActive();
+
         const index = try checkedQueueIndex(queue_index);
         const slot = &self.queues[index];
         if (!slot.active) return error.QueueNotRegistered;
@@ -330,16 +333,22 @@ pub const VirtioCoreLabDevice = struct {
     }
 
     pub fn disableQueueCallback(self: *Self, queue_index: u16) !void {
+        try self.ensureQueueLifecycleActive();
+
         const slot = try self.checkedQueueSlot(queue_index);
         slot.callback_enabled = false;
     }
 
     pub fn enableQueueCallback(self: *Self, queue_index: u16) !void {
+        try self.ensureQueueLifecycleActive();
+
         const slot = try self.checkedQueueSlot(queue_index);
         slot.callback_enabled = true;
     }
 
     pub fn notifyQueueUsed(self: *Self, queue_index: u16) !bool {
+        try self.ensureQueueLifecycleActive();
+
         const slot = try self.checkedQueueSlot(queue_index);
         slot.notification_count += 1;
         if (!slot.callback_enabled) return false;
@@ -371,6 +380,8 @@ pub const VirtioCoreLabDevice = struct {
         writable_descriptor_count: u16,
         uses_indirect_descriptors: bool,
     ) !void {
+        try self.ensureQueueLifecycleActive();
+
         const slot = try self.checkedQueueSlot(queue_index);
         if (readable_descriptor_count == 0 and writable_descriptor_count == 0) {
             return error.EmptyQueueDescriptorShape;
@@ -582,6 +593,11 @@ pub const VirtioCoreLabDevice = struct {
     fn ensureCoreLifecycleActive(self: *const Self) !void {
         if (!self.hasStatus(DeviceStatus.driver)) return error.DriverNotAttached;
         if (self.isResetRequired()) return error.ResetRequired;
+    }
+
+    fn ensureQueueLifecycleActive(self: *const Self) !void {
+        try self.ensureCoreLifecycleActive();
+        if (!self.hasStatus(DeviceStatus.features_ok)) return error.MissingFeaturesOk;
     }
 
     fn checkedFeatureIndex(feature_bit: u16) !usize {
