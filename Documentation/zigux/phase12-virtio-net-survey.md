@@ -72,4 +72,6 @@ This survey slice does not claim:
 
 ## Next bounded step
 
-Keep this lane on another tiny queue-reuse or refill-coordination invariant next, most likely a control-queue restore guard or a recycle-versus-refill ordering note, until the roadmap-approved DMA and queueing substrate exists for a truthful follow-up beyond the current probe snapshot and queue-planning helpers.
+Keep this lane parked unless fresh repo inspection finds directly coupled drift in the landed probe snapshot, queue-recovery, receive-refill, or transmit-recycle packet.
+
+The next honest same-family move is still the blocked runtime-data-path boundary, which must wait for roadmap-approved DMA-safe abstractions and queueing substrate work before Zigux can claim anything beyond the current probe snapshot and queue-planning helpers.
