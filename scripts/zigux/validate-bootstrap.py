@@ -11,7 +11,11 @@ required_files = [
     ROOT / 'Documentation' / 'zigux' / 'freeze-map.md',
     ROOT / 'scripts' / 'zigux' / 'README.md',
     ROOT / 'scripts' / 'zigux' / 'check-zig-toolchain.py',
+    ROOT / 'scripts' / 'zigux' / 'check-phase6-shared-surface.py',
+    ROOT / '.github' / 'workflows' / 'zigux-bootstrap.yml',
+    ROOT / 'zigux' / 'Makefile',
     ROOT / 'zigux' / 'tests' / 'README.md',
+    ROOT / 'zigux' / 'tests' / 'phase6_build.zig',
 ]
 
 missing = [str(path.relative_to(ROOT)) for path in required_files if not path.exists()]
@@ -54,6 +58,12 @@ required_workflow_markers = [
     'include/linux/zigux.h',
     'include/zigux/**',
     '.github/workflows/zigux-bootstrap.yml',
+    'Self-test Phase 6 shared-surface checker',
+    'python3 scripts/zigux/check-phase6-shared-surface.py --self-test',
+    'Check Phase 6 shared surface',
+    'python3 scripts/zigux/check-phase6-shared-surface.py',
+    'Run Phase 6 leaf helper tests',
+    'zigux/tests/phase6_build.zig',
     'Run Phase 7 runtime helper tests',
     'zigux/tests/phase7_build.zig',
     'Run Phase 8 tooling tests',
