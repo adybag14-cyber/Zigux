@@ -66,6 +66,15 @@ pub const ConfigReadSummary = struct {
     value: u32,
 };
 
+pub const ConfigWritePlanSummary = struct {
+    anchor: []const u8,
+    absolute_offset: u32,
+    relative_offset: u32,
+    config_generation: u32,
+    previous_value: u32,
+    planned_value: u32,
+};
+
 pub const VirtioMmioLab = struct {
     const Self = @This();
 
@@ -198,6 +207,19 @@ pub const VirtioMmioLab = struct {
             .relative_offset = relative_offset,
             .config_generation = self.config_generation,
             .value = readLittleU32(self.config_window[start .. start + 4]),
+        };
+    }
+
+    pub fn planConfigWriteOffset(self: *const Self, offset: u32, planned_value: u32) !ConfigWritePlanSummary {
+        const relative_offset = try checkedConfigWindowOffset(offset);
+        const start = try self.checkedConfigWordRange(relative_offset);
+        return .{
+            .anchor = descriptor().anchor,
+            .absolute_offset = offset,
+            .relative_offset = relative_offset,
+            .config_generation = self.config_generation,
+            .previous_value = readLittleU32(self.config_window[start .. start + 4]),
+            .planned_value = planned_value,
         };
     }
 
