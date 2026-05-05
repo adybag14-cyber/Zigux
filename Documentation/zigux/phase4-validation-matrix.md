@@ -93,7 +93,7 @@ The same validator-first route also keeps `Documentation/zigux/artifact-diff.md`
 
 - `samples/zigux/kprobe_example.zig` is still absent behind the current C anchor at `samples/kprobes/kprobe_example.c`
 - `samples/zigux/test_fsmount.zig` is still absent behind the current C anchor at `samples/vfs/test-fsmount.c`
-- hard perf thresholds and acceptable limits for the atomic64 and bitmap gates remain intentionally unapproved
+- hard perf thresholds and acceptable limits for the atomic64 and bitmap gates remain intentionally unapproved, while the interim threshold packet stays under `Validation and Perf Team` ownership and rollback ownership through `zigux/tests/phase4_perf_baseline_manifest.json` and `zigux/tests/phase4_perf_baseline_survey.zig`
 
 `Documentation/zigux/phase4-gate-evidence.md` remains the exact-readback ledger for these still-pending roadmap rows until a later Phase 4 lane either lands the bounded sample starters or approves the missing perf thresholds.
 
