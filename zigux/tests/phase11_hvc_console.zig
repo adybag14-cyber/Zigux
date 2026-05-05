@@ -181,6 +181,45 @@ test "phase11 hvc console keeps sysrq handoff boundaries reviewable" {
     try std.testing.expectError(error.ConsoleUnavailable, console.summarizeSysrqHandoff(.{}));
 }
 
+test "phase11 hvc console keeps notifier handoff boundaries reviewable" {
+    var console = try hvc_console.HvcConsoleLab.init(8);
+    _ = console.instantiate(0x88);
+
+    const live_notifier = try console.summarizeNotifierHandoff(.{});
+    try std.testing.expectEqual(@as(usize, 8), live_notifier.slot_index);
+    try std.testing.expectEqual(@as(u32, 0x88), live_notifier.vtermno);
+    try std.testing.expect(live_notifier.adapter_present);
+    try std.testing.expect(live_notifier.tty_registration_ready);
+    try std.testing.expect(live_notifier.sysrq_dispatch_requested);
+    try std.testing.expect(live_notifier.notifier_target_present);
+    try std.testing.expect(live_notifier.notifier_registration_reviewable);
+    try std.testing.expect(live_notifier.notifier_registration_requested);
+    try std.testing.expect(live_notifier.notifier_callbacks_deferred);
+    try std.testing.expect(live_notifier.notifier_unregister_deferred);
+    try std.testing.expect(live_notifier.khvcd_worker_execution_deferred);
+    try std.testing.expect(live_notifier.host_io_deferred);
+    try std.testing.expect(live_notifier.remove_handoff_still_required);
+
+    const missing_target = try console.summarizeNotifierHandoff(.{
+        .tty_registration_ready = false,
+        .sysrq_dispatch_requested = false,
+        .notifier_target_present = false,
+    });
+    try std.testing.expect(!missing_target.tty_registration_ready);
+    try std.testing.expect(!missing_target.sysrq_dispatch_requested);
+    try std.testing.expect(!missing_target.notifier_target_present);
+    try std.testing.expect(missing_target.notifier_registration_reviewable);
+    try std.testing.expect(!missing_target.notifier_registration_requested);
+    try std.testing.expect(!missing_target.notifier_callbacks_deferred);
+    try std.testing.expect(!missing_target.notifier_unregister_deferred);
+    try std.testing.expect(missing_target.khvcd_worker_execution_deferred);
+    try std.testing.expect(missing_target.host_io_deferred);
+    try std.testing.expect(missing_target.remove_handoff_still_required);
+
+    _ = console.teardown();
+    try std.testing.expectError(error.ConsoleUnavailable, console.summarizeNotifierHandoff(.{}));
+}
+
 test "phase11 hvc_console adds carriage returns and keeps final flush intent on successful writes" {
     var console = try hvc_console.HvcConsoleLab.init(1);
     const slot = console.instantiate(0x41);
