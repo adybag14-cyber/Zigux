@@ -3,6 +3,10 @@ from pathlib import Path
 import sys
 
 ROOT = Path(__file__).resolve().parents[2]
+WORKFLOW_EXACT_RUN_COUNTS = {
+    'python3 scripts/zigux/check-zig-toolchain.py --self-test': 1,
+    'python3 scripts/zigux/check-zig-toolchain.py': 1,
+}
 required_files = [
     ROOT / 'zigux-alpha' / 'README.md',
     ROOT / 'zigux-alpha' / 'ZAR_TO_ZIGUX_PRODUCT_ROADMAP.md',
@@ -17,6 +21,20 @@ required_files = [
     ROOT / 'zigux' / 'tests' / 'README.md',
     ROOT / 'zigux' / 'tests' / 'phase6_build.zig',
 ]
+
+
+def validate_exact_workflow_runs(text: str) -> list[str]:
+    issues = []
+    lines = [line.strip() for line in text.splitlines()]
+    for command, expected_count in WORKFLOW_EXACT_RUN_COUNTS.items():
+        expected_line = f'run: {command}'
+        count = sum(1 for line in lines if line == expected_line)
+        if count != expected_count:
+            issues.append(
+                f'workflow_exact_run:{command}:count={count}:expected={expected_count}'
+            )
+    return issues
+
 
 missing = [str(path.relative_to(ROOT)) for path in required_files if not path.exists()]
 if missing:
@@ -80,6 +98,7 @@ required_workflow_markers = [
     'make -C zigux phase13-test',
 ]
 missing_workflow_markers = [marker for marker in required_workflow_markers if marker not in workflow]
+missing_workflow_markers.extend(validate_exact_workflow_runs(workflow))
 if missing_workflow_markers:
     print('BOOTSTRAP_VALIDATION=fail')
     print('MISSING_WORKFLOW_MARKERS_START')
@@ -90,4 +109,7 @@ if missing_workflow_markers:
 
 print('BOOTSTRAP_VALIDATION=pass')
 print(f'BOOTSTRAP_REQUIRED_FILE_COUNT={len(required_files)}')
-print(f'BOOTSTRAP_REQUIRED_MARKER_COUNT={len(required_markers) + len(required_workflow_markers)}')
+print(
+    'BOOTSTRAP_REQUIRED_MARKER_COUNT='
+    f'{len(required_markers) + len(required_workflow_markers) + len(WORKFLOW_EXACT_RUN_COUNTS)}'
+)
