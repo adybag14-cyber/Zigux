@@ -141,16 +141,24 @@ test "phase11 shared header parity survey keeps the note pinned to the manifest 
     try expectContains(note, "phase11-uapi-header-parity-surface");
 }
 
-test "phase11 shared header parity survey keeps shared build inventory markers explicit" {
-    const inventory = try readFileAlloc(std.testing.allocator, "zigux/tests/fixtures/phase11_build_inventory.json", 64 * 1024);
-    defer std.testing.allocator.free(inventory);
+test "phase11 shared header parity survey keeps shared replay markers explicit without a missing inventory fixture" {
+    const contract = try readFileAlloc(std.testing.allocator, "Documentation/zigux/phase11-shared-replay-contract.md", 64 * 1024);
+    defer std.testing.allocator.free(contract);
 
-    try expectContains(inventory, "phase11-uapi-header-parity-survey-tests");
-    try expectContains(inventory, "phase11-dw-wdt-suspend-resume-tests");
-    try expectContains(inventory, "phase11-dw-wdt-remove-idle-split-tests");
-    try expectContains(inventory, "phase11-hvc-console-modem-control-split-tests");
-    try expectContains(inventory, "phase11-hvc-console-poll-retry-split-tests");
-    try expectContains(inventory, "phase11-hvc-console-survey-tests");
+    try expectContains(contract, "there is no shipped `zigux/tests/fixtures/phase11_build_inventory.json` on `master`");
+    try expectContains(contract, "zigux/tests/phase11_build.zig");
+    try expectContains(contract, "zigux/tests/phase11_hvc_cleanup.zig");
+    try expectContains(contract, "zigux/tests/phase11_hvc_console_survey.zig");
+
+    const build_file = try readFileAlloc(std.testing.allocator, "zigux/tests/phase11_build.zig", 32 * 1024);
+    defer std.testing.allocator.free(build_file);
+
+    try expectContains(build_file, "phase11-uapi-header-parity-survey-tests");
+    try expectContains(build_file, "phase11-dw-wdt-tests");
+    try expectContains(build_file, "phase11-dw-wdt-survey-tests");
+    try expectContains(build_file, "phase11-hvc-console-tests");
+    try expectContains(build_file, "phase11-hvc-cleanup-tests");
+    try expectContains(build_file, "phase11-hvc-console-survey-tests");
 }
 
 test "phase11 shared header parity survey keeps the exported hvc surface explicit" {
