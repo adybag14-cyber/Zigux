@@ -6,7 +6,7 @@ This document records the bounded Phase 13 survey lane around `lib/devres.c`.
 
 - `PHASE13_STATUS=active`
 - `PHASE13_SLICE=devres-dma-scatterlist-boundary-survey`
-- survey provenance recorded against the current master reviewability snapshot
+- reviewed against live `master` `7a4454d0474106972cad7e164b79293bd54a40c6`
 - scope: the landed `lib/devres.zig` helper lab, its dedicated Phase 13 test, the focused reviewability gate, the shared Phase 13 build and make wiring, and the lane notes that compare the current helper-only DMA/scatterlist boundary against the roadmap
 - product boundary:
   - `lib/devres.zig`
@@ -27,7 +27,7 @@ The live Zigux tree is no longer survey-only here. It already carries a helper-f
 
 ## Survey findings
 
-- `lib/devres.zig` already models the starter `__devm_ioremap()` lifetime split between retained release records and free-on-failure cleanup, and it keeps `devm_iounmap()` pointer matching exact.
+- `lib/devres.zig` already models the starter `__devm_ioremap()` lifetime split between retained release records and free-on-failure cleanup, keeps `devm_iounmap()` pointer matching exact, and now exposes a direct `devm_ioremap_wc()`-style write-combined wrapper as a pure lifetime-planning step.
 - the current helper lab also carries a pure `__devm_ioremap_resource()` planner that checks memory-backed resources, computes inclusive size, preserves requested mapping types, and records busy-region and remap-failure shaping without claiming live side effects.
 - the landed `devm_of_iomap()` planner stays bounded to translated-resource selection by index, optional size reporting, and handoff into the existing managed-resource planner instead of pretending to walk a live device tree.
 - the adjacent `devm_arch_io_reserve_memtype_wc()` planner already records detach-time cleanup intent for WC reservations while keeping live arch memtype mutation out of scope.
