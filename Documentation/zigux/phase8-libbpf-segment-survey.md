@@ -6,15 +6,21 @@ This document tracks the bounded Phase 8 userspace-adjacent tooling survey for Z
 
 - `PHASE8_STATUS=parked`
 - `PHASE8_SLICE=libbpf-segment-survey`
-- scope: segment manifest plus three landed helper-first starter slices
+- surveyed commit: `897cdd2f62c4428d2a050275a187950e161b66eb`
+- scope: segment manifest, four landed helper-first starter slices, and one bounded perf-buffer poll adjunct
 - product boundary:
   - `tools/lib/bpf/zigux_segments/manifest.json`
   - `tools/lib/bpf/zigux_segments/cpu_mask.zig`
   - `tools/lib/bpf/zigux_segments/logging.zig`
   - `tools/lib/bpf/zigux_segments/pin_path.zig`
+  - `tools/lib/bpf/zigux_segments/type_names.zig`
+  - `tools/lib/bpf/zigux_segments/perf_buffer_poll.zig`
   - `zigux/tests/phase8_cpu_mask.zig`
   - `zigux/tests/phase8_logging.zig`
   - `zigux/tests/phase8_pin_path.zig`
+  - `zigux/tests/phase8_bpf_type_names.zig`
+  - `zigux/tests/phase8_perf_buffer_poll.zig`
+  - `zigux/tests/phase8_perf_buffer_poll_only_build.zig`
   - `zigux/tests/phase8_libbpf_segments.zig`
   - `zigux/tests/phase8_build.zig`
 
@@ -33,16 +39,21 @@ The live repo already carried the full C libbpf tree, but it still had no `tools
 
 ## Segment catalog
 
-The manifest currently records six bounded segments:
+The manifest currently records eleven bounded segments:
 
 - `logging-version-and-errno`
 - `pin-path-helpers`
 - `cpu-mask-parsing`
+- `type-name-helpers`
+- `fdinfo-map-info-helpers`
+- `map-reuse-compatibility`
+- `file-path-and-handle-bridge`
+- `perf-buffer-online-cpu-routing`
 - `skeleton-population`
 - `object-and-elf-loader`
 - `btf-relocation-and-program-load`
 
-`cpu-mask-parsing`, `logging-version-and-errno`, and `pin-path-helpers` have now moved from planned work to landed starter slices under `tools/lib/bpf/zigux_segments/cpu_mask.zig`, `tools/lib/bpf/zigux_segments/logging.zig`, and `tools/lib/bpf/zigux_segments/pin_path.zig`. The remaining object-adjacent and loader-facing segments stay explicitly blocked or deferred until more model parity exists.
+`cpu-mask-parsing`, `logging-version-and-errno`, `pin-path-helpers`, and `type-name-helpers` have moved from planned work to landed starter slices under `tools/lib/bpf/zigux_segments/cpu_mask.zig`, `tools/lib/bpf/zigux_segments/logging.zig`, `tools/lib/bpf/zigux_segments/pin_path.zig`, and `tools/lib/bpf/zigux_segments/type_names.zig`. The focused `perf_buffer_poll.zig` adjunct is also landed as a bounded wait-result and bookkeeping helper. `fdinfo-map-info-helpers` and `map-reuse-compatibility` remain ready-next helper candidates, but they still point at a future shared `file_path_handle_bridge.zig` surface that is not landed on current `master`. The remaining object-adjacent and loader-facing segments stay explicitly blocked or deferred until more model parity exists.
 
 ## Current landed segment progress
 
@@ -59,6 +70,9 @@ The current starter implementation stays deliberately bounded:
 - `pin_path.zig` ports the pure pathname join and bpffs dot-sanitization helpers behind explicit buffer-based APIs that mirror `pathname_concat()`, `build_map_pin_path()`, and `sanitize_pin_path()`
 - the pin-path helper defaults to `/sys/fs/bpf` when callers leave the root unset, but still keeps actual map pinning, directory creation, and filesystem validation outside the Zig slice
 - pin-path overflows stay explicit as bounded helper errors instead of silently truncating output or widening into direct `PATH_MAX`, `mkdir()`, `statfs()`, or `unlink()` parity
+- `type_names.zig` ports the exported `libbpf_bpf_{attach,link,map,prog}_type_str()` tables as bounded dense lookups with explicit `null` on out-of-range values
+- the type-name helper keeps enum-to-name behavior stable without widening into section parsing, object loading, or syscall-backed state
+- `perf_buffer_poll.zig` stays bounded to wait-result classification, ready-buffer bookkeeping, ordered record-processing summaries, and final return-path choice instead of claiming online-CPU routing, epoll registration, or mmap-backed ring ownership
 - the broader `perf-buffer-online-cpu-routing` setup remains deferred around per-CPU `perf_event_open()` setup, perf-buffer ring `mmap()` setup, and `PERF_EVENT_IOC_ENABLE` enablement
 - the current packet does not claim online-CPU filtering, epoll registration, timer semantics, or broader interrupt-routing behavior beyond those explicit setup-side anchors
 
@@ -77,6 +91,11 @@ The current tests check:
 - default and caller-provided pin roots join cleanly with map names
 - `.` characters inside pin roots and map names sanitize to `_` the same way bpffs pin-name helpers do in libbpf
 - buffer exhaustion during pin-path assembly stays explicit
+- every exported attach, link, map, and program type-name table entry stays reachable through the corresponding helper
+- representative late enum ordinals and deprecated-but-still-addressable map ordinals keep the shipped libbpf names
+- bounded, nonblocking, and indefinite poll timeouts normalize into compact wait observations
+- ready-buffer processing summaries stay fail-fast and cannot outrun the observed ready-event budget
+- impossible post-wait buffer state combinations stay rejected instead of widening into timer, clockevent, epoll, or online-CPU routing behavior
 
 ## Gates
 
@@ -102,6 +121,7 @@ This survey slice does not yet claim:
 - any direct Zig port of `tools/lib/bpf/libbpf.c`
 - `parse_cpu_mask_file()` parity or direct file reads
 - direct `mkdir()`, `statfs()`, `unlink()`, or `bpf_obj_pin()` parity for map or program pinning
+- any landed `file_path_handle_bridge.zig` helper or dedicated `phase8_file_path_handle_bridge.zig` test surface on current `master`
 - BTF relocation parity
 - ELF loader parity
 - deferred `perf-buffer-online-cpu-routing` setup around per-CPU `perf_event_open()` setup, perf-buffer ring `mmap()` setup, or `PERF_EVENT_IOC_ENABLE` enablement
