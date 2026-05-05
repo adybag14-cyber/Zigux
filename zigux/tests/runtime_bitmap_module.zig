@@ -65,6 +65,28 @@ test "runtime bitmap sample enforces lifecycle transitions and bitmap mutations"
     try std.testing.expect(module.isSet(12));
     try std.testing.expectError(error.InvalidLifecycleTransition, module.runSelftest());
 
+    try module.clearRange(9, 4);
+    try module.setRange(1, 2);
+    const summary_after_post_selftest_replay = module.summary();
+    try std.testing.expectEqual(sample.ModuleStage.selftest_complete, module.stage());
+    try std.testing.expectEqual(@as(u32, 0), summary_after_post_selftest_replay.first_set);
+    try std.testing.expectEqual(@as(u32, 3), summary_after_post_selftest_replay.first_zero);
+    try std.testing.expectEqual(@as(u32, 5), summary_after_post_selftest_replay.weight);
+    try std.testing.expect(module.isSet(1));
+    try std.testing.expect(module.isSet(2));
+    try std.testing.expect(module.isSet(second_word_base + 6));
+
+    var post_selftest_mirror = sample.RuntimeBitmapSample{};
+    try post_selftest_mirror.initWithSetBits(&.{});
+    try post_selftest_mirror.copyFrom(&module);
+    const mirrored_post_selftest_summary = post_selftest_mirror.summary();
+    try std.testing.expectEqual(summary_after_post_selftest_replay.first_set, mirrored_post_selftest_summary.first_set);
+    try std.testing.expectEqual(summary_after_post_selftest_replay.first_zero, mirrored_post_selftest_summary.first_zero);
+    try std.testing.expectEqual(summary_after_post_selftest_replay.weight, mirrored_post_selftest_summary.weight);
+    try std.testing.expect(post_selftest_mirror.isSet(1));
+    try std.testing.expect(post_selftest_mirror.isSet(2));
+    try std.testing.expect(post_selftest_mirror.isSet(second_word_base + 6));
+
     try module.exit();
     try std.testing.expectEqual(sample.ModuleStage.exited, module.stage());
     try std.testing.expectEqual(@as(usize, 1), module.exit_runs);
