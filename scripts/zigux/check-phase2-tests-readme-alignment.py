@@ -55,6 +55,20 @@ REVIEW_CHECKLIST_MARKERS = [
     "make -C zigux phase2",
 ]
 
+TOOLCHAIN_NOTES_MARKERS = [
+    "python3 scripts/zigux/check-phase2-tests-readme-alignment.py",
+    "python3 scripts/zigux/check-phase2-cross.py --self-test",
+    "python3 scripts/zigux/check-phase2-cross.py",
+    "python3 scripts/zigux/check-phase2-cross-selftest-alignment.py --self-test",
+    "python3 scripts/zigux/check-phase2-cross-selftest-alignment.py",
+    "python3 scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test",
+    "python3 scripts/zigux/check-phase2-toolchain-pin-scope.py",
+    "python3 scripts/zigux/validate-phase2.py",
+    "python3 scripts/zigux/validate-phase2-closure.py",
+    "make -C zigux phase2-validate",
+    "make -C zigux phase2",
+]
+
 SCRIPTS_README_MARKERS = [
     "check-zig-toolchain.py",
     "install-zig.py",
@@ -111,11 +125,13 @@ def validate_root(root: Path) -> list[str]:
         return issues
 
     docs_root = (root / "Documentation/zigux/README.md").read_text(encoding="utf-8")
+    toolchain_notes = (root / "Documentation/zigux/phase2-toolchain-bootstrap-notes.md").read_text(encoding="utf-8")
     review = (root / "Documentation/zigux/review-checklist.md").read_text(encoding="utf-8")
     scripts_readme = (root / "scripts/zigux/README.md").read_text(encoding="utf-8")
     tests_readme = (root / "zigux/tests/README.md").read_text(encoding="utf-8")
     makefile = (root / "zigux/Makefile").read_text(encoding="utf-8")
     issues.extend(collect_missing_markers(docs_root, DOCS_ROOT_MARKERS, prefix="docs_root"))
+    issues.extend(collect_missing_markers(toolchain_notes, TOOLCHAIN_NOTES_MARKERS, prefix="toolchain_notes"))
     issues.extend(collect_missing_markers(review, REVIEW_CHECKLIST_MARKERS, prefix="review_checklist"))
     issues.extend(collect_missing_markers(scripts_readme, SCRIPTS_README_MARKERS, prefix="scripts_readme"))
     issues.extend(collect_missing_markers(tests_readme, TESTS_README_MARKERS, prefix="tests_readme"))
@@ -139,6 +155,10 @@ def build_self_test_root(root: Path) -> None:
     write_text(
         root / "Documentation/zigux/review-checklist.md",
         "\n".join(REVIEW_CHECKLIST_MARKERS) + "\n",
+    )
+    write_text(
+        root / "Documentation/zigux/phase2-toolchain-bootstrap-notes.md",
+        "\n".join(TOOLCHAIN_NOTES_MARKERS) + "\n",
     )
     write_text(
         root / "scripts/zigux/README.md",
@@ -185,6 +205,14 @@ def run_self_test() -> int:
         assert "docs_root:python3 scripts/zigux/check-phase2-toolchain-pin-scope.py" in issues
         assert "makefile:check-phase2-tests-readme-alignment.py" in issues
         assert "makefile:phase2: phase2-validate phase2-tools phase2-kconfig phase2-cross" in issues
+
+        build_self_test_root(root)
+        write_text(
+            root / "Documentation/zigux/phase2-toolchain-bootstrap-notes.md",
+            "\n".join(TOOLCHAIN_NOTES_MARKERS[1:]) + "\n",
+        )
+        issues = validate_root(root)
+        assert "toolchain_notes:python3 scripts/zigux/check-phase2-tests-readme-alignment.py" in issues
 
         build_self_test_root(root)
         write_text(
@@ -298,7 +326,7 @@ def run_self_test() -> int:
         assert "missing_file:zigux/tests/fixtures/phase2_cross_targets.json" in issues
 
     print("PHASE2_TESTS_README_ALIGNMENT_SELF_TEST=pass")
-    print("PHASE2_TESTS_README_ALIGNMENT_SELF_TEST_CASE_COUNT=12")
+    print("PHASE2_TESTS_README_ALIGNMENT_SELF_TEST_CASE_COUNT=13")
     return 0
 
 
@@ -322,7 +350,7 @@ def main() -> int:
     print("PHASE2_TESTS_README_ALIGNMENT=pass")
     print(
         "PHASE2_TESTS_README_ALIGNMENT_MARKER_COUNT="
-        f"{len(DOCS_ROOT_MARKERS) + len(REVIEW_CHECKLIST_MARKERS) + len(SCRIPTS_README_MARKERS) + len(TESTS_README_MARKERS) + len(MAKEFILE_MARKERS)}"
+        f"{len(DOCS_ROOT_MARKERS) + len(TOOLCHAIN_NOTES_MARKERS) + len(REVIEW_CHECKLIST_MARKERS) + len(SCRIPTS_README_MARKERS) + len(TESTS_README_MARKERS) + len(MAKEFILE_MARKERS)}"
     )
     return 0
 
