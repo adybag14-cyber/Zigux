@@ -167,3 +167,32 @@ test "phase11 dw_wdt survey manifest records the landed probe summary and remain
     try std.testing.expect(saw_registration_gap);
     try std.testing.expect(saw_platform_blocker);
 }
+
+test "phase11 dw_wdt survey note and validation matrix stay aligned" {
+    var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
+    defer io_instance.deinit();
+
+    const survey_note = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "Documentation/zigux/phase11-dw-wdt-survey.md",
+        std.testing.allocator,
+        .limited(32 * 1024),
+    );
+    defer std.testing.allocator.free(survey_note);
+
+    const validation_matrix = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "Documentation/zigux/phase11-dw-wdt-validation-matrix.md",
+        std.testing.allocator,
+        .limited(64 * 1024),
+    );
+    defer std.testing.allocator.free(validation_matrix);
+
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase11-dw-wdt-validation-matrix.md") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "bounded hardware-validation posture") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "Hardware-validation coverage remains bounded to the review matrix already recorded for the current starter") != null);
+
+    try std.testing.expect(std.mem.indexOf(u8, validation_matrix, "PHASE11_DW_WDT_STATUS=hardware_validation_matrix_landed") != null);
+    try std.testing.expect(std.mem.indexOf(u8, validation_matrix, "probeSummary()") != null);
+    try std.testing.expect(std.mem.indexOf(u8, validation_matrix, "phase11_dw_wdt.zig") != null);
+}
