@@ -41,10 +41,14 @@ For the active virtio contributor packet, confirm wording still matches:
 
 For the active simple-driver contributor packet, confirm wording still matches:
 - `Documentation/zigux/README.md`
+- `Documentation/zigux/phase11-shared-replay-contract.md`
 - `zigux/tests/README.md`
 - `Documentation/zigux/review-checklist.md`
 - `Documentation/zigux/phase11-bcm2835-wdt-validation-matrix.md`
+- `Documentation/zigux/phase11-gpio-wdt-validation-matrix.md`
+- `Documentation/zigux/phase11-dw-wdt-validation-matrix.md`
 - `Documentation/zigux/phase11-hvc-console-validation-matrix.md`
+- `Documentation/zigux/phase11-hvc-console-survey.md`
 - `zigux/tests/phase11_build.zig`
 - `zigux/tests/phase11_hvc_console_survey.zig`
 - `zigux/Makefile`
