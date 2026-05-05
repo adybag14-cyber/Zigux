@@ -204,6 +204,11 @@ test "phase11 hvc_console keeps retry intent on eagain and clears the slot on te
     try std.testing.expect(write.final_flush);
     try std.testing.expect(write.dropped_on_error);
 
+    try std.testing.expectError(
+        error.InputTooLarge,
+        console.stageWrite("0123456789abcdefg", 17),
+    );
+
     const teardown = console.teardown();
     try std.testing.expectEqual(hvc_console.removed_vtermno, teardown.vtermno);
     try std.testing.expect(!teardown.adapter_present);
