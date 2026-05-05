@@ -10,6 +10,7 @@ test "phase13 libfs exposes the statfs starter anchored to libfs.c" {
     try std.testing.expect(descriptor.provides_buffer_copy_helpers);
     try std.testing.expect(descriptor.provides_offset_seek_helpers);
     try std.testing.expect(descriptor.provides_directory_emit_planning);
+    try std.testing.expect(descriptor.provides_transaction_buffer_planning);
     try std.testing.expect(!descriptor.touches_live_dcache);
     try std.testing.expect(!descriptor.touches_live_inode_state);
 
@@ -202,4 +203,20 @@ test "phase13 libfs directory emit planning advances after dots and tracks empty
 
     try std.testing.expectError(error.InvalidOffset, libfs.LibFsHelperLab.dcacheReaddirEmitPlan(-1, true, 0));
     try std.testing.expectError(error.PositionOutOfRange, libfs.LibFsHelperLab.dcacheReaddirEmitPlan(std.math.maxInt(i64), true, 1));
+}
+
+test "phase13 libfs transaction acquire planning stays page-bounded and single-write" {
+    const plan = try libfs.LibFsHelperLab.simpleTransactionGetPlan(libfs.simple_transaction_limit - 1, false);
+    try std.testing.expectEqualStrings("fs/libfs.c", plan.anchor);
+    try std.testing.expectEqual(libfs.simple_transaction_limit - 1, plan.requested_size);
+    try std.testing.expectEqual(libfs.simple_transaction_limit, plan.transaction_limit);
+    try std.testing.expect(plan.allocates_zeroed_page);
+    try std.testing.expect(plan.requires_empty_private_data);
+    try std.testing.expectEqual(@as(usize, 0), plan.response_size);
+
+    const empty = try libfs.LibFsHelperLab.simpleTransactionGetPlan(0, false);
+    try std.testing.expectEqual(@as(usize, 0), empty.requested_size);
+
+    try std.testing.expectError(error.InputTooLarge, libfs.LibFsHelperLab.simpleTransactionGetPlan(libfs.simple_transaction_limit, false));
+    try std.testing.expectError(error.Busy, libfs.LibFsHelperLab.simpleTransactionGetPlan(8, true));
 }
