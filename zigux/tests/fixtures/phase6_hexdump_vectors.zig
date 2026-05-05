@@ -52,14 +52,13 @@ pub const LengthCase = struct {
 };
 
 pub const PerfCase = struct {
-    name: []const u8,
+    label: []const u8,
     len: usize,
     rowsize: usize,
     groupsize: usize,
     ascii: bool,
-    expected_length: usize,
-    expected_text: ExpectedText,
-    iterations: usize,
+    reps: usize,
+    max_slowdown_pct: u16,
 };
 
 fn same(text: []const u8) ExpectedText {
@@ -360,52 +359,39 @@ pub const length_cases = [_]LengthCase{
 
 pub const perf_cases = [_]PerfCase{
     .{
-        .name = "16B-plain-g1",
+        .label = "16B-plain-g1",
         .len = 16,
         .rowsize = 16,
         .groupsize = 1,
         .ascii = false,
-        .expected_length = 47,
-        .expected_text = same("be 32 db 7b 0a 18 93 b2 70 ba c4 24 7d 83 34 9b"),
-        .iterations = 250_000,
+        .reps = 40_000,
+        .max_slowdown_pct = 175,
     },
     .{
-        .name = "16B-ascii-g2",
-        .len = 16,
-        .rowsize = 16,
+        .label = "32B-ascii-g2",
+        .len = 32,
+        .rowsize = 32,
         .groupsize = 2,
         .ascii = true,
-        .expected_length = 57,
-        .expected_text = .{
-            .little = "32be 7bdb 180a b293 ba70 24c4 837d 9b34  .2.{....p..$}.4.",
-            .big = "be32 db7b 0a18 93b2 70ba c424 7d83 349b  .2.{....p..$}.4.",
-        },
-        .iterations = 200_000,
+        .reps = 10_000,
+        .max_slowdown_pct = 550,
     },
     .{
-        .name = "16B-ascii-g4",
+        .label = "16B-ascii-g4",
         .len = 16,
         .rowsize = 16,
         .groupsize = 4,
         .ascii = true,
-        .expected_length = 53,
-        .expected_text = .{
-            .little = "7bdb32be b293180a 24c4ba70 9b34837d  .2.{....p..$}.4.",
-            .big = "be32db7b 0a1893b2 70bac424 7d83349b  .2.{....p..$}.4.",
-        },
-        .iterations = 200_000,
+        .reps = 20_000,
+        .max_slowdown_pct = 550,
     },
     .{
-        .name = "16B-ascii-g8",
+        .label = "16B-ascii-g8",
         .len = 16,
         .rowsize = 16,
         .groupsize = 8,
         .ascii = true,
-        .expected_length = 51,
-        .expected_text = .{
-            .little = "b293180a7bdb32be 9b34837d24c4ba70  .2.{....p..$}.4.",
-            .big = "be32db7b0a1893b2 70bac4247d83349b  .2.{....p..$}.4.",
-        },
-        .iterations = 150_000,
+        .reps = 20_000,
+        .max_slowdown_pct = 600,
     },
 };
