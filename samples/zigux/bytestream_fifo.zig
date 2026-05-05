@@ -148,24 +148,26 @@ pub const BytestreamFifoSample = struct {
     }
 
     pub fn runHelperBoundaryReplay(self: *Self) HelperBoundarySummary {
+        const saved = self.*;
+        defer self.* = saved;
+
         self.reset();
 
         const peek_before_fill = self.peekByte();
         const skip_before_fill = self.skipByte();
         const empty_enqueue_len = self.enqueueSlice(&.{});
 
-        var fill_value: u8 = 0;
-        while (fill_value < capacity) : (fill_value += 1) {
-            std.debug.assert(self.pushByte(fill_value));
-        }
-
-        const overflow_rejected = !self.pushByte(255);
+        var value: u8 = 0;
+        while (self.pushByte(value)) : (value +%= 1) {}
         const count_at_capacity = self.count();
+        const overflow_rejected = !self.pushByte(255);
         const peek_at_capacity = self.peekByte() orelse unreachable;
         const skipped_at_capacity = self.skipByte() orelse unreachable;
         const count_after_skip = self.count();
 
         self.reset();
+        const count_after_reset = self.count();
+        const pop_after_reset = self.popByte();
 
         return .{
             .peek_before_fill = peek_before_fill,
@@ -176,8 +178,8 @@ pub const BytestreamFifoSample = struct {
             .peek_at_capacity = peek_at_capacity,
             .skipped_at_capacity = skipped_at_capacity,
             .count_after_skip = count_after_skip,
-            .count_after_reset = self.count(),
-            .pop_after_reset = self.popByte(),
+            .count_after_reset = count_after_reset,
+            .pop_after_reset = pop_after_reset,
         };
     }
 
@@ -286,4 +288,22 @@ test "bytestream fifo sample replays the Linux anchor result sequence" {
     try std.testing.expectEqual(SampleStage.exited, sample.stage());
     try std.testing.expectEqual(@as(usize, 0), sample.count());
     try std.testing.expectEqual(@as(usize, 1), sample.exit_runs);
+}
+
+test "bytestream fifo sample replays bounded helper behavior without runtime claims" {
+    var sample = BytestreamFifoSample{};
+    const replay = sample.runHelperBoundaryReplay();
+
+    try std.testing.expectEqual(@as(?u8, null), replay.peek_before_fill);
+    try std.testing.expectEqual(@as(?u8, null), replay.skip_before_fill);
+    try std.testing.expectEqual(@as(usize, 0), replay.empty_enqueue_len);
+    try std.testing.expectEqual(@as(usize, fifo_capacity), replay.count_at_capacity);
+    try std.testing.expect(replay.overflow_rejected);
+    try std.testing.expectEqual(@as(u8, 0), replay.peek_at_capacity);
+    try std.testing.expectEqual(@as(u8, 0), replay.skipped_at_capacity);
+    try std.testing.expectEqual(@as(usize, fifo_capacity - 1), replay.count_after_skip);
+    try std.testing.expectEqual(@as(usize, 0), replay.count_after_reset);
+    try std.testing.expectEqual(@as(?u8, null), replay.pop_after_reset);
+    try std.testing.expectEqual(@as(usize, 0), sample.count());
+    try std.testing.expectEqual(SampleStage.cold, sample.stage());
 }
