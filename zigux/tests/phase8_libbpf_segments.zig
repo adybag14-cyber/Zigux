@@ -38,6 +38,10 @@ fn isAllowedStatus(status: []const u8) bool {
         std.mem.eql(u8, status, "deferred_high_risk");
 }
 
+fn expectContains(haystack: []const u8, needle: []const u8) !void {
+    try std.testing.expect(std.mem.indexOf(u8, haystack, needle) != null);
+}
+
 test "phase 8 libbpf segment manifest records the roadmap gap and bounded next slices" {
     var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
     defer io_instance.deinit();
@@ -121,4 +125,33 @@ test "phase 8 libbpf segment manifest records the roadmap gap and bounded next s
     try std.testing.expect(saw_logging_segment);
     try std.testing.expect(saw_pin_path_segment);
     try std.testing.expect(saw_cpu_mask_segment);
+}
+
+test "phase 8 libbpf helper slice notes stay parked once the shared tooling bundle lands" {
+    var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
+    defer io_instance.deinit();
+
+    const cpu_mask_note = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "Documentation/zigux/phase8-libbpf-cpu-mask-slice.md",
+        std.testing.allocator,
+        .limited(16 * 1024),
+    );
+    defer std.testing.allocator.free(cpu_mask_note);
+
+    const type_names_note = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "Documentation/zigux/phase8-bpf-type-names-slice.md",
+        std.testing.allocator,
+        .limited(16 * 1024),
+    );
+    defer std.testing.allocator.free(type_names_note);
+
+    try expectContains(cpu_mask_note, "PHASE8_STATUS=parked");
+    try expectContains(cpu_mask_note, "tools/lib/bpf/zigux_segments/cpu_mask.zig");
+    try expectContains(cpu_mask_note, "zigux/tests/phase8_build.zig");
+
+    try expectContains(type_names_note, "PHASE8_STATUS=parked");
+    try expectContains(type_names_note, "tools/lib/bpf/zigux_segments/type_names.zig");
+    try expectContains(type_names_note, "zigux/tests/phase8_build.zig");
 }
