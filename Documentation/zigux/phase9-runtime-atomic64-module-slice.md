@@ -6,7 +6,7 @@ This document tracks the first bounded Phase 9 runtime atomic64 starter under `s
 
 - `PHASE9_STATUS=active`
 - `PHASE9_SLICE=runtime-atomic64-module-starter`
-- scope: lifecycle starter, selftest summary, dedicated Phase 9 test wiring, a bounded loader-handoff scaffold, the shared request-surface proof, and survey-manifest closure only
+- scope: lifecycle starter, selftest hook surface, guarded lifecycle parity evidence, dedicated Phase 9 test wiring, a bounded loader-handoff scaffold, the shared request-surface proof, and survey-manifest closure only
 - product boundary:
   - `samples/zigux/runtime_atomic64.zig`
   - `samples/zigux/runtime_atomic64_loader.zig`
@@ -24,6 +24,7 @@ The live Phase 9 tree had already identified `lib/atomic64_test.c` as the runtim
 
 - module descriptor metadata naming the `lib/atomic64_test.c` anchor
 - guarded lifecycle transitions for `cold`, `initialized`, `selftest_complete`, and `exited`
+- a selftest hook surface that keeps `runSelftest()` reviewable without requiring runtime substrate support
 - a 64-bit counter path using `zigux/helpers/atomic.zig`
 - a selftest summary that groups the C anchor into arithmetic, bitwise, returning, swap, and guard-operation families
 - a narrow `add_unless` guard-path pilot on top of the existing atomic helpers without pretending broader runtime-substrate support
@@ -49,4 +50,4 @@ This slice does not yet claim:
 
 ## Next bounded step
 
-Stay in the Phase 9 runtime atomic64 lane and keep broader work blocked until a shared runtime loader substrate can consume the bounded loader-handoff plan beyond the current request facade.
+Stay in the Phase 9 runtime atomic64 lane and keep broader work blocked until a shared runtime loader substrate can consume the bounded init, selftest, and exit handoff plan beyond the current request facade and turn this guarded evidence into real runtime module lifecycle parity.
