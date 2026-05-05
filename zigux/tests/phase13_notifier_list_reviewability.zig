@@ -76,7 +76,7 @@ test "phase13 notifier/list survey keeps the binding-only notifier foothold and 
     defer parsed.deinit();
     const manifest = parsed.value;
 
-    try std.testing.expectEqualStrings("P13-L13", manifest.lane_key);
+    try std.testing.expectEqualStrings("P13-L17", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 13", manifest.phase);
     try std.testing.expectEqualStrings("master-reviewability", manifest.surveyed_commit);
     try std.testing.expectEqual(@as(usize, 3), manifest.anchors.len);
@@ -120,10 +120,11 @@ test "phase13 notifier/list survey keeps the binding-only notifier foothold and 
     try std.testing.expect(std.mem.indexOf(u8, abi_header_text, "struct zigux_notifier_chain_view") == null);
 
     try std.testing.expect(std.mem.indexOf(u8, phase13_build_text, "phase13_notifier_list") == null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "lane key: `P13-L13`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "lane key: `P13-L17`") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "roadmap-adjacent reviewability evidence only") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "no read-only notifier chain helper on current `master`") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "no dedicated exported notifier C header yet") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "Lane `P13-L17` keeps this packet reviewable while leaving the unpublished helper-side follow-up to `P13-L18`.") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "no read-only notifier chain helper on current `master`; `zigux/helpers/notifier_chain_view.zig` remains the `P13-L18` helper-local follow-up if this lane reopens") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "no dedicated exported notifier C header yet; `include/zigux/notifier_abi.h` stays with the same `P13-L18` interop follow-up rather than becoming a hidden current capability") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "shared Phase 13 build intentionally omits") != null);
 
     try expectMissing("zigux/helpers/notifier_chain_view.zig");
@@ -185,10 +186,12 @@ test "phase13 notifier/list survey keeps the binding-only notifier foothold and 
         if (std.mem.eql(u8, gap.id, "phase13-notifier-helper-gap")) {
             saw_notifier_helper_gap = true;
             try std.testing.expectEqualStrings("zigux/helpers/notifier_chain_view.zig", gap.zigux_destination);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "`P13-L18`") != null);
         }
         if (std.mem.eql(u8, gap.id, "phase13-exported-notifier-c-header-gap")) {
             saw_notifier_header_gap = true;
             try std.testing.expectEqualStrings("include/zigux/notifier_abi.h", gap.zigux_destination);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "`P13-L18`") != null);
         }
     }
 
