@@ -107,6 +107,7 @@ EXPECTED_CASES = {
     },
 }
 EXPECTED_CASE_ORDER = tuple(EXPECTED_CASES)
+EXPECTED_SELF_TEST_CASE_COUNT = 15
 
 
 def run(cmd: list[str], **kwargs) -> subprocess.CompletedProcess[str]:
@@ -405,8 +406,13 @@ def run_self_test() -> int:
     )
     checks_run += 1
 
+    if checks_run != EXPECTED_SELF_TEST_CASE_COUNT:
+        raise SystemExit(
+            f'fixdep:self-test:case_count={checks_run}:expected={EXPECTED_SELF_TEST_CASE_COUNT}'
+        )
+
     print('FIXDEP_SELF_TEST=pass')
-    print(f'FIXDEP_SELF_TEST_CASE_COUNT={checks_run}')
+    print(f'FIXDEP_SELF_TEST_CASE_COUNT={EXPECTED_SELF_TEST_CASE_COUNT}')
     return 0
 
 
