@@ -224,6 +224,7 @@ pub const HvcConsoleLab = struct {
         if (!request.tty_port_reference_live) {
             return error.CleanupRequiresTtyPortReference;
         }
+        const final_close = request.final_close and !request.hung_up;
 
         return .{
             .anchor = descriptor().anchor,
@@ -231,7 +232,7 @@ pub const HvcConsoleLab = struct {
             .vtermno = slot.vtermno,
             .adapter_present = slot.adapter_present,
             .close_skipped = request.hung_up,
-            .final_close = request.final_close,
+            .final_close = final_close,
             .tty_port_reference_live = request.tty_port_reference_live,
             .tty_port_put_requested = true,
             .drops_tty_port_reference = true,
