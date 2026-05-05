@@ -21,7 +21,7 @@ const Manifest = struct {
     ready_next: []const u8,
 };
 
-test "phase 4 runtime atomic64 roadmap-gap survey keeps the shipped runtime path explicit" {
+test "phase 4 runtime atomic64 roadmap-gap survey keeps the shipped wrapper and runtime split explicit" {
     const parsed = try std.json.parseFromSlice(
         Manifest,
         std.testing.allocator,
@@ -35,13 +35,13 @@ test "phase 4 runtime atomic64 roadmap-gap survey keeps the shipped runtime path
     try std.testing.expectEqualStrings("P4-L01", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 4", manifest.phase);
     try std.testing.expectEqualStrings("zigux/tests/atomic64_diff.zig", manifest.roadmap_target_path);
-    try std.testing.expect(!manifest.roadmap_atomic64_diff_present);
+    try std.testing.expect(manifest.roadmap_atomic64_diff_present);
     try std.testing.expectEqualStrings("zigux/tests/runtime_atomic64_diff.zig", manifest.live_gate_path);
     try std.testing.expectEqualStrings("d65abeb53eb0248e1f0978a54cc48a7f561b148e", manifest.live_gate_blob_sha);
     try std.testing.expectEqual(@as(usize, 155), manifest.live_gate_line_count);
 
     try std.testing.expect(manifest.phase4_build_present);
-    try std.testing.expectEqualStrings("96c3fdf1b56a48c6a66bd77c120cafa203989275", manifest.phase4_build_blob_sha);
+    try std.testing.expectEqualStrings("b1ff06326c59dfe6190663a378b6cb60d64f457f", manifest.phase4_build_blob_sha);
     try std.testing.expect(manifest.phase4_validator_runtime_atomic64_diff_present);
     try std.testing.expectEqualStrings("4ac6d7657e43bb1ec9f9950c2ad5eb72573d568f", manifest.phase4_validator_blob_sha);
     try std.testing.expect(manifest.phase9_build_present);
@@ -54,11 +54,11 @@ test "phase 4 runtime atomic64 roadmap-gap survey keeps the shipped runtime path
     );
 
     try std.testing.expect(std.mem.indexOf(u8, manifest.roadmap_gap_summary, "zigux/tests/atomic64_diff.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, manifest.roadmap_gap_summary, "Phase 4 build entrypoint") != null);
     try std.testing.expect(std.mem.indexOf(u8, manifest.roadmap_gap_summary, "zigux/tests/runtime_atomic64_diff.zig") != null);
-    try std.testing.expect(std.mem.indexOf(u8, manifest.roadmap_gap_summary, "scripts/zigux/validate-phase4.py") != null);
-    try std.testing.expect(std.mem.indexOf(u8, manifest.roadmap_gap_summary, "zigux/tests/phase9_build.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, manifest.roadmap_gap_summary, "Phase 9 build") != null);
 
-    try std.testing.expect(std.mem.indexOf(u8, manifest.ready_next, "zigux/tests/atomic64_diff.zig") != null);
-    try std.testing.expect(std.mem.indexOf(u8, manifest.ready_next, "Phase 4") != null);
-    try std.testing.expect(std.mem.indexOf(u8, manifest.ready_next, "Phase 9") != null);
+    try std.testing.expect(std.mem.indexOf(u8, manifest.ready_next, "shared validator") != null);
+    try std.testing.expect(std.mem.indexOf(u8, manifest.ready_next, "Phase 4 notes") != null);
+    try std.testing.expect(std.mem.indexOf(u8, manifest.ready_next, "single bounded replay body") != null);
 }
