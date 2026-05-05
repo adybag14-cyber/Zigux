@@ -144,12 +144,12 @@ test "phase 8 libbpf segment manifest records the current helper-first catalog" 
         }
         if (std.mem.eql(u8, segment.slug, "fdinfo-map-info-helpers")) {
             saw_fdinfo_segment = true;
-            try std.testing.expectEqualStrings("starter_landed", segment.status);
+            try std.testing.expectEqualStrings("ready_next", segment.status);
             try std.testing.expectEqualStrings("tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig", segment.zigux_destination);
         }
         if (std.mem.eql(u8, segment.slug, "map-reuse-compatibility")) {
             saw_map_reuse_segment = true;
-            try std.testing.expectEqualStrings("starter_landed", segment.status);
+            try std.testing.expectEqualStrings("ready_next", segment.status);
             try std.testing.expectEqualStrings("tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig", segment.zigux_destination);
         }
         if (std.mem.eql(u8, segment.slug, "file-path-and-handle-bridge")) {
@@ -167,8 +167,8 @@ test "phase 8 libbpf segment manifest records the current helper-first catalog" 
         }
     }
 
-    try std.testing.expectEqual(@as(usize, 0), ready_next_count);
-    try std.testing.expectEqual(@as(usize, 6), starter_landed_count);
+    try std.testing.expectEqual(@as(usize, 2), ready_next_count);
+    try std.testing.expectEqual(@as(usize, 4), starter_landed_count);
     try std.testing.expectEqual(@as(usize, 1), blocked_on_object_model_count);
     try std.testing.expectEqual(@as(usize, 4), deferred_high_risk_count);
     try std.testing.expect(saw_logging_segment);
@@ -211,14 +211,14 @@ test "phase 8 libbpf survey note stays aligned with the landed helper packet" {
 
     try expectContains(phase8_note, expected_surveyed_commit);
     try expectContains(phase8_note, "PHASE8_STATUS=parked");
+    try expectContains(phase8_note, "scope: segment manifest, four landed helper-first starter slices, and one bounded perf-buffer poll adjunct");
+    try expectContains(phase8_note, "The manifest currently records eleven bounded segments:");
     try expectContains(phase8_note, "tools/lib/bpf/zigux_segments/manifest.json");
     try expectContains(phase8_note, "tools/lib/bpf/zigux_segments/cpu_mask.zig");
     try expectContains(phase8_note, "tools/lib/bpf/zigux_segments/logging.zig");
     try expectContains(phase8_note, "tools/lib/bpf/zigux_segments/pin_path.zig");
     try expectContains(phase8_note, "tools/lib/bpf/zigux_segments/type_names.zig");
-    try expectContains(phase8_note, "tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig");
     try expectContains(phase8_note, "tools/lib/bpf/zigux_segments/perf_buffer_poll.zig");
-    try expectContains(phase8_note, "zigux/tests/phase8_file_path_handle_bridge.zig");
     try expectContains(phase8_note, "zigux/tests/phase8_bpf_type_names.zig");
     try expectContains(phase8_note, "zigux/tests/phase8_perf_buffer_poll.zig");
     try expectContains(phase8_note, "zigux/tests/phase8_perf_buffer_poll_only_build.zig");
@@ -232,7 +232,9 @@ test "phase 8 libbpf survey note stays aligned with the landed helper packet" {
     try expectContains(phase8_note, "map-reuse-compatibility");
     try expectContains(phase8_note, "file-path-and-handle-bridge");
     try expectContains(phase8_note, "perf-buffer-online-cpu-routing");
+    try expectContains(phase8_note, "future shared `file_path_handle_bridge.zig` surface that is not landed on current `master`");
     try expectContains(phase8_note, "standalone timer or clockevent helper behavior");
+    try expectContains(phase8_note, "any landed `file_path_handle_bridge.zig` helper or dedicated `phase8_file_path_handle_bridge.zig` test surface on current `master`");
 
     try expectContains(cpu_mask_note, "PHASE8_STATUS=parked");
     try expectContains(cpu_mask_note, "tools/lib/bpf/zigux_segments/cpu_mask.zig");
