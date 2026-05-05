@@ -173,6 +173,10 @@ def read_json(root: Path, relative_path: str) -> dict[str, object]:
     return json.loads(read_text(root, relative_path))
 
 
+def exact_status_line_count(text: str, status_line: str) -> int:
+    return sum(1 for line in text.splitlines() if line == f"- `{status_line}`")
+
+
 def is_hex_sha(value: object) -> bool:
     return (
         isinstance(value, str)
@@ -306,6 +310,12 @@ def collect_exact_validator_status_markers(root: Path, gate_evidence: str) -> li
     for line in EXACT_VALIDATOR_STATUS_PREFIXES:
         if f"`{line}`" not in gate_evidence:
             missing.append(f"phase4_gate_evidence:{line}")
+        actual_count = exact_status_line_count(gate_evidence, line)
+        if actual_count != 1:
+            missing.append(
+                "phase4_gate_evidence:validator_status_exact_count:"
+                f"{line}:{actual_count}"
+            )
 
     module = load_validator_module(root)
     if module is None:
@@ -319,6 +329,12 @@ def collect_exact_validator_status_markers(root: Path, gate_evidence: str) -> li
         required_file_line = f"PHASE4_REQUIRED_FILE_COUNT={len(required_files)}"
         if f"`{required_file_line}`" not in gate_evidence:
             missing.append(f"phase4_gate_evidence:{required_file_line}")
+        actual_count = exact_status_line_count(gate_evidence, required_file_line)
+        if actual_count != 1:
+            missing.append(
+                "phase4_gate_evidence:validator_status_exact_count:"
+                f"{required_file_line}:{actual_count}"
+            )
 
     required_marker_count = getattr(module, "required_marker_count", None)
     if not callable(required_marker_count):
@@ -327,6 +343,12 @@ def collect_exact_validator_status_markers(root: Path, gate_evidence: str) -> li
         marker_line = f"PHASE4_REQUIRED_MARKER_COUNT={required_marker_count()}"
         if f"`{marker_line}`" not in gate_evidence:
             missing.append(f"phase4_gate_evidence:{marker_line}")
+        actual_count = exact_status_line_count(gate_evidence, marker_line)
+        if actual_count != 1:
+            missing.append(
+                "phase4_gate_evidence:validator_status_exact_count:"
+                f"{marker_line}:{actual_count}"
+            )
 
     return missing
 
@@ -499,6 +521,21 @@ def run_self_test() -> int:
         assert "phase4_gate_evidence:PHASE4_VALIDATION=pass" in missing, missing
         write_fixture_tree(root)
         gate_evidence = root / "Documentation/zigux/phase4-gate-evidence.md"
+        gate_evidence.write_text(
+            gate_evidence.read_text(encoding="utf-8").replace(
+                "- `PHASE4_VALIDATION=pass`\n",
+                "- `PHASE4_VALIDATION=pass`\n- `PHASE4_VALIDATION=pass`\n",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        missing = validate_root(root)
+        assert (
+            "phase4_gate_evidence:validator_status_exact_count:PHASE4_VALIDATION=pass:2"
+            in missing
+        ), missing
+        write_fixture_tree(root)
+        gate_evidence = root / "Documentation/zigux/phase4-gate-evidence.md"
         gate_evidence.write_text(gate_evidence.read_text(encoding="utf-8").replace("PHASE4_EXACT_READBACK_HEAD=", "PHASE4_EXACT_READBACK_HEAD_MISSING=", 1), encoding="utf-8")
         missing = validate_root(root)
         assert "phase4_gate_evidence:PHASE4_EXACT_READBACK_HEAD=" in missing, missing
@@ -529,9 +566,19 @@ def run_self_test() -> int:
         assert "phase4_gate_evidence:PHASE4_REQUIRED_FILE_COUNT=27" in missing, missing
         write_fixture_tree(root)
         gate_evidence = root / "Documentation/zigux/phase4-gate-evidence.md"
-        gate_evidence.write_text(gate_evidence.read_text(encoding="utf-8").replace("PHASE4_REQUIRED_MARKER_COUNT=86", "PHASE4_REQUIRED_MARKER_COUNT=45", 1), encoding="utf-8")
+        gate_evidence.write_text(
+            gate_evidence.read_text(encoding="utf-8").replace(
+                "- `PHASE4_REQUIRED_MARKER_COUNT=86`\n",
+                "- `PHASE4_REQUIRED_MARKER_COUNT=86`\n- `PHASE4_REQUIRED_MARKER_COUNT=86`\n",
+                1,
+            ),
+            encoding="utf-8",
+        )
         missing = validate_root(root)
-        assert "phase4_gate_evidence:PHASE4_REQUIRED_MARKER_COUNT=86" in missing, missing
+        assert (
+            "phase4_gate_evidence:validator_status_exact_count:PHASE4_REQUIRED_MARKER_COUNT=86:2"
+            in missing
+        ), missing
         write_fixture_tree(root)
         gate_evidence = root / "Documentation/zigux/phase4-gate-evidence.md"
         gate_evidence.write_text(
