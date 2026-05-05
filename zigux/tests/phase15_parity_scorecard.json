@@ -38,7 +38,7 @@
       "policy for code that remains in C indefinitely"
     ],
     "bootstrap_ledger_anchor": "docs(zigux): add documentation root, review checklist, and freeze map",
-    "current_repo_handoff": "Documentation root and freeze-map governance are now carried forward by the landed Phase 15 review-process note, parity scorecard, evidence-archive templates, shared validator-first gate through scripts/zigux/check-phase15-scripts-readme-alignment.py, scripts/zigux/check-phase15-review-process-handoff.py, and make -C zigux phase15-validate, dedicated Zig manifest and test, shared phase15_build.zig gate, and make -C zigux phase15 target.",
+    "current_repo_handoff": "Documentation root and freeze-map governance are now carried forward by the landed Phase 15 review-process note, parity scorecard, evidence-archive templates, shared validator-first gate through scripts/zigux/check-phase15-scripts-readme-alignment.py, scripts/zigux/check-phase15-review-process-handoff.py, and make -C zigux phase15-validate, the focused zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig replay already wired through zigux/tests/phase15_build.zig, and make -C zigux phase15 target.",
     "maintenance_mode_next_step": "Wait for one of the named reopen triggers or the deep-core blocker posture to change before opening another Phase 15 slice."
   },
   "anchors": [
