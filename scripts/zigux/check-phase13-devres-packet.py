@@ -15,7 +15,7 @@ REQUIRED_FILES = [
     "zigux/tests/phase13_build.zig",
     "zigux/tests/phase13_devres.zig",
     "zigux/tests/phase13_devres_dma_coherent.zig",
-    "zigux/tests/phase13_devres_iomap_reviewability.zig",
+    "zigux/tests/phase13_devres_reviewability.zig",
     "zigux/tests/phase13_devres_manifest.json",
     "scripts/zigux/validate-phase13-release.py",
     "zigux/Makefile",
@@ -24,21 +24,26 @@ REQUIRED_FILES = [
 BUILD_REQUIRED_MARKERS = [
     'b.path("../../lib/devres.zig")',
     'b.path("phase13_devres.zig")',
+    'b.path("phase13_devres_reviewability.zig")',
     'b.path("phase13_devres_dma_coherent.zig")',
     'const phase13_devres_tests = b.addTest(.{',
+    'const phase13_devres_reviewability_tests = b.addTest(.{',
     'const phase13_devres_dma_coherent_tests = b.addTest(.{',
     'test_step.dependOn(&run_phase13_devres_tests.step);',
+    'test_step.dependOn(&run_phase13_devres_reviewability_tests.step);',
     'test_step.dependOn(&run_phase13_devres_dma_coherent_tests.step);',
 ]
 
 DMA_COHERENT_REQUIRED_MARKERS = [
     "test \"phase13 devres coherent-dma boundary packet records blocked dma and scatterlist ownership\"",
-    "test \"phase13 devres coherent-dma boundary note keeps dma and scatterlist out of scope\"",
-    "\"preexisting_devres_dma_coherent_zig_present\": true",
-    "\"preexisting_phase13_devres_dma_coherent_test_present\": true",
-    "\"preexisting_phase13_devres_iomap_reviewability_test_present\": true",
-    "\"id\": \"phase13-devres-live-dma-backed-mappings\"",
-    "\"id\": \"phase13-devres-live-scatterlist-ownership\"",
+    "test \"phase13 devres coherent-dma boundary note keeps dma-backed helpers and scatter-gather ownership out of scope\"",
+    "\\\"preexisting_phase13_devres_test_present\\\": true",
+    "\\\"preexisting_phase13_devres_reviewability_present\\\": true",
+    "\\\"preexisting_phase13_devres_survey_present\\\": true",
+    "\\\"id\\\": \\\"phase13-devres-live-dma-backed-helpers\\\"",
+    "\\\"id\\\": \\\"phase13-devres-live-scatterlist-ownership\\\"",
+    "\\\"status\\\": \\\"blocked_on_dma_state\\\"",
+    "\\\"status\\\": \\\"blocked_on_scatterlist_state\\\"",
 ]
 
 MAKE_REQUIRED_MARKERS = [
@@ -75,27 +80,24 @@ def _validate_manifest(text: str) -> list[str]:
 
     summary = manifest.get("survey_summary", {})
     for key in (
-        "preexisting_devres_dma_coherent_zig_present",
-        "preexisting_phase13_devres_dma_coherent_test_present",
-        "preexisting_phase13_devres_iomap_reviewability_test_present",
+        "preexisting_phase13_devres_test_present",
+        "preexisting_phase13_devres_reviewability_present",
+        "preexisting_phase13_devres_survey_present",
     ):
         if summary.get(key) is not True:
             issues.append(f"phase13-devres-manifest-summary:{key}")
 
     gaps = {gap.get("id"): gap for gap in manifest.get("gaps", []) if isinstance(gap, dict)}
     for gap_id in (
-        "phase13-devres-dma-coherent-boundary-replay",
-        "phase13-devres-live-dma-backed-mappings",
+        "phase13-devres-live-dma-backed-helpers",
         "phase13-devres-live-scatterlist-ownership",
     ):
         if gap_id not in gaps:
             issues.append(f"phase13-devres-manifest-gap:{gap_id}")
-    for gap_id in (
-        "phase13-devres-live-dma-backed-mappings",
-        "phase13-devres-live-scatterlist-ownership",
-    ):
-        if gaps.get(gap_id, {}).get("status") != "blocked_on_live_resource_state":
-            issues.append(f"phase13-devres-manifest-gap-status:{gap_id}")
+    if gaps.get("phase13-devres-live-dma-backed-helpers", {}).get("status") != "blocked_on_dma_state":
+        issues.append("phase13-devres-manifest-gap-status:phase13-devres-live-dma-backed-helpers")
+    if gaps.get("phase13-devres-live-scatterlist-ownership", {}).get("status") != "blocked_on_scatterlist_state":
+        issues.append("phase13-devres-manifest-gap-status:phase13-devres-live-scatterlist-ownership")
 
     return issues
 
@@ -125,14 +127,13 @@ def _seed_fixture_tree(root: Path) -> None:
     _write(root / "scripts/zigux/validate-phase13-release.py", "\n".join(VALIDATOR_REQUIRED_MARKERS) + "\n")
     _write(root / "zigux/tests/phase13_devres_manifest.json", json.dumps({
         "survey_summary": {
-            "preexisting_devres_dma_coherent_zig_present": True,
-            "preexisting_phase13_devres_dma_coherent_test_present": True,
-            "preexisting_phase13_devres_iomap_reviewability_test_present": True,
+            "preexisting_phase13_devres_test_present": True,
+            "preexisting_phase13_devres_reviewability_present": True,
+            "preexisting_phase13_devres_survey_present": True,
         },
         "gaps": [
-            {"id": "phase13-devres-dma-coherent-boundary-replay", "status": "starter_landed"},
-            {"id": "phase13-devres-live-dma-backed-mappings", "status": "blocked_on_live_resource_state"},
-            {"id": "phase13-devres-live-scatterlist-ownership", "status": "blocked_on_live_resource_state"},
+            {"id": "phase13-devres-live-dma-backed-helpers", "status": "blocked_on_dma_state"},
+            {"id": "phase13-devres-live-scatterlist-ownership", "status": "blocked_on_scatterlist_state"},
         ],
     }, indent=2) + "\n")
 
@@ -155,10 +156,13 @@ def run_self_test() -> int:
         (root / "zigux/tests/phase13_build.zig").write_text('b.path("phase13_devres.zig")\n', encoding="utf-8")
         _assert_only(validate(root), [
             "phase13-build:b.path(\"../../lib/devres.zig\")",
+            "phase13-build:b.path(\"phase13_devres_reviewability.zig\")",
             "phase13-build:b.path(\"phase13_devres_dma_coherent.zig\")",
             "phase13-build:const phase13_devres_tests = b.addTest(.{",
+            "phase13-build:const phase13_devres_reviewability_tests = b.addTest(.{",
             "phase13-build:const phase13_devres_dma_coherent_tests = b.addTest(.{",
             "phase13-build:test_step.dependOn(&run_phase13_devres_tests.step);",
+            "phase13-build:test_step.dependOn(&run_phase13_devres_reviewability_tests.step);",
             "phase13-build:test_step.dependOn(&run_phase13_devres_dma_coherent_tests.step);",
         ], "build_guard_failed")
         _seed_fixture_tree(root)
@@ -166,13 +170,12 @@ def run_self_test() -> int:
 
         (root / "zigux/tests/phase13_devres_manifest.json").write_text(json.dumps({"survey_summary": {}}, indent=2) + "\n", encoding="utf-8")
         _assert_only(validate(root), [
-            "phase13-devres-manifest-summary:preexisting_devres_dma_coherent_zig_present",
-            "phase13-devres-manifest-summary:preexisting_phase13_devres_dma_coherent_test_present",
-            "phase13-devres-manifest-summary:preexisting_phase13_devres_iomap_reviewability_test_present",
-            "phase13-devres-manifest-gap:phase13-devres-dma-coherent-boundary-replay",
-            "phase13-devres-manifest-gap:phase13-devres-live-dma-backed-mappings",
+            "phase13-devres-manifest-summary:preexisting_phase13_devres_test_present",
+            "phase13-devres-manifest-summary:preexisting_phase13_devres_reviewability_present",
+            "phase13-devres-manifest-summary:preexisting_phase13_devres_survey_present",
+            "phase13-devres-manifest-gap:phase13-devres-live-dma-backed-helpers",
             "phase13-devres-manifest-gap:phase13-devres-live-scatterlist-ownership",
-            "phase13-devres-manifest-gap-status:phase13-devres-live-dma-backed-mappings",
+            "phase13-devres-manifest-gap-status:phase13-devres-live-dma-backed-helpers",
             "phase13-devres-manifest-gap-status:phase13-devres-live-scatterlist-ownership",
         ], "manifest_guard_failed")
         _seed_fixture_tree(root)
@@ -180,12 +183,14 @@ def run_self_test() -> int:
 
         (root / "zigux/tests/phase13_devres_dma_coherent.zig").write_text('test "phase13 devres coherent-dma boundary packet records blocked dma and scatterlist ownership" {}\n', encoding="utf-8")
         _assert_only(validate(root), [
-            "phase13-devres-dma-coherent:test \"phase13 devres coherent-dma boundary note keeps dma and scatterlist out of scope\"",
-            "phase13-devres-dma-coherent:\"preexisting_devres_dma_coherent_zig_present\": true",
-            "phase13-devres-dma-coherent:\"preexisting_phase13_devres_dma_coherent_test_present\": true",
-            "phase13-devres-dma-coherent:\"preexisting_phase13_devres_iomap_reviewability_test_present\": true",
-            "phase13-devres-dma-coherent:\"id\": \"phase13-devres-live-dma-backed-mappings\"",
-            "phase13-devres-dma-coherent:\"id\": \"phase13-devres-live-scatterlist-ownership\"",
+            "phase13-devres-dma-coherent:test \"phase13 devres coherent-dma boundary note keeps dma-backed helpers and scatter-gather ownership out of scope\"",
+            "phase13-devres-dma-coherent:\\\"preexisting_phase13_devres_test_present\\\": true",
+            "phase13-devres-dma-coherent:\\\"preexisting_phase13_devres_reviewability_present\\\": true",
+            "phase13-devres-dma-coherent:\\\"preexisting_phase13_devres_survey_present\\\": true",
+            "phase13-devres-dma-coherent:\\\"id\\\": \\\"phase13-devres-live-dma-backed-helpers\\\"",
+            "phase13-devres-dma-coherent:\\\"id\\\": \\\"phase13-devres-live-scatterlist-ownership\\\"",
+            "phase13-devres-dma-coherent:\\\"status\\\": \\\"blocked_on_dma_state\\\"",
+            "phase13-devres-dma-coherent:\\\"status\\\": \\\"blocked_on_scatterlist_state\\\"",
         ], "dma_guard_failed")
         _seed_fixture_tree(root)
         case_count += 1
