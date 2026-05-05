@@ -8,6 +8,11 @@ const Gap = struct {
     why_now: []const u8,
 };
 
+const HandoffEvidence = struct {
+    current_repo_handoff: []const u8,
+    current_bounded_lane: []const u8,
+};
+
 const Manifest = struct {
     lane_key: []const u8,
     phase: []const u8,
@@ -20,6 +25,7 @@ const Manifest = struct {
     required_review_packet_fields: []const []const u8,
     reopen_trigger_catalog: []const []const u8,
     decision_buckets: []const []const u8,
+    handoff_evidence: HandoffEvidence,
     gaps: []const Gap,
 };
 
@@ -77,6 +83,10 @@ test "phase 15 architecture council review-process manifest records the bounded 
     try std.testing.expectEqualStrings("ownership_or_validation_changed", manifest.reopen_trigger_catalog[2]);
     try std.testing.expectEqualStrings("keep_in_c", manifest.decision_buckets[0]);
     try std.testing.expectEqualStrings("bounded_dual_implementation", manifest.decision_buckets[2]);
+    try std.testing.expect(std.mem.indexOf(u8, manifest.handoff_evidence.current_repo_handoff, "Documentation/zigux/phase15-architecture-council-review-process.md") != null);
+    try std.testing.expect(std.mem.indexOf(u8, manifest.handoff_evidence.current_bounded_lane, "scripts-root validator path") != null);
+    try std.testing.expect(std.mem.indexOf(u8, manifest.handoff_evidence.current_bounded_lane, "tests-root guidance path") != null);
+    try std.testing.expect(std.mem.indexOf(u8, manifest.handoff_evidence.current_bounded_lane, "dedicated handoff-checker route") != null);
 
     var landed_count: usize = 0;
     var ready_next_count: usize = 0;
