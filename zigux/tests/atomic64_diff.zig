@@ -63,6 +63,10 @@ test "atomic64 diff wrapper keeps the current manifest handoff explicit" {
         phase4_runtime_atomic64_manifest_source,
         "\"threshold_posture\": \"threshold_pending_until_runtime_atomic64_scope_widens\"",
     );
+    try expectMarker(phase4_runtime_atomic64_manifest_source, "shared runtime-backed replay body");
+    try expectMarker(phase4_runtime_atomic64_manifest_source, "shared Phase 4 reviewer surfaces should keep that wrapper handoff explicit");
+    try expectMarker(phase4_runtime_atomic64_manifest_source, "canonical wrapper");
+    try expectMarker(phase4_runtime_atomic64_manifest_source, "single bounded replay body");
 }
 
 test "atomic64 diff wrapper keeps the current phase4 and phase9 build routing explicit" {
