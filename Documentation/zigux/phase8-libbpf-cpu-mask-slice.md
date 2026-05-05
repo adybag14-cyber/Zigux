@@ -4,7 +4,7 @@ This document tracks the bounded Phase 8 userspace-adjacent tooling slice for Zi
 
 ## Status
 
-- `PHASE8_STATUS=active`
+- `PHASE8_STATUS=parked`
 - `PHASE8_SLICE=libbpf-cpu-mask-starter`
 - scope: injected CPU-mask string parsing, chunk-reader ingestion, and set-bit counting only
 - product boundary:
@@ -60,4 +60,4 @@ This slice does not yet claim:
 
 ## Next bounded step
 
-Stay in `tools/lib/bpf/zigux_segments/` and move to the next helper-first libbpf segment in `logging.zig` or `pin_path.zig` now that the deferred cpu-mask reader interface is covered.
+Park `tools/lib/bpf/zigux_segments/cpu_mask.zig` unless fresh repo review finds another tiny same-surface truthfulness or parity gap; otherwise keep later libbpf follow-up in sibling helper-only segments and do not reopen file I/O, caching, perf-buffer, or feature-probe behavior from this note.
