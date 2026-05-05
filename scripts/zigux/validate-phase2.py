@@ -292,7 +292,7 @@ def validate_root(root: Path) -> list[str]:
     guard_issues.extend(
         run_guard(
             root,
-            [sys.executable, str(root / "scripts" / "zigux" / "check-phase2-toolchain-pin-scope.py"), "--self-test"],
+            [sys.executable, str(TOOLCHAIN_PIN_SCOPE_CHECKER), "--self-test"],
             [
                 "PHASE2_TOOLCHAIN_PIN_SCOPE_SELF_TEST=pass",
                 "PHASE2_TOOLCHAIN_PIN_SCOPE_SELF_TEST_CASE_COUNT=22",
@@ -302,7 +302,7 @@ def validate_root(root: Path) -> list[str]:
     guard_issues.extend(
         run_guard(
             root,
-            [sys.executable, str(root / "scripts" / "zigux" / "check-phase2-toolchain-pin-scope.py")],
+            [sys.executable, str(TOOLCHAIN_PIN_SCOPE_CHECKER)],
             ["PHASE2_TOOLCHAIN_PIN_SCOPE=pass"],
         )
     )
