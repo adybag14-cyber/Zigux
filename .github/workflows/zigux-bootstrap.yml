@@ -218,6 +218,12 @@ jobs:
       - name: Run Phase 8 tooling tests
         run: zig build test --build-file zigux/tests/phase8_build.zig --summary all
 
+      - name: Self-test Phase 9 build-only surface checker
+        run: python3 scripts/zigux/check-phase9-build-only-surface.py --self-test
+
+      - name: Check Phase 9 build-only surface
+        run: python3 scripts/zigux/check-phase9-build-only-surface.py
+
       - name: Run Phase 9 runtime helper tests
         run: zig build test --build-file zigux/tests/phase9_build.zig --summary all
 
