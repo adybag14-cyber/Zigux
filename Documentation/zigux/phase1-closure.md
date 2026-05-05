@@ -115,6 +115,15 @@ That means `test "single-word next scans honor start masks"` stays present and r
 
 - `PHASE1_FIND_BIT_SINGLE_WORD_REVIEW=helper-local single-word next-scan proof stays explicit through the direct find_bit test anchor because the shared Phase 1 parity fixture does not isolate same-word start-mask behavior`
 
+The shared Phase 1 parity replay for `tools/lib/find_bit.zig` must also keep the tail-clamped `nbits` results explicit through:
+
+- `zigux/tests/fixtures/phase1_helpers.json`
+- `zigux/tests/phase1_helpers.zig`
+
+That means `tail_clamped_first`, `tail_clamped_next`, `tail_zero_clamped_first`, `tail_zero_clamped_next`, `tail_and_clamped_first`, and `tail_and_clamped_next` stay present and review-visible whenever the helper or its shared replay changes. Those fixture fields are the bounded proof that last-word scans stop at the declared `nbits` boundary instead of silently reporting set or clear bits from the masked tail beyond the live window.
+
+- `PHASE1_FIND_BIT_TAIL_CLAMP_REVIEW=tail_clamped_first, tail_clamped_next, tail_zero_clamped_first, tail_zero_clamped_next, tail_and_clamped_first, and tail_and_clamped_next stay explicit through the shared Phase 1 parity fixture and replay so last-word scans cannot silently leak masked tail bits beyond nbits`
+
 ## Bitmap Review Rule
 
 For `tools/lib/bitmap.zig`, reviewers must also keep the committed partial-window XOR fixture contract explicit through:
