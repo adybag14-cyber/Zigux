@@ -57,6 +57,14 @@ pub const ExitSummary = struct {
     exit_runs: usize,
 };
 
+pub const OwnershipReplaySummary = struct {
+    anchor: []const u8,
+    stage_snapshots: [4]OwnershipSummary,
+    replay_readiness: [4]bool,
+    initialized_exit: ExitSummary,
+    registered_exit: ExitSummary,
+};
+
 pub const ReplaySummary = struct {
     anchor: []const u8,
     directory_name: []const u8,
@@ -192,6 +200,31 @@ pub const KobjectExampleSample = struct {
         return rendered;
     }
 
+    pub fn runOwnershipReplay(self: *Self) !OwnershipReplaySummary {
+        if (self.stage() != .cold) return error.InvalidLifecycleTransition;
+
+        const cold_summary = self.ownershipSummary();
+        try self.init();
+        const initialized_summary = self.ownershipSummary();
+
+        var initialized_exit_sample = KobjectExampleSample{};
+        try initialized_exit_sample.init();
+        const initialized_exit = try initialized_exit_sample.exit();
+
+        try self.registerAttributes();
+        const registered_summary = self.ownershipSummary();
+        const registered_exit = try self.exit();
+        const exited_summary = self.ownershipSummary();
+
+        return .{
+            .anchor = descriptor().anchor,
+            .stage_snapshots = .{ cold_summary, initialized_summary, registered_summary, exited_summary },
+            .replay_readiness = .{ false, true, false, false },
+            .initialized_exit = initialized_exit,
+            .registered_exit = registered_exit,
+        };
+    }
+
     pub fn runAnchorReplay(self: *Self) !ReplaySummary {
         if (self.stage() != .initialized) return error.InvalidLifecycleTransition;
 
@@ -325,6 +358,32 @@ test "kobject sample ownership summary tracks lifecycle snapshots" {
     try std.testing.expectEqual(@as(usize, 1), summary.register_runs);
 }
 
+test "kobject sample ownership replay keeps lifecycle and exit cues reviewable" {
+    var sample = KobjectExampleSample{};
+    const replay = try sample.runOwnershipReplay();
+
+    try std.testing.expectEqualStrings("samples/kobject/kobject-example.c", replay.anchor);
+    try std.testing.expectEqual(SampleStage.cold, replay.stage_snapshots[0].stage);
+    try std.testing.expectEqual(SampleStage.initialized, replay.stage_snapshots[1].stage);
+    try std.testing.expectEqual(SampleStage.registered, replay.stage_snapshots[2].stage);
+    try std.testing.expectEqual(SampleStage.exited, replay.stage_snapshots[3].stage);
+    try std.testing.expectEqual(@as(usize, 0), replay.stage_snapshots[0].active_attr_count);
+    try std.testing.expectEqual(@as(usize, 0), replay.stage_snapshots[1].active_attr_count);
+    try std.testing.expectEqual(@as(usize, 3), replay.stage_snapshots[2].active_attr_count);
+    try std.testing.expectEqual(@as(usize, 0), replay.stage_snapshots[3].active_attr_count);
+    try std.testing.expectEqual(false, replay.replay_readiness[0]);
+    try std.testing.expectEqual(true, replay.replay_readiness[1]);
+    try std.testing.expectEqual(false, replay.replay_readiness[2]);
+    try std.testing.expectEqual(false, replay.replay_readiness[3]);
+    try std.testing.expectEqual(ExitDisposition.abandoned_before_registration, replay.initialized_exit.disposition);
+    try std.testing.expectEqual(SampleStage.initialized, replay.initialized_exit.stage_before_exit);
+    try std.testing.expectEqual(@as(usize, 0), replay.initialized_exit.register_runs);
+    try std.testing.expectEqual(ExitDisposition.tore_down_registered_attributes, replay.registered_exit.disposition);
+    try std.testing.expectEqual(SampleStage.registered, replay.registered_exit.stage_before_exit);
+    try std.testing.expectEqual(@as(usize, 3), replay.registered_exit.cleared_attr_count);
+    try std.testing.expectEqual(SampleStage.exited, sample.stage());
+}
+
 test "kobject sample initialized-only exit records abandonment" {
     var sample = KobjectExampleSample{};
     try sample.init();
@@ -360,4 +419,5 @@ test "kobject sample registered exit tears down attributes and rejects later acc
     try std.testing.expectError(error.InvalidLifecycleTransition, sample.showValue("foo"));
     try std.testing.expectError(error.InvalidLifecycleTransition, sample.storeValue("foo", "1\n"));
     try std.testing.expectError(error.InvalidLifecycleTransition, sample.exit());
+    try std.testing.expectError(error.InvalidLifecycleTransition, sample.runAnchorReplay());
 }
