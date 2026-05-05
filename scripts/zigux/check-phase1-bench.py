@@ -3,11 +3,9 @@ from __future__ import annotations
 
 import argparse
 import json
-import os
 from pathlib import Path
 import shutil
 import subprocess
-import sys
 
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -30,6 +28,10 @@ EXPECTED_CHECKSUMS = [
     'PHASE1_BENCH_LIST_SORT_CHECKSUM',
     'PHASE1_BENCH_RBTREE_CHECKSUM',
 ]
+REQUIRED_EXACT_CHECKSUMS = {
+    'PHASE1_BENCH_BITMAP_WEIGHT_CHECKSUM',
+    'PHASE1_BENCH_BITMAP_WINDOW_CHECKSUM',
+}
 
 
 class DuplicateTrackingDict(dict[str, object]):
@@ -40,10 +42,6 @@ class DuplicateTrackingDict(dict[str, object]):
             if key in self and key not in self.duplicate_keys:
                 self.duplicate_keys.append(key)
             self[key] = value
-
-
-def run(cmd: list[str], **kwargs) -> subprocess.CompletedProcess[str]:
-    return subprocess.run(cmd, check=True, text=True, **kwargs)
 
 
 def find_zig(explicit: str | None) -> str:
@@ -139,11 +137,38 @@ def validate_expectations(expectations: object) -> tuple[str, object]:
     if unexpected_checksums:
         return ('expectations_unexpected_checksums', unexpected_checksums)
 
+    exact_checksums = expectations.get('exact_checksums')
+    if not isinstance(exact_checksums, dict):
+        return ('expectations_exact_checksums_type', type(exact_checksums).__name__)
+    if isinstance(exact_checksums, DuplicateTrackingDict) and exact_checksums.duplicate_keys:
+        return ('expectations_duplicate_exact_checksum_keys', exact_checksums.duplicate_keys)
+
+    actual_exact_checksum_keys = set()
+    for key, value in exact_checksums.items():
+        if not isinstance(key, str):
+            return ('expectations_exact_checksum_key_type', type(key).__name__)
+        if not isinstance(value, int):
+            return ('expectations_exact_checksum_value_type', (key, type(value).__name__))
+        if value <= 0:
+            return ('expectations_exact_checksum_nonpositive', (key, value))
+        if key not in actual_checksum_set:
+            return ('expectations_exact_checksum_not_listed', key)
+        actual_exact_checksum_keys.add(key)
+
+    missing_exact_checksums = sorted(REQUIRED_EXACT_CHECKSUMS - actual_exact_checksum_keys)
+    if missing_exact_checksums:
+        return ('expectations_missing_exact_checksums', missing_exact_checksums)
+
+    unexpected_exact_checksums = sorted(actual_exact_checksum_keys - REQUIRED_EXACT_CHECKSUMS)
+    if unexpected_exact_checksums:
+        return ('expectations_unexpected_exact_checksums', unexpected_exact_checksums)
+
     return ('pass', expectations)
 
 
 def validate_output(expectations: dict[str, object], stdout: str) -> tuple[str, object]:
     parsed, counts = parse_output(stdout)
+    exact_checksums: dict[str, int] = expectations['exact_checksums']
     required_keys = {
         'PHASE1_BENCH',
         *expectations['iterations'].keys(),
@@ -189,6 +214,9 @@ def validate_output(expectations: dict[str, object], stdout: str) -> tuple[str, 
             return ('checksum_value_type', (key, actual))
         if actual_value <= 0:
             return ('nonpositive_checksum', (key, actual))
+        expected_exact_value = exact_checksums.get(key)
+        if expected_exact_value is not None and actual_value != expected_exact_value:
+            return ('exact_checksum_mismatch', (key, expected_exact_value, actual_value))
 
     if missing:
         return ('missing', missing)
@@ -214,23 +242,34 @@ def run_self_test() -> None:
         },
         'checksums': [
             'PHASE1_BENCH_BITMAP_WEIGHT_CHECKSUM',
+            'PHASE1_BENCH_BITMAP_WINDOW_CHECKSUM',
         ],
+        'exact_checksums': {
+            'PHASE1_BENCH_BITMAP_WEIGHT_CHECKSUM': 7,
+            'PHASE1_BENCH_BITMAP_WINDOW_CHECKSUM': 9,
+        },
     }
     full_expectations = {
         'status': 'pass',
         'iterations': dict(EXPECTED_ITERATIONS),
         'checksums': list(EXPECTED_CHECKSUMS),
+        'exact_checksums': {
+            'PHASE1_BENCH_BITMAP_WEIGHT_CHECKSUM': 2260000,
+            'PHASE1_BENCH_BITMAP_WINDOW_CHECKSUM': 620000,
+        },
     }
 
     ok_output = '\n'.join([
         'PHASE1_BENCH=pass',
         'PHASE1_BENCH_BITMAP_WEIGHT_ITERATIONS=20000',
         'PHASE1_BENCH_BITMAP_WEIGHT_CHECKSUM=7',
+        'PHASE1_BENCH_BITMAP_WINDOW_CHECKSUM=9',
     ])
     ignored_key_output = '\n'.join([
         'PHASE1_BENCH=pass',
         'PHASE1_BENCH_BITMAP_WEIGHT_ITERATIONS=20000',
         'PHASE1_BENCH_BITMAP_WEIGHT_CHECKSUM=7',
+        'PHASE1_BENCH_BITMAP_WINDOW_CHECKSUM=9',
         'IGNORED_KEY=1',
     ])
     duplicate_status_output = '\n'.join([
@@ -238,53 +277,69 @@ def run_self_test() -> None:
         'PHASE1_BENCH=pass',
         'PHASE1_BENCH_BITMAP_WEIGHT_ITERATIONS=20000',
         'PHASE1_BENCH_BITMAP_WEIGHT_CHECKSUM=7',
+        'PHASE1_BENCH_BITMAP_WINDOW_CHECKSUM=9',
     ])
     duplicate_iteration_output = '\n'.join([
         'PHASE1_BENCH=pass',
         'PHASE1_BENCH_BITMAP_WEIGHT_ITERATIONS=20000',
         'PHASE1_BENCH_BITMAP_WEIGHT_ITERATIONS=20000',
         'PHASE1_BENCH_BITMAP_WEIGHT_CHECKSUM=7',
+        'PHASE1_BENCH_BITMAP_WINDOW_CHECKSUM=9',
     ])
     duplicate_checksum_output = '\n'.join([
         'PHASE1_BENCH=pass',
         'PHASE1_BENCH_BITMAP_WEIGHT_ITERATIONS=20000',
         'PHASE1_BENCH_BITMAP_WEIGHT_CHECKSUM=7',
         'PHASE1_BENCH_BITMAP_WEIGHT_CHECKSUM=11',
+        'PHASE1_BENCH_BITMAP_WINDOW_CHECKSUM=9',
     ])
     unexpected_output = '\n'.join([
         'PHASE1_BENCH=pass',
         'PHASE1_BENCH_BITMAP_WEIGHT_ITERATIONS=20000',
         'PHASE1_BENCH_BITMAP_WEIGHT_CHECKSUM=7',
+        'PHASE1_BENCH_BITMAP_WINDOW_CHECKSUM=9',
         'PHASE1_BENCH_FAKE_CHECKSUM=13',
     ])
     bad_status_output = '\n'.join([
         'PHASE1_BENCH=fail',
         'PHASE1_BENCH_BITMAP_WEIGHT_ITERATIONS=20000',
         'PHASE1_BENCH_BITMAP_WEIGHT_CHECKSUM=7',
+        'PHASE1_BENCH_BITMAP_WINDOW_CHECKSUM=9',
     ])
     iteration_mismatch_output = '\n'.join([
         'PHASE1_BENCH=pass',
         'PHASE1_BENCH_BITMAP_WEIGHT_ITERATIONS=19999',
         'PHASE1_BENCH_BITMAP_WEIGHT_CHECKSUM=7',
+        'PHASE1_BENCH_BITMAP_WINDOW_CHECKSUM=9',
     ])
     invalid_iteration_output = '\n'.join([
         'PHASE1_BENCH=pass',
         'PHASE1_BENCH_BITMAP_WEIGHT_ITERATIONS=not-a-number',
         'PHASE1_BENCH_BITMAP_WEIGHT_CHECKSUM=7',
+        'PHASE1_BENCH_BITMAP_WINDOW_CHECKSUM=9',
     ])
     missing_checksum_output = '\n'.join([
         'PHASE1_BENCH=pass',
         'PHASE1_BENCH_BITMAP_WEIGHT_ITERATIONS=20000',
+        'PHASE1_BENCH_BITMAP_WINDOW_CHECKSUM=9',
     ])
     zero_checksum_output = '\n'.join([
         'PHASE1_BENCH=pass',
         'PHASE1_BENCH_BITMAP_WEIGHT_ITERATIONS=20000',
         'PHASE1_BENCH_BITMAP_WEIGHT_CHECKSUM=0',
+        'PHASE1_BENCH_BITMAP_WINDOW_CHECKSUM=9',
     ])
     invalid_checksum_output = '\n'.join([
         'PHASE1_BENCH=pass',
         'PHASE1_BENCH_BITMAP_WEIGHT_ITERATIONS=20000',
         'PHASE1_BENCH_BITMAP_WEIGHT_CHECKSUM=not-a-number',
+        'PHASE1_BENCH_BITMAP_WINDOW_CHECKSUM=9',
+    ])
+    exact_checksum_mismatch_output = '\n'.join([
+        'PHASE1_BENCH=pass',
+        'PHASE1_BENCH_BITMAP_WEIGHT_ITERATIONS=20000',
+        'PHASE1_BENCH_BITMAP_WEIGHT_CHECKSUM=8',
+        'PHASE1_BENCH_BITMAP_WINDOW_CHECKSUM=9',
     ])
 
     kind, _ = validate_output(expectations, ok_output)
@@ -333,6 +388,10 @@ def run_self_test() -> None:
     assert kind == 'checksum_value_type'
     assert payload == ('PHASE1_BENCH_BITMAP_WEIGHT_CHECKSUM', 'not-a-number')
 
+    kind, payload = validate_output(expectations, exact_checksum_mismatch_output)
+    assert kind == 'exact_checksum_mismatch'
+    assert payload == ('PHASE1_BENCH_BITMAP_WEIGHT_CHECKSUM', 7, 8)
+
     kind, _ = validate_expectations(full_expectations)
     assert kind == 'pass'
 
@@ -340,11 +399,11 @@ def run_self_test() -> None:
     assert kind == 'expectations_type'
     assert payload == 'list'
 
-    kind, payload = validate_expectations({'status': 'fail', 'iterations': {}, 'checksums': []})
+    kind, payload = validate_expectations({'status': 'fail', 'iterations': {}, 'checksums': [], 'exact_checksums': {}})
     assert kind == 'expectations_status'
     assert payload == 'fail'
 
-    kind, payload = validate_expectations({'status': 'pass', 'iterations': [], 'checksums': []})
+    kind, payload = validate_expectations({'status': 'pass', 'iterations': [], 'checksums': [], 'exact_checksums': {}})
     assert kind == 'expectations_iterations_type'
     assert payload == 'list'
 
@@ -352,6 +411,7 @@ def run_self_test() -> None:
         'status': 'pass',
         'iterations': dict(EXPECTED_ITERATIONS),
         'checksums': list(EXPECTED_CHECKSUMS),
+        'exact_checksums': dict(full_expectations['exact_checksums']),
     }
     del missing_iteration_expectations['iterations']['PHASE1_BENCH_RBTREE_ITERATIONS']
     kind, payload = validate_expectations(missing_iteration_expectations)
@@ -362,6 +422,7 @@ def run_self_test() -> None:
         'status': 'pass',
         'iterations': dict(EXPECTED_ITERATIONS),
         'checksums': list(EXPECTED_CHECKSUMS),
+        'exact_checksums': dict(full_expectations['exact_checksums']),
     }
     unexpected_iteration_expectations['iterations']['PHASE1_BENCH_FAKE_ITERATIONS'] = 1
     kind, payload = validate_expectations(unexpected_iteration_expectations)
@@ -372,6 +433,7 @@ def run_self_test() -> None:
         'status': 'pass',
         'iterations': dict(EXPECTED_ITERATIONS),
         'checksums': list(EXPECTED_CHECKSUMS),
+        'exact_checksums': dict(full_expectations['exact_checksums']),
     }
     wrong_iteration_value_expectations['iterations']['PHASE1_BENCH_STRING_ITERATIONS'] = 1
     kind, payload = validate_expectations(wrong_iteration_value_expectations)
@@ -382,6 +444,7 @@ def run_self_test() -> None:
         'status': 'pass',
         'iterations': dict(EXPECTED_ITERATIONS),
         'checksums': list(EXPECTED_CHECKSUMS) + [EXPECTED_CHECKSUMS[0]],
+        'exact_checksums': dict(full_expectations['exact_checksums']),
     }
     kind, payload = validate_expectations(duplicate_checksum_expectations)
     assert kind == 'expectations_duplicate_checksums'
@@ -391,6 +454,7 @@ def run_self_test() -> None:
         'status': 'pass',
         'iterations': dict(EXPECTED_ITERATIONS),
         'checksums': list(EXPECTED_CHECKSUMS[:-1]),
+        'exact_checksums': dict(full_expectations['exact_checksums']),
     }
     kind, payload = validate_expectations(missing_checksum_expectations)
     assert kind == 'expectations_missing_checksums'
@@ -400,27 +464,100 @@ def run_self_test() -> None:
         'status': 'pass',
         'iterations': dict(EXPECTED_ITERATIONS),
         'checksums': list(EXPECTED_CHECKSUMS) + ['PHASE1_BENCH_FAKE_CHECKSUM'],
+        'exact_checksums': dict(full_expectations['exact_checksums']),
     }
     kind, payload = validate_expectations(unexpected_checksum_expectations)
     assert kind == 'expectations_unexpected_checksums'
     assert payload == ['PHASE1_BENCH_FAKE_CHECKSUM']
 
+    missing_exact_checksum_expectations = {
+        'status': 'pass',
+        'iterations': dict(EXPECTED_ITERATIONS),
+        'checksums': list(EXPECTED_CHECKSUMS),
+        'exact_checksums': {
+            'PHASE1_BENCH_BITMAP_WEIGHT_CHECKSUM': 2260000,
+        },
+    }
+    kind, payload = validate_expectations(missing_exact_checksum_expectations)
+    assert kind == 'expectations_missing_exact_checksums'
+    assert payload == ['PHASE1_BENCH_BITMAP_WINDOW_CHECKSUM']
+
+    unexpected_exact_checksum_expectations = {
+        'status': 'pass',
+        'iterations': dict(EXPECTED_ITERATIONS),
+        'checksums': list(EXPECTED_CHECKSUMS),
+        'exact_checksums': {
+            'PHASE1_BENCH_BITMAP_WEIGHT_CHECKSUM': 2260000,
+            'PHASE1_BENCH_BITMAP_WINDOW_CHECKSUM': 620000,
+            'PHASE1_BENCH_FIND_NEXT_BIT_CHECKSUM': 1,
+        },
+    }
+    kind, payload = validate_expectations(unexpected_exact_checksum_expectations)
+    assert kind == 'expectations_unexpected_exact_checksums'
+    assert payload == ['PHASE1_BENCH_FIND_NEXT_BIT_CHECKSUM']
+
+    exact_checksum_not_listed_expectations = {
+        'status': 'pass',
+        'iterations': dict(EXPECTED_ITERATIONS),
+        'checksums': list(EXPECTED_CHECKSUMS[1:]),
+        'exact_checksums': {
+            'PHASE1_BENCH_BITMAP_WEIGHT_CHECKSUM': 2260000,
+            'PHASE1_BENCH_BITMAP_WINDOW_CHECKSUM': 620000,
+        },
+    }
+    kind, payload = validate_expectations(exact_checksum_not_listed_expectations)
+    assert kind == 'expectations_missing_checksums'
+    assert payload == ['PHASE1_BENCH_BITMAP_WEIGHT_CHECKSUM']
+
+    nonpositive_exact_checksum_expectations = {
+        'status': 'pass',
+        'iterations': dict(EXPECTED_ITERATIONS),
+        'checksums': list(EXPECTED_CHECKSUMS),
+        'exact_checksums': {
+            'PHASE1_BENCH_BITMAP_WEIGHT_CHECKSUM': 0,
+            'PHASE1_BENCH_BITMAP_WINDOW_CHECKSUM': 620000,
+        },
+    }
+    kind, payload = validate_expectations(nonpositive_exact_checksum_expectations)
+    assert kind == 'expectations_exact_checksum_nonpositive'
+    assert payload == ('PHASE1_BENCH_BITMAP_WEIGHT_CHECKSUM', 0)
+
     duplicate_root_key_expectations = load_expectations_text(
-        '{"status":"pass","status":"fail","iterations":{"PHASE1_BENCH_BITMAP_WEIGHT_ITERATIONS":20000,"PHASE1_BENCH_BITMAP_WINDOW_ITERATIONS":20000,"PHASE1_BENCH_FIND_NEXT_BIT_ITERATIONS":20000,"PHASE1_BENCH_STRING_ITERATIONS":40000,"PHASE1_BENCH_HWEIGHT_ITERATIONS":100000,"PHASE1_BENCH_LIST_SORT_ITERATIONS":1000,"PHASE1_BENCH_RBTREE_ITERATIONS":4000},"checksums":["PHASE1_BENCH_BITMAP_WEIGHT_CHECKSUM","PHASE1_BENCH_BITMAP_WINDOW_CHECKSUM","PHASE1_BENCH_FIND_NEXT_BIT_CHECKSUM","PHASE1_BENCH_STRING_CHECKSUM","PHASE1_BENCH_HWEIGHT_CHECKSUM","PHASE1_BENCH_LIST_SORT_CHECKSUM","PHASE1_BENCH_RBTREE_CHECKSUM"]}'
+        '{"status":"pass","status":"fail","iterations":{"PHASE1_BENCH_BITMAP_WEIGHT_ITERATIONS":20000,"PHASE1_BENCH_BITMAP_WINDOW_ITERATIONS":20000,"PHASE1_BENCH_FIND_NEXT_BIT_ITERATIONS":20000,"PHASE1_BENCH_STRING_ITERATIONS":40000,"PHASE1_BENCH_HWEIGHT_ITERATIONS":100000,"PHASE1_BENCH_LIST_SORT_ITERATIONS":1000,"PHASE1_BENCH_RBTREE_ITERATIONS":4000},"checksums":["PHASE1_BENCH_BITMAP_WEIGHT_CHECKSUM","PHASE1_BENCH_BITMAP_WINDOW_CHECKSUM","PHASE1_BENCH_FIND_NEXT_BIT_CHECKSUM","PHASE1_BENCH_STRING_CHECKSUM","PHASE1_BENCH_HWEIGHT_CHECKSUM","PHASE1_BENCH_LIST_SORT_CHECKSUM","PHASE1_BENCH_RBTREE_CHECKSUM"],"exact_checksums":{"PHASE1_BENCH_BITMAP_WEIGHT_CHECKSUM":2260000,"PHASE1_BENCH_BITMAP_WINDOW_CHECKSUM":620000}}'
     )
     kind, payload = validate_expectations(duplicate_root_key_expectations)
     assert kind == 'expectations_duplicate_keys'
     assert payload == ['status']
 
     duplicate_iteration_key_expectations = load_expectations_text(
-        '{"status":"pass","iterations":{"PHASE1_BENCH_BITMAP_WEIGHT_ITERATIONS":20000,"PHASE1_BENCH_BITMAP_WEIGHT_ITERATIONS":20001,"PHASE1_BENCH_BITMAP_WINDOW_ITERATIONS":20000,"PHASE1_BENCH_FIND_NEXT_BIT_ITERATIONS":20000,"PHASE1_BENCH_STRING_ITERATIONS":40000,"PHASE1_BENCH_HWEIGHT_ITERATIONS":100000,"PHASE1_BENCH_LIST_SORT_ITERATIONS":1000,"PHASE1_BENCH_RBTREE_ITERATIONS":4000},"checksums":["PHASE1_BENCH_BITMAP_WEIGHT_CHECKSUM","PHASE1_BENCH_BITMAP_WINDOW_CHECKSUM","PHASE1_BENCH_FIND_NEXT_BIT_CHECKSUM","PHASE1_BENCH_STRING_CHECKSUM","PHASE1_BENCH_HWEIGHT_CHECKSUM","PHASE1_BENCH_LIST_SORT_CHECKSUM","PHASE1_BENCH_RBTREE_CHECKSUM"]}'
+        '{"status":"pass","iterations":{"PHASE1_BENCH_BITMAP_WEIGHT_ITERATIONS":20000,"PHASE1_BENCH_BITMAP_WEIGHT_ITERATIONS":20001,"PHASE1_BENCH_BITMAP_WINDOW_ITERATIONS":20000,"PHASE1_BENCH_FIND_NEXT_BIT_ITERATIONS":20000,"PHASE1_BENCH_STRING_ITERATIONS":40000,"PHASE1_BENCH_HWEIGHT_ITERATIONS":100000,"PHASE1_BENCH_LIST_SORT_ITERATIONS":1000,"PHASE1_BENCH_RBTREE_ITERATIONS":4000},"checksums":["PHASE1_BENCH_BITMAP_WEIGHT_CHECKSUM","PHASE1_BENCH_BITMAP_WINDOW_CHECKSUM","PHASE1_BENCH_FIND_NEXT_BIT_CHECKSUM","PHASE1_BENCH_STRING_CHECKSUM","PHASE1_BENCH_HWEIGHT_CHECKSUM","PHASE1_BENCH_LIST_SORT_CHECKSUM","PHASE1_BENCH_RBTREE_CHECKSUM"],"exact_checksums":{"PHASE1_BENCH_BITMAP_WEIGHT_CHECKSUM":2260000,"PHASE1_BENCH_BITMAP_WINDOW_CHECKSUM":620000}}'
     )
     kind, payload = validate_expectations(duplicate_iteration_key_expectations)
     assert kind == 'expectations_duplicate_iteration_keys'
     assert payload == ['PHASE1_BENCH_BITMAP_WEIGHT_ITERATIONS']
 
+    duplicate_exact_checksum_key_expectations = load_expectations_text(
+        '{"status":"pass","iterations":{"PHASE1_BENCH_BITMAP_WEIGHT_ITERATIONS":20000,"PHASE1_BENCH_BITMAP_WINDOW_ITERATIONS":20000,"PHASE1_BENCH_FIND_NEXT_BIT_ITERATIONS":20000,"PHASE1_BENCH_STRING_ITERATIONS":40000,"PHASE1_BENCH_HWEIGHT_ITERATIONS":100000,"PHASE1_BENCH_LIST_SORT_ITERATIONS":1000,"PHASE1_BENCH_RBTREE_ITERATIONS":4000},"checksums":["PHASE1_BENCH_BITMAP_WEIGHT_CHECKSUM","PHASE1_BENCH_BITMAP_WINDOW_CHECKSUM","PHASE1_BENCH_FIND_NEXT_BIT_CHECKSUM","PHASE1_BENCH_STRING_CHECKSUM","PHASE1_BENCH_HWEIGHT_CHECKSUM","PHASE1_BENCH_LIST_SORT_CHECKSUM","PHASE1_BENCH_RBTREE_CHECKSUM"],"exact_checksums":{"PHASE1_BENCH_BITMAP_WEIGHT_CHECKSUM":2260000,"PHASE1_BENCH_BITMAP_WEIGHT_CHECKSUM":2260001,"PHASE1_BENCH_BITMAP_WINDOW_CHECKSUM":620000}}'
+    )
+    kind, payload = validate_expectations(duplicate_exact_checksum_key_expectations)
+    assert kind == 'expectations_duplicate_exact_checksum_keys'
+    assert payload == ['PHASE1_BENCH_BITMAP_WEIGHT_CHECKSUM']
+
+    exact_checksum_wrong_type_expectations = {
+        'status': 'pass',
+        'iterations': dict(EXPECTED_ITERATIONS),
+        'checksums': list(EXPECTED_CHECKSUMS),
+        'exact_checksums': {
+            'PHASE1_BENCH_BITMAP_WEIGHT_CHECKSUM': '2260000',
+            'PHASE1_BENCH_BITMAP_WINDOW_CHECKSUM': 620000,
+        },
+    }
+    kind, payload = validate_expectations(exact_checksum_wrong_type_expectations)
+    assert kind == 'expectations_exact_checksum_value_type'
+    assert payload == ('PHASE1_BENCH_BITMAP_WEIGHT_CHECKSUM', 'str')
+
     print('PHASE1_BENCH_CHECK_SELF_TEST=pass')
-    print('PHASE1_BENCH_CHECK_SELF_TEST_CASE_COUNT=23')
+    print('PHASE1_BENCH_CHECK_SELF_TEST_CASE_COUNT=29')
 
 
 def main() -> int:
@@ -526,6 +663,51 @@ def main() -> int:
             print(key)
         print('UNEXPECTED_EXPECTATION_CHECKSUMS_END')
         return 1
+    if kind == 'expectations_exact_checksums_type':
+        print('PHASE1_BENCH_CHECK=fail')
+        print(f'EXPECTATIONS_EXACT_CHECKSUMS_TYPE={payload}')
+        return 1
+    if kind == 'expectations_duplicate_exact_checksum_keys':
+        print('PHASE1_BENCH_CHECK=fail')
+        print('DUPLICATE_EXPECTATION_EXACT_CHECKSUM_KEYS_START')
+        for key in payload:
+            print(key)
+        print('DUPLICATE_EXPECTATION_EXACT_CHECKSUM_KEYS_END')
+        return 1
+    if kind == 'expectations_exact_checksum_key_type':
+        print('PHASE1_BENCH_CHECK=fail')
+        print(f'EXPECTATIONS_EXACT_CHECKSUM_KEY_TYPE={payload}')
+        return 1
+    if kind == 'expectations_exact_checksum_value_type':
+        key, value_type = payload
+        print('PHASE1_BENCH_CHECK=fail')
+        print(f'EXPECTATIONS_EXACT_CHECKSUM_VALUE_KEY={key}')
+        print(f'EXPECTATIONS_EXACT_CHECKSUM_VALUE_TYPE={value_type}')
+        return 1
+    if kind == 'expectations_exact_checksum_nonpositive':
+        key, value = payload
+        print('PHASE1_BENCH_CHECK=fail')
+        print(f'EXPECTATIONS_EXACT_CHECKSUM_NONPOSITIVE_KEY={key}')
+        print(f'ACTUAL={value}')
+        return 1
+    if kind == 'expectations_exact_checksum_not_listed':
+        print('PHASE1_BENCH_CHECK=fail')
+        print(f'EXPECTATIONS_EXACT_CHECKSUM_NOT_LISTED={payload}')
+        return 1
+    if kind == 'expectations_missing_exact_checksums':
+        print('PHASE1_BENCH_CHECK=fail')
+        print('MISSING_EXPECTATION_EXACT_CHECKSUMS_START')
+        for key in payload:
+            print(key)
+        print('MISSING_EXPECTATION_EXACT_CHECKSUMS_END')
+        return 1
+    if kind == 'expectations_unexpected_exact_checksums':
+        print('PHASE1_BENCH_CHECK=fail')
+        print('UNEXPECTED_EXPECTATION_EXACT_CHECKSUMS_START')
+        for key in payload:
+            print(key)
+        print('UNEXPECTED_EXPECTATION_EXACT_CHECKSUMS_END')
+        return 1
 
     zig = find_zig(args.zig)
 
@@ -586,6 +768,13 @@ def main() -> int:
         key, actual = payload
         print('PHASE1_BENCH_CHECK=fail')
         print(f'CHECKSUM_VALUE_TYPE={key}')
+        print(f'ACTUAL={actual}')
+        return 1
+    if kind == 'exact_checksum_mismatch':
+        key, expected, actual = payload
+        print('PHASE1_BENCH_CHECK=fail')
+        print(f'EXACT_CHECKSUM_MISMATCH={key}')
+        print(f'EXPECTED={expected}')
         print(f'ACTUAL={actual}')
         return 1
     if kind == 'missing':
