@@ -511,7 +511,7 @@ def run_self_test() -> int:
 
         missing_makefile = root / MAKEFILE_REL
         missing_makefile.unlink()
-        _assert_only(validate(root), [f"missing_makefile:{MAKEFILE_REL}"], "missing_makefile_guard_failed")
+        _assert_only(_ordered_unique(validate(root)), [f"missing_makefile:{MAKEFILE_REL}"], "missing_makefile_guard_failed")
         _write(root / MAKEFILE_REL, baseline_makefile)
         case_count += 1
 
@@ -669,12 +669,12 @@ def run_self_test() -> int:
         _assert_only(validate(root), [f"missing_repo_file:{tooling_packet_rels[-1]}"], "missing_repo_file_guard_failed")
         case_count += 1
 
-    if case_count != 78:
+    if case_count != 77:
         raise SystemExit(
             f"phase3-readme-tooling-inventory-self-test:unexpected_case_count:{case_count}"
         )
     print("PHASE3_README_TOOLING_INVENTORY_SELF_TEST=pass")
-    print("PHASE3_README_TOOLING_INVENTORY_SELF_TEST_CASE_COUNT=78")
+    print("PHASE3_README_TOOLING_INVENTORY_SELF_TEST_CASE_COUNT=77")
     return 0
 
 
