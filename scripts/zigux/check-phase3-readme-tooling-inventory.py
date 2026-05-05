@@ -31,6 +31,8 @@ REQUIRED_HELPERS = (
     "check-phase6-shared-surface.py",
     "check-phase9-build-only-surface.py",
     "check-build-only-phase12-surface.py",
+    "validate-phase13-release.py",
+    "check-phase13-devres-packet.py",
     "run-phase3-checks.py",
     "phase3_catalog.py",
     "phase3_check_lib.py",
@@ -40,6 +42,9 @@ REQUIRED_HELPERS = (
     "check-genksyms-bridge.py",
     "check-genksyms-crc-diff.py",
     "check-kconfig-bridge.py",
+    "check-phase2-tests-readme-alignment.py",
+    "check-phase2-cross-selftest-alignment.py",
+    "check-phase2-toolchain-pin-scope.py",
     "check-phase2-cross.py",
     "check-mk-elfconfig-diff.py",
 )
