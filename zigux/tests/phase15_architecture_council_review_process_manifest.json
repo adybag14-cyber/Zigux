@@ -53,6 +53,10 @@
     "bounded_dual_implementation",
     "defer_or_reject"
   ],
+  "handoff_evidence": {
+    "current_repo_handoff": "The current repo handoff explicitly names Documentation/zigux/phase15-architecture-council-review-process.md beside the neighboring governance packet.",
+    "current_bounded_lane": "The parked Architecture Council packet stays aligned with its scripts-root validator path, its tests-root guidance path, and its dedicated handoff-checker route."
+  },
   "gaps": [
     {
       "id": "phase15-architecture-council-review-process-doc",
