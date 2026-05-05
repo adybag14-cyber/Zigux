@@ -33,6 +33,7 @@ Current bootstrap helpers
 - `check-phase9-build-only-surface.py`
 - `check-phase10-core-packet.py`
 - `check-phase10-input-packet.py`
+- `check-phase11-shared-replay-contract.py`
 - `check-build-only-phase12-surface.py`
 - `validate-phase13-release.py`
 - `check-phase13-devres-packet.py`
