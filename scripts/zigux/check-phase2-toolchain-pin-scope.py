@@ -35,7 +35,7 @@ NOTE_STATIC_MARKERS = [
 ]
 
 EXACT_WORKFLOW_RUN_COUNTS = {
-    "python3 scripts/zigux/check-zig-toolchain.py": 3,
+    "python3 scripts/zigux/check-zig-toolchain.py": 2,
     "python3 scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test": 1,
     "python3 scripts/zigux/check-phase2-toolchain-pin-scope.py": 1,
 }
