@@ -33,39 +33,154 @@ const Manifest = struct {
     segments: []const Segment,
 };
 
-fn isAllowedStatus(status: []const u8) bool {
-    return std.mem.eql(u8, status, "ready_next") or
-        std.mem.eql(u8, status, "starter_landed") or
-        std.mem.eql(u8, status, "blocked_on_object_model") or
-        std.mem.eql(u8, status, "deferred_high_risk");
-}
+const ExpectedCompanionFile = struct {
+    path: []const u8,
+    lines: usize,
+};
+
+const ExpectedSegment = struct {
+    id: []const u8,
+    slug: []const u8,
+    status: []const u8,
+    kind: []const u8,
+    zigux_destination: []const u8,
+    anchor_range_count: usize,
+};
+
+const expected_companion_c_files = [_]ExpectedCompanionFile{
+    .{ .path = "tools/lib/bpf/bpf.c", .lines = 1419 },
+    .{ .path = "tools/lib/bpf/btf.c", .lines = 6360 },
+    .{ .path = "tools/lib/bpf/features.c", .lines = 727 },
+    .{ .path = "tools/lib/bpf/libbpf_utils.c", .lines = 256 },
+    .{ .path = "tools/lib/bpf/linker.c", .lines = 3116 },
+    .{ .path = "tools/lib/bpf/netlink.c", .lines = 938 },
+    .{ .path = "tools/lib/bpf/nlattr.c", .lines = 194 },
+    .{ .path = "tools/lib/bpf/ringbuf.c", .lines = 684 },
+};
+
+const expected_segments = [_]ExpectedSegment{
+    .{
+        .id = "P8-L15-S01",
+        .slug = "logging-version-and-errno",
+        .status = "starter_landed",
+        .kind = "helper_first",
+        .zigux_destination = "tools/lib/bpf/zigux_segments/logging.zig",
+        .anchor_range_count = 2,
+    },
+    .{
+        .id = "P8-L15-S02",
+        .slug = "pin-path-helpers",
+        .status = "starter_landed",
+        .kind = "helper_first",
+        .zigux_destination = "tools/lib/bpf/zigux_segments/pin_path.zig",
+        .anchor_range_count = 2,
+    },
+    .{
+        .id = "P8-L15-S03",
+        .slug = "cpu-mask-parsing",
+        .status = "starter_landed",
+        .kind = "helper_first",
+        .zigux_destination = "tools/lib/bpf/zigux_segments/cpu_mask.zig",
+        .anchor_range_count = 1,
+    },
+    .{
+        .id = "P8-L15-S04",
+        .slug = "type-name-helpers",
+        .status = "starter_landed",
+        .kind = "helper_first",
+        .zigux_destination = "tools/lib/bpf/zigux_segments/type_names.zig",
+        .anchor_range_count = 1,
+    },
+    .{
+        .id = "P8-L15-S05",
+        .slug = "fdinfo-map-info-helpers",
+        .status = "ready_next",
+        .kind = "helper_first",
+        .zigux_destination = "tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig",
+        .anchor_range_count = 1,
+    },
+    .{
+        .id = "P8-L15-S06",
+        .slug = "map-reuse-compatibility",
+        .status = "ready_next",
+        .kind = "helper_first",
+        .zigux_destination = "tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig",
+        .anchor_range_count = 1,
+    },
+    .{
+        .id = "P8-L15-S07",
+        .slug = "file-path-and-handle-bridge",
+        .status = "deferred_high_risk",
+        .kind = "resource_boundary",
+        .zigux_destination = "tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig",
+        .anchor_range_count = 1,
+    },
+    .{
+        .id = "P8-L15-S08",
+        .slug = "perf-buffer-online-cpu-routing",
+        .status = "deferred_high_risk",
+        .kind = "interrupt_routing",
+        .zigux_destination = "tools/lib/bpf/zigux_segments/perf_buffer_poll.zig",
+        .anchor_range_count = 1,
+    },
+    .{
+        .id = "P8-L15-S09",
+        .slug = "skeleton-population",
+        .status = "blocked_on_object_model",
+        .kind = "object_adjacent",
+        .zigux_destination = "tools/lib/bpf/zigux_segments/skeleton.zig",
+        .anchor_range_count = 1,
+    },
+    .{
+        .id = "P8-L15-S10",
+        .slug = "object-and-elf-loader",
+        .status = "deferred_high_risk",
+        .kind = "core_loader",
+        .zigux_destination = "tools/lib/bpf/zigux_segments/object_loader.zig",
+        .anchor_range_count = 2,
+    },
+    .{
+        .id = "P8-L15-S11",
+        .slug = "btf-relocation-and-program-load",
+        .status = "deferred_high_risk",
+        .kind = "verifier_facing",
+        .zigux_destination = "tools/lib/bpf/zigux_segments/relocation.zig",
+        .anchor_range_count = 2,
+    },
+    .{
+        .id = "P8-L15-S12",
+        .slug = "perf-buffer-poll-bookkeeping",
+        .status = "starter_landed",
+        .kind = "helper_adjacent",
+        .zigux_destination = "tools/lib/bpf/zigux_segments/perf_buffer_poll.zig",
+        .anchor_range_count = 1,
+    },
+};
 
 fn expectContains(haystack: []const u8, needle: []const u8) !void {
     try std.testing.expect(std.mem.indexOf(u8, haystack, needle) != null);
 }
 
 fn expectCompanionCatalog(companion_c_files: []const CompanionFile) !void {
-    const expected_paths = [_][]const u8{
-        "tools/lib/bpf/bpf.c",
-        "tools/lib/bpf/btf.c",
-        "tools/lib/bpf/features.c",
-        "tools/lib/bpf/libbpf_utils.c",
-        "tools/lib/bpf/linker.c",
-        "tools/lib/bpf/netlink.c",
-        "tools/lib/bpf/nlattr.c",
-        "tools/lib/bpf/ringbuf.c",
-    };
+    try std.testing.expectEqual(expected_companion_c_files.len, companion_c_files.len);
 
-    try std.testing.expectEqual(expected_paths.len, companion_c_files.len);
+    for (expected_companion_c_files, companion_c_files) |expected_companion, actual_companion| {
+        try std.testing.expectEqualStrings(expected_companion.path, actual_companion.path);
+        try std.testing.expectEqual(expected_companion.lines, actual_companion.lines);
+    }
+}
 
-    for (expected_paths, 0..) |expected_path, index| {
-        const companion = companion_c_files[index];
-        try std.testing.expectEqualStrings(expected_path, companion.path);
-        try std.testing.expect(companion.lines > 0);
+fn expectSegmentCatalog(segments: []const Segment) !void {
+    try std.testing.expectEqual(expected_segments.len, segments.len);
 
-        for (companion_c_files[index + 1 ..]) |other| {
-            try std.testing.expect(!std.mem.eql(u8, companion.path, other.path));
-        }
+    for (expected_segments, segments) |expected_segment, actual_segment| {
+        try std.testing.expectEqualStrings(expected_segment.id, actual_segment.id);
+        try std.testing.expectEqualStrings(expected_segment.slug, actual_segment.slug);
+        try std.testing.expectEqualStrings(expected_segment.status, actual_segment.status);
+        try std.testing.expectEqualStrings(expected_segment.kind, actual_segment.kind);
+        try std.testing.expectEqualStrings(expected_segment.zigux_destination, actual_segment.zigux_destination);
+        try std.testing.expectEqual(expected_segment.anchor_range_count, actual_segment.anchor_ranges.len);
+        try std.testing.expect(actual_segment.why_now.len > 0);
     }
 }
 
@@ -89,103 +204,11 @@ test "phase 8 libbpf segment manifest records the current helper-first catalog" 
     try std.testing.expectEqualStrings("Phase 8", manifest.phase);
     try std.testing.expectEqualStrings(expected_surveyed_commit, manifest.surveyed_commit);
     try std.testing.expectEqualStrings("tools/lib/bpf/libbpf.c", manifest.anchor);
-    try std.testing.expect(manifest.survey_summary.libbpf_c_lines >= 14000);
+    try std.testing.expectEqual(@as(usize, 14771), manifest.survey_summary.libbpf_c_lines);
     try std.testing.expect(!manifest.survey_summary.preexisting_zigux_segments_present);
     try std.testing.expect(!manifest.survey_summary.preexisting_phase8_libbpf_note_present);
     try expectCompanionCatalog(manifest.survey_summary.companion_c_files);
-    try std.testing.expectEqual(@as(usize, 12), manifest.segments.len);
-
-    var ready_next_count: usize = 0;
-    var starter_landed_count: usize = 0;
-    var blocked_on_object_model_count: usize = 0;
-    var deferred_high_risk_count: usize = 0;
-    var saw_logging_segment = false;
-    var saw_pin_path_segment = false;
-    var saw_cpu_mask_segment = false;
-    var saw_type_names_segment = false;
-    var saw_fdinfo_segment = false;
-    var saw_map_reuse_segment = false;
-    var saw_file_path_boundary = false;
-    var saw_perf_buffer_boundary = false;
-    var saw_perf_buffer_poll_segment = false;
-
-    for (manifest.segments, 0..) |segment, i| {
-        try std.testing.expect(segment.id.len > 0);
-        try std.testing.expect(segment.slug.len > 0);
-        try std.testing.expect(segment.kind.len > 0);
-        try std.testing.expect(segment.anchor_ranges.len > 0);
-        try std.testing.expect(segment.why_now.len > 0);
-        try std.testing.expect(isAllowedStatus(segment.status));
-        try std.testing.expect(std.mem.startsWith(u8, segment.zigux_destination, "tools/lib/bpf/zigux_segments/"));
-
-        if (std.mem.eql(u8, segment.status, "ready_next")) ready_next_count += 1;
-        if (std.mem.eql(u8, segment.status, "starter_landed")) starter_landed_count += 1;
-        if (std.mem.eql(u8, segment.status, "blocked_on_object_model")) blocked_on_object_model_count += 1;
-        if (std.mem.eql(u8, segment.status, "deferred_high_risk")) deferred_high_risk_count += 1;
-
-        if (std.mem.eql(u8, segment.slug, "cpu-mask-parsing")) {
-            saw_cpu_mask_segment = true;
-            try std.testing.expectEqualStrings("starter_landed", segment.status);
-            try std.testing.expectEqualStrings("tools/lib/bpf/zigux_segments/cpu_mask.zig", segment.zigux_destination);
-        }
-        if (std.mem.eql(u8, segment.slug, "logging-version-and-errno")) {
-            saw_logging_segment = true;
-            try std.testing.expectEqualStrings("starter_landed", segment.status);
-            try std.testing.expectEqualStrings("tools/lib/bpf/zigux_segments/logging.zig", segment.zigux_destination);
-        }
-        if (std.mem.eql(u8, segment.slug, "pin-path-helpers")) {
-            saw_pin_path_segment = true;
-            try std.testing.expectEqualStrings("starter_landed", segment.status);
-            try std.testing.expectEqualStrings("tools/lib/bpf/zigux_segments/pin_path.zig", segment.zigux_destination);
-        }
-        if (std.mem.eql(u8, segment.slug, "type-name-helpers")) {
-            saw_type_names_segment = true;
-            try std.testing.expectEqualStrings("starter_landed", segment.status);
-            try std.testing.expectEqualStrings("tools/lib/bpf/zigux_segments/type_names.zig", segment.zigux_destination);
-        }
-        if (std.mem.eql(u8, segment.slug, "fdinfo-map-info-helpers")) {
-            saw_fdinfo_segment = true;
-            try std.testing.expectEqualStrings("ready_next", segment.status);
-            try std.testing.expectEqualStrings("tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig", segment.zigux_destination);
-        }
-        if (std.mem.eql(u8, segment.slug, "map-reuse-compatibility")) {
-            saw_map_reuse_segment = true;
-            try std.testing.expectEqualStrings("ready_next", segment.status);
-            try std.testing.expectEqualStrings("tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig", segment.zigux_destination);
-        }
-        if (std.mem.eql(u8, segment.slug, "file-path-and-handle-bridge")) {
-            saw_file_path_boundary = true;
-            try std.testing.expectEqualStrings("deferred_high_risk", segment.status);
-        }
-        if (std.mem.eql(u8, segment.slug, "perf-buffer-online-cpu-routing")) {
-            saw_perf_buffer_boundary = true;
-            try std.testing.expectEqualStrings("deferred_high_risk", segment.status);
-        }
-        if (std.mem.eql(u8, segment.slug, "perf-buffer-poll-bookkeeping")) {
-            saw_perf_buffer_poll_segment = true;
-            try std.testing.expectEqualStrings("starter_landed", segment.status);
-            try std.testing.expectEqualStrings("tools/lib/bpf/zigux_segments/perf_buffer_poll.zig", segment.zigux_destination);
-        }
-
-        for (manifest.segments[i + 1 ..]) |other| {
-            try std.testing.expect(!std.mem.eql(u8, segment.id, other.id));
-            try std.testing.expect(!std.mem.eql(u8, segment.slug, other.slug));
-        }
-    }
-
-    try std.testing.expectEqual(@as(usize, 2), ready_next_count);
-    try std.testing.expectEqual(@as(usize, 5), starter_landed_count);
-    try std.testing.expectEqual(@as(usize, 1), blocked_on_object_model_count);
-    try std.testing.expectEqual(@as(usize, 4), deferred_high_risk_count);
-    try std.testing.expect(saw_logging_segment);
-    try std.testing.expect(saw_pin_path_segment);
-    try std.testing.expect(saw_cpu_mask_segment);
-    try std.testing.expect(saw_type_names_segment);
-    try std.testing.expect(saw_fdinfo_segment);
-    try std.testing.expect(saw_map_reuse_segment);
-    try std.testing.expect(saw_file_path_boundary);
-    try std.testing.expect(saw_perf_buffer_boundary);
-    try std.testing.expect(saw_perf_buffer_poll_segment);
+    try expectSegmentCatalog(manifest.segments);
 }
 
 test "phase 8 libbpf survey note keeps segmented helper-first rollout explicit" {
