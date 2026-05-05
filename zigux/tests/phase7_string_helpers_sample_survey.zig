@@ -244,10 +244,17 @@ test "phase 7 string helper sample survey manifest records the bounded sample-ba
         "space escapes",
         "dictionary-limited space escaping",
         "append dictionary entries with hex escaping",
+        "sample replay newline suffix",
+        ".input = \"line\\\\n\"",
+        ".expected = \"line\\n\"",
+        "sample replay newline hex escape",
+        ".input = \"\\n\"",
+        ".expected = \"\\\\x0a\"",
     };
     for (expected_fixture_markers) |marker| {
         try expectContains(fixture_source, marker);
     }
+    try std.testing.expectEqual(@as(usize, 2), countOccurrences(fixture_source, "sample replay newline "));
 
     const expected_build_markers = [_][]const u8{
         "const repo_root = b.path(\"../..\");",
