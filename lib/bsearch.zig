@@ -9,6 +9,9 @@ pub fn CComparator(comptime Key: type, comptime T: type) type {
     return *const fn (*const Key, *const T) callconv(.c) i32;
 }
 
+pub const RawComparator = *const fn (*const anyopaque, *const anyopaque) i32;
+pub const CRawComparator = *const fn (*const anyopaque, *const anyopaque) callconv(.c) i32;
+
 fn validateComparator(comptime Key: type, comptime T: type, comptime Compare: type) void {
     const NativeFn = fn (*const Key, *const T) i32;
     const CFn = fn (*const Key, *const T) callconv(.c) i32;
@@ -22,6 +25,24 @@ fn validateComparator(comptime Key: type, comptime T: type, comptime Compare: ty
                 @typeName(Comparator(Key, T)),
                 @typeName(CFn),
                 @typeName(CComparator(Key, T)),
+            },
+        ));
+    }
+}
+
+fn validateRawComparator(comptime Compare: type) void {
+    const NativeFn = fn (*const anyopaque, *const anyopaque) i32;
+    const CFn = fn (*const anyopaque, *const anyopaque) callconv(.c) i32;
+
+    if (Compare != NativeFn and Compare != RawComparator and Compare != CFn and Compare != CRawComparator) {
+        @compileError(std.fmt.comptimePrint(
+            "unsupported raw bsearch comparator type {s}; expected {s}, {s}, {s}, or {s}",
+            .{
+                @typeName(Compare),
+                @typeName(NativeFn),
+                @typeName(RawComparator),
+                @typeName(CFn),
+                @typeName(CRawComparator),
             },
         ));
     }
@@ -66,6 +87,52 @@ pub fn search(
 ) ?*const T {
     const index = searchIndex(Key, T, key, items, compare) orelse return null;
     return &items[index];
+}
+
+pub fn bsearchIndex(
+    key: *const anyopaque,
+    base: [*]const u8,
+    num_members: usize,
+    member_size: usize,
+    compare: anytype,
+) ?usize {
+    comptime validateRawComparator(@TypeOf(compare));
+
+    if (num_members == 0) {
+        return null;
+    }
+    std.debug.assert(member_size > 0);
+
+    var base_index: usize = 0;
+    var num = num_members;
+
+    while (num > 0) {
+        const pivot_index = base_index + (num >> 1);
+        const pivot: *const anyopaque = @ptrCast(base + (pivot_index * member_size));
+        const result = compare(key, pivot);
+
+        if (result == 0) {
+            return pivot_index;
+        }
+        if (result > 0) {
+            base_index = pivot_index + 1;
+            num -= 1;
+        }
+        num >>= 1;
+    }
+
+    return null;
+}
+
+pub fn bsearch(
+    key: *const anyopaque,
+    base: [*]const u8,
+    num_members: usize,
+    member_size: usize,
+    compare: anytype,
+) ?*const anyopaque {
+    const index = bsearchIndex(key, base, num_members, member_size, compare) orelse return null;
+    return @ptrCast(base + (index * member_size));
 }
 
 fn compareInt(key: *const i32, item: *const i32) i32 {
