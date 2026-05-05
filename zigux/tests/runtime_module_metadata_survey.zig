@@ -387,9 +387,14 @@ test "runtime module metadata survey note keeps descriptor fields, shared loader
         "loadable-module metadata parity",
         "depmod bridge",
         "the first three landed loader-plan files currently project `command_name = null` into `RuntimeLoadRequest`",
+        "python3 scripts/zigux/validate-phase9.py --self-test",
+        "python3 scripts/zigux/check-phase9-module-metadata-packet.py --self-test",
         "python3 scripts/zigux/validate-phase9.py",
+        "python3 scripts/zigux/check-phase9-module-metadata-packet.py",
+        "make -C zigux phase9-validate",
         "zig build test --build-file zigux/tests/phase9_build.zig --summary all",
         "zig test zigux/tests/runtime_module_metadata_survey.zig",
+        "make -C zigux phase9-module-metadata-survey",
         "The dedicated `samples/zigux/runtime_trace_events_loader.zig` scaffold is now landed too, but it still stops outside that shared `RuntimeLoadRequest` union",
     });
 }
