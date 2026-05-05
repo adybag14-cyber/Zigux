@@ -16,5 +16,19 @@
     "tools/lib/string.zig",
     "tools/lib/vsprintf.zig",
     "tools/lib/zalloc.zig"
-  ]
+  ],
+  "review_anchors": {
+    "tools/lib/find_bit.zig": {
+      "same_word_start_masks": "test \"single-word next scans honor start masks\"",
+      "inclusive_boundary_start": "test \"head-word boundary scans keep the last in-range bit reachable from an inclusive start\"",
+      "tail_clamp_fixture_keys": [
+        "tail_clamped_first",
+        "tail_clamped_next",
+        "tail_zero_clamped_first",
+        "tail_zero_clamped_next",
+        "tail_and_clamped_first",
+        "tail_and_clamped_next"
+      ]
+    }
+  }
 }
