@@ -92,7 +92,7 @@ The current gap is not "Zigux has no kobject sample guidance." The more precise 
 
 - the repo now has a reviewable Phase 5 `kobject_example` sample plus manifest-backed checks for registration, pre-registration access blocking, ownership snapshots, initialized-only abandonment, dispatch, parse failures, and teardown
 - contributor guidance still needs to keep the approved Phase 5 in-memory ownership-and-lifetime idiom visibly separate from real sysfs or module substrate claims
-- the broader roadmap still expects the last Phase 5 reference-sample anchor, so this sample must stay explicit about its own boundary rather than implying the whole tranche is done
+- current `master` now carries all four roadmap-backed Phase 5 reference samples, so this survey should stay explicit about the kobject sample's own ownership-and-lifetime boundary instead of implying that another Phase 5 anchor is still missing
 
 This slice keeps the landed `kobject` sample reviewable by recording the exact lifecycle and non-goal cues reviewers should check before approving future edits.
 
