@@ -72,6 +72,15 @@ def collect_missing_files(root: Path) -> list[str]:
     return missing
 
 
+def collect_exact_count_markers(text: str, label: str, markers: list[str]) -> list[str]:
+    mismatches: list[str] = []
+    for marker in markers:
+        count = text.count(marker)
+        if count != 1:
+            mismatches.append(f"{label}:{marker}:expected=1:actual={count}")
+    return mismatches
+
+
 def collect_missing_markers(root: Path) -> list[str]:
     ledger = (root / "zigux-alpha" / "BOOTSTRAP_COMMIT_LEDGER.md").read_text(encoding="utf-8")
     workflow = (root / ".github" / "workflows" / "zigux-bootstrap.yml").read_text(encoding="utf-8")
@@ -81,12 +90,9 @@ def collect_missing_markers(root: Path) -> list[str]:
     for marker in REQUIRED_LEDGER_MARKERS:
         if marker not in ledger:
             missing_markers.append(f"ledger:{marker}")
-    for marker in REQUIRED_WORKFLOW_MARKERS:
-        if marker not in workflow:
-            missing_markers.append(f"workflow:{marker}")
-    for marker in REQUIRED_TEST_MARKERS:
-        if marker not in test_root:
-            missing_markers.append(f"test:{marker}")
+
+    missing_markers.extend(collect_exact_count_markers(workflow, "workflow", REQUIRED_WORKFLOW_MARKERS))
+    missing_markers.extend(collect_exact_count_markers(test_root, "test", REQUIRED_TEST_MARKERS))
     return missing_markers
 
 
@@ -125,11 +131,28 @@ def run_self_test() -> None:
         workflow_path = tmp_root / ".github" / "workflows" / "zigux-bootstrap.yml"
         workflow_path.write_text("tools/lib/*.zig\npython3 scripts/zigux/validate-phase1.py\n", encoding="utf-8")
         missing_markers = collect_missing_markers(tmp_root)
-        assert "workflow:python3 scripts/zigux/check-phase1-parity.py" in missing_markers
-        assert "workflow:zig build test --build-file zigux/tests/build.zig" in missing_markers
+        assert "workflow:python3 scripts/zigux/check-phase1-parity.py:expected=1:actual=0" in missing_markers
+        assert "workflow:zig build test --build-file zigux/tests/build.zig:expected=1:actual=0" in missing_markers
+        make_fixture_root(tmp_root)
+
+        workflow_path.write_text(
+            "\n".join(REQUIRED_WORKFLOW_MARKERS + [REQUIRED_WORKFLOW_MARKERS[2]]) + "\n",
+            encoding="utf-8",
+        )
+        missing_markers = collect_missing_markers(tmp_root)
+        assert "workflow:python3 scripts/zigux/check-phase1-parity.py:expected=1:actual=2" in missing_markers
+        make_fixture_root(tmp_root)
+
+        test_path = tmp_root / "zigux" / "tests" / "phase1_helpers.zig"
+        test_path.write_text(
+            "\n".join(REQUIRED_TEST_MARKERS + [REQUIRED_TEST_MARKERS[4]]) + "\n",
+            encoding="utf-8",
+        )
+        missing_markers = collect_missing_markers(tmp_root)
+        assert 'test:@import("find_bit"):expected=1:actual=2' in missing_markers
 
     print("PHASE1_VALIDATION_SELF_TEST=pass")
-    print("PHASE1_VALIDATION_SELF_TEST_CASE_COUNT=3")
+    print("PHASE1_VALIDATION_SELF_TEST_CASE_COUNT=5")
 
 
 def main() -> int:
