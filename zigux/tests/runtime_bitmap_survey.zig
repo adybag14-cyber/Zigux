@@ -140,7 +140,7 @@ test "phase 9 runtime bitmap survey note keeps the phase boundary explicit" {
     );
     defer std.testing.allocator.free(note);
 
-    try std.testing.expect(std.mem.indexOf(u8, note, "not a fifth approved Phase 5 reference idiom under `samples/zigux/`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, note, "not as a fifth approved Phase 5 reference idiom under `samples/zigux/`") != null);
     try std.testing.expect(std.mem.indexOf(u8, note, "the live repo still keeps that runtime bitmap family outside the four approved Phase 5 reference samples") != null);
     try std.testing.expect(std.mem.indexOf(u8, note, "a Phase 5 approved `samples/zigux/` reference idiom") != null);
     try std.testing.expect(std.mem.indexOf(u8, note, "samples/zigux/runtime_bitmap.zig") != null);
