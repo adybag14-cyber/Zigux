@@ -342,7 +342,6 @@ def run_self_test() -> int:
             path = root / rel_path
             if path.exists():
                 continue
-            writeText = None
             write_text(path, "\n".join(markers) + "\n")
 
         errors = check(root)
