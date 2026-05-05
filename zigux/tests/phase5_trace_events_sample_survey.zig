@@ -271,6 +271,9 @@ test "phase 5 trace-events survey note stays repo-local and keeps the formatting
     try expectContains(samples_root, "selected-string plus `iter=%d` replay");
     try expectContains(samples_root, "closed Phase 1 `tools/lib/vsprintf.zig` packet");
     try expectContains(samples_root, "bounded Phase 7 `string_get_size()` helper packet");
+    try expectContains(samples_root, "no `samples/zigux/*rbtree*` Phase 5 reference sample");
+    try expectContains(samples_root, "Documentation/zigux/phase7-rbtree-slice.md");
+    try expectContains(samples_root, "zigux/tests/phase7_rbtree.zig");
 
     const docs_root = try std.Io.Dir.cwd().readFileAlloc(
         io_instance.io(),
