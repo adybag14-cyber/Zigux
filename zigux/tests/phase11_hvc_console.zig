@@ -144,6 +144,43 @@ test "phase11 hvc console keeps tty-registration handoff boundaries reviewable" 
     try std.testing.expectError(error.ConsoleUnavailable, console.summarizeTtyRegistrationHandoff(.{}));
 }
 
+test "phase11 hvc console keeps sysrq handoff boundaries reviewable" {
+    var console = try hvc_console.HvcConsoleLab.init(6);
+    _ = console.instantiate(0x66);
+
+    const boot_sysrq = try console.summarizeSysrqHandoff(.{});
+    try std.testing.expectEqual(@as(usize, 6), boot_sysrq.slot_index);
+    try std.testing.expectEqual(@as(u32, 0x66), boot_sysrq.vtermno);
+    try std.testing.expect(boot_sysrq.adapter_present);
+    try std.testing.expect(boot_sysrq.console_index_matches_boot_console);
+    try std.testing.expect(boot_sysrq.sysrq_break_seen);
+    try std.testing.expect(boot_sysrq.sysrq_dispatch_reviewable);
+    try std.testing.expect(boot_sysrq.sysrq_dispatch_requested);
+    try std.testing.expect(boot_sysrq.notifier_target_present);
+    try std.testing.expect(boot_sysrq.notifier_callbacks_deferred);
+    try std.testing.expect(boot_sysrq.khvcd_worker_execution_deferred);
+    try std.testing.expect(boot_sysrq.host_io_deferred);
+    try std.testing.expect(boot_sysrq.remove_handoff_still_required);
+
+    const detached_sysrq = try console.summarizeSysrqHandoff(.{
+        .console_index_matches_boot_console = false,
+        .sysrq_break_seen = false,
+        .notifier_target_present = false,
+    });
+    try std.testing.expect(!detached_sysrq.console_index_matches_boot_console);
+    try std.testing.expect(!detached_sysrq.sysrq_break_seen);
+    try std.testing.expect(detached_sysrq.sysrq_dispatch_reviewable);
+    try std.testing.expect(!detached_sysrq.sysrq_dispatch_requested);
+    try std.testing.expect(!detached_sysrq.notifier_target_present);
+    try std.testing.expect(!detached_sysrq.notifier_callbacks_deferred);
+    try std.testing.expect(detached_sysrq.khvcd_worker_execution_deferred);
+    try std.testing.expect(detached_sysrq.host_io_deferred);
+    try std.testing.expect(detached_sysrq.remove_handoff_still_required);
+
+    _ = console.teardown();
+    try std.testing.expectError(error.ConsoleUnavailable, console.summarizeSysrqHandoff(.{}));
+}
+
 test "phase11 hvc_console adds carriage returns and keeps final flush intent on successful writes" {
     var console = try hvc_console.HvcConsoleLab.init(1);
     const slot = console.instantiate(0x41);
