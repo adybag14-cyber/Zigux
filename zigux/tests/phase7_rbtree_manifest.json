@@ -47,14 +47,14 @@
       "status": "starter_landed",
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase7_rbtree_survey.zig",
-      "why_now": "A machine-checked survey gate keeps the roadmap anchor, landed review surfaces, and the remaining parity-fixture follow-up explicit without reopening tree logic."
+      "why_now": "A machine-checked survey gate keeps the roadmap anchor, landed review surfaces, and the committed parity fixture explicit without reopening tree logic."
     },
     {
       "id": "phase7-rbtree-parity-fixture-layer",
-      "status": "ready_next",
+      "status": "starter_landed",
       "kind": "differential_validation",
-      "zigux_destination": "zigux/tests/fixtures/phase7_rbtree_parity.json",
-      "why_now": "The next honest follow-up is still a tiny deterministic C-vs-Zig fixture layer for insert, erase, traversal, and duplicate-key lookup expectations derived from lib/rbtree.c."
+      "zigux_destination": "zigux/tests/fixtures/phase7_rbtree.json",
+      "why_now": "The committed C-vs-Zig fixture already locks ordered insert, reverse traversal, replace, duplicate-key lookup order, and postorder expectations against lib/rbtree.c, so the parked Phase 7 review packet should record it as landed rather than still ready next."
     }
   ]
 }
