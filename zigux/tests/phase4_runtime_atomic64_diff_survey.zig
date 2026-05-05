@@ -25,6 +25,7 @@ const Manifest = struct {
     phase4_validation_matrix_blob_sha: []const u8,
     threshold_posture: []const u8,
     roadmap_gap_summary: []const u8,
+    reversible_delivery_evidence: []const u8,
     ready_next: []const u8,
 };
 
@@ -55,18 +56,18 @@ test "phase 4 atomic64 survey keeps wrapper handoff and remaining shared drift e
 
     try std.testing.expect(manifest.phase4_build_present);
     try std.testing.expect(manifest.phase4_build_uses_atomic64_wrapper);
-    try std.testing.expectEqualStrings("4a1a4479aabbae4960a03c37b934381c246eb431", manifest.phase4_build_blob_sha);
+    try std.testing.expectEqualStrings("ca6672b21f08b77305ecf048346026fe474aff43", manifest.phase4_build_blob_sha);
 
     try std.testing.expect(manifest.phase4_validator_atomic64_diff_present);
     try std.testing.expect(manifest.phase4_validator_runtime_atomic64_diff_present);
-    try std.testing.expectEqualStrings("0bb154aaf52e3c0b33d444195de8047e4b56e311", manifest.phase4_validator_blob_sha);
+    try std.testing.expectEqualStrings("adf7a83fe8a944dbeed522e691d989f31cc1ce7d", manifest.phase4_validator_blob_sha);
 
     try std.testing.expect(manifest.phase9_build_present);
-    try std.testing.expectEqualStrings("8ecef19acf5953dce1bd9c59a9662e23c0da1f60", manifest.phase9_build_blob_sha);
+    try std.testing.expectEqualStrings("81b28841525ba42104b0d65e3d45c73c87bb23cd", manifest.phase9_build_blob_sha);
 
     try std.testing.expect(manifest.phase4_validation_matrix_atomic64_diff_note_present);
     try std.testing.expect(manifest.phase4_validation_matrix_runtime_atomic64_note_present);
-    try std.testing.expectEqualStrings("e16da27b564f61d358a8c4c419b369d23173b547", manifest.phase4_validation_matrix_blob_sha);
+    try std.testing.expectEqualStrings("ab41bb2d0dc190ef56597a1620d2f411783e4f7b", manifest.phase4_validation_matrix_blob_sha);
     try std.testing.expectEqualStrings(
         "threshold_pending_until_runtime_atomic64_scope_widens",
         manifest.threshold_posture,
@@ -79,13 +80,35 @@ test "phase 4 atomic64 survey keeps wrapper handoff and remaining shared drift e
     try std.testing.expect(std.mem.indexOf(u8, manifest.roadmap_gap_summary, "Phase 9") != null);
     try std.testing.expect(std.mem.indexOf(u8, manifest.roadmap_gap_summary, "Phase 4 reviewer packet") != null);
 
+    try std.testing.expect(
+        std.mem.indexOf(u8, manifest.reversible_delivery_evidence, "zigux/tests/atomic64_diff.zig") != null,
+    );
+    try std.testing.expect(
+        std.mem.indexOf(u8, manifest.reversible_delivery_evidence, "zigux/tests/runtime_atomic64_diff.zig") != null,
+    );
+    try std.testing.expect(
+        std.mem.indexOf(u8, manifest.reversible_delivery_evidence, "zigux/tests/phase4_build.zig") != null,
+    );
+    try std.testing.expect(
+        std.mem.indexOf(u8, manifest.reversible_delivery_evidence, "scripts/zigux/validate-phase4.py") != null,
+    );
+    try std.testing.expect(
+        std.mem.indexOf(u8, manifest.reversible_delivery_evidence, "Documentation/zigux/phase4-validation-matrix.md") != null,
+    );
+    try std.testing.expect(std.mem.indexOf(u8, manifest.reversible_delivery_evidence, "validator-first bootstrap replay") != null);
+    try std.testing.expect(std.mem.indexOf(u8, manifest.reversible_delivery_evidence, "rollback-owner matrix") != null);
+    try std.testing.expect(std.mem.indexOf(u8, manifest.reversible_delivery_evidence, "measurable and reversible") != null);
+
     try std.testing.expect(std.mem.indexOf(u8, manifest.ready_next, "zigux/tests/atomic64_diff.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, manifest.ready_next, "zigux/tests/runtime_atomic64_diff.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, manifest.ready_next, "zigux/tests/phase4_build.zig") != null);
+    try std.testing.expect(
+        std.mem.indexOf(u8, manifest.ready_next, "zigux/tests/phase4_runtime_atomic64_diff_survey.zig") != null,
+    );
     try std.testing.expect(std.mem.indexOf(u8, manifest.ready_next, "scripts/zigux/validate-phase4.py") != null);
     try std.testing.expect(
         std.mem.indexOf(u8, manifest.ready_next, "Documentation/zigux/phase4-validation-matrix.md") != null,
     );
-    try std.testing.expect(std.mem.indexOf(u8, manifest.ready_next, "wrapper manifest and survey") != null);
-    try std.testing.expect(std.mem.indexOf(u8, manifest.ready_next, "runtime operation coverage") != null);
+    try std.testing.expect(std.mem.indexOf(u8, manifest.ready_next, "wrapper-first rollback surface") != null);
+    try std.testing.expect(std.mem.indexOf(u8, manifest.ready_next, "Phase 9 handoff") != null);
 }
