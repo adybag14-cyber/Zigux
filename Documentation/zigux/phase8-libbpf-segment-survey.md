@@ -80,10 +80,19 @@ The current tests check:
 
 ## Gates
 
-1. run the dedicated Phase 8 tooling gate
-- `zig build test --build-file zigux/tests/phase8_build.zig`
+1. run the focused libbpf survey wrapper
+- `make -C zigux phase8-libbpf-segments-test`
+- `zig build test --build-file zigux/tests/phase8_libbpf_segments_only_build.zig --summary all`
 
-2. run the convenience target
+2. run the focused perf-buffer poll wrapper
+- `make -C zigux phase8-perf-buffer-poll-test`
+- `zig build test --build-file zigux/tests/phase8_perf_buffer_poll_only_build.zig --summary all`
+
+3. run the shared Phase 8 wrapper
+- `make -C zigux phase8-test`
+- `zig build test --build-file zigux/tests/phase8_build.zig --summary all`
+
+4. run the convenience target
 - `make -C zigux phase8`
 
 ## Non-goals
