@@ -26,6 +26,10 @@ pub fn blockSub(sum: u32, other: u32, offset: usize) u32 {
     return blockAdd(sum, ~other, offset);
 }
 
+pub fn negate(sum: u32) u32 {
+    return 0 -% sum;
+}
+
 pub fn replace(sum: u32, old: u32, new: u32) u32 {
     return add(sub(sum, old), new);
 }
@@ -108,4 +112,26 @@ fn add16(sum: u16, addend: u16) u16 {
 
 fn sub16(sum: u16, addend: u16) u16 {
     return add16(sum, ~addend);
+}
+
+test "negate wraps around unfolded checksum sums" {
+    try std.testing.expectEqual(@as(u32, 0), negate(0));
+    try std.testing.expectEqual(@as(u32, 0xffff_ffff), negate(1));
+    try std.testing.expectEqual(@as(u32, 1), negate(0xffff_ffff));
+    try std.testing.expectEqual(@as(u32, 0x2152_4110), negate(0xdead_bef0));
+}
+
+test "negate is its own inverse" {
+    const cases = [_]u32{
+        0,
+        1,
+        0x0001_0000,
+        0xffff_ffff,
+        0x1234_5678,
+        0xdead_bef0,
+    };
+
+    for (cases) |case| {
+        try std.testing.expectEqual(case, negate(negate(case)));
+    }
 }
