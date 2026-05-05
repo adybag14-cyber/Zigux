@@ -163,6 +163,9 @@ test "phase 9 runtime atomic64 survey note keeps the manifest-backed surveyed co
     try std.testing.expect(std.mem.indexOf(u8, note, "zigux/kernel/runtime_loader.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, note, "bounded sample-side loader scaffold") != null);
     try std.testing.expect(std.mem.indexOf(u8, note, "prepared handoff summary") != null);
+    try std.testing.expect(std.mem.indexOf(u8, note, "the live repo now also carries `zigux/kernel/runtime_loader.zig`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, note, "shared request surface still stops short of a real module-loading substrate") != null);
+    try std.testing.expect(std.mem.indexOf(u8, note, "there is still no shared `zigux/kernel/runtime_loader.zig` on `master`") == null);
 }
 
 test "phase 9 runtime atomic64 module slice keeps the loader-backed survey packet explicit" {
