@@ -114,3 +114,28 @@ test "phase 5 kretprobe manifest records the exact bounded checks" {
     try std.testing.expect(std.mem.eql(u8, manifest.non_goals[0], "register_kretprobe parity"));
     try std.testing.expect(std.mem.eql(u8, manifest.non_goals[1], "unregister_kretprobe parity"));
 }
+
+test "phase 5 kretprobe survey note stays repo-local and keeps the build-wired boundary explicit" {
+    var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
+    defer io_instance.deinit();
+
+    const survey_note = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "Documentation/zigux/phase5-kretprobe-sample-survey.md",
+        std.testing.allocator,
+        .limited(64 * 1024),
+    );
+    defer std.testing.allocator.free(survey_note);
+
+    const required_mentions = [_][]const u8{
+        "samples/kprobes/kretprobe_example.c|Phase 5",
+        "phase5_build.zig",
+        "runtime_kretprobe",
+    };
+
+    for (required_mentions) |needle| {
+        try std.testing.expect(std.mem.indexOf(u8, survey_note, needle) != null);
+    }
+
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "/workspace/agent_files") == null);
+}
