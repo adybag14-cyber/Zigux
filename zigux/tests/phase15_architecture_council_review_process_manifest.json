@@ -54,7 +54,7 @@
     "defer_or_reject"
   ],
   "handoff_evidence": {
-    "current_repo_handoff": "The current repo handoff explicitly names Documentation/zigux/freeze-map.md, Documentation/zigux/phase15-freeze-map-governance.md, Documentation/zigux/phase15-architecture-council-review-process.md, Documentation/zigux/phase15-parity-scorecard.md, Documentation/zigux/phase15-indefinite-c-policy.md, Documentation/zigux/review-checklist.md, scripts/zigux/check-phase15-review-process-handoff.py, zigux/tests/phase15_architecture_council_review_process_manifest.json, zigux/tests/phase15_architecture_council_review_process.zig, and zigux/tests/phase15_build.zig as the parked governance packet boundary.",
+    "current_repo_handoff": "The current repo handoff explicitly names Documentation/zigux/freeze-map.md, Documentation/zigux/phase15-freeze-map-governance.md, Documentation/zigux/phase15-architecture-council-review-process.md, Documentation/zigux/phase15-parity-scorecard.md, Documentation/zigux/phase15-indefinite-c-policy.md, Documentation/zigux/review-checklist.md, scripts/zigux/check-phase15-review-process-handoff.py, zigux/tests/phase15_architecture_council_review_process_manifest.json, zigux/tests/phase15_architecture_council_review_process.zig, zigux/tests/phase15_indefinite_c_policy.json, and zigux/tests/phase15_build.zig as the parked governance packet boundary.",
     "current_bounded_lane": "The parked Architecture Council packet stays aligned with its scripts-root validator path, its tests-root guidance path, and its dedicated handoff-checker route."
   },
   "gaps": [
