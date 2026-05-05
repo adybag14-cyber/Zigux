@@ -12,6 +12,8 @@ const whitespace_expected = [_][]const u8{
 
 const blank_expected = [_][]const u8{};
 
+const leading_nul_expected = [_][]const u8{};
+
 const nul_expected = [_][]const u8{
     "root=/dev/vda",
     "rw",
@@ -33,6 +35,11 @@ pub const argv_split_cases = [_]ArgvSplitCase{
         .name = "blank input stays empty",
         .input = " \t\n",
         .expected = &blank_expected,
+    },
+    .{
+        .name = "leading NUL truncates to zero argv entries",
+        .input = "\x00ignored debug",
+        .expected = &leading_nul_expected,
     },
     .{
         .name = "first NUL stops counting and splitting",
