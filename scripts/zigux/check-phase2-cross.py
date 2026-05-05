@@ -136,6 +136,62 @@ def run_self_test() -> int:
         assert resolve_targets(allowed_targets, None) == allowed_targets
         assert resolve_targets(allowed_targets, ['aarch64-linux-musl']) == ['aarch64-linux-musl']
 
+        manifest_path.write_text(
+            json.dumps(
+                {
+                    'phase': 'Phase 2',
+                    'status': 'closed',
+                    'tool_count': 2,
+                    'tools': [
+                        'scripts/zigux/fixdep.zig',
+                        'scripts/zigux/fixdep.zig',
+                    ],
+                }
+            ),
+            encoding='utf-8',
+        )
+        try:
+            load_manifest_tools(manifest_path)
+        except SystemExit as exc:
+            assert str(exc) == 'phase2_tool_manifest:tools:duplicate:scripts/zigux/fixdep.zig'
+        else:
+            raise AssertionError('expected duplicate manifest tool to fail')
+
+        manifest_path.write_text(
+            json.dumps(
+                {
+                    'phase': 'Phase 2',
+                    'status': 'closed',
+                    'tool_count': 3,
+                    'tools': [
+                        'scripts/zigux/fixdep.zig',
+                        'scripts/zigux/genksyms.zig',
+                    ],
+                }
+            ),
+            encoding='utf-8',
+        )
+        try:
+            load_manifest_tools(manifest_path)
+        except SystemExit as exc:
+            assert str(exc) == 'phase2_tool_manifest:tool_count_mismatch:3:2'
+        else:
+            raise AssertionError('expected tool-count drift to fail')
+
+        manifest_path.write_text(
+            json.dumps(
+                {
+                    'phase': 'Phase 2',
+                    'status': 'closed',
+                    'tool_count': 2,
+                    'tools': [
+                        'scripts/zigux/fixdep.zig',
+                        'scripts/zigux/genksyms.zig',
+                    ],
+                }
+            ),
+            encoding='utf-8',
+        )
         targets_path.write_text(
             json.dumps(
                 {
@@ -201,7 +257,7 @@ def run_self_test() -> int:
             raise AssertionError('expected unexpected explicit target to fail')
 
     print('PHASE2_CROSS_SELF_TEST=pass')
-    print('PHASE2_CROSS_SELF_TEST_CASE_COUNT=6')
+    print('PHASE2_CROSS_SELF_TEST_CASE_COUNT=8')
     return 0
 
 
