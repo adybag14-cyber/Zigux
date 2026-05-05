@@ -291,6 +291,24 @@ test "argvSplit reuses the exported empty storage view for blank input without a
     try std.testing.expectEqual(@as(?[*:0]const u8, null), split.cArgv()[0]);
 }
 
+test "argvSplit treats whitespace before the first NUL as blank input" {
+    var buffer = [_]u8{};
+    var fba = std.heap.FixedBufferAllocator.init(&buffer);
+    var argc: usize = std.math.maxInt(usize);
+    var split = try argvSplitWithArgc(fba.allocator(), " \t\n\x00ignored tail", &argc);
+    defer split.deinit(fba.allocator());
+
+    try std.testing.expectEqual(@as(usize, 0), countArgc(" \t\n\x00ignored tail"));
+    try std.testing.expectEqual(@as(usize, 0), argc);
+    try std.testing.expectEqual(@as(usize, 0), split.storage.len);
+    try std.testing.expectEqual(@as(u8, 0), split.storage[split.storage.len]);
+    try std.testing.expectEqual(empty_storage_view.ptr, split.storage.ptr);
+    try std.testing.expectEqual(@as(usize, 0), split.argv.len);
+    try std.testing.expectEqual(@as(usize, 1), split.argv_null_terminated.len);
+    try std.testing.expectEqual(empty_argv_null_terminated.ptr, split.argv_null_terminated.ptr);
+    try std.testing.expectEqual(@as(?[*:0]const u8, null), split.cArgv()[0]);
+}
+
 test "argvFree keeps blank-input sentinel teardown safe and repeatable" {
     var buffer = [_]u8{};
     var fba = std.heap.FixedBufferAllocator.init(&buffer);
