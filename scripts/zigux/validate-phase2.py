@@ -62,11 +62,14 @@ required_files = [
     ROOT / 'scripts' / 'zigux' / 'check-phase2-cross-selftest-alignment.py',
     ROOT / 'scripts' / 'zigux' / 'check-phase2-tests-readme-alignment.py',
     ROOT / 'scripts' / 'zigux' / 'check-phase2-toolchain-pin-scope.py',
+    ROOT / 'scripts' / 'zigux' / 'check-zig-toolchain.py',
+    ROOT / 'scripts' / 'zigux' / 'install-zig.py',
     ROOT / 'scripts' / 'zigux' / 'mk_elfconfig.zig',
     ROOT / 'scripts' / 'zigux' / 'check-mk-elfconfig-diff.py',
     ROOT / 'scripts' / 'zigux' / 'kconfig' / 'conf_bridge.zig',
     ROOT / 'scripts' / 'zigux' / 'kconfig' / 'confdata_bridge.zig',
     ROOT / 'Documentation' / 'zigux' / 'README.md',
+    ROOT / 'Documentation' / 'zigux' / 'phase2-closure.md',
     ROOT / 'Documentation' / 'zigux' / 'review-checklist.md',
     ROOT / 'Documentation' / 'zigux' / 'phase2-toolchain-bootstrap-notes.md',
     ROOT / 'zigux' / 'tests' / 'README.md',
@@ -168,6 +171,8 @@ required_doc_markers = [
     'elf32_expected.json',
 ]
 required_script_markers = [
+    'check-zig-toolchain.py',
+    'install-zig.py',
     'check-phase2-tests-readme-alignment.py',
     'check-phase2-cross-selftest-alignment.py',
     'check-phase2-toolchain-pin-scope.py',
@@ -186,16 +191,21 @@ required_script_markers = [
     'mk_elfconfig.zig',
 ]
 required_docs_root_markers = [
+    'Documentation/zigux/phase2-closure.md',
     'scripts/zigux/check-phase2-tests-readme-alignment.py',
     'scripts/zigux/check-phase2-cross-selftest-alignment.py',
     'scripts/zigux/check-phase2-toolchain-pin-scope.py',
+    'python3 scripts/zigux/check-phase2-cross.py',
     'make -C zigux phase2-validate',
     'make -C zigux phase2',
 ]
 required_review_markers = [
     'scripts/zigux/check-phase2-tests-readme-alignment.py',
+    'scripts/zigux/check-phase2-cross.py',
     'scripts/zigux/check-phase2-cross-selftest-alignment.py',
     'scripts/zigux/check-phase2-toolchain-pin-scope.py',
+    'python3 scripts/zigux/install-zig.py --self-test',
+    'python3 scripts/zigux/check-zig-toolchain.py --self-test',
 ]
 
 missing_markers = []
@@ -231,7 +241,7 @@ guard_issues.extend(run_guard(
     [sys.executable, str(TESTS_README_ALIGNMENT_CHECKER), '--self-test'],
     [
         'PHASE2_TESTS_README_ALIGNMENT_SELF_TEST=pass',
-        'PHASE2_TESTS_README_ALIGNMENT_SELF_TEST_CASE_COUNT=5',
+        'PHASE2_TESTS_README_ALIGNMENT_SELF_TEST_CASE_COUNT=7',
     ],
 ))
 guard_issues.extend(run_guard(
