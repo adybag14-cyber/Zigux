@@ -50,10 +50,10 @@ test "phase13 landlock ruleset reviewability matches current helper packet" {
     defer parsed.deinit();
 
     const manifest = parsed.value;
-    try std.testing.expectEqualStrings("P13-L09", manifest.lane_key);
+    try std.testing.expectEqualStrings("P13-L12", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 13", manifest.phase);
     try std.testing.expectEqualStrings("security/landlock/ruleset.c", manifest.anchor);
-    try std.testing.expectEqualStrings("a957197f5bc4f965fa792b64a090a5330f45b770", manifest.surveyed_commit);
+    try std.testing.expectEqualStrings("64617ec0339f3f52accf5614bc918a940a503f7a", manifest.surveyed_commit);
     try std.testing.expectEqual(@as(usize, 3), manifest.roadmap_destinations.len);
     try std.testing.expect(manifest.survey_summary.ruleset_c_lines >= 700);
     try std.testing.expect(manifest.survey_summary.landlock_security_file_count >= 20);
@@ -87,6 +87,7 @@ test "phase13 landlock ruleset reviewability matches current helper packet" {
     defer std.testing.allocator.free(survey_note);
 
     try expectContains(survey_note, "# Phase 13 Landlock Ruleset Survey");
+    try expectContains(survey_note, "PHASE13_LANE_KEY=P13-L12");
     try expectContains(survey_note, "PHASE13_SLICE=landlock-ruleset-helper-lab");
     try expectContains(survey_note, "`zigux/tests/phase13_landlock_ruleset.zig`");
     try expectContains(survey_note, "tree-search outcome planning");
