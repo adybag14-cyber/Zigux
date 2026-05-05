@@ -15,7 +15,7 @@
   "phase4_build_blob_sha": "33d3ed8db4e40283212daa115a46e989df28ce6f",
   "phase4_validator_atomic64_diff_present": true,
   "phase4_validator_runtime_atomic64_diff_present": true,
-  "phase4_validator_blob_sha": "8d142287be5bb701734ed23dec1f4342e1156da0",
+  "phase4_validator_blob_sha": "8f56b8c957e76d105ed4931892c8ab86fc0d86fe",
   "phase9_build_present": true,
   "phase9_build_blob_sha": "41df1b7c54dcfcff8589468168988ae7ab43ca49",
   "phase4_validation_matrix_atomic64_diff_note_present": true,
