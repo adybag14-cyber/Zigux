@@ -38,7 +38,7 @@ SELF_TEST_TARGETS = (
         "PHASE3_LOW_LEVEL_WRAPPER_SURVEY_SELF_TEST=pass",
     ),
     SelfTestTarget(
-        "scripts/zigux/check-phase3-catalog-selftest.py",
+        "scripts/zigux/phase3_catalog.py",
         "PHASE3_CATALOG_SELF_TEST=pass",
     ),
     SelfTestTarget("scripts/zigux/phase3_check_lib.py", "PHASE3_CHECK_LIB_SELF_TEST=pass"),
@@ -193,13 +193,13 @@ def run_self_test() -> int:
         for target in SELF_TEST_TARGETS:
             marker = (
                 "WRONG_MARKER=pass"
-                if target.relpath.endswith("check-phase3-catalog-selftest.py")
+                if target.relpath.endswith("phase3_catalog.py")
                 else (target.marker or "PASS")
             )
             write_script(catalog_marker_root / target.relpath, marker)
         issues = run_targets(catalog_marker_root)
         assert (
-            "missing_pass_marker:scripts/zigux/check-phase3-catalog-selftest.py:"
+            "missing_pass_marker:scripts/zigux/phase3_catalog.py:"
             "PHASE3_CATALOG_SELF_TEST=pass"
             in issues
         )
