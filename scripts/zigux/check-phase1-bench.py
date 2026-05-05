@@ -51,6 +51,14 @@ def validate_output(expectations: dict[str, object], stdout: str) -> tuple[str, 
     if duplicate:
         return ('duplicate', duplicate)
 
+    unexpected = sorted(
+        key
+        for key in parsed
+        if key.startswith('PHASE1_BENCH') and key not in required_keys
+    )
+    if unexpected:
+        return ('unexpected', unexpected)
+
     actual_status = parsed.get('PHASE1_BENCH')
     if actual_status != expectations['status']:
         return ('status', (expectations['status'], actual_status))
@@ -104,6 +112,12 @@ def run_self_test() -> None:
         'PHASE1_BENCH_BITMAP_WEIGHT_ITERATIONS=20000',
         'PHASE1_BENCH_BITMAP_WEIGHT_CHECKSUM=7',
     ])
+    ignored_key_output = '\n'.join([
+        'PHASE1_BENCH=pass',
+        'PHASE1_BENCH_BITMAP_WEIGHT_ITERATIONS=20000',
+        'PHASE1_BENCH_BITMAP_WEIGHT_CHECKSUM=7',
+        'IGNORED_KEY=1',
+    ])
     duplicate_status_output = '\n'.join([
         'PHASE1_BENCH=pass',
         'PHASE1_BENCH=pass',
@@ -121,6 +135,12 @@ def run_self_test() -> None:
         'PHASE1_BENCH_BITMAP_WEIGHT_ITERATIONS=20000',
         'PHASE1_BENCH_BITMAP_WEIGHT_CHECKSUM=7',
         'PHASE1_BENCH_BITMAP_WEIGHT_CHECKSUM=11',
+    ])
+    unexpected_output = '\n'.join([
+        'PHASE1_BENCH=pass',
+        'PHASE1_BENCH_BITMAP_WEIGHT_ITERATIONS=20000',
+        'PHASE1_BENCH_BITMAP_WEIGHT_CHECKSUM=7',
+        'PHASE1_BENCH_FAKE_CHECKSUM=13',
     ])
     bad_status_output = '\n'.join([
         'PHASE1_BENCH=fail',
@@ -145,6 +165,9 @@ def run_self_test() -> None:
     kind, _ = validate_output(expectations, ok_output)
     assert kind == 'pass'
 
+    kind, _ = validate_output(expectations, ignored_key_output)
+    assert kind == 'pass'
+
     kind, payload = validate_output(expectations, duplicate_status_output)
     assert kind == 'duplicate'
     assert payload == ['PHASE1_BENCH']
@@ -156,6 +179,10 @@ def run_self_test() -> None:
     kind, payload = validate_output(expectations, duplicate_checksum_output)
     assert kind == 'duplicate'
     assert payload == ['PHASE1_BENCH_BITMAP_WEIGHT_CHECKSUM']
+
+    kind, payload = validate_output(expectations, unexpected_output)
+    assert kind == 'unexpected'
+    assert payload == ['PHASE1_BENCH_FAKE_CHECKSUM']
 
     kind, payload = validate_output(expectations, bad_status_output)
     assert kind == 'status'
@@ -174,7 +201,7 @@ def run_self_test() -> None:
     assert payload == ('PHASE1_BENCH_BITMAP_WEIGHT_CHECKSUM', '0')
 
     print('PHASE1_BENCH_CHECK_SELF_TEST=pass')
-    print('PHASE1_BENCH_CHECK_SELF_TEST_CASE_COUNT=8')
+    print('PHASE1_BENCH_CHECK_SELF_TEST_CASE_COUNT=10')
 
 
 def main() -> int:
@@ -210,6 +237,13 @@ def main() -> int:
         for key in payload:
             print(key)
         print('DUPLICATE_PHASE1_BENCH_KEYS_END')
+        return 1
+    if kind == 'unexpected':
+        print('PHASE1_BENCH_CHECK=fail')
+        print('UNEXPECTED_PHASE1_BENCH_KEYS_START')
+        for key in payload:
+            print(key)
+        print('UNEXPECTED_PHASE1_BENCH_KEYS_END')
         return 1
     if kind == 'status':
         expected, actual = payload
