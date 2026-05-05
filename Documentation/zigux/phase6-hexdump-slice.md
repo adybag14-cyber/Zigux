@@ -67,7 +67,7 @@ The current tests check:
 The current perf fixture packet in `zigux/tests/fixtures/phase6_hexdump_vectors.zig` stays bounded to:
 
 - `16B-plain-g1`
-- `16B-ascii-g2`
+- `32B-ascii-g2`
 - `16B-ascii-g4`
 - `16B-ascii-g8`
 
