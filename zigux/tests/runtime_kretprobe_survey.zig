@@ -40,6 +40,10 @@ fn isAllowedStatus(status: []const u8) bool {
         std.mem.eql(u8, status, "blocked_on_runtime_substrate");
 }
 
+fn expectContains(haystack: []const u8, needle: []const u8) !void {
+    try std.testing.expect(std.mem.indexOf(u8, haystack, needle) != null);
+}
+
 test "phase 9 runtime kretprobe survey manifest records the landed loader plan and metadata-only registration boundary" {
     var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
     defer io_instance.deinit();
@@ -51,6 +55,46 @@ test "phase 9 runtime kretprobe survey manifest records the landed loader plan a
         .limited(32 * 1024),
     );
     defer std.testing.allocator.free(manifest_json);
+
+    const survey_doc = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "Documentation/zigux/phase9-runtime-kretprobe-survey.md",
+        std.testing.allocator,
+        .limited(32 * 1024),
+    );
+    defer std.testing.allocator.free(survey_doc);
+
+    const module_slice_doc = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "Documentation/zigux/phase9-runtime-kretprobe-module-slice.md",
+        std.testing.allocator,
+        .limited(32 * 1024),
+    );
+    defer std.testing.allocator.free(module_slice_doc);
+
+    const runtime_loader_source = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "zigux/kernel/runtime_loader.zig",
+        std.testing.allocator,
+        .limited(32 * 1024),
+    );
+    defer std.testing.allocator.free(runtime_loader_source);
+
+    const phase9_build_source = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "zigux/tests/phase9_build.zig",
+        std.testing.allocator,
+        .limited(96 * 1024),
+    );
+    defer std.testing.allocator.free(phase9_build_source);
+
+    const makefile_source = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "zigux/Makefile",
+        std.testing.allocator,
+        .limited(64 * 1024),
+    );
+    defer std.testing.allocator.free(makefile_source);
 
     const parsed = try std.json.parseFromSlice(Manifest, std.testing.allocator, manifest_json, .{});
     defer parsed.deinit();
@@ -84,6 +128,33 @@ test "phase 9 runtime kretprobe survey manifest records the landed loader plan a
         manifest.lifecycle_boundary_summary.live_registration_parity,
     );
     try std.testing.expect(manifest.gaps.len >= 6);
+
+    try expectContains(survey_doc, "PHASE9_SLICE=runtime-kretprobe-survey");
+    try expectContains(survey_doc, "samples/zigux/runtime_kretprobe_loader.zig");
+    try expectContains(survey_doc, "zigux/kernel/runtime_loader.zig");
+    try expectContains(survey_doc, "zigux/kernel/runtime_loader_contract.zig");
+    try expectContains(survey_doc, "zigux/tests/runtime_loader_allocator_init_flow.zig");
+    try expectContains(survey_doc, "metadata-only labels");
+    try expectContains(survey_doc, "make -C zigux phase9");
+
+    try expectContains(module_slice_doc, "PHASE9_SLICE=runtime-kretprobe-module-starter");
+    try expectContains(module_slice_doc, "samples/zigux/runtime_kretprobe_loader.zig");
+    try expectContains(module_slice_doc, "zigux/kernel/runtime_loader.zig");
+    try expectContains(module_slice_doc, "zigux/kernel/runtime_loader_contract.zig");
+    try expectContains(module_slice_doc, "zigux/tests/runtime_loader_allocator_init_flow.zig");
+    try expectContains(module_slice_doc, "register_kretprobe()");
+    try expectContains(module_slice_doc, "unregister_kretprobe()");
+
+    try expectContains(runtime_loader_source, "pub const AllocatorHandoff = contract.AllocatorHandoff;");
+    try expectContains(runtime_loader_source, "pub const LoadPlan = contract.LoadPlan;");
+    try expectContains(runtime_loader_source, "runtime loader facade keeps the shared loader contract reachable");
+
+    try expectContains(phase9_build_source, "phase9-runtime-kretprobe-loader-tests");
+    try expectContains(phase9_build_source, "phase9-runtime-loader-facade-tests");
+    try expectContains(phase9_build_source, "phase9-runtime-loader-allocator-init-flow-tests");
+
+    try expectContains(makefile_source, "phase9-test:");
+    try expectContains(makefile_source, "phase9: phase9-test");
 
     var runtime_test_destination_count: usize = 0;
     var starter_landed_count: usize = 0;
