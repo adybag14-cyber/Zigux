@@ -12,6 +12,13 @@ This document tracks the first bounded Phase 10 virtio-core starter under `drive
   - `zigux/tests/phase10_virtio_core.zig`
   - `zigux/tests/phase10_build.zig`
   - `zigux/Makefile`
+- review surface:
+  - `Documentation/zigux/phase10-virtio-core-slice.md`
+  - `zigux/tests/phase10_virtio_core.zig`
+  - `zigux/tests/phase10_build.zig`
+  - `zigux/Makefile`
+- current review note:
+  - current `master` carries no standalone `zigux/tests/phase10_virtio_core_manifest.json` or `zigux/tests/phase10_virtio_core_survey.zig`; reviewers should treat the core lane as a slice-note-plus-build-and-test packet until those files actually ship again
 
 ## Why this slice exists
 
@@ -39,6 +46,7 @@ This lane started from an empty `drivers/virtio/*.zig` footing. The live repo no
 - reset handling that clears queue callback registrations along with negotiated feature state
 - a transport-acceptance toggle so the Phase 10 gate can model both successful `FEATURES_OK` handshakes and refusal paths
 - dedicated Phase 10 tests and build wiring for the starter slice
+- an intentionally compact review packet: the current core lane is reviewed through this slice note plus `phase10_virtio_core.zig`, `phase10_build.zig`, and `make -C zigux phase10`, not through a separate core manifest or survey gate
 
 ## Roadmap Gap Snapshot
 
@@ -74,4 +82,4 @@ This slice does not yet claim:
 
 ## Next bounded step
 
-Leave the Phase 10 virtio core lane parked unless fresh repo inspection finds directly coupled drift in the lifecycle guard, reset replay, or paired test packet. Any future same-family move should stay tightly bounded around review-surface upkeep or a roadmap-backed transport-facing lifecycle study rather than widening into probe, remove, or MMIO glue work.
+Leave the Phase 10 virtio core lane parked unless fresh repo inspection finds directly coupled drift in the slice note, `zigux/tests/phase10_virtio_core.zig`, or the shared `phase10_build.zig` route. Any future same-family move should stay tightly bounded around this core-only review packet or a roadmap-backed transport-facing lifecycle study rather than widening into probe, remove, or MMIO glue work.
