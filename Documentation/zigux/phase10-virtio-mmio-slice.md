@@ -32,6 +32,14 @@ The live repo already had a survey lane that made the MMIO gap explicit. This sl
 - register-window validation that rejects unaligned, unsupported, and out-of-window offsets plus writes to read-only MMIO registers
 - dedicated Phase 10 tests and shared build wiring for the helper
 
+## Ownership Handoff
+
+This MMIO slice owns only driver-local lab slices and shared validation gates for the landed register, feature-word, config-window, queue-size, status, generation, and interrupt-staging helper surface.
+
+It does not own queue setup or reset paths, IRQ parity, DMA paths, input registration lifecycle, and probe or remove lifecycle behavior.
+
+Any attempt to reopen those blocked transport paths needs an Architecture Council reopen request with fresh linked evidence attached before this slice can claim broader ownership.
+
 ## Non-goals
 
 This slice does not yet claim:
