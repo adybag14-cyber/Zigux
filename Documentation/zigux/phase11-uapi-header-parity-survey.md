@@ -4,8 +4,8 @@
 
 - `PHASE11_HEADER_BOUNDARY_STATUS=shared_header_packet_restored`
 - `surveyed_commit=ee124761ef3ef5fcc6bb9cd8b7fe8d1fce326839`
-- lane: `P11-L16`
-- scope: keep the maintained shared UAPI header parity packet reviewable for `watchdog_info`, `winsize`, and the exported `hvc_*` helper surface without widening into tty-core or watchdog core ownership
+- lane: `P11-L18`
+- scope: keep the maintained shared UAPI header parity packet reviewable for `watchdog_info`, `winsize`, and the exported `hvc_console.h` helper declarations without widening into tty-core or watchdog core ownership
 
 ## Current Repo Reality
 
@@ -25,7 +25,7 @@
 - `phase11-dw-wdt-watchdog-header-boundary`: `struct watchdog_info` remains the bounded public watchdog header checkpoint.
 - `phase11-dw-wdt-watchdog-info-layout-assert`: size `40`, alignment `4`, field offsets `0`, `4`, and `8`.
 - `phase11-hvc-console-winsize-layout-assert`: `struct winsize` remains size `8`, alignment `2`, with field offsets `0`, `2`, `4`, and `6`.
-- `phase11-hvc-console-export-signature-assert`: the shared survey checks the exported `hvc_instantiate`, `hvc_alloc`, `hvc_remove`, `hvc_poll`, `hvc_kick`, `__hvc_resize`, `notifier_add_irq`, `notifier_del_irq`, and `notifier_hangup_irq` surface.
+- `phase11-hvc-console-export-signature-assert`: the shared survey checks the exact exported `hvc_instantiate`, `hvc_alloc`, `hvc_remove`, `hvc_poll`, `hvc_kick`, `__hvc_resize`, `notifier_add_irq`, `notifier_del_irq`, and `notifier_hangup_irq` declarations in `drivers/tty/hvc/hvc_console.h`.
 
 ## Shared Versus Dedicated Replay
 
@@ -35,6 +35,6 @@
 
 ## Why This Stays Bounded
 
-- The shared packet proves only public header and exported helper surface truthfulness.
+- The shared packet proves only public header and exported helper declaration truthfulness.
 - It does not claim tty registration parity, notifier execution, khvcd worker execution, live sysrq dispatch, or watchdog core integration.
 - Any new driver-local handoff belongs in the dedicated `hvc_console` or watchdog lanes instead of widening this shared packet.
