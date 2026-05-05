@@ -10,8 +10,8 @@ The current bridge stays intentionally narrow:
 - records checksum and segmentation surfaces around `__skb_checksum_complete()` and `skb_segment()` as metadata-heavy boundaries only
 - marks `skb_shared_info.dataref`, `skb_header_cloned()`, and the shared header-write rules as explicit stay-in-C decisions
 - marks `skb_release_head_state()`, `skb_release_data()`, and `consume_skb()` as explicit stay-in-C decisions tied to destructor callbacks and frag-list teardown
-- adds an eight-checkpoint lifetime audit outline that names dataref splits, clone-before-expand mutation, destructor ordering, checksum-complete state caching, segmentation orphan-frag or zerocopy handoff, segmentation checksum-metadata handoff, the partial-GSO tail-owner transfer, and the checksum-to-data-offset crossover while keeping all live ownership in C
+- adds a nine-checkpoint lifetime audit outline that names dataref splits, clone-before-expand mutation, destructor ordering, checksum-complete state caching, segmentation orphan-frag or zerocopy handoff, segmentation checksum-metadata handoff, the partial-GSO tail-owner transfer, the checksum-to-data-offset crossover, and the exported tail-publication consumer contract while keeping all live ownership in C
 
 This slice still does not claim live allocation, refcount transitions, header-write eligibility, destructor callbacks, frag-list teardown, checksum completion, segmentation behavior, or a direct `net/core/skbuff.c` rewrite.
 
-The next honest bounded step in this same lane is to study `skb_segment()` list-tail publication around `segs->prev`, the last-segment `gso_size` or `gso_segs` clamp, and the nearby `validate_xmit_skb_list()` consumer contract so the bridge records the remaining exported tail-list path without weakening the current boundary-map-only posture.
+After the exported tail-publication audit, no smaller review-only skbuff follow-up remains inside this bridge packet. The remaining live ownership, checksum, segmentation, qdisc-facing publication, and destructor coordination stays explicitly in C until stronger evidence changes the freeze posture.
