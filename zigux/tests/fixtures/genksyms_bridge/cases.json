@@ -116,6 +116,7 @@
     {
       "name": "help",
       "argv": [
+        "--version",
         "--hel"
       ],
       "mode": "process_json",
