@@ -150,3 +150,22 @@ test "phase 9 runtime bitmap survey note keeps the phase boundary and exact chec
     try std.testing.expect(std.mem.indexOf(u8, note, "descriptor contract: the sample still advertises `name=runtime_bitmap`, `anchor=lib/test_bitmap.c`, `requires_runtime_substrate=true`, and `provides_selftest_hook=true`") != null);
     try std.testing.expect(std.mem.indexOf(u8, note, "diff-gate replay: the bounded parity cases still cover the single-word fill starter, the `79..97` cross-boundary clear cutout, the sparse `10,20,30,40,50,60,80,123` population replay, and the copied `0..108` tail-clear snapshot with `first_zero=109`") != null);
 }
+
+test "phase 9 runtime bitmap module slice keeps the loader-backed survey packet explicit" {
+    var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
+    defer io_instance.deinit();
+
+    const note = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "Documentation/zigux/phase9-runtime-bitmap-module-slice.md",
+        std.testing.allocator,
+        .limited(32 * 1024),
+    );
+    defer std.testing.allocator.free(note);
+
+    try std.testing.expect(std.mem.indexOf(u8, note, "sample-side loader scaffold") != null);
+    try std.testing.expect(std.mem.indexOf(u8, note, "dedicated Phase 9 survey and test wiring") != null);
+    try std.testing.expect(std.mem.indexOf(u8, note, "Documentation/zigux/phase9-runtime-bitmap-survey.md") != null);
+    try std.testing.expect(std.mem.indexOf(u8, note, "samples/zigux/runtime_bitmap_loader.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, note, "zigux/tests/runtime_bitmap_survey.zig") != null);
+}
