@@ -31,6 +31,8 @@ REQUIRED_FILES = [
     "zigux/tests/phase7_cmdline_survey.zig",
     "zigux/tests/fixtures/phase7_cmdline_next_arg_vectors.zig",
     "zigux/tests/phase7_argv_split.zig",
+    "zigux/tests/phase7_argv_split_survey.zig",
+    "zigux/tests/phase7_argv_split_manifest.json",
     "zigux/tests/fixtures/phase7_argv_split_vectors.zig",
     "zigux/tests/phase7_rbtree.zig",
     "zigux/tests/phase7_rbtree_survey.zig",
@@ -134,6 +136,9 @@ REQUIRED_MARKERS = {
         "\"phase7_cmdline_survey.zig\"",
         "run_cmdline_survey_tests.setCwd(b.path(\"../..\"));",
         "phase7-argv-split-tests",
+        "phase7-argv-split-survey-tests",
+        "\"phase7_argv_split_survey.zig\"",
+        "run_argv_split_survey_tests.setCwd(b.path(\"../..\"));",
         "phase7-rbtree-tests",
         "phase7-rbtree-survey-tests",
         "run_rbtree_survey_tests.setCwd(b.path(\"../..\"));",
@@ -141,6 +146,11 @@ REQUIRED_MARKERS = {
     "zigux/tests/phase7_cmdline_survey.zig": [
         "zigux/tests/fixtures/phase7_cmdline_next_arg_vectors.zig",
         "const next_arg_vectors = @import(\"fixtures/phase7_cmdline_next_arg_vectors.zig\");",
+    ],
+    "zigux/tests/phase7_argv_split_survey.zig": [
+        "Documentation/zigux/phase7-argv-split-slice.md",
+        "zigux/tests/phase7_argv_split_manifest.json",
+        "PHASE7_LANE_KEY=",
     ],
     "zigux/tests/phase7_rbtree_survey.zig": [
         "scripts/zigux/validate-phase7.py",
@@ -160,6 +170,8 @@ FIXTURE_OVERRIDES = {
     "zigux/tests/phase7_cmdline.zig": "// fixture\n",
     "zigux/tests/fixtures/phase7_cmdline_next_arg_vectors.zig": "// fixture\n",
     "zigux/tests/phase7_argv_split.zig": "// fixture\n",
+    "zigux/tests/phase7_argv_split_survey.zig": "\n".join(REQUIRED_MARKERS["zigux/tests/phase7_argv_split_survey.zig"]) + "\n",
+    "zigux/tests/phase7_argv_split_manifest.json": "{}\n",
     "zigux/tests/fixtures/phase7_argv_split_vectors.zig": "// fixture\n",
     "zigux/tests/phase7_rbtree.zig": "// fixture\n",
     "zigux/tests/phase7_rbtree_manifest.json": "{}\n",
@@ -231,6 +243,8 @@ def run_self_test() -> None:
         ("missing_scripts_readme", "scripts/zigux/README.md"),
         ("missing_phase7_workflow", ".github/workflows/zigux-bootstrap.yml"),
         ("missing_argv_split_vectors_fixture", "zigux/tests/fixtures/phase7_argv_split_vectors.zig"),
+        ("missing_argv_split_survey", "zigux/tests/phase7_argv_split_survey.zig"),
+        ("missing_argv_split_manifest", "zigux/tests/phase7_argv_split_manifest.json"),
         ("missing_cmdline_next_arg_vectors_fixture", "zigux/tests/fixtures/phase7_cmdline_next_arg_vectors.zig"),
         ("missing_string_helpers_sample_boundary", "zigux/tests/phase7_string_helpers_sample_boundary.zig"),
         ("missing_cmdline_survey", "zigux/tests/phase7_cmdline_survey.zig"),
@@ -252,19 +266,23 @@ def run_self_test() -> None:
         ("argv_split_slice_checker_gate", "Documentation/zigux/phase7-argv-split-slice.md", "python3 scripts/zigux/check-phase7-argv-split-packet.py", "", "Documentation/zigux/phase7-argv-split-slice.md: python3 scripts/zigux/check-phase7-argv-split-packet.py"),
         ("cmdline_survey_fixture_path", "zigux/tests/phase7_cmdline_survey.zig", "zigux/tests/fixtures/phase7_cmdline_next_arg_vectors.zig", "", "zigux/tests/phase7_cmdline_survey.zig: zigux/tests/fixtures/phase7_cmdline_next_arg_vectors.zig"),
         ("cmdline_survey_fixture_import", "zigux/tests/phase7_cmdline_survey.zig", "const next_arg_vectors = @import(\"fixtures/phase7_cmdline_next_arg_vectors.zig\");", "const next_arg_vectors = @import(\"fixtures/phase7_cmdline_vectors_drift.zig\");", "zigux/tests/phase7_cmdline_survey.zig: const next_arg_vectors = @import(\"fixtures/phase7_cmdline_next_arg_vectors.zig\");"),
+        ("argv_split_survey_manifest_marker", "zigux/tests/phase7_argv_split_survey.zig", "zigux/tests/phase7_argv_split_manifest.json", "", "zigux/tests/phase7_argv_split_survey.zig: zigux/tests/phase7_argv_split_manifest.json"),
         ("rbtree_survey_validator_reference", "zigux/tests/phase7_rbtree_survey.zig", "scripts/zigux/validate-phase7.py", "", "zigux/tests/phase7_rbtree_survey.zig: scripts/zigux/validate-phase7.py"),
         ("cmdline_review_surface", "Documentation/zigux/phase7-cmdline-slice.md", "exact bare-option matching for comma-delimited flags", "", "Documentation/zigux/phase7-cmdline-slice.md: exact bare-option matching for comma-delimited flags"),
         ("tests_readme_phase7_rbtree_survey_marker", "zigux/tests/README.md", "zigux/tests/phase7_rbtree_survey.zig", "", "zigux/tests/README.md: zigux/tests/phase7_rbtree_survey.zig"),
         ("tests_readme_phase7_string_helpers_sample_boundary_marker", "zigux/tests/README.md", "zigux/tests/phase7_string_helpers_sample_boundary.zig", "", "zigux/tests/README.md: zigux/tests/phase7_string_helpers_sample_boundary.zig"),
         ("tests_readme_phase7_cmdline_survey_marker", "zigux/tests/README.md", "zigux/tests/phase7_cmdline_survey.zig", "", "zigux/tests/README.md: zigux/tests/phase7_cmdline_survey.zig"),
+        ("build_argv_split_survey_gate", "zigux/tests/phase7_build.zig", "phase7-argv-split-survey-tests", "", "zigux/tests/phase7_build.zig: phase7-argv-split-survey-tests"),
+        ("build_argv_split_survey_source", "zigux/tests/phase7_build.zig", "\"phase7_argv_split_survey.zig\"", "\"phase7_argv_split_survey_drift.zig\"", "zigux/tests/phase7_build.zig: \"phase7_argv_split_survey.zig\""),
+        ("build_argv_split_survey_cwd", "zigux/tests/phase7_build.zig", "run_argv_split_survey_tests.setCwd(b.path(\"../..\"));", "run_argv_split_survey_tests.setCwd(b.path(\".\"));", "zigux/tests/phase7_build.zig: run_argv_split_survey_tests.setCwd(b.path(\"../..\"));"),
         ("build_rbtree_survey_gate", "zigux/tests/phase7_build.zig", "phase7-rbtree-survey-tests", "", "zigux/tests/phase7_build.zig: phase7-rbtree-survey-tests"),
         ("build_string_helpers_sample_boundary_gate", "zigux/tests/phase7_build.zig", "phase7-string-helpers-sample-boundary-tests", "", "zigux/tests/phase7_build.zig: phase7-string-helpers-sample-boundary-tests"),
-        ("build_string_helpers_sample_boundary_source", "zigux/tests/phase7_build.zig", '"phase7_string_helpers_sample_boundary.zig"', '"phase7_string_helpers_sample_boundary_drift.zig"', 'zigux/tests/phase7_build.zig: "phase7_string_helpers_sample_boundary.zig"'),
-        ("build_string_helpers_sample_boundary_cwd", "zigux/tests/phase7_build.zig", 'run_string_helpers_sample_boundary_tests.setCwd(b.path("../.."));', 'run_string_helpers_sample_boundary_tests.setCwd(b.path("."));', 'zigux/tests/phase7_build.zig: run_string_helpers_sample_boundary_tests.setCwd(b.path("../.."));'),
+        ("build_string_helpers_sample_boundary_source", "zigux/tests/phase7_build.zig", "\"phase7_string_helpers_sample_boundary.zig\"", "\"phase7_string_helpers_sample_boundary_drift.zig\"", "zigux/tests/phase7_build.zig: \"phase7_string_helpers_sample_boundary.zig\""),
+        ("build_string_helpers_sample_boundary_cwd", "zigux/tests/phase7_build.zig", "run_string_helpers_sample_boundary_tests.setCwd(b.path(\"../..\"));", "run_string_helpers_sample_boundary_tests.setCwd(b.path(\".\"));", "zigux/tests/phase7_build.zig: run_string_helpers_sample_boundary_tests.setCwd(b.path(\"../..\"));"),
         ("build_cmdline_survey_gate", "zigux/tests/phase7_build.zig", "phase7-cmdline-survey-tests", "", "zigux/tests/phase7_build.zig: phase7-cmdline-survey-tests"),
-        ("build_cmdline_survey_source", "zigux/tests/phase7_build.zig", '"phase7_cmdline_survey.zig"', '"phase7_cmdline_survey_drift.zig"', 'zigux/tests/phase7_build.zig: "phase7_cmdline_survey.zig"'),
-        ("build_cmdline_survey_cwd", "zigux/tests/phase7_build.zig", 'run_cmdline_survey_tests.setCwd(b.path("../.."));', 'run_cmdline_survey_tests.setCwd(b.path("."));', 'zigux/tests/phase7_build.zig: run_cmdline_survey_tests.setCwd(b.path("../.."));'),
-        ("build_rbtree_survey_cwd", "zigux/tests/phase7_build.zig", 'run_rbtree_survey_tests.setCwd(b.path("../.."));', 'run_rbtree_survey_tests.setCwd(b.path("."));', 'zigux/tests/phase7_build.zig: run_rbtree_survey_tests.setCwd(b.path("../.."));'),
+        ("build_cmdline_survey_source", "zigux/tests/phase7_build.zig", "\"phase7_cmdline_survey.zig\"", "\"phase7_cmdline_survey_drift.zig\"", "zigux/tests/phase7_build.zig: \"phase7_cmdline_survey.zig\""),
+        ("build_cmdline_survey_cwd", "zigux/tests/phase7_build.zig", "run_cmdline_survey_tests.setCwd(b.path(\"../..\"));", "run_cmdline_survey_tests.setCwd(b.path(\".\"));", "zigux/tests/phase7_build.zig: run_cmdline_survey_tests.setCwd(b.path(\"../..\"));"),
+        ("build_rbtree_survey_cwd", "zigux/tests/phase7_build.zig", "run_rbtree_survey_tests.setCwd(b.path(\"../..\"));", "run_rbtree_survey_tests.setCwd(b.path(\".\"));", "zigux/tests/phase7_build.zig: run_rbtree_survey_tests.setCwd(b.path(\"../..\"));"),
     ]
 
     with tempfile.TemporaryDirectory(prefix="zigux_phase7_validator_") as tmp_dir_str:
@@ -282,8 +300,9 @@ def run_self_test() -> None:
             expect_missing_marker(case, tmp_root, expected)
             write_fixture_root(tmp_root)
 
+    case_count = len(missing_file_cases) + len(marker_cases)
     print("PHASE7_VALIDATOR_SELF_TEST=pass")
-    print("PHASE7_VALIDATOR_SELF_TEST_CASE_COUNT=37")
+    print(f"PHASE7_VALIDATOR_SELF_TEST_CASE_COUNT={case_count}")
 
 
 def main() -> int:
