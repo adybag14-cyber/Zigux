@@ -222,18 +222,18 @@ test "phase13 libfs transaction acquire planning stays page-bounded and single-w
     try std.testing.expectError(error.Busy, libfs.LibFsHelperLab.simpleTransactionGetPlan(8, true));
 }
 
-test "phase13 libfs transaction publish planning stays response-bounded and publish-only" {
+test "phase13 libfs transaction publish planning validates response size and publish bookkeeping" {
     const plan = try libfs.LibFsHelperLab.simpleTransactionSetPlan(libfs.simple_transaction_limit, true);
     try std.testing.expectEqualStrings("fs/libfs.c", plan.anchor);
-    try std.testing.expectEqual(libfs.simple_transaction_limit, plan.response_size);
+    try std.testing.expectEqual(libfs.simple_transaction_limit, plan.requested_response_size);
     try std.testing.expectEqual(libfs.simple_transaction_limit, plan.transaction_limit);
     try std.testing.expect(plan.requires_private_data);
-    try std.testing.expect(plan.uses_publish_barrier);
-    try std.testing.expect(plan.keeps_size_zero_until_ready);
+    try std.testing.expect(plan.publishes_after_barrier);
+    try std.testing.expectEqual(libfs.simple_transaction_limit, plan.published_response_size);
 
     const empty = try libfs.LibFsHelperLab.simpleTransactionSetPlan(0, true);
-    try std.testing.expectEqual(@as(usize, 0), empty.response_size);
+    try std.testing.expectEqual(@as(usize, 0), empty.published_response_size);
 
     try std.testing.expectError(error.InputTooLarge, libfs.LibFsHelperLab.simpleTransactionSetPlan(libfs.simple_transaction_limit + 1, true));
-    try std.testing.expectError(error.MissingTransactionBuffer, libfs.LibFsHelperLab.simpleTransactionSetPlan(8, false));
+    try std.testing.expectError(error.MissingPrivateData, libfs.LibFsHelperLab.simpleTransactionSetPlan(8, false));
 }
