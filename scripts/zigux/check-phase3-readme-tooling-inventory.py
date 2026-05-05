@@ -25,6 +25,7 @@ REQUIRED_HELPERS = (
     "validate_phase3_selftest.py",
     "check-phase3-selftest-surface.py",
     "check-phase3-readme-tooling-inventory.py",
+    "check-phase3-catalog-selftest.py",
     "validate-phase3-policy-unsafe-survey.py",
     "validate-phase3-low-level-wrapper-survey.py",
     "validate-phase4.py",
@@ -66,7 +67,7 @@ PHASE13_VALIDATE_HELPERS = (
 )
 
 REQUIRED_README_SNIPPETS = (
-    "- The live support packet inside that same validator-first route is `check-phase3-readme-tooling-inventory.py`, `validate-phase3-policy-unsafe-survey.py`, `validate-phase3-low-level-wrapper-survey.py`, `phase3_catalog.py`, `phase3_check_lib.py`, `generate-phase3-check-wrappers.py`, and `run-phase3-checks.py`; the generated `check-phase3-*.py` wrappers stay as compatibility entrypoints derived from the discovered slice catalog instead of a second hand-maintained survey list.",
+    "- The live support packet inside that same validator-first route is `check-phase3-readme-tooling-inventory.py`, `check-phase3-catalog-selftest.py`, `validate-phase3-policy-unsafe-survey.py`, `validate-phase3-low-level-wrapper-survey.py`, `phase3_catalog.py`, `phase3_check_lib.py`, `generate-phase3-check-wrappers.py`, and `run-phase3-checks.py`; the generated `check-phase3-*.py` wrappers stay as compatibility entrypoints derived from the discovered slice catalog instead of a second hand-maintained survey list.",
     "- there is no separate shared `validate-phase6.py`, external portability checker packet beyond `check-phase6-shared-surface.py`, or aggregated `phase6-perf` target on `master`; the shipped dedicated perf replay is `make -C zigux phase6-checksum-perf`, which keeps the checksum slowdown ceiling wired into a Linux-style entrypoint without overstating perf coverage for the rest of the Phase 6 helper packet.",
     "- there is no dedicated shared `validate-phase9.py`, `check-phase9-validation-flow.py`, `check-phase9-runtime-loader-commit-alignment.py`, or `phase9-validate` target on `master`; future runtime-pilot follow-through should stay inside the next smallest shared runtime-loader substrate, validation, or review-surface step that keeps those four loader handoffs plus the shared `zigux/kernel/runtime_loader.zig` facade and `zigux/kernel/runtime_loader_contract.zig` allocator/init-flow contract reviewable without widening into a larger runtime-module implementation.",
     "- there is no dedicated shared `validate-phase12.py`, `check-phase12-*.py`, or `phase12-validate` target on `master`; future Phase 12 reviewability claims should name only shipped survey, build, and make surfaces until new validator files actually land.",
@@ -291,12 +292,15 @@ def run_self_test() -> int:
 
         _write(
             root / README_REL,
-            baseline_readme.replace("- `validate-phase3.py`\n", "", 1),
+            baseline_readme.replace("- `check-phase3-catalog-selftest.py`\n", "", 1),
         )
         _assert_only(
             validate(root),
-            ["missing_readme_helper_entry:validate-phase3.py", "readme_helper_order_drift"],
-            "missing_helper_entry_guard_failed",
+            [
+                "missing_readme_helper_entry:check-phase3-catalog-selftest.py",
+                "readme_helper_order_drift",
+            ],
+            "missing_catalog_selftest_helper_entry_guard_failed",
         )
         _write(root / README_REL, baseline_readme)
         case_count += 1
@@ -304,18 +308,18 @@ def run_self_test() -> int:
         _write(
             root / README_REL,
             baseline_readme.replace(
-                "- `validate-phase3.py`\n",
-                "- `validate-phase3.py`\n- `validate-phase3.py`\n",
+                "- `check-phase3-catalog-selftest.py`\n",
+                "- `check-phase3-catalog-selftest.py`\n- `check-phase3-catalog-selftest.py`\n",
                 1,
             ),
         )
         _assert_only(
             validate(root),
             [
-                "duplicate_readme_helper_entry:validate-phase3.py",
+                "duplicate_readme_helper_entry:check-phase3-catalog-selftest.py",
                 "readme_helper_order_drift",
             ],
-            "duplicate_helper_entry_guard_failed",
+            "duplicate_catalog_selftest_helper_entry_guard_failed",
         )
         _write(root / README_REL, baseline_readme)
         case_count += 1
