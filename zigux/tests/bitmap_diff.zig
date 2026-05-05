@@ -525,6 +525,32 @@ test "bitmap diff gate records exact bounded copy checks" {
             .must_be_clear = &.{ 19, 22, 23, BitmapHarness.bitmap_nbits - 1 },
         },
         .{
+            .name = "test_copy full-width replay from a cleared destination",
+            .source_set_len = 109,
+            .copy_nbits = BitmapHarness.bitmap_nbits,
+            .destination_init = .zero,
+            .expected_summary = .{
+                .first_set = 0,
+                .first_zero = 109,
+                .weight = 109,
+            },
+            .must_be_set = &.{ 0, 108 },
+            .must_be_clear = &.{ 109, 127, BitmapHarness.bitmap_nbits - 1 },
+        },
+        .{
+            .name = "test_copy full-width replay clears a pre-filled destination",
+            .source_set_len = 109,
+            .copy_nbits = BitmapHarness.bitmap_nbits,
+            .destination_init = .fill,
+            .expected_summary = .{
+                .first_set = 0,
+                .first_zero = 109,
+                .weight = 109,
+            },
+            .must_be_set = &.{ 0, 108 },
+            .must_be_clear = &.{ 109, 127, BitmapHarness.bitmap_nbits - 1 },
+        },
+        .{
             .name = "test_copy partial-word tail clearing at 109 bits",
             .source_set_len = 109,
             .copy_nbits = 109,
@@ -579,11 +605,13 @@ test "bitmap diff gate keeps the current bounded source inventory explicit" {
     try expectSourceCaseGroupCardinality(
         "const cases = [_]CopyCase{",
         "test \"bitmap diff gate keeps a deterministic threshold replay batch ready for future perf baselines\"",
-        5,
+        7,
     );
     try expectMarker(bitmap_diff_source, "test_fill_set bitmap_fill keeps the exact 35-bit prefix");
     try expectMarker(bitmap_diff_source, "test_fill_set bitmap_fill keeps the exact 115-bit prefix");
     try expectMarker(bitmap_diff_source, "test_copy exact 23-bit replay clears the stale tail in the destination word");
+    try expectMarker(bitmap_diff_source, "test_copy full-width replay from a cleared destination");
+    try expectMarker(bitmap_diff_source, "test_copy full-width replay clears a pre-filled destination");
     try expectMarker(bitmap_diff_source, "test_zero_nbits zero-length copy leaves destination unchanged");
     try expectMarker(bitmap_diff_source, "try std.testing.expectEqual(@as(u64, 6872226231820490607), single.checksum);");
     try expectMarker(bitmap_diff_source, "try std.testing.expectEqual(@as(u64, 17675807730989546160), repeated.checksum);");
