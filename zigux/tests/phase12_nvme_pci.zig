@@ -7,6 +7,7 @@ test "phase12 nvme pci descriptor and admin queue plan stay anchored to pci.c" {
     try std.testing.expectEqualStrings("drivers/nvme/host/pci.c", descriptor.anchor);
     try std.testing.expect(descriptor.provides_lab_queue_planner);
     try std.testing.expect(descriptor.provides_prp_metadata_helper);
+    try std.testing.expect(descriptor.provides_recovery_replay_helper);
     try std.testing.expect(!descriptor.touches_live_dma);
     try std.testing.expect(!descriptor.touches_pci_probe);
     try std.testing.expect(!descriptor.touches_irq_recovery);
@@ -136,6 +137,76 @@ test "phase12 nvme pci prp metadata helper respects reset freeze and resumes aft
     try std.testing.expectEqual(@as(u32, 20480), metadata.total_dma_bytes);
     try std.testing.expect(metadata.requires_descriptor_rebuild_after_reset);
     try std.testing.expectEqual(@as(u32, 1), metadata.reset_generation);
+}
+
+test "phase12 nvme pci recovery replay summary marks cached metadata stale during and after reset" {
+    var lab = try nvme_pci.NvmePciQueueLab.init(4096, 8);
+    _ = try lab.planAdminQueue(48, 64, false);
+    _ = try lab.planIoQueue(16, 64, false);
+    _ = try lab.planIoQueue(32, 64, true);
+    _ = try lab.planPrpMetadata(8192, 0x180);
+
+    _ = lab.beginReset();
+    const frozen_summary = lab.summarizeRecoveryReplay(.{
+        .cached_prp_metadata_generation = 0,
+        .had_admin_queue_plan = true,
+    });
+    try std.testing.expectEqualStrings("drivers/nvme/host/pci.c", frozen_summary.anchor);
+    try std.testing.expectEqual(nvme_pci.RecoveryState.reset_frozen, frozen_summary.state);
+    try std.testing.expectEqual(@as(u32, 1), frozen_summary.reset_generation);
+    try std.testing.expect(frozen_summary.queue_planning_blocked);
+    try std.testing.expect(frozen_summary.cached_prp_metadata_stale);
+    try std.testing.expect(frozen_summary.admin_queue_must_be_replanned);
+    try std.testing.expect(frozen_summary.io_queues_must_be_rebuilt);
+    try std.testing.expectEqual(@as(usize, 2), frozen_summary.io_queues_dropped_by_reset);
+    try std.testing.expectEqual(@as(u16, 3), frozen_summary.next_io_queue_id);
+    try std.testing.expectEqual(@as(u16, 48), frozen_summary.last_admin_queue_depth);
+
+    _ = lab.completeReset();
+    const replay_summary = lab.summarizeRecoveryReplay(.{
+        .cached_prp_metadata_generation = 0,
+        .had_admin_queue_plan = true,
+    });
+    try std.testing.expectEqual(nvme_pci.RecoveryState.running, replay_summary.state);
+    try std.testing.expect(!replay_summary.queue_planning_blocked);
+    try std.testing.expect(replay_summary.cached_prp_metadata_stale);
+    try std.testing.expect(replay_summary.admin_queue_must_be_replanned);
+    try std.testing.expect(replay_summary.io_queues_must_be_rebuilt);
+    try std.testing.expectEqual(@as(usize, 2), replay_summary.io_queues_dropped_by_reset);
+    try std.testing.expectEqual(@as(u16, 1), replay_summary.next_io_queue_id);
+    try std.testing.expectEqual(@as(u16, 48), replay_summary.last_admin_queue_depth);
+}
+
+test "phase12 nvme pci recovery replay summary clears rollback gate after helper refresh" {
+    var lab = try nvme_pci.NvmePciQueueLab.init(4096, 8);
+    _ = try lab.planAdminQueue(32, 64, false);
+
+    const before_reset = lab.summarizeRecoveryReplay(.{
+        .cached_prp_metadata_generation = 0,
+        .had_admin_queue_plan = true,
+    });
+    try std.testing.expectEqual(nvme_pci.RecoveryState.running, before_reset.state);
+    try std.testing.expect(!before_reset.queue_planning_blocked);
+    try std.testing.expect(!before_reset.cached_prp_metadata_stale);
+    try std.testing.expect(!before_reset.admin_queue_must_be_replanned);
+    try std.testing.expect(!before_reset.io_queues_must_be_rebuilt);
+    try std.testing.expectEqual(@as(usize, 0), before_reset.io_queues_dropped_by_reset);
+    try std.testing.expectEqual(@as(u16, 1), before_reset.next_io_queue_id);
+    try std.testing.expectEqual(@as(u16, 32), before_reset.last_admin_queue_depth);
+
+    _ = lab.beginReset();
+    _ = lab.completeReset();
+    const current_generation = lab.recoverySummary().reset_generation;
+    const after_refresh = lab.summarizeRecoveryReplay(.{
+        .cached_prp_metadata_generation = current_generation,
+        .had_admin_queue_plan = false,
+    });
+    try std.testing.expectEqual(@as(u32, 1), after_refresh.reset_generation);
+    try std.testing.expect(!after_refresh.cached_prp_metadata_stale);
+    try std.testing.expect(!after_refresh.admin_queue_must_be_replanned);
+    try std.testing.expect(!after_refresh.io_queues_must_be_rebuilt);
+    try std.testing.expectEqual(@as(usize, 0), after_refresh.io_queues_dropped_by_reset);
+    try std.testing.expectEqual(@as(u16, 1), after_refresh.next_io_queue_id);
 }
 
 test "phase12 nvme pci rejects invalid queue geometry and excessive io queue plans" {
