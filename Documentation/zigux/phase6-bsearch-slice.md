@@ -4,9 +4,10 @@ This document starts a bounded Phase 6 leaf-helper validation slice for Zigux.
 
 ## Status
 
-- `PHASE6_STATUS=active`
+- `PHASE6_STATUS=parked`
 - `PHASE6_SLICE=bsearch-leaf-helper`
 - scope: first low-risk binary-search helper coverage only
+- lane state: helper and fixture slice landed; parked unless a new `bsearch.c` parity issue appears
 - product boundary:
   - `lib/bsearch.zig`
   - `zigux/tests/phase6_bsearch.zig`
@@ -57,4 +58,4 @@ This slice does not yet claim:
 
 ## Next bounded step
 
-Decide whether the Phase 6 bsearch lane can be closed as complete, or whether it still needs a tiny external parity fixture sourced from kernel-side `bsearch` coverage before parking the helper.
+Keep the next Phase 6 follow-up inside the shared bundled `base64`, `bsearch`, `checksum`, and `hexdump` packet already gated by `zigux/tests/phase6_build.zig` and `make -C zigux phase6`. Reopen this slice only if fresh repo inspection finds a concrete new `bsearch.c` parity gap inside `lib/bsearch.zig`, `zigux/tests/phase6_bsearch.zig`, or that existing bundled gate.
