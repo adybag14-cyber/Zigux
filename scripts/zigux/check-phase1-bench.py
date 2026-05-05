@@ -32,6 +32,16 @@ EXPECTED_CHECKSUMS = [
 ]
 
 
+class DuplicateTrackingDict(dict[str, object]):
+    def __init__(self, pairs: list[tuple[str, object]]) -> None:
+        super().__init__()
+        self.duplicate_keys: list[str] = []
+        for key, value in pairs:
+            if key in self and key not in self.duplicate_keys:
+                self.duplicate_keys.append(key)
+            self[key] = value
+
+
 def run(cmd: list[str], **kwargs) -> subprocess.CompletedProcess[str]:
     return subprocess.run(cmd, check=True, text=True, **kwargs)
 
@@ -58,9 +68,23 @@ def parse_output(stdout: str) -> tuple[dict[str, str], dict[str, int]]:
     return parsed, counts
 
 
+def load_expectations(path: Path) -> object:
+    return load_expectations_text(path.read_text(encoding='utf-8'))
+
+
+def load_expectations_text(text: str) -> object:
+    return json.loads(
+        text,
+        object_pairs_hook=DuplicateTrackingDict,
+    )
+
+
 def validate_expectations(expectations: object) -> tuple[str, object]:
     if not isinstance(expectations, dict):
         return ('expectations_type', type(expectations).__name__)
+
+    if isinstance(expectations, DuplicateTrackingDict) and expectations.duplicate_keys:
+        return ('expectations_duplicate_keys', expectations.duplicate_keys)
 
     if expectations.get('status') != 'pass':
         return ('expectations_status', expectations.get('status'))
@@ -68,6 +92,8 @@ def validate_expectations(expectations: object) -> tuple[str, object]:
     iterations = expectations.get('iterations')
     if not isinstance(iterations, dict):
         return ('expectations_iterations_type', type(iterations).__name__)
+    if isinstance(iterations, DuplicateTrackingDict) and iterations.duplicate_keys:
+        return ('expectations_duplicate_iteration_keys', iterations.duplicate_keys)
 
     actual_iteration_keys = set()
     for key, value in iterations.items():
@@ -353,8 +379,22 @@ def run_self_test() -> None:
     assert kind == 'expectations_unexpected_checksums'
     assert payload == ['PHASE1_BENCH_FAKE_CHECKSUM']
 
+    duplicate_root_key_expectations = load_expectations_text(
+        '{"status":"pass","status":"fail","iterations":{"PHASE1_BENCH_BITMAP_WEIGHT_ITERATIONS":20000,"PHASE1_BENCH_BITMAP_WINDOW_ITERATIONS":20000,"PHASE1_BENCH_FIND_NEXT_BIT_ITERATIONS":20000,"PHASE1_BENCH_STRING_ITERATIONS":40000,"PHASE1_BENCH_HWEIGHT_ITERATIONS":100000,"PHASE1_BENCH_LIST_SORT_ITERATIONS":1000,"PHASE1_BENCH_RBTREE_ITERATIONS":4000},"checksums":["PHASE1_BENCH_BITMAP_WEIGHT_CHECKSUM","PHASE1_BENCH_BITMAP_WINDOW_CHECKSUM","PHASE1_BENCH_FIND_NEXT_BIT_CHECKSUM","PHASE1_BENCH_STRING_CHECKSUM","PHASE1_BENCH_HWEIGHT_CHECKSUM","PHASE1_BENCH_LIST_SORT_CHECKSUM","PHASE1_BENCH_RBTREE_CHECKSUM"]}'
+    )
+    kind, payload = validate_expectations(duplicate_root_key_expectations)
+    assert kind == 'expectations_duplicate_keys'
+    assert payload == ['status']
+
+    duplicate_iteration_key_expectations = load_expectations_text(
+        '{"status":"pass","iterations":{"PHASE1_BENCH_BITMAP_WEIGHT_ITERATIONS":20000,"PHASE1_BENCH_BITMAP_WEIGHT_ITERATIONS":20001,"PHASE1_BENCH_BITMAP_WINDOW_ITERATIONS":20000,"PHASE1_BENCH_FIND_NEXT_BIT_ITERATIONS":20000,"PHASE1_BENCH_STRING_ITERATIONS":40000,"PHASE1_BENCH_HWEIGHT_ITERATIONS":100000,"PHASE1_BENCH_LIST_SORT_ITERATIONS":1000,"PHASE1_BENCH_RBTREE_ITERATIONS":4000},"checksums":["PHASE1_BENCH_BITMAP_WEIGHT_CHECKSUM","PHASE1_BENCH_BITMAP_WINDOW_CHECKSUM","PHASE1_BENCH_FIND_NEXT_BIT_CHECKSUM","PHASE1_BENCH_STRING_CHECKSUM","PHASE1_BENCH_HWEIGHT_CHECKSUM","PHASE1_BENCH_LIST_SORT_CHECKSUM","PHASE1_BENCH_RBTREE_CHECKSUM"]}'
+    )
+    kind, payload = validate_expectations(duplicate_iteration_key_expectations)
+    assert kind == 'expectations_duplicate_iteration_keys'
+    assert payload == ['PHASE1_BENCH_BITMAP_WEIGHT_ITERATIONS']
+
     print('PHASE1_BENCH_CHECK_SELF_TEST=pass')
-    print('PHASE1_BENCH_CHECK_SELF_TEST_CASE_COUNT=19')
+    print('PHASE1_BENCH_CHECK_SELF_TEST_CASE_COUNT=21')
 
 
 def main() -> int:
@@ -368,7 +408,7 @@ def main() -> int:
         return 0
 
     try:
-        expectations = json.loads(EXPECTATIONS.read_text(encoding='utf-8'))
+        expectations = load_expectations(EXPECTATIONS)
     except json.JSONDecodeError as exc:
         print('PHASE1_BENCH_CHECK=fail')
         print(f'EXPECTATIONS_JSON_ERROR={exc.msg}')
@@ -385,9 +425,23 @@ def main() -> int:
         print('PHASE1_BENCH_CHECK=fail')
         print(f'EXPECTATIONS_STATUS={payload}')
         return 1
+    if kind == 'expectations_duplicate_keys':
+        print('PHASE1_BENCH_CHECK=fail')
+        print('DUPLICATE_EXPECTATION_KEYS_START')
+        for key in payload:
+            print(key)
+        print('DUPLICATE_EXPECTATION_KEYS_END')
+        return 1
     if kind == 'expectations_iterations_type':
         print('PHASE1_BENCH_CHECK=fail')
         print(f'EXPECTATIONS_ITERATIONS_TYPE={payload}')
+        return 1
+    if kind == 'expectations_duplicate_iteration_keys':
+        print('PHASE1_BENCH_CHECK=fail')
+        print('DUPLICATE_EXPECTATION_ITERATION_KEYS_START')
+        for key in payload:
+            print(key)
+        print('DUPLICATE_EXPECTATION_ITERATION_KEYS_END')
         return 1
     if kind == 'expectations_iteration_key_type':
         print('PHASE1_BENCH_CHECK=fail')
