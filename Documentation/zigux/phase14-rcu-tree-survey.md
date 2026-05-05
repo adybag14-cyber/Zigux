@@ -36,16 +36,25 @@ It is to make the blocked state reviewable and record the stay-in-C checklist se
 - `kernel/rcu/update.c` remains a nearby consumer of the same RCU state machine, which makes a one-file bridge story misleading.
 - `Documentation/RCU/Design/Requirements/Requirements.rst` and `Documentation/RCU/Design/Memory-Ordering/Tree-RCU-Memory-Ordering.rst` reinforce that Tree RCU correctness depends on ordering and quiescent-state guarantees, not only on symbol cataloging.
 - the live repo already had `zigux/tests/phase14_build.zig`, `zigux/Makefile` Phase 14 wiring, `Documentation/zigux/freeze-map.md`, the workqueue bridge lane, the ring-buffer survey lane, and the skbuff bridge lane, so the highest-value non-overlapping RCU step remains a survey package that records why the roadmap destination stays blocked.
-- the current manifest now records a landed freeze-boundary checklist around grace-period sequence publication, expedited-GP funnel or stall behavior, NOCB bypass or wakeup handoffs, idle-watch re-entry and core invocation, quiescent-state propagation plus callback acceleration, callback enqueue plus batch invocation, callback offload, public wait and barrier APIs, CPU hotplug and callback migration, and the rollback threshold that governs any future reopen attempt.
+- the current manifest now records a landed freeze-boundary checklist around grace-period sequence publication, the memory-ordering lock network, expedited-GP funnel or stall behavior, NOCB bypass or wakeup handoffs, idle-watch re-entry and core invocation, quiescent-state propagation plus callback acceleration, callback enqueue plus batch invocation, callback offload, public wait and barrier APIs, CPU hotplug and callback migration, and the rollback threshold that governs any future reopen attempt.
 
 ## Decision checklist
 - landed `phase14-rcu-tree-boundary-decision-checklist`
 - `grace-period-sequence-publication`: keep `rcu_start_this_gp()`, `rcu_gp_init()`, and `__note_gp_changes()` in C because `gp_seq`, `qsmask`, and `rcu_node` propagation remain coupled to the live hierarchy and ordering rules.
+- `memory-ordering-lock-network`: keep `raw_spin_lock_rcu_node()`, `smp_mb__after_unlock_lock()`, and `smp_store_release()` in C because Tree RCU's grace-period ordering guarantee still depends on the documented `rcu_node` lock network, GP publication stores, polling-order semantics, and CPU-hotplug publication rules rather than a detachable wrapper contract.
 - `expedited-funnel-and-stall-path`: keep `sync_rcu_exp_select_cpus()`, `synchronize_rcu_expedited_wait_once()`, and `rcu_exp_gp_seq_end()` in C because CPU selection, IPI forcing, timeout handling, and sequence serialization still move together.
 - `nocb-offload-wakeup-handoff`: keep `rcu_nocb_bypass_lock()`, `wake_nocb_gp_defer()`, and `do_nocb_deferred_wakeup()` in C because bypass pressure, kthread wakeups, and deferred GP signaling are still part of the same offload state machine.
 - `idle-watch-reentry-and-core-invocation`: keep `rcu_is_watching()`, `rcu_watching_snap_save()`, and `invoke_rcu_core()` in C because extended-quiescent-state detection still depends on per-CPU watching state, remote dyntick snapshot ordering, and the same live choice between softirq and rcuc-kthread wakeups.
 - `quiescent-state-propagation-and-callback-acceleration`: keep `rcu_report_qs_rnp()`, `note_gp_changes()`, and `rcu_accelerate_cbs()` in C because quiescent-state reporting still walks the locked `rcu_node` tree, `note_gp_changes()` still folds GP transitions into per-CPU callback state, and callback acceleration still depends on segmented callback lists plus offload state.
 - `callback-enqueue-and-batch-invocation`: keep `__call_rcu_common()`, `call_rcu_core()`, and `rcu_do_batch()` in C because callback enqueue still routes through per-CPU segmented callback lists, overload tracking, NOCB offload selection, grace-period forcing, and time-bounded callback invocation.
+
+## Memory-ordering network follow-up
+
+This run closes one narrower ordering-boundary gap without changing the blocked bridge posture.
+- `Documentation/RCU/Design/Memory-Ordering/Tree-RCU-Memory-Ordering.rst` does not describe a detachable helper seam. It documents the `rcu_node` lock-ordering network itself, including the way `raw_spin_lock_rcu_node()` acquisition relies on `smp_mb__after_unlock_lock()` so ordering can propagate across the live hierarchy instead of through a small wrapper boundary.
+- `rcu_gp_init()` and the hotplug-side `rcutree_report_cpu_starting()` path still publish shared state with `smp_store_release()`, which means grace-period startup, CPU enrollment, and the visibility rules for later polling or callback paths still travel through the same core ordering contract.
+- `kernel/rcu/update.c` keeps that same contract user-visible through `synchronize_rcu()`, `start_poll_synchronize_rcu()`, and `poll_state_synchronize_rcu_full()`, and the memory-ordering document explicitly calls out those polling primitives as consumers of the same grace-period ordering guarantee.
+The net result is still survey-only: the lock-ordering network, GP publication stores, and polling-order semantics remain explicitly in C, not as a new opening for `kernel/rcu/tree_bridge.zig`.
 
 ## Callback offload and wakeup follow-up
 
@@ -112,6 +121,7 @@ The current lane state is:
 - landed `phase14-rcu-tree-idle-watch-followup`
 - landed `phase14-rcu-tree-public-wait-and-barrier-followup`
 - landed `phase14-rcu-tree-cpu-hotplug-followup`
+- landed `phase14-rcu-tree-memory-ordering-followup`
 - landed `phase14-rcu-tree-rollback-threshold-guardrail`
 - blocked `phase14-rcu-tree-bridge-blocker`
 
