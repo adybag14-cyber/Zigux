@@ -159,6 +159,20 @@ const BitmapHarness = struct {
         return total;
     }
 
+    fn findNthSet(self: *const Self, nbits: u32, nth: u32) !u32 {
+        if (nbits > bitmap_nbits) return error.BitRangeOutOfBounds;
+
+        var seen: u32 = 0;
+        var bit: u32 = 0;
+        while (bit < nbits) : (bit += 1) {
+            if (!self.isSet(bit)) continue;
+            if (seen == nth) return bit;
+            seen += 1;
+        }
+
+        return nbits;
+    }
+
     fn summary(self: *const Self) SummaryExpectation {
         return .{
             .first_set = self.firstSet(),
@@ -232,6 +246,16 @@ fn expectCopyCase(case: CopyCase) !void {
     for (case.must_be_clear) |bit| {
         try std.testing.expect(!destination.isSet(bit));
     }
+}
+
+fn expectNthCase(bits: []const u32, nbits: u32, expected: []const u32) !void {
+    var bitmap = BitmapHarness{};
+    try bitmap.initWithSetBits(bits);
+
+    for (expected, 0..) |bit, nth| {
+        try std.testing.expectEqual(bit, try bitmap.findNthSet(nbits, @intCast(nth)));
+    }
+    try std.testing.expectEqual(nbits, try bitmap.findNthSet(nbits, @intCast(expected.len)));
 }
 
 // Keep one deterministic batch available so a future bitmap threshold lane can
@@ -403,6 +427,12 @@ test "bitmap diff gate replays bounded lib/test_bitmap.c range expectations" {
     for (cases) |case| {
         try expectCase(case);
     }
+}
+
+test "bitmap diff gate records exact bounded find_nth_bit checks" {
+    const starter_bits = [_]u32{ 10, 20, 30, 40, 50, 60, 80, 123 };
+    try expectNthCase(&starter_bits, 64 * 3, &starter_bits);
+    try expectNthCase(&starter_bits, 64 * 3 - 1, &starter_bits);
 }
 
 test "bitmap diff gate records exact bounded copy checks" {
