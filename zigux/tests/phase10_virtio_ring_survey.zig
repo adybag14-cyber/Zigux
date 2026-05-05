@@ -71,12 +71,13 @@ test "phase10 virtio ring survey manifest records the live queue-wrapper gap and
     defer parsed.deinit();
 
     const manifest = parsed.value;
-    try std.testing.expectEqualStrings("P10-L08", manifest.lane_key);
+    try std.testing.expectEqualStrings("P10-L07", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 10", manifest.phase);
     try std.testing.expectEqualStrings("drivers/virtio/virtio_ring.c", manifest.anchor);
     try std.testing.expectEqualStrings("e42103fc02f544e1bd23a5ec2e5b584734f5af7d", manifest.surveyed_commit);
-    try std.testing.expectEqual(@as(usize, 2), manifest.roadmap_destinations.len);
+    try std.testing.expectEqual(@as(usize, 3), manifest.roadmap_destinations.len);
     try std.testing.expect(containsString(manifest.roadmap_destinations, "drivers/virtio/*.zig"));
+    try std.testing.expect(containsString(manifest.roadmap_destinations, "zigux/kernel/"));
     try std.testing.expect(containsString(manifest.roadmap_destinations, "zigux/helpers/"));
     try std.testing.expectEqualStrings("Documentation/zigux/freeze-map.md", manifest.freeze_map);
     try std.testing.expectEqualStrings("aligned", manifest.freeze_boundary_status);
@@ -117,10 +118,14 @@ test "phase10 virtio ring survey manifest records the live queue-wrapper gap and
     );
     defer std.testing.allocator.free(survey_note);
 
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "lane: `P10-L07`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, manifest.surveyed_commit) != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "`Documentation/zigux/freeze-map.md`") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "freeze-boundary owner: `P10-L10`") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "rollback owner") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "`drivers/virtio/*.zig`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "`zigux/kernel/`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "`zigux/helpers/`") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "`kernel/workqueue.c`") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "`kernel/trace/ring_buffer.c`") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "freeze-map status change") != null);
