@@ -78,6 +78,8 @@ When the shared-versus-dedicated replay contract changes, keep these contributor
 - `Documentation/zigux/phase11-bcm2835-wdt-validation-matrix.md`
 - `Documentation/zigux/phase11-dw-wdt-validation-matrix.md`
 - `Documentation/zigux/phase11-hvc-console-validation-matrix.md`
+- `Documentation/zigux/phase11-hvc-console-survey.md`
+- `Documentation/zigux/phase11-uapi-header-parity-survey.md`
 - `Documentation/zigux/review-checklist.md`
 - `Documentation/zigux/phase10-phase11-phase13-validator-first-review-guide.md`
 - `Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md`
@@ -86,7 +88,7 @@ When the shared-versus-dedicated replay contract changes, keep these contributor
 
 Those surfaces are where contributors usually discover the Phase 11 route before they open the deeper packet notes, so any replay-contract change should stay explicit there as well.
 
-The four driver-local validation matrices belong in that same sync set because each roadmap-backed driver lane names the shared Phase 11 replay route there; if the shared replay contract changes without those matrix notes moving too, the contributor-facing matrix packet starts undercounting the live simple-driver tranche.
+The four driver-local validation matrices, the dedicated `Documentation/zigux/phase11-hvc-console-survey.md` archival note, and `Documentation/zigux/phase11-uapi-header-parity-survey.md` belong in that same sync set because those packet-local docs name the shared Phase 11 replay route, the dedicated archival `hvc_console` boundary, and the paired header-parity guard in contributor-facing form; if the shared replay contract changes without those notes moving too, the Phase 11 docs packet starts undercounting the live simple-driver tranche.
 
 In particular, the `zigux/tests/README.md` Phase 11 guidance already keeps the four shared split and adjunct replays plus `scripts/zigux/check-phase11-header-boundary-packet.py` explicit, while the Phase 11 key entrypoint inventory carries the four driver-local manifests and the paired UAPI header-parity manifest. When that tests-root guidance is refreshed again, those manifest names should stay explicit in the same guidance packet too so the tests-root carryover prompt matches the shared contract note, the validator-first guide, and the tests-root review companion.
 
