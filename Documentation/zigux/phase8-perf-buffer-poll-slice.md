@@ -21,16 +21,19 @@ The `perf_buffer__poll(timeout_ms)` path is a reasonable bounded adjunct because
 
 ## Gates
 
-1. run the focused Zig module tests
-- `zig test tools/lib/bpf/zigux_segments/perf_buffer_poll.zig`
+1. run the shared Phase 8 validator self-test
+- `python3 scripts/zigux/validate-phase8.py --self-test`
 
-2. run the focused Phase 8 perf-buffer poll shard
-- `zig build test --build-file zigux/tests/phase8_perf_buffer_poll_only_build.zig --summary all`
+2. run the shared Phase 8 validator
+- `python3 scripts/zigux/validate-phase8.py`
 
-3. run the dedicated Phase 8 tooling gate
-- `zig build test --build-file zigux/tests/phase8_build.zig`
+3. run the focused Phase 8 perf-buffer poll shard
+- `make -C zigux phase8-perf-buffer-poll-test`
 
-4. run the convenience target
+4. run the shared Phase 8 tooling replay
+- `make -C zigux phase8-test`
+
+5. run the convenience target
 - `make -C zigux phase8`
 
 ## Current parity surface
