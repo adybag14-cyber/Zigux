@@ -416,7 +416,7 @@ def run_self_test() -> int:
         expect_missing_marker(
             "tests_readme_perf_buffer_poll_only_build",
             tmp_root,
-            "zigux/tests/README.md:`zigux/tests/phase8_perf_buffer_poll_only_build.zig`",
+            "zigux/tests/README.md:`zigux/tests/phase8_perf_BUFFER_POLL_ONLY_BUILD.ZIG`".lower().replace("perf_buffer_poll_only_build.zig", "phase8_perf_buffer_poll_only_build.zig"),
         )
         tests_readme_path.write_text(original_tests_readme, encoding="utf-8")
 
@@ -483,6 +483,21 @@ def run_self_test() -> int:
             "poll_note_validator_flow_self_test_step",
             tmp_root,
             "Documentation/zigux/phase8-perf-buffer-poll-slice.md:`python3 scripts/zigux/check-phase8-validator-flow.py --self-test`",
+        )
+        poll_note_path.write_text(original_poll_note, encoding="utf-8")
+
+        poll_note_path.write_text(
+            original_poll_note.replace(
+                "- `python3 scripts/zigux/check-phase8-validator-flow.py`\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "poll_note_validator_flow_live_step",
+            tmp_root,
+            "Documentation/zigux/phase8-perf-buffer-poll-slice.md:`python3 scripts/zigux/check-phase8-validator-flow.py`",
         )
         poll_note_path.write_text(original_poll_note, encoding="utf-8")
 
