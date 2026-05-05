@@ -249,6 +249,8 @@ test "phase11 bcm2835_wdt survey docs keep the landed validation matrix and next
     try std.testing.expect(std.mem.indexOf(u8, slice_note, "add a tiny hardware-validation matrix") == null);
 
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase11-bcm2835-wdt-validation-matrix.md") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "Current scheduled bcm2835 watchdog continuity for this archived packet stays with `P11-L08`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "unrelated `P11-L10` DesignWare watchdog lane") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "hardware validation coverage beyond the bounded matrix") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "focused survey gate now reads the live driver, dedicated test, and shared Phase 11 build packet directly") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "tiny platform-facing handoff note") != null);
