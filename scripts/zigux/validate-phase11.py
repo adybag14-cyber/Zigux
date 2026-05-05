@@ -190,6 +190,7 @@ TESTS_README_MARKERS = [
     "shared-versus-dedicated replay boundary",
     "shared header packet as the docs-root and validator-first packet.",
     "`scripts/zigux/check-phase11-header-boundary-packet.py` keeps the shared header-boundary packet explicit beside that split.",
+    "Phase 11: do `Documentation/zigux/phase11-shared-replay-contract.md`, `scripts/zigux/check-phase11-build-inventory.py`, `scripts/zigux/check-phase11-layout-assert-surface.py`, `scripts/zigux/check-phase11-hvc-validation-flow.py`, `scripts/zigux/check-phase11-hvc-cleanup-alignment.py`, `scripts/zigux/check-phase11-shared-replay-contract.py`, `scripts/zigux/check-phase11-header-boundary-packet.py`, `zigux/tests/phase11_build.zig`, `zigux/tests/phase11_dw_wdt_suspend_resume.zig`, `zigux/tests/phase11_dw_wdt_remove_idle_split.zig`, `zigux/tests/phase11_hvc_console_modem_control_split.zig`, `zigux/tests/phase11_hvc_console_poll_retry_split.zig`, `zigux/tests/phase11_hvc_console_survey.zig`, and `zigux/tests/phase11_uapi_header_parity_manifest.json` still keep the pre-replay stack, the shared-versus-dedicated `hvc_console` split, and the shared header-boundary packet aligned?",
 ]
 BUILD_MARKERS = [
     "phase11-gpio-wdt-tests",
@@ -463,6 +464,21 @@ def run_self_test() -> int:
             "tests_readme_phase11_guidance_marker",
             tmp_root,
             "tests_readme:four shared split and adjunct replays",
+        )
+        tests_readme_path.write_text(original_tests_readme, encoding="utf-8")
+
+        tests_readme_path.write_text(
+            original_tests_readme.replace(
+                "zigux/tests/phase11_dw_wdt_suspend_resume.zig",
+                "zigux/tests/phase11_hvc_console_survey.zig",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "tests_readme_phase11_contributor_prompt",
+            tmp_root,
+            "tests_readme:Phase 11: do `Documentation/zigux/phase11-shared-replay-contract.md`, `scripts/zigux/check-phase11-build-inventory.py`, `scripts/zigux/check-phase11-layout-assert-surface.py`, `scripts/zigux/check-phase11-hvc-validation-flow.py`, `scripts/zigux/check-phase11-hvc-cleanup-alignment.py`, `scripts/zigux/check-phase11-shared-replay-contract.py`, `scripts/zigux/check-phase11-header-boundary-packet.py`, `zigux/tests/phase11_build.zig`, `zigux/tests/phase11_dw_wdt_suspend_resume.zig`, `zigux/tests/phase11_dw_wdt_remove_idle_split.zig`, `zigux/tests/phase11_hvc_console_modem_control_split.zig`, `zigux/tests/phase11_hvc_console_poll_retry_split.zig`, `zigux/tests/phase11_hvc_console_survey.zig`, and `zigux/tests/phase11_uapi_header_parity_manifest.json` still keep the pre-replay stack, the shared-versus-dedicated `hvc_console` split, and the shared header-boundary packet aligned?",
         )
         tests_readme_path.write_text(original_tests_readme, encoding="utf-8")
 
