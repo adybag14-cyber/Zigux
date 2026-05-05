@@ -68,7 +68,7 @@
       "status": "starter_landed",
       "kind": "documentation",
       "zigux_destination": "Documentation/zigux/phase10-virtio-ring-survey.md",
-      "why_now": "The lane needs a Phase 10 note that records the current ring-helper, adjacent MMIO footholds, and roadmap-backed destination evidence against the remaining transport-facing gap and prevents the repo from overstating virtio_ring progress."
+      "why_now": "The lane needs a Phase 10 note that records the current ring-helper and adjacent MMIO footholds against the remaining transport-facing gap and prevents the repo from overstating virtio_ring progress."
     },
     {
       "id": "phase10-virtqueue-shape-helper",
