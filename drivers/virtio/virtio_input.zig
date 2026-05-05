@@ -125,6 +125,24 @@ pub const MultitouchSlotSummary = struct {
     multitouch_enabled: bool,
 };
 
+pub const QueueCallbackPreflightBlocker = enum {
+    event_queue_unconfigured,
+    status_queue_unconfigured,
+    event_buffers_unfilled,
+    device_not_ready,
+};
+
+pub const QueueCallbackPreflightSummary = struct {
+    anchor: []const u8,
+    event_queue_configured: bool,
+    status_queue_configured: bool,
+    queued_event_buffer_count: u16,
+    event_buffers_ready: bool,
+    device_ready: bool,
+    blocker: ?QueueCallbackPreflightBlocker,
+    ready_for_queue_callbacks: bool,
+};
+
 pub const RegistrationBlocker = enum {
     event_queue_unconfigured,
     status_queue_unconfigured,
@@ -411,19 +429,50 @@ pub const VirtioInputLab = struct {
         };
     }
 
-    pub fn registrationPreflightSummary(self: *const Self) RegistrationPreflightSummary {
-        const queue_plan_ready = self.event_descriptor_count != 0 and self.status_descriptor_count != 0 and self.queued_event_buffer_count != 0;
+    pub fn queueCallbackPreflightSummary(self: *const Self) QueueCallbackPreflightSummary {
+        const event_queue_configured = self.event_descriptor_count != 0;
+        const status_queue_configured = self.status_descriptor_count != 0;
+        const queued_event_buffer_count = self.queued_event_buffer_count;
+        const event_buffers_ready = queued_event_buffer_count != 0;
         const device_ready = self.ready;
+
+        const blocker: ?QueueCallbackPreflightBlocker = if (!event_queue_configured)
+            .event_queue_unconfigured
+        else if (!status_queue_configured)
+            .status_queue_unconfigured
+        else if (!event_buffers_ready)
+            .event_buffers_unfilled
+        else if (!device_ready)
+            .device_not_ready
+        else
+            null;
+
+        return .{
+            .anchor = descriptor().anchor,
+            .event_queue_configured = event_queue_configured,
+            .status_queue_configured = status_queue_configured,
+            .queued_event_buffer_count = queued_event_buffer_count,
+            .event_buffers_ready = event_buffers_ready,
+            .device_ready = device_ready,
+            .blocker = blocker,
+            .ready_for_queue_callbacks = blocker == null,
+        };
+    }
+
+    pub fn registrationPreflightSummary(self: *const Self) RegistrationPreflightSummary {
+        const queue_callback_preflight = self.queueCallbackPreflightSummary();
+        const queue_plan_ready = queue_callback_preflight.ready_for_queue_callbacks;
+        const device_ready = queue_callback_preflight.device_ready;
         const capability_setup_ready = self.capabilitySetupReady();
         const multitouch_slots_ready = !self.multitouchSlotsRequired() or self.planned_multitouch_slots != 0;
 
-        const blocker: ?RegistrationBlocker = if (self.event_descriptor_count == 0)
+        const blocker: ?RegistrationBlocker = if (!queue_callback_preflight.event_queue_configured)
             .event_queue_unconfigured
-        else if (self.status_descriptor_count == 0)
+        else if (!queue_callback_preflight.status_queue_configured)
             .status_queue_unconfigured
-        else if (self.queued_event_buffer_count == 0)
+        else if (!queue_callback_preflight.event_buffers_ready)
             .event_buffers_unfilled
-        else if (!self.ready)
+        else if (!device_ready)
             .device_not_ready
         else if (!capability_setup_ready)
             .capability_setup_incomplete
