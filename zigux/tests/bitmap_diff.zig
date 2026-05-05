@@ -168,6 +168,18 @@ const BitmapHarness = struct {
     }
 };
 
+const ThresholdReplaySummary = struct {
+    iterations: usize,
+    checksum: u64,
+    final_first_set: u32,
+    final_first_zero: u32,
+    final_weight: u32,
+};
+
+fn mixThresholdChecksum(checksum: *u64, value: anytype) void {
+    checksum.* = checksum.* *% 0x9e3779b185ebca87 +% @as(u64, @intCast(value));
+}
+
 fn expectSummary(summary: SummaryExpectation, expected: SummaryExpectation) !void {
     try std.testing.expectEqual(expected.first_set, summary.first_set);
     try std.testing.expectEqual(expected.first_zero, summary.first_zero);
@@ -220,6 +232,53 @@ fn expectCopyCase(case: CopyCase) !void {
     for (case.must_be_clear) |bit| {
         try std.testing.expect(!destination.isSet(bit));
     }
+}
+
+// Keep one deterministic batch available so a future bitmap threshold lane can
+// benchmark the exact current rollback gate instead of a looser synthetic loop.
+pub fn runThresholdReplay(iterations: usize) !ThresholdReplaySummary {
+    var bitmap = BitmapHarness{};
+    var source = BitmapHarness{};
+    var destination = BitmapHarness{};
+    var checksum: u64 = 0;
+
+    var iteration: usize = 0;
+    while (iteration < iterations) : (iteration += 1) {
+        try bitmap.initWithSetBits(&.{});
+        try bitmap.setRange(0, 9);
+        const range_summary = bitmap.summary();
+        mixThresholdChecksum(&checksum, range_summary.first_set);
+        mixThresholdChecksum(&checksum, range_summary.first_zero);
+        mixThresholdChecksum(&checksum, range_summary.weight);
+
+        try bitmap.fillPrefix(35);
+        const fill_summary = bitmap.summary();
+        mixThresholdChecksum(&checksum, fill_summary.first_zero);
+        mixThresholdChecksum(&checksum, fill_summary.weight);
+
+        bitmap.fill();
+        try bitmap.zeroPrefix(115);
+        const zero_summary = bitmap.summary();
+        mixThresholdChecksum(&checksum, zero_summary.first_set);
+        mixThresholdChecksum(&checksum, zero_summary.weight);
+
+        try source.initWithSetBits(&.{});
+        try source.setRange(0, 109);
+        destination.fill();
+        try destination.copyFrom(&source, 97);
+        const copy_summary = destination.summary();
+        mixThresholdChecksum(&checksum, copy_summary.first_zero);
+        mixThresholdChecksum(&checksum, copy_summary.weight);
+    }
+
+    const final_summary = destination.summary();
+    return .{
+        .iterations = iterations,
+        .checksum = checksum,
+        .final_first_set = final_summary.first_set,
+        .final_first_zero = final_summary.first_zero,
+        .final_weight = final_summary.weight,
+    };
 }
 
 test "bitmap diff gate replays bounded lib/test_bitmap.c range expectations" {
@@ -389,4 +448,19 @@ test "bitmap diff gate records exact bounded copy checks" {
     for (cases) |case| {
         try expectCopyCase(case);
     }
+}
+
+test "bitmap diff gate keeps a deterministic threshold replay batch ready for future perf baselines" {
+    const single = try runThresholdReplay(1);
+    const repeated = try runThresholdReplay(4);
+
+    try std.testing.expectEqual(@as(usize, 1), single.iterations);
+    try std.testing.expectEqual(@as(usize, 4), repeated.iterations);
+    try std.testing.expectEqual(@as(u32, 0), single.final_first_set);
+    try std.testing.expectEqual(@as(u32, 97), single.final_first_zero);
+    try std.testing.expectEqual(@as(u32, 993), single.final_weight);
+    try std.testing.expect(single.checksum != 0);
+    try std.testing.expect(repeated.checksum != 0);
+    try std.testing.expect(repeated.checksum != single.checksum);
+    try std.testing.expectEqualDeep(repeated, try runThresholdReplay(4));
 }
