@@ -33,10 +33,14 @@ required_files = [
     ROOT / 'scripts' / 'zigux' / 'check-genksyms-crc-diff.py',
     ROOT / 'scripts' / 'zigux' / 'check-kconfig-bridge.py',
     ROOT / 'scripts' / 'zigux' / 'check-phase2-cross.py',
+    ROOT / 'scripts' / 'zigux' / 'check-phase2-tests-readme-alignment.py',
     ROOT / 'scripts' / 'zigux' / 'mk_elfconfig.zig',
     ROOT / 'scripts' / 'zigux' / 'check-mk-elfconfig-diff.py',
     ROOT / 'scripts' / 'zigux' / 'kconfig' / 'conf_bridge.zig',
     ROOT / 'scripts' / 'zigux' / 'kconfig' / 'confdata_bridge.zig',
+    ROOT / 'Documentation' / 'zigux' / 'README.md',
+    ROOT / 'Documentation' / 'zigux' / 'review-checklist.md',
+    ROOT / 'zigux' / 'tests' / 'README.md',
     ROOT / 'zigux' / 'tests' / 'fixtures' / 'fixdep' / 'cases.json',
     ROOT / 'zigux' / 'tests' / 'fixtures' / 'fixdep' / 'sample.d',
     ROOT / 'zigux' / 'tests' / 'fixtures' / 'fixdep' / 'sample.c',
@@ -105,6 +109,7 @@ required_ledger_markers = [
 ]
 required_workflow_markers = [
     'python3 scripts/zigux/validate-phase2.py',
+    'python3 scripts/zigux/check-phase2-tests-readme-alignment.py',
     'python3 scripts/zigux/check-fixdep-diff.py',
     'python3 scripts/zigux/check-genksyms-bridge.py',
     'python3 scripts/zigux/check-genksyms-crc-diff.py',
@@ -130,6 +135,7 @@ required_doc_markers = [
     'elf32_expected.json',
 ]
 required_script_markers = [
+    'check-phase2-tests-readme-alignment.py',
     'check-fixdep-diff.py',
     'check-genksyms-bridge.py',
     'check-genksyms-crc-diff.py',
