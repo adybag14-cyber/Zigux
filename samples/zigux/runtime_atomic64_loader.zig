@@ -22,6 +22,7 @@ pub const RuntimeAtomic64LoadSummary = struct {
     anchor: []const u8,
     operation_families: []const runtime_atomic64_sample.OperationFamily,
     checked_returning_paths: bool,
+    checked_bitwise_paths: bool,
     checked_guard_paths: bool,
     counter_snapshot: i64,
     selftest_runs: usize,
@@ -56,6 +57,7 @@ pub const RuntimeAtomic64Loader = struct {
                 else => empty_operation_families[0..],
             },
             .checked_returning_paths = module.stage() == .selftest_complete,
+            .checked_bitwise_paths = module.stage() == .selftest_complete,
             .checked_guard_paths = module.stage() == .selftest_complete,
             .counter_snapshot = module.snapshotCounter(),
             .selftest_runs = module.selftest_runs,
@@ -125,6 +127,7 @@ test "runtime atomic64 loader prepares a bounded handoff plan from the sample co
     try std.testing.expectEqualStrings("lib/atomic64_test.c", plan.summary.anchor);
     try std.testing.expectEqual(@as(usize, 5), plan.summary.operation_families.len);
     try std.testing.expect(plan.summary.checked_returning_paths);
+    try std.testing.expect(plan.summary.checked_bitwise_paths);
     try std.testing.expect(plan.summary.checked_guard_paths);
     try std.testing.expectEqual(@as(i64, 0x1111_1111_2222_2222), plan.summary.counter_snapshot);
     try std.testing.expectEqual(@as(usize, 1), plan.summary.selftest_runs);
@@ -142,6 +145,7 @@ test "runtime atomic64 loader keeps unavailable substrate and lifecycle guards e
     try std.testing.expectEqual(runtime_atomic64_sample.ModuleStage.initialized, prepared.handoff_stage);
     try std.testing.expectEqual(@as(usize, 0), prepared.summary.operation_families.len);
     try std.testing.expect(!prepared.summary.checked_returning_paths);
+    try std.testing.expect(!prepared.summary.checked_bitwise_paths);
     try std.testing.expect(!prepared.summary.checked_guard_paths);
     try std.testing.expectEqual(@as(i64, -9), prepared.summary.counter_snapshot);
     try std.testing.expectEqual(@as(usize, 0), prepared.summary.selftest_runs);
@@ -171,6 +175,8 @@ test "runtime atomic64 loader keeps the prepared snapshot stable across later co
     const swapped = try module.swapCounter(-9);
     const compare = try module.compareSwapCounter(-9, 33);
     const add_unless = try module.addUnlessCounter(4, 99);
+    const and_previous = try module.andCounter(0b1_1111);
+    const xor_previous = try module.xorCounter(0b1010);
 
     const live_counter = module.snapshotCounter();
     const pending_plan = try loader.requestRuntimeLoad();
@@ -181,10 +187,13 @@ test "runtime atomic64 loader keeps the prepared snapshot stable across later co
     try std.testing.expectEqual(@as(i64, -9), compare.previous);
     try std.testing.expect(add_unless.changed);
     try std.testing.expectEqual(@as(i64, 33), add_unless.previous);
-    try std.testing.expectEqual(@as(i64, 37), live_counter);
+    try std.testing.expectEqual(@as(i64, 37), and_previous);
+    try std.testing.expectEqual(@as(i64, 5), xor_previous);
+    try std.testing.expectEqual(@as(i64, 15), live_counter);
     try std.testing.expectEqual(@as(i64, 17), pending_plan.summary.counter_snapshot);
     try std.testing.expectEqual(@as(usize, 5), pending_plan.summary.operation_families.len);
     try std.testing.expect(pending_plan.summary.checked_returning_paths);
+    try std.testing.expect(pending_plan.summary.checked_bitwise_paths);
     try std.testing.expect(pending_plan.summary.checked_guard_paths);
     try std.testing.expectEqual(@as(usize, 1), module.selftest_runs);
     try std.testing.expectEqual(@as(usize, 1), pending_plan.summary.selftest_runs);
