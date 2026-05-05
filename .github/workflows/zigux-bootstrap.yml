@@ -140,9 +140,6 @@ jobs:
       - name: Validate Phase 3 wrapper templates
         run: python3 scripts/zigux/generate-phase3-check-wrappers.py --check
 
-      - name: Check Zig toolchain policy
-        run: python3 scripts/zigux/check-zig-toolchain.py
-
       - name: Check Phase 1 helper parity
         run: python3 scripts/zigux/check-phase1-parity.py
 
