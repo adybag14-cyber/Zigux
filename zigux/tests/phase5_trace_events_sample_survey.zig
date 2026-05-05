@@ -56,8 +56,8 @@ test "phase 5 trace-events manifest records the exact bounded checks" {
     try std.testing.expectEqualStrings("samples/trace_events/trace-events-sample.c", manifest.anchor);
     try std.testing.expectEqualStrings("samples/zigux/trace_events_sample.zig", manifest.sample_path);
     try expectContains(manifest.validation_entrypoint, "phase5_build.zig");
-    try std.testing.expectEqual(@as(usize, 6), manifest.review_prompts.len);
-    try std.testing.expectEqual(@as(usize, 8), manifest.exact_checks.len);
+    try std.testing.expectEqual(@as(usize, 7), manifest.review_prompts.len);
+    try std.testing.expectEqual(@as(usize, 9), manifest.exact_checks.len);
     try std.testing.expectEqual(@as(usize, 4), manifest.non_goals.len);
 
     const build_zig = try std.Io.Dir.cwd().readFileAlloc(
@@ -76,12 +76,14 @@ test "phase 5 trace-events manifest records the exact bounded checks" {
 
     var saw_descriptor_prompt = false;
     var saw_payload_prompt = false;
+    var saw_public_payload_prompt = false;
     var saw_callback_prompt = false;
     var saw_contract_prompt = false;
     var saw_non_goal_prompt = false;
     var saw_descriptor_check = false;
     var saw_message_check = false;
     var saw_array_check = false;
+    var saw_public_payload_helper_check = false;
     var saw_rel_loc_check = false;
     var saw_vararg_check = false;
     var saw_counts_check = false;
@@ -98,6 +100,11 @@ test "phase 5 trace-events manifest records the exact bounded checks" {
             std.mem.indexOf(u8, prompt, "callback-path") != null)
         {
             saw_payload_prompt = true;
+        }
+        if (std.mem.indexOf(u8, prompt, "runPayloadBoundaryReplay()") != null and
+            std.mem.indexOf(u8, prompt, "private field inspection") != null)
+        {
+            saw_public_payload_prompt = true;
         }
         if (std.mem.indexOf(u8, prompt, "register-then-unregister") != null and
             std.mem.indexOf(u8, prompt, "kthread") != null)
@@ -136,6 +143,12 @@ test "phase 5 trace-events manifest records the exact bounded checks" {
             try expectContains(check.expected, "1,2 payload prefix");
             try expectContains(check.expected, "zero sentinel");
         }
+        if (std.mem.eql(u8, check.id, "public-payload-boundary-helper")) {
+            saw_public_payload_helper_check = true;
+            try expectContains(check.expected, "runPayloadBoundaryReplay");
+            try expectContains(check.expected, "One ring to rule them all");
+            try expectContains(check.expected, "private sample-state reads");
+        }
         if (std.mem.eql(u8, check.id, "bitmask-and-rel-loc")) {
             saw_rel_loc_check = true;
             try expectContains(check.expected, "0xdeadbeef");
@@ -168,12 +181,14 @@ test "phase 5 trace-events manifest records the exact bounded checks" {
 
     try std.testing.expect(saw_descriptor_prompt);
     try std.testing.expect(saw_payload_prompt);
+    try std.testing.expect(saw_public_payload_prompt);
     try std.testing.expect(saw_callback_prompt);
     try std.testing.expect(saw_contract_prompt);
     try std.testing.expect(saw_non_goal_prompt);
     try std.testing.expect(saw_descriptor_check);
     try std.testing.expect(saw_message_check);
     try std.testing.expect(saw_array_check);
+    try std.testing.expect(saw_public_payload_helper_check);
     try std.testing.expect(saw_rel_loc_check);
     try std.testing.expect(saw_vararg_check);
     try std.testing.expect(saw_counts_check);
@@ -231,6 +246,8 @@ test "phase 5 trace-events survey note stays repo-local and keeps the formatting
     try expectContains(survey_note, "phase5_trace_events_sample_manifest.json");
     try expectContains(survey_note, "phase5_build.zig");
     try expectContains(survey_note, "runtime_trace_events");
+    try expectContains(survey_note, "runPayloadBoundaryReplay()");
+    try expectContains(survey_note, "private field inspection");
     try expectContains(survey_note, "no standalone `samples/zigux/*printf*`, `*vsprintf*`, or `*format*` Phase 5 reference sample");
     try expectContains(survey_note, "selected-string plus `iter=%d` replay");
     try expectContains(survey_note, "tools/lib/vsprintf.zig");
