@@ -1,0 +1,216 @@
+#!/usr/bin/env python3
+from __future__ import annotations
+
+import argparse
+from pathlib import Path
+import shutil
+import sys
+import tempfile
+
+
+SELF_PATH = Path(__file__).resolve()
+ROOT = SELF_PATH.parents[2] if len(SELF_PATH.parents) > 2 else SELF_PATH.parent
+
+PHASE11_CONTRACT_PATH = "Documentation/zigux/phase11-shared-replay-contract.md"
+SCRIPTS_README_PATH = "scripts/zigux/README.md"
+MAKEFILE_PATH = "zigux/Makefile"
+WORKFLOW_PATH = ".github/workflows/zigux-bootstrap.yml"
+
+REQUIRED_CONTRACT_MARKERS = [
+    "`scripts/zigux/check-phase11-shared-replay-contract.py`",
+    "`python3 scripts/zigux/check-phase11-shared-replay-contract.py --self-test`",
+    "`python3 scripts/zigux/check-phase11-shared-replay-contract.py`",
+    "`make -C zigux phase11-contract`",
+    "there is no dedicated shared `validate-phase11.py` or `phase11-validate` packet on current `master`",
+    "the shipped checker only keeps the shared-versus-dedicated replay contract fail-closed",
+]
+
+REQUIRED_SCRIPT_README_MARKERS = [
+    "Phase 11 flow",
+    "`scripts/zigux/check-phase11-shared-replay-contract.py`",
+    "`python3 scripts/zigux/check-phase11-shared-replay-contract.py --self-test` and `check-phase11-shared-replay-contract.py` keep the scripts-root, replay-contract note, Makefile, and workflow contract fail-closed while preserving the dedicated archival survey split.",
+    "there is no dedicated shared `validate-phase11.py`, `zigux/tests/fixtures/phase11_build_inventory.json`, or `phase11-validate` target on `master`",
+]
+
+REQUIRED_MAKEFILE_MARKERS = [
+    "PHONY += phase11-contract phase11-test phase11-hvc-survey phase11",
+    "phase11-contract:",
+    "$(PYTHON) scripts/zigux/check-phase11-shared-replay-contract.py",
+    "phase11: phase11-contract phase11-test phase11-hvc-survey",
+]
+
+REQUIRED_WORKFLOW_MARKERS = [
+    "Self-test Phase 11 shared replay contract checker",
+    "python3 scripts/zigux/check-phase11-shared-replay-contract.py --self-test",
+    "Run Phase 11 shared replay contract checker",
+    "make -C zigux phase11-contract",
+]
+
+FORBIDDEN_CONTRACT_MARKERS = [
+    "there is no dedicated shared `validate-phase11.py`, `check-phase11-*.py`, or `phase11-validate` packet on current `master`",
+    "broader Phase 11 checker-script packet",
+]
+
+
+def read_text(root: Path, rel_path: str) -> str:
+    return (root / rel_path).read_text(encoding="utf-8")
+
+
+def validate(root: Path) -> list[str]:
+    failures: list[str] = []
+
+    for rel_path in [
+        PHASE11_CONTRACT_PATH,
+        SCRIPTS_README_PATH,
+        MAKEFILE_PATH,
+        WORKFLOW_PATH,
+    ]:
+        if not (root / rel_path).exists():
+            failures.append(f"missing_file:{rel_path}")
+
+    if failures:
+        return failures
+
+    phase11_contract = read_text(root, PHASE11_CONTRACT_PATH)
+    scripts_readme = read_text(root, SCRIPTS_README_PATH)
+    makefile = read_text(root, MAKEFILE_PATH)
+    workflow = read_text(root, WORKFLOW_PATH)
+    for marker in REQUIRED_CONTRACT_MARKERS:
+        if marker not in phase11_contract:
+            failures.append(f"phase11_contract:{marker}")
+    for marker in REQUIRED_SCRIPT_README_MARKERS:
+        if marker not in scripts_readme:
+            failures.append(f"scripts_readme:{marker}")
+    for marker in REQUIRED_MAKEFILE_MARKERS:
+        if marker not in makefile:
+            failures.append(f"makefile:{marker}")
+    for marker in REQUIRED_WORKFLOW_MARKERS:
+        if marker not in workflow:
+            failures.append(f"workflow:{marker}")
+    for marker in FORBIDDEN_CONTRACT_MARKERS:
+        if marker in phase11_contract or marker in scripts_readme:
+            failures.append(f"forbidden_marker:{marker}")
+
+    return failures
+
+
+def write(path: Path, content: str) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(content, encoding="utf-8")
+
+
+def write_fixture_tree(root: Path) -> None:
+    if root.exists():
+        shutil.rmtree(root)
+
+    write(
+        root / PHASE11_CONTRACT_PATH,
+        """# Phase 11 Shared Replay Contract
+
+## Current Shared Review Surface On `master`
+* `Documentation/zigux/README.md`
+* `scripts/zigux/README.md`
+* `scripts/zigux/check-phase11-shared-replay-contract.py`
+* `zigux/tests/README.md`
+* `Documentation/zigux/review-checklist.md`
+* `Documentation/zigux/phase11-shared-replay-contract.md`
+* `zigux/tests/phase11_build.zig`
+* `zigux/tests/phase11_hvc_cleanup.zig`
+* `zigux/tests/phase11_hvc_console_survey.zig`
+* `zigux/Makefile`
+
+## Shared Replay Commands
+* `python3 scripts/zigux/check-phase11-shared-replay-contract.py --self-test`
+* `python3 scripts/zigux/check-phase11-shared-replay-contract.py`
+* `make -C zigux phase11-contract`
+* `zig build test --build-file zigux/tests/phase11_build.zig --summary all`
+* `make -C zigux phase11`
+* `make -C zigux phase11-hvc-survey`
+
+## What This Contract Does Not Claim
+* there is no dedicated shared `validate-phase11.py` or `phase11-validate` packet on current `master`
+* the shipped checker only keeps the shared-versus-dedicated replay contract fail-closed
+""",
+    )
+    write(
+        root / SCRIPTS_README_PATH,
+        """# scripts/zigux
+
+Phase 11 flow
+- the current shared Phase 11 review surface on `master` is `Documentation/zigux/README.md`, `scripts/zigux/README.md`, `scripts/zigux/check-phase11-shared-replay-contract.py`, `zigux/tests/README.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/phase11-shared-replay-contract.md`, `Documentation/zigux/phase11-bcm2835-wdt-validation-matrix.md`, `Documentation/zigux/phase11-gpio-wdt-validation-matrix.md`, `Documentation/zigux/phase11-dw-wdt-validation-matrix.md`, `Documentation/zigux/phase11-hvc-console-validation-matrix.md`, `Documentation/zigux/phase11-hvc-console-survey.md`, `zigux/tests/phase11_build.zig`, `zigux/tests/phase11_hvc_cleanup.zig`, `zigux/tests/phase11_hvc_console_survey.zig`, and `zigux/Makefile`.
+- `python3 scripts/zigux/check-phase11-shared-replay-contract.py --self-test` and `check-phase11-shared-replay-contract.py` keep the scripts-root, replay-contract note, Makefile, and workflow contract fail-closed while preserving the dedicated archival survey split.
+- `zig build test --build-file zigux/tests/phase11_build.zig --summary all` and `make -C zigux phase11` rerun that same simple-driver starter packet, while `zigux/tests/phase11_hvc_cleanup.zig` keeps the bounded `hvc_cleanup()` tty-port release handoff and teardown-gating replay explicit and the dedicated `zigux/tests/phase11_hvc_console_survey.zig` archival replay stays separate.
+- there is no dedicated shared `validate-phase11.py`, `zigux/tests/fixtures/phase11_build_inventory.json`, or `phase11-validate` target on `master`; the shipped Phase 11 checker is intentionally narrower than a broader validator packet.
+""",
+    )
+    write(
+        root / MAKEFILE_PATH,
+        """PHONY += phase11-contract phase11-test phase11-hvc-survey phase11
+
+PYTHON ?= python3
+ZIG ?= zig
+ZIGUX_ROOT := $(abspath $(dir $(lastword $(MAKEFILE_LIST)))/..)
+
+phase11-contract:
+\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase11-shared-replay-contract.py
+
+phase11-test:
+\tcd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase11_build.zig --summary all
+
+phase11-hvc-survey:
+\tcd $(ZIGUX_ROOT) && $(ZIG) build hvc-console-survey --build-file zigux/tests/phase11_build.zig --summary all
+
+phase11: phase11-contract phase11-test phase11-hvc-survey
+""",
+    )
+    write(
+        root / WORKFLOW_PATH,
+        """name: zigux-bootstrap
+
+jobs:
+  bootstrap:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Self-test Phase 11 shared replay contract checker
+        run: python3 scripts/zigux/check-phase11-shared-replay-contract.py --self-test
+
+      - name: Run Phase 11 shared replay contract checker
+        run: make -C zigux phase11-contract
+""",
+    )
+
+
+def run_self_test() -> int:
+    with tempfile.TemporaryDirectory(prefix="phase11_contract_", dir=None) as tmpdir:
+        root = Path(tmpdir)
+        write_fixture_tree(root)
+        failures = validate(root)
+        if failures:
+            for failure in failures:
+                print(failure, file=sys.stderr)
+            return 1
+    print("PHASE11_SHARED_REPLAY_CONTRACT_SELFTEST=pass")
+    return 0
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(description="Check the shipped Phase 11 shared replay contract.")
+    parser.add_argument("--self-test", action="store_true", help="exercise the checker against a synthetic fixture tree")
+    parser.add_argument("--root", type=Path, default=ROOT, help="repository root to validate")
+    args = parser.parse_args()
+
+    if args.self_test:
+        return run_self_test()
+
+    failures = validate(args.root)
+    if failures:
+        for failure in failures:
+            print(failure, file=sys.stderr)
+        return 1
+
+    print("PHASE11_SHARED_REPLAY_CONTRACT=pass")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
