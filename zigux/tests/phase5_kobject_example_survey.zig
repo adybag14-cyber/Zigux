@@ -39,18 +39,20 @@ test "phase 5 kobject manifest records the exact bounded checks" {
     try std.testing.expectEqualStrings("samples/kobject/kobject-example.c", manifest.anchor);
     try std.testing.expectEqualStrings("samples/zigux/kobject_example.zig", manifest.sample_path);
     try std.testing.expect(std.mem.indexOf(u8, manifest.validation_entrypoint, "phase5_build.zig") != null);
-    try std.testing.expectEqual(@as(usize, 6), manifest.review_prompts.len);
-    try std.testing.expectEqual(@as(usize, 8), manifest.exact_checks.len);
+    try std.testing.expectEqual(@as(usize, 8), manifest.review_prompts.len);
+    try std.testing.expectEqual(@as(usize, 9), manifest.exact_checks.len);
     try std.testing.expectEqual(@as(usize, 4), manifest.non_goals.len);
 
     var saw_descriptor_prompt = false;
     var saw_approved_idiom_prompt = false;
     var saw_pre_registration_prompt = false;
-    var saw_initialized_exit_prompt = false;
+    var saw_ownership_summary_prompt = false;
     var saw_dispatch_prompt = false;
+    var saw_exit_prompt = false;
     var saw_group_boundary_prompt = false;
     var saw_directory = false;
     var saw_pre_registration = false;
+    var saw_ownership_summary = false;
     var saw_initialized_exit = false;
     var saw_dispatch = false;
     var saw_exit = false;
@@ -68,11 +70,18 @@ test "phase 5 kobject manifest records the exact bounded checks" {
         {
             saw_pre_registration_prompt = true;
         }
-        if (std.mem.indexOf(u8, prompt, "initialized-only abandonment path") != null) {
-            saw_initialized_exit_prompt = true;
+        if (std.mem.indexOf(u8, prompt, "ownershipSummary()") != null and
+            std.mem.indexOf(u8, prompt, "cold, initialized, registered, and exited") != null)
+        {
+            saw_ownership_summary_prompt = true;
         }
         if (std.mem.indexOf(u8, prompt, "shared baz/bar dispatch") != null) {
             saw_dispatch_prompt = true;
+        }
+        if (std.mem.indexOf(u8, prompt, "abandoned_before_registration") != null and
+            std.mem.indexOf(u8, prompt, "tore_down_registered_attributes") != null)
+        {
+            saw_exit_prompt = true;
         }
         if (std.mem.indexOf(u8, prompt, "unnamed attribute group") != null and
             std.mem.indexOf(u8, prompt, "post-exit") != null)
@@ -95,11 +104,14 @@ test "phase 5 kobject manifest records the exact bounded checks" {
             try std.testing.expect(std.mem.indexOf(u8, check.expected, "activeAttrCount stays zero") != null);
             try std.testing.expect(std.mem.indexOf(u8, check.expected, "InvalidLifecycleTransition") != null);
         }
-        if (std.mem.eql(u8, check.id, "initialized-exit-boundary")) {
+        if (std.mem.eql(u8, check.id, "ownership-summary")) {
+            saw_ownership_summary = true;
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "cold, initialized, registered, and exited") != null);
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "0, 0, 3, and 0") != null);
+        }
+        if (std.mem.eql(u8, check.id, "initialized-exit-disposition")) {
             saw_initialized_exit = true;
-            try std.testing.expect(std.mem.indexOf(u8, check.expected, "initialized stage") != null);
-            try std.testing.expect(std.mem.indexOf(u8, check.expected, "register_runs at zero") != null);
-            try std.testing.expect(std.mem.indexOf(u8, check.expected, "rejects later show or store calls") != null);
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "abandoned_before_registration") != null);
         }
         if (std.mem.eql(u8, check.id, "shared-b-dispatch")) {
             saw_dispatch = true;
@@ -107,6 +119,7 @@ test "phase 5 kobject manifest records the exact bounded checks" {
         }
         if (std.mem.eql(u8, check.id, "exit-boundary")) {
             saw_exit = true;
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "tore_down_registered_attributes") != null);
             try std.testing.expect(std.mem.indexOf(u8, check.expected, "rejects later show or store calls") != null);
         }
 
@@ -118,11 +131,13 @@ test "phase 5 kobject manifest records the exact bounded checks" {
     try std.testing.expect(saw_descriptor_prompt);
     try std.testing.expect(saw_approved_idiom_prompt);
     try std.testing.expect(saw_pre_registration_prompt);
-    try std.testing.expect(saw_initialized_exit_prompt);
+    try std.testing.expect(saw_ownership_summary_prompt);
     try std.testing.expect(saw_dispatch_prompt);
+    try std.testing.expect(saw_exit_prompt);
     try std.testing.expect(saw_group_boundary_prompt);
     try std.testing.expect(saw_directory);
     try std.testing.expect(saw_pre_registration);
+    try std.testing.expect(saw_ownership_summary);
     try std.testing.expect(saw_initialized_exit);
     try std.testing.expect(saw_dispatch);
     try std.testing.expect(saw_exit);
@@ -167,7 +182,9 @@ test "phase 5 kobject survey note stays repo-local, lane-scoped, and keeps the a
         "## Approved idiom for the landed kobject-style sample",
         "approved Phase 5 in-memory ownership-and-lifetime idiom",
         "before `registerAttributes()`, the sample still reports zero active attributes and blocks `showValue()` or `storeValue()`",
-        "initialized-only abandonment through `exit()`",
+        "`ownershipSummary()`",
+        "`abandoned_before_registration`",
+        "`tore_down_registered_attributes`",
         "manifest-backed replay",
         "keep sysfs creation, `kernel_kobj` integration, uevents, and module-registration claims out of scope",
         "zig build test --build-file zigux/tests/phase5_build.zig --summary all",
