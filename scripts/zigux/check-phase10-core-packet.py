@@ -31,11 +31,13 @@ EXPECTED_NOTE_MARKERS = [
     "check-phase10-core-packet.py",
     "phase10_virtio_core_reset_queue.zig",
     "phase10_virtio_driver_id.zig",
+    "driver-validation narrowing",
 ]
 
 EXPECTED_SURVEY_MARKERS = [
     "lane: `P10-L01`",
     "phase10-driver-id-helper",
+    "phase10-driver-validation-narrowing-helper",
     "phase10-core-probe-remove-lifecycle",
     "phase10_virtio_core_reset_queue.zig",
     "phase10_virtio_driver_id.zig",
@@ -49,6 +51,7 @@ EXPECTED_GAPS = {
     "phase10-virtio-core-survey-gate": "starter_landed",
     "phase10-virtio-core-survey-note": "starter_landed",
     "phase10-driver-id-helper": "starter_landed",
+    "phase10-driver-validation-narrowing-helper": "starter_landed",
     "phase10-driver-id-gate": "starter_landed",
     "phase10-core-probe-remove-lifecycle": "blocked_on_risky_transport",
 }
@@ -111,7 +114,7 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
             missing_markers.append(f"manifest:{key}")
 
     gaps = manifest.get("gaps", [])
-    if len(gaps) < 15:
+    if len(gaps) < 16:
         missing_markers.append("manifest:gaps")
     gap_index = {gap.get("id"): gap for gap in gaps if isinstance(gap, dict)}
     for gap_id, status in EXPECTED_GAPS.items():
@@ -163,6 +166,7 @@ def run_self_test() -> int:
         _, missing_markers = validate(tmp_root)
         if "manifest:gap:phase10-driver-id-helper" not in missing_markers:
             raise SystemExit("phase10-core-self-test:expected_driver_id_gap_missing")
+        manifest_path.writeText if False else None
         manifest_path.write_text(original_manifest, encoding="utf-8")
 
         build_path = tmp_root / "zigux/tests/phase10_build.zig"
@@ -190,13 +194,22 @@ def run_self_test() -> int:
         survey_path = tmp_root / "Documentation/zigux/phase10-virtio-core-survey.md"
         original_survey = survey_path.read_text(encoding="utf-8")
         survey_path.write_text(
-            original_survey.replace("phase10_virtio_driver_id.zig", "phase10_virtio_driver_id_drift.zig", 1),
+            original_survey.replace("phase10-driver-validation-narrowing-helper", "phase10-driver-validation-drift", 1),
             encoding="utf-8",
         )
         _, missing_markers = validate(tmp_root)
-        if "survey_note:phase10_virtio_driver_id.zig" not in missing_markers:
-            raise SystemExit("phase10-core-self-test:expected_driver_id_survey_marker_missing")
+        if "survey_note:phase10-driver-validation-narrowing-helper" not in missing_markers:
+            raise SystemExit("phase10-core-self-test:expected_driver_validation_survey_marker_missing")
         survey_path.write_text(original_survey, encoding="utf-8")
+
+        manifest_path.write_text(
+            original_manifest.replace('"phase10-driver-validation-narrowing-helper"', '"phase10-driver-validation-drift"', 1),
+            encoding="utf-8",
+        )
+        _, missing_markers = validate(tmp_root)
+        if "manifest:gap:phase10-driver-validation-narrowing-helper" not in missing_markers:
+            raise SystemExit("phase10-core-self-test:expected_driver_validation_gap_missing")
+        manifest_path.write_text(original_manifest, encoding="utf-8")
 
         manifest_path.write_text(
             original_manifest.replace('"zigux/kernel/"', '"zigux/kernel_drift/"', 1),
@@ -216,7 +229,7 @@ def run_self_test() -> int:
             raise SystemExit("phase10-core-self-test:expected_helpers_survey_marker_missing")
 
     print("PHASE10_CORE_PACKET_SELF_TEST=pass")
-    print("PHASE10_CORE_PACKET_SELF_TEST_CASE_COUNT=6")
+    print("PHASE10_CORE_PACKET_SELF_TEST_CASE_COUNT=7")
     return 0
 
 
