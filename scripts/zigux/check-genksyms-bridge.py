@@ -52,6 +52,49 @@ def find_zig(explicit: str | None) -> str:
     raise SystemExit('zig not found; pass --zig or add zig to PATH')
 
 
+def load_cases(fixture_dir: Path) -> dict[str, object]:
+    return json.loads((fixture_dir / 'cases.json').read_text(encoding='utf-8'))
+
+
+def collect_manifest_issues(root: Path) -> list[tuple[str, str]]:
+    fixture_dir = root / 'zigux' / 'tests' / 'fixtures' / 'genksyms_bridge'
+    cases = load_cases(fixture_dir)
+    issues: list[tuple[str, str]] = []
+
+    supported_modes = {'stdout_json', 'process_json'}
+    seen_names: set[str] = set()
+    for case in cases['cases']:
+        name = case['name']
+        if name in seen_names:
+            issues.append(('DUPLICATE_GENKSYMS_BRIDGE_CASE_NAMES', name))
+        else:
+            seen_names.add(name)
+
+        mode = case.get('mode', 'stdout_json')
+        if mode not in supported_modes:
+            issues.append(('UNSUPPORTED_GENKSYMS_BRIDGE_CASE_MODES', f'{name}:{mode}'))
+
+        expected = case.get('expected')
+        if expected and not (fixture_dir / expected).exists():
+            issues.append(('MISSING_GENKSYMS_BRIDGE_EXPECTED_PATHS', f'{name}:{expected}'))
+
+    return issues
+
+
+def emit_manifest_issues(issues: list[tuple[str, str]]) -> None:
+    grouped: dict[str, list[str]] = {}
+    for block, value in issues:
+        grouped.setdefault(block, []).append(value)
+
+    print('GENKSYMS_BRIDGE_DIFF=fail')
+    for block, values in grouped.items():
+        print(f'{block}_START')
+        for value in values:
+            print(value)
+        print(f'{block}_END')
+    raise SystemExit(1)
+
+
 def windows_to_wsl(path: Path) -> str:
     resolved = path.resolve()
     drive = resolved.drive.rstrip(':').lower()
@@ -144,16 +187,93 @@ def capture_run_zig(zig: str, tmp_dir: Path, actual: Path, argv: list[str], *, n
     write_process_json(actual, result, normalize_stderr=normalize_stderr)
 
 
+def write_text(path: Path, content: str) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(content, encoding='utf-8')
+
+
+def build_self_test_root(root: Path) -> None:
+    write_text(
+        root / 'zigux' / 'tests' / 'fixtures' / 'genksyms_bridge' / 'cases.json',
+        json.dumps(
+            {
+                'cases': [
+                    {
+                        'name': 'minimal',
+                        'argv': [],
+                        'expected': 'minimal_expected.json',
+                    },
+                    {
+                        'name': 'invalid_short_opt',
+                        'argv': ['-Z'],
+                        'mode': 'process_json',
+                        'normalize_stderr': True,
+                        'expected': 'invalid_short_opt_expected.json',
+                    },
+                ]
+            },
+            indent=2,
+        )
+        + '\n',
+    )
+    write_text(root / 'zigux' / 'tests' / 'fixtures' / 'genksyms_bridge' / 'minimal_expected.json', '{}\n')
+    write_text(root / 'zigux' / 'tests' / 'fixtures' / 'genksyms_bridge' / 'invalid_short_opt_expected.json', '{}\n')
+
+
+def run_self_test() -> int:
+    with tempfile.TemporaryDirectory(prefix='zigux_genksyms_bridge_selftest_') as tmp_dir_str:
+        root = Path(tmp_dir_str)
+        build_self_test_root(root)
+        assert collect_manifest_issues(root) == []
+
+        build_self_test_root(root)
+        cases_path = root / 'zigux' / 'tests' / 'fixtures' / 'genksyms_bridge' / 'cases.json'
+        payload = json.loads(cases_path.read_text(encoding='utf-8'))
+        payload['cases'][0]['mode'] = 'yaml'
+        write_text(cases_path, json.dumps(payload, indent=2) + '\n')
+        issues = collect_manifest_issues(root)
+        assert ('UNSUPPORTED_GENKSYMS_BRIDGE_CASE_MODES', 'minimal:yaml') in issues
+
+        build_self_test_root(root)
+        payload = json.loads(cases_path.read_text(encoding='utf-8'))
+        payload['cases'][1]['name'] = 'minimal'
+        write_text(cases_path, json.dumps(payload, indent=2) + '\n')
+        issues = collect_manifest_issues(root)
+        assert ('DUPLICATE_GENKSYMS_BRIDGE_CASE_NAMES', 'minimal') in issues
+
+        build_self_test_root(root)
+        missing_path = root / 'zigux' / 'tests' / 'fixtures' / 'genksyms_bridge' / 'invalid_short_opt_expected.json'
+        missing_path.unlink()
+        issues = collect_manifest_issues(root)
+        assert ('MISSING_GENKSYMS_BRIDGE_EXPECTED_PATHS', 'invalid_short_opt:invalid_short_opt_expected.json') in issues
+
+    print('GENKSYMS_BRIDGE_SELF_TEST=pass')
+    print('GENKSYMS_BRIDGE_SELF_TEST_CASE_COUNT=4')
+    return 0
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description='Check bounded genksyms bridge parity.')
     parser.add_argument('--cc', help='C compiler to use')
     parser.add_argument('--zig', help='Path to Zig executable')
     parser.add_argument('--refresh', action='store_true', help='Refresh the committed expected fixtures from the C harness')
+    parser.add_argument(
+        '--self-test',
+        action='store_true',
+        help='Run built-in manifest coverage without compiling the bridge tools.',
+    )
     args = parser.parse_args()
+
+    if args.self_test:
+        return run_self_test()
+
+    issues = collect_manifest_issues(ROOT)
+    if issues:
+        emit_manifest_issues(issues)
 
     compiler = args.cc or os.environ.get('CC') or ('gcc' if os.name == 'nt' and shutil.which('wsl') else find_compiler(None))
     zig = find_zig(args.zig)
-    cases = json.loads((FIXTURE_DIR / 'cases.json').read_text(encoding='utf-8'))
+    cases = load_cases(FIXTURE_DIR)
 
     with tempfile.TemporaryDirectory(prefix='zigux_genksyms_bridge_') as tmp_dir_str:
         tmp_dir = Path(tmp_dir_str)
