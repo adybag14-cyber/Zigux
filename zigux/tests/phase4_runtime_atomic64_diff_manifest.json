@@ -1,0 +1,20 @@
+{
+  "lane_key": "P4-L01",
+  "phase": "Phase 4",
+  "roadmap_target_path": "zigux/tests/atomic64_diff.zig",
+  "roadmap_atomic64_diff_present": false,
+  "live_gate_path": "zigux/tests/runtime_atomic64_diff.zig",
+  "live_gate_blob_sha": "d65abeb53eb0248e1f0978a54cc48a7f561b148e",
+  "live_gate_line_count": 155,
+  "phase4_build_present": true,
+  "phase4_build_blob_sha": "96c3fdf1b56a48c6a66bd77c120cafa203989275",
+  "phase4_validator_runtime_atomic64_diff_present": true,
+  "phase4_validator_blob_sha": "4ac6d7657e43bb1ec9f9950c2ad5eb72573d568f",
+  "phase9_build_present": true,
+  "phase9_build_blob_sha": "8ecef19acf5953dce1bd9c59a9662e23c0da1f60",
+  "phase4_validation_matrix_runtime_atomic64_note_present": true,
+  "phase4_validation_matrix_blob_sha": "e2f0331f7e27d5d3a5d918b73c442eb8bda3e9bd",
+  "threshold_posture": "threshold_pending_until_runtime_atomic64_scope_widens",
+  "roadmap_gap_summary": "the roadmap still targets zigux/tests/atomic64_diff.zig, but live master keeps the bounded gate at zigux/tests/runtime_atomic64_diff.zig and still routes that runtime path through scripts/zigux/validate-phase4.py and zigux/tests/phase9_build.zig",
+  "ready_next": "align the live runtime gate to zigux/tests/atomic64_diff.zig across only the directly coupled Phase 4 and Phase 9 files once the shared validator, build entrypoints, and docs are ready to move together"
+}
