@@ -105,6 +105,16 @@ The closed Phase 1 host-tools packet also stays reviewable through these shared 
 
 Reviewers should treat drift across those packet summaries, the bootstrap workflow replay, and the validator-first replay route as a closure regression even when the helper code itself is unchanged.
 
+## Find Bit Review Rule
+
+For `tools/lib/find_bit.zig`, reviewers must also keep the helper-local single-word next-scan proof explicit through:
+
+- `tools/lib/find_bit.zig`
+
+That means `test "single-word next scans honor start masks"` stays present and review-visible whenever `findNextBit()`, `findNextZeroBit()`, or `findNextAndBit()` changes. The shared Phase 1 parity fixture already locks the cross-word and tail-clamped `find_bit` results, but it does not isolate the same-word `start` masking path, so this helper-local test is the bounded proof that one-word scans still honor caller-selected start masks instead of re-reading earlier bits.
+
+- `PHASE1_FIND_BIT_SINGLE_WORD_REVIEW=helper-local single-word next-scan proof stays explicit through the direct find_bit test anchor because the shared Phase 1 parity fixture does not isolate same-word start-mask behavior`
+
 ## Bitmap Review Rule
 
 For `tools/lib/bitmap.zig`, reviewers must also keep the committed partial-window XOR fixture contract explicit through:
