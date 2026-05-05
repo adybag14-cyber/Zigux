@@ -23,7 +23,7 @@ Phase 7 is where Zigux starts moving from earlier standalone helper ports into r
 - are runtime-adjacent without entering allocator-heavy or device-heavy paths
 - benefit from explicit pointer and termination handling
 - can be validated with a focused Zig gate before deeper formatting, escaping, or allocation-backed helpers are attempted
-- keep stronger ownership and pointer discipline explicit through bounded C-string prefix helpers, destination-size accounting, and null-sentinel table handling
+- keep stronger ownership and pointer discipline explicit through bounded C-string prefix helpers, destination-size accounting, null-sentinel table handling, and Linux-style size rendering cues
 - keep integration with validation substrate explicit through `zigux/tests/phase7_build.zig`, `zigux/tests/phase7_string_helpers_sample_boundary.zig`, `scripts/zigux/validate-phase7.py`, and `make -C zigux phase7`
 
 This is intentionally not a Phase 5 `samples/zigux/` reference-sample lane.
@@ -55,6 +55,7 @@ The current starter slice covers:
 - `string_is_terminated()`
 - `string_upper()`
 - `string_lower()`
+- `string_get_size()`
 - `string_unescape()`
 - `string_escape_mem()` over the bounded runtime-safe escape subset
 
@@ -69,6 +70,7 @@ The current tests check:
 - truncation, exact-fit, and padding behavior for fixed-size destinations
 - bounded termination checks that only scan the requested byte window
 - bounded ASCII case conversion that stops at the first NUL
+- Linux-style three-significant-figure size rendering for decimal and binary units, including no-space and no-bytes modifiers plus zero-block and truncated-buffer behavior
 - deterministic space, octal, hex, special, and combined unescape cases derived from `lib/tests/string_helpers_kunit.c`
 - in-place unescape behavior and bounded destination termination
 - deterministic escape-space, special, null, octal, and hex output cases
@@ -81,7 +83,6 @@ The current tests check:
 
 This slice does not yet claim:
 
-- parity for `string_get_size()`
 - integer parsing helpers
 - allocation-backed duplication helpers
 - task-owned, file-owned, or device-managed quotable helper surfaces
@@ -91,4 +92,4 @@ This slice does not yet claim:
 
 Leave this lane parked unless fresh repo inspection finds one more concrete Phase 7 helper need or a renewed Phase 5-versus-Phase 7 boundary drift.
 
-If the string-helper family reopens, prefer `string_get_size()` or one bounded integer parsing step before quotable, allocator-heavy, task-owned, file-owned, or device-managed follow-on work, because the whitespace leaf pair is now landed and the remaining live `lib/string_helpers.c` gaps start at the heavier formatting-and-parsing boundary.
+If the string-helper family reopens, prefer one bounded integer parsing step before quotable, allocator-heavy, task-owned, file-owned, or device-managed follow-on work, because the live helper packet already covers the whitespace leaf pair, the bounded escape subset, and `string_get_size()` sizing-path reviewability.
