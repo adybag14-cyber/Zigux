@@ -78,6 +78,14 @@ REQUIRED_WORKFLOW_MARKERS = [
     "Run Phase 9 runtime helper tests",
 ]
 
+REQUIRED_PHASE9_BUILD_MARKERS = [
+    'const runtime_loader_facade_tests = b.addTest(.{',
+    '.name = "phase9-runtime-loader-facade-tests",',
+    '.root_module = runtime_loader_facade_module,',
+    "const run_runtime_loader_facade_tests = b.addRunArtifact(runtime_loader_facade_tests);",
+    "test_step.dependOn(&run_runtime_loader_facade_tests.step);",
+]
+
 FORBIDDEN_FILES = [
     "scripts/zigux/validate-phase9.py",
 ]
@@ -129,6 +137,7 @@ def validate(root: Path) -> list[str]:
     review_checklist = read_text(root, REVIEW_CHECKLIST_PATH)
     makefile = read_text(root, MAKEFILE_PATH)
     workflow = read_text(root, WORKFLOW_PATH)
+    phase9_build = read_text(root, PHASE9_BUILD_PATH)
 
     for marker in REQUIRED_DOCS_README_MARKERS:
         if marker not in docs_readme:
@@ -148,6 +157,9 @@ def validate(root: Path) -> list[str]:
     for marker in REQUIRED_WORKFLOW_MARKERS:
         if marker not in workflow:
             failures.append(f"workflow:{marker}")
+    for marker in REQUIRED_PHASE9_BUILD_MARKERS:
+        if marker not in phase9_build:
+            failures.append(f"phase9_build:{marker}")
     for marker in FORBIDDEN_MAKEFILE_MARKERS:
         if marker in makefile:
             failures.append(f"makefile_forbidden:{marker}")
@@ -214,7 +226,19 @@ phase9: phase9-test
         run: zig build test --build-file zigux/tests/phase9_build.zig --summary all
 """,
     )
-    write_text(root / PHASE9_BUILD_PATH, "const std = @import(\"std\");\n")
+    write_text(
+        root / PHASE9_BUILD_PATH,
+        """const runtime_loader_facade_module = b.createModule(.{
+    .root_source_file = b.path("../kernel/runtime_loader.zig"),
+});
+const runtime_loader_facade_tests = b.addTest(.{
+    .name = "phase9-runtime-loader-facade-tests",
+    .root_module = runtime_loader_facade_module,
+});
+const run_runtime_loader_facade_tests = b.addRunArtifact(runtime_loader_facade_tests);
+test_step.dependOn(&run_runtime_loader_facade_tests.step);
+""",
+    )
     write_text(root / RUNTIME_LOADER_PATH, "pub fn placeholder() void {}\n")
     write_text(root / RUNTIME_LOADER_CONTRACT_PATH, "pub fn placeholder() void {}\n")
     for rel_path in REQUIRED_PHASE9_NOTE_PATHS:
@@ -302,8 +326,25 @@ def run_self_test() -> int:
             "missing_trace_events_module_slice",
         )
 
+        write_fixture_tree(root)
+        phase9_build_path = root / PHASE9_BUILD_PATH
+        phase9_build = phase9_build_path.read_text(encoding="utf-8")
+        phase9_build_path.write_text(
+            phase9_build.replace(
+                "test_step.dependOn(&run_runtime_loader_facade_tests.step);\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_failure(
+            root,
+            "phase9_build:test_step.dependOn(&run_runtime_loader_facade_tests.step);",
+            "missing_phase9_build_facade_replay_dependency",
+        )
+
     print("PHASE9_BUILD_ONLY_SURFACE_SELF_TEST=pass")
-    print("PHASE9_BUILD_ONLY_SURFACE_SELF_TEST_CASE_COUNT=6")
+    print("PHASE9_BUILD_ONLY_SURFACE_SELF_TEST_CASE_COUNT=7")
     return 0
 
 
@@ -339,7 +380,7 @@ def main() -> int:
     print("PHASE9_BUILD_ONLY_SURFACE=pass")
     print(
         "PHASE9_BUILD_ONLY_SURFACE_MARKER_COUNT="
-        f"{len(REQUIRED_DOCS_README_MARKERS) + len(REQUIRED_SCRIPT_README_MARKERS) + len(REQUIRED_TESTS_README_MARKERS) + len(REQUIRED_REVIEW_CHECKLIST_MARKERS) + len(REQUIRED_MAKEFILE_MARKERS) + len(REQUIRED_WORKFLOW_MARKERS)}"
+        f"{len(REQUIRED_DOCS_README_MARKERS) + len(REQUIRED_SCRIPT_README_MARKERS) + len(REQUIRED_TESTS_README_MARKERS) + len(REQUIRED_REVIEW_CHECKLIST_MARKERS) + len(REQUIRED_MAKEFILE_MARKERS) + len(REQUIRED_WORKFLOW_MARKERS) + len(REQUIRED_PHASE9_BUILD_MARKERS)}"
     )
     return 0
 
