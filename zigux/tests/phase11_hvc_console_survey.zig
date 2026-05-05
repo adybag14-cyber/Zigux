@@ -273,7 +273,7 @@ test "phase11 hvc console survey keeps a bounded winsize layout proof" {
     }
 }
 
-test "phase11 hvc console survey note records the archival checkpoint meaning" {
+test "phase11 hvc console survey note records the winsize checkpoint" {
     const manifest_json = try readFileAlloc(
         std.testing.allocator,
         "zigux/tests/phase11_hvc_console_manifest.json",
@@ -292,12 +292,9 @@ test "phase11 hvc console survey note records the archival checkpoint meaning" {
     defer std.testing.allocator.free(note);
 
     try expectContains(note, parsed.value.surveyed_commit);
-    try expectContains(note, "archival checkpoint");
-    try expectContains(note, "landing review");
-    try expectContains(note, "not a promise that the same SHA is still the live `master` head");
     try expectContains(note, "struct winsize");
     try expectContains(note, "resize boundary");
-    try expectContains(note, "host-free");
+    try expectContains(note, "small shared-review truthfulness sync");
 }
 
 test "phase11 hvc_console survey gate proves validation matrix coverage directly" {
@@ -312,7 +309,8 @@ test "phase11 hvc_console survey gate proves validation matrix coverage directly
     try std.testing.expect(std.mem.indexOf(u8, matrix, "zigux/tests/phase11_hvc_cleanup.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, matrix, "Documentation/zigux/phase11-shared-replay-contract.md") != null);
     try std.testing.expect(std.mem.indexOf(u8, matrix, "zig build test --build-file zigux/tests/phase11_build.zig --summary all") != null);
-    try std.testing.expect(std.mem.indexOf(u8, matrix, "treat `zigux/tests/phase11_hvc_console_manifest.json` and `Documentation/zigux/phase11-hvc-console-survey.md` as the archival landing checkpoint") != null);
+    try std.testing.expect(std.mem.indexOf(u8, matrix, "notifier callback boundary") != null);
+    try std.testing.expect(std.mem.indexOf(u8, matrix, "deferred callback ownership") != null);
     try std.testing.expect(std.mem.indexOf(u8, matrix, "do not claim notifier callbacks, khvcd execution, live sysrq dispatch, or host-backed I/O coverage until the Zig surface and tests for those behaviors exist") != null);
     try std.testing.expect(std.mem.indexOf(u8, matrix, "keep this handoff stable while the next follow-through stays inside shared review truthfulness instead of widening into live callback execution") != null);
 }
