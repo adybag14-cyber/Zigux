@@ -11,7 +11,7 @@ This document tracks the bounded Phase 10 survey lane around `drivers/virtio/vir
 - `PHASE10_RISKY_TRANSPORT_POSTURE=blocked_on_risky_transport`
 - `PHASE10_ARCHITECTURE_COUNCIL_REOPEN_REQUIRED=true`
 - `PHASE10_ARCHITECTURE_COUNCIL_REOPEN_ATTACHED=false`
-- scope: survey manifest, dedicated survey gate, shared Phase 10 build wiring, the live in-memory MMIO helper, a lane-level slice note, and a lane-level note that records what is present in the repo plus the remaining MMIO transport gap against the roadmap
+- scope: survey manifest, dedicated survey gate, dedicated packet review guard, shared Phase 10 build wiring, the live in-memory MMIO helper, a lane-level slice note, and a lane-level note that records what is present in the repo plus the remaining MMIO transport gap against the roadmap
 - product boundary:
   - `drivers/virtio/virtio_mmio.zig`
   - `zigux/tests/phase10_virtio_mmio.zig`
@@ -20,6 +20,7 @@ This document tracks the bounded Phase 10 survey lane around `drivers/virtio/vir
   - `zigux/tests/phase10_build.zig`
   - `Documentation/zigux/phase10-virtio-mmio-slice.md`
   - `Documentation/zigux/phase10-virtio-mmio-survey.md`
+  - `scripts/zigux/check-phase10-mmio-packet.py`
 
 ## Why this slice exists
 
@@ -79,14 +80,18 @@ This survey slice does not yet claim:
 
 ## Gates
 
-1. run the dedicated Phase 10 build
+1. run the dedicated MMIO packet review guard
+- `python3 scripts/zigux/check-phase10-mmio-packet.py --self-test`
+- `python3 scripts/zigux/check-phase10-mmio-packet.py`
+
+2. run the dedicated Phase 10 build
 - `zig build test --build-file zigux/tests/phase10_build.zig`
 
-2. run the Linux-style Phase 10 test entrypoints when the wider packet is available
+3. run the Linux-style Phase 10 test entrypoints when the wider packet is available
 - `make -C zigux phase10-test`
 - `make -C zigux phase10`
 
-Taken together, these gates keep the bounded MMIO packet reviewable through the direct build replay plus the shipped Linux-style Phase 10 test entrypoints on `master`.
+Taken together, these gates keep the bounded MMIO packet reviewable through the dedicated packet guard, the direct build replay, and the shipped Linux-style Phase 10 test entrypoints on `master`.
 
 ## Next bounded step
 
