@@ -156,15 +156,24 @@ test "phase11 dw_wdt probe summary records imported running state and restart bo
 test "phase11 dw_wdt stop and restart stay bounded to reset-control and non-stoppable semantics" {
     var unstoppable = try dw_wdt.DwWdtLab.initFixedTops(65_536, false);
     _ = try unstoppable.start();
+    _ = unstoppable.setCurrentCount(5 * 65_536);
+    _ = unstoppable.setInterruptPending(true);
     var runtime = unstoppable.stop();
     try std.testing.expect(runtime.running);
     try std.testing.expect(runtime.hardware_running);
+    try std.testing.expectEqual(@as(u32, 5 * 65_536), runtime.registers.current_count);
+    try std.testing.expect(runtime.interrupt_pending);
 
     var stoppable = try dw_wdt.DwWdtLab.initFixedTops(65_536, true);
     _ = try stoppable.start();
+    _ = stoppable.setCurrentCount(5 * 65_536);
+    _ = stoppable.setInterruptPending(true);
     runtime = stoppable.stop();
     try std.testing.expect(!runtime.running);
     try std.testing.expect(!runtime.hardware_running);
+    try std.testing.expectEqual(@as(u32, 0), runtime.registers.current_count);
+    try std.testing.expectEqual(@as(u32, 0), runtime.registers.interrupt_status);
+    try std.testing.expect(!runtime.interrupt_pending);
 
     var restart_lab = try dw_wdt.DwWdtLab.initFixedTops(65_536, false);
     runtime = restart_lab.armRestart();
