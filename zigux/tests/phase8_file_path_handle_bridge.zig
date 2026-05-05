@@ -32,7 +32,10 @@ test "phase 8 file-path handle bridge docs keep the bounded fdinfo helper explic
     try expectContains(note, "max_entries");
     try expectContains(note, "map_flags");
     try expectContains(note, "no direct procfs reads");
+    try expectContains(note, "no `fopen()` or `fgets()` parity");
+    try expectContains(note, "no `bpf_map_get_info_by_fd()` fallback control flow");
     try expectContains(note, "no `bpf_obj_get()` reopen flow");
+    try expectContains(note, "no fd duplication or `F_DUPFD_CLOEXEC` handling");
     try expectContains(note, "map-reuse-compatibility remains queued");
 }
 
