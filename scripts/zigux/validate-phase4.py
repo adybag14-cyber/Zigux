@@ -15,11 +15,14 @@ REQUIRED_FILES = [
     "scripts/zigux/check-artifact-diff-contract.py",
     "scripts/zigux/validate-phase4.py",
     "Documentation/zigux/artifact-diff.md",
+    "Documentation/zigux/phase4-gate-evidence.md",
     "Documentation/zigux/phase4-validation-matrix.md",
     "zigux/Makefile",
     ".github/workflows/zigux-bootstrap.yml",
     "zigux/tests/atomic64_diff.zig",
     "zigux/tests/runtime_atomic64_diff.zig",
+    "zigux/tests/phase4_runtime_atomic64_diff_manifest.json",
+    "zigux/tests/phase4_runtime_atomic64_diff_survey.zig",
     "zigux/tests/bitmap_diff.zig",
     "zigux/tests/phase4_bitmap_live_helper_replay.zig",
     "zigux/tests/phase4_build.zig",
@@ -48,6 +51,14 @@ REQUIRED_DOC_MARKERS = [
     "scripts/zigux/validate-phase4.py",
     "Documentation/zigux/phase4-validation-matrix.md",
 ]
+REQUIRED_PHASE4_GATE_EVIDENCE_MARKERS = [
+    "PHASE4_EVIDENCE_SCOPE=rollback_ownership_and_lab_matrix_current_gate_definitions",
+    "PHASE4_VALIDATOR_BLOB_SHA=",
+    "zigux/tests/phase4_runtime_atomic64_diff_manifest.json",
+    "zigux/tests/phase4_runtime_atomic64_diff_survey.zig",
+    "PHASE4_SHARED_TEST_FSMOUNT_SURVEY_PACKET_PRESENT=false",
+    "PHASE4_SHARED_PERF_BASELINE_SURVEY_PACKET_PRESENT=false",
+]
 REQUIRED_TESTS_README_MARKERS = [
     "zigux/tests/atomic64_diff.zig",
     "zigux/tests/runtime_atomic64_diff.zig",
@@ -73,6 +84,8 @@ REQUIRED_DOC_README_MARKERS = [
 REQUIRED_PHASE4_MATRIX_MARKERS = [
     "atomic64_diff.zig",
     "runtime_atomic64_diff.zig",
+    "phase4_runtime_atomic64_diff_manifest.json",
+    "phase4_runtime_atomic64_diff_survey.zig",
     "bitmap_diff.zig",
     "phase4_bitmap_live_helper_replay.zig",
     "rollback owner",
@@ -88,9 +101,11 @@ REQUIRED_PHASE4_MATRIX_MARKERS = [
 ]
 REQUIRED_PHASE4_BUILD_MARKERS = [
     "atomic64_diff.zig",
+    "phase4_runtime_atomic64_diff_survey.zig",
     "bitmap_diff.zig",
     "phase4_bitmap_live_helper_replay.zig",
     "phase4-runtime-atomic64-diff-tests",
+    "phase4-runtime-atomic64-diff-survey-tests",
     "phase4-bitmap-diff-tests",
     "phase4-bitmap-live-helper-replay-tests",
 ]
@@ -183,6 +198,7 @@ def validate_root(root: Path) -> list[str]:
     makefile = (root / "zigux/Makefile").read_text(encoding="utf-8")
     workflow = (root / ".github/workflows/zigux-bootstrap.yml").read_text(encoding="utf-8")
     artifact_doc = (root / "Documentation/zigux/artifact-diff.md").read_text(encoding="utf-8")
+    phase4_gate_evidence = (root / "Documentation/zigux/phase4-gate-evidence.md").read_text(encoding="utf-8")
     tests_readme = (root / "zigux/tests/README.md").read_text(encoding="utf-8")
     script_readme = (root / "scripts/zigux/README.md").read_text(encoding="utf-8")
     doc_readme = (root / "Documentation/zigux/README.md").read_text(encoding="utf-8")
@@ -198,6 +214,9 @@ def validate_root(root: Path) -> list[str]:
     for marker in REQUIRED_DOC_MARKERS:
         if marker not in artifact_doc:
             missing_markers.append(f"doc:{marker}")
+    for marker in REQUIRED_PHASE4_GATE_EVIDENCE_MARKERS:
+        if marker not in phase4_gate_evidence:
+            missing_markers.append(f"gate_evidence:{marker}")
     for marker in REQUIRED_TESTS_README_MARKERS:
         if marker not in tests_readme:
             missing_markers.append(f"tests_readme:{marker}")
@@ -350,6 +369,23 @@ def run_self_test() -> int:
             + "\n",
         )
         _write(
+            root / "Documentation/zigux/phase4-gate-evidence.md",
+            "\n".join(
+                [
+                    "# Phase 4 Gate Evidence",
+                    "",
+                    "- `PHASE4_EVIDENCE_SCOPE=rollback_ownership_and_lab_matrix_current_gate_definitions`",
+                    "- `PHASE4_VALIDATOR_BLOB_SHA=placeholder`",
+                    "- `zigux/tests/phase4_runtime_atomic64_diff_manifest.json` stays in the packet.",
+                    "- `zigux/tests/phase4_runtime_atomic64_diff_survey.zig` stays in the packet.",
+                    "- `PHASE4_SHARED_TEST_FSMOUNT_SURVEY_PACKET_PRESENT=false`",
+                    "- `PHASE4_SHARED_PERF_BASELINE_SURVEY_PACKET_PRESENT=false`",
+                    "",
+                ]
+            )
+            + "\n",
+        )
+        _write(
             root / "Documentation/zigux/phase4-validation-matrix.md",
             "\n".join(
                 [
@@ -357,6 +393,8 @@ def run_self_test() -> int:
                     "",
                     "atomic64_diff.zig",
                     "runtime_atomic64_diff.zig",
+                    "phase4_runtime_atomic64_diff_manifest.json",
+                    "phase4_runtime_atomic64_diff_survey.zig",
                     "bitmap_diff.zig",
                     "phase4_bitmap_live_helper_replay.zig",
                     "rollback owner",
@@ -377,7 +415,7 @@ def run_self_test() -> int:
             root / "zigux/Makefile",
             "\n".join(
                 [
-                    "PHONY += phase4-validate phase4-test phase4",
+                    "PHONY += phase4-validate phase4-test",
                     "phase4-validate:",
                     "\tpython3 scripts/zigux/validate-phase4.py",
                     "phase4-test:",
@@ -405,6 +443,8 @@ def run_self_test() -> int:
         )
         _write(root / "zigux/tests/atomic64_diff.zig", "// wrapper gate\n")
         _write(root / "zigux/tests/runtime_atomic64_diff.zig", "// runtime gate\n")
+        _write(root / "zigux/tests/phase4_runtime_atomic64_diff_manifest.json", "{}\n")
+        _write(root / "zigux/tests/phase4_runtime_atomic64_diff_survey.zig", "// survey gate\n")
         _write(root / "zigux/tests/bitmap_diff.zig", "// bitmap gate\n")
         _write(root / "zigux/tests/phase4_bitmap_live_helper_replay.zig", "// helper replay gate\n")
         _write(
@@ -412,9 +452,11 @@ def run_self_test() -> int:
             "\n".join(
                 [
                     "atomic64_diff.zig",
+                    "phase4_runtime_atomic64_diff_survey.zig",
                     "bitmap_diff.zig",
                     "phase4_bitmap_live_helper_replay.zig",
                     "phase4-runtime-atomic64-diff-tests",
+                    "phase4-runtime-atomic64-diff-survey-tests",
                     "phase4-bitmap-diff-tests",
                     "phase4-bitmap-live-helper-replay-tests",
                     "",
@@ -607,7 +649,7 @@ def main() -> int:
     print(f"PHASE4_REQUIRED_FILE_COUNT={len(REQUIRED_FILES)}")
     print(
         "PHASE4_REQUIRED_MARKER_COUNT="
-        f"{len(REQUIRED_MAKE_MARKERS) + len(REQUIRED_WORKFLOW_MARKERS) + len(REQUIRED_DOC_MARKERS) + len(REQUIRED_TESTS_README_MARKERS) + len(REQUIRED_SCRIPT_README_MARKERS) + len(REQUIRED_DOC_README_MARKERS) + len(REQUIRED_PHASE4_MATRIX_MARKERS) + len(REQUIRED_PHASE4_BUILD_MARKERS)}"
+        f"{len(REQUIRED_MAKE_MARKERS) + len(REQUIRED_WORKFLOW_MARKERS) + len(REQUIRED_DOC_MARKERS) + len(REQUIRED_PHASE4_GATE_EVIDENCE_MARKERS) + len(REQUIRED_TESTS_README_MARKERS) + len(REQUIRED_SCRIPT_README_MARKERS) + len(REQUIRED_DOC_README_MARKERS) + len(REQUIRED_PHASE4_MATRIX_MARKERS) + len(REQUIRED_PHASE4_BUILD_MARKERS)}"
     )
     return 0
 
