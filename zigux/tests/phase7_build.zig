@@ -73,6 +73,7 @@ pub fn build(b: *std.Build) void {
         .root_module = string_helpers_sample_boundary_root_module,
     });
     const run_string_helpers_sample_boundary_tests = b.addRunArtifact(string_helpers_sample_boundary_tests);
+    run_string_helpers_sample_boundary_tests.setCwd(b.path("../.."));
 
     const string_helpers_tests = b.addTest(.{
         .name = "phase7-string-helpers-tests",
