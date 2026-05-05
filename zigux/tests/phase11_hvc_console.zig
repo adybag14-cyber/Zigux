@@ -72,6 +72,38 @@ test "phase11 hvc_console summarizes final-close wait boundaries without claimin
     }));
 }
 
+test "phase11 hvc console keeps remove-path teardown ordering reviewable" {
+    var console = try hvc_console.HvcConsoleLab.init(9);
+    _ = console.instantiate(0x90);
+
+    const active_remove = try console.summarizeRemoveHandoff(.{});
+    try std.testing.expectEqual(@as(usize, 9), active_remove.slot_index);
+    try std.testing.expectEqual(@as(u32, 0x90), active_remove.vtermno);
+    try std.testing.expect(active_remove.adapter_present);
+    try std.testing.expect(active_remove.clears_console_slot_binding);
+    try std.testing.expect(active_remove.keeps_irq_for_followup_hangup);
+    try std.testing.expect(active_remove.drops_init_kref_port_reference);
+    try std.testing.expect(active_remove.tty_vhangup_requested);
+    try std.testing.expect(active_remove.tty_kref_put_after_vhangup);
+    try std.testing.expect(active_remove.teardown_via_hangup_pending);
+    try std.testing.expect(active_remove.host_io_pending);
+
+    const detached_remove = try console.summarizeRemoveHandoff(.{
+        .console_index_registered = false,
+        .tty_present = false,
+    });
+    try std.testing.expect(!detached_remove.clears_console_slot_binding);
+    try std.testing.expect(!detached_remove.keeps_irq_for_followup_hangup);
+    try std.testing.expect(detached_remove.drops_init_kref_port_reference);
+    try std.testing.expect(!detached_remove.tty_vhangup_requested);
+    try std.testing.expect(!detached_remove.tty_kref_put_after_vhangup);
+    try std.testing.expect(!detached_remove.teardown_via_hangup_pending);
+    try std.testing.expect(!detached_remove.host_io_pending);
+
+    _ = console.teardown();
+    try std.testing.expectError(error.ConsoleUnavailable, console.summarizeRemoveHandoff(.{}));
+}
+
 test "phase11 hvc_console adds carriage returns and keeps final flush intent on successful writes" {
     var console = try hvc_console.HvcConsoleLab.init(1);
     const slot = console.instantiate(0x41);
