@@ -53,7 +53,7 @@ test "phase10 virtio ring survey manifest records the live queue-wrapper gap" {
     try std.testing.expectEqualStrings("P10-L06", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 10", manifest.phase);
     try std.testing.expectEqualStrings("drivers/virtio/virtio_ring.c", manifest.anchor);
-    try std.testing.expectEqualStrings("62207c4108fc2658728a26341e2b533bde0c97d3", manifest.surveyed_commit);
+    try std.testing.expectEqualStrings("6087b7541ba8a14fedd8d1dd07308be8a269c911", manifest.surveyed_commit);
     try std.testing.expectEqual(@as(usize, 2), manifest.roadmap_destinations.len);
     try std.testing.expect(manifest.survey_summary.virtio_ring_c_lines >= 3000);
     try std.testing.expectEqual(@as(usize, 3), manifest.survey_summary.preexisting_phase10_test_files);
