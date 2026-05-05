@@ -79,6 +79,8 @@ REQUIRED_VIRTIO_NET_SURVEY_MARKERS = [
 
 REQUIRED_LIBBPF_SURVEY_MARKERS = [
     "public fallback posture: shared-tree-only anchor; unlike `Documentation/zigux/phase12-nvme-pci-raw-github-fallback-map.md` and `Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md`, this libbpf note is not a commit-pinned raw GitHub fallback artifact.",
+    "the older segment catalog still leaves two bounded shared-bridge helpers explicitly nearer than the object-model wall: fdinfo map-info parsing and map-reuse compatibility stay `ready_next` once Zigux chooses to materialize the existing `file_path_handle_bridge.zig` surface, while the heavier shared file-path-and-handle bridge remains its own deferred bucket.",
+    "the current risk split is now explicit again: the ready-next shared-bridge helpers stay smaller than the missing object-model wall, the heavier shared file-path-and-handle bridge and perf-buffer online-CPU routing stay deferred as their own bridge and queue-routing buckets, `skeleton.zig` remains the nearest post-helper cluster once those smaller bridge decisions are exhausted, loader and program-load work stay blocked behind that boundary, and the verifier-facing relocation cluster stays deferred as its own later risk bucket.",
 ]
 
 FORBIDDEN_SEQUENCE_MARKERS = [
@@ -340,6 +342,8 @@ Phase 12 notes
         root / LIBBPF_SURVEY_PATH,
         """# Phase 12 Libbpf Segment Survey
 - public fallback posture: shared-tree-only anchor; unlike `Documentation/zigux/phase12-nvme-pci-raw-github-fallback-map.md` and `Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md`, this libbpf note is not a commit-pinned raw GitHub fallback artifact.
+- the older segment catalog still leaves two bounded shared-bridge helpers explicitly nearer than the object-model wall: fdinfo map-info parsing and map-reuse compatibility stay `ready_next` once Zigux chooses to materialize the existing `file_path_handle_bridge.zig` surface, while the heavier shared file-path-and-handle bridge remains its own deferred bucket.
+- the current risk split is now explicit again: the ready-next shared-bridge helpers stay smaller than the missing object-model wall, the heavier shared file-path-and-handle bridge and perf-buffer online-CPU routing stay deferred as their own bridge and queue-routing buckets, `skeleton.zig` remains the nearest post-helper cluster once those smaller bridge decisions are exhausted, loader and program-load work stay blocked behind that boundary, and the verifier-facing relocation cluster stays deferred as its own later risk bucket.
 """,
     )
     write(
