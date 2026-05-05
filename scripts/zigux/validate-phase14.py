@@ -342,6 +342,7 @@ def run_self_test() -> int:
             path = root / rel_path
             if path.exists():
                 continue
+            writeText = None
             write_text(path, "\n".join(markers) + "\n")
 
         errors = check(root)
@@ -352,7 +353,6 @@ def run_self_test() -> int:
             return 1
 
         broken_path = root / TRACEABILITY_PATH
-        broken_path.writeText = None
         broken_path.write_text(f"{TRACEABILITY_TITLE}\n", encoding="utf-8")
         errors = check(root)
         if not errors or not any("missing marker in Documentation/zigux/phase14-core-boundary-traceability.md: - lane key: `P14-L08`" in error for error in errors):
