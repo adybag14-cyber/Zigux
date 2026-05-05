@@ -6,8 +6,14 @@ pub const config_window_capacity: usize = 16;
 pub const max_queue_size: u16 = 1024;
 pub const mmio_window_bytes: u32 = 0x100;
 pub const mmio_magic_value: u32 = 0x7472_6976;
+pub const mmio_version_legacy: u32 = 0x1;
 pub const mmio_version_modern: u32 = 0x2;
 pub const default_vendor_id: u32 = 0x1af4;
+pub const guest_page_size_register_offset: u32 = 0x028;
+pub const interrupt_ack_register_offset: u32 = 0x064;
+pub const queue_interrupt_bit: u32 = 0x1;
+pub const config_interrupt_bit: u32 = 0x2;
+pub const supported_interrupt_bits: u32 = queue_interrupt_bit | config_interrupt_bit;
 
 pub const Register = enum(u32) {
     magic_value = 0x000,
@@ -73,6 +79,19 @@ pub const ConfigWritePlanSummary = struct {
     config_generation: u32,
     previous_value: u32,
     planned_value: u32,
+};
+
+pub const ProbePreflightSummary = struct {
+    anchor: []const u8,
+    magic_matches: bool,
+    version_supported: bool,
+    device_present: bool,
+    vendor_id_present: bool,
+    requires_legacy_guest_page_size: bool,
+    legacy_guest_page_size_register_ready: bool,
+    bounded_queue_register_window_ready: bool,
+    interrupt_ack_ready: bool,
+    ready_for_probe_handoff: bool,
 };
 
 pub const VirtioMmioLab = struct {
@@ -220,6 +239,41 @@ pub const VirtioMmioLab = struct {
             .config_generation = self.config_generation,
             .previous_value = readLittleU32(self.config_window[start .. start + 4]),
             .planned_value = planned_value,
+        };
+    }
+
+    pub fn probePreflightSummary(self: *const Self) ProbePreflightSummary {
+        const magic_matches = mmio_magic_value == 0x7472_6976;
+        const version_supported = mmio_version_modern == mmio_version_legacy or mmio_version_modern == mmio_version_modern;
+        const device_present = self.device_id != 0;
+        const vendor_id_present = self.vendor_id != 0;
+        const requires_legacy_guest_page_size = mmio_version_modern == mmio_version_legacy;
+        const legacy_guest_page_size_register_ready = guest_page_size_register_offset == 0x028;
+        const bounded_queue_register_window_ready = self.configured_queue_count != 0 and
+            @intFromEnum(Register.queue_num_max) == 0x034 and
+            @intFromEnum(Register.queue_num) == 0x038 and
+            @intFromEnum(Register.queue_ready) == 0x044;
+        const interrupt_ack_ready = @intFromEnum(Register.interrupt_status) == 0x060 and
+            interrupt_ack_register_offset == 0x064 and
+            supported_interrupt_bits == (queue_interrupt_bit | config_interrupt_bit);
+
+        return .{
+            .anchor = descriptor().anchor,
+            .magic_matches = magic_matches,
+            .version_supported = version_supported,
+            .device_present = device_present,
+            .vendor_id_present = vendor_id_present,
+            .requires_legacy_guest_page_size = requires_legacy_guest_page_size,
+            .legacy_guest_page_size_register_ready = legacy_guest_page_size_register_ready,
+            .bounded_queue_register_window_ready = bounded_queue_register_window_ready,
+            .interrupt_ack_ready = interrupt_ack_ready,
+            .ready_for_probe_handoff = magic_matches and
+                version_supported and
+                device_present and
+                vendor_id_present and
+                (!requires_legacy_guest_page_size or legacy_guest_page_size_register_ready) and
+                bounded_queue_register_window_ready and
+                interrupt_ack_ready,
         };
     }
 
