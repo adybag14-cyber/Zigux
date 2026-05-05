@@ -146,6 +146,37 @@ pub const ReceiveRefillSummary = struct {
     requires_post_restore_probe_replay: bool,
 };
 
+pub const MergeableBufferLengthSource = enum {
+    page_minus_room,
+    observed_average_packet,
+    minimum_buffer_floor,
+    page_size_cap,
+};
+
+pub const MergeableBufferLengthRequest = struct {
+    observed_average_packet_len_bytes: u16,
+    min_buf_len_bytes: u16,
+    xdp_headroom_bytes: u16 = 0,
+    page_bytes: u16 = 4096,
+    cache_line_bytes: u16 = 64,
+    skb_shared_info_bytes: u16 = 320,
+};
+
+pub const MergeableBufferLengthSummary = struct {
+    anchor: []const u8,
+    source: MergeableBufferLengthSource,
+    observed_average_packet_len_bytes: u16,
+    min_buf_len_bytes: u16,
+    xdp_headroom_bytes: u16,
+    tailroom_bytes: u16,
+    room_bytes: u16,
+    payload_limit_bytes: u16,
+    selected_payload_bytes: u16,
+    hdr_len_bytes: u16,
+    submit_len_bytes: u16,
+    allocation_len_bytes: u16,
+};
+
 pub const TransmitRecycleOrder = enum {
     data_queues_only,
     after_control_queue_restore,
@@ -317,6 +348,19 @@ pub const VirtioNetProbeLab = struct {
         return summarizeReceiveRefill(snapshot, resume_summary);
     }
 
+    pub fn planMergeableBufferLength(
+        self: *Self,
+        request: MergeableBufferLengthRequest,
+    ) !MergeableBufferLengthSummary {
+        if (!self.transport_recovery_frozen) return error.TransportRecoveryNotFrozen;
+        if (request.page_bytes == 0) return error.InvalidPageBytes;
+        if (request.cache_line_bytes == 0) return error.InvalidCacheLineBytes;
+        if (!std.math.isPowerOfTwo(request.cache_line_bytes)) return error.InvalidCacheLineBytes;
+
+        const snapshot = self.frozen_snapshot orelse return error.ProbeSnapshotUnavailable;
+        return summarizeMergeableBufferLength(snapshot, request);
+    }
+
     pub fn planTransmitRecycle(self: *Self) !TransmitRecycleSummary {
         if (!self.transport_recovery_frozen) return error.TransportRecoveryNotFrozen;
 
@@ -333,6 +377,19 @@ pub const VirtioNetProbeLab = struct {
     fn checkedAddU16(lhs: u16, rhs: u16) !u16 {
         const value = @as(u32, lhs) + rhs;
         return std.math.cast(u16, value) orelse error.QueueCountOverflow;
+    }
+
+    fn checkedAddBufferLengthU16(lhs: u16, rhs: u16) !u16 {
+        const value = @as(u32, lhs) + rhs;
+        return std.math.cast(u16, value) orelse error.BufferLengthOverflow;
+    }
+
+    fn alignForwardU16(value: u16, alignment: u16) !u16 {
+        const widened_alignment = @as(u32, alignment);
+        const widened_value = @as(u32, value);
+        const adjusted = widened_value + widened_alignment - 1;
+        const aligned = adjusted & ~(widened_alignment - 1);
+        return std.math.cast(u16, aligned) orelse error.BufferLengthOverflow;
     }
 
     fn featureRequested(feature_bits: []const u16, wanted: u16) bool {
@@ -450,6 +507,74 @@ pub const VirtioNetProbeLab = struct {
             .requires_mergeable_buffer_headroom = snapshot.mergeable_rx_buffers,
             .requires_fresh_probe_snapshot = resume_summary.requires_fresh_probe_snapshot,
             .requires_post_restore_probe_replay = true,
+        };
+    }
+
+    fn summarizeMergeableBufferLength(
+        snapshot: ProbeSnapshot,
+        request: MergeableBufferLengthRequest,
+    ) !MergeableBufferLengthSummary {
+        if (!snapshot.mergeable_rx_buffers) return error.ReceiveBufferModeNotMergeable;
+
+        const hdr_len_bytes: u16 = if (snapshot.has_rss_hash_report) 20 else 12;
+        if (request.page_bytes <= hdr_len_bytes) return error.PageTooSmallForMergeableBuffer;
+
+        const tailroom_bytes: u16 = if (request.xdp_headroom_bytes != 0)
+            request.skb_shared_info_bytes
+        else
+            0;
+        const headroom_plus_tailroom = try checkedAddBufferLengthU16(request.xdp_headroom_bytes, tailroom_bytes);
+        const room_bytes = try alignForwardU16(headroom_plus_tailroom, request.cache_line_bytes);
+        if (room_bytes >= request.page_bytes) return error.PageTooSmallForMergeableBuffer;
+
+        const payload_limit_bytes = request.page_bytes - hdr_len_bytes;
+        if (room_bytes != 0) {
+            const submit_len_bytes = request.page_bytes - room_bytes;
+            if (submit_len_bytes <= hdr_len_bytes) return error.PageTooSmallForMergeableBuffer;
+
+            return .{
+                .anchor = descriptor().anchor,
+                .source = .page_minus_room,
+                .observed_average_packet_len_bytes = request.observed_average_packet_len_bytes,
+                .min_buf_len_bytes = request.min_buf_len_bytes,
+                .xdp_headroom_bytes = request.xdp_headroom_bytes,
+                .tailroom_bytes = tailroom_bytes,
+                .room_bytes = room_bytes,
+                .payload_limit_bytes = payload_limit_bytes,
+                .selected_payload_bytes = submit_len_bytes - hdr_len_bytes,
+                .hdr_len_bytes = hdr_len_bytes,
+                .submit_len_bytes = submit_len_bytes,
+                .allocation_len_bytes = request.page_bytes,
+            };
+        }
+
+        var selected_payload_bytes = request.observed_average_packet_len_bytes;
+        var source: MergeableBufferLengthSource = .observed_average_packet;
+
+        if (selected_payload_bytes < request.min_buf_len_bytes) {
+            selected_payload_bytes = request.min_buf_len_bytes;
+            source = .minimum_buffer_floor;
+        } else if (selected_payload_bytes > payload_limit_bytes) {
+            selected_payload_bytes = payload_limit_bytes;
+            source = .page_size_cap;
+        }
+
+        const raw_submit_len_bytes = try checkedAddBufferLengthU16(hdr_len_bytes, selected_payload_bytes);
+        const submit_len_bytes = try alignForwardU16(raw_submit_len_bytes, request.cache_line_bytes);
+
+        return .{
+            .anchor = descriptor().anchor,
+            .source = source,
+            .observed_average_packet_len_bytes = request.observed_average_packet_len_bytes,
+            .min_buf_len_bytes = request.min_buf_len_bytes,
+            .xdp_headroom_bytes = request.xdp_headroom_bytes,
+            .tailroom_bytes = tailroom_bytes,
+            .room_bytes = room_bytes,
+            .payload_limit_bytes = payload_limit_bytes,
+            .selected_payload_bytes = selected_payload_bytes,
+            .hdr_len_bytes = hdr_len_bytes,
+            .submit_len_bytes = submit_len_bytes,
+            .allocation_len_bytes = submit_len_bytes,
         };
     }
 
