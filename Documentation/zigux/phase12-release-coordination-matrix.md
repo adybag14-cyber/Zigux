@@ -29,6 +29,8 @@ It does not replace the deeper survey and contract notes. Its job is narrower: k
 Use this matrix together with these shared PMO packet notes when reading Phase 12 for release coordination:
 
 - `Documentation/zigux/phase12-release-readiness-survey.md`
+- `Documentation/zigux/phase12-release-sequencing.md`
+- `Documentation/zigux/phase12-release-readiness-handoff.md`
 - `Documentation/zigux/phase12-shared-replay-contract.md`
 - `Documentation/zigux/phase12-cross-compile-smoke.md`
 - `Documentation/zigux/phase12-raw-github-coverage-survey.md`
@@ -44,6 +46,7 @@ The PMO reading should stay the same across those files:
 - the two shared-tree-only anchors also keep direct branch-tip raw paths published for degraded review: `virtio_net` through `https://raw.githubusercontent.com/adybag14-cyber/Zigux/master/drivers/net/virtio_net.c` and `libbpf` through `https://raw.githubusercontent.com/adybag14-cyber/Zigux/master/tools/lib/bpf/libbpf.c`
 - the mixed fallback split is backed by `scripts/zigux/check-phase12-raw-github-coverage.py`, `zigux/tests/phase12_raw_github_coverage_manifest.json`, and `zigux/tests/phase12_raw_github_coverage_survey.zig` instead of living only in prose notes
 - `make -C zigux phase12-validate` remains the rollback drill before `make -C zigux phase12`
+- the ordered validate-before-replay route and the still-open PMO follow-through stay explicit through `Documentation/zigux/phase12-release-sequencing.md` and `Documentation/zigux/phase12-release-readiness-handoff.md` instead of leaving those release-coordination surfaces discoverable only from the broader survey note
 
 ## Shared surface alignment
 
@@ -51,7 +54,7 @@ Before treating the Phase 12 PMO packet as reviewable, keep these summary surfac
 
 - `Documentation/zigux/README.md` should keep this matrix, the active-not-closed Phase 12 posture, and the validator-first replay route visible from the docs root
 - `scripts/zigux/README.md` should keep the same owner split, focused libbpf replay shard, and validate-before-replay route visible from the scripts root
-- `zigux/tests/README.md` should explicitly name this matrix plus `Documentation/zigux/phase12-nvme-pci-raw-github-fallback-map.md`, `Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md`, `zigux/tests/phase12_raw_github_coverage_manifest.json`, and `zigux/tests/phase12_raw_github_coverage_survey.zig`, and it should also keep the active-not-closed release posture, the approved `x86_64-linux-musl`, `aarch64-linux-musl`, and `riscv64-linux-musl` smoke set, the focused libbpf-only replay shard, the Linux-style validate-before-replay handoff, and the paired direct branch-tip raw paths for `virtio_net` and `libbpf` visible so the tests root carries the same compact owner, status, validation-gate, and fallback-mode view instead of leaving the mixed mode implicit
+- `zigux/tests/README.md` should explicitly name this matrix plus `Documentation/zigux/phase12-release-sequencing.md`, `Documentation/zigux/phase12-release-readiness-handoff.md`, `Documentation/zigux/phase12-nvme-pci-raw-github-fallback-map.md`, `Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md`, `zigux/tests/phase12_raw_github_coverage_manifest.json`, and `zigux/tests/phase12_raw_github_coverage_survey.zig`, and it should also keep the active-not-closed release posture, the approved `x86_64-linux-musl`, `aarch64-linux-musl`, and `riscv64-linux-musl` smoke set, the focused libbpf-only replay shard, the Linux-style validate-before-replay handoff, the ordered validate-before-replay route, the still-open shared-validator follow-through, and the paired direct branch-tip raw paths for `virtio_net` and `libbpf` visible so the tests root carries the same compact owner, status, validation-gate, and fallback-mode view instead of leaving the mixed mode implicit
 
 ## Review use
 
