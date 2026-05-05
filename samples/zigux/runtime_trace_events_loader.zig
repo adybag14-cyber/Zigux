@@ -44,6 +44,20 @@ pub const RuntimeTraceEventsLoadPlan = struct {
     summary: RuntimeTraceEventsLoadSummary,
 };
 
+pub const RuntimeTraceEventsRegistrationSnapshot = struct {
+    register_api: []const u8,
+    unregister_api: []const u8,
+    main_thread_events: usize,
+    fn_thread_events: usize,
+    total_events: usize,
+    conditional_paths_checked: bool,
+    registration_paths_checked: bool,
+    last_main_count: i32,
+    last_fn_count: i32,
+    registration_depth: usize,
+    selftest_runs: usize,
+};
+
 fn sharedHandoffStage(stage: runtime_trace_events_sample.ModuleStage) runtime_loader.HandoffStage {
     return switch (stage) {
         .initialized => .initialized,
@@ -74,6 +88,39 @@ pub fn toSharedLoadPlan(plan: RuntimeTraceEventsLoadPlan) runtime_loader.LoadPla
             .exit_runs = 0,
         },
     };
+}
+
+pub fn registrationSnapshot(plan: RuntimeTraceEventsLoadPlan) RuntimeTraceEventsRegistrationSnapshot {
+    return .{
+        .register_api = plan.register_api,
+        .unregister_api = plan.unregister_api,
+        .main_thread_events = plan.summary.main_thread_events,
+        .fn_thread_events = plan.summary.fn_thread_events,
+        .total_events = plan.summary.total_events,
+        .conditional_paths_checked = plan.summary.conditional_paths_checked,
+        .registration_paths_checked = plan.summary.registration_paths_checked,
+        .last_main_count = plan.summary.last_main_count,
+        .last_fn_count = plan.summary.last_fn_count,
+        .registration_depth = plan.summary.registration_depth,
+        .selftest_runs = plan.summary.selftest_runs,
+    };
+}
+
+pub fn keepsRegistrationSnapshotExplicit(
+    plan: RuntimeTraceEventsLoadPlan,
+    snapshot: RuntimeTraceEventsRegistrationSnapshot,
+) bool {
+    return std.mem.eql(u8, snapshot.register_api, plan.register_api) and
+        std.mem.eql(u8, snapshot.unregister_api, plan.unregister_api) and
+        snapshot.main_thread_events == plan.summary.main_thread_events and
+        snapshot.fn_thread_events == plan.summary.fn_thread_events and
+        snapshot.total_events == plan.summary.total_events and
+        snapshot.conditional_paths_checked == plan.summary.conditional_paths_checked and
+        snapshot.registration_paths_checked == plan.summary.registration_paths_checked and
+        snapshot.last_main_count == plan.summary.last_main_count and
+        snapshot.last_fn_count == plan.summary.last_fn_count and
+        snapshot.registration_depth == plan.summary.registration_depth and
+        snapshot.selftest_runs == plan.summary.selftest_runs;
 }
 
 pub fn keepsSharedLoadPlanSnapshotExplicit(
@@ -199,6 +246,7 @@ test "runtime trace-events loader prepares a bounded registration handoff plan" 
 
     var loader = RuntimeTraceEventsLoader{};
     const plan = try loader.prepare(&module);
+    const snapshot = registrationSnapshot(plan);
 
     try std.testing.expectEqual(LoaderStage.prepared, loader.stage());
     try std.testing.expectEqualStrings("runtime_trace_events", plan.module_name);
@@ -220,6 +268,11 @@ test "runtime trace-events loader prepares a bounded registration handoff plan" 
     try std.testing.expectEqual(@as(i32, 1), plan.summary.last_fn_count);
     try std.testing.expectEqual(@as(usize, 0), plan.summary.registration_depth);
     try std.testing.expectEqual(@as(usize, 1), plan.summary.selftest_runs);
+    try std.testing.expect(keepsRegistrationSnapshotExplicit(plan, snapshot));
+    try std.testing.expectEqualStrings("tracepoint_probe_register", snapshot.register_api);
+    try std.testing.expectEqualStrings("tracepoint_probe_unregister", snapshot.unregister_api);
+    try std.testing.expectEqual(@as(usize, 8), snapshot.total_events);
+    try std.testing.expectEqual(@as(usize, 0), snapshot.registration_depth);
 }
 
 test "runtime trace-events loader keeps unavailable substrate and lifecycle guards explicit" {
@@ -260,6 +313,7 @@ test "runtime trace-events loader keeps the prepared snapshot stable across late
 
     var loader = RuntimeTraceEventsLoader{};
     const prepared = try loader.prepare(&module);
+    const prepared_snapshot = registrationSnapshot(prepared);
 
     try module.registerFunctionThread();
     _ = try module.emitFunctionIteration(5);
@@ -268,6 +322,7 @@ test "runtime trace-events loader keeps the prepared snapshot stable across late
 
     const live_summary = RuntimeTraceEventsLoader.buildSummary(&module);
     const pending_plan = try loader.requestRuntimeLoad();
+    const pending_snapshot = registrationSnapshot(pending_plan);
 
     try std.testing.expectEqual(LoaderStage.waiting_on_runtime_substrate, loader.stage());
     try std.testing.expectEqual(@as(usize, 16), live_summary.total_events);
@@ -282,8 +337,14 @@ test "runtime trace-events loader keeps the prepared snapshot stable across late
     try std.testing.expectEqual(@as(i32, 1), pending_plan.summary.last_fn_count);
     try std.testing.expectEqual(@as(usize, 1), live_summary.selftest_runs);
     try std.testing.expectEqual(@as(usize, 1), pending_plan.summary.selftest_runs);
-
-    _ = prepared;
+    try std.testing.expect(keepsRegistrationSnapshotExplicit(pending_plan, prepared_snapshot));
+    try std.testing.expect(keepsRegistrationSnapshotExplicit(pending_plan, pending_snapshot));
+    try std.testing.expectEqualStrings("tracepoint_probe_register", prepared_snapshot.register_api);
+    try std.testing.expectEqualStrings("tracepoint_probe_register", pending_snapshot.register_api);
+    try std.testing.expectEqual(@as(usize, 8), prepared_snapshot.total_events);
+    try std.testing.expectEqual(@as(usize, 8), pending_snapshot.total_events);
+    try std.testing.expectEqual(@as(i32, 0), prepared_snapshot.last_main_count);
+    try std.testing.expectEqual(@as(i32, 0), pending_snapshot.last_main_count);
 }
 
 test "runtime trace-events loader emits the shared runtime-loader contract plan" {
@@ -413,6 +474,32 @@ test "runtime trace-events loader rejects shared-load-plan snapshot drift" {
     var drifted_selftest = shared_plan;
     drifted_selftest.init_flow.selftest_runs += 1;
     try std.testing.expect(!keepsSharedLoadPlanSnapshotExplicit(plan, drifted_selftest));
+}
+
+test "runtime trace-events loader rejects registration snapshot drift" {
+    var module = runtime_trace_events_sample.RuntimeTraceEventsSample{};
+    try module.init();
+    _ = try module.runSelftest();
+
+    const plan = try RuntimeTraceEventsLoader.planFor(&module);
+    const snapshot = registrationSnapshot(plan);
+    try std.testing.expect(keepsRegistrationSnapshotExplicit(plan, snapshot));
+
+    var drifted_register_api = snapshot;
+    drifted_register_api.register_api = "tracepoint_probe_register_rcu";
+    try std.testing.expect(!keepsRegistrationSnapshotExplicit(plan, drifted_register_api));
+
+    var drifted_unregister_api = snapshot;
+    drifted_unregister_api.unregister_api = "tracepoint_synchronize_unregister";
+    try std.testing.expect(!keepsRegistrationSnapshotExplicit(plan, drifted_unregister_api));
+
+    var drifted_total_events = snapshot;
+    drifted_total_events.total_events += 2;
+    try std.testing.expect(!keepsRegistrationSnapshotExplicit(plan, drifted_total_events));
+
+    var drifted_main_count = snapshot;
+    drifted_main_count.last_main_count += 11;
+    try std.testing.expect(!keepsRegistrationSnapshotExplicit(plan, drifted_main_count));
 }
 
 test "runtime trace-events loader rejects non-idle registration state at the metadata-only handoff boundary" {
