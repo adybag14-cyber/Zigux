@@ -264,7 +264,7 @@ required_docs_root_markers = [
 required_scripts_readme_markers = [
     (
         "scripts_readme_phase1_packet",
-        "- `Documentation/zigux/phase1-closure.md`, `zigux/Makefile`, `make -C zigux phase1-validate`, `make -C zigux phase1-test`, `make -C zigux phase1-bench`, and `make -C zigux phase1` keep that same closed host-side helper packet reviewable through the docs-root closure record and the Linux-style replay routes instead of leaving the Phase 1 closure stack visible only through direct script and Zig commands.",
+        "- `Documentation/zigux/review-checklist.md`, `Documentation/zigux/phase1-closure.md`, `zigux/Makefile`, `make -C zigux phase1-validate`, `make -C zigux phase1-test`, `make -C zigux phase1-bench`, and `make -C zigux phase1` keep that same closed host-side helper packet reviewable through the docs-root closure record, the reviewer-facing checklist, and the Linux-style replay routes instead of leaving the Phase 1 closure stack visible only through direct script and Zig commands.",
         1,
     ),
 ]
@@ -919,7 +919,7 @@ def run_self_test() -> None:
         make_fixture_root(tmp_root)
         required_build = "zigux/tests/build.zig"
         (tmp_root / required_build).unlink()
-        assert collect_missing_files(repo_root_from_arg(str(tmp_root))) == [required_build]
+        assert collect_missing_files(repo_root_fromArg(str(tmp_root))) == [required_build]
 
         make_fixture_root(tmp_root)
         required_ledger = "zigux-alpha/BOOTSTRAP_COMMIT_LEDGER.md"
