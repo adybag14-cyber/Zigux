@@ -5,7 +5,7 @@ const barrier = @import("barrier_helpers");
 const mmio = @import("mmio_helpers");
 const narrow = @import("narrow_unsafe");
 
-test "phase3 low-level wrappers stay inside the current helper surface" {
+test "phase3 low-level wrappers cover the shipped helper surface directly" {
     var value: u32 = 5;
 
     try std.testing.expectEqual(@as(u32, 5), atomic.load(u32, &value, .seq_cst));
@@ -13,10 +13,24 @@ test "phase3 low-level wrappers stay inside the current helper surface" {
     try std.testing.expectEqual(@as(u32, 8), value);
     try std.testing.expectEqual(@as(u32, 8), atomic.exchange(u32, &value, 13, .seq_cst));
     try std.testing.expectEqual(@as(u32, 13), value);
+    try std.testing.expectEqual(@as(u32, 13), atomic.fetchAdd(u32, &value, 4, .seq_cst));
+    try std.testing.expectEqual(@as(u32, 17), value);
+    try std.testing.expectEqual(@as(u32, 17), atomic.fetchSub(u32, &value, 3, .seq_cst));
+    try std.testing.expectEqual(@as(u32, 14), value);
+    try std.testing.expectEqual(@as(u32, 14), atomic.fetchAnd(u32, &value, 12, .seq_cst));
+    try std.testing.expectEqual(@as(u32, 12), value);
+    try std.testing.expectEqual(@as(u32, 12), atomic.fetchOr(u32, &value, 3, .seq_cst));
+    try std.testing.expectEqual(@as(u32, 15), value);
+    try std.testing.expectEqual(@as(u32, 15), atomic.fetchXor(u32, &value, 6, .seq_cst));
+    try std.testing.expectEqual(@as(u32, 9), value);
+    try std.testing.expectEqual(@as(u32, 9), atomic.fetchMin(u32, &value, 4, .seq_cst));
+    try std.testing.expectEqual(@as(u32, 4), value);
+    try std.testing.expectEqual(@as(u32, 4), atomic.fetchMax(u32, &value, 19, .seq_cst));
+    try std.testing.expectEqual(@as(u32, 19), value);
 
     try std.testing.expectEqual(
         @as(?u32, null),
-        atomic.compareExchange(u32, &value, 13, 21, .seq_cst, .seq_cst),
+        atomic.compareExchange(u32, &value, 19, 21, .seq_cst, .seq_cst),
     );
     try std.testing.expectEqual(@as(u32, 21), value);
 
@@ -24,19 +38,58 @@ test "phase3 low-level wrappers stay inside the current helper surface" {
     try std.testing.expectEqual(@as(?u32, 21), mismatch);
     try std.testing.expectEqual(@as(u32, 21), value);
 
+    var weak_value: u32 = 21;
+    var attempts: usize = 0;
+    while (true) {
+        attempts += 1;
+        if (atomic.compareExchangeWeak(u32, &weak_value, 21, 34, .seq_cst, .seq_cst) == null) break;
+        try std.testing.expectEqual(@as(u32, 21), weak_value);
+        try std.testing.expect(attempts < 16);
+    }
+    try std.testing.expectEqual(@as(u32, 34), weak_value);
+
     barrier.acquire();
     barrier.release();
     barrier.full();
+    barrier.acquireRelease();
 
     var regs = [_]u32{ 0, 0 };
     const base = narrow.addressOf(&regs[0]);
-    const desc = mmio.range(base, 8, 4);
+    const bytes: *align(1) [8]u8 = @ptrCast(&regs);
+    const desc = mmio.range(base, 8, 1);
 
     try std.testing.expectEqual(base, desc.base_addr);
     try std.testing.expectEqual(@as(u32, 8), desc.length);
-    try std.testing.expectEqual(@as(u32, 4), desc.stride);
+    try std.testing.expectEqual(@as(u32, 1), desc.stride);
+
+    mmio.write8(base, 1, 0x5a);
+    try std.testing.expectEqual(@as(u8, 0x5a), bytes[1]);
+    try std.testing.expectEqual(@as(u8, 0x5a), mmio.read8(base, 1));
 
     mmio.write32(base, @sizeOf(u32), 0xfeedbeef);
     try std.testing.expectEqual(@as(u32, 0xfeedbeef), regs[1]);
     try std.testing.expectEqual(@as(u32, 0xfeedbeef), mmio.read32(base, @sizeOf(u32)));
+}
+
+test "phase3 low-level wrappers keep non-seq-cst orderings reviewable" {
+    var handoff_value: u32 = 0;
+    atomic.store(u32, &handoff_value, 41, .release);
+    try std.testing.expectEqual(@as(u32, 41), atomic.load(u32, &handoff_value, .acquire));
+
+    var acq_rel_value: u32 = 7;
+    try std.testing.expectEqual(
+        @as(?u32, null),
+        atomic.compareExchange(u32, &acq_rel_value, 7, 11, .acq_rel, .acquire),
+    );
+    try std.testing.expectEqual(@as(u32, 11), acq_rel_value);
+
+    var weak_release_value: u32 = 13;
+    var attempts: usize = 0;
+    while (true) {
+        attempts += 1;
+        if (atomic.compareExchangeWeak(u32, &weak_release_value, 13, 19, .release, .monotonic) == null) break;
+        try std.testing.expectEqual(@as(u32, 13), weak_release_value);
+        try std.testing.expect(attempts < 16);
+    }
+    try std.testing.expectEqual(@as(u32, 19), weak_release_value);
 }
