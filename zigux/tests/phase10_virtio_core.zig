@@ -191,7 +191,7 @@ test "phase10 virtio core can disable and re-enable queue callbacks without tran
     try device.enableQueueCallback(0);
     try std.testing.expect(try device.notifyQueueUsed(0));
 
-    summary = device.queueRegistrationSummary(0);
+    summary = try device.queueRegistrationSummary(0);
     try std.testing.expect(summary.callback_enabled);
     try std.testing.expectEqual(@as(usize, 1), summary.callback_invocation_count);
     try std.testing.expectEqual(@as(usize, 2), summary.notification_count);
@@ -763,4 +763,41 @@ test "phase10 virtio core rejects validation that adds unoffered features in the
     try std.testing.expectEqualStrings("virtio_blk_lab", binding.driver_name);
     try std.testing.expect(binding.features_negotiated);
     try std.testing.expect(!binding.driver_ready);
+}
+
+test "phase10 virtio core reaches queue runtime readiness after validated feature narrowing" {
+    var device = try virtio_core.VirtioCoreLabDevice.init(&.{ 1, 7, 33 });
+
+    device.acknowledge();
+    try device.attachDriverNamed("virtio_blk_lab");
+    try device.offerDriverFeature(1);
+    try device.offerDriverFeature(7);
+    try device.offerDriverFeature(33);
+
+    const summary = try device.finalizeFeaturesWithDriverValidation(&.{ 1, 33 });
+    try std.testing.expect(summary.accepted_by_transport);
+    try std.testing.expectEqual(@as(usize, 2), summary.negotiated_feature_count);
+    try std.testing.expectEqual(@as(usize, 2), device.finalize_count);
+
+    try device.markDriverReady();
+    try device.registerQueueCallback(4, 8, "blk_done");
+
+    const queue = try device.queueRegistrationSummary(4);
+    try std.testing.expectEqualStrings("drivers/virtio/virtio.c", queue.anchor);
+    try std.testing.expectEqual(@as(u16, 4), queue.queue_index);
+    try std.testing.expectEqual(@as(u16, 8), queue.descriptor_count);
+    try std.testing.expectEqualStrings("blk_done", queue.callback_name);
+    try std.testing.expect(queue.callback_enabled);
+
+    const lifecycle = device.lifecycleGuardSummary();
+    try std.testing.expect(lifecycle.features_negotiated);
+    try std.testing.expect(lifecycle.driver_ready);
+    try std.testing.expectEqual(@as(usize, 1), lifecycle.registered_queue_count);
+    try std.testing.expect(lifecycle.queue_runtime_ready);
+    try std.testing.expect(lifecycle.ready_for_runtime);
+    try std.testing.expectEqual(@as(?virtio_core.DriverLifecycleBlocker, null), lifecycle.blocker);
+
+    try std.testing.expect(try device.hasNegotiatedFeature(1));
+    try std.testing.expect(!(try device.hasNegotiatedFeature(7)));
+    try std.testing.expect(try device.hasNegotiatedFeature(33));
 }
