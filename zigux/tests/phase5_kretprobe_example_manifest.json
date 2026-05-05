@@ -10,6 +10,7 @@
     "the manifest and survey test still describe the exact skip, return-value, duration, and missed-summary contract run through phase5_build.zig",
     "the sample keeps the Linux my_data-style private entry timestamp explicit and reviewable instead of burying it in unstructured state",
     "symbol retargeting stays a pre-init in-memory choice instead of implying module_param or runtime registration parity",
+    "ownershipSummary keeps cold, initialized, armed, replay_complete, and exited snapshots explicit instead of leaving lifecycle review hidden in raw fields",
     "sample-behavior changes update the manifest-backed replay and teardown contract instead of leaving reviewers to infer it from code alone",
     "docs and tests still keep register_kretprobe, unregister_kretprobe, pt_regs return extraction, and loadable module wiring out of scope for this Phase 5 sample"
   ],
@@ -38,6 +39,11 @@
       "id": "missed-summary",
       "kind": "bounded_summary",
       "expected": "the replay records one missed instance so the exit-side nmissed summary remains reviewable without claiming register_kretprobe pressure parity"
+    },
+    {
+      "id": "ownership-summary-snapshots",
+      "kind": "ownership_lifetime",
+      "expected": "ownershipSummary keeps cold, initialized, armed, replay_complete, and exited snapshots explicit with active instance and entry-timestamp state"
     },
     {
       "id": "outstanding-instance-boundary",
