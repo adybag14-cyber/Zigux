@@ -467,6 +467,23 @@ test "hexDumpToBuffer reports full length when the caller buffer truncates" {
     try std.testing.expectEqualSlices(u8, "be 32 d", std.mem.sliceTo(line[0..], 0));
 }
 
+test "hexDumpToBuffer keeps full grouped ASCII output when the caller buffer fits exactly" {
+    const data = [_]u8{
+        0xbe, 0x32, 0xdb, 0x7b, 0x0a, 0x18, 0x93, 0xb2,
+        0x70, 0xba, 0xc4, 0x24, 0x7d, 0x83, 0x34, 0x9b,
+    };
+    const expected = if (builtin.cpu.arch.endian() == .big)
+        "be32db7b 0a1893b2 70bac424 7d83349b  .2.{....p..$}.4."
+    else
+        "7bdb32be b293180a 24c4ba70 9b34837d  .2.{....p..$}.4.";
+    var line: [54]u8 = undefined;
+
+    const written = hexDumpToBuffer(data[0..], 16, 4, line[0..], true);
+    try std.testing.expectEqual(@as(usize, 53), written);
+    try std.testing.expectEqualSlices(u8, expected, std.mem.sliceTo(line[0..], 0));
+    try std.testing.expectEqual(@as(u8, 0), line[written]);
+}
+
 test "hexDumpToBuffer follows kernel fixture normalization cases" {
     const Case = struct {
         len: usize,
