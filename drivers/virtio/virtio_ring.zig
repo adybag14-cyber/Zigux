@@ -79,6 +79,28 @@ pub const BrokenQueueSummary = struct {
     outstanding_chain_count: u16,
 };
 
+pub const QueueResetReadinessBlocker = enum {
+    queue_broken,
+    unpublished_chains,
+    outstanding_chains,
+    unpolled_used_chains,
+};
+
+pub const QueueResetReadinessSummary = struct {
+    anchor: []const u8,
+    queue_index: u16,
+    callback_enabled: bool,
+    broken: bool,
+    avail_idx_shadow: u16,
+    last_used_idx: u16,
+    last_polled_used_idx: u16,
+    outstanding_chain_count: u16,
+    unpublished_chain_count: u16,
+    pending_used_chain_count: u16,
+    reset_ready: bool,
+    blocker: ?QueueResetReadinessBlocker,
+};
+
 pub const QueueResetSummary = struct {
     anchor: []const u8,
     queue_index: u16,
@@ -256,6 +278,39 @@ pub const VirtioRingLab = struct {
             .delayed_event_target_idx = slot.last_used_idx +% delay_budget_count,
             .pending_used_chain_count = pending_used_chain_count,
             .should_poll = pending_used_chain_count > delay_budget_count,
+        };
+    }
+
+    pub fn queueResetReadinessSummary(self: *const Self, queue_index: u16) !QueueResetReadinessSummary {
+        const index = try checkedQueueIndex(queue_index);
+        const slot = self.queues[index];
+        if (!slot.active) return error.QueueNotDefined;
+
+        const pending_used_chain_count = slot.last_used_idx -% slot.last_polled_used_idx;
+        const blocker: ?QueueResetReadinessBlocker = if (slot.broken)
+            .queue_broken
+        else if (slot.num_added != 0)
+            .unpublished_chains
+        else if (slot.outstanding_chain_count != 0)
+            .outstanding_chains
+        else if (pending_used_chain_count != 0)
+            .unpolled_used_chains
+        else
+            null;
+
+        return .{
+            .anchor = descriptor().anchor,
+            .queue_index = queue_index,
+            .callback_enabled = slot.callback_enabled,
+            .broken = slot.broken,
+            .avail_idx_shadow = slot.avail_idx_shadow,
+            .last_used_idx = slot.last_used_idx,
+            .last_polled_used_idx = slot.last_polled_used_idx,
+            .outstanding_chain_count = slot.outstanding_chain_count,
+            .unpublished_chain_count = slot.num_added,
+            .pending_used_chain_count = pending_used_chain_count,
+            .reset_ready = blocker == null,
+            .blocker = blocker,
         };
     }
 
