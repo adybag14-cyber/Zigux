@@ -1,7 +1,7 @@
 {
   "lane_key": "P15-L07",
   "phase": "Phase 15",
-  "surveyed_commit": "0f06196",
+  "surveyed_commit": "9ea8a26",
   "roadmap_phase_title": "Full-Parity Blockers and Long-Term Governance",
   "roadmap_requirements": [
     "freeze map",
@@ -19,7 +19,7 @@
     "phase15_make_target_present": true,
     "shared_ci_phase15_present": true,
     "dedicated_handoff_guard_present": true,
-    "shared_build_handoff_replay_present": false,
+    "shared_build_handoff_replay_present": true,
     "deep_core_status_change_ready": false
   },
   "open_handoff_gaps": [
@@ -31,13 +31,6 @@
       "why_now": "The current docs root still does not point back to the dedicated Phase 15 handoff packet."
     },
     {
-      "id": "phase15-build-handoff-replay-gap",
-      "status": "pending_shared_build_refresh",
-      "kind": "build_gate",
-      "zigux_destination": "zigux/tests/phase15_build.zig",
-      "why_now": "The current shared Phase 15 build still reruns the governance core without the dedicated handoff guard."
-    },
-    {
       "id": "phase15-deep-core-status-change-blocker",
       "status": "blocked_on_stay_in_c_evidence",
       "kind": "freeze_map",
@@ -47,7 +40,6 @@
   ],
   "pending_next_steps": [
     "If the docs-root continuity lane reopens, add the missing Documentation/zigux/phase15-handoff-next-steps-survey.md pointer to Documentation/zigux/README.md.",
-    "If the shared Phase 15 replay lane reopens, wire zigux/tests/phase15_handoff_next_steps.zig into zigux/tests/phase15_build.zig.",
     "Otherwise keep this handoff lane parked unless the packet drifts again or the deep-core blocker posture changes."
   ]
 }
