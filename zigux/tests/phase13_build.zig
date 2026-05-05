@@ -39,19 +39,25 @@ pub fn build(b: *std.Build) void {
     });
     phase13_devres_module.addImport("devres", devres_module);
 
+    const phase13_devres_reviewability_module = b.createModule(.{
+        .root_source_file = b.path("phase13_devres_reviewability.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    phase13_devres_reviewability_module.addImport("devres", devres_module);
+
+    const phase13_devres_dma_coherent_module = b.createModule(.{
+        .root_source_file = b.path("phase13_devres_dma_coherent.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+
     const phase13_landlock_ruleset_module = b.createModule(.{
         .root_source_file = b.path("phase13_landlock_ruleset.zig"),
         .target = target,
         .optimize = optimize,
     });
     phase13_landlock_ruleset_module.addImport("landlock_ruleset", landlock_ruleset_module);
-
-    const phase13_landlock_ruleset_reviewability_module = b.createModule(.{
-        .root_source_file = b.path("phase13_landlock_ruleset_reviewability.zig"),
-        .target = target,
-        .optimize = optimize,
-    });
-    phase13_landlock_ruleset_reviewability_module.addImport("landlock_ruleset", landlock_ruleset_module);
 
     const phase13_landlock_syscalls_module = b.createModule(.{
         .root_source_file = b.path("phase13_landlock_syscalls.zig"),
@@ -79,17 +85,23 @@ pub fn build(b: *std.Build) void {
     });
     const run_phase13_devres_tests = b.addRunArtifact(phase13_devres_tests);
 
+    const phase13_devres_reviewability_tests = b.addTest(.{
+        .name = "phase13-devres-reviewability-tests",
+        .root_module = phase13_devres_reviewability_module,
+    });
+    const run_phase13_devres_reviewability_tests = b.addRunArtifact(phase13_devres_reviewability_tests);
+
+    const phase13_devres_dma_coherent_tests = b.addTest(.{
+        .name = "phase13-devres-dma-coherent-tests",
+        .root_module = phase13_devres_dma_coherent_module,
+    });
+    const run_phase13_devres_dma_coherent_tests = b.addRunArtifact(phase13_devres_dma_coherent_tests);
+
     const phase13_landlock_ruleset_tests = b.addTest(.{
         .name = "phase13-landlock-ruleset-tests",
         .root_module = phase13_landlock_ruleset_module,
     });
     const run_phase13_landlock_ruleset_tests = b.addRunArtifact(phase13_landlock_ruleset_tests);
-
-    const phase13_landlock_ruleset_reviewability_tests = b.addTest(.{
-        .name = "phase13-landlock-ruleset-reviewability-tests",
-        .root_module = phase13_landlock_ruleset_reviewability_module,
-    });
-    const run_phase13_landlock_ruleset_reviewability_tests = b.addRunArtifact(phase13_landlock_ruleset_reviewability_tests);
 
     const phase13_landlock_syscalls_tests = b.addTest(.{
         .name = "phase13-landlock-syscalls-tests",
@@ -106,8 +118,9 @@ pub fn build(b: *std.Build) void {
     const test_step = b.step("test", "Run Phase 13 shared helper tests");
     test_step.dependOn(&run_phase13_libfs_tests.step);
     test_step.dependOn(&run_phase13_devres_tests.step);
+    test_step.dependOn(&run_phase13_devres_reviewability_tests.step);
+    test_step.dependOn(&run_phase13_devres_dma_coherent_tests.step);
     test_step.dependOn(&run_phase13_landlock_ruleset_tests.step);
-    test_step.dependOn(&run_phase13_landlock_ruleset_reviewability_tests.step);
     test_step.dependOn(&run_phase13_landlock_syscalls_tests.step);
     test_step.dependOn(&run_phase13_libfs_reviewability_tests.step);
 }
