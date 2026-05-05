@@ -6,7 +6,7 @@ This document tracks the bounded Phase 7 runtime leaf-helper slice for Zigux aro
 
 - `PHASE7_STATUS=parked`
 - `PHASE7_SLICE=argv-split-runtime-leaf`
-- `PHASE7_LANE_KEY=P7-Y06`
+- `PHASE7_LANE_KEY=P7-Y07`
 - scope: first low-risk argv tokenization helpers only
 - lane state: helper and fixture slice landed; parked unless a new `argv_split.c` parity issue appears
 - product boundary:
