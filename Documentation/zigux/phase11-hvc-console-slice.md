@@ -12,10 +12,11 @@ The starter stays intentionally narrow:
 - adds a tiny remove-path handoff summary that keeps console-slot clearing, the preserved IRQ handoff into the later hangup path, the `tty_port_put()` release, and conditional `tty_vhangup()` then `tty_kref_put()` ordering reviewable without claiming live tty teardown
 - adds a tiny tty-registration handoff summary that keeps `setup_hvc_console()` registration intent, close-wait ownership, and the khvcd-facing boundary reviewable without claiming worker execution
 - adds a tiny sysrq handoff summary that keeps boot-console-only dispatch intent, break detection, the notifier callback boundary, and deferred worker execution reviewable without claiming live sysrq handling
+- adds a tiny notifier-facing handoff summary that keeps notifier registration intent, deferred callback ownership, and deferred unregister timing reviewable without claiming live callback execution
 - mirrors the slot teardown that clears the early-console binding
 
 This slice does not claim tty-driver registration, notifier callback execution, khvcd polling, live sysrq dispatch, hotplug discovery, or live hypervisor-backed reads and writes yet.
 
-`Documentation/zigux/phase11-hvc-console-validation-matrix.md` now records the first kernel-integration validation matrix for close-wait teardown parity, the landed cleanup replay, the landed remove-path handoff, the landed tty-registration handoff, the landed sysrq handoff, and the still-pending notifier-facing follow-up without widening into host-backed I/O.
+`Documentation/zigux/phase11-hvc-console-validation-matrix.md` now records the first kernel-integration validation matrix for close-wait teardown parity, the landed cleanup replay, the landed remove-path handoff, the landed tty-registration handoff, the landed sysrq handoff, and the landed notifier-facing handoff without widening into host-backed I/O.
 
-The next honest bounded step inside the same Phase 11 lane is now a tiny notifier-facing handoff summary that keeps callback boundaries reviewable before any host-backed I/O widens the slice.
+The next honest bounded step inside the same Phase 11 lane is now a small shared-review truthfulness sync that keeps the landed notifier-facing handoff explicit before any live callback execution or host-backed I/O widens the slice.
