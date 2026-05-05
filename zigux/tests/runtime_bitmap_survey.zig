@@ -149,6 +149,7 @@ test "phase 9 runtime bitmap survey note keeps the phase boundary and exact chec
     try std.testing.expect(std.mem.indexOf(u8, note, "summary stability: initializing bits `0`, `5`, `64`, and `70` still yields `first_set=0`, `first_zero=1`, `weight=4`, and `nbits=128`") != null);
     try std.testing.expect(std.mem.indexOf(u8, note, "descriptor contract: the sample still advertises `name=runtime_bitmap`, `anchor=lib/test_bitmap.c`, `requires_runtime_substrate=true`, and `provides_selftest_hook=true`") != null);
     try std.testing.expect(std.mem.indexOf(u8, note, "diff-gate replay: the bounded parity cases still cover the single-word fill starter, the `79..97` cross-boundary clear cutout, the sparse `10,20,30,40,50,60,80,123` population replay, and the copied `0..108` tail-clear snapshot with `first_zero=109`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, note, "parse-and-print boundary: the ordered `parse_and_print` selftest family remains a review cue only; the current starter does not claim standalone `initFromBitList()`, `formatSetBits()`, or broader parse/print differential parity on `master`") != null);
 }
 
 test "phase 9 runtime bitmap module slice keeps the loader-backed survey packet explicit" {
