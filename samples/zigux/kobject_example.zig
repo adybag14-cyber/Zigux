@@ -22,6 +22,12 @@ pub const SampleDescriptor = struct {
     provides_selfcheck: bool,
 };
 
+pub const AttributeSpec = struct {
+    name: []const u8,
+    mode: u16,
+    uses_shared_b_handlers: bool,
+};
+
 pub const RenderedAttribute = struct {
     attr_name: []const u8,
     text: [16]u8,
@@ -36,6 +42,7 @@ pub const ReplaySummary = struct {
     attr_count: usize,
     group_is_named: bool,
     uses_shared_b_handlers: bool,
+    attribute_specs: [3]AttributeSpec,
     foo_value: RenderedAttribute,
     baz_value: RenderedAttribute,
     bar_value: RenderedAttribute,
@@ -72,8 +79,17 @@ pub const KobjectExampleSample = struct {
         return "kobject_example";
     }
 
+    pub fn attributeSpecs() [3]AttributeSpec {
+        return .{
+            .{ .name = "foo", .mode = 0o664, .uses_shared_b_handlers = false },
+            .{ .name = "baz", .mode = 0o664, .uses_shared_b_handlers = true },
+            .{ .name = "bar", .mode = 0o664, .uses_shared_b_handlers = true },
+        };
+    }
+
     pub fn attrNames() [3][]const u8 {
-        return .{ "foo", "baz", "bar" };
+        const specs = attributeSpecs();
+        return .{ specs[0].name, specs[1].name, specs[2].name };
     }
 
     pub fn stage(self: *const Self) SampleStage {
@@ -159,6 +175,7 @@ pub const KobjectExampleSample = struct {
             .attr_count = self.activeAttrCount(),
             .group_is_named = false,
             .uses_shared_b_handlers = true,
+            .attribute_specs = attributeSpecs(),
             .foo_value = try self.showValue("foo"),
             .baz_value = try self.showValue("baz"),
             .bar_value = try self.showValue("bar"),
@@ -198,6 +215,12 @@ test "kobject sample replay keeps the anchor reviewable and non-runtime" {
     try std.testing.expectEqual(@as(usize, 3), replay.attr_count);
     try std.testing.expect(!replay.group_is_named);
     try std.testing.expect(replay.uses_shared_b_handlers);
+    try std.testing.expectEqualStrings("foo", replay.attribute_specs[0].name);
+    try std.testing.expectEqualStrings("baz", replay.attribute_specs[1].name);
+    try std.testing.expectEqualStrings("bar", replay.attribute_specs[2].name);
+    try std.testing.expectEqual(@as(u16, 0o664), replay.attribute_specs[0].mode);
+    try std.testing.expect(replay.attribute_specs[1].uses_shared_b_handlers);
+    try std.testing.expect(replay.attribute_specs[2].uses_shared_b_handlers);
     try std.testing.expectEqualStrings("42\n", replay.foo_value.text[0..replay.foo_value.len]);
     try std.testing.expectEqualStrings("7\n", replay.baz_value.text[0..replay.baz_value.len]);
     try std.testing.expectEqualStrings("-5\n", replay.bar_value.text[0..replay.bar_value.len]);
