@@ -54,8 +54,14 @@ EXPECTED_SELF_TEST_CASES = [
     'helper_summary_status_drift',
     'helper_summary_count_drift',
     'helper_summary_duplicate_case_drift',
+    'helper_summary_case_order_drift',
     'contract_summary_status_drift',
+    'contract_summary_base_count_drift',
+    'contract_summary_base_case_order_drift',
     'contract_summary_repeat_count_drift',
+    'contract_summary_repeat_case_order_drift',
+    'contract_summary_case_count_drift',
+    'contract_summary_duplicate_case_drift',
     'contract_summary_case_order_drift',
 ]
 
@@ -334,6 +340,21 @@ def run_self_test() -> int:
     )
     covered_cases.append('helper_summary_duplicate_case_drift')
 
+    bad_helper_case_order_lines = helper_self_test_expected_lines()
+    bad_helper_case_order_lines[2] = (
+        'ARTIFACT_DIFF_SELF_TEST_CASES='
+        'text_mismatch,text_pass,json_pass,json_mismatch,json_invalid_expected,'
+        'json_invalid_actual,json_invalid_both,json_missing_expected,'
+        'json_missing_actual,json_missing_both,sha256_pass,sha256_drift,'
+        'text_missing_expected,text_missing_actual,text_missing_both,'
+        'sha256_missing_expected,sha256_missing_actual,sha256_missing_both'
+    )
+    expect_assertion(
+        'helper_summary_case_order_drift',
+        lambda: assert_helper_self_test_output(bad_helper_case_order_lines),
+    )
+    covered_cases.append('helper_summary_case_order_drift')
+
     bad_contract_status_lines = expected_contract_summary_lines()
     bad_contract_status_lines[0] = 'ARTIFACT_DIFF_CONTRACT=fail'
     expect_assertion(
@@ -342,6 +363,25 @@ def run_self_test() -> int:
     )
     covered_cases.append('contract_summary_status_drift')
 
+    bad_base_count_lines = expected_contract_summary_lines()
+    bad_base_count_lines[1] = 'ARTIFACT_DIFF_CONTRACT_BASE_CASE_COUNT=20'
+    expect_assertion(
+        'contract_summary_base_count_drift',
+        lambda: assert_contract_output(bad_base_count_lines),
+    )
+    covered_cases.append('contract_summary_base_count_drift')
+
+    bad_base_case_order_lines = expected_contract_summary_lines()
+    bad_base_case_order_lines[2] = (
+        'ARTIFACT_DIFF_CONTRACT_BASE_CASES='
+        + ','.join(['cli_missing_required_args', 'helper_self_test', *BASE_CONTRACT_CASES[2:]])
+    )
+    expect_assertion(
+        'contract_summary_base_case_order_drift',
+        lambda: assert_contract_output(bad_base_case_order_lines),
+    )
+    covered_cases.append('contract_summary_base_case_order_drift')
+
     bad_repeat_count_lines = expected_contract_summary_lines()
     bad_repeat_count_lines[3] = 'ARTIFACT_DIFF_CONTRACT_REPEAT_CASE_COUNT=3'
     expect_assertion(
@@ -349,6 +389,36 @@ def run_self_test() -> int:
         lambda: assert_contract_output(bad_repeat_count_lines),
     )
     covered_cases.append('contract_summary_repeat_count_drift')
+
+    bad_repeat_case_order_lines = expected_contract_summary_lines()
+    bad_repeat_case_order_lines[4] = (
+        'ARTIFACT_DIFF_CONTRACT_REPEAT_CASES='
+        + ','.join(['text_pass_repeat', 'helper_self_test_repeat', *REPEAT_CONTRACT_CASES[2:]])
+    )
+    expect_assertion(
+        'contract_summary_repeat_case_order_drift',
+        lambda: assert_contract_output(bad_repeat_case_order_lines),
+    )
+    covered_cases.append('contract_summary_repeat_case_order_drift')
+
+    bad_case_count_lines = expected_contract_summary_lines()
+    bad_case_count_lines[5] = 'ARTIFACT_DIFF_CONTRACT_CASE_COUNT=24'
+    expect_assertion(
+        'contract_summary_case_count_drift',
+        lambda: assert_contract_output(bad_case_count_lines),
+    )
+    covered_cases.append('contract_summary_case_count_drift')
+
+    bad_duplicate_case_lines = expected_contract_summary_lines()
+    bad_duplicate_case_lines[6] = (
+        'ARTIFACT_DIFF_CONTRACT_CASES='
+        + ','.join(['helper_self_test', 'helper_self_test', *EXPECTED_CONTRACT_CASES[2:]])
+    )
+    expect_assertion(
+        'contract_summary_duplicate_case_drift',
+        lambda: assert_contract_output(bad_duplicate_case_lines),
+    )
+    covered_cases.append('contract_summary_duplicate_case_drift')
 
     bad_case_order_lines = expected_contract_summary_lines()
     bad_case_order_lines[6] = (
