@@ -15,6 +15,18 @@ The active shipped anchors on current `master` are:
 
 The shared replay packet for those anchors is now the seven-test route wired by `zigux/tests/phase13_build.zig` and invoked through `make -C zigux phase13`.
 
+The exact shared replay files on current `master` are:
+
+- `zigux/tests/phase13_libfs.zig`
+- `zigux/tests/phase13_devres.zig`
+- `zigux/tests/phase13_devres_reviewability.zig`
+- `zigux/tests/phase13_devres_dma_coherent.zig`
+- `zigux/tests/phase13_landlock_ruleset.zig`
+- `zigux/tests/phase13_landlock_syscalls.zig`
+- `zigux/tests/phase13_libfs_reviewability.zig`
+
+That explicit file list keeps the roadmap-to-repo map exact without pulling the adjacent notifier evidence into the shared helper replay count.
+
 ## Libfs lane traceability
 
 The Phase 13 `libfs` lane remains a helper-first review packet anchored to `fs/libfs.c`.
