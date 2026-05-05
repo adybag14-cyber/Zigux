@@ -37,8 +37,11 @@ def compare_artifacts(mode: str, expected: Path, actual: Path) -> tuple[bool, di
         expected_value = read_text(expected)
         actual_value = read_text(actual)
     elif mode == 'json':
-        expected_value = canonical_json(expected)
-        actual_value = canonical_json(actual)
+        try:
+            expected_value = canonical_json(expected)
+            actual_value = canonical_json(actual)
+        except json.JSONDecodeError:
+            return False, details
     else:
         expected_value = sha256_digest(expected)
         actual_value = sha256_digest(actual)
@@ -103,6 +106,11 @@ def run_self_test() -> int:
         json_b.write_text('{\n  "beta": [2, 3],\n  "alpha": 1\n}\n', encoding='utf-8', newline='\n')
         matched, details = compare_artifacts('json', json_a, json_b)
         assert matched
+        assert details['mode'] == 'json'
+
+        json_b.write_text('{"beta": [2, }\n', encoding='utf-8', newline='\n')
+        matched, details = compare_artifacts('json', json_a, json_b)
+        assert not matched
         assert details['mode'] == 'json'
 
         blob_a.write_bytes(b'zigux-artifact-diff')
