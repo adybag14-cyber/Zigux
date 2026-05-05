@@ -35,6 +35,21 @@ const Manifest = struct {
     gaps: []const Gap,
 };
 
+const ScorecardEvidenceArchive = struct {
+    linked_evidence: []const []const u8,
+    latest_blocker_disposition: []const u8,
+};
+
+const ScorecardAnchor = struct {
+    path: []const u8,
+    lane_owner: []const u8,
+    evidence_archive: ScorecardEvidenceArchive,
+};
+
+const ScorecardManifest = struct {
+    anchors: []const ScorecardAnchor,
+};
+
 fn isAllowedStatus(status: []const u8) bool {
     return std.mem.eql(u8, status, "starter_landed") or
         std.mem.eql(u8, status, "ready_next") or
@@ -199,7 +214,7 @@ test "phase 15 freeze-map governance doc records the required gating language" {
     try std.testing.expect(std.mem.indexOf(u8, freeze_map, "no silent exception path") != null);
 }
 
-test "phase 15 freeze-map governance note records the current blocker posture honestly" {
+test "phase 15 freeze-map governance doc records the current blocker posture honestly" {
     var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
     defer io_instance.deinit();
 
@@ -273,4 +288,77 @@ test "phase 15 governance manifest required terms stay aligned with the freeze m
         try std.testing.expect(std.mem.indexOf(u8, governance_note, ownership.validation_gate) != null);
         try std.testing.expect(std.mem.indexOf(u8, governance_note, ownership.rollback_owner) != null);
     }
+}
+
+test "phase 15 freeze-map governance note stays aligned with parity scorecard blocker evidence" {
+    var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
+    defer io_instance.deinit();
+
+    const governance_note = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "Documentation/zigux/phase15-freeze-map-governance.md",
+        std.testing.allocator,
+        .limited(20 * 1024),
+    );
+    defer std.testing.allocator.free(governance_note);
+
+    const scorecard_doc = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "Documentation/zigux/phase15-parity-scorecard.md",
+        std.testing.allocator,
+        .limited(36 * 1024),
+    );
+    defer std.testing.allocator.free(scorecard_doc);
+
+    const scorecard_json = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "zigux/tests/phase15_parity_scorecard.json",
+        std.testing.allocator,
+        .limited(40 * 1024),
+    );
+    defer std.testing.allocator.free(scorecard_json);
+
+    const parsed = try std.json.parseFromSlice(ScorecardManifest, std.testing.allocator, scorecard_json, .{});
+    defer parsed.deinit();
+
+    var saw_sched = false;
+    var saw_page_alloc = false;
+    var saw_rcu = false;
+    var saw_skbuff = false;
+
+    for (parsed.value.anchors) |anchor| {
+        try std.testing.expect(std.mem.indexOf(u8, scorecard_doc, anchor.lane_owner) != null);
+        try std.testing.expect(std.mem.indexOf(u8, scorecard_doc, anchor.evidence_archive.latest_blocker_disposition) != null);
+        try std.testing.expect(anchor.evidence_archive.linked_evidence.len > 0);
+        try std.testing.expect(std.mem.indexOf(u8, scorecard_doc, anchor.evidence_archive.linked_evidence[0]) != null);
+
+        if (std.mem.eql(u8, anchor.path, "kernel/sched/core.c")) {
+            saw_sched = true;
+            try std.testing.expectEqualStrings("Architecture Council", anchor.lane_owner);
+            try std.testing.expectEqualStrings("blocked_no_bounded_scheduler_seam", anchor.evidence_archive.latest_blocker_disposition);
+            try std.testing.expect(std.mem.indexOf(u8, governance_note, "no bounded scheduler seam") != null);
+        } else if (std.mem.eql(u8, anchor.path, "mm/page_alloc.c")) {
+            saw_page_alloc = true;
+            try std.testing.expectEqualStrings("Architecture Council", anchor.lane_owner);
+            try std.testing.expectEqualStrings("blocked_no_bounded_allocator_seam", anchor.evidence_archive.latest_blocker_disposition);
+            try std.testing.expect(std.mem.indexOf(u8, governance_note, "no bounded allocator seam") != null);
+        } else if (std.mem.eql(u8, anchor.path, "kernel/rcu/tree.c")) {
+            saw_rcu = true;
+            try std.testing.expectEqualStrings("ABI and Runtime Team", anchor.lane_owner);
+            try std.testing.expectEqualStrings("blocked_phase14_followup_still_wider_than_allowed_rcu_seam", anchor.evidence_archive.latest_blocker_disposition);
+            try std.testing.expectEqualStrings("Documentation/zigux/phase14-rcu-tree-survey.md", anchor.evidence_archive.linked_evidence[0]);
+            try std.testing.expect(std.mem.indexOf(u8, governance_note, "published Phase 14 follow-up is still wider than the allowed RCU seam") != null);
+        } else if (std.mem.eql(u8, anchor.path, "net/core/skbuff.c")) {
+            saw_skbuff = true;
+            try std.testing.expectEqualStrings("Shared Subsystems Pod", anchor.lane_owner);
+            try std.testing.expectEqualStrings("blocked_packet_lifetime_boundary_still_too_wide", anchor.evidence_archive.latest_blocker_disposition);
+            try std.testing.expectEqualStrings("Documentation/zigux/phase14-skbuff-bridge-survey.md", anchor.evidence_archive.linked_evidence[0]);
+            try std.testing.expect(std.mem.indexOf(u8, governance_note, "published Phase 14 follow-up is still wider than the allowed packet-lifetime boundary") != null);
+        }
+    }
+
+    try std.testing.expect(saw_sched);
+    try std.testing.expect(saw_page_alloc);
+    try std.testing.expect(saw_rcu);
+    try std.testing.expect(saw_skbuff);
 }
