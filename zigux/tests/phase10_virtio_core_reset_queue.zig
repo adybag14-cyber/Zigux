@@ -92,7 +92,17 @@ test "phase10 virtio core keeps reset replay teardown bookkeeping after driver v
 
     try device.registerQueueCallback(2, 8, "rx_done");
     try device.configureQueueDescriptorShape(2, 3, 2, true);
+    try device.noteInterruptReason(virtio_core.VirtioInterruptReason.queue_used | virtio_core.VirtioInterruptReason.config_change);
+    try device.acknowledgeInterrupt(virtio_core.VirtioInterruptReason.config_change);
     device.noteNeedsReset();
+
+    var interrupt_summary = device.interruptAckSummary();
+    try std.testing.expect(interrupt_summary.reset_required);
+    try std.testing.expect(interrupt_summary.interrupt_pending);
+    try std.testing.expectEqual(virtio_core.VirtioInterruptReason.queue_used, interrupt_summary.pending_reason_bits);
+    try std.testing.expectEqual(virtio_core.VirtioInterruptReason.config_change, interrupt_summary.acknowledged_reason_bits);
+    try std.testing.expectEqual(@as(usize, 1), interrupt_summary.ack_count);
+    try std.testing.expectEqual(@as(usize, 2), interrupt_summary.unacknowledged_interrupt_count);
 
     const reset_summary = device.resetReplaySummary();
     try std.testing.expect(reset_summary.reset_required);
@@ -102,7 +112,8 @@ test "phase10 virtio core keeps reset replay teardown bookkeeping after driver v
     try std.testing.expect(reset_summary.will_clear_negotiated_features);
     try std.testing.expect(reset_summary.will_clear_queue_callbacks);
     try std.testing.expect(reset_summary.will_clear_config_bookkeeping);
-    try std.testing.expect(!reset_summary.will_clear_interrupts);
+    try std.testing.expectEqual(virtio_core.VirtioInterruptReason.queue_used, reset_summary.pending_interrupt_reason_bits);
+    try std.testing.expect(reset_summary.will_clear_interrupts);
 
     try std.testing.expectError(error.ResetRequired, device.unregisterQueueCallback(2));
     try std.testing.expectError(error.ResetRequired, device.configureQueueDescriptorShape(2, 2, 3, false));
@@ -164,6 +175,14 @@ test "phase10 virtio core keeps reset replay teardown bookkeeping after driver v
     try std.testing.expectEqual(@as(u32, 0), config_summary.acknowledged_generation);
     try std.testing.expect(!config_summary.has_unacknowledged_generation);
     try std.testing.expectEqual(@as(usize, 0), config_summary.delivery_count);
+
+    interrupt_summary = device.interruptAckSummary();
+    try std.testing.expect(!interrupt_summary.reset_required);
+    try std.testing.expect(!interrupt_summary.interrupt_pending);
+    try std.testing.expectEqual(@as(u8, 0), interrupt_summary.pending_reason_bits);
+    try std.testing.expectEqual(@as(u8, 0), interrupt_summary.acknowledged_reason_bits);
+    try std.testing.expectEqual(@as(usize, 0), interrupt_summary.ack_count);
+    try std.testing.expectEqual(@as(usize, 0), interrupt_summary.unacknowledged_interrupt_count);
 }
 
 test "phase10 virtio core blocks driver-model progression once reset is required" {
