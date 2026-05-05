@@ -79,13 +79,13 @@ REQUIRED_SNIPPETS = {
         "pub const variant_decode_cases = [_]DecodeCase{",
     ],
     "zigux/tests/phase6_checksum_perf.zig": [
-        'const perf_cases = [_]PerfCase{',
-        '.label = "64B"',
-        '.label = "1501B"',
+        "const perf_cases = [_]PerfCase{",
+        ".label = \"64B\"",
+        ".label = \"1501B\"",
         ".max_slowdown_pct = 150,",
-        'try stdout_writer.interface.print("PHASE6_CHECKSUM_PERF_CASE_COUNT={d}\\n", .{perf_cases.len});',
-        'try stdout_writer.interface.print("PHASE6_CHECKSUM_PERF_{s}_THRESHOLD_PCT={d}\\n", .{ case.label, case.max_slowdown_pct });',
-        'try stdout_writer.interface.print("PHASE6_CHECKSUM_PERF={s}\\n", .{if (failed) "fail" else "pass"});',
+        "try stdout_writer.interface.print(\"PHASE6_CHECKSUM_PERF_CASE_COUNT={d}\\n\", .{perf_cases.len});",
+        "try stdout_writer.interface.print(\"PHASE6_CHECKSUM_PERF_{s}_THRESHOLD_PCT={d}\\n\", .{ case.label, case.max_slowdown_pct });",
+        "try stdout_writer.interface.print(\"PHASE6_CHECKSUM_PERF={s}\\n\", .{if (failed) \"fail\" else \"pass\"});",
     ],
     "zigux/Makefile": [
         "PHONY += phase6-validate phase6-test phase6-checksum-perf phase6",
@@ -109,6 +109,7 @@ REQUIRED_SHARED_PATHS = [
 REQUIRED_EXISTING_PATHS = [
     "zigux/tests/fixtures/phase6_checksum_vectors.zig",
     "zigux/tests/fixtures/phase6_hexdump_vectors.zig",
+    "zigux/tests/phase6_checksum_perf.zig",
 ]
 
 
@@ -163,15 +164,16 @@ def run_self_test() -> None:
             raise AssertionError("expected shared-path failure")
         write(root / missing_shared_path, "present\n")
 
-        (root / REQUIRED_EXISTING_PATHS[0]).unlink()
+        missing_required_path = REQUIRED_EXISTING_PATHS[-1]
+        (root / missing_required_path).unlink()
         try:
             run_checks(root)
         except ValidationError as exc:
-            if REQUIRED_EXISTING_PATHS[0] not in str(exc):
+            if missing_required_path not in str(exc):
                 raise AssertionError(f"unexpected required-path failure: {exc}") from exc
         else:
             raise AssertionError("expected required-path failure")
-        write(root / REQUIRED_EXISTING_PATHS[0], "present\n")
+        write(root / missing_required_path, "present\n")
 
         makefile = root / "zigux/Makefile"
         original_makefile = makefile.read_text(encoding="utf-8")
@@ -185,6 +187,7 @@ def run_self_test() -> None:
             raise AssertionError("expected Makefile failure")
         makefile.write_text(original_makefile, encoding="utf-8")
 
+        makefile.writeText = None
         makefile.write_text(
             original_makefile.replace(
                 'phase6-checksum-perf:\n\tcd $(ZIGUX_ROOT) && $(ZIG) build phase6-checksum-perf --build-file zigux/tests/phase6_build.zig -Doptimize=ReleaseSafe',
@@ -200,6 +203,24 @@ def run_self_test() -> None:
         else:
             raise AssertionError("expected checksum perf target failure")
         makefile.write_text(original_makefile, encoding="utf-8")
+
+        workflow = root / ".github/workflows/zigux-bootstrap.yml"
+        original_workflow = workflow.read_text(encoding="utf-8")
+        workflow.write_text(
+            original_workflow.replace(
+                "- name: Run Phase 6 checksum perf gate\n        run: zig build phase6-checksum-perf --build-file zigux/tests/phase6_build.zig -Doptimize=ReleaseSafe --summary all",
+                "- name: Run Phase 6 checksum perf smoke\n        run: zig build phase6-checksum-perf --build-file zigux/tests/phase6_build.zig -Doptimize=ReleaseSafe --summary all",
+            ),
+            encoding="utf-8",
+        )
+        try:
+            run_checks(root)
+        except ValidationError as exc:
+            if ".github/workflows/zigux-bootstrap.yml" not in str(exc):
+                raise AssertionError(f"unexpected workflow failure: {exc}") from exc
+        else:
+            raise AssertionError("expected workflow failure")
+        workflow.write_text(original_workflow, encoding="utf-8")
 
         base64_slice = root / "Documentation/zigux/phase6-base64-slice.md"
         original_base64_slice = base64_slice.read_text(encoding="utf-8")
