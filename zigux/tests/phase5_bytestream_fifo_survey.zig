@@ -134,3 +134,38 @@ test "phase 5 bytestream fifo survey note keeps later runtime starters and loade
         ) != null,
     );
 }
+
+test "phase 5 bytestream fifo survey note records the latest verification snapshot" {
+    var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
+    defer io_instance.deinit();
+
+    const survey_note = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "Documentation/zigux/phase5-kfifo-sample-survey.md",
+        std.testing.allocator,
+        .limited(64 * 1024),
+    );
+    defer std.testing.allocator.free(survey_note);
+
+    const required_markers = [_][]const u8{
+        "## Latest verification snapshot",
+        "0.17.0-dev.87+9b177a7d2",
+        "zig test samples/zigux/bytestream_fifo.zig",
+        "passed `1/1` sample self-checks",
+        "passed `5/5` build steps and `5/5` tests",
+        "len_after_initial_fill = 15",
+        "first_out = \"hello\"",
+        "second_out = {0, 1}",
+        "skipped_byte = 2",
+        "peek_value = 3",
+        "fill_start = 20",
+        "fill_end = 42",
+        "final_len = 32",
+        "peek and skip returned `null`",
+        "cold -> initialized -> replay_complete -> exited",
+    };
+
+    for (required_markers) |needle| {
+        try std.testing.expect(std.mem.indexOf(u8, survey_note, needle) != null);
+    }
+}
