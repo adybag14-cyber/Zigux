@@ -94,6 +94,12 @@ test "phase10 virtio core keeps reset replay teardown bookkeeping after driver v
     try std.testing.expectEqual(@as(u16, 2), shape_summary.writable_descriptor_count);
     try std.testing.expect(shape_summary.uses_indirect_descriptors);
 
+    var binding = device.driverBindingSummary();
+    try std.testing.expectEqualStrings(virtio_core.default_driver_name, binding.driver_name);
+    try std.testing.expect(binding.driver_attached);
+    try std.testing.expect(binding.features_negotiated);
+    try std.testing.expect(binding.driver_ready);
+
     device.reset();
     try std.testing.expectEqual(@as(usize, 1), device.reset_count);
     try std.testing.expect(!(try device.hasNegotiatedFeature(1)));
@@ -101,6 +107,22 @@ test "phase10 virtio core keeps reset replay teardown bookkeeping after driver v
     try std.testing.expectEqual(@as(usize, 0), device.registeredQueueCount());
     try std.testing.expectError(error.QueueNotRegistered, device.queueRegistrationSummary(2));
     try std.testing.expectError(error.QueueNotRegistered, device.queueDescriptorShapeSummary(2));
+
+    binding = device.driverBindingSummary();
+    try std.testing.expectEqualStrings("", binding.driver_name);
+    try std.testing.expect(!binding.driver_attached);
+    try std.testing.expect(!binding.features_negotiated);
+    try std.testing.expect(!binding.driver_ready);
+
+    const lifecycle = device.lifecycleGuardSummary();
+    try std.testing.expect(!lifecycle.has_acknowledge);
+    try std.testing.expect(!lifecycle.driver_attached);
+    try std.testing.expect(!lifecycle.features_negotiated);
+    try std.testing.expect(!lifecycle.driver_ready);
+    try std.testing.expectEqual(@as(usize, 0), lifecycle.registered_queue_count);
+    try std.testing.expect(!lifecycle.queue_runtime_ready);
+    try std.testing.expect(!lifecycle.ready_for_runtime);
+    try std.testing.expectEqual(virtio_core.DriverLifecycleBlocker.missing_acknowledge, lifecycle.blocker.?);
 
     const cleared_summary = device.resetReplaySummary();
     try std.testing.expect(!cleared_summary.reset_required);
