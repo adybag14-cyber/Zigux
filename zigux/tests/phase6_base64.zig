@@ -20,8 +20,10 @@ fn expectEncode(input: []const u8, expected: []const u8, padding: bool, variant:
 
 fn expectDecode(case: DecodeCase) !void {
     var buf: [128]u8 = undefined;
-    const written = try base64.decode(buf[0..], case.input, case.padding, case.variant);
+    const decoded_len = try base64.bytes(case.input, case.padding, case.variant);
+    try std.testing.expectEqual(case.expected.len, decoded_len);
 
+    const written = try base64.decode(buf[0..], case.input, case.padding, case.variant);
     try std.testing.expectEqual(case.expected.len, written);
     try std.testing.expectEqualSlices(u8, case.expected, buf[0..written]);
 }
@@ -97,7 +99,7 @@ test "phase 6 base64 variant alphabets match the kernel mappings with and withou
     }
 }
 
-test "phase 6 base64 standard decode parity matches kernel vectors" {
+test "phase 6 base64 standard decode parity keeps bytes and decode aligned with kernel vectors" {
     for (fixtures.standard_decode_cases) |case| {
         try expectDecode(.{
             .input = case.input,
@@ -108,10 +110,12 @@ test "phase 6 base64 standard decode parity matches kernel vectors" {
     }
 }
 
-test "phase 6 base64 decode rejects invalid kernel-style vectors" {
+test "phase 6 base64 invalid vectors fail bytes and decode together" {
     var buf: [128]u8 = undefined;
     for (fixtures.invalid_decode_cases) |case| {
-        try std.testing.expectError(base64.DecodeError.InvalidInput, base64.decode(buf[0..], case.input, case.padding, fixtureVariant(case.variant_name)));
+        const variant = fixtureVariant(case.variant_name);
+        try std.testing.expectError(base64.DecodeError.InvalidInput, base64.bytes(case.input, case.padding, variant));
+        try std.testing.expectError(base64.DecodeError.InvalidInput, base64.decode(buf[0..], case.input, case.padding, variant));
     }
 }
 
@@ -132,7 +136,7 @@ test "phase 6 base64 bytes rejects malformed kernel-style vectors" {
     }
 }
 
-test "phase 6 base64 variant decode parity matches the kernel mappings with and without padding" {
+test "phase 6 base64 variant decode parity keeps bytes and decode aligned with kernel mappings" {
     for (fixtures.variant_decode_cases) |case| {
         try expectDecode(.{
             .input = case.input,
