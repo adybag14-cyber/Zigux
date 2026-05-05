@@ -32,6 +32,10 @@ fn isAllowedStatus(status: []const u8) bool {
         std.mem.eql(u8, status, "blocked");
 }
 
+fn expectContains(haystack: []const u8, needle: []const u8) !void {
+    try std.testing.expect(std.mem.indexOf(u8, haystack, needle) != null);
+}
+
 test "phase 7 rbtree survey manifest records the landed runtime leaf surface and next parity step" {
     var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
     defer io_instance.deinit();
@@ -43,6 +47,14 @@ test "phase 7 rbtree survey manifest records the landed runtime leaf surface and
         .limited(32 * 1024),
     );
     defer std.testing.allocator.free(manifest_json);
+
+    const validate_phase7 = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "scripts/zigux/validate-phase7.py",
+        std.testing.allocator,
+        .limited(64 * 1024),
+    );
+    defer std.testing.allocator.free(validate_phase7);
 
     const parsed = try std.json.parseFromSlice(Manifest, std.testing.allocator, manifest_json, .{});
     defer parsed.deinit();
@@ -102,6 +114,13 @@ test "phase 7 rbtree survey manifest records the landed runtime leaf surface and
             try std.testing.expect(!std.mem.eql(u8, gap.zigux_destination, other.zigux_destination));
         }
     }
+
+    try expectContains(validate_phase7, "ROOT / \"scripts\" / \"zigux\" / \"check-phase7-rbtree-parity.py\"");
+    try expectContains(validate_phase7, "ROOT / \"zigux\" / \"tests\" / \"phase7_rbtree.zig\"");
+    try expectContains(validate_phase7, "ROOT / \"zigux\" / \"tests\" / \"phase7_rbtree_survey.zig\"");
+    try expectContains(validate_phase7, "ROOT / \"zigux\" / \"tests\" / \"phase7_rbtree_manifest.json\"");
+    try expectContains(validate_phase7, "python3 scripts/zigux/check-phase7-rbtree-parity.py --self-test");
+    try expectContains(validate_phase7, "python3 scripts/zigux/check-phase7-rbtree-parity.py");
 
     try std.testing.expect(starter_landed_count >= 5);
     try std.testing.expectEqual(@as(usize, 1), ready_next_count);
