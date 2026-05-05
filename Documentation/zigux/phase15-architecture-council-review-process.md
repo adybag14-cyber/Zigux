@@ -54,6 +54,7 @@ Every Architecture Council request in this lane family must carry:
 - the retained discussion state that will be recorded if the review closes with a stay-in-C outcome
 - the reopen triggers that cite one or more catalog items naming which evidence changes can reopen the discussion later without implying approval
 - a parity scorecard link, or an explicit blocker record saying why the scorecard is not ready yet
+- the indefinite-C policy link for any request that would keep the anchor in C, or an explicit non-applicability note when the request is asking for another decision bucket
 - explicit non-goals so the request does not quietly widen into deep-core delivery
 - the written rationale for why the current product state needs council attention now
 
@@ -88,7 +89,7 @@ Every retained stay-in-C closeout must cite at least one of these catalog items 
 
 - no Architecture Council approval is currently recorded for a freeze-map status change
 - the current bounded evidence is the freeze map, this review-process note, the review checklist hook, `Documentation/zigux/phase15-parity-scorecard.md`, and the focused `zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig` replay already wired through the shared Phase 15 build
-- current review-process evidence is limited to named `phase`, `current status bucket`, `owner`, `rollback owner`, `validation gate summary`, evidence archive, blocker-disposition, benchmark-notes, replay-command, retained-discussion-state, and reopen-trigger records in the review packet plus the validator-first `make -C zigux phase15-validate` route and the anchor-specific rollback-owner records in the parity scorecard
+- current review-process evidence is limited to named `phase`, `current status bucket`, `owner`, `rollback owner`, `validation gate summary`, `indefinite-C policy link or non-applicability note`, evidence archive, blocker-disposition, benchmark-notes, replay-command, retained-discussion-state, and reopen-trigger records in the review packet plus the validator-first `make -C zigux phase15-validate` route and the anchor-specific rollback-owner records in the parity scorecard
 - until both the review record and the parity scorecard say otherwise, every freeze-in-C anchor remains blocked from an approval claim
 
 ## Recorded Gaps
@@ -107,7 +108,7 @@ The current lane state is:
 - landed `phase15-roadmap-minimum-field-sync`
 - landed `phase15-lane-owner-alignment-replay-visible`
 
-This keeps the slice narrow. Zigux gains a reviewable Architecture Council process description that now points at the landed parity scorecard, aligns the required packet with the scorecard's decision-record fields, names the retained stay-in-C closeout state, standardizes the reopen-trigger catalog, states the current no-approval posture plainly, keeps the roadmap-minimum `phase`, status-bucket, and validation-gate evidence explicit in the parked packet, and makes the already-landed lane-owner vocabulary alignment replay visible inside the same governance boundary, but it still does not claim a real council roster or any change to a freeze-map anchor status.
+This keeps the slice narrow. Zigux gains a reviewable Architecture Council process description that now points at the landed parity scorecard, aligns the required packet with the scorecard's decision-record fields, restores the explicit indefinite-C policy linkage for stay-in-C requests, names the retained stay-in-C closeout state, standardizes the reopen-trigger catalog, states the current no-approval posture plainly, keeps the roadmap-minimum `phase`, status-bucket, and validation-gate evidence explicit in the parked packet, and makes the already-landed lane-owner vocabulary alignment replay visible inside the same governance boundary, but it still does not claim a real council roster or any change to a freeze-map anchor status.
 
 ## Non-goals
 
