@@ -2,7 +2,7 @@
 """PHASE14_VALIDATE_PACKET=shared_smoke
 
 Fail-closed validator for the current shared Phase 14 smoke packet.
-This packet is still a one-shard smoke-plus-full-bundle replay surface on master.
+This packet is a study-only validation, smoke, and full-bundle replay surface on master.
 """
 
 from __future__ import annotations
@@ -15,6 +15,7 @@ from pathlib import Path
 
 MARKER = "PHASE14_VALIDATE_PACKET=shared_smoke"
 REQUIRED_COMMANDS = [
+    "make -C zigux phase14-validate",
     "make -C zigux phase14-smoke",
     "zig build phase14-smoke --build-file zigux/tests/phase14_build.zig --summary all",
     "make -C zigux phase14-test",
@@ -23,49 +24,70 @@ REQUIRED_COMMANDS = [
 ]
 REQUIRED_SURFACES = [
     ("Documentation/zigux/README.md", "Phase 14 notes"),
-    ("Documentation/zigux/phase14-end-to-end-smoke-survey.md", "PHASE14_VALIDATE_ENTRYPOINT=absent_on_master"),
     ("Documentation/zigux/phase14-release-boundary-survey.md", "PHASE14_RELEASE_BOUNDARY=present"),
+    ("Documentation/zigux/phase14-end-to-end-smoke-survey.md", "PHASE14_VALIDATE_ENTRYPOINT=make -C zigux phase14-validate"),
     ("Documentation/zigux/freeze-map.md", "kernel/workqueue.c"),
     ("Documentation/zigux/review-checklist.md", "shared Phase 14 smoke packet"),
+    ("scripts/zigux/README.md", "Phase 14 flow"),
+    ("scripts/zigux/validate-phase14.py", MARKER),
     ("zigux/tests/README.md", "keep the current Phase 14 smoke packet reviewable"),
     ("zigux/tests/phase14_build.zig", "phase14-smoke"),
     ("zigux/tests/phase14_workqueue_bridge.zig", "phase14 workqueue bridge manifest records the boundary-map foothold and remaining gap"),
     ("zigux/tests/phase14_skbuff_bridge.zig", "phase14 skbuff bridge manifest records the boundary-map foothold and frozen ownership gap"),
-    ("zigux/tests/phase14_ring_buffer_survey.zig", "phase 14 ring-buffer survey manifest records the study-only gap without inventing a port"),
-    ("zigux/tests/phase14_rcu_tree_survey.zig", "phase 14 rcu tree survey manifest records the freeze-boundary gap without inventing a bridge"),
+    ("zigux/tests/phase14_workqueue_bridge_manifest.json", "phase14-workqueue-live-execution-blocker"),
+    ("zigux/tests/phase14_skbuff_bridge_manifest.json", "phase14-skbuff-live-ownership-blocker"),
     ("zigux/tests/phase14_end_to_end_smoke_survey.zig", "phase14 shared smoke survey confirms the current packet surfaces"),
     ("zigux/tests/phase14_end_to_end_smoke_manifest.json", "phase14_shared_smoke_packet"),
-    ("zigux/Makefile", "phase14: phase14-smoke phase14-test"),
+    ("zigux/tests/phase14_ring_buffer_manifest.json", "phase14-ring-buffer-zig-port-blocker"),
+    ("zigux/tests/phase14_rcu_tree_manifest.json", "phase14-rcu-tree-bridge-blocker"),
+    ("kernel/workqueue_bridge.zig", "pub const WorkqueueBridgeLab"),
+    ("net/core/skbuff_bridge.zig", "pub const SkbuffBridgeLab"),
 ]
 REQUIRED_FILE_MARKERS = {
     "Documentation/zigux/phase14-end-to-end-smoke-survey.md": [
-        "PHASE14_VALIDATE_ENTRYPOINT=absent_on_master",
+        "PHASE14_VALIDATE_ENTRYPOINT=make -C zigux phase14-validate",
+        "PHASE14_VALIDATE_SCRIPT=python3 scripts/zigux/validate-phase14.py",
         "PHASE14_COMPILE_ARTIFACT_COUNT=5",
         "PHASE14_FOCUSED_SHARD_COUNT=1",
+        "PHASE14_FULL_BUNDLE_ONLY_ARTIFACT_COUNT=4",
     ],
     "zigux/Makefile": [
+        "phase14-validate:",
         "phase14-smoke:",
         "phase14-test:",
-        "phase14: phase14-smoke phase14-test",
+        "phase14: phase14-validate phase14-smoke phase14-test",
     ],
     "zigux/tests/phase14_build.zig": [
         'b.step("phase14-smoke", "Run the focused Phase 14 end-to-end smoke survey")',
+        "test_step.dependOn(&run_phase14_workqueue_bridge_tests.step);",
+        "test_step.dependOn(&run_phase14_skbuff_bridge_tests.step);",
+        "test_step.dependOn(&run_phase14_ring_buffer_survey_tests.step);",
+        "test_step.dependOn(&run_phase14_rcu_tree_survey_tests.step);",
         "test_step.dependOn(&run_phase14_end_to_end_smoke_tests.step);",
     ],
     "zigux/tests/phase14_end_to_end_smoke_survey.zig": [
         "phase14 shared smoke survey confirms the current packet surfaces",
-        'expectEqual(@as(usize, 5), manifest.commands.len);',
-        'expectEqual(@as(usize, 14), manifest.surfaces.len);',
+        'expectEqual(@as(usize, 6), manifest.commands.len);',
+        'expectEqual(@as(usize, 19), manifest.surfaces.len);',
+    ],
+    "zigux/tests/phase14_end_to_end_smoke_manifest.json": [
+        '"packet_name": "phase14_shared_smoke_packet"',
+        '"path": "scripts/zigux/validate-phase14.py"',
+        '"path": "zigux/tests/phase14_workqueue_bridge_manifest.json"',
+        '"path": "zigux/tests/phase14_ring_buffer_manifest.json"',
+        '"path": "kernel/workqueue_bridge.zig"',
+        '"path": "net/core/skbuff_bridge.zig"',
     ],
 }
 FORBIDDEN_MARKERS = {
     "Documentation/zigux/phase14-end-to-end-smoke-survey.md": [
-        "PHASE14_VALIDATE_ENTRYPOINT=make -C zigux phase14-validate",
-        "PHASE14_VALIDATE_SCRIPT=python3 scripts/zigux/validate-phase14.py",
+        "PHASE14_VALIDATE_ENTRYPOINT=absent_on_master",
+    ],
+    "zigux/tests/phase14_end_to_end_smoke_manifest.json": [
+        '"required_marker": "PHASE14_VALIDATE_ENTRYPOINT=absent_on_master"',
     ],
     "zigux/Makefile": [
-        "phase14-validate:",
-        "phase14: phase14-validate phase14-smoke phase14-test",
+        "phase14: phase14-smoke phase14-test",
     ],
 }
 
@@ -90,11 +112,11 @@ def check(root: Path) -> list[str]:
         return [f"invalid json in {manifest_path.as_posix()}: {exc}"]
 
     if manifest.get("commands") != REQUIRED_COMMANDS:
-        errors.append("phase14 manifest commands drifted from the current smoke-plus-full-bundle packet")
+        errors.append("phase14 manifest commands drifted from the current validation-smoke-and-test packet")
 
     surfaces = manifest.get("surfaces")
     if not isinstance(surfaces, list) or len(surfaces) != len(REQUIRED_SURFACES):
-        errors.append("phase14 manifest surfaces drifted from the current 14-surface smoke packet")
+        errors.append("phase14 manifest surfaces drifted from the current 19-surface smoke packet")
     else:
         for surface, (path, marker) in zip(surfaces, REQUIRED_SURFACES):
             if surface.get("path") != path:
@@ -156,7 +178,10 @@ def run_self_test() -> int:
             json.dumps(manifest, indent=2) + "\n",
         )
         for rel_path, markers in REQUIRED_FILE_MARKERS.items():
-            write_text(root / rel_path, "\n".join(markers) + "\n")
+            path = root / rel_path
+            if path.exists():
+                continue
+            write_text(path, "\n".join(markers) + "\n")
         for rel_path, marker in REQUIRED_SURFACES:
             path = root / rel_path
             if not path.exists():
@@ -173,7 +198,7 @@ def run_self_test() -> int:
             return 1
 
         broken_path = root / "Documentation/zigux/phase14-end-to-end-smoke-survey.md"
-        broken_path.write_text("PHASE14_VALIDATE_ENTRYPOINT=make -C zigux phase14-validate\n", encoding="utf-8")
+        broken_path.write_text("PHASE14_VALIDATE_ENTRYPOINT=absent_on_master\n", encoding="utf-8")
         errors = check(root)
         if not errors or not any("forbidden marker still present" in error or "missing marker" in error for error in errors):
             print("self-test expected failure when survey markers drifted", file=sys.stderr)
