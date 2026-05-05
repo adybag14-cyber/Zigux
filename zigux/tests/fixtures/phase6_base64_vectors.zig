@@ -14,6 +14,7 @@ pub const DecodeCase = struct {
 pub const VariantCase = struct {
     expected: []const u8,
     variant_name: []const u8,
+    padding: bool,
 };
 
 pub const InvalidDecodeCase = struct {
@@ -50,9 +51,10 @@ pub const standard_cases = [_]EncodeCase{
 pub const variant_sample = [_]u8{ 0x00, 0xfb, 0xff, 0x7f, 0x80 };
 
 pub const variant_cases = [_]VariantCase{
-    .{ .expected = "APv/f4A", .variant_name = "std" },
-    .{ .expected = "APv_f4A", .variant_name = "urlsafe" },
-    .{ .expected = "APv,f4A", .variant_name = "imap" },
+    .{ .expected = "APv_f4A=", .variant_name = "urlsafe", .padding = true },
+    .{ .expected = "APv,f4A=", .variant_name = "imap", .padding = true },
+    .{ .expected = "APv_f4A", .variant_name = "urlsafe", .padding = false },
+    .{ .expected = "APv,f4A", .variant_name = "imap", .padding = false },
 };
 
 pub const standard_decode_cases = [_]DecodeCase{
@@ -90,7 +92,11 @@ pub const invalid_decode_cases = [_]InvalidDecodeCase{
     .{ .input = "Zm9v====", .padding = true, .variant_name = "std" },
     .{ .input = "Zm==A", .padding = true, .variant_name = "std" },
     .{ .input = "Zh==", .padding = true, .variant_name = "std" },
+    .{ .input = "Zh==", .padding = true, .variant_name = "urlsafe" },
+    .{ .input = "Zh==", .padding = true, .variant_name = "imap" },
     .{ .input = "Zm9=", .padding = true, .variant_name = "std" },
+    .{ .input = "Zm9=", .padding = true, .variant_name = "urlsafe" },
+    .{ .input = "Zm9=", .padding = true, .variant_name = "imap" },
     .{ .input = invalid_with_nul[0..], .padding = true, .variant_name = "std" },
     .{ .input = "Zg=!", .padding = false, .variant_name = "std" },
     .{ .input = "Zm$=", .padding = false, .variant_name = "std" },
@@ -106,6 +112,8 @@ pub const invalid_decode_cases = [_]InvalidDecodeCase{
 };
 
 pub const variant_decode_cases = [_]DecodeCase{
+    .{ .input = "APv_f4A=", .expected = &variant_sample, .padding = true, .variant_name = "urlsafe" },
+    .{ .input = "APv,f4A=", .expected = &variant_sample, .padding = true, .variant_name = "imap" },
     .{ .input = "APv_f4A", .expected = &variant_sample, .padding = false, .variant_name = "urlsafe" },
     .{ .input = "APv,f4A", .expected = &variant_sample, .padding = false, .variant_name = "imap" },
 };
