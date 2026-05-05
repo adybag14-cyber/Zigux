@@ -7,13 +7,16 @@ This document tracks the bounded Phase 7 runtime leaf-helper slice for Zigux aro
 - `PHASE7_STATUS=parked`
 - `PHASE7_SLICE=cmdline-runtime-leaf`
 - scope: first low-risk parsing helpers only
-- lane state: helper, fixture, and dedicated survey slice landed; parked unless a new `cmdline.c` parity issue appears
+- lane state: helper, fixture, dedicated survey, shared validator, and make-wrapper slice landed; parked unless a new `cmdline.c` parity issue appears
 - product boundary:
   - `lib/cmdline.zig`
   - `zigux/tests/phase7_cmdline.zig`
   - `zigux/tests/phase7_cmdline_survey.zig`
   - `zigux/tests/fixtures/phase7_cmdline_next_arg_vectors.zig`
+  - `scripts/zigux/validate-phase7.py`
+  - `scripts/zigux/check-phase7-make-wrapper.py`
   - `zigux/tests/phase7_build.zig`
+  - `zigux/Makefile`
 
 ## Why this slice exists
 
@@ -35,8 +38,14 @@ This current slice keeps the work bounded to runtime-safe parsing helpers that:
 3. run the dedicated cmdline survey gate
 - `zig test zigux/tests/phase7_cmdline_survey.zig`
 
-4. run the shared Phase 7 helper gate
-- `zig build test --build-file zigux/tests/phase7_build.zig`
+4. keep the shared validator-first packet explicit
+- `python3 scripts/zigux/validate-phase7.py`
+- `python3 scripts/zigux/check-phase7-make-wrapper.py`
+- `make -C zigux phase7-validate`
+
+5. run the shared Phase 7 helper gate
+- `zig build test --build-file zigux/tests/phase7_build.zig --summary all`
+- `make -C zigux phase7`
 
 ## Current parity surface
 
@@ -57,7 +66,7 @@ The current tests check:
 - exact bare-option matching for comma-delimited flags
 - C-style stop-at-NUL handling for bare-option scans
 - serialized `next_arg()` edge cases covering quoted values, quoted bare tokens, empty quoted or whitespace-only values, unquoted punctuation-rich values, first-equals splitting, leading-equals sentinel handling, unterminated quoted values, mixed-whitespace rest trimming, and empty-rest termination
-- the dedicated survey gate keeps the roadmap anchor, focused helper replay, and shared `phase7_build.zig` compile-check path aligned around the same parked cmdline packet
+- the dedicated survey gate plus the shared `validate-phase7.py`, `check-phase7-make-wrapper.py`, `phase7_build.zig`, and `make -C zigux phase7-validate` plus `make -C zigux phase7` routes keep the roadmap anchor, focused helper replay, and Linux-style validator-first packet aligned around the same parked cmdline slice
 
 ## Non-goals
 
@@ -68,4 +77,4 @@ This slice still does not yet claim:
 
 ## Next bounded step
 
-Move the next Phase 7 schedule to another unfinished leaf helper family. Reopen this lane only if fresh repo inspection finds one more real `cmdline.c` parity gap inside the existing helper, fixture, dedicated survey, or shared-gate surface.
+Move the next Phase 7 schedule to another unfinished leaf helper family. Reopen this lane only if fresh repo inspection finds one more real `cmdline.c` parity gap inside the existing helper, fixture, dedicated survey, shared validator, make-wrapper, or shared-gate surface.
