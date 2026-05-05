@@ -102,6 +102,13 @@ REQUIRED_PHASE9_BUILD_MARKERS = [
     '.root_module = runtime_loader_facade_module,',
     "const run_runtime_loader_facade_tests = b.addRunArtifact(runtime_loader_facade_tests);",
     "test_step.dependOn(&run_runtime_loader_facade_tests.step);",
+    'const runtime_loader_allocator_init_flow_module = b.createModule(.{',
+    '.root_source_file = b.path("runtime_loader_allocator_init_flow.zig"),',
+    'const runtime_loader_allocator_init_flow_tests = b.addTest(.{',
+    '.name = "phase9-runtime-loader-allocator-init-flow-tests",',
+    '.root_module = runtime_loader_allocator_init_flow_module,',
+    "const run_runtime_loader_allocator_init_flow_tests = b.addRunArtifact(runtime_loader_allocator_init_flow_tests);",
+    "test_step.dependOn(&run_runtime_loader_allocator_init_flow_tests.step);",
 ]
 
 REQUIRED_PHASE9_BUILD_EXACT_COUNTS = {
@@ -112,6 +119,13 @@ REQUIRED_PHASE9_BUILD_EXACT_COUNTS = {
     '.root_module = runtime_loader_facade_module,': 1,
     "const run_runtime_loader_facade_tests = b.addRunArtifact(runtime_loader_facade_tests);": 1,
     "test_step.dependOn(&run_runtime_loader_facade_tests.step);": 1,
+    'const runtime_loader_allocator_init_flow_module = b.createModule(.{': 1,
+    '.root_source_file = b.path("runtime_loader_allocator_init_flow.zig"),': 1,
+    'const runtime_loader_allocator_init_flow_tests = b.addTest(.{': 1,
+    '.name = "phase9-runtime-loader-allocator-init-flow-tests",': 1,
+    '.root_module = runtime_loader_allocator_init_flow_module,': 1,
+    "const run_runtime_loader_allocator_init_flow_tests = b.addRunArtifact(runtime_loader_allocator_init_flow_tests);": 1,
+    "test_step.dependOn(&run_runtime_loader_allocator_init_flow_tests.step);": 1,
 }
 
 FORBIDDEN_FILES = [
@@ -312,7 +326,16 @@ const runtime_loader_facade_tests = b.addTest(.{
     .root_module = runtime_loader_facade_module,
 });
 const run_runtime_loader_facade_tests = b.addRunArtifact(runtime_loader_facade_tests);
+const runtime_loader_allocator_init_flow_module = b.createModule(.{
+    .root_source_file = b.path("runtime_loader_allocator_init_flow.zig"),
+});
+const runtime_loader_allocator_init_flow_tests = b.addTest(.{
+    .name = "phase9-runtime-loader-allocator-init-flow-tests",
+    .root_module = runtime_loader_allocator_init_flow_module,
+});
+const run_runtime_loader_allocator_init_flow_tests = b.addRunArtifact(runtime_loader_allocator_init_flow_tests);
 test_step.dependOn(&run_runtime_loader_facade_tests.step);
+test_step.dependOn(&run_runtime_loader_allocator_init_flow_tests.step);
 """,
     )
     write_text(root / RUNTIME_LOADER_PATH, "pub fn placeholder() void {}\n")
@@ -611,6 +634,138 @@ def run_self_test() -> int:
         )
 
         write_fixture_tree(root)
+        phase9_build_path = root / PHASE9_BUILD_PATH
+        phase9_build = phase9_build_path.read_text(encoding="utf-8")
+        phase9_build_path.write_text(
+            phase9_build.replace(
+                'const runtime_loader_allocator_init_flow_module = b.createModule(.{\n',
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_failure(
+            root,
+            'phase9_build:const runtime_loader_allocator_init_flow_module = b.createModule(.{',
+            "missing_phase9_build_allocator_init_flow_module_declaration",
+        )
+
+        write_fixture_tree(root)
+        phase9_build_path = root / PHASE9_BUILD_PATH
+        phase9_build = phase9_build_path.read_text(encoding="utf-8")
+        phase9_build_path.write_text(
+            phase9_build.replace(
+                '    .root_source_file = b.path("runtime_loader_allocator_init_flow.zig"),\n',
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_failure(
+            root,
+            'phase9_build:.root_source_file = b.path("runtime_loader_allocator_init_flow.zig"),',
+            "missing_phase9_build_allocator_init_flow_source_path",
+        )
+
+        write_fixture_tree(root)
+        phase9_build_path = root / PHASE9_BUILD_PATH
+        phase9_build = phase9_build_path.read_text(encoding="utf-8")
+        phase9_build_path.write_text(
+            phase9_build.replace(
+                'const runtime_loader_allocator_init_flow_tests = b.addTest(.{\n',
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_failure(
+            root,
+            'phase9_build:const runtime_loader_allocator_init_flow_tests = b.addTest(.{',
+            "missing_phase9_build_allocator_init_flow_test_declaration",
+        )
+
+        write_fixture_tree(root)
+        phase9_build_path = root / PHASE9_BUILD_PATH
+        phase9_build = phase9_build_path.read_text(encoding="utf-8")
+        phase9_build_path.write_text(
+            phase9_build.replace(
+                '    .name = "phase9-runtime-loader-allocator-init-flow-tests",\n',
+                '    .name = "phase9-runtime-loader-init-flow-tests",\n',
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_failure(
+            root,
+            'phase9_build:.name = "phase9-runtime-loader-allocator-init-flow-tests",',
+            "missing_phase9_build_allocator_init_flow_test_name",
+        )
+
+        write_fixture_tree(root)
+        phase9_build_path = root / PHASE9_BUILD_PATH
+        phase9_build = phase9_build_path.read_text(encoding="utf-8")
+        phase9_build_path.write_text(
+            phase9_build.replace(
+                ".root_module = runtime_loader_allocator_init_flow_module,\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_failure(
+            root,
+            "phase9_build:.root_module = runtime_loader_allocator_init_flow_module,",
+            "missing_phase9_build_allocator_init_flow_root_module",
+        )
+
+        write_fixture_tree(root)
+        phase9_build_path = root / PHASE9_BUILD_PATH
+        phase9_build = phase9_build_path.read_text(encoding="utf-8")
+        phase9_build_path.write_text(
+            phase9_build.replace(
+                "const run_runtime_loader_allocator_init_flow_tests = b.addRunArtifact(runtime_loader_allocator_init_flow_tests);\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_failure(
+            root,
+            "phase9_build:const run_runtime_loader_allocator_init_flow_tests = b.addRunArtifact(runtime_loader_allocator_init_flow_tests);",
+            "missing_phase9_build_allocator_init_flow_run_artifact",
+        )
+
+        write_fixture_tree(root)
+        phase9_build_path = root / PHASE9_BUILD_PATH
+        phase9_build = phase9_build_path.read_text(encoding="utf-8")
+        phase9_build_path.write_text(
+            phase9_build.replace(
+                "test_step.dependOn(&run_runtime_loader_allocator_init_flow_tests.step);\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_failure(
+            root,
+            "phase9_build:test_step.dependOn(&run_runtime_loader_allocator_init_flow_tests.step);",
+            "missing_phase9_build_allocator_init_flow_replay_dependency",
+        )
+
+        write_fixture_tree(root)
+        phase9_build_path = root / PHASE9_BUILD_PATH
+        phase9_build = phase9_build_path.read_text(encoding="utf-8")
+        phase9_build_path.write_text(
+            phase9_build + "test_step.dependOn(&run_runtime_loader_allocator_init_flow_tests.step);\n",
+            encoding="utf-8",
+        )
+        expect_failure(
+            root,
+            "phase9_build_exact_count:test_step.dependOn(&run_runtime_loader_allocator_init_flow_tests.step);:expected=1:actual=2",
+            "duplicate_phase9_build_allocator_init_flow_replay_dependency",
+        )
+
+        write_fixture_tree(root)
         write_text(root / "scripts/zigux/check-phase9-build-only-surface.py", SELF_PATH.read_text(encoding="utf-8"))
         probe = subprocess.run(
             [sys.executable, str(root / "scripts/zigux/check-phase9-build-only-surface.py")],
@@ -625,7 +780,7 @@ def run_self_test() -> int:
             )
 
     print("PHASE9_BUILD_ONLY_SURFACE_SELF_TEST=pass")
-    print("PHASE9_BUILD_ONLY_SURFACE_SELF_TEST_CASE_COUNT=16")
+    print("PHASE9_BUILD_ONLY_SURFACE_SELF_TEST_CASE_COUNT=24")
     return 0
 
 
