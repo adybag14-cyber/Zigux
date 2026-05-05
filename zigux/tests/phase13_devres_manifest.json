@@ -1,5 +1,5 @@
 {
-  "lane_key": "P13-L01",
+  "lane_key": "P13-L06",
   "phase": "Phase 13",
   "surveyed_commit": "master-reviewability",
   "anchor": "lib/devres.c",
@@ -18,7 +18,13 @@
     "preexisting_phase13_survey_note_present": true,
     "preexisting_managed_ioremap_resource_present": true,
     "preexisting_of_iomap_planner_present": true,
-    "preexisting_arch_io_wc_memtype_planner_present": true
+    "preexisting_arch_io_wc_memtype_planner_present": true,
+    "preexisting_arch_phys_wc_token_planner_present": true,
+    "descriptor_keeps_live_mmio_blocked": true,
+    "descriptor_keeps_live_arch_memtype_blocked": true,
+    "phase13_devres_test_replays_iomap_failures": true,
+    "phase13_devres_test_replays_wc_memtype_reservation": true,
+    "phase13_devres_test_replays_arch_phys_wc_token_add": true
   },
   "gaps": [
     {
@@ -47,7 +53,7 @@
       "status": "starter_landed",
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase13_devres.zig",
-      "why_now": "Dedicated devres tests keep the current helper-only packet honest around managed acquire cleanup, resource-backed planning, devm_of_iomap() size reporting, and WC memtype reservation shaping."
+      "why_now": "Dedicated devres tests keep the current helper-only packet honest around managed acquire cleanup, resource-backed planning, devm_of_iomap() size reporting, WC memtype reservation shaping, and the new arch phys WC release-token bookkeeping step."
     },
     {
       "id": "phase13-devres-slice-note",
@@ -86,10 +92,10 @@
     },
     {
       "id": "phase13-devres-arch-phys-wc-token",
-      "status": "ready_next",
+      "status": "starter_landed",
       "kind": "resource_lifetime_helper",
       "zigux_destination": "lib/devres.zig",
-      "why_now": "The next honest same-lane step is one tiny devm_arch_phys_wc_add() token-style planner, limited to release-token bookkeeping and failure shaping before any live arch memtype side effects are claimed."
+      "why_now": "The helper lab now carries one tiny devm_arch_phys_wc_add() token-style planner that captures release-token retention on success and release-record cleanup on failure without claiming any live arch memtype side effects."
     },
     {
       "id": "phase13-devres-live-mmio-mappings",
