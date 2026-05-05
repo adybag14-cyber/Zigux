@@ -28,6 +28,7 @@ DOCS_ROOT_MARKERS = [
 
 REVIEW_CHECKLIST_MARKERS = [
     "scripts/zigux/validate_phase3_selftest.py",
+    "scripts/zigux/check-phase3-selftest-surface.py",
     "make -C zigux phase3-selftest",
     "manual-only support-script rerun",
     "without implying that `phase3-selftest` is part of the default `phase3-validate` route",
@@ -123,6 +124,12 @@ def run_self_test() -> int:
         assert "docs_root:without duplicating the default `phase3-validate` route" in issues
 
         build_self_test_root(root)
+        write_text(root / "Documentation/zigux/review-checklist.md", "scripts/zigux/validate_phase3_selftest.py\n")
+        issues = validate_root(root)
+        assert "review_checklist:scripts/zigux/check-phase3-selftest-surface.py" in issues
+        assert "review_checklist:make -C zigux phase3-selftest" in issues
+
+        build_self_test_root(root)
         write_text(root / "scripts/zigux/README.md", "validate_phase3_selftest.py\n")
         issues = validate_root(root)
         assert "scripts_readme:phase3_catalog.py --self-test" in issues
@@ -153,7 +160,7 @@ def run_self_test() -> int:
         assert "missing_file:scripts/zigux/validate_phase3_selftest.py" in issues
 
     print("PHASE3_SELFTEST_SURFACE_SELF_TEST=pass")
-    print("PHASE3_SELFTEST_SURFACE_SELF_TEST_CASE_COUNT=6")
+    print("PHASE3_SELFTEST_SURFACE_SELF_TEST_CASE_COUNT=7")
     return 0
 
 
