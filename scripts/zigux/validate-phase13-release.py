@@ -10,6 +10,7 @@ ROOT = Path(__file__).resolve().parents[2] if len(Path(__file__).resolve().paren
 
 REQUIRED_FILES = [
     "Documentation/zigux/README.md",
+    "Documentation/zigux/review-checklist.md",
     "Documentation/zigux/phase13-release-notes-survey.md",
     "Documentation/zigux/phase13-roadmap-traceability.md",
     "Documentation/zigux/phase13-notifier-list-survey.md",
@@ -33,6 +34,16 @@ REQUIRED_FILES = [
 ]
 
 DOC_REQUIRED_MARKERS = [
+    "Documentation/zigux/phase13-release-notes-survey.md",
+    "Documentation/zigux/phase13-roadmap-traceability.md",
+    "Documentation/zigux/phase13-notifier-list-survey.md",
+    "zigux/tests/phase13_notifier_list_manifest.json",
+    "zigux/bindings/notifier_abi.zig",
+    "include/zigux/notifier_abi.h",
+    "zigux/helpers/notifier_chain_view.zig",
+]
+
+REVIEW_REQUIRED_MARKERS = [
     "Documentation/zigux/phase13-release-notes-survey.md",
     "Documentation/zigux/phase13-roadmap-traceability.md",
     "Documentation/zigux/phase13-notifier-list-survey.md",
@@ -89,10 +100,12 @@ def validate(root: Path) -> list[str]:
         return issues
 
     docs_readme = _read(root / "Documentation/zigux/README.md")
+    review_checklist = _read(root / "Documentation/zigux/review-checklist.md")
     scripts_readme = _read(root / "scripts/zigux/README.md")
     makefile = _read(root / "zigux/Makefile")
 
     issues.extend(_collect_missing_markers(docs_readme, DOC_REQUIRED_MARKERS, "docs-readme"))
+    issues.extend(_collect_missing_markers(review_checklist, REVIEW_REQUIRED_MARKERS, "review-checklist"))
     issues.extend(_collect_missing_markers(scripts_readme, SCRIPTS_REQUIRED_MARKERS, "scripts-readme"))
     issues.extend(_collect_missing_markers(makefile, MAKE_REQUIRED_LINES, "makefile"))
     for forbidden in MAKE_FORBIDDEN_LINES:
@@ -119,6 +132,7 @@ def _baseline_makefile() -> str:
 
 def _seed_fixture_tree(root: Path) -> None:
     _write(root / "Documentation/zigux/README.md", "\n".join(DOC_REQUIRED_MARKERS) + "\n")
+    _write(root / "Documentation/zigux/review-checklist.md", "\n".join(REVIEW_REQUIRED_MARKERS) + "\n")
     _write(root / "Documentation/zigux/phase13-release-notes-survey.md", "# stub\n")
     _write(root / "Documentation/zigux/phase13-roadmap-traceability.md", "# stub\n")
     _write(root / "Documentation/zigux/phase13-notifier-list-survey.md", "# stub\n")
@@ -127,6 +141,7 @@ def _seed_fixture_tree(root: Path) -> None:
     for rel in REQUIRED_FILES[6:]:
         if rel in {
             "Documentation/zigux/README.md",
+            "Documentation/zigux/review-checklist.md",
             "Documentation/zigux/phase13-release-notes-survey.md",
             "Documentation/zigux/phase13-roadmap-traceability.md",
             "Documentation/zigux/phase13-notifier-list-survey.md",
@@ -197,6 +212,23 @@ def run_self_test() -> int:
         _write(root / "Documentation/zigux/README.md", "\n".join(DOC_REQUIRED_MARKERS) + "\n")
         case_count += 1
 
+        review_checklist_path = root / "Documentation/zigux/review-checklist.md"
+        review_checklist_path.write_text("Documentation/zigux/phase13-release-notes-survey.md\n", encoding="utf-8")
+        _assert_only(
+            validate(root),
+            [
+                "review-checklist:Documentation/zigux/phase13-roadmap-traceability.md",
+                "review-checklist:Documentation/zigux/phase13-notifier-list-survey.md",
+                "review-checklist:zigux/tests/phase13_notifier_list_manifest.json",
+                "review-checklist:zigux/bindings/notifier_abi.zig",
+                "review-checklist:include/zigux/notifier_abi.h",
+                "review-checklist:zigux/helpers/notifier_chain_view.zig",
+            ],
+            "review_marker_guard_failed",
+        )
+        _write(root / "Documentation/zigux/review-checklist.md", "\n".join(REVIEW_REQUIRED_MARKERS) + "\n")
+        case_count += 1
+
         scripts_readme_path = root / "scripts/zigux/README.md"
         scripts_readme_path.write_text("validate-phase13-release.py\n", encoding="utf-8")
         _assert_only(
@@ -262,7 +294,7 @@ def main() -> int:
     print("PHASE13_RELEASE_VALIDATION=pass")
     print(
         "PHASE13_RELEASE_VALIDATION_MARKER_COUNT="
-        f"{len(REQUIRED_FILES) + len(DOC_REQUIRED_MARKERS) + len(SCRIPTS_REQUIRED_MARKERS) + len(MAKE_REQUIRED_LINES)}"
+        f"{len(REQUIRED_FILES) + len(DOC_REQUIRED_MARKERS) + len(REVIEW_REQUIRED_MARKERS) + len(SCRIPTS_REQUIRED_MARKERS) + len(MAKE_REQUIRED_LINES)}"
     )
     return 0
 
