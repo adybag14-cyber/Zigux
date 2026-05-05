@@ -53,4 +53,4 @@ This slice does not yet claim:
 
 ## Next bounded step
 
-The queue-local ring lane now covers the smallest honest broken-queue poll-discipline step as well, so the next bounded follow-up should come from the survey-backed `virtio_mmio` register-window helper rather than reopening `virtio_ring.zig` for more speculative in-memory queue work.
+The queue-local ring lane no longer owns another honest helper-sized follow-up inside `virtio_ring.zig`. The remaining same-family step is the adjacent survey-backed `virtio_mmio` lifecycle, IRQ, queue-discovery, and reset packet, which stays blocked on risky transport and Architecture Council reopen rather than on another queue-local ring helper.
