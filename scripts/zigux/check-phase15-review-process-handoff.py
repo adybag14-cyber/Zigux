@@ -11,10 +11,14 @@ import tempfile
 SELF_PATH = Path(__file__).resolve()
 ROOT = SELF_PATH.parents[2] if len(SELF_PATH.parents) > 2 else SELF_PATH.parent
 
+DOCS_README_PATH = "Documentation/zigux/README.md"
+REVIEW_CHECKLIST_PATH = "Documentation/zigux/review-checklist.md"
 NOTE_PATH = "Documentation/zigux/phase15-architecture-council-review-process.md"
 MANIFEST_PATH = "zigux/tests/phase15_architecture_council_review_process_manifest.json"
 SCRIPT_README_PATH = "scripts/zigux/README.md"
+TESTS_README_PATH = "zigux/tests/README.md"
 MAKEFILE_PATH = "zigux/Makefile"
+
 SELF_REFERENCE_MARKER = "Documentation/zigux/phase15-architecture-council-review-process.md"
 PRODUCT_BOUNDARY_MARKER = (
     "product boundary:\n"
@@ -24,6 +28,16 @@ OPTIONAL_LANE_ROUTE_MARKERS = [
     "scripts-root validator path",
     "tests-root guidance path",
     "dedicated handoff-checker route",
+]
+REQUIRED_DOCS_README_MARKERS = [
+    "Phase 15 notes",
+    "Documentation/zigux/freeze-map.md",
+    "Documentation/zigux/phase15-freeze-map-governance.md",
+    "Documentation/zigux/phase15-architecture-council-review-process.md",
+    "Documentation/zigux/phase15-parity-scorecard.md",
+    "Documentation/zigux/phase15-indefinite-c-policy.md",
+    "zigux/tests/phase15_build.zig",
+    "make -C zigux phase15",
 ]
 REQUIRED_SCRIPT_README_MARKERS = [
     "Phase 15 flow",
@@ -35,6 +49,41 @@ REQUIRED_SCRIPT_README_MARKERS = [
 EXACT_ONCE_SCRIPT_README_MARKERS = [
     "Phase 15 flow",
     "check-phase15-review-process-handoff.py",
+]
+REQUIRED_REVIEW_CHECKLIST_MARKERS = [
+    "if the change touches the shared Phase 15 governance packet",
+    "Documentation/zigux/freeze-map.md",
+    "Documentation/zigux/phase15-freeze-map-governance.md",
+    "Documentation/zigux/phase15-architecture-council-review-process.md",
+    "Documentation/zigux/phase15-parity-scorecard.md",
+    "Documentation/zigux/phase15-indefinite-c-policy.md",
+    "Documentation/zigux/review-checklist.md",
+    "scripts/zigux/check-phase15-review-process-handoff.py",
+    "zigux/tests/phase15_freeze_map_governance.zig",
+    "zigux/tests/phase15_parity_scorecard.zig",
+    "zigux/tests/phase15_indefinite_c_policy.json",
+    "zigux/tests/phase15_indefinite_c_policy.zig",
+    "zigux/tests/phase15_build.zig",
+    "make -C zigux phase15",
+]
+REQUIRED_TESTS_README_MARKERS = [
+    "keep the parked Phase 15 governance packet explicit in the tests root too",
+    "Documentation/zigux/freeze-map.md",
+    "Documentation/zigux/phase15-freeze-map-governance.md",
+    "Documentation/zigux/phase15-architecture-council-review-process.md",
+    "Documentation/zigux/phase15-parity-scorecard.md",
+    "Documentation/zigux/phase15-indefinite-c-policy.md",
+    "Documentation/zigux/review-checklist.md",
+    "scripts/zigux/check-phase15-review-process-handoff.py",
+    "zigux/tests/phase15_build.zig",
+    "zigux/tests/phase15_freeze_map_governance.zig",
+    "zigux/tests/phase15_parity_scorecard.zig",
+    "zigux/tests/phase15_architecture_council_review_process.zig",
+    "zigux/tests/phase15_indefinite_c_policy.json",
+    "zigux/tests/phase15_indefinite_c_policy.zig",
+    "zigux/Makefile",
+    "zig build test --build-file zigux/tests/phase15_build.zig",
+    "make -C zigux phase15",
 ]
 REQUIRED_MAKEFILE_MARKERS = [
     "PHONY += phase15-validate phase15-test phase15",
@@ -68,10 +117,19 @@ def expect_exact_once(text: str, marker: str, label: str, failures: list[str]) -
 def validate(root: Path) -> list[str]:
     failures: list[str] = []
 
+    docs_readme_path = root / DOCS_README_PATH
+    review_checklist_path = root / REVIEW_CHECKLIST_PATH
     note_path = root / NOTE_PATH
     manifest_path = root / MANIFEST_PATH
     script_readme_path = root / SCRIPT_README_PATH
+    tests_readme_path = root / TESTS_README_PATH
     makefile_path = root / MAKEFILE_PATH
+    if not docs_readme_path.exists():
+        failures.append(f"missing_file:{DOCS_README_PATH}")
+        return failures
+    if not review_checklist_path.exists():
+        failures.append(f"missing_file:{REVIEW_CHECKLIST_PATH}")
+        return failures
     if not note_path.exists():
         failures.append(f"missing_file:{NOTE_PATH}")
         return failures
@@ -81,14 +139,24 @@ def validate(root: Path) -> list[str]:
     if not script_readme_path.exists():
         failures.append(f"missing_file:{SCRIPT_README_PATH}")
         return failures
+    if not tests_readme_path.exists():
+        failures.append(f"missing_file:{TESTS_README_PATH}")
+        return failures
     if not makefile_path.exists():
         failures.append(f"missing_file:{MAKEFILE_PATH}")
         return failures
 
+    docs_readme = read_text(root, DOCS_README_PATH)
+    review_checklist = read_text(root, REVIEW_CHECKLIST_PATH)
     note = read_text(root, NOTE_PATH)
     manifest = load_json(root, MANIFEST_PATH)
     script_readme = read_text(root, SCRIPT_README_PATH)
+    tests_readme = read_text(root, TESTS_README_PATH)
     makefile = read_text(root, MAKEFILE_PATH)
+
+    for marker in REQUIRED_DOCS_README_MARKERS:
+        if marker not in docs_readme:
+            failures.append(f"docs_readme:{marker}")
 
     expect_exact_once(note, SELF_REFERENCE_MARKER, "note_self_reference", failures)
     if PRODUCT_BOUNDARY_MARKER not in note:
@@ -99,6 +167,14 @@ def validate(root: Path) -> list[str]:
             failures.append(f"script_readme:{marker}")
     for marker in EXACT_ONCE_SCRIPT_README_MARKERS:
         expect_exact_once(script_readme, marker, "script_readme_exact_once", failures)
+
+    for marker in REQUIRED_REVIEW_CHECKLIST_MARKERS:
+        if marker not in review_checklist:
+            failures.append(f"review_checklist:{marker}")
+
+    for marker in REQUIRED_TESTS_README_MARKERS:
+        if marker not in tests_readme:
+            failures.append(f"tests_readme:{marker}")
 
     for marker in REQUIRED_MAKEFILE_MARKERS:
         if marker not in makefile:
@@ -143,6 +219,24 @@ def write_fixture_tree(root: Path) -> None:
     (root / "scripts/zigux").mkdir(parents=True, exist_ok=True)
     (root / "zigux").mkdir(parents=True, exist_ok=True)
 
+    docs_readme = """# Zigux Documentation
+
+Phase 15 notes
+- `Documentation/zigux/freeze-map.md`
+- `Documentation/zigux/phase15-freeze-map-governance.md`
+- `Documentation/zigux/phase15-architecture-council-review-process.md`
+- `Documentation/zigux/phase15-parity-scorecard.md`
+- `Documentation/zigux/phase15-indefinite-c-policy.md`
+- `zigux/tests/phase15_build.zig` and `make -C zigux phase15` keep the parked governance packet reviewable.
+"""
+    (root / DOCS_README_PATH).write_text(docs_readme, encoding="utf-8")
+
+    review_checklist = """# Zigux Review Checklist
+
+- if the change touches the shared Phase 15 governance packet, do `Documentation/zigux/freeze-map.md`, `Documentation/zigux/phase15-freeze-map-governance.md`, `Documentation/zigux/phase15-architecture-council-review-process.md`, `Documentation/zigux/phase15-parity-scorecard.md`, `Documentation/zigux/phase15-indefinite-c-policy.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/check-phase15-review-process-handoff.py`, `zigux/tests/phase15_freeze_map_governance.zig`, `zigux/tests/phase15_parity_scorecard.zig`, `zigux/tests/phase15_indefinite_c_policy.json`, `zigux/tests/phase15_indefinite_c_policy.zig`, `zigux/tests/phase15_build.zig`, and `make -C zigux phase15` still agree on the same parked governance packet?
+"""
+    (root / REVIEW_CHECKLIST_PATH).write_text(review_checklist, encoding="utf-8")
+
     note = """# Phase 15 Architecture Council Review Process Survey
 
 ## Status
@@ -178,14 +272,20 @@ Phase 15 flow
 """
     (root / SCRIPT_README_PATH).write_text(script_readme, encoding="utf-8")
 
+    tests_readme = """# zigux/tests
+
+- keep the parked Phase 15 governance packet explicit in the tests root too: `Documentation/zigux/freeze-map.md`, `Documentation/zigux/phase15-freeze-map-governance.md`, `Documentation/zigux/phase15-architecture-council-review-process.md`, `Documentation/zigux/phase15-parity-scorecard.md`, `Documentation/zigux/phase15-indefinite-c-policy.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/check-phase15-review-process-handoff.py`, `zigux/tests/phase15_build.zig`, `zigux/tests/phase15_freeze_map_governance.zig`, `zigux/tests/phase15_parity_scorecard.zig`, `zigux/tests/phase15_architecture_council_review_process.zig`, `zigux/tests/phase15_indefinite_c_policy.json`, `zigux/tests/phase15_indefinite_c_policy.zig`, `zigux/Makefile`, `zig build test --build-file zigux/tests/phase15_build.zig`, and `make -C zigux phase15` should continue to keep the current freeze-map, review-process, parity-scorecard, and indefinite-C governance packet reviewable through one shared build-and-make route without implying any Architecture Council approval for a freeze-map status change.
+"""
+    (root / TESTS_README_PATH).write_text(tests_readme, encoding="utf-8")
+
     makefile = """PHONY += phase15-validate phase15-test phase15
 
 phase15-validate:
-\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase15-review-process-handoff.py --self-test
-\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase15-review-process-handoff.py
+	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase15-review-process-handoff.py --self-test
+	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase15-review-process-handoff.py
 
 phase15-test:
-\tcd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase15_build.zig
+	cd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase15_build.zig
 
 phase15: phase15-validate phase15-test
 """
@@ -208,6 +308,19 @@ def run_self_test() -> int:
         if baseline:
             raise SystemExit("baseline_failed:" + ",".join(baseline))
 
+        docs_readme_path = tmp_root / DOCS_README_PATH
+        docs_readme = docs_readme_path.read_text(encoding="utf-8")
+        docs_readme_path.write_text(
+            docs_readme.replace("`Documentation/zigux/phase15-parity-scorecard.md`\n", "", 1),
+            encoding="utf-8",
+        )
+        expect_failure(
+            tmp_root,
+            "docs_readme:Documentation/zigux/phase15-parity-scorecard.md",
+            "missing_docs_readme_phase15_marker",
+        )
+
+        write_fixture_tree(tmp_root)
         note_path = tmp_root / NOTE_PATH
         original_note = note_path.read_text(encoding="utf-8")
         note_path.write_text(
@@ -238,8 +351,8 @@ def run_self_test() -> int:
             "note:product_boundary_self_reference",
             "missing_product_boundary_marker",
         )
-        note_path.write_text(original_note, encoding="utf-8")
 
+        write_fixture_tree(tmp_root)
         manifest_path = tmp_root / MANIFEST_PATH
         manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
         manifest["handoff_evidence"]["current_repo_handoff"] = manifest["handoff_evidence"][
@@ -276,6 +389,32 @@ def run_self_test() -> int:
         )
 
         write_fixture_tree(tmp_root)
+        review_checklist_path = tmp_root / REVIEW_CHECKLIST_PATH
+        review_checklist = review_checklist_path.read_text(encoding="utf-8")
+        review_checklist_path.write_text(
+            review_checklist.replace("`zigux/tests/phase15_parity_scorecard.zig`, ", "", 1),
+            encoding="utf-8",
+        )
+        expect_failure(
+            tmp_root,
+            "review_checklist:zigux/tests/phase15_parity_scorecard.zig",
+            "missing_review_checklist_phase15_marker",
+        )
+
+        write_fixture_tree(tmp_root)
+        tests_readme_path = tmp_root / TESTS_README_PATH
+        tests_readme = tests_readme_path.read_text(encoding="utf-8")
+        tests_readme_path.write_text(
+            tests_readme.replace("`zigux/tests/phase15_architecture_council_review_process.zig`, ", "", 1),
+            encoding="utf-8",
+        )
+        expect_failure(
+            tmp_root,
+            "tests_readme:zigux/tests/phase15_architecture_council_review_process.zig",
+            "missing_tests_readme_phase15_marker",
+        )
+
+        write_fixture_tree(tmp_root)
         makefile_path = tmp_root / MAKEFILE_PATH
         makefile = makefile_path.read_text(encoding="utf-8")
         makefile_path.write_text(
@@ -293,7 +432,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE15_REVIEW_PROCESS_HANDOFF_SELF_TEST=pass")
-    print("PHASE15_REVIEW_PROCESS_HANDOFF_SELF_TEST_CASE_COUNT=7")
+    print("PHASE15_REVIEW_PROCESS_HANDOFF_SELF_TEST_CASE_COUNT=10")
     return 0
 
 
@@ -329,7 +468,7 @@ def main() -> int:
     print("PHASE15_REVIEW_PROCESS_HANDOFF=pass")
     print(
         "PHASE15_REVIEW_PROCESS_HANDOFF_MARKER_COUNT="
-        f"{2 + len(OPTIONAL_LANE_ROUTE_MARKERS) + len(REQUIRED_SCRIPT_README_MARKERS) + len(EXACT_ONCE_SCRIPT_README_MARKERS) + len(REQUIRED_MAKEFILE_MARKERS) + len(EXACT_ONCE_MAKEFILE_MARKERS)}"
+        f"{2 + len(OPTIONAL_LANE_ROUTE_MARKERS) + len(REQUIRED_DOCS_README_MARKERS) + len(REQUIRED_SCRIPT_README_MARKERS) + len(EXACT_ONCE_SCRIPT_README_MARKERS) + len(REQUIRED_REVIEW_CHECKLIST_MARKERS) + len(REQUIRED_TESTS_README_MARKERS) + len(REQUIRED_MAKEFILE_MARKERS) + len(EXACT_ONCE_MAKEFILE_MARKERS)}"
     )
     return 0
 
