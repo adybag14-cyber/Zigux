@@ -65,7 +65,10 @@ Phase 2 is only considered closed when all of the following are green:
 - `python3 scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test`
 - `python3 scripts/zigux/check-phase2-toolchain-pin-scope.py`
 
-9. bounded phase2 unit gates
+9. bounded phase2 tests README alignment gate
+- `python3 scripts/zigux/check-phase2-tests-readme-alignment.py`
+
+10. bounded phase2 unit gates
 - `zig test scripts/zigux/fixdep.zig`
 - `zig test scripts/zigux/genksyms.zig`
 - `zig test scripts/zigux/genksyms_crc.zig`
@@ -73,7 +76,7 @@ Phase 2 is only considered closed when all of the following are green:
 - `zig test scripts/zigux/kconfig/conf_bridge.zig`
 - `zig test scripts/zigux/kconfig/confdata_bridge.zig`
 
-10. closure validation
+11. closure validation
 - `python3 scripts/zigux/validate-phase2-closure.py`
 
 - `PHASE2_GENKSYMS_BRIDGE_GATE=python3 scripts/zigux/check-genksyms-bridge.py`
@@ -86,6 +89,7 @@ Phase 2 is only considered closed when all of the following are green:
 - `PHASE2_TOOLCHAIN_PIN_SCOPE_POLICY=scripts/zigux/zig-toolchain-policy.json`
 - `PHASE2_TOOLCHAIN_PIN_SCOPE_SELF_TEST=python3 scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test`
 - `PHASE2_TOOLCHAIN_PIN_SCOPE_GATE=python3 scripts/zigux/check-phase2-toolchain-pin-scope.py`
+- `PHASE2_TESTS_README_ALIGNMENT_GATE=python3 scripts/zigux/check-phase2-tests-readme-alignment.py`
 - `PHASE2_CLOSURE_GATE=python3 scripts/zigux/validate-phase2-closure.py`
 
 ## Toolchain Pin Boundary
