@@ -174,7 +174,37 @@ pub fn hasExtension(filename: []const u8, ext: []const u8) bool {
 }
 
 fn parseDimension(value: []const u8) usize {
-    return std.fmt.parseInt(usize, value, 10) catch 0;
+    var index: usize = 0;
+    while (index < value.len and std.ascii.isWhitespace(value[index])) : (index += 1) {}
+
+    if (index == value.len) {
+        return 0;
+    }
+
+    if (value[index] == '+') {
+        index += 1;
+    } else if (value[index] == '-') {
+        return 0;
+    }
+
+    const digits_start = index;
+    var result: usize = 0;
+
+    while (index < value.len) : (index += 1) {
+        const ch = value[index];
+        if (ch < '0' or ch > '9') {
+            break;
+        }
+
+        result = std.math.mul(usize, result, 10) catch return 0;
+        result = std.math.add(usize, result, ch - '0') catch return 0;
+    }
+
+    if (index == digits_start) {
+        return 0;
+    }
+
+    return result;
 }
 
 pub fn splitPathEntries(allocator: std.mem.Allocator, raw_path: []const u8) !PathEntries {
@@ -658,8 +688,19 @@ test "loadCommandListsFromEnvPath preserves raw PATH splitting and exec-path fil
     try std.testing.expectEqualStrings("trace", other_cmds.names.items[0].name);
 }
 
+test "parseDimension accepts atoi-style prefixes and rejects invalid values" {
+    try std.testing.expectEqual(@as(usize, 40), parseDimension("40"));
+    try std.testing.expectEqual(@as(usize, 40), parseDimension(" \t+40lines"));
+    try std.testing.expectEqual(@as(usize, 120), parseDimension("120 columns"));
+    try std.testing.expectEqual(@as(usize, 0), parseDimension(""));
+    try std.testing.expectEqual(@as(usize, 0), parseDimension("abc"));
+    try std.testing.expectEqual(@as(usize, 0), parseDimension("-40"));
+    try std.testing.expectEqual(@as(usize, 0), parseDimension("+"));
+    try std.testing.expectEqual(@as(usize, 0), parseDimension("999999999999999999999999999999"));
+}
+
 test "resolveTerminalDimensions prefers explicit environment dimensions before fallback defaults" {
-    const from_env = resolveTerminalDimensions("40", "120", .{
+    const from_env = resolveTerminalDimensions("  +40lines", "120 columns", .{
         .rows = 30,
         .cols = 90,
     });
