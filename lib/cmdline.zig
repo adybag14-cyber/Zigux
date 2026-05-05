@@ -72,7 +72,11 @@ pub fn getOptions(str: []const u8, nints: usize, ints: []i32) []const u8 {
             if (range_count == null) {
                 break;
             }
-            i += range_count.? -| 1;
+            if (range_count.? == 0) {
+                i -= 1;
+            } else {
+                i += range_count.? - 1;
+            }
         }
 
         i += 1;
@@ -331,6 +335,16 @@ test "getOptions expands ranges and supports validation-only counting" {
     const validate_rest = getOptions("7-9,11", 0, &validate);
     try std.testing.expectEqualStrings("", validate_rest);
     try std.testing.expectEqual(@as(i32, 4), validate[0]);
+
+    var single = [_]i32{ 0, 0, 0 };
+    const single_rest = getOptions("1-1", single.len, &single);
+    try std.testing.expectEqualStrings("", single_rest);
+    try std.testing.expectEqualSlices(i32, &[_]i32{ 1, 1, 0 }, &single);
+
+    var single_validate = [_]i32{0};
+    const single_validate_rest = getOptions("1-1", 0, &single_validate);
+    try std.testing.expectEqualStrings("", single_validate_rest);
+    try std.testing.expectEqual(@as(i32, 1), single_validate[0]);
 }
 
 test "getOptions stops on descending ranges and unparseable suffixes" {
