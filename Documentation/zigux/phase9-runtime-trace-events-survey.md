@@ -6,7 +6,7 @@ This document tracks the bounded Phase 9 runtime pilot-module survey around `sam
 
 - `PHASE9_STATUS=active`
 - `PHASE9_SLICE=runtime-trace-events-survey`
-- `PHASE9_SURVEYED_COMMIT=a7b1cec43aca36bab868f600a60fad724a25daee`
+- `PHASE9_SURVEYED_COMMIT=e59df689d080aa11773adda87f00c2d650caade8`
 - scope: survey manifest, starter sample, dedicated module and survey gates, the bounded loader-handoff scaffold plus shared-request bridge, shared Phase 9 build wiring for the starter lane, and the lane-level review note that now tracks the landed starter plus the remaining shared runtime-substrate blocker
 - product boundary:
   - `samples/zigux/runtime_trace_events.zig`
