@@ -1,0 +1,80 @@
+# Phase 10 Virtio Core Survey
+
+This document tracks the bounded Phase 10 governance lane around `drivers/virtio/virtio.c`.
+
+## Status
+
+- `PHASE10_STATUS=active`
+- `PHASE10_SLICE=virtio-core-survey`
+- lane: `P10-Y01`
+- surveyed inspected `master` head: `7a4454d0474106972cad7e164b79293bd54a40c6`
+- scope: restore the manifest-backed core survey packet, keep the slice note and build wiring aligned with that packet, and stay out of ring, MMIO, input, or transport-facing lifecycle work
+- product boundary:
+  - `zigux/tests/phase10_virtio_core_manifest.json`
+  - `zigux/tests/phase10_virtio_core_survey.zig`
+  - `zigux/tests/phase10_build.zig`
+  - `Documentation/zigux/phase10-virtio-core-survey.md`
+  - `Documentation/zigux/phase10-virtio-core-slice.md`
+  - `scripts/zigux/check-phase10-core-packet.py`
+
+## Why this slice exists
+
+The Phase 10 roadmap names `drivers/virtio/virtio.c` as the first virtio-core anchor, and the live repo already ships a bounded `drivers/virtio/virtio.zig` helper plus dedicated implementation tests.
+
+Current `master` had drifted back to a slice-note-only review posture for the core lane even though the build and nearby Phase 10 packets still expect a dedicated core checker path. This survey restores the small manifest-backed governance packet so the core lane is machine-checkable again without widening into new helper behavior.
+
+## Survey findings
+
+- `drivers/virtio/virtio.c` is still the Phase 10 core anchor, and the live repo already ships `drivers/virtio/virtio.zig`, `zigux/tests/phase10_virtio_core.zig`, `zigux/tests/phase10_virtio_core_reset_queue.zig`, `drivers/virtio/virtio_driver_id.zig`, and `zigux/tests/phase10_virtio_driver_id.zig`
+- the landed core helper already covers bounded status sequencing, feature negotiation, queue callback bookkeeping, queue descriptor-shape metadata, config-generation bookkeeping, interrupt-ack bookkeeping, lifecycle guards, and reset replay in memory only
+- the landed driver-id helper already keeps bounded `register_virtio_device()`, `virtio_uevent()`, `virtio_id_match()`, and `virtio_dev_match()` reviewable through exact, wildcard, and unmatched paths without claiming bus registration
+- the honest gap here was governance drift, not missing core behavior: the manifest-backed survey note, survey gate, and dedicated packet checker had fallen away even though the core lane still had enough bounded evidence to support them
+- the next broader Phase 10 work is still blocked outside this lane: probe, full remove, reset, and transport-backed lifecycle state remain too risky to claim from the core helper alone
+
+## Recorded gaps
+
+The restored survey manifest records:
+
+- the landed `phase10-build-gate`
+- the landed `phase10-virtio-core-lab-starter`
+- the landed `phase10-virtio-core-lab-gate`
+- the landed `phase10-virtio-core-reset-queue-gate`
+- the landed `phase10-virtio-core-slice-note`
+- the landed `phase10-virtio-core-survey-gate`
+- the landed `phase10-virtio-core-survey-note`
+- the landed `phase10-driver-id-helper`
+- the landed `phase10-driver-id-gate`
+- the landed `phase10-queue-shape-bookkeeping-helper`
+- the landed `phase10-config-generation-bookkeeping-helper`
+- the landed `phase10-interrupt-ack-bookkeeping-helper`
+- the landed `phase10-lifecycle-guard-bookkeeping-helper`
+- the landed `phase10-reset-replay-bookkeeping-helper`
+- the still-blocked `phase10-core-probe-remove-lifecycle`
+
+## Non-goals
+
+This survey slice does not claim:
+
+- probe, full remove, or transport-backed reset lifecycle parity
+- real virtqueue wrappers from `virtio_ring.c`
+- real MMIO register-window or IRQ behavior from `virtio_mmio.c`
+- broader transport-backed registration or teardown work
+
+## Gates
+
+1. run the dedicated core governance checker
+- `python3 scripts/zigux/check-phase10-core-packet.py`
+
+2. run the restored core survey gate
+- `zig test zigux/tests/phase10_virtio_core_survey.zig`
+
+3. run the shared Phase 10 build
+- `zig build test --build-file zigux/tests/phase10_build.zig`
+
+4. run the Linux-style Phase 10 entrypoints when the wider packet is available
+- `make -C zigux phase10-test`
+- `make -C zigux phase10`
+
+## Next bounded step
+
+Leave the Phase 10 virtio-core governance lane parked again unless fresh repo inspection finds another directly coupled drift across the core slice note, the restored survey packet, or the shared build wiring. Any new helper work should stay in adjacent ring or MMIO lanes instead of widening core lifecycle claims.
