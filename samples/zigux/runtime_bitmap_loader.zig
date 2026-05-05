@@ -116,3 +116,30 @@ test "runtime bitmap loader keeps unavailable substrate and lifecycle guards exp
     try module.exit();
     try std.testing.expectError(error.InvalidModuleLifecycleForLoader, RuntimeBitmapLoader.planFor(&module));
 }
+
+test "runtime bitmap loader keeps the prepared snapshot stable across later bitmap mutation" {
+    var module = runtime_bitmap_sample.RuntimeBitmapSample{};
+    try module.initWithSetBits(&.{ 0, 5, 64, 70 });
+    _ = try module.runSelftest();
+
+    var loader = RuntimeBitmapLoader{};
+    const prepared = try loader.prepare(&module);
+
+    try module.clearRange(0, 1);
+    try module.setRange(9, 4);
+
+    const live_summary = module.summary();
+    const pending_plan = try loader.requestRuntimeLoad();
+
+    try std.testing.expectEqual(LoaderStage.waiting_on_runtime_substrate, loader.stage());
+    try std.testing.expectEqual(@as(u32, 5), live_summary.first_set);
+    try std.testing.expectEqual(@as(u32, 0), live_summary.first_zero);
+    try std.testing.expectEqual(@as(u32, 7), live_summary.weight);
+    try std.testing.expectEqual(@as(u32, 0), pending_plan.summary.first_set);
+    try std.testing.expectEqual(@as(u32, 1), pending_plan.summary.first_zero);
+    try std.testing.expectEqual(@as(u32, 4), pending_plan.summary.weight);
+    try std.testing.expectEqual(runtime_bitmap_sample.RuntimeBitmapSample.bitmap_nbits, live_summary.nbits);
+    try std.testing.expectEqual(runtime_bitmap_sample.RuntimeBitmapSample.bitmap_nbits, pending_plan.summary.nbits);
+
+    _ = prepared;
+}
