@@ -26,6 +26,7 @@ REQUIRED_HELPERS = (
     "validate-phase3-policy-unsafe-survey.py",
     "validate-phase3-low-level-wrapper-survey.py",
     "validate-phase4.py",
+    "check-phase6-shared-surface.py",
     "run-phase3-checks.py",
     "phase3_catalog.py",
     "phase3_check_lib.py",
@@ -40,13 +41,18 @@ REQUIRED_HELPERS = (
 )
 
 ABSENT_VALIDATE_TARGETS = (
-    "phase6-validate",
     "phase9-validate",
     "phase12-validate",
 )
 
+PHASE6_VALIDATE_TARGET = "phase6-validate"
+PHASE6_VALIDATE_HELPERS = ("check-phase6-shared-surface.py",)
+
 PHASE13_VALIDATE_TARGET = "phase13-validate"
-PHASE13_VALIDATE_HELPERS = ("validate-phase13-release.py",)
+PHASE13_VALIDATE_HELPERS = (
+    "validate-phase13-release.py",
+    "check-phase13-devres-packet.py",
+)
 
 REQUIRED_README_SNIPPETS = (
     "- The live support packet inside that same validator-first route is `validate-phase3-policy-unsafe-survey.py`, `validate-phase3-low-level-wrapper-survey.py`, `phase3_catalog.py`, `phase3_check_lib.py`, `generate-phase3-check-wrappers.py`, and `run-phase3-checks.py`; the generated `check-phase3-*.py` wrappers stay as compatibility entrypoints derived from the discovered slice catalog instead of a second hand-maintained survey list.",
@@ -120,6 +126,28 @@ def _collect_target_helpers(makefile: str, target: str) -> list[str]:
     return helpers
 
 
+def _validate_target_helpers(
+    issues: list[str], makefile: str, target: str, required_helpers: tuple[str, ...]
+) -> None:
+    lines = _collect_makefile_target_lines(makefile, target)
+    if lines is None:
+        issues.append(f"missing_makefile_target:{target}")
+        return
+
+    helpers = _collect_target_helpers(makefile, target)
+    for helper in required_helpers:
+        count = helpers.count(helper)
+        if count == 0:
+            issues.append(f"missing_makefile_helper:{target}:{helper}")
+        elif count != 1:
+            issues.append(f"unexpected_makefile_helper_count:{target}:{helper}:{count}")
+    for helper in helpers:
+        if helper not in required_helpers:
+            issues.append(f"unexpected_makefile_helper:{target}:{helper}")
+    if [helper for helper in helpers if helper in required_helpers] != list(required_helpers):
+        issues.append(f"makefile_helper_order_drift:{target}")
+
+
 def validate(root: Path) -> list[str]:
     issues: list[str] = []
 
@@ -158,26 +186,8 @@ def validate(root: Path) -> list[str]:
         if _collect_makefile_target_lines(makefile, target) is not None:
             issues.append(f"unexpected_makefile_target:{target}")
 
-    phase13_lines = _collect_makefile_target_lines(makefile, PHASE13_VALIDATE_TARGET)
-    if phase13_lines is None:
-        issues.append(f"missing_makefile_target:{PHASE13_VALIDATE_TARGET}")
-    else:
-        helpers = _collect_target_helpers(makefile, PHASE13_VALIDATE_TARGET)
-        for helper in PHASE13_VALIDATE_HELPERS:
-            count = helpers.count(helper)
-            if count == 0:
-                issues.append(f"missing_makefile_helper:{PHASE13_VALIDATE_TARGET}:{helper}")
-            elif count != 1:
-                issues.append(
-                    f"unexpected_makefile_helper_count:{PHASE13_VALIDATE_TARGET}:{helper}:{count}"
-                )
-        for helper in helpers:
-            if helper not in PHASE13_VALIDATE_HELPERS:
-                issues.append(f"unexpected_makefile_helper:{PHASE13_VALIDATE_TARGET}:{helper}")
-        if [helper for helper in helpers if helper in PHASE13_VALIDATE_HELPERS] != list(
-            PHASE13_VALIDATE_HELPERS
-        ):
-            issues.append(f"makefile_helper_order_drift:{PHASE13_VALIDATE_TARGET}")
+    _validate_target_helpers(issues, makefile, PHASE6_VALIDATE_TARGET, PHASE6_VALIDATE_HELPERS)
+    _validate_target_helpers(issues, makefile, PHASE13_VALIDATE_TARGET, PHASE13_VALIDATE_HELPERS)
 
     for snippet in REQUIRED_README_SNIPPETS:
         count = readme.count(snippet)
@@ -220,10 +230,13 @@ def _baseline_readme() -> str:
 def _baseline_makefile() -> str:
     return "\n".join(
         (
+            "phase6-validate:",
+            "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase6-shared-surface.py",
+            "",
             "phase6-test:",
             "\t@true",
             "",
-            "phase6: phase6-test",
+            "phase6: phase6-validate phase6-test",
             "",
             "phase9-test:",
             "\t@true",
@@ -237,6 +250,7 @@ def _baseline_makefile() -> str:
             "",
             "phase13-validate:",
             "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase13-release.py",
+            "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase13-devres-packet.py",
             "",
         )
     )
@@ -320,11 +334,50 @@ def run_self_test() -> int:
         _write(root / "scripts" / "zigux" / "validate-phase4.py", "# stub\n")
         case_count += 1
 
-        _write(root / MAKEFILE_REL, baseline_makefile + "phase6-validate:\n\t@true\n")
+        _write(root / MAKEFILE_REL, baseline_makefile.replace("phase6-validate:\n", "", 1))
         _assert_only(
             validate(root),
-            ["unexpected_makefile_target:phase6-validate"],
-            "unexpected_phase6_validate_target_guard_failed",
+            ["missing_makefile_target:phase6-validate"],
+            "missing_phase6_validate_target_guard_failed",
+        )
+        _write(root / MAKEFILE_REL, baseline_makefile)
+        case_count += 1
+
+        _write(
+            root / MAKEFILE_REL,
+            baseline_makefile.replace(
+                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase6-shared-surface.py\n",
+                "",
+                1,
+            ),
+        )
+        _assert_only(
+            validate(root),
+            [
+                "missing_makefile_helper:phase6-validate:check-phase6-shared-surface.py",
+                "makefile_helper_order_drift:phase6-validate",
+            ],
+            "missing_phase6_helper_guard_failed",
+        )
+        _write(root / MAKEFILE_REL, baseline_makefile)
+        case_count += 1
+
+        _write(
+            root / MAKEFILE_REL,
+            baseline_makefile.replace(
+                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase6-shared-surface.py\n",
+                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase6-shared-surface.py\n"
+                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase6-shared-surface.py\n",
+                1,
+            ),
+        )
+        _assert_only(
+            validate(root),
+            [
+                "unexpected_makefile_helper_count:phase6-validate:check-phase6-shared-surface.py:2",
+                "makefile_helper_order_drift:phase6-validate",
+            ],
+            "duplicate_phase6_helper_guard_failed",
         )
         _write(root / MAKEFILE_REL, baseline_makefile)
         case_count += 1
@@ -347,11 +400,20 @@ def run_self_test() -> int:
         _write(root / MAKEFILE_REL, baseline_makefile)
         case_count += 1
 
-        _write(root / MAKEFILE_REL, "phase13-validate:\n")
+        _write(
+            root / MAKEFILE_REL,
+            baseline_makefile.replace(
+                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase13-release.py\n"
+                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase13-devres-packet.py\n",
+                "",
+                1,
+            ),
+        )
         _assert_only(
             validate(root),
             [
                 "missing_makefile_helper:phase13-validate:validate-phase13-release.py",
+                "missing_makefile_helper:phase13-validate:check-phase13-devres-packet.py",
                 "makefile_helper_order_drift:phase13-validate",
             ],
             "missing_phase13_helper_guard_failed",
@@ -364,7 +426,8 @@ def run_self_test() -> int:
             baseline_makefile.replace(
                 "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase13-release.py\n",
                 "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase13-release.py\n"
-                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase13-release.py\n",
+                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase13-release.py\n"
+                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase13-devres-packet.py\n",
                 1,
             ),
         )
@@ -372,6 +435,7 @@ def run_self_test() -> int:
             validate(root),
             [
                 "unexpected_makefile_helper_count:phase13-validate:validate-phase13-release.py:2",
+                "unexpected_makefile_helper_count:phase13-validate:check-phase13-devres-packet.py:2",
                 "makefile_helper_order_drift:phase13-validate",
             ],
             "duplicate_phase13_helper_guard_failed",
@@ -382,8 +446,9 @@ def run_self_test() -> int:
         _write(
             root / MAKEFILE_REL,
             baseline_makefile.replace(
-                "phase13-validate:\n",
-                "phase13-validate:\n\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/unexpected-phase13.py\n",
+                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase13-devres-packet.py\n",
+                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase13-devres-packet.py\n"
+                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/unexpected-phase13.py\n",
                 1,
             ),
         )
