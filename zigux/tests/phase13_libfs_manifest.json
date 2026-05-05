@@ -1,5 +1,5 @@
 {
-  "lane_key": "P13-L04",
+  "lane_key": "P13-L03",
   "phase": "Phase 13",
   "surveyed_commit": "master-reviewability",
   "anchor": "fs/libfs.c",
@@ -45,7 +45,7 @@
       "status": "starter_landed",
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase13_libfs.zig",
-      "why_now": "Dedicated starter tests keep the current helper surface honest around split fsid packing, default statfs values, negative-dentry discard intent, casefold passthrough, buffer-copy accounting, seek-policy bounds, directory-emit handoff bookkeeping, and the landed transaction acquire planner."
+      "why_now": "Dedicated starter tests keep the current helper surface honest around split fsid packing, default statfs values, negative-dentry discard intent, casefold passthrough, buffer-copy accounting, seek-policy bounds, directory-emit handoff bookkeeping, the landed transaction acquire planner, and the new transaction publish planner."
     },
     {
       "id": "phase13-libfs-slice-note",
@@ -94,14 +94,14 @@
       "status": "starter_landed",
       "kind": "filesystem_helper_surface",
       "zigux_destination": "fs/libfs.zig",
-      "why_now": "The libfs helper lab now models the pure `simple_transaction_set()` publish path, including response-size validation up to `SIMPLE_TRANSACTION_LIMIT`, the requirement that the transaction buffer already exist, and the barrier-backed rule that the readable response size stays hidden until publish bookkeeping is complete."
+      "why_now": "The libfs helper lab now models the pure `simple_transaction_set()` publish path, including the response-size limit, the required private-data handoff, the publish barrier, and the resulting publish bookkeeping before any live readback or release state is claimed."
     },
     {
-      "id": "phase13-libfs-transaction-read-helper",
+      "id": "phase13-libfs-transaction-release-helper",
       "status": "ready_next",
       "kind": "filesystem_helper_surface",
       "zigux_destination": "fs/libfs.zig",
-      "why_now": "The next honest transaction-family step is a tiny `simple_transaction_read()` planner that keeps the work in empty-private-data handling, response-size passthrough, and delegated `simple_read_from_buffer()` handoff before any release lifecycle or broader file operation state is modeled."
+      "why_now": "The next honest transaction-family step is a tiny `simple_transaction_release()` lifetime planner that keeps the work in page-backed private-data ownership and release bookkeeping before any live file lifecycle or readback behavior is modeled."
     }
   ]
 }
