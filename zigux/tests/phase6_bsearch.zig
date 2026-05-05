@@ -42,6 +42,12 @@ fn compareDescendingU32(key: *const u32, item: *const u32) i32 {
     };
 }
 
+fn compareDescendingOpaqueU32(key: *const anyopaque, item: *const anyopaque) i32 {
+    const typed_key: *const u32 = @ptrCast(@alignCast(key));
+    const typed_item: *const u32 = @ptrCast(@alignCast(item));
+    return compareDescendingU32(typed_key, typed_item);
+}
+
 fn compareSymbolName(key: *const []const u8, item: *const Symbol) i32 {
     return switch (std.mem.order(u8, key.*, item.name)) {
         .lt => -1,
@@ -99,6 +105,15 @@ test "phase 6 bsearch supports string keys against sorted records" {
     try std.testing.expectEqual(@as(usize, 0x1400), found.address);
     try std.testing.expectEqual(@intFromPtr(&symbols[2]), @intFromPtr(found));
     try std.testing.expect(bsearch.search([]const u8, Symbol, &@as([]const u8, "vfree"), symbols[0..], compareSymbolName) == null);
+}
+
+test "phase 6 bsearch mutable typed lookup supports write-through" {
+    var values = [_]u32{ 3, 8, 13, 21, 34, 55, 89 };
+    const found = bsearch.searchMutable(u32, u32, &@as(u32, 34), values[0..], compareU32) orelse return error.TestUnexpectedResult;
+
+    found.* = 35;
+    try std.testing.expectEqual(@as(u32, 35), values[4]);
+    try std.testing.expectEqual(@intFromPtr(&values[4]), @intFromPtr(found));
 }
 
 test "phase 6 bsearch treats duplicate keys as found-or-null without claiming stable selection" {
@@ -180,6 +195,25 @@ test "phase 6 bsearch accepts runtime-selected raw native comparator pointers" {
     }
 }
 
+test "phase 6 bsearch mutable raw lookup supports descending write-through" {
+    var values = [_]u32{ 89, 55, 34, 21, 13, 8, 3 };
+    const comparators = [_]bsearch.RawComparator{compareDescendingOpaqueU32};
+
+    for (comparators) |compare| {
+        const found = bsearch.bsearchMutable(
+            &@as(u32, 21),
+            @ptrCast(values[0..].ptr),
+            values.len,
+            @sizeOf(u32),
+            compare,
+        ) orelse return error.TestUnexpectedResult;
+        const typed_found: *u32 = @ptrCast(@alignCast(found));
+        typed_found.* = 22;
+        try std.testing.expectEqual(@as(u32, 22), values[3]);
+        typed_found.* = 21;
+    }
+}
+
 test "phase 6 bsearch accepts runtime-selected raw c abi comparator pointers" {
     const values = [_]u32{ 2, 7, 7, 7, 12, 18 };
     const comparators = [_]bsearch.CRawComparator{ compareOpaqueU32C, compareOpaqueU32C };
@@ -202,4 +236,21 @@ test "phase 6 bsearch accepts runtime-selected raw c abi comparator pointers" {
             bsearch.bsearch(&@as(u32, 8), @ptrCast(values[0..].ptr), values.len, @sizeOf(u32), compare) == null,
         );
     }
+}
+
+test "phase 6 bsearch mutable raw c abi lookup supports write-through" {
+    var values = [_]u32{ 2, 7, 7, 7, 12, 18 };
+    const found = bsearch.bsearchMutable(
+        &@as(u32, 7),
+        @ptrCast(values[0..].ptr),
+        values.len,
+        @sizeOf(u32),
+        compareOpaqueU32C,
+    ) orelse return error.TestUnexpectedResult;
+    const typed_found: *u32 = @ptrCast(@alignCast(found));
+    const found_index = (@intFromPtr(typed_found) - @intFromPtr(&values[0])) / @sizeOf(u32);
+
+    try std.testing.expect(found_index >= 1 and found_index <= 3);
+    typed_found.* = 70;
+    try std.testing.expectEqual(@as(u32, 70), values[found_index]);
 }
