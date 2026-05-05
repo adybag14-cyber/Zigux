@@ -41,13 +41,14 @@ This lane started from an empty `drivers/virtio/*.zig` footing. The live repo no
   - lab-only validation for `drivers/virtio/virtio.c`
   - core-side status sequencing and feature negotiation
   - bounded queue callback bookkeeping and queue shape metadata for reviewable lab tests
+  - core-side bookkeeping that now supports the separate `virtio_ring`, `virtio_input`, and `virtio_mmio` lab slices without claiming transport parity
 - still intentionally missing:
   - real virtqueue wrappers from `virtio_ring.c`
   - real MMIO wrappers from `virtio_mmio.c`
   - dual implementations for risky transport-facing paths
   - probe, remove, and real device lifecycle wiring
 
-This keeps the Phase 10 core lane honest: the live Zigux slice now describes one queue's shape and one bounded config-change path in memory, which narrows the gap to future virtqueue work without pretending any transport or ring code has already landed.
+This keeps the Phase 10 core lane honest: the live Zigux slice now describes one queue's shape and one bounded config-change path in memory, and that core bookkeeping now feeds the separate `virtio_ring`, `virtio_input`, and `virtio_mmio` lab helpers without pretending transport-backed lifecycle behavior has already landed.
 
 ## Non-goals
 
@@ -68,4 +69,4 @@ This slice does not yet claim:
 
 ## Next bounded step
 
-Stay in the Phase 10 virtio-core lane only for another small core-local bridge that is still missing after the landed config-change bookkeeping, such as a bounded config-generation or driver-name bookkeeping summary, before widening into `virtio_mmio` or `virtio_ring` transport work.
+Stay in the broader Phase 10 virtio lane only for another small core-local bridge that is still missing after the landed ring, input, and MMIO footholds, such as bounded config-generation or driver-name bookkeeping, before widening into interrupt acknowledgement, reset flows, or probe lifecycle work.
