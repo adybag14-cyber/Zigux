@@ -18,7 +18,7 @@ REQUIRED_SNIPPETS = {
         "- `Documentation/zigux/phase6-bsearch-slice.md`",
         "- `Documentation/zigux/phase6-checksum-slice.md`",
         "- `Documentation/zigux/phase6-hexdump-slice.md`",
-        "- `zigux/tests/phase6_build.zig`, `zigux/tests/phase6_base64.zig`, `zigux/tests/phase6_bsearch.zig`, `zigux/tests/phase6_checksum.zig`, `zigux/tests/phase6_hexdump.zig`, and `make -C zigux phase6` now gate the current base64, bsearch, checksum, and hexdump helper bundle together",
+        "- `zigux/tests/phase6_build.zig`, `zigux/tests/phase6_base64.zig`, `zigux/tests/phase6_bsearch.zig`, `zigux/tests/phase6_checksum.zig`, `zigux/tests/phase6_hexdump.zig`, and `make -C zigux phase6` now keep the current base64, bsearch, checksum, and hexdump helper bundle reviewable through the shared surface checker, the bundled replay, and the Linux-style helper lane together, so new helper slices should only land when that shared packet stays green as one unit.",
     ],
     "Documentation/zigux/phase6-base64-slice.md": [
         "- `zigux/tests/fixtures/phase6_base64_vectors.zig`",
@@ -49,7 +49,7 @@ REQUIRED_SNIPPETS = {
         "- there is no separate shared `validate-phase6.py`, external portability checker packet beyond `check-phase6-shared-surface.py`, or aggregated `phase6-perf` target on `master`; the shipped dedicated perf replay is `make -C zigux phase6-checksum-perf`, which keeps the checksum slowdown ceiling wired into a Linux-style entrypoint without overstating perf coverage for the rest of the Phase 6 helper packet.",
     ],
     "zigux/tests/README.md": [
-        "- keep the shared Phase 6 leaf-helper packet wired through `zigux/tests/phase6_build.zig`, including `zigux/tests/phase6_base64.zig`, `zigux/tests/phase6_bsearch.zig`, `zigux/tests/phase6_checksum.zig`, and `zigux/tests/phase6_hexdump.zig`, so the landed `base64`, `bsearch`, `checksum`, and `hexdump` bundle stays reviewable through one bounded helper gate",
+        "- keep the shared Phase 6 leaf-helper packet wired through `zigux/tests/phase6_build.zig`, including `zigux/tests/phase6_base64.zig`, `zigux/tests/phase6_bsearch.zig`, `zigux/tests/phase6_checksum.zig`, and `zigux/tests/phase6_hexdump.zig`, so the landed `base64`, `bsearch`, `checksum`, and `hexdump` bundle stays reviewable through one bounded helper gate, and keep `zigux/tests/phase6_checksum_perf.zig` plus `make -C zigux phase6-checksum-perf` explicit as the dedicated checksum-only perf route rather than implying a broader Phase 6 packet-wide perf target",
     ],
     "Documentation/zigux/review-checklist.md": [
         "- if the change touches the shared Phase 6 leaf-helper packet, do `Documentation/zigux/README.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, `Documentation/zigux/phase6-base64-slice.md`, `Documentation/zigux/phase6-bsearch-slice.md`, `Documentation/zigux/phase6-checksum-slice.md`, `Documentation/zigux/phase6-hexdump-slice.md`, `zigux/tests/phase6_build.zig`, `zigux/tests/phase6_base64.zig`, `zigux/tests/phase6_bsearch.zig`, `zigux/tests/phase6_checksum.zig`, `zigux/tests/phase6_hexdump.zig`, `zigux/Makefile`, and `make -C zigux phase6` still agree on the same bundled `base64`, `bsearch`, `checksum`, and `hexdump` helper packet without implying a removed shared `validate-phase6.py`, external parity checker, or `phase6-perf` route?",
@@ -241,7 +241,8 @@ def run_self_test() -> None:
 
         checksum_slice = root / "Documentation/zigux/phase6-checksum-slice.md"
         original_checksum_slice = checksum_slice.read_text(encoding="utf-8")
-        checksum_slice.write_text(
+        checksum_slice.writeText = checksum_slice.write_text
+        checksum_slice.writeText(
             original_checksum_slice.replace(
                 "- helper-local perf smoke on patterned 64-byte and 1501-byte payloads keeps `checksum.compute` within a 150% slowdown ceiling versus the bounded reference loop",
                 "- checksum perf details are omitted",
