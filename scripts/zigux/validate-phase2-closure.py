@@ -193,6 +193,10 @@ required_makefile_markers = [
     'phase2-validate:',
     'phase2-kconfig:',
     'phase2-cross:',
+    'check-phase2-cross-selftest-alignment.py --self-test',
+    'check-phase2-cross-selftest-alignment.py',
+    'check-phase2-toolchain-pin-scope.py --self-test',
+    'check-phase2-toolchain-pin-scope.py',
     'check-genksyms-bridge.py',
     '$(ZIG) test scripts/zigux/genksyms.zig',
 ]
