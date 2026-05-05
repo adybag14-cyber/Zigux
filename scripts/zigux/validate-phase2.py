@@ -443,7 +443,7 @@ def build_self_test_root(root: Path) -> None:
     )
     write_stub_guard(
         root / "scripts/zigux/check-phase2-toolchain-pin-scope.py",
-        self_test_marker="PHASE2_TOOLCHAIN_PIN_SCOPE_SELF_TEST=pass\nPHASE2_TOOLCHAIN_PIN_SCOPE_SELF_TEST_CASE_COUNT=14",
+        self_test_marker="PHASE2_TOOLCHAIN_PIN_SCOPE_SELF_TEST=pass\nPHASE2_TOOLCHAIN_PIN_SCOPE_SELF_TEST_CASE_COUNT=22",
         live_markers=["PHASE2_TOOLCHAIN_PIN_SCOPE=pass"],
     )
 
