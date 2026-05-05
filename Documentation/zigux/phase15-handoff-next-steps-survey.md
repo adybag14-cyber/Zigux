@@ -4,7 +4,7 @@ This document records the bounded Phase 15 handoff lane for surveying the remain
 
 ## Status
 
-- `PHASE15_LANE_KEY=P15-L11`
+- `PHASE15_LANE_KEY=P15-L12`
 - `PHASE15_STATUS=handoff_next_steps_packet_restored`
 - `PHASE15_SLICE=phase-handoff-and-next-bound-synthesis`
 - survey provenance refreshed against current `master` commit `0f06196` observed on May 5, 2026
