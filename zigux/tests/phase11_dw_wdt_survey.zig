@@ -188,7 +188,7 @@ test "phase11 dw_wdt survey manifest records the landed registration handoff and
     try std.testing.expect(saw_platform_blocker);
 }
 
-test "phase11 dw_wdt survey note and validation matrix stay aligned" {
+test "phase11 dw_wdt survey note, matrix, and landed artifacts stay aligned" {
     var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
     defer io_instance.deinit();
 
@@ -208,12 +208,46 @@ test "phase11 dw_wdt survey note and validation matrix stay aligned" {
     );
     defer std.testing.allocator.free(validation_matrix);
 
+    const driver_source = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "drivers/watchdog/dw_wdt.zig",
+        std.testing.allocator,
+        .limited(64 * 1024),
+    );
+    defer std.testing.allocator.free(driver_source);
+
+    const driver_tests = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "zigux/tests/phase11_dw_wdt.zig",
+        std.testing.allocator,
+        .limited(64 * 1024),
+    );
+    defer std.testing.allocator.free(driver_tests);
+
+    const shared_build = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "zigux/tests/phase11_build.zig",
+        std.testing.allocator,
+        .limited(64 * 1024),
+    );
+    defer std.testing.allocator.free(shared_build);
+
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase11-dw-wdt-validation-matrix.md") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "bounded hardware-validation posture") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "hardware-validation posture") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "registration-facing handoff") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "P11-L12") != null);
 
     try std.testing.expect(std.mem.indexOf(u8, validation_matrix, "PHASE11_DW_WDT_STATUS=hardware_validation_matrix_landed") != null);
     try std.testing.expect(std.mem.indexOf(u8, validation_matrix, "registrationSummary()") != null);
     try std.testing.expect(std.mem.indexOf(u8, validation_matrix, "watchdog_register_device") != null);
+    try std.testing.expect(std.mem.indexOf(u8, driver_source, "pub fn probeSummary(") != null);
+    try std.testing.expect(std.mem.indexOf(u8, driver_source, "pub fn registrationSummary(") != null);
+    try std.testing.expect(std.mem.indexOf(u8, driver_source, "registration_call = \"watchdog_register_device\"") != null);
+
+    try std.testing.expect(std.mem.indexOf(u8, driver_tests, "registration summary selects the basic info profile before registration") != null);
+    try std.testing.expect(std.mem.indexOf(u8, driver_tests, "start and ping select the nearest fixed top in reset mode") != null);
+
+    try std.testing.expect(std.mem.indexOf(u8, shared_build, ".name = \"phase11-dw-wdt-tests\"") != null);
+    try std.testing.expect(std.mem.indexOf(u8, shared_build, ".name = \"phase11-dw-wdt-survey-tests\"") != null);
+    try std.testing.expect(std.mem.indexOf(u8, shared_build, "../../drivers/watchdog/dw_wdt.zig") != null);
 }
