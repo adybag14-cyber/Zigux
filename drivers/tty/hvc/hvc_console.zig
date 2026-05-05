@@ -272,20 +272,17 @@ fn frameConsoleWrite(input: []const u8, output: *[outbuf_capacity * 2]u8) !usize
     if (input.len > outbuf_capacity) return error.InputTooLarge;
 
     var index: usize = 0;
-    var donecr = false;
+    var previous_was_cr = false;
 
     for (input) |char| {
-        if (char == '\n' and !donecr) {
+        if (char == '\n' and !previous_was_cr) {
             output[index] = '\r';
             index += 1;
-            output[index] = '\n';
-            index += 1;
-            donecr = true;
-        } else {
-            output[index] = char;
-            index += 1;
-            donecr = false;
         }
+
+        output[index] = char;
+        index += 1;
+        previous_was_cr = char == '\r';
     }
 
     return index;
