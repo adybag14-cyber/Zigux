@@ -171,12 +171,15 @@ pub fn build(b: *std.Build) void {
     });
     const run_phase12_virtio_scsi_tests = b.addRunArtifact(phase12_virtio_scsi_tests);
 
+    const smoke_step = b.step("smoke", "Run Phase 12 direct driver and syntax-lab smoke tests");
+    smoke_step.dependOn(&run_phase12_nvme_pci_tests.step);
+    smoke_step.dependOn(&run_phase12_virtio_net_tests.step);
+    smoke_step.dependOn(&run_phase12_virtio_net_syntax_lab_tests.step);
+    smoke_step.dependOn(&run_phase12_virtio_scsi_tests.step);
+
     const test_step = b.step("test", "Run Phase 12 driver and survey tests");
-    test_step.dependOn(&run_phase12_virtio_scsi_tests.step);
-    test_step.dependOn(&run_phase12_nvme_pci_tests.step);
+    test_step.dependOn(smoke_step);
     test_step.dependOn(&run_phase12_nvme_pci_survey_tests.step);
-    test_step.dependOn(&run_phase12_virtio_net_tests.step);
-    test_step.dependOn(&run_phase12_virtio_net_syntax_lab_tests.step);
     test_step.dependOn(&run_phase12_virtio_net_survey_tests.step);
     test_step.dependOn(&run_phase12_virtio_scsi_survey_tests.step);
     test_step.dependOn(&run_phase12_libbpf_segments_tests.step);
