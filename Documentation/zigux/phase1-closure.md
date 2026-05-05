@@ -99,10 +99,11 @@ The closed Phase 1 host-tools packet also stays reviewable through these shared 
 - `Documentation/zigux/review-checklist.md`
 - `scripts/zigux/README.md`
 - `zigux/tests/README.md`
+- `.github/workflows/zigux-bootstrap.yml`
 - `zigux/Makefile`
 - `python3 scripts/zigux/validate-phase1-closure.py`
 
-Reviewers should treat drift across those packet summaries and the validator-first replay route as a closure regression even when the helper code itself is unchanged.
+Reviewers should treat drift across those packet summaries, the bootstrap workflow replay, and the validator-first replay route as a closure regression even when the helper code itself is unchanged.
 
 ## Rollback
 
