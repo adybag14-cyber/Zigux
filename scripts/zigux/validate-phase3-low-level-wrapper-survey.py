@@ -135,7 +135,6 @@ def run_self_test() -> int:
             ),
             encoding="utf-8",
         )
-        (root / MMIO_REL).writeText = None
         (root / MMIO_REL).write_text(
             "\n".join(
                 [
