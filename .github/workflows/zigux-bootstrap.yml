@@ -47,11 +47,17 @@ jobs:
         with:
           python-version: '3.x'
 
+      - name: Self-test Zig installer
+        run: python3 scripts/zigux/install-zig.py --self-test
+
       - name: Install Zig
         run: python3 scripts/zigux/install-zig.py --channel master --dest .zig-toolchain
 
-      - name: Show Zig version
-        run: zig version
+      - name: Self-test Zig toolchain checker
+        run: python3 scripts/zigux/check-zig-toolchain.py --self-test
+
+      - name: Check Zig toolchain
+        run: python3 scripts/zigux/check-zig-toolchain.py
 
       - name: Validate bootstrap files
         run: python3 scripts/zigux/validate-bootstrap.py
@@ -67,6 +73,21 @@ jobs:
 
       - name: Validate Phase 2 closure
         run: python3 scripts/zigux/validate-phase2-closure.py
+
+      - name: Check Phase 2 tests README alignment
+        run: python3 scripts/zigux/check-phase2-tests-readme-alignment.py
+
+      - name: Self-test Phase 2 cross-selftest alignment
+        run: python3 scripts/zigux/check-phase2-cross-selftest-alignment.py --self-test
+
+      - name: Check Phase 2 cross-selftest alignment
+        run: python3 scripts/zigux/check-phase2-cross-selftest-alignment.py
+
+      - name: Self-test Phase 2 toolchain pin scope
+        run: python3 scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test
+
+      - name: Check Phase 2 toolchain pin scope
+        run: python3 scripts/zigux/check-phase2-toolchain-pin-scope.py
 
       - name: Validate Phase 3 slices
         run: python3 scripts/zigux/validate-phase3.py
@@ -221,8 +242,8 @@ jobs:
       - name: Install Zig
         run: python3 scripts/zigux/install-zig.py --channel master --dest .zig-toolchain
 
-      - name: Show Zig version
-        run: zig version
+      - name: Check Zig toolchain
+        run: python3 scripts/zigux/check-zig-toolchain.py
 
       - name: Check bounded Phase 2 cross-target compile
         run: python3 scripts/zigux/check-phase2-cross.py --target ${{ matrix.zig_target }}
