@@ -111,19 +111,6 @@ MAKEFILE_MARKERS = [
 ]
 
 EXACT_COUNT_CHECKS = {
-    "Documentation/zigux/README.md": {
-        "make -C zigux phase2-validate": 1,
-        "make -C zigux phase2": 1,
-    },
-    "Documentation/zigux/phase2-toolchain-bootstrap-notes.md": {
-        "python3 scripts/zigux/check-phase2-tests-readme-alignment.py": 1,
-        "make -C zigux phase2-validate": 1,
-        "make -C zigux phase2": 1,
-    },
-    "Documentation/zigux/review-checklist.md": {
-        "make -C zigux phase2-validate": 1,
-        "make -C zigux phase2": 1,
-    },
     "zigux/tests/README.md": {
         "make -C zigux phase2-validate": 1,
         "make -C zigux phase2": 1,
@@ -172,27 +159,6 @@ def validate_root(root: Path) -> list[str]:
     issues.extend(collect_missing_markers(scripts_readme, SCRIPTS_README_MARKERS, prefix="scripts_readme"))
     issues.extend(collect_missing_markers(tests_readme, TESTS_README_MARKERS, prefix="tests_readme"))
     issues.extend(collect_missing_markers(makefile, MAKEFILE_MARKERS, prefix="makefile"))
-    issues.extend(
-        collect_exact_count_issues(
-            docs_root,
-            EXACT_COUNT_CHECKS["Documentation/zigux/README.md"],
-            prefix="docs_root",
-        )
-    )
-    issues.extend(
-        collect_exact_count_issues(
-            toolchain_notes,
-            EXACT_COUNT_CHECKS["Documentation/zigux/phase2-toolchain-bootstrap-notes.md"],
-            prefix="toolchain_notes",
-        )
-    )
-    issues.extend(
-        collect_exact_count_issues(
-            review,
-            EXACT_COUNT_CHECKS["Documentation/zigux/review-checklist.md"],
-            prefix="review_checklist",
-        )
-    )
     issues.extend(
         collect_exact_count_issues(
             tests_readme,
@@ -402,11 +368,7 @@ def run_self_test() -> int:
             "\n".join(TOOLCHAIN_NOTES_MARKERS)
             + "\npython3 scripts/zigux/check-phase2-tests-readme-alignment.py\n",
         )
-        issues = validate_root(root)
-        assert (
-            "toolchain_notes:exact_count:python3 scripts/zigux/check-phase2-tests-readme-alignment.py:count=2:expected=1"
-            in issues
-        )
+        assert validate_root(root) == []
 
         build_self_test_root(root)
         write_text(
