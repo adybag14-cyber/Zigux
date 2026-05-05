@@ -152,7 +152,8 @@ pub const RuntimeTraceEventsSample = struct {
 
     pub fn registerFunctionThread(self: *Self) !void {
         try self.ensureMutable();
-        self.registration_depth += 1;
+        if (self.registration_depth != 0) return error.FunctionThreadAlreadyRegistered;
+        self.registration_depth = 1;
     }
 
     pub fn unregisterFunctionThread(self: *Self) !void {
