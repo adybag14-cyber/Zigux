@@ -9,6 +9,11 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2] if len(Path(__file__).resolve().parents) > 2 else Path.cwd()
 
 REQUIRED_FILES = [
+    "Documentation/zigux/README.md",
+    "Documentation/zigux/phase13-release-notes-survey.md",
+    "Documentation/zigux/phase13-roadmap-traceability.md",
+    "Documentation/zigux/phase13-notifier-list-survey.md",
+    "scripts/zigux/README.md",
     "zigux/Makefile",
     "zigux/tests/phase13_build.zig",
     "zigux/tests/phase13_libfs.zig",
@@ -17,9 +22,36 @@ REQUIRED_FILES = [
     "zigux/tests/phase13_landlock_syscalls.zig",
     "zigux/tests/phase13_libfs_reviewability.zig",
     "zigux/tests/phase13_libfs_manifest.json",
+    "zigux/tests/phase13_devres_manifest.json",
     "zigux/tests/phase13_landlock_ruleset_manifest.json",
     "zigux/tests/phase13_landlock_syscalls_manifest.json",
+    "zigux/tests/phase13_notifier_list_manifest.json",
+    "zigux/bindings/notifier_abi.zig",
+    "include/zigux/notifier_abi.h",
+    "zigux/helpers/notifier_chain_view.zig",
     "scripts/zigux/check-phase13-devres-packet.py",
+]
+
+DOC_REQUIRED_MARKERS = [
+    "Documentation/zigux/phase13-release-notes-survey.md",
+    "Documentation/zigux/phase13-roadmap-traceability.md",
+    "Documentation/zigux/phase13-notifier-list-survey.md",
+    "zigux/tests/phase13_notifier_list_manifest.json",
+    "zigux/bindings/notifier_abi.zig",
+    "include/zigux/notifier_abi.h",
+    "zigux/helpers/notifier_chain_view.zig",
+]
+
+SCRIPTS_REQUIRED_MARKERS = [
+    "Documentation/zigux/phase13-release-notes-survey.md",
+    "Documentation/zigux/phase13-roadmap-traceability.md",
+    "Documentation/zigux/phase13-notifier-list-survey.md",
+    "zigux/tests/phase13_notifier_list_manifest.json",
+    "zigux/bindings/notifier_abi.zig",
+    "include/zigux/notifier_abi.h",
+    "zigux/helpers/notifier_chain_view.zig",
+    "validate-phase13-release.py",
+    "check-phase13-devres-packet.py",
 ]
 
 MAKE_REQUIRED_LINES = [
@@ -56,8 +88,12 @@ def validate(root: Path) -> list[str]:
     if issues:
         return issues
 
+    docs_readme = _read(root / "Documentation/zigux/README.md")
+    scripts_readme = _read(root / "scripts/zigux/README.md")
     makefile = _read(root / "zigux/Makefile")
 
+    issues.extend(_collect_missing_markers(docs_readme, DOC_REQUIRED_MARKERS, "docs-readme"))
+    issues.extend(_collect_missing_markers(scripts_readme, SCRIPTS_REQUIRED_MARKERS, "scripts-readme"))
     issues.extend(_collect_missing_markers(makefile, MAKE_REQUIRED_LINES, "makefile"))
     for forbidden in MAKE_FORBIDDEN_LINES:
         if forbidden in makefile:
@@ -82,9 +118,23 @@ def _baseline_makefile() -> str:
 
 
 def _seed_fixture_tree(root: Path) -> None:
+    _write(root / "Documentation/zigux/README.md", "\n".join(DOC_REQUIRED_MARKERS) + "\n")
+    _write(root / "Documentation/zigux/phase13-release-notes-survey.md", "# stub\n")
+    _write(root / "Documentation/zigux/phase13-roadmap-traceability.md", "# stub\n")
+    _write(root / "Documentation/zigux/phase13-notifier-list-survey.md", "# stub\n")
+    _write(root / "scripts/zigux/README.md", "\n".join(SCRIPTS_REQUIRED_MARKERS) + "\n")
     _write(root / "zigux/Makefile", _baseline_makefile())
-    for rel in REQUIRED_FILES[1:]:
-        _write(root / rel, "// stub\n" if rel.endswith(".zig") else "{}\n")
+    for rel in REQUIRED_FILES[6:]:
+        if rel in {
+            "Documentation/zigux/README.md",
+            "Documentation/zigux/phase13-release-notes-survey.md",
+            "Documentation/zigux/phase13-roadmap-traceability.md",
+            "Documentation/zigux/phase13-notifier-list-survey.md",
+            "scripts/zigux/README.md",
+            "zigux/Makefile",
+        }:
+            continue
+        _write(root / rel, "// stub\n" if rel.endswith((".zig", ".h", ".py")) else "{}\n")
 
 
 def _assert_only(issues: list[str], expected: list[str], label: str) -> None:
@@ -130,6 +180,51 @@ def run_self_test() -> int:
         _write(root / "zigux/Makefile", baseline_makefile)
         case_count += 1
 
+        docs_readme_path = root / "Documentation/zigux/README.md"
+        docs_readme_path.write_text("Documentation/zigux/phase13-release-notes-survey.md\n", encoding="utf-8")
+        _assert_only(
+            validate(root),
+            [
+                "docs-readme:Documentation/zigux/phase13-roadmap-traceability.md",
+                "docs-readme:Documentation/zigux/phase13-notifier-list-survey.md",
+                "docs-readme:zigux/tests/phase13_notifier_list_manifest.json",
+                "docs-readme:zigux/bindings/notifier_abi.zig",
+                "docs-readme:include/zigux/notifier_abi.h",
+                "docs-readme:zigux/helpers/notifier_chain_view.zig",
+            ],
+            "docs_marker_guard_failed",
+        )
+        _write(root / "Documentation/zigux/README.md", "\n".join(DOC_REQUIRED_MARKERS) + "\n")
+        case_count += 1
+
+        scripts_readme_path = root / "scripts/zigux/README.md"
+        scripts_readme_path.write_text("validate-phase13-release.py\n", encoding="utf-8")
+        _assert_only(
+            validate(root),
+            [
+                "scripts-readme:Documentation/zigux/phase13-release-notes-survey.md",
+                "scripts-readme:Documentation/zigux/phase13-roadmap-traceability.md",
+                "scripts-readme:Documentation/zigux/phase13-notifier-list-survey.md",
+                "scripts-readme:zigux/tests/phase13_notifier_list_manifest.json",
+                "scripts-readme:zigux/bindings/notifier_abi.zig",
+                "scripts-readme:include/zigux/notifier_abi.h",
+                "scripts-readme:zigux/helpers/notifier_chain_view.zig",
+                "scripts-readme:check-phase13-devres-packet.py",
+            ],
+            "scripts_marker_guard_failed",
+        )
+        _write(root / "scripts/zigux/README.md", "\n".join(SCRIPTS_REQUIRED_MARKERS) + "\n")
+        case_count += 1
+
+        (root / "zigux/tests/phase13_devres_manifest.json").unlink()
+        _assert_only(
+            validate(root),
+            ["missing_file:zigux/tests/phase13_devres_manifest.json"],
+            "missing_devres_manifest_guard_failed",
+        )
+        _write(root / "zigux/tests/phase13_devres_manifest.json", "{}\n")
+        case_count += 1
+
         (root / "scripts/zigux/check-phase13-devres-packet.py").unlink()
         _assert_only(
             validate(root),
@@ -167,7 +262,7 @@ def main() -> int:
     print("PHASE13_RELEASE_VALIDATION=pass")
     print(
         "PHASE13_RELEASE_VALIDATION_MARKER_COUNT="
-        f"{len(REQUIRED_FILES) + len(MAKE_REQUIRED_LINES)}"
+        f"{len(REQUIRED_FILES) + len(DOC_REQUIRED_MARKERS) + len(SCRIPTS_REQUIRED_MARKERS) + len(MAKE_REQUIRED_LINES)}"
     )
     return 0
 
