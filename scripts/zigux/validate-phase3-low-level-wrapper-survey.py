@@ -20,7 +20,23 @@ ABI_DUMP_REL = "zigux/tests/phase3_abi_dump.zig"
 ABI_EXPECTED_REL = "zigux/tests/fixtures/phase3_abi/expected.json"
 ABI_MANIFEST_REL = "zigux/tests/fixtures/phase3_abi_manifest.json"
 ABI_SLICE_DOC_REL = "Documentation/zigux/phase3-abi-slice.md"
-PHASE3_LOW_LEVEL_WRAPPER_SURVEY_SELF_TEST_CASE_COUNT = 8
+ABI_MANIFEST_REQUIRED_FILES = (
+    "include/zigux/abi.h",
+    "include/linux/zigux.h",
+    "zigux/bindings/abi.zig",
+    "zigux/helpers/layout_assert.zig",
+    "zigux/helpers/panic_policy.zig",
+    "zigux/helpers/allocator_policy.zig",
+    ATOMIC_REL,
+    BARRIER_REL,
+    MMIO_REL,
+    "zigux/kernel/export_shim.zig",
+    "zigux/unsafe/narrow.zig",
+    "zigux/uapi/version.zig",
+    ABI_TEST_REL,
+    LOW_LEVEL_TEST_REL,
+)
+PHASE3_LOW_LEVEL_WRAPPER_SURVEY_SELF_TEST_CASE_COUNT = 11
 
 
 def blob_sha(path: Path) -> str:
@@ -46,6 +62,16 @@ def load_manifest_files(root: Path, issues: list[str]) -> list[str] | None:
     if not isinstance(files, list) or not all(isinstance(entry, str) for entry in files):
         issues.append(f"invalid_manifest_files:{ABI_MANIFEST_REL}")
         return None
+
+    file_count = manifest.get("file_count")
+    if not isinstance(file_count, int):
+        issues.append(f"invalid_manifest_file_count:{ABI_MANIFEST_REL}")
+    else:
+        if file_count != len(files):
+            issues.append(f"manifest_file_count_mismatch:{ABI_MANIFEST_REL}:{file_count}!={len(files)}")
+        expected_count = len(ABI_MANIFEST_REQUIRED_FILES)
+        if file_count != expected_count:
+            issues.append(f"manifest_packet_count_mismatch:{ABI_MANIFEST_REL}:{file_count}!={expected_count}")
     return files
 
 
@@ -223,12 +249,15 @@ def validate(root: Path) -> list[str]:
 
     manifest_files = load_manifest_files(root, issues)
     if manifest_files is not None:
-        for rel in (ATOMIC_REL, BARRIER_REL, MMIO_REL, ABI_TEST_REL, LOW_LEVEL_TEST_REL):
+        for rel in ABI_MANIFEST_REQUIRED_FILES:
             count = manifest_files.count(rel)
             if count == 0:
                 issues.append(f"manifest_missing_entry:{rel}")
             elif count != 1:
                 issues.append(f"manifest_duplicate_entry:{rel}:{count}")
+        for rel in manifest_files:
+            if rel not in ABI_MANIFEST_REQUIRED_FILES:
+                issues.append(f"manifest_unexpected_entry:{rel}")
 
     abi_slice_text = (root / ABI_SLICE_DOC_REL).read_text(encoding="utf-8")
     require_tokens(
@@ -265,6 +294,12 @@ def run_self_test() -> int:
         ):
             path = root / rel
             path.parent.mkdir(parents=True, exist_ok=True)
+
+        for rel in ABI_MANIFEST_REQUIRED_FILES:
+            path = root / rel
+            path.parent.mkdir(parents=True, exist_ok=True)
+            if not path.exists():
+                path.write_text("// manifest member\n", encoding="utf-8")
 
         (root / ATOMIC_REL).write_text(
             "\n".join(
@@ -363,14 +398,17 @@ def run_self_test() -> int:
             encoding="utf-8",
         )
         (root / ABI_MANIFEST_REL).write_text(
-            "\n".join(
-                [
-                    "{",
-                    f'  "files": ["{ATOMIC_REL}", "{BARRIER_REL}", "{MMIO_REL}", "{ABI_TEST_REL}", "{LOW_LEVEL_TEST_REL}"]',
-                    "}",
-                    "",
-                ]
-            ),
+            json.dumps(
+                {
+                    "phase": "Phase 3",
+                    "status": "active",
+                    "slice": "abi-substrate-skeleton",
+                    "file_count": len(ABI_MANIFEST_REQUIRED_FILES),
+                    "files": list(ABI_MANIFEST_REQUIRED_FILES),
+                },
+                indent=2,
+            )
+            + "\n",
             encoding="utf-8",
         )
         (root / ABI_SLICE_DOC_REL).write_text(
@@ -467,15 +505,17 @@ def run_self_test() -> int:
 
         (root / LOW_LEVEL_TEST_REL).write_text(valid_low_level_test, encoding="utf-8")
         (root / ABI_MANIFEST_REL).write_text(
-            valid_manifest.replace(f', "{LOW_LEVEL_TEST_REL}"', "", 1),
+            valid_manifest.replace(f',\n    "{LOW_LEVEL_TEST_REL}"', "", 1).replace('"file_count": 14', '"file_count": 13', 1),
             encoding="utf-8",
         )
         issues = validate(root)
         assert f"manifest_missing_entry:{LOW_LEVEL_TEST_REL}" in issues
+        assert f"manifest_file_count_mismatch:{ABI_MANIFEST_REL}:13!=13" not in issues
+        assert f"manifest_packet_count_mismatch:{ABI_MANIFEST_REL}:13!=14" in issues
 
         (root / ABI_MANIFEST_REL).write_text(valid_manifest, encoding="utf-8")
         (root / ABI_MANIFEST_REL).write_text(
-            valid_manifest.replace(f', "{MMIO_REL}"', "", 1),
+            valid_manifest.replace(f',\n    "{MMIO_REL}"', "", 1).replace('"file_count": 14', '"file_count": 13', 1),
             encoding="utf-8",
         )
         issues = validate(root)
@@ -485,17 +525,46 @@ def run_self_test() -> int:
         (root / ABI_MANIFEST_REL).write_text(
             valid_manifest.replace(
                 f'"{LOW_LEVEL_TEST_REL}"',
-                f'"{LOW_LEVEL_TEST_REL}", "{LOW_LEVEL_TEST_REL}"',
+                f'"{LOW_LEVEL_TEST_REL}",\n    "{LOW_LEVEL_TEST_REL}"',
                 1,
-            ),
+            ).replace('"file_count": 14', '"file_count": 15', 1),
             encoding="utf-8",
         )
         issues = validate(root)
         assert f"manifest_duplicate_entry:{LOW_LEVEL_TEST_REL}:2" in issues
+        assert f"manifest_packet_count_mismatch:{ABI_MANIFEST_REL}:15!=14" in issues
 
+        (root / ABI_MANIFEST_REL).write_text(valid_manifest, encoding="utf-8")
         (root / ABI_MANIFEST_REL).write_text("{\n", encoding="utf-8")
         issues = validate(root)
         assert any(issue.startswith(f"invalid_manifest_json:{ABI_MANIFEST_REL}:") for issue in issues)
+
+        (root / ABI_MANIFEST_REL).write_text(
+            valid_manifest.replace('"file_count": 14', '"file_count": "14"', 1),
+            encoding="utf-8",
+        )
+        issues = validate(root)
+        assert f"invalid_manifest_file_count:{ABI_MANIFEST_REL}" in issues
+
+        (root / ABI_MANIFEST_REL).write_text(
+            valid_manifest.replace('"file_count": 14', '"file_count": 13', 1),
+            encoding="utf-8",
+        )
+        issues = validate(root)
+        assert f"manifest_file_count_mismatch:{ABI_MANIFEST_REL}:13!=14" in issues
+        assert f"manifest_packet_count_mismatch:{ABI_MANIFEST_REL}:13!=14" in issues
+
+        (root / ABI_MANIFEST_REL).write_text(
+            valid_manifest.replace(
+                f'"files": [\n    "include/zigux/abi.h",',
+                f'"files": [\n    "{DOC_REL}",\n    "include/zigux/abi.h",',
+                1,
+            ).replace('"file_count": 14', '"file_count": 15', 1),
+            encoding="utf-8",
+        )
+        issues = validate(root)
+        assert f"manifest_unexpected_entry:{DOC_REL}" in issues
+        assert f"manifest_packet_count_mismatch:{ABI_MANIFEST_REL}:15!=14" in issues
 
         (root / ABI_MANIFEST_REL).write_text(valid_manifest, encoding="utf-8")
         (root / ABI_SLICE_DOC_REL).write_text(
