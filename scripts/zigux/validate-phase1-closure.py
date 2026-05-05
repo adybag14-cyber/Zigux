@@ -35,11 +35,14 @@ required_files = [
     ROOT / 'scripts' / 'zigux' / 'check-phase1-bench.py',
     ROOT / 'scripts' / 'zigux' / 'install-zig.py',
     ROOT / 'scripts' / 'zigux' / 'validate-phase1-closure.py',
+    ROOT / '.github' / 'workflows' / 'zigux-bootstrap.yml',
     ROOT / 'zigux' / 'Makefile',
     ROOT / 'zigux' / 'tests' / 'README.md',
+    ROOT / 'zigux' / 'tests' / 'build.zig',
     ROOT / 'zigux' / 'tests' / 'fixtures' / 'phase1_bench_expectations.json',
     ROOT / 'zigux' / 'tests' / 'fixtures' / 'phase1_helper_manifest.json',
     ROOT / 'zigux' / 'tests' / 'phase1_bench.zig',
+    ROOT / 'zigux-alpha' / 'BOOTSTRAP_COMMIT_LEDGER.md',
 ]
 
 required_closure_markers = [
@@ -353,8 +356,20 @@ def run_self_test() -> None:
         missing_tests_markers = collect_exact_count_markers('', required_tests_readme_markers)
         assert 'tests_readme_phase1_packet:expected=1:actual=0' in missing_tests_markers
 
+        missing_workflow = '.github/workflows/zigux-bootstrap.yml'
+        (tmp_root / missing_workflow).unlink()
+        assert collect_missing_files(tmp_root) == [missing_workflow]
+
+        required_build = 'zigux/tests/build.zig'
+        (tmp_root / required_build).unlink()
+        assert collect_missing_files(tmp_root) == [required_build]
+
+        required_ledger = 'zigux-alpha/BOOTSTRAP_COMMIT_LEDGER.md'
+        (tmp_root / required_ledger).unlink()
+        assert collect_missing_files(tmp_root) == [required_ledger]
+
     print('PHASE1_CLOSURE_VALIDATOR_SELF_TEST=pass')
-    print('PHASE1_CLOSURE_VALIDATOR_SELF_TEST_CASE_COUNT=13')
+    print('PHASE1_CLOSURE_VALIDATOR_SELF_TEST_CASE_COUNT=16')
 
 
 def main() -> int:
