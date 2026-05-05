@@ -5,7 +5,7 @@ test "phase 8 exec-cmd module imports cleanly" {
     _ = exec_cmd;
 }
 
-test "phase 8 exec-cmd tooling packet covers path resolution and null-terminated argv preparation" {
+test "phase 8 exec-cmd parked deferred-exec packet covers path resolution and null-terminated argv preparation" {
     const config = exec_cmd.Config{
         .exec_name = "perf",
         .prefix = "/usr/libexec/perf-core",
@@ -59,6 +59,7 @@ test "phase 8 exec-cmd slice note keeps the tooling-expansion, validator-first, 
     );
     defer std.testing.allocator.free(slice);
 
+    try std.testing.expect(std.mem.indexOf(u8, slice, "PHASE8_SLICE=exec-cmd-deferred-exec-packet") != null);
     try std.testing.expect(std.mem.indexOf(u8, slice, "prove Zigux inside serious repo-hosted tooling, not just tiny helpers") != null);
     try std.testing.expect(std.mem.indexOf(u8, slice, "helper-first, output-stable deferred-exec planning") != null);
     try std.testing.expect(std.mem.indexOf(u8, slice, "without widening into process-launch side effects") != null);
