@@ -53,31 +53,36 @@ def compare_artifacts(mode: str, expected: Path, actual: Path) -> tuple[bool, di
     return expected_value == actual_value, details
 
 
-def emit_result(matched: bool, details: dict[str, object]) -> int:
-    if not matched:
-        print('ARTIFACT_DIFF=fail')
-        if 'mode' in details:
-            print(f"MODE={details['mode']}")
-        if 'expected' in details:
-            print(f"EXPECTED={details['expected']}")
-        if 'actual' in details:
-            print(f"ACTUAL={details['actual']}")
-        if 'expected_exists' in details:
-            print(f"EXPECTED_EXISTS={details['expected_exists']}")
-        if 'actual_exists' in details:
-            print(f"ACTUAL_EXISTS={details['actual_exists']}")
-        if 'expected_sha256' in details:
-            print(f"EXPECTED_SHA256={details['expected_sha256']}")
-        if 'actual_sha256' in details:
-            print(f"ACTUAL_SHA256={details['actual_sha256']}")
-        return 1
+def render_result_lines(matched: bool, details: dict[str, object]) -> list[str]:
+    lines = ['ARTIFACT_DIFF=pass' if matched else 'ARTIFACT_DIFF=fail']
+    if 'mode' in details:
+        lines.append(f"MODE={details['mode']}")
+    if 'expected' in details:
+        lines.append(f"EXPECTED={details['expected']}")
+    if 'actual' in details:
+        lines.append(f"ACTUAL={details['actual']}")
 
-    print('ARTIFACT_DIFF=pass')
-    print(f"MODE={details['mode']}")
-    print(f"EXPECTED={details['expected']}")
-    print(f"ACTUAL={details['actual']}")
+    if not matched:
+        if 'expected_exists' in details:
+            lines.append(f"EXPECTED_EXISTS={details['expected_exists']}")
+        if 'actual_exists' in details:
+            lines.append(f"ACTUAL_EXISTS={details['actual_exists']}")
+        if 'expected_sha256' in details:
+            lines.append(f"EXPECTED_SHA256={details['expected_sha256']}")
+        if 'actual_sha256' in details:
+            lines.append(f"ACTUAL_SHA256={details['actual_sha256']}")
+        return lines
+
     if 'expected_sha256' in details:
-        print(f"SHA256={details['expected_sha256']}")
+        lines.append(f"SHA256={details['expected_sha256']}")
+    return lines
+
+
+def emit_result(matched: bool, details: dict[str, object]) -> int:
+    for line in render_result_lines(matched, details):
+        print(line)
+    if not matched:
+        return 1
     return 0
 
 
@@ -97,37 +102,84 @@ def run_self_test() -> int:
         matched, details = compare_artifacts('text', text_a, text_b)
         assert matched
         assert details['mode'] == 'text'
+        assert render_result_lines(matched, details) == [
+            'ARTIFACT_DIFF=pass',
+            'MODE=text',
+            f'EXPECTED={text_a}',
+            f'ACTUAL={text_b}',
+        ]
 
         text_b.write_text('alpha\nBETA\n', encoding='utf-8', newline='\n')
         matched, details = compare_artifacts('text', text_a, text_b)
         assert not matched
+        assert render_result_lines(matched, details) == [
+            'ARTIFACT_DIFF=fail',
+            'MODE=text',
+            f'EXPECTED={text_a}',
+            f'ACTUAL={text_b}',
+        ]
 
         json_a.write_text('{"alpha": 1, "beta": [2, 3]}\n', encoding='utf-8', newline='\n')
         json_b.write_text('{\n  "beta": [2, 3],\n  "alpha": 1\n}\n', encoding='utf-8', newline='\n')
         matched, details = compare_artifacts('json', json_a, json_b)
         assert matched
         assert details['mode'] == 'json'
+        assert render_result_lines(matched, details) == [
+            'ARTIFACT_DIFF=pass',
+            'MODE=json',
+            f'EXPECTED={json_a}',
+            f'ACTUAL={json_b}',
+        ]
 
         json_b.write_text('{"beta": [2, }\n', encoding='utf-8', newline='\n')
         matched, details = compare_artifacts('json', json_a, json_b)
         assert not matched
         assert details['mode'] == 'json'
+        assert render_result_lines(matched, details) == [
+            'ARTIFACT_DIFF=fail',
+            'MODE=json',
+            f'EXPECTED={json_a}',
+            f'ACTUAL={json_b}',
+        ]
 
         blob_a.write_bytes(b'zigux-artifact-diff')
         blob_b.write_bytes(b'zigux-artifact-diff')
         matched, details = compare_artifacts('sha256', blob_a, blob_b)
         assert matched
         assert details['expected_sha256'] == details['actual_sha256']
+        assert render_result_lines(matched, details) == [
+            'ARTIFACT_DIFF=pass',
+            'MODE=sha256',
+            f'EXPECTED={blob_a}',
+            f'ACTUAL={blob_b}',
+            f"SHA256={details['expected_sha256']}",
+        ]
 
         blob_b.write_bytes(b'zigux-artifact-DRIFT')
         matched, details = compare_artifacts('sha256', blob_a, blob_b)
         assert not matched
         assert details['expected_sha256'] != details['actual_sha256']
+        assert render_result_lines(matched, details) == [
+            'ARTIFACT_DIFF=fail',
+            'MODE=sha256',
+            f'EXPECTED={blob_a}',
+            f'ACTUAL={blob_b}',
+            f"EXPECTED_SHA256={details['expected_sha256']}",
+            f"ACTUAL_SHA256={details['actual_sha256']}",
+        ]
 
         matched, details = compare_artifacts('text', missing, text_a)
         assert not matched
         assert details['expected_exists'] is False
         assert details['actual_exists'] is True
+        assert render_result_lines(matched, details) == [
+            'ARTIFACT_DIFF=fail',
+            'MODE=text',
+            f'EXPECTED={missing}',
+            f'ACTUAL={text_a}',
+            'EXPECTED_EXISTS=False',
+            'ACTUAL_EXISTS=True',
+        ]
 
     print('ARTIFACT_DIFF_SELF_TEST=pass')
     return 0
