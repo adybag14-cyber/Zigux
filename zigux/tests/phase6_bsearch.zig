@@ -16,6 +16,14 @@ fn compareU32(key: *const u32, item: *const u32) i32 {
     };
 }
 
+fn compareU32Alias(key: *const u32, item: *const u32) i32 {
+    return compareU32(key, item);
+}
+
+fn compareU32C(key: *const u32, item: *const u32) callconv(.c) i32 {
+    return compareU32(key, item);
+}
+
 fn compareDescendingU32(key: *const u32, item: *const u32) i32 {
     return switch (std.math.order(item.*, key.*)) {
         .lt => -1,
@@ -117,4 +125,28 @@ test "phase 6 bsearch keeps representative lookup work inside a binary-search bu
     counted_compare_calls = 0;
     try std.testing.expectEqual(@as(?usize, null), bsearch.searchIndex(u32, u32, &@as(u32, 50), values[0..], compareU32Counted));
     try std.testing.expect(counted_compare_calls <= 4);
+}
+
+test "phase 6 bsearch accepts runtime-selected native comparator pointers" {
+    const values = [_]u32{ 3, 8, 13, 21, 34, 55, 89 };
+    const comparators = [_]bsearch.Comparator(u32, u32){ compareU32, compareU32Alias };
+
+    for (comparators) |compare| {
+        try std.testing.expectEqual(@as(?usize, 3), bsearch.searchIndex(u32, u32, &@as(u32, 21), values[0..], compare));
+        const found = bsearch.search(u32, u32, &@as(u32, 55), values[0..], compare) orelse return error.TestUnexpectedResult;
+        try std.testing.expectEqual(@as(u32, 55), found.*);
+        try std.testing.expect(bsearch.search(u32, u32, &@as(u32, 22), values[0..], compare) == null);
+    }
+}
+
+test "phase 6 bsearch accepts runtime-selected c abi comparator pointers" {
+    const values = [_]u32{ 3, 8, 13, 21, 34, 55, 89 };
+    const comparators = [_]bsearch.CComparator(u32, u32){ compareU32C, compareU32C };
+
+    for (comparators) |compare| {
+        try std.testing.expectEqual(@as(?usize, 4), bsearch.searchIndex(u32, u32, &@as(u32, 34), values[0..], compare));
+        const found = bsearch.search(u32, u32, &@as(u32, 13), values[0..], compare) orelse return error.TestUnexpectedResult;
+        try std.testing.expectEqual(@as(u32, 13), found.*);
+        try std.testing.expect(bsearch.search(u32, u32, &@as(u32, 7), values[0..], compare) == null);
+    }
 }
