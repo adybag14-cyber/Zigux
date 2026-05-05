@@ -115,7 +115,7 @@ test "phase 5 kretprobe manifest records the exact bounded checks" {
     try std.testing.expect(std.mem.eql(u8, manifest.non_goals[1], "unregister_kretprobe parity"));
 }
 
-test "phase 5 kretprobe survey note stays repo-local and keeps the build-wired boundary explicit" {
+test "phase 5 kretprobe survey packet stays repo-local and keeps shared review surfaces explicit" {
     var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
     defer io_instance.deinit();
 
@@ -165,4 +165,87 @@ test "phase 5 kretprobe survey note stays repo-local and keeps the build-wired b
 
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "one bounded self-check through `runAnchorReplay()`") == null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "/workspace/agent_files") == null);
+
+    const docs_root = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "Documentation/zigux/README.md",
+        std.testing.allocator,
+        .limited(128 * 1024),
+    );
+    defer std.testing.allocator.free(docs_root);
+
+    const docs_root_markers = [_][]const u8{
+        "Documentation/zigux/phase5-kretprobe-sample-survey.md",
+        "samples/zigux/kretprobe_example.zig",
+        "skip, private-data-shape, return-value, duration, and `nmissed` replay checks",
+        "shared `phase5_build.zig` entrypoint",
+        "separate Phase 9 runtime starter",
+    };
+
+    for (docs_root_markers) |needle| {
+        try std.testing.expect(std.mem.indexOf(u8, docs_root, needle) != null);
+    }
+
+    const review_checklist = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "Documentation/zigux/review-checklist.md",
+        std.testing.allocator,
+        .limited(128 * 1024),
+    );
+    defer std.testing.allocator.free(review_checklist);
+
+    const checklist_markers = [_][]const u8{
+        "landed Phase 5 `kretprobe` sample packet",
+        "pre-init retargeting",
+        "fixed `maxactiveBudget()` cue",
+        "timestamp-order rejection and recovery",
+        "post-exit handler rejection",
+    };
+
+    for (checklist_markers) |needle| {
+        try std.testing.expect(std.mem.indexOf(u8, review_checklist, needle) != null);
+    }
+
+    const samples_root = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "samples/zigux/README.md",
+        std.testing.allocator,
+        .limited(128 * 1024),
+    );
+    defer std.testing.allocator.free(samples_root);
+
+    const sample_root_markers = [_][]const u8{
+        "Kretprobe review packet",
+        "samples/zigux/kretprobe_example.zig",
+        "zigux/tests/phase5_kretprobe_example_survey.zig",
+        "pre-init retargeting",
+        "fixed `maxactive = 20` ceiling",
+        "timestamp-order rejection and recovery",
+        "post-exit handler rejection",
+    };
+
+    for (sample_root_markers) |needle| {
+        try std.testing.expect(std.mem.indexOf(u8, samples_root, needle) != null);
+    }
+
+    const build_zig = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "zigux/tests/phase5_build.zig",
+        std.testing.allocator,
+        .limited(32 * 1024),
+    );
+    defer std.testing.allocator.free(build_zig);
+
+    const build_markers = [_][]const u8{
+        "../../samples/zigux/kretprobe_example.zig",
+        "phase5_kretprobe_example_survey.zig",
+        "phase5-kretprobe-example-tests",
+        "phase5-kretprobe-example-survey-tests",
+        "run_phase5_kretprobe_example_tests.step",
+        "run_phase5_kretprobe_example_survey_tests.step",
+    };
+
+    for (build_markers) |needle| {
+        try std.testing.expect(std.mem.indexOf(u8, build_zig, needle) != null);
+    }
 }
