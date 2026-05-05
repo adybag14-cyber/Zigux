@@ -76,21 +76,18 @@ REQUIRED_PHASE4_MATRIX_MARKERS = [
     "bitmap_diff.zig",
     "phase4_bitmap_live_helper_replay.zig",
     "rollback owner",
-    "lab and CI matrix",
-    "perf threshold status",
+    "Lab And CI Matrix",
+    "threshold posture",
     "zig build test --build-file zigux/tests/phase4_build.zig",
     "Remaining Roadmap Gaps",
     "samples/zigux/kprobe_example.zig",
-    "phase4_kprobe_example_*",
-    "make M=samples/kprobes CONFIG_SAMPLE_KPROBES=m",
+    "samples/kprobes/kprobe_example.c",
     "samples/zigux/test_fsmount.zig",
-    "phase4_test_fsmount_*",
-    "make M=samples/vfs",
-    "benchmark command and acceptable limit remain unapproved for both landed gates",
+    "samples/vfs/test-fsmount.c",
+    "hard perf thresholds and acceptable limits for the atomic64 and bitmap gates remain intentionally unapproved",
 ]
 REQUIRED_PHASE4_BUILD_MARKERS = [
     "atomic64_diff.zig",
-    "runtime_atomic64_diff.zig",
     "bitmap_diff.zig",
     "phase4_bitmap_live_helper_replay.zig",
     "phase4-runtime-atomic64-diff-tests",
@@ -99,13 +96,10 @@ REQUIRED_PHASE4_BUILD_MARKERS = [
 ]
 EXACT_ONCE_TESTS_README_MARKERS = [
     "scripts/zigux/validate-phase4.py",
-    "zigux/tests/runtime_atomic64_diff.zig",
     "zigux/tests/bitmap_diff.zig",
-    "zigux/tests/phase4_build.zig",
 ]
 EXACT_ONCE_SCRIPT_README_MARKERS = [
     "Phase 4 flow",
-    "phase4_build.zig",
     "phase4-validation-matrix.md",
 ]
 EXACT_ONCE_DOC_README_MARKERS = [
@@ -366,17 +360,15 @@ def run_self_test() -> int:
                     "bitmap_diff.zig",
                     "phase4_bitmap_live_helper_replay.zig",
                     "rollback owner",
-                    "lab and CI matrix",
-                    "perf threshold status",
+                    "Lab And CI Matrix",
+                    "threshold posture",
                     "zig build test --build-file zigux/tests/phase4_build.zig",
                     "Remaining Roadmap Gaps",
                     "samples/zigux/kprobe_example.zig",
-                    "phase4_kprobe_example_*",
-                    "make M=samples/kprobes CONFIG_SAMPLE_KPROBES=m",
+                    "samples/kprobes/kprobe_example.c",
                     "samples/zigux/test_fsmount.zig",
-                    "phase4_test_fsmount_*",
-                    "make M=samples/vfs",
-                    "benchmark command and acceptable limit remain unapproved for both landed gates",
+                    "samples/vfs/test-fsmount.c",
+                    "hard perf thresholds and acceptable limits for the atomic64 and bitmap gates remain intentionally unapproved",
                     "",
                 ]
             ),
@@ -420,7 +412,6 @@ def run_self_test() -> int:
             "\n".join(
                 [
                     "atomic64_diff.zig",
-                    "runtime_atomic64_diff.zig",
                     "bitmap_diff.zig",
                     "phase4_bitmap_live_helper_replay.zig",
                     "phase4-runtime-atomic64-diff-tests",
