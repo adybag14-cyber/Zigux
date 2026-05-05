@@ -287,4 +287,25 @@ test "phase 5 trace-events survey note stays repo-local and keeps the formatting
     try expectContains(docs_root, "selected-string plus `iter=%d` replay");
     try expectContains(docs_root, "closed Phase 1 `tools/lib/vsprintf.zig` packet");
     try expectContains(docs_root, "bounded Phase 7 `string_get_size()` helper packet");
+
+    const review_checklist = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "Documentation/zigux/review-checklist.md",
+        std.testing.allocator,
+        .limited(128 * 1024),
+    );
+    defer std.testing.allocator.free(review_checklist);
+
+    const checklist_markers = [_][]const u8{
+        "landed Phase 5 `trace-events` sample packet",
+        "`formattedMessage()`",
+        "exact `checked_focus` order",
+        "callback-path and registration-balance cues",
+        "`unregisterFunctionCallback()` underflow plus `OutstandingRegistration` rejection",
+        "post-exit replay rejection",
+    };
+
+    for (checklist_markers) |needle| {
+        try std.testing.expect(std.mem.indexOf(u8, review_checklist, needle) != null);
+    }
 }
