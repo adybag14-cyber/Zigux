@@ -598,3 +598,105 @@ test "phase12 virtio net transmit recycle refreshes after a repeated recovery cy
     try std.testing.expect(second_recycle.requires_fresh_probe_snapshot);
     try std.testing.expect(second_recycle.requires_post_restore_probe_replay);
 }
+
+test "phase12 virtio net clamps mergeable buffer length to the minimum floor" {
+    var lab = try virtio_net.VirtioNetProbeLab.init(&.{
+        virtio_net.feature_mergeable_rx_buffers,
+    });
+    _ = try lab.captureProbeSnapshot(.{
+        .driver_feature_bits = &.{
+            virtio_net.feature_mergeable_rx_buffers,
+        },
+        .requested_queue_pairs = 1,
+        .max_queue_pairs = 1,
+    });
+    _ = try lab.freezeForRecovery();
+
+    const summary = try lab.planMergeableBufferLength(.{
+        .observed_average_packet_len_bytes = 256,
+        .min_buf_len_bytes = 1536,
+    });
+    try std.testing.expectEqualStrings("drivers/net/virtio_net.c", summary.anchor);
+    try std.testing.expectEqual(virtio_net.MergeableBufferLengthSource.minimum_buffer_floor, summary.source);
+    try std.testing.expectEqual(@as(u16, 256), summary.observed_average_packet_len_bytes);
+    try std.testing.expectEqual(@as(u16, 1536), summary.min_buf_len_bytes);
+    try std.testing.expectEqual(@as(u16, 0), summary.xdp_headroom_bytes);
+    try std.testing.expectEqual(@as(u16, 0), summary.tailroom_bytes);
+    try std.testing.expectEqual(@as(u16, 0), summary.room_bytes);
+    try std.testing.expectEqual(@as(u16, 4084), summary.payload_limit_bytes);
+    try std.testing.expectEqual(@as(u16, 1536), summary.selected_payload_bytes);
+    try std.testing.expectEqual(@as(u16, 12), summary.hdr_len_bytes);
+    try std.testing.expectEqual(@as(u16, 1600), summary.submit_len_bytes);
+    try std.testing.expectEqual(@as(u16, 1600), summary.allocation_len_bytes);
+}
+
+test "phase12 virtio net caps mergeable buffer length at page payload limit" {
+    var lab = try virtio_net.VirtioNetProbeLab.init(&.{
+        virtio_net.feature_mergeable_rx_buffers,
+        virtio_net.feature_hash_report,
+    });
+    _ = try lab.captureProbeSnapshot(.{
+        .driver_feature_bits = &.{
+            virtio_net.feature_mergeable_rx_buffers,
+            virtio_net.feature_hash_report,
+        },
+        .requested_queue_pairs = 1,
+        .max_queue_pairs = 1,
+    });
+    _ = try lab.freezeForRecovery();
+
+    const summary = try lab.planMergeableBufferLength(.{
+        .observed_average_packet_len_bytes = 5000,
+        .min_buf_len_bytes = 1536,
+    });
+    try std.testing.expectEqual(virtio_net.MergeableBufferLengthSource.page_size_cap, summary.source);
+    try std.testing.expectEqual(@as(u16, 4076), summary.payload_limit_bytes);
+    try std.testing.expectEqual(@as(u16, 4076), summary.selected_payload_bytes);
+    try std.testing.expectEqual(@as(u16, 20), summary.hdr_len_bytes);
+    try std.testing.expectEqual(@as(u16, 4096), summary.submit_len_bytes);
+    try std.testing.expectEqual(@as(u16, 4096), summary.allocation_len_bytes);
+}
+
+test "phase12 virtio net uses page minus room when xdp headroom is present" {
+    var lab = try virtio_net.VirtioNetProbeLab.init(&.{
+        virtio_net.feature_mergeable_rx_buffers,
+    });
+    _ = try lab.captureProbeSnapshot(.{
+        .driver_feature_bits = &.{
+            virtio_net.feature_mergeable_rx_buffers,
+        },
+        .requested_queue_pairs = 1,
+        .max_queue_pairs = 1,
+    });
+    _ = try lab.freezeForRecovery();
+
+    const summary = try lab.planMergeableBufferLength(.{
+        .observed_average_packet_len_bytes = 1024,
+        .min_buf_len_bytes = 1536,
+        .xdp_headroom_bytes = 256,
+    });
+    try std.testing.expectEqual(virtio_net.MergeableBufferLengthSource.page_minus_room, summary.source);
+    try std.testing.expectEqual(@as(u16, 256), summary.xdp_headroom_bytes);
+    try std.testing.expectEqual(@as(u16, 320), summary.tailroom_bytes);
+    try std.testing.expectEqual(@as(u16, 576), summary.room_bytes);
+    try std.testing.expectEqual(@as(u16, 4084), summary.payload_limit_bytes);
+    try std.testing.expectEqual(@as(u16, 3508), summary.selected_payload_bytes);
+    try std.testing.expectEqual(@as(u16, 12), summary.hdr_len_bytes);
+    try std.testing.expectEqual(@as(u16, 3520), summary.submit_len_bytes);
+    try std.testing.expectEqual(@as(u16, 4096), summary.allocation_len_bytes);
+}
+
+test "phase12 virtio net rejects mergeable buffer length planning for non-mergeable snapshots" {
+    var lab = try virtio_net.VirtioNetProbeLab.init(&.{});
+    _ = try lab.captureProbeSnapshot(.{
+        .driver_feature_bits = &.{},
+        .requested_queue_pairs = 1,
+        .max_queue_pairs = 1,
+    });
+    _ = try lab.freezeForRecovery();
+
+    try std.testing.expectError(error.ReceiveBufferModeNotMergeable, lab.planMergeableBufferLength(.{
+        .observed_average_packet_len_bytes = 512,
+        .min_buf_len_bytes = 1536,
+    }));
+}
