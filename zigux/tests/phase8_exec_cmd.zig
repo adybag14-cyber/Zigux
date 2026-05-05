@@ -86,6 +86,41 @@ test "phase 8 exec-cmd environment wrapper propagates PREFIX, exec path, and PAT
     try std.testing.expectEqualStrings(updated, env.get("PATH").?);
 }
 
+test "phase 8 exec-cmd empty PATH handling preserves the C helper's trailing colon shape" {
+    const config = exec_cmd.Config{
+        .exec_name = "perf",
+        .prefix = "/usr/libexec/perf-core",
+        .exec_path = "libexec/perf-core",
+        .exec_path_env = "PERF_EXEC_PATH",
+    };
+
+    var env = exec_cmd.EnvMap.init(std.testing.allocator);
+    defer env.deinit();
+
+    var state = exec_cmd.ExecCmdState{};
+    defer state.deinit(std.testing.allocator);
+
+    try exec_cmd.execCmdInit(&env, config);
+    try exec_cmd.setArgvExecPath(std.testing.allocator, &env, &state, config, "tools/bin");
+    try exec_cmd.setArgv0Path(std.testing.allocator, &state, "scripts");
+    try env.set("PATH", "");
+
+    const updated = try exec_cmd.setupPath(
+        std.testing.allocator,
+        &env,
+        state,
+        config,
+        "/repo",
+    );
+    defer std.testing.allocator.free(updated);
+
+    try std.testing.expectEqualStrings(
+        "/repo/tools/bin:/repo/scripts:",
+        updated,
+    );
+    try std.testing.expectEqualStrings(updated, env.get("PATH").?);
+}
+
 test "phase 8 exec-cmd chooses the logical PWD only when the caller proves it matches cwd" {
     try std.testing.expectEqualStrings(
         "/repo",
