@@ -123,6 +123,28 @@ required_workflow_markers = [
     "python3 scripts/zigux/check-phase1-bench.py",
     "zig build bench --build-file zigux/tests/build.zig",
 ]
+required_exact_workflow_markers = [
+    (
+        "workflow_node24_count",
+        "FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true",
+        1,
+    ),
+    (
+        "workflow_checkout_count",
+        "uses: actions/checkout@v6.0.2",
+        1,
+    ),
+    (
+        "workflow_setup_python_count",
+        "uses: actions/setup-python@v6.2.0",
+        1,
+    ),
+    (
+        "workflow_toolchain_check_count",
+        "python3 scripts/zigux/check-zig-toolchain.py",
+        1,
+    ),
+]
 required_phase1_workflow_markers = [
     (
         "workflow_phase1_validate_count",
@@ -541,6 +563,7 @@ def run_self_test() -> None:
             + "\n"
         )
         assert collect_workflow_markers(valid_workflow) == []
+        assert collect_exact_count_markers(valid_workflow, required_exact_workflow_markers) == []
 
         missing_node24_workflow = valid_workflow.replace(
             "FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true\n",
@@ -560,6 +583,20 @@ def run_self_test() -> None:
         legacy_setup_zig_workflow = valid_workflow + "uses: mlugg/setup-zig@v1\n"
         legacy_setup_zig_markers = collect_workflow_markers(legacy_setup_zig_workflow)
         assert "workflow:remove mlugg/setup-zig@" in legacy_setup_zig_markers
+
+        duplicate_checkout_workflow = valid_workflow + "uses: actions/checkout@v6.0.2\n"
+        duplicate_checkout_markers = collect_exact_count_markers(
+            duplicate_checkout_workflow,
+            required_exact_workflow_markers,
+        )
+        assert "workflow_checkout_count:expected=1:actual=2" in duplicate_checkout_markers
+
+        duplicate_node24_workflow = valid_workflow + "FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true\n"
+        duplicate_node24_markers = collect_exact_count_markers(
+            duplicate_node24_workflow,
+            required_exact_workflow_markers,
+        )
+        assert "workflow_node24_count:expected=1:actual=2" in duplicate_node24_markers
 
         missing_phase1_validate = valid_phase1_workflow.replace(
             "python3 scripts/zigux/validate-phase1.py\n",
@@ -762,7 +799,7 @@ def run_self_test() -> None:
         assert collect_missing_files(repo_root_from_arg(str(tmp_root))) == [required_phase1_parity]
 
     print("PHASE1_CLOSURE_VALIDATOR_SELF_TEST=pass")
-    print("PHASE1_CLOSURE_VALIDATOR_SELF_TEST_CASE_COUNT=45")
+    print("PHASE1_CLOSURE_VALIDATOR_SELF_TEST_CASE_COUNT=48")
 
 
 def main() -> int:
@@ -801,6 +838,7 @@ def main() -> int:
     bench_expectations = json.loads((root / "zigux" / "tests" / "fixtures" / "phase1_bench_expectations.json").read_text(encoding="utf-8"))
 
     missing_markers = collect_workflow_markers(workflow)
+    missing_markers.extend(collect_exact_count_markers(workflow, required_exact_workflow_markers))
 
     missing_markers.extend(collect_exact_count_markers(closure, required_closure_markers))
     missing_markers.extend(collect_exact_count_markers(tests_build, required_build_markers))
@@ -827,7 +865,7 @@ def main() -> int:
     print(f"PHASE1_CLOSURE_REQUIRED_FILE_COUNT={len(REQUIRED_FILES)}")
     print(
         "PHASE1_CLOSURE_REQUIRED_MARKER_COUNT="
-        f"{len(required_closure_markers) + len(required_workflow_markers) + len(required_phase1_workflow_markers) + len(required_build_markers) + len(required_ledger_markers) + len(required_makefile_markers) + len(required_docs_root_markers) + len(required_scripts_readme_markers) + len(required_tests_readme_markers) + len(required_review_checklist_markers)}"
+        f"{len(required_closure_markers) + len(required_workflow_markers) + len(required_exact_workflow_markers) + len(required_phase1_workflow_markers) + len(required_build_markers) + len(required_ledger_markers) + len(required_makefile_markers) + len(required_docs_root_markers) + len(required_scripts_readme_markers) + len(required_tests_readme_markers) + len(required_review_checklist_markers)}"
     )
     return 0
 
