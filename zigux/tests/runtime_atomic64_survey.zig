@@ -77,9 +77,7 @@ test "phase 9 runtime atomic64 survey manifest records the roadmap selftest hook
 
         if (std.mem.startsWith(u8, gap.zigux_destination, "zigux/tests/")) {
             runtime_test_destination_count += 1;
-        } else if (std.mem.startsWith(u8, gap.zigux_destination, "samples/zigux/")) {
-            // Sample-side starter and loader handoff scaffolds stay under samples.
-        } else {
+        } else if (std.mem.startsWith(u8, gap.zigux_destination, "samples/zigux/")) {} else {
             try std.testing.expect(std.mem.startsWith(u8, gap.zigux_destination, "zigux/kernel/"));
         }
 
