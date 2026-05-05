@@ -52,7 +52,7 @@ test "phase11 dw_wdt survey manifest records the landed probe summary and remain
     defer parsed.deinit();
 
     const manifest = parsed.value;
-    try std.testing.expectEqualStrings("P11-L10", manifest.lane_key);
+    try std.testing.expectEqualStrings("P11-L05", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 11", manifest.phase);
     try std.testing.expectEqualStrings("drivers/watchdog/dw_wdt.c", manifest.anchor);
     try std.testing.expectEqualStrings("0ddb982b08ffa3f1a34bddc0520f50af0b3e346f", manifest.surveyed_commit);
