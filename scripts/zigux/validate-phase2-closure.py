@@ -39,6 +39,8 @@ PHASE2_WORKFLOW_RUN_COUNTS = {
     'python3 scripts/zigux/check-phase2-tests-readme-alignment.py': 1,
     'python3 scripts/zigux/check-phase2-cross-selftest-alignment.py --self-test': 1,
     'python3 scripts/zigux/check-phase2-cross-selftest-alignment.py': 1,
+    'python3 scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test': 1,
+    'python3 scripts/zigux/check-phase2-toolchain-pin-scope.py': 1,
 }
 
 
@@ -52,6 +54,8 @@ def run_self_test() -> int:
         'run: python3 scripts/zigux/check-phase2-tests-readme-alignment.py',
         'run: python3 scripts/zigux/check-phase2-cross-selftest-alignment.py --self-test',
         'run: python3 scripts/zigux/check-phase2-cross-selftest-alignment.py',
+        'run: python3 scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test',
+        'run: python3 scripts/zigux/check-phase2-toolchain-pin-scope.py',
     ]) + '\n'
     cases = [
         ('make_ok', validate_exact_makefile_runs(make_ok), []),
@@ -85,6 +89,21 @@ def run_self_test() -> int:
                 workflow_ok + 'run: python3 scripts/zigux/check-phase2-cross-selftest-alignment.py\n'
             ),
             ['workflow_exact_run:python3 scripts/zigux/check-phase2-cross-selftest-alignment.py:count=2:expected=1'],
+        ),
+        (
+            'workflow_duplicate_toolchain_pin_scope_self_test',
+            validate_exact_workflow_runs(
+                workflow_ok
+                + 'run: python3 scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test\n'
+            ),
+            ['workflow_exact_run:python3 scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test:count=2:expected=1'],
+        ),
+        (
+            'workflow_duplicate_toolchain_pin_scope_gate',
+            validate_exact_workflow_runs(
+                workflow_ok + 'run: python3 scripts/zigux/check-phase2-toolchain-pin-scope.py\n'
+            ),
+            ['workflow_exact_run:python3 scripts/zigux/check-phase2-toolchain-pin-scope.py:count=2:expected=1'],
         ),
     ]
 
