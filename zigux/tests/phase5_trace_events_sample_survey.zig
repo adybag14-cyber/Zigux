@@ -185,7 +185,7 @@ test "phase 5 trace-events manifest records the exact bounded checks" {
     try std.testing.expect(std.mem.eql(u8, manifest.non_goals[3], "module registration or unregister wiring parity"));
 }
 
-test "phase 5 trace-events survey note stays repo-local and keeps the build-wired boundary explicit" {
+test "phase 5 trace-events survey note stays repo-local and keeps the formatting boundary explicit" {
     var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
     defer io_instance.deinit();
 
@@ -197,17 +197,14 @@ test "phase 5 trace-events survey note stays repo-local and keeps the build-wire
     );
     defer std.testing.allocator.free(survey_note);
 
-    const required_mentions = [_][]const u8{
-        "samples/trace_events/trace-events-sample.c|PHASE5_SLICE|phase5_trace_events_sample|Phase 5",
-        "Documentation/zigux samples/zigux zigux/tests",
-        "phase5_trace_events_sample_manifest.json",
-        "phase5_build.zig",
-        "runtime_trace_events",
-    };
-
-    for (required_mentions) |needle| {
-        try std.testing.expect(std.mem.indexOf(u8, survey_note, needle) != null);
-    }
-
+    try expectContains(survey_note, "samples/trace_events/trace-events-sample.c");
+    try expectContains(survey_note, "PHASE5_SLICE=trace-events-reference-sample-starter");
+    try expectContains(survey_note, "phase5_trace_events_sample_manifest.json");
+    try expectContains(survey_note, "phase5_build.zig");
+    try expectContains(survey_note, "runtime_trace_events");
+    try expectContains(survey_note, "no standalone `samples/zigux/*printf*`, `*vsprintf*`, or `*format*` Phase 5 reference sample");
+    try expectContains(survey_note, "selected-string plus `iter=%d` replay");
+    try expectContains(survey_note, "tools/lib/vsprintf.zig");
+    try expectContains(survey_note, "string_get_size()");
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "/workspace/agent_files") == null);
 }
