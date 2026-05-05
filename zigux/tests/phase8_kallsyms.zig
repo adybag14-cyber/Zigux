@@ -1,7 +1,7 @@
 const std = @import("std");
 const kallsyms = @import("kallsyms");
 
-const phase8_kallsyms_slice = @embedFile("../../Documentation/zigux/phase8-kallsyms-slice.md");
+const phase8_kallsyms_slice = @import("phase8_kallsyms_options").phase8_kallsyms_slice;
 
 test "phase 8 kallsyms module imports cleanly" {
     _ = kallsyms;
