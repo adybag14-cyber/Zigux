@@ -38,8 +38,10 @@ The current bsearch helper surface exercised by this slice covers:
 
 - `searchIndex`
 - `search`
+- `searchMutable`
 - `bsearchIndex`
 - `bsearch`
+- `bsearchMutable`
 
 The current tests check:
 
@@ -48,8 +50,10 @@ The current tests check:
 - comparator-driven descending-order lookup without widening the helper surface
 - heterogeneous-key lookup where the key type differs from the element type
 - pointer-return parity for successful typed lookups
+- mutable typed and raw lookup write-through parity
 - duplicate-key found-or-null parity without claiming stable duplicate selection
-- representative lookup work stays inside a bounded binary-search comparison budget
+- representative lookup work stays inside a bounded binary-search comparison budget for both typed and raw lookup paths
+- raw empty-input parity, including that the comparator is not invoked when `num_members == 0`
 - runtime-selected native comparator pointer parity
 - runtime-selected C ABI comparator pointer parity
 - runtime-selected raw native comparator pointer parity
