@@ -43,6 +43,20 @@ def read_index() -> dict:
         return json.load(response)
 
 
+def resolve_target(index: dict, channel: str, arch_key: str, system_key: str) -> tuple[str, str, str]:
+    target_key = f'{arch_key}-{system_key}'
+    if channel not in index:
+        raise SystemExit(f'unknown Zig channel/version key: {channel}')
+    entry = index[channel]
+    if target_key not in entry:
+        raise SystemExit(f'Zig download index has no target {target_key} under {channel}')
+
+    target = entry[target_key]
+    tarball_url = target['tarball']
+    version = entry['version']
+    return target_key, version, tarball_url
+
+
 def extract_archive(archive_path: Path, dest: Path) -> Path:
     if archive_path.suffix == '.zip':
         with zipfile.ZipFile(archive_path) as zf:
@@ -65,6 +79,71 @@ def append_github_path(path: Path) -> None:
         fh.write(str(path.resolve()) + '\n')
 
 
+def run_self_test() -> int:
+    assert normalize_os('Linux') == 'linux'
+    assert normalize_os('Darwin') == 'macos'
+    assert normalize_os('Windows') == 'windows'
+
+    assert normalize_arch('amd64') == 'x86_64'
+    assert normalize_arch('aarch64') == 'aarch64'
+    assert normalize_arch('i686') == 'x86'
+
+    sample_index = {
+        'master': {
+            'version': '0.17.0-dev.87+9b177a7d2',
+            'x86_64-linux': {
+                'tarball': 'https://example.invalid/zig-linux.tar.xz',
+            },
+            'aarch64-macos': {
+                'tarball': 'https://example.invalid/zig-macos.tar.xz',
+            },
+        }
+    }
+
+    assert resolve_target(sample_index, 'master', 'x86_64', 'linux') == (
+        'x86_64-linux',
+        '0.17.0-dev.87+9b177a7d2',
+        'https://example.invalid/zig-linux.tar.xz',
+    )
+    assert resolve_target(sample_index, 'master', 'aarch64', 'macos') == (
+        'aarch64-macos',
+        '0.17.0-dev.87+9b177a7d2',
+        'https://example.invalid/zig-macos.tar.xz',
+    )
+
+    try:
+        normalize_os('plan9')
+    except SystemExit:
+        pass
+    else:
+        raise AssertionError('expected normalize_os to reject unsupported OS')
+
+    try:
+        normalize_arch('sparc')
+    except SystemExit:
+        pass
+    else:
+        raise AssertionError('expected normalize_arch to reject unsupported architecture')
+
+    try:
+        resolve_target(sample_index, 'stable', 'x86_64', 'linux')
+    except SystemExit:
+        pass
+    else:
+        raise AssertionError('expected resolve_target to reject unknown channel')
+
+    try:
+        resolve_target(sample_index, 'master', 'riscv64', 'linux')
+    except SystemExit:
+        pass
+    else:
+        raise AssertionError('expected resolve_target to reject unknown target')
+
+    print('ZIG_INSTALL_SELF_TEST=pass')
+    print('ZIG_INSTALL_SELF_TEST_CASE_COUNT=10')
+    return 0
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description='Install Zig from the official Zig download index.')
     parser.add_argument('--channel', default='master', help='Channel or version key from ziglang.org/download/index.json')
@@ -72,22 +151,17 @@ def main() -> int:
     parser.add_argument('--system', help='Override detected OS key (linux, macos, windows)')
     parser.add_argument('--arch', help='Override detected architecture key (x86_64, aarch64, x86)')
     parser.add_argument('--resolve-only', action='store_true', help='Resolve and print the chosen archive without downloading')
+    parser.add_argument('--self-test', action='store_true', help='Run built-in target-resolution coverage without downloading')
     args = parser.parse_args()
+
+    if args.self_test:
+        return run_self_test()
 
     system_key = args.system or normalize_os(platform.system())
     arch_key = args.arch or normalize_arch(platform.machine())
-    target_key = f'{arch_key}-{system_key}'
 
     index = read_index()
-    if args.channel not in index:
-        raise SystemExit(f'unknown Zig channel/version key: {args.channel}')
-    entry = index[args.channel]
-    if target_key not in entry:
-        raise SystemExit(f'Zig download index has no target {target_key} under {args.channel}')
-
-    target = entry[target_key]
-    tarball_url = target['tarball']
-    version = entry['version']
+    target_key, version, tarball_url = resolve_target(index, args.channel, arch_key, system_key)
 
     print(f'ZIG_INSTALL_CHANNEL={args.channel}')
     print(f'ZIG_INSTALL_VERSION={version}')
