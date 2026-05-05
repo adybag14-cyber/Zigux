@@ -45,13 +45,26 @@ test "runtime atomic64 sample enforces lifecycle transitions and keeps a 64-bit 
     try std.testing.expectEqual(@as(i64, 17), add_unless_changed.previous);
     try std.testing.expectEqual(@as(i64, 13), module.snapshotCounter());
 
+    const and_previous = try module.andCounter(0b0110);
+    try std.testing.expectEqual(@as(i64, 13), and_previous);
+    try std.testing.expectEqual(@as(i64, 4), module.snapshotCounter());
+
+    const or_previous = try module.orCounter(0b1_0000);
+    try std.testing.expectEqual(@as(i64, 4), or_previous);
+    try std.testing.expectEqual(@as(i64, 20), module.snapshotCounter());
+
+    const xor_previous = try module.xorCounter(0b0_0111);
+    try std.testing.expectEqual(@as(i64, 20), xor_previous);
+    try std.testing.expectEqual(@as(i64, 19), module.snapshotCounter());
+
     const summary = try module.runSelftest();
     try std.testing.expectEqual(sample.ModuleStage.selftest_complete, module.stage());
     try std.testing.expectEqualStrings("lib/atomic64_test.c", summary.anchor);
     try std.testing.expectEqual(@as(usize, 5), summary.operation_families.len);
     try std.testing.expect(summary.checked_returning_paths);
+    try std.testing.expect(summary.checked_bitwise_paths);
     try std.testing.expect(summary.checked_guard_paths);
-    try std.testing.expectEqual(@as(i64, 13), module.snapshotCounter());
+    try std.testing.expectEqual(@as(i64, 19), module.snapshotCounter());
     try std.testing.expectEqual(@as(usize, 1), module.selftest_runs);
     try std.testing.expectError(error.InvalidLifecycleTransition, module.runSelftest());
 
@@ -61,6 +74,9 @@ test "runtime atomic64 sample enforces lifecycle transitions and keeps a 64-bit 
     try std.testing.expectError(error.InvalidLifecycleTransition, module.init(23));
     try std.testing.expectError(error.InvalidLifecycleTransition, module.exit());
     try std.testing.expectError(error.InvalidLifecycleTransition, module.swapCounter(7));
+    try std.testing.expectError(error.InvalidLifecycleTransition, module.andCounter(7));
+    try std.testing.expectError(error.InvalidLifecycleTransition, module.orCounter(7));
+    try std.testing.expectError(error.InvalidLifecycleTransition, module.xorCounter(7));
     try std.testing.expectError(error.InvalidLifecycleTransition, module.compareSwapCounter(17, 19));
     try std.testing.expectError(error.InvalidLifecycleTransition, module.addUnlessCounter(1, 13));
 }
