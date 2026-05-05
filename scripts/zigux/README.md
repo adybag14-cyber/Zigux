@@ -21,6 +21,7 @@ Current bootstrap helpers
 - `validate-phase3.py`
 - `validate_phase3_selftest.py`
 - `check-phase3-selftest-surface.py`
+- `check-phase3-readme-tooling-inventory.py`
 - `validate-phase3-policy-unsafe-survey.py`
 - `validate-phase3-low-level-wrapper-survey.py`
 - `validate-phase4.py`
@@ -67,7 +68,7 @@ Phase 3 flow
 - `validate-phase3.py` validates discovered Phase 3 slices, their required manifests, build steps, and doc markers, and can optionally audit the generated artifact-diff section and slug-sanity rules.
 - `validate_phase3_selftest.py` reruns the validator-local `--self-test` packet through one shared wrapper when contributors want a focused check on the Phase 3 validator support scripts themselves; `make -C zigux phase3-validate` already invokes those underlying self-tests directly, so the shared runner stays a manual or targeted safety check instead of duplicating the default validation route.
 - `check-phase3-selftest-surface.py` keeps `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/phase3-abi-slice.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, `zigux/Makefile`, `scripts/zigux/validate_phase3_selftest.py`, and `make -C zigux phase3-selftest` aligned around that manual-only support-script rerun, and `make -C zigux phase3-validate` now executes the checker so this shared review packet fails closed without turning `phase3-selftest` into a duplicate default replay route.
-- The live support packet inside that same validator-first route is `validate-phase3-policy-unsafe-survey.py`, `validate-phase3-low-level-wrapper-survey.py`, `phase3_catalog.py`, `phase3_check_lib.py`, `generate-phase3-check-wrappers.py`, and `run-phase3-checks.py`; the generated `check-phase3-*.py` wrappers stay as compatibility entrypoints derived from the discovered slice catalog instead of a second hand-maintained survey list.
+- The live support packet inside that same validator-first route is `check-phase3-readme-tooling-inventory.py`, `validate-phase3-policy-unsafe-survey.py`, `validate-phase3-low-level-wrapper-survey.py`, `phase3_catalog.py`, `phase3_check_lib.py`, `generate-phase3-check-wrappers.py`, and `run-phase3-checks.py`; the generated `check-phase3-*.py` wrappers stay as compatibility entrypoints derived from the discovered slice catalog instead of a second hand-maintained survey list.
 - `validate-phase3-policy-unsafe-survey.py` keeps the Phase 3 policy-and-unsafe boundary survey aligned with the landed allocator-policy, panic-policy, MMIO, narrow-unsafe, ABI-test, ABI-dump, and `zigux/Makefile` validation packet.
 - `validate-phase3-low-level-wrapper-survey.py` keeps the focused low-level wrapper boundary survey aligned with the landed atomic, barrier, MMIO, focused wrapper replay, shared ABI packet, and blob-pinned survey evidence.
 - `phase3_catalog.py` discovers Phase 3 slices from the docs, dump entrypoints, and fixture manifests instead of maintaining one giant hard-coded inventory, and now carries per-slice metadata such as display descriptions, build-step overrides, and the current `PHASE3_INTEROP_GATE` mode recorded in each slice doc.
