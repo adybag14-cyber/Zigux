@@ -1,9 +1,7 @@
 # Phase 8 Libbpf Segment Survey
-
 This document tracks the bounded Phase 8 userspace-adjacent tooling survey for Zigux around `tools/lib/bpf/libbpf.c`.
 
 ## Status
-
 - `PHASE8_STATUS=parked`
 - `PHASE8_SLICE=libbpf-segment-survey`
 - surveyed commit: `897cdd2f62c4428d2a050275a187950e161b66eb`
@@ -25,25 +23,22 @@ This document tracks the bounded Phase 8 userspace-adjacent tooling survey for Z
   - `zigux/tests/phase8_perf_buffer_poll.zig`
   - `zigux/tests/phase8_perf_buffer_poll_only_build.zig`
   - `zigux/tests/phase8_libbpf_segments.zig`
+  - `zigux/tests/phase8_libbpf_segments_only_build.zig`
   - `zigux/tests/phase8_build.zig`
 
 ## Why this slice exists
-
 The Phase 8 roadmap explicitly names `tools/lib/bpf/libbpf.c` as a userspace-adjacent tooling anchor and recommends `tools/lib/bpf/zigux_segments/` as the bounded Zigux destination for a segmented rollout.
 
 The live repo already carried the full C libbpf tree, but it still had no `tools/lib/bpf/zigux_segments/` scaffold and no Phase 8 libbpf note to explain how Zigux should enter this surface without exploding into mirror-tree churn. The highest-value lane-local step was to close that planning gap with a concrete, testable segment catalog before any direct libbpf port work starts.
 
 ## Survey findings
-
 - `tools/lib/bpf/libbpf.c` is still the dominant anchor at 14771 lines.
 - companion C leaves such as `btf.c`, `linker.c`, `bpf.c`, `features.c`, `ringbuf.c`, `netlink.c`, `nlattr.c`, and `libbpf_utils.c` confirm that Phase 8 needs a segmented rollout instead of a single-file port attempt.
 - before this survey landed, the repo had no `tools/lib/bpf/zigux_segments/` directory and no dedicated Phase 8 libbpf review note.
 - the first realistic Zigux entry points are helper-first clusters with stable text or path behavior, not the BTF relocation or program-load core.
 
 ## Segment catalog
-
 The manifest currently records twelve bounded segments:
-
 - `logging-version-and-errno`
 - `pin-path-helpers`
 - `cpu-mask-parsing`
@@ -57,12 +52,14 @@ The manifest currently records twelve bounded segments:
 - `btf-relocation-and-program-load`
 - `perf-buffer-poll-bookkeeping`
 
-`cpu-mask-parsing`, `logging-version-and-errno`, `pin-path-helpers`, `type-name-helpers`, and `perf-buffer-poll-bookkeeping` have now moved from planned work to landed bounded slices under `tools/lib/bpf/zigux_segments/cpu_mask.zig`, `tools/lib/bpf/zigux_segments/logging.zig`, `tools/lib/bpf/zigux_segments/pin_path.zig`, `tools/lib/bpf/zigux_segments/type_names.zig`, and `tools/lib/bpf/zigux_segments/perf_buffer_poll.zig`. `fdinfo-map-info-helpers` and `map-reuse-compatibility` still stay queued helper-first catalog entries, but no longer because the bridge packet paths are missing: the repo now carries the bounded fdinfo helper packet at `tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig`, `zigux/tests/phase8_file_path_handle_bridge.zig`, and `zigux/tests/phase8_file_path_handle_bridge_only_build.zig`, while the broader helper-first catalog entries remain queued until that shared bridge packet is explicitly promoted beyond the current fdinfo-only surface. The broader `file-path-and-handle-bridge` resource-boundary packet still stays deferred around direct procfs reads, bpffs opens, token creation, `bpf_obj_get()` reopen flow, and fd ownership semantics.
+`cpu-mask-parsing`, `logging-version-and-errno`, `pin-path-helpers`, `type-name-helpers`, and `perf-buffer-poll-bookkeeping` have now moved from planned work to landed bounded slices under `tools/lib/bpf/zigux_segments/cpu_mask.zig`, `tools/lib/bpf/zigux_segments/logging.zig`, `tools/lib/bpf/zigux_segments/pin_path.zig`, `tools/lib/bpf/zigux_segments/type_names.zig`, and `tools/lib/bpf/zigux_segments/perf_buffer_poll.zig`.
+
+`fdinfo-map-info-helpers` and `map-reuse-compatibility` still stay queued helper-first catalog entries, but no longer because the bridge packet paths are missing: the repo now carries the bounded fdinfo helper packet at `tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig`, `zigux/tests/phase8_file_path_handle_bridge.zig`, and `zigux/tests/phase8_file_path_handle_bridge_only_build.zig`, while the broader helper-first catalog entries remain queued until that shared bridge packet is explicitly promoted beyond the current fdinfo-only surface.
+
+The broader `file-path-and-handle-bridge` resource-boundary packet still stays deferred around direct procfs reads, bpffs opens, token creation, `bpf_obj_get()` reopen flow, and fd ownership semantics.
 
 ## Current landed segment progress
-
 The current starter implementation stays deliberately bounded:
-
 - `cpu_mask.zig` ports the string-parsing core of `parse_cpu_mask_str()`
 - the segment now includes an injected chunk-reader interface for sysfs-style buffered input without claiming direct file-descriptor parity
 - the starter exposes dense `[]bool` mask output plus set-bit counting for future perf-buffer and feature-probe callers
@@ -83,7 +80,6 @@ The current starter implementation stays deliberately bounded:
 - the current packet does not claim online-CPU filtering, epoll registration, timer semantics, or broader interrupt-routing behavior beyond those explicit setup-side anchors
 
 The current tests check:
-
 - mixed single-CPU and `start-end` ranges expand into the expected dense mask
 - repeated delimiters and newline-terminated inputs still parse cleanly
 - chunked reader input can split ranges and delimiters across scratch-buffer boundaries
@@ -99,31 +95,25 @@ The current tests check:
 - buffer exhaustion during pin-path assembly stays explicit
 - every exported attach, link, map, and program type table entry remains reachable through the corresponding helper
 - representative late enum ordinals such as `trace_fsession` still resolve to the expected stable names
-- bounded `/proc/<pid>/fdinfo/<fd>` path assembly, compact fdinfo map-info parsing, and summary rendering stay explicit without widening into direct procfs reads or pinned-object reopen flow
+- bounded `/proc//fdinfo/` path assembly, compact fdinfo map-info parsing, and summary rendering stay explicit without widening into direct procfs reads or pinned-object reopen flow
 - bounded perf-buffer wait summaries keep ready-count, first-error, processed-record totals, and first-processing-failure selection compact and explicit
 - ready-buffer processing attempts cannot exceed observed ready events
 
 ## Gates
-
 1. run the focused libbpf survey wrapper
-- `make -C zigux phase8-libbpf-segments-test`
-- `zig build test --build-file zigux/tests/phase8_libbpf_segments_only_build.zig --summary all`
-
+   - `make -C zigux phase8-libbpf-segments-test`
+   - `zig build test --build-file zigux/tests/phase8_libbpf_segments_only_build.zig --summary all`
 2. run the focused perf-buffer poll wrapper
-- `make -C zigux phase8-perf-buffer-poll-test`
-- `zig build test --build-file zigux/tests/phase8_perf_buffer_poll_only_build.zig --summary all`
-
+   - `make -C zigux phase8-perf-buffer-poll-test`
+   - `zig build test --build-file zigux/tests/phase8_perf_buffer_poll_only_build.zig --summary all`
 3. run the shared Phase 8 wrapper
-- `make -C zigux phase8-test`
-- `zig build test --build-file zigux/tests/phase8_build.zig --summary all`
-
+   - `make -C zigux phase8-test`
+   - `zig build test --build-file zigux/tests/phase8_build.zig --summary all`
 4. run the convenience target
-- `make -C zigux phase8`
+   - `make -C zigux phase8`
 
 ## Non-goals
-
 This survey slice does not yet claim:
-
 - any direct Zig port of `tools/lib/bpf/libbpf.c`
 - `parse_cpu_mask_file()` parity or direct file reads
 - direct procfs reads, token creation, `bpf_obj_get()` reopen flow, or fd ownership semantics for the bounded file-path bridge helper
@@ -136,5 +126,4 @@ This survey slice does not yet claim:
 - object-model parity for `bpf_object`, `bpf_map`, or `bpf_program`
 
 ## Next bounded step
-
 Treat the current starter packet as substantively landed for now: keep the shared Phase 8 gate honest, leave the bounded fdinfo-only bridge helper parked as adjacent review surface, keep `fdinfo-map-info-helpers` and `map-reuse-compatibility` queued as the next helper-first catalog entries, and reopen only when the deferred `file-path-and-handle-bridge` resource boundary around direct procfs-read, bpffs-open, token-creation, reopen-flow, and fd-ownership semantics can be reviewed as one tighter packet ahead of the still-blocked object-model and loader-facing work.
