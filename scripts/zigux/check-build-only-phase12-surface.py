@@ -50,12 +50,14 @@ REQUIRED_DOCS_README_MARKERS = [
     "Phase 12 notes",
     "`Documentation/zigux/phase12-release-sequencing.md`",
     "`Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, `scripts/zigux/check-build-only-phase12-surface.py`, `.github/workflows/zigux-bootstrap.yml`, `zigux/tests/README.md`, `zigux/tests/phase12_build.zig`, `zigux/tests/phase12_nvme_pci_manifest.json`, `zigux/tests/phase12_nvme_pci.zig`, `zigux/tests/phase12_nvme_pci_survey.zig`, `zigux/tests/phase12_virtio_net_manifest.json`, `zigux/tests/phase12_virtio_net.zig`, `zigux/tests/phase12_virtio_net_survey.zig`, `zigux/tests/phase12_virtio_scsi_manifest.json`, `zigux/tests/phase12_virtio_scsi.zig`, `zigux/tests/phase12_virtio_scsi_survey.zig`, `zigux/tests/phase12_libbpf_manifest.json`, `zigux/tests/phase12_libbpf_segments.zig`, `zigux/tests/phase12_libbpf_reviewability.zig`, `tools/lib/bpf/zigux_segments/manifest.json`, `zigux/Makefile`, and `make -C zigux phase12` now keep the current nvme pci, virtio_net, virtio_scsi, and libbpf survey-backed complex-driver bundle reviewable through the shipped build-only contract plus the shared build-and-make replay route instead of implying removed validator, PMO checker, or raw-coverage-survey surfaces.",
+    "`make -C zigux phase12-smoke` now stays explicit as the focused preflight shard ahead of `zig build test --build-file zigux/tests/phase12_build.zig --summary all` and `make -C zigux phase12`, so the release-facing docs root does not leave that shipped smoke route trapped in the Makefile or sequencing note alone.",
     "`scripts/zigux/README.md`, `scripts/zigux/check-build-only-phase12-surface.py`, `.github/workflows/zigux-bootstrap.yml`, `zigux/tests/README.md`, `zigux/tests/phase12_build.zig`",
     "there is no dedicated shared `validate-phase12.py`, `check-phase12-*.py`, or `phase12-validate` target on `master`",
 ]
 
 REQUIRED_DOCS_README_EXACT_COUNTS = {
     "`Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, `scripts/zigux/check-build-only-phase12-surface.py`, `.github/workflows/zigux-bootstrap.yml`, `zigux/tests/README.md`, `zigux/tests/phase12_build.zig`, `zigux/tests/phase12_nvme_pci_manifest.json`, `zigux/tests/phase12_nvme_pci.zig`, `zigux/tests/phase12_nvme_pci_survey.zig`, `zigux/tests/phase12_virtio_net_manifest.json`, `zigux/tests/phase12_virtio_net.zig`, `zigux/tests/phase12_virtio_net_survey.zig`, `zigux/tests/phase12_virtio_scsi_manifest.json`, `zigux/tests/phase12_virtio_scsi.zig`, `zigux/tests/phase12_virtio_scsi_survey.zig`, `zigux/tests/phase12_libbpf_manifest.json`, `zigux/tests/phase12_libbpf_segments.zig`, `zigux/tests/phase12_libbpf_reviewability.zig`, `tools/lib/bpf/zigux_segments/manifest.json`, `zigux/Makefile`, and `make -C zigux phase12` now keep the current nvme pci, virtio_net, virtio_scsi, and libbpf survey-backed complex-driver bundle reviewable through the shipped build-only contract plus the shared build-and-make replay route instead of implying removed validator, PMO checker, or raw-coverage-survey surfaces.": 1,
+    "`make -C zigux phase12-smoke` now stays explicit as the focused preflight shard ahead of `zig build test --build-file zigux/tests/phase12_build.zig --summary all` and `make -C zigux phase12`, so the release-facing docs root does not leave that shipped smoke route trapped in the Makefile or sequencing note alone.": 1,
 }
 
 REQUIRED_REVIEW_CHECKLIST_MARKERS = [
@@ -322,6 +324,7 @@ def write_fixture_tree(root: Path) -> None:
 Phase 12 notes
 - `Documentation/zigux/phase12-release-sequencing.md`
 - `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, `scripts/zigux/check-build-only-phase12-surface.py`, `.github/workflows/zigux-bootstrap.yml`, `zigux/tests/README.md`, `zigux/tests/phase12_build.zig`, `zigux/tests/phase12_nvme_pci_manifest.json`, `zigux/tests/phase12_nvme_pci.zig`, `zigux/tests/phase12_nvme_pci_survey.zig`, `zigux/tests/phase12_virtio_net_manifest.json`, `zigux/tests/phase12_virtio_net.zig`, `zigux/tests/phase12_virtio_net_survey.zig`, `zigux/tests/phase12_virtio_scsi_manifest.json`, `zigux/tests/phase12_virtio_scsi.zig`, `zigux/tests/phase12_virtio_scsi_survey.zig`, `zigux/tests/phase12_libbpf_manifest.json`, `zigux/tests/phase12_libbpf_segments.zig`, `zigux/tests/phase12_libbpf_reviewability.zig`, `tools/lib/bpf/zigux_segments/manifest.json`, `zigux/Makefile`, and `make -C zigux phase12` now keep the current nvme pci, virtio_net, virtio_scsi, and libbpf survey-backed complex-driver bundle reviewable through the shipped build-only contract plus the shared build-and-make replay route instead of implying removed validator, PMO checker, or raw-coverage-survey surfaces.
+- `make -C zigux phase12-smoke` now stays explicit as the focused preflight shard ahead of `zig build test --build-file zigux/tests/phase12_build.zig --summary all` and `make -C zigux phase12`, so the release-facing docs root does not leave that shipped smoke route trapped in the Makefile or sequencing note alone.
 - `scripts/zigux/README.md`, `scripts/zigux/check-build-only-phase12-surface.py`, `.github/workflows/zigux-bootstrap.yml`, `zigux/tests/README.md`, `zigux/tests/phase12_build.zig`
 - there is no dedicated shared `validate-phase12.py`, `check-phase12-*.py`, or `phase12-validate` target on `master`
 """,
@@ -540,6 +543,51 @@ def run_self_test() -> int:
             return 1
 
         sequence_path.write_text(original_sequence, encoding="utf-8")
+        docs_readme_path = root / DOCS_README_PATH
+        original_docs_readme = docs_readme_path.read_text(encoding="utf-8")
+        docs_readme_smoke_marker = (
+            "`make -C zigux phase12-smoke` now stays explicit as the focused preflight shard ahead of `zig build test --build-file zigux/tests/phase12_build.zig --summary all` and `make -C zigux phase12`, so the release-facing docs root does not leave that shipped smoke route trapped in the Makefile or sequencing note alone."
+        )
+
+        missing_docs_readme_smoke = original_docs_readme.replace(
+            f"- {docs_readme_smoke_marker}\n",
+            "",
+            1,
+        )
+        docs_readme_path.write_text(missing_docs_readme_smoke, encoding="utf-8")
+        failures = validate(root)
+        expected_docs_readme_missing = f"docs_readme:{docs_readme_smoke_marker}"
+        expected_docs_readme_missing_exact = (
+            f"docs_readme_exact_count:{docs_readme_smoke_marker}:count=0:expected=1"
+        )
+        if (
+            expected_docs_readme_missing not in failures
+            or expected_docs_readme_missing_exact not in failures
+        ):
+            print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST=fail")
+            print("phase12-docs-readme-smoke-missing-guard")
+            for failure in failures:
+                print(failure)
+            return 1
+
+        duplicate_docs_readme_smoke = original_docs_readme.replace(
+            f"- {docs_readme_smoke_marker}\n",
+            f"- {docs_readme_smoke_marker}\n- {docs_readme_smoke_marker}\n",
+            1,
+        )
+        docs_readme_path.write_text(duplicate_docs_readme_smoke, encoding="utf-8")
+        failures = validate(root)
+        expected_docs_readme_duplicate = (
+            f"docs_readme_exact_count:{docs_readme_smoke_marker}:count=2:expected=1"
+        )
+        if expected_docs_readme_duplicate not in failures:
+            print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST=fail")
+            print("phase12-docs-readme-smoke-duplicate-guard")
+            for failure in failures:
+                print(failure)
+            return 1
+
+        docs_readme_path.write_text(original_docs_readme, encoding="utf-8")
         review_checklist_path = root / REVIEW_CHECKLIST_PATH
         original_review_checklist = review_checklist_path.read_text(encoding="utf-8")
         review_checklist_smoke_marker = (
