@@ -441,6 +441,22 @@ test "nextArg keeps unquoted values and empty quoted values bounded to the curre
     try std.testing.expectEqualStrings("quiet", cStringPrefix(parsed_empty.rest));
 }
 
+test "nextArg keeps empty whitespace-separated values and unterminated quoted values bounded to the current token" {
+    var whitespace_value = [_]u8{ 'f', 'o', 'o', '=', ' ', 'b', 'a', 'r', 0 };
+    const parsed_whitespace_value = nextArg(&whitespace_value);
+
+    try std.testing.expectEqualStrings("foo", parsed_whitespace_value.param);
+    try std.testing.expectEqualStrings("", parsed_whitespace_value.value.?);
+    try std.testing.expectEqualStrings("bar", cStringPrefix(parsed_whitespace_value.rest));
+
+    var unterminated_quote = [_]u8{ 'k', 'e', 'y', '=', '"', 'a', 'l', 'p', 'h', 'a', ' ', 'b', 'e', 't', 'a', 0 };
+    const parsed_unterminated_quote = nextArg(&unterminated_quote);
+
+    try std.testing.expectEqualStrings("key", parsed_unterminated_quote.param);
+    try std.testing.expectEqualStrings("alpha beta", parsed_unterminated_quote.value.?);
+    try std.testing.expectEqualStrings("", cStringPrefix(parsed_unterminated_quote.rest));
+}
+
 test "nextArg trims mixed trailing whitespace from rest and leaves whitespace-only tails empty" {
     var mixed_ws = [_]u8{ 'r', 'o', 'o', 't', '=', '/', 'd', 'e', 'v', '/', 's', 'd', 'a', '1', ' ', '\t', '\n', 'r', 'o', 0 };
     const parsed_mixed_ws = nextArg(&mixed_ws);
