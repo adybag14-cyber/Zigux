@@ -102,11 +102,11 @@ pub const TransactionBufferAcquirePlan = struct {
 
 pub const TransactionBufferPublishPlan = struct {
     anchor: []const u8,
-    response_size: usize,
+    requested_response_size: usize,
     transaction_limit: usize,
     requires_private_data: bool,
-    uses_publish_barrier: bool,
-    keeps_size_zero_until_ready: bool,
+    publishes_after_barrier: bool,
+    published_response_size: usize,
 };
 
 pub const LibFsHelperLab = struct {
@@ -335,21 +335,21 @@ pub const LibFsHelperLab = struct {
         };
     }
 
-    pub fn simpleTransactionSetPlan(response_size: usize, private_data_present: bool) !TransactionBufferPublishPlan {
+    pub fn simpleTransactionSetPlan(response_size: usize, has_private_data: bool) !TransactionBufferPublishPlan {
         if (response_size > simple_transaction_limit) {
             return error.InputTooLarge;
         }
-        if (!private_data_present) {
-            return error.MissingTransactionBuffer;
+        if (!has_private_data) {
+            return error.MissingPrivateData;
         }
 
         return .{
             .anchor = descriptor().anchor,
-            .response_size = response_size,
+            .requested_response_size = response_size,
             .transaction_limit = simple_transaction_limit,
             .requires_private_data = true,
-            .uses_publish_barrier = true,
-            .keeps_size_zero_until_ready = true,
+            .publishes_after_barrier = true,
+            .published_response_size = response_size,
         };
     }
 };
