@@ -167,6 +167,17 @@
       ],
       "zigux_destination": "tools/lib/bpf/zigux_segments/relocation.zig",
       "why_now": "BTF fixups, extern resolution, relocation recording, and load-time verifier interactions remain the densest libbpf surface and still need the smaller helper-first and object-model boundaries to stay explicit ahead of them."
+    },
+    {
+      "id": "P8-L15-S12",
+      "slug": "perf-buffer-poll-bookkeeping",
+      "status": "starter_landed",
+      "kind": "helper_adjacent",
+      "anchor_ranges": [
+        "tools/lib/bpf/libbpf.c: perf_buffer__poll() wait-result classification and ordered process_records bookkeeping"
+      ],
+      "zigux_destination": "tools/lib/bpf/zigux_segments/perf_buffer_poll.zig",
+      "why_now": "The bounded poll-summary helper proves wait-result normalization and ready-buffer accounting without widening into epoll wiring, mmap-backed ring ownership, or online-CPU setup."
     }
   ]
 }
