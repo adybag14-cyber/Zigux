@@ -4,7 +4,7 @@ This document tracks the bounded Phase 8 userspace-adjacent tooling slice for Zi
 
 ## Status
 
-- `PHASE8_STATUS=active`
+- `PHASE8_STATUS=parked`
 - `PHASE8_SLICE=libbpf-type-name-segment`
 - scope: dense attach, link, map, and program type string helpers only
 - product boundary:
@@ -60,4 +60,4 @@ This segment does not yet claim:
 
 ## Next bounded step
 
-Stay in `tools/lib/bpf/zigux_segments/` and add one more helper-sized libbpf segment such as section-name classification or another exported table-driven helper before attempting object-loading or syscall-backed surfaces.
+Park the `type_names` segment unless fresh repo review finds another tiny table-alignment or docs-truthfulness gap; otherwise keep later libbpf follow-up in a different bounded helper-only segment and do not reopen object-loading, syscall-backed, or parser-driven surfaces from this note.
