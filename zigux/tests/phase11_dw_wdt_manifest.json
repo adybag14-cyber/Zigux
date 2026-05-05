@@ -1,5 +1,5 @@
 {
-  "lane_key": "P11-L12",
+  "lane_key": "P11-L11",
   "phase": "Phase 11",
   "surveyed_commit": "0ddb982b08ffa3f1a34bddc0520f50af0b3e346f",
   "anchor": "drivers/watchdog/dw_wdt.c",
@@ -32,14 +32,14 @@
       "status": "starter_landed",
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase11_dw_wdt_survey.zig",
-      "why_now": "A dedicated survey gate now records that the dw_wdt starter, probe summary, registration handoff, and dedicated tests already exist while keeping the remaining platform-facing gap explicit instead of letting the current scaffold overclaim parity."
+      "why_now": "A dedicated survey gate now records that the dw_wdt starter, probe summary, registration-facing handoff, and dedicated tests already exist while keeping the remaining platform-facing gap explicit instead of letting the current scaffold overclaim parity."
     },
     {
       "id": "phase11-dw-wdt-survey-note",
       "status": "starter_landed",
       "kind": "documentation",
       "zigux_destination": "Documentation/zigux/phase11-dw-wdt-survey.md",
-      "why_now": "The survey note now anchors the live dw_wdt cleanup packet to lane `P11-L12` on `master` `0ddb982b08ffa3f1a34bddc0520f50af0b3e346f` so later runs can extend the same Phase 11 slice without rediscovering whether the registration handoff already landed."
+      "why_now": "The survey note now keeps the active `P11-L11` DesignWare watchdog review record aligned with the landed registration-facing handoff so later runs can extend the same Phase 11 slice without rediscovering whether that handoff already exists."
     },
     {
       "id": "phase11-dw-wdt-driver-starter",
@@ -53,7 +53,7 @@
       "status": "starter_landed",
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase11_dw_wdt.zig",
-      "why_now": "Dedicated Phase 11 tests now keep fixed-top limits, custom-top ordering, probe-time bookkeeping, registration-handoff selection, reset-mode and IRQ-mode timeout behavior, restart intent, and non-stoppable stop semantics reviewable around the landed starter."
+      "why_now": "Dedicated Phase 11 tests now keep fixed-top limits, custom-top ordering, probe-time bookkeeping, registration-facing handoff outputs, reset-mode and IRQ-mode timeout behavior, restart intent, and non-stoppable stop semantics reviewable around the landed starter."
     },
     {
       "id": "phase11-dw-wdt-slice-note",
@@ -74,21 +74,14 @@
       "status": "starter_landed",
       "kind": "simple_driver_starter",
       "zigux_destination": "drivers/watchdog/dw_wdt.zig",
-      "why_now": "The starter now includes a small registration-facing handoff that keeps watchdog info selection, parent linkage, timeout-programming intent, and the bounded register-device handoff reviewable before any live clock, reset, IRQ, or MMIO work."
-    },
-    {
-      "id": "phase11-dw-wdt-next-platform-bridge",
-      "status": "ready_next",
-      "kind": "documentation",
-      "zigux_destination": "Documentation/zigux/phase11-dw-wdt-survey.md",
-      "why_now": "The next honest bounded step is a platform-backed registration and hardware-validation plan that can attach the landed handoff summary to real clock, reset, and IRQ ownership without widening the current simple-driver slice prematurely."
+      "why_now": "A small registration-facing handoff now keeps watchdog info selection, parent linkage, timeout-programming intent, and register-device handoff reviewable after the probe summary, before any live clock, reset, IRQ, or MMIO work."
     },
     {
       "id": "phase11-dw-wdt-platform-and-pm",
       "status": "blocked_on_driver_scaffold",
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase11_dw_wdt.zig",
-      "why_now": "Platform-driver registration, clock and reset acquisition, IRQ registration, suspend and resume handling, debugfs support, devicetree TOP arrays, and live MMIO validation remain blocked until the lane grows platform-backed registration scaffolding around the newly landed handoff plus a hardware-validation plan."
+      "why_now": "Platform-driver registration, clock and reset acquisition, IRQ registration, suspend and resume handling, debugfs support, devicetree TOP arrays, and live MMIO validation remain blocked until the lane grows platform-backed scaffolding and a hardware-validation plan around the landed registration-facing handoff."
     }
   ]
 }
