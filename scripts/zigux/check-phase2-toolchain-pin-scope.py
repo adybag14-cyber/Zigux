@@ -14,6 +14,8 @@ POLICY = ROOT / "scripts" / "zigux" / "zig-toolchain-policy.json"
 NOTES_DOC = ROOT / "Documentation" / "zigux" / "phase2-toolchain-bootstrap-notes.md"
 WORKFLOW = ROOT / ".github" / "workflows" / "zigux-bootstrap.yml"
 README = ROOT / "scripts" / "zigux" / "README.md"
+DOCS_ROOT_README = ROOT / "Documentation" / "zigux" / "README.md"
+REVIEW_CHECKLIST = ROOT / "Documentation" / "zigux" / "review-checklist.md"
 CLOSURE_DOC = ROOT / "Documentation" / "zigux" / "phase2-closure.md"
 PHASE2_VALIDATOR = ROOT / "scripts" / "zigux" / "validate-phase2.py"
 
@@ -47,6 +49,24 @@ README_MARKERS = [
     "check-phase2-toolchain-pin-scope.py",
     "x86_64-linux bootstrap host target",
     "cross-target compile matrix stays a separate Phase 2 surface",
+]
+
+DOCS_ROOT_MARKERS = [
+    "Documentation/zigux/phase2-toolchain-bootstrap-notes.md",
+    "scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test",
+    "scripts/zigux/check-phase2-toolchain-pin-scope.py",
+    "pinned Zig toolchain",
+    "make -C zigux phase2-validate",
+    "make -C zigux phase2",
+]
+
+REVIEW_CHECKLIST_MARKERS = [
+    "if the change touches the shared Phase 2 toolchain packet",
+    "scripts/zigux/check-phase2-toolchain-pin-scope.py",
+    "python3 scripts/zigux/install-zig.py --self-test",
+    "python3 scripts/zigux/check-zig-toolchain.py --self-test",
+    "make -C zigux phase2-validate",
+    "make -C zigux phase2",
 ]
 
 CLOSURE_MARKERS = [
@@ -208,6 +228,22 @@ def run_self_test() -> int:
     if validate_phase2_notes(valid_notes, payload=valid_policy):
         raise SystemExit("phase2-toolchain-pin-scope:self-test:valid_notes")
 
+    valid_docs_root = "\n".join(DOCS_ROOT_MARKERS)
+    if validate_required_markers(
+        valid_docs_root,
+        label="docs_root_readme",
+        markers=DOCS_ROOT_MARKERS,
+    ):
+        raise SystemExit("phase2-toolchain-pin-scope:self-test:valid_docs_root")
+
+    valid_review_checklist = "\n".join(REVIEW_CHECKLIST_MARKERS)
+    if validate_required_markers(
+        valid_review_checklist,
+        label="review_checklist",
+        markers=REVIEW_CHECKLIST_MARKERS,
+    ):
+        raise SystemExit("phase2-toolchain-pin-scope:self-test:valid_review_checklist")
+
     bad_phase = dict(valid_policy)
     bad_phase["phase"] = "Phase 3"
     issues = validate_policy(bad_phase)
@@ -300,6 +336,22 @@ def run_self_test() -> int:
     if marker_issues != ["sample:missing_marker:delta"]:
         raise SystemExit("phase2-toolchain-pin-scope:self-test:marker_failure_shape")
 
+    docs_root_issues = validate_required_markers(
+        "Documentation/zigux/phase2-toolchain-bootstrap-notes.md\nscripts/zigux/check-phase2-toolchain-pin-scope.py --self-test",
+        label="docs_root_readme",
+        markers=DOCS_ROOT_MARKERS,
+    )
+    if not any(issue.startswith("docs_root_readme:missing_marker:") for issue in docs_root_issues):
+        raise SystemExit("phase2-toolchain-pin-scope:self-test:docs_root_marker_failure")
+
+    review_issues = validate_required_markers(
+        "if the change touches the shared Phase 2 toolchain packet\npython3 scripts/zigux/install-zig.py --self-test",
+        label="review_checklist",
+        markers=REVIEW_CHECKLIST_MARKERS,
+    )
+    if not any(issue.startswith("review_checklist:missing_marker:") for issue in review_issues):
+        raise SystemExit("phase2-toolchain-pin-scope:self-test:review_marker_failure")
+
     with tempfile.TemporaryDirectory(prefix="phase2_toolchain_pin_scope_") as tmp_dir_str:
         tmp_root = Path(tmp_dir_str)
         manifest_path = tmp_root / "toolchain.json"
@@ -309,7 +361,7 @@ def run_self_test() -> int:
             raise SystemExit("phase2-toolchain-pin-scope:self-test:json_round_trip")
 
     print("PHASE2_TOOLCHAIN_PIN_SCOPE_SELF_TEST=pass")
-    print("PHASE2_TOOLCHAIN_PIN_SCOPE_SELF_TEST_CASE_COUNT=12")
+    print("PHASE2_TOOLCHAIN_PIN_SCOPE_SELF_TEST_CASE_COUNT=14")
     return 0
 
 
@@ -329,6 +381,8 @@ def main() -> int:
         NOTES_DOC,
         WORKFLOW,
         README,
+        DOCS_ROOT_README,
+        REVIEW_CHECKLIST,
         CLOSURE_DOC,
         PHASE2_VALIDATOR,
     ]
@@ -356,6 +410,20 @@ def main() -> int:
             README.read_text(encoding="utf-8"),
             label="scripts_readme",
             markers=README_MARKERS,
+        )
+    )
+    issues.extend(
+        validate_required_markers(
+            DOCS_ROOT_README.read_text(encoding="utf-8"),
+            label="docs_root_readme",
+            markers=DOCS_ROOT_MARKERS,
+        )
+    )
+    issues.extend(
+        validate_required_markers(
+            REVIEW_CHECKLIST.read_text(encoding="utf-8"),
+            label="review_checklist",
+            markers=REVIEW_CHECKLIST_MARKERS,
         )
     )
     issues.extend(
