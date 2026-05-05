@@ -97,7 +97,7 @@ test "phase 5 bytestream fifo manifest records the exact bounded checks" {
     try std.testing.expect(std.mem.eql(u8, manifest.non_goals[1], "kfifo_from_user or kfifo_to_user parity"));
 }
 
-test "phase 5 bytestream fifo survey note stays repo-local" {
+test "phase 5 bytestream fifo survey note keeps later runtime starters and loader follow-ons explicit" {
     var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
     defer io_instance.deinit();
 
@@ -105,9 +105,25 @@ test "phase 5 bytestream fifo survey note stays repo-local" {
         io_instance.io(),
         "Documentation/zigux/phase5-kfifo-sample-survey.md",
         std.testing.allocator,
-        .limited(32 * 1024),
+        .limited(64 * 1024),
     );
     defer std.testing.allocator.free(survey_note);
+
+    const required_mentions = [_][]const u8{
+        "runtime_atomic64.zig",
+        "runtime_atomic64_loader.zig",
+        "runtime_bitmap.zig",
+        "runtime_bitmap_loader.zig",
+        "runtime_kretprobe.zig",
+        "runtime_kretprobe_loader.zig",
+        "runtime_trace_events.zig",
+        "runtime_trace_events_loader.zig",
+        "loader-side follow-ons",
+    };
+
+    for (required_mentions) |needle| {
+        try std.testing.expect(std.mem.indexOf(u8, survey_note, needle) != null);
+    }
 
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "/workspace/agent_files") == null);
     try std.testing.expect(
