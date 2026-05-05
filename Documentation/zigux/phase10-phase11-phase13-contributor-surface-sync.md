@@ -17,13 +17,15 @@ Update these surfaces together when they describe the same active contributor pa
 - `Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md`
 - `zigux/tests/README.md`
 
+For Phase 13 wording, keep the shared validator-first replay route separate from the broader shipped adjacent release-surface evidence so review prompts do not quietly turn those adjacent files into extra replay steps.
+
 Also refresh the packet-local docs-root or scripts-root note when the wording change depends on a newly named replay, checker, manifest, or survey file.
 
 ## Update order
 
 1. Start from the packet-local source of truth.
 2. Refresh `Documentation/zigux/README.md` so the exact checker stack, replay route, and evidence names stay visible from the top-level product index.
-3. Refresh `Documentation/zigux/phase13-contributor-workflow-guide.md` when the change sharpens the shared validator-first replay route or the broader shipped release-surface evidence for Phase 13 contributors.
+3. Refresh `Documentation/zigux/phase13-contributor-workflow-guide.md` when the change sharpens the shared validator-first replay route or the broader shipped adjacent release-surface evidence for Phase 13 contributors.
 4. Refresh the compact tests-root companion so the same packet stays reviewable in the short form.
 5. Refresh `Documentation/zigux/review-checklist.md` if the change alters a shared reviewer prompt or release-discipline question.
 6. Refresh `zigux/tests/README.md` last so the broad tests-root carryover prompt matches the already-tightened packet notes.
@@ -57,7 +59,7 @@ For the active simple-driver contributor packet, confirm wording still matches:
 
 ## Phase 13 anchors
 
-For the active shared-helper release packet, confirm wording still matches:
+For the active shared-helper release packet, keep the shared validator-first replay route and the broader shipped adjacent release-surface evidence described separately but truthfully. Confirm wording still matches:
 - `Documentation/zigux/README.md`
 - `Documentation/zigux/review-checklist.md`
 - `Documentation/zigux/phase13-contributor-workflow-guide.md`
@@ -65,6 +67,9 @@ For the active shared-helper release packet, confirm wording still matches:
 - `Documentation/zigux/phase13-devres-survey.md`
 - `Documentation/zigux/phase13-landlock-ruleset-survey.md`
 - `Documentation/zigux/phase13-landlock-syscalls-survey.md`
+- `Documentation/zigux/phase13-release-notes-survey.md`
+- `Documentation/zigux/phase13-roadmap-traceability.md`
+- `Documentation/zigux/phase13-notifier-list-survey.md`
 - `zigux/tests/README.md`
 - `zigux/tests/phase13_build.zig`
 - `zigux/tests/phase13_libfs_manifest.json`
@@ -72,6 +77,10 @@ For the active shared-helper release packet, confirm wording still matches:
 - `zigux/tests/phase13_devres.zig`
 - `zigux/tests/phase13_landlock_ruleset_manifest.json`
 - `zigux/tests/phase13_landlock_syscalls_manifest.json`
+- `zigux/tests/phase13_notifier_list_manifest.json`
+- `zigux/bindings/notifier_abi.zig`
+- `include/zigux/notifier_abi.h`
+- `zigux/helpers/notifier_chain_view.zig`
 - `scripts/zigux/README.md`
 - `scripts/zigux/check-phase13-devres-packet.py`
 - `scripts/zigux/validate-phase13-release.py`
