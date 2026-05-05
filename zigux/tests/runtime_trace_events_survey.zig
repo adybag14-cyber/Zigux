@@ -55,7 +55,7 @@ test "phase 9 runtime trace-events survey manifest records the landed loader sca
     defer parsed.deinit();
 
     const manifest = parsed.value;
-    try std.testing.expectEqualStrings("P9-L09", manifest.lane_key);
+    try std.testing.expectEqualStrings("P9-L12", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 9", manifest.phase);
     try std.testing.expectEqualStrings("samples/trace_events/trace-events-sample.c", manifest.anchor);
     try std.testing.expectEqual(@as(usize, 2), manifest.roadmap_destinations.len);
