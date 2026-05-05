@@ -37,6 +37,13 @@
       "why_now": "A sample-backed lifecycle starter is the first honest runtime-facing bitmap step that can reuse the existing bitmap-view helper without pretending the full module substrate already exists."
     },
     {
+      "id": "runtime-bitmap-selftest-hook",
+      "status": "starter_landed",
+      "kind": "selftest_hook",
+      "zigux_destination": "samples/zigux/runtime_bitmap.zig",
+      "why_now": "The Phase 9 roadmap explicitly calls for selftest hooks, and the bounded runtime_bitmap sample already keeps that requirement reviewable through descriptor metadata plus runSelftest()."
+    },
+    {
       "id": "runtime-bitmap-module-tests",
       "status": "starter_landed",
       "kind": "validation",
