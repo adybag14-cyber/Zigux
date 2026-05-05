@@ -103,10 +103,10 @@
     },
     {
       "id": "phase14-skbuff-segs-prev-tail-publication-followup",
-      "status": "ready_next",
+      "status": "starter_landed",
       "kind": "lifetime_audit",
       "zigux_destination": "net/core/skbuff_bridge.zig",
-      "why_now": "The next honest skbuff step is a smaller exported-tail follow-up on skb_segment(), limited to segs->prev, the last-segment gso_size or gso_segs clamp, and validate_xmit_skb_list() so the lane can name the remaining tail-publication contract without widening into live packet lifetime control."
+      "why_now": "The bridge now records the exported tail-publication contract inside skb_segment(), limited to segs->prev, the last-segment gso_size or gso_segs clamp, tail->next publication, and validate_xmit_skb_list() so the lane names the remaining qdisc-facing consumer handoff without widening into live packet lifetime control."
     },
     {
       "id": "phase14-skbuff-live-ownership-blocker",
