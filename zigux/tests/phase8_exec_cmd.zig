@@ -121,6 +121,37 @@ test "phase 8 exec-cmd empty PATH handling preserves the C helper's trailing col
     try std.testing.expectEqualStrings(updated, env.get("PATH").?);
 }
 
+test "phase 8 exec-cmd chooses the logical PWD when it resolves to the same directory" {
+    const linux = std.os.linux;
+    var root_buf: [std.posix.PATH_MAX]u8 = undefined;
+    const root = try std.fmt.bufPrintZ(&root_buf, "/tmp/zigux-p8-l06-shared-{d}", .{linux.getpid()});
+    try std.testing.expectEqual(.SUCCESS, linux.errno(linux.mkdirat(linux.AT.FDCWD, root, 0o755)));
+    defer _ = linux.rmdir(root);
+
+    var repo_buf: [std.posix.PATH_MAX]u8 = undefined;
+    const repo = try std.fmt.bufPrintZ(&repo_buf, "{s}/repo", .{root});
+    try std.testing.expectEqual(.SUCCESS, linux.errno(linux.mkdirat(linux.AT.FDCWD, repo, 0o755)));
+    defer _ = linux.rmdir(repo);
+
+    var link_buf: [std.posix.PATH_MAX]u8 = undefined;
+    const link = try std.fmt.bufPrintZ(&link_buf, "{s}/repo-link", .{root});
+    try std.testing.expectEqual(.SUCCESS, linux.errno(linux.symlinkat(repo, linux.AT.FDCWD, link)));
+    defer _ = linux.unlinkat(linux.AT.FDCWD, link, 0);
+
+    const cwd = repo[0..repo.len];
+    const logical_pwd = link[0..link.len];
+
+    try std.testing.expect(exec_cmd.sameLocation(cwd, logical_pwd));
+    try std.testing.expectEqualStrings(
+        logical_pwd,
+        exec_cmd.choosePwdCwdFromFilesystem(cwd, logical_pwd),
+    );
+    try std.testing.expectEqualStrings(
+        cwd,
+        exec_cmd.choosePwdCwdFromFilesystem(cwd, "/definitely/missing"),
+    );
+}
+
 test "phase 8 exec-cmd chooses the logical PWD only when the caller proves it matches cwd" {
     try std.testing.expectEqualStrings(
         "/repo",
