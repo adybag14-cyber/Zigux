@@ -14,6 +14,15 @@
     "preexisting_phase9_build_present": true,
     "preexisting_runtime_kretprobe_doc_present": true
   },
+  "lifecycle_boundary_summary": {
+    "pre_execution_handoff_only": true,
+    "metadata_only_registration_labels": [
+      "register_kretprobe",
+      "unregister_kretprobe"
+    ],
+    "shared_request_surface": "zigux/kernel/runtime_loader.zig",
+    "live_registration_parity": "blocked_on_runtime_substrate"
+  },
   "gaps": [
     {
       "id": "phase9-build-gate",
