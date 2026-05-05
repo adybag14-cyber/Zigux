@@ -1,6 +1,6 @@
 const std = @import("std");
 const runtime_atomic64_sample = @import("runtime_atomic64_sample");
-const runtime_loader = @import("../../zigux/kernel/runtime_loader_contract.zig");
+const runtime_loader = @import("runtime_loader");
 
 const loaded_operation_families = [_]runtime_atomic64_sample.OperationFamily{
     .arithmetic,
