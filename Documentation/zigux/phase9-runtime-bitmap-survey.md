@@ -53,6 +53,7 @@ The current direct bitmap sample contract is verified through these exact checks
 - descriptor contract: the sample still advertises `name=runtime_bitmap`, `anchor=lib/test_bitmap.c`, `requires_runtime_substrate=true`, and `provides_selftest_hook=true`
 - lifecycle and mutation path: the sample still starts cold, rejects selftest before init, records one init run, clears bits `64..65`, adds bits `9..12`, and reaches weight `7` while keeping bit `70`
 - copy and selftest path: a second initialized sample can mirror the mutated bitmap, `runSelftest()` still reports the four ordered operation families `clear_set`, `copy`, `parse_and_print`, and `iteration_and_ranges`, and selftest leaves the bitmap summary unchanged
+- parse-and-print boundary: the ordered `parse_and_print` selftest family remains a review cue only; the current starter does not claim standalone `initFromBitList()`, `formatSetBits()`, or broader parse/print differential parity on `master`
 - exit and error guards: `exit()` still moves the sample to `exited`, later mutation or re-init attempts fail with `InvalidLifecycleTransition`, out-of-range init and range edits fail with `BitRangeOutOfBounds`, zero-length mutations leave the summary unchanged, and `copyFrom()` still rejects cold or exited sources with `InvalidSourceLifecycle`
 - diff-gate replay: the bounded parity cases still cover the single-word fill starter, the `79..97` cross-boundary clear cutout, the sparse `10,20,30,40,50,60,80,123` population replay, and the copied `0..108` tail-clear snapshot with `first_zero=109`
 
