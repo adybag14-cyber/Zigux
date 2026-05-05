@@ -80,7 +80,7 @@ test "phase13 libfs manifest records the landed helper surfaces and remaining he
     try std.testing.expect(manifest.survey_summary.preexisting_phase13_slice_note_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase13_reviewability_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase13_survey_note_present);
-    try std.testing.expectEqual(@as(usize, 12), manifest.gaps.len);
+    try std.testing.expectEqual(@as(usize, 13), manifest.gaps.len);
 
     const descriptor = libfs.LibFsHelperLab.descriptor();
     try std.testing.expectEqualStrings("fs/libfs.c", descriptor.anchor);
@@ -91,6 +91,7 @@ test "phase13 libfs manifest records the landed helper surfaces and remaining he
     try std.testing.expect(descriptor.provides_directory_emit_planning);
     try std.testing.expect(descriptor.provides_transaction_buffer_planning);
     try std.testing.expect(descriptor.provides_transaction_publish_planning);
+    try std.testing.expect(descriptor.provides_transaction_release_planning);
     try std.testing.expect(!descriptor.touches_live_dcache);
     try std.testing.expect(!descriptor.touches_live_inode_state);
 
@@ -109,7 +110,8 @@ test "phase13 libfs manifest records the landed helper surfaces and remaining he
     var saw_emit_followup = false;
     var saw_transaction_helper = false;
     var saw_transaction_publish_helper = false;
-    var saw_transaction_release_followup = false;
+    var saw_transaction_release_helper = false;
+    var saw_dcache_cursor_followup = false;
 
     for (manifest.gaps, 0..) |gap, i| {
         try std.testing.expect(gap.id.len > 0);
@@ -195,11 +197,18 @@ test "phase13 libfs manifest records the landed helper surfaces and remaining he
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "publish bookkeeping") != null);
         }
         if (std.mem.eql(u8, gap.id, "phase13-libfs-transaction-release-helper")) {
-            saw_transaction_release_followup = true;
-            try std.testing.expectEqualStrings("ready_next", gap.status);
+            saw_transaction_release_helper = true;
+            try std.testing.expectEqualStrings("starter_landed", gap.status);
             try std.testing.expectEqualStrings("fs/libfs.zig", gap.zigux_destination);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "simple_transaction_release") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "release bookkeeping") != null);
+        }
+        if (std.mem.eql(u8, gap.id, "phase13-libfs-dcache-cursor-helpers")) {
+            saw_dcache_cursor_followup = true;
+            try std.testing.expectEqualStrings("blocked_on_vfs_state", gap.status);
+            try std.testing.expectEqualStrings("fs/libfs.zig", gap.zigux_destination);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "dcache_dir_open") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "dcache_readdir") != null);
         }
 
         for (manifest.gaps[i + 1 ..]) |other| {
@@ -207,10 +216,10 @@ test "phase13 libfs manifest records the landed helper surfaces and remaining he
         }
     }
 
-    try std.testing.expectEqual(@as(usize, 11), starter_landed_count);
-    try std.testing.expectEqual(@as(usize, 1), ready_next_count);
-    try std.testing.expectEqual(@as(usize, 0), blocked_count);
-    try std.testing.expectEqual(@as(usize, 6), helper_surface_count);
+    try std.testing.expectEqual(@as(usize, 12), starter_landed_count);
+    try std.testing.expectEqual(@as(usize, 0), ready_next_count);
+    try std.testing.expectEqual(@as(usize, 1), blocked_count);
+    try std.testing.expectEqual(@as(usize, 7), helper_surface_count);
     try std.testing.expect(saw_build_gate);
     try std.testing.expect(saw_make_target);
     try std.testing.expect(saw_starter);
@@ -222,7 +231,8 @@ test "phase13 libfs manifest records the landed helper surfaces and remaining he
     try std.testing.expect(saw_emit_followup);
     try std.testing.expect(saw_transaction_helper);
     try std.testing.expect(saw_transaction_publish_helper);
-    try std.testing.expect(saw_transaction_release_followup);
+    try std.testing.expect(saw_transaction_release_helper);
+    try std.testing.expect(saw_dcache_cursor_followup);
 
     const survey_note = try readPacketFile(
         io_instance.io(),
@@ -231,8 +241,8 @@ test "phase13 libfs manifest records the landed helper surfaces and remaining he
     );
     defer std.testing.allocator.free(survey_note);
 
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "ready-next `phase13-libfs-transaction-release-helper`") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "blocked `phase13-libfs-dcache-cursor-helpers`") == null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "landed `phase13-libfs-transaction-release-helper`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "blocked `phase13-libfs-dcache-cursor-helpers`") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "blocked `phase13-libfs-inode-and-pseudofs-lifecycle`") == null);
 
     const traceability_note = try readPacketFile(
@@ -245,5 +255,6 @@ test "phase13 libfs manifest records the landed helper surfaces and remaining he
     try std.testing.expect(std.mem.indexOf(u8, traceability_note, "## Libfs lane traceability") != null);
     try std.testing.expect(std.mem.indexOf(u8, traceability_note, "zigux/tests/phase13_libfs_reviewability.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, traceability_note, "simple_transaction_release()") != null);
+    try std.testing.expect(std.mem.indexOf(u8, traceability_note, "dcache_dir_open()") != null);
     try std.testing.expect(std.mem.indexOf(u8, traceability_note, "helper-first filesystem planning") != null);
 }
