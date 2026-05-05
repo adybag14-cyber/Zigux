@@ -75,17 +75,17 @@
     },
     {
       "id": "phase10-mmio-register-window-helper",
-      "status": "ready_next",
+      "status": "starter_landed",
       "kind": "transport_wrapper",
       "zigux_destination": "drivers/virtio/virtio_mmio.zig",
-      "why_now": "With queue shape, used-buffer polling, callback re-enable, and delayed-callback pacing now landed, the next honest Phase 10 step is one tiny in-memory MMIO register-window helper before any interrupt, reset, or probe lifecycle work."
+      "why_now": "The ring survey now records that the tiny in-memory MMIO register-window helper already landed, so the queue-wrapper packet can point at that real transport foothold without pretending it is still only the next proposed step."
     },
     {
       "id": "phase10-mmio-lifecycle-and-irq-paths",
       "status": "blocked_on_risky_transport",
       "kind": "transport_wrapper",
       "zigux_destination": "drivers/virtio/virtio_mmio.zig",
-      "why_now": "Even after the first MMIO register-window helper lands, interrupt acknowledgement, queue discovery, reset flows, and probe or remove lifecycle behavior remain transport-facing and should stay blocked behind that smaller register-read or write foothold."
+      "why_now": "With the bounded MMIO register-window helper already landed, interrupt acknowledgement, queue discovery, reset flows, and probe or remove lifecycle behavior remain the still-blocked transport-facing follow-up."
     },
     {
       "id": "phase10-virtio-ring-slice-note",
