@@ -91,6 +91,19 @@ That means:
 
 This is part of closure because a closed validation tranche that is about to stop executing is not actually closed.
 
+## Shared Review Packet
+
+The closed Phase 1 host-tools packet also stays reviewable through these shared product surfaces:
+
+- `Documentation/zigux/README.md`
+- `Documentation/zigux/review-checklist.md`
+- `scripts/zigux/README.md`
+- `zigux/tests/README.md`
+- `zigux/Makefile`
+- `python3 scripts/zigux/validate-phase1-closure.py`
+
+Reviewers should treat drift across those packet summaries and the validator-first replay route as a closure regression even when the helper code itself is unchanged.
+
 ## Rollback
 
 Rollback owner:
