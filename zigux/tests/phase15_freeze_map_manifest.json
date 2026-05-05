@@ -1,5 +1,5 @@
 {
-  "lane_key": "P15-L01",
+  "lane_key": "P15-Y01",
   "phase": "Phase 15",
   "surveyed_commit": "9342905d34fb98d6fcd88cf2e88efed7355131d2",
   "anchor": "Documentation/zigux/freeze-map.md",
@@ -55,6 +55,40 @@
       ]
     }
   ],
+  "blocker_ownership": [
+    {
+      "anchor": "kernel/sched/core.c",
+      "owner": "kernel scheduler maintainers",
+      "phase": "Phase 15",
+      "status_bucket": "freeze_in_c",
+      "validation_gate": "Phase 15 parity scorecard plus Architecture Council reopen record",
+      "rollback_owner": "Architecture Council freeze-map owner"
+    },
+    {
+      "anchor": "mm/page_alloc.c",
+      "owner": "memory-management maintainers",
+      "phase": "Phase 15",
+      "status_bucket": "freeze_in_c",
+      "validation_gate": "Phase 15 parity scorecard plus Architecture Council reopen record",
+      "rollback_owner": "Architecture Council freeze-map owner"
+    },
+    {
+      "anchor": "kernel/rcu/tree.c",
+      "owner": "RCU maintainers",
+      "phase": "Phase 15",
+      "status_bucket": "freeze_in_c",
+      "validation_gate": "Phase 15 parity scorecard plus Architecture Council reopen record",
+      "rollback_owner": "Architecture Council freeze-map owner"
+    },
+    {
+      "anchor": "net/core/skbuff.c",
+      "owner": "network buffer maintainers",
+      "phase": "Phase 15",
+      "status_bucket": "freeze_in_c",
+      "validation_gate": "Phase 15 parity scorecard plus Architecture Council reopen record",
+      "rollback_owner": "Architecture Council freeze-map owner"
+    }
+  ],
   "gaps": [
     {
       "id": "phase15-freeze-map-governance-doc",
@@ -97,6 +131,13 @@
       "kind": "followup",
       "zigux_destination": "Documentation/zigux/phase15-parity-scorecard.md",
       "why_now": "The freeze-map slice now has to acknowledge that the parity scorecard, Architecture Council review process, and indefinite-C policy family are already landed on current master instead of pointing at a stale follow-up."
+    },
+    {
+      "id": "phase15-blocker-ownership-sync",
+      "status": "starter_landed",
+      "kind": "owner_inventory",
+      "zigux_destination": "Documentation/zigux/phase15-freeze-map-governance.md",
+      "why_now": "Each freeze-in-C anchor now needs explicit owner, validation-gate, and rollback-owner inventory so the maintenance-mode freeze-map packet proves the same review scope required by the root policy."
     },
     {
       "id": "phase15-deep-core-status-change-blocker",
