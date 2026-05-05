@@ -164,3 +164,99 @@ test "phase 9 runtime atomic64 survey note keeps the manifest-backed surveyed co
     try std.testing.expect(std.mem.indexOf(u8, note, "bounded sample-side loader scaffold") != null);
     try std.testing.expect(std.mem.indexOf(u8, note, "prepared handoff summary") != null);
 }
+
+test "phase 9 runtime atomic64 module slice keeps the loader-backed survey packet explicit" {
+    var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
+    defer io_instance.deinit();
+
+    const note = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "Documentation/zigux/phase9-runtime-atomic64-module-slice.md",
+        std.testing.allocator,
+        .limited(32 * 1024),
+    );
+    defer std.testing.allocator.free(note);
+
+    try std.testing.expect(std.mem.indexOf(u8, note, "bounded loader-handoff scaffold") != null);
+    try std.testing.expect(std.mem.indexOf(u8, note, "survey-manifest closure only") != null);
+    try std.testing.expect(std.mem.indexOf(u8, note, "samples/zigux/runtime_atomic64_loader.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, note, "zigux/tests/runtime_atomic64_manifest.json") != null);
+    try std.testing.expect(std.mem.indexOf(u8, note, "zigux/tests/runtime_atomic64_diff.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, note, "zigux/Makefile") != null);
+}
+
+test "phase 9 runtime atomic64 survey source-checks the direct sample evidence packet" {
+    var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
+    defer io_instance.deinit();
+
+    const sample_source = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "samples/zigux/runtime_atomic64.zig",
+        std.testing.allocator,
+        .limited(32 * 1024),
+    );
+    defer std.testing.allocator.free(sample_source);
+
+    const loader_source = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "samples/zigux/runtime_atomic64_loader.zig",
+        std.testing.allocator,
+        .limited(32 * 1024),
+    );
+    defer std.testing.allocator.free(loader_source);
+
+    const module_tests = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "zigux/tests/runtime_atomic64_module.zig",
+        std.testing.allocator,
+        .limited(32 * 1024),
+    );
+    defer std.testing.allocator.free(module_tests);
+
+    const diff_tests = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "zigux/tests/runtime_atomic64_diff.zig",
+        std.testing.allocator,
+        .limited(32 * 1024),
+    );
+    defer std.testing.allocator.free(diff_tests);
+
+    try std.testing.expect(std.mem.indexOf(u8, sample_source, ".name = \"runtime_atomic64\"") != null);
+    try std.testing.expect(std.mem.indexOf(u8, sample_source, ".anchor = \"lib/atomic64_test.c\"") != null);
+    try std.testing.expect(std.mem.indexOf(u8, sample_source, ".requires_runtime_substrate = true") != null);
+    try std.testing.expect(std.mem.indexOf(u8, sample_source, ".provides_selftest_hook = true") != null);
+    try std.testing.expect(std.mem.indexOf(u8, sample_source, ".arithmetic,") != null);
+    try std.testing.expect(std.mem.indexOf(u8, sample_source, ".bitwise,") != null);
+    try std.testing.expect(std.mem.indexOf(u8, sample_source, ".returning_ops,") != null);
+    try std.testing.expect(std.mem.indexOf(u8, sample_source, ".swap_ops,") != null);
+    try std.testing.expect(std.mem.indexOf(u8, sample_source, ".guard_ops,") != null);
+    try std.testing.expect(std.mem.indexOf(u8, sample_source, "pub fn addUnlessCounter") != null);
+    try std.testing.expect(std.mem.indexOf(u8, sample_source, "self.setStage(.selftest_complete);") != null);
+
+    try std.testing.expect(std.mem.indexOf(u8, module_tests, "try std.testing.expectEqual(@as(i64, 0x1111_1111_2222_2222), module.snapshotCounter());") != null);
+    try std.testing.expect(std.mem.indexOf(u8, module_tests, "const previous = try module.swapCounter(-9);") != null);
+    try std.testing.expect(std.mem.indexOf(u8, module_tests, "const compare_mismatch = try module.compareSwapCounter(-9, 33);") != null);
+    try std.testing.expect(std.mem.indexOf(u8, module_tests, "const add_unless_changed = try module.addUnlessCounter(-4, 99);") != null);
+    try std.testing.expect(std.mem.indexOf(u8, module_tests, "try std.testing.expectEqual(@as(i64, 13), module.snapshotCounter());") != null);
+    try std.testing.expect(std.mem.indexOf(u8, module_tests, "try std.testing.expectEqual(@as(usize, 5), summary.operation_families.len);") != null);
+    try std.testing.expect(std.mem.indexOf(u8, module_tests, "try std.testing.expectEqual(@as(usize, 1), module.exit_runs);") != null);
+    try std.testing.expect(std.mem.indexOf(u8, module_tests, "try std.testing.expectError(error.InvalidLifecycleTransition, module.addUnlessCounter(1, 13));") != null);
+
+    try std.testing.expect(std.mem.indexOf(u8, diff_tests, ".name = \"high-bit starter from atomic64_test.c still round-trips through exchange\"") != null);
+    try std.testing.expect(std.mem.indexOf(u8, diff_tests, ".seed = std.math.minInt(i64),") != null);
+    try std.testing.expect(std.mem.indexOf(u8, diff_tests, ".name = \"cmpxchg mismatch keeps the original value visible\"") != null);
+    try std.testing.expect(std.mem.indexOf(u8, diff_tests, ".name = \"add_unless applies the addend when the current value differs from the blocked value\"") != null);
+    try std.testing.expect(std.mem.indexOf(u8, diff_tests, "try std.testing.expectEqual(sample.OperationFamily.guard_ops, summary.operation_families[4]);") != null);
+    try std.testing.expect(std.mem.indexOf(u8, diff_tests, "try std.testing.expectError(error.InvalidLifecycleTransition, module.swapCounter(7));") != null);
+
+    try std.testing.expect(std.mem.indexOf(u8, loader_source, ".entry_symbol = \"zigux_runtime_atomic64_init\"") != null);
+    try std.testing.expect(std.mem.indexOf(u8, loader_source, ".exit_symbol = \"zigux_runtime_atomic64_exit\"") != null);
+    try std.testing.expect(std.mem.indexOf(u8, loader_source, "self.stage_state = .waiting_on_runtime_substrate;") != null);
+    try std.testing.expect(std.mem.indexOf(u8, loader_source, "self.stage_state = .released_without_substrate;") != null);
+    try std.testing.expect(std.mem.indexOf(u8, loader_source, "test \"runtime atomic64 loader keeps the prepared snapshot stable across later counter mutation\"") != null);
+    try std.testing.expect(std.mem.indexOf(u8, loader_source, "const swapped = try module.swapCounter(-9);") != null);
+    try std.testing.expect(std.mem.indexOf(u8, loader_source, "const compare = try module.compareSwapCounter(-9, 33);") != null);
+    try std.testing.expect(std.mem.indexOf(u8, loader_source, "const add_unless = try module.addUnlessCounter(4, 99);") != null);
+    try std.testing.expect(std.mem.indexOf(u8, loader_source, "try std.testing.expectEqual(@as(i64, 37), live_counter);") != null);
+    try std.testing.expect(std.mem.indexOf(u8, loader_source, "try std.testing.expectEqual(@as(i64, 17), pending_plan.summary.counter_snapshot);") != null);
+}
