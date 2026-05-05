@@ -177,6 +177,11 @@ pub fn build(b: *std.Build) void {
         .root_module = runtime_atomic64_diff_module,
     });
     const run_runtime_atomic64_diff_tests = b.addRunArtifact(runtime_atomic64_diff_tests);
+    const runtime_bitmap_sample_tests = b.addTest(.{
+        .name = "phase9-runtime-bitmap-sample-tests",
+        .root_module = runtime_bitmap_sample_module,
+    });
+    const run_runtime_bitmap_sample_tests = b.addRunArtifact(runtime_bitmap_sample_tests);
     const runtime_bitmap_module_tests = b.addTest(.{
         .name = "phase9-runtime-bitmap-module-tests",
         .root_module = runtime_bitmap_module,
@@ -259,6 +264,7 @@ pub fn build(b: *std.Build) void {
     test_step.dependOn(&run_runtime_atomic64_module_tests.step);
     test_step.dependOn(&run_runtime_atomic64_loader_tests.step);
     test_step.dependOn(&run_runtime_atomic64_diff_tests.step);
+    test_step.dependOn(&run_runtime_bitmap_sample_tests.step);
     test_step.dependOn(&run_runtime_bitmap_module_tests.step);
     test_step.dependOn(&run_runtime_bitmap_diff_tests.step);
     test_step.dependOn(&run_runtime_bitmap_loader_tests.step);
