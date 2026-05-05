@@ -51,12 +51,12 @@ It is a small substrate that makes future ports measurable:
 
 ## Low-Level Wrapper Reality
 
-The current Phase 3 low-level wrapper packet is narrower than some older survey wording claimed:
+The current Phase 3 low-level wrapper packet is still intentionally small, but it has moved past some older survey wording:
 
-- `zigux/helpers/atomic.zig` exposes the bounded ordered atomic helper set through `compareExchangeWeak()`.
-- `zigux/helpers/barrier.zig` currently exposes only `acquire`, `release`, and `full`, and still does so through a module-global `fence_word`.
-- `zigux/helpers/mmio.zig` currently exposes only `range`, `read32`, and `write32`.
-- The dedicated low-level wrapper survey should be treated as the current source of truth for this packet until the focused test and validator surfaces are brought back into line with the inspected helper files.
+- `zigux/helpers/atomic.zig` now exposes `load`, `store`, `exchange`, `fetchAdd`, `fetchSub`, `fetchAnd`, `fetchOr`, `fetchXor`, `fetchMin`, `fetchMax`, `compareExchange()`, and `compareExchangeWeak()`.
+- `zigux/helpers/barrier.zig` now exposes `acquire`, `release`, `full`, and `acquireRelease()` through local compile-review scaffolding rather than a module-global fence word.
+- `zigux/helpers/mmio.zig` now exposes `range`, direct `read8` and `write8`, and direct `read32` and `write32`.
+- The dedicated focused gate in `zigux/tests/phase3_low_level_wrappers.zig` still proves a narrower packet than the helper-local tests, so future low-level-wrapper follow-up should widen that one focused gate instead of re-expanding this slice note.
 
 ## Interop rules
 
