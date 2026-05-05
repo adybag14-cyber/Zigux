@@ -87,6 +87,7 @@ REQUIRED_MARKERS = {
         "scripts/zigux/check-phase7-argv-split-packet.py",
         "scripts/zigux/check-phase7-rbtree-parity.py",
         "zigux/tests/phase7_cmdline_survey.zig",
+        "zigux/tests/phase7_string_helpers_sample_boundary.zig",
         "zigux/tests/fixtures/phase7_cmdline_next_arg_vectors.zig",
         "zigux/tests/phase7_argv_split_survey.zig",
         "zigux/tests/phase7_argv_split_manifest.json",
@@ -261,6 +262,7 @@ def run_self_test() -> None:
         ("scripts_readme_make_wrapper_marker", "scripts/zigux/README.md", "scripts/zigux/check-phase7-make-wrapper.py", "", "scripts/zigux/README.md: scripts/zigux/check-phase7-make-wrapper.py"),
         ("scripts_readme_argv_split_packet_marker", "scripts/zigux/README.md", "scripts/zigux/check-phase7-argv-split-packet.py", "", "scripts/zigux/README.md: scripts/zigux/check-phase7-argv-split-packet.py"),
         ("scripts_readme_cmdline_survey_marker", "scripts/zigux/README.md", "zigux/tests/phase7_cmdline_survey.zig", "", "scripts/zigux/README.md: zigux/tests/phase7_cmdline_survey.zig"),
+        ("scripts_readme_string_helpers_sample_boundary_marker", "scripts/zigux/README.md", "zigux/tests/phase7_string_helpers_sample_boundary.zig", "", "scripts/zigux/README.md: zigux/tests/phase7_string_helpers_sample_boundary.zig"),
         ("scripts_readme_cmdline_fixture_marker", "scripts/zigux/README.md", "zigux/tests/fixtures/phase7_cmdline_next_arg_vectors.zig", "", "scripts/zigux/README.md: zigux/tests/fixtures/phase7_cmdline_next_arg_vectors.zig"),
         ("scripts_readme_argv_split_survey_marker", "scripts/zigux/README.md", "zigux/tests/phase7_argv_split_survey.zig", "", "scripts/zigux/README.md: zigux/tests/phase7_argv_split_survey.zig"),
         ("scripts_readme_argv_split_manifest_marker", "scripts/zigux/README.md", "zigux/tests/phase7_argv_split_manifest.json", "", "scripts/zigux/README.md: zigux/tests/phase7_argv_split_manifest.json"),
@@ -310,7 +312,7 @@ def run_self_test() -> None:
 
     case_count = len(missing_file_cases) + len(marker_cases)
     print("PHASE7_VALIDATOR_SELF_TEST=pass")
-    print(f"PHASE7_VALIDATOR_SELF_TEST_CASE_COUNT={case_count}")
+    print(f"PHASE7_VALIDATOR_SELF_TEST_CASE_COUNT={case_count})
 
 
 def main() -> int:
