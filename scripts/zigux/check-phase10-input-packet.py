@@ -107,6 +107,20 @@ EXPECTED_GAPS = {
     "phase10-virtio-input-registration-lifecycle": "blocked_on_risky_transport",
 }
 
+EXPECTED_ALLOWED_EVIDENCE_KINDS = [
+    "driver_local_lab_slices",
+    "survey_manifests",
+    "shared_validation_gates",
+]
+
+EXPECTED_FORBIDDEN_TRANSPORT_CLAIMS = [
+    "queue_setup_reset_paths",
+    "irq_parity",
+    "dma_paths",
+    "input_registration_lifecycle",
+    "probe_remove_lifecycle",
+]
+
 
 def read_text(root: Path, rel_path: str) -> str:
     return (root / rel_path).read_text(encoding="utf-8")
@@ -175,6 +189,22 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
         missing_markers.append("manifest:surveyed_commit")
     if manifest.get("roadmap_destinations") != ["drivers/virtio/*.zig", "zigux/helpers/"]:
         missing_markers.append("manifest:roadmap_destinations")
+    if manifest.get("freeze_map") != "Documentation/zigux/freeze-map.md":
+        missing_markers.append("manifest:freeze_map")
+    if manifest.get("freeze_boundary_status") != "aligned":
+        missing_markers.append("manifest:freeze_boundary_status=aligned")
+    if manifest.get("freeze_status_change_claimed") is not False:
+        missing_markers.append("manifest:freeze_status_change_claimed=false")
+    if manifest.get("risky_transport_posture") != "blocked_on_risky_transport":
+        missing_markers.append("manifest:risky_transport_posture=blocked_on_risky_transport")
+    if manifest.get("allowed_evidence_kinds") != EXPECTED_ALLOWED_EVIDENCE_KINDS:
+        missing_markers.append("manifest:allowed_evidence_kinds")
+    if manifest.get("forbidden_transport_claims") != EXPECTED_FORBIDDEN_TRANSPORT_CLAIMS:
+        missing_markers.append("manifest:forbidden_transport_claims")
+    if manifest.get("architecture_council_reopen_required") is not True:
+        missing_markers.append("manifest:architecture_council_reopen_required=true")
+    if manifest.get("architecture_council_reopen_attached") is not False:
+        missing_markers.append("manifest:architecture_council_reopen_attached=false")
 
     summary = manifest.get("survey_summary", {})
     if summary.get("preexisting_phase10_test_files") != 6:
@@ -245,6 +275,50 @@ def run_self_test() -> int:
             raise SystemExit("phase10-input-self-test:expected_lane_key_marker_missing")
         manifest_path.write_text(original_manifest, encoding="utf-8")
 
+        manifest_path.write_text(
+            original_manifest.replace('"freeze_boundary_status": "aligned"', '"freeze_boundary_status": "drifted"', 1),
+            encoding="utf-8",
+        )
+        _, missing_markers = validate(tmp_root)
+        if "manifest:freeze_boundary_status=aligned" not in missing_markers:
+            raise SystemExit("phase10-input-self-test:expected_freeze_boundary_marker_missing")
+        manifest_path.write_text(original_manifest, encoding="utf-8")
+
+        manifest_path.write_text(
+            original_manifest.replace(
+                '"risky_transport_posture": "blocked_on_risky_transport"',
+                '"risky_transport_posture": "ready_next"',
+                1,
+            ),
+            encoding="utf-8",
+        )
+        _, missing_markers = validate(tmp_root)
+        if "manifest:risky_transport_posture=blocked_on_risky_transport" not in missing_markers:
+            raise SystemExit("phase10-input-self-test:expected_transport_posture_marker_missing")
+        manifest_path.write_text(original_manifest, encoding="utf-8")
+
+        manifest_path.write_text(
+            original_manifest.replace('"freeze_status_change_claimed": false', '"freeze_status_change_claimed": true', 1),
+            encoding="utf-8",
+        )
+        _, missing_markers = validate(tmp_root)
+        if "manifest:freeze_status_change_claimed=false" not in missing_markers:
+            raise SystemExit("phase10-input-self-test:expected_freeze_status_claim_marker_missing")
+        manifest_path.write_text(original_manifest, encoding="utf-8")
+
+        manifest_path.write_text(
+            original_manifest.replace(
+                '"architecture_council_reopen_required": true',
+                '"architecture_council_reopen_required": false',
+                1,
+            ),
+            encoding="utf-8",
+        )
+        _, missing_markers = validate(tmp_root)
+        if "manifest:architecture_council_reopen_required=true" not in missing_markers:
+            raise SystemExit("phase10-input-self-test:expected_architecture_council_marker_missing")
+        manifest_path.write_text(original_manifest, encoding="utf-8")
+
         status_drain_path = tmp_root / "zigux/tests/phase10_virtio_input_status_drain.zig"
         original_status_drain = status_drain_path.read_text(encoding="utf-8")
         status_drain_path.write_text(
@@ -278,7 +352,7 @@ def run_self_test() -> int:
             raise SystemExit("phase10-input-self-test:expected_makefile_marker_missing")
 
     print("PHASE10_INPUT_PACKET_SELF_TEST=pass")
-    print("PHASE10_INPUT_PACKET_SELF_TEST_CASE_COUNT=4")
+    print("PHASE10_INPUT_PACKET_SELF_TEST_CASE_COUNT=8")
     return 0
 
 
