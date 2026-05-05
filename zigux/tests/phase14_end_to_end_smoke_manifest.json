@@ -45,6 +45,14 @@
       "required_marker": "phase14 skbuff bridge manifest records the boundary-map foothold and frozen ownership gap"
     },
     {
+      "path": "zigux/tests/phase14_workqueue_bridge_manifest.json",
+      "required_marker": "phase14-workqueue-live-execution-blocker"
+    },
+    {
+      "path": "zigux/tests/phase14_skbuff_bridge_manifest.json",
+      "required_marker": "phase14-skbuff-live-ownership-blocker"
+    },
+    {
       "path": "zigux/tests/phase14_ring_buffer_survey.zig",
       "required_marker": "phase 14 ring-buffer survey manifest records the study-only gap without inventing a port"
     },
