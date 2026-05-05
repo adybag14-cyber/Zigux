@@ -52,6 +52,7 @@ For the active simple-driver contributor packet, confirm wording still matches:
 For the active shared-helper release packet, confirm wording still matches:
 - `Documentation/zigux/phase13-release-notes-survey.md`
 - `Documentation/zigux/phase13-roadmap-traceability.md`
+- `Documentation/zigux/phase13-devres-survey.md`
 - `Documentation/zigux/phase13-notifier-list-survey.md`
 - `Documentation/zigux/phase13-devres-scatterlist-slice.md`
 - `scripts/zigux/check-phase13-libfs-packet.py`
@@ -59,6 +60,7 @@ For the active shared-helper release packet, confirm wording still matches:
 - `scripts/zigux/check-phase13-devres-inventory-contract.py`
 - `scripts/zigux/check-phase13-notifier-packet.py`
 - `scripts/zigux/check-phase13-release-replay-exact-counts.py`
+- `scripts/zigux/validate-phase13-release.py`
 
 ## Drift checks
 
@@ -66,5 +68,6 @@ Before closing a contributor-guidance change, ask:
 - Did a short-form companion note gain wording that the broad tests-root prompt still skips?
 - Did a checklist prompt keep an old replay count after the validator-first guide changed?
 - Did docs-root or scripts-root add a new replay, checker, manifest, or survey file that the shared contributor prompts still compress into older shorthand?
+- Did a broad Phase 13 tests-root prompt keep saying `the extra devres and Landlock reviewability gates` after the smaller companion or validator-first note started naming the direct devres plain-helper replay, the devres `iounmap`, `iomap`, and wrapper reviewability gates, the Landlock ruleset-fops-sync replay, or the shared replay-count guard explicitly?
 
 If the answer is yes, finish the shared-surface sync before treating the packet as review-ready.
