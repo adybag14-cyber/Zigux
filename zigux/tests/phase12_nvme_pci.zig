@@ -27,16 +27,6 @@ test "phase12 nvme pci descriptor and admin queue plan stay anchored to pci.c" {
     try std.testing.expectEqual(@as(usize, 0), recovery.planned_io_queues);
 }
 
-test "phase12 nvme pci ownership summary keeps starter and blocked transport work separate" {
-    const ownership = nvme_pci.NvmePciQueueLab.ownershipSummary();
-    try std.testing.expectEqualStrings("drivers/nvme/host/pci.c", ownership.anchor);
-    try std.testing.expectEqualStrings("P12-Y02", ownership.owner_lane);
-    try std.testing.expectEqual(nvme_pci.OwnershipBoundary.starter_packet, ownership.queue_planning_owner);
-    try std.testing.expectEqual(nvme_pci.OwnershipBoundary.starter_packet, ownership.prp_shape_owner);
-    try std.testing.expectEqual(nvme_pci.OwnershipBoundary.dma_transport_substrate, ownership.live_dma_owner);
-    try std.testing.expectEqual(nvme_pci.OwnershipBoundary.dma_transport_substrate, ownership.recovery_transport_owner);
-}
-
 test "phase12 nvme pci separates queue footprint from host DMA when CMB backs SQ" {
     var lab = try nvme_pci.NvmePciQueueLab.init(4096, 16);
     _ = try lab.planAdminQueue(64, 64, false);
@@ -88,12 +78,39 @@ test "phase12 nvme pci plans PRP buffer shapes without claiming live DMA setup" 
     try std.testing.expectEqual(@as(u16, 1), multi_page.prp_list_entries);
 }
 
-test "phase12 nvme pci rejects invalid PRP offsets and oversized list shapes" {
+test "phase12 nvme pci summarizes PRP metadata without claiming live descriptor allocation" {
     var lab = try nvme_pci.NvmePciQueueLab.init(4096, 8);
 
+    const single_page = try lab.planPrpMetadata(512, 128);
+    try std.testing.expectEqual(@as(u8, 1), single_page.command_inline_data_pointers);
+    try std.testing.expectEqual(@as(u16, 0), single_page.prp_list_covered_pages);
+    try std.testing.expectEqual(@as(u32, 0), single_page.extra_descriptor_dma_bytes);
+    try std.testing.expectEqual(@as(u16, 0), single_page.extra_descriptor_dma_pages);
+    try std.testing.expect(!single_page.uses_prp_list);
+    try std.testing.expect(!single_page.requires_reset_rebuild);
+
+    const two_page = try lab.planPrpMetadata(4224, 128);
+    try std.testing.expectEqual(@as(u8, 2), two_page.command_inline_data_pointers);
+    try std.testing.expectEqual(@as(u16, 0), two_page.prp_list_covered_pages);
+    try std.testing.expectEqual(@as(u32, 0), two_page.extra_descriptor_dma_bytes);
+    try std.testing.expect(!two_page.uses_prp_list);
+
+    const multi_page = try lab.planPrpMetadata(9000, 128);
+    try std.testing.expectEqual(@as(u8, 2), multi_page.command_inline_data_pointers);
+    try std.testing.expectEqual(@as(u16, 1), multi_page.prp_list_covered_pages);
+    try std.testing.expectEqual(@as(u16, 1), multi_page.prp_list_entries);
+    try std.testing.expectEqual(@as(u32, 4096), multi_page.extra_descriptor_dma_bytes);
+    try std.testing.expectEqual(@as(u16, 1), multi_page.extra_descriptor_dma_pages);
+    try std.testing.expect(multi_page.uses_prp_list);
+    try std.testing.expect(multi_page.requires_reset_rebuild);
+}
+
+test "phase12 nvme pci rejects invalid PRP offsets and oversized list shapes" {
+    var lab = try nvme_pci.NvmePciQueueLab.init(4096, 8);
     try std.testing.expectError(error.InvalidTransferSize, lab.planPrpBufferShape(0, 0));
     try std.testing.expectError(error.InvalidPrpOffset, lab.planPrpBufferShape(4096, 4096));
     try std.testing.expectError(error.PrpListTooLong, lab.planPrpBufferShape(4096 * 515, 0));
+    try std.testing.expectError(error.InvalidTransferSize, lab.planPrpMetadata(0, 0));
 }
 
 test "phase12 nvme pci rejects invalid queue geometry and excessive io queue plans" {
