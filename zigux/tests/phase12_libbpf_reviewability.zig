@@ -61,6 +61,10 @@ test "phase12 libbpf reviewability gate matches the current zigux_segments file 
     var saw_landed_perf_buffer_poll = false;
     var saw_landed_logging = false;
     var saw_landed_pin_path = false;
+    var saw_fdinfo_ready_next = false;
+    var saw_map_reuse_ready_next = false;
+    var saw_file_path_handle_bridge = false;
+    var saw_perf_buffer_online_cpu_routing = false;
     var saw_blocked_skeleton = false;
     var saw_blocked_object_loader = false;
     var saw_blocked_relocation = false;
@@ -70,6 +74,8 @@ test "phase12 libbpf reviewability gate matches the current zigux_segments file 
         }
         const exists = try pathExists(io_instance.io(), gap.zigux_destination);
         if (std.mem.eql(u8, gap.status, "starter_landed")) {
+            try std.testing.expect(exists);
+        } else if (std.mem.eql(u8, gap.id, "phase12-libbpf-perf-buffer-online-cpu-routing")) {
             try std.testing.expect(exists);
         } else if (std.mem.eql(u8, gap.status, "ready_next") or std.mem.eql(u8, gap.status, "blocked_on_object_model") or std.mem.eql(u8, gap.status, "deferred_high_risk")) {
             try std.testing.expect(!exists);
@@ -98,6 +104,22 @@ test "phase12 libbpf reviewability gate matches the current zigux_segments file 
             saw_landed_pin_path = true;
             try std.testing.expect(exists);
         }
+        if (std.mem.eql(u8, gap.id, "phase12-libbpf-fdinfo-map-info-helper-ready-next")) {
+            saw_fdinfo_ready_next = true;
+            try std.testing.expect(!exists);
+        }
+        if (std.mem.eql(u8, gap.id, "phase12-libbpf-map-reuse-compatibility-ready-next")) {
+            saw_map_reuse_ready_next = true;
+            try std.testing.expect(!exists);
+        }
+        if (std.mem.eql(u8, gap.id, "phase12-libbpf-file-path-and-handle-bridge")) {
+            saw_file_path_handle_bridge = true;
+            try std.testing.expect(!exists);
+        }
+        if (std.mem.eql(u8, gap.id, "phase12-libbpf-perf-buffer-online-cpu-routing")) {
+            saw_perf_buffer_online_cpu_routing = true;
+            try std.testing.expect(exists);
+        }
         if (std.mem.eql(u8, gap.id, "phase12-libbpf-skeleton-population")) {
             saw_blocked_skeleton = true;
             try std.testing.expect(!exists);
@@ -117,6 +139,10 @@ test "phase12 libbpf reviewability gate matches the current zigux_segments file 
     try std.testing.expect(saw_landed_perf_buffer_poll);
     try std.testing.expect(saw_landed_logging);
     try std.testing.expect(saw_landed_pin_path);
+    try std.testing.expect(saw_fdinfo_ready_next);
+    try std.testing.expect(saw_map_reuse_ready_next);
+    try std.testing.expect(saw_file_path_handle_bridge);
+    try std.testing.expect(saw_perf_buffer_online_cpu_routing);
     try std.testing.expect(saw_blocked_skeleton);
     try std.testing.expect(saw_blocked_object_loader);
     try std.testing.expect(saw_blocked_relocation);
@@ -182,6 +208,10 @@ test "phase12 libbpf reviewability gate cross-checks the legacy segment catalog"
     var saw_cpu_mask = false;
     var saw_type_names = false;
     var saw_perf_buffer_poll = false;
+    var saw_fdinfo_map_info = false;
+    var saw_map_reuse = false;
+    var saw_file_path_handle_bridge = false;
+    var saw_perf_buffer_online_cpu_routing = false;
     var saw_skeleton = false;
     var saw_object_loader = false;
     var saw_relocation = false;
@@ -212,6 +242,26 @@ test "phase12 libbpf reviewability gate cross-checks the legacy segment catalog"
             try std.testing.expectEqualStrings("starter_landed", segment.status);
             try std.testing.expect(exists);
         }
+        if (std.mem.eql(u8, segment.slug, "fdinfo-map-info-helpers")) {
+            saw_fdinfo_map_info = true;
+            try std.testing.expectEqualStrings("ready_next", segment.status);
+            try std.testing.expect(!exists);
+        }
+        if (std.mem.eql(u8, segment.slug, "map-reuse-compatibility")) {
+            saw_map_reuse = true;
+            try std.testing.expectEqualStrings("ready_next", segment.status);
+            try std.testing.expect(!exists);
+        }
+        if (std.mem.eql(u8, segment.slug, "file-path-and-handle-bridge")) {
+            saw_file_path_handle_bridge = true;
+            try std.testing.expectEqualStrings("deferred_high_risk", segment.status);
+            try std.testing.expect(!exists);
+        }
+        if (std.mem.eql(u8, segment.slug, "perf-buffer-online-cpu-routing")) {
+            saw_perf_buffer_online_cpu_routing = true;
+            try std.testing.expectEqualStrings("deferred_high_risk", segment.status);
+            try std.testing.expect(exists);
+        }
         if (std.mem.eql(u8, segment.slug, "skeleton-population")) {
             saw_skeleton = true;
             try std.testing.expectEqualStrings("blocked_on_object_model", segment.status);
@@ -233,6 +283,10 @@ test "phase12 libbpf reviewability gate cross-checks the legacy segment catalog"
     try std.testing.expect(saw_cpu_mask);
     try std.testing.expect(saw_type_names);
     try std.testing.expect(saw_perf_buffer_poll);
+    try std.testing.expect(saw_fdinfo_map_info);
+    try std.testing.expect(saw_map_reuse);
+    try std.testing.expect(saw_file_path_handle_bridge);
+    try std.testing.expect(saw_perf_buffer_online_cpu_routing);
     try std.testing.expect(saw_skeleton);
     try std.testing.expect(saw_object_loader);
     try std.testing.expect(saw_relocation);
