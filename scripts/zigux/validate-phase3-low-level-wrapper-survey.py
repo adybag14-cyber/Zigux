@@ -9,7 +9,7 @@ from pathlib import Path
 
 
 FILE_PATH = Path(__file__).resolve()
-ROOT = FILE_PATH.parent
+ROOT = FILE_PATH.parents[2] if len(FILE_PATH.parents) >= 3 else FILE_PATH.parent
 DOC_REL = "Documentation/zigux/phase3-low-level-wrapper-boundary-survey.md"
 
 ATOMIC_REL = "zigux/helpers/atomic.zig"
