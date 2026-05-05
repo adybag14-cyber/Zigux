@@ -76,7 +76,9 @@ SURVEY_REQUIRED_MARKERS = [
 ]
 
 MODULE_METADATA_SURVEY_EXACT_ONCE_MARKERS = [
+    "- `python3 scripts/zigux/validate-phase9.py --self-test`\n",
     "- `python3 scripts/zigux/check-phase9-module-metadata-packet.py --self-test`\n",
+    "- `python3 scripts/zigux/validate-phase9.py`\n",
     "- `python3 scripts/zigux/check-phase9-module-metadata-packet.py`\n",
     "- `zig build test --build-file zigux/tests/phase9_build.zig --summary all`\n",
     "- `zig test zigux/tests/runtime_module_metadata_survey.zig`\n",
@@ -488,8 +490,8 @@ def write_fixture_tree(root: Path) -> None:
         "5. run the shared convenience target",
         "- `make -C zigux phase9-validate`",
         "",
-    ]) + "\n", encoding='utf-8')
-    (root / MANIFEST_PATH).write_text(json.dumps(manifest, indent=2) + "\n", encoding='utf-8')
+    ]) + "\n", encoding="utf-8")
+    (root / MANIFEST_PATH).write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
     (root / SURVEY_TEST_PATH).write_text("\n".join([
         'test "runtime module metadata manifest keeps the dedicated descriptor and depmod-gap packet explicit" {',
         'test "runtime module metadata docs stay aligned with the manifest-backed surveyed commit" {',
@@ -520,22 +522,22 @@ def write_fixture_tree(root: Path) -> None:
         '"zigux/tests/runtime_module_metadata_survey.zig"',
         '"scripts/zigux/check-phase9-module-metadata-packet.py"',
         '"phase9-runtime-module-metadata-survey-tests"',
-        'waitingOnRuntimeSubstrate',
-        'releasedWithoutSubstrate',
-        'register_kretprobe',
-        'foo_bar_reg',
-        'foo_bar_unreg',
-        ''
-    ]), encoding='utf-8')
-    (root / CHECKER_PATH).write_text('self checker fixture marker\n', encoding='utf-8')
-    (root / VALIDATE_PHASE9_PATH).write_text("\n".join(VALIDATE_PHASE9_REQUIRED_MARKERS) + "\n", encoding='utf-8')
+        "waitingOnRuntimeSubstrate",
+        "releasedWithoutSubstrate",
+        "register_kretprobe",
+        "foo_bar_reg",
+        "foo_bar_unreg",
+        ""
+    ]), encoding="utf-8")
+    (root / CHECKER_PATH).write_text('self checker fixture marker\n', encoding="utf-8")
+    (root / VALIDATE_PHASE9_PATH).write_text("\n".join(VALIDATE_PHASE9_REQUIRED_MARKERS) + "\n", encoding="utf-8")
     (root / MAKEFILE_PATH).write_text("\n".join([
         "PHONY += phase9-validate phase9-test phase9-loader-gap-survey phase9-loader-commit-alignment-survey phase9-non-owner-boundary-survey phase9-module-metadata-survey phase9-kretprobe-survey phase9-trace-events-survey phase9",
         "",
         "phase9-module-metadata-survey:",
         "\tcd $(ZIGUX_ROOT) && $(ZIG) test zigux/tests/runtime_module_metadata_survey.zig",
-    ]) + "\n", encoding='utf-8')
-    (root / PHASE9_BUILD_PATH).write_text("\n".join(["runtime_module_metadata_survey.zig", "phase9-runtime-module-metadata-survey-tests", ""]) , encoding='utf-8')
+    ]) + "\n", encoding="utf-8")
+    (root / PHASE9_BUILD_PATH).write_text("\n".join(["runtime_module_metadata_survey.zig", "phase9-runtime-module-metadata-survey-tests", ""]) , encoding="utf-8")
     (root / RUNTIME_LOADER_PATH).write_text("\n".join([
         "pub const RuntimeLoadRequest = struct {",
         "    module_name: []const u8,",
@@ -546,7 +548,7 @@ def write_fixture_tree(root: Path) -> None:
         "    allocator_handoff: u8,",
         "};",
         "",
-    ]), encoding='utf-8')
+    ]), encoding="utf-8")
     (root / ATOMIC64_LOADER_PATH).write_text("\n".join([
         "pub const RuntimeAtomic64LoadPlan = struct {};",
         "pub fn toSharedRequest(plan: RuntimeAtomic64LoadPlan) runtime_loader.RuntimeLoadRequest {",
@@ -556,7 +558,7 @@ def write_fixture_tree(root: Path) -> None:
         "    return undefined.waitingOnRuntimeSubstrate().releasedWithoutSubstrate();",
         "}",
         "",
-    ]), encoding='utf-8')
+    ]), encoding="utf-8")
     (root / BITMAP_LOADER_PATH).write_text("\n".join([
         "pub const RuntimeBitmapLoadPlan = struct {};",
         "pub fn toSharedRequest(plan: RuntimeBitmapLoadPlan) runtime_loader.RuntimeLoadRequest {",
@@ -566,7 +568,7 @@ def write_fixture_tree(root: Path) -> None:
         "    return undefined.waitingOnRuntimeSubstrate().releasedWithoutSubstrate();",
         "}",
         "",
-    ]), encoding='utf-8')
+    ]), encoding="utf-8")
     (root / KRETPROBE_LOADER_PATH).write_text("\n".join([
         "pub const RuntimeKretprobeLoadPlan = struct {};",
         "pub fn toSharedRequest(plan: RuntimeKretprobeLoadPlan) runtime_loader.RuntimeLoadRequest {",
@@ -578,7 +580,7 @@ def write_fixture_tree(root: Path) -> None:
         "    return undefined.waitingOnRuntimeSubstrate().releasedWithoutSubstrate();",
         "}",
         "",
-    ]), encoding='utf-8')
+    ]), encoding="utf-8")
     (root / TRACE_EVENTS_LOADER_PATH).write_text("\n".join([
         'const runtime_loader = @import("runtime_loader");',
         "pub const LoaderStage = runtime_loader.LoaderStage;",
@@ -595,14 +597,14 @@ def write_fixture_tree(root: Path) -> None:
         'const _register = "foo_bar_reg";',
         'const _unregister = "foo_bar_unreg";',
         "",
-    ]), encoding='utf-8')
+    ]), encoding="utf-8")
     (root / TESTS_README_PATH).write_text("\n".join([
         "# zigux/tests",
         "",
         "- keep the current Phase 9 runtime bundle reviewable through `zigux/tests/phase9_build.zig`, `zigux/tests/runtime_loader_gap_survey.zig`, `zigux/tests/runtime_loader_gap_manifest.json`, `zigux/tests/runtime_module_metadata_survey.zig`, `zigux/tests/runtime_module_metadata_manifest.json`, `scripts/zigux/validate-phase9.py`, `make -C zigux phase9-validate`, and the focused `make -C zigux phase9-trace-events-survey` replay instead of widening into ad hoc runtime-slice checks",
         "- keep the dedicated Phase 9 module-metadata packet explicit beside the loader-gap packet: `Documentation/zigux/phase9-module-metadata-depmod-bridge-survey.md`, `zigux/tests/runtime_module_metadata_manifest.json`, and `zigux/tests/runtime_module_metadata_survey.zig` should continue to record the starter-descriptor surface and absent depmod-facing metadata without implying `.modinfo`, `MODULE_ALIAS()`, or `scripts/depmod.sh` parity",
         "",
-    ]), encoding='utf-8')
+    ]), encoding="utf-8")
 
 def expect_missing_marker(label: str, root: Path, expected_marker: str) -> None:
     missing_files, missing_markers = validate(root)
@@ -679,11 +681,17 @@ def run_self_test() -> int:
         validate_phase9_path.write_text(original_validate_phase9.replace('phase9-runtime-module-metadata-survey-tests', 'phase9-runtime-module-metadata-survey-step', 1), encoding='utf-8')
         expect_missing_marker('validate_phase9_module_metadata_build_leg', tmp_root, 'validate_phase9:phase9-runtime-module-metadata-survey-tests')
         validate_phase9_path.write_text(original_validate_phase9, encoding='utf-8')
+        survey_path.write_text(original_survey.replace('- `python3 scripts/zigux/validate-phase9.py --self-test`\n', '- `python3 scripts/zigux/validate-phase9.py --self-test`\n- `python3 scripts/zigux/validate-phase9.py --self-test`\n', 1), encoding='utf-8')
+        expect_missing_marker('survey_duplicate_validate_phase9_self_test_gate', tmp_root, 'survey_exact:- `python3 scripts/zigux/validate-phase9.py --self-test`\n')
+        survey_path.write_text(original_survey, encoding='utf-8')
         survey_path.write_text(original_survey.replace('- `python3 scripts/zigux/check-phase9-module-metadata-packet.py --self-test`\n', '', 1), encoding='utf-8')
         expect_missing_marker('survey_checker_self_test_gate', tmp_root, 'survey:- `python3 scripts/zigux/check-phase9-module-metadata-packet.py --self-test`')
         survey_path.write_text(original_survey, encoding='utf-8')
         survey_path.write_text(original_survey.replace('- `python3 scripts/zigux/check-phase9-module-metadata-packet.py --self-test`\n', '- `python3 scripts/zigux/check-phase9-module-metadata-packet.py --self-test`\n- `python3 scripts/zigux/check-phase9-module-metadata-packet.py --self-test`\n', 1), encoding='utf-8')
         expect_missing_marker('survey_checker_duplicate_self_test_gate', tmp_root, 'survey_exact:- `python3 scripts/zigux/check-phase9-module-metadata-packet.py --self-test`\n')
+        survey_path.write_text(original_survey, encoding='utf-8')
+        survey_path.write_text(original_survey.replace('- `python3 scripts/zigux/validate-phase9.py`\n', '- `python3 scripts/zigux/validate-phase9.py`\n- `python3 scripts/zigux/validate-phase9.py`\n', 1), encoding='utf-8')
+        expect_missing_marker('survey_duplicate_validate_phase9_live_gate', tmp_root, 'survey_exact:- `python3 scripts/zigux/validate-phase9.py`\n')
         survey_path.write_text(original_survey, encoding='utf-8')
         survey_path.write_text(original_survey.replace('- `python3 scripts/zigux/check-phase9-module-metadata-packet.py`\n', '', 1), encoding='utf-8')
         expect_missing_marker('survey_checker_live_gate', tmp_root, 'survey:- `python3 scripts/zigux/check-phase9-module-metadata-packet.py`')
@@ -726,7 +734,7 @@ def run_self_test() -> int:
         expect_missing_marker('tests_readme_depmod_parity_warning', tmp_root, 'tests_readme:absent depmod-facing metadata without implying `.modinfo`, `MODULE_ALIAS()`, or `scripts/depmod.sh` parity')
         tests_readme_path.write_text(original_tests_readme, encoding='utf-8')
     print('PHASE9_MODULE_METADATA_PACKET_SELF_TEST=pass')
-    print('PHASE9_MODULE_METADATA_PACKET_SELF_TEST_CASE_COUNT=25')
+    print('PHASE9_MODULE_METADATA_PACKET_SELF_TEST_CASE_COUNT=27')
     return 0
 
 def main() -> int:
