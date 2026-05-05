@@ -12,6 +12,7 @@ test "phase13 devres descriptor stays anchored to lib/devres.c" {
     try std.testing.expectEqualStrings("devres_helper_lab", descriptor.name);
     try std.testing.expectEqualStrings("lib/devres.c", descriptor.anchor);
     try std.testing.expect(descriptor.provides_ioremap_lifetime_planning);
+    try std.testing.expect(descriptor.provides_ioremap_wc_wrapper_planning);
     try std.testing.expect(descriptor.provides_release_pointer_match);
     try std.testing.expect(descriptor.provides_ioremap_resource_planning);
     try std.testing.expect(descriptor.provides_of_iomap_planning);
@@ -60,6 +61,35 @@ test "phase13 devres rejects ioremap planning when the release record cannot be 
         .release_record_allocated = false,
         .mapped_address = 0x2000,
     }));
+}
+
+test "phase13 devres write-combined ioremap wrapper forces the WC lifetime path" {
+    const result = try devres.DevresHelperLab.planManagedIoremapAcquireWc(.{
+        .release_record_allocated = true,
+        .mapped_address = 0x2400,
+    });
+
+    try std.testing.expectEqualStrings("lib/devres.c", result.anchor);
+    try std.testing.expectEqual(devres.ManagedIoremapKind.write_combined, result.kind);
+    try std.testing.expectEqual(@as(?usize, 0x2400), result.mapped_address);
+    try std.testing.expect(result.added_to_devres);
+    try std.testing.expect(result.release_record_retained);
+    try std.testing.expect(!result.release_record_freed);
+    try std.testing.expect(result.should_unmap_on_detach);
+}
+
+test "phase13 devres write-combined ioremap wrapper frees the release record on map failure" {
+    const result = try devres.DevresHelperLab.planManagedIoremapAcquireWc(.{
+        .release_record_allocated = true,
+        .mapped_address = null,
+    });
+
+    try std.testing.expectEqual(devres.ManagedIoremapKind.write_combined, result.kind);
+    try std.testing.expectEqual(@as(?usize, null), result.mapped_address);
+    try std.testing.expect(!result.added_to_devres);
+    try std.testing.expect(!result.release_record_retained);
+    try std.testing.expect(result.release_record_freed);
+    try std.testing.expect(!result.should_unmap_on_detach);
 }
 
 test "phase13 devres release matching stays pointer-exact" {
@@ -506,19 +536,20 @@ test "phase13 devres rejects phys WC token planning when the release record cann
 }
 
 test "phase13 devres manifest records the current dma/scatterlist boundary packet" {
-    try expectContains(manifest_text, "\"lane_key\": \"P13-L07\"");
-    try expectContains(manifest_text, "\"surveyed_commit\": \"master-reviewability\"");
+    try expectContains(manifest_text, "\"lane_key\": \"P13-L11\"");
+    try expectContains(manifest_text, "\"surveyed_commit\": \"7a4454d0474106972cad7e164b79293bd54a40c6\"");
     try expectContains(manifest_text, "\"preexisting_phase13_devres_reviewability_present\": true");
     try expectContains(manifest_text, "\"id\": \"phase13-devres-reviewability-gate\"");
     try expectContains(manifest_text, "\"id\": \"phase13-devres-arch-phys-wc-token-planner\"");
     try expectContains(manifest_text, "\"id\": \"phase13-devres-live-dma-backed-helpers\"");
     try expectContains(manifest_text, "\"id\": \"phase13-devres-live-scatterlist-ownership\"");
+    try expectContains(manifest_text, "devm_ioremap_wc()");
     try expectContains(manifest_text, "\"status\": \"starter_landed\"");
-    try expectContains(manifest_text, "\"status\": \"blocked_on_live_resource_state\"");
+    try expectContains(manifest_text, "\"status\": \"blocked_on_dma_state\"");
     try expectContains(manifest_text, "dmam_alloc_*");
     try expectContains(manifest_text, "machine-checkable");
     try expectContains(manifest_text, "arch_phys_wc_del()");
     try expectContains(manifest_text, "dma_map_sgtable()");
     try expectContains(manifest_text, "struct scatterlist");
-    try expectContains(manifest_text, "sg list allocation");
+    try expectContains(manifest_text, "sg_table lifecycle");
 }
