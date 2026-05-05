@@ -135,3 +135,20 @@ test "negate is its own inverse" {
         try std.testing.expectEqual(case, negate(negate(case)));
     }
 }
+
+test "add plus negate keeps one's-complement carry semantics" {
+    const cases = [_]struct {
+        sum: u32,
+        expected: u32,
+    }{
+        .{ .sum = 0x0000_0000, .expected = 0x0000_0000 },
+        .{ .sum = 0x0000_0001, .expected = 0x0000_0001 },
+        .{ .sum = 0x0001_0000, .expected = 0x0000_0001 },
+        .{ .sum = 0x1234_5678, .expected = 0x0000_0001 },
+        .{ .sum = 0xffff_ffff, .expected = 0x0000_0001 },
+    };
+
+    for (cases) |case| {
+        try std.testing.expectEqual(case.expected, add(case.sum, negate(case.sum)));
+    }
+}
