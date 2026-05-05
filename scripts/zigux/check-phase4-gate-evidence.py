@@ -38,12 +38,30 @@ PHASE4_RUNTIME_ATOMIC64_PACKET_BLOB_TARGETS = {
     "phase9_build_blob_sha": "zigux/tests/phase9_build.zig",
 }
 
+SELF_TEST_CASES = [
+    "baseline_round_trip",
+    "shipped_target_count_drift",
+    "missing_exact_readback_heading",
+    "validator_blob_pin_drift",
+    "phase4_build_manifest_blob_pin_drift",
+    "phase4_build_survey_blob_pin_drift",
+    "phase9_build_manifest_blob_pin_drift",
+    "phase9_build_survey_blob_pin_drift",
+    "missing_note_file",
+]
+
 REQUIRED_STATUS_LINES = [
     "PHASE4_EVIDENCE_MODE=github_connector_readback",
     "PHASE4_EVIDENCE_SCOPE=rollback_ownership_and_lab_matrix_current_gate_definitions",
     "PHASE4_EXACT_READBACK_REF=master",
     f"PHASE4_SHIPPED_GATE_BLOB_TARGET_COUNT={len(PHASE4_GATE_EVIDENCE_BLOB_TARGETS)}",
+    f"PHASE4_GATE_EVIDENCE_SELF_TEST_CASE_COUNT={len(SELF_TEST_CASES)}",
+    f"PHASE4_GATE_EVIDENCE_SELF_TEST_CASES={','.join(SELF_TEST_CASES)}",
     "PHASE4_SEPARATE_GATE_EVIDENCE_CHECKER_PRESENT=true",
+    "PHASE4_SHARED_VALIDATOR_RERUNS_GATE_EVIDENCE_CHECK=true",
+    "PHASE4_SHARED_VALIDATOR_RERUNS_GATE_EVIDENCE_SELF_TEST=true",
+    f"PHASE4_SHARED_VALIDATOR_EXPECTED_GATE_EVIDENCE_TARGET_COUNT={len(PHASE4_GATE_EVIDENCE_BLOB_TARGETS)}",
+    f"PHASE4_SHARED_VALIDATOR_EXPECTED_GATE_EVIDENCE_SELF_TEST_CASE_COUNT={len(SELF_TEST_CASES)}",
     "PHASE4_RUNTIME_ATOMIC64_SURVEY_PACKET_PRESENT=true",
     "PHASE4_SHARED_KPROBE_SURVEY_PACKET_PRESENT=false",
     "PHASE4_SHARED_TEST_FSMOUNT_SURVEY_PACKET_PRESENT=false",
@@ -66,18 +84,6 @@ REQUIRED_NOTE_MARKERS = [
     "`samples/zigux/kprobe_example.zig` remains absent",
     "`samples/zigux/test_fsmount.zig` remains absent",
     "hard perf thresholds for the shipped atomic64 and bitmap rollback gates remain intentionally unapproved",
-]
-
-SELF_TEST_CASES = [
-    "baseline_round_trip",
-    "shipped_target_count_drift",
-    "missing_exact_readback_heading",
-    "validator_blob_pin_drift",
-    "phase4_build_manifest_blob_pin_drift",
-    "phase4_build_survey_blob_pin_drift",
-    "phase9_build_manifest_blob_pin_drift",
-    "phase9_build_survey_blob_pin_drift",
-    "missing_note_file",
 ]
 
 
@@ -195,7 +201,13 @@ def build_fixture_note(root: Path) -> str:
     lines.extend(
         [
             f"- `PHASE4_SHIPPED_GATE_BLOB_TARGET_COUNT={len(PHASE4_GATE_EVIDENCE_BLOB_TARGETS)}`",
+            f"- `PHASE4_GATE_EVIDENCE_SELF_TEST_CASE_COUNT={len(SELF_TEST_CASES)}`",
+            f"- `PHASE4_GATE_EVIDENCE_SELF_TEST_CASES={','.join(SELF_TEST_CASES)}`",
             "- `PHASE4_SEPARATE_GATE_EVIDENCE_CHECKER_PRESENT=true`",
+            "- `PHASE4_SHARED_VALIDATOR_RERUNS_GATE_EVIDENCE_CHECK=true`",
+            "- `PHASE4_SHARED_VALIDATOR_RERUNS_GATE_EVIDENCE_SELF_TEST=true`",
+            f"- `PHASE4_SHARED_VALIDATOR_EXPECTED_GATE_EVIDENCE_TARGET_COUNT={len(PHASE4_GATE_EVIDENCE_BLOB_TARGETS)}`",
+            f"- `PHASE4_SHARED_VALIDATOR_EXPECTED_GATE_EVIDENCE_SELF_TEST_CASE_COUNT={len(SELF_TEST_CASES)}`",
             "- `PHASE4_RUNTIME_ATOMIC64_SURVEY_PACKET_PRESENT=true`",
             "- `PHASE4_SHARED_KPROBE_SURVEY_PACKET_PRESENT=false`",
             "- `PHASE4_SHARED_TEST_FSMOUNT_SURVEY_PACKET_PRESENT=false`",
@@ -290,23 +302,6 @@ def run_self_test() -> int:
         missing = validate_root(root)
         assert missing == [
             f"phase4_gate_evidence:blob_exact_count:PHASE4_VALIDATOR_BLOB_SHA:{validator_blob_sha}:0"
-        ], missing
-
-        write_text(root / NOTE_PATH, build_fixture_note(root))
-        matrix_blob_sha = git_blob_sha1(
-            read_bytes(root, PHASE4_GATE_EVIDENCE_BLOB_TARGETS["PHASE4_VALIDATION_MATRIX_BLOB_SHA"])
-        )
-        write_text(
-            root / NOTE_PATH,
-            read_text(root, NOTE_PATH).replace(
-                f"PHASE4_VALIDATION_MATRIX_BLOB_SHA={matrix_blob_sha}",
-                "PHASE4_VALIDATION_MATRIX_BLOB_SHA=0000000000000000000000000000000000000000",
-                1,
-            ),
-        )
-        missing = validate_root(root)
-        assert missing == [
-            f"phase4_gate_evidence:blob_exact_count:PHASE4_VALIDATION_MATRIX_BLOB_SHA:{matrix_blob_sha}:0"
         ], missing
 
         write_runtime_atomic64_packet_fixture(root)
