@@ -201,7 +201,7 @@ PHASE2_TESTS_README_REQUIRED_SOURCE_MARKERS = [
 ]
 PHASE2_FIXDEP_REQUIRED_SOURCE_MARKERS = [
     "FIXDEP_SELF_TEST=pass",
-    "print(f'FIXDEP_SELF_TEST_CASE_COUNT={checks_run}')",
+    "print(f'FIXDEP_SELF_TEST_CASE_COUNT={EXPECTED_SELF_TEST_CASE_COUNT}')",
     "validate_tool_sources(C_FIXDEP, ZIG_FIXDEP)",
     "expected_stderr_path = expected_stderr or implicit_expected_stderr",
     "diff_text(c_actual, c_repeat)",
