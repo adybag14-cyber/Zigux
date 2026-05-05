@@ -54,6 +54,18 @@ The exact checks currently recorded in `zigux/tests/phase5_kretprobe_example_man
 - `exit()` rejects an armed sample until `retHandler()` clears the outstanding tracked instance
 - after `exit()` the sample rejects later summary or handler calls
 
+## Latest verification snapshot
+
+A focused current-`master` scratch replay was re-run on 2026-05-05 with the attached Zig toolchain `0.17.0-dev.87+9b177a7d2`.
+
+- `zig fmt --check` passed for `samples/zigux/kretprobe_example.zig`, `zigux/tests/phase5_kretprobe_example.zig`, `zigux/tests/phase5_kretprobe_example_survey.zig`, and the focused scratch `zigux/tests/build.zig`
+- `zig test samples/zigux/kretprobe_example.zig` passed `1/1` sample self-check
+- a focused scratch replay assembled from the current `master` versions of `samples/zigux/kretprobe_example.zig`, `zigux/tests/phase5_kretprobe_example.zig`, `zigux/tests/phase5_kretprobe_example_survey.zig`, `zigux/tests/phase5_kretprobe_example_manifest.json`, and this survey note passed `5/5` build steps and `6/6` tests via `zig build test --build-file zigux/tests/build.zig --summary all`
+- the observed sample markers matched the manifest-backed replay contract exactly: `symbol_name = kernel_clone`, `private_data_size_bytes = 8`, `return_value = 42`, `duration_ns = 75`, `nmissed = 1`, `maxactive = 20`, and `replay_runs = 1`
+- the lifecycle-guard replay also held: `pre_init_anchor_rejected = true`, `pre_init_exit_rejected = true`, `double_init_rejected = true`, `post_init_retarget_rejected = true`, and `stage_after_init = initialized`
+- the focused boundary checks also still held: `entryHandler(false, 11) still skips the kernel-thread path`, `entryHandler(true, 120) still rejects an outstanding tracked instance`, `retHandler(37, 145) still yields duration 45`, `retHandler(9, 199) still rejects invalid timestamp order`, and `retHandler(9, 260) still recovers with duration 60`
+- the ownership and teardown path stayed explicit across both shipped replays: `cold -> initialized -> replay_complete` for the bounded anchor replay, and `cold -> initialized -> exited` after the teardown-focused recovery path completes
+
 ## Contributor refresh prompts for the landed sample
 
 When a contributor updates `samples/zigux/kretprobe_example.zig` or its directly coupled Phase 5 test files, keep these prompts explicit:
