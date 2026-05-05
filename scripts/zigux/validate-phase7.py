@@ -21,6 +21,7 @@ REQUIRED_FILES = [
     "zigux/tests/README.md",
     "zigux/tests/phase7_build.zig",
     "zigux/tests/phase7_string_helpers.zig",
+    "zigux/tests/phase7_string_helpers_sample_boundary.zig",
     "zigux/tests/phase7_cmdline.zig",
     "zigux/tests/phase7_argv_split.zig",
     "zigux/tests/phase7_rbtree.zig",
@@ -75,6 +76,9 @@ REQUIRED_MARKERS = {
     ],
     "zigux/tests/phase7_build.zig": [
         "phase7-string-helpers-tests",
+        "phase7-string-helpers-sample-boundary-tests",
+        "\"phase7_string_helpers_sample_boundary.zig\"",
+        "setCwd(b.path(\"../..\"))",
         "phase7-cmdline-tests",
         "phase7-argv-split-tests",
         "phase7-rbtree-tests",
@@ -130,6 +134,7 @@ def write_fixture_root(tmp_root: Path) -> None:
         "zigux/tests/README.md": "\n".join(REQUIRED_MARKERS["zigux/tests/README.md"]) + "\n",
         "zigux/tests/phase7_build.zig": "\n".join(REQUIRED_MARKERS["zigux/tests/phase7_build.zig"]) + "\n",
         "zigux/tests/phase7_string_helpers.zig": "// fixture\n",
+        "zigux/tests/phase7_string_helpers_sample_boundary.zig": "// fixture\n",
         "zigux/tests/phase7_cmdline.zig": "// fixture\n",
         "zigux/tests/phase7_argv_split.zig": "// fixture\n",
         "zigux/tests/phase7_rbtree.zig": "// fixture\n",
@@ -170,6 +175,15 @@ def run_self_test() -> None:
         parity_path = tmp_root / "scripts" / "zigux" / "check-phase7-rbtree-parity.py"
         parity_path.unlink()
         expect_missing_file("missing_parity_checker", tmp_root, "scripts/zigux/check-phase7-rbtree-parity.py")
+        write_fixture_root(tmp_root)
+
+        boundary_path = tmp_root / "zigux" / "tests" / "phase7_string_helpers_sample_boundary.zig"
+        boundary_path.unlink()
+        expect_missing_file(
+            "missing_string_helpers_sample_boundary",
+            tmp_root,
+            "zigux/tests/phase7_string_helpers_sample_boundary.zig",
+        )
         write_fixture_root(tmp_root)
 
         makefile_path = tmp_root / "zigux" / "Makefile"
@@ -222,9 +236,42 @@ def run_self_test() -> None:
             tmp_root,
             "zigux/tests/phase7_build.zig: phase7-rbtree-survey-tests",
         )
+        build_path.write_text(original_build, encoding="utf-8")
+
+        build_path.write_text(
+            original_build.replace("phase7-string-helpers-sample-boundary-tests", "", 1),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "build_string_helpers_sample_boundary_gate",
+            tmp_root,
+            "zigux/tests/phase7_build.zig: phase7-string-helpers-sample-boundary-tests",
+        )
+        build_path.write_text(original_build, encoding="utf-8")
+
+        build_path.write_text(
+            original_build.replace("\"phase7_string_helpers_sample_boundary.zig\"", "\"phase7_string_helpers_sample_boundary_drift.zig\"", 1),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "build_string_helpers_sample_boundary_source",
+            tmp_root,
+            "zigux/tests/phase7_build.zig: \"phase7_string_helpers_sample_boundary.zig\"",
+        )
+        build_path.write_text(original_build, encoding="utf-8")
+
+        build_path.write_text(
+            original_build.replace("setCwd(b.path(\"../..\"))", "", 1),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "build_string_helpers_sample_boundary_cwd",
+            tmp_root,
+            "zigux/tests/phase7_build.zig: setCwd(b.path(\"../..\"))",
+        )
 
     print("PHASE7_VALIDATOR_SELF_TEST=pass")
-    print("PHASE7_VALIDATOR_SELF_TEST_CASE_COUNT=5")
+    print("PHASE7_VALIDATOR_SELF_TEST_CASE_COUNT=9")
 
 
 def main() -> int:
