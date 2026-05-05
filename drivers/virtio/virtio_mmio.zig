@@ -1,6 +1,7 @@
 const std = @import("std");
 
 pub const queue_capacity: usize = 8;
+pub const feature_word_capacity: usize = 2;
 pub const max_queue_size: u16 = 1024;
 pub const mmio_window_bytes: u32 = 0x100;
 pub const mmio_magic_value: u32 = 0x7472_6976;
@@ -11,6 +12,8 @@ pub const Register = enum(u32) {
     magic_value = 0x000,
     version = 0x004,
     device_id = 0x008,
+    device_features = 0x010,
+    device_features_sel = 0x014,
     vendor_id = 0x00c,
     driver_features = 0x020,
     queue_sel = 0x030,
@@ -34,6 +37,7 @@ pub const RegisterWindowSummary = struct {
     anchor: []const u8,
     configured_queue_count: usize,
     selected_queue: u16,
+    selected_device_feature_word: u32,
     status: u8,
     interrupt_status: u32,
     config_generation: u32,
@@ -59,8 +63,10 @@ pub const VirtioMmioLab = struct {
     queue_num_max: [queue_capacity]u16 = [_]u16{0} ** queue_capacity,
     queue_num: [queue_capacity]u16 = [_]u16{0} ** queue_capacity,
     queue_ready: [queue_capacity]bool = [_]bool{false} ** queue_capacity,
+    device_feature_words: [feature_word_capacity]u32 = [_]u32{0} ** feature_word_capacity,
     configured_queue_count: usize = 0,
     selected_queue: u16 = 0,
+    selected_device_feature_word: u32 = 0,
     status: u8 = 0,
     interrupt_status: u32 = 0,
     config_generation: u32 = 0,
@@ -107,6 +113,8 @@ pub const VirtioMmioLab = struct {
                 .magic_value => mmio_magic_value,
                 .version => mmio_version_modern,
                 .device_id => self.device_id,
+                .device_features => self.device_feature_words[try checkedFeatureWordIndex(self.selected_device_feature_word)],
+                .device_features_sel => self.selected_device_feature_word,
                 .vendor_id => self.vendor_id,
                 .driver_features => self.driver_features,
                 .queue_sel => self.selected_queue,
@@ -127,6 +135,9 @@ pub const VirtioMmioLab = struct {
 
     pub fn writeRegister(self: *Self, register: Register, value: u32) !RegisterWriteSummary {
         switch (register) {
+            .device_features_sel => {
+                self.selected_device_feature_word = try checkedFeatureWordSelector(value);
+            },
             .driver_features => {
                 self.driver_features = value;
             },
@@ -151,6 +162,7 @@ pub const VirtioMmioLab = struct {
             .magic_value,
             .version,
             .device_id,
+            .device_features,
             .vendor_id,
             .queue_num_max,
             .interrupt_status,
@@ -171,6 +183,7 @@ pub const VirtioMmioLab = struct {
             .anchor = descriptor().anchor,
             .configured_queue_count = self.configured_queue_count,
             .selected_queue = self.selected_queue,
+            .selected_device_feature_word = self.selected_device_feature_word,
             .status = self.status,
             .interrupt_status = self.interrupt_status,
             .config_generation = self.config_generation,
@@ -183,6 +196,10 @@ pub const VirtioMmioLab = struct {
 
     pub fn stageInterruptStatus(self: *Self, bits: u32) void {
         self.interrupt_status = bits;
+    }
+
+    pub fn stageDeviceFeatureWord(self: *Self, word_index: u32, value: u32) !void {
+        self.device_feature_words[try checkedFeatureWordIndex(word_index)] = value;
     }
 
     fn checkedQueueSelector(self: *const Self, value: u32) !u16 {
@@ -204,6 +221,8 @@ fn registerFromOffset(offset: u32) !Register {
         @intFromEnum(Register.magic_value) => .magic_value,
         @intFromEnum(Register.version) => .version,
         @intFromEnum(Register.device_id) => .device_id,
+        @intFromEnum(Register.device_features) => .device_features,
+        @intFromEnum(Register.device_features_sel) => .device_features_sel,
         @intFromEnum(Register.vendor_id) => .vendor_id,
         @intFromEnum(Register.driver_features) => .driver_features,
         @intFromEnum(Register.queue_sel) => .queue_sel,
@@ -228,6 +247,16 @@ fn checkedQueueSizeValue(value: u32) !u16 {
     const queue_size: u16 = @intCast(value);
     try validateQueueSize(queue_size);
     return queue_size;
+}
+
+fn checkedFeatureWordSelector(value: u32) !u32 {
+    _ = try checkedFeatureWordIndex(value);
+    return value;
+}
+
+fn checkedFeatureWordIndex(word_index: u32) !usize {
+    if (word_index >= feature_word_capacity) return error.FeatureWordSelectionOutOfRange;
+    return @intCast(word_index);
 }
 
 fn boolToU32(value: bool) u32 {
