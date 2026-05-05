@@ -11,6 +11,7 @@ This document tracks the bounded Phase 8 userspace-adjacent tooling slice for Zi
   - `tools/lib/symbol/kallsyms.zig`
   - `zigux/tests/phase8_kallsyms.zig`
   - `zigux/tests/phase8_kallsyms_only_build.zig`
+  - `zigux/tests/phase8_help_kallsyms_only_build.zig`
   - `zigux/tests/phase8_build.zig`
 
 ## Why this slice exists
@@ -27,10 +28,13 @@ The live repo already had the parse-first `kallsyms.zig` starter plus the inject
 2. run the focused shard replay
 - `zig build test --build-file zigux/tests/phase8_kallsyms_only_build.zig --summary all`
 
-3. run the dedicated Phase 8 tooling gate
+3. run the focused shared help and symbol gate
+- `zig build test --build-file zigux/tests/phase8_help_kallsyms_only_build.zig --summary all`
+
+4. run the dedicated Phase 8 tooling gate
 - `zig build test --build-file zigux/tests/phase8_build.zig`
 
-4. run the convenience target
+5. run the convenience target
 - `make -C zigux phase8`
 
 ## Current parity surface
@@ -56,6 +60,7 @@ The current tests check:
 - the new reader and path adapters preserve the same callback and malformed-line behavior as the lower-level parser
 - the direct wrapper reuses that same path surface while presenting a `void *arg` plus null-terminated symbol-name callback shape and preserving non-zero stop codes
 - the focused `phase8_kallsyms_only_build.zig` shard keeps the parked parser-and-wrapper packet reviewable without rerunning the whole Phase 8 bundle
+- the focused `phase8_help_kallsyms_only_build.zig` shard keeps the parked help-and-kallsyms packet reviewable without widening into unrelated Phase 8 tooling slices
 - oversized symbol names raise an explicit bounded error instead of silently widening the lane
 - injected callback failures bubble out unchanged so the starter parser does not hide downstream review or tooling errors
 
