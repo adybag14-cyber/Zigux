@@ -98,3 +98,9 @@ Phase 13 flow
 - `validate-phase13-release.py` keeps that shared helper release packet aligned before the shared replay runs, and `check-phase13-devres-packet.py` keeps the stricter helper-first `devres` boundary contract visible inside the same validator-first route.
 - `make -C zigux phase13-validate` keeps that same release packet wired through the Linux-style validation entrypoint.
 - `zig build test --build-file zigux/tests/phase13_build.zig --summary all` and `make -C zigux phase13` rerun the fifteen-step shared helper replay without widening the roadmap beyond the four manifest-backed anchors and the adjacent read-only notifier packet.
+
+Phase 15 flow
+- the current shared Phase 15 governance surface on `master` is `Documentation/zigux/freeze-map.md`, `Documentation/zigux/phase15-architecture-council-review-process.md`, `Documentation/zigux/phase15-parity-scorecard.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/check-phase15-review-process-handoff.py`, and `zigux/tests/phase15_build.zig`.
+- `check-phase15-review-process-handoff.py` keeps the dedicated review-process note and its manifest-backed handoff evidence aligned around the self-reference, product-boundary, and parked-route markers that keep the Architecture Council packet reviewable without inventing a broader governance surface.
+- `zig build test --build-file zigux/tests/phase15_build.zig` and `make -C zigux phase15` rerun the parked freeze-map, Architecture Council review-process, parity-scorecard, and stay-in-C governance packet without implying any new approval claim for a freeze-map anchor.
+- the current bounded Phase 15 decision is still to leave the lane parked unless a named reopen trigger fires or the deep-core blocker posture changes enough to justify another Architecture Council slice.
