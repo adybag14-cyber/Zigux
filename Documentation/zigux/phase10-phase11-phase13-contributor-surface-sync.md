@@ -52,19 +52,19 @@ For the active simple-driver contributor packet, confirm wording still matches:
 ## Phase 13 anchors
 
 For the active shared-helper release packet, confirm wording still matches:
-- `Documentation/zigux/phase13-release-notes-survey.md`
-- `Documentation/zigux/phase13-roadmap-traceability.md`
+- `Documentation/zigux/README.md`
+- `Documentation/zigux/review-checklist.md`
 - `Documentation/zigux/phase13-libfs-survey.md`
-- `Documentation/zigux/phase13-devres-survey.md`
+- `Documentation/zigux/phase13-devres-slice.md`
 - `Documentation/zigux/phase13-landlock-ruleset-survey.md`
 - `Documentation/zigux/phase13-landlock-syscalls-survey.md`
-- `Documentation/zigux/phase13-notifier-list-survey.md`
-- `Documentation/zigux/phase13-devres-scatterlist-slice.md`
-- `scripts/zigux/check-phase13-libfs-packet.py`
+- `zigux/tests/phase13_build.zig`
+- `zigux/tests/phase13_libfs_manifest.json`
+- `zigux/tests/phase13_landlock_ruleset_manifest.json`
+- `zigux/tests/phase13_landlock_syscalls_manifest.json`
 - `scripts/zigux/check-phase13-devres-packet.py`
-- `scripts/zigux/check-phase13-devres-inventory-contract.py`
-- `scripts/zigux/check-phase13-notifier-packet.py`
-- `scripts/zigux/check-phase13-release-replay-exact-counts.py`
+- `scripts/zigux/validate-phase13-release.py`
+- `zigux/Makefile`
 
 ## Drift checks
 
@@ -72,6 +72,6 @@ Before closing a contributor-guidance change, ask:
 - Did a short-form companion note gain wording that the broad tests-root prompt still skips?
 - Did a checklist prompt keep an old replay count after the docs-root summary changed?
 - Did docs-root or scripts-root add a new replay, checker, manifest, or survey file that the shared contributor prompts still compress into older shorthand?
-- Did the live Phase 13 packet gain another helper-family survey note, such as libfs or a Landlock boundary, that the shared contributor guide still omits even though the docs root and checklist already surface it?
+- Do any shared Phase 13 prompts still name `Documentation/zigux/phase13-release-notes-survey.md`, `Documentation/zigux/phase13-roadmap-traceability.md`, `Documentation/zigux/phase13-devres-survey.md`, `Documentation/zigux/phase13-notifier-list-survey.md`, `scripts/zigux/check-phase13-release-replay-exact-counts.py`, or `scripts/zigux/check-phase13-notifier-packet.py` even though those broader release-note and notifier surfaces do not currently ship on `master`?
 
 If the answer is yes, finish the shared-surface sync before treating the packet as review-ready.
