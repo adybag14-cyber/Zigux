@@ -92,6 +92,7 @@ REQUIRED_SCRIPT_README_MARKERS = [
     "phase4_build.zig",
     "phase4-gate-evidence.md",
     "phase4-validation-matrix.md",
+    "make -C zigux phase4-bitmap-live-helper-replay",
     "intentionally unapproved perf-threshold posture",
 ]
 FORBIDDEN_SCRIPT_README_MARKERS = [
@@ -158,6 +159,7 @@ EXACT_ONCE_SCRIPT_README_MARKERS = [
     "phase4-gate-evidence.md",
     "phase4-validation-matrix.md",
     "phase4_runtime_atomic64_diff_survey.zig",
+    "make -C zigux phase4-bitmap-live-helper-replay",
     "intentionally unapproved perf-threshold posture",
 ]
 EXACT_ONCE_DOC_README_MARKERS = [
@@ -748,6 +750,7 @@ def _write_phase4_fixture_docs(root: Path) -> None:
                 "phase4_build.zig",
                 "phase4-gate-evidence.md",
                 "phase4-validation-matrix.md",
+                "make -C zigux phase4-bitmap-live-helper-replay",
                 "intentionally unapproved perf-threshold posture",
                 "",
             ]
