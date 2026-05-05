@@ -225,3 +225,75 @@ test "phase10 virtio core blocks fresh driver attachment once reset is required"
     try std.testing.expectEqualStrings("", summary.driver_name);
     try std.testing.expect(!summary.driver_attached);
 }
+
+test "phase10 virtio core reset replay allows a fresh queue recovery after validated feature narrowing" {
+    var device = try virtio_core.VirtioCoreLabDevice.init(&.{ 1, 7, 11 });
+    device.acknowledge();
+    try device.attachDriverNamed("virtio_blk_lab");
+    try device.offerDriverFeature(1);
+    try device.offerDriverFeature(7);
+    try device.offerDriverFeature(11);
+
+    var negotiation = try device.finalizeFeaturesWithDriverValidation(&.{ 1, 11 });
+    try std.testing.expect(negotiation.accepted_by_transport);
+    try std.testing.expectEqual(@as(usize, 2), negotiation.negotiated_feature_count);
+    try std.testing.expectEqual(@as(usize, 2), device.finalize_count);
+
+    try device.markDriverReady();
+    try device.registerQueueCallback(2, 8, "rx_done");
+    try device.configureQueueDescriptorShape(2, 3, 2, true);
+    try std.testing.expect(try device.notifyQueueUsed(2));
+
+    var queue_summary = try device.queueRegistrationSummary(2);
+    try std.testing.expectEqual(@as(usize, 1), queue_summary.callback_invocation_count);
+    try std.testing.expectEqual(@as(usize, 1), queue_summary.notification_count);
+
+    device.noteNeedsReset();
+    device.reset();
+
+    try std.testing.expectEqual(@as(usize, 1), device.reset_count);
+    try std.testing.expectEqual(@as(usize, 0), device.registeredQueueCount());
+    try std.testing.expectError(error.QueueNotRegistered, device.queueRegistrationSummary(2));
+    try std.testing.expectError(error.QueueNotRegistered, device.queueDescriptorShapeSummary(2));
+
+    device.acknowledge();
+    try device.attachDriverNamed("virtio_blk_lab");
+    try device.offerDriverFeature(1);
+    try device.offerDriverFeature(11);
+
+    negotiation = try device.finalizeFeaturesWithDriverValidation(&.{11});
+    try std.testing.expect(negotiation.accepted_by_transport);
+    try std.testing.expectEqual(@as(usize, 1), negotiation.offered_feature_count);
+    try std.testing.expectEqual(@as(usize, 1), negotiation.negotiated_feature_count);
+    try std.testing.expectEqual(@as(usize, 4), device.finalize_count);
+    try std.testing.expect(!(try device.hasNegotiatedFeature(1)));
+    try std.testing.expect(try device.hasNegotiatedFeature(11));
+
+    try device.markDriverReady();
+    try device.registerQueueCallback(2, 4, "rx_done_after_reset");
+    try device.configureQueueDescriptorShape(2, 1, 2, false);
+
+    queue_summary = try device.queueRegistrationSummary(2);
+    try std.testing.expectEqual(@as(u16, 4), queue_summary.descriptor_count);
+    try std.testing.expectEqualStrings("rx_done_after_reset", queue_summary.callback_name);
+    try std.testing.expect(queue_summary.callback_enabled);
+    try std.testing.expectEqual(@as(usize, 0), queue_summary.callback_invocation_count);
+    try std.testing.expectEqual(@as(usize, 0), queue_summary.notification_count);
+
+    const shape_summary = try device.queueDescriptorShapeSummary(2);
+    try std.testing.expectEqual(@as(u16, 4), shape_summary.descriptor_count);
+    try std.testing.expectEqual(@as(u16, 1), shape_summary.readable_descriptor_count);
+    try std.testing.expectEqual(@as(u16, 2), shape_summary.writable_descriptor_count);
+    try std.testing.expect(!shape_summary.uses_indirect_descriptors);
+
+    try std.testing.expect(try device.notifyQueueUsed(2));
+    queue_summary = try device.queueRegistrationSummary(2);
+    try std.testing.expectEqual(@as(usize, 1), queue_summary.callback_invocation_count);
+    try std.testing.expectEqual(@as(usize, 1), queue_summary.notification_count);
+
+    const lifecycle = device.lifecycleGuardSummary();
+    try std.testing.expect(lifecycle.driver_ready);
+    try std.testing.expectEqual(@as(usize, 1), lifecycle.registered_queue_count);
+    try std.testing.expect(lifecycle.queue_runtime_ready);
+    try std.testing.expect(lifecycle.ready_for_runtime);
+}
