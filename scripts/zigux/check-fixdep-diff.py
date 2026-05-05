@@ -106,6 +106,7 @@ EXPECTED_CASES = {
         'stdout_mode': 'dev_full',
     },
 }
+EXPECTED_CASE_ORDER = tuple(EXPECTED_CASES)
 
 
 def run(cmd: list[str], **kwargs) -> subprocess.CompletedProcess[str]:
@@ -201,7 +202,18 @@ def validate_cases(cases: object) -> list[dict[str, object]]:
         if expected_case is None:
             raise ValueError(f'{CASES_PATH}:unexpected_name:{name}')
 
+        expected_name = EXPECTED_CASE_ORDER[index]
+        if name != expected_name:
+            raise ValueError(
+                f'{CASES_PATH}:entry[{index}]:name={name!r},expected_order={expected_name!r}'
+            )
+
         validated_case = dict(raw_case)
+        allowed_fields = {'name', *expected_case.keys()}
+        unexpected_fields = sorted(set(validated_case) - allowed_fields)
+        if unexpected_fields:
+            raise ValueError(f'{CASES_PATH}:{name}:unexpected_field:{unexpected_fields[0]}')
+
         for field_name, expected_value in expected_case.items():
             actual_value = validated_case.get(field_name, 0 if field_name == 'expected_exit_code' else None)
             if actual_value != expected_value:
@@ -311,12 +323,30 @@ def run_self_test() -> int:
     )
     checks_run += 1
 
+    reordered_cases = copy_valid_cases(valid_cases)
+    reordered_cases[0], reordered_cases[1] = reordered_cases[1], reordered_cases[0]
+    expect_failure(
+        'unexpected_order',
+        lambda: validate_cases(reordered_cases),
+        f"{CASES_PATH}:entry[0]:name='sample_multi_target',expected_order='sample'",
+    )
+    checks_run += 1
+
     unexpected_name_cases = copy_valid_cases(valid_cases)
     unexpected_name_cases[0]['name'] = 'unexpected_fixdep_case'
     expect_failure(
         'unexpected_name',
         lambda: validate_cases(unexpected_name_cases),
         f'{CASES_PATH}:unexpected_name:unexpected_fixdep_case',
+    )
+    checks_run += 1
+
+    unexpected_field_cases = copy_valid_cases(valid_cases)
+    find_case(unexpected_field_cases, 'sample')['unexpected_field'] = 'boom'
+    expect_failure(
+        'unexpected_field',
+        lambda: validate_cases(unexpected_field_cases),
+        f'{CASES_PATH}:sample:unexpected_field:unexpected_field',
     )
     checks_run += 1
 
