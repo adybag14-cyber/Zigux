@@ -141,39 +141,39 @@ required_exact_workflow_markers = [
     ),
     (
         "workflow_toolchain_check_count",
-        "python3 scripts/zigux/check-zig-toolchain.py",
+        "run: python3 scripts/zigux/check-zig-toolchain.py",
         1,
     ),
 ]
 required_phase1_workflow_markers = [
     (
         "workflow_phase1_validate_count",
-        "python3 scripts/zigux/validate-phase1.py",
+        "run: python3 scripts/zigux/validate-phase1.py",
         1,
     ),
     (
         "workflow_phase1_closure_count",
-        "python3 scripts/zigux/validate-phase1-closure.py",
+        "run: python3 scripts/zigux/validate-phase1-closure.py",
         1,
     ),
     (
         "workflow_phase1_parity_count",
-        "python3 scripts/zigux/check-phase1-parity.py",
+        "run: python3 scripts/zigux/check-phase1-parity.py",
         1,
     ),
     (
         "workflow_phase1_bench_count",
-        "python3 scripts/zigux/check-phase1-bench.py",
+        "run: python3 scripts/zigux/check-phase1-bench.py",
         1,
     ),
     (
         "workflow_phase1_unit_replay_count",
-        "zig build test --build-file zigux/tests/build.zig",
+        "run: zig build test --build-file zigux/tests/build.zig",
         1,
     ),
     (
         "workflow_phase1_bench_replay_count",
-        "zig build bench --build-file zigux/tests/build.zig",
+        "run: zig build bench --build-file zigux/tests/build.zig -Doptimize=ReleaseSafe",
         1,
     ),
 ]
@@ -402,6 +402,30 @@ def collect_exact_count_markers(text: str, markers: list[tuple[str, str, int]]) 
     return missing_markers
 
 
+def collect_exact_line_count_markers(text: str, markers: list[tuple[str, str, int]]) -> list[str]:
+    actual_counts: dict[str, int] = {}
+    for raw_line in text.splitlines():
+        line = raw_line.strip()
+        actual_counts[line] = actual_counts.get(line, 0) + 1
+
+    missing_markers: list[str] = []
+    for label, marker, expected_count in markers:
+        actual_count = actual_counts.get(marker, 0)
+        if actual_count != expected_count:
+            missing_markers.append(f"{label}:expected={expected_count}:actual={actual_count}")
+    return missing_markers
+
+
+def extract_workflow_job(text: str, job_name: str) -> str:
+    pattern = re.compile(
+        rf"(?ms)^  {re.escape(job_name)}:\n(.*?)(?=^  [A-Za-z0-9_-]+:\n|\Z)"
+    )
+    match = pattern.search(text)
+    if match is None:
+        return ""
+    return match.group(0)
+
+
 def collect_workflow_markers(text: str) -> list[str]:
     missing_markers: list[str] = []
     for marker in required_workflow_markers:
@@ -563,7 +587,31 @@ def run_self_test() -> None:
             + "\n"
         )
         assert collect_workflow_markers(valid_workflow) == []
-        assert collect_exact_count_markers(valid_workflow, required_exact_workflow_markers) == []
+        valid_workflow_exact = "\n".join(
+            [
+                required_exact_workflow_markers[0][1],
+                required_exact_workflow_markers[1][1],
+                required_exact_workflow_markers[2][1],
+                required_exact_workflow_markers[3][1],
+            ]
+        ) + "\n"
+        valid_bootstrap_job = "  bootstrap:\n" + "".join(
+            f"    {line}\n" for line in valid_workflow_exact.splitlines()
+        )
+        valid_phase1_bootstrap_job = "  bootstrap:\n" + "".join(
+            f"    {line}\n" for line in valid_phase1_workflow.splitlines()
+        )
+        assert collect_exact_line_count_markers(valid_workflow_exact, [required_exact_workflow_markers[0]]) == []
+        assert collect_exact_line_count_markers(
+            valid_bootstrap_job,
+            required_exact_workflow_markers[1:],
+        ) == []
+        assert collect_exact_line_count_markers(
+            valid_phase1_bootstrap_job,
+            required_phase1_workflow_markers,
+        ) == []
+        assert extract_workflow_job("  bootstrap:\n    run: one\n  other:\n    run: two\n", "bootstrap") == "  bootstrap:\n    run: one\n"
+        assert extract_workflow_job("  bootstrap:\n    run: one\n  other:\n    run: two\n", "missing") == ""
 
         missing_node24_workflow = valid_workflow.replace(
             "FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true\n",
@@ -584,67 +632,102 @@ def run_self_test() -> None:
         legacy_setup_zig_markers = collect_workflow_markers(legacy_setup_zig_workflow)
         assert "workflow:remove mlugg/setup-zig@" in legacy_setup_zig_markers
 
-        duplicate_checkout_workflow = valid_workflow + "uses: actions/checkout@v6.0.2\n"
-        duplicate_checkout_markers = collect_exact_count_markers(
-            duplicate_checkout_workflow,
-            required_exact_workflow_markers,
+        duplicate_checkout_workflow = valid_workflow_exact + "uses: actions/checkout@v6.0.2\n"
+        duplicate_checkout_job = "  bootstrap:\n" + "".join(
+            f"    {line}\n" for line in duplicate_checkout_workflow.splitlines()
+        )
+        duplicate_checkout_markers = collect_exact_line_count_markers(
+            duplicate_checkout_job,
+            required_exact_workflow_markers[1:],
         )
         assert "workflow_checkout_count:expected=1:actual=2" in duplicate_checkout_markers
 
-        duplicate_node24_workflow = valid_workflow + "FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true\n"
-        duplicate_node24_markers = collect_exact_count_markers(
+        duplicate_node24_workflow = valid_workflow_exact + "FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true\n"
+        duplicate_node24_markers = collect_exact_line_count_markers(
             duplicate_node24_workflow,
-            required_exact_workflow_markers,
+            [required_exact_workflow_markers[0]],
         )
         assert "workflow_node24_count:expected=1:actual=2" in duplicate_node24_markers
 
+        duplicate_later_job = (
+            "jobs:\n"
+            + valid_bootstrap_job
+            + "  phase2-cross:\n"
+            + "    steps:\n"
+            + "      - uses: actions/checkout@v6.0.2\n"
+            + "      - uses: actions/setup-python@v6.2.0\n"
+            + "      - run: python3 scripts/zigux/check-zig-toolchain.py\n"
+        )
+        duplicate_later_job_markers = collect_exact_line_count_markers(
+            extract_workflow_job(duplicate_later_job, "bootstrap"),
+            required_exact_workflow_markers[1:],
+        )
+        assert duplicate_later_job_markers == []
+
         missing_phase1_validate = valid_phase1_workflow.replace(
-            "python3 scripts/zigux/validate-phase1.py\n",
+            "run: python3 scripts/zigux/validate-phase1.py\n",
             "",
             1,
         )
-        missing_phase1_validate_markers = collect_exact_count_markers(
-            missing_phase1_validate,
+        missing_phase1_validate_job = "  bootstrap:\n" + "".join(
+            f"    {line}\n" for line in missing_phase1_validate.splitlines()
+        )
+        missing_phase1_validate_markers = collect_exact_line_count_markers(
+            missing_phase1_validate_job,
             required_phase1_workflow_markers,
         )
         assert "workflow_phase1_validate_count:expected=1:actual=0" in missing_phase1_validate_markers
 
-        duplicate_phase1_parity = valid_phase1_workflow + "python3 scripts/zigux/check-phase1-parity.py\n"
-        duplicate_phase1_parity_markers = collect_exact_count_markers(
-            duplicate_phase1_parity,
+        duplicate_phase1_parity = (
+            valid_phase1_workflow + "run: python3 scripts/zigux/check-phase1-parity.py\n"
+        )
+        duplicate_phase1_parity_job = "  bootstrap:\n" + "".join(
+            f"    {line}\n" for line in duplicate_phase1_parity.splitlines()
+        )
+        duplicate_phase1_parity_markers = collect_exact_line_count_markers(
+            duplicate_phase1_parity_job,
             required_phase1_workflow_markers,
         )
         assert "workflow_phase1_parity_count:expected=1:actual=2" in duplicate_phase1_parity_markers
 
         missing_phase1_unit_replay = valid_phase1_workflow.replace(
-            "zig build test --build-file zigux/tests/build.zig\n",
+            "run: zig build test --build-file zigux/tests/build.zig\n",
             "",
             1,
         )
-        missing_phase1_unit_replay_markers = collect_exact_count_markers(
-            missing_phase1_unit_replay,
+        missing_phase1_unit_replay_job = "  bootstrap:\n" + "".join(
+            f"    {line}\n" for line in missing_phase1_unit_replay.splitlines()
+        )
+        missing_phase1_unit_replay_markers = collect_exact_line_count_markers(
+            missing_phase1_unit_replay_job,
             required_phase1_workflow_markers,
         )
         assert "workflow_phase1_unit_replay_count:expected=1:actual=0" in missing_phase1_unit_replay_markers
 
         missing_phase1_bench = valid_phase1_workflow.replace(
-            "python3 scripts/zigux/check-phase1-bench.py\n",
+            "run: python3 scripts/zigux/check-phase1-bench.py\n",
             "",
             1,
         )
-        missing_phase1_bench_markers = collect_exact_count_markers(
-            missing_phase1_bench,
+        missing_phase1_bench_job = "  bootstrap:\n" + "".join(
+            f"    {line}\n" for line in missing_phase1_bench.splitlines()
+        )
+        missing_phase1_bench_markers = collect_exact_line_count_markers(
+            missing_phase1_bench_job,
             required_phase1_workflow_markers,
         )
         assert "workflow_phase1_bench_count:expected=1:actual=0" in missing_phase1_bench_markers
 
         missing_phase1_bench_replay = valid_phase1_workflow.replace(
-            "zig build bench --build-file zigux/tests/build.zig\n",
+            "run: zig build bench --build-file zigux/tests/build.zig -Doptimize=ReleaseSafe\n",
             "",
             1,
         )
-        missing_phase1_bench_replay_markers = collect_exact_count_markers(
-            missing_phase1_bench_replay,
+        missing_phase1_bench_replay_job = "  bootstrap:\n" + "".join(
+            f"    {line}\n" for line in missing_phase1_bench_replay.splitlines()
+        )
+        missing_phase1_bench_replay_markers = collect_exact_line_count_markers(
+            missing_phase1_bench_replay_job,
             required_phase1_workflow_markers,
         )
         assert "workflow_phase1_bench_replay_count:expected=1:actual=0" in missing_phase1_bench_replay_markers
@@ -836,9 +919,15 @@ def main() -> int:
     makefile = (root / "zigux" / "Makefile").read_text(encoding="utf-8")
     manifest = json.loads((root / "zigux" / "tests" / "fixtures" / "phase1_helper_manifest.json").read_text(encoding="utf-8"))
     bench_expectations = json.loads((root / "zigux" / "tests" / "fixtures" / "phase1_bench_expectations.json").read_text(encoding="utf-8"))
+    bootstrap_workflow = extract_workflow_job(workflow, "bootstrap")
 
     missing_markers = collect_workflow_markers(workflow)
-    missing_markers.extend(collect_exact_count_markers(workflow, required_exact_workflow_markers))
+    missing_markers.extend(
+        collect_exact_line_count_markers(workflow, [required_exact_workflow_markers[0]])
+    )
+    missing_markers.extend(
+        collect_exact_line_count_markers(bootstrap_workflow, required_exact_workflow_markers[1:])
+    )
 
     missing_markers.extend(collect_exact_count_markers(closure, required_closure_markers))
     missing_markers.extend(collect_exact_count_markers(tests_build, required_build_markers))
@@ -846,7 +935,9 @@ def main() -> int:
 
     missing_markers.extend(collect_manifest_markers(manifest, root))
     missing_markers.extend(collect_bench_expectation_markers(bench_expectations))
-    missing_markers.extend(collect_exact_count_markers(workflow, required_phase1_workflow_markers))
+    missing_markers.extend(
+        collect_exact_line_count_markers(bootstrap_workflow, required_phase1_workflow_markers)
+    )
     missing_markers.extend(collect_exact_count_markers(makefile, required_makefile_markers))
     missing_markers.extend(collect_exact_count_markers(docs_root, required_docs_root_markers))
     missing_markers.extend(collect_exact_count_markers(scripts_readme, required_scripts_readme_markers))
