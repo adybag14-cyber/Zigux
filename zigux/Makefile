@@ -9,7 +9,7 @@ PHONY += phase9-test phase9
 PHONY += phase10-test phase10
 PHONY += phase11-test phase11
 PHONY += phase12-test phase12
-PHONY += phase13-test phase13
+PHONY += phase13-validate phase13-test phase13
 PHONY += phase14-validate phase14-smoke phase14-test phase14
 PHONY += phase15-test phase15
 
@@ -136,10 +136,14 @@ phase12-test:
 
 phase12: phase12-test
 
+phase13-validate:
+	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase13-release.py
+	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase13-devres-packet.py
+
 phase13-test:
 	cd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase13_build.zig
 
-phase13: phase13-test
+phase13: phase13-validate phase13-test
 
 phase14-validate:
 	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase14-docs-root-smoke-summary.py --self-test
