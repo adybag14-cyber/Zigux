@@ -67,7 +67,7 @@
       "status": "starter_landed",
       "kind": "documentation",
       "zigux_destination": "Documentation/zigux/phase10-virtio-ring-survey.md",
-      "why_now": "The lane needs a Phase 10 note that records the current queue-wrapper gap against the roadmap and prevents the repo from overstating virtio_ring progress."
+      "why_now": "The lane needs a Phase 10 note that records the current ring-helper and adjacent MMIO footholds against the remaining transport-facing gap and prevents the repo from overstating virtio_ring progress."
     },
     {
       "id": "phase10-virtqueue-shape-helper",
@@ -96,6 +96,13 @@
       "kind": "queue_wrapper",
       "zigux_destination": "drivers/virtio/virtio_ring.zig",
       "why_now": "The live ring slice now also adds a bounded delayed-callback helper that mirrors the virtqueue_enable_cb_delayed() threshold shape while staying queue-local and in memory only before any MMIO register-window work."
+    },
+    {
+      "id": "phase10-notify-prepare-helper",
+      "status": "starter_landed",
+      "kind": "queue_wrapper",
+      "zigux_destination": "drivers/virtio/virtio_ring.zig",
+      "why_now": "The live ring slice now carries queue-local notify-prepare bookkeeping that reports avail shadow, `num_added`, and whether a kick is needed while flushing the staged publish count, which mirrors `virtqueue_kick_prepare()` without claiming interrupt delivery or MMIO transport work."
     },
     {
       "id": "phase10-broken-queue-poll-guard",
@@ -138,6 +145,13 @@
       "kind": "transport_wrapper",
       "zigux_destination": "drivers/virtio/virtio_mmio.zig",
       "why_now": "The same MMIO helper now stages one small transport-backed config-word window in memory, so the ring survey can acknowledge that broader bounded transport foothold without claiming config writes, lifecycle work, or IRQ parity."
+    },
+    {
+      "id": "phase10-mmio-config-write-plan-helper",
+      "status": "starter_landed",
+      "kind": "transport_wrapper",
+      "zigux_destination": "drivers/virtio/virtio_mmio.zig",
+      "why_now": "The adjacent MMIO helper can now summarize one bounded config-word write plan against the staged config window, including the current config generation and previous word value, without mutating config space or claiming interrupt acknowledgement, queue discovery, reset flows, or probe lifecycle behavior."
     },
     {
       "id": "phase10-mmio-lifecycle-and-irq-paths",
