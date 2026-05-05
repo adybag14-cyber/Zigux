@@ -30,7 +30,6 @@ NOTE_STATIC_MARKERS = [
 ]
 
 EXACT_WORKFLOW_RUN_COUNTS = {
-    "python3 scripts/zigux/install-zig.py --dest .zig-toolchain": 2,
     "python3 scripts/zigux/check-zig-toolchain.py": 2,
     "python3 scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test": 1,
     "python3 scripts/zigux/check-phase2-toolchain-pin-scope.py": 1,
@@ -153,9 +152,24 @@ def validate_required_markers(text: str, *, label: str, markers: list[str]) -> l
 
 
 
-def validate_exact_workflow_runs(text: str) -> list[str]:
+def validate_exact_workflow_runs(text: str, *, payload: dict[str, object]) -> list[str]:
     issues: list[str] = []
+    channel = payload.get("channel")
+    if not isinstance(channel, str) or not channel:
+        issues.append("policy:channel:expected_nonempty_string")
+        return issues
+
     lines = [line.strip() for line in text.splitlines()]
+    expected_install_command = (
+        f"python3 scripts/zigux/install-zig.py --channel {channel} --dest .zig-toolchain"
+    )
+    expected_install_line = f"run: {expected_install_command}"
+    install_count = sum(1 for line in lines if line == expected_install_line)
+    if install_count != 2:
+        issues.append(
+            f"workflow_exact_run:{expected_install_command}:count={install_count}:expected=2"
+        )
+
     for command, expected_count in EXACT_WORKFLOW_RUN_COUNTS.items():
         expected_line = f"run: {command}"
         count = sum(1 for line in lines if line == expected_line)
@@ -239,18 +253,33 @@ def run_self_test() -> int:
 
     workflow_text = "\n".join(
         [
-            "run: python3 scripts/zigux/install-zig.py --dest .zig-toolchain",
-            "run: python3 scripts/zigux/install-zig.py --dest .zig-toolchain",
+            "run: python3 scripts/zigux/install-zig.py --channel 0.17.0-dev.87+9b177a7d2 --dest .zig-toolchain",
+            "run: python3 scripts/zigux/install-zig.py --channel 0.17.0-dev.87+9b177a7d2 --dest .zig-toolchain",
             "run: python3 scripts/zigux/check-zig-toolchain.py",
             "run: python3 scripts/zigux/check-zig-toolchain.py",
             "run: python3 scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test",
             "run: python3 scripts/zigux/check-phase2-toolchain-pin-scope.py",
         ]
     )
-    if validate_exact_workflow_runs(workflow_text):
+    if validate_exact_workflow_runs(workflow_text, payload=valid_policy):
         raise SystemExit("phase2-toolchain-pin-scope:self-test:workflow_counts")
 
-    issues = validate_exact_workflow_runs("run: python3 scripts/zigux/check-zig-toolchain.py --arch x86_64")
+    issues = validate_exact_workflow_runs(
+        "run: python3 scripts/zigux/install-zig.py --channel master --dest .zig-toolchain",
+        payload=valid_policy,
+    )
+    if not any(
+        issue.startswith(
+            "workflow_exact_run:python3 scripts/zigux/install-zig.py --channel 0.17.0-dev.87+9b177a7d2 --dest .zig-toolchain"
+        )
+        for issue in issues
+    ):
+        raise SystemExit("phase2-toolchain-pin-scope:self-test:workflow_channel_mismatch")
+
+    issues = validate_exact_workflow_runs(
+        "run: python3 scripts/zigux/check-zig-toolchain.py --arch x86_64",
+        payload=valid_policy,
+    )
     if not any(issue.startswith("workflow_forbidden_fragment:") for issue in issues):
         raise SystemExit("phase2-toolchain-pin-scope:self-test:workflow_forbidden_fragment")
 
@@ -279,7 +308,7 @@ def run_self_test() -> int:
             raise SystemExit("phase2-toolchain-pin-scope:self-test:json_round_trip")
 
     print("PHASE2_TOOLCHAIN_PIN_SCOPE_SELF_TEST=pass")
-    print("PHASE2_TOOLCHAIN_PIN_SCOPE_SELF_TEST_CASE_COUNT=11")
+    print("PHASE2_TOOLCHAIN_PIN_SCOPE_SELF_TEST_CASE_COUNT=12")
     return 0
 
 
@@ -342,7 +371,7 @@ def main() -> int:
             markers=PHASE2_VALIDATOR_MARKERS,
         )
     )
-    issues.extend(validate_exact_workflow_runs(WORKFLOW.read_text(encoding="utf-8")))
+    issues.extend(validate_exact_workflow_runs(WORKFLOW.read_text(encoding="utf-8"), payload=policy_payload))
 
     if issues:
         print("PHASE2_TOOLCHAIN_PIN_SCOPE=fail")
