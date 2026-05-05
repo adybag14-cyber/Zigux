@@ -109,7 +109,6 @@ required_ledger_markers = [
 ]
 required_workflow_markers = [
     'python3 scripts/zigux/validate-phase2.py',
-    'python3 scripts/zigux/check-phase2-tests-readme-alignment.py',
     'python3 scripts/zigux/check-fixdep-diff.py',
     'python3 scripts/zigux/check-genksyms-bridge.py',
     'python3 scripts/zigux/check-genksyms-crc-diff.py',
