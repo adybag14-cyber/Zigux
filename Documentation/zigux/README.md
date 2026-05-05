@@ -24,6 +24,7 @@ Current closure records
 Phase 1 notes
 - `Documentation/zigux/phase1-closure.md`
 - `scripts/zigux/README.md`
+- `zigux/Makefile`
 - `zigux/tests/build.zig`
 - `zigux/tests/phase1_helpers.zig`
 - `zigux/tests/phase1_bench.zig`
@@ -33,7 +34,7 @@ Phase 1 notes
 - `scripts/zigux/validate-phase1-closure.py`
 - `scripts/zigux/check-phase1-parity.py`
 - `scripts/zigux/check-phase1-bench.py`
-- `zig build test --build-file zigux/tests/build.zig` and `zig build bench --build-file zigux/tests/build.zig` keep the closed host-side helper packet reviewable through the shared helper build entrypoint, while `Documentation/zigux/phase1-closure.md` and `scripts/zigux/README.md` keep the closure and validator-first contract explicit from the docs root instead of leaving the Phase 1 packet split across later review surfaces.
+- `zig build test --build-file zigux/tests/build.zig`, `zig build bench --build-file zigux/tests/build.zig`, `make -C zigux phase1-validate`, `make -C zigux phase1-test`, `make -C zigux phase1-bench`, and `make -C zigux phase1` keep the closed host-side helper packet reviewable through the shared helper build entrypoint and the Linux-style replay route, while `Documentation/zigux/phase1-closure.md`, `scripts/zigux/README.md`, and `zigux/Makefile` keep the closure and validator-first contract explicit from the docs root instead of leaving the Phase 1 packet split across later review surfaces.
 
 Phase 2 notes
 - `Documentation/zigux/phase2-toolchain-bootstrap-notes.md`
