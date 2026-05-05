@@ -116,8 +116,23 @@ MAKEFILE_MARKERS = [
 ]
 
 
+def reject_duplicate_json_keys(pairs: list[tuple[str, object]]) -> dict[str, object]:
+    payload: dict[str, object] = {}
+    for key, value in pairs:
+        if key in payload:
+            raise ValueError(f"duplicate_key:{key}")
+        payload[key] = value
+    return payload
+
+
 def load_json_object(path: Path, *, label: str) -> dict[str, object]:
-    payload = json.loads(path.read_text(encoding="utf-8"))
+    try:
+        payload = json.loads(
+            path.read_text(encoding="utf-8"),
+            object_pairs_hook=reject_duplicate_json_keys,
+        )
+    except ValueError as exc:
+        raise SystemExit(f"{label}:{exc}") from exc
     if not isinstance(payload, dict):
         raise SystemExit(f"{label}:expected_object")
     return payload
@@ -372,13 +387,29 @@ def run_self_test() -> int:
             "run: python3 scripts/zigux/install-zig.py --channel 0.17.0-dev.87+9b177a7d2 --dest .zig-toolchain",
             "run: python3 scripts/zigux/check-zig-toolchain.py",
             "run: python3 scripts/zigux/check-zig-toolchain.py",
-            "run: python3 scripts/zigux/check-zig-toolchain.py",
             "run: python3 scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test",
             "run: python3 scripts/zigux/check-phase2-toolchain-pin-scope.py",
         ]
     )
     if validate_exact_workflow_runs(workflow_text, payload=valid_policy):
         raise SystemExit("phase2-toolchain-pin-scope:self-test:workflow_counts")
+
+    workflow_count_issues = validate_exact_workflow_runs(
+        "\n".join(
+            [
+                "run: python3 scripts/zigux/install-zig.py --channel 0.17.0-dev.87+9b177a7d2 --dest .zig-toolchain",
+                "run: python3 scripts/zigux/install-zig.py --channel 0.17.0-dev.87+9b177a7d2 --dest .zig-toolchain",
+                "run: python3 scripts/zigux/check-zig-toolchain.py",
+                "run: python3 scripts/zigux/check-zig-toolchain.py",
+                "run: python3 scripts/zigux/check-zig-toolchain.py",
+                "run: python3 scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test",
+                "run: python3 scripts/zigux/check-phase2-toolchain-pin-scope.py",
+            ]
+        ),
+        payload=valid_policy,
+    )
+    if "workflow_exact_run:python3 scripts/zigux/check-zig-toolchain.py:count=3:expected=2" not in workflow_count_issues:
+        raise SystemExit("phase2-toolchain-pin-scope:self-test:workflow_count_mismatch")
 
     issues = validate_exact_workflow_runs(
         "run: python3 scripts/zigux/install-zig.py --channel master --dest .zig-toolchain",
@@ -487,8 +518,34 @@ def run_self_test() -> int:
         if round_trip["archive_sha256"] != valid_policy["archive_sha256"]:
             raise SystemExit("phase2-toolchain-pin-scope:self-test:json_round_trip")
 
+        duplicate_top_level_path = tmp_root / "duplicate-top-level.json"
+        duplicate_top_level_path.write_text(
+            '{"phase":"Phase 2","phase":"Phase 3","channel":"0.17.0-dev.87+9b177a7d2","minimum_version":"0.17.0-dev.87+9b177a7d2","archive_sha256":{"x86_64-linux":"313b231e76f3cc9b718044602dbc3c42b531693507203a6baf2fa892c9533e77"}}',
+            encoding="utf-8",
+        )
+        try:
+            load_json_object(duplicate_top_level_path, label="policy")
+        except SystemExit as exc:
+            if str(exc) != "policy:duplicate_key:phase":
+                raise SystemExit("phase2-toolchain-pin-scope:self-test:duplicate_top_level_shape") from exc
+        else:
+            raise SystemExit("phase2-toolchain-pin-scope:self-test:duplicate_top_level_missing")
+
+        duplicate_archive_key_path = tmp_root / "duplicate-archive-key.json"
+        duplicate_archive_key_path.write_text(
+            '{"phase":"Phase 2","channel":"0.17.0-dev.87+9b177a7d2","minimum_version":"0.17.0-dev.87+9b177a7d2","archive_sha256":{"x86_64-linux":"313b231e76f3cc9b718044602dbc3c42b531693507203a6baf2fa892c9533e77","x86_64-linux":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"}}',
+            encoding="utf-8",
+        )
+        try:
+            load_json_object(duplicate_archive_key_path, label="policy")
+        except SystemExit as exc:
+            if str(exc) != "policy:duplicate_key:x86_64-linux":
+                raise SystemExit("phase2-toolchain-pin-scope:self-test:duplicate_archive_key_shape") from exc
+        else:
+            raise SystemExit("phase2-toolchain-pin-scope:self-test:duplicate_archive_key_missing")
+
     print("PHASE2_TOOLCHAIN_PIN_SCOPE_SELF_TEST=pass")
-    print("PHASE2_TOOLCHAIN_PIN_SCOPE_SELF_TEST_CASE_COUNT=25")
+    print("PHASE2_TOOLCHAIN_PIN_SCOPE_SELF_TEST_CASE_COUNT=28")
     return 0
 
 
