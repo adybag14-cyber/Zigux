@@ -20,6 +20,11 @@ REQUIRED_SNIPPETS = {
         "- `Documentation/zigux/phase6-hexdump-slice.md`",
         "- `zigux/tests/phase6_build.zig`, `zigux/tests/phase6_base64.zig`, `zigux/tests/phase6_bsearch.zig`, `zigux/tests/phase6_checksum.zig`, `zigux/tests/phase6_hexdump.zig`, and `make -C zigux phase6` now gate the current base64, bsearch, checksum, and hexdump helper bundle together",
     ],
+    "Documentation/zigux/phase6-base64-slice.md": [
+        "- `zigux/tests/fixtures/phase6_base64_vectors.zig`",
+        "- shared kernel-derived encode, decode, variant, and invalid-input fixtures stored in `zigux/tests/fixtures/phase6_base64_vectors.zig`",
+        "- a separate external C-vs-Zig parity packet on `master`",
+    ],
     "scripts/zigux/README.md": [
         "- the current shared Phase 6 review surface on `master` is the four slice notes (`Documentation/zigux/phase6-base64-slice.md`, `Documentation/zigux/phase6-bsearch-slice.md`, `Documentation/zigux/phase6-checksum-slice.md`, and `Documentation/zigux/phase6-hexdump-slice.md`) plus `Documentation/zigux/README.md`, `zigux/tests/README.md`, `zigux/tests/phase6_build.zig`, and `zigux/Makefile`.",
         "- `zig build test --build-file zigux/tests/phase6_build.zig` is the bundled helper replay for the current `base64`, `bsearch`, `checksum`, and `hexdump` packet.",
@@ -38,6 +43,21 @@ REQUIRED_SNIPPETS = {
         '.name = "phase6-bsearch-tests"',
         '.name = "phase6-checksum-tests"',
         '.name = "phase6-hexdump-tests"',
+    ],
+    "zigux/tests/phase6_base64.zig": [
+        'const fixtures = @import("fixtures/phase6_base64_vectors.zig");',
+        "for (fixtures.standard_cases) |case| {",
+        "for (fixtures.variant_cases) |case| {",
+        "for (fixtures.standard_decode_cases) |case| {",
+        "for (fixtures.invalid_decode_cases) |case| {",
+        "for (fixtures.variant_decode_cases) |case| {",
+    ],
+    "zigux/tests/fixtures/phase6_base64_vectors.zig": [
+        "pub const standard_cases = [_]EncodeCase{",
+        "pub const variant_cases = [_]VariantCase{",
+        "pub const standard_decode_cases = [_]DecodeCase{",
+        "pub const invalid_decode_cases = [_]InvalidDecodeCase{",
+        "pub const variant_decode_cases = [_]DecodeCase{",
     ],
     "zigux/Makefile": [
         "PHONY += phase6-validate phase6-test phase6",
@@ -123,6 +143,42 @@ def run_self_test() -> None:
                 raise AssertionError(f"unexpected Makefile failure: {exc}") from exc
         else:
             raise AssertionError("expected Makefile failure")
+        makefile.write_text(original_makefile, encoding="utf-8")
+
+        base64_slice = root / "Documentation/zigux/phase6-base64-slice.md"
+        original_base64_slice = base64_slice.read_text(encoding="utf-8")
+        base64_slice.write_text(
+            original_base64_slice.replace(
+                "- shared kernel-derived encode, decode, variant, and invalid-input fixtures stored in `zigux/tests/fixtures/phase6_base64_vectors.zig`",
+                "- shared base64 notes only",
+            ),
+            encoding="utf-8",
+        )
+        try:
+            run_checks(root)
+        except ValidationError as exc:
+            if "Documentation/zigux/phase6-base64-slice.md" not in str(exc):
+                raise AssertionError(f"unexpected base64 slice failure: {exc}") from exc
+        else:
+            raise AssertionError("expected base64 slice failure")
+        base64_slice.write_text(original_base64_slice, encoding="utf-8")
+
+        base64_test = root / "zigux/tests/phase6_base64.zig"
+        original_base64_test = base64_test.read_text(encoding="utf-8")
+        base64_test.write_text(
+            original_base64_test.replace(
+                "for (fixtures.invalid_decode_cases) |case| {",
+                "for (inline_invalid_decode_cases) |case| {",
+            ),
+            encoding="utf-8",
+        )
+        try:
+            run_checks(root)
+        except ValidationError as exc:
+            if "zigux/tests/phase6_base64.zig" not in str(exc):
+                raise AssertionError(f"unexpected base64 test failure: {exc}") from exc
+        else:
+            raise AssertionError("expected base64 test failure")
 
     print("self-test passed")
 
