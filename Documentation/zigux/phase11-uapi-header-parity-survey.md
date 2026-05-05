@@ -12,7 +12,6 @@
 - `zigux/tests/phase11_uapi_header_parity_manifest.json`
 - `zigux/tests/phase11_uapi_header_parity_survey.zig`
 - `zigux/tests/phase11_build.zig`
-- `zigux/tests/fixtures/phase11_build_inventory.json`
 - `Documentation/zigux/phase11-hvc-console-survey.md`
 - `Documentation/zigux/phase11-hvc-console-validation-matrix.md`
 - `Documentation/zigux/phase11-shared-replay-contract.md`
@@ -30,8 +29,8 @@
 ## Shared Versus Dedicated Replay
 
 - shared replay path: `zig build test --build-file zigux/tests/phase11_build.zig --summary all`
-- dedicated hvc replay path: `make -C zigux phase11-hvc-survey`
-- dedicated hvc note and validation matrix remain separate because `zigux/tests/phase11_hvc_console_survey.zig` still reads the broader driver-local note packet and notifier-facing matrix rather than only the shared driver-header boundary.
+- wider Phase 11 replay route: `make -C zigux phase11`
+- the dedicated HVC note and validation matrix remain separate documentation because `zigux/tests/phase11_hvc_console_survey.zig` still reads the broader driver-local note packet and notifier-facing matrix, but that survey replay now runs inside the same shared `phase11_build.zig` route on `master`
 
 ## Why This Stays Bounded
 
