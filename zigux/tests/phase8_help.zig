@@ -1,7 +1,8 @@
 const std = @import("std");
 const help = @import("help");
+const phase8_help_options = @import("phase8_help_options");
 
-const phase8_help_slice = @embedFile("../../Documentation/zigux/phase8-help-slice.md");
+const phase8_help_slice = phase8_help_options.phase8_help_slice;
 
 test "phase 8 help module imports cleanly" {
     _ = help;
@@ -140,6 +141,13 @@ test "phase 8 help command-source and terminal layers stay aligned with the curr
     });
     try std.testing.expectEqual(@as(usize, 22), fallback_terminal.rows);
     try std.testing.expectEqual(@as(usize, 66), fallback_terminal.cols);
+
+    const prefixed_terminal = help.resolveTerminalDimensions("  +31rows", "+37cols", .{
+        .rows = 20,
+        .cols = 60,
+    });
+    try std.testing.expectEqual(@as(usize, 31), prefixed_terminal.rows);
+    try std.testing.expectEqual(@as(usize, 37), prefixed_terminal.cols);
 }
 
 test "phase 8 help raw PATH splitting keeps empty segments and exec-path exclusion aligned with help.c" {
