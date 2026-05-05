@@ -214,6 +214,26 @@ test "phase11 dw_wdt probe summary records imported running state and restart bo
     try std.testing.expect(!probe.can_stop);
 }
 
+test "phase11 dw_wdt running restart keeps reset-mode control and kick semantics explicit" {
+    var watchdog = try dw_wdt.DwWdtLab.initFixedTops(65_536, false);
+    _ = try watchdog.start();
+    _ = watchdog.setCurrentCount(5 * 65_536);
+
+    const runtime = watchdog.armRestart();
+    try std.testing.expect(runtime.running);
+    try std.testing.expect(runtime.hardware_running);
+    try std.testing.expect(runtime.restart_armed);
+    try std.testing.expectEqual(dw_wdt.ResponseMode.reset, runtime.response_mode);
+    try std.testing.expectEqual(@as(u32, 0), runtime.pretimeout_sec);
+    try std.testing.expectEqual(dw_wdt.counter_restart_kick_value, runtime.registers.restart);
+    try std.testing.expectEqual(
+        dw_wdt.control_reg_wdt_en_mask,
+        runtime.registers.control & (dw_wdt.control_reg_wdt_en_mask | dw_wdt.control_reg_resp_mode_mask),
+    );
+    try std.testing.expectEqual(@as(u32, 0), runtime.registers.timeout_range);
+    try std.testing.expectEqual(@as(u32, 5 * 65_536), runtime.registers.current_count);
+}
+
 test "phase11 dw_wdt stop and restart stay bounded to reset-control and non-stoppable semantics" {
     var unstoppable = try dw_wdt.DwWdtLab.initFixedTops(65_536, false);
     _ = try unstoppable.start();
