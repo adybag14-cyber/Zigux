@@ -12,6 +12,7 @@ This document records the bounded Phase 15 governance lane for the roadmap requi
 - product boundary:
   - `Documentation/zigux/freeze-map.md`
   - `Documentation/zigux/review-checklist.md`
+  - `Documentation/zigux/README.md`
   - `Documentation/zigux/phase15-architecture-council-review-process.md`
   - `Documentation/zigux/phase15-parity-scorecard.md`
   - `Documentation/zigux/phase15-evidence-archives/`
