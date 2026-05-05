@@ -432,6 +432,21 @@ def run_self_test() -> int:
 
         _write(
             root / README_REL,
+            baseline_readme.replace("- `validate-phase8.py`\n", "", 1),
+        )
+        _assert_only(
+            validate(root),
+            [
+                "missing_readme_helper_entry:validate-phase8.py",
+                "readme_helper_order_drift",
+            ],
+            "missing_phase8_validator_helper_entry_guard_failed",
+        )
+        _write(root / README_REL, baseline_readme)
+        case_count += 1
+
+        _write(
+            root / README_REL,
             baseline_readme.replace(
                 "- `check-mk-elfconfig-diff.py`\n",
                 "- `check-mk-elfconfig-diff.py`\n- `unexpected-helper.py`\n",
@@ -453,6 +468,42 @@ def run_self_test() -> int:
             "missing_repo_file_guard_failed",
         )
         _write(root / "scripts" / "zigux" / "validate-phase4.py", "# stub\n")
+        case_count += 1
+
+        (root / "scripts" / "zigux" / "validate-phase7.py").unlink()
+        _assert_only(
+            validate(root),
+            ["missing_repo_file:scripts/zigux/validate-phase7.py"],
+            "missing_phase7_validator_repo_file_guard_failed",
+        )
+        _write(root / "scripts" / "zigux" / "validate-phase7.py", "# stub\n")
+        case_count += 1
+
+        (root / "scripts" / "zigux" / "check-phase7-make-wrapper.py").unlink()
+        _assert_only(
+            validate(root),
+            ["missing_repo_file:scripts/zigux/check-phase7-make-wrapper.py"],
+            "missing_phase7_make_wrapper_repo_file_guard_failed",
+        )
+        _write(root / "scripts" / "zigux" / "check-phase7-make-wrapper.py", "# stub\n")
+        case_count += 1
+
+        (root / "scripts" / "zigux" / "validate-phase8.py").unlink()
+        _assert_only(
+            validate(root),
+            ["missing_repo_file:scripts/zigux/validate-phase8.py"],
+            "missing_phase8_validator_repo_file_guard_failed",
+        )
+        _write(root / "scripts" / "zigux" / "validate-phase8.py", "# stub\n")
+        case_count += 1
+
+        (root / "scripts" / "zigux" / "check-phase8-exec-cmd-packet.py").unlink()
+        _assert_only(
+            validate(root),
+            ["missing_repo_file:scripts/zigux/check-phase8-exec-cmd-packet.py"],
+            "missing_phase8_exec_cmd_repo_file_guard_failed",
+        )
+        _write(root / "scripts" / "zigux" / "check-phase8-exec-cmd-packet.py", "# stub\n")
         case_count += 1
 
         (root / "scripts" / "zigux" / "validate-phase13-release.py").unlink()
