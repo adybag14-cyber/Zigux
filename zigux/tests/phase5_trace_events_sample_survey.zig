@@ -50,7 +50,7 @@ test "phase 5 trace-events manifest records the exact bounded checks" {
     defer parsed.deinit();
 
     const manifest = parsed.value;
-    try std.testing.expectEqualStrings("P5-L16", manifest.lane_key);
+    try std.testing.expectEqualStrings("P5-L24", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 5", manifest.phase);
     try std.testing.expect(isLowerHexCommitSha(manifest.surveyed_commit));
     try std.testing.expectEqualStrings("samples/trace_events/trace-events-sample.c", manifest.anchor);
@@ -209,6 +209,13 @@ test "phase 5 trace-events survey note stays repo-local and keeps the formatting
         .{manifest.surveyed_commit},
     );
 
+    var lane_key_marker_buf: [64]u8 = undefined;
+    const lane_key_marker = try std.fmt.bufPrint(
+        lane_key_marker_buf[0..],
+        "PHASE5_LANE_KEY={s}",
+        .{manifest.lane_key},
+    );
+
     const survey_note = try std.Io.Dir.cwd().readFileAlloc(
         io_instance.io(),
         "Documentation/zigux/phase5-trace-events-sample-survey.md",
@@ -217,6 +224,7 @@ test "phase 5 trace-events survey note stays repo-local and keeps the formatting
     );
     defer std.testing.allocator.free(survey_note);
 
+    try expectContains(survey_note, lane_key_marker);
     try expectContains(survey_note, "samples/trace_events/trace-events-sample.c");
     try expectContains(survey_note, "PHASE5_SLICE=trace-events-reference-sample-starter");
     try expectContains(survey_note, surveyed_commit_marker);
