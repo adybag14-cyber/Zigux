@@ -38,6 +38,7 @@ Phase 6 is where Zigux can keep proving low-risk in-kernel helper ports without 
 The current base64 helper surface exercised by this slice covers:
 
 - `chars`
+- `bytes`
 - `encode`
 - `decode`
 - `Variant.std`
@@ -48,12 +49,13 @@ The current tests check:
 
 - standard RFC 4648 encode vectors with and without padding
 - standard RFC 4648 decode vectors with and without padding
+- fixture-backed decode-length parity through `bytes` across the full committed valid std, URL-safe, and IMAP decode corpus
 - variant alphabet parity for URL-safe and IMAP output
 - variant decode parity for URL-safe and IMAP inputs
 - output-length accounting through `chars`
 - destination-bounds failures before partial writes during both encode and decode
 - shared kernel-derived encode, decode, variant, and invalid-input fixtures stored in `zigux/tests/fixtures/phase6_base64_vectors.zig`
-- invalid-input rejection for malformed, embedded-NUL, and variant-mismatched decode inputs
+- invalid-input rejection through both `bytes` and `decode` for malformed, embedded-NUL, and variant-mismatched decode inputs
 - exhaustive canonical tail acceptance for padded and unpadded std, URL-safe, and IMAP decode paths
 
 ## Non-goals
