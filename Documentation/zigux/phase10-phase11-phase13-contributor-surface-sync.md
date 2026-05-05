@@ -53,6 +53,7 @@ For the active shared-helper release packet, confirm wording still matches:
 - `Documentation/zigux/phase13-release-notes-survey.md`
 - `Documentation/zigux/phase13-roadmap-traceability.md`
 - `Documentation/zigux/phase13-libfs-survey.md`
+- `Documentation/zigux/phase13-devres-survey.md`
 - `Documentation/zigux/phase13-landlock-ruleset-survey.md`
 - `Documentation/zigux/phase13-landlock-syscalls-survey.md`
 - `Documentation/zigux/phase13-notifier-list-survey.md`
