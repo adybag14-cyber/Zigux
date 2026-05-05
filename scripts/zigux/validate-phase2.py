@@ -81,6 +81,7 @@ def required_files(root: Path) -> list[Path]:
         root / "scripts" / "zigux" / "validate-phase2.py",
         root / "scripts" / "zigux" / "validate-phase2-closure.py",
         root / "scripts" / "zigux" / "zig-toolchain-policy.json",
+        root / "zigux" / "tests" / "fixtures" / "phase2_tool_manifest.json",
         root / "zigux" / "tests" / "fixtures" / "phase2_cross_targets.json",
         root / "zigux" / "tests" / "fixtures" / "fixdep" / "cases.json",
         root / "zigux" / "tests" / "fixtures" / "fixdep" / "sample.d",
@@ -228,7 +229,7 @@ def validate_root(root: Path) -> list[str]:
         return [f"missing_file:{item}" for item in missing]
 
     ledger = (root / "zigux-alpha" / "BOOTSTRAP_COMMIT_LEDGER.md").read_text(encoding="utf-8")
-    workflow = (root / ".github" / "workflows" / "zigux-bootstrap.yml").read_text(encoding="utf-8")
+    workflow = (root / ".github/workflows/zigux-bootstrap.yml").read_text(encoding="utf-8")
     artifact_doc = (root / "Documentation" / "zigux" / "artifact-diff.md").read_text(encoding="utf-8")
     script_readme = (root / "scripts" / "zigux" / "README.md").read_text(encoding="utf-8")
     docs_root = (root / "Documentation" / "zigux" / "README.md").read_text(encoding="utf-8")
@@ -359,6 +360,7 @@ def build_self_test_root(root: Path) -> None:
         "scripts/zigux/validate-phase2.py",
         "scripts/zigux/validate-phase2-closure.py",
         "scripts/zigux/zig-toolchain-policy.json",
+        "zigux/tests/fixtures/phase2_tool_manifest.json",
         "zigux/tests/fixtures/phase2_cross_targets.json",
         "zigux/tests/fixtures/fixdep/cases.json",
         "zigux/tests/fixtures/fixdep/sample.d",
@@ -401,6 +403,26 @@ def build_self_test_root(root: Path) -> None:
     for rel in base_files:
         write_text(root / rel, "\n")
 
+    write_text(
+        root / "zigux/tests/fixtures/phase2_tool_manifest.json",
+        json.dumps(
+            {
+                "phase": "Phase 2",
+                "status": "closed",
+                "tool_count": 6,
+                "tools": [
+                    "scripts/zigux/fixdep.zig",
+                    "scripts/zigux/genksyms.zig",
+                    "scripts/zigux/genksyms_crc.zig",
+                    "scripts/zigux/mk_elfconfig.zig",
+                    "scripts/zigux/kconfig/conf_bridge.zig",
+                    "scripts/zigux/kconfig/confdata_bridge.zig",
+                ],
+            },
+            indent=2,
+        )
+        + "\n",
+    )
     write_text(
         root / "zigux/tests/fixtures/genksyms_bridge/cases.json",
         json.dumps({"cases": [{"expected": "minimal_expected.json"}]}, indent=2) + "\n",
@@ -495,6 +517,11 @@ def run_self_test() -> int:
         assert "workflow:python3 scripts/zigux/check-phase2-toolchain-pin-scope.py" in issues
 
         build_self_test_root(root)
+        (root / "zigux/tests/fixtures/phase2_tool_manifest.json").unlink()
+        issues = validate_root(root)
+        assert "missing_file:zigux/tests/fixtures/phase2_tool_manifest.json" in issues
+
+        build_self_test_root(root)
         write_text(root / "Documentation/zigux/review-checklist.md", "\n".join(REQUIRED_REVIEW_MARKERS[1:]) + "\n")
         issues = validate_root(root)
         assert "review:zigux/tests/README.md" in issues
@@ -518,7 +545,7 @@ def run_self_test() -> int:
         assert any(issue.startswith("guard_marker:") for issue in issues)
 
     print("PHASE2_VALIDATION_SELF_TEST=pass")
-    print("PHASE2_VALIDATION_SELF_TEST_CASE_COUNT=7")
+    print("PHASE2_VALIDATION_SELF_TEST_CASE_COUNT=8")
     return 0
 
 
