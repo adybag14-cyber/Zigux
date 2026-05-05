@@ -56,6 +56,7 @@ pub fn build(b: *std.Build) void {
         .optimize = optimize,
     });
     runtime_bitmap_loader_module.addImport("runtime_bitmap_sample", runtime_bitmap_sample_module);
+    runtime_bitmap_loader_module.addImport("runtime_loader", runtime_loader_contract_module);
     const runtime_trace_events_sample_module = b.createModule(.{
         .root_source_file = b.path("../../samples/zigux/runtime_trace_events.zig"),
         .target = target,
