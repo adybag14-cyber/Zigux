@@ -311,4 +311,29 @@ test "phase 5 trace-events survey note stays repo-local and keeps the formatting
     for (checklist_markers) |needle| {
         try std.testing.expect(std.mem.indexOf(u8, review_checklist, needle) != null);
     }
+
+    const tests_root = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "zigux/tests/README.md",
+        std.testing.allocator,
+        .limited(128 * 1024),
+    );
+    defer std.testing.allocator.free(tests_root);
+
+    const tests_root_markers = [_][]const u8{
+        "landed Phase 5 `trace_events_sample` packet explicit in the tests root too",
+        "Documentation/zigux/phase5-trace-events-sample-survey.md",
+        "samples/zigux/trace_events_sample.zig",
+        "zigux/tests/phase5_trace_events_sample_manifest.json",
+        "zigux/tests/phase5_trace_events_sample.zig",
+        "zigux/tests/phase5_trace_events_sample_survey.zig",
+        "zigux/tests/phase5_build.zig",
+        "non-runtime selected-string, `iter=%d`, relative-location, vararg-payload, balanced register-then-unregister callback cues",
+        "public `runPayloadBoundaryReplay()` helper",
+        "separate Phase 9 `runtime_trace_events` family visible from the tests root",
+    };
+
+    for (tests_root_markers) |needle| {
+        try std.testing.expect(std.mem.indexOf(u8, tests_root, needle) != null);
+    }
 }
