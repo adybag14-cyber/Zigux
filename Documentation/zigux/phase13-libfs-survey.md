@@ -6,7 +6,7 @@ This document records the bounded Phase 13 survey and reviewability lane around 
 
 - `PHASE13_STATUS=active`
 - `PHASE13_SLICE=libfs-helper-starter`
-- scope: the landed `fs/libfs.zig` helper starter, its dedicated Phase 13 test, the shared Phase 13 build wiring, and the lane notes that compare the current helper footing against the roadmap
+- scope: the landed `fs/libfs.zig` helper starter, its dedicated Phase 13 test, the shared Phase 13 build wiring, and the lane notes that compare the current wrapper footing against the roadmap
 - product boundary:
   - `fs/libfs.zig`
   - `zigux/tests/phase13_libfs.zig`
@@ -22,13 +22,13 @@ The Phase 13 roadmap explicitly names `fs/libfs.c` as a shared subsystem-helper 
 
 That matters because `fs/libfs.c` is still a large helper surface that spans simple metadata helpers, dcache cursor traversal, offset bookkeeping, recursive removal, pseudo-filesystem setup, inode and rename helpers, simple buffer I/O, attribute plumbing, and several shared utility routines.
 
-The live Zigux tree is no longer survey-only here. It already carries a small `fs/libfs.zig` starter, so the highest-value verification work in this lane is to keep that real helper footing reviewable and compile-checkable instead of continuing to describe a missing helper surface.
+The live Zigux tree is no longer survey-only here. It already carries a small `fs/libfs.zig` starter, so the highest-value verification work in this lane is to keep that real helper footing reviewable and compile-checkable instead of continuing to describe a missing wrapper.
 
 ## Survey findings
 
 - `fs/libfs.c` remains broad enough to cross several VFS boundaries at once: dentries, directory iteration, inode bookkeeping, pseudo-filesystem mounting, and generic buffer-copy helpers.
 - the live repo now has a landed `fs/libfs.zig` starter plus `zigux/tests/phase13_libfs.zig`, and `zigux/tests/phase13_build.zig` compiles that dedicated libfs helper test path.
-- the current starter stays intentionally narrow around `simple_statfs()` defaults, the `always_delete_dentry()` policy, the branch decisions inside `simple_lookup()`, the pure buffer-copy helper trio, the early `dcache_dir_lseek()` and `offset_dir_llseek()` seek-policy surface, and one tiny `dcache_readdir()`-adjacent emit planner.
+- the current starter stays intentionally narrow around `simple_statfs()` defaults, the `always_delete_dentry()` policy, the branch decisions inside `simple_lookup()`, the pure buffer-copy helper trio, the early `dcache_dir_lseek()` and `offset_dir_llseek()` seek-policy surface, one tiny `dcache_readdir()`-adjacent emit planner, and one pure `simple_transaction_get()` acquire planner for page-bounded staging-buffer setup.
 - the reviewability gate and manifest tie the starter, tests, build wire, slice note, and survey note together so future runs can verify the exact Phase 13 lane state before widening helper coverage.
 - directory cursor helpers such as `dcache_dir_open()` and the deeper cursor-backed `dcache_readdir()` traversal remain riskier because they depend on cursor dentries, sibling lists, lock ordering, and reschedule-aware traversal.
 
@@ -44,7 +44,8 @@ The current lane state is:
 - landed `phase13-libfs-survey-note`
 - landed `phase13-libfs-offset-seek-helper`
 - landed `phase13-libfs-directory-emit-helper`
-- ready-next `phase13-libfs-transaction-buffer-helper`
+- landed `phase13-libfs-transaction-buffer-helper`
+- ready-next `phase13-libfs-transaction-publish-helper`
 - blocked `phase13-libfs-dcache-cursor-helpers`
 - blocked `phase13-libfs-inode-and-pseudofs-lifecycle`
 
@@ -71,4 +72,4 @@ This slice does not claim:
 
 ## Next bounded step
 
-Stay in the Phase 13 libfs lane and add one tiny `fs/libfs.zig` transaction-buffer helper next, limited to reviewable `simple_transaction`-adjacent staging-buffer sizing or cursor bookkeeping before any live cursor dentry, inode, or pseudo-filesystem work.
+Stay in the Phase 13 libfs lane and add one tiny `fs/libfs.zig` `simple_transaction_set()` publish planner next, limited to reviewable response-size validation and publish bookkeeping before any live readback, release, cursor dentry, inode, or pseudo-filesystem work.
