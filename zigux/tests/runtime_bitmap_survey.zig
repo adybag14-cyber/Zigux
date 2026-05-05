@@ -148,7 +148,8 @@ test "phase 9 runtime bitmap survey note keeps the phase boundary and exact chec
     try std.testing.expect(std.mem.indexOf(u8, note, "The current direct bitmap sample contract is verified through these exact checks:") != null);
     try std.testing.expect(std.mem.indexOf(u8, note, "summary stability: initializing bits `0`, `5`, `64`, and `70` still yields `first_set=0`, `first_zero=1`, `weight=4`, and `nbits=128`") != null);
     try std.testing.expect(std.mem.indexOf(u8, note, "descriptor contract: the sample still advertises `name=runtime_bitmap`, `anchor=lib/test_bitmap.c`, `requires_runtime_substrate=true`, and `provides_selftest_hook=true`") != null);
-    try std.testing.expect(std.mem.indexOf(u8, note, "copy and selftest path: a second initialized sample can mirror the mutated bitmap, `runSelftest()` still reports the four ordered operation families `clear_set`, `copy`, `summary`, and `lifecycle`, and selftest leaves the bitmap summary unchanged while keeping lifecycle-path coverage explicit") != null);
+    try std.testing.expect(std.mem.indexOf(u8, note, "copy and selftest path: a second initialized sample can mirror the mutated bitmap, `runSelftest()` still reports the four ordered operation families `clear_set`, `copy`, `summary`, and `lifecycle`, and selftest leaves the bitmap summary unchanged") != null);
+    try std.testing.expect(std.mem.indexOf(u8, note, "review-contract boundary: the direct sample still exposes the ordered review focus `descriptor_and_anchor`, `summary_replay`, and `selftest_lifecycle`; it does not claim standalone `initFromBitList()`, `formatSetBits()`, parse/print differential parity, or a loadable runtime bitmap module on `master`") != null);
     try std.testing.expect(std.mem.indexOf(u8, note, "diff-gate replay: the bounded parity cases still cover the single-word fill starter, the `79..97` cross-boundary clear cutout, the sparse `10,20,30,40,50,60,80,123` population replay, and the copied `0..108` tail-clear snapshot with `first_zero=109`") != null);
 }
 
@@ -211,6 +212,9 @@ test "phase 9 runtime bitmap survey source-checks the direct sample evidence pac
     try std.testing.expect(std.mem.indexOf(u8, sample_source, ".anchor = \"lib/test_bitmap.c\"") != null);
     try std.testing.expect(std.mem.indexOf(u8, sample_source, ".requires_runtime_substrate = true") != null);
     try std.testing.expect(std.mem.indexOf(u8, sample_source, ".provides_selftest_hook = true") != null);
+    try std.testing.expect(std.mem.indexOf(u8, sample_source, ".descriptor_and_anchor,") != null);
+    try std.testing.expect(std.mem.indexOf(u8, sample_source, ".summary_replay,") != null);
+    try std.testing.expect(std.mem.indexOf(u8, sample_source, ".selftest_lifecycle,") != null);
     try std.testing.expect(std.mem.indexOf(u8, sample_source, ".summary,") != null);
     try std.testing.expect(std.mem.indexOf(u8, sample_source, ".lifecycle,") != null);
     try std.testing.expect(std.mem.indexOf(u8, sample_source, "try std.testing.expectEqual(@as(u32, 4), summary.weight);") != null);
