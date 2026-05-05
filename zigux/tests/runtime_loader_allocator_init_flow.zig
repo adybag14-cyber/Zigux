@@ -120,3 +120,45 @@ test "phase 9 runtime loader allocator/init-flow replay rejects exited or incomp
     );
     try std.testing.expectError(error.InvalidInitFlow, runtime_loader.prepareRequest(incomplete_plan));
 }
+
+test "phase 9 runtime loader allocator/init-flow replay rejects stale loader state transitions" {
+    const stable_plan = makePlan(
+        "runtime_atomic64",
+        "lib/atomic64_test.c",
+        "zigux_runtime_atomic64_init",
+        "zigux_runtime_atomic64_exit",
+        .caller_provided,
+        .{
+            .handoff_stage = .selftest_complete,
+            .init_runs = 1,
+            .selftest_runs = 1,
+            .exit_runs = 0,
+        },
+    );
+
+    var request = try runtime_loader.prepareRequest(stable_plan);
+    try std.testing.expectError(error.InvalidLoaderState, request.releaseWithoutSubstrate());
+
+    _ = try request.requestRuntimeLoad();
+    try std.testing.expectError(error.InvalidLoaderState, request.requestRuntimeLoad());
+
+    try request.releaseWithoutSubstrate();
+    try std.testing.expectError(error.InvalidLoaderState, request.releaseWithoutSubstrate());
+
+    const no_loader_needed = runtime_loader.LoadPlan{
+        .module_name = "runtime_trace_events",
+        .anchor = "samples/trace_events/trace-events-sample.c",
+        .entry_symbol = "zigux_runtime_trace_events_init",
+        .exit_symbol = "zigux_runtime_trace_events_exit",
+        .requires_runtime_substrate = false,
+        .provides_selftest_hook = true,
+        .allocator_handoff = .caller_provided,
+        .init_flow = .{
+            .handoff_stage = .selftest_complete,
+            .init_runs = 1,
+            .selftest_runs = 1,
+            .exit_runs = 0,
+        },
+    };
+    try std.testing.expectError(error.LoaderNotRequired, runtime_loader.prepareRequest(no_loader_needed));
+}
