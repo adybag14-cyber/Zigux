@@ -1,5 +1,8 @@
 // SPDX-License-Identifier: GPL-2.0-only
 const std = @import("std");
+const empty_argv_null_terminated: []const ?[*:0]const u8 = &.{null};
+var empty_storage_null_terminated = [_:0]u8{0};
+const empty_storage_view = empty_storage_null_terminated[0..0 :0];
 
 pub const ArgvSplitResult = struct {
     storage: [:0]u8,
@@ -7,13 +10,19 @@ pub const ArgvSplitResult = struct {
     argv_null_terminated: []const ?[*:0]const u8,
 
     pub fn deinit(self: *ArgvSplitResult, allocator: std.mem.Allocator) void {
-        allocator.free(self.argv_null_terminated);
-        allocator.free(self.argv);
-        allocator.free(self.storage);
+        if (self.argv_null_terminated.ptr != empty_argv_null_terminated.ptr) {
+            allocator.free(self.argv_null_terminated);
+        }
+        if (self.argv.len != 0) {
+            allocator.free(self.argv);
+        }
+        if (self.storage.ptr != empty_storage_view.ptr) {
+            allocator.free(self.storage);
+        }
         self.* = .{
-            .storage = undefined,
+            .storage = empty_storage_view,
             .argv = &.{},
-            .argv_null_terminated = &.{},
+            .argv_null_terminated = empty_argv_null_terminated,
         };
     }
 
@@ -22,59 +31,72 @@ pub const ArgvSplitResult = struct {
     }
 };
 
+const ArgSpan = struct {
+    start: usize,
+    end: usize,
+};
+
 pub fn countArgc(text: []const u8) usize {
     const current = cStringPrefix(text);
     var count: usize = 0;
-    var was_space = true;
+    var cursor: usize = 0;
 
-    for (current) |ch| {
-        if (std.ascii.isWhitespace(ch)) {
-            was_space = true;
-        } else if (was_space) {
-            was_space = false;
-            count += 1;
-        }
+    while (nextArgSpan(current, &cursor)) |_| {
+        count += 1;
     }
 
     return count;
 }
 
 pub fn argvSplit(allocator: std.mem.Allocator, text: []const u8) !ArgvSplitResult {
-    var storage = try allocator.dupeZ(u8, cStringPrefix(text));
-    errdefer allocator.free(storage);
+    return argvSplitWithArgc(allocator, text, null);
+}
 
+pub fn argvSplitWithArgc(
+    allocator: std.mem.Allocator,
+    text: []const u8,
+    argcp: ?*usize,
+) !ArgvSplitResult {
+    const current = cStringPrefix(text);
+    if (!hasAnyArg(current)) {
+        if (argcp) |count_out| {
+            count_out.* = 0;
+        }
+        return .{
+            .storage = empty_storage_view,
+            .argv = &.{},
+            .argv_null_terminated = empty_argv_null_terminated,
+        };
+    }
+
+    var storage = try allocator.dupeZ(u8, current);
+    errdefer allocator.free(storage);
     const argc = countArgc(storage);
+
     var argv = try allocator.alloc([:0]u8, argc);
     errdefer allocator.free(argv);
 
-    var argv_null_terminated = try allocator.alloc(?[*:0]const u8, argc + 1);
+    var argv_null_terminated = try allocArgvNullTerminated(allocator, argc);
     errdefer allocator.free(argv_null_terminated);
 
     var arg_index: usize = 0;
-    var arg_start: ?usize = null;
+    var cursor: usize = 0;
 
-    for (storage, 0..) |*ch, index| {
-        if (std.ascii.isWhitespace(ch.*)) {
-            ch.* = 0;
-            if (arg_start) |start| {
-                argv[arg_index] = storage[start..index :0];
-                argv_null_terminated[arg_index] = argv[arg_index].ptr;
-                arg_index += 1;
-                arg_start = null;
-            }
-        } else if (arg_start == null) {
-            arg_start = index;
+    while (nextArgSpan(storage, &cursor)) |span| {
+        if (span.end < storage.len) {
+            storage[span.end] = 0;
+            cursor = span.end + 1;
         }
-    }
-
-    if (arg_start) |start| {
-        argv[arg_index] = storage[start..storage.len :0];
+        argv[arg_index] = storage[span.start..span.end :0];
         argv_null_terminated[arg_index] = argv[arg_index].ptr;
         arg_index += 1;
     }
 
     argv_null_terminated[arg_index] = null;
     std.debug.assert(arg_index == argc);
+    if (argcp) |count_out| {
+        count_out.* = argc;
+    }
     return .{
         .storage = storage,
         .argv = argv,
@@ -82,8 +104,48 @@ pub fn argvSplit(allocator: std.mem.Allocator, text: []const u8) !ArgvSplitResul
     };
 }
 
+pub fn argvFree(allocator: std.mem.Allocator, result: *ArgvSplitResult) void {
+    result.deinit(allocator);
+}
+
 fn cStringPrefix(text: []const u8) []const u8 {
     return text[0 .. std.mem.indexOfScalar(u8, text, 0) orelse text.len];
+}
+
+fn hasAnyArg(text: []const u8) bool {
+    for (text) |ch| {
+        if (!std.ascii.isWhitespace(ch)) {
+            return true;
+        }
+    }
+    return false;
+}
+
+fn nextArgSpan(text: []const u8, cursor: *usize) ?ArgSpan {
+    var index = cursor.*;
+
+    while (index < text.len and std.ascii.isWhitespace(text[index])) : (index += 1) {}
+    if (index == text.len) {
+        cursor.* = index;
+        return null;
+    }
+
+    const start = index;
+    while (index < text.len and !std.ascii.isWhitespace(text[index])) : (index += 1) {}
+
+    cursor.* = index;
+    return .{
+        .start = start,
+        .end = index,
+    };
+}
+
+fn allocArgvNullTerminated(
+    allocator: std.mem.Allocator,
+    argc: usize,
+) ![]?[*:0]const u8 {
+    const argv_null_terminated_len = try std.math.add(usize, argc, 1);
+    return allocator.alloc(?[*:0]const u8, argv_null_terminated_len);
 }
 
 const ArgvFixture = struct {
@@ -99,6 +161,8 @@ const whitespace_expected = [_][]const u8{
 
 const blank_expected = [_][]const u8{};
 
+const leading_nul_expected = [_][]const u8{};
+
 const nul_expected = [_][]const u8{
     "alpha",
     "beta",
@@ -112,10 +176,12 @@ const quote_expected = [_][]const u8{
 };
 
 fn expectFixture(fixture: ArgvFixture) !void {
-    var split = try argvSplit(std.testing.allocator, fixture.input);
+    var argc: usize = std.math.maxInt(usize);
+    var split = try argvSplitWithArgc(std.testing.allocator, fixture.input, &argc);
     defer split.deinit(std.testing.allocator);
 
     try std.testing.expectEqual(fixture.expected.len, countArgc(fixture.input));
+    try std.testing.expectEqual(fixture.expected.len, argc);
     try std.testing.expectEqual(fixture.expected.len, split.argv.len);
 
     const c_argv = split.cArgv();
@@ -127,6 +193,11 @@ fn expectFixture(fixture: ArgvFixture) !void {
     try std.testing.expectEqual(@as(?[*:0]const u8, null), c_argv[fixture.expected.len]);
 }
 
+fn runArgvSplitWithFailingAllocator(allocator: std.mem.Allocator, text: []const u8) !void {
+    var split = try argvSplit(allocator, text);
+    defer split.deinit(allocator);
+}
+
 test "argvSplit matches focused parity fixtures" {
     try expectFixture(.{
         .input = " alpha  beta\tgamma\n",
@@ -135,6 +206,10 @@ test "argvSplit matches focused parity fixtures" {
     try expectFixture(.{
         .input = "  \t\n",
         .expected = &blank_expected,
+    });
+    try expectFixture(.{
+        .input = "\x00ignored tail",
+        .expected = &leading_nul_expected,
     });
     try expectFixture(.{
         .input = "alpha beta\x00ignored tail",
@@ -158,6 +233,26 @@ test "argvSplit duplicates the input before tokenizing" {
     try std.testing.expectEqualStrings("two", split.argv[1]);
 }
 
+test "argvSplit tokens stay inside the owned storage copy" {
+    var split = try argvSplit(std.testing.allocator, "console=ttyS0 root=/dev/vda rw");
+    defer split.deinit(std.testing.allocator);
+
+    const storage_start = @intFromPtr(split.storage.ptr);
+    const storage_end = storage_start + split.storage.len;
+    const c_argv = split.cArgv();
+
+    for (split.argv, 0..) |token, index| {
+        const token_start = @intFromPtr(token.ptr);
+        const token_end = token_start + token.len;
+        const offset = token_start - storage_start;
+
+        try std.testing.expect(token_start >= storage_start);
+        try std.testing.expect(token_end <= storage_end);
+        try std.testing.expectEqual(@intFromPtr(token.ptr), @intFromPtr(c_argv[index].?));
+        try std.testing.expectEqual(@as(u8, 0), split.storage[offset + token.len]);
+    }
+}
+
 test "argvSplit preserves C-string termination for the final token and argv vector" {
     var split = try argvSplit(std.testing.allocator, "console=ttyS0 root=/dev/vda");
     defer split.deinit(std.testing.allocator);
@@ -165,4 +260,124 @@ test "argvSplit preserves C-string termination for the final token and argv vect
     try std.testing.expectEqual(@as(u8, 0), split.storage[split.storage.len]);
     try std.testing.expectEqualStrings("root=/dev/vda", std.mem.span(split.cArgv()[1].?));
     try std.testing.expectEqual(@as(?[*:0]const u8, null), split.cArgv()[split.argv.len]);
+}
+
+test "argvSplit reuses the exported empty argv view for blank input" {
+    var buffer: [4]u8 = undefined;
+    var fba = std.heap.FixedBufferAllocator.init(&buffer);
+    var argc: usize = std.math.maxInt(usize);
+    var split = try argvSplitWithArgc(fba.allocator(), " \t\n", &argc);
+    defer split.deinit(fba.allocator());
+
+    try std.testing.expectEqual(@as(usize, 0), argc);
+    try std.testing.expectEqual(@as(usize, 0), split.argv.len);
+    try std.testing.expectEqual(@as(usize, 1), split.argv_null_terminated.len);
+    try std.testing.expectEqual(empty_argv_null_terminated.ptr, split.argv_null_terminated.ptr);
+    try std.testing.expectEqual(@as(?[*:0]const u8, null), split.cArgv()[0]);
+}
+
+test "argvSplit reuses the exported empty storage view for blank input without allocating" {
+    var buffer = [_]u8{};
+    var fba = std.heap.FixedBufferAllocator.init(&buffer);
+    var argc: usize = std.math.maxInt(usize);
+    var split = try argvSplitWithArgc(fba.allocator(), " \t\n", &argc);
+    defer split.deinit(fba.allocator());
+
+    try std.testing.expectEqual(@as(usize, 0), argc);
+    try std.testing.expectEqual(@as(usize, 0), split.storage.len);
+    try std.testing.expectEqual(@as(u8, 0), split.storage[split.storage.len]);
+    try std.testing.expectEqual(empty_storage_view.ptr, split.storage.ptr);
+    try std.testing.expectEqual(@as(usize, 0), split.argv.len);
+    try std.testing.expectEqual(@as(?[*:0]const u8, null), split.cArgv()[0]);
+}
+
+test "argvFree keeps blank-input sentinel teardown safe and repeatable" {
+    var buffer = [_]u8{};
+    var fba = std.heap.FixedBufferAllocator.init(&buffer);
+    var argc: usize = std.math.maxInt(usize);
+    var split = try argvSplitWithArgc(fba.allocator(), " \t\n", &argc);
+
+    try std.testing.expectEqual(@as(usize, 0), argc);
+
+    argvFree(fba.allocator(), &split);
+    try std.testing.expectEqual(@as(usize, 0), split.storage.len);
+    try std.testing.expectEqual(@as(u8, 0), split.storage[split.storage.len]);
+    try std.testing.expectEqual(@as(usize, 0), split.argv.len);
+    try std.testing.expectEqual(@as(usize, 1), split.argv_null_terminated.len);
+    try std.testing.expectEqual(@as(?[*:0]const u8, null), split.cArgv()[0]);
+
+    argvFree(fba.allocator(), &split);
+    try std.testing.expectEqual(@as(usize, 0), split.storage.len);
+    try std.testing.expectEqual(@as(u8, 0), split.storage[split.storage.len]);
+    try std.testing.expectEqual(@as(usize, 0), split.argv.len);
+    try std.testing.expectEqual(@as(usize, 1), split.argv_null_terminated.len);
+    try std.testing.expectEqual(@as(?[*:0]const u8, null), split.cArgv()[0]);
+}
+
+test "ArgvSplitResult deinit clears exported storage and argv views" {
+    var split = try argvSplit(std.testing.allocator, "console=ttyS0 root=/dev/vda");
+
+    try std.testing.expect(split.storage.len != 0);
+    try std.testing.expectEqual(@as(u8, 0), split.storage[split.storage.len]);
+    try std.testing.expectEqual(@as(usize, 2), split.argv.len);
+    try std.testing.expectEqual(@as(?[*:0]const u8, null), split.cArgv()[split.argv.len]);
+
+    split.deinit(std.testing.allocator);
+    var blank = try argvSplitWithArgc(std.testing.allocator, "", null);
+    defer blank.deinit(std.testing.allocator);
+
+    try std.testing.expectEqual(@as(usize, 0), split.storage.len);
+    try std.testing.expectEqual(@as(u8, 0), split.storage[split.storage.len]);
+    try std.testing.expectEqual(@as(usize, 0), split.argv.len);
+    try std.testing.expectEqual(@as(usize, 1), split.argv_null_terminated.len);
+    try std.testing.expectEqual(@as(?[*:0]const u8, null), split.cArgv()[0]);
+    try std.testing.expect(split.storage.ptr == blank.storage.ptr);
+    try std.testing.expect(split.argv_null_terminated.ptr == blank.argv_null_terminated.ptr);
+    try std.testing.expect(split.cArgv() == blank.cArgv());
+}
+
+test "ArgvSplitResult deinit is idempotent after the exported views are cleared" {
+    var split = try argvSplit(std.testing.allocator, "console=ttyS0 root=/dev/vda");
+
+    split.deinit(std.testing.allocator);
+    split.deinit(std.testing.allocator);
+
+    try std.testing.expectEqual(@as(usize, 0), split.storage.len);
+    try std.testing.expectEqual(@as(u8, 0), split.storage[split.storage.len]);
+    try std.testing.expectEqual(@as(usize, 0), split.argv.len);
+    try std.testing.expectEqual(@as(usize, 1), split.argv_null_terminated.len);
+    try std.testing.expectEqual(@as(?[*:0]const u8, null), split.cArgv()[0]);
+}
+
+test "argvFree mirrors argv_free release ownership and stays safe after teardown" {
+    var split = try argvSplit(std.testing.allocator, "console=ttyS0 root=/dev/vda");
+
+    argvFree(std.testing.allocator, &split);
+    try std.testing.expectEqual(@as(usize, 0), split.storage.len);
+    try std.testing.expectEqual(@as(u8, 0), split.storage[split.storage.len]);
+    try std.testing.expectEqual(@as(usize, 0), split.argv.len);
+    try std.testing.expectEqual(@as(usize, 1), split.argv_null_terminated.len);
+    try std.testing.expectEqual(@as(?[*:0]const u8, null), split.cArgv()[0]);
+
+    argvFree(std.testing.allocator, &split);
+    try std.testing.expectEqual(@as(usize, 0), split.storage.len);
+    try std.testing.expectEqual(@as(u8, 0), split.storage[split.storage.len]);
+    try std.testing.expectEqual(@as(usize, 0), split.argv.len);
+    try std.testing.expectEqual(@as(usize, 1), split.argv_null_terminated.len);
+    try std.testing.expectEqual(@as(?[*:0]const u8, null), split.cArgv()[0]);
+}
+
+test "argvSplit frees intermediate allocations when allocator failure interrupts setup" {
+    try std.testing.checkAllAllocationFailures(
+        std.testing.allocator,
+        runArgvSplitWithFailingAllocator,
+        .{"console=ttyS0 root=/dev/vda rw"},
+    );
+}
+
+test "argvSplit reports overflow before sizing the null-terminated argv vector" {
+    try std.testing.expectError(
+        error.Overflow,
+        allocArgvNullTerminated(std.testing.allocator, std.math.maxInt(usize)),
+    );
 }
