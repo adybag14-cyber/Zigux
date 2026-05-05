@@ -34,8 +34,8 @@ test "phase14 shared smoke manifest records the bounded study-only packet" {
 
     const parsed = try std.json.parseFromSlice(Manifest, std.testing.allocator, manifest_json, .{});
     defer parsed.deinit();
-
     const manifest = parsed.value;
+
     try std.testing.expectEqualStrings("core-adjacent", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 14", manifest.phase);
     try std.testing.expectEqualStrings("phase14_shared_smoke_packet", manifest.packet_name);
@@ -48,6 +48,8 @@ test "phase14 shared smoke manifest records the bounded study-only packet" {
     try std.testing.expectEqualStrings("Documentation/zigux/README.md", manifest.surfaces[0].path);
     try std.testing.expectEqualStrings("Documentation/zigux/phase14-release-boundary-survey.md", manifest.surfaces[1].path);
     try std.testing.expectEqualStrings("zigux/tests/phase14_build.zig", manifest.surfaces[5].path);
+    try std.testing.expectEqualStrings("zigux/tests/phase14_workqueue_bridge_manifest.json", manifest.surfaces[8].path);
+    try std.testing.expectEqualStrings("zigux/tests/phase14_skbuff_bridge_manifest.json", manifest.surfaces[9].path);
     try std.testing.expectEqualStrings("zigux/tests/phase14_ring_buffer_manifest.json", manifest.surfaces[12].path);
     try std.testing.expectEqualStrings("zigux/tests/phase14_rcu_tree_manifest.json", manifest.surfaces[13].path);
     try std.testing.expectEqualStrings("kernel/workqueue_bridge.zig", manifest.surfaces[14].path);
@@ -71,8 +73,8 @@ test "phase14 shared smoke survey confirms the current packet surfaces" {
 
     const parsed = try std.json.parseFromSlice(Manifest, std.testing.allocator, manifest_json, .{});
     defer parsed.deinit();
-
     const manifest = parsed.value;
+
     for (manifest.surfaces) |surface| {
         const text = try std.Io.Dir.cwd().readFileAlloc(
             io_instance.io(),
@@ -81,7 +83,6 @@ test "phase14 shared smoke survey confirms the current packet surfaces" {
             .limited(256 * 1024),
         );
         defer std.testing.allocator.free(text);
-
         try std.testing.expect(containsMarker(text, surface.required_marker));
     }
 
@@ -92,7 +93,6 @@ test "phase14 shared smoke survey confirms the current packet surfaces" {
         .limited(64 * 1024),
     );
     defer std.testing.allocator.free(makefile_text);
-
     try std.testing.expect(containsMarker(makefile_text, "phase14-smoke:"));
     try std.testing.expect(containsMarker(makefile_text, "phase14-test:"));
     try std.testing.expect(containsMarker(makefile_text, "phase14: phase14-smoke phase14-test"));
