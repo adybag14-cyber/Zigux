@@ -32,7 +32,8 @@ The highest-value honest step in this lane is therefore to add a boundary map th
 - `net/core/datagram.c` is a useful nearby consumer because it still relies on the shipped skbuff lifetime model rather than any alternate wrapper surface.
 - the new `net/core/skbuff_bridge.zig` starter stays intentionally narrow around boundary recording for allocation entrypoints, clone and copy seams, headroom mutation, checksum or segmentation surfaces, shared-info refcount ownership, and destructor or free-path ownership.
 - the bridge now keeps checksum-complete state around `__skb_checksum_complete()` and `skb_checksum_complete_unset()` separate from the segmentation study, which keeps the ownership boundary around `skb->csum`, `skb->ip_summed`, `skb->csum_valid`, and `skb->csum_complete_sw` explicit without claiming live checksum-state control.
-- the bridge now makes the first segmentation-handoff study explicit around `skb_segment()`, `skb_orphan_frags()`, `skb_zerocopy_clone()`, `SKBFL_SHARED_FRAG`, `nskb->ip_summed`, and `SKB_GSO_CB(nskb)` so the lane names where frag ownership and checksum metadata move while still keeping live packet shaping in C.
+- the bridge now records the orphan-frag and zerocopy handoff inside `skb_segment()`, keeping `skb_orphan_frags()`, `skb_zerocopy_clone()`, `SKBFL_SHARED_FRAG`, and the carried fragment state visible while still keeping live payload ownership in C.
+- the bridge now records the checksum-metadata handoff inside `skb_segment()`, keeping `CHECKSUM_NONE`, `skb_checksum()`, `SKB_GSO_CB(nskb)->csum`, and `SKB_GSO_CB(nskb)->csum_start` visible while still keeping live checksum and GSO ownership in C.
 - the bridge now records the partial-seg metadata and tail-owner follow-up around `SKB_GSO_PARTIAL`, `SKB_GSO_DODGY`, `SKB_GSO_CB(iter)->data_offset`, the last-segment `gso_size` or `gso_segs` clamp, and the `sock_wfree` tail transfer so the lane names where GSO metadata and sock-owned backpressure state move while still keeping live packet shaping in C.
 - the bridge now records the checksum-to-data-offset crossover inside `skb_segment()`, keeping `SKB_GSO_CB(nskb)->csum`, `SKB_GSO_CB(nskb)->csum_start`, `SKB_GSO_CB(iter)->data_offset`, and `remcsum_offload` visible in one review-only checkpoint so the lane names the remaining checksum metadata coupling while still keeping live packet shaping in C.
 - the bridge now records the exported tail-list publication contract inside `skb_segment()`, keeping `segs->prev`, `tail->next`, the last-segment `gso_size` or `gso_segs` clamp, and the nearby `validate_xmit_skb_list()` consumer contract visible in one review-only checkpoint so the lane names the qdisc-facing handoff while still keeping live packet shaping in C.
@@ -55,7 +56,24 @@ The current lane state is:
 - landed `phase14-skbuff-segs-prev-tail-publication-followup`
 - blocked `phase14-skbuff-live-ownership-blocker`
 
-This keeps the lane explicit without overstating progress: Zigux now has a real Phase 14 skbuff boundary map, a lifetime-audit foothold, an explicit checksum-state audit, the first segmentation-handoff study, the partial-seg tail-owner follow-up, the checksum-to-data-offset crossover audit, and the exported tail-publication audit, but it still does not claim live refcount transitions, destructor ordering, checksum ownership, qdisc-facing publication ownership, segmentation behavior, or a direct `net/core/skbuff.c` rewrite.
+This keeps the lane explicit without overstating progress: Zigux now has a real Phase 14 skbuff boundary map, a lifetime-audit foothold, an explicit checksum-state audit, the orphan-frag and zerocopy handoff study, the checksum-metadata handoff study, the partial-seg tail-owner follow-up, the checksum-to-data-offset crossover audit, and the exported tail-publication audit, but it still does not claim live refcount transitions, destructor ordering, checksum ownership, qdisc-facing publication ownership, segmentation behavior, or a direct `net/core/skbuff.c` rewrite.
+
+## Freeze-in-C guardrails
+
+- named owner: `Core-Adjacent Pod`
+- status bucket: `freeze_in_c`
+- validation gate: `zig build test --build-file zigux/tests/phase14_build.zig --summary all` plus `make -C zigux phase14`
+- rollback owner: `Repo Tooling Pod`
+- rollback threshold: keep this packet in `freeze_in_c` posture and return it to blocked skbuff-packet maintenance if the validation gate, rollback owner, blocked live-ownership gap, or explicit stay-in-C wording around qdisc-facing publication stops being visible in the same survey packet.
+- required evidence:
+  - explicit stay-in-C wording for `segs->prev`, `tail->next`, and `validate_xmit_skb_list()`
+  - the blocked `phase14-skbuff-live-ownership-blocker` kept visible beside the no-smaller-follow-up posture
+  - explicit wording that qdisc-facing publication, queue ownership, skb lifetime ownership, checksum ownership, and destructor coordination remain in C
+- automatic return-to-blocked triggers:
+  - any edit that drops the named validation gate or rollback owner
+  - missing freeze-in-C or stay-in-C wording for the exported tail-publication checkpoint
+  - any manifest refresh that changes the blocked live-ownership gap without refreshing this survey note
+  - any edit that weakens the explicit no-smaller-follow-up stance and silently implies a fresh skbuff wrapper step
 
 ## Non-goals
 
