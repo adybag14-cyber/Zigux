@@ -197,6 +197,20 @@ def run_self_test() -> None:
         case_count += 1
         build_path.write_text(original_build, encoding="utf-8")
 
+        makefile_path = tmp_root / "zigux" / "Makefile"
+        original_makefile = makefile_path.read_text(encoding="utf-8")
+        makefile_path.write_text(
+            original_makefile.replace("scripts/zigux/check-phase7-argv-split-packet.py --self-test", "", 1),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "argv_split_makefile_self_test_marker",
+            tmp_root,
+            "zigux/Makefile: scripts/zigux/check-phase7-argv-split-packet.py --self-test",
+        )
+        case_count += 1
+        makefile_path.write_text(original_makefile, encoding="utf-8")
+
         survey_path = tmp_root / "zigux" / "tests" / "phase7_argv_split_survey.zig"
         original_survey = survey_path.read_text(encoding="utf-8")
         survey_path.write_text(
@@ -207,6 +221,18 @@ def run_self_test() -> None:
             "argv_split_survey_manifest_marker",
             tmp_root,
             "zigux/tests/phase7_argv_split_survey.zig: zigux/tests/phase7_argv_split_manifest.json",
+        )
+        case_count += 1
+        survey_path.write_text(original_survey, encoding="utf-8")
+
+        survey_path.write_text(
+            original_survey.replace("PHASE7_LANE_KEY=", "", 1),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "argv_split_survey_lane_key_marker",
+            tmp_root,
+            "zigux/tests/phase7_argv_split_survey.zig: PHASE7_LANE_KEY=",
         )
         case_count += 1
         survey_path.write_text(original_survey, encoding="utf-8")
