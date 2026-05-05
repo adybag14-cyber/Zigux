@@ -56,6 +56,7 @@ REQUIRED_PHASE4_GATE_EVIDENCE_MARKERS = [
     "PHASE4_VALIDATOR_BLOB_SHA=",
     "zigux/tests/phase4_runtime_atomic64_diff_manifest.json",
     "zigux/tests/phase4_runtime_atomic64_diff_survey.zig",
+    "PHASE4_SEPARATE_GATE_EVIDENCE_CHECKER_PRESENT=true",
     "PHASE4_SHARED_TEST_FSMOUNT_SURVEY_PACKET_PRESENT=false",
     "PHASE4_SHARED_PERF_BASELINE_SURVEY_PACKET_PRESENT=false",
 ]
@@ -378,6 +379,7 @@ def run_self_test() -> int:
                     "- `PHASE4_VALIDATOR_BLOB_SHA=placeholder`",
                     "- `zigux/tests/phase4_runtime_atomic64_diff_manifest.json` stays in the packet.",
                     "- `zigux/tests/phase4_runtime_atomic64_diff_survey.zig` stays in the packet.",
+                    "- `PHASE4_SEPARATE_GATE_EVIDENCE_CHECKER_PRESENT=true`",
                     "- `PHASE4_SHARED_TEST_FSMOUNT_SURVEY_PACKET_PRESENT=false`",
                     "- `PHASE4_SHARED_PERF_BASELINE_SURVEY_PACKET_PRESENT=false`",
                     "",
