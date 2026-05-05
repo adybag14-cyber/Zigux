@@ -17,7 +17,7 @@ pub fn build(b: *std.Build) void {
     exec_cmd_root_module.addImport("exec_cmd", exec_cmd_module);
 
     const exec_cmd_tests = b.addTest(.{
-        .name = "phase8-exec-cmd-only-tests",
+        .name = "phase8-exec-cmd-tests",
         .root_module = exec_cmd_root_module,
     });
     const run_exec_cmd_tests = b.addRunArtifact(exec_cmd_tests);
