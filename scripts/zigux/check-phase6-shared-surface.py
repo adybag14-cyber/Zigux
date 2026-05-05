@@ -24,6 +24,7 @@ REQUIRED_SNIPPETS = {
         "- `zigux/tests/fixtures/phase6_base64_vectors.zig`",
         "- shared kernel-derived encode, decode, variant, and invalid-input fixtures stored in `zigux/tests/fixtures/phase6_base64_vectors.zig`",
         "- invalid-input rejection through both `bytes` and `decode` for malformed, embedded-NUL, and variant-mismatched decode inputs",
+        "- exhaustive canonical tail acceptance for padded and unpadded std, URL-safe, and IMAP decode paths",
         "- a separate external C-vs-Zig parity packet on `master`",
     ],
     "Documentation/zigux/phase6-bsearch-slice.md": [
@@ -136,6 +137,10 @@ REQUIRED_SNIPPETS = {
         "pub const standard_cases = [_]EncodeCase{",
         "pub const variant_cases = [_]VariantCase{",
         "pub const standard_decode_cases = [_]DecodeCase{",
+        '.{ .input = "Zg==", .expected = "f", .padding = true, .variant_name = "std" },',
+        '.{ .input = "Zm8=", .expected = "fo", .padding = true, .variant_name = "std" },',
+        '.{ .input = "Zg", .expected = "f", .padding = false, .variant_name = "std" },',
+        '.{ .input = "Zm8", .expected = "fo", .padding = false, .variant_name = "std" },',
         "pub const invalid_decode_cases = [_]InvalidDecodeCase{",
         '.{ .input = "Zh==", .padding = true, .variant_name = "std" },',
         '.{ .input = "Zm9=", .padding = true, .variant_name = "std" },',
@@ -146,6 +151,10 @@ REQUIRED_SNIPPETS = {
         '.{ .input = "Zg==", .padding = false, .variant_name = "urlsafe" },',
         '.{ .input = "Zg==", .padding = false, .variant_name = "imap" },',
         "pub const variant_decode_cases = [_]DecodeCase{",
+        '.{ .input = "APv_f4A=", .expected = &variant_sample, .padding = true, .variant_name = "urlsafe" },',
+        '.{ .input = "APv,f4A=", .expected = &variant_sample, .padding = true, .variant_name = "imap" },',
+        '.{ .input = "APv_f4A", .expected = &variant_sample, .padding = false, .variant_name = "urlsafe" },',
+        '.{ .input = "APv,f4A", .expected = &variant_sample, .padding = false, .variant_name = "imap" },',
     ],
     "zigux/tests/fixtures/phase6_hexdump_vectors.zig": [
         "pub const perf_cases = [_]PerfCase{",
@@ -346,6 +355,22 @@ def run_self_test() -> None:
             raise AssertionError("expected base64 invalid-input failure")
         base64_slice.write_text(original_base64_slice, encoding="utf-8")
 
+        base64_slice.write_text(
+            original_base64_slice.replace(
+                "- exhaustive canonical tail acceptance for padded and unpadded std, URL-safe, and IMAP decode paths",
+                "- canonical tail acceptance notes moved elsewhere",
+            ),
+            encoding="utf-8",
+        )
+        try:
+            run_checks(root)
+        except ValidationError as exc:
+            if "Documentation/zigux/phase6-base64-slice.md" not in str(exc):
+                raise AssertionError(f"unexpected base64 canonical-tail failure: {exc}") from exc
+        else:
+            raise AssertionError("expected base64 canonical-tail failure")
+        base64_slice.write_text(original_base64_slice, encoding="utf-8")
+
         bsearch_slice = root / "Documentation/zigux/phase6-bsearch-slice.md"
         original_bsearch_slice = bsearch_slice.read_text(encoding="utf-8")
         bsearch_slice.write_text(
@@ -543,6 +568,40 @@ def run_self_test() -> None:
             raise AssertionError("expected base64 vectors failure")
         base64_vectors.write_text(original_base64_vectors, encoding="utf-8")
 
+        base64_vectors.write_text(
+            original_base64_vectors.replace(
+                '.{ .input = "Zg", .expected = "f", .padding = false, .variant_name = "std" },',
+                '.{ .input = "Zg", .expected = "g", .padding = false, .variant_name = "std" },',
+                1,
+            ),
+            encoding="utf-8",
+        )
+        try:
+            run_checks(root)
+        except ValidationError as exc:
+            if "zigux/tests/fixtures/phase6_base64_vectors.zig" not in str(exc):
+                raise AssertionError(f"unexpected base64 canonical std failure: {exc}") from exc
+        else:
+            raise AssertionError("expected base64 canonical std failure")
+        base64_vectors.write_text(original_base64_vectors, encoding="utf-8")
+
+        base64_vectors.write_text(
+            original_base64_vectors.replace(
+                '.{ .input = "APv,f4A=", .expected = &variant_sample, .padding = true, .variant_name = "imap" },',
+                '.{ .input = "APv.f4A=", .expected = &variant_sample, .padding = true, .variant_name = "imap" },',
+                1,
+            ),
+            encoding="utf-8",
+        )
+        try:
+            run_checks(root)
+        except ValidationError as exc:
+            if "zigux/tests/fixtures/phase6_base64_vectors.zig" not in str(exc):
+                raise AssertionError(f"unexpected base64 canonical variant failure: {exc}") from exc
+        else:
+            raise AssertionError("expected base64 canonical variant failure")
+        base64_vectors.write_text(original_base64_vectors, encoding="utf-8")
+
         bsearch_test = root / "zigux/tests/phase6_bsearch.zig"
         original_bsearch_test = bsearch_test.read_text(encoding="utf-8")
         bsearch_test.write_text(
@@ -661,6 +720,7 @@ def run_self_test() -> None:
 
         hexdump_vectors = root / "zigux/tests/fixtures/phase6_hexdump_vectors.zig"
         original_hexdump_vectors = hexdump_vectors.read_text(encoding="utf-8")
+        hexdump_vectors.writeText = None
         hexdump_vectors.write_text(
             original_hexdump_vectors.replace(
                 '.label = "16B-ascii-g8"',
