@@ -15,13 +15,13 @@ This note records one exact readback snapshot for the current Phase 4 rollback-o
 - `PHASE4_WORKFLOW_BLOB_SHA=c32f78766956e0b60e95a573e356a7b97c01358b`
 - `PHASE4_DOC_README_BLOB_SHA=921dcbcd65854dd9125ee0a9293d7d4b4e717d53`
 - `PHASE4_SCRIPT_README_BLOB_SHA=efd01c86b2aecba081cc7db3cb456a5016abd146`
-- `PHASE4_TESTS_README_BLOB_SHA=842e965813e3d8d7850af4cac8b47463c3beb47e`
+- `PHASE4_TESTS_README_BLOB_SHA=c769f1e947c84d669739dea94006be1f0144fb45`
 - `PHASE4_ATOMIC64_DIFF_BLOB_SHA=b40b2f44d51c7a15b19b0901f6f86c5eeea5f245`
 - `PHASE4_RUNTIME_ATOMIC64_DIFF_BLOB_SHA=d65abeb53eb0248e1f0978a54cc48a7f561b148e`
 - `PHASE4_BITMAP_DIFF_BLOB_SHA=9d35b967233469b4a13975a67191483e89c75288`
 - `PHASE4_BITMAP_LIVE_HELPER_REPLAY_BLOB_SHA=75d26e94d322da8b9c14e5a9e53cded8576432d3`
-- `PHASE4_RUNTIME_ATOMIC64_MANIFEST_BLOB_SHA=ae52459716b344bfa776d78a72826b3b672f7a9e`
-- `PHASE4_RUNTIME_ATOMIC64_SURVEY_BLOB_SHA=deb5566a0b31d9d38e3b2913162fc2a066d03c60`
+- `PHASE4_RUNTIME_ATOMIC64_MANIFEST_BLOB_SHA=1d56e11b8b423ff502cef9f2aa607c16daf75302`
+- `PHASE4_RUNTIME_ATOMIC64_SURVEY_BLOB_SHA=30e9b69af3204d766fb45a43c182d8ebf4e6ca3a`
 - `PHASE4_SHIPPED_GATE_BLOB_TARGET_COUNT=16`
 - `PHASE4_SEPARATE_GATE_EVIDENCE_CHECKER_PRESENT=true`
 - `PHASE4_SHARED_KPROBE_SURVEY_PACKET_PRESENT=false`
@@ -33,7 +33,7 @@ This note records one exact readback snapshot for the current Phase 4 rollback-o
 - The shared build packet on current `master` wires exactly four replay surfaces: `phase4-runtime-atomic64-diff-tests`, `phase4-runtime-atomic64-diff-survey-tests`, `phase4-bitmap-diff-tests`, and `phase4-bitmap-live-helper-replay-tests`.
 - `Documentation/zigux/artifact-diff.md` and `Documentation/zigux/README.md` now truthfully name that four-surface build packet, while the scripts-root and tests-root README summaries still keep the validator route, the roadmap-facing `zigux/tests/atomic64_diff.zig` wrapper, the shared `zigux/tests/runtime_atomic64_diff.zig` replay body, `zigux/tests/bitmap_diff.zig`, and the shared `zigux/tests/phase4_build.zig` route explicit without yet enumerating `zigux/tests/phase4_runtime_atomic64_diff_survey.zig` as a distinct shipped build gate.
 - The current matrix still records the live ownership and threshold posture the roadmap allows on `master`: the host-side artifact-diff contract remains reviewability-only, the atomic64 wrapper gate remains correctness-only with threshold approval still pending, the runtime atomic64 handoff survey inherits that same pending threshold posture, and the bitmap rollback gate remains correctness-only with threshold approval still pending.
-- The runtime atomic64 handoff remains explicit in the live Phase 4 packet through `zigux/tests/atomic64_diff.zig`, `zigux/tests/phase4_runtime_atomic64_diff_manifest.json`, `zigux/tests/phase4_runtime_atomic64_diff_survey.zig`, `Documentation/zigux/phase4-validation-matrix.md`, and the three root README surfaces, but that survey packet now self-pins older `phase4_build`, `validate-phase4.py`, and `phase4-validation-matrix.md` blob hashes than the exact-readback set listed above.
+- The runtime atomic64 handoff remains explicit in the live Phase 4 packet through `zigux/tests/atomic64_diff.zig`, `zigux/tests/phase4_runtime_atomic64_diff_manifest.json`, `zigux/tests/phase4_runtime_atomic64_diff_survey.zig`, `Documentation/zigux/phase4-validation-matrix.md`, and the three root README surfaces, but that manifest-backed survey packet still self-pins an older `validate-phase4.py` blob hash than the exact-readback set listed above.
 - Current `master` does ship a separate `scripts/zigux/check-phase4-gate-evidence.py`, but that checker now models a broader packet that still names kprobe, test_fsmount, and perf-baseline survey files plus a separate workflow-route checker file that are not present on current `master`, so it should not be treated as a passing exact-readback source for the narrower validator-backed packet recorded here.
 - Current `master` also does not ship shared-gate blob targets for `phase4_kprobe_example`, `phase4_test_fsmount`, or `phase4_perf_baseline`; the live matrix treats those as remaining roadmap gaps or gap-owning notes rather than part of the shipped validator-backed gate packet that should be blob-pinned here.
 
