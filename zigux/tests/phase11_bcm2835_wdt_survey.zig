@@ -35,7 +35,7 @@ fn isAllowedStatus(status: []const u8) bool {
         std.mem.eql(u8, status, "blocked_on_driver_scaffold");
 }
 
-test "phase11 bcm2835_wdt survey manifest records the landed remove summary and remaining platform gap" {
+test "phase11 bcm2835_wdt survey manifest records the landed get-timeleft summary and remaining platform gap" {
     var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
     defer io_instance.deinit();
 
@@ -76,7 +76,7 @@ test "phase11 bcm2835_wdt survey manifest records the landed remove summary and 
     var saw_slice_note = false;
     var saw_probe_summary = false;
     var saw_registration_summary = false;
-    var saw_remove_followup = false;
+    var saw_get_timeleft_summary = false;
     var saw_registration_blocker = false;
 
     for (manifest.gaps, 0..) |gap, i| {
@@ -111,21 +111,21 @@ test "phase11 bcm2835_wdt survey manifest records the landed remove summary and 
             try std.testing.expectEqualStrings("starter_landed", gap.status);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "registration-facing handoff") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "poweroff ownership summary") != null);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "remove-time ownership summary") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "explicit get-timeleft helper") != null);
         }
 
         if (std.mem.eql(u8, gap.id, "phase11-bcm2835-wdt-driver-tests")) {
             saw_driver_tests = true;
             try std.testing.expectEqualStrings("zigux/tests/phase11_bcm2835_wdt.zig", gap.zigux_destination);
             try std.testing.expectEqualStrings("starter_landed", gap.status);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "remove-time poweroff ownership outcomes") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "direct get-timeleft parity") != null);
         }
 
         if (std.mem.eql(u8, gap.id, "phase11-bcm2835-wdt-slice-note")) {
             saw_slice_note = true;
             try std.testing.expectEqualStrings("Documentation/zigux/phase11-bcm2835-wdt-slice.md", gap.zigux_destination);
             try std.testing.expectEqualStrings("starter_landed", gap.status);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "remove-time ownership summary") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "explicit get-timeleft helper") != null);
         }
 
         if (std.mem.eql(u8, gap.id, "phase11-bcm2835-wdt-probe-summary")) {
@@ -144,12 +144,12 @@ test "phase11 bcm2835_wdt survey manifest records the landed remove summary and 
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "poweroff claim-vs-conflict") != null);
         }
 
-        if (std.mem.eql(u8, gap.id, "phase11-bcm2835-wdt-remove-summary")) {
-            saw_remove_followup = true;
+        if (std.mem.eql(u8, gap.id, "phase11-bcm2835-wdt-get-timeleft")) {
+            saw_get_timeleft_summary = true;
             try std.testing.expectEqualStrings("drivers/watchdog/bcm2835_wdt.zig", gap.zigux_destination);
             try std.testing.expectEqualStrings("starter_landed", gap.status);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "remove-time ownership summary") != null);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "currently owns it") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "explicit get-timeleft helper") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "WDOG_TICKS_TO_SECS") != null);
         }
 
         if (std.mem.eql(u8, gap.id, "phase11-bcm2835-wdt-platform-registration")) {
@@ -175,7 +175,7 @@ test "phase11 bcm2835_wdt survey manifest records the landed remove summary and 
     try std.testing.expect(saw_slice_note);
     try std.testing.expect(saw_probe_summary);
     try std.testing.expect(saw_registration_summary);
-    try std.testing.expect(saw_remove_followup);
+    try std.testing.expect(saw_get_timeleft_summary);
     try std.testing.expect(saw_registration_blocker);
 }
 
@@ -209,14 +209,16 @@ test "phase11 bcm2835_wdt survey docs keep the landed validation matrix and next
 
     try std.testing.expect(std.mem.indexOf(u8, slice_note, "hardware-validation matrix now records that bounded validation posture") != null);
     try std.testing.expect(std.mem.indexOf(u8, slice_note, "tiny platform-facing handoff note") != null);
+    try std.testing.expect(std.mem.indexOf(u8, slice_note, "explicit get-timeleft helper") != null);
     try std.testing.expect(std.mem.indexOf(u8, slice_note, "add a tiny hardware-validation matrix") == null);
 
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase11-bcm2835-wdt-validation-matrix.md") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "hardware validation coverage beyond the bounded matrix") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "tiny platform-facing handoff note") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "explicit get-timeleft helper") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "add a tiny hardware-validation matrix") == null);
 
     try std.testing.expect(std.mem.indexOf(u8, validation_matrix, "PHASE11_BCM2835_WDT_STATUS=hardware_validation_matrix_landed") != null);
-    try std.testing.expect(std.mem.indexOf(u8, validation_matrix, "platform-facing handoff lands") != null);
+    try std.testing.expect(std.mem.indexOf(u8, validation_matrix, "explicit get-timeleft helper") != null);
     try std.testing.expect(std.mem.indexOf(u8, validation_matrix, "current validation posture in one place") != null);
 }
