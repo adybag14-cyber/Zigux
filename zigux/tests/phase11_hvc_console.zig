@@ -232,21 +232,11 @@ test "phase11 hvc console keeps notifier handoff boundaries reviewable" {
     try std.testing.expect(unregistered_target.host_io_deferred);
     try std.testing.expect(unregistered_target.remove_handoff_still_required);
 
-    const inconsistent_dispatch = try console.summarizeNotifierHandoff(.{
+    try std.testing.expectError(error.NotifierDispatchRequiresTtyRegistration, console.summarizeNotifierHandoff(.{
         .tty_registration_ready = false,
         .sysrq_dispatch_requested = true,
         .notifier_target_present = true,
-    });
-    try std.testing.expect(!inconsistent_dispatch.tty_registration_ready);
-    try std.testing.expect(inconsistent_dispatch.sysrq_dispatch_requested);
-    try std.testing.expect(inconsistent_dispatch.notifier_target_present);
-    try std.testing.expect(inconsistent_dispatch.notifier_registration_reviewable);
-    try std.testing.expect(!inconsistent_dispatch.notifier_registration_requested);
-    try std.testing.expect(!inconsistent_dispatch.notifier_callbacks_deferred);
-    try std.testing.expect(!inconsistent_dispatch.notifier_unregister_deferred);
-    try std.testing.expect(inconsistent_dispatch.khvcd_worker_execution_deferred);
-    try std.testing.expect(inconsistent_dispatch.host_io_deferred);
-    try std.testing.expect(inconsistent_dispatch.remove_handoff_still_required);
+    }));
 
     _ = console.teardown();
     try std.testing.expectError(error.ConsoleUnavailable, console.summarizeNotifierHandoff(.{}));
