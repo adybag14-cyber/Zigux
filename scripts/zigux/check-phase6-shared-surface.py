@@ -15,7 +15,7 @@ class ValidationError(RuntimeError):
 REQUIRED_SNIPPETS = {
     "Documentation/zigux/README.md": [
         "- `Documentation/zigux/review-checklist.md`, `zigux/tests/README.md`, `scripts/zigux/README.md`, `scripts/zigux/check-phase6-shared-surface.py`, `zigux/tests/phase6_build.zig`, `zigux/tests/phase6_base64.zig`, `zigux/tests/phase6_bsearch.zig`, `zigux/tests/phase6_checksum.zig`, `zigux/tests/phase6_hexdump.zig`, `zigux/tests/phase6_checksum_perf.zig`, `zigux/tests/phase6_hexdump_perf.zig`, `zigux/Makefile`, `.github/workflows/zigux-bootstrap.yml`, `make -C zigux phase6-validate`, `make -C zigux phase6`, `make -C zigux phase6-checksum-perf`, and `make -C zigux phase6-hexdump-perf` now keep the current base64, bsearch, checksum, and hexdump helper bundle reviewable through the shared surface checker, the bundled replay, the dedicated checksum and hexdump perf gates, and the Linux-style helper lane together, so new helper slices should only land when that shared packet stays green as one unit.",
-        "- the current bounded Phase 6 decision is no longer whether one more tiny external fixture is still worth carrying; the live leaf-helper lane is the bundled `base64`, `bsearch`, `checksum`, and `hexdump` packet already kept reviewable through `zigux/tests/phase6_build.zig`, `zigux/tests/phase6_base64.zig`, `zigux/tests/phase6_bsearch.zig`, `zigux/tests/phase6_checksum.zig`, `zigux/tests/phase6_hexdump.zig`, `zigux/tests/phase6_checksum_perf.zig`, `zigux/tests/phase6_hexdump_perf.zig`, `make -C zigux phase6`, `make -C zigux phase6-checksum-perf`, and `make -C zigux phase6-hexdump-perf`, so future follow-up here should reopen only for a concrete parity gap or another similarly small helper-first step inside that same packet.",
+        "- the current bounded Phase 6 decision is no longer whether one more tiny external fixture is still worth carrying; the live leaf-helper lane is the bundled `base64`, `bsearch`, `checksum`, and `hexdump` packet already kept reviewable through `zigux/tests/phase6_build.zig`, `zigux/tests/phase6_base64.zig`, `zigux/tests/phase6_bsearch.zig`, `zigux/tests/phase6_checksum.zig`, `zigux/tests/phase6_hexdump.zig`, `zigux/tests/phase6_checksum_perf.zig`, and `zigux/tests/phase6_hexdump_perf.zig`, `make -C zigux phase6`, `make -C zigux phase6-checksum-perf`, and `make -C zigux phase6-hexdump-perf`, so future follow-up here should reopen only for a concrete parity gap or another similarly small helper-first step inside that same packet.",
     ],
     "scripts/zigux/README.md": [
         "Phase 6 flow - the current shared Phase 6 review surface on `master` is the four slice notes (`Documentation/zigux/phase6-base64-slice.md`, `Documentation/zigux/phase6-bsearch-slice.md`, `Documentation/zigux/phase6-checksum-slice.md`, and `Documentation/zigux/phase6-hexdump-slice.md`) plus `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `zigux/tests/README.md`, `scripts/zigux/check-phase6-shared-surface.py`, `zigux/tests/phase6_build.zig`, `zigux/Makefile`, and `.github/workflows/zigux-bootstrap.yml`.",
@@ -48,6 +48,21 @@ REQUIRED_SNIPPETS = {
         'test "decode exhaustively accepts only canonical padded tails"',
         'test "decode exhaustively accepts only canonical unpadded tails"',
         'test "encode and decode roundtrip every short payload across variants"',
+    ],
+    "zigux/tests/phase6_bsearch.zig": [
+        'test "phase 6 bsearch honors comparator-driven descending order"',
+        'test "phase 6 bsearch supports string keys against sorted records"',
+        'test "phase 6 bsearch mutable typed lookup supports write-through"',
+        'test "phase 6 bsearch treats duplicate keys as found-or-null without claiming stable selection"',
+        'test "phase 6 bsearch keeps representative lookup work inside a binary-search budget"',
+        'test "phase 6 bsearch raw lookup returns null for empty input without invoking the comparator"',
+        'test "phase 6 bsearch raw lookup keeps representative work inside a binary-search budget"',
+        'test "phase 6 bsearch accepts runtime-selected native comparator pointers"',
+        'test "phase 6 bsearch accepts runtime-selected c abi comparator pointers"',
+        'test "phase 6 bsearch accepts runtime-selected raw native comparator pointers"',
+        'test "phase 6 bsearch mutable raw lookup supports descending write-through"',
+        'test "phase 6 bsearch accepts runtime-selected raw c abi comparator pointers"',
+        'test "phase 6 bsearch mutable raw c abi lookup supports write-through"',
     ],
     "zigux/Makefile": [
         "PHONY += phase6-validate phase6-test phase6-checksum-perf phase6-hexdump-perf phase6",
@@ -310,6 +325,27 @@ def run_self_test() -> None:
         else:
             raise AssertionError("expected base64 replay failure")
         base64_tests.write_text(original_base64_tests, encoding="utf-8")
+
+        bsearch_tests = root / "zigux/tests/phase6_bsearch.zig"
+        original_bsearch_tests = bsearch_tests.read_text(encoding="utf-8")
+        bsearch_tests.write_text(
+            original_bsearch_tests.replace(
+                'test "phase 6 bsearch accepts runtime-selected raw c abi comparator pointers"',
+                'test "phase 6 bsearch accepts runtime-selected raw comparator pointers"',
+                1,
+            ),
+            encoding="utf-8",
+        )
+        try:
+            run_checks(root)
+        except ValidationError as exc:
+            if "zigux/tests/phase6_bsearch.zig" not in str(exc):
+                raise AssertionError(
+                    f"unexpected bsearch replay failure: {exc}"
+                ) from exc
+        else:
+            raise AssertionError("expected bsearch replay failure")
+        bsearch_tests.write_text(original_bsearch_tests, encoding="utf-8")
 
     print("self-test passed")
 
