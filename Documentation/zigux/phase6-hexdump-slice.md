@@ -4,9 +4,10 @@ This document starts a bounded Phase 6 leaf-helper validation slice for Zigux.
 
 ## Status
 
-- `PHASE6_STATUS=active`
+- `PHASE6_STATUS=parked`
 - `PHASE6_SLICE=hexdump-leaf-helper`
 - scope: first low-risk hexdump helper coverage only
+- lane state: helper and fixture slice landed; parked unless a new `hexdump.c` parity issue appears
 - product boundary:
 - `lib/hexdump.zig`
 - `zigux/tests/phase6_hexdump.zig`
@@ -64,4 +65,4 @@ This slice does not yet claim:
 
 ## Next bounded step
 
-The live Phase 6 decision is no longer whether one more tiny external fixture layer is still worth carrying here. This helper already sits inside the parked bundled `base64`, `bsearch`, `checksum`, and `hexdump` gate wired through `zigux/tests/phase6_build.zig` and `make -C zigux phase6`, so future follow-up should reopen only for a concrete hexdump parity gap or another equally small helper-first perf or review-surface repair inside that same packet.
+Keep the next Phase 6 follow-up inside the shared bundled `base64`, `bsearch`, `checksum`, and `hexdump` packet already gated by `zigux/tests/phase6_build.zig` and `make -C zigux phase6`. Reopen this slice only if fresh repo inspection finds a concrete new `hexdump.c` parity gap inside `lib/hexdump.zig`, `zigux/tests/phase6_hexdump.zig`, the shared fixture module, or that existing bundled gate.
