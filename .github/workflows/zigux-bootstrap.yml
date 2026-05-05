@@ -71,6 +71,9 @@ jobs:
       - name: Validate Phase 3 slices
         run: python3 scripts/zigux/validate-phase3.py
 
+      - name: Validate Phase 3 low-level wrapper survey
+        run: python3 scripts/zigux/validate-phase3-low-level-wrapper-survey.py
+
       - name: Validate Phase 4 diff gates
         run: python3 scripts/zigux/validate-phase4.py
 
@@ -79,6 +82,9 @@ jobs:
 
       - name: Self-test Phase 3 validator
         run: python3 scripts/zigux/validate-phase3.py --self-test
+
+      - name: Self-test Phase 3 low-level wrapper survey
+        run: python3 scripts/zigux/validate-phase3-low-level-wrapper-survey.py --self-test
 
       - name: Self-test Phase 3 catalog
         run: python3 scripts/zigux/phase3_catalog.py --self-test
