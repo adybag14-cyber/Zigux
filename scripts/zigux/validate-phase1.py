@@ -74,6 +74,13 @@ REQUIRED_HELPER_TEST_ANCHORS = [
     'test "phase 1 string replaceChar stops at embedded NUL"',
 ]
 
+REQUIRED_PHASE1_PARITY_REPLAY_MARKERS = [
+    "fixture.find_bit.tail_and_clamped_next",
+    "fixture.bitmap.partial_xor_masked_values",
+    "fixture.string.replace_char_end",
+    "fixture.rbtree.replace_order",
+]
+
 REQUIRED_FIND_BIT_TEST_ANCHORS = [
     'test "find first and next set bits across words"',
     'test "find zero bits respects the declared bit count"',
@@ -153,6 +160,13 @@ def collect_missing_markers(root: Path) -> list[str]:
     )
     missing_markers.extend(
         collect_exact_count_markers(
+            test_root,
+            "phase1_parity_replay_marker",
+            REQUIRED_PHASE1_PARITY_REPLAY_MARKERS,
+        )
+    )
+    missing_markers.extend(
+        collect_exact_count_markers(
             find_bit_source,
             "find_bit_test_anchor",
             REQUIRED_FIND_BIT_TEST_ANCHORS,
@@ -199,6 +213,7 @@ def make_fixture_root(tmp_root: Path) -> None:
             REQUIRED_TEST_MARKERS
             + REQUIRED_PHASE1_PARITY_TEST_ANCHORS
             + REQUIRED_HELPER_TEST_ANCHORS
+            + REQUIRED_PHASE1_PARITY_REPLAY_MARKERS
         )
         + "\n",
         encoding="utf-8",
@@ -280,6 +295,7 @@ def run_self_test() -> None:
                 REQUIRED_TEST_MARKERS
                 + REQUIRED_PHASE1_PARITY_TEST_ANCHORS
                 + REQUIRED_HELPER_TEST_ANCHORS
+                + REQUIRED_PHASE1_PARITY_REPLAY_MARKERS
                 + [REQUIRED_TEST_MARKERS[4]]
             )
             + "\n",
@@ -290,12 +306,23 @@ def run_self_test() -> None:
         make_fixture_root(tmp_root)
 
         test_path.write_text(
-            "\n".join(REQUIRED_TEST_MARKERS + REQUIRED_HELPER_TEST_ANCHORS) + "\n",
+            "\n".join(REQUIRED_TEST_MARKERS + REQUIRED_HELPER_TEST_ANCHORS + REQUIRED_PHASE1_PARITY_REPLAY_MARKERS) + "\n",
             encoding="utf-8",
         )
         missing_markers = collect_missing_markers(tmp_root)
         assert (
             'phase1_parity_test_anchor:test "phase 1 helper ports match committed parity fixture":expected=1:actual=0'
+            in missing_markers
+        )
+        make_fixture_root(tmp_root)
+
+        test_path.write_text(
+            "\n".join(REQUIRED_TEST_MARKERS + REQUIRED_PHASE1_PARITY_TEST_ANCHORS + REQUIRED_HELPER_TEST_ANCHORS) + "\n",
+            encoding="utf-8",
+        )
+        missing_markers = collect_missing_markers(tmp_root)
+        assert (
+            "phase1_parity_replay_marker:fixture.find_bit.tail_and_clamped_next:expected=1:actual=0"
             in missing_markers
         )
         make_fixture_root(tmp_root)
@@ -349,7 +376,7 @@ def run_self_test() -> None:
         )
 
     print("PHASE1_VALIDATION_SELF_TEST=pass")
-    print("PHASE1_VALIDATION_SELF_TEST_CASE_COUNT=12")
+    print("PHASE1_VALIDATION_SELF_TEST_CASE_COUNT=13")
 
 
 def main() -> int:
@@ -383,7 +410,7 @@ def main() -> int:
     print(f"PHASE1_REQUIRED_FILE_COUNT={len(REQUIRED_FILES)}")
     print(
         "PHASE1_REQUIRED_MARKER_COUNT="
-        f"{len(REQUIRED_LEDGER_MARKERS) + len(REQUIRED_WORKFLOW_PRESENCE_MARKERS) + len(REQUIRED_WORKFLOW_EXACT_MARKERS) + len(REQUIRED_TEST_MARKERS) + len(REQUIRED_PHASE1_PARITY_TEST_ANCHORS) + len(REQUIRED_HELPER_TEST_ANCHORS) + len(REQUIRED_FIND_BIT_TEST_ANCHORS) + len(REQUIRED_BITMAP_TEST_ANCHORS) + len(REQUIRED_RBTREE_TEST_ANCHORS)}"
+        f"{len(REQUIRED_LEDGER_MARKERS) + len(REQUIRED_WORKFLOW_PRESENCE_MARKERS) + len(REQUIRED_WORKFLOW_EXACT_MARKERS) + len(REQUIRED_TEST_MARKERS) + len(REQUIRED_PHASE1_PARITY_TEST_ANCHORS) + len(REQUIRED_HELPER_TEST_ANCHORS) + len(REQUIRED_PHASE1_PARITY_REPLAY_MARKERS) + len(REQUIRED_FIND_BIT_TEST_ANCHORS) + len(REQUIRED_BITMAP_TEST_ANCHORS) + len(REQUIRED_RBTREE_TEST_ANCHORS)}"
     )
     return 0
 
