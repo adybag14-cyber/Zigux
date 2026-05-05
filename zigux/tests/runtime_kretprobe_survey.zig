@@ -61,7 +61,7 @@ test "phase 9 runtime kretprobe survey manifest records the landed loader plan a
     try std.testing.expectEqualStrings("samples/kprobes/kretprobe_example.c", manifest.anchor);
     try std.testing.expectEqual(@as(usize, 2), manifest.roadmap_destinations.len);
     try std.testing.expect(manifest.survey_summary.kretprobe_example_c_lines >= 100);
-    try std.testing.expectEqual(@as(usize, 2), manifest.survey_summary.preexisting_runtime_kretprobe_test_files);
+    try std.testing.expectEqual(@as(usize, 3), manifest.survey_summary.preexisting_runtime_kretprobe_test_files);
     try std.testing.expect(manifest.survey_summary.preexisting_runtime_kretprobe_sample_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase9_build_present);
     try std.testing.expect(manifest.survey_summary.preexisting_runtime_kretprobe_doc_present);
