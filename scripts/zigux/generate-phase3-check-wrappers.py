@@ -10,8 +10,25 @@ from phase3_catalog import DEFAULT_PATHS, discover_phase3_slices
 from phase3_check_lib import render_wrapper_stub
 
 
-def discover_wrapper_scripts(scripts_dir: Path) -> list[Path]:
-    return sorted(scripts_dir.glob("check-phase3-*.py"))
+def is_generated_wrapper_script(path: Path, expected: str) -> bool:
+    try:
+        current = path.read_text(encoding="utf-8")
+    except FileNotFoundError:
+        return False
+    if current == expected:
+        return True
+    return (
+        "from phase3_check_lib import run_from_wrapper" in current
+        and "run_from_wrapper(__file__)" in current
+    )
+
+
+def discover_wrapper_scripts(scripts_dir: Path, expected: str) -> list[Path]:
+    return [
+        path
+        for path in sorted(scripts_dir.glob("check-phase3-*.py"))
+        if is_generated_wrapper_script(path, expected)
+    ]
 
 
 def sync_wrappers(entries: list[object], expected: str, check: bool, scripts_dir: Path = DEFAULT_PATHS.scripts_dir) -> list[str]:
@@ -32,7 +49,7 @@ def sync_wrappers(entries: list[object], expected: str, check: bool, scripts_dir
             if not check:
                 path.write_text(expected, encoding="utf-8", newline="\n")
 
-    for path in discover_wrapper_scripts(scripts_dir):
+    for path in discover_wrapper_scripts(scripts_dir, expected):
         if path in expected_paths:
             continue
         mismatches.append(path.as_posix())
@@ -54,6 +71,8 @@ def run_self_test() -> int:
         stale_wrapper.write_text(stale, encoding="utf-8", newline="\n")
         obsolete_wrapper = tmp_dir / "check-phase3-stale.py"
         obsolete_wrapper.write_text(expected, encoding="utf-8", newline="\n")
+        support_checker = tmp_dir / "check-phase3-support.py"
+        support_checker.write_text("# support\n", encoding="utf-8", newline="\n")
 
         entries = [
             SimpleNamespace(check_script=expected_wrapper),
@@ -65,12 +84,14 @@ def run_self_test() -> int:
         assert not missing_wrapper.exists()
         assert stale_wrapper.read_text(encoding="utf-8") == stale
         assert obsolete_wrapper.exists()
+        assert support_checker.exists()
 
         mismatches = sync_wrappers(entries, expected, check=False, scripts_dir=tmp_dir)
         assert mismatches == [stale_wrapper.as_posix(), missing_wrapper.as_posix(), obsolete_wrapper.as_posix()]
         assert missing_wrapper.read_text(encoding="utf-8") == expected
         assert stale_wrapper.read_text(encoding="utf-8") == expected
         assert not obsolete_wrapper.exists()
+        assert support_checker.exists()
 
         mismatches = sync_wrappers(entries, expected, check=True, scripts_dir=tmp_dir)
         assert mismatches == []
