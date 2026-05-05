@@ -12,6 +12,8 @@ ROOT = Path(__file__).resolve().parents[2]
 
 FILES = [
     "scripts/zigux/check-phase10-core-packet.py",
+    "scripts/zigux/README.md",
+    "zigux/tests/README.md",
     "zigux/tests/phase10_build.zig",
     "zigux/tests/phase10_virtio_core_manifest.json",
     "zigux/tests/phase10_virtio_core_survey.zig",
@@ -44,6 +46,28 @@ EXPECTED_SURVEY_MARKERS = [
     "drivers/virtio/*.zig",
     "zigux/kernel/",
     "zigux/helpers/",
+]
+
+EXPECTED_SCRIPTS_README_MARKERS = [
+    "Documentation/zigux/phase10-virtio-core-survey.md",
+    "Documentation/zigux/phase10-virtio-mmio-slice.md",
+    "scripts/zigux/check-phase10-core-packet.py",
+    "zigux/tests/phase10_virtio_core_manifest.json",
+    "zigux/tests/phase10_virtio_core_survey.zig",
+    "zigux/tests/phase10_virtio_core_reset_queue.zig",
+    "zigux/tests/phase10_virtio_driver_id.zig",
+    "there is no dedicated shared `validate-phase10.py`, `check-phase10-harness-coverage.py`, or `phase10-validate` target on `master`",
+]
+
+EXPECTED_TESTS_README_MARKERS = [
+    "Documentation/zigux/phase10-virtio-core-survey.md",
+    "scripts/zigux/check-phase10-core-packet.py",
+    "zigux/tests/phase10_virtio_core_manifest.json",
+    "zigux/tests/phase10_virtio_core_survey.zig",
+    "zigux/tests/phase10_virtio_core_reset_queue.zig",
+    "zigux/tests/phase10_virtio_driver_id.zig",
+    "restored manifest-backed core survey packet and its dedicated packet checker",
+    "without implying a dedicated `validate-phase10.py`, `check-phase10-harness-coverage.py`, or `phase10-validate` surface that does not exist on `master`",
 ]
 
 EXPECTED_GAPS = {
@@ -82,6 +106,16 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
     for marker in EXPECTED_NOTE_MARKERS:
         if marker not in slice_note:
             missing_markers.append(f"slice_note:{marker}")
+
+    scripts_readme = read_text(root, "scripts/zigux/README.md")
+    for marker in EXPECTED_SCRIPTS_README_MARKERS:
+        if marker not in scripts_readme:
+            missing_markers.append(f"scripts_readme:{marker}")
+
+    tests_readme = read_text(root, "zigux/tests/README.md")
+    for marker in EXPECTED_TESTS_README_MARKERS:
+        if marker not in tests_readme:
+            missing_markers.append(f"tests_readme:{marker}")
 
     manifest = json.loads(read_text(root, "zigux/tests/phase10_virtio_core_manifest.json"))
     if manifest.get("lane_key") != "P10-L01":
@@ -137,6 +171,8 @@ def write_fixture(root: Path, rel_path: str, content: str) -> None:
 def run_self_test() -> int:
     fixture = {
         "scripts/zigux/check-phase10-core-packet.py": read_text(ROOT, "scripts/zigux/check-phase10-core-packet.py"),
+        "scripts/zigux/README.md": read_text(ROOT, "scripts/zigux/README.md"),
+        "zigux/tests/README.md": read_text(ROOT, "zigux/tests/README.md"),
         "zigux/tests/phase10_build.zig": read_text(ROOT, "zigux/tests/phase10_build.zig"),
         "zigux/tests/phase10_virtio_core_manifest.json": read_text(ROOT, "zigux/tests/phase10_virtio_core_manifest.json"),
         "zigux/tests/phase10_virtio_core_survey.zig": read_text(ROOT, "zigux/tests/phase10_virtio_core_survey.zig"),
@@ -226,9 +262,32 @@ def run_self_test() -> int:
         _, missing_markers = validate(tmp_root)
         if "survey_note:zigux/helpers/" not in missing_markers:
             raise SystemExit("phase10-core-self-test:expected_helpers_survey_marker_missing")
+        survey_path.write_text(original_survey, encoding="utf-8")
+
+        scripts_readme_path = tmp_root / "scripts/zigux/README.md"
+        original_scripts_readme = scripts_readme_path.read_text(encoding="utf-8")
+        scripts_readme_path.write_text(
+            original_scripts_readme.replace("zigux/tests/phase10_virtio_core_manifest.json", "zigux/tests/phase10_virtio_core_manifest_drift.json", 1),
+            encoding="utf-8",
+        )
+        _, missing_markers = validate(tmp_root)
+        if "scripts_readme:zigux/tests/phase10_virtio_core_manifest.json" not in missing_markers:
+            raise SystemExit("phase10-core-self-test:expected_scripts_readme_marker_missing")
+        scripts_readme_path.write_text(original_scripts_readme, encoding="utf-8")
+
+        tests_readme_path = tmp_root / "zigux/tests/README.md"
+        original_tests_readme = tests_readme_path.read_text(encoding="utf-8")
+        tests_readme_path.writeText = None
+        tests_readme_path.write_text(
+            original_tests_readme.replace("restored manifest-backed core survey packet and its dedicated packet checker", "restored manifest-backed core survey packet drift", 1),
+            encoding="utf-8",
+        )
+        _, missing_markers = validate(tmp_root)
+        if "tests_readme:restored manifest-backed core survey packet and its dedicated packet checker" not in missing_markers:
+            raise SystemExit("phase10-core-self-test:expected_tests_readme_marker_missing")
 
     print("PHASE10_CORE_PACKET_SELF_TEST=pass")
-    print("PHASE10_CORE_PACKET_SELF_TEST_CASE_COUNT=7")
+    print("PHASE10_CORE_PACKET_SELF_TEST_CASE_COUNT=9")
     return 0
 
 
