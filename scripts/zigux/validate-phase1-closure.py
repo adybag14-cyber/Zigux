@@ -305,14 +305,14 @@ def collect_exact_count_markers(text: str, markers: list[tuple[str, str, int]]) 
 
 
 def render_marker_fixture(markers: list[tuple[str, str, int]]) -> str:
-    return "\n".join(marker for _, marker, _ in markers) + "\n"
+    return "\\n".join(marker for _, marker, _ in markers) + "\\n"
 
 
 def make_fixture_root(tmp_root: Path) -> None:
     for rel in REQUIRED_FILES:
         fixture_path = tmp_root / rel
         fixture_path.parent.mkdir(parents=True, exist_ok=True)
-        fixture_path.write_text("// fixture\n", encoding="utf-8")
+        fixture_path.write_text("// fixture\\n", encoding="utf-8")
 
 
 def run_self_test() -> None:
@@ -321,7 +321,7 @@ def run_self_test() -> None:
         for rel in EXPECTED_HELPERS:
             path = tmp_root / rel
             path.parent.mkdir(parents=True, exist_ok=True)
-            path.write_text("// fixture\n", encoding="utf-8")
+            path.write_text("// fixture\\n", encoding="utf-8")
 
         valid_manifest = {
             "phase": "Phase 1",
@@ -338,7 +338,7 @@ def run_self_test() -> None:
         unexpected_helper = "tools/lib/not_phase1.zig"
         unexpected_path = tmp_root / unexpected_helper
         unexpected_path.parent.mkdir(parents=True, exist_ok=True)
-        unexpected_path.write_text("// out of scope fixture\n", encoding="utf-8")
+        unexpected_path.write_text("// out of scope fixture\\n", encoding="utf-8")
         unexpected_manifest = {
             "phase": "Phase 1",
             "status": "closed",
@@ -358,7 +358,7 @@ def run_self_test() -> None:
         valid_closure = render_marker_fixture(required_closure_markers)
         assert collect_exact_count_markers(valid_closure, required_closure_markers) == []
 
-        duplicate_closure_status = valid_closure + "PHASE1_STATUS=closed\n"
+        duplicate_closure_status = valid_closure + "PHASE1_STATUS=closed\\n"
         duplicate_closure_markers = collect_exact_count_markers(
             duplicate_closure_status,
             required_closure_markers,
@@ -366,7 +366,7 @@ def run_self_test() -> None:
         assert "closure_status_count:expected=1:actual=2" in duplicate_closure_markers
 
         missing_closure_gate = valid_closure.replace(
-            "PHASE1_CLOSURE_GATE=python3 scripts/zigux/validate-phase1-closure.py\n",
+            "PHASE1_CLOSURE_GATE=python3 scripts/zigux/validate-phase1-closure.py\\n",
             "",
             1,
         )
@@ -379,17 +379,17 @@ def run_self_test() -> None:
         valid_phase1_workflow = render_marker_fixture(required_phase1_workflow_markers)
         assert collect_exact_count_markers(valid_phase1_workflow, required_phase1_workflow_markers) == []
         assert WORKFLOW_INSTALL_ZIG_RE.search(
-            "python3 scripts/zigux/install-zig.py --channel master --dest .zig-toolchain\n"
+            "python3 scripts/zigux/install-zig.py --channel master --dest .zig-toolchain\\n"
         )
         assert WORKFLOW_INSTALL_ZIG_RE.search(
-            "python3 scripts/zigux/install-zig.py --channel 0.17.0-dev.87+9b177a7d2 --dest .zig-toolchain\n"
+            "python3 scripts/zigux/install-zig.py --channel 0.17.0-dev.87+9b177a7d2 --dest .zig-toolchain\\n"
         )
         assert WORKFLOW_INSTALL_ZIG_RE.search(
-            "python3 scripts/zigux/install-zig.py --dest .zig-toolchain\n"
+            "python3 scripts/zigux/install-zig.py --dest .zig-toolchain\\n"
         ) is None
 
         missing_phase1_validate = valid_phase1_workflow.replace(
-            "python3 scripts/zigux/validate-phase1.py\n",
+            "python3 scripts/zigux/validate-phase1.py\\n",
             "",
             1,
         )
@@ -399,7 +399,7 @@ def run_self_test() -> None:
         )
         assert "workflow_phase1_validate_count:expected=1:actual=0" in missing_phase1_validate_markers
 
-        duplicate_phase1_parity = valid_phase1_workflow + "python3 scripts/zigux/check-phase1-parity.py\n"
+        duplicate_phase1_parity = valid_phase1_workflow + "python3 scripts/zigux/check-phase1-parity.py\\n"
         duplicate_phase1_parity_markers = collect_exact_count_markers(
             duplicate_phase1_parity,
             required_phase1_workflow_markers,
@@ -407,7 +407,7 @@ def run_self_test() -> None:
         assert "workflow_phase1_parity_count:expected=1:actual=2" in duplicate_phase1_parity_markers
 
         missing_phase1_unit_replay = valid_phase1_workflow.replace(
-            "zig build test --build-file zigux/tests/build.zig\n",
+            "zig build test --build-file zigux/tests/build.zig\\n",
             "",
             1,
         )
@@ -417,10 +417,32 @@ def run_self_test() -> None:
         )
         assert "workflow_phase1_unit_replay_count:expected=1:actual=0" in missing_phase1_unit_replay_markers
 
+        missing_phase1_bench = valid_phase1_workflow.replace(
+            "python3 scripts/zigux/check-phase1-bench.py\\n",
+            "",
+            1,
+        )
+        missing_phase1_bench_markers = collect_exact_count_markers(
+            missing_phase1_bench,
+            required_phase1_workflow_markers,
+        )
+        assert "workflow_phase1_bench_count:expected=1:actual=0" in missing_phase1_bench_markers
+
+        missing_phase1_bench_replay = valid_phase1_workflow.replace(
+            "zig build bench --build-file zigux/tests/build.zig\\n",
+            "",
+            1,
+        )
+        missing_phase1_bench_replay_markers = collect_exact_count_markers(
+            missing_phase1_bench_replay,
+            required_phase1_workflow_markers,
+        )
+        assert "workflow_phase1_bench_replay_count:expected=1:actual=0" in missing_phase1_bench_replay_markers
+
         valid_build = render_marker_fixture(required_build_markers)
         assert collect_exact_count_markers(valid_build, required_build_markers) == []
 
-        duplicate_build_source = valid_build + "phase1_bench.zig\n"
+        duplicate_build_source = valid_build + "phase1_bench.zig\\n"
         duplicate_build_markers = collect_exact_count_markers(
             duplicate_build_source,
             required_build_markers,
@@ -430,12 +452,12 @@ def run_self_test() -> None:
         valid_makefile = render_marker_fixture(required_makefile_markers)
         assert collect_exact_count_markers(valid_makefile, required_makefile_markers) == []
 
-        missing_validate_target = valid_makefile.replace("phase1-validate:\n", "", 1)
+        missing_validate_target = valid_makefile.replace("phase1-validate:\\n", "", 1)
         missing_validate_markers = collect_exact_count_markers(missing_validate_target, required_makefile_markers)
         assert "makefile_phase1_validate_target:expected=1:actual=0" in missing_validate_markers
 
         missing_validate_closure = valid_makefile.replace(
-            "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase1-closure.py\n",
+            "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase1-closure.py\\n",
             "",
             1,
         )
@@ -447,7 +469,7 @@ def run_self_test() -> None:
 
         duplicate_phase1_test_replay = (
             valid_makefile
-            + "cd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/build.zig\n"
+            + "cd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/build.zig\\n"
         )
         duplicate_phase1_test_replay_markers = collect_exact_count_markers(
             duplicate_phase1_test_replay,
@@ -455,19 +477,19 @@ def run_self_test() -> None:
         )
         assert "makefile_phase1_test_replay:expected=1:actual=2" in duplicate_phase1_test_replay_markers
 
-        missing_bench_target = valid_makefile.replace("phase1-bench:\n", "", 1)
+        missing_bench_target = valid_makefile.replace("phase1-bench:\\n", "", 1)
         missing_bench_target_markers = collect_exact_count_markers(
             missing_bench_target,
             required_makefile_markers,
         )
         assert "makefile_phase1_bench_target:expected=1:actual=0" in missing_bench_target_markers
 
-        duplicate_phase1_target = valid_makefile + "phase1: phase1-validate phase1-test phase1-bench\n"
+        duplicate_phase1_target = valid_makefile + "phase1: phase1-validate phase1-test phase1-bench\\n"
         duplicate_phase1_markers = collect_exact_count_markers(duplicate_phase1_target, required_makefile_markers)
         assert "makefile_phase1_target:expected=1:actual=2" in duplicate_phase1_markers
 
         missing_bench_check = valid_makefile.replace(
-            "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase1-bench.py\n",
+            "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase1-bench.py\\n",
             "",
             1,
         )
@@ -475,7 +497,7 @@ def run_self_test() -> None:
         assert "makefile_phase1_bench_check:expected=1:actual=0" in missing_bench_markers
 
         missing_bench_replay = valid_makefile.replace(
-            "cd $(ZIGUX_ROOT) && $(ZIG) build bench --build-file zigux/tests/build.zig\n",
+            "cd $(ZIGUX_ROOT) && $(ZIG) build bench --build-file zigux/tests/build.zig\\n",
             "",
             1,
         )
@@ -512,7 +534,7 @@ def run_self_test() -> None:
         valid_ledger = render_marker_fixture(required_ledger_markers)
         assert collect_exact_count_markers(valid_ledger, required_ledger_markers) == []
 
-        duplicate_ledger = valid_ledger + "docs(zigux): close bounded phase-1 helper tranche\n"
+        duplicate_ledger = valid_ledger + "docs(zigux): close bounded phase-1 helper tranche\\n"
         duplicate_ledger_markers = collect_exact_count_markers(
             duplicate_ledger,
             required_ledger_markers,
@@ -537,7 +559,7 @@ def run_self_test() -> None:
         assert collect_missing_files(repo_root_from_arg(str(tmp_root))) == [required_ledger]
 
     print("PHASE1_CLOSURE_VALIDATOR_SELF_TEST=pass")
-    print("PHASE1_CLOSURE_VALIDATOR_SELF_TEST_CASE_COUNT=29")
+    print("PHASE1_CLOSURE_VALIDATOR_SELF_TEST_CASE_COUNT=31")
 
 
 def main() -> int:
