@@ -490,6 +490,17 @@ test "stringUnescape exact-fit destination still decodes an escape" {
     try std.testing.expectEqual(@as(u8, 0), out[1]);
 }
 
+test "stringUnescape keeps terminator-only and zero-capacity destinations bounded" {
+    var terminator_only = [_]u8{'!'};
+    const terminator_only_len = stringUnescape("\\n", &terminator_only, terminator_only.len, UNESCAPE_SPACE);
+    try std.testing.expectEqual(@as(usize, 0), terminator_only_len);
+    try std.testing.expectEqual(@as(u8, 0), terminator_only[0]);
+
+    var empty: [0]u8 = .{};
+    const empty_len = stringUnescape("abc", empty[0..], 0, UNESCAPE_ANY);
+    try std.testing.expectEqual(@as(usize, 0), empty_len);
+}
+
 test "stringEscapeMem covers the bounded Linux escape classes" {
     var out = [_]u8{0} ** 64;
 
@@ -537,6 +548,17 @@ test "stringEscapeMem reports truncated output length without forcing a terminat
     const len = stringEscapeMem("\n", &out, ESCAPE_HEX, null);
     try std.testing.expectEqual(@as(usize, 4), len);
     try std.testing.expectEqualSlices(u8, "\\x0a?", &out);
+}
+
+test "stringEscapeMem zero-capacity destinations still report the full escaped length" {
+    var empty: [0]u8 = .{};
+    const empty_len = stringEscapeMem("\n", empty[0..], ESCAPE_HEX, null);
+    try std.testing.expectEqual(@as(usize, 4), empty_len);
+
+    var single = [_]u8{'?'};
+    const single_len = stringEscapeMem("\n", &single, ESCAPE_HEX, null);
+    try std.testing.expectEqual(@as(usize, 4), single_len);
+    try std.testing.expectEqual(@as(u8, '\\'), single[0]);
 }
 
 test "skipSpaces returns the first non-whitespace byte before the first NUL" {
