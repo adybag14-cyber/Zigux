@@ -19,6 +19,13 @@ This note records the current shared contributor replay surface for the shipped 
 - `Documentation/zigux/phase11-hvc-console-validation-matrix.md`
 - `Documentation/zigux/phase11-hvc-console-survey.md`
 - `zigux/tests/phase11_build.zig`
+- `zigux/tests/phase11_gpio_wdt.zig`
+- `zigux/tests/phase11_gpio_wdt_survey.zig`
+- `zigux/tests/phase11_bcm2835_wdt.zig`
+- `zigux/tests/phase11_bcm2835_wdt_survey.zig`
+- `zigux/tests/phase11_dw_wdt.zig`
+- `zigux/tests/phase11_dw_wdt_survey.zig`
+- `zigux/tests/phase11_hvc_console.zig`
 - `zigux/tests/phase11_hvc_cleanup.zig`
 - `zigux/tests/phase11_hvc_console_survey.zig`
 - `zigux/Makefile`
@@ -28,11 +35,22 @@ This note records the current shared contributor replay surface for the shipped 
 - `zig build test --build-file zigux/tests/phase11_build.zig --summary all`
 - `make -C zigux phase11`
 
-Inside that shared `phase11_build.zig` route, `zigux/tests/phase11_hvc_cleanup.zig` keeps the bounded `hvc_cleanup()` tty-port release handoff, missing-reference failure mode, and teardown-gating replay explicit without implying live tty teardown or host-backed cleanup.
+Inside that shared `phase11_build.zig` route, the watchdog starter and survey replays stay bundled together:
 
-The dedicated archival HVC survey replay stays separate:
+- `zigux/tests/phase11_gpio_wdt.zig`
+- `zigux/tests/phase11_gpio_wdt_survey.zig`
+- `zigux/tests/phase11_bcm2835_wdt.zig`
+- `zigux/tests/phase11_bcm2835_wdt_survey.zig`
+- `zigux/tests/phase11_dw_wdt.zig`
+- `zigux/tests/phase11_dw_wdt_survey.zig`
 
+The HVC-specific packet stays explicit inside that same shared route:
+
+- `zigux/tests/phase11_hvc_console.zig`
+- `zigux/tests/phase11_hvc_cleanup.zig`
 - `zigux/tests/phase11_hvc_console_survey.zig`
+
+`zigux/tests/phase11_hvc_cleanup.zig` keeps the bounded `hvc_cleanup()` tty-port release handoff, missing-reference failure mode, and teardown-gating replay explicit without implying live tty teardown or host-backed cleanup, while `zigux/tests/phase11_hvc_console_survey.zig` remains the dedicated archival replay for the original HVC roadmap gap.
 
 ## What This Contract Does Not Claim
 
