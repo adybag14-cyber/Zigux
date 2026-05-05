@@ -286,8 +286,10 @@ test "phase 1 helper ports match committed parity fixture" {
     );
     try std.testing.expectEqualStrings(fixture.string.replace_char, replace_buffer[0..fixture.string.replace_char.len]);
     try std.testing.expectEqual(@as(?usize, fixture.string.memchr_inv_index), string.memchrInv("aaaaXaaa", 'a'));
-    try std.testing.expectEqual(@as(?usize, null), string.memchrInv("bbbb", 'b'));
-    try std.testing.expect(fixture.string.memchr_inv_none);
+    try std.testing.expectEqual(
+        fixture.string.memchr_inv_none,
+        string.memchrInv("bbbb", 'b') == null,
+    );
 
     const allocator = std.testing.allocator;
     const split_argv = try argv_split.argvSplit(allocator, " alpha  beta\tgamma\n");
