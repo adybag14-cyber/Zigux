@@ -13,6 +13,7 @@ Treat the files below as one shared workflow bundle whenever a prompt, checklist
 Update these surfaces together when they describe the same active contributor packet:
 - `Documentation/zigux/README.md`
 - `Documentation/zigux/review-checklist.md`
+- `Documentation/zigux/phase13-contributor-workflow-guide.md`
 - `Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md`
 - `zigux/tests/README.md`
 
@@ -22,10 +23,11 @@ Also refresh the packet-local docs-root or scripts-root note when the wording ch
 
 1. Start from the packet-local source of truth.
 2. Refresh `Documentation/zigux/README.md` so the exact checker stack, replay route, and evidence names stay visible from the top-level product index.
-3. Refresh the compact tests-root companion so the same packet stays reviewable in the short form.
-4. Refresh `Documentation/zigux/review-checklist.md` if the change alters a shared reviewer prompt or release-discipline question.
-5. Refresh `zigux/tests/README.md` last so the broad tests-root carryover prompt matches the already-tightened packet notes.
-6. Re-read the four shared surfaces and confirm they use the same nouns for the same packet rather than mixing shorthand and explicit wording.
+3. Refresh `Documentation/zigux/phase13-contributor-workflow-guide.md` when the change sharpens the shared validator-first replay route or the broader shipped release-surface evidence for Phase 13 contributors.
+4. Refresh the compact tests-root companion so the same packet stays reviewable in the short form.
+5. Refresh `Documentation/zigux/review-checklist.md` if the change alters a shared reviewer prompt or release-discipline question.
+6. Refresh `zigux/tests/README.md` last so the broad tests-root carryover prompt matches the already-tightened packet notes.
+7. Re-read the five shared surfaces and confirm they use the same nouns for the same packet rather than mixing shorthand and explicit wording.
 
 ## Phase 10 anchors
 
