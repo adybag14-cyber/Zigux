@@ -178,3 +178,45 @@ test "phase11 bcm2835_wdt survey manifest records the landed remove summary and 
     try std.testing.expect(saw_remove_followup);
     try std.testing.expect(saw_registration_blocker);
 }
+
+test "phase11 bcm2835_wdt survey docs keep the landed validation matrix and next handoff step explicit" {
+    var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
+    defer io_instance.deinit();
+
+    const slice_note = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "Documentation/zigux/phase11-bcm2835-wdt-slice.md",
+        std.testing.allocator,
+        .limited(16 * 1024),
+    );
+    defer std.testing.allocator.free(slice_note);
+
+    const survey_note = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "Documentation/zigux/phase11-bcm2835-wdt-survey.md",
+        std.testing.allocator,
+        .limited(16 * 1024),
+    );
+    defer std.testing.allocator.free(survey_note);
+
+    const validation_matrix = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "Documentation/zigux/phase11-bcm2835-wdt-validation-matrix.md",
+        std.testing.allocator,
+        .limited(32 * 1024),
+    );
+    defer std.testing.allocator.free(validation_matrix);
+
+    try std.testing.expect(std.mem.indexOf(u8, slice_note, "hardware-validation matrix now records that bounded validation posture") != null);
+    try std.testing.expect(std.mem.indexOf(u8, slice_note, "tiny platform-facing handoff note") != null);
+    try std.testing.expect(std.mem.indexOf(u8, slice_note, "add a tiny hardware-validation matrix") == null);
+
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase11-bcm2835-wdt-validation-matrix.md") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "hardware validation coverage beyond the bounded matrix") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "tiny platform-facing handoff note") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "add a tiny hardware-validation matrix") == null);
+
+    try std.testing.expect(std.mem.indexOf(u8, validation_matrix, "PHASE11_BCM2835_WDT_STATUS=hardware_validation_matrix_landed") != null);
+    try std.testing.expect(std.mem.indexOf(u8, validation_matrix, "platform-facing handoff lands") != null);
+    try std.testing.expect(std.mem.indexOf(u8, validation_matrix, "current validation posture in one place") != null);
+}
