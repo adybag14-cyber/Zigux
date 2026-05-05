@@ -20,7 +20,7 @@ REQUIRED_COMMANDS = [
     "zig build phase14-smoke --build-file zigux/tests/phase14_build.zig --summary all",
     "make -C zigux phase14-test",
     "zig build test --build-file zigux/tests/phase14_build.zig --summary all",
-    "make -C zigux phase14",
+    "make -C zigux phase14"
 ]
 REQUIRED_SURFACES = [
     ("Documentation/zigux/README.md", "Phase 14 notes"),
@@ -41,7 +41,7 @@ REQUIRED_SURFACES = [
     ("zigux/tests/phase14_ring_buffer_manifest.json", "phase14-ring-buffer-zig-port-blocker"),
     ("zigux/tests/phase14_rcu_tree_manifest.json", "phase14-rcu-tree-bridge-blocker"),
     ("kernel/workqueue_bridge.zig", "pub const WorkqueueBridgeLab"),
-    ("net/core/skbuff_bridge.zig", "pub const SkbuffBridgeLab"),
+    ("net/core/skbuff_bridge.zig", "pub const SkbuffBridgeLab")
 ]
 REQUIRED_FILE_MARKERS = {
     "Documentation/zigux/phase14-end-to-end-smoke-survey.md": [
@@ -82,6 +82,8 @@ REQUIRED_FILE_MARKERS = {
 FORBIDDEN_MARKERS = {
     "Documentation/zigux/phase14-end-to-end-smoke-survey.md": [
         "PHASE14_VALIDATE_ENTRYPOINT=absent_on_master",
+        "scripts/zigux/check-phase14-docs-root-smoke-summary.py",
+        "scripts/zigux/check-phase14-release-boundary-exact-counts.py",
     ],
     "zigux/tests/phase14_end_to_end_smoke_manifest.json": [
         '"required_marker": "PHASE14_VALIDATE_ENTRYPOINT=absent_on_master"',
