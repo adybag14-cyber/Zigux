@@ -32,7 +32,7 @@ fn isAllowedStatus(status: []const u8) bool {
         std.mem.eql(u8, status, "blocked_on_runtime_substrate");
 }
 
-test "phase 9 runtime atomic64 survey manifest records the landed loader scaffold and remaining blocker" {
+test "phase 9 runtime atomic64 survey manifest records the roadmap selftest hook and remaining loader blocker" {
     var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
     defer io_instance.deinit();
 
@@ -57,13 +57,14 @@ test "phase 9 runtime atomic64 survey manifest records the landed loader scaffol
     try std.testing.expect(manifest.survey_summary.preexisting_samples_zigux_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase9_build_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase9_doc_present);
-    try std.testing.expect(manifest.gaps.len >= 6);
+    try std.testing.expect(manifest.gaps.len >= 7);
 
     var runtime_test_destination_count: usize = 0;
     var starter_landed_count: usize = 0;
     var ready_next_count: usize = 0;
     var blocked_count: usize = 0;
     var saw_sample_module = false;
+    var saw_selftest_hook = false;
     var saw_diff_gate = false;
     var saw_loader_scaffold = false;
     var saw_live_loader_blocker = false;
@@ -95,6 +96,12 @@ test "phase 9 runtime atomic64 survey manifest records the landed loader scaffol
             try std.testing.expectEqualStrings("starter_landed", gap.status);
             try std.testing.expectEqualStrings("samples/zigux/runtime_atomic64.zig", gap.zigux_destination);
         }
+        if (std.mem.eql(u8, gap.id, "runtime-atomic64-selftest-hook")) {
+            saw_selftest_hook = true;
+            try std.testing.expectEqualStrings("starter_landed", gap.status);
+            try std.testing.expectEqualStrings("samples/zigux/runtime_atomic64.zig", gap.zigux_destination);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "selftest hooks") != null);
+        }
         if (std.mem.eql(u8, gap.id, "runtime-atomic64-diff-gate")) {
             saw_diff_gate = true;
             try std.testing.expectEqualStrings("starter_landed", gap.status);
@@ -110,19 +117,20 @@ test "phase 9 runtime atomic64 survey manifest records the landed loader scaffol
             saw_live_loader_blocker = true;
             try std.testing.expectEqualStrings("blocked_on_runtime_substrate", gap.status);
             try std.testing.expectEqualStrings("zigux/kernel/runtime_loader.zig", gap.zigux_destination);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "lifecycle parity") != null);
         }
 
         for (manifest.gaps[i + 1 ..]) |other| {
             try std.testing.expect(!std.mem.eql(u8, gap.id, other.id));
-            try std.testing.expect(!std.mem.eql(u8, gap.zigux_destination, other.zigux_destination));
         }
     }
 
     try std.testing.expect(runtime_test_destination_count >= 4);
-    try std.testing.expect(starter_landed_count >= 6);
+    try std.testing.expect(starter_landed_count >= 7);
     try std.testing.expectEqual(@as(usize, 0), ready_next_count);
     try std.testing.expect(blocked_count >= 1);
     try std.testing.expect(saw_sample_module);
+    try std.testing.expect(saw_selftest_hook);
     try std.testing.expect(saw_diff_gate);
     try std.testing.expect(saw_loader_scaffold);
     try std.testing.expect(saw_live_loader_blocker);
@@ -160,6 +168,8 @@ test "phase 9 runtime atomic64 survey note keeps exact selftest and loader snaps
 
     try std.testing.expectEqual(@as(usize, 1), std.mem.count(u8, note, surveyed_commit_marker));
     try std.testing.expect(std.mem.indexOf(u8, note, "The current direct atomic64 sample contract is verified through these exact checks:") != null);
+    try std.testing.expect(std.mem.indexOf(u8, note, "the roadmap's selftest-hook requirement is already landed through the sample descriptor and `runSelftest()` contract in `samples/zigux/runtime_atomic64.zig`.") != null);
+    try std.testing.expect(std.mem.indexOf(u8, note, "guarded init, selftest, and exit transitions plus the bounded loader handoff make lifecycle evidence reviewable, but full runtime module lifecycle parity still depends on the shared runtime substrate.") != null);
     try std.testing.expect(std.mem.indexOf(u8, note, "descriptor contract: the sample still advertises `name=runtime_atomic64`, `anchor=lib/atomic64_test.c`, `requires_runtime_substrate=true`, and `provides_selftest_hook=true`") != null);
     try std.testing.expect(std.mem.indexOf(u8, note, "lifecycle and counter path: the sample still starts cold, rejects selftest before init, records one init run, swaps the seeded `0x1111_1111_2222_2222` counter down to `-9`, proves both compare-swap store and mismatch visibility, drives the blocked and changed `add_unless` branches, and finishes the bitwise path at counter `19`") != null);
     try std.testing.expect(std.mem.indexOf(u8, note, "selftest closure: `runSelftest()` still reports the ordered operation families `arithmetic`, `bitwise`, `returning_ops`, `swap_ops`, and `guard_ops`, keeps the counter stable at `19`, records one selftest run, and leaves later swap or second-selftest attempts blocked after exit") != null);
@@ -181,6 +191,8 @@ test "phase 9 runtime atomic64 module slice keeps the loader-backed survey packe
     );
     defer std.testing.allocator.free(note);
 
+    try std.testing.expect(std.mem.indexOf(u8, note, "selftest hook surface") != null);
+    try std.testing.expect(std.mem.indexOf(u8, note, "guarded lifecycle parity evidence") != null);
     try std.testing.expect(std.mem.indexOf(u8, note, "bounded loader-handoff scaffold") != null);
     try std.testing.expect(std.mem.indexOf(u8, note, "shared request-surface proof") != null);
     try std.testing.expect(std.mem.indexOf(u8, note, "survey-manifest closure only") != null);
