@@ -23,6 +23,7 @@ REQUIRED_SNIPPETS = {
     "Documentation/zigux/phase6-base64-slice.md": [
         "- `zigux/tests/fixtures/phase6_base64_vectors.zig`",
         "- shared kernel-derived encode, decode, variant, and invalid-input fixtures stored in `zigux/tests/fixtures/phase6_base64_vectors.zig`",
+        "- invalid-input rejection through both `bytes` and `decode` for malformed, embedded-NUL, and variant-mismatched decode inputs",
         "- a separate external C-vs-Zig parity packet on `master`",
     ],
     "Documentation/zigux/phase6-bsearch-slice.md": [
@@ -125,11 +126,20 @@ REQUIRED_SNIPPETS = {
         'test "phase 6 hexdump covers normalization and empty-buffer edge cases" {',
     ],
     "zigux/tests/fixtures/phase6_base64_vectors.zig": [
-        "pub const standard_cases = [_]EncodeCase{",
-        "pub const variant_cases = [_]VariantCase{",
-        "pub const standard_decode_cases = [_]DecodeCase{",
-        "pub const invalid_decode_cases = [_]InvalidDecodeCase{",
-        "pub const variant_decode_cases = [_]DecodeCase{",
+        'const invalid_with_nul = [_]u8{ \'Z\', \'g\', 0, \'=\' };',
+        'pub const standard_cases = [_]EncodeCase{',
+        'pub const variant_cases = [_]VariantCase{',
+        'pub const standard_decode_cases = [_]DecodeCase{',
+        'pub const invalid_decode_cases = [_]InvalidDecodeCase{',
+        '.{ .input = "Zh==", .padding = true, .variant_name = "std" },',
+        '.{ .input = "Zm9=", .padding = true, .variant_name = "std" },',
+        '.{ .input = invalid_with_nul[0..], .padding = true, .variant_name = "std" },',
+        '.{ .input = "Zh", .padding = false, .variant_name = "std" },',
+        '.{ .input = "Zm9", .padding = false, .variant_name = "std" },',
+        '.{ .input = invalid_with_nul[0..], .padding = false, .variant_name = "std" },',
+        '.{ .input = "Zg==", .padding = false, .variant_name = "urlsafe" },',
+        '.{ .input = "Zg==", .padding = false, .variant_name = "imap" },',
+        'pub const variant_decode_cases = [_]DecodeCase{',
     ],
     "zigux/tests/fixtures/phase6_hexdump_vectors.zig": [
         "pub const perf_cases = [_]PerfCase{",
@@ -314,6 +324,22 @@ def run_self_test() -> None:
             raise AssertionError("expected base64 slice failure")
         base64_slice.write_text(original_base64_slice, encoding="utf-8")
 
+        base64_slice.write_text(
+            original_base64_slice.replace(
+                "- invalid-input rejection through both `bytes` and `decode` for malformed, embedded-NUL, and variant-mismatched decode inputs",
+                "- invalid input notes moved elsewhere",
+            ),
+            encoding="utf-8",
+        )
+        try:
+            run_checks(root)
+        except ValidationError as exc:
+            if "Documentation/zigux/phase6-base64-slice.md" not in str(exc):
+                raise AssertionError(f"unexpected base64 invalid-input failure: {exc}") from exc
+        else:
+            raise AssertionError("expected base64 invalid-input failure")
+        base64_slice.write_text(original_base64_slice, encoding="utf-8")
+
         bsearch_slice = root / "Documentation/zigux/phase6-bsearch-slice.md"
         original_bsearch_slice = bsearch_slice.read_text(encoding="utf-8")
         bsearch_slice.write_text(
@@ -491,6 +517,25 @@ def run_self_test() -> None:
         else:
             raise AssertionError("expected base64 decode-bound failure")
         base64_test.write_text(original_base64_test, encoding="utf-8")
+
+        base64_vectors = root / "zigux/tests/fixtures/phase6_base64_vectors.zig"
+        original_base64_vectors = base64_vectors.read_text(encoding="utf-8")
+        base64_vectors.write_text(
+            original_base64_vectors.replace(
+                '.{ .input = "Zg==", .padding = false, .variant_name = "urlsafe" },',
+                '.{ .input = "Zm9v", .padding = false, .variant_name = "urlsafe" },',
+                1,
+            ),
+            encoding="utf-8",
+        )
+        try:
+            run_checks(root)
+        except ValidationError as exc:
+            if "zigux/tests/fixtures/phase6_base64_vectors.zig" not in str(exc):
+                raise AssertionError(f"unexpected base64 vectors failure: {exc}") from exc
+        else:
+            raise AssertionError("expected base64 vectors failure")
+        base64_vectors.write_text(original_base64_vectors, encoding="utf-8")
 
         bsearch_test = root / "zigux/tests/phase6_bsearch.zig"
         original_bsearch_test = bsearch_test.read_text(encoding="utf-8")
