@@ -52,7 +52,7 @@ test "phase13 landlock syscalls manifest records the starter and remaining gap" 
     defer parsed.deinit();
 
     const manifest = parsed.value;
-    try std.testing.expectEqualStrings("P13-L13", manifest.lane_key);
+    try std.testing.expectEqualStrings("P13-Y04", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 13", manifest.phase);
     try std.testing.expectEqualStrings("security/landlock/syscalls.c", manifest.anchor);
     try std.testing.expectEqualStrings("02f3325b2e289b7d492e022db0dbe7b61f2e22c3", manifest.surveyed_commit);
@@ -186,6 +186,21 @@ test "phase13 landlock syscalls descriptor stays anchored to syscalls.c" {
     try std.testing.expect(!descriptor.touches_live_paths);
     try std.testing.expect(!descriptor.touches_live_credentials);
     try std.testing.expect(!descriptor.touches_live_domains);
+}
+
+test "phase13 landlock syscalls survey note records the active lane key" {
+    var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
+    defer io_instance.deinit();
+
+    const survey_note = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "Documentation/zigux/phase13-landlock-syscalls-survey.md",
+        std.testing.allocator,
+        .limited(16 * 1024),
+    );
+    defer std.testing.allocator.free(survey_note);
+
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "`PHASE13_LANE_KEY=P13-Y04`") != null);
 }
 
 test "phase13 landlock syscalls abi shape report matches build_check_abi expectations" {
