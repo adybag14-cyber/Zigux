@@ -413,6 +413,21 @@ test "bitmap diff gate replays bounded lib/test_bitmap.c range expectations" {
             .must_be_clear = &.{ 115, 127, BitmapHarness.bitmap_nbits - 1 },
         },
         .{
+            .name = "test_fill_set bitmap_fill reaches the full 1024-bit extent",
+            .init_bits = &.{},
+            .set_ranges = &.{},
+            .clear_ranges = &.{},
+            .fill_prefixes = &.{BitmapHarness.bitmap_nbits},
+            .zero_prefixes = &.{},
+            .expected_summary = .{
+                .first_set = 0,
+                .first_zero = BitmapHarness.bitmap_nbits,
+                .weight = BitmapHarness.bitmap_nbits,
+            },
+            .must_be_set = &.{ 0, 127, BitmapHarness.bitmap_nbits - 1 },
+            .must_be_clear = &.{},
+        },
+        .{
             .name = "test_zero_clear single-word starter",
             .init_bits = &.{},
             .set_ranges = &.{.{ .start = 0, .len = BitmapHarness.bitmap_nbits }},
@@ -471,6 +486,21 @@ test "bitmap diff gate replays bounded lib/test_bitmap.c range expectations" {
             },
             .must_be_set = &.{ 115, 127, BitmapHarness.bitmap_nbits - 1 },
             .must_be_clear = &.{ 0, 114 },
+        },
+        .{
+            .name = "test_zero_clear bitmap_zero reaches the empty 1024-bit extent",
+            .init_bits = &.{},
+            .set_ranges = &.{.{ .start = 0, .len = BitmapHarness.bitmap_nbits }},
+            .clear_ranges = &.{},
+            .fill_prefixes = &.{},
+            .zero_prefixes = &.{BitmapHarness.bitmap_nbits},
+            .expected_summary = .{
+                .first_set = BitmapHarness.bitmap_nbits,
+                .first_zero = 0,
+                .weight = 0,
+            },
+            .must_be_set = &.{},
+            .must_be_clear = &.{ 0, 127, BitmapHarness.bitmap_nbits - 1 },
         },
         .{
             .name = "test_find_nth_bit starter population",
@@ -600,7 +630,7 @@ test "bitmap diff gate keeps the current bounded source inventory explicit" {
     try expectSourceCaseGroupCardinality(
         "const cases = [_]DiffCase{",
         "test \"bitmap diff gate records exact bounded find_nth_bit checks\"",
-        9,
+        11,
     );
     try expectSourceCaseGroupCardinality(
         "const cases = [_]CopyCase{",
@@ -609,6 +639,8 @@ test "bitmap diff gate keeps the current bounded source inventory explicit" {
     );
     try expectMarker(bitmap_diff_source, "test_fill_set bitmap_fill keeps the exact 35-bit prefix");
     try expectMarker(bitmap_diff_source, "test_fill_set bitmap_fill keeps the exact 115-bit prefix");
+    try expectMarker(bitmap_diff_source, "test_fill_set bitmap_fill reaches the full 1024-bit extent");
+    try expectMarker(bitmap_diff_source, "test_zero_clear bitmap_zero reaches the empty 1024-bit extent");
     try expectMarker(bitmap_diff_source, "test_copy exact 23-bit replay clears the stale tail in the destination word");
     try expectMarker(bitmap_diff_source, "test_copy full-width replay from a cleared destination");
     try expectMarker(bitmap_diff_source, "test_copy full-width replay clears a pre-filled destination");
