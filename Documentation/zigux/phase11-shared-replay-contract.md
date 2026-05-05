@@ -61,4 +61,4 @@ The HVC-specific packet stays explicit inside that same shared route:
 
 ## Follow-Through Rule
 
-Future Phase 11 follow-through should stay inside the next smallest hardware-validation matrix, focused replay, teardown-parity note, failure-mode note, or shared reviewability step until broader validator assets actually land.
+Future Phase 11 follow-through should stay inside the next smallest focused replay, teardown-parity note, failure-mode note, or registration-facing handoff note now that all four driver-local validation matrices are landed, and it should avoid broader validator assets until those files actually land.
