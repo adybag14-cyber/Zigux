@@ -15,7 +15,7 @@ This is still an active helper-first tranche, not a globally closed roadmap phas
 ## Keep In Sync
 
 When a Phase 13 change is real, keep these surfaces aligned together:
-  * contributor-facing docs: `Documentation/zigux/review-checklist.md` and this guide
+  * contributor-facing docs: `Documentation/zigux/README.md`, `Documentation/zigux/phase10-phase11-phase13-contributor-surface-sync.md`, `Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md`, `Documentation/zigux/review-checklist.md`, `zigux/tests/README.md`, and this guide
   * validator-first wiring: `scripts/zigux/validate-phase13-release.py`, `scripts/zigux/check-phase13-devres-packet.py`, `scripts/zigux/README.md`, and `zigux/Makefile`
   * shared replay entrypoint: `zigux/tests/phase13_build.zig`
   * manifest-backed anchor packets: `zigux/tests/phase13_libfs_manifest.json`, `zigux/tests/phase13_devres_manifest.json`, `zigux/tests/phase13_landlock_ruleset_manifest.json`, and `zigux/tests/phase13_landlock_syscalls_manifest.json`
@@ -74,4 +74,4 @@ Before calling a Phase 13 change ready, confirm all of the following:
 
 ## Next Safe Follow-up
 
-The next contributor-facing improvement after this guide is to tighten `zigux/tests/README.md` so the tests-root Phase 13 packet names this guide alongside `Documentation/zigux/README.md` and `Documentation/zigux/phase10-phase11-phase13-contributor-surface-sync.md` when describing the shared contributor-workflow bundle.
+The next contributor-facing improvement after this guide is to keep `Documentation/zigux/phase10-phase11-phase13-contributor-surface-sync.md` and `zigux/tests/README.md` aligned with this guide whenever a future Phase 13 wording refresh changes the shared validator-first replay route or the broader shipped adjacent release-surface evidence.
