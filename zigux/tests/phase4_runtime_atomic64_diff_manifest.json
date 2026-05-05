@@ -12,16 +12,17 @@
   "runtime_replay_line_count": 155,
   "phase4_build_present": true,
   "phase4_build_uses_atomic64_wrapper": true,
-  "phase4_build_blob_sha": "4a1a4479aabbae4960a03c37b934381c246eb431",
+  "phase4_build_blob_sha": "ca6672b21f08b77305ecf048346026fe474aff43",
   "phase4_validator_atomic64_diff_present": true,
   "phase4_validator_runtime_atomic64_diff_present": true,
-  "phase4_validator_blob_sha": "0bb154aaf52e3c0b33d444195de8047e4b56e311",
+  "phase4_validator_blob_sha": "adf7a83fe8a944dbeed522e691d989f31cc1ce7d",
   "phase9_build_present": true,
-  "phase9_build_blob_sha": "8ecef19acf5953dce1bd9c59a9662e23c0da1f60",
+  "phase9_build_blob_sha": "81b28841525ba42104b0d65e3d45c73c87bb23cd",
   "phase4_validation_matrix_atomic64_diff_note_present": true,
   "phase4_validation_matrix_runtime_atomic64_note_present": true,
-  "phase4_validation_matrix_blob_sha": "e16da27b564f61d358a8c4c419b369d23173b547",
+  "phase4_validation_matrix_blob_sha": "ab41bb2d0dc190ef56597a1620d2f411783e4f7b",
   "threshold_posture": "threshold_pending_until_runtime_atomic64_scope_widens",
   "roadmap_gap_summary": "the roadmap target zigux/tests/atomic64_diff.zig is now present as the Phase 4 wrapper and zigux/tests/phase4_build.zig runs through it, while zigux/tests/runtime_atomic64_diff.zig remains the single bounded replay body that the Phase 9 runtime packet still imports directly and the wider Phase 4 reviewer packet should keep that shared runtime-backed handoff explicit",
-  "ready_next": "keep zigux/tests/atomic64_diff.zig, zigux/tests/runtime_atomic64_diff.zig, zigux/tests/phase4_build.zig, scripts/zigux/validate-phase4.py, Documentation/zigux/phase4-validation-matrix.md, and the wrapper manifest and survey aligned so the canonical wrapper stays explicit while the shared runtime operation coverage remains the single bounded replay body until a broader runtime move is intentional"
+  "reversible_delivery_evidence": "keep zigux/tests/atomic64_diff.zig, zigux/tests/runtime_atomic64_diff.zig, zigux/tests/phase4_build.zig, scripts/zigux/validate-phase4.py, and Documentation/zigux/phase4-validation-matrix.md aligned so the roadmap-named wrapper, the shared runtime replay body, the shared Phase 4 entrypoint, the validator-first bootstrap replay, and the rollback-owner matrix stay measurable and reversible on the current head",
+  "ready_next": "keep zigux/tests/atomic64_diff.zig, zigux/tests/runtime_atomic64_diff.zig, zigux/tests/phase4_build.zig, zigux/tests/phase4_runtime_atomic64_diff_survey.zig, scripts/zigux/validate-phase4.py, and Documentation/zigux/phase4-validation-matrix.md aligned so the current wrapper-first rollback surface stays reviewable and reversible while the shared runtime replay body remains the single bounded Phase 9 handoff"
 }
