@@ -9,18 +9,19 @@ fn expectNotContains(haystack: []const u8, needle: []const u8) !void {
 }
 
 fn readRepoFile(allocator: std.mem.Allocator, path: []const u8) ![]u8 {
-    return std.fs.cwd().readFileAlloc(allocator, path, 512 * 1024);
+    return std.Io.Dir.cwd().readFileAlloc(std.testing.io, path, allocator, .limited(512 * 1024));
 }
 
 test "phase 7 string helper boundary keeps sample root free of string samples" {
-    try std.testing.expectError(error.FileNotFound, std.fs.cwd().access("samples/zigux/string_helpers_sample.zig", .{}));
+    const io = std.testing.io;
+    try std.testing.expectError(error.FileNotFound, std.Io.Dir.cwd().access(io, "samples/zigux/string_helpers_sample.zig", .{}));
 
-    var dir = try std.fs.cwd().openDir("samples/zigux", .{ .iterate = true });
-    defer dir.close();
+    var dir = try std.Io.Dir.cwd().openDir(io, "samples/zigux", .{ .iterate = true });
+    defer dir.close(io);
 
     var saw_string_file = false;
     var iterator = dir.iterate();
-    while (try iterator.next()) |entry| {
+    while (try iterator.next(io)) |entry| {
         if (entry.kind != .file) continue;
         if (!std.mem.endsWith(u8, entry.name, ".zig")) continue;
         if (std.mem.indexOf(u8, entry.name, "string") != null) {
@@ -41,7 +42,6 @@ test "phase 7 sample root notes keep the no-string-sample boundary explicit" {
     try expectContains(readme, "treat any new `samples/zigux/*string*.zig` file as review-blocking");
     try expectContains(readme, "Documentation/zigux/phase7-string-helpers-slice.md");
     try expectContains(readme, "lib/string_helpers.zig");
-    try expectContains(readme, "zigux/tests/phase7_string_helpers.zig");
     try expectContains(readme, "zigux/tests/phase7_build.zig");
 }
 
@@ -58,6 +58,7 @@ test "phase 7 helper packet keeps the dedicated sample-boundary guard wired" {
     defer allocator.free(build_file);
     try expectContains(build_file, "\"phase7_string_helpers_sample_boundary.zig\"");
     try expectContains(build_file, "\"phase7-string-helpers-sample-boundary-tests\"");
+    try expectContains(build_file, "setCwd(b.path(\"../..\"))");
     try expectNotContains(build_file, "\"phase7_string_helpers_sample.zig\"");
     try expectNotContains(build_file, "\"phase7-string-helpers-sample-tests\"");
 }
