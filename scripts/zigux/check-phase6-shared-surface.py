@@ -77,6 +77,15 @@ REQUIRED_SNIPPETS = {
         "pub const invalid_decode_cases = [_]InvalidDecodeCase{",
         "pub const variant_decode_cases = [_]DecodeCase{",
     ],
+    "zigux/tests/phase6_checksum_perf.zig": [
+        'const perf_cases = [_]PerfCase{',
+        '.label = "64B"',
+        '.label = "1501B"',
+        ".max_slowdown_pct = 150,",
+        'try stdout_writer.interface.print("PHASE6_CHECKSUM_PERF_CASE_COUNT={d}\\n", .{perf_cases.len});',
+        'try stdout_writer.interface.print("PHASE6_CHECKSUM_PERF_{s}_THRESHOLD_PCT={d}\\n", .{ case.label, case.max_slowdown_pct });',
+        'try stdout_writer.interface.print("PHASE6_CHECKSUM_PERF={s}\\n", .{if (failed) "fail" else "pass"});',
+    ],
     "zigux/Makefile": [
         "PHONY += phase6-validate phase6-test phase6",
         "phase6-validate:\n\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase6-shared-surface.py",
@@ -226,6 +235,25 @@ def run_self_test() -> None:
         else:
             raise AssertionError("expected phase6 build failure")
         phase6_build.write_text(original_phase6_build, encoding="utf-8")
+
+        checksum_perf = root / "zigux/tests/phase6_checksum_perf.zig"
+        original_checksum_perf = checksum_perf.read_text(encoding="utf-8")
+        checksum_perf.write_text(
+            original_checksum_perf.replace(
+                ".max_slowdown_pct = 150,",
+                ".max_slowdown_pct = 175,",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        try:
+            run_checks(root)
+        except ValidationError as exc:
+            if "zigux/tests/phase6_checksum_perf.zig" not in str(exc):
+                raise AssertionError(f"unexpected checksum perf failure: {exc}") from exc
+        else:
+            raise AssertionError("expected checksum perf failure")
+        checksum_perf.write_text(original_checksum_perf, encoding="utf-8")
 
         base64_test = root / "zigux/tests/phase6_base64.zig"
         original_base64_test = base64_test.read_text(encoding="utf-8")
