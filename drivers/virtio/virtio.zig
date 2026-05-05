@@ -251,6 +251,26 @@ pub const VirtioCoreLabDevice = struct {
         };
     }
 
+    pub fn finalizeFeaturesWithDriverValidation(
+        self: *Self,
+        validated_feature_bits: []const u16,
+    ) !NegotiationSummary {
+        const first_summary = try self.finalizeFeatures();
+        if (!first_summary.accepted_by_transport) return first_summary;
+
+        var validated_features = FeatureSet.initEmpty();
+        for (validated_feature_bits) |feature_bit| {
+            const index = try checkedFeatureIndex(feature_bit);
+            if (!self.driver_features.isSet(index)) return error.DriverValidationAddedUnofferedFeature;
+            validated_features.set(index);
+        }
+
+        if (std.meta.eql(validated_features, self.driver_features)) return first_summary;
+
+        self.driver_features = validated_features;
+        return self.finalizeFeatures();
+    }
+
     pub fn markDriverReady(self: *Self) !void {
         if (!self.hasStatus(DeviceStatus.acknowledge)) return error.MissingAcknowledge;
         if (!self.hasStatus(DeviceStatus.driver)) return error.DriverNotAttached;
@@ -625,3 +645,55 @@ pub const VirtioCoreLabDevice = struct {
         return VirtioInterruptReason.queue_used | VirtioInterruptReason.config_change;
     }
 };
+
+test "virtio core re-finalizes after driver validation narrows offered features" {
+    var device = try VirtioCoreLabDevice.init(&.{ 1, 7, 33 });
+
+    device.acknowledge();
+    try device.attachDriver();
+    try device.offerDriverFeature(1);
+    try device.offerDriverFeature(7);
+    try device.offerDriverFeature(33);
+
+    const summary = try device.finalizeFeaturesWithDriverValidation(&.{ 1, 33 });
+    try std.testing.expect(summary.accepted_by_transport);
+    try std.testing.expectEqual(@as(usize, 2), summary.offered_feature_count);
+    try std.testing.expectEqual(@as(usize, 2), summary.negotiated_feature_count);
+    try std.testing.expectEqual(@as(usize, 2), device.finalize_count);
+    try std.testing.expect(try device.hasNegotiatedFeature(1));
+    try std.testing.expect(!(try device.hasNegotiatedFeature(7)));
+    try std.testing.expect(try device.hasNegotiatedFeature(33));
+}
+
+test "virtio core skips the second finalize pass when validation keeps the offered set" {
+    var device = try VirtioCoreLabDevice.init(&.{ 2, 8 });
+
+    device.acknowledge();
+    try device.attachDriver();
+    try device.offerDriverFeature(2);
+    try device.offerDriverFeature(8);
+
+    const summary = try device.finalizeFeaturesWithDriverValidation(&.{ 2, 8 });
+    try std.testing.expect(summary.accepted_by_transport);
+    try std.testing.expectEqual(@as(usize, 2), summary.offered_feature_count);
+    try std.testing.expectEqual(@as(usize, 2), summary.negotiated_feature_count);
+    try std.testing.expectEqual(@as(usize, 1), device.finalize_count);
+}
+
+test "virtio core rejects driver validation that adds features the driver never offered" {
+    var device = try VirtioCoreLabDevice.init(&.{ 4, 9, 12 });
+
+    device.acknowledge();
+    try device.attachDriver();
+    try device.offerDriverFeature(4);
+    try device.offerDriverFeature(9);
+
+    try std.testing.expectError(
+        error.DriverValidationAddedUnofferedFeature,
+        device.finalizeFeaturesWithDriverValidation(&.{ 4, 9, 12 }),
+    );
+    try std.testing.expectEqual(@as(usize, 1), device.finalize_count);
+    try std.testing.expect(try device.hasNegotiatedFeature(4));
+    try std.testing.expect(try device.hasNegotiatedFeature(9));
+    try std.testing.expect(!(try device.hasNegotiatedFeature(12)));
+}
