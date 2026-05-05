@@ -49,7 +49,7 @@ test "phase 8 exec-cmd tooling packet covers path resolution and null-terminated
     try std.testing.expectEqual(@as(?[]const u8, null), prepared[3]);
 }
 
-test "phase 8 exec-cmd slice note keeps the tooling-expansion roadmap posture explicit" {
+test "phase 8 exec-cmd slice note keeps the tooling-expansion and validator-first posture explicit" {
     const io = std.testing.io;
     const slice = try std.Io.Dir.cwd().readFileAlloc(
         io,
@@ -62,6 +62,8 @@ test "phase 8 exec-cmd slice note keeps the tooling-expansion roadmap posture ex
     try std.testing.expect(std.mem.indexOf(u8, slice, "prove Zigux inside serious repo-hosted tooling, not just tiny helpers") != null);
     try std.testing.expect(std.mem.indexOf(u8, slice, "helper-first, output-stable deferred-exec planning") != null);
     try std.testing.expect(std.mem.indexOf(u8, slice, "without widening into process-launch side effects") != null);
+    try std.testing.expect(std.mem.indexOf(u8, slice, "make -C zigux phase8-validate") != null);
+    try std.testing.expect(std.mem.indexOf(u8, slice, "shared Phase 8 validator-first route") != null);
 }
 
 test "phase 8 exec-cmd environment wrapper propagates PREFIX, exec path, and PATH updates" {
