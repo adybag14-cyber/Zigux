@@ -114,6 +114,8 @@ For `tools/lib/bitmap.zig`, reviewers must also keep the committed partial-windo
 
 That means `partial_xor_nbits` and `partial_xor_masked_values` stay present and review-visible whenever the helper or its paired replay changes. Those two fields are the bounded proof that caller-selected bit windows remain masked instead of silently leaking tail bits beyond `nbits`.
 
+- `PHASE1_BITMAP_PARTIAL_XOR_REVIEW=partial_xor_nbits and partial_xor_masked_values stay explicit through the shared Phase 1 parity fixture and replay so caller-selected bit windows cannot silently leak tail bits beyond nbits`
+
 The helper-local `bitmap.scnprintf()` truncation proof must also stay explicit through:
 
 - `tools/lib/bitmap.zig`
