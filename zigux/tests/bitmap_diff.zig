@@ -39,7 +39,7 @@ const BitmapHarness = struct {
     pub const bitmap_nbits: u32 = 1024;
     const word_count: usize = bitmap_nbits / bits_per_long;
 
-    words: [word_count]Word = [_]Word{0} ** word_count,
+    words: [word_count]Word = std.mem.zeroes([word_count]Word),
 
     fn validateRange(start: u32, len: u32) !void {
         if (len == 0) return;
