@@ -35,7 +35,9 @@ REQUIRED_FILES = [
     "Documentation/zigux/phase1-closure.md",
     "scripts/zigux/README.md",
     "scripts/zigux/check-phase1-bench.py",
+    "scripts/zigux/check-phase1-parity.py",
     "scripts/zigux/install-zig.py",
+    "scripts/zigux/validate-phase1.py",
     "scripts/zigux/validate-phase1-closure.py",
     ".github/workflows/zigux-bootstrap.yml",
     "zigux/Makefile",
@@ -566,8 +568,18 @@ def run_self_test() -> None:
         (tmp_root / required_ledger).unlink()
         assert collect_missing_files(repo_root_from_arg(str(tmp_root))) == [required_ledger]
 
+        make_fixture_root(tmp_root)
+        required_phase1_validator = "scripts/zigux/validate-phase1.py"
+        (tmp_root / required_phase1_validator).unlink()
+        assert collect_missing_files(repo_root_from_arg(str(tmp_root))) == [required_phase1_validator]
+
+        make_fixture_root(tmp_root)
+        required_phase1_parity = "scripts/zigux/check-phase1-parity.py"
+        (tmp_root / required_phase1_parity).unlink()
+        assert collect_missing_files(repo_root_from_arg(str(tmp_root))) == [required_phase1_parity]
+
     print("PHASE1_CLOSURE_VALIDATOR_SELF_TEST=pass")
-    print("PHASE1_CLOSURE_VALIDATOR_SELF_TEST_CASE_COUNT=33")
+    print("PHASE1_CLOSURE_VALIDATOR_SELF_TEST_CASE_COUNT=35")
 
 
 def main() -> int:
