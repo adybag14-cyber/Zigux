@@ -20,6 +20,8 @@ The Phase 8 roadmap explicitly calls for `tools/lib/subcmd/*.zig` as the first p
 
 The live repo still benefits from keeping `exec-cmd` parked as a helper-first, output-stable deferred-exec planning packet: it makes the path-choice, environment-shaping, and argv-shape contracts reviewable without widening into process-launch side effects or unrelated `help.c` behavior.
 
+That same parked command-boundary packet now also sits inside the shared Phase 8 validator-first route, so reviewers can recheck the command slice through `make -C zigux phase8-validate` before widening back out to the broader tooling bundle.
+
 ## Gates
 
 1. run the focused Zig module tests
@@ -28,10 +30,13 @@ The live repo still benefits from keeping `exec-cmd` parked as a helper-first, o
 2. run the focused exec-cmd shared replay
 - `zig build test --build-file zigux/tests/phase8_exec_cmd_only_build.zig --summary all`
 
-3. run the bundled Phase 8 tooling gate
+3. run the shared Phase 8 validator route
+- `make -C zigux phase8-validate`
+
+4. run the bundled Phase 8 tooling gate
 - `zig build test --build-file zigux/tests/phase8_build.zig --summary all`
 
-4. run the focused convenience target
+5. run the focused convenience target
 - `make -C zigux phase8-exec-cmd-test`
 
 ## Current parity surface
@@ -58,6 +63,7 @@ The current tests check:
 - prepared argv vectors start with the configured executable name and keep a trailing null terminator, including the empty-tail case
 - the pure `execl_cmd()` collector preserves the command head, stops at the first null terminator, and rejects the C helper's overflow shape before any real `execvp()` call exists
 - the focused `phase8_exec_cmd_only_build.zig` replay isolates the parked `exec-cmd` slice from the broader Phase 8 tooling packet when review needs a smaller build-backed proof, and the published `make -C zigux phase8-exec-cmd-test` wrapper now exposes that replay as a one-command route
+- the shared `make -C zigux phase8-validate` route now keeps this parked command-boundary slice aligned with the live Phase 8 validator-first packet before the broader tooling replay runs
 
 ## Non-goals
 
