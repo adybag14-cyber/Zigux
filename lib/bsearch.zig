@@ -1,13 +1,41 @@
 // SPDX-License-Identifier: GPL-2.0-only
 const std = @import("std");
 
+pub fn Comparator(comptime Key: type, comptime T: type) type {
+    return *const fn (*const Key, *const T) i32;
+}
+
+pub fn CComparator(comptime Key: type, comptime T: type) type {
+    return *const fn (*const Key, *const T) callconv(.c) i32;
+}
+
+fn validateComparator(comptime Key: type, comptime T: type, comptime Compare: type) void {
+    const NativeFn = fn (*const Key, *const T) i32;
+    const CFn = fn (*const Key, *const T) callconv(.c) i32;
+
+    if (Compare != NativeFn and Compare != Comparator(Key, T) and Compare != CFn and Compare != CComparator(Key, T)) {
+        @compileError(std.fmt.comptimePrint(
+            "unsupported bsearch comparator type {s}; expected {s}, {s}, {s}, or {s}",
+            .{
+                @typeName(Compare),
+                @typeName(NativeFn),
+                @typeName(Comparator(Key, T)),
+                @typeName(CFn),
+                @typeName(CComparator(Key, T)),
+            },
+        ));
+    }
+}
+
 pub fn searchIndex(
     comptime Key: type,
     comptime T: type,
     key: *const Key,
     items: []const T,
-    comptime compare: fn (*const Key, *const T) i32,
+    compare: anytype,
 ) ?usize {
+    comptime validateComparator(Key, T, @TypeOf(compare));
+
     var base: usize = 0;
     var num = items.len;
 
@@ -34,7 +62,7 @@ pub fn search(
     comptime T: type,
     key: *const Key,
     items: []const T,
-    comptime compare: fn (*const Key, *const T) i32,
+    compare: anytype,
 ) ?*const T {
     const index = searchIndex(Key, T, key, items, compare) orelse return null;
     return &items[index];
@@ -46,6 +74,14 @@ fn compareInt(key: *const i32, item: *const i32) i32 {
         .eq => 0,
         .gt => 1,
     };
+}
+
+fn compareIntAlias(key: *const i32, item: *const i32) i32 {
+    return compareInt(key, item);
+}
+
+fn compareIntC(key: *const i32, item: *const i32) callconv(.c) i32 {
+    return compareInt(key, item);
 }
 
 const Entry = struct {
@@ -110,4 +146,26 @@ test "search supports heterogeneous keys through the comparator" {
     const beta = search([]const u8, Entry, &@as([]const u8, "beta"), entries[0..], compareName) orelse return error.TestUnexpectedResult;
     try std.testing.expectEqual(@as(u32, 2), beta.value);
     try std.testing.expect(search([]const u8, Entry, &@as([]const u8, "gamma"), entries[0..], compareName) == null);
+}
+
+test "search accepts explicitly typed native comparator pointers" {
+    const values = [_]i32{ 2, 4, 7, 11, 16, 23, 42 };
+    const comparators = [_]Comparator(i32, i32){ compareInt, compareIntAlias };
+
+    for (comparators) |compare| {
+        try std.testing.expectEqual(@as(?usize, 3), searchIndex(i32, i32, &@as(i32, 11), values[0..], compare));
+        const found = search(i32, i32, &@as(i32, 23), values[0..], compare) orelse return error.TestUnexpectedResult;
+        try std.testing.expectEqual(@as(i32, 23), found.*);
+    }
+}
+
+test "search accepts explicitly typed c abi comparator pointers" {
+    const values = [_]i32{ 2, 4, 7, 11, 16, 23, 42 };
+    const comparators = [_]CComparator(i32, i32){ compareIntC, compareIntC };
+
+    for (comparators) |compare| {
+        try std.testing.expectEqual(@as(?usize, 4), searchIndex(i32, i32, &@as(i32, 16), values[0..], compare));
+        const found = search(i32, i32, &@as(i32, 7), values[0..], compare) orelse return error.TestUnexpectedResult;
+        try std.testing.expectEqual(@as(i32, 7), found.*);
+    }
 }
