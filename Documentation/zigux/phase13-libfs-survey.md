@@ -6,7 +6,7 @@ This document records the bounded Phase 13 survey and reviewability lane around 
 
 - `PHASE13_STATUS=active`
 - `PHASE13_SLICE=libfs-helper-starter`
-- scope: the landed `fs/libfs.zig` helper starter, its dedicated Phase 13 test, the shared Phase 13 build wiring, and the lane notes that compare the current wrapper footing against the roadmap
+- scope: the landed `fs/libfs.zig` helper starter, its dedicated Phase 13 test, the shared Phase 13 build wiring, and the lane notes that compare the current helper footing against the roadmap
 - product boundary:
   - `fs/libfs.zig`
   - `zigux/tests/phase13_libfs.zig`
@@ -22,7 +22,7 @@ The Phase 13 roadmap explicitly names `fs/libfs.c` as a shared subsystem-helper 
 
 That matters because `fs/libfs.c` is still a large helper surface that spans simple metadata helpers, dcache cursor traversal, offset bookkeeping, recursive removal, pseudo-filesystem setup, inode and rename helpers, simple buffer I/O, attribute plumbing, and several shared utility routines.
 
-The live Zigux tree is no longer survey-only here. It already carries a small `fs/libfs.zig` starter, so the highest-value verification work in this lane is to keep that real helper footing reviewable and compile-checkable instead of continuing to describe a missing wrapper.
+The live Zigux tree is no longer survey-only here. It already carries a small `fs/libfs.zig` starter, so the highest-value verification work in this lane is to keep that real helper footing reviewable and compile-checkable instead of continuing to describe a missing helper surface.
 
 ## Survey findings
 
