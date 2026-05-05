@@ -175,6 +175,14 @@ test "phase 8 libbpf helper slice notes stay parked once the shared tooling bund
     var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
     defer io_instance.deinit();
 
+    const phase8_note = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "Documentation/zigux/phase8-libbpf-segment-survey.md",
+        std.testing.allocator,
+        .limited(24 * 1024),
+    );
+    defer std.testing.allocator.free(phase8_note);
+
     const cpu_mask_note = try std.Io.Dir.cwd().readFileAlloc(
         io_instance.io(),
         "Documentation/zigux/phase8-libbpf-cpu-mask-slice.md",
@@ -190,6 +198,11 @@ test "phase 8 libbpf helper slice notes stay parked once the shared tooling bund
         .limited(16 * 1024),
     );
     defer std.testing.allocator.free(type_names_note);
+
+    try expectContains(phase8_note, "tools/lib/bpf/zigux_segments/logging.zig");
+    try expectContains(phase8_note, "zigux/tests/phase8_logging.zig");
+    try expectContains(phase8_note, "tools/lib/bpf/zigux_segments/pin_path.zig");
+    try expectContains(phase8_note, "zigux/tests/phase8_pin_path.zig");
 
     try expectContains(cpu_mask_note, "PHASE8_STATUS=parked");
     try expectContains(cpu_mask_note, "tools/lib/bpf/zigux_segments/cpu_mask.zig");
