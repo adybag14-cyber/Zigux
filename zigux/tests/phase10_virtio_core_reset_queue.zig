@@ -67,6 +67,7 @@ test "phase10 virtio core keeps reset replay teardown bookkeeping after driver v
     try std.testing.expect(!(try device.hasNegotiatedFeature(7)));
     try std.testing.expect(try device.hasNegotiatedFeature(11));
 
+    try device.markDriverReady();
     try device.registerQueueCallback(2, 8, "rx_done");
     try device.configureQueueDescriptorShape(2, 3, 2, true);
     device.noteNeedsReset();
@@ -74,6 +75,7 @@ test "phase10 virtio core keeps reset replay teardown bookkeeping after driver v
     const reset_summary = device.resetReplaySummary();
     try std.testing.expect(reset_summary.reset_required);
     try std.testing.expect(reset_summary.features_negotiated);
+    try std.testing.expect(reset_summary.driver_ready);
     try std.testing.expectEqual(@as(usize, 1), reset_summary.registered_queue_count);
     try std.testing.expect(reset_summary.will_clear_negotiated_features);
     try std.testing.expect(reset_summary.will_clear_queue_callbacks);
@@ -103,6 +105,7 @@ test "phase10 virtio core keeps reset replay teardown bookkeeping after driver v
     const cleared_summary = device.resetReplaySummary();
     try std.testing.expect(!cleared_summary.reset_required);
     try std.testing.expect(!cleared_summary.features_negotiated);
+    try std.testing.expect(!cleared_summary.driver_ready);
     try std.testing.expectEqual(@as(usize, 0), cleared_summary.registered_queue_count);
     try std.testing.expect(!cleared_summary.will_clear_negotiated_features);
     try std.testing.expect(!cleared_summary.will_clear_queue_callbacks);
