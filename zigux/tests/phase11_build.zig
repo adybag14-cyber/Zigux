@@ -145,7 +145,7 @@ pub fn build(b: *std.Build) void {
     });
     const run_phase11_uapi_header_parity_survey_tests = b.addRunArtifact(phase11_uapi_header_parity_survey_tests);
 
-    const test_step = b.step("test", "Run Phase 11 starter and survey tests");
+    const test_step = b.step("test", "Run the shared Phase 11 starter packet");
     test_step.dependOn(&run_phase11_gpio_wdt_tests.step);
     test_step.dependOn(&run_phase11_gpio_wdt_survey_tests.step);
     test_step.dependOn(&run_phase11_bcm2835_wdt_tests.step);
@@ -155,5 +155,7 @@ pub fn build(b: *std.Build) void {
     test_step.dependOn(&run_phase11_uapi_header_parity_survey_tests.step);
     test_step.dependOn(&run_phase11_hvc_console_tests.step);
     test_step.dependOn(&run_phase11_hvc_cleanup_tests.step);
-    test_step.dependOn(&run_phase11_hvc_console_survey_tests.step);
+
+    const hvc_console_survey_step = b.step("hvc-console-survey", "Run the dedicated Phase 11 hvc_console archival survey");
+    hvc_console_survey_step.dependOn(&run_phase11_hvc_console_survey_tests.step);
 }
