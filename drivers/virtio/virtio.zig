@@ -77,6 +77,31 @@ pub const InterruptAckSummary = struct {
     unacknowledged_interrupt_count: usize,
 };
 
+pub const DriverLifecycleBlocker = enum {
+    missing_acknowledge,
+    reset_required,
+    driver_not_attached,
+    feature_negotiation_incomplete,
+    driver_not_ready,
+    no_registered_queues,
+};
+
+pub const LifecycleGuardSummary = struct {
+    anchor: []const u8,
+    driver_name: []const u8,
+    has_acknowledge: bool,
+    driver_attached: bool,
+    features_negotiated: bool,
+    driver_ready: bool,
+    reset_required: bool,
+    registered_queue_count: usize,
+    config_lifecycle_ready: bool,
+    interrupt_lifecycle_ready: bool,
+    queue_runtime_ready: bool,
+    blocker: ?DriverLifecycleBlocker,
+    ready_for_runtime: bool,
+};
+
 pub const ResetReplaySummary = struct {
     anchor: []const u8,
     reset_required: bool,
@@ -450,6 +475,48 @@ pub const VirtioCoreLabDevice = struct {
             .acknowledged_reason_bits = self.acknowledged_interrupt_reason_bits,
             .ack_count = self.interrupt_ack_count,
             .unacknowledged_interrupt_count = self.unacknowledged_interrupt_count,
+        };
+    }
+
+    pub fn lifecycleGuardSummary(self: *const Self) LifecycleGuardSummary {
+        const has_acknowledge = self.hasStatus(DeviceStatus.acknowledge);
+        const driver_attached = self.hasStatus(DeviceStatus.driver);
+        const features_negotiated = self.hasStatus(DeviceStatus.features_ok);
+        const driver_ready = self.hasStatus(DeviceStatus.driver_ok);
+        const reset_required = self.isResetRequired();
+        const config_lifecycle_ready = driver_attached and !reset_required;
+        const interrupt_lifecycle_ready = driver_attached and !reset_required;
+        const queue_runtime_ready = driver_ready and self.registered_queue_count != 0 and !reset_required;
+
+        const blocker: ?DriverLifecycleBlocker = if (!has_acknowledge)
+            .missing_acknowledge
+        else if (reset_required)
+            .reset_required
+        else if (!driver_attached)
+            .driver_not_attached
+        else if (!features_negotiated)
+            .feature_negotiation_incomplete
+        else if (!driver_ready)
+            .driver_not_ready
+        else if (self.registered_queue_count == 0)
+            .no_registered_queues
+        else
+            null;
+
+        return .{
+            .anchor = descriptor().anchor,
+            .driver_name = self.driver_name orelse "",
+            .has_acknowledge = has_acknowledge,
+            .driver_attached = driver_attached,
+            .features_negotiated = features_negotiated,
+            .driver_ready = driver_ready,
+            .reset_required = reset_required,
+            .registered_queue_count = self.registered_queue_count,
+            .config_lifecycle_ready = config_lifecycle_ready,
+            .interrupt_lifecycle_ready = interrupt_lifecycle_ready,
+            .queue_runtime_ready = queue_runtime_ready,
+            .blocker = blocker,
+            .ready_for_runtime = blocker == null,
         };
     }
 
