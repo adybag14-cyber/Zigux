@@ -77,6 +77,7 @@ The current tests check:
 - reverse traversal via `last()` and `prev()`
 - duplicate-key lookup ranges via `findFirst()` and `nextMatch()`
 - erase-and-replace consistency after structural updates
+- replacement of dirty detached nodes by copying the full victim link-and-color shape before reconnecting the new node
 - erase-and-detach ownership reset via `eraseInit()`
 - postorder walking on a minimally balanced tree
 - detached-node clearing semantics
