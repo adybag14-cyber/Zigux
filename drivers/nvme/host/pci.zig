@@ -28,6 +28,7 @@ pub const ModuleDescriptor = struct {
     name: []const u8,
     anchor: []const u8,
     provides_lab_queue_planner: bool,
+    provides_prp_metadata_helper: bool,
     touches_live_dma: bool,
     touches_pci_probe: bool,
     touches_irq_recovery: bool,
@@ -72,6 +73,20 @@ pub const PrpBufferShapeSummary = struct {
     prp_list_capacity: u16,
 };
 
+pub const PrpMetadataPlanSummary = struct {
+    anchor: []const u8,
+    total_transfer_bytes: u32,
+    first_page_offset: u32,
+    spanned_pages: u16,
+    uses_prp_list: bool,
+    command_prp_words: u16,
+    prp_list_entries: u16,
+    metadata_dma_bytes: u32,
+    total_dma_bytes: u32,
+    requires_descriptor_rebuild_after_reset: bool,
+    reset_generation: u32,
+};
+
 pub const RecoverySummary = struct {
     anchor: []const u8,
     state: RecoveryState,
@@ -97,6 +112,7 @@ pub const NvmePciQueueLab = struct {
             .name = "nvme_pci_queue_lab",
             .anchor = "drivers/nvme/host/pci.c",
             .provides_lab_queue_planner = true,
+            .provides_prp_metadata_helper = true,
             .touches_live_dma = false,
             .touches_pci_probe = false,
             .touches_irq_recovery = false,
@@ -187,6 +203,33 @@ pub const NvmePciQueueLab = struct {
             .uses_prp_list = uses_prp_list,
             .prp_list_entries = prp_list_entries,
             .prp_list_capacity = prp_list_capacity,
+        };
+    }
+
+    pub fn planPrpMetadata(
+        self: *const Self,
+        total_transfer_bytes: u32,
+        first_page_offset: u32,
+    ) !PrpMetadataPlanSummary {
+        if (self.recovery_state != .running) return error.QueuePlanningBlockedByReset;
+
+        const shape = try self.planPrpBufferShape(total_transfer_bytes, first_page_offset);
+        const command_prp_words: u16 = if (shape.spanned_pages == 1) 1 else 2;
+        const metadata_dma_bytes = if (shape.uses_prp_list) self.page_size else 0;
+        const total_dma_bytes = try checkedAddU32(shape.rounded_span_bytes, metadata_dma_bytes);
+
+        return .{
+            .anchor = shape.anchor,
+            .total_transfer_bytes = shape.total_transfer_bytes,
+            .first_page_offset = shape.first_page_offset,
+            .spanned_pages = shape.spanned_pages,
+            .uses_prp_list = shape.uses_prp_list,
+            .command_prp_words = command_prp_words,
+            .prp_list_entries = shape.prp_list_entries,
+            .metadata_dma_bytes = metadata_dma_bytes,
+            .total_dma_bytes = total_dma_bytes,
+            .requires_descriptor_rebuild_after_reset = shape.uses_prp_list,
+            .reset_generation = self.reset_generation,
         };
     }
 
