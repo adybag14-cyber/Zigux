@@ -231,10 +231,10 @@ test "phase14 workqueue bridge descriptor stays at boundary-map posture" {
     try std.testing.expectEqualStrings("max-active-ordering-gate", audit.checkpoints[2].id);
     try std.testing.expectEqualStrings("wq->max_active", audit.checkpoints[2].observed_fields[2]);
     try std.testing.expectEqualStrings("pending-bit-claim-handoff", audit.checkpoints[3].id);
-    try std.testing.expect(audit.checkpoints[3].guard == .pending_bit_claim_before_pool_selection);
-    try std.testing.expectEqualStrings("WORK_STRUCT_PENDING_BIT", audit.checkpoints[3].observed_fields[1]);
-    try std.testing.expectEqualStrings("unbound-pwq-refcount-retry", audit.checkpoints[4].id);
-    try std.testing.expect(audit.checkpoints[4].guard == .unbound_pwq_refcount_retry);
+    try std.testing.expect(audit.checkpoints[3].guard == .pending_bit_claim_window);
+    try std.testing.expectEqualStrings("WORK_STRUCT_PENDING", audit.checkpoints[3].observed_fields[1]);
+    try std.testing.expectEqualStrings("unbound-pwq-refcnt-retry", audit.checkpoints[4].id);
+    try std.testing.expect(audit.checkpoints[4].guard == .unbound_pwq_refcnt_retry);
     try std.testing.expectEqualStrings("pwq->refcnt", audit.checkpoints[4].observed_fields[0]);
     try std.testing.expectEqualStrings("last-pool-reentrancy-handoff", audit.checkpoints[5].id);
     try std.testing.expect(audit.checkpoints[5].guard == .last_pool_lock_handoff);
