@@ -51,13 +51,16 @@ test "atomic64 diff wrapper records the current bounded runtime checks" {
 }
 
 test "atomic64 diff wrapper keeps the current manifest handoff explicit" {
+    try expectMarker(phase4_runtime_atomic64_manifest_source, "\"lane_key\": \"P4-L01\"");
     try expectMarker(phase4_runtime_atomic64_manifest_source, "\"roadmap_target_path\": \"zigux/tests/atomic64_diff.zig\"");
     try expectMarker(phase4_runtime_atomic64_manifest_source, "\"roadmap_atomic64_diff_present\": true");
+    try expectMarker(phase4_runtime_atomic64_manifest_source, "\"roadmap_atomic64_wrapper_targets_runtime_diff\": true");
     try expectMarker(
         phase4_runtime_atomic64_manifest_source,
         "\"live_gate_path\": \"zigux/tests/runtime_atomic64_diff.zig\"",
     );
     try expectMarker(phase4_runtime_atomic64_manifest_source, "\"phase4_build_present\": true");
+    try expectMarker(phase4_runtime_atomic64_manifest_source, "\"phase4_build_uses_atomic64_wrapper\": true");
     try expectMarker(phase4_runtime_atomic64_manifest_source, "\"phase9_build_present\": true");
     try expectMarker(
         phase4_runtime_atomic64_manifest_source,
