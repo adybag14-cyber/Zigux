@@ -41,12 +41,14 @@ ABI_SLICE_MARKERS = [
 
 SCRIPTS_README_MARKERS = [
     "validate_phase3_selftest.py",
+    "phase3_catalog.py --self-test",
     "make -C zigux phase3-selftest",
     "manual or targeted safety check instead of duplicating the default validation route",
 ]
 
 TESTS_README_MARKERS = [
     "scripts/zigux/validate_phase3_selftest.py",
+    "scripts/zigux/phase3_catalog.py --self-test",
     "make -C zigux phase3-selftest",
     "opt-in safety check that complements but does not duplicate `make -C zigux phase3-validate`",
 ]
@@ -119,8 +121,15 @@ def run_self_test() -> int:
         assert "docs_root:without duplicating the default `phase3-validate` route" in issues
 
         build_self_test_root(root)
+        write_text(root / "scripts/zigux/README.md", "validate_phase3_selftest.py\n")
+        issues = validate_root(root)
+        assert "scripts_readme:phase3_catalog.py --self-test" in issues
+        assert "scripts_readme:make -C zigux phase3-selftest" in issues
+
+        build_self_test_root(root)
         write_text(root / "zigux/tests/README.md", "scripts/zigux/validate_phase3_selftest.py\n")
         issues = validate_root(root)
+        assert "tests_readme:scripts/zigux/phase3_catalog.py --self-test" in issues
         assert "tests_readme:make -C zigux phase3-selftest" in issues
         assert (
             "tests_readme:opt-in safety check that complements but does not duplicate `make -C zigux phase3-validate`"
@@ -142,7 +151,7 @@ def run_self_test() -> int:
         assert "missing_file:scripts/zigux/validate_phase3_selftest.py" in issues
 
     print("PHASE3_SELFTEST_SURFACE_SELF_TEST=pass")
-    print("PHASE3_SELFTEST_SURFACE_SELF_TEST_CASE_COUNT=5")
+    print("PHASE3_SELFTEST_SURFACE_SELF_TEST_CASE_COUNT=6")
     return 0
 
 
