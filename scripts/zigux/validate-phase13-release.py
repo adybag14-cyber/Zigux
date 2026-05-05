@@ -40,6 +40,7 @@ FILES = [
     "scripts/zigux/check-phase13-release-replay-exact-counts.py",
     "Documentation/zigux/phase13-release-notes-survey.md",
     "Documentation/zigux/phase13-roadmap-traceability.md",
+    "Documentation/zigux/phase13-notifier-list-survey.md",
     "Documentation/zigux/phase13-devres-survey.md",
     "Documentation/zigux/phase13-devres-scatterlist-slice.md",
     ".github/workflows/zigux-bootstrap.yml",
@@ -106,6 +107,7 @@ RELEASE_MARKERS = [
     "Documentation/zigux/phase13-devres-scatterlist-slice.md",
     "phase13-devres-scatterlist-tests",
     "helper-first scatterlist bookkeeping replay visible",
+    "Documentation/zigux/phase13-notifier-list-survey.md",
 ]
 
 TRACEABILITY_MARKERS = [
@@ -126,6 +128,15 @@ DEVRES_SURVEY_MARKERS = [
 DEVRES_MANIFEST_GAP_EXPECTATIONS = [
     ("phase13-devres-live-dma-mappings", "blocked_on_dma_state"),
     ("phase13-devres-live-scatterlist-ownership", "blocked_on_scatterlist_state"),
+]
+
+NOTIFIER_SURVEY_MARKERS = [
+    "lane key: `P13-L19`",
+    "zigux/bindings/notifier_abi.zig",
+    "include/zigux/notifier_abi.h",
+    "zigux/helpers/notifier_chain_view.zig",
+    "zigux/tests/phase13_notifier_list_manifest.json",
+    "registration, callback execution, SRCU, and blocking notifier semantics remain out of scope",
 ]
 
 
@@ -159,6 +170,7 @@ def main() -> int:
     release_text = text("Documentation/zigux/phase13-release-notes-survey.md")
     traceability_text = text("Documentation/zigux/phase13-roadmap-traceability.md")
     devres_survey_text = text("Documentation/zigux/phase13-devres-survey.md")
+    notifier_survey_text = text("Documentation/zigux/phase13-notifier-list-survey.md")
     build_text = text("zigux/tests/phase13_build.zig")
 
     for marker in MAKE_MARKERS:
@@ -171,6 +183,8 @@ def main() -> int:
         require_marker(missing, "traceability", traceability_text, marker)
     for marker in DEVRES_SURVEY_MARKERS:
         require_marker(missing, "devres_survey", devres_survey_text, marker)
+    for marker in NOTIFIER_SURVEY_MARKERS:
+        require_marker(missing, "notifier_survey", notifier_survey_text, marker)
 
     build_names = BUILD_TEST_NAME_RE.findall(build_text)
     if build_names != SHARED_REPLAY_STEPS:
