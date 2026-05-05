@@ -7,7 +7,7 @@ This document starts a bounded Phase 6 leaf-helper validation slice for Zigux.
 - `PHASE6_STATUS=parked`
 - `PHASE6_SLICE=bsearch-leaf-helper`
 - scope: first low-risk binary-search helper coverage only
-- lane state: helper and fixture slice landed; parked unless a new `bsearch.c` parity issue appears
+- lane state: helper slice landed; parked unless a new `bsearch.c` parity issue appears
 - product boundary:
   - `lib/bsearch.zig`
   - `zigux/tests/phase6_bsearch.zig`
@@ -21,7 +21,7 @@ Phase 6 is where Zigux can keep proving low-risk in-kernel helper ports without 
 `lib/bsearch.c` is a good next slice because it is:
 
 - leaf-oriented
-- small enough to validate with deterministic sorted fixtures
+- small enough to validate with deterministic sorted inputs kept directly in the focused replay
 - a clean API-parity target for comparator-driven helper behavior
 
 ## Gates
@@ -43,10 +43,15 @@ The current tests check:
 
 - integer-key hits at the beginning, middle, and end of a sorted slice
 - misses below, between, and above known values
+- comparator-driven descending-order lookup without widening the helper surface
 - heterogeneous-key lookup where the key type differs from the element type
 - pointer-return parity for successful lookups
 - duplicate-key found-or-null parity without claiming stable duplicate selection
 - representative lookup work stays inside a bounded binary-search comparison budget
+- runtime-selected native comparator pointer parity
+- runtime-selected C ABI comparator pointer parity
+
+The current packet intentionally keeps its representative sorted inputs inline in `zigux/tests/phase6_bsearch.zig` instead of a separate fixture module so the helper bundle stays small and directly reviewable.
 
 ## Non-goals
 
@@ -54,7 +59,7 @@ This slice does not yet claim:
 
 - lower-bound or upper-bound helpers
 - duplicate-key stability guarantees beyond matching the kernel-style found-or-null contract
-- performance benchmarking
+- standalone performance benchmarking outside the bundled comparison-budget replay
 
 ## Next bounded step
 
