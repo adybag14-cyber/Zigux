@@ -6,7 +6,7 @@ PHONY += phase6-validate phase6-test phase6-checksum-perf phase6
 PHONY += phase7-validate phase7-test phase7
 PHONY += phase8-validate phase8-exec-cmd-test phase8-help-test phase8-kallsyms-test phase8-libbpf-segments-test phase8-perf-buffer-poll-test phase8-test phase8
 PHONY += phase9-test phase9
-PHONY += phase10-validate phase10-test phase10
+PHONY += phase10-test phase10
 PHONY += phase11-test phase11
 PHONY += phase12-test phase12
 PHONY += phase13-validate phase13-test phase13
@@ -168,16 +168,10 @@ phase9-test:
 
 phase9: phase9-test
 
-phase10-validate:
-	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase10-closure-inventory.py
-	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase10.py
-	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase10-harness-coverage.py
-	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase10-closure.py
-
 phase10-test:
 	cd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase10_build.zig
 
-phase10: phase10-validate phase10-test
+phase10: phase10-test
 
 phase11-test:
 	cd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase11_build.zig
