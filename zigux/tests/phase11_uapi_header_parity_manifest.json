@@ -1,0 +1,64 @@
+{
+  "lane_key": "P11-L08",
+  "phase": "Phase 11",
+  "surveyed_commit": "ee124761ef3ef5fcc6bb9cd8b7fe8d1fce326839",
+  "anchor": "include/uapi/linux/watchdog.h + include/uapi/asm-generic/termios.h + drivers/tty/hvc/hvc_console.zig",
+  "roadmap_destinations": [
+    "drivers/watchdog/*.zig",
+    "drivers/tty/hvc/*.zig",
+    "zigux/tests/",
+    "Documentation/zigux/"
+  ],
+  "survey_summary": {
+    "shared_phase11_build_present": true,
+    "shared_phase11_header_note_present": true,
+    "shared_phase11_header_survey_present": true,
+    "watchdog_info_layout_assert_present": true,
+    "winsize_layout_assert_present": true,
+    "hvc_export_surface_checked": true
+  },
+  "gaps": [
+    {
+      "id": "phase11-build-gate",
+      "status": "starter_landed",
+      "kind": "validation",
+      "zigux_destination": "zigux/tests/phase11_build.zig",
+      "why_now": "The shared Phase 11 build gate must keep the header-boundary survey visible beside the watchdog starters and the dedicated hvc survey packet."
+    },
+    {
+      "id": "phase11-uapi-header-parity-survey-gate",
+      "status": "starter_landed",
+      "kind": "validation",
+      "zigux_destination": "zigux/tests/phase11_uapi_header_parity_survey.zig",
+      "why_now": "The shared survey gate now replays the bounded watchdog_info and winsize layout checkpoints, the shared build-inventory packet, and the exported hvc helper surface without widening into tty-core ownership."
+    },
+    {
+      "id": "phase11-uapi-header-parity-note",
+      "status": "starter_landed",
+      "kind": "documentation",
+      "zigux_destination": "Documentation/zigux/phase11-uapi-header-parity-survey.md",
+      "why_now": "The shared note records the restored paired UAPI header parity packet, the current inspected commit, and the shared-versus-dedicated replay split that keeps the hvc survey separate."
+    },
+    {
+      "id": "phase11-dw-wdt-watchdog-info-layout-assert",
+      "status": "starter_landed",
+      "kind": "header_layout",
+      "zigux_destination": "zigux/tests/phase11_uapi_header_parity_survey.zig",
+      "why_now": "The shared packet keeps struct watchdog_info explicit at size 40, alignment 4, with offsets 0, 4, and 8 so the public watchdog boundary stays reviewable without claiming watchdog_device ownership."
+    },
+    {
+      "id": "phase11-hvc-console-winsize-layout-assert",
+      "status": "starter_landed",
+      "kind": "header_layout",
+      "zigux_destination": "zigux/tests/phase11_uapi_header_parity_survey.zig",
+      "why_now": "The shared packet keeps struct winsize explicit at size 8, alignment 2, with offsets 0, 2, 4, and 6 so the hvc resize boundary stays anchored in public UAPI rather than tty-core internals."
+    },
+    {
+      "id": "phase11-hvc-console-export-signature-assert",
+      "status": "starter_landed",
+      "kind": "export_surface",
+      "zigux_destination": "zigux/tests/phase11_uapi_header_parity_survey.zig",
+      "why_now": "The shared packet keeps the exported hvc_instantiate, hvc_alloc, hvc_remove, hvc_poll, hvc_kick, __hvc_resize, notifier_add_irq, and notifier_del_irq surface machine-checked as the bounded public driver-header boundary."
+    }
+  ]
+}
