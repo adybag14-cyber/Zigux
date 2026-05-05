@@ -21,6 +21,11 @@ pub fn constPointerAt(comptime T: type, addr: usize) *const T {
     return @ptrFromInt(addr);
 }
 
+pub fn writeValueAt(comptime T: type, addr: usize, value: T) void {
+    const ptr: *T = @ptrFromInt(addr);
+    ptr.* = value;
+}
+
 test "phase3 narrow unsafe wrappers stay bounded" {
     var value: u32 = 0;
     const base = addressOf(&value);
@@ -33,4 +38,7 @@ test "phase3 narrow unsafe wrappers stay bounded" {
 
     const const_ptr = constPointerAt(u32, base);
     try std.testing.expectEqual(@as(u32, 11), const_ptr.*);
+
+    writeValueAt(u32, base, 19);
+    try std.testing.expectEqual(@as(u32, 19), value);
 }
