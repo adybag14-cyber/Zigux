@@ -180,6 +180,7 @@ test "phase12 libbpf reviewability gate cross-checks the legacy segment catalog"
     var saw_logging = false;
     var saw_pin_path = false;
     var saw_cpu_mask = false;
+    var saw_type_names = false;
     var saw_perf_buffer_poll = false;
     var saw_skeleton = false;
     var saw_object_loader = false;
@@ -198,6 +199,11 @@ test "phase12 libbpf reviewability gate cross-checks the legacy segment catalog"
         }
         if (std.mem.eql(u8, segment.slug, "cpu-mask-parsing")) {
             saw_cpu_mask = true;
+            try std.testing.expectEqualStrings("starter_landed", segment.status);
+            try std.testing.expect(exists);
+        }
+        if (std.mem.eql(u8, segment.slug, "type-name-helpers")) {
+            saw_type_names = true;
             try std.testing.expectEqualStrings("starter_landed", segment.status);
             try std.testing.expect(exists);
         }
@@ -225,6 +231,7 @@ test "phase12 libbpf reviewability gate cross-checks the legacy segment catalog"
     try std.testing.expect(saw_logging);
     try std.testing.expect(saw_pin_path);
     try std.testing.expect(saw_cpu_mask);
+    try std.testing.expect(saw_type_names);
     try std.testing.expect(saw_perf_buffer_poll);
     try std.testing.expect(saw_skeleton);
     try std.testing.expect(saw_object_loader);
