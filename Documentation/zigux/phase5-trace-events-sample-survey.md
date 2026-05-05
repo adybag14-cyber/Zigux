@@ -12,6 +12,7 @@ This document tracks the bounded Phase 5 reference-sample survey for the roadmap
 - product boundary:
   - `Documentation/zigux/phase5-trace-events-sample-survey.md`
   - `Documentation/zigux/README.md`
+  - `Documentation/zigux/review-checklist.md`
   - `samples/zigux/trace_events_sample.zig`
   - `zigux/tests/phase5_build.zig`
   - `zigux/tests/phase5_trace_events_sample.zig`
