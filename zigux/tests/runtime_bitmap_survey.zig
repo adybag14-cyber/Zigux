@@ -148,8 +148,8 @@ test "phase 9 runtime bitmap survey note keeps the phase boundary and exact chec
     try std.testing.expect(std.mem.indexOf(u8, note, "The current direct bitmap sample contract is verified through these exact checks:") != null);
     try std.testing.expect(std.mem.indexOf(u8, note, "summary stability: initializing bits `0`, `5`, `64`, and `70` still yields `first_set=0`, `first_zero=1`, `weight=4`, and `nbits=128`") != null);
     try std.testing.expect(std.mem.indexOf(u8, note, "descriptor contract: the sample still advertises `name=runtime_bitmap`, `anchor=lib/test_bitmap.c`, `requires_runtime_substrate=true`, and `provides_selftest_hook=true`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, note, "copy and selftest path: a second initialized sample can mirror the mutated bitmap, `runSelftest()` still reports the four ordered operation families `clear_set`, `copy`, `summary`, and `lifecycle`, and selftest leaves the bitmap summary unchanged while keeping lifecycle-path coverage explicit") != null);
     try std.testing.expect(std.mem.indexOf(u8, note, "diff-gate replay: the bounded parity cases still cover the single-word fill starter, the `79..97` cross-boundary clear cutout, the sparse `10,20,30,40,50,60,80,123` population replay, and the copied `0..108` tail-clear snapshot with `first_zero=109`") != null);
-    try std.testing.expect(std.mem.indexOf(u8, note, "parse-and-print boundary: the ordered `parse_and_print` selftest family remains a review cue only; the current starter does not claim standalone `initFromBitList()`, `formatSetBits()`, or broader parse/print differential parity on `master`") != null);
 }
 
 test "phase 9 runtime bitmap module slice keeps the loader-backed survey packet explicit" {
@@ -211,8 +211,8 @@ test "phase 9 runtime bitmap survey source-checks the direct sample evidence pac
     try std.testing.expect(std.mem.indexOf(u8, sample_source, ".anchor = \"lib/test_bitmap.c\"") != null);
     try std.testing.expect(std.mem.indexOf(u8, sample_source, ".requires_runtime_substrate = true") != null);
     try std.testing.expect(std.mem.indexOf(u8, sample_source, ".provides_selftest_hook = true") != null);
-    try std.testing.expect(std.mem.indexOf(u8, sample_source, ".parse_and_print,") != null);
-    try std.testing.expect(std.mem.indexOf(u8, sample_source, ".iteration_and_ranges,") != null);
+    try std.testing.expect(std.mem.indexOf(u8, sample_source, ".summary,") != null);
+    try std.testing.expect(std.mem.indexOf(u8, sample_source, ".lifecycle,") != null);
     try std.testing.expect(std.mem.indexOf(u8, sample_source, "try std.testing.expectEqual(@as(u32, 4), summary.weight);") != null);
     try std.testing.expect(std.mem.indexOf(u8, sample_source, "try std.testing.expectEqual(RuntimeBitmapSample.bitmap_nbits, summary.nbits);") != null);
 
@@ -220,6 +220,8 @@ test "phase 9 runtime bitmap survey source-checks the direct sample evidence pac
     try std.testing.expect(std.mem.indexOf(u8, module_tests, "try module.setRange(9, 4);") != null);
     try std.testing.expect(std.mem.indexOf(u8, module_tests, "try std.testing.expectEqual(@as(u32, 7), summary.weight);") != null);
     try std.testing.expect(std.mem.indexOf(u8, module_tests, "try std.testing.expectEqual(@as(usize, 4), selftest.operation_families.len);") != null);
+    try std.testing.expect(std.mem.indexOf(u8, module_tests, "try std.testing.expectEqual(sample.OperationFamily.summary, selftest.operation_families[2]);") != null);
+    try std.testing.expect(std.mem.indexOf(u8, module_tests, "try std.testing.expectEqual(sample.OperationFamily.lifecycle, selftest.operation_families[3]);") != null);
     try std.testing.expect(std.mem.indexOf(u8, module_tests, "try std.testing.expectError(error.InvalidLifecycleTransition, module.initWithSetBits(&.{ 1, 2 }));") != null);
     try std.testing.expect(std.mem.indexOf(u8, module_tests, "try std.testing.expectError(error.BitRangeOutOfBounds, module.setRange(sample.RuntimeBitmapSample.bitmap_nbits - 1, 2));") != null);
     try std.testing.expect(std.mem.indexOf(u8, module_tests, "try std.testing.expectError(error.InvalidSourceLifecycle, module.copyFrom(&cold_source));") != null);
