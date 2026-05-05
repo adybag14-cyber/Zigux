@@ -165,6 +165,7 @@ Key entrypoints
 - `zigux/tests/fixtures/phase11_build_inventory.json`
 - `Documentation/zigux/phase13-release-notes-survey.md`
 - `Documentation/zigux/phase13-roadmap-traceability.md`
+- `Documentation/zigux/phase13-devres-survey.md`
 - `Documentation/zigux/phase13-devres-scatterlist-slice.md`
 - `Documentation/zigux/phase13-notifier-list-survey.md`
 - `zigux/tests/phase13_build.zig`
