@@ -67,6 +67,7 @@ pub fn build(b: *std.Build) void {
         .optimize = optimize,
     });
     runtime_trace_events_loader_module.addImport("runtime_trace_events_sample", runtime_trace_events_sample_module);
+    runtime_trace_events_loader_module.addImport("runtime_loader", runtime_loader_contract_module);
     const runtime_kretprobe_sample_module = b.createModule(.{
         .root_source_file = b.path("../../samples/zigux/runtime_kretprobe.zig"),
         .target = target,
