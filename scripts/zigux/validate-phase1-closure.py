@@ -342,6 +342,27 @@ def run_self_test() -> None:
         missing_validate_markers = collect_exact_count_markers(missing_validate_target, required_makefile_markers)
         assert 'makefile_phase1_validate_target:expected=1:actual=0' in missing_validate_markers
 
+        missing_validate_closure = valid_makefile.replace(
+            'cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase1-closure.py\n',
+            '',
+            1,
+        )
+        missing_validate_closure_markers = collect_exact_count_markers(
+            missing_validate_closure,
+            required_makefile_markers,
+        )
+        assert 'makefile_phase1_validate_closure:expected=1:actual=0' in missing_validate_closure_markers
+
+        duplicate_phase1_test_replay = (
+            valid_makefile
+            + 'cd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/build.zig\n'
+        )
+        duplicate_phase1_test_replay_markers = collect_exact_count_markers(
+            duplicate_phase1_test_replay,
+            required_makefile_markers,
+        )
+        assert 'makefile_phase1_test_replay:expected=1:actual=2' in duplicate_phase1_test_replay_markers
+
         duplicate_phase1_target = valid_makefile + 'phase1: phase1-validate phase1-test phase1-bench\n'
         duplicate_phase1_markers = collect_exact_count_markers(duplicate_phase1_target, required_makefile_markers)
         assert 'makefile_phase1_target:expected=1:actual=2' in duplicate_phase1_markers
@@ -389,7 +410,7 @@ def run_self_test() -> None:
         assert collect_missing_files(tmp_root) == [required_ledger]
 
     print('PHASE1_CLOSURE_VALIDATOR_SELF_TEST=pass')
-    print('PHASE1_CLOSURE_VALIDATOR_SELF_TEST_CASE_COUNT=16')
+    print('PHASE1_CLOSURE_VALIDATOR_SELF_TEST_CASE_COUNT=18')
 
 
 def main() -> int:
