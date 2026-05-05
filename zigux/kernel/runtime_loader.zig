@@ -20,6 +20,10 @@ pub fn keepsAllocatorInitFlowConsistent(
     return contract.keepsAllocatorInitFlowConsistent(plan, allocator_handoff, init_flow);
 }
 
+pub fn keepsSelftestHookEvidenceConsistent(plan: LoadPlan) bool {
+    return contract.keepsSelftestHookEvidenceConsistent(plan);
+}
+
 test "runtime loader facade keeps the shared loader contract reachable from the Phase 9 kernel surface" {
     const cases = [_]LoadPlan{
         .{
@@ -100,6 +104,7 @@ test "runtime loader facade keeps the shared loader contract reachable from the 
             plan.allocator_handoff,
             plan.init_flow,
         ));
+        try std.testing.expect(keepsSelftestHookEvidenceConsistent(pending_plan));
 
         try request.releaseWithoutSubstrate();
         try std.testing.expectEqual(RequestState.released_without_substrate, request.state);
@@ -140,6 +145,24 @@ test "runtime loader facade preserves shared runtime lifecycle failures" {
         },
     };
     try std.testing.expectError(error.LoaderNotRequired, prepareRequest(loader_not_required));
+
+    const missing_selftest_hook = LoadPlan{
+        .module_name = "runtime_trace_events",
+        .anchor = "samples/trace_events/trace-events-sample.c",
+        .entry_symbol = "zigux_runtime_trace_events_init",
+        .exit_symbol = "zigux_runtime_trace_events_exit",
+        .requires_runtime_substrate = true,
+        .provides_selftest_hook = false,
+        .allocator_handoff = .caller_provided,
+        .init_flow = .{
+            .handoff_stage = .selftest_complete,
+            .init_runs = 1,
+            .selftest_runs = 1,
+            .exit_runs = 0,
+        },
+    };
+    try std.testing.expect(!keepsSelftestHookEvidenceConsistent(missing_selftest_hook));
+    try std.testing.expectError(error.InvalidSelftestHookEvidence, prepareRequest(missing_selftest_hook));
 
     const stable_plan = LoadPlan{
         .module_name = "runtime_kretprobe",
