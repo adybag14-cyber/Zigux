@@ -104,6 +104,46 @@ test "phase11 hvc console keeps remove-path teardown ordering reviewable" {
     try std.testing.expectError(error.ConsoleUnavailable, console.summarizeRemoveHandoff(.{}));
 }
 
+test "phase11 hvc console keeps tty-registration handoff boundaries reviewable" {
+    var console = try hvc_console.HvcConsoleLab.init(4);
+    _ = console.instantiate(0x54);
+
+    const boot_console = try console.summarizeTtyRegistrationHandoff(.{});
+    try std.testing.expectEqual(@as(usize, 4), boot_console.slot_index);
+    try std.testing.expectEqual(@as(u32, 0x54), boot_console.vtermno);
+    try std.testing.expect(boot_console.adapter_present);
+    try std.testing.expect(boot_console.tty_driver_registration_requested);
+    try std.testing.expect(boot_console.tty_device_registration_requested);
+    try std.testing.expect(boot_console.console_registration_requested);
+    try std.testing.expect(boot_console.keeps_console_binding_until_remove);
+    try std.testing.expect(boot_console.close_wait_owned_by_hvc_close);
+    try std.testing.expect(boot_console.khvcd_wakeup_reviewable);
+    try std.testing.expect(boot_console.khvcd_worker_execution_deferred);
+    try std.testing.expect(boot_console.notifier_target_present);
+    try std.testing.expect(boot_console.notifier_callbacks_deferred);
+    try std.testing.expect(boot_console.host_io_deferred);
+    try std.testing.expect(boot_console.remove_handoff_still_required);
+
+    const detached_console = try console.summarizeTtyRegistrationHandoff(.{
+        .console_index_matches_boot_console = false,
+        .notifier_target_present = false,
+    });
+    try std.testing.expect(detached_console.tty_driver_registration_requested);
+    try std.testing.expect(detached_console.tty_device_registration_requested);
+    try std.testing.expect(!detached_console.console_registration_requested);
+    try std.testing.expect(!detached_console.keeps_console_binding_until_remove);
+    try std.testing.expect(detached_console.close_wait_owned_by_hvc_close);
+    try std.testing.expect(detached_console.khvcd_wakeup_reviewable);
+    try std.testing.expect(detached_console.khvcd_worker_execution_deferred);
+    try std.testing.expect(!detached_console.notifier_target_present);
+    try std.testing.expect(!detached_console.notifier_callbacks_deferred);
+    try std.testing.expect(detached_console.host_io_deferred);
+    try std.testing.expect(detached_console.remove_handoff_still_required);
+
+    _ = console.teardown();
+    try std.testing.expectError(error.ConsoleUnavailable, console.summarizeTtyRegistrationHandoff(.{}));
+}
+
 test "phase11 hvc_console adds carriage returns and keeps final flush intent on successful writes" {
     var console = try hvc_console.HvcConsoleLab.init(1);
     const slot = console.instantiate(0x41);
