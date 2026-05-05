@@ -223,6 +223,69 @@ pub const RulesetHelperLab = struct {
         return true;
     }
 
+    fn validateIncomingLayerAccess(layer: Layer) !void {
+        if (layer.access == 0) {
+            return error.EmptyAccess;
+        }
+    }
+
+    fn validateIncomingLayers(layers: []const Layer) !void {
+        var last_level: u16 = 0;
+        var seen_levels = [_]bool{false} ** max_num_layers;
+
+        for (layers, 0..) |layer, i| {
+            try validateIncomingLayerAccess(layer);
+
+            if (layer.level == 0) {
+                if (layers.len != 1) {
+                    return error.InvalidLayer;
+                }
+                continue;
+            }
+            if (layer.level > max_num_layers) {
+                return error.InvalidLayer;
+            }
+
+            const layer_index = layer.level - 1;
+            if (seen_levels[layer_index]) {
+                return error.DuplicateLayer;
+            }
+            seen_levels[layer_index] = true;
+
+            if (i != 0 and layer.level <= last_level) {
+                return error.NonIncreasingLayers;
+            }
+            last_level = layer.level;
+        }
+    }
+
+    fn validateMergedLayerAppend(rule: RulePlan, incoming: Layer) !void {
+        try validateIncomingLayerAccess(incoming);
+
+        if (incoming.level == 0 or incoming.level > max_num_layers) {
+            return error.InvalidLayer;
+        }
+
+        const existing_layers = rule.layers[0..rule.num_layers];
+        var last_level: u16 = 0;
+        for (existing_layers, 0..) |existing, i| {
+            if (existing.level == 0 or existing.level > max_num_layers) {
+                return error.InvalidExistingRule;
+            }
+            if (i != 0 and existing.level <= last_level) {
+                return error.InvalidExistingRule;
+            }
+            if (existing.level == incoming.level) {
+                return error.DuplicateLayer;
+            }
+            last_level = existing.level;
+        }
+
+        if (incoming.level <= last_level) {
+            return error.NonIncreasingLayers;
+        }
+    }
+
     fn copyRulePlan(layers: []const Layer) !RulePlan {
         if (layers.len == 0) {
             return error.MissingLayers;
@@ -230,6 +293,7 @@ pub const RulesetHelperLab = struct {
         if (layers.len > max_num_layers) {
             return error.TooManyLayers;
         }
+        try validateIncomingLayers(layers);
 
         var copied = RulePlan{
             .num_layers = layers.len,
@@ -270,6 +334,7 @@ pub const RulesetHelperLab = struct {
             if (rule.layers[0].level == 0) {
                 return error.InvalidExistingRule;
             }
+            try validateMergedLayerAppend(rule, incoming);
 
             updated.layers[rule.num_layers] = incoming;
             updated.num_layers += 1;
