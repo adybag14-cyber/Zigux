@@ -95,6 +95,27 @@ test "kunit-inspired carry discipline stays stable on the helper surface" {
     }
 }
 
+test "from32to16 folds unfolded sums before the final complement" {
+    const Case = struct {
+        name: []const u8,
+        sum: u32,
+        expected_folded: u16,
+    };
+    const cases = [_]Case{
+        .{ .name = "zero", .sum = 0x0000_0000, .expected_folded = 0x0000 },
+        .{ .name = "single carry into the low word", .sum = 0x0001_0000, .expected_folded = 0x0001 },
+        .{ .name = "double carry collapse", .sum = 0xffff_0001, .expected_folded = 0x0001 },
+        .{ .name = "all ones saturates to sixteen bits", .sum = 0xffff_ffff, .expected_folded = 0xffff },
+        .{ .name = "mixed words preserve the remaining payload", .sum = 0x1234_5678, .expected_folded = 0x68ac },
+    };
+
+    for (cases) |case| {
+        try std.testing.expectEqual(case.expected_folded, checksum.from32to16(case.sum));
+        try std.testing.expectEqual(case.expected_folded, @as(u16, @intCast(foldCarry(case.sum))));
+        try std.testing.expectEqual(@as(u16, ~case.expected_folded), checksum.fold(case.sum));
+    }
+}
+
 test "pseudo header accumulation matches the fixture-backed reference checksum" {
     for (fixtures.pseudo_header_cases) |case| {
         const payload_partial = checksum.partial(case.payload, 0);
