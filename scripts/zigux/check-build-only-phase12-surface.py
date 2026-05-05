@@ -77,11 +77,13 @@ REQUIRED_SEQUENCE_MARKERS = [
     "`scripts/zigux/check-build-only-phase12-surface.py` is a shipped build-only contract checker, not a broader validator-first release gate",
     "there is no shipped shared `scripts/zigux/validate-phase12.py`, no `check-phase12-*.py` release packet, and no `make -C zigux phase12-validate` target on `master`",
     "The docs-root, review-checklist, scripts-root, and tests-root wording repairs are already landed on `master`, so the next bounded same-lane follow-through is now drift control rather than another naming pass:",
+    "keep this sequencing note aligned with `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/phase12-nvme-pci-raw-github-fallback-map.md`, `Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md`, `Documentation/zigux/phase12-virtio-net-survey.md`, `Documentation/zigux/phase12-libbpf-segment-survey.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, `.github/workflows/zigux-bootstrap.yml`, `zigux/Makefile`, and the bounded `Documentation/zigux/phase12-virtio-scsi-slice.md` rollback-drill wording instead of reopening already-landed naming repairs or inventing removed validator surfaces",
     "if the lane reopens for another degraded-workflow drift, start by diffing those shipped packet surfaces and rerunning `scripts/zigux/check-build-only-phase12-surface.py` before widening into any driver-local or helper-local Phase 12 work",
 ]
 
 REQUIRED_SEQUENCE_EXACT_COUNTS = {
     "The docs-root, review-checklist, scripts-root, and tests-root wording repairs are already landed on `master`, so the next bounded same-lane follow-through is now drift control rather than another naming pass:": 1,
+    "keep this sequencing note aligned with `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/phase12-nvme-pci-raw-github-fallback-map.md`, `Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md`, `Documentation/zigux/phase12-virtio-net-survey.md`, `Documentation/zigux/phase12-libbpf-segment-survey.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, `.github/workflows/zigux-bootstrap.yml`, `zigux/Makefile`, and the bounded `Documentation/zigux/phase12-virtio-scsi-slice.md` rollback-drill wording instead of reopening already-landed naming repairs or inventing removed validator surfaces": 1,
 }
 
 REQUIRED_VIRTIO_NET_SURVEY_MARKERS = [
@@ -345,6 +347,7 @@ Phase 12 notes
 - `scripts/zigux/check-build-only-phase12-surface.py` is a shipped build-only contract checker, not a broader validator-first release gate
 - there is no shipped shared `scripts/zigux/validate-phase12.py`, no `check-phase12-*.py` release packet, and no `make -C zigux phase12-validate` target on `master`
 - The docs-root, review-checklist, scripts-root, and tests-root wording repairs are already landed on `master`, so the next bounded same-lane follow-through is now drift control rather than another naming pass:
+- keep this sequencing note aligned with `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/phase12-nvme-pci-raw-github-fallback-map.md`, `Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md`, `Documentation/zigux/phase12-virtio-net-survey.md`, `Documentation/zigux/phase12-libbpf-segment-survey.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, `.github/workflows/zigux-bootstrap.yml`, `zigux/Makefile`, and the bounded `Documentation/zigux/phase12-virtio-scsi-slice.md` rollback-drill wording instead of reopening already-landed naming repairs or inventing removed validator surfaces
 - if the lane reopens for another degraded-workflow drift, start by diffing those shipped packet surfaces and rerunning `scripts/zigux/check-build-only-phase12-surface.py` before widening into any driver-local or helper-local Phase 12 work
 """,
     )
@@ -503,6 +506,9 @@ def run_self_test() -> int:
         sequence_marker = (
             "The docs-root, review-checklist, scripts-root, and tests-root wording repairs are already landed on `master`, so the next bounded same-lane follow-through is now drift control rather than another naming pass:"
         )
+        sequence_drift_marker = (
+            "keep this sequencing note aligned with `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/phase12-nvme-pci-raw-github-fallback-map.md`, `Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md`, `Documentation/zigux/phase12-virtio-net-survey.md`, `Documentation/zigux/phase12-libbpf-segment-survey.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, `.github/workflows/zigux-bootstrap.yml`, `zigux/Makefile`, and the bounded `Documentation/zigux/phase12-virtio-scsi-slice.md` rollback-drill wording instead of reopening already-landed naming repairs or inventing removed validator surfaces"
+        )
 
         missing_sequence = original_sequence.replace(
             f"- {sequence_marker}\n",
@@ -538,6 +544,45 @@ def run_self_test() -> int:
         if expected_sequence_duplicate not in failures:
             print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST=fail")
             print("phase12-sequence-review-checklist-duplicate-guard")
+            for failure in failures:
+                print(failure)
+            return 1
+
+        sequence_path.write_text(original_sequence, encoding="utf-8")
+        missing_sequence_drift = original_sequence.replace(
+            f"- {sequence_drift_marker}\n",
+            "",
+            1,
+        )
+        sequence_path.write_text(missing_sequence_drift, encoding="utf-8")
+        failures = validate(root)
+        expected_sequence_drift_missing = f"phase12_sequence:{sequence_drift_marker}"
+        expected_sequence_drift_missing_exact = (
+            f"phase12_sequence_exact_count:{sequence_drift_marker}:count=0:expected=1"
+        )
+        if (
+            expected_sequence_drift_missing not in failures
+            or expected_sequence_drift_missing_exact not in failures
+        ):
+            print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST=fail")
+            print("phase12-sequence-drift-control-missing-guard")
+            for failure in failures:
+                print(failure)
+            return 1
+
+        duplicate_sequence_drift = original_sequence.replace(
+            f"- {sequence_drift_marker}\n",
+            f"- {sequence_drift_marker}\n- {sequence_drift_marker}\n",
+            1,
+        )
+        sequence_path.write_text(duplicate_sequence_drift, encoding="utf-8")
+        failures = validate(root)
+        expected_sequence_drift_duplicate = (
+            f"phase12_sequence_exact_count:{sequence_drift_marker}:count=2:expected=1"
+        )
+        if expected_sequence_drift_duplicate not in failures:
+            print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST=fail")
+            print("phase12-sequence-drift-control-duplicate-guard")
             for failure in failures:
                 print(failure)
             return 1
