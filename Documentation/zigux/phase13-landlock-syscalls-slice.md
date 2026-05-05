@@ -10,7 +10,8 @@ The current helper stays intentionally narrow:
 - adds one in-memory `landlock_add_rule()` planner for rule-type dispatch, empty-access rejection, handled-access subset checks, and net-port bounds without touching file descriptors or paths
 - adds one in-memory `get_ruleset_from_fd()` planner for bad-FD rejection, ruleset-FD type checks, `FMODE_CAN_WRITE` or `FMODE_CAN_READ` access checks, and the single-layer guard without touching the live FD table
 - adds one in-memory `get_path_from_fd()` planner for bad-FD rejection, ruleset-FD rejection, internal-mount and non-user-visible inode filtering, and owned path reference handoff without touching live paths
+- adds one in-memory `add_rule_path_beneath()` planner that combines copied path-beneath attrs with the bounded `get_path_from_fd()` handoff and the later `put_path()` release responsibility without touching live rule insertion or inode ownership
 
 This slice does not claim anonymous-fd creation, path imports, credential preparation, thread synchronization, domain merges, or live syscall enforcement.
 
-The next honest bounded step in this same lane is to add one small in-memory planner around `add_rule_path_beneath()` handoff rules before widening into path-backed rule import, credential updates, or live domain state.
+The next honest bounded step in this same lane is to add one small in-memory planner around `add_rule_net_port()` handoff rules before widening into port-backed rule insertion, credential updates, or live domain state.
