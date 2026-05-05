@@ -18,6 +18,18 @@ const Manifest = struct {
     non_goals: []const []const u8,
 };
 
+fn isLowerHexCommitSha(value: []const u8) bool {
+    if (value.len != 40) return false;
+
+    for (value) |byte| {
+        if (!std.ascii.isDigit(byte) and (byte < 'a' or byte > 'f')) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
 test "phase 5 bytestream fifo manifest records the exact bounded checks" {
     var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
     defer io_instance.deinit();
@@ -36,6 +48,7 @@ test "phase 5 bytestream fifo manifest records the exact bounded checks" {
     const manifest = parsed.value;
     try std.testing.expectEqualStrings("P5-L01", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 5", manifest.phase);
+    try std.testing.expect(isLowerHexCommitSha(manifest.surveyed_commit));
     try std.testing.expectEqualStrings("samples/kfifo/bytestream-example.c", manifest.anchor);
     try std.testing.expectEqualStrings("samples/zigux/bytestream_fifo.zig", manifest.sample_path);
     try std.testing.expect(std.mem.indexOf(u8, manifest.validation_entrypoint, "phase5_build.zig") != null);
@@ -120,9 +133,36 @@ test "phase 5 bytestream fifo manifest records the exact bounded checks" {
     try std.testing.expect(std.mem.eql(u8, manifest.non_goals[1], "kfifo_from_user or kfifo_to_user parity"));
 }
 
-test "phase 5 bytestream fifo survey note keeps later runtime starters and loader follow-ons explicit" {
+test "phase 5 bytestream fifo survey note keeps manifest-backed provenance and later runtime starters explicit" {
     var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
     defer io_instance.deinit();
+
+    const manifest_json = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "zigux/tests/phase5_bytestream_fifo_manifest.json",
+        std.testing.allocator,
+        .limited(32 * 1024),
+    );
+    defer std.testing.allocator.free(manifest_json);
+
+    const parsed = try std.json.parseFromSlice(Manifest, std.testing.allocator, manifest_json, .{});
+    defer parsed.deinit();
+
+    const manifest = parsed.value;
+
+    var surveyed_commit_marker_buf: [96]u8 = undefined;
+    const surveyed_commit_marker = try std.fmt.bufPrint(
+        surveyed_commit_marker_buf[0..],
+        "PHASE5_SURVEYED_COMMIT={s}",
+        .{manifest.surveyed_commit},
+    );
+
+    var lane_key_marker_buf: [64]u8 = undefined;
+    const lane_key_marker = try std.fmt.bufPrint(
+        lane_key_marker_buf[0..],
+        "PHASE5_LANE_KEY={s}",
+        .{manifest.lane_key},
+    );
 
     const survey_note = try std.Io.Dir.cwd().readFileAlloc(
         io_instance.io(),
@@ -133,6 +173,11 @@ test "phase 5 bytestream fifo survey note keeps later runtime starters and loade
     defer std.testing.allocator.free(survey_note);
 
     const required_mentions = [_][]const u8{
+        "PHASE5_STATUS=active",
+        "PHASE5_SLICE=kfifo-reference-sample-starter",
+        "samples/kfifo/bytestream-example.c",
+        "phase5_bytestream_fifo_manifest.json",
+        "phase5_build.zig",
         "runtime_atomic64.zig",
         "runtime_atomic64_loader.zig",
         "runtime_bitmap.zig",
@@ -148,8 +193,10 @@ test "phase 5 bytestream fifo survey note keeps later runtime starters and loade
         try std.testing.expect(std.mem.indexOf(u8, survey_note, needle) != null);
     }
 
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, lane_key_marker) != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, surveyed_commit_marker) != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "/workspace/agent_files") == null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "samples/kfifo/bytestream-example.c|Phase 5") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "samples/kfifo/bytestream-example.c|PHASE5_LANE_KEY=P5-L01|PHASE5_SURVEYED_COMMIT=c9b956c155281407bf86bf56d122b08d6fc634ea|Phase 5") != null);
 }
 
 test "phase 5 bytestream fifo survey note records the short-drain helper contract" {
