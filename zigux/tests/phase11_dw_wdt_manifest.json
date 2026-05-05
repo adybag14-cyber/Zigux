@@ -1,5 +1,5 @@
 {
-  "lane_key": "P11-L10",
+  "lane_key": "P11-L05",
   "phase": "Phase 11",
   "surveyed_commit": "0ddb982b08ffa3f1a34bddc0520f50af0b3e346f",
   "anchor": "drivers/watchdog/dw_wdt.c",
