@@ -69,6 +69,16 @@ pub const DelayedCallbackSummary = struct {
     should_poll: bool,
 };
 
+pub const BrokenQueueSummary = struct {
+    anchor: []const u8,
+    queue_index: u16,
+    broken: bool,
+    callback_enabled: bool,
+    last_used_idx: u16,
+    last_polled_used_idx: u16,
+    outstanding_chain_count: u16,
+};
+
 pub const VirtioRingLab = struct {
     const Self = @This();
     const QueueSlot = struct {
@@ -81,6 +91,7 @@ pub const VirtioRingLab = struct {
         last_used_idx: u16 = 0,
         last_polled_used_idx: u16 = 0,
         callback_enabled: bool = true,
+        broken: bool = false,
         outstanding_chain_count: u16 = 0,
         num_added: u16 = 0,
         notification_count: usize = 0,
@@ -169,6 +180,8 @@ pub const VirtioRingLab = struct {
 
     pub fn pollUsedBuffers(self: *Self, queue_index: u16) !UsedBufferPollSummary {
         const slot = try self.checkedQueueSlot(queue_index);
+        if (slot.broken) return error.QueueBroken;
+
         const previous_poll_idx = slot.last_polled_used_idx;
         const newly_used_chain_count = slot.last_used_idx -% previous_poll_idx;
 
@@ -192,6 +205,8 @@ pub const VirtioRingLab = struct {
 
     pub fn enableCallback(self: *Self, queue_index: u16) !CallbackEnableSummary {
         const slot = try self.checkedQueueSlot(queue_index);
+        if (slot.broken) return error.QueueBroken;
+
         slot.callback_enabled = true;
 
         const pending_used_chain_count = slot.last_used_idx -% slot.last_polled_used_idx;
@@ -208,6 +223,8 @@ pub const VirtioRingLab = struct {
 
     pub fn enableCallbackDelayed(self: *Self, queue_index: u16) !DelayedCallbackSummary {
         const slot = try self.checkedQueueSlot(queue_index);
+        if (slot.broken) return error.QueueBroken;
+
         slot.callback_enabled = true;
 
         const pending_used_chain_count = slot.last_used_idx -% slot.last_polled_used_idx;
@@ -224,6 +241,19 @@ pub const VirtioRingLab = struct {
             .pending_used_chain_count = pending_used_chain_count,
             .should_poll = pending_used_chain_count > delay_budget_count,
         };
+    }
+
+    pub fn markBroken(self: *Self, queue_index: u16) !BrokenQueueSummary {
+        const slot = try self.checkedQueueSlot(queue_index);
+        slot.broken = true;
+        slot.callback_enabled = false;
+        return brokenQueueSummaryFromSlot(queue_index, slot);
+    }
+
+    pub fn clearBroken(self: *Self, queue_index: u16) !BrokenQueueSummary {
+        const slot = try self.checkedQueueSlot(queue_index);
+        slot.broken = false;
+        return brokenQueueSummaryFromSlot(queue_index, slot);
     }
 
     pub fn queueShapeSummary(self: *const Self, queue_index: u16) !QueueShapeSummary {
@@ -258,6 +288,13 @@ pub const VirtioRingLab = struct {
         };
     }
 
+    pub fn brokenQueueSummary(self: *const Self, queue_index: u16) !BrokenQueueSummary {
+        const index = try checkedQueueIndex(queue_index);
+        const slot = self.queues[index];
+        if (!slot.active) return error.QueueNotDefined;
+        return brokenQueueSummaryFromQueue(queue_index, slot);
+    }
+
     pub fn registeredQueueCount(self: *const Self) usize {
         return self.registered_queue_count;
     }
@@ -272,5 +309,21 @@ pub const VirtioRingLab = struct {
         const slot = &self.queues[index];
         if (!slot.active) return error.QueueNotDefined;
         return slot;
+    }
+
+    fn brokenQueueSummaryFromSlot(queue_index: u16, slot: *const QueueSlot) BrokenQueueSummary {
+        return brokenQueueSummaryFromQueue(queue_index, slot.*);
+    }
+
+    fn brokenQueueSummaryFromQueue(queue_index: u16, slot: QueueSlot) BrokenQueueSummary {
+        return .{
+            .anchor = descriptor().anchor,
+            .queue_index = queue_index,
+            .broken = slot.broken,
+            .callback_enabled = slot.callback_enabled,
+            .last_used_idx = slot.last_used_idx,
+            .last_polled_used_idx = slot.last_polled_used_idx,
+            .outstanding_chain_count = slot.outstanding_chain_count,
+        };
     }
 };
