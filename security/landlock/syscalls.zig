@@ -117,6 +117,26 @@ pub const AddRulePlan = struct {
     port: ?u16 = null,
 };
 
+pub const AddRuleSyscallRequest = struct {
+    initialized: bool = true,
+    ruleset_fd: RulesetFdRequest,
+    flags: u32 = 0,
+    rule_type: u32,
+    handled_access_fs: u64 = 0,
+    handled_access_net: u64 = 0,
+    path_beneath_attr: PathBeneathAttr = .{},
+    net_port_attr: NetPortAttr = .{},
+};
+
+pub const AddRuleSyscallPlan = struct {
+    anchor: []const u8,
+    checks_initialization_gate: bool,
+    requires_zero_flags: bool,
+    acquires_ruleset_with_write_access: bool,
+    reuses_add_rule_validation: bool,
+    dispatched_rule: AddRulePlan,
+};
+
 pub const RulesetFdKind = enum {
     ruleset,
     other,
@@ -323,6 +343,40 @@ pub const SyscallsHelperLab = struct {
             },
             else => return error.InvalidRuleType,
         }
+    }
+
+    pub fn planLandlockAddRule(request: AddRuleSyscallRequest) !AddRuleSyscallPlan {
+        if (!request.initialized) {
+            return error.BootDisabled;
+        }
+        if (request.flags != 0) {
+            return error.InvalidFlags;
+        }
+
+        _ = try planGetRulesetFromFd(.{
+            .fd_present = request.ruleset_fd.fd_present,
+            .file_kind = request.ruleset_fd.file_kind,
+            .file_mode = request.ruleset_fd.file_mode,
+            .required_mode = fmode_can_write,
+            .layer_count = request.ruleset_fd.layer_count,
+        });
+
+        const dispatched_rule = try planAddRule(.{
+            .rule_type = request.rule_type,
+            .handled_access_fs = request.handled_access_fs,
+            .handled_access_net = request.handled_access_net,
+            .path_beneath_attr = request.path_beneath_attr,
+            .net_port_attr = request.net_port_attr,
+        });
+
+        return .{
+            .anchor = descriptor().anchor,
+            .checks_initialization_gate = true,
+            .requires_zero_flags = true,
+            .acquires_ruleset_with_write_access = true,
+            .reuses_add_rule_validation = true,
+            .dispatched_rule = dispatched_rule,
+        };
     }
 
     pub fn planGetRulesetFromFd(request: RulesetFdRequest) !RulesetFdPlan {
