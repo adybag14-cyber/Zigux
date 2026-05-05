@@ -64,6 +64,36 @@ REQUIRED_SNIPPETS = {
         'test "phase 6 bsearch accepts runtime-selected raw c abi comparator pointers"',
         'test "phase 6 bsearch mutable raw c abi lookup supports write-through"',
     ],
+    "zigux/tests/phase6_hexdump.zig": [
+        'test "phase 6 hexdump serialized linux-derived vectors stay in sync"',
+        'test "phase 6 hexdump serialized overflow vectors stay in sync"',
+        'test "phase 6 hexdump serialized required-length vectors stay in sync"',
+        'test "phase 6 hexdump perf fixture packet stays in sync"',
+        'test "phase 6 hexdump parity matrix matches kernel fixture preparation"',
+        'test "phase 6 hexdump overflow contract matches truncation expectations"',
+        'test "phase 6 hexdump grouped ASCII output stays intact when buffer capacity is exact"',
+        'test "phase 6 hexdump covers normalization and empty-buffer edge cases"',
+    ],
+    "zigux/tests/phase6_hexdump_perf.zig": [
+        'try stdout_writer.interface.print("PHASE6_HEXDUMP_PERF_CASE_COUNT={d}\\n", .{fixtures.perf_cases.len});',
+        'try stdout_writer.interface.print("PHASE6_HEXDUMP_PERF_{s}_SLOWDOWN_PCT={d}\\n", .{ case.label, slowdown_pct });',
+        'try stdout_writer.interface.print("PHASE6_HEXDUMP_PERF_{s}_THRESHOLD_PCT={d}\\n", .{ case.label, case.max_slowdown_pct });',
+        'try stdout_writer.interface.print("PHASE6_HEXDUMP_PERF_{s}_ACCUMULATOR={d}\\n", .{ case.label, helper_result.accumulator });',
+        'if (helper_result.accumulator != reference_result.accumulator) {',
+        'if (slowdown_pct > case.max_slowdown_pct) {',
+        'try stdout_writer.interface.print("PHASE6_HEXDUMP_PERF={s}\\n", .{if (failed) "fail" else "pass"});',
+        'if (failed) return error.HexdumpPerfRegression;',
+    ],
+    "zigux/tests/fixtures/phase6_hexdump_vectors.zig": [
+        'pub const perf_cases = [_]PerfCase{',
+        '.label = "16B-plain-g1"',
+        '.label = "32B-ascii-g2"',
+        '.label = "16B-ascii-g4"',
+        '.label = "16B-ascii-g8"',
+        '.max_slowdown_pct = 175',
+        '.max_slowdown_pct = 550',
+        '.max_slowdown_pct = 600',
+    ],
     "zigux/Makefile": [
         "PHONY += phase6-validate phase6-test phase6-checksum-perf phase6-hexdump-perf phase6",
         "phase6-validate:\n\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase6-shared-surface.py",
@@ -346,6 +376,69 @@ def run_self_test() -> None:
         else:
             raise AssertionError("expected bsearch replay failure")
         bsearch_tests.write_text(original_bsearch_tests, encoding="utf-8")
+
+        hexdump_tests = root / "zigux/tests/phase6_hexdump.zig"
+        original_hexdump_tests = hexdump_tests.read_text(encoding="utf-8")
+        hexdump_tests.write_text(
+            original_hexdump_tests.replace(
+                'test "phase 6 hexdump perf fixture packet stays in sync"',
+                'test "phase 6 hexdump perf packet stays in sync"',
+                1,
+            ),
+            encoding="utf-8",
+        )
+        try:
+            run_checks(root)
+        except ValidationError as exc:
+            if "zigux/tests/phase6_hexdump.zig" not in str(exc):
+                raise AssertionError(
+                    f"unexpected hexdump replay failure: {exc}"
+                ) from exc
+        else:
+            raise AssertionError("expected hexdump replay failure")
+        hexdump_tests.write_text(original_hexdump_tests, encoding="utf-8")
+
+        hexdump_vectors = root / "zigux/tests/fixtures/phase6_hexdump_vectors.zig"
+        original_hexdump_vectors = hexdump_vectors.read_text(encoding="utf-8")
+        hexdump_vectors.write_text(
+            original_hexdump_vectors.replace(
+                '.label = "16B-ascii-g8"',
+                '.label = "16B-ascii-g16"',
+                1,
+            ),
+            encoding="utf-8",
+        )
+        try:
+            run_checks(root)
+        except ValidationError as exc:
+            if "zigux/tests/fixtures/phase6_hexdump_vectors.zig" not in str(exc):
+                raise AssertionError(
+                    f"unexpected hexdump fixture failure: {exc}"
+                ) from exc
+        else:
+            raise AssertionError("expected hexdump fixture failure")
+        hexdump_vectors.write_text(original_hexdump_vectors, encoding="utf-8")
+
+        hexdump_perf = root / "zigux/tests/phase6_hexdump_perf.zig"
+        original_hexdump_perf = hexdump_perf.read_text(encoding="utf-8")
+        hexdump_perf.write_text(
+            original_hexdump_perf.replace(
+                'PHASE6_HEXDUMP_PERF={s}',
+                'PHASE6_HEXDUMP_BENCH={s}',
+                1,
+            ),
+            encoding="utf-8",
+        )
+        try:
+            run_checks(root)
+        except ValidationError as exc:
+            if "zigux/tests/phase6_hexdump_perf.zig" not in str(exc):
+                raise AssertionError(
+                    f"unexpected hexdump perf failure: {exc}"
+                ) from exc
+        else:
+            raise AssertionError("expected hexdump perf failure")
+        hexdump_perf.write_text(original_hexdump_perf, encoding="utf-8")
 
     print("self-test passed")
 
