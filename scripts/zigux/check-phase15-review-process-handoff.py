@@ -32,8 +32,11 @@ REQUIRED_MANIFEST_BOUNDARY_MARKERS = [
     "Documentation/zigux/review-checklist.md",
     "scripts/zigux/check-phase15-review-process-handoff.py",
     "zigux/tests/phase15_architecture_council_review_process_manifest.json",
+    "zigux/tests/phase15_freeze_map_governance.zig",
+    "zigux/tests/phase15_parity_SCORECARD.zig",
     "zigux/tests/phase15_architecture_council_review_process.zig",
     "zigux/tests/phase15_indefinite_c_policy.json",
+    "zigux/tests/phase15_indefinite_c_policy.zig",
     "zigux/tests/phase15_build.zig",
 ]
 
@@ -51,7 +54,13 @@ REQUIRED_DOCS_README_MARKERS = [
     "`Documentation/zigux/phase15-parity-scorecard.md`",
     "`Documentation/zigux/phase15-indefinite-c-policy.md`",
     "`zigux/tests/phase15_architecture_council_review_process_manifest.json`",
+    "`zigux/tests/phase15_freeze_map_governance.zig`",
+    "`zigux/tests/phase15_parity_scorecard.zig`",
+    "`zigux/tests/phase15_architecture_council_review_process.zig`",
+    "`zigux/tests/phase15_indefinite_c_policy.json`",
+    "`zigux/tests/phase15_indefinite_c_policy.zig`",
     "`zigux/tests/phase15_build.zig`",
+    "`zigux/Makefile`",
     "`make -C zigux phase15`",
     "no Architecture Council approval is recorded yet",
 ]
@@ -66,15 +75,28 @@ REQUIRED_REVIEW_CHECKLIST_MARKERS = [
     "Documentation/zigux/review-checklist.md",
     "scripts/zigux/check-phase15-review-process-handoff.py",
     "zigux/tests/phase15_architecture_council_review_process_manifest.json",
+    "zigux/tests/phase15_freeze_map_governance.zig",
+    "zigux/tests/phase15_parity_scorecard.zig",
     "zigux/tests/phase15_architecture_council_review_process.zig",
+    "zigux/tests/phase15_indefinite_c_policy.json",
+    "zigux/tests/phase15_indefinite_c_policy.zig",
     "zigux/tests/phase15_build.zig",
     "make -C zigux phase15",
 ]
 
 REQUIRED_SCRIPT_README_MARKERS = [
     "Phase 15 flow",
+    "phase15-freeze-map-governance.md",
     "phase15-architecture-council-review-process.md",
+    "phase15-parity-scorecard.md",
+    "phase15-indefinite-c-policy.md",
     "check-phase15-review-process-handoff.py",
+    "phase15_architecture_council_review_process_manifest.json",
+    "phase15_freeze_map_governance.zig",
+    "phase15_parity_scorecard.zig",
+    "phase15_architecture_council_review_process.zig",
+    "phase15_indefinite_c_policy.json",
+    "phase15_indefinite_c_policy.zig",
     "phase15_build.zig",
     "make -C zigux phase15",
 ]
@@ -93,8 +115,12 @@ REQUIRED_TESTS_README_MARKERS = [
     "Documentation/zigux/review-checklist.md",
     "scripts/zigux/check-phase15-review-process-handoff.py",
     "zigux/tests/phase15_architecture_council_review_process_manifest.json",
-    "zigux/tests/phase15_build.zig",
+    "zigux/tests/phase15_freeze_map_governance.zig",
+    "zigux/tests/phase15_parity_scorecard.zig",
     "zigux/tests/phase15_architecture_council_review_process.zig",
+    "zigux/tests/phase15_indefinite_c_policy.json",
+    "zigux/tests/phase15_indefinite_c_policy.zig",
+    "zigux/tests/phase15_build.zig",
     "zigux/Makefile",
     "zig build test --build-file zigux/tests/phase15_build.zig",
     "make -C zigux phase15",
@@ -225,7 +251,13 @@ Phase 15 notes
 - `Documentation/zigux/phase15-parity-scorecard.md`
 - `Documentation/zigux/phase15-indefinite-c-policy.md`
 - `zigux/tests/phase15_architecture_council_review_process_manifest.json`
+- `zigux/tests/phase15_freeze_map_governance.zig`
+- `zigux/tests/phase15_parity_scorecard.zig`
+- `zigux/tests/phase15_architecture_council_review_process.zig`
+- `zigux/tests/phase15_indefinite_c_policy.json`
+- `zigux/tests/phase15_indefinite_c_policy.zig`
 - `zigux/tests/phase15_build.zig`
+- `zigux/Makefile`
 - `make -C zigux phase15`
 - no Architecture Council approval is recorded yet
 """
@@ -241,7 +273,11 @@ if the change touches the shared Phase 15 governance packet
 - Documentation/zigux/review-checklist.md
 - scripts/zigux/check-phase15-review-process-handoff.py
 - zigux/tests/phase15_architecture_council_review_process_manifest.json
+- zigux/tests/phase15_freeze_map_governance.zig
+- zigux/tests/phase15_parity_scorecard.zig
 - zigux/tests/phase15_architecture_council_review_process.zig
+- zigux/tests/phase15_indefinite_c_policy.json
+- zigux/tests/phase15_indefinite_c_policy.zig
 - zigux/tests/phase15_build.zig
 - make -C zigux phase15
 """
@@ -270,8 +306,11 @@ if the change touches the shared Phase 15 governance packet
                 "Documentation/zigux/review-checklist.md, "
                 "scripts/zigux/check-phase15-review-process-handoff.py, "
                 "zigux/tests/phase15_architecture_council_review_process_manifest.json, "
+                "zigux/tests/phase15_freeze_map_governance.zig, "
+                "zigux/tests/phase15_parity_scorecard.zig, "
                 "zigux/tests/phase15_architecture_council_review_process.zig, "
                 "zigux/tests/phase15_indefinite_c_policy.json, "
+                "zigux/tests/phase15_indefinite_c_policy.zig, "
                 "and zigux/tests/phase15_build.zig as the parked governance packet boundary."
             ),
             "current_bounded_lane": (
@@ -285,7 +324,7 @@ if the change touches the shared Phase 15 governance packet
 
     script_readme = """# scripts/zigux
 Phase 15 flow
-- the current shared Phase 15 governance surface on `master` is `Documentation/zigux/phase15-architecture-council-review-process.md`, `scripts/zigux/check-phase15-review-process-handoff.py`, `zigux/tests/phase15_build.zig`, and `make -C zigux phase15`.
+- the current shared Phase 15 governance surface on `master` is `Documentation/zigux/freeze-map.md`, `Documentation/zigux/phase15-freeze-map-governance.md`, `Documentation/zigux/phase15-architecture-council-review-process.md`, `Documentation/zigux/phase15-parity-scorecard.md`, `Documentation/zigux/phase15-indefinite-c-policy.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/check-phase15-review-process-handoff.py`, `zigux/tests/phase15_architecture_council_review_process_manifest.json`, `zigux/tests/phase15_freeze_map_governance.zig`, `zigux/tests/phase15_parity_scorecard.zig`, `zigux/tests/phase15_architecture_council_review_process.zig`, `zigux/tests/phase15_indefinite_c_policy.json`, `zigux/tests/phase15_indefinite_c_policy.zig`, `zigux/tests/phase15_build.zig`, and `make -C zigux phase15`.
 """
     (root / SCRIPT_README_PATH).write_text(script_readme, encoding="utf-8")
 
@@ -299,8 +338,12 @@ keep the parked Phase 15 governance packet explicit in the tests root too
 - Documentation/zigux/review-checklist.md
 - scripts/zigux/check-phase15-review-process-handoff.py
 - zigux/tests/phase15_architecture_council_review_process_manifest.json
+- zigux/tests/phase15_freeze_map_governance.zig
+- zigux/tests/phase15_parity_scorecard.zig
 - zigux/tests/phase15_build.zig
 - zigux/tests/phase15_architecture_council_review_process.zig
+- zigux/tests/phase15_indefinite_c_policy.json
+- zigux/tests/phase15_indefinite_c_policy.zig
 - zigux/Makefile
 - zig build test --build-file zigux/tests/phase15_build.zig
 - make -C zigux phase15
@@ -426,6 +469,18 @@ def run_self_test() -> int:
         )
 
         write_fixture_tree(tmp_root)
+        docs_readme = docs_readme_path.read_text(encoding="utf-8")
+        docs_readme_path.write_text(
+            docs_readme.replace("`zigux/tests/phase15_freeze_map_governance.zig`\n", "", 1),
+            encoding="utf-8",
+        )
+        expect_failure(
+            tmp_root,
+            "docs_readme:`zigux/tests/phase15_freeze_map_governance.zig`",
+            "missing_docs_readme_freeze_map_governance_replay_marker",
+        )
+
+        write_fixture_tree(tmp_root)
         review_checklist_path = tmp_root / REVIEW_CHECKLIST_PATH
         review_checklist = review_checklist_path.read_text(encoding="utf-8")
         review_checklist_path.write_text(
@@ -464,6 +519,18 @@ def run_self_test() -> int:
         )
 
         write_fixture_tree(tmp_root)
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        manifest["handoff_evidence"]["current_repo_handoff"] = manifest["handoff_evidence"][
+            "current_repo_handoff"
+        ].replace("zigux/tests/phase15_parity_scorecard.zig", "zigux/tests/phase15_scorecard.zig", 1)
+        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+        expect_failure(
+            tmp_root,
+            "manifest_handoff:zigux/tests/phase15_parity_scorecard.zig",
+            "missing_manifest_parity_scorecard_replay_marker",
+        )
+
+        write_fixture_tree(tmp_root)
         makefile_path = tmp_root / MAKEFILE_PATH
         makefile = makefile_path.read_text(encoding="utf-8")
         makefile_path.write_text(
@@ -481,7 +548,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE15_REVIEW_PROCESS_HANDOFF_SELF_TEST=pass")
-    print("PHASE15_REVIEW_PROCESS_HANDOFF_SELF_TEST_CASE_COUNT=12")
+    print("PHASE15_REVIEW_PROCESS_HANDOFF_SELF_TEST_CASE_COUNT=14")
     return 0
 
 
