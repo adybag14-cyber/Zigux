@@ -22,6 +22,7 @@ REQUIRED_FILES = [
     "zigux/tests/phase13_libfs.zig",
     "zigux/tests/phase13_devres.zig",
     "zigux/tests/phase13_devres_reviewability.zig",
+    "zigux/tests/phase13_devres_dma_coherent.zig",
     "zigux/tests/phase13_landlock_ruleset.zig",
     "zigux/tests/phase13_landlock_syscalls.zig",
     "zigux/tests/phase13_libfs_reviewability.zig",
@@ -42,6 +43,8 @@ DOC_REQUIRED_MARKERS = [
     "Documentation/zigux/phase13-notifier-list-survey.md",
     "zigux/tests/phase13_notifier_list_manifest.json",
     "zigux/bindings/notifier_abi.zig",
+    "zigux/tests/phase13_devres_dma_coherent.zig",
+    "the current seven-test shared-helper release packet",
 ]
 
 REVIEW_REQUIRED_MARKERS = [
@@ -51,6 +54,8 @@ REVIEW_REQUIRED_MARKERS = [
     "Documentation/zigux/phase13-notifier-list-survey.md",
     "zigux/tests/phase13_notifier_list_manifest.json",
     "zigux/bindings/notifier_abi.zig",
+    "zigux/tests/phase13_devres_dma_coherent.zig",
+    "the same validator-first seven-test shared-helper release packet",
 ]
 
 SCRIPTS_REQUIRED_MARKERS = [
@@ -65,21 +70,23 @@ SCRIPTS_REQUIRED_MARKERS = [
     "phase13_libfs.zig",
     "phase13_devres.zig",
     "phase13_devres_reviewability.zig",
+    "phase13_devres_dma_coherent.zig",
     "phase13_landlock_ruleset.zig",
     "phase13_landlock_syscalls.zig",
     "phase13_libfs_reviewability.zig",
     "make -C zigux phase13-validate",
     "make -C zigux phase13",
-    "the six-test shared helper replay",
+    "the seven-test shared helper replay",
     "adjacent review evidence instead of adding extra shared replay steps on `master`",
 ]
 
 PHASE13_BUILD_EXACT_COUNTS = {
-    " = b.addTest(.{": 6,
-    "test_step.dependOn(&run_phase13_": 6,
+    " = b.addTest(.{": 7,
+    "test_step.dependOn(&run_phase13_": 7,
     '.root_source_file = b.path("phase13_libfs.zig"),': 1,
     '.root_source_file = b.path("phase13_devres.zig"),': 1,
     '.root_source_file = b.path("phase13_devres_reviewability.zig"),': 1,
+    '.root_source_file = b.path("phase13_devres_dma_coherent.zig"),': 1,
     '.root_source_file = b.path("phase13_landlock_ruleset.zig"),': 1,
     '.root_source_file = b.path("phase13_landlock_syscalls.zig"),': 1,
     '.root_source_file = b.path("phase13_libfs_reviewability.zig"),': 1,
@@ -95,6 +102,9 @@ PHASE13_BUILD_REQUIRED_MARKERS = [
     'const phase13_devres_reviewability_tests = b.addTest(.{',
     '.name = "phase13-devres-reviewability-tests"',
     "const run_phase13_devres_reviewability_tests = b.addRunArtifact(phase13_devres_reviewability_tests);",
+    'const phase13_devres_dma_coherent_tests = b.addTest(.{',
+    '.name = "phase13-devres-dma-coherent-tests"',
+    "const run_phase13_devres_dma_coherent_tests = b.addRunArtifact(phase13_devres_dma_coherent_tests);",
     'const phase13_landlock_ruleset_tests = b.addTest(.{',
     '.name = "phase13-landlock-ruleset-tests"',
     "const run_phase13_landlock_ruleset_tests = b.addRunArtifact(phase13_landlock_ruleset_tests);",
@@ -198,6 +208,10 @@ def _baseline_phase13_build() -> str:
             '.name = "phase13-devres-reviewability-tests",',
             "});",
             "const run_phase13_devres_reviewability_tests = b.addRunArtifact(phase13_devres_reviewability_tests);",
+            "const phase13_devres_dma_coherent_tests = b.addTest(.{",
+            '.name = "phase13-devres-dma-coherent-tests",',
+            "});",
+            "const run_phase13_devres_dma_coherent_tests = b.addRunArtifact(phase13_devres_dma_coherent_tests);",
             "const phase13_landlock_ruleset_tests = b.addTest(.{",
             '.name = "phase13-landlock-ruleset-tests",',
             "});",
@@ -213,12 +227,14 @@ def _baseline_phase13_build() -> str:
             "test_step.dependOn(&run_phase13_libfs_tests.step);",
             "test_step.dependOn(&run_phase13_devres_tests.step);",
             "test_step.dependOn(&run_phase13_devres_reviewability_tests.step);",
+            "test_step.dependOn(&run_phase13_devres_dma_coherent_tests.step);",
             "test_step.dependOn(&run_phase13_landlock_ruleset_tests.step);",
             "test_step.dependOn(&run_phase13_landlock_syscalls_tests.step);",
             "test_step.dependOn(&run_phase13_libfs_reviewability_tests.step);",
             '.root_source_file = b.path("phase13_libfs.zig"),',
             '.root_source_file = b.path("phase13_devres.zig"),',
             '.root_source_file = b.path("phase13_devres_reviewability.zig"),',
+            '.root_source_file = b.path("phase13_devres_dma_coherent.zig"),',
             '.root_source_file = b.path("phase13_landlock_ruleset.zig"),',
             '.root_source_file = b.path("phase13_landlock_syscalls.zig"),',
             '.root_source_file = b.path("phase13_libfs_reviewability.zig"),',
@@ -309,6 +325,8 @@ def run_self_test() -> int:
                 "docs-readme:Documentation/zigux/phase13-notifier-list-survey.md",
                 "docs-readme:zigux/tests/phase13_notifier_list_manifest.json",
                 "docs-readme:zigux/bindings/notifier_abi.zig",
+                "docs-readme:zigux/tests/phase13_devres_dma_coherent.zig",
+                "docs-readme:the current seven-test shared-helper release packet",
             ],
             "docs_marker_guard_failed",
         )
@@ -325,6 +343,8 @@ def run_self_test() -> int:
                 "review-checklist:Documentation/zigux/phase13-notifier-list-survey.md",
                 "review-checklist:zigux/tests/phase13_notifier_list_manifest.json",
                 "review-checklist:zigux/bindings/notifier_abi.zig",
+                "review-checklist:zigux/tests/phase13_devres_dma_coherent.zig",
+                "review-checklist:the same validator-first seven-test shared-helper release packet",
             ],
             "review_marker_guard_failed",
         )
@@ -332,6 +352,7 @@ def run_self_test() -> int:
         case_count += 1
 
         scripts_readme_path = root / "scripts/zigux/README.md"
+        scripts_readme_path.writeText = None
         scripts_readme_path.write_text("validate-phase13-release.py\n", encoding="utf-8")
         _assert_only(
             validate(root),
@@ -346,12 +367,13 @@ def run_self_test() -> int:
                 "scripts-readme:phase13_libfs.zig",
                 "scripts-readme:phase13_devres.zig",
                 "scripts-readme:phase13_devres_reviewability.zig",
+                "scripts-readme:phase13_devres_dma_coherent.zig",
                 "scripts-readme:phase13_landlock_ruleset.zig",
                 "scripts-readme:phase13_landlock_syscalls.zig",
                 "scripts-readme:phase13_libfs_reviewability.zig",
                 "scripts-readme:make -C zigux phase13-validate",
                 "scripts-readme:make -C zigux phase13",
-                "scripts-readme:the six-test shared helper replay",
+                "scripts-readme:the seven-test shared helper replay",
                 "scripts-readme:adjacent review evidence instead of adding extra shared replay steps on `master`",
             ],
             "scripts_marker_guard_failed",
@@ -363,7 +385,7 @@ def run_self_test() -> int:
         phase13_build_path.write_text(_baseline_phase13_build() + "const phase13_extra_tests = b.addTest(.{\n});\n", encoding="utf-8")
         _assert_only(
             validate(root),
-            ["phase13-build: = b.addTest(.{:expected=6:actual=7"],
+            ["phase13-build: = b.addTest(.{:expected=7:actual=8"],
             "phase13_build_test_count_guard_failed",
         )
         _write(root / "zigux/tests/phase13_build.zig", _baseline_phase13_build())
@@ -375,7 +397,7 @@ def run_self_test() -> int:
         )
         _assert_only(
             validate(root),
-            ["phase13-build:test_step.dependOn(&run_phase13_:expected=6:actual=7"],
+            ["phase13-build:test_step.dependOn(&run_phase13_:expected=7:actual=8"],
             "phase13_build_dependency_count_guard_failed",
         )
         _write(root / "zigux/tests/phase13_build.zig", _baseline_phase13_build())
