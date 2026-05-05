@@ -9,17 +9,19 @@ ROOT = Path(__file__).resolve().parents[2] if len(Path(__file__).resolve().paren
 
 REQUIRED_FILES = [
     "Documentation/zigux/phase13-devres-slice.md",
+    "Documentation/zigux/phase13-devres-survey.md",
     "lib/devres.zig",
     "zigux/tests/phase13_build.zig",
     "zigux/tests/phase13_devres.zig",
     "zigux/tests/phase13_devres_manifest.json",
+    "zigux/tests/phase13_devres_reviewability.zig",
     "scripts/zigux/validate-phase13-release.py",
     "zigux/Makefile",
 ]
 
 SLICE_REQUIRED_MARKERS = [
     "This bounded Phase 13 slice starts `lib/devres.zig` with a pure helper-first foothold anchored to `lib/devres.c`.",
-    "devm_of_iomap() bridge as a pure planner",
+    "devm_of_iomap()` bridge as a pure planner",
     "devm_arch_io_reserve_memtype_wc()",
     "This slice does not claim live `devres_alloc_node()` ownership",
 ]
@@ -39,6 +41,14 @@ TEST_REQUIRED_MARKERS = [
     'test "phase13 devres preserves translated size when devm_of_iomap hits downstream remap failure"',
     'test "phase13 devres retains memtype release records on successful WC reservation"',
     'test "phase13 devres rejects memtype planning when the release record cannot be allocated"',
+]
+
+REVIEWABILITY_REQUIRED_MARKERS = [
+    'test "phase13 devres reviewability packet records the helper-only DMA/scatterlist boundary"',
+    '"zigux/tests/phase13_devres_manifest.json"',
+    '"Documentation/zigux/phase13-devres-survey.md"',
+    '"phase13-devres-reviewability-gate"',
+    '"phase13-devres-live-scatterlist-ownership"',
 ]
 
 BUILD_REQUIRED_MARKERS = [
@@ -84,6 +94,7 @@ def validate(root: Path) -> list[str]:
     issues.extend(_collect_missing_markers(_read(root / "Documentation/zigux/phase13-devres-slice.md"), SLICE_REQUIRED_MARKERS, "phase13-devres-slice"))
     issues.extend(_collect_missing_markers(_read(root / "lib/devres.zig"), DEVRES_REQUIRED_MARKERS, "lib-devres"))
     issues.extend(_collect_missing_markers(_read(root / "zigux/tests/phase13_devres.zig"), TEST_REQUIRED_MARKERS, "phase13-devres-test"))
+    issues.extend(_collect_missing_markers(_read(root / "zigux/tests/phase13_devres_reviewability.zig"), REVIEWABILITY_REQUIRED_MARKERS, "phase13-devres-reviewability"))
     issues.extend(_collect_missing_markers(_read(root / "zigux/tests/phase13_build.zig"), BUILD_REQUIRED_MARKERS, "phase13-build"))
     issues.extend(_collect_missing_markers(_read(root / "scripts/zigux/validate-phase13-release.py"), VALIDATOR_REQUIRED_MARKERS, "phase13-release-validator"))
     issues.extend(_collect_missing_markers(_read(root / "zigux/Makefile"), MAKE_REQUIRED_MARKERS, "makefile"))
@@ -92,10 +103,12 @@ def validate(root: Path) -> list[str]:
 
 def _seed_fixture_tree(root: Path) -> None:
     _write(root / "Documentation/zigux/phase13-devres-slice.md", "\n".join(SLICE_REQUIRED_MARKERS) + "\n")
+    _write(root / "Documentation/zigux/phase13-devres-survey.md", "# survey stub\n")
     _write(root / "lib/devres.zig", "\n".join(DEVRES_REQUIRED_MARKERS) + "\n")
     _write(root / "zigux/tests/phase13_devres.zig", "\n".join(TEST_REQUIRED_MARKERS) + "\n")
     _write(root / "zigux/tests/phase13_build.zig", "\n".join(BUILD_REQUIRED_MARKERS) + "\n")
     _write(root / "zigux/tests/phase13_devres_manifest.json", "{}\n")
+    _write(root / "zigux/tests/phase13_devres_reviewability.zig", "\n".join(REVIEWABILITY_REQUIRED_MARKERS) + "\n")
     _write(root / "scripts/zigux/validate-phase13-release.py", "\n".join(VALIDATOR_REQUIRED_MARKERS) + "\n")
     _write(root / "zigux/Makefile", "\n".join(MAKE_REQUIRED_MARKERS) + "\n")
 
@@ -157,6 +170,21 @@ def run_self_test() -> int:
                 'phase13-devres-test:test "phase13 devres rejects memtype planning when the release record cannot be allocated"',
             ],
             "devres_test_marker_guard_failed",
+        )
+        _seed_fixture_tree(root)
+        case_count += 1
+
+        reviewability_path = root / "zigux/tests/phase13_devres_reviewability.zig"
+        reviewability_path.write_text(REVIEWABILITY_REQUIRED_MARKERS[0] + "\n", encoding="utf-8")
+        _assert_only(
+            validate(root),
+            [
+                'phase13-devres-reviewability:"zigux/tests/phase13_devres_manifest.json"',
+                'phase13-devres-reviewability:"Documentation/zigux/phase13-devres-survey.md"',
+                'phase13-devres-reviewability:"phase13-devres-reviewability-gate"',
+                'phase13-devres-reviewability:"phase13-devres-live-scatterlist-ownership"',
+            ],
+            "reviewability_marker_guard_failed",
         )
         _seed_fixture_tree(root)
         case_count += 1
