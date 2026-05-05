@@ -18,6 +18,29 @@ fn expectNoMarker(haystack: []const u8, marker: []const u8) !void {
     try std.testing.expect(std.mem.indexOf(u8, haystack, marker) == null);
 }
 
+fn countOccurrences(haystack: []const u8, needle: []const u8) usize {
+    var count: usize = 0;
+    var start: usize = 0;
+    while (std.mem.indexOfPos(u8, haystack, start, needle)) |index| {
+        count += 1;
+        start = index + needle.len;
+    }
+    return count;
+}
+
+fn expectRuntimeCaseGroupCardinality(
+    group_header: []const u8,
+    next_header: []const u8,
+    expected_case_count: usize,
+) !void {
+    const section_start = std.mem.indexOf(u8, runtime_atomic64_diff_source, group_header) orelse
+        return error.MissingRuntimeCaseGroupHeader;
+    const section_end = std.mem.indexOfPos(u8, runtime_atomic64_diff_source, section_start, next_header) orelse
+        return error.MissingRuntimeCaseGroupBoundary;
+    const section = runtime_atomic64_diff_source[section_start..section_end];
+    try std.testing.expectEqual(expected_case_count, countOccurrences(section, ".name = "));
+}
+
 test "atomic64 diff canonical wrapper keeps the shipped runtime gate wired in" {
     _ = runtime_atomic64_diff;
 }
@@ -108,6 +131,24 @@ test "atomic64 diff wrapper keeps the current phase4 and phase9 build routing ex
     try expectNoMarker(phase4_build_source, ".root_source_file = b.path(\"runtime_atomic64_diff.zig\")");
     try expectMarker(phase9_build_source, ".root_source_file = b.path(\"runtime_atomic64_diff.zig\")");
     try expectMarker(phase9_build_source, "phase9-runtime-atomic64-diff-tests");
+}
+
+test "atomic64 diff wrapper pins the current bounded runtime case groups" {
+    try expectRuntimeCaseGroupCardinality(
+        "const cases = [_]DiffCase{",
+        "const compare_swap_cases = [_]CompareSwapCase{",
+        3,
+    );
+    try expectRuntimeCaseGroupCardinality(
+        "const compare_swap_cases = [_]CompareSwapCase{",
+        "const add_unless_cases = [_]AddUnlessCase{",
+        2,
+    );
+    try expectRuntimeCaseGroupCardinality(
+        "const add_unless_cases = [_]AddUnlessCase{",
+        "for (add_unless_cases) |case| {",
+        2,
+    );
 }
 
 test "atomic64 diff wrapper keeps roadmap-facing note surfaces aligned with the runtime handoff" {
