@@ -22,6 +22,6 @@
   "phase4_validation_matrix_runtime_atomic64_note_present": true,
   "phase4_validation_matrix_blob_sha": "e2f0331f7e27d5d3a5d918b73c442eb8bda3e9bd",
   "threshold_posture": "threshold_pending_until_runtime_atomic64_scope_widens",
-  "roadmap_gap_summary": "the roadmap target zigux/tests/atomic64_diff.zig is now present as the Phase 4 wrapper and zigux/tests/phase4_build.zig runs through it, but the bounded runtime replay body remains at zigux/tests/runtime_atomic64_diff.zig and shared Phase 4 reviewer surfaces still describe only that runtime path",
-  "ready_next": "refresh scripts/zigux/validate-phase4.py and the shared Phase 4 reviewer-facing notes so zigux/tests/atomic64_diff.zig is treated as the canonical wrapper while zigux/tests/runtime_atomic64_diff.zig remains the single bounded replay body until a broader runtime move is intentional"
+  "roadmap_gap_summary": "the roadmap target zigux/tests/atomic64_diff.zig is now present as the Phase 4 wrapper and zigux/tests/phase4_build.zig runs through it, while zigux/tests/runtime_atomic64_diff.zig remains the shared runtime-backed replay body and shared Phase 4 reviewer surfaces should keep that wrapper handoff explicit",
+  "ready_next": "keep scripts/zigux/validate-phase4.py and the shared Phase 4 reviewer-facing notes aligned so zigux/tests/atomic64_diff.zig stays the canonical wrapper while zigux/tests/runtime_atomic64_diff.zig remains the single bounded replay body until a broader runtime move is intentional"
 }
