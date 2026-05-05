@@ -42,6 +42,13 @@ REQUIRED_SNIPPETS = {
         'const checksum_perf_step = b.step("phase6-checksum-perf", "Run Phase 6 checksum perf gate");',
         'const hexdump_perf_step = b.step("phase6-hexdump-perf", "Run Phase 6 hexdump perf gate");',
     ],
+    "zigux/tests/phase6_base64.zig": [
+        'test "bytes matches canonical padded and unpadded decode sizes"',
+        'test "bytes rejects malformed input and non-canonical tails"',
+        'test "decode exhaustively accepts only canonical padded tails"',
+        'test "decode exhaustively accepts only canonical unpadded tails"',
+        'test "encode and decode roundtrip every short payload across variants"',
+    ],
     "zigux/Makefile": [
         "PHONY += phase6-validate phase6-test phase6-checksum-perf phase6-hexdump-perf phase6",
         "phase6-validate:\n\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase6-shared-surface.py",
@@ -282,6 +289,27 @@ def run_self_test() -> None:
         else:
             raise AssertionError("expected tests README failure")
         tests_readme.write_text(original_tests_readme, encoding="utf-8")
+
+        base64_tests = root / "zigux/tests/phase6_base64.zig"
+        original_base64_tests = base64_tests.read_text(encoding="utf-8")
+        base64_tests.write_text(
+            original_base64_tests.replace(
+                'test "decode exhaustively accepts only canonical unpadded tails"',
+                'test "decode accepts unpadded tails"',
+                1,
+            ),
+            encoding="utf-8",
+        )
+        try:
+            run_checks(root)
+        except ValidationError as exc:
+            if "zigux/tests/phase6_base64.zig" not in str(exc):
+                raise AssertionError(
+                    f"unexpected base64 replay failure: {exc}"
+                ) from exc
+        else:
+            raise AssertionError("expected base64 replay failure")
+        base64_tests.write_text(original_base64_tests, encoding="utf-8")
 
     print("self-test passed")
 
