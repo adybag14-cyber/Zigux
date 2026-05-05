@@ -45,11 +45,13 @@ TEST_REQUIRED_MARKERS = [
 
 REVIEWABILITY_REQUIRED_MARKERS = [
     'test "phase13 devres reviewability packet records the helper-only DMA/scatterlist boundary"',
-    'try std.testing.expectEqualStrings("P13-L06", manifest.lane_key);',
-    'try std.testing.expectEqual(@as(usize, 13), manifest.gaps.len);',
-    'try std.testing.expect(descriptor.provides_arch_phys_wc_token_planning);',
-    '"phase13-devres-arch-phys-wc-token"',
-    '"phase13-devres-live-arch-memtype-state"',
+    'try std.testing.expectEqualStrings("P13-L07", manifest.lane_key);',
+    'try std.testing.expectEqual(@as(usize, 16), manifest.gaps.len);',
+    '"phase13-devres-arch-phys-wc-token-planner"',
+    '"phase13-devres-live-dma-backed-helpers"',
+    '"phase13-devres-live-scatterlist-ownership"',
+    '"blocked_on_dma_state"',
+    '"blocked_on_scatterlist_state"',
 ]
 
 BUILD_REQUIRED_MARKERS = [
@@ -187,11 +189,13 @@ def run_self_test() -> int:
         _assert_only(
             validate(root),
             [
-                'phase13-devres-reviewability:try std.testing.expectEqualStrings("P13-L06", manifest.lane_key);',
-                'phase13-devres-reviewability:try std.testing.expectEqual(@as(usize, 13), manifest.gaps.len);',
-                'phase13-devres-reviewability:try std.testing.expect(descriptor.provides_arch_phys_wc_token_planning);',
-                'phase13-devres-reviewability:"phase13-devres-arch-phys-wc-token"',
-                'phase13-devres-reviewability:"phase13-devres-live-arch-memtype-state"',
+                'phase13-devres-reviewability:try std.testing.expectEqualStrings("P13-L07", manifest.lane_key);',
+                'phase13-devres-reviewability:try std.testing.expectEqual(@as(usize, 16), manifest.gaps.len);',
+                'phase13-devres-reviewability:"phase13-devres-arch-phys-wc-token-planner"',
+                'phase13-devres-reviewability:"phase13-devres-live-dma-backed-helpers"',
+                'phase13-devres-reviewability:"phase13-devres-live-scatterlist-ownership"',
+                'phase13-devres-reviewability:"blocked_on_dma_state"',
+                'phase13-devres-reviewability:"blocked_on_scatterlist_state"',
             ],
             "reviewability_marker_guard_failed",
         )
