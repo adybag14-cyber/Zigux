@@ -163,7 +163,7 @@ required_build_markers = [
     ),
     (
         "build_phase1_bench_step_count",
-        'const bench_step = b.step("bench", "Run Phase 1 helper benchmark smoke");',
+        "const bench_step = b.step(\"bench\", \"Run Phase 1 helper benchmark smoke\");",
         1,
     ),
 ]
@@ -380,6 +380,20 @@ def collect_exact_count_markers(text: str, markers: list[tuple[str, str, int]]) 
     return missing_markers
 
 
+def collect_workflow_markers(text: str) -> list[str]:
+    missing_markers: list[str] = []
+    for marker in required_workflow_markers:
+        if marker not in text:
+            missing_markers.append(f"workflow:{marker}")
+    if WORKFLOW_INSTALL_ZIG_RE.search(text) is None:
+        missing_markers.append(
+            "workflow:python3 scripts/zigux/install-zig.py --channel <explicit> --dest .zig-toolchain"
+        )
+    if "mlugg/setup-zig@" in text:
+        missing_markers.append("workflow:remove mlugg/setup-zig@")
+    return missing_markers
+
+
 def render_marker_fixture(markers: list[tuple[str, str, int]]) -> str:
     return "\n".join(marker for _, marker, _ in markers) + "\n"
 
@@ -516,6 +530,36 @@ def run_self_test() -> None:
         assert WORKFLOW_INSTALL_ZIG_RE.search(
             "python3 scripts/zigux/install-zig.py --dest .zig-toolchain\n"
         ) is None
+
+        valid_workflow = (
+            "\n".join(
+                required_workflow_markers
+                + [
+                    "python3 scripts/zigux/install-zig.py --channel 0.17.0-dev.87+9b177a7d2 --dest .zig-toolchain"
+                ]
+            )
+            + "\n"
+        )
+        assert collect_workflow_markers(valid_workflow) == []
+
+        missing_node24_workflow = valid_workflow.replace(
+            "FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true\n",
+            "",
+            1,
+        )
+        missing_node24_markers = collect_workflow_markers(missing_node24_workflow)
+        assert "workflow:FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true" in missing_node24_markers
+
+        missing_workflow_install = "\n".join(required_workflow_markers) + "\n"
+        missing_workflow_install_markers = collect_workflow_markers(missing_workflow_install)
+        assert (
+            "workflow:python3 scripts/zigux/install-zig.py --channel <explicit> --dest .zig-toolchain"
+            in missing_workflow_install_markers
+        )
+
+        legacy_setup_zig_workflow = valid_workflow + "uses: mlugg/setup-zig@v1\n"
+        legacy_setup_zig_markers = collect_workflow_markers(legacy_setup_zig_workflow)
+        assert "workflow:remove mlugg/setup-zig@" in legacy_setup_zig_markers
 
         missing_phase1_validate = valid_phase1_workflow.replace(
             "python3 scripts/zigux/validate-phase1.py\n",
@@ -718,7 +762,7 @@ def run_self_test() -> None:
         assert collect_missing_files(repo_root_from_arg(str(tmp_root))) == [required_phase1_parity]
 
     print("PHASE1_CLOSURE_VALIDATOR_SELF_TEST=pass")
-    print("PHASE1_CLOSURE_VALIDATOR_SELF_TEST_CASE_COUNT=42")
+    print("PHASE1_CLOSURE_VALIDATOR_SELF_TEST_CASE_COUNT=45")
 
 
 def main() -> int:
@@ -756,21 +800,11 @@ def main() -> int:
     manifest = json.loads((root / "zigux" / "tests" / "fixtures" / "phase1_helper_manifest.json").read_text(encoding="utf-8"))
     bench_expectations = json.loads((root / "zigux" / "tests" / "fixtures" / "phase1_bench_expectations.json").read_text(encoding="utf-8"))
 
-    missing_markers = []
-    for marker in required_workflow_markers:
-        if marker not in workflow:
-            missing_markers.append(f"workflow:{marker}")
-    if WORKFLOW_INSTALL_ZIG_RE.search(workflow) is None:
-        missing_markers.append(
-            "workflow:python3 scripts/zigux/install-zig.py --channel <explicit> --dest .zig-toolchain"
-        )
+    missing_markers = collect_workflow_markers(workflow)
 
     missing_markers.extend(collect_exact_count_markers(closure, required_closure_markers))
     missing_markers.extend(collect_exact_count_markers(tests_build, required_build_markers))
     missing_markers.extend(collect_exact_count_markers(ledger, required_ledger_markers))
-
-    if "mlugg/setup-zig@" in workflow:
-        missing_markers.append("workflow:remove mlugg/setup-zig@")
 
     missing_markers.extend(collect_manifest_markers(manifest, root))
     missing_markers.extend(collect_bench_expectation_markers(bench_expectations))
