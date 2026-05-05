@@ -95,4 +95,15 @@ test "phase3 low-level wrappers keep non-seq-cst orderings reviewable" {
         try std.testing.expect(attempts < 16);
     }
     try std.testing.expectEqual(@as(u32, 19), weak_release_value);
+
+    const weak_release_mismatch = atomic.compareExchangeWeak(
+        u32,
+        &weak_release_value,
+        13,
+        23,
+        .release,
+        .monotonic,
+    );
+    try std.testing.expectEqual(@as(?u32, 19), weak_release_mismatch);
+    try std.testing.expectEqual(@as(u32, 19), weak_release_value);
 }
