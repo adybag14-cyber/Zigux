@@ -95,6 +95,23 @@ test "phase 8 exec-cmd deferred boundary note still matches the live C helper an
     try std.testing.expect(std.mem.indexOf(u8, slice, "`execvp()`") != null);
 }
 
+test "phase 8 exec-cmd checklist hook keeps the parked deferred-exec packet explicit" {
+    const io = std.testing.io;
+    const checklist = try std.Io.Dir.cwd().readFileAlloc(
+        io,
+        "Documentation/zigux/review-checklist.md",
+        std.testing.allocator,
+        .limited(64 * 1024),
+    );
+    defer std.testing.allocator.free(checklist);
+
+    try std.testing.expect(std.mem.indexOf(u8, checklist, "if the change touches the parked Phase 8 `exec-cmd` packet") != null);
+    try std.testing.expect(std.mem.indexOf(u8, checklist, "`make -C zigux phase8-exec-cmd-test`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, checklist, "`make -C zigux phase8-validate`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, checklist, "helper-first, output-stable deferred-exec planning packet") != null);
+    try std.testing.expect(std.mem.indexOf(u8, checklist, "without widening into direct process-launch parity") != null);
+}
+
 test "phase 8 exec-cmd environment wrapper propagates PREFIX, exec path, and PATH updates" {
     const config = exec_cmd.Config{
         .exec_name = "perf",
@@ -280,6 +297,71 @@ test "phase 8 exec-cmd keeps the trailing null slot for empty subcommand tails" 
     try std.testing.expectEqual(@as(usize, 2), prepared.len);
     try std.testing.expectEqualStrings("perf", prepared[0].?);
     try std.testing.expectEqual(@as(?[]const u8, null), prepared[1]);
+}
+
+test "phase 8 exec-cmd models a pure deferred execv-style handoff" {
+    const config = exec_cmd.Config{
+        .exec_name = "perf",
+        .prefix = "/unused",
+        .exec_path = "unused",
+        .exec_path_env = "PERF_EXEC_PATH",
+    };
+
+    var deferred = try exec_cmd.buildDeferredExecvCall(
+        std.testing.allocator,
+        config,
+        &[_][]const u8{ "record", "-a" },
+    );
+    defer deferred.deinit(std.testing.allocator);
+
+    try std.testing.expectEqual(@as(usize, 4), deferred.argv.len);
+    try std.testing.expectEqualStrings("perf", deferred.argv[0].?);
+    try std.testing.expectEqualStrings("record", deferred.argv[1].?);
+    try std.testing.expectEqualStrings("-a", deferred.argv[2].?);
+    try std.testing.expectEqual(@as(?[]const u8, null), deferred.argv[3]);
+}
+
+test "phase 8 exec-cmd models a pure deferred execl-style handoff" {
+    const config = exec_cmd.Config{
+        .exec_name = "perf",
+        .prefix = "/unused",
+        .exec_path = "unused",
+        .exec_path_env = "PERF_EXEC_PATH",
+    };
+
+    var deferred = try exec_cmd.buildDeferredExeclCall(
+        std.testing.allocator,
+        config,
+        "record",
+        &[_]?[]const u8{ "-a", "--stdio", null, "--ignored" },
+    );
+    defer deferred.deinit(std.testing.allocator);
+
+    try std.testing.expectEqual(@as(usize, 5), deferred.argv.len);
+    try std.testing.expectEqualStrings("perf", deferred.argv[0].?);
+    try std.testing.expectEqualStrings("record", deferred.argv[1].?);
+    try std.testing.expectEqualStrings("-a", deferred.argv[2].?);
+    try std.testing.expectEqualStrings("--stdio", deferred.argv[3].?);
+    try std.testing.expectEqual(@as(?[]const u8, null), deferred.argv[4]);
+}
+
+test "phase 8 exec-cmd keeps the deferred execl collector guards before launch exists" {
+    const config = exec_cmd.Config{
+        .exec_name = "perf",
+        .prefix = "/unused",
+        .exec_path = "unused",
+        .exec_path_env = "PERF_EXEC_PATH",
+    };
+
+    try std.testing.expectError(
+        error.MissingNullTerminator,
+        exec_cmd.buildDeferredExeclCall(
+            std.testing.allocator,
+            config,
+            "record",
+            &[_]?[]const u8{ "-a", "--stdio" },
+        ),
+    );
 }
 
 test "phase 8 exec-cmd models the pure execl-style argv collector and guard" {
