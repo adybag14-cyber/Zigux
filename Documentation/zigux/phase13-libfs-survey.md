@@ -46,7 +46,7 @@ The current lane state is:
 - landed `phase13-libfs-directory-emit-helper`
 - landed `phase13-libfs-transaction-buffer-helper`
 - landed `phase13-libfs-transaction-publish-helper`
-- ready-next `phase13-libfs-transaction-read-helper`
+- ready-next `phase13-libfs-transaction-release-helper`
 - blocked `phase13-libfs-dcache-cursor-helpers`
 - blocked `phase13-libfs-inode-and-pseudofs-lifecycle`
 
@@ -73,4 +73,4 @@ This slice does not claim:
 
 ## Next bounded step
 
-Stay in the Phase 13 libfs lane and add one tiny `fs/libfs.zig` transaction read helper next, limited to reviewable `simple_transaction_read()` empty-buffer handling and `simple_read_from_buffer()` handoff before any live release, cursor dentry, inode, or pseudo-filesystem work.
+Stay in the Phase 13 libfs lane and add one tiny `fs/libfs.zig` transaction release helper next, limited to reviewable `simple_transaction_release()` private-data lifetime and release bookkeeping before any live readback, cursor dentry, inode, or pseudo-filesystem work.
