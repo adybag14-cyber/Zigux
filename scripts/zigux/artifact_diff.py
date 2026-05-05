@@ -250,6 +250,13 @@ def run_self_test() -> int:
         assert exit_code == 0
         assert lines == render_result_lines(matched, details)
         covered_cases.append('json_pass')
+        assert_repeatable_case(
+            'json',
+            json_a,
+            json_b,
+            True,
+            render_result_lines(matched, details),
+        )
 
         json_b.write_text('{"alpha": 1, "beta": [2, 4]}\n', encoding='utf-8', newline='\n')
         matched, details = compare_artifacts('json', json_a, json_b)
@@ -402,6 +409,13 @@ def run_self_test() -> int:
         assert exit_code == 0
         assert lines == render_result_lines(matched, details)
         covered_cases.append('sha256_pass')
+        assert_repeatable_case(
+            'sha256',
+            blob_a,
+            blob_b,
+            True,
+            render_result_lines(matched, details),
+        )
 
         blob_b.write_bytes(b'zigux-artifact-DRIFT')
         matched, details = compare_artifacts('sha256', blob_a, blob_b)
@@ -477,6 +491,13 @@ def run_self_test() -> int:
         assert exit_code == 1
         assert lines == render_result_lines(matched, details)
         covered_cases.append('text_missing_both')
+        assert_repeatable_case(
+            'text',
+            missing,
+            other_missing,
+            False,
+            render_result_lines(matched, details),
+        )
 
         matched, details = compare_artifacts('sha256', missing, blob_a)
         assert not matched
