@@ -35,15 +35,18 @@ This current slice keeps the work bounded to runtime-safe parsing helpers that:
 2. run the dedicated cmdline helper replay
 - `zig test zigux/tests/phase7_cmdline.zig`
 
-3. run the dedicated cmdline survey gate
+3. keep the serialized `next_arg()` edge-fixture layer explicit
+- `zigux/tests/fixtures/phase7_cmdline_next_arg_vectors.zig`
+
+4. run the dedicated cmdline survey gate
 - `zig test zigux/tests/phase7_cmdline_survey.zig`
 
-4. keep the shared validator-first packet explicit
+5. keep the shared validator-first packet explicit
 - `python3 scripts/zigux/validate-phase7.py`
 - `python3 scripts/zigux/check-phase7-make-wrapper.py`
 - `make -C zigux phase7-validate`
 
-5. run the shared Phase 7 helper gate
+6. run the shared Phase 7 helper gate
 - `zig build test --build-file zigux/tests/phase7_build.zig --summary all`
 - `make -C zigux phase7`
 
@@ -66,7 +69,7 @@ The current tests check:
 - exact bare-option matching for comma-delimited flags
 - C-style stop-at-NUL handling for bare-option scans
 - serialized `next_arg()` edge cases covering quoted values, quoted bare tokens, empty quoted or whitespace-only values, unquoted punctuation-rich values, first-equals splitting, leading-equals sentinel handling, unterminated quoted values, mixed-whitespace rest trimming, and empty-rest termination
-- the dedicated survey gate plus the shared `validate-phase7.py`, `check-phase7-make-wrapper.py`, `phase7_build.zig`, and `make -C zigux phase7-validate` plus `make -C zigux phase7` routes keep the roadmap anchor, focused helper replay, and Linux-style validator-first packet aligned around the same parked cmdline slice
+- the dedicated survey gate, the committed `zigux/tests/fixtures/phase7_cmdline_next_arg_vectors.zig` fixture module, and the shared `validate-phase7.py`, `check-phase7-make-wrapper.py`, `phase7_build.zig`, and `make -C zigux phase7-validate` plus `make -C zigux phase7` routes keep the roadmap anchor, serialized `next_arg()` replay, focused helper replay, and Linux-style validator-first packet aligned around the same parked cmdline slice
 
 ## Non-goals
 
