@@ -4,7 +4,7 @@ This document tracks the bounded Phase 8 userspace-adjacent tooling survey for Z
 
 ## Status
 
-- `PHASE8_STATUS=active`
+- `PHASE8_STATUS=parked`
 - `PHASE8_SLICE=libbpf-segment-survey`
 - scope: segment manifest plus three landed helper-first starter slices
 - product boundary:
