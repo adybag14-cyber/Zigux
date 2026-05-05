@@ -62,7 +62,7 @@ test "phase10 virtio ring survey manifest records the live queue-wrapper gap" {
     try std.testing.expect(manifest.survey_summary.preexisting_phase10_core_doc_present);
     try std.testing.expect(manifest.survey_summary.preexisting_virtio_ring_zig_present);
     try std.testing.expect(manifest.survey_summary.preexisting_virtio_ring_doc_present);
-    try std.testing.expect(manifest.gaps.len >= 8);
+    try std.testing.expect(manifest.gaps.len >= 9);
 
     var starter_landed_count: usize = 0;
     var ready_next_count: usize = 0;
@@ -71,6 +71,7 @@ test "phase10 virtio ring survey manifest records the live queue-wrapper gap" {
     var saw_used_buffer_polling = false;
     var saw_callback_enable_helper = false;
     var saw_callback_delay_helper = false;
+    var saw_broken_queue_poll_guard = false;
     var saw_mmio_register_landed = false;
     var saw_mmio_lifecycle_blocker = false;
     var saw_ring_slice_note = false;
@@ -117,6 +118,14 @@ test "phase10 virtio ring survey manifest records the live queue-wrapper gap" {
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "virtqueue_enable_cb_delayed()") != null);
         }
 
+        if (std.mem.eql(u8, gap.id, "phase10-broken-queue-poll-guard")) {
+            saw_broken_queue_poll_guard = true;
+            try std.testing.expectEqualStrings("starter_landed", gap.status);
+            try std.testing.expectEqualStrings("drivers/virtio/virtio_ring.zig", gap.zigux_destination);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "marked broken") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "callback re-enable") != null);
+        }
+
         if (std.mem.eql(u8, gap.id, "phase10-virtio-core-lab-starter")) {
             saw_core_progress_note = true;
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "descriptor-shape metadata") != null);
@@ -149,7 +158,7 @@ test "phase10 virtio ring survey manifest records the live queue-wrapper gap" {
         }
     }
 
-    try std.testing.expect(starter_landed_count >= 9);
+    try std.testing.expect(starter_landed_count >= 10);
     try std.testing.expectEqual(@as(usize, 0), ready_next_count);
     try std.testing.expectEqual(@as(usize, 1), blocked_count);
     try std.testing.expect(saw_core_progress_note);
@@ -157,6 +166,7 @@ test "phase10 virtio ring survey manifest records the live queue-wrapper gap" {
     try std.testing.expect(saw_used_buffer_polling);
     try std.testing.expect(saw_callback_enable_helper);
     try std.testing.expect(saw_callback_delay_helper);
+    try std.testing.expect(saw_broken_queue_poll_guard);
     try std.testing.expect(saw_mmio_register_landed);
     try std.testing.expect(saw_mmio_lifecycle_blocker);
     try std.testing.expect(saw_ring_slice_note);
