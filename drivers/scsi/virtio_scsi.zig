@@ -78,6 +78,22 @@ pub const RecoveryRestoreSummary = struct {
     reruns_host_scan: bool,
 };
 
+pub const RecoveryRestoreQueueRebindSummary = struct {
+    anchor: []const u8,
+    control_queue_index: u16,
+    event_queue_index: u16,
+    first_default_queue_index: u16,
+    last_default_queue_index: u16,
+    default_queue_count: u16,
+    first_poll_queue_index: ?u16,
+    last_poll_queue_index: ?u16,
+    poll_queue_count: u16,
+    total_queues: u16,
+    recreates_control_and_event_queues: bool,
+    recreates_request_queues_before_device_ready: bool,
+    defers_event_buffers_until_after_device_ready: bool,
+};
+
 pub const VirtioScsiQueueLab = struct {
     const Self = @This();
 
@@ -203,6 +219,38 @@ pub const VirtioScsiQueueLab = struct {
             .device_ready_before_event_rearm = true,
             .preserves_scsi_host_registration = true,
             .reruns_host_scan = false,
+        };
+    }
+
+    pub fn recoveryRestoreQueueRebindSummary(self: *const Self) !RecoveryRestoreQueueRebindSummary {
+        if (!self.transport_frozen) {
+            return error.TransportNotFrozen;
+        }
+
+        const layout = self.frozen_layout orelse return error.QueueLayoutUnavailable;
+        const last_default_queue_index = try checkedAddU16(
+            layout.first_request_queue_index,
+            layout.default_queues - 1,
+        );
+        const last_poll_queue_index = if (layout.first_poll_queue_index) |first_poll_queue_index|
+            try checkedAddU16(first_poll_queue_index, layout.poll_queues - 1)
+        else
+            null;
+
+        return .{
+            .anchor = descriptor().anchor,
+            .control_queue_index = layout.control_queue_index,
+            .event_queue_index = layout.event_queue_index,
+            .first_default_queue_index = layout.first_request_queue_index,
+            .last_default_queue_index = last_default_queue_index,
+            .default_queue_count = layout.default_queues,
+            .first_poll_queue_index = layout.first_poll_queue_index,
+            .last_poll_queue_index = last_poll_queue_index,
+            .poll_queue_count = layout.poll_queues,
+            .total_queues = layout.total_queues,
+            .recreates_control_and_event_queues = true,
+            .recreates_request_queues_before_device_ready = true,
+            .defers_event_buffers_until_after_device_ready = true,
         };
     }
 
