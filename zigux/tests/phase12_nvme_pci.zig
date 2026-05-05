@@ -55,6 +55,37 @@ test "phase12 nvme pci separates queue footprint from host DMA when CMB backs SQ
     try std.testing.expectEqual(@as(u32, 0), recovery.reset_generation);
 }
 
+test "phase12 nvme pci plans PRP buffer shapes without claiming live DMA setup" {
+    var lab = try nvme_pci.NvmePciQueueLab.init(4096, 8);
+
+    const single_page = try lab.planPrpBufferShape(512, 128);
+    try std.testing.expectEqual(@as(u32, 512), single_page.total_transfer_bytes);
+    try std.testing.expectEqual(@as(u32, 128), single_page.first_page_offset);
+    try std.testing.expectEqual(@as(u32, 512), single_page.first_prp_bytes);
+    try std.testing.expectEqual(@as(u32, 4096), single_page.rounded_span_bytes);
+    try std.testing.expectEqual(@as(u16, 1), single_page.spanned_pages);
+    try std.testing.expectEqual(@as(u16, 0), single_page.tail_page_count);
+    try std.testing.expect(!single_page.uses_prp_list);
+    try std.testing.expectEqual(@as(u16, 0), single_page.prp_list_entries);
+    try std.testing.expectEqual(@as(u16, 512), single_page.prp_list_capacity);
+
+    const multi_page = try lab.planPrpBufferShape(9000, 128);
+    try std.testing.expectEqual(@as(u32, 3968), multi_page.first_prp_bytes);
+    try std.testing.expectEqual(@as(u32, 12288), multi_page.rounded_span_bytes);
+    try std.testing.expectEqual(@as(u16, 3), multi_page.spanned_pages);
+    try std.testing.expectEqual(@as(u16, 2), multi_page.tail_page_count);
+    try std.testing.expect(multi_page.uses_prp_list);
+    try std.testing.expectEqual(@as(u16, 1), multi_page.prp_list_entries);
+}
+
+test "phase12 nvme pci rejects invalid PRP offsets and oversized list shapes" {
+    var lab = try nvme_pci.NvmePciQueueLab.init(4096, 8);
+
+    try std.testing.expectError(error.InvalidTransferSize, lab.planPrpBufferShape(0, 0));
+    try std.testing.expectError(error.InvalidPrpOffset, lab.planPrpBufferShape(4096, 4096));
+    try std.testing.expectError(error.PrpListTooLong, lab.planPrpBufferShape(4096 * 515, 0));
+}
+
 test "phase12 nvme pci rejects invalid queue geometry and excessive io queue plans" {
     try std.testing.expectError(error.InvalidPageSize, nvme_pci.NvmePciQueueLab.init(2048, 8));
     try std.testing.expectError(error.InvalidDoorbellStride, nvme_pci.NvmePciQueueLab.init(4096, 6));
