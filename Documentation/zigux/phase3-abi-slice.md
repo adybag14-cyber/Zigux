@@ -46,6 +46,11 @@ It is a small substrate that makes future ports measurable:
 3. run Zig substrate tests
 - `zig build phase3-test --build-file zigux/tests/build.zig`
 
+4. rerun the validator-support packet without duplicating the default route
+- `python3 scripts/zigux/validate_phase3_selftest.py`
+- `make -C zigux phase3-selftest`
+- focused support-script safety check only; `make -C zigux phase3-validate` already invokes the underlying helper self-tests directly.
+
 - `PHASE3_VALIDATE_GATE=python3 scripts/zigux/validate-phase3.py`
 - `PHASE3_INTEROP_GATE=python3 scripts/zigux/run-phase3-checks.py --slug abi`
 - `PHASE3_TEST_GATE=zig build phase3-test --build-file zigux/tests/build.zig`
