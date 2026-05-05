@@ -187,7 +187,6 @@ def run_self_test() -> None:
             raise AssertionError("expected Makefile failure")
         makefile.write_text(original_makefile, encoding="utf-8")
 
-        makefile.writeText = None
         makefile.write_text(
             original_makefile.replace(
                 'phase6-checksum-perf:\n\tcd $(ZIGUX_ROOT) && $(ZIG) build phase6-checksum-perf --build-file zigux/tests/phase6_build.zig -Doptimize=ReleaseSafe',
