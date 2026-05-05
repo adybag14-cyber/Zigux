@@ -29,6 +29,21 @@
         "tail_and_clamped_first",
         "tail_and_clamped_next"
       ]
+    },
+    "tools/lib/string.zig": {
+      "helper_test_anchors": [
+        "test \"strtobool accepts common Linux forms\"",
+        "test \"strlcpy copies and returns the source length\"",
+        "test \"skip trim remove and replace spaces work in place\"",
+        "test \"memdup and memchrInv preserve byte content\""
+      ],
+      "phase1_helper_replay_anchor": "test \"phase 1 string replaceChar stops at embedded NUL\"",
+      "parity_fixture_keys": [
+        "replace_char",
+        "replace_char_end",
+        "memchr_inv_index",
+        "memchr_inv_none"
+      ]
     }
   }
 }
