@@ -48,12 +48,14 @@ REQUIRED_WORKFLOW_MARKERS = [
 REQUIRED_DOC_MARKERS = [
     "Current Phase 4 use",
     "scripts/zigux/artifact_diff.py",
+    "scripts/zigux/check-phase4-gate-evidence.py",
     "zigux/tests/atomic64_diff.zig",
     "zigux/tests/runtime_atomic64_diff.zig",
     "zigux/tests/bitmap_diff.zig",
     "zigux/tests/phase4_bitmap_live_helper_replay.zig",
     "zigux/tests/phase4_build.zig",
     "scripts/zigux/validate-phase4.py",
+    "Documentation/zigux/phase4-gate-evidence.md",
     "Documentation/zigux/phase4-validation-matrix.md",
 ]
 REQUIRED_PHASE4_GATE_EVIDENCE_MARKERS = [
@@ -619,6 +621,7 @@ def _write_phase4_fixture_docs(root: Path) -> None:
                 "",
                 "Current Phase 4 use",
                 "- `scripts/zigux/artifact_diff.py`",
+                "- `scripts/zigux/check-phase4-gate-evidence.py` and `Documentation/zigux/phase4-gate-evidence.md` keep the dedicated exact-readback companion packet explicit beside the validator-backed rollback surfaces.",
                 "- `zigux/tests/atomic64_diff.zig`",
                 "- `zigux/tests/runtime_atomic64_diff.zig`",
                 "- `zigux/tests/bitmap_diff.zig`",
@@ -816,6 +819,20 @@ def run_self_test() -> int:
         assert run_phase4_gate_evidence_self_test_check(root) == []
         assert run_phase4_runtime_atomic64_packet_check(root) == []
 
+        artifact_doc_path = root / "Documentation/zigux/artifact-diff.md"
+        _write(
+            artifact_doc_path,
+            artifact_doc_path.read_text(encoding="utf-8").replace(
+                "scripts/zigux/check-phase4-gate-evidence.py",
+                "scripts/zigux/missing-phase4-gate-check.py",
+                1,
+            ),
+        )
+        assert validate_root(root) == [
+            "doc:scripts/zigux/check-phase4-gate-evidence.py"
+        ]
+
+        _write_phase4_fixture_docs(root)
         review_checklist_path = root / "Documentation/zigux/review-checklist.md"
         _write(
             review_checklist_path,
