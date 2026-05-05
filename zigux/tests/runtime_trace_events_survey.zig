@@ -128,9 +128,27 @@ test "phase 9 runtime trace-events survey manifest records the landed loader sca
     try std.testing.expect(saw_live_loader_blocker);
 }
 
-test "phase 9 runtime trace-events survey keeps loader-backed shared build coverage explicit" {
+test "phase 9 runtime trace-events survey keeps the manifest-backed surveyed commit and loader boundary explicit" {
     var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
     defer io_instance.deinit();
+
+    const manifest_json = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "zigux/tests/runtime_trace_events_manifest.json",
+        std.testing.allocator,
+        .limited(32 * 1024),
+    );
+    defer std.testing.allocator.free(manifest_json);
+
+    const parsed = try std.json.parseFromSlice(Manifest, std.testing.allocator, manifest_json, .{});
+    defer parsed.deinit();
+
+    const surveyed_commit_marker = try std.fmt.allocPrint(
+        std.testing.allocator,
+        "`PHASE9_SURVEYED_COMMIT={s}`",
+        .{parsed.value.surveyed_commit},
+    );
+    defer std.testing.allocator.free(surveyed_commit_marker);
 
     const survey_note = try std.Io.Dir.cwd().readFileAlloc(
         io_instance.io(),
@@ -164,9 +182,12 @@ test "phase 9 runtime trace-events survey keeps loader-backed shared build cover
     );
     defer std.testing.allocator.free(phase9_build);
 
+    try std.testing.expectEqual(@as(usize, 1), std.mem.count(u8, survey_note, surveyed_commit_marker));
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "shared `zigux/tests/phase9_build.zig` coverage for the trace-events starter lane") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "the current loader scaffold now records explicit tracepoint register and unregister API names") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "the no-substrate release path without claiming a real shared runtime loader already exists") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "the live repo now also carries `zigux/kernel/runtime_loader.zig` as the shared request surface for the bounded Phase 9 loader-handoff packet") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "the trace-events starter still stops at the sample-side loader scaffold and the no-substrate release path instead of claiming a real module-loading substrate") != null);
 
     try std.testing.expect(std.mem.indexOf(u8, module_slice, "a loader-handoff scaffold") != null);
     try std.testing.expect(std.mem.indexOf(u8, module_slice, "samples/zigux/runtime_trace_events_loader.zig") != null);
