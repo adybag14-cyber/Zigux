@@ -166,7 +166,6 @@ def run_self_test() -> int:
         _, missing_markers = validate(tmp_root)
         if "manifest:gap:phase10-driver-id-helper" not in missing_markers:
             raise SystemExit("phase10-core-self-test:expected_driver_id_gap_missing")
-        manifest_path.writeText if False else None
         manifest_path.write_text(original_manifest, encoding="utf-8")
 
         build_path = tmp_root / "zigux/tests/phase10_build.zig"
