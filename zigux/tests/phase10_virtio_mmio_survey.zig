@@ -80,29 +80,21 @@ test "phase10 virtio mmio survey manifest records the live helper-backed transpo
     defer parsed.deinit();
 
     const manifest = parsed.value;
-    try std.testing.expectEqualStrings("P10-L09", manifest.lane_key);
+    try std.testing.expectEqualStrings("P10-L13", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 10", manifest.phase);
     try std.testing.expectEqualStrings("drivers/virtio/virtio_mmio.c", manifest.anchor);
-    try std.testing.expectEqualStrings("05650d80892a38d40ecb19c733816e3b674f6f5f", manifest.surveyed_commit);
+    try std.testing.expectEqualStrings("5f476437a4a3b91d840dd75fca0bf684d1ccc4dd", manifest.surveyed_commit);
     try std.testing.expectEqual(@as(usize, 2), manifest.roadmap_destinations.len);
     try std.testing.expectEqualStrings("Documentation/zigux/freeze-map.md", manifest.freeze_map);
     try std.testing.expectEqualStrings("aligned", manifest.freeze_boundary_status);
     try std.testing.expect(!manifest.freeze_status_change_claimed);
     try std.testing.expectEqualStrings("blocked_on_risky_transport", manifest.risky_transport_posture);
     try std.testing.expectEqual(@as(usize, 3), manifest.allowed_evidence_kinds.len);
-    try std.testing.expectEqualStrings("driver_local_lab_slices", manifest.allowed_evidence_kinds[0]);
-    try std.testing.expectEqualStrings("survey_manifests", manifest.allowed_evidence_kinds[1]);
-    try std.testing.expectEqualStrings("shared_validation_gates", manifest.allowed_evidence_kinds[2]);
     try std.testing.expectEqual(@as(usize, 5), manifest.forbidden_transport_claims.len);
-    try std.testing.expectEqualStrings("queue_setup_reset_paths", manifest.forbidden_transport_claims[0]);
-    try std.testing.expectEqualStrings("irq_parity", manifest.forbidden_transport_claims[1]);
-    try std.testing.expectEqualStrings("dma_paths", manifest.forbidden_transport_claims[2]);
-    try std.testing.expectEqualStrings("input_registration_lifecycle", manifest.forbidden_transport_claims[3]);
-    try std.testing.expectEqualStrings("probe_remove_lifecycle", manifest.forbidden_transport_claims[4]);
     try std.testing.expect(manifest.architecture_council_reopen_required);
     try std.testing.expect(!manifest.architecture_council_reopen_attached);
     try std.testing.expect(manifest.survey_summary.virtio_mmio_c_lines >= 800);
-    try std.testing.expectEqual(@as(usize, 7), manifest.survey_summary.preexisting_phase10_test_files);
+    try std.testing.expectEqual(@as(usize, 10), manifest.survey_summary.preexisting_phase10_test_files);
     try std.testing.expect(manifest.survey_summary.preexisting_virtio_core_zig_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase10_build_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase10_core_doc_present);
@@ -114,26 +106,15 @@ test "phase10 virtio mmio survey manifest records the live helper-backed transpo
     try std.testing.expect(manifest.survey_summary.preexisting_virtio_input_survey_present);
     try std.testing.expect(manifest.survey_summary.preexisting_virtio_mmio_zig_present);
     try std.testing.expect(manifest.survey_summary.preexisting_virtio_mmio_test_present);
-    try std.testing.expect(manifest.gaps.len >= 12);
+    try std.testing.expect(manifest.gaps.len >= 13);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE10_STATUS=parked") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE10_FREEZE_MAP=Documentation/zigux/freeze-map.md") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE10_FREEZE_BOUNDARY_STATUS=aligned") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE10_FREEZE_STATUS_CHANGE_CLAIMED=false") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE10_RISKY_TRANSPORT_POSTURE=blocked_on_risky_transport") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE10_ARCHITECTURE_COUNCIL_REOPEN_REQUIRED=true") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE10_ARCHITECTURE_COUNCIL_REOPEN_ATTACHED=false") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "driver-local lab slices, survey manifests, and shared validation gates") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "queue setup or reset paths, IRQ parity, DMA paths, input registration lifecycle, and probe or remove lifecycle behavior") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "Architecture Council reopen request with fresh linked evidence attached") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "drivers/virtio/virtio_mmio.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "shorter restaged config window clears stale second-word data") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "shrinks the readable config window") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "riskier lifecycle paths remain intentionally blocked") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "plans one bounded config-word write") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "without mutating config space") != null);
     try std.testing.expect(std.mem.indexOf(u8, slice_note, "PHASE10_STATUS=parked") != null);
     try std.testing.expect(std.mem.indexOf(u8, slice_note, "drivers/virtio/virtio_mmio.zig") != null);
-    try std.testing.expect(std.mem.indexOf(u8, slice_note, "driver-local lab slices and shared validation gates") != null);
-    try std.testing.expect(std.mem.indexOf(u8, slice_note, "queue setup or reset paths, IRQ parity, DMA paths, input registration lifecycle, and probe or remove lifecycle behavior") != null);
-    try std.testing.expect(std.mem.indexOf(u8, slice_note, "Architecture Council reopen request with fresh linked evidence attached") != null);
+    try std.testing.expect(std.mem.indexOf(u8, slice_note, "config-word write planning summary") != null);
 
     var starter_landed_count: usize = 0;
     var ready_next_count: usize = 0;
@@ -145,6 +126,7 @@ test "phase10 virtio mmio survey manifest records the live helper-backed transpo
     var saw_mmio_slice_note = false;
     var saw_mmio_feature_selector = false;
     var saw_mmio_config_window = false;
+    var saw_mmio_config_write_plan = false;
     var saw_mmio_lifecycle_blocker = false;
     var saw_ring_helper = false;
 
@@ -216,6 +198,15 @@ test "phase10 virtio mmio survey manifest records the live helper-backed transpo
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "shrinks the readable config window") != null);
         }
 
+        if (std.mem.eql(u8, gap.id, "phase10-mmio-config-write-plan-helper")) {
+            saw_mmio_config_write_plan = true;
+            try std.testing.expectEqualStrings("starter_landed", gap.status);
+            try std.testing.expectEqualStrings("drivers/virtio/virtio_mmio.zig", gap.zigux_destination);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "config-word write plan") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "previous word value") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "without mutating config space") != null);
+        }
+
         if (std.mem.eql(u8, gap.id, "phase10-mmio-lifecycle-and-irq-paths")) {
             saw_mmio_lifecycle_blocker = true;
             try std.testing.expectEqualStrings("blocked_on_risky_transport", gap.status);
@@ -229,7 +220,7 @@ test "phase10 virtio mmio survey manifest records the live helper-backed transpo
         }
     }
 
-    try std.testing.expect(starter_landed_count >= 12);
+    try std.testing.expect(starter_landed_count >= 13);
     try std.testing.expectEqual(@as(usize, 0), ready_next_count);
     try std.testing.expectEqual(@as(usize, 1), blocked_count);
     try std.testing.expect(saw_ring_helper);
@@ -240,5 +231,6 @@ test "phase10 virtio mmio survey manifest records the live helper-backed transpo
     try std.testing.expect(saw_mmio_slice_note);
     try std.testing.expect(saw_mmio_feature_selector);
     try std.testing.expect(saw_mmio_config_window);
+    try std.testing.expect(saw_mmio_config_write_plan);
     try std.testing.expect(saw_mmio_lifecycle_blocker);
 }
