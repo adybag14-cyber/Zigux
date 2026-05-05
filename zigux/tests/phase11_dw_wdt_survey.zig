@@ -52,7 +52,7 @@ test "phase11 dw_wdt survey manifest records the landed registration handoff and
     defer parsed.deinit();
 
     const manifest = parsed.value;
-    try std.testing.expectEqualStrings("P11-L05", manifest.lane_key);
+    try std.testing.expectEqualStrings("P11-L12", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 11", manifest.phase);
     try std.testing.expectEqualStrings("drivers/watchdog/dw_wdt.c", manifest.anchor);
     try std.testing.expectEqualStrings("0ddb982b08ffa3f1a34bddc0520f50af0b3e346f", manifest.surveyed_commit);
@@ -80,6 +80,7 @@ test "phase11 dw_wdt survey manifest records the landed registration handoff and
     var saw_probe_summary = false;
     var saw_registration_handoff = false;
     var saw_next_platform_step = false;
+    var saw_survey_note = false;
 
     for (manifest.gaps, 0..) |gap, i| {
         try std.testing.expect(gap.id.len > 0);
@@ -105,6 +106,13 @@ test "phase11 dw_wdt survey manifest records the landed registration handoff and
             saw_survey_gate = true;
             try std.testing.expectEqualStrings("zigux/tests/phase11_dw_wdt_survey.zig", gap.zigux_destination);
             try std.testing.expectEqualStrings("starter_landed", gap.status);
+        }
+
+        if (std.mem.eql(u8, gap.id, "phase11-dw-wdt-survey-note")) {
+            saw_survey_note = true;
+            try std.testing.expectEqualStrings("Documentation/zigux/phase11-dw-wdt-survey.md", gap.zigux_destination);
+            try std.testing.expectEqualStrings("starter_landed", gap.status);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "P11-L12") != null);
         }
 
         if (std.mem.eql(u8, gap.id, "phase11-dw-wdt-driver-starter")) {
@@ -170,6 +178,7 @@ test "phase11 dw_wdt survey manifest records the landed registration handoff and
     try std.testing.expectEqual(@as(usize, 1), blocked_count);
     try std.testing.expect(saw_build_gate);
     try std.testing.expect(saw_survey_gate);
+    try std.testing.expect(saw_survey_note);
     try std.testing.expect(saw_driver_gap);
     try std.testing.expect(saw_driver_tests);
     try std.testing.expect(saw_slice_note);
@@ -202,6 +211,7 @@ test "phase11 dw_wdt survey note and validation matrix stay aligned" {
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase11-dw-wdt-validation-matrix.md") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "bounded hardware-validation posture") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "registration-facing handoff") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "P11-L12") != null);
 
     try std.testing.expect(std.mem.indexOf(u8, validation_matrix, "PHASE11_DW_WDT_STATUS=hardware_validation_matrix_landed") != null);
     try std.testing.expect(std.mem.indexOf(u8, validation_matrix, "registrationSummary()") != null);
