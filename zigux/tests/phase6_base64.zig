@@ -43,6 +43,29 @@ test "phase 6 base64 module imports cleanly" {
     _ = base64;
 }
 
+test "phase 6 base64 chars reports exact padded and unpadded lengths" {
+    const cases = [_]struct {
+        len: usize,
+        padding: bool,
+        expected: usize,
+    }{
+        .{ .len = 0, .padding = true, .expected = 0 },
+        .{ .len = 1, .padding = true, .expected = 4 },
+        .{ .len = 2, .padding = true, .expected = 4 },
+        .{ .len = 3, .padding = true, .expected = 4 },
+        .{ .len = 4, .padding = true, .expected = 8 },
+        .{ .len = 0, .padding = false, .expected = 0 },
+        .{ .len = 1, .padding = false, .expected = 2 },
+        .{ .len = 2, .padding = false, .expected = 3 },
+        .{ .len = 3, .padding = false, .expected = 4 },
+        .{ .len = 4, .padding = false, .expected = 6 },
+    };
+
+    for (cases) |case| {
+        try std.testing.expectEqual(case.expected, base64.chars(case.len, case.padding));
+    }
+}
+
 test "phase 6 base64 standard encode parity matches kernel vectors" {
     for (fixtures.standard_cases) |case| {
         try expectEncode(case.input, case.expected, case.padding, .std);
