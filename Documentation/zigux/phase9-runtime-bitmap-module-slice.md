@@ -6,7 +6,7 @@ This document tracks the first bounded Phase 9 runtime bitmap starter under `sam
 
 - `PHASE9_STATUS=active`
 - `PHASE9_SLICE=runtime-bitmap-module-starter`
-- scope: lifecycle starter, bitmap range mutation and copy behavior, bounded differential coverage, dedicated Phase 9 test wiring, and lane-local manifest closure only
+- scope: lifecycle starter, sample-side loader scaffold, bitmap range mutation and copy behavior, bounded differential coverage, dedicated Phase 9 survey and test wiring, and lane-local survey-note plus manifest closure only
 - product boundary:
   - `samples/zigux/runtime_bitmap.zig`
   - `samples/zigux/runtime_bitmap_loader.zig`
@@ -14,13 +14,14 @@ This document tracks the first bounded Phase 9 runtime bitmap starter under `sam
   - `zigux/tests/runtime_bitmap_diff.zig`
   - `zigux/tests/runtime_bitmap_manifest.json`
   - `zigux/tests/runtime_bitmap_survey.zig`
+  - `Documentation/zigux/phase9-runtime-bitmap-survey.md`
   - `zigux/tests/phase9_build.zig`
 
 ## Why this slice exists
 
 The Phase 9 roadmap explicitly names `lib/test_bitmap.c` as a runtime pilot anchor and recommends `zigux/tests/runtime_*` plus `samples/zigux/runtime_*` as the bounded Zigux destinations.
 
-The live repo already had an atomic64 starter under the same Phase 9 review path, but it still had no matching bitmap pilot. This slice lands the smallest honest bitmap follow-on step: a sample-backed lifecycle scaffold that reuses the existing bitmap-view helper without claiming loadable-module parity or broad bitmap API coverage.
+The live repo already had an atomic64 starter under the same Phase 9 review path, but it still had no matching bitmap pilot. This slice now records the smallest honest bitmap follow-on packet: a sample-backed lifecycle scaffold, its sample-side loader handoff, and the dedicated survey and test gates that keep the current sample contract reviewable without claiming loadable-module parity or broad bitmap API coverage.
 
 ## Landed starter surface
 
@@ -30,7 +31,8 @@ The live repo already had an atomic64 starter under the same Phase 9 review path
 - summary checks that reuse `zigux/helpers/bitmap_view.zig` for `first_set`, `first_zero`, and `weight`
 - a table-driven differential gate that replays a few `lib/test_bitmap.c` expectations for set, clear, summary, and copy behavior
 - a tiny sample-side loader handoff scaffold that names bounded entry and exit symbols, captures the handoff bitmap summary, and keeps no-substrate release behavior explicit without claiming a real module loader
-- dedicated Phase 9 tests and manifest coverage wired into the shared `zigux/tests/phase9_build.zig` gate
+- a dedicated survey gate and survey note that keep this runtime bitmap packet explicit as Phase 9 follow-on work rather than a fifth approved Phase 5 sample anchor
+- dedicated Phase 9 tests, survey coverage, and manifest closure wired into the shared `zigux/tests/phase9_build.zig` gate
 
 ## Non-goals
 
