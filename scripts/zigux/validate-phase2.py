@@ -205,6 +205,7 @@ REQUIRED_DOCS_ROOT_MARKERS = [
     "make -C zigux phase2",
 ]
 REQUIRED_REVIEW_MARKERS = [
+    "zigux/tests/README.md",
     "scripts/zigux/check-phase2-tests-readme-alignment.py",
     "scripts/zigux/check-phase2-cross.py",
     "scripts/zigux/check-phase2-cross-selftest-alignment.py",
@@ -216,7 +217,9 @@ REQUIRED_REVIEW_MARKERS = [
 
 def workflow_has_run_marker(workflow_run_lines: list[str], marker: str) -> bool:
     expected = f"run: {marker}"
-    return any(line == expected or line.startswith(expected + " ") for line in workflow_run_lines)
+    if marker.endswith("--target"):
+        return any(line == expected or line.startswith(expected + " ") for line in workflow_run_lines)
+    return expected in workflow_run_lines
 
 
 def validate_root(root: Path) -> list[str]:
@@ -466,7 +469,7 @@ def run_self_test() -> int:
 
         build_self_test_root(root)
         workflow_text = workflow_path.read_text(encoding="utf-8").replace(
-            "python3 scripts/zigux/check-phase2-tests-readme-alignment.py\n",
+            "run: python3 scripts/zigux/check-phase2-tests-readme-alignment.py\n",
             "",
         )
         write_text(workflow_path, workflow_text)
@@ -475,7 +478,7 @@ def run_self_test() -> int:
 
         build_self_test_root(root)
         workflow_text = workflow_path.read_text(encoding="utf-8").replace(
-            "python3 scripts/zigux/check-phase2-cross-selftest-alignment.py --self-test\n",
+            "run: python3 scripts/zigux/check-phase2-cross-selftest-alignment.py --self-test\n",
             "",
         )
         write_text(workflow_path, workflow_text)
@@ -484,7 +487,7 @@ def run_self_test() -> int:
 
         build_self_test_root(root)
         workflow_text = workflow_path.read_text(encoding="utf-8").replace(
-            "python3 scripts/zigux/check-phase2-toolchain-pin-scope.py\n",
+            "run: python3 scripts/zigux/check-phase2-toolchain-pin-scope.py\n",
             "",
         )
         write_text(workflow_path, workflow_text)
@@ -493,6 +496,14 @@ def run_self_test() -> int:
 
         build_self_test_root(root)
         write_text(root / "Documentation/zigux/review-checklist.md", "\n".join(REQUIRED_REVIEW_MARKERS[1:]) + "\n")
+        issues = validate_root(root)
+        assert "review:zigux/tests/README.md" in issues
+
+        build_self_test_root(root)
+        write_text(
+            root / "Documentation/zigux/review-checklist.md",
+            "\n".join(REQUIRED_REVIEW_MARKERS[:1] + REQUIRED_REVIEW_MARKERS[2:]) + "\n",
+        )
         issues = validate_root(root)
         assert "review:scripts/zigux/check-phase2-tests-readme-alignment.py" in issues
 
@@ -507,7 +518,7 @@ def run_self_test() -> int:
         assert any(issue.startswith("guard_marker:") for issue in issues)
 
     print("PHASE2_VALIDATION_SELF_TEST=pass")
-    print("PHASE2_VALIDATION_SELF_TEST_CASE_COUNT=6")
+    print("PHASE2_VALIDATION_SELF_TEST_CASE_COUNT=7")
     return 0
 
 
