@@ -72,7 +72,7 @@ Phase 9 notes
 - `Documentation/zigux/phase9-runtime-trace-events-module-slice.md`
 - `Documentation/zigux/phase9-runtime-trace-events-survey.md`
 - `zigux/tests/phase9_build.zig` and `make -C zigux phase9` now gate the current runtime atomic64, bitmap, trace-events, and kretprobe pilot bundle together, so new Phase 9 runtime work should stay reviewable through that shared lane instead of widening into ad hoc per-slice checks.
-- the current bounded Phase 9 decision is no longer whether the kretprobe lane still needs a starter, a survey gate, or shared build wiring; those pieces plus the landed `samples/zigux/runtime_bitmap_loader.zig` and `samples/zigux/runtime_kretprobe_loader.zig` handoff scaffolds are now in place, so the next follow-up should be whichever small shared runtime loader substrate step can honestly consume those existing bitmap or kretprobe loader plans without widening into a larger runtime-module implementation.
+- the current bounded Phase 9 decision is no longer whether the runtime-pilot lane still needs starter samples, loader-handoff scaffolds, or a shared request surface; `samples/zigux/runtime_atomic64_loader.zig`, `samples/zigux/runtime_bitmap_loader.zig`, `samples/zigux/runtime_kretprobe_loader.zig`, `samples/zigux/runtime_trace_events_loader.zig`, and `zigux/kernel/runtime_loader.zig` are now in place, so the next follow-up should stay inside the smallest shared runtime-loader substrate or validation step that keeps those four handoffs reviewable without widening into a larger runtime-module implementation.
 
 Phase 10 notes
 - `Documentation/zigux/phase10-virtio-core-slice.md`
