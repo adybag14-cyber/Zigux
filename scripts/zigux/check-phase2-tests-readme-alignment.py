@@ -50,6 +50,8 @@ SCRIPTS_README_MARKERS = [
     "check-zig-toolchain.py",
     "install-zig.py",
     "check-phase2-tests-readme-alignment.py",
+    "check-phase2-cross-selftest-alignment.py",
+    "check-phase2-toolchain-pin-scope.py",
     "validate-phase2.py",
     "validate-phase2-closure.py",
     "check-phase2-cross.py",
@@ -104,7 +106,6 @@ def validate_root(root: Path) -> list[str]:
     scripts_readme = (root / "scripts/zigux/README.md").read_text(encoding="utf-8")
     tests_readme = (root / "zigux/tests/README.md").read_text(encoding="utf-8")
     makefile = (root / "zigux/Makefile").read_text(encoding="utf-8")
-
     issues.extend(collect_missing_markers(docs_root, DOCS_ROOT_MARKERS, prefix="docs_root"))
     issues.extend(collect_missing_markers(review, REVIEW_CHECKLIST_MARKERS, prefix="review_checklist"))
     issues.extend(collect_missing_markers(scripts_readme, SCRIPTS_README_MARKERS, prefix="scripts_readme"))
@@ -157,6 +158,23 @@ def run_self_test() -> int:
         assert "makefile:phase2: phase2-validate phase2-tools phase2-kconfig phase2-cross" in issues
 
         build_self_test_root(root)
+        write_text(
+            root / "scripts/zigux/README.md",
+            "\n".join([
+                "check-zig-toolchain.py",
+                "install-zig.py",
+                "check-phase2-tests-readme-alignment.py",
+                "validate-phase2.py",
+                "validate-phase2-closure.py",
+                "check-phase2-cross.py",
+                "check-mk-elfconfig-diff.py",
+            ]) + "\n",
+        )
+        issues = validate_root(root)
+        assert "scripts_readme:check-phase2-cross-selftest-alignment.py" in issues
+        assert "scripts_readme:check-phase2-toolchain-pin-scope.py" in issues
+
+        build_self_test_root(root)
         write_text(root / "scripts/zigux/README.md", "validate-phase2.py\n")
         issues = validate_root(root)
         assert "scripts_readme:check-phase2-tests-readme-alignment.py" in issues
@@ -197,7 +215,7 @@ def run_self_test() -> int:
         assert "missing_file:zigux/tests/fixtures/phase2_cross_targets.json" in issues
 
     print("PHASE2_TESTS_README_ALIGNMENT_SELF_TEST=pass")
-    print("PHASE2_TESTS_README_ALIGNMENT_SELF_TEST_CASE_COUNT=8")
+    print("PHASE2_TESTS_README_ALIGNMENT_SELF_TEST_CASE_COUNT=9")
     return 0
 
 
