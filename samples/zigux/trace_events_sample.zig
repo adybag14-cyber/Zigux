@@ -23,6 +23,11 @@ pub const SampleDescriptor = struct {
     provides_selfcheck: bool,
 };
 
+pub const ReviewContract = struct {
+    focus: []const SampleFocus,
+    non_goals: []const []const u8,
+};
+
 pub const ReplaySummary = struct {
     anchor: []const u8,
     stage_before_replay: SampleStage,
@@ -56,6 +61,22 @@ pub const TraceEventsReferenceSample = struct {
     pub const event_family_count: usize = 6;
     pub const function_callback_family_count: usize = 2;
 
+    pub const sample_review_focus = [_]SampleFocus{
+        .payload_shape,
+        .string_selection,
+        .formatted_message,
+        .conditional_event_families,
+        .function_callback_registration,
+        .ownership_and_lifetime,
+    };
+
+    pub const sample_review_non_goals = [_][]const u8{
+        "CREATE_TRACE_POINTS parity",
+        "tracepoint macro parity from trace-events-sample.h",
+        "kernel thread scheduling or timeout parity",
+        "module registration or unregister wiring parity",
+    };
+
     stage_state: SampleStage = .cold,
     registration_depth: usize = 0,
     total_event_calls: usize = 0,
@@ -80,6 +101,13 @@ pub const TraceEventsReferenceSample = struct {
             .anchor = "samples/trace_events/trace-events-sample.c",
             .requires_runtime_substrate = false,
             .provides_selfcheck = true,
+        };
+    }
+
+    pub fn reviewContract() ReviewContract {
+        return .{
+            .focus = &sample_review_focus,
+            .non_goals = &sample_review_non_goals,
         };
     }
 
@@ -187,14 +215,7 @@ pub const TraceEventsReferenceSample = struct {
             .relative_location_path_checked = self.saw_rel_loc_payload,
             .function_callback_path_checked = self.saw_function_callback_path,
             .registration_balance_restored = self.registration_depth == 0,
-            .checked_focus = &.{
-                .payload_shape,
-                .string_selection,
-                .formatted_message,
-                .conditional_event_families,
-                .function_callback_registration,
-                .ownership_and_lifetime,
-            },
+            .checked_focus = reviewContract().focus,
         };
     }
 
@@ -209,6 +230,24 @@ pub const TraceEventsReferenceSample = struct {
         self.stage_state = .exited;
     }
 };
+
+test "trace-events sample review contract keeps focus and non-goals explicit" {
+    const contract = TraceEventsReferenceSample.reviewContract();
+
+    try std.testing.expectEqual(@as(usize, 6), contract.focus.len);
+    try std.testing.expectEqual(SampleFocus.payload_shape, contract.focus[0]);
+    try std.testing.expectEqual(SampleFocus.string_selection, contract.focus[1]);
+    try std.testing.expectEqual(SampleFocus.formatted_message, contract.focus[2]);
+    try std.testing.expectEqual(SampleFocus.conditional_event_families, contract.focus[3]);
+    try std.testing.expectEqual(SampleFocus.function_callback_registration, contract.focus[4]);
+    try std.testing.expectEqual(SampleFocus.ownership_and_lifetime, contract.focus[5]);
+
+    try std.testing.expectEqual(@as(usize, 4), contract.non_goals.len);
+    try std.testing.expectEqualStrings("CREATE_TRACE_POINTS parity", contract.non_goals[0]);
+    try std.testing.expectEqualStrings("tracepoint macro parity from trace-events-sample.h", contract.non_goals[1]);
+    try std.testing.expectEqualStrings("kernel thread scheduling or timeout parity", contract.non_goals[2]);
+    try std.testing.expectEqualStrings("module registration or unregister wiring parity", contract.non_goals[3]);
+}
 
 test "trace-events sample replay keeps the anchor reviewable and non-runtime" {
     var sample = TraceEventsReferenceSample{};
@@ -232,4 +271,57 @@ test "trace-events sample replay keeps the anchor reviewable and non-runtime" {
     try std.testing.expect(replay.function_callback_path_checked);
     try std.testing.expect(replay.registration_balance_restored);
     try std.testing.expectEqual(@as(usize, 6), replay.checked_focus.len);
+    try std.testing.expectEqual(SampleFocus.payload_shape, replay.checked_focus[0]);
+    try std.testing.expectEqual(SampleFocus.ownership_and_lifetime, replay.checked_focus[5]);
+}
+
+test "trace-events sample keeps payload and callback boundaries explicit" {
+    var module = TraceEventsReferenceSample{};
+
+    try std.testing.expectError(error.InvalidLifecycleTransition, module.replayMainIteration(0));
+    try module.init();
+    try std.testing.expectError(error.InvalidIterationCount, module.replayMainIteration(-1));
+
+    try module.replayMainIteration(4);
+    try std.testing.expectEqual(@as(i32, 1), module.array_payload[0]);
+    try std.testing.expectEqual(@as(i32, 2), module.array_payload[1]);
+    try std.testing.expectEqual(@as(i32, 3), module.array_payload[2]);
+    try std.testing.expectEqual(@as(i32, 4), module.array_payload[3]);
+    try std.testing.expectEqual(@as(i32, 0), module.array_payload[4]);
+    try std.testing.expectEqualStrings("One ring to rule them all", module.selected_string);
+    try std.testing.expectEqualStrings("iter=4", module.formattedMessage());
+    try std.testing.expect(module.saw_vararg_payload);
+    try std.testing.expect(module.saw_rel_loc_payload);
+    try std.testing.expect(module.saw_conditional_path);
+
+    try std.testing.expectError(error.FunctionCallbackNotRegistered, module.replayFunctionIteration(0));
+    try std.testing.expectError(error.RegistrationUnderflow, module.unregisterFunctionCallback());
+    try module.registerFunctionCallback();
+    try module.replayFunctionIteration(3);
+    try std.testing.expectEqual(@as(i32, 3), module.last_function_count);
+    try std.testing.expect(module.saw_function_callback_path);
+    try std.testing.expectEqual(@as(usize, 8), module.total_event_calls);
+    try module.unregisterFunctionCallback();
+    try std.testing.expectEqual(@as(usize, 0), module.registration_depth);
+}
+
+test "trace-events sample makes ownership and teardown boundaries explicit" {
+    var module = TraceEventsReferenceSample{};
+
+    try std.testing.expectEqual(SampleStage.cold, module.stage());
+    try std.testing.expectError(error.InvalidLifecycleTransition, module.runAnchorReplay());
+    try std.testing.expectError(error.InvalidLifecycleTransition, module.exit());
+
+    try module.init();
+    try std.testing.expectEqual(SampleStage.initialized, module.stage());
+    try std.testing.expectError(error.InvalidLifecycleTransition, module.init());
+    try module.registerFunctionCallback();
+    try std.testing.expectError(error.OutstandingRegistration, module.exit());
+    try module.unregisterFunctionCallback();
+    try module.exit();
+    try std.testing.expectEqual(SampleStage.exited, module.stage());
+    try std.testing.expectEqual(@as(usize, 1), module.init_runs);
+    try std.testing.expectEqual(@as(usize, 1), module.exit_runs);
+    try std.testing.expectError(error.InvalidLifecycleTransition, module.replayMainIteration(1));
+    try std.testing.expectError(error.InvalidLifecycleTransition, module.registerFunctionCallback());
 }
