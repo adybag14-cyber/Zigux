@@ -11,6 +11,7 @@ ROOT = SELF_PATH.parents[2] if len(SELF_PATH.parents) >= 3 else SELF_PATH.parent
 
 REQUIRED_FILES = [
     "Documentation/zigux/phase8-libbpf-segment-survey.md",
+    "Documentation/zigux/phase8-perf-buffer-poll-slice.md",
     "scripts/zigux/validate-phase8.py",
     "zigux/Makefile",
     "zigux/tests/phase8_build.zig",
@@ -23,6 +24,13 @@ REQUIRED_MARKERS = {
     "Documentation/zigux/phase8-libbpf-segment-survey.md": [
         "perf-buffer-online-cpu-routing",
         "standalone timer or clockevent helper behavior",
+    ],
+    "Documentation/zigux/phase8-perf-buffer-poll-slice.md": [
+        "perf_buffer__poll(timeout_ms)",
+        "wait-result classification",
+        "ready-buffer processing attempts cannot exceed observed ready events",
+        "no standalone timer helper",
+        "no standalone clockevent helper",
     ],
     "zigux/Makefile": [
         "phase8-validate:",
@@ -113,6 +121,7 @@ def run_self_test() -> None:
         ("missing_validator", "scripts/zigux/validate-phase8.py"),
         ("missing_makefile", "zigux/Makefile"),
         ("missing_phase8_build", "zigux/tests/phase8_build.zig"),
+        ("missing_phase8_perf_buffer_poll_note", "Documentation/zigux/phase8-perf-buffer-poll-slice.md"),
         ("missing_phase8_perf_buffer_poll_test", "zigux/tests/phase8_perf_buffer_poll.zig"),
         ("missing_perf_buffer_poll_helper", "tools/lib/bpf/zigux_segments/perf_buffer_poll.zig"),
     ]
@@ -122,6 +131,7 @@ def run_self_test() -> None:
         ("makefile_self_test_hook", "zigux/Makefile", "scripts/zigux/validate-phase8.py --self-test", "", "zigux/Makefile: scripts/zigux/validate-phase8.py --self-test"),
         ("makefile_phase8_wrapper", "zigux/Makefile", "phase8: phase8-validate phase8-test", "phase8: phase8-test", "zigux/Makefile: phase8: phase8-validate phase8-test"),
         ("survey_timer_boundary", "Documentation/zigux/phase8-libbpf-segment-survey.md", "standalone timer or clockevent helper behavior", "", "Documentation/zigux/phase8-libbpf-segment-survey.md: standalone timer or clockevent helper behavior"),
+        ("perf_buffer_poll_note_boundary", "Documentation/zigux/phase8-perf-buffer-poll-slice.md", "ready-buffer processing attempts cannot exceed observed ready events", "", "Documentation/zigux/phase8-perf-buffer-poll-slice.md: ready-buffer processing attempts cannot exceed observed ready events"),
         ("segments_test_timer_boundary", "zigux/tests/phase8_libbpf_segments.zig", "standalone timer or clockevent helper behavior", "", "zigux/tests/phase8_libbpf_segments.zig: standalone timer or clockevent helper behavior"),
         ("phase8_build_perf_buffer_poll_source", "zigux/tests/phase8_build.zig", "\"phase8_perf_buffer_poll.zig\"", "\"phase8_perf_buffer_poll_drift.zig\"", "zigux/tests/phase8_build.zig: \"phase8_perf_buffer_poll.zig\""),
         ("phase8_build_perf_buffer_poll_test_name", "zigux/tests/phase8_build.zig", "phase8-perf-buffer-poll-tests", "phase8-perf-buffer-tests", "zigux/tests/phase8_build.zig: phase8-perf-buffer-poll-tests"),
@@ -146,7 +156,7 @@ def run_self_test() -> None:
             write_fixture_root(tmp_root)
 
     print("PHASE8_VALIDATOR_SELF_TEST=pass")
-    print("PHASE8_VALIDATOR_SELF_TEST_CASE_COUNT=15")
+    print("PHASE8_VALIDATOR_SELF_TEST_CASE_COUNT=17")
 
 
 def main() -> int:
