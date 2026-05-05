@@ -33,7 +33,7 @@ Phase 5 notes
 - the Phase 5 notes now carry all four roadmap sample anchors as bounded `samples/zigux/` reference readings, while still keeping the separate Phase 9 runtime pilot tranche explicit for the same `trace-events` and `kretprobe` families.
 
 Phase 4 notes
-- `python3 scripts/zigux/validate-phase4.py` keeps the live `zigux/tests/runtime_atomic64_diff.zig` and `zigux/tests/bitmap_diff.zig` rollback gates wired through the shared `zigux/tests/phase4_build.zig` entrypoint and the bootstrap workflow.
+- `python3 scripts/zigux/validate-phase4.py` keeps the live `zigux/tests/atomic64_diff.zig` roadmap wrapper, its shared `zigux/tests/runtime_atomic64_diff.zig` backing replay, and `zigux/tests/bitmap_diff.zig` wired through the shared `zigux/tests/phase4_build.zig` entrypoint and the bootstrap workflow.
 - `Documentation/zigux/phase4-validation-matrix.md` records the current Phase 4 rollback owners, threshold posture, and lab or CI replay matrix.
 
 Phase 6 notes
