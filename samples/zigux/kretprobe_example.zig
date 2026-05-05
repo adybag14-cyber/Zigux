@@ -43,6 +43,18 @@ pub const ReplaySummary = struct {
     checked_focus: []const SampleFocus,
 };
 
+pub const LifecycleGuardSummary = struct {
+    anchor: []const u8,
+    symbol_name: []const u8,
+    stage_before_init: SampleStage,
+    stage_after_init: SampleStage,
+    pre_init_anchor_rejected: bool,
+    pre_init_exit_rejected: bool,
+    double_init_rejected: bool,
+    post_init_retarget_rejected: bool,
+    init_runs: usize,
+};
+
 pub const KretprobeExampleSample = struct {
     const Self = @This();
     const InstanceData = struct {
@@ -177,6 +189,56 @@ pub const KretprobeExampleSample = struct {
                 .missed_summary,
                 .ownership_and_lifetime,
             },
+        };
+    }
+
+    pub fn runLifecycleGuardReplay(self: *Self) !LifecycleGuardSummary {
+        if (self.stage() != .cold) return error.InvalidLifecycleTransition;
+
+        var pre_init_anchor_rejected = false;
+        if (self.runAnchorReplay()) |_| {
+            return error.ExpectedLifecycleGuardRejection;
+        } else |err| switch (err) {
+            error.InvalidLifecycleTransition => pre_init_anchor_rejected = true,
+            else => return err,
+        }
+
+        var pre_init_exit_rejected = false;
+        if (self.exit()) |_| {
+            return error.ExpectedLifecycleGuardRejection;
+        } else |err| switch (err) {
+            error.InvalidLifecycleTransition => pre_init_exit_rejected = true,
+            else => return err,
+        }
+
+        try self.init();
+
+        var double_init_rejected = false;
+        if (self.init()) |_| {
+            return error.ExpectedLifecycleGuardRejection;
+        } else |err| switch (err) {
+            error.InvalidLifecycleTransition => double_init_rejected = true,
+            else => return err,
+        }
+
+        var post_init_retarget_rejected = false;
+        if (self.retargetSymbol("do_sys_openat2")) |_| {
+            return error.ExpectedLifecycleGuardRejection;
+        } else |err| switch (err) {
+            error.InvalidLifecycleTransition => post_init_retarget_rejected = true,
+            else => return err,
+        }
+
+        return .{
+            .anchor = descriptor().anchor,
+            .symbol_name = self.symbol_name,
+            .stage_before_init = .cold,
+            .stage_after_init = self.stage(),
+            .pre_init_anchor_rejected = pre_init_anchor_rejected,
+            .pre_init_exit_rejected = pre_init_exit_rejected,
+            .double_init_rejected = double_init_rejected,
+            .post_init_retarget_rejected = post_init_retarget_rejected,
+            .init_runs = self.init_runs,
         };
     }
 
