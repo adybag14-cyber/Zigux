@@ -6,7 +6,7 @@ This document tracks the bounded Phase 10 survey lane around `drivers/virtio/vir
 
 - `PHASE10_STATUS=parked`
 - `PHASE10_SLICE=virtio-ring-survey`
-- scope: survey manifest, dedicated survey gate, shared Phase 10 build wiring, and a lane-level note that records what has now landed plus the remaining queue-wrapper gap against the roadmap
+- scope: survey manifest, dedicated survey gate, shared Phase 10 build wiring, and a lane-level note that records the current landed ring and adjacent MMIO footholds plus the remaining transport-facing gap against the roadmap
 - product boundary:
   - `zigux/tests/phase10_virtio_ring_manifest.json`
   - `zigux/tests/phase10_virtio_ring_survey.zig`
@@ -18,14 +18,14 @@ This document tracks the bounded Phase 10 survey lane around `drivers/virtio/vir
 
 The Phase 10 roadmap names `drivers/virtio/virtio_ring.c` as a primary anchor, but it also says to prove virtqueue wrappers before widening into MMIO or other risky transport work.
 
-The live repo already has a bounded `drivers/virtio/virtio.zig` core starter with queue callback bookkeeping, descriptor-shape metadata, and notification accounting. This survey started by making the missing ring-helper gap explicit, and it now records that the first `drivers/virtio/virtio_ring.zig` lab slice has landed plus small used-buffer polling, callback re-enable, delayed-callback pacing, broken-queue discipline follow-ups, and a reset-readiness preflight without pretending queue lifecycle parity is complete. The adjacent MMIO packet has also advanced beyond an older register-window-only foothold and now records bounded queue-size, feature-word, and config-window helpers as landed.
+The live repo already has a bounded `drivers/virtio/virtio.zig` core starter with queue callback bookkeeping, descriptor-shape metadata, and notification accounting. This survey started by making the missing ring-helper gap explicit, and it now records that the first `drivers/virtio/virtio_ring.zig` lab slice has landed plus small used-buffer polling, callback re-enable, delayed-callback pacing, broken-queue discipline follow-ups, a reset-readiness preflight, and notify-prepare bookkeeping without pretending queue lifecycle parity is complete. The adjacent MMIO packet has also advanced beyond an older register-window-only foothold and now records bounded queue-size, feature-word, config-window, and config-write-plan helpers as landed.
 
 ## Survey findings
 
 - `drivers/virtio/virtio_ring.c` is present on `master` at 3940 lines and spans split rings, packed rings, descriptor state, DMA mapping helpers, callback toggling, notification bookkeeping, queue reset, resize, and break or unbreak handling.
 - the live repo already ships `drivers/virtio/virtio.zig`, `drivers/virtio/virtio_ring.zig`, `drivers/virtio/virtio_input.zig`, `drivers/virtio/virtio_mmio.zig`, `zigux/tests/phase10_virtio_core.zig`, `zigux/tests/phase10_virtio_ring.zig`, `zigux/tests/phase10_virtio_ring_survey.zig`, `zigux/tests/phase10_virtio_input.zig`, `zigux/tests/phase10_virtio_input_survey.zig`, `zigux/tests/phase10_virtio_mmio.zig`, `zigux/tests/phase10_virtio_mmio_survey.zig`, `zigux/tests/phase10_build.zig`, `Documentation/zigux/phase10-virtio-core-slice.md`, `Documentation/zigux/phase10-virtio-ring-slice.md`, `Documentation/zigux/phase10-virtio-input-slice.md`, `Documentation/zigux/phase10-virtio-input-survey.md`, `Documentation/zigux/phase10-virtio-mmio-slice.md`, and `Documentation/zigux/phase10-virtio-mmio-survey.md`.
 - the current Zigux VirtIO ring surface now includes a bounded `drivers/virtio/virtio_ring.zig` helper for queue registration, layout metadata, outstanding-chain accounting, used-buffer polling, callback re-enable bookkeeping, delayed-callback pacing, broken-queue discipline that blocks fresh publish, kick, poll, and callback snapshots, a reset-readiness preflight, and notify-prepare bookkeeping.
-- the live Phase 10 packet now also records the adjacent `drivers/virtio/virtio_mmio.zig` footholds as landed: a tiny register window, queue-size staging, one bounded feature-word selector and read window, and one small config-word window rooted in staged MMIO config bytes.
+- the live Phase 10 packet now also records the adjacent `drivers/virtio/virtio_mmio.zig` footholds as landed: a tiny register window, queue-size staging, one bounded feature-word selector and read window, one small config-word window rooted in staged MMIO config bytes, and one bounded config-write-plan summary that keeps config mutations out of scope.
 - the live repo still does not model real descriptor tables, DMA helpers, interrupt callbacks, or transport-backed queue reset semantics.
 - this leaves only the riskier MMIO lifecycle, IRQ, queue-discovery, and reset follow-up blocked behind the already-landed queue-wrapper and MMIO footholds.
 
@@ -41,16 +41,18 @@ The survey manifest now records:
 - the landed `phase10-used-buffer-polling-helper`
 - the landed `phase10-callback-enable-helper`
 - the landed `phase10-callback-delay-helper`
+- the landed `phase10-notify-prepare-helper`
 - the landed `phase10-broken-queue-poll-guard`
 - the landed `phase10-queue-reset-readiness-helper`
 - the landed `phase10-mmio-register-window-helper`
 - the landed `phase10-mmio-queue-size-helper`
 - the landed `phase10-mmio-feature-word-selector-helper`
 - the landed `phase10-mmio-config-window-helper`
+- the landed `phase10-mmio-config-write-plan-helper`
 - the still-blocked `phase10-mmio-lifecycle-and-irq-paths`
 - the landed `phase10-virtio-ring-slice-note`
 
-This keeps the lane concrete and reviewable without overstating `virtio_ring` progress: the queue-shape foothold is real, used-buffer polling, callback re-enable, delayed-callback pacing, broken-queue discipline, the reset-readiness preflight, and the bounded MMIO register, queue-size, feature-word, and config-window helpers are all landed, and the risky transport-facing lifecycle work is still intentionally blocked. That blocked MMIO lifecycle and IRQ follow-up remains owned by the adjacent `virtio_mmio` packet plus shared Phase 10 closure evidence, not by this queue-local ring survey note.
+This keeps the lane concrete and reviewable without overstating `virtio_ring` progress: the queue-shape foothold is real, used-buffer polling, callback re-enable, delayed-callback pacing, notify-prepare bookkeeping, broken-queue discipline, the reset-readiness preflight, and the bounded MMIO register, queue-size, feature-word, config-window, and config-write-plan helpers are all landed, and the risky transport-facing lifecycle work is still intentionally blocked. That blocked MMIO lifecycle and IRQ follow-up remains owned by the adjacent `virtio_mmio` packet plus shared Phase 10 closure evidence, not by this queue-local ring survey note.
 
 ## Freeze boundary
 
