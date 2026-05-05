@@ -60,6 +60,25 @@ pub const CloseBoundarySnapshot = struct {
     tty_registration_pending: bool,
 };
 
+pub const RemoveHandoffRequest = struct {
+    console_index_registered: bool = true,
+    tty_present: bool = true,
+};
+
+pub const RemoveHandoffSnapshot = struct {
+    anchor: []const u8,
+    slot_index: usize,
+    vtermno: u32,
+    adapter_present: bool,
+    clears_console_slot_binding: bool,
+    keeps_irq_for_followup_hangup: bool,
+    drops_init_kref_port_reference: bool,
+    tty_vhangup_requested: bool,
+    tty_kref_put_after_vhangup: bool,
+    teardown_via_hangup_pending: bool,
+    host_io_pending: bool,
+};
+
 pub const WriteSnapshot = struct {
     anchor: []const u8,
     slot_index: usize,
@@ -148,6 +167,28 @@ pub const HvcConsoleLab = struct {
             .clears_port_initialized = close_wait_required,
             .keeps_console_binding = true,
             .tty_registration_pending = true,
+        };
+    }
+
+    pub fn summarizeRemoveHandoff(
+        self: *const Self,
+        request: RemoveHandoffRequest,
+    ) !RemoveHandoffSnapshot {
+        const slot = self.slotSnapshot();
+        if (!slot.usable_for_console) return error.ConsoleUnavailable;
+
+        return .{
+            .anchor = descriptor().anchor,
+            .slot_index = slot.slot_index,
+            .vtermno = slot.vtermno,
+            .adapter_present = slot.adapter_present,
+            .clears_console_slot_binding = request.console_index_registered,
+            .keeps_irq_for_followup_hangup = request.tty_present,
+            .drops_init_kref_port_reference = true,
+            .tty_vhangup_requested = request.tty_present,
+            .tty_kref_put_after_vhangup = request.tty_present,
+            .teardown_via_hangup_pending = request.tty_present,
+            .host_io_pending = request.tty_present,
         };
     }
 
