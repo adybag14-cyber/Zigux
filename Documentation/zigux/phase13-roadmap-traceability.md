@@ -13,7 +13,17 @@ The active shipped anchors on current `master` are:
   * `security/landlock/ruleset.c` through `security/landlock/ruleset.zig`
   * `security/landlock/syscalls.c` through `security/landlock/syscalls.zig`
 
-The shared replay packet for those anchors is now the five-test route wired by `zigux/tests/phase13_build.zig` and invoked through `make -C zigux phase13`.
+The shared replay packet for those anchors is now the seven-test route wired by `zigux/tests/phase13_build.zig` and invoked through `make -C zigux phase13`.
+
+That live replay route currently names:
+
+  * `zigux/tests/phase13_libfs.zig`
+  * `zigux/tests/phase13_devres.zig`
+  * `zigux/tests/phase13_devres_reviewability.zig`
+  * `zigux/tests/phase13_devres_dma_coherent.zig`
+  * `zigux/tests/phase13_landlock_ruleset.zig`
+  * `zigux/tests/phase13_landlock_syscalls.zig`
+  * `zigux/tests/phase13_libfs_reviewability.zig`
 
 ## Libfs lane traceability
 
@@ -43,7 +53,7 @@ Current `master` keeps that anchor reviewable through:
   * `zigux/tests/phase13_devres_dma_coherent.zig`
   * `scripts/zigux/check-phase13-devres-packet.py`
 
-Inside that packet, the active shared replay keeps only `zigux/tests/phase13_devres.zig` inside the five-test helper route. The bounded `zigux/tests/phase13_devres_reviewability.zig`, `zigux/tests/phase13_devres_dma_coherent.zig`, and `scripts/zigux/check-phase13-devres-packet.py` remain shipped adjacent `devres` release evidence on current `master`, so they stay reviewable without inflating the shared replay count.
+Inside that packet, the active shared replay now keeps `zigux/tests/phase13_devres.zig`, `zigux/tests/phase13_devres_reviewability.zig`, and `zigux/tests/phase13_devres_dma_coherent.zig` inside the seven-test helper route. The shipped `scripts/zigux/check-phase13-devres-packet.py` remains adjacent `devres` release evidence on current `master`, so it stays reviewable without inflating the shared replay count beyond the build-backed route.
 
 That packet is truthful to the roadmap because it exposes only reviewable helper planning and explicit blocker posture. It does not overclaim live MMIO mappings, live device-tree walking, DMA-backed helpers, scatterlist ownership, or live arch memtype mutation.
 
@@ -59,7 +69,7 @@ The broader shipped Phase 13 release surface also includes adjacent evidence tha
   * `include/zigux/notifier_abi.h`
   * `zigux/helpers/notifier_chain_view.zig`
 
-These files keep the shipped release surface reviewable, but they do not change the fact that the active shared replay remains the five-test helper packet.
+These files keep the shipped release surface reviewable, but they do not change the fact that the active shared replay remains the seven-test helper packet.
 
 ## Current decision
 
