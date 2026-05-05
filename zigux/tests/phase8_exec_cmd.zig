@@ -136,6 +136,59 @@ test "phase 8 exec-cmd empty PATH handling preserves the C helper's trailing col
     try std.testing.expectEqualStrings(updated, env.get("PATH").?);
 }
 
+test "phase 8 exec-cmd setupPath preserves logical PWD aliases when rewriting relative PATH entries" {
+    const linux = std.os.linux;
+    var root_buf: [std.posix.PATH_MAX]u8 = undefined;
+    const root = try std.fmt.bufPrintZ(&root_buf, "/tmp/zigux-p8-l02-phase-{d}", .{linux.getpid()});
+    try std.testing.expectEqual(.SUCCESS, linux.errno(linux.mkdirat(linux.AT.FDCWD, root, 0o755)));
+    defer _ = linux.rmdir(root);
+
+    var repo_buf: [std.posix.PATH_MAX]u8 = undefined;
+    const repo = try std.fmt.bufPrintZ(&repo_buf, "{s}/repo", .{root});
+    try std.testing.expectEqual(.SUCCESS, linux.errno(linux.mkdirat(linux.AT.FDCWD, repo, 0o755)));
+    defer _ = linux.rmdir(repo);
+
+    var link_buf: [std.posix.PATH_MAX]u8 = undefined;
+    const link = try std.fmt.bufPrintZ(&link_buf, "{s}/repo-link", .{root});
+    try std.testing.expectEqual(.SUCCESS, linux.errno(linux.symlinkat(repo, linux.AT.FDCWD, link)));
+    defer _ = linux.unlinkat(linux.AT.FDCWD, link, 0);
+
+    const cwd = repo[0..repo.len];
+    const logical_pwd = link[0..link.len];
+
+    const config = exec_cmd.Config{
+        .exec_name = "perf",
+        .prefix = "/usr/libexec/perf-core",
+        .exec_path = "libexec/perf-core",
+        .exec_path_env = "PERF_EXEC_PATH",
+    };
+
+    var env = exec_cmd.EnvMap.init(std.testing.allocator);
+    defer env.deinit();
+
+    var state = exec_cmd.ExecCmdState{};
+    defer state.deinit(std.testing.allocator);
+
+    try exec_cmd.execCmdInit(&env, config);
+    try exec_cmd.setArgvExecPath(std.testing.allocator, &env, &state, config, "tools/bin");
+    try exec_cmd.setArgv0Path(std.testing.allocator, &state, "scripts");
+    try env.set("PWD", logical_pwd);
+    try env.set("PATH", "/usr/bin:/bin");
+
+    const updated = try exec_cmd.setupPath(std.testing.allocator, &env, state, config, cwd);
+    defer std.testing.allocator.free(updated);
+
+    const expected = try std.fmt.allocPrint(
+        std.testing.allocator,
+        "{s}/tools/bin:{s}/scripts:/usr/bin:/bin",
+        .{ logical_pwd, logical_pwd },
+    );
+    defer std.testing.allocator.free(expected);
+
+    try std.testing.expectEqualStrings(expected, updated);
+    try std.testing.expectEqualStrings(updated, env.get("PATH").?);
+}
+
 test "phase 8 exec-cmd chooses the logical PWD when it resolves to the same directory" {
     const linux = std.os.linux;
     var root_buf: [std.posix.PATH_MAX]u8 = undefined;
