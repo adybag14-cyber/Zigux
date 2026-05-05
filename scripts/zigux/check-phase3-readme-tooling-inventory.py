@@ -66,6 +66,12 @@ PHASE13_VALIDATE_HELPERS = (
     "check-phase13-devres-packet.py",
 )
 
+PHASE15_VALIDATE_TARGET = "phase15-validate"
+PHASE15_VALIDATE_COMMANDS = (
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase15-review-process-handoff.py --self-test",
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase15-review-process-handoff.py",
+)
+
 REQUIRED_README_SNIPPETS = (
     "- The live support packet inside that same validator-first route is `check-phase3-readme-tooling-inventory.py`, `check-phase3-catalog-selftest.py`, `validate-phase3-policy-unsafe-survey.py`, `validate-phase3-low-level-wrapper-survey.py`, `phase3_catalog.py`, `phase3_check_lib.py`, `generate-phase3-check-wrappers.py`, and `run-phase3-checks.py`; the generated `check-phase3-*.py` wrappers stay as compatibility entrypoints derived from the discovered slice catalog instead of a second hand-maintained survey list.",
     "- there is no separate shared `validate-phase6.py`, external portability checker packet beyond `check-phase6-shared-surface.py`, or aggregated `phase6-perf` target on `master`; the shipped dedicated perf replay is `make -C zigux phase6-checksum-perf`, which keeps the checksum slowdown ceiling wired into a Linux-style entrypoint without overstating perf coverage for the rest of the Phase 6 helper packet.",
@@ -160,6 +166,32 @@ def _validate_target_helpers(
         issues.append(f"makefile_helper_order_drift:{target}")
 
 
+def _validate_target_commands(
+    issues: list[str], makefile: str, target: str, required_commands: tuple[str, ...]
+) -> None:
+    lines = _collect_makefile_target_lines(makefile, target)
+    if lines is None:
+        issues.append(f"missing_makefile_target:{target}")
+        return
+
+    commands = [raw.strip() for raw in lines if raw.strip()]
+    expected = list(required_commands)
+
+    for command in expected:
+        count = commands.count(command)
+        if count == 0:
+            issues.append(f"missing_makefile_command:{target}:{command}")
+        elif count != 1:
+            issues.append(f"unexpected_makefile_command_count:{target}:{count}:{command}")
+
+    for command in commands:
+        if command not in required_commands:
+            issues.append(f"unexpected_makefile_command:{target}:{command}")
+
+    if [command for command in commands if command in required_commands] != expected:
+        issues.append(f"makefile_command_order_drift:{target}")
+
+
 def validate(root: Path) -> list[str]:
     issues: list[str] = []
 
@@ -200,6 +232,7 @@ def validate(root: Path) -> list[str]:
 
     _validate_target_helpers(issues, makefile, PHASE6_VALIDATE_TARGET, PHASE6_VALIDATE_HELPERS)
     _validate_target_helpers(issues, makefile, PHASE13_VALIDATE_TARGET, PHASE13_VALIDATE_HELPERS)
+    _validate_target_commands(issues, makefile, PHASE15_VALIDATE_TARGET, PHASE15_VALIDATE_COMMANDS)
 
     for snippet in REQUIRED_README_SNIPPETS:
         count = readme.count(snippet)
@@ -263,6 +296,10 @@ def _baseline_makefile() -> str:
             "phase13-validate:",
             "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase13-release.py",
             "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase13-devres-packet.py",
+            "",
+            "phase15-validate:",
+            "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase15-review-process-handoff.py --self-test",
+            "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase15-review-process-handoff.py",
             "",
         )
     )
@@ -471,6 +508,65 @@ def run_self_test() -> int:
             validate(root),
             ["unexpected_makefile_helper:phase13-validate:unexpected-phase13.py"],
             "unexpected_phase13_helper_guard_failed",
+        )
+        _write(root / MAKEFILE_REL, baseline_makefile)
+        case_count += 1
+
+        _write(
+            root / MAKEFILE_REL,
+            baseline_makefile.replace(
+                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase15-review-process-handoff.py --self-test\n",
+                "",
+                1,
+            ),
+        )
+        _assert_only(
+            validate(root),
+            [
+                "missing_makefile_command:phase15-validate:cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase15-review-process-handoff.py --self-test",
+                "makefile_command_order_drift:phase15-validate",
+            ],
+            "missing_phase15_self_test_command_guard_failed",
+        )
+        _write(root / MAKEFILE_REL, baseline_makefile)
+        case_count += 1
+
+        _write(
+            root / MAKEFILE_REL,
+            baseline_makefile.replace(
+                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase15-review-process-handoff.py --self-test\n",
+                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase15-review-process-handoff.py --self-test\n"
+                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase15-review-process-handoff.py --self-test\n",
+                1,
+            ),
+        )
+        _assert_only(
+            validate(root),
+            [
+                "unexpected_makefile_command_count:phase15-validate:2:cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase15-review-process-handoff.py --self-test",
+                "makefile_command_order_drift:phase15-validate",
+            ],
+            "duplicate_phase15_self_test_command_guard_failed",
+        )
+        _write(root / MAKEFILE_REL, baseline_makefile)
+        case_count += 1
+
+        _write(
+            root / MAKEFILE_REL,
+            baseline_makefile.replace(
+                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase15-review-process-handoff.py\n",
+                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/unexpected-phase15.py\n",
+                1,
+            ),
+        )
+        _assert_only(
+            validate(root),
+            [
+                "missing_makefile_command:phase15-validate:cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase15-review-process-handoff.py",
+                "unexpected_makefile_command:phase15-validate:cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/unexpected-phase15.py",
+                "makefile_command_order_drift:phase15-validate",
+            ],
+            "unexpected_phase15_command_guard_failed",
         )
         _write(root / MAKEFILE_REL, baseline_makefile)
         case_count += 1
