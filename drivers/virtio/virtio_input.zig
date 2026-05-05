@@ -6,6 +6,7 @@ pub const static_event_buffer_capacity: u16 = 64;
 pub const config_bitmap_capacity: usize = 8;
 pub const config_bitmap_bit_capacity: usize = 1024;
 pub const abs_info_capacity: usize = 16;
+pub const multitouch_slot_capacity: u16 = 32;
 
 pub const event_queue_index: u16 = 0;
 pub const status_queue_index: u16 = 1;
@@ -14,6 +15,7 @@ pub const bus_virtual: u16 = 0x06;
 pub const ev_abs: u8 = 0x03;
 pub const ev_msc: u16 = 0x04;
 pub const msc_timestamp: u16 = 0x05;
+pub const abs_mt_slot: u16 = 0x2f;
 
 pub const ConfigSelect = enum(u8) {
     unset = 0x00,
@@ -106,6 +108,14 @@ pub const CapabilitySetupSummary = struct {
     stages_abs_params: bool,
 };
 
+pub const MultitouchSlotSummary = struct {
+    anchor: []const u8,
+    abs_code: u16,
+    advertised_slot_max: u16,
+    planned_slot_count: u16,
+    multitouch_enabled: bool,
+};
+
 pub const VirtioInputLab = struct {
     const Self = @This();
     const ConfigBitmapBitSet = std.StaticBitSet(config_bitmap_bit_capacity);
@@ -141,6 +151,7 @@ pub const VirtioInputLab = struct {
     config_bitmaps: [config_bitmap_capacity]ConfigBitmapRecord = [_]ConfigBitmapRecord{ConfigBitmapRecord{}} ** config_bitmap_capacity,
     abs_info_count: usize = 0,
     abs_info_records: [abs_info_capacity]AbsInfoRecord = [_]AbsInfoRecord{AbsInfoRecord{}} ** abs_info_capacity,
+    planned_multitouch_slots: u16 = 0,
     ready: bool = false,
     multitouch_enabled: bool = false,
 
@@ -180,6 +191,7 @@ pub const VirtioInputLab = struct {
         self.config_bitmaps = [_]ConfigBitmapRecord{ConfigBitmapRecord{}} ** config_bitmap_capacity;
         self.abs_info_count = 0;
         self.abs_info_records = [_]AbsInfoRecord{AbsInfoRecord{}} ** abs_info_capacity;
+        self.planned_multitouch_slots = 0;
         self.ready = false;
         self.multitouch_enabled = false;
     }
@@ -343,6 +355,31 @@ pub const VirtioInputLab = struct {
             .staged_capability_count = staged_capability_count,
             .staged_abs_param_count = self.abs_info_count,
             .stages_abs_params = self.abs_info_count != 0,
+        };
+    }
+
+    pub fn planMultitouchSlots(self: *Self) !MultitouchSlotSummary {
+        const abs_index = self.findConfigBitmapIndex(.ev_bits, ev_abs) orelse return error.AbsCapabilitiesNotConfigured;
+        const abs_bitmap = self.config_bitmaps[abs_index].supported_bits;
+        if (!abs_bitmap.isSet(abs_mt_slot)) return error.MultitouchSlotCapabilityMissing;
+
+        const slot_index = self.findAbsInfoIndex(abs_mt_slot) orelse return error.MultitouchSlotAbsInfoNotConfigured;
+        const slot_metadata = self.abs_info_records[slot_index].metadata;
+        if (slot_metadata.maximum < 0) return error.MultitouchSlotMaximumNegative;
+        if (slot_metadata.minimum != 0) return error.MultitouchSlotMinimumMustBeZero;
+
+        const advertised_slot_max: u16 = @intCast(slot_metadata.maximum);
+        if (advertised_slot_max >= multitouch_slot_capacity) return error.MultitouchSlotCountTooLarge;
+
+        self.planned_multitouch_slots = advertised_slot_max + 1;
+        self.multitouch_enabled = true;
+
+        return .{
+            .anchor = descriptor().anchor,
+            .abs_code = abs_mt_slot,
+            .advertised_slot_max = advertised_slot_max,
+            .planned_slot_count = self.planned_multitouch_slots,
+            .multitouch_enabled = self.multitouch_enabled,
         };
     }
 
