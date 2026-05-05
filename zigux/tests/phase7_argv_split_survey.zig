@@ -69,12 +69,13 @@ test "phase 7 argv_split survey manifest records the parked runtime leaf surface
     try std.testing.expect(manifest.survey_summary.preexisting_phase7_build_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase7_doc_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase7_helper_present);
-    try std.testing.expectEqual(@as(usize, 6), manifest.gaps.len);
+    try std.testing.expectEqual(@as(usize, 7), manifest.gaps.len);
 
     var starter_landed_count: usize = 0;
     var ready_next_count: usize = 0;
     var saw_helper = false;
     var saw_survey_gate = false;
+    var saw_packet_checker = false;
 
     for (manifest.gaps, 0..) |gap, i| {
         try std.testing.expect(gap.id.len > 0);
@@ -100,6 +101,12 @@ test "phase 7 argv_split survey manifest records the parked runtime leaf surface
             try std.testing.expectEqualStrings("zigux/tests/phase7_argv_split_survey.zig", gap.zigux_destination);
         }
 
+        if (std.mem.eql(u8, gap.id, "phase7-argv-split-packet-checker")) {
+            saw_packet_checker = true;
+            try std.testing.expectEqualStrings("starter_landed", gap.status);
+            try std.testing.expectEqualStrings("scripts/zigux/check-phase7-argv-split-packet.py", gap.zigux_destination);
+        }
+
         for (manifest.gaps[i + 1 ..]) |other| {
             try std.testing.expect(!std.mem.eql(u8, gap.id, other.id));
             try std.testing.expect(!std.mem.eql(u8, gap.zigux_destination, other.zigux_destination));
@@ -110,4 +117,5 @@ test "phase 7 argv_split survey manifest records the parked runtime leaf surface
     try std.testing.expectEqual(@as(usize, 0), ready_next_count);
     try std.testing.expect(saw_helper);
     try std.testing.expect(saw_survey_gate);
+    try std.testing.expect(saw_packet_checker);
 }
