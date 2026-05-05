@@ -23,9 +23,9 @@ This survey exists so the lane can compare that live starter against the roadmap
 
 - `drivers/virtio/virtio_input.c` is present on `master` at 421 lines and mixes config-space selection, bitmap and ABS metadata reads, event-queue refill, status-queue sends, multitouch timestamp suppression, input-device registration, freeze or restore hooks, and teardown paths.
 - the live repo already ships `drivers/virtio/virtio_input.zig`, `zigux/tests/phase10_virtio_input.zig`, `Documentation/zigux/phase10-virtio-input-slice.md`, and `Documentation/zigux/phase10-virtio-input-module-slice.md`.
-- the landed Zigux starter now covers identity snapshots, property and event config bitmap summaries, ABS metadata summaries, capability-setup staging, one bounded multitouch slot-planning helper keyed off `ABS_MT_SLOT`, fixed event and status queue planning, capped event-buffer fill accounting, ready-state gating, reset clearing, and multitouch `EV_MSC` plus `MSC_TIMESTAMP` suppression in memory only.
+- the landed Zigux starter now covers identity snapshots, property and event config bitmap summaries, ABS metadata summaries, capability-setup staging, one bounded multitouch slot-planning helper keyed off `ABS_MT_SLOT`, one bounded registration-preflight summary that reports queue, ready-state, capability-setup, and multitouch-slot blockers before any future `input_register_device()` handoff, fixed event and status queue planning, capped event-buffer fill accounting, ready-state gating, reset clearing, and multitouch `EV_MSC` plus `MSC_TIMESTAMP` suppression in memory only.
 - the live repo still does not model real event delivery, `input_register_device()` registration parity, freeze or restore parity, or transport-backed queue callbacks.
-- this means the broader virtio_input roadmap gap has narrowed to validation truthfulness and eventually registration lifecycle work, not to another transport-facing helper jump.
+- this means the broader virtio_input roadmap gap has narrowed to validation truthfulness and the still-blocked transport-backed registration lifecycle work, not to another transport-facing helper jump.
 
 ## Recorded gaps
 
@@ -41,9 +41,10 @@ The survey manifest now records:
 - the landed `phase10-virtio-input-survey-note`
 - the landed `phase10-virtio-input-capability-setup-helper`
 - the landed `phase10-virtio-input-multitouch-slot-helper`
+- the landed `phase10-virtio-input-registration-preflight-helper`
 - the still-blocked `phase10-virtio-input-registration-lifecycle`
 
-This keeps the lane concrete and reviewable without overstating progress: the starter helper is real, the slot-planning foothold is now real too, and the risky registration and transport surface remains intentionally out of scope.
+This keeps the lane concrete and reviewable without overstating progress: the starter helper is real, the slot-planning foothold and registration-preflight boundary are now real too, and the risky registration and transport surface remains intentionally out of scope.
 
 ## Non-goals
 
