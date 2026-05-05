@@ -60,8 +60,13 @@ REQUIRED_DOCS_README_EXACT_COUNTS = {
 
 REQUIRED_REVIEW_CHECKLIST_MARKERS = [
     "- if the change touches the shared Phase 12 complex-driver packet, do `Documentation/zigux/README.md`, `zigux/tests/README.md`, `scripts/zigux/README.md`, `scripts/zigux/check-build-only-phase12-surface.py`, `Documentation/zigux/phase12-release-sequencing.md`",
+    "`zig build smoke --build-file zigux/tests/phase12_build.zig --summary all`, `make -C zigux phase12-smoke`",
     "`make -C zigux phase12` still agree on the same shipped nvme, virtio_net, virtio_scsi, and libbpf survey packet plus the active release-order note without implying removed `validate-phase12.py`, `check-phase12-*.py`, raw-coverage, or focused-libbpf-only replay surfaces that are not on `master`?",
 ]
+
+REQUIRED_REVIEW_CHECKLIST_EXACT_COUNTS = {
+    "`zig build smoke --build-file zigux/tests/phase12_build.zig --summary all`, `make -C zigux phase12-smoke`": 1,
+}
 
 REQUIRED_SEQUENCE_MARKERS = [
     "`Documentation/zigux/review-checklist.md`",
@@ -273,6 +278,8 @@ def validate(root: Path) -> list[str]:
         if marker not in workflow:
             failures.append(f"workflow:{marker}")
 
+    for marker, count in REQUIRED_REVIEW_CHECKLIST_EXACT_COUNTS.items():
+        expect_exact_count(review_checklist, marker, count, "review_checklist_exact_count", failures)
     for marker, count in REQUIRED_MAKEFILE_EXACT_COUNTS.items():
         expect_exact_count(makefile, marker, count, "makefile_exact_count", failures)
     for marker, count in REQUIRED_WORKFLOW_EXACT_COUNTS.items():
@@ -323,7 +330,7 @@ Phase 12 notes
         root / REVIEW_CHECKLIST_PATH,
         """# Review Checklist
 - if the change touches the shared Phase 12 complex-driver packet, do `Documentation/zigux/README.md`, `zigux/tests/README.md`, `scripts/zigux/README.md`, `scripts/zigux/check-build-only-phase12-surface.py`, `Documentation/zigux/phase12-release-sequencing.md`
-- `make -C zigux phase12` still agree on the same shipped nvme, virtio_net, virtio_scsi, and libbpf survey packet plus the active release-order note without implying removed `validate-phase12.py`, `check-phase12-*.py`, raw-coverage, or focused-libbpf-only replay surfaces that are not on `master`?
+- `zig build smoke --build-file zigux/tests/phase12_build.zig --summary all`, `make -C zigux phase12-smoke`, and `make -C zigux phase12` still agree on the same shipped nvme, virtio_net, virtio_scsi, and libbpf survey packet plus the active release-order note without implying removed `validate-phase12.py`, `check-phase12-*.py`, raw-coverage, or focused-libbpf-only replay surfaces that are not on `master`?
 """,
     )
     write(
@@ -531,6 +538,59 @@ def run_self_test() -> int:
             for failure in failures:
                 print(failure)
             return 1
+
+        sequence_path.write_text(original_sequence, encoding="utf-8")
+        review_checklist_path = root / REVIEW_CHECKLIST_PATH
+        original_review_checklist = review_checklist_path.read_text(encoding="utf-8")
+        review_checklist_smoke_marker = (
+            "`zig build smoke --build-file zigux/tests/phase12_build.zig --summary all`, `make -C zigux phase12-smoke`"
+        )
+
+        missing_review_checklist_smoke = original_review_checklist.replace(
+            f"{review_checklist_smoke_marker}, ",
+            "",
+            1,
+        )
+        review_checklist_path.write_text(
+            missing_review_checklist_smoke,
+            encoding="utf-8",
+        )
+        failures = validate(root)
+        expected_review_checklist_missing = (
+            f"review_checklist:{review_checklist_smoke_marker}"
+        )
+        expected_review_checklist_missing_exact = (
+            f"review_checklist_exact_count:{review_checklist_smoke_marker}:count=0:expected=1"
+        )
+        if (
+            expected_review_checklist_missing not in failures
+            or expected_review_checklist_missing_exact not in failures
+        ):
+            print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST=fail")
+            print("phase12-review-checklist-smoke-missing-guard")
+            for failure in failures:
+                print(failure)
+            return 1
+
+        duplicate_review_checklist_smoke = original_review_checklist.replace(
+            review_checklist_smoke_marker,
+            f"{review_checklist_smoke_marker} {review_checklist_smoke_marker}",
+            1,
+        )
+        review_checklist_path.write_text(
+            duplicate_review_checklist_smoke,
+            encoding="utf-8",
+        )
+        failures = validate(root)
+        expected_review_checklist_duplicate = (
+            f"review_checklist_exact_count:{review_checklist_smoke_marker}:count=2:expected=1"
+        )
+        if expected_review_checklist_duplicate not in failures:
+            print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST=fail")
+            print("phase12-review-checklist-smoke-duplicate-guard")
+            for failure in failures:
+                print(failure)
+            return 1
     print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST=pass")
     return 0
 
@@ -568,6 +628,7 @@ def main() -> int:
     marker_count = (
         len(REQUIRED_DOCS_README_MARKERS)
         + len(REQUIRED_REVIEW_CHECKLIST_MARKERS)
+        + len(REQUIRED_REVIEW_CHECKLIST_EXACT_COUNTS)
         + len(REQUIRED_SEQUENCE_MARKERS)
         + len(REQUIRED_SEQUENCE_EXACT_COUNTS)
         + len(REQUIRED_VIRTIO_NET_SURVEY_MARKERS)
