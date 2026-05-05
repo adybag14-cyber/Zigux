@@ -4,6 +4,7 @@ from __future__ import annotations
 import argparse
 import json
 from pathlib import Path
+import re
 import tempfile
 
 
@@ -23,6 +24,9 @@ EXPECTED_HELPERS = [
     'tools/lib/vsprintf.zig',
     'tools/lib/zalloc.zig',
 ]
+WORKFLOW_INSTALL_ZIG_RE = re.compile(
+    r'python3 scripts/zigux/install-zig\.py --channel \S+ --dest \.zig-toolchain'
+)
 
 required_files = [
     ROOT / 'Documentation' / 'zigux' / 'README.md',
@@ -53,7 +57,6 @@ required_workflow_markers = [
     'FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true',
     'uses: actions/checkout@v6.0.2',
     'uses: actions/setup-python@v6.2.0',
-    'python3 scripts/zigux/install-zig.py --channel master --dest .zig-toolchain',
     'python3 scripts/zigux/check-zig-toolchain.py',
     'python3 scripts/zigux/validate-phase1-closure.py',
     'python3 scripts/zigux/check-phase1-bench.py',
@@ -273,6 +276,15 @@ def run_self_test() -> None:
 
         valid_phase1_workflow = render_marker_fixture(required_phase1_workflow_markers)
         assert collect_exact_count_markers(valid_phase1_workflow, required_phase1_workflow_markers) == []
+        assert WORKFLOW_INSTALL_ZIG_RE.search(
+            'python3 scripts/zigux/install-zig.py --channel master --dest .zig-toolchain\n'
+        )
+        assert WORKFLOW_INSTALL_ZIG_RE.search(
+            'python3 scripts/zigux/install-zig.py --channel 0.17.0-dev.87+9b177a7d2 --dest .zig-toolchain\n'
+        )
+        assert WORKFLOW_INSTALL_ZIG_RE.search(
+            'python3 scripts/zigux/install-zig.py --dest .zig-toolchain\n'
+        ) is None
 
         missing_phase1_validate = valid_phase1_workflow.replace(
             'python3 scripts/zigux/validate-phase1.py\n',
@@ -342,7 +354,7 @@ def run_self_test() -> None:
         assert 'tests_readme_phase1_packet:expected=1:actual=0' in missing_tests_markers
 
     print('PHASE1_CLOSURE_VALIDATOR_SELF_TEST=pass')
-    print('PHASE1_CLOSURE_VALIDATOR_SELF_TEST_CASE_COUNT=12')
+    print('PHASE1_CLOSURE_VALIDATOR_SELF_TEST_CASE_COUNT=13')
 
 
 def main() -> int:
@@ -380,6 +392,10 @@ def main() -> int:
     for marker in required_workflow_markers:
         if marker not in workflow:
             missing_markers.append(f'workflow:{marker}')
+    if WORKFLOW_INSTALL_ZIG_RE.search(workflow) is None:
+        missing_markers.append(
+            'workflow:python3 scripts/zigux/install-zig.py --channel <explicit> --dest .zig-toolchain'
+        )
     for marker in required_build_markers:
         if marker not in tests_build:
             missing_markers.append(f'build:{marker}')
