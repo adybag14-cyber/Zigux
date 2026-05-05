@@ -19,7 +19,7 @@
     "preexisting_virtio_input_zig_present": true,
     "preexisting_virtio_input_test_present": true,
     "preexisting_virtio_input_survey_present": true,
-    "preexisting_virtio_mmio_zig_present": false
+    "preexisting_virtio_mmio_zig_present": true
   },
   "gaps": [
     {
