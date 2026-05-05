@@ -445,6 +445,23 @@ def run_self_test() -> int:
         phase9_build = phase9_build_path.read_text(encoding="utf-8")
         phase9_build_path.write_text(
             phase9_build.replace(
+                'const runtime_loader_facade_module = b.createModule(.{\n',
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_failure(
+            root,
+            'phase9_build:const runtime_loader_facade_module = b.createModule(.{',
+            "missing_phase9_build_facade_module_declaration",
+        )
+
+        write_fixture_tree(root)
+        phase9_build_path = root / PHASE9_BUILD_PATH
+        phase9_build = phase9_build_path.read_text(encoding="utf-8")
+        phase9_build_path.write_text(
+            phase9_build.replace(
                 '    .root_source_file = b.path("../kernel/runtime_loader.zig"),\n',
                 "",
                 1,
@@ -455,6 +472,23 @@ def run_self_test() -> int:
             root,
             'phase9_build:.root_source_file = b.path("../kernel/runtime_loader.zig"),',
             "missing_phase9_build_facade_source_path",
+        )
+
+        write_fixture_tree(root)
+        phase9_build_path = root / PHASE9_BUILD_PATH
+        phase9_build = phase9_build_path.read_text(encoding="utf-8")
+        phase9_build_path.write_text(
+            phase9_build.replace(
+                '    .name = "phase9-runtime-loader-facade-tests",\n',
+                '    .name = "phase9-runtime-loader-tests",\n',
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_failure(
+            root,
+            'phase9_build:.name = "phase9-runtime-loader-facade-tests",',
+            "missing_phase9_build_facade_test_name",
         )
 
         write_fixture_tree(root)
@@ -523,7 +557,7 @@ def run_self_test() -> int:
             )
 
     print("PHASE9_BUILD_ONLY_SURFACE_SELF_TEST=pass")
-    print("PHASE9_BUILD_ONLY_SURFACE_SELF_TEST_CASE_COUNT=13")
+    print("PHASE9_BUILD_ONLY_SURFACE_SELF_TEST_CASE_COUNT=15")
     return 0
 
 
