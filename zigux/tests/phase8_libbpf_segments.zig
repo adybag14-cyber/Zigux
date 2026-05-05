@@ -188,6 +188,25 @@ test "phase 8 libbpf segment manifest records the current helper-first catalog" 
     try std.testing.expect(saw_perf_buffer_poll_segment);
 }
 
+test "phase 8 libbpf survey note keeps segmented helper-first rollout explicit" {
+    var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
+    defer io_instance.deinit();
+
+    const phase8_note = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "Documentation/zigux/phase8-libbpf-segment-survey.md",
+        std.testing.allocator,
+        .limited(32 * 1024),
+    );
+    defer std.testing.allocator.free(phase8_note);
+
+    try expectContains(phase8_note, "segmented rollout instead of a single-file port attempt");
+    try expectContains(phase8_note, "helper-first clusters with stable text or path behavior");
+    try expectContains(phase8_note, "first realistic Zigux entry points are helper-first clusters");
+    try expectContains(phase8_note, "This survey slice does not yet claim:");
+    try expectContains(phase8_note, "any direct Zig port of `tools/lib/bpf/libbpf.c`");
+}
+
 test "phase 8 libbpf survey note stays aligned with the landed helper packet" {
     var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
     defer io_instance.deinit();
