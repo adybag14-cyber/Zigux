@@ -25,7 +25,7 @@ The live repo already had an atomic64 starter under the same Phase 9 review path
 
 ## Landed starter surface
 
-- module descriptor metadata naming the `lib/test_bitmap.c` anchor
+- module descriptor metadata naming the `lib/test_bitmap.c` anchor and keeping the roadmap-required selftest hook explicit through `provides_selftest_hook=true`
 - guarded lifecycle transitions for `cold`, `initialized`, `selftest_complete`, and `exited`
 - a bounded two-word runtime bitmap backing store with explicit `setRange`, `clearRange`, `copyFrom`, and source-lifecycle guard behavior
 - summary checks that reuse `zigux/helpers/bitmap_view.zig` for `first_set`, `first_zero`, and `weight`
