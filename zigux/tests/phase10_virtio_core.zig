@@ -191,7 +191,7 @@ test "phase10 virtio core can disable and re-enable queue callbacks without tran
     try device.enableQueueCallback(0);
     try std.testing.expect(try device.notifyQueueUsed(0));
 
-    summary = try device.queueRegistrationSummary(0);
+    summary = device.queueRegistrationSummary(0);
     try std.testing.expect(summary.callback_enabled);
     try std.testing.expectEqual(@as(usize, 1), summary.callback_invocation_count);
     try std.testing.expectEqual(@as(usize, 2), summary.notification_count);
@@ -718,4 +718,49 @@ test "phase10 virtio core replays driver validation narrowing through the shared
     try std.testing.expect(lifecycle.driver_ready);
     try std.testing.expectEqual(@as(usize, 0), lifecycle.registered_queue_count);
     try std.testing.expectEqual(virtio_core.DriverLifecycleBlocker.no_registered_queues, lifecycle.blocker.?);
+}
+
+test "phase10 virtio core keeps finalize count stable when validation preserves the offered set" {
+    var device = try virtio_core.VirtioCoreLabDevice.init(&.{ 2, 8 });
+
+    device.acknowledge();
+    try device.attachDriverNamed("virtio_console_lab");
+    try device.offerDriverFeature(2);
+    try device.offerDriverFeature(8);
+
+    const summary = try device.finalizeFeaturesWithDriverValidation(&.{ 2, 8 });
+    try std.testing.expect(summary.accepted_by_transport);
+    try std.testing.expectEqual(@as(usize, 2), summary.offered_feature_count);
+    try std.testing.expectEqual(@as(usize, 2), summary.negotiated_feature_count);
+    try std.testing.expectEqual(@as(usize, 1), device.finalize_count);
+    try std.testing.expect(try device.hasNegotiatedFeature(2));
+    try std.testing.expect(try device.hasNegotiatedFeature(8));
+
+    const binding = device.driverBindingSummary();
+    try std.testing.expectEqualStrings("virtio_console_lab", binding.driver_name);
+    try std.testing.expect(binding.features_negotiated);
+    try std.testing.expect(!binding.driver_ready);
+}
+
+test "phase10 virtio core rejects validation that adds unoffered features in the shared harness" {
+    var device = try virtio_core.VirtioCoreLabDevice.init(&.{ 4, 9, 12 });
+
+    device.acknowledge();
+    try device.attachDriverNamed("virtio_blk_lab");
+    try device.offerDriverFeature(4);
+    try device.offerDriverFeature(9);
+
+    try std.testing.expectError(
+        error.DriverValidationAddedUnofferedFeature,
+        device.finalizeFeaturesWithDriverValidation(&.{ 4, 9, 12 }),
+    );
+    try std.testing.expectEqual(@as(usize, 1), device.finalize_count);
+    try std.testing.expect(try device.hasNegotiatedFeature(4));
+    try std.testing.expect(try device.hasNegotiatedFeature(9));
+    try std.testing.expect(!(try device.hasNegotiatedFeature(12)));
+
+    const binding = device.driverBindingSummary();
+    try std.testing.expectEqualStrings("virtio_blk_lab", binding.driver_name);
+    try std.testing.expect(binding.features_negotiated);
+    try std.testing.expect(!binding.driver_ready);
 }
