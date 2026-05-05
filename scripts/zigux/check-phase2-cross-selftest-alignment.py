@@ -9,12 +9,14 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 
-TOOLCHAIN_NOTES = ROOT / "Documentation" / "zigux" / "phase2-toolchain-bootstrap-notes.md"
-CLOSURE_DOC = ROOT / "Documentation" / "zigux" / "phase2-closure.md"
-REVIEW_CHECKLIST = ROOT / "Documentation" / "zigux" / "review-checklist.md"
-VALIDATE_PHASE2 = ROOT / "scripts" / "zigux" / "validate-phase2.py"
-VALIDATE_PHASE2_CLOSURE = ROOT / "scripts" / "zigux" / "validate-phase2-closure.py"
-TARGETS = ROOT / "zigux" / "tests" / "fixtures" / "phase2_cross_targets.json"
+TOOLCHAIN_NOTES = Path("Documentation/zigux/phase2-toolchain-bootstrap-notes.md")
+CLOSURE_DOC = Path("Documentation/zigux/phase2-closure.md")
+REVIEW_CHECKLIST = Path("Documentation/zigux/review-checklist.md")
+VALIDATE_PHASE2 = Path("scripts/zigux/validate-phase2.py")
+VALIDATE_PHASE2_CLOSURE = Path("scripts/zigux/validate-phase2-closure.py")
+WORKFLOW = Path(".github/workflows/zigux-bootstrap.yml")
+MAKEFILE = Path("zigux/Makefile")
+TARGETS = Path("zigux/tests/fixtures/phase2_cross_targets.json")
 
 REQUIRED_FILES = [
     TOOLCHAIN_NOTES,
@@ -22,6 +24,8 @@ REQUIRED_FILES = [
     REVIEW_CHECKLIST,
     VALIDATE_PHASE2,
     VALIDATE_PHASE2_CLOSURE,
+    WORKFLOW,
+    MAKEFILE,
     TARGETS,
 ]
 
@@ -32,6 +36,8 @@ EXPECTED_TARGETS = [
 ]
 
 TOOLCHAIN_NOTE_MARKERS = [
+    "python3 scripts/zigux/check-phase2-cross.py --self-test",
+    "python3 scripts/zigux/check-phase2-cross.py",
     "python3 scripts/zigux/check-phase2-cross-selftest-alignment.py --self-test",
     "python3 scripts/zigux/check-phase2-cross-selftest-alignment.py",
     "the three-target compile matrix in `zigux/tests/fixtures/phase2_cross_targets.json` stays separate from the `x86_64-linux` bootstrap archive pin",
@@ -39,6 +45,8 @@ TOOLCHAIN_NOTE_MARKERS = [
 
 CLOSURE_MARKERS = [
     "PHASE2_CROSS_TARGET_COUNT=3",
+    "PHASE2_CROSS_SELF_TEST=python3 scripts/zigux/check-phase2-cross.py --self-test",
+    "PHASE2_CROSS_GATE=python3 scripts/zigux/check-phase2-cross.py",
     "PHASE2_CROSS_ALIGNMENT_SELF_TEST=python3 scripts/zigux/check-phase2-cross-selftest-alignment.py --self-test",
     "PHASE2_CROSS_ALIGNMENT_GATE=python3 scripts/zigux/check-phase2-cross-selftest-alignment.py",
 ]
@@ -54,9 +62,29 @@ VALIDATE_PHASE2_MARKERS = [
 
 VALIDATE_PHASE2_CLOSURE_MARKERS = [
     "CHECK_PHASE2_CROSS_SELFTEST_ALIGNMENT = ROOT / 'scripts' / 'zigux' / 'check-phase2-cross-selftest-alignment.py'",
+    "PHASE2_CROSS_SELF_TEST=python3 scripts/zigux/check-phase2-cross.py --self-test",
+    "PHASE2_CROSS_GATE=python3 scripts/zigux/check-phase2-cross.py",
     "PHASE2_CROSS_ALIGNMENT_SELF_TEST=python3 scripts/zigux/check-phase2-cross-selftest-alignment.py --self-test",
     "PHASE2_CROSS_ALIGNMENT_GATE=python3 scripts/zigux/check-phase2-cross-selftest-alignment.py",
 ]
+
+WORKFLOW_MARKERS = [
+    "python3 scripts/zigux/check-phase2-cross.py --self-test",
+    "python3 scripts/zigux/check-phase2-cross.py --target",
+    "python3 scripts/zigux/check-phase2-cross-selftest-alignment.py --self-test",
+    "python3 scripts/zigux/check-phase2-cross-selftest-alignment.py",
+]
+
+MAKEFILE_MARKERS = [
+    "check-phase2-cross.py --self-test",
+    "check-phase2-cross-selftest-alignment.py --self-test",
+    "check-phase2-cross-selftest-alignment.py",
+    "phase2-cross:",
+]
+
+
+def abspath(root: Path, rel: Path) -> Path:
+    return root / rel
 
 
 def load_json_object(path: Path, *, label: str) -> dict[str, object]:
@@ -90,49 +118,62 @@ def validate_targets_manifest(path: Path) -> list[str]:
 
 def validate_root(root: Path) -> list[str]:
     issues: list[str] = []
-
-    for path in REQUIRED_FILES:
-        if not path.exists():
-            issues.append(f"missing_file:{path.relative_to(root)}")
+    for rel in REQUIRED_FILES:
+        if not abspath(root, rel).exists():
+            issues.append(f"missing_file:{rel.as_posix()}")
     if issues:
         return issues
 
     issues.extend(
         collect_missing_markers(
-            TOOLCHAIN_NOTES.read_text(encoding="utf-8"),
+            abspath(root, TOOLCHAIN_NOTES).read_text(encoding="utf-8"),
             TOOLCHAIN_NOTE_MARKERS,
             prefix="toolchain_notes",
         )
     )
     issues.extend(
         collect_missing_markers(
-            CLOSURE_DOC.read_text(encoding="utf-8"),
+            abspath(root, CLOSURE_DOC).read_text(encoding="utf-8"),
             CLOSURE_MARKERS,
             prefix="closure_doc",
         )
     )
     issues.extend(
         collect_missing_markers(
-            REVIEW_CHECKLIST.read_text(encoding="utf-8"),
+            abspath(root, REVIEW_CHECKLIST).read_text(encoding="utf-8"),
             REVIEW_CHECKLIST_MARKERS,
             prefix="review_checklist",
         )
     )
     issues.extend(
         collect_missing_markers(
-            VALIDATE_PHASE2.read_text(encoding="utf-8"),
+            abspath(root, VALIDATE_PHASE2).read_text(encoding="utf-8"),
             VALIDATE_PHASE2_MARKERS,
             prefix="validate_phase2",
         )
     )
     issues.extend(
         collect_missing_markers(
-            VALIDATE_PHASE2_CLOSURE.read_text(encoding="utf-8"),
+            abspath(root, VALIDATE_PHASE2_CLOSURE).read_text(encoding="utf-8"),
             VALIDATE_PHASE2_CLOSURE_MARKERS,
             prefix="validate_phase2_closure",
         )
     )
-    issues.extend(validate_targets_manifest(TARGETS))
+    issues.extend(
+        collect_missing_markers(
+            abspath(root, WORKFLOW).read_text(encoding="utf-8"),
+            WORKFLOW_MARKERS,
+            prefix="workflow",
+        )
+    )
+    issues.extend(
+        collect_missing_markers(
+            abspath(root, MAKEFILE).read_text(encoding="utf-8"),
+            MAKEFILE_MARKERS,
+            prefix="makefile",
+        )
+    )
+    issues.extend(validate_targets_manifest(abspath(root, TARGETS)))
     return issues
 
 
@@ -142,16 +183,18 @@ def write_text(path: Path, content: str) -> None:
 
 
 def build_self_test_root(root: Path) -> None:
-    write_text(root / TOOLCHAIN_NOTES, "\n".join(TOOLCHAIN_NOTE_MARKERS) + "\n")
-    write_text(root / CLOSURE_DOC, "\n".join(CLOSURE_MARKERS) + "\n")
-    write_text(root / REVIEW_CHECKLIST, "\n".join(REVIEW_CHECKLIST_MARKERS) + "\n")
-    write_text(root / VALIDATE_PHASE2, "\n".join(VALIDATE_PHASE2_MARKERS) + "\n")
+    write_text(abspath(root, TOOLCHAIN_NOTES), "\n".join(TOOLCHAIN_NOTE_MARKERS) + "\n")
+    write_text(abspath(root, CLOSURE_DOC), "\n".join(CLOSURE_MARKERS) + "\n")
+    write_text(abspath(root, REVIEW_CHECKLIST), "\n".join(REVIEW_CHECKLIST_MARKERS) + "\n")
+    write_text(abspath(root, VALIDATE_PHASE2), "\n".join(VALIDATE_PHASE2_MARKERS) + "\n")
     write_text(
-        root / VALIDATE_PHASE2_CLOSURE,
+        abspath(root, VALIDATE_PHASE2_CLOSURE),
         "\n".join(VALIDATE_PHASE2_CLOSURE_MARKERS) + "\n",
     )
+    write_text(abspath(root, WORKFLOW), "\n".join(WORKFLOW_MARKERS) + "\n")
+    write_text(abspath(root, MAKEFILE), "\n".join(MAKEFILE_MARKERS) + "\n")
     write_text(
-        root / TARGETS,
+        abspath(root, TARGETS),
         json.dumps(
             {
                 "phase": "Phase 2",
@@ -167,41 +210,23 @@ def build_self_test_root(root: Path) -> None:
 def run_self_test() -> int:
     with tempfile.TemporaryDirectory(prefix="phase2_cross_selftest_alignment_") as tmp_dir:
         root = Path(tmp_dir)
-        global TOOLCHAIN_NOTES, CLOSURE_DOC, REVIEW_CHECKLIST
-        global VALIDATE_PHASE2, VALIDATE_PHASE2_CLOSURE, TARGETS, REQUIRED_FILES
-
-        TOOLCHAIN_NOTES = root / "Documentation" / "zigux" / "phase2-toolchain-bootstrap-notes.md"
-        CLOSURE_DOC = root / "Documentation" / "zigux" / "phase2-closure.md"
-        REVIEW_CHECKLIST = root / "Documentation" / "zigux" / "review-checklist.md"
-        VALIDATE_PHASE2 = root / "scripts" / "zigux" / "validate-phase2.py"
-        VALIDATE_PHASE2_CLOSURE = root / "scripts" / "zigux" / "validate-phase2-closure.py"
-        TARGETS = root / "zigux" / "tests" / "fixtures" / "phase2_cross_targets.json"
-        REQUIRED_FILES = [
-            TOOLCHAIN_NOTES,
-            CLOSURE_DOC,
-            REVIEW_CHECKLIST,
-            VALIDATE_PHASE2,
-            VALIDATE_PHASE2_CLOSURE,
-            TARGETS,
-        ]
-
         build_self_test_root(root)
         assert validate_root(root) == []
 
-        payload = load_json_object(TARGETS, label="phase2_cross_targets")
+        payload = load_json_object(abspath(root, TARGETS), label="phase2_cross_targets")
         payload["target_count"] = 2
-        write_text(TARGETS, json.dumps(payload) + "\n")
+        write_text(abspath(root, TARGETS), json.dumps(payload) + "\n")
         issues = validate_root(root)
         assert "targets:target_count=2:expected=3" in issues
 
         build_self_test_root(root)
-        payload = load_json_object(TARGETS, label="phase2_cross_targets")
+        payload = load_json_object(abspath(root, TARGETS), label="phase2_cross_targets")
         payload["targets"] = [
             "x86_64-linux-musl",
             "x86_64-linux-musl",
             "riscv64-linux-musl",
         ]
-        write_text(TARGETS, json.dumps(payload) + "\n")
+        write_text(abspath(root, TARGETS), json.dumps(payload) + "\n")
         issues = validate_root(root)
         assert (
             "targets:list=['x86_64-linux-musl', 'x86_64-linux-musl', 'riscv64-linux-musl']:expected=['x86_64-linux-musl', 'aarch64-linux-musl', 'riscv64-linux-musl']"
@@ -209,12 +234,12 @@ def run_self_test() -> int:
         )
 
         build_self_test_root(root)
-        write_text(VALIDATE_PHASE2, "phase2_cross_targets.json\n")
+        write_text(abspath(root, VALIDATE_PHASE2), "phase2_cross_targets.json\n")
         issues = validate_root(root)
         assert "validate_phase2:check-phase2-cross-selftest-alignment.py" in issues
 
         build_self_test_root(root)
-        write_text(VALIDATE_PHASE2_CLOSURE, "PHASE2_CROSS_ALIGNMENT_GATE\n")
+        write_text(abspath(root, VALIDATE_PHASE2_CLOSURE), "PHASE2_CROSS_ALIGNMENT_GATE\n")
         issues = validate_root(root)
         assert (
             "validate_phase2_closure:CHECK_PHASE2_CROSS_SELFTEST_ALIGNMENT = ROOT / 'scripts' / 'zigux' / 'check-phase2-cross-selftest-alignment.py'"
@@ -222,20 +247,35 @@ def run_self_test() -> int:
         )
 
         build_self_test_root(root)
-        TARGETS.unlink()
+        write_text(abspath(root, WORKFLOW), "python3 scripts/zigux/check-phase2-cross.py --target\n")
+        issues = validate_root(root)
+        assert "workflow:python3 scripts/zigux/check-phase2-cross.py --self-test" in issues
+
+        build_self_test_root(root)
+        write_text(abspath(root, MAKEFILE), "phase2-cross:\n")
+        issues = validate_root(root)
+        assert "makefile:check-phase2-cross.py --self-test" in issues
+
+        build_self_test_root(root)
+        write_text(abspath(root, TOOLCHAIN_NOTES), "python3 scripts/zigux/check-phase2-cross.py\n")
+        issues = validate_root(root)
+        assert "toolchain_notes:python3 scripts/zigux/check-phase2-cross.py --self-test" in issues
+
+        build_self_test_root(root)
+        abspath(root, TARGETS).unlink()
         issues = validate_root(root)
         assert "missing_file:zigux/tests/fixtures/phase2_cross_targets.json" in issues
 
     print("PHASE2_CROSS_SELFTEST_ALIGNMENT_SELF_TEST=pass")
-    print("PHASE2_CROSS_SELFTEST_ALIGNMENT_SELF_TEST_CASE_COUNT=6")
+    print("PHASE2_CROSS_SELFTEST_ALIGNMENT_SELF_TEST_CASE_COUNT=8")
     return 0
 
 
 def main() -> int:
     parser = argparse.ArgumentParser(
         description=(
-            "Keep the Phase 2 cross-target self-test note and closure references "
-            "aligned with the current validators and three-target compile manifest."
+            "Keep the Phase 2 cross-target self-test note, workflow, Makefile, "
+            "closure references, and manifest aligned with the current checker packet."
         )
     )
     parser.add_argument(
@@ -260,7 +300,7 @@ def main() -> int:
     print("PHASE2_CROSS_SELFTEST_ALIGNMENT=pass")
     print(
         "PHASE2_CROSS_SELFTEST_ALIGNMENT_MARKER_COUNT="
-        f"{len(TOOLCHAIN_NOTE_MARKERS) + len(CLOSURE_MARKERS) + len(REVIEW_CHECKLIST_MARKERS) + len(VALIDATE_PHASE2_MARKERS) + len(VALIDATE_PHASE2_CLOSURE_MARKERS) + len(EXPECTED_TARGETS)}"
+        f"{len(TOOLCHAIN_NOTE_MARKERS) + len(CLOSURE_MARKERS) + len(REVIEW_CHECKLIST_MARKERS) + len(VALIDATE_PHASE2_MARKERS) + len(VALIDATE_PHASE2_CLOSURE_MARKERS) + len(WORKFLOW_MARKERS) + len(MAKEFILE_MARKERS) + len(EXPECTED_TARGETS)}"
     )
     return 0
 
