@@ -335,6 +335,12 @@ def run_self_test() -> int:
         assert validate_root(root) == []
         assert run_artifact_diff_contract_check(root) == []
 
+        _write(
+            root / "scripts/zigux/check-artifact-diff-contract.py",
+            "#!/usr/bin/env python3\nraise SystemExit(1)\n",
+        )
+        assert run_artifact_diff_contract_check(root) == ["artifact_diff_contract:exit:1"]
+
     print("PHASE4_VALIDATE_SELF_TEST=pass")
     return 0
 
