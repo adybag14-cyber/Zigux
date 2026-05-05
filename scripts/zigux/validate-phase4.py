@@ -13,6 +13,7 @@ ROOT = Path(__file__).resolve().parents[2]
 REQUIRED_FILES = [
     "scripts/zigux/artifact_diff.py",
     "scripts/zigux/check-artifact-diff-contract.py",
+    "scripts/zigux/check-phase4-gate-evidence.py",
     "scripts/zigux/validate-phase4.py",
     "Documentation/zigux/artifact-diff.md",
     "Documentation/zigux/phase4-gate-evidence.md",
@@ -185,6 +186,7 @@ EXPECTED_ARTIFACT_DIFF_CONTRACT_SELF_TEST_CASES = [
     "contract_summary_duplicate_case_drift",
     "contract_summary_case_order_drift",
 ]
+EXPECTED_PHASE4_GATE_EVIDENCE_TARGET_COUNT = 16
 
 
 def _missing_files(root: Path) -> list[str]:
@@ -222,11 +224,15 @@ def validate_root(root: Path) -> list[str]:
     makefile = (root / "zigux/Makefile").read_text(encoding="utf-8")
     workflow = (root / ".github/workflows/zigux-bootstrap.yml").read_text(encoding="utf-8")
     artifact_doc = (root / "Documentation/zigux/artifact-diff.md").read_text(encoding="utf-8")
-    phase4_gate_evidence = (root / "Documentation/zigux/phase4-gate-evidence.md").read_text(encoding="utf-8")
+    phase4_gate_evidence = (root / "Documentation/zigux/phase4-gate-evidence.md").read_text(
+        encoding="utf-8"
+    )
     tests_readme = (root / "zigux/tests/README.md").read_text(encoding="utf-8")
     script_readme = (root / "scripts/zigux/README.md").read_text(encoding="utf-8")
     doc_readme = (root / "Documentation/zigux/README.md").read_text(encoding="utf-8")
-    phase4_matrix = (root / "Documentation/zigux/phase4-validation-matrix.md").read_text(encoding="utf-8")
+    phase4_matrix = (root / "Documentation/zigux/phase4-validation-matrix.md").read_text(
+        encoding="utf-8"
+    )
     phase4_build = (root / "zigux/tests/phase4_build.zig").read_text(encoding="utf-8")
 
     for marker in REQUIRED_MAKE_MARKERS:
@@ -354,6 +360,50 @@ def run_artifact_diff_contract_self_test_check(root: Path) -> list[str]:
     return []
 
 
+def run_phase4_gate_evidence_check(root: Path) -> list[str]:
+    checker = root / "scripts/zigux/check-phase4-gate-evidence.py"
+    result = subprocess.run(
+        [sys.executable, str(checker)],
+        cwd=root,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    if result.returncode != 0:
+        return [f"phase4_gate_evidence:exit:{result.returncode}"]
+
+    lines = result.stdout.splitlines()
+    if "PHASE4_GATE_EVIDENCE_CHECK=pass" not in lines:
+        return ["phase4_gate_evidence:missing_pass_marker"]
+
+    target_count = _line_value(lines, "PHASE4_GATE_EVIDENCE_TARGET_COUNT=")
+    if target_count is None:
+        return ["phase4_gate_evidence:missing_target_count_marker"]
+    if target_count != str(EXPECTED_PHASE4_GATE_EVIDENCE_TARGET_COUNT):
+        return [f"phase4_gate_evidence:unexpected_target_count:{target_count}"]
+
+    return []
+
+
+def run_phase4_gate_evidence_self_test_check(root: Path) -> list[str]:
+    checker = root / "scripts/zigux/check-phase4-gate-evidence.py"
+    result = subprocess.run(
+        [sys.executable, str(checker), "--self-test"],
+        cwd=root,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    if result.returncode != 0:
+        return [f"phase4_gate_evidence_self_test:exit:{result.returncode}"]
+
+    lines = result.stdout.splitlines()
+    if "PHASE4_GATE_EVIDENCE_SELF_TEST=pass" not in lines:
+        return ["phase4_gate_evidence_self_test:missing_pass_marker"]
+
+    return []
+
+
 def _write(path: Path, content: str) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(content, encoding="utf-8", newline="\n")
@@ -396,7 +446,9 @@ def _write_contract_checker_fixture(
     if repeat_case_count is not None:
         lines.append(f"print('ARTIFACT_DIFF_CONTRACT_REPEAT_CASE_COUNT={repeat_case_count}')")
     if repeat_cases is not None:
-        lines.append("print('ARTIFACT_DIFF_CONTRACT_REPEAT_CASES=" + ",".join(repeat_cases) + "')")
+        lines.append(
+            "print('ARTIFACT_DIFF_CONTRACT_REPEAT_CASES=" + ",".join(repeat_cases) + "')"
+        )
     if case_count is not None:
         lines.append(f"print('ARTIFACT_DIFF_CONTRACT_CASE_COUNT={case_count}')")
     if cases is not None:
@@ -419,6 +471,21 @@ def run_self_test() -> int:
             cases=EXPECTED_ARTIFACT_DIFF_CONTRACT_CASES,
             self_test_case_count=str(len(EXPECTED_ARTIFACT_DIFF_CONTRACT_SELF_TEST_CASES)),
             self_test_cases=EXPECTED_ARTIFACT_DIFF_CONTRACT_SELF_TEST_CASES,
+        )
+        _write(
+            root / "scripts/zigux/check-phase4-gate-evidence.py",
+            "\n".join(
+                [
+                    "#!/usr/bin/env python3",
+                    "import sys",
+                    "if '--self-test' in sys.argv:",
+                    "    print('PHASE4_GATE_EVIDENCE_SELF_TEST=pass')",
+                    "else:",
+                    "    print('PHASE4_GATE_EVIDENCE_CHECK=pass')",
+                    f"    print('PHASE4_GATE_EVIDENCE_TARGET_COUNT={EXPECTED_PHASE4_GATE_EVIDENCE_TARGET_COUNT}')",
+                    "",
+                ]
+            ),
         )
         _write(root / "scripts/zigux/validate-phase4.py", "# placeholder\n")
         _write(
@@ -585,6 +652,8 @@ def run_self_test() -> int:
         assert validate_root(root) == []
         assert run_artifact_diff_contract_check(root) == []
         assert run_artifact_diff_contract_self_test_check(root) == []
+        assert run_phase4_gate_evidence_check(root) == []
+        assert run_phase4_gate_evidence_self_test_check(root) == []
 
         _write_contract_checker_fixture(
             root / "scripts/zigux/check-artifact-diff-contract.py",
@@ -771,6 +840,68 @@ def run_self_test() -> int:
             "artifact_diff_contract:missing_base_case_count_marker"
         ]
 
+        _write(
+            root / "scripts/zigux/check-phase4-gate-evidence.py",
+            "\n".join(
+                [
+                    "#!/usr/bin/env python3",
+                    "print('PHASE4_GATE_EVIDENCE_TARGET_COUNT=16')",
+                    "",
+                ]
+            ),
+        )
+        assert run_phase4_gate_evidence_check(root) == [
+            "phase4_gate_evidence:missing_pass_marker"
+        ]
+
+        _write(
+            root / "scripts/zigux/check-phase4-gate-evidence.py",
+            "\n".join(
+                [
+                    "#!/usr/bin/env python3",
+                    "print('PHASE4_GATE_EVIDENCE_CHECK=pass')",
+                    "",
+                ]
+            ),
+        )
+        assert run_phase4_gate_evidence_check(root) == [
+            "phase4_gate_evidence:missing_target_count_marker"
+        ]
+
+        _write(
+            root / "scripts/zigux/check-phase4-gate-evidence.py",
+            "\n".join(
+                [
+                    "#!/usr/bin/env python3",
+                    "print('PHASE4_GATE_EVIDENCE_CHECK=pass')",
+                    "print('PHASE4_GATE_EVIDENCE_TARGET_COUNT=15')",
+                    "",
+                ]
+            ),
+        )
+        assert run_phase4_gate_evidence_check(root) == [
+            "phase4_gate_evidence:unexpected_target_count:15"
+        ]
+
+        _write(
+            root / "scripts/zigux/check-phase4-gate-evidence.py",
+            "\n".join(
+                [
+                    "#!/usr/bin/env python3",
+                    "import sys",
+                    "if '--self-test' in sys.argv:",
+                    "    print('PHASE4_GATE_EVIDENCE_CHECK=pass')",
+                    "else:",
+                    "    print('PHASE4_GATE_EVIDENCE_CHECK=pass')",
+                    f"    print('PHASE4_GATE_EVIDENCE_TARGET_COUNT={EXPECTED_PHASE4_GATE_EVIDENCE_TARGET_COUNT}')",
+                    "",
+                ]
+            ),
+        )
+        assert run_phase4_gate_evidence_self_test_check(root) == [
+            "phase4_gate_evidence_self_test:missing_pass_marker"
+        ]
+
     print("PHASE4_VALIDATE_SELF_TEST=pass")
     return 0
 
@@ -821,6 +952,24 @@ def main() -> int:
         for item in contract_self_test_failures:
             print(item)
         print("ARTIFACT_DIFF_CONTRACT_SELF_TEST_CHECK_END")
+        return 1
+
+    gate_evidence_failures = run_phase4_gate_evidence_check(ROOT)
+    if gate_evidence_failures:
+        print("PHASE4_VALIDATION=fail")
+        print("PHASE4_GATE_EVIDENCE_CHECK_START")
+        for item in gate_evidence_failures:
+            print(item)
+        print("PHASE4_GATE_EVIDENCE_CHECK_END")
+        return 1
+
+    gate_evidence_self_test_failures = run_phase4_gate_evidence_self_test_check(ROOT)
+    if gate_evidence_self_test_failures:
+        print("PHASE4_VALIDATION=fail")
+        print("PHASE4_GATE_EVIDENCE_SELF_TEST_CHECK_START")
+        for item in gate_evidence_self_test_failures:
+            print(item)
+        print("PHASE4_GATE_EVIDENCE_SELF_TEST_CHECK_END")
         return 1
 
     print("PHASE4_VALIDATION=pass")
