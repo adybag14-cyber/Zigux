@@ -49,6 +49,10 @@ REQUIRED_DOCS_README_MARKERS = [
     "there is no dedicated shared `validate-phase12.py`, `check-phase12-*.py`, or `phase12-validate` target on `master`",
 ]
 
+REQUIRED_DOCS_README_EXACT_COUNTS = {
+    "`Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, `scripts/zigux/check-build-only-phase12-surface.py`, `.github/workflows/zigux-bootstrap.yml`, `zigux/tests/README.md`, `zigux/tests/phase12_build.zig`, `zigux/tests/phase12_nvme_pci_manifest.json`, `zigux/tests/phase12_nvme_pci.zig`, `zigux/tests/phase12_nvme_pci_survey.zig`, `zigux/tests/phase12_virtio_net_manifest.json`, `zigux/tests/phase12_virtio_net.zig`, `zigux/tests/phase12_virtio_net_survey.zig`, `zigux/tests/phase12_virtio_scsi_manifest.json`, `zigux/tests/phase12_virtio_scsi.zig`, `zigux/tests/phase12_virtio_scsi_survey.zig`, `zigux/tests/phase12_libbpf_manifest.json`, `zigux/tests/phase12_libbpf_segments.zig`, `zigux/tests/phase12_libbpf_reviewability.zig`, `tools/lib/bpf/zigux_segments/manifest.json`, `zigux/Makefile`, and `make -C zigux phase12` now keep the current nvme pci, virtio_net, virtio_scsi, and libbpf survey-backed complex-driver bundle reviewable through the shipped build-only contract plus the shared build-and-make replay route instead of implying removed validator, PMO checker, or raw-coverage-survey surfaces.": 1,
+}
+
 REQUIRED_REVIEW_CHECKLIST_MARKERS = [
     "- if the change touches the shared Phase 12 complex-driver packet, do `Documentation/zigux/README.md`, `zigux/tests/README.md`, `scripts/zigux/README.md`, `scripts/zigux/check-build-only-phase12-surface.py`, `Documentation/zigux/phase12-release-sequencing.md`",
     "`make -C zigux phase12` still agree on the same shipped nvme, virtio_net, virtio_scsi, and libbpf survey packet plus the active release-order note without implying removed `validate-phase12.py`, `check-phase12-*.py`, raw-coverage, or focused-libbpf-only replay surfaces that are not on `master`?",
@@ -91,6 +95,7 @@ REQUIRED_TESTS_README_MARKERS = [
 ]
 
 REQUIRED_TESTS_README_EXACT_COUNTS = {
+    "`Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/phase12-release-sequencing.md`, `Documentation/zigux/phase12-nvme-pci-slice.md`, `Documentation/zigux/phase12-nvme-pci-survey.md`, `Documentation/zigux/phase12-nvme-pci-raw-github-fallback-map.md`, `Documentation/zigux/phase12-virtio-net-survey.md`, `Documentation/zigux/phase12-virtio-scsi-slice.md`, `Documentation/zigux/phase12-virtio-scsi-survey.md`, `Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md`, `Documentation/zigux/phase12-libbpf-segment-survey.md`, `scripts/zigux/README.md`, `scripts/zigux/check-build-only-phase12-surface.py`, `.github/workflows/zigux-bootstrap.yml`, `zigux/tests/phase12_nvme_pci_manifest.json`, `zigux/tests/phase12_nvme_pci.zig`, `zigux/tests/phase12_nvme_pci_survey.zig`, `zigux/tests/phase12_virtio_net_manifest.json`, `zigux/tests/phase12_virtio_net.zig`, `zigux/tests/phase12_virtio_net_survey.zig`, `zigux/tests/phase12_virtio_scsi_manifest.json`, `zigux/tests/phase12_virtio_scsi.zig`, `zigux/tests/phase12_virtio_scsi_survey.zig`, `zigux/tests/phase12_libbpf_manifest.json`, `zigux/tests/phase12_libbpf_segments.zig`, `zigux/tests/phase12_libbpf_reviewability.zig`, `tools/lib/bpf/zigux_segments/manifest.json`, `zigux/tests/phase12_build.zig`, `zigux/Makefile`, and `make -C zigux phase12` should continue to keep the current nvme, virtio_net, virtio_scsi, and libbpf survey packet plus the active release-order note reviewable from the tests root through the workflow-backed build-only contract without implying removed `validate-phase12.py`, `check-phase12-*.py`, release-readiness, raw-coverage, focused-libbpf-only replay, cross-build, or `phase12-validate` surfaces that are not on `master`": 1,
     "`scripts/zigux/check-build-only-phase12-surface.py`, `.github/workflows/zigux-bootstrap.yml`, `zigux/tests/phase12_nvme_pci_manifest.json`": 1,
 }
 
@@ -223,6 +228,8 @@ def validate(root: Path) -> list[str]:
         expect_exact_count(workflow, marker, count, "workflow_exact_count", failures)
     for marker, count in REQUIRED_SCRIPT_README_EXACT_COUNTS.items():
         expect_exact_count(scripts_readme, marker, count, "scripts_readme_exact_count", failures)
+    for marker, count in REQUIRED_DOCS_README_EXACT_COUNTS.items():
+        expect_exact_count(docs_readme, marker, count, "docs_readme_exact_count", failures)
     for marker, count in REQUIRED_TESTS_README_EXACT_COUNTS.items():
         expect_exact_count(tests_readme, marker, count, "tests_readme_exact_count", failures)
     for marker in FORBIDDEN_MAKEFILE_MARKERS:
@@ -381,6 +388,7 @@ def main() -> int:
         + len(REQUIRED_MAKEFILE_EXACT_COUNTS)
         + len(REQUIRED_WORKFLOW_EXACT_COUNTS)
         + len(REQUIRED_SCRIPT_README_EXACT_COUNTS)
+        + len(REQUIRED_DOCS_README_EXACT_COUNTS)
         + len(REQUIRED_TESTS_README_EXACT_COUNTS)
         + len(FORBIDDEN_LITERAL_COUNTS)
     )
