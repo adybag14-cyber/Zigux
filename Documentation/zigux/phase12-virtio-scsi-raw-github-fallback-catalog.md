@@ -10,6 +10,8 @@ It is a fallback-read catalog, not a closure claim and not a validator-first rou
 
 - `PHASE12_STATUS=active`
 - `PHASE12_SLICE=virtio-scsi-raw-github-fallback-catalog`
+- `active_survey_lane: P12-L12`
+- `historical_fallback_lane: P12-L09`
 - scope: public tree and raw URL coverage for the shipped `virtio_scsi` starter, survey, build wiring, manifest, and shared replay surfaces
 
 ## Tree views
