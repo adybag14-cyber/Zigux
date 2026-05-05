@@ -209,6 +209,12 @@ test "phase 8 libbpf helper slice notes stay parked once the shared tooling bund
     try expectContains(phase8_note, "zigux/tests/phase8_pin_path.zig");
     try expectContains(phase8_note, "zigux/tests/phase8_libbpf_segments.zig");
     try expectContains(phase8_note, "zigux/tests/phase8_build.zig");
+    try expectContains(phase8_note, "make -C zigux phase8-libbpf-segments-test");
+    try expectContains(phase8_note, "zig build test --build-file zigux/tests/phase8_libbpf_segments_only_build.zig --summary all");
+    try expectContains(phase8_note, "make -C zigux phase8-perf-buffer-poll-test");
+    try expectContains(phase8_note, "zig build test --build-file zigux/tests/phase8_perf_buffer_poll_only_build.zig --summary all");
+    try expectContains(phase8_note, "make -C zigux phase8-test");
+    try expectContains(phase8_note, "zig build test --build-file zigux/tests/phase8_build.zig --summary all");
     try expectContains(phase8_note, "perf-buffer-online-cpu-routing");
     try expectContains(phase8_note, "per-CPU `perf_event_open()` setup");
     try expectContains(phase8_note, "perf-buffer ring `mmap()` setup");
