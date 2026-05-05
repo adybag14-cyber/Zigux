@@ -1,7 +1,7 @@
 {
   "lane_key": "P14-L01",
   "phase": "Phase 14",
-  "surveyed_commit": "7a4454d0474106972cad7e164b79293bd54a40c6",
+  "surveyed_commit": "9e278f632d6d5097cb8cfc2dc61744ae105baa8c",
   "anchor": "kernel/workqueue.c",
   "roadmap_destinations": [
     "kernel/workqueue_bridge.zig",
@@ -100,18 +100,18 @@
       "why_now": "The bridge now audits `try_to_grab_pending()`, `queue_work_on()`, and the unbound `__queue_work()` `pwq->refcnt` retry path so Zigux can describe pending-bit ownership and refcount retry rules before any wrapper claims live submission control."
     },
     {
-      "id": "phase14-workqueue-delayed-submission-alias-audit",
+      "id": "phase14-workqueue-delayed-submission-alias-followup",
       "status": "starter_landed",
       "kind": "concurrency_audit",
       "zigux_destination": "kernel/workqueue_bridge.zig",
-      "why_now": "The bridge now audits `queue_delayed_work_on()`, `mod_delayed_work_on()`, and `__queue_delayed_work()` so Zigux can describe the delayed-submission alias routing without claiming timer ownership or delayed-work execution control."
+      "why_now": "The bridge now audits `queue_delayed_work_on()`, `mod_delayed_work_on()`, and `__queue_delayed_work()` so Zigux can describe delayed enqueue aliases and their shared timer-gated handoff before any wrapper claims live timer-driven submission control."
     },
     {
-      "id": "phase14-workqueue-delayed-timer-handoff-followup",
+      "id": "phase14-workqueue-delayed-timer-expiry-followup",
       "status": "ready_next",
       "kind": "concurrency_audit",
       "zigux_destination": "kernel/workqueue_bridge.zig",
-      "why_now": "The next honest Phase 14 step is to audit `delayed_work_timer_fn()` so Zigux can record how timer expiry hands delayed work back into `__queue_work()` before any wrapper claims live delayed-work execution control."
+      "why_now": "The next honest Phase 14 step is to audit `delayed_work_timer_fn()` and its handoff into `__queue_work()` so Zigux can describe timer-expiry submission ownership before any wrapper claims live delayed-work execution."
     },
     {
       "id": "phase14-workqueue-live-execution-blocker",
