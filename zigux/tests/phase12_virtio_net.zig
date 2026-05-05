@@ -533,3 +533,68 @@ test "phase12 virtio net transmit recycle keeps control and rss ordering explici
     try std.testing.expect(reset_recycle.requires_fresh_probe_snapshot);
     try std.testing.expect(reset_recycle.requires_post_restore_probe_replay);
 }
+
+test "phase12 virtio net transmit recycle refreshes after a repeated recovery cycle" {
+    var lab = try virtio_net.VirtioNetProbeLab.init(&.{
+        virtio_net.feature_mergeable_rx_buffers,
+        virtio_net.feature_control_vq,
+        virtio_net.feature_multiqueue,
+        virtio_net.feature_rss,
+    });
+
+    _ = try lab.captureProbeSnapshot(.{
+        .driver_feature_bits = &.{
+            virtio_net.feature_mergeable_rx_buffers,
+            virtio_net.feature_control_vq,
+            virtio_net.feature_multiqueue,
+            virtio_net.feature_rss,
+        },
+        .requested_queue_pairs = 3,
+        .max_queue_pairs = 3,
+    });
+    _ = try lab.freezeForRecovery();
+    const first_recycle = try lab.planTransmitRecycle();
+    try std.testing.expectEqual(@as(u16, 0), first_recycle.recovery_generation);
+    try std.testing.expectEqual(
+        virtio_net.TransmitRecycleOrder.after_control_queue_restore_and_rss_reapply,
+        first_recycle.recycle_order,
+    );
+    try std.testing.expectEqual(@as(u16, 3), first_recycle.recycle_queue_pairs);
+    try std.testing.expectEqual(@as(u16, 3), first_recycle.recycle_tx_queue_count);
+    try std.testing.expectEqual(@as(u16, 7), first_recycle.recycle_total_queue_count);
+    try std.testing.expectEqual(@as(?u16, 6), first_recycle.resume_control_queue_index);
+    try std.testing.expect(first_recycle.requires_control_queue_restore);
+    try std.testing.expect(first_recycle.requires_rss_reapply);
+    try std.testing.expect(first_recycle.requires_receive_refill_coordination);
+    _ = try lab.restoreAfterRecovery();
+
+    _ = try lab.captureProbeSnapshot(.{
+        .driver_feature_bits = &.{
+            virtio_net.feature_mergeable_rx_buffers,
+            virtio_net.feature_multiqueue,
+            virtio_net.feature_rss,
+        },
+        .requested_queue_pairs = 4,
+        .max_queue_pairs = 8,
+    });
+    _ = try lab.freezeForRecovery();
+    const second_recycle = try lab.planTransmitRecycle();
+    try std.testing.expectEqual(@as(u16, 1), second_recycle.recovery_generation);
+    try std.testing.expectEqual(
+        virtio_net.TransmitRecycleOrder.data_queues_only,
+        second_recycle.recycle_order,
+    );
+    try std.testing.expectEqual(@as(u16, 1), second_recycle.recycle_queue_pairs);
+    try std.testing.expectEqual(@as(u16, 1), second_recycle.recycle_tx_queue_count);
+    try std.testing.expectEqual(@as(u16, 2), second_recycle.recycle_total_queue_count);
+    try std.testing.expectEqual(@as(?u16, null), second_recycle.resume_control_queue_index);
+    try std.testing.expectEqual(
+        virtio_net.QueueRecoveryAction.degrade_to_single_queue,
+        second_recycle.remembered_queue_recovery_action,
+    );
+    try std.testing.expect(!second_recycle.requires_control_queue_restore);
+    try std.testing.expect(!second_recycle.requires_rss_reapply);
+    try std.testing.expect(second_recycle.requires_receive_refill_coordination);
+    try std.testing.expect(second_recycle.requires_fresh_probe_snapshot);
+    try std.testing.expect(second_recycle.requires_post_restore_probe_replay);
+}
