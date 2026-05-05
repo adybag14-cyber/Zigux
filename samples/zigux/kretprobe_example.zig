@@ -76,6 +76,20 @@ pub const LifecycleGuardSummary = struct {
     init_runs: usize,
 };
 
+pub const OwnershipSummary = struct {
+    anchor: []const u8,
+    symbol_name: []const u8,
+    stage: SampleStage,
+    maxactive: usize,
+    active_instances: usize,
+    skipped_kernel_threads: usize,
+    nmissed: usize,
+    init_runs: usize,
+    replay_runs: usize,
+    exit_runs: usize,
+    entry_timestamp_armed: bool,
+};
+
 pub const KretprobeExampleSample = struct {
     const Self = @This();
     const InstanceData = struct {
@@ -120,6 +134,22 @@ pub const KretprobeExampleSample = struct {
 
     pub fn privateDataSizeBytes(_: *const Self) usize {
         return @sizeOf(InstanceData);
+    }
+
+    pub fn ownershipSummary(self: *const Self) OwnershipSummary {
+        return .{
+            .anchor = descriptor().anchor,
+            .symbol_name = self.symbol_name,
+            .stage = self.stage(),
+            .maxactive = self.maxactive,
+            .active_instances = self.active_instances,
+            .skipped_kernel_threads = self.skipped_kernel_threads,
+            .nmissed = self.nmissed,
+            .init_runs = self.init_runs,
+            .replay_runs = self.replay_runs,
+            .exit_runs = self.exit_runs,
+            .entry_timestamp_armed = self.instance_data.entry_stamp_ns >= 0,
+        };
     }
 
     pub fn init(self: *Self) !void {
@@ -313,4 +343,46 @@ test "kretprobe sample replay keeps the anchor reviewable and non-runtime" {
     try std.testing.expectEqual(@as(usize, 1), replay.nmissed);
     try std.testing.expectEqual(@as(usize, 20), replay.maxactive);
     try std.testing.expectEqual(@as(usize, 6), replay.checked_focus.len);
+}
+
+test "kretprobe sample ownership summary keeps lifecycle snapshots explicit" {
+    var sample = KretprobeExampleSample{};
+
+    var summary = sample.ownershipSummary();
+    try std.testing.expectEqualStrings("samples/kprobes/kretprobe_example.c", summary.anchor);
+    try std.testing.expectEqualStrings(KretprobeExampleSample.default_symbol_name, summary.symbol_name);
+    try std.testing.expectEqual(SampleStage.cold, summary.stage);
+    try std.testing.expectEqual(@as(usize, 0), summary.active_instances);
+    try std.testing.expect(!summary.entry_timestamp_armed);
+
+    try sample.init();
+    summary = sample.ownershipSummary();
+    try std.testing.expectEqual(SampleStage.initialized, summary.stage);
+    try std.testing.expectEqual(@as(usize, 1), summary.init_runs);
+    try std.testing.expectEqual(@as(usize, 0), summary.replay_runs);
+    try std.testing.expectEqual(@as(usize, 0), summary.exit_runs);
+
+    try std.testing.expect(try sample.entryHandler(true, 200));
+    summary = sample.ownershipSummary();
+    try std.testing.expectEqual(SampleStage.armed, summary.stage);
+    try std.testing.expectEqual(@as(usize, 1), summary.active_instances);
+    try std.testing.expect(summary.entry_timestamp_armed);
+
+    _ = try sample.retHandler(9, 260);
+    try sample.recordMissedInstance();
+    sample.replay_runs += 1;
+    sample.stage_state = .replay_complete;
+
+    summary = sample.ownershipSummary();
+    try std.testing.expectEqual(SampleStage.replay_complete, summary.stage);
+    try std.testing.expectEqual(@as(usize, 0), summary.active_instances);
+    try std.testing.expectEqual(@as(usize, 1), summary.nmissed);
+    try std.testing.expectEqual(@as(usize, 1), summary.replay_runs);
+    try std.testing.expect(!summary.entry_timestamp_armed);
+
+    try sample.exit();
+    summary = sample.ownershipSummary();
+    try std.testing.expectEqual(SampleStage.exited, summary.stage);
+    try std.testing.expectEqual(@as(usize, 1), summary.exit_runs);
+    try std.testing.expect(!summary.entry_timestamp_armed);
 }
