@@ -412,7 +412,7 @@ def run_self_test() -> int:
         )
 
     print('FIXDEP_SELF_TEST=pass')
-    print(f'FIXDEP_SELF_TEST_CASE_COUNT={EXPECTED_SELF_TEST_CASE_COUNT}')
+    print(f'FIXDEP_SELF_TEST_CASE_COUNT={checks_run}')
     return 0
 
 
