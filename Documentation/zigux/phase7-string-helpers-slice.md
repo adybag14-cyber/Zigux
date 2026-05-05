@@ -43,6 +43,8 @@ The Phase 5 roadmap keeps approved reference idioms under four sample anchors in
 
 The current starter slice covers:
 
+- `skip_spaces()`
+- `strim()`
 - `sysfs_streq()`
 - `match_string()`
 - `__sysfs_match_string()`
@@ -56,6 +58,8 @@ The current starter slice covers:
 
 The current tests check:
 
+- leading whitespace skipping that stops at the first NUL
+- in-place leading and trailing trimming that preserves bytes beyond the first NUL
 - newline-tolerant sysfs equality
 - bounded null-sentinel string table matching
 - Linux-style `n = -1` string table scans that stop at the first NULL entry
@@ -75,7 +79,6 @@ The current tests check:
 
 This slice does not yet claim:
 
-- parity for `skip_spaces()` and `strim()`
 - parity for `string_get_size()`
 - integer parsing helpers
 - allocation-backed duplication helpers
@@ -86,4 +89,4 @@ This slice does not yet claim:
 
 Leave this lane parked unless fresh repo inspection finds one more concrete Phase 7 helper need or a renewed Phase 5-versus-Phase 7 boundary drift.
 
-If the string-helper family reopens, prefer `skip_spaces()` or `strim()` before heavier `string_get_size()` or parsing work, because those two helpers remain the smallest live `lib/string_helpers.c` leaf helpers that still fit the current runtime-safe Phase 7 boundary without widening into allocator-heavy, task-owned, file-owned, or device-managed surfaces.
+If the string-helper family reopens, prefer `string_get_size()` or one bounded integer parsing step before quotable, allocator-heavy, task-owned, file-owned, or device-managed follow-on work, because the whitespace leaf pair is now landed and the remaining live `lib/string_helpers.c` gaps start at the heavier formatting-and-parsing boundary.
