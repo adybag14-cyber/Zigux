@@ -69,28 +69,39 @@ test "phase 5 kobject sample keeps shared attribute dispatch and parse failures 
     try std.testing.expectError(error.UnknownAttribute, module.showValue("qux"));
 }
 
-test "phase 5 kobject sample makes ownership and lifetime boundaries explicit" {
+test "phase 5 kobject sample makes ownership summaries and lifecycle boundaries explicit" {
     var module = sample.KobjectExampleSample{};
 
-    try std.testing.expectEqual(sample.SampleStage.cold, module.stage());
-    try std.testing.expectEqual(@as(usize, 0), module.activeAttrCount());
+    var summary = module.ownershipSummary();
+    try std.testing.expectEqual(sample.SampleStage.cold, summary.stage);
+    try std.testing.expectEqual(@as(usize, 0), summary.active_attr_count);
     try std.testing.expectError(error.InvalidLifecycleTransition, module.registerAttributes());
     try std.testing.expectError(error.InvalidLifecycleTransition, module.showValue("foo"));
 
     try module.init();
-    try std.testing.expectEqual(sample.SampleStage.initialized, module.stage());
-    try std.testing.expectEqual(@as(usize, 0), module.activeAttrCount());
+    summary = module.ownershipSummary();
+    try std.testing.expectEqual(sample.SampleStage.initialized, summary.stage);
+    try std.testing.expectEqual(@as(usize, 0), summary.active_attr_count);
     try std.testing.expectError(error.InvalidLifecycleTransition, module.showValue("foo"));
     try std.testing.expectError(error.InvalidLifecycleTransition, module.storeValue("foo", "1\n"));
     try std.testing.expectError(error.InvalidLifecycleTransition, module.init());
 
+    const abandoned = try module.exit();
+    try std.testing.expectEqual(sample.ExitDisposition.abandoned_before_registration, abandoned.disposition);
+    try std.testing.expectEqual(sample.SampleStage.exited, module.ownershipSummary().stage);
+    try std.testing.expectEqual(@as(usize, 0), module.ownershipSummary().active_attr_count);
+    try std.testing.expectError(error.InvalidLifecycleTransition, module.registerAttributes());
+
+    module = sample.KobjectExampleSample{};
+    try module.init();
     try module.registerAttributes();
     try std.testing.expectEqual(@as(usize, 3), module.activeAttrCount());
     try std.testing.expectEqual(@as(usize, 2), try module.storeValue("foo", "8\n"));
     try std.testing.expectEqualStrings("8\n", (try module.showValue("foo")).text[0..2]);
-    try std.testing.expectError(error.InvalidLifecycleTransition, module.registerAttributes());
 
-    try module.exit();
+    const torn_down = try module.exit();
+    try std.testing.expectEqual(sample.ExitDisposition.tore_down_registered_attributes, torn_down.disposition);
+    try std.testing.expectEqual(@as(usize, 3), torn_down.cleared_attr_count);
     try std.testing.expectEqual(sample.SampleStage.exited, module.stage());
     try std.testing.expectEqual(@as(usize, 0), module.activeAttrCount());
     try std.testing.expectEqual(@as(i32, 0), module.foo);
@@ -101,27 +112,4 @@ test "phase 5 kobject sample makes ownership and lifetime boundaries explicit" {
     try std.testing.expectEqual(@as(usize, 1), module.exit_runs);
     try std.testing.expectError(error.InvalidLifecycleTransition, module.storeValue("foo", "1\n"));
     try std.testing.expectError(error.InvalidLifecycleTransition, module.exit());
-}
-
-test "phase 5 kobject sample allows initialized-only abandonment without implying registration" {
-    var module = sample.KobjectExampleSample{};
-
-    try module.init();
-    try std.testing.expectEqual(sample.SampleStage.initialized, module.stage());
-    try std.testing.expectEqual(@as(usize, 1), module.init_runs);
-    try std.testing.expectEqual(@as(usize, 0), module.register_runs);
-    try std.testing.expectEqual(@as(usize, 0), module.exit_runs);
-    try std.testing.expectEqual(@as(usize, 0), module.activeAttrCount());
-
-    try module.exit();
-    try std.testing.expectEqual(sample.SampleStage.exited, module.stage());
-    try std.testing.expectEqual(@as(usize, 1), module.init_runs);
-    try std.testing.expectEqual(@as(usize, 0), module.register_runs);
-    try std.testing.expectEqual(@as(usize, 1), module.exit_runs);
-    try std.testing.expectEqual(@as(i32, 0), module.foo);
-    try std.testing.expectEqual(@as(i32, 0), module.baz);
-    try std.testing.expectEqual(@as(i32, 0), module.bar);
-    try std.testing.expectEqual(@as(usize, 0), module.activeAttrCount());
-    try std.testing.expectError(error.InvalidLifecycleTransition, module.showValue("foo"));
-    try std.testing.expectError(error.InvalidLifecycleTransition, module.storeValue("foo", "1\n"));
 }
