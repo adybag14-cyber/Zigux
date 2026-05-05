@@ -70,6 +70,8 @@ test "phase 15 architecture council review-process doc and manifest stay aligned
     try expectContains(docs_readme, "`Documentation/zigux/phase15-architecture-council-review-process.md`");
     try expectContains(docs_readme, "`Documentation/zigux/phase15-parity-scorecard.md`");
     try expectContains(docs_readme, "`Documentation/zigux/phase15-indefinite-c-policy.md`");
+    try expectContains(docs_readme, "`scripts/zigux/check-phase15-scripts-readme-alignment.py`");
+    try expectContains(docs_readme, "`zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig`");
     try expectContains(docs_readme, "`zigux/tests/phase15_build.zig`");
     try expectContains(docs_readme, "`make -C zigux phase15`");
     try expectContains(docs_readme, "no Architecture Council approval is recorded yet");
@@ -186,6 +188,11 @@ test "phase 15 architecture council review-process doc and manifest stay aligned
 
     try expectContains(makefile, "PHONY += phase15-validate phase15-test phase15");
     try expectContains(makefile, "phase15-validate:");
+    try expectContains(
+        makefile,
+        "scripts/zigux/check-phase15-scripts-readme-alignment.py --self-test",
+    );
+    try expectContains(makefile, "scripts/zigux/check-phase15-scripts-readme-alignment.py");
     try expectContains(
         makefile,
         "scripts/zigux/check-phase15-review-process-handoff.py --self-test",
