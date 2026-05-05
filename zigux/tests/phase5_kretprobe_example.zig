@@ -55,6 +55,51 @@ test "phase 5 kretprobe sample keeps symbol retargeting and handler boundaries e
     try std.testing.expectEqual(@as(usize, 1), module.nmissed);
 }
 
+test "phase 5 kretprobe sample ownership summary tracks lifecycle snapshots" {
+    var module = sample.KretprobeExampleSample{};
+
+    var summary = module.ownershipSummary();
+    try std.testing.expectEqual(sample.SampleStage.cold, summary.stage);
+    try std.testing.expectEqual(@as(usize, 0), summary.active_instances);
+    try std.testing.expectEqual(@as(usize, 0), summary.skipped_kernel_threads);
+    try std.testing.expectEqual(@as(usize, 0), summary.nmissed);
+    try std.testing.expect(!summary.entry_timestamp_armed);
+
+    try module.init();
+    summary = module.ownershipSummary();
+    try std.testing.expectEqual(sample.SampleStage.initialized, summary.stage);
+    try std.testing.expectEqual(@as(usize, 1), summary.init_runs);
+
+    _ = try module.entryHandler(false, 11);
+    summary = module.ownershipSummary();
+    try std.testing.expectEqual(sample.SampleStage.initialized, summary.stage);
+    try std.testing.expectEqual(@as(usize, 1), summary.skipped_kernel_threads);
+    try std.testing.expectEqual(@as(usize, 0), summary.active_instances);
+
+    try std.testing.expect(try module.entryHandler(true, 100));
+    summary = module.ownershipSummary();
+    try std.testing.expectEqual(sample.SampleStage.armed, summary.stage);
+    try std.testing.expectEqual(@as(usize, 1), summary.active_instances);
+    try std.testing.expect(summary.entry_timestamp_armed);
+
+    _ = try module.retHandler(42, 175);
+    try module.recordMissedInstance();
+    module.replay_runs += 1;
+    module.stage_state = .replay_complete;
+
+    summary = module.ownershipSummary();
+    try std.testing.expectEqual(sample.SampleStage.replay_complete, summary.stage);
+    try std.testing.expectEqual(@as(usize, 0), summary.active_instances);
+    try std.testing.expectEqual(@as(usize, 1), summary.nmissed);
+    try std.testing.expectEqual(@as(usize, 1), summary.replay_runs);
+    try std.testing.expect(!summary.entry_timestamp_armed);
+
+    try module.exit();
+    summary = module.ownershipSummary();
+    try std.testing.expectEqual(sample.SampleStage.exited, summary.stage);
+    try std.testing.expectEqual(@as(usize, 1), summary.exit_runs);
+}
+
 test "phase 5 kretprobe sample makes ownership and teardown boundaries explicit" {
     var guard_module = sample.KretprobeExampleSample{};
     const lifecycle_guards = try guard_module.runLifecycleGuardReplay();
