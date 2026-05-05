@@ -11,4 +11,4 @@ The module-facing surface stays intentionally narrow:
 
 This slice does not claim platform-driver registration, GPIO descriptor lookup, watchdog-core registration, reboot integration beyond summary bookkeeping, module parameter wiring beyond `nowayout` bookkeeping, or hardware validation coverage yet.
 
-The next honest bounded step inside the same Phase 11 lane is still the tiny registration-facing handoff follow-up so the starter records whether an always-running watchdog reaches `devm_watchdog_register_device()` already active before any live GPIO or broader platform glue lands.
+The next honest bounded step inside the same Phase 11 lane is now the first real registration-facing surface, using the already-landed handoff summary to record what would cross into `devm_watchdog_register_device()` before any live GPIO or broader platform glue lands.
