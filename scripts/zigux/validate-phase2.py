@@ -295,7 +295,7 @@ def validate_root(root: Path) -> list[str]:
             [sys.executable, str(TOOLCHAIN_PIN_SCOPE_CHECKER), "--self-test"],
             [
                 "PHASE2_TOOLCHAIN_PIN_SCOPE_SELF_TEST=pass",
-                "PHASE2_TOOLCHAIN_PIN_SCOPE_SELF_TEST_CASE_COUNT=22",
+                "PHASE2_TOOLCHAIN_PIN_SCOPE_SELF_TEST_CASE_COUNT=24",
             ],
         )
     )
@@ -443,7 +443,7 @@ def build_self_test_root(root: Path) -> None:
     )
     write_stub_guard(
         root / "scripts/zigux/check-phase2-toolchain-pin-scope.py",
-        self_test_marker="PHASE2_TOOLCHAIN_PIN_SCOPE_SELF_TEST=pass\nPHASE2_TOOLCHAIN_PIN_SCOPE_SELF_TEST_CASE_COUNT=22",
+        self_test_marker="PHASE2_TOOLCHAIN_PIN_SCOPE_SELF_TEST=pass\nPHASE2_TOOLCHAIN_PIN_SCOPE_SELF_TEST_CASE_COUNT=24",
         live_markers=["PHASE2_TOOLCHAIN_PIN_SCOPE=pass"],
     )
 
