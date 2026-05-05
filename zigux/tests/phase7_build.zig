@@ -52,6 +52,18 @@ pub fn build(b: *std.Build) void {
     });
     argv_split_root_module.addImport("argv_split", argv_split_module);
 
+    const argv_split_survey_root_module = b.createModule(.{
+        .root_source_file = b.path("phase7_argv_split_survey.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    const argv_split_survey_tests = b.addTest(.{
+        .name = "phase7-argv-split-survey-tests",
+        .root_module = argv_split_survey_root_module,
+    });
+    const run_argv_split_survey_tests = b.addRunArtifact(argv_split_survey_tests);
+    run_argv_split_survey_tests.setCwd(b.path("../.."));
+
     const rbtree_module = b.createModule(.{
         .root_source_file = b.path("../../lib/rbtree.zig"),
         .target = target,
@@ -118,6 +130,7 @@ pub fn build(b: *std.Build) void {
     test_step.dependOn(&run_cmdline_tests.step);
     test_step.dependOn(&run_cmdline_survey_tests.step);
     test_step.dependOn(&run_argv_split_tests.step);
+    test_step.dependOn(&run_argv_split_survey_tests.step);
     test_step.dependOn(&run_rbtree_tests.step);
     test_step.dependOn(&run_rbtree_survey_tests.step);
 }
