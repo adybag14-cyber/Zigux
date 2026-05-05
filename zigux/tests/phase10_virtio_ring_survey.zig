@@ -24,6 +24,14 @@ const Manifest = struct {
     surveyed_commit: []const u8,
     anchor: []const u8,
     roadmap_destinations: []const []const u8,
+    freeze_map: []const u8,
+    freeze_boundary_status: []const u8,
+    freeze_status_change_claimed: bool,
+    risky_transport_posture: []const u8,
+    allowed_evidence_kinds: []const []const u8,
+    forbidden_transport_claims: []const []const u8,
+    architecture_council_reopen_required: bool,
+    architecture_council_reopen_attached: bool,
     survey_summary: SurveySummary,
     gaps: []const Gap,
 };
@@ -34,7 +42,14 @@ fn isAllowedStatus(status: []const u8) bool {
         std.mem.eql(u8, status, "blocked_on_risky_transport");
 }
 
-test "phase10 virtio ring survey manifest records the live queue-wrapper gap" {
+fn containsString(list: []const []const u8, needle: []const u8) bool {
+    for (list) |item| {
+        if (std.mem.eql(u8, item, needle)) return true;
+    }
+    return false;
+}
+
+test "phase10 virtio ring survey manifest records the live queue-wrapper gap and freeze boundary" {
     var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
     defer io_instance.deinit();
 
@@ -53,8 +68,26 @@ test "phase10 virtio ring survey manifest records the live queue-wrapper gap" {
     try std.testing.expectEqualStrings("P10-L06", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 10", manifest.phase);
     try std.testing.expectEqualStrings("drivers/virtio/virtio_ring.c", manifest.anchor);
-    try std.testing.expectEqualStrings("6087b7541ba8a14fedd8d1dd07308be8a269c911", manifest.surveyed_commit);
+    try std.testing.expectEqualStrings("62207c4108fc2658728a26341e2b533bde0c97d3", manifest.surveyed_commit);
     try std.testing.expectEqual(@as(usize, 2), manifest.roadmap_destinations.len);
+    try std.testing.expect(containsString(manifest.roadmap_destinations, "drivers/virtio/*.zig"));
+    try std.testing.expect(containsString(manifest.roadmap_destinations, "zigux/helpers/"));
+    try std.testing.expectEqualStrings("Documentation/zigux/freeze-map.md", manifest.freeze_map);
+    try std.testing.expectEqualStrings("aligned", manifest.freeze_boundary_status);
+    try std.testing.expect(!manifest.freeze_status_change_claimed);
+    try std.testing.expectEqualStrings("blocked_on_risky_transport", manifest.risky_transport_posture);
+    try std.testing.expectEqual(@as(usize, 3), manifest.allowed_evidence_kinds.len);
+    try std.testing.expect(containsString(manifest.allowed_evidence_kinds, "driver_local_lab_slices"));
+    try std.testing.expect(containsString(manifest.allowed_evidence_kinds, "survey_manifests"));
+    try std.testing.expect(containsString(manifest.allowed_evidence_kinds, "shared_validation_gates"));
+    try std.testing.expectEqual(@as(usize, 5), manifest.forbidden_transport_claims.len);
+    try std.testing.expect(containsString(manifest.forbidden_transport_claims, "queue_setup_reset_paths"));
+    try std.testing.expect(containsString(manifest.forbidden_transport_claims, "irq_parity"));
+    try std.testing.expect(containsString(manifest.forbidden_transport_claims, "dma_paths"));
+    try std.testing.expect(containsString(manifest.forbidden_transport_claims, "input_registration_lifecycle"));
+    try std.testing.expect(containsString(manifest.forbidden_transport_claims, "probe_remove_lifecycle"));
+    try std.testing.expect(manifest.architecture_council_reopen_required);
+    try std.testing.expect(!manifest.architecture_council_reopen_attached);
     try std.testing.expect(manifest.survey_summary.virtio_ring_c_lines >= 3000);
     try std.testing.expectEqual(@as(usize, 3), manifest.survey_summary.preexisting_phase10_test_files);
     try std.testing.expect(manifest.survey_summary.preexisting_virtio_core_zig_present);
@@ -63,6 +96,23 @@ test "phase10 virtio ring survey manifest records the live queue-wrapper gap" {
     try std.testing.expect(manifest.survey_summary.preexisting_virtio_ring_zig_present);
     try std.testing.expect(manifest.survey_summary.preexisting_virtio_ring_doc_present);
     try std.testing.expect(manifest.gaps.len >= 9);
+
+    const survey_note = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "Documentation/zigux/phase10-virtio-ring-survey.md",
+        std.testing.allocator,
+        .limited(16 * 1024),
+    );
+    defer std.testing.allocator.free(survey_note);
+
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "`Documentation/zigux/freeze-map.md`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "freeze-boundary owner: `P10-L10`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "rollback owner") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "`drivers/virtio/*.zig`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "`kernel/workqueue.c`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "`kernel/trace/ring_buffer.c`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "freeze-map status change") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "Architecture Council reopen request") != null);
 
     var starter_landed_count: usize = 0;
     var ready_next_count: usize = 0;
