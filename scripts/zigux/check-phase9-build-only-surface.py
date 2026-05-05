@@ -246,7 +246,6 @@ def run_self_test() -> int:
         write_fixture_tree(root)
         makefile_path = root / MAKEFILE_PATH
         makefile = makefile_path.read_text(encoding="utf-8")
-        makefile_path.writeText = None
         makefile_path.write_text(
             makefile.replace(
                 "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase9-build-only-surface.py\n",
