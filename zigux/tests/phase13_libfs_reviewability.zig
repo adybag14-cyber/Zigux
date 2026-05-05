@@ -36,7 +36,13 @@ fn isAllowedStatus(status: []const u8) bool {
         std.mem.eql(u8, status, "blocked_on_vfs_state");
 }
 
-test "phase13 libfs manifest records the landed starter and remaining wrapper gap" {
+fn isAllowedKind(kind: []const u8) bool {
+    return std.mem.eql(u8, kind, "validation") or
+        std.mem.eql(u8, kind, "documentation") or
+        std.mem.eql(u8, kind, "filesystem_helper_surface");
+}
+
+test "phase13 libfs manifest records the landed helper surfaces and remaining helper gap" {
     var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
     defer io_instance.deinit();
 
@@ -52,7 +58,7 @@ test "phase13 libfs manifest records the landed starter and remaining wrapper ga
     defer parsed.deinit();
 
     const manifest = parsed.value;
-    try std.testing.expectEqualStrings("P13-L03", manifest.lane_key);
+    try std.testing.expectEqualStrings("P13-L04", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 13", manifest.phase);
     try std.testing.expectEqualStrings("fs/libfs.c", manifest.anchor);
     try std.testing.expectEqualStrings("master-reviewability", manifest.surveyed_commit);
@@ -81,6 +87,7 @@ test "phase13 libfs manifest records the landed starter and remaining wrapper ga
     var starter_landed_count: usize = 0;
     var ready_next_count: usize = 0;
     var blocked_count: usize = 0;
+    var helper_surface_count: usize = 0;
     var saw_build_gate = false;
     var saw_make_target = false;
     var saw_starter = false;
@@ -91,13 +98,15 @@ test "phase13 libfs manifest records the landed starter and remaining wrapper ga
     var saw_offset_followup = false;
     var saw_emit_followup = false;
     var saw_transaction_helper = false;
-    var saw_transaction_publish_helper = false;
+    var saw_transaction_publish_followup = false;
 
     for (manifest.gaps, 0..) |gap, i| {
         try std.testing.expect(gap.id.len > 0);
         try std.testing.expect(gap.kind.len > 0);
         try std.testing.expect(gap.why_now.len > 0);
         try std.testing.expect(isAllowedStatus(gap.status));
+        try std.testing.expect(isAllowedKind(gap.kind));
+        try std.testing.expect(!std.mem.eql(u8, gap.kind, "filesystem_helper_wrapper"));
 
         if (std.mem.eql(u8, gap.status, "starter_landed")) {
             starter_landed_count += 1;
@@ -105,6 +114,10 @@ test "phase13 libfs manifest records the landed starter and remaining wrapper ga
             ready_next_count += 1;
         } else if (std.mem.eql(u8, gap.status, "blocked_on_vfs_state")) {
             blocked_count += 1;
+        }
+
+        if (std.mem.eql(u8, gap.kind, "filesystem_helper_surface")) {
+            helper_surface_count += 1;
         }
 
         if (std.mem.eql(u8, gap.id, "phase13-build-gate")) {
@@ -164,11 +177,11 @@ test "phase13 libfs manifest records the landed starter and remaining wrapper ga
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "single-write-per-open") != null);
         }
         if (std.mem.eql(u8, gap.id, "phase13-libfs-transaction-publish-helper")) {
-            saw_transaction_publish_helper = true;
+            saw_transaction_publish_followup = true;
             try std.testing.expectEqualStrings("ready_next", gap.status);
             try std.testing.expectEqualStrings("fs/libfs.zig", gap.zigux_destination);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "simple_transaction_set") != null);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "publish") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "publish bookkeeping") != null);
         }
 
         for (manifest.gaps[i + 1 ..]) |other| {
@@ -179,6 +192,7 @@ test "phase13 libfs manifest records the landed starter and remaining wrapper ga
     try std.testing.expectEqual(@as(usize, 10), starter_landed_count);
     try std.testing.expectEqual(@as(usize, 1), ready_next_count);
     try std.testing.expectEqual(@as(usize, 0), blocked_count);
+    try std.testing.expectEqual(@as(usize, 5), helper_surface_count);
     try std.testing.expect(saw_build_gate);
     try std.testing.expect(saw_make_target);
     try std.testing.expect(saw_starter);
@@ -189,5 +203,5 @@ test "phase13 libfs manifest records the landed starter and remaining wrapper ga
     try std.testing.expect(saw_offset_followup);
     try std.testing.expect(saw_emit_followup);
     try std.testing.expect(saw_transaction_helper);
-    try std.testing.expect(saw_transaction_publish_helper);
+    try std.testing.expect(saw_transaction_publish_followup);
 }
