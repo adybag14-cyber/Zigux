@@ -4,6 +4,17 @@ pub fn build(b: *std.Build) void {
     const target = b.standardTargetOptions(.{});
     const optimize = b.standardOptimizeOption(.{});
 
+    const find_bit_module = b.createModule(.{
+        .root_source_file = b.path("../../tools/lib/find_bit.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    const bitmap_module = b.createModule(.{
+        .root_source_file = b.path("../../tools/lib/bitmap.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    bitmap_module.addImport("find_bit", find_bit_module);
     const atomic_module = b.createModule(.{
         .root_source_file = b.path("../helpers/atomic.zig"),
         .target = target,
@@ -26,6 +37,13 @@ pub fn build(b: *std.Build) void {
         .target = target,
         .optimize = optimize,
     });
+    const bitmap_live_helper_replay_module = b.createModule(.{
+        .root_source_file = b.path("phase4_bitmap_live_helper_replay.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    bitmap_live_helper_replay_module.addImport("bitmap", bitmap_module);
+    bitmap_live_helper_replay_module.addImport("find_bit", find_bit_module);
 
     const atomic64_diff_tests = b.addTest(.{
         .name = "phase4-runtime-atomic64-diff-tests",
@@ -39,10 +57,23 @@ pub fn build(b: *std.Build) void {
     });
     const run_bitmap_diff_tests = b.addRunArtifact(bitmap_diff_tests);
 
+    const bitmap_live_helper_replay_tests = b.addTest(.{
+        .name = "phase4-bitmap-live-helper-replay-tests",
+        .root_module = bitmap_live_helper_replay_module,
+    });
+    const run_bitmap_live_helper_replay_tests = b.addRunArtifact(bitmap_live_helper_replay_tests);
+
     const test_step = b.step("test", "Run Phase 4 differential validation tests");
     test_step.dependOn(&run_atomic64_diff_tests.step);
     test_step.dependOn(&run_bitmap_diff_tests.step);
+    test_step.dependOn(&run_bitmap_live_helper_replay_tests.step);
 
     const bitmap_diff_step = b.step("phase4-bitmap-diff", "Run the isolated Phase 4 bitmap diff replay");
     bitmap_diff_step.dependOn(&run_bitmap_diff_tests.step);
+
+    const bitmap_live_helper_replay_step = b.step(
+        "phase4-bitmap-live-helper-replay",
+        "Run the helper-backed Phase 4 bitmap rollback replay",
+    );
+    bitmap_live_helper_replay_step.dependOn(&run_bitmap_live_helper_replay_tests.step);
 }
