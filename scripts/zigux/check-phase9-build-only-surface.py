@@ -41,14 +41,14 @@ REQUIRED_PHASE9_LOADER_SCAFFOLD_PATHS = [
 
 REQUIRED_DOCS_README_MARKERS = [
     "Phase 9 notes",
-    "`Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, `zigux/kernel/runtime_loader.zig`, `zigux/kernel/runtime_loader_contract.zig`, `zigux/tests/runtime_loader_allocator_init_flow.zig`, `zigux/tests/phase9_build.zig`, `zigux/Makefile`, and the four `samples/zigux/runtime_*_loader.zig` scaffolds now keep the current runtime atomic64, bitmap, trace-events, and kretprobe pilot bundle reviewable through one shared runtime-loader lane together with the shipped loader facade, contract, shared build, and Linux-style `make -C zigux phase9` replay route instead of widening into ad hoc per-slice checks or overstating removed loader-gap or dedicated-validator surfaces on `master`.",
+    "`Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, `zigux/kernel/runtime_loader.zig`, `zigux/kernel/runtime_loader_contract.zig`, `zigux/tests/runtime_loader_allocator_init_flow.zig`, `scripts/zigux/check-phase9-build-only-surface.py`, `zigux/tests/phase9_build.zig`, `zigux/Makefile`, `.github/workflows/zigux-bootstrap.yml`, and the four `samples/zigux/runtime_*_loader.zig` scaffolds now keep the current runtime atomic64, bitmap, trace-events, and kretprobe pilot bundle reviewable through one shared runtime-loader lane together with the shipped build-only surface checker, loader facade, contract, shared build, and workflow-backed Linux-style `make -C zigux phase9` replay route instead of widening into ad hoc per-slice checks or overstating removed loader-gap or dedicated-validator surfaces on `master`.",
 ]
 
 REQUIRED_SCRIPT_README_MARKERS = [
     "Phase 9 flow",
     "`Documentation/zigux/review-checklist.md`",
     "`zig build test --build-file zigux/tests/phase9_build.zig` and `make -C zigux phase9` rerun that same bounded runtime atomic64, bitmap, trace-events, and kretprobe pilot bundle together with the shared runtime-loader facade, loader contract, allocator/init-flow replay, and Linux-style replay route.",
-    "there is no dedicated shared `validate-phase9.py`, `check-phase9-validation-flow.py`, or `phase9-validate` target on `master`",
+    "there is no dedicated shared `validate-phase9.py`, `check-phase9-validation-flow.py`, `check-phase9-runtime-loader-commit-alignment.py`, or `phase9-validate` target on `master`",
 ]
 
 REQUIRED_TESTS_README_MARKERS = [
@@ -175,7 +175,7 @@ def write_fixture_tree(root: Path) -> None:
         """# Zigux Documentation
 
 Phase 9 notes
-- `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, `zigux/kernel/runtime_loader.zig`, `zigux/kernel/runtime_loader_contract.zig`, `zigux/tests/runtime_loader_allocator_init_flow.zig`, `zigux/tests/phase9_build.zig`, `zigux/Makefile`, and the four `samples/zigux/runtime_*_loader.zig` scaffolds now keep the current runtime atomic64, bitmap, trace-events, and kretprobe pilot bundle reviewable through one shared runtime-loader lane together with the shipped loader facade, contract, shared build, and Linux-style `make -C zigux phase9` replay route instead of widening into ad hoc per-slice checks or overstating removed loader-gap or dedicated-validator surfaces on `master`.
+- `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, `zigux/kernel/runtime_loader.zig`, `zigux/kernel/runtime_loader_contract.zig`, `zigux/tests/runtime_loader_allocator_init_flow.zig`, `scripts/zigux/check-phase9-build-only-surface.py`, `zigux/tests/phase9_build.zig`, `zigux/Makefile`, `.github/workflows/zigux-bootstrap.yml`, and the four `samples/zigux/runtime_*_loader.zig` scaffolds now keep the current runtime atomic64, bitmap, trace-events, and kretprobe pilot bundle reviewable through one shared runtime-loader lane together with the shipped build-only surface checker, loader facade, contract, shared build, and workflow-backed Linux-style `make -C zigux phase9` replay route instead of widening into ad hoc per-slice checks or overstating removed loader-gap or dedicated-validator surfaces on `master`.
 """,
     )
     write_text(
@@ -185,7 +185,7 @@ Phase 9 notes
 Phase 9 flow
 - the current shared Phase 9 review surface on `master` is `Documentation/zigux/README.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, `Documentation/zigux/review-checklist.md`, the four runtime survey-and-module note pairs (`Documentation/zigux/phase9-runtime-atomic64-module-slice.md`, `Documentation/zigux/phase9-runtime-atomic64-survey.md`, `Documentation/zigux/phase9-runtime-bitmap-module-slice.md`, and `Documentation/zigux/phase9-runtime-bitmap-survey.md`, `Documentation/zigux/phase9-runtime-kretprobe-module-slice.md`, and `Documentation/zigux/phase9-runtime-kretprobe-survey.md`, `Documentation/zigux/phase9-runtime-trace-events-module-slice.md`, and `Documentation/zigux/phase9-runtime-trace-events-survey.md`), `zigux/kernel/runtime_loader.zig`, `zigux/kernel/runtime_loader_contract.zig`, `zigux/tests/runtime_loader_allocator_init_flow.zig`, `zigux/tests/phase9_build.zig`, `zigux/Makefile`, and the four `samples/zigux/runtime_*_loader.zig` scaffolds.
 - `zig build test --build-file zigux/tests/phase9_build.zig` and `make -C zigux phase9` rerun that same bounded runtime atomic64, bitmap, trace-events, and kretprobe pilot bundle together with the shared runtime-loader facade, loader contract, allocator/init-flow replay, and Linux-style replay route.
-- there is no dedicated shared `validate-phase9.py`, `check-phase9-validation-flow.py`, or `phase9-validate` target on `master`; future runtime-pilot follow-through should stay inside the next smallest shared runtime-loader substrate, validation, or review-surface step that keeps those four loader handoffs plus the shared `zigux/kernel/runtime_loader.zig` facade and `zigux/kernel/runtime_loader_contract.zig` allocator/init-flow contract reviewable without widening into a larger runtime-module implementation.
+- there is no dedicated shared `validate-phase9.py`, `check-phase9-validation-flow.py`, `check-phase9-runtime-loader-commit-alignment.py`, or `phase9-validate` target on `master`; future runtime-pilot follow-through should stay inside the next smallest shared runtime-loader substrate, validation, or review-surface step that keeps those four loader handoffs plus the shared `zigux/kernel/runtime_loader.zig` facade and `zigux/kernel/runtime_loader_contract.zig` allocator/init-flow contract reviewable without widening into a larger runtime-module implementation.
 """,
     )
     write_text(
@@ -271,6 +271,44 @@ def run_self_test() -> int:
         )
 
         write_fixture_tree(root)
+        docs_readme_path = root / DOCS_README_PATH
+        docs_readme = docs_readme_path.read_text(encoding="utf-8")
+        docs_readme_path.write_text(
+            docs_readme.replace(
+                "`scripts/zigux/check-phase9-build-only-surface.py`, ",
+                "",
+                1,
+            ).replace(
+                "workflow-backed Linux-style `make -C zigux phase9` replay route",
+                "Linux-style `make -C zigux phase9` replay route",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_failure(
+            root,
+            "docs_readme:`Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, `zigux/kernel/runtime_loader.zig`, `zigux/kernel/runtime_loader_contract.zig`, `zigux/tests/runtime_loader_allocator_init_flow.zig`, `scripts/zigux/check-phase9-build-only-surface.py`, `zigux/tests/phase9_build.zig`, `zigux/Makefile`, `.github/workflows/zigux-bootstrap.yml`, and the four `samples/zigux/runtime_*_loader.zig` scaffolds now keep the current runtime atomic64, bitmap, trace-events, and kretprobe pilot bundle reviewable through one shared runtime-loader lane together with the shipped build-only surface checker, loader facade, contract, shared build, and workflow-backed Linux-style `make -C zigux phase9` replay route instead of widening into ad hoc per-slice checks or overstating removed loader-gap or dedicated-validator surfaces on `master`.",
+            "missing_docs_build_only_surface_marker",
+        )
+
+        write_fixture_tree(root)
+        scripts_readme_path = root / SCRIPTS_README_PATH
+        scripts_readme = scripts_readme_path.read_text(encoding="utf-8")
+        scripts_readme_path.write_text(
+            scripts_readme.replace(
+                "`check-phase9-runtime-loader-commit-alignment.py`, ",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_failure(
+            root,
+            "scripts_readme:there is no dedicated shared `validate-phase9.py`, `check-phase9-validation-flow.py`, `check-phase9-runtime-loader-commit-alignment.py`, or `phase9-validate` target on `master`",
+            "missing_scripts_removed_checker_marker",
+        )
+
+        write_fixture_tree(root)
         makefile_path = root / MAKEFILE_PATH
         makefile = makefile_path.read_text(encoding="utf-8")
         makefile_path.write_text(
@@ -344,7 +382,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE9_BUILD_ONLY_SURFACE_SELF_TEST=pass")
-    print("PHASE9_BUILD_ONLY_SURFACE_SELF_TEST_CASE_COUNT=7")
+    print("PHASE9_BUILD_ONLY_SURFACE_SELF_TEST_CASE_COUNT=9")
     return 0
 
 
