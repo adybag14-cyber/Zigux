@@ -25,6 +25,15 @@ REQUIRED_SNIPPETS = {
         "- shared kernel-derived encode, decode, variant, and invalid-input fixtures stored in `zigux/tests/fixtures/phase6_base64_vectors.zig`",
         "- a separate external C-vs-Zig parity packet on `master`",
     ],
+    "Documentation/zigux/phase6-bsearch-slice.md": [
+        "- comparator-driven descending-order lookup without widening the helper surface",
+        "- heterogeneous-key lookup where the key type differs from the element type",
+        "- representative lookup work stays inside a bounded binary-search comparison budget for both typed and raw lookup paths",
+        "- runtime-selected native comparator pointer parity",
+        "- runtime-selected C ABI comparator pointer parity",
+        "- runtime-selected raw native comparator pointer parity",
+        "- runtime-selected raw C ABI comparator pointer parity, including pointer-return duplicate hits and null misses",
+    ],
     "Documentation/zigux/phase6-checksum-slice.md": [
         "- `zigux/tests/fixtures/phase6_checksum_vectors.zig`",
         "- fixture-backed checksum vectors for empty, even, odd, and carry-heavy inputs",
@@ -70,6 +79,17 @@ REQUIRED_SNIPPETS = {
         "for (fixtures.standard_decode_cases) |case| {",
         "for (fixtures.invalid_decode_cases) |case| {",
         "for (fixtures.variant_decode_cases) |case| {",
+    ],
+    "zigux/tests/phase6_bsearch.zig": [
+        "test \"phase 6 bsearch honors comparator-driven descending order\" {",
+        "test \"phase 6 bsearch supports string keys against sorted records\" {",
+        "test \"phase 6 bsearch keeps representative lookup work inside a binary-search budget\" {",
+        "test \"phase 6 bsearch raw lookup returns null for empty input without invoking the comparator\" {",
+        "test \"phase 6 bsearch raw lookup keeps representative work inside a binary-search budget\" {",
+        "test \"phase 6 bsearch accepts runtime-selected native comparator pointers\" {",
+        "test \"phase 6 bsearch accepts runtime-selected c abi comparator pointers\" {",
+        "test \"phase 6 bsearch accepts runtime-selected raw native comparator pointers\" {",
+        "test \"phase 6 bsearch accepts runtime-selected raw c abi comparator pointers\" {",
     ],
     "zigux/tests/fixtures/phase6_base64_vectors.zig": [
         "pub const standard_cases = [_]EncodeCase{",
@@ -141,15 +161,26 @@ def write(path: Path, content: str) -> None:
     path.write_text(content, encoding="utf-8")
 
 
+def restore_path(root: Path, rel_path: str) -> None:
+    if rel_path in REQUIRED_SNIPPETS:
+        write(root / rel_path, "\n".join(REQUIRED_SNIPPETS[rel_path]) + "\n")
+        return
+    write(root / rel_path, "present\n")
+
+
 def run_self_test() -> None:
     with tempfile.TemporaryDirectory() as tmpdir:
         root = Path(tmpdir)
         for rel_path, snippets in REQUIRED_SNIPPETS.items():
             write(root / rel_path, "\n".join(snippets) + "\n")
         for rel_path in REQUIRED_SHARED_PATHS:
-            write(root / rel_path, "present\n")
+            path = root / rel_path
+            if not path.exists():
+                write(path, "present\n")
         for rel_path in REQUIRED_EXISTING_PATHS:
-            write(root / rel_path, "present\n")
+            path = root / rel_path
+            if not path.exists():
+                write(path, "present\n")
 
         run_checks(root)
 
@@ -162,7 +193,7 @@ def run_self_test() -> None:
                 raise AssertionError(f"unexpected shared-path failure: {exc}") from exc
         else:
             raise AssertionError("expected shared-path failure")
-        write(root / missing_shared_path, "present\n")
+        restore_path(root, missing_shared_path)
 
         missing_required_path = REQUIRED_EXISTING_PATHS[-1]
         (root / missing_required_path).unlink()
@@ -173,7 +204,7 @@ def run_self_test() -> None:
                 raise AssertionError(f"unexpected required-path failure: {exc}") from exc
         else:
             raise AssertionError("expected required-path failure")
-        write(root / missing_required_path, "present\n")
+        restore_path(root, missing_required_path)
 
         makefile = root / "zigux/Makefile"
         original_makefile = makefile.read_text(encoding="utf-8")
@@ -187,6 +218,7 @@ def run_self_test() -> None:
             raise AssertionError("expected Makefile failure")
         makefile.write_text(original_makefile, encoding="utf-8")
 
+        makefile.writeText = None
         makefile.write_text(
             original_makefile.replace(
                 'phase6-checksum-perf:\n\tcd $(ZIGUX_ROOT) && $(ZIG) build phase6-checksum-perf --build-file zigux/tests/phase6_build.zig -Doptimize=ReleaseSafe',
@@ -238,6 +270,24 @@ def run_self_test() -> None:
         else:
             raise AssertionError("expected base64 slice failure")
         base64_slice.write_text(original_base64_slice, encoding="utf-8")
+
+        bsearch_slice = root / "Documentation/zigux/phase6-bsearch-slice.md"
+        original_bsearch_slice = bsearch_slice.read_text(encoding="utf-8")
+        bsearch_slice.write_text(
+            original_bsearch_slice.replace(
+                "- representative lookup work stays inside a bounded binary-search comparison budget for both typed and raw lookup paths",
+                "- representative lookup claims are omitted",
+            ),
+            encoding="utf-8",
+        )
+        try:
+            run_checks(root)
+        except ValidationError as exc:
+            if "Documentation/zigux/phase6-bsearch-slice.md" not in str(exc):
+                raise AssertionError(f"unexpected bsearch slice failure: {exc}") from exc
+        else:
+            raise AssertionError("expected bsearch slice failure")
+        bsearch_slice.write_text(original_bsearch_slice, encoding="utf-8")
 
         checksum_slice = root / "Documentation/zigux/phase6-checksum-slice.md"
         original_checksum_slice = checksum_slice.read_text(encoding="utf-8")
@@ -310,6 +360,24 @@ def run_self_test() -> None:
                 raise AssertionError(f"unexpected base64 test failure: {exc}") from exc
         else:
             raise AssertionError("expected base64 test failure")
+        base64_test.write_text(original_base64_test, encoding="utf-8")
+
+        bsearch_test = root / "zigux/tests/phase6_bsearch.zig"
+        original_bsearch_test = bsearch_test.read_text(encoding="utf-8")
+        bsearch_test.write_text(
+            original_bsearch_test.replace(
+                'test "phase 6 bsearch accepts runtime-selected raw c abi comparator pointers" {',
+                'test "phase 6 bsearch accepts raw comparator pointers" {',
+            ),
+            encoding="utf-8",
+        )
+        try:
+            run_checks(root)
+        except ValidationError as exc:
+            if "zigux/tests/phase6_bsearch.zig" not in str(exc):
+                raise AssertionError(f"unexpected bsearch test failure: {exc}") from exc
+        else:
+            raise AssertionError("expected bsearch test failure")
 
     print("self-test passed")
 
