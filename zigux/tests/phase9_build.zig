@@ -207,6 +207,11 @@ pub fn build(b: *std.Build) void {
         .root_module = runtime_trace_events_loader_module,
     });
     const run_runtime_trace_events_loader_tests = b.addRunArtifact(runtime_trace_events_loader_tests);
+    const runtime_kretprobe_sample_tests = b.addTest(.{
+        .name = "phase9-runtime-kretprobe-sample-tests",
+        .root_module = runtime_kretprobe_sample_module,
+    });
+    const run_runtime_kretprobe_sample_tests = b.addRunArtifact(runtime_kretprobe_sample_tests);
     const runtime_kretprobe_module_tests = b.addTest(.{
         .name = "phase9-runtime-kretprobe-module-tests",
         .root_module = runtime_kretprobe_module,
@@ -260,6 +265,7 @@ pub fn build(b: *std.Build) void {
     test_step.dependOn(&run_runtime_trace_events_module_tests.step);
     test_step.dependOn(&run_runtime_trace_events_diff_tests.step);
     test_step.dependOn(&run_runtime_trace_events_loader_tests.step);
+    test_step.dependOn(&run_runtime_kretprobe_sample_tests.step);
     test_step.dependOn(&run_runtime_kretprobe_module_tests.step);
     test_step.dependOn(&run_runtime_kretprobe_diff_tests.step);
     test_step.dependOn(&run_runtime_kretprobe_loader_tests.step);
