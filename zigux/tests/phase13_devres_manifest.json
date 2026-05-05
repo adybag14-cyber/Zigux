@@ -1,7 +1,7 @@
 {
   "lane_key": "P13-L07",
   "phase": "Phase 13",
-  "surveyed_commit": "master-reviewability",
+  "surveyed_commit": "e59df689d080aa11773adda87f00c2d650caade8",
   "anchor": "lib/devres.c",
   "roadmap_destinations": [
     "lib/devres.zig",
@@ -12,17 +12,11 @@
     "devres_c_lines": 399,
     "preexisting_phase13_build_present": true,
     "preexisting_phase13_make_target_present": true,
-    "preexisting_lib_devres_zig_present": true,
+    "preexisting_devres_zig_present": true,
     "preexisting_phase13_devres_test_present": true,
-    "preexisting_phase13_slice_note_present": true,
-    "preexisting_phase13_survey_note_present": true,
+    "preexisting_phase13_devres_slice_present": true,
     "preexisting_phase13_devres_reviewability_present": true,
-    "preexisting_managed_ioremap_resource_present": true,
-    "preexisting_of_iomap_planner_present": true,
-    "preexisting_arch_io_wc_memtype_planner_present": true,
-    "preexisting_devres_dma_coherent_zig_present": true,
-    "preexisting_phase13_devres_dma_coherent_test_present": true,
-    "preexisting_phase13_devres_iomap_reviewability_test_present": true
+    "preexisting_phase13_devres_survey_present": true
   },
   "gaps": [
     {
@@ -51,7 +45,7 @@
       "status": "starter_landed",
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase13_devres.zig",
-      "why_now": "Dedicated devres tests keep the current helper-only packet honest around managed acquire cleanup, resource-backed planning, devm_of_iomap() size reporting, and WC memtype reservation shaping."
+      "why_now": "Dedicated devres tests keep the current helper-only packet honest around managed acquire cleanup, resource-backed planning, devm_of_iomap() size reporting, WC memtype reservation shaping, and arch phys WC release-token bookkeeping."
     },
     {
       "id": "phase13-devres-slice-note",
@@ -59,6 +53,13 @@
       "kind": "documentation",
       "zigux_destination": "Documentation/zigux/phase13-devres-slice.md",
       "why_now": "The slice note records the narrow helper-first boundary so this lane does not overstate itself as live devres, MMIO, or device-tree parity."
+    },
+    {
+      "id": "phase13-devres-reviewability-gate",
+      "status": "starter_landed",
+      "kind": "validation",
+      "zigux_destination": "zigux/tests/phase13_devres_reviewability.zig",
+      "why_now": "The dedicated reviewability gate keeps the helper-only DMA/scatterlist boundary machine-checkable instead of leaving that packet implied only by prose or shared build wiring."
     },
     {
       "id": "phase13-devres-survey-note",
@@ -79,60 +80,53 @@
       "status": "starter_landed",
       "kind": "resource_lifetime_helper",
       "zigux_destination": "lib/devres.zig",
-      "why_now": "The landed devm_of_iomap() planner keeps translated-resource selection by index, optional size reporting, and downstream planner failure shaping reviewable before any live device-tree ownership is attempted."
+      "why_now": "The landed devm_of_iomap() planner keeps translated-resource selection, optional size reporting, and downstream planner failure shaping reviewable before any live device-tree ownership is attempted."
     },
     {
       "id": "phase13-devres-arch-io-memtype-planner",
       "status": "starter_landed",
       "kind": "resource_lifetime_helper",
       "zigux_destination": "lib/devres.zig",
-      "why_now": "The current devm_arch_io_reserve_memtype_wc() helper records WC release bookkeeping, keeps the detach-time arch_io_free_memtype_wc() path reviewable, and still leaves live arch memtype mutation outside the shipped packet."
-    },
-    {
-      "id": "phase13-devres-reviewability-gate",
-      "status": "starter_landed",
-      "kind": "validation",
-      "zigux_destination": "zigux/tests/phase13_devres_reviewability.zig",
-      "why_now": "The focused reviewability gate keeps the helper-only DMA/scatterlist boundary machine-checkable inside the same devres packet instead of leaving the survey prose to drift away from the shipped helper surface."
+      "why_now": "The current devm_arch_io_reserve_memtype_wc() helper records detach-time arch_io_free_memtype_wc() bookkeeping and failure shaping while keeping live arch memtype mutation outside the shipped packet."
     },
     {
       "id": "phase13-devres-arch-phys-wc-token-planner",
       "status": "starter_landed",
       "kind": "resource_lifetime_helper",
       "zigux_destination": "lib/devres.zig",
-      "why_now": "The current devm_arch_phys_wc_add() token-style planner already keeps retained removal tokens and arch_phys_wc_del() bookkeeping reviewable before any live arch memtype side effects are claimed."
+      "why_now": "The helper lab now carries one tiny devm_arch_phys_wc_add() token-style planner that captures release-token retention on success, release-record cleanup on failure, and detach-time arch_phys_wc_del() intent without claiming live arch memtype side effects."
+    },
+    {
+      "id": "phase13-devres-live-mmio-side-effects",
+      "status": "blocked_on_live_mmio_state",
+      "kind": "runtime_boundary",
+      "zigux_destination": "lib/devres.zig",
+      "why_now": "Live MMIO side effects remain blocked because the roadmap still wants Phase 13 devres work to stay helper-first and reviewable instead of claiming real region mutation or address-space effects."
     },
     {
       "id": "phase13-devres-live-dma-backed-helpers",
-      "status": "blocked_on_live_resource_state",
+      "status": "blocked_on_dma_state",
       "kind": "runtime_boundary",
       "zigux_destination": "lib/devres.zig",
-      "why_now": "Live DMA-backed helpers remain blocked because the current Phase 13 devres packet is still helper-first and reviewable rather than a claim of real coherent DMA allocation, dmam_alloc_* ownership, dma_map_sgtable() ownership, attachment, or unmap side effects."
+      "why_now": "Live DMA-backed helpers remain blocked because the current packet does not claim dmam_alloc_* coverage, does not model dma_map_sgtable() or unmap flows, and must stay helper-first instead of pretending to own real DMA mapping state."
     },
     {
       "id": "phase13-devres-live-scatterlist-ownership",
-      "status": "blocked_on_live_resource_state",
+      "status": "blocked_on_scatterlist_state",
       "kind": "runtime_boundary",
       "zigux_destination": "lib/devres.zig",
-      "why_now": "Live scatterlist ownership remains blocked because the current packet does not claim sg list allocation, struct scatterlist or sg_table ownership, chaining, DMA mapping, or teardown behavior beyond explicit boundary evidence."
-    },
-    {
-      "id": "phase13-devres-live-mmio-mappings",
-      "status": "blocked_on_live_resource_state",
-      "kind": "runtime_boundary",
-      "zigux_destination": "lib/devres.zig",
-      "why_now": "Live MMIO mappings remain blocked because the roadmap still wants Phase 13 devres work to stay helper-first and reviewable instead of claiming real region mutation or address-space effects."
+      "why_now": "Live scatterlist ownership remains blocked because the current helper packet does not model struct scatterlist traversal, sg_table lifecycle, or broader sg_* ownership transfer."
     },
     {
       "id": "phase13-devres-live-device-tree-walk",
-      "status": "blocked_on_live_resource_state",
+      "status": "blocked_on_device_tree_state",
       "kind": "runtime_boundary",
       "zigux_destination": "lib/devres.zig",
       "why_now": "Live device-tree walking remains blocked because the current devm_of_iomap() slice only models translated-resource selection by index and should not pretend to own OF lookup or node lifetime."
     },
     {
       "id": "phase13-devres-live-arch-memtype-state",
-      "status": "blocked_on_live_resource_state",
+      "status": "blocked_on_arch_memtype_state",
       "kind": "runtime_boundary",
       "zigux_destination": "lib/devres.zig",
       "why_now": "Live arch memtype state remains blocked because the current WC helpers stop at bookkeeping and error shaping rather than mutating the real arch memtype token or release path."
