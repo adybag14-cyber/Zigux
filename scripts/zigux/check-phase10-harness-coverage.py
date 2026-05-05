@@ -82,6 +82,7 @@ CHECKLIST_MARKERS = [
 BUILD_MARKERS = [
     "phase10-virtio-ring-reset-reuse-tests",
     "phase10-virtio-input-multitouch-preflight-tests",
+    "phase10-virtio-input-registration-blocker-tests",
     "phase10-virtio-mmio-queue-isolation-tests",
 ]
 
@@ -383,6 +384,21 @@ def run_self_test() -> int:
         expect_missing_marker("build_ring_reset_reuse_marker", root, "build:phase10-virtio-ring-reset-reuse-tests")
         build_path.write_text(original_build, encoding="utf-8")
 
+        build_path.write_text(
+            original_build.replace(
+                "phase10-virtio-input-registration-blocker-tests",
+                "phase10-input-blocker-build-drift",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "build_input_registration_blocker_marker",
+            root,
+            "build:phase10-virtio-input-registration-blocker-tests",
+        )
+        build_path.write_text(original_build, encoding="utf-8")
+
         scripts_readme_path = root / "scripts/zigux/README.md"
         original_scripts_readme = scripts_readme_path.read_text(encoding="utf-8")
         scripts_readme_path.write_text(
@@ -587,7 +603,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE10_HARNESS_COVERAGE_SELF_TEST=pass")
-    print("PHASE10_HARNESS_COVERAGE_SELF_TEST_CASE_COUNT=16")
+    print("PHASE10_HARNESS_COVERAGE_SELF_TEST_CASE_COUNT=17")
     return 0
 
 
