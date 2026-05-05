@@ -4,9 +4,10 @@ This document records a bounded Phase 6 leaf-helper validation slice for Zigux.
 
 ## Status
 
-- `PHASE6_STATUS=active`
+- `PHASE6_STATUS=parked`
 - `PHASE6_SLICE=base64-leaf-helper`
 - scope: first low-risk base64 helper coverage only
+- lane state: helper and fixture slice landed; parked unless a new `base64.c` parity issue appears
 - product boundary:
   - `lib/base64.zig`
   - `zigux/tests/phase6_base64.zig`
@@ -64,4 +65,4 @@ This slice does not yet claim:
 
 ## Next bounded step
 
-Decide whether the helper needs a small external C-vs-Zig fixture layer beyond the now-shared KUnit-derived fixture module, or whether the current encode-plus-decode parity gate is already sufficient for a bounded Phase 6 leaf port.
+Keep the next Phase 6 follow-up inside the shared bundled `base64`, `bsearch`, `checksum`, and `hexdump` packet already gated by `zigux/tests/phase6_build.zig` and `make -C zigux phase6`. Reopen this slice only if fresh repo inspection finds a concrete new `base64.c` parity gap inside `lib/base64.zig`, `zigux/tests/phase6_base64.zig`, the shared fixture module, or that existing bundled gate.
