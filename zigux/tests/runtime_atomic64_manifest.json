@@ -1,5 +1,5 @@
 {
-  "lane_key": "P9-L01",
+  "lane_key": "P9-L02",
   "phase": "Phase 9",
   "surveyed_commit": "ee124761ef3ef5fcc6bb9cd8b7fe8d1fce326839",
   "anchor": "lib/atomic64_test.c",
@@ -27,7 +27,7 @@
       "status": "starter_landed",
       "kind": "validation",
       "zigux_destination": "zigux/tests/runtime_atomic64_survey.zig",
-      "why_now": "The survey gate keeps the roadmap anchor, landed loader scaffold, and remaining runtime-loader blocker explicit while the lane stays narrow."
+      "why_now": "The survey gate keeps the roadmap anchor, landed loader scaffold, shared request-surface proof, and remaining runtime-loader blocker explicit while the lane stays narrow."
     },
     {
       "id": "runtime-atomic64-sample-module",
@@ -62,7 +62,7 @@
       "status": "starter_landed",
       "kind": "runtime_loader_scaffold",
       "zigux_destination": "samples/zigux/runtime_atomic64_loader.zig",
-      "why_now": "A bounded sample-side loader scaffold now makes the existing requires_runtime_substrate contract reviewable through explicit entry and exit symbol names, prepared handoff summaries, and a no-substrate release path without pretending a real runtime loader already exists."
+      "why_now": "A bounded sample-side loader scaffold now makes the existing requires_runtime_substrate contract reviewable through explicit entry and exit symbol names, prepared handoff summaries, the shared `toSharedLoadPlan()` plus `runtime_loader.prepareRequest()` proof, and a no-substrate release path without pretending a real runtime loader already exists."
     },
     {
       "id": "runtime-atomic64-live-loader-binding",
