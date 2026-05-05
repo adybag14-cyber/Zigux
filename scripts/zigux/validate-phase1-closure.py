@@ -179,6 +179,15 @@ required_tests_readme_markers = [
 ]
 
 
+def collect_missing_files(root: Path) -> list[str]:
+    missing: list[str] = []
+    for path in required_files:
+        rel = path.relative_to(ROOT)
+        if not (root / rel).exists():
+            missing.append(str(rel))
+    return missing
+
+
 def collect_manifest_markers(manifest: object, root: Path) -> list[str]:
     missing_markers: list[str] = []
     if not isinstance(manifest, dict):
@@ -356,14 +365,17 @@ def run_self_test() -> None:
         missing_tests_markers = collect_exact_count_markers('', required_tests_readme_markers)
         assert 'tests_readme_phase1_packet:expected=1:actual=0' in missing_tests_markers
 
+        make_fixture_root(tmp_root)
         missing_workflow = '.github/workflows/zigux-bootstrap.yml'
         (tmp_root / missing_workflow).unlink()
         assert collect_missing_files(tmp_root) == [missing_workflow]
 
+        make_fixture_root(tmp_root)
         required_build = 'zigux/tests/build.zig'
         (tmp_root / required_build).unlink()
         assert collect_missing_files(tmp_root) == [required_build]
 
+        make_fixture_root(tmp_root)
         required_ledger = 'zigux-alpha/BOOTSTRAP_COMMIT_LEDGER.md'
         (tmp_root / required_ledger).unlink()
         assert collect_missing_files(tmp_root) == [required_ledger]
@@ -381,7 +393,7 @@ def main() -> int:
         run_self_test()
         return 0
 
-    missing = [str(path.relative_to(ROOT)) for path in required_files if not path.exists()]
+    missing = collect_missing_files(ROOT)
     if missing:
         print('PHASE1_CLOSURE_VALIDATION=fail')
         print('MISSING_PHASE1_CLOSURE_FILES_START')
