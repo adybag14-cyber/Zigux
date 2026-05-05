@@ -43,7 +43,7 @@ test "phase14 shared smoke manifest records the bounded study-only packet" {
     defer parsed.deinit();
     const manifest = parsed.value;
 
-    try std.testing.expectEqualStrings("core-adjacent", manifest.lane_key);
+    try std.testing.expectEqualStrings("P14-L07", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 14", manifest.phase);
     try std.testing.expectEqualStrings("phase14_shared_smoke_packet", manifest.packet_name);
     try std.testing.expectEqualStrings("study_only_shared_smoke_packet", manifest.focus);
