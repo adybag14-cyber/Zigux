@@ -16,6 +16,20 @@ const Gap = struct {
     why_now: []const u8,
 };
 
+const DeliveryEvidence = struct {
+    id: []const u8,
+    kind: []const u8,
+    path: []const u8,
+    why_now: []const u8,
+};
+
+const OwnershipEntry = struct {
+    surface: []const u8,
+    role: []const u8,
+    owner: []const u8,
+    boundary: []const u8,
+};
+
 const Manifest = struct {
     lane_key: []const u8,
     phase: []const u8,
@@ -23,6 +37,8 @@ const Manifest = struct {
     anchor: []const u8,
     roadmap_destinations: []const []const u8,
     survey_summary: SurveySummary,
+    delivery_evidence_catalog: []const DeliveryEvidence,
+    ownership_map: []const OwnershipEntry,
     gaps: []const Gap,
 };
 
@@ -30,6 +46,11 @@ fn isAllowedStatus(status: []const u8) bool {
     return std.mem.eql(u8, status, "starter_landed") or
         std.mem.eql(u8, status, "ready_next") or
         std.mem.eql(u8, status, "blocked_on_runtime_substrate");
+}
+
+fn isAllowedDeliveryKind(kind: []const u8) bool {
+    return std.mem.eql(u8, kind, "review_note") or
+        std.mem.eql(u8, kind, "validation");
 }
 
 fn allowsSharedDestination(first_id: []const u8, second_id: []const u8) bool {
@@ -64,7 +85,90 @@ test "phase 9 runtime trace-events survey manifest records the landed loader sca
     try std.testing.expect(manifest.survey_summary.preexisting_runtime_trace_events_sample_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase9_build_present);
     try std.testing.expect(manifest.survey_summary.preexisting_runtime_trace_events_doc_present);
+    try std.testing.expect(manifest.delivery_evidence_catalog.len >= 4);
+    try std.testing.expect(manifest.ownership_map.len >= 6);
     try std.testing.expect(manifest.gaps.len >= 8);
+
+    var review_note_catalog_count: usize = 0;
+    var validation_catalog_count: usize = 0;
+    var saw_survey_note_catalog = false;
+    var saw_module_slice_catalog = false;
+    var saw_survey_gate_catalog = false;
+    var saw_build_gate_catalog = false;
+
+    for (manifest.delivery_evidence_catalog, 0..) |entry, i| {
+        try std.testing.expect(entry.id.len > 0);
+        try std.testing.expect(entry.path.len > 0);
+        try std.testing.expect(entry.why_now.len > 0);
+        try std.testing.expect(isAllowedDeliveryKind(entry.kind));
+
+        if (std.mem.eql(u8, entry.kind, "review_note")) {
+            review_note_catalog_count += 1;
+        } else if (std.mem.eql(u8, entry.kind, "validation")) {
+            validation_catalog_count += 1;
+        }
+
+        if (std.mem.eql(u8, entry.id, "trace-events-survey-note")) {
+            saw_survey_note_catalog = true;
+            try std.testing.expectEqualStrings("Documentation/zigux/phase9-runtime-trace-events-survey.md", entry.path);
+        }
+        if (std.mem.eql(u8, entry.id, "trace-events-module-slice-note")) {
+            saw_module_slice_catalog = true;
+            try std.testing.expectEqualStrings("Documentation/zigux/phase9-runtime-trace-events-module-slice.md", entry.path);
+        }
+        if (std.mem.eql(u8, entry.id, "trace-events-survey-gate")) {
+            saw_survey_gate_catalog = true;
+            try std.testing.expectEqualStrings("zigux/tests/runtime_trace_events_survey.zig", entry.path);
+        }
+        if (std.mem.eql(u8, entry.id, "trace-events-shared-build-gate")) {
+            saw_build_gate_catalog = true;
+            try std.testing.expectEqualStrings("zigux/tests/phase9_build.zig", entry.path);
+        }
+
+        for (manifest.delivery_evidence_catalog[i + 1 ..]) |other| {
+            try std.testing.expect(!std.mem.eql(u8, entry.id, other.id));
+            try std.testing.expect(!std.mem.eql(u8, entry.path, other.path));
+        }
+    }
+
+    try std.testing.expectEqual(@as(usize, 2), review_note_catalog_count);
+    try std.testing.expectEqual(@as(usize, 2), validation_catalog_count);
+    try std.testing.expect(saw_survey_note_catalog);
+    try std.testing.expect(saw_module_slice_catalog);
+    try std.testing.expect(saw_survey_gate_catalog);
+    try std.testing.expect(saw_build_gate_catalog);
+
+    var saw_survey_note_owner = false;
+    var saw_module_slice_owner = false;
+    var saw_sample_owner = false;
+    var saw_loader_owner = false;
+    var saw_survey_gate_owner = false;
+    var saw_build_gate_owner = false;
+
+    for (manifest.ownership_map, 0..) |entry, i| {
+        try std.testing.expect(entry.surface.len > 0);
+        try std.testing.expect(entry.role.len > 0);
+        try std.testing.expect(entry.boundary.len > 0);
+        try std.testing.expectEqualStrings("P9-L12", entry.owner);
+
+        if (std.mem.eql(u8, entry.surface, "Documentation/zigux/phase9-runtime-trace-events-survey.md")) saw_survey_note_owner = true;
+        if (std.mem.eql(u8, entry.surface, "Documentation/zigux/phase9-runtime-trace-events-module-slice.md")) saw_module_slice_owner = true;
+        if (std.mem.eql(u8, entry.surface, "samples/zigux/runtime_trace_events.zig")) saw_sample_owner = true;
+        if (std.mem.eql(u8, entry.surface, "samples/zigux/runtime_trace_events_loader.zig")) saw_loader_owner = true;
+        if (std.mem.eql(u8, entry.surface, "zigux/tests/runtime_trace_events_survey.zig")) saw_survey_gate_owner = true;
+        if (std.mem.eql(u8, entry.surface, "zigux/tests/phase9_build.zig")) saw_build_gate_owner = true;
+
+        for (manifest.ownership_map[i + 1 ..]) |other| {
+            try std.testing.expect(!std.mem.eql(u8, entry.surface, other.surface));
+        }
+    }
+
+    try std.testing.expect(saw_survey_note_owner);
+    try std.testing.expect(saw_module_slice_owner);
+    try std.testing.expect(saw_sample_owner);
+    try std.testing.expect(saw_loader_owner);
+    try std.testing.expect(saw_survey_gate_owner);
+    try std.testing.expect(saw_build_gate_owner);
 
     var runtime_test_destination_count: usize = 0;
     var starter_landed_count: usize = 0;
@@ -210,10 +314,11 @@ test "phase 9 runtime trace-events survey keeps the manifest-backed surveyed com
     try std.testing.expectEqual(@as(usize, 1), std.mem.count(u8, survey_note, surveyed_commit_marker));
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "shared `zigux/tests/phase9_build.zig` coverage for the trace-events starter lane") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "the current loader scaffold now records explicit tracepoint register and unregister API names") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "the no-substrate release path without claiming a real shared runtime loader already exists") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "release-without-substrate behavior rather than executable runtime registration parity") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "the live repo now also carries `zigux/kernel/runtime_loader.zig` as the shared request surface for the bounded Phase 9 loader-handoff packet") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "the trace-events starter still stops at the sample-side loader scaffold and the no-substrate release path instead of claiming a real module-loading substrate") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "the trace-events starter still stops before a real module-loading substrate or live tracepoint registration lifecycle") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "the current bounded starter still advertises `requires_runtime_substrate=true` and `provides_selftest_hook=true`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "the manifest-backed ownership packet now records a four-entry `delivery_evidence_catalog` and a six-surface `ownership_map`") != null);
 
     try std.testing.expectEqual(@as(usize, 1), std.mem.count(u8, module_slice, surveyed_commit_marker));
     try std.testing.expect(std.mem.indexOf(u8, module_slice, "a loader-handoff scaffold") != null);
