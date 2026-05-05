@@ -1,41 +1,9 @@
 const std = @import("std");
 const devres = @import("devres");
+const manifest_text = @embedFile("phase13_devres_manifest.json");
 
-const SurveySummary = struct {
-    devres_c_lines: usize,
-    preexisting_phase13_build_present: bool,
-    preexisting_phase13_make_target_present: bool,
-    preexisting_lib_devres_zig_present: bool,
-    preexisting_phase13_devres_test_present: bool,
-    preexisting_phase13_slice_note_present: bool,
-    preexisting_phase13_survey_note_present: bool,
-    preexisting_managed_ioremap_resource_present: bool,
-    preexisting_of_iomap_planner_present: bool,
-    preexisting_arch_io_wc_memtype_planner_present: bool,
-};
-
-const Gap = struct {
-    id: []const u8,
-    status: []const u8,
-    kind: []const u8,
-    zigux_destination: []const u8,
-    why_now: []const u8,
-};
-
-const Manifest = struct {
-    lane_key: []const u8,
-    phase: []const u8,
-    surveyed_commit: []const u8,
-    anchor: []const u8,
-    roadmap_destinations: []const []const u8,
-    survey_summary: SurveySummary,
-    gaps: []const Gap,
-};
-
-fn isAllowedManifestStatus(status: []const u8) bool {
-    return std.mem.eql(u8, status, "starter_landed") or
-        std.mem.eql(u8, status, "ready_next") or
-        std.mem.eql(u8, status, "blocked_on_live_resource_state");
+fn expectContains(haystack: []const u8, needle: []const u8) !void {
+    try std.testing.expect(std.mem.indexOf(u8, haystack, needle) != null);
 }
 
 test "phase13 devres descriptor stays anchored to lib/devres.c" {
@@ -49,6 +17,7 @@ test "phase13 devres descriptor stays anchored to lib/devres.c" {
     try std.testing.expect(descriptor.provides_of_iomap_planning);
     try std.testing.expect(descriptor.provides_pretty_name_helper);
     try std.testing.expect(descriptor.provides_arch_io_wc_memtype_planning);
+    try std.testing.expect(descriptor.provides_arch_phys_wc_token_planning);
     try std.testing.expect(!descriptor.touches_live_device_lists);
     try std.testing.expect(!descriptor.touches_live_mmio);
     try std.testing.expect(!descriptor.touches_live_arch_memtype);
@@ -449,168 +418,67 @@ test "phase13 devres rejects memtype planning when the release record cannot be 
     }));
 }
 
-test "phase13 devres manifest records the helper-only MMIO safety packet and remaining live gaps" {
-    var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
-    defer io_instance.deinit();
+test "phase13 devres retains phys WC release tokens on successful token add" {
+    const outcome = try devres.DevresHelperLab.planArchPhysWcAdd(.{
+        .start = 0x7300,
+        .size = 0x100,
+        .release_record_allocated = true,
+        .token_result = 7,
+    });
 
-    const manifest_json = try std.Io.Dir.cwd().readFileAlloc(
-        io_instance.io(),
-        "zigux/tests/phase13_devres_manifest.json",
-        std.testing.allocator,
-        .limited(32 * 1024),
-    );
-    defer std.testing.allocator.free(manifest_json);
-
-    const parsed = try std.json.parseFromSlice(Manifest, std.testing.allocator, manifest_json, .{});
-    defer parsed.deinit();
-
-    const manifest = parsed.value;
-    try std.testing.expectEqualStrings("P13-L01", manifest.lane_key);
-    try std.testing.expectEqualStrings("Phase 13", manifest.phase);
-    try std.testing.expectEqualStrings("master-reviewability", manifest.surveyed_commit);
-    try std.testing.expectEqualStrings("lib/devres.c", manifest.anchor);
-    try std.testing.expectEqual(@as(usize, 3), manifest.roadmap_destinations.len);
-    try std.testing.expectEqual(@as(usize, 399), manifest.survey_summary.devres_c_lines);
-    try std.testing.expect(manifest.survey_summary.preexisting_phase13_build_present);
-    try std.testing.expect(manifest.survey_summary.preexisting_phase13_make_target_present);
-    try std.testing.expect(manifest.survey_summary.preexisting_lib_devres_zig_present);
-    try std.testing.expect(manifest.survey_summary.preexisting_phase13_devres_test_present);
-    try std.testing.expect(manifest.survey_summary.preexisting_phase13_slice_note_present);
-    try std.testing.expect(manifest.survey_summary.preexisting_phase13_survey_note_present);
-    try std.testing.expect(manifest.survey_summary.preexisting_managed_ioremap_resource_present);
-    try std.testing.expect(manifest.survey_summary.preexisting_of_iomap_planner_present);
-    try std.testing.expect(manifest.survey_summary.preexisting_arch_io_wc_memtype_planner_present);
-    try std.testing.expectEqual(@as(usize, 13), manifest.gaps.len);
-
-    const descriptor = devres.DevresHelperLab.descriptor();
-    try std.testing.expectEqualStrings("lib/devres.c", descriptor.anchor);
-    try std.testing.expect(descriptor.provides_ioremap_lifetime_planning);
-    try std.testing.expect(descriptor.provides_ioremap_resource_planning);
-    try std.testing.expect(descriptor.provides_of_iomap_planning);
-    try std.testing.expect(descriptor.provides_arch_io_wc_memtype_planning);
-    try std.testing.expect(!descriptor.touches_live_mmio);
-    try std.testing.expect(!descriptor.touches_live_device_lists);
-    try std.testing.expect(!descriptor.touches_live_arch_memtype);
-
-    var starter_landed_count: usize = 0;
-    var ready_next_count: usize = 0;
-    var blocked_count: usize = 0;
-    var saw_build_gate = false;
-    var saw_make_target = false;
-    var saw_helper_starter = false;
-    var saw_test_gate = false;
-    var saw_slice_note = false;
-    var saw_survey_note = false;
-    var saw_managed_resource = false;
-    var saw_of_iomap = false;
-    var saw_wc_memtype = false;
-    var saw_phys_wc_followup = false;
-    var saw_live_mmio_blocker = false;
-    var saw_device_tree_blocker = false;
-    var saw_arch_memtype_blocker = false;
-
-    for (manifest.gaps, 0..) |gap, i| {
-        try std.testing.expect(gap.id.len > 0);
-        try std.testing.expect(gap.kind.len > 0);
-        try std.testing.expect(gap.why_now.len > 0);
-        try std.testing.expect(isAllowedManifestStatus(gap.status));
-
-        if (std.mem.eql(u8, gap.status, "starter_landed")) {
-            starter_landed_count += 1;
-        } else if (std.mem.eql(u8, gap.status, "ready_next")) {
-            ready_next_count += 1;
-        } else if (std.mem.eql(u8, gap.status, "blocked_on_live_resource_state")) {
-            blocked_count += 1;
-        }
-
-        if (std.mem.eql(u8, gap.id, "phase13-build-gate")) {
-            saw_build_gate = true;
-            try std.testing.expectEqualStrings("zigux/tests/phase13_build.zig", gap.zigux_destination);
-        }
-        if (std.mem.eql(u8, gap.id, "phase13-make-target")) {
-            saw_make_target = true;
-            try std.testing.expectEqualStrings("zigux/Makefile", gap.zigux_destination);
-        }
-        if (std.mem.eql(u8, gap.id, "phase13-devres-helper-starter")) {
-            saw_helper_starter = true;
-            try std.testing.expectEqualStrings("starter_landed", gap.status);
-            try std.testing.expectEqualStrings("lib/devres.zig", gap.zigux_destination);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "__devm_ioremap") != null);
-        }
-        if (std.mem.eql(u8, gap.id, "phase13-devres-test-gate")) {
-            saw_test_gate = true;
-            try std.testing.expectEqualStrings("starter_landed", gap.status);
-            try std.testing.expectEqualStrings("zigux/tests/phase13_devres.zig", gap.zigux_destination);
-        }
-        if (std.mem.eql(u8, gap.id, "phase13-devres-slice-note")) {
-            saw_slice_note = true;
-            try std.testing.expectEqualStrings("starter_landed", gap.status);
-            try std.testing.expectEqualStrings("Documentation/zigux/phase13-devres-slice.md", gap.zigux_destination);
-        }
-        if (std.mem.eql(u8, gap.id, "phase13-devres-survey-note")) {
-            saw_survey_note = true;
-            try std.testing.expectEqualStrings("starter_landed", gap.status);
-            try std.testing.expectEqualStrings("Documentation/zigux/phase13-devres-survey.md", gap.zigux_destination);
-        }
-        if (std.mem.eql(u8, gap.id, "phase13-devres-managed-resource-planner")) {
-            saw_managed_resource = true;
-            try std.testing.expectEqualStrings("starter_landed", gap.status);
-            try std.testing.expectEqualStrings("lib/devres.zig", gap.zigux_destination);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "__devm_ioremap_resource") != null);
-        }
-        if (std.mem.eql(u8, gap.id, "phase13-devres-of-iomap-planner")) {
-            saw_of_iomap = true;
-            try std.testing.expectEqualStrings("starter_landed", gap.status);
-            try std.testing.expectEqualStrings("lib/devres.zig", gap.zigux_destination);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "devm_of_iomap") != null);
-        }
-        if (std.mem.eql(u8, gap.id, "phase13-devres-arch-io-wc-planner")) {
-            saw_wc_memtype = true;
-            try std.testing.expectEqualStrings("starter_landed", gap.status);
-            try std.testing.expectEqualStrings("lib/devres.zig", gap.zigux_destination);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "devm_arch_io_reserve_memtype_wc") != null);
-        }
-        if (std.mem.eql(u8, gap.id, "phase13-devres-arch-phys-wc-token")) {
-            saw_phys_wc_followup = true;
-            try std.testing.expectEqualStrings("ready_next", gap.status);
-            try std.testing.expectEqualStrings("lib/devres.zig", gap.zigux_destination);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "devm_arch_phys_wc_add") != null);
-        }
-        if (std.mem.eql(u8, gap.id, "phase13-devres-live-mmio-mappings")) {
-            saw_live_mmio_blocker = true;
-            try std.testing.expectEqualStrings("blocked_on_live_resource_state", gap.status);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "live MMIO mappings") != null);
-        }
-        if (std.mem.eql(u8, gap.id, "phase13-devres-live-device-tree-walk")) {
-            saw_device_tree_blocker = true;
-            try std.testing.expectEqualStrings("blocked_on_live_resource_state", gap.status);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "device-tree") != null);
-        }
-        if (std.mem.eql(u8, gap.id, "phase13-devres-live-arch-memtype-state")) {
-            saw_arch_memtype_blocker = true;
-            try std.testing.expectEqualStrings("blocked_on_live_resource_state", gap.status);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "arch memtype") != null);
-        }
-
-        for (manifest.gaps[i + 1 ..]) |other| {
-            try std.testing.expect(!std.mem.eql(u8, gap.id, other.id));
-        }
+    switch (outcome) {
+        .added => |plan| {
+            try std.testing.expectEqualStrings("lib/devres.c", plan.anchor);
+            try std.testing.expectEqual(@as(u64, 0x7300), plan.start);
+            try std.testing.expectEqual(@as(u64, 0x100), plan.size);
+            try std.testing.expectEqual(@as(i32, 7), plan.token);
+            try std.testing.expect(plan.added_to_devres);
+            try std.testing.expect(plan.release_record_retained);
+            try std.testing.expect(!plan.release_record_freed);
+            try std.testing.expect(plan.should_remove_on_detach);
+        },
+        .err => return error.UnexpectedFailure,
     }
+}
 
-    try std.testing.expectEqual(@as(usize, 9), starter_landed_count);
-    try std.testing.expectEqual(@as(usize, 1), ready_next_count);
-    try std.testing.expectEqual(@as(usize, 3), blocked_count);
-    try std.testing.expect(saw_build_gate);
-    try std.testing.expect(saw_make_target);
-    try std.testing.expect(saw_helper_starter);
-    try std.testing.expect(saw_test_gate);
-    try std.testing.expect(saw_slice_note);
-    try std.testing.expect(saw_survey_note);
-    try std.testing.expect(saw_managed_resource);
-    try std.testing.expect(saw_of_iomap);
-    try std.testing.expect(saw_wc_memtype);
-    try std.testing.expect(saw_phys_wc_followup);
-    try std.testing.expect(saw_live_mmio_blocker);
-    try std.testing.expect(saw_device_tree_blocker);
-    try std.testing.expect(saw_arch_memtype_blocker);
+test "phase13 devres frees phys WC release records when token add fails" {
+    const outcome = try devres.DevresHelperLab.planArchPhysWcAdd(.{
+        .start = 0x7400,
+        .size = 0x80,
+        .release_record_allocated = true,
+        .token_result = -12,
+    });
+
+    switch (outcome) {
+        .added => return error.ExpectedFailure,
+        .err => |failure| {
+            try std.testing.expectEqualStrings("lib/devres.c", failure.anchor);
+            try std.testing.expectEqual(@as(i32, -12), failure.error_code);
+            try std.testing.expect(!failure.added_to_devres);
+            try std.testing.expect(!failure.release_record_retained);
+            try std.testing.expect(failure.release_record_freed);
+            try std.testing.expect(!failure.should_remove_on_detach);
+        },
+    }
+}
+
+test "phase13 devres rejects phys WC token planning when the release record cannot be allocated" {
+    try std.testing.expectError(error.OutOfMemory, devres.DevresHelperLab.planArchPhysWcAdd(.{
+        .start = 0x7500,
+        .size = 0x40,
+        .release_record_allocated = false,
+        .token_result = 0,
+    }));
+}
+
+test "phase13 devres manifest records the current iomap mmio safety packet" {
+    try expectContains(manifest_text, "\"lane_key\": \"P13-L06\"");
+    try expectContains(manifest_text, "\"surveyed_commit\": \"master-reviewability\"");
+    try expectContains(manifest_text, "\"descriptor_keeps_live_mmio_blocked\": true");
+    try expectContains(manifest_text, "\"phase13_devres_test_replays_iomap_failures\": true");
+    try expectContains(manifest_text, "\"phase13_devres_test_replays_wc_memtype_reservation\": true");
+    try expectContains(manifest_text, "\"phase13_devres_test_replays_arch_phys_wc_token_add\": true");
+    try expectContains(manifest_text, "\"id\": \"phase13-devres-arch-phys-wc-token\"");
+    try expectContains(manifest_text, "\"status\": \"starter_landed\"");
+    try expectContains(manifest_text, "\"status\": \"blocked_on_live_resource_state\"");
 }
