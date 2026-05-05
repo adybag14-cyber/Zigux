@@ -168,7 +168,19 @@ test "phase14 shared smoke manifest records the current evidence bundle" {
     try std.testing.expect(has_rcu_tree_shared_surface);
     try std.testing.expectEqual(@as(usize, 4), manifest.anchor_packets.len);
     try std.testing.expectEqual(@as(usize, 4), manifest.smoke_commands.len);
+    try std.testing.expectEqualStrings("make -C zigux phase14-validate", manifest.smoke_commands[0]);
+    try std.testing.expectEqualStrings("make -C zigux phase14-test", manifest.smoke_commands[1]);
+    try std.testing.expectEqualStrings(
+        "zig build test --build-file zigux/tests/phase14_build.zig --summary all",
+        manifest.smoke_commands[2],
+    );
+    try std.testing.expectEqualStrings("make -C zigux phase14", manifest.smoke_commands[3]);
     try std.testing.expectEqual(@as(usize, 2), manifest.smoke_shard_commands.len);
+    try std.testing.expectEqualStrings(
+        "zig build phase14-smoke --build-file zigux/tests/phase14_build.zig --summary all",
+        manifest.smoke_shard_commands[0],
+    );
+    try std.testing.expectEqualStrings("make -C zigux phase14-smoke", manifest.smoke_shard_commands[1]);
     try std.testing.expectEqual(@as(usize, 4), manifest.attached_toolchain_commands.len);
     try std.testing.expectEqual(@as(usize, 5), manifest.compile_shards.len);
     try std.testing.expect(manifest.survey_summary.phase14_validate_script_present);
@@ -415,6 +427,7 @@ test "phase14 shared smoke survey matches the live anchor packets and shared gat
     try std.testing.expect(std.mem.indexOf(u8, release_boundary, "PHASE14_SHARED_REPLAY_PRESENT=yes") != null);
     try std.testing.expect(std.mem.indexOf(u8, release_boundary, "shared smoke packet: `Documentation/zigux/phase14-end-to-end-smoke-survey.md`, `Documentation/zigux/phase14-release-boundary-survey.md`, `zigux/tests/phase14_end_to_end_smoke_manifest.json`, `scripts/zigux/check-phase14-docs-root-smoke-summary.py`, `scripts/zigux/check-phase14-release-boundary-exact-counts.py`, `scripts/zigux/validate-phase14.py`, `make -C zigux phase14-validate`, `make -C zigux phase14-smoke`, `zig build phase14-smoke --build-file zigux/tests/phase14_build.zig --summary all`, and `zig build test --build-file zigux/tests/phase14_build.zig --summary all` now keep the four-anchor boundary map, the focused smoke shard, and the shared full-bundle replay explicit from a study-only posture") != null);
     try std.testing.expect(std.mem.indexOf(u8, release_boundary, "combined shared replay entrypoint: `make -C zigux phase14` remains the published convenience route for the validator-backed smoke packet, so release-facing review and local replay still name the same one-command path as the shared smoke note and manifest instead of leaving that wrapper path implicit in `zigux/Makefile`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, release_boundary, "wrapper-backed full-bundle replay: `make -C zigux phase14-test` remains the smallest make-surface route for the shared full-bundle compile matrix, so release-facing review can name the same wrapper-backed internal-bridge replay that `zigux/Makefile` and `Documentation/zigux/phase14-end-to-end-smoke-survey.md` already publish instead of relying only on the raw `zig build test --build-file zigux/tests/phase14_build.zig --summary all` command") != null);
     try std.testing.expect(std.mem.indexOf(u8, release_boundary, "bounded-internal sequencing guard: only `kernel/workqueue.c` and `kernel/trace/ring_buffer.c` remain eligible for same-phase bounded follow-up inside the current Phase 14 study packet, while `net/core/skbuff.c` and `kernel/rcu/tree.c` stay governed by the Phase 15 freeze-in-C packet and are not bounded-internal next-step lanes") != null);
     try std.testing.expect(std.mem.indexOf(u8, release_boundary, "PHASE14_SHARED_SMOKE_GATE_COUNT=1") != null);
     try std.testing.expect(std.mem.indexOf(u8, release_boundary, "PHASE14_ACTIVE_DELIVERY_GATE_COUNT=0") != null);
@@ -444,6 +457,7 @@ test "phase14 shared smoke survey matches the live anchor packets and shared gat
     try std.testing.expect(std.mem.indexOf(u8, smoke_note, shared_lane_marker) != null);
     try std.testing.expect(std.mem.indexOf(u8, smoke_note, "PHASE14_SMOKE_VALIDATOR=present") != null);
     try std.testing.expect(std.mem.indexOf(u8, smoke_note, "PHASE14_VALIDATE_ENTRYPOINT=make -C zigux phase14-validate") != null);
+    try std.testing.expect(std.mem.indexOf(u8, smoke_note, "PHASE14_TEST_ENTRYPOINT=make -C zigux phase14-test") != null);
     try std.testing.expect(std.mem.indexOf(u8, smoke_note, "PHASE14_COMPILE_ARTIFACT_COUNT=5") != null);
     try std.testing.expect(std.mem.indexOf(u8, smoke_note, "PHASE14_FOCUSED_SHARD_COUNT=1") != null);
     try std.testing.expect(std.mem.indexOf(u8, smoke_note, "PHASE14_ANCHOR_LOCAL_STEP_COUNT=0") != null);
@@ -486,6 +500,7 @@ test "phase14 shared smoke survey matches the live anchor packets and shared gat
     }
     try std.testing.expect(std.mem.indexOf(u8, smoke_note, "only the shared smoke survey has a dedicated shard today") != null);
     try std.testing.expect(std.mem.indexOf(u8, smoke_note, "four anchor-local artifacts still replay only through the broader `test` bundle") != null);
+    try std.testing.expect(std.mem.indexOf(u8, smoke_note, "wrapper-backed full-bundle replay") != null);
     try std.testing.expect(std.mem.indexOf(u8, smoke_note, "current four-anchor boundary map") != null);
     try std.testing.expect(std.mem.indexOf(u8, smoke_note, "bounded concurrency-audit scope") != null);
     try std.testing.expect(std.mem.indexOf(u8, smoke_note, "only the bounded-internal `kernel/workqueue.c` and `kernel/trace/ring_buffer.c` anchors remain eligible for same-phase bounded follow-up") != null);
