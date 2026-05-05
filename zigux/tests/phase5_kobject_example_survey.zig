@@ -107,6 +107,19 @@ test "phase 5 kobject survey note stays repo-local, lane-scoped, and keeps the a
     var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
     defer io_instance.deinit();
 
+    const manifest_json = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "zigux/tests/phase5_kobject_example_manifest.json",
+        std.testing.allocator,
+        .limited(32 * 1024),
+    );
+    defer std.testing.allocator.free(manifest_json);
+
+    const parsed = try std.json.parseFromSlice(Manifest, std.testing.allocator, manifest_json, .{});
+    defer parsed.deinit();
+
+    const manifest = parsed.value;
+
     const survey_note = try std.Io.Dir.cwd().readFileAlloc(
         io_instance.io(),
         "Documentation/zigux/phase5-kobject-sample-survey.md",
@@ -114,6 +127,13 @@ test "phase 5 kobject survey note stays repo-local, lane-scoped, and keeps the a
         .limited(64 * 1024),
     );
     defer std.testing.allocator.free(survey_note);
+
+    var surveyed_commit_marker_buf: [96]u8 = undefined;
+    const surveyed_commit_marker = try std.fmt.bufPrint(
+        surveyed_commit_marker_buf[0..],
+        "PHASE5_SURVEYED_COMMIT={s}",
+        .{manifest.surveyed_commit},
+    );
 
     const required_markers = [_][]const u8{
         "PHASE5_LANE_KEY=P5-Y03",
@@ -129,5 +149,6 @@ test "phase 5 kobject survey note stays repo-local, lane-scoped, and keeps the a
         try std.testing.expect(std.mem.indexOf(u8, survey_note, needle) != null);
     }
 
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, surveyed_commit_marker) != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "/workspace/agent_files") == null);
 }
