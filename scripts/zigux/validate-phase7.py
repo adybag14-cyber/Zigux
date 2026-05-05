@@ -2,8 +2,8 @@
 from __future__ import annotations
 
 import argparse
-from pathlib import Path
 import tempfile
+from pathlib import Path
 
 
 SELF_PATH = Path(__file__).resolve()
@@ -28,6 +28,7 @@ REQUIRED_FILES = [
     "zigux/tests/phase7_string_helpers.zig",
     "zigux/tests/phase7_string_helpers_sample_boundary.zig",
     "zigux/tests/phase7_cmdline.zig",
+    "zigux/tests/phase7_cmdline_survey.zig",
     "zigux/tests/phase7_argv_split.zig",
     "zigux/tests/fixtures/phase7_argv_split_vectors.zig",
     "zigux/tests/phase7_rbtree.zig",
@@ -82,6 +83,7 @@ REQUIRED_MARKERS = {
         "scripts/zigux/check-phase7-make-wrapper.py",
         "scripts/zigux/check-phase7-argv-split-packet.py",
         "scripts/zigux/check-phase7-rbtree-parity.py",
+        "zigux/tests/phase7_cmdline_survey.zig",
         "make -C zigux phase7-validate",
         "there is no separate shared `check-phase7-build-inventory.py`",
     ],
@@ -102,6 +104,7 @@ REQUIRED_MARKERS = {
         "zigux/tests/phase7_string_helpers.zig",
         "zigux/tests/phase7_string_helpers_sample_boundary.zig",
         "zigux/tests/phase7_cmdline.zig",
+        "zigux/tests/phase7_cmdline_survey.zig",
         "zigux/tests/phase7_argv_split.zig",
         "zigux/tests/phase7_rbtree.zig",
         "zigux/tests/phase7_rbtree_survey.zig",
@@ -126,6 +129,8 @@ REQUIRED_MARKERS = {
         "\"phase7_string_helpers_sample_boundary.zig\"",
         "setCwd(b.path(\"../..\"))",
         "phase7-cmdline-tests",
+        "phase7-cmdline-survey-tests",
+        "\"phase7_cmdline_survey.zig\"",
         "phase7-argv-split-tests",
         "phase7-rbtree-tests",
         "phase7-rbtree-survey-tests",
@@ -141,13 +146,27 @@ REQUIRED_MARKERS = {
     ],
 }
 
+FIXTURE_OVERRIDES = {
+    "scripts/zigux/validate-phase7.py": "# fixture\n",
+    "zigux/tests/phase7_string_helpers.zig": "// fixture\n",
+    "zigux/tests/phase7_string_helpers_sample_boundary.zig": "// fixture\n",
+    "zigux/tests/phase7_cmdline.zig": "// fixture\n",
+    "zigux/tests/phase7_cmdline_survey.zig": "// fixture\n",
+    "zigux/tests/phase7_argv_split.zig": "// fixture\n",
+    "zigux/tests/fixtures/phase7_argv_split_vectors.zig": "// fixture\n",
+    "zigux/tests/phase7_rbtree.zig": "// fixture\n",
+    "zigux/tests/phase7_rbtree_manifest.json": "{}\n",
+    "zigux/tests/fixtures/phase7_rbtree.json": "{}\n",
+    "zigux/tests/fixtures/phase7_rbtree_c_harness.c": "/* fixture */\n",
+    "lib/string_helpers.zig": "// fixture\n",
+    "lib/cmdline.zig": "// fixture\n",
+    "lib/argv_split.zig": "// fixture\n",
+    "lib/rbtree.zig": "// fixture\n",
+}
+
 
 def collect_missing_files(root: Path) -> list[str]:
-    missing: list[str] = []
-    for rel in REQUIRED_FILES:
-        if not (root / rel).exists():
-            missing.append(rel)
-    return missing
+    return [rel for rel in REQUIRED_FILES if not (root / rel).exists()]
 
 
 def collect_missing_markers(root: Path) -> list[str]:
@@ -164,42 +183,12 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
     missing_files = collect_missing_files(root)
     if missing_files:
         return missing_files, []
-    return missing_files, collect_missing_markers(root)
+    return [], collect_missing_markers(root)
 
 
 def write_fixture_root(tmp_root: Path) -> None:
-    fixture_text = {
-        ".github/workflows/zigux-bootstrap.yml": "\n".join(REQUIRED_MARKERS[".github/workflows/zigux-bootstrap.yml"]) + "\n",
-        "Documentation/zigux/README.md": "\n".join(REQUIRED_MARKERS["Documentation/zigux/README.md"]) + "\n",
-        "Documentation/zigux/phase7-string-helpers-slice.md": "\n".join(REQUIRED_MARKERS["Documentation/zigux/phase7-string-helpers-slice.md"]) + "\n",
-        "Documentation/zigux/phase7-cmdline-slice.md": "\n".join(REQUIRED_MARKERS["Documentation/zigux/phase7-cmdline-slice.md"]) + "\n",
-        "Documentation/zigux/phase7-argv-split-slice.md": "\n".join(REQUIRED_MARKERS["Documentation/zigux/phase7-argv-split-slice.md"]) + "\n",
-        "Documentation/zigux/phase7-rbtree-slice.md": "\n".join(REQUIRED_MARKERS["Documentation/zigux/phase7-rbtree-slice.md"]) + "\n",
-        "samples/zigux/README.md": "\n".join(REQUIRED_MARKERS["samples/zigux/README.md"]) + "\n",
-        "scripts/zigux/README.md": "\n".join(REQUIRED_MARKERS["scripts/zigux/README.md"]) + "\n",
-        "scripts/zigux/validate-phase7.py": "# fixture\n",
-        "scripts/zigux/check-phase7-make-wrapper.py": "\n".join(REQUIRED_MARKERS["scripts/zigux/check-phase7-make-wrapper.py"]) + "\n",
-        "scripts/zigux/check-phase7-argv-split-packet.py": "\n".join(REQUIRED_MARKERS["scripts/zigux/check-phase7-argv-split-packet.py"]) + "\n",
-        "scripts/zigux/check-phase7-rbtree-parity.py": "\n".join(REQUIRED_MARKERS["scripts/zigux/check-phase7-rbtree-parity.py"]) + "\n",
-        "zigux/Makefile": "\n".join(REQUIRED_MARKERS["zigux/Makefile"]) + "\n",
-        "zigux/tests/README.md": "\n".join(REQUIRED_MARKERS["zigux/tests/README.md"]) + "\n",
-        "zigux/tests/phase7_build.zig": "\n".join(REQUIRED_MARKERS["zigux/tests/phase7_build.zig"]) + "\n",
-        "zigux/tests/phase7_string_helpers.zig": "// fixture\n",
-        "zigux/tests/phase7_string_helpers_sample_boundary.zig": "// fixture\n",
-        "zigux/tests/phase7_cmdline.zig": "// fixture\n",
-        "zigux/tests/phase7_argv_split.zig": "// fixture\n",
-        "zigux/tests/fixtures/phase7_argv_split_vectors.zig": "// fixture\n",
-        "zigux/tests/phase7_rbtree.zig": "// fixture\n",
-        "zigux/tests/phase7_rbtree_survey.zig": "\n".join(REQUIRED_MARKERS["zigux/tests/phase7_rbtree_survey.zig"]) + "\n",
-        "zigux/tests/phase7_rbtree_manifest.json": "{}\n",
-        "zigux/tests/fixtures/phase7_rbtree.json": "{}\n",
-        "zigux/tests/fixtures/phase7_rbtree_c_harness.c": "/* fixture */\n",
-        "lib/string_helpers.zig": "// fixture\n",
-        "lib/cmdline.zig": "// fixture\n",
-        "lib/argv_split.zig": "// fixture\n",
-        "lib/rbtree.zig": "// fixture\n",
-    }
-
+    fixture_text = {rel: "\n".join(markers) + "\n" for rel, markers in REQUIRED_MARKERS.items()}
+    fixture_text.update(FIXTURE_OVERRIDES)
     for rel in REQUIRED_FILES:
         path = tmp_root / rel
         path.parent.mkdir(parents=True, exist_ok=True)
@@ -218,312 +207,71 @@ def expect_missing_marker(case: str, tmp_root: Path, marker: str) -> None:
     assert missing_markers == [marker], case
 
 
+def mutate_file(tmp_root: Path, rel: str, old: str, new: str, case: str) -> None:
+    path = tmp_root / rel
+    original = path.read_text(encoding="utf-8")
+    updated = original.replace(old, new, 1)
+    assert updated != original, case
+    path.write_text(updated, encoding="utf-8")
+
+
 def run_self_test() -> None:
+    missing_file_cases = [
+        ("missing_parity_checker", "scripts/zigux/check-phase7-rbtree-parity.py"),
+        ("missing_make_wrapper_checker", "scripts/zigux/check-phase7-make-wrapper.py"),
+        ("missing_argv_split_packet_checker", "scripts/zigux/check-phase7-argv-split-packet.py"),
+        ("missing_samples_readme", "samples/zigux/README.md"),
+        ("missing_scripts_readme", "scripts/zigux/README.md"),
+        ("missing_phase7_workflow", ".github/workflows/zigux-bootstrap.yml"),
+        ("missing_argv_split_vectors_fixture", "zigux/tests/fixtures/phase7_argv_split_vectors.zig"),
+        ("missing_string_helpers_sample_boundary", "zigux/tests/phase7_string_helpers_sample_boundary.zig"),
+        ("missing_cmdline_survey", "zigux/tests/phase7_cmdline_survey.zig"),
+    ]
+
+    marker_cases = [
+        ("parity_checker_self_test_flag", "scripts/zigux/check-phase7-rbtree-parity.py", "--self-test", "", "scripts/zigux/check-phase7-rbtree-parity.py: --self-test"),
+        ("make_wrapper_checker_self_test_flag", "scripts/zigux/check-phase7-make-wrapper.py", "--self-test", "", "scripts/zigux/check-phase7-make-wrapper.py: --self-test"),
+        ("samples_readme_boundary_marker", "samples/zigux/README.md", "treat any new `samples/zigux/*string*.zig` file as review-blocking", "", "samples/zigux/README.md: treat any new `samples/zigux/*string*.zig` file as review-blocking"),
+        ("scripts_readme_make_wrapper_marker", "scripts/zigux/README.md", "scripts/zigux/check-phase7-make-wrapper.py", "", "scripts/zigux/README.md: scripts/zigux/check-phase7-make-wrapper.py"),
+        ("scripts_readme_argv_split_packet_marker", "scripts/zigux/README.md", "scripts/zigux/check-phase7-argv-split-packet.py", "", "scripts/zigux/README.md: scripts/zigux/check-phase7-argv-split-packet.py"),
+        ("scripts_readme_cmdline_survey_marker", "scripts/zigux/README.md", "zigux/tests/phase7_cmdline_survey.zig", "", "scripts/zigux/README.md: zigux/tests/phase7_cmdline_survey.zig"),
+        ("workflow_phase7_validate_step", ".github/workflows/zigux-bootstrap.yml", "Validate Phase 7 runtime helper gates", "", ".github/workflows/zigux-bootstrap.yml: Validate Phase 7 runtime helper gates"),
+        ("makefile_validator_self_test_hook", "zigux/Makefile", "scripts/zigux/validate-phase7.py --self-test", "", "zigux/Makefile: scripts/zigux/validate-phase7.py --self-test"),
+        ("makefile_make_wrapper_self_test_hook", "zigux/Makefile", "scripts/zigux/check-phase7-make-wrapper.py --self-test", "", "zigux/Makefile: scripts/zigux/check-phase7-make-wrapper.py --self-test"),
+        ("makefile_make_wrapper_hook", "zigux/Makefile", "scripts/zigux/check-phase7-make-wrapper.py", "", "zigux/Makefile: scripts/zigux/check-phase7-make-wrapper.py"),
+        ("makefile_argv_split_packet_self_test_hook", "zigux/Makefile", "scripts/zigux/check-phase7-argv-split-packet.py --self-test", "", "zigux/Makefile: scripts/zigux/check-phase7-argv-split-packet.py --self-test"),
+        ("makefile_parity_self_test_hook", "zigux/Makefile", "scripts/zigux/check-phase7-rbtree-parity.py --self-test", "", "zigux/Makefile: scripts/zigux/check-phase7-rbtree-parity.py --self-test"),
+        ("argv_split_slice_checker_gate", "Documentation/zigux/phase7-argv-split-slice.md", "python3 scripts/zigux/check-phase7-argv-split-packet.py", "", "Documentation/zigux/phase7-argv-split-slice.md: python3 scripts/zigux/check-phase7-argv-split-packet.py"),
+        ("rbtree_survey_validator_reference", "zigux/tests/phase7_rbtree_survey.zig", "scripts/zigux/validate-phase7.py", "", "zigux/tests/phase7_rbtree_survey.zig: scripts/zigux/validate-phase7.py"),
+        ("cmdline_review_surface", "Documentation/zigux/phase7-cmdline-slice.md", "exact bare-option matching for comma-delimited flags", "", "Documentation/zigux/phase7-cmdline-slice.md: exact bare-option matching for comma-delimited flags"),
+        ("tests_readme_phase7_rbtree_survey_marker", "zigux/tests/README.md", "zigux/tests/phase7_rbtree_survey.zig", "", "zigux/tests/README.md: zigux/tests/phase7_rbtree_survey.zig"),
+        ("tests_readme_phase7_string_helpers_sample_boundary_marker", "zigux/tests/README.md", "zigux/tests/phase7_string_helpers_sample_boundary.zig", "", "zigux/tests/README.md: zigux/tests/phase7_string_helpers_sample_boundary.zig"),
+        ("tests_readme_phase7_cmdline_survey_marker", "zigux/tests/README.md", "zigux/tests/phase7_cmdline_survey.zig", "", "zigux/tests/README.md: zigux/tests/phase7_cmdline_survey.zig"),
+        ("build_rbtree_survey_gate", "zigux/tests/phase7_build.zig", "phase7-rbtree-survey-tests", "", "zigux/tests/phase7_build.zig: phase7-rbtree-survey-tests"),
+        ("build_string_helpers_sample_boundary_gate", "zigux/tests/phase7_build.zig", "phase7-string-helpers-sample-boundary-tests", "", "zigux/tests/phase7_build.zig: phase7-string-helpers-sample-boundary-tests"),
+        ("build_string_helpers_sample_boundary_source", "zigux/tests/phase7_build.zig", '"phase7_string_helpers_sample_boundary.zig"', '"phase7_string_helpers_sample_boundary_drift.zig"', 'zigux/tests/phase7_build.zig: "phase7_string_helpers_sample_boundary.zig"'),
+        ("build_string_helpers_sample_boundary_cwd", "zigux/tests/phase7_build.zig", 'setCwd(b.path("../.."))', "", 'zigux/tests/phase7_build.zig: setCwd(b.path("../.."))'),
+        ("build_cmdline_survey_gate", "zigux/tests/phase7_build.zig", "phase7-cmdline-survey-tests", "", "zigux/tests/phase7_build.zig: phase7-cmdline-survey-tests"),
+        ("build_cmdline_survey_source", "zigux/tests/phase7_build.zig", '"phase7_cmdline_survey.zig"', '"phase7_cmdline_survey_drift.zig"', 'zigux/tests/phase7_build.zig: "phase7_cmdline_survey.zig"'),
+    ]
+
     with tempfile.TemporaryDirectory(prefix="zigux_phase7_validator_") as tmp_dir_str:
         tmp_root = Path(tmp_dir_str)
         write_fixture_root(tmp_root)
         assert validate(tmp_root) == ([], [])
 
-        parity_path = tmp_root / "scripts" / "zigux" / "check-phase7-rbtree-parity.py"
-        parity_path.unlink()
-        expect_missing_file("missing_parity_checker", tmp_root, "scripts/zigux/check-phase7-rbtree-parity.py")
-        write_fixture_root(tmp_root)
+        for case, rel in missing_file_cases:
+            (tmp_root / rel).unlink()
+            expect_missing_file(case, tmp_root, rel)
+            write_fixture_root(tmp_root)
 
-        make_wrapper_path = tmp_root / "scripts" / "zigux" / "check-phase7-make-wrapper.py"
-        make_wrapper_path.unlink()
-        expect_missing_file(
-            "missing_make_wrapper_checker",
-            tmp_root,
-            "scripts/zigux/check-phase7-make-wrapper.py",
-        )
-        write_fixture_root(tmp_root)
-
-        argv_split_packet_path = tmp_root / "scripts" / "zigux" / "check-phase7-argv-split-packet.py"
-        argv_split_packet_path.unlink()
-        expect_missing_file(
-            "missing_argv_split_packet_checker",
-            tmp_root,
-            "scripts/zigux/check-phase7-argv-split-packet.py",
-        )
-        write_fixture_root(tmp_root)
-
-        samples_readme_path = tmp_root / "samples" / "zigux" / "README.md"
-        samples_readme_path.unlink()
-        expect_missing_file("missing_samples_readme", tmp_root, "samples/zigux/README.md")
-        write_fixture_root(tmp_root)
-
-        scripts_readme_path = tmp_root / "scripts" / "zigux" / "README.md"
-        scripts_readme_path.unlink()
-        expect_missing_file("missing_scripts_readme", tmp_root, "scripts/zigux/README.md")
-        write_fixture_root(tmp_root)
-
-        workflow_path = tmp_root / ".github" / "workflows" / "zigux-bootstrap.yml"
-        workflow_path.unlink()
-        expect_missing_file("missing_phase7_workflow", tmp_root, ".github/workflows/zigux-bootstrap.yml")
-        write_fixture_root(tmp_root)
-
-        argv_split_vectors_path = tmp_root / "zigux" / "tests" / "fixtures" / "phase7_argv_split_vectors.zig"
-        argv_split_vectors_path.unlink()
-        expect_missing_file(
-            "missing_argv_split_vectors_fixture",
-            tmp_root,
-            "zigux/tests/fixtures/phase7_argv_split_vectors.zig",
-        )
-        write_fixture_root(tmp_root)
-
-        parity_path = tmp_root / "scripts" / "zigux" / "check-phase7-rbtree-parity.py"
-        original_parity_text = parity_path.read_text(encoding="utf-8")
-        parity_path.write_text(original_parity_text.replace("--self-test", "", 1), encoding="utf-8")
-        expect_missing_marker(
-            "parity_checker_self_test_flag",
-            tmp_root,
-            "scripts/zigux/check-phase7-rbtree-parity.py: --self-test",
-        )
-        parity_path.write_text(original_parity_text, encoding="utf-8")
-
-        make_wrapper_path = tmp_root / "scripts" / "zigux" / "check-phase7-make-wrapper.py"
-        original_make_wrapper_text = make_wrapper_path.read_text(encoding="utf-8")
-        make_wrapper_path.write_text(
-            original_make_wrapper_text.replace("--self-test", "", 1),
-            encoding="utf-8",
-        )
-        expect_missing_marker(
-            "make_wrapper_checker_self_test_flag",
-            tmp_root,
-            "scripts/zigux/check-phase7-make-wrapper.py: --self-test",
-        )
-        make_wrapper_path.write_text(original_make_wrapper_text, encoding="utf-8")
-
-        boundary_path = tmp_root / "zigux" / "tests" / "phase7_string_helpers_sample_boundary.zig"
-        boundary_path.unlink()
-        expect_missing_file(
-            "missing_string_helpers_sample_boundary",
-            tmp_root,
-            "zigux/tests/phase7_string_helpers_sample_boundary.zig",
-        )
-        write_fixture_root(tmp_root)
-
-        samples_readme_path = tmp_root / "samples" / "zigux" / "README.md"
-        original_samples_readme = samples_readme_path.read_text(encoding="utf-8")
-        samples_readme_path.write_text(
-            original_samples_readme.replace(
-                "treat any new `samples/zigux/*string*.zig` file as review-blocking",
-                "",
-                1,
-            ),
-            encoding="utf-8",
-        )
-        expect_missing_marker(
-            "samples_readme_boundary_marker",
-            tmp_root,
-            "samples/zigux/README.md: treat any new `samples/zigux/*string*.zig` file as review-blocking",
-        )
-        samples_readme_path.write_text(original_samples_readme, encoding="utf-8")
-
-        scripts_readme_path = tmp_root / "scripts" / "zigux" / "README.md"
-        original_scripts_readme = scripts_readme_path.read_text(encoding="utf-8")
-        scripts_readme_path.write_text(
-            original_scripts_readme.replace("scripts/zigux/check-phase7-make-wrapper.py", "", 1),
-            encoding="utf-8",
-        )
-        expect_missing_marker(
-            "scripts_readme_make_wrapper_marker",
-            tmp_root,
-            "scripts/zigux/README.md: scripts/zigux/check-phase7-make-wrapper.py",
-        )
-        scripts_readme_path.write_text(original_scripts_readme, encoding="utf-8")
-
-        scripts_readme_path.write_text(
-            original_scripts_readme.replace("scripts/zigux/check-phase7-argv-split-packet.py", "", 1),
-            encoding="utf-8",
-        )
-        expect_missing_marker(
-            "scripts_readme_argv_split_packet_marker",
-            tmp_root,
-            "scripts/zigux/README.md: scripts/zigux/check-phase7-argv-split-packet.py",
-        )
-        scripts_readme_path.write_text(original_scripts_readme, encoding="utf-8")
-
-        workflow_path = tmp_root / ".github" / "workflows" / "zigux-bootstrap.yml"
-        original_workflow = workflow_path.read_text(encoding="utf-8")
-        workflow_path.write_text(
-            original_workflow.replace("Validate Phase 7 runtime helper gates", "", 1),
-            encoding="utf-8",
-        )
-        expect_missing_marker(
-            "workflow_phase7_validate_step",
-            tmp_root,
-            ".github/workflows/zigux-bootstrap.yml: Validate Phase 7 runtime helper gates",
-        )
-        workflow_path.write_text(original_workflow, encoding="utf-8")
-
-        makefile_path = tmp_root / "zigux" / "Makefile"
-        original_makefile = makefile_path.read_text(encoding="utf-8")
-        makefile_path.write_text(
-            original_makefile.replace("scripts/zigux/validate-phase7.py --self-test", "", 1),
-            encoding="utf-8",
-        )
-        expect_missing_marker(
-            "makefile_validator_self_test_hook",
-            tmp_root,
-            "zigux/Makefile: scripts/zigux/validate-phase7.py --self-test",
-        )
-        makefile_path.write_text(original_makefile, encoding="utf-8")
-
-        makefile_path.write_text(
-            original_makefile.replace("scripts/zigux/check-phase7-make-wrapper.py --self-test", "", 1),
-            encoding="utf-8",
-        )
-        expect_missing_marker(
-            "makefile_make_wrapper_self_test_hook",
-            tmp_root,
-            "zigux/Makefile: scripts/zigux/check-phase7-make-wrapper.py --self-test",
-        )
-        makefile_path.write_text(original_makefile, encoding="utf-8")
-
-        makefile_path.write_text(
-            original_makefile.replace("scripts/zigux/check-phase7-make-wrapper.py", "", 1),
-            encoding="utf-8",
-        )
-        expect_missing_marker(
-            "makefile_make_wrapper_hook",
-            tmp_root,
-            "zigux/Makefile: scripts/zigux/check-phase7-make-wrapper.py",
-        )
-        makefile_path.write_text(original_makefile, encoding="utf-8")
-
-        makefile_path.write_text(
-            original_makefile.replace("scripts/zigux/check-phase7-argv-split-packet.py --self-test", "", 1),
-            encoding="utf-8",
-        )
-        expect_missing_marker(
-            "makefile_argv_split_packet_self_test_hook",
-            tmp_root,
-            "zigux/Makefile: scripts/zigux/check-phase7-argv-split-packet.py --self-test",
-        )
-        makefile_path.write_text(original_makefile, encoding="utf-8")
-
-        makefile_path.write_text(
-            original_makefile.replace("scripts/zigux/check-phase7-rbtree-parity.py --self-test", "", 1),
-            encoding="utf-8",
-        )
-        expect_missing_marker(
-            "makefile_parity_self_test_hook",
-            tmp_root,
-            "zigux/Makefile: scripts/zigux/check-phase7-rbtree-parity.py --self-test",
-        )
-        makefile_path.write_text(original_makefile, encoding="utf-8")
-
-        argv_split_slice_path = tmp_root / "Documentation" / "zigux" / "phase7-argv-split-slice.md"
-        original_argv_split_slice = argv_split_slice_path.read_text(encoding="utf-8")
-        argv_split_slice_path.write_text(
-            original_argv_split_slice.replace("python3 scripts/zigux/check-phase7-argv-split-packet.py", "", 1),
-            encoding="utf-8",
-        )
-        expect_missing_marker(
-            "argv_split_slice_checker_gate",
-            tmp_root,
-            "Documentation/zigux/phase7-argv-split-slice.md: python3 scripts/zigux/check-phase7-argv-split-packet.py",
-        )
-        argv_split_slice_path.write_text(original_argv_split_slice, encoding="utf-8")
-
-        rbtree_survey_path = tmp_root / "zigux" / "tests" / "phase7_rbtree_survey.zig"
-        original_rbtree_survey = rbtree_survey_path.read_text(encoding="utf-8")
-        rbtree_survey_path.write_text(
-            original_rbtree_survey.replace("scripts/zigux/validate-phase7.py", "", 1),
-            encoding="utf-8",
-        )
-        expect_missing_marker(
-            "rbtree_survey_validator_reference",
-            tmp_root,
-            "zigux/tests/phase7_rbtree_survey.zig: scripts/zigux/validate-phase7.py",
-        )
-        rbtree_survey_path.write_text(original_rbtree_survey, encoding="utf-8")
-
-        cmdline_doc_path = tmp_root / "Documentation" / "zigux" / "phase7-cmdline-slice.md"
-        original_cmdline_doc = cmdline_doc_path.read_text(encoding="utf-8")
-        cmdline_doc_path.write_text(
-            original_cmdline_doc.replace("exact bare-option matching for comma-delimited flags", "", 1),
-            encoding="utf-8",
-        )
-        expect_missing_marker(
-            "cmdline_review_surface",
-            tmp_root,
-            "Documentation/zigux/phase7-cmdline-slice.md: exact bare-option matching for comma-delimited flags",
-        )
-        cmdline_doc_path.write_text(original_cmdline_doc, encoding="utf-8")
-
-        tests_readme_path = tmp_root / "zigux" / "tests" / "README.md"
-        original_tests_readme = tests_readme_path.read_text(encoding="utf-8")
-        tests_readme_path.write_text(
-            original_tests_readme.replace("zigux/tests/phase7_rbtree_survey.zig", "", 1),
-            encoding="utf-8",
-        )
-        expect_missing_marker(
-            "tests_readme_phase7_rbtree_survey_marker",
-            tmp_root,
-            "zigux/tests/README.md: zigux/tests/phase7_rbtree_survey.zig",
-        )
-        tests_readme_path.write_text(original_tests_readme, encoding="utf-8")
-
-        tests_readme_path.write_text(
-            original_tests_readme.replace("zigux/tests/phase7_string_helpers_sample_boundary.zig", "", 1),
-            encoding="utf-8",
-        )
-        expect_missing_marker(
-            "tests_readme_phase7_string_helpers_sample_boundary_marker",
-            tmp_root,
-            "zigux/tests/README.md: zigux/tests/phase7_string_helpers_sample_boundary.zig",
-        )
-        tests_readme_path.write_text(original_tests_readme, encoding="utf-8")
-
-        build_path = tmp_root / "zigux" / "tests" / "phase7_build.zig"
-        original_build = build_path.read_text(encoding="utf-8")
-        build_path.write_text(
-            original_build.replace("phase7-rbtree-survey-tests", "", 1),
-            encoding="utf-8",
-        )
-        expect_missing_marker(
-            "build_rbtree_survey_gate",
-            tmp_root,
-            "zigux/tests/phase7_build.zig: phase7-rbtree-survey-tests",
-        )
-        build_path.write_text(original_build, encoding="utf-8")
-
-        build_path.write_text(
-            original_build.replace("phase7-string-helpers-sample-boundary-tests", "", 1),
-            encoding="utf-8",
-        )
-        expect_missing_marker(
-            "build_string_helpers_sample_boundary_gate",
-            tmp_root,
-            "zigux/tests/phase7_build.zig: phase7-string-helpers-sample-boundary-tests",
-        )
-        build_path.write_text(original_build, encoding="utf-8")
-
-        build_path.write_text(
-            original_build.replace("\"phase7_string_helpers_sample_boundary.zig\"", "\"phase7_string_helpers_sample_boundary_drift.zig\"", 1),
-            encoding="utf-8",
-        )
-        expect_missing_marker(
-            "build_string_helpers_sample_boundary_source",
-            tmp_root,
-            "zigux/tests/phase7_build.zig: \"phase7_string_helpers_sample_boundary.zig\"",
-        )
-        build_path.write_text(original_build, encoding="utf-8")
-
-        build_path.write_text(
-            original_build.replace("setCwd(b.path(\"../..\"))", "", 1),
-            encoding="utf-8",
-        )
-        expect_missing_marker(
-            "build_string_helpers_sample_boundary_cwd",
-            tmp_root,
-            "zigux/tests/phase7_build.zig: setCwd(b.path(\"../..\"))",
-        )
+        for case, rel, old, new, expected in marker_cases:
+            mutate_file(tmp_root, rel, old, new, case)
+            expect_missing_marker(case, tmp_root, expected)
+            write_fixture_root(tmp_root)
 
     print("PHASE7_VALIDATOR_SELF_TEST=pass")
-    print("PHASE7_VALIDATOR_SELF_TEST_CASE_COUNT=28")
+    print("PHASE7_VALIDATOR_SELF_TEST_CASE_COUNT=33")
 
 
 def main() -> int:
