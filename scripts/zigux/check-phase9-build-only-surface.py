@@ -492,6 +492,23 @@ def run_self_test() -> int:
         )
 
         write_fixture_tree(root)
+        phase9_build_path = root / PHASE9_BUILD_PATH
+        phase9_build = phase9_build_path.read_text(encoding="utf-8")
+        phase9_build_path.write_text(
+            phase9_build.replace(
+                "const run_runtime_loader_facade_tests = b.addRunArtifact(runtime_loader_facade_tests);\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_failure(
+            root,
+            "phase9_build:const run_runtime_loader_facade_tests = b.addRunArtifact(runtime_loader_facade_tests);",
+            "missing_phase9_build_facade_run_artifact",
+        )
+
+        write_fixture_tree(root)
         write_text(root / "scripts/zigux/check-phase9-build-only-surface.py", SELF_PATH.read_text(encoding="utf-8"))
         probe = subprocess.run(
             [sys.executable, str(root / "scripts/zigux/check-phase9-build-only-surface.py")],
@@ -506,7 +523,7 @@ def run_self_test() -> int:
             )
 
     print("PHASE9_BUILD_ONLY_SURFACE_SELF_TEST=pass")
-    print("PHASE9_BUILD_ONLY_SURFACE_SELF_TEST_CASE_COUNT=12")
+    print("PHASE9_BUILD_ONLY_SURFACE_SELF_TEST_CASE_COUNT=13")
     return 0
 
 
