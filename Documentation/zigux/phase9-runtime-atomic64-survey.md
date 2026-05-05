@@ -36,6 +36,7 @@ The live repo now has a bounded `runtime_atomic64` starter, dedicated module tes
 - the bounded sample-side loader scaffold now records explicit init and exit symbol names, a prepared handoff summary, and the no-substrate release path without claiming that a shared runtime loader already exists.
 - guarded init, selftest, and exit transitions plus the bounded loader handoff make lifecycle evidence reviewable, but full runtime module lifecycle parity still depends on the shared runtime substrate.
 - the live repo now also carries `zigux/kernel/runtime_loader.zig`, and the atomic64 loader packet now makes its shared request-surface proof explicit through `toSharedLoadPlan()` plus `runtime_loader.prepareRequest()`, but that shared request surface still stops short of a real module-loading substrate.
+- the shared `zigux/kernel/runtime_loader.zig` facade remains a review-only Phase 9 packet under the freeze map's study-only `kernel/workqueue.c` and `kernel/trace/ring_buffer.c` boundary, so this lane keeps the handoff proof explicit without claiming scheduler-facing substrate closure or a freeze-map status change.
 - runtime substrate work is still missing, so the lane intentionally stops at bounded lifecycle, selftest-hook, and loader-handoff behavior rather than claiming real module registration parity.
 
 ## Direct Sample Checks
