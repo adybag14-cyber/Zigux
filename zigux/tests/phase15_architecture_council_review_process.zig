@@ -8,6 +8,14 @@ test "phase 15 architecture council review-process doc and manifest stay aligned
     var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
     defer io_instance.deinit();
 
+    const docs_readme = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "Documentation/zigux/README.md",
+        std.testing.allocator,
+        .limited(64 * 1024),
+    );
+    defer std.testing.allocator.free(docs_readme);
+
     const survey_doc = try std.Io.Dir.cwd().readFileAlloc(
         io_instance.io(),
         "Documentation/zigux/phase15-architecture-council-review-process.md",
@@ -23,6 +31,16 @@ test "phase 15 architecture council review-process doc and manifest stay aligned
         .limited(16 * 1024),
     );
     defer std.testing.allocator.free(manifest_doc);
+
+    try expectContains(docs_readme, "Phase 15 notes");
+    try expectContains(docs_readme, "`Documentation/zigux/freeze-map.md`");
+    try expectContains(docs_readme, "`Documentation/zigux/phase15-freeze-map-governance.md`");
+    try expectContains(docs_readme, "`Documentation/zigux/phase15-architecture-council-review-process.md`");
+    try expectContains(docs_readme, "`Documentation/zigux/phase15-parity-scorecard.md`");
+    try expectContains(docs_readme, "`Documentation/zigux/phase15-indefinite-c-policy.md`");
+    try expectContains(docs_readme, "`zigux/tests/phase15_build.zig`");
+    try expectContains(docs_readme, "`make -C zigux phase15`");
+    try expectContains(docs_readme, "no Architecture Council approval is recorded yet");
 
     try expectContains(survey_doc, "## Trigger Conditions");
     try expectContains(survey_doc, "## Required Review Packet");
