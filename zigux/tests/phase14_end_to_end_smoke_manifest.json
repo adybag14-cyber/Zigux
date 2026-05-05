@@ -42,6 +42,10 @@
       "required_marker": "PHASE14_VALIDATE_PACKET=shared_smoke"
     },
     {
+      "path": "scripts/zigux/check-phase14-release-boundary-exact-counts.py",
+      "required_marker": "PHASE14_CHECK_PACKET=release_boundary_exact_counts"
+    },
+    {
       "path": "zigux/tests/README.md",
       "required_marker": "keep the current Phase 14 smoke packet reviewable"
     },
