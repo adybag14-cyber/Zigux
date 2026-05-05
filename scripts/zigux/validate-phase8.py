@@ -11,15 +11,19 @@ ROOT = SELF_PATH.parents[2] if len(SELF_PATH.parents) >= 3 else SELF_PATH.parent
 
 REQUIRED_FILES = [
     "Documentation/zigux/phase8-bpf-type-names-slice.md",
+    "Documentation/zigux/phase8-file-path-handle-bridge-slice.md",
     "Documentation/zigux/phase8-help-slice.md",
     "Documentation/zigux/phase8-kallsyms-slice.md",
     "Documentation/zigux/phase8-libbpf-segment-survey.md",
     "Documentation/zigux/phase8-perf-buffer-poll-slice.md",
+    "Documentation/zigux/phase8-userspace-kernel-bridge-boundary-survey.md",
     "scripts/zigux/README.md",
     "scripts/zigux/validate-phase8.py",
     "zigux/Makefile",
     "zigux/tests/phase8_bpf_type_names.zig",
     "zigux/tests/phase8_build.zig",
+    "zigux/tests/phase8_file_path_handle_bridge.zig",
+    "zigux/tests/phase8_file_path_handle_bridge_only_build.zig",
     "zigux/tests/phase8_help.zig",
     "zigux/tests/phase8_help_kallsyms_only_build.zig",
     "zigux/tests/phase8_help_only_build.zig",
@@ -29,6 +33,7 @@ REQUIRED_FILES = [
     "zigux/tests/phase8_libbpf_segments_only_build.zig",
     "zigux/tests/phase8_perf_buffer_poll.zig",
     "zigux/tests/phase8_perf_buffer_poll_only_build.zig",
+    "tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig",
     "tools/lib/bpf/zigux_segments/perf_buffer_poll.zig",
     "tools/lib/bpf/zigux_segments/type_names.zig",
 ]
@@ -38,6 +43,13 @@ REQUIRED_MARKERS = {
         "libbpf_bpf_{attach,link,map,prog}_type_str()",
         "dense table lookups with stable output behavior",
         "zigux/tests/phase8_bpf_type_names.zig",
+    ],
+    "Documentation/zigux/phase8-file-path-handle-bridge-slice.md": [
+        "\"/proc/%d/fdinfo/%d\" assembly plus bounded fdinfo text parsing",
+        "zigux/tests/phase8_file_path_handle_bridge.zig",
+        "zigux/tests/phase8_file_path_handle_bridge_only_build.zig",
+        "no direct procfs reads",
+        "no `bpf_obj_get()` reopen flow",
     ],
     "Documentation/zigux/phase8-help-slice.md": [
         "serious repo-hosted tooling",
@@ -72,6 +84,13 @@ REQUIRED_MARKERS = {
         "make -C zigux phase8-perf-buffer-poll-test",
         "make -C zigux phase8-test",
         "make -C zigux phase8",
+    ],
+    "Documentation/zigux/phase8-userspace-kernel-bridge-boundary-survey.md": [
+        "tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig",
+        "zigux/tests/phase8_file_path_handle_bridge.zig",
+        "planTokenPreparation()",
+        "resolveReusePinnedMapAttempt()",
+        "fd close or ownership semantics",
     ],
     "scripts/zigux/README.md": [
         "Phase 8 flow",
@@ -121,11 +140,26 @@ REQUIRED_MARKERS = {
         "../../tools/lib/bpf/zigux_segments/type_names.zig",
         "\"phase8_bpf_type_names.zig\"",
         "phase8-bpf-type-names-tests",
+        "../../tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig",
+        "\"phase8_file_path_handle_bridge.zig\"",
+        "phase8-file-path-handle-bridge-tests",
     ],
     "zigux/tests/phase8_help.zig": [
         "phase 8 help slice note keeps helper-first output-stable tooling posture explicit",
         "output-stable pretty-print emission",
         "full `cmd_help()`-adjacent CLI surface",
+    ],
+    "zigux/tests/phase8_file_path_handle_bridge.zig": [
+        "phase 8 file-path handle bridge docs keep the bounded fdinfo helper explicit",
+        "phase 8 file-path handle bridge helper stays wired into its focused Phase 8 build shard",
+        "phase 8 file-path handle bridge helper stays wired into the shared Phase 8 build shard",
+        "phase 8 file-path handle bridge helper keeps fdinfo map info parsing compact",
+        "map-reuse-compatibility remains queued",
+    ],
+    "zigux/tests/phase8_file_path_handle_bridge_only_build.zig": [
+        "../../tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig",
+        "\"phase8_file_path_handle_bridge.zig\"",
+        "phase8-file-path-handle-bridge-tests",
     ],
     "zigux/tests/phase8_help_kallsyms_only_build.zig": [
         "\"Documentation/zigux/phase8-kallsyms-slice.md\"",
@@ -170,6 +204,13 @@ REQUIRED_MARKERS = {
         "\"phase8_perf_buffer_poll.zig\"",
         "phase8-perf-buffer-poll-tests",
     ],
+    "tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig": [
+        "pub fn buildProcFdinfoPath",
+        "pub fn parseFdinfoMapInfo",
+        "pub fn summarizeFdinfoMapInfo",
+        "map_flags",
+        "/proc/{d}/fdinfo/{d}",
+    ],
     "tools/lib/bpf/zigux_segments/perf_buffer_poll.zig": [
         "summarizePollExecution",
         "ReadyBufferProcessingExceedsReadyCount",
@@ -187,6 +228,10 @@ REQUIRED_MARKERS = {
 
 FIXTURE_OVERRIDES = {
     "scripts/zigux/validate-phase8.py": "# fixture\n",
+    "tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig": "\n".join(
+        REQUIRED_MARKERS["tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig"]
+    )
+    + "\n",
     "tools/lib/bpf/zigux_segments/perf_buffer_poll.zig": "\n".join(
         REQUIRED_MARKERS["tools/lib/bpf/zigux_segments/perf_buffer_poll.zig"]
     )
@@ -257,7 +302,11 @@ def run_self_test() -> None:
         ("missing_phase8_help_note", "Documentation/zigux/phase8-help-slice.md"),
         ("missing_phase8_kallsyms_note", "Documentation/zigux/phase8-kallsyms-slice.md"),
         ("missing_phase8_bpf_type_names_note", "Documentation/zigux/phase8-bpf-type-names-slice.md"),
+        ("missing_phase8_file_path_handle_bridge_note", "Documentation/zigux/phase8-file-path-handle-bridge-slice.md"),
         ("missing_phase8_perf_buffer_poll_note", "Documentation/zigux/phase8-perf-buffer-poll-slice.md"),
+        ("missing_phase8_bridge_boundary_note", "Documentation/zigux/phase8-userspace-kernel-bridge-boundary-survey.md"),
+        ("missing_phase8_file_path_handle_bridge_test", "zigux/tests/phase8_file_path_handle_bridge.zig"),
+        ("missing_phase8_file_path_handle_bridge_only_build", "zigux/tests/phase8_file_path_handle_bridge_only_build.zig"),
         ("missing_phase8_help_test", "zigux/tests/phase8_help.zig"),
         ("missing_phase8_help_only_build", "zigux/tests/phase8_help_only_build.zig"),
         ("missing_phase8_help_kallsyms_only_build", "zigux/tests/phase8_help_kallsyms_only_build.zig"),
@@ -267,6 +316,7 @@ def run_self_test() -> None:
         ("missing_phase8_libbpf_segments_only_build", "zigux/tests/phase8_libbpf_segments_only_build.zig"),
         ("missing_phase8_perf_buffer_poll_test", "zigux/tests/phase8_perf_buffer_poll.zig"),
         ("missing_phase8_perf_buffer_poll_only_build", "zigux/tests/phase8_perf_buffer_poll_only_build.zig"),
+        ("missing_file_path_handle_bridge_helper", "tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig"),
         ("missing_type_names_helper", "tools/lib/bpf/zigux_segments/type_names.zig"),
         ("missing_perf_buffer_poll_helper", "tools/lib/bpf/zigux_segments/perf_buffer_poll.zig"),
     ]
@@ -307,6 +357,15 @@ def run_self_test() -> None:
         ("phase8_build_help_test_name", "zigux/tests/phase8_build.zig", "phase8-help-tests", "phase8-help-shard-tests", "zigux/tests/phase8_build.zig: phase8-help-tests"),
         ("phase8_build_kallsyms_source", "zigux/tests/phase8_build.zig", "\"phase8_kallsyms.zig\"", "\"phase8_kallsyms_drift.zig\"", "zigux/tests/phase8_build.zig: \"phase8_kallsyms.zig\""),
         ("phase8_build_kallsyms_test_name", "zigux/tests/phase8_build.zig", "phase8-kallsyms-tests", "phase8-symbol-tests", "zigux/tests/phase8_build.zig: phase8-kallsyms-tests"),
+        ("file_path_handle_note_scope", "Documentation/zigux/phase8-file-path-handle-bridge-slice.md", "\"/proc/%d/fdinfo/%d\" assembly plus bounded fdinfo text parsing", "\"/proc/%d/fdinfo/%d\" only", "Documentation/zigux/phase8-file-path-handle-bridge-slice.md: \"/proc/%d/fdinfo/%d\" assembly plus bounded fdinfo text parsing"),
+        ("file_path_handle_note_non_goal", "Documentation/zigux/phase8-file-path-handle-bridge-slice.md", "no `bpf_obj_get()` reopen flow", "", "Documentation/zigux/phase8-file-path-handle-bridge-slice.md: no `bpf_obj_get()` reopen flow"),
+        ("bridge_boundary_note_helper_marker", "Documentation/zigux/phase8-userspace-kernel-bridge-boundary-survey.md", "tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig", "tools/lib/bpf/zigux_segments/file_path_bridge.zig", "Documentation/zigux/phase8-userspace-kernel-bridge-boundary-survey.md: tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig"),
+        ("bridge_boundary_note_reuse_marker", "Documentation/zigux/phase8-userspace-kernel-bridge-boundary-survey.md", "resolveReusePinnedMapAttempt()", "resolveReusePinnedMapOutcome()", "Documentation/zigux/phase8-userspace-kernel-bridge-boundary-survey.md: resolveReusePinnedMapAttempt()"),
+        ("phase8_build_file_path_handle_source", "zigux/tests/phase8_build.zig", "\"phase8_file_path_handle_bridge.zig\"", "\"phase8_file_path_handle_bridge_drift.zig\"", "zigux/tests/phase8_build.zig: \"phase8_file_path_handle_bridge.zig\""),
+        ("phase8_build_file_path_handle_test_name", "zigux/tests/phase8_build.zig", "phase8-file-path-handle-bridge-tests", "phase8-file-handle-bridge-tests", "zigux/tests/phase8_build.zig: phase8-file-path-handle-bridge-tests"),
+        ("phase8_file_path_handle_test_shared_build", "zigux/tests/phase8_file_path_handle_bridge.zig", "phase 8 file-path handle bridge helper stays wired into the shared Phase 8 build shard", "", "zigux/tests/phase8_file_path_handle_bridge.zig: phase 8 file-path handle bridge helper stays wired into the shared Phase 8 build shard"),
+        ("phase8_file_path_handle_only_build_root_source", "zigux/tests/phase8_file_path_handle_bridge_only_build.zig", "\"phase8_file_path_handle_bridge.zig\"", "\"phase8_file_path_handle_bridge_drift.zig\"", "zigux/tests/phase8_file_path_handle_bridge_only_build.zig: \"phase8_file_path_handle_bridge.zig\""),
+        ("phase8_file_path_handle_helper_entrypoint", "tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig", "pub fn buildProcFdinfoPath", "pub fn buildFdinfoPath", "tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig: pub fn buildProcFdinfoPath"),
         ("survey_timer_boundary", "Documentation/zigux/phase8-libbpf-segment-survey.md", "standalone timer or clockevent helper behavior", "", "Documentation/zigux/phase8-libbpf-segment-survey.md: standalone timer or clockevent helper behavior"),
         ("survey_libbpf_wrapper", "Documentation/zigux/phase8-libbpf-segment-survey.md", "make -C zigux phase8-libbpf-segments-test", "make -C zigux phase8-libbpf-survey-test", "Documentation/zigux/phase8-libbpf-segment-survey.md: make -C zigux phase8-libbpf-segments-test"),
         ("survey_perf_buffer_wrapper", "Documentation/zigux/phase8-libbpf-segment-survey.md", "make -C zigux phase8-perf-buffer-poll-test", "make -C zigux phase8-perf-buffer-test", "Documentation/zigux/phase8-libbpf-segment-survey.md: make -C zigux phase8-perf-buffer-poll-test"),
@@ -322,7 +381,7 @@ def run_self_test() -> None:
         ("phase8_libbpf_only_build_root_source", "zigux/tests/phase8_libbpf_segments_only_build.zig", "\"phase8_libbpf_segments.zig\"", "\"phase8_libbpf_segments_drift.zig\"", "zigux/tests/phase8_libbpf_segments_only_build.zig: \"phase8_libbpf_segments.zig\""),
         ("phase8_libbpf_only_build_test_name", "zigux/tests/phase8_libbpf_segments_only_build.zig", "phase8-libbpf-segment-tests", "phase8-libbpf-survey-tests", "zigux/tests/phase8_libbpf_segments_only_build.zig: phase8-libbpf-segment-tests"),
         ("phase8_perf_buffer_poll_no_timer", "zigux/tests/phase8_perf_buffer_poll.zig", "no standalone timer helper", "", "zigux/tests/phase8_perf_buffer_poll.zig: no standalone timer helper"),
-        ("phase8_perf_buffer_poll_no_clockevent", "zigux/tests/phase8_perf_buffer_poll.zig", "no standalone clockevent helper", "", "zigux/tests/phase8_perf_buffer_poll.zig: no standalone clockevent helper"),
+        ("phase8_perf_buffer_poll_no_clockevent", "zigux/tests/phase8_perf_buffer_poll.zig", "no standalone clockevent helper", "", "zigux/tests/phase8_perf_BUFFER_POLL.zig: no standalone clockevent helper"),
         ("phase8_perf_buffer_only_build_helper_source", "zigux/tests/phase8_perf_buffer_poll_only_build.zig", "../../tools/lib/bpf/zigux_segments/perf_buffer_poll.zig", "../../tools/lib/bpf/zigux_segments/perf_buffer_poll_drift.zig", "zigux/tests/phase8_perf_buffer_poll_only_build.zig: ../../tools/lib/bpf/zigux_segments/perf_buffer_poll.zig"),
         ("phase8_perf_buffer_only_build_root_source", "zigux/tests/phase8_perf_buffer_poll_only_build.zig", "\"phase8_perf_buffer_poll.zig\"", "\"phase8_perf_buffer_poll_drift.zig\"", "zigux/tests/phase8_perf_buffer_poll_only_build.zig: \"phase8_perf_buffer_poll.zig\""),
         ("phase8_perf_buffer_only_build_test_name", "zigux/tests/phase8_perf_buffer_poll_only_build.zig", "phase8-perf-buffer-poll-tests", "phase8-perf-buffer-tests", "zigux/tests/phase8_perf_buffer_poll_only_build.zig: phase8-perf-buffer-poll-tests"),
