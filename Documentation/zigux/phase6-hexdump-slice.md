@@ -64,4 +64,4 @@ This slice does not yet claim:
 
 ## Next bounded step
 
-Decide whether the current serialized fixture layer is enough to close the hexdump helper lane, or whether one more tiny C-emitted parity harness is still worth the added maintenance cost before moving to the next unfinished Phase 6 leaf helper.
+The live Phase 6 decision is no longer whether one more tiny external fixture layer is still worth carrying here. This helper already sits inside the parked bundled `base64`, `bsearch`, `checksum`, and `hexdump` gate wired through `zigux/tests/phase6_build.zig` and `make -C zigux phase6`, so future follow-up should reopen only for a concrete hexdump parity gap or another equally small helper-first perf or review-surface repair inside that same packet.
