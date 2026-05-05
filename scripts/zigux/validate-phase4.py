@@ -198,11 +198,14 @@ EXPECTED_PHASE4_GATE_EVIDENCE_SELF_TEST_CASES = [
     "validator_blob_pin_drift",
     "phase4_build_manifest_blob_pin_drift",
     "phase4_build_survey_blob_pin_drift",
+    "phase9_build_manifest_blob_pin_drift",
+    "phase9_build_survey_blob_pin_drift",
     "missing_note_file",
 ]
 PHASE4_RUNTIME_ATOMIC64_PIN_TARGETS = {
     "phase4_validator_blob_sha": "scripts/zigux/validate-phase4.py",
     "phase4_validation_matrix_blob_sha": "Documentation/zigux/phase4-validation-matrix.md",
+    "phase9_build_blob_sha": "zigux/tests/phase9_build.zig",
 }
 
 
@@ -311,12 +314,42 @@ def run_artifact_diff_contract_check(root: Path) -> list[str]:
         return ["artifact_diff_contract:missing_pass_marker"]
 
     expected = [
-        ("ARTIFACT_DIFF_CONTRACT_BASE_CASE_COUNT=", str(len(EXPECTED_ARTIFACT_DIFF_CONTRACT_BASE_CASES)), "missing_base_case_count_marker", "unexpected_base_case_count"),
-        ("ARTIFACT_DIFF_CONTRACT_BASE_CASES=", _expected_case_line(EXPECTED_ARTIFACT_DIFF_CONTRACT_BASE_CASES), "missing_base_cases_marker", "unexpected_base_cases"),
-        ("ARTIFACT_DIFF_CONTRACT_REPEAT_CASE_COUNT=", str(len(EXPECTED_ARTIFACT_DIFF_CONTRACT_REPEAT_CASES)), "missing_repeat_case_count_marker", "unexpected_repeat_case_count"),
-        ("ARTIFACT_DIFF_CONTRACT_REPEAT_CASES=", _expected_case_line(EXPECTED_ARTIFACT_DIFF_CONTRACT_REPEAT_CASES), "missing_repeat_cases_marker", "unexpected_repeat_cases"),
-        ("ARTIFACT_DIFF_CONTRACT_CASE_COUNT=", str(len(EXPECTED_ARTIFACT_DIFF_CONTRACT_CASES)), "missing_case_count_marker", "unexpected_case_count"),
-        ("ARTIFACT_DIFF_CONTRACT_CASES=", _expected_case_line(EXPECTED_ARTIFACT_DIFF_CONTRACT_CASES), "missing_cases_marker", "unexpected_cases"),
+        (
+            "ARTIFACT_DIFF_CONTRACT_BASE_CASE_COUNT=",
+            str(len(EXPECTED_ARTIFACT_DIFF_CONTRACT_BASE_CASES)),
+            "missing_base_case_count_marker",
+            "unexpected_base_case_count",
+        ),
+        (
+            "ARTIFACT_DIFF_CONTRACT_BASE_CASES=",
+            _expected_case_line(EXPECTED_ARTIFACT_DIFF_CONTRACT_BASE_CASES),
+            "missing_base_cases_marker",
+            "unexpected_base_cases",
+        ),
+        (
+            "ARTIFACT_DIFF_CONTRACT_REPEAT_CASE_COUNT=",
+            str(len(EXPECTED_ARTIFACT_DIFF_CONTRACT_REPEAT_CASES)),
+            "missing_repeat_case_count_marker",
+            "unexpected_repeat_case_count",
+        ),
+        (
+            "ARTIFACT_DIFF_CONTRACT_REPEAT_CASES=",
+            _expected_case_line(EXPECTED_ARTIFACT_DIFF_CONTRACT_REPEAT_CASES),
+            "missing_repeat_cases_marker",
+            "unexpected_repeat_cases",
+        ),
+        (
+            "ARTIFACT_DIFF_CONTRACT_CASE_COUNT=",
+            str(len(EXPECTED_ARTIFACT_DIFF_CONTRACT_CASES)),
+            "missing_case_count_marker",
+            "unexpected_case_count",
+        ),
+        (
+            "ARTIFACT_DIFF_CONTRACT_CASES=",
+            _expected_case_line(EXPECTED_ARTIFACT_DIFF_CONTRACT_CASES),
+            "missing_cases_marker",
+            "unexpected_cases",
+        ),
     ]
     for prefix, expected_value, missing_code, drift_code in expected:
         actual = _line_value(lines, prefix)
@@ -495,9 +528,11 @@ def _write_phase4_gate_evidence_checker_fixture(
 def _write_phase4_runtime_atomic64_packet_fixture(root: Path) -> None:
     validator_sha = _git_blob_sha1((root / "scripts/zigux/validate-phase4.py").read_bytes())
     matrix_sha = _git_blob_sha1((root / "Documentation/zigux/phase4-validation-matrix.md").read_bytes())
+    phase9_build_sha = _git_blob_sha1((root / "zigux/tests/phase9_build.zig").read_bytes())
     manifest = {
         "phase4_validator_blob_sha": validator_sha,
         "phase4_validation_matrix_blob_sha": matrix_sha,
+        "phase9_build_blob_sha": phase9_build_sha,
     }
     _write(
         root / "zigux/tests/phase4_runtime_atomic64_diff_manifest.json",
@@ -509,9 +544,10 @@ def _write_phase4_runtime_atomic64_packet_fixture(root: Path) -> None:
             [
                 'const std = @import("std");',
                 "",
-                'test "fixture keeps current validator and matrix pins" {',
+                'test "fixture keeps current validator, matrix, and phase9 build pins" {',
                 f"    // validator pin {validator_sha}",
                 f"    // matrix pin {matrix_sha}",
+                f"    // phase9 build pin {phase9_build_sha}",
                 "}",
                 "",
             ]
@@ -633,7 +669,10 @@ def _write_phase4_fixture_docs(root: Path) -> None:
 def _write_phase4_fixture_sources(root: Path) -> None:
     _write(root / "scripts/zigux/artifact_diff.py", "# placeholder\n")
     _write(root / "scripts/zigux/validate-phase4.py", "# placeholder\n")
-    _write(root / "zigux/Makefile", "PHONY += phase4-validate phase4-test\nphase4-validate:\n\tscripts/zigux/validate-phase4.py\nphase4-test:\n\tzigux/tests/phase4_build.zig\n")
+    _write(
+        root / "zigux/Makefile",
+        "PHONY += phase4-validate phase4-test\nphase4-validate:\n\tscripts/zigux/validate-phase4.py\nphase4-test:\n\tzigux/tests/phase4_build.zig\n",
+    )
     _write(
         root / ".github/workflows/zigux-bootstrap.yml",
         "python3 scripts/zigux/validate-phase4.py\npython3 scripts/zigux/validate-phase4.py --self-test\nzig build test --build-file zigux/tests/phase4_build.zig\n",
@@ -642,6 +681,7 @@ def _write_phase4_fixture_sources(root: Path) -> None:
     _write(root / "zigux/tests/runtime_atomic64_diff.zig", "// runtime gate\n")
     _write(root / "zigux/tests/bitmap_diff.zig", "// bitmap gate\n")
     _write(root / "zigux/tests/phase4_bitmap_live_helper_replay.zig", "// helper replay gate\n")
+    _write(root / "zigux/tests/phase9_build.zig", "// phase9 build gate\n")
     _write(
         root / "zigux/tests/phase4_build.zig",
         "\n".join(
@@ -691,6 +731,36 @@ def run_self_test() -> int:
         assert run_phase4_gate_evidence_self_test_check(root) == []
         assert run_phase4_runtime_atomic64_packet_check(root) == []
 
+        manifest = json.loads(
+            (root / "zigux/tests/phase4_runtime_atomic64_diff_manifest.json").read_text(
+                encoding="utf-8"
+            )
+        )
+        phase9_build_sha = _git_blob_sha1((root / "zigux/tests/phase9_build.zig").read_bytes())
+        manifest["phase9_build_blob_sha"] = "0000000000000000000000000000000000000000"
+        _write(
+            root / "zigux/tests/phase4_runtime_atomic64_diff_manifest.json",
+            json.dumps(manifest, indent=2) + "\n",
+        )
+        assert run_phase4_runtime_atomic64_packet_check(root) == [
+            "phase4_runtime_atomic64_packet:unexpected_manifest_sha:phase9_build_blob_sha:"
+            "0000000000000000000000000000000000000000:"
+            f"{phase9_build_sha}"
+        ]
+
+        _write_phase4_runtime_atomic64_packet_fixture(root)
+        survey_path = root / "zigux/tests/phase4_runtime_atomic64_diff_survey.zig"
+        _write(
+            survey_path,
+            survey_path.read_text(encoding="utf-8").replace(
+                phase9_build_sha, "2222222222222222222222222222222222222222", 1
+            ),
+        )
+        assert run_phase4_runtime_atomic64_packet_check(root) == [
+            "phase4_runtime_atomic64_packet:survey_sha_exact_count:"
+            f"phase9_build_blob_sha:{phase9_build_sha}:0"
+        ]
+
         _write_phase4_gate_evidence_checker_fixture(
             root / "scripts/zigux/check-phase4-gate-evidence.py",
             include_self_test_pass=False,
@@ -712,11 +782,11 @@ def run_self_test() -> int:
 
         _write_phase4_gate_evidence_checker_fixture(
             root / "scripts/zigux/check-phase4-gate-evidence.py",
-            self_test_case_count="6",
+            self_test_case_count="8",
             self_test_cases=EXPECTED_PHASE4_GATE_EVIDENCE_SELF_TEST_CASES,
         )
         assert run_phase4_gate_evidence_self_test_check(root) == [
-            "phase4_gate_evidence_self_test:unexpected_case_count:6"
+            "phase4_gate_evidence_self_test:unexpected_case_count:8"
         ]
 
         _write_phase4_gate_evidence_checker_fixture(
