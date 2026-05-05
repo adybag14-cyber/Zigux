@@ -44,6 +44,27 @@ pub const ProcessRecordSummary = struct {
     first_error: ?i32,
 };
 
+pub const BufferFdObservation = struct {
+    fd: ?i32 = null,
+};
+
+pub const BufferFdLookup = union(enum) {
+    buffer_fd: i32,
+    invalid_index,
+    missing_buffer_fd,
+};
+
+pub const BufferFdDisposition = enum {
+    buffer_fd,
+    invalid_index,
+    missing_buffer_fd,
+};
+
+pub const BufferFdResult = struct {
+    disposition: BufferFdDisposition,
+    return_value: i32,
+};
+
 pub const PollSummary = struct {
     wait_class: WaitClass,
     outcome: PollOutcome,
@@ -163,6 +184,39 @@ pub fn summarizeProcessRecords(observations: []const ProcessRecordObservation) P
         .first_error_index = null,
         .first_error = null,
     };
+}
+
+pub fn lookupBufferFd(buffers: []const BufferFdObservation, buffer_index: usize) BufferFdLookup {
+    if (buffer_index >= buffers.len) {
+        return .invalid_index;
+    }
+
+    const fd = buffers[buffer_index].fd orelse return .missing_buffer_fd;
+    return .{ .buffer_fd = fd };
+}
+
+pub fn resolveBufferFdResult(lookup: BufferFdLookup) BufferFdResult {
+    return switch (lookup) {
+        .buffer_fd => |fd| .{
+            .disposition = .buffer_fd,
+            .return_value = fd,
+        },
+        .invalid_index => .{
+            .disposition = .invalid_index,
+            .return_value = -@as(i32, @intFromEnum(std.os.linux.E.INVAL)),
+        },
+        .missing_buffer_fd => .{
+            .disposition = .missing_buffer_fd,
+            .return_value = -@as(i32, @intFromEnum(std.os.linux.E.NOENT)),
+        },
+    };
+}
+
+pub fn resolveBufferFdResultFromSlots(
+    buffers: []const BufferFdObservation,
+    buffer_index: usize,
+) BufferFdResult {
+    return resolveBufferFdResult(lookupBufferFd(buffers, buffer_index));
 }
 
 pub fn summarizePoll(
@@ -388,6 +442,47 @@ test "summarizeReadyBuffers counts ready buffers and preserves the first error" 
     try std.testing.expectEqual(@as(usize, 2), summary.ready_count);
     try std.testing.expectEqual(@as(?usize, 1), summary.first_ready_index);
     try std.testing.expectEqual(@as(?i32, -11), summary.first_error);
+}
+
+test "lookupBufferFd keeps perf_buffer__buffer_fd slot selection explicit" {
+    const buffers = [_]BufferFdObservation{
+        .{ .fd = 17 },
+        .{},
+        .{ .fd = 42 },
+    };
+
+    try std.testing.expectEqualDeep(
+        BufferFdLookup{ .buffer_fd = 17 },
+        lookupBufferFd(&buffers, 0),
+    );
+    try std.testing.expectEqualDeep(BufferFdLookup.missing_buffer_fd, lookupBufferFd(&buffers, 1));
+    try std.testing.expectEqualDeep(BufferFdLookup.invalid_index, lookupBufferFd(&buffers, 3));
+}
+
+test "resolveBufferFdResult keeps perf_buffer__buffer_fd return shaping explicit" {
+    const buffers = [_]BufferFdObservation{
+        .{ .fd = 17 },
+        .{},
+        .{ .fd = 42 },
+    };
+
+    const success = resolveBufferFdResultFromSlots(&buffers, 2);
+    try std.testing.expectEqual(BufferFdDisposition.buffer_fd, success.disposition);
+    try std.testing.expectEqual(@as(i32, 42), success.return_value);
+
+    const missing = resolveBufferFdResultFromSlots(&buffers, 1);
+    try std.testing.expectEqual(BufferFdDisposition.missing_buffer_fd, missing.disposition);
+    try std.testing.expectEqual(
+        -@as(i32, @intFromEnum(std.os.linux.E.NOENT)),
+        missing.return_value,
+    );
+
+    const invalid = resolveBufferFdResultFromSlots(&buffers, 4);
+    try std.testing.expectEqual(BufferFdDisposition.invalid_index, invalid.disposition);
+    try std.testing.expectEqual(
+        -@as(i32, @intFromEnum(std.os.linux.E.INVAL)),
+        invalid.return_value,
+    );
 }
 
 test "summarizePoll keeps bounded ready observations compact and reviewable" {
