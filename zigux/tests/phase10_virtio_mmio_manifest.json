@@ -9,7 +9,7 @@
   ],
   "survey_summary": {
     "virtio_mmio_c_lines": 829,
-    "preexisting_phase10_test_files": 6,
+    "preexisting_phase10_test_files": 7,
     "preexisting_virtio_core_zig_present": true,
     "preexisting_phase10_build_present": true,
     "preexisting_phase10_core_doc_present": true,
@@ -19,7 +19,8 @@
     "preexisting_virtio_input_zig_present": true,
     "preexisting_virtio_input_test_present": true,
     "preexisting_virtio_input_survey_present": true,
-    "preexisting_virtio_mmio_zig_present": false
+    "preexisting_virtio_mmio_zig_present": true,
+    "preexisting_virtio_mmio_test_present": true
   },
   "gaps": [
     {
@@ -27,7 +28,7 @@
       "status": "starter_landed",
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase10_build.zig",
-      "why_now": "The shared Phase 10 build step is the narrowest honest place to keep the virtio_mmio survey reviewable without claiming a transport implementation."
+      "why_now": "The shared Phase 10 build step is the narrowest honest place to keep the virtio_mmio helper and survey reviewable without widening into a transport lifecycle claim."
     },
     {
       "id": "phase10-virtio-core-lab-starter",
@@ -48,28 +49,7 @@
       "status": "starter_landed",
       "kind": "queue_wrapper",
       "zigux_destination": "drivers/virtio/virtio_ring.zig",
-      "why_now": "The live repo now has a tiny in-memory virtqueue helper for queue shape, notification bookkeeping, used-buffer polling, callback re-enable state, and delayed-callback pacing, so the MMIO lane can survey the remaining transport gap against a real queue-facing foothold."
-    },
-    {
-      "id": "phase10-virtio-ring-slice-note",
-      "status": "starter_landed",
-      "kind": "documentation",
-      "zigux_destination": "Documentation/zigux/phase10-virtio-ring-slice.md",
-      "why_now": "The ring slice note records the bounded queue-helper surface and its remaining non-goals, which keeps the MMIO lane from overstating transport readiness."
-    },
-    {
-      "id": "phase10-virtio-mmio-survey-gate",
-      "status": "starter_landed",
-      "kind": "validation",
-      "zigux_destination": "zigux/tests/phase10_virtio_mmio_survey.zig",
-      "why_now": "A dedicated MMIO survey gate makes the transport gap explicit and reviewable while `drivers/virtio/virtio_mmio.zig` is still intentionally absent."
-    },
-    {
-      "id": "phase10-virtio-mmio-survey-note",
-      "status": "starter_landed",
-      "kind": "documentation",
-      "zigux_destination": "Documentation/zigux/phase10-virtio-mmio-survey.md",
-      "why_now": "The lane needs a Phase 10 note that records the current MMIO transport scope and the reasons broader transport work is still blocked behind a first register-window foothold."
+      "why_now": "The live repo now has a tiny in-memory virtqueue helper for queue shape, notification bookkeeping, used-buffer polling, callback re-enable state, and delayed-callback pacing, so the MMIO lane can add one bounded register-window helper against a real queue-facing foothold."
     },
     {
       "id": "phase10-callback-delay-helper",
@@ -79,18 +59,46 @@
       "why_now": "The live virtio_ring helper now already covers queue shape, used-buffer polling, callback re-enable, and delayed-callback pacing, which closes the last queue-local blocker ahead of the first MMIO wrapper step."
     },
     {
-      "id": "phase10-mmio-register-window-helper",
+      "id": "phase10-virtio-mmio-lab-helper",
+      "status": "starter_landed",
+      "kind": "transport_wrapper",
+      "zigux_destination": "drivers/virtio/virtio_mmio.zig",
+      "why_now": "The live repo now ships one tiny in-memory MMIO register-window helper for aligned bounded reads, queue-select bookkeeping, queue-size programming, queue-ready state, status writes, and config-generation reads without claiming queue discovery, reset, or probe lifecycle behavior."
+    },
+    {
+      "id": "phase10-virtio-mmio-lab-gate",
+      "status": "starter_landed",
+      "kind": "validation",
+      "zigux_destination": "zigux/tests/phase10_virtio_mmio.zig",
+      "why_now": "A dedicated MMIO helper gate keeps the new register-window wrapper reviewable through explicit bounds, read-only register protection, and queue-window selection checks before any interrupt or lifecycle follow-up."
+    },
+    {
+      "id": "phase10-virtio-mmio-survey-gate",
+      "status": "starter_landed",
+      "kind": "validation",
+      "zigux_destination": "zigux/tests/phase10_virtio_mmio_survey.zig",
+      "why_now": "A dedicated MMIO survey gate keeps the transport gap explicit and reviewable now that the first register-window helper is landed but broader transport behavior is still intentionally absent."
+    },
+    {
+      "id": "phase10-virtio-mmio-survey-note",
+      "status": "starter_landed",
+      "kind": "documentation",
+      "zigux_destination": "Documentation/zigux/phase10-virtio-mmio-survey.md",
+      "why_now": "The lane needs a Phase 10 note that records the current MMIO helper surface and the reasons broader transport work is still blocked behind that first register-window foothold."
+    },
+    {
+      "id": "phase10-mmio-interrupt-ack-helper",
       "status": "ready_next",
       "kind": "transport_wrapper",
       "zigux_destination": "drivers/virtio/virtio_mmio.zig",
-      "why_now": "With the queue-local delayed-callback helper now landed, the next honest MMIO step is one tiny in-memory register-window helper for bounded reads or writes before queue setup, interrupts, reset, or probe lifecycle work."
+      "why_now": "With the first register-window helper now landed, the next honest MMIO step is one tiny in-memory interrupt-status and acknowledgement helper before queue discovery, reset, or probe lifecycle work."
     },
     {
-      "id": "phase10-mmio-lifecycle-and-irq-paths",
+      "id": "phase10-mmio-lifecycle-and-queue-discovery-paths",
       "status": "blocked_on_risky_transport",
       "kind": "transport_wrapper",
       "zigux_destination": "drivers/virtio/virtio_mmio.zig",
-      "why_now": "Interrupt acknowledgement, queue discovery, ready-state toggles, reset flows, and probe or remove lifecycle behavior remain too transport-facing to start honestly until after the smaller register-window helper lands."
+      "why_now": "Full queue discovery, reset flows, interrupt delivery, and probe or remove lifecycle behavior remain too transport-facing to start honestly while the MMIO lane is still limited to bounded register-window helpers."
     }
   ]
 }
