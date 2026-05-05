@@ -43,6 +43,8 @@ REQUIRED_SCRIPT_README_MARKERS = [
     "Phase 15 flow",
     "phase15-architecture-council-review-process.md",
     "check-phase15-review-process-handoff.py",
+    "zigux/tests/phase15_architecture_council_review_process_manifest.json",
+    "zigux/tests/phase15_architecture_council_review_process.zig",
     "phase15_build.zig",
     "make -C zigux phase15",
 ]
@@ -270,7 +272,7 @@ Phase 15 notes
     script_readme = """# scripts/zigux
 
 Phase 15 flow
-- the current shared Phase 15 governance surface on `master` is `Documentation/zigux/phase15-architecture-council-review-process.md`, `scripts/zigux/check-phase15-review-process-handoff.py`, `zigux/tests/phase15_build.zig`, and `make -C zigux phase15`.
+- the current shared Phase 15 governance surface on `master` is `Documentation/zigux/phase15-architecture-council-review-process.md`, `scripts/zigux/check-phase15-review-process-handoff.py`, `zigux/tests/phase15_architecture_council_review_process_manifest.json`, `zigux/tests/phase15_architecture_council_review_process.zig`, `zigux/tests/phase15_build.zig`, and `make -C zigux phase15`.
 """
     (root / SCRIPT_README_PATH).write_text(script_readme, encoding="utf-8")
 
@@ -391,6 +393,22 @@ def run_self_test() -> int:
         )
 
         write_fixture_tree(tmp_root)
+        script_readme = script_readme_path.read_text(encoding="utf-8")
+        script_readme_path.write_text(
+            script_readme.replace(
+                "`zigux/tests/phase15_architecture_council_review_process_manifest.json`, ",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_failure(
+            tmp_root,
+            "script_readme:zigux/tests/phase15_architecture_council_review_process_manifest.json",
+            "missing_script_readme_manifest_marker",
+        )
+
+        write_fixture_tree(tmp_root)
         review_checklist_path = tmp_root / REVIEW_CHECKLIST_PATH
         review_checklist = review_checklist_path.read_text(encoding="utf-8")
         review_checklist_path.write_text(
@@ -438,7 +456,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE15_REVIEW_PROCESS_HANDOFF_SELF_TEST=pass")
-    print("PHASE15_REVIEW_PROCESS_HANDOFF_SELF_TEST_CASE_COUNT=10")
+    print("PHASE15_REVIEW_PROCESS_HANDOFF_SELF_TEST_CASE_COUNT=11")
     return 0
 
 
