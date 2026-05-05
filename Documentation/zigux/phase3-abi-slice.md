@@ -49,6 +49,7 @@ It is a small substrate that makes future ports measurable:
 4. rerun the validator-support packet and its review-surface guard without duplicating the default route
 - `python3 scripts/zigux/validate_phase3_selftest.py`
 - `python3 scripts/zigux/check-phase3-selftest-surface.py`
+- `python3 scripts/zigux/validate-phase3-low-level-wrapper-survey.py`
 - `make -C zigux phase3-selftest`
 - focused support-script safety check only; `make -C zigux phase3-validate` already invokes the underlying helper self-tests directly.
 
