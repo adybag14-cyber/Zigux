@@ -78,6 +78,10 @@ REQUIRED_FIND_BIT_TEST_ANCHORS = [
     'test "tail mask ignores zero bits beyond nbits"',
 ]
 
+REQUIRED_BITMAP_TEST_ANCHORS = [
+    'test "bitmap xor keeps caller-selected bit window"',
+]
+
 
 def collect_missing_files(root: Path) -> list[str]:
     missing: list[str] = []
@@ -110,6 +114,7 @@ def collect_missing_markers(root: Path) -> list[str]:
     workflow = (root / ".github" / "workflows" / "zigux-bootstrap.yml").read_text(encoding="utf-8")
     test_root = (root / "zigux" / "tests" / "phase1_helpers.zig").read_text(encoding="utf-8")
     find_bit_source = (root / "tools" / "lib" / "find_bit.zig").read_text(encoding="utf-8")
+    bitmap_source = (root / "tools" / "lib" / "bitmap.zig").read_text(encoding="utf-8")
 
     missing_markers: list[str] = []
     for marker in REQUIRED_LEDGER_MARKERS:
@@ -135,6 +140,13 @@ def collect_missing_markers(root: Path) -> list[str]:
             find_bit_source,
             "find_bit_test_anchor",
             REQUIRED_FIND_BIT_TEST_ANCHORS,
+        )
+    )
+    missing_markers.extend(
+        collect_exact_count_markers(
+            bitmap_source,
+            "bitmap_test_anchor",
+            REQUIRED_BITMAP_TEST_ANCHORS,
         )
     )
     return missing_markers
@@ -168,6 +180,13 @@ def make_fixture_root(tmp_root: Path) -> None:
     find_bit_path.parent.mkdir(parents=True, exist_ok=True)
     find_bit_path.write_text(
         "\n".join(REQUIRED_FIND_BIT_TEST_ANCHORS) + "\n",
+        encoding="utf-8",
+    )
+
+    bitmap_path = tmp_root / "tools" / "lib" / "bitmap.zig"
+    bitmap_path.parent.mkdir(parents=True, exist_ok=True)
+    bitmap_path.write_text(
+        "\n".join(REQUIRED_BITMAP_TEST_ANCHORS) + "\n",
         encoding="utf-8",
     )
 
@@ -258,9 +277,18 @@ def run_self_test() -> None:
             'find_bit_test_anchor:test "find and bit returns the first shared set bit":expected=1:actual=2'
             in missing_markers
         )
+        make_fixture_root(tmp_root)
+
+        bitmap_path = tmp_root / "tools" / "lib" / "bitmap.zig"
+        bitmap_path.write_text("", encoding="utf-8")
+        missing_markers = collect_missing_markers(tmp_root)
+        assert (
+            'bitmap_test_anchor:test "bitmap xor keeps caller-selected bit window":expected=1:actual=0'
+            in missing_markers
+        )
 
     print("PHASE1_VALIDATION_SELF_TEST=pass")
-    print("PHASE1_VALIDATION_SELF_TEST_CASE_COUNT=9")
+    print("PHASE1_VALIDATION_SELF_TEST_CASE_COUNT=10")
 
 
 def main() -> int:
@@ -294,7 +322,7 @@ def main() -> int:
     print(f"PHASE1_REQUIRED_FILE_COUNT={len(REQUIRED_FILES)}")
     print(
         "PHASE1_REQUIRED_MARKER_COUNT="
-        f"{len(REQUIRED_LEDGER_MARKERS) + len(REQUIRED_WORKFLOW_PRESENCE_MARKERS) + len(REQUIRED_WORKFLOW_EXACT_MARKERS) + len(REQUIRED_TEST_MARKERS) + len(REQUIRED_HELPER_TEST_ANCHORS) + len(REQUIRED_FIND_BIT_TEST_ANCHORS)}"
+        f"{len(REQUIRED_LEDGER_MARKERS) + len(REQUIRED_WORKFLOW_PRESENCE_MARKERS) + len(REQUIRED_WORKFLOW_EXACT_MARKERS) + len(REQUIRED_TEST_MARKERS) + len(REQUIRED_HELPER_TEST_ANCHORS) + len(REQUIRED_FIND_BIT_TEST_ANCHORS) + len(REQUIRED_BITMAP_TEST_ANCHORS)}"
     )
     return 0
 
