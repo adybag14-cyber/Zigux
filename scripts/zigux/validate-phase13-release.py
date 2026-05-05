@@ -80,6 +80,11 @@ SCRIPTS_REQUIRED_MARKERS = [
     "adjacent review evidence instead of adding extra shared replay steps on `master`",
 ]
 
+PHASE13_BUILD_EXACT_COUNTS = {
+    " = b.addTest(.{": 5,
+    "test_step.dependOn(&run_phase13_": 5,
+}
+
 MAKE_REQUIRED_LINES = [
     "phase13-validate:",
     "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase13-release.py",
@@ -105,6 +110,15 @@ def _collect_missing_markers(text: str, markers: list[str], prefix: str) -> list
     return [f"{prefix}:{marker}" for marker in markers if marker not in text]
 
 
+def _collect_exact_count_issues(text: str, counts: dict[str, int], prefix: str) -> list[str]:
+    issues: list[str] = []
+    for needle, expected in counts.items():
+        actual = text.count(needle)
+        if actual != expected:
+            issues.append(f"{prefix}:{needle}:expected={expected}:actual={actual}")
+    return issues
+
+
 def validate(root: Path) -> list[str]:
     issues: list[str] = []
 
@@ -118,11 +132,13 @@ def validate(root: Path) -> list[str]:
     review_checklist = _read(root / "Documentation/zigux/review-checklist.md")
     scripts_readme = _read(root / "scripts/zigux/README.md")
     makefile = _read(root / "zigux/Makefile")
+    phase13_build = _read(root / "zigux/tests/phase13_build.zig")
 
     issues.extend(_collect_missing_markers(docs_readme, DOC_REQUIRED_MARKERS, "docs-readme"))
     issues.extend(_collect_missing_markers(review_checklist, REVIEW_REQUIRED_MARKERS, "review-checklist"))
     issues.extend(_collect_missing_markers(scripts_readme, SCRIPTS_REQUIRED_MARKERS, "scripts-readme"))
     issues.extend(_collect_missing_markers(makefile, MAKE_REQUIRED_LINES, "makefile"))
+    issues.extend(_collect_exact_count_issues(phase13_build, PHASE13_BUILD_EXACT_COUNTS, "phase13-build"))
     for forbidden in MAKE_FORBIDDEN_LINES:
         if forbidden in makefile:
             issues.append(f"makefile:forbidden_route:{forbidden}")
@@ -145,6 +161,29 @@ def _baseline_makefile() -> str:
     )
 
 
+def _baseline_phase13_build() -> str:
+    return "\n".join(
+        (
+            "const phase13_libfs_tests = b.addTest(.{",
+            "});",
+            "const phase13_devres_tests = b.addTest(.{",
+            "});",
+            "const phase13_landlock_ruleset_tests = b.addTest(.{",
+            "});",
+            "const phase13_landlock_syscalls_tests = b.addTest(.{",
+            "});",
+            "const phase13_libfs_reviewability_tests = b.addTest(.{",
+            "});",
+            "test_step.dependOn(&run_phase13_libfs_tests.step);",
+            "test_step.dependOn(&run_phase13_devres_tests.step);",
+            "test_step.dependOn(&run_phase13_landlock_ruleset_tests.step);",
+            "test_step.dependOn(&run_phase13_landlock_syscalls_tests.step);",
+            "test_step.dependOn(&run_phase13_libfs_reviewability_tests.step);",
+            "",
+        )
+    )
+
+
 def _seed_fixture_tree(root: Path) -> None:
     _write(root / "Documentation/zigux/README.md", "\n".join(DOC_REQUIRED_MARKERS) + "\n")
     _write(root / "Documentation/zigux/review-checklist.md", "\n".join(REVIEW_REQUIRED_MARKERS) + "\n")
@@ -155,6 +194,7 @@ def _seed_fixture_tree(root: Path) -> None:
     _write(root / "Documentation/zigux/phase10-phase11-phase13-contributor-surface-sync.md", "# stub\n")
     _write(root / "scripts/zigux/README.md", "\n".join(SCRIPTS_REQUIRED_MARKERS) + "\n")
     _write(root / "zigux/Makefile", _baseline_makefile())
+    _write(root / "zigux/tests/phase13_build.zig", _baseline_phase13_build())
     for rel in REQUIRED_FILES:
         if rel in {
             "Documentation/zigux/README.md",
@@ -162,8 +202,11 @@ def _seed_fixture_tree(root: Path) -> None:
             "Documentation/zigux/phase13-release-notes-survey.md",
             "Documentation/zigux/phase13-roadmap-traceability.md",
             "Documentation/zigux/phase13-notifier-list-survey.md",
+            "Documentation/zigux/phase13-contributor-workflow-guide.md",
+            "Documentation/zigux/phase10-phase11-phase13-contributor-surface-sync.md",
             "scripts/zigux/README.md",
             "zigux/Makefile",
+            "zigux/tests/phase13_build.zig",
         }:
             continue
         _write(root / rel, "// stub\n" if rel.endswith((".zig", ".h", ".py")) else "{}\n")
@@ -278,6 +321,28 @@ def run_self_test() -> int:
         _write(root / "scripts/zigux/README.md", "\n".join(SCRIPTS_REQUIRED_MARKERS) + "\n")
         case_count += 1
 
+        phase13_build_path = root / "zigux/tests/phase13_build.zig"
+        phase13_build_path.write_text(_baseline_phase13_build() + "const phase13_extra_tests = b.addTest(.{\n});\n", encoding="utf-8")
+        _assert_only(
+            validate(root),
+            ["phase13-build: = b.addTest(.{:expected=5:actual=6"],
+            "phase13_build_test_count_guard_failed",
+        )
+        _write(root / "zigux/tests/phase13_build.zig", _baseline_phase13_build())
+        case_count += 1
+
+        phase13_build_path.write_text(
+            _baseline_phase13_build() + "test_step.dependOn(&run_phase13_extra_tests.step);\n",
+            encoding="utf-8",
+        )
+        _assert_only(
+            validate(root),
+            ["phase13-build:test_step.dependOn(&run_phase13_:expected=5:actual=6"],
+            "phase13_build_dependency_count_guard_failed",
+        )
+        _write(root / "zigux/tests/phase13_build.zig", _baseline_phase13_build())
+        case_count += 1
+
         (root / "Documentation/zigux/phase13-contributor-workflow-guide.md").unlink()
         _assert_only(
             validate(root),
@@ -333,7 +398,7 @@ def main() -> int:
     print("PHASE13_RELEASE_VALIDATION=pass")
     print(
         "PHASE13_RELEASE_VALIDATION_MARKER_COUNT="
-        f"{len(REQUIRED_FILES) + len(DOC_REQUIRED_MARKERS) + len(REVIEW_REQUIRED_MARKERS) + len(SCRIPTS_REQUIRED_MARKERS) + len(MAKE_REQUIRED_LINES)}"
+        f"{len(REQUIRED_FILES) + len(DOC_REQUIRED_MARKERS) + len(REVIEW_REQUIRED_MARKERS) + len(SCRIPTS_REQUIRED_MARKERS) + len(MAKE_REQUIRED_LINES) + len(PHASE13_BUILD_EXACT_COUNTS)}"
     )
     return 0
 
