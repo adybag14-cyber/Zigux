@@ -484,9 +484,10 @@ pub fn firstPostorder(root: *const Root) ?*Node {
     return leftDeepestNode(node);
 }
 
-pub fn nextPostorder(node: *const Node) ?*Node {
-    const parent = node.parent;
-    if (parent != null and parent.?.left == node and parent.?.right != null) {
+pub fn nextPostorder(node: ?*const Node) ?*Node {
+    const current = node orelse return null;
+    const parent = current.parent;
+    if (parent != null and parent.?.left == current and parent.?.right != null) {
         return leftDeepestNode(parent.?.right.?);
     }
     return parent;
@@ -656,6 +657,7 @@ test "rbtree eraseInit clears detached nodes after erase" {
         .{ .key = 10 },
         .{ .key = 20 },
         .{ .key = 5 },
+        .{ .key = 15 },
     };
     var root = Root.init();
 
@@ -669,7 +671,7 @@ test "rbtree eraseInit clears detached nodes after erase" {
     try std.testing.expectEqual(@as(?*Node, null), next(&entries[0].node));
     try std.testing.expectEqual(@as(?*Node, null), prev(&entries[0].node));
 
-    var order: [2]i32 = undefined;
+    var order: [3]i32 = undefined;
     var count: usize = 0;
     var current = first(&root);
     while (current) |node| : (current = next(node)) {
@@ -678,8 +680,8 @@ test "rbtree eraseInit clears detached nodes after erase" {
         count += 1;
     }
 
-    try std.testing.expectEqual(@as(usize, 2), count);
-    try std.testing.expectEqualSlices(i32, &[_]i32{ 5, 20 }, order[0..count]);
+    try std.testing.expectEqual(@as(usize, 3), count);
+    try std.testing.expectEqualSlices(i32, &[_]i32{ 5, 15, 20 }, order[0..count]);
 }
 
 test "rbtree replaceNode keeps displaced nodes non-empty until cleared" {
@@ -755,6 +757,7 @@ test "rbtree postorder and empty node helpers behave" {
     }
 
     try std.testing.expectEqual(@as(usize, 3), count);
+    try std.testing.expectEqual(@as(?*Node, null), nextPostorder(null));
 
     var detached = Node.init();
     clearNode(&detached);
