@@ -32,7 +32,7 @@
         "current status bucket",
         "requested decision bucket",
         "decision record ID",
-        "owner",
+        "lane owner",
         "rollback owner",
         "validation gate summary",
         "latest blocker disposition",
