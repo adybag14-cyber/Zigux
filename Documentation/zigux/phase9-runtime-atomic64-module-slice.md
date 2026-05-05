@@ -32,7 +32,7 @@ The live Phase 9 tree had already identified `lib/atomic64_test.c` as the runtim
 - a selftest summary that groups the C anchor into arithmetic, bitwise, returning, swap, and guard-operation families
 - a narrow `add_unless` guard-path pilot on top of the existing atomic helpers without pretending broader runtime-substrate support
 - a narrow differential gate under `zigux/tests/runtime_atomic64_diff.zig` for selected exchange, cmpxchg, and `add_unless` expectations
-- a bounded `runtime_atomic64_loader` scaffold that names the planned init and exit handoff, the current atomic64 operation-family summary, the shared `runtime_loader.prepareRequest()` request path, and the no-substrate release path while the real runtime substrate remains unavailable
+- a bounded `runtime_atomic64_loader` scaffold that names the planned init and exit handoff, the current atomic64 operation-family summary, the shared `toSharedLoadPlan()` plus `runtime_loader.prepareRequest()` request path, and the no-substrate release path while the real runtime substrate remains unavailable
 - dedicated Phase 9 tests, the runtime atomic64 survey note and survey gate, and a `make -C zigux phase9` entry
 
 ## Non-goals
@@ -53,4 +53,4 @@ This slice does not yet claim:
 
 ## Next bounded step
 
-Stay in the Phase 9 runtime atomic64 lane and keep broader work blocked until a shared runtime loader substrate can consume the bounded init, selftest, and exit handoff plan beyond the current request facade and turn this guarded evidence into real runtime module lifecycle parity.
+Stay in the Phase 9 runtime atomic64 lane and keep broader work blocked until a shared runtime loader substrate can consume the bounded init, selftest, and exit handoff plan beyond the current shared load-plan and request facade and turn this guarded evidence into real runtime module lifecycle parity.
