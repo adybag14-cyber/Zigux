@@ -118,7 +118,7 @@ jobs:
       - name: Check artifact diff helper CLI contract
         run: python3 scripts/zigux/check-artifact-diff-contract.py
 
-      - name: Validate Phase 2 fixdep files
+      - name: Validate Phase 2 shared validator packet
         run: python3 scripts/zigux/validate-phase2.py
 
       - name: Self-test Phase 2 cross-target alignment checker
