@@ -29,6 +29,7 @@ The live Zigux tree is no longer survey-only here. It already carries a helper-f
 - the current helper lab also carries a pure `__devm_ioremap_resource()` planner that checks memory-backed resources, computes inclusive size, preserves requested mapping types, and records busy-region and remap-failure shaping without claiming live side effects.
 - the landed `devm_of_iomap()` planner stays bounded to translated-resource selection by index, optional size reporting, and handoff into the existing managed-resource planner instead of pretending to walk a live device tree.
 - the adjacent `devm_arch_io_reserve_memtype_wc()` planner already records detach-time cleanup intent for WC reservations while keeping live arch memtype mutation out of scope.
+- the helper lab now also carries the promised tiny `devm_arch_phys_wc_add()` token planner, limited to release-token retention on success and release-record cleanup on negative token returns without claiming live arch memtype add or remove side effects.
 - the shared Phase 13 build and make target already replay the devres packet, so the missing gap was no longer helper behavior first. It was that this MMIO-facing lane still lacked a manifest-backed survey packet naming the remaining blocked live-state boundaries.
 
 ## Recorded gaps
@@ -44,7 +45,7 @@ The current lane state is:
 - landed `phase13-devres-managed-resource-planner`
 - landed `phase13-devres-of-iomap-planner`
 - landed `phase13-devres-arch-io-wc-planner`
-- ready-next `phase13-devres-arch-phys-wc-token`
+- landed `phase13-devres-arch-phys-wc-token`
 - blocked `phase13-devres-live-mmio-mappings`
 - blocked `phase13-devres-live-device-tree-walk`
 - blocked `phase13-devres-live-arch-memtype-state`
@@ -72,4 +73,4 @@ This slice does not claim:
 
 ## Next bounded step
 
-Stay in the Phase 13 devres MMIO lane and add one tiny `devm_arch_phys_wc_add()` token-style planner next, limited to reviewable release-token bookkeeping and failure shaping before any live MMIO, device-tree, or arch memtype behavior is attempted.
+Keep the Phase 13 devres MMIO lane steady unless fresh repo evidence exposes another equally small exported-helper gap inside `lib/devres.zig`. Do not widen into live MMIO, device-tree walking, generic devres groups, or arch memtype side effects just to keep the lane active.
