@@ -142,6 +142,22 @@ Phase 12 notes
 - reversible delivery remains limited to the bounded Zig starters, survey notes, review gates, and snapshot fixtures around those C anchors, and `make -C zigux phase12-validate` stays the shared rollback drill before `zig build test --build-file zigux/tests/phase12_build.zig --summary all` reruns the current Phase 12 tranche.
 - the current bounded Phase 12 decision is no longer whether the tranche needs first-driver footholds; those starters, survey gates, rollback owners, and release-facing checks are now landed, so the next follow-up should stay inside one tiny same-lane survey, helper, or validator truthfulness repair before any DMA, queueing, throughput, recovery, object-model, loader, or relocation widening.
 
+Phase 13 notes
+- `Documentation/zigux/phase13-release-notes-survey.md`
+- `Documentation/zigux/phase13-roadmap-traceability.md`
+- `Documentation/zigux/phase13-libfs-slice.md`
+- `Documentation/zigux/phase13-libfs-survey.md`
+- `Documentation/zigux/phase13-devres-slice.md`
+- `Documentation/zigux/phase13-devres-survey.md`
+- `Documentation/zigux/phase13-landlock-ruleset-slice.md`
+- `Documentation/zigux/phase13-landlock-ruleset-survey.md`
+- `Documentation/zigux/phase13-landlock-syscalls-slice.md`
+- `Documentation/zigux/phase13-landlock-syscalls-survey.md`
+- `Documentation/zigux/phase13-notifier-list-survey.md`
+- `zigux/tests/phase13_build.zig`, `scripts/zigux/validate-phase13-release.py`, and `make -C zigux phase13` now keep the current libfs, devres, landlock ruleset, and landlock syscalls helper tranche reviewable through one shared Phase 13 release packet instead of leaving the active shared-subsystems lane visible only in packet-local surveys.
+- the same top-level Phase 13 packet now also keeps the roadmap traceability note, the release survey, the four manifest-backed anchor packets, and the adjacent notifier-list reviewability packet visible from the docs root without changing the roadmap's four-anchor count.
+- the current bounded Phase 13 decision is no longer whether the lane still needs its first shared-helper footholds; those starters and survey-backed replay surfaces are already present on `master`, so the next follow-up should stay inside one tiny release-surface, validator, or helper-truthfulness repair before any wider subsystem claims are reopened.
+
 Phase 15 notes
 - `Documentation/zigux/freeze-map.md`
 - `Documentation/zigux/phase15-architecture-council-review-process.md`
