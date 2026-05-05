@@ -52,6 +52,7 @@ REQUIRED_WORKFLOW_MARKERS = [
 ]
 REQUIRED_DOC_MARKERS = [
     "Current Phase 4 use",
+    "zigux/tests/atomic64_diff.zig",
     "zigux/tests/runtime_atomic64_diff.zig",
     "zigux/tests/bitmap_diff.zig",
     "zigux/tests/phase4_build.zig",
@@ -59,6 +60,7 @@ REQUIRED_DOC_MARKERS = [
     "Documentation/zigux/phase4-validation-matrix.md",
 ]
 REQUIRED_TESTS_README_MARKERS = [
+    "zigux/tests/atomic64_diff.zig",
     "zigux/tests/runtime_atomic64_diff.zig",
     "zigux/tests/bitmap_diff.zig",
     "zigux/tests/phase4_build.zig",
@@ -66,6 +68,8 @@ REQUIRED_TESTS_README_MARKERS = [
 ]
 REQUIRED_SCRIPT_README_MARKERS = [
     "validate-phase4.py",
+    "atomic64_diff.zig",
+    "runtime_atomic64_diff.zig",
     "Phase 4 flow",
     "phase4_build.zig",
     "phase4-validation-matrix.md",
@@ -74,6 +78,8 @@ REQUIRED_DOC_README_MARKERS = [
     "Phase 4 notes",
     "validate-phase4.py",
     "phase4-validation-matrix.md",
+    "atomic64_diff.zig",
+    "runtime_atomic64_diff.zig",
 ]
 REQUIRED_PHASE4_MATRIX_MARKERS = [
     "atomic64_diff.zig",
@@ -226,7 +232,8 @@ def run_self_test() -> int:
                     "# Artifact Diff Policy",
                     "",
                     "Current Phase 4 use",
-                    "- `zigux/tests/runtime_atomic64_diff.zig` remains in the packet.",
+                    "- `zigux/tests/atomic64_diff.zig` remains in the packet as the roadmap-named wrapper.",
+                    "- `zigux/tests/runtime_atomic64_diff.zig` remains in the packet as the shared replay body.",
                     "- `zigux/tests/bitmap_diff.zig` remains in the packet.",
                     "- `zigux/tests/phase4_build.zig` remains in the packet.",
                     "- `scripts/zigux/validate-phase4.py` remains in the packet.",
@@ -320,6 +327,7 @@ def run_self_test() -> int:
             root / "zigux/tests/README.md",
             "\n".join(
                 [
+                    "zigux/tests/atomic64_diff.zig",
                     "zigux/tests/runtime_atomic64_diff.zig",
                     "zigux/tests/bitmap_diff.zig",
                     "zigux/tests/phase4_build.zig",
@@ -333,6 +341,8 @@ def run_self_test() -> int:
             "\n".join(
                 [
                     "validate-phase4.py",
+                    "atomic64_diff.zig",
+                    "runtime_atomic64_diff.zig",
                     "Phase 4 flow",
                     "phase4_build.zig",
                     "phase4-validation-matrix.md",
@@ -347,6 +357,8 @@ def run_self_test() -> int:
                     "Phase 4 notes",
                     "validate-phase4.py",
                     "phase4-validation-matrix.md",
+                    "atomic64_diff.zig",
+                    "runtime_atomic64_diff.zig",
                     "",
                 ]
             ),
