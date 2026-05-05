@@ -6,7 +6,8 @@ This document tracks the first bounded Phase 9 runtime kretprobe starter under `
 
 - `PHASE9_STATUS=active`
 - `PHASE9_SLICE=runtime-kretprobe-module-starter`
-- scope: lifecycle starter, bounded return-probe bookkeeping, a tiny differential gate, a loader-handoff scaffold, dedicated Phase 9 test wiring, and survey-manifest closure only
+- `PHASE9_SURVEYED_COMMIT=248bfeaa7f2beddc283c3e398fc36fec3c841242`
+- scope: lifecycle starter, bounded return-probe bookkeeping, a tiny differential gate, a loader-handoff scaffold, the shared runtime-loader facade and allocator/init-flow contract replay, dedicated Phase 9 test wiring, and survey-manifest closure only
 - product boundary:
   - `samples/zigux/runtime_kretprobe.zig`
   - `samples/zigux/runtime_kretprobe_loader.zig`
@@ -14,7 +15,11 @@ This document tracks the first bounded Phase 9 runtime kretprobe starter under `
   - `zigux/tests/runtime_kretprobe_diff.zig`
   - `zigux/tests/runtime_kretprobe_manifest.json`
   - `zigux/tests/runtime_kretprobe_survey.zig`
+  - `zigux/kernel/runtime_loader.zig`
+  - `zigux/kernel/runtime_loader_contract.zig`
+  - `zigux/tests/runtime_loader_allocator_init_flow.zig`
   - `zigux/tests/phase9_build.zig`
+  - `zigux/Makefile`
 
 ## Why this slice exists
 
@@ -30,7 +35,8 @@ The live repo already had runtime pilot starters for atomic64, bitmap, and trace
 - bounded entry-handler skip behavior for kernel-thread-like contexts, return-value and duration bookkeeping, and explicit `nmissed` tracking
 - a dedicated `runtime_kretprobe_diff` gate that replays skip, elapsed-time, and missed-instance expectations from `samples/kprobes/kretprobe_example.c`
 - a bounded `runtime_kretprobe_loader` scaffold that keeps the planned `register_kretprobe()` and `unregister_kretprobe()` labels, entry or exit symbol names, and per-instance private-data size explicit as metadata-only pre-execution handoff details while the runtime substrate remains unavailable
-- dedicated Phase 9 tests and manifest coverage wired into the shared `zigux/tests/phase9_build.zig` gate
+- the shared `runtime_loader` facade, `runtime_loader_contract`, and `runtime_loader_allocator_init_flow` replay that keep the kernel-heap allocator handoff, init-flow counts, and release-without-substrate path reviewable across the whole shipped Phase 9 loader packet
+- dedicated Phase 9 tests and manifest coverage wired into the shared `zigux/tests/phase9_build.zig` gate and `make -C zigux phase9`
 
 ## Non-goals
 
