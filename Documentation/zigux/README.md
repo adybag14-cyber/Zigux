@@ -153,9 +153,11 @@ Phase 13 notes
 
 Phase 15 notes
 - `Documentation/zigux/freeze-map.md`
+- `Documentation/zigux/phase15-freeze-map-governance.md`
 - `Documentation/zigux/phase15-architecture-council-review-process.md`
 - `Documentation/zigux/phase15-parity-scorecard.md`
-- `zigux/tests/phase15_build.zig` and `make -C zigux phase15` now keep the current freeze-map, Architecture Council review-process, parity-scorecard, and stay-in-C governance packet reviewable through one shared Phase 15 lane instead of widening into ad hoc deep-core status claims.
+- `Documentation/zigux/phase15-indefinite-c-policy.md`
+- `zigux/tests/phase15_build.zig` and `make -C zigux phase15` now keep the current freeze-map, dedicated freeze-map-governance note, Architecture Council review-process, parity-scorecard, dedicated indefinite-C policy note, and stay-in-C governance packet reviewable through one shared Phase 15 lane instead of widening into ad hoc deep-core status claims.
 - the current bounded Phase 15 decision is not whether a freeze-in-C anchor is ready for a direct Zigux port; no Architecture Council approval is recorded yet, so the next follow-up should wait for a named reopen trigger or a real deep-core blocker-posture change before opening another governance slice.
 
 Phase 3 notes
