@@ -40,7 +40,7 @@ test "phase 5 bytestream fifo manifest records the exact bounded checks" {
     try std.testing.expectEqualStrings("samples/zigux/bytestream_fifo.zig", manifest.sample_path);
     try std.testing.expect(std.mem.indexOf(u8, manifest.validation_entrypoint, "phase5_build.zig") != null);
     try std.testing.expectEqual(@as(usize, 5), manifest.review_prompts.len);
-    try std.testing.expectEqual(@as(usize, 8), manifest.exact_checks.len);
+    try std.testing.expectEqual(@as(usize, 9), manifest.exact_checks.len);
     try std.testing.expectEqual(@as(usize, 4), manifest.non_goals.len);
 
     var saw_descriptor_prompt = false;
@@ -49,6 +49,7 @@ test "phase 5 bytestream fifo manifest records the exact bounded checks" {
     var saw_exact_sequence = false;
     var saw_capacity = false;
     var saw_helper_boundary = false;
+    var saw_snapshot = false;
     var saw_lifecycle = false;
 
     for (manifest.review_prompts) |prompt| {
@@ -70,19 +71,24 @@ test "phase 5 bytestream fifo manifest records the exact bounded checks" {
         try std.testing.expect(check.kind.len > 0);
         try std.testing.expect(check.expected.len > 0);
 
-        if (std.mem.eql(u8, check.id, "final-drain-sequence")) {
-            saw_exact_sequence = true;
-            try std.testing.expect(std.mem.indexOf(u8, check.expected, "3,4,5,6,7,8,9,0,1,20") != null);
-        }
         if (std.mem.eql(u8, check.id, "fill-to-capacity")) {
             saw_capacity = true;
             try std.testing.expect(std.mem.indexOf(u8, check.expected, "20 through 42 inclusive") != null);
+        }
+        if (std.mem.eql(u8, check.id, "non-destructive-snapshot")) {
+            saw_snapshot = true;
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "without mutating queue state") != null);
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "[3,4,5,6,7,8,9,0,1,20") != null);
         }
         if (std.mem.eql(u8, check.id, "bounded-helper-behavior")) {
             saw_helper_boundary = true;
             try std.testing.expect(std.mem.indexOf(u8, check.expected, "empty enqueue copies 0 bytes") != null);
             try std.testing.expect(std.mem.indexOf(u8, check.expected, "skip-at-capacity returns 0") != null);
             try std.testing.expect(std.mem.indexOf(u8, check.expected, "pop-after-reset null") != null);
+        }
+        if (std.mem.eql(u8, check.id, "final-drain-sequence")) {
+            saw_exact_sequence = true;
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "3,4,5,6,7,8,9,0,1,20") != null);
         }
         if (std.mem.eql(u8, check.id, "lifecycle-boundary")) {
             saw_lifecycle = true;
@@ -97,9 +103,10 @@ test "phase 5 bytestream fifo manifest records the exact bounded checks" {
     try std.testing.expect(saw_descriptor_prompt);
     try std.testing.expect(saw_approved_idiom_prompt);
     try std.testing.expect(saw_manifest_prompt);
-    try std.testing.expect(saw_exact_sequence);
     try std.testing.expect(saw_capacity);
     try std.testing.expect(saw_helper_boundary);
+    try std.testing.expect(saw_snapshot);
+    try std.testing.expect(saw_exact_sequence);
     try std.testing.expect(saw_lifecycle);
     try std.testing.expect(std.mem.eql(u8, manifest.non_goals[0], "procfs parity"));
     try std.testing.expect(std.mem.eql(u8, manifest.non_goals[1], "kfifo_from_user or kfifo_to_user parity"));
@@ -134,7 +141,13 @@ test "phase 5 bytestream fifo survey note keeps later runtime starters and loade
     }
 
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "/workspace/agent_files") == null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "samples/kfifo/bytestream-example.c|Phase 5") != null);
+    try std.testing.expect(
+        std.mem.indexOf(
+            u8,
+            survey_note,
+            "rg -n \"samples/kfifo/bytestream-example.c|Phase 5\" Documentation/zigux samples",
+        ) != null,
+    );
 }
 
 test "phase 5 bytestream fifo survey note records the latest verification snapshot" {
@@ -162,6 +175,8 @@ test "phase 5 bytestream fifo survey note records the latest verification snapsh
         "peek_value = 3",
         "fill_start = 20",
         "fill_end = 42",
+        "snapshot_len = 32",
+        "snapshot_sequence stayed [3,4,5,6,7,8,9,0,1,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42]",
         "final_len = 32",
         "peek and skip returned `null`",
         "empty enqueue copied `0` bytes",
