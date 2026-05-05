@@ -83,6 +83,11 @@ SCRIPTS_REQUIRED_MARKERS = [
 PHASE13_BUILD_EXACT_COUNTS = {
     " = b.addTest(.{": 5,
     "test_step.dependOn(&run_phase13_": 5,
+    '.root_source_file = b.path("phase13_libfs.zig"),': 1,
+    '.root_source_file = b.path("phase13_devres.zig"),': 1,
+    '.root_source_file = b.path("phase13_landlock_ruleset.zig"),': 1,
+    '.root_source_file = b.path("phase13_landlock_syscalls.zig"),': 1,
+    '.root_source_file = b.path("phase13_libfs_reviewability.zig"),': 1,
 }
 
 PHASE13_BUILD_REQUIRED_MARKERS = [
@@ -208,6 +213,11 @@ def _baseline_phase13_build() -> str:
             "test_step.dependOn(&run_phase13_landlock_ruleset_tests.step);",
             "test_step.dependOn(&run_phase13_landlock_syscalls_tests.step);",
             "test_step.dependOn(&run_phase13_libfs_reviewability_tests.step);",
+            '.root_source_file = b.path("phase13_libfs.zig"),',
+            '.root_source_file = b.path("phase13_devres.zig"),',
+            '.root_source_file = b.path("phase13_landlock_ruleset.zig"),',
+            '.root_source_file = b.path("phase13_landlock_syscalls.zig"),',
+            '.root_source_file = b.path("phase13_libfs_reviewability.zig"),',
             "",
         )
     )
@@ -368,6 +378,24 @@ def run_self_test() -> int:
             validate(root),
             ["phase13-build:test_step.dependOn(&run_phase13_:expected=5:actual=6"],
             "phase13_build_dependency_count_guard_failed",
+        )
+        _write(root / "zigux/tests/phase13_build.zig", _baseline_phase13_build())
+        case_count += 1
+
+        phase13_build_path.write_text(
+            _baseline_phase13_build().replace(
+                '.root_source_file = b.path("phase13_libfs_reviewability.zig"),\n',
+                '.root_source_file = b.path("phase13_devres.zig"),\n',
+            ),
+            encoding="utf-8",
+        )
+        _assert_only(
+            validate(root),
+            [
+                'phase13-build:.root_source_file = b.path("phase13_devres.zig"),:expected=1:actual=2',
+                'phase13-build:.root_source_file = b.path("phase13_libfs_reviewability.zig"),:expected=1:actual=0',
+            ],
+            "phase13_build_root_source_file_guard_failed",
         )
         _write(root / "zigux/tests/phase13_build.zig", _baseline_phase13_build())
         case_count += 1
