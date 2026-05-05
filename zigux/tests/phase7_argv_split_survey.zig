@@ -69,7 +69,7 @@ test "phase 7 argv_split survey manifest records the parked runtime leaf surface
     try std.testing.expect(manifest.survey_summary.preexisting_phase7_build_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase7_doc_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase7_helper_present);
-    try std.testing.expect(manifest.gaps.len >= 6);
+    try std.testing.expectEqual(@as(usize, 6), manifest.gaps.len);
 
     var starter_landed_count: usize = 0;
     var ready_next_count: usize = 0;
@@ -106,7 +106,7 @@ test "phase 7 argv_split survey manifest records the parked runtime leaf surface
         }
     }
 
-    try std.testing.expect(starter_landed_count >= 6);
+    try std.testing.expectEqual(manifest.gaps.len, starter_landed_count);
     try std.testing.expectEqual(@as(usize, 0), ready_next_count);
     try std.testing.expect(saw_helper);
     try std.testing.expect(saw_survey_gate);
