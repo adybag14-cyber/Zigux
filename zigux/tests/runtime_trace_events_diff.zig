@@ -15,6 +15,8 @@ test "runtime trace-events diff gate replays the Linux sample's concrete main-th
     try std.testing.expectEqual(@as(usize, 6), summary.total_events);
     try std.testing.expectEqual(@as(i32, 7), summary.last_main_count);
     try std.testing.expectEqual(@as(i32, -1), summary.last_fn_count);
+    try std.testing.expectEqual(@as(usize, 6), summary.last_main_emitted_events);
+    try std.testing.expectEqual(@as(usize, 0), summary.last_fn_emitted_events);
     try std.testing.expect(summary.saw_vararg_payload);
     try std.testing.expect(summary.saw_rel_loc_payload);
     try std.testing.expect(summary.saw_conditional_path);
@@ -47,6 +49,8 @@ test "runtime trace-events diff gate keeps function-callback registration balanc
     try std.testing.expectEqual(@as(usize, 2), summary.registration_depth);
     try std.testing.expectEqual(@as(usize, 2), summary.total_events);
     try std.testing.expectEqual(@as(i32, 9), summary.last_fn_count);
+    try std.testing.expectEqual(@as(usize, 0), summary.last_main_emitted_events);
+    try std.testing.expectEqual(@as(usize, 2), summary.last_fn_emitted_events);
 
     const payload = summary.last_function_payload orelse return error.ExpectedFunctionPayload;
     try std.testing.expectEqualStrings("Look at me", payload.foo_bar_message);
@@ -78,5 +82,7 @@ test "runtime trace-events diff gate keeps selftest totals machine-checkable thr
     try std.testing.expectEqual(@as(usize, 1), summary.selftest_runs);
     try std.testing.expectEqual(@as(i32, 0), summary.last_main_count);
     try std.testing.expectEqual(@as(i32, 1), summary.last_fn_count);
+    try std.testing.expectEqual(@as(usize, 6), summary.last_main_emitted_events);
+    try std.testing.expectEqual(@as(usize, 2), summary.last_fn_emitted_events);
     try std.testing.expect(summary.saw_conditional_path);
 }
