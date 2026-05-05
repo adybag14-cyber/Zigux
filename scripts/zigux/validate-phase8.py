@@ -13,7 +13,6 @@ REQUIRED_FILES = [
     "Documentation/zigux/phase8-bpf-type-names-slice.md",
     "Documentation/zigux/phase8-libbpf-segment-survey.md",
     "Documentation/zigux/phase8-perf-buffer-poll-slice.md",
-    "scripts/zigux/README.md",
     "scripts/zigux/validate-phase8.py",
     "zigux/Makefile",
     "zigux/tests/phase8_bpf_type_names.zig",
@@ -48,13 +47,9 @@ REQUIRED_MARKERS = {
         "ready-buffer processing attempts cannot exceed observed ready events",
         "no standalone timer helper",
         "no standalone clockevent helper",
-    ],
-    "scripts/zigux/README.md": [
-        "Phase 8 flow",
-        "Documentation/zigux/phase8-perf-buffer-poll-slice.md",
-        "zigux/tests/phase8_perf_buffer_poll.zig",
-        "zigux/tests/phase8_perf_buffer_poll_only_build.zig",
         "make -C zigux phase8-perf-buffer-poll-test",
+        "make -C zigux phase8-test",
+        "make -C zigux phase8",
     ],
     "zigux/Makefile": [
         "phase8-validate:",
@@ -180,7 +175,6 @@ def mutate_file(tmp_root: Path, rel: str, old: str, new: str, case: str) -> None
 def run_self_test() -> None:
     missing_file_cases = [
         ("missing_validator", "scripts/zigux/validate-phase8.py"),
-        ("missing_scripts_readme", "scripts/zigux/README.md"),
         ("missing_makefile", "zigux/Makefile"),
         ("missing_phase8_build", "zigux/tests/phase8_build.zig"),
         ("missing_phase8_bpf_type_names_note", "Documentation/zigux/phase8-bpf-type-names-slice.md"),
@@ -194,7 +188,6 @@ def run_self_test() -> None:
     ]
 
     marker_cases = [
-        ("scripts_readme_perf_buffer_poll_note", "scripts/zigux/README.md", "Documentation/zigux/phase8-perf-buffer-poll-slice.md", "", "scripts/zigux/README.md: Documentation/zigux/phase8-perf-buffer-poll-slice.md"),
         ("makefile_validate_target", "zigux/Makefile", "phase8-validate:", "", "zigux/Makefile: phase8-validate:"),
         ("makefile_self_test_hook", "zigux/Makefile", "scripts/zigux/validate-phase8.py --self-test", "", "zigux/Makefile: scripts/zigux/validate-phase8.py --self-test"),
         ("makefile_libbpf_wrapper_target", "zigux/Makefile", "phase8-libbpf-segments-test:", "", "zigux/Makefile: phase8-libbpf-segments-test:"),
@@ -209,6 +202,7 @@ def run_self_test() -> None:
         ("survey_perf_buffer_wrapper", "Documentation/zigux/phase8-libbpf-segment-survey.md", "make -C zigux phase8-perf-buffer-poll-test", "make -C zigux phase8-perf-buffer-test", "Documentation/zigux/phase8-libbpf-segment-survey.md: make -C zigux phase8-perf-buffer-poll-test"),
         ("survey_phase8_test_wrapper", "Documentation/zigux/phase8-libbpf-segment-survey.md", "make -C zigux phase8-test", "make -C zigux phase8-shared-test", "Documentation/zigux/phase8-libbpf-segment-survey.md: make -C zigux phase8-test"),
         ("perf_buffer_poll_note_boundary", "Documentation/zigux/phase8-perf-buffer-poll-slice.md", "ready-buffer processing attempts cannot exceed observed ready events", "", "Documentation/zigux/phase8-perf-buffer-poll-slice.md: ready-buffer processing attempts cannot exceed observed ready events"),
+        ("perf_buffer_poll_note_focused_gate", "Documentation/zigux/phase8-perf-buffer-poll-slice.md", "make -C zigux phase8-perf-buffer-poll-test", "make -C zigux phase8-perf-buffer-test", "Documentation/zigux/phase8-perf-buffer-poll-slice.md: make -C zigux phase8-perf-buffer-poll-test"),
         ("phase8_bpf_type_names_helper_surface", "zigux/tests/phase8_bpf_type_names.zig", "phase 8 bpf type-name segment exposes libbpf string helpers", "", "zigux/tests/phase8_bpf_type_names.zig: phase 8 bpf type-name segment exposes libbpf string helpers"),
         ("phase8_bpf_type_names_dense_table_anchor", "zigux/tests/phase8_bpf_type_names.zig", "map_type_names.len", "", "zigux/tests/phase8_bpf_type_names.zig: map_type_names.len"),
         ("phase8_build_perf_buffer_poll_source", "zigux/tests/phase8_build.zig", "\"phase8_perf_buffer_poll.zig\"", "\"phase8_perf_buffer_poll_drift.zig\"", "zigux/tests/phase8_build.zig: \"phase8_perf_buffer_poll.zig\""),
