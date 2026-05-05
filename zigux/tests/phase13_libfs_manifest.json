@@ -45,7 +45,7 @@
       "status": "starter_landed",
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase13_libfs.zig",
-      "why_now": "Dedicated starter tests keep the current helper surface honest around split fsid packing, default statfs values, negative-dentry discard intent, casefold passthrough, buffer-copy accounting, seek-policy bounds, directory-emit handoff bookkeeping, the landed transaction acquire planner, and the new transaction publish planner."
+      "why_now": "Dedicated starter tests keep the current helper surface honest around split fsid packing, default statfs values, negative-dentry discard intent, casefold passthrough, buffer-copy accounting, seek-policy bounds, directory-emit handoff bookkeeping, and the landed transaction acquire, publish, and release planners."
     },
     {
       "id": "phase13-libfs-slice-note",
@@ -98,10 +98,17 @@
     },
     {
       "id": "phase13-libfs-transaction-release-helper",
-      "status": "ready_next",
+      "status": "starter_landed",
       "kind": "filesystem_helper_surface",
       "zigux_destination": "fs/libfs.zig",
-      "why_now": "The next honest transaction-family step is a tiny `simple_transaction_release()` lifetime planner that keeps the work in page-backed private-data ownership and release bookkeeping before any live file lifecycle or readback behavior is modeled."
+      "why_now": "The libfs helper lab now models the pure `simple_transaction_release()` lifetime path, including page-backed private-data cleanup, release bookkeeping, and the zero return path before any live readback, file lifecycle, or cursor-backed state is claimed."
+    },
+    {
+      "id": "phase13-libfs-dcache-cursor-helpers",
+      "status": "blocked_on_vfs_state",
+      "kind": "filesystem_helper_surface",
+      "zigux_destination": "fs/libfs.zig",
+      "why_now": "The next libfs follow-up now moves to non-live `dcache_dir_open()` and deeper `dcache_readdir()` cursor-precondition helpers, but that step still depends on cursor dentries, sibling-list traversal, and lock-ordering context that should stay explicit before another helper-first slice is modeled."
     }
   ]
 }
