@@ -69,6 +69,7 @@ Key entrypoints
 - `zigux/tests/phase12_libbpf_reviewability.zig`
 - `zigux/tests/phase13_build.zig`
 - `zigux/tests/phase3_abi.zig`
+- `zigux/tests/phase3_low_level_wrappers.zig`
 - `zigux/tests/phase14_build.zig`
 - `zigux/tests/phase14_ring_buffer_survey.zig`
 - `zigux/tests/phase14_skbuff_bridge.zig`
