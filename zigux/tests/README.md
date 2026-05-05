@@ -43,6 +43,9 @@ Key entrypoints
 - `zigux/tests/runtime_kretprobe_survey.zig`
 - `zigux/tests/phase11_build.zig`
 - `zigux/tests/phase11_hvc_console_survey.zig`
+- `zigux/tests/phase12_build.zig`
+- `zigux/tests/phase12_libbpf_segments.zig`
+- `zigux/tests/phase12_libbpf_reviewability.zig`
 - `zigux/tests/phase3_abi.zig`
 - `zigux/tests/phase14_build.zig`
 - `zigux/tests/phase14_ring_buffer_survey.zig`
