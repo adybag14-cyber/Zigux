@@ -48,6 +48,13 @@ EXPECTED_CASES = {
         'expected': 'sample_escaped_colon_expected.txt',
         'expected_exit_code': 0,
     },
+    'sample_escaped_hash_colon_once': {
+        'depfile': 'sample_escaped_hash_colon_once.d',
+        'target': 'sample_escaped_hash_colon_once.o',
+        'cmdline': 'clang -c zigux/tests/fixtures/fixdep/sample:escaped_hash_colon_once_source.c -o sample_escaped_hash_colon_once.o',
+        'expected': 'sample_escaped_hash_colon_once_expected.txt',
+        'expected_exit_code': 0,
+    },
     'sample_concatenated': {
         'depfile': 'sample_concatenated.d',
         'target': 'sample_concatenated.o',
