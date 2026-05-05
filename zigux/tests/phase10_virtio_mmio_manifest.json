@@ -1,7 +1,7 @@
 {
-  "lane_key": "P10-L09",
+  "lane_key": "P10-L13",
   "phase": "Phase 10",
-  "surveyed_commit": "05650d80892a38d40ecb19c733816e3b674f6f5f",
+  "surveyed_commit": "5f476437a4a3b91d840dd75fca0bf684d1ccc4dd",
   "anchor": "drivers/virtio/virtio_mmio.c",
   "roadmap_destinations": [
     "drivers/virtio/*.zig",
@@ -27,7 +27,7 @@
   "architecture_council_reopen_attached": false,
   "survey_summary": {
     "virtio_mmio_c_lines": 829,
-    "preexisting_phase10_test_files": 7,
+    "preexisting_phase10_test_files": 10,
     "preexisting_virtio_core_zig_present": true,
     "preexisting_phase10_build_present": true,
     "preexisting_phase10_core_doc_present": true,
@@ -102,7 +102,7 @@
       "status": "starter_landed",
       "kind": "transport_wrapper",
       "zigux_destination": "drivers/virtio/virtio_mmio.zig",
-      "why_now": "The same helper already stages queue_num_max, queue_num, and queue_ready in memory, which is the smallest honest queue-size foothold before transport-facing discovery or reset flows. The current tests replay `queue_num_max` reads and bounded queue programming directly from the helper."
+      "why_now": "The same helper already stages queue_num_max, queue_num, and queue_ready in memory, which is the smallest honest queue-size foothold before transport-facing discovery or reset flows. The current tests replay queue_num_max reads and bounded queue programming directly from the helper."
     },
     {
       "id": "phase10-virtio-mmio-slice-note",
@@ -116,7 +116,7 @@
       "status": "starter_landed",
       "kind": "transport_wrapper",
       "zigux_destination": "drivers/virtio/virtio_mmio.zig",
-      "why_now": "The live helper now carries one bounded device-feature selector and read window so VM-friendly lab validation can replay feature-word reads without widening into interrupt acknowledgement, reset flows, or probe lifecycle work."
+      "why_now": "The live helper now carries one bounded device-feature selector and read window so VM-friendly lab validation can replay feature-word reads without widening into interrupt acknowledgement, queue discovery, reset flows, or probe lifecycle work."
     },
     {
       "id": "phase10-mmio-config-window-helper",
@@ -124,6 +124,13 @@
       "kind": "transport_wrapper",
       "zigux_destination": "drivers/virtio/virtio_mmio.zig",
       "why_now": "The same helper now stages one small transport-backed config-word window in memory so VM-friendly lab validation can replay bounded config reads, including the shorter restaged config window that clears stale second-word data and shrinks the readable config window, without implying interrupt acknowledgement, queue discovery, reset flows, or probe lifecycle behavior."
+    },
+    {
+      "id": "phase10-mmio-config-write-plan-helper",
+      "status": "starter_landed",
+      "kind": "transport_wrapper",
+      "zigux_destination": "drivers/virtio/virtio_mmio.zig",
+      "why_now": "The same helper can now summarize one bounded config-word write plan against the staged config window, including the current config generation and previous word value, without mutating config space or claiming interrupt acknowledgement, queue discovery, reset flows, or probe lifecycle behavior."
     },
     {
       "id": "phase10-mmio-lifecycle-and-irq-paths",
