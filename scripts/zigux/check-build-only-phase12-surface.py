@@ -69,9 +69,13 @@ REQUIRED_SEQUENCE_MARKERS = [
     "current public fallback split: two commit-pinned artifacts (`Documentation/zigux/phase12-nvme-pci-raw-github-fallback-map.md`, `Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md`) and two shared-tree-only anchors (`virtio_net`, `libbpf`)",
     "`scripts/zigux/check-build-only-phase12-surface.py` is a shipped build-only contract checker, not a broader validator-first release gate",
     "there is no shipped shared `scripts/zigux/validate-phase12.py`, no `check-phase12-*.py` release packet, and no `make -C zigux phase12-validate` target on `master`",
-    "The docs-root, scripts-root, and tests-root wording repairs are already landed on `master`, so the next bounded same-lane follow-through is now drift control rather than another naming pass:",
+    "The docs-root, review-checklist, scripts-root, and tests-root wording repairs are already landed on `master`, so the next bounded same-lane follow-through is now drift control rather than another naming pass:",
     "if the lane reopens for another degraded-workflow drift, start by diffing those shipped packet surfaces and rerunning `scripts/zigux/check-build-only-phase12-surface.py` before widening into any driver-local or helper-local Phase 12 work",
 ]
+
+REQUIRED_SEQUENCE_EXACT_COUNTS = {
+    "The docs-root, review-checklist, scripts-root, and tests-root wording repairs are already landed on `master`, so the next bounded same-lane follow-through is now drift control rather than another naming pass:": 1,
+}
 
 REQUIRED_VIRTIO_NET_SURVEY_MARKERS = [
     "public fallback posture: shared-tree-only anchor; unlike `Documentation/zigux/phase12-nvme-pci-raw-github-fallback-map.md` and `Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md`, this `virtio_net` note is not a commit-pinned raw GitHub fallback artifact.",
@@ -277,6 +281,8 @@ def validate(root: Path) -> list[str]:
         expect_exact_count(scripts_readme, marker, count, "scripts_readme_exact_count", failures)
     for marker, count in REQUIRED_DOCS_README_EXACT_COUNTS.items():
         expect_exact_count(docs_readme, marker, count, "docs_readme_exact_count", failures)
+    for marker, count in REQUIRED_SEQUENCE_EXACT_COUNTS.items():
+        expect_exact_count(phase12_sequence, marker, count, "phase12_sequence_exact_count", failures)
     for marker, count in REQUIRED_TESTS_README_EXACT_COUNTS.items():
         expect_exact_count(tests_readme, marker, count, "tests_readme_exact_count", failures)
     for marker, count in REQUIRED_PHASE12_BUILD_EXACT_COUNTS.items():
@@ -328,7 +334,7 @@ Phase 12 notes
 - current public fallback split: two commit-pinned artifacts (`Documentation/zigux/phase12-nvme-pci-raw-github-fallback-map.md`, `Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md`) and two shared-tree-only anchors (`virtio_net`, `libbpf`)
 - `scripts/zigux/check-build-only-phase12-surface.py` is a shipped build-only contract checker, not a broader validator-first release gate
 - there is no shipped shared `scripts/zigux/validate-phase12.py`, no `check-phase12-*.py` release packet, and no `make -C zigux phase12-validate` target on `master`
-- The docs-root, scripts-root, and tests-root wording repairs are already landed on `master`, so the next bounded same-lane follow-through is now drift control rather than another naming pass:
+- The docs-root, review-checklist, scripts-root, and tests-root wording repairs are already landed on `master`, so the next bounded same-lane follow-through is now drift control rather than another naming pass:
 - if the lane reopens for another degraded-workflow drift, start by diffing those shipped packet surfaces and rerunning `scripts/zigux/check-build-only-phase12-surface.py` before widening into any driver-local or helper-local Phase 12 work
 """,
     )
@@ -480,6 +486,51 @@ def run_self_test() -> int:
             for failure in failures:
                 print(failure)
             return 1
+
+        makefile_path.write_text(original_makefile, encoding="utf-8")
+        sequence_path = root / PHASE12_SEQUENCE_PATH
+        original_sequence = sequence_path.read_text(encoding="utf-8")
+        sequence_marker = (
+            "The docs-root, review-checklist, scripts-root, and tests-root wording repairs are already landed on `master`, so the next bounded same-lane follow-through is now drift control rather than another naming pass:"
+        )
+
+        missing_sequence = original_sequence.replace(
+            f"- {sequence_marker}\n",
+            "",
+            1,
+        )
+        sequence_path.write_text(missing_sequence, encoding="utf-8")
+        failures = validate(root)
+        expected_sequence_missing = f"phase12_sequence:{sequence_marker}"
+        expected_sequence_missing_exact = (
+            f"phase12_sequence_exact_count:{sequence_marker}:count=0:expected=1"
+        )
+        if (
+            expected_sequence_missing not in failures
+            or expected_sequence_missing_exact not in failures
+        ):
+            print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST=fail")
+            print("phase12-sequence-review-checklist-missing-guard")
+            for failure in failures:
+                print(failure)
+            return 1
+
+        duplicate_sequence = original_sequence.replace(
+            f"- {sequence_marker}\n",
+            f"- {sequence_marker}\n- {sequence_marker}\n",
+            1,
+        )
+        sequence_path.write_text(duplicate_sequence, encoding="utf-8")
+        failures = validate(root)
+        expected_sequence_duplicate = (
+            f"phase12_sequence_exact_count:{sequence_marker}:count=2:expected=1"
+        )
+        if expected_sequence_duplicate not in failures:
+            print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST=fail")
+            print("phase12-sequence-review-checklist-duplicate-guard")
+            for failure in failures:
+                print(failure)
+            return 1
     print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST=pass")
     return 0
 
@@ -518,6 +569,7 @@ def main() -> int:
         len(REQUIRED_DOCS_README_MARKERS)
         + len(REQUIRED_REVIEW_CHECKLIST_MARKERS)
         + len(REQUIRED_SEQUENCE_MARKERS)
+        + len(REQUIRED_SEQUENCE_EXACT_COUNTS)
         + len(REQUIRED_VIRTIO_NET_SURVEY_MARKERS)
         + len(REQUIRED_LIBBPF_SURVEY_MARKERS)
         + len(REQUIRED_SCRIPT_README_MARKERS)
