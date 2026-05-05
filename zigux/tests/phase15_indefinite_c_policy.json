@@ -14,7 +14,8 @@
     "Documentation/zigux/review-checklist.md",
     "Documentation/zigux/phase15-architecture-council-review-process.md",
     "Documentation/zigux/phase15-parity-scorecard.md",
-    "Documentation/zigux/phase15-evidence-archives/"
+    "Documentation/zigux/phase15-evidence-archives/",
+    "Documentation/zigux/README.md"
   ],
   "indefinite_c_requirements": [
     {
