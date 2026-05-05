@@ -43,8 +43,6 @@ pub fn build(b: *std.Build) void {
         .target = target,
         .optimize = optimize,
     });
-    virtio_scsi_module.addImport("virtio", virtio_core_module);
-    virtio_scsi_module.addImport("virtio_ring", virtio_ring_module);
 
     const phase12_virtio_scsi_module = b.createModule(.{
         .root_source_file = b.path("phase12_virtio_scsi.zig"),
@@ -84,6 +82,12 @@ pub fn build(b: *std.Build) void {
         .optimize = optimize,
     });
 
+    const phase12_libbpf_segments_module = b.createModule(.{
+        .root_source_file = b.path("phase12_libbpf_segments.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+
     const libbpf_cpu_mask_module = b.createModule(.{
         .root_source_file = b.path("../../tools/lib/bpf/zigux_segments/cpu_mask.zig"),
         .target = target,
@@ -91,7 +95,7 @@ pub fn build(b: *std.Build) void {
     });
 
     const libbpf_type_names_module = b.createModule(.{
-        .root_source_file = b.path("../../tools/lib/bpf/zigux_segments/bpf_type_names.zig"),
+        .root_source_file = b.path("../../tools/lib/bpf/zigux_segments/type_names.zig"),
         .target = target,
         .optimize = optimize,
     });
@@ -113,17 +117,6 @@ pub fn build(b: *std.Build) void {
         .target = target,
         .optimize = optimize,
     });
-
-    const phase12_libbpf_segments_module = b.createModule(.{
-        .root_source_file = b.path("phase12_libbpf_segments.zig"),
-        .target = target,
-        .optimize = optimize,
-    });
-    phase12_libbpf_segments_module.addImport("cpu_mask", libbpf_cpu_mask_module);
-    phase12_libbpf_segments_module.addImport("bpf_type_names", libbpf_type_names_module);
-    phase12_libbpf_segments_module.addImport("logging", libbpf_logging_module);
-    phase12_libbpf_segments_module.addImport("pin_path", libbpf_pin_path_module);
-    phase12_libbpf_segments_module.addImport("perf_buffer_poll", libbpf_perf_buffer_poll_module);
 
     const phase12_libbpf_reviewability_module = b.createModule(.{
         .root_source_file = b.path("phase12_libbpf_reviewability.zig"),
@@ -190,12 +183,15 @@ pub fn build(b: *std.Build) void {
     });
     const run_phase12_virtio_scsi_tests = b.addRunArtifact(phase12_virtio_scsi_tests);
 
+    const smoke_step = b.step("smoke", "Run Phase 12 direct driver and syntax-lab smoke tests");
+    smoke_step.dependOn(&run_phase12_nvme_pci_tests.step);
+    smoke_step.dependOn(&run_phase12_virtio_net_tests.step);
+    smoke_step.dependOn(&run_phase12_virtio_net_syntax_lab_tests.step);
+    smoke_step.dependOn(&run_phase12_virtio_scsi_tests.step);
+
     const test_step = b.step("test", "Run Phase 12 driver and survey tests");
-    test_step.dependOn(&run_phase12_virtio_scsi_tests.step);
-    test_step.dependOn(&run_phase12_nvme_pci_tests.step);
+    test_step.dependOn(smoke_step);
     test_step.dependOn(&run_phase12_nvme_pci_survey_tests.step);
-    test_step.dependOn(&run_phase12_virtio_net_tests.step);
-    test_step.dependOn(&run_phase12_virtio_net_syntax_lab_tests.step);
     test_step.dependOn(&run_phase12_virtio_net_survey_tests.step);
     test_step.dependOn(&run_phase12_virtio_scsi_survey_tests.step);
     test_step.dependOn(&run_phase12_libbpf_segments_tests.step);
