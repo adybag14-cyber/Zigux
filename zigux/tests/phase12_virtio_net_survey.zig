@@ -57,6 +57,14 @@ test "phase12 virtio_net survey manifest stays aligned with the landed driver pa
     );
     defer std.testing.allocator.free(build_file);
 
+    const survey_note = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "Documentation/zigux/phase12-virtio-net-survey.md",
+        std.testing.allocator,
+        .limited(32 * 1024),
+    );
+    defer std.testing.allocator.free(survey_note);
+
     const parsed = try std.json.parseFromSlice(Manifest, std.testing.allocator, manifest_json, .{});
     defer parsed.deinit();
 
@@ -81,6 +89,10 @@ test "phase12 virtio_net survey manifest stays aligned with the landed driver pa
     try std.testing.expect(std.mem.indexOf(u8, build_file, "phase12_virtio_net_module") != null);
     try std.testing.expect(std.mem.indexOf(u8, build_file, "phase12_virtio_net_tests") != null);
     try std.testing.expect(std.mem.indexOf(u8, build_file, "run_phase12_virtio_net_tests.step") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "Keep this lane parked unless fresh repo inspection finds directly coupled drift") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "blocked runtime-data-path boundary") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "DMA-safe abstractions and queueing substrate work") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "another tiny queue-reuse or refill-coordination invariant next") == null);
 
     var starter_landed_count: usize = 0;
     var blocked_count: usize = 0;
