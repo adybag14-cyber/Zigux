@@ -93,20 +93,17 @@ const BitmapHarness = struct {
         @memset(self.words[0..], ~@as(Word, 0));
     }
 
-    fn roundedPrefixLen(nbits: u32) !u32 {
+    fn boundedPrefixLen(nbits: u32) !u32 {
         if (nbits > bitmap_nbits) return error.BitRangeOutOfBounds;
-        if (nbits == 0) return 0;
-
-        const words = (nbits + bits_per_long - 1) / bits_per_long;
-        return @min(bitmap_nbits, words * bits_per_long);
+        return nbits;
     }
 
     fn fillPrefix(self: *Self, nbits: u32) !void {
-        try self.setRange(0, try roundedPrefixLen(nbits));
+        try self.setRange(0, try boundedPrefixLen(nbits));
     }
 
     fn zeroPrefix(self: *Self, nbits: u32) !void {
-        try self.clearRange(0, try roundedPrefixLen(nbits));
+        try self.clearRange(0, try boundedPrefixLen(nbits));
     }
 
     fn copyFrom(self: *Self, other: *const Self, nbits: u32) !void {
@@ -273,8 +270,6 @@ fn expectNthCase(bits: []const u32, nbits: u32, expected: []const u32) !void {
     try std.testing.expectEqual(nbits, try bitmap.findNthSet(nbits, @intCast(expected.len)));
 }
 
-// Keep one deterministic batch available so a future bitmap threshold lane can
-// benchmark the exact current rollback gate instead of a looser synthetic loop.
 pub fn runThresholdReplay(iterations: usize) !ThresholdReplaySummary {
     var bitmap = BitmapHarness{};
     var source = BitmapHarness{};
@@ -356,18 +351,18 @@ test "bitmap diff gate replays bounded lib/test_bitmap.c range expectations" {
             .must_be_clear = &.{ 9, 10, BitmapHarness.bitmap_nbits - 1 },
         },
         .{
-            .name = "test_fill_set bitmap_fill rounds 35 bits to one full word",
+            .name = "test_fill_set bitmap_fill keeps the exact 35-bit prefix",
             .init_bits = &.{},
             .set_ranges = &.{.{ .start = 0, .len = 9 }},
             .clear_ranges = &.{},
             .fill_prefixes = &.{35},
             .zero_prefixes = &.{},
-            .expected_summary = .{ .first_set = 0, .first_zero = 64, .weight = 64 },
-            .must_be_set = &.{ 8, 63 },
-            .must_be_clear = &.{ 64, BitmapHarness.bitmap_nbits - 1 },
+            .expected_summary = .{ .first_set = 0, .first_zero = 35, .weight = 35 },
+            .must_be_set = &.{ 8, 34 },
+            .must_be_clear = &.{ 35, 63, BitmapHarness.bitmap_nbits - 1 },
         },
         .{
-            .name = "test_fill_set cross-boundary extension after rounded prefix",
+            .name = "test_fill_set cross-boundary extension after exact prefix",
             .init_bits = &.{},
             .set_ranges = &.{ .{ .start = 0, .len = 64 }, .{ .start = 79, .len = 19 } },
             .clear_ranges = &.{},
@@ -378,15 +373,15 @@ test "bitmap diff gate replays bounded lib/test_bitmap.c range expectations" {
             .must_be_clear = &.{ 64, 78, 98 },
         },
         .{
-            .name = "test_fill_set bitmap_fill rounds 115 bits to two full words",
+            .name = "test_fill_set bitmap_fill keeps the exact 115-bit prefix",
             .init_bits = &.{},
             .set_ranges = &.{ .{ .start = 0, .len = 64 }, .{ .start = 79, .len = 19 } },
             .clear_ranges = &.{},
             .fill_prefixes = &.{115},
             .zero_prefixes = &.{},
-            .expected_summary = .{ .first_set = 0, .first_zero = 128, .weight = 128 },
-            .must_be_set = &.{ 97, 127 },
-            .must_be_clear = &.{ 128, BitmapHarness.bitmap_nbits - 1 },
+            .expected_summary = .{ .first_set = 0, .first_zero = 115, .weight = 115 },
+            .must_be_set = &.{ 97, 114 },
+            .must_be_clear = &.{ 115, 127, BitmapHarness.bitmap_nbits - 1 },
         },
         .{
             .name = "test_zero_clear single-word starter",
@@ -404,22 +399,22 @@ test "bitmap diff gate replays bounded lib/test_bitmap.c range expectations" {
             .must_be_clear = &.{ 0, 8 },
         },
         .{
-            .name = "test_zero_clear bitmap_zero rounds 35 bits to one full word",
+            .name = "test_zero_clear bitmap_zero keeps the exact 35-bit prefix",
             .init_bits = &.{},
             .set_ranges = &.{.{ .start = 0, .len = BitmapHarness.bitmap_nbits }},
             .clear_ranges = &.{},
             .fill_prefixes = &.{},
             .zero_prefixes = &.{35},
             .expected_summary = .{
-                .first_set = 64,
+                .first_set = 35,
                 .first_zero = 0,
-                .weight = BitmapHarness.bitmap_nbits - 64,
+                .weight = BitmapHarness.bitmap_nbits - 35,
             },
-            .must_be_set = &.{ 64, BitmapHarness.bitmap_nbits - 1 },
-            .must_be_clear = &.{ 0, 63 },
+            .must_be_set = &.{ 35, 63, BitmapHarness.bitmap_nbits - 1 },
+            .must_be_clear = &.{ 0, 34 },
         },
         .{
-            .name = "test_zero_clear cross-boundary cutout after rounded prefix",
+            .name = "test_zero_clear cross-boundary cutout after exact prefix",
             .init_bits = &.{},
             .set_ranges = &.{.{ .start = 64, .len = BitmapHarness.bitmap_nbits - 64 }},
             .clear_ranges = &.{.{ .start = 79, .len = 19 }},
@@ -434,19 +429,19 @@ test "bitmap diff gate replays bounded lib/test_bitmap.c range expectations" {
             .must_be_clear = &.{ 0, 63, 79, 97 },
         },
         .{
-            .name = "test_zero_clear bitmap_zero rounds 115 bits to two full words",
+            .name = "test_zero_clear bitmap_zero keeps the exact 115-bit prefix",
             .init_bits = &.{},
             .set_ranges = &.{.{ .start = 0, .len = BitmapHarness.bitmap_nbits }},
             .clear_ranges = &.{},
             .fill_prefixes = &.{},
             .zero_prefixes = &.{115},
             .expected_summary = .{
-                .first_set = 128,
+                .first_set = 115,
                 .first_zero = 0,
-                .weight = BitmapHarness.bitmap_nbits - 128,
+                .weight = BitmapHarness.bitmap_nbits - 115,
             },
-            .must_be_set = &.{ 128, BitmapHarness.bitmap_nbits - 1 },
-            .must_be_clear = &.{ 0, 127 },
+            .must_be_set = &.{ 115, 127, BitmapHarness.bitmap_nbits - 1 },
+            .must_be_clear = &.{ 0, 114 },
         },
         .{
             .name = "test_find_nth_bit starter population",
