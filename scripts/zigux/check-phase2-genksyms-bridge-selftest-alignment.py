@@ -139,7 +139,6 @@ EXPECTED_CASES = [
     {
         "name": "help",
         "argv": [
-            "--version",
             "--hel",
         ],
         "mode": "process_json",
@@ -752,7 +751,7 @@ def run_self_test() -> int:
         payload = json.loads(cases_path.read_text(encoding="utf-8"))
         payload["cases"][11]["argv"] = ["--help"]
         write(cases_path, json.dumps(payload, indent=2) + "\n")
-        expect_issue("case_sentinel", root, "cases:help:argv=['--version', '--hel']")
+        expect_issue("case_sentinel", root, "cases:help:argv=['--hel']")
         clone_fixture_root(root)
 
         cases_path = root / REQUIRED_FILES["cases"]
