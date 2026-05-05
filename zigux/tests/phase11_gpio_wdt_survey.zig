@@ -117,7 +117,7 @@ test "phase11 gpio_wdt survey manifest records the refreshed starter state and r
 
         if (std.mem.eql(u8, gap.id, "phase11-gpio-wdt-slice-note")) {
             saw_slice_note = true;
-            try std.testing.expectEqualStrings("Documentation/zigux/phase11-gpio-wdt-slice.md", gap.zigux_destination);
+            try std.testing.expectEqualStrings("Documentation/zigux/phase11-gpio-wdt-module-slice.md", gap.zigux_destination);
             try std.testing.expectEqualStrings("starter_landed", gap.status);
         }
 
@@ -200,4 +200,32 @@ test "phase11 gpio_wdt survey note and validation matrix stay aligned" {
     try std.testing.expect(std.mem.indexOf(u8, validation_matrix, "PHASE11_GPIO_WDT_STATUS=hardware_validation_matrix_landed") != null);
     try std.testing.expect(std.mem.indexOf(u8, validation_matrix, "registrationHandoffSummary()") != null);
     try std.testing.expect(std.mem.indexOf(u8, validation_matrix, "phase11_gpio_wdt.zig") != null);
+}
+
+test "phase11 gpio_wdt module-slice note stays wired into the review packet" {
+    var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
+    defer io_instance.deinit();
+
+    const module_slice = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "Documentation/zigux/phase11-gpio-wdt-module-slice.md",
+        std.testing.allocator,
+        .limited(32 * 1024),
+    );
+    defer std.testing.allocator.free(module_slice);
+
+    const validation_matrix = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "Documentation/zigux/phase11-gpio-wdt-validation-matrix.md",
+        std.testing.allocator,
+        .limited(64 * 1024),
+    );
+    defer std.testing.allocator.free(validation_matrix);
+
+    try std.testing.expect(std.mem.indexOf(u8, module_slice, "gpio_wdt_lab") != null);
+    try std.testing.expect(std.mem.indexOf(u8, module_slice, "devm_watchdog_register_device()") != null);
+    try std.testing.expect(std.mem.indexOf(u8, module_slice, "platform-driver registration") != null);
+
+    try std.testing.expect(std.mem.indexOf(u8, validation_matrix, "Documentation/zigux/phase11-gpio-wdt-module-slice.md") != null);
+    try std.testing.expect(std.mem.indexOf(u8, validation_matrix, "the module-slice note") != null);
 }
