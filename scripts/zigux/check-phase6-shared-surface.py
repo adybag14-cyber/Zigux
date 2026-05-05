@@ -86,6 +86,8 @@ REQUIRED_SNIPPETS = {
         'for (fixtures.standard_decode_cases) |case| {',
         'for (fixtures.invalid_decode_cases) |case| {',
         'for (fixtures.variant_decode_cases) |case| {',
+        'test "phase 6 base64 reports destination bounds before encoding" {',
+        'test "phase 6 base64 reports destination bounds before decoding" {',
     ],
     "zigux/tests/phase6_bsearch.zig": [
         'test "phase 6 bsearch honors comparator-driven descending order" {',
@@ -433,6 +435,38 @@ def run_self_test() -> None:
                 raise AssertionError(f"unexpected base64 test failure: {exc}") from exc
         else:
             raise AssertionError("expected base64 test failure")
+        base64_test.write_text(original_base64_test, encoding="utf-8")
+
+        base64_test.write_text(
+            original_base64_test.replace(
+                'test "phase 6 base64 reports destination bounds before encoding" {',
+                'test "phase 6 base64 omits encode bound checks" {',
+            ),
+            encoding="utf-8",
+        )
+        try:
+            run_checks(root)
+        except ValidationError as exc:
+            if "zigux/tests/phase6_base64.zig" not in str(exc):
+                raise AssertionError(f"unexpected base64 encode-bound failure: {exc}") from exc
+        else:
+            raise AssertionError("expected base64 encode-bound failure")
+        base64_test.write_text(original_base64_test, encoding="utf-8")
+
+        base64_test.write_text(
+            original_base64_test.replace(
+                'test "phase 6 base64 reports destination bounds before decoding" {',
+                'test "phase 6 base64 omits decode bound checks" {',
+            ),
+            encoding="utf-8",
+        )
+        try:
+            run_checks(root)
+        except ValidationError as exc:
+            if "zigux/tests/phase6_base64.zig" not in str(exc):
+                raise AssertionError(f"unexpected base64 decode-bound failure: {exc}") from exc
+        else:
+            raise AssertionError("expected base64 decode-bound failure")
         base64_test.write_text(original_base64_test, encoding="utf-8")
 
         bsearch_test = root / "zigux/tests/phase6_bsearch.zig"
