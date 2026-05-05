@@ -130,14 +130,20 @@ REQUIRED_PHASE12_BUILD_EXACT_COUNTS = {
 }
 
 REQUIRED_MAKEFILE_MARKERS = [
+    "PHONY += phase12-smoke",
     "PHONY += phase12-test phase12",
+    "phase12-smoke:",
+    "$(ZIG) build smoke --build-file zigux/tests/phase12_build.zig --summary all",
     "phase12-test:",
     "$(ZIG) build test --build-file zigux/tests/phase12_build.zig --summary all",
     "phase12: phase12-test",
 ]
 
 REQUIRED_MAKEFILE_EXACT_COUNTS = {
+    "PHONY += phase12-smoke": 1,
     "PHONY += phase12-test phase12": 1,
+    "phase12-smoke:": 1,
+    "$(ZIG) build smoke --build-file zigux/tests/phase12_build.zig --summary all": 1,
     "phase12-test:": 1,
     "$(ZIG) build test --build-file zigux/tests/phase12_build.zig --summary all": 1,
     "phase12: phase12-test": 1,
@@ -382,7 +388,7 @@ test_step.dependOn(&run_phase12_libbpf_reviewability_tests.step);
     )
     write(
         root / MAKEFILE_PATH,
-        "PHONY += phase12-test phase12\nphase12-test:\n\t$(ZIG) build test --build-file zigux/tests/phase12_build.zig --summary all\nphase12: phase12-test\n",
+        "PHONY += phase12-smoke\nPHONY += phase12-test phase12\nphase12-smoke:\n\t$(ZIG) build smoke --build-file zigux/tests/phase12_build.zig --summary all\nphase12-test:\n\t$(ZIG) build test --build-file zigux/tests/phase12_build.zig --summary all\nphase12: phase12-test\n",
     )
     write(
         root / WORKFLOW_PATH,
@@ -402,6 +408,48 @@ def run_self_test() -> int:
         failures = validate(root)
         if failures:
             print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST=fail")
+            for failure in failures:
+                print(failure)
+            return 1
+
+        makefile_path = root / MAKEFILE_PATH
+        original_makefile = makefile_path.read_text(encoding="utf-8")
+        missing_smoke_makefile = original_makefile.replace(
+            "phase12-smoke:\n\t$(ZIG) build smoke --build-file zigux/tests/phase12_build.zig --summary all\n",
+            "",
+            1,
+        )
+        makefile_path.write_text(missing_smoke_makefile, encoding="utf-8")
+        failures = validate(root)
+        expected_missing = "makefile:phase12-smoke:"
+        expected_missing_exact = (
+            "makefile_exact_count:$(ZIG) build smoke --build-file "
+            "zigux/tests/phase12_build.zig --summary all:count=0:expected=1"
+        )
+        if expected_missing not in failures or expected_missing_exact not in failures:
+            print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST=fail")
+            print("phase12-smoke-missing-guard")
+            for failure in failures:
+                print(failure)
+            return 1
+
+        duplicate_smoke_makefile = original_makefile.replace(
+            "phase12: phase12-test\n",
+            "phase12: phase12-test\nphase12-smoke:\n\t$(ZIG) build smoke --build-file zigux/tests/phase12_build.zig --summary all\n",
+            1,
+        )
+        makefile_path.write_text(duplicate_smoke_makefile, encoding="utf-8")
+        failures = validate(root)
+        expected_duplicate = (
+            "makefile_exact_count:phase12-smoke::count=2:expected=1"
+        )
+        expected_duplicate_run = (
+            "makefile_exact_count:$(ZIG) build smoke --build-file "
+            "zigux/tests/phase12_build.zig --summary all:count=2:expected=1"
+        )
+        if expected_duplicate not in failures or expected_duplicate_run not in failures:
+            print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST=fail")
+            print("phase12-smoke-duplicate-guard")
             for failure in failures:
                 print(failure)
             return 1
