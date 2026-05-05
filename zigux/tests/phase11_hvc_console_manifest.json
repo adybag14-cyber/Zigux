@@ -30,21 +30,28 @@
       "status": "starter_landed",
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase11_hvc_console_survey.zig",
-      "why_now": "The archival survey gate now verifies that the bounded hvc_console starter includes the setup-state, close-boundary, remove-path handoff, and tty-registration handoff helper while keeping the remaining notifier, sysrq, and host-backed behavior gaps reviewable."
+      "why_now": "The archival survey gate now verifies that the bounded hvc_console starter includes the setup-state, close-boundary, cleanup handoff, remove-path handoff, and tty-registration handoff helper while keeping the remaining notifier, sysrq, and host-backed behavior gaps reviewable."
     },
     {
       "id": "phase11-hvc-console-survey-note",
       "status": "starter_landed",
       "kind": "documentation",
       "zigux_destination": "Documentation/zigux/phase11-hvc-console-survey.md",
-      "why_now": "The survey note now records that the original missing-driver gap has been closed by a bounded starter, the setup-versus-close boundary helper, the remove-path handoff summary, and the tty-registration handoff summary while preserving an explicit checkpoint for the remaining notifier, sysrq, and host-backed teardown work."
+      "why_now": "The survey note now records that the original missing-driver gap has been closed by a bounded starter, the setup-versus-close boundary helper, the cleanup handoff summary, the remove-path handoff summary, and the tty-registration handoff summary while preserving an explicit checkpoint for the remaining notifier, sysrq, and host-backed teardown work."
     },
     {
       "id": "phase11-hvc-console-driver-starter",
       "status": "starter_landed",
       "kind": "simple_driver_starter",
       "zigux_destination": "drivers/tty/hvc/hvc_console.zig",
-      "why_now": "The bounded starter is now landed around descriptor metadata, setup-time slot validation, CRLF write framing, flush intent, final-close wait-boundary summaries, remove-path teardown handoff, and a tty-registration handoff summary without claiming live tty registration, notifier execution, or live hypervisor I/O."
+      "why_now": "The bounded starter is now landed around descriptor metadata, setup-time slot validation, CRLF write framing, flush intent, final-close wait-boundary summaries, cleanup handoff, remove-path teardown handoff, and a tty-registration handoff summary without claiming live tty registration, notifier execution, or live hypervisor I/O."
+    },
+    {
+      "id": "phase11-hvc-console-cleanup-handoff",
+      "status": "starter_landed",
+      "kind": "simple_driver_starter",
+      "zigux_destination": "drivers/tty/hvc/hvc_console.zig",
+      "why_now": "A tiny cleanup handoff summary now keeps final-close and hangup-driven tty_port_put() release reviewable, fails closed if the tty-port reference is already gone, and leaves final destruction deferred to the tty-port lifecycle before any live tty teardown or notifier execution lands."
     },
     {
       "id": "phase11-hvc-console-remove-handoff",
@@ -65,7 +72,7 @@
       "status": "starter_landed",
       "kind": "documentation",
       "zigux_destination": "Documentation/zigux/phase11-hvc-console-validation-matrix.md",
-      "why_now": "The first kernel-integration validation matrix now names the shared Phase 11 test gate, the bounded close-wait teardown evidence, the landed tty-registration handoff, and the still-pending notifier-facing and sysrq-facing follow-up without claiming host-backed I/O."
+      "why_now": "The first kernel-integration validation matrix now names the shared Phase 11 test gate, the bounded close-wait teardown evidence, the landed cleanup replay, the landed tty-registration handoff, and the still-pending notifier-facing and sysrq-facing follow-up without claiming host-backed I/O."
     },
     {
       "id": "phase11-hvc-console-tty-and-teardown-parity",
