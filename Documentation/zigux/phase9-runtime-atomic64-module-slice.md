@@ -6,6 +6,7 @@ This document tracks the first bounded Phase 9 runtime atomic64 starter under `s
 
 - `PHASE9_STATUS=active`
 - `PHASE9_SLICE=runtime-atomic64-module-starter`
+- `PHASE9_LANE_KEY=P9-L02`
 - scope: lifecycle starter, selftest hook surface, guarded lifecycle parity evidence, dedicated Phase 9 test wiring, a bounded loader-handoff scaffold, the shared request-surface proof, dedicated runtime survey gate, survey-note ownership closure, and survey-manifest closure only
 - product boundary:
   - `samples/zigux/runtime_atomic64.zig`
