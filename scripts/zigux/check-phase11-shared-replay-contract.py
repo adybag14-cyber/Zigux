@@ -24,8 +24,8 @@ REQUIRED_CONTRACT_MARKERS = [
     "`Documentation/zigux/phase11-uapi-header-parity-survey.md`",
     "`scripts/zigux/check-phase11-header-boundary-packet.py`",
     "`zigux/tests/phase11_uapi_header_parity_manifest.json`",
-    "`zigux/tests/fixtures/phase11_build_inventory.json`",
     "there is no dedicated shared `validate-phase11.py` on `master`",
+    "there is no shipped `zigux/tests/fixtures/phase11_build_inventory.json` on `master`",
     "there is no broader multi-checker Phase 11 validator stack on `master`",
 ]
 
@@ -167,7 +167,6 @@ def write_fixture_tree(root: Path) -> None:
 * `zigux/tests/phase11_hvc_cleanup.zig`
 * `zigux/tests/phase11_hvc_console_survey.zig`
 * `zigux/tests/phase11_uapi_header_parity_manifest.json`
-* `zigux/tests/fixtures/phase11_build_inventory.json`
 * `zigux/Makefile`
 
 ## Shared Replay Commands
@@ -177,7 +176,8 @@ def write_fixture_tree(root: Path) -> None:
 ## What This Contract Does Not Claim
 * there is no shared `make -C zigux phase11-validate` target on `master`
 * there is no dedicated shared `validate-phase11.py` on `master`
-* beyond the focused `scripts/zigux/check-phase11-header-boundary-packet.py` route and its coupled manifest, survey note, survey replay, and committed `zigux/tests/fixtures/phase11_build_inventory.json`, there is no broader multi-checker Phase 11 validator stack on `master`
+* there is no shipped `zigux/tests/fixtures/phase11_build_inventory.json` on `master`
+* beyond the focused `scripts/zigux/check-phase11-header-boundary-packet.py` route and its coupled manifest, survey note, and survey replay, there is no broader multi-checker Phase 11 validator stack on `master`
 """,
     )
     write(
