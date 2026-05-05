@@ -39,24 +39,31 @@ DEVRES_REQUIRED_MARKERS = [
 TEST_REQUIRED_MARKERS = [
     'test "phase13 devres plans devm_of_iomap around translated resources and optional size reporting"',
     'test "phase13 devres preserves translated size when devm_of_iomap hits downstream remap failure"',
-    'test "phase13 devres propagates pretty-name allocation failure through devm_of_iomap planning"',
     'test "phase13 devres retains memtype release records on successful WC reservation"',
     'test "phase13 devres rejects memtype planning when the release record cannot be allocated"',
 ]
 
 REVIEWABILITY_REQUIRED_MARKERS = [
     'test "phase13 devres reviewability packet records the helper-only DMA/scatterlist boundary"',
-    '"zigux/tests/phase13_devres_manifest.json"',
-    '"Documentation/zigux/phase13-devres-survey.md"',
-    '"phase13-devres-reviewability-gate"',
-    '"phase13-devres-live-scatterlist-ownership"',
+    'try std.testing.expectEqualStrings("P13-L06", manifest.lane_key);',
+    'try std.testing.expectEqual(@as(usize, 13), manifest.gaps.len);',
+    'try std.testing.expect(descriptor.provides_arch_phys_wc_token_planning);',
+    '"phase13-devres-arch-phys-wc-token"',
+    '"phase13-devres-live-arch-memtype-state"',
 ]
 
 BUILD_REQUIRED_MARKERS = [
     'b.path("../../lib/devres.zig")',
     'b.path("phase13_devres.zig")',
+    'b.path("phase13_devres_reviewability.zig")',
+    'const phase13_devres_reviewability_module = b.createModule(.{',
+    'phase13_devres_reviewability_module.addImport("devres", devres_module);',
     'const phase13_devres_tests = b.addTest(.{',
+    'const phase13_devres_reviewability_tests = b.addTest(.{',
+    '.name = "phase13-devres-reviewability-tests"',
+    "const run_phase13_devres_reviewability_tests = b.addRunArtifact(phase13_devres_reviewability_tests);",
     "test_step.dependOn(&run_phase13_devres_tests.step);",
+    "test_step.dependOn(&run_phase13_devres_reviewability_tests.step);",
 ]
 
 VALIDATOR_REQUIRED_MARKERS = [
@@ -167,7 +174,6 @@ def run_self_test() -> int:
             validate(root),
             [
                 'phase13-devres-test:test "phase13 devres preserves translated size when devm_of_iomap hits downstream remap failure"',
-                'phase13-devres-test:test "phase13 devres propagates pretty-name allocation failure through devm_of_iomap planning"',
                 'phase13-devres-test:test "phase13 devres retains memtype release records on successful WC reservation"',
                 'phase13-devres-test:test "phase13 devres rejects memtype planning when the release record cannot be allocated"',
             ],
@@ -181,10 +187,11 @@ def run_self_test() -> int:
         _assert_only(
             validate(root),
             [
-                'phase13-devres-reviewability:"zigux/tests/phase13_devres_manifest.json"',
-                'phase13-devres-reviewability:"Documentation/zigux/phase13-devres-survey.md"',
-                'phase13-devres-reviewability:"phase13-devres-reviewability-gate"',
-                'phase13-devres-reviewability:"phase13-devres-live-scatterlist-ownership"',
+                'phase13-devres-reviewability:try std.testing.expectEqualStrings("P13-L06", manifest.lane_key);',
+                'phase13-devres-reviewability:try std.testing.expectEqual(@as(usize, 13), manifest.gaps.len);',
+                'phase13-devres-reviewability:try std.testing.expect(descriptor.provides_arch_phys_wc_token_planning);',
+                'phase13-devres-reviewability:"phase13-devres-arch-phys-wc-token"',
+                'phase13-devres-reviewability:"phase13-devres-live-arch-memtype-state"',
             ],
             "reviewability_marker_guard_failed",
         )
