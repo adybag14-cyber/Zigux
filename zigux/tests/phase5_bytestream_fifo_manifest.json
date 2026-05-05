@@ -46,7 +46,7 @@
     {
       "id": "bounded-helper-behavior",
       "kind": "helper_contract",
-      "expected": "peek and skip return null when empty, pushing past capacity returns false, and reset restores an empty queue"
+      "expected": "empty peek and skip return null, empty enqueue copies 0 bytes, overflow push is rejected at the 32-byte capacity, skip-at-capacity returns 0, and reset restores an empty queue with pop-after-reset null"
     },
     {
       "id": "lifecycle-boundary",
