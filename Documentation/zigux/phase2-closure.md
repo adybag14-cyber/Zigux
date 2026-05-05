@@ -92,6 +92,8 @@ Phase 2 is only considered closed when all of the following are green:
 
 The bounded Phase 2 bootstrap archive pin stays separate from the cross-target compile matrix:
 
+- `PHASE2_TOOLCHAIN_PIN_TARGET_COUNT=1`
+- `PHASE2_TOOLCHAIN_PIN_TARGETS=x86_64-linux`
 - `scripts/zigux/zig-toolchain-policy.json` keeps the current bootstrap archive pin limited to `x86_64-linux` until new runner evidence lands.
 - `Documentation/zigux/phase2-toolchain-bootstrap-notes.md`, `Documentation/zigux/README.md`, and `Documentation/zigux/review-checklist.md` keep that pinning note tied to the same shared validator and closure packet instead of leaving it as stand-alone reference text.
 
