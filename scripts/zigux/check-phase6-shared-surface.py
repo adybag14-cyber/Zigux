@@ -80,6 +80,11 @@ REQUIRED_SNIPPETS = {
     ],
 }
 
+REQUIRED_SHARED_PATHS = [
+    "Documentation/zigux/phase6-bsearch-slice.md",
+    "zigux/tests/phase6_bsearch.zig",
+]
+
 REQUIRED_EXISTING_PATHS = [
     "zigux/tests/fixtures/phase6_checksum_vectors.zig",
     "zigux/tests/fixtures/phase6_hexdump_vectors.zig",
@@ -100,6 +105,10 @@ def run_checks(repo_root: Path) -> None:
             if snippet not in content:
                 raise ValidationError(f"missing expected Phase 6 marker in {rel_path}: {snippet}")
 
+    for rel_path in REQUIRED_SHARED_PATHS:
+        if not (repo_root / rel_path).exists():
+            raise ValidationError(f"missing expected Phase 6 shared-surface file: {rel_path}")
+
     for rel_path in REQUIRED_EXISTING_PATHS:
         if not (repo_root / rel_path).exists():
             raise ValidationError(f"missing expected Phase 6 shared-surface file: {rel_path}")
@@ -115,10 +124,23 @@ def run_self_test() -> None:
         root = Path(tmpdir)
         for rel_path, snippets in REQUIRED_SNIPPETS.items():
             write(root / rel_path, "\n".join(snippets) + "\n")
+        for rel_path in REQUIRED_SHARED_PATHS:
+            write(root / rel_path, "present\n")
         for rel_path in REQUIRED_EXISTING_PATHS:
             write(root / rel_path, "present\n")
 
         run_checks(root)
+
+        missing_shared_path = REQUIRED_SHARED_PATHS[0]
+        (root / missing_shared_path).unlink()
+        try:
+            run_checks(root)
+        except ValidationError as exc:
+            if missing_shared_path not in str(exc):
+                raise AssertionError(f"unexpected shared-path failure: {exc}") from exc
+        else:
+            raise AssertionError("expected shared-path failure")
+        write(root / missing_shared_path, "present\n")
 
         (root / REQUIRED_EXISTING_PATHS[0]).unlink()
         try:
