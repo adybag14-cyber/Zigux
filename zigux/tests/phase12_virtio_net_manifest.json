@@ -78,10 +78,17 @@
     },
     {
       "id": "phase12-virtio-net-receive-refill-followup",
+      "status": "starter_landed",
+      "kind": "complex_driver_followup",
+      "zigux_destination": "drivers/net/virtio_net.zig",
+      "why_now": "The receive-refill follow-up is now landed as one bounded packet-path step that keeps mergeable-buffer headroom, fresh probe replay after restore, and RSS-aware refill requirements explicit before any live DMA, NAPI, or netdev lifecycle work."
+    },
+    {
+      "id": "phase12-virtio-net-transmit-recycle-followup",
       "status": "ready_next",
       "kind": "complex_driver_followup",
       "zigux_destination": "drivers/net/virtio_net.zig",
-      "why_now": "After queue-recovery scope is explicit, the next honest virtio_net step is one bounded receive-refill planning follow-up around mergeable-buffer headroom, fresh probe replay after restore, or RSS reapply notes before any live DMA, NAPI, or netdev lifecycle work."
+      "why_now": "With receive-refill planning explicit, the next honest virtio_net step is one bounded completion-side packet recycle follow-up around completion-side packet recycle ordering, control-virtqueue refill coordination, or RSS-aware queue reuse before any live DMA, NAPI, or netdev lifecycle work."
     },
     {
       "id": "phase12-virtio-net-runtime-data-path",
