@@ -10,23 +10,27 @@ This document tracks the bounded Phase 8 userspace-adjacent tooling slice for Zi
 - product boundary:
   - `tools/lib/symbol/kallsyms.zig`
   - `zigux/tests/phase8_kallsyms.zig`
+  - `zigux/tests/phase8_kallsyms_only_build.zig`
   - `zigux/tests/phase8_build.zig`
 
 ## Why this slice exists
 
 The Phase 8 roadmap explicitly names `tools/lib/symbol/kallsyms.c` as a userspace-adjacent tooling anchor and recommends `tools/lib/symbol/*.zig` as a bounded Zigux destination for this tranche.
 
-The live repo already had the parse-first `kallsyms.zig` starter plus the injected chunked reader surface, and the previous bounded follow-up added thin reader-backed and path-backed adapters. The remaining lane-local gap was one direct `kallsyms__parse()`-adjacent wrapper that keeps the file-oriented callback shape visible to callers without widening into ELF emission or downstream symbol plumbing.
+The live repo already had the parse-first `kallsyms.zig` starter plus the injected chunked reader surface, and the previous bounded follow-up added thin reader-backed and path-backed adapters. The remaining lane-local gap was one direct `kallsymsParse()`-adjacent wrapper that keeps the file-oriented callback shape visible to callers without widening into ELF emission or downstream symbol plumbing.
 
 ## Gates
 
 1. run the focused Zig module tests
 - `zig test tools/lib/symbol/kallsyms.zig`
 
-2. run the dedicated Phase 8 tooling gate
+2. run the focused shard replay
+- `zig build test --build-file zigux/tests/phase8_kallsyms_only_build.zig --summary all`
+
+3. run the dedicated Phase 8 tooling gate
 - `zig build test --build-file zigux/tests/phase8_build.zig`
 
-3. run the convenience target
+4. run the convenience target
 - `make -C zigux phase8`
 
 ## Current parity surface
@@ -51,6 +55,7 @@ The current tests check:
 - split records still parse correctly when a file-like reader delivers partial lines and CRLF endings across chunk boundaries
 - the new reader and path adapters preserve the same callback and malformed-line behavior as the lower-level parser
 - the direct wrapper reuses that same path surface while presenting a `void *arg` plus null-terminated symbol-name callback shape and preserving non-zero stop codes
+- the focused `phase8_kallsyms_only_build.zig` shard keeps the parked parser-and-wrapper packet reviewable without rerunning the whole Phase 8 bundle
 - oversized symbol names raise an explicit bounded error instead of silently widening the lane
 - injected callback failures bubble out unchanged so the starter parser does not hide downstream review or tooling errors
 
