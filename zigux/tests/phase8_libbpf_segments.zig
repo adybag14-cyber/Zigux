@@ -199,10 +199,16 @@ test "phase 8 libbpf helper slice notes stay parked once the shared tooling bund
     );
     defer std.testing.allocator.free(type_names_note);
 
+    try expectContains(phase8_note, "PHASE8_STATUS=parked");
+    try expectContains(phase8_note, "tools/lib/bpf/zigux_segments/manifest.json");
+    try expectContains(phase8_note, "tools/lib/bpf/zigux_segments/cpu_mask.zig");
+    try expectContains(phase8_note, "zigux/tests/phase8_cpu_mask.zig");
     try expectContains(phase8_note, "tools/lib/bpf/zigux_segments/logging.zig");
     try expectContains(phase8_note, "zigux/tests/phase8_logging.zig");
     try expectContains(phase8_note, "tools/lib/bpf/zigux_segments/pin_path.zig");
     try expectContains(phase8_note, "zigux/tests/phase8_pin_path.zig");
+    try expectContains(phase8_note, "zigux/tests/phase8_libbpf_segments.zig");
+    try expectContains(phase8_note, "zigux/tests/phase8_build.zig");
 
     try expectContains(cpu_mask_note, "PHASE8_STATUS=parked");
     try expectContains(cpu_mask_note, "tools/lib/bpf/zigux_segments/cpu_mask.zig");
