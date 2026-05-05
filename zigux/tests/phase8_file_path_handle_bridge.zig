@@ -49,6 +49,19 @@ test "phase 8 file-path handle bridge helper stays wired into its focused Phase 
     try expectContains(focused_build_file, "phase8-file-path-handle-bridge-tests");
 }
 
+test "phase 8 file-path handle bridge helper stays wired into the shared Phase 8 build shard" {
+    const shared_build_file = try readWorkspaceFile(
+        std.testing.allocator,
+        "zigux/tests/phase8_build.zig",
+        32 * 1024,
+    );
+    defer std.testing.allocator.free(shared_build_file);
+
+    try expectContains(shared_build_file, "../../tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig");
+    try expectContains(shared_build_file, "phase8_file_path_handle_bridge.zig");
+    try expectContains(shared_build_file, "phase8-file-path-handle-bridge-tests");
+}
+
 test "phase 8 file-path handle bridge helper keeps proc fdinfo path formatting explicit" {
     var buffer: [64]u8 = undefined;
 
