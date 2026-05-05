@@ -1,13 +1,13 @@
 # Phase 13 Notifier/List Survey
 
-lane key: `P13-L13`
+lane key: `P13-L17`
 phase: `Phase 13`
 surveyed commit: `master-reviewability`
 scope: roadmap-adjacent reviewability evidence only
 
 ## Why this packet exists
 
-Phase 13 is still scheduled around `fs/libfs.c`, `lib/devres.c`, and the two Landlock anchors. The live tree nevertheless carries a small notifier-plus-list foothold through `zigux/bindings/notifier_abi.zig`, `zigux/helpers/list_view.zig`, `zigux/helpers/hlist_view.zig`, and the exported list or hlist structs in `include/zigux/abi.h`. This note keeps that adjacent surface reviewable without recasting notifier work as a new shared-helper delivery anchor.
+Phase 13 is still scheduled around `fs/libfs.c`, `lib/devres.c`, and the two Landlock anchors. The live tree nevertheless carries a small notifier-plus-list foothold through `zigux/bindings/notifier_abi.zig`, `zigux/helpers/list_view.zig`, `zigux/helpers/hlist_view.zig`, and the exported list or hlist structs in `include/zigux/abi.h`. This note keeps that adjacent surface reviewable without recasting notifier work as a new shared-helper delivery anchor. Lane `P13-L17` keeps this packet reviewable while leaving the unpublished helper-side follow-up to `P13-L18`.
 
 ## Current live evidence
 
@@ -18,8 +18,8 @@ Phase 13 is still scheduled around `fs/libfs.c`, `lib/devres.c`, and the two Lan
 
 ## Remaining bounded gaps
 
-- no read-only notifier chain helper on current `master`; `zigux/helpers/notifier_chain_view.zig` remains the next helper-local follow-up if this lane reopens
-- no dedicated exported notifier C header yet; `include/zigux/notifier_abi.h` remains a separate interop follow-up rather than a hidden current capability
+- no read-only notifier chain helper on current `master`; `zigux/helpers/notifier_chain_view.zig` remains the `P13-L18` helper-local follow-up if this lane reopens
+- no dedicated exported notifier C header yet; `include/zigux/notifier_abi.h` stays with the same `P13-L18` interop follow-up rather than becoming a hidden current capability
 
 ## Non-goals
 
