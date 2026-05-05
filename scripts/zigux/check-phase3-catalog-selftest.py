@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import argparse
 
-from phase3_catalog import run_self_test
+from phase3_catalog import PHASE3_CATALOG_SELF_TEST_CASE_COUNT, run_self_test
 
 
 PHASE3_CATALOG_SELF_TEST_MARKER = "PHASE3_CATALOG_SELF_TEST=pass"
@@ -26,6 +26,7 @@ def main() -> int:
     result = run_self_test()
     if result == 0:
         print(PHASE3_CATALOG_SELF_TEST_MARKER)
+        print(f"PHASE3_CATALOG_SELF_TEST_CASE_COUNT={PHASE3_CATALOG_SELF_TEST_CASE_COUNT}")
     return result
 
 
