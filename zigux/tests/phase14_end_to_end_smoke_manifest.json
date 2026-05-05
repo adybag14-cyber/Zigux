@@ -5,12 +5,11 @@
   "focus": "study_only_shared_smoke_packet",
   "rollback_owner": "keep the freeze-map anchors in C and reopen only with stronger evidence",
   "commands": [
-    "make -C zigux phase14-validate",
     "make -C zigux phase14-smoke",
     "zig build phase14-smoke --build-file zigux/tests/phase14_build.zig --summary all",
     "make -C zigux phase14-test",
-    "make -C zigux phase14",
-    "zig build test --build-file zigux/tests/phase14_build.zig --summary all"
+    "zig build test --build-file zigux/tests/phase14_build.zig --summary all",
+    "make -C zigux phase14"
   ],
   "surfaces": [
     {
@@ -18,28 +17,20 @@
       "required_marker": "Phase 14 notes"
     },
     {
+      "path": "Documentation/zigux/phase14-end-to-end-smoke-survey.md",
+      "required_marker": "PHASE14_VALIDATE_ENTRYPOINT=absent_on_master"
+    },
+    {
       "path": "Documentation/zigux/phase14-release-boundary-survey.md",
       "required_marker": "PHASE14_RELEASE_BOUNDARY=present"
-    },
-    {
-      "path": "Documentation/zigux/review-checklist.md",
-      "required_marker": "shared Phase 14 smoke packet"
-    },
-    {
-      "path": "scripts/zigux/README.md",
-      "required_marker": "make -C zigux phase14-validate"
-    },
-    {
-      "path": "scripts/zigux/validate-phase14.py",
-      "required_marker": "PHASE14_VALIDATE_PACKET=shared_smoke"
     },
     {
       "path": "Documentation/zigux/freeze-map.md",
       "required_marker": "kernel/workqueue.c"
     },
     {
-      "path": ".github/workflows/zigux-bootstrap.yml",
-      "required_marker": "Validate Phase 14 shared smoke packet"
+      "path": "Documentation/zigux/review-checklist.md",
+      "required_marker": "shared Phase 14 smoke packet"
     },
     {
       "path": "zigux/tests/README.md",
@@ -58,14 +49,6 @@
       "required_marker": "phase14 skbuff bridge manifest records the boundary-map foothold and frozen ownership gap"
     },
     {
-      "path": "zigux/tests/phase14_workqueue_bridge_manifest.json",
-      "required_marker": "phase14-workqueue-live-execution-blocker"
-    },
-    {
-      "path": "zigux/tests/phase14_skbuff_bridge_manifest.json",
-      "required_marker": "phase14-skbuff-live-ownership-blocker"
-    },
-    {
       "path": "zigux/tests/phase14_ring_buffer_survey.zig",
       "required_marker": "phase 14 ring-buffer survey manifest records the study-only gap without inventing a port"
     },
@@ -74,20 +57,16 @@
       "required_marker": "phase 14 rcu tree survey manifest records the freeze-boundary gap without inventing a bridge"
     },
     {
-      "path": "zigux/tests/phase14_ring_buffer_manifest.json",
-      "required_marker": "phase14-ring-buffer-zig-port-blocker"
+      "path": "zigux/tests/phase14_end_to_end_smoke_survey.zig",
+      "required_marker": "phase14 shared smoke survey confirms the current packet surfaces"
     },
     {
-      "path": "zigux/tests/phase14_rcu_tree_manifest.json",
-      "required_marker": "phase14-rcu-tree-bridge-blocker"
+      "path": "zigux/tests/phase14_end_to_end_smoke_manifest.json",
+      "required_marker": "phase14_shared_smoke_packet"
     },
     {
-      "path": "kernel/workqueue_bridge.zig",
-      "required_marker": "workqueue bridge boundary map records stay-in-c decisions"
-    },
-    {
-      "path": "net/core/skbuff_bridge.zig",
-      "required_marker": "skbuff bridge boundary map records stay-in-c lifetime decisions"
+      "path": "zigux/Makefile",
+      "required_marker": "phase14: phase14-smoke phase14-test"
     }
   ],
   "blocked_anchors": [
