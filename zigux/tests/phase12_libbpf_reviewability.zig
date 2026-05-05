@@ -71,6 +71,7 @@ test "phase12 libbpf reviewability gate matches the current zigux_segments file 
     var saw_landed_pin_path = false;
     var saw_blocked_skeleton = false;
     var saw_blocked_object_loader = false;
+    var saw_blocked_relocation = false;
 
     for (manifest.gaps) |gap| {
         if (!std.mem.startsWith(u8, gap.zigux_destination, "tools/lib/bpf/zigux_segments/")) {
@@ -80,7 +81,7 @@ test "phase12 libbpf reviewability gate matches the current zigux_segments file 
         const exists = try pathExists(io_instance.io(), gap.zigux_destination);
         if (std.mem.eql(u8, gap.status, "starter_landed")) {
             try std.testing.expect(exists);
-        } else if (std.mem.eql(u8, gap.status, "ready_next") or std.mem.eql(u8, gap.status, "blocked_on_object_model")) {
+        } else if (std.mem.eql(u8, gap.status, "ready_next") or std.mem.eql(u8, gap.status, "blocked_on_object_model") or std.mem.eql(u8, gap.status, "deferred_high_risk")) {
             try std.testing.expect(!exists);
         }
 
@@ -112,6 +113,10 @@ test "phase12 libbpf reviewability gate matches the current zigux_segments file 
             saw_blocked_object_loader = true;
             try std.testing.expect(!exists);
         }
+        if (std.mem.eql(u8, gap.id, "phase12-libbpf-btf-relocation-and-program-load")) {
+            saw_blocked_relocation = true;
+            try std.testing.expect(!exists);
+        }
     }
 
     try std.testing.expect(saw_landed_manifest);
@@ -121,6 +126,7 @@ test "phase12 libbpf reviewability gate matches the current zigux_segments file 
     try std.testing.expect(saw_landed_pin_path);
     try std.testing.expect(saw_blocked_skeleton);
     try std.testing.expect(saw_blocked_object_loader);
+    try std.testing.expect(saw_blocked_relocation);
 }
 
 test "phase12 libbpf reviewability gate still compiles the landed helper foundations" {
