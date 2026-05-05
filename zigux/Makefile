@@ -162,6 +162,7 @@ phase8-test:
 phase8: phase8-validate phase8-test
 
 phase9-test:
+	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase9-build-only-surface.py
 	cd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase9_build.zig
 
 phase9: phase9-test
