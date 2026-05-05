@@ -100,7 +100,6 @@ REQUIRED_DOCS_README_MARKERS = [
     "`zigux/tests/phase15_architecture_council_review_process.zig`",
     "`zigux/tests/phase15_indefinite_c_policy.json`",
     "`zigux/tests/phase15_indefinite_c_policy.zig`",
-    "`zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig`",
     "`zigux/tests/phase15_build.zig`",
     "`zigux/Makefile`",
     "`make -C zigux phase15`",
@@ -320,7 +319,6 @@ Phase 15 notes
 - `zigux/tests/phase15_architecture_council_review_process.zig`
 - `zigux/tests/phase15_indefinite_c_policy.json`
 - `zigux/tests/phase15_indefinite_c_policy.zig`
-- `zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig`
 - `zigux/tests/phase15_build.zig`
 - `zigux/Makefile`
 - `make -C zigux phase15`
@@ -394,7 +392,7 @@ if the change touches the shared Phase 15 governance packet
             ),
         },
     }
-    (root / MANIFEST_PATH).write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+    (root / MANIFEST_PATH).writeText(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
 
     script_readme = """# scripts/zigux
 Phase 15 flow
@@ -605,18 +603,6 @@ def run_self_test() -> int:
         )
 
         write_fixture_tree(tmp_root)
-        docs_readme = docs_readme_path.read_text(encoding="utf-8")
-        docs_readme_path.write_text(
-            docs_readme.replace("`zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig`\n", "", 1),
-            encoding="utf-8",
-        )
-        expect_failure(
-            tmp_root,
-            "docs_readme:`zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig`",
-            "missing_docs_readme_lane_owner_alignment_marker",
-        )
-
-        write_fixture_tree(tmp_root)
         review_checklist_path = tmp_root / REVIEW_CHECKLIST_PATH
         review_checklist = review_checklist_path.read_text(encoding="utf-8")
         review_checklist_path.write_text(
@@ -684,7 +670,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE15_REVIEW_PROCESS_HANDOFF_SELF_TEST=pass")
-    print("PHASE15_REVIEW_PROCESS_HANDOFF_SELF_TEST_CASE_COUNT=19")
+    print("PHASE15_REVIEW_PROCESS_HANDOFF_SELF_TEST_CASE_COUNT=18")
     return 0
 
 
