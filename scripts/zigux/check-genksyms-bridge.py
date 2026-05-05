@@ -344,12 +344,14 @@ def run_self_test() -> None:
     )
 
     cases = load_cases_manifest()
-    if len(cases) != 26:
-        raise SystemExit(f'genksyms-bridge:self-test:case_count={len(cases)},expected=26')
+    if len(cases) != 27:
+        raise SystemExit(f'genksyms-bridge:self-test:case_count={len(cases)},expected=27')
     if cases[0].get('name') != 'minimal':
         raise SystemExit(
             f"genksyms-bridge:self-test:first_case={cases[0].get('name')!r},expected='minimal'"
         )
+    if not any(case.get('name') == 'help_with_unexpected_argument' for case in cases):
+        raise SystemExit('genksyms-bridge:self-test:missing_help_with_unexpected_argument_case')
 
     with tempfile.TemporaryDirectory(prefix='zigux_genksyms_bridge_selftest_') as tmp_dir_str:
         tmp_dir = Path(tmp_dir_str)
@@ -395,7 +397,7 @@ def run_self_test() -> None:
         )
 
     print('PHASE2_GENKSYMS_BRIDGE_SELF_TEST=pass')
-    print('PHASE2_GENKSYMS_BRIDGE_SELF_TEST_CASE_COUNT=26')
+    print('PHASE2_GENKSYMS_BRIDGE_SELF_TEST_CASE_COUNT=27')
 
 
 def main() -> int:
