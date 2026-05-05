@@ -36,7 +36,7 @@
     {
       "id": "phase13-libfs-starter",
       "status": "starter_landed",
-      "kind": "filesystem_helper_surface",
+      "kind": "filesystem_helper_wrapper",
       "zigux_destination": "fs/libfs.zig",
       "why_now": "The landed starter already mirrors the pure helper-facing shape of simple_statfs(), always_delete_dentry(), and simple_lookup() without claiming live dcache mutation, inode locking, or VFS registration."
     },
@@ -45,7 +45,7 @@
       "status": "starter_landed",
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase13_libfs.zig",
-      "why_now": "Dedicated starter tests keep the current helper packet honest around split fsid packing, default statfs values, negative-dentry discard intent, casefold passthrough, buffer-copy accounting, seek-policy bounds, and directory-emit handoff bookkeeping."
+      "why_now": "Dedicated starter tests keep the current wrapper honest around split fsid packing, default statfs values, negative-dentry discard intent, casefold passthrough, buffer-copy accounting, seek-policy bounds, and directory-emit handoff bookkeeping."
     },
     {
       "id": "phase13-libfs-slice-note",
@@ -71,23 +71,30 @@
     {
       "id": "phase13-libfs-offset-seek-helper",
       "status": "starter_landed",
-      "kind": "filesystem_helper_surface",
+      "kind": "filesystem_helper_wrapper",
       "zigux_destination": "fs/libfs.zig",
       "why_now": "The libfs helper lab now models the early seek-policy surface from dcache_dir_lseek() and offset_dir_llseek() in pure planning form, including SEEK_SET and SEEK_CUR handling, negative-offset rejection, max-position bounds, and whether a positive-entry scan would become necessary."
     },
     {
       "id": "phase13-libfs-directory-emit-helper",
       "status": "starter_landed",
-      "kind": "filesystem_helper_surface",
+      "kind": "filesystem_helper_wrapper",
       "zigux_destination": "fs/libfs.zig",
       "why_now": "The libfs helper lab now adds one tiny dcache_readdir()-adjacent emit planner that models the dir_emit_dots() handoff, the transition into positive entry scanning, emitted-entry position accounting, and the early stop case before any live cursor dentries or inode-backed state are touched."
     },
     {
-      "id": "phase13-libfs-transaction-buffer-followup",
-      "status": "ready_next",
-      "kind": "filesystem_helper_surface",
+      "id": "phase13-libfs-transaction-buffer-helper",
+      "status": "starter_landed",
+      "kind": "filesystem_helper_wrapper",
       "zigux_destination": "fs/libfs.zig",
-      "why_now": "The next honest step is one bounded simple_transaction-style staging buffer helper, keeping the work in pure in-memory sizing and cursor bookkeeping before any live dentries, inode state, or pseudo-filesystem plumbing is attempted."
+      "why_now": "The libfs helper lab now models the pure `simple_transaction_get()` acquire path, including the page-bounded staging-buffer size limit, the single-write-per-open guard, and the empty-response starting state before any live file-local publish, read, or release behavior is claimed."
+    },
+    {
+      "id": "phase13-libfs-transaction-publish-helper",
+      "status": "ready_next",
+      "kind": "filesystem_helper_wrapper",
+      "zigux_destination": "fs/libfs.zig",
+      "why_now": "The next honest transaction-family step is a tiny `simple_transaction_set()` publish planner that keeps the work in response-size validation and publish bookkeeping before any live readback or release state is modeled."
     }
   ]
 }
