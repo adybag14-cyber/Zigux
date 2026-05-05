@@ -6,10 +6,11 @@ This document tracks the first bounded `drivers/virtio/virtio_input.c` lab helpe
 
 - `PHASE10_STATUS=active`
 - `PHASE10_SLICE=virtio-input-lab-helper`
-- scope: config identity snapshots, bounded property and event config bitmap summaries, bounded ABS metadata summaries, bounded capability-setup staging, bounded multitouch slot planning, event and status queue planning, static event-buffer fill behavior, ready-state gating, multitouch timestamp suppression, dedicated Phase 10 input tests, and a slice note only
+- scope: config identity snapshots, bounded property and event config bitmap summaries, bounded ABS metadata summaries, bounded capability-setup staging, bounded multitouch slot planning, event and status queue planning, static event-buffer fill behavior, ready-state gating, multitouch timestamp suppression, bounded status-completion drain summaries, dedicated Phase 10 input tests, and a slice note only
 - product boundary:
   - `drivers/virtio/virtio_input.zig`
   - `zigux/tests/phase10_virtio_input.zig`
+  - `zigux/tests/phase10_virtio_input_status_drain.zig`
   - `zigux/tests/phase10_build.zig`
   - `zigux/Makefile`
 
@@ -31,7 +32,8 @@ The live repo now has a bounded `drivers/virtio/virtio_input.zig` helper plus de
 - static event-buffer fill accounting capped to the helper's in-memory event-buffer capacity
 - ready-state gating so status sends stay blocked until both queues are configured
 - multitouch `EV_MSC` and `MSC_TIMESTAMP` suppression bookkeeping that mirrors the loop-prevention branch in `virtio_input.c`
-- dedicated Phase 10 tests and build wiring for the helper
+- in-memory status-completion drain summaries that reclaim queued status sends without touching suppressed multitouch counters
+- dedicated Phase 10 tests and build wiring for the helper, including a focused status-drain replay
 
 ## Non-goals
 
@@ -52,4 +54,4 @@ This slice does not yet claim:
 
 ## Next bounded step
 
-Stay in the Phase 10 virtio_input lane and prefer one small validation, survey, manifest, or helper-test truthfulness repair next so the lab slice stays reviewable before any transport, interrupt, or input-device registration work.
+Stay in the Phase 10 virtio_input lane and prefer one small manifest, survey, or helper-test truthfulness repair next so the lab slice stays reviewable before any transport, interrupt, or input-device registration work.
