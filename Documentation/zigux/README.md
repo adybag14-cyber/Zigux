@@ -129,13 +129,14 @@ Phase 11 notes
 Phase 12 notes
 - `Documentation/zigux/phase12-nvme-pci-slice.md`
 - `Documentation/zigux/phase12-nvme-pci-survey.md`
+- `Documentation/zigux/phase12-nvme-pci-raw-github-fallback-map.md`
 - `Documentation/zigux/phase12-virtio-net-survey.md`
 - `Documentation/zigux/phase12-virtio-scsi-slice.md`
 - `Documentation/zigux/phase12-virtio-scsi-survey.md`
 - `Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md`
 - `Documentation/zigux/phase12-libbpf-segment-survey.md`
 - `zigux/tests/phase12_build.zig` and `make -C zigux phase12` now keep the current nvme pci, virtio_net, virtio_scsi, and libbpf survey-backed complex-driver bundle reviewable through the shipped Phase 12 build-and-make lane instead of implying removed validator or PMO checker surfaces.
-- the current shared Phase 12 review surface on `master` is `Documentation/zigux/README.md`, `Documentation/zigux/phase12-release-sequencing.md`, `Documentation/zigux/phase12-nvme-pci-slice.md`, `Documentation/zigux/phase12-nvme-pci-survey.md`, `Documentation/zigux/phase12-virtio-net-survey.md`, `Documentation/zigux/phase12-virtio-scsi-slice.md`, `Documentation/zigux/phase12-virtio-scsi-survey.md`, `Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md`, `Documentation/zigux/phase12-libbpf-segment-survey.md`, `zigux/tests/phase12_build.zig`, the bounded Phase 12 nvme, virtio_net, virtio_scsi, and libbpf test modules wired through that build, the committed Phase 12 manifests under `zigux/tests/`, `tools/lib/bpf/zigux_segments/manifest.json`, and `zigux/Makefile`.
+- the current shared Phase 12 review surface on `master` is `Documentation/zigux/README.md`, `Documentation/zigux/phase12-release-sequencing.md`, `Documentation/zigux/phase12-nvme-pci-slice.md`, `Documentation/zigux/phase12-nvme-pci-survey.md`, `Documentation/zigux/phase12-nvme-pci-raw-github-fallback-map.md`, `Documentation/zigux/phase12-virtio-net-survey.md`, `Documentation/zigux/phase12-virtio-scsi-slice.md`, `Documentation/zigux/phase12-virtio-scsi-survey.md`, `Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md`, `Documentation/zigux/phase12-libbpf-segment-survey.md`, `zigux/tests/phase12_build.zig`, the bounded Phase 12 nvme, virtio_net, virtio_scsi, and libbpf test modules wired through that build, the committed Phase 12 manifests under `zigux/tests/`, `tools/lib/bpf/zigux_segments/manifest.json`, and `zigux/Makefile`.
 - there is no dedicated shared `validate-phase12.py`, `check-phase12-*.py`, or `phase12-validate` target on `master`; future Phase 12 reviewability claims should name only shipped survey, build, and make surfaces until new validator files actually land.
 
 Phase 13 notes
