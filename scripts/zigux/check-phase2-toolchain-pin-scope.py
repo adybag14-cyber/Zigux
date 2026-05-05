@@ -228,6 +228,14 @@ def run_self_test() -> int:
     if validate_phase2_notes(valid_notes, payload=valid_policy):
         raise SystemExit("phase2-toolchain-pin-scope:self-test:valid_notes")
 
+    valid_readme = "\n".join(README_MARKERS)
+    if validate_required_markers(
+        valid_readme,
+        label="scripts_readme",
+        markers=README_MARKERS,
+    ):
+        raise SystemExit("phase2-toolchain-pin-scope:self-test:valid_readme")
+
     valid_docs_root = "\n".join(DOCS_ROOT_MARKERS)
     if validate_required_markers(
         valid_docs_root,
@@ -243,6 +251,22 @@ def run_self_test() -> int:
         markers=REVIEW_CHECKLIST_MARKERS,
     ):
         raise SystemExit("phase2-toolchain-pin-scope:self-test:valid_review_checklist")
+
+    valid_closure = "\n".join(CLOSURE_MARKERS)
+    if validate_required_markers(
+        valid_closure,
+        label="phase2_closure_doc",
+        markers=CLOSURE_MARKERS,
+    ):
+        raise SystemExit("phase2-toolchain-pin-scope:self-test:valid_closure")
+
+    valid_phase2_validator = "\n".join(PHASE2_VALIDATOR_MARKERS)
+    if validate_required_markers(
+        valid_phase2_validator,
+        label="phase2_validator",
+        markers=PHASE2_VALIDATOR_MARKERS,
+    ):
+        raise SystemExit("phase2-toolchain-pin-scope:self-test:valid_phase2_validator")
 
     bad_phase = dict(valid_policy)
     bad_phase["phase"] = "Phase 3"
@@ -336,6 +360,14 @@ def run_self_test() -> int:
     if marker_issues != ["sample:missing_marker:delta"]:
         raise SystemExit("phase2-toolchain-pin-scope:self-test:marker_failure_shape")
 
+    readme_issues = validate_required_markers(
+        "check-phase2-toolchain-pin-scope.py --self-test\ncheck-phase2-toolchain-pin-scope.py",
+        label="scripts_readme",
+        markers=README_MARKERS,
+    )
+    if not any(issue.startswith("scripts_readme:missing_marker:") for issue in readme_issues):
+        raise SystemExit("phase2-toolchain-pin-scope:self-test:readme_marker_failure")
+
     docs_root_issues = validate_required_markers(
         "Documentation/zigux/phase2-toolchain-bootstrap-notes.md\nscripts/zigux/check-phase2-toolchain-pin-scope.py --self-test",
         label="docs_root_readme",
@@ -352,6 +384,22 @@ def run_self_test() -> int:
     if not any(issue.startswith("review_checklist:missing_marker:") for issue in review_issues):
         raise SystemExit("phase2-toolchain-pin-scope:self-test:review_marker_failure")
 
+    closure_issues = validate_required_markers(
+        "PHASE2_TOOLCHAIN_PIN_TARGET_COUNT=1\nPHASE2_TOOLCHAIN_PIN_TARGETS=x86_64-linux",
+        label="phase2_closure_doc",
+        markers=CLOSURE_MARKERS,
+    )
+    if not any(issue.startswith("phase2_closure_doc:missing_marker:") for issue in closure_issues):
+        raise SystemExit("phase2-toolchain-pin-scope:self-test:closure_marker_failure")
+
+    validator_issues = validate_required_markers(
+        "TOOLCHAIN_PIN_SCOPE_CHECKER = ROOT / \"scripts\" / \"zigux\" / \"check-phase2-toolchain-pin-scope.py\"",
+        label="phase2_validator",
+        markers=PHASE2_VALIDATOR_MARKERS,
+    )
+    if not any(issue.startswith("phase2_validator:missing_marker:") for issue in validator_issues):
+        raise SystemExit("phase2-toolchain-pin-scope:self-test:phase2_validator_marker_failure")
+
     with tempfile.TemporaryDirectory(prefix="phase2_toolchain_pin_scope_") as tmp_dir_str:
         tmp_root = Path(tmp_dir_str)
         manifest_path = tmp_root / "toolchain.json"
@@ -361,7 +409,7 @@ def run_self_test() -> int:
             raise SystemExit("phase2-toolchain-pin-scope:self-test:json_round_trip")
 
     print("PHASE2_TOOLCHAIN_PIN_SCOPE_SELF_TEST=pass")
-    print("PHASE2_TOOLCHAIN_PIN_SCOPE_SELF_TEST_CASE_COUNT=14")
+    print("PHASE2_TOOLCHAIN_PIN_SCOPE_SELF_TEST_CASE_COUNT=22")
     return 0
 
 
