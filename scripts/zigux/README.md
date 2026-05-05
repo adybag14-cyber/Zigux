@@ -30,9 +30,16 @@ Current bootstrap helpers
 - `validate-phase4.py`
 - `check-phase4-gate-evidence.py`
 - `check-phase6-shared-surface.py`
+- `validate-phase7.py`
+- `check-phase7-make-wrapper.py`
+- `check-phase7-argv-split-packet.py`
+- `check-phase7-rbtree-parity.py`
+- `validate-phase8.py`
+- `check-phase8-exec-cmd-packet.py`
 - `check-phase9-build-only-surface.py`
 - `check-phase10-core-packet.py`
 - `check-phase10-input-packet.py`
+- `check-phase10-mmio-packet.py`
 - `check-phase11-shared-replay-contract.py`
 - `check-build-only-phase12-surface.py`
 - `validate-phase13-release.py`
