@@ -174,7 +174,7 @@ test "phase 15 architecture council review-process manifest records the bounded 
     try std.testing.expect(saw_build);
     try std.testing.expect(saw_parity_baseline);
     try std.testing.expect(saw_archive_followup);
-    try std.testing.expect(saw_retirementRule);
+    try std.testing.expect(saw_retirement_rule);
     try std.testing.expect(saw_reopen_followup);
 }
 
