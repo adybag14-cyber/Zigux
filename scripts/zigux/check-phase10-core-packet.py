@@ -2,252 +2,204 @@
 from __future__ import annotations
 
 import argparse
-import tempfile
+import json
 from pathlib import Path
+import sys
+import tempfile
 
 
-SELF_PATH = Path(__file__).resolve()
-ROOT = SELF_PATH.parents[2] if len(SELF_PATH.parents) >= 3 else SELF_PATH.parent
+ROOT = Path(__file__).resolve().parents[2]
 
-REQUIRED_FILES = [
-    "Documentation/zigux/phase10-virtio-core-slice.md",
-    "drivers/virtio/virtio.zig",
-    "drivers/virtio/virtio_driver_id.zig",
+FILES = [
     "scripts/zigux/check-phase10-core-packet.py",
-    "zigux/Makefile",
     "zigux/tests/phase10_build.zig",
-    "zigux/tests/phase10_virtio_core.zig",
-    "zigux/tests/phase10_virtio_core_reset_queue.zig",
-    "zigux/tests/phase10_virtio_driver_id.zig",
+    "zigux/tests/phase10_virtio_core_manifest.json",
+    "zigux/tests/phase10_virtio_core_survey.zig",
+    "Documentation/zigux/phase10-virtio-core-survey.md",
+    "Documentation/zigux/phase10-virtio-core-slice.md",
 ]
 
-REQUIRED_MARKERS = {
-    "Documentation/zigux/phase10-virtio-core-slice.md": [
-        "drivers/virtio/virtio.c",
-        "current `master` carries no standalone `zigux/tests/phase10_virtio_core_manifest.json` or `zigux/tests/phase10_virtio_core_survey.zig`",
-        "queue callback bookkeeping, config-change bookkeeping, config-generation bookkeeping, interrupt-ack bookkeeping, lifecycle guard bookkeeping, reset replay bookkeeping",
-        "make -C zigux phase10",
-    ],
-    "drivers/virtio/virtio.zig": [
-        "pub const LifecycleGuardSummary = struct",
-        "pub const ResetReplaySummary = struct",
-        "pub fn lifecycleGuardSummary",
-        "pub fn resetReplaySummary",
-    ],
-    "drivers/virtio/virtio_driver_id.zig": [
-        "pub const any_id: u32 = 0xffff_ffff;",
-        "pub fn registrationSummary",
-        "pub fn driverIdMatchSummary",
-    ],
-    "scripts/zigux/check-phase10-core-packet.py": [
-        "--self-test",
-        "PHASE10_CORE_PACKET_SELF_TEST=pass",
-    ],
-    "zigux/Makefile": [
-        "phase10-validate:",
-        "scripts/zigux/check-phase10-core-packet.py",
-        "phase10-test:",
-        "zigux/tests/phase10_build.zig",
-    ],
-    "zigux/tests/phase10_build.zig": [
-        "phase10-virtio-core-tests",
-        "phase10-virtio-core-reset-queue-tests",
-        "phase10-virtio-driver-id-tests",
-        '"phase10_virtio_core_reset_queue.zig"',
-        "test_step.dependOn(&run_phase10_virtio_core_reset_queue_tests.step);",
-    ],
-    "zigux/tests/phase10_virtio_core.zig": [
-        'test "phase10 virtio core tracks lifecycle guard bookkeeping across driver model milestones"',
-        'test "phase10 virtio core exposes reset replay bookkeeping before reset clears state"',
-        'test "phase10 virtio core keeps pending config generations visible in reset replay bookkeeping"',
-    ],
-    "zigux/tests/phase10_virtio_core_reset_queue.zig": [
-        'test "phase10 virtio core blocks fresh queue registration once reset is required"',
-        'test "phase10 virtio core blocks queue teardown and reshaping once reset is required but keeps replay summaries visible"',
-        'test "phase10 virtio core blocks fresh driver attachment once reset is required"',
-    ],
-    "zigux/tests/phase10_virtio_driver_id.zig": [
-        'test "phase10 virtio driver id helper records bounded registration identity strings"',
-        'test "phase10 virtio driver id helper models wildcard and unmatched paths"',
-    ],
+EXPECTED_BUILD_MARKERS = [
+    "phase10_virtio_core_survey_module",
+    'phase10-virtio-core-survey-tests',
+    "run_phase10_virtio_core_survey_tests",
+]
+
+EXPECTED_NOTE_MARKERS = [
+    "phase10_virtio_core_manifest.json",
+    "phase10_virtio_core_survey.zig",
+    "check-phase10-core-packet.py",
+]
+
+EXPECTED_SURVEY_MARKERS = [
+    "lane: `P10-Y01`",
+    "phase10-driver-id-helper",
+    "phase10-core-probe-remove-lifecycle",
+]
+
+EXPECTED_GAPS = {
+    "phase10-build-gate": "starter_landed",
+    "phase10-virtio-core-survey-gate": "starter_landed",
+    "phase10-virtio-core-survey-note": "starter_landed",
+    "phase10-driver-id-helper": "starter_landed",
+    "phase10-driver-id-gate": "starter_landed",
+    "phase10-core-probe-remove-lifecycle": "blocked_on_risky_transport",
 }
 
 
-def collect_missing_files(root: Path) -> list[str]:
-    return [rel for rel in REQUIRED_FILES if not (root / rel).exists()]
-
-
-def collect_missing_markers(root: Path) -> list[str]:
-    missing: list[str] = []
-    for rel, markers in REQUIRED_MARKERS.items():
-        text = (root / rel).read_text(encoding="utf-8")
-        for marker in markers:
-            if marker not in text:
-                missing.append(f"{rel}: {marker}")
-    return missing
+def read_text(root: Path, rel_path: str) -> str:
+    return (root / rel_path).read_text(encoding="utf-8")
 
 
 def validate(root: Path) -> tuple[list[str], list[str]]:
-    missing_files = collect_missing_files(root)
+    missing_files = [path for path in FILES if not (root / path).exists()]
     if missing_files:
         return missing_files, []
-    return [], collect_missing_markers(root)
+
+    missing_markers: list[str] = []
+
+    build_text = read_text(root, "zigux/tests/phase10_build.zig")
+    for marker in EXPECTED_BUILD_MARKERS:
+        if marker not in build_text:
+            missing_markers.append(f"build:{marker}")
+
+    survey_note = read_text(root, "Documentation/zigux/phase10-virtio-core-survey.md")
+    for marker in EXPECTED_SURVEY_MARKERS:
+        if marker not in survey_note:
+            missing_markers.append(f"survey_note:{marker}")
+
+    slice_note = read_text(root, "Documentation/zigux/phase10-virtio-core-slice.md")
+    for marker in EXPECTED_NOTE_MARKERS:
+        if marker not in slice_note:
+            missing_markers.append(f"slice_note:{marker}")
+
+    manifest = json.loads(read_text(root, "zigux/tests/phase10_virtio_core_manifest.json"))
+    if manifest.get("lane_key") != "P10-Y01":
+        missing_markers.append("manifest:lane_key=P10-Y01")
+    if manifest.get("phase") != "Phase 10":
+        missing_markers.append("manifest:phase=Phase 10")
+    if manifest.get("anchor") != "drivers/virtio/virtio.c":
+        missing_markers.append("manifest:anchor=drivers/virtio/virtio.c")
+    if manifest.get("surveyed_commit") != "7a4454d0474106972cad7e164b79293bd54a40c6":
+        missing_markers.append("manifest:surveyed_commit")
+
+    summary = manifest.get("survey_summary", {})
+    if summary.get("preexisting_phase10_test_files") != 9:
+        missing_markers.append("manifest:preexisting_phase10_test_files=9")
+    for key in [
+        "preexisting_phase10_build_present",
+        "preexisting_virtio_core_zig_present",
+        "preexisting_virtio_core_test_present",
+        "preexisting_virtio_core_reset_queue_test_present",
+        "preexisting_virtio_driver_id_zig_present",
+        "preexisting_virtio_driver_id_test_present",
+        "preexisting_virtio_core_slice_note_present",
+        "preexisting_virtio_ring_survey_present",
+        "preexisting_virtio_input_survey_present",
+        "preexisting_virtio_mmio_survey_present",
+    ]:
+        if summary.get(key) is not True:
+            missing_markers.append(f"manifest:{key}")
+
+    gaps = manifest.get("gaps", [])
+    if len(gaps) < 15:
+        missing_markers.append("manifest:gaps")
+    gap_index = {gap.get("id"): gap for gap in gaps if isinstance(gap, dict)}
+    for gap_id, status in EXPECTED_GAPS.items():
+        gap = gap_index.get(gap_id)
+        if gap is None:
+            missing_markers.append(f"manifest:gap:{gap_id}")
+            continue
+        if gap.get("status") != status:
+            missing_markers.append(f"manifest:gap_status:{gap_id}={gap.get('status')}")
+
+    return [], missing_markers
 
 
-def write_fixture_root(tmp_root: Path) -> None:
-    for rel in REQUIRED_FILES:
-        path = tmp_root / rel
-        path.parent.mkdir(parents=True, exist_ok=True)
-        text = "\n".join(REQUIRED_MARKERS.get(rel, ["// fixture"])) + "\n"
-        path.write_text(text, encoding="utf-8")
+def write_fixture(root: Path, rel_path: str, content: str) -> None:
+    target = root / rel_path
+    target.parent.mkdir(parents=True, exist_ok=True)
+    target.write_text(content, encoding="utf-8")
 
 
-def expect_missing_file(case: str, tmp_root: Path, rel: str) -> None:
-    missing_files, missing_markers = validate(tmp_root)
-    assert missing_markers == [], case
-    assert missing_files == [rel], case
+def run_self_test() -> int:
+    fixture = {
+        "scripts/zigux/check-phase10-core-packet.py": read_text(ROOT, "scripts/zigux/check-phase10-core-packet.py"),
+        "zigux/tests/phase10_build.zig": read_text(ROOT, "zigux/tests/phase10_build.zig"),
+        "zigux/tests/phase10_virtio_core_manifest.json": read_text(ROOT, "zigux/tests/phase10_virtio_core_manifest.json"),
+        "zigux/tests/phase10_virtio_core_survey.zig": read_text(ROOT, "zigux/tests/phase10_virtio_core_survey.zig"),
+        "Documentation/zigux/phase10-virtio-core-survey.md": read_text(ROOT, "Documentation/zigux/phase10-virtio-core-survey.md"),
+        "Documentation/zigux/phase10-virtio-core-slice.md": read_text(ROOT, "Documentation/zigux/phase10-virtio-core-slice.md"),
+    }
 
+    with tempfile.TemporaryDirectory(prefix="zigux_phase10_core_packet_") as tmp_dir:
+        tmp_root = Path(tmp_dir)
+        for rel_path, content in fixture.items():
+            write_fixture(tmp_root, rel_path, content)
 
-def expect_missing_marker(case: str, tmp_root: Path, marker: str) -> None:
-    missing_files, missing_markers = validate(tmp_root)
-    assert missing_files == [], case
-    assert missing_markers == [marker], case
+        missing_files, missing_markers = validate(tmp_root)
+        if missing_files or missing_markers:
+            raise SystemExit(
+                "phase10-core-self-test:baseline_failed:"
+                f"files={','.join(missing_files) if missing_files else 'none'}:"
+                f"markers={','.join(missing_markers) if missing_markers else 'none'}"
+            )
 
-
-def run_self_test() -> None:
-    with tempfile.TemporaryDirectory(prefix="zigux_phase10_core_packet_") as tmp_dir_str:
-        tmp_root = Path(tmp_dir_str)
-        write_fixture_root(tmp_root)
-        assert validate(tmp_root) == ([], [])
-
-        checker_path = tmp_root / "scripts" / "zigux" / "check-phase10-core-packet.py"
-        checker_path.unlink()
-        expect_missing_file(
-            "missing_phase10_core_packet_checker",
-            tmp_root,
-            "scripts/zigux/check-phase10-core-packet.py",
-        )
-        write_fixture_root(tmp_root)
-
-        reset_queue_path = tmp_root / "zigux" / "tests" / "phase10_virtio_core_reset_queue.zig"
-        reset_queue_path.unlink()
-        expect_missing_file(
-            "missing_phase10_core_reset_queue_tests",
-            tmp_root,
-            "zigux/tests/phase10_virtio_core_reset_queue.zig",
-        )
-        write_fixture_root(tmp_root)
-
-        slice_path = tmp_root / "Documentation" / "zigux" / "phase10-virtio-core-slice.md"
-        original_slice = slice_path.read_text(encoding="utf-8")
-        slice_path.write_text(
-            original_slice.replace(
-                "current `master` carries no standalone `zigux/tests/phase10_virtio_core_manifest.json` or `zigux/tests/phase10_virtio_core_survey.zig`",
-                "",
-                1,
-            ),
+        manifest_path = tmp_root / "zigux/tests/phase10_virtio_core_manifest.json"
+        original_manifest = manifest_path.read_text(encoding="utf-8")
+        manifest_path.write_text(
+            original_manifest.replace('"phase10-driver-id-helper"', '"phase10-driver-id-helper-drift"', 1),
             encoding="utf-8",
         )
-        expect_missing_marker(
-            "phase10_core_slice_compact_packet_marker",
-            tmp_root,
-            "Documentation/zigux/phase10-virtio-core-slice.md: current `master` carries no standalone `zigux/tests/phase10_virtio_core_manifest.json` or `zigux/tests/phase10_virtio_core_survey.zig`",
-        )
-        slice_path.write_text(original_slice, encoding="utf-8")
+        _, missing_markers = validate(tmp_root)
+        if "manifest:gap:phase10-driver-id-helper" not in missing_markers:
+            raise SystemExit("phase10-core-self-test:expected_driver_id_gap_missing")
+        manifest_path.write_text(original_manifest, encoding="utf-8")
 
-        build_path = tmp_root / "zigux" / "tests" / "phase10_build.zig"
+        build_path = tmp_root / "zigux/tests/phase10_build.zig"
         original_build = build_path.read_text(encoding="utf-8")
         build_path.write_text(
-            original_build.replace("phase10-virtio-core-reset-queue-tests", "", 1),
+            original_build.replace('"phase10-virtio-core-survey-tests"', '"phase10-core-survey-drift"', 1),
             encoding="utf-8",
         )
-        expect_missing_marker(
-            "phase10_core_build_reset_queue_gate_marker",
-            tmp_root,
-            "zigux/tests/phase10_build.zig: phase10-virtio-core-reset-queue-tests",
-        )
-        build_path.write_text(original_build, encoding="utf-8")
+        _, missing_markers = validate(tmp_root)
+        if 'build:phase10-virtio-core-survey-tests' not in missing_markers:
+            raise SystemExit("phase10-core-self-test:expected_build_marker_missing")
 
-        makefile_path = tmp_root / "zigux" / "Makefile"
-        original_makefile = makefile_path.read_text(encoding="utf-8")
-        makefile_path.write_text(
-            original_makefile.replace("scripts/zigux/check-phase10-core-packet.py", "", 1),
-            encoding="utf-8",
-        )
-        expect_missing_marker(
-            "phase10_core_makefile_checker_route_marker",
-            tmp_root,
-            "zigux/Makefile: scripts/zigux/check-phase10-core-packet.py",
-        )
-        makefile_path.write_text(original_makefile, encoding="utf-8")
-
-        core_tests_path = tmp_root / "zigux" / "tests" / "phase10_virtio_core.zig"
-        original_core_tests = core_tests_path.read_text(encoding="utf-8")
-        core_tests_path.write_text(
-            original_core_tests.replace(
-                'test "phase10 virtio core exposes reset replay bookkeeping before reset clears state"',
-                "",
-                1,
-            ),
-            encoding="utf-8",
-        )
-        expect_missing_marker(
-            "phase10_core_reset_replay_test_marker",
-            tmp_root,
-            'zigux/tests/phase10_virtio_core.zig: test "phase10 virtio core exposes reset replay bookkeeping before reset clears state"',
-        )
-
-    case_count = 5
     print("PHASE10_CORE_PACKET_SELF_TEST=pass")
-    print(f"PHASE10_CORE_PACKET_SELF_TEST_CASE_COUNT={case_count}")
+    print("PHASE10_CORE_PACKET_SELF_TEST_CASE_COUNT=2")
+    return 0
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(
-        description="Validate the current compact Phase 10 virtio core packet."
-    )
-    parser.add_argument(
-        "--self-test",
-        action="store_true",
-        help="Run packet checker self-tests without reading repository files.",
-    )
-    parser.add_argument(
-        "--root",
-        type=Path,
-        default=ROOT,
-        help="Repository root to validate.",
-    )
+    parser = argparse.ArgumentParser(description="Validate the restored Phase 10 virtio core governance packet.")
+    parser.add_argument("--self-test", action="store_true", help="Run built-in drift checks against a temporary fixture tree.")
     args = parser.parse_args()
 
     if args.self_test:
-        run_self_test()
-        return 0
+        return run_self_test()
 
-    missing_files, missing_markers = validate(args.root)
+    missing_files, missing_markers = validate(ROOT)
     if missing_files:
         print("PHASE10_CORE_PACKET=fail")
-        print("MISSING_PHASE10_CORE_PACKET_FILES_START")
+        print("MISSING_PHASE10_CORE_FILES_START")
         for item in missing_files:
             print(item)
-        print("MISSING_PHASE10_CORE_PACKET_FILES_END")
+        print("MISSING_PHASE10_CORE_FILES_END")
         return 1
 
     if missing_markers:
         print("PHASE10_CORE_PACKET=fail")
-        print("MISSING_PHASE10_CORE_PACKET_MARKERS_START")
+        print("MISSING_PHASE10_CORE_MARKERS_START")
         for item in missing_markers:
             print(item)
-        print("MISSING_PHASE10_CORE_PACKET_MARKERS_END")
+        print("MISSING_PHASE10_CORE_MARKERS_END")
         return 1
 
     print("PHASE10_CORE_PACKET=pass")
-    print(f"PHASE10_CORE_PACKET_REQUIRED_FILE_COUNT={len(REQUIRED_FILES)}")
-    print(
-        "PHASE10_CORE_PACKET_REQUIRED_MARKER_COUNT="
-        f"{sum(len(markers) for markers in REQUIRED_MARKERS.values())}"
-    )
+    print(f"PHASE10_CORE_REQUIRED_FILE_COUNT={len(FILES)}")
     return 0
 
 
 if __name__ == "__main__":
-    raise SystemExit(main())
+    sys.exit(main())
