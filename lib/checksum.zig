@@ -63,19 +63,18 @@ pub fn tcpUdpNofold(sum: u32, saddr: u32, daddr: u32, len: u16, proto: u8) u32 {
 }
 
 pub fn partial(bytes: []const u8, seed: u32) u32 {
-    var sum = normalize(seed);
+    var sum: u64 = normalize(seed);
     var index: usize = 0;
 
     while (index + 1 < bytes.len) : (index += 2) {
-        const word = (@as(u32, bytes[index]) << 8) | bytes[index + 1];
-        sum = add(sum, word);
+        sum += (@as(u64, bytes[index]) << 8) | bytes[index + 1];
     }
 
     if (index < bytes.len) {
-        sum = add(sum, @as(u32, bytes[index]) << 8);
+        sum += @as(u64, bytes[index]) << 8;
     }
 
-    return normalize(sum);
+    return normalizeWide(sum);
 }
 
 pub fn compute(bytes: []const u8) u16 {
@@ -88,6 +87,14 @@ fn normalize(sum: u32) u32 {
         value = (value & 0xffff) + (value >> 16);
     }
     return value;
+}
+
+fn normalizeWide(sum: u64) u32 {
+    var value = sum;
+    while ((value >> 16) != 0) {
+        value = (value & 0xffff) + (value >> 16);
+    }
+    return @intCast(value);
 }
 
 fn unfold(sum: u16) u32 {
