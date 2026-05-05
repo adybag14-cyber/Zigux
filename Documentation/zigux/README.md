@@ -29,6 +29,7 @@ Phase 1 notes
 - `zigux/tests/phase1_helpers.zig`
 - `zigux/tests/phase1_bench.zig`
 - `zigux/tests/fixtures/phase1_helper_manifest.json`
+- `zigux/tests/fixtures/phase1_bench_expectations.json`
 - `scripts/zigux/validate-phase1.py`
 - `scripts/zigux/validate-phase1-closure.py`
 - `scripts/zigux/check-phase1-parity.py`
