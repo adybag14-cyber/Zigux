@@ -36,6 +36,8 @@ DOCS_ROOT_MARKERS = [
     "python3 scripts/zigux/check-phase2-cross.py",
     "python3 scripts/zigux/check-phase2-cross-selftest-alignment.py --self-test",
     "python3 scripts/zigux/check-phase2-cross-selftest-alignment.py",
+    "python3 scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test",
+    "python3 scripts/zigux/check-phase2-toolchain-pin-scope.py",
     "make -C zigux phase2-validate",
     "make -C zigux phase2",
 ]
@@ -44,6 +46,8 @@ REVIEW_CHECKLIST_MARKERS = [
     "zigux/tests/README.md",
     "zigux/tests/fixtures/phase2_cross_targets.json",
     "scripts/zigux/check-phase2-tests-readme-alignment.py",
+    "scripts/zigux/check-phase2-cross-selftest-alignment.py",
+    "scripts/zigux/check-phase2-toolchain-pin-scope.py",
     "python3 scripts/zigux/install-zig.py --self-test",
     "python3 scripts/zigux/check-zig-toolchain.py --self-test",
     "make -C zigux phase2-validate",
@@ -176,6 +180,8 @@ def run_self_test() -> int:
         assert "docs_root:python3 scripts/zigux/check-phase2-cross.py" in issues
         assert "docs_root:python3 scripts/zigux/check-phase2-cross-selftest-alignment.py --self-test" in issues
         assert "docs_root:python3 scripts/zigux/check-phase2-cross-selftest-alignment.py" in issues
+        assert "docs_root:python3 scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test" in issues
+        assert "docs_root:python3 scripts/zigux/check-phase2-toolchain-pin-scope.py" in issues
         assert "makefile:check-phase2-tests-readme-alignment.py" in issues
         assert "makefile:phase2: phase2-validate phase2-tools phase2-kconfig phase2-cross" in issues
 
@@ -232,6 +238,23 @@ def run_self_test() -> int:
         assert "review_checklist:zigux/tests/README.md" in issues
 
         build_self_test_root(root)
+        write_text(
+            root / "Documentation/zigux/review-checklist.md",
+            "\n".join([
+                "zigux/tests/README.md",
+                "zigux/tests/fixtures/phase2_cross_targets.json",
+                "scripts/zigux/check-phase2-tests-readme-alignment.py",
+                "python3 scripts/zigux/install-zig.py --self-test",
+                "python3 scripts/zigux/check-zig-toolchain.py --self-test",
+                "make -C zigux phase2-validate",
+                "make -C zigux phase2",
+            ]) + "\n",
+        )
+        issues = validate_root(root)
+        assert "review_checklist:scripts/zigux/check-phase2-cross-selftest-alignment.py" in issues
+        assert "review_checklist:scripts/zigux/check-phase2-toolchain-pin-scope.py" in issues
+
+        build_self_test_root(root)
         (root / "scripts/zigux/check-phase2-tests-readme-alignment.py").unlink()
         issues = validate_root(root)
         assert "missing_file:scripts/zigux/check-phase2-tests-readme-alignment.py" in issues
@@ -252,7 +275,7 @@ def run_self_test() -> int:
         assert "missing_file:zigux/tests/fixtures/phase2_cross_targets.json" in issues
 
     print("PHASE2_TESTS_README_ALIGNMENT_SELF_TEST=pass")
-    print("PHASE2_TESTS_README_ALIGNMENT_SELF_TEST_CASE_COUNT=10")
+    print("PHASE2_TESTS_README_ALIGNMENT_SELF_TEST_CASE_COUNT=11")
     return 0
 
 
