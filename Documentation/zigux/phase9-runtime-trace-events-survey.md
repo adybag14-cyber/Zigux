@@ -36,6 +36,7 @@ The live repo originally had no matching trace-events survey artifact, no dedica
 - the current loader scaffold now records explicit tracepoint register and unregister API names, the prepared handoff-stage summary, and a prepared snapshot that stays stable even if later sample replay mutates local counters before runtime handoff.
 - the live repo now also carries `zigux/kernel/runtime_loader.zig` as the shared request surface for the bounded Phase 9 loader-handoff packet, and the trace-events starter consumes that shared request lifecycle through `prepareSharedRequest`, `requestSharedRuntimeLoad`, `releaseSharedWithoutSubstrate`, and a focused shared-plan drift check before any live registration claim.
 - the trace-events starter still stops before a real module-loading substrate or live tracepoint registration lifecycle, so the shipped handoff remains reviewable as pre-execution request shaping, metadata-only registration labels, and release-without-substrate behavior rather than executable runtime registration parity.
+- the manifest-backed ownership packet now records a four-entry `delivery_evidence_catalog` and a six-surface `ownership_map`, tying the survey note, module-slice note, dedicated survey gate, shared `phase9_build` bundle, starter sample, and loader scaffold to lane `P9-L08` while leaving shared runtime-substrate work outside this packet.
 
 ## Recorded gaps
 
