@@ -44,6 +44,9 @@ Key entrypoints
 - `zigux/tests/phase11_build.zig`
 - `zigux/tests/phase11_hvc_console_survey.zig`
 - `zigux/tests/phase12_build.zig`
+- `zigux/tests/phase12_virtio_net_survey.zig`
+- `zigux/tests/phase12_virtio_scsi_survey.zig`
+- `zigux/tests/phase12_virtio_scsi.zig`
 - `zigux/tests/phase12_libbpf_segments.zig`
 - `zigux/tests/phase12_libbpf_reviewability.zig`
 - `zigux/tests/phase3_abi.zig`
