@@ -87,7 +87,7 @@ Every retained stay-in-C closeout must cite at least one of these catalog items 
 
 - no Architecture Council approval is currently recorded for a freeze-map status change
 - the current bounded evidence is the freeze map, this review-process note, the review checklist hook, and `Documentation/zigux/phase15-parity-scorecard.md`
-- current review-process evidence is limited to named `owner`, `rollback owner`, evidence archive, blocker-disposition, benchmark-notes, replay-command, retained-discussion-state, and reopen-trigger records in the review packet plus the anchor-specific rollback-owner records in the parity scorecard
+- current review-process evidence is limited to named `owner`, `rollback owner`, evidence archive, blocker-disposition, benchmark-notes, replay-command, retained-discussion-state, and reopen-trigger records in the review packet plus the validator-first `make -C zigux phase15-validate` route and the anchor-specific rollback-owner records in the parity scorecard
 - until both the review record and the parity scorecard say otherwise, every freeze-in-C anchor remains blocked from an approval claim
 
 ## Recorded Gaps
@@ -117,10 +117,13 @@ This slice does not claim:
 
 ## Gates
 
-1. run the dedicated Phase 15 build
+1. run the validator-first route
+- `make -C zigux phase15-validate`
+
+2. run the dedicated Phase 15 build
 - `zig build test --build-file zigux/tests/phase15_build.zig`
 
-2. run the convenience target
+3. run the convenience target
 - `make -C zigux phase15`
 
 ## Next bounded step
