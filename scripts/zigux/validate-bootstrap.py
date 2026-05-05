@@ -650,13 +650,13 @@ if phase2_tests_readme_makefile_count_issues:
     sys.exit(1)
 
 phase2_shared_validation_workflow_exact_counts = {
-    'workflow:step:Validate Phase 2 fixdep files': 1,
+    'workflow:step:Validate Phase 2 shared validator packet': 1,
     'workflow:step:Validate Phase 2 closure': 1,
     'workflow:run:python3 scripts/zigux/validate-phase2.py': 1,
     'workflow:run:python3 scripts/zigux/validate-phase2-closure.py': 1,
 }
 phase2_shared_validation_workflow_observed_counts = {
-    'workflow:step:Validate Phase 2 fixdep files': workflow.count('Validate Phase 2 fixdep files'),
+    'workflow:step:Validate Phase 2 shared validator packet': workflow.count('Validate Phase 2 shared validator packet'),
     'workflow:step:Validate Phase 2 closure': workflow.count('Validate Phase 2 closure'),
     'workflow:run:python3 scripts/zigux/validate-phase2.py': len(
         re.findall(
