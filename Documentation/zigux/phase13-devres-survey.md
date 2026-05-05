@@ -6,7 +6,7 @@ This document records the bounded Phase 13 survey lane around `lib/devres.c`.
 
 - `PHASE13_STATUS=active`
 - `PHASE13_SLICE=devres-dma-scatterlist-boundary-survey`
-- survey provenance refreshed against verified master head `e59df689d080aa11773adda87f00c2d650caade8`
+- survey provenance recorded against the current master reviewability snapshot
 - scope: the landed `lib/devres.zig` helper lab, its dedicated Phase 13 test, the focused reviewability gate, the shared Phase 13 build and make wiring, and the lane notes that compare the current helper-only DMA/scatterlist boundary against the roadmap
 - product boundary:
   - `lib/devres.zig`
