@@ -14,4 +14,6 @@ The starter stays intentionally narrow:
 
 This slice does not claim platform-driver registration, watchdog-core registration, MMIO access, delayed restart behavior, module parameter wiring beyond bookkeeping, live remove-time poweroff-handler release logic, or live poweroff integration yet.
 
-The next honest bounded step inside the same Phase 11 lane is to add a tiny hardware-validation matrix before any platform registration or poweroff-handler work.
+The current hardware-validation matrix now records that bounded validation posture in one place.
+
+The next honest bounded step inside the same Phase 11 lane is to add a tiny platform-facing handoff note that builds on the landed hardware-validation matrix before any platform registration, PM base plumbing, or live poweroff-handler work.
