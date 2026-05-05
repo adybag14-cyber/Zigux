@@ -123,10 +123,10 @@ test "phase 7 rbtree survey manifest records the landed runtime leaf surface and
     }
 
     try expectContains(slice_note, "PHASE7_LANE_KEY=P7-Y05");
-    try expectContains(validate_phase7, "ROOT / \"scripts\" / \"zigux\" / \"check-phase7-rbtree-parity.py\"");
-    try expectContains(validate_phase7, "ROOT / \"zigux\" / \"tests\" / \"phase7_rbtree.zig\"");
-    try expectContains(validate_phase7, "ROOT / \"zigux\" / \"tests\" / \"phase7_rbtree_survey.zig\"");
-    try expectContains(validate_phase7, "ROOT / \"zigux\" / \"tests\" / \"phase7_rbtree_manifest.json\"");
+    try expectContains(validate_phase7, "\"scripts/zigux/check-phase7-rbtree-parity.py\",");
+    try expectContains(validate_phase7, "\"zigux/tests/phase7_rbtree.zig\",");
+    try expectContains(validate_phase7, "\"zigux/tests/phase7_rbtree_survey.zig\",");
+    try expectContains(validate_phase7, "\"zigux/tests/phase7_rbtree_manifest.json\",");
     try expectContains(validate_phase7, "python3 scripts/zigux/check-phase7-rbtree-parity.py --self-test");
     try expectContains(validate_phase7, "python3 scripts/zigux/check-phase7-rbtree-parity.py");
 
