@@ -79,13 +79,14 @@ test "phase10 virtio core survey manifest restores the live governance packet" {
     defer parsed.deinit();
 
     const manifest = parsed.value;
-    try std.testing.expectEqualStrings("P10-Y01", manifest.lane_key);
+    try std.testing.expectEqualStrings("P10-L01", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 10", manifest.phase);
     try std.testing.expectEqualStrings("drivers/virtio/virtio.c", manifest.anchor);
     try std.testing.expectEqualStrings("7a4454d0474106972cad7e164b79293bd54a40c6", manifest.surveyed_commit);
-    try std.testing.expectEqual(@as(usize, 2), manifest.roadmap_destinations.len);
+    try std.testing.expectEqual(@as(usize, 3), manifest.roadmap_destinations.len);
     try std.testing.expectEqualStrings("drivers/virtio/*.zig", manifest.roadmap_destinations[0]);
-    try std.testing.expectEqualStrings("zigux/helpers/", manifest.roadmap_destinations[1]);
+    try std.testing.expectEqualStrings("zigux/kernel/", manifest.roadmap_destinations[1]);
+    try std.testing.expectEqualStrings("zigux/helpers/", manifest.roadmap_destinations[2]);
 
     try std.testing.expect(manifest.survey_summary.virtio_c_lines >= 700);
     try std.testing.expectEqual(@as(usize, 9), manifest.survey_summary.preexisting_phase10_test_files);
@@ -100,10 +101,13 @@ test "phase10 virtio core survey manifest restores the live governance packet" {
     try std.testing.expect(manifest.survey_summary.preexisting_virtio_input_survey_present);
     try std.testing.expect(manifest.survey_summary.preexisting_virtio_mmio_survey_present);
 
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "lane: `P10-Y01`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "lane: `P10-L01`") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, manifest.surveyed_commit) != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase10-driver-id-helper") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase10-core-probe-remove-lifecycle") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "drivers/virtio/*.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "zigux/kernel/") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "zigux/helpers/") != null);
 
     try std.testing.expect(std.mem.indexOf(u8, slice_note, "phase10_virtio_core_manifest.json") != null);
     try std.testing.expect(std.mem.indexOf(u8, slice_note, "phase10_virtio_core_survey.zig") != null);
