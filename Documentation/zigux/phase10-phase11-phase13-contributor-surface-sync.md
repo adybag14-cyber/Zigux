@@ -92,6 +92,8 @@ For the active shared-helper release packet, keep the shared validator-first rep
 - `zigux/tests/phase13_libfs_manifest.json`
 - `zigux/tests/phase13_libfs_reviewability.zig`
 - `zigux/tests/phase13_devres.zig`
+- `zigux/tests/phase13_devres_reviewability.zig`
+- `zigux/tests/phase13_devres_dma_coherent.zig`
 - `zigux/tests/phase13_devres_manifest.json`
 - `zigux/tests/phase13_landlock_ruleset.zig`
 - `zigux/tests/phase13_landlock_ruleset_manifest.json`
