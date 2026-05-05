@@ -250,7 +250,7 @@ fn appendSlice(buffer: []u8, written: *usize, text: []const u8) void {
         return;
     }
 
-    const available = buffer.len -| written.*;
+    const available = (buffer.len -| written.*) -| 1;
     const count = @min(available, text.len);
     if (count != 0) {
         @memcpy(buffer[written.* .. written.* + count], text[0..count]);
@@ -350,4 +350,18 @@ test "bitmap scnprintf collapses contiguous ranges" {
     var buffer: [64]u8 = undefined;
     const len = scnprintf(&map, 32, &buffer);
     try std.testing.expectEqualStrings("1-3,7,10-11", buffer[0..len]);
+}
+
+test "bitmap scnprintf reports full length while truncating the buffer" {
+    var map = [_]Word{0};
+    setRange(&map, 1, 3);
+    setRange(&map, 7, 1);
+    setRange(&map, 10, 3);
+
+    var buffer = [_]u8{0} ** 8;
+    const len = scnprintf(&map, 32, &buffer);
+
+    try std.testing.expectEqual(@as(usize, 7), len);
+    try std.testing.expectEqualStrings("1-3,7,1", buffer[0 .. buffer.len - 1]);
+    try std.testing.expectEqual(@as(u8, 0), buffer[buffer.len - 1]);
 }
