@@ -58,6 +58,26 @@ REQUIRED_REVIEW_PACKET_FIELD_MARKERS = [
     "explicit non-goals",
     "written rationale",
 ]
+REQUIRED_OWNERSHIP_EVIDENCE_FIELDS = [
+    "phase",
+    "current status bucket",
+    "owner",
+    "rollback owner",
+    "validation gate summary",
+    "evidence archive path",
+    "latest blocker disposition",
+    "benchmark notes",
+    "replay command",
+    "retained discussion state",
+    "reopen triggers",
+    "parity scorecard link or blocker record",
+]
+REQUIRED_CURRENT_APPROVAL_POSTURE_MARKERS = [
+    "current review-process evidence is limited to named `phase`",
+    "`current status bucket`",
+    "`validation gate summary`",
+    "landed `phase15-roadmap-minimum-field-sync`",
+]
 
 OPTIONAL_LANE_ROUTE_MARKERS = [
     "scripts-root validator path",
@@ -211,6 +231,9 @@ def validate(root: Path) -> list[str]:
     expect_exact_once(note, SELF_REFERENCE_MARKER, "note_self_reference", failures)
     if PRODUCT_BOUNDARY_MARKER not in note:
         failures.append("note:product_boundary_self_reference")
+    for marker in REQUIRED_CURRENT_APPROVAL_POSTURE_MARKERS:
+        if marker not in note:
+            failures.append(f"note_current_approval_posture:{marker}")
 
     for marker in REQUIRED_SCRIPT_README_MARKERS:
         if marker not in script_readme:
@@ -237,6 +260,16 @@ def validate(root: Path) -> list[str]:
         for marker in REQUIRED_REVIEW_PACKET_FIELD_MARKERS:
             if marker not in required_review_packet_fields:
                 failures.append(f"manifest_required_review_packet_fields:{marker}")
+
+    ownership_evidence_fields = manifest.get("ownership_evidence_fields")
+    if ownership_evidence_fields is None:
+        failures.append("manifest:ownership_evidence_fields:missing")
+    elif not isinstance(ownership_evidence_fields, list):
+        failures.append("manifest:ownership_evidence_fields:not_list")
+    else:
+        for marker in REQUIRED_OWNERSHIP_EVIDENCE_FIELDS:
+            if marker not in ownership_evidence_fields:
+                failures.append(f"manifest_ownership_evidence_fields:{marker}")
 
     handoff = manifest.get("handoff_evidence")
     if handoff is None:
@@ -318,12 +351,19 @@ if the change touches the shared Phase 15 governance packet
   - `Documentation/zigux/freeze-map.md`
   - `Documentation/zigux/phase15-architecture-council-review-process.md`
   - `Documentation/zigux/phase15-parity-scorecard.md`
+
+## Current Approval Posture
+- current review-process evidence is limited to named `phase`, `current status bucket`, `owner`, `rollback owner`, `validation gate summary`, evidence archive, blocker-disposition, benchmark-notes, replay-command, retained-discussion-state, and reopen-trigger records
+
+## Recorded Gaps
+- landed `phase15-roadmap-minimum-field-sync`
 """
     (root / NOTE_PATH).write_text(note, encoding="utf-8")
 
     manifest = {
         "lane_key": "P15-L14",
         "phase": "Phase 15",
+        "ownership_evidence_fields": REQUIRED_OWNERSHIP_EVIDENCE_FIELDS,
         "required_review_packet_fields": REQUIRED_REVIEW_PACKET_FIELD_MARKERS,
         "handoff_evidence": {
             "current_repo_handoff": (
@@ -372,7 +412,6 @@ keep the parked Phase 15 governance packet explicit in the tests root too
 - zigux/tests/phase15_architecture_council_review_process_manifest.json
 - zigux/tests/phase15_freeze_map_governance.zig
 - zigux/tests/phase15_parity_scorecard.zig
-- zigux/tests/phase15_build.zig
 - zigux/tests/phase15_architecture_council_review_process.zig
 - zigux/tests/phase15_indefinite_c_policy.json
 - zigux/tests/phase15_indefinite_c_policy.zig
@@ -440,6 +479,21 @@ def run_self_test() -> int:
         )
 
         note_path.write_text(original_note, encoding="utf-8")
+        note_path.write_text(
+            original_note.replace(
+                "`validation gate summary`",
+                "`validation summary`",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_failure(
+            tmp_root,
+            "note_current_approval_posture:`validation gate summary`",
+            "missing_note_current_approval_posture_marker",
+        )
+
+        note_path.write_text(original_note, encoding="utf-8")
         manifest_path = tmp_root / MANIFEST_PATH
         manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
         manifest["required_review_packet_fields"] = [
@@ -450,6 +504,18 @@ def run_self_test() -> int:
             tmp_root,
             "manifest_required_review_packet_fields:rollback owner",
             "missing_required_review_packet_field",
+        )
+
+        write_fixture_tree(tmp_root)
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        manifest["ownership_evidence_fields"] = [
+            field for field in manifest["ownership_evidence_fields"] if field != "phase"
+        ]
+        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+        expect_failure(
+            tmp_root,
+            "manifest_ownership_evidence_fields:phase",
+            "missing_ownership_evidence_field",
         )
 
         write_fixture_tree(tmp_root)
@@ -602,7 +668,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE15_REVIEW_PROCESS_HANDOFF_SELF_TEST=pass")
-    print("PHASE15_REVIEW_PROCESS_HANDOFF_SELF_TEST_CASE_COUNT=16")
+    print("PHASE15_REVIEW_PROCESS_HANDOFF_SELF_TEST_CASE_COUNT=18")
     return 0
 
 
@@ -638,7 +704,7 @@ def main() -> int:
     print("PHASE15_REVIEW_PROCESS_HANDOFF=pass")
     print(
         "PHASE15_REVIEW_PROCESS_HANDOFF_MARKER_COUNT="
-        f"{2 + len(REQUIRED_MANIFEST_BOUNDARY_MARKERS) + len(REQUIRED_REVIEW_PACKET_FIELD_MARKERS) + len(OPTIONAL_LANE_ROUTE_MARKERS) + len(REQUIRED_DOCS_README_MARKERS) + len(REQUIRED_REVIEW_CHECKLIST_MARKERS) + len(REQUIRED_SCRIPT_README_MARKERS) + len(EXACT_ONCE_SCRIPT_README_MARKERS) + len(REQUIRED_TESTS_README_MARKERS) + len(REQUIRED_MAKEFILE_MARKERS) + len(EXACT_ONCE_MAKEFILE_MARKERS)}"
+        f"{2 + len(REQUIRED_MANIFEST_BOUNDARY_MARKERS) + len(REQUIRED_REVIEW_PACKET_FIELD_MARKERS) + len(REQUIRED_OWNERSHIP_EVIDENCE_FIELDS) + len(REQUIRED_CURRENT_APPROVAL_POSTURE_MARKERS) + len(OPTIONAL_LANE_ROUTE_MARKERS) + len(REQUIRED_DOCS_README_MARKERS) + len(REQUIRED_REVIEW_CHECKLIST_MARKERS) + len(REQUIRED_SCRIPT_README_MARKERS) + len(EXACT_ONCE_SCRIPT_README_MARKERS) + len(REQUIRED_TESTS_README_MARKERS) + len(REQUIRED_MAKEFILE_MARKERS) + len(EXACT_ONCE_MAKEFILE_MARKERS)}"
     )
     return 0
 
