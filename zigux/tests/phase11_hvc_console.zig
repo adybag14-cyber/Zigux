@@ -200,6 +200,22 @@ test "phase11 hvc console keeps notifier handoff boundaries reviewable" {
     try std.testing.expect(live_notifier.host_io_deferred);
     try std.testing.expect(live_notifier.remove_handoff_still_required);
 
+    const registered_without_sysrq = try console.summarizeNotifierHandoff(.{
+        .tty_registration_ready = true,
+        .sysrq_dispatch_requested = false,
+        .notifier_target_present = true,
+    });
+    try std.testing.expect(registered_without_sysrq.tty_registration_ready);
+    try std.testing.expect(!registered_without_sysrq.sysrq_dispatch_requested);
+    try std.testing.expect(registered_without_sysrq.notifier_target_present);
+    try std.testing.expect(registered_without_sysrq.notifier_registration_reviewable);
+    try std.testing.expect(registered_without_sysrq.notifier_registration_requested);
+    try std.testing.expect(!registered_without_sysrq.notifier_callbacks_deferred);
+    try std.testing.expect(registered_without_sysrq.notifier_unregister_deferred);
+    try std.testing.expect(registered_without_sysrq.khvcd_worker_execution_deferred);
+    try std.testing.expect(registered_without_sysrq.host_io_deferred);
+    try std.testing.expect(registered_without_sysrq.remove_handoff_still_required);
+
     const missing_target = try console.summarizeNotifierHandoff(.{
         .tty_registration_ready = false,
         .sysrq_dispatch_requested = false,
