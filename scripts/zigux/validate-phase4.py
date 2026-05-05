@@ -24,6 +24,7 @@ PHASE4_GATE_EXPECTATIONS = {
     "atomic64_diff.zig": {
         "owner": "ABI and Runtime Team",
         "rollback_owner": "ABI and Runtime Team",
+        "implementation_note": "`zigux/tests/atomic64_diff.zig` imports `zigux/tests/runtime_atomic64_diff.zig` so Phase 4 keeps the roadmap path without cloning the shared runtime-backed replay logic that Phase 9 already reuses directly",
         "fallback_path": "keep the current C anchor plus the existing Phase 9 runtime atomic64 starter surface as the source of truth if the Zig replay gate regresses",
         "threshold_posture": "threshold_pending_until_runtime_atomic64_scope_widens",
         "matrix_purpose": "bounded atomic64 exchange, cmpxchg, add_unless, and selftest-family replay via the shared runtime-backed gate",
@@ -90,6 +91,13 @@ REQUIRED_PHASE4_BUILD_MARKERS = [
     "phase4-runtime-atomic64-diff-tests",
     "phase4-bitmap-diff-tests",
 ]
+EXACT_ONCE_TESTS_README_MARKERS = REQUIRED_TESTS_README_MARKERS
+EXACT_ONCE_SCRIPT_README_MARKERS = [
+    "Phase 4 flow",
+    "phase4_build.zig",
+    "phase4-validation-matrix.md",
+]
+EXACT_ONCE_DOC_README_MARKERS = REQUIRED_DOC_README_MARKERS
 
 
 def _missing_files(root: Path) -> list[str]:
@@ -98,6 +106,16 @@ def _missing_files(root: Path) -> list[str]:
         if not (root / rel).exists():
             missing.append(rel)
     return missing
+
+
+def _count_marker(text: str, marker: str) -> int:
+    return text.count(marker)
+
+
+def _require_exact_once(text: str, marker: str, prefix: str, missing_markers: list[str]) -> None:
+    count = _count_marker(text, marker)
+    if count != 1:
+        missing_markers.append(f"{prefix}:exact_once:{marker}:{count}")
 
 
 def check_gate_matrix_alignment(phase4_matrix: str, gate_name: str, expectation: dict[str, str]) -> list[str]:
@@ -121,6 +139,9 @@ def check_gate_matrix_alignment(phase4_matrix: str, gate_name: str, expectation:
         missing.append(f"phase4_matrix:owner:{gate_name}:{expectation['owner']}")
     if f"- rollback owner: `{expectation['rollback_owner']}`" not in gate_block:
         missing.append(f"phase4_matrix:rollback_owner:{gate_name}:{expectation['rollback_owner']}")
+    implementation_note = expectation.get("implementation_note")
+    if implementation_note and f"- implementation note: {implementation_note}" not in gate_block:
+        missing.append(f"phase4_matrix:implementation_note:{gate_name}:{implementation_note}")
     if f"- fallback path: {expectation['fallback_path']}" not in gate_block:
         missing.append(f"phase4_matrix:fallback_path:{gate_name}:{expectation['fallback_path']}")
     if expectation["threshold_posture"] not in row:
@@ -170,6 +191,14 @@ def validate_root(root: Path) -> list[str]:
     for marker in REQUIRED_PHASE4_BUILD_MARKERS:
         if marker not in phase4_build:
             missing_markers.append(f"phase4_build:{marker}")
+
+    _require_exact_once(artifact_doc, "Current Phase 4 use", "doc", missing_markers)
+    for marker in EXACT_ONCE_TESTS_README_MARKERS:
+        _require_exact_once(tests_readme, marker, "tests_readme", missing_markers)
+    for marker in EXACT_ONCE_SCRIPT_README_MARKERS:
+        _require_exact_once(script_readme, marker, "script_readme", missing_markers)
+    for marker in EXACT_ONCE_DOC_README_MARKERS:
+        _require_exact_once(doc_readme, marker, "doc_readme", missing_markers)
 
     for gate_name, expectation in PHASE4_GATE_EXPECTATIONS.items():
         missing_markers.extend(check_gate_matrix_alignment(phase4_matrix, gate_name, expectation))
@@ -373,6 +402,39 @@ def run_self_test() -> int:
             "phase4_matrix:matrix_purpose:atomic64_diff.zig:bounded atomic64 exchange, cmpxchg, add_unless, and selftest-family replay via the shared runtime-backed gate"
             in issues
         )
+        matrix_path.write_text(original_matrix, encoding="utf-8", newline="\n")
+
+        tests_readme_path = root / "zigux/tests/README.md"
+        original_tests_readme = tests_readme_path.read_text(encoding="utf-8")
+        tests_readme_path.write_text(
+            original_tests_readme + "scripts/zigux/validate-phase4.py\n",
+            encoding="utf-8",
+            newline="\n",
+        )
+        issues = validate_root(root)
+        assert "tests_readme:exact_once:scripts/zigux/validate-phase4.py:2" in issues
+        tests_readme_path.write_text(original_tests_readme, encoding="utf-8", newline="\n")
+
+        script_readme_path = root / "scripts/zigux/README.md"
+        original_script_readme = script_readme_path.read_text(encoding="utf-8")
+        script_readme_path.write_text(
+            original_script_readme + "Phase 4 flow\n",
+            encoding="utf-8",
+            newline="\n",
+        )
+        issues = validate_root(root)
+        assert "script_readme:exact_once:Phase 4 flow:2" in issues
+        script_readme_path.write_text(original_script_readme, encoding="utf-8", newline="\n")
+
+        doc_readme_path = root / "Documentation/zigux/README.md"
+        original_doc_readme = doc_readme_path.read_text(encoding="utf-8")
+        doc_readme_path.write_text(
+            original_doc_readme + "phase4-validation-matrix.md\n",
+            encoding="utf-8",
+            newline="\n",
+        )
+        issues = validate_root(root)
+        assert "doc_readme:exact_once:phase4-validation-matrix.md:2" in issues
 
     print("PHASE4_VALIDATE_SELF_TEST=pass")
     return 0
