@@ -57,6 +57,7 @@ pub const QueueDescriptorShapeSummary = struct {
 
 pub const ConfigChangeSummary = struct {
     anchor: []const u8,
+    reset_required: bool,
     core_enabled: bool,
     driver_disabled: bool,
     change_pending: bool,
@@ -68,6 +69,7 @@ pub const ConfigChangeSummary = struct {
 
 pub const InterruptAckSummary = struct {
     anchor: []const u8,
+    reset_required: bool,
     interrupt_pending: bool,
     pending_reason_bits: u8,
     acknowledged_reason_bits: u8,
@@ -227,6 +229,10 @@ pub const VirtioCoreLabDevice = struct {
         return (self.status & status_bit) != 0;
     }
 
+    pub fn isResetRequired(self: *const Self) bool {
+        return self.hasStatus(DeviceStatus.device_needs_reset);
+    }
+
     pub fn hasNegotiatedFeature(self: *const Self, feature_bit: u16) !bool {
         const index = try checkedFeatureIndex(feature_bit);
         return self.negotiated_features.isSet(index);
@@ -354,35 +360,35 @@ pub const VirtioCoreLabDevice = struct {
     }
 
     pub fn disableConfigDriver(self: *Self) !void {
-        if (!self.hasStatus(DeviceStatus.driver)) return error.DriverNotAttached;
+        try self.ensureCoreLifecycleActive();
         self.config_driver_disabled = true;
     }
 
     pub fn enableConfigDriver(self: *Self) !void {
-        if (!self.hasStatus(DeviceStatus.driver)) return error.DriverNotAttached;
+        try self.ensureCoreLifecycleActive();
         self.config_driver_disabled = false;
         self.handleConfigChanged();
     }
 
     pub fn disableConfigCore(self: *Self) !void {
-        if (!self.hasStatus(DeviceStatus.driver)) return error.DriverNotAttached;
+        try self.ensureCoreLifecycleActive();
         self.config_core_enabled = false;
     }
 
     pub fn enableConfigCore(self: *Self) !void {
-        if (!self.hasStatus(DeviceStatus.driver)) return error.DriverNotAttached;
+        try self.ensureCoreLifecycleActive();
         self.config_core_enabled = true;
         self.handleConfigChanged();
     }
 
     pub fn noteConfigChanged(self: *Self) !void {
-        if (!self.hasStatus(DeviceStatus.driver)) return error.DriverNotAttached;
+        try self.ensureCoreLifecycleActive();
         self.config_generation +%= 1;
         self.handleConfigChanged();
     }
 
     pub fn acknowledgeConfigGeneration(self: *Self, generation: u32) !void {
-        if (!self.hasStatus(DeviceStatus.driver)) return error.DriverNotAttached;
+        try self.ensureCoreLifecycleActive();
         if (generation == 0 or generation > self.config_generation) return error.UnknownConfigGeneration;
         if (self.config_change_pending and generation == self.config_generation) {
             return error.ConfigGenerationPendingDelivery;
@@ -393,7 +399,7 @@ pub const VirtioCoreLabDevice = struct {
     }
 
     pub fn noteInterruptReason(self: *Self, reason_bits: u8) !void {
-        if (!self.hasStatus(DeviceStatus.driver)) return error.DriverNotAttached;
+        try self.ensureCoreLifecycleActive();
         if (reason_bits == 0) return error.EmptyInterruptReason;
         if ((reason_bits & ~allowedInterruptReasonBits()) != 0) return error.InterruptReasonOutOfRange;
 
@@ -405,7 +411,7 @@ pub const VirtioCoreLabDevice = struct {
     }
 
     pub fn acknowledgeInterrupt(self: *Self, reason_bits: u8) !void {
-        if (!self.hasStatus(DeviceStatus.driver)) return error.DriverNotAttached;
+        try self.ensureCoreLifecycleActive();
         if (reason_bits == 0) return error.EmptyInterruptReason;
         if ((reason_bits & ~allowedInterruptReasonBits()) != 0) return error.InterruptReasonOutOfRange;
         if ((reason_bits & self.pending_interrupt_reason_bits) != reason_bits) {
@@ -420,6 +426,7 @@ pub const VirtioCoreLabDevice = struct {
     pub fn interruptAckSummary(self: *const Self) InterruptAckSummary {
         return .{
             .anchor = descriptor().anchor,
+            .reset_required = self.isResetRequired(),
             .interrupt_pending = self.pending_interrupt_reason_bits != 0,
             .pending_reason_bits = self.pending_interrupt_reason_bits,
             .acknowledged_reason_bits = self.acknowledged_interrupt_reason_bits,
@@ -431,6 +438,7 @@ pub const VirtioCoreLabDevice = struct {
     pub fn configChangeSummary(self: *const Self) ConfigChangeSummary {
         return .{
             .anchor = descriptor().anchor,
+            .reset_required = self.isResetRequired(),
             .core_enabled = self.config_core_enabled,
             .driver_disabled = self.config_driver_disabled,
             .change_pending = self.config_change_pending,
@@ -453,6 +461,11 @@ pub const VirtioCoreLabDevice = struct {
 
         self.config_change_pending = false;
         self.config_change_delivery_count += 1;
+    }
+
+    fn ensureCoreLifecycleActive(self: *const Self) !void {
+        if (!self.hasStatus(DeviceStatus.driver)) return error.DriverNotAttached;
+        if (self.isResetRequired()) return error.ResetRequired;
     }
 
     fn checkedFeatureIndex(feature_bit: u16) !usize {
