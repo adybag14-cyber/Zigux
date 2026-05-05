@@ -178,6 +178,7 @@ test "phase12 virtio_net survey manifest stays aligned with the landed probe sta
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "mergeable-buffer headroom") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "fresh probe replay") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "RSS-aware refill") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "clamp-versus-single-queue recovery intent") != null);
         }
 
         if (std.mem.eql(u8, gap.id, "phase12-virtio-net-transmit-recycle-followup")) {
