@@ -7,9 +7,19 @@ import sys
 import tempfile
 
 
-ROOT = Path(__file__).resolve().parents[2]
+SCRIPT_PATH = Path(__file__).resolve()
 BUILD_FILE_REL = "zigux/tests/build.zig"
 ROOT_SOURCE_FILE_RE = re.compile(r'\.root_source_file\s*=\s*b\.path\("([^"]+)"\)')
+
+
+def derive_root(script_path: Path) -> Path:
+    resolved = script_path.resolve()
+    if resolved.parent.name == "zigux" and resolved.parent.parent.name == "scripts":
+        return resolved.parents[2]
+    return resolved.parent
+
+
+ROOT = derive_root(SCRIPT_PATH)
 
 
 def _build_path(root: Path) -> Path:
@@ -54,7 +64,7 @@ def write_fixture(root: Path) -> None:
     build_path.write_text(
         "\n".join(
             (
-                "const std = @import(\"std\");",
+                'const std = @import("std");',
                 "",
                 "pub fn build(b: *std.Build) void {",
                 "    const existing = b.createModule(.{",
@@ -81,6 +91,11 @@ def run_self_test() -> int:
     with tempfile.TemporaryDirectory(prefix="zigux_phase3_build_roots_") as tmp_dir:
         root = Path(tmp_dir) / "repo"
         write_fixture(root)
+
+        if derive_root(root / "scripts/zigux/check-phase3-build-roots.py") != root:
+            raise SystemExit("phase3-build-roots-self-test:derive_root_nested_failed")
+        if derive_root(root / "check-phase3-build-roots.py") != root:
+            raise SystemExit("phase3-build-roots-self-test:derive_root_shallow_failed")
 
         missing, reference_count = validate(root)
         if missing:
@@ -119,7 +134,7 @@ def run_self_test() -> int:
             )
 
     print("PHASE3_BUILD_ROOTS_SELF_TEST=pass")
-    print("PHASE3_BUILD_ROOTS_SELF_TEST_CASE_COUNT=2")
+    print("PHASE3_BUILD_ROOTS_SELF_TEST_CASE_COUNT=4")
     return 0
 
 
