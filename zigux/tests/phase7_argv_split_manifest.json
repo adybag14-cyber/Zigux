@@ -56,6 +56,13 @@
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase7_argv_split_survey.zig",
       "why_now": "A machine-checked survey gate keeps the roadmap anchor and landed review surfaces explicit without reopening argv parsing behavior."
+    },
+    {
+      "id": "phase7-argv-split-packet-checker",
+      "status": "starter_landed",
+      "kind": "validation",
+      "zigux_destination": "scripts/zigux/check-phase7-argv-split-packet.py",
+      "why_now": "The dedicated packet checker is already part of the parked Phase 7 review surface, so the manifest should record that fail-closed ownership hook instead of leaving it implicit in surrounding docs and scripts indexes."
     }
   ]
 }
