@@ -13,15 +13,15 @@
   "phase4_build_present": true,
   "phase4_build_uses_atomic64_wrapper": true,
   "phase4_build_blob_sha": "b1ff06326c59dfe6190663a378b6cb60d64f457f",
-  "phase4_validator_atomic64_diff_present": false,
+  "phase4_validator_atomic64_diff_present": true,
   "phase4_validator_runtime_atomic64_diff_present": true,
-  "phase4_validator_blob_sha": "4ac6d7657e43bb1ec9f9950c2ad5eb72573d568f",
+  "phase4_validator_blob_sha": "e6184bd1e756e18bc2db7b5a83769378882dbb2e",
   "phase9_build_present": true,
   "phase9_build_blob_sha": "8ecef19acf5953dce1bd9c59a9662e23c0da1f60",
-  "phase4_validation_matrix_atomic64_diff_note_present": false,
+  "phase4_validation_matrix_atomic64_diff_note_present": true,
   "phase4_validation_matrix_runtime_atomic64_note_present": true,
-  "phase4_validation_matrix_blob_sha": "e2f0331f7e27d5d3a5d918b73c442eb8bda3e9bd",
+  "phase4_validation_matrix_blob_sha": "e48abf8f94355c460faace966f980503fc879721",
   "threshold_posture": "threshold_pending_until_runtime_atomic64_scope_widens",
-  "roadmap_gap_summary": "the roadmap target zigux/tests/atomic64_diff.zig is now present as the Phase 4 wrapper and zigux/tests/phase4_build.zig runs through it, while zigux/tests/runtime_atomic64_diff.zig remains the shared runtime-backed replay body and shared Phase 4 reviewer surfaces should keep that wrapper handoff explicit",
-  "ready_next": "keep scripts/zigux/validate-phase4.py and the shared Phase 4 reviewer-facing notes aligned so zigux/tests/atomic64_diff.zig stays the canonical wrapper while zigux/tests/runtime_atomic64_diff.zig remains the single bounded replay body until a broader runtime move is intentional"
+  "roadmap_gap_summary": "the roadmap target zigux/tests/atomic64_diff.zig is now present as the Phase 4 wrapper and zigux/tests/phase4_build.zig runs through it, while zigux/tests/runtime_atomic64_diff.zig remains the single bounded replay body and the Phase 9 plus Phase 4 reviewer packet still anchor their exact operation inventory on that runtime path",
+  "ready_next": "leave this packet parked unless zigux/tests/atomic64_diff.zig, zigux/tests/runtime_atomic64_diff.zig, zigux/tests/phase4_build.zig, scripts/zigux/validate-phase4.py, or Documentation/zigux/phase4-validation-matrix.md drifts again; if it reopens, refresh the wrapper manifest and survey before widening runtime operation coverage"
 }
