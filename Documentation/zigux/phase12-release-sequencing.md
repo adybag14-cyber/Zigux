@@ -80,9 +80,9 @@ Phase 12 should not be described as release-closed until all of the following ar
 
 Keep the current Phase 12 PMO packet truthfulness-first.
 
-The next bounded same-lane follow-through on `master` is a shared-surface wording repair in `scripts/zigux/README.md`:
+The scripts-root wording repair is already landed on `master`, so the next bounded same-lane follow-through is to keep the sequencing note and the shipped checker-backed replay contract aligned:
 
-- the Phase 12 review-surface summary there should explicitly name `Documentation/zigux/review-checklist.md`, `zigux/tests/README.md`, and `scripts/zigux/check-build-only-phase12-surface.py` so the scripts-root packet matches this sequencing note plus the already-refreshed docs-root and tests-root release surfaces
-- after that wording lands, rerun `python3 scripts/zigux/check-build-only-phase12-surface.py --self-test` and the live checker before widening into any validator-first Phase 12 planning
+- when Phase 12 release-facing wording changes, rerun `python3 scripts/zigux/check-build-only-phase12-surface.py --self-test` and the live checker before widening any PMO claim
+- keep this sequencing note aligned with `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md` instead of reopening the already-landed scripts-root naming repair
 
 If a validator-first release route is proposed later, land the actual shipped file and replay surface first, then update the release-planning notes to name it exactly once beside the existing `phase12_build.zig` and `make -C zigux phase12` path.
