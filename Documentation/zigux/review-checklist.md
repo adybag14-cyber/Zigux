@@ -24,6 +24,7 @@ Use this checklist before opening or merging Zigux product work.
 - if a freeze-map anchor is entering Architecture Council status review, are the decision record ID, lane owner, rollback owner, validation gate summary, evidence archive path, latest blocker disposition, benchmark notes, and replay command explicit?
 - if a freeze-map anchor is closing review with a stay-in-C outcome, are the retained discussion state and reopen triggers explicit?
 - if a freeze-map anchor remains blocked, does the scorecard still name the current lane owner responsible for keeping that blocked evidence packet up to date?
+- if the change touches the shared Phase 14 smoke packet, do the four anchor-local manifests, the shared smoke and release-boundary surveys, the freeze map, and the `make -C zigux phase14` / `make -C zigux phase14-smoke` replay contract still agree on the same study-only stay-in-C posture?
 
 ## ABI and Runtime
 - are bindings and ABI assumptions centralized?
