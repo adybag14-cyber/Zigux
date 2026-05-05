@@ -16,6 +16,11 @@ Key entrypoints
 - `zigux/tests/phase1_bench.zig`
 - `zigux/tests/phase6_build.zig`
 - `zigux/tests/phase6_checksum.zig`
+- `zigux/tests/phase9_build.zig`
+- `zigux/tests/runtime_atomic64_survey.zig`
+- `zigux/tests/runtime_bitmap_survey.zig`
+- `zigux/tests/runtime_trace_events_survey.zig`
+- `zigux/tests/runtime_kretprobe_survey.zig`
 - `zigux/tests/phase3_abi.zig`
 - `zigux/tests/phase14_build.zig`
 - `zigux/tests/phase14_ring_buffer_survey.zig`
@@ -42,4 +47,5 @@ Phase 3 fixtures
 Guidance
 - keep parity fixtures committed and readable
 - prefer discovery-based validation over hard-coded file inventories when adding new Phase 3 slices
+- keep the bounded Phase 9 runtime surveys wired through `zigux/tests/phase9_build.zig` so the loader-handoff packet stays reviewable without implying shared runtime substrate closure
 - keep new leaf-helper tests small, explicit, and tied to the owning helper path when Phase 6 work starts
