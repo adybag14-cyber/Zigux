@@ -91,6 +91,10 @@ test "phase 15 architecture council review-process doc and manifest stay aligned
     try expectContains(review_checklist, "Documentation/zigux/phase15-indefinite-c-policy.md");
     try expectContains(review_checklist, "Documentation/zigux/review-checklist.md");
     try expectContains(review_checklist, "scripts/zigux/check-phase15-review-process-handoff.py");
+    try expectContains(
+        review_checklist,
+        "zigux/tests/phase15_architecture_council_review_process_manifest.json",
+    );
     try expectContains(review_checklist, "zigux/tests/phase15_freeze_map_governance.zig");
     try expectContains(review_checklist, "zigux/tests/phase15_parity_scorecard.zig");
     try expectContains(
