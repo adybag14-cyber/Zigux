@@ -77,7 +77,7 @@ The current gap is no longer "Zigux has no trace-events sample guidance." The mo
 ## Review gates for this survey
 
 1. confirm the Phase 5 anchor is still the Linux trace-events sample
-   - `rg -n "samples/trace_events/trace-events-sample.c|Phase 5" Documentation/zigux samples`
+   - `rg -n "samples/trace_events/trace-events-sample.c|PHASE5_SLICE|phase5_trace_events_sample|Phase 5" Documentation/zigux samples/zigux zigux/tests`
 2. confirm the current `samples/zigux/` surface keeps the Phase 5 and Phase 9 trace-events lanes distinct
    - `find samples/zigux -maxdepth 1 -type f | sort | rg "trace_events_sample|runtime_trace_events"`
 3. run the exact bounded Phase 5 sample checks
