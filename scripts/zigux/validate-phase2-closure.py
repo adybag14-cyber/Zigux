@@ -100,6 +100,19 @@ def collect_genksyms_expected_files(cases_payload: dict[str, object]) -> tuple[l
     return expected_files, issues
 
 
+def validate_exact_makefile_runs(text: str) -> list[str]:
+    issues: list[str] = []
+    lines = [line.strip() for line in text.splitlines()]
+    for command, expected_count in PHASE2_TOOLCHAIN_PIN_SCOPE_MAKEFILE_RUN_COUNTS.items():
+        expected_line = f'cd $(ZIGUX_ROOT) && $(PYTHON) {command}'
+        count = sum(1 for line in lines if line == expected_line)
+        if count != expected_count:
+            issues.append(
+                f'make_exact_run:{command}:count={count}:expected={expected_count}'
+            )
+    return issues
+
+
 missing = [str(path.relative_to(ROOT)) for path in required_files if not path.exists()]
 if missing:
     print('PHASE2_CLOSURE_VALIDATION=fail')
@@ -220,6 +233,7 @@ for marker in required_doc_markers:
 for marker in required_makefile_markers:
     if marker not in makefile:
         missing_markers.append(f'make:{marker}')
+missing_markers.extend(validate_exact_makefile_runs(makefile))
 
 if tool_manifest.get('phase') != 'Phase 2':
     missing_markers.append('manifest:phase=Phase 2')
