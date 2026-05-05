@@ -118,6 +118,13 @@ Phase 12 notes
 - reversible delivery remains limited to the bounded Zig starters, survey notes, review gates, and snapshot fixtures around those C anchors, and `make -C zigux phase12-validate` stays the shared rollback drill before `zig build test --build-file zigux/tests/phase12_build.zig --summary all` reruns the current Phase 12 tranche.
 - the current bounded Phase 12 decision is no longer whether the tranche needs first-driver footholds; those starters, survey gates, rollback owners, and release-facing checks are now landed, so the next follow-up should stay inside one tiny same-lane survey, helper, or validator truthfulness repair before any DMA, queueing, throughput, recovery, object-model, loader, or relocation widening.
 
+Phase 15 notes
+- `Documentation/zigux/freeze-map.md`
+- `Documentation/zigux/phase15-architecture-council-review-process.md`
+- `Documentation/zigux/phase15-parity-scorecard.md`
+- `zigux/tests/phase15_build.zig` and `make -C zigux phase15` now keep the current freeze-map, Architecture Council review-process, parity-scorecard, and stay-in-C governance packet reviewable through one shared Phase 15 lane instead of widening into ad hoc deep-core status claims.
+- the current bounded Phase 15 decision is not whether a freeze-in-C anchor is ready for a direct Zigux port; no Architecture Council approval is recorded yet, so the next follow-up should wait for a named reopen trigger or a real deep-core blocker-posture change before opening another governance slice.
+
 Phase 3 notes
 - Active Phase 3 slices are discovered from `phase3-*-slice.md` records instead of being duplicated in multiple hand-maintained inventories.
 - `python3 scripts/zigux/validate-phase3.py` validates every discovered slice and its preferred manifest, accepts either the shared runner gate (`python3 scripts/zigux/run-phase3-checks.py --slug <slug>`) or a legacy per-slice wrapper gate in each slice record, reports obsolete `check-phase3-*.py` wrapper files that no longer belong to a discovered slice, and rejects legacy wrapper script paths inside Phase 3 manifests so those manifests remain a record of slice artifacts rather than compatibility entrypoints.
