@@ -54,7 +54,7 @@ required_workflow_markers = [
     'uses: actions/checkout@v6.0.2',
     'uses: actions/setup-python@v6.2.0',
     'python3 scripts/zigux/install-zig.py --channel master --dest .zig-toolchain',
-    'run: zig version',
+    'python3 scripts/zigux/check-zig-toolchain.py',
     'python3 scripts/zigux/validate-phase1-closure.py',
     'python3 scripts/zigux/check-phase1-bench.py',
     'zig build bench --build-file zigux/tests/build.zig',
@@ -158,7 +158,7 @@ def collect_manifest_markers(manifest: object, root: Path) -> list[str]:
     if manifest_count != len(EXPECTED_HELPERS):
         missing_markers.append(f'manifest:helper_count={len(EXPECTED_HELPERS)}')
     if len(manifest_helpers) != len(EXPECTED_HELPERS):
-        missing_markers.append(f'manifest:helpers_len={len(manifest_helpers)}')
+        missing_markers.append(f'manifest:helpers_len={len(EXPECTED_HELPERS)}')
 
     seen: set[str] = set()
     duplicates: list[str] = []
