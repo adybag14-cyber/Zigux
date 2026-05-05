@@ -262,6 +262,8 @@ The bounded `kconfig` bridge closure packet remains closed because the shared fi
 The bounded Phase 2 entry point is:
 
 - `zigux/Makefile`
+- `make -C zigux phase2-validate`
+- `make -C zigux phase2`
 
 This exists to keep the tranche callable in a Linux-style workflow without pretending that Zigux already replaces the native Kbuild flow.
 
