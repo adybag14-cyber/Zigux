@@ -27,6 +27,7 @@ pub const ModuleDescriptor = struct {
     provides_add_rule_planning: bool,
     provides_ruleset_fd_planning: bool,
     provides_path_fd_planning: bool,
+    provides_path_beneath_handoff_planning: bool,
     touches_live_fd_table: bool,
     touches_live_paths: bool,
     touches_live_credentials: bool,
@@ -176,6 +177,22 @@ pub const PathFdPlan = struct {
     acquires_path_reference: bool,
 };
 
+pub const PathBeneathHandoffRequest = struct {
+    handled_access_fs: u64 = 0,
+    path_beneath_attr: PathBeneathAttr = .{},
+    parent_path: PathFdRequest = .{},
+};
+
+pub const PathBeneathHandoffPlan = struct {
+    anchor: []const u8,
+    allowed_access: u64,
+    parent_fd: i32,
+    reuses_add_rule_validation: bool,
+    reuses_path_fd_validation: bool,
+    acquires_parent_path_reference: bool,
+    releases_parent_path_reference: bool,
+};
+
 pub const SyscallsHelperLab = struct {
     pub fn descriptor() ModuleDescriptor {
         return .{
@@ -187,6 +204,7 @@ pub const SyscallsHelperLab = struct {
             .provides_add_rule_planning = true,
             .provides_ruleset_fd_planning = true,
             .provides_path_fd_planning = true,
+            .provides_path_beneath_handoff_planning = true,
             .touches_live_fd_table = false,
             .touches_live_paths = false,
             .touches_live_credentials = false,
@@ -432,6 +450,25 @@ pub const SyscallsHelperLab = struct {
             .rejects_nouser_superblock = true,
             .rejects_private_inode = true,
             .acquires_path_reference = true,
+        };
+    }
+
+    pub fn planAddRulePathBeneathHandoff(request: PathBeneathHandoffRequest) !PathBeneathHandoffPlan {
+        const add_rule_plan = try planAddRule(.{
+            .rule_type = rule_type_path_beneath,
+            .handled_access_fs = request.handled_access_fs,
+            .path_beneath_attr = request.path_beneath_attr,
+        });
+        const path_plan = try planGetPathFromFd(request.parent_path);
+
+        return .{
+            .anchor = descriptor().anchor,
+            .allowed_access = add_rule_plan.allowed_access,
+            .parent_fd = add_rule_plan.parent_fd,
+            .reuses_add_rule_validation = true,
+            .reuses_path_fd_validation = true,
+            .acquires_parent_path_reference = path_plan.acquires_path_reference,
+            .releases_parent_path_reference = true,
         };
     }
 };
