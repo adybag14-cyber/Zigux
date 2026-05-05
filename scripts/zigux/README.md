@@ -26,6 +26,7 @@ Current bootstrap helpers
 - `validate-phase3-low-level-wrapper-survey.py`
 - `validate-phase4.py`
 - `check-phase6-shared-surface.py`
+- `check-phase9-build-only-surface.py`
 - `check-build-only-phase12-surface.py`
 - `run-phase3-checks.py`
 - `phase3_catalog.py`
