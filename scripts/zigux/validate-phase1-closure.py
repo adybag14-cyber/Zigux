@@ -119,6 +119,11 @@ required_closure_markers = [
         "- `.github/workflows/zigux-bootstrap.yml`",
         1,
     ),
+    (
+        "closure_find_bit_single_word_review_count",
+        "PHASE1_FIND_BIT_SINGLE_WORD_REVIEW=helper-local single-word next-scan proof stays explicit through the direct find_bit test anchor because the shared Phase 1 parity fixture does not isolate same-word start-mask behavior",
+        1,
+    ),
 ]
 required_workflow_markers = [
     "FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true",
@@ -622,6 +627,20 @@ def run_self_test() -> None:
         )
         assert "closure_shared_review_workflow_count:expected=1:actual=0" in missing_closure_workflow_markers
 
+        missing_find_bit_single_word_review = valid_closure.replace(
+            "PHASE1_FIND_BIT_SINGLE_WORD_REVIEW=helper-local single-word next-scan proof stays explicit through the direct find_bit test anchor because the shared Phase 1 parity fixture does not isolate same-word start-mask behavior\n",
+            "",
+            1,
+        )
+        missing_find_bit_single_word_review_markers = collect_exact_count_markers(
+            missing_find_bit_single_word_review,
+            required_closure_markers,
+        )
+        assert (
+            "closure_find_bit_single_word_review_count:expected=1:actual=0"
+            in missing_find_bit_single_word_review_markers
+        )
+
         valid_phase1_workflow = render_marker_fixture(required_phase1_workflow_markers)
         assert collect_exact_count_markers(valid_phase1_workflow, required_phase1_workflow_markers) == []
         assert WORKFLOW_INSTALL_ZIG_RE.search(
@@ -953,7 +972,7 @@ def run_self_test() -> None:
         assert collect_missing_files(repo_root_from_arg(str(tmp_root))) == [required_phase1_parity]
 
     print("PHASE1_CLOSURE_VALIDATOR_SELF_TEST=pass")
-    print("PHASE1_CLOSURE_VALIDATOR_SELF_TEST_CASE_COUNT=52")
+    print("PHASE1_CLOSURE_VALIDATOR_SELF_TEST_CASE_COUNT=53")
 
 
 def main() -> int:
