@@ -129,6 +129,13 @@ REQUIRED_SNIPPETS = {
         "pub const invalid_decode_cases = [_]InvalidDecodeCase{",
         "pub const variant_decode_cases = [_]DecodeCase{",
     ],
+    "zigux/tests/fixtures/phase6_hexdump_vectors.zig": [
+        "pub const perf_cases = [_]PerfCase{",
+        '.label = "16B-plain-g1"',
+        '.label = "32B-ascii-g2"',
+        '.label = "16B-ascii-g4"',
+        '.label = "16B-ascii-g8"',
+    ],
     "zigux/tests/phase6_checksum_perf.zig": [
         "const perf_cases = [_]PerfCase{",
         '.label = "64B"',
@@ -478,6 +485,25 @@ def run_self_test() -> None:
                 raise AssertionError(f"unexpected hexdump parity failure: {exc}") from exc
         else:
             raise AssertionError("expected hexdump parity failure")
+        hexdump_test.write_text(original_hexdump_test, encoding="utf-8")
+
+        hexdump_vectors = root / "zigux/tests/fixtures/phase6_hexdump_vectors.zig"
+        original_hexdump_vectors = hexdump_vectors.read_text(encoding="utf-8")
+        hexdump_vectors.write_text(
+            original_hexdump_vectors.replace(
+                '.label = "16B-ascii-g8"',
+                '.label = "16B-ascii-g16"',
+                1,
+            ),
+            encoding="utf-8",
+        )
+        try:
+            run_checks(root)
+        except ValidationError as exc:
+            if "zigux/tests/fixtures/phase6_hexdump_vectors.zig" not in str(exc):
+                raise AssertionError(f"unexpected hexdump vectors failure: {exc}") from exc
+        else:
+            raise AssertionError("expected hexdump vectors failure")
 
     print("self-test passed")
 
