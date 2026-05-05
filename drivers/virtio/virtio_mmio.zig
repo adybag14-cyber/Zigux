@@ -81,6 +81,17 @@ pub const ConfigWritePlanSummary = struct {
     planned_value: u32,
 };
 
+pub const ConfigWriteDispositionSummary = struct {
+    anchor: []const u8,
+    absolute_offset: u32,
+    relative_offset: u32,
+    end_offset: u32,
+    config_generation: u32,
+    previous_value: u32,
+    planned_value: u32,
+    changed_byte_mask: u8,
+};
+
 pub const ProbePreflightSummary = struct {
     anchor: []const u8,
     magic_matches: bool,
@@ -245,6 +256,20 @@ pub const VirtioMmioLab = struct {
         return plan;
     }
 
+    pub fn configWriteDispositionSummary(self: *const Self) !ConfigWriteDispositionSummary {
+        const plan = self.pending_config_write orelse return error.ConfigWritePlanUnavailable;
+        return .{
+            .anchor = plan.anchor,
+            .absolute_offset = plan.absolute_offset,
+            .relative_offset = plan.relative_offset,
+            .end_offset = plan.absolute_offset + 4,
+            .config_generation = plan.config_generation,
+            .previous_value = plan.previous_value,
+            .planned_value = plan.planned_value,
+            .changed_byte_mask = computeChangedByteMask(plan.previous_value, plan.planned_value),
+        };
+    }
+
     pub fn probePreflightSummary(self: *const Self) ProbePreflightSummary {
         const magic_matches = mmio_magic_value == 0x7472_6976;
         const version_supported = mmio_version_modern == mmio_version_legacy or mmio_version_modern == mmio_version_modern;
@@ -390,6 +415,19 @@ fn readLittleU32(bytes: []const u8) u32 {
         (@as(u32, bytes[3]) << 24);
 }
 
+fn computeChangedByteMask(previous_value: u32, planned_value: u32) u8 {
+    var mask: u8 = 0;
+    for (0..4) |index| {
+        const shift: u5 = @intCast(index * 8);
+        const previous_byte: u8 = @truncate(previous_value >> shift);
+        const planned_byte: u8 = @truncate(planned_value >> shift);
+        if (previous_byte != planned_byte) {
+            mask |= @as(u8, 1) << @intCast(index);
+        }
+    }
+    return mask;
+}
+
 fn boolToU32(value: bool) u32 {
     return if (value) 1 else 0;
 }
@@ -419,4 +457,38 @@ test "phase10 virtio mmio config-generation bumps clear stale planned config wri
     try std.testing.expectEqual(@as(u32, 2), refreshed.config_generation);
     try std.testing.expectEqual(original.value, refreshed.previous_value);
     try std.testing.expectEqual(@as(u32, 0x5566_7788), refreshed.planned_value);
+}
+
+test "phase10 virtio mmio summarizes config-write disposition without mutating config space" {
+    var device = try VirtioMmioLab.init(57, &[_]u16{ 8, 16 });
+
+    try device.stageConfigBytes(&[_]u8{
+        0x78, 0x56, 0x34, 0x12,
+        0xef, 0xcd, 0xab, 0x90,
+    });
+    device.bumpConfigGeneration();
+
+    try std.testing.expectError(error.ConfigWritePlanUnavailable, device.configWriteDispositionSummary());
+
+    _ = try device.planConfigWriteOffset(mmio_window_bytes + 4, 0x90ab_1200);
+    const disposition = try device.configWriteDispositionSummary();
+    try std.testing.expectEqualStrings("drivers/virtio/virtio_mmio.c", disposition.anchor);
+    try std.testing.expectEqual(mmio_window_bytes + 4, disposition.absolute_offset);
+    try std.testing.expectEqual(@as(u32, 4), disposition.relative_offset);
+    try std.testing.expectEqual(mmio_window_bytes + 8, disposition.end_offset);
+    try std.testing.expectEqual(@as(u32, 1), disposition.config_generation);
+    try std.testing.expectEqual(@as(u32, 0x90ab_cdef), disposition.previous_value);
+    try std.testing.expectEqual(@as(u32, 0x90ab_1200), disposition.planned_value);
+    try std.testing.expectEqual(@as(u8, 0b0011), disposition.changed_byte_mask);
+
+    _ = try device.planConfigWriteOffset(mmio_window_bytes + 4, 0x90ab_cdef);
+    const same_value = try device.configWriteDispositionSummary();
+    try std.testing.expectEqual(@as(u8, 0), same_value.changed_byte_mask);
+
+    const config_summary = try device.readConfigOffset(mmio_window_bytes + 4);
+    try std.testing.expectEqual(@as(u32, 0x90ab_cdef), config_summary.value);
+    try std.testing.expectEqual(@as(u32, 1), config_summary.config_generation);
+
+    device.bumpConfigGeneration();
+    try std.testing.expectError(error.ConfigWritePlanUnavailable, device.configWriteDispositionSummary());
 }
