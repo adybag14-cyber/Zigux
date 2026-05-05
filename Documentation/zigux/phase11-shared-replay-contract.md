@@ -26,7 +26,6 @@ This note records the current shared contributor replay surface for the shipped 
 - `zigux/tests/phase11_hvc_console_survey.zig`
 - `zigux/tests/phase11_uapi_header_parity_manifest.json`
 - `zigux/tests/phase11_uapi_header_parity_survey.zig`
-- `zigux/tests/fixtures/phase11_build_inventory.json`
 - `zigux/Makefile`
 
 ## Shared Replay Commands
@@ -34,7 +33,7 @@ This note records the current shared contributor replay surface for the shipped 
 - `zig build test --build-file zigux/tests/phase11_build.zig --summary all`
 - `make -C zigux phase11`
 
-Inside that shared `phase11_build.zig` route, the watchdog, header-parity, and HVC starter replays stay bundled together:
+Inside that shared `phase11_build.zig` route, the watchdog, shared header-parity, and HVC starter replays stay bundled together:
 
 - `zigux/tests/phase11_gpio_wdt.zig`
 - `zigux/tests/phase11_gpio_wdt_survey.zig`
@@ -57,7 +56,7 @@ The focused shared header-boundary evidence also stays explicit beside that repl
 - `Documentation/zigux/phase11-uapi-header-parity-survey.md`
 - `scripts/zigux/check-phase11-header-boundary-packet.py`
 - `zigux/tests/phase11_uapi_header_parity_manifest.json`
-- `zigux/tests/fixtures/phase11_build_inventory.json`
+- `zigux/tests/phase11_uapi_header_parity_survey.zig`
 
 `Documentation/zigux/README.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, and `Documentation/zigux/review-checklist.md` keep that same shared-versus-dedicated replay split explicit, while `zigux/tests/phase11_hvc_cleanup.zig` keeps the bounded `hvc_cleanup()` tty-port release handoff, missing-reference failure mode, and teardown-gating replay reviewable without implying live tty teardown or host-backed cleanup.
 
@@ -65,7 +64,8 @@ The focused shared header-boundary evidence also stays explicit beside that repl
 
 - there is no shared `make -C zigux phase11-validate` target on `master`
 - there is no dedicated shared `validate-phase11.py` on `master`
-- beyond the focused `scripts/zigux/check-phase11-header-boundary-packet.py` route and its coupled manifest, survey note, survey replay, and committed `zigux/tests/fixtures/phase11_build_inventory.json`, there is no broader multi-checker Phase 11 validator stack on `master`
+- there is no shipped `zigux/tests/fixtures/phase11_build_inventory.json` on `master`
+- beyond the focused `scripts/zigux/check-phase11-header-boundary-packet.py` route and its coupled manifest, survey note, and survey replay, there is no broader multi-checker Phase 11 validator stack on `master`
 - this contract does not claim tty registration, notifier execution, khvcd execution, sysrq dispatch, platform registration, PM base plumbing, poweroff-handler coordination, or host-backed teardown validation
 
 ## Follow-Through Rule
