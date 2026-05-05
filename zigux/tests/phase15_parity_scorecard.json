@@ -35,7 +35,7 @@
       "policy for code that remains in C indefinitely"
     ],
     "bootstrap_ledger_anchor": "docs(zigux): add documentation root, review checklist, and freeze map",
-    "current_repo_handoff": "Documentation root and freeze-map governance are now carried forward by the landed Phase 15 review-process note, parity scorecard, evidence-archive templates, dedicated Zig manifest and test, shared phase15_build.zig gate, and make -C zigux phase15 target.",
+    "current_repo_handoff": "Documentation root and freeze-map governance are now carried forward by the landed Phase 15 review-process note, parity scorecard, evidence-archive templates, shared validator-first gate through scripts/zigux/validate-phase15.py and make -C zigux phase15-validate, dedicated Zig manifest and test, shared phase15_build.zig gate, and make -C zigux phase15 target.",
     "maintenance_mode_next_step": "Wait for one of the named reopen triggers or the deep-core blocker posture to change before opening another Phase 15 slice."
   },
   "anchors": [
@@ -300,7 +300,5 @@
       "zigux_destination": "Documentation/zigux/phase15-parity-scorecard.md",
       "why_now": "The live repo still has no council-approved evidence strong enough to move `kernel/sched/core.c`, `mm/page_alloc.c`, `kernel/rcu/tree.c`, or `net/core/skbuff.c` out of the freeze-in-C set."
     }
-  ],
-  "current_gap": "No missing local governance artifact remains; the maintenance-mode gap is keeping the scorecard lane identity, surveyed-master provenance, validator-first gate wording, roadmap wording, rollback-threshold field sync, and replay-backed evidence packet current.",
-  "repo_state": "The freeze map, Architecture Council review process, parity scorecard, indefinite-C policy, dedicated manifest and Zig test, Documentation/zigux/README.md docs-root index, scripts/zigux/README.md scripts-root validator path, scripts/zigux/validate-phase15.py shared validator, make -C zigux phase15-validate validator-first entrypoint, zigux/tests/README.md tests-root guidance path, shared phase15_build.zig replay, and make -C zigux phase15 replay are all present on current master."
+  ]
 }
