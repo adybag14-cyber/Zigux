@@ -241,6 +241,11 @@ test "phase14 skbuff bridge notes and code agree the live ownership blocker is n
     try std.testing.expect(std.mem.indexOf(
         u8,
         survey_note,
+        "PHASE14_SURVEYED_COMMIT=f05e02445443e7743c3675a6f8ca4f70f6e736fb",
+    ) != null);
+    try std.testing.expect(std.mem.indexOf(
+        u8,
+        survey_note,
         "PHASE14_SLICE=skbuff-boundary-map-tail-publication-followup",
     ) != null);
     try std.testing.expect(std.mem.indexOf(
