@@ -369,8 +369,8 @@ pub const HvcConsoleLab = struct {
 
         const notifier_registration_requested = request.tty_registration_ready and
             request.notifier_target_present;
-        const notifier_callbacks_deferred = request.sysrq_dispatch_requested and
-            request.notifier_target_present;
+        const notifier_callbacks_deferred = request.tty_registration_ready and
+            request.sysrq_dispatch_requested and request.notifier_target_present;
 
         return .{
             .anchor = descriptor().anchor,
