@@ -94,7 +94,7 @@ test "phase10 virtio mmio survey manifest records the live helper-backed transpo
     var saw_mmio_register_helper = false;
     var saw_mmio_queue_size_helper = false;
     var saw_mmio_slice_note = false;
-    var saw_mmio_feature_selector_next = false;
+    var saw_mmio_feature_selector = false;
     var saw_mmio_lifecycle_blocker = false;
     var saw_ring_helper = false;
 
@@ -151,8 +151,8 @@ test "phase10 virtio mmio survey manifest records the live helper-backed transpo
         }
 
         if (std.mem.eql(u8, gap.id, "phase10-mmio-feature-word-selector-helper")) {
-            saw_mmio_feature_selector_next = true;
-            try std.testing.expectEqualStrings("ready_next", gap.status);
+            saw_mmio_feature_selector = true;
+            try std.testing.expectEqualStrings("starter_landed", gap.status);
             try std.testing.expectEqualStrings("drivers/virtio/virtio_mmio.zig", gap.zigux_destination);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "device-feature selector") != null);
         }
@@ -161,7 +161,7 @@ test "phase10 virtio mmio survey manifest records the live helper-backed transpo
             saw_mmio_lifecycle_blocker = true;
             try std.testing.expectEqualStrings("blocked_on_risky_transport", gap.status);
             try std.testing.expectEqualStrings("drivers/virtio/virtio_mmio.zig", gap.zigux_destination);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "Interrupt acknowledgement") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "transport-backed config-space access") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "probe or remove lifecycle") != null);
         }
 
@@ -170,8 +170,8 @@ test "phase10 virtio mmio survey manifest records the live helper-backed transpo
         }
     }
 
-    try std.testing.expect(starter_landed_count >= 10);
-    try std.testing.expectEqual(@as(usize, 1), ready_next_count);
+    try std.testing.expect(starter_landed_count >= 11);
+    try std.testing.expectEqual(@as(usize, 0), ready_next_count);
     try std.testing.expectEqual(@as(usize, 1), blocked_count);
     try std.testing.expect(saw_ring_helper);
     try std.testing.expect(saw_mmio_survey_gate);
@@ -179,6 +179,6 @@ test "phase10 virtio mmio survey manifest records the live helper-backed transpo
     try std.testing.expect(saw_mmio_register_helper);
     try std.testing.expect(saw_mmio_queue_size_helper);
     try std.testing.expect(saw_mmio_slice_note);
-    try std.testing.expect(saw_mmio_feature_selector_next);
+    try std.testing.expect(saw_mmio_feature_selector);
     try std.testing.expect(saw_mmio_lifecycle_blocker);
 }
