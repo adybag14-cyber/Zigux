@@ -14,6 +14,8 @@ REQUIRED_FILES = [
     "Documentation/zigux/phase13-release-notes-survey.md",
     "Documentation/zigux/phase13-roadmap-traceability.md",
     "Documentation/zigux/phase13-notifier-list-survey.md",
+    "Documentation/zigux/phase13-contributor-workflow-guide.md",
+    "Documentation/zigux/phase10-phase11-phase13-contributor-surface-sync.md",
     "scripts/zigux/README.md",
     "zigux/Makefile",
     "zigux/tests/phase13_build.zig",
@@ -36,6 +38,8 @@ REQUIRED_FILES = [
 DOC_REQUIRED_MARKERS = [
     "Documentation/zigux/phase13-release-notes-survey.md",
     "Documentation/zigux/phase13-roadmap-traceability.md",
+    "Documentation/zigux/phase13-contributor-workflow-guide.md",
+    "Documentation/zigux/phase10-phase11-phase13-contributor-surface-sync.md",
     "Documentation/zigux/phase13-notifier-list-survey.md",
     "zigux/tests/phase13_notifier_list_manifest.json",
     "zigux/bindings/notifier_abi.zig",
@@ -46,6 +50,7 @@ DOC_REQUIRED_MARKERS = [
 REVIEW_REQUIRED_MARKERS = [
     "Documentation/zigux/phase13-release-notes-survey.md",
     "Documentation/zigux/phase13-roadmap-traceability.md",
+    "Documentation/zigux/phase13-contributor-workflow-guide.md",
     "Documentation/zigux/phase13-notifier-list-survey.md",
     "zigux/tests/phase13_notifier_list_manifest.json",
     "zigux/bindings/notifier_abi.zig",
@@ -136,9 +141,11 @@ def _seed_fixture_tree(root: Path) -> None:
     _write(root / "Documentation/zigux/phase13-release-notes-survey.md", "# stub\n")
     _write(root / "Documentation/zigux/phase13-roadmap-traceability.md", "# stub\n")
     _write(root / "Documentation/zigux/phase13-notifier-list-survey.md", "# stub\n")
+    _write(root / "Documentation/zigux/phase13-contributor-workflow-guide.md", "# stub\n")
+    _write(root / "Documentation/zigux/phase10-phase11-phase13-contributor-surface-sync.md", "# stub\n")
     _write(root / "scripts/zigux/README.md", "\n".join(SCRIPTS_REQUIRED_MARKERS) + "\n")
     _write(root / "zigux/Makefile", _baseline_makefile())
-    for rel in REQUIRED_FILES[6:]:
+    for rel in REQUIRED_FILES:
         if rel in {
             "Documentation/zigux/README.md",
             "Documentation/zigux/review-checklist.md",
@@ -201,6 +208,8 @@ def run_self_test() -> int:
             validate(root),
             [
                 "docs-readme:Documentation/zigux/phase13-roadmap-traceability.md",
+                "docs-readme:Documentation/zigux/phase13-contributor-workflow-guide.md",
+                "docs-readme:Documentation/zigux/phase10-phase11-phase13-contributor-surface-sync.md",
                 "docs-readme:Documentation/zigux/phase13-notifier-list-survey.md",
                 "docs-readme:zigux/tests/phase13_notifier_list_manifest.json",
                 "docs-readme:zigux/bindings/notifier_abi.zig",
@@ -218,6 +227,7 @@ def run_self_test() -> int:
             validate(root),
             [
                 "review-checklist:Documentation/zigux/phase13-roadmap-traceability.md",
+                "review-checklist:Documentation/zigux/phase13-contributor-workflow-guide.md",
                 "review-checklist:Documentation/zigux/phase13-notifier-list-survey.md",
                 "review-checklist:zigux/tests/phase13_notifier_list_manifest.json",
                 "review-checklist:zigux/bindings/notifier_abi.zig",
@@ -246,6 +256,15 @@ def run_self_test() -> int:
             "scripts_marker_guard_failed",
         )
         _write(root / "scripts/zigux/README.md", "\n".join(SCRIPTS_REQUIRED_MARKERS) + "\n")
+        case_count += 1
+
+        (root / "Documentation/zigux/phase13-contributor-workflow-guide.md").unlink()
+        _assert_only(
+            validate(root),
+            ["missing_file:Documentation/zigux/phase13-contributor-workflow-guide.md"],
+            "missing_contributor_workflow_guide_guard_failed",
+        )
+        _write(root / "Documentation/zigux/phase13-contributor-workflow-guide.md", "# stub\n")
         case_count += 1
 
         (root / "zigux/tests/phase13_devres_manifest.json").unlink()
