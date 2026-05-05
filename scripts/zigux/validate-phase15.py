@@ -171,6 +171,7 @@ INDEFINITE_POLICY_NOTE_MARKERS = [
 SURVEY_MARKERS = [
     "## Readiness at Reviewed Head",
     "## Readiness Gate",
+    "Documentation/zigux/phase15-freeze-map-governance.md",
     "Documentation/zigux/phase15-architecture-council-review-process.md",
     "Documentation/zigux/phase15-parity-scorecard.md",
     "Documentation/zigux/phase15-indefinite-c-policy.md",
