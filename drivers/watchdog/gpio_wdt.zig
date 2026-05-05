@@ -21,6 +21,18 @@ pub const ProbeStartMode = enum {
     start_before_register,
 };
 
+pub const WatchdogOption = enum {
+    magicclose,
+    keepaliveping,
+    settimeout,
+};
+
+pub const WatchdogOp = enum {
+    start,
+    stop,
+    ping,
+};
+
 pub const ModuleDescriptor = struct {
     name: []const u8,
     anchor: []const u8,
@@ -108,6 +120,10 @@ pub const RegistrationHandoffSummary = struct {
     timeout_init_requested: bool,
     stop_on_reboot: bool,
     parent_attached: bool,
+    module_owner_attached: bool,
+    identity: []const u8,
+    supported_options: [3]WatchdogOption,
+    supported_ops: [3]WatchdogOp,
 };
 
 pub const GpioWatchdogLab = struct {
@@ -320,6 +336,10 @@ pub const GpioWatchdogLab = struct {
             .timeout_init_requested = probe.timeout_init_requested,
             .stop_on_reboot = probe.stop_on_reboot,
             .parent_attached = probe.parent_attached,
+            .module_owner_attached = true,
+            .identity = "GPIO Watchdog",
+            .supported_options = .{ .magicclose, .keepaliveping, .settimeout },
+            .supported_ops = .{ .start, .stop, .ping },
         };
     }
 
