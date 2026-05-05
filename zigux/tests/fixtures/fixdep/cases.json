@@ -4,42 +4,48 @@
     "depfile": "sample.d",
     "target": "sample.o",
     "cmdline": "clang -Iinclude -DZIGUX_SAMPLE -c zigux/tests/fixtures/fixdep/sample.c -o sample.o",
-    "expected": "sample_expected.txt"
+    "expected": "sample_expected.txt",
+    "expected_exit_code": 0
   },
   {
     "name": "sample_multi_target",
     "depfile": "sample_multi_target.d",
     "target": "module/sample2.o",
     "cmdline": "clang -Iinclude -DZIGUX_MULTI -c zigux/tests/fixtures/fixdep/sample2.c -o module/sample2.o",
-    "expected": "sample_multi_target_expected.txt"
+    "expected": "sample_multi_target_expected.txt",
+    "expected_exit_code": 0
   },
   {
     "name": "sample_escaped_space",
     "depfile": "sample_escaped_space.d",
     "target": "sample_escaped_space.o",
     "cmdline": "clang -c zigux/tests/fixtures/fixdep/sample_escaped_space_source.c -o sample_escaped_space.o",
-    "expected": "sample_escaped_space_expected.txt"
+    "expected": "sample_escaped_space_expected.txt",
+    "expected_exit_code": 0
   },
   {
     "name": "sample_escaped_colon",
     "depfile": "sample_escaped_colon.d",
     "target": "sample_escaped_colon.o",
     "cmdline": "clang -c zigux/tests/fixtures/fixdep/sample_escaped_colon_source.c -o sample_escaped_colon.o",
-    "expected": "sample_escaped_colon_expected.txt"
+    "expected": "sample_escaped_colon_expected.txt",
+    "expected_exit_code": 0
   },
   {
     "name": "sample_concatenated",
     "depfile": "sample_concatenated.d",
     "target": "sample_concatenated.o",
     "cmdline": "clang -c zigux/tests/fixtures/fixdep/sample_concatenated_source.c -o sample_concatenated.o",
-    "expected": "sample_concatenated_expected.txt"
+    "expected": "sample_concatenated_expected.txt",
+    "expected_exit_code": 0
   },
   {
     "name": "sample_comment_continued",
     "depfile": "sample_comment_continued.d",
     "target": "sample_comment_continued.o",
     "cmdline": "rustc --emit dep-info=sample_comment_continued.d -o sample_comment_continued.o zigux/tests/fixtures/fixdep/sample_comment_continued.rs",
-    "expected": "sample_comment_continued_expected.txt"
+    "expected": "sample_comment_continued_expected.txt",
+    "expected_exit_code": 0
   },
   {
     "name": "sample_comment_only",
