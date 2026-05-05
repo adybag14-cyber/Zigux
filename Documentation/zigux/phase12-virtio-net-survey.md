@@ -13,6 +13,7 @@ This document records the bounded Phase 12 survey lane around `drivers/net/virti
   - `zigux/tests/phase12_virtio_net.zig`
   - `zigux/tests/phase12_build.zig`
   - `Documentation/zigux/phase12-virtio-net-survey.md`
+- public fallback posture: shared-tree-only anchor; unlike `Documentation/zigux/phase12-nvme-pci-raw-github-fallback-map.md` and `Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md`, this `virtio_net` note is not a commit-pinned raw GitHub fallback artifact.
 
 ## Why this slice exists
 
