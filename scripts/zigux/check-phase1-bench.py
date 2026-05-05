@@ -183,22 +183,31 @@ def validate_expectations_shape(expectations: dict[str, object]) -> None:
                     f'{iteration_key}:{missing_exact_checksums[0]}'
                 )
 
-    rbtree_exact_checksum = next(
-        (
-            key
-            for key in sorted(metric_groups['exact_checksums'])
-            if key.startswith('PHASE1_BENCH_RBTREE_')
-        ),
-        None,
-    )
+    rbtree_exact_checksum_keys = {
+        'PHASE1_BENCH_RBTREE_CHECKSUM',
+        'PHASE1_BENCH_RBTREE_DUPLICATE_CHECKSUM',
+        'PHASE1_BENCH_RBTREE_CACHED_CHECKSUM',
+        'PHASE1_BENCH_RBTREE_FIND_ADD_CHECKSUM',
+        'PHASE1_BENCH_RBTREE_POSTORDER_SAFE_CHECKSUM',
+    }
+    present_rbtree_exact_checksums = metric_groups['exact_checksums'] & rbtree_exact_checksum_keys
     if (
-        rbtree_exact_checksum is not None
+        present_rbtree_exact_checksums
         and 'PHASE1_BENCH_RBTREE_ITERATIONS' not in metric_groups['iterations']
     ):
         raise SystemExit(
             'phase1-bench:expectations:iterations:rbtree_required:'
             'PHASE1_BENCH_RBTREE_ITERATIONS'
         )
+    if 'PHASE1_BENCH_RBTREE_ITERATIONS' in metric_groups['iterations']:
+        missing_rbtree_exact_checksums = sorted(
+            rbtree_exact_checksum_keys - metric_groups['exact_checksums']
+        )
+        if missing_rbtree_exact_checksums:
+            raise SystemExit(
+                'phase1-bench:expectations:exact_checksums:rbtree_required:'
+                f'PHASE1_BENCH_RBTREE_ITERATIONS:{missing_rbtree_exact_checksums[0]}'
+            )
 
 
 def unexpected_phase1_bench_keys(
@@ -544,20 +553,24 @@ def run_self_test() -> int:
     else:
         raise SystemExit('phase1-bench:self-test:invalid_rbtree_optional:unexpected_pass')
 
-    invalid_rbtree_missing_iterations = {
+    invalid_rbtree_missing_exact_checksum = {
         **rbtree_expectations,
-        'iterations': {},
+        'exact_checksums': {
+            key: value
+            for key, value in rbtree_expectations['exact_checksums'].items()
+            if key != 'PHASE1_BENCH_RBTREE_POSTORDER_SAFE_CHECKSUM'
+        },
     }
     try:
-        validate_expectations_shape(invalid_rbtree_missing_iterations)
+        validate_expectations_shape(invalid_rbtree_missing_exact_checksum)
     except SystemExit as exc:
         assert_equal(
-            'invalid_rbtree_missing_iterations',
+            'invalid_rbtree_missing_exact_checksum',
             str(exc),
-            'phase1-bench:expectations:iterations:rbtree_required:PHASE1_BENCH_RBTREE_ITERATIONS',
+            'phase1-bench:expectations:exact_checksums:rbtree_required:PHASE1_BENCH_RBTREE_ITERATIONS:PHASE1_BENCH_RBTREE_POSTORDER_SAFE_CHECKSUM',
         )
     else:
-        raise SystemExit('phase1-bench:self-test:invalid_rbtree_missing_iterations:unexpected_pass')
+        raise SystemExit('phase1-bench:self-test:invalid_rbtree_missing_exact_checksum:unexpected_pass')
 
     print('PHASE1_BENCH_SELF_TEST=pass')
     print('PHASE1_BENCH_SELF_TEST_CASE_COUNT=19')
