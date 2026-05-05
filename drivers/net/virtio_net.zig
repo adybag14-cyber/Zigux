@@ -146,6 +146,29 @@ pub const ReceiveRefillSummary = struct {
     requires_post_restore_probe_replay: bool,
 };
 
+pub const TransmitRecycleOrder = enum {
+    data_queues_only,
+    after_control_queue_restore,
+    after_control_queue_restore_and_rss_reapply,
+};
+
+pub const TransmitRecycleSummary = struct {
+    anchor: []const u8,
+    recovery_generation: u16,
+    readiness: QueueResumeReadiness,
+    recycle_order: TransmitRecycleOrder,
+    recycle_queue_pairs: u16,
+    recycle_tx_queue_count: u16,
+    recycle_total_queue_count: u16,
+    resume_control_queue_index: ?u16,
+    remembered_queue_recovery_action: QueueRecoveryAction,
+    requires_control_queue_restore: bool,
+    requires_rss_reapply: bool,
+    requires_receive_refill_coordination: bool,
+    requires_fresh_probe_snapshot: bool,
+    requires_post_restore_probe_replay: bool,
+};
+
 pub const VirtioNetProbeLab = struct {
     const Self = @This();
 
@@ -294,6 +317,14 @@ pub const VirtioNetProbeLab = struct {
         return summarizeReceiveRefill(snapshot, resume_summary);
     }
 
+    pub fn planTransmitRecycle(self: *Self) !TransmitRecycleSummary {
+        if (!self.transport_recovery_frozen) return error.TransportRecoveryNotFrozen;
+
+        const snapshot = self.frozen_snapshot orelse return error.ProbeSnapshotUnavailable;
+        const resume_summary = summarizeQueueResume(snapshot, self.recovery_generation);
+        return summarizeTransmitRecycle(snapshot, resume_summary);
+    }
+
     fn checkedMulU16(lhs: u16, rhs: u16) !u16 {
         const value = @as(u32, lhs) * rhs;
         return std.math.cast(u16, value) orelse error.QueueCountOverflow;
@@ -417,6 +448,37 @@ pub const VirtioNetProbeLab = struct {
             .requires_control_queue_restore = resume_summary.requires_control_queue_restore,
             .requires_rss_reapply = resume_summary.requires_rss_reapply,
             .requires_mergeable_buffer_headroom = snapshot.mergeable_rx_buffers,
+            .requires_fresh_probe_snapshot = resume_summary.requires_fresh_probe_snapshot,
+            .requires_post_restore_probe_replay = true,
+        };
+    }
+
+    fn summarizeTransmitRecycle(
+        snapshot: ProbeSnapshot,
+        resume_summary: QueueResumeSummary,
+    ) TransmitRecycleSummary {
+        const recycle_order: TransmitRecycleOrder = if (resume_summary.requires_rss_reapply)
+            .after_control_queue_restore_and_rss_reapply
+        else if (resume_summary.requires_control_queue_restore)
+            .after_control_queue_restore
+        else
+            .data_queues_only;
+
+        return .{
+            .anchor = descriptor().anchor,
+            .recovery_generation = resume_summary.recovery_generation,
+            .readiness = resume_summary.readiness,
+            .recycle_order = recycle_order,
+            .recycle_queue_pairs = snapshot.planned_queue_pairs,
+            .recycle_tx_queue_count = snapshot.tx_queue_count,
+            .recycle_total_queue_count = snapshot.total_queue_count,
+            .resume_control_queue_index = snapshot.control_queue_index,
+            .remembered_queue_recovery_action = resume_summary.remembered_queue_recovery_action,
+            .requires_control_queue_restore = resume_summary.requires_control_queue_restore,
+            .requires_rss_reapply = resume_summary.requires_rss_reapply,
+            .requires_receive_refill_coordination = snapshot.mergeable_rx_buffers or
+                resume_summary.requires_control_queue_restore or
+                resume_summary.requires_rss_reapply,
             .requires_fresh_probe_snapshot = resume_summary.requires_fresh_probe_snapshot,
             .requires_post_restore_probe_replay = true,
         };
