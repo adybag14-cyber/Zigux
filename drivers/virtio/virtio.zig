@@ -66,6 +66,20 @@ pub const ConfigChangeSummary = struct {
     delivery_count: usize,
 };
 
+pub const InterruptAckSummary = struct {
+    anchor: []const u8,
+    interrupt_pending: bool,
+    pending_reason_bits: u8,
+    acknowledged_reason_bits: u8,
+    ack_count: usize,
+    unacknowledged_interrupt_count: usize,
+};
+
+pub const VirtioInterruptReason = struct {
+    pub const queue_used: u8 = 1;
+    pub const config_change: u8 = 2;
+};
+
 pub const VirtioCoreLabDevice = struct {
     const Self = @This();
     const FeatureSet = std.StaticBitSet(feature_bit_capacity);
@@ -93,6 +107,10 @@ pub const VirtioCoreLabDevice = struct {
     config_change_delivery_count: usize = 0,
     config_generation: u32 = 0,
     acknowledged_config_generation: u32 = 0,
+    pending_interrupt_reason_bits: u8 = 0,
+    acknowledged_interrupt_reason_bits: u8 = 0,
+    interrupt_ack_count: usize = 0,
+    unacknowledged_interrupt_count: usize = 0,
     transport_accepts_features: bool = true,
     registered_queue_count: usize = 0,
     reset_count: usize = 0,
@@ -128,6 +146,10 @@ pub const VirtioCoreLabDevice = struct {
         self.config_change_delivery_count = 0;
         self.config_generation = 0;
         self.acknowledged_config_generation = 0;
+        self.pending_interrupt_reason_bits = 0;
+        self.acknowledged_interrupt_reason_bits = 0;
+        self.interrupt_ack_count = 0;
+        self.unacknowledged_interrupt_count = 0;
         self.registered_queue_count = 0;
         self.reset_count += 1;
     }
@@ -370,6 +392,42 @@ pub const VirtioCoreLabDevice = struct {
         self.acknowledged_config_generation = generation;
     }
 
+    pub fn noteInterruptReason(self: *Self, reason_bits: u8) !void {
+        if (!self.hasStatus(DeviceStatus.driver)) return error.DriverNotAttached;
+        if (reason_bits == 0) return error.EmptyInterruptReason;
+        if ((reason_bits & ~allowedInterruptReasonBits()) != 0) return error.InterruptReasonOutOfRange;
+
+        const new_reason_bits = reason_bits & ~self.pending_interrupt_reason_bits;
+        if (new_reason_bits == 0) return;
+
+        self.pending_interrupt_reason_bits |= new_reason_bits;
+        self.unacknowledged_interrupt_count += @popCount(new_reason_bits);
+    }
+
+    pub fn acknowledgeInterrupt(self: *Self, reason_bits: u8) !void {
+        if (!self.hasStatus(DeviceStatus.driver)) return error.DriverNotAttached;
+        if (reason_bits == 0) return error.EmptyInterruptReason;
+        if ((reason_bits & ~allowedInterruptReasonBits()) != 0) return error.InterruptReasonOutOfRange;
+        if ((reason_bits & self.pending_interrupt_reason_bits) != reason_bits) {
+            return error.InterruptReasonNotPending;
+        }
+
+        self.pending_interrupt_reason_bits &= ~reason_bits;
+        self.acknowledged_interrupt_reason_bits |= reason_bits;
+        self.interrupt_ack_count += 1;
+    }
+
+    pub fn interruptAckSummary(self: *const Self) InterruptAckSummary {
+        return .{
+            .anchor = descriptor().anchor,
+            .interrupt_pending = self.pending_interrupt_reason_bits != 0,
+            .pending_reason_bits = self.pending_interrupt_reason_bits,
+            .acknowledged_reason_bits = self.acknowledged_interrupt_reason_bits,
+            .ack_count = self.interrupt_ack_count,
+            .unacknowledged_interrupt_count = self.unacknowledged_interrupt_count,
+        };
+    }
+
     pub fn configChangeSummary(self: *const Self) ConfigChangeSummary {
         return .{
             .anchor = descriptor().anchor,
@@ -412,5 +470,9 @@ pub const VirtioCoreLabDevice = struct {
         const slot = &self.queues[index];
         if (!slot.active) return error.QueueNotRegistered;
         return slot;
+    }
+
+    fn allowedInterruptReasonBits() u8 {
+        return VirtioInterruptReason.queue_used | VirtioInterruptReason.config_change;
     }
 };
