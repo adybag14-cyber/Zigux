@@ -647,3 +647,16 @@ test "phase 1 string replaceChar stops at embedded NUL" {
         &replace_buffer,
     );
 }
+
+test "phase 1 string memparse shared replay stays aligned with cmdline edge cases" {
+    const cases = [_][]const u8{
+        "64KiB rest",
+        "+nope",
+        "9223372036854775808",
+        "18446744073709551615K",
+    };
+
+    for (cases) |input| {
+        try std.testing.expectEqualDeep(cmdline.memparse(input), string.memparse(input));
+    }
+}
