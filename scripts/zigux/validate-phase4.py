@@ -11,6 +11,7 @@ ROOT = Path(__file__).resolve().parents[2]
 REQUIRED_FILES = [
     "scripts/zigux/validate-phase4.py",
     "Documentation/zigux/artifact-diff.md",
+    "Documentation/zigux/phase4-gate-evidence.md",
     "Documentation/zigux/phase4-validation-matrix.md",
     "zigux/Makefile",
     ".github/workflows/zigux-bootstrap.yml",
@@ -53,6 +54,12 @@ REQUIRED_DOC_MARKERS = [
     "zigux/tests/phase4_build.zig",
     "scripts/zigux/validate-phase4.py",
     "Documentation/zigux/phase4-validation-matrix.md",
+]
+REQUIRED_GATE_EVIDENCE_MARKERS = [
+    "PHASE4_GATE_EVIDENCE_TARGET_COUNT=18",
+    "PHASE4_WORKFLOW_ROUTE_CHECKER_BLOB_SHA=",
+    "scripts/zigux/check-phase4-gate-evidence.py",
+    "dedicated workflow-route checker file itself",
 ]
 REQUIRED_TESTS_README_MARKERS = [
     "zigux/tests/runtime_atomic64_diff.zig",
@@ -133,6 +140,7 @@ def validate_root(root: Path) -> list[str]:
     makefile = (root / "zigux/Makefile").read_text(encoding="utf-8")
     workflow = (root / ".github/workflows/zigux-bootstrap.yml").read_text(encoding="utf-8")
     artifact_doc = (root / "Documentation/zigux/artifact-diff.md").read_text(encoding="utf-8")
+    phase4_gate_evidence = (root / "Documentation/zigux/phase4-gate-evidence.md").read_text(encoding="utf-8")
     tests_readme = (root / "zigux/tests/README.md").read_text(encoding="utf-8")
     script_readme = (root / "scripts/zigux/README.md").read_text(encoding="utf-8")
     doc_readme = (root / "Documentation/zigux/README.md").read_text(encoding="utf-8")
@@ -148,6 +156,9 @@ def validate_root(root: Path) -> list[str]:
     for marker in REQUIRED_DOC_MARKERS:
         if marker not in artifact_doc:
             missing_markers.append(f"doc:{marker}")
+    for marker in REQUIRED_GATE_EVIDENCE_MARKERS:
+        if marker not in phase4_gate_evidence:
+            missing_markers.append(f"phase4_gate_evidence:{marker}")
     for marker in REQUIRED_TESTS_README_MARKERS:
         if marker not in tests_readme:
             missing_markers.append(f"tests_readme:{marker}")
@@ -199,6 +210,20 @@ def run_self_test() -> int:
                 ]
             )
             + "\n",
+        )
+        _write(
+            root / "Documentation/zigux/phase4-gate-evidence.md",
+            "\n".join(
+                [
+                    "# Phase 4 Gate Evidence",
+                    "",
+                    "- `PHASE4_GATE_EVIDENCE_TARGET_COUNT=18` remains explicit here.",
+                    "- `PHASE4_WORKFLOW_ROUTE_CHECKER_BLOB_SHA=example` remains pinned here.",
+                    "- `scripts/zigux/check-phase4-gate-evidence.py` remains part of the exact-readback packet.",
+                    "- This target set includes the dedicated workflow-route checker file itself.",
+                    "",
+                ]
+            ),
         )
         _write(
             root / "Documentation/zigux/phase4-validation-matrix.md",
@@ -327,6 +352,17 @@ def run_self_test() -> int:
         assert "phase4_matrix:rollback_owner:bitmap_diff.zig:Shared Subsystems Pod" in issues
         matrix_path.write_text(original_matrix, encoding="utf-8", newline="\n")
 
+        gate_evidence_path = root / "Documentation/zigux/phase4-gate-evidence.md"
+        original_gate_evidence = gate_evidence_path.read_text(encoding="utf-8")
+        gate_evidence_path.write_text(
+            original_gate_evidence.replace("PHASE4_GATE_EVIDENCE_TARGET_COUNT=18", "PHASE4_GATE_EVIDENCE_TARGET_COUNT=17"),
+            encoding="utf-8",
+            newline="\n",
+        )
+        issues = validate_root(root)
+        assert "phase4_gate_evidence:PHASE4_GATE_EVIDENCE_TARGET_COUNT=18" in issues
+        gate_evidence_path.write_text(original_gate_evidence, encoding="utf-8", newline="\n")
+
         workflow_path = root / ".github/workflows/zigux-bootstrap.yml"
         original_workflow = workflow_path.read_text(encoding="utf-8")
         workflow_path.write_text(
@@ -386,7 +422,7 @@ def main() -> int:
     print(f"PHASE4_REQUIRED_FILE_COUNT={len(REQUIRED_FILES)}")
     print(
         "PHASE4_REQUIRED_MARKER_COUNT="
-        f"{len(REQUIRED_MAKE_MARKERS) + len(REQUIRED_WORKFLOW_MARKERS) + len(REQUIRED_DOC_MARKERS) + len(REQUIRED_TESTS_README_MARKERS) + len(REQUIRED_SCRIPT_README_MARKERS) + len(REQUIRED_DOC_README_MARKERS) + len(REQUIRED_PHASE4_MATRIX_MARKERS) + len(REQUIRED_PHASE4_BUILD_MARKERS)}"
+        f"{len(REQUIRED_MAKE_MARKERS) + len(REQUIRED_WORKFLOW_MARKERS) + len(REQUIRED_DOC_MARKERS) + len(REQUIRED_GATE_EVIDENCE_MARKERS) + len(REQUIRED_TESTS_README_MARKERS) + len(REQUIRED_SCRIPT_README_MARKERS) + len(REQUIRED_DOC_README_MARKERS) + len(REQUIRED_PHASE4_MATRIX_MARKERS) + len(REQUIRED_PHASE4_BUILD_MARKERS)}"
     )
     return 0
 
