@@ -38,15 +38,15 @@ test "runtime trace-events diff gate keeps function-callback registration balanc
     try std.testing.expectError(error.FunctionThreadNotRegistered, module.emitFunctionIteration(0));
 
     try module.registerFunctionThread();
-    try module.registerFunctionThread();
-    try std.testing.expectEqual(@as(usize, 2), module.summary().registration_depth);
+    try std.testing.expectError(error.FunctionThreadAlreadyRegistered, module.registerFunctionThread());
+    try std.testing.expectEqual(@as(usize, 1), module.summary().registration_depth);
 
     const emitted = try module.emitFunctionIteration(9);
     try std.testing.expectEqual(@as(usize, 2), emitted);
 
     const summary = module.summary();
     try std.testing.expectEqual(@as(usize, 1), summary.fn_iterations);
-    try std.testing.expectEqual(@as(usize, 2), summary.registration_depth);
+    try std.testing.expectEqual(@as(usize, 1), summary.registration_depth);
     try std.testing.expectEqual(@as(usize, 2), summary.total_events);
     try std.testing.expectEqual(@as(i32, 9), summary.last_fn_count);
     try std.testing.expectEqual(@as(usize, 0), summary.last_main_emitted_events);
@@ -56,8 +56,6 @@ test "runtime trace-events diff gate keeps function-callback registration balanc
     try std.testing.expectEqualStrings("Look at me", payload.foo_bar_message);
     try std.testing.expectEqualStrings("Look at me too", payload.template_message);
 
-    try module.unregisterFunctionThread();
-    try std.testing.expectEqual(@as(usize, 1), module.summary().registration_depth);
     try module.unregisterFunctionThread();
     try std.testing.expectEqual(@as(usize, 0), module.summary().registration_depth);
     try std.testing.expectError(error.RegistrationUnderflow, module.unregisterFunctionThread());
