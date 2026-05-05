@@ -23,10 +23,12 @@ REQUIRED_HELPERS = (
     "validate-phase2-closure.py",
     "validate-phase3.py",
     "validate_phase3_selftest.py",
+    "check-phase3-selftest-surface.py",
     "validate-phase3-policy-unsafe-survey.py",
     "validate-phase3-low-level-wrapper-survey.py",
     "validate-phase4.py",
     "check-phase6-shared-surface.py",
+    "check-build-only-phase12-surface.py",
     "run-phase3-checks.py",
     "phase3_catalog.py",
     "phase3_check_lib.py",
@@ -56,8 +58,8 @@ PHASE13_VALIDATE_HELPERS = (
 
 REQUIRED_README_SNIPPETS = (
     "- The live support packet inside that same validator-first route is `validate-phase3-policy-unsafe-survey.py`, `validate-phase3-low-level-wrapper-survey.py`, `phase3_catalog.py`, `phase3_check_lib.py`, `generate-phase3-check-wrappers.py`, and `run-phase3-checks.py`; the generated `check-phase3-*.py` wrappers stay as compatibility entrypoints derived from the discovered slice catalog instead of a second hand-maintained survey list.",
-    "- there is no separate shared `validate-phase6.py`, external portability checker packet, or `phase6-perf` make target on `master`; if those gates land later, document them here only after the files and targets ship.",
-    "- there is no dedicated shared `validate-phase9.py` on `master`; new runtime-pilot follow-through should stay inside the next smallest shared runtime-loader substrate or validation step that keeps those four loader handoffs reviewable without widening into a larger runtime-module implementation.",
+    "- there is no separate shared `validate-phase6.py`, external portability checker packet beyond `check-phase6-shared-surface.py`, or aggregated `phase6-perf` target on `master`; the shipped dedicated perf replay is `make -C zigux phase6-checksum-perf`, which keeps the checksum slowdown ceiling wired into a Linux-style entrypoint without overstating perf coverage for the rest of the Phase 6 helper packet.",
+    "- there is a dedicated shared `validate-phase9.py` on `master`, even though the current `zigux/Makefile` still exposes only `phase9-test` and `phase9` rather than a separate `phase9-validate` convenience target; new runtime-pilot follow-through should stay inside the next smallest shared runtime-loader substrate or validation step that keeps those four loader handoffs plus the shared `zigux/kernel/runtime_loader.zig` facade and `zigux/kernel/runtime_loader_contract.zig` allocator/init-flow contract reviewable without widening into a larger runtime-module implementation.",
     "- there is no dedicated shared `validate-phase12.py`, `check-phase12-*.py`, or `phase12-validate` target on `master`; future Phase 12 reviewability claims should name only shipped survey, build, and make surfaces until new validator files actually land.",
     "- `make -C zigux phase13-validate` keeps that same release packet wired through the Linux-style validation entrypoint.",
 )
