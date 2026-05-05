@@ -4,17 +4,28 @@ from __future__ import annotations
 import argparse
 from pathlib import Path
 import shutil
+import subprocess
 import sys
 import tempfile
 
 
 SELF_PATH = Path(__file__).resolve()
-ROOT = SELF_PATH.parents[0]
+
+
+def infer_repo_root() -> Path:
+    for candidate in [SELF_PATH.parent, *SELF_PATH.parents]:
+        if (candidate / "Documentation/zigux/README.md").exists() and (candidate / "zigux/Makefile").exists():
+            return candidate
+    return SELF_PATH.parent
+
+
+ROOT = infer_repo_root()
 
 DOCS_README_PATH = "Documentation/zigux/README.md"
 SCRIPTS_README_PATH = "scripts/zigux/README.md"
 TESTS_README_PATH = "zigux/tests/README.md"
 REVIEW_CHECKLIST_PATH = "Documentation/zigux/review-checklist.md"
+FREEZE_MAP_PATH = "Documentation/zigux/freeze-map.md"
 MAKEFILE_PATH = "zigux/Makefile"
 WORKFLOW_PATH = ".github/workflows/zigux-bootstrap.yml"
 PHASE9_BUILD_PATH = "zigux/tests/phase9_build.zig"
@@ -60,6 +71,10 @@ REQUIRED_REVIEW_CHECKLIST_MARKERS = [
     "the shipped build-only surface checker",
     "workflow-backed `make -C zigux phase9` route",
     "no-dedicated-`validate-phase9.py` posture",
+]
+
+REQUIRED_FREEZE_MAP_MARKERS = [
+    "the shared Phase 9 runtime-loader packet stays review-only beside `kernel/workqueue.c` and `kernel/trace/ring_buffer.c`: `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, `scripts/zigux/check-phase9-build-only-surface.py`, `zigux/tests/phase9_build.zig`, `zigux/kernel/runtime_loader.zig`, `zigux/kernel/runtime_loader_contract.zig`, and the four `samples/zigux/runtime_*_loader.zig` scaffolds keep the bounded loader handoff explicit without implying scheduler-facing substrate closure or a freeze-map status change",
 ]
 
 REQUIRED_MAKEFILE_MARKERS = [
@@ -113,6 +128,7 @@ def validate(root: Path) -> list[str]:
         SCRIPTS_README_PATH,
         TESTS_README_PATH,
         REVIEW_CHECKLIST_PATH,
+        FREEZE_MAP_PATH,
         MAKEFILE_PATH,
         WORKFLOW_PATH,
         PHASE9_BUILD_PATH,
@@ -135,6 +151,7 @@ def validate(root: Path) -> list[str]:
     scripts_readme = read_text(root, SCRIPTS_README_PATH)
     tests_readme = read_text(root, TESTS_README_PATH)
     review_checklist = read_text(root, REVIEW_CHECKLIST_PATH)
+    freeze_map = read_text(root, FREEZE_MAP_PATH)
     makefile = read_text(root, MAKEFILE_PATH)
     workflow = read_text(root, WORKFLOW_PATH)
     phase9_build = read_text(root, PHASE9_BUILD_PATH)
@@ -151,6 +168,9 @@ def validate(root: Path) -> list[str]:
     for marker in REQUIRED_REVIEW_CHECKLIST_MARKERS:
         if marker not in review_checklist:
             failures.append(f"review_checklist:{marker}")
+    for marker in REQUIRED_FREEZE_MAP_MARKERS:
+        if marker not in freeze_map:
+            failures.append(f"freeze_map:{marker}")
     for marker in REQUIRED_MAKEFILE_MARKERS:
         if marker not in makefile:
             failures.append(f"makefile:{marker}")
@@ -200,6 +220,43 @@ Phase 9 flow
         """# Zigux Review Checklist
 
 - if the change touches the shared Phase 9 runtime-loader packet, do `Documentation/zigux/README.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, `Documentation/zigux/review-checklist.md`, the four runtime survey-and-module note pairs, `zigux/kernel/runtime_loader.zig`, `zigux/kernel/runtime_loader_contract.zig`, `zigux/tests/runtime_loader_allocator_init_flow.zig`, `scripts/zigux/check-phase9-build-only-surface.py`, `zigux/tests/phase9_build.zig`, `zigux/Makefile`, `.github/workflows/zigux-bootstrap.yml`, the four `samples/zigux/runtime_*_loader.zig` scaffolds, the Phase 2 config-surface references `scripts/zigux/kconfig/conf_bridge.zig` and `scripts/zigux/kconfig/confdata_bridge.zig`, and the Phase 3 export-boundary references `rust/exports.c` and `zigux/kernel/export_shim.zig` still agree on the same bounded loader-handoff packet, the shipped build-only surface checker, and the no-dedicated-`validate-phase9.py` posture without recasting those earlier-phase references as Phase 9 runtime evidence or understating the shipped shared runtime-loader facade, contract, allocator/init-flow replay, or workflow-backed `make -C zigux phase9` route on `master`?
+""",
+    )
+    write_text(
+        root / FREEZE_MAP_PATH,
+        """# Zigux Freeze Map
+
+This file records code that should not move into active Zigux delivery without an explicit Architecture Council decision.
+
+## Freeze In C Initially
+- `kernel/sched/core.c`
+- `mm/page_alloc.c`
+- `kernel/rcu/tree.c`
+- `net/core/skbuff.c`
+
+## Study / Boundary Only
+- `kernel/workqueue.c`
+- `kernel/trace/ring_buffer.c`
+
+## Governance For Freeze-Map Changes
+- changes to either list require an explicit Architecture Council decision with written rationale
+- any lane that touches a listed anchor must declare owner, phase, status bucket, validation gate, and rollback owner in the reviewable record for that lane
+- direct Zig port or bridge claims for a freeze-in-C anchor stay blocked until the repo carries a parity scorecard entry and the Architecture Council records why the status can change
+
+## Stay-In-C Policy
+- the existing C implementation remains the product source of truth for every freeze-in-C anchor
+- allowed near-term Zigux work on those anchors is limited to survey notes, boundary manifests, validation gates, and explicit non-goal records
+- wrapper-first or helper-first experiments may continue only for study-only anchors, and they still must keep scheduler, MM, RCU, skbuff, and other deep-core ownership explicit
+- the shared Phase 9 runtime-loader packet stays review-only beside `kernel/workqueue.c` and `kernel/trace/ring_buffer.c`: `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, `scripts/zigux/check-phase9-build-only-surface.py`, `zigux/tests/phase9_build.zig`, `zigux/kernel/runtime_loader.zig`, `zigux/kernel/runtime_loader_contract.zig`, and the four `samples/zigux/runtime_*_loader.zig` scaffolds keep the bounded loader handoff explicit without implying scheduler-facing substrate closure or a freeze-map status change
+- if validation is incomplete, contradictory, or too weak to justify a status change, keep the code in C and record the blocker
+- closing a freeze-in-C review without a status change must retain the blocker, record the closeout as `retired_from_active_discussion`, and keep the reopen triggers attached to the evidence archive
+- there is no silent exception path around the stay-in-C policy; only an explicit Architecture Council reopen request with fresh linked evidence may reopen status review
+
+## Policy
+- deep-core files do not become sprint targets by enthusiasm alone
+- research is allowed
+- product commitments require explicit gates, validation, and ownership
+- if evidence is not overwhelming, keep the code in C and document why
 """,
     )
     write_text(
@@ -309,6 +366,23 @@ def run_self_test() -> int:
         )
 
         write_fixture_tree(root)
+        freeze_map_path = root / FREEZE_MAP_PATH
+        freeze_map = freeze_map_path.read_text(encoding="utf-8")
+        freeze_map_path.write_text(
+            freeze_map.replace(
+                "- the shared Phase 9 runtime-loader packet stays review-only beside `kernel/workqueue.c` and `kernel/trace/ring_buffer.c`: `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, `scripts/zigux/check-phase9-build-only-surface.py`, `zigux/tests/phase9_build.zig`, `zigux/kernel/runtime_loader.zig`, `zigux/kernel/runtime_loader_contract.zig`, and the four `samples/zigux/runtime_*_loader.zig` scaffolds keep the bounded loader handoff explicit without implying scheduler-facing substrate closure or a freeze-map status change\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_failure(
+            root,
+            "freeze_map:the shared Phase 9 runtime-loader packet stays review-only beside `kernel/workqueue.c` and `kernel/trace/ring_buffer.c`: `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, `scripts/zigux/check-phase9-build-only-surface.py`, `zigux/tests/phase9_build.zig`, `zigux/kernel/runtime_loader.zig`, `zigux/kernel/runtime_loader_contract.zig`, and the four `samples/zigux/runtime_*_loader.zig` scaffolds keep the bounded loader handoff explicit without implying scheduler-facing substrate closure or a freeze-map status change",
+            "missing_freeze_map_phase9_boundary_marker",
+        )
+
+        write_fixture_tree(root)
         makefile_path = root / MAKEFILE_PATH
         makefile = makefile_path.read_text(encoding="utf-8")
         makefile_path.write_text(
@@ -381,8 +455,22 @@ def run_self_test() -> int:
             "missing_phase9_build_facade_replay_dependency",
         )
 
+        write_fixture_tree(root)
+        write_text(root / "scripts/zigux/check-phase9-build-only-surface.py", SELF_PATH.read_text(encoding="utf-8"))
+        probe = subprocess.run(
+            [sys.executable, str(root / "scripts/zigux/check-phase9-build-only-surface.py")],
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        if probe.returncode != 0 or "PHASE9_BUILD_ONLY_SURFACE=pass" not in probe.stdout:
+            raise SystemExit(
+                "default_root_probe_failed:"
+                f"returncode={probe.returncode}:stdout={probe.stdout!r}:stderr={probe.stderr!r}"
+            )
+
     print("PHASE9_BUILD_ONLY_SURFACE_SELF_TEST=pass")
-    print("PHASE9_BUILD_ONLY_SURFACE_SELF_TEST_CASE_COUNT=9")
+    print("PHASE9_BUILD_ONLY_SURFACE_SELF_TEST_CASE_COUNT=10")
     return 0
 
 
@@ -394,7 +482,7 @@ def main() -> int:
         "--root",
         type=Path,
         default=ROOT,
-        help="Repository root to validate. Defaults to the current directory.",
+        help="Repository root to validate. Defaults to the repository root inferred from this script.",
     )
     parser.add_argument(
         "--self-test",
@@ -418,7 +506,7 @@ def main() -> int:
     print("PHASE9_BUILD_ONLY_SURFACE=pass")
     print(
         "PHASE9_BUILD_ONLY_SURFACE_MARKER_COUNT="
-        f"{len(REQUIRED_DOCS_README_MARKERS) + len(REQUIRED_SCRIPT_README_MARKERS) + len(REQUIRED_TESTS_README_MARKERS) + len(REQUIRED_REVIEW_CHECKLIST_MARKERS) + len(REQUIRED_MAKEFILE_MARKERS) + len(REQUIRED_WORKFLOW_MARKERS) + len(REQUIRED_PHASE9_BUILD_MARKERS)}"
+        f"{len(REQUIRED_DOCS_README_MARKERS) + len(REQUIRED_SCRIPT_README_MARKERS) + len(REQUIRED_TESTS_README_MARKERS) + len(REQUIRED_REVIEW_CHECKLIST_MARKERS) + len(REQUIRED_FREEZE_MAP_MARKERS) + len(REQUIRED_MAKEFILE_MARKERS) + len(REQUIRED_WORKFLOW_MARKERS) + len(REQUIRED_PHASE9_BUILD_MARKERS)}"
     )
     return 0
 
