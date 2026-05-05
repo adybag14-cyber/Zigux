@@ -77,7 +77,8 @@ Current Phase 3 use
 - `python3 scripts/zigux/run-phase3-checks.py --slug chrdev-notify-ack-delivery-budget-guard-window-policy-budget-window-delivery-window-budget-window-delivery-window-budget-window-DELIVERY-window` compares that committed JSON fixture against both the bounded C harness and the Zig chrdev notify ack delivery budget guard window policy budget window delivery window budget window DELIVERY window dump.
 
 Current Phase 4 use
-- `zigux/tests/runtime_atomic64_diff.zig` currently carries the live bounded atomic64 rollback-readiness parity checks.
+- `zigux/tests/atomic64_diff.zig` keeps the roadmap-named Phase 4 atomic64 entrypoint explicit as the thin wrapper over the shared runtime-backed replay.
+- `zigux/tests/runtime_atomic64_diff.zig` currently carries the single live bounded atomic64 rollback-readiness replay body that the Phase 4 wrapper and the Phase 9 starter both reuse.
 - `zigux/tests/bitmap_diff.zig` anchors the bounded bitmap rollback-readiness parity checks.
 - `zigux/tests/phase4_build.zig` keeps the two Phase 4 diff gates on one shared `zig build test --build-file zigux/tests/phase4_build.zig` entrypoint.
 - `scripts/zigux/validate-phase4.py` keeps the shared Phase 4 build entrypoint, workflow wiring, and Phase 4 documentation markers aligned before the Zig tests run.
