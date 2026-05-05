@@ -105,6 +105,15 @@ The closed Phase 1 host-tools packet also stays reviewable through these shared 
 
 Reviewers should treat drift across those packet summaries, the bootstrap workflow replay, and the validator-first replay route as a closure regression even when the helper code itself is unchanged.
 
+## Bitmap Review Rule
+
+For `tools/lib/bitmap.zig`, reviewers must also keep the committed partial-window XOR fixture contract explicit through:
+
+- `zigux/tests/fixtures/phase1_helpers.json`
+- `zigux/tests/phase1_helpers.zig`
+
+That means `partial_xor_nbits` and `partial_xor_masked_values` stay present and review-visible whenever the helper or its paired replay changes. Those two fields are the bounded proof that caller-selected bit windows remain masked instead of silently leaking tail bits beyond `nbits`.
+
 ## Rollback
 
 Rollback owner:
