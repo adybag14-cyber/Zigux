@@ -59,7 +59,7 @@ test "phase12 nvme pci survey manifest records the landed starter surfaces and r
     defer parsed.deinit();
 
     const manifest = parsed.value;
-    try std.testing.expectEqualStrings("P12-L05", manifest.lane_key);
+    try std.testing.expectEqualStrings("P12-L08", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 12", manifest.phase);
     try std.testing.expectEqualStrings("drivers/nvme/host/pci.c", manifest.anchor);
     try std.testing.expectEqualStrings("f7d8ad3bf36fd42ee03b041bbf1bbbb7dccc6200", manifest.surveyed_commit);
