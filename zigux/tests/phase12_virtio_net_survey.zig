@@ -76,7 +76,7 @@ test "phase12 virtio_net survey manifest stays aligned with the landed probe sta
     try std.testing.expect(manifest.survey_summary.preexisting_phase12_virtio_net_survey_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase12_survey_note_present);
     try std.testing.expect(manifest.survey_summary.preexisting_virtio_net_zig_present);
-    try std.testing.expectEqual(@as(usize, 10), manifest.gaps.len);
+    try std.testing.expectEqual(@as(usize, 11), manifest.gaps.len);
 
     try std.testing.expect(std.mem.indexOf(u8, build_file, "phase12_virtio_net_module") != null);
     try std.testing.expect(std.mem.indexOf(u8, build_file, "phase12_virtio_net_tests") != null);
@@ -93,7 +93,8 @@ test "phase12 virtio_net survey manifest stays aligned with the landed probe sta
     var saw_survey_note = false;
     var saw_probe_starter = false;
     var saw_queue_recovery = false;
-    var saw_ready_next = false;
+    var saw_receive_refill = false;
+    var saw_transmit_recycle = false;
     var saw_blocker = false;
 
     for (manifest.gaps, 0..) |gap, i| {
@@ -171,11 +172,20 @@ test "phase12 virtio_net survey manifest stays aligned with the landed probe sta
         }
 
         if (std.mem.eql(u8, gap.id, "phase12-virtio-net-receive-refill-followup")) {
-            saw_ready_next = true;
+            saw_receive_refill = true;
             try std.testing.expectEqualStrings("drivers/net/virtio_net.zig", gap.zigux_destination);
-            try std.testing.expectEqualStrings("ready_next", gap.status);
+            try std.testing.expectEqualStrings("starter_landed", gap.status);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "mergeable-buffer headroom") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "fresh probe replay") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "RSS-aware refill") != null);
+        }
+
+        if (std.mem.eql(u8, gap.id, "phase12-virtio-net-transmit-recycle-followup")) {
+            saw_transmit_recycle = true;
+            try std.testing.expectEqualStrings("drivers/net/virtio_net.zig", gap.zigux_destination);
+            try std.testing.expectEqualStrings("ready_next", gap.status);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "completion-side packet recycle") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "control-virtqueue refill coordination") != null);
         }
 
         if (std.mem.eql(u8, gap.id, "phase12-virtio-net-runtime-data-path")) {
@@ -191,7 +201,7 @@ test "phase12 virtio_net survey manifest stays aligned with the landed probe sta
         }
     }
 
-    try std.testing.expectEqual(@as(usize, 8), starter_landed_count);
+    try std.testing.expectEqual(@as(usize, 9), starter_landed_count);
     try std.testing.expectEqual(@as(usize, 1), ready_next_count);
     try std.testing.expectEqual(@as(usize, 1), blocked_count);
     try std.testing.expect(saw_build_gate);
@@ -202,6 +212,7 @@ test "phase12 virtio_net survey manifest stays aligned with the landed probe sta
     try std.testing.expect(saw_survey_note);
     try std.testing.expect(saw_probe_starter);
     try std.testing.expect(saw_queue_recovery);
-    try std.testing.expect(saw_ready_next);
+    try std.testing.expect(saw_receive_refill);
+    try std.testing.expect(saw_transmit_recycle);
     try std.testing.expect(saw_blocker);
 }
