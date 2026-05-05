@@ -59,6 +59,8 @@ The current starter implementation stays deliberately bounded:
 - `pin_path.zig` ports the pure pathname join and bpffs dot-sanitization helpers behind explicit buffer-based APIs that mirror `pathname_concat()`, `build_map_pin_path()`, and `sanitize_pin_path()`
 - the pin-path helper defaults to `/sys/fs/bpf` when callers leave the root unset, but still keeps actual map pinning, directory creation, and filesystem validation outside the Zig slice
 - pin-path overflows stay explicit as bounded helper errors instead of silently truncating output or widening into direct `PATH_MAX`, `mkdir()`, `statfs()`, or `unlink()` parity
+- the broader `perf-buffer-online-cpu-routing` setup remains deferred around per-CPU `perf_event_open()` setup, perf-buffer ring `mmap()` setup, and `PERF_EVENT_IOC_ENABLE` enablement
+- the current packet does not claim online-CPU filtering, epoll registration, timer semantics, or broader interrupt-routing behavior beyond those explicit setup-side anchors
 
 The current tests check:
 
@@ -93,7 +95,9 @@ This survey slice does not yet claim:
 - direct `mkdir()`, `statfs()`, `unlink()`, or `bpf_obj_pin()` parity for map or program pinning
 - BTF relocation parity
 - ELF loader parity
+- deferred `perf-buffer-online-cpu-routing` setup around per-CPU `perf_event_open()` setup, perf-buffer ring `mmap()` setup, or `PERF_EVENT_IOC_ENABLE` enablement
 - perf-buffer runtime behavior
+- standalone timer or clockevent helper behavior
 - object-model parity for `bpf_object`, `bpf_map`, or `bpf_program`
 
 ## Next bounded step
