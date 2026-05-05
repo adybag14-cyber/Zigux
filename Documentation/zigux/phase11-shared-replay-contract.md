@@ -11,6 +11,7 @@ This note records the current shared contributor replay surface for the shipped 
 
 * `Documentation/zigux/README.md`
 * `scripts/zigux/README.md`
+* `scripts/zigux/check-phase11-shared-replay-contract.py`
 * `zigux/tests/README.md`
 * `Documentation/zigux/review-checklist.md`
 * `Documentation/zigux/phase11-shared-replay-contract.md`
@@ -26,6 +27,9 @@ This note records the current shared contributor replay surface for the shipped 
 
 ## Shared Replay Commands
 
+* `python3 scripts/zigux/check-phase11-shared-replay-contract.py --self-test`
+* `python3 scripts/zigux/check-phase11-shared-replay-contract.py`
+* `make -C zigux phase11-contract`
 * `zig build test --build-file zigux/tests/phase11_build.zig --summary all`
 * `make -C zigux phase11`
 * `zig build hvc-console-survey --build-file zigux/tests/phase11_build.zig --summary all`
@@ -49,13 +53,13 @@ The dedicated archival HVC evidence stays explicit beside that shared route:
 * `Documentation/zigux/phase11-hvc-console-survey.md`
 * `Documentation/zigux/phase11-hvc-console-validation-matrix.md`
 
-`Documentation/zigux/README.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, `Documentation/zigux/review-checklist.md`, and `zigux/Makefile` keep that same shared-versus-dedicated replay split explicit, while `zigux/tests/phase11_hvc_cleanup.zig` keeps the bounded `hvc_cleanup()` tty-port release handoff, missing-reference failure mode, and teardown-gating replay reviewable without implying live tty teardown or host-backed cleanup.
+`Documentation/zigux/README.md`, `scripts/zigux/README.md`, `scripts/zigux/check-phase11-shared-replay-contract.py`, `zigux/tests/README.md`, `Documentation/zigux/review-checklist.md`, and `zigux/Makefile` keep that same shared-versus-dedicated replay split explicit, while `zigux/tests/phase11_hvc_cleanup.zig` keeps the bounded `hvc_cleanup()` tty-port release handoff, missing-reference failure mode, and teardown-gating replay reviewable without implying live tty teardown or host-backed cleanup.
 
 ## What This Contract Does Not Claim
 
 * the shared `zig build test --build-file zigux/tests/phase11_build.zig --summary all` route does not run the dedicated `zigux/tests/phase11_hvc_console_survey.zig` archival survey replay
 * the dedicated archival survey route stays separate through `zig build hvc-console-survey --build-file zigux/tests/phase11_build.zig --summary all` and `make -C zigux phase11-hvc-survey`
-* there is no dedicated shared `validate-phase11.py`, `check-phase11-*.py`, or `phase11-validate` packet on current `master`, and this replay contract does not widen the shipped Phase 11 surface into tty registration, notifier execution, khvcd execution, sysrq dispatch, platform registration, PM base plumbing, poweroff-handler coordination, or host-backed teardown validation
+* there is no dedicated shared `validate-phase11.py` or `phase11-validate` packet on current `master`; the shipped checker only keeps the shared-versus-dedicated replay contract fail-closed, and this replay contract still does not widen the Phase 11 surface into tty registration, notifier execution, khvcd execution, sysrq dispatch, platform registration, PM base plumbing, poweroff-handler coordination, or host-backed teardown validation
 
 ## Follow-Through Rule
 
