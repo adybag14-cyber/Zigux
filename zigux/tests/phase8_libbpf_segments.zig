@@ -61,7 +61,7 @@ test "phase 8 libbpf segment manifest records the roadmap gap and bounded next s
     try std.testing.expect(!manifest.survey_summary.preexisting_zigux_segments_present);
     try std.testing.expect(!manifest.survey_summary.preexisting_phase8_libbpf_note_present);
     try std.testing.expect(manifest.survey_summary.companion_c_files.len >= 5);
-    try std.testing.expect(manifest.segments.len >= 6);
+    try std.testing.expectEqual(@as(usize, 6), manifest.segments.len);
 
     var ready_next_count: usize = 0;
     var starter_landed_count: usize = 0;
@@ -114,10 +114,10 @@ test "phase 8 libbpf segment manifest records the roadmap gap and bounded next s
         }
     }
 
-    try std.testing.expect(ready_next_count == 0);
-    try std.testing.expect(starter_landed_count >= 3);
-    try std.testing.expect(blocked_on_object_model_count >= 1);
-    try std.testing.expect(deferred_high_risk_count >= 2);
+    try std.testing.expectEqual(@as(usize, 0), ready_next_count);
+    try std.testing.expectEqual(@as(usize, 3), starter_landed_count);
+    try std.testing.expectEqual(@as(usize, 1), blocked_on_object_model_count);
+    try std.testing.expectEqual(@as(usize, 2), deferred_high_risk_count);
     try std.testing.expect(saw_logging_segment);
     try std.testing.expect(saw_pin_path_segment);
     try std.testing.expect(saw_cpu_mask_segment);
