@@ -57,7 +57,7 @@
       "id": "phase11-gpio-wdt-slice-note",
       "status": "starter_landed",
       "kind": "documentation",
-      "zigux_destination": "Documentation/zigux/phase11-gpio-wdt-slice.md",
+      "zigux_destination": "Documentation/zigux/phase11-gpio-wdt-module-slice.md",
       "why_now": "A bounded slice note records exactly what the gpio_wdt starter, probe-summary helper, stop-policy helper, and registration handoff summary cover so later Phase 11 work can extend the model without reopening the starter contract."
     },
     {
