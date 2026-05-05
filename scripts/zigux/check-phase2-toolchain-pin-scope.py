@@ -20,6 +20,7 @@ REVIEW_CHECKLIST = ROOT / "Documentation" / "zigux" / "review-checklist.md"
 CLOSURE_DOC = ROOT / "Documentation" / "zigux" / "phase2-closure.md"
 PHASE2_VALIDATOR = ROOT / "scripts" / "zigux" / "validate-phase2.py"
 PHASE2_CLOSURE_VALIDATOR = ROOT / "scripts" / "zigux" / "validate-phase2-closure.py"
+MAKEFILE = ROOT / "zigux" / "Makefile"
 
 EXPECTED_PIN_TARGETS = [
     "x86_64-linux",
@@ -105,6 +106,13 @@ PHASE2_CLOSURE_VALIDATOR_MARKERS = [
     "'scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test': 1,",
     "'scripts/zigux/check-phase2-toolchain-pin-scope.py': 1,",
     "missing_markers.extend(validate_exact_makefile_runs(makefile))",
+]
+
+MAKEFILE_MARKERS = [
+    "phase2-validate:",
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test",
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-toolchain-pin-scope.py",
+    "phase2: phase2-validate phase2-tools phase2-kconfig phase2-cross",
 ]
 
 
@@ -307,6 +315,14 @@ def run_self_test() -> int:
     ):
         raise SystemExit("phase2-toolchain-pin-scope:self-test:valid_phase2_closure_validator")
 
+    valid_makefile = "\n".join(MAKEFILE_MARKERS)
+    if validate_required_markers(
+        valid_makefile,
+        label="phase2_makefile",
+        markers=MAKEFILE_MARKERS,
+    ):
+        raise SystemExit("phase2-toolchain-pin-scope:self-test:valid_makefile")
+
     bad_phase = dict(valid_policy)
     bad_phase["phase"] = "Phase 3"
     issues = validate_policy(bad_phase)
@@ -455,6 +471,14 @@ def run_self_test() -> int:
     if not any(issue.startswith("phase2_closure_validator:missing_marker:") for issue in closure_validator_issues):
         raise SystemExit("phase2-toolchain-pin-scope:self-test:phase2_closure_validator_marker_failure")
 
+    makefile_issues = validate_required_markers(
+        "phase2-validate:\ncd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test",
+        label="phase2_makefile",
+        markers=MAKEFILE_MARKERS,
+    )
+    if not any(issue.startswith("phase2_makefile:missing_marker:") for issue in makefile_issues):
+        raise SystemExit("phase2-toolchain-pin-scope:self-test:makefile_marker_failure")
+
     with tempfile.TemporaryDirectory(prefix="phase2_toolchain_pin_scope_") as tmp_dir_str:
         tmp_root = Path(tmp_dir_str)
         manifest_path = tmp_root / "toolchain.json"
@@ -464,7 +488,7 @@ def run_self_test() -> int:
             raise SystemExit("phase2-toolchain-pin-scope:self-test:json_round_trip")
 
     print("PHASE2_TOOLCHAIN_PIN_SCOPE_SELF_TEST=pass")
-    print("PHASE2_TOOLCHAIN_PIN_SCOPE_SELF_TEST_CASE_COUNT=24")
+    print("PHASE2_TOOLCHAIN_PIN_SCOPE_SELF_TEST_CASE_COUNT=25")
     return 0
 
 
@@ -490,6 +514,7 @@ def main() -> int:
         CLOSURE_DOC,
         PHASE2_VALIDATOR,
         PHASE2_CLOSURE_VALIDATOR,
+        MAKEFILE,
     ]
     missing = [str(path.relative_to(ROOT)) for path in required_files if not path.exists()]
     if missing:
@@ -557,6 +582,13 @@ def main() -> int:
             PHASE2_CLOSURE_VALIDATOR.read_text(encoding="utf-8"),
             label="phase2_closure_validator",
             markers=PHASE2_CLOSURE_VALIDATOR_MARKERS,
+        )
+    )
+    issues.extend(
+        validate_required_markers(
+            MAKEFILE.read_text(encoding="utf-8"),
+            label="phase2_makefile",
+            markers=MAKEFILE_MARKERS,
         )
     )
     issues.extend(validate_exact_workflow_runs(WORKFLOW.read_text(encoding="utf-8"), payload=policy_payload))
