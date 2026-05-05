@@ -68,7 +68,7 @@ REQUIRED_SNIPPETS = {
         "- keep the shared Phase 6 leaf-helper packet wired through `zigux/tests/phase6_build.zig`, including `zigux/tests/phase6_base64.zig`, `zigux/tests/phase6_bsearch.zig`, `zigux/tests/phase6_checksum.zig`, and `zigux/tests/phase6_hexdump.zig`, so the landed `base64`, `bsearch`, `checksum`, and `hexdump` bundle stays reviewable through one bounded helper gate, and keep `zigux/tests/phase6_checksum_perf.zig` plus `make -C zigux phase6-checksum-perf` explicit as the dedicated checksum-only perf route rather than implying a broader Phase 6 packet-wide perf target",
     ],
     "Documentation/zigux/review-checklist.md": [
-        "- if the change touches the shared Phase 6 leaf-helper packet, do `Documentation/zigux/README.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, `Documentation/zigux/phase6-base64-slice.md`, `Documentation/zigux/phase6-bsearch-slice.md`, `Documentation/zigux/phase6-checksum-slice.md`, `Documentation/zigux/phase6-hexdump-slice.md`, `scripts/zigux/check-phase6-shared-surface.py`, `zigux/tests/phase6_build.zig`, `zigux/tests/phase6_base64.zig`, `zigux/tests/phase6_bsearch.zig`, `zigux/tests/phase6_checksum.zig`, `zigux/tests/phase6_hexdump.zig`, `zigux/Makefile`, and `make -C zigux phase6` still agree on the same bundled `base64`, `bsearch`, `checksum`, and `hexdump` helper packet without implying a removed shared `validate-phase6.py`, external parity checker, or `phase6-perf` route?",
+        "- if the change touches the shared Phase 6 leaf-helper packet, do `Documentation/zigux/README.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, `Documentation/zigux/phase6-base64-slice.md`, `Documentation/zigux/phase6-bsearch-slice.md`, `Documentation/zigux/phase6-checksum-slice.md`, `Documentation/zigux/phase6-hexdump-slice.md`, `scripts/zigux/check-phase6-shared-surface.py`, `zigux/tests/phase6_build.zig`, `zigux/tests/phase6_base64.zig`, `zigux/tests/phase6_bsearch.zig`, `zigux/tests/phase6_checksum.zig`, `zigux/tests/phase6_hexdump.zig`, `zigux/tests/phase6_checksum_perf.zig`, `zigux/Makefile`, `.github/workflows/zigux-bootstrap.yml`, `make -C zigux phase6-validate`, `make -C zigux phase6`, and `make -C zigux phase6-checksum-perf` still agree on the same bundled `base64`, `bsearch`, `checksum`, and `hexdump` helper packet without implying a removed shared `validate-phase6.py`, a broader external parity checker beyond `check-phase6-shared-surface.py`, or an aggregated `phase6-perf` route?",
     ],
     "zigux/tests/phase6_build.zig": [
         'const test_step = b.step("test", "Run Phase 6 leaf helper tests");',
@@ -349,6 +349,25 @@ def run_self_test() -> None:
         else:
             raise AssertionError("expected checksum slice failure")
         checksum_slice.write_text(original_checksum_slice, encoding="utf-8")
+
+        review_checklist = root / "Documentation/zigux/review-checklist.md"
+        original_review_checklist = review_checklist.read_text(encoding="utf-8")
+        review_checklist.write_text(
+            original_review_checklist.replace(
+                "`zigux/tests/phase6_checksum_perf.zig`",
+                "`zigux/tests/phase6_checksum_perf_missing.zig`",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        try:
+            run_checks(root)
+        except ValidationError as exc:
+            if "Documentation/zigux/review-checklist.md" not in str(exc):
+                raise AssertionError(f"unexpected review checklist failure: {exc}") from exc
+        else:
+            raise AssertionError("expected review checklist failure")
+        review_checklist.write_text(original_review_checklist, encoding="utf-8")
 
         hexdump_slice = root / "Documentation/zigux/phase6-hexdump-slice.md"
         original_hexdump_slice = hexdump_slice.read_text(encoding="utf-8")
