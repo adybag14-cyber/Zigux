@@ -189,6 +189,26 @@ test "phase 5 trace-events survey note stays repo-local and keeps the formatting
     var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
     defer io_instance.deinit();
 
+    const manifest_json = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "zigux/tests/phase5_trace_events_sample_manifest.json",
+        std.testing.allocator,
+        .limited(32 * 1024),
+    );
+    defer std.testing.allocator.free(manifest_json);
+
+    const parsed = try std.json.parseFromSlice(Manifest, std.testing.allocator, manifest_json, .{});
+    defer parsed.deinit();
+
+    const manifest = parsed.value;
+
+    var surveyed_commit_marker_buf: [96]u8 = undefined;
+    const surveyed_commit_marker = try std.fmt.bufPrint(
+        surveyed_commit_marker_buf[0..],
+        "PHASE5_SURVEYED_COMMIT={s}",
+        .{manifest.surveyed_commit},
+    );
+
     const survey_note = try std.Io.Dir.cwd().readFileAlloc(
         io_instance.io(),
         "Documentation/zigux/phase5-trace-events-sample-survey.md",
@@ -199,6 +219,7 @@ test "phase 5 trace-events survey note stays repo-local and keeps the formatting
 
     try expectContains(survey_note, "samples/trace_events/trace-events-sample.c");
     try expectContains(survey_note, "PHASE5_SLICE=trace-events-reference-sample-starter");
+    try expectContains(survey_note, surveyed_commit_marker);
     try expectContains(survey_note, "phase5_trace_events_sample_manifest.json");
     try expectContains(survey_note, "phase5_build.zig");
     try expectContains(survey_note, "runtime_trace_events");
