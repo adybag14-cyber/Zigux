@@ -28,10 +28,9 @@ test "phase3 low-level wrappers cover the shipped helper surface directly" {
     try std.testing.expectEqual(@as(u32, 4), atomic.fetchMax(u32, &value, 19, .seq_cst));
     try std.testing.expectEqual(@as(u32, 19), value);
 
-    try std.testing.expectEqual(
-        @as(?u32, null),
-        atomic.compareExchange(u32, &value, 19, 21, .seq_cst, .seq_cst),
-    );
+    value = 13;
+    const seq_cst_swap = atomic.compareExchange(u32, &value, 13, 21, .seq_cst, .seq_cst);
+    try std.testing.expectEqual(@as(?u32, null), seq_cst_swap);
     try std.testing.expectEqual(@as(u32, 21), value);
 
     const mismatch = atomic.compareExchange(u32, &value, 9, 19, .seq_cst, .seq_cst);
@@ -56,11 +55,15 @@ test "phase3 low-level wrappers cover the shipped helper surface directly" {
     var regs = [_]u32{ 0, 0 };
     const base = narrow.addressOf(&regs[0]);
     const bytes: *align(1) [8]u8 = @ptrCast(&regs);
-    const desc = mmio.range(base, 8, 1);
+    const byte_desc = mmio.range(base, 8, 1);
+    const desc = mmio.range(base, 8, 4);
 
+    try std.testing.expectEqual(base, byte_desc.base_addr);
+    try std.testing.expectEqual(@as(u32, 8), byte_desc.length);
+    try std.testing.expectEqual(@as(u32, 1), byte_desc.stride);
     try std.testing.expectEqual(base, desc.base_addr);
     try std.testing.expectEqual(@as(u32, 8), desc.length);
-    try std.testing.expectEqual(@as(u32, 1), desc.stride);
+    try std.testing.expectEqual(@as(u32, 4), desc.stride);
 
     mmio.write8(base, 1, 0x5a);
     try std.testing.expectEqual(@as(u8, 0x5a), bytes[1]);
