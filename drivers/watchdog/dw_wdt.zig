@@ -38,6 +38,24 @@ pub const ModuleDescriptor = struct {
     touches_irq_registration: bool,
 };
 
+pub const WatchdogInfoProfile = struct {
+    identity: []const u8,
+    supports_keepalive_ping: bool,
+    supports_set_timeout: bool,
+    supports_magic_close: bool,
+    supports_pretimeout: bool,
+};
+
+pub const WatchdogOpsProfile = struct {
+    start: bool,
+    stop: bool,
+    ping: bool,
+    set_timeout: bool,
+    set_pretimeout: bool,
+    get_timeleft: bool,
+    restart: bool,
+};
+
 pub const TimeoutWindow = struct {
     top_val: u32,
     sec: u32,
@@ -86,6 +104,26 @@ pub const ProbeSummary = struct {
     hardware_running: bool,
 };
 
+pub const RegistrationSummary = struct {
+    anchor: []const u8,
+    registration_call: []const u8,
+    parent_anchor: []const u8,
+    info: WatchdogInfoProfile,
+    ops: WatchdogOpsProfile,
+    timeout_origin: ProbeTimeoutOrigin,
+    nowayout: bool,
+    restart_priority: i32,
+    stop_on_reboot: bool,
+    can_stop: bool,
+    min_timeout_sec: u32,
+    max_hw_heartbeat_ms: u32,
+    timeout_sec: u32,
+    pretimeout_sec: u32,
+    hardware_running: bool,
+    imported_running_state: bool,
+    needs_timeout_programming: bool,
+};
+
 pub const RuntimeSnapshot = struct {
     anchor: []const u8,
     running: bool,
@@ -121,6 +159,28 @@ pub const DwWdtLab = struct {
             .touches_platform_registration = false,
             .touches_live_mmio = false,
             .touches_irq_registration = false,
+        };
+    }
+
+    pub fn infoProfile(has_pretimeout_irq: bool) WatchdogInfoProfile {
+        return .{
+            .identity = "Synopsys DesignWare Watchdog",
+            .supports_keepalive_ping = true,
+            .supports_set_timeout = true,
+            .supports_magic_close = true,
+            .supports_pretimeout = has_pretimeout_irq,
+        };
+    }
+
+    pub fn opsProfile() WatchdogOpsProfile {
+        return .{
+            .start = true,
+            .stop = true,
+            .ping = true,
+            .set_timeout = true,
+            .set_pretimeout = true,
+            .get_timeleft = true,
+            .restart = true,
         };
     }
 
@@ -195,6 +255,33 @@ pub const DwWdtLab = struct {
             .can_stop = self.has_reset_control,
             .already_running = already_running,
             .hardware_running = self.hardware_running,
+        };
+    }
+
+    pub fn registrationSummary(
+        self: *Self,
+        options: ProbeOptions,
+        has_pretimeout_irq: bool,
+    ) !RegistrationSummary {
+        const probe = try self.probeSummary(options);
+        return .{
+            .anchor = descriptor().anchor,
+            .registration_call = "watchdog_register_device",
+            .parent_anchor = "platform_device.dev",
+            .info = infoProfile(has_pretimeout_irq),
+            .ops = opsProfile(),
+            .timeout_origin = probe.timeout_origin,
+            .nowayout = probe.nowayout,
+            .restart_priority = probe.restart_priority,
+            .stop_on_reboot = probe.stop_on_reboot,
+            .can_stop = probe.can_stop,
+            .min_timeout_sec = self.getMinTimeout(),
+            .max_hw_heartbeat_ms = self.getMaxTimeoutMs(),
+            .timeout_sec = probe.timeout_sec,
+            .pretimeout_sec = if (has_pretimeout_irq) probe.pretimeout_sec else 0,
+            .hardware_running = probe.hardware_running,
+            .imported_running_state = probe.timeout_origin == .imported_running_state,
+            .needs_timeout_programming = probe.timeout_origin == .default_selection,
         };
     }
 
