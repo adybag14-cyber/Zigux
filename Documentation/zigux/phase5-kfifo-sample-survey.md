@@ -21,18 +21,22 @@ This document tracks the bounded Phase 5 reference-sample survey for the roadmap
 
 The roadmap's Phase 5 target is "Samples and Reference Patterns" and explicitly names `samples/kfifo/bytestream-example.c` as one of the four Linux anchors that should make approved Zigux idioms reviewable and repeatable.
 
-Fresh repo inspection now shows that `samples/zigux/` carries four bounded Phase 5 reference samples plus several later runtime-oriented starters:
+Fresh repo inspection now shows that `samples/zigux/` carries four bounded Phase 5 reference samples plus several later runtime-oriented starters and loader-side follow-ons:
 
 - `bytestream_fifo.zig`
 - `kobject_example.zig`
 - `kretprobe_example.zig`
 - `trace_events_sample.zig`
 - `runtime_atomic64.zig`
+- `runtime_atomic64_loader.zig`
 - `runtime_bitmap.zig`
+- `runtime_bitmap_loader.zig`
 - `runtime_kretprobe.zig`
+- `runtime_kretprobe_loader.zig`
 - `runtime_trace_events.zig`
+- `runtime_trace_events_loader.zig`
 
-The Phase 5 gap is now narrowed to one landed sample-backed reference pattern for the `kfifo` anchor. The remaining work is to keep its exact checks and non-goals visible while the full four-anchor Phase 5 reference sample set stays visibly separate from the later runtime-oriented starters.
+The Phase 5 gap is now narrowed to one landed sample-backed reference pattern for the `kfifo` anchor. The remaining work is to keep its exact checks and non-goals visible while the full four-anchor Phase 5 reference sample set stays visibly separate from the later runtime-oriented starters and their loader-side follow-ons.
 
 ## Survey findings
 
@@ -41,7 +45,7 @@ The Phase 5 gap is now narrowed to one landed sample-backed reference pattern fo
   - bounded in-memory FIFO behavior such as `kfifo_in`, `kfifo_out`, `kfifo_put`, `kfifo_get`, `kfifo_skip`, and `kfifo_peek`
   - lifecycle setup and teardown around `example_init()` and `example_exit()`
   - procfs and user-copy plumbing through `proc_create`, `kfifo_from_user`, `kfifo_to_user`, and mutex-protected read or write paths
-- the live Zigux repo now ships bounded Phase 5 side-by-side samples under `samples/zigux/` for the `kfifo`, `kobject`, `kretprobe`, and `trace-events` anchors, while still keeping the later Phase 9 runtime starters separate from these non-runtime reference readings.
+- the live Zigux repo now ships bounded Phase 5 side-by-side samples under `samples/zigux/` for the `kfifo`, `kobject`, `kretprobe`, and `trace-events` anchors, while still keeping the later Phase 9 runtime starters and loader-side follow-ons separate from these non-runtime reference readings.
 - the generic review checklist already covers the Phase 5 boundary between a reviewable idiom and a runtime-ready module, but contributors still benefit from one sample-backed set of prompts tied directly to the shipped bytestream FIFO slice.
 
 ## Approved idiom for a future kfifo-style sample
@@ -94,8 +98,8 @@ These prompts are intentionally sample-backed rather than generic. They tie revi
 
 The current gap is not "Zigux lacks every sample." The more precise gap is:
 
-- the repo now has four reviewable Phase 5 samples plus later runtime-oriented starters in `samples/zigux/`
-- the completed Phase 5 sample set still has to stay visibly separate from the later Phase 9 runtime starters for `trace-events` and `kretprobe`
+- the repo now has four reviewable Phase 5 samples plus later runtime-oriented starters and loader-side follow-ons in `samples/zigux/`
+- the completed Phase 5 sample set still has to stay visibly separate from the later Phase 9 runtime starters and loader-side follow-ons for `trace-events`, `kretprobe`, `bitmap`, and `atomic64`
 - the kfifo sample now covers both queue-order replay and one explicit ownership-lifetime path, but it still intentionally does not claim procfs, user-copy, locking, or module registration support
 
 This slice closes the `kfifo` survey-only gap by landing the first sample-backed replay and documenting its exact checks so future Phase 5 work can advance from a concrete baseline instead of another round of ambiguous sample naming.
@@ -122,4 +126,4 @@ This survey does not yet claim:
 
 ## Next bounded step
 
-Stay in the Phase 5 samples-and-reference-patterns lane and tighten contributor guidance or one exact replay check only if fresh repo inspection shows a real sample drift on current `master`, while keeping the landed Phase 5 sample set distinct from the later Phase 9 runtime starters.
+Stay in the Phase 5 samples-and-reference-patterns lane and tighten contributor guidance or one exact replay check only if fresh repo inspection shows a real sample drift on current `master`, while keeping the landed Phase 5 sample set distinct from the later Phase 9 runtime starters and their loader-side follow-ons.
