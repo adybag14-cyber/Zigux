@@ -66,12 +66,13 @@ test "phase 15 indefinite-C policy manifest records current policy, exception, a
     try std.testing.expectEqualStrings("7b5519444e8f73f84c68dc3e63580fcaef06ffb6", manifest.surveyed_commit);
     try std.testing.expectEqualStrings("policy for code that remains in C indefinitely", manifest.roadmap_requirement);
     try std.testing.expectEqual(@as(usize, 4), manifest.anchors.len);
-    try std.testing.expectEqual(@as(usize, 5), manifest.supporting_artifacts.len);
+    try std.testing.expectEqual(@as(usize, 6), manifest.supporting_artifacts.len);
     try std.testing.expectEqual(@as(usize, 6), manifest.indefinite_c_requirements.len);
     try std.testing.expectEqual(@as(usize, 6), manifest.gaps.len);
 
     try std.testing.expectEqualStrings("kernel/sched/core.c", manifest.anchors[0]);
     try std.testing.expectEqualStrings("Documentation/zigux/phase15-parity-scorecard.md", manifest.supporting_artifacts[3]);
+    try std.testing.expectEqualStrings("Documentation/zigux/README.md", manifest.supporting_artifacts[5]);
 
     var saw_source_of_truth = false;
     var saw_recordkeeping = false;
@@ -150,6 +151,7 @@ test "phase 15 indefinite-C policy doc and linked artifacts keep exception and b
         "## Reopen Trigger Catalog",
         "current status bucket",
         "requested decision bucket",
+        "Documentation/zigux/README.md",
         "lane owner",
         "validation gate summary",
         "retained discussion state",
