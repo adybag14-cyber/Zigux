@@ -42,6 +42,10 @@ The current checksum helper surface exercised by this slice covers:
 - `shift`
 - `blockAdd`
 - `blockSub`
+- `replace`
+- `replaceByDiff`
+- `replace2`
+- `replace4`
 - `from32to16`
 - `fold`
 - `tcpUdpNofold`
@@ -55,6 +59,7 @@ The current tests check:
 - non-zero seeded `partial` accumulation parity across odd, carry-heavy, and pre-folded seed inputs
 - a tiny KUnit-inspired carry-discipline matrix covering all-ones and no-spurious-carry seeded cases
 - pseudo-header accumulation parity between `tcpUdpNofold` and manual `partial` plus `blockAdd`
+- incremental checksum replacement parity for payload word updates, 16-bit IPv4 header field replacement, diff-based checksum repair, and 32-bit IPv4 address replacement
 
 The fixture layer stays intentionally small. It names representative Phase 6 parity cases in one place and now borrows a small carry-discipline shape from `lib/tests/checksum_kunit.c` without claiming a full KUnit surface port.
 
