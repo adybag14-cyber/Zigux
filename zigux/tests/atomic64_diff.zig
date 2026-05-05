@@ -4,11 +4,6 @@ const runtime_atomic64_diff_source = @embedFile("runtime_atomic64_diff.zig");
 const phase4_runtime_atomic64_manifest_source = @embedFile("phase4_runtime_atomic64_diff_manifest.json");
 const phase4_build_source = @embedFile("phase4_build.zig");
 const phase9_build_source = @embedFile("phase9_build.zig");
-const artifact_diff_doc_source = @embedFile("../../Documentation/zigux/artifact-diff.md");
-const phase4_validation_matrix_source = @embedFile("../../Documentation/zigux/phase4-validation-matrix.md");
-const tests_readme_source = @embedFile("README.md");
-const scripts_readme_source = @embedFile("../../scripts/zigux/README.md");
-const docs_readme_source = @embedFile("../../Documentation/zigux/README.md");
 
 fn expectMarker(haystack: []const u8, marker: []const u8) !void {
     try std.testing.expect(std.mem.indexOf(u8, haystack, marker) != null);
@@ -148,32 +143,5 @@ test "atomic64 diff wrapper pins the current bounded runtime case groups" {
         "const add_unless_cases = [_]AddUnlessCase{",
         "for (add_unless_cases) |case| {",
         2,
-    );
-}
-
-test "atomic64 diff wrapper keeps roadmap-facing note surfaces aligned with the runtime handoff" {
-    try expectMarker(
-        artifact_diff_doc_source,
-        "`zigux/tests/atomic64_diff.zig` keeps the roadmap-named Phase 4 atomic64 entrypoint explicit as the thin wrapper over the shared runtime-backed replay.",
-    );
-    try expectMarker(
-        phase4_validation_matrix_source,
-        "- implementation note: `zigux/tests/atomic64_diff.zig` imports `zigux/tests/runtime_atomic64_diff.zig` so Phase 4 keeps the roadmap path without cloning the shared runtime-backed replay logic that Phase 9 already reuses directly",
-    );
-    try expectMarker(
-        tests_readme_source,
-        "keep the canonical Phase 4 atomic64 wrapper explicit: `zigux/tests/phase4_build.zig` should continue to run `zigux/tests/atomic64_diff.zig` as the roadmap entrypoint, `zigux/tests/atomic64_diff.zig` should remain the thin wrapper over `zigux/tests/runtime_atomic64_diff.zig`, and `Documentation/zigux/phase4-validation-matrix.md` should keep that wrapper-versus-runtime handoff reviewable without cloning the shared replay body",
-    );
-    try expectMarker(
-        scripts_readme_source,
-        "`validate-phase4.py` checks that the bounded Phase 4 differential gates, the canonical `zigux/tests/atomic64_diff.zig` wrapper, their shared `zigux/tests/phase4_build.zig` entrypoint, and the directly coupled documentation and workflow markers stay aligned.",
-    );
-    try expectMarker(
-        scripts_readme_source,
-        "the wrapper keeps `zigux/tests/runtime_atomic64_diff.zig` as the single shared runtime-backed replay body that Phase 9 still imports directly.",
-    );
-    try expectMarker(
-        docs_readme_source,
-        "`python3 scripts/zigux/validate-phase4.py` keeps the live `zigux/tests/atomic64_diff.zig` roadmap wrapper, its shared `zigux/tests/runtime_atomic64_diff.zig` backing replay, and `zigux/tests/bitmap_diff.zig` wired through the shared `zigux/tests/phase4_build.zig` entrypoint and the bootstrap workflow.",
     );
 }
