@@ -22,6 +22,10 @@ class SelfTestTarget:
 SELF_TEST_TARGETS = (
     SelfTestTarget("scripts/zigux/validate-phase3.py", "PHASE3_VALIDATE_SELF_TEST=pass"),
     SelfTestTarget(
+        "scripts/zigux/check-phase3-selftest-surface.py",
+        "PHASE3_SELFTEST_SURFACE_SELF_TEST=pass",
+    ),
+    SelfTestTarget(
         "scripts/zigux/validate-phase3-policy-unsafe-survey.py",
         "PHASE3_POLICY_UNSAFE_SURVEY_SELF_TEST=pass",
     ),
