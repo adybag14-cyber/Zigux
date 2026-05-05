@@ -33,6 +33,18 @@ Fresh repo inspection already showed one landed Phase 5 FIFO reference sample pl
   - real sysfs and module-lifecycle substrate through `kobject_create_and_add`, `sysfs_create_group`, `kernel_kobj`, and module init or exit hooks
 - the honest Phase 5 move is to make the directory name, attribute dispatch, and lifetime boundaries reviewable in memory while keeping sysfs creation, kernel object registration, and module wiring out of scope.
 
+## Approved idiom for the landed kobject-style sample
+
+Until a bounded runtime substrate exists, the landed Phase 5 `samples/zigux/` reference sample for this anchor should:
+
+- model only the directory name, unnamed attribute group shape, integer-backed attributes, and lifecycle in memory
+- keep the Linux anchor path explicit in a descriptor or note
+- include a tiny self-check or manifest-backed replay for the registration, integer roundtrip, and teardown expectations that make the sample useful to reviewers
+- show ownership and lifetime boundaries clearly, especially `init()`, `registerAttributes()`, and `exit()`
+- keep sysfs creation, `kernel_kobj` integration, uevents, and module-registration claims out of scope unless a later lane lands the required substrate first
+
+In practice, that means the approved landed idiom is an approved Phase 5 in-memory ownership-and-lifetime idiom, not a claim that Zigux already has sysfs creation, `kernel_kobj`, or module-registration parity.
+
 ## Landed sample and exact checks
 
 The repo now carries that bounded sample in `samples/zigux/kobject_example.zig`.
@@ -58,7 +70,7 @@ The exact checks currently recorded in `zigux/tests/phase5_kobject_example_manif
 When a contributor updates `samples/zigux/kobject_example.zig` or its directly coupled Phase 5 test files, keep these prompts explicit:
 
 - does `KobjectExampleSample.descriptor()` still name `samples/kobject/kobject-example.c` and keep `requires_runtime_substrate = false` plus `provides_selfcheck = true`?
-- do `zigux/tests/phase5_kobject_example_manifest.json` and `zigux/tests/phase5_kobject_example_survey.zig` still describe the exact registration, integer roundtrip, and shared `baz` or `bar` dispatch contract run through `zigux/tests/phase5_build.zig`?
+- do `zigux/tests/phase5_kobject_example_manifest.json` and `zigux/tests/phase5_kobject_example_survey.zig` still describe the approved Phase 5 in-memory ownership-and-lifetime idiom: the exact registration, integer roundtrip, and shared `baz` and `bar` dispatch contract run through `zigux/tests/phase5_build.zig`?
 - do the manifest prompts and exact checks still keep the unnamed attribute group shape plus the post-`exit()` show or store rejection boundary explicit instead of implying sysfs registration?
 - if the sample behavior changes, is the manifest updated alongside the registration and lifecycle contract instead of leaving reviewers to infer the new boundary from code alone?
 - do the docs and tests still say clearly that sysfs creation, `kernel_kobj` integration, uevents, and loadable module registration remain out of scope for this Phase 5 sample?
@@ -68,7 +80,7 @@ When a contributor updates `samples/zigux/kobject_example.zig` or its directly c
 The current gap is not "Zigux has no kobject sample guidance." The more precise remaining job is:
 
 - the repo now has a reviewable Phase 5 `kobject_example` sample plus manifest-backed checks for registration, dispatch, parse failures, and teardown
-- contributor guidance still needs to keep the in-memory directory and unnamed-group shape visibly separate from real sysfs or module substrate claims
+- contributor guidance still needs to keep the approved Phase 5 in-memory ownership-and-lifetime idiom visibly separate from real sysfs or module substrate claims
 - the broader roadmap still expects the last Phase 5 reference-sample anchor, so this sample must stay explicit about its own boundary rather than implying the whole tranche is done
 
 This slice keeps the landed `kobject` sample reviewable by recording the exact lifecycle and non-goal cues reviewers should check before approving future edits.
