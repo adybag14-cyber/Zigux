@@ -25,6 +25,20 @@ pub const RuntimeKretprobeLoadPlan = struct {
     summary: runtime_kretprobe_sample.RuntimeKretprobeSummary,
 };
 
+pub const RuntimeKretprobeRegistrationSnapshot = struct {
+    register_api: []const u8,
+    unregister_api: []const u8,
+    symbol_name: []const u8,
+    maxactive: usize,
+    private_data_bytes: usize,
+    skipped_kernel_threads: usize,
+    nmissed: usize,
+    last_retval: usize,
+    last_duration_ns: i64,
+    selftest_runs: usize,
+    entry_timestamp_armed: bool,
+};
+
 fn sharedHandoffStage(stage: runtime_kretprobe_sample.ModuleStage) runtime_loader.HandoffStage {
     return switch (stage) {
         .initialized => .initialized,
@@ -49,6 +63,39 @@ pub fn toSharedLoadPlan(plan: RuntimeKretprobeLoadPlan) runtime_loader.LoadPlan 
             .exit_runs = 0,
         },
     };
+}
+
+pub fn registrationSnapshot(plan: RuntimeKretprobeLoadPlan) RuntimeKretprobeRegistrationSnapshot {
+    return .{
+        .register_api = plan.register_api,
+        .unregister_api = plan.unregister_api,
+        .symbol_name = plan.symbol_name,
+        .maxactive = plan.maxactive,
+        .private_data_bytes = plan.private_data_bytes,
+        .skipped_kernel_threads = plan.summary.skipped_kernel_threads,
+        .nmissed = plan.summary.nmissed,
+        .last_retval = plan.summary.last_retval,
+        .last_duration_ns = plan.summary.last_duration_ns,
+        .selftest_runs = plan.summary.selftest_runs,
+        .entry_timestamp_armed = plan.summary.entry_timestamp_armed,
+    };
+}
+
+pub fn keepsRegistrationSnapshotExplicit(
+    plan: RuntimeKretprobeLoadPlan,
+    snapshot: RuntimeKretprobeRegistrationSnapshot,
+) bool {
+    return std.mem.eql(u8, snapshot.register_api, plan.register_api) and
+        std.mem.eql(u8, snapshot.unregister_api, plan.unregister_api) and
+        std.mem.eql(u8, snapshot.symbol_name, plan.symbol_name) and
+        snapshot.maxactive == plan.maxactive and
+        snapshot.private_data_bytes == plan.private_data_bytes and
+        snapshot.skipped_kernel_threads == plan.summary.skipped_kernel_threads and
+        snapshot.nmissed == plan.summary.nmissed and
+        snapshot.last_retval == plan.summary.last_retval and
+        snapshot.last_duration_ns == plan.summary.last_duration_ns and
+        snapshot.selftest_runs == plan.summary.selftest_runs and
+        snapshot.entry_timestamp_armed == plan.summary.entry_timestamp_armed;
 }
 
 pub fn keepsSharedLoadPlanSnapshotExplicit(
@@ -136,6 +183,7 @@ test "runtime kretprobe loader prepares a bounded registration handoff plan" {
 
     var loader = RuntimeKretprobeLoader{};
     const plan = try loader.prepare(&module);
+    const snapshot = registrationSnapshot(plan);
 
     try std.testing.expectEqual(LoaderStage.prepared, loader.stage());
     try std.testing.expectEqualStrings("runtime_kretprobe", plan.module_name);
@@ -156,6 +204,18 @@ test "runtime kretprobe loader prepares a bounded registration handoff plan" {
     try std.testing.expectEqual(@as(i64, 75), plan.summary.last_duration_ns);
     try std.testing.expectEqual(@as(usize, 1), plan.summary.selftest_runs);
     try std.testing.expect(!plan.summary.entry_timestamp_armed);
+    try std.testing.expect(keepsRegistrationSnapshotExplicit(plan, snapshot));
+    try std.testing.expectEqualStrings("register_kretprobe", snapshot.register_api);
+    try std.testing.expectEqualStrings("unregister_kretprobe", snapshot.unregister_api);
+    try std.testing.expectEqualStrings("do_sys_openat2", snapshot.symbol_name);
+    try std.testing.expectEqual(@as(usize, 20), snapshot.maxactive);
+    try std.testing.expectEqual(@sizeOf(runtime_kretprobe_sample.InstancePrivateData), snapshot.private_data_bytes);
+    try std.testing.expectEqual(@as(usize, 1), snapshot.skipped_kernel_threads);
+    try std.testing.expectEqual(@as(usize, 1), snapshot.nmissed);
+    try std.testing.expectEqual(@as(usize, 42), snapshot.last_retval);
+    try std.testing.expectEqual(@as(i64, 75), snapshot.last_duration_ns);
+    try std.testing.expectEqual(@as(usize, 1), snapshot.selftest_runs);
+    try std.testing.expect(!snapshot.entry_timestamp_armed);
 }
 
 test "runtime kretprobe loader keeps unavailable substrate and lifecycle guards explicit" {
@@ -192,6 +252,7 @@ test "runtime kretprobe loader keeps the prepared snapshot stable across later s
 
     var loader = RuntimeKretprobeLoader{};
     const prepared = try loader.prepare(&module);
+    const prepared_snapshot = registrationSnapshot(prepared);
 
     try std.testing.expect(try module.entryHandler(true, 300));
     const updated = try module.retHandler(12, 380);
@@ -199,6 +260,7 @@ test "runtime kretprobe loader keeps the prepared snapshot stable across later s
 
     const live_summary = module.summary();
     const pending_plan = try loader.requestRuntimeLoad();
+    const pending_snapshot = registrationSnapshot(pending_plan);
 
     try std.testing.expectEqual(LoaderStage.waiting_on_runtime_substrate, loader.stage());
     try std.testing.expectEqual(@as(usize, 12), updated.retval);
@@ -213,8 +275,14 @@ test "runtime kretprobe loader keeps the prepared snapshot stable across later s
     try std.testing.expectEqual(@as(usize, 1), pending_plan.summary.selftest_runs);
     try std.testing.expect(!live_summary.entry_timestamp_armed);
     try std.testing.expect(!pending_plan.summary.entry_timestamp_armed);
-
-    _ = prepared;
+    try std.testing.expect(keepsRegistrationSnapshotExplicit(pending_plan, prepared_snapshot));
+    try std.testing.expect(keepsRegistrationSnapshotExplicit(pending_plan, pending_snapshot));
+    try std.testing.expectEqual(@as(usize, 1), prepared_snapshot.nmissed);
+    try std.testing.expectEqual(@as(usize, 1), pending_snapshot.nmissed);
+    try std.testing.expectEqual(@as(usize, 42), prepared_snapshot.last_retval);
+    try std.testing.expectEqual(@as(usize, 42), pending_snapshot.last_retval);
+    try std.testing.expectEqual(@as(i64, 75), prepared_snapshot.last_duration_ns);
+    try std.testing.expectEqual(@as(i64, 75), pending_snapshot.last_duration_ns);
 }
 
 test "runtime kretprobe loader emits the shared runtime-loader contract plan" {
@@ -297,4 +365,31 @@ test "runtime kretprobe loader rejects shared-load-plan snapshot drift" {
     var drifted_selftest = shared_plan;
     drifted_selftest.init_flow.selftest_runs += 1;
     try std.testing.expect(!keepsSharedLoadPlanSnapshotExplicit(plan, drifted_selftest));
+}
+
+test "runtime kretprobe loader rejects registration snapshot drift" {
+    var module = runtime_kretprobe_sample.RuntimeKretprobeSample{};
+    try module.retargetSymbol("do_sys_openat2");
+    try module.init();
+    _ = try module.runSelftest();
+
+    const plan = try RuntimeKretprobeLoader.planFor(&module);
+    const snapshot = registrationSnapshot(plan);
+    try std.testing.expect(keepsRegistrationSnapshotExplicit(plan, snapshot));
+
+    var drifted_symbol = snapshot;
+    drifted_symbol.symbol_name = "do_exit";
+    try std.testing.expect(!keepsRegistrationSnapshotExplicit(plan, drifted_symbol));
+
+    var drifted_maxactive = snapshot;
+    drifted_maxactive.maxactive += 1;
+    try std.testing.expect(!keepsRegistrationSnapshotExplicit(plan, drifted_maxactive));
+
+    var drifted_private_data = snapshot;
+    drifted_private_data.private_data_bytes += 8;
+    try std.testing.expect(!keepsRegistrationSnapshotExplicit(plan, drifted_private_data));
+
+    var drifted_summary = snapshot;
+    drifted_summary.nmissed += 1;
+    try std.testing.expect(!keepsRegistrationSnapshotExplicit(plan, drifted_summary));
 }
