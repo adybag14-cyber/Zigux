@@ -360,7 +360,6 @@ def run_self_test() -> int:
         _write(root / "zigux/tests/phase13_build.zig", _baseline_phase13_build())
         case_count += 1
 
-        phase13_build_path.writeText = None
         phase13_build_path.write_text(
             _baseline_phase13_build() + "test_step.dependOn(&run_phase13_extra_tests.step);\n",
             encoding="utf-8",
