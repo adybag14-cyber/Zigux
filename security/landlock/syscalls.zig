@@ -27,6 +27,7 @@ pub const ModuleDescriptor = struct {
     provides_add_rule_planning: bool,
     provides_ruleset_fd_planning: bool,
     provides_path_fd_planning: bool,
+    provides_path_beneath_handoff_planning: bool,
     touches_live_fd_table: bool,
     touches_live_paths: bool,
     touches_live_credentials: bool,
@@ -156,6 +157,22 @@ pub const PathFdPlan = struct {
     acquires_path_reference: bool,
 };
 
+pub const PathBeneathHandoffRequest = struct {
+    handled_access_fs: u64,
+    path_beneath_attr: PathBeneathAttr = .{},
+    path_request: PathFdRequest = .{},
+};
+
+pub const PathBeneathHandoffPlan = struct {
+    anchor: []const u8,
+    allowed_access: u64,
+    parent_fd: i32,
+    path: PathFdPlan,
+    copies_attr_state: bool,
+    releases_path_on_failure: bool,
+    releases_path_on_completion: bool,
+};
+
 pub const SyscallsHelperLab = struct {
     pub fn descriptor() ModuleDescriptor {
         return .{
@@ -167,6 +184,7 @@ pub const SyscallsHelperLab = struct {
             .provides_add_rule_planning = true,
             .provides_ruleset_fd_planning = true,
             .provides_path_fd_planning = true,
+            .provides_path_beneath_handoff_planning = true,
             .touches_live_fd_table = false,
             .touches_live_paths = false,
             .touches_live_credentials = false,
@@ -378,6 +396,25 @@ pub const SyscallsHelperLab = struct {
             .rejects_nouser_superblock = true,
             .rejects_private_inode = true,
             .acquires_path_reference = true,
+        };
+    }
+
+    pub fn planAddRulePathBeneath(request: PathBeneathHandoffRequest) !PathBeneathHandoffPlan {
+        const add_rule = try planAddRule(.{
+            .rule_type = rule_type_path_beneath,
+            .handled_access_fs = request.handled_access_fs,
+            .path_beneath_attr = request.path_beneath_attr,
+        });
+        const path = try planGetPathFromFd(request.path_request);
+
+        return .{
+            .anchor = descriptor().anchor,
+            .allowed_access = add_rule.allowed_access,
+            .parent_fd = add_rule.parent_fd,
+            .path = path,
+            .copies_attr_state = true,
+            .releases_path_on_failure = true,
+            .releases_path_on_completion = true,
         };
     }
 };
