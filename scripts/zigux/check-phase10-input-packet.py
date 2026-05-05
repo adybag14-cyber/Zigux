@@ -63,6 +63,8 @@ EXPECTED_STATUS_DRAIN_MARKERS = [
 EXPECTED_SURVEY_TEST_MARKERS = [
     'test "phase10 virtio input survey manifest records the live starter and remaining gap" {',
     'try std.testing.expectEqualStrings("P10-Y04", manifest.lane_key);',
+    'try std.testing.expectEqual(@as(usize, 6), manifest.survey_summary.preexisting_phase10_test_files);',
+    '"phase10-virtio-input-status-drain-helper"',
     'try std.testing.expectEqual(@as(usize, 0), ready_next_count);',
     'try std.testing.expectEqual(@as(usize, 1), blocked_count);',
 ]
@@ -83,8 +85,10 @@ EXPECTED_SURVEY_NOTE_MARKERS = [
     "PHASE10_STATUS=parked",
     "PHASE10_LANE_KEY=P10-Y04",
     "phase10-virtio-input-registration-preflight-helper",
+    "phase10-virtio-input-status-drain-helper",
     "phase10-virtio-input-registration-lifecycle",
     "real event delivery",
+    "transport-backed status completion callbacks",
 ]
 
 EXPECTED_GAPS = {
@@ -95,6 +99,7 @@ EXPECTED_GAPS = {
     "phase10-virtio-input-capability-setup-helper": "starter_landed",
     "phase10-virtio-input-multitouch-slot-helper": "starter_landed",
     "phase10-virtio-input-registration-preflight-helper": "starter_landed",
+    "phase10-virtio-input-status-drain-helper": "starter_landed",
     "phase10-virtio-input-registration-lifecycle": "blocked_on_risky_transport",
 }
 
@@ -168,8 +173,8 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
         missing_markers.append("manifest:roadmap_destinations")
 
     summary = manifest.get("survey_summary", {})
-    if summary.get("preexisting_phase10_test_files") != 5:
-        missing_markers.append("manifest:preexisting_phase10_test_files=5")
+    if summary.get("preexisting_phase10_test_files") != 6:
+        missing_markers.append("manifest:preexisting_phase10_test_files=6")
     for key in [
         "preexisting_phase10_build_present",
         "preexisting_virtio_core_zig_present",
@@ -184,7 +189,7 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
             missing_markers.append(f"manifest:{key}")
 
     gaps = manifest.get("gaps", [])
-    if len(gaps) < 11:
+    if len(gaps) < 12:
         missing_markers.append("manifest:gaps")
     gap_index = {gap.get("id"): gap for gap in gaps if isinstance(gap, dict)}
     for gap_id, status in EXPECTED_GAPS.items():
