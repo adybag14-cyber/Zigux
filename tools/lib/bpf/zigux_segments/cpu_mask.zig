@@ -23,7 +23,7 @@ pub const ChunkReader = struct {
 };
 
 fn isDelimiter(byte: u8) bool {
-    return byte == ',' or byte == '\n' or byte == '\r';
+    return byte == ',' or byte == '\n';
 }
 
 fn parseRangeToken(token: []const u8) ParseCpuMaskError!struct { start: usize, end: usize } {
@@ -142,7 +142,7 @@ test "parseCpuMaskString expands single CPUs and ranges into a dense bool mask" 
 }
 
 test "parseCpuMaskString tolerates repeated delimiters and newline-terminated masks" {
-    const parsed = try parseCpuMaskString(std.testing.allocator, "\n0-1,,4\r\n6\n");
+    const parsed = try parseCpuMaskString(std.testing.allocator, "\n0-1,,4\n6\n");
     defer parsed.deinit(std.testing.allocator);
 
     try std.testing.expectEqual(@as(usize, 7), parsed.values.len);
@@ -156,10 +156,11 @@ test "parseCpuMaskString tolerates repeated delimiters and newline-terminated ma
 }
 
 test "parseCpuMaskString rejects empty and malformed ranges" {
-    try std.testing.expectError(error.EmptyCpuRange, parseCpuMaskString(std.testing.allocator, ",\n\r"));
+    try std.testing.expectError(error.EmptyCpuRange, parseCpuMaskString(std.testing.allocator, ",\n"));
     try std.testing.expectError(error.InvalidCpuRange, parseCpuMaskString(std.testing.allocator, "3-1"));
     try std.testing.expectError(error.InvalidCpuRange, parseCpuMaskString(std.testing.allocator, "x"));
     try std.testing.expectError(error.InvalidCpuRange, parseCpuMaskString(std.testing.allocator, "1-"));
+    try std.testing.expectError(error.InvalidCpuRange, parseCpuMaskString(std.testing.allocator, "\r0-1"));
 }
 
 test "parseCpuMaskFromReader accepts chunked sysfs-style input" {
@@ -181,7 +182,7 @@ test "parseCpuMaskFromReader accepts chunked sysfs-style input" {
     };
 
     var state = ReaderState{
-        .chunks = &.{ "0-2,", "4\r", "\n6\n" },
+        .chunks = &.{ "0-2,", "4\n", "6\n" },
     };
     var scratch: [8]u8 = undefined;
     const parsed = try parseCpuMaskFromReader(std.testing.allocator, &scratch, .{
@@ -199,6 +200,35 @@ test "parseCpuMaskFromReader accepts chunked sysfs-style input" {
     try std.testing.expect(parsed.values[4]);
     try std.testing.expect(!parsed.values[5]);
     try std.testing.expect(parsed.values[6]);
+}
+
+test "parseCpuMaskFromReader keeps carriage-return drift rejected" {
+    const ReaderState = struct {
+        chunks: []const []const u8,
+        index: usize = 0,
+
+        fn read(context: ?*anyopaque, buffer: []u8) !?usize {
+            const self: *@This() = @ptrCast(@alignCast(context.?));
+            if (self.index >= self.chunks.len) {
+                return null;
+            }
+
+            const chunk = self.chunks[self.index];
+            self.index += 1;
+            std.mem.copyForwards(u8, buffer[0..chunk.len], chunk);
+            return chunk.len;
+        }
+    };
+
+    var state = ReaderState{
+        .chunks = &.{ "0-2,\r", "4\n" },
+    };
+    var scratch: [8]u8 = undefined;
+
+    try std.testing.expectError(error.InvalidCpuRange, parseCpuMaskFromReader(std.testing.allocator, &scratch, .{
+        .context = &state,
+        .readFn = ReaderState.read,
+    }));
 }
 
 test "parseCpuMaskFromReader rejects invalid reader contracts" {
