@@ -107,6 +107,7 @@ Phase 9 notes
 
 Phase 10 notes
 - `Documentation/zigux/phase10-virtio-core-slice.md`
+- `Documentation/zigux/phase10-virtio-core-survey.md`
 - `Documentation/zigux/phase10-virtio-ring-slice.md`
 - `Documentation/zigux/phase10-virtio-ring-survey.md`
 - `Documentation/zigux/phase10-virtio-input-slice.md`
@@ -114,7 +115,7 @@ Phase 10 notes
 - `Documentation/zigux/phase10-virtio-input-survey.md`
 - `Documentation/zigux/phase10-virtio-mmio-slice.md`
 - `Documentation/zigux/phase10-virtio-mmio-survey.md`
-- `scripts/zigux/README.md`, `zigux/tests/README.md`, `Documentation/zigux/review-checklist.md`, `zigux/tests/phase10_build.zig`, `zigux/tests/phase10_virtio_core.zig`, `zigux/tests/phase10_virtio_ring.zig`, `zigux/tests/phase10_virtio_ring_survey.zig`, `zigux/tests/phase10_virtio_input.zig`, `zigux/tests/phase10_virtio_input_survey.zig`, `zigux/tests/phase10_virtio_mmio.zig`, `zigux/tests/phase10_virtio_mmio_survey.zig`, `Documentation/zigux/phase10-virtio-mmio-slice.md`, and `make -C zigux phase10` now keep the current virtio core, virtio ring, virtio input, and virtio mmio packet reviewable through the shared build-and-make lane, and there is still no dedicated shared `validate-phase10.py`, `check-phase10-harness-coverage.py`, or `phase10-validate` target on `master`.
+- `scripts/zigux/README.md`, `zigux/tests/README.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/check-phase10-core-packet.py`, `zigux/tests/phase10_build.zig`, `zigux/tests/phase10_virtio_core.zig`, `zigux/tests/phase10_virtio_core_reset_queue.zig`, `zigux/tests/phase10_virtio_driver_id.zig`, `zigux/tests/phase10_virtio_core_manifest.json`, `zigux/tests/phase10_virtio_core_survey.zig`, `zigux/tests/phase10_virtio_ring.zig`, `zigux/tests/phase10_virtio_ring_survey.zig`, `zigux/tests/phase10_virtio_input.zig`, `zigux/tests/phase10_virtio_input_survey.zig`, `zigux/tests/phase10_virtio_mmio.zig`, `zigux/tests/phase10_virtio_mmio_survey.zig`, `Documentation/zigux/phase10-virtio-mmio-slice.md`, and `make -C zigux phase10` now keep the current virtio core, virtio ring, virtio input, and virtio mmio packet reviewable through the shared build-and-make lane, including the restored manifest-backed core survey packet and its dedicated packet checker, and there is still no dedicated shared `validate-phase10.py`, `check-phase10-harness-coverage.py`, or `phase10-validate` target on `master`.
 - the current bounded Phase 10 decision is no longer whether the virtio core lane still needs config-change bookkeeping or reset-proof coverage; those pieces are now landed, so the next follow-up should stay in the smallest core-only or survey-backed virtio step that sharpens queue or device bookkeeping without widening into transport implementation churn.
 
 Phase 11 notes
