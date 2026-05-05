@@ -13,6 +13,7 @@ pub const SampleFocus = enum {
     bounded_fifo_order,
     wraparound_requeue,
     peek_and_skip,
+    non_destructive_snapshot,
     reset_and_replay,
     ownership_and_lifetime,
 };
@@ -35,6 +36,8 @@ pub const ReplaySummary = struct {
     peek_value: u8,
     fill_start: u8,
     fill_end: u8,
+    snapshot_len: usize,
+    snapshot_sequence: [fifo_capacity]u8,
     final_len: usize,
     final_sequence: [fifo_capacity]u8,
     checked_focus: []const SampleFocus,
@@ -143,6 +146,14 @@ pub const BytestreamFifoSample = struct {
         return self.popByte();
     }
 
+    pub fn snapshotInto(self: *const Self, dest: []u8) usize {
+        const copied = @min(self.len, dest.len);
+        for (0..copied) |offset| {
+            dest[offset] = self.storage[(self.head + offset) % capacity];
+        }
+        return copied;
+    }
+
     pub fn drain(self: *Self, dest: []u8) usize {
         return self.dequeueSlice(dest);
     }
@@ -210,6 +221,9 @@ pub const BytestreamFifoSample = struct {
 
         const peek_value = self.peekByte() orelse return error.UnexpectedPeekOnEmpty;
 
+        var snapshot_sequence: [capacity]u8 = [_]u8{0} ** capacity;
+        const snapshot_len = self.snapshotInto(snapshot_sequence[0..]);
+
         var final_sequence: [capacity]u8 = undefined;
         const final_len = self.drain(final_sequence[0..]);
         if (final_len != capacity) return error.UnexpectedFinalLength;
@@ -226,12 +240,15 @@ pub const BytestreamFifoSample = struct {
             .peek_value = peek_value,
             .fill_start = 20,
             .fill_end = fill_end,
+            .snapshot_len = snapshot_len,
+            .snapshot_sequence = snapshot_sequence,
             .final_len = final_len,
             .final_sequence = final_sequence,
             .checked_focus = &.{
                 .bounded_fifo_order,
                 .wraparound_requeue,
                 .peek_and_skip,
+                .non_destructive_snapshot,
                 .reset_and_replay,
                 .ownership_and_lifetime,
             },
@@ -279,6 +296,8 @@ test "bytestream fifo sample replays the Linux anchor result sequence" {
     try std.testing.expectEqual(@as(u8, 3), replay.peek_value);
     try std.testing.expectEqual(@as(u8, 20), replay.fill_start);
     try std.testing.expectEqual(@as(u8, 42), replay.fill_end);
+    try std.testing.expectEqual(@as(usize, fifo_capacity), replay.snapshot_len);
+    try std.testing.expectEqualSlices(u8, expected_anchor_result[0..], replay.snapshot_sequence[0..]);
     try std.testing.expectEqual(@as(usize, fifo_capacity), replay.final_len);
     try std.testing.expectEqualSlices(u8, expected_anchor_result[0..], replay.final_sequence[0..]);
     try std.testing.expectEqual(SampleStage.replay_complete, sample.stage());
