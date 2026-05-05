@@ -55,6 +55,7 @@ REQUIRED_SURVEY_SNIPPETS = (
 
 EXACT_ONCE_SURVEY_SNIPPETS = (
     "include/zigux/abi.h` and `zigux/bindings/abi.zig` now also carry the shared `zigux_rbtree_root_view` lift inside the canonical Phase 3 ABI packet",
+    "the shared Phase 3 ABI replay explicit, including the canonical empty-root, cached-leftmost-root, and uncached-root samples",
     "The remaining same-family gap is therefore review-facing rather than implementation-facing: this dedicated survey wording now needs to stay aligned with this already-landed shared `rbtree` lift now that the docs-root Phase 3 summary is already in sync.",
     "- `python3 scripts/zigux/validate-phase3-rbtree-interop-survey.py` keeps this dedicated survey note, the broader `Documentation/zigux/phase3-roadmap-gap-survey.md` note, the helper slice note, and the repo-backed evidence paths aligned",
     "The next honest same-lane follow-on is one bounded survey-summary alignment pass",
@@ -69,6 +70,7 @@ REQUIRED_DOCS_README_SNIPPETS = (
 EXACT_ONCE_DOCS_README_SNIPPETS = (
     "`Documentation/zigux/phase3-rbtree-interop-survey.md` records the dedicated `rbtree` boundary packet, and `scripts/zigux/validate-phase3-rbtree-interop-survey.py` remains a supporting survey check inside that shared validator-first route.",
     "the landed dedicated `rbtree` boundary packet and shared `zigux_rbtree_root_view` lift inside `include/zigux/abi.h` and `zigux/bindings/abi.zig`",
+    "the remaining survey-and-validator wording gap before more `chrdev_*` tail growth",
 )
 
 REQUIRED_REPO_PATHS = (
@@ -131,6 +133,8 @@ REQUIRED_SLICE_SNIPPETS = (
     "the shared ABI manifest now catalogs both that dedicated packet and the shared ABI replay plus the shared-lift guards, so the outstanding same-family work is the broader shared ABI survey-and-validator packet alignment rather than missing shared code",
     "The next honest follow-up is one bounded shared-validator alignment pass",
 )
+
+EXACT_ONCE_SLICE_SNIPPETS = REQUIRED_SLICE_SNIPPETS
 
 REQUIRED_SHARED_LIFT_CHECK_SNIPPETS = (
     "PHASE3_RBTREE_SHARED_LIFT_CONTRACT=fail",
@@ -238,6 +242,13 @@ def validate(root: Path) -> list[str]:
             1,
             issues,
         )
+        _check_exact_count(
+            slice_text,
+            EXACT_ONCE_SLICE_SNIPPETS,
+            "unexpected_slice_snippet_count",
+            1,
+            issues,
+        )
 
     if docs_readme:
         _check_snippets(docs_readme, REQUIRED_DOCS_README_SNIPPETS, "missing_docs_readme_snippet", issues)
@@ -275,6 +286,7 @@ def run_self_test() -> int:
         (root / "lib").mkdir(parents=True, exist_ok=True)
         (root / "tools" / "lib").mkdir(parents=True, exist_ok=True)
 
+        (root / SURVEY_REL).writeText if False else None
         (root / SURVEY_REL).write_text("\n".join((*REQUIRED_SURVEY_MARKERS, *REQUIRED_SURVEY_SNIPPETS)) + "\n", encoding="utf-8")
         (root / ROADMAP_GAP_SURVEY_REL).write_text("\n".join(REQUIRED_ROADMAP_GAP_MARKERS) + "\n", encoding="utf-8")
         (root / SLICE_REL).write_text("\n".join((*REQUIRED_SLICE_MARKERS, *REQUIRED_SLICE_SNIPPETS)) + "\n", encoding="utf-8")
@@ -346,6 +358,15 @@ def run_self_test() -> int:
         )
         issues = validate(root)
         assert f"unexpected_slice_marker_count:2:{duplicated_slice_marker}" in issues
+
+        (root / SLICE_REL).write_text("\n".join((*REQUIRED_SLICE_MARKERS, *REQUIRED_SLICE_SNIPPETS)) + "\n", encoding="utf-8")
+        duplicated_slice_snippet = EXACT_ONCE_SLICE_SNIPPETS[0]
+        (root / SLICE_REL).write_text(
+            "\n".join((*REQUIRED_SLICE_MARKERS, *REQUIRED_SLICE_SNIPPETS, duplicated_slice_snippet)) + "\n",
+            encoding="utf-8",
+        )
+        issues = validate(root)
+        assert f"unexpected_slice_snippet_count:2:{duplicated_slice_snippet}" in issues
 
         (root / SLICE_REL).write_text("\n".join((*REQUIRED_SLICE_MARKERS, *REQUIRED_SLICE_SNIPPETS)) + "\n", encoding="utf-8")
         duplicated_docs_readme_snippet = EXACT_ONCE_DOCS_README_SNIPPETS[0]
