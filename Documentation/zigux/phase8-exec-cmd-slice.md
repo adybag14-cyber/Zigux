@@ -5,7 +5,7 @@ This document tracks the bounded Phase 8 userspace-adjacent tooling slice for Zi
 ## Status
 
 - `PHASE8_STATUS=parked`
-- `PHASE8_SLICE=exec-cmd-tooling-starter`
+- `PHASE8_SLICE=exec-cmd-deferred-exec-packet`
 - roadmap posture: prove Zigux inside serious repo-hosted tooling, not just tiny helpers
 - scope: path-resolution, injected environment setup, `get_pwd_cwd()`-style cwd choice, null-terminated command-vector preparation, and pure `execl_cmd()`-style argv collection only
 - product boundary:
@@ -43,7 +43,7 @@ That validator-first coverage still needs a strict boundary. This Phase 8 slice 
 
 ## Current parity surface
 
-The current starter slice covers:
+The current parked deferred-exec packet covers:
 
 - absolute-versus-prefixed `system_path()` resolution
 - `get_argv_exec_path()` precedence across explicit path, environment path, and configured fallback
