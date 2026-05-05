@@ -27,11 +27,12 @@ Phase 6 is where Zigux can keep proving low-risk in-kernel helper ports without 
 
 ## Gates
 
-1. run the focused Zig Phase 6 helper tests
+1. run the shared Phase 6 leaf-helper replay
 - `zig build test --build-file zigux/tests/phase6_build.zig`
-
-2. keep the helper wired through the Zigux convenience target
 - `make -C zigux phase6`
+
+2. keep the shared Phase 6 surface checker aligned with this slice
+- `make -C zigux phase6-validate`
 
 ## Current parity surface
 
@@ -69,4 +70,4 @@ This slice does not yet claim:
 
 ## Next bounded step
 
-Keep the next Phase 6 follow-up inside the shared bundled `base64`, `bsearch`, `checksum`, and `hexdump` packet already gated by `zigux/tests/phase6_build.zig` and `make -C zigux phase6`. Reopen this slice only if fresh repo inspection finds a concrete new `base64.c` parity gap inside `lib/base64.zig`, `zigux/tests/phase6_base64.zig`, the committed fixture corpus, or that existing bundled gate.
+Keep the next Phase 6 follow-up inside the shared bundled `base64`, `bsearch`, `checksum`, and `hexdump` packet already gated by `zigux/tests/phase6_build.zig`, `make -C zigux phase6`, and `make -C zigux phase6-validate`. Reopen this slice only if fresh repo inspection finds a concrete new `base64.c` parity gap inside `lib/base64.zig`, `zigux/tests/phase6_base64.zig`, the committed fixture corpus, or that existing bundled gate.
