@@ -19,6 +19,7 @@ TESTS_README = ROOT / "zigux" / "tests" / "README.md"
 REVIEW_CHECKLIST = ROOT / "Documentation" / "zigux" / "review-checklist.md"
 CLOSURE_DOC = ROOT / "Documentation" / "zigux" / "phase2-closure.md"
 PHASE2_VALIDATOR = ROOT / "scripts" / "zigux" / "validate-phase2.py"
+PHASE2_CLOSURE_VALIDATOR = ROOT / "scripts" / "zigux" / "validate-phase2-closure.py"
 
 EXPECTED_PIN_TARGETS = [
     "x86_64-linux",
@@ -93,6 +94,17 @@ PHASE2_VALIDATOR_MARKERS = [
     "\"PHASE2_TOOLCHAIN_PIN_SCOPE_SELF_TEST=pass\"",
     "\"PHASE2_TOOLCHAIN_PIN_SCOPE=pass\"",
     "str(TOOLCHAIN_PIN_SCOPE_CHECKER)",
+]
+
+PHASE2_CLOSURE_VALIDATOR_MARKERS = [
+    "CHECK_PHASE2_TOOLCHAIN_PIN_SCOPE = ROOT / 'scripts' / 'zigux' / 'check-phase2-toolchain-pin-scope.py'",
+    "PHASE2_TOOLCHAIN_PIN_SCOPE_REQUIRED_SOURCE_MARKERS = [",
+    "'PHASE2_TOOLCHAIN_PIN_SCOPE_SELF_TEST=python3 scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test',",
+    "'PHASE2_TOOLCHAIN_PIN_SCOPE_GATE=python3 scripts/zigux/check-phase2-toolchain-pin-scope.py',",
+    "PHASE2_TOOLCHAIN_PIN_SCOPE_MAKEFILE_RUN_COUNTS = {",
+    "'scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test': 1,",
+    "'scripts/zigux/check-phase2-toolchain-pin-scope.py': 1,",
+    "missing_markers.extend(validate_exact_makefile_runs(makefile))",
 ]
 
 
@@ -287,6 +299,14 @@ def run_self_test() -> int:
     ):
         raise SystemExit("phase2-toolchain-pin-scope:self-test:valid_phase2_validator")
 
+    valid_phase2_closure_validator = "\n".join(PHASE2_CLOSURE_VALIDATOR_MARKERS)
+    if validate_required_markers(
+        valid_phase2_closure_validator,
+        label="phase2_closure_validator",
+        markers=PHASE2_CLOSURE_VALIDATOR_MARKERS,
+    ):
+        raise SystemExit("phase2-toolchain-pin-scope:self-test:valid_phase2_closure_validator")
+
     bad_phase = dict(valid_policy)
     bad_phase["phase"] = "Phase 3"
     issues = validate_policy(bad_phase)
@@ -427,6 +447,14 @@ def run_self_test() -> int:
     if not any(issue.startswith("phase2_validator:missing_marker:") for issue in validator_issues):
         raise SystemExit("phase2-toolchain-pin-scope:self-test:phase2_validator_marker_failure")
 
+    closure_validator_issues = validate_required_markers(
+        "CHECK_PHASE2_TOOLCHAIN_PIN_SCOPE = ROOT / 'scripts' / 'zigux' / 'check-phase2-toolchain-pin-scope.py'",
+        label="phase2_closure_validator",
+        markers=PHASE2_CLOSURE_VALIDATOR_MARKERS,
+    )
+    if not any(issue.startswith("phase2_closure_validator:missing_marker:") for issue in closure_validator_issues):
+        raise SystemExit("phase2-toolchain-pin-scope:self-test:phase2_closure_validator_marker_failure")
+
     with tempfile.TemporaryDirectory(prefix="phase2_toolchain_pin_scope_") as tmp_dir_str:
         tmp_root = Path(tmp_dir_str)
         manifest_path = tmp_root / "toolchain.json"
@@ -461,6 +489,7 @@ def main() -> int:
         REVIEW_CHECKLIST,
         CLOSURE_DOC,
         PHASE2_VALIDATOR,
+        PHASE2_CLOSURE_VALIDATOR,
     ]
     missing = [str(path.relative_to(ROOT)) for path in required_files if not path.exists()]
     if missing:
@@ -521,6 +550,13 @@ def main() -> int:
             PHASE2_VALIDATOR.read_text(encoding="utf-8"),
             label="phase2_validator",
             markers=PHASE2_VALIDATOR_MARKERS,
+        )
+    )
+    issues.extend(
+        validate_required_markers(
+            PHASE2_CLOSURE_VALIDATOR.read_text(encoding="utf-8"),
+            label="phase2_closure_validator",
+            markers=PHASE2_CLOSURE_VALIDATOR_MARKERS,
         )
     )
     issues.extend(validate_exact_workflow_runs(WORKFLOW.read_text(encoding="utf-8"), payload=policy_payload))
