@@ -6,6 +6,12 @@ This document tracks the bounded Phase 10 survey lane around `drivers/virtio/vir
 
 - `PHASE10_STATUS=parked`
 - `PHASE10_SLICE=virtio-mmio-survey`
+- `PHASE10_FREEZE_MAP=Documentation/zigux/freeze-map.md`
+- `PHASE10_FREEZE_BOUNDARY_STATUS=aligned`
+- `PHASE10_FREEZE_STATUS_CHANGE_CLAIMED=false`
+- `PHASE10_RISKY_TRANSPORT_POSTURE=blocked_on_risky_transport`
+- `PHASE10_ARCHITECTURE_COUNCIL_REOPEN_REQUIRED=true`
+- `PHASE10_ARCHITECTURE_COUNCIL_REOPEN_ATTACHED=false`
 - scope: survey manifest, dedicated survey gate, shared Phase 10 build wiring, the live in-memory MMIO helper, a lane-level slice note, and a lane-level note that records what is present in the repo plus the remaining MMIO transport gap against the roadmap
 - product boundary:
   - `drivers/virtio/virtio_mmio.zig`
@@ -21,6 +27,16 @@ This document tracks the bounded Phase 10 survey lane around `drivers/virtio/vir
 The Phase 10 roadmap names `drivers/virtio/virtio_mmio.c` as a primary anchor, but it also says to prove virtqueue wrappers before widening into MMIO or other risky transport work.
 
 The live repo already has a bounded `drivers/virtio/virtio.zig` core starter, a dedicated `zigux/tests/phase10_virtio_ring_survey.zig` gate, a `drivers/virtio/virtio_ring.zig` lab helper, and the newer `virtio_input` starter plus survey paths. This survey now records that the repo has already advanced beyond the older note: a tiny `drivers/virtio/virtio_mmio.zig` helper is present, it now carries one bounded device-feature selector and read window plus one small transport-backed config-word window, and the dedicated MMIO replay now also proves that a shorter restaged config window clears stale second-word data instead of leaving old bytes readable. The remaining gap is still interrupt, queue-discovery, reset, and lifecycle work.
+
+## Freeze-Boundary Evidence
+
+The current MMIO packet stays aligned with `Documentation/zigux/freeze-map.md` by keeping the risky transport posture explicit.
+
+Allowed evidence for this lane remains limited to driver-local lab slices, survey manifests, and shared validation gates.
+
+Forbidden transport claims remain queue setup or reset paths, IRQ parity, DMA paths, input registration lifecycle, and probe or remove lifecycle behavior.
+
+Any status review beyond this blocked-on-risky-transport packet still needs an Architecture Council reopen request with fresh linked evidence attached; this survey does not attach one.
 
 ## Survey findings
 
