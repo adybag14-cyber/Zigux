@@ -29,6 +29,7 @@ SELF_TEST_TARGETS = (
         "scripts/zigux/validate-phase3-low-level-wrapper-survey.py",
         "PHASE3_LOW_LEVEL_WRAPPER_SURVEY_SELF_TEST=pass",
     ),
+    SelfTestTarget("scripts/zigux/phase3_catalog.py", None),
     SelfTestTarget("scripts/zigux/phase3_check_lib.py", "PHASE3_CHECK_LIB_SELF_TEST=pass"),
     SelfTestTarget("scripts/zigux/run-phase3-checks.py", "PHASE3_RUNNER_SELF_TEST=pass"),
     SelfTestTarget(
