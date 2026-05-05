@@ -73,10 +73,11 @@ Current Phase 3 use
 - `python3 scripts/zigux/run-phase3-checks.py --slug chrdev-notify-ack-delivery-budget-guard-window-policy-budget-window-delivery-window-budget-window-delivery-window-budget-window-delivery` compares that committed JSON fixture against both the bounded C harness and the Zig chrdev notify ack delivery budget guard window policy budget window delivery window budget window delivery window budget window delivery dump.
 - `zigux/tests/fixtures/phase3_chrdev_notify_ack_DELIVERY_window_policy_budget_window_delivery_window_budget_window_delivery_window_budget_window_DELIVERY/expected.json` anchors the bounded Phase 3 chrdev notify ack delivery budget guard window policy budget window delivery window budget window delivery window budget window DELIVERY parity claim.
 - `python3 scripts/zigux/run-phase3-checks.py --slug chrdev-notify-ack-delivery-budget-guard-window-policy-budget-window-delivery-window-budget-window-delivery-window-budget-window-DELIVERY` compares that committed JSON fixture against both the bounded C harness and the Zig chrdev notify ack delivery budget guard window policy budget window delivery window budget window delivery window budget window DELIVERY dump.
-- `zigux/tests/fixtures/phase3_chrdev_notify_ack_DELIVERY_window_policy_budget_window_delivery_window_budget_window_delivery_window_budget_window_DELIVERY_window/expected.json` anchors the bounded Phase 3 chrdev notify ack delivery budget guard window policy budget window delivery window budget window delivery window budget window DELIVERY window parity claim.
+- `zigux/tests/fixtures/phase3_chrdev_notify_ack_DELIVERY_window_policy_budget_window_delivery_window_budget_window_DELIVERY_window/expected.json` anchors the bounded Phase 3 chrdev notify ack delivery budget guard window policy budget window delivery window budget window delivery window budget window DELIVERY window parity claim.
 - `python3 scripts/zigux/run-phase3-checks.py --slug chrdev-notify-ack-delivery-budget-guard-window-policy-budget-window-delivery-window-budget-window-delivery-window-budget-window-DELIVERY-window` compares that committed JSON fixture against both the bounded C harness and the Zig chrdev notify ack delivery budget guard window policy budget window delivery window budget window DELIVERY window dump.
 
 Current Phase 4 use
+- `scripts/zigux/artifact_diff.py` stays the shared host-side comparison helper behind the committed artifact-check packets.
 - `zigux/tests/atomic64_diff.zig` keeps the roadmap-named Phase 4 atomic64 entrypoint explicit as the thin wrapper over the shared runtime-backed replay.
 - `zigux/tests/runtime_atomic64_diff.zig` currently carries the single live bounded atomic64 rollback-readiness replay body that the Phase 4 wrapper and the Phase 9 starter both reuse.
 - `zigux/tests/bitmap_diff.zig` anchors the bounded bitmap rollback-readiness parity checks.
@@ -84,6 +85,13 @@ Current Phase 4 use
 - `scripts/zigux/validate-phase4.py` keeps the shared Phase 4 build entrypoint, workflow wiring, and Phase 4 documentation markers aligned before the Zig tests run.
 - `Documentation/zigux/phase4-validation-matrix.md` records the current rollback owners, threshold posture, and lab/CI replay matrix for the shipped Phase 4 gates.
 
+## Phase 4 Tooling Review Note
+
+- owner: `Zigux product maintainers working in scripts/zigux and Documentation/zigux`
+- rollback owner: `Zigux product maintainers working in scripts/zigux and Documentation/zigux`
+- fallback rule: if `scripts/zigux/artifact_diff.py` regresses, keep the committed expected artifact plus the current authoritative C or documented replay command as the source of truth until the helper contract is repaired
+- review rule: any change to the helper's emitted `ARTIFACT_DIFF=*`, `MODE=*`, path, or SHA-256 lines must update this note in the same change so the published host-side artifact packet stays reviewable
+- boundary: keep this note scoped to the shared host-side diff helper; Phase 4 gate ownership for `zigux/tests/*.zig` still belongs in `Documentation/zigux/phase4-validation-matrix.md`
 
 Rules
 - artifact fixtures must be generated from the current in-tree source of truth
