@@ -1,6 +1,10 @@
 # Phase 3 Low-Level Wrapper Survey
 
-This note records the current atomic, barrier, and MMIO wrapper packet for the bounded Phase 3 ABI substrate on live `master`.
+This compatibility note preserves the older low-level wrapper survey markers for the bounded Phase 3 ABI substrate.
+
+The active current-head packet for this lane now lives in `Documentation/zigux/phase3-low-level-wrapper-boundary-survey.md`.
+Treat that boundary survey as the authoritative live wrapper inventory.
+Treat the marker block in this note as legacy gate compatibility evidence until the dedicated validator lane retires or rewires it.
 
 ## Status
 
@@ -32,40 +36,48 @@ For this low-level wrapper lane, the roadmap-backed contract is still narrow:
 - approved MMIO wrappers that stay inside the narrow unsafe boundary
 - shared ABI notes and gates that tell reviewers exactly how much of that wrapper family is currently proven
 
-This lane does not justify a larger runtime concurrency or driver wrapper family on its own.
+This compatibility note does not reopen a larger runtime concurrency or driver wrapper family on its own.
+It only keeps the older dedicated survey gate understandable while the newer boundary survey carries the live packet details.
+
+## Compatibility Role
+
+This file is no longer the best place to infer current blob IDs or wrapper breadth.
+Its job is narrower:
+
+- preserve the legacy marker set still audited by `scripts/zigux/validate-phase3-low-level-wrapper-survey.py`
+- point reviewers at `Documentation/zigux/phase3-low-level-wrapper-boundary-survey.md` for the current packet-local helper inventory
+- keep the older gate readable until the dedicated validator lane decides whether to retire or rewire it
 
 ## Live Repo Reality
 
-The current tree carries a real low-level wrapper packet, but it is smaller than a fuller wrapper-validation story:
+The current tree still carries a real low-level wrapper packet, but the freshest wrapper evidence now lives in the boundary-survey note rather than here.
+This older survey remains useful only as compatibility context for the dedicated survey gate:
 
-- `zigux/helpers/atomic.zig` exports `load`, `store`, `exchange`, and `compareExchange`, and its helper-local test proves those wrappers behave predictably on a small in-memory value.
-- `zigux/helpers/barrier.zig` exports `acquire`, `release`, and `full`, and its helper-local test proves the wrapper entry points compile and run together through the current sentinel-backed implementation.
-- `zigux/helpers/mmio.zig` exports `range`, `read32`, and `write32`, keeps raw-pointer formation in `zigux/unsafe/narrow.zig`, and proves bounded register access through its helper-local test.
-- `zigux/tests/phase3_abi.zig` imports `atomic_helpers`, `barrier_helpers`, and `mmio_helpers`, so the shared ABI replay still compiles against the same wrapper packet.
-- `zigux/tests/fixtures/phase3_abi_manifest.json` already treats all three helper files as part of the shared `abi` slice.
-- `zigux/tests/phase3_abi_dump.zig` and `zigux/tests/fixtures/phase3_abi/expected.json` expose shared dump evidence for `zigux_mmio_range` and the broader `zigux_interop_policy` contract, but they do not yet publish dedicated atomic or barrier dump markers.
+- `zigux/helpers/atomic.zig`, `zigux/helpers/barrier.zig`, and `zigux/helpers/mmio.zig` remain part of the bounded Phase 3 ABI packet
+- `zigux/tests/phase3_abi.zig` still imports the corresponding helper modules through the shared ABI replay surface
+- `zigux/tests/fixtures/phase3_abi_manifest.json` still keeps those helper files inside the shared `abi` slice
+- the dedicated validator still reads this note's legacy marker block, so removing or silently repurposing it would create avoidable review noise before the validator lane is ready
 
-That makes the current low-level wrapper packet real and reviewable, but still partial: MMIO has shared dump visibility, while atomic and barrier coverage still lives only in the helper-local tests plus the shared ABI import surface.
+For the current live wrapper surface, blob markers, and narrower boundary wording, use `Documentation/zigux/phase3-low-level-wrapper-boundary-survey.md` first.
 
 ## Ledger Alignment
 
-This low-level wrapper survey is still evidence for the same bounded Phase 3 ABI substrate packet recorded in `BOOTSTRAP_COMMIT_LEDGER.md` entry `26`, `feat(zigux): start bounded Phase 3 abi substrate skeleton`.
+This compatibility survey still belongs to the same bounded Phase 3 ABI substrate packet recorded in `BOOTSTRAP_COMMIT_LEDGER.md` entry `26`, `feat(zigux): start bounded Phase 3 abi substrate skeleton`.
 
-That keeps this lane inside shared-packet survey and gate maintenance rather than a new helper tranche.
+That keeps this lane inside stale-survey cleanup rather than helper expansion or a new validation family.
 
 ## Current Boundary Gap
 
-No new helper-local bug was proven in this run.
+No new helper-local bug is being claimed here.
 
-The live gap is review and validation visibility:
+The remaining gap in this note is purely compatibility hygiene:
 
-- the roadmap requires approved atomic, barrier, and MMIO wrappers
-- the repo does ship those wrappers and includes them in the shared ABI manifest
-- only MMIO is currently exposed on the shared dump path
-- without a dedicated survey-and-gate surface for this lane, reviewers have to infer that partial state by reading several files instead of one bounded packet
+- the active packet has moved to the boundary-survey note
+- this older note still exists because a dedicated validator gate reads its markers
+- reviewers should not mistake that retained marker block for the freshest source of truth
 
 ## Next Bounded Step
 
-- leave this lane parked unless `zigux/helpers/atomic.zig`, `zigux/helpers/barrier.zig`, `zigux/helpers/mmio.zig`, `zigux/tests/phase3_abi.zig`, `zigux/tests/phase3_abi_dump.zig`, `zigux/tests/fixtures/phase3_abi/expected.json`, or `zigux/tests/fixtures/phase3_abi_manifest.json` moves again
-- if a later change adds shared atomic or barrier dump evidence, resurvey this note against the exact live files before claiming broader wrapper closure
-- keep any follow-up inside the same survey-or-validator packet unless a separate lane explicitly opens wrapper implementation work
+- leave this compatibility note parked unless the dedicated validator still needs another small clarity pass or the retained markers stop matching its expected contract
+- if the validator lane later rewires to the boundary-survey note, retire this file instead of widening its scope again
+- keep any follow-up inside the same survey-compatibility packet unless a separate lane explicitly reopens wrapper implementation or validation-gate work
