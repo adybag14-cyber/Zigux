@@ -26,23 +26,52 @@ REQUIRED_NOTE_MARKERS = [
     "phase11-hvc-console-winsize-layout-assert",
     "phase11-hvc-console-export-signature-assert",
     "phase11-uapi-header-parity-surface",
+    "notifier_hangup_irq",
 ]
 
 REQUIRED_SURVEY_MARKERS = [
-    "phase11-dw-wdt-watchdog-info-layout-assert",
-    "phase11-hvc-console-winsize-layout-assert",
-    "phase11-hvc-console-export-signature-assert",
-    "phase11-uapi-header-parity-survey-tests",
-    "phase11-dw-wdt-suspend-resume-tests",
-    "phase11-hvc-console-poll-retry-split-tests",
-    "pub fn hvc_instantiate",
-    "pub fn notifier_del_irq",
+    "phase11 shared header parity survey manifest records the maintained packet cleanly",
+    "phase11 shared header parity survey keeps a bounded watchdog_info layout proof",
+    "phase11 shared header parity survey keeps a bounded winsize layout proof",
+    "phase11 shared header parity survey keeps the note pinned to the manifest provenance",
+    "phase11 shared header parity survey keeps shared replay markers explicit without a missing inventory fixture",
+    "phase11 shared header parity survey keeps the exported hvc surface explicit",
+    "phase11 shared header parity survey keeps the shared build hook explicit",
+    "layout_assert.assertSize(WatchdogInfo, 40);",
+    "layout_assert.assertSize(WinSize, 8);",
 ]
 
 REQUIRED_BUILD_MARKERS = [
     "phase11_uapi_header_parity_survey.zig",
     "phase11-uapi-header-parity-survey-tests",
+    "phase11-hvc-console-survey-tests",
     "test_step.dependOn(&run_phase11_uapi_header_parity_survey_tests.step);",
+    "test_step.dependOn(&run_phase11_hvc_console_survey_tests.step);",
+    'phase11_uapi_header_parity_survey_module.addImport("layout_assert", layout_assert_module);',
+]
+
+REQUIRED_CONTRACT_MARKERS = [
+    "PHASE11_SHARED_REPLAY_STATUS=starter_packet_reviewable",
+    "zigux/tests/phase11_build.zig",
+    "zigux/tests/phase11_uapi_header_parity_survey.zig",
+    "zigux/tests/phase11_hvc_console_survey.zig",
+    "there is no shipped `zigux/tests/fixtures/phase11_build_inventory.json` on `master`",
+    "there is no broader multi-checker Phase 11 script packet on `master`",
+]
+
+REQUIRED_HVC_CONSOLE_MARKERS = [
+    "pub fn hvc_instantiate",
+    "pub fn hvc_alloc",
+    "pub fn hvc_remove",
+    "pub fn hvc_poll",
+    "pub fn hvc_kick",
+    "pub fn __hvc_resize",
+    "pub fn notifier_add_irq",
+    "pub fn notifier_del_irq",
+]
+
+REQUIRED_HVC_HEADER_MARKERS = [
+    "extern void notifier_hangup_irq",
 ]
 
 
@@ -70,27 +99,16 @@ def check_repo(root: Path) -> None:
     note = read_text(root, "Documentation/zigux/phase11-uapi-header-parity-survey.md")
     survey = read_text(root, "zigux/tests/phase11_uapi_header_parity_survey.zig")
     build = read_text(root, "zigux/tests/phase11_build.zig")
-    inventory = read_text(root, "zigux/tests/fixtures/phase11_build_inventory.json")
+    contract = read_text(root, "Documentation/zigux/phase11-shared-replay-contract.md")
     hvc_console = read_text(root, "drivers/tty/hvc/hvc_console.zig")
+    hvc_header = read_text(root, "drivers/tty/hvc/hvc_console.h")
 
     require_markers(note, REQUIRED_NOTE_MARKERS + [manifest["surveyed_commit"]], "note")
+    require_markers(survey, REQUIRED_SURVEY_MARKERS, "survey")
     require_markers(build, REQUIRED_BUILD_MARKERS, "build")
-    require_markers(
-        inventory,
-        [
-            "phase11-uapi-header-parity-survey-tests",
-            "phase11-dw-wdt-suspend-resume-tests",
-            "phase11-dw-wdt-remove-idle-split-tests",
-            "phase11-hvc-console-modem-control-split-tests",
-            "phase11-hvc-console-poll-retry-split-tests",
-        ],
-        "inventory",
-    )
-    require_markers(
-        survey + "\n" + hvc_console,
-        REQUIRED_SURVEY_MARKERS,
-        "survey",
-    )
+    require_markers(contract, REQUIRED_CONTRACT_MARKERS, "contract")
+    require_markers(hvc_console, REQUIRED_HVC_CONSOLE_MARKERS, "hvc_console")
+    require_markers(hvc_header, REQUIRED_HVC_HEADER_MARKERS, "hvc_header")
 
 
 def main() -> int:
