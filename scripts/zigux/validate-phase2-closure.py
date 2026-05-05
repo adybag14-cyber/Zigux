@@ -34,6 +34,9 @@ PHASE2_MAKEFILE_RUN_COUNTS = {
     'scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test': 1,
     'scripts/zigux/check-phase2-toolchain-pin-scope.py': 1,
 }
+PHASE2_WORKFLOW_RUN_COUNTS = {
+    'python3 scripts/zigux/check-phase2-tests-readme-alignment.py': 1,
+}
 
 required_files = [
     ROOT / 'Documentation' / 'zigux' / 'phase2-closure.md',
@@ -113,6 +116,19 @@ def validate_exact_makefile_runs(text: str) -> list[str]:
         if count != expected_count:
             issues.append(
                 f'make_exact_run:{command}:count={count}:expected={expected_count}'
+            )
+    return issues
+
+
+def validate_exact_workflow_runs(text: str) -> list[str]:
+    issues: list[str] = []
+    lines = [line.strip() for line in text.splitlines()]
+    for command, expected_count in PHASE2_WORKFLOW_RUN_COUNTS.items():
+        expected_line = f'run: {command}'
+        count = sum(1 for line in lines if line == expected_line)
+        if count != expected_count:
+            issues.append(
+                f'workflow_exact_run:{command}:count={count}:expected={expected_count}'
             )
     return issues
 
@@ -241,6 +257,7 @@ for marker in required_makefile_markers:
     if marker not in makefile:
         missing_markers.append(f'make:{marker}')
 missing_markers.extend(validate_exact_makefile_runs(makefile))
+missing_markers.extend(validate_exact_workflow_runs(workflow))
 
 if tool_manifest.get('phase') != 'Phase 2':
     missing_markers.append('manifest:phase=Phase 2')
