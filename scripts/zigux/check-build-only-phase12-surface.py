@@ -14,6 +14,8 @@ ROOT = SELF_PATH.parents[2] if len(SELF_PATH.parents) > 2 else SELF_PATH.parent
 DOCS_README_PATH = "Documentation/zigux/README.md"
 REVIEW_CHECKLIST_PATH = "Documentation/zigux/review-checklist.md"
 PHASE12_SEQUENCE_PATH = "Documentation/zigux/phase12-release-sequencing.md"
+VIRTIO_NET_SURVEY_PATH = "Documentation/zigux/phase12-virtio-net-survey.md"
+LIBBPF_SURVEY_PATH = "Documentation/zigux/phase12-libbpf-segment-survey.md"
 SCRIPTS_README_PATH = "scripts/zigux/README.md"
 TESTS_README_PATH = "zigux/tests/README.md"
 MAKEFILE_PATH = "zigux/Makefile"
@@ -61,6 +63,14 @@ REQUIRED_SEQUENCE_MARKERS = [
     "there is no shipped shared `scripts/zigux/validate-phase12.py`, no `check-phase12-*.py` release packet, and no `make -C zigux phase12-validate` target on `master`",
     "The docs-root, scripts-root, and tests-root wording repairs are already landed on `master`, so the next bounded same-lane follow-through is now drift control rather than another naming pass:",
     "if the lane reopens for another degraded-workflow drift, start by diffing those shipped packet surfaces and rerunning `scripts/zigux/check-build-only-phase12-surface.py` before widening into any driver-local or helper-local Phase 12 work",
+]
+
+REQUIRED_VIRTIO_NET_SURVEY_MARKERS = [
+    "public fallback posture: shared-tree-only anchor; unlike `Documentation/zigux/phase12-nvme-pci-raw-github-fallback-map.md` and `Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md`, this `virtio_net` note is not a commit-pinned raw GitHub fallback artifact.",
+]
+
+REQUIRED_LIBBPF_SURVEY_MARKERS = [
+    "public fallback posture: shared-tree-only anchor; unlike `Documentation/zigux/phase12-nvme-pci-raw-github-fallback-map.md` and `Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md`, this libbpf note is not a commit-pinned raw GitHub fallback artifact.",
 ]
 
 FORBIDDEN_SEQUENCE_MARKERS = [
@@ -137,6 +147,8 @@ def validate(root: Path) -> list[str]:
         DOCS_README_PATH,
         REVIEW_CHECKLIST_PATH,
         PHASE12_SEQUENCE_PATH,
+        VIRTIO_NET_SURVEY_PATH,
+        LIBBPF_SURVEY_PATH,
         SCRIPTS_README_PATH,
         TESTS_README_PATH,
         MAKEFILE_PATH,
@@ -163,6 +175,8 @@ def validate(root: Path) -> list[str]:
     docs_readme = read_text(root, DOCS_README_PATH)
     review_checklist = read_text(root, REVIEW_CHECKLIST_PATH)
     phase12_sequence = read_text(root, PHASE12_SEQUENCE_PATH)
+    virtio_net_survey = read_text(root, VIRTIO_NET_SURVEY_PATH)
+    libbpf_survey = read_text(root, LIBBPF_SURVEY_PATH)
     scripts_readme = read_text(root, SCRIPTS_README_PATH)
     tests_readme = read_text(root, TESTS_README_PATH)
     makefile = read_text(root, MAKEFILE_PATH)
@@ -177,6 +191,12 @@ def validate(root: Path) -> list[str]:
     for marker in REQUIRED_SEQUENCE_MARKERS:
         if marker not in phase12_sequence:
             failures.append(f"phase12_sequence:{marker}")
+    for marker in REQUIRED_VIRTIO_NET_SURVEY_MARKERS:
+        if marker not in virtio_net_survey:
+            failures.append(f"virtio_net_survey:{marker}")
+    for marker in REQUIRED_LIBBPF_SURVEY_MARKERS:
+        if marker not in libbpf_survey:
+            failures.append(f"libbpf_survey:{marker}")
     for marker in FORBIDDEN_SEQUENCE_MARKERS:
         if marker in phase12_sequence:
             failures.append(f"phase12_sequence_forbidden:{marker}")
@@ -253,6 +273,20 @@ Phase 12 notes
 - there is no shipped shared `scripts/zigux/validate-phase12.py`, no `check-phase12-*.py` release packet, and no `make -C zigux phase12-validate` target on `master`
 - The docs-root, scripts-root, and tests-root wording repairs are already landed on `master`, so the next bounded same-lane follow-through is now drift control rather than another naming pass:
 - if the lane reopens for another degraded-workflow drift, start by diffing those shipped packet surfaces and rerunning `scripts/zigux/check-build-only-phase12-surface.py` before widening into any driver-local or helper-local Phase 12 work
+""",
+    )
+    write(
+        root / VIRTIO_NET_SURVEY_PATH,
+        """# Phase 12 Virtio Net Survey
+
+- public fallback posture: shared-tree-only anchor; unlike `Documentation/zigux/phase12-nvme-pci-raw-github-fallback-map.md` and `Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md`, this `virtio_net` note is not a commit-pinned raw GitHub fallback artifact.
+""",
+    )
+    write(
+        root / LIBBPF_SURVEY_PATH,
+        """# Phase 12 Libbpf Segment Survey
+
+- public fallback posture: shared-tree-only anchor; unlike `Documentation/zigux/phase12-nvme-pci-raw-github-fallback-map.md` and `Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md`, this libbpf note is not a commit-pinned raw GitHub fallback artifact.
 """,
     )
     write(
@@ -374,8 +408,21 @@ phase12: phase12-test
             "duplicate_phase12_scripts_surface_line",
         )
 
+        write(
+            root / LIBBPF_SURVEY_PATH,
+            (root / LIBBPF_SURVEY_PATH).read_text(encoding="utf-8").replace(
+                "public fallback posture: shared-tree-only anchor; unlike `Documentation/zigux/phase12-nvme-pci-raw-github-fallback-map.md` and `Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md`, this libbpf note is not a commit-pinned raw GitHub fallback artifact.",
+                "public fallback posture: commit-pinned fallback artifact.",
+            ),
+        )
+        expect_failure(
+            root,
+            "libbpf_survey:public fallback posture: shared-tree-only anchor; unlike `Documentation/zigux/phase12-nvme-pci-raw-github-fallback-map.md` and `Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md`, this libbpf note is not a commit-pinned raw GitHub fallback artifact.",
+            "missing_libbpf_fallback_posture",
+        )
+
     print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST=pass")
-    print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST_CASE_COUNT=19")
+    print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST_CASE_COUNT=20")
     return 0
 
 
