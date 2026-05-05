@@ -37,24 +37,19 @@ test "phase 5 bytestream fifo sample replays exact queue behavior from the Linux
 
 test "phase 5 bytestream fifo sample keeps bounded helper behavior explicit" {
     var module = sample.BytestreamFifoSample{};
+    const helper_replay = module.runHelperBoundaryReplay();
 
-    try std.testing.expectEqual(@as(?u8, null), module.peekByte());
-    try std.testing.expectEqual(@as(?u8, null), module.skipByte());
-    try std.testing.expectEqual(@as(usize, 0), module.enqueueSlice(&.{}));
-
-    var count: u8 = 0;
-    while (count < sample.BytestreamFifoSample.capacity) : (count += 1) {
-        try std.testing.expect(module.pushByte(count));
-    }
-    try std.testing.expect(!module.pushByte(255));
-    try std.testing.expectEqual(@as(usize, sample.BytestreamFifoSample.capacity), module.count());
-    try std.testing.expectEqual(@as(?u8, 0), module.peekByte());
-    try std.testing.expectEqual(@as(?u8, 0), module.skipByte());
-    try std.testing.expectEqual(@as(usize, sample.BytestreamFifoSample.capacity - 1), module.count());
-
-    module.reset();
+    try std.testing.expectEqual(@as(?u8, null), helper_replay.peek_before_fill);
+    try std.testing.expectEqual(@as(?u8, null), helper_replay.skip_before_fill);
+    try std.testing.expectEqual(@as(usize, 0), helper_replay.empty_enqueue_len);
+    try std.testing.expectEqual(@as(usize, sample.BytestreamFifoSample.capacity), helper_replay.count_at_capacity);
+    try std.testing.expect(helper_replay.overflow_rejected);
+    try std.testing.expectEqual(@as(u8, 0), helper_replay.peek_at_capacity);
+    try std.testing.expectEqual(@as(u8, 0), helper_replay.skipped_at_capacity);
+    try std.testing.expectEqual(@as(usize, sample.BytestreamFifoSample.capacity - 1), helper_replay.count_after_skip);
+    try std.testing.expectEqual(@as(usize, 0), helper_replay.count_after_reset);
+    try std.testing.expectEqual(@as(?u8, null), helper_replay.pop_after_reset);
     try std.testing.expectEqual(@as(usize, 0), module.count());
-    try std.testing.expectEqual(@as(?u8, null), module.popByte());
 }
 
 test "phase 5 bytestream fifo sample makes ownership and lifetime boundaries explicit" {
