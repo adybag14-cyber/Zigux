@@ -92,10 +92,10 @@
     },
     {
       "id": "phase12-virtio-net-mergeable-buffer-length-summary",
-      "status": "ready_next",
+      "status": "starter_landed",
       "kind": "complex_driver_followup",
       "zigux_destination": "drivers/net/virtio_net.zig",
-      "why_now": "The next honest throughput-facing handoff is still a bounded mergeable-buffer-length summary that mirrors `get_mergeable_buf_len()` decisions by recording whether mergeable receive buffers stay at the observed average packet size, clamp to the minimum floor, or cap at page payload before any live page-pool DMA, refill loop, or NAPI execution."
+      "why_now": "The mergeable-buffer-length follow-up is now landed as one bounded throughput-facing handoff that mirrors `get_mergeable_buf_len()` by recording whether mergeable receive buffers stay at the observed average packet size, clamp to the minimum floor, cap at page payload, or switch to page-minus-room sizing once XDP headroom reserves room for `skb_shared_info`, all before any live page-pool DMA, refill loop, or NAPI execution."
     },
     {
       "id": "phase12-virtio-net-runtime-data-path",
