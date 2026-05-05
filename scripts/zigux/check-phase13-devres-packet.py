@@ -162,7 +162,6 @@ def run_self_test() -> int:
         case_count += 1
 
         devres_test_path = root / "zigux/tests/phase13_devres.zig"
-        devres_test_path.writeText = None
         devres_test_path.write_text(TEST_REQUIRED_MARKERS[0] + "\n", encoding="utf-8")
         _assert_only(
             validate(root),
