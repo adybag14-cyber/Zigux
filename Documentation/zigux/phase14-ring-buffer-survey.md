@@ -82,6 +82,15 @@ The honest Phase 14 move here is therefore not to start a `ring_buffer.zig` file
 - Non-consuming iteration stays tied to the same boundary. `ring_buffer_read_start()` allocates an iterator, increments `resize_disabled`, takes `reader_lock` plus `cpu_buffer->lock`, and resets the iterator against the live reader state, so even the supposedly observational path still pins resize behavior and shares the same reader serialization contract.
 - The design docs back up that code-level coupling. `Documentation/trace/ring-buffer-design.rst` says no two readers may run at the same time and describes the dedicated reader page swapping with the head page, which matches the implementation detail that consuming and non-consuming readers still revolve around one C-owned reader-page choreography instead of a wrapper-first helper surface.
 
+## Reset and clear-path governance audit
+
+- `ring_buffer_reset_cpu()` is not an isolated clear helper. It first rejects CPUs outside the buffer cpumask, then takes `buffer->mutex`, increments both `resize_disabled` and `record_disabled`, waits through `synchronize_rcu()`, and only then calls `reset_disabled_cpu_buffer()`, so even the per-CPU clear path stays coupled to resize exclusion, writer quiescence, and the locked reader-page reset sequence.
+- `reset_disabled_cpu_buffer()` shows why that coupling should stay in C. Under `reader_lock` and `cpu_buffer->lock` it refuses to proceed while `committing` is still nonzero, then calls `rb_reset_cpu()` to clear the head, commit, tail, reader, and meta-page state together instead of treating reset as a wrapper-friendly field update.
+- `ring_buffer_reset_online_cpus()` adds another topology-sensitive rule. It tags only currently online buffers with `RESET_BIT` in `resize_disabled` before the RCU grace period, then skips any CPU that came online during that wait, which means the online-only clear path is deliberately tied to CPU-hotplug state and cannot be reduced to a generic Zig-side reset shim.
+- `ring_buffer_reset()` widens the same contract to every buffer CPU, but it still uses the same `record_disabled`, `resize_disabled`, and post-RCU reset choreography. The all-CPU path therefore shares ownership with the same commit-drain and reader-page reset rules as the narrower helpers instead of opening a cleaner wrapper seam.
+- The tracefs-visible clear semantics sit one layer higher in `kernel/trace/trace.c`, not inside a future `ring_buffer.zig`. `tracing_reset_cpu()`, `tracing_reset_online_cpus()`, and `tracing_reset_all_cpus()` all disable recording, wait for in-flight commits to finish, and then delegate to the ring-buffer reset helpers; the online and all-CPU variants also refresh `buf->time_start`, and `tracing_reset_all_online_cpus_unlocked()` only clears instances that set `tr->clear_trace`, including snapshot buffers. That keeps user-visible clear behavior attached to trace-array policy plus the existing C-owned reset choreography.
+- The tracefs docs reinforce that ownership boundary. `trace` is documented as the file whose contents are cleared by `echo > trace`, while histogram trigger docs separately describe a `clear` parameter that resets trigger contents without changing pause state, which means user-facing clear behavior already spans multiple tracefs policy surfaces and should stay review-only instead of being recast as a small ring-buffer bridge.
+
 ## Recorded gaps
 
 The current lane state is:
@@ -97,7 +106,8 @@ The current lane state is:
 - landed `phase14-ring-buffer-splice-resize-followup`
 - landed `phase14-ring-buffer-mapped-reader-ioctl-followup`
 - landed `phase14-ring-buffer-reader-page-consume-followup`
-- ready-next `phase14-ring-buffer-reset-governance-followup`
+- landed `phase14-ring-buffer-reset-governance-followup`
+- ready-next `phase14-ring-buffer-tracefs-instance-clear-followup`
 - blocked `phase14-ring-buffer-zig-port-blocker`
 
 This keeps the lane honest: Zigux now has an explicit reviewable record that `kernel/trace/ring_buffer.c` belongs in the study-only set for now, and that the repo still does not ship `kernel/trace/ring_buffer.zig`.
@@ -122,4 +132,4 @@ This survey slice does not claim:
 
 ## Next bounded step
 
-Stay in the Phase 14 ring-buffer lane and add one small study-only reset and clear-path governance follow-up next, limited to `ring_buffer_reset_cpu()`, `ring_buffer_reset_online_cpus()`, `ring_buffer_reset()`, and tracefs-owned clear semantics before anyone proposes `kernel/trace/ring_buffer.zig`.
+Stay in the Phase 14 ring-buffer lane and, if it reopens, add one small study-only tracefs instance clear-dispatch follow-up next, limited to `tracing_reset_cpu()`, `tracing_reset_online_cpus()`, `tracing_reset_all_cpus()`, and `tracing_reset_all_online_cpus_unlocked()` so per-instance clear ownership stays explicit before anyone proposes `kernel/trace/ring_buffer.zig`.
