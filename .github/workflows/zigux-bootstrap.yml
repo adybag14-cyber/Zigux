@@ -51,7 +51,7 @@ jobs:
         run: python3 scripts/zigux/install-zig.py --self-test
 
       - name: Install Zig
-        run: python3 scripts/zigux/install-zig.py --channel master --dest .zig-toolchain
+        run: python3 scripts/zigux/install-zig.py --channel 0.17.0-dev.87+9b177a7d2 --dest .zig-toolchain
 
       - name: Self-test Zig toolchain checker
         run: python3 scripts/zigux/check-zig-toolchain.py --self-test
@@ -246,7 +246,7 @@ jobs:
           python-version: '3.x'
 
       - name: Install Zig
-        run: python3 scripts/zigux/install-zig.py --channel master --dest .zig-toolchain
+        run: python3 scripts/zigux/install-zig.py --channel 0.17.0-dev.87+9b177a7d2 --dest .zig-toolchain
 
       - name: Check Zig toolchain
         run: python3 scripts/zigux/check-zig-toolchain.py
