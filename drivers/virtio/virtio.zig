@@ -2,6 +2,7 @@ const std = @import("std");
 
 pub const feature_bit_capacity: u16 = 128;
 pub const queue_capacity: usize = 8;
+pub const default_driver_name = "anonymous_driver";
 
 pub const DeviceStatus = struct {
     pub const acknowledge: u8 = 1;
@@ -25,6 +26,14 @@ pub const NegotiationSummary = struct {
     offered_feature_count: usize,
     negotiated_feature_count: usize,
     accepted_by_transport: bool,
+};
+
+pub const DriverBindingSummary = struct {
+    anchor: []const u8,
+    driver_name: []const u8,
+    driver_attached: bool,
+    features_negotiated: bool,
+    driver_ready: bool,
 };
 
 pub const QueueRegistrationSummary = struct {
@@ -73,6 +82,7 @@ pub const VirtioCoreLabDevice = struct {
     device_features: FeatureSet = FeatureSet.initEmpty(),
     driver_features: FeatureSet = FeatureSet.initEmpty(),
     negotiated_features: FeatureSet = FeatureSet.initEmpty(),
+    driver_name: ?[]const u8 = null,
     queues: [queue_capacity]QueueSlot = [_]QueueSlot{QueueSlot{}} ** queue_capacity,
     config_core_enabled: bool = true,
     config_driver_disabled: bool = false,
@@ -105,6 +115,7 @@ pub const VirtioCoreLabDevice = struct {
         self.status = 0;
         self.driver_features = FeatureSet.initEmpty();
         self.negotiated_features = FeatureSet.initEmpty();
+        self.driver_name = null;
         self.queues = [_]QueueSlot{QueueSlot{}} ** queue_capacity;
         self.config_core_enabled = true;
         self.config_driver_disabled = false;
@@ -119,8 +130,15 @@ pub const VirtioCoreLabDevice = struct {
     }
 
     pub fn attachDriver(self: *Self) !void {
+        try self.attachDriverNamed(default_driver_name);
+    }
+
+    pub fn attachDriverNamed(self: *Self, driver_name: []const u8) !void {
         if (!self.hasStatus(DeviceStatus.acknowledge)) return error.MissingAcknowledge;
+        if (driver_name.len == 0) return error.EmptyDriverName;
+
         self.status |= DeviceStatus.driver;
+        self.driver_name = driver_name;
     }
 
     pub fn offerDriverFeature(self: *Self, feature_bit: u16) !void {
@@ -188,6 +206,16 @@ pub const VirtioCoreLabDevice = struct {
     pub fn hasDeviceFeature(self: *const Self, feature_bit: u16) !bool {
         const index = try checkedFeatureIndex(feature_bit);
         return self.device_features.isSet(index);
+    }
+
+    pub fn driverBindingSummary(self: *const Self) DriverBindingSummary {
+        return .{
+            .anchor = descriptor().anchor,
+            .driver_name = self.driver_name orelse "",
+            .driver_attached = self.hasStatus(DeviceStatus.driver),
+            .features_negotiated = self.hasStatus(DeviceStatus.features_ok),
+            .driver_ready = self.hasStatus(DeviceStatus.driver_ok),
+        };
     }
 
     pub fn registerQueueCallback(
