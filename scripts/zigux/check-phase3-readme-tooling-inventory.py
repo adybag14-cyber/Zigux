@@ -41,6 +41,7 @@ REQUIRED_HELPERS = (
     "validate-phase13-release.py",
     "check-phase13-devres-packet.py",
     "check-phase15-review-process-handoff.py",
+    "check-phase15-scripts-readme-alignment.py",
     "run-phase3-checks.py",
     "phase3_catalog.py",
     "phase3_check_lib.py",
@@ -381,6 +382,21 @@ def run_self_test() -> int:
                 "readme_helper_order_drift",
             ],
             "missing_phase11_shared_replay_contract_helper_entry_guard_failed",
+        )
+        _write(root / README_REL, baseline_readme)
+        case_count += 1
+
+        _write(
+            root / README_REL,
+            baseline_readme.replace("- `check-phase15-scripts-readme-alignment.py`\n", "", 1),
+        )
+        _assert_only(
+            validate(root),
+            [
+                "missing_readme_helper_entry:check-phase15-scripts-readme-alignment.py",
+                "readme_helper_order_drift",
+            ],
+            "missing_phase15_scripts_readme_alignment_helper_entry_guard_failed",
         )
         _write(root / README_REL, baseline_readme)
         case_count += 1
