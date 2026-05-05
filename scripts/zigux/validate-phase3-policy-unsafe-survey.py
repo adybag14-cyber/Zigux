@@ -11,6 +11,7 @@ ROOT = Path(__file__).resolve().parents[2]
 SURVEY_REL = "Documentation/zigux/phase3-policy-unsafe-boundary-survey.md"
 MAKEFILE_REL = "zigux/Makefile"
 ALLOCATOR_POLICY_REL = "zigux/helpers/allocator_policy.zig"
+PANIC_POLICY_REL = "zigux/helpers/panic_policy.zig"
 
 PATH_MARKERS = {
     "PHASE3_LAYOUT_ASSERT_PATH": "zigux/helpers/layout_assert.zig",
@@ -32,17 +33,6 @@ STATIC_MARKERS = (
     "PHASE3_TEST_GATE=zig build phase3-test --build-file zigux/tests/build.zig",
 )
 
-REQUIRED_ALLOCATOR_POLICY_SNIPPETS = (
-    "pub fn requiresExplicitCaller(mode: abi.AllocatorMode) bool {",
-    "return mode == .caller_provided;",
-    "pub fn permitsGlobalFallback(mode: abi.AllocatorMode) bool {",
-    ".caller_provided => false,",
-    '.kernel_heap, .arena => true,',
-    'test "phase3 allocator policy stays explicit" {',
-    "try std.testing.expect(requiresExplicitCaller(.caller_provided));",
-    "try std.testing.expect(!permitsGlobalFallback(.caller_provided));",
-)
-
 BLOB_MARKERS = {
     "PHASE3_LAYOUT_ASSERT_BLOB_SHA": "zigux/helpers/layout_assert.zig",
     "PHASE3_PANIC_POLICY_BLOB_SHA": "zigux/helpers/panic_policy.zig",
@@ -60,6 +50,32 @@ MAKEFILE_REQUIRED_LINES = (
     "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase3-policy-unsafe-survey.py --self-test",
 )
 
+REQUIRED_ALLOCATOR_POLICY_SNIPPETS = (
+    "pub fn requiresExplicitCaller(mode: abi.AllocatorMode) bool {",
+    "return mode == .caller_provided;",
+    "pub fn permitsGlobalFallback(mode: abi.AllocatorMode) bool {",
+    ".caller_provided => false,",
+    ".kernel_heap, .arena => true,",
+    'test "phase3 allocator policy stays explicit" {',
+    "try std.testing.expect(requiresExplicitCaller(.caller_provided));",
+    "try std.testing.expect(!permitsGlobalFallback(.caller_provided));",
+)
+
+REQUIRED_PANIC_POLICY_SNIPPETS = (
+    "pub const Action = enum {",
+    "abort_now,",
+    "bug_check,",
+    "warn_and_return,",
+    "pub fn actionFor(mode: abi.PanicMode) Action {",
+    ".abort => .abort_now,",
+    ".bug => .bug_check,",
+    ".warn => .warn_and_return,",
+    "pub fn canReturn(mode: abi.PanicMode) bool {",
+    "return actionFor(mode) == .warn_and_return;",
+    'test "phase3 panic policy stays explicit" {',
+    "try std.testing.expect(canReturn(.warn));",
+)
+
 
 def git_blob_sha(path: Path) -> str:
     payload = path.read_bytes()
@@ -72,6 +88,7 @@ def validate(root: Path) -> list[str]:
     survey_path = root / SURVEY_REL
     makefile_path = root / MAKEFILE_REL
     allocator_policy_path = root / ALLOCATOR_POLICY_REL
+    panic_policy_path = root / PANIC_POLICY_REL
 
     try:
         survey = survey_path.read_text(encoding="utf-8")
@@ -108,6 +125,15 @@ def validate(root: Path) -> list[str]:
                 issues.append(f"missing_allocator_policy_snippet:{snippet}")
 
     try:
+        panic_policy = panic_policy_path.read_text(encoding="utf-8")
+    except FileNotFoundError:
+        issues.append(f"missing_file:{PANIC_POLICY_REL}")
+    else:
+        for snippet in REQUIRED_PANIC_POLICY_SNIPPETS:
+            if snippet not in panic_policy:
+                issues.append(f"missing_panic_policy_snippet:{snippet}")
+
+    try:
         makefile = makefile_path.read_text(encoding="utf-8")
     except FileNotFoundError:
         issues.append(f"missing_makefile:{MAKEFILE_REL}")
@@ -128,7 +154,37 @@ def write_file(path: Path, content: str) -> None:
 def build_valid_workspace(root: Path) -> None:
     content_by_rel = {
         "zigux/helpers/layout_assert.zig": "// layout\n",
-        "zigux/helpers/panic_policy.zig": "// panic\n",
+        PANIC_POLICY_REL: "\n".join(
+            [
+                "const std = @import(\"std\");",
+                "const abi = @import(\"abi_bindings\");",
+                "",
+                "pub const Action = enum {",
+                "    abort_now,",
+                "    bug_check,",
+                "    warn_and_return,",
+                "};",
+                "",
+                "pub fn actionFor(mode: abi.PanicMode) Action {",
+                "    return switch (mode) {",
+                "        .abort => .abort_now,",
+                "        .bug => .bug_check,",
+                "        .warn => .warn_and_return,",
+                "    };",
+                "}",
+                "",
+                "pub fn canReturn(mode: abi.PanicMode) bool {",
+                "    return actionFor(mode) == .warn_and_return;",
+                "}",
+                "",
+                'test "phase3 panic policy stays explicit" {',
+                "    try std.testing.expect(!canReturn(.abort));",
+                "    try std.testing.expect(!canReturn(.bug));",
+                "    try std.testing.expect(canReturn(.warn));",
+                "}",
+                "",
+            ]
+        ),
         ALLOCATOR_POLICY_REL: "\n".join(REQUIRED_ALLOCATOR_POLICY_SNIPPETS) + "\n",
         "zigux/helpers/mmio.zig": "// mmio\n",
         "zigux/unsafe/narrow.zig": "// narrow\n",
@@ -194,6 +250,19 @@ def run_self_test() -> int:
         )
 
         build_valid_workspace(root)
+        broken_panic_policy = (root / PANIC_POLICY_REL).read_text(encoding="utf-8").replace(
+            "try std.testing.expect(canReturn(.warn));\n",
+            "",
+            1,
+        )
+        write_file(root / PANIC_POLICY_REL, broken_panic_policy)
+        issues = validate(root)
+        assert (
+            "missing_panic_policy_snippet:try std.testing.expect(canReturn(.warn));"
+            in issues
+        )
+
+        build_valid_workspace(root)
         broken_makefile = (root / MAKEFILE_REL).read_text(encoding="utf-8").replace(
             MAKEFILE_REQUIRED_LINES[1] + "\n",
             "",
@@ -207,7 +276,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE3_POLICY_UNSAFE_SURVEY_SELF_TEST=pass")
-    print("PHASE3_POLICY_UNSAFE_SURVEY_SELF_TEST_CASE_COUNT=4")
+    print("PHASE3_POLICY_UNSAFE_SURVEY_SELF_TEST_CASE_COUNT=5")
     return 0
 
 
