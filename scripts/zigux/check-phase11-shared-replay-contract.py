@@ -12,6 +12,7 @@ SELF_PATH = Path(__file__).resolve()
 ROOT = SELF_PATH.parents[2] if len(SELF_PATH.parents) > 2 else SELF_PATH.parent
 
 PHASE11_CONTRACT_PATH = "Documentation/zigux/phase11-shared-replay-contract.md"
+BCM2835_WDT_MATRIX_PATH = "Documentation/zigux/phase11-bcm2835-wdt-validation-matrix.md"
 DOCS_README_PATH = "Documentation/zigux/README.md"
 SCRIPTS_README_PATH = "scripts/zigux/README.md"
 TESTS_README_PATH = "zigux/tests/README.md"
@@ -26,6 +27,14 @@ REQUIRED_CONTRACT_MARKERS = [
     "`zigux/tests/fixtures/phase11_build_inventory.json`",
     "there is no dedicated shared `validate-phase11.py` on `master`",
     "there is no broader multi-checker Phase 11 validator stack on `master`",
+]
+
+REQUIRED_BCM2835_WDT_MATRIX_MARKERS = [
+    "`Documentation/zigux/phase11-shared-replay-contract.md`",
+    "`zigux/tests/README.md`",
+    "`zigux/Makefile`",
+    "`phase11-bcm2835-wdt-tests` and `phase11-bcm2835-wdt-survey-tests` remain the shared Phase 11 artifacts that cover this bcm2835 packet",
+    "keep `Documentation/zigux/phase11-shared-replay-contract.md`, `zigux/tests/README.md`, `zigux/tests/phase11_build.zig`, and `zigux/Makefile` aligned so this matrix does not drift away from the shipped shared Phase 11 replay route",
 ]
 
 REQUIRED_DOCS_README_MARKERS = [
@@ -80,6 +89,7 @@ def validate(root: Path) -> list[str]:
 
     for rel_path in [
         PHASE11_CONTRACT_PATH,
+        BCM2835_WDT_MATRIX_PATH,
         DOCS_README_PATH,
         SCRIPTS_README_PATH,
         TESTS_README_PATH,
@@ -94,6 +104,7 @@ def validate(root: Path) -> list[str]:
         return failures
 
     phase11_contract = read_text(root, PHASE11_CONTRACT_PATH)
+    bcm2835_wdt_matrix = read_text(root, BCM2835_WDT_MATRIX_PATH)
     docs_readme = read_text(root, DOCS_README_PATH)
     scripts_readme = read_text(root, SCRIPTS_README_PATH)
     tests_readme = read_text(root, TESTS_README_PATH)
@@ -103,6 +114,9 @@ def validate(root: Path) -> list[str]:
     for marker in REQUIRED_CONTRACT_MARKERS:
         if marker not in phase11_contract:
             failures.append(f"phase11_contract:{marker}")
+    for marker in REQUIRED_BCM2835_WDT_MATRIX_MARKERS:
+        if marker not in bcm2835_wdt_matrix:
+            failures.append(f"bcm2835_wdt_matrix:{marker}")
     for marker in REQUIRED_DOCS_README_MARKERS:
         if marker not in docs_readme:
             failures.append(f"docs_readme:{marker}")
@@ -178,6 +192,22 @@ Phase 11 notes
 - `Documentation/zigux/phase11-hvc-console-survey.md`
 - `Documentation/zigux/phase11-shared-replay-contract.md`
 - `scripts/zigux/README.md`, `zigux/tests/README.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/check-phase11-shared-replay-contract.py`, `zigux/tests/phase11_build.zig`, `zigux/Makefile`, and `.github/workflows/zigux-bootstrap.yml` now keep the shared-versus-dedicated Phase 11 packet honest: the shipped contract checker, the shared build-and-make packet, the dedicated `hvc_console` survey note and replay, the bounded `hvc_cleanup()` handoff, and the four driver-local validation matrices all remain reviewable without implying a removed `validate-phase11.py` or missing build inventory.
+""",
+    )
+    write(
+        root / BCM2835_WDT_MATRIX_PATH,
+        """# Phase 11 BCM2835 Watchdog Validation Matrix
+
+## Status
+- `Documentation/zigux/phase11-shared-replay-contract.md`
+- `zigux/tests/README.md`
+- `zigux/Makefile`
+
+## Shared Replay Surface
+- `phase11-bcm2835-wdt-tests` and `phase11-bcm2835-wdt-survey-tests` remain the shared Phase 11 artifacts that cover this bcm2835 packet
+
+## Review Rules
+- keep `Documentation/zigux/phase11-shared-replay-contract.md`, `zigux/tests/README.md`, `zigux/tests/phase11_build.zig`, and `zigux/Makefile` aligned so this matrix does not drift away from the shipped shared Phase 11 replay route
 """,
     )
     write(
