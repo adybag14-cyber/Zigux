@@ -6,7 +6,7 @@ This document records the bounded Phase 12 survey lane around `drivers/net/virti
 
 - `PHASE12_STATUS=active`
 - `PHASE12_SLICE=virtio-net-survey`
-- scope: survey manifest, dedicated survey gate, shared Phase 12 build wiring, the `drivers/net/virtio_net.zig` probe snapshot starter plus its queue-recovery, receive-refill, and transmit-recycle follow-ups, and a lane note that compares the live repo state against the roadmap for the broader driver
+- scope: survey manifest, dedicated survey gate, shared Phase 12 build wiring, the `drivers/net/virtio_net.zig` probe snapshot starter plus its queue-recovery, receive-refill, and transmit-recycle follow-ups, the next bounded mergeable-buffer-length handoff, and a lane note that compares the live repo state against the roadmap for the broader driver
 - product boundary:
   - `zigux/tests/phase12_virtio_net_manifest.json`
   - `zigux/tests/phase12_virtio_net_survey.zig`
@@ -47,9 +47,10 @@ The survey manifest now records:
 - the landed `phase12-virtio-net-queue-recovery-followup`
 - the landed `phase12-virtio-net-receive-refill-followup`
 - the landed `phase12-virtio-net-transmit-recycle-followup`
+- the ready-next `phase12-virtio-net-mergeable-buffer-length-summary`
 - the still-blocked `phase12-virtio-net-runtime-data-path`
 
-This keeps the lane explicit without overstating progress: Zigux now has a reviewable Phase 12 probe snapshot starter, a bounded queue-recovery follow-up, a bounded receive-refill planning follow-up, and a bounded transmit-recycle follow-up, but it still does not claim DMA-backed queue setup, NAPI, control-virtqueue commands, or a usable net-driver lifecycle.
+This keeps the lane explicit without overstating progress: Zigux now has a reviewable Phase 12 probe snapshot starter, a bounded queue-recovery follow-up, a bounded receive-refill planning follow-up, and a bounded transmit-recycle follow-up, while the next truthful same-family gap is still a mergeable-buffer-length summary that stays below live DMA-backed queue setup, NAPI, control-virtqueue commands, or a usable net-driver lifecycle.
 
 ## Non-goals
 
@@ -72,6 +73,6 @@ This survey slice does not claim:
 
 ## Next bounded step
 
-Keep this lane parked unless fresh repo inspection finds directly coupled drift in the landed probe snapshot, queue-recovery, receive-refill, or transmit-recycle packet.
+Keep this lane parked unless fresh repo inspection finds directly coupled drift in the landed probe snapshot, queue-recovery, receive-refill, or transmit-recycle packet, or until the lane is ready to land the still-missing mergeable-buffer-length summary.
 
-The next honest same-family move is still the blocked runtime-data-path boundary, which must wait for roadmap-approved DMA-safe abstractions and queueing substrate work before Zigux can claim anything beyond the current probe snapshot and queue-planning helpers.
+The next honest same-family move is a bounded mergeable-buffer-length summary that mirrors `get_mergeable_buf_len()` decisions for observed average packet size, minimum floor, and page-payload cap handling before any live page-pool DMA, refill loop, or NAPI execution. The broader runtime-data-path boundary remains blocked after that until roadmap-approved DMA-safe abstractions and queueing substrate work are in place.
