@@ -305,7 +305,7 @@ def validate_root(root: Path) -> list[str]:
     guard_issues.extend(
         run_guard(
             root,
-            [sys.executable, str(TOOLCHAIN_PIN_SCOPE_CHECKER), "--self-test"],
+            [sys.executable, str(root / "scripts" / "zigux" / "check-phase2-toolchain-pin-scope.py"), "--self-test"],
             [
                 "PHASE2_TOOLCHAIN_PIN_SCOPE_SELF_TEST=pass",
                 "PHASE2_TOOLCHAIN_PIN_SCOPE_SELF_TEST_CASE_COUNT=25",
@@ -315,7 +315,7 @@ def validate_root(root: Path) -> list[str]:
     guard_issues.extend(
         run_guard(
             root,
-            [sys.executable, str(TOOLCHAIN_PIN_SCOPE_CHECKER)],
+            [sys.executable, str(root / "scripts" / "zigux" / "check-phase2-toolchain-pin-scope.py")],
             ["PHASE2_TOOLCHAIN_PIN_SCOPE=pass"],
         )
     )
@@ -598,6 +598,19 @@ def run_self_test() -> int:
         assert "review:scripts/zigux/check-phase2-tests-readme-alignment.py" in issues
 
         build_self_test_root(root)
+        write_text(
+            root / "Documentation/zigux/README.md",
+            "\n".join(
+                marker
+                for marker in REQUIRED_DOCS_ROOT_MARKERS
+                if marker != "scripts/zigux/check-phase2-toolchain-pin-scope.py"
+            )
+            + "\n",
+        )
+        issues = validate_root(root)
+        assert "docs_root:scripts/zigux/check-phase2-toolchain-pin-scope.py" in issues
+
+        build_self_test_root(root)
         checker_path = root / "scripts" / "zigux" / "check-phase2-tests-readme-alignment.py"
         write_stub_guard(
             checker_path,
@@ -616,7 +629,7 @@ def run_self_test() -> int:
         assert "scripts_helper_index:phase2_helper_block" in issues
 
     print("PHASE2_VALIDATION_SELF_TEST=pass")
-    print("PHASE2_VALIDATION_SELF_TEST_CASE_COUNT=11")
+    print("PHASE2_VALIDATION_SELF_TEST_CASE_COUNT=13")
     return 0
 
 
