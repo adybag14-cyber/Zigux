@@ -103,6 +103,16 @@ REQUIRED_PHASE9_BUILD_MARKERS = [
     "test_step.dependOn(&run_runtime_loader_facade_tests.step);",
 ]
 
+REQUIRED_PHASE9_BUILD_EXACT_COUNTS = {
+    'const runtime_loader_facade_module = b.createModule(.{': 1,
+    '.root_source_file = b.path("../kernel/runtime_loader.zig"),': 1,
+    'const runtime_loader_facade_tests = b.addTest(.{': 1,
+    '.name = "phase9-runtime-loader-facade-tests",': 1,
+    '.root_module = runtime_loader_facade_module,': 1,
+    "const run_runtime_loader_facade_tests = b.addRunArtifact(runtime_loader_facade_tests);": 1,
+    "test_step.dependOn(&run_runtime_loader_facade_tests.step);": 1,
+}
+
 FORBIDDEN_FILES = [
     "scripts/zigux/validate-phase9.py",
 ]
@@ -182,6 +192,12 @@ def validate(root: Path) -> list[str]:
     for marker in REQUIRED_PHASE9_BUILD_MARKERS:
         if marker not in phase9_build:
             failures.append(f"phase9_build:{marker}")
+    for marker, expected_count in REQUIRED_PHASE9_BUILD_EXACT_COUNTS.items():
+        actual_count = phase9_build.count(marker)
+        if actual_count != expected_count:
+            failures.append(
+                f"phase9_build_exact_count:{marker}:expected={expected_count}:actual={actual_count}"
+            )
     for marker in FORBIDDEN_MAKEFILE_MARKERS:
         if marker in makefile:
             failures.append(f"makefile_forbidden:{marker}")
@@ -512,6 +528,19 @@ def run_self_test() -> int:
         phase9_build_path = root / PHASE9_BUILD_PATH
         phase9_build = phase9_build_path.read_text(encoding="utf-8")
         phase9_build_path.write_text(
+            phase9_build + "test_step.dependOn(&run_runtime_loader_facade_tests.step);\n",
+            encoding="utf-8",
+        )
+        expect_failure(
+            root,
+            "phase9_build_exact_count:test_step.dependOn(&run_runtime_loader_facade_tests.step);:expected=1:actual=2",
+            "duplicate_phase9_build_facade_replay_dependency",
+        )
+
+        write_fixture_tree(root)
+        phase9_build_path = root / PHASE9_BUILD_PATH
+        phase9_build = phase9_build_path.read_text(encoding="utf-8")
+        phase9_build_path.write_text(
             phase9_build.replace(
                 ".root_module = runtime_loader_facade_module,\n",
                 "",
@@ -557,7 +586,7 @@ def run_self_test() -> int:
             )
 
     print("PHASE9_BUILD_ONLY_SURFACE_SELF_TEST=pass")
-    print("PHASE9_BUILD_ONLY_SURFACE_SELF_TEST_CASE_COUNT=15")
+    print("PHASE9_BUILD_ONLY_SURFACE_SELF_TEST_CASE_COUNT=16")
     return 0
 
 
