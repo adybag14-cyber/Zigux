@@ -109,6 +109,8 @@ REQUIRED_MARKERS = {
         "phase7-validate:",
         "scripts/zigux/validate-phase7.py --self-test",
         "scripts/zigux/validate-phase7.py",
+        "scripts/zigux/check-phase7-make-wrapper.py --self-test",
+        "scripts/zigux/check-phase7-make-wrapper.py",
         "scripts/zigux/check-phase7-argv-split-packet.py --self-test",
         "scripts/zigux/check-phase7-argv-split-packet.py",
         "scripts/zigux/check-phase7-rbtree-parity.py --self-test",
@@ -368,6 +370,28 @@ def run_self_test() -> None:
         makefile_path.write_text(original_makefile, encoding="utf-8")
 
         makefile_path.write_text(
+            original_makefile.replace("scripts/zigux/check-phase7-make-wrapper.py --self-test", "", 1),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "makefile_make_wrapper_self_test_hook",
+            tmp_root,
+            "zigux/Makefile: scripts/zigux/check-phase7-make-wrapper.py --self-test",
+        )
+        makefile_path.write_text(original_makefile, encoding="utf-8")
+
+        makefile_path.write_text(
+            original_makefile.replace("scripts/zigux/check-phase7-make-wrapper.py", "", 1),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "makefile_make_wrapper_hook",
+            tmp_root,
+            "zigux/Makefile: scripts/zigux/check-phase7-make-wrapper.py",
+        )
+        makefile_path.write_text(original_makefile, encoding="utf-8")
+
+        makefile_path.write_text(
             original_makefile.replace("scripts/zigux/check-phase7-argv-split-packet.py --self-test", "", 1),
             encoding="utf-8",
         )
@@ -498,7 +522,7 @@ def run_self_test() -> None:
         )
 
     print("PHASE7_VALIDATOR_SELF_TEST=pass")
-    print("PHASE7_VALIDATOR_SELF_TEST_CASE_COUNT=26")
+    print("PHASE7_VALIDATOR_SELF_TEST_CASE_COUNT=28")
 
 
 def main() -> int:
