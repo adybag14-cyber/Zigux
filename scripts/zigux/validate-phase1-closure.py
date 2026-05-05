@@ -25,6 +25,24 @@ EXPECTED_HELPERS = [
     "tools/lib/vsprintf.zig",
     "tools/lib/zalloc.zig",
 ]
+EXPECTED_BENCH_ITERATIONS = {
+    "PHASE1_BENCH_BITMAP_WEIGHT_ITERATIONS": 20000,
+    "PHASE1_BENCH_BITMAP_WINDOW_ITERATIONS": 20000,
+    "PHASE1_BENCH_FIND_NEXT_BIT_ITERATIONS": 20000,
+    "PHASE1_BENCH_STRING_ITERATIONS": 40000,
+    "PHASE1_BENCH_HWEIGHT_ITERATIONS": 100000,
+    "PHASE1_BENCH_LIST_SORT_ITERATIONS": 1000,
+    "PHASE1_BENCH_RBTREE_ITERATIONS": 4000,
+}
+EXPECTED_BENCH_CHECKSUMS = [
+    "PHASE1_BENCH_BITMAP_WEIGHT_CHECKSUM",
+    "PHASE1_BENCH_BITMAP_WINDOW_CHECKSUM",
+    "PHASE1_BENCH_FIND_NEXT_BIT_CHECKSUM",
+    "PHASE1_BENCH_STRING_CHECKSUM",
+    "PHASE1_BENCH_HWEIGHT_CHECKSUM",
+    "PHASE1_BENCH_LIST_SORT_CHECKSUM",
+    "PHASE1_BENCH_RBTREE_CHECKSUM",
+]
 WORKFLOW_INSTALL_ZIG_RE = re.compile(
     r"python3 scripts/zigux/install-zig\.py --channel \S+ --dest \.zig-toolchain"
 )
@@ -297,6 +315,62 @@ def collect_manifest_markers(manifest: object, root: Path) -> list[str]:
     return missing_markers
 
 
+def collect_bench_expectation_markers(expectations: object) -> list[str]:
+    missing_markers: list[str] = []
+    if not isinstance(expectations, dict):
+        return ["bench_expectations:json_object"]
+
+    if expectations.get("status") != "pass":
+        missing_markers.append("bench_expectations:status=pass")
+
+    iterations = expectations.get("iterations")
+    if not isinstance(iterations, dict):
+        missing_markers.append("bench_expectations:iterations=dict")
+    else:
+        actual_iteration_keys: set[str] = set()
+        for key, value in iterations.items():
+            if not isinstance(key, str):
+                missing_markers.append("bench_expectations:iteration_key_type=str")
+                continue
+            actual_iteration_keys.add(key)
+            expected_value = EXPECTED_BENCH_ITERATIONS.get(key)
+            if expected_value is None:
+                missing_markers.append(f"bench_expectations:unexpected_iteration={key}")
+                continue
+            if value != expected_value:
+                missing_markers.append(
+                    f"bench_expectations:iteration_value={key}:{expected_value}"
+                )
+        for key in sorted(set(EXPECTED_BENCH_ITERATIONS) - actual_iteration_keys):
+            missing_markers.append(f"bench_expectations:missing_iteration={key}")
+
+    checksums = expectations.get("checksums")
+    if not isinstance(checksums, list):
+        missing_markers.append("bench_expectations:checksums=list")
+    else:
+        actual_checksums: list[str] = []
+        seen: set[str] = set()
+        duplicates: list[str] = []
+        for item in checksums:
+            if not isinstance(item, str):
+                missing_markers.append("bench_expectations:checksum_type=str")
+                continue
+            actual_checksums.append(item)
+            if item in seen and item not in duplicates:
+                duplicates.append(item)
+            seen.add(item)
+        for item in duplicates:
+            missing_markers.append(f"bench_expectations:duplicate_checksum={item}")
+        expected_checksums = set(EXPECTED_BENCH_CHECKSUMS)
+        actual_checksum_set = set(actual_checksums)
+        for item in sorted(expected_checksums - actual_checksum_set):
+            missing_markers.append(f"bench_expectations:missing_checksum={item}")
+        for item in sorted(actual_checksum_set - expected_checksums):
+            missing_markers.append(f"bench_expectations:unexpected_checksum={item}")
+
+    return missing_markers
+
+
 def collect_exact_count_markers(text: str, markers: list[tuple[str, str, int]]) -> list[str]:
     missing_markers: list[str] = []
     for label, marker, expected_count in markers:
@@ -347,6 +421,36 @@ def run_self_test() -> None:
             "helper_count": len(EXPECTED_HELPERS) + 1,
             "helpers": EXPECTED_HELPERS[:-1] + [unexpected_helper],
         }
+        valid_bench_expectations = {
+            "status": "pass",
+            "iterations": dict(EXPECTED_BENCH_ITERATIONS),
+            "checksums": list(EXPECTED_BENCH_CHECKSUMS),
+        }
+        missing_bench_iteration = {
+            "status": "pass",
+            "iterations": {
+                key: value
+                for key, value in EXPECTED_BENCH_ITERATIONS.items()
+                if key != "PHASE1_BENCH_STRING_ITERATIONS"
+            },
+            "checksums": list(EXPECTED_BENCH_CHECKSUMS),
+        }
+        wrong_bench_iteration = {
+            "status": "pass",
+            "iterations": dict(EXPECTED_BENCH_ITERATIONS),
+            "checksums": list(EXPECTED_BENCH_CHECKSUMS),
+        }
+        wrong_bench_iteration["iterations"]["PHASE1_BENCH_RBTREE_ITERATIONS"] = 4096
+        duplicate_bench_checksum = {
+            "status": "pass",
+            "iterations": dict(EXPECTED_BENCH_ITERATIONS),
+            "checksums": list(EXPECTED_BENCH_CHECKSUMS[:-1]) + [EXPECTED_BENCH_CHECKSUMS[0]],
+        }
+        unexpected_bench_checksum = {
+            "status": "pass",
+            "iterations": dict(EXPECTED_BENCH_ITERATIONS),
+            "checksums": list(EXPECTED_BENCH_CHECKSUMS) + ["PHASE1_BENCH_FAKE_CHECKSUM"],
+        }
 
         assert collect_manifest_markers(valid_manifest, tmp_root) == []
         duplicate_markers = collect_manifest_markers(duplicate_manifest, tmp_root)
@@ -356,6 +460,29 @@ def run_self_test() -> None:
         assert f"manifest:helper_count={len(EXPECTED_HELPERS)}" in unexpected_markers
         assert f"manifest:missing_helper={EXPECTED_HELPERS[-1]}" in unexpected_markers
         assert f"manifest:unexpected_helper={unexpected_helper}" in unexpected_markers
+
+        assert collect_bench_expectation_markers(valid_bench_expectations) == []
+        assert (
+            "bench_expectations:missing_iteration=PHASE1_BENCH_STRING_ITERATIONS"
+            in collect_bench_expectation_markers(missing_bench_iteration)
+        )
+        assert (
+            "bench_expectations:iteration_value=PHASE1_BENCH_RBTREE_ITERATIONS:4000"
+            in collect_bench_expectation_markers(wrong_bench_iteration)
+        )
+        duplicate_bench_markers = collect_bench_expectation_markers(duplicate_bench_checksum)
+        assert (
+            "bench_expectations:duplicate_checksum=PHASE1_BENCH_BITMAP_WEIGHT_CHECKSUM"
+            in duplicate_bench_markers
+        )
+        assert (
+            "bench_expectations:missing_checksum=PHASE1_BENCH_RBTREE_CHECKSUM"
+            in duplicate_bench_markers
+        )
+        assert (
+            "bench_expectations:unexpected_checksum=PHASE1_BENCH_FAKE_CHECKSUM"
+            in collect_bench_expectation_markers(unexpected_bench_checksum)
+        )
 
         valid_closure = render_marker_fixture(required_closure_markers)
         assert collect_exact_count_markers(valid_closure, required_closure_markers) == []
@@ -591,7 +718,7 @@ def run_self_test() -> None:
         assert collect_missing_files(repo_root_from_arg(str(tmp_root))) == [required_phase1_parity]
 
     print("PHASE1_CLOSURE_VALIDATOR_SELF_TEST=pass")
-    print("PHASE1_CLOSURE_VALIDATOR_SELF_TEST_CASE_COUNT=37")
+    print("PHASE1_CLOSURE_VALIDATOR_SELF_TEST_CASE_COUNT=42")
 
 
 def main() -> int:
@@ -627,6 +754,7 @@ def main() -> int:
     ledger = (root / "zigux-alpha" / "BOOTSTRAP_COMMIT_LEDGER.md").read_text(encoding="utf-8")
     makefile = (root / "zigux" / "Makefile").read_text(encoding="utf-8")
     manifest = json.loads((root / "zigux" / "tests" / "fixtures" / "phase1_helper_manifest.json").read_text(encoding="utf-8"))
+    bench_expectations = json.loads((root / "zigux" / "tests" / "fixtures" / "phase1_bench_expectations.json").read_text(encoding="utf-8"))
 
     missing_markers = []
     for marker in required_workflow_markers:
@@ -645,6 +773,7 @@ def main() -> int:
         missing_markers.append("workflow:remove mlugg/setup-zig@")
 
     missing_markers.extend(collect_manifest_markers(manifest, root))
+    missing_markers.extend(collect_bench_expectation_markers(bench_expectations))
     missing_markers.extend(collect_exact_count_markers(workflow, required_phase1_workflow_markers))
     missing_markers.extend(collect_exact_count_markers(makefile, required_makefile_markers))
     missing_markers.extend(collect_exact_count_markers(docs_root, required_docs_root_markers))
