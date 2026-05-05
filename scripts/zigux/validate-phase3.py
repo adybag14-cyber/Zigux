@@ -524,7 +524,7 @@ def run_self_test() -> int:
         issues = validate_slices(root, slices, check_artifact_diff=False)
         assert f"build:missing_step:{BUILD_FILE_REL}:phase3-test" in issues
 
-        (paths.tests_dir / "build.zig").writeText(
+        (paths.tests_dir / "build.zig").write_text(
             'const phase3_test_step = b.step("phase3-test", "Run Phase 3 tests");\n',
             encoding="utf-8",
             newline="\n",
