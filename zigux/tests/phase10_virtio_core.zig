@@ -263,23 +263,31 @@ test "phase10 virtio core rejects invalid queue descriptor shapes and clears the
     try std.testing.expectError(error.QueueNotRegistered, device.queueDescriptorShapeSummary(1));
 }
 
-test "phase10 virtio core delivers config changes immediately when core and driver paths are enabled" {
+test "phase10 virtio core delivers config changes immediately and keeps generation bookkeeping visible" {
     var device = try virtio_core.VirtioCoreLabDevice.init(&.{ 2, 5 });
 
     device.acknowledge();
     try device.attachDriver();
 
     try device.noteConfigChanged();
-    const summary = device.configChangeSummary();
+    var summary = device.configChangeSummary();
 
     try std.testing.expectEqualStrings("drivers/virtio/virtio.c", summary.anchor);
     try std.testing.expect(summary.core_enabled);
     try std.testing.expect(!summary.driver_disabled);
     try std.testing.expect(!summary.change_pending);
+    try std.testing.expectEqual(@as(u32, 1), summary.generation);
+    try std.testing.expectEqual(@as(u32, 0), summary.acknowledged_generation);
+    try std.testing.expect(summary.has_unacknowledged_generation);
     try std.testing.expectEqual(@as(usize, 1), summary.delivery_count);
+
+    try device.acknowledgeConfigGeneration(summary.generation);
+    summary = device.configChangeSummary();
+    try std.testing.expectEqual(@as(u32, 1), summary.acknowledged_generation);
+    try std.testing.expect(!summary.has_unacknowledged_generation);
 }
 
-test "phase10 virtio core keeps config changes pending while the driver path is disabled and flushes on enable" {
+test "phase10 virtio core keeps config generations pending while the driver path is disabled and flushes on enable" {
     var device = try virtio_core.VirtioCoreLabDevice.init(&.{ 3, 9 });
 
     device.acknowledge();
@@ -291,12 +299,19 @@ test "phase10 virtio core keeps config changes pending while the driver path is 
     try std.testing.expect(summary.core_enabled);
     try std.testing.expect(summary.driver_disabled);
     try std.testing.expect(summary.change_pending);
+    try std.testing.expectEqual(@as(u32, 1), summary.generation);
+    try std.testing.expectEqual(@as(u32, 0), summary.acknowledged_generation);
+    try std.testing.expect(summary.has_unacknowledged_generation);
     try std.testing.expectEqual(@as(usize, 0), summary.delivery_count);
+    try std.testing.expectError(error.ConfigGenerationPendingDelivery, device.acknowledgeConfigGeneration(summary.generation));
 
     try device.enableConfigDriver();
+    try device.acknowledgeConfigGeneration(summary.generation);
     summary = device.configChangeSummary();
     try std.testing.expect(!summary.driver_disabled);
     try std.testing.expect(!summary.change_pending);
+    try std.testing.expectEqual(@as(u32, 1), summary.acknowledged_generation);
+    try std.testing.expect(!summary.has_unacknowledged_generation);
     try std.testing.expectEqual(@as(usize, 1), summary.delivery_count);
 
     try device.disableConfigDriver();
@@ -307,10 +322,13 @@ test "phase10 virtio core keeps config changes pending while the driver path is 
     try std.testing.expect(summary.core_enabled);
     try std.testing.expect(!summary.driver_disabled);
     try std.testing.expect(!summary.change_pending);
+    try std.testing.expectEqual(@as(u32, 0), summary.generation);
+    try std.testing.expectEqual(@as(u32, 0), summary.acknowledged_generation);
+    try std.testing.expect(!summary.has_unacknowledged_generation);
     try std.testing.expectEqual(@as(usize, 0), summary.delivery_count);
 }
 
-test "phase10 virtio core keeps config changes pending while the core path is disabled and clears them on reset" {
+test "phase10 virtio core keeps config generations pending while the core path is disabled and clears them on reset" {
     var device = try virtio_core.VirtioCoreLabDevice.init(&.{ 4, 11 });
 
     device.acknowledge();
@@ -322,12 +340,19 @@ test "phase10 virtio core keeps config changes pending while the core path is di
     try std.testing.expect(!summary.core_enabled);
     try std.testing.expect(!summary.driver_disabled);
     try std.testing.expect(summary.change_pending);
+    try std.testing.expectEqual(@as(u32, 1), summary.generation);
+    try std.testing.expectEqual(@as(u32, 0), summary.acknowledged_generation);
+    try std.testing.expect(summary.has_unacknowledged_generation);
     try std.testing.expectEqual(@as(usize, 0), summary.delivery_count);
+    try std.testing.expectError(error.ConfigGenerationPendingDelivery, device.acknowledgeConfigGeneration(summary.generation));
 
     try device.enableConfigCore();
+    try device.acknowledgeConfigGeneration(summary.generation);
     summary = device.configChangeSummary();
     try std.testing.expect(summary.core_enabled);
     try std.testing.expect(!summary.change_pending);
+    try std.testing.expectEqual(@as(u32, 1), summary.acknowledged_generation);
+    try std.testing.expect(!summary.has_unacknowledged_generation);
     try std.testing.expectEqual(@as(usize, 1), summary.delivery_count);
 
     try device.disableConfigCore();
@@ -338,5 +363,28 @@ test "phase10 virtio core keeps config changes pending while the core path is di
     try std.testing.expect(summary.core_enabled);
     try std.testing.expect(!summary.driver_disabled);
     try std.testing.expect(!summary.change_pending);
+    try std.testing.expectEqual(@as(u32, 0), summary.generation);
+    try std.testing.expectEqual(@as(u32, 0), summary.acknowledged_generation);
+    try std.testing.expect(!summary.has_unacknowledged_generation);
     try std.testing.expectEqual(@as(usize, 0), summary.delivery_count);
+}
+
+test "phase10 virtio core rejects stale and unknown config generation acknowledgements" {
+    var device = try virtio_core.VirtioCoreLabDevice.init(&.{ 6, 13 });
+
+    device.acknowledge();
+    try device.attachDriver();
+    try device.noteConfigChanged();
+    try device.acknowledgeConfigGeneration(1);
+    try device.noteConfigChanged();
+
+    try std.testing.expectError(error.StaleConfigGeneration, device.acknowledgeConfigGeneration(1));
+    try std.testing.expectError(error.UnknownConfigGeneration, device.acknowledgeConfigGeneration(3));
+    try device.acknowledgeConfigGeneration(2);
+
+    const summary = device.configChangeSummary();
+    try std.testing.expectEqual(@as(u32, 2), summary.generation);
+    try std.testing.expectEqual(@as(u32, 2), summary.acknowledged_generation);
+    try std.testing.expect(!summary.has_unacknowledged_generation);
+    try std.testing.expectEqual(@as(usize, 2), summary.delivery_count);
 }
