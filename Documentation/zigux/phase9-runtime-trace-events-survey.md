@@ -6,6 +6,7 @@ This document tracks the bounded Phase 9 runtime pilot-module survey around `sam
 
 - `PHASE9_STATUS=active`
 - `PHASE9_SLICE=runtime-trace-events-survey`
+- `PHASE9_SURVEYED_COMMIT=a7b1cec43aca36bab868f600a60fad724a25daee`
 - scope: survey manifest, starter sample, dedicated module and survey gates, the bounded loader-handoff scaffold, shared Phase 9 build wiring for the starter lane, and the lane-level review note that now tracks the landed starter plus the remaining shared runtime-substrate blocker
 - product boundary:
   - `samples/zigux/runtime_trace_events.zig`
@@ -32,6 +33,7 @@ The live repo originally had no matching trace-events survey artifact, no dedica
 - the repo now carries `samples/zigux/runtime_trace_events.zig`, `samples/zigux/runtime_trace_events_loader.zig`, `zigux/tests/runtime_trace_events_module.zig`, the survey manifest and gate, and shared `zigux/tests/phase9_build.zig` coverage for the trace-events starter lane.
 - the current bounded starter now exports a stable `RuntimeTraceEventsSummary`, and the focused diff gate uses that summary to keep the concrete main-thread payload literals, function-callback payload labels, and selftest totals machine-checkable without reaching back into raw payload-only state.
 - the current loader scaffold now records explicit tracepoint register and unregister API names, the prepared handoff-stage summary, a prepared snapshot that stays stable even if later sample replay mutates local counters before runtime handoff, and the no-substrate release path without claiming a real shared runtime loader already exists.
+- the live repo now also carries `zigux/kernel/runtime_loader.zig` as the shared request surface for the bounded Phase 9 loader-handoff packet, but the trace-events starter still stops at the sample-side loader scaffold and the no-substrate release path instead of claiming a real module-loading substrate.
 
 ## Recorded gaps
 
