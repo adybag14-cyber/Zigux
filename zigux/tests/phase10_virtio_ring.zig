@@ -193,3 +193,47 @@ test "phase10 virtio ring delays callbacks until most outstanding buffers are co
     try std.testing.expectEqual(@as(u16, 3), delayed_summary.pending_used_chain_count);
     try std.testing.expect(delayed_summary.should_poll);
 }
+
+test "phase10 virtio ring wraps avail used and poll bookkeeping at u16 boundaries" {
+    var ring = virtio_ring.VirtioRingLab{};
+    try ring.defineQueue(0, 1, .split, true, false);
+
+    var iteration: usize = 0;
+    while (iteration < std.math.maxInt(u16)) : (iteration += 1) {
+        try ring.publishDescriptorChain(0);
+        _ = try ring.prepareKick(0);
+        try ring.recordUsedChains(0, 1);
+        _ = try ring.pollUsedBuffers(0);
+    }
+
+    try ring.publishDescriptorChain(0);
+    _ = try ring.prepareKick(0);
+    try ring.recordUsedChains(0, 1);
+
+    var poll_summary = try ring.pollUsedBuffers(0);
+    try std.testing.expectEqualStrings("drivers/virtio/virtio_ring.c", poll_summary.anchor);
+    try std.testing.expectEqual(@as(u16, 0), poll_summary.last_used_idx);
+    try std.testing.expectEqual(@as(u16, std.math.maxInt(u16)), poll_summary.last_polled_used_idx);
+    try std.testing.expectEqual(@as(u16, 1), poll_summary.newly_used_chain_count);
+    try std.testing.expectEqual(@as(u16, 0), poll_summary.outstanding_chain_count);
+    try std.testing.expect(poll_summary.has_newly_used_chains);
+
+    try ring.publishDescriptorChain(0);
+    _ = try ring.prepareKick(0);
+    try ring.recordUsedChains(0, 1);
+
+    poll_summary = try ring.pollUsedBuffers(0);
+    try std.testing.expectEqual(@as(u16, 1), poll_summary.last_used_idx);
+    try std.testing.expectEqual(@as(u16, 0), poll_summary.last_polled_used_idx);
+    try std.testing.expectEqual(@as(u16, 1), poll_summary.newly_used_chain_count);
+    try std.testing.expectEqual(@as(u16, 0), poll_summary.outstanding_chain_count);
+    try std.testing.expect(poll_summary.has_newly_used_chains);
+
+    const summary = try ring.notificationSummary(0);
+    try std.testing.expectEqual(@as(u16, 1), summary.avail_idx_shadow);
+    try std.testing.expectEqual(@as(u16, 1), summary.last_used_idx);
+    try std.testing.expectEqual(@as(u16, 0), summary.outstanding_chain_count);
+    try std.testing.expectEqual(@as(u16, 0), summary.num_added);
+    try std.testing.expectEqual(@as(usize, std.math.maxInt(u16) + 2), summary.notification_count);
+    try std.testing.expect(!summary.needs_kick);
+}
