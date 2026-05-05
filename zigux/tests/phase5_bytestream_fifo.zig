@@ -24,8 +24,16 @@ test "phase 5 bytestream fifo sample replays exact queue behavior from the Linux
     try std.testing.expectEqual(@as(u8, 3), replay.peek_value);
     try std.testing.expectEqual(@as(u8, 20), replay.fill_start);
     try std.testing.expectEqual(@as(u8, 42), replay.fill_end);
+    try std.testing.expectEqual(@as(usize, sample.BytestreamFifoSample.capacity), replay.snapshot_len);
+    try std.testing.expectEqualSlices(u8, sample.expected_anchor_result[0..], replay.snapshot_sequence[0..]);
     try std.testing.expectEqual(@as(usize, sample.BytestreamFifoSample.capacity), replay.final_len);
-    try std.testing.expectEqual(@as(usize, 5), replay.checked_focus.len);
+    try std.testing.expectEqual(@as(usize, 6), replay.checked_focus.len);
+    try std.testing.expectEqual(sample.SampleFocus.bounded_fifo_order, replay.checked_focus[0]);
+    try std.testing.expectEqual(sample.SampleFocus.wraparound_requeue, replay.checked_focus[1]);
+    try std.testing.expectEqual(sample.SampleFocus.peek_and_skip, replay.checked_focus[2]);
+    try std.testing.expectEqual(sample.SampleFocus.non_destructive_snapshot, replay.checked_focus[3]);
+    try std.testing.expectEqual(sample.SampleFocus.reset_and_replay, replay.checked_focus[4]);
+    try std.testing.expectEqual(sample.SampleFocus.ownership_and_lifetime, replay.checked_focus[5]);
     try std.testing.expectEqualSlices(u8, sample.expected_anchor_result[0..], replay.final_sequence[0..]);
     try std.testing.expectEqual(@as(usize, 0), module.count());
     try std.testing.expectEqual(sample.SampleStage.replay_complete, module.stage());
