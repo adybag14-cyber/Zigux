@@ -25,11 +25,14 @@ EXPECTED_HELPERS = [
 ]
 
 required_files = [
+    ROOT / 'Documentation' / 'zigux' / 'README.md',
     ROOT / 'Documentation' / 'zigux' / 'phase1-closure.md',
+    ROOT / 'scripts' / 'zigux' / 'README.md',
     ROOT / 'scripts' / 'zigux' / 'check-phase1-bench.py',
     ROOT / 'scripts' / 'zigux' / 'install-zig.py',
     ROOT / 'scripts' / 'zigux' / 'validate-phase1-closure.py',
     ROOT / 'zigux' / 'Makefile',
+    ROOT / 'zigux' / 'tests' / 'README.md',
     ROOT / 'zigux' / 'tests' / 'fixtures' / 'phase1_bench_expectations.json',
     ROOT / 'zigux' / 'tests' / 'fixtures' / 'phase1_helper_manifest.json',
     ROOT / 'zigux' / 'tests' / 'phase1_bench.zig',
@@ -115,6 +118,27 @@ required_makefile_markers = [
         1,
     ),
 ]
+required_docs_root_markers = [
+    (
+        'docs_root_phase1_packet',
+        '- `zig build test --build-file zigux/tests/build.zig`, `zig build bench --build-file zigux/tests/build.zig`, `make -C zigux phase1-validate`, `make -C zigux phase1-test`, `make -C zigux phase1-bench`, and `make -C zigux phase1` keep the closed host-side helper packet reviewable through the shared helper build entrypoint and the Linux-style replay route, while `Documentation/zigux/phase1-closure.md`, `scripts/zigux/README.md`, and `zigux/Makefile` keep the closure and validator-first contract explicit from the docs root instead of leaving the Phase 1 packet split across later review surfaces.',
+        1,
+    ),
+]
+required_scripts_readme_markers = [
+    (
+        'scripts_readme_phase1_packet',
+        '- `Documentation/zigux/phase1-closure.md`, `zigux/Makefile`, `make -C zigux phase1-validate`, `make -C zigux phase1-test`, `make -C zigux phase1-bench`, and `make -C zigux phase1` keep that same closed host-side helper packet reviewable through the docs-root closure record and the Linux-style replay routes instead of leaving the Phase 1 closure stack visible only through direct script and Zig commands.',
+        1,
+    ),
+]
+required_tests_readme_markers = [
+    (
+        'tests_readme_phase1_packet',
+        '- keep the closed Phase 1 host-tools packet explicit in the tests root too: `Documentation/zigux/phase1-closure.md`, `scripts/zigux/README.md`, `zigux/tests/phase1_helpers.zig`, `zigux/tests/phase1_bench.zig`, `zigux/tests/fixtures/phase1_helper_manifest.json`, `zigux/tests/fixtures/phase1_bench_expectations.json`, `scripts/zigux/validate-phase1.py`, `scripts/zigux/validate-phase1-closure.py`, `scripts/zigux/check-phase1-parity.py`, `scripts/zigux/check-phase1-bench.py`, `zigux/Makefile`, `zig build test --build-file zigux/tests/build.zig`, `zig build bench --build-file zigux/tests/build.zig`, `make -C zigux phase1-validate`, `make -C zigux phase1-test`, `make -C zigux phase1-bench`, and `make -C zigux phase1` should continue to keep the closed helper tranche reviewable from the tests root instead of leaving the host-tools closure stack split across the docs root and scripts root',
+        1,
+    ),
+]
 
 
 def collect_manifest_markers(manifest: object, root: Path) -> list[str]:
@@ -171,7 +195,7 @@ def collect_exact_count_markers(text: str, markers: list[tuple[str, str, int]]) 
     return missing_markers
 
 
-def render_makefile_fixture(markers: list[tuple[str, str, int]]) -> str:
+def render_marker_fixture(markers: list[tuple[str, str, int]]) -> str:
     return '\n'.join(marker for _, marker, _ in markers) + '\n'
 
 
@@ -215,7 +239,7 @@ def run_self_test() -> None:
         assert f'manifest:missing_helper={EXPECTED_HELPERS[-1]}' in unexpected_markers
         assert f'manifest:unexpected_helper={unexpected_helper}' in unexpected_markers
 
-        valid_makefile = render_makefile_fixture(required_makefile_markers)
+        valid_makefile = render_marker_fixture(required_makefile_markers)
         assert collect_exact_count_markers(valid_makefile, required_makefile_markers) == []
 
         missing_validate_target = valid_makefile.replace('phase1-validate:\n', '', 1)
@@ -234,8 +258,27 @@ def run_self_test() -> None:
         missing_bench_markers = collect_exact_count_markers(missing_bench_check, required_makefile_markers)
         assert 'makefile_phase1_bench_check:expected=1:actual=0' in missing_bench_markers
 
+        valid_docs_root = render_marker_fixture(required_docs_root_markers)
+        assert collect_exact_count_markers(valid_docs_root, required_docs_root_markers) == []
+        missing_docs_root = collect_exact_count_markers('', required_docs_root_markers)
+        assert 'docs_root_phase1_packet:expected=1:actual=0' in missing_docs_root
+
+        valid_scripts_readme = render_marker_fixture(required_scripts_readme_markers)
+        assert collect_exact_count_markers(valid_scripts_readme, required_scripts_readme_markers) == []
+        duplicate_scripts_readme = valid_scripts_readme + valid_scripts_readme
+        duplicate_scripts_markers = collect_exact_count_markers(
+            duplicate_scripts_readme,
+            required_scripts_readme_markers,
+        )
+        assert 'scripts_readme_phase1_packet:expected=1:actual=2' in duplicate_scripts_markers
+
+        valid_tests_readme = render_marker_fixture(required_tests_readme_markers)
+        assert collect_exact_count_markers(valid_tests_readme, required_tests_readme_markers) == []
+        missing_tests_markers = collect_exact_count_markers('', required_tests_readme_markers)
+        assert 'tests_readme_phase1_packet:expected=1:actual=0' in missing_tests_markers
+
     print('PHASE1_CLOSURE_VALIDATOR_SELF_TEST=pass')
-    print('PHASE1_CLOSURE_VALIDATOR_SELF_TEST_CASE_COUNT=6')
+    print('PHASE1_CLOSURE_VALIDATOR_SELF_TEST_CASE_COUNT=9')
 
 
 def main() -> int:
@@ -256,9 +299,12 @@ def main() -> int:
         print('MISSING_PHASE1_CLOSURE_FILES_END')
         return 1
 
+    docs_root = (ROOT / 'Documentation' / 'zigux' / 'README.md').read_text(encoding='utf-8')
     closure = (ROOT / 'Documentation' / 'zigux' / 'phase1-closure.md').read_text(encoding='utf-8')
+    scripts_readme = (ROOT / 'scripts' / 'zigux' / 'README.md').read_text(encoding='utf-8')
     workflow = (ROOT / '.github' / 'workflows' / 'zigux-bootstrap.yml').read_text(encoding='utf-8')
     tests_build = (ROOT / 'zigux' / 'tests' / 'build.zig').read_text(encoding='utf-8')
+    tests_readme = (ROOT / 'zigux' / 'tests' / 'README.md').read_text(encoding='utf-8')
     ledger = (ROOT / 'zigux-alpha' / 'BOOTSTRAP_COMMIT_LEDGER.md').read_text(encoding='utf-8')
     makefile = (ROOT / 'zigux' / 'Makefile').read_text(encoding='utf-8')
     manifest = json.loads((ROOT / 'zigux' / 'tests' / 'fixtures' / 'phase1_helper_manifest.json').read_text(encoding='utf-8'))
@@ -282,6 +328,9 @@ def main() -> int:
 
     missing_markers.extend(collect_manifest_markers(manifest, ROOT))
     missing_markers.extend(collect_exact_count_markers(makefile, required_makefile_markers))
+    missing_markers.extend(collect_exact_count_markers(docs_root, required_docs_root_markers))
+    missing_markers.extend(collect_exact_count_markers(scripts_readme, required_scripts_readme_markers))
+    missing_markers.extend(collect_exact_count_markers(tests_readme, required_tests_readme_markers))
 
     if missing_markers:
         print('PHASE1_CLOSURE_VALIDATION=fail')
@@ -295,7 +344,7 @@ def main() -> int:
     print(f'PHASE1_CLOSURE_REQUIRED_FILE_COUNT={len(required_files)}')
     print(
         'PHASE1_CLOSURE_REQUIRED_MARKER_COUNT='
-        f'{len(required_closure_markers) + len(required_workflow_markers) + len(required_build_markers) + len(required_ledger_markers) + len(required_makefile_markers)}'
+        f'{len(required_closure_markers) + len(required_workflow_markers) + len(required_build_markers) + len(required_ledger_markers) + len(required_makefile_markers) + len(required_docs_root_markers) + len(required_scripts_readme_markers) + len(required_tests_readme_markers)}'
     )
     return 0
 
