@@ -85,6 +85,37 @@ def git_blob_sha(path: Path) -> str:
     return hashlib.sha1(header + payload).hexdigest()
 
 
+def normalized_marker_lines(text: str) -> list[str]:
+    lines: list[str] = []
+    for raw_line in text.splitlines():
+        line = raw_line.strip()
+        if line.startswith("- "):
+            line = line[2:].strip()
+        if line.startswith("`") and line.endswith("`"):
+            line = line[1:-1]
+        lines.append(line)
+    return lines
+
+
+def require_exact_line_count(
+    issues: list[str],
+    text: str,
+    prefix: str,
+    line: str,
+    *,
+    normalized: bool = False,
+    expected_count: int = 1,
+) -> None:
+    lines = normalized_marker_lines(text) if normalized else text.splitlines()
+    count = lines.count(line)
+    if count == expected_count:
+        return
+    if count == 0:
+        issues.append(f"missing_{prefix}:{line}")
+        return
+    issues.append(f"duplicate_{prefix}:{line}:{count}")
+
+
 def validate(root: Path) -> list[str]:
     issues: list[str] = []
     survey_path = root / SURVEY_REL
@@ -96,26 +127,34 @@ def validate(root: Path) -> list[str]:
         survey = survey_path.read_text(encoding="utf-8")
     except FileNotFoundError:
         return [f"missing_survey:{SURVEY_REL}"]
+    survey_lines = normalized_marker_lines(survey)
 
     for marker, rel in PATH_MARKERS.items():
         expected = f"{marker}={rel}"
-        if expected not in survey:
-            issues.append(f"missing_marker:{expected}")
+        require_exact_line_count(issues, survey, "marker", expected, normalized=True)
         if not (root / rel).exists():
             issues.append(f"missing_file:{rel}")
 
     for marker in STATIC_MARKERS:
-        if marker not in survey:
-            issues.append(f"missing_marker:{marker}")
+        require_exact_line_count(issues, survey, "marker", marker, normalized=True)
 
     for marker, rel in BLOB_MARKERS.items():
         path = root / rel
         if not path.exists():
             issues.append(f"missing_file:{rel}")
             continue
-        expected = f"{marker}={git_blob_sha(path)}"
-        if expected not in survey:
-            issues.append(f"stale_blob_marker:{marker}")
+        prefix = f"{marker}="
+        matching_lines = [line for line in survey_lines if line.startswith(prefix)]
+        if not matching_lines:
+            issues.append(f"missing_blob_marker:{marker}=<sha>")
+            continue
+        if len(matching_lines) != 1:
+            issues.append(f"duplicate_blob_marker:{marker}=<sha>:{len(matching_lines)}")
+            continue
+        actual = matching_lines[0].split(prefix, 1)[1]
+        expected = git_blob_sha(path)
+        if actual != expected:
+            issues.append(f"stale_blob_marker:{marker}:{actual}!={expected}")
 
     try:
         allocator_policy = allocator_policy_path.read_text(encoding="utf-8")
@@ -142,8 +181,7 @@ def validate(root: Path) -> list[str]:
         return issues
 
     for line in MAKEFILE_REQUIRED_LINES:
-        if line not in makefile:
-            issues.append(f"missing_makefile_line:{line.strip()}")
+        require_exact_line_count(issues, makefile, "makefile_line", line)
 
     return issues
 
@@ -236,7 +274,11 @@ def run_self_test() -> int:
         )
         write_file(root / SURVEY_REL, broken_note)
         issues = validate(root)
-        assert "stale_blob_marker:PHASE3_MMIO_BLOB_SHA" in issues
+        expected_mmio_blob_sha = git_blob_sha(root / "zigux/helpers/mmio.zig")
+        assert (
+            f"stale_blob_marker:PHASE3_MMIO_BLOB_SHA:stale-{expected_mmio_blob_sha}!={expected_mmio_blob_sha}"
+            in issues
+        )
 
         build_valid_workspace(root)
         missing_boundary_gap = (root / SURVEY_REL).read_text(encoding="utf-8").replace(
@@ -248,6 +290,29 @@ def run_self_test() -> int:
         issues = validate(root)
         assert (
             "missing_marker:PHASE3_BOUNDARY_GAP=no-dedicated-policy-unsafe-subslice-beyond-the-shared-abi-packet"
+            in issues
+        )
+
+        build_valid_workspace(root)
+        duplicate_path = (root / SURVEY_REL).read_text(encoding="utf-8").replace(
+            "- `PHASE3_MMIO_PATH=zigux/helpers/mmio.zig`\n",
+            "- `PHASE3_MMIO_PATH=zigux/helpers/mmio.zig`\n- `PHASE3_MMIO_PATH=zigux/helpers/mmio.zig`\n",
+            1,
+        )
+        write_file(root / SURVEY_REL, duplicate_path)
+        issues = validate(root)
+        assert "duplicate_marker:PHASE3_MMIO_PATH=zigux/helpers/mmio.zig:2" in issues
+
+        build_valid_workspace(root)
+        duplicate_boundary_gap = (root / SURVEY_REL).read_text(encoding="utf-8").replace(
+            "- `PHASE3_BOUNDARY_GAP=no-dedicated-policy-unsafe-subslice-beyond-the-shared-abi-packet`\n",
+            "- `PHASE3_BOUNDARY_GAP=no-dedicated-policy-unsafe-subslice-beyond-the-shared-abi-packet`\n- `PHASE3_BOUNDARY_GAP=no-dedicated-policy-unsafe-subslice-beyond-the-shared-abi-packet`\n",
+            1,
+        )
+        write_file(root / SURVEY_REL, duplicate_boundary_gap)
+        issues = validate(root)
+        assert (
+            "duplicate_marker:PHASE3_BOUNDARY_GAP=no-dedicated-policy-unsafe-subslice-beyond-the-shared-abi-packet:2"
             in issues
         )
 
@@ -299,12 +364,36 @@ def run_self_test() -> int:
         write_file(root / MAKEFILE_REL, broken_makefile)
         issues = validate(root)
         assert (
-            "missing_makefile_line:cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase3-policy-unsafe-survey.py --self-test"
+            "missing_makefile_line:\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase3-policy-unsafe-survey.py --self-test"
+            in issues
+        )
+
+        build_valid_workspace(root)
+        manifest_blob_sha = git_blob_sha(root / "zigux/tests/fixtures/phase3_abi_manifest.json")
+        duplicate_blob_marker = (root / SURVEY_REL).read_text(encoding="utf-8").replace(
+            f"- `PHASE3_ABI_MANIFEST_BLOB_SHA={manifest_blob_sha}`\n",
+            f"- `PHASE3_ABI_MANIFEST_BLOB_SHA={manifest_blob_sha}`\n- `PHASE3_ABI_MANIFEST_BLOB_SHA={manifest_blob_sha}`\n",
+            1,
+        )
+        write_file(root / SURVEY_REL, duplicate_blob_marker)
+        issues = validate(root)
+        assert "duplicate_blob_marker:PHASE3_ABI_MANIFEST_BLOB_SHA=<sha>:2" in issues
+
+        build_valid_workspace(root)
+        duplicate_makefile_line = (root / MAKEFILE_REL).read_text(encoding="utf-8").replace(
+            MAKEFILE_REQUIRED_LINES[0] + "\n",
+            MAKEFILE_REQUIRED_LINES[0] + "\n" + MAKEFILE_REQUIRED_LINES[0] + "\n",
+            1,
+        )
+        write_file(root / MAKEFILE_REL, duplicate_makefile_line)
+        issues = validate(root)
+        assert (
+            "duplicate_makefile_line:\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase3-policy-unsafe-survey.py:2"
             in issues
         )
 
     print("PHASE3_POLICY_UNSAFE_SURVEY_SELF_TEST=pass")
-    print("PHASE3_POLICY_UNSAFE_SURVEY_SELF_TEST_CASE_COUNT=7")
+    print("PHASE3_POLICY_UNSAFE_SURVEY_SELF_TEST_CASE_COUNT=11")
     return 0
 
 
