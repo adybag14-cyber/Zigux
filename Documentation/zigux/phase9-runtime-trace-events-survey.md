@@ -7,7 +7,7 @@ This document tracks the bounded Phase 9 runtime pilot-module survey around `sam
 - `PHASE9_STATUS=active`
 - `PHASE9_SLICE=runtime-trace-events-survey`
 - `PHASE9_SURVEYED_COMMIT=a7b1cec43aca36bab868f600a60fad724a25daee`
-- scope: survey manifest, starter sample, dedicated module and survey gates, the bounded loader-handoff scaffold, shared Phase 9 build wiring for the starter lane, and the lane-level review note that now tracks the landed starter plus the remaining shared runtime-substrate blocker
+- scope: survey manifest, starter sample, dedicated module and survey gates, the bounded loader-handoff scaffold plus shared-request bridge, shared Phase 9 build wiring for the starter lane, and the lane-level review note that now tracks the landed starter plus the remaining shared runtime-substrate blocker
 - product boundary:
   - `samples/zigux/runtime_trace_events.zig`
   - `samples/zigux/runtime_trace_events_loader.zig`
@@ -22,7 +22,7 @@ This document tracks the bounded Phase 9 runtime pilot-module survey around `sam
 
 The Phase 9 roadmap explicitly names `samples/trace_events/trace-events-sample.c` as a runtime pilot-module anchor and recommends `zigux/tests/runtime_*` plus `samples/zigux/runtime_*` as the bounded Zigux destinations.
 
-The live repo originally had no matching trace-events survey artifact, no dedicated `runtime_*` review gate, and no Zigux starter under `samples/zigux/`. That survey note now stays in place as the lane history and review anchor after the bounded starter sample, module tests, diff gate, and sample-side loader scaffold landed, so Phase 9 can keep recording what is shipped versus what still depends on the shared runtime substrate.
+The live repo originally had no matching trace-events survey artifact, no dedicated `runtime_*` review gate, and no Zigux starter under `samples/zigux/`. That survey note now stays in place as the lane history and review anchor after the bounded starter sample, module tests, diff gate, sample-side loader scaffold, and shared-request bridge landed, so Phase 9 can keep recording what is shipped versus what still depends on the shared runtime substrate.
 
 ## Survey findings
 
@@ -33,8 +33,9 @@ The live repo originally had no matching trace-events survey artifact, no dedica
 - the repo now carries `samples/zigux/runtime_trace_events.zig`, `samples/zigux/runtime_trace_events_loader.zig`, `zigux/tests/runtime_trace_events_module.zig`, the survey manifest and gate, and shared `zigux/tests/phase9_build.zig` coverage for the trace-events starter lane.
 - the current bounded starter now exports a stable `RuntimeTraceEventsSummary`, and the focused diff gate uses that summary to keep the concrete main-thread payload literals, function-callback payload labels, and selftest totals machine-checkable without reaching back into raw payload-only state.
 - the current bounded starter still advertises `requires_runtime_substrate=true` and `provides_selftest_hook=true`, so the roadmap's selftest-hook requirement stays explicit in the sample descriptor while the pilot remains an in-memory starter.
-- the current loader scaffold now records explicit tracepoint register and unregister API names, the prepared handoff-stage summary, a prepared snapshot that stays stable even if later sample replay mutates local counters before runtime handoff, and the no-substrate release path without claiming a real shared runtime loader already exists.
-- the live repo now also carries `zigux/kernel/runtime_loader.zig` as the shared request surface for the bounded Phase 9 loader-handoff packet, but the trace-events starter still stops at the sample-side loader scaffold and the no-substrate release path instead of claiming a real module-loading substrate.
+- the current loader scaffold now records explicit tracepoint register and unregister API names, the prepared handoff-stage summary, and a prepared snapshot that stays stable even if later sample replay mutates local counters before runtime handoff.
+- the live repo now also carries `zigux/kernel/runtime_loader.zig` as the shared request surface for the bounded Phase 9 loader-handoff packet, and the trace-events starter consumes that shared request lifecycle through `prepareSharedRequest`, `requestSharedRuntimeLoad`, `releaseSharedWithoutSubstrate`, and a focused shared-plan drift check before any live registration claim.
+- the trace-events starter still stops before a real module-loading substrate or live tracepoint registration lifecycle, so the shipped handoff remains reviewable as pre-execution request shaping, metadata-only registration labels, and release-without-substrate behavior rather than executable runtime registration parity.
 
 ## Recorded gaps
 
