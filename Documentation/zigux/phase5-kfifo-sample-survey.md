@@ -48,9 +48,9 @@ The Phase 5 gap is now narrowed to one landed sample-backed reference pattern fo
 - the live Zigux repo now ships bounded Phase 5 side-by-side samples under `samples/zigux/` for the `kfifo`, `kobject`, `kretprobe`, and `trace-events` anchors, while still keeping the later Phase 9 runtime starters and loader-side follow-ons separate from these non-runtime reference readings.
 - the generic review checklist already covers the Phase 5 boundary between a reviewable idiom and a runtime-ready module, but contributors still benefit from one sample-backed set of prompts tied directly to the shipped bytestream FIFO slice.
 
-## Approved idiom for a future kfifo-style sample
+## Approved idiom for the landed kfifo-style sample
 
-Until a bounded runtime substrate exists, a Phase 5 `samples/zigux/` reference sample for this anchor should:
+Until a bounded runtime substrate exists, the landed Phase 5 `samples/zigux/` reference sample for this anchor should:
 
 - model FIFO state and ordered operations entirely in memory
 - keep the Linux anchor path explicit in a descriptor or note
@@ -58,7 +58,7 @@ Until a bounded runtime substrate exists, a Phase 5 `samples/zigux/` reference s
 - show ownership and lifetime boundaries clearly, especially initialization, reset, and teardown
 - keep procfs, user-copy, blocking lock behavior, and module-registration claims out of scope unless a later lane lands the required substrate first
 
-In practice, that means the approved first idiom is a side-by-side behavior sample, not a claim that Zigux already has `proc_create()`, `kfifo_from_user()`, or module-load parity.
+In practice, that means the approved landed idiom is a side-by-side behavior sample, not a claim that Zigux already has `proc_create()`, `kfifo_from_user()`, or module-load parity.
 
 ## Landed sample and exact checks
 
