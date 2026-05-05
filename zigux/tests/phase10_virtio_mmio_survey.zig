@@ -128,8 +128,12 @@ test "phase10 virtio mmio survey manifest records the live helper-backed transpo
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "drivers/virtio/virtio_mmio.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "shorter restaged config window clears stale second-word data") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "shrinks the readable config window") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "riskier lifecycle paths remain intentionally blocked") != null);
     try std.testing.expect(std.mem.indexOf(u8, slice_note, "PHASE10_STATUS=parked") != null);
     try std.testing.expect(std.mem.indexOf(u8, slice_note, "drivers/virtio/virtio_mmio.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, slice_note, "driver-local lab slices and shared validation gates") != null);
+    try std.testing.expect(std.mem.indexOf(u8, slice_note, "queue setup or reset paths, IRQ parity, DMA paths, input registration lifecycle, and probe or remove lifecycle behavior") != null);
+    try std.testing.expect(std.mem.indexOf(u8, slice_note, "Architecture Council reopen request with fresh linked evidence attached") != null);
 
     var starter_landed_count: usize = 0;
     var ready_next_count: usize = 0;
