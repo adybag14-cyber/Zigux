@@ -99,8 +99,8 @@ test "phase 14 rcu tree survey manifest records the freeze-boundary gap without 
     try std.testing.expect(manifest.survey_summary.preexisting_phase14_rcu_tree_manifest_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase14_rcu_tree_survey_test_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase14_rcu_tree_survey_note_present);
-    try std.testing.expectEqual(@as(usize, 6), manifest.decision_checklist.len);
-    try std.testing.expectEqual(@as(usize, 14), manifest.gaps.len);
+    try std.testing.expectEqual(@as(usize, 7), manifest.decision_checklist.len);
+    try std.testing.expectEqual(@as(usize, 15), manifest.gaps.len);
 
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE14_LANE_KEY=P14-L16") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE14_SURVEYED_COMMIT=4c889233d157960514b241bcd5aff7cac5fda312") != null);
@@ -108,6 +108,7 @@ test "phase 14 rcu tree survey manifest records the freeze-boundary gap without 
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "landed `phase14-rcu-tree-idle-watch-followup`") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "landed `phase14-rcu-tree-public-wait-and-barrier-followup`") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "landed `phase14-rcu-tree-cpu-hotplug-followup`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "landed `phase14-rcu-tree-memory-ordering-followup`") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "landed `phase14-rcu-tree-rollback-threshold-guardrail`") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "blocked `phase14-rcu-tree-bridge-blocker`") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "ready-next `phase14-rcu-tree-callback-offload-followup`") == null);
@@ -124,6 +125,7 @@ test "phase 14 rcu tree survey manifest records the freeze-boundary gap without 
     var saw_idle_watch_followup = false;
     var saw_public_wait_followup = false;
     var saw_cpu_hotplug_followup = false;
+    var saw_memory_ordering_followup = false;
     var saw_rollback_guardrail = false;
     var saw_bridge_blocker = false;
 
@@ -200,6 +202,14 @@ test "phase 14 rcu tree survey manifest records the freeze-boundary gap without 
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "rcutree_prepare_cpu()") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "rcutree_migrate_callbacks()") != null);
         }
+        if (std.mem.eql(u8, gap.id, "phase14-rcu-tree-memory-ordering-followup")) {
+            saw_memory_ordering_followup = true;
+            try std.testing.expectEqualStrings("starter_landed", gap.status);
+            try std.testing.expectEqualStrings("Documentation/zigux/phase14-rcu-tree-survey.md", gap.zigux_destination);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "raw_spin_lock_rcu_node()") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "smp_mb__after_unlock_lock()") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "smp_store_release()") != null);
+        }
         if (std.mem.eql(u8, gap.id, "phase14-rcu-tree-rollback-threshold-guardrail")) {
             saw_rollback_guardrail = true;
             try std.testing.expectEqualStrings("starter_landed", gap.status);
@@ -220,7 +230,7 @@ test "phase 14 rcu tree survey manifest records the freeze-boundary gap without 
         }
     }
 
-    try std.testing.expectEqual(@as(usize, 13), landed_count);
+    try std.testing.expectEqual(@as(usize, 14), landed_count);
     try std.testing.expectEqual(@as(usize, 0), ready_next_count);
     try std.testing.expectEqual(@as(usize, 1), blocked_count);
     try std.testing.expect(saw_freeze_note);
@@ -232,6 +242,7 @@ test "phase 14 rcu tree survey manifest records the freeze-boundary gap without 
     try std.testing.expect(saw_idle_watch_followup);
     try std.testing.expect(saw_public_wait_followup);
     try std.testing.expect(saw_cpu_hotplug_followup);
+    try std.testing.expect(saw_memory_ordering_followup);
     try std.testing.expect(saw_rollback_guardrail);
     try std.testing.expect(saw_bridge_blocker);
 }
@@ -259,33 +270,91 @@ test "phase 14 rcu tree survey exposes the landed freeze-boundary checklist" {
     try std.testing.expectEqualStrings("__note_gp_changes", checklist[0].anchor_symbols[2]);
     try std.testing.expect(std.mem.indexOf(u8, checklist[0].rationale, "gp_seq") != null);
 
-    try std.testing.expectEqualStrings("expedited-funnel-and-stall-path", checklist[1].id);
-    try std.testing.expectEqualStrings("sync_rcu_exp_select_cpus", checklist[1].anchor_symbols[0]);
-    try std.testing.expectEqualStrings("synchronize_rcu_expedited_wait_once", checklist[1].anchor_symbols[1]);
-    try std.testing.expectEqualStrings("rcu_exp_gp_seq_end", checklist[1].anchor_symbols[2]);
-    try std.testing.expect(std.mem.indexOf(u8, checklist[1].rationale, "IPI") != null);
+    try std.testing.expectEqualStrings("memory-ordering-lock-network", checklist[1].id);
+    try std.testing.expectEqualStrings("raw_spin_lock_rcu_node", checklist[1].anchor_symbols[0]);
+    try std.testing.expectEqualStrings("smp_mb__after_unlock_lock", checklist[1].anchor_symbols[1]);
+    try std.testing.expectEqualStrings("smp_store_release", checklist[1].anchor_symbols[2]);
+    try std.testing.expect(std.mem.indexOf(u8, checklist[1].rationale, "lock network") != null);
 
-    try std.testing.expectEqualStrings("nocb-offload-wakeup-handoff", checklist[2].id);
-    try std.testing.expectEqualStrings("rcu_nocb_bypass_lock", checklist[2].anchor_symbols[0]);
-    try std.testing.expectEqualStrings("wake_nocb_gp_defer", checklist[2].anchor_symbols[1]);
-    try std.testing.expectEqualStrings("do_nocb_deferred_wakeup", checklist[2].anchor_symbols[2]);
-    try std.testing.expect(std.mem.indexOf(u8, checklist[2].rationale, "bypass") != null);
+    try std.testing.expectEqualStrings("expedited-funnel-and-stall-path", checklist[2].id);
+    try std.testing.expectEqualStrings("sync_rcu_exp_select_cpus", checklist[2].anchor_symbols[0]);
+    try std.testing.expectEqualStrings("synchronize_rcu_expedited_wait_once", checklist[2].anchor_symbols[1]);
+    try std.testing.expectEqualStrings("rcu_exp_gp_seq_end", checklist[2].anchor_symbols[2]);
+    try std.testing.expect(std.mem.indexOf(u8, checklist[2].rationale, "IPI") != null);
 
-    try std.testing.expectEqualStrings("idle-watch-reentry-and-core-invocation", checklist[3].id);
-    try std.testing.expectEqualStrings("rcu_is_watching", checklist[3].anchor_symbols[0]);
-    try std.testing.expectEqualStrings("rcu_watching_snap_save", checklist[3].anchor_symbols[1]);
-    try std.testing.expectEqualStrings("invoke_rcu_core", checklist[3].anchor_symbols[2]);
-    try std.testing.expect(std.mem.indexOf(u8, checklist[3].rationale, "dyntick") != null);
+    try std.testing.expectEqualStrings("nocb-offload-wakeup-handoff", checklist[3].id);
+    try std.testing.expectEqualStrings("rcu_nocb_bypass_lock", checklist[3].anchor_symbols[0]);
+    try std.testing.expectEqualStrings("wake_nocb_gp_defer", checklist[3].anchor_symbols[1]);
+    try std.testing.expectEqualStrings("do_nocb_deferred_wakeup", checklist[3].anchor_symbols[2]);
+    try std.testing.expect(std.mem.indexOf(u8, checklist[3].rationale, "bypass") != null);
 
-    try std.testing.expectEqualStrings("quiescent-state-propagation-and-callback-acceleration", checklist[4].id);
-    try std.testing.expectEqualStrings("rcu_report_qs_rnp", checklist[4].anchor_symbols[0]);
-    try std.testing.expectEqualStrings("note_gp_changes", checklist[4].anchor_symbols[1]);
-    try std.testing.expectEqualStrings("rcu_accelerate_cbs", checklist[4].anchor_symbols[2]);
-    try std.testing.expect(std.mem.indexOf(u8, checklist[4].rationale, "segmented callback lists") != null);
+    try std.testing.expectEqualStrings("idle-watch-reentry-and-core-invocation", checklist[4].id);
+    try std.testing.expectEqualStrings("rcu_is_watching", checklist[4].anchor_symbols[0]);
+    try std.testing.expectEqualStrings("rcu_watching_snap_save", checklist[4].anchor_symbols[1]);
+    try std.testing.expectEqualStrings("invoke_rcu_core", checklist[4].anchor_symbols[2]);
+    try std.testing.expect(std.mem.indexOf(u8, checklist[4].rationale, "dyntick") != null);
 
-    try std.testing.expectEqualStrings("callback-enqueue-and-batch-invocation", checklist[5].id);
-    try std.testing.expectEqualStrings("__call_rcu_common", checklist[5].anchor_symbols[0]);
-    try std.testing.expectEqualStrings("call_rcu_core", checklist[5].anchor_symbols[1]);
-    try std.testing.expectEqualStrings("rcu_do_batch", checklist[5].anchor_symbols[2]);
-    try std.testing.expect(std.mem.indexOf(u8, checklist[5].rationale, "NOCB offload") != null);
+    try std.testing.expectEqualStrings("quiescent-state-propagation-and-callback-acceleration", checklist[5].id);
+    try std.testing.expectEqualStrings("rcu_report_qs_rnp", checklist[5].anchor_symbols[0]);
+    try std.testing.expectEqualStrings("note_gp_changes", checklist[5].anchor_symbols[1]);
+    try std.testing.expectEqualStrings("rcu_accelerate_cbs", checklist[5].anchor_symbols[2]);
+    try std.testing.expect(std.mem.indexOf(u8, checklist[5].rationale, "segmented callback lists") != null);
+
+    try std.testing.expectEqualStrings("callback-enqueue-and-batch-invocation", checklist[6].id);
+    try std.testing.expectEqualStrings("__call_rcu_common", checklist[6].anchor_symbols[0]);
+    try std.testing.expectEqualStrings("call_rcu_core", checklist[6].anchor_symbols[1]);
+    try std.testing.expectEqualStrings("rcu_do_batch", checklist[6].anchor_symbols[2]);
+    try std.testing.expect(std.mem.indexOf(u8, checklist[6].rationale, "NOCB offload") != null);
+}
+
+test "phase 14 rcu tree survey keeps the memory-ordering boundary explicit" {
+    var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
+    defer io_instance.deinit();
+
+    const survey_note = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "Documentation/zigux/phase14-rcu-tree-survey.md",
+        std.testing.allocator,
+        .limited(64 * 1024),
+    );
+    defer std.testing.allocator.free(survey_note);
+
+    const tree_c = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "kernel/rcu/tree.c",
+        std.testing.allocator,
+        .limited(256 * 1024),
+    );
+    defer std.testing.allocator.free(tree_c);
+
+    const update_c = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "kernel/rcu/update.c",
+        std.testing.allocator,
+        .limited(64 * 1024),
+    );
+    defer std.testing.allocator.free(update_c);
+
+    const memory_order_doc = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "Documentation/RCU/Design/Memory-Ordering/Tree-RCU-Memory-Ordering.rst",
+        std.testing.allocator,
+        .limited(128 * 1024),
+    );
+    defer std.testing.allocator.free(memory_order_doc);
+
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "## Memory-ordering network follow-up") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "raw_spin_lock_rcu_node()") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "smp_mb__after_unlock_lock()") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "smp_store_release()") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "poll_state_synchronize_rcu_full()") != null);
+    try std.testing.expect(std.mem.indexOf(u8, memory_order_doc, "raw_spin_lock_rcu_node()") != null);
+    try std.testing.expect(std.mem.indexOf(u8, memory_order_doc, "smp_mb__after_unlock_lock()") != null);
+    try std.testing.expect(std.mem.indexOf(u8, memory_order_doc, "poll_state_synchronize_rcu()") != null);
+    try std.testing.expect(std.mem.indexOf(u8, memory_order_doc, "CPU-Hotplug Interface") != null);
+    try std.testing.expect(std.mem.indexOf(u8, tree_c, "smp_store_release(&rcu_state.ncpus, rcu_state.ncpus + newcpu);") != null);
+    try std.testing.expect(std.mem.indexOf(u8, tree_c, "smp_store_release(&rcu_state.gp_kthread, t);") != null);
+    try std.testing.expect(std.mem.indexOf(u8, update_c, "synchronize_rcu()") != null);
+    try std.testing.expect(std.mem.indexOf(u8, update_c, "start_poll_synchronize_rcu()") != null);
+    try std.testing.expect(std.mem.indexOf(u8, update_c, "poll_state_synchronize_rcu_full()") != null);
 }
