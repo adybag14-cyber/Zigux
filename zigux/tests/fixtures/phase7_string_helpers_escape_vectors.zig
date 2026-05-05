@@ -51,6 +51,13 @@ pub const unescape_cases = [_]UnescapeCase{
         .expected_len = 4,
         .expected = "\nA \x1b",
     },
+    .{
+        .name = "sample replay newline suffix",
+        .input = "line\\n",
+        .flags = 1 << 0,
+        .expected_len = 5,
+        .expected = "line\n",
+    },
 };
 
 pub const escape_cases = [_]EscapeCase{
@@ -77,6 +84,14 @@ pub const escape_cases = [_]EscapeCase{
         .only = "\n",
         .expected_len = 6,
         .expected = "A\\x0aZ",
+    },
+    .{
+        .name = "sample replay newline hex escape",
+        .input = "\n",
+        .flags = 1 << 5,
+        .only = null,
+        .expected_len = 4,
+        .expected = "\\x0a",
     },
     .{
         .name = "hex escapes with printable passthrough",
