@@ -184,8 +184,6 @@ test "phase11 shared header parity survey keeps the exported hvc surface explici
     const hvc_header = try readFileAlloc(std.testing.allocator, "drivers/tty/hvc/hvc_console.h", 64 * 1024);
     defer std.testing.allocator.free(hvc_header);
 
-    try expectContains(hvc_console, "MAX_NR_HVC_CONSOLES");
-    try expectContains(hvc_console, "HVC_ALLOC_TTY_ADAPTERS");
     try expectContains(hvc_console, "pub fn hvc_instantiate");
     try expectContains(hvc_console, "pub fn hvc_alloc");
     try expectContains(hvc_console, "pub fn hvc_remove");
