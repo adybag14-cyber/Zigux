@@ -11,17 +11,25 @@ This document tracks the first bounded Phase 10 virtio-core starter under `drive
   - `drivers/virtio/virtio.zig`
   - `drivers/virtio/virtio_driver_id.zig`
   - `zigux/tests/phase10_virtio_core.zig`
+  - `zigux/tests/phase10_virtio_core_reset_queue.zig`
   - `zigux/tests/phase10_virtio_driver_id.zig`
+  - `zigux/tests/phase10_virtio_core_manifest.json`
+  - `zigux/tests/phase10_virtio_core_survey.zig`
   - `zigux/tests/phase10_build.zig`
   - `zigux/Makefile`
 - review surface:
   - `Documentation/zigux/phase10-virtio-core-slice.md`
+  - `Documentation/zigux/phase10-virtio-core-survey.md`
+  - `scripts/zigux/check-phase10-core-packet.py`
   - `zigux/tests/phase10_virtio_core.zig`
+  - `zigux/tests/phase10_virtio_core_reset_queue.zig`
   - `zigux/tests/phase10_virtio_driver_id.zig`
+  - `zigux/tests/phase10_virtio_core_manifest.json`
+  - `zigux/tests/phase10_virtio_core_survey.zig`
   - `zigux/tests/phase10_build.zig`
   - `zigux/Makefile`
 - current review note:
-  - current `master` carries no standalone `zigux/tests/phase10_virtio_core_manifest.json` or `zigux/tests/phase10_virtio_core_survey.zig`; reviewers should treat the core lane as a slice-note-plus-build-and-test packet until those files actually ship again
+  - current `master` again carries a standalone `zigux/tests/phase10_virtio_core_manifest.json`, `zigux/tests/phase10_virtio_core_survey.zig`, `Documentation/zigux/phase10-virtio-core-survey.md`, and `scripts/zigux/check-phase10-core-packet.py`; reviewers should treat the core lane as a manifest-backed survey packet plus build-and-test packet instead of a slice-note-only surface
 
 ## Why this slice exists
 
@@ -51,7 +59,7 @@ This lane started from an empty `drivers/virtio/*.zig` footing. The live repo no
 - reset handling that clears queue callback registrations along with negotiated feature state
 - a transport-acceptance toggle so the Phase 10 gate can model both successful `FEATURES_OK` handshakes and refusal paths
 - dedicated Phase 10 tests and build wiring for the starter slice
-- an intentionally compact review packet: the current core lane is reviewed through this slice note plus `phase10_virtio_core.zig`, `phase10_virtio_driver_id.zig`, `phase10_build.zig`, and `make -C zigux phase10`, not through a separate core manifest or survey gate
+- a restored manifest-backed review packet: the current core lane is reviewed through this slice note, the dedicated survey note and gate, the packet checker, `phase10_virtio_core.zig`, `phase10_virtio_core_reset_queue.zig`, `phase10_virtio_driver_id.zig`, `phase10_build.zig`, and `make -C zigux phase10`
 
 ## Roadmap Gap Snapshot
 
@@ -60,14 +68,12 @@ This lane started from an empty `drivers/virtio/*.zig` footing. The live repo no
   - core-side status sequencing and feature negotiation
   - bounded driver-name, queue callback, queue shape, config-generation, interrupt-ack, lifecycle guard, and reset replay bookkeeping for reviewable lab tests
   - bounded device-identity and driver-ID review surfaces for `register_virtio_device()`, `virtio_uevent()`, `virtio_id_match()`, and `virtio_dev_match()`
-  - core-side bookkeeping that now supports the separate `virtio_ring`, `virtio_input`, and `virtio_mmio` lab slices without claiming transport parity
+  - core-side governance that again keeps this packet machine-checkable through a manifest, survey gate, survey note, and dedicated checker
 - still intentionally missing:
   - real virtqueue wrappers from `virtio_ring.c`
   - real MMIO wrappers from `virtio_mmio.c`
   - dual implementations for risky transport-facing paths
   - probe, remove, and real device lifecycle wiring
-
-This keeps the Phase 10 core lane honest: the live Zigux slice now describes one queue's shape plus bounded driver-name, config-change, config-generation, interrupt-ack, lifecycle guard, reset replay, device-identity, and driver-ID paths in memory, and that core bookkeeping now feeds the separate `virtio_ring`, `virtio_input`, and `virtio_mmio` lab helpers without pretending transport-backed lifecycle behavior has already landed.
 
 ## Non-goals
 
@@ -80,12 +86,18 @@ This slice does not yet claim:
 
 ## Gates
 
-1. run the dedicated Phase 10 build
+1. run the dedicated core packet checker
+- `python3 scripts/zigux/check-phase10-core-packet.py`
+
+2. run the core survey gate
+- `zig test zigux/tests/phase10_virtio_core_survey.zig`
+
+3. run the dedicated Phase 10 build
 - `zig build test --build-file zigux/tests/phase10_build.zig`
 
-2. run the convenience target
+4. run the convenience target
 - `make -C zigux phase10`
 
 ## Next bounded step
 
-Leave the Phase 10 virtio core lane parked unless fresh repo inspection finds directly coupled drift in the slice note, `zigux/tests/phase10_virtio_core.zig`, `zigux/tests/phase10_virtio_driver_id.zig`, or the shared `phase10_build.zig` route. Any future same-family move should stay tightly bounded around this core-only review packet or a roadmap-backed transport-facing lifecycle study rather than widening into probe, remove, or MMIO glue work.
+Leave the Phase 10 virtio core lane parked unless fresh repo inspection finds directly coupled drift in the slice note, the restored survey packet, `zigux/tests/phase10_virtio_core.zig`, `zigux/tests/phase10_virtio_core_reset_queue.zig`, `zigux/tests/phase10_virtio_driver_id.zig`, or the shared `phase10_build.zig` route. Any future same-family move should stay tightly bounded around this core-only review packet rather than widening into probe, remove, or MMIO glue work.
