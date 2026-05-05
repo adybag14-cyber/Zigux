@@ -17,7 +17,6 @@ C_TOOL = ROOT / 'scripts' / 'mod' / 'mk_elfconfig.c'
 ZIG_TOOL = ROOT / 'scripts' / 'zigux' / 'mk_elfconfig.zig'
 FIXTURE_DIR = ROOT / 'zigux' / 'tests' / 'fixtures' / 'mk_elfconfig'
 CASES_PATH = FIXTURE_DIR / 'cases.json'
-CASES = json.loads(CASES_PATH.read_text(encoding='utf-8'))
 
 
 def run(cmd: list[str], **kwargs) -> subprocess.CompletedProcess[str]:
@@ -61,9 +60,13 @@ def read_hex_fixture(path: Path) -> bytes:
     return bytes.fromhex(text)
 
 
-def validate_cases(cases: object) -> list[dict[str, str]]:
+def load_cases(cases_path: Path) -> object:
+    return json.loads(cases_path.read_text(encoding='utf-8'))
+
+
+def validate_cases(cases_path: Path, fixture_dir: Path, cases: object) -> list[dict[str, str]]:
     if not isinstance(cases, list) or not cases:
-        raise ValueError(f'{CASES_PATH} must contain a non-empty JSON list')
+        raise ValueError(f'{cases_path} must contain a non-empty JSON list')
 
     validated: list[dict[str, str]] = []
     seen_names: set[str] = set()
@@ -73,26 +76,26 @@ def validate_cases(cases: object) -> list[dict[str, str]]:
 
     for index, raw_case in enumerate(cases):
         if not isinstance(raw_case, dict):
-            raise ValueError(f'{CASES_PATH} entry {index} must be a JSON object')
+            raise ValueError(f'{cases_path} entry {index} must be a JSON object')
 
         case: dict[str, str] = {}
         for field_name in required_fields:
             field_value = raw_case.get(field_name)
             if not isinstance(field_value, str) or not field_value:
-                raise ValueError(f'{CASES_PATH} entry {index} is missing non-empty {field_name!r}')
+                raise ValueError(f'{cases_path} entry {index} is missing non-empty {field_name!r}')
             case[field_name] = field_value
 
         if case['name'] in seen_names:
-            raise ValueError(f'{CASES_PATH} reuses case name {case["name"]!r}')
+            raise ValueError(f'{cases_path} reuses case name {case["name"]!r}')
         if case['input_hex'] in seen_inputs:
-            raise ValueError(f'{CASES_PATH} reuses input_hex {case["input_hex"]!r}')
+            raise ValueError(f'{cases_path} reuses input_hex {case["input_hex"]!r}')
         if case['expected'] in seen_expected:
-            raise ValueError(f'{CASES_PATH} reuses expected artifact {case["expected"]!r}')
+            raise ValueError(f'{cases_path} reuses expected artifact {case["expected"]!r}')
 
         for field_name in ('input_hex', 'expected'):
-            case_path = FIXTURE_DIR / case[field_name]
+            case_path = fixture_dir / case[field_name]
             if not case_path.exists():
-                raise FileNotFoundError(f'{CASES_PATH} references missing {field_name} file {case[field_name]!r}')
+                raise FileNotFoundError(f'{cases_path} references missing {field_name} file {case[field_name]!r}')
 
         seen_names.add(case['name'])
         seen_inputs.add(case['input_hex'])
@@ -176,16 +179,90 @@ def run_c_binary(exe: Path, data: bytes, out_path: Path) -> dict[str, object]:
     return result
 
 
+def write_text(path: Path, content: str) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(content, encoding='utf-8')
+
+
+def build_self_test_root(root: Path) -> tuple[Path, Path]:
+    fixture_dir = root / 'zigux' / 'tests' / 'fixtures' / 'mk_elfconfig'
+    cases_path = fixture_dir / 'cases.json'
+    write_text(fixture_dir / 'elf32.hex', '7f454c46\n')
+    write_text(fixture_dir / 'elf64.hex', '7f454c4602010100\n')
+    write_text(fixture_dir / 'elf32_expected.json', '{}\n')
+    write_text(fixture_dir / 'elf64_expected.json', '{}\n')
+    write_text(
+        cases_path,
+        json.dumps(
+            [
+                {'name': 'elf32', 'input_hex': 'elf32.hex', 'expected': 'elf32_expected.json'},
+                {'name': 'elf64', 'input_hex': 'elf64.hex', 'expected': 'elf64_expected.json'},
+            ],
+            indent=2,
+        )
+        + '\n',
+    )
+    return fixture_dir, cases_path
+
+
+def run_self_test() -> int:
+    with tempfile.TemporaryDirectory(prefix='zigux_mkelfconfig_selftest_') as tmp_dir_str:
+        root = Path(tmp_dir_str)
+        fixture_dir, cases_path = build_self_test_root(root)
+        assert validate_cases(cases_path, fixture_dir, load_cases(cases_path)) == [
+            {'name': 'elf32', 'input_hex': 'elf32.hex', 'expected': 'elf32_expected.json'},
+            {'name': 'elf64', 'input_hex': 'elf64.hex', 'expected': 'elf64_expected.json'},
+        ]
+
+        fixture_dir, cases_path = build_self_test_root(root)
+        duplicate_name_cases = load_cases(cases_path)
+        duplicate_name_cases[1]['name'] = 'elf32'
+        try:
+            validate_cases(cases_path, fixture_dir, duplicate_name_cases)
+        except ValueError as exc:
+            assert "reuses case name 'elf32'" in str(exc)
+        else:
+            raise AssertionError('expected duplicate-name validation failure')
+
+        fixture_dir, cases_path = build_self_test_root(root)
+        duplicate_expected_cases = load_cases(cases_path)
+        duplicate_expected_cases[1]['expected'] = 'elf32_expected.json'
+        try:
+            validate_cases(cases_path, fixture_dir, duplicate_expected_cases)
+        except ValueError as exc:
+            assert "reuses expected artifact 'elf32_expected.json'" in str(exc)
+        else:
+            raise AssertionError('expected duplicate-expected validation failure')
+
+        fixture_dir, cases_path = build_self_test_root(root)
+        missing_expected_cases = load_cases(cases_path)
+        (fixture_dir / 'elf64_expected.json').unlink()
+        try:
+            validate_cases(cases_path, fixture_dir, missing_expected_cases)
+        except FileNotFoundError as exc:
+            assert "references missing expected file 'elf64_expected.json'" in str(exc)
+        else:
+            raise AssertionError('expected missing-expected validation failure')
+
+    print('MK_ELFCONFIG_SELF_TEST=pass')
+    print('MK_ELFCONFIG_SELF_TEST_CASE_COUNT=4')
+    return 0
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description='Check bounded mk_elfconfig C/Zig artifact parity.')
     parser.add_argument('--refresh', action='store_true', help='Refresh committed expected outputs from current C behavior.')
     parser.add_argument('--cc', help='Explicit C compiler path to use.')
     parser.add_argument('--zig', help='Explicit zig executable path to use.')
+    parser.add_argument('--self-test', action='store_true', help='Run checkout-free validator coverage for mk_elfconfig fixture rules.')
     args = parser.parse_args()
+
+    if args.self_test:
+        return run_self_test()
 
     compiler = args.cc or os.environ.get('CC') or ('gcc' if os.name == 'nt' and shutil.which('wsl') else find_compiler(None))
     zig = find_zig(args.zig)
-    cases = validate_cases(CASES)
+    cases = validate_cases(CASES_PATH, FIXTURE_DIR, load_cases(CASES_PATH))
 
     with tempfile.TemporaryDirectory(prefix='zigux_mkelfconfig_') as tmp_dir_str:
         tmp_dir = Path(tmp_dir_str)
