@@ -18,7 +18,7 @@ REQUIRED_SNIPPETS = {
         "- `Documentation/zigux/phase6-bsearch-slice.md`",
         "- `Documentation/zigux/phase6-checksum-slice.md`",
         "- `Documentation/zigux/phase6-hexdump-slice.md`",
-        "- `zigux/tests/phase6_build.zig`, `zigux/tests/phase6_base64.zig`, `zigux/tests/phase6_bsearch.zig`, `zigux/tests/phase6_checksum.zig`, and `make -C zigux phase6` now keep the current base64, bsearch, checksum, and hexdump helper bundle reviewable through the shared surface checker, the bundled replay, and the Linux-style helper lane together, so new helper slices should only land when that shared packet stays green as one unit.",
+        "- `scripts/zigux/README.md`, `scripts/zigux/check-phase6-shared-surface.py`, `zigux/tests/phase6_build.zig`, `zigux/tests/phase6_base64.zig`, `zigux/tests/phase6_bsearch.zig`, `zigux/tests/phase6_checksum.zig`, `zigux/tests/phase6_hexdump.zig`, `zigux/tests/phase6_checksum_perf.zig`, `zigux/Makefile`, `make -C zigux phase6-validate`, `make -C zigux phase6`, and `make -C zigux phase6-checksum-perf` now keep the current base64, bsearch, checksum, and hexdump helper bundle reviewable through the shared surface checker, the bundled replay, the checksum-only perf gate, and the Linux-style helper lane together, so new helper slices should only land when that shared packet stays green as one unit.",
     ],
     "Documentation/zigux/phase6-base64-slice.md": [
         "- `zigux/tests/fixtures/phase6_base64_vectors.zig`",
@@ -92,7 +92,7 @@ REQUIRED_SNIPPETS = {
     "zigux/tests/phase6_bsearch.zig": [
         'test "phase 6 bsearch honors comparator-driven descending order" {',
         'test "phase 6 bsearch supports string keys against sorted records" {',
-        'test "phase 6 bsearch keeps representative lookup work inside a binary-search budget" {',
+        'test "phase 6 bsearch keeps representative work inside a binary-search budget" {',
         'test "phase 6 bsearch raw lookup returns null for empty input without invoking the comparator" {',
         'test "phase 6 bsearch raw lookup keeps representative work inside a binary-search budget" {',
         'test "phase 6 bsearch accepts runtime-selected native comparator pointers" {',
@@ -518,7 +518,7 @@ def run_self_test() -> None:
             if "zigux/tests/phase6_hexdump.zig" not in str(exc):
                 raise AssertionError(f"unexpected hexdump parity failure: {exc}") from exc
         else:
-            raise AssertionError("expected hexdump parity failure")
+            raise AssertionError("expected hexdump test failure")
         hexdump_test.write_text(original_hexdump_test, encoding="utf-8")
 
         hexdump_vectors = root / "zigux/tests/fixtures/phase6_hexdump_vectors.zig"
