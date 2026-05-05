@@ -13,8 +13,6 @@ This note records the bounded Phase 2 bootstrap archive-pin contract.
 - tests-root alignment gate: `python3 scripts/zigux/check-phase2-tests-readme-alignment.py`
 - shared validator gate: `python3 scripts/zigux/validate-phase2.py`
 - closure validator gate: `python3 scripts/zigux/validate-phase2-closure.py`
-- Linux-style validator entrypoint: `make -C zigux phase2-validate`
-- Linux-style tranche entrypoint: `make -C zigux phase2`
 - closure note: `Documentation/zigux/phase2-closure.md`
 - docs-root summary: `Documentation/zigux/README.md`
 - shared review checklist: `Documentation/zigux/review-checklist.md`
@@ -27,7 +25,7 @@ This note records the bounded Phase 2 bootstrap archive-pin contract.
 - the archive pin must stay limited to `x86_64-linux` until a new bootstrap runner target gains first-class workflow evidence
 - the three-target compile matrix in `zigux/tests/fixtures/phase2_cross_targets.json` stays separate from the `x86_64-linux` bootstrap archive pin
 - `python3 scripts/zigux/check-phase2-cross-selftest-alignment.py --self-test` and `python3 scripts/zigux/check-phase2-cross-selftest-alignment.py` keep `Documentation/zigux/README.md`, `zigux/tests/fixtures/phase2_cross_targets.json`, `scripts/zigux/validate-phase2.py`, `scripts/zigux/validate-phase2-closure.py`, `zigux/Makefile`, and `.github/workflows/zigux-bootstrap.yml` aligned around that three-target compile matrix without broadening the pinned bootstrap archive beyond `x86_64-linux`
-- `python3 scripts/zigux/check-phase2-tests-readme-alignment.py --self-test` and `python3 scripts/zigux/check-phase2-tests-readme-alignment.py` keep `zigux/tests/README.md`, `Documentation/zigux/phase2-toolchain-bootstrap-notes.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, `scripts/zigux/validate-phase2.py`, `scripts/zigux/validate-phase2-closure.py`, `zigux/Makefile`, and `.github/workflows/zigux-bootstrap.yml` aligned around the same three-target compile matrix, validator pair, and Linux-style Phase 2 replay surface
+- `python3 scripts/zigux/check-phase2-tests-readme-alignment.py --self-test` and `python3 scripts/zigux/check-phase2-tests-readme-alignment.py` keep `zigux/tests/README.md`, `Documentation/zigux/phase2-toolchain-bootstrap-notes.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, `scripts/zigux/validate-phase2.py`, `scripts/zigux/validate-phase2-closure.py`, `zigux/Makefile`, and `.github/workflows/zigux-bootstrap.yml` aligned around the same three-target compile matrix, validator pair, and Linux-style `make -C zigux phase2-validate` plus `make -C zigux phase2` replay surface
 - `python3 scripts/zigux/validate-phase2.py` now runs `python3 scripts/zigux/check-phase2-tests-readme-alignment.py` before the toolchain pin-scope guard, so tests-root compile-matrix drift fails inside the shared validator route instead of relying on review-only notice
 - the shared and closure validators above, together with `Documentation/zigux/review-checklist.md`, are the fail-closed route that keeps this note in the bounded Phase 2 toolchain tranche instead of leaving it as stand-alone reference text
 - the Linux-style validator and tranche entrypoints keep the dedicated note tied to the same kbuild-facing replay surface named by the shared validators, the closure note, and the shared review checklist
