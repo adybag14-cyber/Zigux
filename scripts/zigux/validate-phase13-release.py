@@ -85,6 +85,24 @@ PHASE13_BUILD_EXACT_COUNTS = {
     "test_step.dependOn(&run_phase13_": 5,
 }
 
+PHASE13_BUILD_REQUIRED_MARKERS = [
+    'const phase13_libfs_tests = b.addTest(.{',
+    '.name = "phase13-libfs-tests"',
+    "const run_phase13_libfs_tests = b.addRunArtifact(phase13_libfs_tests);",
+    'const phase13_devres_tests = b.addTest(.{',
+    '.name = "phase13-devres-tests"',
+    "const run_phase13_devres_tests = b.addRunArtifact(phase13_devres_tests);",
+    'const phase13_landlock_ruleset_tests = b.addTest(.{',
+    '.name = "phase13-landlock-ruleset-tests"',
+    "const run_phase13_landlock_ruleset_tests = b.addRunArtifact(phase13_landlock_ruleset_tests);",
+    'const phase13_landlock_syscalls_tests = b.addTest(.{',
+    '.name = "phase13-landlock-syscalls-tests"',
+    "const run_phase13_landlock_syscalls_tests = b.addRunArtifact(phase13_landlock_syscalls_tests);",
+    'const phase13_libfs_reviewability_tests = b.addTest(.{',
+    '.name = "phase13-libfs-reviewability-tests"',
+    "const run_phase13_libfs_reviewability_tests = b.addRunArtifact(phase13_libfs_reviewability_tests);",
+]
+
 MAKE_REQUIRED_LINES = [
     "phase13-validate:",
     "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase13-release.py",
@@ -139,6 +157,7 @@ def validate(root: Path) -> list[str]:
     issues.extend(_collect_missing_markers(scripts_readme, SCRIPTS_REQUIRED_MARKERS, "scripts-readme"))
     issues.extend(_collect_missing_markers(makefile, MAKE_REQUIRED_LINES, "makefile"))
     issues.extend(_collect_exact_count_issues(phase13_build, PHASE13_BUILD_EXACT_COUNTS, "phase13-build"))
+    issues.extend(_collect_missing_markers(phase13_build, PHASE13_BUILD_REQUIRED_MARKERS, "phase13-build-marker"))
     for forbidden in MAKE_FORBIDDEN_LINES:
         if forbidden in makefile:
             issues.append(f"makefile:forbidden_route:{forbidden}")
@@ -165,15 +184,25 @@ def _baseline_phase13_build() -> str:
     return "\n".join(
         (
             "const phase13_libfs_tests = b.addTest(.{",
+            '.name = "phase13-libfs-tests",',
             "});",
+            "const run_phase13_libfs_tests = b.addRunArtifact(phase13_libfs_tests);",
             "const phase13_devres_tests = b.addTest(.{",
+            '.name = "phase13-devres-tests",',
             "});",
+            "const run_phase13_devres_tests = b.addRunArtifact(phase13_devres_tests);",
             "const phase13_landlock_ruleset_tests = b.addTest(.{",
+            '.name = "phase13-landlock-ruleset-tests",',
             "});",
+            "const run_phase13_landlock_ruleset_tests = b.addRunArtifact(phase13_landlock_ruleset_tests);",
             "const phase13_landlock_syscalls_tests = b.addTest(.{",
+            '.name = "phase13-landlock-syscalls-tests",',
             "});",
+            "const run_phase13_landlock_syscalls_tests = b.addRunArtifact(phase13_landlock_syscalls_tests);",
             "const phase13_libfs_reviewability_tests = b.addTest(.{",
+            '.name = "phase13-libfs-reviewability-tests",',
             "});",
+            "const run_phase13_libfs_reviewability_tests = b.addRunArtifact(phase13_libfs_reviewability_tests);",
             "test_step.dependOn(&run_phase13_libfs_tests.step);",
             "test_step.dependOn(&run_phase13_devres_tests.step);",
             "test_step.dependOn(&run_phase13_landlock_ruleset_tests.step);",
@@ -331,6 +360,7 @@ def run_self_test() -> int:
         _write(root / "zigux/tests/phase13_build.zig", _baseline_phase13_build())
         case_count += 1
 
+        phase13_build_path.writeText = None
         phase13_build_path.write_text(
             _baseline_phase13_build() + "test_step.dependOn(&run_phase13_extra_tests.step);\n",
             encoding="utf-8",
@@ -339,6 +369,23 @@ def run_self_test() -> int:
             validate(root),
             ["phase13-build:test_step.dependOn(&run_phase13_:expected=5:actual=6"],
             "phase13_build_dependency_count_guard_failed",
+        )
+        _write(root / "zigux/tests/phase13_build.zig", _baseline_phase13_build())
+        case_count += 1
+
+        phase13_build_path.write_text(
+            _baseline_phase13_build().replace(
+                'const run_phase13_libfs_reviewability_tests = b.addRunArtifact(phase13_libfs_reviewability_tests);\n',
+                "",
+            ),
+            encoding="utf-8",
+        )
+        _assert_only(
+            validate(root),
+            [
+                "phase13-build-marker:const run_phase13_libfs_reviewability_tests = b.addRunArtifact(phase13_libfs_reviewability_tests);",
+            ],
+            "phase13_build_named_run_artifact_guard_failed",
         )
         _write(root / "zigux/tests/phase13_build.zig", _baseline_phase13_build())
         case_count += 1
@@ -398,7 +445,7 @@ def main() -> int:
     print("PHASE13_RELEASE_VALIDATION=pass")
     print(
         "PHASE13_RELEASE_VALIDATION_MARKER_COUNT="
-        f"{len(REQUIRED_FILES) + len(DOC_REQUIRED_MARKERS) + len(REVIEW_REQUIRED_MARKERS) + len(SCRIPTS_REQUIRED_MARKERS) + len(MAKE_REQUIRED_LINES) + len(PHASE13_BUILD_EXACT_COUNTS)}"
+        f"{len(REQUIRED_FILES) + len(DOC_REQUIRED_MARKERS) + len(REVIEW_REQUIRED_MARKERS) + len(SCRIPTS_REQUIRED_MARKERS) + len(MAKE_REQUIRED_LINES) + len(PHASE13_BUILD_EXACT_COUNTS) + len(PHASE13_BUILD_REQUIRED_MARKERS)}"
     )
     return 0
 
