@@ -28,15 +28,16 @@ Phase 6 is where Zigux can start proving low-risk in-kernel helper ports without
 
 ## Gates
 
-1. run the focused Zig checksum tests
+1. run the shared Phase 6 leaf-helper replay
 - `zig build test --build-file zigux/tests/phase6_build.zig`
+- `make -C zigux phase6`
 
-2. run the focused checksum perf gate when the math-sensitive lane reopens
+2. run the dedicated checksum perf gate when the math-sensitive lane reopens
 - `zig build phase6-checksum-perf --build-file zigux/tests/phase6_build.zig -Doptimize=ReleaseSafe`
 - `make -C zigux phase6-checksum-perf`
 
-3. keep the helper wired through the Zigux convenience target
-- `make -C zigux phase6`
+3. keep the shared Phase 6 surface checker aligned with this slice
+- `make -C zigux phase6-validate`
 
 ## Current parity surface
 
