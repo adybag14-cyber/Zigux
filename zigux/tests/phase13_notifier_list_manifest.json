@@ -1,0 +1,87 @@
+{
+  "lane_key": "P13-L13",
+  "phase": "Phase 13",
+  "surveyed_commit": "master-reviewability",
+  "anchors": [
+    "include/linux/list.h",
+    "include/linux/notifier.h",
+    "include/zigux/abi.h"
+  ],
+  "roadmap_scope": "Phase 13 shared helper reviewability evidence only; this notifier/list packet stays roadmap-adjacent and must not widen the named libfs, devres, or Landlock delivery anchors.",
+  "survey_summary": {
+    "preexisting_phase13_build_present": true,
+    "preexisting_notifier_binding_present": true,
+    "preexisting_list_view_present": true,
+    "preexisting_hlist_view_present": true,
+    "preexisting_exported_list_abi_present": true,
+    "preexisting_notifier_helper_present": false,
+    "preexisting_exported_notifier_abi_present": false,
+    "preexisting_phase13_notifier_reviewability_present": true,
+    "preexisting_phase13_notifier_survey_note_present": true
+  },
+  "gaps": [
+    {
+      "id": "phase13-build-adjacent-release-surface",
+      "status": "starter_landed",
+      "kind": "reviewability",
+      "zigux_destination": "zigux/tests/phase13_build.zig",
+      "why_now": "Current master keeps notifier/list evidence adjacent to the shared Phase 13 release replay instead of folding it into the six-test bundle."
+    },
+    {
+      "id": "phase13-notifier-binding-surface",
+      "status": "starter_landed",
+      "kind": "binding",
+      "zigux_destination": "zigux/bindings/notifier_abi.zig",
+      "why_now": "The repo already exposes a bounded read-only notifier ABI shape in Zig and the survey should make that foothold explicit."
+    },
+    {
+      "id": "phase13-list-view-helper-surface",
+      "status": "starter_landed",
+      "kind": "helper",
+      "zigux_destination": "zigux/helpers/list_view.zig",
+      "why_now": "The existing list helper is the concrete live list-side foothold that this adjacent packet must keep reviewable."
+    },
+    {
+      "id": "phase13-hlist-view-helper-surface",
+      "status": "starter_landed",
+      "kind": "helper",
+      "zigux_destination": "zigux/helpers/hlist_view.zig",
+      "why_now": "The existing hlist helper is part of the same bounded list-surface packet and should be tracked alongside the list helper."
+    },
+    {
+      "id": "phase13-exported-list-abi-surface",
+      "status": "starter_landed",
+      "kind": "header",
+      "zigux_destination": "include/zigux/abi.h",
+      "why_now": "The exported C ABI currently covers list and hlist carriers only, which is an important part of the current interop boundary."
+    },
+    {
+      "id": "phase13-notifier-reviewability-gate",
+      "status": "starter_landed",
+      "kind": "validation",
+      "zigux_destination": "zigux/tests/phase13_notifier_list_reviewability.zig",
+      "why_now": "A focused replay is the smallest honest way to keep the binding-only notifier foothold and list-surface posture reviewable."
+    },
+    {
+      "id": "phase13-notifier-survey-note",
+      "status": "starter_landed",
+      "kind": "documentation",
+      "zigux_destination": "Documentation/zigux/phase13-notifier-list-survey.md",
+      "why_now": "The docs tree needs an explicit note that matches the live binding-only notifier and list-helper state instead of implying extra missing packet members."
+    },
+    {
+      "id": "phase13-notifier-helper-gap",
+      "status": "ready_next",
+      "kind": "helper",
+      "zigux_destination": "zigux/helpers/notifier_chain_view.zig",
+      "why_now": "The next same-lane product step would be a read-only notifier-chain helper rather than callback or registration behavior."
+    },
+    {
+      "id": "phase13-exported-notifier-c-header-gap",
+      "status": "ready_next",
+      "kind": "header",
+      "zigux_destination": "include/zigux/notifier_abi.h",
+      "why_now": "The current exported C side still lacks a dedicated notifier header even though the Zig binding foothold exists."
+    }
+  ]
+}
