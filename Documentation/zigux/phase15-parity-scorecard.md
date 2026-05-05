@@ -237,10 +237,14 @@ This scorecard slice does not claim:
 
 ## Gates
 
-1. run the dedicated Phase 15 build
+1. run the shared validator-first gate
+- `python3 scripts/zigux/validate-phase15.py`
+- `make -C zigux phase15-validate`
+
+2. run the dedicated Phase 15 build
 - `zig build test --build-file zigux/tests/phase15_build.zig`
 
-2. run the convenience target
+3. run the convenience target
 - `make -C zigux phase15`
 
 ## Next bounded step
