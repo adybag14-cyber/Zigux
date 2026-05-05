@@ -9,7 +9,7 @@ PHONY += phase10-test phase10
 PHONY += phase11-test phase11
 PHONY += phase12-test phase12
 PHONY += phase13-test phase13
-PHONY += phase14-test phase14
+PHONY += phase14-validate phase14-smoke phase14-test phase14
 PHONY += phase15-test phase15
 
 PYTHON ?= python3
@@ -110,10 +110,20 @@ phase13-test:
 
 phase13: phase13-test
 
+phase14-validate:
+	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase14-docs-root-smoke-summary.py --self-test
+	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase14-docs-root-smoke-summary.py
+	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase14-release-boundary-exact-counts.py --self-test
+	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase14-release-boundary-exact-counts.py
+	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase14.py
+
+phase14-smoke:
+	cd $(ZIGUX_ROOT) && $(ZIG) build phase14-smoke --build-file zigux/tests/phase14_build.zig --summary all
+
 phase14-test:
 	cd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase14_build.zig
 
-phase14: phase14-test
+phase14: phase14-validate phase14-smoke phase14-test
 
 phase15-test:
 	cd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase15_build.zig
