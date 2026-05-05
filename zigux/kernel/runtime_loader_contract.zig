@@ -113,6 +113,21 @@ test "shared runtime loader contract keeps allocator and init flow explicit acro
             },
         },
         .{
+            .module_name = "runtime_trace_events",
+            .anchor = "samples/trace_events/trace-events-sample.c",
+            .entry_symbol = "zigux_runtime_trace_events_init",
+            .exit_symbol = "zigux_runtime_trace_events_exit",
+            .requires_runtime_substrate = true,
+            .provides_selftest_hook = true,
+            .allocator_handoff = .caller_provided,
+            .init_flow = .{
+                .handoff_stage = .selftest_complete,
+                .init_runs = 1,
+                .selftest_runs = 1,
+                .exit_runs = 0,
+            },
+        },
+        .{
             .module_name = "runtime_kretprobe",
             .anchor = "samples/kprobes/kretprobe_example.c",
             .entry_symbol = "zigux_runtime_kretprobe_init",
