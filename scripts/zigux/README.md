@@ -78,8 +78,8 @@ Phase 3 flow
 - `phase3_check_lib.py` holds the shared Phase 3 parity execution logic used by every wrapper and the shared runner.
 
 Phase 4 flow
-- `validate-phase4.py` checks that the bounded Phase 4 differential gates, their shared `zigux/tests/phase4_build.zig` entrypoint, and the directly coupled documentation and workflow markers stay aligned.
-- `zigux/tests/phase4_build.zig` runs the live `runtime_atomic64_diff.zig` and `bitmap_diff.zig` rollback-readiness gates together instead of letting one of them drift out of the regular validation path.
+- `validate-phase4.py` checks that the bounded Phase 4 differential gates, the canonical `zigux/tests/atomic64_diff.zig` wrapper, their shared `zigux/tests/phase4_build.zig` entrypoint, and the directly coupled documentation and workflow markers stay aligned.
+- `zigux/tests/phase4_build.zig` runs the live `zigux/tests/atomic64_diff.zig` wrapper and `zigux/tests/bitmap_diff.zig` rollback-readiness gates together, while the wrapper keeps `zigux/tests/runtime_atomic64_diff.zig` as the single shared runtime-backed replay body that Phase 9 still imports directly.
 - `Documentation/zigux/phase4-validation-matrix.md` keeps the current rollback owners, threshold posture, and lab or CI replay matrix explicit for the shipped Phase 4 gates.
 
 Phase 6 flow
