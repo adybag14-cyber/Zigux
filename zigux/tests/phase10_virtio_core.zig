@@ -109,6 +109,47 @@ test "phase10 virtio core rejects feature bits outside the bounded lab capacity"
     try std.testing.expectError(error.FeatureBitOutOfRange, device.hasNegotiatedFeature(virtio_core.feature_bit_capacity));
 }
 
+test "phase10 virtio core keeps bounded driver-name bookkeeping" {
+    var device = try virtio_core.VirtioCoreLabDevice.init(&.{ 5, 12 });
+
+    device.acknowledge();
+    try device.attachDriverNamed("virtio_input_lab");
+
+    var summary = device.driverBindingSummary();
+    try std.testing.expectEqualStrings("drivers/virtio/virtio.c", summary.anchor);
+    try std.testing.expectEqualStrings("virtio_input_lab", summary.driver_name);
+    try std.testing.expect(summary.driver_attached);
+    try std.testing.expect(!summary.features_negotiated);
+    try std.testing.expect(!summary.driver_ready);
+
+    try device.offerDriverFeature(12);
+    _ = try device.finalizeFeatures();
+    try device.markDriverReady();
+
+    summary = device.driverBindingSummary();
+    try std.testing.expect(summary.features_negotiated);
+    try std.testing.expect(summary.driver_ready);
+
+    device.reset();
+    summary = device.driverBindingSummary();
+    try std.testing.expectEqualStrings("", summary.driver_name);
+    try std.testing.expect(!summary.driver_attached);
+    try std.testing.expect(!summary.features_negotiated);
+    try std.testing.expect(!summary.driver_ready);
+}
+
+test "phase10 virtio core rejects empty driver names and keeps the anonymous fallback for plain attachDriver" {
+    var device = try virtio_core.VirtioCoreLabDevice.init(&.{ 6, 13 });
+
+    device.acknowledge();
+    try std.testing.expectError(error.EmptyDriverName, device.attachDriverNamed(""));
+    try device.attachDriver();
+
+    const summary = device.driverBindingSummary();
+    try std.testing.expectEqualStrings(virtio_core.default_driver_name, summary.driver_name);
+    try std.testing.expect(summary.driver_attached);
+}
+
 test "phase10 virtio core tracks queue callback bookkeeping after features negotiation" {
     var device = try virtio_core.VirtioCoreLabDevice.init(&.{ 1, 6 });
 
