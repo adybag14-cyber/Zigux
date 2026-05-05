@@ -100,6 +100,7 @@ pub const RecoverySummary = struct {
 
 pub const RecoveryReplayRequest = struct {
     cached_prp_metadata_generation: u32,
+    had_prp_metadata_plan: bool,
     had_admin_queue_plan: bool,
 };
 
@@ -246,7 +247,6 @@ pub const NvmePciQueueLab = struct {
         const prp_list_pages: u16 = if (shape.uses_prp_list) 1 else 0;
         const metadata_dma_bytes = try checkedMulU16ByU32(prp_list_pages, self.page_size);
         const total_dma_bytes = try checkedAddU32(shape.rounded_span_bytes, metadata_dma_bytes);
-
         return .{
             .anchor = shape.anchor,
             .total_transfer_bytes = shape.total_transfer_bytes,
@@ -302,7 +302,8 @@ pub const NvmePciQueueLab = struct {
             .state = self.recovery_state,
             .reset_generation = self.reset_generation,
             .queue_planning_blocked = self.recovery_state != .running,
-            .cached_prp_metadata_stale = request.cached_prp_metadata_generation != self.reset_generation,
+            .cached_prp_metadata_stale = request.had_prp_metadata_plan and
+                request.cached_prp_metadata_generation != self.reset_generation,
             .admin_queue_must_be_replanned = request.had_admin_queue_plan and self.reset_generation != 0,
             .io_queues_must_be_rebuilt = io_queues_dropped_by_reset != 0 and self.reset_generation != 0,
             .io_queues_dropped_by_reset = io_queues_dropped_by_reset,
