@@ -40,12 +40,14 @@ For the active virtio contributor packet, confirm wording still matches:
 ## Phase 11 anchors
 
 For the active simple-driver contributor packet, confirm wording still matches:
-- `Documentation/zigux/phase11-shared-replay-contract.md`
-- `zigux/tests/fixtures/phase11_build_inventory.json`
-- `scripts/zigux/check-phase11-build-inventory.py`
-- `scripts/zigux/check-phase11-shared-replay-contract.py`
-- `scripts/zigux/check-phase11-header-boundary-packet.py`
+- `Documentation/zigux/README.md`
+- `zigux/tests/README.md`
+- `Documentation/zigux/review-checklist.md`
+- `Documentation/zigux/phase11-bcm2835-wdt-validation-matrix.md`
+- `Documentation/zigux/phase11-hvc-console-validation-matrix.md`
+- `zigux/tests/phase11_build.zig`
 - `zigux/tests/phase11_hvc_console_survey.zig`
+- `zigux/Makefile`
 
 ## Phase 13 anchors
 
