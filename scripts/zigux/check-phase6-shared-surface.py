@@ -68,7 +68,7 @@ REQUIRED_SNIPPETS = {
         "- keep the shared Phase 6 leaf-helper packet wired through `zigux/tests/phase6_build.zig`, including `zigux/tests/phase6_base64.zig`, `zigux/tests/phase6_bsearch.zig`, `zigux/tests/phase6_checksum.zig`, and `zigux/tests/phase6_hexdump.zig`, so the landed `base64`, `bsearch`, `checksum`, and `hexdump` bundle stays reviewable through one bounded helper gate, and keep `zigux/tests/phase6_checksum_perf.zig` plus `make -C zigux phase6-checksum-perf` explicit as the dedicated checksum-only perf route rather than implying a broader Phase 6 packet-wide perf target",
     ],
     "Documentation/zigux/review-checklist.md": [
-        "- if the change touches the shared Phase 6 leaf-helper packet, do `Documentation/zigux/README.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, `Documentation/zigux/phase6-base64-slice.md`, `Documentation/zigux/phase6-bsearch-slice.md`, `Documentation/zigux/phase6-checksum-slice.md`, `Documentation/zigux/phase6-hexdump-slice.md`, `zigux/tests/phase6_build.zig`, `zigux/tests/phase6_base64.zig`, `zigux/tests/phase6_bsearch.zig`, `zigux/tests/phase6_checksum.zig`, `zigux/tests/phase6_hexdump.zig`, `zigux/Makefile`, and `make -C zigux phase6` still agree on the same bundled `base64`, `bsearch`, `checksum`, and `hexdump` helper packet without implying a removed shared `validate-phase6.py`, external parity checker, or `phase6-perf` route?",
+        "- if the change touches the shared Phase 6 leaf-helper packet, do `Documentation/zigux/README.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, `Documentation/zigux/phase6-base64-slice.md`, `Documentation/zigux/phase6-bsearch-slice.md`, `Documentation/zigux/phase6-checksum-slice.md`, `Documentation/zigux/phase6-hexdump-slice.md`, `scripts/zigux/check-phase6-shared-surface.py`, `zigux/tests/phase6_build.zig`, `zigux/tests/phase6_base64.zig`, `zigux/tests/phase6_bsearch.zig`, `zigux/tests/phase6_checksum.zig`, `zigux/tests/phase6_hexdump.zig`, `zigux/Makefile`, and `make -C zigux phase6` still agree on the same bundled `base64`, `bsearch`, `checksum`, and `hexdump` helper packet without implying a removed shared `validate-phase6.py`, external parity checker, or `phase6-perf` route?",
     ],
     "zigux/tests/phase6_build.zig": [
         'const test_step = b.step("test", "Run Phase 6 leaf helper tests");',
@@ -109,8 +109,16 @@ REQUIRED_SNIPPETS = {
         'test "incremental checksum replacement helpers match direct recomputation" {',
     ],
     "zigux/tests/phase6_hexdump.zig": [
+        'test "phase 6 hexdump serialized linux-derived vectors stay in sync" {',
+        'try std.testing.expectEqual(@as(usize, 10), fixtures.parity_cases.len);',
+        'test "phase 6 hexdump serialized overflow vectors stay in sync" {',
+        'test "phase 6 hexdump serialized required-length vectors stay in sync" {',
+        'try std.testing.expectEqual(@as(usize, 9), fixtures.length_cases.len);',
         'test "phase 6 hexdump perf fixture packet stays in sync" {',
         'try std.testing.expectEqual(@as(usize, 4), fixtures.perf_cases.len);',
+        'test "phase 6 hexdump uppercase nibble helpers stay aligned with byte packing" {',
+        'test "phase 6 hexdump parity matrix matches kernel fixture preparation" {',
+        'test "phase 6 hexdump overflow contract matches truncation expectations" {',
         'test "phase 6 hexdump grouped ASCII output stays intact when buffer capacity is exact" {',
         'test "phase 6 hexdump covers normalization and empty-buffer edge cases" {',
     ],
@@ -454,6 +462,22 @@ def run_self_test() -> None:
                 raise AssertionError(f"unexpected hexdump test failure: {exc}") from exc
         else:
             raise AssertionError("expected hexdump test failure")
+        hexdump_test.write_text(original_hexdump_test, encoding="utf-8")
+
+        hexdump_test.write_text(
+            original_hexdump_test.replace(
+                'try std.testing.expectEqual(@as(usize, 10), fixtures.parity_cases.len);',
+                'try std.testing.expectEqual(@as(usize, 11), fixtures.parity_cases.len);',
+            ),
+            encoding="utf-8",
+        )
+        try:
+            run_checks(root)
+        except ValidationError as exc:
+            if "zigux/tests/phase6_hexdump.zig" not in str(exc):
+                raise AssertionError(f"unexpected hexdump parity failure: {exc}") from exc
+        else:
+            raise AssertionError("expected hexdump parity failure")
 
     print("self-test passed")
 
