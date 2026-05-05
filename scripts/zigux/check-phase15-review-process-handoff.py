@@ -61,6 +61,7 @@ REQUIRED_REVIEW_CHECKLIST_MARKERS = [
     "scripts/zigux/check-phase15-review-process-handoff.py",
     "zigux/tests/phase15_freeze_map_governance.zig",
     "zigux/tests/phase15_parity_scorecard.zig",
+    "zigux/tests/phase15_architecture_council_review_process.zig",
     "zigux/tests/phase15_indefinite_c_policy.json",
     "zigux/tests/phase15_indefinite_c_policy.zig",
     "zigux/tests/phase15_build.zig",
@@ -233,7 +234,7 @@ Phase 15 notes
 
     review_checklist = """# Zigux Review Checklist
 
-- if the change touches the shared Phase 15 governance packet, do `Documentation/zigux/freeze-map.md`, `Documentation/zigux/phase15-freeze-map-governance.md`, `Documentation/zigux/phase15-architecture-council-review-process.md`, `Documentation/zigux/phase15-parity-scorecard.md`, `Documentation/zigux/phase15-indefinite-c-policy.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/check-phase15-review-process-handoff.py`, `zigux/tests/phase15_freeze_map_governance.zig`, `zigux/tests/phase15_parity_scorecard.zig`, `zigux/tests/phase15_indefinite_c_policy.json`, `zigux/tests/phase15_indefinite_c_policy.zig`, `zigux/tests/phase15_build.zig`, and `make -C zigux phase15` still agree on the same parked governance packet?
+- if the change touches the shared Phase 15 governance packet, do `Documentation/zigux/freeze-map.md`, `Documentation/zigux/phase15-freeze-map-governance.md`, `Documentation/zigux/phase15-architecture-council-review-process.md`, `Documentation/zigux/phase15-parity-scorecard.md`, `Documentation/zigux/phase15-indefinite-c-policy.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/check-phase15-review-process-handoff.py`, `zigux/tests/phase15_freeze_map_governance.zig`, `zigux/tests/phase15_parity_scorecard.zig`, `zigux/tests/phase15_architecture_council_review_process.zig`, `zigux/tests/phase15_indefinite_c_policy.json`, `zigux/tests/phase15_indefinite_c_policy.zig`, `zigux/tests/phase15_build.zig`, and `make -C zigux phase15` still agree on the same parked governance packet?
 """
     (root / REVIEW_CHECKLIST_PATH).write_text(review_checklist, encoding="utf-8")
 
@@ -263,6 +264,7 @@ Phase 15 notes
             ),
         },
     }
+    (root / MANIFEST_PATH).parent.mkdir(parents=True, exist_ok=True)
     (root / MANIFEST_PATH).write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
 
     script_readme = """# scripts/zigux
@@ -392,13 +394,17 @@ def run_self_test() -> int:
         review_checklist_path = tmp_root / REVIEW_CHECKLIST_PATH
         review_checklist = review_checklist_path.read_text(encoding="utf-8")
         review_checklist_path.write_text(
-            review_checklist.replace("`zigux/tests/phase15_parity_scorecard.zig`, ", "", 1),
+            review_checklist.replace(
+                "`zigux/tests/phase15_architecture_council_review_process.zig`, ",
+                "",
+                1,
+            ),
             encoding="utf-8",
         )
         expect_failure(
             tmp_root,
-            "review_checklist:zigux/tests/phase15_parity_scorecard.zig",
-            "missing_review_checklist_phase15_marker",
+            "review_checklist:zigux/tests/phase15_architecture_council_review_process.zig",
+            "missing_review_checklist_review_process_test_marker",
         )
 
         write_fixture_tree(tmp_root)
