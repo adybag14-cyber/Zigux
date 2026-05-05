@@ -535,11 +535,23 @@ def run_self_test() -> None:
         assert collect_exact_count_markers(valid_tests_readme, required_tests_readme_markers) == []
         missing_tests_markers = collect_exact_count_markers("", required_tests_readme_markers)
         assert "tests_readme_phase1_packet:expected=1:actual=0" in missing_tests_markers
+        duplicate_tests_readme = valid_tests_readme + valid_tests_readme
+        duplicate_tests_markers = collect_exact_count_markers(
+            duplicate_tests_readme,
+            required_tests_readme_markers,
+        )
+        assert "tests_readme_phase1_packet:expected=1:actual=2" in duplicate_tests_markers
 
         valid_review_checklist = render_marker_fixture(required_review_checklist_markers)
         assert collect_exact_count_markers(valid_review_checklist, required_review_checklist_markers) == []
         missing_review_checklist_markers = collect_exact_count_markers("", required_review_checklist_markers)
         assert "review_checklist_phase1_packet:expected=1:actual=0" in missing_review_checklist_markers
+        duplicate_review_checklist = valid_review_checklist + valid_review_checklist
+        duplicate_review_checklist_markers = collect_exact_count_markers(
+            duplicate_review_checklist,
+            required_review_checklist_markers,
+        )
+        assert "review_checklist_phase1_packet:expected=1:actual=2" in duplicate_review_checklist_markers
 
         valid_ledger = render_marker_fixture(required_ledger_markers)
         assert collect_exact_count_markers(valid_ledger, required_ledger_markers) == []
@@ -579,7 +591,7 @@ def run_self_test() -> None:
         assert collect_missing_files(repo_root_from_arg(str(tmp_root))) == [required_phase1_parity]
 
     print("PHASE1_CLOSURE_VALIDATOR_SELF_TEST=pass")
-    print("PHASE1_CLOSURE_VALIDATOR_SELF_TEST_CASE_COUNT=35")
+    print("PHASE1_CLOSURE_VALIDATOR_SELF_TEST_CASE_COUNT=37")
 
 
 def main() -> int:
