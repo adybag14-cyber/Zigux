@@ -24,6 +24,13 @@ That starter is real progress, but it is still only a narrow queue planner plus 
 
 This survey keeps that difference explicit so the lane does not overclaim production-driver progress.
 
+## Roadmap comparison
+
+- segmented rollout: landed in bounded form through the starter, dedicated replay, survey gate, shared Phase 12 build wiring, and the make-target entry point
+- queueing correctness: landed only as a narrow lab foothold around queue geometry, DMA page rounding, doorbell math, PRP span shaping, and reset-time queue freeze behavior
+- DMA-safe abstractions: still blocked because live PRP or SGL mapping, Host Memory Buffer policy, and transport-safe PCI queue bring-up are outside the current starter
+- throughput and recovery parity: still blocked because blk-mq request flow, IRQ-driven completion polling, timeout recovery plumbing, and suspend or resume parity are all still absent
+
 ## Survey findings
 
 - `drivers/nvme/host/pci.c` is present on `master` and remains a high-risk complex-driver anchor whose live behavior stretches far beyond the current Zigux starter.
@@ -31,7 +38,7 @@ This survey keeps that difference explicit so the lane does not overclaim produc
 - the broader Phase 12 tranche is now further along than this survey's earlier checkpoint: `drivers/net/virtio_net.zig` and `drivers/scsi/virtio_scsi.zig` are both landed bounded starters, so NVMe PCI should now be compared against peer driver starters rather than only against survey scaffolding.
 - the landed starter stays intentionally narrow: it validates queue geometry, computes combined queue bytes and rounded DMA page demand, assigns monotonic admin and I/O queue identifiers, derives doorbell offsets, freezes queue planning across reset generations, and now records a bounded PRP buffer shape through first-page offset, rounded span, tail-page count, and PRP list bound checks.
 - that footing is useful, but it still does not cover PRP or SGL descriptor construction, Host Memory Buffer policy, blk-mq request submission, live PCI queue creation, IRQ routing, MMIO access, or recovery parity.
-- the next honest driver-facing step is no longer another queue-planner helper inside this packet; the lane should stay parked until an explicitly approved transport-facing follow-up is ready beyond the now-landed PRP-shape helper.
+- the next honest driver-facing step is no longer another queue-planner helper inside this packet; the lane should stay parked until an explicitly approved transport-facing follow-up is ready beyond the now-landed PRP-shape helper and can name whether it is attacking the DMA-safe transport gap or the throughput-and-recovery parity gap.
 
 ## Recorded gaps
 
@@ -47,9 +54,10 @@ The survey manifest now records:
 - the landed `phase12-nvme-pci-survey-gate`
 - the landed `phase12-nvme-pci-survey-note`
 - the landed `phase12-nvme-pci-prp-shape-helper`
-- the still-blocked `phase12-nvme-pci-live-queue-and-dma`
+- the still-blocked `phase12-nvme-pci-dma-safe-transport-gap`
+- the still-blocked `phase12-nvme-pci-throughput-and-recovery-gap`
 
-This keeps the lane concrete and reviewable without overstating progress: the queue-planner-plus-PRP-shape starter is real, but the transport-heavy roadmap work is still intentionally blocked.
+This keeps the lane concrete and reviewable without overstating progress: the queue-planner-plus-PRP-shape starter is real, but the remaining roadmap debt is now split cleanly between the missing DMA-safe transport substrate and the still-absent throughput or recovery parity work.
 
 ## Non-goals
 
