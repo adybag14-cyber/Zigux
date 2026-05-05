@@ -300,5 +300,7 @@
       "zigux_destination": "Documentation/zigux/phase15-parity-scorecard.md",
       "why_now": "The live repo still has no council-approved evidence strong enough to move `kernel/sched/core.c`, `mm/page_alloc.c`, `kernel/rcu/tree.c`, or `net/core/skbuff.c` out of the freeze-in-C set."
     }
-  ]
+  ],
+  "current_gap": "No missing local governance artifact remains; the maintenance-mode gap is keeping the scorecard lane identity, surveyed-master provenance, validator-first gate wording, roadmap wording, rollback-threshold field sync, and replay-backed evidence packet current.",
+  "repo_state": "The freeze map, Architecture Council review process, parity scorecard, indefinite-C policy, dedicated manifest and Zig test, Documentation/zigux/README.md docs-root index, scripts/zigux/README.md scripts-root validator path, scripts/zigux/validate-phase15.py shared validator, make -C zigux phase15-validate validator-first entrypoint, zigux/tests/README.md tests-root guidance path, shared phase15_build.zig replay, and make -C zigux phase15 replay are all present on current master."
 }
