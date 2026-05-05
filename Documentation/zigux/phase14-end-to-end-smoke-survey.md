@@ -30,11 +30,13 @@ Shared smoke boundary:
 
 - `Documentation/zigux/README.md`
 - `Documentation/zigux/phase14-end-to-end-smoke-survey.md`
+- `Documentation/zigux/phase14-core-boundary-traceability.md`
 - `Documentation/zigux/phase14-release-boundary-survey.md`
 - `Documentation/zigux/freeze-map.md`
 - `Documentation/zigux/review-checklist.md`
 - `scripts/zigux/README.md`
 - `scripts/zigux/validate-phase14.py`
+- `scripts/zigux/check-phase14-release-boundary-exact-counts.py`
 - `zigux/tests/README.md`
 - `zigux/tests/phase14_build.zig`
 - `zigux/tests/phase14_workqueue_bridge.zig`
@@ -49,7 +51,7 @@ Shared smoke boundary:
 
 The roadmap keeps `kernel/workqueue.c`, `net/core/skbuff.c`, `kernel/trace/ring_buffer.c`, and `kernel/rcu/tree.c` inside a bounded Phase 14 study-only tranche between the active Phase 13 helper packet and the parked Phase 15 governance packet.
 
-That means the honest product task here is not a new bridge or validator-first expansion. It is one shared smoke packet that keeps the four anchor-local manifests, the docs-root summary, the release-boundary note, the freeze-map posture, and the shipped replay routes aligned.
+That means the honest product task here is not a new bridge or validator-first expansion. It is one shared smoke packet that keeps the four anchor-local manifests, the cross-anchor traceability note, the docs-root summary, the release-boundary note, the freeze-map posture, and the shipped replay routes aligned.
 
 ## Exact Evidence Captured
 
@@ -86,10 +88,11 @@ Anchor packets in the current smoke bundle:
 
 ## Shared Smoke Findings
 
-- `zigux/Makefile`, `scripts/zigux/validate-phase14.py`, `.github/workflows/zigux-bootstrap.yml`, and this smoke note align on the shipped validator, focused smoke shard, shared full-bundle replay, and convenience wrapper for the current study-only packet.
+- `zigux/Makefile`, `scripts/zigux/validate-phase14.py`, `scripts/zigux/check-phase14-release-boundary-exact-counts.py`, and this smoke note align on the shipped validator, focused smoke shard, shared full-bundle replay, and convenience wrapper for the current study-only packet.
+- `Documentation/zigux/phase14-core-boundary-traceability.md` keeps the current ring-buffer, skbuff, and RCU lane keys, surveyed commits, ready-next posture, blocked gaps, and stay-in-C decisions visible in one cross-anchor note instead of leaving that boundary evidence to separate lane notes or run memory alone.
 - `zigux/tests/phase14_build.zig` keeps one dedicated smoke shard for `phase14-end-to-end-smoke-tests`, while the four anchor-local artifacts remain `full_bundle_only` under the broader Phase 14 test replay.
 - `Documentation/zigux/freeze-map.md` still names the same four anchors, so the packet stays grounded in stay-in-C and blocked-evidence posture instead of drifting toward an implementation claim.
-- `Documentation/zigux/phase14-ring-buffer-survey.md` and `zigux/tests/phase14_ring_buffer_manifest.json` agree on lane `P14-L08` at surveyed commit `946d5c73fdb763ba860a20879b05da54e1896e8c`, keeping the ring-buffer anchor study-only while carrying the landed reset-governance audit and the ready-next `phase14-ring-buffer-tracefs-instance-clear-followup` instead of any `kernel/trace/ring_buffer.zig` claim.
+- `Documentation/zigux/phase14-ring-buffer-survey.md` and `zigux/tests/phase14_ring_buffer_manifest.json` agree on lane `P14-L08` at surveyed commit `946d5c73fdb763ba860a20879b05da54e1896e8c`, keeping the ring-buffer anchor study-only while carrying the current ready-next `phase14-ring-buffer-reader-page-consume-followup` instead of any `kernel/trace/ring_buffer.zig` claim.
 - This note keeps the attached-toolchain fallback scoped to note-local environment guidance only; broader README, manifest, or shared-surface alignment remains outside this lane unless a future shared-smoke pass intentionally widens scope.
 
 ## Productization Evidence
@@ -141,4 +144,4 @@ This shared smoke slice does not claim:
 
 ## Next Bounded Step
 
-Leave this shared smoke lane parked unless one of the four anchor-local manifests, the shared replay wiring, or the paired Phase 14 docs surfaces drift. If they do, refresh this packet instead of widening into new bridge or deep-core implementation work.
+Leave this shared smoke lane parked unless one of the four anchor-local manifests, the cross-anchor traceability note, the shared replay wiring, or the paired Phase 14 docs surfaces drift. If they do, refresh this packet instead of widening into new bridge or deep-core implementation work.
