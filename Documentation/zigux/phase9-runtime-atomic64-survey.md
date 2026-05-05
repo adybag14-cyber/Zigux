@@ -35,6 +35,16 @@ The live repo now has a bounded `runtime_atomic64` starter, dedicated module tes
 - the live repo now also carries `zigux/kernel/runtime_loader.zig`, but that shared request surface still stops short of a real module-loading substrate, so the lane intentionally stops at sample-side handoff evidence plus the shared Phase 9 build instead of claiming live runtime-loader binding parity.
 - runtime substrate work is still missing, so the lane intentionally stops at bounded lifecycle, selftest-hook, and loader-handoff behavior rather than claiming real module registration parity.
 
+## Direct Sample Checks
+
+The current direct atomic64 sample contract is verified through these exact checks:
+
+- descriptor contract: the sample still advertises `name=runtime_atomic64`, `anchor=lib/atomic64_test.c`, `requires_runtime_substrate=true`, and `provides_selftest_hook=true`
+- lifecycle and counter path: the sample still starts cold, rejects selftest before init, records one init run, swaps the seeded `0x1111_1111_2222_2222` counter down to `-9`, proves both compare-swap store and mismatch visibility, drives the blocked and changed `add_unless` branches, and finishes the bitwise path at counter `19`
+- selftest closure: `runSelftest()` still reports the ordered operation families `arithmetic`, `bitwise`, `returning_ops`, `swap_ops`, and `guard_ops`, keeps the counter stable at `19`, records one selftest run, and leaves later swap or second-selftest attempts blocked after exit
+- loader snapshot stability: after `prepare()` captures the selftest-complete handoff with counter snapshot `17`, later sample mutation still leaves the pending loader handoff at snapshot `17` even while the live sample moves through swap, compare-swap, `add_unless`, `and`, and `xor` to the visible counter `15` before `requestRuntimeLoad()`
+- shared loader-request binding: `toSharedLoadPlan()` and `runtime_loader.prepareRequest()` still preserve the caller-provided allocator handoff, the bounded init-flow counts, the `waiting_on_runtime_substrate` transition, and the exact prepared snapshot without claiming a real loadable runtime substrate on `master`
+
 ## Recorded gaps
 
 The survey manifest now records:
