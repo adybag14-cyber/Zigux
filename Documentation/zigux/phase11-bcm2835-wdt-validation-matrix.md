@@ -17,13 +17,13 @@ This document records the first bounded hardware-validation matrix for the Zigux
 
 ## Why This Exists
 
-The bounded starter now covers timeout-window validation, running-bit detection, start and stop register-image transitions, restart intent, halt-partition bookkeeping, a tiny probe-time summary, a registration-facing handoff summary, and a remove-time ownership summary. The live repo still needed one reviewable note that explains:
+The bounded starter now covers timeout-window validation, running-bit detection, start and stop register-image transitions, restart intent, halt-partition bookkeeping, a tiny probe-time summary, a registration-facing handoff summary, and a remove-time ownership summary. This matrix keeps one reviewable note that explains:
 
 - which parts of the lane are already exercised by the shared Phase 11 gate
 - which poweroff-facing and watchdog-core-facing behaviors are already reviewable in bounded form versus still deferred
 - which areas must remain out of scope until a later platform-facing handoff lands
 
-Without this matrix, the slice and survey named the next step but did not yet preserve the validation posture in one place.
+This matrix keeps the current validation posture in one place while the next driver-local step stays below live platform registration.
 
 ## Kernel-Integration Matrix
 
