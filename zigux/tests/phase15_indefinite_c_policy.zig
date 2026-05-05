@@ -61,9 +61,9 @@ test "phase 15 indefinite-C policy manifest records current policy, exception, a
     defer parsed.deinit();
 
     const manifest = parsed.value;
-    try std.testing.expectEqualStrings("P15-L15", manifest.lane_key);
+    try std.testing.expectEqualStrings("P15-Y04", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 15", manifest.phase);
-    try std.testing.expectEqualStrings("0e0a011e407cd68c24c686e92e38950867d315b6", manifest.surveyed_commit);
+    try std.testing.expectEqualStrings("cf59271229b54757ec5e60f73b4ea56ac27f5f9c", manifest.surveyed_commit);
     try std.testing.expectEqualStrings("policy for code that remains in C indefinitely", manifest.roadmap_requirement);
     try std.testing.expectEqual(@as(usize, 4), manifest.anchors.len);
     try std.testing.expectEqual(@as(usize, 5), manifest.supporting_artifacts.len);
@@ -94,7 +94,7 @@ test "phase 15 indefinite-C policy manifest records current policy, exception, a
             try std.testing.expectEqualStrings("current status bucket", requirement.required_terms[0]);
             try std.testing.expectEqualStrings("requested decision bucket", requirement.required_terms[1]);
             try std.testing.expectEqualStrings("decision record ID", requirement.required_terms[2]);
-            try std.testing.expectEqualStrings("owner", requirement.required_terms[3]);
+            try std.testing.expectEqualStrings("lane owner", requirement.required_terms[3]);
             try std.testing.expectEqualStrings("rollback owner", requirement.required_terms[4]);
             try std.testing.expectEqualStrings("validation gate summary", requirement.required_terms[5]);
             try std.testing.expectEqualStrings("latest blocker disposition", requirement.required_terms[6]);
@@ -140,6 +140,7 @@ test "phase 15 indefinite-C policy doc and linked artifacts keep exception and b
     defer io_instance.deinit();
 
     try expectContains(io_instance.io(), "Documentation/zigux/phase15-indefinite-c-policy.md", &.{
+        "PHASE15_LANE_KEY=P15-Y04",
         "## When the indefinite-C policy applies",
         "## Required recorded fields",
         "## Allowed work after an indefinite-C outcome",
@@ -148,7 +149,7 @@ test "phase 15 indefinite-C policy doc and linked artifacts keep exception and b
         "## Reopen Trigger Catalog",
         "current status bucket",
         "requested decision bucket",
-        "owner",
+        "lane owner",
         "validation gate summary",
         "retained discussion state",
         "parity scorecard link or blocker record",
