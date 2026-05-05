@@ -11,10 +11,10 @@ ROOT = Path(__file__).resolve().parents[2]
 REQUIRED_FILES = [
     "scripts/zigux/validate-phase4.py",
     "Documentation/zigux/artifact-diff.md",
-    "Documentation/zigux/phase4-gate-evidence.md",
     "Documentation/zigux/phase4-validation-matrix.md",
     "zigux/Makefile",
     ".github/workflows/zigux-bootstrap.yml",
+    "zigux/tests/atomic64_diff.zig",
     "zigux/tests/runtime_atomic64_diff.zig",
     "zigux/tests/bitmap_diff.zig",
     "zigux/tests/phase4_build.zig",
@@ -26,12 +26,14 @@ PHASE4_GATE_EXPECTATIONS = {
         "rollback_owner": "ABI and Runtime Team",
         "fallback_path": "keep the current C anchor plus the existing Phase 9 runtime atomic64 starter surface as the source of truth if the Zig replay gate regresses",
         "threshold_posture": "threshold_pending_until_runtime_atomic64_scope_widens",
+        "matrix_purpose": "bounded atomic64 exchange, cmpxchg, add_unless, and selftest-family replay",
     },
     "bitmap_diff.zig": {
         "owner": "Shared Subsystems Pod",
         "rollback_owner": "Shared Subsystems Pod",
         "fallback_path": "keep the current C anchor as the source of truth and drop back to the existing broad bitmap parity checks if the Zig replay gate regresses",
         "threshold_posture": "threshold_pending_until_bitmap_gate_grows_beyond_bounded_correctness_checks",
+        "matrix_purpose": "bounded broad bitmap rollback-readiness replay",
     },
 }
 
@@ -54,12 +56,6 @@ REQUIRED_DOC_MARKERS = [
     "zigux/tests/phase4_build.zig",
     "scripts/zigux/validate-phase4.py",
     "Documentation/zigux/phase4-validation-matrix.md",
-]
-REQUIRED_GATE_EVIDENCE_MARKERS = [
-    "PHASE4_GATE_EVIDENCE_TARGET_COUNT=18",
-    "PHASE4_WORKFLOW_ROUTE_CHECKER_BLOB_SHA=",
-    "scripts/zigux/check-phase4-gate-evidence.py",
-    "dedicated workflow-route checker file itself",
 ]
 REQUIRED_TESTS_README_MARKERS = [
     "zigux/tests/runtime_atomic64_diff.zig",
@@ -87,6 +83,7 @@ REQUIRED_PHASE4_MATRIX_MARKERS = [
     "zig build test --build-file zigux/tests/phase4_build.zig",
 ]
 REQUIRED_PHASE4_BUILD_MARKERS = [
+    "atomic64_diff.zig",
     "runtime_atomic64_diff.zig",
     "bitmap_diff.zig",
     "phase4-runtime-atomic64-diff-tests",
@@ -127,6 +124,8 @@ def check_gate_matrix_alignment(phase4_matrix: str, gate_name: str, expectation:
         missing.append(f"phase4_matrix:fallback_path:{gate_name}:{expectation['fallback_path']}")
     if expectation["threshold_posture"] not in row:
         missing.append(f"phase4_matrix:threshold_posture:{gate_name}:{expectation['threshold_posture']}")
+    if expectation["matrix_purpose"] not in row:
+        missing.append(f"phase4_matrix:matrix_purpose:{gate_name}:{expectation['matrix_purpose']}")
     if expectation["owner"] not in row:
         missing.append(f"phase4_matrix:matrix_owner:{gate_name}:{expectation['owner']}")
     if expectation["rollback_owner"] not in row:
@@ -140,7 +139,6 @@ def validate_root(root: Path) -> list[str]:
     makefile = (root / "zigux/Makefile").read_text(encoding="utf-8")
     workflow = (root / ".github/workflows/zigux-bootstrap.yml").read_text(encoding="utf-8")
     artifact_doc = (root / "Documentation/zigux/artifact-diff.md").read_text(encoding="utf-8")
-    phase4_gate_evidence = (root / "Documentation/zigux/phase4-gate-evidence.md").read_text(encoding="utf-8")
     tests_readme = (root / "zigux/tests/README.md").read_text(encoding="utf-8")
     script_readme = (root / "scripts/zigux/README.md").read_text(encoding="utf-8")
     doc_readme = (root / "Documentation/zigux/README.md").read_text(encoding="utf-8")
@@ -156,9 +154,6 @@ def validate_root(root: Path) -> list[str]:
     for marker in REQUIRED_DOC_MARKERS:
         if marker not in artifact_doc:
             missing_markers.append(f"doc:{marker}")
-    for marker in REQUIRED_GATE_EVIDENCE_MARKERS:
-        if marker not in phase4_gate_evidence:
-            missing_markers.append(f"phase4_gate_evidence:{marker}")
     for marker in REQUIRED_TESTS_README_MARKERS:
         if marker not in tests_readme:
             missing_markers.append(f"tests_readme:{marker}")
@@ -212,20 +207,6 @@ def run_self_test() -> int:
             + "\n",
         )
         _write(
-            root / "Documentation/zigux/phase4-gate-evidence.md",
-            "\n".join(
-                [
-                    "# Phase 4 Gate Evidence",
-                    "",
-                    "- `PHASE4_GATE_EVIDENCE_TARGET_COUNT=18` remains explicit here.",
-                    "- `PHASE4_WORKFLOW_ROUTE_CHECKER_BLOB_SHA=example` remains pinned here.",
-                    "- `scripts/zigux/check-phase4-gate-evidence.py` remains part of the exact-readback packet.",
-                    "- This target set includes the dedicated workflow-route checker file itself.",
-                    "",
-                ]
-            ),
-        )
-        _write(
             root / "Documentation/zigux/phase4-validation-matrix.md",
             "\n".join(
                 [
@@ -252,7 +233,7 @@ def run_self_test() -> int:
                     "",
                     "| lane surface | purpose | owner | rollback owner | bootstrap CI replay | local lab replay | threshold posture |",
                     "| --- | --- | --- | --- | --- | --- | --- |",
-                    "| `zigux/tests/runtime_atomic64_diff.zig` | bounded atomic64 exchange, cmpxchg, and selftest-family replay | `ABI and Runtime Team` | `ABI and Runtime Team` | `python3 scripts/zigux/validate-phase4.py` then `zig build test --build-file zigux/tests/phase4_build.zig` in `.github/workflows/zigux-bootstrap.yml` | `python3 scripts/zigux/validate-phase4.py` then `zig build test --build-file zigux/tests/phase4_build.zig` | `threshold_pending_until_runtime_atomic64_scope_widens` |",
+                    "| `zigux/tests/runtime_atomic64_diff.zig` | bounded atomic64 exchange, cmpxchg, add_unless, and selftest-family replay | `ABI and Runtime Team` | `ABI and Runtime Team` | `python3 scripts/zigux/validate-phase4.py` then `zig build test --build-file zigux/tests/phase4_build.zig` in `.github/workflows/zigux-bootstrap.yml` | `python3 scripts/zigux/validate-phase4.py` then `zig build test --build-file zigux/tests/phase4_build.zig` | `threshold_pending_until_runtime_atomic64_scope_widens` |",
                     "| `zigux/tests/bitmap_diff.zig` | bounded broad bitmap rollback-readiness replay | `Shared Subsystems Pod` | `Shared Subsystems Pod` | `python3 scripts/zigux/validate-phase4.py` then `zig build test --build-file zigux/tests/phase4_build.zig` in `.github/workflows/zigux-bootstrap.yml` | `python3 scripts/zigux/validate-phase4.py` then `zig build test --build-file zigux/tests/phase4_build.zig` | `threshold_pending_until_bitmap_gate_grows_beyond_bounded_correctness_checks` |",
                     "",
                 ]
@@ -288,12 +269,14 @@ def run_self_test() -> int:
                 ]
             ),
         )
+        _write(root / "zigux/tests/atomic64_diff.zig", "// wrapper gate\n")
         _write(root / "zigux/tests/runtime_atomic64_diff.zig", "// runtime gate\n")
         _write(root / "zigux/tests/bitmap_diff.zig", "// bitmap gate\n")
         _write(
             root / "zigux/tests/phase4_build.zig",
             "\n".join(
                 [
+                    "atomic64_diff.zig",
                     "runtime_atomic64_diff.zig",
                     "bitmap_diff.zig",
                     "phase4-runtime-atomic64-diff-tests",
@@ -352,17 +335,6 @@ def run_self_test() -> int:
         assert "phase4_matrix:rollback_owner:bitmap_diff.zig:Shared Subsystems Pod" in issues
         matrix_path.write_text(original_matrix, encoding="utf-8", newline="\n")
 
-        gate_evidence_path = root / "Documentation/zigux/phase4-gate-evidence.md"
-        original_gate_evidence = gate_evidence_path.read_text(encoding="utf-8")
-        gate_evidence_path.write_text(
-            original_gate_evidence.replace("PHASE4_GATE_EVIDENCE_TARGET_COUNT=18", "PHASE4_GATE_EVIDENCE_TARGET_COUNT=17"),
-            encoding="utf-8",
-            newline="\n",
-        )
-        issues = validate_root(root)
-        assert "phase4_gate_evidence:PHASE4_GATE_EVIDENCE_TARGET_COUNT=18" in issues
-        gate_evidence_path.write_text(original_gate_evidence, encoding="utf-8", newline="\n")
-
         workflow_path = root / ".github/workflows/zigux-bootstrap.yml"
         original_workflow = workflow_path.read_text(encoding="utf-8")
         workflow_path.write_text(
@@ -383,6 +355,22 @@ def run_self_test() -> int:
         )
         issues = validate_root(root)
         assert "phase4_build:phase4-bitmap-diff-tests" in issues
+        build_path.write_text(original_build, encoding="utf-8", newline="\n")
+
+        matrix_path.write_text(
+            original_matrix.replace(
+                "bounded atomic64 exchange, cmpxchg, add_unless, and selftest-family replay",
+                "bounded atomic64 exchange, cmpxchg, and selftest-family replay",
+                1,
+            ),
+            encoding="utf-8",
+            newline="\n",
+        )
+        issues = validate_root(root)
+        assert (
+            "phase4_matrix:matrix_purpose:runtime_atomic64_diff.zig:bounded atomic64 exchange, cmpxchg, add_unless, and selftest-family replay"
+            in issues
+        )
 
     print("PHASE4_VALIDATE_SELF_TEST=pass")
     return 0
@@ -422,7 +410,7 @@ def main() -> int:
     print(f"PHASE4_REQUIRED_FILE_COUNT={len(REQUIRED_FILES)}")
     print(
         "PHASE4_REQUIRED_MARKER_COUNT="
-        f"{len(REQUIRED_MAKE_MARKERS) + len(REQUIRED_WORKFLOW_MARKERS) + len(REQUIRED_DOC_MARKERS) + len(REQUIRED_GATE_EVIDENCE_MARKERS) + len(REQUIRED_TESTS_README_MARKERS) + len(REQUIRED_SCRIPT_README_MARKERS) + len(REQUIRED_DOC_README_MARKERS) + len(REQUIRED_PHASE4_MATRIX_MARKERS) + len(REQUIRED_PHASE4_BUILD_MARKERS)}"
+        f"{len(REQUIRED_MAKE_MARKERS) + len(REQUIRED_WORKFLOW_MARKERS) + len(REQUIRED_DOC_MARKERS) + len(REQUIRED_TESTS_README_MARKERS) + len(REQUIRED_SCRIPT_README_MARKERS) + len(REQUIRED_DOC_README_MARKERS) + len(REQUIRED_PHASE4_MATRIX_MARKERS) + len(REQUIRED_PHASE4_BUILD_MARKERS)}"
     )
     return 0
 
