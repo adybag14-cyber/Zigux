@@ -41,6 +41,20 @@ Phase 2 notes
 - `scripts/zigux/check-phase2-toolchain-pin-scope.py`
 - `zigux/Makefile`
 - `python3 scripts/zigux/install-zig.py --self-test`, `python3 scripts/zigux/check-zig-toolchain.py --self-test`, `python3 scripts/zigux/check-phase2-cross.py --self-test`, `python3 scripts/zigux/check-phase2-cross.py`, `python3 scripts/zigux/check-phase2-cross-selftest-alignment.py --self-test`, `python3 scripts/zigux/check-phase2-cross-selftest-alignment.py`, `python3 scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test`, `python3 scripts/zigux/check-phase2-toolchain-pin-scope.py`, `make -C zigux phase2-validate`, and `make -C zigux phase2` now keep the pinned Zig toolchain, the bounded `fixdep`, `genksyms`, `genksyms_crc`, `kconfig`, and `mk_elfconfig` helper packet, the three-target compile matrix, and the shared tests-root plus review-checklist replay surface visible from the docs root instead of leaving the active Phase 2 tranche split across scripts, tests, and workflow wiring alone.
+Phase 3 notes
+- `Documentation/zigux/phase3-abi-slice.md`
+- `Documentation/zigux/phase3-policy-unsafe-boundary-survey.md`
+- `Documentation/zigux/phase3-low-level-wrapper-boundary-survey.md`
+- `scripts/zigux/validate-phase3.py`
+- `scripts/zigux/validate-phase3-policy-unsafe-survey.py`
+- `scripts/zigux/validate-phase3-low-level-wrapper-survey.py`
+- `scripts/zigux/check-phase3-readme-tooling-inventory.py`
+- `scripts/zigux/check-phase3-selftest-surface.py`
+- `scripts/zigux/phase3_catalog.py`
+- `scripts/zigux/validate_phase3_selftest.py`
+- `zigux/Makefile`
+- `python3 scripts/zigux/validate-phase3.py`, `python3 scripts/zigux/validate-phase3.py --slug abi`, `python3 scripts/zigux/run-phase3-checks.py --slug abi`, `zig build phase3-test --build-file zigux/tests/build.zig`, `make -C zigux phase3-validate`, `make -C zigux phase3-selftest`, and `make -C zigux phase3` now keep the current ABI substrate reviewable through the shared `abi` slice, the policy-and-unsafe survey, the low-level-wrapper survey, the selftest review surface, and the Linux-style replay route instead of leaving the active Phase 3 packet implicit across the scripts root, tests root, and helper tree alone.
+- the current bounded Phase 3 decision is no longer whether this lane still needs broad allocator, panic, atomic, barrier, MMIO, or unsafe expansion; the live packet is the shared ABI substrate already kept reviewable through those shared gates, so future follow-up here should stay inside the smallest note, manifest, checker, or validator alignment step unless a real boundary helper surface moves.
 Phase 5 notes
 - `Documentation/zigux/phase5-kfifo-sample-survey.md` now records the landed `samples/zigux/bytestream_fifo.zig` reference sample, its exact replay checks, and the remaining non-goals around procfs, user-copy, and module registration parity.
 - the same Phase 5 survey note now doubles as the sample-backed contributor guide for the landed bytestream FIFO slice by naming the descriptor, manifest, and shared build-entrypoint prompts that reviewers should keep in sync.
