@@ -23,7 +23,7 @@ const iterations_list_sort = 1_000;
 const iterations_rbtree = 4_000;
 
 fn bitmapBench() struct { checksum: u64 } {
-    var map = [_]bitmap.Word{0} ** bitmap.bitsToWords(4096);
+    var map = std.mem.zeroes([bitmap.bitsToWords(4096)]bitmap.Word);
     bitmap.setRange(&map, 5, 32);
     bitmap.setRange(&map, 256, 64);
     bitmap.setRange(&map, 2048, 17);
@@ -39,9 +39,9 @@ fn bitmapBench() struct { checksum: u64 } {
 
 fn bitmapWindowBench() struct { checksum: u64 } {
     const nbits = bitmap.bits_per_long + 5;
-    var lhs = [_]bitmap.Word{0} ** bitmap.bitsToWords(nbits);
-    var rhs = [_]bitmap.Word{0} ** bitmap.bitsToWords(nbits);
-    var dst = [_]bitmap.Word{0} ** bitmap.bitsToWords(nbits);
+    var lhs = std.mem.zeroes([bitmap.bitsToWords(nbits)]bitmap.Word);
+    var rhs = std.mem.zeroes([bitmap.bitsToWords(nbits)]bitmap.Word);
+    var dst = std.mem.zeroes([bitmap.bitsToWords(nbits)]bitmap.Word);
 
     bitmap.setRange(&lhs, 1, 4);
     bitmap.setRange(&lhs, bitmap.bits_per_long - 2, 6);
@@ -78,7 +78,7 @@ fn bitmapWindowBench() struct { checksum: u64 } {
 }
 
 fn findBitBench() struct { checksum: u64 } {
-    var map = [_]find_bit.Word{0} ** find_bit.bitsToWords(4096);
+    var map = std.mem.zeroes([find_bit.bitsToWords(4096)]find_bit.Word);
     map[0] |= (@as(find_bit.Word, 1) << 3);
     map[7] |= (@as(find_bit.Word, 1) << 9);
     map[15] |= (@as(find_bit.Word, 1) << 17);
