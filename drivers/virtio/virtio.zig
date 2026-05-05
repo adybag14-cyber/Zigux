@@ -77,6 +77,24 @@ pub const InterruptAckSummary = struct {
     unacknowledged_interrupt_count: usize,
 };
 
+pub const ResetReplaySummary = struct {
+    anchor: []const u8,
+    reset_required: bool,
+    driver_attached: bool,
+    features_negotiated: bool,
+    driver_ready: bool,
+    registered_queue_count: usize,
+    change_pending: bool,
+    generation: u32,
+    acknowledged_generation: u32,
+    has_unacknowledged_generation: bool,
+    pending_interrupt_reason_bits: u8,
+    will_clear_negotiated_features: bool,
+    will_clear_queue_callbacks: bool,
+    will_clear_config_bookkeeping: bool,
+    will_clear_interrupts: bool,
+};
+
 pub const VirtioInterruptReason = struct {
     pub const queue_used: u8 = 1;
     pub const config_change: u8 = 2;
@@ -432,6 +450,37 @@ pub const VirtioCoreLabDevice = struct {
             .acknowledged_reason_bits = self.acknowledged_interrupt_reason_bits,
             .ack_count = self.interrupt_ack_count,
             .unacknowledged_interrupt_count = self.unacknowledged_interrupt_count,
+        };
+    }
+
+    pub fn resetReplaySummary(self: *const Self) ResetReplaySummary {
+        const features_negotiated = self.hasStatus(DeviceStatus.features_ok);
+        const has_interrupt_bookkeeping = self.pending_interrupt_reason_bits != 0 or
+            self.acknowledged_interrupt_reason_bits != 0 or
+            self.interrupt_ack_count != 0 or
+            self.unacknowledged_interrupt_count != 0;
+
+        return .{
+            .anchor = descriptor().anchor,
+            .reset_required = self.isResetRequired(),
+            .driver_attached = self.hasStatus(DeviceStatus.driver),
+            .features_negotiated = features_negotiated,
+            .driver_ready = self.hasStatus(DeviceStatus.driver_ok),
+            .registered_queue_count = self.registered_queue_count,
+            .change_pending = self.config_change_pending,
+            .generation = self.config_generation,
+            .acknowledged_generation = self.acknowledged_config_generation,
+            .has_unacknowledged_generation = self.config_generation != self.acknowledged_config_generation,
+            .pending_interrupt_reason_bits = self.pending_interrupt_reason_bits,
+            .will_clear_negotiated_features = self.driver_features.count() != 0 or
+                self.negotiated_features.count() != 0 or
+                features_negotiated,
+            .will_clear_queue_callbacks = self.registered_queue_count != 0,
+            .will_clear_config_bookkeeping = self.config_change_pending or
+                self.config_change_delivery_count != 0 or
+                self.config_generation != 0 or
+                self.acknowledged_config_generation != 0,
+            .will_clear_interrupts = has_interrupt_bookkeeping,
         };
     }
 
