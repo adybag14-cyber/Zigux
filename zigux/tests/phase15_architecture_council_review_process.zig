@@ -34,6 +34,10 @@ fn isAllowedStatus(status: []const u8) bool {
         std.mem.eql(u8, status, "ready_next");
 }
 
+fn expectContains(haystack: []const u8, needle: []const u8) !void {
+    try std.testing.expect(std.mem.indexOf(u8, haystack, needle) != null);
+}
+
 test "phase 15 architecture council review-process manifest records the bounded governance slice" {
     var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
     defer io_instance.deinit();
@@ -170,7 +174,7 @@ test "phase 15 architecture council review-process manifest records the bounded 
     try std.testing.expect(saw_build);
     try std.testing.expect(saw_parity_baseline);
     try std.testing.expect(saw_archive_followup);
-    try std.testing.expect(saw_retirement_rule);
+    try std.testing.expect(saw_retirementRule);
     try std.testing.expect(saw_reopen_followup);
 }
 
@@ -240,4 +244,78 @@ test "phase 15 review checklist stays aligned with the council review-process ho
     try std.testing.expect(std.mem.indexOf(u8, review_checklist, "current status bucket plus requested decision bucket explicit") != null);
     try std.testing.expect(std.mem.indexOf(u8, review_checklist, "decision record ID, lane owner, rollback owner, validation gate summary, evidence archive path, latest blocker disposition, benchmark notes, and replay command explicit") != null);
     try std.testing.expect(std.mem.indexOf(u8, review_checklist, "retained discussion state and reopen triggers explicit") != null);
+}
+
+test "phase 15 review-process replay stays aligned with the shared handoff packet surfaces" {
+    var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
+    defer io_instance.deinit();
+
+    const docs_readme = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "Documentation/zigux/README.md",
+        std.testing.allocator,
+        .limited(48 * 1024),
+    );
+    defer std.testing.allocator.free(docs_readme);
+
+    const scripts_readme = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "scripts/zigux/README.md",
+        std.testing.allocator,
+        .limited(48 * 1024),
+    );
+    defer std.testing.allocator.free(scripts_readme);
+
+    const tests_readme = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "zigux/tests/README.md",
+        std.testing.allocator,
+        .limited(48 * 1024),
+    );
+    defer std.testing.allocator.free(tests_readme);
+
+    const makefile = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "zigux/Makefile",
+        std.testing.allocator,
+        .limited(32 * 1024),
+    );
+    defer std.testing.allocator.free(makefile);
+
+    try expectContains(docs_readme, "Phase 15 notes");
+    try expectContains(docs_readme, "`Documentation/zigux/freeze-map.md`");
+    try expectContains(docs_readme, "`Documentation/zigux/phase15-freeze-map-governance.md`");
+    try expectContains(docs_readme, "`Documentation/zigux/phase15-architecture-council-review-process.md`");
+    try expectContains(docs_readme, "`Documentation/zigux/phase15-parity-scorecard.md`");
+    try expectContains(docs_readme, "`Documentation/zigux/phase15-indefinite-c-policy.md`");
+    try expectContains(docs_readme, "`zigux/tests/phase15_build.zig`");
+    try expectContains(docs_readme, "`make -C zigux phase15`");
+
+    try expectContains(scripts_readme, "Phase 15 flow");
+    try expectContains(scripts_readme, "Documentation/zigux/phase15-architecture-council-review-process.md");
+    try expectContains(scripts_readme, "scripts/zigux/check-phase15-review-process-handoff.py");
+    try expectContains(scripts_readme, "zigux/tests/phase15_architecture_council_review_process_manifest.json");
+    try expectContains(scripts_readme, "zigux/tests/phase15_architecture_council_review_process.zig");
+    try expectContains(scripts_readme, "zigux/tests/phase15_build.zig");
+    try expectContains(scripts_readme, "`make -C zigux phase15`");
+
+    try expectContains(tests_readme, "keep the parked Phase 15 governance packet explicit in the tests root too");
+    try expectContains(tests_readme, "`Documentation/zigux/freeze-map.md`");
+    try expectContains(tests_readme, "`Documentation/zigux/phase15-freeze-map-governance.md`");
+    try expectContains(tests_readme, "`Documentation/zigux/phase15-architecture-council-review-process.md`");
+    try expectContains(tests_readme, "`Documentation/zigux/phase15-parity-scorecard.md`");
+    try expectContains(tests_readme, "`Documentation/zigux/phase15-indefinite-c-policy.md`");
+    try expectContains(tests_readme, "`Documentation/zigux/review-checklist.md`");
+    try expectContains(tests_readme, "`scripts/zigux/check-phase15-review-process-handoff.py`");
+    try expectContains(tests_readme, "`zigux/tests/phase15_build.zig`");
+    try expectContains(tests_readme, "`zigux/tests/phase15_architecture_council_review_process.zig`");
+    try expectContains(tests_readme, "`zig build test --build-file zigux/tests/phase15_build.zig`");
+    try expectContains(tests_readme, "`make -C zigux phase15`");
+
+    try expectContains(makefile, "PHONY += phase15-validate phase15-test phase15");
+    try expectContains(makefile, "phase15-validate:");
+    try expectContains(makefile, "scripts/zigux/check-phase15-review-process-handoff.py --self-test");
+    try expectContains(makefile, "scripts/zigux/check-phase15-review-process-handoff.py");
+    try expectContains(makefile, "phase15-test:");
+    try expectContains(makefile, "zigux/tests/phase15_build.zig");
 }
