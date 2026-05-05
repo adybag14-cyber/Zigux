@@ -505,14 +505,18 @@ test "phase13 devres rejects phys WC token planning when the release record cann
     }));
 }
 
-test "phase13 devres manifest records the current iomap mmio safety packet" {
-    try expectContains(manifest_text, "\"lane_key\": \"P13-L06\"");
-    try expectContains(manifest_text, "\"surveyed_commit\": \"master-reviewability\"");
-    try expectContains(manifest_text, "\"descriptor_keeps_live_mmio_blocked\": true");
-    try expectContains(manifest_text, "\"phase13_devres_test_replays_iomap_failures\": true");
-    try expectContains(manifest_text, "\"phase13_devres_test_replays_wc_memtype_reservation\": true");
-    try expectContains(manifest_text, "\"phase13_devres_test_replays_arch_phys_wc_token_add\": true");
-    try expectContains(manifest_text, "\"id\": \"phase13-devres-arch-phys-wc-token\"");
+test "phase13 devres manifest records the current dma/scatterlist boundary packet" {
+    try expectContains(manifest_text, "\"lane_key\": \"P13-L07\"");
+    try expectContains(manifest_text, "\"surveyed_commit\": \"e59df689d080aa11773adda87f00c2d650caade8\"");
+    try expectContains(manifest_text, "\"id\": \"phase13-devres-arch-phys-wc-token-planner\"");
+    try expectContains(manifest_text, "\"id\": \"phase13-devres-live-dma-backed-helpers\"");
+    try expectContains(manifest_text, "\"id\": \"phase13-devres-live-scatterlist-ownership\"");
     try expectContains(manifest_text, "\"status\": \"starter_landed\"");
-    try expectContains(manifest_text, "\"status\": \"blocked_on_live_resource_state\"");
+    try expectContains(manifest_text, "\"status\": \"blocked_on_dma_state\"");
+    try expectContains(manifest_text, "\"status\": \"blocked_on_scatterlist_state\"");
+    try expectContains(manifest_text, "dmam_alloc_*");
+    try expectContains(manifest_text, "dma_map_sgtable() ownership");
+    try expectContains(manifest_text, "struct scatterlist");
+    try expectContains(manifest_text, "sg_table");
+    try expectContains(manifest_text, "sg_* lifecycle state");
 }
