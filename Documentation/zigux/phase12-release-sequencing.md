@@ -10,13 +10,13 @@ It is a release-coordination artifact, not a closure claim.
 - `PHASE12_RELEASE_CLOSED=no`
 - shared build replay entrypoint: `zig build test --build-file zigux/tests/phase12_build.zig --summary all`
 - Linux-style replay entrypoint: `make -C zigux phase12`
-- shipped shared release surfaces on `master`: `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/phase12-release-sequencing.md`, `Documentation/zigux/phase12-nvme-pci-raw-github-fallback-map.md`, `Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, `zigux/tests/phase12_build.zig`, `zigux/Makefile`, and the committed Phase 12 manifests under `zigux/tests/`
+- shipped shared release surfaces on `master`: `Documentation/zigux/README.md`, `Documentation/zigux/phase12-release-sequencing.md`, `Documentation/zigux/phase12-nvme-pci-slice.md`, `Documentation/zigux/phase12-nvme-pci-survey.md`, `Documentation/zigux/phase12-virtio-net-survey.md`, `Documentation/zigux/phase12-virtio-scsi-slice.md`, `Documentation/zigux/phase12-virtio-scsi-survey.md`, `Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md`, `Documentation/zigux/phase12-libbpf-segment-survey.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, `zigux/tests/phase12_build.zig`, `zigux/Makefile`, and the committed Phase 12 manifests under `zigux/tests/`
 - current public fallback split: two commit-pinned artifacts (`Documentation/zigux/phase12-nvme-pci-raw-github-fallback-map.md`, `Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md`) and two shared-tree-only anchors (`virtio_net`, `libbpf`)
 
 ## Release order
 
 1. Reconfirm the release packet surfaces before any replay claim.
-   - Re-read `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, and this sequencing note together.
+   - Re-read `Documentation/zigux/README.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, and this sequencing note together.
    - These surfaces must continue to agree that the shared replay route on `master` is the bounded `phase12_build.zig` plus `make -C zigux phase12` path, not an unshipped dedicated checker or shared validator stack.
 
 2. Run the shared Phase 12 build replay.
@@ -41,10 +41,14 @@ The shared Phase 12 replay route on `master` is narrower than some older PMO not
 Today the shipped release packet is centered on:
 
 - `Documentation/zigux/README.md`
-- `Documentation/zigux/review-checklist.md`
 - `Documentation/zigux/phase12-release-sequencing.md`
-- `Documentation/zigux/phase12-nvme-pci-raw-github-fallback-map.md`
+- `Documentation/zigux/phase12-nvme-pci-slice.md`
+- `Documentation/zigux/phase12-nvme-pci-survey.md`
+- `Documentation/zigux/phase12-virtio-net-survey.md`
+- `Documentation/zigux/phase12-virtio-scsi-slice.md`
+- `Documentation/zigux/phase12-virtio-scsi-survey.md`
 - `Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md`
+- `Documentation/zigux/phase12-libbpf-segment-survey.md`
 - `scripts/zigux/README.md`
 - `zigux/tests/README.md`
 - `zigux/tests/phase12_build.zig`
@@ -60,7 +64,7 @@ The remaining release-discipline gap is still a PMO truthfulness problem rather 
 
 Phase 12 should not be described as release-closed until all of the following are true:
 
-1. `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, and this sequencing note still agree on the same shipped Phase 12 replay surface.
+1. `Documentation/zigux/README.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, and this sequencing note still agree on the same shipped Phase 12 replay surface.
 2. `zig build test --build-file zigux/tests/phase12_build.zig --summary all` and `make -C zigux phase12` both remain explicit and green.
 3. The approved four-anchor packet remains explicit and honest across the Phase 12 survey notes and manifests.
 4. The public fallback split is still described honestly, including `Documentation/zigux/phase12-nvme-pci-raw-github-fallback-map.md` and `Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md`, rather than rounded up into implied commit-pinned coverage for every anchor.
