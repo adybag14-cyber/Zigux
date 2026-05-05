@@ -264,7 +264,7 @@ def validate_root(root: Path) -> list[str]:
             [sys.executable, str(root / "scripts" / "zigux" / "check-phase2-tests-readme-alignment.py"), "--self-test"],
             [
                 "PHASE2_TESTS_README_ALIGNMENT_SELF_TEST=pass",
-                "PHASE2_TESTS_README_ALIGNMENT_SELF_TEST_CASE_COUNT=8",
+                "PHASE2_TESTS_README_ALIGNMENT_SELF_TEST_CASE_COUNT=9",
             ],
         )
     )
@@ -433,7 +433,7 @@ def build_self_test_root(root: Path) -> None:
 
     write_stub_guard(
         root / "scripts/zigux/check-phase2-tests-readme-alignment.py",
-        self_test_marker="PHASE2_TESTS_README_ALIGNMENT_SELF_TEST=pass\nPHASE2_TESTS_README_ALIGNMENT_SELF_TEST_CASE_COUNT=8",
+        self_test_marker="PHASE2_TESTS_README_ALIGNMENT_SELF_TEST=pass\nPHASE2_TESTS_README_ALIGNMENT_SELF_TEST_CASE_COUNT=9",
         live_markers=[
             "PHASE2_TESTS_README_ALIGNMENT=pass",
             "PHASE2_TESTS_README_ALIGNMENT_MARKER_COUNT=1",
