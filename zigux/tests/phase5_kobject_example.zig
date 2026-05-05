@@ -26,6 +26,11 @@ test "phase 5 kobject sample replays bounded attribute registration and roundtri
     try std.testing.expectEqualStrings("7\n", replay.baz_value.text[0..replay.baz_value.len]);
     try std.testing.expectEqualStrings("-5\n", replay.bar_value.text[0..replay.bar_value.len]);
     try std.testing.expectEqual(@as(usize, 5), replay.checked_focus.len);
+    try std.testing.expectEqual(sample.SampleFocus.bounded_attribute_roundtrip, replay.checked_focus[0]);
+    try std.testing.expectEqual(sample.SampleFocus.shared_attribute_dispatch, replay.checked_focus[1]);
+    try std.testing.expectEqual(sample.SampleFocus.ownership_and_lifetime, replay.checked_focus[2]);
+    try std.testing.expectEqual(sample.SampleFocus.parse_error_visibility, replay.checked_focus[3]);
+    try std.testing.expectEqual(sample.SampleFocus.reviewable_non_sysfs_scope, replay.checked_focus[4]);
     try std.testing.expectEqual(sample.SampleStage.registered, module.stage());
 }
 
