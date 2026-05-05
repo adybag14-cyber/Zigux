@@ -26,7 +26,7 @@ Current `master` had drifted back to a slice-note-only review posture for the co
 ## Survey findings
 
 - `drivers/virtio/virtio.c` is still the Phase 10 core anchor, and the live repo already ships `drivers/virtio/virtio.zig`, `zigux/tests/phase10_virtio_core.zig`, `zigux/tests/phase10_virtio_core_reset_queue.zig`, `drivers/virtio/virtio_driver_id.zig`, and `zigux/tests/phase10_virtio_driver_id.zig`
-- the landed core helper already covers bounded status sequencing, feature negotiation, queue callback bookkeeping, queue descriptor-shape metadata, config-generation bookkeeping, interrupt-ack bookkeeping, lifecycle guards, and reset replay in memory only
+- the landed core helper already covers bounded status sequencing, feature negotiation, driver-validation narrowing, queue callback bookkeeping, queue descriptor-shape metadata, config-generation bookkeeping, interrupt-ack bookkeeping, lifecycle guards, and reset replay in memory only
 - the landed driver-id helper already keeps bounded `register_virtio_device()`, `virtio_uevent()`, `virtio_id_match()`, and `virtio_dev_match()` reviewable through exact, wildcard, and unmatched paths without claiming bus registration
 - the roadmap-facing parity evidence for this bounded packet now explicitly spans the Phase 10 destination `drivers/virtio/*.zig` plus the justified bridging-helper boundary in `zigux/kernel/` and `zigux/helpers/`
 - the honest gap here was governance drift, not missing core behavior: the manifest-backed survey note, survey gate, and dedicated packet checker had fallen away even though the core lane still had enough bounded evidence to support them
@@ -49,6 +49,7 @@ The restored survey manifest records:
 - the landed `phase10-config-generation-bookkeeping-helper`
 - the landed `phase10-interrupt-ack-bookkeeping-helper`
 - the landed `phase10-lifecycle-guard-bookkeeping-helper`
+- the landed `phase10-driver-validation-narrowing-helper`
 - the landed `phase10-reset-replay-bookkeeping-helper`
 - the still-blocked `phase10-core-probe-remove-lifecycle`
 
