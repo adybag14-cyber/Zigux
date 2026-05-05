@@ -34,6 +34,8 @@ pub const BoundaryMap = struct {
 pub const AuditGuard = enum {
     pool_lock_held,
     pool_lock_released_and_reacquired,
+    pending_bit_claim_before_pool_selection,
+    unbound_pwq_refcount_retry,
     last_pool_lock_handoff,
     callback_execution_outside_pool_lock,
     idle_sleep_transition,
@@ -123,6 +125,24 @@ const audit_checkpoints = [_]AuditCheckpoint{
         .guard = .pool_lock_held,
         .observed_fields = &[_][]const u8{ "pwq->inactive_works", "pwq->nr_active", "wq->max_active", "pool->last_progress_ts" },
         .blocked_by = "__queue_work() decides between pool->worklist and pwq->inactive_works while holding pool->lock, and the same gate preserves ordered-workqueue sequencing when max_active changes, so Zigux should audit the inactive-list and max_active seam rather than claim a live enqueue wrapper.",
+        .ownership = .stay_in_c,
+    },
+    .{
+        .id = "pending-bit-claim-handoff",
+        .anchor_symbol = "try_to_grab_pending/queue_work_on",
+        .summary = "Record that queue_work_on() first has to claim or observe the pending bit before it can hand work over to __queue_work().",
+        .guard = .pending_bit_claim_before_pool_selection,
+        .observed_fields = &[_][]const u8{ "work->data", "WORK_STRUCT_PENDING_BIT", "req_cpu", "last_pool" },
+        .blocked_by = "queue_work_on() only reaches __queue_work() after try_to_grab_pending() arbitrates the pending bit, cancel state, and CPU request against the existing work->data ownership, so Zigux should record that submission claim boundary instead of pretending a wrapper can safely bypass it.",
+        .ownership = .stay_in_c,
+    },
+    .{
+        .id = "unbound-pwq-refcount-retry",
+        .anchor_symbol = "__queue_work",
+        .summary = "Capture the unbound queue_work retry path that has to drop and reacquire routing state when pwq->refcnt can no longer be pinned.",
+        .guard = .unbound_pwq_refcount_retry,
+        .observed_fields = &[_][]const u8{ "pwq->refcnt", "pwq->wq->flags", "work->data", "cpu" },
+        .blocked_by = "The unbound __queue_work() path may need to drop the transient pwq reference, recompute routing, and retry until a stable pwq->refcnt pin exists, so Phase 14 should name that retry contract rather than claim live ownership of unbound submission.",
         .ownership = .stay_in_c,
     },
     .{
@@ -228,7 +248,7 @@ pub const WorkqueueBridgeLab = struct {
     }
 
     pub fn nextAuditFocus() []const u8 {
-        return "Audit try_to_grab_pending(), queue_work_on(), and the __queue_work() pwq->refcnt retry path before any wrapper leaves the boundary-map-only posture.";
+        return "Audit queue_delayed_work_on(), mod_delayed_work_on(), and __queue_delayed_work() next so delayed submission aliases are recorded before any wrapper leaves the boundary-map-only posture.";
     }
 };
 
@@ -253,8 +273,8 @@ test "workqueue bridge boundary map records stay-in-c decisions" {
     try std.testing.expectEqualStrings("boundary_map_only", map.posture);
     try std.testing.expectEqual(@as(usize, 5), map.areas.len);
     try std.testing.expectEqual(@as(usize, 2), WorkqueueBridgeLab.stayInCDecisionCount());
-    try std.testing.expect(std.mem.indexOf(u8, WorkqueueBridgeLab.nextAuditFocus(), "try_to_grab_pending()") != null);
-    try std.testing.expect(std.mem.indexOf(u8, WorkqueueBridgeLab.nextAuditFocus(), "queue_work_on()") != null);
+    try std.testing.expect(std.mem.indexOf(u8, WorkqueueBridgeLab.nextAuditFocus(), "queue_delayed_work_on()") != null);
+    try std.testing.expect(std.mem.indexOf(u8, WorkqueueBridgeLab.nextAuditFocus(), "__queue_delayed_work()") != null);
 
     try std.testing.expectEqualStrings("submission-routing", map.areas[0].id);
     try std.testing.expect(map.areas[0].ownership == .boundary_map_only);
@@ -276,11 +296,11 @@ test "workqueue bridge concurrency audit stays review-only" {
 
     try std.testing.expectEqualStrings("kernel/workqueue.c", audit.anchor);
     try std.testing.expectEqualStrings("boundary_map_only", audit.posture);
-    try std.testing.expectEqual(@as(usize, 8), audit.checkpoints.len);
+    try std.testing.expectEqual(@as(usize, 10), audit.checkpoints.len);
     try std.testing.expectEqual(@as(usize, 5), audit.blocked_live_behaviors.len);
-    try std.testing.expectEqual(@as(usize, 8), WorkqueueBridgeLab.auditCheckpointCount());
-    try std.testing.expect(std.mem.indexOf(u8, audit.next_step, "try_to_grab_pending()") != null);
-    try std.testing.expect(std.mem.indexOf(u8, audit.next_step, "queue_work_on()") != null);
+    try std.testing.expectEqual(@as(usize, 10), WorkqueueBridgeLab.auditCheckpointCount());
+    try std.testing.expect(std.mem.indexOf(u8, audit.next_step, "queue_delayed_work_on()") != null);
+    try std.testing.expect(std.mem.indexOf(u8, audit.next_step, "__queue_delayed_work()") != null);
 
     try std.testing.expectEqualStrings("manager-role-serialization", audit.checkpoints[0].id);
     try std.testing.expect(audit.checkpoints[0].guard == .pool_lock_released_and_reacquired);
@@ -297,24 +317,32 @@ test "workqueue bridge concurrency audit stays review-only" {
     try std.testing.expectEqualStrings("wq->max_active", audit.checkpoints[2].observed_fields[2]);
     try std.testing.expect(std.mem.indexOf(u8, audit.checkpoints[2].blocked_by, "ordered-workqueue") != null);
 
-    try std.testing.expectEqualStrings("last-pool-reentrancy-handoff", audit.checkpoints[3].id);
-    try std.testing.expect(audit.checkpoints[3].guard == .last_pool_lock_handoff);
-    try std.testing.expectEqualStrings("pwq->refcnt", audit.checkpoints[3].observed_fields[2]);
+    try std.testing.expectEqualStrings("pending-bit-claim-handoff", audit.checkpoints[3].id);
+    try std.testing.expect(audit.checkpoints[3].guard == .pending_bit_claim_before_pool_selection);
+    try std.testing.expectEqualStrings("WORK_STRUCT_PENDING_BIT", audit.checkpoints[3].observed_fields[1]);
 
-    try std.testing.expectEqualStrings("process-one-work-execution-window", audit.checkpoints[4].id);
-    try std.testing.expect(audit.checkpoints[4].guard == .callback_execution_outside_pool_lock);
-    try std.testing.expectEqualStrings("pwq->nr_in_flight", audit.checkpoints[4].observed_fields[3]);
+    try std.testing.expectEqualStrings("unbound-pwq-refcount-retry", audit.checkpoints[4].id);
+    try std.testing.expect(audit.checkpoints[4].guard == .unbound_pwq_refcount_retry);
+    try std.testing.expectEqualStrings("pwq->refcnt", audit.checkpoints[4].observed_fields[0]);
 
-    try std.testing.expectEqualStrings("worker-thread-idle-sleep-handoff", audit.checkpoints[5].id);
-    try std.testing.expect(audit.checkpoints[5].guard == .idle_sleep_transition);
-    try std.testing.expectEqualStrings("pool->lock", audit.checkpoints[5].observed_fields[2]);
+    try std.testing.expectEqualStrings("last-pool-reentrancy-handoff", audit.checkpoints[5].id);
+    try std.testing.expect(audit.checkpoints[5].guard == .last_pool_lock_handoff);
+    try std.testing.expectEqualStrings("pwq->refcnt", audit.checkpoints[5].observed_fields[2]);
 
-    try std.testing.expectEqualStrings("scheduler-running-hooks", audit.checkpoints[6].id);
-    try std.testing.expect(audit.checkpoints[6].guard == .scheduler_callback_under_pool_lock);
-    try std.testing.expectEqualStrings("pool->nr_running", audit.checkpoints[6].observed_fields[1]);
+    try std.testing.expectEqualStrings("process-one-work-execution-window", audit.checkpoints[6].id);
+    try std.testing.expect(audit.checkpoints[6].guard == .callback_execution_outside_pool_lock);
+    try std.testing.expectEqualStrings("pwq->nr_in_flight", audit.checkpoints[6].observed_fields[3]);
 
-    try std.testing.expectEqualStrings("rescuer-mayday-handoff", audit.checkpoints[7].id);
-    try std.testing.expect(audit.checkpoints[7].guard == .mayday_lock_then_pool_lock);
-    try std.testing.expectEqualStrings("pwq->mayday_cursor", audit.checkpoints[7].observed_fields[2]);
-    try std.testing.expect(std.mem.indexOf(u8, audit.checkpoints[7].blocked_by, "kicks regular workers") != null);
+    try std.testing.expectEqualStrings("worker-thread-idle-sleep-handoff", audit.checkpoints[7].id);
+    try std.testing.expect(audit.checkpoints[7].guard == .idle_sleep_transition);
+    try std.testing.expectEqualStrings("pool->lock", audit.checkpoints[7].observed_fields[2]);
+
+    try std.testing.expectEqualStrings("scheduler-running-hooks", audit.checkpoints[8].id);
+    try std.testing.expect(audit.checkpoints[8].guard == .scheduler_callback_under_pool_lock);
+    try std.testing.expectEqualStrings("pool->nr_running", audit.checkpoints[8].observed_fields[1]);
+
+    try std.testing.expectEqualStrings("rescuer-mayday-handoff", audit.checkpoints[9].id);
+    try std.testing.expect(audit.checkpoints[9].guard == .mayday_lock_then_pool_lock);
+    try std.testing.expectEqualStrings("pwq->mayday_cursor", audit.checkpoints[9].observed_fields[2]);
+    try std.testing.expect(std.mem.indexOf(u8, audit.checkpoints[9].blocked_by, "kicks regular workers") != null);
 }
