@@ -23,7 +23,13 @@ This note records one exact readback snapshot for the current Phase 4 rollback-o
 - `PHASE4_RUNTIME_ATOMIC64_MANIFEST_BLOB_SHA=d3cbe355a97288332adb58efbf03f89f7aa86059`
 - `PHASE4_RUNTIME_ATOMIC64_SURVEY_BLOB_SHA=9899951b42aef5b8772e7b9fe547e3b540403267`
 - `PHASE4_SHIPPED_GATE_BLOB_TARGET_COUNT=16`
+- `PHASE4_GATE_EVIDENCE_SELF_TEST_CASE_COUNT=9`
+- `PHASE4_GATE_EVIDENCE_SELF_TEST_CASES=baseline_round_trip,shipped_target_count_drift,missing_exact_readback_heading,validator_blob_pin_drift,phase4_build_manifest_blob_pin_drift,phase4_build_survey_blob_pin_drift,phase9_build_manifest_blob_pin_drift,phase9_build_survey_blob_pin_drift,missing_note_file`
 - `PHASE4_SEPARATE_GATE_EVIDENCE_CHECKER_PRESENT=true`
+- `PHASE4_SHARED_VALIDATOR_RERUNS_GATE_EVIDENCE_CHECK=true`
+- `PHASE4_SHARED_VALIDATOR_RERUNS_GATE_EVIDENCE_SELF_TEST=true`
+- `PHASE4_SHARED_VALIDATOR_EXPECTED_GATE_EVIDENCE_TARGET_COUNT=16`
+- `PHASE4_SHARED_VALIDATOR_EXPECTED_GATE_EVIDENCE_SELF_TEST_CASE_COUNT=9`
 - `PHASE4_RUNTIME_ATOMIC64_SURVEY_PACKET_PRESENT=true`
 - `PHASE4_SHARED_KPROBE_SURVEY_PACKET_PRESENT=false`
 - `PHASE4_SHARED_TEST_FSMOUNT_SURVEY_PACKET_PRESENT=false`
@@ -32,6 +38,7 @@ This note records one exact readback snapshot for the current Phase 4 rollback-o
 ## Exact Readback Evidence
 - `Documentation/zigux/artifact-diff.md`, `Documentation/zigux/README.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md` now all name the same shipped Phase 4 rollback-readiness packet surfaces that the current validator and shared build route still own on `master`.
 - `scripts/zigux/check-phase4-gate-evidence.py` is present, and `Documentation/zigux/phase4-validation-matrix.md` now names it as the dedicated Phase 4 rollback-ownership gate while this note exact-pins the same current narrower packet: the validator, artifact-diff contract surfaces, the shared build entrypoint, the three root README summaries, and the manifest-backed runtime atomic64 survey pair.
+- `scripts/zigux/check-phase4-gate-evidence.py --self-test` currently covers nine dedicated drift paths, and the shared `scripts/zigux/validate-phase4.py` route still reruns both the live checker and that self-test before Phase 4 Zig replays continue, expecting the same `PHASE4_GATE_EVIDENCE_TARGET_COUNT=16` packet recorded above.
 - `zigux/tests/phase4_runtime_atomic64_diff_manifest.json` and `zigux/tests/phase4_runtime_atomic64_diff_survey.zig` remain the manifest-backed runtime atomic64 handoff pair, and the shared build still exposes `phase4-runtime-atomic64-diff-survey-tests` and `phase4-bitmap-live-helper-replay-tests` beside the synthetic rollback gates.
 - The exact-readback set is now current for the shipped validator-backed packet, and the manifest-backed runtime atomic64 survey pair now pins the same current `validate-phase4.py`, `phase4-validation-matrix.md`, and `phase9_build.zig` blobs that this note names.
 - Current `master` still treats the roadmap-backed sample follow-ups as open gaps rather than shipped gate-evidence targets: `samples/zigux/kprobe_example.zig` remains absent and `samples/zigux/test_fsmount.zig` remains absent.
@@ -39,4 +46,5 @@ This note records one exact readback snapshot for the current Phase 4 rollback-o
 ## Current Conclusion
 - The live Phase 4 exact-readback packet is limited to the files that `master` actually ships for rollback ownership, matrix wording, validator wiring, the artifact-diff contract, the gate-evidence note, the shared build route, the helper-backed bitmap replay, and the runtime atomic64 wrapper handoff plus its manifest-backed survey evidence.
 - The dedicated gate-evidence note, its explicit rollback-owner row in `Documentation/zigux/phase4-validation-matrix.md`, and the separate runtime atomic64 manifest-backed survey packet are back in sync with the same current validator-backed blob-pin set.
+- The published rollback-readiness note now also surfaces the dedicated checker self-test catalog and the shared validator's exact gate-evidence expectations instead of leaving that narrower coverage implied by the Python sources alone.
 - hard perf thresholds for the shipped atomic64 and bitmap rollback gates remain intentionally unapproved.
