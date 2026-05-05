@@ -114,6 +114,11 @@ required_closure_markers = [
         "PHASE1_ROLLBACK=keep C authoritative and remove failing Zig helper from test/build wiring",
         1,
     ),
+    (
+        "closure_shared_review_workflow_count",
+        "- `.github/workflows/zigux-bootstrap.yml`",
+        1,
+    ),
 ]
 required_workflow_markers = [
     "FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true",
@@ -606,6 +611,17 @@ def run_self_test() -> None:
         )
         assert "closure_closure_gate_count:expected=1:actual=0" in missing_closure_gate_markers
 
+        missing_closure_workflow = valid_closure.replace(
+            "- `.github/workflows/zigux-bootstrap.yml`\n",
+            "",
+            1,
+        )
+        missing_closure_workflow_markers = collect_exact_count_markers(
+            missing_closure_workflow,
+            required_closure_markers,
+        )
+        assert "closure_shared_review_workflow_count:expected=1:actual=0" in missing_closure_workflow_markers
+
         valid_phase1_workflow = render_marker_fixture(required_phase1_workflow_markers)
         assert collect_exact_count_markers(valid_phase1_workflow, required_phase1_workflow_markers) == []
         assert WORKFLOW_INSTALL_ZIG_RE.search(
@@ -937,7 +953,7 @@ def run_self_test() -> None:
         assert collect_missing_files(repo_root_from_arg(str(tmp_root))) == [required_phase1_parity]
 
     print("PHASE1_CLOSURE_VALIDATOR_SELF_TEST=pass")
-    print("PHASE1_CLOSURE_VALIDATOR_SELF_TEST_CASE_COUNT=51")
+    print("PHASE1_CLOSURE_VALIDATOR_SELF_TEST_CASE_COUNT=52")
 
 
 def main() -> int:
