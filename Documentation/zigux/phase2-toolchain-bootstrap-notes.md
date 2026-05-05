@@ -1,6 +1,6 @@
 # Phase 2 Toolchain Bootstrap Notes
 
-This note records the bounded Phase 2 bootstrap archive-pin contract.
+This note records the bounded Phase 2 x86_64-linux bootstrap archive-pin contract.
 
 - policy file: `scripts/zigux/zig-toolchain-policy.json`
 - guard self-test: `python3 scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test`
