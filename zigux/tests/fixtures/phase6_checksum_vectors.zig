@@ -37,6 +37,13 @@ pub const CarryDisciplineCase = struct {
     expected_compute: u16,
 };
 
+pub const NegateCase = struct {
+    name: []const u8,
+    sum: u32,
+    expected_negate: u32,
+    expected_add_with_negate: u32,
+};
+
 const ipv4_header = [_]u8{
     0x45, 0x00, 0x00, 0x3c,
     0x1c, 0x46, 0x40, 0x00,
@@ -162,5 +169,32 @@ pub const carry_discipline_cases = [_]CarryDisciplineCase{
         .seed = 0xffff_f7f7,
         .expected_partial = 0xfbfb,
         .expected_compute = 0x0404,
+    },
+};
+
+pub const negate_cases = [_]NegateCase{
+    .{
+        .name = "zero stays zero",
+        .sum = 0x0000_0000,
+        .expected_negate = 0x0000_0000,
+        .expected_add_with_negate = 0x0000_0000,
+    },
+    .{
+        .name = "one negates to all ones",
+        .sum = 0x0000_0001,
+        .expected_negate = 0xffff_ffff,
+        .expected_add_with_negate = 0x0000_0001,
+    },
+    .{
+        .name = "all ones negates to one",
+        .sum = 0xffff_ffff,
+        .expected_negate = 0x0000_0001,
+        .expected_add_with_negate = 0x0000_0001,
+    },
+    .{
+        .name = "mixed payload preserves ones complement carry",
+        .sum = 0xdead_bef0,
+        .expected_negate = 0x2152_4110,
+        .expected_add_with_negate = 0x0000_0001,
     },
 };
