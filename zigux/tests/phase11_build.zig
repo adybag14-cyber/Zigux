@@ -74,6 +74,11 @@ pub fn build(b: *std.Build) void {
         .target = target,
         .optimize = optimize,
     });
+    const phase11_uapi_header_parity_survey_module = b.createModule(.{
+        .root_source_file = b.path("phase11_uapi_header_parity_survey.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
 
     const phase11_gpio_wdt_tests = b.addTest(.{
         .name = "phase11-gpio-wdt-tests",
@@ -120,6 +125,11 @@ pub fn build(b: *std.Build) void {
         .root_module = phase11_hvc_console_survey_module,
     });
     const run_phase11_hvc_console_survey_tests = b.addRunArtifact(phase11_hvc_console_survey_tests);
+    const phase11_uapi_header_parity_survey_tests = b.addTest(.{
+        .name = "phase11-uapi-header-parity-survey-tests",
+        .root_module = phase11_uapi_header_parity_survey_module,
+    });
+    const run_phase11_uapi_header_parity_survey_tests = b.addRunArtifact(phase11_uapi_header_parity_survey_tests);
 
     const test_step = b.step("test", "Run Phase 11 starter and survey tests");
     test_step.dependOn(&run_phase11_gpio_wdt_tests.step);
@@ -128,6 +138,7 @@ pub fn build(b: *std.Build) void {
     test_step.dependOn(&run_phase11_bcm2835_wdt_survey_tests.step);
     test_step.dependOn(&run_phase11_dw_wdt_tests.step);
     test_step.dependOn(&run_phase11_dw_wdt_survey_tests.step);
+    test_step.dependOn(&run_phase11_uapi_header_parity_survey_tests.step);
     test_step.dependOn(&run_phase11_hvc_console_tests.step);
     test_step.dependOn(&run_phase11_hvc_cleanup_tests.step);
     test_step.dependOn(&run_phase11_hvc_console_survey_tests.step);
