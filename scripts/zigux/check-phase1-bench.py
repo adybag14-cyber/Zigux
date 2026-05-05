@@ -171,7 +171,11 @@ def validate_output(expectations: dict[str, object], stdout: str) -> tuple[str, 
         if actual is None:
             missing.append(key)
             continue
-        if int(actual) != int(value):
+        try:
+            actual_value = int(actual)
+        except ValueError:
+            return ('iteration_value_type', (key, actual))
+        if actual_value != int(value):
             return ('iteration_mismatch', (key, value, actual))
 
     for key in expectations['checksums']:
@@ -179,7 +183,11 @@ def validate_output(expectations: dict[str, object], stdout: str) -> tuple[str, 
         if actual is None:
             missing.append(key)
             continue
-        if int(actual) <= 0:
+        try:
+            actual_value = int(actual)
+        except ValueError:
+            return ('checksum_value_type', (key, actual))
+        if actual_value <= 0:
             return ('nonpositive_checksum', (key, actual))
 
     if missing:
@@ -259,6 +267,11 @@ def run_self_test() -> None:
         'PHASE1_BENCH_BITMAP_WEIGHT_ITERATIONS=19999',
         'PHASE1_BENCH_BITMAP_WEIGHT_CHECKSUM=7',
     ])
+    invalid_iteration_output = '\n'.join([
+        'PHASE1_BENCH=pass',
+        'PHASE1_BENCH_BITMAP_WEIGHT_ITERATIONS=not-a-number',
+        'PHASE1_BENCH_BITMAP_WEIGHT_CHECKSUM=7',
+    ])
     missing_checksum_output = '\n'.join([
         'PHASE1_BENCH=pass',
         'PHASE1_BENCH_BITMAP_WEIGHT_ITERATIONS=20000',
@@ -267,6 +280,11 @@ def run_self_test() -> None:
         'PHASE1_BENCH=pass',
         'PHASE1_BENCH_BITMAP_WEIGHT_ITERATIONS=20000',
         'PHASE1_BENCH_BITMAP_WEIGHT_CHECKSUM=0',
+    ])
+    invalid_checksum_output = '\n'.join([
+        'PHASE1_BENCH=pass',
+        'PHASE1_BENCH_BITMAP_WEIGHT_ITERATIONS=20000',
+        'PHASE1_BENCH_BITMAP_WEIGHT_CHECKSUM=not-a-number',
     ])
 
     kind, _ = validate_output(expectations, ok_output)
@@ -299,6 +317,10 @@ def run_self_test() -> None:
     assert kind == 'iteration_mismatch'
     assert payload == ('PHASE1_BENCH_BITMAP_WEIGHT_ITERATIONS', 20000, '19999')
 
+    kind, payload = validate_output(expectations, invalid_iteration_output)
+    assert kind == 'iteration_value_type'
+    assert payload == ('PHASE1_BENCH_BITMAP_WEIGHT_ITERATIONS', 'not-a-number')
+
     kind, payload = validate_output(expectations, missing_checksum_output)
     assert kind == 'missing'
     assert payload == ['PHASE1_BENCH_BITMAP_WEIGHT_CHECKSUM']
@@ -306,6 +328,10 @@ def run_self_test() -> None:
     kind, payload = validate_output(expectations, zero_checksum_output)
     assert kind == 'nonpositive_checksum'
     assert payload == ('PHASE1_BENCH_BITMAP_WEIGHT_CHECKSUM', '0')
+
+    kind, payload = validate_output(expectations, invalid_checksum_output)
+    assert kind == 'checksum_value_type'
+    assert payload == ('PHASE1_BENCH_BITMAP_WEIGHT_CHECKSUM', 'not-a-number')
 
     kind, _ = validate_expectations(full_expectations)
     assert kind == 'pass'
@@ -394,7 +420,7 @@ def run_self_test() -> None:
     assert payload == ['PHASE1_BENCH_BITMAP_WEIGHT_ITERATIONS']
 
     print('PHASE1_BENCH_CHECK_SELF_TEST=pass')
-    print('PHASE1_BENCH_CHECK_SELF_TEST_CASE_COUNT=21')
+    print('PHASE1_BENCH_CHECK_SELF_TEST_CASE_COUNT=23')
 
 
 def main() -> int:
@@ -544,10 +570,22 @@ def main() -> int:
         print(f'EXPECTED={expected}')
         print(f'ACTUAL={actual}')
         return 1
+    if kind == 'iteration_value_type':
+        key, actual = payload
+        print('PHASE1_BENCH_CHECK=fail')
+        print(f'ITERATION_VALUE_TYPE={key}')
+        print(f'ACTUAL={actual}')
+        return 1
     if kind == 'nonpositive_checksum':
         key, actual = payload
         print('PHASE1_BENCH_CHECK=fail')
         print(f'NONPOSITIVE_CHECKSUM={key}')
+        print(f'ACTUAL={actual}')
+        return 1
+    if kind == 'checksum_value_type':
+        key, actual = payload
+        print('PHASE1_BENCH_CHECK=fail')
+        print(f'CHECKSUM_VALUE_TYPE={key}')
         print(f'ACTUAL={actual}')
         return 1
     if kind == 'missing':
