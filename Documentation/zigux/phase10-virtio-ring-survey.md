@@ -48,6 +48,14 @@ The survey manifest now records:
 
 This keeps the lane concrete and reviewable without overstating `virtio_ring` progress: the queue-shape foothold is real, used-buffer polling, callback re-enable, delayed-callback pacing, broken-queue poll discipline, and the bounded MMIO register window are all landed, and the risky transport-facing lifecycle work is still intentionally blocked. That blocked MMIO lifecycle and IRQ follow-up remains owned by the adjacent `virtio_mmio` packet plus shared Phase 10 closure evidence, not by this queue-local ring survey note.
 
+## Freeze boundary
+
+- `Documentation/zigux/freeze-map.md` is the governing boundary note for this queue-local survey packet.
+- freeze-boundary owner: `P10-L10`
+- rollback owner: keep the shared Phase 10 closure packet aligned before widening this queue-local note.
+- this ring survey stays inside `drivers/virtio/*.zig`; it does not reopen `kernel/workqueue.c` or `kernel/trace/ring_buffer.c`, which remain Phase 14 study-only anchors under the freeze map.
+- the allowed evidence here is the ring survey note, its manifest, its focused survey gate, and the shared Phase 10 build packet; this survey does not claim a freeze-map status change or an attached Architecture Council reopen request.
+
 ## Non-goals
 
 This survey slice does not yet claim:
