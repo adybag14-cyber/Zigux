@@ -7,20 +7,47 @@ import sys
 
 
 ROOT = Path(__file__).resolve().parents[2]
+CHECK_PHASE2_CROSS_SELFTEST_ALIGNMENT = ROOT / 'scripts' / 'zigux' / 'check-phase2-cross-selftest-alignment.py'
+CHECK_PHASE2_TOOLCHAIN_PIN_SCOPE = ROOT / 'scripts' / 'zigux' / 'check-phase2-toolchain-pin-scope.py'
+CHECK_PHASE2_TESTS_README_ALIGNMENT = ROOT / 'scripts' / 'zigux' / 'check-phase2-tests-readme-alignment.py'
+DOCS_ROOT_README = ROOT / 'Documentation' / 'zigux' / 'README.md'
+REVIEW_CHECKLIST = ROOT / 'Documentation' / 'zigux' / 'review-checklist.md'
+TOOLCHAIN_NOTES = ROOT / 'Documentation' / 'zigux' / 'phase2-toolchain-bootstrap-notes.md'
+TOOLCHAIN_POLICY = ROOT / 'scripts' / 'zigux' / 'zig-toolchain-policy.json'
 GENKSYMS_CASES = (
     ROOT / 'zigux' / 'tests' / 'fixtures' / 'genksyms_bridge' / 'cases.json'
 )
 
+PHASE2_CROSS_ALIGNMENT_REQUIRED_SOURCE_MARKERS = [
+    'PHASE2_CROSS_ALIGNMENT_SELF_TEST=python3 scripts/zigux/check-phase2-cross-selftest-alignment.py --self-test',
+    'PHASE2_CROSS_ALIGNMENT_GATE=python3 scripts/zigux/check-phase2-cross-selftest-alignment.py',
+]
+PHASE2_TOOLCHAIN_PIN_SCOPE_REQUIRED_SOURCE_MARKERS = [
+    'PHASE2_TOOLCHAIN_PIN_SCOPE_SELF_TEST=python3 scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test',
+    'PHASE2_TOOLCHAIN_PIN_SCOPE_GATE=python3 scripts/zigux/check-phase2-toolchain-pin-scope.py',
+]
+PHASE2_TOOLCHAIN_PIN_SCOPE_MAKEFILE_RUN_COUNTS = {
+    'scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test': 1,
+    'scripts/zigux/check-phase2-toolchain-pin-scope.py': 1,
+}
+
 required_files = [
     ROOT / 'Documentation' / 'zigux' / 'phase2-closure.md',
+    DOCS_ROOT_README,
+    REVIEW_CHECKLIST,
+    TOOLCHAIN_NOTES,
     ROOT / 'scripts' / 'zigux' / 'check-genksyms-bridge.py',
     ROOT / 'scripts' / 'zigux' / 'check-kconfig-bridge.py',
     ROOT / 'scripts' / 'zigux' / 'check-phase2-cross.py',
+    CHECK_PHASE2_CROSS_SELFTEST_ALIGNMENT,
+    CHECK_PHASE2_TOOLCHAIN_PIN_SCOPE,
+    CHECK_PHASE2_TESTS_README_ALIGNMENT,
     ROOT / 'scripts' / 'zigux' / 'validate-phase2-closure.py',
     ROOT / 'scripts' / 'zigux' / 'genksyms.zig',
     ROOT / 'scripts' / 'zigux' / 'kconfig' / 'conf_bridge.zig',
     ROOT / 'scripts' / 'zigux' / 'kconfig' / 'confdata_bridge.zig',
     ROOT / 'zigux' / 'Makefile',
+    TOOLCHAIN_POLICY,
     GENKSYMS_CASES,
     ROOT / 'zigux' / 'tests' / 'fixtures' / 'kconfig_bridge' / 'cases.json',
     ROOT / 'zigux' / 'tests' / 'fixtures' / 'kconfig_bridge' / 'alldefconfig_expected.json',
@@ -120,10 +147,18 @@ required_closure_markers = [
     'PHASE2_CROSS_TARGET_COUNT=3',
     'PHASE2_GENKSYMS_BRIDGE_GATE=python3 scripts/zigux/check-genksyms-bridge.py',
     'PHASE2_KCONFIG_BRIDGE_GATE=python3 scripts/zigux/check-kconfig-bridge.py',
+    'PHASE2_CROSS_SELF_TEST=python3 scripts/zigux/check-phase2-cross.py --self-test',
     'PHASE2_CROSS_GATE=python3 scripts/zigux/check-phase2-cross.py',
+    'PHASE2_CROSS_MANIFEST_POLICY=check-phase2-cross.py rejects duplicate tool entries, duplicate requested targets, unexpected explicit targets, duplicate manifest targets, and manifest-count drift before live compile replay',
+    'PHASE2_TOOLCHAIN_PIN_SCOPE_POLICY=scripts/zigux/zig-toolchain-policy.json',
+    'scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test',
+    'scripts/zigux/check-phase2-toolchain-pin-scope.py',
+    'x86_64-linux',
     'PHASE2_CLOSURE_GATE=python3 scripts/zigux/validate-phase2-closure.py',
     'PHASE2_ROLLBACK=keep C kbuild tools authoritative and remove failing Zigux bridge/tool from workflow wiring',
 ]
+required_closure_markers.extend(PHASE2_CROSS_ALIGNMENT_REQUIRED_SOURCE_MARKERS)
+required_closure_markers.extend(PHASE2_TOOLCHAIN_PIN_SCOPE_REQUIRED_SOURCE_MARKERS)
 required_workflow_markers = [
     'python3 scripts/zigux/check-genksyms-bridge.py',
     'python3 scripts/zigux/check-kconfig-bridge.py',
