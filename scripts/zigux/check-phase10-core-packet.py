@@ -34,11 +34,14 @@ EXPECTED_NOTE_MARKERS = [
 ]
 
 EXPECTED_SURVEY_MARKERS = [
-    "lane: `P10-Y01`",
+    "lane: `P10-L01`",
     "phase10-driver-id-helper",
     "phase10-core-probe-remove-lifecycle",
     "phase10_virtio_core_reset_queue.zig",
     "phase10_virtio_driver_id.zig",
+    "drivers/virtio/*.zig",
+    "zigux/kernel/",
+    "zigux/helpers/",
 ]
 
 EXPECTED_GAPS = {
@@ -78,14 +81,16 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
             missing_markers.append(f"slice_note:{marker}")
 
     manifest = json.loads(read_text(root, "zigux/tests/phase10_virtio_core_manifest.json"))
-    if manifest.get("lane_key") != "P10-Y01":
-        missing_markers.append("manifest:lane_key=P10-Y01")
+    if manifest.get("lane_key") != "P10-L01":
+        missing_markers.append("manifest:lane_key=P10-L01")
     if manifest.get("phase") != "Phase 10":
         missing_markers.append("manifest:phase=Phase 10")
     if manifest.get("anchor") != "drivers/virtio/virtio.c":
         missing_markers.append("manifest:anchor=drivers/virtio/virtio.c")
     if manifest.get("surveyed_commit") != "7a4454d0474106972cad7e164b79293bd54a40c6":
         missing_markers.append("manifest:surveyed_commit")
+    if manifest.get("roadmap_destinations") != ["drivers/virtio/*.zig", "zigux/kernel/", "zigux/helpers/"]:
+        missing_markers.append("manifest:roadmap_destinations")
 
     summary = manifest.get("survey_summary", {})
     if summary.get("preexisting_phase10_test_files") != 9:
@@ -191,9 +196,27 @@ def run_self_test() -> int:
         _, missing_markers = validate(tmp_root)
         if "survey_note:phase10_virtio_driver_id.zig" not in missing_markers:
             raise SystemExit("phase10-core-self-test:expected_driver_id_survey_marker_missing")
+        survey_path.write_text(original_survey, encoding="utf-8")
+
+        manifest_path.write_text(
+            original_manifest.replace('"zigux/kernel/"', '"zigux/kernel_drift/"', 1),
+            encoding="utf-8",
+        )
+        _, missing_markers = validate(tmp_root)
+        if "manifest:roadmap_destinations" not in missing_markers:
+            raise SystemExit("phase10-core-self-test:expected_roadmap_destination_marker_missing")
+        manifest_path.write_text(original_manifest, encoding="utf-8")
+
+        survey_path.write_text(
+            original_survey.replace("zigux/helpers/", "zigux/helpers_drift/", 1),
+            encoding="utf-8",
+        )
+        _, missing_markers = validate(tmp_root)
+        if "survey_note:zigux/helpers/" not in missing_markers:
+            raise SystemExit("phase10-core-self-test:expected_helpers_survey_marker_missing")
 
     print("PHASE10_CORE_PACKET_SELF_TEST=pass")
-    print("PHASE10_CORE_PACKET_SELF_TEST_CASE_COUNT=4")
+    print("PHASE10_CORE_PACKET_SELF_TEST_CASE_COUNT=6")
     return 0
 
 
