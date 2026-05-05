@@ -17,7 +17,10 @@ Key entrypoints
 - `zigux/tests/phase1_helpers.zig`
 - `zigux/tests/phase1_bench.zig`
 - `zigux/tests/phase6_build.zig`
+- `zigux/tests/phase6_base64.zig`
+- `zigux/tests/phase6_bsearch.zig`
 - `zigux/tests/phase6_checksum.zig`
+- `zigux/tests/phase6_hexdump.zig`
 - `zigux/tests/phase7_build.zig`
 - `zigux/tests/phase7_string_helpers.zig`
 - `zigux/tests/phase7_cmdline.zig`
@@ -69,6 +72,7 @@ Guidance
 - prefer discovery-based validation over hard-coded file inventories when adding new Phase 3 slices
 - keep the canonical Phase 4 atomic64 wrapper explicit: `zigux/tests/phase4_build.zig` should continue to run `zigux/tests/atomic64_diff.zig` as the roadmap entrypoint, `zigux/tests/atomic64_diff.zig` should remain the thin wrapper over `zigux/tests/runtime_atomic64_diff.zig`, and `Documentation/zigux/phase4-validation-matrix.md` should keep that wrapper-versus-runtime handoff reviewable without cloning the shared replay body
 - keep the shared Phase 5 reference-sample checks wired through `zigux/tests/phase5_build.zig` so the four shipped sample-backed surveys stay reviewable without implying runtime-substrate closure
+- keep the shared Phase 6 leaf-helper packet wired through `zigux/tests/phase6_build.zig`, including `zigux/tests/phase6_base64.zig`, `zigux/tests/phase6_bsearch.zig`, `zigux/tests/phase6_checksum.zig`, and `zigux/tests/phase6_hexdump.zig`, so the landed `base64`, `bsearch`, `checksum`, and `hexdump` bundle stays reviewable through one bounded helper gate
 - keep the shared Phase 7 leaf-helper packet wired through `zigux/tests/phase7_build.zig`, including the dedicated `zigux/tests/phase7_rbtree_survey.zig` survey gate, so the landed `string_helpers`, `cmdline`, `argv_split`, and `rbtree` bundle stays reviewable through one bounded runtime-safe entrypoint
 - keep the shared Phase 8 tooling packet wired through `zigux/tests/phase8_build.zig`, including `zigux/tests/phase8_exec_cmd.zig`, `zigux/tests/phase8_help.zig`, `zigux/tests/phase8_kallsyms.zig`, `zigux/tests/phase8_cpu_mask.zig`, `zigux/tests/phase8_logging.zig`, `zigux/tests/phase8_pin_path.zig`, `zigux/tests/phase8_bpf_type_names.zig`, and `zigux/tests/phase8_libbpf_segments.zig`, so the landed repo-hosted tooling bundle stays reviewable through one bounded output-stable entrypoint instead of falling back to ad hoc per-slice checks
 - keep the bounded Phase 9 runtime surveys wired through `zigux/tests/phase9_build.zig` so the loader-handoff packet stays reviewable without implying shared runtime substrate closure
