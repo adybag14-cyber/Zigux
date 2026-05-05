@@ -90,7 +90,7 @@ CLOSURE_NOTE_MARKERS = [
     "zigux/tests/phase10_virtio_input_multitouch_preflight.zig",
     "zigux/tests/phase10_virtio_input_registration_blocker_build.zig",
     "zigux/tests/phase10_virtio_mmio_queue_isolation.zig",
-    "PHASE10_TEST_COUNT=11",
+    "PHASE10_TEST_COUNT=12",
 ]
 
 GUIDE_MARKERS = [
@@ -184,7 +184,7 @@ EXACT_ONCE = [
     ("closure_note", "Documentation/zigux/phase10-closure-evidence.md", "zigux/tests/phase10_virtio_input_multitouch_preflight.zig"),
     ("closure_note", "Documentation/zigux/phase10-closure-evidence.md", "zigux/tests/phase10_virtio_input_registration_blocker_build.zig"),
     ("closure_note", "Documentation/zigux/phase10-closure-evidence.md", "zigux/tests/phase10_virtio_mmio_queue_isolation.zig"),
-    ("closure_note", "Documentation/zigux/phase10-closure-evidence.md", "PHASE10_TEST_COUNT=11"),
+    ("closure_note", "Documentation/zigux/phase10-closure-evidence.md", "PHASE10_TEST_COUNT=12"),
     ("guide", "Documentation/zigux/phase10-phase11-phase13-validator-first-review-guide.md", "- `zigux/tests/phase10_virtio_ring_reset_reuse.zig`"),
     ("guide", "Documentation/zigux/phase10-phase11-phase13-validator-first-review-guide.md", "- `zigux/tests/phase10_virtio_input_multitouch_preflight.zig`"),
     ("guide", "Documentation/zigux/phase10-phase11-phase13-validator-first-review-guide.md", "- `zigux/tests/phase10_virtio_input_registration_blocker_build.zig`"),
@@ -240,8 +240,8 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
         check_exact_count(missing, label, read_text(root, rel_path), marker)
 
     closure_manifest = load_json(root, "zigux/tests/phase10_closure_manifest.json")
-    if closure_manifest.get("test_count") != 11:
-        missing.append("closure_manifest:test_count=11")
+    if closure_manifest.get("test_count") != 12:
+        missing.append("closure_manifest:test_count=12")
 
     tests = closure_manifest.get("tests")
     if not isinstance(tests, list):
@@ -250,6 +250,7 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
         for path in [
             "zigux/tests/phase10_virtio_ring_reset_reuse.zig",
             "zigux/tests/phase10_virtio_input_multitouch_preflight.zig",
+            "zigux/tests/phase10_virtio_input_registration_blocker_build.zig",
             "zigux/tests/phase10_virtio_mmio_queue_isolation.zig",
         ]:
             if path not in tests:
@@ -306,10 +307,11 @@ def write_fixture(root: Path) -> None:
         "zigux-alpha/PHASE10_CLOSURE_LEDGER.md": "fixture\n",
     }
     manifest = {
-        "test_count": 11,
+        "test_count": 12,
         "tests": [
             "zigux/tests/phase10_virtio_ring_reset_reuse.zig",
             "zigux/tests/phase10_virtio_input_multitouch_preflight.zig",
+            "zigux/tests/phase10_virtio_input_registration_blocker_build.zig",
             "zigux/tests/phase10_virtio_mmio_queue_isolation.zig",
         ],
         "roadmap_parity_scoreboard": {
@@ -535,6 +537,7 @@ def run_self_test() -> int:
         manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
         manifest["tests"] = [
             "zigux/tests/phase10_virtio_input_multitouch_preflight.zig",
+            "zigux/tests/phase10_virtio_input_registration_blocker_build.zig",
             "zigux/tests/phase10_virtio_mmio_queue_isolation.zig",
         ]
         manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
