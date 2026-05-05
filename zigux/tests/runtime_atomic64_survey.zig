@@ -182,8 +182,12 @@ test "phase 9 runtime atomic64 module slice keeps the loader-backed survey packe
     defer std.testing.allocator.free(note);
 
     try std.testing.expect(std.mem.indexOf(u8, note, "bounded loader-handoff scaffold") != null);
+    try std.testing.expect(std.mem.indexOf(u8, note, "shared request-surface proof") != null);
     try std.testing.expect(std.mem.indexOf(u8, note, "survey-manifest closure only") != null);
     try std.testing.expect(std.mem.indexOf(u8, note, "samples/zigux/runtime_atomic64_loader.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, note, "zigux/kernel/runtime_loader.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, note, "runtime_loader.prepareRequest()") != null);
+    try std.testing.expect(std.mem.indexOf(u8, note, "real runtime substrate remains unavailable") != null);
     try std.testing.expect(std.mem.indexOf(u8, note, "zigux/tests/runtime_atomic64_manifest.json") != null);
     try std.testing.expect(std.mem.indexOf(u8, note, "zigux/tests/runtime_atomic64_diff.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, note, "zigux/Makefile") != null);
