@@ -57,16 +57,16 @@ test "phase 4 atomic64 survey keeps wrapper handoff and remaining shared drift e
     try std.testing.expect(manifest.phase4_build_uses_atomic64_wrapper);
     try std.testing.expectEqualStrings("b1ff06326c59dfe6190663a378b6cb60d64f457f", manifest.phase4_build_blob_sha);
 
-    try std.testing.expect(!manifest.phase4_validator_atomic64_diff_present);
+    try std.testing.expect(manifest.phase4_validator_atomic64_diff_present);
     try std.testing.expect(manifest.phase4_validator_runtime_atomic64_diff_present);
-    try std.testing.expectEqualStrings("4ac6d7657e43bb1ec9f9950c2ad5eb72573d568f", manifest.phase4_validator_blob_sha);
+    try std.testing.expectEqualStrings("e6184bd1e756e18bc2db7b5a83769378882dbb2e", manifest.phase4_validator_blob_sha);
 
     try std.testing.expect(manifest.phase9_build_present);
     try std.testing.expectEqualStrings("8ecef19acf5953dce1bd9c59a9662e23c0da1f60", manifest.phase9_build_blob_sha);
 
-    try std.testing.expect(!manifest.phase4_validation_matrix_atomic64_diff_note_present);
+    try std.testing.expect(manifest.phase4_validation_matrix_atomic64_diff_note_present);
     try std.testing.expect(manifest.phase4_validation_matrix_runtime_atomic64_note_present);
-    try std.testing.expectEqualStrings("e2f0331f7e27d5d3a5d918b73c442eb8bda3e9bd", manifest.phase4_validation_matrix_blob_sha);
+    try std.testing.expectEqualStrings("e48abf8f94355c460faace966f980503fc879721", manifest.phase4_validation_matrix_blob_sha);
     try std.testing.expectEqualStrings(
         "threshold_pending_until_runtime_atomic64_scope_widens",
         manifest.threshold_posture,
@@ -75,10 +75,17 @@ test "phase 4 atomic64 survey keeps wrapper handoff and remaining shared drift e
     try std.testing.expect(std.mem.indexOf(u8, manifest.roadmap_gap_summary, "zigux/tests/atomic64_diff.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, manifest.roadmap_gap_summary, "zigux/tests/phase4_build.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, manifest.roadmap_gap_summary, "zigux/tests/runtime_atomic64_diff.zig") != null);
-    try std.testing.expect(std.mem.indexOf(u8, manifest.roadmap_gap_summary, "shared Phase 4 reviewer surfaces") != null);
+    try std.testing.expect(std.mem.indexOf(u8, manifest.roadmap_gap_summary, "single bounded replay body") != null);
+    try std.testing.expect(std.mem.indexOf(u8, manifest.roadmap_gap_summary, "Phase 9") != null);
+    try std.testing.expect(std.mem.indexOf(u8, manifest.roadmap_gap_summary, "Phase 4 reviewer packet") != null);
 
-    try std.testing.expect(std.mem.indexOf(u8, manifest.ready_next, "scripts/zigux/validate-phase4.py") != null);
-    try std.testing.expect(std.mem.indexOf(u8, manifest.ready_next, "shared Phase 4 reviewer-facing notes") != null);
     try std.testing.expect(std.mem.indexOf(u8, manifest.ready_next, "zigux/tests/atomic64_diff.zig") != null);
-    try std.testing.expect(std.mem.indexOf(u8, manifest.ready_next, "single bounded replay body") != null);
+    try std.testing.expect(std.mem.indexOf(u8, manifest.ready_next, "zigux/tests/runtime_atomic64_diff.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, manifest.ready_next, "zigux/tests/phase4_build.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, manifest.ready_next, "scripts/zigux/validate-phase4.py") != null);
+    try std.testing.expect(
+        std.mem.indexOf(u8, manifest.ready_next, "Documentation/zigux/phase4-validation-matrix.md") != null,
+    );
+    try std.testing.expect(std.mem.indexOf(u8, manifest.ready_next, "wrapper manifest and survey") != null);
+    try std.testing.expect(std.mem.indexOf(u8, manifest.ready_next, "runtime operation coverage") != null);
 }
