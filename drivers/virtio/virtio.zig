@@ -210,6 +210,7 @@ pub const VirtioCoreLabDevice = struct {
     pub fn attachDriverNamed(self: *Self, driver_name: []const u8) !void {
         if (!self.hasStatus(DeviceStatus.acknowledge)) return error.MissingAcknowledge;
         if (driver_name.len == 0) return error.EmptyDriverName;
+        if (self.isResetRequired()) return error.ResetRequired;
 
         self.status |= DeviceStatus.driver;
         self.driver_name = driver_name;
@@ -217,6 +218,7 @@ pub const VirtioCoreLabDevice = struct {
 
     pub fn offerDriverFeature(self: *Self, feature_bit: u16) !void {
         if (!self.hasStatus(DeviceStatus.driver)) return error.DriverNotAttached;
+        if (self.isResetRequired()) return error.ResetRequired;
         if (self.hasStatus(DeviceStatus.features_ok) or self.hasStatus(DeviceStatus.driver_ok)) {
             return error.FeatureWindowClosed;
         }
@@ -229,6 +231,7 @@ pub const VirtioCoreLabDevice = struct {
 
     pub fn finalizeFeatures(self: *Self) !NegotiationSummary {
         if (!self.hasStatus(DeviceStatus.driver)) return error.DriverNotAttached;
+        if (self.isResetRequired()) return error.ResetRequired;
 
         self.finalize_count += 1;
         self.negotiated_features = FeatureSet.initEmpty();
@@ -251,6 +254,7 @@ pub const VirtioCoreLabDevice = struct {
     pub fn markDriverReady(self: *Self) !void {
         if (!self.hasStatus(DeviceStatus.acknowledge)) return error.MissingAcknowledge;
         if (!self.hasStatus(DeviceStatus.driver)) return error.DriverNotAttached;
+        if (self.isResetRequired()) return error.ResetRequired;
         if (!self.hasStatus(DeviceStatus.features_ok)) return error.MissingFeaturesOk;
 
         self.status |= DeviceStatus.driver_ok;
