@@ -191,6 +191,28 @@ pub fn stringEscapeMem(src: []const u8, dst: []u8, flags: u32, only: ?[]const u8
     return dst_index;
 }
 
+pub fn skipSpaces(s: []const u8) []const u8 {
+    const prefix = cStringPrefix(s);
+    var start: usize = 0;
+    while (start < prefix.len and std.ascii.isWhitespace(prefix[start])) : (start += 1) {}
+    return prefix[start..];
+}
+
+pub fn strim(s: []u8) []u8 {
+    const prefix = cStringPrefixMutable(s);
+    var end = prefix.len;
+
+    while (end > 0 and std.ascii.isWhitespace(prefix[end - 1])) : (end -= 1) {}
+
+    if (end < prefix.len) {
+        prefix[end] = 0;
+    }
+
+    var start: usize = 0;
+    while (start < end and std.ascii.isWhitespace(prefix[start])) : (start += 1) {}
+    return prefix[start..end];
+}
+
 fn cStringPrefix(s: []const u8) []const u8 {
     return s[0 .. std.mem.indexOfScalar(u8, s, 0) orelse s.len];
 }
@@ -515,4 +537,23 @@ test "stringEscapeMem reports truncated output length without forcing a terminat
     const len = stringEscapeMem("\n", &out, ESCAPE_HEX, null);
     try std.testing.expectEqual(@as(usize, 4), len);
     try std.testing.expectEqualSlices(u8, "\\x0a?", &out);
+}
+
+test "skipSpaces returns the first non-whitespace byte before the first NUL" {
+    try std.testing.expectEqualStrings("alpha", skipSpaces(" \t\nalpha\x00tail"));
+    try std.testing.expectEqual(@as(usize, 0), skipSpaces("\x00tail").len);
+}
+
+test "strim trims in place without touching bytes after the first NUL" {
+    var padded = [_]u8{ ' ', '\t', 'o', 'k', ' ', '\n', 0, 'x', ' ' };
+    const trimmed = strim(&padded);
+    try std.testing.expectEqualStrings("ok", trimmed);
+    try std.testing.expectEqual(@as(u8, 0), padded[4]);
+    try std.testing.expectEqual(@as(u8, 'x'), padded[7]);
+
+    var spaces_only = [_]u8{ ' ', '\t', '\n', 0, 'x' };
+    const empty = strim(&spaces_only);
+    try std.testing.expectEqual(@as(usize, 0), empty.len);
+    try std.testing.expectEqual(@as(u8, 0), spaces_only[0]);
+    try std.testing.expectEqual(@as(u8, 'x'), spaces_only[4]);
 }
