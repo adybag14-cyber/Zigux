@@ -46,17 +46,13 @@ ABSENT_VALIDATE_TARGETS = (
 )
 
 PHASE13_VALIDATE_TARGET = "phase13-validate"
-PHASE13_VALIDATE_HELPERS = (
-    "validate-phase13-release.py",
-    "check-phase13-devres-packet.py",
-)
+PHASE13_VALIDATE_HELPERS = ("validate-phase13-release.py",)
 
 REQUIRED_README_SNIPPETS = (
     "- The live support packet inside that same validator-first route is `validate-phase3-policy-unsafe-survey.py`, `validate-phase3-low-level-wrapper-survey.py`, `phase3_catalog.py`, `phase3_check_lib.py`, `generate-phase3-check-wrappers.py`, and `run-phase3-checks.py`; the generated `check-phase3-*.py` wrappers stay as compatibility entrypoints derived from the discovered slice catalog instead of a second hand-maintained survey list.",
     "- there is no separate shared `validate-phase6.py`, external portability checker packet, or `phase6-perf` make target on `master`; if those gates land later, document them here only after the files and targets ship.",
     "- there is no dedicated shared `validate-phase9.py` on `master`; new runtime-pilot follow-through should stay inside the next smallest shared runtime-loader substrate or validation step that keeps those four loader handoffs reviewable without widening into a larger runtime-module implementation.",
     "- there is no dedicated shared `validate-phase12.py`, `check-phase12-*.py`, or `phase12-validate` target on `master`; future Phase 12 reviewability claims should name only shipped survey, build, and make surfaces until new validator files actually land.",
-    "- `validate-phase13-release.py` keeps that shared helper release packet aligned before the shared replay runs, and `check-phase13-devres-packet.py` keeps the stricter helper-first `devres` boundary contract visible inside the same validator-first route.",
     "- `make -C zigux phase13-validate` keeps that same release packet wired through the Linux-style validation entrypoint.",
 )
 
@@ -216,7 +212,6 @@ def _baseline_readme() -> str:
             "",
             "Phase 13 flow",
             REQUIRED_README_SNIPPETS[4],
-            REQUIRED_README_SNIPPETS[5],
             "",
         )
     )
@@ -242,7 +237,6 @@ def _baseline_makefile() -> str:
             "",
             "phase13-validate:",
             "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase13-release.py",
-            "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase13-devres-packet.py",
             "",
         )
     )
@@ -353,18 +347,11 @@ def run_self_test() -> int:
         _write(root / MAKEFILE_REL, baseline_makefile)
         case_count += 1
 
-        _write(
-            root / MAKEFILE_REL,
-            baseline_makefile.replace(
-                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase13-devres-packet.py\n",
-                "",
-                1,
-            ),
-        )
+        _write(root / MAKEFILE_REL, "phase13-validate:\n")
         _assert_only(
             validate(root),
             [
-                "missing_makefile_helper:phase13-validate:check-phase13-devres-packet.py",
+                "missing_makefile_helper:phase13-validate:validate-phase13-release.py",
                 "makefile_helper_order_drift:phase13-validate",
             ],
             "missing_phase13_helper_guard_failed",
@@ -375,16 +362,16 @@ def run_self_test() -> int:
         _write(
             root / MAKEFILE_REL,
             baseline_makefile.replace(
-                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase13-devres-packet.py\n",
-                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase13-devres-packet.py\n"
-                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase13-devres-packet.py\n",
+                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase13-release.py\n",
+                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase13-release.py\n"
+                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase13-release.py\n",
                 1,
             ),
         )
         _assert_only(
             validate(root),
             [
-                "unexpected_makefile_helper_count:phase13-validate:check-phase13-devres-packet.py:2",
+                "unexpected_makefile_helper_count:phase13-validate:validate-phase13-release.py:2",
                 "makefile_helper_order_drift:phase13-validate",
             ],
             "duplicate_phase13_helper_guard_failed",
