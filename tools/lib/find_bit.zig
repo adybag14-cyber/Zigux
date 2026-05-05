@@ -91,10 +91,11 @@ pub fn findFirstZeroBit(addr: []const Word, nbits: usize) usize {
 }
 
 pub fn findNextBit(addr: []const Word, nbits: usize, start: usize) usize {
-    assertBitmapLen(addr, nbits);
     if (start >= nbits) {
         return nbits;
     }
+
+    assertBitmapLen(addr, nbits);
 
     var idx = start / bits_per_long;
     var value = maskWordInRange(idx, addr[idx], nbits) & firstWordMask(start);
@@ -111,11 +112,12 @@ pub fn findNextBit(addr: []const Word, nbits: usize, start: usize) usize {
 }
 
 pub fn findNextAndBit(addr1: []const Word, addr2: []const Word, nbits: usize, start: usize) usize {
-    assertBitmapLen(addr1, nbits);
-    assertBitmapLen(addr2, nbits);
     if (start >= nbits) {
         return nbits;
     }
+
+    assertBitmapLen(addr1, nbits);
+    assertBitmapLen(addr2, nbits);
 
     var idx = start / bits_per_long;
     var value = maskWordInRange(idx, addr1[idx] & addr2[idx], nbits) & firstWordMask(start);
@@ -132,10 +134,11 @@ pub fn findNextAndBit(addr1: []const Word, addr2: []const Word, nbits: usize, st
 }
 
 pub fn findNextZeroBit(addr: []const Word, nbits: usize, start: usize) usize {
-    assertBitmapLen(addr, nbits);
     if (start >= nbits) {
         return nbits;
     }
+
+    assertBitmapLen(addr, nbits);
 
     var idx = start / bits_per_long;
     var value = maskWordInRange(idx, ~addr[idx], nbits) & firstWordMask(start);
@@ -195,6 +198,17 @@ test "single-word next scans honor start masks" {
     try std.testing.expectEqual(nbits, findNextBit(&set_bits, nbits, nbits));
     try std.testing.expectEqual(nbits, findNextZeroBit(&zero_bits, nbits, nbits));
     try std.testing.expectEqual(nbits, findNextAndBit(&and_lhs, &and_rhs, nbits, nbits));
+}
+
+test "next scans past nbits return without reading bitmap words" {
+    const empty = [_]Word{};
+
+    try std.testing.expectEqual(@as(usize, 7), findNextBit(&empty, 7, 7));
+    try std.testing.expectEqual(@as(usize, 7), findNextBit(&empty, 7, 11));
+    try std.testing.expectEqual(@as(usize, 7), findNextZeroBit(&empty, 7, 7));
+    try std.testing.expectEqual(@as(usize, 7), findNextZeroBit(&empty, 7, 11));
+    try std.testing.expectEqual(@as(usize, 7), findNextAndBit(&empty, &empty, 7, 7));
+    try std.testing.expectEqual(@as(usize, 7), findNextAndBit(&empty, &empty, 7, 11));
 }
 
 test "tail mask ignores set bits beyond nbits" {
