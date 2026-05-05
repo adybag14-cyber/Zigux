@@ -51,7 +51,7 @@ test "atomic64 diff wrapper records the current bounded runtime checks" {
 }
 
 test "atomic64 diff wrapper keeps the current manifest handoff explicit" {
-    try expectMarker(phase4_runtime_atomic64_manifest_source, "\"lane_key\": \"P4-L01\"");
+    try expectMarker(phase4_runtime_atomic64_manifest_source, "\"lane_key\": \"P4-L04\"");
     try expectMarker(phase4_runtime_atomic64_manifest_source, "\"roadmap_target_path\": \"zigux/tests/atomic64_diff.zig\"");
     try expectMarker(phase4_runtime_atomic64_manifest_source, "\"roadmap_atomic64_diff_present\": true");
     try expectMarker(phase4_runtime_atomic64_manifest_source, "\"roadmap_atomic64_wrapper_targets_runtime_diff\": true");
@@ -64,12 +64,21 @@ test "atomic64 diff wrapper keeps the current manifest handoff explicit" {
     try expectMarker(phase4_runtime_atomic64_manifest_source, "\"phase9_build_present\": true");
     try expectMarker(
         phase4_runtime_atomic64_manifest_source,
+        "\"phase4_validator_atomic64_diff_present\": true",
+    );
+    try expectMarker(
+        phase4_runtime_atomic64_manifest_source,
+        "\"phase4_validation_matrix_atomic64_diff_note_present\": true",
+    );
+    try expectMarker(
+        phase4_runtime_atomic64_manifest_source,
         "\"threshold_posture\": \"threshold_pending_until_runtime_atomic64_scope_widens\"",
     );
-    try expectMarker(phase4_runtime_atomic64_manifest_source, "shared runtime-backed replay body");
-    try expectMarker(phase4_runtime_atomic64_manifest_source, "shared Phase 4 reviewer surfaces should keep that wrapper handoff explicit");
-    try expectMarker(phase4_runtime_atomic64_manifest_source, "canonical wrapper");
     try expectMarker(phase4_runtime_atomic64_manifest_source, "single bounded replay body");
+    try expectMarker(phase4_runtime_atomic64_manifest_source, "Phase 9 runtime packet");
+    try expectMarker(phase4_runtime_atomic64_manifest_source, "Phase 4 reviewer packet");
+    try expectMarker(phase4_runtime_atomic64_manifest_source, "canonical wrapper");
+    try expectMarker(phase4_runtime_atomic64_manifest_source, "runtime operation coverage");
 }
 
 test "atomic64 diff wrapper keeps the current phase4 and phase9 build routing explicit" {
