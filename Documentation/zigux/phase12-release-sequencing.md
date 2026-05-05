@@ -7,6 +7,7 @@ It is a release-coordination artifact, not a closure claim.
 ## Current posture
 - `PHASE12_STATUS=active`
 - `PHASE12_RELEASE_CLOSED=no`
+- focused smoke preflight entrypoint: `make -C zigux phase12-smoke`
 - shared build replay entrypoint: `zig build test --build-file zigux/tests/phase12_build.zig --summary all`
 - Linux-style replay entrypoint: `make -C zigux phase12`
 - shipped shared release surfaces on `master`: `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/phase12-release-sequencing.md`, `Documentation/zigux/phase12-nvme-pci-slice.md`, `Documentation/zigux/phase12-nvme-pci-survey.md`, `Documentation/zigux/phase12-nvme-pci-raw-github-fallback-map.md`, `Documentation/zigux/phase12-virtio-net-survey.md`, `Documentation/zigux/phase12-virtio-scsi-slice.md`, `Documentation/zigux/phase12-virtio-scsi-survey.md`, `Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md`, `Documentation/zigux/phase12-libbpf-segment-survey.md`, `scripts/zigux/README.md`, `scripts/zigux/check-build-only-phase12-surface.py`, `.github/workflows/zigux-bootstrap.yml`, `zigux/tests/README.md`, `zigux/tests/phase12_build.zig`, `zigux/Makefile`, the committed Phase 12 manifests under `zigux/tests/`, and `tools/lib/bpf/zigux_segments/manifest.json`
@@ -16,10 +17,13 @@ It is a release-coordination artifact, not a closure claim.
 1. Reconfirm the release packet surfaces before any replay claim.
    - Re-read `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, `.github/workflows/zigux-bootstrap.yml`, and this sequencing note together.
    - These surfaces must continue to agree that the shared replay route on `master` is the bounded `phase12_build.zig` plus `make -C zigux phase12` path, while `scripts/zigux/check-build-only-phase12-surface.py` plus `.github/workflows/zigux-bootstrap.yml` keep the build-only contract fail-closed rather than implying an unshipped validator stack.
-2. Run the shared Phase 12 build replay.
+2. Run the focused smoke preflight before the full tranche replay.
+   - `make -C zigux phase12-smoke`
+   - This remains the shipped narrow replay route for the direct `nvme_pci`, `virtio_net`, and `virtio_scsi` test bodies plus the focused syntax-lab shard, so PMO sequencing can catch obvious packet drift before the broader survey-backed replay.
+3. Run the shared Phase 12 build replay.
    - `zig build test --build-file zigux/tests/phase12_build.zig --summary all`
    - This remains the shipped tranche-wide Zig replay surface for the bounded `virtio_net`, `nvme_pci`, `virtio_scsi`, and libbpf survey packet.
-3. Run the Linux-style entrypoint last.
+4. Run the Linux-style entrypoint last.
    - `make -C zigux phase12`
    - This should remain the summary replay route rather than the only place release coordination is inferred.
 
@@ -71,7 +75,7 @@ The remaining release-discipline gap is still a PMO truthfulness problem rather 
 
 Phase 12 should not be described as release-closed until all of the following are true:
 1. `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, `scripts/zigux/check-build-only-phase12-surface.py`, `.github/workflows/zigux-bootstrap.yml`, `zigux/tests/README.md`, and this sequencing note still agree on the same shipped Phase 12 replay surface.
-2. `python3 scripts/zigux/check-build-only-phase12-surface.py --self-test`, `python3 scripts/zigux/check-build-only-phase12-surface.py`, `zig build test --build-file zigux/tests/phase12_build.zig --summary all`, and `make -C zigux phase12` all remain explicit and green.
+2. `python3 scripts/zigux/check-build-only-phase12-surface.py --self-test`, `python3 scripts/zigux/check-build-only-phase12-surface.py`, `make -C zigux phase12-smoke`, `zig build test --build-file zigux/tests/phase12_build.zig --summary all`, and `make -C zigux phase12` all remain explicit and green.
 3. The approved four-anchor packet remains explicit and honest across the Phase 12 survey notes, the committed manifests under `zigux/tests/`, `tools/lib/bpf/zigux_segments/manifest.json`, and the bounded `Documentation/zigux/phase12-virtio-scsi-slice.md` rollback-drill wording.
 4. The public fallback split is still described honestly, including `Documentation/zigux/phase12-nvme-pci-raw-github-fallback-map.md` and `Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md`, rather than rounded up into implied commit-pinned coverage for every anchor.
 5. Any future validator-first Phase 12 release gate is published on `master` before PMO notes describe it as part of the active release route, while `scripts/zigux/check-build-only-phase12-surface.py` plus `.github/workflows/zigux-bootstrap.yml` remain scoped to the shipped build-only contract.
@@ -82,6 +86,7 @@ Keep the current Phase 12 PMO packet truthfulness-first.
 
 The docs-root, scripts-root, and tests-root wording repairs are already landed on `master`, so the next bounded same-lane follow-through is now drift control rather than another naming pass:
 - rerun `python3 scripts/zigux/check-build-only-phase12-surface.py --self-test` and the live checker after any shared Phase 12 docs-root, scripts-root, tests-root, workflow, or Makefile edit so the shipped build-only contract stays fail-closed
+- keep `make -C zigux phase12-smoke` documented as the focused preflight shard that now sits ahead of the full `zig build test --build-file zigux/tests/phase12_build.zig --summary all` and `make -C zigux phase12` release replays, rather than letting the new smoke route drift back into Makefile-only knowledge
 - keep this sequencing note aligned with `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, `.github/workflows/zigux-bootstrap.yml`, `zigux/Makefile`, and the bounded `Documentation/zigux/phase12-virtio-scsi-slice.md` rollback-drill wording instead of reopening already-landed naming repairs or inventing removed validator surfaces
 - if the lane reopens for another degraded-workflow drift, start by diffing those shipped packet surfaces and rerunning `scripts/zigux/check-build-only-phase12-surface.py` before widening into any driver-local or helper-local Phase 12 work
 
