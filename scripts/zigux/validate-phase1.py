@@ -93,6 +93,13 @@ REQUIRED_BITMAP_TEST_ANCHORS = [
     'test "bitmap xor keeps caller-selected bit window"',
 ]
 
+REQUIRED_STRING_TEST_ANCHORS = [
+    'test "strtobool accepts common Linux forms"',
+    'test "strlcpy copies and returns the source length"',
+    'test "skip trim remove and replace spaces work in place"',
+    'test "memdup and memchrInv preserve byte content"',
+]
+
 REQUIRED_RBTREE_TEST_ANCHORS = [
     'test "rbtree findAdd keeps the first duplicate and inserts new keys"',
 ]
@@ -130,6 +137,7 @@ def collect_missing_markers(root: Path) -> list[str]:
     test_root = (root / "zigux" / "tests" / "phase1_helpers.zig").read_text(encoding="utf-8")
     find_bit_source = (root / "tools" / "lib" / "find_bit.zig").read_text(encoding="utf-8")
     bitmap_source = (root / "tools" / "lib" / "bitmap.zig").read_text(encoding="utf-8")
+    string_source = (root / "tools" / "lib" / "string.zig").read_text(encoding="utf-8")
     rbtree_source = (root / "tools" / "lib" / "rbtree.zig").read_text(encoding="utf-8")
 
     missing_markers: list[str] = []
@@ -177,6 +185,13 @@ def collect_missing_markers(root: Path) -> list[str]:
             bitmap_source,
             "bitmap_test_anchor",
             REQUIRED_BITMAP_TEST_ANCHORS,
+        )
+    )
+    missing_markers.extend(
+        collect_exact_count_markers(
+            string_source,
+            "string_test_anchor",
+            REQUIRED_STRING_TEST_ANCHORS,
         )
     )
     missing_markers.extend(
@@ -230,6 +245,13 @@ def make_fixture_root(tmp_root: Path) -> None:
     bitmap_path.parent.mkdir(parents=True, exist_ok=True)
     bitmap_path.write_text(
         "\n".join(REQUIRED_BITMAP_TEST_ANCHORS) + "\n",
+        encoding="utf-8",
+    )
+
+    string_path = tmp_root / "tools" / "lib" / "string.zig"
+    string_path.parent.mkdir(parents=True, exist_ok=True)
+    string_path.write_text(
+        "\n".join(REQUIRED_STRING_TEST_ANCHORS) + "\n",
         encoding="utf-8",
     )
 
@@ -347,6 +369,7 @@ def run_self_test() -> None:
         )
         make_fixture_root(tmp_root)
 
+        find_bit_path.writeText if False else None
         find_bit_path.write_text(
             "\n".join(REQUIRED_FIND_BIT_TEST_ANCHORS + [REQUIRED_FIND_BIT_TEST_ANCHORS[2]]) + "\n",
             encoding="utf-8",
@@ -367,6 +390,29 @@ def run_self_test() -> None:
         )
         make_fixture_root(tmp_root)
 
+        string_path = tmp_root / "tools" / "lib" / "string.zig"
+        string_path.write_text(
+            "\n".join(REQUIRED_STRING_TEST_ANCHORS[1:]) + "\n",
+            encoding="utf-8",
+        )
+        missing_markers = collect_missing_markers(tmp_root)
+        assert (
+            'string_test_anchor:test "strtobool accepts common Linux forms":expected=1:actual=0'
+            in missing_markers
+        )
+        make_fixture_root(tmp_root)
+
+        string_path.write_text(
+            "\n".join(REQUIRED_STRING_TEST_ANCHORS + [REQUIRED_STRING_TEST_ANCHORS[2]]) + "\n",
+            encoding="utf-8",
+        )
+        missing_markers = collect_missing_markers(tmp_root)
+        assert (
+            'string_test_anchor:test "skip trim remove and replace spaces work in place":expected=1:actual=2'
+            in missing_markers
+        )
+        make_fixture_root(tmp_root)
+
         rbtree_path = tmp_root / "tools" / "lib" / "rbtree.zig"
         rbtree_path.write_text("", encoding="utf-8")
         missing_markers = collect_missing_markers(tmp_root)
@@ -376,7 +422,7 @@ def run_self_test() -> None:
         )
 
     print("PHASE1_VALIDATION_SELF_TEST=pass")
-    print("PHASE1_VALIDATION_SELF_TEST_CASE_COUNT=13")
+    print("PHASE1_VALIDATION_SELF_TEST_CASE_COUNT=15")
 
 
 def main() -> int:
@@ -410,7 +456,7 @@ def main() -> int:
     print(f"PHASE1_REQUIRED_FILE_COUNT={len(REQUIRED_FILES)}")
     print(
         "PHASE1_REQUIRED_MARKER_COUNT="
-        f"{len(REQUIRED_LEDGER_MARKERS) + len(REQUIRED_WORKFLOW_PRESENCE_MARKERS) + len(REQUIRED_WORKFLOW_EXACT_MARKERS) + len(REQUIRED_TEST_MARKERS) + len(REQUIRED_PHASE1_PARITY_TEST_ANCHORS) + len(REQUIRED_HELPER_TEST_ANCHORS) + len(REQUIRED_PHASE1_PARITY_REPLAY_MARKERS) + len(REQUIRED_FIND_BIT_TEST_ANCHORS) + len(REQUIRED_BITMAP_TEST_ANCHORS) + len(REQUIRED_RBTREE_TEST_ANCHORS)}"
+        f"{len(REQUIRED_LEDGER_MARKERS) + len(REQUIRED_WORKFLOW_PRESENCE_MARKERS) + len(REQUIRED_WORKFLOW_EXACT_MARKERS) + len(REQUIRED_TEST_MARKERS) + len(REQUIRED_PHASE1_PARITY_TEST_ANCHORS) + len(REQUIRED_HELPER_TEST_ANCHORS) + len(REQUIRED_PHASE1_PARITY_REPLAY_MARKERS) + len(REQUIRED_FIND_BIT_TEST_ANCHORS) + len(REQUIRED_BITMAP_TEST_ANCHORS) + len(REQUIRED_STRING_TEST_ANCHORS) + len(REQUIRED_RBTREE_TEST_ANCHORS)}"
     )
     return 0
 
