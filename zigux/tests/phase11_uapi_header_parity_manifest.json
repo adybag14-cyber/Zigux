@@ -30,7 +30,7 @@
       "status": "starter_landed",
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase11_uapi_header_parity_survey.zig",
-      "why_now": "The shared survey gate now replays the bounded watchdog_info and winsize layout checkpoints, the shared build-inventory packet, and the exported hvc helper surface without widening into tty-core ownership."
+      "why_now": "The shared survey gate now replays the bounded watchdog_info and winsize layout checkpoints, the shared replay contract markers, and the exported hvc helper surface without widening into tty-core ownership."
     },
     {
       "id": "phase11-uapi-header-parity-note",
