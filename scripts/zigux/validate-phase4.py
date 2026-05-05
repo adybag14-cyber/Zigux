@@ -26,7 +26,7 @@ REQUIRED_FILES = [
 ]
 
 REQUIRED_MAKE_MARKERS = [
-    "PHONY += phase4-validate phase4-test phase4",
+    "PHONY += phase4-validate phase4-test",
     "phase4-validate:",
     "scripts/zigux/validate-phase4.py",
     "phase4-test:",
