@@ -6,6 +6,9 @@ This document tracks the bounded Phase 10 survey lane around `drivers/virtio/vir
 
 - `PHASE10_STATUS=parked`
 - `PHASE10_SLICE=virtio-ring-survey`
+- lane: `P10-L07`
+- surveyed commit: `e42103fc02f544e1bd23a5ec2e5b584734f5af7d`
+- roadmap destinations: `drivers/virtio/*.zig`, `zigux/kernel/`, and `zigux/helpers/`
 - scope: survey manifest, dedicated survey gate, shared Phase 10 build wiring, the Linux-style replay route, and a lane-level note that records the current landed ring and adjacent MMIO footholds plus the remaining transport-facing gap against the roadmap
 - product boundary:
   - `zigux/tests/phase10_virtio_ring_manifest.json`
@@ -61,7 +64,7 @@ This keeps the lane concrete and reviewable without overstating `virtio_ring` pr
 - freeze-boundary owner: `P10-L10`
 - rollback owner: keep the shared `zigux/tests/phase10_build.zig` and `zigux/Makefile` replay route aligned before widening this queue-local note.
 - this ring survey stays inside `drivers/virtio/*.zig`; it does not reopen `kernel/workqueue.c` or `kernel/trace/ring_buffer.c`, which remain Phase 14 study-only anchors under the freeze map.
-- the allowed evidence here is the ring survey note, its manifest, its focused survey gate, the shared Phase 10 build packet, and the Linux-style `make -C zigux phase10` replay route; this survey does not claim a freeze-map status change or an attached Architecture Council reopen request.
+- the allowed evidence here is the ring survey note, its manifest, its focused survey gate, the shared Phase 10 build packet, the Linux-style `make -C zigux phase10` replay route, and the roadmap-backed destination boundary through `drivers/virtio/*.zig`, `zigux/kernel/`, and `zigux/helpers/`; this survey does not claim a freeze-map status change or an attached Architecture Council reopen request.
 
 ## Non-goals
 
