@@ -308,6 +308,16 @@ def validate_root(root: Path) -> list[str]:
     guard_issues.extend(
         run_guard(
             root,
+            [sys.executable, str(root / "scripts" / "zigux" / "check-fixdep-diff.py"), "--self-test"],
+            [
+                "FIXDEP_DIFF_SELF_TEST=pass",
+                "FIXDEP_DIFF_SELF_TEST_CASE_COUNT=4",
+            ],
+        )
+    )
+    guard_issues.extend(
+        run_guard(
+            root,
             [sys.executable, str(root / "scripts" / "zigux" / "check-phase2-tests-readme-alignment.py"), "--self-test"],
             [
                 "PHASE2_TESTS_README_ALIGNMENT_SELF_TEST=pass",
@@ -537,6 +547,11 @@ def build_self_test_root(root: Path) -> None:
     )
 
     write_stub_guard(
+        root / "scripts/zigux/check-fixdep-diff.py",
+        self_test_marker="FIXDEP_DIFF_SELF_TEST=pass\nFIXDEP_DIFF_SELF_TEST_CASE_COUNT=4",
+        live_markers=["FIXDEP_DIFF=pass"],
+    )
+    write_stub_guard(
         root / "scripts/zigux/check-phase2-tests-readme-alignment.py",
         self_test_marker="PHASE2_TESTS_README_ALIGNMENT_SELF_TEST=pass\nPHASE2_TESTS_README_ALIGNMENT_SELF_TEST_CASE_COUNT=12",
         live_markers=[
@@ -670,6 +685,20 @@ def run_self_test() -> int:
         assert "docs_root:scripts/zigux/check-phase2-toolchain-pin-scope.py" in issues
 
         build_self_test_root(root)
+        checker_path = root / "scripts" / "zigux" / "check-fixdep-diff.py"
+        write_stub_guard(
+            checker_path,
+            self_test_marker="FIXDEP_DIFF_SELF_TEST=pass",
+            live_markers=["FIXDEP_DIFF=pass"],
+        )
+        issues = validate_root(root)
+        assert any(
+            issue.startswith("guard_marker:")
+            and "check-fixdep-diff.py --self-test:FIXDEP_DIFF_SELF_TEST_CASE_COUNT=4" in issue
+            for issue in issues
+        )
+
+        build_self_test_root(root)
         checker_path = root / "scripts" / "zigux" / "check-phase2-tests-readme-alignment.py"
         write_stub_guard(
             checker_path,
@@ -688,7 +717,7 @@ def run_self_test() -> int:
         assert "scripts_helper_index:phase2_helper_block" in issues
 
     print("PHASE2_VALIDATION_SELF_TEST=pass")
-    print("PHASE2_VALIDATION_SELF_TEST_CASE_COUNT=15")
+    print("PHASE2_VALIDATION_SELF_TEST_CASE_COUNT=16")
     return 0
 
 
