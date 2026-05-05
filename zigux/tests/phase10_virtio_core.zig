@@ -542,6 +542,76 @@ test "phase10 virtio core rejects invalid interrupt acknowledgements and clears 
     try std.testing.expectEqual(@as(usize, 0), summary.unacknowledged_interrupt_count);
 }
 
+test "phase10 virtio core tracks lifecycle guard bookkeeping across driver model milestones" {
+    var device = try virtio_core.VirtioCoreLabDevice.init(&.{ 11, 21 });
+
+    var summary = device.lifecycleGuardSummary();
+    try std.testing.expectEqualStrings("drivers/virtio/virtio.c", summary.anchor);
+    try std.testing.expectEqualStrings("", summary.driver_name);
+    try std.testing.expect(!summary.has_acknowledge);
+    try std.testing.expectEqual(virtio_core.DriverLifecycleBlocker.missing_acknowledge, summary.blocker.?);
+    try std.testing.expect(!summary.ready_for_runtime);
+
+    device.acknowledge();
+    summary = device.lifecycleGuardSummary();
+    try std.testing.expect(summary.has_acknowledge);
+    try std.testing.expectEqual(virtio_core.DriverLifecycleBlocker.driver_not_attached, summary.blocker.?);
+    try std.testing.expect(!summary.config_lifecycle_ready);
+    try std.testing.expect(!summary.interrupt_lifecycle_ready);
+
+    try device.attachDriverNamed("virtio_blk_lab");
+    summary = device.lifecycleGuardSummary();
+    try std.testing.expectEqualStrings("virtio_blk_lab", summary.driver_name);
+    try std.testing.expect(summary.driver_attached);
+    try std.testing.expect(summary.config_lifecycle_ready);
+    try std.testing.expect(summary.interrupt_lifecycle_ready);
+    try std.testing.expectEqual(virtio_core.DriverLifecycleBlocker.feature_negotiation_incomplete, summary.blocker.?);
+
+    try device.offerDriverFeature(11);
+    _ = try device.finalizeFeatures();
+    summary = device.lifecycleGuardSummary();
+    try std.testing.expect(summary.features_negotiated);
+    try std.testing.expectEqual(virtio_core.DriverLifecycleBlocker.driver_not_ready, summary.blocker.?);
+
+    try device.markDriverReady();
+    summary = device.lifecycleGuardSummary();
+    try std.testing.expect(summary.driver_ready);
+    try std.testing.expectEqual(@as(usize, 0), summary.registered_queue_count);
+    try std.testing.expectEqual(virtio_core.DriverLifecycleBlocker.no_registered_queues, summary.blocker.?);
+    try std.testing.expect(!summary.queue_runtime_ready);
+
+    try device.registerQueueCallback(2, 8, "blk_done");
+    summary = device.lifecycleGuardSummary();
+    try std.testing.expectEqual(@as(usize, 1), summary.registered_queue_count);
+    try std.testing.expect(summary.queue_runtime_ready);
+    try std.testing.expect(summary.ready_for_runtime);
+    try std.testing.expectEqual(@as(?virtio_core.DriverLifecycleBlocker, null), summary.blocker);
+}
+
+test "phase10 virtio core lifecycle guard surfaces reset-required as the runtime blocker" {
+    var device = try virtio_core.VirtioCoreLabDevice.init(&.{ 12, 22 });
+
+    device.acknowledge();
+    try device.attachDriver();
+    try device.offerDriverFeature(12);
+    _ = try device.finalizeFeatures();
+    try device.markDriverReady();
+    try device.registerQueueCallback(1, 4, "resettable_done");
+    device.noteNeedsReset();
+
+    const summary = device.lifecycleGuardSummary();
+    try std.testing.expect(summary.reset_required);
+    try std.testing.expect(summary.driver_attached);
+    try std.testing.expect(summary.features_negotiated);
+    try std.testing.expect(summary.driver_ready);
+    try std.testing.expectEqual(@as(usize, 1), summary.registered_queue_count);
+    try std.testing.expect(!summary.config_lifecycle_ready);
+    try std.testing.expect(!summary.interrupt_lifecycle_ready);
+    try std.testing.expect(!summary.queue_runtime_ready);
+    try std.testing.expect(!summary.ready_for_runtime);
+    try std.testing.expectEqual(virtio_core.DriverLifecycleBlocker.reset_required, summary.blocker.?);
+}
+
 test "phase10 virtio core exposes reset replay bookkeeping before reset clears state" {
     var device = try virtio_core.VirtioCoreLabDevice.init(&.{ 11, 21 });
 
