@@ -96,6 +96,8 @@ SHARED_REPLAY_NOTE_MARKERS = [
     "Documentation/zigux/review-checklist.md",
     "Documentation/zigux/phase10-phase11-phase13-validator-first-review-guide.md",
     "Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md",
+    "Documentation/zigux/phase11-hvc-console-survey.md",
+    "Documentation/zigux/phase11-uapi-header-parity-survey.md",
     "scripts/zigux/README.md",
     "zigux/tests/README.md",
     "zigux/tests/phase11_build.zig",
@@ -322,6 +324,8 @@ def write_fixture_tree(root: Path) -> None:
                 "- `Documentation/zigux/review-checklist.md`",
                 "- `Documentation/zigux/phase10-phase11-phase13-validator-first-review-guide.md`",
                 "- `Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md`",
+                "- `Documentation/zigux/phase11-hvc-console-survey.md`",
+                "- `Documentation/zigux/phase11-uapi-header-parity-survey.md`",
                 "- `scripts/zigux/README.md`",
                 "- `zigux/tests/README.md`",
                 "",
@@ -648,6 +652,28 @@ def run_self_test() -> int:
 
         write_text(
             note_path,
+            note_backup.replace("- `Documentation/zigux/phase11-hvc-console-survey.md`\n", "", 1),
+        )
+        expect_missing(
+            "missing_note_hvc_survey_sync_point",
+            run_checker(tmp_root),
+            "shared_replay_note:Documentation/zigux/phase11-hvc-console-survey.md",
+        )
+        write_text(note_path, note_backup)
+
+        write_text(
+            note_path,
+            note_backup.replace("- `Documentation/zigux/phase11-uapi-header-parity-survey.md`\n", "", 1),
+        )
+        expect_missing(
+            "missing_note_uapi_header_survey_sync_point",
+            run_checker(tmp_root),
+            "shared_replay_note:Documentation/zigux/phase11-uapi-header-parity-survey.md",
+        )
+        write_text(note_path, note_backup)
+
+        write_text(
+            note_path,
             note_backup.replace("- `scripts/zigux/README.md`\n", "", 1),
         )
         expect_missing(
@@ -751,7 +777,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE11_SHARED_REPLAY_CONTRACT_SELF_TEST=pass")
-    print("PHASE11_SHARED_REPLAY_CONTRACT_SELF_TEST_CASE_COUNT=30")
+    print("PHASE11_SHARED_REPLAY_CONTRACT_SELF_TEST_CASE_COUNT=32")
     return 0
 
 
