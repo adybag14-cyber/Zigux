@@ -6,7 +6,7 @@ This document tracks the bounded Phase 10 survey lane around `drivers/virtio/vir
 
 - `PHASE10_STATUS=parked`
 - `PHASE10_SLICE=virtio-input-survey`
-- `PHASE10_LANE_KEY=P10-Y04`
+- `PHASE10_LANE_KEY=P10-L13`
 - `PHASE10_SURVEYED_COMMIT=7361ac51374149a96b7a7a2c6ea3c995d8cc1231`
 - scope: survey manifest, dedicated survey gate, dedicated `check-phase10-input-packet.py` review guard, shared Phase 10 build wiring, and a lane-level note that compares the already-landed starter against the remaining roadmap gap
 - product boundary:
@@ -23,6 +23,8 @@ The Phase 10 roadmap names `drivers/virtio/virtio_input.c` as a lab-driver ancho
 This survey exists so the lane can compare that live starter against the roadmap and record the next honest gap without pretending the helper is either absent or already close to full driver parity.
 
 A dedicated `scripts/zigux/check-phase10-input-packet.py` guard now keeps the manifest, survey gate, slice notes, and survey note aligned so future same-lane edits can catch review drift without reopening transport-facing helper growth.
+
+This same packet is also the current roadmap-facing `lab-only driver validation` evidence for `virtio_input`: the dedicated input-packet guard, the shared Phase 10 build replay, and the `make -C zigux phase10` route keep the bounded starter reviewable without widening into transport-backed lifecycle claims.
 
 ## Survey findings
 
@@ -73,6 +75,8 @@ This survey slice does not yet claim:
 
 3. run the convenience target
 - `make -C zigux phase10`
+
+Taken together, these gates are the current roadmap-facing `lab-only driver validation` evidence for this lane.
 
 ## Next bounded step
 
