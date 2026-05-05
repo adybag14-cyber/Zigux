@@ -129,3 +129,58 @@ test "phase10 virtio ring blocks publish, kick, poll, and callback snapshots whi
     try std.testing.expectEqual(@as(u16, 1), poll_summary.outstanding_chain_count);
     try std.testing.expect(poll_summary.has_newly_used_chains);
 }
+
+test "phase10 virtio ring reset-readiness preflight reports the current queue blocker" {
+    var ring = virtio_ring.VirtioRingLab{};
+    try ring.defineQueue(4, 8, .split, true, false);
+
+    var summary = try ring.queueResetReadinessSummary(4);
+    try std.testing.expectEqualStrings("drivers/virtio/virtio_ring.c", summary.anchor);
+    try std.testing.expectEqual(@as(u16, 4), summary.queue_index);
+    try std.testing.expect(summary.callback_enabled);
+    try std.testing.expect(!summary.broken);
+    try std.testing.expectEqual(@as(u16, 0), summary.avail_idx_shadow);
+    try std.testing.expectEqual(@as(u16, 0), summary.last_used_idx);
+    try std.testing.expectEqual(@as(u16, 0), summary.last_polled_used_idx);
+    try std.testing.expectEqual(@as(u16, 0), summary.outstanding_chain_count);
+    try std.testing.expectEqual(@as(u16, 0), summary.unpublished_chain_count);
+    try std.testing.expectEqual(@as(u16, 0), summary.pending_used_chain_count);
+    try std.testing.expect(summary.reset_ready);
+    try std.testing.expectEqual(@as(?virtio_ring.QueueResetReadinessBlocker, null), summary.blocker);
+
+    try ring.publishDescriptorChain(4);
+    summary = try ring.queueResetReadinessSummary(4);
+    try std.testing.expect(!summary.reset_ready);
+    try std.testing.expectEqual(@as(u16, 1), summary.avail_idx_shadow);
+    try std.testing.expectEqual(@as(u16, 1), summary.outstanding_chain_count);
+    try std.testing.expectEqual(@as(u16, 1), summary.unpublished_chain_count);
+    try std.testing.expectEqual(virtio_ring.QueueResetReadinessBlocker.unpublished_chains, summary.blocker.?);
+
+    _ = try ring.prepareKick(4);
+    summary = try ring.queueResetReadinessSummary(4);
+    try std.testing.expect(!summary.reset_ready);
+    try std.testing.expectEqual(@as(u16, 1), summary.outstanding_chain_count);
+    try std.testing.expectEqual(@as(u16, 0), summary.unpublished_chain_count);
+    try std.testing.expectEqual(virtio_ring.QueueResetReadinessBlocker.outstanding_chains, summary.blocker.?);
+
+    try ring.recordUsedChains(4, 1);
+    summary = try ring.queueResetReadinessSummary(4);
+    try std.testing.expect(!summary.reset_ready);
+    try std.testing.expectEqual(@as(u16, 1), summary.last_used_idx);
+    try std.testing.expectEqual(@as(u16, 0), summary.last_polled_used_idx);
+    try std.testing.expectEqual(@as(u16, 1), summary.pending_used_chain_count);
+    try std.testing.expectEqual(virtio_ring.QueueResetReadinessBlocker.unpolled_used_chains, summary.blocker.?);
+
+    _ = try ring.pollUsedBuffers(4);
+    summary = try ring.queueResetReadinessSummary(4);
+    try std.testing.expect(summary.reset_ready);
+    try std.testing.expectEqual(@as(u16, 0), summary.pending_used_chain_count);
+    try std.testing.expectEqual(@as(?virtio_ring.QueueResetReadinessBlocker, null), summary.blocker);
+
+    _ = try ring.markBroken(4);
+    summary = try ring.queueResetReadinessSummary(4);
+    try std.testing.expect(!summary.callback_enabled);
+    try std.testing.expect(summary.broken);
+    try std.testing.expect(!summary.reset_ready);
+    try std.testing.expectEqual(virtio_ring.QueueResetReadinessBlocker.queue_broken, summary.blocker.?);
+}
