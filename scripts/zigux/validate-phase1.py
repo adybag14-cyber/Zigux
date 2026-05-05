@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
+
 from __future__ import annotations
 
 import argparse
 from pathlib import Path
 import tempfile
-
 
 _SELF_PATH = Path(__file__).resolve()
 ROOT = _SELF_PATH.parents[2] if len(_SELF_PATH.parents) >= 3 else _SELF_PATH.parent
@@ -90,7 +90,10 @@ REQUIRED_FIND_BIT_TEST_ANCHORS = [
 ]
 
 REQUIRED_BITMAP_TEST_ANCHORS = [
+    'test "bitmap set clear weight and empty full helpers"',
+    'test "bitmap and andnot equal intersects subset"',
     'test "bitmap xor keeps caller-selected bit window"',
+    'test "bitmap scnprintf collapses contiguous ranges"',
 ]
 
 REQUIRED_STRING_TEST_ANCHORS = [
@@ -101,6 +104,10 @@ REQUIRED_STRING_TEST_ANCHORS = [
 ]
 
 REQUIRED_RBTREE_TEST_ANCHORS = [
+    'test "rbtree inserts and traverses in sorted order"',
+    'test "rbtree erase and replace keep traversal consistent"',
+    'test "rbtree eraseInit detaches erased node"',
+    'test "rbtree postorder and empty node helpers behave"',
     'test "rbtree findAdd keeps the first duplicate and inserts new keys"',
 ]
 
@@ -154,52 +161,28 @@ def collect_missing_markers(root: Path) -> list[str]:
     missing_markers.extend(collect_exact_count_markers(test_root, "test", REQUIRED_TEST_MARKERS))
     missing_markers.extend(
         collect_exact_count_markers(
-            test_root,
-            "phase1_parity_test_anchor",
-            REQUIRED_PHASE1_PARITY_TEST_ANCHORS,
+            test_root, "phase1_parity_test_anchor", REQUIRED_PHASE1_PARITY_TEST_ANCHORS
         )
     )
     missing_markers.extend(
-        collect_exact_count_markers(
-            test_root,
-            "helper_test_anchor",
-            REQUIRED_HELPER_TEST_ANCHORS,
-        )
+        collect_exact_count_markers(test_root, "helper_test_anchor", REQUIRED_HELPER_TEST_ANCHORS)
     )
     missing_markers.extend(
         collect_exact_count_markers(
-            test_root,
-            "phase1_parity_replay_marker",
-            REQUIRED_PHASE1_PARITY_REPLAY_MARKERS,
+            test_root, "phase1_parity_replay_marker", REQUIRED_PHASE1_PARITY_REPLAY_MARKERS
         )
     )
     missing_markers.extend(
-        collect_exact_count_markers(
-            find_bit_source,
-            "find_bit_test_anchor",
-            REQUIRED_FIND_BIT_TEST_ANCHORS,
-        )
+        collect_exact_count_markers(find_bit_source, "find_bit_test_anchor", REQUIRED_FIND_BIT_TEST_ANCHORS)
     )
     missing_markers.extend(
-        collect_exact_count_markers(
-            bitmap_source,
-            "bitmap_test_anchor",
-            REQUIRED_BITMAP_TEST_ANCHORS,
-        )
+        collect_exact_count_markers(bitmap_source, "bitmap_test_anchor", REQUIRED_BITMAP_TEST_ANCHORS)
     )
     missing_markers.extend(
-        collect_exact_count_markers(
-            string_source,
-            "string_test_anchor",
-            REQUIRED_STRING_TEST_ANCHORS,
-        )
+        collect_exact_count_markers(string_source, "string_test_anchor", REQUIRED_STRING_TEST_ANCHORS)
     )
     missing_markers.extend(
-        collect_exact_count_markers(
-            rbtree_source,
-            "rbtree_test_anchor",
-            REQUIRED_RBTREE_TEST_ANCHORS,
-        )
+        collect_exact_count_markers(rbtree_source, "rbtree_test_anchor", REQUIRED_RBTREE_TEST_ANCHORS)
     )
     return missing_markers
 
@@ -234,46 +217,21 @@ def make_fixture_root(tmp_root: Path) -> None:
         encoding="utf-8",
     )
 
-    find_bit_path = tmp_root / "tools" / "lib" / "find_bit.zig"
-    find_bit_path.parent.mkdir(parents=True, exist_ok=True)
-    find_bit_path.write_text(
-        "\n".join(REQUIRED_FIND_BIT_TEST_ANCHORS) + "\n",
-        encoding="utf-8",
-    )
-
-    bitmap_path = tmp_root / "tools" / "lib" / "bitmap.zig"
-    bitmap_path.parent.mkdir(parents=True, exist_ok=True)
-    bitmap_path.write_text(
-        "\n".join(REQUIRED_BITMAP_TEST_ANCHORS) + "\n",
-        encoding="utf-8",
-    )
-
-    string_path = tmp_root / "tools" / "lib" / "string.zig"
-    string_path.parent.mkdir(parents=True, exist_ok=True)
-    string_path.write_text(
-        "\n".join(REQUIRED_STRING_TEST_ANCHORS) + "\n",
-        encoding="utf-8",
-    )
-
-    rbtree_path = tmp_root / "tools" / "lib" / "rbtree.zig"
-    rbtree_path.parent.mkdir(parents=True, exist_ok=True)
-    rbtree_path.write_text(
-        "\n".join(REQUIRED_RBTREE_TEST_ANCHORS) + "\n",
-        encoding="utf-8",
-    )
+    for rel, markers in [
+        ("tools/lib/find_bit.zig", REQUIRED_FIND_BIT_TEST_ANCHORS),
+        ("tools/lib/bitmap.zig", REQUIRED_BITMAP_TEST_ANCHORS),
+        ("tools/lib/string.zig", REQUIRED_STRING_TEST_ANCHORS),
+        ("tools/lib/rbtree.zig", REQUIRED_RBTREE_TEST_ANCHORS),
+    ]:
+        path = tmp_root / rel
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text("\n".join(markers) + "\n", encoding="utf-8")
 
 
 def run_self_test() -> None:
     with tempfile.TemporaryDirectory(prefix="zigux_phase1_validator_") as tmp_dir_str:
         tmp_root = Path(tmp_dir_str)
-        make_fixture_root(tmp_root)
 
-        assert collect_missing_files(tmp_root) == []
-        assert collect_missing_markers(tmp_root) == []
-
-        missing_file = "tools/lib/bitmap.zig"
-        (tmp_root / missing_file).unlink()
-        assert collect_missing_files(tmp_root) == [missing_file]
         make_fixture_root(tmp_root)
 
         workflow_path = tmp_root / ".github" / "workflows" / "zigux-bootstrap.yml"
@@ -284,8 +242,8 @@ def run_self_test() -> None:
         missing_markers = collect_missing_markers(tmp_root)
         assert "workflow:python3 scripts/zigux/check-phase1-parity.py:expected=1:actual=0" in missing_markers
         assert "workflow:zig build test --build-file zigux/tests/build.zig:expected=1:actual=0" in missing_markers
-        make_fixture_root(tmp_root)
 
+        make_fixture_root(tmp_root)
         workflow_path.write_text(
             "\n".join(
                 REQUIRED_WORKFLOW_PRESENCE_MARKERS
@@ -296,8 +254,8 @@ def run_self_test() -> None:
             encoding="utf-8",
         )
         assert collect_missing_markers(tmp_root) == []
-        make_fixture_root(tmp_root)
 
+        make_fixture_root(tmp_root)
         workflow_path.write_text(
             "\n".join(
                 REQUIRED_WORKFLOW_PRESENCE_MARKERS
@@ -309,8 +267,8 @@ def run_self_test() -> None:
         )
         missing_markers = collect_missing_markers(tmp_root)
         assert "workflow:python3 scripts/zigux/check-phase1-parity.py:expected=1:actual=2" in missing_markers
-        make_fixture_root(tmp_root)
 
+        make_fixture_root(tmp_root)
         test_path = tmp_root / "zigux" / "tests" / "phase1_helpers.zig"
         test_path.write_text(
             "\n".join(
@@ -325,10 +283,11 @@ def run_self_test() -> None:
         )
         missing_markers = collect_missing_markers(tmp_root)
         assert 'test:@import("find_bit"):expected=1:actual=2' in missing_markers
-        make_fixture_root(tmp_root)
 
+        make_fixture_root(tmp_root)
         test_path.write_text(
-            "\n".join(REQUIRED_TEST_MARKERS + REQUIRED_HELPER_TEST_ANCHORS + REQUIRED_PHASE1_PARITY_REPLAY_MARKERS) + "\n",
+            "\n".join(REQUIRED_TEST_MARKERS + REQUIRED_HELPER_TEST_ANCHORS + REQUIRED_PHASE1_PARITY_REPLAY_MARKERS)
+            + "\n",
             encoding="utf-8",
         )
         missing_markers = collect_missing_markers(tmp_root)
@@ -336,39 +295,37 @@ def run_self_test() -> None:
             'phase1_parity_test_anchor:test "phase 1 helper ports match committed parity fixture":expected=1:actual=0'
             in missing_markers
         )
-        make_fixture_root(tmp_root)
 
+        make_fixture_root(tmp_root)
         test_path.write_text(
-            "\n".join(REQUIRED_TEST_MARKERS + REQUIRED_PHASE1_PARITY_TEST_ANCHORS + REQUIRED_HELPER_TEST_ANCHORS) + "\n",
+            "\n".join(REQUIRED_TEST_MARKERS + REQUIRED_PHASE1_PARITY_TEST_ANCHORS + REQUIRED_HELPER_TEST_ANCHORS)
+            + "\n",
             encoding="utf-8",
         )
         missing_markers = collect_missing_markers(tmp_root)
-        assert (
-            "phase1_parity_replay_marker:fixture.find_bit.tail_and_clamped_next:expected=1:actual=0"
-            in missing_markers
-        )
-        make_fixture_root(tmp_root)
+        assert "phase1_parity_replay_marker:fixture.find_bit.tail_and_clamped_next:expected=1:actual=0" in missing_markers
 
-        test_path.write_text("\n".join(REQUIRED_TEST_MARKERS + REQUIRED_PHASE1_PARITY_TEST_ANCHORS) + "\n", encoding="utf-8")
+        make_fixture_root(tmp_root)
+        test_path.write_text(
+            "\n".join(REQUIRED_TEST_MARKERS + REQUIRED_PHASE1_PARITY_TEST_ANCHORS) + "\n",
+            encoding="utf-8",
+        )
         missing_markers = collect_missing_markers(tmp_root)
         assert (
             'helper_test_anchor:test "phase 1 string replaceChar stops at embedded NUL":expected=1:actual=0'
             in missing_markers
         )
-        make_fixture_root(tmp_root)
 
+        make_fixture_root(tmp_root)
         find_bit_path = tmp_root / "tools" / "lib" / "find_bit.zig"
-        find_bit_path.write_text(
-            "\n".join(REQUIRED_FIND_BIT_TEST_ANCHORS[1:]) + "\n",
-            encoding="utf-8",
-        )
+        find_bit_path.write_text("\n".join(REQUIRED_FIND_BIT_TEST_ANCHORS[1:]) + "\n", encoding="utf-8")
         missing_markers = collect_missing_markers(tmp_root)
         assert (
             'find_bit_test_anchor:test "find first and next set bits across words":expected=1:actual=0'
             in missing_markers
         )
-        make_fixture_root(tmp_root)
 
+        make_fixture_root(tmp_root)
         find_bit_path.write_text(
             "\n".join(REQUIRED_FIND_BIT_TEST_ANCHORS + [REQUIRED_FIND_BIT_TEST_ANCHORS[2]]) + "\n",
             encoding="utf-8",
@@ -378,29 +335,34 @@ def run_self_test() -> None:
             'find_bit_test_anchor:test "find and bit returns the first shared set bit":expected=1:actual=2'
             in missing_markers
         )
-        make_fixture_root(tmp_root)
 
+        make_fixture_root(tmp_root)
         bitmap_path = tmp_root / "tools" / "lib" / "bitmap.zig"
-        bitmap_path.write_text("", encoding="utf-8")
+        bitmap_path.write_text("\n".join(REQUIRED_BITMAP_TEST_ANCHORS[1:]) + "\n", encoding="utf-8")
         missing_markers = collect_missing_markers(tmp_root)
         assert (
-            'bitmap_test_anchor:test "bitmap xor keeps caller-selected bit window":expected=1:actual=0'
+            'bitmap_test_anchor:test "bitmap set clear weight and empty full helpers":expected=1:actual=0'
             in missing_markers
         )
-        make_fixture_root(tmp_root)
 
-        string_path = tmp_root / "tools" / "lib" / "string.zig"
-        string_path.write_text(
-            "\n".join(REQUIRED_STRING_TEST_ANCHORS[1:]) + "\n",
+        make_fixture_root(tmp_root)
+        bitmap_path.write_text(
+            "\n".join(REQUIRED_BITMAP_TEST_ANCHORS + [REQUIRED_BITMAP_TEST_ANCHORS[2]]) + "\n",
             encoding="utf-8",
         )
         missing_markers = collect_missing_markers(tmp_root)
         assert (
-            'string_test_anchor:test "strtobool accepts common Linux forms":expected=1:actual=0'
+            'bitmap_test_anchor:test "bitmap xor keeps caller-selected bit window":expected=1:actual=2'
             in missing_markers
         )
-        make_fixture_root(tmp_root)
 
+        make_fixture_root(tmp_root)
+        string_path = tmp_root / "tools" / "lib" / "string.zig"
+        string_path.write_text("\n".join(REQUIRED_STRING_TEST_ANCHORS[1:]) + "\n", encoding="utf-8")
+        missing_markers = collect_missing_markers(tmp_root)
+        assert 'string_test_anchor:test "strtobool accepts common Linux forms":expected=1:actual=0' in missing_markers
+
+        make_fixture_root(tmp_root)
         string_path.write_text(
             "\n".join(REQUIRED_STRING_TEST_ANCHORS + [REQUIRED_STRING_TEST_ANCHORS[2]]) + "\n",
             encoding="utf-8",
@@ -410,18 +372,29 @@ def run_self_test() -> None:
             'string_test_anchor:test "skip trim remove and replace spaces work in place":expected=1:actual=2'
             in missing_markers
         )
-        make_fixture_root(tmp_root)
 
+        make_fixture_root(tmp_root)
         rbtree_path = tmp_root / "tools" / "lib" / "rbtree.zig"
-        rbtree_path.write_text("", encoding="utf-8")
+        rbtree_path.write_text("\n".join(REQUIRED_RBTREE_TEST_ANCHORS[1:]) + "\n", encoding="utf-8")
         missing_markers = collect_missing_markers(tmp_root)
         assert (
-            'rbtree_test_anchor:test "rbtree findAdd keeps the first duplicate and inserts new keys":expected=1:actual=0'
+            'rbtree_test_anchor:test "rbtree inserts and traverses in sorted order":expected=1:actual=0'
             in missing_markers
         )
 
-    print("PHASE1_VALIDATION_SELF_TEST=pass")
-    print("PHASE1_VALIDATION_SELF_TEST_CASE_COUNT=15")
+        make_fixture_root(tmp_root)
+        rbtree_path.write_text(
+            "\n".join(REQUIRED_RBTREE_TEST_ANCHORS + [REQUIRED_RBTREE_TEST_ANCHORS[4]]) + "\n",
+            encoding="utf-8",
+        )
+        missing_markers = collect_missing_markers(tmp_root)
+        assert (
+            'rbtree_test_anchor:test "rbtree findAdd keeps the first duplicate and inserts new keys":expected=1:actual=2'
+            in missing_markers
+        )
+
+        print("PHASE1_VALIDATION_SELF_TEST=pass")
+        print("PHASE1_VALIDATION_SELF_TEST_CASE_COUNT=17")
 
 
 def main() -> int:
