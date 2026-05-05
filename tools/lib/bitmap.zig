@@ -332,6 +332,20 @@ test "bitmap and andnot equal intersects subset" {
     try std.testing.expect(subset(&rhs, &lhs, 8));
 }
 
+test "bitmap and andnot clamp tail bits in partial words" {
+    const nbits = bits_per_long + 5;
+    const in_range_and_tail = [_]Word{ 0, (@as(Word, 1) << 2) | (@as(Word, 1) << 9) };
+    const shared_in_range_and_tail = [_]Word{ 0, (@as(Word, 1) << 2) | (@as(Word, 1) << 9) };
+    const clear_in_range_only = [_]Word{ 0, @as(Word, 1) << 2 };
+    var dst = [_]Word{ ~@as(Word, 0), ~@as(Word, 0) };
+
+    try std.testing.expect(andBits(&dst, &in_range_and_tail, &shared_in_range_and_tail, nbits));
+    try std.testing.expectEqualSlices(Word, &[_]Word{ 0, @as(Word, 1) << 2 }, &dst);
+
+    try std.testing.expect(!andNotBits(&dst, &in_range_and_tail, &clear_in_range_only, nbits));
+    try std.testing.expectEqualSlices(Word, &[_]Word{ 0, 0 }, &dst);
+}
+
 test "bitmap xor keeps caller-selected bit window" {
     const lhs = [_]Word{0b1_1111};
     const rhs = [_]Word{0b1_0001};
