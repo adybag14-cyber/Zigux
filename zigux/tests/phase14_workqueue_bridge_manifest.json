@@ -76,7 +76,7 @@
       "status": "starter_landed",
       "kind": "concurrency_audit",
       "zigux_destination": "kernel/workqueue_bridge.zig",
-      "why_now": "The bridge now carries a small concurrency audit outline around `manage_workers()`, `struct worker_pool`, `wq_worker_running()` or `wq_worker_sleeping()`, and `rescuer_thread()` so Zigux can name `pool->manager`, forward-progress fields, scheduler-visible running state, and `pwq->mayday_cursor` without claiming live execution ownership."
+      "why_now": "The bridge now carries a small concurrency audit outline around `manage_workers()`, `struct worker_pool`, `wq_worker_running()` or `wq_worker_sleeping()`, `rescuer_thread()`, the pending-bit claim handoff, and the unbound retry path so Zigux can name `pool->manager`, forward-progress fields, scheduler-visible running state, `WORK_STRUCT_PENDING_BIT`, `pwq->refcnt`, and `pwq->mayday_cursor` without claiming live execution ownership."
     },
     {
       "id": "phase14-workqueue-max-active-audit",
@@ -94,10 +94,17 @@
     },
     {
       "id": "phase14-workqueue-pending-bit-followup",
+      "status": "starter_landed",
+      "kind": "concurrency_audit",
+      "zigux_destination": "kernel/workqueue_bridge.zig",
+      "why_now": "The bridge now audits `try_to_grab_pending()`, `queue_work_on()`, and the unbound `__queue_work()` `pwq->refcnt` retry path so Zigux can describe pending-bit ownership and refcount retry rules before any wrapper claims live submission control."
+    },
+    {
+      "id": "phase14-workqueue-delayed-submission-alias-followup",
       "status": "ready_next",
       "kind": "concurrency_audit",
       "zigux_destination": "kernel/workqueue_bridge.zig",
-      "why_now": "The next honest Phase 14 step is to audit `try_to_grab_pending()`, `queue_work_on()`, and the unbound `__queue_work()` `pwq->refcnt` retry path so Zigux can describe pending-bit ownership and refcount retry rules before any wrapper claims live submission control."
+      "why_now": "The next honest Phase 14 step is to audit `queue_delayed_work_on()`, `mod_delayed_work_on()`, and `__queue_delayed_work()` so Zigux can describe delayed enqueue aliases before any wrapper claims live timer-driven submission control."
     },
     {
       "id": "phase14-workqueue-live-execution-blocker",
