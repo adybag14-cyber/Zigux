@@ -58,7 +58,7 @@
       "status": "starter_landed",
       "kind": "export_surface",
       "zigux_destination": "zigux/tests/phase11_uapi_header_parity_survey.zig",
-      "why_now": "The shared packet keeps the exported hvc_instantiate, hvc_alloc, hvc_remove, hvc_poll, hvc_kick, __hvc_resize, notifier_add_irq, and notifier_del_irq surface machine-checked as the bounded public driver-header boundary."
+      "why_now": "The shared packet keeps the exported hvc_instantiate, hvc_alloc, hvc_remove, hvc_poll, hvc_kick, __hvc_resize, notifier_add_irq, notifier_del_irq, and notifier_hangup_irq surface machine-checked as the bounded public driver-header boundary."
     }
   ]
 }
