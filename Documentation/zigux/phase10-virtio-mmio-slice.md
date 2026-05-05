@@ -12,6 +12,7 @@ This document tracks the first bounded `drivers/virtio/virtio_mmio.c` lab helper
   - `zigux/tests/phase10_virtio_mmio.zig`
   - `zigux/tests/phase10_build.zig`
   - `zigux/Makefile`
+  - `scripts/zigux/check-phase10-mmio-packet.py`
 
 ## Why this slice exists
 
@@ -55,10 +56,14 @@ This slice does not yet claim:
 
 ## Gates
 
-1. run the dedicated Phase 10 build
+1. run the dedicated MMIO packet review guard
+- `python3 scripts/zigux/check-phase10-mmio-packet.py --self-test`
+- `python3 scripts/zigux/check-phase10-mmio-packet.py`
+
+2. run the dedicated Phase 10 build
 - `zig build test --build-file zigux/tests/phase10_build.zig`
 
-2. run the convenience target
+3. run the convenience target
 - `make -C zigux phase10`
 
 ## Next bounded step
