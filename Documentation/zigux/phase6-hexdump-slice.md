@@ -62,6 +62,14 @@ The current tests check:
 - normalization behavior for rowsize and groupsize fallback cases lifted from `lib/test_hexdump.c`
 - empty-buffer required-length behavior for normalized fallback paths
 - truncation behavior while still reporting the full required line length
+- a machine-readable four-case perf fixture packet kept alongside the hexdump vectors so grouped formatter follow-ups reuse one bounded case roster instead of growing ad hoc
+
+The current perf fixture packet in `zigux/tests/fixtures/phase6_hexdump_vectors.zig` stays bounded to:
+
+- `16B-plain-g1`
+- `16B-ascii-g2`
+- `16B-ascii-g4`
+- `16B-ascii-g8`
 
 ## Non-goals
 
