@@ -75,7 +75,7 @@ The current gap is no longer "Zigux has no kretprobe sample guidance." The more 
 ## Review gates for this survey
 
 1. confirm the Phase 5 anchor is still the Linux kretprobe example
-   - `rg -n "samples/kprobes/kretprobe_example.c|Phase 5" Documentation/zigux samples /workspace/agent_files/ZAR_TO_ZIGUX_PRODUCT_ROADMAP\ \(1\).md`
+   - `rg -n "samples/kprobes/kretprobe_example.c|Phase 5" Documentation/zigux samples`
 2. confirm the current `samples/zigux/` surface keeps the Phase 5 and Phase 9 kretprobe lanes distinct
    - `find samples/zigux -maxdepth 1 -type f | sort | rg "kretprobe|runtime_kretprobe"`
 3. run the exact bounded Phase 5 sample checks
