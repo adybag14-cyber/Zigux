@@ -27,7 +27,7 @@
   "architecture_council_reopen_attached": false,
   "survey_summary": {
     "virtio_input_c_lines": 421,
-    "preexisting_phase10_test_files": 5,
+    "preexisting_phase10_test_files": 6,
     "preexisting_phase10_build_present": true,
     "preexisting_virtio_core_zig_present": true,
     "preexisting_virtio_ring_zig_present": true,
@@ -43,7 +43,7 @@
       "status": "starter_landed",
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase10_build.zig",
-      "why_now": "The shared Phase 10 build step is the narrowest honest place to keep the virtio_input survey reviewable alongside the already-landed helper."
+      "why_now": "The shared Phase 10 build step is the narrowest honest place to keep the virtio_input survey reviewable alongside the already-landed helper and the focused status-drain replay."
     },
     {
       "id": "phase10-virtio-core-lab-starter",
@@ -116,11 +116,18 @@
       "why_now": "The live repo now includes one bounded registration-preflight summary that reports queue, ready-state, capability-setup, and multitouch-slot blockers before any future `input_register_device()` handoff, which keeps the remaining lifecycle gap explicit without claiming transport-backed parity."
     },
     {
+      "id": "phase10-virtio-input-status-drain-helper",
+      "status": "starter_landed",
+      "kind": "lab_driver_starter",
+      "zigux_destination": "drivers/virtio/virtio_input.zig",
+      "why_now": "The live repo now includes one bounded in-memory status-drain helper that mirrors the `virtinput_recv_status()` reclaim step closely enough to retire completed status sends from the lab queue model without claiming transport-backed callbacks."
+    },
+    {
       "id": "phase10-virtio-input-registration-lifecycle",
       "status": "blocked_on_risky_transport",
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase10_virtio_input.zig",
-      "why_now": "Real event delivery, `input_register_device()` lifecycle coverage, freeze or restore behavior, and transport-backed queue callbacks remain too risky even after the registration-preflight and multitouch slot helpers landed, until broader queue callback plumbing is in place."
+      "why_now": "Real event delivery, `input_register_device()` lifecycle coverage, freeze or restore behavior, and transport-backed queue callbacks remain too risky even after the registration-preflight, multitouch slot, and status-drain helpers landed, until broader queue callback plumbing is in place."
     }
   ]
 }
