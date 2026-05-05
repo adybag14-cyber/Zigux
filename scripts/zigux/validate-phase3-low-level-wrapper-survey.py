@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import hashlib
+import json
 from pathlib import Path
 import tempfile
 
@@ -19,7 +20,7 @@ ABI_DUMP_REL = "zigux/tests/phase3_abi_dump.zig"
 ABI_EXPECTED_REL = "zigux/tests/fixtures/phase3_abi/expected.json"
 ABI_MANIFEST_REL = "zigux/tests/fixtures/phase3_abi_manifest.json"
 ABI_SLICE_DOC_REL = "Documentation/zigux/phase3-abi-slice.md"
-PHASE3_LOW_LEVEL_WRAPPER_SURVEY_SELF_TEST_CASE_COUNT = 6
+PHASE3_LOW_LEVEL_WRAPPER_SURVEY_SELF_TEST_CASE_COUNT = 8
 
 
 def blob_sha(path: Path) -> str:
@@ -31,6 +32,21 @@ def require_tokens(issues: list[str], text: str, prefix: str, tokens: tuple[str,
     for token in tokens:
         if token not in text:
             issues.append(f"{prefix}:{token}")
+
+
+def load_manifest_files(root: Path, issues: list[str]) -> list[str] | None:
+    manifest_path = root / ABI_MANIFEST_REL
+    try:
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    except json.JSONDecodeError as exc:
+        issues.append(f"invalid_manifest_json:{ABI_MANIFEST_REL}:{exc.msg}")
+        return None
+
+    files = manifest.get("files")
+    if not isinstance(files, list) or not all(isinstance(entry, str) for entry in files):
+        issues.append(f"invalid_manifest_files:{ABI_MANIFEST_REL}")
+        return None
+    return files
 
 
 def validate(root: Path) -> list[str]:
@@ -205,10 +221,14 @@ def validate(root: Path) -> list[str]:
         ('"zigux_mmio_range"', '"zigux_interop_policy"'),
     )
 
-    manifest_text = (root / ABI_MANIFEST_REL).read_text(encoding="utf-8")
-    for rel in (ATOMIC_REL, BARRIER_REL, MMIO_REL, ABI_TEST_REL, LOW_LEVEL_TEST_REL):
-        if rel not in manifest_text:
-            issues.append(f"manifest_missing_entry:{rel}")
+    manifest_files = load_manifest_files(root, issues)
+    if manifest_files is not None:
+        for rel in (ATOMIC_REL, BARRIER_REL, MMIO_REL, ABI_TEST_REL, LOW_LEVEL_TEST_REL):
+            count = manifest_files.count(rel)
+            if count == 0:
+                issues.append(f"manifest_missing_entry:{rel}")
+            elif count != 1:
+                issues.append(f"manifest_duplicate_entry:{rel}:{count}")
 
     abi_slice_text = (root / ABI_SLICE_DOC_REL).read_text(encoding="utf-8")
     require_tokens(
@@ -266,6 +286,7 @@ def run_self_test() -> int:
             ),
             encoding="utf-8",
         )
+        (root / BARRIER_REL).writeText if False else None
         (root / BARRIER_REL).write_text(
             "\n".join(
                 [
@@ -460,6 +481,22 @@ def run_self_test() -> int:
         )
         issues = validate(root)
         assert f"manifest_missing_entry:{MMIO_REL}" in issues
+
+        (root / ABI_MANIFEST_REL).write_text(valid_manifest, encoding="utf-8")
+        (root / ABI_MANIFEST_REL).write_text(
+            valid_manifest.replace(
+                f'"{LOW_LEVEL_TEST_REL}"',
+                f'"{LOW_LEVEL_TEST_REL}", "{LOW_LEVEL_TEST_REL}"',
+                1,
+            ),
+            encoding="utf-8",
+        )
+        issues = validate(root)
+        assert f"manifest_duplicate_entry:{LOW_LEVEL_TEST_REL}:2" in issues
+
+        (root / ABI_MANIFEST_REL).write_text("{\n", encoding="utf-8")
+        issues = validate(root)
+        assert any(issue.startswith(f"invalid_manifest_json:{ABI_MANIFEST_REL}:") for issue in issues)
 
         (root / ABI_MANIFEST_REL).write_text(valid_manifest, encoding="utf-8")
         (root / ABI_SLICE_DOC_REL).write_text(
