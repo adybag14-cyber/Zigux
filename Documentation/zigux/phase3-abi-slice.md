@@ -46,8 +46,9 @@ It is a small substrate that makes future ports measurable:
 3. run Zig substrate tests
 - `zig build phase3-test --build-file zigux/tests/build.zig`
 
-4. rerun the validator-support packet without duplicating the default route
+4. rerun the validator-support packet and its review-surface guard without duplicating the default route
 - `python3 scripts/zigux/validate_phase3_selftest.py`
+- `python3 scripts/zigux/check-phase3-selftest-surface.py`
 - `make -C zigux phase3-selftest`
 - focused support-script safety check only; `make -C zigux phase3-validate` already invokes the underlying helper self-tests directly.
 
