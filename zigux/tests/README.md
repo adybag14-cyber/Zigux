@@ -46,6 +46,8 @@ Key entrypoints
 - `zigux/tests/phase11_build.zig`
 - `zigux/tests/phase11_hvc_console_survey.zig`
 - `zigux/tests/phase12_build.zig`
+- `zigux/tests/phase12_nvme_pci.zig`
+- `zigux/tests/phase12_nvme_pci_survey.zig`
 - `zigux/tests/phase12_virtio_net_survey.zig`
 - `zigux/tests/phase12_virtio_scsi_survey.zig`
 - `zigux/tests/phase12_virtio_scsi.zig`
