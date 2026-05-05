@@ -1,5 +1,5 @@
 {
-  "lane_key": "P11-L05",
+  "lane_key": "P11-L12",
   "phase": "Phase 11",
   "surveyed_commit": "0ddb982b08ffa3f1a34bddc0520f50af0b3e346f",
   "anchor": "drivers/watchdog/dw_wdt.c",
@@ -39,7 +39,7 @@
       "status": "starter_landed",
       "kind": "documentation",
       "zigux_destination": "Documentation/zigux/phase11-dw-wdt-survey.md",
-      "why_now": "The survey note now anchors the live dw_wdt lane to `master` `0ddb982b08ffa3f1a34bddc0520f50af0b3e346f` so later runs can extend the same Phase 11 slice without rediscovering whether the registration handoff already landed."
+      "why_now": "The survey note now anchors the live dw_wdt cleanup packet to lane `P11-L12` on `master` `0ddb982b08ffa3f1a34bddc0520f50af0b3e346f` so later runs can extend the same Phase 11 slice without rediscovering whether the registration handoff already landed."
     },
     {
       "id": "phase11-dw-wdt-driver-starter",
