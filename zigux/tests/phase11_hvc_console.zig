@@ -164,14 +164,14 @@ test "phase11 hvc console keeps sysrq handoff boundaries reviewable" {
 
     const detached_sysrq = try console.summarizeSysrqHandoff(.{
         .console_index_matches_boot_console = false,
-        .sysrq_break_seen = false,
-        .notifier_target_present = false,
+        .sysrq_break_seen = true,
+        .notifier_target_present = true,
     });
     try std.testing.expect(!detached_sysrq.console_index_matches_boot_console);
-    try std.testing.expect(!detached_sysrq.sysrq_break_seen);
+    try std.testing.expect(detached_sysrq.sysrq_break_seen);
     try std.testing.expect(detached_sysrq.sysrq_dispatch_reviewable);
     try std.testing.expect(!detached_sysrq.sysrq_dispatch_requested);
-    try std.testing.expect(!detached_sysrq.notifier_target_present);
+    try std.testing.expect(detached_sysrq.notifier_target_present);
     try std.testing.expect(!detached_sysrq.notifier_callbacks_deferred);
     try std.testing.expect(detached_sysrq.khvcd_worker_execution_deferred);
     try std.testing.expect(detached_sysrq.host_io_deferred);
