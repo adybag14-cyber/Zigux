@@ -60,6 +60,12 @@ pub fn build(b: *std.Build) void {
         .target = target,
         .optimize = optimize,
     });
+    const runtime_trace_events_loader_module = b.createModule(.{
+        .root_source_file = b.path("../../samples/zigux/runtime_trace_events_loader.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    runtime_trace_events_loader_module.addImport("runtime_trace_events_sample", runtime_trace_events_sample_module);
     const runtime_kretprobe_sample_module = b.createModule(.{
         .root_source_file = b.path("../../samples/zigux/runtime_kretprobe.zig"),
         .target = target,
@@ -187,6 +193,11 @@ pub fn build(b: *std.Build) void {
         .root_module = runtime_trace_events_diff_module,
     });
     const run_runtime_trace_events_diff_tests = b.addRunArtifact(runtime_trace_events_diff_tests);
+    const runtime_trace_events_loader_tests = b.addTest(.{
+        .name = "phase9-runtime-trace-events-loader-tests",
+        .root_module = runtime_trace_events_loader_module,
+    });
+    const run_runtime_trace_events_loader_tests = b.addRunArtifact(runtime_trace_events_loader_tests);
     const runtime_kretprobe_module_tests = b.addTest(.{
         .name = "phase9-runtime-kretprobe-module-tests",
         .root_module = runtime_kretprobe_module,
@@ -238,6 +249,7 @@ pub fn build(b: *std.Build) void {
     test_step.dependOn(&run_runtime_bitmap_loader_tests.step);
     test_step.dependOn(&run_runtime_trace_events_module_tests.step);
     test_step.dependOn(&run_runtime_trace_events_diff_tests.step);
+    test_step.dependOn(&run_runtime_trace_events_loader_tests.step);
     test_step.dependOn(&run_runtime_kretprobe_module_tests.step);
     test_step.dependOn(&run_runtime_kretprobe_diff_tests.step);
     test_step.dependOn(&run_runtime_kretprobe_loader_tests.step);
