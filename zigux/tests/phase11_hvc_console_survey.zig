@@ -63,7 +63,7 @@ test "phase11 hvc_console survey manifest records the landed starter and tty han
     try std.testing.expect(manifest.survey_summary.hvc_console_test_present);
     try std.testing.expect(manifest.survey_summary.hvc_console_survey_gate_present);
     try std.testing.expect(manifest.survey_summary.hvc_console_survey_note_present);
-    try std.testing.expectEqual(@as(usize, 9), manifest.gaps.len);
+    try std.testing.expectEqual(@as(usize, 10), manifest.gaps.len);
 
     var starter_landed_count: usize = 0;
     var ready_next_count: usize = 0;
@@ -77,6 +77,7 @@ test "phase11 hvc_console survey manifest records the landed starter and tty han
     var saw_driver_test_block = false;
     var saw_validation_matrix = false;
     var saw_tty_handoff = false;
+    var saw_sysrq_handoff = false;
 
     for (manifest.gaps, 0..) |gap, i| {
         try std.testing.expect(gap.id.len > 0);
@@ -106,6 +107,7 @@ test "phase11 hvc_console survey manifest records the landed starter and tty han
             try std.testing.expectEqualStrings("starter_landed", gap.status);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "cleanup handoff") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "tty-registration handoff helper") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "sysrq handoff helper") != null);
         }
 
         if (std.mem.eql(u8, gap.id, "phase11-hvc-console-survey-note")) {
@@ -114,6 +116,7 @@ test "phase11 hvc_console survey manifest records the landed starter and tty han
             try std.testing.expectEqualStrings("starter_landed", gap.status);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "cleanup handoff summary") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "tty-registration handoff summary") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "sysrq handoff summary") != null);
         }
 
         if (std.mem.eql(u8, gap.id, "phase11-hvc-console-driver-starter")) {
@@ -124,6 +127,7 @@ test "phase11 hvc_console survey manifest records the landed starter and tty han
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "flush intent") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "cleanup handoff") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "tty-registration handoff summary") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "sysrq handoff summary") != null);
         }
 
         if (std.mem.eql(u8, gap.id, "phase11-hvc-console-cleanup-handoff")) {
@@ -154,6 +158,7 @@ test "phase11 hvc_console survey manifest records the landed starter and tty han
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "newline framing") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "teardown gating") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "tty-registration handoff") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "sysrq handoff") != null);
         }
 
         if (std.mem.eql(u8, gap.id, "phase11-hvc-console-validation-matrix")) {
@@ -163,6 +168,7 @@ test "phase11 hvc_console survey manifest records the landed starter and tty han
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "shared Phase 11 test gate") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "cleanup replay") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "tty-registration handoff") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "sysrq handoff") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "notifier-facing") != null);
         }
 
@@ -175,12 +181,22 @@ test "phase11 hvc_console survey manifest records the landed starter and tty han
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "khvcd-facing boundary") != null);
         }
 
+        if (std.mem.eql(u8, gap.id, "phase11-hvc-console-sysrq-handoff")) {
+            saw_sysrq_handoff = true;
+            try std.testing.expectEqualStrings("drivers/tty/hvc/hvc_console.zig", gap.zigux_destination);
+            try std.testing.expectEqualStrings("starter_landed", gap.status);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "boot-console-only sysrq dispatch intent") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "break detection") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "notifier callback boundary") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "worker execution") != null);
+        }
+
         for (manifest.gaps[i + 1 ..]) |other| {
             try std.testing.expect(!std.mem.eql(u8, gap.id, other.id));
         }
     }
 
-    try std.testing.expectEqual(@as(usize, 9), starter_landed_count);
+    try std.testing.expectEqual(@as(usize, 10), starter_landed_count);
     try std.testing.expectEqual(@as(usize, 0), ready_next_count);
     try std.testing.expectEqual(@as(usize, 0), blocked_count);
     try std.testing.expect(saw_build_gate);
@@ -192,4 +208,5 @@ test "phase11 hvc_console survey manifest records the landed starter and tty han
     try std.testing.expect(saw_driver_test_block);
     try std.testing.expect(saw_validation_matrix);
     try std.testing.expect(saw_tty_handoff);
+    try std.testing.expect(saw_sysrq_handoff);
 }
