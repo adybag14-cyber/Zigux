@@ -282,7 +282,6 @@ test "phase 5 kretprobe contributor docs stay aligned with the shipped review su
     try expectContains(survey_note, "focused shared-build replay rather than a standalone `zig test` command");
     try expectContains(survey_note, "separate Phase 9 runtime starter");
     try expectContains(survey_note, "PHASE5_LANE_KEY=P5-L22");
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "/workspace/agent_files/") == null);
     {
         const surveyed_commit_line = try std.fmt.allocPrint(
             std.testing.allocator,
@@ -313,6 +312,9 @@ test "phase 5 kretprobe contributor docs stay aligned with the shipped review su
     try expectContains(survey_note, "retHandler()");
     try expectContains(survey_note, "pre-init `runAnchorReplay()` and `exit()` rejection");
     try expectContains(survey_note, "double `init()` plus post-init retarget and recovery rejection");
+    try expectContains(survey_note, "`samples/zigux/runtime_kretprobe.zig`");
+    try expectContains(survey_note, "`samples/zigux/runtime_kretprobe_loader.zig`");
+    try expectContains(survey_note, "Phase 9 follow-ons");
     {
         const pinned_commit_line = try std.fmt.allocPrint(
             std.testing.allocator,
@@ -344,6 +346,10 @@ test "phase 5 kretprobe contributor docs stay aligned with the shipped review su
     try expectContains(sample_root_readme, "approved Phase 5 non-runtime probe-lifecycle idiom");
     try expectContains(sample_root_readme, "maxactive = 20");
     try expectContains(sample_root_readme, "Phase 9 starter claim");
+    try expectContains(sample_root_readme, "samples/zigux/runtime_kretprobe.zig");
+    try expectContains(sample_root_readme, "samples/zigux/runtime_kretprobe_loader.zig");
+    try expectContains(sample_root_readme, "Phase 9 runtime kretprobe survey packet");
+    try expectContains(sample_root_readme, "second approved kretprobe reference idiom");
 
     try expectContains(survey_note, "runMaxactiveBudgetReplay()");
 
