@@ -1,6 +1,6 @@
 # Phase 11 BCM2835 Watchdog Survey
 
-This survey note tracks the active P11-L08 Phase 11 gap around `drivers/watchdog/bcm2835_wdt.c` after re-reading the live bcm2835 watchdog packet on `master`.
+This survey note keeps the archived `P11-L08` bcm2835 watchdog packet traceable after re-reading the live bcm2835 watchdog packet on `master`. Current scheduled watchdog-family continuity for this archived packet is tracked through `P11-L10`.
 
 The live repo state is now:
 
@@ -14,4 +14,4 @@ The live repo state is now:
 
 This lane still does not claim watchdog-core registration, PM base wiring, live remove-time poweroff-handler release behavior, or hardware validation coverage beyond the bounded matrix.
 
-The next honest bounded step inside the same lane is to add a tiny platform-facing handoff note that builds on the landed hardware-validation matrix before any platform registration, PM base plumbing, or live poweroff-handler coordination.
+The next honest bounded step inside current `P11-L10` continuity is to add a tiny platform-facing handoff note that builds on the landed hardware-validation matrix before any platform registration, PM base plumbing, or live poweroff-handler coordination.
