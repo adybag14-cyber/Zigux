@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import argparse
 import hashlib
+import json
 import tempfile
 from pathlib import Path
 
@@ -10,6 +11,8 @@ from pathlib import Path
 SCRIPT_PATH = Path(__file__).resolve()
 ROOT = SCRIPT_PATH.parents[2] if len(SCRIPT_PATH.parents) > 2 else SCRIPT_PATH.parent
 NOTE_PATH = Path("Documentation/zigux/phase4-gate-evidence.md")
+MANIFEST_PATH = Path("zigux/tests/phase4_runtime_atomic64_diff_manifest.json")
+SURVEY_PATH = Path("zigux/tests/phase4_runtime_atomic64_diff_survey.zig")
 
 PHASE4_GATE_EVIDENCE_BLOB_TARGETS = {
     "PHASE4_VALIDATION_MATRIX_BLOB_SHA": "Documentation/zigux/phase4-validation-matrix.md",
@@ -28,6 +31,9 @@ PHASE4_GATE_EVIDENCE_BLOB_TARGETS = {
     "PHASE4_BITMAP_LIVE_HELPER_REPLAY_BLOB_SHA": "zigux/tests/phase4_bitmap_live_helper_replay.zig",
     "PHASE4_RUNTIME_ATOMIC64_MANIFEST_BLOB_SHA": "zigux/tests/phase4_runtime_atomic64_diff_manifest.json",
     "PHASE4_RUNTIME_ATOMIC64_SURVEY_BLOB_SHA": "zigux/tests/phase4_runtime_atomic64_diff_survey.zig",
+}
+PHASE4_RUNTIME_ATOMIC64_PACKET_BLOB_TARGETS = {
+    "phase4_build_blob_sha": "zigux/tests/phase4_build.zig",
 }
 
 REQUIRED_STATUS_LINES = [
@@ -65,6 +71,8 @@ SELF_TEST_CASES = [
     "shipped_target_count_drift",
     "missing_exact_readback_heading",
     "validator_blob_pin_drift",
+    "phase4_build_manifest_blob_pin_drift",
+    "phase4_build_survey_blob_pin_drift",
     "missing_note_file",
 ]
 
@@ -84,6 +92,41 @@ def read_bytes(root: Path, relative_path: Path | str) -> bytes:
 
 def exact_status_line_count(text: str, status_line: str) -> int:
     return sum(1 for line in text.splitlines() if line == f"- `{status_line}`")
+
+
+def validate_runtime_atomic64_packet(root: Path) -> list[str]:
+    manifest_file = root / MANIFEST_PATH
+    survey_file = root / SURVEY_PATH
+    missing: list[str] = []
+
+    if not manifest_file.exists():
+        return [f"file:{MANIFEST_PATH}"]
+    if not survey_file.exists():
+        return [f"file:{SURVEY_PATH}"]
+
+    try:
+        manifest = json.loads(read_text(root, MANIFEST_PATH))
+    except json.JSONDecodeError as exc:
+        return [f"phase4_gate_evidence:invalid_runtime_atomic64_manifest:{exc.msg}"]
+
+    survey_text = read_text(root, SURVEY_PATH)
+    for field, relative_path in PHASE4_RUNTIME_ATOMIC64_PACKET_BLOB_TARGETS.items():
+        expected = git_blob_sha1(read_bytes(root, relative_path))
+        actual = manifest.get(field)
+        if actual is None:
+            missing.append(f"phase4_gate_evidence:missing_runtime_atomic64_manifest_field:{field}")
+            continue
+        if actual != expected:
+            missing.append(
+                f"phase4_gate_evidence:runtime_atomic64_manifest_blob:{field}:{actual}:{expected}"
+            )
+        count = survey_text.count(expected)
+        if count != 1:
+            missing.append(
+                f"phase4_gate_evidence:runtime_atomic64_survey_blob_exact_count:{field}:{expected}:{count}"
+            )
+
+    return missing
 
 
 def validate_root(root: Path) -> list[str]:
@@ -122,6 +165,7 @@ def validate_root(root: Path) -> list[str]:
         if count != 1:
             missing.append(f"phase4_gate_evidence:blob_exact_count:{marker}:{digest}:{count}")
 
+    missing.extend(validate_runtime_atomic64_packet(root))
     return missing
 
 
@@ -167,6 +211,27 @@ def build_fixture_note(root: Path) -> str:
     return "\n".join(lines) + "\n"
 
 
+def write_runtime_atomic64_packet_fixture(root: Path) -> None:
+    build_sha = git_blob_sha1(read_bytes(root, PHASE4_RUNTIME_ATOMIC64_PACKET_BLOB_TARGETS["phase4_build_blob_sha"]))
+    write_text(
+        root / MANIFEST_PATH,
+        json.dumps({"phase4_build_blob_sha": build_sha}, indent=2) + "\n",
+    )
+    write_text(
+        root / SURVEY_PATH,
+        "\n".join(
+            [
+                'const std = @import("std");',
+                "",
+                'test "fixture keeps current phase4 build pin" {',
+                f"    // build pin {build_sha}",
+                "}",
+                "",
+            ]
+        ),
+    )
+
+
 def run_self_test() -> int:
     with tempfile.TemporaryDirectory(prefix="zigux_phase4_gate_evidence_") as tmp_dir:
         root = Path(tmp_dir)
@@ -174,6 +239,7 @@ def run_self_test() -> int:
         for relative_path in PHASE4_GATE_EVIDENCE_BLOB_TARGETS.values():
             write_text(root / relative_path, f"fixture for {relative_path}\n")
 
+        write_runtime_atomic64_packet_fixture(root)
         write_text(root / NOTE_PATH, build_fixture_note(root))
 
         missing = validate_root(root)
@@ -216,6 +282,37 @@ def run_self_test() -> int:
         missing = validate_root(root)
         assert missing == [
             f"phase4_gate_evidence:blob_exact_count:PHASE4_VALIDATOR_BLOB_SHA:{validator_blob_sha}:0"
+        ], missing
+
+        write_runtime_atomic64_packet_fixture(root)
+        write_text(root / NOTE_PATH, build_fixture_note(root))
+        manifest = json.loads(read_text(root, MANIFEST_PATH))
+        manifest["phase4_build_blob_sha"] = "0000000000000000000000000000000000000000"
+        write_text(root / MANIFEST_PATH, json.dumps(manifest, indent=2) + "\n")
+        build_sha = git_blob_sha1(read_bytes(root, PHASE4_RUNTIME_ATOMIC64_PACKET_BLOB_TARGETS["phase4_build_blob_sha"]))
+        manifest_blob_sha = git_blob_sha1(read_bytes(root, MANIFEST_PATH))
+        missing = validate_root(root)
+        assert missing == [
+            "phase4_gate_evidence:blob_exact_count:PHASE4_RUNTIME_ATOMIC64_MANIFEST_BLOB_SHA:"
+            f"{manifest_blob_sha}:0",
+            "phase4_gate_evidence:runtime_atomic64_manifest_blob:phase4_build_blob_sha:"
+            "0000000000000000000000000000000000000000:"
+            f"{build_sha}"
+        ], missing
+
+        write_runtime_atomic64_packet_fixture(root)
+        write_text(root / NOTE_PATH, build_fixture_note(root))
+        write_text(
+            root / SURVEY_PATH,
+            read_text(root, SURVEY_PATH).replace(build_sha, "1111111111111111111111111111111111111111", 1),
+        )
+        survey_blob_sha = git_blob_sha1(read_bytes(root, SURVEY_PATH))
+        missing = validate_root(root)
+        assert missing == [
+            "phase4_gate_evidence:blob_exact_count:PHASE4_RUNTIME_ATOMIC64_SURVEY_BLOB_SHA:"
+            f"{survey_blob_sha}:0",
+            "phase4_gate_evidence:runtime_atomic64_survey_blob_exact_count:"
+            f"phase4_build_blob_sha:{build_sha}:0"
         ], missing
 
         write_text(root / NOTE_PATH, build_fixture_note(root))
