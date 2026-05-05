@@ -49,7 +49,7 @@ test "phase 8 exec-cmd tooling packet covers path resolution and null-terminated
     try std.testing.expectEqual(@as(?[]const u8, null), prepared[3]);
 }
 
-test "phase 8 exec-cmd slice note keeps the tooling-expansion and validator-first posture explicit" {
+test "phase 8 exec-cmd slice note keeps the tooling-expansion, validator-first, and deferred-boundary posture explicit" {
     const io = std.testing.io;
     const slice = try std.Io.Dir.cwd().readFileAlloc(
         io,
@@ -64,6 +64,34 @@ test "phase 8 exec-cmd slice note keeps the tooling-expansion and validator-firs
     try std.testing.expect(std.mem.indexOf(u8, slice, "without widening into process-launch side effects") != null);
     try std.testing.expect(std.mem.indexOf(u8, slice, "make -C zigux phase8-validate") != null);
     try std.testing.expect(std.mem.indexOf(u8, slice, "shared Phase 8 validator-first route") != null);
+    try std.testing.expect(std.mem.indexOf(u8, slice, "stops before any ownership of `execv_cmd()` or `execvp()`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, slice, "avoids scheduler-facing transport or queue claims") != null);
+    try std.testing.expect(std.mem.indexOf(u8, slice, "`kernel/workqueue.c` in the later Phase 14 boundary-study tranche") != null);
+}
+
+test "phase 8 exec-cmd deferred boundary note still matches the live C helper anchors" {
+    const io = std.testing.io;
+    const slice = try std.Io.Dir.cwd().readFileAlloc(
+        io,
+        "Documentation/zigux/phase8-exec-cmd-slice.md",
+        std.testing.allocator,
+        .limited(16 * 1024),
+    );
+    defer std.testing.allocator.free(slice);
+
+    const c_helper = try std.Io.Dir.cwd().readFileAlloc(
+        io,
+        "tools/lib/subcmd/exec-cmd.c",
+        std.testing.allocator,
+        .limited(16 * 1024),
+    );
+    defer std.testing.allocator.free(c_helper);
+
+    try std.testing.expect(std.mem.indexOf(u8, c_helper, "int execv_cmd") != null);
+    try std.testing.expect(std.mem.indexOf(u8, c_helper, "execvp(") != null);
+    try std.testing.expect(std.mem.indexOf(u8, c_helper, "int execl_cmd") != null);
+    try std.testing.expect(std.mem.indexOf(u8, slice, "`execv_cmd()`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, slice, "`execvp()`") != null);
 }
 
 test "phase 8 exec-cmd environment wrapper propagates PREFIX, exec path, and PATH updates" {
