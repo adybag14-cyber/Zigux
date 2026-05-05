@@ -18,6 +18,8 @@ This note records the current policy and narrow-unsafe boundary for the bounded 
 - `PHASE3_UNSAFE_PATH=zigux/unsafe/narrow.zig`
 - `PHASE3_UNSAFE_SCOPE=narrow-mmio-and-raw-pointer-bridge`
 - `PHASE3_UNSAFE_BLOB_SHA=a8d31d05e1495393b787afe02038008d37a2ea57`
+- `PHASE3_ABI_TEST_PATH=zigux/tests/phase3_abi.zig`
+- `PHASE3_ABI_TEST_BLOB_SHA=7c3c7887bb23d1acccd835ed3bb71eba3824c45d`
 - `PHASE3_ABI_DUMP_PATH=zigux/tests/phase3_abi_dump.zig`
 - `PHASE3_ABI_DUMP_BLOB_SHA=77eeb1a928ae2032b72960546277290d5116ab0b`
 - `PHASE3_ABI_MANIFEST_BLOB_SHA=fd8186b762641c523f8aa3b1324dfb70c030d19e`
@@ -51,7 +53,8 @@ The current tree still carries a real bounded policy-and-unsafe packet, but it i
 - `zigux/helpers/allocator_policy.zig` keeps caller-provided ownership and global-fallback policy explicit through the current helper-local predicates.
 - `zigux/unsafe/narrow.zig` stays deliberately small: address math, pointer formation, const slice reads, const pointer reads, and direct value writes remain the whole explicit raw-pointer bridge.
 - `zigux/helpers/mmio.zig` consumes that same narrow layer for `range()`, `read32()`, and `write32()` rather than widening into a larger policy substrate.
-- `zigux/tests/phase3_abi_dump.zig`, `zigux/tests/fixtures/phase3_abi_manifest.json`, `Documentation/zigux/phase3-abi-slice.md`, and `scripts/zigux/validate-phase3.py` already treat these helpers as part of the shared `abi` slice.
+- `zigux/tests/phase3_abi.zig` is the live shared Zig proof packet that imports these helpers today, and `zigux/tests/phase3_abi_dump.zig` keeps the ABI-side `InteropPolicy` and `MmioRange` layout and constant evidence visible on the shared dump path.
+- `zigux/tests/fixtures/phase3_abi_manifest.json`, `Documentation/zigux/phase3-abi-slice.md`, and `scripts/zigux/validate-phase3.py` already treat these helpers as part of the shared `abi` slice.
 
 The current tree does not ship the broader typed-policy decode helper, a dedicated `phase3_policy_unsafe` replay pair, or the richer policy/unsafe helper family that older versions of this note described. Those claims had become stale review noise and should not steer the lane.
 
