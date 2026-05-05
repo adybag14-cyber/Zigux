@@ -1,0 +1,73 @@
+# Phase 8 Perf-Buffer Poll Slice
+
+This document tracks the bounded Phase 8 userspace-adjacent tooling slice for Zigux around the poll-result bookkeeping helpers adjacent to `perf_buffer__poll()` in `tools/lib/bpf/libbpf.c`.
+
+## Status
+
+- `PHASE8_STATUS=parked`
+- `PHASE8_SLICE=libbpf-perf-buffer-poll`
+- scope: observed wait-result normalization, ready-buffer bookkeeping, and ordered record-processing summaries only
+- product boundary:
+  - `tools/lib/bpf/zigux_segments/perf_buffer_poll.zig`
+  - `zigux/tests/phase8_perf_buffer_poll.zig`
+  - `zigux/tests/phase8_perf_buffer_poll_only_build.zig`
+  - `zigux/tests/phase8_build.zig`
+
+## Why this slice exists
+
+The Phase 8 roadmap still calls for a segmented libbpf rollout under `tools/lib/bpf/zigux_segments/` instead of widening into object loading or broader perf-buffer routing too early.
+
+The `perf_buffer__poll(timeout_ms)` path is a reasonable bounded adjunct because it lets Zigux prove output-stable wait-result classification and ready-buffer accounting without claiming live epoll wiring, per-CPU setup, or mmap-backed ring ownership.
+
+## Gates
+
+1. run the focused Zig module tests
+- `zig test tools/lib/bpf/zigux_segments/perf_buffer_poll.zig`
+
+2. run the focused Phase 8 perf-buffer poll shard
+- `zig build test --build-file zigux/tests/phase8_perf_buffer_poll_only_build.zig --summary all`
+
+3. run the dedicated Phase 8 tooling gate
+- `zig build test --build-file zigux/tests/phase8_build.zig`
+
+4. run the convenience target
+- `make -C zigux phase8`
+
+## Current parity surface
+
+The current bounded helper covers:
+
+- `perf_buffer__poll(timeout_ms)` wait-result classification
+- normalized negative errno-or-ready-count wait results
+- ready-buffer bookkeeping after the observed wait result
+- ordered `perf_buffer__process_records()` pass summaries
+- cumulative processed-record count across attempted ready buffers
+- first failing ready buffer and its error code
+- ready-buffer processing attempts cannot exceed observed ready events
+- non-ready wait observations cannot claim record processing
+- reject impossible post-wait buffer state combinations
+
+The current tests check:
+
+- bounded, nonblocking, and indefinite timeout classification
+- direct and raw wait-result normalization into compact wait observations
+- stable ready-buffer counting with the first error preserved for reviewability
+- fail-fast processing summaries that stop on the first failing ready buffer
+- helper-local execution summaries that keep processed-record totals compact
+- impossible processing paths that overrun the observed ready-event budget
+- impossible post-wait buffer state combinations that must stay rejected
+
+## Non-goals
+
+This slice does not yet claim:
+
+- standalone timer helper behavior
+- standalone clockevent helper behavior
+- direct `perf_event_open()` setup or enablement
+- epoll registration or wakeup-loop ownership
+- mmap-backed ring creation or teardown
+- broader perf-buffer-online-cpu-routing parity
+
+## Next bounded step
+
+Park `tools/lib/bpf/zigux_segments/perf_buffer_poll.zig` unless fresh repo review finds another tiny wait-summary, docs-truthfulness, or focused-gate drift in this same helper packet; keep future libbpf follow-up smaller than full routing, epoll, timer, clockevent, or object-model work.
