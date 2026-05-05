@@ -30,7 +30,7 @@ The live repo already had atomic64 and bitmap starters under the same Phase 9 re
 - explicit registration-balance checks for the function-callback path
 - concrete main-thread payload literals for the current bounded `foo_bar`, template, conditional, template-print, and relative-location replay path, including the exported `iter=%d` format template
 - concrete function-callback payload labels for the current bounded replay path
-- a bounded `runtime_trace_events_loader` scaffold that names the planned entry and exit hooks, the tracepoint register and unregister handoff, the current event-family summary, and the no-substrate release path while the shared runtime-loader surface remains unavailable
+- a bounded `runtime_trace_events_loader` scaffold that names the planned entry and exit hooks, the tracepoint register and unregister handoff, the current event-family summary, the prepared snapshot that stays stable even if the sample mutates again before runtime handoff, and the no-substrate release path while the shared runtime-loader surface remains unavailable
 - dedicated Phase 9 module and diff tests that assert those lifecycle, registration, and payload-literal expectations through the shared `zigux/tests/phase9_build.zig` gate
 - dedicated Phase 9 tests and manifest coverage wired into the shared `zigux/tests/phase9_build.zig` gate
 
