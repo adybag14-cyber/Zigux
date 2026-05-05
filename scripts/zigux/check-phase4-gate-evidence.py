@@ -34,6 +34,7 @@ PHASE4_GATE_EVIDENCE_BLOB_TARGETS = {
 }
 PHASE4_RUNTIME_ATOMIC64_PACKET_BLOB_TARGETS = {
     "phase4_build_blob_sha": "zigux/tests/phase4_build.zig",
+    "phase9_build_blob_sha": "zigux/tests/phase9_build.zig",
 }
 
 REQUIRED_STATUS_LINES = [
@@ -73,6 +74,8 @@ SELF_TEST_CASES = [
     "validator_blob_pin_drift",
     "phase4_build_manifest_blob_pin_drift",
     "phase4_build_survey_blob_pin_drift",
+    "phase9_build_manifest_blob_pin_drift",
+    "phase9_build_survey_blob_pin_drift",
     "missing_note_file",
 ]
 
@@ -212,19 +215,20 @@ def build_fixture_note(root: Path) -> str:
 
 
 def write_runtime_atomic64_packet_fixture(root: Path) -> None:
-    build_sha = git_blob_sha1(read_bytes(root, PHASE4_RUNTIME_ATOMIC64_PACKET_BLOB_TARGETS["phase4_build_blob_sha"]))
-    write_text(
-        root / MANIFEST_PATH,
-        json.dumps({"phase4_build_blob_sha": build_sha}, indent=2) + "\n",
-    )
+    manifest = {
+        field: git_blob_sha1(read_bytes(root, relative_path))
+        for field, relative_path in PHASE4_RUNTIME_ATOMIC64_PACKET_BLOB_TARGETS.items()
+    }
+    write_text(root / MANIFEST_PATH, json.dumps(manifest, indent=2) + "\n")
     write_text(
         root / SURVEY_PATH,
         "\n".join(
             [
                 'const std = @import("std");',
                 "",
-                'test "fixture keeps current phase4 build pin" {',
-                f"    // build pin {build_sha}",
+                'test "fixture keeps current phase4 and phase9 build pins" {',
+                f"    // phase4 build pin {manifest['phase4_build_blob_sha']}",
+                f"    // phase9 build pin {manifest['phase9_build_blob_sha']}",
                 "}",
                 "",
             ]
@@ -237,6 +241,8 @@ def run_self_test() -> int:
         root = Path(tmp_dir)
 
         for relative_path in PHASE4_GATE_EVIDENCE_BLOB_TARGETS.values():
+            write_text(root / relative_path, f"fixture for {relative_path}\n")
+        for relative_path in PHASE4_RUNTIME_ATOMIC64_PACKET_BLOB_TARGETS.values():
             write_text(root / relative_path, f"fixture for {relative_path}\n")
 
         write_runtime_atomic64_packet_fixture(root)
@@ -287,9 +293,11 @@ def run_self_test() -> int:
         write_runtime_atomic64_packet_fixture(root)
         write_text(root / NOTE_PATH, build_fixture_note(root))
         manifest = json.loads(read_text(root, MANIFEST_PATH))
+        phase4_build_sha = git_blob_sha1(
+            read_bytes(root, PHASE4_RUNTIME_ATOMIC64_PACKET_BLOB_TARGETS["phase4_build_blob_sha"])
+        )
         manifest["phase4_build_blob_sha"] = "0000000000000000000000000000000000000000"
         write_text(root / MANIFEST_PATH, json.dumps(manifest, indent=2) + "\n")
-        build_sha = git_blob_sha1(read_bytes(root, PHASE4_RUNTIME_ATOMIC64_PACKET_BLOB_TARGETS["phase4_build_blob_sha"]))
         manifest_blob_sha = git_blob_sha1(read_bytes(root, MANIFEST_PATH))
         missing = validate_root(root)
         assert missing == [
@@ -297,14 +305,16 @@ def run_self_test() -> int:
             f"{manifest_blob_sha}:0",
             "phase4_gate_evidence:runtime_atomic64_manifest_blob:phase4_build_blob_sha:"
             "0000000000000000000000000000000000000000:"
-            f"{build_sha}"
+            f"{phase4_build_sha}",
         ], missing
 
         write_runtime_atomic64_packet_fixture(root)
         write_text(root / NOTE_PATH, build_fixture_note(root))
         write_text(
             root / SURVEY_PATH,
-            read_text(root, SURVEY_PATH).replace(build_sha, "1111111111111111111111111111111111111111", 1),
+            read_text(root, SURVEY_PATH).replace(
+                phase4_build_sha, "1111111111111111111111111111111111111111", 1
+            ),
         )
         survey_blob_sha = git_blob_sha1(read_bytes(root, SURVEY_PATH))
         missing = validate_root(root)
@@ -312,7 +322,42 @@ def run_self_test() -> int:
             "phase4_gate_evidence:blob_exact_count:PHASE4_RUNTIME_ATOMIC64_SURVEY_BLOB_SHA:"
             f"{survey_blob_sha}:0",
             "phase4_gate_evidence:runtime_atomic64_survey_blob_exact_count:"
-            f"phase4_build_blob_sha:{build_sha}:0"
+            f"phase4_build_blob_sha:{phase4_build_sha}:0",
+        ], missing
+
+        write_runtime_atomic64_packet_fixture(root)
+        write_text(root / NOTE_PATH, build_fixture_note(root))
+        manifest = json.loads(read_text(root, MANIFEST_PATH))
+        phase9_build_sha = git_blob_sha1(
+            read_bytes(root, PHASE4_RUNTIME_ATOMIC64_PACKET_BLOB_TARGETS["phase9_build_blob_sha"])
+        )
+        manifest["phase9_build_blob_sha"] = "0000000000000000000000000000000000000000"
+        write_text(root / MANIFEST_PATH, json.dumps(manifest, indent=2) + "\n")
+        manifest_blob_sha = git_blob_sha1(read_bytes(root, MANIFEST_PATH))
+        missing = validate_root(root)
+        assert missing == [
+            "phase4_gate_evidence:blob_exact_count:PHASE4_RUNTIME_ATOMIC64_MANIFEST_BLOB_SHA:"
+            f"{manifest_blob_sha}:0",
+            "phase4_gate_evidence:runtime_atomic64_manifest_blob:phase9_build_blob_sha:"
+            "0000000000000000000000000000000000000000:"
+            f"{phase9_build_sha}",
+        ], missing
+
+        write_runtime_atomic64_packet_fixture(root)
+        write_text(root / NOTE_PATH, build_fixture_note(root))
+        write_text(
+            root / SURVEY_PATH,
+            read_text(root, SURVEY_PATH).replace(
+                phase9_build_sha, "2222222222222222222222222222222222222222", 1
+            ),
+        )
+        survey_blob_sha = git_blob_sha1(read_bytes(root, SURVEY_PATH))
+        missing = validate_root(root)
+        assert missing == [
+            "phase4_gate_evidence:blob_exact_count:PHASE4_RUNTIME_ATOMIC64_SURVEY_BLOB_SHA:"
+            f"{survey_blob_sha}:0",
+            "phase4_gate_evidence:runtime_atomic64_survey_blob_exact_count:"
+            f"phase9_build_blob_sha:{phase9_build_sha}:0",
         ], missing
 
         write_text(root / NOTE_PATH, build_fixture_note(root))
@@ -327,8 +372,14 @@ def run_self_test() -> int:
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Validate the live Phase 4 gate-evidence note against the current shipped packet.")
-    parser.add_argument("--self-test", action="store_true", help="Run the built-in synthetic gate-evidence coverage check.")
+    parser = argparse.ArgumentParser(
+        description="Validate the live Phase 4 gate-evidence note against the current shipped packet."
+    )
+    parser.add_argument(
+        "--self-test",
+        action="store_true",
+        help="Run the built-in synthetic gate-evidence coverage check.",
+    )
     args = parser.parse_args()
 
     if args.self_test:
