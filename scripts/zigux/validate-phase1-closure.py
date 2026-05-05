@@ -144,6 +144,11 @@ required_exact_workflow_markers = [
         "run: python3 scripts/zigux/check-zig-toolchain.py",
         1,
     ),
+    (
+        "workflow_install_zig_count",
+        "run: python3 scripts/zigux/install-zig.py --channel 0.17.0-dev.87+9b177a7d2 --dest .zig-toolchain",
+        1,
+    ),
 ]
 required_phase1_workflow_markers = [
     (
@@ -593,6 +598,7 @@ def run_self_test() -> None:
                 required_exact_workflow_markers[1][1],
                 required_exact_workflow_markers[2][1],
                 required_exact_workflow_markers[3][1],
+                required_exact_workflow_markers[4][1],
             ]
         ) + "\n"
         valid_bootstrap_job = "  bootstrap:\n" + "".join(
@@ -638,7 +644,7 @@ def run_self_test() -> None:
         )
         duplicate_checkout_markers = collect_exact_line_count_markers(
             duplicate_checkout_job,
-            required_exact_workflow_markers[1:],
+            required_exact_workflow_markers[1:4],
         )
         assert "workflow_checkout_count:expected=1:actual=2" in duplicate_checkout_markers
 
@@ -660,9 +666,22 @@ def run_self_test() -> None:
         )
         duplicate_later_job_markers = collect_exact_line_count_markers(
             extract_workflow_job(duplicate_later_job, "bootstrap"),
-            required_exact_workflow_markers[1:],
+            required_exact_workflow_markers[1:4],
         )
         assert duplicate_later_job_markers == []
+
+        duplicate_install_workflow = (
+            valid_workflow_exact
+            + "run: python3 scripts/zigux/install-zig.py --channel 0.17.0-dev.87+9b177a7d2 --dest .zig-toolchain\n"
+        )
+        duplicate_install_job = "  bootstrap:\n" + "".join(
+            f"    {line}\n" for line in duplicate_install_workflow.splitlines()
+        )
+        duplicate_install_markers = collect_exact_line_count_markers(
+            duplicate_install_job,
+            [required_exact_workflow_markers[4]],
+        )
+        assert "workflow_install_zig_count:expected=1:actual=2" in duplicate_install_markers
 
         missing_phase1_validate = valid_phase1_workflow.replace(
             "run: python3 scripts/zigux/validate-phase1.py\n",
@@ -882,7 +901,7 @@ def run_self_test() -> None:
         assert collect_missing_files(repo_root_from_arg(str(tmp_root))) == [required_phase1_parity]
 
     print("PHASE1_CLOSURE_VALIDATOR_SELF_TEST=pass")
-    print("PHASE1_CLOSURE_VALIDATOR_SELF_TEST_CASE_COUNT=48")
+    print("PHASE1_CLOSURE_VALIDATOR_SELF_TEST_CASE_COUNT=49")
 
 
 def main() -> int:
