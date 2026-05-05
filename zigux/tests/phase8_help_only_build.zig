@@ -3,6 +3,13 @@ const std = @import("std");
 pub fn build(b: *std.Build) void {
     const target = b.standardTargetOptions(.{});
     const optimize = b.standardOptimizeOption(.{});
+    const io = b.graph.io;
+    const phase8_help_slice = std.Io.Dir.cwd().readFileAlloc(
+        io,
+        "Documentation/zigux/phase8-help-slice.md",
+        b.allocator,
+        .limited(64 * 1024),
+    ) catch @panic("unable to read Documentation/zigux/phase8-help-slice.md");
 
     const help_module = b.createModule(.{
         .root_source_file = b.path("../../tools/lib/subcmd/help.zig"),
@@ -15,6 +22,9 @@ pub fn build(b: *std.Build) void {
         .optimize = optimize,
     });
     help_root_module.addImport("help", help_module);
+    const help_options = b.addOptions();
+    help_options.addOption([]const u8, "phase8_help_slice", phase8_help_slice);
+    help_root_module.addImport("phase8_help_options", help_options.createModule());
 
     const help_tests = b.addTest(.{
         .name = "phase8-help-tests",
