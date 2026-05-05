@@ -47,14 +47,6 @@ SCRIPTS_README_MARKERS = [
     "check-mk-elfconfig-diff.py",
 ]
 
-TESTS_README_MARKERS = [
-    "check-phase2-tests-readme-alignment.py",
-    "python3 scripts/zigux/install-zig.py --self-test",
-    "python3 scripts/zigux/check-zig-toolchain.py --self-test",
-    "make -C zigux phase2-validate",
-    "make -C zigux phase2",
-]
-
 MAKEFILE_MARKERS = [
     "phase2-validate:",
     "check-phase2-tests-readme-alignment.py",
@@ -79,13 +71,11 @@ def validate_root(root: Path) -> list[str]:
     docs_root = (root / "Documentation/zigux/README.md").read_text(encoding="utf-8")
     review = (root / "Documentation/zigux/review-checklist.md").read_text(encoding="utf-8")
     scripts_readme = (root / "scripts/zigux/README.md").read_text(encoding="utf-8")
-    tests_readme = (root / "zigux/tests/README.md").read_text(encoding="utf-8")
     makefile = (root / "zigux/Makefile").read_text(encoding="utf-8")
 
     issues.extend(collect_missing_markers(docs_root, DOCS_ROOT_MARKERS, prefix="docs_root"))
     issues.extend(collect_missing_markers(review, REVIEW_CHECKLIST_MARKERS, prefix="review_checklist"))
     issues.extend(collect_missing_markers(scripts_readme, SCRIPTS_README_MARKERS, prefix="scripts_readme"))
-    issues.extend(collect_missing_markers(tests_readme, TESTS_README_MARKERS, prefix="tests_readme"))
     issues.extend(collect_missing_markers(makefile, MAKEFILE_MARKERS, prefix="makefile"))
     return issues
 
@@ -112,10 +102,6 @@ def build_self_test_root(root: Path) -> None:
         "\n".join(SCRIPTS_README_MARKERS) + "\n",
     )
     write_text(
-        root / "zigux/tests/README.md",
-        "\n".join(TESTS_README_MARKERS) + "\n",
-    )
-    write_text(
         root / "zigux/Makefile",
         "\n".join(MAKEFILE_MARKERS) + "\n",
     )
@@ -128,19 +114,16 @@ def run_self_test() -> int:
 
         assert validate_root(root) == []
 
-        write_text(
-            root / "zigux/tests/README.md",
-            "python3 scripts/zigux/install-zig.py --self-test\nmake -C zigux phase2-validate\nmake -C zigux phase2\n",
-        )
-        issues = validate_root(root)
-        assert "tests_readme:check-phase2-tests-readme-alignment.py" in issues
-        assert "tests_readme:python3 scripts/zigux/check-zig-toolchain.py --self-test" in issues
-
-        build_self_test_root(root)
         write_text(root / "zigux/Makefile", "phase2-validate:\n")
         issues = validate_root(root)
         assert "makefile:check-phase2-tests-readme-alignment.py" in issues
         assert "makefile:phase2: phase2-validate phase2-tools phase2-kconfig phase2-cross" in issues
+
+        build_self_test_root(root)
+        write_text(root / "scripts/zigux/README.md", "validate-phase2.py\n")
+        issues = validate_root(root)
+        assert "scripts_readme:check-phase2-tests-readme-alignment.py" in issues
+        assert "scripts_readme:check-phase2-cross.py" in issues
 
         build_self_test_root(root)
         (root / "scripts/zigux/check-phase2-tests-readme-alignment.py").unlink()
@@ -153,7 +136,7 @@ def run_self_test() -> int:
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Check Phase 2 shared docs, tests, and Makefile alignment.")
+    parser = argparse.ArgumentParser(description="Check Phase 2 shared docs, review, and Makefile alignment.")
     parser.add_argument("--self-test", action="store_true", help="Run built-in alignment coverage without a repo checkout.")
     args = parser.parse_args()
 
@@ -172,7 +155,7 @@ def main() -> int:
     print("PHASE2_TESTS_README_ALIGNMENT=pass")
     print(
         "PHASE2_TESTS_README_ALIGNMENT_MARKER_COUNT="
-        f"{len(DOCS_ROOT_MARKERS) + len(REVIEW_CHECKLIST_MARKERS) + len(SCRIPTS_README_MARKERS) + len(TESTS_README_MARKERS) + len(MAKEFILE_MARKERS)}"
+        f"{len(DOCS_ROOT_MARKERS) + len(REVIEW_CHECKLIST_MARKERS) + len(SCRIPTS_README_MARKERS) + len(MAKEFILE_MARKERS)}"
     )
     return 0
 
