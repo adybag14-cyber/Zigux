@@ -1,7 +1,7 @@
 PHONY += phase1-validate phase1-test phase1-bench phase1
 PHONY += phase2-validate phase2-tools phase2-kconfig phase2-cross phase2
 PHONY += phase3-validate phase3-selftest phase3-abi phase3-interop phase3
-PHONY += phase4-validate phase4-test phase4-runtime-atomic64-diff phase4-runtime-atomic64-diff-survey phase4-bitmap-diff phase4-perf-baseline-survey phase4
+PHONY += phase4-validate phase4-test phase4-runtime-atomic64-diff phase4-runtime-atomic64-diff-survey phase4-bitmap-diff phase4
 PHONY += phase6-validate phase6-test phase6-checksum-perf phase6
 PHONY += phase7-validate phase7-test phase7
 PHONY += phase8-validate phase8-exec-cmd-test phase8-help-test phase8-kallsyms-test phase8-libbpf-segments-test phase8-perf-buffer-poll-test phase8-test phase8
@@ -104,9 +104,6 @@ phase4-runtime-atomic64-diff-survey:
 
 phase4-bitmap-diff:
 	cd $(ZIGUX_ROOT) && $(ZIG) build phase4-bitmap-diff --build-file zigux/tests/phase4_build.zig
-
-phase4-perf-baseline-survey:
-	cd $(ZIGUX_ROOT) && $(ZIG) build phase4-perf-baseline-survey --build-file zigux/tests/phase4_build.zig
 
 phase4: phase4-validate phase4-test
 
