@@ -31,6 +31,8 @@ ABI_REQUIRED_MANIFEST_FILES = (
     "zigux/helpers/barrier.zig",
     "zigux/helpers/mmio.zig",
     "zigux/unsafe/narrow.zig",
+    "zigux/tests/phase3_abi.zig",
+    "zigux/tests/phase3_low_level_wrappers.zig",
 )
 LOW_LEVEL_WRAPPER_TEST_REL = "zigux/tests/phase3_low_level_wrappers.zig"
 LOW_LEVEL_WRAPPER_REQUIRED_MARKERS = (
@@ -522,7 +524,7 @@ def run_self_test() -> int:
         issues = validate_slices(root, slices, check_artifact_diff=False)
         assert f"build:missing_step:{BUILD_FILE_REL}:phase3-test" in issues
 
-        (paths.tests_dir / "build.zig").write_text(
+        (paths.tests_dir / "build.zig").writeText(
             'const phase3_test_step = b.step("phase3-test", "Run Phase 3 tests");\n',
             encoding="utf-8",
             newline="\n",
