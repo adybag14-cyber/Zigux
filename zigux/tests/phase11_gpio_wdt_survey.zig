@@ -8,6 +8,7 @@ const SurveySummary = struct {
     preexisting_gpio_wdt_test_present: bool,
     preexisting_phase11_survey_note_present: bool,
     preexisting_phase11_module_note_present: bool,
+    preexisting_phase11_validation_matrix_present: bool,
 };
 
 const Gap = struct {
@@ -61,7 +62,8 @@ test "phase11 gpio_wdt survey manifest records the refreshed starter state and r
     try std.testing.expect(manifest.survey_summary.preexisting_gpio_wdt_test_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase11_survey_note_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase11_module_note_present);
-    try std.testing.expectEqual(@as(usize, 10), manifest.gaps.len);
+    try std.testing.expect(manifest.survey_summary.preexisting_phase11_validation_matrix_present);
+    try std.testing.expectEqual(@as(usize, 11), manifest.gaps.len);
 
     var starter_landed_count: usize = 0;
     var blocked_count: usize = 0;
@@ -70,6 +72,7 @@ test "phase11 gpio_wdt survey manifest records the refreshed starter state and r
     var saw_doc_gate = false;
     var saw_test_gate = false;
     var saw_slice_note = false;
+    var saw_validation_matrix = false;
     var saw_stop_followup = false;
     var saw_handoff_followup = false;
     var saw_blocker = false;
@@ -118,6 +121,13 @@ test "phase11 gpio_wdt survey manifest records the refreshed starter state and r
             try std.testing.expectEqualStrings("starter_landed", gap.status);
         }
 
+        if (std.mem.eql(u8, gap.id, "phase11-gpio-wdt-validation-matrix")) {
+            saw_validation_matrix = true;
+            try std.testing.expectEqualStrings("Documentation/zigux/phase11-gpio-wdt-validation-matrix.md", gap.zigux_destination);
+            try std.testing.expectEqualStrings("starter_landed", gap.status);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "validation posture") != null);
+        }
+
         if (std.mem.eql(u8, gap.id, "phase11-gpio-wdt-probe-summary-followup")) {
             try std.testing.expectEqualStrings("drivers/watchdog/gpio_wdt.zig", gap.zigux_destination);
             try std.testing.expectEqualStrings("starter_landed", gap.status);
@@ -150,33 +160,44 @@ test "phase11 gpio_wdt survey manifest records the refreshed starter state and r
         }
     }
 
-    try std.testing.expectEqual(@as(usize, 9), starter_landed_count);
+    try std.testing.expectEqual(@as(usize, 10), starter_landed_count);
     try std.testing.expectEqual(@as(usize, 1), blocked_count);
     try std.testing.expect(saw_build_gate);
     try std.testing.expect(saw_doc_gate);
     try std.testing.expect(saw_driver_gap);
     try std.testing.expect(saw_test_gate);
     try std.testing.expect(saw_slice_note);
+    try std.testing.expect(saw_validation_matrix);
     try std.testing.expect(saw_stop_followup);
     try std.testing.expect(saw_handoff_followup);
     try std.testing.expect(saw_blocker);
 }
 
-test "phase11 gpio_wdt survey docs keep the landed hardware-validation matrix explicit" {
+test "phase11 gpio_wdt survey note and validation matrix stay aligned" {
     var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
     defer io_instance.deinit();
+
+    const survey_note = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "Documentation/zigux/phase11-gpio-wdt-survey.md",
+        std.testing.allocator,
+        .limited(32 * 1024),
+    );
+    defer std.testing.allocator.free(survey_note);
 
     const validation_matrix = try std.Io.Dir.cwd().readFileAlloc(
         io_instance.io(),
         "Documentation/zigux/phase11-gpio-wdt-validation-matrix.md",
         std.testing.allocator,
-        .limited(32 * 1024),
+        .limited(64 * 1024),
     );
     defer std.testing.allocator.free(validation_matrix);
 
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase11-gpio-wdt-validation-matrix.md") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "bounded validation posture") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "hardware-backed validation beyond the bounded matrix evidence already recorded for the current starter") != null);
+
     try std.testing.expect(std.mem.indexOf(u8, validation_matrix, "PHASE11_GPIO_WDT_STATUS=hardware_validation_matrix_landed") != null);
-    try std.testing.expect(std.mem.indexOf(u8, validation_matrix, "registration-facing handoff summary") != null);
-    try std.testing.expect(std.mem.indexOf(u8, validation_matrix, "keep `zigux/tests/phase11_build.zig` as the shared replay path") != null);
-    try std.testing.expect(std.mem.indexOf(u8, validation_matrix, "do not claim platform-driver registration, GPIO descriptor lookup, watchdog-core registration, reboot integration, or hardware-backed execution") != null);
-    try std.testing.expect(std.mem.indexOf(u8, validation_matrix, "land one tiny registration-facing or validation-plan note") != null);
+    try std.testing.expect(std.mem.indexOf(u8, validation_matrix, "registrationHandoffSummary()") != null);
+    try std.testing.expect(std.mem.indexOf(u8, validation_matrix, "phase11_gpio_wdt.zig") != null);
 }
