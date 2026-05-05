@@ -91,6 +91,21 @@ test "phase10 virtio core keeps reset replay teardown bookkeeping after driver v
     try std.testing.expectEqual(@as(u16, 3), shape_summary.readable_descriptor_count);
     try std.testing.expectEqual(@as(u16, 2), shape_summary.writable_descriptor_count);
     try std.testing.expect(shape_summary.uses_indirect_descriptors);
+
+    device.reset();
+    try std.testing.expectEqual(@as(usize, 1), device.reset_count);
+    try std.testing.expect(!(try device.hasNegotiatedFeature(1)));
+    try std.testing.expect(!(try device.hasNegotiatedFeature(11)));
+    try std.testing.expectEqual(@as(usize, 0), device.registeredQueueCount());
+    try std.testing.expectError(error.QueueNotRegistered, device.queueRegistrationSummary(2));
+    try std.testing.expectError(error.QueueNotRegistered, device.queueDescriptorShapeSummary(2));
+
+    const cleared_summary = device.resetReplaySummary();
+    try std.testing.expect(!cleared_summary.reset_required);
+    try std.testing.expect(!cleared_summary.features_negotiated);
+    try std.testing.expectEqual(@as(usize, 0), cleared_summary.registered_queue_count);
+    try std.testing.expect(!cleared_summary.will_clear_negotiated_features);
+    try std.testing.expect(!cleared_summary.will_clear_queue_callbacks);
 }
 
 test "phase10 virtio core blocks driver-model progression once reset is required" {
