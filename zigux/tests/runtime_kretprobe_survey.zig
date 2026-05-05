@@ -8,6 +8,13 @@ const SurveySummary = struct {
     preexisting_runtime_kretprobe_doc_present: bool,
 };
 
+const LifecycleBoundarySummary = struct {
+    pre_execution_handoff_only: bool,
+    metadata_only_registration_labels: []const []const u8,
+    shared_request_surface: []const u8,
+    live_registration_parity: []const u8,
+};
+
 const Gap = struct {
     id: []const u8,
     status: []const u8,
@@ -23,6 +30,7 @@ const Manifest = struct {
     anchor: []const u8,
     roadmap_destinations: []const []const u8,
     survey_summary: SurveySummary,
+    lifecycle_boundary_summary: LifecycleBoundarySummary,
     gaps: []const Gap,
 };
 
@@ -32,7 +40,7 @@ fn isAllowedStatus(status: []const u8) bool {
         std.mem.eql(u8, status, "blocked_on_runtime_substrate");
 }
 
-test "phase 9 runtime kretprobe survey manifest records the landed loader plan and the remaining substrate blocker" {
+test "phase 9 runtime kretprobe survey manifest records the landed loader plan and metadata-only registration boundary" {
     var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
     defer io_instance.deinit();
 
@@ -57,6 +65,24 @@ test "phase 9 runtime kretprobe survey manifest records the landed loader plan a
     try std.testing.expect(manifest.survey_summary.preexisting_runtime_kretprobe_sample_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase9_build_present);
     try std.testing.expect(manifest.survey_summary.preexisting_runtime_kretprobe_doc_present);
+    try std.testing.expect(manifest.lifecycle_boundary_summary.pre_execution_handoff_only);
+    try std.testing.expectEqual(@as(usize, 2), manifest.lifecycle_boundary_summary.metadata_only_registration_labels.len);
+    try std.testing.expectEqualStrings(
+        "register_kretprobe",
+        manifest.lifecycle_boundary_summary.metadata_only_registration_labels[0],
+    );
+    try std.testing.expectEqualStrings(
+        "unregister_kretprobe",
+        manifest.lifecycle_boundary_summary.metadata_only_registration_labels[1],
+    );
+    try std.testing.expectEqualStrings(
+        "zigux/kernel/runtime_loader.zig",
+        manifest.lifecycle_boundary_summary.shared_request_surface,
+    );
+    try std.testing.expectEqualStrings(
+        "blocked_on_runtime_substrate",
+        manifest.lifecycle_boundary_summary.live_registration_parity,
+    );
     try std.testing.expect(manifest.gaps.len >= 6);
 
     var runtime_test_destination_count: usize = 0;
@@ -109,6 +135,13 @@ test "phase 9 runtime kretprobe survey manifest records the landed loader plan a
         for (manifest.gaps[i + 1 ..]) |other| {
             try std.testing.expect(!std.mem.eql(u8, gap.id, other.id));
             try std.testing.expect(!std.mem.eql(u8, gap.zigux_destination, other.zigux_destination));
+        }
+    }
+
+    for (manifest.lifecycle_boundary_summary.metadata_only_registration_labels, 0..) |label, i| {
+        try std.testing.expect(label.len > 0);
+        for (manifest.lifecycle_boundary_summary.metadata_only_registration_labels[i + 1 ..]) |other| {
+            try std.testing.expect(!std.mem.eql(u8, label, other));
         }
     }
 
