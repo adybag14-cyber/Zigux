@@ -127,7 +127,7 @@ Phase 11 notes
 - `Documentation/zigux/phase11-dw-wdt-survey.md`
 - `Documentation/zigux/phase11-hvc-console-slice.md`
 - `Documentation/zigux/phase11-hvc-console-survey.md`
-- `zigux/tests/phase11_build.zig` and `make -C zigux phase11` now gate the current bcm2835, gpio, and dw watchdog slices together with the hvc console tranche, so new Phase 11 work should stay reviewable through that shared lane instead of widening into ad hoc per-slice checks.
+- `scripts/zigux/README.md`, `zigux/tests/README.md`, `Documentation/zigux/review-checklist.md`, `zigux/tests/phase11_build.zig`, and `make -C zigux phase11` now keep the current bcm2835, gpio, and dw watchdog slices together with the hvc console tranche reviewable through the shared lane instead of leaving the active simple-driver packet described only through docs-local slice notes and build wiring.
 - `Documentation/zigux/phase11-shared-replay-contract.md` now records that same shared contributor packet, including `Documentation/zigux/phase11-bcm2835-wdt-validation-matrix.md`, `Documentation/zigux/phase11-gpio-wdt-validation-matrix.md`, `Documentation/zigux/phase11-dw-wdt-validation-matrix.md`, and `Documentation/zigux/phase11-hvc-console-validation-matrix.md`, and the dedicated `Documentation/zigux/phase11-hvc-console-survey.md` boundary beside the shared replay route.
 - the current bounded Phase 11 decision is no longer whether the bcm2835 watchdog lane needs another ownership summary helper; those pieces are now landed, so the next follow-up should stay in one tiny hardware-validation matrix before any platform registration, PM base plumbing, or live poweroff-handler coordination is attempted.
 
