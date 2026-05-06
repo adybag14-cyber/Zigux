@@ -215,18 +215,54 @@ def run_self_test() -> int:
             return 1
 
         release_path = root / "Documentation/zigux/phase14-release-boundary-survey.md"
-        write_text(
-            release_path,
-            read_text(release_path).replace(
+
+        def expect_release_count_failure(old_line: str, new_line: str, expected_error: str, label: str) -> int:
+            write_text(
+                release_path,
+                read_text(release_path).replace(old_line, new_line, 1),
+            )
+            errors = check(root)
+            if not any(expected_error in error for error in errors):
+                print(f"self-test expected failure when {label} drifted", file=sys.stderr)
+                return 1
+            write_text(release_path, expected_release_text)
+            return 0
+
+        release_count_cases = [
+            (
+                "- `PHASE14_ROADMAP_ANCHOR_COUNT=4`",
+                "- `PHASE14_ROADMAP_ANCHOR_COUNT=3`",
+                "PHASE14_ROADMAP_ANCHOR_COUNT=4",
+                "roadmap anchor count marker",
+            ),
+            (
+                "- `PHASE14_STUDY_ONLY_ANCHOR_COUNT=2`",
+                "- `PHASE14_STUDY_ONLY_ANCHOR_COUNT=1`",
+                "PHASE14_STUDY_ONLY_ANCHOR_COUNT=2",
+                "study-only anchor count marker",
+            ),
+            (
+                "- `PHASE14_FREEZE_IN_C_GOVERNED_COUNT=2`",
+                "- `PHASE14_FREEZE_IN_C_GOVERNED_COUNT=1`",
+                "PHASE14_FREEZE_IN_C_GOVERNED_COUNT=2",
+                "freeze-in-C governed count marker",
+            ),
+            (
                 "- `PHASE14_SHARED_SMOKE_GATE_COUNT=1`",
                 "- `PHASE14_SHARED_SMOKE_GATE_COUNT=2`",
+                "PHASE14_SHARED_SMOKE_GATE_COUNT=1",
+                "shared smoke gate count marker",
             ),
-        )
-        errors = check(root)
-        if not any("PHASE14_SHARED_SMOKE_GATE_COUNT=1" in error for error in errors):
-            print("self-test expected count-marker failure when release-boundary counts drifted", file=sys.stderr)
-            return 1
-        write_text(release_path, expected_release_text)
+            (
+                "- `PHASE14_ACTIVE_DELIVERY_GATE_COUNT=0`",
+                "- `PHASE14_ACTIVE_DELIVERY_GATE_COUNT=1`",
+                "PHASE14_ACTIVE_DELIVERY_GATE_COUNT=0",
+                "active-delivery gate count marker",
+            ),
+        ]
+        for old_line, new_line, expected_error, label in release_count_cases:
+            if expect_release_count_failure(old_line, new_line, expected_error, label):
+                return 1
 
         smoke_path = root / "Documentation/zigux/phase14-end-to-end-smoke-survey.md"
         write_text(
