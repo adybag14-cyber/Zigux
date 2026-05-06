@@ -630,6 +630,36 @@ test "phase12 virtio net clamps mergeable buffer length to the minimum floor" {
     try std.testing.expectEqual(@as(u16, 1600), summary.allocation_len_bytes);
 }
 
+test "phase12 virtio net keeps observed average mergeable buffer length when already in range" {
+    var lab = try virtio_net.VirtioNetProbeLab.init(&.{
+        virtio_net.feature_mergeable_rx_buffers,
+    });
+    _ = try lab.captureProbeSnapshot(.{
+        .driver_feature_bits = &.{
+            virtio_net.feature_mergeable_rx_buffers,
+        },
+        .requested_queue_pairs = 1,
+        .max_queue_pairs = 1,
+    });
+    _ = try lab.freezeForRecovery();
+
+    const summary = try lab.planMergeableBufferLength(.{
+        .observed_average_packet_len_bytes = 1500,
+        .min_buf_len_bytes = 1024,
+    });
+    try std.testing.expectEqual(virtio_net.MergeableBufferLengthSource.observed_average_packet, summary.source);
+    try std.testing.expectEqual(@as(u16, 1500), summary.observed_average_packet_len_bytes);
+    try std.testing.expectEqual(@as(u16, 1024), summary.min_buf_len_bytes);
+    try std.testing.expectEqual(@as(u16, 0), summary.xdp_headroom_bytes);
+    try std.testing.expectEqual(@as(u16, 0), summary.tailroom_bytes);
+    try std.testing.expectEqual(@as(u16, 0), summary.room_bytes);
+    try std.testing.expectEqual(@as(u16, 4084), summary.payload_limit_bytes);
+    try std.testing.expectEqual(@as(u16, 1500), summary.selected_payload_bytes);
+    try std.testing.expectEqual(@as(u16, 12), summary.hdr_len_bytes);
+    try std.testing.expectEqual(@as(u16, 1536), summary.submit_len_bytes);
+    try std.testing.expectEqual(@as(u16, 1536), summary.allocation_len_bytes);
+}
+
 test "phase12 virtio net caps mergeable buffer length at page payload limit" {
     var lab = try virtio_net.VirtioNetProbeLab.init(&.{
         virtio_net.feature_mergeable_rx_buffers,
