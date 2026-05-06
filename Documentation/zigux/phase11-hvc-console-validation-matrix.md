@@ -17,6 +17,7 @@ This document records the first bounded kernel-integration validation matrix for
   - `Documentation/zigux/review-checklist.md`
   - `Documentation/zigux/phase11-shared-replay-contract.md`
   - `Documentation/zigux/phase11-uapi-header-parity-survey.md`
+  - `scripts/zigux/README.md`
   - `zigux/tests/README.md`
   - `scripts/zigux/check-phase11-shared-replay-contract.py`
   - `scripts/zigux/check-phase11-header-boundary-packet.py`
