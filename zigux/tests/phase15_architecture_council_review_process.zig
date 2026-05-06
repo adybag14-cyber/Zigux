@@ -135,6 +135,8 @@ test "phase 15 architecture council review-process doc and manifest stay aligned
     try expectContains(survey_doc, "current review-process evidence is limited to named `phase`");
     try expectContains(survey_doc, "`current status bucket`");
     try expectContains(survey_doc, "`validation gate summary`");
+    try expectContains(survey_doc, "`indefinite-C policy link or non-applicability note`");
+    try expectContains(survey_doc, "`rollback-threshold`");
     try expectContains(survey_doc, "landed `phase15-roadmap-minimum-field-sync`");
     try expectContains(survey_doc, "landed `phase15-lane-owner-alignment-replay-visible`");
 
@@ -210,6 +212,8 @@ test "phase 15 architecture council review-process doc and manifest stay aligned
     try expectContains(manifest_doc, "\"phase\"");
     try expectContains(manifest_doc, "\"current status bucket\"");
     try expectContains(manifest_doc, "\"validation gate summary\"");
+    try expectContains(manifest_doc, "\"indefinite-C policy link or non-applicability note\"");
+    try expectContains(manifest_doc, "\"rollback threshold\"");
     try expectContains(manifest_doc, "\"current_repo_handoff\"");
     try expectContains(manifest_doc, "Documentation/zigux/freeze-map.md");
     try expectContains(
