@@ -35,9 +35,10 @@ Current `master` keeps that anchor reviewable through:
   * `Documentation/zigux/phase13-libfs-survey.md`
   * `zigux/tests/phase13_libfs_manifest.json`
   * `zigux/tests/phase13_libfs.zig`
+  * `zigux/tests/phase13_libfs_addressability.zig`
   * `zigux/tests/phase13_libfs_reviewability.zig`
 
-That packet is truthful to the roadmap because it exposes only reviewable helper planning and explicit next-step posture. It currently covers the landed statfs, lookup, buffer-copy, seek-policy, directory-emit, `dcache_dir_open()` setup, and transaction acquire, publish, and release helpers including `simple_transaction_release()`, while leaving the next bounded libfs follow-up on the blocked deeper `dcache_readdir()` cursor-resume packet before any live file lifecycle, cursor dentry ownership, inode state, or pseudo-filesystem mounting is claimed.
+That packet is truthful to the roadmap because it exposes only reviewable helper planning and explicit next-step posture. It currently covers the landed statfs, lookup, buffer-copy, seek-policy, directory-emit, `dcache_dir_open()` setup, transaction acquire, publish, and release helpers, plus the new pure `generic_check_addressable()` planner around shift overflow, zero-block passthrough, minimum block size, and explicit sector or page-index caps. The next honest libfs follow-up should stay smaller than deeper cursor traversal: a pure `simple_open()` private-data handoff planner is the best next helper-first candidate before any live file lifecycle, cursor dentry ownership, inode state, or pseudo-filesystem mounting is claimed.
 
 ## Devres lane traceability
 
