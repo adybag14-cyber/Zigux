@@ -156,6 +156,18 @@ def validate_policy(payload: dict[str, object]) -> list[str]:
     if not isinstance(minimum_version, str) or not minimum_version:
         issues.append("policy:minimum_version:expected_nonempty_string")
 
+    if (
+        isinstance(channel, str)
+        and channel
+        and isinstance(minimum_version, str)
+        and minimum_version
+        and channel != minimum_version
+    ):
+        issues.append(
+            "policy:channel_minimum_version_mismatch:"
+            f"channel={channel!r}:minimum_version={minimum_version!r}"
+        )
+
     archive_sha256 = payload.get("archive_sha256")
     if not isinstance(archive_sha256, dict):
         issues.append("policy:archive_sha256:expected_object")
@@ -368,6 +380,16 @@ def run_self_test() -> int:
     issues = validate_policy(bad_phase)
     if "policy:phase='Phase 3':expected='Phase 2'" not in issues:
         raise SystemExit("phase2-toolchain-pin-scope:self-test:phase_mismatch")
+
+    mismatched_version = dict(valid_policy)
+    mismatched_version["minimum_version"] = "0.17.0-dev.88+9b177a7d2"
+    issues = validate_policy(mismatched_version)
+    if (
+        "policy:channel_minimum_version_mismatch:"
+        "channel='0.17.0-dev.87+9b177a7d2':minimum_version='0.17.0-dev.88+9b177a7d2'"
+        not in issues
+    ):
+        raise SystemExit("phase2-toolchain-pin-scope:self-test:channel_minimum_version_mismatch")
 
     bad_keys = {
         "phase": "Phase 2",
@@ -584,7 +606,7 @@ def run_self_test() -> int:
             raise SystemExit("phase2-toolchain-pin-scope:self-test:duplicate_archive_key_missing")
 
     print("PHASE2_TOOLCHAIN_PIN_SCOPE_SELF_TEST=pass")
-    print("PHASE2_TOOLCHAIN_PIN_SCOPE_SELF_TEST_CASE_COUNT=31")
+    print("PHASE2_TOOLCHAIN_PIN_SCOPE_SELF_TEST_CASE_COUNT=32")
     return 0
 
 
