@@ -281,7 +281,6 @@ def run_self_test() -> int:
 
         helper_path = tmp_root / "drivers/virtio/virtio_mmio.zig"
         original_helper = helper_path.read_text(encoding="utf-8")
-        helper_path.writeText = None
         helper_path.write_text(
             original_helper.replace("self.pending_config_write = null;", "self.pending_config_write = drift;", 1),
             encoding="utf-8",
