@@ -11,7 +11,7 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[2]
-PHASE3_VALIDATOR_SELF_TEST_CASE_COUNT = 21
+PHASE3_VALIDATOR_SELF_TEST_CASE_COUNT = 22
 
 
 @dataclass(frozen=True)
@@ -26,6 +26,7 @@ SELF_TEST_TARGETS = (
     SelfTestTarget(
         "scripts/zigux/check-phase3-selftest-surface.py",
         "PHASE3_SELFTEST_SURFACE_SELF_TEST=pass",
+        ("PHASE3_SELFTEST_SURFACE_SELF_TEST_CASE_COUNT=15",),
     ),
     SelfTestTarget(
         "scripts/zigux/check-phase3-readme-tooling-inventory.py",
@@ -273,6 +274,25 @@ def run_self_test() -> int:
         assert (
             "missing_pass_marker:scripts/zigux/check-phase3-selftest-surface.py:"
             "PHASE3_SELFTEST_SURFACE_SELF_TEST=pass"
+            in issues
+        )
+
+        surface_count_root = Path(tmp_dir) / "surface-count"
+        for target in SELF_TEST_TARGETS:
+            extra_markers = (
+                ()
+                if target.relpath.endswith("check-phase3-selftest-surface.py")
+                else target.extra_markers
+            )
+            write_script(
+                surface_count_root / target.relpath,
+                target.marker or "PASS",
+                extra_markers=extra_markers,
+            )
+        issues = run_targets(surface_count_root)
+        assert (
+            "missing_aux_marker:scripts/zigux/check-phase3-selftest-surface.py:"
+            "PHASE3_SELFTEST_SURFACE_SELF_TEST_CASE_COUNT=15"
             in issues
         )
 
