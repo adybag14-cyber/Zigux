@@ -178,6 +178,22 @@ pub const TimeoutPropertyCheckpointSummary = struct {
     blocked_on_platform_registration: bool,
 };
 
+pub const DrvdataCheckpointSummary = struct {
+    anchor: []const u8,
+    hw_algo: HardwareAlgorithm,
+    hw_margin_ms: u32,
+    requested_line: ProbeLineRequest,
+    descriptor_flags: DescriptorRequestFlags,
+    drvdata_attachment_required: bool,
+    descriptor_lookup_precedes_drvdata_handoff: bool,
+    timeout_property_precedes_drvdata_handoff: bool,
+    drvdata_handoff_precedes_registration_handoff: bool,
+    drvdata_handoff_precedes_register_device_request: bool,
+    invalid_timeout_blocks_drvdata_handoff: bool,
+    blocked_on_live_gpio_lookup: bool,
+    blocked_on_platform_registration: bool,
+};
+
 pub const RegisterDeviceCallSummary = struct {
     anchor: []const u8,
     register_call: []const u8,
@@ -452,6 +468,27 @@ pub const GpioWatchdogLab = struct {
         };
     }
 
+    pub fn drvdataCheckpointSummary(self: *const Self) DrvdataCheckpointSummary {
+        const descriptor_preflight = self.descriptorPreflightSummary();
+        const timeout_checkpoint = self.timeoutPropertyCheckpointSummary();
+
+        return .{
+            .anchor = descriptor().anchor,
+            .hw_algo = self.hw_algo,
+            .hw_margin_ms = self.hw_margin_ms,
+            .requested_line = descriptor_preflight.requested_line,
+            .descriptor_flags = descriptor_preflight.descriptor_flags,
+            .drvdata_attachment_required = true,
+            .descriptor_lookup_precedes_drvdata_handoff = true,
+            .timeout_property_precedes_drvdata_handoff = timeout_checkpoint.timeout_property_precedes_watchdog_drvdata_handoff,
+            .drvdata_handoff_precedes_registration_handoff = true,
+            .drvdata_handoff_precedes_register_device_request = true,
+            .invalid_timeout_blocks_drvdata_handoff = timeout_checkpoint.invalid_timeout_blocks_later_handoffs,
+            .blocked_on_live_gpio_lookup = descriptor_preflight.blocked_on_live_gpio_lookup,
+            .blocked_on_platform_registration = true,
+        };
+    }
+
     pub fn registrationHandoffSummary(self: *const Self, nowayout: bool) RegistrationHandoffSummary {
         const probe = self.probeSummary(nowayout);
         return .{
@@ -484,6 +521,7 @@ pub const GpioWatchdogLab = struct {
     pub fn registerDeviceCallSummary(self: *const Self, nowayout: bool) RegisterDeviceCallSummary {
         const handoff = self.registrationHandoffSummary(nowayout);
         const descriptor_preflight = self.descriptorPreflightSummary();
+        const drvdata_checkpoint = self.drvdataCheckpointSummary();
 
         return .{
             .anchor = descriptor().anchor,
@@ -500,7 +538,7 @@ pub const GpioWatchdogLab = struct {
             .watchdog_info_ready = true,
             .watchdog_ops_ready = true,
             .watchdog_device_ready = true,
-            .watchdog_drvdata_set = true,
+            .watchdog_drvdata_set = drvdata_checkpoint.drvdata_attachment_required,
             .descriptor_request_ready = descriptor_preflight.descriptor_lookup_required,
             .timeout_init_requested = handoff.timeout_init_requested,
             .nowayout_applied = nowayout,
@@ -510,8 +548,8 @@ pub const GpioWatchdogLab = struct {
             .default_timeout_sec = soft_timeout_default,
             .max_hw_heartbeat_ms = self.hw_margin_ms,
             .register_device_requested = true,
-            .blocked_on_live_gpio_lookup = descriptor_preflight.blocked_on_live_gpio_lookup,
-            .blocked_on_platform_registration = true,
+            .blocked_on_live_gpio_lookup = drvdata_checkpoint.blocked_on_live_gpio_lookup,
+            .blocked_on_platform_registration = drvdata_checkpoint.blocked_on_platform_registration,
             .blocked_on_reboot_glue = true,
         };
     }
