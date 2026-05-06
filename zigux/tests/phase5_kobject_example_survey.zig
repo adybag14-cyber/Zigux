@@ -304,10 +304,7 @@ test "phase 5 kobject survey packet stays repo-local and keeps the shared review
 
     const tests_root_markers = [_][]const u8{
         "keep the shared Phase 5 reference-sample checks wired through `zigux/tests/phase5_build.zig`",
-        "Documentation/zigux/phase5-kobject-sample-survey.md",
-        "zigux/tests/phase5_kobject_example_manifest.json",
-        "samples/zigux/kobject_example.zig",
-        "approved in-memory ownership-and-lifetime idiom",
+        "the four shipped sample-backed surveys stay reviewable without implying runtime-substrate closure",
     };
 
     for (tests_root_markers) |needle| {
