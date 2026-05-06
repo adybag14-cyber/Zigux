@@ -12,7 +12,7 @@ This note records the current atomic, barrier, and MMIO boundary for the bounded
 - `PHASE3_BARRIER_PATH=zigux/helpers/barrier.zig`
 - `PHASE3_BARRIER_SCOPE=acquire-release-full-acquire-release-pair`
 - `PHASE3_BARRIER_STATUS=local-sentinel-probe-only`
-- `PHASE3_BARRIER_BLOB_SHA=1fe0f75696631f3ebf6f97897ba2e648e375458f`
+- `PHASE3_BARRIER_BLOB_SHA=432f92092ffcf61cb75c1e1f5bdce2022afc7fb4`
 - `PHASE3_MMIO_PATH=zigux/helpers/mmio.zig`
 - `PHASE3_MMIO_SCOPE=range-read8-write8-read32-write32`
 - `PHASE3_MMIO_STATUS=byte-and-32-bit-mmio-through-narrow-pointer-bridge`
