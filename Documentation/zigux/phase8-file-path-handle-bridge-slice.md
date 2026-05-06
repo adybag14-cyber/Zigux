@@ -31,6 +31,7 @@ The Phase 8 roadmap still calls for a segmented libbpf rollout under `tools/lib/
 - `python3 scripts/zigux/validate-phase8.py`
 
 4. run the focused Phase 8 file-path handle bridge shard
+- `make -C zigux phase8-file-path-handle-bridge-test`
 - `zig build test --build-file zigux/tests/phase8_file_path_handle_bridge_only_build.zig --summary all`
 
 5. run the shared Phase 8 replay
