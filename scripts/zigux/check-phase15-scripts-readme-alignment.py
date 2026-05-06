@@ -95,6 +95,10 @@ TESTS_README_MARKERS = (
     "scripts/zigux/check-phase15-scripts-readme-alignment.py",
     "scripts/zigux/check-phase15-review-process-handoff.py",
     "zigux/tests/phase15_architecture_council_review_process_manifest.json",
+    "zigux/tests/phase15_handoff_next_steps.zig",
+    "zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig",
+    "zigux/tests/phase15_readiness_gate.zig",
+    "make -C zigux phase15-validate",
     "make -C zigux phase15-validate",
     "without implying any Architecture Council approval for a freeze-map status change",
 )
@@ -563,7 +567,63 @@ def run_self_test() -> int:
         _assert_only(
             validate(root),
             ["tests_readme:missing:scripts/zigux/check-phase15-scripts-readme-alignment.py"],
-            "missing_tests_readme_marker_guard_failed",
+            "missing_tests_readme_alignment_checker_marker_guard_failed",
+        )
+        _write(root / TESTS_README_REL, baseline_tests_readme)
+        case_count += 1
+
+        _write(
+            root / TESTS_README_REL,
+            baseline_tests_readme.replace(
+                "zigux/tests/phase15_handoff_next_steps.zig", "zigux/tests/phase15_handoff_notes.zig", 1
+            ),
+        )
+        _assert_only(
+            validate(root),
+            ["tests_readme:missing:zigux/tests/phase15_handoff_next_steps.zig"],
+            "missing_tests_readme_handoff_next_steps_marker_guard_failed",
+        )
+        _write(root / TESTS_README_REL, baseline_tests_readme)
+        case_count += 1
+
+        _write(
+            root / TESTS_README_REL,
+            baseline_tests_readme.replace(
+                "zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig",
+                "zigux/tests/phase15_indefinite_c_lane_owner_notes.zig",
+                1,
+            ),
+        )
+        _assert_only(
+            validate(root),
+            ["tests_readme:missing:zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig"],
+            "missing_tests_readme_lane_owner_alignment_marker_guard_failed",
+        )
+        _write(root / TESTS_README_REL, baseline_tests_readme)
+        case_count += 1
+
+        _write(
+            root / TESTS_README_REL,
+            baseline_tests_readme.replace(
+                "zigux/tests/phase15_readiness_gate.zig", "zigux/tests/phase15_readiness_snapshot.zig", 1
+            ),
+        )
+        _assert_only(
+            validate(root),
+            ["tests_readme:missing:zigux/tests/phase15_readiness_gate.zig"],
+            "missing_tests_readme_readiness_gate_marker_guard_failed",
+        )
+        _write(root / TESTS_README_REL, baseline_tests_readme)
+        case_count += 1
+
+        _write(
+            root / TESTS_README_REL,
+            baseline_tests_readme.replace("make -C zigux phase15-validate", "make -C zigux phase15-review", 1),
+        )
+        _assert_only(
+            validate(root),
+            ["tests_readme:missing:make -C zigux phase15-validate"],
+            "missing_tests_readme_validate_route_marker_guard_failed",
         )
         _write(root / TESTS_README_REL, baseline_tests_readme)
         case_count += 1
