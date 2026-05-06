@@ -5,10 +5,10 @@ This survey note records the current bounded Phase 12 checkpoint around `drivers
 ## Status
 
 - `PHASE12_STATUS=active`
-- `PHASE12_LANE_KEY=P12-Y02`
+- `PHASE12_LANE_KEY=P12-L05`
 - `PHASE12_SLICE=nvme-pci-survey`
 - scope: archival survey manifest, dedicated survey gate, shared Phase 12 build and make-target wiring, and a lane note that compares the landed `pci.zig` starter against the remaining roadmap gap and the current Phase 12 tranche state
-- owner lane: `P12-Y02`
+- owner lane: `P12-L05`
 - product boundary:
   - `drivers/nvme/host/pci.zig`
   - `zigux/tests/phase12_nvme_pci.zig`
