@@ -95,6 +95,7 @@ REQUIRED_MARKERS = {
         "zigux/tests/phase7_string_helpers_sample_boundary.zig",
         "This is intentionally not a Phase 5 `samples/zigux/` reference-sample lane.",
         "no `samples/zigux/*string*` Phase 5 reference sample is expected here;",
+        "If the string-helper family reopens, prefer one tiny helper-local parity, survey, or validation sync around the now-landed `kstrdup_quotable()` path before widening into task-owned, file-owned, or device-managed follow-on work.",
     ],
     "Documentation/zigux/phase7-cmdline-slice.md": [
         "exact bare-option matching for comma-delimited flags",
@@ -281,6 +282,12 @@ EXACT_COUNT_MARKERS = {
         ("`make -C zigux phase7`", 1),
         (
             "without implying unshipped `check-phase7-build-inventory.py` or `phase7_build_inventory.json` surfaces?",
+            1,
+        ),
+    ],
+    "Documentation/zigux/phase7-string-helpers-slice.md": [
+        (
+            "If the string-helper family reopens, prefer one tiny helper-local parity, survey, or validation sync around the now-landed `kstrdup_quotable()` path before widening into task-owned, file-owned, or device-managed follow-on work.",
             1,
         ),
     ],
