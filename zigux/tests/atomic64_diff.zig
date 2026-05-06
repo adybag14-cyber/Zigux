@@ -4,8 +4,6 @@ const runtime_atomic64_diff_source = @embedFile("runtime_atomic64_diff.zig");
 const phase4_runtime_atomic64_manifest_source = @embedFile("phase4_runtime_atomic64_diff_manifest.json");
 const phase4_build_source = @embedFile("phase4_build.zig");
 const phase9_build_source = @embedFile("phase9_build.zig");
-const validate_phase4_source = @embedFile("../../scripts/zigux/validate-phase4.py");
-const phase4_validation_matrix_source = @embedFile("../../Documentation/zigux/phase4-validation-matrix.md");
 
 fn expectMarker(haystack: []const u8, marker: []const u8) !void {
     try std.testing.expect(std.mem.indexOf(u8, haystack, marker) != null);
@@ -23,6 +21,15 @@ fn countOccurrences(haystack: []const u8, needle: []const u8) usize {
         start = index + needle.len;
     }
     return count;
+}
+
+fn readRepoFile(allocator: std.mem.Allocator, repo_root_relative_path: []const u8) ![]u8 {
+    return std.Io.Dir.cwd().readFileAlloc(
+        std.testing.io,
+        repo_root_relative_path,
+        allocator,
+        .limited(1024 * 1024),
+    );
 }
 
 fn expectRuntimeCaseGroupCardinality(
@@ -58,7 +65,12 @@ fn expectOrderedMarkersInSection(
     }
 }
 
-fn atomic64MatrixSection() ![]const u8 {
+fn expectAtomic64MatrixMarkerCount(marker: []const u8, expected_count: usize) !void {
+    const phase4_validation_matrix_source = try readRepoFile(
+        std.testing.allocator,
+        "Documentation/zigux/phase4-validation-matrix.md",
+    );
+    defer std.testing.allocator.free(phase4_validation_matrix_source);
     const section_start = std.mem.indexOf(
         u8,
         phase4_validation_matrix_source,
@@ -70,11 +82,7 @@ fn atomic64MatrixSection() ![]const u8 {
         section_start,
         "### `zigux/tests/phase4_runtime_atomic64_diff_survey.zig`",
     ) orelse return error.MissingAtomic64MatrixSectionBoundary;
-    return phase4_validation_matrix_source[section_start..section_end];
-}
-
-fn expectAtomic64MatrixMarkerCount(marker: []const u8, expected_count: usize) !void {
-    const section = try atomic64MatrixSection();
+    const section = phase4_validation_matrix_source[section_start..section_end];
     try std.testing.expectEqual(expected_count, countOccurrences(section, marker));
 }
 
@@ -181,7 +189,32 @@ test "atomic64 diff wrapper keeps the current phase4 and phase9 build routing ex
     );
 }
 
+test "atomic64 diff wrapper keeps the Linux-style phase4 make routes explicit" {
+    const makefile_source = try readRepoFile(std.testing.allocator, "zigux/Makefile");
+    defer std.testing.allocator.free(makefile_source);
+    try expectMarker(
+        makefile_source,
+        "PHONY += phase4-validate phase4-test phase4-runtime-atomic64-diff phase4-runtime-atomic64-diff-survey phase4-bitmap-diff phase4-bitmap-live-helper-replay phase4",
+    );
+    try expectMarker(makefile_source, "phase4-runtime-atomic64-diff:");
+    try expectMarker(
+        makefile_source,
+        "$(ZIG) build phase4-runtime-atomic64-diff --build-file zigux/tests/phase4_build.zig",
+    );
+    try expectMarker(makefile_source, "phase4-runtime-atomic64-diff-survey:");
+    try expectMarker(
+        makefile_source,
+        "$(ZIG) build phase4-runtime-atomic64-diff-survey --build-file zigux/tests/phase4_build.zig",
+    );
+    try expectMarker(makefile_source, "phase4: phase4-validate phase4-test");
+}
+
 test "atomic64 diff wrapper keeps the shared phase4 validator packet explicit" {
+    const validate_phase4_source = try readRepoFile(
+        std.testing.allocator,
+        "scripts/zigux/validate-phase4.py",
+    );
+    defer std.testing.allocator.free(validate_phase4_source);
     try expectMarker(validate_phase4_source, "\"zigux/tests/atomic64_diff.zig\"");
     try expectMarker(validate_phase4_source, "\"zigux/tests/runtime_atomic64_diff.zig\"");
     try expectMarker(validate_phase4_source, "\"zigux/tests/phase4_runtime_atomic64_diff_manifest.json\"");
