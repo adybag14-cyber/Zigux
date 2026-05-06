@@ -67,6 +67,13 @@ pub const RuntimeAtomic64Sample = struct {
         atomic.store(u8, &self.stage_bits, @intFromEnum(next), .seq_cst);
     }
 
+    fn ensureActive(self: *const Self) !void {
+        return switch (self.stage()) {
+            .initialized, .selftest_complete => {},
+            else => error.InvalidLifecycleTransition,
+        };
+    }
+
     pub fn init(self: *Self, seed: i64) !void {
         if (self.stage() != .cold) return error.InvalidLifecycleTransition;
 
@@ -79,82 +86,110 @@ pub const RuntimeAtomic64Sample = struct {
         return atomic.load(i64, &self.counter, .seq_cst);
     }
 
+    pub fn addCounter(self: *Self, addend: i64) !void {
+        try self.ensureActive();
+        _ = atomic.fetchAdd(i64, &self.counter, addend, .seq_cst);
+    }
+
+    pub fn subCounter(self: *Self, subtrahend: i64) !void {
+        try self.ensureActive();
+        _ = atomic.fetchSub(i64, &self.counter, subtrahend, .seq_cst);
+    }
+
+    pub fn fetchAddCounter(self: *Self, addend: i64) !i64 {
+        try self.ensureActive();
+        return atomic.fetchAdd(i64, &self.counter, addend, .seq_cst);
+    }
+
+    pub fn fetchSubCounter(self: *Self, subtrahend: i64) !i64 {
+        try self.ensureActive();
+        return atomic.fetchSub(i64, &self.counter, subtrahend, .seq_cst);
+    }
+
+    pub fn addReturnCounter(self: *Self, addend: i64) !i64 {
+        return (try self.fetchAddCounter(addend)) + addend;
+    }
+
+    pub fn subReturnCounter(self: *Self, subtrahend: i64) !i64 {
+        return (try self.fetchSubCounter(subtrahend)) - subtrahend;
+    }
+
+    pub fn incCounter(self: *Self) !void {
+        try self.addCounter(1);
+    }
+
+    pub fn decCounter(self: *Self) !void {
+        try self.subCounter(1);
+    }
+
+    pub fn incReturnCounter(self: *Self) !i64 {
+        return self.addReturnCounter(1);
+    }
+
+    pub fn decReturnCounter(self: *Self) !i64 {
+        return self.subReturnCounter(1);
+    }
+
     pub fn swapCounter(self: *Self, next: i64) !i64 {
-        return switch (self.stage()) {
-            .initialized, .selftest_complete => atomic.exchange(i64, &self.counter, next, .seq_cst),
-            else => error.InvalidLifecycleTransition,
-        };
+        try self.ensureActive();
+        return atomic.exchange(i64, &self.counter, next, .seq_cst);
     }
 
     pub fn andCounter(self: *Self, mask: i64) !i64 {
-        return switch (self.stage()) {
-            .initialized, .selftest_complete => atomic.fetchAnd(i64, &self.counter, mask, .seq_cst),
-            else => error.InvalidLifecycleTransition,
-        };
+        try self.ensureActive();
+        return atomic.fetchAnd(i64, &self.counter, mask, .seq_cst);
     }
 
     pub fn orCounter(self: *Self, mask: i64) !i64 {
-        return switch (self.stage()) {
-            .initialized, .selftest_complete => atomic.fetchOr(i64, &self.counter, mask, .seq_cst),
-            else => error.InvalidLifecycleTransition,
-        };
+        try self.ensureActive();
+        return atomic.fetchOr(i64, &self.counter, mask, .seq_cst);
     }
 
     pub fn xorCounter(self: *Self, mask: i64) !i64 {
-        return switch (self.stage()) {
-            .initialized, .selftest_complete => atomic.fetchXor(i64, &self.counter, mask, .seq_cst),
-            else => error.InvalidLifecycleTransition,
-        };
+        try self.ensureActive();
+        return atomic.fetchXor(i64, &self.counter, mask, .seq_cst);
     }
 
     pub fn compareSwapCounter(self: *Self, expected: i64, desired: i64) !CompareExchangeResult {
-        return switch (self.stage()) {
-            .initialized, .selftest_complete => blk: {
-                const mismatch = atomic.compareExchange(
-                    i64,
-                    &self.counter,
-                    expected,
-                    desired,
-                    .seq_cst,
-                    .seq_cst,
-                );
-                break :blk if (mismatch) |previous|
-                    .{ .previous = previous, .stored = false }
-                else
-                    .{ .previous = expected, .stored = true };
-            },
-            else => error.InvalidLifecycleTransition,
-        };
+        try self.ensureActive();
+        const mismatch = atomic.compareExchange(
+            i64,
+            &self.counter,
+            expected,
+            desired,
+            .seq_cst,
+            .seq_cst,
+        );
+        return if (mismatch) |previous|
+            .{ .previous = previous, .stored = false }
+        else
+            .{ .previous = expected, .stored = true };
     }
 
     pub fn addUnlessCounter(self: *Self, addend: i64, unless_value: i64) !AddUnlessResult {
-        return switch (self.stage()) {
-            .initialized, .selftest_complete => blk: {
-                var current = atomic.load(i64, &self.counter, .seq_cst);
-                while (true) {
-                    if (current == unless_value) {
-                        break :blk .{ .previous = current, .changed = false };
-                    }
+        try self.ensureActive();
+        var current = atomic.load(i64, &self.counter, .seq_cst);
+        while (true) {
+            if (current == unless_value) {
+                return .{ .previous = current, .changed = false };
+            }
 
-                    const next = current + addend;
-                    const mismatch = atomic.compareExchange(
-                        i64,
-                        &self.counter,
-                        current,
-                        next,
-                        .seq_cst,
-                        .seq_cst,
-                    );
-                    if (mismatch) |previous| {
-                        current = previous;
-                        continue;
-                    }
+            const next = current + addend;
+            const mismatch = atomic.compareExchange(
+                i64,
+                &self.counter,
+                current,
+                next,
+                .seq_cst,
+                .seq_cst,
+            );
+            if (mismatch) |previous| {
+                current = previous;
+                continue;
+            }
 
-                    break :blk .{ .previous = current, .changed = true };
-                }
-            },
-            else => error.InvalidLifecycleTransition,
-        };
+            return .{ .previous = current, .changed = true };
+        }
     }
 
     pub fn runSelftest(self: *Self) !SelftestSummary {
@@ -204,8 +239,33 @@ test "runtime atomic64 sample keeps selftest-complete replay local to the sample
     try std.testing.expectEqual(@as(i64, 0x1111_1111_2222_2222), module.snapshotCounter());
     try std.testing.expectEqual(@as(usize, 1), module.init_runs);
 
+    try module.addCounter(4);
+    try std.testing.expectEqual(@as(i64, 0x1111_1111_2222_2226), module.snapshotCounter());
+    try module.subCounter(2);
+    try std.testing.expectEqual(@as(i64, 0x1111_1111_2222_2224), module.snapshotCounter());
+
+    const previous_add = try module.fetchAddCounter(-3);
+    try std.testing.expectEqual(@as(i64, 0x1111_1111_2222_2224), previous_add);
+    try std.testing.expectEqual(@as(i64, 0x1111_1111_2222_2221), module.snapshotCounter());
+
+    const previous_sub = try module.fetchSubCounter(5);
+    try std.testing.expectEqual(@as(i64, 0x1111_1111_2222_2221), previous_sub);
+    try std.testing.expectEqual(@as(i64, 0x1111_1111_2222_221c), module.snapshotCounter());
+
+    const added = try module.addReturnCounter(6);
+    try std.testing.expectEqual(@as(i64, 0x1111_1111_2222_2222), added);
+    const subtracted = try module.subReturnCounter(4);
+    try std.testing.expectEqual(@as(i64, 0x1111_1111_2222_221e), subtracted);
+    const incremented = try module.incReturnCounter();
+    try std.testing.expectEqual(@as(i64, 0x1111_1111_2222_221f), incremented);
+    const decremented = try module.decReturnCounter();
+    try std.testing.expectEqual(@as(i64, 0x1111_1111_2222_221e), decremented);
+    try module.incCounter();
+    try module.decCounter();
+    try std.testing.expectEqual(@as(i64, 0x1111_1111_2222_221e), module.snapshotCounter());
+
     const seeded_swap = try module.swapCounter(-9);
-    try std.testing.expectEqual(@as(i64, 0x1111_1111_2222_2222), seeded_swap);
+    try std.testing.expectEqual(@as(i64, 0x1111_1111_2222_221e), seeded_swap);
     try std.testing.expectEqual(@as(i64, -9), module.snapshotCounter());
 
     const initialized_compare = try module.compareSwapCounter(-9, 17);
@@ -249,6 +309,11 @@ test "runtime atomic64 sample keeps selftest-complete replay local to the sample
     try std.testing.expectEqual(ModuleStage.exited, module.stage());
     try std.testing.expectEqual(@as(usize, 1), module.exit_runs);
     try std.testing.expectError(error.InvalidLifecycleTransition, module.runSelftest());
+    try std.testing.expectError(error.InvalidLifecycleTransition, module.addCounter(1));
+    try std.testing.expectError(error.InvalidLifecycleTransition, module.fetchAddCounter(1));
+    try std.testing.expectError(error.InvalidLifecycleTransition, module.addReturnCounter(1));
+    try std.testing.expectError(error.InvalidLifecycleTransition, module.incCounter());
+    try std.testing.expectError(error.InvalidLifecycleTransition, module.incReturnCounter());
     try std.testing.expectError(error.InvalidLifecycleTransition, module.swapCounter(7));
     try std.testing.expectError(error.InvalidLifecycleTransition, module.addUnlessCounter(1, 17));
 }
