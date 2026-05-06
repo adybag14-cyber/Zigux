@@ -62,10 +62,13 @@ This slice does not yet claim:
 1. run the focused shared runtime-loader shard
 - `zig build phase9-runtime-loader-shared-tests --build-file zigux/tests/phase9_build.zig`
 
-2. run the dedicated Phase 9 build
+2. run the focused shared runtime-loader convenience target
+- `make -C zigux phase9-runtime-loader-shared-tests`
+
+3. run the dedicated Phase 9 build
 - `zig build test --build-file zigux/tests/phase9_build.zig`
 
-3. run the convenience target
+4. run the convenience target
 - `make -C zigux phase9`
 
 ## Next bounded step
