@@ -65,6 +65,7 @@ EXPECTED_SLICE_MARKERS = [
     "dedicated ring packet review guard",
     "scripts/zigux/check-phase10-ring-packet.py",
     "zigux/tests/phase10_virtio_ring_manifest.json",
+    "zig test zigux/tests/phase10_virtio_ring.zig",
     "zig test zigux/tests/phase10_virtio_ring_survey.zig",
 ]
 
@@ -74,6 +75,7 @@ EXPECTED_SURVEY_NOTE_MARKERS = [
     "phase10-virtio-ring-survey-note",
     "phase10-queue-reset-readiness-helper",
     "phase10-mmio-probe-preflight-helper",
+    "zig test zigux/tests/phase10_virtio_ring.zig",
     "make -C zigux phase10-test",
 ]
 
@@ -154,6 +156,7 @@ test \"phase10 virtio ring callback re-enable reports pending used work and sett
     "Documentation/zigux/phase10-virtio-ring-slice.md": """- dedicated ring packet review guard
 - `scripts/zigux/check-phase10-ring-packet.py`
 - `zigux/tests/phase10_virtio_ring_manifest.json`
+- `zig test zigux/tests/phase10_virtio_ring.zig`
 - `zig test zigux/tests/phase10_virtio_ring_survey.zig`
 """,
     "Documentation/zigux/phase10-virtio-ring-survey.md": """- dedicated ring packet review guard
@@ -161,6 +164,7 @@ test \"phase10 virtio ring callback re-enable reports pending used work and sett
 - `phase10-virtio-ring-survey-note`
 - `phase10-queue-reset-readiness-helper`
 - `phase10-mmio-probe-preflight-helper`
+- `zig test zigux/tests/phase10_virtio_ring.zig`
 - `make -C zigux phase10-test`
 """,
     "Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md": """- `scripts/zigux/check-phase10-ring-packet.py`
@@ -431,6 +435,19 @@ def run_self_test() -> int:
             raise SystemExit("phase10-ring-self-test:expected_slice_marker_missing")
         slice_path.write_text(original_slice, encoding="utf-8")
 
+        slice_path.write_text(
+            original_slice.replace(
+                "zig test zigux/tests/phase10_virtio_ring.zig",
+                "zig test zigux/tests/phase10_virtio_ring_drift.zig",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        _, missing_markers = validate(tmp_root)
+        if "slice:zig test zigux/tests/phase10_virtio_ring.zig" not in missing_markers:
+            raise SystemExit("phase10-ring-self-test:expected_slice_direct_replay_marker_missing")
+        slice_path.write_text(original_slice, encoding="utf-8")
+
         survey_path = tmp_root / "Documentation/zigux/phase10-virtio-ring-survey.md"
         original_survey = survey_path.read_text(encoding="utf-8")
         survey_path.write_text(
@@ -440,6 +457,19 @@ def run_self_test() -> int:
         _, missing_markers = validate(tmp_root)
         if "survey_note:dedicated ring packet review guard" not in missing_markers:
             raise SystemExit("phase10-ring-self-test:expected_survey_marker_missing")
+        survey_path.write_text(original_survey, encoding="utf-8")
+
+        survey_path.write_text(
+            original_survey.replace(
+                "zig test zigux/tests/phase10_virtio_ring.zig",
+                "zig test zigux/tests/phase10_virtio_ring_drift.zig",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        _, missing_markers = validate(tmp_root)
+        if "survey_note:zig test zigux/tests/phase10_virtio_ring.zig" not in missing_markers:
+            raise SystemExit("phase10-ring-self-test:expected_survey_direct_replay_marker_missing")
         survey_path.write_text(original_survey, encoding="utf-8")
 
         companion_path = tmp_root / "Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md"
@@ -453,7 +483,7 @@ def run_self_test() -> int:
             raise SystemExit("phase10-ring-self-test:expected_companion_marker_missing")
 
     print("PHASE10_RING_PACKET_SELF_TEST=pass")
-    print("PHASE10_RING_PACKET_SELF_TEST_CASE_COUNT=7")
+    print("PHASE10_RING_PACKET_SELF_TEST_CASE_COUNT=9")
     return 0
 
 
