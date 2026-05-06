@@ -124,6 +124,27 @@ pub const RegistrationSummary = struct {
     needs_timeout_programming: bool,
 };
 
+pub const PlatformHandoffSummary = struct {
+    anchor: []const u8,
+    registration_call: []const u8,
+    parent_anchor: []const u8,
+    drvdata_anchor: []const u8,
+    top_source: TopSource,
+    timeout_origin: ProbeTimeoutOrigin,
+    rate_hz: u32,
+    reset_control_available: bool,
+    irq_registration_ready: bool,
+    drvdata_ready: bool,
+    nowayout: bool,
+    restart_priority: i32,
+    stop_on_reboot: bool,
+    can_stop: bool,
+    timeout_sec: u32,
+    pretimeout_sec: u32,
+    imported_running_state: bool,
+    needs_timeout_programming: bool,
+};
+
 pub const RemoveSummary = struct {
     anchor: []const u8,
     debugfs_clear_requested: bool,
@@ -295,6 +316,39 @@ pub const DwWdtLab = struct {
             .hardware_running = probe.hardware_running,
             .imported_running_state = probe.timeout_origin == .imported_running_state,
             .needs_timeout_programming = probe.timeout_origin == .default_selection,
+        };
+    }
+
+    pub fn platformHandoffSummary(
+        self: *Self,
+        options: ProbeOptions,
+        has_pretimeout_irq: bool,
+        irq_registration_ready: bool,
+        drvdata_ready: bool,
+    ) !PlatformHandoffSummary {
+        const registration = try self.registrationSummary(
+            options,
+            has_pretimeout_irq and irq_registration_ready,
+        );
+        return .{
+            .anchor = descriptor().anchor,
+            .registration_call = registration.registration_call,
+            .parent_anchor = registration.parent_anchor,
+            .drvdata_anchor = "platform_set_drvdata",
+            .top_source = self.top_source,
+            .timeout_origin = registration.timeout_origin,
+            .rate_hz = self.rate_hz,
+            .reset_control_available = self.has_reset_control,
+            .irq_registration_ready = irq_registration_ready,
+            .drvdata_ready = drvdata_ready,
+            .nowayout = registration.nowayout,
+            .restart_priority = registration.restart_priority,
+            .stop_on_reboot = registration.stop_on_reboot,
+            .can_stop = registration.can_stop,
+            .timeout_sec = registration.timeout_sec,
+            .pretimeout_sec = registration.pretimeout_sec,
+            .imported_running_state = registration.imported_running_state,
+            .needs_timeout_programming = registration.needs_timeout_programming,
         };
     }
 
