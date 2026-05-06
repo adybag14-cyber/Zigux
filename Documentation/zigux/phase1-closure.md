@@ -99,12 +99,27 @@ The closed Phase 1 host-tools packet also stays reviewable through these shared 
 - `Documentation/zigux/review-checklist.md`
 - `scripts/zigux/README.md`
 - `scripts/zigux/install-zig.py`
+- `scripts/zigux/validate-phase1.py`
+- `scripts/zigux/validate-phase1-closure.py`
+- `scripts/zigux/check-phase1-parity.py`
+- `scripts/zigux/check-phase1-bench.py`
 - `zigux/tests/README.md`
+- `zigux/tests/build.zig`
+- `zigux/tests/phase1_helpers.zig`
+- `zigux/tests/phase1_bench.zig`
+- `zigux/tests/fixtures/phase1_helper_manifest.json`
+- `zigux/tests/fixtures/phase1_bench_expectations.json`
 - `.github/workflows/zigux-bootstrap.yml`
 - `zigux/Makefile`
+- `zig build test --build-file zigux/tests/build.zig`
+- `zig build bench --build-file zigux/tests/build.zig`
+- `make -C zigux phase1-validate`
+- `make -C zigux phase1-test`
+- `make -C zigux phase1-bench`
+- `make -C zigux phase1`
 - `python3 scripts/zigux/validate-phase1-closure.py`
 
-Reviewers should treat drift across those packet summaries, the bootstrap workflow replay, and the validator-first replay route as a closure regression even when the helper code itself is unchanged.
+Reviewers should treat drift across those packet summaries, the committed helper and benchmark fixtures, the shared tests-root entrypoints, the bootstrap workflow replay, and the validator-first plus Linux-style replay routes as a closure regression even when the helper code itself is unchanged.
 
 ## Find Bit Review Rule
 
