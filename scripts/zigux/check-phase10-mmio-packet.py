@@ -48,6 +48,7 @@ EXPECTED_SLICE_MARKERS = [
     "one explicit transport-identity summary",
     "one bounded config-write disposition summary",
     "one bounded probe-preflight summary",
+    "zig test zigux/tests/phase10_virtio_mmio_survey.zig",
 ]
 
 EXPECTED_SURVEY_NOTE_MARKERS = [
@@ -114,6 +115,7 @@ pub fn probePreflightSummary(self: *const Self) ProbePreflightSummary { _ = self
     "Documentation/zigux/phase10-virtio-mmio-slice.md": """- one explicit transport-identity summary
 - one bounded config-write disposition summary
 - one bounded probe-preflight summary
+- `zig test zigux/tests/phase10_virtio_mmio_survey.zig`
 """,
     "Documentation/zigux/phase10-virtio-mmio-survey.md": """- `PHASE10_STATUS=parked`
 - `PHASE10_RISKY_TRANSPORT_POSTURE=blocked_on_risky_transport`
@@ -327,9 +329,24 @@ def run_self_test() -> int:
         _, missing_markers = validate(tmp_root)
         if "survey_note:transport-identity summary" not in missing_markers:
             raise SystemExit("phase10-mmio-self-test:expected_transport_identity_marker_missing")
+        survey_path.write_text(original_survey, encoding="utf-8")
+
+        slice_path = tmp_root / "Documentation/zigux/phase10-virtio-mmio-slice.md"
+        original_slice = slice_path.read_text(encoding="utf-8")
+        slice_path.write_text(
+            original_slice.replace(
+                "zig test zigux/tests/phase10_virtio_mmio_survey.zig",
+                "zig test zigux/tests/phase10_virtio_mmio_drift.zig",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        _, missing_markers = validate(tmp_root)
+        if "slice:zig test zigux/tests/phase10_virtio_mmio_survey.zig" not in missing_markers:
+            raise SystemExit("phase10-mmio-self-test:expected_slice_survey_gate_marker_missing")
 
     print("PHASE10_MMIO_PACKET_SELF_TEST=pass")
-    print("PHASE10_MMIO_PACKET_SELF_TEST_CASE_COUNT=4")
+    print("PHASE10_MMIO_PACKET_SELF_TEST_CASE_COUNT=5")
     return 0
 
 
