@@ -36,6 +36,8 @@ The live repo already had atomic64 and bitmap starters under the same Phase 9 re
 - concrete main-thread payload literals for the current bounded `foo_bar`, template, conditional, template-print, and relative-location replay path, including the exported `iter=%d` format template
 - concrete function-callback payload labels for the current bounded replay path
 - a bounded `runtime_trace_events_loader` scaffold that names the planned entry and exit hooks, the tracepoint register and unregister handoff, the current event-family summary, the prepared and initialized-stage snapshots that stay explicit even if the sample mutates again before runtime handoff, the shared-request bridge through the existing runtime-loader contract, and the no-substrate release path while the shared runtime-loader surface remains unavailable
+- runtime task ownership or event-loop substrate parity remains blocked behind that shared runtime-loader surface
+- polling-backed wake or dispatch behavior remains blocked behind the same shared runtime-loader surface
 - dedicated Phase 9 sample, module, and diff tests that assert the sample-local lifecycle, registration, and payload-literal expectations through the shared `zigux/tests/phase9_build.zig` gate
 - dedicated Phase 9 loader, survey, and manifest coverage plus the focused `zig build phase9-runtime-loader-shared-tests --build-file zigux/tests/phase9_build.zig` shard for the shared runtime-loader facade, contract, and allocator/init-flow packet wired into the shared `zigux/tests/phase9_build.zig` gate and `make -C zigux phase9`
 
@@ -47,6 +49,8 @@ This slice does not yet claim:
 - `CREATE_TRACE_POINTS` or tracepoint macro parity
 - real kernel thread scheduling or timeout behavior
 - payload-by-payload differential parity for the full Linux sample
+- runtime task ownership or event-loop substrate parity
+- polling-backed wake or dispatch behavior
 
 ## Gates
 
