@@ -15,6 +15,7 @@ REQUIRED_FILES = [
     "Documentation/zigux/phase2-closure.md",
     "Documentation/zigux/review-checklist.md",
     "scripts/zigux/README.md",
+    "scripts/zigux/check-phase2-genksyms-bridge-selftest-alignment.py",
     "scripts/zigux/check-phase2-tests-readme-alignment.py",
     "scripts/zigux/check-phase2-kconfig-selftest-alignment.py",
     "scripts/zigux/validate-phase2.py",
@@ -80,6 +81,7 @@ TOOLCHAIN_NOTES_MARKERS = [
 SCRIPTS_README_MARKERS = [
     "check-zig-toolchain.py",
     "install-zig.py",
+    "check-phase2-genksyms-bridge-selftest-alignment.py",
     "check-phase2-tests-readme-alignment.py",
     "check-phase2-cross-selftest-alignment.py",
     "check-phase2-kconfig-selftest-alignment.py",
@@ -134,6 +136,7 @@ EXACT_COUNT_CHECKS = {
         "make -C zigux phase2": 1,
     },
     "scripts/zigux/README.md": {
+        "check-phase2-genksyms-bridge-selftest-alignment.py": 1,
         "check-phase2-kconfig-selftest-alignment.py": 1,
     },
     "zigux/tests/README.md": {
@@ -353,6 +356,36 @@ def run_self_test() -> int:
             "\n".join(
                 marker
                 for marker in SCRIPTS_README_MARKERS
+                if marker != "check-phase2-genksyms-bridge-selftest-alignment.py"
+            )
+            + "\n",
+        )
+        issues = validate_root(root)
+        assert "scripts_readme:check-phase2-genksyms-bridge-selftest-alignment.py" in issues
+
+        build_self_test_root(root)
+        write_text(
+            root / "scripts/zigux/README.md",
+            "\n".join(SCRIPTS_README_MARKERS)
+            + "\ncheck-phase2-genksyms-bridge-selftest-alignment.py\n",
+        )
+        issues = validate_root(root)
+        assert (
+            "scripts_readme:exact_count:check-phase2-genksyms-bridge-selftest-alignment.py:count=2:expected=1"
+            in issues
+        )
+
+        build_self_test_root(root)
+        (root / "scripts/zigux/check-phase2-genksyms-bridge-selftest-alignment.py").unlink()
+        issues = validate_root(root)
+        assert "missing_file:scripts/zigux/check-phase2-genksyms-bridge-selftest-alignment.py" in issues
+
+        build_self_test_root(root)
+        write_text(
+            root / "scripts/zigux/README.md",
+            "\n".join(
+                marker
+                for marker in SCRIPTS_README_MARKERS
                 if marker != "check-phase2-kconfig-selftest-alignment.py"
             )
             + "\n",
@@ -398,7 +431,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE2_TESTS_README_ALIGNMENT_SELF_TEST=pass")
-    print("PHASE2_TESTS_README_ALIGNMENT_SELF_TEST_CASE_COUNT=34")
+    print("PHASE2_TESTS_README_ALIGNMENT_SELF_TEST_CASE_COUNT=37")
     return 0
 
 
