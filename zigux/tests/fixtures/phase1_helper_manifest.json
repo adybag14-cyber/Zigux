@@ -31,6 +31,7 @@
         "test \"bitmap scnprintf handles terminator-only and zero-length caller views\"",
         "test \"bitmap copy aliases preserve tail clearing and extension semantics\""
       ],
+      "first_word_boundary_anchor": "test \"bitmap range helpers honor exact first-word boundaries\"",
       "partial_xor_review_fields": [
         "partial_xor_nbits",
         "partial_xor_masked_values"
