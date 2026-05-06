@@ -30,7 +30,7 @@ The live repo now has a bounded `runtime_atomic64` starter, dedicated module tes
 ## Survey findings
 
 - `lib/atomic64_test.c` is present on `master` at 277 lines.
-- the live repo now ships `samples/zigux/runtime_atomic64.zig`, `samples/zigux/runtime_atomic64_loader.zig`, `zigux/tests/runtime_atomic64_module.zig`, `zigux/tests/runtime_atomic64_diff.zig`, `zigux/tests/runtime_atomic64_survey.zig`, and the shared `zigux/tests/phase9_build.zig` coverage for this lane.
+- the live repo now ships `samples/zigux/runtime_atomic64.zig`, `samples/zigux/runtime_atomic64_loader.zig`, `zigux/tests/runtime_atomic64_module.zig`, `zigux/tests/runtime_atomic64_diff.zig`, `zigux/tests/runtime_atomic64_survey.zig`, and the shared `zigux/tests/phase9_build.zig` coverage for this lane, including the focused `zig build phase9-runtime-loader-shared-tests --build-file zigux/tests/phase9_build.zig` shard for the shared runtime-loader facade, contract, and allocator/init-flow packet.
 - the bounded starter keeps atomic exchange, compare-swap, add-unless, and selftest-hook behavior reviewable without claiming a real loadable runtime module.
 - the roadmap's selftest-hook requirement is already landed through the sample descriptor and `runSelftest()` contract in `samples/zigux/runtime_atomic64.zig`.
 - the bounded sample-side loader scaffold now records explicit init and exit symbol names, a prepared handoff summary, and the no-substrate release path without claiming that a shared runtime loader already exists.
@@ -66,10 +66,13 @@ This keeps the roadmap's selftest-hook requirement explicitly landed while still
 
 ## Gates
 
-1. run the dedicated Phase 9 survey gate
+1. run the focused shared runtime-loader shard
+- `zig build phase9-runtime-loader-shared-tests --build-file zigux/tests/phase9_build.zig`
+
+2. run the dedicated Phase 9 survey gate
 - `zig build test --build-file zigux/tests/phase9_build.zig`
 
-2. run the convenience target
+3. run the convenience target
 - `make -C zigux phase9`
 
 ## Non-goals
