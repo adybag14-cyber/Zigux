@@ -418,7 +418,7 @@ test "shared runtime loader contract rejects request state or plan drift" {
     try std.testing.expect(!keepsRequestStateAndPlanExplicit(request, .prepared, drifted_init_flow));
 }
 
-test "shared runtime loader contract keeps command, environment, and depmod-facing control surfaces outside the request contract" {
+test "shared runtime loader contract keeps command, environment, registration-summary, and depmod-facing control surfaces outside the request contract" {
     try std.testing.expect(!@hasField(LoadPlan, "command_name"));
     try std.testing.expect(!@hasField(LoadPlan, "argv_policy"));
     try std.testing.expect(!@hasField(LoadPlan, "activation_env"));
@@ -434,6 +434,19 @@ test "shared runtime loader contract keeps command, environment, and depmod-faci
     try std.testing.expect(!@hasField(LoadPlan, "registration_depth"));
     try std.testing.expect(!@hasField(LoadPlan, "active_instances"));
     try std.testing.expect(!@hasField(LoadPlan, "entry_timestamp_armed"));
+    try std.testing.expect(!@hasField(LoadPlan, "event_families"));
+    try std.testing.expect(!@hasField(LoadPlan, "main_thread_events"));
+    try std.testing.expect(!@hasField(LoadPlan, "fn_thread_events"));
+    try std.testing.expect(!@hasField(LoadPlan, "total_events"));
+    try std.testing.expect(!@hasField(LoadPlan, "conditional_paths_checked"));
+    try std.testing.expect(!@hasField(LoadPlan, "registration_paths_checked"));
+    try std.testing.expect(!@hasField(LoadPlan, "last_main_count"));
+    try std.testing.expect(!@hasField(LoadPlan, "last_fn_count"));
+    try std.testing.expect(!@hasField(LoadPlan, "skipped_kernel_threads"));
+    try std.testing.expect(!@hasField(LoadPlan, "nmissed"));
+    try std.testing.expect(!@hasField(LoadPlan, "last_retval"));
+    try std.testing.expect(!@hasField(LoadPlan, "last_duration_ns"));
+    try std.testing.expect(!@hasField(LoadPlan, "summary"));
     try std.testing.expect(!@hasField(LoadPlan, "modinfo"));
     try std.testing.expect(!@hasField(LoadPlan, "module_alias"));
     try std.testing.expect(!@hasField(LoadPlan, "module_aliases"));
@@ -454,6 +467,19 @@ test "shared runtime loader contract keeps command, environment, and depmod-faci
     try std.testing.expect(!@hasField(PreparedRequest, "registration_depth"));
     try std.testing.expect(!@hasField(PreparedRequest, "active_instances"));
     try std.testing.expect(!@hasField(PreparedRequest, "entry_timestamp_armed"));
+    try std.testing.expect(!@hasField(PreparedRequest, "event_families"));
+    try std.testing.expect(!@hasField(PreparedRequest, "main_thread_events"));
+    try std.testing.expect(!@hasField(PreparedRequest, "fn_thread_events"));
+    try std.testing.expect(!@hasField(PreparedRequest, "total_events"));
+    try std.testing.expect(!@hasField(PreparedRequest, "conditional_paths_checked"));
+    try std.testing.expect(!@hasField(PreparedRequest, "registration_paths_checked"));
+    try std.testing.expect(!@hasField(PreparedRequest, "last_main_count"));
+    try std.testing.expect(!@hasField(PreparedRequest, "last_fn_count"));
+    try std.testing.expect(!@hasField(PreparedRequest, "skipped_kernel_threads"));
+    try std.testing.expect(!@hasField(PreparedRequest, "nmissed"));
+    try std.testing.expect(!@hasField(PreparedRequest, "last_retval"));
+    try std.testing.expect(!@hasField(PreparedRequest, "last_duration_ns"));
+    try std.testing.expect(!@hasField(PreparedRequest, "summary"));
     try std.testing.expect(!@hasField(PreparedRequest, "modinfo"));
     try std.testing.expect(!@hasField(PreparedRequest, "module_aliases"));
     try std.testing.expect(!@hasField(PreparedRequest, "modules_alias_path"));
