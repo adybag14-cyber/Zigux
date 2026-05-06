@@ -55,6 +55,7 @@ PHASE2_MAKEFILE_RUN_COUNTS = {
     'scripts/zigux/check-phase2-toolchain-pin-scope.py': 1,
     'scripts/zigux/check-phase2-kconfig-selftest-alignment.py --self-test': 1,
     'scripts/zigux/check-phase2-kconfig-selftest-alignment.py': 1,
+    'scripts/zigux/check-kconfig-bridge.py': 1,
     'scripts/zigux/check-genksyms-bridge.py --self-test': 1,
     'scripts/zigux/check-genksyms-bridge.py': 1,
     'scripts/zigux/check-phase2-cross.py': 1,
@@ -95,6 +96,7 @@ def run_self_test() -> int:
         'cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-toolchain-pin-scope.py',
         'cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-kconfig-selftest-alignment.py --self-test',
         'cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-kconfig-selftest-alignment.py',
+        'cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-kconfig-bridge.py',
         'cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-genksyms-bridge.py --self-test',
         'cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-genksyms-bridge.py',
         'cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-cross.py',
@@ -245,6 +247,14 @@ def run_self_test() -> int:
                 + '\ncd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-kconfig-selftest-alignment.py'
             ),
             ['make_exact_run:scripts/zigux/check-phase2-kconfig-selftest-alignment.py:count=2:expected=1'],
+        ),
+        (
+            'make_duplicate_kconfig_bridge_gate',
+            validate_exact_makefile_runs(
+                make_ok
+                + '\ncd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-kconfig-bridge.py'
+            ),
+            ['make_exact_run:scripts/zigux/check-kconfig-bridge.py:count=2:expected=1'],
         ),
         (
             'make_duplicate_genksyms_bridge_self_test',
