@@ -18,6 +18,12 @@ REQUIRED_CHECKER_MARKERS = (
     'print("KCONFIG_BRIDGE_SELF_TEST=pass")',
     'print(f"KCONFIG_BRIDGE_SELF_TEST_CASE_COUNT={checks_run}")',
 )
+REQUIRED_CHECKER_EXACT_COUNTS = {
+    "REQUIRED_CONFDATA_CASES = [": 1,
+    "EXPECTED_SELF_TEST_CASE_COUNT = 11": 1,
+    'print("KCONFIG_BRIDGE_SELF_TEST=pass")': 1,
+    'print(f"KCONFIG_BRIDGE_SELF_TEST_CASE_COUNT={checks_run}")': 1,
+}
 REQUIRED_MAKEFILE_LINES = (
     "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-kconfig-selftest-alignment.py --self-test",
     "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-kconfig-selftest-alignment.py",
@@ -28,7 +34,7 @@ REQUIRED_WORKFLOW_LINES = (
     "run: python3 scripts/zigux/check-kconfig-bridge.py --self-test",
     "run: python3 scripts/zigux/check-kconfig-bridge.py",
 )
-EXPECTED_SELF_TEST_CASE_COUNT = 8
+EXPECTED_SELF_TEST_CASE_COUNT = 10
 
 
 def read_text(path: Path) -> str:
@@ -42,6 +48,10 @@ def count_exact_lines(text: str, marker: str) -> int:
     return sum(1 for line in text.splitlines() if line.strip() == marker)
 
 
+def count_exact_substrings(text: str, marker: str) -> int:
+    return text.count(marker)
+
+
 def collect_issues(root: Path) -> list[tuple[str, str]]:
     issues: list[tuple[str, str]] = []
     checker_text = read_text(root / CHECKER)
@@ -51,6 +61,16 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
     for marker in REQUIRED_CHECKER_MARKERS:
         if marker not in checker_text:
             issues.append(("MISSING_CHECKER_MARKERS", marker))
+
+    for marker, expected_count in REQUIRED_CHECKER_EXACT_COUNTS.items():
+        count = count_exact_substrings(checker_text, marker)
+        if count != expected_count:
+            issues.append(
+                (
+                    "DUPLICATE_CHECKER_MARKERS",
+                    f"{marker}:count={count}:expected={expected_count}",
+                )
+            )
 
     for marker in REQUIRED_MAKEFILE_LINES:
         count = count_exact_lines(makefile_text, marker)
@@ -176,6 +196,40 @@ def run_self_test() -> int:
         cases += 1
 
         build_self_test_root(root)
+        path = root / CHECKER
+        path.write_text(
+            path.read_text(encoding="utf-8").replace(
+                REQUIRED_CHECKER_MARKERS[2],
+                REQUIRED_CHECKER_MARKERS[2] + "\n" + REQUIRED_CHECKER_MARKERS[2],
+                1,
+            ),
+            encoding="utf-8",
+        )
+        issues = collect_issues(root)
+        assert (
+            "DUPLICATE_CHECKER_MARKERS",
+            f"{REQUIRED_CHECKER_MARKERS[2]}:count=2:expected=1",
+        ) in issues
+        cases += 1
+
+        build_self_test_root(root)
+        path = root / CHECKER
+        path.write_text(
+            path.read_text(encoding="utf-8").replace(
+                REQUIRED_CHECKER_MARKERS[3],
+                REQUIRED_CHECKER_MARKERS[3] + "\n" + REQUIRED_CHECKER_MARKERS[3],
+                1,
+            ),
+            encoding="utf-8",
+        )
+        issues = collect_issues(root)
+        assert (
+            "DUPLICATE_CHECKER_MARKERS",
+            f"{REQUIRED_CHECKER_MARKERS[3]}:count=2:expected=1",
+        ) in issues
+        cases += 1
+
+        build_self_test_root(root)
         path = root / MAKEFILE
         path.write_text(
             replace_exact_line(path.read_text(encoding="utf-8"), REQUIRED_MAKEFILE_LINES[0], "\ttrue"),
@@ -226,6 +280,7 @@ def run_self_test() -> int:
         assert ("DUPLICATE_WORKFLOW_HOOKS", f"{REQUIRED_WORKFLOW_LINES[3]}:count=2") in issues
         cases += 1
 
+    assert cases == EXPECTED_SELF_TEST_CASE_COUNT
     print("PHASE2_KCONFIG_ALIGNMENT_SELF_TEST=pass")
     print(f"PHASE2_KCONFIG_ALIGNMENT_SELF_TEST_CASE_COUNT={cases}")
     return 0
