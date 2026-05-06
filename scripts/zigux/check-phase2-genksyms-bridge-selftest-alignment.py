@@ -220,7 +220,7 @@ def clone_fixture_root(destination_root: Path) -> None:
         "run: python3 scripts/zigux/check-genksyms-bridge.py",
         "run: zig test scripts/zigux/genksyms.zig",
     ]
-    (destination_root / REQUIRED_FILES["workflow"]).write_text("\n".join(workflow_lines) + "\n", encoding="utf-8")
+    (destination_root / REQUIRED_FILES["workflow"]).writeText("\n".join(workflow_lines) + "\n", encoding="utf-8")
     (destination_root / REQUIRED_FILES["cases"]).write_text(
         json.dumps(
             {
@@ -275,8 +275,19 @@ def run_self_test() -> int:
         expect_issue("workflow_checker_self_test", tmp_root, "workflow_run:python3 scripts/zigux/check-phase2-genksyms-bridge-selftest-alignment.py --self-test:count=0:expected=1")
         clone_fixture_root(tmp_root)
 
+        workflow_path = tmp_root / REQUIRED_FILES["workflow"]
+        original_workflow = workflow_path.read_text(encoding="utf-8")
+        workflow_path.write_text(original_workflow.replace("run: python3 scripts/zigux/check-phase2-genksyms-bridge-selftest-alignment.py\n", "", 1), encoding="utf-8")
+        expect_issue("workflow_checker_live_run", tmp_root, "workflow_run:python3 scripts/zigux/check-phase2-genksyms-bridge-selftest-alignment.py:count=0:expected=1")
+        clone_fixture_root(tmp_root)
+
+        bridge_checker_path = tmp_root / REQUIRED_FILES["bridge_checker"]
+        bridge_checker_path.write_text("print('GENKSYMS_BRIDGE_SELF_TEST=pass')\n", encoding="utf-8")
+        expect_issue("bridge_checker_case_count_marker", tmp_root, "bridge_checker:print('GENKSYMS_BRIDGE_SELF_TEST_CASE_COUNT=6')")
+        clone_fixture_root(tmp_root)
+
     print("PHASE2_GENKSYMS_BRIDGE_SELFTEST_ALIGNMENT_SELF_TEST=pass")
-    print("PHASE2_GENKSYMS_BRIDGE_SELFTEST_ALIGNMENT_SELF_TEST_CASE_COUNT=4")
+    print("PHASE2_GENKSYMS_BRIDGE_SELFTEST_ALIGNMENT_SELF_TEST_CASE_COUNT=6")
     return 0
 
 
