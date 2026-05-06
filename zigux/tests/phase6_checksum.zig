@@ -53,6 +53,16 @@ fn appendBigEndianU32(buffer: []u8, value: u32) void {
     std.mem.writeInt(u32, pair, value, .big);
 }
 
+fn appendIpv6PseudoHeader(buffer: []u8, saddr: *const [16]u8, daddr: *const [16]u8, len: u32, proto: u8) void {
+    @memcpy(buffer[0..16], saddr);
+    @memcpy(buffer[16..32], daddr);
+    appendBigEndianU32(buffer[32..36], len);
+    buffer[36] = 0;
+    buffer[37] = 0;
+    buffer[38] = 0;
+    buffer[39] = proto;
+}
+
 test "phase 6 checksum module imports cleanly" {
     _ = checksum;
 }
@@ -123,30 +133,6 @@ test "kunit-inspired carry discipline stays stable on the helper surface" {
     }
 }
 
-test "fixture-backed negate cases keep the public checksum helper reviewable" {
-    try std.testing.expectEqual(@as(usize, 4), fixtures.negate_cases.len);
-    try std.testing.expectEqualStrings("zero stays zero", fixtures.negate_cases[0].name);
-    try std.testing.expectEqualStrings("mixed payload preserves ones complement carry", fixtures.negate_cases[3].name);
-
-    for (fixtures.negate_cases) |case| {
-        const negated = checksum.negate(case.sum);
-        try std.testing.expectEqual(case.expected_negate, negated);
-        try std.testing.expectEqual(case.expected_add_with_negate, checksum.add(case.sum, negated));
-    }
-}
-
-test "fixture-backed fold cases keep the public checksum helper reviewable" {
-    try std.testing.expectEqual(@as(usize, 5), fixtures.fold_cases.len);
-    try std.testing.expectEqualStrings("zero", fixtures.fold_cases[0].name);
-    try std.testing.expectEqual(@as(u16, 0x68ac), fixtures.fold_cases[4].expected_folded);
-
-    for (fixtures.fold_cases) |case| {
-        try std.testing.expectEqual(case.expected_folded, checksum.from32to16(case.sum));
-        try std.testing.expectEqual(case.expected_folded, @as(u16, @intCast(foldCarry(case.sum))));
-        try std.testing.expectEqual(@as(u16, ~case.expected_folded), checksum.fold(case.sum));
-    }
-}
-
 test "pseudo header accumulation matches the fixture-backed reference checksum" {
     for (fixtures.pseudo_header_cases) |case| {
         const payload_partial = checksum.partial(case.payload, 0);
@@ -171,6 +157,99 @@ test "pseudo header accumulation matches the fixture-backed reference checksum" 
         try std.testing.expectEqual(combined_partial, helper_partial);
         try std.testing.expectEqual(case.expected_compute, actual);
         try std.testing.expectEqual(referenceInternetChecksum(pseudo_and_payload[0..combined_len]), actual);
+    }
+}
+
+test "ipv6 pseudo header accumulation stays aligned across representative lanes" {
+    const Case = struct {
+        name: []const u8,
+        payload: []const u8,
+        saddr: [16]u8,
+        daddr: [16]u8,
+        len: u32,
+        proto: u8,
+        check_full_checksum: bool,
+    };
+
+    const odd_payload = [_]u8{
+        0xde, 0xad, 0xbe, 0xef,
+        0xfa, 0xce, 0x01, 0x23,
+        0x45, 0x67, 0x89,
+    };
+    const empty_payload = [_]u8{};
+    const seed_payload = "phase6";
+
+    const cases = [_]Case{
+        .{
+            .name = "udp odd payload",
+            .payload = odd_payload[0..],
+            .saddr = .{ 0x20, 0x01, 0x0d, 0xb8, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01 },
+            .daddr = .{ 0x20, 0x01, 0x0d, 0xb8, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02 },
+            .len = odd_payload.len,
+            .proto = 17,
+            .check_full_checksum = true,
+        },
+        .{
+            .name = "empty tcp payload",
+            .payload = empty_payload[0..],
+            .saddr = .{ 0x20, 0x01, 0x0d, 0xb8, 0x00, 0x00, 0x00, 0x01, 0xde, 0xad, 0xbe, 0xef, 0xca, 0xfe, 0xba, 0xbe },
+            .daddr = .{ 0x20, 0x01, 0x0d, 0xb8, 0x00, 0x00, 0x00, 0x02, 0xde, 0xad, 0xbe, 0xef, 0xca, 0xfe, 0xba, 0xbf },
+            .len = 0,
+            .proto = 6,
+            .check_full_checksum = true,
+        },
+        .{
+            .name = "high length bits stay additive",
+            .payload = seed_payload,
+            .saddr = .{ 0x20, 0x01, 0x0d, 0xb8, 0x00, 0x00, 0x00, 0x01, 0xde, 0xad, 0xbe, 0xef, 0xca, 0xfe, 0xba, 0xbe },
+            .daddr = .{ 0x20, 0x01, 0x0d, 0xb8, 0x00, 0x00, 0x00, 0x02, 0xde, 0xad, 0xbe, 0xef, 0xca, 0xfe, 0xba, 0xbf },
+            .len = 0x0001_2345,
+            .proto = 58,
+            .check_full_checksum = false,
+        },
+    };
+
+    for (cases) |case| {
+        var pseudo_header: [40]u8 = undefined;
+        appendIpv6PseudoHeader(pseudo_header[0..], &case.saddr, &case.daddr, case.len, case.proto);
+
+        const payload_partial = checksum.partial(case.payload, 0);
+        const helper_partial = checksum.tcpUdpV6Nofold(payload_partial, &case.saddr, &case.daddr, case.len, case.proto);
+        const reference_partial = referencePartial(pseudo_header[0..], payload_partial);
+
+        try std.testing.expectEqual(reference_partial, helper_partial);
+
+        if (case.check_full_checksum) {
+            var packet: [64]u8 = undefined;
+            const packet_len = pseudo_header.len + case.payload.len;
+            @memcpy(packet[0..pseudo_header.len], pseudo_header[0..]);
+            @memcpy(packet[pseudo_header.len..packet_len], case.payload);
+            try std.testing.expectEqual(referenceInternetChecksum(packet[0..packet_len]), checksum.fold(helper_partial));
+        }
+    }
+}
+
+test "fixture-backed negate cases keep the public checksum helper reviewable" {
+    try std.testing.expectEqual(@as(usize, 4), fixtures.negate_cases.len);
+    try std.testing.expectEqualStrings("zero stays zero", fixtures.negate_cases[0].name);
+    try std.testing.expectEqualStrings("mixed payload preserves ones complement carry", fixtures.negate_cases[3].name);
+
+    for (fixtures.negate_cases) |case| {
+        const negated = checksum.negate(case.sum);
+        try std.testing.expectEqual(case.expected_negate, negated);
+        try std.testing.expectEqual(case.expected_add_with_negate, checksum.add(case.sum, negated));
+    }
+}
+
+test "fixture-backed fold cases keep the public checksum helper reviewable" {
+    try std.testing.expectEqual(@as(usize, 5), fixtures.fold_cases.len);
+    try std.testing.expectEqualStrings("zero", fixtures.fold_cases[0].name);
+    try std.testing.expectEqual(@as(u16, 0x68ac), fixtures.fold_cases[4].expected_folded);
+
+    for (fixtures.fold_cases) |case| {
+        try std.testing.expectEqual(case.expected_folded, checksum.from32to16(case.sum));
+        try std.testing.expectEqual(case.expected_folded, @as(u16, @intCast(foldCarry(case.sum))));
+        try std.testing.expectEqual(@as(u16, ~case.expected_folded), checksum.fold(case.sum));
     }
 }
 
