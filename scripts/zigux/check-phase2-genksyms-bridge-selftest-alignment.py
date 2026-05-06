@@ -26,7 +26,9 @@ EXPECTED_CASE_NAMES = [
     "explicit_option_terminator",
     "positional_passthrough",
     "help",
+    "abbreviated_help",
     "version",
+    "abbreviated_version",
     "invalid_option",
     "missing_reference_argument",
     "unsupported_long_option",
@@ -43,7 +45,9 @@ EXPECTED_CASE_SPECS = {
     "explicit_option_terminator": {"expected": "explicit_option_terminator_expected.json", "mode": "stdout_json", "normalize_stderr": False},
     "positional_passthrough": {"expected": "positional_passthrough_expected.json", "mode": "stdout_json", "normalize_stderr": False},
     "help": {"expected": "help_expected.json", "mode": "process_json", "normalize_stderr": False},
+    "abbreviated_help": {"expected": "help_expected.json", "mode": "process_json", "normalize_stderr": False},
     "version": {"expected": "version_expected.json", "mode": "process_json", "normalize_stderr": False},
+    "abbreviated_version": {"expected": "abbreviated_version_expected.json", "mode": "process_json", "normalize_stderr": False},
     "invalid_option": {"expected": "invalid_option_expected.json", "mode": "process_json", "normalize_stderr": True},
     "missing_reference_argument": {"expected": "missing_reference_argument_expected.json", "mode": "process_json", "normalize_stderr": True},
     "unsupported_long_option": {"expected": "unsupported_long_option_expected.json", "mode": "process_json", "normalize_stderr": True},
@@ -53,7 +57,7 @@ EXPECTED_CASE_SPECS = {
 
 BRIDGE_CHECKER_MARKERS = [
     "print('GENKSYMS_BRIDGE_SELF_TEST=pass')",
-    "print('GENKSYMS_BRIDGE_SELF_TEST_CASE_COUNT=4')",
+    "print('GENKSYMS_BRIDGE_SELF_TEST_CASE_COUNT=6')",
 ]
 
 WORKFLOW_RUN_COUNTS = {
@@ -204,7 +208,7 @@ def clone_fixture_root(destination_root: Path) -> None:
         (destination_root / key).parent.mkdir(parents=True, exist_ok=True)
 
     (destination_root / REQUIRED_FILES["bridge_checker"]).write_text(
-        "print('GENKSYMS_BRIDGE_SELF_TEST=pass')\nprint('GENKSYMS_BRIDGE_SELF_TEST_CASE_COUNT=4')\n",
+        "print('GENKSYMS_BRIDGE_SELF_TEST=pass')\nprint('GENKSYMS_BRIDGE_SELF_TEST_CASE_COUNT=6')\n",
         encoding="utf-8",
     )
     workflow_lines = [
