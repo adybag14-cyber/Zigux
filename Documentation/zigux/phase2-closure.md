@@ -46,6 +46,7 @@ Phase 2 is only considered closed when all of the following are green:
 - `python3 scripts/zigux/check-genksyms-crc-diff.py`
 
 3. bounded genksyms wrapper-first bridge parity
+- `python3 scripts/zigux/check-genksyms-bridge.py --self-test`
 - `python3 scripts/zigux/check-genksyms-bridge.py`
 
 4. bounded Phase 2 genksyms bridge self-test alignment gate
@@ -56,6 +57,7 @@ Phase 2 is only considered closed when all of the following are green:
 - `python3 scripts/zigux/check-mk-elfconfig-diff.py`
 
 6. bounded kconfig bridge parity
+- `python3 scripts/zigux/check-kconfig-bridge.py --self-test`
 - `python3 scripts/zigux/check-kconfig-bridge.py`
 
 7. bounded Phase 2 kconfig self-test alignment gate
@@ -89,9 +91,11 @@ Phase 2 is only considered closed when all of the following are green:
 - `python3 scripts/zigux/validate-phase2-closure.py`
 
 - `PHASE2_FIXDEP_SELF_TEST=python3 scripts/zigux/check-fixdep-diff.py --self-test`
+- `PHASE2_GENKSYMS_BRIDGE_SELF_TEST=python3 scripts/zigux/check-genksyms-bridge.py --self-test`
 - `PHASE2_GENKSYMS_BRIDGE_ALIGNMENT_SELF_TEST=python3 scripts/zigux/check-phase2-genksyms-bridge-selftest-alignment.py --self-test`
 - `PHASE2_GENKSYMS_BRIDGE_ALIGNMENT_GATE=python3 scripts/zigux/check-phase2-genksyms-bridge-selftest-alignment.py`
 - `PHASE2_GENKSYMS_BRIDGE_GATE=python3 scripts/zigux/check-genksyms-bridge.py`
+- `PHASE2_KCONFIG_BRIDGE_SELF_TEST=python3 scripts/zigux/check-kconfig-bridge.py --self-test`
 - `PHASE2_KCONFIG_BRIDGE_GATE=python3 scripts/zigux/check-kconfig-bridge.py`
 - `PHASE2_KCONFIG_ALIGNMENT_SELF_TEST=python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py --self-test`
 - `PHASE2_KCONFIG_ALIGNMENT_GATE=python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py`
