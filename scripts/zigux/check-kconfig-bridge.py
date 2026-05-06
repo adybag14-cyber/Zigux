@@ -42,13 +42,13 @@ def load_cases(fixture_dir: Path) -> dict[str, object]:
     return json.loads((fixture_dir / "cases.json").read_text(encoding="utf-8"))
 
 
-def supported_conf_modes(conf_bridge_path: Path) -> set[str]:
+def ordered_conf_modes(conf_bridge_path: Path) -> list[str]:
     source = conf_bridge_path.read_text(encoding="utf-8")
     match = re.search(r"pub const Mode = enum \{(.*?)\n\s*pub fn parse", source, re.S)
     if not match:
         raise SystemExit("failed to parse conf bridge Mode enum")
 
-    modes: set[str] = set()
+    modes: list[str] = []
     for raw_line in match.group(1).splitlines():
         line = raw_line.strip()
         if not line or line.startswith("pub ") or line.startswith("//"):
@@ -56,10 +56,15 @@ def supported_conf_modes(conf_bridge_path: Path) -> set[str]:
         if line.endswith(","):
             candidate = line[:-1].strip()
             if candidate and candidate.isidentifier():
-                modes.add(candidate)
+                modes.append(candidate)
     if not modes:
         raise SystemExit("failed to discover conf bridge modes")
     return modes
+
+
+def expected_conf_case_order(bridge_modes: list[str], conf_cases: list[dict[str, object]]) -> list[str]:
+    manifest_mode_set = {str(case["mode"]) for case in conf_cases}
+    return [mode for mode in bridge_modes if mode in manifest_mode_set]
 
 
 def collect_manifest_issues(root: Path) -> list[tuple[str, str]]:
@@ -68,10 +73,18 @@ def collect_manifest_issues(root: Path) -> list[tuple[str, str]]:
     cases = load_cases(fixture_dir)
     issues: list[tuple[str, str]] = []
 
-    manifest_modes = {case["mode"] for case in cases["conf_cases"]}
-    bridge_modes = supported_conf_modes(conf_bridge)
-    for mode in sorted(manifest_modes - bridge_modes):
+    conf_cases = cases["conf_cases"]
+    bridge_modes = ordered_conf_modes(conf_bridge)
+    bridge_mode_set = set(bridge_modes)
+    manifest_modes = {case["mode"] for case in conf_cases}
+    for mode in sorted(manifest_modes - bridge_mode_set):
         issues.append(("UNSUPPORTED_CONF_CASE_MODES", mode))
+
+    manifest_mode_order = [str(case["mode"]) for case in conf_cases]
+    expected_mode_order = expected_conf_case_order(bridge_modes, conf_cases)
+    if manifest_mode_order != expected_mode_order:
+        issues.append(("CONF_CASE_MODE_ORDER_ACTUAL", ",".join(manifest_mode_order)))
+        issues.append(("CONF_CASE_MODE_ORDER_EXPECTED", ",".join(expected_mode_order)))
 
     seen_names: dict[str, str] = {}
     for group_name in ("conf_cases", "confdata_cases"):
@@ -83,7 +96,7 @@ def collect_manifest_issues(root: Path) -> list[tuple[str, str]]:
                 continue
             seen_names[name] = group_name
 
-    for case in cases["conf_cases"]:
+    for case in conf_cases:
         rel_path = case["expected"]
         if not (fixture_dir / rel_path).exists():
             issues.append(("MISSING_CONF_CASE_EXPECTED_PATHS", f"{case['name']}:expected:{rel_path}"))
@@ -237,6 +250,20 @@ def run_self_test() -> int:
 
         build_self_test_root(root)
         payload = json.loads(cases_path.read_text(encoding="utf-8"))
+        payload["conf_cases"][1], payload["conf_cases"][2] = payload["conf_cases"][2], payload["conf_cases"][1]
+        write_text(cases_path, json.dumps(payload, indent=2) + "\n")
+        issues = collect_manifest_issues(root)
+        assert (
+            "CONF_CASE_MODE_ORDER_ACTUAL",
+            "olddefconfig,defconfig,syncconfig,savedefconfig,listnewconfig",
+        ) in issues
+        assert (
+            "CONF_CASE_MODE_ORDER_EXPECTED",
+            "olddefconfig,syncconfig,defconfig,savedefconfig,listnewconfig",
+        ) in issues
+
+        build_self_test_root(root)
+        payload = json.loads(cases_path.read_text(encoding="utf-8"))
         payload["confdata_cases"][0]["name"] = "syncconfig"
         write_text(cases_path, json.dumps(payload, indent=2) + "\n")
         issues = collect_manifest_issues(root)
@@ -255,7 +282,7 @@ def run_self_test() -> int:
         assert ("MISSING_CONFDATA_CASE_PATHS", "sample_crlf:expected:sample_crlf_expected.json") in issues
 
     print("KCONFIG_BRIDGE_SELF_TEST=pass")
-    print("KCONFIG_BRIDGE_SELF_TEST_CASE_COUNT=5")
+    print("KCONFIG_BRIDGE_SELF_TEST_CASE_COUNT=6")
     return 0
 
 
