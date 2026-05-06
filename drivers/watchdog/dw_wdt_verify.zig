@@ -158,3 +158,45 @@ test "dw_wdt verify keeps teardown split between reset-controlled and unstoppabl
     try std.testing.expect(running_remove.interrupt_pending_after_remove);
     try std.testing.expect(running_remove.remove_leaves_hardware_running);
 }
+
+test "dw_wdt verify keeps irq-mode teardown summaries aligned with stop failure semantics" {
+    var unstoppable = try dw_wdt.DwWdtLab.initFixedTops(65_536, false);
+    _ = try unstoppable.setResponseMode(.irq);
+    _ = try unstoppable.setTimeout(9);
+    _ = try unstoppable.start();
+    _ = unstoppable.setCurrentCount(3 * 65_536);
+    _ = unstoppable.setInterruptPending(true);
+
+    const unstoppable_teardown = try unstoppable.teardownSummary();
+    try std.testing.expectEqualStrings("drivers/watchdog/dw_wdt.c", unstoppable_teardown.anchor);
+    try std.testing.expect(!unstoppable_teardown.can_stop);
+    try std.testing.expect(unstoppable_teardown.running_before_teardown);
+    try std.testing.expectEqual(@as(u32, 16), unstoppable_teardown.timeout_sec);
+    try std.testing.expectEqual(dw_wdt.ResponseMode.irq, unstoppable_teardown.response_mode);
+    try std.testing.expectEqual(dw_wdt.TeardownOutcome.continued_heartbeat, unstoppable_teardown.outcome);
+    try std.testing.expect(unstoppable_teardown.stop_invoked);
+    try std.testing.expect(!unstoppable_teardown.enable_bit_cleared);
+    try std.testing.expect(!unstoppable_teardown.interrupt_cleared);
+    try std.testing.expect(unstoppable_teardown.running_after_teardown);
+    try std.testing.expect(unstoppable_teardown.hardware_running_after_teardown);
+
+    var stoppable = try dw_wdt.DwWdtLab.initFixedTops(65_536, true);
+    _ = try stoppable.setResponseMode(.irq);
+    _ = try stoppable.setTimeout(9);
+    _ = try stoppable.start();
+    _ = stoppable.setCurrentCount(3 * 65_536);
+    _ = stoppable.setInterruptPending(true);
+
+    const stoppable_teardown = try stoppable.teardownSummary();
+    try std.testing.expectEqualStrings("drivers/watchdog/dw_wdt.c", stoppable_teardown.anchor);
+    try std.testing.expect(stoppable_teardown.can_stop);
+    try std.testing.expect(stoppable_teardown.running_before_teardown);
+    try std.testing.expectEqual(@as(u32, 16), stoppable_teardown.timeout_sec);
+    try std.testing.expectEqual(dw_wdt.ResponseMode.irq, stoppable_teardown.response_mode);
+    try std.testing.expectEqual(dw_wdt.TeardownOutcome.reset_control_stop, stoppable_teardown.outcome);
+    try std.testing.expect(stoppable_teardown.stop_invoked);
+    try std.testing.expect(stoppable_teardown.enable_bit_cleared);
+    try std.testing.expect(stoppable_teardown.interrupt_cleared);
+    try std.testing.expect(!stoppable_teardown.running_after_teardown);
+    try std.testing.expect(!stoppable_teardown.hardware_running_after_teardown);
+}
