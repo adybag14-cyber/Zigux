@@ -267,6 +267,9 @@ test "phase11 hvc console keeps notifier unregister timing false before tty regi
     try std.testing.expect(never_registered.khvcd_worker_execution_deferred);
     try std.testing.expect(never_registered.host_io_deferred);
     try std.testing.expect(never_registered.remove_handoff_still_required);
+
+    _ = console.teardown();
+    try std.testing.expectError(error.ConsoleUnavailable, console.summarizeNotifierHandoff(.{}));
 }
 
 test "phase11 hvc console keeps notifier unregister timing false without a notifier target" {
@@ -291,6 +294,9 @@ test "phase11 hvc console keeps notifier unregister timing false without a notif
     try std.testing.expect(targetless.khvcd_worker_execution_deferred);
     try std.testing.expect(targetless.host_io_deferred);
     try std.testing.expect(targetless.remove_handoff_still_required);
+
+    _ = console.teardown();
+    try std.testing.expectError(error.ConsoleUnavailable, console.summarizeNotifierHandoff(.{}));
 }
 
 test "phase11 hvc console keeps notifier unregister timing false for targetless sysrq handoff" {
@@ -315,6 +321,9 @@ test "phase11 hvc console keeps notifier unregister timing false for targetless 
     try std.testing.expect(targetless_sysrq.khvcd_worker_execution_deferred);
     try std.testing.expect(targetless_sysrq.host_io_deferred);
     try std.testing.expect(targetless_sysrq.remove_handoff_still_required);
+
+    _ = console.teardown();
+    try std.testing.expectError(error.ConsoleUnavailable, console.summarizeNotifierHandoff(.{}));
 }
 
 test "phase11 hvc_console adds carriage returns and keeps final flush intent on successful writes" {
