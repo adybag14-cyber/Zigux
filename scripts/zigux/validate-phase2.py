@@ -363,7 +363,7 @@ def validate_root(root: Path) -> list[str]:
             [sys.executable, str(root / "scripts" / "zigux" / "check-genksyms-bridge.py"), "--self-test"],
             [
                 "GENKSYMS_BRIDGE_SELF_TEST=pass",
-                "GENKSYMS_BRIDGE_SELF_TEST_CASE_COUNT=4",
+                "GENKSYMS_BRIDGE_SELF_TEST_CASE_COUNT=6",
             ],
         )
     )
@@ -575,7 +575,7 @@ def build_self_test_root(root: Path) -> None:
     write_text(root / "Documentation/zigux/README.md", "\n".join(REQUIRED_DOCS_ROOT_MARKERS) + "\n")
     write_text(root / "Documentation/zigux/review-checklist.md", build_phase2_review_checklist_line(REQUIRED_REVIEW_MARKERS))
     write_stub_guard(root / "scripts/zigux/check-fixdep-diff.py", self_test_marker="FIXDEP_DIFF_SELF_TEST=pass\nFIXDEP_DIFF_SELF_TEST_CASE_COUNT=4", live_markers=["FIXDEP_DIFF=pass", "FIXDEP_DETERMINISM=pass"])
-    write_stub_guard(root / "scripts/zigux/check-genksyms-bridge.py", self_test_marker="GENKSYMS_BRIDGE_SELF_TEST=pass\nGENKSYMS_BRIDGE_SELF_TEST_CASE_COUNT=4", live_markers=["GENKSYMS_BRIDGE_DIFF=pass"])
+    write_stub_guard(root / "scripts/zigux/check-genksyms-bridge.py", self_test_marker="GENKSYMS_BRIDGE_SELF_TEST=pass\nGENKSYMS_BRIDGE_SELF_TEST_CASE_COUNT=6", live_markers=["GENKSYMS_BRIDGE_DIFF=pass"])
     write_stub_guard(root / "scripts/zigux/check-phase2-tests-readme-alignment.py", self_test_marker="PHASE2_TESTS_README_ALIGNMENT_SELF_TEST=pass\nPHASE2_TESTS_README_ALIGNMENT_SELF_TEST_CASE_COUNT=16", live_markers=["PHASE2_TESTS_README_ALIGNMENT=pass", "PHASE2_TESTS_README_ALIGNMENT_MARKER_COUNT=1"])
     write_stub_guard(root / "scripts/zigux/check-phase2-cross-selftest-alignment.py", self_test_marker="PHASE2_CROSS_SELFTEST_ALIGNMENT_SELF_TEST=pass", live_markers=["PHASE2_CROSS_SELFTEST_ALIGNMENT=pass"])
     write_stub_guard(root / "scripts/zigux/check-phase2-toolchain-pin-scope.py", self_test_marker="PHASE2_TOOLCHAIN_PIN_SCOPE_SELF_TEST=pass\nPHASE2_TOOLCHAIN_PIN_SCOPE_SELF_TEST_CASE_COUNT=31", live_markers=["PHASE2_TOOLCHAIN_PIN_SCOPE=pass"])
@@ -693,7 +693,7 @@ def run_self_test() -> int:
         checker_path = root / "scripts" / "zigux" / "check-genksyms-bridge.py"
         write_stub_guard(checker_path, self_test_marker="GENKSYMS_BRIDGE_SELF_TEST=pass", live_markers=["GENKSYMS_BRIDGE_DIFF=pass"])
         issues = validate_root(root)
-        assert any(issue.startswith("guard_marker:") and "check-genksyms-bridge.py --self-test:GENKSYMS_BRIDGE_SELF_TEST_CASE_COUNT=4" in issue for issue in issues)
+        assert any(issue.startswith("guard_marker:") and "check-genksyms-bridge.py --self-test:GENKSYMS_BRIDGE_SELF_TEST_CASE_COUNT=6" in issue for issue in issues)
         build_self_test_root(root)
         checker_path = root / "scripts" / "zigux" / "check-phase2-tests-readme-alignment.py"
         write_stub_guard(checker_path, self_test_marker="PHASE2_TESTS_README_ALIGNMENT_SELF_TEST=pass", live_markers=["PHASE2_TESTS_README_ALIGNMENT=pass"])
