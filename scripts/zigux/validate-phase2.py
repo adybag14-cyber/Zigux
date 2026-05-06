@@ -169,6 +169,7 @@ REQUIRED_WORKFLOW_MARKERS = [
 ]
 REQUIRED_EXACT_WORKFLOW_RUN_COUNTS = {
     "python3 scripts/zigux/check-phase2-tests-readme-alignment.py": 1,
+    "python3 scripts/zigux/check-phase2-cross.py --self-test": 1,
     "python3 scripts/zigux/check-phase2-cross-selftest-alignment.py --self-test": 1,
     "python3 scripts/zigux/check-phase2-cross-selftest-alignment.py": 1,
     "python3 scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test": 1,
@@ -349,7 +350,7 @@ def validate_root(root: Path) -> list[str]:
     guard_issues.extend(
         run_guard(
             root,
-            [sys.executable, str(root / "scripts" / "zigux" / "check-fixdep-diff.py")],
+            [sys.executable, str(root / "scripts" / "zigux" / "check-fixdep-diff.py" )],
             [
                 "FIXDEP_DIFF=pass",
                 "FIXDEP_DETERMINISM=pass",
@@ -603,6 +604,11 @@ def run_self_test() -> int:
         issues = validate_root(root)
         assert "workflow_exact_marker:python3 scripts/zigux/check-phase2-tests-readme-alignment.py:count=2:expected=1" in issues
         build_self_test_root(root)
+        workflow_text = workflow_path.read_text(encoding="utf-8").replace("run: python3 scripts/zigux/check-phase2-cross.py --self-test\n", "run: python3 scripts/zigux/check-phase2-cross.py --self-test\nrun: python3 scripts/zigux/check-phase2-cross.py --self-test\n", 1)
+        write_text(workflow_path, workflow_text)
+        issues = validate_root(root)
+        assert "workflow_exact_marker:python3 scripts/zigux/check-phase2-cross.py --self-test:count=2:expected=1" in issues
+        build_self_test_root(root)
         workflow_text = workflow_path.read_text(encoding="utf-8").replace("run: python3 scripts/zigux/check-phase2-cross-selftest-alignment.py --self-test\n", "run: python3 scripts/zigux/check-phase2-cross-selftest-alignment.py --self-test\nrun: python3 scripts/zigux/check-phase2-cross-selftest-alignment.py --self-test\n", 1)
         write_text(workflow_path, workflow_text)
         issues = validate_root(root)
@@ -708,7 +714,7 @@ def run_self_test() -> int:
         issues = validate_root(root)
         assert any(issue.startswith("guard_marker:") and "check-mk-elfconfig-diff.py --self-test:MK_ELFCONFIG_SELF_TEST_CASE_COUNT=4" in issue for issue in issues)
     print("PHASE2_VALIDATION_SELF_TEST=pass")
-    print("PHASE2_VALIDATION_SELF_TEST_CASE_COUNT=28")
+    print("PHASE2_VALIDATION_SELF_TEST_CASE_COUNT=29")
     return 0
 
 
