@@ -223,6 +223,8 @@ REQUIRED_MARKERS = {
         "scripts/zigux/check-phase7-build-wiring.py",
         "phase 7 parseIntArray keeps base and sign parsing explicit",
         "phase 7 stringUnescape covers deterministic Linux escape fixtures",
+        "phase 7 kstrdupQuotable escapes special log bytes and preserves first-NUL bounds",
+        "phase 7 kstrdupQuotable returns null for null inputs and keeps empty results owned",
         "phase 7 kasprintfStrarray returns sequential owned strings with a null-pointer terminator",
     ],
     "zigux/tests/phase7_string_helpers_sample_boundary.zig": [
@@ -321,6 +323,10 @@ EXACT_COUNT_MARKERS = {
         ("run_argv_split_survey_tests.setCwd(b.path(\"../..\"));", 1),
         ("phase7-rbtree-survey-tests", 1),
         ("run_rbtree_survey_tests.setCwd(b.path(\"../..\"));", 1),
+    ],
+    "zigux/tests/phase7_string_helpers_survey.zig": [
+        ("phase 7 kstrdupQuotable escapes special log bytes and preserves first-NUL bounds", 1),
+        ("phase 7 kstrdupQuotable returns null for null inputs and keeps empty results owned", 1),
     ],
 }
 
