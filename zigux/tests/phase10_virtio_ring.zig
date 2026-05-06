@@ -84,7 +84,7 @@ test "phase10 virtio ring reset clears queue bookkeeping but preserves queue sha
     try std.testing.expectEqual(@as(usize, 1), kick_summary.notification_count);
 }
 
-test "phase10 virtio ring blocks publish, kick, poll, and callback snapshots while a queue is broken" {
+test "phase10 virtio ring broken summary keeps queue-local debt reviewable while blocking queue work" {
     var ring = virtio_ring.VirtioRingLab{};
     try ring.defineQueue(3, 8, .split, true, false);
 
@@ -100,6 +100,8 @@ test "phase10 virtio ring blocks publish, kick, poll, and callback snapshots whi
     try std.testing.expectEqual(@as(u16, 1), broken_summary.last_used_idx);
     try std.testing.expectEqual(@as(u16, 0), broken_summary.last_polled_used_idx);
     try std.testing.expectEqual(@as(u16, 0), broken_summary.outstanding_chain_count);
+    try std.testing.expectEqual(@as(u16, 1), broken_summary.unpublished_chain_count);
+    try std.testing.expectEqual(@as(u16, 1), broken_summary.pending_used_chain_count);
 
     try std.testing.expectError(error.QueueBroken, ring.publishDescriptorChain(3));
     try std.testing.expectError(error.QueueBroken, ring.prepareKick(3));
@@ -115,6 +117,8 @@ test "phase10 virtio ring blocks publish, kick, poll, and callback snapshots whi
     broken_summary = try ring.clearBroken(3);
     try std.testing.expect(!broken_summary.broken);
     try std.testing.expect(!broken_summary.callback_enabled);
+    try std.testing.expectEqual(@as(u16, 1), broken_summary.unpublished_chain_count);
+    try std.testing.expectEqual(@as(u16, 1), broken_summary.pending_used_chain_count);
 
     try ring.publishDescriptorChain(3);
     const kick_summary = try ring.prepareKick(3);
