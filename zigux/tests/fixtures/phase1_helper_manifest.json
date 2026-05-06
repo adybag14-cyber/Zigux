@@ -56,8 +56,6 @@
       "inclusive_boundary_start": "test \"head-word boundary scans keep the last in-range bit reachable from an inclusive start\"",
       "zero_bit_window": "test \"zero-bit windows return without reading bitmap words\"",
       "past_nbits_short_circuit": "test \"next scans past nbits return without reading bitmap words\"",
-      "phase1_helper_replay_anchor": "test \"phase 1 helper ports match committed parity fixture\"",
-      "shared_replay_owner_summary": "The shared Phase 1 replay currently owns only the tail-clamped last-word find_bit results. The committed inclusive_boundary_* and past_nbits_* fixture fields in zigux/tests/fixtures/phase1_helpers.json are still audit-only context, and zero-window behavior still has no shared fixture keys, so same-word start-mask, inclusive-boundary, zero-window, and past-nbits behavior stay owned by the direct helper-local tests until zigux/tests/phase1_helpers.zig consumes the committed fixture fields directly.",
       "tail_clamp_fixture_keys": [
         "tail_clamped_first",
         "tail_clamped_next",
