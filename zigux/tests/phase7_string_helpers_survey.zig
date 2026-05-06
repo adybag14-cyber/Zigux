@@ -20,8 +20,16 @@ test "phase 7 string helpers survey keeps the roadmap-backed helper packet revie
     try expectContains(slice_note, "zigux/tests/phase7_string_helpers_sample_boundary.zig");
     try expectContains(slice_note, "zig build test --build-file zigux/tests/phase7_build.zig");
     try expectContains(slice_note, "python3 scripts/zigux/validate-phase7.py");
+    try expectContains(slice_note, "make -C zigux phase7-validate");
     try expectContains(slice_note, "make -C zigux phase7");
     try expectContains(slice_note, "This is intentionally not a Phase 5 `samples/zigux/` reference-sample lane.");
+
+    const makefile = try readRepoFile(allocator, "zigux/Makefile");
+    defer allocator.free(makefile);
+    try expectContains(makefile, "phase7-validate:");
+    try expectContains(makefile, "scripts/zigux/validate-phase7.py --self-test");
+    try expectContains(makefile, "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase7.py");
+    try expectContains(makefile, "phase7: phase7-validate phase7-test");
 
     const build_file = try readRepoFile(allocator, "zigux/tests/phase7_build.zig");
     defer allocator.free(build_file);
