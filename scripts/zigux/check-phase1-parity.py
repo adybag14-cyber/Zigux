@@ -237,6 +237,21 @@ def run_self_test() -> None:
         assert f"missing:{ARTIFACT_DIFF_REL.as_posix()}" in missing_artifact_diff
         make_self_test_root(tmp_root)
 
+        (tmp_root / Path("tools/lib/bitmap.c")).unlink()
+        missing_source = collect_input_issues(tmp_root)
+        assert f"missing:tools/lib/bitmap.c" in missing_source
+        make_self_test_root(tmp_root)
+
+        (tmp_root / Path("tools/lib/find_bit.c")).unlink()
+        missing_source = collect_input_issues(tmp_root)
+        assert f"missing:tools/lib/find_bit.c" in missing_source
+        make_self_test_root(tmp_root)
+
+        (tmp_root / Path("tools/lib/string.c")).unlink()
+        missing_source = collect_input_issues(tmp_root)
+        assert f"missing:tools/lib/string.c" in missing_source
+        make_self_test_root(tmp_root)
+
         (tmp_root / Path("tools/lib/rbtree.c")).unlink()
         missing_source = collect_input_issues(tmp_root)
         assert f"missing:tools/lib/rbtree.c" in missing_source
@@ -247,7 +262,7 @@ def run_self_test() -> None:
         assert "duplicate_source:tools/lib/string.c" in duplicate_issues
 
     print("PHASE1_PARITY_SELF_TEST=pass")
-    print("PHASE1_PARITY_SELF_TEST_CASE_COUNT=6")
+    print("PHASE1_PARITY_SELF_TEST_CASE_COUNT=9")
 
 
 def main() -> int:
