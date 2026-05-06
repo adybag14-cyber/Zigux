@@ -1,6 +1,12 @@
 const std = @import("std");
 const string_helpers = @import("string_helpers");
 
+fn runKstrdupQuotableWithFailingAllocator(allocator: std.mem.Allocator, input: ?[]const u8) !void {
+    if (try string_helpers.kstrdupQuotable(allocator, input)) |duplicated| {
+        allocator.free(duplicated);
+    }
+}
+
 test "phase 7 string helpers module imports cleanly" {
     _ = string_helpers;
 }
@@ -64,6 +70,14 @@ test "phase 7 kstrdupQuotable returns null for null inputs and keeps empty resul
 
     try std.testing.expectEqualStrings("", empty);
     try std.testing.expectEqual(@as(u8, 0), empty[0]);
+}
+
+test "phase 7 kstrdupQuotable frees the owned copy when allocation fails" {
+    try std.testing.checkAllAllocationFailures(
+        std.testing.allocator,
+        runKstrdupQuotableWithFailingAllocator,
+        .{"alpha\nbeta"},
+    );
 }
 
 test "phase 7 termination helper respects bounded search windows" {
