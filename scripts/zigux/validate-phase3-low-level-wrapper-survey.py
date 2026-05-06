@@ -422,4 +422,179 @@ def run_self_test() -> int:
             ),
             encoding="utf-8",
         )
-        (root / MMIO_REL).writeText if False else None
+        (root / MMIO_REL).write_text(
+            "\n".join(
+                (
+                    "pub fn range() void {}",
+                    "pub fn read8() void {}",
+                    "pub fn write8() void {}",
+                    "pub fn read16() void {}",
+                    "pub fn write16() void {}",
+                    "pub fn read32() void {}",
+                    "pub fn write32() void {}",
+                    "const ptr = narrow.pointerAt(u32, 0, 0);",
+                    "_ = ptr;",
+                    "",
+                )
+            ),
+            encoding="utf-8",
+        )
+        (root / LOW_LEVEL_TEST_REL).write_text(
+            "\n".join(
+                (
+                    'test "phase3 low-level wrappers cover the shipped helper surface directly" {',
+                    "    _ = atomic.fetchAdd;",
+                    "    _ = atomic.fetchSub;",
+                    "    _ = atomic.fetchAnd;",
+                    "    _ = atomic.fetchOr;",
+                    "    _ = atomic.fetchXor;",
+                    "    _ = atomic.fetchMin;",
+                    "    _ = atomic.fetchMax;",
+                    "    _ = atomic.compareExchangeWeak;",
+                    "    barrier.acquireRelease();",
+                    "    _ = mmio.write8;",
+                    "    _ = mmio.read8;",
+                    "    _ = mmio.write16;",
+                    "    _ = mmio.read16;",
+                    "    _ = mmio.write32;",
+                    "    _ = mmio.read32;",
+                    "    try std.testing.expectEqual(base, byte_desc.base_addr);",
+                    "    try std.testing.expectEqual(@as(u32, 8), byte_desc.length);",
+                    "    try std.testing.expectEqual(@as(u32, 1), byte_desc.stride);",
+                    "    try std.testing.expectEqual(base, halfword_desc.base_addr);",
+                    "    try std.testing.expectEqual(@as(u32, 8), halfword_desc.length);",
+                    "    try std.testing.expectEqual(@as(u32, 2), halfword_desc.stride);",
+                    "    try std.testing.expectEqual(base, desc.base_addr);",
+                    "    try std.testing.expectEqual(@as(u32, 8), desc.length);",
+                    "    try std.testing.expectEqual(@as(u32, 4), desc.stride);",
+                    "}",
+                    'test "phase3 low-level wrappers keep non-seq-cst orderings and signed atomic edges reviewable" {',
+                    "    _ = atomic.fetchMin(i32, &signed_value, -3, .seq_cst);",
+                    "    _ = atomic.fetchMax(i32, &signed_value, 6, .seq_cst);",
+                    "    _ = atomic.fetchAdd(i32, &signed_arithmetic_value, 5, .seq_cst);",
+                    "    _ = atomic.fetchSub(i32, &signed_arithmetic_value, 7, .seq_cst);",
+                    "    const a = .acq_rel;",
+                    "    const b = .acquire;",
+                    "    const c = .release;",
+                    "    const d = .monotonic;",
+                    "    _ = .{ a, b, c, d };",
+                    "}",
+                    'test "phase3 low-level wrappers keep barrier locality reviewable" {',
+                    "    barrier.acquireRelease();",
+                    "}",
+                    "",
+                )
+            ),
+            encoding="utf-8",
+        )
+        (root / ABI_TEST_REL).write_text(
+            "\n".join(
+                (
+                    'const layout_assert = @import("layout_assert");',
+                    'const panic_policy = @import("panic_policy");',
+                    'const allocator_policy = @import("allocator_policy");',
+                    'const atomic = @import("atomic_helpers");',
+                    'const barrier = @import("barrier_helpers");',
+                    'const mmio = @import("mmio_helpers");',
+                    "",
+                )
+            ),
+            encoding="utf-8",
+        )
+        (root / ABI_DUMP_REL).write_text(
+            '"zigux_mmio_range" "zigux_interop_policy"\n',
+            encoding="utf-8",
+        )
+        (root / ABI_EXPECTED_REL).write_text(
+            '{"structs":{"zigux_mmio_range":{},"zigux_interop_policy":{}}}\n',
+            encoding="utf-8",
+        )
+        (root / ABI_MANIFEST_REL).write_text(
+            json.dumps(
+                {
+                    "phase": ABI_MANIFEST_PHASE,
+                    "status": ABI_MANIFEST_STATUS,
+                    "slice": ABI_MANIFEST_SLICE,
+                    "file_count": len(ABI_MANIFEST_REQUIRED_FILES),
+                    "files": list(ABI_MANIFEST_REQUIRED_FILES),
+                },
+                indent=2,
+            )
+            + "\n",
+            encoding="utf-8",
+        )
+        (root / ABI_SLICE_DOC_REL).write_text(
+            "\n".join(
+                (
+                    "`zigux/helpers/atomic.zig`",
+                    "`zigux/helpers/barrier.zig`",
+                    "`zigux/helpers/mmio.zig`",
+                    "`zigux/tests/phase3_low_level_wrappers.zig`",
+                    "signed `fetchAdd` and `fetchSub`",
+                    "signed `fetchMin` and `fetchMax`",
+                    "non-`seq_cst` atomic ordering coverage",
+                    "byte, 16-bit, and 32-bit MMIO access",
+                    "",
+                )
+            ),
+            encoding="utf-8",
+        )
+
+        plain_doc = self_test_doc(root)
+        (root / DOC_REL).write_text(plain_doc, encoding="utf-8")
+        assert validate(root) == [], validate(root)
+
+        (root / DOC_REL).write_text(bulletize_doc(plain_doc), encoding="utf-8")
+        assert validate(root) == [], validate(root)
+
+        (root / ABI_SLICE_DOC_REL).write_text(
+            "\n".join(
+                (
+                    "`zigux/helpers/atomic.zig`",
+                    "`zigux/helpers/barrier.zig`",
+                    "`zigux/helpers/mmio.zig`",
+                    "`zigux/tests/phase3_low_level_wrappers.zig`",
+                    "signed `fetchAdd` and `fetchSub`",
+                    "signed `fetchMin` and `fetchMax`",
+                    "non-`seq_cst` atomic ordering coverage",
+                    "byte and 32-bit MMIO access",
+                    "",
+                )
+            ),
+            encoding="utf-8",
+        )
+        stale_abi_slice_issues = validate(root)
+        assert stale_abi_slice_issues == [
+            "abi_slice_missing_token:byte, 16-bit, and 32-bit MMIO access"
+        ], stale_abi_slice_issues
+
+    print("PHASE3_LOW_LEVEL_WRAPPER_SURVEY_SELF_TEST=pass")
+    print(f"PHASE3_LOW_LEVEL_WRAPPER_SURVEY_SELF_TEST_CASE_COUNT={SELF_TEST_CASE_COUNT}")
+    return 0
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(
+        description="Validate the Phase 3 low-level-wrapper survey against current repo state."
+    )
+    parser.add_argument("--self-test", action="store_true", help="Run isolated self-test coverage.")
+    args = parser.parse_args()
+
+    if args.self_test:
+        return run_self_test()
+
+    issues = validate(ROOT)
+    if issues:
+        print("PHASE3_LOW_LEVEL_WRAPPER_SURVEY=fail")
+        print("PHASE3_LOW_LEVEL_WRAPPER_SURVEY_ISSUES_START")
+        for issue in issues:
+            print(issue)
+        print("PHASE3_LOW_LEVEL_WRAPPER_SURVEY_ISSUES_END")
+        return 1
+
+    print("PHASE3_LOW_LEVEL_WRAPPER_SURVEY=pass")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
