@@ -173,7 +173,7 @@ test "phase 5 bytestream fifo survey packet stays repo-local and keeps shared re
     defer std.testing.allocator.free(survey_note);
 
     const required_mentions = [_][]const u8{
-        "PHASE5_STATUS=active",
+        "PHASE5_STATUS=parked",
         "PHASE5_SLICE=kfifo-reference-sample-starter",
         "samples/kfifo/bytestream-example.c",
         "phase5_bytestream_fifo_manifest.json",
