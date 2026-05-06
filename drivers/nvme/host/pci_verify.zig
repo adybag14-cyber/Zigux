@@ -46,10 +46,14 @@ test "nvme pci recovery replay clears stale admin and prp cues only after refres
         .cached_prp_metadata_generation = metadata.reset_generation,
         .had_prp_metadata_plan = true,
         .had_admin_queue_plan = true,
+        .cached_descriptor_dma_bytes = metadata.metadata_dma_bytes,
+        .cached_requires_descriptor_rebuild = metadata.requires_descriptor_rebuild_after_reset,
     });
     try testing.expectEqual(nvme_pci.RecoveryState.running, stale.state);
     try testing.expect(!stale.queue_planning_blocked);
     try testing.expect(stale.cached_prp_metadata_stale);
+    try testing.expect(stale.descriptor_rebuild_required);
+    try testing.expectEqual(metadata.metadata_dma_bytes, stale.descriptor_rebuild_dma_bytes);
     try testing.expect(stale.admin_queue_must_be_replanned);
     try testing.expect(stale.io_queues_must_be_rebuilt);
     try testing.expectEqual(@as(usize, 1), stale.io_queues_dropped_by_reset);
@@ -62,12 +66,35 @@ test "nvme pci recovery replay clears stale admin and prp cues only after refres
         .cached_prp_metadata_generation = refreshed_metadata.reset_generation,
         .had_prp_metadata_plan = true,
         .had_admin_queue_plan = false,
+        .cached_descriptor_dma_bytes = refreshed_metadata.metadata_dma_bytes,
+        .cached_requires_descriptor_rebuild = refreshed_metadata.requires_descriptor_rebuild_after_reset,
     });
     try testing.expect(!refreshed.cached_prp_metadata_stale);
+    try testing.expect(!refreshed.descriptor_rebuild_required);
+    try testing.expectEqual(@as(u32, 0), refreshed.descriptor_rebuild_dma_bytes);
     try testing.expect(!refreshed.admin_queue_must_be_replanned);
     try testing.expect(refreshed.io_queues_must_be_rebuilt);
     try testing.expectEqual(@as(usize, 1), refreshed.io_queues_dropped_by_reset);
     try testing.expectEqual(@as(u16, 1), refreshed.next_io_queue_id);
     try testing.expectEqual(@as(u16, 48), refreshed.last_admin_queue_depth);
     try testing.expectEqual(@as(u32, 1), refreshed.reset_generation);
+}
+
+test "nvme pci recovery replay keeps stale inline-only metadata from overclaiming descriptor rebuild bytes" {
+    var lab = try nvme_pci.NvmePciQueueLab.init(4096, 8);
+    _ = try lab.planAdminQueue(32, 64, false);
+    const inline_only = try lab.planPrpMetadata(4096, 0x80);
+    try testing.expect(!inline_only.requires_descriptor_rebuild_after_reset);
+
+    _ = lab.beginReset();
+    const stale_inline_only = lab.summarizeRecoveryReplay(.{
+        .cached_prp_metadata_generation = inline_only.reset_generation,
+        .had_prp_metadata_plan = true,
+        .had_admin_queue_plan = true,
+        .cached_descriptor_dma_bytes = inline_only.metadata_dma_bytes,
+        .cached_requires_descriptor_rebuild = inline_only.requires_descriptor_rebuild_after_reset,
+    });
+    try testing.expect(stale_inline_only.cached_prp_metadata_stale);
+    try testing.expect(!stale_inline_only.descriptor_rebuild_required);
+    try testing.expectEqual(@as(u32, 0), stale_inline_only.descriptor_rebuild_dma_bytes);
 }
