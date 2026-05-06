@@ -60,7 +60,6 @@ test "phase 5 kobject manifest records the exact bounded checks" {
     var saw_approved_idiom_prompt = false;
     var saw_pre_registration_prompt = false;
     var saw_ownership_summary_prompt = false;
-    var saw_ownership_replay_prompt = false;
     var saw_exit_prompt = false;
     var saw_group_boundary_prompt = false;
     var saw_directory = false;
@@ -78,8 +77,8 @@ test "phase 5 kobject manifest records the exact bounded checks" {
         if (std.mem.indexOf(u8, prompt, "approved Phase 5 in-memory ownership-and-lifetime idiom") != null) {
             saw_approved_idiom_prompt = true;
         }
-        if (std.mem.indexOf(u8, prompt, "initialized-but-not-registered") != null and
-            std.mem.indexOf(u8, prompt, "registerAttributes()") != null)
+        if (std.mem.indexOf(u8, prompt, "runPreRegistrationBoundaryReplay()") != null and
+            std.mem.indexOf(u8, prompt, "initialized-but-not-registered") != null)
         {
             saw_pre_registration_prompt = true;
         }
@@ -87,9 +86,6 @@ test "phase 5 kobject manifest records the exact bounded checks" {
             std.mem.indexOf(u8, prompt, "cold, initialized, registered, and exited") != null)
         {
             saw_ownership_summary_prompt = true;
-        }
-        if (std.mem.indexOf(u8, prompt, "runOwnershipReplay()") != null) {
-            saw_ownership_replay_prompt = true;
         }
         if (std.mem.indexOf(u8, prompt, "abandoned_before_registration") != null and
             std.mem.indexOf(u8, prompt, "tore_down_registered_attributes") != null)
@@ -114,8 +110,8 @@ test "phase 5 kobject manifest records the exact bounded checks" {
         }
         if (std.mem.eql(u8, check.id, "pre-registration-boundary")) {
             saw_pre_registration = true;
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "runPreRegistrationBoundaryReplay()") != null);
             try std.testing.expect(std.mem.indexOf(u8, check.expected, "activeAttrCount") != null);
-            try std.testing.expect(std.mem.indexOf(u8, check.expected, "stays zero") != null);
             try std.testing.expect(std.mem.indexOf(u8, check.expected, "InvalidLifecycleTransition") != null);
         }
         if (std.mem.eql(u8, check.id, "ownership-summary")) {
@@ -148,7 +144,6 @@ test "phase 5 kobject manifest records the exact bounded checks" {
     try std.testing.expect(saw_approved_idiom_prompt);
     try std.testing.expect(saw_pre_registration_prompt);
     try std.testing.expect(saw_ownership_summary_prompt);
-    try std.testing.expect(saw_ownership_replay_prompt);
     try std.testing.expect(saw_exit_prompt);
     try std.testing.expect(saw_group_boundary_prompt);
     try std.testing.expect(saw_directory);
@@ -200,6 +195,7 @@ test "phase 5 kobject survey packet stays repo-local and keeps the shared review
         "approved Phase 5 in-memory ownership-and-lifetime idiom",
         "before `registerAttributes()`, the sample still reports zero active attributes and blocks `showValue()` or `storeValue()`",
         "`ownershipSummary()` and sample-owned `runOwnershipReplay()`",
+        "runPreRegistrationBoundaryReplay()",
         "`abandoned_before_registration`",
         "`tore_down_registered_attributes`",
         "manifest-backed replay",
@@ -220,7 +216,7 @@ test "phase 5 kobject survey packet stays repo-local and keeps the shared review
         io_instance.io(),
         "Documentation/zigux/README.md",
         std.testing.allocator,
-        .limited(128 * 1024),
+        .limited(32 * 1024),
     );
     defer std.testing.allocator.free(docs_root);
 
@@ -240,7 +236,7 @@ test "phase 5 kobject survey packet stays repo-local and keeps the shared review
         io_instance.io(),
         "Documentation/zigux/review-checklist.md",
         std.testing.allocator,
-        .limited(128 * 1024),
+        .limited(32 * 1024),
     );
     defer std.testing.allocator.free(review_checklist);
 
@@ -259,7 +255,7 @@ test "phase 5 kobject survey packet stays repo-local and keeps the shared review
         io_instance.io(),
         "samples/zigux/README.md",
         std.testing.allocator,
-        .limited(128 * 1024),
+        .limited(32 * 1024),
     );
     defer std.testing.allocator.free(samples_root);
 
@@ -279,7 +275,7 @@ test "phase 5 kobject survey packet stays repo-local and keeps the shared review
         io_instance.io(),
         "scripts/zigux/README.md",
         std.testing.allocator,
-        .limited(128 * 1024),
+        .limited(32 * 1024),
     );
     defer std.testing.allocator.free(scripts_root);
 
@@ -300,7 +296,7 @@ test "phase 5 kobject survey packet stays repo-local and keeps the shared review
         io_instance.io(),
         "zigux/tests/README.md",
         std.testing.allocator,
-        .limited(128 * 1024),
+        .limited(32 * 1024),
     );
     defer std.testing.allocator.free(tests_root);
 
