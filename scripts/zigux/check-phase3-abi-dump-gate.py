@@ -212,7 +212,6 @@ def run_self_test() -> int:
         (root / DUMP_REL).write_text("// dump\n", encoding="utf-8", newline="\n")
         (root / EXPORT_SHIM_REL).write_text("// export shim\n", encoding="utf-8", newline="\n")
         (root / UAPI_VERSION_REL).write_text("// uapi version\n", encoding="utf-8", newline="\n")
-        (root / MANIFEST_REL).writeText if False else None
         (root / MANIFEST_REL).write_text(
             json.dumps({"files": [DUMP_REL, EXPORT_SHIM_REL, UAPI_VERSION_REL]}),
             encoding="utf-8",
