@@ -32,6 +32,7 @@ This survey keeps that difference explicit so the lane does not overclaim produc
 - the live repo now ships `drivers/nvme/host/pci.zig`, `zigux/tests/phase12_nvme_pci.zig`, `Documentation/zigux/phase12-nvme-pci-slice.md`, shared `zigux/tests/phase12_build.zig` wiring, and the tranche-level `phase12` make target in `zigux/Makefile`.
 - the broader Phase 12 tranche is now further along than this survey's earlier checkpoint: `drivers/net/virtio_net.zig` and `drivers/scsi/virtio_scsi.zig` are both landed bounded starters, so NVMe PCI should now be compared against peer driver starters rather than only against survey scaffolding.
 - the landed starter stays intentionally narrow: it validates queue geometry, computes combined queue bytes and rounded DMA page demand, assigns monotonic admin and I/O queue identifiers, derives doorbell offsets, freezes queue planning across reset generations, records a bounded PRP buffer shape through first-page offset, rounded span, tail-page count, and PRP list bound checks, and now also records a bounded PRP metadata helper through command-inline data pointers, PRP-list-covered pages, extra descriptor DMA footprint, total DMA bytes, and reset-time descriptor rebuild need before any live DMA-backed queue work.
+- the shared Phase 12 packet now also keeps the focused smoke preflight explicit: `zig build smoke --build-file zigux/tests/phase12_build.zig --summary all` and `make -C zigux phase12-smoke` rerun the direct `nvme pci` starter ahead of the broader survey-backed replay, so this survey note should not leave that narrower driver-facing shard implied only by `zigux/tests/phase12_build.zig`, the Makefile, or the raw GitHub fallback map.
 - that footing is useful, but it still does not cover PRP or SGL descriptor construction, Host Memory Buffer policy, blk-mq request submission, live PCI queue creation, IRQ routing, MMIO access, or recovery parity.
 - the next honest driver-facing step is no longer another queue-planner helper inside this packet; the lane should stay parked until an explicitly approved transport-facing follow-up is ready beyond the now-landed PRP buffer-shape and PRP metadata helpers.
 
@@ -68,12 +69,19 @@ This survey slice does not claim:
 
 ## Gates
 
-1. run the dedicated Phase 12 build
+1. run the focused smoke preflight
+- `zig build smoke --build-file zigux/tests/phase12_build.zig --summary all`
+- `make -C zigux phase12-smoke`
+- these rerun the direct `nvme pci` starter ahead of the broader survey-backed replay route.
+
+2. run the dedicated Phase 12 build
 - `zig build test --build-file zigux/tests/phase12_build.zig --summary all`
 
-2. run the convenience target
+3. run the convenience target
 - `make -C zigux phase12`
 
 ## Next bounded step
 
-Keep this Phase 12 nvme PCI lane parked unless the roadmap explicitly approves a transport-facing follow-up beyond the now-landed queue-planning, PRP buffer-shape, and PRP metadata helpers. Any reopen should stay below live DMA mapping, blk-mq submission, and PCI queue lifecycle work until that broader substrate is ready.
+Keep this Phase 12 nvme PCI lane parked unless the roadmap explicitly approves a transport-facing follow-up beyond the now-landed queue-planning, PRP buffer-shape, and PRP metadata helpers.
+
+Until that driver-local reopen is approved, keep this survey aligned with the shared smoke-plus-build replay packet instead of letting the focused preflight shard drift back into build-file-only, Makefile-only, or fallback-map-only knowledge.
