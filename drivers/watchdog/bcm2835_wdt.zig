@@ -74,6 +74,28 @@ pub const RegistrationOutcomeSummary = struct {
     poweroff_handler_left_in_place: bool,
 };
 
+pub const PlatformHandoffSummary = struct {
+    anchor: []const u8,
+    system_power_controller: bool,
+    parent_attached: bool,
+    pm_base_available: bool,
+    drvdata_ready: bool,
+    register_device_requested: bool,
+    poweroff_handler_present: bool,
+    poweroff_handler_claimed: bool,
+    poweroff_handler_conflict: bool,
+};
+
+pub const PoweroffSummary = struct {
+    anchor: []const u8,
+    system_power_controller: bool,
+    poweroff_handler_present: bool,
+    poweroff_handler_owned_by_driver: bool,
+    poweroff_path_ready: bool,
+    halt_partition_requested: bool,
+    restart_armed: bool,
+};
+
 pub const RemoveSummary = struct {
     anchor: []const u8,
     system_power_controller: bool,
@@ -187,6 +209,46 @@ pub const Bcm2835WatchdogLab = struct {
             .poweroff_handler_claimed = poweroff_handler_claimed,
             .poweroff_handler_conflict = system_power_controller and poweroff_handler_present,
             .poweroff_handler_left_in_place = poweroff_handler_present and !poweroff_handler_claimed,
+        };
+    }
+
+    pub fn platformHandoffSummary(
+        self: *const Self,
+        system_power_controller: bool,
+        pm_base_available: bool,
+        poweroff_handler_present: bool,
+    ) PlatformHandoffSummary {
+        _ = self;
+        return .{
+            .anchor = descriptor().anchor,
+            .system_power_controller = system_power_controller,
+            .parent_attached = true,
+            .pm_base_available = pm_base_available,
+            .drvdata_ready = pm_base_available,
+            .register_device_requested = true,
+            .poweroff_handler_present = poweroff_handler_present,
+            .poweroff_handler_claimed = system_power_controller and !poweroff_handler_present,
+            .poweroff_handler_conflict = system_power_controller and poweroff_handler_present,
+        };
+    }
+
+    pub fn poweroffSummary(
+        self: *const Self,
+        system_power_controller: bool,
+        poweroff_handler_present: bool,
+        poweroff_handler_owned_by_driver: bool,
+    ) PoweroffSummary {
+        _ = self;
+        const poweroff_path_ready =
+            system_power_controller and poweroff_handler_present and poweroff_handler_owned_by_driver;
+        return .{
+            .anchor = descriptor().anchor,
+            .system_power_controller = system_power_controller,
+            .poweroff_handler_present = poweroff_handler_present,
+            .poweroff_handler_owned_by_driver = poweroff_handler_owned_by_driver,
+            .poweroff_path_ready = poweroff_path_ready,
+            .halt_partition_requested = poweroff_path_ready,
+            .restart_armed = poweroff_path_ready,
         };
     }
 
