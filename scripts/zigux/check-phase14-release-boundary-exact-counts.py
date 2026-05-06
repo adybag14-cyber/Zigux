@@ -216,6 +216,35 @@ def run_self_test() -> int:
         if not any("roadmap Phase 14 anchor list drifted from the four-anchor shared smoke packet" in error for error in errors):
             print("self-test expected failure when roadmap anchor inventory drifted", file=sys.stderr)
             return 1
+        write_text(roadmap_path, expected_roadmap_text)
+
+        freeze_map_path = root / "Documentation/zigux/freeze-map.md"
+        write_text(
+            freeze_map_path,
+            read_text(freeze_map_path).replace(
+                "- net/core/skbuff.c",
+                "- net/core/skbuff_fastpath.c",
+                1,
+            ),
+        )
+        errors = check(root)
+        if not any("freeze-map freeze-in-C anchors drifted from the expected four-entry governance set" in error for error in errors):
+            print("self-test expected failure when freeze-map freeze-in-C anchors drifted", file=sys.stderr)
+            return 1
+        write_text(freeze_map_path, expected_freeze_map_text)
+
+        write_text(
+            freeze_map_path,
+            read_text(freeze_map_path).replace(
+                "- kernel/trace/ring_buffer.c",
+                "- kernel/trace/ring_buffer_iter.c",
+                1,
+            ),
+        )
+        errors = check(root)
+        if not any("freeze-map boundary-study-only anchors drifted from the expected two-entry Phase 14 set" in error for error in errors):
+            print("self-test expected failure when freeze-map boundary-study-only anchors drifted", file=sys.stderr)
+            return 1
 
     return 0
 
