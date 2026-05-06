@@ -43,11 +43,11 @@ The repo now carries that bounded sample in `samples/zigux/trace_events_sample.z
 The sample intentionally stays small:
 
 - it keeps the Linux anchor path explicit in `TraceEventsReferenceSample.descriptor()`
-- it models only the bounded array payload, selected string, `iter=%d` message, `0xdeadbeef` bitmask word, conditional-family coverage, and one balanced register-or-unregister callback idiom in memory
+- it models only the bounded array payload, selected string, `iter=%d` message, `0xdeadbeef` bitmask word, conditional-family coverage, and one balanced register-then-unregister callback idiom in memory
 - it now exposes `runPayloadBoundaryReplay()` so the count-4 payload prefix, zero sentinel, `iter=4` message, and `One ring to rule them all` branch stay reviewable through a public helper instead of private field inspection
 - it now makes the replay summary itself carry explicit `vararg_payload_path_checked`, `relative_location_path_checked`, and `function_callback_path_checked` flags so reviewers do not have to infer those paths from private sample state
 - it uses a tiny `init()` -> `replayMainIteration()` -> `registerFunctionCallback()` -> `replayFunctionIteration()` -> `unregisterFunctionCallback()` -> `exit()` lifecycle so ownership and teardown stay explicit
-- it provides one bounded self-check through `runAnchorReplay()` instead of implying a runtime-ready trace-events module
+- it keeps its sample-owned replay entrypoints bounded through `runAnchorReplay()` and `runPayloadBoundaryReplay()` instead of implying a runtime-ready trace-events module
 
 The exact checks currently recorded in `zigux/tests/phase5_trace_events_sample_manifest.json` and exercised through `zigux/tests/phase5_build.zig` are:
 
