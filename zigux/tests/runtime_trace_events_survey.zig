@@ -85,9 +85,9 @@ test "phase 9 runtime trace-events survey manifest records the landed loader sca
     try std.testing.expect(manifest.survey_summary.preexisting_runtime_trace_events_sample_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase9_build_present);
     try std.testing.expect(manifest.survey_summary.preexisting_runtime_trace_events_doc_present);
-    try std.testing.expect(manifest.delivery_evidence_catalog.len >= 4);
-    try std.testing.expect(manifest.ownership_map.len >= 9);
-    try std.testing.expect(manifest.gaps.len >= 8);
+    try std.testing.expectEqual(@as(usize, 4), manifest.delivery_evidence_catalog.len);
+    try std.testing.expectEqual(@as(usize, 9), manifest.ownership_map.len);
+    try std.testing.expectEqual(@as(usize, 8), manifest.gaps.len);
 
     var review_note_catalog_count: usize = 0;
     var validation_catalog_count: usize = 0;
@@ -183,8 +183,11 @@ test "phase 9 runtime trace-events survey manifest records the landed loader sca
     var starter_landed_count: usize = 0;
     var ready_next_count: usize = 0;
     var blocked_count: usize = 0;
+    var saw_phase9_build_gate = false;
+    var saw_survey_gate = false;
     var saw_sample_module = false;
     var saw_selftest_hook = false;
+    var saw_module_tests = false;
     var saw_diff_gate = false;
     var saw_loader_scaffold = false;
     var saw_live_loader_blocker = false;
@@ -211,6 +214,16 @@ test "phase 9 runtime trace-events survey manifest records the landed loader sca
             blocked_count += 1;
         }
 
+        if (std.mem.eql(u8, gap.id, "phase9-build-gate")) {
+            saw_phase9_build_gate = true;
+            try std.testing.expectEqualStrings("starter_landed", gap.status);
+            try std.testing.expectEqualStrings("zigux/tests/phase9_build.zig", gap.zigux_destination);
+        }
+        if (std.mem.eql(u8, gap.id, "runtime-trace-events-survey-gate")) {
+            saw_survey_gate = true;
+            try std.testing.expectEqualStrings("starter_landed", gap.status);
+            try std.testing.expectEqualStrings("zigux/tests/runtime_trace_events_survey.zig", gap.zigux_destination);
+        }
         if (std.mem.eql(u8, gap.id, "runtime-trace-events-sample-module")) {
             saw_sample_module = true;
             try std.testing.expectEqualStrings("starter_landed", gap.status);
@@ -221,6 +234,11 @@ test "phase 9 runtime trace-events survey manifest records the landed loader sca
             try std.testing.expectEqualStrings("starter_landed", gap.status);
             try std.testing.expectEqualStrings("samples/zigux/runtime_trace_events.zig", gap.zigux_destination);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "selftest hooks") != null);
+        }
+        if (std.mem.eql(u8, gap.id, "runtime-trace-events-module-tests")) {
+            saw_module_tests = true;
+            try std.testing.expectEqualStrings("starter_landed", gap.status);
+            try std.testing.expectEqualStrings("zigux/tests/runtime_trace_events_module.zig", gap.zigux_destination);
         }
         if (std.mem.eql(u8, gap.id, "runtime-trace-events-diff-gate")) {
             saw_diff_gate = true;
@@ -247,12 +265,15 @@ test "phase 9 runtime trace-events survey manifest records the landed loader sca
         }
     }
 
-    try std.testing.expect(runtime_test_destination_count >= 4);
-    try std.testing.expect(starter_landed_count >= 7);
+    try std.testing.expectEqual(@as(usize, 4), runtime_test_destination_count);
+    try std.testing.expectEqual(@as(usize, 7), starter_landed_count);
     try std.testing.expectEqual(@as(usize, 0), ready_next_count);
-    try std.testing.expect(blocked_count >= 1);
+    try std.testing.expectEqual(@as(usize, 1), blocked_count);
+    try std.testing.expect(saw_phase9_build_gate);
+    try std.testing.expect(saw_survey_gate);
     try std.testing.expect(saw_sample_module);
     try std.testing.expect(saw_selftest_hook);
+    try std.testing.expect(saw_module_tests);
     try std.testing.expect(saw_diff_gate);
     try std.testing.expect(saw_loader_scaffold);
     try std.testing.expect(saw_live_loader_blocker);
