@@ -95,6 +95,80 @@ test "runtime bitmap sample enforces lifecycle transitions and bitmap mutations"
     try std.testing.expectError(error.InvalidLifecycleTransition, module.initWithSetBits(&.{ 1, 2 }));
 }
 
+test "runtime bitmap sample preserves initialized-stage summary and bits across exit" {
+    var module = sample.RuntimeBitmapSample{};
+    const second_word_base = sample.RuntimeBitmapSample.bitmap_nbits / 2;
+
+    try module.initWithSetBits(&.{ 0, 5, second_word_base, second_word_base + 6 });
+    try module.clearRange(second_word_base, 2);
+    try module.setRange(9, 4);
+
+    const before_exit = module.summary();
+    try std.testing.expectEqual(sample.ModuleStage.initialized, module.stage());
+    try std.testing.expectEqual(@as(usize, 0), module.selftest_runs);
+    try std.testing.expectEqual(@as(usize, 0), module.exit_runs);
+    try std.testing.expectEqual(@as(u32, 0), before_exit.first_set);
+    try std.testing.expectEqual(@as(u32, 1), before_exit.first_zero);
+    try std.testing.expectEqual(@as(u32, 7), before_exit.weight);
+    try std.testing.expect(module.isSet(0));
+    try std.testing.expect(module.isSet(12));
+    try std.testing.expect(module.isSet(second_word_base + 6));
+    try std.testing.expect(!module.isSet(second_word_base));
+
+    try module.exit();
+
+    const after_exit = module.summary();
+    try std.testing.expectEqual(sample.ModuleStage.exited, module.stage());
+    try std.testing.expectEqual(@as(usize, 1), module.exit_runs);
+    try std.testing.expectEqual(before_exit.first_set, after_exit.first_set);
+    try std.testing.expectEqual(before_exit.first_zero, after_exit.first_zero);
+    try std.testing.expectEqual(before_exit.weight, after_exit.weight);
+    try std.testing.expectEqual(before_exit.nbits, after_exit.nbits);
+    try std.testing.expect(module.isSet(0));
+    try std.testing.expect(module.isSet(12));
+    try std.testing.expect(module.isSet(second_word_base + 6));
+    try std.testing.expect(!module.isSet(second_word_base));
+}
+
+test "runtime bitmap sample preserves selftest-complete summary and bits across exit" {
+    var module = sample.RuntimeBitmapSample{};
+    const second_word_base = sample.RuntimeBitmapSample.bitmap_nbits / 2;
+
+    try module.initWithSetBits(&.{ 0, 5, second_word_base, second_word_base + 6 });
+    _ = try module.runSelftest();
+    try module.clearRange(0, 1);
+    try module.setRange(1, 2);
+
+    const before_exit = module.summary();
+    try std.testing.expectEqual(sample.ModuleStage.selftest_complete, module.stage());
+    try std.testing.expectEqual(@as(usize, 1), module.selftest_runs);
+    try std.testing.expectEqual(@as(usize, 0), module.exit_runs);
+    try std.testing.expectEqual(@as(u32, 1), before_exit.first_set);
+    try std.testing.expectEqual(@as(u32, 0), before_exit.first_zero);
+    try std.testing.expectEqual(@as(u32, 5), before_exit.weight);
+    try std.testing.expect(module.isSet(1));
+    try std.testing.expect(module.isSet(2));
+    try std.testing.expect(module.isSet(second_word_base));
+    try std.testing.expect(module.isSet(second_word_base + 6));
+    try std.testing.expect(!module.isSet(0));
+
+    try module.exit();
+
+    const after_exit = module.summary();
+    try std.testing.expectEqual(sample.ModuleStage.exited, module.stage());
+    try std.testing.expectEqual(@as(usize, 1), module.selftest_runs);
+    try std.testing.expectEqual(@as(usize, 1), module.exit_runs);
+    try std.testing.expectEqual(before_exit.first_set, after_exit.first_set);
+    try std.testing.expectEqual(before_exit.first_zero, after_exit.first_zero);
+    try std.testing.expectEqual(before_exit.weight, after_exit.weight);
+    try std.testing.expectEqual(before_exit.nbits, after_exit.nbits);
+    try std.testing.expect(module.isSet(1));
+    try std.testing.expect(module.isSet(2));
+    try std.testing.expect(module.isSet(second_word_base));
+    try std.testing.expect(module.isSet(second_word_base + 6));
+    try std.testing.expect(!module.isSet(0));
+}
+
 test "runtime bitmap sample keeps bounded errors explicit" {
     var module = sample.RuntimeBitmapSample{};
 
