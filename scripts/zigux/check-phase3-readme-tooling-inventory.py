@@ -470,6 +470,10 @@ def run_self_test() -> int:
         _assert_only(validate(root), ["unexpected_makefile_target:phase9-validate"], "unexpected_phase9_validate_target_guard_failed")
         _write(root / MAKEFILE_REL, baseline_makefile)
         case_count += 1
+        (root / "scripts" / "zigux" / "check-phase7-make-wrapper.py").unlink()
+        _assert_only(validate(root), ["missing_repo_file:scripts/zigux/check-phase7-make-wrapper.py"], "missing_phase7_make_wrapper_repo_file_guard_failed")
+        _write(root / "scripts" / "zigux" / "check-phase7-make-wrapper.py", "# stub\n")
+        case_count += 1
         (root / "scripts" / "zigux" / "check-phase7-argv-split-packet.py").unlink()
         _assert_only(validate(root), ["missing_repo_file:scripts/zigux/check-phase7-argv-split-packet.py"], "missing_phase7_argv_split_packet_repo_file_guard_failed")
         _write(root / "scripts" / "zigux" / "check-phase7-argv-split-packet.py", "# stub\n")
