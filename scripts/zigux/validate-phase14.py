@@ -12,6 +12,7 @@ import json
 import subprocess
 import sys
 import tempfile
+from collections import Counter
 from pathlib import Path
 
 MARKER = "PHASE14_VALIDATE_PACKET=shared_smoke"
@@ -233,9 +234,17 @@ def check_traceability_note(root: Path) -> list[str]:
     text = read_text(traceability_path)
     expected_markers, marker_errors = traceability_expected_markers(root)
     errors.extend(marker_errors)
-    for marker in expected_markers:
-        if marker not in text:
-            errors.append(f"missing marker in {TRACEABILITY_PATH}: {marker}")
+    for marker, expected_count in Counter(expected_markers).items():
+        actual_count = text.count(marker)
+        if expected_count == 1:
+            if actual_count == 0:
+                errors.append(f"missing marker in {TRACEABILITY_PATH}: {marker}")
+            continue
+        if actual_count != expected_count:
+            errors.append(
+                f"marker count drift in {TRACEABILITY_PATH}: {marker} "
+                f"(expected {expected_count}, found {actual_count})"
+            )
     return errors
 
 
@@ -478,6 +487,13 @@ def run_self_test() -> int:
             "- ready-next gap: `phase14-ring-buffer-read-page-copy-followup`",
             "missing marker in Documentation/zigux/phase14-core-boundary-traceability.md: - ready-next gap: `phase14-ring-buffer-read-page-copy-followup`",
             "ring-buffer ready-next",
+        ):
+            return 1
+
+        if expect_traceability_failure(
+            "- ready-next gap: none currently recorded",
+            "marker count drift in Documentation/zigux/phase14-core-boundary-traceability.md: - ready-next gap: none currently recorded (expected 3, found 2)",
+            "no-ready-next duplicate count",
         ):
             return 1
 
