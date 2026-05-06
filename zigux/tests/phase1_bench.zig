@@ -17,6 +17,7 @@ const Entry = struct {
 const iterations_bitmap = 20_000;
 const iterations_bitmap_window = 20_000;
 const iterations_find_bit = 20_000;
+const iterations_find_bit_edge = 20_000;
 const iterations_string = 40_000;
 const iterations_hweight = 100_000;
 const iterations_list_sort = 1_000;
@@ -88,6 +89,32 @@ fn findBitBench() struct { checksum: u64 } {
     var idx: usize = 0;
     while (idx < iterations_find_bit) : (idx += 1) {
         checksum +%= @intCast(find_bit.findNextBit(&map, 4096, idx % 1024));
+    }
+
+    return .{ .checksum = checksum };
+}
+
+fn findBitEdgeBench() struct { checksum: u64 } {
+    const boundary = find_bit.bits_per_long - 1;
+    const head_nbits = find_bit.bits_per_long * 2;
+    const tail_nbits = find_bit.bits_per_long + 5;
+    const boundary_set = [_]find_bit.Word{(@as(find_bit.Word, 1) << @intCast(boundary)), 0};
+    const boundary_zero = [_]find_bit.Word{~(@as(find_bit.Word, 1) << @intCast(boundary)), ~@as(find_bit.Word, 0)};
+    const tail_set = [_]find_bit.Word{0, @as(find_bit.Word, 1) << 3};
+    const tail_full = [_]find_bit.Word{~@as(find_bit.Word, 0), find_bit.lastWordMask(tail_nbits)};
+
+    var checksum: u64 = 0;
+    var idx: usize = 0;
+    while (idx < iterations_find_bit_edge) : (idx += 1) {
+        checksum +%= @intCast(find_bit.findNextBit(&boundary_set, head_nbits, boundary));
+        checksum +%= @intCast(find_bit.findNextAndBit(&boundary_set, &boundary_set, head_nbits, boundary));
+        checksum +%= @intCast(find_bit.findNextZeroBit(&boundary_zero, head_nbits, boundary));
+        checksum +%= @intCast(find_bit.findFirstBit(&tail_set, tail_nbits));
+        checksum +%= @intCast(find_bit.findNextBit(&tail_set, tail_nbits, find_bit.bits_per_long + 4));
+        checksum +%= @intCast(find_bit.findFirstZeroBit(&tail_full, tail_nbits));
+        checksum +%= @intCast(find_bit.findNextZeroBit(&tail_full, tail_nbits, find_bit.bits_per_long));
+        checksum +%= @intCast(find_bit.findFirstAndBit(&tail_set, &tail_set, tail_nbits));
+        checksum +%= @intCast(find_bit.findNextAndBit(&tail_set, &tail_set, tail_nbits, find_bit.bits_per_long + 4));
     }
 
     return .{ .checksum = checksum };
@@ -214,6 +241,7 @@ pub fn main(init: std.process.Init) !void {
     const bitmap_result = bitmapBench();
     const bitmap_window_result = bitmapWindowBench();
     const find_bit_result = findBitBench();
+    const find_bit_edge_result = findBitEdgeBench();
     const string_result = try stringBench();
     const hweight_result = hweightBench();
     const list_sort_result = listSortBench();
@@ -222,6 +250,7 @@ pub fn main(init: std.process.Init) !void {
     std.debug.assert(bitmap_result.checksum != 0);
     std.debug.assert(bitmap_window_result.checksum != 0);
     std.debug.assert(find_bit_result.checksum != 0);
+    std.debug.assert(find_bit_edge_result.checksum != 0);
     std.debug.assert(string_result.checksum != 0);
     std.debug.assert(hweight_result.checksum != 0);
     std.debug.assert(list_sort_result.checksum != 0);
@@ -234,6 +263,8 @@ pub fn main(init: std.process.Init) !void {
     try stdout_writer.interface.print("PHASE1_BENCH_BITMAP_WINDOW_CHECKSUM={d}\n", .{bitmap_window_result.checksum});
     try stdout_writer.interface.print("PHASE1_BENCH_FIND_NEXT_BIT_ITERATIONS={d}\n", .{iterations_find_bit});
     try stdout_writer.interface.print("PHASE1_BENCH_FIND_NEXT_BIT_CHECKSUM={d}\n", .{find_bit_result.checksum});
+    try stdout_writer.interface.print("PHASE1_BENCH_FIND_BIT_EDGE_ITERATIONS={d}\n", .{iterations_find_bit_edge});
+    try stdout_writer.interface.print("PHASE1_BENCH_FIND_BIT_EDGE_CHECKSUM={d}\n", .{find_bit_edge_result.checksum});
     try stdout_writer.interface.print("PHASE1_BENCH_STRING_ITERATIONS={d}\n", .{iterations_string});
     try stdout_writer.interface.print("PHASE1_BENCH_STRING_CHECKSUM={d}\n", .{string_result.checksum});
     try stdout_writer.interface.print("PHASE1_BENCH_HWEIGHT_ITERATIONS={d}\n", .{iterations_hweight});
