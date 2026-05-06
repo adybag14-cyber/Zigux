@@ -34,6 +34,7 @@ This same packet is also the current roadmap-facing `lab-only driver validation`
 - the live repo already ships `drivers/virtio/virtio_input.zig`, `zigux/tests/phase10_virtio_input.zig`, `zigux/tests/phase10_virtio_input_status_drain.zig`, `Documentation/zigux/phase10-virtio-input-slice.md`, and `Documentation/zigux/phase10-virtio-input-module-slice.md`.
 - the landed Zigux starter now covers identity snapshots, property and event config bitmap summaries, ABS metadata summaries, capability-setup staging, one bounded multitouch slot-planning helper keyed off `ABS_MT_SLOT`, one bounded registration-preflight summary that reports queue, ready-state, capability-setup, and multitouch-slot blockers before any future `input_register_device()` handoff, one bounded queue-callback preflight summary that reports event and status queue configuration, event-buffer fill state, and ready-state blockers before any future transport-backed callback handoff, fixed event and status queue planning, capped event-buffer fill accounting, ready-state gating, one bounded in-memory status-drain helper that reclaims completed status sends without touching suppressed multitouch counters, reset clearing, and multitouch `EV_MSC` plus `MSC_TIMESTAMP` suppression in memory only.
 - the shared Phase 10 build packet can now keep both the main helper tests and the focused status-drain replay reviewable together instead of leaving the drain path outside the default lane gate.
+- wrapper ownership stays with the already-landed shared Phase 10 packets: `drivers/virtio/virtio.zig` owns shared device-status bookkeeping, `drivers/virtio/virtio_ring.zig` owns virtqueue wrapper shape and notification planning, and `drivers/virtio/virtio_mmio.zig` owns MMIO wrapper planning; the virtio_input lane only consumes those packets as prerequisites for lab-only driver validation.
 - the live repo still does not model real event delivery, `input_register_device()` registration parity, freeze or restore parity, or transport-backed queue callbacks.
 - this means the broader virtio_input roadmap gap has narrowed to validation truthfulness and the still-blocked transport-backed registration lifecycle work, not to another transport-facing helper jump.
 
@@ -54,9 +55,10 @@ The survey manifest now records:
 - the landed `phase10-virtio-input-registration-preflight-helper`
 - the landed `phase10-virtio-input-queue-callback-preflight-helper`
 - the landed `phase10-virtio-input-status-drain-helper`
+- the landed `phase10-virtio-input-wrapper-ownership-note`
 - the still-blocked `phase10-virtio-input-registration-lifecycle`
 
-This keeps the lane concrete and reviewable without overstating progress: the starter helper is real, the slot-planning foothold and registration-preflight boundary are now real, the queue-callback-preflight boundary is now real, the bounded status-drain replay is now recorded in the same packet, and the risky registration and transport surface remains intentionally out of scope.
+This keeps the lane concrete and reviewable without overstating progress: the starter helper is real, the slot-planning foothold and registration-preflight boundary are now real, the queue-callback-preflight boundary is now real, the bounded status-drain replay is now recorded in the same packet, the wrapper-ownership note is now real, and the risky registration and transport surface remains intentionally out of scope.
 
 ## Non-goals
 
@@ -87,4 +89,4 @@ Taken together, these gates are the current roadmap-facing `lab-only driver vali
 
 ## Next bounded step
 
-Keep the Phase 10 virtio_input lane narrow and prefer one bounded manifest, survey, helper-test, or checker truthfulness repair next before widening into `input_register_device()` lifecycle, queue callbacks, or transport-backed work.
+Keep the Phase 10 virtio_input lane narrow and prefer one bounded manifest, survey, helper-test, checker, or ownership-note truthfulness repair next before widening into `input_register_device()` lifecycle, queue callbacks, or transport-backed work.
