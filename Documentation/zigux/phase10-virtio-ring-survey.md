@@ -79,14 +79,17 @@ This survey slice does not yet claim:
 
 ## Gates
 
-1. run the dedicated Phase 10 build
+1. run the dedicated ring survey gate
+- `zig test zigux/tests/phase10_virtio_ring_survey.zig`
+
+2. run the dedicated Phase 10 build
 - `zig build test --build-file zigux/tests/phase10_build.zig`
 
-2. run the Linux-style Phase 10 test entrypoints
+3. run the Linux-style Phase 10 test entrypoints
 - `make -C zigux phase10-test`
 - `make -C zigux phase10`
 
-Taken together, these gates keep the bounded virtqueue-wrapper packet reviewable through the direct build replay, the shipped Phase 10 core, input, and MMIO packet guards behind `make -C zigux phase10-test`, and the Linux-style Phase 10 test entrypoints on `master`.
+Taken together, these gates keep the bounded virtqueue-wrapper packet reviewable through the dedicated ring-survey replay, the direct build replay, the shipped Phase 10 core, input, and MMIO packet guards behind `make -C zigux phase10-test`, and the Linux-style Phase 10 test entrypoints on `master`.
 
 ## Next bounded step
 
