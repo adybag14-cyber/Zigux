@@ -123,7 +123,8 @@ test "phase14 shared smoke survey confirms the current packet surfaces" {
     );
     defer std.testing.allocator.free(traceability_text);
     try std.testing.expect(containsMarker(traceability_text, "### Ring buffer"));
-    try std.testing.expect(containsMarker(traceability_text, "- ready-next gap: `phase14-ring-buffer-read-page-copy-followup`"));
+    try std.testing.expect(containsMarker(traceability_text, "- ready-next gap: none currently recorded"));
     try std.testing.expect(containsMarker(traceability_text, "- blocked gap: `phase14-ring-buffer-zig-port-blocker`"));
-    try std.testing.expect(!containsMarker(traceability_text, "- ready-next gap: none currently recorded"));
+    try std.testing.expect(containsMarker(traceability_text, "exported-page forced-copy decisions"));
+    try std.testing.expect(!containsMarker(traceability_text, "- ready-next gap: `phase14-ring-buffer-read-page-copy-followup`"));
 }
