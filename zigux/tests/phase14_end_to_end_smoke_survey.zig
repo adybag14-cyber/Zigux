@@ -48,7 +48,7 @@ test "phase14 shared smoke manifest records the bounded study-only packet" {
     try std.testing.expectEqualStrings("phase14_shared_smoke_packet", manifest.packet_name);
     try std.testing.expectEqualStrings("study_only_shared_smoke_packet", manifest.focus);
     try std.testing.expectEqual(@as(usize, 6), manifest.commands.len);
-    try std.testing.expectEqual(@as(usize, 24), manifest.surfaces.len);
+    try std.testing.expectEqual(@as(usize, 25), manifest.surfaces.len);
     try std.testing.expectEqual(@as(usize, 4), manifest.blocked_anchors.len);
     try std.testing.expectEqualStrings("make -C zigux phase14-validate", manifest.commands[0]);
     try std.testing.expectEqualStrings("make -C zigux phase14-smoke", manifest.commands[1]);
@@ -66,6 +66,7 @@ test "phase14 shared smoke manifest records the bounded study-only packet" {
     try std.testing.expect(hasSurfacePath(manifest.surfaces, "zigux/tests/phase14_ring_buffer_survey.zig"));
     try std.testing.expect(hasSurfacePath(manifest.surfaces, "zigux/tests/phase14_rcu_tree_manifest.json"));
     try std.testing.expect(hasSurfacePath(manifest.surfaces, "zigux/tests/phase14_rcu_tree_survey.zig"));
+    try std.testing.expect(hasSurfacePath(manifest.surfaces, ".github/workflows/zigux-bootstrap.yml"));
     try std.testing.expect(hasSurfacePath(manifest.surfaces, "kernel/workqueue_bridge.zig"));
     try std.testing.expect(hasSurfacePath(manifest.surfaces, "net/core/skbuff_bridge.zig"));
     try std.testing.expectEqualStrings("kernel/workqueue.c", manifest.blocked_anchors[0]);
