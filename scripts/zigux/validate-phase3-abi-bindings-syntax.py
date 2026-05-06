@@ -34,7 +34,7 @@ REQUIRED_EXPORT_UAPI_DOC_MARKERS = (
     "PHASE3_EXPORT_SHIM_PATH=zigux/kernel/export_shim.zig",
     "PHASE3_UAPI_VERSION_PATH=zigux/uapi/version.zig",
     "PHASE3_ABI_MANIFEST_PATH=zigux/tests/fixtures/phase3_abi_manifest.json",
-    "PHASE3_EXPORT_UAPI_SURVEY_MODE=shared-abi-slice",
+    "PHASE3_EXPORT_UAPI_SURVEY_MODE=shared-abi-slice-plus-packet-local-starter-proof",
 )
 
 
@@ -196,7 +196,7 @@ def run_self_test() -> int:
                     "- `PHASE3_EXPORT_SHIM_PATH=zigux/kernel/export_shim.zig`",
                     "- `PHASE3_UAPI_VERSION_PATH=zigux/uapi/version.zig`",
                     "- `PHASE3_ABI_MANIFEST_PATH=zigux/tests/fixtures/phase3_abi_manifest.json`",
-                    "- `PHASE3_EXPORT_UAPI_SURVEY_MODE=shared-abi-slice`",
+                    "- `PHASE3_EXPORT_UAPI_SURVEY_MODE=shared-abi-slice-plus-packet-local-starter-proof`",
                     "",
                 ]
             ),
