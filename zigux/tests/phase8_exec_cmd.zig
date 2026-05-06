@@ -88,6 +88,7 @@ test "phase 8 exec-cmd slice note keeps the helper-vs-phase ownership boundary e
     try std.testing.expect(std.mem.indexOf(u8, slice, "without widening into process-launch side effects") != null);
     try std.testing.expect(std.mem.indexOf(u8, slice, "stops before any ownership of `execl_cmd()`") != null);
     try std.testing.expect(std.mem.indexOf(u8, slice, "direct varargs launch path") != null);
+    try std.testing.expect(std.mem.indexOf(u8, slice, "`kernel/workqueue.c` in the later Phase 14 boundary-study tranche") != null);
 }
 
 test "phase 8 exec-cmd deferred boundary note still matches the live C helper anchors" {
