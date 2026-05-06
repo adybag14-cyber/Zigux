@@ -51,6 +51,22 @@
       "expected": "yes2modconfig_expected.json"
     },
     {
+      "name": "mod2yesconfig",
+      "mode": "mod2yesconfig",
+      "kconfig": "Kconfig",
+      "config": "promote/.config",
+      "arch": "x86",
+      "expected": "mod2yesconfig_expected.json"
+    },
+    {
+      "name": "mod2noconfig",
+      "mode": "mod2noconfig",
+      "kconfig": "Kconfig",
+      "config": "demote/.config",
+      "arch": "x86",
+      "expected": "mod2noconfig_expected.json"
+    },
+    {
       "name": "defconfig",
       "mode": "defconfig",
       "kconfig": "Kconfig",
