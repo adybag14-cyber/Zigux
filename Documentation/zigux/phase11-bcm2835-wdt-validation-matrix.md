@@ -15,14 +15,20 @@ This document records the first bounded hardware-validation matrix for the Zigux
   - `zigux/tests/phase11_bcm2835_wdt_manifest.json`
   - `zigux/tests/phase11_bcm2835_wdt_survey.zig`
   - `zigux/tests/phase11_build.zig`
+  - `Documentation/zigux/README.md`
+  - `Documentation/zigux/review-checklist.md`
   - `Documentation/zigux/phase11-shared-replay-contract.md`
+  - `Documentation/zigux/phase11-uapi-header-parity-survey.md`
+  - `scripts/zigux/README.md`
+  - `scripts/zigux/check-phase11-shared-replay-contract.py`
+  - `scripts/zigux/check-phase11-header-boundary-packet.py`
   - `zigux/tests/README.md`
   - `zigux/Makefile`
   - `.github/workflows/zigux-bootstrap.yml`
 
 ## Why This Exists
 
-The bounded starter now covers watchdog metadata, timeout encoding, running-bit detection, start and stop register-image transitions, keepalive ping, timeout rearm, restart intent, halt-partition bookkeeping, probe-time watchdog-core bookkeeping, registration-facing poweroff ownership outcomes, a tiny registration-outcome summary for register-device success-versus-failure and probe-error blocking, a tiny platform-registration and PM-base handoff summary, a tiny poweroff-path summary, and remove-time teardown summaries. The live repo still needs one reviewable note that explains:
+The bounded starter now covers watchdog metadata, timeout encoding, running-bit detection, start and stop register-image transitions, keepalive ping, timeout rearm, restart intent, halt-partition bookkeeping, probe-time watchdog-core bookkeeping, registration-facing poweroff ownership outcomes, a tiny registration-outcome summary for register-device success-versus-failure and probe-error blocking, a tiny platform-registration and PM-base handoff summary, a tiny poweroff-path summary, and remove-time teardown summaries. The live shared Phase 11 packet already couples those bcm2835-specific replays to `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/phase11-shared-replay-contract.md`, `Documentation/zigux/phase11-uapi-header-parity-survey.md`, `scripts/zigux/README.md`, `scripts/zigux/check-phase11-shared-replay-contract.py`, `scripts/zigux/check-phase11-header-boundary-packet.py`, `zigux/tests/README.md`, `zigux/Makefile`, and `.github/workflows/zigux-bootstrap.yml`, which keep the focused shared header-boundary packet and the wider shared build route explicit beside this watchdog-local matrix. This matrix keeps one reviewable note that explains:
 
 - which parts of the lane are already exercised by the shared Phase 11 gate
 - which platform-facing and hardware-facing checkpoints are the next follow-up rather than live behavior
@@ -51,6 +57,7 @@ Without this matrix, the slice and survey named the right next step but did not 
   - `zig build test --build-file zigux/tests/phase11_build.zig --summary all`
 - shared replay posture for this watchdog lane:
   - `phase11-bcm2835-wdt-tests` and `phase11-bcm2835-wdt-survey-tests` remain the shared Phase 11 artifacts that cover this bcm2835 packet
+  - the focused shared header-boundary packet from `Documentation/zigux/phase11-uapi-header-parity-survey.md` plus `scripts/zigux/check-phase11-header-boundary-packet.py` stays explicit beside those watchdog-local replays inside the same shipped Phase 11 route
   - full-bundle green status for the wider current Phase 11 replay is intentionally tracked outside this watchdog-local matrix because unrelated non-watchdog drift can reopen elsewhere on `master`
 - included bcm2835 artifacts:
   - `phase11-bcm2835-wdt-tests`
@@ -61,7 +68,7 @@ Without this matrix, the slice and survey named the right next step but did not 
 ## Review Rules
 
 - treat this lane as a bounded starter plus validation-note lane even after the platform-registration and PM-base handoff summary lands
-- keep `Documentation/zigux/phase11-shared-replay-contract.md`, `zigux/tests/README.md`, `zigux/tests/phase11_build.zig`, and `zigux/Makefile` aligned so this matrix does not drift away from the shipped shared Phase 11 replay route
+- keep `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/phase11-shared-replay-contract.md`, `Documentation/zigux/phase11-uapi-header-parity-survey.md`, `scripts/zigux/README.md`, `scripts/zigux/check-phase11-shared-replay-contract.py`, `scripts/zigux/check-phase11-header-boundary-packet.py`, `zigux/tests/README.md`, `zigux/tests/phase11_build.zig`, and `zigux/Makefile` aligned so this matrix does not drift away from the shipped shared Phase 11 replay route or the focused shared header-boundary packet
 - keep `zigux/tests/phase11_build.zig` as the shared replay path for the current starter instead of adding ad hoc Phase 11 CI steps
 - do not claim PM base wiring, watchdog-core registration, poweroff handler installation, or live restart or poweroff coverage until the Zig surface and tests for those behaviors exist
 - if a later lane chooses live platform registration or PM base plumbing, update this matrix, the slice note, the survey note, and the survey manifest together so the lane keeps one truthful next step
