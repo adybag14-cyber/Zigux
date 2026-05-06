@@ -53,7 +53,7 @@ test "phase 7 helper packet keeps the dedicated sample-boundary guard wired" {
     try expectContains(slice_note, "zigux/tests/phase7_string_helpers_sample_boundary.zig");
     try expectContains(slice_note, "This is intentionally not a Phase 5 `samples/zigux/` reference-sample lane.");
     try expectContains(slice_note, "no `samples/zigux/*string*` Phase 5 reference sample is expected here;");
-    try expectContains(slice_note, "keep stronger ownership and pointer discipline explicit through bounded C-string prefix helpers, destination-size accounting, and null-sentinel table handling");
+    try expectContains(slice_note, "keep stronger ownership and pointer discipline explicit through bounded C-string prefix helpers, destination-size accounting, null-sentinel table handling, and Linux-style size rendering cues");
     try expectContains(slice_note, "zig build test --build-file zigux/tests/phase7_build.zig --summary all");
     try expectContains(slice_note, "keep integration with validation substrate explicit through `zigux/tests/phase7_build.zig`, the shared `zig build test --build-file zigux/tests/phase7_build.zig --summary all` replay, `zigux/tests/phase7_string_helpers_sample_boundary.zig`, `scripts/zigux/validate-phase7.py`, and `make -C zigux phase7`");
 
