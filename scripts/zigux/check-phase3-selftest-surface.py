@@ -46,6 +46,9 @@ REVIEW_CHECKLIST_MARKERS = [
     "scripts/zigux/validate_phase3_selftest.py",
     "scripts/zigux/check-phase3-selftest-surface.py",
     "scripts/zigux/check-phase3-readme-tooling-inventory.py",
+    "scripts/zigux/check-phase3-catalog-selftest.py",
+    "scripts/zigux/validate-phase3-export-uapi-survey.py",
+    "scripts/zigux/validate-phase3-abi-bindings-syntax.py",
     "make -C zigux phase3-selftest",
     "manual-only support-script rerun",
     "without implying that `phase3-selftest` is part of the default `phase3-validate` route",
@@ -251,19 +254,29 @@ def run_self_test() -> int:
         issues = validate_root(root)
         assert "review_checklist:scripts/zigux/check-phase3-selftest-surface.py" in issues
         assert "review_checklist:scripts/zigux/check-phase3-readme-tooling-inventory.py" in issues
+        assert "review_checklist:scripts/zigux/check-phase3-catalog-selftest.py" in issues
+        assert "review_checklist:scripts/zigux/validate-phase3-export-uapi-survey.py" in issues
+        assert "review_checklist:scripts/zigux/validate-phase3-abi-bindings-syntax.py" in issues
         assert "review_checklist:make -C zigux phase3-selftest" in issues
 
         build_self_test_root(root)
         write_text(
             root / "Documentation/zigux/review-checklist.md",
-            "\n".join(REVIEW_CHECKLIST_MARKERS[:2] + ["the review packet keeps make -C zigux phase3-selftest visible inside one longer checklist sentence"] + REVIEW_CHECKLIST_MARKERS[3:]) + "\n",
+            "\n".join(
+                REVIEW_CHECKLIST_MARKERS[:2]
+                 + [
+                     "the review packet keeps scripts/zigux/check-phase3-readme-tooling-inventory.py, scripts/zigux/check-phase3-catalog-selftest.py, scripts/zigux/validate-phase3-export-uapi-survey.py, scripts/zigux/validate-phase3-abi-bindings-syntax.py, and make -C zigux phase3-selftest visible inside one longer checklist sentence"
+                 ]
+                + REVIEW_CHECKLIST_MARKERS[7:]
+            )
+            + "\n",
         )
         assert validate_root(root) == []
 
         build_self_test_root(root)
         write_text(
             root / "Documentation/zigux/review-checklist.md",
-            "\n".join(REVIEW_CHECKLIST_MARKERS + [REVIEW_CHECKLIST_MARKERS[3]]) + "\n",
+            "\n".join(REVIEW_CHECKLIST_MARKERS + [REVIEW_CHECKLIST_MARKERS[6]]) + "\n",
         )
         issues = validate_root(root)
         assert "duplicate_review_checklist_marker:2:make -C zigux phase3-selftest" in issues
