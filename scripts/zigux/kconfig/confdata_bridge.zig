@@ -461,3 +461,16 @@ test "confdata bridge ignores empty CONFIG symbol names" {
     try std.testing.expectEqual(EntryKind.tristate, summary.entries[0].kind);
     try std.testing.expectEqualStrings("m", summary.entries[0].value);
 }
+
+test "confdata bridge keeps trailing escaped backslashes in quoted strings" {
+    const allocator = std.testing.allocator;
+    var summary = try parseConfig(allocator,
+        \\CONFIG_PATH="drivers\\"
+        \\
+    );
+    defer deinitSummary(allocator, &summary);
+
+    try std.testing.expectEqual(@as(usize, 1), summary.entries.len);
+    try std.testing.expectEqual(EntryKind.string, summary.entries[0].kind);
+    try std.testing.expectEqualStrings("drivers\\", summary.entries[0].value);
+}
