@@ -167,6 +167,9 @@ REQUIRED_WORKFLOW_MARKERS = [
     "zig test scripts/zigux/kconfig/confdata_bridge.zig",
     "zig test scripts/zigux/mk_elfconfig.zig",
 ]
+REQUIRED_EXACT_WORKFLOW_RUN_COUNTS = {
+    "python3 scripts/zigux/check-phase2-tests-readme-alignment.py": 1,
+}
 REQUIRED_DOC_MARKERS = [
     "fixdep",
     "sample_multi_target_expected.txt",
@@ -238,6 +241,13 @@ def workflow_has_run_marker(workflow_run_lines: list[str], marker: str) -> bool:
     return expected in workflow_run_lines
 
 
+def count_workflow_run_marker(workflow_run_lines: list[str], marker: str) -> int:
+    expected = f"run: {marker}"
+    if marker.endswith("--target"):
+        return sum(1 for line in workflow_run_lines if line == expected or line.startswith(expected + " "))
+    return sum(1 for line in workflow_run_lines if line == expected)
+
+
 def count_marker_occurrences(text: str, marker: str) -> int:
     pattern = rf"(?<![A-Za-z0-9_./-]){re.escape(marker)}(?![A-Za-z0-9_./-])"
     return len(re.findall(pattern, text))
@@ -268,6 +278,15 @@ def validate_exact_review_markers(text: str) -> list[str]:
     return issues
 
 
+def validate_exact_workflow_runs(workflow_run_lines: list[str]) -> list[str]:
+    issues: list[str] = []
+    for marker, expected in REQUIRED_EXACT_WORKFLOW_RUN_COUNTS.items():
+        count = count_workflow_run_marker(workflow_run_lines, marker)
+        if count != expected:
+            issues.append(f"workflow_exact_marker:{marker}:count={count}:expected={expected}")
+    return issues
+
+
 def validate_root(root: Path) -> list[str]:
     missing = [str(path.relative_to(root)) for path in required_files(root) if not path.exists()]
     if missing:
@@ -289,6 +308,7 @@ def validate_root(root: Path) -> list[str]:
     for marker in REQUIRED_WORKFLOW_MARKERS:
         if not workflow_has_run_marker(workflow_run_lines, marker):
             missing_markers.append(f"workflow:{marker}")
+    missing_markers.extend(validate_exact_workflow_runs(workflow_run_lines))
     for marker in REQUIRED_DOC_MARKERS:
         if marker not in artifact_doc:
             missing_markers.append(f"doc:{marker}")
@@ -632,6 +652,19 @@ def run_self_test() -> int:
 
         build_self_test_root(root)
         workflow_text = workflow_path.read_text(encoding="utf-8").replace(
+            "run: python3 scripts/zigux/check-phase2-tests-readme-alignment.py\n",
+            "run: python3 scripts/zigux/check-phase2-tests-readme-alignment.py\nrun: python3 scripts/zigux/check-phase2-tests-readme-alignment.py\n",
+            1,
+        )
+        write_text(workflow_path, workflow_text)
+        issues = validate_root(root)
+        assert (
+            "workflow_exact_marker:python3 scripts/zigux/check-phase2-tests-readme-alignment.py:count=2:expected=1"
+            in issues
+        )
+
+        build_self_test_root(root)
+        workflow_text = workflow_path.read_text(encoding="utf-8").replace(
             "run: python3 scripts/zigux/check-phase2-cross-selftest-alignment.py --self-test\n",
             "",
         )
@@ -807,7 +840,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE2_VALIDATION_SELF_TEST=pass")
-    print("PHASE2_VALIDATION_SELF_TEST_CASE_COUNT=22")
+    print("PHASE2_VALIDATION_SELF_TEST_CASE_COUNT=23")
     return 0
 
 
