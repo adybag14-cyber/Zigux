@@ -26,7 +26,7 @@ ABI_SLICE_DOC_REL = "Documentation/zigux/phase3-abi-slice.md"
 ABI_MANIFEST_PHASE = "Phase 3"
 ABI_MANIFEST_STATUS = "active"
 ABI_MANIFEST_SLICE = "abi-substrate-skeleton"
-SELF_TEST_CASE_COUNT = 23
+SELF_TEST_CASE_COUNT = 24
 
 ABI_MANIFEST_REQUIRED_FILES = (
     "include/zigux/abi.h",
@@ -164,12 +164,12 @@ def validate(root: Path) -> list[str]:
         "PHASE3_BARRIER_STATUS=local-sentinel-probe-only",
         "PHASE3_MMIO_SCOPE=range-read8-write8-read16-write16-read32-write32",
         "PHASE3_MMIO_STATUS=byte-16-bit-and-32-bit-mmio-through-narrow-pointer-bridge",
-        "PHASE3_LOW_LEVEL_TEST_SCOPE=focused-atomic-barrier-mmio-replay-plus-signed-atomic-edges-barrier-locality-and-non-seq-cst-ordering",
+        "PHASE3_LOW_LEVEL_TEST_SCOPE=focused-atomic-barrier-mmio-replay-plus-signed-atomic-edges-acq-rel-strong-compare-exchange-mismatch-barrier-locality-and-non-seq-cst-ordering",
         "PHASE3_LOW_LEVEL_TEST_STATUS=dedicated-focused-replay-widened-for-current-helper-surface",
         "PHASE3_VALIDATE_GATE=python3 scripts/zigux/validate-phase3.py --slug abi",
         "PHASE3_LOW_LEVEL_WRAPPER_SURVEY_GATE=python3 scripts/zigux/validate-phase3-low-level-wrapper-survey.py",
         "PHASE3_BOUNDARY_SCOPE=focused-low-level-replay-plus-shared-abi-compile-layout-dump-packet",
-        "PHASE3_BOUNDARY_GAP=focused-low-level-replay-now-covers-signed-fetch-and-min-max-edges-plus-monotonic-strong-compare-exchange-byte-16-bit-and-32-bit-mmio-barrier-locality-and-non-seq-cst-orderings-while-shared-abi-packet-still-carries-the-broader-compile-layout-and-dump-proof",
+        "PHASE3_BOUNDARY_GAP=focused-low-level-replay-now-covers-signed-fetch-and-min-max-edges-plus-monotonic-and-acq-rel-strong-compare-exchange-mismatch-byte-16-bit-and-32-bit-mmio-barrier-locality-and-non-seq-cst-orderings-while-shared-abi-packet-still-carries-the-broader-compile-layout-and-dump-proof",
         "PHASE3_NEXT_BOUNDED_STEP=keep-this-survey-the-focused-replay-and-the-shared-abi-packet-aligned-when-helper-surface-moves",
     )
     for marker in required_doc_markers:
@@ -260,6 +260,8 @@ def validate(root: Path) -> list[str]:
             "atomic.fetchMin(i32, &signed_value, -3, .seq_cst)",
             "atomic.fetchMax(i32, &signed_value, 6, .seq_cst)",
             "atomic.compareExchangeWeak",
+            "const acq_rel_mismatch = atomic.compareExchange(",
+            "try std.testing.expectEqual(@as(?u32, 11), acq_rel_mismatch);",
             "barrier.acquireRelease",
             "mmio.write8",
             "mmio.read8",
@@ -318,6 +320,7 @@ def validate(root: Path) -> list[str]:
             "`zigux/tests/phase3_low_level_wrappers.zig`",
             "signed `fetchAdd` and `fetchSub`",
             "signed `fetchMin` and `fetchMax`",
+            "`acq_rel` strong `compareExchange()` mismatch handling",
             "non-`seq_cst` atomic ordering coverage",
             "byte, 16-bit, and 32-bit MMIO access",
         ),
@@ -361,7 +364,7 @@ def self_test_doc(root: Path) -> str:
         "PHASE3_MMIO_STATUS=byte-16-bit-and-32-bit-mmio-through-narrow-pointer-bridge",
         f"PHASE3_MMIO_BLOB_SHA={blob_sha(root / MMIO_REL)}",
         f"PHASE3_LOW_LEVEL_TEST_PATH={LOW_LEVEL_TEST_REL}",
-        "PHASE3_LOW_LEVEL_TEST_SCOPE=focused-atomic-barrier-mmio-replay-plus-signed-atomic-edges-barrier-locality-and-non-seq-cst-ordering",
+        "PHASE3_LOW_LEVEL_TEST_SCOPE=focused-atomic-barrier-mmio-replay-plus-signed-atomic-edges-acq-rel-strong-compare-exchange-mismatch-barrier-locality-and-non-seq-cst-ordering",
         "PHASE3_LOW_LEVEL_TEST_STATUS=dedicated-focused-replay-widened-for-current-helper-surface",
         f"PHASE3_LOW_LEVEL_TEST_BLOB_SHA={blob_sha(root / LOW_LEVEL_TEST_REL)}",
         f"PHASE3_ABI_TEST_PATH={ABI_TEST_REL}",
@@ -374,7 +377,7 @@ def self_test_doc(root: Path) -> str:
         "PHASE3_VALIDATE_GATE=python3 scripts/zigux/validate-phase3.py --slug abi",
         "PHASE3_LOW_LEVEL_WRAPPER_SURVEY_GATE=python3 scripts/zigux/validate-phase3-low-level-wrapper-survey.py",
         "PHASE3_BOUNDARY_SCOPE=focused-low-level-replay-plus-shared-abi-compile-layout-dump-packet",
-        "PHASE3_BOUNDARY_GAP=focused-low-level-replay-now-covers-signed-fetch-and-min-max-edges-plus-monotonic-strong-compare-exchange-byte-16-bit-and-32-bit-mmio-barrier-locality-and-non-seq-cst-orderings-while-shared-abi-packet-still-carries-the-broader-compile-layout-and-dump-proof",
+        "PHASE3_BOUNDARY_GAP=focused-low-level-replay-now-covers-signed-fetch-and-min-max-edges-plus-monotonic-and-acq-rel-strong-compare-exchange-mismatch-byte-16-bit-and-32-bit-mmio-barrier-locality-and-non-seq-cst-orderings-while-shared-abi-packet-still-carries-the-broader-compile-layout-and-dump-proof",
         "PHASE3_NEXT_BOUNDED_STEP=keep-this-survey-the-focused-replay-and-the-shared-abi-packet-aligned-when-helper-surface-moves",
         "",
     )
@@ -473,6 +476,15 @@ def run_self_test() -> int:
                     "    _ = atomic.fetchMax(i32, &signed_value, 6, .seq_cst);",
                     "    _ = atomic.fetchAdd(i32, &signed_arithmetic_value, 5, .seq_cst);",
                     "    _ = atomic.fetchSub(i32, &signed_arithmetic_value, 7, .seq_cst);",
+                    "    const acq_rel_mismatch = atomic.compareExchange(",
+                    "        u32,",
+                    "        &acq_rel_value,",
+                    "        7,",
+                    "        15,",
+                    "        .acq_rel,",
+                    "        .acquire,",
+                    "    );",
+                    "    try std.testing.expectEqual(@as(?u32, 11), acq_rel_mismatch);",
                     "    const a = .acq_rel;",
                     "    const b = .acquire;",
                     "    const c = .release;",
@@ -532,6 +544,7 @@ def run_self_test() -> int:
                     "`zigux/tests/phase3_low_level_wrappers.zig`",
                     "signed `fetchAdd` and `fetchSub`",
                     "signed `fetchMin` and `fetchMax`",
+                    "`acq_rel` strong `compareExchange()` mismatch handling",
                     "non-`seq_cst` atomic ordering coverage",
                     "byte, 16-bit, and 32-bit MMIO access",
                     "",
@@ -564,9 +577,85 @@ def run_self_test() -> int:
             encoding="utf-8",
         )
         stale_abi_slice_issues = validate(root)
-        assert stale_abi_slice_issues == [
-            "abi_slice_missing_token:byte, 16-bit, and 32-bit MMIO access"
-        ], stale_abi_slice_issues
+        assert any(
+            issue.startswith("stale_blob_marker:PHASE3_ABI_SLICE_DOC_BLOB_SHA:")
+            for issue in stale_abi_slice_issues
+        ), stale_abi_slice_issues
+        assert "abi_slice_missing_token:`acq_rel` strong `compareExchange()` mismatch handling" in stale_abi_slice_issues, stale_abi_slice_issues
+        assert "abi_slice_missing_token:byte, 16-bit, and 32-bit MMIO access" in stale_abi_slice_issues, stale_abi_slice_issues
+
+        (root / ABI_SLICE_DOC_REL).write_text(
+            "\n".join(
+                (
+                    "`zigux/helpers/atomic.zig`",
+                    "`zigux/helpers/barrier.zig`",
+                    "`zigux/helpers/mmio.zig`",
+                    "`zigux/tests/phase3_low_level_wrappers.zig`",
+                    "signed `fetchAdd` and `fetchSub`",
+                    "signed `fetchMin` and `fetchMax`",
+                    "`acq_rel` strong `compareExchange()` mismatch handling",
+                    "non-`seq_cst` atomic ordering coverage",
+                    "byte, 16-bit, and 32-bit MMIO access",
+                    "",
+                )
+            ),
+            encoding="utf-8",
+        )
+        (root / LOW_LEVEL_TEST_REL).write_text(
+            "\n".join(
+                (
+                    'test "phase3 low-level wrappers cover the shipped helper surface directly" {',
+                    "    _ = atomic.fetchAdd;",
+                    "    _ = atomic.fetchSub;",
+                    "    _ = atomic.fetchAnd;",
+                    "    _ = atomic.fetchOr;",
+                    "    _ = atomic.fetchXor;",
+                    "    _ = atomic.fetchMin;",
+                    "    _ = atomic.fetchMax;",
+                    "    _ = atomic.compareExchangeWeak;",
+                    "    barrier.acquireRelease();",
+                    "    _ = mmio.write8;",
+                    "    _ = mmio.read8;",
+                    "    _ = mmio.write16;",
+                    "    _ = mmio.read16;",
+                    "    _ = mmio.write32;",
+                    "    _ = mmio.read32;",
+                    "    try std.testing.expectEqual(base, byte_desc.base_addr);",
+                    "    try std.testing.expectEqual(@as(u32, 8), byte_desc.length);",
+                    "    try std.testing.expectEqual(@as(u32, 1), byte_desc.stride);",
+                    "    try std.testing.expectEqual(base, halfword_desc.base_addr);",
+                    "    try std.testing.expectEqual(@as(u32, 8), halfword_desc.length);",
+                    "    try std.testing.expectEqual(@as(u32, 2), halfword_desc.stride);",
+                    "    try std.testing.expectEqual(base, desc.base_addr);",
+                    "    try std.testing.expectEqual(@as(u32, 8), desc.length);",
+                    "    try std.testing.expectEqual(@as(u32, 4), desc.stride);",
+                    "}",
+                    'test "phase3 low-level wrappers keep non-seq-cst orderings and signed atomic edges reviewable" {',
+                    "    _ = atomic.fetchMin(i32, &signed_value, -3, .seq_cst);",
+                    "    _ = atomic.fetchMax(i32, &signed_value, 6, .seq_cst);",
+                    "    _ = atomic.fetchAdd(i32, &signed_arithmetic_value, 5, .seq_cst);",
+                    "    _ = atomic.fetchSub(i32, &signed_arithmetic_value, 7, .seq_cst);",
+                    "    const a = .acq_rel;",
+                    "    const b = .acquire;",
+                    "    const c = .release;",
+                    "    const d = .monotonic;",
+                    "    _ = .{ a, b, c, d };",
+                    "}",
+                    'test "phase3 low-level wrappers keep barrier locality reviewable" {',
+                    "    barrier.acquireRelease();",
+                    "}",
+                    "",
+                )
+            ),
+            encoding="utf-8",
+        )
+        stale_low_level_test_issues = validate(root)
+        assert any(
+            issue.startswith("stale_blob_marker:PHASE3_LOW_LEVEL_TEST_BLOB_SHA:")
+            for issue in stale_low_level_test_issues
+        ), stale_low_level_test_issues
+        assert "low_level_test_missing_token:const acq_rel_mismatch = atomic.compareExchange(" in stale_low_level_test_issues, stale_low_level_test_issues
+        assert "low_level_test_missing_token:try std.testing.expectEqual(@as(?u32, 11), acq_rel_mismatch);" in stale_low_level_test_issues, stale_low_level_test_issues
 
     print("PHASE3_LOW_LEVEL_WRAPPER_SURVEY_SELF_TEST=pass")
     print(f"PHASE3_LOW_LEVEL_WRAPPER_SURVEY_SELF_TEST_CASE_COUNT={SELF_TEST_CASE_COUNT}")
