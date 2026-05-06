@@ -1,0 +1,14 @@
+{
+  "lane_key": "P12-L15",
+  "phase": "Phase 12",
+  "surveyed_commit": "c0ae127363e3d4e5feeb36efb665a12ece3392c7",
+  "ordered_path_count": 5,
+  "ordered_paths_joined_with_newline_sha256": "57dfd3b154d5d2eb24b55ce1487e429c3e74b2567bb8d5be79ac05c2e6442d20",
+  "ordered_paths": [
+    "tools/lib/bpf/zigux_segments/type_names.zig",
+    "tools/lib/bpf/zigux_segments/cpu_mask.zig",
+    "tools/lib/bpf/zigux_segments/logging.zig",
+    "tools/lib/bpf/zigux_segments/pin_path.zig",
+    "tools/lib/bpf/zigux_segments/perf_buffer_poll.zig"
+  ]
+}
