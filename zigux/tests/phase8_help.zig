@@ -34,6 +34,7 @@ test "phase 8 help slice note keeps helper-first output-stable tooling posture a
     try std.testing.expect(std.mem.containsAtLeast(u8, phase8_help_slice, 1, "`opendir()` or `readdir()` parity for command discovery"));
     try std.testing.expect(std.mem.containsAtLeast(u8, phase8_help_slice, 1, "direct `ioctl()`-backed terminal probing"));
     try std.testing.expect(std.mem.containsAtLeast(u8, phase8_help_slice, 1, "direct environment reads or a full `cmd_help()`-adjacent CLI surface"));
+    try std.testing.expect(std.mem.containsAtLeast(u8, phase8_help_slice, 1, "make -C zigux phase8-help-kallsyms-test"));
 }
 
 test "phase 8 help slice covers command-list ownership, filtering, exclusion, terminal sizing, and layout planning" {
