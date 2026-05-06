@@ -77,6 +77,10 @@ REQUIRED_SNIPPETS = {
     ],
     "zigux/tests/phase6_checksum_perf.zig": [
         'try stdout_writer.interface.print("PHASE6_CHECKSUM_PERF_CASE_COUNT={d}\\n", .{perf_cases.len});',
+        '        .label = "64B",',
+        '        .label = "1501B",',
+        '        .iterations = 200_000,',
+        '        .iterations = 12_000,',
         'try stdout_writer.interface.print("PHASE6_CHECKSUM_PERF_{s}_SLOWDOWN_PCT={d}\\n", .{ case.label, slowdown_pct });',
         'try stdout_writer.interface.print("PHASE6_CHECKSUM_PERF_{s}_THRESHOLD_PCT={d}\\n", .{ case.label, case.max_slowdown_pct });',
         'try stdout_writer.interface.print("PHASE6_CHECKSUM_PERF_{s}_CHECKSUM={d}\\n", .{ case.label, helper_result.checksum_accumulator });',
@@ -165,6 +169,12 @@ EXACT_COUNT_MARKERS = {
     ],
 }
 
+EXACT_OCCURRENCE_MARKERS = {
+    "zigux/tests/phase6_checksum_perf.zig": [
+        ('.max_slowdown_pct = 150,', 2),
+    ],
+}
+
 REMOVED_PATHS = [
     "Documentation/zigux/phase6-helper-parity-catalog.md",
     "Documentation/zigux/phase6-perf-gate-survey.md",
@@ -198,6 +208,15 @@ def run_checks(repo_root: Path) -> None:
                     f"expected exactly one Phase 6 marker in {rel_path}, found {occurrences}: {marker}"
                 )
 
+    for rel_path, markers in EXACT_OCCURRENCE_MARKERS.items():
+        content = read_text(repo_root / rel_path)
+        for marker, expected in markers:
+            occurrences = content.count(marker)
+            if occurrences != expected:
+                raise ValidationError(
+                    f"expected {expected} occurrences of Phase 6 marker in {rel_path}, found {occurrences}: {marker}"
+                )
+
     for rel_path in REMOVED_PATHS:
         if (repo_root / rel_path).exists():
             raise ValidationError(
@@ -227,9 +246,12 @@ def run_self_test() -> None:
 
         for rel_path, snippets in REQUIRED_SNIPPETS.items():
             exact_markers = EXACT_COUNT_MARKERS.get(rel_path, [])
+            occurrence_markers = [marker for marker, expected in EXACT_OCCURRENCE_MARKERS.get(rel_path, []) for _ in range(expected)]
+            scaffold_lines = unique_preserving_order(snippets + exact_markers)
+            scaffold_lines.extend(occurrence_markers)
             write(
                 root / rel_path,
-                "\n".join(unique_preserving_order(snippets + exact_markers)) + "\n",
+                "\n".join(scaffold_lines) + "\n",
             )
 
         run_checks(root)
@@ -301,7 +323,7 @@ def run_self_test() -> None:
             raise AssertionError("expected workflow failure")
         workflow.write_text(original_workflow, encoding="utf-8")
 
-        workflow.writeText(
+        workflow.write_text(
             original_workflow
             + "- name: Run Phase 6 hexdump perf gate\n"
             + "        run: zig build phase6-hexdump-perf --build-file zigux/tests/phase6_build.zig -Doptimize=ReleaseSafe --summary all\n",
@@ -454,6 +476,25 @@ def run_self_test() -> None:
                 ) from exc
         else:
             raise AssertionError("expected checksum perf failure")
+        checksum_perf.write_text(original_checksum_perf, encoding="utf-8")
+
+        checksum_perf.write_text(
+            original_checksum_perf.replace(
+                ".max_slowdown_pct = 150,",
+                ".max_slowdown_pct = 175,",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        try:
+            run_checks(root)
+        except ValidationError as exc:
+            if "zigux/tests/phase6_checksum_perf.zig" not in str(exc):
+                raise AssertionError(
+                    f"unexpected checksum perf threshold failure: {exc}"
+                ) from exc
+        else:
+            raise AssertionError("expected checksum perf threshold failure")
         checksum_perf.write_text(original_checksum_perf, encoding="utf-8")
 
         checksum_vectors = root / "zigux/tests/fixtures/phase6_checksum_vectors.zig"
