@@ -112,4 +112,16 @@ test "phase14 shared smoke survey confirms the current packet surfaces" {
     try std.testing.expect(containsMarker(makefile_text, "phase14-test:"));
     try std.testing.expect(containsMarker(makefile_text, "phase14: phase14-validate phase14-smoke phase14-test"));
     try std.testing.expect(containsMarker(makefile_text, "zigux/tests/phase14_build.zig"));
+
+    const traceability_text = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "Documentation/zigux/phase14-core-boundary-traceability.md",
+        std.testing.allocator,
+        .limited(64 * 1024),
+    );
+    defer std.testing.allocator.free(traceability_text);
+    try std.testing.expect(containsMarker(traceability_text, "### Ring buffer"));
+    try std.testing.expect(containsMarker(traceability_text, "- ready-next gap: none currently recorded"));
+    try std.testing.expect(containsMarker(traceability_text, "- blocked gap: `phase14-ring-buffer-zig-port-blocker`"));
+    try std.testing.expect(!containsMarker(traceability_text, "- ready-next gap: `phase14-ring-buffer-read-page-copy-followup`"));
 }
