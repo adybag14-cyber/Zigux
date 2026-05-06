@@ -120,7 +120,10 @@ pub const TransactionBufferPublishPlan = struct {
 
 pub const TransactionBufferReleasePlan = struct {
     anchor: []const u8,
+    had_private_data: bool,
     frees_private_data_page: bool,
+    clears_private_data_slot: bool,
+    null_private_data_is_allowed: bool,
     consumes_private_data_lifetime: bool,
     return_code: i32,
 };
@@ -380,10 +383,13 @@ pub const LibFsHelperLab = struct {
         };
     }
 
-    pub fn simpleTransactionReleasePlan() TransactionBufferReleasePlan {
+    pub fn simpleTransactionReleasePlan(has_private_data: bool) TransactionBufferReleasePlan {
         return .{
             .anchor = descriptor().anchor,
-            .frees_private_data_page = true,
+            .had_private_data = has_private_data,
+            .frees_private_data_page = has_private_data,
+            .clears_private_data_slot = true,
+            .null_private_data_is_allowed = true,
             .consumes_private_data_lifetime = true,
             .return_code = 0,
         };
