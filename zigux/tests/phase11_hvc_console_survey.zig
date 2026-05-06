@@ -97,7 +97,7 @@ test "phase11 hvc_console survey manifest records the landed starter and tty han
     defer parsed.deinit();
 
     const manifest = parsed.value;
-    try std.testing.expectEqualStrings("P11-L13", manifest.lane_key);
+    try std.testing.expectEqualStrings("P11-L16", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 11", manifest.phase);
     try std.testing.expectEqualStrings("drivers/tty/hvc/hvc_console.c", manifest.anchor);
     try std.testing.expectEqualStrings("ee124761ef3ef5fcc6bb9cd8b7fe8d1fce326839", manifest.surveyed_commit);
@@ -178,6 +178,8 @@ test "phase11 hvc console survey note records the bounded layout checkpoints" {
     const note = try readFileAlloc(std.testing.allocator, "Documentation/zigux/phase11-hvc-console-survey.md", 32 * 1024);
     defer std.testing.allocator.free(note);
     try expectContains(note, parsed.value.surveyed_commit);
+    try expectContains(note, "P11-L16");
+    try expectContains(note, "drivers/tty/hvc/hvc_console_verify.zig");
     try expectContains(note, "struct winsize");
     try expectContains(note, "resize boundary");
     try expectContains(note, "struct hv_ops");
@@ -185,6 +187,7 @@ test "phase11 hvc console survey note records the bounded layout checkpoints" {
     try expectContains(note, "size `72`");
     try expectContains(note, "Documentation/zigux/phase11-hvc-console-teardown-note.md");
     try expectContains(note, "close, cleanup, and remove ownership split");
+    try expectContains(note, "current driver, verifier, tests, validation matrix, and shared replay contract");
 }
 
 test "phase11 hvc console teardown note keeps the bounded ownership split explicit" {
@@ -208,6 +211,7 @@ test "phase11 hvc_console survey gate proves validation matrix coverage directly
     const matrix = try readFileAlloc(std.testing.allocator, "Documentation/zigux/phase11-hvc-console-validation-matrix.md", 32 * 1024);
     defer std.testing.allocator.free(matrix);
     try std.testing.expect(std.mem.indexOf(u8, matrix, "PHASE11_HVC_CONSOLE_STATUS=hvc_notifier_handoff_landed") != null);
+    try std.testing.expect(std.mem.indexOf(u8, matrix, "lane: `P11-L16`") != null);
     try std.testing.expect(std.mem.indexOf(u8, matrix, "zigux/tests/phase11_hvc_cleanup.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, matrix, "Documentation/zigux/phase11-shared-replay-contract.md") != null);
     try std.testing.expect(std.mem.indexOf(u8, matrix, "Documentation/zigux/phase11-hvc-console-teardown-note.md") != null);
