@@ -267,6 +267,11 @@ test "phase 5 kobject survey packet stays repo-local and keeps the shared review
         "samples/kobject/kobject-example.c",
         "phase5-kobject-sample-survey.md",
         "phase5_kobject_example_survey.zig",
+        "`ownershipSummary()` and sample-owned `runOwnershipReplay()` explicit as the reviewable lifecycle cues",
+        "initialized-only abandonment cue",
+        "already-registered duplicate-registration and replay-restart rejection",
+        "registered teardown reset",
+        "post-`exit()` show-or-store rejection explicit",
     };
 
     for (samples_root_markers) |needle| {
