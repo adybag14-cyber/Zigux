@@ -9,6 +9,8 @@ from pathlib import Path
 import sys
 
 
+EXPECTED_LANE_KEY = "P11-L18"
+
 REQUIRED_GAP_IDS = {
     "phase11-build-gate",
     "phase11-uapi-header-parity-survey-gate",
@@ -20,7 +22,7 @@ REQUIRED_GAP_IDS = {
 
 REQUIRED_NOTE_MARKERS = [
     "PHASE11_HEADER_BOUNDARY_STATUS=shared_header_packet_restored",
-    "lane: `P11-L16`",
+    f"lane: `{EXPECTED_LANE_KEY}`",
     "phase11-dw-wdt-watchdog-header-boundary",
     "phase11-dw-wdt-watchdog-info-layout-assert",
     "phase11-hvc-console-winsize-layout-assert",
@@ -87,7 +89,7 @@ def require_markers(text: str, markers: list[str], label: str) -> None:
 
 def check_repo(root: Path) -> None:
     manifest = json.loads(read_text(root, "zigux/tests/phase11_uapi_header_parity_manifest.json"))
-    if manifest.get("lane_key") != "P11-L16":
+    if manifest.get("lane_key") != EXPECTED_LANE_KEY:
         raise SystemExit("manifest lane_key mismatch")
     if manifest.get("phase") != "Phase 11":
         raise SystemExit("manifest phase mismatch")
