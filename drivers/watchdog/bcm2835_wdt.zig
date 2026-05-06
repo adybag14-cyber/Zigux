@@ -62,6 +62,18 @@ pub const RegistrationSummary = struct {
     poweroff_handler_conflict: bool,
 };
 
+pub const RegistrationOutcomeSummary = struct {
+    anchor: []const u8,
+    system_power_controller: bool,
+    registration_succeeded: bool,
+    register_device_requested: bool,
+    probe_error_returned: bool,
+    poweroff_handler_present: bool,
+    poweroff_handler_claimed: bool,
+    poweroff_handler_conflict: bool,
+    poweroff_handler_left_in_place: bool,
+};
+
 pub const RemoveSummary = struct {
     anchor: []const u8,
     system_power_controller: bool,
@@ -153,6 +165,28 @@ pub const Bcm2835WatchdogLab = struct {
             .poweroff_handler_present = poweroff_handler_present,
             .poweroff_handler_claimed = system_power_controller and !poweroff_handler_present,
             .poweroff_handler_conflict = system_power_controller and poweroff_handler_present,
+        };
+    }
+
+    pub fn registrationOutcomeSummary(
+        self: *const Self,
+        system_power_controller: bool,
+        poweroff_handler_present: bool,
+        registration_succeeded: bool,
+    ) RegistrationOutcomeSummary {
+        _ = self;
+        const poweroff_handler_claimed =
+            registration_succeeded and system_power_controller and !poweroff_handler_present;
+        return .{
+            .anchor = descriptor().anchor,
+            .system_power_controller = system_power_controller,
+            .registration_succeeded = registration_succeeded,
+            .register_device_requested = true,
+            .probe_error_returned = !registration_succeeded,
+            .poweroff_handler_present = poweroff_handler_present,
+            .poweroff_handler_claimed = poweroff_handler_claimed,
+            .poweroff_handler_conflict = system_power_controller and poweroff_handler_present,
+            .poweroff_handler_left_in_place = poweroff_handler_present and !poweroff_handler_claimed,
         };
     }
 
