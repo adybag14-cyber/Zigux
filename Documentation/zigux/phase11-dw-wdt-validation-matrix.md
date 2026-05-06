@@ -8,6 +8,7 @@ This document records the first bounded hardware-validation matrix for the Zigux
 - scope: keep the current `dw_wdt` starter honest about what is already validated, name the next kernel-facing checkpoints, and avoid overclaiming platform registration, clock or reset wiring, IRQ handling, or live MMIO behavior before those surfaces exist in Zigux
 - current repo reality:
   - `drivers/watchdog/dw_wdt.zig`
+  - `drivers/watchdog/dw_wdt_verify.zig`
   - `zigux/tests/phase11_dw_wdt.zig`
   - `zigux/tests/phase11_dw_wdt_manifest.json`
   - `zigux/tests/phase11_dw_wdt_survey.zig`
@@ -51,16 +52,17 @@ Without this matrix, the slice, survey, manifest, and shared review surfaces wou
 
 ## Shared Replay Surface
 
-- current shared replay wiring on `master` includes both `phase11-dw-wdt-tests` and `phase11-dw-wdt-survey-tests`
+- current shared replay wiring on `master` includes `phase11-dw-wdt-tests`, `phase11-dw-wdt-verify-tests`, and `phase11-dw-wdt-survey-tests`
 - exact shared commands:
   - `zig build test --build-file zigux/tests/phase11_build.zig --summary all`
   - `make -C zigux phase11`
 - shared replay posture for this watchdog lane:
-  - `phase11-dw-wdt-tests` and `phase11-dw-wdt-survey-tests` remain the shared Phase 11 artifacts that cover this DesignWare packet
+  - `phase11-dw-wdt-tests`, `phase11-dw-wdt-verify-tests`, and `phase11-dw-wdt-survey-tests` remain the shared Phase 11 artifacts that cover this DesignWare packet
   - the focused shared header-boundary packet from `Documentation/zigux/phase11-uapi-header-parity-survey.md` plus `scripts/zigux/check-phase11-header-boundary-packet.py` stays explicit beside those watchdog-local replays inside the same shipped Phase 11 route
   - full-bundle green status for the wider current Phase 11 replay is intentionally tracked outside this watchdog-local matrix because unrelated non-watchdog drift can reopen elsewhere on `master`
 - included DesignWare artifacts:
   - `phase11-dw-wdt-tests`
+  - `phase11-dw-wdt-verify-tests`
   - `phase11-dw-wdt-survey-tests`
 - focused survey replay command:
   - `zig test zigux/tests/phase11_dw_wdt_survey.zig`
