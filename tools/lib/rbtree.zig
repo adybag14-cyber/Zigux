@@ -24,6 +24,15 @@ pub const Root = struct {
     }
 };
 
+pub const RootCached = struct {
+    root: Root = .{},
+    leftmost: ?*Node = null,
+
+    pub fn init() RootCached {
+        return .{};
+    }
+};
+
 pub const LessFn = *const fn (*const Node, *const Node) bool;
 pub const CmpNodeFn = *const fn (*const Node, *const Node) i32;
 pub const CmpKeyFn = *const fn (*const anyopaque, *const Node) i32;
@@ -176,6 +185,13 @@ pub fn insertColor(node: *Node, root: *Root) void {
     }
 }
 
+pub fn insertColorCached(node: *Node, root: *RootCached, leftmost: bool) void {
+    if (leftmost) {
+        root.leftmost = node;
+    }
+    insertColor(node, &root.root);
+}
+
 pub fn add(node: *Node, root: *Root, less: LessFn) void {
     var link = &root.node;
     var parent: ?*Node = null;
@@ -191,6 +207,25 @@ pub fn add(node: *Node, root: *Root, less: LessFn) void {
 
     linkNode(node, parent, link);
     insertColor(node, root);
+}
+
+pub fn addCached(node: *Node, root: *RootCached, less: LessFn) void {
+    var link = &root.root.node;
+    var parent: ?*Node = null;
+    var leftmost = true;
+
+    while (link.*) |current| {
+        parent = current;
+        if (less(node, current)) {
+            link = &current.left;
+        } else {
+            link = &current.right;
+            leftmost = false;
+        }
+    }
+
+    linkNode(node, parent, link);
+    insertColorCached(node, root, leftmost);
 }
 
 pub fn findAdd(node: *Node, root: *Root, cmp: CmpNodeFn) ?*Node {
@@ -404,6 +439,13 @@ pub fn erase(node: *Node, root: *Root) void {
     }
 }
 
+pub fn eraseCached(node: *Node, root: *RootCached) void {
+    if (root.leftmost == node) {
+        root.leftmost = next(node);
+    }
+    erase(node, &root.root);
+}
+
 pub fn eraseInit(node: *Node, root: *Root) void {
     erase(node, root);
     clearNode(node);
@@ -412,6 +454,10 @@ pub fn eraseInit(node: *Node, root: *Root) void {
 pub fn first(root: *const Root) ?*Node {
     const node = root.node orelse return null;
     return minimum(node);
+}
+
+pub fn firstCached(root: *const RootCached) ?*Node {
+    return root.leftmost;
 }
 
 pub fn last(root: *const Root) ?*Node {
@@ -478,6 +524,13 @@ pub fn replaceNode(victim: *Node, new: *Node, root: *Root) void {
     } else {
         parent.?.right = new;
     }
+}
+
+pub fn replaceNodeCached(victim: *Node, new: *Node, root: *RootCached) void {
+    if (root.leftmost == victim) {
+        root.leftmost = new;
+    }
+    replaceNode(victim, new, &root.root);
 }
 
 fn leftDeepestNode(node: *const Node) *Node {
@@ -801,4 +854,54 @@ test "rbtree nextMatch walks the duplicate range in order" {
     try std.testing.expectEqual(@as(usize, 3), count);
     try std.testing.expectEqualSlices(usize, &[_]usize{ 0, 2, 4 }, serials[0..count]);
     try std.testing.expect(nextMatch(&duplicate, cursor, cmp) == null);
+}
+
+test "rbtree cached root keeps the leftmost pointer in sync" {
+    const Entry = struct {
+        key: i32,
+        node: Node = Node.init(),
+    };
+
+    const less = struct {
+        fn compare(lhs: *const Node, rhs: *const Node) bool {
+            const lhs_entry: *const Entry = @fieldParentPtr("node", lhs);
+            const rhs_entry: *const Entry = @fieldParentPtr("node", rhs);
+            return lhs_entry.key < rhs_entry.key;
+        }
+    }.compare;
+
+    var entries = [_]Entry{
+        .{ .key = 10 },
+        .{ .key = 5 },
+        .{ .key = 20 },
+        .{ .key = 15 },
+    };
+    var replacement = Entry{ .key = 10 };
+    var new_leftmost = Entry{ .key = 3 };
+    var root = RootCached.init();
+
+    try std.testing.expect(firstCached(&root) == null);
+
+    for (&entries) |*entry| {
+        addCached(&entry.node, &root, less);
+    }
+
+    try std.testing.expectEqual(first(&root.root), firstCached(&root));
+    const initial_leftmost = firstCached(&root) orelse return error.TestUnexpectedResult;
+    try std.testing.expectEqual(@as(*Node, &entries[1].node), initial_leftmost);
+
+    eraseCached(&entries[2].node, &root);
+    try std.testing.expectEqual(@as(*Node, &entries[1].node), firstCached(&root).?);
+
+    eraseCached(&entries[1].node, &root);
+    try std.testing.expectEqual(@as(*Node, &entries[0].node), firstCached(&root).?);
+    try std.testing.expectEqual(first(&root.root), firstCached(&root));
+
+    replaceNodeCached(&entries[0].node, &replacement.node, &root);
+    try std.testing.expectEqual(@as(*Node, &replacement.node), firstCached(&root).?);
+    try std.testing.expectEqual(first(&root.root), firstCached(&root));
+
+    addCached(&new_leftmost.node, &root, less);
+    try std.testing.expectEqual(@as(*Node, &new_leftmost.node), firstCached(&root).?);
+    try std.testing.expectEqual(first(&root.root), firstCached(&root));
 }
