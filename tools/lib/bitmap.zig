@@ -408,6 +408,18 @@ test "bitmap set clear weight and empty full helpers" {
     try std.testing.expect(full(&map, bits_per_long * 2));
 }
 
+test "bitmap fill clamps tail bits in partial words" {
+    const nbits = bits_per_long + 5;
+    var map = [_]Word{ 0, 0 };
+
+    fill(&map, nbits);
+    try std.testing.expectEqual(@as(Word, ~@as(Word, 0)), map[0]);
+    try std.testing.expectEqual(lastWordMask(nbits), map[1]);
+
+    map[1] = ~@as(Word, 0);
+    try std.testing.expect(full(&map, nbits));
+}
+
 test "bitmap and andnot equal intersects subset" {
     const lhs = [_]Word{ 0b1110, 0 };
     const rhs = [_]Word{ 0b1010, 0 };
