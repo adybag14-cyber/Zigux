@@ -50,7 +50,7 @@ test "phase11 gpio_wdt survey manifest records the refreshed starter state and r
     defer parsed.deinit();
 
     const manifest = parsed.value;
-    try std.testing.expectEqualStrings("P11-Y07", manifest.lane_key);
+    try std.testing.expectEqualStrings("P11-L04", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 11", manifest.phase);
     try std.testing.expectEqualStrings("drivers/watchdog/gpio_wdt.c", manifest.anchor);
     try std.testing.expectEqualStrings("41ee426b91cf612f2d7a5ef5e4754109fc8b6e16", manifest.surveyed_commit);
@@ -219,7 +219,7 @@ test "phase11 gpio_wdt survey note and validation matrix stay aligned" {
     defer std.testing.allocator.free(validation_matrix);
 
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase11-gpio-wdt-validation-matrix.md") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE11_LANE_KEY=P11-Y07") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE11_LANE_KEY=P11-L04") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "descriptorPreflightSummary()") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "timeoutPropertyCheckpointSummary()") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "live GPIO descriptor lookup") != null);
