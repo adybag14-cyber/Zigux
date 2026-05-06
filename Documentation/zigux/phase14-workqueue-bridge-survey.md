@@ -5,7 +5,7 @@ This document records the bounded Phase 14 survey lane around `kernel/workqueue.
 ## Status
 
 - `PHASE14_STATUS=active`
-- `PHASE14_LANE_KEY=P14-L04`
+- `PHASE14_LANE_KEY=P14-L01`
 - `PHASE14_SURVEYED_COMMIT=9e278f632d6d5097cb8cfc2dc61744ae105baa8c`
 - `PHASE14_SLICE=workqueue-delayed-timer-expiry-audit`
 - scope: the landed `kernel/workqueue_bridge.zig` boundary map plus its expanded concurrency audit outline, the delayed timer-expiry handoff audit, its dedicated Phase 14 test gate and manifest, the shared Phase 14 build wiring, and the lane notes that compare the new foothold against the roadmap
