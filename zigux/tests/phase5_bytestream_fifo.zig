@@ -92,6 +92,16 @@ test "phase 5 bytestream fifo sample keeps bounded helper behavior explicit" {
     try std.testing.expectEqual(@as(usize, sample.BytestreamFifoSample.capacity - 1), helper_replay.count_after_skip);
     try std.testing.expectEqual(@as(usize, 0), helper_replay.count_after_reset);
     try std.testing.expectEqual(@as(?u8, null), helper_replay.pop_after_reset);
+
+    const short_drain = module.runShortDrainReplay();
+    try std.testing.expectEqual(@as(usize, 5), short_drain.initial_copy_count);
+    try std.testing.expectEqual(@as(usize, 3), short_drain.first_drain_count);
+    try std.testing.expectEqualSlices(u8, "hel", short_drain.first_drain[0..]);
+    try std.testing.expectEqual(@as(usize, 2), short_drain.remaining_snapshot_len);
+    try std.testing.expectEqualSlices(u8, "lo", short_drain.remaining_snapshot[0..]);
+    try std.testing.expectEqual(@as(usize, 2), short_drain.remaining_drain_count);
+    try std.testing.expectEqualSlices(u8, "lo", short_drain.remaining_drain[0..]);
+    try std.testing.expectEqual(@as(usize, 0), short_drain.empty_follow_up_drain_count);
     try std.testing.expectEqual(@as(usize, 0), module.count());
 }
 
