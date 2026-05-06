@@ -227,3 +227,35 @@ test "replacement helpers match direct recomputation for payload and header edit
     ipv4_header[15] = 0x02;
     try std.testing.expectEqual(compute(&ipv4_header), replace4(checksum_before_addr_change, 0xc0a8_0001, 0xc0a8_0002));
 }
+
+test "pseudo-header helpers match manual accumulation for IPv4 and IPv6" {
+    const payload_seed = partial("phase6", 0);
+
+    const v4_result = tcpUdpNofold(payload_seed, 0xc0a8_0001, 0xc0a8_00c7, 6, 17);
+    var manual_v4 = normalize(payload_seed);
+    manual_v4 = add(manual_v4, 0xc0a8);
+    manual_v4 = add(manual_v4, 0x0001);
+    manual_v4 = add(manual_v4, 0xc0a8);
+    manual_v4 = add(manual_v4, 0x00c7);
+    manual_v4 = add(manual_v4, 17);
+    manual_v4 = add(manual_v4, 6);
+    try std.testing.expectEqual(normalize(manual_v4), v4_result);
+
+    const v6_saddr = [_]u8{ 0x20, 0x01, 0x0d, 0xb8, 0x00, 0x00, 0x00, 0x01, 0xde, 0xad, 0xbe, 0xef, 0xca, 0xfe, 0xba, 0xbe };
+    const v6_daddr = [_]u8{ 0x20, 0x01, 0x0d, 0xb8, 0x00, 0x00, 0x00, 0x02, 0xde, 0xad, 0xbe, 0xef, 0xca, 0xfe, 0xba, 0xbf };
+    const v6_len: u32 = 0x0001_2345;
+    const v6_proto: u8 = 58;
+    const v6_result = tcpUdpV6Nofold(payload_seed, &v6_saddr, &v6_daddr, v6_len, v6_proto);
+    var manual_v6 = normalize(payload_seed);
+
+    for (0..4) |index| {
+        const offset = index * 4;
+        manual_v6 = add(manual_v6, readBigEndianU32(v6_saddr[offset .. offset + 4]));
+        manual_v6 = add(manual_v6, readBigEndianU32(v6_daddr[offset .. offset + 4]));
+    }
+
+    manual_v6 = add(manual_v6, v6_len >> 16);
+    manual_v6 = add(manual_v6, v6_len & 0xffff);
+    manual_v6 = add(manual_v6, v6_proto);
+    try std.testing.expectEqual(normalize(manual_v6), v6_result);
+}
