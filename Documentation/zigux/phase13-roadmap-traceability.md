@@ -70,7 +70,7 @@ Current `master` keeps that anchor reviewable through:
   * `zigux/tests/phase13_landlock_ruleset.zig`
   * `scripts/zigux/check-phase13-landlock-ruleset-packet.py`
 
-Inside that packet, the active shared replay now keeps `zigux/tests/phase13_landlock_ruleset.zig` inside the same seven-test helper route while the dedicated packet checker stays adjacent lane evidence rather than an extra shared replay step.
+Inside that packet, the active shared replay now keeps `zigux/tests/phase13_landlock_ruleset.zig` inside the same seven-test helper route while the dedicated packet checker stays adjacent lane evidence rather than an extra shared replay step. The live `make -C zigux phase13-validate` route now reruns `scripts/zigux/check-phase13-landlock-ruleset-packet.py` beside the shared release validator and the `devres` packet checker, so the roadmap note needs that checker named explicitly to keep the shipped helper boundary reviewable without overstating the replay count.
 
 That packet is truthful to the roadmap because it keeps the current ruleset foothold bounded to in-memory helper planning around `landlock_create_ruleset()`, access-mask unioning, per-layer mask initialization, `landlock_unmask_layers()` bit clearing, `insert_rule()` merge and search planning, no-match tree-link planning, and matched-rule replacement planning. It does not overclaim live rb-tree mutation, object references, hierarchy ownership, deferred frees, or live Landlock policy enforcement.
 
