@@ -158,6 +158,25 @@ pub const RemoveSummary = struct {
     remove_leaves_hardware_running: bool,
 };
 
+pub const TeardownOutcome = enum {
+    reset_control_stop,
+    continued_heartbeat,
+};
+
+pub const TeardownSummary = struct {
+    anchor: []const u8,
+    can_stop: bool,
+    running_before_teardown: bool,
+    timeout_sec: u32,
+    response_mode: ResponseMode,
+    outcome: TeardownOutcome,
+    stop_invoked: bool,
+    enable_bit_cleared: bool,
+    interrupt_cleared: bool,
+    running_after_teardown: bool,
+    hardware_running_after_teardown: bool,
+};
+
 pub const RuntimeSnapshot = struct {
     anchor: []const u8,
     running: bool,
@@ -349,6 +368,25 @@ pub const DwWdtLab = struct {
             .pretimeout_sec = registration.pretimeout_sec,
             .imported_running_state = registration.imported_running_state,
             .needs_timeout_programming = registration.needs_timeout_programming,
+        };
+    }
+
+    pub fn teardownSummary(self: *Self) !TeardownSummary {
+        if (!self.isEnabled()) _ = try self.start();
+
+        const runtime = self.stop();
+        return .{
+            .anchor = descriptor().anchor,
+            .can_stop = self.has_reset_control,
+            .running_before_teardown = true,
+            .timeout_sec = self.actual_timeout_sec,
+            .response_mode = self.response_mode,
+            .outcome = if (self.has_reset_control) .reset_control_stop else .continued_heartbeat,
+            .stop_invoked = true,
+            .enable_bit_cleared = (runtime.registers.control & control_reg_wdt_en_mask) == 0,
+            .interrupt_cleared = runtime.registers.interrupt_status == 0,
+            .running_after_teardown = runtime.running,
+            .hardware_running_after_teardown = runtime.hardware_running,
         };
     }
 
@@ -612,4 +650,33 @@ test "remove without reset control leaves active hardware running after unregist
     try std.testing.expect(summary.hardware_running_after_remove);
     try std.testing.expect(summary.running_after_remove);
     try std.testing.expect(summary.remove_leaves_hardware_running);
+}
+
+test "teardown summary records reset-backed stop versus continued heartbeat outcomes" {
+    var unstoppable = try DwWdtLab.initFixedTops(65_536, false);
+    const unstoppable_teardown = try unstoppable.teardownSummary();
+    try std.testing.expectEqualStrings("drivers/watchdog/dw_wdt.c", unstoppable_teardown.anchor);
+    try std.testing.expect(!unstoppable_teardown.can_stop);
+    try std.testing.expect(unstoppable_teardown.running_before_teardown);
+    try std.testing.expectEqual(@as(u32, 32), unstoppable_teardown.timeout_sec);
+    try std.testing.expectEqual(ResponseMode.reset, unstoppable_teardown.response_mode);
+    try std.testing.expectEqual(TeardownOutcome.continued_heartbeat, unstoppable_teardown.outcome);
+    try std.testing.expect(unstoppable_teardown.stop_invoked);
+    try std.testing.expect(!unstoppable_teardown.enable_bit_cleared);
+    try std.testing.expect(unstoppable_teardown.interrupt_cleared);
+    try std.testing.expect(unstoppable_teardown.running_after_teardown);
+    try std.testing.expect(unstoppable_teardown.hardware_running_after_teardown);
+
+    var stoppable = try DwWdtLab.initFixedTops(65_536, true);
+    const stoppable_teardown = try stoppable.teardownSummary();
+    try std.testing.expect(stoppable_teardown.can_stop);
+    try std.testing.expect(stoppable_teardown.running_before_teardown);
+    try std.testing.expectEqual(@as(u32, 32), stoppable_teardown.timeout_sec);
+    try std.testing.expectEqual(ResponseMode.reset, stoppable_teardown.response_mode);
+    try std.testing.expectEqual(TeardownOutcome.reset_control_stop, stoppable_teardown.outcome);
+    try std.testing.expect(stoppable_teardown.stop_invoked);
+    try std.testing.expect(stoppable_teardown.enable_bit_cleared);
+    try std.testing.expect(stoppable_teardown.interrupt_cleared);
+    try std.testing.expect(!stoppable_teardown.running_after_teardown);
+    try std.testing.expect(!stoppable_teardown.hardware_running_after_teardown);
 }
