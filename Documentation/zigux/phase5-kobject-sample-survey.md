@@ -13,6 +13,9 @@ This document tracks the bounded Phase 5 reference-sample survey for the roadmap
   - `Documentation/zigux/phase5-kobject-sample-survey.md`
   - `Documentation/zigux/README.md`
   - `Documentation/zigux/review-checklist.md`
+  - `samples/zigux/README.md`
+  - `scripts/zigux/README.md`
+  - `zigux/tests/README.md`
   - `samples/zigux/kobject_example.zig`
   - `zigux/tests/phase5_build.zig`
   - `zigux/tests/phase5_kobject_example.zig`
@@ -33,6 +36,7 @@ Fresh repo inspection already showed one landed Phase 5 FIFO reference sample pl
   - three integer-backed attributes, with `baz` and `bar` sharing the same show and store path
   - real sysfs and module-lifecycle substrate through `kobject_create_and_add`, `sysfs_create_group`, `kernel_kobj`, and module init or exit hooks
 - the honest Phase 5 move is to make the directory name, attribute dispatch, and lifetime boundaries reviewable in memory while keeping sysfs creation, kernel object registration, and module wiring out of scope.
+- the live shared contributor packet for this landed sample is broader than the sample file and its paired manifest alone: `samples/zigux/README.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md` all help keep this kobject note aligned with the same four-sample Phase 5 packet described from the docs root, scripts root, and tests root.
 
 ## Approved idiom for the landed kobject-style sample
 
@@ -79,6 +83,7 @@ When a contributor updates `samples/zigux/kobject_example.zig` or its directly c
 
 - does `KobjectExampleSample.descriptor()` still name `samples/kobject/kobject-example.c` and keep `requires_runtime_substrate = false` plus `provides_selfcheck = true`?
 - do `zigux/tests/phase5_kobject_example_manifest.json` and `zigux/tests/phase5_kobject_example_survey.zig` still describe the approved Phase 5 in-memory ownership-and-lifetime idiom: the exact registration, integer roundtrip, shared `baz` and `bar` dispatch, and pre-registration access boundary run through `zigux/tests/phase5_build.zig`?
+- do the shared Phase 5 contributor surfaces in `samples/zigux/README.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md` still point at this exact sample packet and keep it separate from later runtime-backed work instead of leaving this note to carry the boundary alone?
 - do the manifest prompts still keep the initialized-but-not-registered zero-active-attributes plus no-show-or-store boundary explicit before `registerAttributes()` opens the sample?
 - do the manifest prompts and exact checks still keep `ownershipSummary()` explicit across `cold`, `initialized`, `registered`, and `exited`?
 - do the manifest prompts and exact checks still keep initialized-only `exit()` reporting `abandoned_before_registration` and registered `exit()` reporting `tore_down_registered_attributes`?
@@ -92,6 +97,7 @@ The current gap is not "Zigux has no kobject sample guidance." The more precise 
 
 - the repo now has a reviewable Phase 5 `kobject_example` sample plus manifest-backed checks for registration, pre-registration access blocking, ownership snapshots, initialized-only abandonment, dispatch, parse failures, and teardown
 - contributor guidance still needs to keep the approved Phase 5 in-memory ownership-and-lifetime idiom visibly separate from real sysfs or module substrate claims
+- the shared docs-root, sample-root, scripts-root, and tests-root contributor packet should stay explicit here too, so this survey note does not understate the already-shipped review surface for the landed sample
 - current `master` now carries all four roadmap-backed Phase 5 reference samples, so this survey should stay explicit about the kobject sample's own ownership-and-lifetime boundary instead of implying that another Phase 5 anchor is still missing
 
 This slice keeps the landed `kobject` sample reviewable by recording the exact lifecycle and non-goal cues reviewers should check before approving future edits.
