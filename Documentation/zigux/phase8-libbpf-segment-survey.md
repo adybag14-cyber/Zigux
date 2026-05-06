@@ -100,16 +100,18 @@ The current tests check:
 - ready-buffer processing attempts cannot exceed observed ready events
 
 ## Gates
-1. run the focused libbpf survey wrapper
+1. run the shared Phase 8 validator route first
+   - `make -C zigux phase8-validate`
+2. run the focused libbpf survey wrapper
    - `make -C zigux phase8-libbpf-segments-test`
    - `zig build test --build-file zigux/tests/phase8_libbpf_segments_only_build.zig --summary all`
-2. run the focused perf-buffer poll wrapper
+3. run the focused perf-buffer poll wrapper
    - `make -C zigux phase8-perf-buffer-poll-test`
    - `zig build test --build-file zigux/tests/phase8_perf_buffer_poll_only_build.zig --summary all`
-3. run the shared Phase 8 wrapper
+4. run the shared Phase 8 wrapper
    - `make -C zigux phase8-test`
    - `zig build test --build-file zigux/tests/phase8_build.zig --summary all`
-4. run the convenience target
+5. run the convenience target
    - `make -C zigux phase8`
 
 ## Non-goals
@@ -126,4 +128,4 @@ This survey slice does not yet claim:
 - object-model parity for `bpf_object`, `bpf_map`, or `bpf_program`
 
 ## Next bounded step
-Treat the current starter packet as substantively landed for now: keep the shared Phase 8 gate honest, leave the bounded fdinfo-only bridge helper parked as adjacent review surface, keep `fdinfo-map-info-helpers` and `map-reuse-compatibility` queued as the next helper-first catalog entries, and reopen only when the deferred `file-path-and-handle-bridge` resource boundary around direct procfs-read, bpffs-open, token-creation, reopen-flow, and fd-ownership semantics can be reviewed as one tighter packet ahead of the still-blocked object-model and loader-facing work.
+Treat the current starter packet as substantively landed for now: keep the shared `make -C zigux phase8-validate` gate honest, leave the bounded fdinfo-only bridge helper parked as adjacent review surface, keep `fdinfo-map-info-helpers` and `map-reuse-compatibility` queued as the next helper-first catalog entries, and reopen only when the deferred `file-path-and-handle-bridge` resource boundary around direct procfs-read, bpffs-open, token-creation, reopen-flow, and fd-ownership semantics can be reviewed as one tighter packet ahead of the still-blocked object-model and loader-facing work.
