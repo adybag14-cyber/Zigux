@@ -202,6 +202,14 @@ That means `test "bitmap copy aliases preserve tail clearing and extension seman
 
 - `PHASE1_BITMAP_COPY_ALIAS_REVIEW=helper-local bitmap copy alias proof stays explicit through the direct bitmap test anchor so bitmap_copy_clear_tail and bitmap_copy_and_extend preserve tail masking and zero-filled extension semantics`
 
+The helper-local raw `bitmap_copy()` alias proof must also stay explicit through:
+
+- `tools/lib/bitmap.zig`
+
+That means `test "bitmap copy alias preserves raw source words without tail clearing"` stays present and review-visible whenever `copy()` or `bitmap_copy()` changes. This helper-local test is the bounded proof that the raw alias entrypoint preserves unmasked source words instead of silently adopting the tail-clearing semantics reserved for `copyClearTail()` and `bitmap_copy_clear_tail()`.
+
+- `PHASE1_BITMAP_RAW_COPY_ALIAS_REVIEW=helper-local raw bitmap_copy alias proof stays explicit through the direct bitmap test anchor so copy and bitmap_copy preserve unmasked source words instead of silently adopting tail-clearing semantics`
+
 ## Rbtree Review Rule
 
 For `tools/lib/rbtree.zig`, reviewers must keep the current bounded Phase 1 rbtree surface explicit through:
