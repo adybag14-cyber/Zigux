@@ -39,6 +39,7 @@ REQUIRED_SURFACES = {
     "scripts/zigux/validate-phase14.py": MARKER,
     "scripts/zigux/check-phase14-rollback-threshold-sequencing.py": CHECKER_MARKER,
     "scripts/zigux/check-phase14-release-boundary-exact-counts.py": RELEASE_BOUNDARY_CHECKER_MARKER,
+    "zigux/tests/README.md": "keep the current Phase 14 smoke packet reviewable through",
 }
 REQUIRED_FILE_MARKERS = {
     "Documentation/zigux/phase14-end-to-end-smoke-survey.md": [
@@ -54,6 +55,16 @@ REQUIRED_FILE_MARKERS = {
     "scripts/zigux/validate-phase14.py": [MARKER],
     "scripts/zigux/check-phase14-rollback-threshold-sequencing.py": [CHECKER_MARKER],
     "scripts/zigux/check-phase14-release-boundary-exact-counts.py": [RELEASE_BOUNDARY_CHECKER_MARKER],
+    "zigux/tests/README.md": [
+        "keep the current Phase 14 smoke packet reviewable through",
+        "scripts/zigux/validate-phase14.py",
+        "scripts/zigux/check-phase14-rollback-threshold-sequencing.py",
+        "scripts/zigux/check-phase14-release-boundary-exact-counts.py",
+        "make -C zigux phase14-validate",
+        "make -C zigux phase14-smoke",
+        "make -C zigux phase14-test",
+        "make -C zigux phase14",
+    ],
     "zigux/tests/phase14_end_to_end_smoke_survey.zig": [
         "make -C zigux phase14-validate",
         "phase14: phase14-validate phase14-smoke phase14-test",
