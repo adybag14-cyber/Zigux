@@ -58,6 +58,21 @@ test "phase 7 ASCII case helpers stop at NUL and respect destination bounds" {
     try std.testing.expectEqualSlices(u8, "zz9!", &lower);
 }
 
+test "phase 7 parseIntArray keeps base and sign parsing explicit" {
+    const ints = try string_helpers.parseIntArray(std.testing.allocator, "0x10,07,-2");
+    defer string_helpers.freeIntArray(std.testing.allocator, ints);
+
+    try std.testing.expectEqualSlices(i32, &[_]i32{ 3, 16, 7, -2 }, ints);
+}
+
+test "phase 7 parseIntArray respects first-NUL and no-entry behavior" {
+    const ints = try string_helpers.parseIntArray(std.testing.allocator, "1-3,9\x00ignored");
+    defer string_helpers.freeIntArray(std.testing.allocator, ints);
+
+    try std.testing.expectEqualSlices(i32, &[_]i32{ 4, 1, 2, 3, 9 }, ints);
+    try std.testing.expectError(error.NoEntry, string_helpers.parseIntArray(std.testing.allocator, "none"));
+}
+
 test "phase 7 stringUnescape covers deterministic Linux escape fixtures" {
     var out = [_]u8{0} ** 32;
 
