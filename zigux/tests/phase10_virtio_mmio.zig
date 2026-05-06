@@ -43,6 +43,37 @@ test "phase10 virtio mmio exposes a queue-selected register window in memory onl
     try std.testing.expectEqual(@as(u32, 1), summary.value);
 }
 
+test "phase10 virtio mmio summarizes selected-queue readiness before queue handoff" {
+    var device = try virtio_mmio.VirtioMmioLab.init(19, &[_]u16{ 8, 16 });
+
+    var summary = try device.selectedQueueReadinessSummary();
+    try std.testing.expectEqualStrings("drivers/virtio/virtio_mmio.c", summary.anchor);
+    try std.testing.expectEqual(@as(u16, 0), summary.selected_queue);
+    try std.testing.expectEqual(@as(u16, 8), summary.queue_num_max);
+    try std.testing.expectEqual(@as(u16, 0), summary.queue_num);
+    try std.testing.expect(!summary.queue_ready);
+    try std.testing.expect(!summary.queue_size_programmed);
+    try std.testing.expect(!summary.queue_ready_for_handoff);
+
+    _ = try device.writeRegister(.queue_num, 8);
+    summary = try device.selectedQueueReadinessSummary();
+    try std.testing.expect(summary.queue_size_programmed);
+    try std.testing.expect(!summary.queue_ready_for_handoff);
+
+    _ = try device.writeRegister(.queue_ready, 1);
+    summary = try device.selectedQueueReadinessSummary();
+    try std.testing.expect(summary.queue_ready);
+    try std.testing.expect(summary.queue_ready_for_handoff);
+
+    _ = try device.writeRegister(.queue_sel, 1);
+    summary = try device.selectedQueueReadinessSummary();
+    try std.testing.expectEqual(@as(u16, 1), summary.selected_queue);
+    try std.testing.expectEqual(@as(u16, 16), summary.queue_num_max);
+    try std.testing.expectEqual(@as(u16, 0), summary.queue_num);
+    try std.testing.expect(!summary.queue_size_programmed);
+    try std.testing.expect(!summary.queue_ready_for_handoff);
+}
+
 test "phase10 virtio mmio exposes a bounded device-feature selector read window" {
     var device = try virtio_mmio.VirtioMmioLab.init(41, &[_]u16{ 8, 16 });
 
