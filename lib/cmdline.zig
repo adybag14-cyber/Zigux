@@ -417,6 +417,15 @@ test "nextArg splits parameter-value pairs and trims quoted values" {
     try std.testing.expectEqualStrings("next", cStringPrefix(parsed.rest));
 }
 
+test "nextArg keeps embedded equals inside quoted values" {
+    var buffer = [_]u8{ 'm', 'o', 'd', 'e', '=', '"', 'f', 'a', 's', 't', '=', 'b', 'o', 'o', 't', '"', ' ', 'n', 'e', 'x', 't', 0 };
+    const parsed = nextArg(&buffer);
+
+    try std.testing.expectEqualStrings("mode", parsed.param);
+    try std.testing.expectEqualStrings("fast=boot", parsed.value.?);
+    try std.testing.expectEqualStrings("next", cStringPrefix(parsed.rest));
+}
+
 test "nextArg keeps a whole quoted token together without inventing a value" {
     var buffer = [_]u8{ '"', 't', 'w', 'o', ' ', 'w', 'o', 'r', 'd', 's', '"', ' ', 't', 'a', 'i', 'l', 0 };
     const parsed = nextArg(&buffer);
