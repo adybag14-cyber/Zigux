@@ -188,6 +188,7 @@ test "phase 15 indefinite-C policy doc and linked artifacts keep exception and b
     });
 
     try expectContains(io_instance.io(), "Documentation/zigux/review-checklist.md", &.{
+        "if a freeze-map anchor is closing review with a stay-in-C outcome, are the retained discussion state, the current blocker, and reopen triggers explicit?",
         "if the target stays in C, does the change record that ongoing policy honestly",
     });
 }
