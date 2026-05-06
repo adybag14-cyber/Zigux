@@ -35,25 +35,33 @@ def read_text(path: Path) -> str:
         raise SystemExit(f"required file missing: {path}") from exc
 
 
+def count_exact_lines(text: str, marker: str) -> int:
+    return sum(1 for line in text.splitlines() if line.strip() == marker)
+
+
 def collect_issues(root: Path) -> list[tuple[str, str]]:
     issues: list[tuple[str, str]] = []
     checker_text = read_text(root / CHECKER)
     makefile_text = read_text(root / MAKEFILE)
     workflow_text = read_text(root / WORKFLOW)
-    makefile_lines = {line.strip() for line in makefile_text.splitlines()}
-    workflow_lines = {line.strip() for line in workflow_text.splitlines()}
 
     for marker in REQUIRED_CHECKER_MARKERS:
         if marker not in checker_text:
             issues.append(("MISSING_CHECKER_MARKERS", marker))
 
     for marker in REQUIRED_MAKEFILE_LINES:
-        if marker not in makefile_lines:
+        count = count_exact_lines(makefile_text, marker)
+        if count == 0:
             issues.append(("MISSING_MAKEFILE_HOOKS", marker))
+        elif count != 1:
+            issues.append(("DUPLICATE_MAKEFILE_HOOKS", f"{marker}:count={count}"))
 
     for marker in REQUIRED_WORKFLOW_LINES:
-        if marker not in workflow_lines:
+        count = count_exact_lines(workflow_text, marker)
+        if count == 0:
             issues.append(("MISSING_WORKFLOW_HOOKS", marker))
+        elif count != 1:
+            issues.append(("DUPLICATE_WORKFLOW_HOOKS", f"{marker}:count={count}"))
 
     return issues
 
@@ -82,6 +90,15 @@ def replace_exact_line(text: str, marker: str, replacement: str) -> str:
     for index, line in enumerate(lines):
         if line.strip() == marker:
             lines[index] = replacement
+            return "\n".join(lines) + "\n"
+    raise AssertionError(f"marker line not found: {marker}")
+
+
+def duplicate_exact_line(text: str, marker: str) -> str:
+    lines = text.splitlines()
+    for index, line in enumerate(lines):
+        if line.strip() == marker:
+            lines.insert(index + 1, line)
             return "\n".join(lines) + "\n"
     raise AssertionError(f"marker line not found: {marker}")
 
@@ -146,6 +163,14 @@ def run_self_test() -> int:
             assert ("MISSING_MAKEFILE_HOOKS", marker) in issues
             cases += 1
 
+        for marker in REQUIRED_MAKEFILE_LINES:
+            build_self_test_root(root)
+            path = root / MAKEFILE
+            path.write_text(duplicate_exact_line(path.read_text(encoding="utf-8"), marker), encoding="utf-8")
+            issues = collect_issues(root)
+            assert ("DUPLICATE_MAKEFILE_HOOKS", f"{marker}:count=2") in issues
+            cases += 1
+
         for marker in REQUIRED_WORKFLOW_LINES:
             build_self_test_root(root)
             path = root / WORKFLOW
@@ -155,6 +180,14 @@ def run_self_test() -> int:
             )
             issues = collect_issues(root)
             assert ("MISSING_WORKFLOW_HOOKS", marker) in issues
+            cases += 1
+
+        for marker in REQUIRED_WORKFLOW_LINES:
+            build_self_test_root(root)
+            path = root / WORKFLOW
+            path.write_text(duplicate_exact_line(path.read_text(encoding="utf-8"), marker), encoding="utf-8")
+            issues = collect_issues(root)
+            assert ("DUPLICATE_WORKFLOW_HOOKS", f"{marker}:count=2") in issues
             cases += 1
 
     print("PHASE2_KCONFIG_ALIGNMENT_SELF_TEST=pass")
