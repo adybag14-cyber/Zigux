@@ -56,21 +56,21 @@
       "status": "starter_landed",
       "kind": "documentation",
       "zigux_destination": "Documentation/zigux/phase10-virtio-core-slice.md",
-      "why_now": "The slice note records the bounded implementation surface and now needs to describe the restored manifest-backed survey packet instead of a slice-note-only review path."
+      "why_now": "The slice note records the bounded implementation surface and the roadmap-facing lab-only driver validation evidence instead of a slice-note-only review path."
     },
     {
       "id": "phase10-virtio-core-survey-gate",
       "status": "starter_landed",
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase10_virtio_core_survey.zig",
-      "why_now": "A dedicated survey gate makes the core lane machine-checkable again after the manifest-backed review packet drifted out of current master."
+      "why_now": "A dedicated survey gate keeps the core lane machine-checkable while it compares the landed starter against the remaining roadmap lab-driver bridge."
     },
     {
       "id": "phase10-virtio-core-survey-note",
       "status": "starter_landed",
       "kind": "documentation",
       "zigux_destination": "Documentation/zigux/phase10-virtio-core-survey.md",
-      "why_now": "The lane needs a Phase 10 note that records the restored core governance packet against the current inspected head without widening into ring or MMIO work."
+      "why_now": "The lane needs a Phase 10 note that records the current lab-only driver validation evidence and the remaining blocked bridge without widening into ring or MMIO work."
     },
     {
       "id": "phase10-driver-id-helper",
@@ -129,11 +129,18 @@
       "why_now": "The reset replay summary keeps negotiated-feature, queue-callback, config, and interrupt state visible before reset clears it."
     },
     {
+      "id": "phase10-core-lab-validation-evidence",
+      "status": "starter_landed",
+      "kind": "validation",
+      "zigux_destination": "Documentation/zigux/phase10-virtio-core-survey.md",
+      "why_now": "The dedicated checker, the dedicated survey gate, the shared build replay, and the Linux-style Phase 10 routes now keep the bounded core packet reviewable as the roadmap's lab-only driver validation evidence."
+    },
+    {
       "id": "phase10-core-probe-remove-lifecycle",
       "status": "blocked_on_risky_transport",
       "kind": "lab_driver_starter",
       "zigux_destination": "drivers/virtio/virtio.zig",
-      "why_now": "Broader virtio.c parity still mixes probe, full remove, reset, and transport-backed lifecycle state, so the lane remains intentionally blocked before those risky paths."
+      "why_now": "The remaining roadmap bridge is still the transport-backed probe, full remove, and reset lifecycle state needed to turn the bounded core starter into a true lab driver, so the lane remains intentionally blocked before those risky paths."
     }
   ]
 }
