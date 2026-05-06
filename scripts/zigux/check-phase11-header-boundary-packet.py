@@ -74,7 +74,15 @@ REQUIRED_HVC_CONSOLE_MARKERS = [
 ]
 
 REQUIRED_HVC_HEADER_MARKERS = [
-    "extern void notifier_hangup_irq",
+    "extern int hvc_instantiate(uint32_t vtermno, int index,",
+    "extern struct hvc_struct * hvc_alloc(uint32_t vtermno, int data,",
+    "extern void hvc_remove(struct hvc_struct *hp);",
+    "int hvc_poll(struct hvc_struct *hp);",
+    "void hvc_kick(void);",
+    "extern void __hvc_resize(struct hvc_struct *hp, struct winsize ws);",
+    "extern int notifier_add_irq(struct hvc_struct *hp, int data);",
+    "extern void notifier_del_irq(struct hvc_struct *hp, int data);",
+    "extern void notifier_hangup_irq(struct hvc_struct *hp, int data);",
 ]
 
 FIXTURE_SURVEYED_COMMIT = "fixture-phase11-shared-header-packet"
@@ -202,8 +210,15 @@ def run_self_test() -> int:
             "zigux/tests/phase11_header_packet_absent.zig",
             "contract missing markers",
         )
+        expect_failure(
+            root,
+            "drivers/tty/hvc/hvc_console.h",
+            "extern void notifier_hangup_irq(struct hvc_struct *hp, int data);",
+            "extern void notifier_hangup_irq(struct hvc_struct *hp, unsigned long data);",
+            "hvc_header missing markers",
+        )
     print("phase11-header-boundary-packet: self-test passed")
-    print("phase11-header-boundary-packet: self-test cases=3")
+    print("phase11-header-boundary-packet: self-test cases=4")
     return 0
 
 
