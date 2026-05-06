@@ -308,10 +308,11 @@ def run_self_test() -> int:
 
         manifest_path = tmp_root / "zigux/tests/phase10_virtio_mmio_manifest.json"
         original_manifest = manifest_path.read_text(encoding="utf-8")
-        manifest_path.write_text(
-            original_manifest.replace('"phase10-mmio-transport-identity-helper", "status": "starter_landed"', '"phase10-mmio-transport-identity-helper", "status": "ready_next"', 1),
-            encoding="utf-8",
-        )
+        manifest = json.loads(original_manifest)
+        for gap in manifest.get("gaps", []):
+            if gap.get("id") == "phase10-mmio-transport-identity-helper":
+                gap["status"] = "ready_next"
+        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
         _, missing_markers = validate(tmp_root)
         if "manifest:gap_status:phase10-mmio-transport-identity-helper=ready_next" not in missing_markers:
             raise SystemExit("phase10-mmio-self-test:expected_transport_identity_status_marker_missing")
