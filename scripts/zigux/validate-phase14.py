@@ -47,6 +47,10 @@ REQUIRED_FILE_MARKERS = {
         "PHASE14_VALIDATE_SCRIPT=python3 scripts/zigux/validate-phase14.py",
         "Documentation/zigux/phase14-core-boundary-traceability.md",
     ],
+    "Documentation/zigux/README.md": [
+        "Documentation/zigux/phase14-core-boundary-traceability.md",
+        "make -C zigux phase14-validate",
+    ],
     TRACEABILITY_PATH: [TRACEABILITY_TITLE],
     "scripts/zigux/README.md": [
         "python3 scripts/zigux/validate-phase14.py",
@@ -368,6 +372,29 @@ def run_self_test() -> int:
         if not errors or not any("missing marker in Documentation/zigux/phase14-core-boundary-traceability.md: - lane key: `P14-L08`" in error for error in errors):
             print("self-test expected failure when traceability note drifted", file=sys.stderr)
             return 1
+
+        write_text(root / TRACEABILITY_PATH, "\n".join(expected_markers) + "\n")
+
+        broken_docs_root_path = root / "Documentation/zigux/README.md"
+        broken_docs_root_path.write_text(
+            broken_docs_root_path.read_text(encoding="utf-8").replace(
+                "Documentation/zigux/phase14-core-boundary-traceability.md\n",
+                "",
+            ),
+            encoding="utf-8",
+        )
+        errors = check(root)
+        if not errors or not any(
+            "missing marker in Documentation/zigux/README.md: Documentation/zigux/phase14-core-boundary-traceability.md" in error
+            for error in errors
+        ):
+            print("self-test expected failure when docs-root traceability marker drifted", file=sys.stderr)
+            return 1
+
+        write_text(
+            broken_docs_root_path,
+            "\n".join(REQUIRED_FILE_MARKERS["Documentation/zigux/README.md"]) + "\n",
+        )
 
         broken_manifest_path = root / "zigux/tests/phase14_end_to_end_smoke_manifest.json"
         broken_manifest = json.loads(broken_manifest_path.read_text(encoding="utf-8"))
