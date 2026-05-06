@@ -33,7 +33,7 @@ test "phase12 nvme pci descriptor and admin queue plan stay anchored to pci.c" {
 test "phase12 nvme pci ownership summary keeps starter and blocked transport work separate" {
     const ownership = nvme_pci.NvmePciQueueLab.ownershipSummary();
     try std.testing.expectEqualStrings("drivers/nvme/host/pci.c", ownership.anchor);
-    try std.testing.expectEqualStrings("P12-Y02", ownership.owner_lane);
+    try std.testing.expectEqualStrings("P12-L05", ownership.owner_lane);
     try std.testing.expectEqual(nvme_pci.OwnershipBoundary.starter_packet, ownership.queue_planning_owner);
     try std.testing.expectEqual(nvme_pci.OwnershipBoundary.starter_packet, ownership.prp_shape_owner);
     try std.testing.expectEqual(nvme_pci.OwnershipBoundary.dma_transport_substrate, ownership.live_dma_owner);
