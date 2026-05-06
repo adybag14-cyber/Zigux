@@ -85,6 +85,7 @@ test "phase 7 string helpers survey keeps the roadmap-backed helper packet revie
     try expectContains(helper_tests, "phase 7 stringEscapeMem covers the bounded escape subset");
     try expectContains(helper_tests, "phase 7 kstrdupQuotable escapes special log bytes and preserves first-NUL bounds");
     try expectContains(helper_tests, "phase 7 kstrdupQuotable returns null for null inputs and keeps empty results owned");
+    try expectContains(helper_tests, "phase 7 kstrdupQuotable frees the owned copy when allocation fails");
     try expectContains(helper_tests, "phase 7 kasprintfStrarray returns sequential owned strings with a null-pointer terminator");
     try expectContains(helper_tests, "phase 7 kasprintfStrarray deinit resets exported views to the zero-count sentinel state");
     try expectContains(helper_tests, "phase 7 kfreeStrarray keeps first-NUL prefixes, zero-count reuse, and repeated teardown safe");
