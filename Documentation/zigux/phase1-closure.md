@@ -194,6 +194,16 @@ That means `test "bitmap scnprintf reports full length while truncating the buff
 
 - `PHASE1_BITMAP_SCNPRINTF_TRUNCATION_REVIEW=helper-local bitmap.scnprintf truncation proof stays explicit through the direct bitmap test anchor because the shared Phase 1 parity fixture only locks the full rendered range string`
 
+The helper-local `bitmap.scnprintf()` tiny-buffer proof must also stay explicit through:
+
+- `tools/lib/bitmap.zig`
+- `zigux/tests/fixtures/phase1_helpers.json`
+- `zigux/tests/phase1_helpers.zig`
+
+That means `test "bitmap scnprintf handles terminator-only and zero-length caller views"` stays present and review-visible whenever `bitmap.scnprintf()` changes, and the shared Phase 1 parity fixture plus replay keep `terminator_only_scnprintf_len`, `terminator_only_nul`, and `zero_length_scnprintf_len` explicit. This paired packet is the bounded proof that terminator-only caller buffers stay NUL-terminated and zero-length caller views return without writing hidden bytes.
+
+- `PHASE1_BITMAP_SCNPRINTF_TINY_BUFFER_REVIEW=helper-local bitmap.scnprintf tiny-buffer proof stays explicit through the direct bitmap test anchor plus the shared Phase 1 parity fixture and replay so terminator-only caller buffers stay NUL-terminated and zero-length caller views return without writing hidden bytes`
+
 The helper-local bitmap copy alias proof must also stay explicit through:
 
 - `tools/lib/bitmap.zig`
