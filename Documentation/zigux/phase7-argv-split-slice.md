@@ -11,6 +11,7 @@ This document tracks the bounded Phase 7 runtime leaf-helper slice for Zigux aro
 - lane state: helper, fixture, survey, manifest, shared validator, dedicated packet checker, and make-wrapper slice landed; parked unless a new `argv_split.c` parity issue appears
 - product boundary:
   - `lib/argv_split.zig`
+  - `samples/zigux/README.md`
   - `zigux/tests/phase7_argv_split.zig`
   - `zigux/tests/phase7_argv_split_survey.zig`
   - `zigux/tests/phase7_argv_split_manifest.json`
