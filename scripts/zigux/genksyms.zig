@@ -296,10 +296,10 @@ pub fn main(init: std.process.Init) !void {
 
     switch (command) {
         .help => {
-            var stdout_buffer: [512]u8 = undefined;
-            var stdout_writer = Io.File.stdout().writer(io, &stdout_buffer);
-            try stdout_writer.interface.writeAll(usage_text);
-            try stdout_writer.interface.flush();
+            var stderr_buffer: [512]u8 = undefined;
+            var stderr_writer = Io.File.stderr().writer(io, &stderr_buffer);
+            try stderr_writer.interface.writeAll(usage_text);
+            try stderr_writer.interface.flush();
         },
         .version => {
             var stderr_buffer: [128]u8 = undefined;
