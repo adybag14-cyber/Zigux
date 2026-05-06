@@ -55,7 +55,7 @@ This note stays narrow on purpose. It does not add a bridge, reopen a freeze dec
 - surveyed commit: `4c889233d157960514b241bcd5aff7cac5fda312`
 - ready-next gap: none currently recorded
 - blocked gap: `phase14-rcu-tree-bridge-blocker`
-- retained-in-C boundary: grace-period sequence publication, the memory-ordering lock network, expedited funnel or stall behavior, NOCB wakeups, quiescent-state propagation, callback enqueue, and callback batch invocation still remain in C because they share the live `rcu_node` hierarchy, offload state, CPU-hotplug handoff, and memory-ordering guarantees.
+- retained-in-C boundary: grace-period sequence publication, the memory-ordering lock network, expedited funnel or stall behavior, NOCB wakeups, idle-watch and dyntick re-entry transitions, quiescent-state propagation, callback enqueue and batch invocation, public wait and callback-barrier ownership, and CPU hotplug callback migration still remain in C because they share the live `rcu_node` hierarchy, offload state, watching-state snapshots, callback-drain coordination, CPU enrollment and teardown paths, and memory-ordering guarantees.
 
 ## Shared replay contract
 
