@@ -148,6 +148,7 @@ REQUIRED_FIND_BIT_TEST_ANCHORS = [
 REQUIRED_BITMAP_TEST_ANCHORS = [
     'test "bitmap allocator helpers size zero and free their buffers"',
     'test "bitmap set clear weight and empty full helpers"',
+    'test "bitmap fill clamps tail bits in partial words"',
     'test "bitmap and andnot equal intersects subset"',
     'test "bitmap and andnot clamp tail bits in partial words"',
     'test "bitmap xor keeps caller-selected bit window"',
@@ -637,7 +638,7 @@ def run_self_test() -> None:
         )
 
         make_fixture_root(tmp_root)
-        find_bit_path.write_text(
+        find_bit_path.writeText(
             "\n".join(REQUIRED_FIND_BIT_TEST_ANCHORS[:3] + REQUIRED_FIND_BIT_TEST_ANCHORS[4:]) + "\n",
             encoding="utf-8",
         )
@@ -724,7 +725,18 @@ def run_self_test() -> None:
 
         make_fixture_root(tmp_root)
         bitmap_path.write_text(
-            "\n".join(REQUIRED_BITMAP_TEST_ANCHORS[:7] + REQUIRED_BITMAP_TEST_ANCHORS[8:]) + "\n",
+            "\n".join(REQUIRED_BITMAP_TEST_ANCHORS[:2] + REQUIRED_BITMAP_TEST_ANCHORS[3:]) + "\n",
+            encoding="utf-8",
+        )
+        missing_markers = collect_missing_markers(tmp_root)
+        assert (
+            'bitmap_test_anchor:test "bitmap fill clamps tail bits in partial words":expected=1:actual=0'
+            in missing_markers
+        )
+
+        make_fixture_root(tmp_root)
+        bitmap_path.write_text(
+            "\n".join(REQUIRED_BITMAP_TEST_ANCHORS[:8] + REQUIRED_BITMAP_TEST_ANCHORS[9:]) + "\n",
             encoding="utf-8",
         )
         missing_markers = collect_missing_markers(tmp_root)
@@ -746,7 +758,7 @@ def run_self_test() -> None:
 
         make_fixture_root(tmp_root)
         bitmap_path.write_text(
-            "\n".join(REQUIRED_BITMAP_TEST_ANCHORS[:3] + REQUIRED_BITMAP_TEST_ANCHORS[4:]) + "\n",
+            "\n".join(REQUIRED_BITMAP_TEST_ANCHORS[:4] + REQUIRED_BITMAP_TEST_ANCHORS[5:]) + "\n",
             encoding="utf-8",
         )
         missing_markers = collect_missing_markers(tmp_root)
@@ -757,7 +769,7 @@ def run_self_test() -> None:
 
         make_fixture_root(tmp_root)
         bitmap_path.write_text(
-            "\n".join(REQUIRED_BITMAP_TEST_ANCHORS[:6] + REQUIRED_BITMAP_TEST_ANCHORS[7:]) + "\n",
+            "\n".join(REQUIRED_BITMAP_TEST_ANCHORS[:7] + REQUIRED_BITMAP_TEST_ANCHORS[8:]) + "\n",
             encoding="utf-8",
         )
         missing_markers = collect_missing_markers(tmp_root)
@@ -768,7 +780,7 @@ def run_self_test() -> None:
 
         make_fixture_root(tmp_root)
         bitmap_path.write_text(
-            "\n".join(REQUIRED_BITMAP_TEST_ANCHORS + [REQUIRED_BITMAP_TEST_ANCHORS[4]]) + "\n",
+            "\n".join(REQUIRED_BITMAP_TEST_ANCHORS + [REQUIRED_BITMAP_TEST_ANCHORS[5]]) + "\n",
             encoding="utf-8",
         )
         missing_markers = collect_missing_markers(tmp_root)
@@ -886,7 +898,7 @@ def run_self_test() -> None:
         )
 
         print("PHASE1_VALIDATION_SELF_TEST=pass")
-        print("PHASE1_VALIDATION_SELF_TEST_CASE_COUNT=43")
+        print("PHASE1_VALIDATION_SELF_TEST_CASE_COUNT=44")
 
 
 def main() -> int:
