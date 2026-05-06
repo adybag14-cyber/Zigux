@@ -77,6 +77,8 @@ pub const BrokenQueueSummary = struct {
     last_used_idx: u16,
     last_polled_used_idx: u16,
     outstanding_chain_count: u16,
+    unpublished_chain_count: u16,
+    pending_used_chain_count: u16,
 };
 
 pub const QueueResetReadinessBlocker = enum {
@@ -428,6 +430,8 @@ pub const VirtioRingLab = struct {
             .last_used_idx = slot.last_used_idx,
             .last_polled_used_idx = slot.last_polled_used_idx,
             .outstanding_chain_count = slot.outstanding_chain_count,
+            .unpublished_chain_count = slot.num_added,
+            .pending_used_chain_count = slot.last_used_idx -% slot.last_polled_used_idx,
         };
     }
 };
