@@ -21,7 +21,7 @@ It is not a closure claim, and it is not itself a shipped replay surface.
 
 ## Closure checklist
 1. Shared release surfaces still agree.
-   - `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/phase12-release-sequencing.md`, `Documentation/zigux/phase12-nvme-pci-raw-github-fallback-map.md`, `Documentation/zigux/phase12-virtio-net-survey.md`, `Documentation/zigux/phase12-virtio-scsi-slice.md`, `Documentation/zigux/phase12-virtio-scsi-survey.md`, `Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md`, `Documentation/zigux/phase12-libbpf-segment-survey.md`, `scripts/zigux/README.md`, `scripts/zigux/check-build-only-phase12-surface.py`, `.github/workflows/zigux-bootstrap.yml`, `zigux/tests/README.md`, `zigux/tests/phase12_build.zig`, and `zigux/Makefile` must still describe the same shipped Phase 12 replay packet.
+   - `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/phase12-release-sequencing.md`, `Documentation/zigux/phase12-nvme-pci-slice.md`, `Documentation/zigux/phase12-nvme-pci-survey.md`, `Documentation/zigux/phase12-nvme-pci-raw-github-fallback-map.md`, `Documentation/zigux/phase12-virtio-net-survey.md`, `Documentation/zigux/phase12-virtio-scsi-slice.md`, `Documentation/zigux/phase12-virtio-scsi-survey.md`, `Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md`, `Documentation/zigux/phase12-libbpf-segment-survey.md`, `scripts/zigux/README.md`, `scripts/zigux/check-build-only-phase12-surface.py`, `.github/workflows/zigux-bootstrap.yml`, `zigux/tests/README.md`, `zigux/tests/phase12_build.zig`, and `zigux/Makefile` must still describe the same shipped Phase 12 replay packet.
    - Use this checklist as the PMO companion when judging whether those shipped surfaces are ready to be described as release-closed.
    - The shared checker and workflow must stay described as build-only contract enforcement rather than as a broader validator-first release gate.
    - There is still no shipped shared `scripts/zigux/validate-phase12.py`, `check-phase12-*.py`, or `make -C zigux phase12-validate` route on `master`.
@@ -45,6 +45,6 @@ It is not a closure claim, and it is not itself a shipped replay surface.
 
 ## Active release blocker
 - Phase 12 is still an active release-planning tranche, not a release-closed packet.
-- The remaining PMO job is drift control across the shipped docs-root, review checklist, `virtio_net` survey, `virtio_scsi` slice-and-survey pair, libbpf survey, scripts-root, tests-root, workflow, Makefile, sequencing, and fallback-note surfaces so they keep naming the same bounded release route.
+- The remaining PMO job is drift control across the shipped docs-root, review checklist, `nvme_pci` slice-and-survey pair, `virtio_net` survey, `virtio_scsi` slice-and-survey pair, libbpf survey, scripts-root, tests-root, workflow, Makefile, sequencing, and fallback-note surfaces so they keep naming the same bounded release route.
 - This checklist should be refreshed whenever the shipped packet changes, but it should stay companion-scoped until the shared replay packet itself satisfies the closure conditions.
 - Any future PMO follow-through should start by rerunning `scripts/zigux/check-build-only-phase12-surface.py` before widening into new wording or closure claims.
