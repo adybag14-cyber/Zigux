@@ -112,6 +112,9 @@ jobs:
       - name: Check Phase 3 selftest review surface
         run: python3 scripts/zigux/check-phase3-selftest-surface.py
 
+      - name: Validate Phase 3 policy/unsafe survey
+        run: python3 scripts/zigux/validate-phase3-policy-unsafe-survey.py
+
       - name: Validate Phase 3 export/UAPI survey
         run: python3 scripts/zigux/validate-phase3-export-uapi-survey.py
 
@@ -135,6 +138,9 @@ jobs:
 
       - name: Self-test Phase 3 selftest review surface
         run: python3 scripts/zigux/check-phase3-selftest-surface.py --self-test
+
+      - name: Self-test Phase 3 policy/unsafe survey
+        run: python3 scripts/zigux/validate-phase3-policy-unsafe-survey.py --self-test
 
       - name: Self-test Phase 3 export/UAPI survey
         run: python3 scripts/zigux/validate-phase3-export-uapi-survey.py --self-test
@@ -272,7 +278,7 @@ jobs:
         run: make -C zigux phase9
 
       - name: Run Phase 10 virtio helper tests
-        run: zig build test --build-file zigux/tests/phase10_build.zig --summary all
+        run: zig build test --build-file zigux/tests/phase10_build.zig
 
       - name: Self-test Phase 11 shared replay contract checker
         run: python3 scripts/zigux/check-phase11-shared-replay-contract.py --self-test
