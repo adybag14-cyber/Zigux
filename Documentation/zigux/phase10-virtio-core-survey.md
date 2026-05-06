@@ -8,7 +8,7 @@ This document tracks the bounded Phase 10 governance lane around `drivers/virtio
 - `PHASE10_SLICE=virtio-core-survey`
 - lane: `P10-L01`
 - surveyed inspected `master` head: `7a4454d0474106972cad7e164b79293bd54a40c6`
-- scope: keep the restored manifest-backed core survey packet aligned with the slice note and shared build wiring, and stay out of ring, MMIO, input, or transport-facing lifecycle work
+- scope: compare the already-landed core survey packet against the remaining roadmap lab-driver gap, keep the slice note and shared build wiring aligned with that packet, and stay out of ring, MMIO, input, or transport-facing lifecycle work
 - product boundary:
   - `zigux/tests/phase10_virtio_core_manifest.json`
   - `zigux/tests/phase10_virtio_core_survey.zig`
@@ -23,14 +23,16 @@ The Phase 10 roadmap names `drivers/virtio/virtio.c` as the first virtio-core an
 
 Current `master` had drifted back to a slice-note-only review posture for the core lane even though the build and nearby Phase 10 packets still expect a dedicated core checker path. This survey restores the small manifest-backed governance packet so the core lane is machine-checkable again without widening into new helper behavior.
 
+This same packet is now the roadmap-facing `lab-only driver validation` evidence for `drivers/virtio/virtio.c`: the dedicated checker, the dedicated survey gate, the shared Phase 10 build replay, and the shared `make -C zigux phase10-test` plus `make -C zigux phase10` routes keep the bounded starter reviewable without widening into transport-backed lifecycle claims.
+
 ## Survey findings
 
 - `drivers/virtio/virtio.c` is still the Phase 10 core anchor, and the live repo already ships `drivers/virtio/virtio.zig`, `zigux/tests/phase10_virtio_core.zig`, `zigux/tests/phase10_virtio_core_reset_queue.zig`, `drivers/virtio/virtio_driver_id.zig`, and `zigux/tests/phase10_virtio_driver_id.zig`
 - the landed core helper already covers bounded status sequencing, feature negotiation, driver-validation narrowing, queue callback bookkeeping, queue descriptor-shape metadata, config-generation bookkeeping, interrupt-ack bookkeeping, lifecycle guards, and reset replay in memory only
 - the landed driver-id helper already keeps bounded `register_virtio_device()`, `virtio_uevent()`, `virtio_id_match()`, and `virtio_dev_match()` reviewable through exact, wildcard, and unmatched paths without claiming bus registration
 - the roadmap-facing parity evidence for this bounded packet now explicitly spans the Phase 10 destination `drivers/virtio/*.zig` plus the justified bridging-helper boundary in `zigux/kernel/` and `zigux/helpers/`
-- the honest gap here was governance drift, not missing core behavior: the manifest-backed survey note, survey gate, and dedicated packet checker had fallen away even though the core lane still had enough bounded evidence to support them
-- the next broader Phase 10 work is still blocked outside this lane: probe, full remove, reset, and transport-backed lifecycle state remain too risky to claim from the core helper alone
+- the honest roadmap gap here is no longer missing lab-driver evidence: the manifest-backed survey note, survey gate, dedicated packet checker, shared build replay, and shared Linux-style Phase 10 routes already keep the bounded starter reviewable as `lab-only driver validation`
+- the remaining bridge to a true lab driver is still blocked outside this lane: probe, full remove, reset, and transport-backed lifecycle state remain too risky to claim from the core helper alone
 
 ## Recorded gaps
 
@@ -51,7 +53,10 @@ The restored survey manifest records:
 - the landed `phase10-lifecycle-guard-bookkeeping-helper`
 - the landed `phase10-driver-validation-narrowing-helper`
 - the landed `phase10-reset-replay-bookkeeping-helper`
+- the landed `phase10-core-lab-validation-evidence`
 - the still-blocked `phase10-core-probe-remove-lifecycle`
+
+This keeps the lane concrete and reviewable without overstating progress: the current core packet already owns the roadmap-facing `lab-only driver validation` evidence, and the remaining gap is still the transport-backed probe or remove bridge to a true lab driver rather than a missing starter helper.
 
 ## Non-goals
 
@@ -80,4 +85,4 @@ This survey slice does not claim:
 
 ## Next bounded step
 
-Leave the Phase 10 virtio-core governance lane parked again unless fresh repo inspection finds another directly coupled drift across the core slice note, the restored survey packet, or the shared build wiring. Any new helper work should stay in adjacent ring or MMIO lanes instead of widening core lifecycle claims.
+Leave the Phase 10 virtio-core governance lane parked again unless fresh repo inspection finds another directly coupled drift across this lab-validation evidence, the blocked bridge wording, the core slice note, the restored survey packet, or the shared build wiring. Any new helper work should stay in adjacent ring or MMIO lanes instead of widening core lifecycle claims.
