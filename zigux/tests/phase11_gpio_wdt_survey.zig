@@ -210,6 +210,7 @@ test "phase11 gpio_wdt survey note and validation matrix stay aligned" {
     try std.testing.expect(std.mem.indexOf(u8, validation_matrix, "PHASE11_GPIO_WDT_STATUS=hardware_validation_matrix_landed") != null);
     try std.testing.expect(std.mem.indexOf(u8, validation_matrix, "descriptorPreflightSummary()") != null);
     try std.testing.expect(std.mem.indexOf(u8, validation_matrix, "phase11_gpio_wdt.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, validation_matrix, "scripts/zigux/check-phase11-shared-replay-contract.py") != null);
 }
 
 test "phase11 gpio_wdt module-slice note stays wired into the review packet" {
