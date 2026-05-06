@@ -21,6 +21,7 @@ EXPECTED_LANE_KEY = "P14-L07"
 TRACEABILITY_PATH = "Documentation/zigux/phase14-core-boundary-traceability.md"
 TRACEABILITY_TITLE = "# Phase 14 Core Boundary Traceability"
 TRACEABILITY_MANIFEST_PATHS = [
+    "zigux/tests/phase14_workqueue_bridge_manifest.json",
     "zigux/tests/phase14_ring_buffer_manifest.json",
     "zigux/tests/phase14_skbuff_bridge_manifest.json",
     "zigux/tests/phase14_rcu_tree_manifest.json",
@@ -434,10 +435,10 @@ def run_self_test() -> int:
         broken_path.write_text(f"{TRACEABILITY_TITLE}\n", encoding="utf-8")
         errors = check(root)
         if not errors or not any(
-            "missing marker in Documentation/zigux/phase14-core-boundary-traceability.md: - lane key: `P14-L08`" in error
+            "missing marker in Documentation/zigux/phase14-core-boundary-traceability.md: - lane key: `P14-L04`" in error
             for error in errors
         ):
-            print("self-test expected failure when traceability note drifted", file=sys.stderr)
+            print("self-test expected failure when workqueue traceability marker drifted", file=sys.stderr)
             return 1
 
         write_text(root / TRACEABILITY_PATH, "\n".join(expected_markers) + "\n")
