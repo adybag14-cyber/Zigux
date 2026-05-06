@@ -13,6 +13,7 @@ test "phase 8 kallsyms slice note keeps the fail-closed oversized-name contract 
     try std.testing.expect(std.mem.containsAtLeast(u8, phase8_kallsyms_slice, 1, "output-stable tooling behavior"));
     try std.testing.expect(std.mem.containsAtLeast(u8, phase8_kallsyms_slice, 1, "one direct `kallsymsParse()` wrapper"));
     try std.testing.expect(std.mem.containsAtLeast(u8, phase8_kallsyms_slice, 1, "oversized symbol names now raise `error.SymbolNameTooLong`"));
+    try std.testing.expect(std.mem.containsAtLeast(u8, phase8_kallsyms_slice, 1, "make -C zigux phase8-help-kallsyms-test"));
 }
 
 test "phase 8 kallsyms direct parser rejects oversized names" {
