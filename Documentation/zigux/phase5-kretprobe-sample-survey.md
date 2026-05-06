@@ -87,6 +87,7 @@ When a contributor updates `samples/zigux/kretprobe_example.zig` or its directly
 - does symbol retargeting stay a pre-init in-memory choice instead of implying `module_param` or runtime registration parity?
 - if the sample behavior changes, is the manifest updated alongside the replay and teardown contract instead of leaving reviewers to infer the new boundary from code alone?
 - do the docs and tests still say clearly that `register_kretprobe()`, `unregister_kretprobe()`, `pt_regs` return extraction, and runtime module wiring remain out of scope for this Phase 5 sample?
+- if the broader shared review packet is refreshed, does it keep the landed `samples/zigux/kretprobe_example.zig` packet and the shared `phase5_build.zig` route explicit while still separating this sample from the later `runtime_kretprobe` family instead of leaving that distinction trace-events-only?
 
 ## Recorded gap vs roadmap
 
@@ -94,6 +95,7 @@ The current gap is no longer "Zigux has no kretprobe sample guidance." The more 
 
 - the repo now has a reviewable Phase 5 `kretprobe_example` sample plus manifest-backed checks for symbol choice, skip behavior, private-data shape, return timing, summary recording, ownership snapshots, and teardown
 - this sample must remain visibly separate from the later Phase 9 runtime `kretprobe` starter so contributors do not over-claim runtime substrate coverage
+- the shared tests-root guide is still less explicit for this kretprobe packet than for the parallel trace-events packet, so contributors should keep this survey note, the manifest, and the paired survey gate as the authoritative review surface until that broader tests-root wording is refreshed
 - current `master` now carries all four roadmap-backed Phase 5 reference samples, so this slice should stay explicit about its own boundary rather than implying another anchor is still missing
 
 ## Review gates for this survey
@@ -116,4 +118,4 @@ This survey does not yet claim:
 
 ## Next bounded step
 
-Stay in the Phase 5 samples-and-reference-patterns lane and tighten contributor guidance or one exact replay check only if fresh repo inspection shows a real sample drift on current `master`, while keeping this landed Phase 5 sample distinct from the separate Phase 9 runtime starter.
+Stay in the Phase 5 samples-and-reference-patterns lane and refresh the shared tests-root wording for `kretprobe` only if a future same-family contributor-guidance pass can do so without reopening sample semantics, provenance pinning, or the separate Phase 9 runtime starter.
