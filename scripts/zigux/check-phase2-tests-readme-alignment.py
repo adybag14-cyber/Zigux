@@ -61,6 +61,7 @@ REVIEW_CHECKLIST_MARKERS = [
     "python3 scripts/zigux/install-zig.py --self-test",
     "python3 scripts/zigux/check-zig-toolchain.py --self-test",
     "make -C zigux phase2-validate",
+    "make -C zigux phase2-kconfig",
     "make -C zigux phase2",
 ]
 
@@ -139,6 +140,10 @@ EXACT_COUNT_CHECKS = {
         "make -C zigux phase2-validate": 1,
         "make -C zigux phase2": 1,
     },
+    "Documentation/zigux/review-checklist.md": {
+        "scripts/zigux/check-phase2-kconfig-selftest-alignment.py": 1,
+        "make -C zigux phase2-kconfig": 1,
+    },
     "scripts/zigux/README.md": {
         "check-phase2-genksyms-bridge-selftest-alignment.py": 1,
         "check-phase2-kconfig-selftest-alignment.py": 1,
@@ -207,6 +212,13 @@ def validate_root(root: Path) -> list[str]:
         )
     )
     issues.extend(collect_missing_markers(review, REVIEW_CHECKLIST_MARKERS, prefix="review_checklist"))
+    issues.extend(
+        collect_exact_count_issues(
+            review,
+            EXACT_COUNT_CHECKS["Documentation/zigux/review-checklist.md"],
+            prefix="review_checklist",
+        )
+    )
     issues.extend(collect_missing_markers(scripts_readme, SCRIPTS_README_MARKERS, prefix="scripts_readme"))
     issues.extend(
         collect_exact_count_issues(
@@ -358,6 +370,43 @@ def run_self_test() -> int:
 
         build_self_test_root(root)
         write_text(
+            root / "Documentation/zigux/review-checklist.md",
+            "\n".join(REVIEW_CHECKLIST_MARKERS)
+            + "\nscripts/zigux/check-phase2-kconfig-selftest-alignment.py\n",
+        )
+        issues = validate_root(root)
+        assert (
+            "review_checklist:exact_count:scripts/zigux/check-phase2-kconfig-selftest-alignment.py:count=2:expected=1"
+            in issues
+        )
+
+        build_self_test_root(root)
+        write_text(
+            root / "Documentation/zigux/review-checklist.md",
+            "\n".join(
+                marker
+                for marker in REVIEW_CHECKLIST_MARKERS
+                if marker != "make -C zigux phase2-kconfig"
+            )
+            + "\n",
+        )
+        issues = validate_root(root)
+        assert "review_checklist:make -C zigux phase2-kconfig" in issues
+
+        build_self_test_root(root)
+        write_text(
+            root / "Documentation/zigux/review-checklist.md",
+            "\n".join(REVIEW_CHECKLIST_MARKERS)
+            + "\nmake -C zigux phase2-kconfig\n",
+        )
+        issues = validate_root(root)
+        assert (
+            "review_checklist:exact_count:make -C zigux phase2-kconfig:count=2:expected=1"
+            in issues
+        )
+
+        build_self_test_root(root)
+        write_text(
             root / "scripts/zigux/README.md",
             "\n".join(
                 marker
@@ -497,7 +546,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE2_TESTS_README_ALIGNMENT_SELF_TEST=pass")
-    print("PHASE2_TESTS_README_ALIGNMENT_SELF_TEST_CASE_COUNT=43")
+    print("PHASE2_TESTS_README_ALIGNMENT_SELF_TEST_CASE_COUNT=46")
     return 0
 
 
