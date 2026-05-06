@@ -97,6 +97,10 @@ def collect_manifest_issues(root: Path) -> list[tuple[str, str]]:
             seen_names[name] = group_name
 
     for case in conf_cases:
+        if case["mode"] != "randconfig":
+            for field_name in ("seed", "probability"):
+                if field_name in case:
+                    issues.append(("INVALID_CONF_CASE_RANDCONFIG_FIELDS", f"{case['name']}:{field_name}"))
         rel_path = case["expected"]
         if not (fixture_dir / rel_path).exists():
             issues.append(("MISSING_CONF_CASE_EXPECTED_PATHS", f"{case['name']}:expected:{rel_path}"))
@@ -139,6 +143,7 @@ pub const Mode = enum {
     syncconfig,
     alldefconfig,
     allmodconfig,
+    randconfig,
     yes2modconfig,
     defconfig,
     savedefconfig,
@@ -175,6 +180,16 @@ pub const Mode = enum {
                         "config": "out/.config",
                         "arch": "riscv64",
                         "expected": "syncconfig_expected.json",
+                    },
+                    {
+                        "name": "randconfig",
+                        "mode": "randconfig",
+                        "kconfig": "Kconfig",
+                        "config": "rand/.config",
+                        "arch": "x86_64",
+                        "seed": "0xC0FFEE",
+                        "probability": "15:25",
+                        "expected": "randconfig_expected.json",
                     },
                     {
                         "name": "defconfig",
@@ -223,6 +238,7 @@ pub const Mode = enum {
     for rel_path in (
         "olddefconfig_expected.json",
         "syncconfig_expected.json",
+        "randconfig_expected.json",
         "defconfig_expected.json",
         "savedefconfig_expected.json",
         "listnewconfig_expected.json",
@@ -250,17 +266,24 @@ def run_self_test() -> int:
 
         build_self_test_root(root)
         payload = json.loads(cases_path.read_text(encoding="utf-8"))
-        payload["conf_cases"][1], payload["conf_cases"][2] = payload["conf_cases"][2], payload["conf_cases"][1]
+        payload["conf_cases"][1], payload["conf_cases"][3] = payload["conf_cases"][3], payload["conf_cases"][1]
         write_text(cases_path, json.dumps(payload, indent=2) + "\n")
         issues = collect_manifest_issues(root)
         assert (
             "CONF_CASE_MODE_ORDER_ACTUAL",
-            "olddefconfig,defconfig,syncconfig,savedefconfig,listnewconfig",
+            "olddefconfig,defconfig,randconfig,syncconfig,savedefconfig,listnewconfig",
         ) in issues
         assert (
             "CONF_CASE_MODE_ORDER_EXPECTED",
-            "olddefconfig,syncconfig,defconfig,savedefconfig,listnewconfig",
+            "olddefconfig,syncconfig,randconfig,defconfig,savedefconfig,listnewconfig",
         ) in issues
+
+        build_self_test_root(root)
+        payload = json.loads(cases_path.read_text(encoding="utf-8"))
+        payload["conf_cases"][0]["seed"] = "0xBAD"
+        write_text(cases_path, json.dumps(payload, indent=2) + "\n")
+        issues = collect_manifest_issues(root)
+        assert ("INVALID_CONF_CASE_RANDCONFIG_FIELDS", "olddefconfig:seed") in issues
 
         build_self_test_root(root)
         payload = json.loads(cases_path.read_text(encoding="utf-8"))
@@ -282,7 +305,7 @@ def run_self_test() -> int:
         assert ("MISSING_CONFDATA_CASE_PATHS", "sample_crlf:expected:sample_crlf_expected.json") in issues
 
     print("KCONFIG_BRIDGE_SELF_TEST=pass")
-    print("KCONFIG_BRIDGE_SELF_TEST_CASE_COUNT=6")
+    print("KCONFIG_BRIDGE_SELF_TEST_CASE_COUNT=7")
     return 0
 
 
@@ -324,6 +347,10 @@ def main() -> int:
             ]
             if "mode_arg" in case:
                 cmd.append(case["mode_arg"])
+            if "seed" in case:
+                cmd.append(f"seed={case['seed']}")
+            if "probability" in case:
+                cmd.append(f"probability={case['probability']}")
             result = run(cmd, cwd=str(ROOT), capture_output=True)
             actual.write_text(result.stdout, encoding="utf-8", newline="\n")
             run([sys.executable, str(ARTIFACT_DIFF), "--mode", "json", str(FIXTURE_DIR / case["expected"]), str(actual)], cwd=str(ROOT))
