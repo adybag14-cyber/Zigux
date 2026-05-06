@@ -15,6 +15,20 @@ const BaseManifest = struct {
     gaps: []const Gap,
 };
 
+const DeliveryEvidence = struct {
+    id: []const u8,
+    kind: []const u8,
+    path: []const u8,
+    why_now: []const u8,
+};
+
+const OwnershipEntry = struct {
+    surface: []const u8,
+    role: []const u8,
+    owner: []const u8,
+    boundary: []const u8,
+};
+
 const LifecycleBoundarySummary = struct {
     pre_execution_handoff_only: bool,
     metadata_only_registration_labels: []const []const u8,
@@ -26,6 +40,14 @@ const KretprobeManifest = struct {
     phase: []const u8,
     anchor: []const u8,
     lifecycle_boundary_summary: LifecycleBoundarySummary,
+    gaps: []const Gap,
+};
+
+const TraceEventsManifest = struct {
+    phase: []const u8,
+    anchor: []const u8,
+    delivery_evidence_catalog: []const DeliveryEvidence,
+    ownership_map: []const OwnershipEntry,
     gaps: []const Gap,
 };
 
@@ -63,6 +85,20 @@ fn readRepoFileAlloc(allocator: std.mem.Allocator, path: []const u8, max_bytes: 
 fn findGap(gaps: []const Gap, id: []const u8) ?Gap {
     for (gaps) |gap| {
         if (std.mem.eql(u8, gap.id, id)) return gap;
+    }
+    return null;
+}
+
+fn findDeliveryEvidence(entries: []const DeliveryEvidence, id: []const u8) ?DeliveryEvidence {
+    for (entries) |entry| {
+        if (std.mem.eql(u8, entry.id, id)) return entry;
+    }
+    return null;
+}
+
+fn findOwnershipEntry(entries: []const OwnershipEntry, surface: []const u8) ?OwnershipEntry {
+    for (entries) |entry| {
+        if (std.mem.eql(u8, entry.surface, surface)) return entry;
     }
     return null;
 }
@@ -313,7 +349,7 @@ test "phase 9 runtime loader allocator/init-flow replay keeps exact current init
     defer atomic64.deinit();
     const bitmap = try std.json.parseFromSlice(BaseManifest, std.testing.allocator, bitmap_json, parse_options);
     defer bitmap.deinit();
-    const trace_events = try std.json.parseFromSlice(BaseManifest, std.testing.allocator, trace_events_json, parse_options);
+    const trace_events = try std.json.parseFromSlice(TraceEventsManifest, std.testing.allocator, trace_events_json, parse_options);
     defer trace_events.deinit();
     const kretprobe = try std.json.parseFromSlice(KretprobeManifest, std.testing.allocator, kretprobe_json, parse_options);
     defer kretprobe.deinit();
@@ -326,6 +362,62 @@ test "phase 9 runtime loader allocator/init-flow replay keeps exact current init
     try std.testing.expectEqualStrings("samples/trace_events/trace-events-sample.c", trace_events.value.anchor);
     try std.testing.expectEqualStrings("Phase 9", kretprobe.value.phase);
     try std.testing.expectEqualStrings("samples/kprobes/kretprobe_example.c", kretprobe.value.anchor);
+
+    const trace_events_survey_note = findDeliveryEvidence(
+        trace_events.value.delivery_evidence_catalog,
+        "trace-events-survey-note",
+    ) orelse return error.MissingTraceEventsSurveyNote;
+    try std.testing.expectEqualStrings(
+        "Documentation/zigux/phase9-runtime-trace-events-survey.md",
+        trace_events_survey_note.path,
+    );
+    const trace_events_module_slice = findDeliveryEvidence(
+        trace_events.value.delivery_evidence_catalog,
+        "trace-events-module-slice-note",
+    ) orelse return error.MissingTraceEventsModuleSlice;
+    try std.testing.expectEqualStrings(
+        "Documentation/zigux/phase9-runtime-trace-events-module-slice.md",
+        trace_events_module_slice.path,
+    );
+    const trace_events_survey_gate = findDeliveryEvidence(
+        trace_events.value.delivery_evidence_catalog,
+        "trace-events-survey-gate",
+    ) orelse return error.MissingTraceEventsSurveyGate;
+    try std.testing.expectEqualStrings(
+        "zigux/tests/runtime_trace_events_survey.zig",
+        trace_events_survey_gate.path,
+    );
+    const trace_events_build_gate = findDeliveryEvidence(
+        trace_events.value.delivery_evidence_catalog,
+        "trace-events-shared-build-gate",
+    ) orelse return error.MissingTraceEventsBuildGate;
+    try std.testing.expectEqualStrings(
+        "zigux/tests/phase9_build.zig",
+        trace_events_build_gate.path,
+    );
+
+    const trace_events_loader_owner = findOwnershipEntry(
+        trace_events.value.ownership_map,
+        "samples/zigux/runtime_trace_events_loader.zig",
+    ) orelse return error.MissingTraceEventsLoaderOwnership;
+    try std.testing.expectEqualStrings("loader_scaffold", trace_events_loader_owner.role);
+    try std.testing.expectEqualStrings("P9-L12", trace_events_loader_owner.owner);
+    try std.testing.expect(std.mem.indexOf(
+        u8,
+        trace_events_loader_owner.boundary,
+        "release-without-substrate behavior",
+    ) != null);
+    const trace_events_build_owner = findOwnershipEntry(
+        trace_events.value.ownership_map,
+        "zigux/tests/phase9_build.zig",
+    ) orelse return error.MissingTraceEventsBuildOwnership;
+    try std.testing.expectEqualStrings("shared_build_bundle", trace_events_build_owner.role);
+    try std.testing.expectEqualStrings("P9-L12", trace_events_build_owner.owner);
+    try std.testing.expect(std.mem.indexOf(
+        u8,
+        trace_events_build_owner.boundary,
+        "shared Phase 9 replay bundle only",
+    ) != null);
 
     try expectGapStatusAndWhyNow(
         atomic64.value.gaps,
@@ -358,6 +450,12 @@ test "phase 9 runtime loader allocator/init-flow replay keeps exact current init
         "runtime-trace-events-loader-scaffold",
         "starter_landed",
         "tracepoint register and unregister APIs",
+    );
+    try expectGapStatusAndWhyNow(
+        trace_events.value.gaps,
+        "runtime-trace-events-loader-scaffold",
+        "starter_landed",
+        "prepared and initialized-stage handoff snapshots",
     );
     try expectGapStatusAndWhyNow(
         trace_events.value.gaps,
