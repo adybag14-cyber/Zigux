@@ -36,7 +36,8 @@
         "test \"rbtree erase and replace keep traversal consistent\"",
         "test \"rbtree eraseInit detaches erased node\"",
         "test \"rbtree postorder and empty node helpers behave\"",
-        "test \"rbtree findAdd keeps the first duplicate and inserts new keys\""
+        "test \"rbtree findAdd keeps the first duplicate and inserts new keys\"",
+        "test \"rbtree nextMatch walks the duplicate range in order\""
       ],
       "phase1_helper_replay_anchor": "test \"phase 1 helper ports match committed parity fixture\"",
       "parity_fixture_keys": [
