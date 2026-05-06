@@ -134,9 +134,17 @@ test "phase 15 architecture council review-process doc and manifest stay aligned
     try expectContains(survey_doc, "`retired_from_active_discussion`");
     try expectContains(survey_doc, "current review-process evidence is limited to named `phase`");
     try expectContains(survey_doc, "`current status bucket`");
+    try expectContains(survey_doc, "`owner`");
+    try expectContains(survey_doc, "`rollback owner`");
     try expectContains(survey_doc, "`validation gate summary`");
     try expectContains(survey_doc, "`indefinite-C policy link or non-applicability note`");
     try expectContains(survey_doc, "`rollback-threshold`");
+    try expectContains(
+        survey_doc,
+        "evidence archive, blocker-disposition, benchmark-notes, replay-command",
+    );
+    try expectContains(survey_doc, "retained-discussion-state");
+    try expectContains(survey_doc, "reopen-trigger records");
     try expectContains(survey_doc, "landed `phase15-roadmap-minimum-field-sync`");
     try expectContains(survey_doc, "landed `phase15-lane-owner-alignment-replay-visible`");
 
