@@ -32,6 +32,10 @@ test "phase 7 replacement and padding helpers work in place" {
     try std.testing.expectEqualSlices(u8, "a_b", replace_buf[0..3]);
     try std.testing.expectEqual(@as(u8, '-'), replace_buf[4]);
 
+    const duplicated = try string_helpers.kstrdupAndReplace(std.testing.allocator, "tty-0\x00ignored", '-', '_');
+    defer std.testing.allocator.free(duplicated);
+    try std.testing.expectEqualStrings("tty_0", duplicated);
+
     var padded = [_]u8{ 0, 0, 0, 0, 0 };
     string_helpers.memcpyAndPad(&padded, "xy", 2, '.');
     try std.testing.expectEqualSlices(u8, "xy...", &padded);
