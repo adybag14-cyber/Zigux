@@ -95,6 +95,18 @@ Phase 2 is only considered closed when all of the following are green:
 - `PHASE2_CLOSURE_GATE=python3 scripts/zigux/validate-phase2-closure.py`
 - `PHASE2_FIXDEP_EMBEDDED_NUL_GUARD=fixdep.zig truncates depfile parsing at the first embedded NUL and keeps dep parsing skips bytes after the first embedded NUL as the bounded parser guard`
 
+## Fixdep Closure Packet
+
+The bounded fixdep closure packet currently keeps four committed artifact cases plus focused helper-local guards reviewable:
+
+- `PHASE2_FIXDEP_CASE_COUNT=4`
+- `PHASE2_FIXDEP_CASES=sample,sample_multi_target,sample_comment_only,sample_missing_dep`
+- `PHASE2_FIXDEP_STDOUT_PACKET=sample_expected.txt,sample_multi_target_expected.txt,sample_comment_only_expected.txt,sample_missing_dep_expected.txt`
+- `PHASE2_FIXDEP_STDERR_PACKET=sample_comment_only_expected.stderr.txt,sample_missing_dep_expected.stderr.txt`
+- success coverage stays anchored by `sample_expected.txt` and `sample_multi_target_expected.txt`
+- bounded failure coverage stays anchored by the comment-only parse error and missing-dependency open error fixtures in `zigux/tests/fixtures/fixdep/`
+- helper-local anchors in `zig test scripts/zigux/fixdep.zig` now include `dep parsing returns NoTargets for comment-only depfiles`, `dep parsing skips bytes after the first embedded NUL`, `dependency file reads beyond the legacy one mebibyte ceiling`, and `output write failure uses C-style wording`
+
 ## Toolchain Pin Boundary
 
 The bounded Phase 2 bootstrap archive pin stays separate from the cross-target compile matrix:
