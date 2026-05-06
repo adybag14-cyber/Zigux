@@ -39,6 +39,8 @@ The Phase 10 roadmap puts virtqueue wrappers ahead of MMIO work, but it also nam
 
 The live repo already had a survey lane that made the MMIO gap explicit. This slice records the smallest honest landed follow-on: a lab-only helper that exposes a bounded queue-selected register window, queue size bookkeeping, one device-feature selector and read window, one small transport-backed config-word window, one config-word write planning summary, one config-write disposition summary for that prepared word window, one probe-preflight summary for the earliest `virtio_mmio_probe()`-style checks, and helper-local status or generation bookkeeping without pretending to own interrupt acknowledgement, reset flows, queue discovery, or probe lifecycle behavior.
 
+That same review packet now needs to stay honest about the next bounded roadmapped follow-on too: the current probe-preflight summary still derives its identity assumptions from helper constants rather than from one explicit transport-identity snapshot, so the next safe MMIO lab-driver step is still an observation-only identity helper rather than lifecycle work.
+
 ## Landed starter surface
 
 - module descriptor metadata anchored to `drivers/virtio/virtio_mmio.c`
@@ -92,4 +94,4 @@ Taken together, these gates keep the bounded MMIO packet reviewable through the 
 
 ## Next bounded step
 
-Keep the Phase 10 MMIO lane focused on another transport-safe observation helper or tightly coupled helper validation beyond the landed config-write disposition surface before widening into interrupt acknowledgement, queue discovery, reset paths, or probe lifecycle work.
+Keep the Phase 10 MMIO lane narrow and land one transport-identity snapshot helper that turns the current constant-backed magic, version, and vendor assumptions into a shared observation surface before widening into interrupt acknowledgement, queue discovery, reset paths, or probe lifecycle work.
