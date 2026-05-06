@@ -89,7 +89,7 @@
       "status": "starter_landed",
       "kind": "documentation",
       "zigux_destination": "Documentation/zigux/phase10-virtio-mmio-survey.md",
-      "why_now": "The lane needs a Phase 10 note that records the current MMIO transport scope, the live helper-backed surface, the roadmap-allowed destination family, and the reasons broader transport work is still blocked."
+      "why_now": "The lane needs a Phase 10 note that records the current MMIO transport scope, the live helper-backed surface, the roadmap-allowed destination family, the next transport-safe lab-driver gap, and the reasons broader transport work is still blocked."
     },
     {
       "id": "phase10-mmio-register-window-helper",
@@ -145,7 +145,14 @@
       "status": "starter_landed",
       "kind": "transport_wrapper",
       "zigux_destination": "drivers/virtio/virtio_mmio.zig",
-      "why_now": "With config-write planning already landed, the live MMIO helper can now summarize which bytes a prepared config-word write would change, including the absolute window end offset and a byte-change mask, without mutating config space or claiming interrupt acknowledgement, queue discovery, reset flows, or probe or remove lifecycle behavior."
+      "why_now": "With config-write planning already landed, the live MMIO helper can now summarize which bytes a prepared config-word write would change, including the absolute end of the prepared config-word window and a changed-byte mask, without mutating config space or claiming interrupt acknowledgement, queue discovery, reset flows, or probe or remove lifecycle behavior."
+    },
+    {
+      "id": "phase10-mmio-transport-identity-helper",
+      "status": "ready_next",
+      "kind": "transport_wrapper",
+      "zigux_destination": "drivers/virtio/virtio_mmio.zig",
+      "why_now": "The roadmap still allows another bounded MMIO wrapper inside drivers/virtio/*.zig, and the live helper still hard-codes magic, version, and vendor assumptions instead of exposing one transport-identity snapshot that later preflight or survey logic can share without widening into interrupt acknowledgement, queue discovery, reset flows, or probe or remove lifecycle behavior."
     },
     {
       "id": "phase10-mmio-lifecycle-and-irq-paths",
