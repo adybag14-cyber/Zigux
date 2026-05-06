@@ -10,6 +10,8 @@ const trace_event_families = [_]runtime_trace_events_sample.EventFamily{
     .function_callback,
 };
 
+const empty_trace_event_families = [_]runtime_trace_events_sample.EventFamily{};
+
 pub const LoaderStage = enum(u8) {
     idle,
     prepared,
@@ -153,7 +155,11 @@ pub const RuntimeTraceEventsLoader = struct {
     fn buildSummary(module: *const runtime_trace_events_sample.RuntimeTraceEventsSample) RuntimeTraceEventsLoadSummary {
         return .{
             .anchor = runtime_trace_events_sample.RuntimeTraceEventsSample.descriptor().anchor,
-            .event_families = trace_event_families[0..],
+            .event_families = switch (module.stage()) {
+                .initialized => empty_trace_event_families[0..],
+                .selftest_complete => trace_event_families[0..],
+                else => unreachable,
+            },
             .main_thread_events = module.main_iterations * 6,
             .fn_thread_events = module.fn_iterations * 2,
             .total_events = module.total_events,
@@ -285,6 +291,7 @@ test "runtime trace-events loader keeps unavailable substrate and lifecycle guar
     var loader = RuntimeTraceEventsLoader{};
     const prepared = try loader.prepare(&module);
     try std.testing.expectEqual(runtime_trace_events_sample.ModuleStage.initialized, prepared.handoff_stage);
+    try std.testing.expectEqual(@as(usize, 0), prepared.summary.event_families.len);
     try std.testing.expectEqual(@as(usize, 0), prepared.summary.main_thread_events);
     try std.testing.expectEqual(@as(usize, 0), prepared.summary.fn_thread_events);
     try std.testing.expectEqual(@as(usize, 0), prepared.summary.total_events);
@@ -387,6 +394,7 @@ test "runtime trace-events loader keeps initialized-stage shared contract plans 
     const plan = try loader.prepare(&module);
     const shared_plan = toSharedLoadPlan(plan);
 
+    try std.testing.expectEqual(@as(usize, 0), plan.summary.event_families.len);
     try std.testing.expect(keepsSharedLoadPlanSnapshotExplicit(plan, shared_plan));
     try std.testing.expectEqual(runtime_loader.HandoffStage.initialized, shared_plan.init_flow.handoff_stage);
     try std.testing.expectEqual(@as(usize, 0), shared_plan.init_flow.selftest_runs);
@@ -413,6 +421,7 @@ test "runtime trace-events loader keeps initialized shared-request snapshots sta
     const prepared_plan = shared_request.plan;
     try std.testing.expectEqual(runtime_loader.HandoffStage.initialized, prepared_plan.init_flow.handoff_stage);
     try std.testing.expectEqual(@as(usize, 0), prepared_plan.init_flow.selftest_runs);
+    try std.testing.expectEqual(@as(usize, 0), loader.cached_plan.?.summary.event_families.len);
 
     const selftest = try module.runSelftest();
     const live_plan = try RuntimeTraceEventsLoader.planFor(&module);
@@ -420,6 +429,7 @@ test "runtime trace-events loader keeps initialized shared-request snapshots sta
 
     try std.testing.expectEqual(@as(usize, 5), selftest.event_families.len);
     try std.testing.expectEqual(runtime_trace_events_sample.ModuleStage.selftest_complete, live_plan.handoff_stage);
+    try std.testing.expectEqual(@as(usize, 5), live_plan.summary.event_families.len);
     try std.testing.expectEqual(@as(usize, 1), live_plan.summary.selftest_runs);
     try std.testing.expectEqual(LoaderStage.waiting_on_runtime_substrate, loader.stage());
     try std.testing.expectEqual(runtime_loader.RequestState.waiting_on_runtime_substrate, shared_request.state);
@@ -429,6 +439,7 @@ test "runtime trace-events loader keeps initialized shared-request snapshots sta
     try std.testing.expectEqualStrings(prepared_plan.exit_symbol, pending_plan.exit_symbol);
     try std.testing.expectEqual(runtime_loader.HandoffStage.initialized, pending_plan.init_flow.handoff_stage);
     try std.testing.expectEqual(@as(usize, 0), pending_plan.init_flow.selftest_runs);
+    try std.testing.expectEqual(@as(usize, 0), loader.cached_plan.?.summary.event_families.len);
     try std.testing.expect(runtime_loader.keepsAllocatorInitFlowConsistent(
         pending_plan,
         .caller_provided,
