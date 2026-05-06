@@ -22,7 +22,7 @@ The live repo still benefits from keeping `exec-cmd` parked as a helper-first, o
 
 That same parked command-boundary packet now also sits inside the shared Phase 8 validator-first route, so reviewers can recheck the command slice through `make -C zigux phase8-validate` before widening back out to the broader tooling bundle.
 
-The live helper already carries the low-level trailing-colon `PATH` edge, rooted `argv[0]` slash-avoidance edge, logical-`PWD` alias acceptance proof, and the `collectExeclArgs()` overflow and missing-null guards in its own unit tests. The focused Phase 8 replay stays on the integrated deferred-exec packet, live C helper anchors, checklist hook, and validator route instead of restaging every helper-local edge.
+The live helper already carries the low-level trailing-colon `PATH` edge, rooted `argv[0]` slash-avoidance edge, logical-`PWD` alias acceptance proof, the `collectExeclArgs()` overflow and missing-null guards, and the integrated `planDeferredExecvCall()` plus `planDeferredExeclCall()` planner packet in its own unit tests. The focused Phase 8 replay stays on that integrated deferred-exec packet, live C helper anchors, checklist hook, and validator route instead of restaging every helper-local edge.
 
 That validator-first coverage still needs a strict boundary. This Phase 8 slice stops before any ownership of `execv_cmd()` or `execvp()`, avoids scheduler-facing transport or queue claims, and leaves `kernel/workqueue.c` in the later Phase 14 boundary-study tranche rather than treating this tooling helper as an early workqueue port.
 
@@ -55,8 +55,8 @@ The current parked deferred-exec packet covers:
 - injected `exec_cmd_init()` and `set_argv_exec_path()` environment propagation for `PREFIX` and the configured exec-path variable
 - `setup_path()`-adjacent path assembly plus `PATH` environment updates via relative-to-cwd normalization
 - a pure `choosePwdCwd()` helper for caller-provided same-location decisions plus a stat-backed `sameLocation()` and `choosePwdCwdFromFilesystem()` pair that mirror the C helper's logical-`PWD` acceptance rule without widening into broader process or environment side effects
-- `prepare_exec_cmd()`-style argv prefixing with a trailing null slot for later deferred `execv_cmd()`-style handoff planning, plus a pure `buildDeferredExecvCall()` helper that keeps that null-terminated argv packet reviewable before any direct launch ownership exists
-- a pure `collectExeclArgs()` helper that models the `execl_cmd()` argument collector and its legacy `MAX_ARGS` guard, plus a pure `buildDeferredExeclCall()` helper that preserves the same deferred argv-handoff packet without claiming any direct `execl_cmd()` varargs launch ownership, direct process-launch behavior, scheduler-facing transport, or workqueue-facing deferred-execution ownership
+- `prepare_exec_cmd()`-style argv prefixing with a trailing null slot for later deferred `execv_cmd()`-style handoff planning, plus a pure `buildDeferredExecvCall()` helper and an integrated `planDeferredExecvCall()` wrapper that keep that null-terminated argv packet and the paired `setupPath()` handoff reviewable before any direct launch ownership exists
+- a pure `collectExeclArgs()` helper that models the `execl_cmd()` argument collector and its legacy `MAX_ARGS` guard, plus a pure `buildDeferredExeclCall()` helper and an integrated `planDeferredExeclCall()` wrapper that preserve the same deferred argv-handoff packet together with the paired `setupPath()` result without claiming any direct `execl_cmd()` varargs launch ownership, direct process-launch behavior, scheduler-facing transport, or workqueue-facing deferred-execution ownership
 
 The current tests check:
 
