@@ -69,16 +69,13 @@ LOW_LEVEL_WRAPPER_REQUIRED_MARKERS = (
     "try std.testing.expectEqual(@as(?u32, 19), weak_release_mismatch);",
 )
 
-
 def _is_legacy_wrapper_manifest_file(rel: str) -> bool:
     return rel.startswith("scripts/zigux/check-phase3-") and rel.endswith(".py")
-
 
 def _required_manifest_files_for_slug(slug: str) -> tuple[str, ...]:
     if slug == "abi":
         return ABI_REQUIRED_MANIFEST_FILES
     return ()
-
 
 def select_slices(entries: list[object], selected_slugs: list[str]) -> list[object]:
     slices = list(entries)
@@ -89,7 +86,6 @@ def select_slices(entries: list[object], selected_slugs: list[str]) -> list[obje
         if missing:
             raise SystemExit(f"unknown Phase 3 slugs: {', '.join(missing)}")
     return slices
-
 
 def validate_manifest(root: Path, path: Path | None, slug: str, issues: list[str]) -> dict[str, object] | None:
     if path is None:
@@ -130,7 +126,6 @@ def validate_manifest(root: Path, path: Path | None, slug: str, issues: list[str
             issues.append(f"{slug}:manifest_missing_file={rel}")
     return data
 
-
 def validate_doc_markers(root: Path, doc_path: Path, slug: str, manifest: dict[str, object] | None, issues: list[str]) -> None:
     if not doc_path.exists():
         issues.append(f"{slug}:missing_doc:{doc_path.relative_to(root).as_posix()}")
@@ -158,7 +153,6 @@ def validate_doc_markers(root: Path, doc_path: Path, slug: str, manifest: dict[s
     elif interop_count != 1:
         issues.append(f"{slug}:duplicate_doc_marker_one_of={'|'.join(interop_markers)}")
 
-
 def _normalize_doc_marker_line(line: str) -> str:
     normalized = line.strip()
     if normalized.startswith("- "):
@@ -169,7 +163,6 @@ def _normalize_doc_marker_line(line: str) -> str:
         normalized = normalized[1:-1]
     return normalized
 
-
 def validate_wrapper_template(root: Path, script_path: Path, slug: str, issues: list[str]) -> None:
     if not script_path.exists():
         return
@@ -177,7 +170,6 @@ def validate_wrapper_template(root: Path, script_path: Path, slug: str, issues: 
     current = script_path.read_text(encoding="utf-8")
     if current != expected:
         issues.append(f"{slug}:wrapper_template_mismatch:{script_path.relative_to(root).as_posix()}")
-
 
 def validate_low_level_wrapper_markers(root: Path, slug: str, issues: list[str]) -> None:
     if slug != "abi":
@@ -191,11 +183,9 @@ def validate_low_level_wrapper_markers(root: Path, slug: str, issues: list[str])
         if marker not in source:
             issues.append(f"{slug}:missing_low_level_wrapper_marker={marker}")
 
-
 def _has_build_step(build_file: Path, step_name: str) -> bool:
     marker = f'b.step("{step_name}"'
     return marker in build_file.read_text(encoding="utf-8")
-
 
 def _is_generated_wrapper_script(path: Path) -> bool:
     try:
@@ -210,7 +200,6 @@ def _is_generated_wrapper_script(path: Path) -> bool:
         and "run_from_wrapper(__file__)" in current
     )
 
-
 def validate_build_steps(root: Path, slices: list[object], issues: list[str]) -> None:
     build_file = root / BUILD_FILE_REL
     if not build_file.exists():
@@ -224,7 +213,6 @@ def validate_build_steps(root: Path, slices: list[object], issues: list[str]) ->
         if not _has_build_step(build_file, entry.build_step):
             issues.append(f"{entry.slug}:missing_build_step:{BUILD_FILE_REL}:{entry.build_step}")
 
-
 def validate_obsolete_wrappers(root: Path, slices: list[object], issues: list[str], *, check_all_wrappers: bool) -> None:
     if not check_all_wrappers:
         return
@@ -236,7 +224,6 @@ def validate_obsolete_wrappers(root: Path, slices: list[object], issues: list[st
         if not _is_generated_wrapper_script(path):
             continue
         issues.append(f"obsolete_wrapper:{path.relative_to(root).as_posix()}")
-
 
 def validate_artifact_diff_phase3_section(root: Path, slices: list[object], issues: list[str]) -> None:
     artifact_diff_path = root / "Documentation" / "zigux" / "artifact-diff.md"
@@ -258,14 +245,11 @@ def validate_artifact_diff_phase3_section(root: Path, slices: list[object], issu
     if current != expected:
         issues.append("artifact_diff:stale_phase3_section:Documentation/zigux/artifact-diff.md")
 
-
 def _format_slug_audit_issue(issue) -> str:
     return "slug_audit:" + issue.to_row().replace("\t", ":")
 
-
 def _format_slug_rename_candidate(candidate) -> str:
     return "slug_rename_candidate:" + candidate.to_row().replace("\t", ":")
-
 
 def validate_slices(
     root: Path,
@@ -303,7 +287,6 @@ def validate_slices(
         if slug_issues:
             issues.extend(_format_slug_rename_candidate(candidate) for candidate in discover_phase3_slug_rename_candidates(slices))
     return issues
-
 
 def run_self_test() -> int:
     with tempfile.TemporaryDirectory(prefix="zigux_phase3_validator_selftest_") as tmp_dir_str:
@@ -421,7 +404,7 @@ def run_self_test() -> int:
         )
         (paths.scripts_dir / "check-phase3-alpha.py").write_text(render_wrapper_stub(), encoding="utf-8", newline="\n")
         (paths.tests_dir / "phase3_alpha_dump.zig").write_text("// alpha\n", encoding="utf-8", newline="\n")
-        (fixture_dir / "expected.json").writeText("{}\n", encoding="utf-8", newline="\n")
+        (fixture_dir / "expected.json").write_text("{}\n", encoding="utf-8", newline="\n")
         (fixture_dir / "phase3_alpha_c_harness.c").write_text("int main(void) { return 0; }\n", encoding="utf-8", newline="\n")
         (fixture_dir / "phase3_alpha_manifest.json").write_text(
             json.dumps(
@@ -760,7 +743,6 @@ def run_self_test() -> int:
     print("PHASE3_VALIDATE_SELF_TEST=pass")
     return 0
 
-
 def main() -> int:
     parser = argparse.ArgumentParser(description="Validate discovered Phase 3 slice assets and documentation markers.")
     parser.add_argument("--self-test", action="store_true", help="Run isolated Phase 3 validation coverage in a temporary workspace.")
@@ -806,7 +788,6 @@ def main() -> int:
     print("PHASE3_VALIDATION=pass")
     print(f"PHASE3_SLICE_COUNT={len(slices)}")
     return 0
-
 
 if __name__ == "__main__":
     raise SystemExit(main())
