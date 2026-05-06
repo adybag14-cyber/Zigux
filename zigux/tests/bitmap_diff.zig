@@ -199,6 +199,24 @@ const ThresholdReplaySummary = struct {
     final_nth_seven: u32,
 };
 
+const exp1_find_nth_bits = [_]u32{
+    0, 65, 128, 129, 130, 131, 132, 133, 134, 135, 136, 137, 138, 139, 140, 141,
+    142, 143, 208, 209, 210, 211, 212, 213, 214, 215, 216, 217, 218, 219, 220, 221,
+    222, 223, 256, 258, 260, 262, 264, 266, 268, 270, 272, 274, 276, 278, 280, 282,
+    284, 286, 321, 323, 325, 327, 329, 331, 333, 335, 337, 339, 341, 343, 345, 347,
+    349, 351, 384, 388, 392, 396, 400, 404, 408, 412, 449, 453, 457, 461, 465, 469,
+    473, 477, 512, 513, 514, 515, 516, 517, 518, 519, 520, 521, 522, 523, 524, 525,
+    526, 527, 528, 529, 530, 531, 532, 533, 534, 535, 536, 537, 538, 539, 540, 541,
+    542, 543, 577, 578, 579, 580, 581, 582, 583, 584, 585, 586, 587, 588, 589, 590,
+    591, 592, 593, 594, 595, 596, 597, 598, 599, 600, 601, 602, 603, 604, 605, 606,
+    607, 640, 644, 648, 652, 656, 660, 664, 668, 672, 673, 676, 677, 680, 681, 684,
+    685, 688, 689, 692, 693, 696, 697, 700, 701, 704, 705, 706, 708, 709, 710, 712,
+    713, 714, 716, 717, 718, 720, 721, 722, 724, 725, 726, 728, 729, 730, 732, 733,
+    734, 736, 737, 738, 739, 740, 741, 742, 743, 744, 745, 746, 747, 748, 749, 750,
+    751, 752, 753, 754, 755, 756, 757, 758, 759, 760, 761, 762, 763, 764, 765, 766,
+    767, 847, 927,
+};
+
 fn mixThresholdChecksum(checksum: *u64, value: anytype) void {
     checksum.* = checksum.* *% 0x9e3779b185ebca87 +% @as(u64, @intCast(value));
 }
@@ -541,6 +559,10 @@ test "bitmap diff gate records exact bounded find_nth_bit checks" {
     try expectNthCase(&starter_bits, 64 * 3 - 1, &starter_bits);
 }
 
+test "bitmap diff gate replays exact bounded exp1 find_nth_bit enumeration" {
+    try expectNthCase(&exp1_find_nth_bits, 64 * 15, &exp1_find_nth_bits);
+}
+
 test "bitmap diff gate records exact bounded copy checks" {
     const cases = [_]CopyCase{
         .{
@@ -652,6 +674,7 @@ test "bitmap diff gate keeps the current bounded source inventory explicit" {
         "test \"bitmap diff gate keeps a deterministic threshold replay batch ready for future perf baselines\"",
         7,
     );
+    try expectMarker(bitmap_diff_source, "const exp1_find_nth_bits = [_]u32{");
     try expectMarker(bitmap_diff_source, "test_fill_set bitmap_fill rounds the 35-bit prefix up to one word");
     try expectMarker(bitmap_diff_source, "test_fill_set bitmap_fill rounds the 115-bit prefix up to two words");
     try expectMarker(bitmap_diff_source, "test_fill_set bitmap_fill reaches the full 1024-bit extent");
@@ -663,6 +686,7 @@ test "bitmap diff gate keeps the current bounded source inventory explicit" {
     try expectMarker(bitmap_diff_source, "test_copy full-width replay from a cleared destination");
     try expectMarker(bitmap_diff_source, "test_copy full-width replay clears a pre-filled destination");
     try expectMarker(bitmap_diff_source, "test_zero_nbits zero-length copy leaves destination unchanged");
+    try expectMarker(bitmap_diff_source, "bitmap diff gate replays exact bounded exp1 find_nth_bit enumeration");
     try expectMarker(bitmap_diff_source, "if (iterations == 0) return error.EmptyThresholdReplayBatch;");
     try expectMarker(bitmap_diff_source, "try std.testing.expectError(error.EmptyThresholdReplayBatch, runThresholdReplay(0));");
     try expectMarker(bitmap_diff_source, "try std.testing.expectEqual(@as(u64, 5360730588881558405), single.checksum);");
