@@ -15,6 +15,7 @@ pub const ModuleDescriptor = struct {
     provides_rule_insertion_planning: bool,
     provides_rule_tree_search_planning: bool,
     provides_rule_tree_link_planning: bool,
+    provides_rule_tree_replacement_planning: bool,
     touches_live_object_trees: bool,
     touches_live_hierarchy: bool,
 };
@@ -120,6 +121,15 @@ pub const RuleTreeLinkPlan = struct {
     resulting_num_rules: u32,
 };
 
+pub const RuleTreeReplacementPlan = struct {
+    anchor: []const u8,
+    root: TreeRoot,
+    matched_key_data: u64,
+    resulting_rule: RulePlan,
+    performs_rb_replace_node: bool,
+    resulting_num_rules: u32,
+};
+
 pub const RulesetHelperLab = struct {
     pub fn descriptor() ModuleDescriptor {
         return .{
@@ -132,6 +142,7 @@ pub const RulesetHelperLab = struct {
             .provides_rule_insertion_planning = true,
             .provides_rule_tree_search_planning = true,
             .provides_rule_tree_link_planning = true,
+            .provides_rule_tree_replacement_planning = true,
             .touches_live_object_trees = false,
             .touches_live_hierarchy = false,
         };
@@ -459,6 +470,26 @@ pub const RulesetHelperLab = struct {
             .performs_rb_link_node = true,
             .performs_rb_insert_color = true,
             .resulting_num_rules = search_plan.resulting_num_rules,
+        };
+    }
+
+    pub fn planRuleTreeReplacement(key_type: KeyType, matched_key_data: u64, existing_rule: RulePlan, incoming_layer: Layer, current_num_rules: u32) !RuleTreeReplacementPlan {
+        if (current_num_rules == 0) {
+            return error.InvalidResultingCount;
+        }
+
+        const insertion_plan = try planRuleInsertion(existing_rule, &.{incoming_layer}, current_num_rules);
+        if (insertion_plan.mode != .append_merged_layer) {
+            return error.RuleReplacementRequiresMergedLayer;
+        }
+
+        return .{
+            .anchor = descriptor().anchor,
+            .root = selectRoot(key_type),
+            .matched_key_data = matched_key_data,
+            .resulting_rule = insertion_plan.resulting_rule,
+            .performs_rb_replace_node = true,
+            .resulting_num_rules = current_num_rules,
         };
     }
 };
