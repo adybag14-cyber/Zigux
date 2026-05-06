@@ -191,6 +191,16 @@ TESTS_REVIEW_COMPANION_REQUIRED_MARKERS = [
     "extra Phase 13 checker or replay surfaces that are not on `master`",
 ]
 
+TESTS_REVIEW_COMPANION_EXACT_COUNTS = {
+    "Documentation/zigux/phase13-notifier-list-survey.md": 2,
+    "zigux/tests/phase13_notifier_list_manifest.json": 3,
+    "include/zigux/notifier_abi.h": 3,
+    "zigux/bindings/notifier_abi.zig": 3,
+    "zigux/helpers/notifier_chain_view.zig": 3,
+    "same shipped validator-first release path": 1,
+    "extra Phase 13 checker or replay surfaces that are not on `master`": 2,
+}
+
 SCRIPTS_REQUIRED_MARKERS = [
     "Documentation/zigux/phase13-release-notes-survey.md",
     "Documentation/zigux/phase13-roadmap-traceability.md",
@@ -329,6 +339,7 @@ def validate(root: Path) -> list[str]:
     issues.extend(_collect_missing_markers(contributor_surface_sync, CONTRIBUTOR_SYNC_REQUIRED_MARKERS, "contributor-surface-sync"))
     issues.extend(_collect_exact_count_issues(contributor_surface_sync, CONTRIBUTOR_SYNC_EXACT_COUNTS, "contributor-surface-sync-exact"))
     issues.extend(_collect_missing_markers(tests_review_companion, TESTS_REVIEW_COMPANION_REQUIRED_MARKERS, "tests-review-companion"))
+    issues.extend(_collect_exact_count_issues(tests_review_companion, TESTS_REVIEW_COMPANION_EXACT_COUNTS, "tests-review-companion-exact"))
     issues.extend(_collect_missing_markers(scripts_readme, SCRIPTS_REQUIRED_MARKERS, "scripts-readme"))
     issues.extend(_collect_missing_markers(tests_readme, TESTS_REQUIRED_MARKERS, "tests-readme"))
     issues.extend(_collect_missing_markers(makefile, MAKE_REQUIRED_LINES, "makefile"))
@@ -441,6 +452,24 @@ def _baseline_contributor_workflow_guide() -> str:
         )
     )
 
+def _baseline_tests_review_companion() -> str:
+    return "\n".join(
+        TESTS_REVIEW_COMPANION_REQUIRED_MARKERS
+        + [
+            "Documentation/zigux/phase13-notifier-list-survey.md",
+            "zigux/tests/phase13_notifier_list_manifest.json",
+            "zigux/tests/phase13_notifier_list_manifest.json",
+            "include/zigux/notifier_abi.h",
+            "include/zigux/notifier_abi.h",
+            "zigux/bindings/notifier_abi.zig",
+            "zigux/bindings/notifier_abi.zig",
+            "zigux/helpers/notifier_chain_view.zig",
+            "zigux/helpers/notifier_chain_view.zig",
+            "extra Phase 13 checker or replay surfaces that are not on `master`",
+            "",
+        ]
+    )
+
 
 def _seed_fixture_tree(root: Path) -> None:
     _write(root / "Documentation/zigux/README.md", "\n".join(DOC_REQUIRED_MARKERS) + "\n")
@@ -450,7 +479,7 @@ def _seed_fixture_tree(root: Path) -> None:
     _write(root / "Documentation/zigux/phase13-notifier-list-survey.md", "# stub\n")
     _write(root / "Documentation/zigux/phase13-contributor-workflow-guide.md", _baseline_contributor_workflow_guide())
     _write(root / "Documentation/zigux/phase10-phase11-phase13-contributor-surface-sync.md", "\n".join(CONTRIBUTOR_SYNC_REQUIRED_MARKERS) + "\n")
-    _write(root / "Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md", "\n".join(TESTS_REVIEW_COMPANION_REQUIRED_MARKERS) + "\n")
+    _write(root / "Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md", _baseline_tests_review_companion())
     _write(root / "scripts/zigux/README.md", "\n".join(SCRIPTS_REQUIRED_MARKERS) + "\n")
     _write(root / "zigux/tests/README.md", "\n".join(TESTS_REQUIRED_MARKERS) + "\n")
     _write(root / "zigux/Makefile", _baseline_makefile())
@@ -471,26 +500,34 @@ def _seed_fixture_tree(root: Path) -> None:
             "zigux/tests/phase13_build.zig",
         }:
             continue
-        _write(root / rel, "// stub\n" if rel.endswith((".zig", ".h", ".py")) else "{}\n")
+        stub = "{}\n" if rel.endswith(".json") else "// stub\n"
+        if rel.endswith(".md"):
+            stub = "# stub\n"
+        if rel.endswith(".py"):
+            stub = "# stub\n"
+        _write(root / rel, stub)
 
 
-def _assert_only(issues: list[str], expected: list[str], label: str) -> None:
-    if issues != expected:
-        got = ",".join(issues) or "none"
-        want = ",".join(expected) or "none"
-        raise SystemExit(f"phase13-release-validator-self-test:{label}:got={got}:want={want}")
+def _assert_only(actual: list[str], expected: list[str], label: str) -> None:
+    if actual != expected:
+        raise AssertionError(f"{label}: expected {expected!r}, got {actual!r}")
 
 
 def run_self_test() -> int:
     case_count = 0
-    with tempfile.TemporaryDirectory(prefix="zigux_phase13_release_validator_") as tmp_dir:
-        root = Path(tmp_dir)
+    with tempfile.TemporaryDirectory() as tmp:
+        root = Path(tmp)
         _seed_fixture_tree(root)
-        _assert_only(validate(root), [], "baseline_failed")
+
+        baseline_makefile = _baseline_makefile()
+
+        issues = validate(root)
+        if issues:
+            raise AssertionError(f"baseline fixture should pass, got {issues!r}")
         case_count += 1
 
         makefile_path = root / "zigux/Makefile"
-        baseline_makefile = _read(makefile_path)
+        original_makefile = _read(makefile_path)
         makefile_path.write_text(
             baseline_makefile + "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase13-release-replay-exact-counts.py\n",
             encoding="utf-8",
@@ -698,10 +735,29 @@ def run_self_test() -> int:
                 "tests-review-companion:make -C zigux phase13",
                 "tests-review-companion:same shipped validator-first release path",
                 "tests-review-companion:extra Phase 13 checker or replay surfaces that are not on `master`",
+                "tests-review-companion-exact:Documentation/zigux/phase13-notifier-list-survey.md:expected=2:actual=0",
+                "tests-review-companion-exact:zigux/tests/phase13_notifier_list_manifest.json:expected=3:actual=0",
+                "tests-review-companion-exact:include/zigux/notifier_abi.h:expected=3:actual=0",
+                "tests-review-companion-exact:zigux/bindings/notifier_abi.zig:expected=3:actual=0",
+                "tests-review-companion-exact:zigux/helpers/notifier_chain_view.zig:expected=3:actual=0",
+                "tests-review-companion-exact:same shipped validator-first release path:expected=1:actual=0",
+                "tests-review-companion-exact:extra Phase 13 checker or replay surfaces that are not on `master`:expected=2:actual=0",
             ],
             "tests_review_companion_marker_guard_failed",
         )
-        _write(root / "Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md", "\n".join(TESTS_REVIEW_COMPANION_REQUIRED_MARKERS) + "\n")
+        _write(root / "Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md", _baseline_tests_review_companion())
+        case_count += 1
+
+        tests_review_companion_path.write_text(
+            _baseline_tests_review_companion() + "same shipped validator-first release path\n",
+            encoding="utf-8",
+        )
+        _assert_only(
+            validate(root),
+            ["tests-review-companion-exact:same shipped validator-first release path:expected=1:actual=2"],
+            "tests_review_companion_exact_count_guard_failed",
+        )
+        _write(root / "Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md", _baseline_tests_review_companion())
         case_count += 1
 
         scripts_readme_path = root / "scripts/zigux/README.md"
@@ -897,7 +953,7 @@ def main() -> int:
     print("PHASE13_RELEASE_VALIDATION=pass")
     print(
         "PHASE13_RELEASE_VALIDATION_MARKER_COUNT="
-        f"{len(REQUIRED_FILES) + len(DOC_REQUIRED_MARKERS) + len(REVIEW_REQUIRED_MARKERS) + len(DOC_EXACT_COUNTS) + len(REVIEW_EXACT_COUNTS) + len(CONTRIBUTOR_GUIDE_REQUIRED_MARKERS) + len(CONTRIBUTOR_GUIDE_EXACT_COUNTS) + len(CONTRIBUTOR_SYNC_REQUIRED_MARKERS) + len(CONTRIBUTOR_SYNC_EXACT_COUNTS) + len(TESTS_REVIEW_COMPANION_REQUIRED_MARKERS) + len(SCRIPTS_REQUIRED_MARKERS) + len(TESTS_REQUIRED_MARKERS) + len(MAKE_REQUIRED_LINES) + len(PHASE13_BUILD_EXACT_COUNTS) + len(PHASE13_BUILD_REQUIRED_MARKERS)}"
+        f"{len(REQUIRED_FILES) + len(DOC_REQUIRED_MARKERS) + len(REVIEW_REQUIRED_MARKERS) + len(DOC_EXACT_COUNTS) + len(REVIEW_EXACT_COUNTS) + len(CONTRIBUTOR_GUIDE_REQUIRED_MARKERS) + len(CONTRIBUTOR_GUIDE_EXACT_COUNTS) + len(CONTRIBUTOR_SYNC_REQUIRED_MARKERS) + len(CONTRIBUTOR_SYNC_EXACT_COUNTS) + len(TESTS_REVIEW_COMPANION_REQUIRED_MARKERS) + len(TESTS_REVIEW_COMPANION_EXACT_COUNTS) + len(SCRIPTS_REQUIRED_MARKERS) + len(TESTS_REQUIRED_MARKERS) + len(MAKE_REQUIRED_LINES) + len(PHASE13_BUILD_EXACT_COUNTS) + len(PHASE13_BUILD_REQUIRED_MARKERS)}"
     )
     return 0
 
