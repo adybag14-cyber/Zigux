@@ -33,6 +33,10 @@ Current parked packet:
 - `zigux/tests/phase8_help_only_build.zig`
 - `zigux/tests/phase8_help_kallsyms_only_build.zig`
 
+Keep the parked command packet reviewable through its own focused shard plus the one shared cross-packet shard:
+- `make -C zigux phase8-help-test`
+- `make -C zigux phase8-help-kallsyms-test`
+
 Do not reopen this lane for:
 - libbpf survey drift
 - file-path bridge or perf-buffer poll work
@@ -48,6 +52,10 @@ Current parked packet:
 - `zigux/tests/phase8_kallsyms.zig`
 - `zigux/tests/phase8_kallsyms_only_build.zig`
 - `zigux/tests/phase8_help_kallsyms_only_build.zig`
+
+Keep the parked symbol packet reviewable through its own focused shard plus the same shared cross-packet shard:
+- `make -C zigux phase8-kallsyms-test`
+- `make -C zigux phase8-help-kallsyms-test`
 
 Do not reopen this lane for:
 - libbpf bridge sequencing
