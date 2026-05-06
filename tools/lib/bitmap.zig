@@ -49,7 +49,13 @@ pub fn free(allocator: std.mem.Allocator, bitmap: *?[]Word) void {
 
 pub fn zero(dst: []Word, nbits: usize) void {
     assertBitmapLen(dst, nbits);
-    @memset(dst[0..bitsToWords(nbits)], 0);
+
+    const nwords = bitsToWords(nbits);
+    if (nwords == 0) {
+        return;
+    }
+
+    @memset(dst[0..nwords], 0);
 }
 
 pub fn fill(dst: []Word, nbits: usize) void {
@@ -96,6 +102,9 @@ pub fn orBits(dst: []Word, src1: []const Word, src2: []const Word, nbits: usize)
     std.debug.assert(dst.len >= nwords);
     std.debug.assert(src1.len >= nwords);
     std.debug.assert(src2.len >= nwords);
+    if (nwords == 0) {
+        return;
+    }
 
     for (0..nwords) |idx| {
         dst[idx] = src1[idx] | src2[idx];
@@ -107,6 +116,9 @@ pub fn xorBits(dst: []Word, src1: []const Word, src2: []const Word, nbits: usize
     std.debug.assert(dst.len >= nwords);
     std.debug.assert(src1.len >= nwords);
     std.debug.assert(src2.len >= nwords);
+    if (nwords == 0) {
+        return;
+    }
 
     for (0..nwords) |idx| {
         dst[idx] = src1[idx] ^ src2[idx];
@@ -560,4 +572,29 @@ test "bitmap copy aliases preserve tail clearing and extension semantics" {
     try std.testing.expectEqual(@as(Word, ~@as(Word, 0)), extended[0]);
     try std.testing.expectEqual(lastWordMask(count), extended[1]);
     try std.testing.expectEqual(@as(Word, 0), extended[2]);
+}
+
+test "bitmap zero-bit helpers stay explicit no-ops" {
+    var dst = [_]Word{0x55aa55aa55aa55aa};
+    const src1 = [_]Word{0xffff0000ffff0000};
+    const src2 = [_]Word{0x0000ffff0000ffff};
+    const before = dst[0];
+
+    zero(dst[0..0], 0);
+    try std.testing.expectEqual(before, dst[0]);
+
+    orBits(dst[0..0], src1[0..0], src2[0..0], 0);
+    try std.testing.expectEqual(before, dst[0]);
+
+    xorBits(dst[0..0], src1[0..0], src2[0..0], 0);
+    try std.testing.expectEqual(before, dst[0]);
+
+    try std.testing.expect(empty(&[_]Word{}, 0));
+    try std.testing.expect(full(&[_]Word{}, 0));
+    try std.testing.expectEqual(@as(usize, 0), weight(&[_]Word{}, 0));
+
+    var buffer = [_]u8{0xaa};
+    const rendered = scnprintf(&[_]Word{}, 0, &buffer);
+    try std.testing.expectEqual(@as(usize, 0), rendered);
+    try std.testing.expectEqual(@as(u8, 0), buffer[0]);
 }
