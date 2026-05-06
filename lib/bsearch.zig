@@ -179,6 +179,17 @@ fn compareOpaqueInt(key: *const anyopaque, item: *const anyopaque) i32 {
     return compareInt(typed_key, typed_item);
 }
 
+var raw_compare_call_count: usize = 0;
+
+fn compareOpaqueIntCounted(key: *const anyopaque, item: *const anyopaque) i32 {
+    raw_compare_call_count += 1;
+    return compareOpaqueInt(key, item);
+}
+
+fn compareOpaqueIntC(key: *const anyopaque, item: *const anyopaque) callconv(.c) i32 {
+    return compareOpaqueInt(key, item);
+}
+
 const Entry = struct {
     name: []const u8,
     value: u32,
@@ -271,6 +282,43 @@ test "search accepts explicitly typed c abi comparator pointers" {
         try std.testing.expectEqual(@as(?usize, 4), searchIndex(i32, i32, &@as(i32, 16), values[0..], compare));
         const found = search(i32, i32, &@as(i32, 7), values[0..], compare) orelse return error.TestUnexpectedResult;
         try std.testing.expectEqual(@as(i32, 7), found.*);
+    }
+}
+
+test "raw helpers short-circuit empty input and accept c abi comparator pointers" {
+    const empty = [_]i32{};
+
+    raw_compare_call_count = 0;
+    try std.testing.expectEqual(
+        @as(?usize, null),
+        bsearchIndex(&@as(i32, 5), @ptrCast(empty[0..].ptr), empty.len, @sizeOf(i32), compareOpaqueIntCounted),
+    );
+    try std.testing.expectEqual(@as(usize, 0), raw_compare_call_count);
+    try std.testing.expect(
+        bsearch(&@as(i32, 5), @ptrCast(empty[0..].ptr), empty.len, @sizeOf(i32), compareOpaqueIntCounted) == null,
+    );
+    try std.testing.expectEqual(@as(usize, 0), raw_compare_call_count);
+
+    const values = [_]i32{ 1, 4, 4, 4, 9, 16 };
+    const comparators = [_]CRawComparator{ compareOpaqueIntC, compareOpaqueIntC };
+
+    for (comparators) |compare| {
+        const index = bsearchIndex(&@as(i32, 4), @ptrCast(values[0..].ptr), values.len, @sizeOf(i32), compare) orelse return error.TestUnexpectedResult;
+        try std.testing.expect(index >= 1 and index <= 3);
+        try std.testing.expectEqual(@as(i32, 4), values[index]);
+
+        const found = bsearch(&@as(i32, 4), @ptrCast(values[0..].ptr), values.len, @sizeOf(i32), compare) orelse return error.TestUnexpectedResult;
+        const typed_found: *const i32 = @ptrCast(@alignCast(found));
+        const found_index = (@intFromPtr(typed_found) - @intFromPtr(&values[0])) / @sizeOf(i32);
+        try std.testing.expect(found_index >= 1 and found_index <= 3);
+        try std.testing.expectEqual(@as(i32, 4), typed_found.*);
+        try std.testing.expectEqual(
+            @as(?usize, null),
+            bsearchIndex(&@as(i32, 5), @ptrCast(values[0..].ptr), values.len, @sizeOf(i32), compare),
+        );
+        try std.testing.expect(
+            bsearch(&@as(i32, 5), @ptrCast(values[0..].ptr), values.len, @sizeOf(i32), compare) == null,
+        );
     }
 }
 
