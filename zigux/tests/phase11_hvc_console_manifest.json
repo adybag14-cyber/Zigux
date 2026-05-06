@@ -16,6 +16,7 @@
     "hvc_console_test_present": true,
     "hvc_console_survey_gate_present": true,
     "hvc_console_survey_note_present": true,
+    "hvc_console_teardown_note_present": true,
     "winsize_layout_assert_present": true,
     "hv_ops_layout_assert_present": true
   },
@@ -32,7 +33,7 @@
       "status": "starter_landed",
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase11_hvc_console_survey.zig",
-      "why_now": "The archival survey gate now verifies that the bounded hvc_console starter includes the setup-state, close-boundary, cleanup handoff, remove-path handoff, tty-registration handoff helper, sysrq handoff helper, notifier handoff helper, the never-registered no-unregister failure mode, the targetless no-unregister edge, the dedicated struct winsize layout proof, and the dedicated struct hv_ops callback-table layout proof while keeping the remaining live notifier execution and host-backed behavior gaps reviewable."
+      "why_now": "The archival survey gate now verifies that the bounded hvc_console starter includes the setup-state, close-boundary, cleanup handoff, remove-path handoff, the driver-local teardown note, tty-registration handoff helper, sysrq handoff helper, notifier handoff helper, the never-registered no-unregister failure mode, the targetless no-unregister edge, the dedicated struct winsize layout proof, and the dedicated struct hv_ops callback-table layout proof while keeping the remaining live notifier execution and host-backed behavior gaps reviewable."
     },
     {
       "id": "phase11-hvc-console-winsize-layout-assert",
@@ -53,7 +54,7 @@
       "status": "starter_landed",
       "kind": "documentation",
       "zigux_destination": "Documentation/zigux/phase11-hvc-console-survey.md",
-      "why_now": "The survey note now records that the original roadmap simple-driver gap is closed by the bounded starter, the first hardware validation matrix is present, the dedicated struct hv_ops callback-table proof now sits beside the existing struct winsize checkpoint, and teardown and failure-mode parity remain bounded to the host-free close boundary, cleanup handoff summary, remove-path handoff summary, tty-registration handoff summary, sysrq handoff summary, and notifier-facing handoff summary rather than live tty or hypervisor integration."
+      "why_now": "The survey note now records that the original roadmap simple-driver gap is closed by the bounded starter, the first hardware validation matrix is present, the driver-local teardown note now anchors the close, cleanup, and remove ownership split, the dedicated struct hv_ops callback-table proof now sits beside the existing struct winsize checkpoint, and teardown and failure-mode parity remain bounded to the host-free close boundary, cleanup handoff summary, remove-path handoff summary, tty-registration handoff summary, sysrq handoff summary, and notifier-facing handoff summary rather than live tty or hypervisor integration."
     },
     {
       "id": "phase11-hvc-console-driver-starter",
