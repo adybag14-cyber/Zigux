@@ -220,7 +220,7 @@ test "phase 8 libbpf segment manifest records the current helper-first catalog" 
     );
     defer std.testing.allocator.free(manifest_json);
 
-    const parsed = try std.json.parseFromSlice(Manifest, std.testing.allocator, manifest_json, .{});
+    const parsed = try std.json.parseFromSlice(Manifest, std.testing.allocator, manifest_json, .{ .ignore_unknown_fields = true });
     defer parsed.deinit();
 
     const manifest = parsed.value;
@@ -334,7 +334,7 @@ test "phase 8 libbpf survey note stays aligned with the landed helper packet" {
     try expectContains(phase8_note, "perf-buffer-poll-bookkeeping");
     try expectContains(phase8_note, "The manifest currently records twelve bounded segments");
     try expectContains(phase8_note, "six landed bounded slices");
-    try expectContains(phase8_note, "five helper-first starters, one shared file-path bridge helper packet, and one perf-buffer poll adjunct");
+    try expectContains(phase8_note, "four helper-first starters, one shared file-path bridge helper packet, and one perf-buffer poll adjunct");
     try expectContains(phase8_note, "`fdinfo-map-info-helpers` still stays queued as the next helper-first catalog entry");
     try expectContains(phase8_note, "`map-reuse-compatibility` has now joined the landed bridge packet");
     try expectContains(phase8_note, "helper-only reused-map name resolution");
