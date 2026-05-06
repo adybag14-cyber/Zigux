@@ -169,6 +169,10 @@ pub const BytestreamFifoSample = struct {
         return self.len;
     }
 
+    pub fn available(self: *const Self) usize {
+        return capacity - self.len;
+    }
+
     pub fn stage(self: *const Self) SampleStage {
         return self.stage_state;
     }
@@ -484,10 +488,12 @@ test "bytestream fifo sample replays the Linux anchor result sequence" {
     try std.testing.expectEqualStrings("samples/kfifo/bytestream-example.c", descriptor.anchor);
     try std.testing.expectEqual(StorageBacking.embedded_fixed_buffer, descriptor.storage_backing);
     try std.testing.expectEqual(@as(usize, 7), review_contract.focus.len);
+    try std.testing.expectEqual(@as(usize, fifo_capacity), sample.available());
 
     try sample.init();
     try std.testing.expect(sample.isEmpty());
     try std.testing.expect(!sample.isFull());
+    try std.testing.expectEqual(@as(usize, fifo_capacity), sample.available());
     const replay = try sample.runAnchorReplay();
 
     try std.testing.expectEqual(SampleStage.initialized, replay.stage_before_replay);
@@ -511,6 +517,7 @@ test "bytestream fifo sample replays the Linux anchor result sequence" {
     try std.testing.expectEqual(@as(usize, 7), replay.checked_focus.len);
     try std.testing.expectEqualSlices(u8, expected_anchor_result[0..], replay.final_sequence[0..]);
     try std.testing.expectEqual(SampleStage.replay_complete, sample.stage());
+    try std.testing.expectEqual(@as(usize, fifo_capacity), sample.available());
 
     try sample.exit();
     try std.testing.expectEqual(SampleStage.exited, sample.stage());
@@ -519,6 +526,7 @@ test "bytestream fifo sample replays the Linux anchor result sequence" {
     try std.testing.expectEqual(@as(usize, 1), sample.exit_runs);
     try std.testing.expect(sample.isEmpty());
     try std.testing.expect(!sample.isFull());
+    try std.testing.expectEqual(@as(usize, fifo_capacity), sample.available());
 }
 
 test "bytestream fifo sample keeps bounded helper behavior without runtime claims" {
@@ -529,6 +537,7 @@ test "bytestream fifo sample keeps bounded helper behavior without runtime claim
     try std.testing.expectEqual(@as(usize, 0), empty_preview.total_visible);
     try std.testing.expect(!empty_preview.truncated);
     try std.testing.expectEqualSlices(u8, &.{ 0xaa, 0xaa, 0xaa, 0xaa }, preview_buf[0..]);
+    try std.testing.expectEqual(@as(usize, fifo_capacity), sample.available());
 
     const helper_replay = sample.runHelperBoundaryReplay();
 
@@ -554,6 +563,7 @@ test "bytestream fifo sample keeps bounded helper behavior without runtime claim
     try std.testing.expectEqual(@as(usize, 0), short_drain.empty_follow_up_drain_count);
     try std.testing.expectEqual(@as(usize, 0), sample.count());
     try std.testing.expectEqual(SampleStage.cold, sample.stage());
+    try std.testing.expectEqual(@as(usize, fifo_capacity), sample.available());
 }
 
 test "bytestream fifo sample keeps preview truncation explicit" {
@@ -577,6 +587,7 @@ test "bytestream fifo sample keeps preview truncation explicit" {
     try std.testing.expectEqual(SampleFocus.non_destructive_snapshot, preview.checked_focus[1]);
     try std.testing.expectEqual(SampleFocus.preview_truncation, preview.checked_focus[2]);
     try std.testing.expectEqual(SampleStage.initialized, sample.stage());
+    try std.testing.expectEqual(@as(usize, fifo_capacity - 10), sample.available());
 }
 
 test "bytestream fifo sample exposes empty and full state boundaries explicitly" {
@@ -584,14 +595,17 @@ test "bytestream fifo sample exposes empty and full state boundaries explicitly"
 
     try std.testing.expect(sample.isEmpty());
     try std.testing.expect(!sample.isFull());
+    try std.testing.expectEqual(@as(usize, fifo_capacity), sample.available());
 
     try sample.init();
     try std.testing.expect(sample.isEmpty());
     try std.testing.expect(!sample.isFull());
+    try std.testing.expectEqual(@as(usize, fifo_capacity), sample.available());
 
     try std.testing.expectEqual(@as(usize, 5), sample.enqueueSlice("hello"));
     try std.testing.expect(!sample.isEmpty());
     try std.testing.expect(!sample.isFull());
+    try std.testing.expectEqual(@as(usize, fifo_capacity - 5), sample.available());
 
     var value: u8 = 0;
     while (!sample.isFull()) : (value +%= 1) {
@@ -600,24 +614,29 @@ test "bytestream fifo sample exposes empty and full state boundaries explicitly"
     try std.testing.expect(sample.isFull());
     try std.testing.expect(!sample.isEmpty());
     try std.testing.expect(!sample.pushByte(255));
+    try std.testing.expectEqual(@as(usize, 0), sample.available());
 
     _ = sample.skipByte() orelse unreachable;
     try std.testing.expect(!sample.isFull());
     try std.testing.expect(!sample.isEmpty());
+    try std.testing.expectEqual(@as(usize, 1), sample.available());
 
     sample.reset();
     try std.testing.expect(sample.isEmpty());
     try std.testing.expect(!sample.isFull());
+    try std.testing.expectEqual(@as(usize, fifo_capacity), sample.available());
 
     try sample.exit();
     try std.testing.expect(sample.isEmpty());
     try std.testing.expect(!sample.isFull());
+    try std.testing.expectEqual(@as(usize, fifo_capacity), sample.available());
 }
 
 test "bytestream fifo sample makes ownership and lifetime boundaries explicit" {
     var sample = BytestreamFifoSample{};
 
     try std.testing.expectEqual(SampleStage.cold, sample.stage());
+    try std.testing.expectEqual(@as(usize, fifo_capacity), sample.available());
     try std.testing.expectError(error.InvalidLifecycleTransition, sample.runAnchorReplay());
 
     try sample.init();
@@ -626,6 +645,7 @@ test "bytestream fifo sample makes ownership and lifetime boundaries explicit" {
 
     _ = try sample.runPreviewBoundaryReplay();
     try std.testing.expectEqual(SampleStage.initialized, sample.stage());
+    try std.testing.expectEqual(@as(usize, fifo_capacity - 10), sample.available());
 
     _ = try sample.runAnchorReplay();
     try std.testing.expectEqual(SampleStage.replay_complete, sample.stage());
@@ -635,6 +655,7 @@ test "bytestream fifo sample makes ownership and lifetime boundaries explicit" {
     try std.testing.expectEqual(@as(usize, 0), replay_lifecycle.exit_run_count);
     try std.testing.expectEqual(@as(usize, 0), replay_lifecycle.queue_len);
     try std.testing.expectEqual(StorageBacking.embedded_fixed_buffer, replay_lifecycle.storage_backing);
+    try std.testing.expectEqual(@as(usize, fifo_capacity), sample.available());
 
     try sample.exit();
     try std.testing.expectEqual(SampleStage.exited, sample.stage());
@@ -643,4 +664,5 @@ test "bytestream fifo sample makes ownership and lifetime boundaries explicit" {
     try std.testing.expectEqual(@as(usize, 1), sample.exit_runs);
     try std.testing.expectError(error.InvalidLifecycleTransition, sample.runPreviewBoundaryReplay());
     try std.testing.expectError(error.InvalidLifecycleTransition, sample.exit());
+    try std.testing.expectEqual(@as(usize, fifo_capacity), sample.available());
 }
