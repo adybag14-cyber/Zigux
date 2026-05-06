@@ -508,6 +508,8 @@ def run_self_test() -> int:
         _write(root / MAKEFILE_REL, baseline_makefile)
         case_count += 1
         for helper, label in (
+            ("validate-bootstrap.py", "missing_validate_bootstrap_repo_file_guard_failed"),
+            ("install-zig.py", "missing_install_zig_repo_file_guard_failed"),
             ("check-phase7-make-wrapper.py", "missing_phase7_make_wrapper_repo_file_guard_failed"),
             ("check-phase7-argv-split-packet.py", "missing_phase7_argv_split_packet_repo_file_guard_failed"),
             ("check-phase7-rbtree-parity.py", "missing_phase7_rbtree_parity_repo_file_guard_failed"),
