@@ -200,6 +200,7 @@ test "phase 5 kretprobe survey packet stays repo-local and keeps shared review s
         "PHASE5_SLICE=kretprobe-reference-sample-starter",
         "samples/kprobes/kretprobe_example.c|PHASE5_LANE_KEY=P5-L18|PHASE5_SURVEYED_COMMIT=7361ac51374149a96b7a7a2c6ea3c995d8cc1231|Phase 5",
         "phase5_build.zig",
+        "zigux/tests/phase5_kretprobe_example.zig",
         "runtime_kretprobe",
         "## Latest verification snapshot",
         "zig fmt --check",
@@ -224,6 +225,7 @@ test "phase 5 kretprobe survey packet stays repo-local and keeps shared review s
         "cold`, `initialized`, `armed`, `replay_complete`, and `exited`",
         "active_instances = 1",
         "entry_timestamp_armed = true",
+        "the focused `zigux/tests/phase5_kretprobe_example.zig` boundary replay also still held",
         "entryHandler(false, 11) still skips the kernel-thread path",
         "entryHandler(true, 120) still rejects an outstanding tracked instance",
         "retHandler(37, 145) still yields duration 45",
@@ -232,6 +234,7 @@ test "phase 5 kretprobe survey packet stays repo-local and keeps shared review s
         "cold -> initialized -> replay_complete",
         "cold -> initialized -> exited",
         "runLifecycleGuardReplay()",
+        "focused `zigux/tests/phase5_kretprobe_example.zig` replay still keep direct retargeting, outstanding-instance rejection, timestamp-order rejection and recovery, and post-exit teardown rejection explicit",
     };
 
     for (required_mentions) |needle| {
