@@ -21,20 +21,23 @@ The Phase 8 roadmap still calls for a segmented libbpf rollout under `tools/lib/
 
 ## Gates
 
-1. run the shared Phase 8 validator self-test
+1. run the shared Phase 8 validator route first
+- `make -C zigux phase8-validate`
+
+2. run the shared Phase 8 validator self-test
 - `python3 scripts/zigux/validate-phase8.py --self-test`
 
-2. run the shared Phase 8 validator
+3. run the shared Phase 8 validator
 - `python3 scripts/zigux/validate-phase8.py`
 
-3. run the focused Phase 8 file-path handle bridge shard
+4. run the focused Phase 8 file-path handle bridge shard
 - `zig build test --build-file zigux/tests/phase8_file_path_handle_bridge_only_build.zig --summary all`
 
-4. run the shared Phase 8 replay
+5. run the shared Phase 8 replay
 - `make -C zigux phase8-test`
 - `zig build test --build-file zigux/tests/phase8_build.zig --summary all`
 
-5. run the convenience target
+6. run the convenience target
 - `make -C zigux phase8`
 
 ## Current parity surface
@@ -72,4 +75,4 @@ This slice does not yet claim:
 
 ## Next bounded step
 
-Park `tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig` unless fresh repo review finds another tiny fdinfo-text or docs-truthfulness gap inside this same helper packet; if the lane reopens, keep the next step smaller than direct procfs reads, pinned-map reopen flow, fd duplication, or broader object-model work.
+Park `tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig` unless fresh repo review finds another tiny fdinfo-text or docs-truthfulness gap inside this same helper packet; if the lane reopens, keep the shared `make -C zigux phase8-validate` route aligned with this fdinfo-only surface and keep the next step smaller than direct procfs reads, pinned-map reopen flow, fd duplication, or broader object-model work.
