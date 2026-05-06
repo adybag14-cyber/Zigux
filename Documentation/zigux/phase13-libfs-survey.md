@@ -28,7 +28,7 @@ The live Zigux tree is no longer survey-only here. It already carries a small `f
 
 - `fs/libfs.c` remains broad enough to cross several VFS boundaries at once: dentries, directory iteration, inode bookkeeping, pseudo-filesystem mounting, and generic buffer-copy helpers.
 - the live repo now has a landed `fs/libfs.zig` starter plus `zigux/tests/phase13_libfs.zig`, and `zigux/tests/phase13_build.zig` compiles that dedicated libfs helper test path.
-- the current starter stays intentionally narrow around `simple_statfs()` defaults, the `always_delete_dentry()` policy, the branch decisions inside `simple_lookup()`, the pure buffer-copy helper trio, the early `dcache_dir_lseek()` and `offset_dir_llseek()` seek-policy surface, one tiny `dcache_readdir()`-adjacent emit planner, the pure `simple_transaction_get()` acquire planner, the pure `simple_transaction_set()` publish planner, and the pure `simple_transaction_release()` lifetime planner.
+- the current starter stays intentionally narrow around `simple_statfs()` defaults, the `always_delete_dentry()` policy, the branch decisions inside `simple_lookup()`, the pure buffer-copy helper trio, the early `dcache_dir_lseek()` and `offset_dir_llseek()` seek-policy surface, one tiny `dcache_readdir()`-adjacent emit planner, the pure `dcache_dir_open()` cursor-setup planner, the pure `simple_transaction_get()` acquire planner, the pure `simple_transaction_set()` publish planner, and the pure `simple_transaction_release()` lifetime planner.
 - the reviewability gate and manifest tie the starter, tests, build wire, slice note, and survey note together so future runs can verify the exact Phase 13 lane state before widening helper coverage.
 - directory cursor helpers such as `dcache_dir_open()` and the deeper cursor-backed `dcache_readdir()` traversal remain riskier because they depend on cursor dentries, sibling lists, lock ordering, and reschedule-aware traversal.
 
@@ -45,6 +45,7 @@ The current lane state is:
 - landed `phase13-libfs-survey-note`
 - landed `phase13-libfs-offset-seek-helper`
 - landed `phase13-libfs-directory-emit-helper`
+- landed `phase13-libfs-dcache-dir-open-helper`
 - landed `phase13-libfs-transaction-buffer-helper`
 - landed `phase13-libfs-transaction-publish-helper`
 - landed `phase13-libfs-transaction-release-helper`
@@ -73,4 +74,4 @@ This slice does not claim:
 
 ## Next bounded step
 
-Stay in the Phase 13 libfs lane only if a future pass can keep the next move helper-first around `dcache_dir_open()` and deeper `dcache_readdir()` cursor preconditions. That packet should stay blocked until it can name cursor-private-data setup, sibling-list resume context, and lock-ordering boundaries without widening into live cursor dentries, inode state, or pseudo-filesystem work.
+Stay in the Phase 13 libfs lane only if a future pass can keep the next move helper-first around deeper `dcache_readdir()` cursor resume and reschedule preconditions. That packet should stay blocked until it can name sibling-list resume context, cursor repositioning under reschedule pressure, and lock-ordering boundaries without widening into live cursor dentries, inode state, or pseudo-filesystem work.
