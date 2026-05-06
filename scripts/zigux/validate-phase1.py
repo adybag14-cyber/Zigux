@@ -126,8 +126,15 @@ REQUIRED_BITMAP_TEST_ANCHORS = [
 REQUIRED_STRING_TEST_ANCHORS = [
     'test "strtobool accepts common Linux forms"',
     'test "strlcpy copies and returns the source length"',
+    'test "streq matches C-string equality semantics"',
     'test "skip trim remove and replace spaces work in place"',
+    'test "strHasPrefix honors C-string boundaries"',
     'test "memdup and memchrInv preserve byte content"',
+    'test "memchrInv keeps long-buffer first-dirty-byte results stable"',
+    'test "memparse handles decimal hexadecimal octal and suffixes"',
+    'test "memparse keeps original rest when sign is not followed by digits"',
+    'test "memparse saturates signed overflow instead of trapping"',
+    'test "memparse consumes suffix after saturation"',
 ]
 
 REQUIRED_RBTREE_TEST_ANCHORS = [
@@ -643,12 +650,34 @@ def run_self_test() -> None:
 
         make_fixture_root(tmp_root)
         string_path.write_text(
-            "\n".join(REQUIRED_STRING_TEST_ANCHORS + [REQUIRED_STRING_TEST_ANCHORS[2]]) + "\n",
+            "\n".join(REQUIRED_STRING_TEST_ANCHORS[:2] + REQUIRED_STRING_TEST_ANCHORS[3:]) + "\n",
+            encoding="utf-8",
+        )
+        missing_markers = collect_missing_markers(tmp_root)
+        assert (
+            'string_test_anchor:test "streq matches C-string equality semantics":expected=1:actual=0'
+            in missing_markers
+        )
+
+        make_fixture_root(tmp_root)
+        string_path.write_text(
+            "\n".join(REQUIRED_STRING_TEST_ANCHORS + [REQUIRED_STRING_TEST_ANCHORS[3]]) + "\n",
             encoding="utf-8",
         )
         missing_markers = collect_missing_markers(tmp_root)
         assert (
             'string_test_anchor:test "skip trim remove and replace spaces work in place":expected=1:actual=2'
+            in missing_markers
+        )
+
+        make_fixture_root(tmp_root)
+        string_path.write_text(
+            "\n".join(REQUIRED_STRING_TEST_ANCHORS[:-1]) + "\n",
+            encoding="utf-8",
+        )
+        missing_markers = collect_missing_markers(tmp_root)
+        assert (
+            'string_test_anchor:test "memparse consumes suffix after saturation":expected=1:actual=0'
             in missing_markers
         )
 
@@ -722,7 +751,7 @@ def run_self_test() -> None:
         )
 
         print("PHASE1_VALIDATION_SELF_TEST=pass")
-        print("PHASE1_VALIDATION_SELF_TEST_CASE_COUNT=35")
+        print("PHASE1_VALIDATION_SELF_TEST_CASE_COUNT=37")
 
 
 def main() -> int:
