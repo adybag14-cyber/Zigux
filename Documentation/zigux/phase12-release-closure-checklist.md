@@ -12,6 +12,7 @@ It is not a closure claim, and it is not itself a shipped replay surface.
 - sequencing authority: `Documentation/zigux/phase12-release-sequencing.md`
 - shipped build-only contract checker: `scripts/zigux/check-build-only-phase12-surface.py`
 - workflow replay anchor: `.github/workflows/zigux-bootstrap.yml`
+- freeze-map boundary reminder: `Documentation/zigux/freeze-map.md` keeps `kernel/workqueue.c` and `kernel/trace/ring_buffer.c` in boundary-study-only status, so this Phase 12 closure companion must not round queueing, rollback, or recovery wording up into deep-core delivery claims
 
 ## Shared replay order
 1. `zig build smoke --build-file zigux/tests/phase12_build.zig --summary all`
@@ -43,10 +44,12 @@ It is not a closure claim, and it is not itself a shipped replay surface.
 5. Future promotion rules stay honest.
    - If a validator-first or runtime-recovery Phase 12 release route is proposed later, the actual shipped file and replay surface must land on `master` before PMO notes describe it as active release evidence.
    - Until then, release planning should name only the shipped smoke preflight routes, the shared build-and-make replay path, the narrow build-only contract checker, and the bounded storage rollback drill.
+   - `Documentation/zigux/freeze-map.md` must stay explicit here too: `kernel/workqueue.c` and `kernel/trace/ring_buffer.c` remain boundary-study-only targets and are not part of the active Phase 12 complex-driver replay packet or closure evidence.
 
 ## Active release blocker
 - Phase 12 is still an active release-planning tranche, not a release-closed packet.
 - The remaining PMO job is drift control across the shipped docs-root, review checklist, `nvme_pci` slice-and-survey pair, the `virtio_net` survey-only boundary, `virtio_scsi` slice-and-survey pair, libbpf survey, scripts-root, tests-root, workflow, Makefile, `zigux/tests/phase12_nvme_pci.zig`, `zigux/tests/phase12_virtio_net.zig`, `zigux/tests/phase12_virtio_net_syntax_lab.zig`, `zigux/tests/phase12_virtio_scsi.zig`, sequencing, this closure-checklist companion, and the two commit-pinned fallback-note surfaces so they keep naming the same bounded release route.
 - `scripts/zigux/check-build-only-phase12-surface.py` still does not explicitly pin `Documentation/zigux/phase12-release-closure-checklist.md` inside its scripts-root marker set, so the closure companion is part of the shipped PMO packet but not yet fully fail-closed against scripts-root drift.
+- Queueing and recovery language must keep the freeze-map split explicit: this release packet can describe bounded driver-local, libbpf, and lab-only rollback evidence, but it must not imply active delivery against `kernel/workqueue.c` or `kernel/trace/ring_buffer.c`.
 - This checklist should be refreshed whenever the shipped packet changes, but it should stay companion-scoped until the shared replay packet itself satisfies the closure conditions.
 - Any future PMO follow-through should start by rerunning `scripts/zigux/check-build-only-phase12-surface.py` before widening into new wording or closure claims.
