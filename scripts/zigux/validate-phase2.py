@@ -68,6 +68,7 @@ def required_files(root: Path) -> list[Path]:
         root / "scripts" / "zigux" / "check-kconfig-bridge.py",
         root / "scripts" / "zigux" / "check-phase2-cross.py",
         root / "scripts" / "zigux" / "check-phase2-cross-selftest-alignment.py",
+        root / "scripts" / "zigux" / "check-phase2-kconfig-selftest-alignment.py",
         root / "scripts" / "zigux" / "check-phase2-tests-readme-alignment.py",
         root / "scripts" / "zigux" / "check-phase2-toolchain-pin-scope.py",
         root / "scripts" / "zigux" / "check-zig-toolchain.py",
@@ -159,6 +160,8 @@ REQUIRED_WORKFLOW_MARKERS = [
     "python3 scripts/zigux/check-phase2-cross-selftest-alignment.py",
     "python3 scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test",
     "python3 scripts/zigux/check-phase2-toolchain-pin-scope.py",
+    "python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py --self-test",
+    "python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py",
     "python3 scripts/zigux/check-phase2-cross.py --self-test",
     "python3 scripts/zigux/check-fixdep-diff.py",
     "python3 scripts/zigux/check-genksyms-bridge.py",
@@ -182,6 +185,8 @@ REQUIRED_EXACT_WORKFLOW_RUN_COUNTS = {
     "python3 scripts/zigux/check-phase2-cross-selftest-alignment.py": 1,
     "python3 scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test": 1,
     "python3 scripts/zigux/check-phase2-toolchain-pin-scope.py": 1,
+    "python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py --self-test": 1,
+    "python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py": 1,
 }
 REQUIRED_DOC_MARKERS = [
     "fixdep",
@@ -448,6 +453,23 @@ def validate_root(root: Path) -> list[str]:
     guard_issues.extend(
         run_guard(
             root,
+            [sys.executable, str(root / "scripts" / "zigux" / "check-phase2-kconfig-selftest-alignment.py"), "--self-test"],
+            [
+                "PHASE2_KCONFIG_ALIGNMENT_SELF_TEST=pass",
+                "PHASE2_KCONFIG_ALIGNMENT_SELF_TEST_CASE_COUNT=8",
+            ],
+        )
+    )
+    guard_issues.extend(
+        run_guard(
+            root,
+            [sys.executable, str(root / "scripts" / "zigux" / "check-phase2-kconfig-selftest-alignment.py")],
+            ["PHASE2_KCONFIG_ALIGNMENT=pass"],
+        )
+    )
+    guard_issues.extend(
+        run_guard(
+            root,
             [sys.executable, str(root / "scripts" / "zigux" / "check-kconfig-bridge.py"), "--self-test"],
             [
                 "KCONFIG_BRIDGE_SELF_TEST=pass",
@@ -529,6 +551,7 @@ def build_self_test_root(root: Path) -> None:
         "scripts/zigux/check-kconfig-bridge.py",
         "scripts/zigux/check-phase2-cross.py",
         "scripts/zigux/check-phase2-cross-selftest-alignment.py",
+        "scripts/zigux/check-phase2-kconfig-selftest-alignment.py",
         "scripts/zigux/check-phase2-tests-readme-alignment.py",
         "scripts/zigux/check-phase2-toolchain-pin-scope.py",
         "scripts/zigux/check-zig-toolchain.py",
@@ -608,6 +631,7 @@ def build_self_test_root(root: Path) -> None:
     write_stub_guard(root / "scripts/zigux/check-phase2-tests-readme-alignment.py", self_test_marker="PHASE2_TESTS_README_ALIGNMENT_SELF_TEST=pass\nPHASE2_TESTS_README_ALIGNMENT_SELF_TEST_CASE_COUNT=16", live_markers=["PHASE2_TESTS_README_ALIGNMENT=pass", "PHASE2_TESTS_README_ALIGNMENT_MARKER_COUNT=1"])
     write_stub_guard(root / "scripts/zigux/check-phase2-cross-selftest-alignment.py", self_test_marker="PHASE2_CROSS_SELFTEST_ALIGNMENT_SELF_TEST=pass", live_markers=["PHASE2_CROSS_SELFTEST_ALIGNMENT=pass"])
     write_stub_guard(root / "scripts/zigux/check-phase2-toolchain-pin-scope.py", self_test_marker="PHASE2_TOOLCHAIN_PIN_SCOPE_SELF_TEST=pass\nPHASE2_TOOLCHAIN_PIN_SCOPE_SELF_TEST_CASE_COUNT=31", live_markers=["PHASE2_TOOLCHAIN_PIN_SCOPE=pass"])
+    write_stub_guard(root / "scripts/zigux/check-phase2-kconfig-selftest-alignment.py", self_test_marker="PHASE2_KCONFIG_ALIGNMENT_SELF_TEST=pass\nPHASE2_KCONFIG_ALIGNMENT_SELF_TEST_CASE_COUNT=8", live_markers=["PHASE2_KCONFIG_ALIGNMENT=pass"])
     write_stub_guard(root / "scripts/zigux/check-kconfig-bridge.py", self_test_marker="KCONFIG_BRIDGE_SELF_TEST=pass\nKCONFIG_BRIDGE_SELF_TEST_CASE_COUNT=5", live_markers=["KCONFIG_BRIDGE_DIFF=pass"])
     write_stub_guard(root / "scripts/zigux/check-mk-elfconfig-diff.py", self_test_marker="MK_ELFCONFIG_SELF_TEST=pass\nMK_ELFCONFIG_SELF_TEST_CASE_COUNT=4", live_markers=["MK_ELFCONFIG_DIFF=pass"])
 
@@ -673,6 +697,21 @@ def run_self_test() -> int:
         issues = validate_root(root)
         assert "workflow_exact_marker:python3 scripts/zigux/check-phase2-toolchain-pin-scope.py:count=2:expected=1" in issues
         build_self_test_root(root)
+        workflow_text = workflow_path.read_text(encoding="utf-8").replace("run: python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py --self-test\n", "", 1)
+        write_text(workflow_path, workflow_text)
+        issues = validate_root(root)
+        assert "workflow:python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py --self-test" in issues
+        build_self_test_root(root)
+        workflow_text = workflow_path.read_text(encoding="utf-8").replace("run: python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py --self-test\n", "run: python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py --self-test\nrun: python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py --self-test\n", 1)
+        write_text(workflow_path, workflow_text)
+        issues = validate_root(root)
+        assert "workflow_exact_marker:python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py --self-test:count=2:expected=1" in issues
+        build_self_test_root(root)
+        workflow_text = workflow_path.read_text(encoding="utf-8").replace("run: python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py\n", "run: python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py\nrun: python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py\n", 1)
+        write_text(workflow_path, workflow_text)
+        issues = validate_root(root)
+        assert "workflow_exact_marker:python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py:count=2:expected=1" in issues
+        build_self_test_root(root)
         workflow_text = workflow_path.read_text(encoding="utf-8").replace("run: python3 scripts/zigux/check-phase2-cross-selftest-alignment.py --self-test\n", "", 1)
         write_text(workflow_path, workflow_text)
         issues = validate_root(root)
@@ -695,6 +734,10 @@ def run_self_test() -> int:
         (root / "scripts/zigux/check-phase2-genksyms-bridge-selftest-alignment.py").unlink()
         issues = validate_root(root)
         assert "missing_file:scripts/zigux/check-phase2-genksyms-bridge-selftest-alignment.py" in issues
+        build_self_test_root(root)
+        (root / "scripts/zigux/check-phase2-kconfig-selftest-alignment.py").unlink()
+        issues = validate_root(root)
+        assert "missing_file:scripts/zigux/check-phase2-kconfig-selftest-alignment.py" in issues
         build_self_test_root(root)
         write_text(root / "Documentation/zigux/review-checklist.md", build_phase2_review_checklist_line(REQUIRED_REVIEW_MARKERS[1:]))
         issues = validate_root(root)
@@ -753,6 +796,11 @@ def run_self_test() -> int:
         issues = validate_root(root)
         assert any(issue.startswith("guard_marker:") for issue in issues)
         build_self_test_root(root)
+        checker_path = root / "scripts" / "zigux" / "check-phase2-kconfig-selftest-alignment.py"
+        write_stub_guard(checker_path, self_test_marker="PHASE2_KCONFIG_ALIGNMENT_SELF_TEST=pass", live_markers=["PHASE2_KCONFIG_ALIGNMENT=pass"])
+        issues = validate_root(root)
+        assert any(issue.startswith("guard_marker:") and "check-phase2-kconfig-selftest-alignment.py --self-test:PHASE2_KCONFIG_ALIGNMENT_SELF_TEST_CASE_COUNT=8" in issue for issue in issues)
+        build_self_test_root(root)
         write_text(root / "scripts/zigux/README.md", build_script_readme_text().replace("- `check-phase2-cross-selftest-alignment.py`\n", ""))
         issues = validate_root(root)
         assert "scripts_helper_index:phase2_helper_block" in issues
@@ -767,7 +815,7 @@ def run_self_test() -> int:
         issues = validate_root(root)
         assert any(issue.startswith("guard_marker:") and "check-mk-elfconfig-diff.py --self-test:MK_ELFCONFIG_SELF_TEST_CASE_COUNT=4" in issue for issue in issues)
     print("PHASE2_VALIDATION_SELF_TEST=pass")
-    print("PHASE2_VALIDATION_SELF_TEST_CASE_COUNT=33")
+    print("PHASE2_VALIDATION_SELF_TEST_CASE_COUNT=38")
     return 0
 
 
