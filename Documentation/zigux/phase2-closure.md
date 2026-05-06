@@ -107,6 +107,18 @@ The bounded fixdep closure packet currently keeps four committed artifact cases 
 - bounded failure coverage stays anchored by the comment-only parse error and missing-dependency open error fixtures in `zigux/tests/fixtures/fixdep/`
 - helper-local anchors in `zig test scripts/zigux/fixdep.zig` now include `dep parsing returns NoTargets for comment-only depfiles`, `dep parsing skips bytes after the first embedded NUL`, `dependency file reads beyond the legacy one mebibyte ceiling`, and `output write failure uses C-style wording`
 
+## Genksyms Bridge Closure Packet
+
+The bounded genksyms wrapper-first bridge packet now records the committed request-plan and CLI-process fixtures explicitly so bridge-local review does not rely on the gate name alone:
+
+- `PHASE2_GENKSYMS_BRIDGE_CASE_COUNT=13`
+- `PHASE2_GENKSYMS_BRIDGE_CASES=minimal,debug_reference_types,long_options,quiet_overrides_warning,explicit_option_terminator,positional_passthrough,help,version,invalid_option,missing_reference_argument,unsupported_long_option,missing_long_reference_argument,missing_long_dump_types_argument`
+- `PHASE2_GENKSYMS_BRIDGE_STDOUT_PACKET=minimal_expected.json,debug_reference_types_expected.json,long_options_expected.json,quiet_overrides_warning_expected.json,explicit_option_terminator_expected.json,positional_passthrough_expected.json`
+- `PHASE2_GENKSYMS_BRIDGE_PROCESS_PACKET=help_expected.json,version_expected.json,invalid_option_expected.json,missing_reference_argument_expected.json,unsupported_long_option_expected.json,missing_long_reference_argument_expected.json,missing_long_dump_types_argument_expected.json`
+- `PHASE2_GENKSYMS_BRIDGE_NORMALIZED_STDERR_PACKET=invalid_option_expected.json,missing_reference_argument_expected.json,unsupported_long_option_expected.json,missing_long_reference_argument_expected.json,missing_long_dump_types_argument_expected.json`
+- bridge-plan coverage stays anchored by the minimal invocation, repeated short-flag request, long-option request, quiet-overrides-warning request, explicit option terminator request, and positional passthrough request fixtures in `zigux/tests/fixtures/genksyms_bridge/`
+- bridge-process coverage stays anchored by the help and version side-effect fixtures plus normalized invalid-option and missing-argument error fixtures in the same bounded packet
+
 ## Toolchain Pin Boundary
 
 The bounded Phase 2 bootstrap archive pin stays separate from the cross-target compile matrix:
