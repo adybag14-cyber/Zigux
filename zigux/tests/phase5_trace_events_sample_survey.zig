@@ -256,6 +256,7 @@ test "phase 5 trace-events survey note stays repo-local and keeps the formatting
     try expectContains(survey_note, "runtime_trace_events");
     try expectContains(survey_note, "runPayloadBoundaryReplay()");
     try expectContains(survey_note, "private field inspection");
+    try expectContains(survey_note, "initialized-stage boundary");
     try expectContains(survey_note, "no standalone `samples/zigux/*printf*`, `*vsprintf*`, or `*format*` Phase 5 reference sample");
     try expectContains(survey_note, "approved formatting idiom cue");
     try expectContains(survey_note, "selected-string plus `iter=%d` replay");
