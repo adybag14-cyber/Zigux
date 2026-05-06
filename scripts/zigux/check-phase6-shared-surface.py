@@ -29,7 +29,7 @@ REQUIRED_SNIPPETS = {
         "- there is no separate shared `validate-phase6.py`, external portability checker packet beyond `check-phase6-shared-surface.py`, or aggregated `phase6-perf` target on `master`; the shipped dedicated perf replays are `make -C zigux phase6-checksum-perf` and `make -C zigux phase6-hexdump-perf`",
     ],
     "Documentation/zigux/review-checklist.md": [
-        "  * if the change touches the shared Phase 6 leaf-helper packet, do `Documentation/zigux/README.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, `Documentation/zigux/phase6-base64-slice.md`, `Documentation/zigux/phase6-bsearch-slice.md`, `Documentation/zigux/phase6-checksum-slice.md`, `Documentation/zigux/phase6-hexdump-slice.md`, `scripts/zigux/check-phase6-shared-surface.py`, `zigux/tests/phase6_build.zig`, `zigux/tests/phase6_base64.zig`, `zigux/tests/phase6_bsearch.zig`, `zigux/tests/phase6_checksum.zig`, `zigux/tests/phase6_hexdump.zig`, `zigux/tests/phase6_checksum_perf.zig`, `zigux/tests/phase6_hexdump_perf.zig`, `zigux/Makefile`, `.github/workflows/zigux-bootstrap.yml`, `make -C zigux phase6-validate`, `make -C zigux phase6`, `make -C zigux phase6-checksum-perf`, and `make -C zigux phase6-hexdump-perf` still agree on the same bundled `base64`, `bsearch`, `checksum`, and `hexdump` helper packet without implying a removed shared `validate-phase6.py`, a broader external parity checker beyond `check-phase6-shared-surface.py`, or an aggregated `phase6-perf` route?",
+        "  * if the change touches the shared Phase 6 leaf-helper packet, do `Documentation/zigux/README.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, `Documentation/zigux/phase6-base64-slice.md`, `Documentation/zigux/phase6-bsearch-slice.md`, `Documentation/zigux/phase6-checksum-slice.md`, `Documentation/zigux/phase6-hexdump-slice.md`, `scripts/zigux/check-phase6-shared-surface.py`, `zigux/tests/phase6_build.zig`, `zigux/tests/phase6_base64.zig`, `zigux/tests/phase6_bsearch.zig`, `zigux/tests/phase6_checksum.zig`, `zigux/tests/phase6_hexdump.zig`, `zigux/tests/phase6_checksum_perf.zig`, and `zigux/tests/phase6_hexdump_perf.zig`, `zigux/Makefile`, `.github/workflows/zigux-bootstrap.yml`, `make -C zigux phase6-validate`, `make -C zigux phase6`, `make -C zigux phase6-checksum-perf`, and `make -C zigux phase6-hexdump-perf` still agree on the same bundled `base64`, `bsearch`, `checksum`, and `hexdump` helper packet without implying a removed shared `validate-phase6.py`, a broader external parity checker beyond `check-phase6-shared-surface.py`, or an aggregated `phase6-perf` route?",
     ],
     "zigux/tests/README.md": [
         "  * `zigux/tests/fixtures/phase6_base64_vectors.zig`",
@@ -93,6 +93,14 @@ REQUIRED_SNIPPETS = {
         "- `32B-ascii-g2`",
         "- `16B-ascii-g4`",
         "- `16B-ascii-g8`",
+    ],
+    "Documentation/zigux/phase6-perf-gate-survey.md": [
+        "- `PHASE6_PERF_SURVEY_STATUS=active`",
+        "- `PHASE6_PERF_PACKET=base64-bsearch-checksum-hexdump`",
+        "- shared replay note: there is still no aggregated `phase6-perf` route on current `master`; `make -C zigux phase6` remains the shared validation-plus-tests route, while dedicated perf replays stay helper-local",
+        "- base64: a dedicated slowdown harness exists in `zigux/tests/phase6_base64_perf.zig`, and `zigux/tests/phase6_build.zig` still defines `phase6-base64-perf`, but `zigux/Makefile` and `.github/workflows/zigux-bootstrap.yml` do not currently replay that harness on the shared route",
+        "- checksum: a dedicated slowdown gate remains wired through `zigux/tests/phase6_checksum_perf.zig`, `zigux/Makefile`, and `.github/workflows/zigux-bootstrap.yml`, with the current 150% ceiling still applied to the `64B` and `1501B` replay cases",
+        "- hexdump: a dedicated slowdown gate remains wired through `zigux/tests/phase6_hexdump_perf.zig`, `zigux/Makefile`, and `.github/workflows/zigux-bootstrap.yml`, with the current grouped slowdown ceilings still set to `175` for `16B-plain-g1`, `550` for `32B-ascii-g2` and `16B-ascii-g4`, and `600` for `16B-ascii-g8`",
     ],
     "zigux/tests/phase6_build.zig": [
         'const test_step = b.step("test", "Run Phase 6 leaf helper tests");',
@@ -221,10 +229,7 @@ EXACT_OCCURRENCE_MARKERS = {
     ],
 }
 
-REMOVED_PATHS = [
-    "Documentation/zigux/phase6-perf-gate-survey.md",
-    "scripts/zigux/validate-phase6.py",
-]
+REMOVED_PATHS = ["scripts/zigux/validate-phase6.py"]
 
 
 def read_text(path: Path) -> str:
@@ -329,6 +334,12 @@ def run_self_test() -> None:
             "Documentation/zigux/phase6-checksum-slice.md",
             "incremental partial-sum chaining across even and odd fragment boundaries",
             "partial sums compose across the fixture split matrix",
+        )
+        assert_failure(
+            root,
+            "Documentation/zigux/phase6-perf-gate-survey.md",
+            "a dedicated slowdown harness exists in `zigux/tests/phase6_base64_perf.zig`, and `zigux/tests/phase6_build.zig` still defines `phase6-base64-perf`",
+            "the dedicated slowdown harness only exists in unpublished notes",
         )
         assert_failure(
             root,
