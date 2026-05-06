@@ -8,7 +8,7 @@ This document tracks the bounded Phase 9 runtime pilot-module survey around `sam
 - `PHASE9_SLICE=runtime-kretprobe-survey`
 - `PHASE9_SURVEYED_COMMIT=248bfeaa7f2beddc283c3e398fc36fec3c841242`
 - lane: `P9-L17`
-- scope: survey manifest, starter sample, dedicated module, survey, and diff gates, the bounded loader-handoff scaffold, the shared runtime-loader facade, allocator/init-flow contract replay, and shared-request bridge with landed selftest-hook parity, shared Phase 9 build wiring, and the lane-level note that now records the landed runtime starter plus the remaining substrate blocker
+- scope: survey manifest, starter sample, dedicated module, survey, and diff gates, the bounded loader-handoff scaffold, the focused `phase9-runtime-kretprobe-tests` build step, the shared runtime-loader facade, allocator/init-flow contract replay, the focused shared runtime-loader shard, shared Phase 9 build wiring, and the lane-level note that now records the landed runtime starter plus the remaining substrate blocker
 - product boundary:
   - `samples/zigux/runtime_kretprobe.zig`
   - `samples/zigux/runtime_kretprobe_loader.zig`
@@ -66,5 +66,14 @@ Stay in the Phase 9 runtime kretprobe lane and keep broader work blocked until a
 
 ## Gates
 
-1. run the convenience target
+1. run the focused shared runtime-loader shard
+- `zig build phase9-runtime-loader-shared-tests --build-file zigux/tests/phase9_build.zig`
+
+2. run the focused runtime kretprobe lane step
+- `zig build phase9-runtime-kretprobe-tests --build-file zigux/tests/phase9_build.zig`
+
+3. run the dedicated Phase 9 build
+- `zig build test --build-file zigux/tests/phase9_build.zig`
+
+4. run the convenience target
 - `make -C zigux phase9`
