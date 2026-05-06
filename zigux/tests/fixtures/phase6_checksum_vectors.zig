@@ -44,6 +44,13 @@ pub const NegateCase = struct {
     expected_add_with_negate: u32,
 };
 
+pub const PerfCase = struct {
+    label: []const u8,
+    bytes: []const u8,
+    iterations: usize,
+    max_slowdown_pct: u64,
+};
+
 const ipv4_header = [_]u8{
     0x45, 0x00, 0x00, 0x3c,
     0x1c, 0x46, 0x40, 0x00,
@@ -58,6 +65,20 @@ const all_ones_odd = [_]u8{0xff};
 const all_ones_even = [_]u8{ 0xff, 0xff };
 const no_carry_single = [_]u8{0x04};
 const no_carry_pair = [_]u8{ 0x04, 0x04 };
+
+fn makePatternedPayload(comptime len: usize, comptime seed: u8) [len]u8 {
+    @setEvalBranchQuota(len * 4);
+    var bytes: [len]u8 = undefined;
+    for (0..len) |i| {
+        const idx: u32 = @intCast(i);
+        const mixed = (idx * 37) + (idx >> 1) + seed;
+        bytes[i] = @truncate((mixed ^ 0x5a) & 0xff);
+    }
+    return bytes;
+}
+
+const payload_64 = makePatternedPayload(64, 0x31);
+const payload_1501 = makePatternedPayload(1501, 0x6d);
 
 pub const compute_cases = [_]ComputeCase{
     .{
@@ -196,5 +217,20 @@ pub const negate_cases = [_]NegateCase{
         .sum = 0xdead_bef0,
         .expected_negate = 0x2152_4110,
         .expected_add_with_negate = 0x0000_0001,
+    },
+};
+
+pub const perf_cases = [_]PerfCase{
+    .{
+        .label = "64B",
+        .bytes = &payload_64,
+        .iterations = 200_000,
+        .max_slowdown_pct = 150,
+    },
+    .{
+        .label = "1501B",
+        .bytes = &payload_1501,
+        .iterations = 12_000,
+        .max_slowdown_pct = 150,
     },
 };
