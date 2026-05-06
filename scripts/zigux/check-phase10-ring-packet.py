@@ -46,7 +46,7 @@ EXPECTED_HELPER_MARKERS = [
 
 EXPECTED_TEST_MARKERS = [
     'test \"phase10 virtio ring reset-readiness preflight reports the current queue blocker\" {',
-    'test \"phase10 virtio ring blocks publish, kick, poll, and callback snapshots while a queue is broken\" {',
+    'test \"phase10 virtio ring broken summary keeps queue-local debt reviewable while blocking queue work\" {',
     'test \"phase10 virtio ring delayed callback pacing reports both thresholded and immediate poll cases\" {',
     'test \"phase10 virtio ring callback re-enable reports pending used work and settles after poll\" {',
 ]
@@ -138,7 +138,7 @@ pub fn resetQueue(self: *Self, queue_index: u16) !QueueResetSummary { _ = self; 
 pub fn markBroken(self: *Self, queue_index: u16) !BrokenQueueSummary { _ = self; _ = queue_index; }
 """,
     "zigux/tests/phase10_virtio_ring.zig": """test \"phase10 virtio ring reset-readiness preflight reports the current queue blocker\" {}
-test \"phase10 virtio ring blocks publish, kick, poll, and callback snapshots while a queue is broken\" {}
+test \"phase10 virtio ring broken summary keeps queue-local debt reviewable while blocking queue work\" {}
 test \"phase10 virtio ring delayed callback pacing reports both thresholded and immediate poll cases\" {}
 test \"phase10 virtio ring callback re-enable reports pending used work and settles after poll\" {}
 """,
@@ -409,14 +409,14 @@ def run_self_test() -> int:
         original_test = test_path.read_text(encoding="utf-8")
         test_path.write_text(
             original_test.replace(
-                'test \"phase10 virtio ring blocks publish, kick, poll, and callback snapshots while a queue is broken\" {',
+                'test \"phase10 virtio ring broken summary keeps queue-local debt reviewable while blocking queue work\" {',
                 'test \"phase10 virtio ring blocks publish drift while a queue is broken\" {',
                 1,
             ),
             encoding="utf-8",
         )
         _, missing_markers = validate(tmp_root)
-        if 'tests:test \"phase10 virtio ring blocks publish, kick, poll, and callback snapshots while a queue is broken\" {' not in missing_markers:
+        if 'tests:test \"phase10 virtio ring broken summary keeps queue-local debt reviewable while blocking queue work\" {' not in missing_markers:
             raise SystemExit("phase10-ring-self-test:expected_test_marker_missing")
         test_path.write_text(original_test, encoding="utf-8")
 
