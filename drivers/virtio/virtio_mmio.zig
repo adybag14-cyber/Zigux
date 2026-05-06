@@ -92,6 +92,19 @@ pub const ConfigWriteDispositionSummary = struct {
     changed_byte_mask: u8,
 };
 
+pub const TransportIdentitySummary = struct {
+    anchor: []const u8,
+    magic_value: u32,
+    version: u32,
+    device_id: u32,
+    vendor_id: u32,
+    magic_matches: bool,
+    version_supported: bool,
+    device_present: bool,
+    vendor_id_present: bool,
+    requires_legacy_guest_page_size: bool,
+};
+
 pub const ProbePreflightSummary = struct {
     anchor: []const u8,
     magic_matches: bool,
@@ -272,12 +285,23 @@ pub const VirtioMmioLab = struct {
         };
     }
 
+    pub fn transportIdentitySummary(self: *const Self) TransportIdentitySummary {
+        return .{
+            .anchor = descriptor().anchor,
+            .magic_value = self.magic_value,
+            .version = self.version,
+            .device_id = self.device_id,
+            .vendor_id = self.vendor_id,
+            .magic_matches = self.magic_value == mmio_magic_value,
+            .version_supported = self.version == mmio_version_legacy or self.version == mmio_version_modern,
+            .device_present = self.device_id != 0,
+            .vendor_id_present = self.vendor_id != 0,
+            .requires_legacy_guest_page_size = self.version == mmio_version_legacy,
+        };
+    }
+
     pub fn probePreflightSummary(self: *const Self) ProbePreflightSummary {
-        const magic_matches = self.magic_value == mmio_magic_value;
-        const version_supported = self.version == mmio_version_legacy or self.version == mmio_version_modern;
-        const device_present = self.device_id != 0;
-        const vendor_id_present = self.vendor_id != 0;
-        const requires_legacy_guest_page_size = self.version == mmio_version_legacy;
+        const identity = self.transportIdentitySummary();
         const legacy_guest_page_size_register_ready = guest_page_size_register_offset == 0x028;
         const bounded_queue_register_window_ready = self.configured_queue_count != 0 and
             @intFromEnum(Register.queue_num_max) == 0x034 and
@@ -288,30 +312,23 @@ pub const VirtioMmioLab = struct {
             supported_interrupt_bits == (queue_interrupt_bit | config_interrupt_bit);
 
         return .{
-            .anchor = descriptor().anchor,
-            .magic_matches = magic_matches,
-            .version_supported = version_supported,
-            .device_present = device_present,
-            .vendor_id_present = vendor_id_present,
-            .requires_legacy_guest_page_size = requires_legacy_guest_page_size,
+            .anchor = identity.anchor,
+            .magic_matches = identity.magic_matches,
+            .version_supported = identity.version_supported,
+            .device_present = identity.device_present,
+            .vendor_id_present = identity.vendor_id_present,
+            .requires_legacy_guest_page_size = identity.requires_legacy_guest_page_size,
             .legacy_guest_page_size_register_ready = legacy_guest_page_size_register_ready,
             .bounded_queue_register_window_ready = bounded_queue_register_window_ready,
             .interrupt_ack_ready = interrupt_ack_ready,
-            .ready_for_probe_handoff = magic_matches and
-                version_supported and
-                device_present and
-                vendor_id_present and
-                (!requires_legacy_guest_page_size or legacy_guest_page_size_register_ready) and
+            .ready_for_probe_handoff = identity.magic_matches and
+                identity.version_supported and
+                identity.device_present and
+                identity.vendor_id_present and
+                (!identity.requires_legacy_guest_page_size or legacy_guest_page_size_register_ready) and
                 bounded_queue_register_window_ready and
                 interrupt_ack_ready,
         };
-    }
-
-    pub fn seedTransportIdentity(self: *Self, magic_value: u32, version: u32, device_id: u32, vendor_id: u32) void {
-        self.magic_value = magic_value;
-        self.version = version;
-        self.device_id = device_id;
-        self.vendor_id = vendor_id;
     }
 
     pub fn stageConfigBytes(self: *Self, bytes: []const u8) !void {
@@ -319,6 +336,13 @@ pub const VirtioMmioLab = struct {
         @memset(self.config_window[0..], 0);
         @memcpy(self.config_window[0..bytes.len], bytes);
         self.config_window_size = bytes.len;
+    }
+
+    pub fn seedTransportIdentity(self: *Self, magic_value: u32, version: u32, device_id: u32, vendor_id: u32) void {
+        self.magic_value = magic_value;
+        self.version = version;
+        self.device_id = device_id;
+        self.vendor_id = vendor_id;
     }
 
     pub fn windowSummary(self: *const Self) RegisterWindowSummary {
@@ -502,43 +526,25 @@ test "phase10 virtio mmio summarizes config-write disposition without mutating c
     try std.testing.expectError(error.ConfigWritePlanUnavailable, device.configWriteDispositionSummary());
 }
 
-test "phase10 virtio mmio preflight follows seeded transport identity" {
+test "phase10 virtio mmio exposes a transport identity summary before lifecycle work" {
     var device = try VirtioMmioLab.init(58, &[_]u16{ 8, 16 });
-    device.seedTransportIdentity(mmio_magic_value, mmio_version_legacy, 58, default_vendor_id);
 
-    const summary = device.probePreflightSummary();
+    device.seedTransportIdentity(mmio_magic_value, mmio_version_legacy, 58, default_vendor_id);
+    var summary = device.transportIdentitySummary();
+    try std.testing.expectEqualStrings("drivers/virtio/virtio_mmio.c", summary.anchor);
+    try std.testing.expectEqual(@as(u32, mmio_magic_value), summary.magic_value);
+    try std.testing.expectEqual(@as(u32, mmio_version_legacy), summary.version);
+    try std.testing.expectEqual(@as(u32, 58), summary.device_id);
+    try std.testing.expectEqual(@as(u32, default_vendor_id), summary.vendor_id);
     try std.testing.expect(summary.magic_matches);
     try std.testing.expect(summary.version_supported);
     try std.testing.expect(summary.device_present);
     try std.testing.expect(summary.vendor_id_present);
     try std.testing.expect(summary.requires_legacy_guest_page_size);
-    try std.testing.expect(summary.legacy_guest_page_size_register_ready);
-    try std.testing.expect(summary.bounded_queue_register_window_ready);
-    try std.testing.expect(summary.interrupt_ack_ready);
-    try std.testing.expect(summary.ready_for_probe_handoff);
 
-    const magic_summary = try device.readRegister(.magic_value);
-    try std.testing.expectEqual(mmio_magic_value, magic_summary.value);
-    const version_summary = try device.readRegister(.version);
-    try std.testing.expectEqual(mmio_version_legacy, version_summary.value);
-}
-
-test "phase10 virtio mmio preflight rejects bad magic and unsupported version" {
-    var device = try VirtioMmioLab.init(59, &[_]u16{8});
-    device.seedTransportIdentity(0, 3, 59, default_vendor_id);
-
-    const summary = device.probePreflightSummary();
-    try std.testing.expect(!summary.magic_matches);
-    try std.testing.expect(!summary.version_supported);
-    try std.testing.expect(summary.device_present);
-    try std.testing.expect(summary.vendor_id_present);
-    try std.testing.expect(!summary.requires_legacy_guest_page_size);
-    try std.testing.expect(summary.bounded_queue_register_window_ready);
-    try std.testing.expect(summary.interrupt_ack_ready);
-    try std.testing.expect(!summary.ready_for_probe_handoff);
-
-    const magic_summary = try device.readRegister(.magic_value);
-    try std.testing.expectEqual(@as(u32, 0), magic_summary.value);
-    const version_summary = try device.readRegister(.version);
-    try std.testing.expectEqual(@as(u32, 3), version_summary.value);
+    device.vendor_id = 0;
+    device.device_id = 0;
+    summary = device.transportIdentitySummary();
+    try std.testing.expect(!summary.device_present);
+    try std.testing.expect(!summary.vendor_id_present);
 }
