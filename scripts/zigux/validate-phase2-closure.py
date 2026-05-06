@@ -31,6 +31,8 @@ PHASE2_TESTS_README_ALIGNMENT_REQUIRED_SOURCE_MARKERS = [
     'PHASE2_TESTS_README_ALIGNMENT_GATE=python3 scripts/zigux/check-phase2-tests-readme-alignment.py',
 ]
 PHASE2_MAKEFILE_RUN_COUNTS = {
+    'scripts/zigux/check-fixdep-diff.py --self-test': 1,
+    'scripts/zigux/check-fixdep-diff.py': 1,
     'scripts/zigux/validate-phase2.py': 1,
     'scripts/zigux/validate-phase2-closure.py': 1,
     'scripts/zigux/check-phase2-tests-readme-alignment.py': 1,
@@ -51,6 +53,8 @@ PHASE2_WORKFLOW_RUN_COUNTS = {
 
 def run_self_test() -> int:
     make_ok = '\n'.join([
+        'cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-fixdep-diff.py --self-test',
+        'cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-fixdep-diff.py',
         'cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase2.py',
         'cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase2-closure.py',
         'cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-tests-readme-alignment.py',
@@ -69,6 +73,22 @@ def run_self_test() -> int:
     ]) + '\n'
     cases = [
         ('make_ok', validate_exact_makefile_runs(make_ok), []),
+        (
+            'make_duplicate_fixdep_self_test',
+            validate_exact_makefile_runs(
+                make_ok
+                + '\ncd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-fixdep-diff.py --self-test'
+            ),
+            ['make_exact_run:scripts/zigux/check-fixdep-diff.py --self-test:count=2:expected=1'],
+        ),
+        (
+            'make_duplicate_fixdep_gate',
+            validate_exact_makefile_runs(
+                make_ok
+                + '\ncd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-fixdep-diff.py'
+            ),
+            ['make_exact_run:scripts/zigux/check-fixdep-diff.py:count=2:expected=1'],
+        ),
         (
             'make_duplicate_validate_phase2',
             validate_exact_makefile_runs(
@@ -319,6 +339,7 @@ def main() -> int:
         'PHASE2_STATUS=closed',
         'PHASE2_TOOL_COUNT=6',
         'PHASE2_CROSS_TARGET_COUNT=3',
+        'PHASE2_FIXDEP_SELF_TEST=python3 scripts/zigux/check-fixdep-diff.py --self-test',
         'PHASE2_GENKSYMS_BRIDGE_GATE=python3 scripts/zigux/check-genksyms-bridge.py',
         'PHASE2_KCONFIG_BRIDGE_GATE=python3 scripts/zigux/check-kconfig-bridge.py',
         'PHASE2_CROSS_SELF_TEST=python3 scripts/zigux/check-phase2-cross.py --self-test',
