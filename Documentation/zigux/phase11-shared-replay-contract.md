@@ -15,6 +15,7 @@ This note records the current shared contributor replay surface for the shipped 
 - `Documentation/zigux/review-checklist.md`
 - `Documentation/zigux/phase11-shared-replay-contract.md`
 - `Documentation/zigux/phase11-bcm2835-wdt-validation-matrix.md`
+- `Documentation/zigux/phase11-bcm2835-wdt-survey.md`
 - `Documentation/zigux/phase11-gpio-wdt-validation-matrix.md`
 - `Documentation/zigux/phase11-dw-wdt-validation-matrix.md`
 - `Documentation/zigux/phase11-hvc-console-validation-matrix.md`
@@ -23,6 +24,8 @@ This note records the current shared contributor replay surface for the shipped 
 - `scripts/zigux/check-phase11-shared-replay-contract.py`
 - `scripts/zigux/check-phase11-header-boundary-packet.py`
 - `zigux/tests/phase11_build.zig`
+- `zigux/tests/phase11_bcm2835_wdt_manifest.json`
+- `zigux/tests/phase11_bcm2835_wdt_survey.zig`
 - `zigux/tests/phase11_hvc_cleanup.zig`
 - `zigux/tests/phase11_hvc_console_survey.zig`
 - `zigux/tests/phase11_uapi_header_parity_manifest.json`
@@ -46,6 +49,13 @@ Inside that shared `phase11_build.zig` route, the watchdog, shared header-parity
 - `zigux/tests/phase11_uapi_header_parity_survey.zig`
 - `zigux/tests/phase11_hvc_console.zig`
 - `zigux/tests/phase11_hvc_cleanup.zig`
+
+The active bcm2835 hardware-validation packet also stays explicit beside that shared route:
+
+- `Documentation/zigux/phase11-bcm2835-wdt-validation-matrix.md`
+- `Documentation/zigux/phase11-bcm2835-wdt-survey.md`
+- `zigux/tests/phase11_bcm2835_wdt_manifest.json`
+- `zigux/tests/phase11_bcm2835_wdt_survey.zig`
 
 The dedicated archival HVC evidence still stays explicit beside that shared route:
 
