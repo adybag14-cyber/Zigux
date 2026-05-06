@@ -64,7 +64,7 @@
       "status": "starter_landed",
       "kind": "documentation",
       "zigux_destination": "Documentation/zigux/phase12-virtio-scsi-survey.md",
-      "why_now": "The lane needs a note that compares the landed queue planner and recovery helper against the much larger virtio_scsi.c surface so future runs do not mistake this bounded foothold for a production SCSI HBA port."
+      "why_now": "The lane needs a note that compares the landed queue planner, probe snapshot helper, and recovery helper against the much larger virtio_scsi.c surface so future runs do not mistake this bounded foothold for a production SCSI HBA port."
     },
     {
       "id": "phase12-virtio-scsi-driver-starter",
@@ -78,28 +78,28 @@
       "status": "starter_landed",
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase12_virtio_scsi.zig",
-      "why_now": "Dedicated driver tests now keep the starter honest around queue-count validation, poll-queue clamping, stable global virtqueue indexes, and the bounded freeze or restore contract for planning and event recycling intent."
+      "why_now": "Dedicated driver tests now keep the starter honest around queue-count validation, poll-queue clamping, stable global virtqueue indexes, the bounded probe-config snapshot, and the bounded freeze or restore contract for planning and event recycling intent."
     },
     {
       "id": "phase12-virtio-scsi-slice-note",
       "status": "starter_landed",
       "kind": "documentation",
       "zigux_destination": "Documentation/zigux/phase12-virtio-scsi-slice.md",
-      "why_now": "The slice note records exactly what the queue-layout and recovery starter covers so the survey can stay focused on the deeper transport, SCSI-host, and DMA-backed work that is still intentionally missing."
+      "why_now": "The slice note records exactly what the queue-layout, probe-config snapshot, and recovery starter covers so the survey can stay focused on the deeper transport, SCSI-host, and DMA-backed work that is still intentionally missing."
     },
     {
       "id": "phase12-virtio-scsi-probe-config-snapshot-starter",
-      "status": "ready_next",
+      "status": "starter_landed",
       "kind": "complex_driver_starter",
       "zigux_destination": "drivers/scsi/virtio_scsi.zig",
-      "why_now": "The next honest virtio_scsi step is one small probe snapshot helper that records virtscsi_probe() config fields such as num_queues, seg_max, cmd_per_lun, max_target, max_lun, and max_sectors, plus the derived control or event versus request virtqueue layout before any blk-mq submission, TMF, or DMA-backed queue work is attempted."
+      "why_now": "The first honest virtio_scsi probe follow-through is now landed as a bounded snapshot that records virtscsi_probe() config fields such as num_queues, seg_max, cmd_per_lun, max_target, max_lun, and max_sectors, plus the derived control or event versus request virtqueue layout before any blk-mq submission, TMF, or DMA-backed queue work is attempted."
     },
     {
       "id": "phase12-virtio-scsi-runtime-queues-and-scan",
       "status": "blocked_on_dma_transport",
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase12_virtio_scsi_survey.zig",
-      "why_now": "Command submission, TMF and async notification handling, event-work scheduling, virtqueue buffer ownership, scsi_add_host(), scsi_scan_host(), blk-mq queue mapping, PM freeze or restore wiring, and DMA-backed request flow remain blocked until the smaller probe snapshot helper exists and the roadmap-approved queueing and transport substrate is in place."
+      "why_now": "Command submission, TMF and async notification handling, event-work scheduling, virtqueue buffer ownership, scsi_add_host(), scsi_scan_host(), blk-mq queue mapping, PM freeze or restore wiring, and DMA-backed request flow remain blocked even after the smaller probe snapshot helper because the roadmap-approved queueing and transport substrate is still not in place."
     }
   ]
 }
