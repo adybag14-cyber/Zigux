@@ -58,35 +58,51 @@
   "blocker_ownership": [
     {
       "anchor": "kernel/sched/core.c",
-      "owner": "kernel scheduler maintainers",
+      "owner": "Architecture Council",
       "phase": "Phase 15",
       "status_bucket": "freeze_in_c",
       "validation_gate": "Phase 15 parity scorecard plus Architecture Council reopen record",
-      "rollback_owner": "Architecture Council freeze-map owner"
+      "rollback_owner": "Architecture Council + PMO / Release Management",
+      "evidence_archive_path": "Documentation/zigux/phase15-evidence-archives/kernel-sched-core.md",
+      "benchmark_notes": "pending_until_bounded_scheduler_seam_exists",
+      "replay_command": "zig build test --build-file zigux/tests/phase15_build.zig",
+      "latest_blocker_disposition": "blocked_no_bounded_scheduler_seam"
     },
     {
       "anchor": "mm/page_alloc.c",
-      "owner": "memory-management maintainers",
+      "owner": "Architecture Council",
       "phase": "Phase 15",
       "status_bucket": "freeze_in_c",
       "validation_gate": "Phase 15 parity scorecard plus Architecture Council reopen record",
-      "rollback_owner": "Architecture Council freeze-map owner"
+      "rollback_owner": "Architecture Council + Validation and Perf Team",
+      "evidence_archive_path": "Documentation/zigux/phase15-evidence-archives/mm-page-alloc.md",
+      "benchmark_notes": "pending_until_bounded_allocator_seam_exists",
+      "replay_command": "zig build test --build-file zigux/tests/phase15_build.zig",
+      "latest_blocker_disposition": "blocked_no_bounded_allocator_seam"
     },
     {
       "anchor": "kernel/rcu/tree.c",
-      "owner": "RCU maintainers",
+      "owner": "ABI and Runtime Team",
       "phase": "Phase 15",
       "status_bucket": "freeze_in_c",
       "validation_gate": "Phase 15 parity scorecard plus Architecture Council reopen record",
-      "rollback_owner": "Architecture Council freeze-map owner"
+      "rollback_owner": "Architecture Council + ABI and Runtime Team",
+      "evidence_archive_path": "Documentation/zigux/phase15-evidence-archives/kernel-rcu-tree.md",
+      "benchmark_notes": "pending_until_rcu_followup_is_narrower_than_freeze_boundary",
+      "replay_command": "zig build test --build-file zigux/tests/phase15_build.zig",
+      "latest_blocker_disposition": "blocked_phase14_followup_still_wider_than_allowed_rcu_seam"
     },
     {
       "anchor": "net/core/skbuff.c",
-      "owner": "network buffer maintainers",
+      "owner": "Shared Subsystems Pod",
       "phase": "Phase 15",
       "status_bucket": "freeze_in_c",
       "validation_gate": "Phase 15 parity scorecard plus Architecture Council reopen record",
-      "rollback_owner": "Architecture Council freeze-map owner"
+      "rollback_owner": "Architecture Council + Shared Subsystems Pod",
+      "evidence_archive_path": "Documentation/zigux/phase15-evidence-archives/net-core-skbuff.md",
+      "benchmark_notes": "pending_until_skbuff_followup_is_narrower_than_lifetime_boundary",
+      "replay_command": "zig build test --build-file zigux/tests/phase15_build.zig",
+      "latest_blocker_disposition": "blocked_packet_lifetime_boundary_still_too_wide"
     }
   ],
   "gaps": [
@@ -138,6 +154,13 @@
       "kind": "owner_inventory",
       "zigux_destination": "Documentation/zigux/phase15-freeze-map-governance.md",
       "why_now": "Each freeze-in-C anchor now needs explicit owner, validation-gate, and rollback-owner inventory so the maintenance-mode freeze-map packet proves the same review scope required by the root policy."
+    },
+    {
+      "id": "phase15-anchor-reporting-field-sync",
+      "status": "starter_landed",
+      "kind": "evidence_reporting",
+      "zigux_destination": "Documentation/zigux/phase15-freeze-map-governance.md",
+      "why_now": "The dedicated freeze-map governance packet now needs the same evidence archive path, benchmark notes, replay command, and latest blocker disposition fields that the root freeze-map policy and Phase 15 parity scorecard already require per anchor."
     },
     {
       "id": "phase15-deep-core-status-change-blocker",
