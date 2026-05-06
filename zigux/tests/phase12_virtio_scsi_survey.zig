@@ -187,7 +187,7 @@ test "phase12 virtio_scsi survey manifest records the landed queue starter and p
 
         if (std.mem.eql(u8, gap.id, "phase12-virtio-scsi-restore-queue-rebind-summary-starter")) {
             saw_restore_queue_rebind = true;
-            try std.testing.expectEqualStrings("drivers/virtio_scsi.zig", gap.zigux_destination);
+            try std.testing.expectEqualStrings("drivers/scsi/virtio_scsi.zig", gap.zigux_destination);
             try std.testing.expectEqualStrings("starter_landed", gap.status);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "virtscsi_restore()") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "default versus poll queue ranges") != null);
@@ -220,7 +220,7 @@ test "phase12 virtio_scsi survey manifest records the landed queue starter and p
     try std.testing.expectEqual(@as(usize, 0), ready_next_count);
     try std.testing.expectEqual(@as(usize, 1), blocked_count);
     try std.testing.expect(saw_build_gate);
-    try std.testing.expect(saw_make_target);
+    try std.testing.expect(saw_makeTarget);
     try std.testing.expect(saw_core_foundation);
     try std.testing.expect(saw_ring_foundation);
     try std.testing.expect(saw_survey_gate);
