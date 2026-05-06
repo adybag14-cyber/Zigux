@@ -77,7 +77,7 @@ test "phase 14 rcu tree survey manifest records the freeze-boundary gap without 
     defer parsed.deinit();
 
     const manifest = parsed.value;
-    try std.testing.expectEqualStrings("P14-L16", manifest.lane_key);
+    try std.testing.expectEqualStrings("P14-L13", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 14", manifest.phase);
     try std.testing.expectEqualStrings("kernel/rcu/tree.c", manifest.anchor);
     try std.testing.expectEqualStrings("4c889233d157960514b241bcd5aff7cac5fda312", manifest.surveyed_commit);
@@ -102,7 +102,7 @@ test "phase 14 rcu tree survey manifest records the freeze-boundary gap without 
     try std.testing.expectEqual(@as(usize, 7), manifest.decision_checklist.len);
     try std.testing.expectEqual(@as(usize, 15), manifest.gaps.len);
 
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE14_LANE_KEY=P14-L16") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE14_LANE_KEY=P14-L13") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE14_SURVEYED_COMMIT=4c889233d157960514b241bcd5aff7cac5fda312") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "landed `phase14-rcu-tree-callback-offload-followup`") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "landed `phase14-rcu-tree-idle-watch-followup`") != null);
