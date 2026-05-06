@@ -75,10 +75,20 @@ pub const ErrorCode = enum(i32) {
 pub const ManagedIoremapPlan = struct {
     anchor: []const u8,
     pretty_name: []const u8,
+    pretty_name_owned_by_plan: bool,
     effective_type: IoremapType,
     size: u64,
     requests_region: bool,
     releases_region_on_remap_failure: bool,
+
+    pub fn deinit(self: *ManagedIoremapPlan, allocator: std.mem.Allocator) void {
+        if (!self.pretty_name_owned_by_plan) {
+            return;
+        }
+        allocator.free(@constCast(self.pretty_name));
+        self.pretty_name = "";
+        self.pretty_name_owned_by_plan = false;
+    }
 };
 
 pub const ManagedIoremapFailure = struct {
@@ -369,6 +379,7 @@ pub const DevresHelperLab = struct {
             .mapped = .{
                 .anchor = descriptor().anchor,
                 .pretty_name = pretty_name,
+                .pretty_name_owned_by_plan = true,
                 .effective_type = effective_type,
                 .size = size,
                 .requests_region = true,
@@ -496,3 +507,62 @@ pub const DevresHelperLab = struct {
         };
     }
 };
+
+test "managed ioremap resource exposes owned pretty name cleanup" {
+    const allocator = std.testing.allocator;
+
+    const outcome = try DevresHelperLab.planManagedIoremapResource(allocator, .{
+        .device_name = "virtio0",
+        .resource = .{
+            .start = 0x1000,
+            .end = 0x10ff,
+            .is_memory = true,
+            .nonposted = false,
+            .name = "cfg",
+        },
+    });
+
+    switch (outcome) {
+        .mapped => |plan_value| {
+            var plan = plan_value;
+            defer plan.deinit(allocator);
+            try std.testing.expect(plan.pretty_name_owned_by_plan);
+            try std.testing.expectEqualStrings("virtio0 cfg", plan.pretty_name);
+            plan.deinit(allocator);
+            try std.testing.expect(!plan.pretty_name_owned_by_plan);
+            try std.testing.expectEqualStrings("", plan.pretty_name);
+        },
+        .err => return error.UnexpectedError,
+    }
+}
+
+test "device tree iomap preserves pretty name ownership contract" {
+    const allocator = std.testing.allocator;
+
+    const resources = [_]Resource{.{
+        .start = 0x2000,
+        .end = 0x20ff,
+        .is_memory = true,
+        .nonposted = true,
+        .name = "bar0",
+    }};
+
+    const outcome = try DevresHelperLab.planDeviceTreeIomap(allocator, .{
+        .device_name = "of-node",
+        .index = 0,
+        .resources = &resources,
+        .report_size = true,
+    });
+
+    switch (outcome) {
+        .mapped => |plan_value| {
+            var plan = plan_value;
+            defer plan.mapping.deinit(allocator);
+            try std.testing.expect(plan.mapping.pretty_name_owned_by_plan);
+            try std.testing.expectEqualStrings("of-node bar0", plan.mapping.pretty_name);
+            try std.testing.expectEqual(@as(?u64, 0x100), plan.reported_size);
+            try std.testing.expectEqual(.np, plan.mapping.effective_type);
+        },
+        .err => return error.UnexpectedError,
+    }
+}
