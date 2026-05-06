@@ -11,6 +11,6 @@ The live repo state is now:
 - `zigux/tests/phase11_build.zig` runs the starter and survey paths together so lane-local freshness drift shows up in one place
 - `Documentation/zigux/phase11-gpio-wdt-validation-matrix.md` now records the bounded validation posture for the landed starter and the still-deferred kernel-facing follow-up
 
-This remains intentionally small. The lane still does not claim platform-driver registration, live GPIO descriptor lookup, watchdog core registration, reboot hooks, module parameters beyond summary bookkeeping, live GPIO execution, or hardware-backed validation beyond the bounded matrix evidence already recorded for the current starter.
+This remains intentionally small. The lane still does not claim platform-driver registration, live GPIO descriptor lookup, watchdog core registration, reboot hooks, module parameters beyond summary bookkeeping, live GPIO execution, teardown and failure-mode parity beyond the bounded starter checks, or hardware-backed validation beyond the landed matrix.
 
-The next honest bounded step inside the same lane is to pick one tiny drvdata-order checkpoint that stays immediately adjacent to the new timeout-property checkpoint and the existing registration handoff, while still avoiding live GPIO and platform glue until the handoff bookkeeping is no longer the blocker.
+The next honest bounded step inside the same lane is to land one registration-facing scaffold note or replay that ties `devm_gpiod_get()`, `watchdog_set_drvdata()`, and `devm_watchdog_register_device()` to the remaining teardown and failure-mode parity plus hardware-backed validation work, while still avoiding live GPIO and platform glue claims.
