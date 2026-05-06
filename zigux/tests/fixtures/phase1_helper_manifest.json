@@ -33,6 +33,15 @@
         "test \"bitmap zero-bit helpers stay explicit no-ops\""
       ],
       "first_word_boundary_anchor": "test \"bitmap range helpers honor exact first-word boundaries\"",
+      "phase1_helper_replay_anchor": "test \"phase 1 helper ports match committed parity fixture\"",
+      "parity_fixture_keys": [
+        "scnprintf",
+        "truncated_scnprintf_len",
+        "truncated_scnprintf",
+        "terminator_only_scnprintf_len",
+        "terminator_only_nul",
+        "zero_length_scnprintf_len"
+      ],
       "partial_xor_review_fields": [
         "partial_xor_nbits",
         "partial_xor_masked_values"
