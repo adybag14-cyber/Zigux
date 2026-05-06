@@ -98,3 +98,28 @@ test "nvme pci recovery replay keeps stale inline-only metadata from overclaimin
     try testing.expect(!stale_inline_only.descriptor_rebuild_required);
     try testing.expectEqual(@as(u32, 0), stale_inline_only.descriptor_rebuild_dma_bytes);
 }
+
+test "nvme pci recovery replay keeps legacy short-form request literals compatible" {
+    var lab = try nvme_pci.NvmePciQueueLab.init(4096, 8);
+    _ = try lab.planAdminQueue(40, 64, false);
+    _ = try lab.planIoQueue(16, 64, false);
+    const metadata = try lab.planPrpMetadata(8192, 0x200);
+    try testing.expect(metadata.requires_descriptor_rebuild_after_reset);
+
+    _ = lab.beginReset();
+
+    const legacy_shape = lab.summarizeRecoveryReplay(.{
+        .cached_prp_metadata_generation = metadata.reset_generation,
+        .had_prp_metadata_plan = true,
+        .had_admin_queue_plan = true,
+    });
+    try testing.expect(legacy_shape.cached_prp_metadata_stale);
+    try testing.expect(!legacy_shape.descriptor_rebuild_required);
+    try testing.expectEqual(@as(u32, 0), legacy_shape.descriptor_rebuild_dma_bytes);
+    try testing.expect(!legacy_shape.cached_queue_reservation_stale);
+    try testing.expect(!legacy_shape.queue_reservation_replay_required);
+    try testing.expectEqual(@as(usize, 0), legacy_shape.reserved_io_queues_to_renegotiate);
+    try testing.expect(legacy_shape.admin_queue_must_be_replanned);
+    try testing.expect(legacy_shape.io_queues_must_be_rebuilt);
+    try testing.expectEqual(@as(usize, 1), legacy_shape.io_queues_dropped_by_reset);
+}
