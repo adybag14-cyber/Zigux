@@ -63,6 +63,7 @@ test "phase 9 runtime bitmap survey manifest records the roadmap selftest hook, 
     var starter_landed_count: usize = 0;
     var ready_next_count: usize = 0;
     var blocked_count: usize = 0;
+    var saw_phase9_build_gate = false;
     var saw_sample_module = false;
     var saw_selftest_hook = false;
     var saw_diff_gate = false;
@@ -91,6 +92,12 @@ test "phase 9 runtime bitmap survey manifest records the roadmap selftest hook, 
             blocked_count += 1;
         }
 
+        if (std.mem.eql(u8, gap.id, "phase9-build-gate")) {
+            saw_phase9_build_gate = true;
+            try std.testing.expectEqualStrings("starter_landed", gap.status);
+            try std.testing.expectEqualStrings("zigux/tests/phase9_build.zig", gap.zigux_destination);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "phase9-runtime-bitmap-sample-tests") != null);
+        }
         if (std.mem.eql(u8, gap.id, "runtime-bitmap-sample-module")) {
             saw_sample_module = true;
             try std.testing.expectEqualStrings("starter_landed", gap.status);
@@ -130,6 +137,7 @@ test "phase 9 runtime bitmap survey manifest records the roadmap selftest hook, 
     try std.testing.expect(starter_landed_count >= 7);
     try std.testing.expectEqual(@as(usize, 0), ready_next_count);
     try std.testing.expect(blocked_count >= 1);
+    try std.testing.expect(saw_phase9_build_gate);
     try std.testing.expect(saw_sample_module);
     try std.testing.expect(saw_selftest_hook);
     try std.testing.expect(saw_diff_gate);
@@ -158,6 +166,7 @@ test "phase 9 runtime bitmap survey note keeps the phase boundary and exact chec
     try std.testing.expect(std.mem.indexOf(u8, note, "samples/zigux/runtime_bitmap.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, note, "samples/zigux/runtime_bitmap_loader.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, note, "a landed sample-backed runtime starter with selftest-hook metadata under `samples/zigux/runtime_bitmap.zig`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, note, "the shared `zigux/tests/phase9_build.zig` gate still carries the direct `phase9-runtime-bitmap-sample-tests` leg") != null);
     try std.testing.expect(std.mem.indexOf(u8, note, "The current direct bitmap sample contract is verified through these exact checks:") != null);
     try std.testing.expect(std.mem.indexOf(u8, note, "summary stability: initializing bits `0`, `5`, `64`, and `70` still yields `first_set=0`, `first_zero=1`, `weight=4`, and `nbits=128`") != null);
     try std.testing.expect(std.mem.indexOf(u8, note, "descriptor contract: the sample still advertises `name=runtime_bitmap`, `anchor=lib/test_bitmap.c`, `requires_runtime_substrate=true`, and `provides_selftest_hook=true`") != null);
@@ -247,6 +256,14 @@ test "phase 9 runtime bitmap survey source-checks the direct sample evidence pac
     );
     defer std.testing.allocator.free(diff_tests);
 
+    const phase9_build = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "zigux/tests/phase9_build.zig",
+        std.testing.allocator,
+        .limited(64 * 1024),
+    );
+    defer std.testing.allocator.free(phase9_build);
+
     try std.testing.expect(std.mem.indexOf(u8, sample_source, ".name = \"runtime_bitmap\"") != null);
     try std.testing.expect(std.mem.indexOf(u8, sample_source, ".anchor = \"lib/test_bitmap.c\"") != null);
     try std.testing.expect(std.mem.indexOf(u8, sample_source, ".requires_runtime_substrate = true") != null);
@@ -295,4 +312,6 @@ test "phase 9 runtime bitmap survey source-checks the direct sample evidence pac
     try std.testing.expect(std.mem.indexOf(u8, loader_source, "try std.testing.expectEqual(@as(u32, 0), pending_plan.summary.first_set);") != null);
     try std.testing.expect(std.mem.indexOf(u8, loader_source, "try std.testing.expectEqual(@as(u32, 7), live_summary.weight);") != null);
     try std.testing.expect(std.mem.indexOf(u8, loader_source, "try std.testing.expectEqual(@as(u32, 4), pending_plan.summary.weight);") != null);
+
+    try std.testing.expect(std.mem.indexOf(u8, phase9_build, "phase9-runtime-bitmap-sample-tests") != null);
 }
