@@ -3,6 +3,7 @@ const cpu_mask = @import("cpu_mask");
 const bpf_type_names = @import("bpf_type_names");
 const logging = @import("logging");
 const pin_path = @import("pin_path");
+const file_path_handle_bridge = @import("file_path_handle_bridge");
 const perf_buffer_poll = @import("perf_buffer_poll");
 
 const Gap = struct {
@@ -105,9 +106,13 @@ test "phase12 libbpf reviewability gate matches the current zigux_segments file 
             continue;
         }
         const exists = try pathExists(io_instance.io(), gap.zigux_destination);
+        const shared_file_path_handle_destination =
+            std.mem.eql(u8, gap.id, "phase12-libbpf-fdinfo-map-info-helper-ready-next") or
+            std.mem.eql(u8, gap.id, "phase12-libbpf-map-reuse-compatibility-ready-next") or
+            std.mem.eql(u8, gap.id, "phase12-libbpf-file-path-and-handle-bridge");
         if (std.mem.eql(u8, gap.status, "starter_landed")) {
             try std.testing.expect(exists);
-        } else if (std.mem.eql(u8, gap.id, "phase12-libbpf-perf-buffer-online-cpu-routing")) {
+        } else if (shared_file_path_handle_destination or std.mem.eql(u8, gap.id, "phase12-libbpf-perf-buffer-online-cpu-routing")) {
             try std.testing.expect(exists);
         } else if (std.mem.eql(u8, gap.status, "ready_next") or std.mem.eql(u8, gap.status, "blocked_on_object_model") or std.mem.eql(u8, gap.status, "deferred_high_risk")) {
             try std.testing.expect(!exists);
@@ -138,15 +143,15 @@ test "phase12 libbpf reviewability gate matches the current zigux_segments file 
         }
         if (std.mem.eql(u8, gap.id, "phase12-libbpf-fdinfo-map-info-helper-ready-next")) {
             saw_fdinfo_ready_next = true;
-            try std.testing.expect(!exists);
+            try std.testing.expect(exists);
         }
         if (std.mem.eql(u8, gap.id, "phase12-libbpf-map-reuse-compatibility-ready-next")) {
             saw_map_reuse_ready_next = true;
-            try std.testing.expect(!exists);
+            try std.testing.expect(exists);
         }
         if (std.mem.eql(u8, gap.id, "phase12-libbpf-file-path-and-handle-bridge")) {
             saw_file_path_handle_bridge = true;
-            try std.testing.expect(!exists);
+            try std.testing.expect(exists);
         }
         if (std.mem.eql(u8, gap.id, "phase12-libbpf-perf-buffer-online-cpu-routing")) {
             saw_perf_buffer_online_cpu_routing = true;
@@ -239,11 +244,12 @@ test "phase12 libbpf reviewability gate snapshot matches the tracked helper set"
     try std.testing.expect(saw_perf_buffer_poll);
 }
 
-test "phase12 libbpf reviewability gate still compiles the landed helper foundations" {
+test "phase12 libbpf reviewability gate still compiles the landed helper foundations and the shared bridge destination" {
     const parsed = try cpu_mask.parseCpuMaskString(std.testing.allocator, "0-1,3");
     defer parsed.deinit(std.testing.allocator);
     var path_buffer: [64]u8 = undefined;
     var error_buffer: [64]u8 = undefined;
+    var fdinfo_path_buffer: [64]u8 = undefined;
     const ready_buffers = [_]perf_buffer_poll.BufferObservation{
         .{ .ready = true },
         .{ .error_code = -11 },
@@ -268,6 +274,28 @@ test "phase12 libbpf reviewability gate still compiles the landed helper foundat
         error.InvalidRootPath,
         pin_path.buildValidatedSanitizedMapPinPath(&path_buffer, "tmp/bpf", "demo.map"),
     );
+    try std.testing.expectEqualStrings(
+        "/proc/42/fdinfo/7",
+        try file_path_handle_bridge.buildProcFdinfoPath(&fdinfo_path_buffer, 42, 7),
+    );
+    const parsed_fdinfo = try file_path_handle_bridge.parseFdinfoMapInfo(
+        \\map_type: 14
+        \\key_size: 4
+        \\value_size: 8
+        \\max_entries: 64
+        \\map_flags: 0x20
+        \\map_extra: 7
+    );
+    try std.testing.expectEqual(@as(?u32, 14), parsed_fdinfo.map_type);
+    const resolved_name = file_path_handle_bridge.resolveReusedMapName(
+        "process_pinned_map",
+        "process_pinned_",
+    );
+    try std.testing.expectEqual(
+        file_path_handle_bridge.ReusedMapNameSource.object_name,
+        resolved_name.source,
+    );
+    try std.testing.expectEqualStrings("process_pinned_map", resolved_name.value);
     try std.testing.expectEqualDeep(
         perf_buffer_poll.WaitObservation{ .ready_events = 2 },
         perf_buffer_poll.classifyObservedWaitResult(2),
@@ -357,17 +385,17 @@ test "phase12 libbpf reviewability gate cross-checks the legacy segment catalog"
         if (std.mem.eql(u8, segment.slug, "fdinfo-map-info-helpers")) {
             saw_fdinfo_map_info = true;
             try std.testing.expectEqualStrings("ready_next", segment.status);
-            try std.testing.expect(!exists);
+            try std.testing.expect(exists);
         }
         if (std.mem.eql(u8, segment.slug, "map-reuse-compatibility")) {
             saw_map_reuse = true;
-            try std.testing.expectEqualStrings("ready_next", segment.status);
-            try std.testing.expect(!exists);
+            try std.testing.expectEqualStrings("starter_landed", segment.status);
+            try std.testing.expect(exists);
         }
         if (std.mem.eql(u8, segment.slug, "file-path-and-handle-bridge")) {
             saw_file_path_handle_bridge = true;
             try std.testing.expectEqualStrings("deferred_high_risk", segment.status);
-            try std.testing.expect(!exists);
+            try std.testing.expect(exists);
         }
         if (std.mem.eql(u8, segment.slug, "perf-buffer-online-cpu-routing")) {
             saw_perf_buffer_online_cpu_routing = true;
