@@ -12,6 +12,7 @@ This document starts a bounded Phase 7 runtime leaf-helper slice for Zigux.
   - `samples/zigux/README.md`
   - `scripts/zigux/validate-phase7.py`
   - `zigux/tests/phase7_string_helpers.zig`
+  - `zigux/tests/phase7_string_helpers_survey.zig`
   - `zigux/tests/phase7_string_helpers_sample_boundary.zig`
   - `zigux/tests/phase7_build.zig`
   - `zigux/Makefile`
@@ -26,7 +27,7 @@ Phase 7 is where Zigux starts moving from earlier standalone helper ports into r
 - benefit from explicit pointer and termination handling
 - can be validated with a focused Zig gate before deeper formatting, escaping, or allocation-backed helpers are attempted
 - keep stronger ownership and pointer discipline explicit through bounded C-string prefix helpers, destination-size accounting, null-sentinel table handling, and Linux-style size rendering cues
-- keep integration with validation substrate explicit through `zigux/tests/phase7_build.zig`, the shared `zig build test --build-file zigux/tests/phase7_build.zig --summary all` replay, `zigux/tests/phase7_string_helpers_sample_boundary.zig`, `scripts/zigux/validate-phase7.py`, and `make -C zigux phase7`
+- keep integration with validation substrate explicit through `zigux/tests/phase7_build.zig`, the dedicated `zigux/tests/phase7_string_helpers_survey.zig` survey gate, the shared `zig build test --build-file zigux/tests/phase7_build.zig --summary all` replay, `zigux/tests/phase7_string_helpers_sample_boundary.zig`, `scripts/zigux/validate-phase7.py`, and `make -C zigux phase7`
 
 This is intentionally not a Phase 5 `samples/zigux/` reference-sample lane.
 
@@ -44,7 +45,10 @@ The Phase 5 roadmap keeps approved reference idioms under four sample anchors in
 3. keep the helper wired through the Zigux convenience target
 - `make -C zigux phase7`
 
-4. keep the dedicated no-string-sample boundary guard reviewable
+4. keep the dedicated survey gate reviewable
+- `zigux/tests/phase7_string_helpers_survey.zig`
+
+5. keep the dedicated no-string-sample boundary guard reviewable
 - `samples/zigux/README.md`
 - `zigux/tests/phase7_string_helpers_sample_boundary.zig`
 
@@ -88,6 +92,7 @@ The current tests check:
 - truncation accounting that returns the full would-be escaped length without promising an appended terminator
 - one allocator-backed `kasprintf_strarray()` proof that returns sequential `prefix-index` owned strings together with a trailing null-pointer view for C-style callers
 - one `kfree_strarray()` proof that keeps first-NUL prefix handling, zero-count sentinel reuse, repeated teardown, and setup-failure cleanup safe
+- the dedicated survey gate that keeps the roadmap anchor, helper replay, shared build route, and no-string-sample boundary reviewable together
 - the Phase 5-versus-Phase 7 boundary check that keeps `samples/zigux/` free of approved string-helper reference samples while pointing reviewers back to this helper packet
 
 ## Non-goals
@@ -103,4 +108,4 @@ This slice does not yet claim:
 
 Leave this lane parked unless fresh repo inspection finds one more concrete Phase 7 helper need or a renewed Phase 5-versus-Phase 7 boundary drift.
 
-If the string-helper family reopens, prefer one bounded integer parsing step before broader quotable, allocator-heavy, task-owned, file-owned, or device-managed follow-on work, because the live helper packet already covers the whitespace leaf pair, the bounded escape subset, `string_get_size()` sizing-path reviewability, and one ownership-safe string-array starter.
+If the string-helper family reopens, prefer one bounded integer parsing step before broader quotable, allocator-heavy, task-owned, file-owned, or device-managed follow-on work, because the live helper packet already covers the whitespace leaf pair, the dedicated survey gate, the bounded escape subset, `string_get_size()` sizing-path reviewability, and one ownership-safe string-array starter.
