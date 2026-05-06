@@ -23,6 +23,21 @@ fn countOccurrences(haystack: []const u8, needle: []const u8) usize {
     return count;
 }
 
+fn gitBlobShaHex(source: []const u8) [40]u8 {
+    var hasher = std.crypto.hash.Sha1.init(.{});
+    hasher.update("blob ");
+
+    var len_buf: [32]u8 = undefined;
+    const len_text = std.fmt.bufPrint(&len_buf, "{}", .{source.len}) catch unreachable;
+    hasher.update(len_text);
+    hasher.update(&[_]u8{0});
+    hasher.update(source);
+
+    var digest: [20]u8 = undefined;
+    hasher.final(&digest);
+    return std.fmt.bytesToHex(digest, .lower);
+}
+
 fn readRepoFile(allocator: std.mem.Allocator, repo_root_relative_path: []const u8) ![]u8 {
     return std.Io.Dir.cwd().readFileAlloc(
         std.testing.io,
@@ -84,6 +99,17 @@ fn expectAtomic64MatrixMarkerCount(marker: []const u8, expected_count: usize) !v
     ) orelse return error.MissingAtomic64MatrixSectionBoundary;
     const section = phase4_validation_matrix_source[section_start..section_end];
     try std.testing.expectEqual(expected_count, countOccurrences(section, marker));
+}
+
+fn expectPhase4GateEvidenceBlobPin(
+    phase4_gate_evidence_source: []const u8,
+    label: []const u8,
+    source: []const u8,
+) !void {
+    const blob_sha = gitBlobShaHex(source);
+    var marker_buf: [96]u8 = undefined;
+    const marker = try std.fmt.bufPrint(&marker_buf, "- `{s}={s}`", .{ label, &blob_sha });
+    try std.testing.expectEqual(@as(usize, 1), countOccurrences(phase4_gate_evidence_source, marker));
 }
 
 test "atomic64 diff canonical wrapper keeps the shipped runtime gate wired in" {
@@ -221,6 +247,42 @@ test "atomic64 diff wrapper keeps the shared phase4 validator packet explicit" {
     try expectMarker(validate_phase4_source, "\"zigux/tests/phase4_runtime_atomic64_diff_survey.zig\"");
     try expectMarker(validate_phase4_source, "PHASE4_RUNTIME_ATOMIC64_PACKET_CHECK");
     try expectMarker(validate_phase4_source, "phase4_runtime_atomic64_packet");
+}
+
+test "atomic64 diff wrapper keeps phase4 gate-evidence atomic64 packet pins current" {
+    const phase4_gate_evidence_source = try readRepoFile(
+        std.testing.allocator,
+        "Documentation/zigux/phase4-gate-evidence.md",
+    );
+    defer std.testing.allocator.free(phase4_gate_evidence_source);
+
+    const phase4_runtime_atomic64_survey_source = try readRepoFile(
+        std.testing.allocator,
+        "zigux/tests/phase4_runtime_atomic64_diff_survey.zig",
+    );
+    defer std.testing.allocator.free(phase4_runtime_atomic64_survey_source);
+
+    try expectPhase4GateEvidenceBlobPin(
+        phase4_gate_evidence_source,
+        "PHASE4_ATOMIC64_DIFF_BLOB_SHA",
+        @embedFile("atomic64_diff.zig"),
+    );
+    try expectPhase4GateEvidenceBlobPin(
+        phase4_gate_evidence_source,
+        "PHASE4_RUNTIME_ATOMIC64_DIFF_BLOB_SHA",
+        runtime_atomic64_diff_source,
+    );
+    try expectPhase4GateEvidenceBlobPin(
+        phase4_gate_evidence_source,
+        "PHASE4_RUNTIME_ATOMIC64_MANIFEST_BLOB_SHA",
+        phase4_runtime_atomic64_manifest_source,
+    );
+    try expectPhase4GateEvidenceBlobPin(
+        phase4_gate_evidence_source,
+        "PHASE4_RUNTIME_ATOMIC64_SURVEY_BLOB_SHA",
+        phase4_runtime_atomic64_survey_source,
+    );
+    try expectMarker(phase4_gate_evidence_source, "- `PHASE4_RUNTIME_ATOMIC64_SURVEY_PACKET_PRESENT=true`");
 }
 
 test "atomic64 diff wrapper keeps rollback ownership and threshold posture explicit" {
