@@ -65,7 +65,7 @@ EXPECTED_TEST_MARKERS = [
 
 EXPECTED_SURVEY_TEST_MARKERS = [
     'test "phase10 virtio mmio survey manifest records the live helper-backed transport gap" {',
-    'try std.testing.expectEqualStrings("P10-L18", manifest.lane_key);',
+    'try std.testing.expectEqualStrings("P10-L10", manifest.lane_key);',
     'try std.testing.expectEqualStrings("blocked_on_risky_transport", manifest.risky_transport_posture);',
     'try std.testing.expect(std.mem.indexOf(u8, survey_note, "shorter restaged config window clears stale second-word data") != null);',
     'try std.testing.expect(std.mem.indexOf(u8, survey_note, "absolute end offset and changed-byte mask") != null);',
@@ -157,7 +157,7 @@ test \"phase10 virtio mmio bounds queue selection and queue sizing before lifecy
 test \"phase10 virtio mmio keeps status and config-generation bookkeeping inside the helper\" {}
 """,
     "zigux/tests/phase10_virtio_mmio_survey.zig": """test \"phase10 virtio mmio survey manifest records the live helper-backed transport gap\" {
-    try std.testing.expectEqualStrings(\"P10-L18\", manifest.lane_key);
+    try std.testing.expectEqualStrings(\"P10-L10\", manifest.lane_key);
     try std.testing.expectEqualStrings(\"blocked_on_risky_transport\", manifest.risky_transport_posture);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, \"shorter restaged config window clears stale second-word data\") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, \"absolute end offset and changed-byte mask\") != null);
@@ -182,11 +182,11 @@ test \"phase10 virtio mmio keeps status and config-generation bookkeeping inside
 """,
     "zigux/tests/phase10_virtio_mmio_manifest.json": json.dumps(
         {
-            "lane_key": "P10-L18",
+            "lane_key": "P10-L10",
             "phase": "Phase 10",
             "surveyed_commit": "5f476437a4a3b91d840dd75fca0bf684d1ccc4dd",
             "anchor": "drivers/virtio/virtio_mmio.c",
-            "roadmap_destinations": ["drivers/virtio/*.zig", "zigux/helpers/"],
+            "roadmap_destinations": ["drivers/virtio/*.zig", "zigux/kernel/", "zigux/helpers/"],
             "freeze_map": "Documentation/zigux/freeze-map.md",
             "freeze_boundary_status": "aligned",
             "freeze_status_change_claimed": False,
@@ -287,15 +287,15 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
             missing_markers.append(f"survey_note:{marker}")
 
     manifest = json.loads(read_text(root, "zigux/tests/phase10_virtio_mmio_manifest.json"))
-    if manifest.get("lane_key") != "P10-L18":
-        missing_markers.append("manifest:lane_key=P10-L18")
+    if manifest.get("lane_key") != "P10-L10":
+        missing_markers.append("manifest:lane_key=P10-L10")
     if manifest.get("phase") != "Phase 10":
         missing_markers.append("manifest:phase=Phase 10")
     if manifest.get("anchor") != "drivers/virtio/virtio_mmio.c":
         missing_markers.append("manifest:anchor=drivers/virtio/virtio_mmio.c")
     if manifest.get("surveyed_commit") != "5f476437a4a3b91d840dd75fca0bf684d1ccc4dd":
         missing_markers.append("manifest:surveyed_commit")
-    if manifest.get("roadmap_destinations") != ["drivers/virtio/*.zig", "zigux/helpers/"]:
+    if manifest.get("roadmap_destinations") != ["drivers/virtio/*.zig", "zigux/kernel/", "zigux/helpers/"]:
         missing_markers.append("manifest:roadmap_destinations")
     if manifest.get("freeze_map") != "Documentation/zigux/freeze-map.md":
         missing_markers.append("manifest:freeze_map")
@@ -373,11 +373,11 @@ def run_self_test() -> int:
         manifest_path = tmp_root / "zigux/tests/phase10_virtio_mmio_manifest.json"
         original_manifest = manifest_path.read_text(encoding="utf-8")
         manifest_path.write_text(
-            original_manifest.replace('"lane_key": "P10-L18"', '"lane_key": "P10-drift"', 1),
+            original_manifest.replace('"lane_key": "P10-L10"', '"lane_key": "P10-drift"', 1),
             encoding="utf-8",
         )
         _, missing_markers = validate(tmp_root)
-        if "manifest:lane_key=P10-L18" not in missing_markers:
+        if "manifest:lane_key=P10-L10" not in missing_markers:
             raise SystemExit("phase10-mmio-self-test:expected_lane_key_marker_missing")
         manifest_path.write_text(original_manifest, encoding="utf-8")
 
@@ -397,6 +397,19 @@ def run_self_test() -> int:
         _, missing_markers = validate(tmp_root)
         if "manifest:preexisting_phase10_test_files=11" not in missing_markers:
             raise SystemExit("phase10-mmio-self-test:expected_phase10_test_count_marker_missing")
+        manifest_path.write_text(original_manifest, encoding="utf-8")
+
+        manifest_path.write_text(
+            original_manifest.replace(
+                '"roadmap_destinations": [\n    "drivers/virtio/*.zig",\n    "zigux/kernel/",\n    "zigux/helpers/"\n  ]',
+                '"roadmap_destinations": [\n    "drivers/virtio/*.zig",\n    "zigux/helpers/"\n  ]',
+                1,
+            ),
+            encoding="utf-8",
+        )
+        _, missing_markers = validate(tmp_root)
+        if "manifest:roadmap_destinations" not in missing_markers:
+            raise SystemExit("phase10-mmio-self-test:expected_roadmap_destinations_marker_missing")
         manifest_path.write_text(original_manifest, encoding="utf-8")
 
         build_path = tmp_root / "zigux/tests/phase10_build.zig"
@@ -488,6 +501,21 @@ def run_self_test() -> int:
             raise SystemExit("phase10-mmio-self-test:expected_disposition_test_marker_missing")
         test_path.write_text(original_test, encoding="utf-8")
 
+        survey_test_path = tmp_root / "zigux/tests/phase10_virtio_mmio_survey.zig"
+        original_survey_test = survey_test_path.read_text(encoding="utf-8")
+        survey_test_path.write_text(
+            original_survey_test.replace(
+                'try std.testing.expectEqualStrings("P10-L10", manifest.lane_key);',
+                'try std.testing.expectEqualStrings("P10-drift", manifest.lane_key);',
+                1,
+            ),
+            encoding="utf-8",
+        )
+        _, missing_markers = validate(tmp_root)
+        if 'survey_test:try std.testing.expectEqualStrings("P10-L10", manifest.lane_key);' not in missing_markers:
+            raise SystemExit("phase10-mmio-self-test:expected_survey_test_marker_missing")
+        survey_test_path.write_text(original_survey_test, encoding="utf-8")
+
         slice_path = tmp_root / "Documentation/zigux/phase10-virtio-mmio-slice.md"
         original_slice = slice_path.read_text(encoding="utf-8")
         slice_path.write_text(
@@ -510,7 +538,7 @@ def run_self_test() -> int:
             raise SystemExit("phase10-mmio-self-test:expected_survey_marker_missing")
 
     print("PHASE10_MMIO_PACKET_SELF_TEST=pass")
-    print("PHASE10_MMIO_PACKET_SELF_TEST_CASE_COUNT=11")
+    print("PHASE10_MMIO_PACKET_SELF_TEST_CASE_COUNT=13")
     return 0
 
 
