@@ -143,6 +143,10 @@ test "atomic64 diff wrapper keeps the current manifest handoff explicit" {
 
 test "atomic64 diff wrapper keeps the current phase4 and phase9 build routing explicit" {
     try expectMarker(phase4_build_source, ".root_source_file = b.path(\"atomic64_diff.zig\")");
+    try expectMarker(
+        phase4_build_source,
+        ".root_source_file = b.path(\"phase4_runtime_atomic64_diff_survey.zig\")",
+    );
     try expectMarker(phase4_build_source, ".name = \"phase4-runtime-atomic64-diff-tests\"");
     try expectMarker(phase4_build_source, ".name = \"phase4-runtime-atomic64-diff-survey-tests\"");
     try expectMarker(phase4_build_source, "\"phase4-runtime-atomic64-diff\"");
@@ -151,6 +155,10 @@ test "atomic64 diff wrapper keeps the current phase4 and phase9 build routing ex
     try expectMarker(phase9_build_source, ".root_source_file = b.path(\"runtime_atomic64_diff.zig\")");
     try expectMarker(phase9_build_source, ".name = \"phase9-runtime-atomic64-diff-tests\"");
     try expectNoMarker(phase9_build_source, ".root_source_file = b.path(\"atomic64_diff.zig\")");
+    try expectNoMarker(
+        phase9_build_source,
+        ".root_source_file = b.path(\"phase4_runtime_atomic64_diff_survey.zig\")",
+    );
 }
 
 test "atomic64 diff wrapper keeps the shared phase4 validator packet explicit" {
