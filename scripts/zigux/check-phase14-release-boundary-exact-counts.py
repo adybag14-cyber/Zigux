@@ -46,6 +46,12 @@ MANIFEST_FREEZE_IN_C_ANCHORS = [
     "kernel/rcu/tree.c",
     "net/core/skbuff.c",
 ]
+MANIFEST_BLOCKED_ANCHORS = [
+    "kernel/workqueue.c",
+    "kernel/trace/ring_buffer.c",
+    "kernel/rcu/tree.c",
+    "net/core/skbuff.c",
+]
 
 
 def repo_root() -> Path:
@@ -124,6 +130,9 @@ def check(root: Path) -> list[str]:
     if manifest.get("freeze_in_c_anchors") != MANIFEST_FREEZE_IN_C_ANCHORS:
         errors.append("phase14 manifest freeze_in_c_anchors drifted from the expected two-entry freeze-governed set")
 
+    if manifest.get("blocked_anchors") != MANIFEST_BLOCKED_ANCHORS:
+        errors.append("phase14 manifest blocked_anchors drifted from the combined study-only plus freeze-governed set")
+
     return errors
 
 
@@ -182,6 +191,12 @@ def run_self_test() -> int:
                 "kernel/trace/ring_buffer.c",
             ],
             "freeze_in_c_anchors": [
+                "kernel/rcu/tree.c",
+                "net/core/skbuff.c",
+            ],
+            "blocked_anchors": [
+                "kernel/workqueue.c",
+                "kernel/trace/ring_buffer.c",
                 "kernel/rcu/tree.c",
                 "net/core/skbuff.c",
             ],
@@ -298,6 +313,20 @@ def run_self_test() -> int:
         errors = check(root)
         if not any("phase14 manifest freeze_in_c_anchors drifted from the expected two-entry freeze-governed set" in error for error in errors):
             print("self-test expected failure when manifest freeze-in-C anchors drifted", file=sys.stderr)
+            return 1
+        write_text(manifest_path, json.dumps(expected_manifest, indent=2) + "\n")
+
+        manifest_data = json.loads(read_text(manifest_path))
+        manifest_data["blocked_anchors"] = [
+            "kernel/workqueue.c",
+            "kernel/trace/ring_buffer.c",
+            "kernel/rcu/tree.c",
+            "net/core/skbuff_fastpath.c",
+        ]
+        write_text(manifest_path, json.dumps(manifest_data, indent=2) + "\n")
+        errors = check(root)
+        if not any("phase14 manifest blocked_anchors drifted from the combined study-only plus freeze-governed set" in error for error in errors):
+            print("self-test expected failure when manifest blocked anchors drifted", file=sys.stderr)
             return 1
 
     return 0
