@@ -95,6 +95,17 @@ def emit_manifest_issues(issues: list[tuple[str, str]]) -> None:
     raise SystemExit(1)
 
 
+def success_lines(*, refresh: bool) -> list[str]:
+    lines: list[str] = []
+    if refresh:
+        lines.append('GENKSYMS_BRIDGE_REFRESH=pass')
+    else:
+        lines.append('GENKSYMS_BRIDGE_DIFF=pass')
+        lines.append('GENKSYMS_BRIDGE_DETERMINISM=pass')
+    lines.append(f'FIXTURE_DIR={FIXTURE_DIR}')
+    return lines
+
+
 def windows_to_wsl(path: Path) -> str:
     resolved = path.resolve()
     drive = resolved.drive.rstrip(':').lower()
@@ -250,9 +261,15 @@ def run_self_test() -> int:
 
         assert normalize_cli_stderr("genksyms: option '--reference' requires an argument\n") == "option '--reference' requires an argument\n"
         assert normalize_cli_stderr("genksyms: option '--help' doesn't allow an argument\n") == "option '--help' doesn't allow an argument\n"
+        assert success_lines(refresh=False)[:2] == [
+            'GENKSYMS_BRIDGE_DIFF=pass',
+            'GENKSYMS_BRIDGE_DETERMINISM=pass',
+        ]
+        assert success_lines(refresh=True)[0] == 'GENKSYMS_BRIDGE_REFRESH=pass'
+        assert 'GENKSYMS_BRIDGE_DETERMINISM=pass' not in success_lines(refresh=True)
 
     print('GENKSYMS_BRIDGE_SELF_TEST=pass')
-    print('GENKSYMS_BRIDGE_SELF_TEST_CASE_COUNT=4')
+    print('GENKSYMS_BRIDGE_SELF_TEST_CASE_COUNT=6')
     return 0
 
 
@@ -305,11 +322,8 @@ def main() -> int:
             run(diff_base + [str(expected), str(zig_actual)], cwd=str(ROOT))
             run(diff_base + [str(c_actual), str(zig_actual)], cwd=str(ROOT))
 
-    if args.refresh:
-        print('GENKSYMS_BRIDGE_REFRESH=pass')
-    else:
-        print('GENKSYMS_BRIDGE_DIFF=pass')
-    print(f'FIXTURE_DIR={FIXTURE_DIR}')
+    for line in success_lines(refresh=args.refresh):
+        print(line)
     return 0
 
 
