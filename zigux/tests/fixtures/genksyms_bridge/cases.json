@@ -16,6 +16,11 @@
       "expected": "long_options_expected.json"
     },
     {
+      "name": "abbreviated_long_options",
+      "argv": ["--deb", "--warn", "--qui", "--ref=foo.symref", "--dump-t", "types.symtypes", "--pres"],
+      "expected": "abbreviated_long_options_expected.json"
+    },
+    {
       "name": "quiet_overrides_warning",
       "argv": ["-w", "-q"],
       "expected": "quiet_overrides_warning_expected.json"
