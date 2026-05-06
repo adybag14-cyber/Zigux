@@ -72,6 +72,7 @@ The sample intentionally stays small:
 - it replays the Linux anchor's queue-order behavior without any procfs or user-copy substrate
 - it now makes ownership and lifetime explicit through a tiny `init()` -> `runAnchorReplay()` -> `exit()` flow instead of implying a runtime-ready module lifecycle
 - it now records one non-destructive snapshot of the filled queue before the final drain so reviewers can confirm the exact anchor sequence without inferring hidden mutation
+- it now exposes a tiny `runPreviewBoundaryReplay()` check so reviewers can see preview truncation stay non-destructive before the full drain
 - it exposes a single bounded self-check that resets state, replays the bytestream example, and returns the exact observations that reviewers should care about
 
 The exact checks currently recorded in `zigux/tests/phase5_bytestream_fifo_manifest.json` and exercised through `zigux/tests/phase5_build.zig` are:
@@ -82,6 +83,7 @@ The exact checks currently recorded in `zigux/tests/phase5_bytestream_fifo_manif
 - skipping the next byte removes `2`
 - peeking afterward observes `3` without draining it
 - the fill loop succeeds for bytes `20` through `42` inclusive and then stops at the bounded capacity
+- `runPreviewBoundaryReplay()` proves a truncated preview stays non-destructive: `snapshotInto()` still begins with `[2,3,4,5]`, `previewInto()` copies `[2,3,4,5,6,7,8,9]`, reports `10` visible bytes, and leaves the queued data intact
 - `snapshotInto()` captures the exact 32-byte Linux anchor sequence `[3,4,5,6,7,8,9,0,1,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42]` before the final drain without mutating queue state
 - the final drain yields the exact 32-byte Linux anchor sequence `[3,4,5,6,7,8,9,0,1,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42]`
 - empty-queue peek and skip return `null`, pushing past capacity returns `false`, and `reset()` restores an empty queue
@@ -93,7 +95,7 @@ The exact checks currently recorded in `zigux/tests/phase5_bytestream_fifo_manif
 When a contributor updates `samples/zigux/bytestream_fifo.zig` or its directly coupled Phase 5 test files, keep these prompts explicit:
 
 - does `BytestreamFifoSample.descriptor()` still name the Linux anchor `samples/kfifo/bytestream-example.c` and keep `requires_runtime_substrate = false` plus `provides_selfcheck = true`?
-- do `zigux/tests/phase5_bytestream_fifo.zig`, `zigux/tests/phase5_bytestream_fifo_manifest.json`, and `zigux/tests/phase5_bytestream_fifo_survey.zig` still describe the exact queue-order replay, the non-destructive snapshot contract, lifecycle boundary, and bounded helper contract run through `zigux/tests/phase5_build.zig`?
+- do `zigux/tests/phase5_bytestream_fifo.zig`, `zigux/tests/phase5_bytestream_fifo_manifest.json`, and `zigux/tests/phase5_bytestream_fifo_survey.zig` still describe the exact queue-order replay, preview truncation boundary, the non-destructive snapshot contract, lifecycle boundary, and bounded helper contract run through `zigux/tests/phase5_build.zig`?
 - does that same helper-facing packet still keep the short-drain bytestream contract explicit so draining a three-byte destination from `"hello"` yields `"hel"`, preserves the `"lo"` remainder in queue order, and returns `0` once the queue is empty again?
 - if the sample behavior changes, is the manifest updated alongside the replay expectations instead of leaving reviewers to infer the new contract from code alone?
 - do the docs and tests still say clearly that procfs, user-copy, locking, and runtime registration remain out of scope for this Phase 5 sample?
@@ -118,6 +120,7 @@ A focused current-`master` replay was re-run on 2026-05-05 with the attached Zig
 - `zig test samples/zigux/bytestream_fifo.zig` passed `5/5` sample self-checks
 - a focused scratch replay assembled from the current `master` versions of `samples/zigux/bytestream_fifo.zig`, `zigux/tests/phase5_bytestream_fifo.zig`, `zigux/tests/phase5_bytestream_fifo_survey.zig`, and `zigux/tests/phase5_bytestream_fifo_manifest.json` passed `5/5` build steps and `8/8` tests via `zig build test --build-file zigux/tests/phase5_build.zig --summary all`
 - the observed sample markers matched the manifest-backed contract exactly: `len_after_initial_fill = 15`, `first_out = "hello"`, `second_out = {0, 1}`, `skipped_byte = 2`, `peek_value = 3`, `fill_start = 20`, `fill_end = 42`, `snapshot_len = 32`, `snapshot_sequence stayed [3,4,5,6,7,8,9,0,1,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42]`, `final_len = 32`, and the final drain sequence stayed `[3,4,5,6,7,8,9,0,1,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42]`
+- the preview-boundary replay also held: `runPreviewBoundaryReplay()` kept `snapshot_prefix = {2, 3, 4, 5}`, `preview_prefix = {2, 3, 4, 5, 6, 7, 8, 9}`, reported `preview_total_visible = 10`, and left `queue_len_after_preview = 10`
 - the helper-boundary replay also held: empty peek and skip returned `null`, empty enqueue copied `0` bytes, overflow push was rejected at the 32-byte capacity, skip-at-capacity returned `0`, reset restored an empty queue, pop-after-reset returned `null`, and the helper-facing short-drain replay still produced `"hel"`, preserved the `"lo"` remainder, and returned `0` on the empty follow-up drain
 - the ownership-and-lifetime replay also held: the sample still moved `cold -> initialized -> replay_complete -> exited`, rejected replay before `init()`, rejected duplicate `init()`, and rejected `exit()` after teardown
 
