@@ -53,13 +53,13 @@ The current lane state is:
 - landed `phase13-devres-of-iomap-planner`
 - landed `phase13-devres-arch-io-memtype-planner`
 - landed `phase13-devres-arch-phys-wc-token-planner`
-- blocked `phase13-devres-live-mmio-mappings`
+- blocked `phase13-devres-live-mmio-side-effects`
 - blocked `phase13-devres-live-dma-backed-helpers`
 - blocked `phase13-devres-live-scatterlist-ownership`
 - blocked `phase13-devres-live-device-tree-walk`
 - blocked `phase13-devres-live-arch-memtype-state`
 
-This keeps the lane explicit without overstating progress: Zigux has a real helper-first devres foothold for managed resource planning, detach-time bookkeeping, and one dedicated coherent-DMA boundary replay, but it still does not claim live MMIO mappings, live DMA-backed helpers, live scatter-gather ownership, live device-tree walking, or live arch memtype state transitions.
+This keeps the lane explicit without overstating progress: Zigux has a real helper-first devres foothold for managed resource planning, detach-time bookkeeping, and one dedicated coherent-DMA boundary replay, but it still does not claim live MMIO side effects, live DMA-backed helpers, live scatter-gather ownership, live device-tree walking, or live arch memtype state transitions.
 
 ## Non-goals
 
