@@ -48,6 +48,14 @@
       "arch": "arm64",
       "mode_arg": "arch/arm64/configs/defconfig",
       "expected": "defconfig_expected.json"
+    },
+    {
+      "name": "listnewconfig",
+      "mode": "listnewconfig",
+      "kconfig": "Kconfig",
+      "config": "out/list.config",
+      "arch": "x86_64",
+      "expected": "listnewconfig_expected.json"
     }
   ],
   "confdata_cases": [
