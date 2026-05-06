@@ -24,6 +24,9 @@
     "handoff_next_steps_present": true,
     "phase15_build_present": true,
     "phase15_make_target_present": true,
+    "phase15_validate_target_present": true,
+    "phase15_scripts_alignment_checker_present": true,
+    "phase15_review_process_handoff_checker_present": true,
     "shared_ci_phase15_present": true,
     "phase15_replay_green_on_current_master": true,
     "deep_core_status_change_ready": false
@@ -79,5 +82,5 @@
       "why_now": "The freeze-in-C posture still lacks enough evidence for any deep-core status change."
     }
   ],
-  "next_step": "Keep the Phase 15 governance lane in maintenance mode unless the shared Phase 15 replay drifts again, one of the four recorded deep-core blocker dispositions changes, or the validator-first route (`make -C zigux phase15`) needs another dedicated readiness guard refresh."
+  "next_step": "Keep the Phase 15 governance lane in maintenance mode unless the shared Phase 15 replay drifts again, one of the four recorded deep-core blocker dispositions changes, one of the two dedicated `phase15-validate` checker routes disappears, or the validator-first route (`make -C zigux phase15`) needs another dedicated readiness guard refresh."
 }
