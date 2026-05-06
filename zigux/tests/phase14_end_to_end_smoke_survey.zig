@@ -22,12 +22,46 @@ const Manifest = struct {
     blocked_anchors: []const []const u8,
 };
 
+const TraceabilityExpectation = struct {
+    section_heading: []const u8,
+    survey_note_path: []const u8,
+    retained_boundary_marker: []const u8,
+    blocked_gap_marker: []const u8,
+};
+
 const expected_compile_artifacts = [_]CompileArtifact{
     .{ .label = "phase14-workqueue-bridge-tests", .root_source = "phase14_workqueue_bridge.zig", .coverage = "full_bundle_only" },
     .{ .label = "phase14-skbuff-bridge-tests", .root_source = "phase14_skbuff_bridge.zig", .coverage = "full_bundle_only" },
     .{ .label = "phase14-ring-buffer-survey-tests", .root_source = "phase14_ring_buffer_survey.zig", .coverage = "full_bundle_only" },
     .{ .label = "phase14-rcu-tree-survey-tests", .root_source = "phase14_rcu_tree_survey.zig", .coverage = "full_bundle_only" },
     .{ .label = "phase14-end-to-end-smoke-tests", .root_source = "phase14_end_to_end_smoke_survey.zig", .coverage = "focused_and_full_bundle" },
+};
+
+const expected_traceability_markers = [_]TraceabilityExpectation{
+    .{
+        .section_heading = "### Workqueue",
+        .survey_note_path = "Documentation/zigux/phase14-workqueue-bridge-survey.md",
+        .retained_boundary_marker = "live worker-pool execution",
+        .blocked_gap_marker = "`phase14-workqueue-live-execution-blocker`",
+    },
+    .{
+        .section_heading = "### Ring buffer",
+        .survey_note_path = "Documentation/zigux/phase14-ring-buffer-survey.md",
+        .retained_boundary_marker = "exported-page forced-copy decisions",
+        .blocked_gap_marker = "`phase14-ring-buffer-zig-port-blocker`",
+    },
+    .{
+        .section_heading = "### Skbuff",
+        .survey_note_path = "Documentation/zigux/phase14-skbuff-bridge-survey.md",
+        .retained_boundary_marker = "live skb lifetime",
+        .blocked_gap_marker = "`phase14-skbuff-live-ownership-blocker`",
+    },
+    .{
+        .section_heading = "### RCU tree",
+        .survey_note_path = "Documentation/zigux/phase14-rcu-tree-survey.md",
+        .retained_boundary_marker = "grace-period sequence publication",
+        .blocked_gap_marker = "`phase14-rcu-tree-bridge-blocker`",
+    },
 };
 
 fn containsMarker(haystack: []const u8, needle: []const u8) bool {
@@ -181,9 +215,12 @@ test "phase14 shared smoke survey confirms the current packet surfaces" {
         .limited(64 * 1024),
     );
     defer std.testing.allocator.free(traceability_text);
-    try std.testing.expect(containsMarker(traceability_text, "### Ring buffer"));
+    for (expected_traceability_markers) |expected| {
+        try std.testing.expect(containsMarker(traceability_text, expected.section_heading));
+        try std.testing.expect(containsMarker(traceability_text, expected.survey_note_path));
+        try std.testing.expect(containsMarker(traceability_text, expected.retained_boundary_marker));
+        try std.testing.expect(containsMarker(traceability_text, expected.blocked_gap_marker));
+    }
     try std.testing.expect(containsMarker(traceability_text, "- ready-next gap: none currently recorded"));
-    try std.testing.expect(containsMarker(traceability_text, "- blocked gap: `phase14-ring-buffer-zig-port-blocker`"));
-    try std.testing.expect(containsMarker(traceability_text, "exported-page forced-copy decisions"));
     try std.testing.expect(!containsMarker(traceability_text, "- ready-next gap: `phase14-ring-buffer-read-page-copy-followup`"));
 }
