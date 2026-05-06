@@ -339,7 +339,6 @@ def run_self_test() -> None:
 
         docs_readme = root / "Documentation/zigux/README.md"
         original_docs_readme = docs_readme.read_text(encoding="utf-8")
-        docs_readme.writeText = None
         docs_readme.write_text(
             original_docs_readme.replace(
                 "phase6-hexdump-perf",
