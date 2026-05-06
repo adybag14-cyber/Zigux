@@ -47,6 +47,11 @@ fn bitIndex(idx: usize, value: Word, nbits: usize) usize {
     return if (bit < nbits) bit else nbits;
 }
 
+fn lastBitIndex(idx: usize, value: Word) usize {
+    const bit = bits_per_long - 1 - @as(usize, @intCast(@clz(value)));
+    return idx * bits_per_long + bit;
+}
+
 pub fn findFirstBit(addr: []const Word, nbits: usize) usize {
     assertBitmapLen(addr, nbits);
 
@@ -152,6 +157,27 @@ pub fn findNextZeroBit(addr: []const Word, nbits: usize, start: usize) usize {
     }
 
     return bitIndex(idx, value, nbits);
+}
+
+pub fn findLastBit(addr: []const Word, nbits: usize) usize {
+    assertBitmapLen(addr, nbits);
+
+    if (nbits == 0) {
+        return 0;
+    }
+
+    var idx = bitsToWords(nbits) - 1;
+    var value = maskWordInRange(idx, addr[idx], nbits);
+
+    while (value == 0) {
+        if (idx == 0) {
+            return nbits;
+        }
+        idx -= 1;
+        value = addr[idx];
+    }
+
+    return lastBitIndex(idx, value);
 }
 
 test "find first and next set bits across words" {
@@ -266,4 +292,34 @@ test "head-word boundary scans keep the last in-range bit reachable from an incl
     try std.testing.expectEqual(@as(usize, boundary), findNextBit(&set_map, nbits, boundary));
     try std.testing.expectEqual(@as(usize, boundary), findNextAndBit(&and_lhs, &and_rhs, nbits, boundary));
     try std.testing.expectEqual(@as(usize, boundary), findNextZeroBit(&zero_map, nbits, boundary));
+}
+
+test "find last bit scans backward across words" {
+    const nbits = bits_per_long * 3;
+    var bitmap = [_]Word{ 0, 0, 0 };
+    bitmap[0] |= @as(Word, 1) << 5;
+    bitmap[1] |= @as(Word, 1) << 3;
+    bitmap[2] |= @as(Word, 1) << 7;
+
+    try std.testing.expectEqual(@as(usize, bits_per_long * 2 + 7), findLastBit(&bitmap, nbits));
+    bitmap[2] = 0;
+    try std.testing.expectEqual(@as(usize, bits_per_long + 3), findLastBit(&bitmap, nbits));
+}
+
+test "find last bit clamps tail words to nbits" {
+    const nbits = bits_per_long + 5;
+    var bitmap = [_]Word{ 0, (@as(Word, 1) << 3) | (@as(Word, 1) << 10) };
+
+    try std.testing.expectEqual(@as(usize, bits_per_long + 3), findLastBit(&bitmap, nbits));
+    bitmap[1] &= ~(@as(Word, 1) << 3);
+    try std.testing.expectEqual(@as(usize, nbits), findLastBit(&bitmap, nbits));
+}
+
+test "find last bit returns nbits when no set bits remain" {
+    const nbits = bits_per_long * 2;
+    const bitmap = [_]Word{ 0, 0 };
+    const empty = [_]Word{};
+
+    try std.testing.expectEqual(@as(usize, nbits), findLastBit(&bitmap, nbits));
+    try std.testing.expectEqual(@as(usize, 0), findLastBit(&empty, 0));
 }
