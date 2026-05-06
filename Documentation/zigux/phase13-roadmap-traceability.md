@@ -58,6 +58,24 @@ Inside that packet, the active shared replay now keeps `zigux/tests/phase13_devr
 
 That packet is truthful to the roadmap because it exposes only reviewable helper planning and explicit blocker posture. It does not overclaim live MMIO mappings, live device-tree walking, DMA-backed helpers, scatterlist ownership, or live arch memtype mutation.
 
+## Landlock ruleset lane traceability
+
+The Phase 13 `landlock ruleset` lane remains a helper-first security packet anchored to `security/landlock/ruleset.c`.
+
+Current `master` keeps that anchor reviewable through:
+
+  * `Documentation/zigux/phase13-landlock-ruleset-slice.md`
+  * `Documentation/zigux/phase13-landlock-ruleset-survey.md`
+  * `zigux/tests/phase13_landlock_ruleset_manifest.json`
+  * `zigux/tests/phase13_landlock_ruleset.zig`
+  * `scripts/zigux/check-phase13-landlock-ruleset-packet.py`
+
+Inside that packet, the active shared replay now keeps `zigux/tests/phase13_landlock_ruleset.zig` inside the same seven-test helper route while the dedicated packet checker stays adjacent lane evidence rather than an extra shared replay step.
+
+That packet is truthful to the roadmap because it keeps the current ruleset foothold bounded to in-memory helper planning around `landlock_create_ruleset()`, access-mask unioning, per-layer mask initialization, `landlock_unmask_layers()` bit clearing, `insert_rule()` merge and search planning, no-match tree-link planning, and matched-rule replacement planning. It does not overclaim live rb-tree mutation, object references, hierarchy ownership, deferred frees, or live Landlock policy enforcement.
+
+The next honest same-lane step stays blocked where the live-tree state begins: old-rule cleanup after `rb_replace_node()`, object ownership, and hierarchy lifetime still need a narrower evidence path before this traceability note can claim more than the current helper-only packet.
+
 ## Landlock syscall lane traceability
 
 The Phase 13 `landlock syscalls` lane remains a helper-first security packet anchored to `security/landlock/syscalls.c`.
@@ -100,5 +118,6 @@ The honest current roadmap read is:
   * the shared replay packet is real and build-backed
   * `libfs` remains bounded to helper-first filesystem planning
   * `devres` remains bounded to helper-first MMIO-adjacent planning
+  * `landlock ruleset` remains bounded to helper-first ruleset planning with live-tree state still explicitly blocked
   * `landlock syscalls` remains bounded to helper-first syscall planning with the release-side handoff still explicitly queued next
   * release-facing docs must keep the shared replay count and the adjacent-evidence split exact so contributors do not mistake missing docs or implied replay expansion for product progress
