@@ -244,7 +244,9 @@ test "phase 5 kobject survey packet stays repo-local and keeps the shared review
         "if the change is a reference sample under `samples/zigux/`, is the self-check or behavior replay explicit and small enough to stay reviewable?",
         "if the change updates an existing Phase 5 sample, do the descriptor, manifest, and shared `phase5_build.zig` entrypoint still agree on the same Linux anchor and exact replay contract?",
         "if the change updates a landed Phase 5 sample that keeps a Linux concurrency or private-data cue only for reviewability, does the note or checklist still say clearly what remains in-memory-only and what runtime parity is still out of scope?",
-        "if the change is a landed Phase 5 sample, does it update the directly coupled survey note or manifest-backed contributor prompts when the sample contract changes?",
+        "if the change updates the landed Phase 5 `kobject_example` sample packet, do the note, shared checklist text, and paired manifest-backed replays keep the initialized-but-not-registered zero-active-attributes boundary, `ownershipSummary()` lifecycle packet, unnamed attribute-group shape, shared `baz`/`bar` dispatch, and the `abandoned_before_registration` versus `tore_down_registered_attributes` exit split explicit instead of implying sysfs, `kernel_kobj`, uevents, or module-registration parity?",
+        "if the change updates a landed Phase 5 sample, does it update the directly coupled survey note or manifest-backed contributor prompts when the sample contract changes?",
+        "if the change touches the shared Phase 5 sample packet, do the docs still say clearly that there is no standalone `samples/zigux/*rbtree*` reference sample and that `rbtree` reviewability remains under `Documentation/zigux/phase7-rbtree-slice.md`, `lib/rbtree.zig`, and `zigux/tests/phase7_build.zig` rather than the four shipped Phase 5 samples?",
     };
 
     for (checklist_markers) |needle| {
