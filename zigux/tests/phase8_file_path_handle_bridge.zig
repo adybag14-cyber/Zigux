@@ -55,6 +55,15 @@ test "phase 8 userspace-kernel bridge boundary survey keeps queued bridge work e
     try expectContains(survey, "resolveReusePinnedMapAttempt()");
     try expectContains(survey, "fd close or ownership semantics");
     try expectContains(survey, "deferred `perf-buffer-online-cpu-routing` packet");
+    try expectContains(survey, "/sys/devices/system/cpu/online");
+    try expectContains(survey, "cached `/sys/devices/system/cpu/possible` counts via `libbpf_num_possible_cpus()`");
+    try expectContains(survey, "online CPU filtering");
+    try expectContains(survey, "per-CPU perf-event-array map updates");
+    try expectContains(survey, "per-CPU `perf_event_open()` setup");
+    try expectContains(survey, "perf-buffer ring `mmap()` setup");
+    try expectContains(survey, "`PERF_EVENT_IOC_ENABLE` enablement");
+    try expectContains(survey, "epoll-backed perf FD registration");
+    try expectContains(survey, "poll waits");
     try expectContains(survey, "make -C zigux phase8-validate");
 }
 
