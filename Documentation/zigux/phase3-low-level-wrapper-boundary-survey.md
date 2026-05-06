@@ -20,7 +20,7 @@ This note records the current atomic, barrier, and MMIO boundary for the bounded
 - `PHASE3_LOW_LEVEL_TEST_PATH=zigux/tests/phase3_low_level_wrappers.zig`
 - `PHASE3_LOW_LEVEL_TEST_SCOPE=focused-atomic-barrier-mmio-replay-plus-non-seq-cst-ordering`
 - `PHASE3_LOW_LEVEL_TEST_STATUS=dedicated-focused-replay-widened-for-current-helper-surface`
-- `PHASE3_LOW_LEVEL_TEST_BLOB_SHA=5df26348086731f816c84b76129f7cca5c481295`
+- `PHASE3_LOW_LEVEL_TEST_BLOB_SHA=5a210351421d468833a38f5e4a5e4adb28a95d2a`
 - `PHASE3_ABI_TEST_PATH=zigux/tests/phase3_abi.zig`
 - `PHASE3_ABI_TEST_BLOB_SHA=7c3c7887bb23d1acccd835ed3bb71eba3824c45d`
 - `PHASE3_ABI_DUMP_PATH=zigux/tests/phase3_abi_dump.zig`
@@ -55,7 +55,7 @@ The current tree carries a real low-level wrapper packet:
 - `zigux/helpers/atomic.zig` exposes `load`, `store`, `exchange`, `fetchAdd`, `fetchSub`, `fetchAnd`, `fetchOr`, `fetchXor`, `fetchMin`, `fetchMax`, `compareExchange`, and `compareExchangeWeak`, with helper-local tests still carrying a few atomic edge cases beyond the focused replay.
 - `zigux/helpers/barrier.zig` exposes `acquire`, `release`, `full`, and `acquireRelease()` through local sentinel-backed probes.
 - `zigux/helpers/mmio.zig` exposes `range`, `read8`, `write8`, `read32`, and `write32`, all routed through the narrow pointer bridge in `zigux/unsafe/narrow.zig`.
-- `zigux/tests/phase3_low_level_wrappers.zig` now directly proves the shipped helper surface, including fetch, weak compare-exchange, non-`seq_cst` ordering, and byte-plus-32-bit MMIO behavior.
+- `zigux/tests/phase3_low_level_wrappers.zig` now directly proves the shipped helper surface, including fetch, weak compare-exchange, explicit barrier-locality replay, non-`seq_cst` ordering, and byte-plus-32-bit MMIO behavior.
 - The shared compile, layout, and dump proof for this packet still lives in `zigux/tests/phase3_abi.zig`, `zigux/tests/phase3_abi_dump.zig`, `zigux/tests/fixtures/phase3_abi/expected.json`, and `zigux/tests/fixtures/phase3_abi_manifest.json`.
 
 ## Ledger Alignment
@@ -72,7 +72,7 @@ The current reviewability gap is narrower:
 
 - the helper files already ship the bounded atomic, barrier, and MMIO surface listed above
 - the repo now has a dedicated focused replay for that starter packet in `zigux/tests/phase3_low_level_wrappers.zig`
-- the focused replay now covers byte and 32-bit MMIO plus non-`seq_cst` atomic orderings directly
+- the focused replay now covers byte and 32-bit MMIO, non-`seq_cst` atomic orderings, and one direct barrier-locality proof step
 - the helper-local atomic tests still carry a few edge cases beyond the focused replay
 - the shared ABI packet remains the broader compile, layout, and dump proof surface for this family
 
