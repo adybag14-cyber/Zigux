@@ -23,7 +23,8 @@ test "phase 5 kretprobe sample replays the bounded skip, return, and summary pat
     try std.testing.expectEqual(@as(usize, 42), replay.return_value);
     try std.testing.expectEqual(@as(i64, 75), replay.duration_ns);
     try std.testing.expectEqual(@as(usize, 1), replay.nmissed);
-    try std.testing.expectEqual(@as(usize, sample.KretprobeExampleSample.default_maxactive), replay.maxactive);
+    try std.testing.expectEqual(module.maxactiveBudget(), replay.maxactive);
+    try std.testing.expectEqual(@as(usize, sample.KretprobeExampleSample.default_maxactive), module.maxactiveBudget());
     try std.testing.expectEqual(@as(usize, 6), replay.checked_focus.len);
     try std.testing.expectEqual(sample.SampleStage.replay_complete, module.stage());
     try std.testing.expectEqual(@as(usize, 1), module.replay_runs);
@@ -39,6 +40,7 @@ test "phase 5 kretprobe sample keeps symbol retargeting and handler boundaries e
     try module.init();
     try std.testing.expectEqualStrings("do_sys_openat2", module.symbol_name);
     try std.testing.expectEqual(@as(usize, @sizeOf(i64)), module.privateDataSizeBytes());
+    try std.testing.expectEqual(@as(usize, sample.KretprobeExampleSample.default_maxactive), module.maxactiveBudget());
     try std.testing.expect(!(try module.entryHandler(false, 11)));
     try std.testing.expectEqual(@as(usize, 1), module.skipped_kernel_threads);
     try std.testing.expect(try module.entryHandler(true, 100));
@@ -60,6 +62,7 @@ test "phase 5 kretprobe sample ownership summary tracks lifecycle snapshots" {
 
     var summary = module.ownershipSummary();
     try std.testing.expectEqual(sample.SampleStage.cold, summary.stage);
+    try std.testing.expectEqual(module.maxactiveBudget(), summary.maxactive);
     try std.testing.expectEqual(@as(usize, 0), summary.active_instances);
     try std.testing.expectEqual(@as(usize, 0), summary.skipped_kernel_threads);
     try std.testing.expectEqual(@as(usize, 0), summary.nmissed);
@@ -68,17 +71,20 @@ test "phase 5 kretprobe sample ownership summary tracks lifecycle snapshots" {
     try module.init();
     summary = module.ownershipSummary();
     try std.testing.expectEqual(sample.SampleStage.initialized, summary.stage);
+    try std.testing.expectEqual(module.maxactiveBudget(), summary.maxactive);
     try std.testing.expectEqual(@as(usize, 1), summary.init_runs);
 
     _ = try module.entryHandler(false, 11);
     summary = module.ownershipSummary();
     try std.testing.expectEqual(sample.SampleStage.initialized, summary.stage);
+    try std.testing.expectEqual(module.maxactiveBudget(), summary.maxactive);
     try std.testing.expectEqual(@as(usize, 1), summary.skipped_kernel_threads);
     try std.testing.expectEqual(@as(usize, 0), summary.active_instances);
 
     try std.testing.expect(try module.entryHandler(true, 100));
     summary = module.ownershipSummary();
     try std.testing.expectEqual(sample.SampleStage.armed, summary.stage);
+    try std.testing.expectEqual(module.maxactiveBudget(), summary.maxactive);
     try std.testing.expectEqual(@as(usize, 1), summary.active_instances);
     try std.testing.expect(summary.entry_timestamp_armed);
 
@@ -89,6 +95,7 @@ test "phase 5 kretprobe sample ownership summary tracks lifecycle snapshots" {
 
     summary = module.ownershipSummary();
     try std.testing.expectEqual(sample.SampleStage.replay_complete, summary.stage);
+    try std.testing.expectEqual(module.maxactiveBudget(), summary.maxactive);
     try std.testing.expectEqual(@as(usize, 0), summary.active_instances);
     try std.testing.expectEqual(@as(usize, 1), summary.nmissed);
     try std.testing.expectEqual(@as(usize, 1), summary.replay_runs);
@@ -97,6 +104,7 @@ test "phase 5 kretprobe sample ownership summary tracks lifecycle snapshots" {
     try module.exit();
     summary = module.ownershipSummary();
     try std.testing.expectEqual(sample.SampleStage.exited, summary.stage);
+    try std.testing.expectEqual(module.maxactiveBudget(), summary.maxactive);
     try std.testing.expectEqual(@as(usize, 1), summary.exit_runs);
 }
 
@@ -117,6 +125,7 @@ test "phase 5 kretprobe sample makes ownership and teardown boundaries explicit"
 
     try std.testing.expectEqual(sample.SampleStage.cold, module.stage());
     try module.init();
+    try std.testing.expectEqual(@as(usize, sample.KretprobeExampleSample.default_maxactive), module.maxactiveBudget());
     try std.testing.expectEqual(sample.SampleStage.initialized, module.stage());
     try std.testing.expect(try module.entryHandler(true, 200));
     try std.testing.expectError(error.OutstandingProbeInstance, module.exit());
