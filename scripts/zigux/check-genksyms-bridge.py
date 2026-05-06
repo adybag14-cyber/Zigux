@@ -146,6 +146,7 @@ def normalize_cli_stderr(text: str) -> str:
         re.compile(r"^.+: (invalid option -- '.+')$"),
         re.compile(r"^.+: (option requires an argument -- '.+')$"),
         re.compile(r"^.+: (option '--.+?' requires an argument)$"),
+        re.compile(r"^.+: (option '--.+?' doesn't allow an argument)$"),
         re.compile(r"^.+: (unrecognized option '.+')$"),
     )
     normalized_lines: list[str] = []
@@ -246,6 +247,9 @@ def run_self_test() -> int:
         missing_path.unlink()
         issues = collect_manifest_issues(root)
         assert ('MISSING_GENKSYMS_BRIDGE_EXPECTED_PATHS', 'invalid_short_opt:invalid_short_opt_expected.json') in issues
+
+        assert normalize_cli_stderr("genksyms: option '--reference' requires an argument\n") == "option '--reference' requires an argument\n"
+        assert normalize_cli_stderr("genksyms: option '--help' doesn't allow an argument\n") == "option '--help' doesn't allow an argument\n"
 
     print('GENKSYMS_BRIDGE_SELF_TEST=pass')
     print('GENKSYMS_BRIDGE_SELF_TEST_CASE_COUNT=4')
