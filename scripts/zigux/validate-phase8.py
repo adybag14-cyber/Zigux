@@ -19,6 +19,7 @@ REQUIRED_FILES = [
     "Documentation/zigux/phase8-libbpf-cpu-mask-slice.md",
     "Documentation/zigux/phase8-libbpf-segment-survey.md",
     "Documentation/zigux/phase8-perf-buffer-poll-slice.md",
+    "Documentation/zigux/phase8-tooling-lane-sequencing.md",
     "Documentation/zigux/phase8-userspace-kernel-bridge-boundary-survey.md",
     "Documentation/zigux/review-checklist.md",
     "scripts/zigux/README.md",
@@ -155,6 +156,14 @@ REQUIRED_MARKERS = {
         "make -C zigux phase8-test",
         "make -C zigux phase8",
     ],
+    "Documentation/zigux/phase8-tooling-lane-sequencing.md": [
+        "PHASE8_SEQUENCE=tooling-lane-anti-overlap",
+        "### 1. Command lane: parked unless a fresh parity gap appears",
+        "### 2. Symbol lane: parked unless symbol parsing or classification moves again",
+        "### 3. Libbpf helper lane: the current active Phase 8 implementation surface",
+        "### 4. Shared packet wording lane: docs or validator sequencing only",
+        "refresh the shared tests-root reminder",
+    ],
     "Documentation/zigux/phase8-userspace-kernel-bridge-boundary-survey.md": [
         "tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig",
         "zigux/tests/phase8_file_path_handle_bridge.zig",
@@ -208,6 +217,7 @@ REQUIRED_MARKERS = {
     "zigux/tests/README.md": [
         "Phase 8 flow",
         "keep the shared Phase 8 tooling packet wired through `zigux/tests/phase8_build.zig`",
+        "`Documentation/zigux/phase8-tooling-lane-sequencing.md`",
         "`zigux/tests/phase8_file_path_handle_bridge.zig`",
         "`zigux/tests/phase8_file_path_handle_bridge_only_build.zig`",
         "`zigux/tests/phase8_perf_buffer_poll.zig`",
@@ -614,6 +624,7 @@ def run_self_test() -> None:
         ("missing_tests_readme", "zigux/tests/README.md"),
         ("missing_workflow", ".github/workflows/zigux-bootstrap.yml"),
         ("missing_phase8_build", "zigux/tests/phase8_build.zig"),
+        ("missing_tooling_lane_sequencing", "Documentation/zigux/phase8-tooling-lane-sequencing.md"),
         ("missing_exec_cmd_helper", "tools/lib/subcmd/exec-cmd.zig"),
         ("missing_help_helper", "tools/lib/subcmd/help.zig"),
         ("missing_kallsyms_helper", "tools/lib/symbol/kallsyms.zig"),
@@ -664,6 +675,13 @@ def run_self_test() -> None:
             "zig build test --build-file zigux/tests/phase8_kallsyms_only_build.zig --summary all",
             "zig build test --build-file zigux/tests/phase8_kallsyms_build.zig --summary all",
             "Documentation/zigux/phase8-kallsyms-slice.md: zig build test --build-file zigux/tests/phase8_kallsyms_only_build.zig --summary all",
+        ),
+        (
+            "lane_sequencing_phase8_sequence",
+            "Documentation/zigux/phase8-tooling-lane-sequencing.md",
+            "PHASE8_SEQUENCE=tooling-lane-anti-overlap",
+            "PHASE8_SEQUENCE=tooling-lane-drift",
+            "Documentation/zigux/phase8-tooling-lane-sequencing.md: PHASE8_SEQUENCE=tooling-lane-anti-overlap",
         ),
         (
             "review_checklist_exec_cmd_packet",
