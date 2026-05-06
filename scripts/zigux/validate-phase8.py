@@ -64,6 +64,16 @@ REQUIRED_SEGMENTS = {
 
 MANIFEST_PATH = "tools/lib/bpf/zigux_segments/manifest.json"
 
+EXACT_ONCE_SECTION_MARKERS = {
+    "Documentation/zigux/phase8-libbpf-segment-survey.md": [
+        {
+            "start": "product boundary:\n",
+            "end": "\n## Why this slice exists",
+            "needle": "  - `zigux/tests/phase8_libbpf_segments_only_build.zig`\n",
+        },
+    ],
+}
+
 REQUIRED_MARKERS = {
     "Documentation/zigux/phase8-bpf-type-names-slice.md": [
         "libbpf_bpf_{attach,link,map,prog}_type_str()",
@@ -304,6 +314,7 @@ REQUIRED_MARKERS = {
     ],
 }
 
+
 def build_manifest_fixture() -> str:
     return json.dumps(
         {
@@ -316,9 +327,23 @@ def build_manifest_fixture() -> str:
     ) + "\n"
 
 
+def build_phase8_libbpf_survey_fixture() -> str:
+    product_boundary = "\n".join(
+        [
+            "product boundary:",
+            "  - `zigux/tests/phase8_libbpf_segments_only_build.zig`",
+        ]
+    )
+    trailing_markers = "\n".join(
+        REQUIRED_MARKERS["Documentation/zigux/phase8-libbpf-segment-survey.md"]
+    )
+    return f"{product_boundary}\n\n## Why this slice exists\n{trailing_markers}\n"
+
+
 FIXTURE_OVERRIDES = {
     "scripts/zigux/validate-phase8.py": "# fixture\n",
     MANIFEST_PATH: build_manifest_fixture(),
+    "Documentation/zigux/phase8-libbpf-segment-survey.md": build_phase8_libbpf_survey_fixture(),
     "tools/lib/bpf/zigux_segments/cpu_mask.zig": "\n".join(
         REQUIRED_MARKERS["tools/lib/bpf/zigux_segments/cpu_mask.zig"]
     )
@@ -358,6 +383,30 @@ def collect_missing_markers(root: Path) -> list[str]:
             if marker not in text:
                 missing.append(f"{rel}: {marker}")
     return missing
+
+
+def collect_exact_section_errors(root: Path) -> list[str]:
+    errors: list[str] = []
+    for rel, section_specs in EXACT_ONCE_SECTION_MARKERS.items():
+        text = (root / rel).read_text(encoding="utf-8")
+        for spec in section_specs:
+            start = text.find(spec["start"])
+            if start == -1:
+                errors.append(f"{rel}: missing_section_start:{spec['start'].strip()}")
+                continue
+
+            section_start = start + len(spec["start"])
+            end = text.find(spec["end"], section_start)
+            if end == -1:
+                errors.append(f"{rel}: missing_section_end:{spec['end'].strip()}")
+                continue
+
+            section = text[section_start:end]
+            if section.count(spec["needle"]) != 1:
+                errors.append(
+                    f"{rel}: exact_once_section_marker:{spec['needle'].rstrip()}"
+                )
+    return errors
 
 
 def load_manifest_segments(root: Path) -> tuple[list[object] | None, list[str]]:
@@ -431,6 +480,10 @@ def validate(root: Path) -> tuple[list[str], list[str], list[str]]:
     missing_markers = collect_missing_markers(root)
     if missing_markers:
         return [], missing_markers, []
+
+    exact_section_errors = collect_exact_section_errors(root)
+    if exact_section_errors:
+        return [], exact_section_errors, []
 
     return [], [], collect_manifest_errors(root)
 
@@ -567,6 +620,8 @@ def run_self_test() -> None:
         ("survey_libbpf_wrapper", "Documentation/zigux/phase8-libbpf-segment-survey.md", "make -C zigux phase8-libbpf-segments-test", "make -C zigux phase8-libbpf-survey-test", "Documentation/zigux/phase8-libbpf-segment-survey.md: make -C zigux phase8-libbpf-segments-test"),
         ("survey_perf_buffer_wrapper", "Documentation/zigux/phase8-libbpf-segment-survey.md", "make -C zigux phase8-perf-buffer-poll-test", "make -C zigux phase8-perf-buffer-test", "Documentation/zigux/phase8-libbpf-segment-survey.md: make -C zigux phase8-perf-buffer-poll-test"),
         ("survey_phase8_test_wrapper", "Documentation/zigux/phase8-libbpf-segment-survey.md", "make -C zigux phase8-test", "make -C zigux phase8-shared-test", "Documentation/zigux/phase8-libbpf-segment-survey.md: make -C zigux phase8-test"),
+        ("survey_libbpf_boundary_exact_line_missing", "Documentation/zigux/phase8-libbpf-segment-survey.md", "  - `zigux/tests/phase8_libbpf_segments_only_build.zig`\n", "  - `zigux/tests/phase8_libbpf_segments_build.zig`\n", "Documentation/zigux/phase8-libbpf-segment-survey.md: exact_once_section_marker:  - `zigux/tests/phase8_libbpf_segments_only_build.zig`"),
+        ("survey_libbpf_boundary_exact_line_duplicate", "Documentation/zigux/phase8-libbpf-segment-survey.md", "  - `zigux/tests/phase8_libbpf_segments_only_build.zig`\n", "  - `zigux/tests/phase8_libbpf_segments_only_build.zig`\n  - `zigux/tests/phase8_libbpf_segments_only_build.zig`\n", "Documentation/zigux/phase8-libbpf-segment-survey.md: exact_once_section_marker:  - `zigux/tests/phase8_libbpf_segments_only_build.zig`"),
         ("perf_buffer_poll_note_boundary", "Documentation/zigux/phase8-perf-buffer-poll-slice.md", "ready-buffer processing attempts cannot exceed observed ready events", "", "Documentation/zigux/phase8-perf-buffer-poll-slice.md: ready-buffer processing attempts cannot exceed observed ready events"),
         ("perf_buffer_poll_note_focused_gate", "Documentation/zigux/phase8-perf-buffer-poll-slice.md", "make -C zigux phase8-perf-buffer-poll-test", "make -C zigux phase8-perf-buffer-test", "Documentation/zigux/phase8-perf-buffer-poll-slice.md: make -C zigux phase8-perf-buffer-poll-test"),
         ("phase8_bpf_type_names_helper_surface", "zigux/tests/phase8_bpf_type_names.zig", "phase 8 bpf type-name segment exposes libbpf string helpers", "", "zigux/tests/phase8_bpf_type_names.zig: phase 8 bpf type-name segment exposes libbpf string helpers"),
