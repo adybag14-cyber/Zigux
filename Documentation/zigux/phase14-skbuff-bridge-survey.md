@@ -69,11 +69,13 @@ This keeps the lane explicit without overstating progress: Zigux now has a real 
   - explicit stay-in-C wording for `segs->prev`, `tail->next`, and `validate_xmit_skb_list()`
   - the blocked `phase14-skbuff-live-ownership-blocker` kept visible beside the no-smaller-follow-up posture
   - explicit wording that qdisc-facing publication, queue ownership, skb lifetime ownership, checksum ownership, and destructor coordination remain in C
+  - shared-note wording must stay inside the exported `skb_segment()` tail-publication contract and must not name `__dev_direct_xmit()`, an `identity-drop checkpoint`, or `final drop pruning` unless the bridge, manifest, and dedicated skbuff test gate all add matching evidence together
 - automatic return-to-blocked triggers:
   - any edit that drops the named validation gate or rollback owner
   - missing freeze-in-C or stay-in-C wording for the exported tail-publication checkpoint
   - any manifest refresh that changes the blocked live-ownership gap without refreshing this survey note
   - any edit that weakens the explicit no-smaller-follow-up stance and silently implies a fresh skbuff wrapper step
+  - any shared traceability refresh that names `__dev_direct_xmit()`, an `identity-drop checkpoint`, or `final drop pruning` without updating the bridge, manifest, and dedicated skbuff test gate with the same evidence
 
 ## Non-goals
 
