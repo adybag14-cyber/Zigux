@@ -110,6 +110,23 @@ pub const StopSummary = struct {
     disable_count: usize,
 };
 
+pub const TeardownSummary = struct {
+    anchor: []const u8,
+    hw_algo: HardwareAlgorithm,
+    always_running: bool,
+    nowayout: bool,
+    running_before_teardown: bool,
+    line_state_before_teardown: bool,
+    line_is_output_before_teardown: bool,
+    disposition: StopDisposition,
+    stop_allowed_by_watchdog_core: bool,
+    driver_stop_invoked: bool,
+    running_after_teardown: bool,
+    line_state_after_teardown: bool,
+    line_is_output_after_teardown: bool,
+    disable_count: usize,
+};
+
 pub const RegistrationHandoffSummary = struct {
     anchor: []const u8,
     hw_algo: HardwareAlgorithm,
@@ -372,6 +389,32 @@ pub const GpioWatchdogLab = struct {
             .line_state = runtime.line_state,
             .line_is_output = runtime.line_is_output,
             .disable_count = runtime.disable_count,
+        };
+    }
+
+    pub fn teardownSummary(self: *Self, nowayout: bool) !TeardownSummary {
+        if (!self.running) _ = try self.start();
+
+        const running_before_teardown = self.running;
+        const line_state_before_teardown = self.line_state;
+        const line_is_output_before_teardown = self.line_is_output;
+        const stop_summary = self.requestStop(nowayout);
+
+        return .{
+            .anchor = descriptor().anchor,
+            .hw_algo = self.hw_algo,
+            .always_running = self.always_running,
+            .nowayout = nowayout,
+            .running_before_teardown = running_before_teardown,
+            .line_state_before_teardown = line_state_before_teardown,
+            .line_is_output_before_teardown = line_is_output_before_teardown,
+            .disposition = stop_summary.disposition,
+            .stop_allowed_by_watchdog_core = stop_summary.stop_allowed_by_watchdog_core,
+            .driver_stop_invoked = stop_summary.driver_stop_invoked,
+            .running_after_teardown = stop_summary.running,
+            .line_state_after_teardown = stop_summary.line_state,
+            .line_is_output_after_teardown = stop_summary.line_is_output,
+            .disable_count = stop_summary.disable_count,
         };
     }
 
