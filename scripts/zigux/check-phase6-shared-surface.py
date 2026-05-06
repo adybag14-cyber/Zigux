@@ -35,6 +35,8 @@ REQUIRED_SNIPPETS = {
         "  * `zigux/tests/fixtures/phase6_base64_vectors.zig`",
         "  * `zigux/tests/fixtures/phase6_checksum_vectors.zig`",
         "  * `zigux/tests/fixtures/phase6_hexdump_vectors.zig`",
+        "  * `zigux/tests/phase6_checksum_perf.zig`",
+        "  * `zigux/tests/phase6_hexdump_perf.zig`",
         "  * keep the shared Phase 6 leaf-helper packet wired through `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, `scripts/zigux/check-phase6-shared-surface.py`, `zigux/tests/phase6_build.zig`, including `zigux/tests/phase6_base64.zig`, `zigux/tests/fixtures/phase6_base64_vectors.zig`, `zigux/tests/phase6_bsearch.zig`, `zigux/tests/phase6_checksum.zig`, and `zigux/tests/phase6_hexdump.zig`, `zigux/Makefile`, `.github/workflows/zigux-bootstrap.yml`, `make -C zigux phase6-validate`, and `make -C zigux phase6`",
     ],
     "Documentation/zigux/phase6-base64-slice.md": [
@@ -321,6 +323,12 @@ def run_self_test() -> None:
             "zigux/tests/phase6_build.zig",
             '.name = "phase6-base64-perf"',
             '.name = "phase6-base64-bench"',
+        )
+        assert_failure(
+            root,
+            "zigux/tests/README.md",
+            "  * `zigux/tests/phase6_checksum_perf.zig`",
+            "  * `zigux/tests/phase6_checksum_bench.zig`",
         )
         assert_failure(
             root,
