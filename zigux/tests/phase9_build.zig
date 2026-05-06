@@ -315,6 +315,26 @@ pub fn build(b: *std.Build) void {
     );
     runtime_bitmap_top_bit_tests_step.dependOn(&run_runtime_bitmap_top_bit_contract_tests.step);
 
+    const runtime_trace_events_tests_step = b.step(
+        "phase9-runtime-trace-events-tests",
+        "Run the focused Phase 9 runtime trace-events sample, module, loader, diff, and survey tests",
+    );
+    runtime_trace_events_tests_step.dependOn(&run_runtime_trace_events_sample_tests.step);
+    runtime_trace_events_tests_step.dependOn(&run_runtime_trace_events_module_tests.step);
+    runtime_trace_events_tests_step.dependOn(&run_runtime_trace_events_diff_tests.step);
+    runtime_trace_events_tests_step.dependOn(&run_runtime_trace_events_loader_tests.step);
+    runtime_trace_events_tests_step.dependOn(&run_runtime_trace_events_survey_tests.step);
+
+    const runtime_kretprobe_tests_step = b.step(
+        "phase9-runtime-kretprobe-tests",
+        "Run the focused Phase 9 runtime kretprobe sample, module, loader, diff, and survey tests",
+    );
+    runtime_kretprobe_tests_step.dependOn(&run_runtime_kretprobe_sample_tests.step);
+    runtime_kretprobe_tests_step.dependOn(&run_runtime_kretprobe_module_tests.step);
+    runtime_kretprobe_tests_step.dependOn(&run_runtime_kretprobe_diff_tests.step);
+    runtime_kretprobe_tests_step.dependOn(&run_runtime_kretprobe_loader_tests.step);
+    runtime_kretprobe_tests_step.dependOn(&run_runtime_kretprobe_survey_tests.step);
+
     const test_step = b.step("test", "Run Phase 9 runtime atomic64, bitmap, trace-events, kretprobe, runtime-loader facade, contract, and allocator/init-flow tests");
     test_step.dependOn(&run_runtime_atomic64_sample_tests.step);
     test_step.dependOn(&run_runtime_atomic64_module_tests.step);
