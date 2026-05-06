@@ -81,6 +81,8 @@ test "phase 8 exec-cmd slice note keeps the helper-vs-phase ownership boundary e
     try std.testing.expect(std.mem.indexOf(u8, slice, "focused Phase 8 replay stays on the integrated deferred-exec packet") != null);
     try std.testing.expect(std.mem.indexOf(u8, slice, "live C helper anchors, checklist hook, and validator route") != null);
     try std.testing.expect(std.mem.indexOf(u8, slice, "without widening into process-launch side effects") != null);
+    try std.testing.expect(std.mem.indexOf(u8, slice, "stops before any ownership of `execl_cmd()`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, slice, "direct varargs launch path") != null);
 }
 
 test "phase 8 exec-cmd deferred boundary note still matches the live C helper anchors" {
@@ -106,6 +108,7 @@ test "phase 8 exec-cmd deferred boundary note still matches the live C helper an
     try std.testing.expect(std.mem.indexOf(u8, c_helper, "int execl_cmd") != null);
     try std.testing.expect(std.mem.indexOf(u8, slice, "`execv_cmd()`") != null);
     try std.testing.expect(std.mem.indexOf(u8, slice, "`execvp()`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, slice, "`execl_cmd()`") != null);
 }
 
 test "phase 8 exec-cmd checklist hook keeps the parked deferred-exec packet explicit" {
