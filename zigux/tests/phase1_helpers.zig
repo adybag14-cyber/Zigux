@@ -38,6 +38,11 @@ const Fixture = struct {
     bitmap: struct {
         weight: usize,
         scnprintf: []const u8,
+        truncated_scnprintf_len: usize,
+        truncated_scnprintf: []const u8,
+        terminator_only_scnprintf_len: usize,
+        terminator_only_nul: u8,
+        zero_length_scnprintf_len: usize,
         and_result: bool,
         and_values: []const u64,
         andnot_result: bool,
@@ -263,6 +268,28 @@ test "phase 1 helper ports match committed parity fixture" {
     var bitmap_buffer: [64]u8 = undefined;
     const bitmap_len = bitmap.scnprintf(&bitmap_render, 32, &bitmap_buffer);
     try std.testing.expectEqualStrings(fixture.bitmap.scnprintf, bitmap_buffer[0..bitmap_len]);
+
+    var bitmap_truncated_render = [_]bitmap.Word{0};
+    bitmap.setRange(&bitmap_truncated_render, 1, 3);
+    bitmap.setRange(&bitmap_truncated_render, 7, 1);
+    bitmap.setRange(&bitmap_truncated_render, 10, 3);
+
+    var truncated_buffer = [_]u8{0} ** 8;
+    const truncated_len = bitmap.scnprintf(&bitmap_truncated_render, 32, &truncated_buffer);
+    try std.testing.expectEqual(fixture.bitmap.truncated_scnprintf_len, truncated_len);
+    try std.testing.expectEqualStrings(
+        fixture.bitmap.truncated_scnprintf,
+        truncated_buffer[0 .. truncated_buffer.len - 1],
+    );
+
+    var terminator_only = [_]u8{0xaa};
+    const terminator_only_len = bitmap.scnprintf(&bitmap_truncated_render, 32, &terminator_only);
+    try std.testing.expectEqual(fixture.bitmap.terminator_only_scnprintf_len, terminator_only_len);
+    try std.testing.expectEqual(fixture.bitmap.terminator_only_nul, terminator_only[0]);
+
+    var zero_length = [_]u8{};
+    const zero_length_len = bitmap.scnprintf(&bitmap_truncated_render, 32, &zero_length);
+    try std.testing.expectEqual(fixture.bitmap.zero_length_scnprintf_len, zero_length_len);
 
     try std.testing.expectEqual(fixture.string.strtobool_y, try string.strtobool("y"));
     try std.testing.expectEqual(fixture.string.strtobool_on, try string.strtobool("On"));
