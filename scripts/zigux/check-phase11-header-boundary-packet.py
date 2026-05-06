@@ -58,7 +58,7 @@ REQUIRED_CONTRACT_MARKERS = [
     "zigux/tests/phase11_uapi_header_parity_survey.zig",
     "zigux/tests/phase11_hvc_console_survey.zig",
     "there is no shipped `zigux/tests/fixtures/phase11_build_inventory.json` on `master`",
-    "there is no broader multi-checker Phase 11 script packet on `master`",
+    "there is no broader multi-checker Phase 11 validator stack on `master`",
 ]
 
 REQUIRED_HVC_CONSOLE_MARKERS = [
