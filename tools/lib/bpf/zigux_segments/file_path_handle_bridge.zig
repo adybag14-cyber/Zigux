@@ -79,6 +79,22 @@ pub const ReusePinnedMapAttemptPlan = struct {
     pinned_path: ?[]const u8 = null,
     resolved_name: ?ReusedMapName = null,
     should_attempt_reopen: bool,
+    compatibility: ?MapReuseCompatibilitySummary = null,
+};
+
+pub const MapReuseCompatibility = enum {
+    compatible,
+    map_type_mismatch,
+    key_size_mismatch,
+    value_size_mismatch,
+    max_entries_mismatch,
+    map_flags_mismatch,
+    map_extra_mismatch,
+};
+
+pub const MapReuseCompatibilitySummary = struct {
+    outcome: MapReuseCompatibility,
+    normalized_observed_map_flags: u32,
 };
 
 fn noSpaceToPathTooLong(err: anyerror) BridgeError {
@@ -243,13 +259,57 @@ pub fn normalizeObservedReuseMapFlags(expected_map_type: u32, observed_map_flags
     return observed_map_flags;
 }
 
+pub fn summarizeMapReuseCompatibility(
+    expected: MapReuseExpectation,
+    observed: MapReuseObservation,
+) MapReuseCompatibilitySummary {
+    const normalized_observed_map_flags = normalizeObservedReuseMapFlags(expected.map_type, observed.map_flags);
+
+    if (observed.map_type != expected.map_type) {
+        return .{
+            .outcome = .map_type_mismatch,
+            .normalized_observed_map_flags = normalized_observed_map_flags,
+        };
+    }
+    if (observed.key_size != expected.key_size) {
+        return .{
+            .outcome = .key_size_mismatch,
+            .normalized_observed_map_flags = normalized_observed_map_flags,
+        };
+    }
+    if (observed.value_size != expected.value_size) {
+        return .{
+            .outcome = .value_size_mismatch,
+            .normalized_observed_map_flags = normalized_observed_map_flags,
+        };
+    }
+    if (observed.max_entries != expected.max_entries) {
+        return .{
+            .outcome = .max_entries_mismatch,
+            .normalized_observed_map_flags = normalized_observed_map_flags,
+        };
+    }
+    if (normalized_observed_map_flags != expected.map_flags) {
+        return .{
+            .outcome = .map_flags_mismatch,
+            .normalized_observed_map_flags = normalized_observed_map_flags,
+        };
+    }
+    if (observed.map_extra != expected.map_extra) {
+        return .{
+            .outcome = .map_extra_mismatch,
+            .normalized_observed_map_flags = normalized_observed_map_flags,
+        };
+    }
+
+    return .{
+        .outcome = .compatible,
+        .normalized_observed_map_flags = normalized_observed_map_flags,
+    };
+}
+
 pub fn isMapReuseCompatible(expected: MapReuseExpectation, observed: MapReuseObservation) bool {
-    return observed.map_type == expected.map_type and
-        observed.key_size == expected.key_size and
-        observed.value_size == expected.value_size and
-        observed.max_entries == expected.max_entries and
-        normalizeObservedReuseMapFlags(expected.map_type, observed.map_flags) == expected.map_flags and
-        observed.map_extra == expected.map_extra;
+    return summarizeMapReuseCompatibility(expected, observed).outcome == .compatible;
 }
 
 pub fn resolveReusePinnedMapAttempt(
@@ -285,12 +345,14 @@ pub fn resolveReusePinnedMapAttempt(
         };
     }
 
-    if (!isMapReuseCompatible(expected, observed_map)) {
+    const compatibility = summarizeMapReuseCompatibility(expected, observed_map);
+    if (compatibility.outcome != .compatible) {
         return .{
             .disposition = .incompatible_map_definition,
             .pinned_path = trimmed_path,
             .resolved_name = resolved_name,
             .should_attempt_reopen = false,
+            .compatibility = compatibility,
         };
     }
 
@@ -299,6 +361,7 @@ pub fn resolveReusePinnedMapAttempt(
         .pinned_path = trimmed_path,
         .resolved_name = resolved_name,
         .should_attempt_reopen = true,
+        .compatibility = compatibility,
     };
 }
 
@@ -453,6 +516,85 @@ test "normalizeObservedReuseMapFlags mirrors the devmap readonly-prog exception 
     );
 }
 
+test "summarizeMapReuseCompatibility keeps the first bounded mismatch explicit" {
+    const expected = MapReuseExpectation{
+        .name = "stats_map",
+        .map_type = bpf_map_type_devmap,
+        .key_size = 4,
+        .value_size = 8,
+        .max_entries = 64,
+        .map_flags = 0x20,
+        .map_extra = 7,
+    };
+
+    const compatible = summarizeMapReuseCompatibility(expected, .{
+        .name = "stats_map",
+        .map_type = bpf_map_type_devmap,
+        .key_size = 4,
+        .value_size = 8,
+        .max_entries = 64,
+        .map_flags = 0x20 | bpf_f_rdonly_prog,
+        .map_extra = 7,
+    });
+    try std.testing.expectEqual(MapReuseCompatibility.compatible, compatible.outcome);
+    try std.testing.expectEqual(@as(u32, 0x20), compatible.normalized_observed_map_flags);
+
+    try std.testing.expectEqual(MapReuseCompatibility.map_type_mismatch, summarizeMapReuseCompatibility(expected, .{
+        .name = "stats_map",
+        .map_type = 5,
+        .key_size = 4,
+        .value_size = 8,
+        .max_entries = 64,
+        .map_flags = 0x20,
+        .map_extra = 7,
+    }).outcome);
+    try std.testing.expectEqual(MapReuseCompatibility.key_size_mismatch, summarizeMapReuseCompatibility(expected, .{
+        .name = "stats_map",
+        .map_type = bpf_map_type_devmap,
+        .key_size = 8,
+        .value_size = 8,
+        .max_entries = 64,
+        .map_flags = 0x20 | bpf_f_rdonly_prog,
+        .map_extra = 7,
+    }).outcome);
+    try std.testing.expectEqual(MapReuseCompatibility.value_size_mismatch, summarizeMapReuseCompatibility(expected, .{
+        .name = "stats_map",
+        .map_type = bpf_map_type_devmap,
+        .key_size = 4,
+        .value_size = 4,
+        .max_entries = 64,
+        .map_flags = 0x20 | bpf_f_rdonly_prog,
+        .map_extra = 7,
+    }).outcome);
+    try std.testing.expectEqual(MapReuseCompatibility.max_entries_mismatch, summarizeMapReuseCompatibility(expected, .{
+        .name = "stats_map",
+        .map_type = bpf_map_type_devmap,
+        .key_size = 4,
+        .value_size = 8,
+        .max_entries = 32,
+        .map_flags = 0x20 | bpf_f_rdonly_prog,
+        .map_extra = 7,
+    }).outcome);
+    try std.testing.expectEqual(MapReuseCompatibility.map_flags_mismatch, summarizeMapReuseCompatibility(expected, .{
+        .name = "stats_map",
+        .map_type = bpf_map_type_devmap,
+        .key_size = 4,
+        .value_size = 8,
+        .max_entries = 64,
+        .map_flags = 0x40 | bpf_f_rdonly_prog,
+        .map_extra = 7,
+    }).outcome);
+    try std.testing.expectEqual(MapReuseCompatibility.map_extra_mismatch, summarizeMapReuseCompatibility(expected, .{
+        .name = "stats_map",
+        .map_type = bpf_map_type_devmap,
+        .key_size = 4,
+        .value_size = 8,
+        .max_entries = 64,
+        .map_flags = 0x20 | bpf_f_rdonly_prog,
+        .map_extra = 9,
+    }).outcome);
+}
+
 test "isMapReuseCompatible keeps the bounded reused-map comparison explicit" {
     const expected = MapReuseExpectation{
         .name = "stats_map",
@@ -510,6 +652,7 @@ test "resolveReusePinnedMapAttempt keeps path presence and fdinfo reuse compatib
         missing_path.disposition,
     );
     try std.testing.expect(!missing_path.should_attempt_reopen);
+    try std.testing.expectEqual(@as(?MapReuseCompatibilitySummary, null), missing_path.compatibility);
 
     const missing_observation = resolveReusePinnedMapAttempt(" /sys/fs/bpf/stats ", expected, null);
     try std.testing.expectEqual(
@@ -518,6 +661,7 @@ test "resolveReusePinnedMapAttempt keeps path presence and fdinfo reuse compatib
     );
     try std.testing.expectEqualStrings("/sys/fs/bpf/stats", missing_observation.pinned_path.?);
     try std.testing.expect(!missing_observation.should_attempt_reopen);
+    try std.testing.expectEqual(@as(?MapReuseCompatibilitySummary, null), missing_observation.compatibility);
 
     const incompatible_name = resolveReusePinnedMapAttempt("/sys/fs/bpf/stats", expected, .{
         .name = "perf_map",
@@ -534,6 +678,7 @@ test "resolveReusePinnedMapAttempt keeps path presence and fdinfo reuse compatib
     );
     try std.testing.expectEqual(ReusedMapNameSource.kernel_name, incompatible_name.resolved_name.?.source);
     try std.testing.expect(!incompatible_name.should_attempt_reopen);
+    try std.testing.expectEqual(@as(?MapReuseCompatibilitySummary, null), incompatible_name.compatibility);
 
     const incompatible_definition = resolveReusePinnedMapAttempt("/sys/fs/bpf/stats", expected, .{
         .name = "process_pinned_",
@@ -549,6 +694,7 @@ test "resolveReusePinnedMapAttempt keeps path presence and fdinfo reuse compatib
         incompatible_definition.disposition,
     );
     try std.testing.expectEqual(ReusedMapNameSource.object_name, incompatible_definition.resolved_name.?.source);
+    try std.testing.expectEqual(MapReuseCompatibility.key_size_mismatch, incompatible_definition.compatibility.?.outcome);
     try std.testing.expect(!incompatible_definition.should_attempt_reopen);
 
     const ready = resolveReusePinnedMapAttempt("/sys/fs/bpf/stats", expected, .{
@@ -567,5 +713,6 @@ test "resolveReusePinnedMapAttempt keeps path presence and fdinfo reuse compatib
     try std.testing.expectEqual(ReusedMapNameSource.object_name, ready.resolved_name.?.source);
     try std.testing.expectEqualStrings("process_pinned_map", ready.resolved_name.?.value);
     try std.testing.expectEqualStrings("/sys/fs/bpf/stats", ready.pinned_path.?);
+    try std.testing.expectEqual(MapReuseCompatibility.compatible, ready.compatibility.?.outcome);
     try std.testing.expect(ready.should_attempt_reopen);
 }
