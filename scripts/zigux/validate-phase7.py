@@ -242,7 +242,10 @@ EXACT_COUNT_MARKERS = {
         ("scripts/zigux/check-phase7-argv-split-packet.py", 1),
         ("`make -C zigux phase7-validate`", 1),
         ("`make -C zigux phase7`", 1),
-        ("without implying unshipped `check-phase7-build-inventory.py` or `phase7_build_inventory.json` surfaces?", 1),
+        (
+            "without implying unshipped `check-phase7-build-inventory.py` or `phase7_build_inventory.json` surfaces?",
+            1,
+        ),
     ],
     "scripts/zigux/README.md": [
         ("scripts/zigux/check-phase7-make-wrapper.py", 1),
@@ -265,6 +268,19 @@ EXACT_COUNT_MARKERS = {
         ("the dedicated `zigux/tests/phase7_argv_split_survey.zig` argvSplit survey gate", 1),
         ("the dedicated `zigux/tests/phase7_string_helpers_sample_boundary.zig` boundary replay", 1),
         ("and the dedicated `zigux/tests/phase7_rbtree_survey.zig` survey gate", 1),
+    ],
+    "zigux/tests/phase7_build.zig": [
+        ("phase7-string-helpers-sample-boundary-tests", 1),
+        ("\"phase7_string_helpers_sample_boundary.zig\"", 1),
+        ("run_string_helpers_sample_boundary_tests.setCwd(b.path(\"../..\"));", 1),
+        ("phase7-cmdline-survey-tests", 1),
+        ("\"phase7_cmdline_survey.zig\"", 1),
+        ("run_cmdline_survey_tests.setCwd(b.path(\"../..\"));", 1),
+        ("phase7-argv-split-survey-tests", 1),
+        ("\"phase7_argv_split_survey.zig\"", 1),
+        ("run_argv_split_survey_tests.setCwd(b.path(\"../..\"));", 1),
+        ("phase7-rbtree-survey-tests", 1),
+        ("run_rbtree_survey_tests.setCwd(b.path(\"../..\"));", 1),
     ],
 }
 
@@ -324,6 +340,18 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
 def write_fixture_root(tmp_root: Path) -> None:
     fixture_text = {rel: "\n".join(markers) + "\n" for rel, markers in REQUIRED_MARKERS.items()}
     fixture_text.update(FIXTURE_OVERRIDES)
+    for rel, marker_counts in EXACT_COUNT_MARKERS.items():
+        text = fixture_text.get(rel, "")
+        for marker, _expected_count in marker_counts:
+            if marker not in text:
+                if marker.startswith("`") and marker.endswith("`"):
+                    raw_marker = marker[1:-1]
+                    raw_line = raw_marker + "\n"
+                    if raw_line in text:
+                        text = text.replace(raw_line, marker + "\n", 1)
+                        continue
+                text += marker + "\n"
+        fixture_text[rel] = text
     for rel in REQUIRED_FILES:
         path = tmp_root / rel
         path.parent.mkdir(parents=True, exist_ok=True)
@@ -400,7 +428,7 @@ def run_self_test() -> None:
         ("review_checklist_phase7_manifest_marker", "Documentation/zigux/review-checklist.md", "zigux/tests/phase7_rbtree_manifest.json", "", "Documentation/zigux/review-checklist.md: zigux/tests/phase7_rbtree_manifest.json"),
         ("review_checklist_phase7_workflow_marker", "Documentation/zigux/review-checklist.md", ".github/workflows/zigux-bootstrap.yml", "", "Documentation/zigux/review-checklist.md: .github/workflows/zigux-bootstrap.yml"),
         ("review_checklist_phase7_validate_marker", "Documentation/zigux/review-checklist.md", "make -C zigux phase7-validate", "", "Documentation/zigux/review-checklist.md: make -C zigux phase7-validate"),
-        ("review_checklist_phase7_make_marker", "Documentation/zigux/review-checklist.md", "make -C zigux phase7", "", "Documentation/zigux/review-checklist.md: make -C zigux phase7"),
+        ("review_checklist_phase7_make_marker", "Documentation/zigux/review-checklist.md", "`make -C zigux phase7`", "", "Documentation/zigux/review-checklist.md: `make -C zigux phase7`:expected=1:actual=0"),
         ("review_checklist_phase7_no_inventory_marker", "Documentation/zigux/review-checklist.md", "without implying unshipped `check-phase7-build-inventory.py` or `phase7_build_inventory.json` surfaces?", "", "Documentation/zigux/review-checklist.md: without implying unshipped `check-phase7-build-inventory.py` or `phase7_build_inventory.json` surfaces?"),
         ("docs_readme_phase7_make_wrapper_marker", "Documentation/zigux/README.md", "`scripts/zigux/check-phase7-make-wrapper.py`", "", "Documentation/zigux/README.md: `scripts/zigux/check-phase7-make-wrapper.py`"),
         ("docs_readme_phase7_argv_split_packet_marker", "Documentation/zigux/README.md", "`scripts/zigux/check-phase7-argv-split-packet.py`", "", "Documentation/zigux/README.md: `scripts/zigux/check-phase7-argv-split-packet.py`"),
@@ -433,7 +461,7 @@ def run_self_test() -> None:
         ("tests_readme_phase7_makefile_marker", "zigux/tests/README.md", "zigux/Makefile", "", "zigux/tests/README.md: zigux/Makefile"),
         ("tests_readme_phase7_workflow_marker", "zigux/tests/README.md", ".github/workflows/zigux-bootstrap.yml", "", "zigux/tests/README.md: .github/workflows/zigux-bootstrap.yml"),
         ("tests_readme_phase7_validate_command_marker", "zigux/tests/README.md", "make -C zigux phase7-validate", "", "zigux/tests/README.md: make -C zigux phase7-validate"),
-        ("tests_readme_phase7_make_command_marker", "zigux/tests/README.md", "make -C zigux phase7", "", "zigux/tests/README.md: make -C zigux phase7"),
+        ("tests_readme_phase7_make_command_marker", "zigux/tests/README.md", "`make -C zigux phase7`", "", "zigux/tests/README.md: `make -C zigux phase7`:expected=1:actual=0"),
         ("tests_readme_phase7_cmdline_survey_gate_wording", "zigux/tests/README.md", "including the dedicated `zigux/tests/phase7_cmdline_survey.zig` cmdline survey gate", "", "zigux/tests/README.md: including the dedicated `zigux/tests/phase7_cmdline_survey.zig` cmdline survey gate"),
         ("tests_readme_phase7_argv_split_survey_gate_wording", "zigux/tests/README.md", "the dedicated `zigux/tests/phase7_argv_split_survey.zig` argvSplit survey gate", "", "zigux/tests/README.md: the dedicated `zigux/tests/phase7_argv_split_survey.zig` argvSplit survey gate"),
         ("tests_readme_phase7_string_helpers_boundary_wording", "zigux/tests/README.md", "the dedicated `zigux/tests/phase7_string_helpers_sample_boundary.zig` boundary replay", "", "zigux/tests/README.md: the dedicated `zigux/tests/phase7_string_helpers_sample_boundary.zig` boundary replay"),
@@ -482,6 +510,17 @@ def run_self_test() -> None:
         ("tests_readme_phase7_argv_split_survey_gate_exact_count", "zigux/tests/README.md", "the dedicated `zigux/tests/phase7_argv_split_survey.zig` argvSplit survey gate", "zigux/tests/README.md: the dedicated `zigux/tests/phase7_argv_split_survey.zig` argvSplit survey gate:expected=1:actual=2"),
         ("tests_readme_phase7_string_helpers_boundary_exact_count", "zigux/tests/README.md", "the dedicated `zigux/tests/phase7_string_helpers_sample_boundary.zig` boundary replay", "zigux/tests/README.md: the dedicated `zigux/tests/phase7_string_helpers_sample_boundary.zig` boundary replay:expected=1:actual=2"),
         ("tests_readme_phase7_rbtree_survey_gate_exact_count", "zigux/tests/README.md", "and the dedicated `zigux/tests/phase7_rbtree_survey.zig` survey gate", "zigux/tests/README.md: and the dedicated `zigux/tests/phase7_rbtree_survey.zig` survey gate:expected=1:actual=2"),
+        ("build_string_helpers_sample_boundary_gate_exact_count", "zigux/tests/phase7_build.zig", "phase7-string-helpers-sample-boundary-tests", "zigux/tests/phase7_build.zig: phase7-string-helpers-sample-boundary-tests:expected=1:actual=2"),
+        ("build_string_helpers_sample_boundary_source_exact_count", "zigux/tests/phase7_build.zig", "\"phase7_string_helpers_sample_boundary.zig\"", "zigux/tests/phase7_build.zig: \"phase7_string_helpers_sample_boundary.zig\":expected=1:actual=2"),
+        ("build_string_helpers_sample_boundary_cwd_exact_count", "zigux/tests/phase7_build.zig", "run_string_helpers_sample_boundary_tests.setCwd(b.path(\"../..\"));", "zigux/tests/phase7_build.zig: run_string_helpers_sample_boundary_tests.setCwd(b.path(\"../..\"));:expected=1:actual=2"),
+        ("build_cmdline_survey_gate_exact_count", "zigux/tests/phase7_build.zig", "phase7-cmdline-survey-tests", "zigux/tests/phase7_build.zig: phase7-cmdline-survey-tests:expected=1:actual=2"),
+        ("build_cmdline_survey_source_exact_count", "zigux/tests/phase7_build.zig", "\"phase7_cmdline_survey.zig\"", "zigux/tests/phase7_build.zig: \"phase7_cmdline_survey.zig\":expected=1:actual=2"),
+        ("build_cmdline_survey_cwd_exact_count", "zigux/tests/phase7_build.zig", "run_cmdline_survey_tests.setCwd(b.path(\"../..\"));", "zigux/tests/phase7_build.zig: run_cmdline_survey_tests.setCwd(b.path(\"../..\"));:expected=1:actual=2"),
+        ("build_argv_split_survey_gate_exact_count", "zigux/tests/phase7_build.zig", "phase7-argv-split-survey-tests", "zigux/tests/phase7_build.zig: phase7-argv-split-survey-tests:expected=1:actual=2"),
+        ("build_argv_split_survey_source_exact_count", "zigux/tests/phase7_build.zig", "\"phase7_argv_split_survey.zig\"", "zigux/tests/phase7_build.zig: \"phase7_argv_split_survey.zig\":expected=1:actual=2"),
+        ("build_argv_split_survey_cwd_exact_count", "zigux/tests/phase7_build.zig", "run_argv_split_survey_tests.setCwd(b.path(\"../..\"));", "zigux/tests/phase7_build.zig: run_argv_split_survey_tests.setCwd(b.path(\"../..\"));:expected=1:actual=2"),
+        ("build_rbtree_survey_gate_exact_count", "zigux/tests/phase7_build.zig", "phase7-rbtree-survey-tests", "zigux/tests/phase7_build.zig: phase7-rbtree-survey-tests:expected=1:actual=2"),
+        ("build_rbtree_survey_cwd_exact_count", "zigux/tests/phase7_build.zig", "run_rbtree_survey_tests.setCwd(b.path(\"../..\"));", "zigux/tests/phase7_build.zig: run_rbtree_survey_tests.setCwd(b.path(\"../..\"));:expected=1:actual=2"),
     ]
 
     with tempfile.TemporaryDirectory(prefix="zigux_phase7_validator_") as tmp_dir_str:
