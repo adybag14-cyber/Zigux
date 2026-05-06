@@ -51,10 +51,14 @@ It is a small substrate that makes future ports measurable:
 - `python3 scripts/zigux/check-phase3-selftest-surface.py`
 - `python3 scripts/zigux/check-phase3-readme-tooling-inventory.py --self-test`
 - `python3 scripts/zigux/check-phase3-readme-tooling-inventory.py`
+- `python3 scripts/zigux/phase3_catalog.py --self-test`
+- `python3 scripts/zigux/phase3_check_lib.py --self-test`
+- `python3 scripts/zigux/generate-phase3-check-wrappers.py --check`
+- `python3 scripts/zigux/run-phase3-checks.py --self-test`
 - `python3 scripts/zigux/validate-phase3-policy-unsafe-survey.py`
 - `python3 scripts/zigux/validate-phase3-low-level-wrapper-survey.py`
 - `make -C zigux phase3-selftest`
-- focused support-script safety check only; `make -C zigux phase3-validate` already invokes the underlying helper self-tests and README tooling inventory checks directly.
+- focused support-script safety check only; `make -C zigux phase3-validate` already invokes the underlying helper self-tests, README tooling inventory checks, catalog sanity checks, wrapper drift checks, and shared runner self-checks directly.
 
 - `PHASE3_VALIDATE_GATE=python3 scripts/zigux/validate-phase3.py`
 - `PHASE3_INTEROP_GATE=python3 scripts/zigux/run-phase3-checks.py --slug abi`
