@@ -42,6 +42,24 @@
       }
     ]
   },
+  "segmentation_notes": [
+    {
+      "destination": "tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig",
+      "landed_scope": [
+        "buildProcFdinfoPath() bounded /proc/<pid>/fdinfo/<fd> pathname shaping",
+        "parseFdinfoLine() field splitting and trimming",
+        "applyFdinfoMapInfoLine() numeric field decoding for map_type/key_size/value_size/max_entries/map_flags/map_extra",
+        "parseFdinfoMapInfo() line-by-line fdinfo map metadata parsing",
+        "summarizeFdinfoMapInfo() bounded completion reporting for the parsed map info packet"
+      ],
+      "queued_scope": [
+        "reused-map name chooser and compatibility checks",
+        "direct procfs reads and descriptor ownership flow",
+        "token creation, bpffs reopen flow, and other fd-handle bridge side effects"
+      ],
+      "why_now": "The shared file-path bridge destination already contains a landed fdinfo parsing helper foundation, so future surveys must distinguish capability-level progress from whole-file presence before promoting the heavier bridge tranche."
+    }
+  ],
   "segments": [
     {
       "id": "P8-L15-S01",
@@ -98,7 +116,7 @@
         "tools/lib/bpf/libbpf.c: bpf_get_map_info_from_fdinfo() pathname and fdinfo text parsing"
       ],
       "zigux_destination": "tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig",
-      "why_now": "This remains a bounded next helper inside the now-materialized shared file-path bridge surface; the reviewable procfs path construction and fdinfo text parsing already ship as adjacent fdinfo-only helper coverage, while the catalog entry stays queued until Zigux promotes that bridge packet beyond direct file reads, descriptor ownership, or pinned-object reopen flow."
+      "why_now": "The bounded procfs-path and fdinfo map-info helper packet is already materialized inside the shared bridge destination, but this tranche remains the next explicit promotable helper slice until Zigux records that capability separately from the heavier descriptor-ownership bridge work."
     },
     {
       "id": "P8-L15-S06",
@@ -109,7 +127,7 @@
         "tools/lib/bpf/libbpf.c: bpf_map__reuse_fd() name selection and bpf_object__reuse_map() compatibility checks"
       ],
       "zigux_destination": "tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig",
-      "why_now": "This remains a bounded next helper beside the now-materialized shared bridge surface; the reused-map-name chooser and compatibility comparison are still reviewable without widening into FD duplication, close-on-replacement, or pinned-map reopen side effects, but they stay queued until the fdinfo-only bridge packet is promoted."
+      "why_now": "This remains a bounded next helper beside the now-materialized fdinfo parsing foundation; the reused-map-name chooser and compatibility comparison are still reviewable without widening into FD duplication, close-on-replacement, or pinned-map reopen side effects."
     },
     {
       "id": "P8-L15-S07",
@@ -120,7 +138,7 @@
         "tools/lib/bpf/libbpf.c: bpf_object_prepare_token() and bpf_object__reuse_map() handle-bridging paths"
       ],
       "zigux_destination": "tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig",
-      "why_now": "This remaining file-path and handle bridge still crosses real procfs reads, bpffs opens, token creation, bpf_obj_get() reopen flow, and fd ownership semantics, so the helper-first packet should keep it deferred."
+      "why_now": "The shared destination now holds only the bounded fdinfo helper foundation; the remaining bridge still crosses real procfs reads, bpffs opens, token creation, bpf_obj_get() reopen flow, and fd ownership semantics, so the helper-first packet should keep it deferred."
     },
     {
       "id": "P8-L15-S08",
