@@ -27,6 +27,14 @@ const Manifest = struct {
     surveyed_commit: []const u8,
     anchor: []const u8,
     roadmap_destinations: []const []const u8,
+    freeze_map: []const u8,
+    freeze_boundary_status: []const u8,
+    freeze_status_change_claimed: bool,
+    risky_transport_posture: []const u8,
+    allowed_evidence_kinds: []const []const u8,
+    forbidden_transport_claims: []const []const u8,
+    architecture_council_reopen_required: bool,
+    architecture_council_reopen_attached: bool,
     survey_summary: SurveySummary,
     gaps: []const Gap,
 };
@@ -35,6 +43,13 @@ fn isAllowedStatus(status: []const u8) bool {
     return std.mem.eql(u8, status, "starter_landed") or
         std.mem.eql(u8, status, "ready_next") or
         std.mem.eql(u8, status, "blocked_on_risky_transport");
+}
+
+fn containsString(list: []const []const u8, needle: []const u8) bool {
+    for (list) |item| {
+        if (std.mem.eql(u8, item, needle)) return true;
+    }
+    return false;
 }
 
 test "phase10 virtio input survey manifest records the live starter and remaining gap" {
@@ -53,7 +68,7 @@ test "phase10 virtio input survey manifest records the live starter and remainin
         Manifest,
         std.testing.allocator,
         manifest_json,
-        .{ .ignore_unknown_fields = true },
+        .{},
     );
     defer parsed.deinit();
 
@@ -80,6 +95,24 @@ test "phase10 virtio input survey manifest records the live starter and remainin
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase10-virtio-input-queue-callback-preflight-helper") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "queue-callback preflight summary") != null);
     try std.testing.expectEqual(@as(usize, 2), manifest.roadmap_destinations.len);
+    try std.testing.expect(containsString(manifest.roadmap_destinations, "drivers/virtio/*.zig"));
+    try std.testing.expect(containsString(manifest.roadmap_destinations, "zigux/helpers/"));
+    try std.testing.expectEqualStrings("Documentation/zigux/freeze-map.md", manifest.freeze_map);
+    try std.testing.expectEqualStrings("aligned", manifest.freeze_boundary_status);
+    try std.testing.expect(!manifest.freeze_status_change_claimed);
+    try std.testing.expectEqualStrings("blocked_on_risky_transport", manifest.risky_transport_posture);
+    try std.testing.expectEqual(@as(usize, 3), manifest.allowed_evidence_kinds.len);
+    try std.testing.expect(containsString(manifest.allowed_evidence_kinds, "driver_local_lab_slices"));
+    try std.testing.expect(containsString(manifest.allowed_evidence_kinds, "survey_manifests"));
+    try std.testing.expect(containsString(manifest.allowed_evidence_kinds, "shared_validation_gates"));
+    try std.testing.expectEqual(@as(usize, 5), manifest.forbidden_transport_claims.len);
+    try std.testing.expect(containsString(manifest.forbidden_transport_claims, "queue_setup_reset_paths"));
+    try std.testing.expect(containsString(manifest.forbidden_transport_claims, "irq_parity"));
+    try std.testing.expect(containsString(manifest.forbidden_transport_claims, "dma_paths"));
+    try std.testing.expect(containsString(manifest.forbidden_transport_claims, "input_registration_lifecycle"));
+    try std.testing.expect(containsString(manifest.forbidden_transport_claims, "probe_remove_lifecycle"));
+    try std.testing.expect(manifest.architecture_council_reopen_required);
+    try std.testing.expect(!manifest.architecture_council_reopen_attached);
     try std.testing.expect(manifest.survey_summary.virtio_input_c_lines >= 400);
     try std.testing.expectEqual(@as(usize, 6), manifest.survey_summary.preexisting_phase10_test_files);
     try std.testing.expect(manifest.survey_summary.preexisting_phase10_build_present);
