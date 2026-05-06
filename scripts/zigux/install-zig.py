@@ -10,15 +10,17 @@ import re
 import shutil
 import tarfile
 import tempfile
-import urllib.request
-import zipfile
 import time
 import urllib.error
+import urllib.request
+import zipfile
 
 
 INDEX_URL = 'https://ziglang.org/download/index.json'
 VERSION_KEY_RE = re.compile(r'^\d+\.\d+\.\d+(?:-dev\.\d+(?:\+[0-9A-Za-z.-]+)?)?$')
 RETRYABLE_HTTP_STATUS_CODES = {500, 502, 503, 504}
+DOWNLOAD_RETRIES = 4
+DOWNLOAD_TIMEOUT = 120.0
 
 
 def normalize_os(name: str) -> str:
@@ -66,6 +68,33 @@ def open_url(url: str, *, retries: int = 3, timeout: float = 30.0):
     raise RuntimeError(f'failed to open URL after retries: {url}')
 
 
+def copy_url_to_file(
+    url: str,
+    destination: Path,
+    *,
+    retries: int = DOWNLOAD_RETRIES,
+    timeout: float = DOWNLOAD_TIMEOUT,
+) -> None:
+    last_error: Exception | None = None
+    for attempt in range(1, retries + 1):
+        try:
+            with open_url(url, retries=1, timeout=timeout) as response, open(destination, 'wb') as out:
+                shutil.copyfileobj(response, out)
+            return
+        except TimeoutError as exc:
+            last_error = exc
+        except urllib.error.URLError as exc:
+            last_error = exc
+        if destination.exists():
+            destination.unlink()
+        if attempt == retries:
+            break
+        time.sleep(min(1.5 * attempt, 5.0))
+    if last_error is not None:
+        raise last_error
+    raise RuntimeError(f'failed to download URL after retries: {url}')
+
+
 def read_index() -> dict:
     with open_url(INDEX_URL) as response:
         return json.load(response)
@@ -102,11 +131,11 @@ def resolve_target(index: dict, channel: str, arch_key: str, system_key: str) ->
 def load_index(channel: str) -> dict:
     try:
         return read_index()
-    except urllib.error.HTTPError as exc:
+    except urllib.error.HTTPError:
         if not is_explicit_version(channel):
             raise
         return {}
-    except urllib.error.URLError as exc:
+    except urllib.error.URLError:
         if not is_explicit_version(channel):
             raise
         return {}
@@ -186,6 +215,44 @@ def run_self_test() -> int:
         'https://ziglang.org/builds/zig-x86_64-linux-0.17.0-dev.87+9b177a7d2.tar.xz',
     )
 
+    download_attempts = {'count': 0}
+
+    class FakeResponse:
+        def __init__(self):
+            self._emitted = False
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, exc_type, exc, tb):
+            return False
+
+        def read(self, size: int = -1) -> bytes:
+            if size == 0 or self._emitted:
+                return b''
+            self._emitted = True
+            return b'zig-data'
+
+    def flaky_open_url(url: str, *, retries: int = 3, timeout: float = 30.0):
+        del url, retries, timeout
+        download_attempts['count'] += 1
+        if download_attempts['count'] < 3:
+            raise TimeoutError('timed out')
+        return FakeResponse()
+
+    temp_path = Path(tempfile.mkdtemp(prefix='zigux_install_zig_selftest_')) / 'archive.tar.xz'
+    original_open_url = globals()['open_url']
+    try:
+        globals()['open_url'] = flaky_open_url
+        copy_url_to_file('https://example.invalid/archive.tar.xz', temp_path, retries=4, timeout=1.0)
+        assert temp_path.read_bytes() == b'zig-data'
+        assert download_attempts['count'] == 3
+    finally:
+        globals()['open_url'] = original_open_url
+        if temp_path.exists():
+            temp_path.unlink()
+        temp_path.parent.rmdir()
+
     try:
         normalize_os('plan9')
     except SystemExit:
@@ -215,7 +282,7 @@ def run_self_test() -> int:
         raise AssertionError('expected resolve_target to reject unknown target')
 
     print('ZIG_INSTALL_SELF_TEST=pass')
-    print('ZIG_INSTALL_SELF_TEST_CASE_COUNT=12')
+    print('ZIG_INSTALL_SELF_TEST_CASE_COUNT=13')
     return 0
 
 
@@ -253,8 +320,7 @@ def main() -> int:
         tmpdir = Path(tmpdir_str)
         archive_name = tarball_url.rsplit('/', 1)[-1]
         archive_path = tmpdir / archive_name
-        with open_url(tarball_url) as response, open(archive_path, 'wb') as out:
-            shutil.copyfileobj(response, out)
+        copy_url_to_file(tarball_url, archive_path)
 
         extracted_root = extract_archive(archive_path, tmpdir / 'extract')
         final_root = install_root / extracted_root.name
