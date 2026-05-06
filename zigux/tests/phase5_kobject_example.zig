@@ -99,3 +99,29 @@ test "phase 5 kobject sample makes ownership summaries and lifecycle replays exp
     try std.testing.expectError(error.InvalidLifecycleTransition, module.storeValue("foo", "1\n"));
     try std.testing.expectError(error.InvalidLifecycleTransition, module.runAnchorReplay());
 }
+
+test "phase 5 kobject sample keeps registered teardown boundary reviewable through a sample-owned replay" {
+    var module = sample.KobjectExampleSample{};
+    const replay = try module.runTeardownReplay();
+
+    try std.testing.expectEqualStrings("samples/kobject/kobject-example.c", replay.anchor);
+    try std.testing.expectEqual(sample.ExitDisposition.tore_down_registered_attributes, replay.exit_summary.disposition);
+    try std.testing.expectEqual(sample.SampleStage.registered, replay.exit_summary.stage_before_exit);
+    try std.testing.expectEqual(sample.SampleStage.exited, replay.exit_summary.stage_after_exit);
+    try std.testing.expectEqual(@as(usize, 3), replay.exit_summary.cleared_attr_count);
+    try std.testing.expectEqual(@as(i32, 42), replay.values_before_exit.foo);
+    try std.testing.expectEqual(@as(i32, 7), replay.values_before_exit.baz);
+    try std.testing.expectEqual(@as(i32, -5), replay.values_before_exit.bar);
+    try std.testing.expectEqual(@as(i32, 0), replay.values_after_exit.foo);
+    try std.testing.expectEqual(@as(i32, 0), replay.values_after_exit.baz);
+    try std.testing.expectEqual(@as(i32, 0), replay.values_after_exit.bar);
+    try std.testing.expectEqual(@as(usize, 0), replay.active_attr_count_after_exit);
+    try std.testing.expect(replay.rejected_reinit);
+    try std.testing.expect(replay.rejected_reregister);
+    try std.testing.expect(replay.rejected_show);
+    try std.testing.expect(replay.rejected_store);
+    try std.testing.expect(replay.rejected_second_exit);
+    try std.testing.expect(replay.rejected_anchor_replay);
+    try std.testing.expectEqual(sample.SampleStage.exited, module.ownershipSummary().stage);
+    try std.testing.expectEqual(@as(usize, 0), module.ownershipSummary().active_attr_count);
+}
