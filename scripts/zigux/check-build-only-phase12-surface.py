@@ -13,6 +13,8 @@ DOCS_README_PATH = "Documentation/zigux/README.md"
 REVIEW_CHECKLIST_PATH = "Documentation/zigux/review-checklist.md"
 PHASE12_SEQUENCE_PATH = "Documentation/zigux/phase12-release-sequencing.md"
 PHASE12_CLOSURE_CHECKLIST_PATH = "Documentation/zigux/phase12-release-closure-checklist.md"
+PHASE12_COMPLEX_DRIVER_LANE_PATH = "Documentation/zigux/phase12-complex-driver-lane-sequencing.md"
+PHASE12_RAW_GITHUB_COVERAGE_PATH = "Documentation/zigux/phase12-raw-github-coverage-survey.md"
 NVME_FALLBACK_MAP_PATH = "Documentation/zigux/phase12-nvme-pci-raw-github-fallback-map.md"
 VIRTIO_SCSI_FALLBACK_PATH = "Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md"
 VIRTIO_NET_SURVEY_PATH = "Documentation/zigux/phase12-virtio-net-survey.md"
@@ -48,6 +50,8 @@ REQUIRED_FILE_MARKERS = {
     ],
     PHASE12_SEQUENCE_PATH: [
         "PMO closure companion: `Documentation/zigux/phase12-release-closure-checklist.md`",
+        "`Documentation/zigux/phase12-complex-driver-lane-sequencing.md`",
+        "`Documentation/zigux/phase12-raw-github-coverage-survey.md`",
         "`scripts/zigux/check-build-only-phase12-surface.py` plus `.github/workflows/zigux-bootstrap.yml` keep the build-only contract fail-closed",
         "the checker-local closure-companion update is landed",
         "the next bounded same-lane follow-through is drift control",
@@ -55,10 +59,24 @@ REQUIRED_FILE_MARKERS = {
     PHASE12_CLOSURE_CHECKLIST_PATH: [
         "Phase 12 Release Closure Checklist",
         "scripts/zigux/check-build-only-phase12-surface.py",
+        "Documentation/zigux/phase12-raw-github-coverage-survey.md",
+        "two commit-pinned artifacts plus two shared-tree-only anchors",
         "now explicitly pins `Documentation/zigux/phase12-release-closure-checklist.md` inside its fail-closed marker set",
         "`make -C zigux phase12-smoke ZIG=<attached-zig-path>`",
         "`make -C zigux phase12 ZIG=<attached-zig-path>`",
         "the smallest same-lane follow-through is now shared-surface drift control",
+    ],
+    PHASE12_COMPLEX_DRIVER_LANE_PATH: [
+        "complex-driver scope in this note: `virtio_net`, `nvme_pci`, and `virtio_scsi`",
+        "excluded from this note on purpose: the shared PMO release packet and the non-driver libbpf helper packet",
+        "`Documentation/zigux/phase12-release-sequencing.md`",
+        "`Documentation/zigux/phase12-release-closure-checklist.md`",
+    ],
+    PHASE12_RAW_GITHUB_COVERAGE_PATH: [
+        "commit-pinned fallback artifacts:",
+        "shared-tree-only anchors:",
+        "Use `Documentation/zigux/phase12-release-closure-checklist.md` as the PMO companion",
+        "`Documentation/zigux/phase12-complex-driver-lane-sequencing.md` remains the separate driver-only anti-overlap companion",
     ],
     NVME_FALLBACK_MAP_PATH: [
         "PMO closure companion",
@@ -191,6 +209,8 @@ Phase 12 notes
         PHASE12_SEQUENCE_PATH,
         """# Phase 12 Release Sequencing
 - PMO closure companion: `Documentation/zigux/phase12-release-closure-checklist.md`
+- `Documentation/zigux/phase12-complex-driver-lane-sequencing.md`
+- `Documentation/zigux/phase12-raw-github-coverage-survey.md`
 - `scripts/zigux/check-build-only-phase12-surface.py` plus `.github/workflows/zigux-bootstrap.yml` keep the build-only contract fail-closed
 - the checker-local closure-companion update is landed
 - the next bounded same-lane follow-through is drift control
@@ -201,10 +221,32 @@ Phase 12 notes
         PHASE12_CLOSURE_CHECKLIST_PATH,
         """# Phase 12 Release Closure Checklist
 - scripts/zigux/check-build-only-phase12-surface.py
+- Documentation/zigux/phase12-raw-github-coverage-survey.md
+- two commit-pinned artifacts plus two shared-tree-only anchors
 - now explicitly pins `Documentation/zigux/phase12-release-closure-checklist.md` inside its fail-closed marker set
 - `make -C zigux phase12-smoke ZIG=<attached-zig-path>`
 - `make -C zigux phase12 ZIG=<attached-zig-path>`
 - the smallest same-lane follow-through is now shared-surface drift control
+""",
+    )
+    write(
+        root,
+        PHASE12_COMPLEX_DRIVER_LANE_PATH,
+        """# Phase 12 Complex Driver Lane Sequencing
+- complex-driver scope in this note: `virtio_net`, `nvme_pci`, and `virtio_scsi`
+- excluded from this note on purpose: the shared PMO release packet and the non-driver libbpf helper packet
+- `Documentation/zigux/phase12-release-sequencing.md`
+- `Documentation/zigux/phase12-release-closure-checklist.md`
+""",
+    )
+    write(
+        root,
+        PHASE12_RAW_GITHUB_COVERAGE_PATH,
+        """# Phase 12 Raw GitHub Coverage Survey
+- commit-pinned fallback artifacts:
+- shared-tree-only anchors:
+- Use `Documentation/zigux/phase12-release-closure-checklist.md` as the PMO companion
+- `Documentation/zigux/phase12-complex-driver-lane-sequencing.md` remains the separate driver-only anti-overlap companion
 """,
     )
     write(
@@ -316,6 +358,24 @@ def run_self_test() -> int:
                 print(failure)
             return 1
 
+        sequence_path = root / PHASE12_SEQUENCE_PATH
+        original_sequence = sequence_path.read_text(encoding="utf-8")
+        broken_sequence = original_sequence.replace(
+            "- `Documentation/zigux/phase12-complex-driver-lane-sequencing.md`\n",
+            "",
+            1,
+        )
+        sequence_path.write_text(broken_sequence, encoding="utf-8")
+        failures = validate(root)
+        expected = f"{PHASE12_SEQUENCE_PATH}:`Documentation/zigux/phase12-complex-driver-lane-sequencing.md`"
+        if expected not in failures:
+            print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST=fail")
+            print("sequence-complex-driver-lane-marker-guard")
+            for failure in failures:
+                print(failure)
+            return 1
+        sequence_path.write_text(original_sequence, encoding="utf-8")
+
         closure_path = root / PHASE12_CLOSURE_CHECKLIST_PATH
         original_closure = closure_path.read_text(encoding="utf-8")
         broken_closure = original_closure.replace(
@@ -355,6 +415,24 @@ def run_self_test() -> int:
                 print(failure)
             return 1
         closure_path.write_text(original_closure, encoding="utf-8")
+
+        raw_coverage_path = root / PHASE12_RAW_GITHUB_COVERAGE_PATH
+        original_raw_coverage = raw_coverage_path.read_text(encoding="utf-8")
+        broken_raw_coverage = original_raw_coverage.replace(
+            "- shared-tree-only anchors:\n",
+            "",
+            1,
+        )
+        raw_coverage_path.write_text(broken_raw_coverage, encoding="utf-8")
+        failures = validate(root)
+        expected = f"{PHASE12_RAW_GITHUB_COVERAGE_PATH}:shared-tree-only anchors:"
+        if expected not in failures:
+            print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST=fail")
+            print("raw-coverage-shared-tree-anchor-guard")
+            for failure in failures:
+                print(failure)
+            return 1
+        raw_coverage_path.write_text(original_raw_coverage, encoding="utf-8")
 
         scripts_readme_path = root / SCRIPTS_README_PATH
         original_scripts_readme = scripts_readme_path.read_text(encoding="utf-8")
