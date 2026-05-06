@@ -4,6 +4,8 @@ const runtime_atomic64_diff_source = @embedFile("runtime_atomic64_diff.zig");
 const phase4_runtime_atomic64_manifest_source = @embedFile("phase4_runtime_atomic64_diff_manifest.json");
 const phase4_build_source = @embedFile("phase4_build.zig");
 const phase9_build_source = @embedFile("phase9_build.zig");
+const validate_phase4_source = @embedFile("../../scripts/zigux/validate-phase4.py");
+const phase4_validation_matrix_source = @embedFile("../../Documentation/zigux/phase4-validation-matrix.md");
 
 fn expectMarker(haystack: []const u8, marker: []const u8) !void {
     try std.testing.expect(std.mem.indexOf(u8, haystack, marker) != null);
@@ -34,6 +36,26 @@ fn expectRuntimeCaseGroupCardinality(
         return error.MissingRuntimeCaseGroupBoundary;
     const section = runtime_atomic64_diff_source[section_start..section_end];
     try std.testing.expectEqual(expected_case_count, countOccurrences(section, ".name = "));
+}
+
+fn atomic64MatrixSection() ![]const u8 {
+    const section_start = std.mem.indexOf(
+        u8,
+        phase4_validation_matrix_source,
+        "### `zigux/tests/atomic64_diff.zig`",
+    ) orelse return error.MissingAtomic64MatrixSection;
+    const section_end = std.mem.indexOfPos(
+        u8,
+        phase4_validation_matrix_source,
+        section_start,
+        "### `zigux/tests/phase4_runtime_atomic64_diff_survey.zig`",
+    ) orelse return error.MissingAtomic64MatrixSectionBoundary;
+    return phase4_validation_matrix_source[section_start..section_end];
+}
+
+fn expectAtomic64MatrixMarkerCount(marker: []const u8, expected_count: usize) !void {
+    const section = try atomic64MatrixSection();
+    try std.testing.expectEqual(expected_count, countOccurrences(section, marker));
 }
 
 test "atomic64 diff canonical wrapper keeps the shipped runtime gate wired in" {
@@ -129,6 +151,39 @@ test "atomic64 diff wrapper keeps the current phase4 and phase9 build routing ex
     try expectMarker(phase9_build_source, ".root_source_file = b.path(\"runtime_atomic64_diff.zig\")");
     try expectMarker(phase9_build_source, ".name = \"phase9-runtime-atomic64-diff-tests\"");
     try expectNoMarker(phase9_build_source, ".root_source_file = b.path(\"atomic64_diff.zig\")");
+}
+
+test "atomic64 diff wrapper keeps the shared phase4 validator packet explicit" {
+    try expectMarker(validate_phase4_source, "\"zigux/tests/atomic64_diff.zig\"");
+    try expectMarker(validate_phase4_source, "\"zigux/tests/runtime_atomic64_diff.zig\"");
+    try expectMarker(validate_phase4_source, "\"zigux/tests/phase4_runtime_atomic64_diff_manifest.json\"");
+    try expectMarker(validate_phase4_source, "\"zigux/tests/phase4_runtime_atomic64_diff_survey.zig\"");
+    try expectMarker(validate_phase4_source, "PHASE4_RUNTIME_ATOMIC64_PACKET_CHECK");
+    try expectMarker(validate_phase4_source, "phase4_runtime_atomic64_packet");
+}
+
+test "atomic64 diff wrapper keeps rollback ownership and threshold posture explicit" {
+    try expectAtomic64MatrixMarkerCount("- owner: `ABI and Runtime Team`", 1);
+    try expectAtomic64MatrixMarkerCount("- rollback owner: `ABI and Runtime Team`", 1);
+    try expectAtomic64MatrixMarkerCount(
+        "- perf threshold status: correctness-only gate today; no hard timing threshold is approved until the lane widens beyond the current bounded exchange, cmpxchg, add_unless, and selftest-family replay set",
+        1,
+    );
+    try expectAtomic64MatrixMarkerCount(
+        "- survey packet: `zigux/tests/phase4_runtime_atomic64_diff_manifest.json` and `zigux/tests/phase4_runtime_atomic64_diff_survey.zig` keep the wrapper-to-runtime handoff, the shared build wiring, and the matrix wording reviewable beside the executable replay",
+        1,
+    );
+}
+
+test "atomic64 diff wrapper keeps the phase4 replay routes measurable" {
+    try expectAtomic64MatrixMarkerCount(
+        "`python3 scripts/zigux/validate-phase4.py` then `zig build test --build-file zigux/tests/phase4_build.zig` in `.github/workflows/zigux-bootstrap.yml`",
+        1,
+    );
+    try expectAtomic64MatrixMarkerCount(
+        "`zig build phase4-runtime-atomic64-diff --build-file zigux/tests/phase4_build.zig`",
+        1,
+    );
 }
 
 test "atomic64 diff wrapper pins the current bounded runtime case groups" {
