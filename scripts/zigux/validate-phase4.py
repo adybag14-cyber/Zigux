@@ -139,6 +139,18 @@ REQUIRED_PHASE4_MATRIX_MARKERS = [
     "samples/vfs/test-fsmount.c",
     "hard perf thresholds and acceptable limits for the atomic64 and bitmap gates remain intentionally unapproved",
 ]
+REQUIRED_PHASE4_BITMAP_HELPER_OWNERSHIP_MARKERS = [
+    "### `zigux/tests/phase4_bitmap_live_helper_replay.zig`",
+    "- anchor: `tools/lib/bitmap.zig` and `tools/lib/find_bit.zig`",
+    "- owner: `Shared Subsystems Pod`",
+    "- rollback owner: `Shared Subsystems Pod`",
+    "- fallback path: keep `zigux/tests/bitmap_diff.zig`, the current C anchor at `lib/test_bitmap.c`, and the shipped helper sources as the truthful rollback surface if the helper-backed replay regresses and has to leave the shared Phase 4 entrypoint",
+]
+REQUIRED_PHASE4_BITMAP_HELPER_MATRIX_MARKERS = [
+    "`zigux/tests/phase4_bitmap_live_helper_replay.zig` helper-backed replay of the shipped `tools/lib/bitmap.zig` and `tools/lib/find_bit.zig` semantics on the shared Phase 4 entrypoint",
+    "`zig build phase4-bitmap-live-helper-replay --build-file zigux/tests/phase4_build.zig`",
+    "`threshold_pending_until_bitmap_gate_grows_beyond_bounded_correctness_checks`",
+]
 REQUIRED_PHASE4_BUILD_MARKERS = [
     "atomic64_diff.zig",
     "phase4_runtime_atomic64_diff_survey.zig",
@@ -180,6 +192,15 @@ EXACT_ONCE_ARTIFACT_DOC_MARKERS = [
     "zigux/tests/phase4_runtime_atomic64_diff_survey.zig",
     "zigux/tests/phase4_bitmap_live_helper_replay.zig",
     "scripts/zigux/validate-phase4.py",
+]
+EXACT_ONCE_PHASE4_BITMAP_HELPER_OWNERSHIP_MARKERS = [
+    "### `zigux/tests/phase4_bitmap_live_helper_replay.zig`",
+    "- anchor: `tools/lib/bitmap.zig` and `tools/lib/find_bit.zig`",
+    "- fallback path: keep `zigux/tests/bitmap_diff.zig`, the current C anchor at `lib/test_bitmap.c`, and the shipped helper sources as the truthful rollback surface if the helper-backed replay regresses and has to leave the shared Phase 4 entrypoint",
+]
+EXACT_ONCE_PHASE4_BITMAP_HELPER_MATRIX_MARKERS = [
+    "`zigux/tests/phase4_bitmap_live_helper_replay.zig` helper-backed replay of the shipped `tools/lib/bitmap.zig` and `tools/lib/find_bit.zig` semantics on the shared Phase 4 entrypoint",
+    "`zig build phase4-bitmap-live-helper-replay --build-file zigux/tests/phase4_build.zig`",
 ]
 
 EXPECTED_ARTIFACT_DIFF_CONTRACT_CASES = [
@@ -343,6 +364,12 @@ def validate_root(root: Path) -> list[str]:
     for marker in REQUIRED_PHASE4_MATRIX_MARKERS:
         if marker not in phase4_matrix:
             missing_markers.append(f"phase4_matrix:{marker}")
+    for marker in REQUIRED_PHASE4_BITMAP_HELPER_OWNERSHIP_MARKERS:
+        if marker not in phase4_matrix:
+            missing_markers.append(f"phase4_matrix_helper_ownership:{marker}")
+    for marker in REQUIRED_PHASE4_BITMAP_HELPER_MATRIX_MARKERS:
+        if marker not in phase4_matrix:
+            missing_markers.append(f"phase4_matrix_helper_route:{marker}")
     for marker in REQUIRED_PHASE4_BUILD_MARKERS:
         if marker not in phase4_build:
             missing_markers.append(f"phase4_build:{marker}")
@@ -358,6 +385,12 @@ def validate_root(root: Path) -> list[str]:
         _require_exact_once(doc_readme, marker, "doc_readme", missing_markers)
     for marker in EXACT_ONCE_REVIEW_CHECKLIST_MARKERS:
         _require_exact_once(review_checklist, marker, "review_checklist", missing_markers)
+    for marker in EXACT_ONCE_PHASE4_BITMAP_HELPER_OWNERSHIP_MARKERS:
+        _require_exact_once(
+            phase4_matrix, marker, "phase4_matrix_helper_ownership", missing_markers
+        )
+    for marker in EXACT_ONCE_PHASE4_BITMAP_HELPER_MATRIX_MARKERS:
+        _require_exact_once(phase4_matrix, marker, "phase4_matrix_helper_route", missing_markers)
 
     return missing_markers
 
@@ -700,6 +733,14 @@ def _write_phase4_fixture_docs(root: Path) -> None:
                 "samples/zigux/test_fsmount.zig",
                 "samples/vfs/test-fsmount.c",
                 "hard perf thresholds and acceptable limits for the atomic64 and bitmap gates remain intentionally unapproved",
+                "### `zigux/tests/phase4_bitmap_live_helper_replay.zig`",
+                "- anchor: `tools/lib/bitmap.zig` and `tools/lib/find_bit.zig`",
+                "- owner: `Shared Subsystems Pod`",
+                "- rollback owner: `Shared Subsystems Pod`",
+                "- fallback path: keep `zigux/tests/bitmap_diff.zig`, the current C anchor at `lib/test_bitmap.c`, and the shipped helper sources as the truthful rollback surface if the helper-backed replay regresses and has to leave the shared Phase 4 entrypoint",
+                "`zigux/tests/phase4_bitmap_live_helper_replay.zig` helper-backed replay of the shipped `tools/lib/bitmap.zig` and `tools/lib/find_bit.zig` semantics on the shared Phase 4 entrypoint",
+                "`zig build phase4-bitmap-live-helper-replay --build-file zigux/tests/phase4_build.zig`",
+                "`threshold_pending_until_bitmap_gate_grows_beyond_bounded_correctness_checks`",
                 "",
             ]
         ),
@@ -924,6 +965,35 @@ def run_self_test() -> int:
         ]
 
         _write_phase4_fixture_docs(root)
+        phase4_matrix_path = root / "Documentation/zigux/phase4-validation-matrix.md"
+        _write(
+            phase4_matrix_path,
+            phase4_matrix_path.read_text(encoding="utf-8").replace(
+                "### `zigux/tests/phase4_bitmap_live_helper_replay.zig`\n",
+                "",
+                1,
+            ),
+        )
+        assert validate_root(root) == [
+            "phase4_matrix_helper_ownership:### `zigux/tests/phase4_bitmap_live_helper_replay.zig`",
+            "phase4_matrix_helper_ownership:exact_once:### `zigux/tests/phase4_bitmap_live_helper_replay.zig`:0",
+        ]
+
+        _write_phase4_fixture_docs(root)
+        _write(
+            phase4_matrix_path,
+            phase4_matrix_path.read_text(encoding="utf-8").replace(
+                "`zig build phase4-bitmap-live-helper-replay --build-file zigux/tests/phase4_build.zig`",
+                "`zig build phase4-bitmap-diff --build-file zigux/tests/phase4_build.zig`",
+                1,
+            ),
+        )
+        assert validate_root(root) == [
+            "phase4_matrix_helper_route:`zig build phase4-bitmap-live-helper-replay --build-file zigux/tests/phase4_build.zig`",
+            "phase4_matrix_helper_route:exact_once:`zig build phase4-bitmap-live-helper-replay --build-file zigux/tests/phase4_build.zig`:0",
+        ]
+
+        _write_phase4_fixture_docs(root)
         manifest = json.loads(
             (root / "zigux/tests/phase4_runtime_atomic64_diff_manifest.json").read_text(
                 encoding="utf-8"
@@ -1084,7 +1154,7 @@ def main() -> int:
     print(f"PHASE4_REQUIRED_FILE_COUNT={len(REQUIRED_FILES)}")
     print(
         "PHASE4_REQUIRED_MARKER_COUNT="
-        f"{len(REQUIRED_MAKE_MARKERS) + len(REQUIRED_WORKFLOW_MARKERS) + len(REQUIRED_DOC_MARKERS) + len(REQUIRED_PHASE4_GATE_EVIDENCE_MARKERS) + len(REQUIRED_TESTS_README_MARKERS) + len(REQUIRED_SCRIPT_README_MARKERS) + len(REQUIRED_DOC_README_MARKERS) + len(REQUIRED_REVIEW_CHECKLIST_MARKERS) + len(REQUIRED_PHASE4_MATRIX_MARKERS) + len(REQUIRED_PHASE4_BUILD_MARKERS)}"
+        f"{len(REQUIRED_MAKE_MARKERS) + len(REQUIRED_WORKFLOW_MARKERS) + len(REQUIRED_DOC_MARKERS) + len(REQUIRED_PHASE4_GATE_EVIDENCE_MARKERS) + len(REQUIRED_TESTS_README_MARKERS) + len(REQUIRED_SCRIPT_README_MARKERS) + len(REQUIRED_DOC_README_MARKERS) + len(REQUIRED_REVIEW_CHECKLIST_MARKERS) + len(REQUIRED_PHASE4_MATRIX_MARKERS) + len(REQUIRED_PHASE4_BITMAP_HELPER_OWNERSHIP_MARKERS) + len(REQUIRED_PHASE4_BITMAP_HELPER_MATRIX_MARKERS) + len(REQUIRED_PHASE4_BUILD_MARKERS)}"
     )
     return 0
 
