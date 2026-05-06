@@ -100,6 +100,19 @@ test "phase 5 kobject sample makes ownership summaries and lifecycle replays exp
     try std.testing.expectError(error.InvalidLifecycleTransition, module.runAnchorReplay());
 }
 
+test "phase 5 kobject sample keeps the already-registered boundary reviewable through a sample-owned replay" {
+    var module = sample.KobjectExampleSample{};
+    const replay = try module.runRegisteredBoundaryReplay();
+
+    try std.testing.expectEqualStrings("samples/kobject/kobject-example.c", replay.anchor);
+    try std.testing.expectEqual(sample.SampleStage.registered, replay.stage_before_boundary_checks);
+    try std.testing.expectEqual(sample.SampleStage.registered, replay.stage_after_boundary_checks);
+    try std.testing.expectEqual(@as(usize, 3), replay.active_attr_count);
+    try std.testing.expect(replay.rejected_duplicate_registration);
+    try std.testing.expect(replay.rejected_registered_anchor_replay);
+    try std.testing.expectEqual(sample.SampleStage.registered, module.stage());
+}
+
 test "phase 5 kobject sample keeps registered teardown boundary reviewable through a sample-owned replay" {
     var module = sample.KobjectExampleSample{};
     const replay = try module.runTeardownReplay();
