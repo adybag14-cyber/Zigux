@@ -1,4 +1,5 @@
 const std = @import("std");
+const tree_bridge = @import("tree_bridge");
 
 const SurveySummary = struct {
     tree_c_lines: usize,
@@ -95,15 +96,16 @@ test "phase 14 rcu tree survey manifest records the freeze-boundary gap without 
     try std.testing.expect(manifest.survey_summary.preexisting_phase14_workqueue_bridge_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase14_ring_buffer_manifest_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase14_skbuff_bridge_present);
-    try std.testing.expect(!manifest.survey_summary.preexisting_tree_bridge_zig_present);
+    try std.testing.expect(manifest.survey_summary.preexisting_tree_bridge_zig_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase14_rcu_tree_manifest_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase14_rcu_tree_survey_test_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase14_rcu_tree_survey_note_present);
     try std.testing.expectEqual(@as(usize, 7), manifest.decision_checklist.len);
-    try std.testing.expectEqual(@as(usize, 15), manifest.gaps.len);
+    try std.testing.expectEqual(@as(usize, 16), manifest.gaps.len);
 
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE14_LANE_KEY=P14-L13") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE14_SURVEYED_COMMIT=4c889233d157960514b241bcd5aff7cac5fda312") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "landed `phase14-rcu-tree-boundary-map-starter`") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "landed `phase14-rcu-tree-callback-offload-followup`") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "landed `phase14-rcu-tree-idle-watch-followup`") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "landed `phase14-rcu-tree-public-wait-and-barrier-followup`") != null);
@@ -116,6 +118,7 @@ test "phase 14 rcu tree survey manifest records the freeze-boundary gap without 
     var landed_count: usize = 0;
     var ready_next_count: usize = 0;
     var blocked_count: usize = 0;
+    var saw_boundary_map = false;
     var saw_freeze_note = false;
     var saw_survey_gate = false;
     var saw_decision_checklist = false;
@@ -159,6 +162,14 @@ test "phase 14 rcu tree survey manifest records the freeze-boundary gap without 
             try std.testing.expectEqualStrings("zigux/tests/phase14_rcu_tree_manifest.json", gap.zigux_destination);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "grace-period") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "NOCB") != null);
+        }
+        if (std.mem.eql(u8, gap.id, "phase14-rcu-tree-boundary-map-starter")) {
+            saw_boundary_map = true;
+            try std.testing.expectEqualStrings("starter_landed", gap.status);
+            try std.testing.expectEqualStrings("kernel/rcu/tree_bridge.zig", gap.zigux_destination);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "review-only") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "public-wait") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "CPU-hotplug") != null);
         }
         if (std.mem.eql(u8, gap.id, "phase14-rcu-tree-quiescent-state-followup")) {
             saw_quiescent_followup = true;
@@ -221,6 +232,7 @@ test "phase 14 rcu tree survey manifest records the freeze-boundary gap without 
             saw_bridge_blocker = true;
             try std.testing.expectEqualStrings("kernel/rcu/tree_bridge.zig", gap.zigux_destination);
             try std.testing.expectEqualStrings("blocked_on_stay_in_c_evidence", gap.status);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "review-only boundary map") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "public wait-and-barrier") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "CPU hotplug") != null);
         }
@@ -230,9 +242,10 @@ test "phase 14 rcu tree survey manifest records the freeze-boundary gap without 
         }
     }
 
-    try std.testing.expectEqual(@as(usize, 14), landed_count);
+    try std.testing.expectEqual(@as(usize, 15), landed_count);
     try std.testing.expectEqual(@as(usize, 0), ready_next_count);
     try std.testing.expectEqual(@as(usize, 1), blocked_count);
+    try std.testing.expect(saw_boundary_map);
     try std.testing.expect(saw_freeze_note);
     try std.testing.expect(saw_survey_gate);
     try std.testing.expect(saw_decision_checklist);
@@ -307,6 +320,46 @@ test "phase 14 rcu tree survey exposes the landed freeze-boundary checklist" {
     try std.testing.expect(std.mem.indexOf(u8, checklist[6].rationale, "NOCB offload") != null);
 }
 
+test "phase 14 rcu tree bridge catalog stays review-only and queryable" {
+    const descriptor = tree_bridge.RcuTreeBridgeLab.descriptor();
+    const map = tree_bridge.RcuTreeBridgeLab.boundaryMap();
+    const audit = tree_bridge.RcuTreeBridgeLab.concurrencyAudit();
+
+    try std.testing.expectEqualStrings("rcu_tree_boundary_map_lab", descriptor.name);
+    try std.testing.expectEqualStrings("kernel/rcu/tree.c", descriptor.anchor);
+    try std.testing.expectEqualStrings("boundary_map_only", descriptor.posture);
+    try std.testing.expect(descriptor.provides_boundary_map);
+    try std.testing.expect(descriptor.provides_concurrency_audit_outline);
+    try std.testing.expect(descriptor.provides_stay_in_c_decisions);
+    try std.testing.expect(!descriptor.touches_live_gp_state);
+    try std.testing.expect(!descriptor.touches_live_nocb_state);
+    try std.testing.expect(!descriptor.touches_live_hotplug_state);
+
+    try std.testing.expectEqual(@as(usize, 7), map.areas.len);
+    try std.testing.expectEqual(@as(usize, 7), tree_bridge.RcuTreeBridgeLab.stayInCDecisionCount());
+    try std.testing.expectEqual(@as(usize, 9), audit.checkpoints.len);
+    try std.testing.expectEqual(@as(usize, 9), audit.blocked_live_behaviors.len);
+    try std.testing.expectEqual(@as(usize, 9), tree_bridge.RcuTreeBridgeLab.auditCheckpointCount());
+    try std.testing.expect(std.mem.indexOf(u8, tree_bridge.RcuTreeBridgeLab.nextAuditFocus(), "review-only") != null);
+    try std.testing.expect(std.mem.indexOf(u8, tree_bridge.RcuTreeBridgeLab.nextAuditFocus(), "public wait and barrier APIs") != null);
+    try std.testing.expect(std.mem.indexOf(u8, tree_bridge.RcuTreeBridgeLab.nextAuditFocus(), "CPU-hotplug callback migration") != null);
+
+    const public_wait = tree_bridge.RcuTreeBridgeLab.checkpointById("public-wait-and-barrier-contract") orelse return error.MissingCheckpoint;
+    try std.testing.expect(public_wait.guard == .public_wait_and_barrier_contract);
+    try std.testing.expectEqualStrings("rcu_state.barrier_sequence", public_wait.observed_fields[1]);
+    try std.testing.expect(std.mem.indexOf(u8, public_wait.blocked_by, "callbacks across online, offline, and offloaded CPUs") != null);
+
+    const hotplug = tree_bridge.RcuTreeBridgeLab.checkpointById("cpu-hotplug-callback-migration") orelse return error.MissingCheckpoint;
+    try std.testing.expect(hotplug.guard == .cpu_hotplug_callback_migration);
+    try std.testing.expectEqualStrings("rdp->cblist", hotplug.observed_fields[2]);
+
+    try std.testing.expect(tree_bridge.RcuTreeBridgeLab.hasAuditGuard(.nocb_wakeup_handoff));
+    try std.testing.expect(tree_bridge.RcuTreeBridgeLab.hasAuditGuard(.public_wait_and_barrier_contract));
+    try std.testing.expect(tree_bridge.RcuTreeBridgeLab.blocksLiveBehavior("public wait, polling-cookie, and callback-barrier ownership"));
+    try std.testing.expectEqual(@as(?usize, 8), tree_bridge.RcuTreeBridgeLab.blockedBehaviorIndex("CPU hotplug enrollment, teardown, and callback migration"));
+    try std.testing.expect(!tree_bridge.RcuTreeBridgeLab.blocksLiveBehavior("nonexistent rcu bridge behavior"));
+}
+
 test "phase 14 rcu tree survey keeps the memory-ordering boundary explicit" {
     var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
     defer io_instance.deinit();
@@ -357,34 +410,4 @@ test "phase 14 rcu tree survey keeps the memory-ordering boundary explicit" {
     try std.testing.expect(std.mem.indexOf(u8, update_c, "synchronize_rcu()") != null);
     try std.testing.expect(std.mem.indexOf(u8, update_c, "start_poll_synchronize_rcu()") != null);
     try std.testing.expect(std.mem.indexOf(u8, update_c, "poll_state_synchronize_rcu_full()") != null);
-}
-
-test "phase 14 rcu tree survey keeps the shared build survey-only for the blocked bridge lane" {
-    var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
-    defer io_instance.deinit();
-
-    const phase14_build = try std.Io.Dir.cwd().readFileAlloc(
-        io_instance.io(),
-        "zigux/tests/phase14_build.zig",
-        std.testing.allocator,
-        .limited(16 * 1024),
-    );
-    defer std.testing.allocator.free(phase14_build);
-
-    const survey_note = try std.Io.Dir.cwd().readFileAlloc(
-        io_instance.io(),
-        "Documentation/zigux/phase14-rcu-tree-survey.md",
-        std.testing.allocator,
-        .limited(64 * 1024),
-    );
-    defer std.testing.allocator.free(survey_note);
-
-    try std.testing.expect(std.mem.indexOf(u8, phase14_build, "phase14_rcu_tree_survey.zig") != null);
-    try std.testing.expect(std.mem.indexOf(u8, phase14_build, "phase14_rcu_tree_survey_tests") != null);
-    try std.testing.expect(std.mem.indexOf(u8, phase14_build, "tree_bridge.zig") == null);
-    try std.testing.expect(std.mem.indexOf(u8, phase14_build, "phase14_rcu_tree_bridge") == null);
-    try std.testing.expect(std.mem.indexOf(u8, phase14_build, "rcu_tree_bridge_module") == null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "the repo still does not ship a placeholder or empty `kernel/rcu/tree_bridge.zig` wrapper") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "- a `kernel/rcu/tree_bridge.zig` implementation") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "- a placeholder or empty `kernel/rcu/tree_bridge.zig` wrapper") != null);
 }
