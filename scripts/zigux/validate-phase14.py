@@ -447,6 +447,27 @@ def run_self_test() -> int:
 
         write_text(root / TRACEABILITY_PATH, "\n".join(expected_markers) + "\n")
 
+        broken_path.write_text(
+            broken_path.read_text(encoding="utf-8").replace(
+                "- ready-next gap: `phase14-ring-buffer-read-page-copy-followup`\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        errors = check(root)
+        if not errors or not any(
+            "missing marker in Documentation/zigux/phase14-core-boundary-traceability.md: - ready-next gap: `phase14-ring-buffer-read-page-copy-followup`" in error
+            for error in errors
+        ):
+            print(
+                "self-test expected failure when ring-buffer ready-next traceability marker drifted",
+                file=sys.stderr,
+            )
+            return 1
+
+        write_text(root / TRACEABILITY_PATH, "\n".join(expected_markers) + "\n")
+
         broken_docs_root_path = root / "Documentation/zigux/README.md"
         broken_docs_root_path.write_text(
             broken_docs_root_path.read_text(encoding="utf-8").replace(
