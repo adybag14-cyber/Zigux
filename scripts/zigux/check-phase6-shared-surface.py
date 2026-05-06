@@ -66,6 +66,11 @@ REQUIRED_SNIPPETS = {
         "- `PHASE6_STATUS=parked`",
         "- `PHASE6_SLICE=checksum-leaf-helper`",
         "- lane state: helper, fixture, perf, and direct C parity slice landed; parked unless a new `checksum.c` parity issue appears",
+        "- `zigux/tests/phase6_checksum_c_parity.zig`",
+        "- `zigux/tests/fixtures/phase6_checksum_c_harness.c`",
+        "- `scripts/zigux/check-phase6-checksum-c-parity.py`",
+        "- `python3 scripts/zigux/check-phase6-checksum-c-parity.py --self-test`",
+        "- `ZIG=zig python3 scripts/zigux/check-phase6-checksum-c-parity.py`",
         "- `replaceByDiff`",
         "- `compute`",
         "- fixture-backed checksum vectors for empty, even, odd, and carry-heavy inputs",
@@ -74,6 +79,7 @@ REQUIRED_SNIPPETS = {
         "- a tiny KUnit-inspired carry-discipline matrix covering all-ones and no-spurious-carry seeded cases",
         "- pseudo-header accumulation parity between `tcpUdpNofold` and manual `partial` plus `blockAdd`",
         "- incremental checksum replacement parity for payload word updates, 16-bit IPv4 header field replacement, diff-based checksum repair, and 32-bit IPv4 address replacement",
+        "- a direct 15-case C-vs-Zig replay for compute, seeded partial, composition, pseudo-header, and incremental replacement behavior",
         "- helper-local perf smoke on patterned 64-byte and 1501-byte payloads keeps `checksum.compute` within a 150% slowdown ceiling versus the bounded reference loop",
     ],
     "Documentation/zigux/phase6-hexdump-slice.md": [
@@ -311,6 +317,12 @@ def run_self_test() -> None:
             "Documentation/zigux/phase6-base64-slice.md",
             "helper, fixture, perf, and external parity slice landed",
             "helper and fixture slice landed",
+        )
+        assert_failure(
+            root,
+            "Documentation/zigux/phase6-checksum-slice.md",
+            "`scripts/zigux/check-phase6-checksum-c-parity.py`",
+            "`scripts/zigux/check-phase6-checksum-parity.py`",
         )
         assert_failure(
             root,
