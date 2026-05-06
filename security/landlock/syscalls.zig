@@ -28,6 +28,7 @@ pub const ModuleDescriptor = struct {
     provides_ruleset_fd_planning: bool,
     provides_path_fd_planning: bool,
     provides_path_beneath_handoff_planning: bool,
+    provides_ruleset_release_planning: bool,
     touches_live_fd_table: bool,
     touches_live_paths: bool,
     touches_live_credentials: bool,
@@ -193,6 +194,19 @@ pub const PathBeneathHandoffPlan = struct {
     releases_parent_path_reference: bool,
 };
 
+pub const RulesetReleaseRequest = struct {
+    private_data_present: bool = true,
+    private_data_is_ruleset: bool = true,
+    private_data_ref_owned: bool = true,
+};
+
+pub const RulesetReleasePlan = struct {
+    anchor: []const u8,
+    requires_private_data_ruleset: bool,
+    releases_retained_ruleset_reference: bool,
+    returns_zero: bool,
+};
+
 pub const SyscallsHelperLab = struct {
     pub fn descriptor() ModuleDescriptor {
         return .{
@@ -205,6 +219,7 @@ pub const SyscallsHelperLab = struct {
             .provides_ruleset_fd_planning = true,
             .provides_path_fd_planning = true,
             .provides_path_beneath_handoff_planning = true,
+            .provides_ruleset_release_planning = true,
             .touches_live_fd_table = false,
             .touches_live_paths = false,
             .touches_live_credentials = false,
@@ -469,6 +484,25 @@ pub const SyscallsHelperLab = struct {
             .reuses_path_fd_validation = true,
             .acquires_parent_path_reference = path_plan.acquires_path_reference,
             .releases_parent_path_reference = true,
+        };
+    }
+
+    pub fn planRulesetRelease(request: RulesetReleaseRequest) !RulesetReleasePlan {
+        if (!request.private_data_present) {
+            return error.MissingPrivateData;
+        }
+        if (!request.private_data_is_ruleset) {
+            return error.InvalidPrivateData;
+        }
+        if (!request.private_data_ref_owned) {
+            return error.UnownedRuleset;
+        }
+
+        return .{
+            .anchor = descriptor().anchor,
+            .requires_private_data_ruleset = true,
+            .releases_retained_ruleset_reference = true,
+            .returns_zero = true,
         };
     }
 };
