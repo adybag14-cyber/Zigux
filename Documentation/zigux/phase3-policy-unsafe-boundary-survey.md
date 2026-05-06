@@ -6,7 +6,7 @@ This note records the current policy and narrow-unsafe boundary for the bounded 
 
 - `PHASE3_LAYOUT_ASSERT_PATH=zigux/helpers/layout_assert.zig`
 - `PHASE3_LAYOUT_ASSERT_SCOPE=canonical-bindings`
-- `PHASE3_LAYOUT_ASSERT_BLOB_SHA=97d95039506e077488ec2e58e0242dce64be7d39`
+- `PHASE3_LAYOUT_ASSERT_BLOB_SHA=8d9eb1068a058337823d91766fc15a147e525bb3`
 - `PHASE3_PANIC_POLICY_PATH=zigux/helpers/panic_policy.zig`
 - `PHASE3_PANIC_POLICY=explicit-modes-only`
 - `PHASE3_PANIC_POLICY_BLOB_SHA=94e0d91cd9673d137bd302a8c2aba1034d948805`
@@ -23,12 +23,12 @@ This note records the current policy and narrow-unsafe boundary for the bounded 
 - `PHASE3_ABI_DUMP_PATH=zigux/tests/phase3_abi_dump.zig`
 - `PHASE3_ABI_DUMP_BLOB_SHA=77eeb1a928ae2032b72960546277290d5116ab0b`
 - `PHASE3_ABI_MANIFEST_BLOB_SHA=cc34bb652830f5214adb55558b1ad932de9dd975`
-- `PHASE3_ABI_SLICE_DOC_BLOB_SHA=c908bf6993caa9bf76273dc65ac1c07cf62b264d`
+- `PHASE3_ABI_SLICE_DOC_BLOB_SHA=72e18f54d701f5b5a3a0ad0610cfe7de820e49bd`
 - `PHASE3_VALIDATE_GATE=python3 scripts/zigux/validate-phase3.py --slug abi`
 - `PHASE3_INTEROP_GATE=python3 scripts/zigux/run-phase3-checks.py --slug abi`
 - `PHASE3_TEST_GATE=zig build phase3-test --build-file zigux/tests/build.zig`
-- `PHASE3_BOUNDARY_GAP=no-dedicated-policy-unsafe-focused-replay-pair-beyond-the-shared-abi-packet`
-- `PHASE3_NEXT_BOUNDED_STEP=keep-this-note-aligned-with-the-shared-abi-packet-unless-a-dedicated-policy-unsafe-focused-replay-pair-lands`
+- `PHASE3_BOUNDARY_GAP=no-dedicated-policy-unsafe-subslice-beyond-the-shared-abi-packet`
+- `PHASE3_NEXT_BOUNDED_STEP=keep-this-note-aligned-with-the-shared-abi-packet-until-a-real-policy-or-unsafe-helper-expansion-lands`
 
 ## Roadmap Contract
 
