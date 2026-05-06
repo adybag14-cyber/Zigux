@@ -7,7 +7,7 @@ This document tracks the bounded Phase 10 survey lane around `drivers/virtio/vir
 - `PHASE10_STATUS=parked`
 - `PHASE10_SLICE=virtio-ring-survey`
 - lane: `P10-L07`
-- surveyed commit: `e42103fc02f544e1bd23a5ec2e5b584734f5af7d`
+- surveyed commit: `4abe2645422cb9de0ceef739594944b5da3d20f8`
 - roadmap destinations: `drivers/virtio/*.zig`, `zigux/kernel/`, and `zigux/helpers/`
 - scope: survey manifest, dedicated survey gate, the dedicated ring packet review guard, the shared Phase 10 core, input, and MMIO packet guards, the shared core, ring, input, and MMIO survey manifests, the shared tests-root review companion, shared Phase 10 build wiring, the shared reset-queue, driver-id, and input status-drain replays, the Linux-style replay route, and a lane-level note that records the current landed ring and adjacent MMIO footholds plus the remaining transport-facing gap against the roadmap
 - product boundary:
