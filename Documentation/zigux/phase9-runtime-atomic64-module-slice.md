@@ -7,14 +7,16 @@ This document tracks the first bounded Phase 9 runtime atomic64 starter under `s
 - `PHASE9_STATUS=active`
 - `PHASE9_SLICE=runtime-atomic64-module-starter`
 - `PHASE9_LANE_KEY=P9-L02`
-- scope: lifecycle starter, selftest hook surface, guarded lifecycle parity evidence, dedicated Phase 9 test wiring, a bounded loader-handoff scaffold, the shared request-surface proof, dedicated runtime survey gate, survey-note ownership closure, and survey-manifest closure only
+- scope: lifecycle starter, selftest hook surface, guarded lifecycle parity evidence, dedicated Phase 9 test wiring, a bounded loader-handoff scaffold, the shared runtime-loader facade plus allocator/init-flow contract replay, dedicated runtime survey gate, survey-note ownership closure, and survey-manifest closure only
 - product boundary:
   - `samples/zigux/runtime_atomic64.zig`
   - `samples/zigux/runtime_atomic64_loader.zig`
   - `zigux/kernel/runtime_loader.zig`
+  - `zigux/kernel/runtime_loader_contract.zig`
   - `zigux/tests/runtime_atomic64_module.zig`
   - `zigux/tests/runtime_atomic64_manifest.json`
   - `zigux/tests/runtime_atomic64_survey.zig`
+  - `zigux/tests/runtime_loader_allocator_init_flow.zig`
   - `Documentation/zigux/phase9-runtime-atomic64-survey.md`
   - `zigux/tests/phase9_build.zig`
   - `zigux/Makefile`
