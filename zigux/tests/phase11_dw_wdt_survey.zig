@@ -52,10 +52,10 @@ test "phase11 dw_wdt survey manifest records the landed registration handoff and
     defer parsed.deinit();
     const manifest = parsed.value;
 
-    try std.testing.expectEqualStrings("P11-L05", manifest.lane_key);
+    try std.testing.expectEqualStrings("P11-L11", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 11", manifest.phase);
     try std.testing.expectEqualStrings("drivers/watchdog/dw_wdt.c", manifest.anchor);
-    try std.testing.expectEqualStrings("0ddb982b08ffa3f1a34bddc0520f50af0b3e346f", manifest.surveyed_commit);
+    try std.testing.expectEqualStrings("23d15e44622d2cedd7691c88f78709db6bf1eb7e", manifest.surveyed_commit);
     try std.testing.expectEqual(@as(usize, 3), manifest.roadmap_destinations.len);
     try std.testing.expect(manifest.survey_summary.dw_wdt_c_lines >= 700);
     try std.testing.expect(manifest.survey_summary.preexisting_phase11_build_present);
@@ -188,7 +188,8 @@ test "phase11 dw_wdt survey note and validation matrix stay aligned" {
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase11-dw-wdt-validation-matrix.md") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "bounded hardware-validation posture") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "watchdog_register_device") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "`P11-L05`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "`P11-L11`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "`P11-L05`") == null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "`P11-L10`") == null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "`P11-L12`") == null);
     try std.testing.expect(std.mem.indexOf(u8, validation_matrix, "PHASE11_DW_WDT_STATUS=hardware_validation_matrix_landed") != null);
