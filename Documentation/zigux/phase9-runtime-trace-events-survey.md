@@ -7,7 +7,7 @@ This document tracks the bounded Phase 9 runtime pilot-module survey around `sam
 - `PHASE9_STATUS=active`
 - `PHASE9_SLICE=runtime-trace-events-survey`
 - `PHASE9_SURVEYED_COMMIT=e59df689d080aa11773adda87f00c2d650caade8`
-- scope: survey manifest, starter sample, dedicated module and survey gates, the bounded loader-handoff scaffold plus shared-request bridge, shared Phase 9 build wiring for the starter lane, and the lane-level review note that now tracks the landed starter plus the remaining shared runtime-substrate blocker
+- scope: survey manifest, starter sample, dedicated module and survey gates, the bounded loader-handoff scaffold plus shared-request bridge, the shared runtime-loader facade, allocator/init-flow contract replay, shared Phase 9 build wiring, and the lane-level review note that now tracks the landed starter plus the remaining shared runtime-substrate blocker
 - product boundary:
   - `samples/zigux/runtime_trace_events.zig`
   - `samples/zigux/runtime_trace_events_loader.zig`
@@ -15,7 +15,11 @@ This document tracks the bounded Phase 9 runtime pilot-module survey around `sam
   - `zigux/tests/runtime_trace_events_module.zig`
   - `zigux/tests/runtime_trace_events_manifest.json`
   - `zigux/tests/runtime_trace_events_survey.zig`
+  - `zigux/kernel/runtime_loader.zig`
+  - `zigux/kernel/runtime_loader_contract.zig`
+  - `zigux/tests/runtime_loader_allocator_init_flow.zig`
   - `zigux/tests/phase9_build.zig`
+  - `zigux/Makefile`
   - `Documentation/zigux/phase9-runtime-trace-events-survey.md`
 
 ## Why this slice exists
@@ -35,6 +39,7 @@ The live repo originally had no matching trace-events survey artifact, no dedica
 - the current bounded starter still advertises `requires_runtime_substrate=true` and `provides_selftest_hook=true`, so the roadmap's selftest-hook requirement stays explicit in the sample descriptor while the pilot remains an in-memory starter.
 - the current loader scaffold now records explicit tracepoint register and unregister API names, the prepared handoff-stage summary, and a prepared snapshot that stays stable even if later sample replay mutates local counters before runtime handoff.
 - the live repo now also carries `zigux/kernel/runtime_loader.zig` as the shared request surface for the bounded Phase 9 loader-handoff packet, and the trace-events starter consumes that shared request lifecycle through `prepareSharedRequest`, `requestSharedRuntimeLoad`, `releaseSharedWithoutSubstrate`, and a focused shared-plan drift check before any live registration claim.
+- the live repo also carries `zigux/kernel/runtime_loader_contract.zig`, `zigux/tests/runtime_loader_allocator_init_flow.zig`, and the focused `phase9-runtime-loader-shared-tests` build step, so allocator handoff, init-flow counts, release-without-substrate behavior, and shared-request drift all stay reviewable beside the trace-events starter packet instead of hiding in the shared build alone.
 - the trace-events starter still stops before a real module-loading substrate or live tracepoint registration lifecycle, so the shipped handoff remains reviewable as pre-execution request shaping, metadata-only registration labels, and release-without-substrate behavior rather than executable runtime registration parity.
 - the manifest-backed ownership packet now records a four-entry `delivery_evidence_catalog` and a six-surface `ownership_map`, tying the survey note, module-slice note, dedicated survey gate, shared `phase9_build` bundle, starter sample, and loader scaffold to lane `P9-L12` while leaving shared runtime-substrate work outside this packet.
 
@@ -55,10 +60,13 @@ This keeps the survey useful after the first starter slice lands without pretend
 
 ## Gates
 
-1. run the dedicated Phase 9 survey and starter gates
+1. run the focused shared runtime-loader shard
+- `zig build phase9-runtime-loader-shared-tests --build-file zigux/tests/phase9_build.zig`
+
+2. run the dedicated Phase 9 survey and starter gates
 - `zig build test --build-file zigux/tests/phase9_build.zig`
 
-2. run the convenience target
+3. run the convenience target
 - `make -C zigux phase9`
 
 ## Non-goals
