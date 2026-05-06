@@ -191,6 +191,22 @@ test "shift and block helpers preserve odd-byte carry discipline" {
     try std.testing.expectEqual(seed, blockSub(odd_added, fragment, 1));
 }
 
+test "partial fragments recombine through blockAdd across odd and even split points" {
+    const payload = [_]u8{ 0x70, 0x68, 0x61, 0x73, 0x65, 0x36, 0xaa };
+    const seed: u32 = 0x1357;
+    const whole = partial(&payload, seed);
+    const split_points = [_]usize{ 1, 2, 3, 5, payload.len };
+
+    for (split_points) |split| {
+        const head = partial(payload[0..split], seed);
+        const tail = partial(payload[split..], 0);
+        const recombined = blockAdd(head, tail, split);
+
+        try std.testing.expectEqual(whole, normalize(recombined));
+        try std.testing.expectEqual(head, normalize(blockSub(recombined, tail, split)));
+    }
+}
+
 test "replacement helpers match direct recomputation for payload and header edits" {
     var payload = [_]u8{ 0x70, 0x68, 0x61, 0x73, 0x65, 0x36 };
     const old_partial = partial(&payload, 0);
