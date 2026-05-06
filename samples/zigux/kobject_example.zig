@@ -65,6 +65,26 @@ pub const OwnershipReplaySummary = struct {
     registered_exit: ExitSummary,
 };
 
+pub const AttributeValues = struct {
+    foo: i32,
+    baz: i32,
+    bar: i32,
+};
+
+pub const TeardownReplaySummary = struct {
+    anchor: []const u8,
+    exit_summary: ExitSummary,
+    values_before_exit: AttributeValues,
+    values_after_exit: AttributeValues,
+    active_attr_count_after_exit: usize,
+    rejected_reinit: bool,
+    rejected_reregister: bool,
+    rejected_show: bool,
+    rejected_store: bool,
+    rejected_second_exit: bool,
+    rejected_anchor_replay: bool,
+};
+
 pub const ReplaySummary = struct {
     anchor: []const u8,
     directory_name: []const u8,
@@ -144,6 +164,14 @@ pub const KobjectExampleSample = struct {
         };
     }
 
+    fn valueSnapshot(self: *const Self) AttributeValues {
+        return .{
+            .foo = self.foo,
+            .baz = self.baz,
+            .bar = self.bar,
+        };
+    }
+
     pub fn init(self: *Self) !void {
         if (self.stage() != .cold) return error.InvalidLifecycleTransition;
 
@@ -174,6 +202,14 @@ pub const KobjectExampleSample = struct {
             .baz => &self.baz,
             .bar => &self.bar,
         };
+    }
+
+    fn rejectedLifecycleTransition(result: anytype) bool {
+        if (result) |_| {
+            return false;
+        } else |err| {
+            return err == error.InvalidLifecycleTransition;
+        }
     }
 
     pub fn storeValue(self: *Self, attr_name: []const u8, input: []const u8) !usize {
@@ -222,6 +258,33 @@ pub const KobjectExampleSample = struct {
             .replay_readiness = .{ false, true, false, false },
             .initialized_exit = initialized_exit,
             .registered_exit = registered_exit,
+        };
+    }
+
+    pub fn runTeardownReplay(self: *Self) !TeardownReplaySummary {
+        if (self.stage() != .cold) return error.InvalidLifecycleTransition;
+
+        try self.init();
+        try self.registerAttributes();
+        _ = try self.storeValue("foo", "42\n");
+        _ = try self.storeValue("baz", "7\n");
+        _ = try self.storeValue("bar", "-5\n");
+
+        const values_before_exit = self.valueSnapshot();
+        const exit_summary = try self.exit();
+
+        return .{
+            .anchor = descriptor().anchor,
+            .exit_summary = exit_summary,
+            .values_before_exit = values_before_exit,
+            .values_after_exit = self.valueSnapshot(),
+            .active_attr_count_after_exit = self.activeAttrCount(),
+            .rejected_reinit = rejectedLifecycleTransition(self.init()),
+            .rejected_reregister = rejectedLifecycleTransition(self.registerAttributes()),
+            .rejected_show = rejectedLifecycleTransition(self.showValue("foo")),
+            .rejected_store = rejectedLifecycleTransition(self.storeValue("foo", "1\n")),
+            .rejected_second_exit = rejectedLifecycleTransition(self.exit()),
+            .rejected_anchor_replay = rejectedLifecycleTransition(self.runAnchorReplay()),
         };
     }
 
@@ -400,24 +463,26 @@ test "kobject sample initialized-only exit records abandonment" {
     try std.testing.expectEqual(@as(usize, 0), sample.ownershipSummary().active_attr_count);
 }
 
-test "kobject sample registered exit tears down attributes and rejects later access" {
+test "kobject sample registered teardown replay keeps reset and rejection cues reviewable" {
     var sample = KobjectExampleSample{};
-    try sample.init();
-    try sample.registerAttributes();
-    _ = try sample.storeValue("foo", "8\n");
+    const replay = try sample.runTeardownReplay();
 
-    const exit_summary = try sample.exit();
-    try std.testing.expectEqual(ExitDisposition.tore_down_registered_attributes, exit_summary.disposition);
-    try std.testing.expectEqual(SampleStage.registered, exit_summary.stage_before_exit);
-    try std.testing.expectEqual(SampleStage.exited, exit_summary.stage_after_exit);
-    try std.testing.expectEqual(@as(usize, 3), exit_summary.cleared_attr_count);
-    try std.testing.expectEqual(@as(i32, 0), sample.foo);
-    try std.testing.expectEqual(@as(i32, 0), sample.baz);
-    try std.testing.expectEqual(@as(i32, 0), sample.bar);
-    try std.testing.expectError(error.InvalidLifecycleTransition, sample.init());
-    try std.testing.expectError(error.InvalidLifecycleTransition, sample.registerAttributes());
-    try std.testing.expectError(error.InvalidLifecycleTransition, sample.showValue("foo"));
-    try std.testing.expectError(error.InvalidLifecycleTransition, sample.storeValue("foo", "1\n"));
-    try std.testing.expectError(error.InvalidLifecycleTransition, sample.exit());
-    try std.testing.expectError(error.InvalidLifecycleTransition, sample.runAnchorReplay());
+    try std.testing.expectEqualStrings("samples/kobject/kobject-example.c", replay.anchor);
+    try std.testing.expectEqual(ExitDisposition.tore_down_registered_attributes, replay.exit_summary.disposition);
+    try std.testing.expectEqual(SampleStage.registered, replay.exit_summary.stage_before_exit);
+    try std.testing.expectEqual(SampleStage.exited, replay.exit_summary.stage_after_exit);
+    try std.testing.expectEqual(@as(usize, 3), replay.exit_summary.cleared_attr_count);
+    try std.testing.expectEqual(@as(i32, 42), replay.values_before_exit.foo);
+    try std.testing.expectEqual(@as(i32, 7), replay.values_before_exit.baz);
+    try std.testing.expectEqual(@as(i32, -5), replay.values_before_exit.bar);
+    try std.testing.expectEqual(@as(i32, 0), replay.values_after_exit.foo);
+    try std.testing.expectEqual(@as(i32, 0), replay.values_after_exit.baz);
+    try std.testing.expectEqual(@as(i32, 0), replay.values_after_exit.bar);
+    try std.testing.expectEqual(@as(usize, 0), replay.active_attr_count_after_exit);
+    try std.testing.expect(replay.rejected_reinit);
+    try std.testing.expect(replay.rejected_reregister);
+    try std.testing.expect(replay.rejected_show);
+    try std.testing.expect(replay.rejected_store);
+    try std.testing.expect(replay.rejected_second_exit);
+    try std.testing.expect(replay.rejected_anchor_replay);
 }
