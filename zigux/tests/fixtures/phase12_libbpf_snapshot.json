@@ -1,0 +1,13 @@
+{
+  "lane_key": "P12-L15",
+  "phase": "Phase 12",
+  "surveyed_commit": "c0ae127363e3d4e5feeb36efb665a12ece3392c7",
+  "tracked_file_count": 5,
+  "tracked_paths": [
+    "tools/lib/bpf/zigux_segments/type_names.zig",
+    "tools/lib/bpf/zigux_segments/cpu_mask.zig",
+    "tools/lib/bpf/zigux_segments/logging.zig",
+    "tools/lib/bpf/zigux_segments/pin_path.zig",
+    "tools/lib/bpf/zigux_segments/perf_buffer_poll.zig"
+  ]
+}
