@@ -33,6 +33,8 @@ test "phase 8 file-path handle bridge docs keep the bounded fdinfo helper explic
     try expectContains(note, "map_flags");
     try expectContains(note, "map_extra");
     try expectContains(note, "bounded reuse-pinned-map attempt planning");
+    try expectContains(note, "helper-only reused-map compatibility packet");
+    try expectContains(note, "broader bridge follow-through queued");
     try expectContains(note, "planning-only reopen-attempt disposition");
     try expectContains(note, "no direct procfs reads");
     try expectContains(note, "no `fopen()` or `fgets()` parity");
