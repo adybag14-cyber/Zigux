@@ -31,7 +31,7 @@
 
 - shared replay path: `zig build test --build-file zigux/tests/phase11_build.zig --summary all`
 - wider Phase 11 replay route: `make -C zigux phase11`
-- the dedicated HVC note and validation matrix remain separate documentation because `zigux/tests/phase11_hvc_console_survey.zig` still reads the broader driver-local note packet and notifier-facing matrix, but that survey replay now runs inside the same shared `phase11_build.zig` route on `master`
+- the dedicated HVC note and validation matrix remain separate documentation because `zigux/tests/phase11_hvc_console_survey.zig` still reads the broader driver-local note packet and notifier-facing matrix, and that survey replay stays on the dedicated `zig build hvc-console-survey --build-file zigux/tests/phase11_build.zig --summary all` step inside the same `phase11_build.zig` file on `master` rather than the shared `test` step
 
 ## Why This Stays Bounded
 
