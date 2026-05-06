@@ -125,6 +125,7 @@ EXPECTED_GAPS = {
     "phase10-virtio-input-capability-setup-helper": "starter_landed",
     "phase10-virtio-input-multitouch-slot-helper": "starter_landed",
     "phase10-virtio-input-registration-preflight-helper": "starter_landed",
+    "phase10-virtio-input-queue-callback-preflight-helper": "starter_landed",
     "phase10-virtio-input-status-drain-helper": "starter_landed",
     "phase10-virtio-input-wrapper-ownership-note": "starter_landed",
     "phase10-virtio-input-registration-lifecycle": "blocked_on_risky_transport",
@@ -352,6 +353,22 @@ def run_self_test() -> int:
             raise SystemExit("phase10-input-self-test:expected_architecture_council_marker_missing")
         manifest_path.write_text(original_manifest, encoding="utf-8")
 
+        manifest_path.write_text(
+            original_manifest.replace(
+                '"phase10-virtio-input-queue-callback-preflight-helper",\n      "status": "starter_landed"',
+                '"phase10-virtio-input-queue-callback-preflight-helper",\n      "status": "blocked_on_risky_transport"',
+                1,
+            ),
+            encoding="utf-8",
+        )
+        _, missing_markers = validate(tmp_root)
+        if (
+            "manifest:gap_status:phase10-virtio-input-queue-callback-preflight-helper=blocked_on_risky_transport"
+            not in missing_markers
+        ):
+            raise SystemExit("phase10-input-self-test:expected_queue_callback_gap_marker_missing")
+        manifest_path.write_text(original_manifest, encoding="utf-8")
+
         status_drain_path = tmp_root / "zigux/tests/phase10_virtio_input_status_drain.zig"
         original_status_drain = status_drain_path.read_text(encoding="utf-8")
         status_drain_path.write_text(
@@ -417,7 +434,7 @@ def run_self_test() -> int:
         tests_readme_path.write_text(original_tests_readme, encoding="utf-8")
 
     print("PHASE10_INPUT_PACKET_SELF_TEST=pass")
-    print("PHASE10_INPUT_PACKET_SELF_TEST_CASE_COUNT=11")
+    print("PHASE10_INPUT_PACKET_SELF_TEST_CASE_COUNT=12")
     return 0
 
 
