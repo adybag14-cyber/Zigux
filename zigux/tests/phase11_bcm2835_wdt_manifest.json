@@ -16,6 +16,7 @@
     "bcm2835_wdt_test_present": true,
     "bcm2835_wdt_slice_note_present": true,
     "bcm2835_wdt_validation_matrix_present": true,
+    "bcm2835_wdt_shared_contract_present": true,
     "bcm2835_wdt_platform_handoff_present": true,
     "bcm2835_wdt_poweroff_summary_present": true,
     "bcm2835_wdt_shared_replay_evidence_present": true,
@@ -35,7 +36,7 @@
       "status": "starter_landed",
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase11_bcm2835_wdt_survey.zig",
-      "why_now": "A dedicated survey gate still matters after the starter lands and master advances because it keeps the validation matrix status plus the remaining bcm2835_wdt gap explicit instead of letting the now-established scaffold imply platform or hardware parity that has not been implemented."
+      "why_now": "A dedicated survey gate still matters after the starter lands and master advances because it keeps the validation matrix status plus the remaining bcm2835_wdt gap explicit, and it now cross-checks the bcm2835 entry inside the shared Phase 11 replay contract instead of letting the now-established scaffold imply platform or hardware parity that has not been implemented."
     },
     {
       "id": "phase11-bcm2835-wdt-survey-note",
@@ -77,7 +78,7 @@
       "status": "starter_landed",
       "kind": "documentation",
       "zigux_destination": "Documentation/zigux/phase11-bcm2835-wdt-validation-matrix.md",
-      "why_now": "The first bounded hardware-validation matrix now names the shared Phase 11 test gate, the watchdog metadata surface, the timeout and register-image evidence, the probe and ownership summaries, the landed platform-handoff review surface, the poweroff-path sequencing evidence, the remove-time teardown scope, and the replay commands that keep the bcm2835 evidence packet reviewable without claiming live MMIO or poweroff execution."
+      "why_now": "The first bounded hardware-validation matrix now names the shared Phase 11 test gate, the watchdog metadata surface, the timeout and register-image evidence, the probe and ownership summaries, the landed platform-handoff review surface, the poweroff-path sequencing evidence, the remove-time teardown scope, and the coupled archival survey note plus manifest-backed survey replay that keep the bcm2835 evidence packet reviewable without claiming live MMIO or poweroff execution."
     },
     {
       "id": "phase11-bcm2835-wdt-probe-summary",
