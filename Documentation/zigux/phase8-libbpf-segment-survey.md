@@ -14,6 +14,8 @@ This document tracks the bounded Phase 8 userspace-adjacent tooling survey for Z
   - `tools/lib/bpf/zigux_segments/type_names.zig`
   - `tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig`
   - `tools/lib/bpf/zigux_segments/perf_buffer_poll.zig`
+  - `Documentation/zigux/phase8-file-path-handle-bridge-slice.md`
+  - `Documentation/zigux/phase8-userspace-kernel-bridge-boundary-survey.md`
   - `zigux/tests/phase8_cpu_mask.zig`
   - `zigux/tests/phase8_logging.zig`
   - `zigux/tests/phase8_pin_path.zig`
@@ -54,7 +56,7 @@ The manifest currently records twelve bounded segments:
 
 `cpu-mask-parsing`, `logging-version-and-errno`, `pin-path-helpers`, `type-name-helpers`, and `perf-buffer-poll-bookkeeping` have now moved from planned work to landed bounded slices under `tools/lib/bpf/zigux_segments/cpu_mask.zig`, `tools/lib/bpf/zigux_segments/logging.zig`, `tools/lib/bpf/zigux_segments/pin_path.zig`, `tools/lib/bpf/zigux_segments/type_names.zig`, and `tools/lib/bpf/zigux_segments/perf_buffer_poll.zig`.
 
-`fdinfo-map-info-helpers` and `map-reuse-compatibility` still stay queued helper-first catalog entries, but no longer because the bridge packet paths are missing: the repo now carries the bounded fdinfo helper packet at `tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig`, `zigux/tests/phase8_file_path_handle_bridge.zig`, and `zigux/tests/phase8_file_path_handle_bridge_only_build.zig`, while the broader helper-first catalog entries remain queued until that shared bridge packet is explicitly promoted beyond the current fdinfo-only surface.
+`fdinfo-map-info-helpers` and `map-reuse-compatibility` still stay queued helper-first catalog entries, but no longer because the bridge packet paths are missing: the repo now carries the bounded fdinfo helper packet at `tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig`, `zigux/tests/phase8_file_path_handle_bridge.zig`, and `zigux/tests/phase8_file_path_handle_bridge_only_build.zig`, plus the adjacent bridge-boundary notes at `Documentation/zigux/phase8-file-path-handle-bridge-slice.md` and `Documentation/zigux/phase8-userspace-kernel-bridge-boundary-survey.md`, while the broader helper-first catalog entries remain queued until that shared bridge packet is explicitly promoted beyond the current fdinfo-only surface.
 
 The broader `file-path-and-handle-bridge` resource-boundary packet still stays deferred around direct procfs reads, bpffs opens, token creation, `bpf_obj_get()` reopen flow, and fd ownership semantics.
 
@@ -128,4 +130,4 @@ This survey slice does not yet claim:
 - object-model parity for `bpf_object`, `bpf_map`, or `bpf_program`
 
 ## Next bounded step
-Treat the current starter packet as substantively landed for now: keep the shared `make -C zigux phase8-validate` gate honest, leave the bounded fdinfo-only bridge helper parked as adjacent review surface, keep `fdinfo-map-info-helpers` and `map-reuse-compatibility` queued as the next helper-first catalog entries, and reopen only when the deferred `file-path-and-handle-bridge` resource boundary around direct procfs-read, bpffs-open, token-creation, reopen-flow, and fd-ownership semantics can be reviewed as one tighter packet ahead of the still-blocked object-model and loader-facing work.
+Treat the current starter packet as substantively landed for now: keep the shared `make -C zigux phase8-validate` gate honest, leave the bounded fdinfo-only bridge helper and its adjacent boundary survey parked as adjacent review surface, keep `fdinfo-map-info-helpers` and `map-reuse-compatibility` queued as the next helper-first catalog entries, and reopen only when the deferred `file-path-and-handle-bridge` resource boundary around direct procfs-read, bpffs-open, token-creation, reopen-flow, and fd-ownership semantics can be reviewed as one tighter packet ahead of the still-blocked object-model and loader-facing work.
