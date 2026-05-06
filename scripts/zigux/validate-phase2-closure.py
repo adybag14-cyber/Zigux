@@ -39,6 +39,7 @@ PHASE2_MAKEFILE_RUN_COUNTS = {
     'scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test': 1,
     'scripts/zigux/check-phase2-toolchain-pin-scope.py': 1,
     'scripts/zigux/check-genksyms-bridge.py --self-test': 1,
+    'scripts/zigux/check-genksyms-bridge.py': 1,
 }
 PHASE2_WORKFLOW_RUN_COUNTS = {
     'python3 scripts/zigux/validate-phase2.py': 1,
@@ -50,6 +51,7 @@ PHASE2_WORKFLOW_RUN_COUNTS = {
     'python3 scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test': 1,
     'python3 scripts/zigux/check-phase2-toolchain-pin-scope.py': 1,
     'python3 scripts/zigux/check-genksyms-bridge.py --self-test': 1,
+    'python3 scripts/zigux/check-genksyms-bridge.py': 1,
 }
 
 
@@ -63,6 +65,7 @@ def run_self_test() -> int:
         'cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test',
         'cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-toolchain-pin-scope.py',
         'cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-genksyms-bridge.py --self-test',
+        'cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-genksyms-bridge.py',
     ])
     workflow_ok = '\n'.join([
         'run: python3 scripts/zigux/validate-phase2.py',
@@ -74,6 +77,7 @@ def run_self_test() -> int:
         'run: python3 scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test',
         'run: python3 scripts/zigux/check-phase2-toolchain-pin-scope.py',
         'run: python3 scripts/zigux/check-genksyms-bridge.py --self-test',
+        'run: python3 scripts/zigux/check-genksyms-bridge.py',
     ]) + '\n'
     cases = [
         ('make_ok', validate_exact_makefile_runs(make_ok), []),
@@ -125,6 +129,14 @@ def run_self_test() -> int:
             ),
             ['make_exact_run:scripts/zigux/check-genksyms-bridge.py --self-test:count=2:expected=1'],
         ),
+        (
+            'make_duplicate_genksyms_bridge_gate',
+            validate_exact_makefile_runs(
+                make_ok
+                + '\ncd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-genksyms-bridge.py'
+            ),
+            ['make_exact_run:scripts/zigux/check-genksyms-bridge.py:count=2:expected=1'],
+        ),
         ('workflow_ok', validate_exact_workflow_runs(workflow_ok), []),
         (
             'workflow_duplicate_validate_phase2',
@@ -153,6 +165,13 @@ def run_self_test() -> int:
                 workflow_ok + 'run: python3 scripts/zigux/check-genksyms-bridge.py --self-test\n'
             ),
             ['workflow_exact_run:python3 scripts/zigux/check-genksyms-bridge.py --self-test:count=2:expected=1'],
+        ),
+        (
+            'workflow_duplicate_genksyms_bridge_gate',
+            validate_exact_workflow_runs(
+                workflow_ok + 'run: python3 scripts/zigux/check-genksyms-bridge.py\n'
+            ),
+            ['workflow_exact_run:python3 scripts/zigux/check-genksyms-bridge.py:count=2:expected=1'],
         ),
         (
             'workflow_duplicate_phase2_cross_matrix_gate',
