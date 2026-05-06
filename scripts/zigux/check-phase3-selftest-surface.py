@@ -35,6 +35,7 @@ REQUIRED_FILES = [
 DOCS_ROOT_MARKERS = [
     "scripts/zigux/validate_phase3_selftest.py",
     "scripts/zigux/check-phase3-selftest-surface.py",
+    "scripts/zigux/check-phase3-readme-tooling-inventory.py",
     "scripts/zigux/check-phase3-catalog-selftest.py",
     "scripts/zigux/phase3_catalog.py --self-test",
     "make -C zigux phase3-selftest",
@@ -44,6 +45,7 @@ DOCS_ROOT_MARKERS = [
 REVIEW_CHECKLIST_MARKERS = [
     "scripts/zigux/validate_phase3_selftest.py",
     "scripts/zigux/check-phase3-selftest-surface.py",
+    "scripts/zigux/check-phase3-readme-tooling-inventory.py",
     "make -C zigux phase3-selftest",
     "manual-only support-script rerun",
     "without implying that `phase3-selftest` is part of the default `phase3-validate` route",
@@ -211,6 +213,7 @@ def run_self_test() -> int:
         issues = validate_root(root)
         assert "docs_root:scripts/zigux/validate_phase3_selftest.py" in issues
         assert "docs_root:scripts/zigux/check-phase3-selftest-surface.py" in issues
+        assert "docs_root:scripts/zigux/check-phase3-readme-tooling-inventory.py" in issues
         assert "docs_root:scripts/zigux/check-phase3-catalog-selftest.py" in issues
         assert "docs_root:scripts/zigux/phase3_catalog.py --self-test" in issues
         assert "docs_root:without duplicating the default `phase3-validate` route" in issues
@@ -247,6 +250,7 @@ def run_self_test() -> int:
         write_text(root / "Documentation/zigux/review-checklist.md", "scripts/zigux/validate_phase3_selftest.py\n")
         issues = validate_root(root)
         assert "review_checklist:scripts/zigux/check-phase3-selftest-surface.py" in issues
+        assert "review_checklist:scripts/zigux/check-phase3-readme-tooling-inventory.py" in issues
         assert "review_checklist:make -C zigux phase3-selftest" in issues
 
         build_self_test_root(root)
@@ -259,7 +263,7 @@ def run_self_test() -> int:
         build_self_test_root(root)
         write_text(
             root / "Documentation/zigux/review-checklist.md",
-            "\n".join(REVIEW_CHECKLIST_MARKERS + [REVIEW_CHECKLIST_MARKERS[2]]) + "\n",
+            "\n".join(REVIEW_CHECKLIST_MARKERS + [REVIEW_CHECKLIST_MARKERS[3]]) + "\n",
         )
         issues = validate_root(root)
         assert "duplicate_review_checklist_marker:2:make -C zigux phase3-selftest" in issues
