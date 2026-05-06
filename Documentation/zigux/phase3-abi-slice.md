@@ -103,8 +103,8 @@ The current Phase 3 low-level wrapper packet is still intentionally small, but i
 
 - `zigux/helpers/atomic.zig` now exposes `load`, `store`, `exchange`, `fetchAdd`, `fetchSub`, `fetchAnd`, `fetchOr`, `fetchXor`, `fetchMin`, `fetchMax`, `compareExchange()`, and `compareExchangeWeak()`.
 - `zigux/helpers/barrier.zig` now exposes `acquire`, `release`, `full`, and `acquireRelease()` through local compile-review scaffolding rather than a module-global fence word.
-- `zigux/helpers/mmio.zig` now exposes `range`, direct `read8` and `write8`, and direct `read32` and `write32`.
-- `zigux/tests/phase3_low_level_wrappers.zig` now directly replays the shipped helper surface, including non-`seq_cst` atomic ordering coverage plus byte and 32-bit MMIO access, while the shared ABI packet still carries the wider compile, layout, and dump proof.
+- `zigux/helpers/mmio.zig` now exposes `range`, direct `read8` and `write8`, direct `read16` and `write16`, and direct `read32` and `write32`.
+- `zigux/tests/phase3_low_level_wrappers.zig` now directly replays the shipped helper surface, including non-`seq_cst` atomic ordering coverage plus byte, 16-bit, and 32-bit MMIO access, while the shared ABI packet still carries the wider compile, layout, and dump proof.
 
 ## Interop rules
 
