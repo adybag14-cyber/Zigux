@@ -41,6 +41,7 @@ REQUIRED_FILES = [
     "zigux/tests/phase13_landlock_ruleset_manifest.json",
     "zigux/tests/phase13_landlock_syscalls_manifest.json",
     "zigux/tests/phase13_notifier_list_manifest.json",
+    "zigux/tests/phase13_notifier_list_reviewability.zig",
     "zigux/bindings/notifier_abi.zig",
     "include/zigux/notifier_abi.h",
     "zigux/helpers/notifier_chain_view.zig",
@@ -658,6 +659,15 @@ def run_self_test() -> int:
             "missing_devres_manifest_guard_failed",
         )
         _write(root / "zigux/tests/phase13_devres_manifest.json", "{}\n")
+        case_count += 1
+
+        (root / "zigux/tests/phase13_notifier_list_reviewability.zig").unlink()
+        _assert_only(
+            validate(root),
+            ["missing_file:zigux/tests/phase13_notifier_list_reviewability.zig"],
+            "missing_notifier_reviewability_guard_failed",
+        )
+        _write(root / "zigux/tests/phase13_notifier_list_reviewability.zig", "// stub\n")
         case_count += 1
 
         (root / "scripts/zigux/check-phase13-devres-packet.py").unlink()
