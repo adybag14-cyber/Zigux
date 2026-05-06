@@ -8,7 +8,7 @@ This document tracks the bounded Phase 10 survey lane around `drivers/virtio/vir
 - `PHASE10_SLICE=virtio-input-survey`
 - `PHASE10_LANE_KEY=P10-L13`
 - `PHASE10_SURVEYED_COMMIT=7361ac51374149a96b7a7a2c6ea3c995d8cc1231`
-- scope: survey manifest, dedicated survey gate, dedicated `check-phase10-input-packet.py` review guard, shared Phase 10 build wiring, and a lane-level note that compares the already-landed starter against the remaining roadmap gap
+- scope: survey manifest, dedicated survey gate, dedicated `check-phase10-input-packet.py` review guard, the focused status-drain replay, the shared Phase 10 core, ring, and MMIO packet guards, shared Phase 10 build wiring, the shared Linux-style replay route, and a lane-level note that compares the already-landed starter against the remaining roadmap gap
 - product boundary:
   - `scripts/zigux/check-phase10-input-packet.py`
   - `zigux/tests/phase10_virtio_input_manifest.json`
@@ -24,9 +24,9 @@ The Phase 10 roadmap names `drivers/virtio/virtio_input.c` as a lab-driver ancho
 
 This survey exists so the lane can compare that live starter against the roadmap and record the next honest gap without pretending the helper is either absent or already close to full driver parity.
 
-A dedicated `scripts/zigux/check-phase10-input-packet.py` guard now keeps the manifest, survey gate, slice notes, and survey note aligned so future same-lane edits can catch review drift without reopening transport-facing helper growth.
+A dedicated `scripts/zigux/check-phase10-input-packet.py` guard now keeps the manifest, survey gate, slice notes, survey note, the focused `zigux/tests/phase10_virtio_input_status_drain.zig` replay, and the shared Phase 10 build-and-make packet aligned so future same-lane edits can catch review drift without reopening transport-facing helper growth.
 
-This same packet is also the current roadmap-facing `lab-only driver validation` evidence for `virtio_input`: the dedicated input-packet guard, the shared Phase 10 build replay, and the shipped Linux-style `make -C zigux phase10-test` plus `make -C zigux phase10` routes keep the bounded starter reviewable without widening into transport-backed lifecycle claims.
+This same packet is also the current roadmap-facing `lab-only driver validation` evidence for `virtio_input`: the dedicated input-packet guard, the focused status-drain replay, the shared `scripts/zigux/check-phase10-core-packet.py`, `scripts/zigux/check-phase10-ring-packet.py`, and `scripts/zigux/check-phase10-mmio-packet.py` guards, the shared Phase 10 build replay, and the shipped Linux-style `make -C zigux phase10-test` plus `make -C zigux phase10` routes keep the bounded starter reviewable without widening into transport-backed lifecycle claims.
 
 ## Survey findings
 
@@ -83,7 +83,7 @@ This survey slice does not yet claim:
 - `make -C zigux phase10-test`
 - `make -C zigux phase10`
 
-Taken together, these gates are the current roadmap-facing `lab-only driver validation` evidence for this lane through the dedicated input-packet guard, the dedicated survey replay, the direct build replay, and the shipped Linux-style Phase 10 test entrypoints.
+Taken together, these gates are the current roadmap-facing `lab-only driver validation` evidence for this lane through the dedicated input-packet guard, the dedicated survey replay, the focused status-drain replay, the shared Phase 10 core, ring, and MMIO packet guards, the direct build replay, and the shipped Linux-style Phase 10 test entrypoints.
 
 ## Next bounded step
 
