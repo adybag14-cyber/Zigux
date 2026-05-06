@@ -11,7 +11,7 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[2]
-PHASE3_VALIDATOR_SELF_TEST_CASE_COUNT = 25
+PHASE3_VALIDATOR_SELF_TEST_CASE_COUNT = 29
 
 
 @dataclass(frozen=True)
@@ -53,6 +53,11 @@ SELF_TEST_TARGETS = (
     SelfTestTarget(
         "scripts/zigux/validate-phase3-low-level-wrapper-survey.py",
         "PHASE3_LOW_LEVEL_WRAPPER_SURVEY_SELF_TEST=pass",
+    ),
+    SelfTestTarget(
+        "scripts/zigux/validate-phase3-export-uapi-survey.py",
+        "PHASE3_EXPORT_UAPI_SURVEY_SELF_TEST=pass",
+        ("PHASE3_EXPORT_UAPI_SURVEY_SELF_TEST_CASE_COUNT=5",),
     ),
     SelfTestTarget(
         "scripts/zigux/phase3_catalog.py",
@@ -603,6 +608,114 @@ def run_self_test() -> int:
         assert (
             "missing_pass_marker:scripts/zigux/validate-phase3-low-level-wrapper-survey.py:"
             "PHASE3_LOW_LEVEL_WRAPPER_SURVEY_SELF_TEST=pass"
+            in issues
+        )
+
+        export_uapi_marker_root = Path(tmp_dir) / "export-uapi-marker"
+        for target in SELF_TEST_TARGETS:
+            marker = (
+                "WRONG_MARKER=pass"
+                if target.relpath.endswith("validate-phase3-export-uapi-survey.py")
+                else (target.marker or "PASS")
+            )
+            write_script(
+                export_uapi_marker_root / target.relpath,
+                marker,
+                extra_markers=target.extra_markers,
+            )
+        issues = run_targets(export_uapi_marker_root)
+        assert (
+            "missing_pass_marker:scripts/zigux/validate-phase3-export-uapi-survey.py:"
+            "PHASE3_EXPORT_UAPI_SURVEY_SELF_TEST=pass"
+            in issues
+        )
+
+        export_uapi_duplicate_marker_root = Path(tmp_dir) / "export-uapi-duplicate-marker"
+        for target in SELF_TEST_TARGETS:
+            path = export_uapi_duplicate_marker_root / target.relpath
+            if target.relpath.endswith("validate-phase3-export-uapi-survey.py"):
+                path.parent.mkdir(parents=True, exist_ok=True)
+                path.write_text(
+                    "\n".join(
+                        [
+                            "#!/usr/bin/env python3",
+                            "from __future__ import annotations",
+                            "",
+                            "import sys",
+                            "",
+                            'if "--self-test" in sys.argv:',
+                            '    print("PHASE3_EXPORT_UAPI_SURVEY_SELF_TEST=pass")',
+                            '    print("PHASE3_EXPORT_UAPI_SURVEY_SELF_TEST=pass")',
+                            '    print("PHASE3_EXPORT_UAPI_SURVEY_SELF_TEST_CASE_COUNT=5")',
+                            "    raise SystemExit(0)",
+                            "",
+                            'raise SystemExit("expected --self-test")',
+                            "",
+                        ]
+                    ),
+                    encoding="utf-8",
+                    newline="\n",
+                )
+                continue
+            write_script(path, target.marker or "PASS", extra_markers=target.extra_markers)
+        issues = run_targets(export_uapi_duplicate_marker_root)
+        assert (
+            "duplicate_pass_marker:scripts/zigux/validate-phase3-export-uapi-survey.py:2:"
+            "PHASE3_EXPORT_UAPI_SURVEY_SELF_TEST=pass"
+            in issues
+        )
+
+        export_uapi_count_root = Path(tmp_dir) / "export-uapi-count"
+        for target in SELF_TEST_TARGETS:
+            extra_markers = (
+                ()
+                if target.relpath.endswith("validate-phase3-export-uapi-survey.py")
+                else target.extra_markers
+            )
+            write_script(
+                export_uapi_count_root / target.relpath,
+                target.marker or "PASS",
+                extra_markers=extra_markers,
+            )
+        issues = run_targets(export_uapi_count_root)
+        assert (
+            "missing_aux_marker:scripts/zigux/validate-phase3-export-uapi-survey.py:"
+            "PHASE3_EXPORT_UAPI_SURVEY_SELF_TEST_CASE_COUNT=5"
+            in issues
+        )
+
+        export_uapi_duplicate_count_root = Path(tmp_dir) / "export-uapi-duplicate-count"
+        for target in SELF_TEST_TARGETS:
+            path = export_uapi_duplicate_count_root / target.relpath
+            if target.relpath.endswith("validate-phase3-export-uapi-survey.py"):
+                path.parent.mkdir(parents=True, exist_ok=True)
+                path.write_text(
+                    "\n".join(
+                        [
+                            "#!/usr/bin/env python3",
+                            "from __future__ import annotations",
+                            "",
+                            "import sys",
+                            "",
+                            'if "--self-test" in sys.argv:',
+                            '    print("PHASE3_EXPORT_UAPI_SURVEY_SELF_TEST=pass")',
+                            '    print("PHASE3_EXPORT_UAPI_SURVEY_SELF_TEST_CASE_COUNT=5")',
+                            '    print("PHASE3_EXPORT_UAPI_SURVEY_SELF_TEST_CASE_COUNT=5")',
+                            "    raise SystemExit(0)",
+                            "",
+                            'raise SystemExit("expected --self-test")',
+                            "",
+                        ]
+                    ),
+                    encoding="utf-8",
+                    newline="\n",
+                )
+                continue
+            write_script(path, target.marker or "PASS", extra_markers=target.extra_markers)
+        issues = run_targets(export_uapi_duplicate_count_root)
+        assert (
+            "duplicate_aux_marker:scripts/zigux/validate-phase3-export-uapi-survey.py:2:"
+            "PHASE3_EXPORT_UAPI_SURVEY_SELF_TEST_CASE_COUNT=5"
             in issues
         )
 
