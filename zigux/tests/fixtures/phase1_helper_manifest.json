@@ -40,6 +40,7 @@
     "tools/lib/find_bit.zig": {
       "same_word_start_masks": "test \"single-word next scans honor start masks\"",
       "inclusive_boundary_start": "test \"head-word boundary scans keep the last in-range bit reachable from an inclusive start\"",
+      "past_nbits_short_circuit": "test \"next scans past nbits return without reading bitmap words\"",
       "tail_clamp_fixture_keys": [
         "tail_clamped_first",
         "tail_clamped_next",
