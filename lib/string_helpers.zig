@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0-only
 const std = @import("std");
+const cmdline = @import("cmdline.zig");
 
 pub const EINVAL: i32 = -22;
 pub const STRING_UNITS_10: u32 = 0;
@@ -49,6 +50,8 @@ pub const KasprintfStrarrayResult = struct {
         return self.names_null_terminated.ptr;
     }
 };
+
+pub const ParseIntArrayError = std.mem.Allocator.Error || error{NoEntry};
 
 pub fn sysfsStreq(s1: []const u8, s2: []const u8) bool {
     return std.mem.eql(u8, sysfsComparablePrefix(s1), sysfsComparablePrefix(s2));
@@ -185,6 +188,27 @@ pub fn stringGetSize(size_in: u64, blk_size_in: u64, units: u32, buf: []u8) usiz
 
     copyRenderedCString(buf, rendered);
     return rendered.len;
+}
+
+pub fn parseIntArray(allocator: std.mem.Allocator, buf: []const u8) ParseIntArrayError![]i32 {
+    const current = cStringPrefix(buf);
+    var count_only = [_]i32{0};
+    _ = cmdline.getOptions(current, 0, &count_only);
+
+    if (count_only[0] <= 0) {
+        return error.NoEntry;
+    }
+
+    const nints: usize = @intCast(count_only[0]);
+    const ints = try allocator.alloc(i32, nints + 1);
+    errdefer allocator.free(ints);
+
+    _ = cmdline.getOptions(current, ints.len, ints);
+    return ints;
+}
+
+pub fn freeIntArray(allocator: std.mem.Allocator, ints: []i32) void {
+    allocator.free(ints);
 }
 
 pub fn kasprintfStrarray(
@@ -663,6 +687,25 @@ test "stringGetSize handles zero block size and zero-length outputs safely" {
     try std.testing.expectEqual(@as(usize, 3), stringGetSize(99, 0, STRING_UNITS_10, &out));
     try std.testing.expectEqualStrings("0 B", std.mem.sliceTo(&out, 0));
     try std.testing.expectEqual(@as(usize, 7), stringGetSize(1500, 1, STRING_UNITS_10, out[0..0]));
+}
+
+test "parseIntArray keeps mixed-base and negative-number semantics explicit" {
+    const ints = try parseIntArray(std.testing.allocator, "0x10,07,-2");
+    defer freeIntArray(std.testing.allocator, ints);
+
+    try std.testing.expectEqualSlices(i32, &[_]i32{ 3, 16, 7, -2 }, ints);
+}
+
+test "parseIntArray respects the first NUL and count-bounded parsing" {
+    const ints = try parseIntArray(std.testing.allocator, "1-3,9\x00ignored");
+    defer freeIntArray(std.testing.allocator, ints);
+
+    try std.testing.expectEqualSlices(i32, &[_]i32{ 4, 1, 2, 3, 9 }, ints);
+}
+
+test "parseIntArray fails closed when no integers are present" {
+    try std.testing.expectError(error.NoEntry, parseIntArray(std.testing.allocator, ""));
+    try std.testing.expectError(error.NoEntry, parseIntArray(std.testing.allocator, "noints"));
 }
 
 test "kasprintfStrarray returns sequential owned strings with a trailing null pointer" {
