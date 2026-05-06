@@ -71,9 +71,13 @@ test "phase14 shared smoke manifest records the bounded study-only packet" {
     try std.testing.expect(hasSurfacePath(manifest.surfaces, "Documentation/zigux/phase14-release-boundary-survey.md"));
     try std.testing.expect(hasSurfacePath(manifest.surfaces, "Documentation/zigux/phase14-end-to-end-smoke-survey.md"));
     try std.testing.expect(hasSurfacePath(manifest.surfaces, "Documentation/zigux/phase14-core-boundary-traceability.md"));
+    try std.testing.expect(hasSurfacePath(manifest.surfaces, "Documentation/zigux/freeze-map.md"));
+    try std.testing.expect(hasSurfacePath(manifest.surfaces, "Documentation/zigux/review-checklist.md"));
+    try std.testing.expect(hasSurfacePath(manifest.surfaces, "scripts/zigux/README.md"));
     try std.testing.expect(hasSurfacePath(manifest.surfaces, "scripts/zigux/check-phase14-docs-root-smoke-summary.py"));
     try std.testing.expect(hasSurfacePath(manifest.surfaces, "scripts/zigux/check-phase14-rollback-threshold-sequencing.py"));
     try std.testing.expect(hasSurfacePath(manifest.surfaces, "scripts/zigux/check-phase14-release-boundary-exact-counts.py"));
+    try std.testing.expect(hasSurfacePath(manifest.surfaces, "zigux/tests/README.md"));
     try std.testing.expect(hasSurfacePath(manifest.surfaces, "zigux/tests/phase14_build.zig"));
     try std.testing.expect(hasSurfacePath(manifest.surfaces, "zigux/tests/phase14_workqueue_bridge_manifest.json"));
     try std.testing.expect(hasSurfacePath(manifest.surfaces, "zigux/tests/phase14_skbuff_bridge_manifest.json"));
