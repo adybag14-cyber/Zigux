@@ -62,6 +62,13 @@
       "why_now": "The dedicated reviewability gate keeps the helper-only DMA/scatterlist boundary machine-checkable instead of leaving that packet implied only by prose or shared build wiring."
     },
     {
+      "id": "phase13-devres-coherent-dma-replay",
+      "status": "starter_landed",
+      "kind": "validation",
+      "zigux_destination": "zigux/tests/phase13_devres_dma_coherent.zig",
+      "why_now": "The dedicated coherent-DMA replay proves the manifest still records the shipped devres test, reviewability gate, and survey evidence while keeping the live DMA-backed helper and scatterlist ownership boundary explicit."
+    },
+    {
       "id": "phase13-devres-survey-note",
       "status": "starter_landed",
       "kind": "documentation",
@@ -87,7 +94,7 @@
       "status": "starter_landed",
       "kind": "resource_lifetime_helper",
       "zigux_destination": "lib/devres.zig",
-      "why_now": "The current devm_arch_io_reserve_memtype_wc() helper records detach-time arch_io_free_memtype_wc() bookkeeping and failure shaping while keeping live arch memtype mutation outside the shipped packet."
+      "why_now": "The current devres helper keeps detach-time arch_io_free_memtype_wc() bookkeeping and failure shaping reviewable while live arch memtype mutation stays outside the shipped packet."
     },
     {
       "id": "phase13-devres-arch-phys-wc-token-planner",
