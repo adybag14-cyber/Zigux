@@ -86,7 +86,19 @@ REQUIRED_PHASE1_PARITY_REPLAY_MARKERS = [
     "fixture.find_bit.tail_and_clamped_first",
     "fixture.find_bit.tail_and_clamped_next",
     "fixture.bitmap.partial_xor_masked_values",
+    "fixture.string.strtobool_y",
+    "fixture.string.strtobool_on",
+    "fixture.string.strtobool_zero",
+    "fixture.string.strtobool_off",
+    "fixture.string.strlcpy_len",
+    "fixture.string.strlcpy_buffer",
+    "fixture.string.skip_spaces",
+    "fixture.string.trim_spaces",
+    "fixture.string.remove_spaces",
+    "fixture.string.replace_char",
     "fixture.string.replace_char_end",
+    "fixture.string.memchr_inv_index",
+    "fixture.string.memchr_inv_none",
     "fixture.rbtree.replace_order",
 ]
 
@@ -460,6 +472,39 @@ def run_self_test() -> None:
 
         make_fixture_root(tmp_root)
         test_path.write_text(
+            "\n".join(
+                REQUIRED_TEST_MARKERS
+                + REQUIRED_PHASE1_PARITY_TEST_ANCHORS
+                + REQUIRED_HELPER_TEST_ANCHORS
+                + [
+                    marker
+                    for marker in REQUIRED_PHASE1_PARITY_REPLAY_MARKERS
+                    if marker != "fixture.string.memchr_inv_index"
+                ]
+            )
+            + "\n",
+            encoding="utf-8",
+        )
+        missing_markers = collect_missing_markers(tmp_root)
+        assert "phase1_parity_replay_marker:fixture.string.memchr_inv_index:expected=1:actual=0" in missing_markers
+
+        make_fixture_root(tmp_root)
+        test_path.write_text(
+            "\n".join(
+                REQUIRED_TEST_MARKERS
+                + REQUIRED_PHASE1_PARITY_TEST_ANCHORS
+                + REQUIRED_HELPER_TEST_ANCHORS
+                + REQUIRED_PHASE1_PARITY_REPLAY_MARKERS
+                + ["fixture.string.memchr_inv_index"]
+            )
+            + "\n",
+            encoding="utf-8",
+        )
+        missing_markers = collect_missing_markers(tmp_root)
+        assert "phase1_parity_replay_marker:fixture.string.memchr_inv_index:expected=1:actual=2" in missing_markers
+
+        make_fixture_root(tmp_root)
+        test_path.write_text(
             "\n".join(REQUIRED_TEST_MARKERS + REQUIRED_PHASE1_PARITY_TEST_ANCHORS) + "\n",
             encoding="utf-8",
         )
@@ -753,7 +798,7 @@ def run_self_test() -> None:
         )
 
         print("PHASE1_VALIDATION_SELF_TEST=pass")
-        print("PHASE1_VALIDATION_SELF_TEST_CASE_COUNT=37")
+        print("PHASE1_VALIDATION_SELF_TEST_CASE_COUNT=39")
 
 
 def main() -> int:
