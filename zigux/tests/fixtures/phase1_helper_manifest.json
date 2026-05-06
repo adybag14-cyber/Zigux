@@ -30,6 +30,26 @@
         "tail_and_clamped_next"
       ]
     },
+    "tools/lib/rbtree.zig": {
+      "helper_test_anchors": [
+        "test \"rbtree inserts and traverses in sorted order\"",
+        "test \"rbtree erase and replace keep traversal consistent\"",
+        "test \"rbtree eraseInit detaches erased node\"",
+        "test \"rbtree postorder and empty node helpers behave\"",
+        "test \"rbtree findAdd keeps the first duplicate and inserts new keys\""
+      ],
+      "phase1_helper_replay_anchor": "test \"phase 1 helper ports match committed parity fixture\"",
+      "parity_fixture_keys": [
+        "empty_root",
+        "insert_order",
+        "reverse_order",
+        "replace_order",
+        "erase_init_order",
+        "postorder_count",
+        "erase_init_node_empty",
+        "cleared_node_empty"
+      ]
+    },
     "tools/lib/string.zig": {
       "helper_test_anchors": [
         "test \"strtobool accepts common Linux forms\"",
