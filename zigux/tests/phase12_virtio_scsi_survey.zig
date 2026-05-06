@@ -319,10 +319,10 @@ test "phase12 virtio_scsi raw fallback catalog stays aligned with the shipped bu
         "https://raw.githubusercontent.com/adybag14-cyber/Zigux/master/scripts/zigux/README.md",
         "https://raw.githubusercontent.com/adybag14-cyber/Zigux/master/Documentation/zigux/README.md",
         "https://raw.githubusercontent.com/adybag14-cyber/Zigux/master/zigux/Makefile",
-        "1. `zig build smoke --build-file zigux/tests/phase12_build.zig --summary all`",
-        "2. `make -C zigux phase12-smoke`",
-        "3. `zig build test --build-file zigux/tests/phase12_build.zig --summary all`",
-        "4. `make -C zigux phase12`",
+        "- direct build preflight: `zig build smoke --build-file zigux/tests/phase12_build.zig --summary all`",
+        "1. `make -C zigux phase12-smoke`",
+        "2. `zig build test --build-file zigux/tests/phase12_build.zig --summary all`",
+        "3. `make -C zigux phase12`",
         "Use `Documentation/zigux/phase12-release-closure-checklist.md` as the PMO companion when judging whether those same shipped surfaces are close enough to describe the active Phase 12 tranche as release-closed.",
         "The shared build-only release guard for that smoke-first order is `scripts/zigux/check-build-only-phase12-surface.py`, and `.github/workflows/zigux-bootstrap.yml` reruns that checker so this fallback wording stays aligned with the shipped PMO release packet.",
         "This catalog should stay read-only and should not be used to imply an unshipped `validate-phase12.py`, any `check-phase12-*.py` packet, or a `make -C zigux phase12-validate` target.",
@@ -334,18 +334,18 @@ test "phase12 virtio_scsi raw fallback catalog stays aligned with the shipped bu
 
     try std.testing.expectEqual(
         @as(usize, 1),
-        std.mem.count(u8, catalog, "1. `zig build smoke --build-file zigux/tests/phase12_build.zig --summary all`"),
+        std.mem.count(u8, catalog, "- direct build preflight: `zig build smoke --build-file zigux/tests/phase12_build.zig --summary all`"),
     );
     try std.testing.expectEqual(
         @as(usize, 1),
-        std.mem.count(u8, catalog, "2. `make -C zigux phase12-smoke`"),
+        std.mem.count(u8, catalog, "1. `make -C zigux phase12-smoke`"),
     );
     try std.testing.expectEqual(
         @as(usize, 1),
-        std.mem.count(u8, catalog, "3. `zig build test --build-file zigux/tests/phase12_build.zig --summary all`"),
+        std.mem.count(u8, catalog, "2. `zig build test --build-file zigux/tests/phase12_build.zig --summary all`"),
     );
     try std.testing.expectEqual(
         @as(usize, 1),
-        std.mem.count(u8, catalog, "4. `make -C zigux phase12`"),
+        std.mem.count(u8, catalog, "3. `make -C zigux phase12`"),
     );
 }
