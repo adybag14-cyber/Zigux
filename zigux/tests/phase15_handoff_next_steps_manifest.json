@@ -17,6 +17,7 @@
     "parity_scorecard_present": true,
     "indefinite_c_policy_present": true,
     "docs_index_handoff_pointer_present": true,
+    "readiness_note_present": true,
     "tests_root_phase15_surface_present": true,
     "phase15_validate_target_present": true,
     "scripts_alignment_guard_present": true,
