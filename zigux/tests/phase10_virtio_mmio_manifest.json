@@ -89,7 +89,7 @@
       "status": "starter_landed",
       "kind": "documentation",
       "zigux_destination": "Documentation/zigux/phase10-virtio-mmio-survey.md",
-      "why_now": "The lane needs a Phase 10 note that records the current MMIO transport scope, the live helper-backed surface, the roadmap-allowed destination family, the next transport-safe lab-driver gap, and the reasons broader transport work is still blocked."
+      "why_now": "The lane needs a Phase 10 note that records the current MMIO transport scope, the live helper-backed surface, the roadmap-allowed destination family, and the reasons broader transport work is still blocked."
     },
     {
       "id": "phase10-mmio-register-window-helper",
@@ -134,11 +134,18 @@
       "why_now": "The same helper can now summarize one bounded config-word write plan against the staged config window, including the current config generation and previous word value, without mutating config space or claiming interrupt acknowledgement, queue discovery, reset flows, or probe lifecycle behavior."
     },
     {
+      "id": "phase10-mmio-transport-identity-helper",
+      "status": "starter_landed",
+      "kind": "transport_wrapper",
+      "zigux_destination": "drivers/virtio/virtio_mmio.zig",
+      "why_now": "The live helper now exposes one explicit transport-identity summary for magic, version, device ID, vendor ID, and legacy guest-page-size posture so the bounded probe-preflight summary can share that observation surface without widening into interrupt acknowledgement, queue discovery, reset flows, or probe or remove lifecycle behavior."
+    },
+    {
       "id": "phase10-mmio-probe-preflight-helper",
       "status": "starter_landed",
       "kind": "transport_wrapper",
       "zigux_destination": "drivers/virtio/virtio_mmio.zig",
-      "why_now": "The same helper now summarizes the earliest virtio_mmio_probe()-style preflight checks around identity constants, device presence, vendor presence, legacy guest-page-size intent, bounded queue-register readiness, and interrupt-ack readiness without widening into lifecycle, DMA, or IRQ-delivery parity."
+      "why_now": "The same helper now summarizes the earliest virtio_mmio_probe()-style preflight checks around the shared identity snapshot, device presence, vendor presence, legacy guest-page-size intent, bounded queue-register readiness, and interrupt-ack readiness without widening into lifecycle, DMA, or IRQ-delivery parity."
     },
     {
       "id": "phase10-mmio-config-write-disposition-helper",
@@ -146,13 +153,6 @@
       "kind": "transport_wrapper",
       "zigux_destination": "drivers/virtio/virtio_mmio.zig",
       "why_now": "With config-write planning already landed, the live MMIO helper can now summarize which bytes a prepared config-word write would change, including the absolute end of the prepared config-word window and a changed-byte mask, without mutating config space or claiming interrupt acknowledgement, queue discovery, reset flows, or probe or remove lifecycle behavior."
-    },
-    {
-      "id": "phase10-mmio-transport-identity-helper",
-      "status": "ready_next",
-      "kind": "transport_wrapper",
-      "zigux_destination": "drivers/virtio/virtio_mmio.zig",
-      "why_now": "The roadmap still allows another bounded MMIO wrapper inside drivers/virtio/*.zig, and the live helper still hard-codes magic, version, and vendor assumptions instead of exposing one transport-identity snapshot that later preflight or survey logic can share without widening into interrupt acknowledgement, queue discovery, reset flows, or probe or remove lifecycle behavior."
     },
     {
       "id": "phase10-mmio-lifecycle-and-irq-paths",
