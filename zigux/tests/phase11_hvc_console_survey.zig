@@ -211,6 +211,18 @@ test "phase11 hvc_console survey gate proves validation matrix coverage directly
     try std.testing.expect(std.mem.indexOf(u8, matrix, "zigux/tests/phase11_hvc_cleanup.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, matrix, "Documentation/zigux/phase11-shared-replay-contract.md") != null);
     try std.testing.expect(std.mem.indexOf(u8, matrix, "Documentation/zigux/phase11-hvc-console-teardown-note.md") != null);
+    try std.testing.expect(std.mem.indexOf(u8, matrix, "zigux/tests/phase11_hvc_console_manifest.json") != null);
     try std.testing.expect(std.mem.indexOf(u8, matrix, "keep `Documentation/zigux/phase11-hvc-console-teardown-note.md`, `Documentation/zigux/phase11-hvc-console-slice.md`, and this matrix aligned") != null);
     try std.testing.expect(std.mem.indexOf(u8, matrix, "do not claim notifier callbacks, khvcd execution, live sysrq dispatch, or host-backed I/O coverage until the Zig surface and tests for those behaviors exist") != null);
+}
+
+test "phase11 hvc console survey gate keeps the shared replay contract aligned with the archival HVC checkpoint" {
+    const contract = try readFileAlloc(std.testing.allocator, "Documentation/zigux/phase11-shared-replay-contract.md", 32 * 1024);
+    defer std.testing.allocator.free(contract);
+    try expectContains(contract, "The dedicated archival HVC evidence still stays explicit beside that shared route:");
+    try expectContains(contract, "`zigux/tests/phase11_hvc_console_manifest.json`");
+    try expectContains(contract, "`zigux/tests/phase11_hvc_console_survey.zig`");
+    try expectContains(contract, "`Documentation/zigux/phase11-hvc-console-survey.md`");
+    try expectContains(contract, "`Documentation/zigux/phase11-hvc-console-validation-matrix.md`");
+    try expectContains(contract, "keeps the archival HVC landing checkpoint named alongside the survey note and validation matrix");
 }
