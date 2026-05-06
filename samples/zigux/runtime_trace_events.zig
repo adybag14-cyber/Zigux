@@ -50,6 +50,8 @@ pub const EmissionSummary = struct {
 pub const RuntimeTraceEventsSummary = struct {
     stage: ModuleStage,
     registration_depth: usize,
+    register_runs: usize,
+    unregister_runs: usize,
     main_iterations: usize,
     fn_iterations: usize,
     total_events: usize,
@@ -72,6 +74,8 @@ pub const RuntimeTraceEventsSample = struct {
 
     stage_state: ModuleStage = .cold,
     registration_depth: usize = 0,
+    register_runs: usize = 0,
+    unregister_runs: usize = 0,
     main_iterations: usize = 0,
     fn_iterations: usize = 0,
     total_events: usize = 0,
@@ -105,6 +109,8 @@ pub const RuntimeTraceEventsSample = struct {
         return .{
             .stage = self.stage_state,
             .registration_depth = self.registration_depth,
+            .register_runs = self.register_runs,
+            .unregister_runs = self.unregister_runs,
             .main_iterations = self.main_iterations,
             .fn_iterations = self.fn_iterations,
             .total_events = self.total_events,
@@ -134,6 +140,8 @@ pub const RuntimeTraceEventsSample = struct {
         if (self.stage() != .cold) return error.InvalidLifecycleTransition;
 
         self.registration_depth = 0;
+        self.register_runs = 0;
+        self.unregister_runs = 0;
         self.main_iterations = 0;
         self.fn_iterations = 0;
         self.total_events = 0;
@@ -154,12 +162,14 @@ pub const RuntimeTraceEventsSample = struct {
         try self.ensureMutable();
         if (self.registration_depth != 0) return error.FunctionThreadAlreadyRegistered;
         self.registration_depth = 1;
+        self.register_runs += 1;
     }
 
     pub fn unregisterFunctionThread(self: *Self) !void {
         try self.ensureMutable();
         if (self.registration_depth == 0) return error.RegistrationUnderflow;
         self.registration_depth -= 1;
+        self.unregister_runs += 1;
     }
 
     pub fn emitMainIteration(self: *Self, count: i32) !usize {
@@ -257,6 +267,8 @@ test "trace-events sample keeps selftest replay-summary continuity explicit afte
     const after_replay = module.summary();
     try std.testing.expectEqual(ModuleStage.selftest_complete, after_replay.stage);
     try std.testing.expectEqual(@as(usize, 0), after_replay.registration_depth);
+    try std.testing.expectEqual(@as(usize, 2), after_replay.register_runs);
+    try std.testing.expectEqual(@as(usize, 2), after_replay.unregister_runs);
     try std.testing.expectEqual(@as(usize, 2), after_replay.main_iterations);
     try std.testing.expectEqual(@as(usize, 2), after_replay.fn_iterations);
     try std.testing.expectEqual(@as(usize, 16), after_replay.total_events);
@@ -276,6 +288,8 @@ test "trace-events sample keeps selftest replay-summary continuity explicit afte
     try std.testing.expectEqual(ModuleStage.exited, exited_summary.stage);
     try std.testing.expectEqual(@as(usize, 1), exited_summary.exit_runs);
     try std.testing.expectEqual(after_replay.total_events, exited_summary.total_events);
+    try std.testing.expectEqual(after_replay.register_runs, exited_summary.register_runs);
+    try std.testing.expectEqual(after_replay.unregister_runs, exited_summary.unregister_runs);
 }
 
 test "trace-events sample keeps failed-exit rollback explicit after selftest-ready replay" {
@@ -290,6 +304,8 @@ test "trace-events sample keeps failed-exit rollback explicit after selftest-rea
     const before_failed_exit = module.summary();
     try std.testing.expectEqual(ModuleStage.selftest_complete, before_failed_exit.stage);
     try std.testing.expectEqual(@as(usize, 1), before_failed_exit.registration_depth);
+    try std.testing.expectEqual(@as(usize, 2), before_failed_exit.register_runs);
+    try std.testing.expectEqual(@as(usize, 1), before_failed_exit.unregister_runs);
     try std.testing.expectEqual(@as(usize, 2), before_failed_exit.main_iterations);
     try std.testing.expectEqual(@as(usize, 2), before_failed_exit.fn_iterations);
     try std.testing.expectEqual(@as(usize, 16), before_failed_exit.total_events);
@@ -302,6 +318,8 @@ test "trace-events sample keeps failed-exit rollback explicit after selftest-rea
     const after_failed_exit = module.summary();
     try std.testing.expectEqual(ModuleStage.selftest_complete, after_failed_exit.stage);
     try std.testing.expectEqual(before_failed_exit.registration_depth, after_failed_exit.registration_depth);
+    try std.testing.expectEqual(before_failed_exit.register_runs, after_failed_exit.register_runs);
+    try std.testing.expectEqual(before_failed_exit.unregister_runs, after_failed_exit.unregister_runs);
     try std.testing.expectEqual(before_failed_exit.main_iterations, after_failed_exit.main_iterations);
     try std.testing.expectEqual(before_failed_exit.fn_iterations, after_failed_exit.fn_iterations);
     try std.testing.expectEqual(before_failed_exit.total_events, after_failed_exit.total_events);
@@ -315,6 +333,8 @@ test "trace-events sample keeps failed-exit rollback explicit after selftest-rea
     const exited_summary = module.summary();
     try std.testing.expectEqual(ModuleStage.exited, exited_summary.stage);
     try std.testing.expectEqual(@as(usize, 0), exited_summary.registration_depth);
+    try std.testing.expectEqual(@as(usize, 2), exited_summary.register_runs);
+    try std.testing.expectEqual(@as(usize, 2), exited_summary.unregister_runs);
     try std.testing.expectEqual(before_failed_exit.total_events, exited_summary.total_events);
     try std.testing.expectEqual(@as(usize, 1), exited_summary.exit_runs);
 }
