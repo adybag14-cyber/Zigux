@@ -16,11 +16,13 @@ VALIDATION_MATRIX_PATH = "Documentation/zigux/phase11-hvc-console-validation-mat
 BUILD_PATH = "zigux/tests/phase11_build.zig"
 MAKEFILE_PATH = "zigux/Makefile"
 WORKFLOW_PATH = ".github/workflows/zigux-bootstrap.yml"
+SCRIPT_PATH = "scripts/zigux/check-phase11-hvc-survey-packet.py"
 
 REQUIRED_SURVEY_NOTE_MARKERS = [
     "lane `P11-L16`",
     "`zigux/tests/phase11_hvc_console_survey.zig`",
     "`Documentation/zigux/phase11-hvc-console-validation-matrix.md`",
+    "`scripts/zigux/check-phase11-hvc-survey-packet.py`",
     "`zigux/Makefile`",
     "`.github/workflows/zigux-bootstrap.yml`",
 ]
@@ -29,6 +31,7 @@ REQUIRED_VALIDATION_MATRIX_MARKERS = [
     "lane: `P11-L16`",
     "`zigux/tests/phase11_hvc_console_survey.zig`",
     "`zigux/tests/phase11_build.zig`",
+    "`scripts/zigux/check-phase11-hvc-survey-packet.py`",
     "`zigux/Makefile`",
     "`.github/workflows/zigux-bootstrap.yml`",
     "`make -C zigux phase11-hvc-survey`",
@@ -52,7 +55,7 @@ REQUIRED_WORKFLOW_MARKERS = [
     "make -C zigux phase11-hvc-survey",
 ]
 
-SELF_TEST_CASE_COUNT = 3
+SELF_TEST_CASE_COUNT = 5
 
 
 def read_text(root: Path, rel_path: str) -> str:
@@ -73,6 +76,7 @@ def validate(root: Path) -> list[str]:
         BUILD_PATH,
         MAKEFILE_PATH,
         WORKFLOW_PATH,
+        SCRIPT_PATH,
     ]:
         if not (root / rel_path).exists():
             failures.append(f"missing_file:{rel_path}")
@@ -117,6 +121,7 @@ The live archival packet now belongs to lane `P11-L16`.
 
 - `zigux/tests/phase11_hvc_console_survey.zig` now keeps a bounded driver-local layout checkpoint
 - `Documentation/zigux/phase11-hvc-console-validation-matrix.md` names the current shared gate
+- `scripts/zigux/check-phase11-hvc-survey-packet.py` keeps the dedicated archival survey note, validation matrix, `zigux/Makefile`, and `.github/workflows/zigux-bootstrap.yml` aligned around the same delivery route
 - `zigux/Makefile` and `.github/workflows/zigux-bootstrap.yml` keep those HVC review surfaces coupled to the wider Phase 11 replay route
 """,
     )
@@ -127,6 +132,7 @@ The live archival packet now belongs to lane `P11-L16`.
 - lane: `P11-L16`
 - `zigux/tests/phase11_hvc_console_survey.zig`
 - `zigux/tests/phase11_build.zig`
+- `scripts/zigux/check-phase11-hvc-survey-packet.py`
 - `zigux/Makefile`
 - `.github/workflows/zigux-bootstrap.yml`
 - keep `zigux/tests/phase11_build.zig` as the shared replay path for the current starter while the dedicated archival `make -C zigux phase11-hvc-survey` bootstrap replay remains the only extra CI step for the separate survey route
@@ -163,6 +169,12 @@ jobs:
         run: make -C zigux phase11-hvc-survey
 """,
     )
+    write_text(
+        root / SCRIPT_PATH,
+        """#!/usr/bin/env python3
+print(\"synthetic survey packet checker\")
+""",
+    )
 
 
 def expect_failure(root: Path, rel_path: str, marker: str, expected_failure: str) -> None:
@@ -195,9 +207,21 @@ def run_self_test() -> int:
             )
             expect_failure(
                 root,
+                SURVEY_NOTE_PATH,
+                "`scripts/zigux/check-phase11-hvc-survey-packet.py`",
+                "survey_note:`scripts/zigux/check-phase11-hvc-survey-packet.py`",
+            )
+            expect_failure(
+                root,
                 VALIDATION_MATRIX_PATH,
                 "`make -C zigux phase11-hvc-survey`",
                 "validation_matrix:`make -C zigux phase11-hvc-survey`",
+            )
+            expect_failure(
+                root,
+                VALIDATION_MATRIX_PATH,
+                "`scripts/zigux/check-phase11-hvc-survey-packet.py`",
+                "validation_matrix:`scripts/zigux/check-phase11-hvc-survey-packet.py`",
             )
             expect_failure(
                 root,
