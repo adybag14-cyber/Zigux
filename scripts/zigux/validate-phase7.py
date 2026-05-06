@@ -91,6 +91,7 @@ REQUIRED_MARKERS = {
     ],
     "Documentation/zigux/phase7-string-helpers-slice.md": [
         "string_escape_mem()",
+        "`kstrdup_quotable()` over the bounded quotable-log escape path",
         "zigux/tests/phase7_string_helpers_sample_boundary.zig",
         "This is intentionally not a Phase 5 `samples/zigux/` reference-sample lane.",
         "no `samples/zigux/*string*` Phase 5 reference sample is expected here;",
