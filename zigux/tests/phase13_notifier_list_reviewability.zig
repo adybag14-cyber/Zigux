@@ -53,6 +53,7 @@ test "phase13 notifier/list survey records the landed adjacent notifier header s
     const list_view_text = try readRepoFile(allocator, "zigux/helpers/list_view.zig");
     const hlist_view_text = try readRepoFile(allocator, "zigux/helpers/hlist_view.zig");
     const notifier_helper_text = try readRepoFile(allocator, "zigux/helpers/notifier_chain_view.zig");
+    const packet_checker_text = try readRepoFile(allocator, "scripts/zigux/check-phase13-notifier-packet.py");
     const exported_abi_text = try readRepoFile(allocator, "include/zigux/abi.h");
     const exported_notifier_abi_text = try readRepoFile(allocator, "include/zigux/notifier_abi.h");
     const phase13_build_text = try readRepoFile(allocator, "zigux/tests/phase13_build.zig");
@@ -93,6 +94,8 @@ test "phase13 notifier/list survey records the landed adjacent notifier header s
     try expectContains(notifier_helper_text, "pub fn hasNonincreasingPriorityOrder");
     try expectContains(notifier_helper_text, "summarize keeps ordered terminated chains marked as nonincreasing priority");
     try expectContains(notifier_helper_text, "summarize clears the priority-order flag when priorities rise");
+    try expectContains(packet_checker_text, "PHASE13_NOTIFIER_PACKET=pass");
+    try expectContains(packet_checker_text, "\"phase13-notifier-focused-packet-checker\"");
     try expectContains(exported_abi_text, "struct zigux_list_view");
     try expectContains(exported_abi_text, "struct zigux_hlist_view");
     try expectContains(exported_notifier_abi_text, "zigux_notifier");
@@ -102,10 +105,12 @@ test "phase13 notifier/list survey records the landed adjacent notifier header s
     try expectContains(survey_note, "surveyed commit: `23d15e44622d2cedd7691c88f78709db6bf1eb7e`");
     try expectContains(survey_note, "`include/zigux/notifier_abi.h` is now shipped as adjacent notifier interop evidence");
     try expectContains(survey_note, "`zigux/helpers/notifier_chain_view.zig` now provides the matching read-only notifier-chain summary helpers");
+    try expectContains(survey_note, "`scripts/zigux/check-phase13-notifier-packet.py` now fails closed on the adjacent notifier packet");
     try expectContains(survey_note, "shared Phase 13 build intentionally omits this packet");
 
     var landed_helper_gap = false;
     var landed_header_surface = false;
+    var landed_focused_checker = false;
     for (manifest.gaps) |gap| {
         if (std.mem.eql(u8, gap.id, "phase13-notifier-helper-surface")) {
             landed_helper_gap = true;
@@ -117,9 +122,16 @@ test "phase13 notifier/list survey records the landed adjacent notifier header s
             try std.testing.expectEqualStrings("starter_landed", gap.status);
             try std.testing.expectEqualStrings("header", gap.kind);
             try std.testing.expectEqualStrings("include/zigux/notifier_abi.h", gap.zigux_destination);
+        } else if (std.mem.eql(u8, gap.id, "phase13-notifier-focused-packet-checker")) {
+            landed_focused_checker = true;
+            try std.testing.expectEqualStrings("starter_landed", gap.status);
+            try std.testing.expectEqualStrings("validation", gap.kind);
+            try std.testing.expectEqualStrings("scripts/zigux/check-phase13-notifier-packet.py", gap.zigux_destination);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "adjacent-only build posture") != null);
         }
     }
 
     try std.testing.expect(landed_helper_gap);
     try std.testing.expect(landed_header_surface);
+    try std.testing.expect(landed_focused_checker);
 }
