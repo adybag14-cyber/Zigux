@@ -129,9 +129,15 @@ test "phase3 atomic wrappers keep non-seq-cst orderings reviewable" {
     var monotonic_value: u32 = 5;
     try std.testing.expectEqual(@as(?u32, null), compareExchange(u32, &monotonic_value, 5, 7, .monotonic, .monotonic));
     try std.testing.expectEqual(@as(u32, 7), monotonic_value);
+    const monotonic_mismatch = compareExchange(u32, &monotonic_value, 5, 9, .monotonic, .monotonic);
+    try std.testing.expectEqual(@as(?u32, 7), monotonic_mismatch);
+    try std.testing.expectEqual(@as(u32, 7), monotonic_value);
 
     var acq_rel_value: u32 = 7;
     try std.testing.expectEqual(@as(?u32, null), compareExchange(u32, &acq_rel_value, 7, 11, .acq_rel, .acquire));
+    try std.testing.expectEqual(@as(u32, 11), acq_rel_value);
+    const acq_rel_mismatch = compareExchange(u32, &acq_rel_value, 7, 15, .acq_rel, .acquire);
+    try std.testing.expectEqual(@as(?u32, 11), acq_rel_mismatch);
     try std.testing.expectEqual(@as(u32, 11), acq_rel_value);
 
     var weak_release_value: u32 = 13;
