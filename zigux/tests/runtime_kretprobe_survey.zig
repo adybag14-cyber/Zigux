@@ -17,6 +17,14 @@ const LifecycleBoundarySummary = struct {
     live_registration_parity: []const u8,
 };
 
+const RoadmapGapSummary = struct {
+    roadmap_phase_goal: []const u8,
+    landed_pilot_state: []const u8,
+    missing_capability: []const u8,
+    blocked_deliverable: []const u8,
+    next_gate: []const u8,
+};
+
 const Gap = struct {
     id: []const u8,
     status: []const u8,
@@ -33,6 +41,7 @@ const Manifest = struct {
     roadmap_destinations: []const []const u8,
     survey_summary: SurveySummary,
     lifecycle_boundary_summary: LifecycleBoundarySummary,
+    roadmap_gap_summary: RoadmapGapSummary,
     gaps: []const Gap,
 };
 
@@ -46,7 +55,7 @@ fn expectContains(haystack: []const u8, needle: []const u8) !void {
     try std.testing.expect(std.mem.indexOf(u8, haystack, needle) != null);
 }
 
-test "phase 9 runtime kretprobe survey manifest records the landed loader plan and metadata-only registration boundary" {
+test "phase 9 runtime kretprobe survey manifest records the roadmap gap between the landed starter and a loadable pilot module" {
     var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
     defer io_instance.deinit();
 
@@ -123,22 +132,26 @@ test "phase 9 runtime kretprobe survey manifest records the landed loader plan a
     try std.testing.expect(manifest.lifecycle_boundary_summary.requires_idle_registration_snapshot);
     try std.testing.expect(manifest.lifecycle_boundary_summary.failed_exit_state_retained_until_drain);
     try std.testing.expectEqual(@as(usize, 2), manifest.lifecycle_boundary_summary.metadata_only_registration_labels.len);
+    try std.testing.expectEqualStrings("register_kretprobe", manifest.lifecycle_boundary_summary.metadata_only_registration_labels[0]);
+    try std.testing.expectEqualStrings("unregister_kretprobe", manifest.lifecycle_boundary_summary.metadata_only_registration_labels[1]);
+    try std.testing.expectEqualStrings("zigux/kernel/runtime_loader.zig", manifest.lifecycle_boundary_summary.shared_request_surface);
+    try std.testing.expectEqualStrings("blocked_on_runtime_substrate", manifest.lifecycle_boundary_summary.live_registration_parity);
     try std.testing.expectEqualStrings(
-        "register_kretprobe",
-        manifest.lifecycle_boundary_summary.metadata_only_registration_labels[0],
+        "first loadable Zigux runtime modules with selftest hooks and runtime module lifecycle parity",
+        manifest.roadmap_gap_summary.roadmap_phase_goal,
     );
     try std.testing.expectEqualStrings(
-        "unregister_kretprobe",
-        manifest.lifecycle_boundary_summary.metadata_only_registration_labels[1],
+        "starter_landed_without_loadable_runtime_substrate",
+        manifest.roadmap_gap_summary.landed_pilot_state,
     );
+    try expectContains(manifest.roadmap_gap_summary.missing_capability, "shared runtime substrate");
+    try expectContains(manifest.roadmap_gap_summary.missing_capability, "register_kretprobe");
+    try expectContains(manifest.roadmap_gap_summary.missing_capability, "unregister_kretprobe");
     try std.testing.expectEqualStrings(
-        "zigux/kernel/runtime_loader.zig",
-        manifest.lifecycle_boundary_summary.shared_request_surface,
+        "loadable Phase 9 runtime kretprobe pilot module parity",
+        manifest.roadmap_gap_summary.blocked_deliverable,
     );
-    try std.testing.expectEqualStrings(
-        "blocked_on_runtime_substrate",
-        manifest.lifecycle_boundary_summary.live_registration_parity,
-    );
+    try expectContains(manifest.roadmap_gap_summary.next_gate, "shared runtime loader substrate");
     try std.testing.expect(manifest.gaps.len >= 6);
 
     try expectContains(survey_doc, "PHASE9_SLICE=runtime-kretprobe-survey");
@@ -151,6 +164,10 @@ test "phase 9 runtime kretprobe survey manifest records the landed loader plan a
     try expectContains(survey_doc, "idle registration snapshot");
     try expectContains(survey_doc, "failed-exit state");
     try expectContains(survey_doc, "active probe drains");
+    try expectContains(survey_doc, "Roadmap gap vs current pilot");
+    try expectContains(survey_doc, "first loadable Zigux runtime modules");
+    try expectContains(survey_doc, "starter_landed_without_loadable_runtime_substrate");
+    try expectContains(survey_doc, "loadable Phase 9 runtime kretprobe pilot module parity");
     try expectContains(survey_doc, "make -C zigux phase9");
 
     try expectContains(module_slice_doc, "PHASE9_SLICE=runtime-kretprobe-module-starter");
@@ -162,7 +179,9 @@ test "phase 9 runtime kretprobe survey manifest records the landed loader plan a
     try expectContains(module_slice_doc, "unregister_kretprobe()");
     try expectContains(module_slice_doc, "idle registration snapshot");
     try expectContains(module_slice_doc, "failed-exit state");
-    try expectContains(module_slice_doc, "active probe drains");
+    try expectContains(module_slice_doc, "Roadmap gap vs current pilot");
+    try expectContains(module_slice_doc, "starter_landed_without_loadable_runtime_substrate");
+    try expectContains(module_slice_doc, "loadable Phase 9 runtime kretprobe pilot module parity");
 
     try expectContains(loader_source, "error.OutstandingProbeStateForLoader");
     try expectContains(loader_source, "summary.active_instances != 0 or summary.entry_timestamp_armed");
@@ -185,6 +204,7 @@ test "phase 9 runtime kretprobe survey manifest records the landed loader plan a
     var saw_sample_module = false;
     var saw_diff_gate = false;
     var saw_loader_plan = false;
+    var saw_substrate_handoff = false;
 
     for (manifest.gaps, 0..) |gap, i| {
         try std.testing.expect(gap.id.len > 0);
@@ -226,6 +246,12 @@ test "phase 9 runtime kretprobe survey manifest records the landed loader plan a
             try expectContains(gap.why_now, "idle registration snapshot");
             try expectContains(gap.why_now, "failed-exit state retention");
         }
+        if (std.mem.eql(u8, gap.id, "runtime-kretprobe-substrate-handoff")) {
+            saw_substrate_handoff = true;
+            try std.testing.expectEqualStrings("blocked_on_runtime_substrate", gap.status);
+            try std.testing.expectEqualStrings("zigux/kernel/runtime_loader.zig", gap.zigux_destination);
+            try expectContains(gap.why_now, "loadable module path");
+        }
 
         for (manifest.gaps[i + 1 ..]) |other| {
             try std.testing.expect(!std.mem.eql(u8, gap.id, other.id));
@@ -247,4 +273,5 @@ test "phase 9 runtime kretprobe survey manifest records the landed loader plan a
     try std.testing.expect(saw_sample_module);
     try std.testing.expect(saw_diff_gate);
     try std.testing.expect(saw_loader_plan);
+    try std.testing.expect(saw_substrate_handoff);
 }
