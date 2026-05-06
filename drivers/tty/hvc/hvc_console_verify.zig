@@ -97,6 +97,23 @@ test "hvc_console verify keeps remove handoff explicit when tty teardown outlive
     try std.testing.expect(detached_binding.host_io_pending);
 }
 
+test "hvc_console verify keeps remove handoff explicit when tty is already absent" {
+    var console = try hvc_console.HvcConsoleLab.init(11);
+    _ = console.instantiate(0xb1);
+
+    const tty_gone_remove = try console.summarizeRemoveHandoff(.{
+        .console_index_registered = true,
+        .tty_present = false,
+    });
+    try std.testing.expect(tty_gone_remove.clears_console_slot_binding);
+    try std.testing.expect(!tty_gone_remove.keeps_irq_for_followup_hangup);
+    try std.testing.expect(tty_gone_remove.drops_init_kref_port_reference);
+    try std.testing.expect(!tty_gone_remove.tty_vhangup_requested);
+    try std.testing.expect(!tty_gone_remove.tty_kref_put_after_vhangup);
+    try std.testing.expect(!tty_gone_remove.teardown_via_hangup_pending);
+    try std.testing.expect(!tty_gone_remove.host_io_pending);
+}
+
 test "hvc_console verify keeps cleanup missing-reference failures explicit" {
     var console = try hvc_console.HvcConsoleLab.init(14);
     _ = console.instantiate(0xe1);
