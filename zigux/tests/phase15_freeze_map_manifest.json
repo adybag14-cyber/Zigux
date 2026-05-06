@@ -30,6 +30,17 @@
       ]
     },
     {
+      "id": "freeze-map-review-process-field-sync",
+      "summary": "Freeze-map status-change requests must keep the root policy layer aligned with the full Architecture Council review packet fields.",
+      "required_terms": [
+        "exact Linux anchor path",
+        "current status bucket",
+        "rollback threshold",
+        "explicit non-goals",
+        "written rationale"
+      ]
+    },
+    {
       "id": "freeze-map-parity-gate",
       "summary": "Freeze-in-C anchors stay blocked until a parity scorecard exists and the Architecture Council records why the status can change.",
       "required_terms": [
@@ -140,6 +151,13 @@
       "kind": "policy_sync",
       "zigux_destination": "Documentation/zigux/freeze-map.md",
       "why_now": "The root freeze map now needs the retained stay-in-C closeout and no-silent-exception wording that the parity scorecard, review-process note, and indefinite-C policy already depend on."
+    },
+    {
+      "id": "phase15-review-process-required-field-sync",
+      "status": "starter_landed",
+      "kind": "policy_sync",
+      "zigux_destination": "Documentation/zigux/freeze-map.md",
+      "why_now": "The root freeze map now needs the exact Linux anchor path, current status bucket, rollback threshold, explicit non-goals, and written rationale field sync that the landed review-process packet already treats as mandatory."
     },
     {
       "id": "phase15-governance-family-alignment",
