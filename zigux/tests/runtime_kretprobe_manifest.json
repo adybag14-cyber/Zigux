@@ -25,6 +25,13 @@
     "shared_request_surface": "zigux/kernel/runtime_loader.zig",
     "live_registration_parity": "blocked_on_runtime_substrate"
   },
+  "roadmap_gap_summary": {
+    "roadmap_phase_goal": "first loadable Zigux runtime modules with selftest hooks and runtime module lifecycle parity",
+    "landed_pilot_state": "starter_landed_without_loadable_runtime_substrate",
+    "missing_capability": "shared runtime substrate that can turn the bounded register_kretprobe and unregister_kretprobe handoff plan into a real loadable module path",
+    "blocked_deliverable": "loadable Phase 9 runtime kretprobe pilot module parity",
+    "next_gate": "keep the sample, survey, and module slice explicit until the shared runtime loader substrate can consume the handoff plan"
+  },
   "gaps": [
     {
       "id": "phase9-build-gate",
@@ -73,7 +80,7 @@
       "status": "blocked_on_runtime_substrate",
       "kind": "runtime_substrate",
       "zigux_destination": "zigux/kernel/runtime_loader.zig",
-      "why_now": "A loadable module entry point and real register_kretprobe parity still depend on shared runtime substrate pieces that the repo has not started yet."
+      "why_now": "The roadmap's loadable runtime pilot module step still depends on a shared runtime substrate that can turn the bounded register_kretprobe and unregister_kretprobe handoff plan into a real loadable module path."
     }
   ]
 }
