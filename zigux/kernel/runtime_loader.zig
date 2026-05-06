@@ -146,6 +146,23 @@ test "runtime loader facade preserves shared runtime lifecycle failures" {
     };
     try std.testing.expectError(error.InvalidInitFlow, prepareRequest(duplicate_init));
 
+    const incomplete_selftest = LoadPlan{
+        .module_name = "runtime_kretprobe",
+        .anchor = "samples/kprobes/kretprobe_example.c",
+        .entry_symbol = "zigux_runtime_kretprobe_init",
+        .exit_symbol = "zigux_runtime_kretprobe_exit",
+        .requires_runtime_substrate = true,
+        .provides_selftest_hook = true,
+        .allocator_handoff = .kernel_heap,
+        .init_flow = .{
+            .handoff_stage = .selftest_complete,
+            .init_runs = 1,
+            .selftest_runs = 0,
+            .exit_runs = 0,
+        },
+    };
+    try std.testing.expectError(error.InvalidSelftestHookEvidence, prepareRequest(incomplete_selftest));
+
     const loader_not_required = LoadPlan{
         .module_name = "runtime_trace_events",
         .anchor = "samples/trace_events/trace-events-sample.c",
@@ -198,6 +215,7 @@ test "runtime loader facade preserves shared runtime lifecycle failures" {
     };
 
     var request = try prepareRequest(stable_plan);
+    try std.testing.expectError(error.InvalidLoaderState, request.releaseWithoutSubstrate());
     _ = try request.requestRuntimeLoad();
     try std.testing.expectError(error.InvalidLoaderState, request.requestRuntimeLoad());
 
