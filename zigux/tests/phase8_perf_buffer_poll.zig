@@ -112,6 +112,17 @@ test "phase 8 perf-buffer poll helper rejects more ready buffers than the observ
     );
 }
 
+test "phase 8 perf-buffer poll helper rejects observed ready counts beyond available buffer observations" {
+    try std.testing.expectError(
+        perf_buffer_poll.PollError.ObservedReadyEventsExceedBufferObservationCount,
+        perf_buffer_poll.summarizePoll(5, .{ .ready_events = 2 }, &.{.{ .ready = true }}),
+    );
+    try std.testing.expectError(
+        perf_buffer_poll.PollError.ObservedReadyEventsExceedBufferObservationCount,
+        perf_buffer_poll.summarizePollFromWaitResult(5, 2, &.{.{ .ready = true }}),
+    );
+}
+
 test "phase 8 perf-buffer poll helper keeps ready-buffer processing fail-fast below epoll parity" {
     const failure = perf_buffer_poll.summarizeProcessRecords(&.{
         .{ .records_processed = 5 },
