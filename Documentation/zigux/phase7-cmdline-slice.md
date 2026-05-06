@@ -63,13 +63,13 @@ The current landed slice covers:
 The current tests check:
 
 - signed integer parsing and comma handling
-- Linux-style hyphen range expansion and validation-only counting
+- Linux-style hyphen range expansion, validation-only counting, and leading-plus numeric acceptance for `get_option()` and `get_options()`
 - descending-range early stop behavior
-- memory-size suffix scaling with accurate parse-stop reporting
+- memory-size suffix scaling, leading-plus numeric acceptance, and accurate parse-stop reporting in `memparse()`
 - exact bare-option matching for comma-delimited flags
 - C-style stop-at-NUL handling for bare-option scans
 - serialized `next_arg()` edge cases covering quoted values, quoted bare tokens, empty quoted bare tokens, quoted bare tokens that contain `=`, empty quoted or whitespace-only values, unquoted punctuation-rich values, first-equals splitting, leading-equals sentinel handling, unterminated quoted values, mixed-whitespace rest trimming, and empty-rest termination
-- the dedicated survey gate, the committed `zigux/tests/fixtures/phase7_cmdline_next_arg_vectors.zig` fixture module, the exact `zig build test --build-file zigux/tests/phase7_build.zig --summary all` shared compile-check replay, and the shared `validate-phase7.py`, `check-phase7-make-wrapper.py`, `phase7_build.zig`, and `make -C zigux phase7-validate` plus `make -C zigux phase7` routes keep the roadmap anchor, the empty quoted bare-token plus quoted-bare-token-with-equals `next_arg()` replays, the focused helper replay, and the Linux-style validator-first packet aligned around the same parked cmdline slice
+- the dedicated survey gate, the committed `zigux/tests/fixtures/phase7_cmdline_next_arg_vectors.zig` fixture module, the exact `zig build test --build-file zigux/tests/phase7_build.zig --summary all` shared compile-check replay, and the shared `validate-phase7.py`, `check-phase7-make-wrapper.py`, `phase7_build.zig`, and `make -C zigux phase7-validate` plus `make -C zigux phase7` routes keep the roadmap anchor, the leading-plus numeric replay, serialized `next_arg()` replay, focused helper replay, and Linux-style validator-first packet aligned around the same parked cmdline slice
 
 ## Non-goals
 
