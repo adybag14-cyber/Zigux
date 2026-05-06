@@ -7,6 +7,7 @@ pub const ModuleDescriptor = struct {
     provides_ioremap_wc_wrapper_planning: bool,
     provides_release_pointer_match: bool,
     provides_ioremap_resource_planning: bool,
+    provides_ioremap_resource_wc_wrapper_planning: bool,
     provides_of_iomap_planning: bool,
     provides_pretty_name_helper: bool,
     provides_arch_io_wc_memtype_planning: bool,
@@ -234,6 +235,7 @@ pub const DevresHelperLab = struct {
             .provides_ioremap_wc_wrapper_planning = true,
             .provides_release_pointer_match = true,
             .provides_ioremap_resource_planning = true,
+            .provides_ioremap_resource_wc_wrapper_planning = true,
             .provides_of_iomap_planning = true,
             .provides_pretty_name_helper = true,
             .provides_arch_io_wc_memtype_planning = true,
@@ -582,6 +584,33 @@ test "managed ioremap resource wc wrapper keeps explicit wc selection" {
             try std.testing.expectEqual(.wc, plan.effective_type);
         },
         .err => return error.UnexpectedError,
+    }
+}
+
+test "managed ioremap resource wc wrapper keeps busy-region failure shaping" {
+    const allocator = std.testing.allocator;
+
+    const outcome = try DevresHelperLab.planManagedIoremapResourceWc(allocator, .{
+        .device_name = "gpu1",
+        .resource = .{
+            .start = 0x2400,
+            .end = 0x243f,
+            .is_memory = true,
+            .nonposted = false,
+            .name = "framebuffer",
+        },
+        .request_region_granted = false,
+    });
+
+    switch (outcome) {
+        .mapped => return error.ExpectedFailure,
+        .err => |failure| {
+            try std.testing.expectEqual(.request_region, failure.stage);
+            try std.testing.expectEqual(.busy, failure.error_code);
+            try std.testing.expectEqual(.wc, failure.effective_type);
+            try std.testing.expect(failure.requests_region);
+            try std.testing.expect(!failure.releases_region_on_remap_failure);
+        },
     }
 }
 
