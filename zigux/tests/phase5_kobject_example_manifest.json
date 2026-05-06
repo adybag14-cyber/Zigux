@@ -7,7 +7,7 @@
   "validation_entrypoint": "zig build test --build-file zigux/tests/phase5_build.zig --summary all",
   "review_prompts": [
     "descriptor keeps the Linux anchor path explicit and leaves requires_runtime_substrate false while provides_selfcheck stays true",
-    "the manifest and survey test still describe the approved Phase 5 in-memory ownership-and-lifetime idiom: the exact registration, integer roundtrip, shared baz/bar dispatch, and pre-registration access boundary run through phase5_build.zig",
+    "the manifest and survey test still describe the approved Phase 5 in-memory ownership-and-lifetime idiom: the exact registration, duplicate-registration rejection, registered-stage replay rejection, integer roundtrip, shared baz/bar dispatch, and pre-registration access boundary run through phase5_build.zig",
     "the manifest prompts keep the initialized-but-not-registered zero-active-attributes and no-show-or-store boundary explicit before registerAttributes() opens the sample",
     "the manifest prompts keep ownershipSummary() and sample-owned runOwnershipReplay() explicit across cold, initialized, registered, and exited instead of leaving the lifecycle packet implicit",
     "the manifest prompts keep the unnamed attribute group shape and post-exit show/store rejection boundary explicit instead of implying sysfs registration",
@@ -24,7 +24,7 @@
     {
       "id": "registration-step",
       "kind": "ownership_lifetime",
-      "expected": "runAnchorReplay requires init first, registers exactly three attributes, and leaves the sample in the registered stage"
+      "expected": "runAnchorReplay requires init first, registers exactly three attributes, leaves the sample in the registered stage, and keeps duplicate registerAttributes plus registered-stage runAnchorReplay calls blocked by InvalidLifecycleTransition"
     },
     {
       "id": "pre-registration-boundary",
