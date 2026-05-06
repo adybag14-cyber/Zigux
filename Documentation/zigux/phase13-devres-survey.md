@@ -68,7 +68,7 @@ This slice does not claim:
 - live MMIO mappings or unmap side effects
 - live region reservation or release-region mutation
 - live DMA-backed helpers or DMA mapping ownership
-- live scatter-gather ownership or `sg_table` lifecycle control
+- live scatter-gather ownership or sg_table lifecycle control
 - device-tree walking or ownership of OF nodes
 - generic devres groups or broader teardown parity
 - live arch memtype mutation or token-release side effects
