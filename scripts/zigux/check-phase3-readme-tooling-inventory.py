@@ -149,12 +149,15 @@ REQUIRED_README_SNIPPETS = (
     "- `make -C zigux phase13-validate` keeps that same release packet wired through the Linux-style validation entrypoint.",
 )
 
+
 def _write(path: Path, text: str) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(text, encoding="utf-8", newline="\n")
 
+
 def _read(path: Path) -> str:
     return path.read_text(encoding="utf-8")
+
 
 def _collect_helper_entries(readme: str) -> tuple[list[str], list[str]]:
     found = False
@@ -178,6 +181,7 @@ def _collect_helper_entries(readme: str) -> tuple[list[str], list[str]]:
         issues.append("missing_readme_helper_entries")
     return entries, issues
 
+
 def _collect_makefile_target_lines(makefile: str, target: str) -> list[str] | None:
     in_target = False
     lines: list[str] = []
@@ -193,6 +197,7 @@ def _collect_makefile_target_lines(makefile: str, target: str) -> list[str] | No
         lines.append(raw)
     return lines if in_target else None
 
+
 def _collect_target_helpers(makefile: str, target: str) -> list[str]:
     lines = _collect_makefile_target_lines(makefile, target)
     if lines is None:
@@ -206,6 +211,7 @@ def _collect_target_helpers(makefile: str, target: str) -> list[str]:
         if rel.endswith(".py"):
             helpers.append(Path(rel).name)
     return helpers
+
 
 def _validate_target_helpers(issues: list[str], makefile: str, target: str, required_helpers: tuple[str, ...]) -> None:
     lines = _collect_makefile_target_lines(makefile, target)
@@ -225,6 +231,7 @@ def _validate_target_helpers(issues: list[str], makefile: str, target: str, requ
     if [helper for helper in helpers if helper in required_helpers] != list(required_helpers):
         issues.append(f"makefile_helper_order_drift:{target}")
 
+
 def _validate_target_commands(issues: list[str], makefile: str, target: str, required_commands: tuple[str, ...]) -> None:
     lines = _collect_makefile_target_lines(makefile, target)
     if lines is None:
@@ -243,6 +250,7 @@ def _validate_target_commands(issues: list[str], makefile: str, target: str, req
             issues.append(f"unexpected_makefile_command:{target}:{command}")
     if [command for command in commands if command in required_commands] != expected:
         issues.append(f"makefile_command_order_drift:{target}")
+
 
 def validate(root: Path) -> list[str]:
     issues: list[str] = []
@@ -290,113 +298,130 @@ def validate(root: Path) -> list[str]:
             issues.append(f"unexpected_readme_snippet_count:{count}:{snippet}")
     return issues
 
+
 def _baseline_readme() -> str:
     helper_lines = "\n".join(f"- `{helper}`" for helper in REQUIRED_HELPERS)
     sections = ["# scripts/zigux", "", README_HELPER_SECTION, helper_lines]
-    flow_pairs = (("Phase 3 flow", REQUIRED_README_SNIPPETS[0]), ("Phase 6 flow", REQUIRED_README_SNIPPETS[1]), ("Phase 7 flow", REQUIRED_README_SNIPPETS[2]), ("Phase 7 flow", REQUIRED_README_SNIPPETS[3]), ("Phase 8 flow", REQUIRED_README_SNIPPETS[4]), ("Phase 8 flow", REQUIRED_README_SNIPPETS[5]), ("Phase 9 flow", REQUIRED_README_SNIPPETS[6]), ("Phase 10 flow", REQUIRED_README_SNIPPETS[7]), ("Phase 12 flow", REQUIRED_README_SNIPPETS[8]), ("Phase 13 flow", REQUIRED_README_SNIPPETS[9]))
+    flow_pairs = (
+        ("Phase 3 flow", REQUIRED_README_SNIPPETS[0]),
+        ("Phase 6 flow", REQUIRED_README_SNIPPETS[1]),
+        ("Phase 7 flow", REQUIRED_README_SNIPPETS[2]),
+        ("Phase 7 flow", REQUIRED_README_SNIPPETS[3]),
+        ("Phase 8 flow", REQUIRED_README_SNIPPETS[4]),
+        ("Phase 8 flow", REQUIRED_README_SNIPPETS[5]),
+        ("Phase 9 flow", REQUIRED_README_SNIPPETS[6]),
+        ("Phase 10 flow", REQUIRED_README_SNIPPETS[7]),
+        ("Phase 12 flow", REQUIRED_README_SNIPPETS[8]),
+        ("Phase 13 flow", REQUIRED_README_SNIPPETS[9]),
+    )
     for title, snippet in flow_pairs:
         sections.extend(("", title, snippet))
     sections.append("")
     return "\n".join(sections)
 
+
 def _baseline_makefile() -> str:
-    return "\n".join((
-        "phase3-validate:",
-        "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase3.py",
-        "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase3.py --self-test",
-        "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase3-abi-bindings-syntax.py",
-        "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase3-abi-bindings-syntax.py --self-test",
-        "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase3-policy-unsafe-survey.py",
-        "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase3-policy-unsafe-survey.py --self-test",
-        "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase3-low-level-wrapper-survey.py",
-        "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase3-low-level-wrapper-survey.py --self-test",
-        "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase3-export-uapi-survey.py",
-        "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase3-export-uapi-survey.py --self-test",
-        "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase3-selftest-surface.py --self-test",
-        "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase3-selftest-surface.py",
-        "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase3-readme-tooling-inventory.py --self-test",
-        "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase3-readme-tooling-inventory.py",
-        "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase3-abi-dump-gate.py --self-test",
-        "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase3-abi-dump-gate.py",
-        "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/phase3_catalog.py --self-test",
-        "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/phase3_catalog.py --audit-doc-sync",
-        "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/phase3_check_lib.py --self-test",
-        "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/generate-phase3-check-wrappers.py --check",
-        "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/run-phase3-checks.py --self-test",
-        "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate_phase3_selftest.py",
-        "",
-        "phase3-selftest:",
-        "\t@true",
-        "",
-        "phase3-abi:",
-        "\t@true",
-        "",
-        "phase3-interop:",
-        "\t@true",
-        "",
-        "phase3: phase3-validate phase3-abi phase3-interop",
-        "",
-        "phase6-validate:",
-        "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase6-shared-surface.py",
-        "",
-        "phase6-test:",
-        "\t@true",
-        "",
-        "phase6: phase6-validate phase6-test",
-        "",
-        "phase7-validate:",
-        "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase7.py --self-test",
-        "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase7.py",
-        "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase7-make-wrapper.py --self-test",
-        "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase7-make-wrapper.py",
-        "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase7-argv-split-packet.py --self-test",
-        "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase7-argv-split-packet.py",
-        "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase7-rbtree-parity.py --self-test",
-        "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase7-rbtree-parity.py",
-        "",
-        "phase7-test:",
-        "\t@true",
-        "",
-        "phase7: phase7-validate phase7-test",
-        "",
-        "phase8-validate:",
-        "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase8.py --self-test",
-        "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase8.py",
-        "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase8-exec-cmd-packet.py --self-test",
-        "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase8-exec-cmd-packet.py",
-        "",
-        "phase8-test:",
-        "\t@true",
-        "",
-        "phase8: phase8-validate phase8-test",
-        "",
-        "phase9-test:",
-        "\t@true",
-        "",
-        "phase9: phase9-test",
-        "",
-        "phase12-test:",
-        "\t@true",
-        "",
-        "phase12: phase12-test",
-        "",
-        "phase13-validate:",
-        "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase13-release.py",
-        "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase13-devres-packet.py",
-        "",
-        "phase15-validate:",
-        "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase15-scripts-readme-alignment.py --self-test",
-        "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase15-scripts-readme-alignment.py",
-        "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase15-review-process-handoff.py --self-test",
-        "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase15-review-process-handoff.py",
-        "",
-    ))
+    return "\n".join(
+        (
+            "phase3-validate:",
+            "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase3.py",
+            "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase3.py --self-test",
+            "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase3-abi-bindings-syntax.py",
+            "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase3-abi-bindings-syntax.py --self-test",
+            "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase3-policy-unsafe-survey.py",
+            "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase3-policy-unsafe-survey.py --self-test",
+            "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase3-low-level-wrapper-survey.py",
+            "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase3-low-level-wrapper-survey.py --self-test",
+            "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase3-export-uapi-survey.py",
+            "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase3-export-uapi-survey.py --self-test",
+            "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase3-selftest-surface.py --self-test",
+            "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase3-selftest-surface.py",
+            "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase3-readme-tooling-inventory.py --self-test",
+            "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase3-readme-tooling-inventory.py",
+            "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase3-abi-dump-gate.py --self-test",
+            "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase3-abi-dump-gate.py",
+            "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/phase3_catalog.py --self-test",
+            "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/phase3_catalog.py --audit-doc-sync",
+            "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/phase3_check_lib.py --self-test",
+            "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/generate-phase3-check-wrappers.py --check",
+            "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/run-phase3-checks.py --self-test",
+            "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate_phase3_selftest.py",
+            "",
+            "phase3-selftest:",
+            "\t@true",
+            "",
+            "phase3-abi:",
+            "\t@true",
+            "",
+            "phase3-interop:",
+            "\t@true",
+            "",
+            "phase3: phase3-validate phase3-abi phase3-interop",
+            "",
+            "phase6-validate:",
+            "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase6-shared-surface.py",
+            "",
+            "phase6-test:",
+            "\t@true",
+            "",
+            "phase6: phase6-validate phase6-test",
+            "",
+            "phase7-validate:",
+            "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase7.py --self-test",
+            "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase7.py",
+            "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase7-make-wrapper.py --self-test",
+            "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase7-make-wrapper.py",
+            "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase7-argv-split-packet.py --self-test",
+            "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase7-argv-split-packet.py",
+            "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase7-rbtree-parity.py --self-test",
+            "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase7-rbtree-parity.py",
+            "",
+            "phase7-test:",
+            "\t@true",
+            "",
+            "phase7: phase7-validate phase7-test",
+            "",
+            "phase8-validate:",
+            "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase8.py --self-test",
+            "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase8.py",
+            "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase8-exec-cmd-packet.py --self-test",
+            "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase8-exec-cmd-packet.py",
+            "",
+            "phase8-test:",
+            "\t@true",
+            "",
+            "phase8: phase8-validate phase8-test",
+            "",
+            "phase9-test:",
+            "\t@true",
+            "",
+            "phase9: phase9-test",
+            "",
+            "phase12-test:",
+            "\t@true",
+            "",
+            "phase12: phase12-test",
+            "",
+            "phase13-validate:",
+            "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase13-release.py",
+            "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase13-devres-packet.py",
+            "",
+            "phase15-validate:",
+            "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase15-scripts-readme-alignment.py --self-test",
+            "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase15-scripts-readme-alignment.py",
+            "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase15-review-process-handoff.py --self-test",
+            "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase15-review-process-handoff.py",
+            "",
+        )
+    )
+
 
 def _assert_only(issues: list[str], expected: list[str], label: str) -> None:
     if issues != expected:
         got = ",".join(issues) or "none"
         want = ",".join(expected) or "none"
         raise SystemExit(f"phase3-readme-tooling-inventory-self-test:{label}:got={got}:want={want}")
+
 
 def run_self_test() -> int:
     case_count = 0
@@ -445,6 +470,27 @@ def run_self_test() -> int:
         )
         _write(root / MAKEFILE_REL, baseline_makefile)
         case_count += 1
+        abi_dump_live = (
+            "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase3-abi-dump-gate.py\n"
+        )
+        _write(
+            root / MAKEFILE_REL,
+            baseline_makefile.replace(
+                abi_dump_live,
+                abi_dump_live + abi_dump_live,
+                1,
+            ),
+        )
+        _assert_only(
+            validate(root),
+            [
+                "unexpected_makefile_command_count:phase3-validate:2:cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase3-abi-dump-gate.py",
+                "makefile_command_order_drift:phase3-validate",
+            ],
+            "duplicate_phase3_abi_dump_gate_live_command_guard_failed",
+        )
+        _write(root / MAKEFILE_REL, baseline_makefile)
+        case_count += 1
         for helper in ("check-phase3-abi-dump-gate.py", "validate-phase3-export-uapi-survey.py", "validate-phase3-abi-bindings-syntax.py"):
             marker = f"- `{helper}`\n"
             _write(root / README_REL, baseline_readme.replace(marker, "", 1))
@@ -460,6 +506,21 @@ def run_self_test() -> int:
         snippet = REQUIRED_README_SNIPPETS[0]
         _write(root / README_REL, baseline_readme.replace(snippet, "", 1))
         _assert_only(validate(root), [f"missing_readme_snippet:{snippet}"], "missing_phase3_support_packet_snippet_guard_failed")
+        _write(root / README_REL, baseline_readme)
+        case_count += 1
+        _write(
+            root / README_REL,
+            baseline_readme.replace(
+                snippet,
+                snippet + "\n" + snippet,
+                1,
+            ),
+        )
+        _assert_only(
+            validate(root),
+            [f"unexpected_readme_snippet_count:2:{snippet}"],
+            "duplicate_phase3_support_packet_snippet_guard_failed",
+        )
         _write(root / README_REL, baseline_readme)
         case_count += 1
         _write(root / README_REL, baseline_readme.replace("- `check-phase3-abi-dump-gate.py`\n", "- `check-phase3-abi-dump-gate.py`\n- `check-phase3-abi-dump-gate.py`\n", 1))
@@ -506,6 +567,7 @@ def run_self_test() -> int:
     print(f"PHASE3_README_TOOLING_INVENTORY_SELF_TEST_CASE_COUNT={case_count}")
     return 0
 
+
 def main() -> int:
     parser = argparse.ArgumentParser(description="Keep the scripts/zigux README tooling inventory aligned with the shipped repo-tooling packet.")
     parser.add_argument("--self-test", action="store_true", help="Run isolated checker coverage.")
@@ -523,6 +585,7 @@ def main() -> int:
     print("PHASE3_README_TOOLING_INVENTORY=pass")
     print(f"PHASE3_README_TOOLING_INVENTORY_HELPER_COUNT={len(REQUIRED_HELPERS)}")
     return 0
+
 
 if __name__ == "__main__":
     raise SystemExit(main())
