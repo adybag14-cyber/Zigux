@@ -46,9 +46,10 @@ It is a fallback-read map, not a closure claim and not a validator-first route.
 
 The shipped Phase 12 release order on `master` remains:
 
-1. `make -C zigux phase12-smoke`
-2. `zig build test --build-file zigux/tests/phase12_build.zig --summary all`
-3. `make -C zigux phase12`
+1. `zig build smoke --build-file zigux/tests/phase12_build.zig --summary all`
+2. `make -C zigux phase12-smoke`
+3. `zig build test --build-file zigux/tests/phase12_build.zig --summary all`
+4. `make -C zigux phase12`
 
 The shared build-only release guard for that smoke-first order is `scripts/zigux/check-build-only-phase12-surface.py`, and `.github/workflows/zigux-bootstrap.yml` reruns that checker so this fallback wording stays aligned with the shipped PMO release packet.
 
