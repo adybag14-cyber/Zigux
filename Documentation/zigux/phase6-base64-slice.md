@@ -7,13 +7,18 @@ This document records a bounded Phase 6 leaf-helper validation slice for Zigux.
 - `PHASE6_STATUS=parked`
 - `PHASE6_SLICE=base64-leaf-helper`
 - scope: first low-risk base64 helper coverage only
-- lane state: helper and fixture slice landed; parked unless a new `base64.c` parity issue appears
+- lane state: helper, fixture, perf, and external parity slice landed; parked unless a new `base64.c` parity issue appears
 - product boundary:
   - `lib/base64.zig`
   - `zigux/tests/phase6_base64.zig`
+  - `zigux/tests/phase6_base64_perf.zig`
+  - `zigux/tests/phase6_base64_c_parity.zig`
+  - `zigux/tests/phase6_base64_c_casegen.zig`
   - `zigux/tests/fixtures/phase6_base64_vectors.zig`
+  - `zigux/tests/fixtures/phase6_base64_c_harness.c`
   - `zigux/tests/phase6_build.zig`
   - `zigux/Makefile`
+  - `scripts/zigux/check-phase6-base64-c-parity.py`
 
 ## Why this slice exists
 
@@ -33,6 +38,10 @@ Phase 6 is where Zigux can keep proving low-risk in-kernel helper ports without 
 
 2. keep the shared Phase 6 surface checker aligned with this slice
 - `make -C zigux phase6-validate`
+
+3. keep the bounded external parity replay aligned with the helper-local packet
+- `python3 scripts/zigux/check-phase6-base64-c-parity.py --self-test`
+- `python3 scripts/zigux/check-phase6-base64-c-parity.py`
 
 ## Current parity surface
 
@@ -59,16 +68,16 @@ The current tests check:
 - shared kernel-derived encode, decode, variant, and invalid-input fixtures stored in `zigux/tests/fixtures/phase6_base64_vectors.zig`
 - invalid-input rejection through both `bytes` and `decode` for malformed, embedded-NUL, and variant-mismatched decode inputs
 - exhaustive canonical tail acceptance for padded and unpadded std, URL-safe, and IMAP decode paths
+- the bounded external C-vs-Zig replay packet through `zigux/tests/phase6_base64_c_parity.zig`, `zigux/tests/phase6_base64_c_casegen.zig`, `zigux/tests/fixtures/phase6_base64_c_harness.c`, and `python3 scripts/zigux/check-phase6-base64-c-parity.py`, including the current `PHASE6_BASE64_C_PARITY_SELF_TEST_CASE_COUNT=10` review gate and `PHASE6_BASE64_C_PARITY_CASES=122` spot check
 
 ## Non-goals
 
 This slice does not yet claim:
 
 - KUnit integration
-- a separate dedicated perf lane on `master`
-- a separate external C-vs-Zig parity packet on `master`
-- broader runtime-core or driver-facing expansion
+- committed generated fixture artifacts on `master`
+- broader runtime-core or driver-facing expansion beyond the shipped helper, perf, and external parity packet
 
 ## Next bounded step
 
-Keep the next Phase 6 follow-up inside the shared bundled `base64`, `bsearch`, `checksum`, and `hexdump` packet already gated by `zigux/tests/phase6_build.zig`, `make -C zigux phase6`, and `make -C zigux phase6-validate`. Reopen this slice only if fresh repo inspection finds a concrete new `base64.c` parity gap inside `lib/base64.zig`, `zigux/tests/phase6_base64.zig`, the committed fixture corpus, or that existing bundled gate.
+Keep the next Phase 6 follow-up inside the shared bundled `base64`, `bsearch`, `checksum`, and `hexdump` packet already gated by `zigux/tests/phase6_build.zig`, `make -C zigux phase6`, and `make -C zigux phase6-validate`. Reopen this slice only if fresh repo inspection finds a concrete new `base64.c` parity gap inside `lib/base64.zig`, `zigux/tests/phase6_base64.zig`, `zigux/tests/phase6_base64_perf.zig`, the committed fixture corpus, or the existing external parity packet.
