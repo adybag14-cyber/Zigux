@@ -17,6 +17,8 @@ REQUIRED_FILES = [
     "zigux/tests/phase8_build.zig",
     "zigux/tests/phase8_exec_cmd.zig",
     "zigux/tests/phase8_exec_cmd_only_build.zig",
+    "tools/lib/subcmd/exec-cmd.zig",
+    "tools/lib/subcmd/exec-cmd.c",
 ]
 
 REQUIRED_MARKERS = {
@@ -27,6 +29,8 @@ REQUIRED_MARKERS = {
         "shared Phase 8 validator-first route",
         "`kernel/workqueue.c` in the later Phase 14 boundary-study tranche",
         "stops before any ownership of `execv_cmd()` or `execvp()`",
+        "stops before any ownership of `execl_cmd()`",
+        "direct varargs launch path",
         "make -C zigux phase8-validate",
     ],
     "Documentation/zigux/review-checklist.md": [
@@ -68,11 +72,27 @@ REQUIRED_MARKERS = {
         "`kernel/workqueue.c` in the later Phase 14 boundary-study tranche",
         "phase 8 exec-cmd checklist hook keeps the parked deferred-exec packet explicit",
         "make -C zigux phase8-validate",
+        "phase 8 exec-cmd deferred boundary note still matches the live C helper anchors",
+        "`execl_cmd()`",
     ],
     "zigux/tests/phase8_exec_cmd_only_build.zig": [
         "../../tools/lib/subcmd/exec-cmd.zig",
         "\"phase8_exec_cmd.zig\"",
         "phase8-exec-cmd-tests",
+    ],
+    "tools/lib/subcmd/exec-cmd.zig": [
+        "pub fn buildDeferredExecvCall",
+        "pub fn buildDeferredExeclCall",
+        "pub fn collectExeclArgs",
+        "pub fn choosePwdCwdFromFilesystem",
+        "pub const max_execl_slots",
+    ],
+    "tools/lib/subcmd/exec-cmd.c": [
+        "static const char *get_pwd_cwd",
+        "void setup_path(void)",
+        "int execv_cmd",
+        "int execl_cmd",
+        "execvp(",
     ],
 }
 
@@ -134,6 +154,8 @@ def run_self_test() -> None:
         ("missing_phase8_build", "zigux/tests/phase8_build.zig"),
         ("missing_exec_cmd_test", "zigux/tests/phase8_exec_cmd.zig"),
         ("missing_exec_cmd_only_build", "zigux/tests/phase8_exec_cmd_only_build.zig"),
+        ("missing_exec_cmd_helper", "tools/lib/subcmd/exec-cmd.zig"),
+        ("missing_exec_cmd_c_anchor", "tools/lib/subcmd/exec-cmd.c"),
     ]
 
     marker_cases = [
@@ -157,6 +179,13 @@ def run_self_test() -> None:
             "output-stable tooling behavior",
             "output-stable deferred-exec behavior",
             "Documentation/zigux/phase8-exec-cmd-slice.md: output-stable tooling behavior",
+        ),
+        (
+            "slice_execl_boundary",
+            "Documentation/zigux/phase8-exec-cmd-slice.md",
+            "stops before any ownership of `execl_cmd()`",
+            "stops before any ownership of `execl_launch()`",
+            "Documentation/zigux/phase8-exec-cmd-slice.md: stops before any ownership of `execl_cmd()`",
         ),
         (
             "scripts_readme_phase8_flow",
@@ -250,6 +279,13 @@ def run_self_test() -> None:
             "zigux/tests/phase8_exec_cmd.zig: shared Phase 8 validator-first route",
         ),
         (
+            "focused_test_c_anchor_boundary",
+            "zigux/tests/phase8_exec_cmd.zig",
+            "phase 8 exec-cmd deferred boundary note still matches the live C helper anchors",
+            "phase 8 exec-cmd deferred boundary note still matches the live helper packet",
+            "zigux/tests/phase8_exec_cmd.zig: phase 8 exec-cmd deferred boundary note still matches the live C helper anchors",
+        ),
+        (
             "focused_build_root",
             "zigux/tests/phase8_exec_cmd_only_build.zig",
             "\"phase8_exec_cmd.zig\"",
@@ -262,6 +298,34 @@ def run_self_test() -> None:
             "phase8-exec-cmd-tests",
             "phase8-exec-tests",
             "zigux/tests/phase8_exec_cmd_only_build.zig: phase8-exec-cmd-tests",
+        ),
+        (
+            "helper_deferred_execv",
+            "tools/lib/subcmd/exec-cmd.zig",
+            "pub fn buildDeferredExecvCall",
+            "pub fn buildDeferredExecCall",
+            "tools/lib/subcmd/exec-cmd.zig: pub fn buildDeferredExecvCall",
+        ),
+        (
+            "helper_pwd_alias",
+            "tools/lib/subcmd/exec-cmd.zig",
+            "pub fn choosePwdCwdFromFilesystem",
+            "pub fn choosePwdCwdFromStat",
+            "tools/lib/subcmd/exec-cmd.zig: pub fn choosePwdCwdFromFilesystem",
+        ),
+        (
+            "c_anchor_get_pwd_cwd",
+            "tools/lib/subcmd/exec-cmd.c",
+            "static const char *get_pwd_cwd",
+            "static const char *get_path_cwd",
+            "tools/lib/subcmd/exec-cmd.c: static const char *get_pwd_cwd",
+        ),
+        (
+            "c_anchor_execl_cmd",
+            "tools/lib/subcmd/exec-cmd.c",
+            "int execl_cmd",
+            "int exec_launch_cmd",
+            "tools/lib/subcmd/exec-cmd.c: int execl_cmd",
         ),
     ]
 
