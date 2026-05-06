@@ -499,37 +499,109 @@ def write_text(path: Path, content: str) -> None:
 
 
 def write_stub_guard(path: Path, *, self_test_marker: str, live_markers: list[str]) -> None:
-    live_body = "\n".join(f"        print({marker!r})" for marker in live_markers)
-    path.write_text(
-        "#!/usr/bin/env python3\n"
-        "import argparse\n\n"
-        "parser = argparse.ArgumentParser()\n"
-        "parser.add_argument('--self-test', action='store_true')\n"
-        "args = parser.parse_args()\n"
-        "if args.self_test:\n"
-        + "\n".join(f"    print({line!r})" for line in self_test_marker.split("\n"))
-        + "\n"
-        "else:\n"
-        + live_body
-        + "\n",
-        encoding="utf-8",
-    )
+    lines = [
+        "#!/usr/bin/env python3",
+        "import argparse",
+        "",
+        "def main() -> int:",
+        "    parser = argparse.ArgumentParser()",
+        "    parser.add_argument('--self-test', action='store_true')",
+        "    args = parser.parse_args()",
+        "    if args.self_test:",
+    ]
+    for marker in self_test_marker.split("\n"):
+        lines.append(f"        print({marker!r})")
+    lines.append("        return 0")
+    for marker in live_markers:
+        lines.append(f"    print({marker!r})")
+    lines.append("    return 0")
+    lines.append("")
+    lines.append("if __name__ == '__main__':")
+    lines.append("    raise SystemExit(main())")
+    write_text(path, "\n".join(lines) + "\n")
 
 
 def build_script_readme_text() -> str:
-    markers = "\n".join(f"- `{marker}`" for marker in REQUIRED_SCRIPT_MARKERS)
-    helper_block = REQUIRED_SCRIPT_HELPER_INDEX_MARKERS[0]
-    return markers + "\n\n" + helper_block + "\n"
+    return "\n".join(
+        [
+            "- `check-zig-toolchain.py`",
+            "- `install-zig.py`",
+            "- `check-phase2-tests-readme-alignment.py`",
+            "- `check-phase2-cross-selftest-alignment.py`",
+            "- `check-phase2-toolchain-pin-scope.py`",
+            "- `validate-phase2.py`",
+            "- `validate-phase2-closure.py`",
+            "- `check-fixdep-diff.py`",
+            "- `check-genksyms-bridge.py`",
+            "- `check-genksyms-crc-diff.py`",
+            "- `check-kconfig-bridge.py`",
+            "- `check-phase2-cross.py`",
+            "- `genksyms.zig`",
+            "- `genksyms_crc.zig`",
+            "- `kconfig/conf_bridge.zig`",
+            "- `kconfig/confdata_bridge.zig`",
+            "- `check-mk-elfconfig-diff.py`",
+            "- `mk_elfconfig.zig`",
+            "",
+            "- `check-kconfig-bridge.py`",
+            "- `check-phase2-tests-readme-alignment.py`",
+            "- `check-phase2-cross-selftest-alignment.py`",
+            "- `check-phase2-toolchain-pin-scope.py`",
+            "- `check-phase2-cross.py`",
+            "- `check-mk-elfconfig-diff.py`",
+            "",
+        ]
+    )
 
 
 def build_self_test_root(root: Path) -> None:
-    for required in required_files(root):
-        required.parent.mkdir(parents=True, exist_ok=True)
-        if required.suffix in {".py", ".md", ".json", ".txt", ".zig", ".hex", ".h", ".c", ".so", ".rmeta", ".config", ".stderr"}:
-            required.write_text("\n", encoding="utf-8")
-        else:
-            required.write_bytes(b"\n")
-    write_text(root / "zigux/tests/fixtures/phase2_tool_manifest.json", json.dumps({"phase": "Phase 2", "status": "closed", "tools": ["fixdep.zig", "genksyms.zig", "genksyms_crc.zig", "mk_elfconfig.zig", "conf_bridge.zig", "confdata_bridge.zig"]}, indent=2) + "\n")
+    for path in required_files(root):
+        write_text(path, "placeholder\n")
+    write_text(root / "scripts/zigux/fixdep.zig", "// fixdep placeholder\n")
+    write_text(root / "scripts/zigux/genksyms.zig", "// genksyms placeholder\n")
+    write_text(root / "scripts/zigux/genksyms_crc.zig", "// genksyms crc placeholder\n")
+    write_text(root / "scripts/zigux/mk_elfconfig.zig", "// mk_elfconfig placeholder\n")
+    write_text(root / "scripts/zigux/kconfig/conf_bridge.zig", "// conf bridge placeholder\n")
+    write_text(root / "scripts/zigux/kconfig/confdata_bridge.zig", "// confdata bridge placeholder\n")
+    write_text(root / "zigux/tests/fixtures/fixdep/cases.json", "{}\n")
+    for rel in [
+        "sample.d",
+        "sample.c",
+        "sample.h",
+        "sample-config.h",
+        "sample.rmeta",
+        "sample_expected.txt",
+        "sample_multi_target.d",
+        "sample2.c",
+        "sample2-config.h",
+        "sample2.so",
+        "shared#config.h",
+        "sample_multi_target_expected.txt",
+        "sample_missing_dep.d",
+        "sample_missing_dep_source.c",
+        "sample_missing_dep_expected.txt",
+        "sample_missing_dep_expected.stderr.txt",
+    ]:
+        write_text(root / "zigux/tests/fixtures/fixdep" / rel, "fixture\n")
+    write_text(root / "zigux/tests/fixtures/genksyms_crc/genksyms_crc_c_harness.c", "int main(void) { return 0; }\n")
+    write_text(root / "zigux/tests/fixtures/genksyms_crc/inputs.txt", "input\n")
+    write_text(root / "zigux/tests/fixtures/genksyms_crc/expected.json", "{}\n")
+    write_text(root / "zigux/tests/fixtures/mk_elfconfig/cases.json", "{}\n")
+    for rel in [
+        "elf32.hex",
+        "elf64.hex",
+        "invalid_class.hex",
+        "not_elf.hex",
+        "truncated.hex",
+        "elf32_expected.json",
+        "elf64_expected.json",
+        "invalid_class_expected.json",
+        "not_elf_expected.json",
+        "truncated_expected.json",
+    ]:
+        write_text(root / "zigux/tests/fixtures/mk_elfconfig" / rel, "fixture\n")
+    write_text(root / "scripts/zigux/zig-toolchain-policy.json", json.dumps({"phase": "Phase 2", "channel": "0.17.0-dev.87+9b177a7d2", "minimum_version": "0.17.0-dev.87+9b177a7d2", "archive_sha256": {"x86_64-linux": "313b231e76f3cc9b718044602dbc3c42b531693507203a6baf2fa892c9533e77"}}, indent=2) + "\n")
+    write_text(root / "zigux/tests/fixtures/phase2_tool_manifest.json", json.dumps({"phase": "Phase 2", "status": "closed", "tool_count": 6, "tools": ["scripts/zigux/fixdep.zig", "scripts/zigux/genksyms.zig", "scripts/zigux/genksyms_crc.zig", "scripts/zigux/mk_elfconfig.zig", "scripts/zigux/kconfig/conf_bridge.zig", "scripts/zigux/kconfig/confdata_bridge.zig"]}, indent=2) + "\n")
     write_text(root / "zigux/tests/fixtures/phase2_cross_targets.json", json.dumps({"phase": "Phase 2", "status": "closed", "target_count": 3, "targets": ["x86_64-linux-musl", "aarch64-linux-musl", "riscv64-linux-musl"]}, indent=2) + "\n")
     write_text(root / "zigux/tests/fixtures/genksyms_bridge/cases.json", json.dumps({"cases": [{"expected": "minimal_expected.json"}]}, indent=2) + "\n")
     write_text(root / "zigux/tests/fixtures/genksyms_bridge/minimal_expected.json", "{}\n")
