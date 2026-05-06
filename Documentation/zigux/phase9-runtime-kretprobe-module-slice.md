@@ -36,6 +36,7 @@ The shared sample-root catalog at `samples/zigux/README.md` keeps the approved P
 - guarded lifecycle transitions for `cold`, `initialized`, `selftest_complete`, and `exited`
 - a retargetable symbol-name starter that defaults to `kernel_clone`, matching the Linux sample's module parameter
 - bounded entry-handler skip behavior for kernel-thread-like contexts, return-value and duration bookkeeping, and explicit `nmissed` tracking
+- dedicated failed-exit retention coverage that keeps the initialized or selftest-complete stage intact until the active probe drains instead of widening into partial teardown
 - a dedicated `runtime_kretprobe_diff` gate that replays skip, elapsed-time, and missed-instance expectations from `samples/kprobes/kretprobe_example.c`
 - a bounded `runtime_kretprobe_loader` scaffold that keeps the planned `register_kretprobe()` and `unregister_kretprobe()` labels, entry or exit symbol names, and per-instance private-data size explicit as metadata-only pre-execution handoff details while the runtime substrate remains unavailable
 - the loader handoff refuses to prepare a shared request while an entry timestamp is armed or a probe instance is still active, requiring an idle registration snapshot before the shared runtime-loader boundary
