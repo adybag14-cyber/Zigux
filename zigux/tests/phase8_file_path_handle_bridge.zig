@@ -39,6 +39,25 @@ test "phase 8 file-path handle bridge docs keep the bounded fdinfo helper explic
     try expectContains(note, "map-reuse-compatibility remains queued");
 }
 
+test "phase 8 userspace-kernel bridge boundary survey keeps queued bridge work explicit" {
+    const survey = try readWorkspaceFile(
+        std.testing.allocator,
+        "Documentation/zigux/phase8-userspace-kernel-bridge-boundary-survey.md",
+        32 * 1024,
+    );
+    defer std.testing.allocator.free(survey);
+
+    try expectContains(survey, "tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig");
+    try expectContains(survey, "zigux/tests/phase8_file_path_handle_bridge.zig");
+    try expectContains(survey, "zigux/tests/phase8_file_path_handle_bridge_only_build.zig");
+    try expectContains(survey, "Documentation/zigux/phase8-file-path-handle-bridge-slice.md");
+    try expectContains(survey, "planTokenPreparation()");
+    try expectContains(survey, "resolveReusePinnedMapAttempt()");
+    try expectContains(survey, "fd close or ownership semantics");
+    try expectContains(survey, "deferred `perf-buffer-online-cpu-routing` packet");
+    try expectContains(survey, "make -C zigux phase8-validate");
+}
+
 test "phase 8 file-path handle bridge helper stays wired into its focused Phase 8 build shard" {
     const focused_build_file = try readWorkspaceFile(
         std.testing.allocator,
