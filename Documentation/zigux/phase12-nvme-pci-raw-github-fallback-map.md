@@ -11,12 +11,13 @@ It is a fallback-read map, not a closure claim and not a validator-first route.
 - `PHASE12_STATUS=active`
 - `PHASE12_LANE_KEY=P12-L05`
 - `PHASE12_SLICE=nvme-pci-raw-github-fallback-map`
-- scope: public tree and raw URL coverage for the shipped `nvme_pci` starter, survey, build wiring, manifest, shared replay surfaces, and the PMO closure companion that now travels with the active release-order packet
+- scope: public tree and raw URL coverage for the shipped `nvme_pci` starter, direct verify shard, survey, build wiring, manifest, shared replay surfaces, and the PMO closure companion that now travels with the active release-order packet
 - active owner lane: `P12-L05`
 
 ## Tree views
 
 - driver starter: `https://github.com/adybag14-cyber/Zigux/blob/master/drivers/nvme/host/pci.zig`
+- direct verify shard: `https://github.com/adybag14-cyber/Zigux/blob/master/drivers/nvme/host/pci_verify.zig`
 - slice note: `https://github.com/adybag14-cyber/Zigux/blob/master/Documentation/zigux/phase12-nvme-pci-slice.md`
 - survey note: `https://github.com/adybag14-cyber/Zigux/blob/master/Documentation/zigux/phase12-nvme-pci-survey.md`
 - PMO closure companion: `https://github.com/adybag14-cyber/Zigux/blob/master/Documentation/zigux/phase12-release-closure-checklist.md`
@@ -32,6 +33,7 @@ It is a fallback-read map, not a closure claim and not a validator-first route.
 ## Raw file views
 
 - driver starter: `https://raw.githubusercontent.com/adybag14-cyber/Zigux/master/drivers/nvme/host/pci.zig`
+- direct verify shard: `https://raw.githubusercontent.com/adybag14-cyber/Zigux/master/drivers/nvme/host/pci_verify.zig`
 - slice note: `https://raw.githubusercontent.com/adybag14-cyber/Zigux/master/Documentation/zigux/phase12-nvme-pci-slice.md`
 - survey note: `https://raw.githubusercontent.com/adybag14-cyber/Zigux/master/Documentation/zigux/phase12-nvme-pci-survey.md`
 - PMO closure companion: `https://raw.githubusercontent.com/adybag14-cyber/Zigux/master/Documentation/zigux/phase12-release-closure-checklist.md`
@@ -49,6 +51,7 @@ It is a fallback-read map, not a closure claim and not a validator-first route.
 The shipped Phase 12 packet on `master` still keeps a direct smoke-preflight build route paired with the shared replay order below:
 
 - direct build preflight: `zig build smoke --build-file zigux/tests/phase12_build.zig --summary all`
+- current nvme smoke packet surfaces: `zigux/tests/phase12_nvme_pci.zig` and `drivers/nvme/host/pci_verify.zig`
 
 1. `make -C zigux phase12-smoke`
 2. `zig build test --build-file zigux/tests/phase12_build.zig --summary all`
