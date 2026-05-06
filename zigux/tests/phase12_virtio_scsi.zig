@@ -25,6 +25,53 @@ test "phase12 virtio scsi queue planner stays anchored to virtio_scsi.c" {
     try std.testing.expectEqual(@as(u16, virtio_scsi.event_buffer_count), layout.event_buffer_count);
 }
 
+test "phase12 virtio scsi probe snapshot keeps virtscsi_probe config and topology explicit" {
+    var lab = virtio_scsi.VirtioScsiQueueLab.init();
+    const snapshot = try lab.probeConfigSnapshot(6, 2, 128, 64, 255, 4096, 2048);
+
+    try std.testing.expectEqualStrings("drivers/scsi/virtio_scsi.c", snapshot.anchor);
+    try std.testing.expectEqual(@as(u16, 6), snapshot.num_queues);
+    try std.testing.expectEqual(@as(u16, 2), snapshot.requested_poll_queues);
+    try std.testing.expectEqual(@as(u32, 128), snapshot.seg_max);
+    try std.testing.expectEqual(@as(u32, 64), snapshot.cmd_per_lun);
+    try std.testing.expectEqual(@as(u32, 255), snapshot.max_target);
+    try std.testing.expectEqual(@as(u32, 4096), snapshot.max_lun);
+    try std.testing.expectEqual(@as(u32, 2048), snapshot.max_sectors);
+    try std.testing.expectEqual(@as(u16, 4), snapshot.default_queues);
+    try std.testing.expectEqual(@as(u16, 2), snapshot.poll_queues);
+    try std.testing.expectEqual(@as(u16, 8), snapshot.total_queues);
+    try std.testing.expectEqual(@as(u16, virtio_scsi.control_queue_index), snapshot.control_queue_index);
+    try std.testing.expectEqual(@as(u16, virtio_scsi.event_queue_index), snapshot.event_queue_index);
+    try std.testing.expectEqual(@as(u16, virtio_scsi.request_queue_base), snapshot.first_request_queue_index);
+    try std.testing.expectEqual(@as(?u16, 6), snapshot.first_poll_queue_index);
+    try std.testing.expectEqual(@as(u16, virtio_scsi.event_buffer_count), snapshot.event_buffer_count);
+    try std.testing.expect(snapshot.uses_control_queue);
+    try std.testing.expect(snapshot.uses_event_queue);
+    try std.testing.expect(snapshot.respects_poll_queue_clamp);
+    try std.testing.expect(snapshot.preserves_probe_only_scope);
+    try std.testing.expect(snapshot.blocks_dma_submission);
+
+    try std.testing.expectEqual(@as(u16, 6), lab.last_layout.?.request_queues);
+    try std.testing.expectEqual(@as(u16, 4), lab.last_layout.?.default_queues);
+    try std.testing.expectEqual(@as(u16, 2), lab.last_layout.?.poll_queues);
+}
+
+test "phase12 virtio scsi probe snapshot rejects invalid queue counts and frozen transport" {
+    var lab = virtio_scsi.VirtioScsiQueueLab.init();
+
+    try std.testing.expectError(
+        error.InvalidRequestQueueCount,
+        lab.probeConfigSnapshot(0, 0, 32, 16, 32, 64, 128),
+    );
+
+    _ = try lab.planQueueLayout(4, 1);
+    _ = try lab.freezeForTransportReset();
+    try std.testing.expectError(
+        error.TransportFrozen,
+        lab.probeConfigSnapshot(4, 1, 32, 16, 32, 64, 128),
+    );
+}
+
 test "phase12 virtio scsi clamps poll queues and classifies request families" {
     var lab = virtio_scsi.VirtioScsiQueueLab.init();
     const layout = try lab.planQueueLayout(4, 9);
