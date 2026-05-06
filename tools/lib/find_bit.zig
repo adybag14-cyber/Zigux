@@ -323,3 +323,21 @@ test "find last bit returns nbits when no set bits remain" {
     try std.testing.expectEqual(@as(usize, nbits), findLastBit(&bitmap, nbits));
     try std.testing.expectEqual(@as(usize, 0), findLastBit(&empty, 0));
 }
+
+test "tail-word next zero and shared scans skip earlier in-range matches before clamping" {
+    const nbits = bits_per_long + 6;
+    const tail_zero_map = [_]Word{
+        ~@as(Word, 0),
+        lastWordMask(nbits) & ~((@as(Word, 1) << 1) | (@as(Word, 1) << 4)),
+    };
+    const tail_and_lhs = [_]Word{ 0, (@as(Word, 1) << 1) | (@as(Word, 1) << 4) | (@as(Word, 1) << 9) };
+    const tail_and_rhs = [_]Word{ 0, (@as(Word, 1) << 1) | (@as(Word, 1) << 4) | (@as(Word, 1) << 9) };
+
+    try std.testing.expectEqual(@as(usize, bits_per_long + 1), findNextZeroBit(&tail_zero_map, nbits, bits_per_long + 1));
+    try std.testing.expectEqual(@as(usize, bits_per_long + 4), findNextZeroBit(&tail_zero_map, nbits, bits_per_long + 2));
+    try std.testing.expectEqual(@as(usize, nbits), findNextZeroBit(&tail_zero_map, nbits, bits_per_long + 5));
+
+    try std.testing.expectEqual(@as(usize, bits_per_long + 1), findNextAndBit(&tail_and_lhs, &tail_and_rhs, nbits, bits_per_long + 1));
+    try std.testing.expectEqual(@as(usize, bits_per_long + 4), findNextAndBit(&tail_and_lhs, &tail_and_rhs, nbits, bits_per_long + 2));
+    try std.testing.expectEqual(@as(usize, nbits), findNextAndBit(&tail_and_lhs, &tail_and_rhs, nbits, bits_per_long + 5));
+}
