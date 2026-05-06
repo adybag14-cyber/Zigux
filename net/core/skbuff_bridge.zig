@@ -222,6 +222,18 @@ const blocked_live_behaviors = [_][]const u8{
     "segmentation tail-list publication and validate_xmit_skb_list consumer coordination",
 };
 
+const concurrency_sensitive_checkpoint_ids = [_][]const u8{
+    "segmentation-partial-tail-owner-transfer",
+    "segmentation-checksum-data-offset-crossover",
+    "segmentation-tail-publication-consumer-contract",
+};
+
+const concurrency_sensitive_blocked_behaviors = [_][]const u8{
+    "segmentation partial-seg metadata and tail-owner transfer",
+    "segmentation checksum and data-offset crossover before tail publication",
+    "segmentation tail-list publication and validate_xmit_skb_list consumer coordination",
+};
+
 pub const SkbuffBridgeLab = struct {
     pub fn descriptor() ModuleDescriptor {
         return .{
@@ -298,6 +310,27 @@ pub const SkbuffBridgeLab = struct {
 
     pub fn blocksLiveBehavior(behavior: []const u8) bool {
         return blockedBehaviorIndex(behavior) != null;
+    }
+
+    pub fn concurrencySensitiveCheckpointIds() []const []const u8 {
+        return concurrency_sensitive_checkpoint_ids[0..];
+    }
+
+    pub fn concurrencySensitiveCheckpointCount() usize {
+        return concurrency_sensitive_checkpoint_ids.len;
+    }
+
+    pub fn isConcurrencySensitiveCheckpoint(id: []const u8) bool {
+        for (concurrency_sensitive_checkpoint_ids) |checkpoint_id| {
+            if (std.mem.eql(u8, checkpoint_id, id)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    pub fn concurrencySensitiveBlockedBehaviors() []const []const u8 {
+        return concurrency_sensitive_blocked_behaviors[0..];
     }
 
     pub fn nextAuditFocus() []const u8 {
@@ -401,6 +434,33 @@ test "skbuff bridge lifetime audit stays review-only" {
     try std.testing.expectEqualStrings("validate_xmit_skb_list()", tail_publication.observed_fields[4]);
     try std.testing.expect(std.mem.indexOf(u8, tail_publication.blocked_by, "segs->prev") != null);
     try std.testing.expect(std.mem.indexOf(u8, tail_publication.blocked_by, "qdisc and xmit ownership model") != null);
+}
+
+test "skbuff bridge concurrency-sensitive checkpoint catalog stays anchored to the publication boundary" {
+    try std.testing.expectEqual(@as(usize, 3), SkbuffBridgeLab.concurrencySensitiveCheckpointCount());
+    try std.testing.expectEqual(@as(usize, 3), SkbuffBridgeLab.concurrencySensitiveCheckpointIds().len);
+    try std.testing.expectEqual(@as(usize, 3), SkbuffBridgeLab.concurrencySensitiveBlockedBehaviors().len);
+
+    for (SkbuffBridgeLab.concurrencySensitiveCheckpointIds()) |checkpoint_id| {
+        const checkpoint = SkbuffBridgeLab.checkpointById(checkpoint_id) orelse return error.MissingCheckpoint;
+        try std.testing.expect(checkpoint.ownership == .stay_in_c);
+        try std.testing.expect(SkbuffBridgeLab.isConcurrencySensitiveCheckpoint(checkpoint_id));
+    }
+
+    const tail_owner = SkbuffBridgeLab.checkpointById("segmentation-partial-tail-owner-transfer") orelse return error.MissingCheckpoint;
+    try std.testing.expect(tail_owner.guard == .segmentation_partial_tail_owner_transfer);
+
+    const checksum_crossover = SkbuffBridgeLab.checkpointById("segmentation-checksum-data-offset-crossover") orelse return error.MissingCheckpoint;
+    try std.testing.expect(checksum_crossover.guard == .segmentation_checksum_data_offset_crossover);
+
+    const tail_publication = SkbuffBridgeLab.checkpointById("segmentation-tail-publication-consumer-contract") orelse return error.MissingCheckpoint;
+    try std.testing.expect(tail_publication.guard == .segmentation_tail_publication_consumer_contract);
+
+    for (SkbuffBridgeLab.concurrencySensitiveBlockedBehaviors()) |behavior| {
+        try std.testing.expect(SkbuffBridgeLab.blocksLiveBehavior(behavior));
+    }
+
+    try std.testing.expect(!SkbuffBridgeLab.isConcurrencySensitiveCheckpoint("checksum-complete-state-cache"));
 }
 
 test "skbuff bridge lookup helpers keep the review-only catalog queryable" {
