@@ -53,7 +53,7 @@ test "phase 5 bytestream fifo manifest records the exact bounded checks" {
     try std.testing.expectEqualStrings("samples/zigux/bytestream_fifo.zig", manifest.sample_path);
     try std.testing.expect(std.mem.indexOf(u8, manifest.validation_entrypoint, "phase5_build.zig") != null);
     try std.testing.expectEqual(@as(usize, 5), manifest.review_prompts.len);
-    try std.testing.expectEqual(@as(usize, 10), manifest.exact_checks.len);
+    try std.testing.expectEqual(@as(usize, 11), manifest.exact_checks.len);
     try std.testing.expectEqual(@as(usize, 4), manifest.non_goals.len);
 
     var saw_descriptor_prompt = false;
@@ -63,6 +63,7 @@ test "phase 5 bytestream fifo manifest records the exact bounded checks" {
     var saw_exact_sequence = false;
     var saw_capacity = false;
     var saw_helper_boundary = false;
+    var saw_preview_boundary = false;
     var saw_snapshot = false;
     var saw_short_drain_prefix = false;
     var saw_lifecycle = false;
@@ -96,6 +97,13 @@ test "phase 5 bytestream fifo manifest records the exact bounded checks" {
         if (std.mem.eql(u8, check.id, "fill-to-capacity")) {
             saw_capacity = true;
             try std.testing.expect(std.mem.indexOf(u8, check.expected, "20 through 42 inclusive") != null);
+        }
+        if (std.mem.eql(u8, check.id, "preview-truncation-boundary")) {
+            saw_preview_boundary = true;
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "snapshotInto still begins with [2,3,4,5]") != null);
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "previewInto copies [2,3,4,5,6,7,8,9]") != null);
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "reports 10 visible bytes") != null);
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "leaves the queued data intact") != null);
         }
         if (std.mem.eql(u8, check.id, "non-destructive-snapshot")) {
             saw_snapshot = true;
@@ -131,6 +139,7 @@ test "phase 5 bytestream fifo manifest records the exact bounded checks" {
     try std.testing.expect(saw_exact_sequence);
     try std.testing.expect(saw_capacity);
     try std.testing.expect(saw_helper_boundary);
+    try std.testing.expect(saw_preview_boundary);
     try std.testing.expect(saw_snapshot);
     try std.testing.expect(saw_short_drain_prefix);
     try std.testing.expect(saw_lifecycle);
