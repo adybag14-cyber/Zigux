@@ -21,9 +21,16 @@ MAKEFILE_PATH = "zigux/Makefile"
 WORKFLOW_PATH = ".github/workflows/zigux-bootstrap.yml"
 
 REQUIRED_CONTRACT_MARKERS = [
+    "`Documentation/zigux/phase11-bcm2835-wdt-validation-matrix.md`",
+    "`Documentation/zigux/phase11-gpio-wdt-validation-matrix.md`",
+    "`Documentation/zigux/phase11-dw-wdt-validation-matrix.md`",
+    "`Documentation/zigux/phase11-hvc-console-validation-matrix.md`",
+    "`Documentation/zigux/phase11-hvc-console-survey.md`",
     "`Documentation/zigux/phase11-uapi-header-parity-survey.md`",
     "`scripts/zigux/check-phase11-shared-replay-contract.py`",
     "`scripts/zigux/check-phase11-header-boundary-packet.py`",
+    "`zigux/tests/phase11_hvc_cleanup.zig`",
+    "`zigux/tests/phase11_hvc_console_survey.zig`",
     "`zigux/tests/phase11_uapi_header_parity_manifest.json`",
     "`.github/workflows/zigux-bootstrap.yml`",
     "there is no dedicated shared `validate-phase11.py` on `master`",
@@ -80,6 +87,8 @@ FORBIDDEN_CONTRACT_MARKERS = [
     "there is no dedicated shared `validate-phase11.py` or `phase11-validate` packet on current `master`",
     "the shipped checker only keeps the shared-versus-dedicated replay contract fail-closed",
 ]
+
+PHASE11_SHARED_REPLAY_CONTRACT_SELF_TEST_CASE_COUNT = 3
 
 
 def read_text(root: Path, rel_path: str) -> str:
@@ -163,6 +172,11 @@ def write_fixture_tree(root: Path) -> None:
 * `zigux/tests/README.md`
 * `Documentation/zigux/review-checklist.md`
 * `Documentation/zigux/phase11-shared-replay-contract.md`
+* `Documentation/zigux/phase11-bcm2835-wdt-validation-matrix.md`
+* `Documentation/zigux/phase11-gpio-wdt-validation-matrix.md`
+* `Documentation/zigux/phase11-dw-wdt-validation-matrix.md`
+* `Documentation/zigux/phase11-hvc-console-validation-matrix.md`
+* `Documentation/zigux/phase11-hvc-console-survey.md`
 * `Documentation/zigux/phase11-uapi-header-parity-survey.md`
 * `scripts/zigux/check-phase11-shared-replay-contract.py`
 * `scripts/zigux/check-phase11-header-boundary-packet.py`
@@ -170,8 +184,8 @@ def write_fixture_tree(root: Path) -> None:
 * `zigux/tests/phase11_hvc_cleanup.zig`
 * `zigux/tests/phase11_hvc_console_survey.zig`
 * `zigux/tests/phase11_uapi_header_parity_manifest.json`
-* `zigux/Makefile`
 * `.github/workflows/zigux-bootstrap.yml`
+* `zigux/Makefile`
 
 ## Shared Replay Commands
 * `zig build test --build-file zigux/tests/phase11_build.zig --summary all`
@@ -276,16 +290,53 @@ jobs:
     )
 
 
+def expect_failure(root: Path, marker: str, expected_failure: str) -> None:
+    contract_path = root / PHASE11_CONTRACT_PATH
+    contract_text = contract_path.read_text(encoding="utf-8")
+    contract_path.write_text(contract_text.replace(marker, "", 1), encoding="utf-8")
+    failures = validate(root)
+    if expected_failure not in failures:
+        raise AssertionError(f"missing expected failure {expected_failure!r}; got {failures!r}")
+
+
 def run_self_test() -> int:
     with tempfile.TemporaryDirectory(prefix="phase11_contract_", dir=None) as tmpdir:
         root = Path(tmpdir)
+
         write_fixture_tree(root)
         failures = validate(root)
         if failures:
             for failure in failures:
                 print(failure, file=sys.stderr)
             return 1
+
+        write_fixture_tree(root)
+        try:
+            expect_failure(
+                root,
+                "* `zigux/tests/phase11_hvc_cleanup.zig`\n",
+                "phase11_contract:`zigux/tests/phase11_hvc_cleanup.zig`",
+            )
+        except AssertionError as exc:
+            print(str(exc), file=sys.stderr)
+            return 1
+
+        write_fixture_tree(root)
+        try:
+            expect_failure(
+                root,
+                "* `Documentation/zigux/phase11-gpio-wdt-validation-matrix.md`\n",
+                "phase11_contract:`Documentation/zigux/phase11-gpio-wdt-validation-matrix.md`",
+            )
+        except AssertionError as exc:
+            print(str(exc), file=sys.stderr)
+            return 1
+
     print("PHASE11_SHARED_REPLAY_CONTRACT_SELFTEST=pass")
+    print(
+        "PHASE11_SHARED_REPLAY_CONTRACT_SELF_TEST_CASE_COUNT="
+        f"{PHASE11_SHARED_REPLAY_CONTRACT_SELF_TEST_CASE_COUNT}"
+    )
     return 0
 
 
