@@ -9,6 +9,8 @@ This note records the bounded Phase 2 x86_64-linux bootstrap archive-pin contrac
 - workflow verifier self-test: `python3 scripts/zigux/check-zig-toolchain.py --self-test`
 - compile-matrix self-test: `python3 scripts/zigux/check-phase2-cross.py --self-test`
 - compile-matrix guard: `python3 scripts/zigux/check-phase2-cross.py`
+- shared cross-selftest alignment self-test: `python3 scripts/zigux/check-phase2-cross-selftest-alignment.py --self-test`
+- shared cross-selftest alignment guard: `python3 scripts/zigux/check-phase2-cross-selftest-alignment.py`
 - shared genksyms bridge selftest-alignment self-test: `python3 scripts/zigux/check-phase2-genksyms-bridge-selftest-alignment.py --self-test`
 - shared genksyms bridge selftest-alignment guard: `python3 scripts/zigux/check-phase2-genksyms-bridge-selftest-alignment.py`
 - shared genksyms CRC parity gate: `python3 scripts/zigux/check-genksyms-crc-diff.py`
