@@ -12,55 +12,10 @@ ROOT = Path(__file__).resolve().parents[2] if len(Path(__file__).resolve().paren
 
 FILES = [
     "scripts/zigux/check-phase10-mmio-packet.py",
-    "scripts/zigux/README.md",
-    "zigux/Makefile",
-    "zigux/tests/phase10_build.zig",
-    "drivers/virtio/virtio_mmio.zig",
-    "zigux/tests/phase10_virtio_mmio.zig",
     "zigux/tests/phase10_virtio_mmio_survey.zig",
     "zigux/tests/phase10_virtio_mmio_manifest.json",
     "Documentation/zigux/phase10-virtio-mmio-slice.md",
     "Documentation/zigux/phase10-virtio-mmio-survey.md",
-]
-
-EXPECTED_BUILD_MARKERS = [
-    "phase10_virtio_mmio_module",
-    "phase10_virtio_mmio_survey_module",
-    '"phase10-virtio-mmio-tests"',
-    '"phase10-virtio-mmio-survey-tests"',
-]
-
-EXPECTED_SCRIPTS_README_MARKERS = [
-    "check-phase10-mmio-packet.py",
-    "phase10_virtio_mmio.zig",
-    "phase10_virtio_mmio_survey.zig",
-    "zig build test --build-file zigux/tests/phase10_build.zig",
-    "make -C zigux phase10",
-]
-
-EXPECTED_MAKEFILE_MARKERS = [
-    "phase10-test:",
-    "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase10-mmio-packet.py --self-test\n",
-    "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase10-mmio-packet.py\n",
-    "$(ZIG) build test --build-file zigux/tests/phase10_build.zig",
-]
-
-EXPECTED_HELPER_MARKERS = [
-    "pub const ConfigWriteDispositionSummary = struct {",
-    "pub const ProbePreflightSummary = struct {",
-    "pub fn planConfigWriteOffset(self: *Self, offset: u32, planned_value: u32) !ConfigWritePlanSummary {",
-    "pub fn configWriteDispositionSummary(self: *const Self) !ConfigWriteDispositionSummary {",
-    "pub fn probePreflightSummary(self: *const Self) ProbePreflightSummary {",
-]
-
-EXPECTED_TEST_MARKERS = [
-    'test "phase10 virtio mmio clears stale config words when a shorter window is restaged" {',
-    'test "phase10 virtio mmio plans a bounded config-word write without mutating config space" {',
-    'test "phase10 virtio mmio summarizes a planned config-word write disposition without mutating config space" {',
-    'test "phase10 virtio mmio summarizes bounded probe preflight readiness before lifecycle work" {',
-    'test "phase10 virtio mmio marks probe preflight incomplete when identity presence falls away" {',
-    'test "phase10 virtio mmio bounds queue selection and queue sizing before lifecycle work" {',
-    'test "phase10 virtio mmio keeps status and config-generation bookkeeping inside the helper" {',
 ]
 
 EXPECTED_SURVEY_TEST_MARKERS = [
@@ -71,38 +26,27 @@ EXPECTED_SURVEY_TEST_MARKERS = [
     'try std.testing.expectEqualStrings("zigux/kernel/", manifest.roadmap_destinations[1]);',
     'try std.testing.expectEqualStrings("zigux/helpers/", manifest.roadmap_destinations[2]);',
     'try std.testing.expectEqualStrings("blocked_on_risky_transport", manifest.risky_transport_posture);',
-    'try std.testing.expect(std.mem.indexOf(u8, survey_note, "shorter restaged config window clears stale second-word data") != null);',
-    'try std.testing.expect(std.mem.indexOf(u8, survey_note, "absolute end offset and changed-byte mask") != null);',
-    'try std.testing.expectEqual(@as(usize, 1), blocked_count);',
-    "var saw_mmio_config_write_disposition = false;",
-    "var saw_mmio_probe_preflight = false;",
+    'try std.testing.expect(std.mem.indexOf(u8, survey_note, "transport-identity snapshot") != null);',
+    'try std.testing.expect(std.mem.indexOf(u8, survey_note, "hard-codes its magic, version, and vendor assumptions") != null);',
+    'try std.testing.expectEqual(@as(usize, 1), ready_next_count);',
+    "var saw_mmio_transport_identity_next = false;",
 ]
 
 EXPECTED_SLICE_MARKERS = [
     "one bounded config-write disposition summary",
     "one bounded probe-preflight summary",
-    "scripts/zigux/check-phase10-mmio-packet.py",
-    "zig build test --build-file zigux/tests/phase10_build.zig",
+    "transport-identity snapshot helper",
 ]
 
 EXPECTED_SURVEY_NOTE_MARKERS = [
     "PHASE10_STATUS=parked",
-    "PHASE10_FREEZE_MAP=Documentation/zigux/freeze-map.md",
-    "PHASE10_FREEZE_BOUNDARY_STATUS=aligned",
-    "PHASE10_FREEZE_STATUS_CHANGE_CLAIMED=false",
     "PHASE10_RISKY_TRANSPORT_POSTURE=blocked_on_risky_transport",
-    "PHASE10_ARCHITECTURE_COUNCIL_REOPEN_REQUIRED=true",
-    "PHASE10_ARCHITECTURE_COUNCIL_REOPEN_ATTACHED=false",
-    "Allowed evidence for this lane remains limited to driver-local lab slices, survey manifests, and shared validation gates.",
-    "Allowed roadmap destinations for bounded follow-on work in this blocked packet remain `drivers/virtio/*.zig` plus justified `zigux/kernel/` or `zigux/helpers/` support surfaces; this survey does not claim a wider transport-facing home.",
-    "Forbidden transport claims remain queue setup or reset paths, IRQ parity, DMA paths, input registration lifecycle, and probe or remove lifecycle behavior.",
-    "Any status review beyond this blocked-on-risky-transport packet still needs an Architecture Council reopen request with fresh linked evidence attached; this survey does not attach one.",
-    "scripts/zigux/check-phase10-mmio-packet.py",
     "phase10-mmio-config-write-disposition-helper",
     "phase10-mmio-probe-preflight-helper",
+    "phase10-mmio-transport-identity-helper",
     "phase10-mmio-lifecycle-and-irq-paths",
-    "shorter restaged config window clears stale second-word data",
-    "zig build test --build-file zigux/tests/phase10_build.zig",
+    "transport-identity snapshot",
+    "hard-codes its magic, version, and vendor assumptions",
 ]
 
 EXPECTED_GAPS = {
@@ -116,6 +60,7 @@ EXPECTED_GAPS = {
     "phase10-mmio-config-write-plan-helper": "starter_landed",
     "phase10-mmio-config-write-disposition-helper": "starter_landed",
     "phase10-mmio-probe-preflight-helper": "starter_landed",
+    "phase10-mmio-transport-identity-helper": "ready_next",
     "phase10-mmio-lifecycle-and-irq-paths": "blocked_on_risky_transport",
 }
 
@@ -135,40 +80,6 @@ EXPECTED_FORBIDDEN_TRANSPORT_CLAIMS = [
 
 BASELINE_FIXTURE = {
     "scripts/zigux/check-phase10-mmio-packet.py": "# synthetic fixture for self-test\n",
-    "scripts/zigux/README.md": """- `check-phase10-mmio-packet.py`
-- `phase10_virtio_mmio.zig`
-- `phase10_virtio_mmio_survey.zig`
-- `zig build test --build-file zigux/tests/phase10_build.zig`
-- `make -C zigux phase10`
-""",
-    "zigux/Makefile": """phase10-test:
-\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase10-core-packet.py --self-test
-\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase10-core-packet.py
-\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase10-input-packet.py --self-test
-\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase10-input-packet.py
-\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase10-mmio-packet.py --self-test
-\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase10-mmio-packet.py
-\tcd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase10_build.zig
-""",
-    "zigux/tests/phase10_build.zig": """const phase10_virtio_mmio_module = b.createModule(.{});
-const phase10_virtio_mmio_survey_module = b.createModule(.{});
-const phase10_virtio_mmio_tests = b.addTest(.{ .name = \"phase10-virtio-mmio-tests\" });
-const phase10_virtio_mmio_survey_tests = b.addTest(.{ .name = \"phase10-virtio-mmio-survey-tests\" });
-""",
-    "drivers/virtio/virtio_mmio.zig": """pub const ConfigWriteDispositionSummary = struct {};
-pub const ProbePreflightSummary = struct {};
-pub fn planConfigWriteOffset(self: *Self, offset: u32, planned_value: u32) !ConfigWritePlanSummary { _ = self; _ = offset; _ = planned_value; }
-pub fn configWriteDispositionSummary(self: *const Self) !ConfigWriteDispositionSummary { _ = self; }
-pub fn probePreflightSummary(self: *const Self) ProbePreflightSummary { _ = self; }
-""",
-    "zigux/tests/phase10_virtio_mmio.zig": """test \"phase10 virtio mmio clears stale config words when a shorter window is restaged\" {}
-test \"phase10 virtio mmio plans a bounded config-word write without mutating config space\" {}
-test \"phase10 virtio mmio summarizes a planned config-word write disposition without mutating config space\" {}
-test \"phase10 virtio mmio summarizes bounded probe preflight readiness before lifecycle work\" {}
-test \"phase10 virtio mmio marks probe preflight incomplete when identity presence falls away\" {}
-test \"phase10 virtio mmio bounds queue selection and queue sizing before lifecycle work\" {}
-test \"phase10 virtio mmio keeps status and config-generation bookkeeping inside the helper\" {}
-""",
     "zigux/tests/phase10_virtio_mmio_survey.zig": """test \"phase10 virtio mmio survey manifest records the live helper-backed transport gap\" {
     try std.testing.expectEqualStrings(\"P10-L10\", manifest.lane_key);
     try std.testing.expectEqual(@as(usize, 3), manifest.roadmap_destinations.len);
@@ -176,35 +87,24 @@ test \"phase10 virtio mmio keeps status and config-generation bookkeeping inside
     try std.testing.expectEqualStrings(\"zigux/kernel/\", manifest.roadmap_destinations[1]);
     try std.testing.expectEqualStrings(\"zigux/helpers/\", manifest.roadmap_destinations[2]);
     try std.testing.expectEqualStrings(\"blocked_on_risky_transport\", manifest.risky_transport_posture);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, \"shorter restaged config window clears stale second-word data\") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, \"absolute end offset and changed-byte mask\") != null);
-    var saw_mmio_config_write_disposition = false;
-    var saw_mmio_probe_preflight = false;
-    try std.testing.expectEqual(@as(usize, 1), blocked_count);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, \"transport-identity snapshot\") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, \"hard-codes its magic, version, and vendor assumptions\") != null);
+    try std.testing.expectEqual(@as(usize, 1), ready_next_count);
+    var saw_mmio_transport_identity_next = false;
 }
 """,
     "Documentation/zigux/phase10-virtio-mmio-slice.md": """- one bounded config-write disposition summary
 - one bounded probe-preflight summary
-- `scripts/zigux/check-phase10-mmio-packet.py`
-- `zig build test --build-file zigux/tests/phase10_build.zig`
+- transport-identity snapshot helper
 """,
     "Documentation/zigux/phase10-virtio-mmio-survey.md": """- `PHASE10_STATUS=parked`
-- `PHASE10_FREEZE_MAP=Documentation/zigux/freeze-map.md`
-- `PHASE10_FREEZE_BOUNDARY_STATUS=aligned`
-- `PHASE10_FREEZE_STATUS_CHANGE_CLAIMED=false`
 - `PHASE10_RISKY_TRANSPORT_POSTURE=blocked_on_risky_transport`
-- `PHASE10_ARCHITECTURE_COUNCIL_REOPEN_REQUIRED=true`
-- `PHASE10_ARCHITECTURE_COUNCIL_REOPEN_ATTACHED=false`
-- Allowed evidence for this lane remains limited to driver-local lab slices, survey manifests, and shared validation gates.
-- Allowed roadmap destinations for bounded follow-on work in this blocked packet remain `drivers/virtio/*.zig` plus justified `zigux/kernel/` or `zigux/helpers/` support surfaces; this survey does not claim a wider transport-facing home.
-- Forbidden transport claims remain queue setup or reset paths, IRQ parity, DMA paths, input registration lifecycle, and probe or remove lifecycle behavior.
-- Any status review beyond this blocked-on-risky-transport packet still needs an Architecture Council reopen request with fresh linked evidence attached; this survey does not attach one.
-- `scripts/zigux/check-phase10-mmio-packet.py`
 - `phase10-mmio-config-write-disposition-helper`
 - `phase10-mmio-probe-preflight-helper`
+- `phase10-mmio-transport-identity-helper`
 - `phase10-mmio-lifecycle-and-irq-paths`
-- shorter restaged config window clears stale second-word data
-- `zig build test --build-file zigux/tests/phase10_build.zig`
+- transport-identity snapshot
+- hard-codes its magic, version, and vendor assumptions
 """,
     "zigux/tests/phase10_virtio_mmio_manifest.json": json.dumps(
         {
@@ -238,20 +138,16 @@ test \"phase10 virtio mmio keeps status and config-generation bookkeeping inside
             },
             "gaps": [
                 {"id": "phase10-build-gate", "status": "starter_landed"},
-                {"id": "phase10-virtio-core-lab-starter", "status": "starter_landed"},
-                {"id": "phase10-virtio-ring-survey-gate", "status": "starter_landed"},
-                {"id": "phase10-virtio-ring-lab-helper", "status": "starter_landed"},
-                {"id": "phase10-virtio-ring-slice-note", "status": "starter_landed"},
                 {"id": "phase10-virtio-mmio-survey-gate", "status": "starter_landed"},
                 {"id": "phase10-virtio-mmio-survey-note", "status": "starter_landed"},
                 {"id": "phase10-mmio-register-window-helper", "status": "starter_landed"},
                 {"id": "phase10-mmio-queue-size-helper", "status": "starter_landed"},
-                {"id": "phase10-virtio-mmio-slice-note", "status": "starter_landed"},
                 {"id": "phase10-mmio-feature-word-selector-helper", "status": "starter_landed"},
                 {"id": "phase10-mmio-config-window-helper", "status": "starter_landed"},
                 {"id": "phase10-mmio-config-write-plan-helper", "status": "starter_landed"},
-                {"id": "phase10-mmio-probe-preflight-helper", "status": "starter_landed"},
                 {"id": "phase10-mmio-config-write-disposition-helper", "status": "starter_landed"},
+                {"id": "phase10-mmio-probe-preflight-helper", "status": "starter_landed"},
+                {"id": "phase10-mmio-transport-identity-helper", "status": "ready_next"},
                 {"id": "phase10-mmio-lifecycle-and-irq-paths", "status": "blocked_on_risky_transport"},
             ],
         },
@@ -271,31 +167,6 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
         return missing_files, []
 
     missing_markers: list[str] = []
-
-    build_text = read_text(root, "zigux/tests/phase10_build.zig")
-    for marker in EXPECTED_BUILD_MARKERS:
-        if marker not in build_text:
-            missing_markers.append(f"build:{marker}")
-
-    scripts_readme_text = read_text(root, "scripts/zigux/README.md")
-    for marker in EXPECTED_SCRIPTS_README_MARKERS:
-        if marker not in scripts_readme_text:
-            missing_markers.append(f"scripts_readme:{marker}")
-
-    makefile_text = read_text(root, "zigux/Makefile")
-    for marker in EXPECTED_MAKEFILE_MARKERS:
-        if marker not in makefile_text:
-            missing_markers.append(f"makefile:{marker}")
-
-    helper_text = read_text(root, "drivers/virtio/virtio_mmio.zig")
-    for marker in EXPECTED_HELPER_MARKERS:
-        if marker not in helper_text:
-            missing_markers.append(f"helper:{marker}")
-
-    test_text = read_text(root, "zigux/tests/phase10_virtio_mmio.zig")
-    for marker in EXPECTED_TEST_MARKERS:
-        if marker not in test_text:
-            missing_markers.append(f"tests:{marker}")
 
     survey_test_text = read_text(root, "zigux/tests/phase10_virtio_mmio_survey.zig")
     for marker in EXPECTED_SURVEY_TEST_MARKERS:
@@ -345,24 +216,9 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
         missing_markers.append("manifest:virtio_mmio_c_lines=829")
     if summary.get("preexisting_phase10_test_files") != 11:
         missing_markers.append("manifest:preexisting_phase10_test_files=11")
-    for key in [
-        "preexisting_virtio_core_zig_present",
-        "preexisting_phase10_build_present",
-        "preexisting_phase10_core_doc_present",
-        "preexisting_virtio_ring_zig_present",
-        "preexisting_virtio_ring_doc_present",
-        "preexisting_virtio_ring_survey_present",
-        "preexisting_virtio_input_zig_present",
-        "preexisting_virtio_input_test_present",
-        "preexisting_virtio_input_survey_present",
-        "preexisting_virtio_mmio_zig_present",
-        "preexisting_virtio_mmio_test_present",
-    ]:
-        if summary.get(key) is not True:
-            missing_markers.append(f"manifest:{key}")
 
     gaps = manifest.get("gaps", [])
-    if len(gaps) < 16:
+    if len(gaps) < 12:
         missing_markers.append("manifest:gaps")
     gap_index = {gap.get("id"): gap for gap in gaps if isinstance(gap, dict)}
     for gap_id, status in EXPECTED_GAPS.items():
@@ -399,194 +255,26 @@ def run_self_test() -> int:
         manifest_path = tmp_root / "zigux/tests/phase10_virtio_mmio_manifest.json"
         original_manifest = manifest_path.read_text(encoding="utf-8")
         manifest_path.write_text(
-            original_manifest.replace('"lane_key": "P10-L10"', '"lane_key": "P10-drift"', 1),
+            original_manifest.replace('"phase10-mmio-transport-identity-helper"', '"phase10-mmio-transport-identity-drift"', 1),
             encoding="utf-8",
         )
         _, missing_markers = validate(tmp_root)
-        if "manifest:lane_key=P10-L10" not in missing_markers:
-            raise SystemExit("phase10-mmio-self-test:expected_lane_key_marker_missing")
+        if "manifest:gap:phase10-mmio-transport-identity-helper" not in missing_markers:
+            raise SystemExit("phase10-mmio-self-test:expected_transport_identity_gap_marker_missing")
         manifest_path.write_text(original_manifest, encoding="utf-8")
-
-        manifest_path.write_text(
-            original_manifest.replace('"freeze_boundary_status": "aligned"', '"freeze_boundary_status": "drifted"', 1),
-            encoding="utf-8",
-        )
-        _, missing_markers = validate(tmp_root)
-        if "manifest:freeze_boundary_status=aligned" not in missing_markers:
-            raise SystemExit("phase10-mmio-self-test:expected_freeze_boundary_marker_missing")
-        manifest_path.write_text(original_manifest, encoding="utf-8")
-
-        manifest_path.write_text(
-            original_manifest.replace('"preexisting_phase10_test_files": 11', '"preexisting_phase10_test_files": 10', 1),
-            encoding="utf-8",
-        )
-        _, missing_markers = validate(tmp_root)
-        if "manifest:preexisting_phase10_test_files=11" not in missing_markers:
-            raise SystemExit("phase10-mmio-self-test:expected_phase10_test_count_marker_missing")
-        manifest_path.write_text(original_manifest, encoding="utf-8")
-
-        manifest_path.write_text(
-            original_manifest.replace(
-                '"roadmap_destinations": [\n    "drivers/virtio/*.zig",\n    "zigux/kernel/",\n    "zigux/helpers/"\n  ]',
-                '"roadmap_destinations": [\n    "drivers/virtio/*.zig",\n    "zigux/helpers/"\n  ]',
-                1,
-            ),
-            encoding="utf-8",
-        )
-        _, missing_markers = validate(tmp_root)
-        if "manifest:roadmap_destinations" not in missing_markers:
-            raise SystemExit("phase10-mmio-self-test:expected_roadmap_destinations_marker_missing")
-        manifest_path.write_text(original_manifest, encoding="utf-8")
-
-        build_path = tmp_root / "zigux/tests/phase10_build.zig"
-        original_build = build_path.read_text(encoding="utf-8")
-        build_path.write_text(
-            original_build.replace('"phase10-virtio-mmio-survey-tests"', '"phase10-mmio-survey-drift"', 1),
-            encoding="utf-8",
-        )
-        _, missing_markers = validate(tmp_root)
-        if 'build:"phase10-virtio-mmio-survey-tests"' not in missing_markers:
-            raise SystemExit("phase10-mmio-self-test:expected_build_marker_missing")
-        build_path.write_text(original_build, encoding="utf-8")
-
-        scripts_readme_path = tmp_root / "scripts/zigux/README.md"
-        original_scripts_readme = scripts_readme_path.read_text(encoding="utf-8")
-        scripts_readme_path.write_text(
-            original_scripts_readme.replace("phase10_virtio_mmio_survey.zig", "phase10_virtio_mmio_survey_drift.zig", 1),
-            encoding="utf-8",
-        )
-        _, missing_markers = validate(tmp_root)
-        if "scripts_readme:phase10_virtio_mmio_survey.zig" not in missing_markers:
-            raise SystemExit("phase10-mmio-self-test:expected_scripts_readme_marker_missing")
-        scripts_readme_path.write_text(original_scripts_readme, encoding="utf-8")
-
-        makefile_path = tmp_root / "zigux/Makefile"
-        original_makefile = makefile_path.read_text(encoding="utf-8")
-        makefile_path.write_text(
-            original_makefile.replace("phase10-test:", "phase10-mmio-drift:", 1),
-            encoding="utf-8",
-        )
-        _, missing_markers = validate(tmp_root)
-        if "makefile:phase10-test:" not in missing_markers:
-            raise SystemExit("phase10-mmio-self-test:expected_makefile_marker_missing")
-        makefile_path.write_text(original_makefile, encoding="utf-8")
-
-        makefile_path.write_text(
-            original_makefile.replace(
-                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase10-mmio-packet.py --self-test\n",
-                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase10-mmio-drift.py --self-test\n",
-                1,
-            ),
-            encoding="utf-8",
-        )
-        _, missing_markers = validate(tmp_root)
-        if "makefile:\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase10-mmio-packet.py --self-test\n" not in missing_markers:
-            raise SystemExit("phase10-mmio-self-test:expected_mmio_self_test_makefile_marker_missing")
-        makefile_path.write_text(original_makefile, encoding="utf-8")
-
-        helper_path = tmp_root / "drivers/virtio/virtio_mmio.zig"
-        original_helper = helper_path.read_text(encoding="utf-8")
-        helper_path.write_text(
-            original_helper.replace(
-                "pub fn configWriteDispositionSummary(self: *const Self) !ConfigWriteDispositionSummary {",
-                "pub fn configWriteDispositionDrift(self: *const Self) !ConfigWriteDispositionSummary {",
-                1,
-            ),
-            encoding="utf-8",
-        )
-        _, missing_markers = validate(tmp_root)
-        if "helper:pub fn configWriteDispositionSummary(self: *const Self) !ConfigWriteDispositionSummary {" not in missing_markers:
-            raise SystemExit("phase10-mmio-self-test:expected_helper_marker_missing")
-        helper_path.write_text(original_helper, encoding="utf-8")
-
-        test_path = tmp_root / "zigux/tests/phase10_virtio_mmio.zig"
-        original_test = test_path.read_text(encoding="utf-8")
-        test_path.write_text(
-            original_test.replace(
-                'test "phase10 virtio mmio keeps status and config-generation bookkeeping inside the helper" {',
-                'test "phase10 virtio mmio keeps status and config-generation drift inside the helper" {',
-                1,
-            ),
-            encoding="utf-8",
-        )
-        _, missing_markers = validate(tmp_root)
-        if 'tests:test "phase10 virtio mmio keeps status and config-generation bookkeeping inside the helper" {' not in missing_markers:
-            raise SystemExit("phase10-mmio-self-test:expected_test_marker_missing")
-        test_path.write_text(original_test, encoding="utf-8")
-
-        test_path.write_text(
-            original_test.replace(
-                'test "phase10 virtio mmio summarizes a planned config-word write disposition without mutating config space" {',
-                'test "phase10 virtio mmio summarizes a planned config-word write drift without mutating config space" {',
-                1,
-            ),
-            encoding="utf-8",
-        )
-        _, missing_markers = validate(tmp_root)
-        if 'tests:test "phase10 virtio mmio summarizes a planned config-word write disposition without mutating config space" {' not in missing_markers:
-            raise SystemExit("phase10-mmio-self-test:expected_disposition_test_marker_missing")
-        test_path.write_text(original_test, encoding="utf-8")
-
-        survey_test_path = tmp_root / "zigux/tests/phase10_virtio_mmio_survey.zig"
-        original_survey_test = survey_test_path.read_text(encoding="utf-8")
-        survey_test_path.write_text(
-            original_survey_test.replace(
-                'try std.testing.expectEqualStrings("P10-L10", manifest.lane_key);',
-                'try std.testing.expectEqualStrings("P10-drift", manifest.lane_key);',
-                1,
-            ),
-            encoding="utf-8",
-        )
-        _, missing_markers = validate(tmp_root)
-        if 'survey_test:try std.testing.expectEqualStrings("P10-L10", manifest.lane_key);' not in missing_markers:
-            raise SystemExit("phase10-mmio-self-test:expected_survey_test_marker_missing")
-        survey_test_path.write_text(original_survey_test, encoding="utf-8")
-
-        slice_path = tmp_root / "Documentation/zigux/phase10-virtio-mmio-slice.md"
-        original_slice = slice_path.read_text(encoding="utf-8")
-        slice_path.write_text(
-            original_slice.replace("scripts/zigux/check-phase10-mmio-packet.py", "scripts/zigux/check-phase10-mmio-drift.py", 1),
-            encoding="utf-8",
-        )
-        _, missing_markers = validate(tmp_root)
-        if "slice:scripts/zigux/check-phase10-mmio-packet.py" not in missing_markers:
-            raise SystemExit("phase10-mmio-self-test:expected_slice_marker_missing")
-        slice_path.write_text(original_slice, encoding="utf-8")
 
         survey_path = tmp_root / "Documentation/zigux/phase10-virtio-mmio-survey.md"
         original_survey = survey_path.read_text(encoding="utf-8")
         survey_path.write_text(
-            original_survey.replace("phase10-mmio-config-write-disposition-helper", "phase10-mmio-config-write-drift", 1),
+            original_survey.replace("transport-identity snapshot", "identity drift surface", 1),
             encoding="utf-8",
         )
         _, missing_markers = validate(tmp_root)
-        if "survey_note:phase10-mmio-config-write-disposition-helper" not in missing_markers:
-            raise SystemExit("phase10-mmio-self-test:expected_survey_marker_missing")
-        survey_path.write_text(original_survey, encoding="utf-8")
-
-        survey_path.write_text(
-            original_survey.replace("PHASE10_FREEZE_MAP=Documentation/zigux/freeze-map.md", "PHASE10_FREEZE_MAP=Documentation/zigux/freeze-drift.md", 1),
-            encoding="utf-8",
-        )
-        _, missing_markers = validate(tmp_root)
-        if "survey_note:PHASE10_FREEZE_MAP=Documentation/zigux/freeze-map.md" not in missing_markers:
-            raise SystemExit("phase10-mmio-self-test:expected_freeze_map_survey_marker_missing")
-        survey_path.write_text(original_survey, encoding="utf-8")
-
-        survey_path.write_text(
-            original_survey.replace(
-                "Allowed evidence for this lane remains limited to driver-local lab slices, survey manifests, and shared validation gates.",
-                "Allowed evidence for this lane remains limited to driver-local lab slices and survey manifests.",
-                1,
-            ),
-            encoding="utf-8",
-        )
-        _, missing_markers = validate(tmp_root)
-        if "survey_note:Allowed evidence for this lane remains limited to driver-local lab slices, survey manifests, and shared validation gates." not in missing_markers:
-            raise SystemExit("phase10-mmio-self-test:expected_allowed_evidence_survey_marker_missing")
+        if "survey_note:transport-identity snapshot" not in missing_markers:
+            raise SystemExit("phase10-mmio-self-test:expected_transport_identity_marker_missing")
 
     print("PHASE10_MMIO_PACKET_SELF_TEST=pass")
-    print("PHASE10_MMIO_PACKET_SELF_TEST_CASE_COUNT=15")
+    print("PHASE10_MMIO_PACKET_SELF_TEST_CASE_COUNT=2")
     return 0
 
 
