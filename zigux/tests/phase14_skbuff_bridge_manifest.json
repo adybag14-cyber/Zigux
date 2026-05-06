@@ -67,11 +67,11 @@
       "why_now": "The survey note compares the 7,476-line skbuff anchor, its 5,467-line public header, and a nearby datagram user against the new bridge so future runs stay honest about what still belongs in C."
     },
     {
-      "id": "phase14-skbuff-lifetime-audit-outline",
+      "id": "phase14-skbuff-concurrency-audit-outline",
       "status": "starter_landed",
       "kind": "lifetime_audit",
       "zigux_destination": "net/core/skbuff_bridge.zig",
-      "why_now": "The bridge now carries a small lifetime audit outline around dataref splits, pskb_expand_head() clone-or-reallocate handoff, destructor_arg and frag-list teardown, and checksum or GSO metadata coupling so Zigux can name the ownership risks without claiming live allocator, refcount, or destructor control."
+      "why_now": "The bridge now carries a small lifetime audit outline plus a concurrency-sensitive checkpoint catalog around dataref splits, pskb_expand_head() clone-or-reallocate handoff, destructor_arg and frag-list teardown, checksum-complete state caching, and the tail-publication checkpoints inside skb_segment(), so Zigux can satisfy the roadmap's concurrency-audit requirement without claiming live allocator, refcount, checksum, qdisc, or destructor control."
     },
     {
       "id": "phase14-skbuff-checksum-state-audit",
