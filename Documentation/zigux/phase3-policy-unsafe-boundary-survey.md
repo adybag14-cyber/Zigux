@@ -5,7 +5,7 @@ This note records the current policy and narrow-unsafe boundary for the bounded 
 ## Status
 
 - `PHASE3_LAYOUT_ASSERT_PATH=zigux/helpers/layout_assert.zig`
-- `PHASE3_LAYOUT_ASSERT_SCOPE=canonical-bindings`
+- `PHASE3_LAYOUT_ASSERT_SCOPE=canonical-bindings-plus-mmio-and-rbtree-views`
 - `PHASE3_LAYOUT_ASSERT_BLOB_SHA=8d9eb1068a058337823d91766fc15a147e525bb3`
 - `PHASE3_PANIC_POLICY_PATH=zigux/helpers/panic_policy.zig`
 - `PHASE3_PANIC_POLICY=explicit-modes-only`
@@ -48,7 +48,7 @@ This lane does not justify broad runtime policy machinery on its own.
 
 The current tree still carries a real bounded policy-and-unsafe packet, but it is smaller than older versions of this survey claimed:
 
-- `zigux/helpers/layout_assert.zig` keeps compile-time size, alignment, and offset checks for `BoundaryHeader`, `ExportStatus`, and `InteropPolicy` on the canonical ABI surface.
+- `zigux/helpers/layout_assert.zig` keeps compile-time size, alignment, field-type, and offset checks for the canonical ABI root while also covering the shipped `MmioRange` and `RbtreeRootView` layouts that now sit inside the same bounded packet.
 - `zigux/helpers/panic_policy.zig` keeps panic action explicit through `abort`, `bug`, and `warn`, and its focused test still proves the return policy directly from those enum values.
 - `zigux/helpers/allocator_policy.zig` keeps caller-provided ownership and global-fallback policy explicit through the current helper-local predicates.
 - `zigux/unsafe/narrow.zig` still keeps the raw-pointer bridge deliberately small, but it now also decodes `InteropPolicy` unsafe-scope bytes explicitly through `scopeFromInteropPolicyBytes`, `recognizesInteropPolicyBytes`, `permitsVolatileMmioPolicyBytes`, and `permitsRawPointerBridgePolicyBytes` so unknown scopes and reserved-byte drift do not have to be inferred elsewhere in the packet.
@@ -66,7 +66,7 @@ That means this lane remains note-and-marker maintenance inside the shared ABI p
 
 ## Current Boundary Gap
 
-A real helper-local unsafe-surface step landed in this run:
+Current same-family progress already includes one helper-local unsafe-surface tightening:
 
 - the narrow unsafe helper now decodes the ABI unsafe-scope bytes explicitly instead of leaving reserved-byte and unknown-scope handling implicit
 - helper-local tests now prove valid `.none`, `.volatile_mmio`, and `.raw_pointer_bridge` decoding plus invalid-scope and reserved-byte rejection
