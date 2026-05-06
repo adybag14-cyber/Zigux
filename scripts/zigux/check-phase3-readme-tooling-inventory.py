@@ -591,6 +591,14 @@ def run_self_test() -> int:
         _assert_only(validate(root), ["missing_repo_file:scripts/zigux/check-phase10-mmio-packet.py"], "missing_phase10_mmio_packet_repo_file_guard_failed")
         _write(root / "scripts" / "zigux" / "check-phase10-mmio-packet.py", "# stub\n")
         case_count += 1
+        (root / "scripts" / "zigux" / "check-fixdep-diff.py").unlink()
+        _assert_only(
+            validate(root),
+            ["missing_repo_file:scripts/zigux/check-fixdep-diff.py"],
+            "missing_phase2_fixdep_diff_repo_file_guard_failed",
+        )
+        _write(root / "scripts" / "zigux" / "check-fixdep-diff.py", "# stub\n")
+        case_count += 1
         (root / "scripts" / "zigux" / "check-phase2-genksyms-bridge-selftest-alignment.py").unlink()
         _assert_only(
             validate(root),
