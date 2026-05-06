@@ -153,6 +153,7 @@ REQUIRED_WORKFLOW_MARKERS = [
     "python3 scripts/zigux/check-phase2-cross-selftest-alignment.py",
     "python3 scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test",
     "python3 scripts/zigux/check-phase2-toolchain-pin-scope.py",
+    "python3 scripts/zigux/check-phase2-cross.py --self-test",
     "python3 scripts/zigux/check-fixdep-diff.py",
     "python3 scripts/zigux/check-genksyms-bridge.py",
     "python3 scripts/zigux/check-genksyms-crc-diff.py",
@@ -648,6 +649,15 @@ def run_self_test() -> int:
         assert "workflow:python3 scripts/zigux/check-phase2-toolchain-pin-scope.py" in issues
 
         build_self_test_root(root)
+        workflow_text = workflow_path.read_text(encoding="utf-8").replace(
+            "run: python3 scripts/zigux/check-phase2-cross.py --self-test\n",
+            "",
+        )
+        write_text(workflow_path, workflow_text)
+        issues = validate_root(root)
+        assert "workflow:python3 scripts/zigux/check-phase2-cross.py --self-test" in issues
+
+        build_self_test_root(root)
         (root / "zigux/tests/fixtures/phase2_tool_manifest.json").unlink()
         issues = validate_root(root)
         assert "missing_file:zigux/tests/fixtures/phase2_tool_manifest.json" in issues
@@ -797,7 +807,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE2_VALIDATION_SELF_TEST=pass")
-    print("PHASE2_VALIDATION_SELF_TEST_CASE_COUNT=21")
+    print("PHASE2_VALIDATION_SELF_TEST_CASE_COUNT=22")
     return 0
 
 
