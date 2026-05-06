@@ -505,6 +505,17 @@ test "bitmap diff gate replays bounded lib/test_bitmap.c range expectations" {
             .must_be_clear = &.{ 0, 127, BitmapHarness.bitmap_nbits - 1 },
         },
         .{
+            .name = "test_zero_nbits zero-length range and prefix edits leave seeded bits unchanged",
+            .init_bits = &.{ 5, 63, 80, 123 },
+            .set_ranges = &.{ .{ .start = 5, .len = 0 }, .{ .start = 200, .len = 0 } },
+            .clear_ranges = &.{ .{ .start = 63, .len = 0 }, .{ .start = 300, .len = 0 } },
+            .fill_prefixes = &.{0},
+            .zero_prefixes = &.{0},
+            .expected_summary = .{ .first_set = 5, .first_zero = 0, .weight = 4 },
+            .must_be_set = &.{ 5, 63, 80, 123 },
+            .must_be_clear = &.{ 0, 4, 64, 124 },
+        },
+        .{
             .name = "test_find_nth_bit starter population",
             .init_bits = &.{ 10, 20, 30, 40, 50, 60, 80, 123 },
             .set_ranges = &.{},
@@ -632,7 +643,7 @@ test "bitmap diff gate keeps the current bounded source inventory explicit" {
     try expectSourceCaseGroupCardinality(
         "const cases = [_]DiffCase{",
         "test \"bitmap diff gate records exact bounded find_nth_bit checks\"",
-        11,
+        12,
     );
     try expectSourceCaseGroupCardinality(
         "const cases = [_]CopyCase{",
@@ -643,6 +654,7 @@ test "bitmap diff gate keeps the current bounded source inventory explicit" {
     try expectMarker(bitmap_diff_source, "test_fill_set bitmap_fill keeps the exact 115-bit prefix");
     try expectMarker(bitmap_diff_source, "test_fill_set bitmap_fill reaches the full 1024-bit extent");
     try expectMarker(bitmap_diff_source, "test_zero_clear bitmap_zero reaches the empty 1024-bit extent");
+    try expectMarker(bitmap_diff_source, "test_zero_nbits zero-length range and prefix edits leave seeded bits unchanged");
     try expectMarker(bitmap_diff_source, "test_copy exact 23-bit replay clears the stale tail in the destination word");
     try expectMarker(bitmap_diff_source, "test_copy full-width replay from a cleared destination");
     try expectMarker(bitmap_diff_source, "test_copy full-width replay clears a pre-filled destination");
