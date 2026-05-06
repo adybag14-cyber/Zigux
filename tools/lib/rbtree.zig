@@ -439,11 +439,16 @@ pub fn erase(node: *Node, root: *Root) void {
     }
 }
 
-pub fn eraseCached(node: *Node, root: *RootCached) void {
+pub fn eraseCached(node: *Node, root: *RootCached) ?*Node {
     if (root.leftmost == node) {
-        root.leftmost = next(node);
+        const leftmost = next(node);
+        root.leftmost = leftmost;
+        erase(node, &root.root);
+        return leftmost;
     }
+
     erase(node, &root.root);
+    return null;
 }
 
 pub fn eraseInit(node: *Node, root: *Root) void {
@@ -892,10 +897,11 @@ test "rbtree cached root keeps the leftmost pointer in sync" {
     const initial_leftmost = firstCached(&root) orelse return error.TestUnexpectedResult;
     try std.testing.expectEqual(@as(*Node, &entries[1].node), initial_leftmost);
 
-    eraseCached(&entries[2].node, &root);
+    try std.testing.expect(eraseCached(&entries[2].node, &root) == null);
     try std.testing.expectEqual(@as(*Node, &entries[1].node), firstCached(&root).?);
 
-    eraseCached(&entries[1].node, &root);
+    const promoted_leftmost = eraseCached(&entries[1].node, &root) orelse return error.TestUnexpectedResult;
+    try std.testing.expectEqual(@as(*Node, &entries[0].node), promoted_leftmost);
     try std.testing.expectEqual(@as(*Node, &entries[0].node), firstCached(&root).?);
     try std.testing.expectEqual(first(&root.root), firstCached(&root));
 
@@ -906,4 +912,29 @@ test "rbtree cached root keeps the leftmost pointer in sync" {
     addCached(&new_leftmost.node, &root, less);
     try std.testing.expectEqual(@as(*Node, &new_leftmost.node), firstCached(&root).?);
     try std.testing.expectEqual(first(&root.root), firstCached(&root));
+}
+
+test "rbtree eraseCached returns null for a singleton cached tree" {
+    const Entry = struct {
+        key: i32,
+        node: Node = Node.init(),
+    };
+
+    const less = struct {
+        fn compare(lhs: *const Node, rhs: *const Node) bool {
+            const lhs_entry: *const Entry = @fieldParentPtr("node", lhs);
+            const rhs_entry: *const Entry = @fieldParentPtr("node", rhs);
+            return lhs_entry.key < rhs_entry.key;
+        }
+    }.compare;
+
+    var entry = Entry{ .key = 7 };
+    var root = RootCached.init();
+
+    addCached(&entry.node, &root, less);
+
+    try std.testing.expectEqual(@as(*Node, &entry.node), firstCached(&root).?);
+    try std.testing.expect(eraseCached(&entry.node, &root) == null);
+    try std.testing.expect(firstCached(&root) == null);
+    try std.testing.expect(root.root.node == null);
 }
