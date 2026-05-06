@@ -249,6 +249,23 @@ test "phase 5 bytestream fifo survey packet stays repo-local and keeps shared re
         try std.testing.expect(std.mem.indexOf(u8, review_checklist, needle) != null);
     }
 
+    const tests_root = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "zigux/tests/README.md",
+        std.testing.allocator,
+        .limited(256 * 1024),
+    );
+    defer std.testing.allocator.free(tests_root);
+
+    const tests_root_markers = [_][]const u8{
+        "keep the shared Phase 5 reference-sample checks wired through `zigux/tests/phase5_build.zig`",
+        "four shipped sample-backed surveys stay reviewable without implying runtime-substrate closure",
+    };
+
+    for (tests_root_markers) |needle| {
+        try std.testing.expect(std.mem.indexOf(u8, tests_root, needle) != null);
+    }
+
     const samples_root = try std.Io.Dir.cwd().readFileAlloc(
         io_instance.io(),
         "samples/zigux/README.md",
