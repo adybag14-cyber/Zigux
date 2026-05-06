@@ -18,10 +18,6 @@ pub const ParsedSymbol = struct {
 
 pub const ProcessSymbolFn = *const fn (?*anyopaque, [:0]const u8, u8, u64) i32;
 
-pub const ParseLineError = error{
-    SymbolNameTooLong,
-};
-
 pub fn kallsyms2ElfBinding(symbol_type: u8) u8 {
     if (symbol_type == 'W') {
         return elf_stb_weak;
@@ -52,15 +48,11 @@ fn trimTrailingCarriageReturn(line: []const u8) []const u8 {
     return line;
 }
 
-fn validateNameLen(name: []const u8) ParseLineError![]const u8 {
-    if (name.len > KSYM_NAME_LEN) {
-        return error.SymbolNameTooLong;
-    }
-
-    return name;
+fn trimNameToKsymLimit(name: []const u8) []const u8 {
+    return if (name.len > KSYM_NAME_LEN) name[0..KSYM_NAME_LEN] else name;
 }
 
-pub fn parseLine(line: []const u8) ParseLineError!?ParsedSymbol {
+pub fn parseLine(line: []const u8) ?ParsedSymbol {
     const trimmed = trimTrailingCarriageReturn(line);
     if (trimmed.len == 0) {
         return null;
@@ -77,7 +69,7 @@ pub fn parseLine(line: []const u8) ParseLineError!?ParsedSymbol {
     }
 
     const start = std.fmt.parseUnsigned(u64, trimmed[0..first_space], 16) catch return null;
-    const name = try validateNameLen(trimmed[first_space + 3 ..]);
+    const name = trimNameToKsymLimit(trimmed[first_space + 3 ..]);
 
     return .{
         .name = name,
@@ -93,7 +85,7 @@ pub fn forEachParsedLine(
 ) !void {
     var lines = std.mem.splitScalar(u8, contents, '\n');
     while (lines.next()) |line| {
-        const parsed = try parseLine(line) orelse continue;
+        const parsed = parseLine(line) orelse continue;
         try process_symbol(context, parsed);
     }
 }
@@ -103,7 +95,7 @@ fn processParsedLine(
     context: anytype,
     comptime process_symbol: fn (@TypeOf(context), ParsedSymbol) anyerror!void,
 ) !void {
-    const parsed = try parseLine(line) orelse return;
+    const parsed = parseLine(line) orelse return;
     try process_symbol(context, parsed);
 }
 
@@ -312,18 +304,18 @@ test "binding, type, and function helpers preserve the C-style symbol rules" {
 }
 
 test "parseLine keeps valid kallsyms records and skips malformed ones" {
-    const parsed = (try parseLine("ffffffff81000000 T startup_64")) orelse unreachable;
+    const parsed = parseLine("ffffffff81000000 T startup_64") orelse unreachable;
     try std.testing.expectEqual(@as(u64, 0xffffffff81000000), parsed.start);
     try std.testing.expectEqual(@as(u8, 'T'), parsed.symbol_type);
     try std.testing.expectEqualStrings("startup_64", parsed.name);
 
-    try std.testing.expectEqual(@as(?ParsedSymbol, null), try parseLine(""));
-    try std.testing.expectEqual(@as(?ParsedSymbol, null), try parseLine("not-hex T broken"));
-    try std.testing.expectEqual(@as(?ParsedSymbol, null), try parseLine("ffffffff81000000 TT broken"));
-    try std.testing.expectEqual(@as(?ParsedSymbol, null), try parseLine("ffffffff81000000"));
+    try std.testing.expectEqual(@as(?ParsedSymbol, null), parseLine(""));
+    try std.testing.expectEqual(@as(?ParsedSymbol, null), parseLine("not-hex T broken"));
+    try std.testing.expectEqual(@as(?ParsedSymbol, null), parseLine("ffffffff81000000 TT broken"));
+    try std.testing.expectEqual(@as(?ParsedSymbol, null), parseLine("ffffffff81000000"));
 }
 
-test "parseLine rejects oversized names to keep callback-visible output stable" {
+test "parseLine truncates oversized names to keep callback-visible output stable" {
     const too_long_name = "a" ** (KSYM_NAME_LEN + 9);
     const oversized_line = try std.fmt.allocPrint(
         std.testing.allocator,
@@ -332,7 +324,9 @@ test "parseLine rejects oversized names to keep callback-visible output stable" 
     );
     defer std.testing.allocator.free(oversized_line);
 
-    try std.testing.expectError(error.SymbolNameTooLong, parseLine(oversized_line));
+    const parsed = parseLine(oversized_line) orelse unreachable;
+    try std.testing.expectEqual(@as(usize, KSYM_NAME_LEN), parsed.name.len);
+    try std.testing.expectEqualStrings(too_long_name[0..KSYM_NAME_LEN], parsed.name);
 }
 
 test "forEachParsedLine processes valid lines in order and propagates callback errors" {
@@ -706,7 +700,7 @@ test "kallsymsParse preserves callback contract and stop codes" {
     try std.testing.expectEqual(@as(u64, 0xffffffff81000200), callback_state.starts.items[1]);
 }
 
-test "forEachParsedChunked rejects oversized names assembled across chunk boundaries" {
+test "forEachParsedChunked truncates oversized names assembled across chunk boundaries" {
     const OwnedParsedSymbol = struct {
         name: []u8,
         symbol_type: u8,
@@ -754,12 +748,15 @@ test "forEachParsedChunked rejects oversized names assembled across chunk bounda
         parsed.deinit(std.testing.allocator);
     }
 
-    try std.testing.expectError(error.SymbolNameTooLong, forEachParsedChunked(
+    try forEachParsedChunked(
         std.testing.allocator,
         &state,
         nextFixtureChunk,
         &parsed,
         Fixture.collect,
-    ));
-    try std.testing.expectEqual(@as(usize, 0), parsed.items.len);
+    );
+
+    try std.testing.expectEqual(@as(usize, 1), parsed.items.len);
+    try std.testing.expectEqual(@as(usize, KSYM_NAME_LEN), parsed.items[0].name.len);
+    try std.testing.expectEqualStrings(too_long_name[0..KSYM_NAME_LEN], parsed.items[0].name);
 }
