@@ -83,7 +83,7 @@ test "phase10 virtio mmio survey manifest records the live helper-backed transpo
     try std.testing.expectEqualStrings("P10-L10", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 10", manifest.phase);
     try std.testing.expectEqualStrings("drivers/virtio/virtio_mmio.c", manifest.anchor);
-    try std.testing.expectEqualStrings("5f476437a4a3b91d840dd75fca0bf684d1ccc4dd", manifest.surveyed_commit);
+    try std.testing.expectEqualStrings("84f90e23ad1c28ae345905d5293a8c5395f37d43", manifest.surveyed_commit);
     try std.testing.expectEqual(@as(usize, 3), manifest.roadmap_destinations.len);
     try std.testing.expectEqualStrings("drivers/virtio/*.zig", manifest.roadmap_destinations[0]);
     try std.testing.expectEqualStrings("zigux/kernel/", manifest.roadmap_destinations[1]);
