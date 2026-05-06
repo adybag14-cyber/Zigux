@@ -18,6 +18,9 @@ TOOLCHAIN_POLICY = ROOT / 'scripts' / 'zigux' / 'zig-toolchain-policy.json'
 GENKSYMS_CASES = (
     ROOT / 'zigux' / 'tests' / 'fixtures' / 'genksyms_bridge' / 'cases.json'
 )
+KCONFIG_BRIDGE_CASES = (
+    ROOT / 'zigux' / 'tests' / 'fixtures' / 'kconfig_bridge' / 'cases.json'
+)
 
 PHASE2_CROSS_ALIGNMENT_REQUIRED_SOURCE_MARKERS = [
     'PHASE2_CROSS_ALIGNMENT_SELF_TEST=python3 scripts/zigux/check-phase2-cross-selftest-alignment.py --self-test',
@@ -230,6 +233,7 @@ def run_self_test() -> int:
     print(f'PHASE2_CLOSURE_SELF_TEST_CASE_COUNT={len(cases)}')
     return 0
 
+
 required_files = [
     ROOT / 'Documentation' / 'zigux' / 'phase2-closure.md',
     DOCS_ROOT_README,
@@ -248,12 +252,10 @@ required_files = [
     ROOT / 'zigux' / 'Makefile',
     TOOLCHAIN_POLICY,
     GENKSYMS_CASES,
-    ROOT / 'zigux' / 'tests' / 'fixtures' / 'kconfig_bridge' / 'cases.json',
+    KCONFIG_BRIDGE_CASES,
     ROOT / 'zigux' / 'tests' / 'fixtures' / 'kconfig_bridge' / 'alldefconfig_expected.json',
     ROOT / 'zigux' / 'tests' / 'fixtures' / 'kconfig_bridge' / 'olddefconfig_expected.json',
     ROOT / 'zigux' / 'tests' / 'fixtures' / 'kconfig_bridge' / 'syncconfig_expected.json',
-    ROOT / 'zigux' / 'tests' / 'fixtures' / 'kconfig_bridge' / 'sample.config',
-    ROOT / 'zigux' / 'tests' / 'fixtures' / 'kconfig_bridge' / 'sample_expected.json',
     ROOT / 'zigux' / 'tests' / 'fixtures' / 'phase2_tool_manifest.json',
     ROOT / 'zigux' / 'tests' / 'fixtures' / 'phase2_cross_targets.json',
 ]
@@ -297,6 +299,42 @@ def collect_genksyms_expected_files(cases_payload: dict[str, object]) -> tuple[l
         expected_files.append(GENKSYMS_CASES.parent / expected)
 
     return expected_files, issues
+
+
+def collect_confdata_case_files(cases_payload: dict[str, object]) -> tuple[list[Path], list[str]]:
+    issues: list[str] = []
+    cases = cases_payload.get('confdata_cases')
+    if not isinstance(cases, list):
+        return [], ['kconfig_bridge_cases:confdata_cases:expected_list']
+    if not cases:
+        return [], ['kconfig_bridge_cases:confdata_cases:empty']
+
+    discovered_files: list[Path] = []
+    seen_paths: set[Path] = set()
+    for index, case in enumerate(cases):
+        if not isinstance(case, dict):
+            issues.append(f'kconfig_bridge_cases:confdata_cases[{index}]:expected_object')
+            continue
+
+        name = case.get('name')
+        if not isinstance(name, str) or not name:
+            issues.append(f'kconfig_bridge_cases:confdata_cases[{index}]:name:expected_nonempty_string')
+            continue
+
+        for field_name in ('input', 'expected'):
+            rel_path = case.get(field_name)
+            if not isinstance(rel_path, str) or not rel_path:
+                issues.append(
+                    f'kconfig_bridge_cases:{name}:{field_name}:expected_nonempty_string'
+                )
+                continue
+            discovered_path = KCONFIG_BRIDGE_CASES.parent / rel_path
+            if discovered_path in seen_paths:
+                continue
+            seen_paths.add(discovered_path)
+            discovered_files.append(discovered_path)
+
+    return discovered_files, issues
 
 
 def validate_exact_makefile_runs(text: str) -> list[str]:
@@ -345,6 +383,13 @@ def main() -> int:
     genksyms_expected_files, genksyms_case_issues = collect_genksyms_expected_files(
         genksyms_cases_payload
     )
+    kconfig_bridge_cases_payload = load_json_object(
+        KCONFIG_BRIDGE_CASES,
+        label='kconfig_bridge_cases',
+    )
+    confdata_case_files, confdata_case_issues = collect_confdata_case_files(
+        kconfig_bridge_cases_payload
+    )
     if genksyms_case_issues:
         print('PHASE2_CLOSURE_VALIDATION=fail')
         print('MISSING_PHASE2_CLOSURE_MARKERS_START')
@@ -352,14 +397,31 @@ def main() -> int:
             print(item)
         print('MISSING_PHASE2_CLOSURE_MARKERS_END')
         return 1
+    if confdata_case_issues:
+        print('PHASE2_CLOSURE_VALIDATION=fail')
+        print('MISSING_PHASE2_CLOSURE_MARKERS_START')
+        for item in confdata_case_issues:
+            print(item)
+        print('MISSING_PHASE2_CLOSURE_MARKERS_END')
+        return 1
 
     missing_genksyms_expected = [
         str(path.relative_to(ROOT)) for path in genksyms_expected_files if not path.exists()
+    ]
+    missing_confdata_case_files = [
+        str(path.relative_to(ROOT)) for path in confdata_case_files if not path.exists()
     ]
     if missing_genksyms_expected:
         print('PHASE2_CLOSURE_VALIDATION=fail')
         print('MISSING_PHASE2_CLOSURE_FILES_START')
         for item in missing_genksyms_expected:
+            print(item)
+        print('MISSING_PHASE2_CLOSURE_FILES_END')
+        return 1
+    if missing_confdata_case_files:
+        print('PHASE2_CLOSURE_VALIDATION=fail')
+        print('MISSING_PHASE2_CLOSURE_FILES_START')
+        for item in missing_confdata_case_files:
             print(item)
         print('MISSING_PHASE2_CLOSURE_FILES_END')
         return 1
@@ -497,7 +559,10 @@ def main() -> int:
         return 1
 
     print('PHASE2_CLOSURE_VALIDATION=pass')
-    print(f'PHASE2_CLOSURE_REQUIRED_FILE_COUNT={len(required_files) + len(genksyms_expected_files)}')
+    print(
+        'PHASE2_CLOSURE_REQUIRED_FILE_COUNT='
+        f'{len(required_files) + len(genksyms_expected_files) + len(confdata_case_files)}'
+    )
     print(f'PHASE2_CLOSURE_REQUIRED_MARKER_COUNT={len(required_closure_markers) + len(required_workflow_markers) + len(required_ledger_markers) + len(required_readme_markers) + len(required_doc_markers) + len(required_makefile_markers)}')
     return 0
 
