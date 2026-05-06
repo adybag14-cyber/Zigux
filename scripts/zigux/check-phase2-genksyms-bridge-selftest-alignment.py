@@ -22,7 +22,7 @@ REQUIRED_WORKFLOW_LINES = (
     "run: python3 scripts/zigux/check-genksyms-bridge.py",
     "run: zig test scripts/zigux/genksyms.zig",
 )
-EXPECTED_SELF_TEST_CASE_COUNT = 5
+EXPECTED_SELF_TEST_CASE_COUNT = 7
 
 
 def read_text(path: Path) -> str:
@@ -162,6 +162,23 @@ def run_self_test() -> int:
         path.write_text(duplicate_exact_line(path.read_text(encoding="utf-8"), REQUIRED_WORKFLOW_LINES[1]), encoding="utf-8")
         issues = collect_issues(root)
         assert ("DUPLICATE_WORKFLOW_HOOKS", f"{REQUIRED_WORKFLOW_LINES[1]}:count=2") in issues
+        cases += 1
+
+        build_self_test_root(root)
+        path = root / WORKFLOW
+        path.write_text(
+            replace_exact_line(path.read_text(encoding="utf-8"), REQUIRED_WORKFLOW_LINES[2], "        run: python3 other.py --self-test"),
+            encoding="utf-8",
+        )
+        issues = collect_issues(root)
+        assert ("MISSING_WORKFLOW_HOOKS", REQUIRED_WORKFLOW_LINES[2]) in issues
+        cases += 1
+
+        build_self_test_root(root)
+        path = root / WORKFLOW
+        path.write_text(duplicate_exact_line(path.read_text(encoding="utf-8"), REQUIRED_WORKFLOW_LINES[3]), encoding="utf-8")
+        issues = collect_issues(root)
+        assert ("DUPLICATE_WORKFLOW_HOOKS", f"{REQUIRED_WORKFLOW_LINES[3]}:count=2") in issues
         cases += 1
 
         build_self_test_root(root)
