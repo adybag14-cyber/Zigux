@@ -27,15 +27,16 @@ SLICE_MARKERS = [
     "simple_write_to_buffer()",
     "memory_read_from_buffer()",
     "dcache_readdir()-adjacent emit planner",
+    "dcache_dir_open() setup helper surface",
     "simple_transaction_release()",
     "cursor-backed directory iteration",
 ]
 
 SURVEY_MARKERS = [
     "landed `phase13-libfs-transaction-release-helper`",
+    "landed `phase13-libfs-dcache-dir-open-helper`",
     "blocked `phase13-libfs-dcache-cursor-helpers`",
-    "dcache_dir_open()",
-    "deeper `dcache_readdir()` cursor preconditions",
+    "deeper `dcache_readdir()` cursor resume and reschedule preconditions",
     "real helper footing reviewable",
 ]
 
@@ -48,9 +49,11 @@ LIBFS_MARKERS = [
     "pub fn dcacheDirSeekPlan(",
     "pub fn offsetDirSeekPlan(",
     "pub fn dcacheReaddirEmitPlan(",
+    "pub fn dcacheDirOpenPlan(",
     "pub fn simpleTransactionGetPlan(",
     "pub fn simpleTransactionSetPlan(",
     "pub fn simpleTransactionReleasePlan(",
+    ".provides_directory_cursor_open_planning = true,",
     ".provides_transaction_release_planning = true,",
     ".touches_live_dcache = false,",
 ]
@@ -66,14 +69,16 @@ BUILD_MARKERS = [
 ]
 
 REVIEWABILITY_MARKERS = [
-    'try std.testing.expectEqual(@as(usize, 13), manifest.gaps.len);',
+    'try std.testing.expectEqual(@as(usize, 14), manifest.gaps.len);',
+    "try std.testing.expect(saw_dcache_dir_open_helper);",
     "try std.testing.expect(saw_transaction_release_helper);",
     "try std.testing.expect(saw_dcache_cursor_followup);",
+    'std.mem.indexOf(u8, survey_note, "landed `phase13-libfs-dcache-dir-open-helper`")',
     'std.mem.indexOf(u8, survey_note, "landed `phase13-libfs-transaction-release-helper`")',
     'std.mem.indexOf(u8, survey_note, "blocked `phase13-libfs-dcache-cursor-helpers`")',
     'std.mem.indexOf(u8, traceability_note, "transaction acquire, publish, and release helpers")',
-    'std.mem.indexOf(u8, traceability_note, "dcache_dir_open()")',
-    'std.mem.indexOf(u8, traceability_note, "deeper `dcache_readdir()` cursor-precondition packet")',
+    'std.mem.indexOf(u8, traceability_note, "`dcache_dir_open()` setup")',
+    'std.mem.indexOf(u8, traceability_note, "deeper `dcache_readdir()` cursor-resume packet")',
 ]
 
 MAKE_REQUIRED_LINES = [
@@ -106,6 +111,7 @@ EXPECTED_GAPS = {
     "phase13-libfs-transaction-buffer-helper": "starter_landed",
     "phase13-libfs-transaction-publish-helper": "starter_landed",
     "phase13-libfs-transaction-release-helper": "starter_landed",
+    "phase13-libfs-dcache-dir-open-helper": "starter_landed",
     "phase13-libfs-dcache-cursor-helpers": "blocked_on_vfs_state",
 }
 
@@ -228,6 +234,7 @@ def run_self_test() -> int:
                 "phase13-libfs-slice:simple_write_to_buffer()",
                 "phase13-libfs-slice:memory_read_from_buffer()",
                 "phase13-libfs-slice:dcache_readdir()-adjacent emit planner",
+                "phase13-libfs-slice:dcache_dir_open() setup helper surface",
                 "phase13-libfs-slice:simple_transaction_release()",
                 "phase13-libfs-slice:cursor-backed directory iteration",
             ],
@@ -241,8 +248,8 @@ def run_self_test() -> int:
             validate(root),
             [
                 "phase13-libfs-survey:landed `phase13-libfs-transaction-release-helper`",
-                "phase13-libfs-survey:dcache_dir_open()",
-                "phase13-libfs-survey:deeper `dcache_readdir()` cursor preconditions",
+                "phase13-libfs-survey:landed `phase13-libfs-dcache-dir-open-helper`",
+                "phase13-libfs-survey:deeper `dcache_readdir()` cursor resume and reschedule preconditions",
                 "phase13-libfs-survey:real helper footing reviewable",
             ],
             "survey_guard_failed",
@@ -261,9 +268,11 @@ def run_self_test() -> int:
                 "phase13-libfs-zig:pub fn dcacheDirSeekPlan(",
                 "phase13-libfs-zig:pub fn offsetDirSeekPlan(",
                 "phase13-libfs-zig:pub fn dcacheReaddirEmitPlan(",
+                "phase13-libfs-zig:pub fn dcacheDirOpenPlan(",
                 "phase13-libfs-zig:pub fn simpleTransactionGetPlan(",
                 "phase13-libfs-zig:pub fn simpleTransactionSetPlan(",
                 "phase13-libfs-zig:pub fn simpleTransactionReleasePlan(",
+                "phase13-libfs-zig:.provides_directory_cursor_open_planning = true,",
                 "phase13-libfs-zig:.provides_transaction_release_planning = true,",
                 "phase13-libfs-zig:.touches_live_dcache = false,",
             ],
@@ -315,6 +324,7 @@ def run_self_test() -> int:
                 "phase13-libfs-manifest-gap:phase13-libfs-transaction-buffer-helper",
                 "phase13-libfs-manifest-gap:phase13-libfs-transaction-publish-helper",
                 "phase13-libfs-manifest-gap:phase13-libfs-transaction-release-helper",
+                "phase13-libfs-manifest-gap:phase13-libfs-dcache-dir-open-helper",
                 "phase13-libfs-manifest-gap:phase13-libfs-dcache-cursor-helpers",
             ],
             "manifest_guard_failed",
@@ -326,13 +336,15 @@ def run_self_test() -> int:
         assert_only(
             validate(root),
             [
-                "phase13-libfs-reviewability:try std.testing.expectEqual(@as(usize, 13), manifest.gaps.len);",
+                "phase13-libfs-reviewability:try std.testing.expectEqual(@as(usize, 14), manifest.gaps.len);",
+                "phase13-libfs-reviewability:try std.testing.expect(saw_dcache_dir_open_helper);",
                 "phase13-libfs-reviewability:try std.testing.expect(saw_dcache_cursor_followup);",
+                'phase13-libfs-reviewability:std.mem.indexOf(u8, survey_note, "landed `phase13-libfs-dcache-dir-open-helper`")',
                 'phase13-libfs-reviewability:std.mem.indexOf(u8, survey_note, "landed `phase13-libfs-transaction-release-helper`")',
                 'phase13-libfs-reviewability:std.mem.indexOf(u8, survey_note, "blocked `phase13-libfs-dcache-cursor-helpers`")',
                 'phase13-libfs-reviewability:std.mem.indexOf(u8, traceability_note, "transaction acquire, publish, and release helpers")',
-                'phase13-libfs-reviewability:std.mem.indexOf(u8, traceability_note, "dcache_dir_open()")',
-                'phase13-libfs-reviewability:std.mem.indexOf(u8, traceability_note, "deeper `dcache_readdir()` cursor-precondition packet")',
+                'phase13-libfs-reviewability:std.mem.indexOf(u8, traceability_note, "`dcache_dir_open()` setup")',
+                'phase13-libfs-reviewability:std.mem.indexOf(u8, traceability_note, "deeper `dcache_readdir()` cursor-resume packet")',
             ],
             "reviewability_guard_failed",
         )
