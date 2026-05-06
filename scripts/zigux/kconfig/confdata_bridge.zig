@@ -174,7 +174,7 @@ test "confdata bridge parses bounded config states" {
         \\CONFIG_ALPHA=y
         \\CONFIG_BETA=m
         \\CONFIG_COUNT=7
-        \\CONFIG_NAME="zigux"
+        \\CONFIG_NAME=\"zigux\"
         \\# CONFIG_DEBUG is not set
         \\
     );
@@ -233,8 +233,8 @@ test "confdata bridge emits bounded json output" {
 test "confdata bridge decodes escaped quoted strings" {
     const allocator = std.testing.allocator;
     var summary = try parseConfig(allocator,
-        \\CONFIG_BANNER="zigux \"bridge\""
-        \\CONFIG_PATH="drivers\\zigux"
+        \\CONFIG_BANNER=\"zigux \\\"bridge\\\"\"
+        \\CONFIG_PATH=\"drivers\\\\zigux\"
         \\
     );
     defer deinitSummary(allocator, &summary);
