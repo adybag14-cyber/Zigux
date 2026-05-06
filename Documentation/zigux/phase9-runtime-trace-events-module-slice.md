@@ -7,7 +7,7 @@ This document tracks the first bounded Phase 9 runtime trace-events starter unde
 - `PHASE9_STATUS=active`
 - `PHASE9_SLICE=runtime-trace-events-module-starter`
 - `PHASE9_SURVEYED_COMMIT=e59df689d080aa11773adda87f00c2d650caade8`
-- scope: lifecycle starter, bounded event-emission and registration behavior, a tiny payload-oriented diff gate, a loader-handoff scaffold, the shared runtime-loader facade plus allocator/init-flow contract replay, dedicated Phase 9 test wiring, and lane-local survey-note plus manifest closure only
+- scope: lifecycle starter, bounded event-emission and registration behavior, a tiny payload-oriented diff gate, a loader-handoff scaffold, the focused `phase9-runtime-trace-events-tests` build step, and lane-local survey-note plus manifest closure while the shared runtime-loader lane keeps the reusable facade, contract, allocator/init-flow replay, and `phase9-runtime-loader-shared-tests` shard adjacent but separately owned
 - product boundary:
   - `samples/zigux/runtime_trace_events.zig`
   - `samples/zigux/runtime_trace_events_loader.zig`
@@ -16,11 +16,7 @@ This document tracks the first bounded Phase 9 runtime trace-events starter unde
   - `zigux/tests/runtime_trace_events_manifest.json`
   - `zigux/tests/runtime_trace_events_survey.zig`
   - `Documentation/zigux/phase9-runtime-trace-events-survey.md`
-  - `zigux/kernel/runtime_loader.zig`
-  - `zigux/kernel/runtime_loader_contract.zig`
-  - `zigux/tests/runtime_loader_allocator_init_flow.zig`
   - `zigux/tests/phase9_build.zig`
-  - `zigux/Makefile`
 
 ## Why this slice exists
 
@@ -44,8 +40,8 @@ The shared sample-root catalog at `samples/zigux/README.md` keeps the approved P
 - runtime task ownership or event-loop substrate parity remains blocked behind that shared runtime-loader surface
 - polling-backed wake or dispatch behavior remains blocked behind the same shared runtime-loader surface
 - dedicated Phase 9 sample, module, and diff tests that now assert those sample-local lifecycle proofs as well as the registration and payload-literal expectations through the shared `zigux/tests/phase9_build.zig` gate
-- dedicated Phase 9 loader, survey note, survey, and manifest coverage plus the focused `zig build phase9-runtime-loader-shared-tests --build-file zigux/tests/phase9_build.zig` shard for the shared runtime-loader facade, contract, and allocator/init-flow packet wired into the shared `zigux/tests/phase9_build.zig` gate and `make -C zigux phase9`
-- a manifest-backed ownership packet that now names the survey note, module-slice note, starter sample, loader scaffold, shared `zigux/kernel/runtime_loader.zig` facade, shared `zigux/kernel/runtime_loader_contract.zig` contract, shared `zigux/tests/runtime_loader_allocator_init_flow.zig` replay, dedicated survey gate, and shared `zigux/tests/phase9_build.zig` bundle together so this bounded packet stays reviewable without widening into runtime implementation
+- dedicated Phase 9 loader, survey note, survey, and manifest coverage plus the focused `phase9-runtime-trace-events-tests` build step wired into the shared `zigux/tests/phase9_build.zig` gate and `make -C zigux phase9`, while the separate shared loader lane keeps the shared runtime-loader facade, contract, allocator/init-flow replay, and `phase9-runtime-loader-shared-tests` shard reviewable for this pilot
+- a manifest-backed ownership packet that now names the survey note, module-slice note, starter sample, loader scaffold, dedicated survey gate, and the focused `phase9-runtime-trace-events-tests` step together so this bounded packet stays reviewable without widening into shared runtime-loader ownership or runtime implementation
 
 ## Non-goals
 
