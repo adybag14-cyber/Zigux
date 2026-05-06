@@ -378,6 +378,15 @@ test "phase11 hvc_console keeps retry intent on eagain and clears the slot on te
     try std.testing.expect(write.final_flush);
     try std.testing.expect(!write.dropped_on_error);
 
+    write = try console.stageWrite("z\n", 0);
+    try std.testing.expectEqual(@as(usize, 3), write.framed_len);
+    try std.testing.expectEqualStrings("z\r\n", write.framed[0..write.framed_len]);
+    try std.testing.expectEqual(@as(usize, 0), write.remaining_len);
+    try std.testing.expectEqual(hvc_console.FlushIntent.none, write.flush_intent);
+    try std.testing.expectEqual(hvc_console.FlushProgress.dropped_on_error, write.flush_progress);
+    try std.testing.expect(write.final_flush);
+    try std.testing.expect(write.dropped_on_error);
+
     write = try console.stageWrite("fatal\n", -5);
     try std.testing.expectEqual(@as(usize, 7), write.framed_len);
     try std.testing.expectEqual(@as(usize, 0), write.remaining_len);
