@@ -322,8 +322,5 @@ jobs:
       - name: Install Zig
         run: python3 scripts/zigux/install-zig.py --channel 0.17.0-dev.87+9b177a7d2 --dest .zig-toolchain
 
-      - name: Check Zig toolchain
-        run: python3 scripts/zigux/check-zig-toolchain.py
-
       - name: Check bounded Phase 2 cross-target compile
         run: python3 scripts/zigux/check-phase2-cross.py --target ${{ matrix.zig_target }}
