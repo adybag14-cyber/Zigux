@@ -498,52 +498,56 @@ def write_text(path: Path, content: str) -> None:
 
 
 def write_stub_guard(path: Path, *, self_test_marker: str, live_markers: list[str]) -> None:
-    body = [
+    lines = [
         "#!/usr/bin/env python3",
         "import argparse",
         "",
-        "def main() -> int:",
-        "    parser = argparse.ArgumentParser()",
-        "    parser.add_argument('--self-test', action='store_true')",
-        "    args = parser.parse_args()",
-        "    if args.self_test:",
+        "parser = argparse.ArgumentParser()",
+        "parser.add_argument('--self-test', action='store_true')",
+        "args = parser.parse_args()",
+        "if args.self_test:",
     ]
-    for line in self_test_marker.splitlines():
-        body.append(f'        print("{line}")')
-    body.extend(
-        [
-            "        return 0",
-            "    else:",
-        ]
-    )
-    for line in live_markers:
-        body.append(f'        print("{line}")')
-    body.extend(
-        [
-            "        return 0",
-            "",
-            "if __name__ == '__main__':",
-            "    raise SystemExit(main())",
-            "",
-        ]
-    )
-    write_text(path, "\n".join(body))
+    for marker in self_test_marker.split("\n"):
+        lines.append(f"    print({marker!r})")
+    lines.append("else:")
+    for marker in live_markers:
+        lines.append(f"    print({marker!r})")
+    lines.append("")
+    write_text(path, "\n".join(lines))
 
 
 def build_script_readme_text() -> str:
-    markers = REQUIRED_SCRIPT_MARKERS.copy()
-    helper_block = REQUIRED_SCRIPT_HELPER_INDEX_MARKERS[0]
-    prefix = markers[:10]
-    suffix = markers[10:]
-    lines = [*(f"- `{marker}`" for marker in prefix)]
-    lines.extend(helper_block.splitlines())
-    lines.extend(f"- `{marker}`" for marker in suffix)
-    return "\n".join(lines) + "\n"
+    return (
+        "- `check-zig-toolchain.py`\n"
+        "- `install-zig.py`\n"
+        "- `check-phase2-tests-readme-alignment.py`\n"
+        "- `check-phase2-cross-selftest-alignment.py`\n"
+        "- `check-phase2-toolchain-pin-scope.py`\n"
+        "- `validate-phase2.py`\n"
+        "- `validate-phase2-closure.py`\n"
+        "- `check-fixdep-diff.py`\n"
+        "- `check-genksyms-bridge.py`\n"
+        "- `check-genksyms-crc-diff.py`\n"
+        "- `check-kconfig-bridge.py`\n"
+        "- `check-phase2-tests-readme-alignment.py`\n"
+        "- `check-phase2-cross-selftest-alignment.py`\n"
+        "- `check-phase2-toolchain-pin-scope.py`\n"
+        "- `check-phase2-cross.py`\n"
+        "- `check-mk-elfconfig-diff.py`\n"
+        "- `genksyms.zig`\n"
+        "- `genksyms_crc.zig`\n"
+        "- `kconfig/conf_bridge.zig`\n"
+        "- `kconfig/confdata_bridge.zig`\n"
+        "- `mk_elfconfig.zig`\n"
+    )
 
 
 def build_self_test_root(root: Path) -> None:
     for path in required_files(root):
-        write_text(path, "\n")
+        if path.suffix:
+            write_text(path, "placeholder\n")
+        else:
+            path.mkdir(parents=True, exist_ok=True)
     write_text(root / "zigux/tests/fixtures/phase2_tool_manifest.json", json.dumps({"phase": "Phase 2", "status": "closed", "tool_count": 6, "tools": ["scripts/zigux/fixdep.zig", "scripts/zigux/genksyms.zig", "scripts/zigux/genksyms_crc.zig", "scripts/zigux/mk_elfconfig.zig", "scripts/zigux/kconfig/conf_bridge.zig", "scripts/zigux/kconfig/confdata_bridge.zig"]}, indent=2) + "\n")
     write_text(root / "zigux/tests/fixtures/genksyms_bridge/cases.json", json.dumps({"cases": [{"expected": "minimal_expected.json"}]}, indent=2) + "\n")
     write_text(root / "zigux/tests/fixtures/genksyms_bridge/minimal_expected.json", "{}\n")
@@ -720,7 +724,7 @@ def run_self_test() -> int:
         issues = validate_root(root)
         assert "review_exact_marker:zigux/tests/fixtures/phase2_cross_targets.json:count=2:expected=1" in issues
         build_self_test_root(root)
-        write_text(root / "Documentation/zigux/review-checklist.md", build_phase2_review_checklist_line(REQUIRED_REVIEW_MARKERS + [REQUIRED_REVIEW_MARKERS[-1]]))
+        write_text(root / "Documentation/zigux/review-checklist.md", build_phase2_review_checklistLine(REQUIRED_REVIEW_MARKERS + [REQUIRED_REVIEW_MARKERS[-1]]))
         issues = validate_root(root)
         assert "review_exact_marker:make -C zigux phase2:count=2:expected=1" in issues
         build_self_test_root(root)
