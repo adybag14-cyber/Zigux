@@ -29,6 +29,12 @@ pub const Summary = struct {
     unset_count: usize,
 };
 
+fn writeHexLower(writer: anytype, value: u8) !void {
+    const digits = "0123456789abcdef";
+    try writer.writeByte(digits[value >> 4]);
+    try writer.writeByte(digits[value & 0x0f]);
+}
+
 fn writeJsonEscaped(writer: anytype, text: []const u8) !void {
     for (text) |c| switch (c) {
         '\\' => try writer.writeAll("\\\\"),
@@ -36,6 +42,12 @@ fn writeJsonEscaped(writer: anytype, text: []const u8) !void {
         '\n' => try writer.writeAll("\\n"),
         '\r' => try writer.writeAll("\\r"),
         '\t' => try writer.writeAll("\\t"),
+        '\x08' => try writer.writeAll("\\b"),
+        '\x0c' => try writer.writeAll("\\f"),
+        0...0x07, 0x0b, 0x0e...0x1f => {
+            try writer.writeAll("\\u00");
+            try writeHexLower(writer, c);
+        },
         else => try writer.writeByte(c),
     };
 }
@@ -45,6 +57,17 @@ fn trimTrailingCarriageReturn(text: []const u8) []const u8 {
         return text[0 .. text.len - 1];
     }
     return text;
+}
+
+fn decodeEscapeByte(byte: u8) u8 {
+    return switch (byte) {
+        'n' => '\n',
+        'r' => '\r',
+        't' => '\t',
+        'b' => '\x08',
+        'f' => '\x0c',
+        else => byte,
+    };
 }
 
 fn decodeQuotedString(allocator: std.mem.Allocator, raw_value: []const u8) ![]u8 {
@@ -58,7 +81,7 @@ fn decodeQuotedString(allocator: std.mem.Allocator, raw_value: []const u8) ![]u8
         if (byte == '\\') {
             if (index + 1 < inner.len) {
                 index += 1;
-                try decoded.append(allocator, inner[index]);
+                try decoded.append(allocator, decodeEscapeByte(inner[index]));
             }
             continue;
         }
@@ -140,7 +163,11 @@ pub fn runConfdataBridge(allocator: std.mem.Allocator, input: []const u8, writer
     var summary = try parseConfig(allocator, input);
     defer deinitSummary(allocator, &summary);
 
-    try writer.print("{{\"counts\":{{\"set\":{},\"unset\":{}}},\"entries\":[", .{ summary.set_count, summary.unset_count });
+    try writer.writeAll("{\"counts\":{\"set\":");
+    try writer.print("{}", .{summary.set_count});
+    try writer.writeAll(",\"unset\":");
+    try writer.print("{}", .{summary.unset_count});
+    try writer.writeAll("},\"entries\":[");
     for (summary.entries, 0..) |entry, index| {
         if (index != 0) try writer.writeByte(',');
         try writer.writeAll("{\"name\":\"");
@@ -180,7 +207,7 @@ test "confdata bridge parses bounded config states" {
         \\CONFIG_ALPHA=y
         \\CONFIG_BETA=m
         \\CONFIG_COUNT=7
-        \\CONFIG_NAME=\"zigux\"
+        \\CONFIG_NAME="zigux"
         \\# CONFIG_DEBUG is not set
         \\
     );
@@ -239,8 +266,8 @@ test "confdata bridge emits bounded json output" {
 test "confdata bridge decodes escaped quoted strings" {
     const allocator = std.testing.allocator;
     var summary = try parseConfig(allocator,
-        \\CONFIG_BANNER=\"zigux \\\"bridge\\\"\"
-        \\CONFIG_PATH=\"drivers\\\\zigux\"
+        \\CONFIG_BANNER="zigux \"bridge\""
+        \\CONFIG_PATH="drivers\\zigux"
         \\
     );
     defer deinitSummary(allocator, &summary);
@@ -249,6 +276,48 @@ test "confdata bridge decodes escaped quoted strings" {
     try std.testing.expectEqual(EntryKind.string, summary.entries[0].kind);
     try std.testing.expectEqualStrings("zigux \"bridge\"", summary.entries[0].value);
     try std.testing.expectEqualStrings("drivers\\zigux", summary.entries[1].value);
+}
+
+test "confdata bridge decodes escaped control sequences in quoted strings" {
+    const allocator = std.testing.allocator;
+    var summary = try parseConfig(allocator,
+        \\CONFIG_TEXT="line\nindent\tmark\bslot\fform\rend"
+        \\
+    );
+    defer deinitSummary(allocator, &summary);
+
+    try std.testing.expectEqual(@as(usize, 1), summary.entries.len);
+    try std.testing.expectEqual(EntryKind.string, summary.entries[0].kind);
+    try std.testing.expectEqualStrings("line\nindent\tmark\x08slot\x0cform\rend", summary.entries[0].value);
+}
+
+test "confdata bridge escapes low control bytes in json output" {
+    const Capture = struct {
+        list: std.ArrayList(u8),
+        allocator: std.mem.Allocator,
+
+        fn init(allocator: std.mem.Allocator) !@This() {
+            return .{ .list = try std.ArrayList(u8).initCapacity(allocator, 64), .allocator = allocator };
+        }
+
+        fn deinit(self: *@This()) void {
+            self.list.deinit(self.allocator);
+        }
+
+        fn writeAll(self: *@This(), bytes: []const u8) !void {
+            try self.list.appendSlice(self.allocator, bytes);
+        }
+
+        fn writeByte(self: *@This(), byte: u8) !void {
+            try self.list.append(self.allocator, byte);
+        }
+    };
+
+    var capture = try Capture.init(std.testing.allocator);
+    defer capture.deinit();
+
+    try writeJsonEscaped(&capture, "\x01\x08\x0c");
+    try std.testing.expectEqualStrings("\\u0001\\b\\f", capture.list.items);
 }
 
 test "confdata bridge accepts CRLF config lines" {
