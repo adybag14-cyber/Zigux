@@ -1,5 +1,5 @@
 {
-  "lane_key": "P9-L02",
+  "lane_key": "P9-L01",
   "phase": "Phase 9",
   "surveyed_commit": "ee124761ef3ef5fcc6bb9cd8b7fe8d1fce326839",
   "anchor": "lib/atomic64_test.c",
@@ -27,7 +27,7 @@
       "status": "starter_landed",
       "kind": "validation",
       "zigux_destination": "zigux/tests/runtime_atomic64_survey.zig",
-      "why_now": "The survey gate keeps the roadmap anchor, landed loader scaffold, shared request-surface proof, and remaining runtime-loader blocker explicit while the lane stays narrow."
+      "why_now": "The survey gate keeps the roadmap anchor, landed loader scaffold, the shared runtime-loader facade plus allocator/init-flow contract replay, shared request-surface proof, and remaining runtime-loader blocker explicit while the lane stays narrow."
     },
     {
       "id": "runtime-atomic64-sample-module",
