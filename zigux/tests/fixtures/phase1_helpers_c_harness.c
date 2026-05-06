@@ -66,6 +66,12 @@ static void run_find_bit_section(void)
 	unsigned long lhs[2] = {(1UL << 1) | (1UL << 9), 1UL << 2};
 	unsigned long rhs[2] = {1UL << 9, 1UL << 2};
 	unsigned long nbits = BITS_PER_LONG * 3;
+	unsigned long boundary = BITS_PER_LONG - 1;
+	unsigned long boundary_nbits = BITS_PER_LONG * 2;
+	unsigned long boundary_set_map[2] = {1UL << boundary, 0};
+	unsigned long boundary_and_lhs[2] = {1UL << boundary, 0};
+	unsigned long boundary_and_rhs[2] = {1UL << boundary, 0};
+	unsigned long boundary_zero_map[2] = {~(1UL << boundary), ~0UL};
 	unsigned long tail_nbits = BITS_PER_LONG + 5;
 	unsigned long tail_bitmap[2] = {0, 1UL << 9};
 	unsigned long tail_zero_bitmap[2] = {~0UL, BITMAP_LAST_WORD_MASK(BITS_PER_LONG + 5)};
@@ -83,6 +89,9 @@ static void run_find_bit_section(void)
 	printf("\"next_zero\":%lu,", find_next_zero_bit((unsigned long[]){~0UL, ~(1UL << 4)}, BITS_PER_LONG * 2, BITS_PER_LONG));
 	printf("\"first_and\":%lu,", find_first_and_bit(lhs, rhs, BITS_PER_LONG * 2));
 	printf("\"next_and\":%lu,", find_next_and_bit(lhs, rhs, BITS_PER_LONG * 2, 10));
+	printf("\"inclusive_boundary_next\":%lu,", find_next_bit(boundary_set_map, boundary_nbits, boundary));
+	printf("\"inclusive_boundary_zero\":%lu,", find_next_zero_bit(boundary_zero_map, boundary_nbits, boundary));
+	printf("\"inclusive_boundary_and\":%lu,", find_next_and_bit(boundary_and_lhs, boundary_and_rhs, boundary_nbits, boundary));
 	printf("\"tail_clamped_first\":%lu,", find_first_bit(tail_bitmap, tail_nbits));
 	printf("\"tail_clamped_next\":%lu,", find_next_bit(tail_bitmap, tail_nbits, BITS_PER_LONG));
 	printf("\"tail_zero_clamped_first\":%lu,", find_first_zero_bit(tail_zero_bitmap, tail_nbits));
