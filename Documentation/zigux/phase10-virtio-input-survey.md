@@ -70,14 +70,17 @@ This survey slice does not yet claim:
 - `python3 scripts/zigux/check-phase10-input-packet.py --self-test`
 - `python3 scripts/zigux/check-phase10-input-packet.py`
 
-2. run the dedicated Phase 10 build
+2. run the dedicated input survey gate
+- `zig test zigux/tests/phase10_virtio_input_survey.zig`
+
+3. run the dedicated Phase 10 build
 - `zig build test --build-file zigux/tests/phase10_build.zig`
 
-3. run the Linux-style Phase 10 test entrypoints
+4. run the Linux-style Phase 10 test entrypoints
 - `make -C zigux phase10-test`
 - `make -C zigux phase10`
 
-Taken together, these gates are the current roadmap-facing `lab-only driver validation` evidence for this lane.
+Taken together, these gates are the current roadmap-facing `lab-only driver validation` evidence for this lane through the dedicated input-packet guard, the dedicated survey replay, the direct build replay, and the shipped Linux-style Phase 10 test entrypoints.
 
 ## Next bounded step
 
