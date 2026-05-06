@@ -12,7 +12,7 @@ This note records the current atomic, barrier, and MMIO boundary for the bounded
 - `PHASE3_BARRIER_PATH=zigux/helpers/barrier.zig`
 - `PHASE3_BARRIER_SCOPE=acquire-release-full-acquire-release-pair`
 - `PHASE3_BARRIER_STATUS=local-sentinel-probe-only`
-- `PHASE3_BARRIER_BLOB_SHA=432f92092ffcf61cb75c1e1f5bdce2022afc7fb4`
+- `PHASE3_BARRIER_BLOB_SHA=f0f8b576a673113c6716bd2108aacdc772236dbd`
 - `PHASE3_MMIO_PATH=zigux/helpers/mmio.zig`
 - `PHASE3_MMIO_SCOPE=range-read8-write8-read32-write32`
 - `PHASE3_MMIO_STATUS=byte-and-32-bit-mmio-through-narrow-pointer-bridge`
@@ -53,7 +53,7 @@ This survey is anchored to packet-local blob IDs because the current connector r
 The current tree carries a real low-level wrapper packet:
 
 - `zigux/helpers/atomic.zig` exposes `load`, `store`, `exchange`, `fetchAdd`, `fetchSub`, `fetchAnd`, `fetchOr`, `fetchXor`, `fetchMin`, `fetchMax`, `compareExchange`, and `compareExchangeWeak`, with helper-local tests still carrying a few atomic edge cases beyond the focused replay.
-- `zigux/helpers/barrier.zig` exposes `acquire`, `release`, `full`, and `acquireRelease()` through local sentinel-backed probes.
+- `zigux/helpers/barrier.zig` exposes `acquire`, `release`, `full`, and `acquireRelease()` through local compiler-barrier wrappers, with direct locality proof living in the focused replay.
 - `zigux/helpers/mmio.zig` exposes `range`, `read8`, `write8`, `read32`, and `write32`, all routed through the narrow pointer bridge in `zigux/unsafe/narrow.zig`.
 - `zigux/tests/phase3_low_level_wrappers.zig` now directly proves the shipped helper surface, including fetch, weak compare-exchange, explicit barrier-locality replay, non-`seq_cst` ordering, and byte-plus-32-bit MMIO behavior.
 - The shared compile, layout, and dump proof for this packet still lives in `zigux/tests/phase3_abi.zig`, `zigux/tests/phase3_abi_dump.zig`, `zigux/tests/fixtures/phase3_abi/expected.json`, and `zigux/tests/fixtures/phase3_abi_manifest.json`.
