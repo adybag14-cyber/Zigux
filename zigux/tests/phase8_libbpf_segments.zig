@@ -1,6 +1,6 @@
 const std = @import("std");
 
-const expected_surveyed_commit = "897cdd2f62c4428d2a050275a187950e161b66eb";
+const expected_surveyed_commit = "0e8ce03f80f631368bfa3c32452d615bb629e3db";
 
 const CompanionFile = struct {
     path: []const u8,
@@ -102,7 +102,7 @@ const expected_segments = [_]ExpectedSegment{
     .{
         .id = "P8-L15-S06",
         .slug = "map-reuse-compatibility",
-        .status = "ready_next",
+        .status = "starter_landed",
         .kind = "helper_first",
         .zigux_destination = "tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig",
         .anchor_range_count = 1,
@@ -233,11 +233,10 @@ test "phase 8 libbpf segment manifest records the current helper-first catalog" 
     try std.testing.expect(!manifest.survey_summary.preexisting_phase8_libbpf_note_present);
     try expectCompanionCatalog(manifest.survey_summary.companion_c_files);
     try expectSegmentCatalog(manifest.segments);
-    try expectContains(manifest_json, "now-materialized shared file-path bridge surface");
-    try expectContains(manifest_json, "already ship as adjacent fdinfo-only helper coverage");
-    try expectContains(manifest_json, "catalog entry stays queued until Zigux promotes that bridge packet");
-    try expectContains(manifest_json, "beside the now-materialized shared bridge surface");
-    try expectContains(manifest_json, "stay queued until the fdinfo-only bridge packet is promoted");
+    try expectContains(manifest_json, "next explicit promotable helper slice");
+    try expectContains(manifest_json, "shared bridge packet now covers the reused-map name chooser");
+    try expectContains(manifest_json, "bounded fdinfo helper foundation plus the helper-only reuse packet");
+    try expectContains(manifest_json, "stays deferred beside the bounded perf-buffer poll bookkeeping adjunct");
 }
 
 test "phase 8 libbpf survey note keeps segmented helper-first rollout explicit" {
@@ -334,11 +333,12 @@ test "phase 8 libbpf survey note stays aligned with the landed helper packet" {
     try expectContains(phase8_note, "perf-buffer-online-cpu-routing");
     try expectContains(phase8_note, "perf-buffer-poll-bookkeeping");
     try expectContains(phase8_note, "The manifest currently records twelve bounded segments");
-    try expectContains(phase8_note, "five landed bounded slices");
-    try expectContains(phase8_note, "stay queued helper-first catalog entries");
-    try expectContains(phase8_note, "no longer because the bridge packet paths are missing");
+    try expectContains(phase8_note, "six landed bounded slices");
+    try expectContains(phase8_note, "five helper-first starters, one shared file-path bridge helper packet, and one perf-buffer poll adjunct");
+    try expectContains(phase8_note, "`fdinfo-map-info-helpers` still stays queued as the next helper-first catalog entry");
+    try expectContains(phase8_note, "`map-reuse-compatibility` has now joined the landed bridge packet");
+    try expectContains(phase8_note, "helper-only reused-map name resolution");
     try expectContains(phase8_note, "bounded fdinfo helper packet");
-    try expectContains(phase8_note, "fdinfo-only surface");
     try expectContains(phase8_note, "resource-boundary packet still stays deferred");
     try expectContains(phase8_note, "standalone timer or clockevent helper behavior");
 
