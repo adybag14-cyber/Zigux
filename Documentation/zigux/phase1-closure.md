@@ -159,6 +159,19 @@ That means `test "bitmap copy aliases preserve tail clearing and extension seman
 
 - `PHASE1_BITMAP_COPY_ALIAS_REVIEW=helper-local bitmap copy alias proof stays explicit through the direct bitmap test anchor so bitmap_copy_clear_tail and bitmap_copy_and_extend preserve tail masking and zero-filled extension semantics`
 
+## Rbtree Review Rule
+
+For `tools/lib/rbtree.zig`, reviewers must keep the current bounded Phase 1 rbtree surface explicit through:
+
+- `tools/lib/rbtree.zig`
+- `zigux/tests/phase1_helpers.zig`
+- `zigux/tests/fixtures/phase1_helper_manifest.json`
+- `zigux/tests/fixtures/phase1_helpers.json`
+
+That means `test "rbtree inserts and traverses in sorted order"`, `test "rbtree erase and replace keep traversal consistent"`, `test "rbtree eraseInit detaches erased node"`, `test "rbtree postorder and empty node helpers behave"`, `test "rbtree findAdd keeps the first duplicate and inserts new keys"`, and `test "rbtree nextMatch walks the duplicate range in order"` stay present and review-visible whenever the helper changes. The shared replay must also keep `empty_root`, `insert_order`, `reverse_order`, `replace_order`, `erase_init_order`, `postorder_count`, `erase_init_node_empty`, and `cleared_node_empty` explicit so traversal and detached-node parity remain reviewable without implying a broader duplicate-search fixture packet than current `master` actually ships.
+
+- `PHASE1_RBTREE_REVIEW_PACKET=helper-local rbtree tests plus the shared traversal and detached-node replay stay explicit so the bounded Phase 1 rbtree surface keeps its direct review anchors without implying a broader duplicate-search fixture packet than current master ships`
+
 ## String Review Rule
 
 For `tools/lib/string.zig`, reviewers must keep the current bounded host-side string surface explicit through:
