@@ -51,6 +51,7 @@ It is a small substrate that makes future ports measurable:
 - `python3 scripts/zigux/check-phase3-selftest-surface.py`
 - `python3 scripts/zigux/check-phase3-readme-tooling-inventory.py --self-test`
 - `python3 scripts/zigux/check-phase3-readme-tooling-inventory.py`
+- `python3 scripts/zigux/validate-phase3-policy-unsafe-survey.py`
 - `python3 scripts/zigux/validate-phase3-low-level-wrapper-survey.py`
 - `make -C zigux phase3-selftest`
 - focused support-script safety check only; `make -C zigux phase3-validate` already invokes the underlying helper self-tests and README tooling inventory checks directly.
