@@ -15,4 +15,6 @@ The starter stays intentionally narrow:
 
 This slice does not claim MMIO transport work, DMA-facing queue plumbing, input core capability registration, transport-backed config reads, or probe and remove lifecycle parity yet.
 
+The current live review packet is broader than this module-local summary alone: `Documentation/zigux/phase10-virtio-input-slice.md`, `Documentation/zigux/phase10-virtio-input-survey.md`, `scripts/zigux/check-phase10-input-packet.py`, `zigux/tests/phase10_virtio_input_manifest.json`, `zigux/tests/phase10_virtio_input_survey.zig`, `zigux/tests/phase10_virtio_input_status_drain.zig`, `zigux/tests/phase10_build.zig`, `zigux/Makefile`, `make -C zigux phase10-test`, and `make -C zigux phase10` keep the bounded starter, the dedicated packet guard, the manifest-backed survey replay, the focused status-drain replay, and the shared Phase 10 build-and-make routes aligned on `master` instead of leaving this input lane reviewable only through the module slice.
+
 The next honest bounded step inside the same lane is to prefer one small manifest, survey, or helper-test truthfulness repair before widening into input-device registration, queue callbacks, or broader transport glue.
