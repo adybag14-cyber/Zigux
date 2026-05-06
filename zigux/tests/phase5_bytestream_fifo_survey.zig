@@ -269,6 +269,7 @@ test "phase 5 bytestream fifo survey packet stays repo-local and keeps shared re
         "if the change updates a landed Phase 5 sample that keeps a Linux concurrency or private-data cue only for reviewability, does the note or checklist still say clearly what remains in-memory-only and what runtime parity is still out of scope?",
         "if the change updates the landed Phase 5 `bytestream_fifo` sample packet, do the note, shared checklist text, and paired manifest-backed replays keep the exact queue-order drain contract, non-destructive `snapshotInto()` cue, short-drain `\"hel\"` plus queued `\"lo\"` helper boundary, and the `init()` -> `runAnchorReplay()` -> `exit()` ownership path explicit instead of implying procfs, user-copy, locking, or module-registration parity?",
         "if the change updates a landed Phase 5 sample, does it update the directly coupled survey note or manifest-backed contributor prompts when the sample contract changes?",
+        "if the change touches the shared Phase 5 sample packet, do the docs still say clearly that there is no standalone `samples/zigux/*rbtree*` reference sample and that `rbtree` reviewability remains under `Documentation/zigux/phase7-rbtree-slice.md`, `lib/rbtree.zig`, and `zigux/tests/phase7_build.zig` rather than the four shipped Phase 5 samples?",
     };
 
     for (checklist_markers) |needle| {
