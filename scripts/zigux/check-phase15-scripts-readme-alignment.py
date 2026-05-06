@@ -95,6 +95,14 @@ MANIFEST_LANE_MARKERS = (
     "dedicated handoff-checker route",
 )
 
+CURRENT_REPO_HANDOFF_MARKERS = (
+    "Documentation/zigux/phase15-freeze-map-governance.md",
+    "scripts/zigux/check-phase15-scripts-readme-alignment.py",
+    "scripts/zigux/check-phase15-review-process-handoff.py",
+    "zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig",
+    "zigux/tests/phase15_build.zig",
+)
+
 BUILD_MARKERS = (
     'b.path("phase15_freeze_map_governance.zig")',
     'b.path("phase15_parity_scorecard.zig")',
@@ -160,6 +168,17 @@ def validate(root: Path) -> list[str]:
     if not isinstance(handoff_evidence, dict):
         issues.append("manifest:missing:handoff_evidence")
     else:
+        current_repo_handoff = handoff_evidence.get("current_repo_handoff")
+        if not isinstance(current_repo_handoff, str):
+            issues.append("manifest:missing:handoff_evidence.current_repo_handoff")
+        else:
+            _require_markers_present(
+                current_repo_handoff,
+                CURRENT_REPO_HANDOFF_MARKERS,
+                "manifest_current_repo_handoff",
+                issues,
+            )
+
         current_bounded_lane = handoff_evidence.get("current_bounded_lane")
         if not isinstance(current_bounded_lane, str):
             issues.append("manifest:missing:handoff_evidence.current_bounded_lane")
@@ -263,6 +282,7 @@ def _baseline_manifest() -> str:
     return json.dumps(
         {
             "handoff_evidence": {
+                "current_repo_handoff": "The current repo handoff explicitly names Documentation/zigux/freeze-map.md, Documentation/zigux/phase15-freeze-map-governance.md, Documentation/zigux/phase15-architecture-council-review-process.md, Documentation/zigux/phase15-parity-scorecard.md, Documentation/zigux/phase15-indefinite-c-policy.md, Documentation/zigux/review-checklist.md, scripts/zigux/check-phase15-scripts-readme-alignment.py, scripts/zigux/check-phase15-review-process-handoff.py, zigux/tests/phase15_architecture_council_review_process_manifest.json, zigux/tests/phase15_freeze_map_governance.zig, zigux/tests/phase15_parity_scorecard.zig, zigux/tests/phase15_architecture_council_review_process.zig, zigux/tests/phase15_indefinite_c_policy.json, zigux/tests/phase15_indefinite_c_policy.zig, zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig, and zigux/tests/phase15_build.zig as the parked governance packet boundary.",
                 "current_bounded_lane": "The parked Architecture Council packet stays aligned with its scripts-root validator path, its Linux-style `make -C zigux phase15-validate` route, its tests-root guidance path, and its dedicated handoff-checker route."
             }
         },
@@ -396,8 +416,26 @@ def run_self_test() -> int:
         _write(root / MANIFEST_REL, json.dumps({"handoff_evidence": {}}, indent=2) + "\n")
         _assert_only(
             validate(root),
-            ["manifest:missing:handoff_evidence.current_bounded_lane"],
+            [
+                "manifest:missing:handoff_evidence.current_repo_handoff",
+                "manifest:missing:handoff_evidence.current_bounded_lane",
+            ],
             "missing_manifest_lane_string_guard_failed",
+        )
+        _write(root / MANIFEST_REL, baseline_manifest)
+        case_count += 1
+
+        manifest_data = json.loads(baseline_manifest)
+        manifest_data["handoff_evidence"]["current_repo_handoff"] = manifest_data["handoff_evidence"][
+            "current_repo_handoff"
+        ].replace("scripts/zigux/check-phase15-scripts-readme-alignment.py, ", "", 1)
+        _write(root / MANIFEST_REL, json.dumps(manifest_data, indent=2) + "\n")
+        _assert_only(
+            validate(root),
+            [
+                "manifest_current_repo_handoff:missing:scripts/zigux/check-phase15-scripts-readme-alignment.py"
+            ],
+            "missing_manifest_repo_handoff_marker_guard_failed",
         )
         _write(root / MANIFEST_REL, baseline_manifest)
         case_count += 1
@@ -495,7 +533,7 @@ def main() -> int:
     print("PHASE15_SCRIPTS_README_ALIGNMENT=pass")
     print(
         "PHASE15_SCRIPTS_README_ALIGNMENT_MARKER_COUNT="
-        f"{len(README_SNIPPETS) + len(MAKEFILE_REQUIRED) + len(HANDOFF_CHECKER_MARKERS) + len(REVIEW_CHECKLIST_MARKERS) + len(REVIEW_PROCESS_NOTE_MARKERS) + len(MANIFEST_LANE_MARKERS) + len(BUILD_MARKERS)}"
+        f"{len(README_SNIPPETS) + len(MAKEFILE_REQUIRED) + len(HANDOFF_CHECKER_MARKERS) + len(REVIEW_CHECKLIST_MARKERS) + len(REVIEW_PROCESS_NOTE_MARKERS) + len(MANIFEST_LANE_MARKERS) + len(CURRENT_REPO_HANDOFF_MARKERS) + len(BUILD_MARKERS)}"
     )
     return 0
 
