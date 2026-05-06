@@ -306,6 +306,36 @@ fn rbtreeBench() struct { checksum: u64 } {
             cursor = rbtree.nextMatch(&wanted, cursor, cmpKey) orelse break;
         }
 
+        var duplicate_mutation_entries = [_]RbEntry{
+            .{ .key = 10, .serial = 0 },
+            .{ .key = 5, .serial = 1 },
+            .{ .key = 10, .serial = 2 },
+            .{ .key = 20, .serial = 3 },
+            .{ .key = 10, .serial = 4 },
+            .{ .key = 15, .serial = 5 },
+        };
+        var replacement_duplicate = RbEntry{ .key = 10, .serial = 6 };
+        var duplicate_mutation_root = rbtree.Root.init();
+        for (&duplicate_mutation_entries) |*entry| {
+            rbtree.add(&entry.node, &duplicate_mutation_root, duplicate_less);
+        }
+
+        rbtree.erase(&duplicate_mutation_entries[2].node, &duplicate_mutation_root);
+        var after_erase = rbtree.findFirst(&wanted, &duplicate_mutation_root, cmpKey) orelse unreachable;
+        while (true) {
+            const entry: *const RbEntry = @fieldParentPtr("node", after_erase);
+            checksum +%= entry.serial + 97;
+            after_erase = rbtree.nextMatch(&wanted, after_erase, cmpKey) orelse break;
+        }
+
+        rbtree.replaceNode(&duplicate_mutation_entries[4].node, &replacement_duplicate.node, &duplicate_mutation_root);
+        var after_replace = rbtree.findFirst(&wanted, &duplicate_mutation_root, cmpKey) orelse unreachable;
+        while (true) {
+            const entry: *const RbEntry = @fieldParentPtr("node", after_replace);
+            checksum +%= entry.serial + 107;
+            after_replace = rbtree.nextMatch(&wanted, after_replace, cmpKey) orelse break;
+        }
+
         var cached_entries = [_]RbEntry{
             .{ .key = 10 },
             .{ .key = 5 },
