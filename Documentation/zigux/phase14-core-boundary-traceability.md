@@ -45,7 +45,7 @@ This note stays narrow on purpose. It does not add a bridge, reopen a freeze dec
 - surveyed commit: `f05e02445443e7743c3675a6f8ca4f70f6e736fb`
 - ready-next gap: none currently recorded
 - blocked gap: `phase14-skbuff-live-ownership-blocker`
-- retained-in-C boundary: live skb lifetime, destructor ordering, qdisc-owned publication, checksum-state ownership, segmentation behavior, and final drop pruning still remain in C even though the repo now carries a review-only boundary map through `validate_xmit_skb_list()` republish plus the observational `__dev_direct_xmit()` identity-drop checkpoint, both of which keep qdisc publication, queue ownership, and skb lifetime ownership explicitly outside Zigux.
+- retained-in-C boundary: live skb lifetime, dataref and header-write ownership, destructor ordering, qdisc-facing publication, checksum-state ownership, and segmentation behavior still remain in C even though the repo now carries a review-only boundary map through the exported `skb_segment()` tail-publication contract around `segs->prev`, `tail->next`, and `validate_xmit_skb_list()`, and no smaller review-only skbuff follow-up remains before the blocked live-ownership boundary.
 
 ### RCU tree
 
