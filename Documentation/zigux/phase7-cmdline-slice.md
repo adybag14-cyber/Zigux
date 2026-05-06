@@ -27,6 +27,10 @@ This current slice keeps the work bounded to runtime-safe parsing helpers that:
 - do not allocate
 - can be validated with deterministic Zig-only tests
 
+This is intentionally not a Phase 5 `samples/zigux/` reference-sample lane.
+
+Current `master` still ships no `samples/zigux/*cmdline*` Phase 5 reference sample; keep cmdline reviewability under this slice, `samples/zigux/README.md`, `zigux/tests/phase7_cmdline.zig`, `zigux/tests/phase7_cmdline_survey.zig`, and `zigux/tests/phase7_build.zig` instead of counting it as a fifth Phase 5 sample.
+
 ## Gates
 
 1. run the focused Zig module tests
