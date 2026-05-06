@@ -93,6 +93,8 @@ TESTS_README_MARKERS = [
     "scripts/zigux/check-phase3-catalog-selftest.py",
     "scripts/zigux/validate-phase3-low-level-wrapper-survey.py",
     "scripts/zigux/validate-phase3-policy-unsafe-survey.py",
+    "scripts/zigux/validate-phase3-export-uapi-survey.py",
+    "scripts/zigux/validate-phase3-abi-bindings-syntax.py",
     "scripts/zigux/phase3_catalog.py --self-test",
     "scripts/zigux/phase3_check_lib.py --self-test",
     "scripts/zigux/generate-phase3-check-wrappers.py --check",
@@ -386,6 +388,8 @@ def run_self_test() -> int:
         assert "tests_readme:scripts/zigux/check-phase3-catalog-selftest.py" in issues
         assert "tests_readme:scripts/zigux/validate-phase3-low-level-wrapper-survey.py" in issues
         assert "tests_readme:scripts/zigux/validate-phase3-policy-unsafe-survey.py" in issues
+        assert "tests_readme:scripts/zigux/validate-phase3-export-uapi-survey.py" in issues
+        assert "tests_readme:scripts/zigux/validate-phase3-abi-bindings-syntax.py" in issues
         assert "tests_readme:scripts/zigux/phase3_catalog.py --self-test" in issues
         assert "tests_readme:scripts/zigux/phase3_check_lib.py --self-test" in issues
         assert "tests_readme:scripts/zigux/generate-phase3-check-wrappers.py --check" in issues
