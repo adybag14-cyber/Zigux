@@ -82,6 +82,7 @@ It is a small substrate that makes future ports measurable:
 - `python3 scripts/zigux/check-phase3-readme-tooling-inventory.py`
 - `python3 scripts/zigux/check-phase3-abi-dump-gate.py --self-test`
 - `python3 scripts/zigux/check-phase3-abi-dump-gate.py`
+- `python3 scripts/zigux/check-phase3-catalog-selftest.py --self-test`
 - `python3 scripts/zigux/phase3_catalog.py --self-test`
 - `python3 scripts/zigux/phase3_check_lib.py --self-test`
 - `python3 scripts/zigux/generate-phase3-check-wrappers.py --check`
