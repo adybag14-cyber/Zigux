@@ -86,7 +86,7 @@ test "phase 9 runtime trace-events survey manifest records the landed loader sca
     try std.testing.expect(manifest.survey_summary.preexisting_phase9_build_present);
     try std.testing.expect(manifest.survey_summary.preexisting_runtime_trace_events_doc_present);
     try std.testing.expect(manifest.delivery_evidence_catalog.len >= 4);
-    try std.testing.expect(manifest.ownership_map.len >= 6);
+    try std.testing.expect(manifest.ownership_map.len >= 9);
     try std.testing.expect(manifest.gaps.len >= 8);
 
     var review_note_catalog_count: usize = 0;
@@ -142,6 +142,9 @@ test "phase 9 runtime trace-events survey manifest records the landed loader sca
     var saw_module_slice_owner = false;
     var saw_sample_owner = false;
     var saw_loader_owner = false;
+    var saw_loader_facade_owner = false;
+    var saw_loader_contract_owner = false;
+    var saw_allocator_init_flow_owner = false;
     var saw_survey_gate_owner = false;
     var saw_build_gate_owner = false;
 
@@ -155,6 +158,9 @@ test "phase 9 runtime trace-events survey manifest records the landed loader sca
         if (std.mem.eql(u8, entry.surface, "Documentation/zigux/phase9-runtime-trace-events-module-slice.md")) saw_module_slice_owner = true;
         if (std.mem.eql(u8, entry.surface, "samples/zigux/runtime_trace_events.zig")) saw_sample_owner = true;
         if (std.mem.eql(u8, entry.surface, "samples/zigux/runtime_trace_events_loader.zig")) saw_loader_owner = true;
+        if (std.mem.eql(u8, entry.surface, "zigux/kernel/runtime_loader.zig")) saw_loader_facade_owner = true;
+        if (std.mem.eql(u8, entry.surface, "zigux/kernel/runtime_loader_contract.zig")) saw_loader_contract_owner = true;
+        if (std.mem.eql(u8, entry.surface, "zigux/tests/runtime_loader_allocator_init_flow.zig")) saw_allocator_init_flow_owner = true;
         if (std.mem.eql(u8, entry.surface, "zigux/tests/runtime_trace_events_survey.zig")) saw_survey_gate_owner = true;
         if (std.mem.eql(u8, entry.surface, "zigux/tests/phase9_build.zig")) saw_build_gate_owner = true;
 
@@ -167,6 +173,9 @@ test "phase 9 runtime trace-events survey manifest records the landed loader sca
     try std.testing.expect(saw_module_slice_owner);
     try std.testing.expect(saw_sample_owner);
     try std.testing.expect(saw_loader_owner);
+    try std.testing.expect(saw_loader_facade_owner);
+    try std.testing.expect(saw_loader_contract_owner);
+    try std.testing.expect(saw_allocator_init_flow_owner);
     try std.testing.expect(saw_survey_gate_owner);
     try std.testing.expect(saw_build_gate_owner);
 
@@ -330,7 +339,10 @@ test "phase 9 runtime trace-events survey keeps the manifest-backed surveyed com
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "the current bounded starter still advertises `requires_runtime_substrate=true` and `provides_selftest_hook=true`") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "runtime task ownership or event-loop substrate parity remains blocked behind that same shared runtime-loader boundary") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "polling-backed wake or dispatch behavior also remains blocked until the shared runtime substrate exists") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "the manifest-backed ownership packet now records a four-entry `delivery_evidence_catalog` and a six-surface `ownership_map`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "the manifest-backed ownership packet now records a four-entry `delivery_evidence_catalog` and a nine-surface `ownership_map`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "shared `zigux/kernel/runtime_loader.zig` facade") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "shared `zigux/kernel/runtime_loader_contract.zig` contract") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "shared `zigux/tests/runtime_loader_allocator_init_flow.zig` replay") != null);
 
     try std.testing.expectEqual(@as(usize, 1), std.mem.count(u8, module_slice, surveyed_commit_marker));
     try std.testing.expect(std.mem.indexOf(u8, module_slice, "a loader-handoff scaffold") != null);
@@ -343,6 +355,7 @@ test "phase 9 runtime trace-events survey keeps the manifest-backed surveyed com
     try std.testing.expect(std.mem.indexOf(u8, module_slice, "keeping the roadmap-required selftest hook explicit through `provides_selftest_hook=true`") != null);
     try std.testing.expect(std.mem.indexOf(u8, module_slice, "runtime task ownership or event-loop substrate parity remains blocked behind that shared runtime-loader surface") != null);
     try std.testing.expect(std.mem.indexOf(u8, module_slice, "polling-backed wake or dispatch behavior remains blocked behind the same shared runtime-loader surface") != null);
+    try std.testing.expect(std.mem.indexOf(u8, module_slice, "a manifest-backed ownership packet that now names the survey note, module-slice note, starter sample, loader scaffold") != null);
 
     try std.testing.expect(std.mem.indexOf(u8, freeze_map, "`kernel/workqueue.c`") != null);
     try std.testing.expect(std.mem.indexOf(u8, freeze_map, "`kernel/trace/ring_buffer.c`") != null);
