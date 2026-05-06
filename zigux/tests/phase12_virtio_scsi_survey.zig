@@ -44,7 +44,7 @@ fn expectContains(haystack: []const u8, needle: []const u8) !void {
     try std.testing.expect(std.mem.indexOf(u8, haystack, needle) != null);
 }
 
-test "phase12 virtio_scsi survey manifest records the landed queue starter and probe snapshot follow-up" {
+test "phase12 virtio_scsi survey manifest records the landed queue starter and probe snapshot helper" {
     var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
     defer io_instance.deinit();
 
@@ -92,7 +92,7 @@ test "phase12 virtio_scsi survey manifest records the landed queue starter and p
     var saw_driver_starter = false;
     var saw_driver_tests = false;
     var saw_slice_note = false;
-    var saw_ready_next = false;
+    var saw_probe_snapshot = false;
     var saw_blocker = false;
 
     for (manifest.gaps, 0..) |gap, i| {
@@ -165,7 +165,7 @@ test "phase12 virtio_scsi survey manifest records the landed queue starter and p
             try std.testing.expectEqualStrings("starter_landed", gap.status);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "poll-queue clamping") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "global virtqueue indexes") != null);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "freeze or restore contract") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "probe-config snapshot") != null);
         }
 
         if (std.mem.eql(u8, gap.id, "phase12-virtio-scsi-slice-note")) {
@@ -175,9 +175,9 @@ test "phase12 virtio_scsi survey manifest records the landed queue starter and p
         }
 
         if (std.mem.eql(u8, gap.id, "phase12-virtio-scsi-probe-config-snapshot-starter")) {
-            saw_ready_next = true;
+            saw_probe_snapshot = true;
             try std.testing.expectEqualStrings("drivers/scsi/virtio_scsi.zig", gap.zigux_destination);
-            try std.testing.expectEqualStrings("ready_next", gap.status);
+            try std.testing.expectEqualStrings("starter_landed", gap.status);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "virtscsi_probe()") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "num_queues") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "max_target") != null);
@@ -196,8 +196,8 @@ test "phase12 virtio_scsi survey manifest records the landed queue starter and p
         }
     }
 
-    try std.testing.expectEqual(@as(usize, 9), starter_landed_count);
-    try std.testing.expectEqual(@as(usize, 1), ready_next_count);
+    try std.testing.expectEqual(@as(usize, 10), starter_landed_count);
+    try std.testing.expectEqual(@as(usize, 0), ready_next_count);
     try std.testing.expectEqual(@as(usize, 1), blocked_count);
     try std.testing.expect(saw_build_gate);
     try std.testing.expect(saw_make_target);
@@ -208,7 +208,7 @@ test "phase12 virtio_scsi survey manifest records the landed queue starter and p
     try std.testing.expect(saw_driver_starter);
     try std.testing.expect(saw_driver_tests);
     try std.testing.expect(saw_slice_note);
-    try std.testing.expect(saw_ready_next);
+    try std.testing.expect(saw_probe_snapshot);
     try std.testing.expect(saw_blocker);
 }
 
@@ -264,8 +264,10 @@ test "phase12 virtio_scsi raw fallback catalog stays aligned with the shipped bu
         "https://raw.githubusercontent.com/adybag14-cyber/Zigux/master/scripts/zigux/README.md",
         "https://raw.githubusercontent.com/adybag14-cyber/Zigux/master/Documentation/zigux/README.md",
         "https://raw.githubusercontent.com/adybag14-cyber/Zigux/master/zigux/Makefile",
-        "1. `zig build test --build-file zigux/tests/phase12_build.zig --summary all`",
-        "2. `make -C zigux phase12`",
+        "1. `zig build smoke --build-file zigux/tests/phase12_build.zig --summary all`",
+        "2. `make -C zigux phase12-smoke`",
+        "3. `zig build test --build-file zigux/tests/phase12_build.zig --summary all`",
+        "4. `make -C zigux phase12`",
         "This catalog should stay read-only and should not be used to imply an unshipped `validate-phase12.py`, any `check-phase12-*.py` packet, or a `make -C zigux phase12-validate` target.",
     };
 
