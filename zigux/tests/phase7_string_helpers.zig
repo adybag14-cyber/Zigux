@@ -45,6 +45,27 @@ test "phase 7 replacement and padding helpers work in place" {
     try std.testing.expectEqualSlices(u8, "xy", &exact);
 }
 
+test "phase 7 kstrdupQuotable escapes special log bytes and preserves first-NUL bounds" {
+    const duplicated = (try string_helpers.kstrdupQuotable(std.testing.allocator, "line\n\"tab\"\x1b\\tail")) orelse return error.TestUnexpectedResult;
+    defer std.testing.allocator.free(duplicated);
+
+    try std.testing.expectEqualStrings("line\\x0a\\x22tab\\x22\\x1b\\x5ctail", duplicated);
+
+    const nul_bounded = (try string_helpers.kstrdupQuotable(std.testing.allocator, "tty\tname\x00ignored")) orelse return error.TestUnexpectedResult;
+    defer std.testing.allocator.free(nul_bounded);
+    try std.testing.expectEqualStrings("tty\\x09name", nul_bounded);
+}
+
+test "phase 7 kstrdupQuotable returns null for null inputs and keeps empty results owned" {
+    try std.testing.expectEqual(@as(?[:0]u8, null), try string_helpers.kstrdupQuotable(std.testing.allocator, null));
+
+    const empty = (try string_helpers.kstrdupQuotable(std.testing.allocator, "")) orelse return error.TestUnexpectedResult;
+    defer std.testing.allocator.free(empty);
+
+    try std.testing.expectEqualStrings("", empty);
+    try std.testing.expectEqual(@as(u8, 0), empty[0]);
+}
+
 test "phase 7 termination helper respects bounded search windows" {
     try std.testing.expect(string_helpers.stringIsTerminated("xy\x00tail", 3));
     try std.testing.expect(!string_helpers.stringIsTerminated("xy\x00tail", 2));
