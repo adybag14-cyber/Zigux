@@ -617,7 +617,7 @@ def run_self_test() -> int:
             )
 
     print("PHASE9_BUILD_ONLY_SURFACE_SELF_TEST=pass")
-    print("PHASE9_BUILD_ONLY_SURFACE_SELF_TEST_CASE_COUNT=20")
+    print("PHASE9_BUILD_ONLY_SURFACE_SELF_TEST_CASE_COUNT=21")
     return 0
 
 
