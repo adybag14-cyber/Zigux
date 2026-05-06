@@ -145,7 +145,7 @@ pub fn build(b: *std.Build) void {
         .target = target,
         .optimize = optimize,
     });
-    runtime_loader_allocator_init_flow_module.addImport("runtime_loader", runtime_loader_contract_module);
+    runtime_loader_allocator_init_flow_module.addImport("runtime_loader", runtime_loader_facade_module);
     runtime_loader_allocator_init_flow_module.addImport("runtime_loader_contract", runtime_loader_contract_module);
 
     const runtime_atomic64_survey_module = b.createModule(.{
