@@ -133,6 +133,13 @@
       "why_now": "The lane now records one small overwrite and lost-event audit around `rb_move_tail()`, overwrite mode, and reader-side lost-event reporting so the next review stops rediscovering where full-buffer accounting stays coupled to the C implementation."
     },
     {
+      "id": "phase14-ring-buffer-remote-reader-meta-followup",
+      "status": "starter_landed",
+      "kind": "boundary_audit",
+      "zigux_destination": "Documentation/zigux/phase14-ring-buffer-survey.md",
+      "why_now": "The lane now records one small remote-reader metadata audit around `rb_read_remote_meta_page()` and `__rb_get_reader_page_from_remote()` so callback-shaped meta-page refresh, per-page stats snapshots, and remote reader-page import rules stay explicit as one combined C-owned contract."
+    },
+    {
       "id": "phase14-ring-buffer-wakeup-mmap-followup",
       "status": "starter_landed",
       "kind": "boundary_audit",
