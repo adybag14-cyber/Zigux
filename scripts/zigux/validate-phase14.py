@@ -489,26 +489,48 @@ def run_self_test() -> int:
             "\n".join(REQUIRED_FILE_MARKERS["Documentation/zigux/review-checklist.md"]) + "\n",
         )
 
-        broken_review_checklist_path.write_text(
-            broken_review_checklist_path.read_text(encoding="utf-8").replace(
-                "kernel/workqueue.c\n",
-                "",
-                1,
+        anchor_cases = [
+            (
+                "kernel/workqueue.c",
+                "missing marker in Documentation/zigux/review-checklist.md: kernel/workqueue.c",
+                "workqueue",
             ),
-            encoding="utf-8",
-        )
-        errors = check(root)
-        if not errors or not any(
-            "missing marker in Documentation/zigux/review-checklist.md: kernel/workqueue.c" in error
-            for error in errors
-        ):
-            print("self-test expected failure when review checklist anchor drifted", file=sys.stderr)
-            return 1
-
-        write_text(
-            broken_review_checklist_path,
-            "\n".join(REQUIRED_FILE_MARKERS["Documentation/zigux/review-checklist.md"]) + "\n",
-        )
+            (
+                "kernel/trace/ring_buffer.c",
+                "missing marker in Documentation/zigux/review-checklist.md: kernel/trace/ring_buffer.c",
+                "ring-buffer",
+            ),
+            (
+                "kernel/rcu/tree.c",
+                "missing marker in Documentation/zigux/review-checklist.md: kernel/rcu/tree.c",
+                "rcu-tree",
+            ),
+            (
+                "net/core/skbuff.c",
+                "missing marker in Documentation/zigux/review-checklist.md: net/core/skbuff.c",
+                "skbuff",
+            ),
+        ]
+        for anchor_marker, expected_error, label in anchor_cases:
+            broken_review_checklist_path.write_text(
+                broken_review_checklist_path.read_text(encoding="utf-8").replace(
+                    f"{anchor_marker}\n",
+                    "",
+                    1,
+                ),
+                encoding="utf-8",
+            )
+            errors = check(root)
+            if not errors or not any(expected_error in error for error in errors):
+                print(
+                    f"self-test expected failure when review checklist {label} anchor drifted",
+                    file=sys.stderr,
+                )
+                return 1
+            write_text(
+                broken_review_checklist_path,
+                "\n".join(REQUIRED_FILE_MARKERS["Documentation/zigux/review-checklist.md"]) + "\n",
+            )
 
         broken_scripts_root_path = root / "scripts/zigux/README.md"
         broken_scripts_root_path.write_text(
