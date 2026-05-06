@@ -226,6 +226,26 @@ pub const ManagedPhysWcAddOutcome = union(enum) {
     err: ManagedPhysWcAddFailure,
 };
 
+const ReleaseRecordLifetimePlan = struct {
+    added_to_devres: bool,
+    release_record_retained: bool,
+    release_record_freed: bool,
+
+    fn forResult(success: bool) ReleaseRecordLifetimePlan {
+        return .{
+            .added_to_devres = success,
+            .release_record_retained = success,
+            .release_record_freed = !success,
+        };
+    }
+};
+
+fn requireReleaseRecordAllocated(release_record_allocated: bool) !void {
+    if (!release_record_allocated) {
+        return error.OutOfMemory;
+    }
+}
+
 pub const DevresHelperLab = struct {
     pub fn descriptor() ModuleDescriptor {
         return .{
@@ -247,28 +267,17 @@ pub const DevresHelperLab = struct {
     }
 
     pub fn planManagedIoremapAcquire(input: ManagedIoremapAcquireInput) !ManagedIoremapAcquireResult {
-        if (!input.release_record_allocated) {
-            return error.OutOfMemory;
-        }
-        if (input.mapped_address == null) {
-            return .{
-                .anchor = descriptor().anchor,
-                .kind = input.kind,
-                .mapped_address = null,
-                .added_to_devres = false,
-                .release_record_retained = false,
-                .release_record_freed = true,
-                .should_unmap_on_detach = false,
-            };
-        }
+        try requireReleaseRecordAllocated(input.release_record_allocated);
+
+        const release_record_plan = ReleaseRecordLifetimePlan.forResult(input.mapped_address != null);
         return .{
             .anchor = descriptor().anchor,
             .kind = input.kind,
             .mapped_address = input.mapped_address,
-            .added_to_devres = true,
-            .release_record_retained = true,
-            .release_record_freed = false,
-            .should_unmap_on_detach = true,
+            .added_to_devres = release_record_plan.added_to_devres,
+            .release_record_retained = release_record_plan.release_record_retained,
+            .release_record_freed = release_record_plan.release_record_freed,
+            .should_unmap_on_detach = release_record_plan.added_to_devres,
         };
     }
 
@@ -473,17 +482,17 @@ pub const DevresHelperLab = struct {
     pub fn planArchIoReserveMemtypeWc(
         input: ManagedMemtypeReserveInput,
     ) !ManagedMemtypeReserveOutcome {
-        if (!input.release_record_allocated) {
-            return error.OutOfMemory;
-        }
+        try requireReleaseRecordAllocated(input.release_record_allocated);
+
+        const release_record_plan = ReleaseRecordLifetimePlan.forResult(input.reserve_result >= 0);
         if (input.reserve_result < 0) {
             return .{
                 .err = .{
                     .anchor = descriptor().anchor,
                     .error_code = input.reserve_result,
-                    .added_to_devres = false,
-                    .release_record_retained = false,
-                    .release_record_freed = true,
+                    .added_to_devres = release_record_plan.added_to_devres,
+                    .release_record_retained = release_record_plan.release_record_retained,
+                    .release_record_freed = release_record_plan.release_record_freed,
                     .should_release_on_detach = false,
                 },
             };
@@ -493,26 +502,26 @@ pub const DevresHelperLab = struct {
                 .anchor = descriptor().anchor,
                 .start = input.start,
                 .size = input.size,
-                .added_to_devres = true,
-                .release_record_retained = true,
-                .release_record_freed = false,
-                .should_release_on_detach = true,
+                .added_to_devres = release_record_plan.added_to_devres,
+                .release_record_retained = release_record_plan.release_record_retained,
+                .release_record_freed = release_record_plan.release_record_freed,
+                .should_release_on_detach = release_record_plan.added_to_devres,
             },
         };
     }
 
     pub fn planArchPhysWcAdd(input: ManagedPhysWcAddInput) !ManagedPhysWcAddOutcome {
-        if (!input.release_record_allocated) {
-            return error.OutOfMemory;
-        }
+        try requireReleaseRecordAllocated(input.release_record_allocated);
+
+        const release_record_plan = ReleaseRecordLifetimePlan.forResult(input.token_result >= 0);
         if (input.token_result < 0) {
             return .{
                 .err = .{
                     .anchor = descriptor().anchor,
                     .error_code = input.token_result,
-                    .added_to_devres = false,
-                    .release_record_retained = false,
-                    .release_record_freed = true,
+                    .added_to_devres = release_record_plan.added_to_devres,
+                    .release_record_retained = release_record_plan.release_record_retained,
+                    .release_record_freed = release_record_plan.release_record_freed,
                     .should_remove_on_detach = false,
                 },
             };
@@ -523,10 +532,10 @@ pub const DevresHelperLab = struct {
                 .start = input.start,
                 .size = input.size,
                 .token = input.token_result,
-                .added_to_devres = true,
-                .release_record_retained = true,
-                .release_record_freed = false,
-                .should_remove_on_detach = true,
+                .added_to_devres = release_record_plan.added_to_devres,
+                .release_record_retained = release_record_plan.release_record_retained,
+                .release_record_freed = release_record_plan.release_record_freed,
+                .should_remove_on_detach = release_record_plan.added_to_devres,
             },
         };
     }
