@@ -418,7 +418,7 @@ test "shared runtime loader contract rejects request state or plan drift" {
     try std.testing.expect(!keepsRequestStateAndPlanExplicit(request, .prepared, drifted_init_flow));
 }
 
-test "shared runtime loader contract keeps command and environment control surfaces outside the request contract" {
+test "shared runtime loader contract keeps command, environment, and depmod-facing control surfaces outside the request contract" {
     try std.testing.expect(!@hasField(LoadPlan, "command_name"));
     try std.testing.expect(!@hasField(LoadPlan, "argv_policy"));
     try std.testing.expect(!@hasField(LoadPlan, "activation_env"));
@@ -428,8 +428,22 @@ test "shared runtime loader contract keeps command and environment control surfa
     try std.testing.expect(!@hasField(LoadPlan, "columns_env"));
     try std.testing.expect(!@hasField(LoadPlan, "register_api"));
     try std.testing.expect(!@hasField(LoadPlan, "unregister_api"));
+    try std.testing.expect(!@hasField(LoadPlan, "modinfo"));
+    try std.testing.expect(!@hasField(LoadPlan, "module_alias"));
+    try std.testing.expect(!@hasField(LoadPlan, "module_aliases"));
+    try std.testing.expect(!@hasField(LoadPlan, "modules_alias_path"));
+    try std.testing.expect(!@hasField(LoadPlan, "module_install_root"));
+    try std.testing.expect(!@hasField(LoadPlan, "modules_order_path"));
+    try std.testing.expect(!@hasField(LoadPlan, "modules_builtin_path"));
+    try std.testing.expect(!@hasField(LoadPlan, "depmod_script"));
+    try std.testing.expect(!@hasField(LoadPlan, "depmod_manifest"));
+    try std.testing.expect(!@hasField(LoadPlan, "depmod_aliases"));
     try std.testing.expect(!@hasField(PreparedRequest, "command_name"));
     try std.testing.expect(!@hasField(PreparedRequest, "activation_env"));
+    try std.testing.expect(!@hasField(PreparedRequest, "modinfo"));
+    try std.testing.expect(!@hasField(PreparedRequest, "module_aliases"));
+    try std.testing.expect(!@hasField(PreparedRequest, "modules_alias_path"));
+    try std.testing.expect(!@hasField(PreparedRequest, "depmod_script"));
 
     const stable_plan = LoadPlan{
         .module_name = "runtime_trace_events",
