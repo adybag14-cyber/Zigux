@@ -19,6 +19,11 @@ pub const DecodeError = error{
 const std_table = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 const urlsafe_table = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_";
 const imap_table = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+,";
+const invalid_reverse_value: i8 = -1;
+
+const std_reverse_map = initReverseMap('+', '/');
+const urlsafe_reverse_map = initReverseMap('-', '_');
+const imap_reverse_map = initReverseMap('+', ',');
 
 pub fn chars(nbytes: usize, padding: bool) usize {
     const full_groups = (nbytes / 3) * 4;
@@ -165,6 +170,31 @@ fn alphabet(variant: Variant) []const u8 {
     };
 }
 
+fn reverseMap(variant: Variant) *const [256]i8 {
+    return switch (variant) {
+        .std => &std_reverse_map,
+        .urlsafe => &urlsafe_reverse_map,
+        .imap => &imap_reverse_map,
+    };
+}
+
+fn initReverseMap(comptime ch62: u8, comptime ch63: u8) [256]i8 {
+    var map = [_]i8{invalid_reverse_value} ** 256;
+
+    inline for ('A'..('Z' + 1)) |ch| {
+        map[ch] = @as(i8, @intCast(ch - 'A'));
+    }
+    inline for ('a'..('z' + 1)) |ch| {
+        map[ch] = @as(i8, @intCast(ch - 'a' + 26));
+    }
+    inline for ('0'..('9' + 1)) |ch| {
+        map[ch] = @as(i8, @intCast(ch - '0' + 52));
+    }
+    map[ch62] = 62;
+    map[ch63] = 63;
+    return map;
+}
+
 fn decodedLength(src: []const u8, padding: bool, variant: Variant) DecodeError!usize {
     var out_len: usize = 0;
     var src_index: usize = 0;
@@ -233,32 +263,11 @@ fn validateTail(src: []const u8, variant: Variant) DecodeError!usize {
 }
 
 fn decodeValue(ch: u8, variant: Variant) DecodeError!u8 {
-    return switch (ch) {
-        'A'...'Z' => ch - 'A',
-        'a'...'z' => ch - 'a' + 26,
-        '0'...'9' => ch - '0' + 52,
-        '+' => switch (variant) {
-            .std, .imap => 62,
-            .urlsafe => DecodeError.InvalidInput,
-        },
-        '/' => switch (variant) {
-            .std => 63,
-            .urlsafe, .imap => DecodeError.InvalidInput,
-        },
-        '-' => switch (variant) {
-            .urlsafe => 62,
-            .std, .imap => DecodeError.InvalidInput,
-        },
-        '_' => switch (variant) {
-            .urlsafe => 63,
-            .std, .imap => DecodeError.InvalidInput,
-        },
-        ',' => switch (variant) {
-            .imap => 63,
-            .std, .urlsafe => DecodeError.InvalidInput,
-        },
-        else => DecodeError.InvalidInput,
-    };
+    const value = reverseMap(variant)[ch];
+    if (value == invalid_reverse_value) {
+        return DecodeError.InvalidInput;
+    }
+    return @intCast(value);
 }
 
 fn expectDecodeRejectsWithoutWrites(decoded: []u8, tail: []const u8, padding: bool, variant: Variant) !void {
