@@ -94,6 +94,8 @@ REQUIRED_MARKERS = {
         "make -C zigux phase8-validate",
         "make -C zigux phase8-exec-cmd-test",
         "stops before any ownership of `execv_cmd()` or `execvp()`",
+        "stops before any ownership of `execl_cmd()`",
+        "direct varargs launch path",
     ],
     "Documentation/zigux/phase8-libbpf-cpu-mask-slice.md": [
         "parse_cpu_mask_str()",
@@ -162,6 +164,8 @@ REQUIRED_MARKERS = {
         "if the change touches the parked Phase 8 `exec-cmd` packet",
         "`make -C zigux phase8-exec-cmd-test`",
         "helper-first, output-stable deferred-exec planning packet",
+        "without widening into direct process-launch parity",
+        "`kernel/workqueue.c`",
         "if the change touches the shared active Phase 8 libbpf packet",
         "`make -C zigux phase8-libbpf-segments-test`",
         "`make -C zigux phase8-perf-buffer-poll-test`",
@@ -258,6 +262,8 @@ REQUIRED_MARKERS = {
         "phase 8 exec-cmd checklist hook keeps the parked deferred-exec packet explicit",
         "make -C zigux phase8-validate",
         "helper-first, output-stable deferred-exec planning",
+        "phase 8 exec-cmd deferred boundary note still matches the live C helper anchors",
+        "`execl_cmd()`",
     ],
     "zigux/tests/phase8_exec_cmd_only_build.zig": [
         "../../tools/lib/subcmd/exec-cmd.zig",
@@ -597,6 +603,13 @@ def run_self_test() -> None:
             "Documentation/zigux/phase8-exec-cmd-slice.md: PHASE8_SLICE=exec-cmd-deferred-exec-packet",
         ),
         (
+            "exec_cmd_slice_execl_boundary",
+            "Documentation/zigux/phase8-exec-cmd-slice.md",
+            "stops before any ownership of `execl_cmd()`",
+            "stops before any ownership of `execl_launch()`",
+            "Documentation/zigux/phase8-exec-cmd-slice.md: stops before any ownership of `execl_cmd()`",
+        ),
+        (
             "help_slice_make_wrapper",
             "Documentation/zigux/phase8-help-slice.md",
             "make -C zigux phase8-help-test",
@@ -630,6 +643,13 @@ def run_self_test() -> None:
             "if the change touches the parked Phase 8 `exec-cmd` packet",
             "if the change touches the parked Phase 8 `help` packet",
             "Documentation/zigux/review-checklist.md: if the change touches the parked Phase 8 `exec-cmd` packet",
+        ),
+        (
+            "review_checklist_exec_cmd_workqueue_boundary",
+            "Documentation/zigux/review-checklist.md",
+            "`kernel/workqueue.c`",
+            "`kernel/sched/core.c`",
+            "Documentation/zigux/review-checklist.md: `kernel/workqueue.c`",
         ),
         (
             "review_checklist_libbpf_packet",
@@ -686,6 +706,13 @@ def run_self_test() -> None:
             "make -C zigux phase8-validate",
             "make -C zigux phase8-test",
             "zigux/tests/phase8_exec_cmd.zig: make -C zigux phase8-validate",
+        ),
+        (
+            "focused_exec_cmd_c_anchor_boundary",
+            "zigux/tests/phase8_exec_cmd.zig",
+            "phase 8 exec-cmd deferred boundary note still matches the live C helper anchors",
+            "phase 8 exec-cmd deferred boundary note still matches the live helper packet",
+            "zigux/tests/phase8_exec_cmd.zig: phase 8 exec-cmd deferred boundary note still matches the live C helper anchors",
         ),
         (
             "help_test_combined_shard_marker",
