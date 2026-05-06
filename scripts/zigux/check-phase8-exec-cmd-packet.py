@@ -22,6 +22,8 @@ REQUIRED_FILES = [
 REQUIRED_MARKERS = {
     "Documentation/zigux/phase8-exec-cmd-slice.md": [
         "PHASE8_SLICE=exec-cmd-deferred-exec-packet",
+        "prove Zigux inside serious repo-hosted tooling, not just tiny helpers",
+        "output-stable tooling behavior",
         "shared Phase 8 validator-first route",
         "`kernel/workqueue.c` in the later Phase 14 boundary-study tranche",
         "stops before any ownership of `execv_cmd()` or `execvp()`",
@@ -61,6 +63,7 @@ REQUIRED_MARKERS = {
     ],
     "zigux/tests/phase8_exec_cmd.zig": [
         "PHASE8_SLICE=exec-cmd-deferred-exec-packet",
+        "prove Zigux inside serious repo-hosted tooling, not just tiny helpers",
         "shared Phase 8 validator-first route",
         "`kernel/workqueue.c` in the later Phase 14 boundary-study tranche",
         "phase 8 exec-cmd checklist hook keeps the parked deferred-exec packet explicit",
@@ -142,6 +145,20 @@ def run_self_test() -> None:
             "Documentation/zigux/phase8-exec-cmd-slice.md: PHASE8_SLICE=exec-cmd-deferred-exec-packet",
         ),
         (
+            "slice_roadmap_posture",
+            "Documentation/zigux/phase8-exec-cmd-slice.md",
+            "prove Zigux inside serious repo-hosted tooling, not just tiny helpers",
+            "prove Zigux inside starter tooling",
+            "Documentation/zigux/phase8-exec-cmd-slice.md: prove Zigux inside serious repo-hosted tooling, not just tiny helpers",
+        ),
+        (
+            "slice_output_stability",
+            "Documentation/zigux/phase8-exec-cmd-slice.md",
+            "output-stable tooling behavior",
+            "output-stable deferred-exec behavior",
+            "Documentation/zigux/phase8-exec-cmd-slice.md: output-stable tooling behavior",
+        ),
+        (
             "scripts_readme_phase8_flow",
             "scripts/zigux/README.md",
             "Phase 8 flow",
@@ -217,6 +234,13 @@ def run_self_test() -> None:
             "phase8-exec-cmd-tests",
             "phase8-exec-tests",
             "zigux/tests/phase8_build.zig: phase8-exec-cmd-tests",
+        ),
+        (
+            "focused_test_roadmap_posture",
+            "zigux/tests/phase8_exec_cmd.zig",
+            "prove Zigux inside serious repo-hosted tooling, not just tiny helpers",
+            "prove Zigux inside starter tooling",
+            "zigux/tests/phase8_exec_cmd.zig: prove Zigux inside serious repo-hosted tooling, not just tiny helpers",
         ),
         (
             "focused_test_guard",
