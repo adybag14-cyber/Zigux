@@ -31,6 +31,10 @@ test "phase 7 string helpers survey keeps the roadmap-backed helper packet revie
     try expectContains(makefile, "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase7.py");
     try expectContains(makefile, "phase7: phase7-validate phase7-test");
 
+    const validator = try readRepoFile(allocator, "scripts/zigux/validate-phase7.py");
+    defer allocator.free(validator);
+    try expectContains(validator, "\"zigux/tests/phase7_string_helpers_survey.zig\"");
+
     const build_file = try readRepoFile(allocator, "zigux/tests/phase7_build.zig");
     defer allocator.free(build_file);
     try expectContains(build_file, "\"phase7_string_helpers.zig\"");
