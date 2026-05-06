@@ -12,10 +12,22 @@ ROOT = Path(__file__).resolve().parents[2] if len(Path(__file__).resolve().paren
 
 FILES = [
     "scripts/zigux/check-phase10-mmio-packet.py",
+    "drivers/virtio/virtio_mmio.zig",
+    "zigux/tests/phase10_virtio_mmio.zig",
     "zigux/tests/phase10_virtio_mmio_survey.zig",
     "zigux/tests/phase10_virtio_mmio_manifest.json",
     "Documentation/zigux/phase10-virtio-mmio-slice.md",
     "Documentation/zigux/phase10-virtio-mmio-survey.md",
+]
+
+EXPECTED_HELPER_MARKERS = [
+    "pending_config_write: ?ConfigWritePlanSummary = null,",
+    "pub fn bumpConfigGeneration(self: *Self) void {",
+    "self.pending_config_write = null;",
+]
+
+EXPECTED_TEST_MARKERS = [
+    'test "phase10 virtio mmio config-generation bumps clear stale planned config writes" {',
 ]
 
 EXPECTED_SURVEY_TEST_MARKERS = [
@@ -80,6 +92,11 @@ EXPECTED_FORBIDDEN_TRANSPORT_CLAIMS = [
 
 BASELINE_FIXTURE = {
     "scripts/zigux/check-phase10-mmio-packet.py": "# synthetic fixture for self-test\n",
+    "drivers/virtio/virtio_mmio.zig": """pending_config_write: ?ConfigWritePlanSummary = null,
+pub fn bumpConfigGeneration(self: *Self) void { self.pending_config_write = null; }
+""",
+    "zigux/tests/phase10_virtio_mmio.zig": """test \"phase10 virtio mmio config-generation bumps clear stale planned config writes\" {}
+""",
     "zigux/tests/phase10_virtio_mmio_survey.zig": """test \"phase10 virtio mmio survey manifest records the live helper-backed transport gap\" {
     try std.testing.expectEqualStrings(\"P10-L10\", manifest.lane_key);
     try std.testing.expectEqual(@as(usize, 3), manifest.roadmap_destinations.len);
@@ -168,6 +185,16 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
 
     missing_markers: list[str] = []
 
+    helper_text = read_text(root, "drivers/virtio/virtio_mmio.zig")
+    for marker in EXPECTED_HELPER_MARKERS:
+        if marker not in helper_text:
+            missing_markers.append(f"helper:{marker}")
+
+    test_text = read_text(root, "zigux/tests/phase10_virtio_mmio.zig")
+    for marker in EXPECTED_TEST_MARKERS:
+        if marker not in test_text:
+            missing_markers.append(f"tests:{marker}")
+
     survey_test_text = read_text(root, "zigux/tests/phase10_virtio_mmio_survey.zig")
     for marker in EXPECTED_SURVEY_TEST_MARKERS:
         if marker not in survey_test_text:
@@ -252,6 +279,33 @@ def run_self_test() -> int:
                 f"markers={','.join(missing_markers) if missing_markers else 'none'}"
             )
 
+        helper_path = tmp_root / "drivers/virtio/virtio_mmio.zig"
+        original_helper = helper_path.read_text(encoding="utf-8")
+        helper_path.writeText = None
+        helper_path.write_text(
+            original_helper.replace("self.pending_config_write = null;", "self.pending_config_write = drift;", 1),
+            encoding="utf-8",
+        )
+        _, missing_markers = validate(tmp_root)
+        if "helper:self.pending_config_write = null;" not in missing_markers:
+            raise SystemExit("phase10-mmio-self-test:expected_rollover_clear_marker_missing")
+        helper_path.write_text(original_helper, encoding="utf-8")
+
+        test_path = tmp_root / "zigux/tests/phase10_virtio_mmio.zig"
+        original_test = test_path.read_text(encoding="utf-8")
+        test_path.write_text(
+            original_test.replace(
+                'test "phase10 virtio mmio config-generation bumps clear stale planned config writes" {',
+                'test "phase10 virtio mmio config-generation drift skips stale planned config writes" {',
+                1,
+            ),
+            encoding="utf-8",
+        )
+        _, missing_markers = validate(tmp_root)
+        if 'tests:test "phase10 virtio mmio config-generation bumps clear stale planned config writes" {' not in missing_markers:
+            raise SystemExit("phase10-mmio-self-test:expected_rollover_test_marker_missing")
+        test_path.write_text(original_test, encoding="utf-8")
+
         manifest_path = tmp_root / "zigux/tests/phase10_virtio_mmio_manifest.json"
         original_manifest = manifest_path.read_text(encoding="utf-8")
         manifest_path.write_text(
@@ -274,7 +328,7 @@ def run_self_test() -> int:
             raise SystemExit("phase10-mmio-self-test:expected_transport_identity_marker_missing")
 
     print("PHASE10_MMIO_PACKET_SELF_TEST=pass")
-    print("PHASE10_MMIO_PACKET_SELF_TEST_CASE_COUNT=2")
+    print("PHASE10_MMIO_PACKET_SELF_TEST_CASE_COUNT=4")
     return 0
 
 
