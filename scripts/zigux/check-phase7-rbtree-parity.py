@@ -89,6 +89,15 @@ def compile_and_run(exe: Path, actual: Path, compiler: str, flags: list[str]) ->
 def run_self_test() -> None:
     case_count = 0
 
+    assert FIXTURE == ROOT / "zigux" / "tests" / "fixtures" / "phase7_rbtree.json"
+    case_count += 1
+
+    assert HARNESS == ROOT / "zigux" / "tests" / "fixtures" / "phase7_rbtree_c_harness.c"
+    case_count += 1
+
+    assert ARTIFACT_DIFF == ROOT / "scripts" / "zigux" / "artifact_diff.py"
+    case_count += 1
+
     assert SOURCE == ROOT / "lib" / "rbtree.c"
     case_count += 1
 
@@ -125,6 +134,29 @@ def run_self_test() -> None:
         "-I",
         str(ROOT / "tools" / "include" / "uapi"),
     ]
+    case_count += 1
+
+    with tempfile.TemporaryDirectory(prefix="zigux_phase7_rbtree_compile_selftest_") as tmp_dir_str:
+        tmp_dir = Path(tmp_dir_str)
+        exe = tmp_dir / "phase7_rbtree_c_harness"
+        actual = tmp_dir / "phase7_rbtree.actual.json"
+        flags = ["-I", "/tmp/phase7-selftest-shim"]
+        commands: list[list[str]] = []
+
+        def fake_run(cmd: list[str], **kwargs) -> subprocess.CompletedProcess[str]:
+            commands.append(cmd)
+            if cmd == [str(exe)]:
+                return subprocess.CompletedProcess(cmd, 0, stdout='{"ordered":{}}\n', stderr="")
+            return subprocess.CompletedProcess(cmd, 0, stdout="", stderr="")
+
+        with mock.patch(__name__ + ".run", side_effect=fake_run):
+            compile_and_run(exe, actual, "/tmp/phase7-custom-cc", flags)
+
+        assert len(commands) == 2
+        assert commands[0][0] == "/tmp/phase7-custom-cc"
+        assert commands[0][-2:] == [str(HARNESS), str(SOURCE)]
+        assert commands[1] == [str(exe)]
+        assert actual.read_text(encoding="utf-8") == '{"ordered":{}}\n'
     case_count += 1
 
     print("PHASE7_RBTREE_PARITY_SELF_TEST=pass")
