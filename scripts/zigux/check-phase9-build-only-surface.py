@@ -99,6 +99,14 @@ REQUIRED_PHASE9_BUILD_MARKERS = [
     '.root_source_file = b.path("../kernel/runtime_loader_contract.zig"),',
     'const runtime_loader_facade_module = b.createModule(.{',
     '.root_source_file = b.path("../kernel/runtime_loader.zig"),',
+    'const runtime_atomic64_loader_module = b.createModule(.{',
+    '.root_source_file = b.path("../../samples/zigux/runtime_atomic64_loader.zig"),',
+    'const runtime_bitmap_loader_module = b.createModule(.{',
+    '.root_source_file = b.path("../../samples/zigux/runtime_bitmap_loader.zig"),',
+    'const runtime_trace_events_loader_module = b.createModule(.{',
+    '.root_source_file = b.path("../../samples/zigux/runtime_trace_events_loader.zig"),',
+    'const runtime_kretprobe_loader_module = b.createModule(.{',
+    '.root_source_file = b.path("../../samples/zigux/runtime_kretprobe_loader.zig"),',
     'const runtime_loader_contract_tests = b.addTest(.{',
     '.name = "phase9-runtime-loader-contract-tests",',
     '.root_module = runtime_loader_contract_module,',
@@ -122,6 +130,26 @@ REQUIRED_PHASE9_BUILD_MARKERS = [
     "runtime_loader_shared_tests_step.dependOn(&run_runtime_loader_contract_tests.step);",
     "runtime_loader_shared_tests_step.dependOn(&run_runtime_loader_facade_tests.step);",
     "runtime_loader_shared_tests_step.dependOn(&run_runtime_loader_allocator_init_flow_tests.step);",
+    'const runtime_atomic64_loader_tests = b.addTest(.{',
+    '.name = "phase9-runtime-atomic64-loader-tests",',
+    '.root_module = runtime_atomic64_loader_module,',
+    "const run_runtime_atomic64_loader_tests = b.addRunArtifact(runtime_atomic64_loader_tests);",
+    "test_step.dependOn(&run_runtime_atomic64_loader_tests.step);",
+    'const runtime_bitmap_loader_tests = b.addTest(.{',
+    '.name = "phase9-runtime-bitmap-loader-tests",',
+    '.root_module = runtime_bitmap_loader_module,',
+    "const run_runtime_bitmap_loader_tests = b.addRunArtifact(runtime_bitmap_loader_tests);",
+    "test_step.dependOn(&run_runtime_bitmap_loader_tests.step);",
+    'const runtime_trace_events_loader_tests = b.addTest(.{',
+    '.name = "phase9-runtime-trace-events-loader-tests",',
+    '.root_module = runtime_trace_events_loader_module,',
+    "const run_runtime_trace_events_loader_tests = b.addRunArtifact(runtime_trace_events_loader_tests);",
+    "test_step.dependOn(&run_runtime_trace_events_loader_tests.step);",
+    'const runtime_kretprobe_loader_tests = b.addTest(.{',
+    '.name = "phase9-runtime-kretprobe-loader-tests",',
+    '.root_module = runtime_kretprobe_loader_module,',
+    "const run_runtime_kretprobe_loader_tests = b.addRunArtifact(runtime_kretprobe_loader_tests);",
+    "test_step.dependOn(&run_runtime_kretprobe_loader_tests.step);",
     'const runtime_atomic64_survey_module = b.createModule(.{',
     '.root_source_file = b.path("runtime_atomic64_survey.zig"),',
     'const runtime_atomic64_survey_tests = b.addTest(.{',
@@ -253,6 +281,18 @@ def phase9_build_fixture() -> str:
 const runtime_loader_facade_module = b.createModule(.{
     .root_source_file = b.path("../kernel/runtime_loader.zig"),
 });
+const runtime_atomic64_loader_module = b.createModule(.{
+    .root_source_file = b.path("../../samples/zigux/runtime_atomic64_loader.zig"),
+});
+const runtime_bitmap_loader_module = b.createModule(.{
+    .root_source_file = b.path("../../samples/zigux/runtime_bitmap_loader.zig"),
+});
+const runtime_trace_events_loader_module = b.createModule(.{
+    .root_source_file = b.path("../../samples/zigux/runtime_trace_events_loader.zig"),
+});
+const runtime_kretprobe_loader_module = b.createModule(.{
+    .root_source_file = b.path("../../samples/zigux/runtime_kretprobe_loader.zig"),
+});
 const runtime_loader_allocator_init_flow_module = b.createModule(.{
     .root_source_file = b.path("runtime_loader_allocator_init_flow.zig"),
 });
@@ -283,6 +323,33 @@ const runtime_loader_allocator_init_flow_tests = b.addTest(.{
     .root_module = runtime_loader_allocator_init_flow_module,
 });
 const run_runtime_loader_allocator_init_flow_tests = b.addRunArtifact(runtime_loader_allocator_init_flow_tests);
+const runtime_loader_shared_tests_step = b.step(
+    "phase9-runtime-loader-shared-tests",
+    "Run the focused Phase 9 runtime-loader facade, contract, and allocator/init-flow tests",
+);
+runtime_loader_shared_tests_step.dependOn(&run_runtime_loader_contract_tests.step);
+runtime_loader_shared_tests_step.dependOn(&run_runtime_loader_facade_tests.step);
+runtime_loader_shared_tests_step.dependOn(&run_runtime_loader_allocator_init_flow_tests.step);
+const runtime_atomic64_loader_tests = b.addTest(.{
+    .name = "phase9-runtime-atomic64-loader-tests",
+    .root_module = runtime_atomic64_loader_module,
+});
+const run_runtime_atomic64_loader_tests = b.addRunArtifact(runtime_atomic64_loader_tests);
+const runtime_bitmap_loader_tests = b.addTest(.{
+    .name = "phase9-runtime-bitmap-loader-tests",
+    .root_module = runtime_bitmap_loader_module,
+});
+const run_runtime_bitmap_loader_tests = b.addRunArtifact(runtime_bitmap_loader_tests);
+const runtime_trace_events_loader_tests = b.addTest(.{
+    .name = "phase9-runtime-trace-events-loader-tests",
+    .root_module = runtime_trace_events_loader_module,
+});
+const run_runtime_trace_events_loader_tests = b.addRunArtifact(runtime_trace_events_loader_tests);
+const runtime_kretprobe_loader_tests = b.addTest(.{
+    .name = "phase9-runtime-kretprobe-loader-tests",
+    .root_module = runtime_kretprobe_loader_module,
+});
+const run_runtime_kretprobe_loader_tests = b.addRunArtifact(runtime_kretprobe_loader_tests);
 const runtime_atomic64_survey_tests = b.addTest(.{
     .name = "phase9-runtime-atomic64-survey-tests",
     .root_module = runtime_atomic64_survey_module,
@@ -303,17 +370,14 @@ const runtime_kretprobe_survey_tests = b.addTest(.{
     .root_module = runtime_kretprobe_survey_module,
 });
 const run_runtime_kretprobe_survey_tests = b.addRunArtifact(runtime_kretprobe_survey_tests);
-const runtime_loader_shared_tests_step = b.step(
-    "phase9-runtime-loader-shared-tests",
-    "Run the focused Phase 9 runtime-loader facade, contract, and allocator/init-flow tests",
-);
-runtime_loader_shared_tests_step.dependOn(&run_runtime_loader_contract_tests.step);
-runtime_loader_shared_tests_step.dependOn(&run_runtime_loader_facade_tests.step);
-runtime_loader_shared_tests_step.dependOn(&run_runtime_loader_allocator_init_flow_tests.step);
 const test_step = b.step("test", "Run Phase 9 runtime pilot tests");
 test_step.dependOn(&run_runtime_loader_contract_tests.step);
 test_step.dependOn(&run_runtime_loader_facade_tests.step);
 test_step.dependOn(&run_runtime_loader_allocator_init_flow_tests.step);
+test_step.dependOn(&run_runtime_atomic64_loader_tests.step);
+test_step.dependOn(&run_runtime_bitmap_loader_tests.step);
+test_step.dependOn(&run_runtime_trace_events_loader_tests.step);
+test_step.dependOn(&run_runtime_kretprobe_loader_tests.step);
 test_step.dependOn(&run_runtime_atomic64_survey_tests.step);
 test_step.dependOn(&run_runtime_bitmap_survey_tests.step);
 test_step.dependOn(&run_runtime_trace_events_survey_tests.step);
@@ -440,6 +504,32 @@ def run_self_test() -> int:
         phase9_build_path = root / PHASE9_BUILD_PATH
         phase9_build = phase9_build_path.read_text(encoding="utf-8")
         phase9_build_path.write_text(
+            phase9_build.replace('const runtime_trace_events_loader_module = b.createModule(.{\n', "", 1),
+            encoding="utf-8",
+        )
+        expect_failure(
+            root,
+            "phase9_build:const runtime_trace_events_loader_module = b.createModule(.{",
+            "missing_trace_events_loader_module",
+        )
+
+        write_fixture_tree(root)
+        phase9_build_path = root / PHASE9_BUILD_PATH
+        phase9_build = phase9_build_path.read_text(encoding="utf-8")
+        phase9_build_path.write_text(
+            phase9_build.replace('    .name = "phase9-runtime-atomic64-loader-tests",\n', '    .name = "phase9-runtime-atomic64-build-tests",\n', 1),
+            encoding="utf-8",
+        )
+        expect_failure(
+            root,
+            'phase9_build:.name = "phase9-runtime-atomic64-loader-tests",',
+            "missing_atomic64_loader_test_name",
+        )
+
+        write_fixture_tree(root)
+        phase9_build_path = root / PHASE9_BUILD_PATH
+        phase9_build = phase9_build_path.read_text(encoding="utf-8")
+        phase9_build_path.write_text(
             phase9_build.replace('    .name = "phase9-runtime-bitmap-survey-tests",\n', '    .name = "phase9-runtime-bitmap-build-tests",\n', 1),
             encoding="utf-8",
         )
@@ -449,10 +539,36 @@ def run_self_test() -> int:
         phase9_build_path = root / PHASE9_BUILD_PATH
         phase9_build = phase9_build_path.read_text(encoding="utf-8")
         phase9_build_path.write_text(
+            phase9_build.replace("test_step.dependOn(&run_runtime_bitmap_loader_tests.step);\n", "", 1),
+            encoding="utf-8",
+        )
+        expect_failure(
+            root,
+            "phase9_build:test_step.dependOn(&run_runtime_bitmap_loader_tests.step);",
+            "missing_bitmap_loader_dependency",
+        )
+
+        write_fixture_tree(root)
+        phase9_build_path = root / PHASE9_BUILD_PATH
+        phase9_build = phase9_build_path.read_text(encoding="utf-8")
+        phase9_build_path.write_text(
             phase9_build.replace("test_step.dependOn(&run_runtime_trace_events_survey_tests.step);\n", "", 1),
             encoding="utf-8",
         )
         expect_failure(root, "phase9_build:test_step.dependOn(&run_runtime_trace_events_survey_tests.step);", "missing_trace_events_survey_dependency")
+
+        write_fixture_tree(root)
+        phase9_build_path = root / PHASE9_BUILD_PATH
+        phase9_build = phase9_build_path.read_text(encoding="utf-8")
+        phase9_build_path.write_text(
+            phase9_build + "test_step.dependOn(&run_runtime_kretprobe_loader_tests.step);\n",
+            encoding="utf-8",
+        )
+        expect_failure(
+            root,
+            "phase9_build_exact_count:test_step.dependOn(&run_runtime_kretprobe_loader_tests.step);:expected=1:actual=2",
+            "duplicate_kretprobe_loader_dependency",
+        )
 
         write_fixture_tree(root)
         phase9_build_path = root / PHASE9_BUILD_PATH
@@ -530,7 +646,7 @@ def run_self_test() -> int:
             )
 
     print("PHASE9_BUILD_ONLY_SURFACE_SELF_TEST=pass")
-    print("PHASE9_BUILD_ONLY_SURFACE_SELF_TEST_CASE_COUNT=9")
+    print("PHASE9_BUILD_ONLY_SURFACE_SELF_TEST_CASE_COUNT=13")
     return 0
 
 
