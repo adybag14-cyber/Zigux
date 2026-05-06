@@ -82,11 +82,11 @@ pub fn keepsAllocatorInitFlowConsistent(
 }
 
 pub fn keepsSelftestHookEvidenceConsistent(plan: LoadPlan) bool {
-    if (!plan.provides_selftest_hook and plan.init_flow.selftest_runs > 0) return false;
+    if (!plan.provides_selftest_hook) return false;
 
     return switch (plan.init_flow.handoff_stage) {
         .initialized => true,
-        .selftest_complete => plan.provides_selftest_hook,
+        .selftest_complete => plan.init_flow.selftest_runs > 0,
     };
 }
 
@@ -225,7 +225,7 @@ test "shared runtime loader contract rejects impossible, stale, or selftest-hook
             .exit_runs = 0,
         },
     };
-    try std.testing.expectError(error.InvalidInitFlow, prepareRequest(mismatched_selftest));
+    try std.testing.expectError(error.InvalidSelftestHookEvidence, prepareRequest(mismatched_selftest));
 
     const missing_selftest_hook = LoadPlan{
         .module_name = "runtime_trace_events",
@@ -244,6 +244,24 @@ test "shared runtime loader contract rejects impossible, stale, or selftest-hook
     };
     try std.testing.expect(!keepsSelftestHookEvidenceConsistent(missing_selftest_hook));
     try std.testing.expectError(error.InvalidSelftestHookEvidence, prepareRequest(missing_selftest_hook));
+
+    const initialized_without_selftest_hook = LoadPlan{
+        .module_name = "runtime_bitmap",
+        .anchor = "lib/test_bitmap.c",
+        .entry_symbol = "zigux_runtime_bitmap_init",
+        .exit_symbol = "zigux_runtime_bitmap_exit",
+        .requires_runtime_substrate = true,
+        .provides_selftest_hook = false,
+        .allocator_handoff = .arena,
+        .init_flow = .{
+            .handoff_stage = .initialized,
+            .init_runs = 1,
+            .selftest_runs = 0,
+            .exit_runs = 0,
+        },
+    };
+    try std.testing.expect(!keepsSelftestHookEvidenceConsistent(initialized_without_selftest_hook));
+    try std.testing.expectError(error.InvalidSelftestHookEvidence, prepareRequest(initialized_without_selftest_hook));
 
     const selftest_runs_without_hook = LoadPlan{
         .module_name = "runtime_bitmap",
