@@ -108,7 +108,7 @@ test "phase10 virtio mmio survey manifest records the landed identity-backed pac
     try std.testing.expect(manifest.survey_summary.preexisting_virtio_input_survey_present);
     try std.testing.expect(manifest.survey_summary.preexisting_virtio_mmio_zig_present);
     try std.testing.expect(manifest.survey_summary.preexisting_virtio_mmio_test_present);
-    try std.testing.expect(manifest.gaps.len >= 16);
+    try std.testing.expect(manifest.gaps.len >= 17);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE10_STATUS=parked") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE10_FREEZE_MAP=Documentation/zigux/freeze-map.md") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE10_FREEZE_BOUNDARY_STATUS=aligned") != null);
@@ -132,6 +132,8 @@ test "phase10 virtio mmio survey manifest records the landed identity-backed pac
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "probe-preflight summary flips from ready to blocked") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "transport-identity summary") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "consumes that identity snapshot") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "selected-queue readiness summary") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "queue-ready-for-handoff posture") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "justified `zigux/kernel/` or `zigux/helpers/` support surfaces") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "zigux/tests/phase10_virtio_core_reset_queue.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "zigux/tests/phase10_virtio_driver_id.zig") != null);
@@ -146,6 +148,7 @@ test "phase10 virtio mmio survey manifest records the landed identity-backed pac
     try std.testing.expect(std.mem.indexOf(u8, slice_note, "config-write disposition summary") != null);
     try std.testing.expect(std.mem.indexOf(u8, slice_note, "one explicit transport-identity summary") != null);
     try std.testing.expect(std.mem.indexOf(u8, slice_note, "probe-preflight summary") != null);
+    try std.testing.expect(std.mem.indexOf(u8, slice_note, "selected-queue readiness summary") != null);
 
     var starter_landed_count: usize = 0;
     var blocked_count: usize = 0;
@@ -160,6 +163,7 @@ test "phase10 virtio mmio survey manifest records the landed identity-backed pac
     var saw_mmio_transport_identity = false;
     var saw_mmio_config_write_disposition = false;
     var saw_mmio_probe_preflight = false;
+    var saw_mmio_selected_queue_readiness = false;
     var saw_mmio_lifecycle_blocker = false;
     var saw_ring_helper = false;
 
@@ -265,6 +269,15 @@ test "phase10 virtio mmio survey manifest records the landed identity-backed pac
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "without widening into lifecycle") != null);
         }
 
+        if (std.mem.eql(u8, gap.id, "phase10-mmio-selected-queue-readiness-helper")) {
+            saw_mmio_selected_queue_readiness = true;
+            try std.testing.expectEqualStrings("starter_landed", gap.status);
+            try std.testing.expectEqualStrings("drivers/virtio/virtio_mmio.zig", gap.zigux_destination);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "queue_num_max") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "queue-ready-for-handoff posture") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "without widening into queue discovery") != null);
+        }
+
         if (std.mem.eql(u8, gap.id, "phase10-mmio-lifecycle-and-irq-paths")) {
             saw_mmio_lifecycle_blocker = true;
             try std.testing.expectEqualStrings("blocked_on_risky_transport", gap.status);
@@ -278,7 +291,7 @@ test "phase10 virtio mmio survey manifest records the landed identity-backed pac
         }
     }
 
-    try std.testing.expect(starter_landed_count >= 15);
+    try std.testing.expect(starter_landed_count >= 16);
     try std.testing.expectEqual(@as(usize, 1), blocked_count);
     try std.testing.expect(saw_ring_helper);
     try std.testing.expect(saw_mmio_survey_gate);
@@ -292,5 +305,6 @@ test "phase10 virtio mmio survey manifest records the landed identity-backed pac
     try std.testing.expect(saw_mmio_transport_identity);
     try std.testing.expect(saw_mmio_config_write_disposition);
     try std.testing.expect(saw_mmio_probe_preflight);
+    try std.testing.expect(saw_mmio_selected_queue_readiness);
     try std.testing.expect(saw_mmio_lifecycle_blocker);
 }
