@@ -80,6 +80,7 @@
         "test \"skip trim remove and replace spaces work in place\"",
         "test \"strHasPrefix honors C-string boundaries\"",
         "test \"memdup and memchrInv preserve byte content\"",
+        "test \"memchrInv keeps long-buffer first-dirty-byte results stable\"",
         "test \"memparse handles decimal hexadecimal octal and suffixes\"",
         "test \"memparse keeps original rest when sign is not followed by digits\"",
         "test \"memparse saturates signed overflow instead of trapping\"",
