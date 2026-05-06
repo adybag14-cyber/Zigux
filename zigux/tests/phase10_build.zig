@@ -63,6 +63,12 @@ pub fn build(b: *std.Build) void {
         .target = target,
         .optimize = optimize,
     });
+    const phase10_virtio_ring_verify_module = b.createModule(.{
+        .root_source_file = b.path("../../drivers/virtio/virtio_ring_verify.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    phase10_virtio_ring_verify_module.addImport("virtio_ring", virtio_ring_module);
     const phase10_virtio_input_module = b.createModule(.{
         .root_source_file = b.path("phase10_virtio_input.zig"),
         .target = target,
@@ -128,6 +134,11 @@ pub fn build(b: *std.Build) void {
         .root_module = phase10_virtio_ring_survey_module,
     });
     const run_phase10_virtio_ring_survey_tests = b.addRunArtifact(phase10_virtio_ring_survey_tests);
+    const phase10_virtio_ring_verify_tests = b.addTest(.{
+        .name = "phase10-virtio-ring-verify-tests",
+        .root_module = phase10_virtio_ring_verify_module,
+    });
+    const run_phase10_virtio_ring_verify_tests = b.addRunArtifact(phase10_virtio_ring_verify_tests);
     const phase10_virtio_input_tests = b.addTest(.{
         .name = "phase10-virtio-input-tests",
         .root_module = phase10_virtio_input_module,
@@ -165,11 +176,12 @@ pub fn build(b: *std.Build) void {
     test_step.dependOn(&run_phase10_virtio_core_survey_tests.step);
     test_step.dependOn(&run_phase10_virtio_driver_id_tests.step);
     test_step.dependOn(&run_phase10_virtio_ring_tests.step);
+    test_step.dependOn(&run_phase10_virtio_ring_survey_tests.step);
+    test_step.dependOn(&run_phase10_virtio_ring_verify_tests.step);
     test_step.dependOn(&run_phase10_virtio_input_tests.step);
     test_step.dependOn(&run_phase10_virtio_input_status_drain_tests.step);
     test_step.dependOn(&run_phase10_virtio_input_verify_tests.step);
     test_step.dependOn(&run_phase10_virtio_input_survey_tests.step);
-    test_step.dependOn(&run_phase10_virtio_ring_survey_tests.step);
     test_step.dependOn(&run_phase10_virtio_mmio_tests.step);
     test_step.dependOn(&run_phase10_virtio_mmio_survey_tests.step);
 }
