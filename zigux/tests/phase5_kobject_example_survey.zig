@@ -60,7 +60,7 @@ test "phase 5 kobject manifest records the exact bounded checks" {
     var saw_approved_idiom_prompt = false;
     var saw_pre_registration_prompt = false;
     var saw_ownership_summary_prompt = false;
-    var saw_dispatch_prompt = false;
+    var saw_ownership_replay_prompt = false;
     var saw_exit_prompt = false;
     var saw_group_boundary_prompt = false;
     var saw_directory = false;
@@ -88,8 +88,8 @@ test "phase 5 kobject manifest records the exact bounded checks" {
         {
             saw_ownership_summary_prompt = true;
         }
-        if (std.mem.indexOf(u8, prompt, "shared baz/bar dispatch") != null) {
-            saw_dispatch_prompt = true;
+        if (std.mem.indexOf(u8, prompt, "runOwnershipReplay()") != null) {
+            saw_ownership_replay_prompt = true;
         }
         if (std.mem.indexOf(u8, prompt, "abandoned_before_registration") != null and
             std.mem.indexOf(u8, prompt, "tore_down_registered_attributes") != null)
@@ -120,6 +120,8 @@ test "phase 5 kobject manifest records the exact bounded checks" {
         }
         if (std.mem.eql(u8, check.id, "ownership-summary")) {
             saw_ownership_summary = true;
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "ownershipSummary()") != null);
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "runOwnershipReplay()") != null);
             try std.testing.expect(std.mem.indexOf(u8, check.expected, "cold, initialized, registered, and exited") != null);
             try std.testing.expect(std.mem.indexOf(u8, check.expected, "0, 0, 3, and 0") != null);
         }
@@ -146,7 +148,7 @@ test "phase 5 kobject manifest records the exact bounded checks" {
     try std.testing.expect(saw_approved_idiom_prompt);
     try std.testing.expect(saw_pre_registration_prompt);
     try std.testing.expect(saw_ownership_summary_prompt);
-    try std.testing.expect(saw_dispatch_prompt);
+    try std.testing.expect(saw_ownership_replay_prompt);
     try std.testing.expect(saw_exit_prompt);
     try std.testing.expect(saw_group_boundary_prompt);
     try std.testing.expect(saw_directory);
@@ -197,7 +199,7 @@ test "phase 5 kobject survey packet stays repo-local and keeps the shared review
         "## Approved idiom for the landed kobject-style sample",
         "approved Phase 5 in-memory ownership-and-lifetime idiom",
         "before `registerAttributes()`, the sample still reports zero active attributes and blocks `showValue()` or `storeValue()`",
-        "`ownershipSummary()`",
+        "`ownershipSummary()` and sample-owned `runOwnershipReplay()`",
         "`abandoned_before_registration`",
         "`tore_down_registered_attributes`",
         "manifest-backed replay",
