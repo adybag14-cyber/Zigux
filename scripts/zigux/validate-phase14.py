@@ -86,6 +86,10 @@ REQUIRED_FILE_MARKERS = {
         "scripts/zigux/check-phase14-rollback-threshold-sequencing.py",
         "scripts/zigux/check-phase14-release-boundary-exact-counts.py",
         "make -C zigux phase14-validate",
+        "kernel/workqueue.c",
+        "kernel/trace/ring_buffer.c",
+        "kernel/rcu/tree.c",
+        "net/core/skbuff.c",
     ],
     TRACEABILITY_PATH: [TRACEABILITY_TITLE],
     "scripts/zigux/README.md": [
@@ -478,6 +482,27 @@ def run_self_test() -> int:
             for error in errors
         ):
             print("self-test expected failure when review checklist marker drifted", file=sys.stderr)
+            return 1
+
+        write_text(
+            broken_review_checklist_path,
+            "\n".join(REQUIRED_FILE_MARKERS["Documentation/zigux/review-checklist.md"]) + "\n",
+        )
+
+        broken_review_checklist_path.write_text(
+            broken_review_checklist_path.read_text(encoding="utf-8").replace(
+                "kernel/workqueue.c\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        errors = check(root)
+        if not errors or not any(
+            "missing marker in Documentation/zigux/review-checklist.md: kernel/workqueue.c" in error
+            for error in errors
+        ):
+            print("self-test expected failure when review checklist anchor drifted", file=sys.stderr)
             return 1
 
         write_text(
