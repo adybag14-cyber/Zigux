@@ -99,6 +99,7 @@ REQUIRED_SNIPPETS = {
         "- `PHASE6_PERF_PACKET=base64-bsearch-checksum-hexdump`",
         "- shared replay note: the shared `make -C zigux phase6` route still stops at `phase6-validate` plus `phase6-test`; dedicated perf replays remain helper-local through `make -C zigux phase6-base64-perf`, `make -C zigux phase6-checksum-perf`, and `make -C zigux phase6-hexdump-perf`",
         "- base64 shared posture: `zigux/tests/phase6_base64_perf.zig` still emits dedicated encode and decode slowdown markers for four fixture-backed replay cases, `zigux/tests/phase6_build.zig` still defines `phase6-base64-perf`, and `zigux/Makefile` still exposes `make -C zigux phase6-base64-perf`, but neither the shared `phase6` target nor `.github/workflows/zigux-bootstrap.yml` replays that base64 perf gate on the bundled route",
+        "- base64 exact thresholds: `zigux/tests/fixtures/phase6_base64_vectors.zig` still pins four perf cases (`STD_PAD`, `STD_NO_PAD`, `URLSAFE_PAD`, and `URLSAFE_NO_PAD`) at `iterations = 12000`, `max_encode_slowdown_pct = 150`, and `max_decode_slowdown_pct = 325`",
         "- checksum shared posture: a dedicated slowdown gate remains wired through `zigux/tests/phase6_checksum_perf.zig`, `zigux/tests/phase6_build.zig`, `zigux/Makefile`, and `.github/workflows/zigux-bootstrap.yml`",
         "- hexdump shared posture: a dedicated slowdown gate remains wired through `zigux/tests/phase6_hexdump_perf.zig`, `zigux/tests/phase6_build.zig`, `zigux/Makefile`, and `.github/workflows/zigux-bootstrap.yml`",
     ],
@@ -226,6 +227,10 @@ EXACT_COUNT_MARKERS = {
 }
 
 EXACT_OCCURRENCE_MARKERS = {
+    "zigux/tests/fixtures/phase6_base64_vectors.zig": [
+        (".max_encode_slowdown_pct = 150,", 4),
+        (".max_decode_slowdown_pct = 325,", 4),
+    ],
     "zigux/tests/fixtures/phase6_checksum_vectors.zig": [
         (".max_slowdown_pct = 150,", 2),
     ],
@@ -345,6 +350,12 @@ def run_self_test() -> None:
         )
         assert_failure(
             root,
+            "Documentation/zigux/phase6-perf-gate-survey.md",
+            "max_decode_slowdown_pct = 325",
+            "max_decode_slowdown_pct = 150",
+        )
+        assert_failure(
+            root,
             "zigux/tests/phase6_build.zig",
             '.name = "phase6-base64-perf"',
             '.name = "phase6-base64-bench"',
@@ -360,6 +371,12 @@ def run_self_test() -> None:
             "zigux/tests/README.md",
             "  * `zigux/tests/phase6_checksum_perf.zig`",
             "  * `zigux/tests/phase6_checksum_bench.zig`",
+        )
+        assert_failure(
+            root,
+            "zigux/tests/fixtures/phase6_base64_vectors.zig",
+            ".max_decode_slowdown_pct = 325,",
+            ".max_decode_slowdown_pct = 150,",
         )
         assert_failure(
             root,
