@@ -192,6 +192,38 @@ test "phase11 gpio_wdt descriptor preflight keeps the first devm_gpiod_get bound
     try std.testing.expect(level_preflight.blocked_on_platform_registration);
 }
 
+test "phase11 gpio_wdt timeout-property checkpoint keeps ordering and failure gating explicit" {
+    var toggle_watchdog = try gpio_wdt.GpioWatchdogLab.init(.toggle, 20, true);
+    const toggle_checkpoint = toggle_watchdog.timeoutPropertyCheckpointSummary();
+    try std.testing.expectEqual(gpio_wdt.HardwareAlgorithm.toggle, toggle_checkpoint.hw_algo);
+    try std.testing.expectEqual(@as(u32, 20), toggle_checkpoint.hw_margin_ms);
+    try std.testing.expectEqual(gpio_wdt.ProbeLineRequest.input, toggle_checkpoint.requested_line);
+    try std.testing.expect(toggle_checkpoint.timeout_property_required);
+    try std.testing.expect(toggle_checkpoint.descriptor_lookup_precedes_timeout_property);
+    try std.testing.expect(toggle_checkpoint.timeout_property_bounds_checked);
+    try std.testing.expect(toggle_checkpoint.timeout_property_precedes_always_running_read);
+    try std.testing.expect(toggle_checkpoint.timeout_property_precedes_watchdog_drvdata_handoff);
+    try std.testing.expect(toggle_checkpoint.timeout_property_precedes_registration_handoff);
+    try std.testing.expect(toggle_checkpoint.invalid_timeout_blocks_later_handoffs);
+    try std.testing.expect(toggle_checkpoint.blocked_on_live_property_read);
+    try std.testing.expect(toggle_checkpoint.blocked_on_platform_registration);
+
+    var level_watchdog = try gpio_wdt.GpioWatchdogLab.init(.level, 500, false);
+    const level_checkpoint = level_watchdog.timeoutPropertyCheckpointSummary();
+    try std.testing.expectEqual(gpio_wdt.HardwareAlgorithm.level, level_checkpoint.hw_algo);
+    try std.testing.expectEqual(@as(u32, 500), level_checkpoint.hw_margin_ms);
+    try std.testing.expectEqual(gpio_wdt.ProbeLineRequest.output_low, level_checkpoint.requested_line);
+    try std.testing.expect(level_checkpoint.timeout_property_required);
+    try std.testing.expect(level_checkpoint.descriptor_lookup_precedes_timeout_property);
+    try std.testing.expect(level_checkpoint.timeout_property_bounds_checked);
+    try std.testing.expect(level_checkpoint.timeout_property_precedes_always_running_read);
+    try std.testing.expect(level_checkpoint.timeout_property_precedes_watchdog_drvdata_handoff);
+    try std.testing.expect(level_checkpoint.timeout_property_precedes_registration_handoff);
+    try std.testing.expect(level_checkpoint.invalid_timeout_blocks_later_handoffs);
+    try std.testing.expect(level_checkpoint.blocked_on_live_property_read);
+    try std.testing.expect(level_checkpoint.blocked_on_platform_registration);
+}
+
 test "phase11 gpio_wdt registration handoff summary records startup state, stop policy, and watchdog metadata" {
     var prestarted_watchdog = try gpio_wdt.GpioWatchdogLab.init(.toggle, 20, true);
     const prestarted_handoff = prestarted_watchdog.registrationHandoffSummary(true);
