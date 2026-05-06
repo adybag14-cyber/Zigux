@@ -39,6 +39,7 @@ test "phase 5 trace-events sample keeps payload and callback boundaries explicit
     var module = sample.TraceEventsReferenceSample{};
 
     try std.testing.expectError(error.InvalidLifecycleTransition, module.runPayloadBoundaryReplay());
+    try std.testing.expectError(error.InvalidLifecycleTransition, module.runCallbackBoundaryReplay(3));
     try std.testing.expectError(error.InvalidLifecycleTransition, module.replayMainIteration(0));
     try module.init();
     try std.testing.expectError(error.InvalidIterationCount, module.replayMainIteration(-1));
@@ -62,13 +63,16 @@ test "phase 5 trace-events sample keeps payload and callback boundaries explicit
 
     try std.testing.expectError(error.FunctionCallbackNotRegistered, module.replayFunctionIteration(0));
     try std.testing.expectError(error.RegistrationUnderflow, module.unregisterFunctionCallback());
-    try module.registerFunctionCallback();
-    try module.replayFunctionIteration(3);
-    try std.testing.expectEqual(@as(i32, 3), module.last_function_count);
-    try std.testing.expect(module.saw_function_callback_path);
-    try std.testing.expectEqual(@as(usize, 8), module.total_event_calls);
-    try module.unregisterFunctionCallback();
-    try std.testing.expectEqual(@as(usize, 0), module.registration_depth);
+    const callback_boundary = try module.runCallbackBoundaryReplay(3);
+    try std.testing.expectEqual(sample.SampleStage.initialized, callback_boundary.stage_before_callback);
+    try std.testing.expectEqual(sample.SampleStage.initialized, callback_boundary.stage_after_callback);
+    try std.testing.expectEqual(@as(i32, 3), callback_boundary.function_count);
+    try std.testing.expectEqual(@as(usize, sample.TraceEventsReferenceSample.function_callback_family_count), callback_boundary.function_callback_event_calls);
+    try std.testing.expectEqual(@as(usize, 8), callback_boundary.total_event_calls_after_replay);
+    try std.testing.expect(callback_boundary.function_callback_path_checked);
+    try std.testing.expectEqual(@as(usize, 1), callback_boundary.registration_depth_after_register);
+    try std.testing.expect(callback_boundary.registration_balance_restored);
+    try std.testing.expectEqual(sample.SampleStage.initialized, module.stage());
 }
 
 test "phase 5 trace-events sample makes ownership and teardown boundaries explicit" {
@@ -83,6 +87,7 @@ test "phase 5 trace-events sample makes ownership and teardown boundaries explic
     try std.testing.expectError(error.InvalidLifecycleTransition, module.init());
     try module.registerFunctionCallback();
     try std.testing.expectError(error.OutstandingRegistration, module.exit());
+    try std.testing.expectError(error.OutstandingRegistration, module.runCallbackBoundaryReplay(1));
     try module.unregisterFunctionCallback();
     try module.exit();
     try std.testing.expectEqual(sample.SampleStage.exited, module.stage());
