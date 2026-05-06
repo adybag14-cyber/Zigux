@@ -65,6 +65,15 @@ pub const OwnershipReplaySummary = struct {
     registered_exit: ExitSummary,
 };
 
+pub const RegisteredBoundarySummary = struct {
+    anchor: []const u8,
+    stage_before_boundary_checks: SampleStage,
+    stage_after_boundary_checks: SampleStage,
+    active_attr_count: usize,
+    rejected_duplicate_registration: bool,
+    rejected_registered_anchor_replay: bool,
+};
+
 pub const AttributeValues = struct {
     foo: i32,
     baz: i32,
@@ -261,6 +270,25 @@ pub const KobjectExampleSample = struct {
         };
     }
 
+    pub fn runRegisteredBoundaryReplay(self: *Self) !RegisteredBoundarySummary {
+        if (self.stage() != .cold) return error.InvalidLifecycleTransition;
+
+        try self.init();
+        try self.registerAttributes();
+        const stage_before_checks = self.stage();
+        const rejected_duplicate_registration = rejectedLifecycleTransition(self.registerAttributes());
+        const rejected_registered_anchor_replay = rejectedLifecycleTransition(self.runAnchorReplay());
+
+        return .{
+            .anchor = descriptor().anchor,
+            .stage_before_boundary_checks = stage_before_checks,
+            .stage_after_boundary_checks = self.stage(),
+            .active_attr_count = self.activeAttrCount(),
+            .rejected_duplicate_registration = rejected_duplicate_registration,
+            .rejected_registered_anchor_replay = rejected_registered_anchor_replay,
+        };
+    }
+
     pub fn runTeardownReplay(self: *Self) !TeardownReplaySummary {
         if (self.stage() != .cold) return error.InvalidLifecycleTransition;
 
@@ -445,6 +473,19 @@ test "kobject sample ownership replay keeps lifecycle and exit cues reviewable" 
     try std.testing.expectEqual(SampleStage.registered, replay.registered_exit.stage_before_exit);
     try std.testing.expectEqual(@as(usize, 3), replay.registered_exit.cleared_attr_count);
     try std.testing.expectEqual(SampleStage.exited, sample.stage());
+}
+
+test "kobject sample keeps already-registered lifecycle boundaries explicit" {
+    var sample = KobjectExampleSample{};
+    const replay = try sample.runRegisteredBoundaryReplay();
+
+    try std.testing.expectEqualStrings("samples/kobject/kobject-example.c", replay.anchor);
+    try std.testing.expectEqual(SampleStage.registered, replay.stage_before_boundary_checks);
+    try std.testing.expectEqual(SampleStage.registered, replay.stage_after_boundary_checks);
+    try std.testing.expectEqual(@as(usize, 3), replay.active_attr_count);
+    try std.testing.expect(replay.rejected_duplicate_registration);
+    try std.testing.expect(replay.rejected_registered_anchor_replay);
+    try std.testing.expectEqual(SampleStage.registered, sample.stage());
 }
 
 test "kobject sample initialized-only exit records abandonment" {
