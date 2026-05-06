@@ -79,10 +79,13 @@ EXPECTED_SURVEY_TEST_MARKERS = [
     'test "phase10 virtio input survey manifest records the live starter and remaining gap" {',
     'try std.testing.expectEqualStrings("P10-L13", manifest.lane_key);',
     'try std.testing.expect(std.mem.indexOf(u8, survey_note, "lab-only driver validation") != null);',
+    'try std.testing.expect(std.mem.indexOf(u8, survey_note, "wrapper ownership stays with the already-landed shared Phase 10 packets") != null);',
     'if (std.mem.eql(u8, gap.id, "phase10-virtio-input-survey-note")) {',
+    'if (std.mem.eql(u8, gap.id, "phase10-virtio-input-wrapper-ownership-note")) {',
     'try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "lab-only driver validation evidence") != null);',
     'try std.testing.expectEqual(@as(usize, 6), manifest.survey_summary.preexisting_phase10_test_files);',
     '"phase10-virtio-input-status-drain-helper"',
+    'try std.testing.expect(starter_landed_count >= 14);',
     'try std.testing.expectEqual(@as(usize, 0), ready_next_count);',
     'try std.testing.expectEqual(@as(usize, 1), blocked_count);',
 ]
@@ -104,6 +107,10 @@ EXPECTED_SURVEY_NOTE_MARKERS = [
     "PHASE10_LANE_KEY=P10-L13",
     "phase10-virtio-input-registration-preflight-helper",
     "phase10-virtio-input-status-drain-helper",
+    "phase10-virtio-input-wrapper-ownership-note",
+    "wrapper ownership stays with the already-landed shared Phase 10 packets",
+    "drivers/virtio/virtio_ring.zig",
+    "drivers/virtio/virtio_mmio.zig",
     "phase10-virtio-input-registration-lifecycle",
     "real event delivery",
     "transport-backed status completion callbacks",
@@ -119,6 +126,7 @@ EXPECTED_GAPS = {
     "phase10-virtio-input-multitouch-slot-helper": "starter_landed",
     "phase10-virtio-input-registration-preflight-helper": "starter_landed",
     "phase10-virtio-input-status-drain-helper": "starter_landed",
+    "phase10-virtio-input-wrapper-ownership-note": "starter_landed",
     "phase10-virtio-input-registration-lifecycle": "blocked_on_risky_transport",
 }
 
@@ -248,7 +256,7 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
             missing_markers.append(f"manifest:{key}")
 
     gaps = manifest.get("gaps", [])
-    if len(gaps) < 12:
+    if len(gaps) < 14:
         missing_markers.append("manifest:gaps")
     gap_index = {gap.get("id"): gap for gap in gaps if isinstance(gap, dict)}
     for gap_id, status in EXPECTED_GAPS.items():
@@ -358,6 +366,15 @@ def run_self_test() -> int:
         survey_path = tmp_root / "Documentation/zigux/phase10-virtio-input-survey.md"
         original_survey = survey_path.read_text(encoding="utf-8")
         survey_path.write_text(
+            original_survey.replace("phase10-virtio-input-wrapper-ownership-note", "phase10-virtio-input-wrapper-drift", 1),
+            encoding="utf-8",
+        )
+        _, missing_markers = validate(tmp_root)
+        if "survey_note:phase10-virtio-input-wrapper-ownership-note" not in missing_markers:
+            raise SystemExit("phase10-input-self-test:expected_wrapper_ownership_marker_missing")
+        survey_path.write_text(original_survey, encoding="utf-8")
+
+        survey_path.write_text(
             original_survey.replace("phase10-virtio-input-registration-lifecycle", "phase10-virtio-input-registration-drift", 1),
             encoding="utf-8",
         )
@@ -400,7 +417,7 @@ def run_self_test() -> int:
         tests_readme_path.write_text(original_tests_readme, encoding="utf-8")
 
     print("PHASE10_INPUT_PACKET_SELF_TEST=pass")
-    print("PHASE10_INPUT_PACKET_SELF_TEST_CASE_COUNT=10")
+    print("PHASE10_INPUT_PACKET_SELF_TEST_CASE_COUNT=11")
     return 0
 
 
