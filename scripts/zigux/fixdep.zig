@@ -22,6 +22,10 @@ fn isNoParseFile(path: []const u8) bool {
         std.mem.endsWith(u8, path, ".so");
 }
 
+fn bytesBeforeFirstNull(bytes: []const u8) []const u8 {
+    return bytes[0 .. std.mem.indexOfScalar(u8, bytes, 0) orelse bytes.len];
+}
+
 fn describeFileReadError(err: anyerror) []const u8 {
     return switch (err) {
         error.FileNotFound => "No such file or directory",
@@ -145,7 +149,8 @@ const Processor = struct {
         };
     }
 
-    fn parseDepFile(self: *Processor, writer: anytype, dep_text: []const u8, target: []const u8) !void {
+    fn parseDepFile(self: *Processor, writer: anytype, dep_text_with_tail: []const u8, target: []const u8) !void {
+        const dep_text = bytesBeforeFirstNull(dep_text_with_tail);
         var saw_any_target = false;
         var is_target = true;
         var is_source = false;
@@ -381,6 +386,47 @@ test "dep parsing returns NoTargets for comment-only depfiles" {
         processor.parseDepFile(&capture, "# comment only\n# still no targets\n", "sample.o"),
     );
     try std.testing.expectEqual(@as(usize, 0), capture.list.items.len);
+}
+
+test "dep parsing skips bytes after the first embedded NUL" {
+    const Capture = struct {
+        list: std.ArrayList(u8),
+        allocator: std.mem.Allocator,
+
+        fn init(allocator: std.mem.Allocator) !@This() {
+            return .{
+                .list = try std.ArrayList(u8).initCapacity(allocator, 128),
+                .allocator = allocator,
+            };
+        }
+
+        fn deinit(self: *@This()) void {
+            self.list.deinit(self.allocator);
+        }
+
+        fn print(self: *@This(), comptime fmt: []const u8, args: anytype) !void {
+            const rendered = try std.fmt.allocPrint(self.allocator, fmt, args);
+            defer self.allocator.free(rendered);
+            try self.list.appendSlice(self.allocator, rendered);
+        }
+    };
+
+    var processor = Processor.init(std.testing.allocator, std.testing.io);
+    defer processor.deinit();
+
+    var capture = try Capture.init(std.testing.allocator);
+    defer capture.deinit();
+
+    try processor.parseDepFile(
+        &capture,
+        "sample.o: sample.rmeta\x00ignored.o: ignored.h\n",
+        "sample.o",
+    );
+
+    try std.testing.expectEqualStrings(
+        "source_sample.o := sample.rmeta\n\ndeps_sample.o := \\\n\nsample.o: $(deps_sample.o)\n\n$(deps_sample.o):\n",
+        capture.list.items,
+    );
 }
 
 test "ignored and no-parse file classification matches fixdep rules" {
