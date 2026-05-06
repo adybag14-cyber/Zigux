@@ -100,6 +100,21 @@ pub fn kstrdupAndReplace(
     return dup;
 }
 
+pub fn kstrdupQuotable(allocator: std.mem.Allocator, src: ?[]const u8) !?[:0]u8 {
+    const current = src orelse return null;
+    const prefix = cStringPrefix(current);
+    const quotable_only = "\x0c\n\r\t\x0b\x07\x1b\\\"";
+    var empty: [0]u8 = .{};
+    const escaped_len = stringEscapeMem(prefix, empty[0..], ESCAPE_HEX, quotable_only);
+    const dup_len = try std.math.add(usize, escaped_len, 1);
+    const dup = try allocator.alloc(u8, dup_len);
+    errdefer allocator.free(dup);
+    const written = stringEscapeMem(prefix, dup[0..escaped_len], ESCAPE_HEX, quotable_only);
+    std.debug.assert(written == escaped_len);
+    dup[escaped_len] = 0;
+    return dup[0..escaped_len :0];
+}
+
 pub fn memcpyAndPad(dest: []u8, src: []const u8, count: usize, pad: u8) void {
     std.debug.assert(src.len >= count);
 
@@ -475,6 +490,12 @@ fn runKasprintfStrarrayWithFailingAllocator(allocator: std.mem.Allocator, prefix
     defer names.deinit(allocator);
 }
 
+fn runKstrdupQuotableWithFailingAllocator(allocator: std.mem.Allocator, input: ?[]const u8) !void {
+    if (try kstrdupQuotable(allocator, input)) |dup| {
+        allocator.free(dup);
+    }
+}
+
 fn unescapeSpace(src: []const u8, src_index: *usize, dst: []u8, dst_index: *usize) bool {
     const value: u8 = switch (src[src_index.*]) {
         'n' => '\n',
@@ -657,6 +678,31 @@ test "kstrdupAndReplace duplicates the first-NUL prefix before replacing bytes" 
 
     try std.testing.expectEqualStrings("tty_0", duplicated);
     try std.testing.expectEqual(@as(u8, 0), duplicated[5]);
+}
+
+test "kstrdupQuotable hex-escapes special log bytes while preserving ordinary characters" {
+    const duplicated = (try kstrdupQuotable(std.testing.allocator, "line\n\"tab\"\x1b\\tail")) orelse return error.TestUnexpectedResult;
+    defer std.testing.allocator.free(duplicated);
+
+    try std.testing.expectEqualStrings("line\\x0a\\x22tab\\x22\\x1b\\x5ctail", duplicated);
+    try std.testing.expectEqual(@as(u8, 0), duplicated[duplicated.len]);
+}
+
+test "kstrdupQuotable returns null for null input and stops at the first NUL" {
+    try std.testing.expectEqual(@as(?[:0]u8, null), try kstrdupQuotable(std.testing.allocator, null));
+
+    const duplicated = (try kstrdupQuotable(std.testing.allocator, "tty\tname\x00ignored")) orelse return error.TestUnexpectedResult;
+    defer std.testing.allocator.free(duplicated);
+
+    try std.testing.expectEqualStrings("tty\\x09name", duplicated);
+}
+
+test "kstrdupQuotable frees the owned copy when allocation fails" {
+    try std.testing.checkAllAllocationFailures(
+        std.testing.allocator,
+        runKstrdupQuotableWithFailingAllocator,
+        .{"alpha\nbeta"},
+    );
 }
 
 test "memcpyAndPad matches the bounded copy-and-pad contract" {
