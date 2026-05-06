@@ -324,6 +324,55 @@ test "runtime atomic64 loader keeps initialized-stage shared contract plans expl
     ));
 }
 
+test "runtime atomic64 loader keeps initialized shared-request snapshots stable across later selftest activity" {
+    var module = runtime_atomic64_sample.RuntimeAtomic64Sample{};
+    try module.init(9);
+
+    var loader = RuntimeAtomic64Loader{};
+    var shared_request = try loader.prepareSharedRequest(&module);
+    try std.testing.expectEqual(LoaderStage.prepared, loader.stage());
+    try std.testing.expectEqual(runtime_loader.RequestState.prepared, shared_request.state);
+
+    const prepared_plan = shared_request.plan;
+    try std.testing.expectEqual(runtime_loader.HandoffStage.initialized, prepared_plan.init_flow.handoff_stage);
+    try std.testing.expectEqual(@as(usize, 0), prepared_plan.init_flow.selftest_runs);
+
+    const selftest = try module.runSelftest();
+    const live_plan = try RuntimeAtomic64Loader.planFor(&module);
+    const pending_plan = try loader.requestSharedRuntimeLoad(&shared_request);
+
+    try std.testing.expectEqual(@as(usize, 5), selftest.operation_families.len);
+    try std.testing.expectEqual(runtime_atomic64_sample.ModuleStage.selftest_complete, live_plan.handoff_stage);
+    try std.testing.expectEqual(@as(usize, 5), live_plan.summary.operation_families.len);
+    try std.testing.expect(live_plan.summary.checked_returning_paths);
+    try std.testing.expect(live_plan.summary.checked_bitwise_paths);
+    try std.testing.expect(live_plan.summary.checked_guard_paths);
+    try std.testing.expectEqual(@as(usize, 1), live_plan.summary.selftest_runs);
+    try std.testing.expectEqual(LoaderStage.waiting_on_runtime_substrate, loader.stage());
+    try std.testing.expectEqual(runtime_loader.RequestState.waiting_on_runtime_substrate, shared_request.state);
+    try std.testing.expectEqualStrings(prepared_plan.module_name, pending_plan.module_name);
+    try std.testing.expectEqualStrings(prepared_plan.anchor, pending_plan.anchor);
+    try std.testing.expectEqualStrings(prepared_plan.entry_symbol, pending_plan.entry_symbol);
+    try std.testing.expectEqualStrings(prepared_plan.exit_symbol, pending_plan.exit_symbol);
+    try std.testing.expectEqual(runtime_loader.HandoffStage.initialized, pending_plan.init_flow.handoff_stage);
+    try std.testing.expectEqual(@as(usize, 0), pending_plan.init_flow.selftest_runs);
+    try std.testing.expect(runtime_loader.keepsAllocatorInitFlowConsistent(
+        pending_plan,
+        .caller_provided,
+        .{
+            .handoff_stage = .initialized,
+            .init_runs = 1,
+            .selftest_runs = 0,
+            .exit_runs = 0,
+        },
+    ));
+    try std.testing.expect(runtime_loader.keepsSelftestHookEvidenceConsistent(pending_plan));
+
+    try loader.releaseSharedWithoutSubstrate(&shared_request);
+    try std.testing.expectEqual(LoaderStage.released_without_substrate, loader.stage());
+    try std.testing.expectEqual(runtime_loader.RequestState.released_without_substrate, shared_request.state);
+}
+
 test "runtime atomic64 loader bridges the shared request lifecycle without widening atomic64 claims" {
     var module = runtime_atomic64_sample.RuntimeAtomic64Sample{};
     try module.init(0x1111_1111_2222_2222);
