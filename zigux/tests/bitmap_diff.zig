@@ -116,15 +116,11 @@ const BitmapHarness = struct {
 
         const full_words: usize = @intCast(nbits / bits_per_long);
         const tail_bits = nbits % bits_per_long;
+        const words_to_copy = full_words + @intFromBool(tail_bits != 0);
 
         var index: usize = 0;
-        while (index < full_words) : (index += 1) {
+        while (index < words_to_copy) : (index += 1) {
             self.words[index] = other.words[index];
-        }
-
-        if (tail_bits != 0) {
-            const mask: Word = (~@as(Word, 0)) >> @intCast(bits_per_long - tail_bits);
-            self.words[full_words] = other.words[full_words] & mask;
         }
     }
 
@@ -644,17 +640,17 @@ test "bitmap diff gate records exact bounded copy checks" {
             .must_be_clear = &.{ 109, 127 },
         },
         .{
-            .name = "test_copy aligned tail clearing at 97 bits",
+            .name = "test_copy aligned 97-bit replay keeps the full second word before the filled tail resumes",
             .source_set_len = 109,
             .copy_nbits = 97,
             .destination_init = .fill,
             .expected_summary = .{
                 .first_set = 0,
-                .first_zero = 97,
-                .weight = 97 + (BitmapHarness.bitmap_nbits - 128),
+                .first_zero = 109,
+                .weight = 109 + (BitmapHarness.bitmap_nbits - 128),
             },
-            .must_be_set = &.{ 96, 128, BitmapHarness.bitmap_nbits - 1 },
-            .must_be_clear = &.{ 97, 127 },
+            .must_be_set = &.{ 96, 108, 128, BitmapHarness.bitmap_nbits - 1 },
+            .must_be_clear = &.{ 109, 127 },
         },
         .{
             .name = "test_zero_nbits zero-length copy leaves destination unchanged",
@@ -703,11 +699,11 @@ test "bitmap diff gate keeps the current bounded source inventory explicit" {
     try expectMarker(bitmap_diff_source, "bitmap diff gate replays exact bounded exp1 find_nth_bit enumeration");
     try expectMarker(bitmap_diff_source, "if (iterations == 0) return error.EmptyThresholdReplayBatch;");
     try expectMarker(bitmap_diff_source, "try std.testing.expectError(error.EmptyThresholdReplayBatch, runThresholdReplay(0));");
-    try expectMarker(bitmap_diff_source, "try std.testing.expectEqual(@as(u64, 5360730588881558405), single.checksum);");
-    try expectMarker(bitmap_diff_source, "try std.testing.expectEqual(@as(u64, 5759852327943573904), repeated.checksum);");
+    try expectMarker(bitmap_diff_source, "try std.testing.expectEqual(@as(u64, 4641743358357118437), single.checksum);");
+    try expectMarker(bitmap_diff_source, "try std.testing.expectEqual(@as(u64, 15640590978236698512), repeated.checksum);");
     try expectMarker(bitmap_diff_source, "try std.testing.expectEqual(@as(u32, 0), repeated.final_first_set);");
-    try expectMarker(bitmap_diff_source, "try std.testing.expectEqual(@as(u32, 97), repeated.final_first_zero);");
-    try expectMarker(bitmap_diff_source, "try std.testing.expectEqual(@as(u32, 993), repeated.final_weight);");
+    try expectMarker(bitmap_diff_source, "try std.testing.expectEqual(@as(u32, 109), repeated.final_first_zero);");
+    try expectMarker(bitmap_diff_source, "try std.testing.expectEqual(@as(u32, 1005), repeated.final_weight);");
     try expectMarker(bitmap_diff_source, "try std.testing.expectEqual(@as(u32, 123), repeated.final_nth_seven);");
     const replay_start = std.mem.indexOf(
         u8,
@@ -742,15 +738,15 @@ test "bitmap diff gate keeps a deterministic threshold replay batch ready for fu
     try std.testing.expectEqual(@as(usize, 1), single.iterations);
     try std.testing.expectEqual(@as(usize, 4), repeated.iterations);
     try std.testing.expectEqual(@as(u32, 0), single.final_first_set);
-    try std.testing.expectEqual(@as(u32, 97), single.final_first_zero);
-    try std.testing.expectEqual(@as(u32, 993), single.final_weight);
+    try std.testing.expectEqual(@as(u32, 109), single.final_first_zero);
+    try std.testing.expectEqual(@as(u32, 1005), single.final_weight);
     try std.testing.expectEqual(@as(u32, 123), single.final_nth_seven);
     try std.testing.expectEqual(@as(u32, 0), repeated.final_first_set);
-    try std.testing.expectEqual(@as(u32, 97), repeated.final_first_zero);
-    try std.testing.expectEqual(@as(u32, 993), repeated.final_weight);
+    try std.testing.expectEqual(@as(u32, 109), repeated.final_first_zero);
+    try std.testing.expectEqual(@as(u32, 1005), repeated.final_weight);
     try std.testing.expectEqual(@as(u32, 123), repeated.final_nth_seven);
-    try std.testing.expectEqual(@as(u64, 5360730588881558405), single.checksum);
-    try std.testing.expectEqual(@as(u64, 5759852327943573904), repeated.checksum);
+    try std.testing.expectEqual(@as(u64, 4641743358357118437), single.checksum);
+    try std.testing.expectEqual(@as(u64, 15640590978236698512), repeated.checksum);
     try std.testing.expect(repeated.checksum != single.checksum);
     try std.testing.expectEqualDeep(repeated, try runThresholdReplay(4));
 }
