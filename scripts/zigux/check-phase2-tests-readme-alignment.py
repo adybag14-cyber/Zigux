@@ -39,6 +39,8 @@ DOCS_ROOT_MARKERS = [
     "python3 scripts/zigux/check-phase2-cross.py",
     "python3 scripts/zigux/check-phase2-cross-selftest-alignment.py --self-test",
     "python3 scripts/zigux/check-phase2-cross-selftest-alignment.py",
+    "python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py --self-test",
+    "python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py",
     "python3 scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test",
     "python3 scripts/zigux/check-phase2-toolchain-pin-scope.py",
     "make -C zigux phase2-validate",
@@ -118,6 +120,10 @@ MAKEFILE_MARKERS = [
 ]
 
 EXACT_COUNT_CHECKS = {
+    "Documentation/zigux/README.md": {
+        "`python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py --self-test`": 1,
+        "`python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py`": 1,
+    },
     "Documentation/zigux/phase2-toolchain-bootstrap-notes.md": {
         "python3 scripts/zigux/check-phase2-tests-readme-alignment.py": 1,
         "- shared kconfig selftest-alignment self-test: `python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py --self-test`": 1,
@@ -171,6 +177,13 @@ def validate_root(root: Path) -> list[str]:
     tests_readme = (root / "zigux/tests/README.md").read_text(encoding="utf-8")
     makefile = (root / "zigux/Makefile").read_text(encoding="utf-8")
     issues.extend(collect_missing_markers(docs_root, DOCS_ROOT_MARKERS, prefix="docs_root"))
+    issues.extend(
+        collect_exact_count_issues(
+            docs_root,
+            EXACT_COUNT_CHECKS["Documentation/zigux/README.md"],
+            prefix="docs_root",
+        )
+    )
     issues.extend(collect_missing_markers(toolchain_notes, TOOLCHAIN_NOTES_MARKERS, prefix="toolchain_notes"))
     issues.extend(
         collect_exact_count_issues(
@@ -205,13 +218,26 @@ def write_text(path: Path, content: str) -> None:
     path.write_text(content, encoding="utf-8")
 
 
+def render_docs_root_text(markers: list[str]) -> str:
+    rendered: list[str] = []
+    for marker in markers:
+        if marker in (
+            "python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py --self-test",
+            "python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py",
+        ):
+            rendered.append(f"`{marker}`")
+        else:
+            rendered.append(marker)
+    return "\n".join(rendered) + "\n"
+
+
 def build_self_test_root(root: Path) -> None:
     for rel in REQUIRED_FILES:
         write_text(root / rel, "")
 
     write_text(
         root / "Documentation/zigux/README.md",
-        "\n".join(DOCS_ROOT_MARKERS) + "\n",
+        render_docs_root_text(DOCS_ROOT_MARKERS),
     )
     write_text(
         root / "Documentation/zigux/review-checklist.md",
@@ -244,15 +270,53 @@ def run_self_test() -> int:
 
         write_text(
             root / "Documentation/zigux/README.md",
-            "\n".join(
+            render_docs_root_text([
                 marker
                 for marker in DOCS_ROOT_MARKERS
-                if marker != "scripts/zigux/check-phase2-kconfig-selftest-alignment.py"
-            )
-            + "\n",
+                if marker != "python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py --self-test"
+            ]),
         )
         issues = validate_root(root)
-        assert "docs_root:scripts/zigux/check-phase2-kconfig-selftest-alignment.py" in issues
+        assert "docs_root:python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py --self-test" in issues
+
+        build_self_test_root(root)
+        write_text(
+            root / "Documentation/zigux/README.md",
+            render_docs_root_text([
+                marker
+                for marker in DOCS_ROOT_MARKERS
+                if marker != "python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py"
+            ]),
+        )
+        issues = validate_root(root)
+        assert (
+            "docs_root:exact_count:`python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py`:count=0:expected=1"
+            in issues
+        )
+
+        build_self_test_root(root)
+        write_text(
+            root / "Documentation/zigux/README.md",
+            render_docs_root_text(DOCS_ROOT_MARKERS)
+            + "`python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py --self-test`\n",
+        )
+        issues = validate_root(root)
+        assert (
+            "docs_root:exact_count:`python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py --self-test`:count=2:expected=1"
+            in issues
+        )
+
+        build_self_test_root(root)
+        write_text(
+            root / "Documentation/zigux/README.md",
+            render_docs_root_text(DOCS_ROOT_MARKERS)
+            + "`python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py`\n",
+        )
+        issues = validate_root(root)
+        assert (
+            "docs_root:exact_count:`python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py`:count=2:expected=1"
+            in issues
+        )
 
         build_self_test_root(root)
         write_text(
@@ -293,7 +357,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE2_TESTS_README_ALIGNMENT_SELF_TEST=pass")
-    print("PHASE2_TESTS_README_ALIGNMENT_SELF_TEST_CASE_COUNT=28")
+    print("PHASE2_TESTS_README_ALIGNMENT_SELF_TEST_CASE_COUNT=32")
     return 0
 
 
