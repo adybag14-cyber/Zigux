@@ -8,12 +8,20 @@ import tempfile
 
 
 ROOT = Path(__file__).resolve().parents[2]
+DEFAULT_ABI_HEADER = ROOT / "include" / "zigux" / "abi.h"
 DEFAULT_ABI_BINDINGS = ROOT / "zigux" / "bindings" / "abi.zig"
 DEFAULT_DEV_T_BINDINGS = ROOT / "zigux" / "bindings" / "dev_t.zig"
 DEFAULT_MANIFEST = ROOT / "zigux" / "tests" / "fixtures" / "phase3_abi_manifest.json"
 DEFAULT_DOC = ROOT / "Documentation" / "zigux" / "phase3-abi-slice.md"
 FUSED_MARKER = ";pub const "
+HEADER_FUSED_MARKERS = (
+    "};#define ",
+    "};struct ",
+    "};typedef ",
+    ";#define ",
+)
 REQUIRED_MANIFEST_FILES = (
+    "include/zigux/abi.h",
     "scripts/zigux/validate-phase3-abi-bindings-syntax.py",
     "zigux/kernel/export_shim.zig",
     "zigux/uapi/version.zig",
@@ -32,6 +40,21 @@ REQUIRED_EXPORT_UAPI_DOC_MARKERS = (
 
 def find_fused_pub_const_lines(source: str) -> list[int]:
     return [index for index, line in enumerate(source.splitlines(), start=1) if FUSED_MARKER in line]
+
+
+def find_fused_header_lines(source: str) -> list[tuple[int, str]]:
+    issues: list[tuple[int, str]] = []
+    for index, line in enumerate(source.splitlines(), start=1):
+        for marker in HEADER_FUSED_MARKERS:
+            if marker in line:
+                issues.append((index, marker.strip()))
+                break
+    return issues
+
+
+def validate_header(path: Path) -> list[str]:
+    source = path.read_text(encoding="utf-8")
+    return [f"{path}:{line}:{marker}" for line, marker in find_fused_header_lines(source)]
 
 
 def validate_bindings(path: Path) -> list[str]:
@@ -75,8 +98,15 @@ def validate_gate_contract(manifest_path: Path, doc_path: Path) -> list[str]:
     return issues
 
 
-def run_validation(abi_bindings_path: Path, dev_t_bindings_path: Path, manifest_path: Path, doc_path: Path) -> int:
-    issues = validate_bindings(abi_bindings_path)
+def run_validation(
+    abi_header_path: Path,
+    abi_bindings_path: Path,
+    dev_t_bindings_path: Path,
+    manifest_path: Path,
+    doc_path: Path,
+) -> int:
+    issues = validate_header(abi_header_path)
+    issues.extend(validate_bindings(abi_bindings_path))
     issues.extend(validate_bindings(dev_t_bindings_path))
     issues.extend(validate_gate_contract(manifest_path, doc_path))
     if issues:
@@ -87,6 +117,7 @@ def run_validation(abi_bindings_path: Path, dev_t_bindings_path: Path, manifest_
         print("PHASE3_ABI_BINDINGS_SYNTAX_ISSUES_END")
         return 1
     print("PHASE3_ABI_BINDINGS_SYNTAX=pass")
+    print(f"ABI_HEADER_PATH={abi_header_path.relative_to(ROOT).as_posix()}")
     print(f"ABI_BINDINGS_PATH={abi_bindings_path.relative_to(ROOT).as_posix()}")
     print(f"DEV_T_BINDINGS_PATH={dev_t_bindings_path.relative_to(ROOT).as_posix()}")
     print(f"ABI_BINDINGS_MANIFEST={manifest_path.relative_to(ROOT).as_posix()}")
@@ -98,13 +129,30 @@ def run_self_test() -> int:
     with tempfile.TemporaryDirectory(prefix="phase3_abi_bindings_syntax_") as tmp_dir_str:
         tmp_dir = Path(tmp_dir_str)
         root = tmp_dir / "repo"
+        abi_header = root / "include" / "zigux" / "abi.h"
         abi_bindings = root / "zigux" / "bindings" / "abi.zig"
         dev_t_bindings = root / "zigux" / "bindings" / "dev_t.zig"
         manifest = root / "zigux" / "tests" / "fixtures" / "phase3_abi_manifest.json"
         doc = root / "Documentation" / "zigux" / "phase3-abi-slice.md"
-        for path in (abi_bindings.parent, manifest.parent, doc.parent):
+        for path in (abi_header.parent, abi_bindings.parent, manifest.parent, doc.parent):
             path.mkdir(parents=True, exist_ok=True)
 
+        abi_header.write_text(
+            "\n".join(
+                [
+                    "#ifndef _ZIGUX_ABI_H",
+                    "#define _ZIGUX_ABI_H",
+                    "struct zigux_boundary_header {",
+                    "    unsigned int size;",
+                    "};",
+                    "#define ZIGUX_ABI_VERSION 1U",
+                    "#endif",
+                    "",
+                ]
+            ),
+            encoding="utf-8",
+            newline="\n",
+        )
         abi_bindings.write_text(
             "\n".join(
                 [
@@ -156,10 +204,35 @@ def run_self_test() -> int:
             newline="\n",
         )
 
+        assert validate_header(abi_header) == []
         assert validate_bindings(abi_bindings) == []
         assert validate_bindings(dev_t_bindings) == []
         assert validate_gate_contract(manifest, doc) == []
 
+        abi_header.write_text(
+            "struct zigux_boundary_header { unsigned int size; };#define ZIGUX_ABI_VERSION 1U\n",
+            encoding="utf-8",
+            newline="\n",
+        )
+        fused_header_issues = validate_header(abi_header)
+        assert fused_header_issues == [f"{abi_header}:1:{HEADER_FUSED_MARKERS[0].strip()}"]
+
+        abi_header.write_text(
+            "\n".join(
+                [
+                    "#ifndef _ZIGUX_ABI_H",
+                    "#define _ZIGUX_ABI_H",
+                    "struct zigux_boundary_header {",
+                    "    unsigned int size;",
+                    "};",
+                    "#define ZIGUX_ABI_VERSION 1U",
+                    "#endif",
+                    "",
+                ]
+            ),
+            encoding="utf-8",
+            newline="\n",
+        )
         abi_bindings.write_text(
             "pub const CHRDEV_NOTIFY_ACK_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_STATUS_SKIPPED: u32 = 6;pub const CHRDEV_NOTIFY_ACK_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_BUDGET_FLAG_BUDGET_APPLIED: u32 = 1;\n",
             encoding="utf-8",
@@ -249,7 +322,7 @@ def run_self_test() -> int:
 
 def main() -> int:
     parser = argparse.ArgumentParser(
-        description="Detect fused top-level Phase 3 ABI binding declarations across the curated ABI and dev_t bindings and require the dedicated syntax gate contract."
+        description="Detect fused top-level declarations across the authoritative Phase 3 ABI header and the curated ABI and dev_t bindings, and require the dedicated syntax gate contract."
     )
     parser.add_argument(
         "abi_path",
@@ -257,6 +330,12 @@ def main() -> int:
         type=Path,
         default=DEFAULT_ABI_BINDINGS,
         help="ABI bindings file to inspect.",
+    )
+    parser.add_argument(
+        "--header-path",
+        type=Path,
+        default=DEFAULT_ABI_HEADER,
+        help="Authoritative ABI header to inspect.",
     )
     parser.add_argument(
         "--dev-t-path",
@@ -281,7 +360,7 @@ def main() -> int:
 
     if args.self_test:
         return run_self_test()
-    return run_validation(args.abi_path, args.dev_t_path, args.manifest, args.doc)
+    return run_validation(args.header_path, args.abi_path, args.dev_t_path, args.manifest, args.doc)
 
 
 if __name__ == "__main__":
