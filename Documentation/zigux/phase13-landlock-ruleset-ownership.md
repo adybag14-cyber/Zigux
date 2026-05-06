@@ -1,7 +1,7 @@
 # Phase 13 Landlock Ruleset Ownership Note
 
 - `PHASE13_STATUS=active`
-- `PHASE13_LANE_KEY=P13-Y03`
+- `PHASE13_LANE_KEY=P13-L12`
 - `PHASE13_SCOPE=security/landlock/ruleset.zig helper-local ownership and fixture governance`
 
 This note closes one narrow reviewability gap around `security/landlock/ruleset.zig`: the helper already had slice and survey notes, but it did not yet have a dedicated ownership note that says what this helper packet owns, what nearby Landlock lanes own instead, and which review artifacts must move together when this helper changes.
