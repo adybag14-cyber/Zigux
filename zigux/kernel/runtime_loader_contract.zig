@@ -428,6 +428,12 @@ test "shared runtime loader contract keeps command, environment, and depmod-faci
     try std.testing.expect(!@hasField(LoadPlan, "columns_env"));
     try std.testing.expect(!@hasField(LoadPlan, "register_api"));
     try std.testing.expect(!@hasField(LoadPlan, "unregister_api"));
+    try std.testing.expect(!@hasField(LoadPlan, "symbol_name"));
+    try std.testing.expect(!@hasField(LoadPlan, "maxactive"));
+    try std.testing.expect(!@hasField(LoadPlan, "private_data_bytes"));
+    try std.testing.expect(!@hasField(LoadPlan, "registration_depth"));
+    try std.testing.expect(!@hasField(LoadPlan, "active_instances"));
+    try std.testing.expect(!@hasField(LoadPlan, "entry_timestamp_armed"));
     try std.testing.expect(!@hasField(LoadPlan, "modinfo"));
     try std.testing.expect(!@hasField(LoadPlan, "module_alias"));
     try std.testing.expect(!@hasField(LoadPlan, "module_aliases"));
@@ -440,6 +446,14 @@ test "shared runtime loader contract keeps command, environment, and depmod-faci
     try std.testing.expect(!@hasField(LoadPlan, "depmod_aliases"));
     try std.testing.expect(!@hasField(PreparedRequest, "command_name"));
     try std.testing.expect(!@hasField(PreparedRequest, "activation_env"));
+    try std.testing.expect(!@hasField(PreparedRequest, "register_api"));
+    try std.testing.expect(!@hasField(PreparedRequest, "unregister_api"));
+    try std.testing.expect(!@hasField(PreparedRequest, "symbol_name"));
+    try std.testing.expect(!@hasField(PreparedRequest, "maxactive"));
+    try std.testing.expect(!@hasField(PreparedRequest, "private_data_bytes"));
+    try std.testing.expect(!@hasField(PreparedRequest, "registration_depth"));
+    try std.testing.expect(!@hasField(PreparedRequest, "active_instances"));
+    try std.testing.expect(!@hasField(PreparedRequest, "entry_timestamp_armed"));
     try std.testing.expect(!@hasField(PreparedRequest, "modinfo"));
     try std.testing.expect(!@hasField(PreparedRequest, "module_aliases"));
     try std.testing.expect(!@hasField(PreparedRequest, "modules_alias_path"));
