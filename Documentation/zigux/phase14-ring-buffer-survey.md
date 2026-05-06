@@ -33,7 +33,7 @@ It is to make the blocked state reviewable and record the first stay-in-C checkl
 - `Documentation/trace/ring-buffer-map.rst` is present at 106 lines and adds mmap-facing reader, sub-buffer, and tracefs limitation behavior that would be easy to understate in a premature Zig wrapper.
 - `kernel/trace/simple_ring_buffer.c` exists as a much smaller 517-line companion, which reinforces that the full tracing ring buffer is the complex path and should not be treated like a straightforward helper port.
 - the live repo already had `zigux/tests/phase14_build.zig`, `zigux/Makefile` Phase 14 wiring, `Documentation/zigux/freeze-map.md`, and the workqueue bridge slice, so the highest-value non-overlapping ring-buffer step is a survey gate rather than another starter implementation.
-- the survey manifest now records a landed decision checklist around reserve or commit publication, head-page and reader-page handoff, remote-reader metadata, wakeup or mmap-facing publication, tracefs mapping limitations, the reader-page consume audit, and the exported-page copy-path audit so later runs can deepen the review without inventing `kernel/trace/ring_buffer.zig`.
+- the survey manifest now records a landed decision checklist around reserve or commit publication, head-page and reader-page handoff, remote-reader metadata, wakeup or mmap-facing publication, tracefs mapping limitations, the remote-reader metadata audit, the reader-page consume audit, and the exported-page copy-path audit so later runs can deepen the review without inventing `kernel/trace/ring_buffer.zig`.
 
 ## Decision checklist
 
@@ -53,6 +53,17 @@ When the tail page catches the head page and overwrite mode is disabled, the wri
 - Lost-event reporting is finalized on the reader side, not at the overwrite point itself.
 After the reader swaps in the next page, the code compares `overrun` against `last_overrun` and publishes the delta through `lost_events`, which means overwrite accounting stays coupled to reader-page replacement and should remain study-only for now.
 - The supporting docs line up with that code path: `Documentation/trace/ring-buffer-design.rst` explains that overwrite mode must move the head page before the tail can advance, and `Documentation/trace/ftrace.rst` distinguishes dropped events from overwritten or unread data in the exposed trace stats.
+
+## Remote-reader metadata audit
+
+- `rb_read_remote_meta_page()` keeps remote observation tied to the same C-owned meta-page contract rather than exposing a smaller wrapper seam.
+It snapshots `entries`, `overrun`, `read`, `pages_touched`, and related counters from the target CPU buffer into the exported meta-page view, which means remote readers still depend on one combined kernel handoff for accounting state instead of a detached Zig-friendly helper.
+- The callback shape matters as much as the counters.
+Remote metadata refresh enters through the mapped-reader and tracefs-facing flow that already uses callbacks and exported pages, so the refresh path stays coupled to the same sequencing assumptions that govern wakeups, mapped readers, and local reader-page handoff.
+- `__rb_get_reader_page_from_remote()` extends that boundary into page ownership.
+It does not just fetch a pointer from another CPU. It has to import a reader page only when the remote buffer can safely hand one off, preserve the local lost-event and commit-facing invariants, and reject states where the remote side still owns the page choreography.
+- The two functions therefore form one combined stay-in-C audit point.
+Remote readers need both a coherent metadata snapshot and a guarded reader-page import rule, so this lane keeps the pair together as reviewable evidence instead of implying Zigux can own the stats half without also owning the already-coupled page-transition logic.
 
 ## Wakeup and mmap audit
 
@@ -126,6 +137,7 @@ The current lane state is:
 - landed `phase14-ring-buffer-survey-note`
 - landed `phase14-ring-buffer-boundary-decision-checklist`
 - landed `phase14-ring-buffer-overwrite-audit`
+- landed `phase14-ring-buffer-remote-reader-meta-followup`
 - landed `phase14-ring-buffer-wakeup-mmap-followup`
 - landed `phase14-ring-buffer-splice-resize-followup`
 - landed `phase14-ring-buffer-mapped-reader-ioctl-followup`
@@ -142,6 +154,7 @@ This survey slice does not claim:
 - a `kernel/trace/ring_buffer.zig` implementation
 - reserve or commit parity for `ring_buffer_lock_reserve()` and `ring_buffer_unlock_commit()`
 - reader-page handoff parity for `rb_get_reader_page()`
+- remote-reader metadata parity for `rb_read_remote_meta_page()` and `__rb_get_reader_page_from_remote()`
 - consuming or non-consuming read parity for `ring_buffer_consume()` and `ring_buffer_read_start()`
 - overwrite, wakeup, resize, snapshot, or reset ownership
 - mmap or splice ownership for the tracefs ring-buffer interfaces
@@ -155,4 +168,4 @@ This survey slice does not claim:
 
 ## Next bounded step
 
-Leave this ring-buffer survey lane parked unless a later Phase 14 traceability or release-boundary refresh needs to restate the exported-page copy-path decision after another anchor-local survey change. Any future ring-buffer work here should stay on the study-only side of reader, writer, wakeup, mapping, or exported-page boundary evidence rather than reopening a bridge or port claim.
+Leave this ring-buffer survey lane parked unless a later Phase 14 traceability or release-boundary refresh needs to restate the new remote-reader metadata decision after another anchor-local survey change. Any future ring-buffer work here should stay on the study-only side of reader, writer, wakeup, mapping, remote-reader, or exported-page boundary evidence rather than reopening a bridge or port claim.
