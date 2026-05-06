@@ -75,7 +75,10 @@ REQUIRED_FILE_MARKERS = {
     PHASE12_RAW_GITHUB_COVERAGE_PATH: [
         "commit-pinned fallback artifacts:",
         "shared-tree-only anchors:",
+        "direct build preflight: `zig build smoke --build-file zigux/tests/phase12_build.zig --summary all`",
+        "current smoke packet surfaces: `zigux/tests/phase12_nvme_pci.zig`, `drivers/nvme/host/pci_verify.zig`, `zigux/tests/phase12_virtio_net.zig`, `zigux/tests/phase12_virtio_net_syntax_lab.zig`, `zigux/tests/phase12_virtio_scsi.zig`, and `zigux/tests/phase12_virtio_scsi_syntax_lab.zig`",
         "Use `Documentation/zigux/phase12-release-closure-checklist.md` as the PMO companion",
+        "The shared build-only release guard for that smoke-first order is `scripts/zigux/check-build-only-phase12-surface.py`",
         "`Documentation/zigux/phase12-complex-driver-lane-sequencing.md` remains the separate driver-only anti-overlap companion",
     ],
     NVME_FALLBACK_MAP_PATH: [
@@ -245,7 +248,10 @@ Phase 12 notes
         """# Phase 12 Raw GitHub Coverage Survey
 - commit-pinned fallback artifacts:
 - shared-tree-only anchors:
+- direct build preflight: `zig build smoke --build-file zigux/tests/phase12_build.zig --summary all`
+- current smoke packet surfaces: `zigux/tests/phase12_nvme_pci.zig`, `drivers/nvme/host/pci_verify.zig`, `zigux/tests/phase12_virtio_net.zig`, `zigux/tests/phase12_virtio_net_syntax_lab.zig`, `zigux/tests/phase12_virtio_scsi.zig`, and `zigux/tests/phase12_virtio_scsi_syntax_lab.zig`
 - Use `Documentation/zigux/phase12-release-closure-checklist.md` as the PMO companion
+- The shared build-only release guard for that smoke-first order is `scripts/zigux/check-build-only-phase12-surface.py`
 - `Documentation/zigux/phase12-complex-driver-lane-sequencing.md` remains the separate driver-only anti-overlap companion
 """,
     )
@@ -429,6 +435,44 @@ def run_self_test() -> int:
         if expected not in failures:
             print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST=fail")
             print("raw-coverage-shared-tree-anchor-guard")
+            for failure in failures:
+                print(failure)
+            return 1
+        raw_coverage_path.write_text(original_raw_coverage, encoding="utf-8")
+
+        broken_raw_coverage = original_raw_coverage.replace(
+            "- direct build preflight: `zig build smoke --build-file zigux/tests/phase12_build.zig --summary all`\n",
+            "",
+            1,
+        )
+        raw_coverage_path.write_text(broken_raw_coverage, encoding="utf-8")
+        failures = validate(root)
+        expected = (
+            f"{PHASE12_RAW_GITHUB_COVERAGE_PATH}:"
+            "direct build preflight: `zig build smoke --build-file zigux/tests/phase12_build.zig --summary all`"
+        )
+        if expected not in failures:
+            print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST=fail")
+            print("raw-coverage-direct-build-preflight-guard")
+            for failure in failures:
+                print(failure)
+            return 1
+        raw_coverage_path.write_text(original_raw_coverage, encoding="utf-8")
+
+        broken_raw_coverage = original_raw_coverage.replace(
+            "- current smoke packet surfaces: `zigux/tests/phase12_nvme_pci.zig`, `drivers/nvme/host/pci_verify.zig`, `zigux/tests/phase12_virtio_net.zig`, `zigux/tests/phase12_virtio_net_syntax_lab.zig`, `zigux/tests/phase12_virtio_scsi.zig`, and `zigux/tests/phase12_virtio_scsi_syntax_lab.zig`\n",
+            "",
+            1,
+        )
+        raw_coverage_path.write_text(broken_raw_coverage, encoding="utf-8")
+        failures = validate(root)
+        expected = (
+            f"{PHASE12_RAW_GITHUB_COVERAGE_PATH}:"
+            "current smoke packet surfaces: `zigux/tests/phase12_nvme_pci.zig`, `drivers/nvme/host/pci_verify.zig`, `zigux/tests/phase12_virtio_net.zig`, `zigux/tests/phase12_virtio_net_syntax_lab.zig`, `zigux/tests/phase12_virtio_scsi.zig`, and `zigux/tests/phase12_virtio_scsi_syntax_lab.zig`"
+        )
+        if expected not in failures:
+            print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST=fail")
+            print("raw-coverage-current-smoke-packet-guard")
             for failure in failures:
                 print(failure)
             return 1
