@@ -38,6 +38,7 @@ This note records the current shared contributor replay surface for the shipped 
 - `zigux/tests/phase11_hvc_console_survey.zig`
 - `zigux/tests/phase11_uapi_header_parity_manifest.json`
 - `zigux/tests/phase11_uapi_header_parity_survey.zig`
+- `drivers/watchdog/dw_wdt_verify.zig`
 - `drivers/tty/hvc/hvc_console_verify.zig`
 - `zigux/Makefile`
 - `.github/workflows/zigux-bootstrap.yml`
@@ -66,7 +67,7 @@ The active watchdog validation packets also stay explicit beside that shared rou
 
 - gpio watchdog: `Documentation/zigux/phase11-gpio-wdt-validation-matrix.md`, `Documentation/zigux/phase11-gpio-wdt-survey.md`, `zigux/tests/phase11_gpio_wdt_manifest.json`, and `zigux/tests/phase11_gpio_wdt_survey.zig`
 - bcm2835 watchdog: `Documentation/zigux/phase11-bcm2835-wdt-validation-matrix.md`, `Documentation/zigux/phase11-bcm2835-wdt-survey.md`, `zigux/tests/phase11_bcm2835_wdt_manifest.json`, and `zigux/tests/phase11_bcm2835_wdt_survey.zig`
-- DesignWare watchdog: `Documentation/zigux/phase11-dw-wdt-validation-matrix.md`, `Documentation/zigux/phase11-dw-wdt-survey.md`, `zigux/tests/phase11_dw_wdt_manifest.json`, and `zigux/tests/phase11_dw_wdt_survey.zig`
+- DesignWare watchdog: `Documentation/zigux/phase11-dw-wdt-validation-matrix.md`, `Documentation/zigux/phase11-dw-wdt-survey.md`, `zigux/tests/phase11_dw_wdt_manifest.json`, `zigux/tests/phase11_dw_wdt_survey.zig`, and `drivers/watchdog/dw_wdt_verify.zig`
 
 The parked driver-lane ownership map also stays explicit beside that replay route:
 
