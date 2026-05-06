@@ -128,6 +128,7 @@ pub const Mode = enum {
     allmodconfig,
     yes2modconfig,
     defconfig,
+    savedefconfig,
 
     pub fn parse(input_text: []const u8) ?Mode {
         _ = input_text;
@@ -170,6 +171,15 @@ pub const Mode = enum {
                         "mode_arg": "arch/arm64/configs/defconfig",
                         "expected": "defconfig_expected.json",
                     },
+                    {
+                        "name": "savedefconfig",
+                        "mode": "savedefconfig",
+                        "kconfig": "Kconfig",
+                        "config": ".config",
+                        "arch": "x86_64",
+                        "mode_arg": "defconfig.out",
+                        "expected": "savedefconfig_expected.json",
+                    },
                 ],
                 "confdata_cases": [
                     {
@@ -192,6 +202,7 @@ pub const Mode = enum {
         "olddefconfig_expected.json",
         "syncconfig_expected.json",
         "defconfig_expected.json",
+        "savedefconfig_expected.json",
         "sample_expected.json",
         "sample_crlf_expected.json",
         "sample.config",
@@ -201,7 +212,7 @@ pub const Mode = enum {
 
 
 def run_self_test() -> int:
-    with tempfile.TemporaryDirectory(prefix="zigux_kconfig_bridge_selftest_") as tmp_dir_str:
+    with tempfile.TemporaryDirectory(prefix="zigux_kconfig_bridge_selftest_\") as tmp_dir_str:
         root = Path(tmp_dir_str)
         build_self_test_root(root)
         assert collect_manifest_issues(root) == []
@@ -258,7 +269,7 @@ def main() -> int:
     zig = find_zig(args.zig)
     cases = load_cases(FIXTURE_DIR)
 
-    with tempfile.TemporaryDirectory(prefix="zigux_kconfig_bridge_") as tmp_dir_str:
+    with tempfile.TemporaryDirectory(prefix="zigux_kconfig_bridge_\") as tmp_dir_str:
         tmp_dir = Path(tmp_dir_str)
         conf_exe = tmp_dir / ("conf-bridge.exe" if sys.platform == "win32" else "conf-bridge")
         confdata_exe = tmp_dir / ("confdata-bridge.exe" if sys.platform == "win32" else "confdata-bridge")
