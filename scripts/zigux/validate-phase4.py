@@ -80,6 +80,7 @@ REQUIRED_TESTS_README_MARKERS = [
     "zigux/tests/runtime_atomic64_diff.zig",
     "zigux/tests/phase4_runtime_atomic64_diff_survey.zig",
     "zigux/tests/bitmap_diff.zig",
+    "zigux/tests/phase4_bitmap_live_helper_replay.zig",
     "zigux/tests/phase4_build.zig",
     "scripts/zigux/validate-phase4.py",
 ]
@@ -107,6 +108,7 @@ REQUIRED_DOC_README_MARKERS = [
     "atomic64_diff.zig",
     "runtime_atomic64_diff.zig",
     "phase4_runtime_atomic64_diff_survey.zig",
+    "zigux/tests/phase4_bitmap_live_helper_replay.zig",
     "intentionally unapproved perf-threshold posture",
 ]
 REQUIRED_REVIEW_CHECKLIST_MARKERS = [
@@ -165,6 +167,7 @@ EXACT_ONCE_TESTS_README_MARKERS = [
     "scripts/zigux/validate-phase4.py",
     "zigux/tests/phase4_runtime_atomic64_diff_survey.zig",
     "zigux/tests/bitmap_diff.zig",
+    "zigux/tests/phase4_bitmap_live_helper_replay.zig",
 ]
 EXACT_ONCE_SCRIPT_README_MARKERS = [
     "Phase 4 flow",
@@ -181,6 +184,7 @@ EXACT_ONCE_DOC_README_MARKERS = [
     "phase4-validation-matrix.md",
     "runtime_atomic64_diff.zig",
     "phase4_runtime_atomic64_diff_survey.zig",
+    "zigux/tests/phase4_bitmap_live_helper_replay.zig",
     "intentionally unapproved perf-threshold posture",
 ]
 EXACT_ONCE_REVIEW_CHECKLIST_MARKERS = [
@@ -549,104 +553,116 @@ def run_phase4_runtime_atomic64_packet_check(root: Path) -> list[str]:
     return missing
 
 
-def _write(path: Path, content: str) -> None:
+def _write(root: Path, relative_path: str, text: str) -> None:
+    path = root / relative_path
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(content, encoding="utf-8", newline="\n")
+    path.write_text(text, encoding="utf-8")
 
 
 def _write_contract_checker_fixture(
     path: Path,
     *,
-    base_case_count: str | None,
-    base_cases: list[str] | None,
-    repeat_case_count: str | None,
-    repeat_cases: list[str] | None,
-    case_count: str | None,
-    cases: list[str] | None,
+    base_case_count: str,
+    base_cases: list[str],
+    repeat_case_count: str,
+    repeat_cases: list[str],
+    case_count: str,
+    cases: list[str],
+    self_test_case_count: str,
+    self_test_cases: list[str],
     include_pass: bool = True,
-    self_test_case_count: str | None,
-    self_test_cases: list[str] | None,
     include_self_test_pass: bool = True,
 ) -> None:
-    lines = ["#!/usr/bin/env python3", "import sys", "if '--self-test' in sys.argv:"]
+    lines = ["#!/usr/bin/env python3", "import sys", "", "if '--self-test' in sys.argv:"]
     if include_self_test_pass:
         lines.append("    print('ARTIFACT_DIFF_CONTRACT_SELF_TEST=pass')")
     if self_test_case_count is not None:
-        lines.append(f"    print('ARTIFACT_DIFF_CONTRACT_SELF_TEST_CASE_COUNT={self_test_case_count}')")
+        lines.append(
+            f"    print('ARTIFACT_DIFF_CONTRACT_SELF_TEST_CASE_COUNT={self_test_case_count}')"
+        )
     if self_test_cases is not None:
         lines.append(
-            "    print('ARTIFACT_DIFF_CONTRACT_SELF_TEST_CASES="
-            + ",".join(self_test_cases)
-            + "')"
+            "    print('ARTIFACT_DIFF_CONTRACT_SELF_TEST_CASES=" + ",".join(self_test_cases) + "')"
         )
     lines.append("    raise SystemExit(0)")
+    lines.append("")
     if include_pass:
         lines.append("print('ARTIFACT_DIFF_CONTRACT=pass')")
     if base_case_count is not None:
         lines.append(f"print('ARTIFACT_DIFF_CONTRACT_BASE_CASE_COUNT={base_case_count}')")
     if base_cases is not None:
-        lines.append("print('ARTIFACT_DIFF_CONTRACT_BASE_CASES=" + ",".join(base_cases) + "')")
+        lines.append(
+            "print('ARTIFACT_DIFF_CONTRACT_BASE_CASES=" + ",".join(base_cases) + "')"
+        )
     if repeat_case_count is not None:
-        lines.append(f"print('ARTIFACT_DIFF_CONTRACT_REPEAT_CASE_COUNT={repeat_case_count}')")
+        lines.append(
+            f"print('ARTIFACT_DIFF_CONTRACT_REPEAT_CASE_COUNT={repeat_case_count}')"
+        )
     if repeat_cases is not None:
-        lines.append("print('ARTIFACT_DIFF_CONTRACT_REPEAT_CASES=" + ",".join(repeat_cases) + "')")
+        lines.append(
+            "print('ARTIFACT_DIFF_CONTRACT_REPEAT_CASES=" + ",".join(repeat_cases) + "')"
+        )
     if case_count is not None:
         lines.append(f"print('ARTIFACT_DIFF_CONTRACT_CASE_COUNT={case_count}')")
     if cases is not None:
         lines.append("print('ARTIFACT_DIFF_CONTRACT_CASES=" + ",".join(cases) + "')")
-    _write(path, "\n".join(lines) + "\n")
+    path.write_text("\n".join(lines) + "\n", encoding="utf-8")
 
 
 def _write_phase4_gate_evidence_checker_fixture(
     path: Path,
     *,
-    include_check_pass: bool = True,
-    target_count: str | None = str(EXPECTED_PHASE4_GATE_EVIDENCE_TARGET_COUNT),
-    include_self_test_pass: bool = True,
     self_test_case_count: str | None = None,
     self_test_cases: list[str] | None = None,
+    include_pass: bool = True,
+    include_self_test_pass: bool = True,
 ) -> None:
-    lines = ["#!/usr/bin/env python3", "import sys", "if '--self-test' in sys.argv:"]
+    lines = ["#!/usr/bin/env python3", "import sys", "", "if '--self-test' in sys.argv:"]
     if include_self_test_pass:
         lines.append("    print('PHASE4_GATE_EVIDENCE_SELF_TEST=pass')")
     if self_test_case_count is not None:
-        lines.append(f"    print('PHASE4_GATE_EVIDENCE_SELF_TEST_CASE_COUNT={self_test_case_count}')")
+        lines.append(
+            f"    print('PHASE4_GATE_EVIDENCE_SELF_TEST_CASE_COUNT={self_test_case_count}')"
+        )
     if self_test_cases is not None:
         lines.append(
             "    print('PHASE4_GATE_EVIDENCE_SELF_TEST_CASES="
             + ",".join(self_test_cases)
             + "')"
         )
-    lines.append("else:")
-    if include_check_pass:
-        lines.append("    print('PHASE4_GATE_EVIDENCE_CHECK=pass')")
-    if target_count is not None:
-        lines.append(f"    print('PHASE4_GATE_EVIDENCE_TARGET_COUNT={target_count}')")
-    _write(path, "\n".join(lines) + "\n")
+    lines.append("    raise SystemExit(0)")
+    lines.append("")
+    if include_pass:
+        lines.append("print('PHASE4_GATE_EVIDENCE_CHECK=pass')")
+        lines.append(
+            f"print('PHASE4_GATE_EVIDENCE_TARGET_COUNT={EXPECTED_PHASE4_GATE_EVIDENCE_TARGET_COUNT}')"
+        )
+    path.write_text("\n".join(lines) + "\n", encoding="utf-8")
 
 
 def _write_phase4_runtime_atomic64_packet_fixture(root: Path) -> None:
+    manifest_path = root / "zigux/tests/phase4_runtime_atomic64_diff_manifest.json"
+    survey_path = root / "zigux/tests/phase4_runtime_atomic64_diff_survey.zig"
+
     phase4_build_sha = _git_blob_sha1((root / "zigux/tests/phase4_build.zig").read_bytes())
     validator_sha = _git_blob_sha1((root / "scripts/zigux/validate-phase4.py").read_bytes())
-    matrix_sha = _git_blob_sha1((root / "Documentation/zigux/phase4-validation-matrix.md").read_bytes())
+    matrix_sha = _git_blob_sha1(
+        (root / "Documentation/zigux/phase4-validation-matrix.md").read_bytes()
+    )
     phase9_build_sha = _git_blob_sha1((root / "zigux/tests/phase9_build.zig").read_bytes())
+
     manifest = {
         "phase4_build_blob_sha": phase4_build_sha,
         "phase4_validator_blob_sha": validator_sha,
         "phase4_validation_matrix_blob_sha": matrix_sha,
         "phase9_build_blob_sha": phase9_build_sha,
     }
-    _write(
-        root / "zigux/tests/phase4_runtime_atomic64_diff_manifest.json",
-        json.dumps(manifest, indent=2) + "\n",
-    )
-    _write(
-        root / "zigux/tests/phase4_runtime_atomic64_diff_survey.zig",
+    manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+    survey_path.write_text(
         "\n".join(
             [
-                'const std = @import("std");',
-                "",
-                'test "fixture keeps current phase4 build, validator, matrix, and phase9 build pins" {',
+                "const std = @import(\"std\");",
+                "test \"runtime atomic64 manifest packet remains in sync\" {",
                 f"    // phase4 build pin {phase4_build_sha}",
                 f"    // validator pin {validator_sha}",
                 f"    // matrix pin {matrix_sha}",
@@ -655,12 +671,14 @@ def _write_phase4_runtime_atomic64_packet_fixture(root: Path) -> None:
                 "",
             ]
         ),
+        encoding="utf-8",
     )
 
 
 def _write_phase4_fixture_docs(root: Path) -> None:
     _write(
-        root / "Documentation/zigux/artifact-diff.md",
+        root,
+        "Documentation/zigux/artifact-diff.md",
         "\n".join(
             [
                 "# Artifact Diff Policy",
@@ -681,7 +699,8 @@ def _write_phase4_fixture_docs(root: Path) -> None:
         ),
     )
     _write(
-        root / "Documentation/zigux/phase4-gate-evidence.md",
+        root,
+        "Documentation/zigux/phase4-gate-evidence.md",
         "\n".join(
             [
                 "# Phase 4 Gate Evidence",
@@ -712,7 +731,8 @@ def _write_phase4_fixture_docs(root: Path) -> None:
         ),
     )
     _write(
-        root / "Documentation/zigux/phase4-validation-matrix.md",
+        root,
+        "Documentation/zigux/phase4-validation-matrix.md",
         "\n".join(
             [
                 "# Phase 4 Validation Matrix",
@@ -746,7 +766,8 @@ def _write_phase4_fixture_docs(root: Path) -> None:
         ),
     )
     _write(
-        root / "Documentation/zigux/README.md",
+        root,
+        "Documentation/zigux/README.md",
         "\n".join(
             [
                 "Phase 4 notes",
@@ -756,13 +777,15 @@ def _write_phase4_fixture_docs(root: Path) -> None:
                 "atomic64_diff.zig",
                 "runtime_atomic64_diff.zig",
                 "phase4_runtime_atomic64_diff_survey.zig",
+                "zigux/tests/phase4_bitmap_live_helper_replay.zig",
                 "intentionally unapproved perf-threshold posture",
                 "",
             ]
         ),
     )
     _write(
-        root / "Documentation/zigux/review-checklist.md",
+        root,
+        "Documentation/zigux/review-checklist.md",
         "\n".join(
             [
                 "if the change touches the shared Phase 4 validation packet",
@@ -780,7 +803,8 @@ def _write_phase4_fixture_docs(root: Path) -> None:
         ),
     )
     _write(
-        root / "scripts/zigux/README.md",
+        root,
+        "scripts/zigux/README.md",
         "\n".join(
             [
                 "validate-phase4.py",
@@ -798,13 +822,15 @@ def _write_phase4_fixture_docs(root: Path) -> None:
         ),
     )
     _write(
-        root / "zigux/tests/README.md",
+        root,
+        "zigux/tests/README.md",
         "\n".join(
             [
                 "zigux/tests/atomic64_diff.zig",
                 "zigux/tests/runtime_atomic64_diff.zig",
                 "zigux/tests/phase4_runtime_atomic64_diff_survey.zig",
                 "zigux/tests/bitmap_diff.zig",
+                "zigux/tests/phase4_bitmap_live_helper_replay.zig",
                 "zigux/tests/phase4_build.zig",
                 "scripts/zigux/validate-phase4.py",
                 "",
@@ -814,23 +840,26 @@ def _write_phase4_fixture_docs(root: Path) -> None:
 
 
 def _write_phase4_fixture_sources(root: Path) -> None:
-    _write(root / "scripts/zigux/artifact_diff.py", "# placeholder\n")
-    _write(root / "scripts/zigux/validate-phase4.py", "# placeholder\n")
+    _write(root, "scripts/zigux/artifact_diff.py", "# placeholder\n")
+    _write(root, "scripts/zigux/validate-phase4.py", "# placeholder\n")
     _write(
-        root / "zigux/Makefile",
+        root,
+        "zigux/Makefile",
         "PHONY += phase4-validate phase4-test\nphase4-validate:\n\tscripts/zigux/validate-phase4.py\nphase4-test:\n\tzigux/tests/phase4_build.zig\n",
     )
     _write(
-        root / ".github/workflows/zigux-bootstrap.yml",
+        root,
+        ".github/workflows/zigux-bootstrap.yml",
         "python3 scripts/zigux/validate-phase4.py\npython3 scripts/zigux/validate-phase4.py --self-test\nzig build test --build-file zigux/tests/phase4_build.zig\n",
     )
-    _write(root / "zigux/tests/atomic64_diff.zig", "// wrapper gate\n")
-    _write(root / "zigux/tests/runtime_atomic64_diff.zig", "// runtime gate\n")
-    _write(root / "zigux/tests/bitmap_diff.zig", "// bitmap gate\n")
-    _write(root / "zigux/tests/phase4_bitmap_live_helper_replay.zig", "// helper replay gate\n")
-    _write(root / "zigux/tests/phase9_build.zig", "// phase9 build gate\n")
+    _write(root, "zigux/tests/atomic64_diff.zig", "// wrapper gate\n")
+    _write(root, "zigux/tests/runtime_atomic64_diff.zig", "// runtime gate\n")
+    _write(root, "zigux/tests/bitmap_diff.zig", "// bitmap gate\n")
+    _write(root, "zigux/tests/phase4_bitmap_live_helper_replay.zig", "// helper replay gate\n")
+    _write(root, "zigux/tests/phase9_build.zig", "// phase9 build gate\n")
     _write(
-        root / "zigux/tests/phase4_build.zig",
+        root,
+        "zigux/tests/phase4_build.zig",
         "\n".join(
             [
                 "atomic64_diff.zig",
@@ -880,7 +909,8 @@ def run_self_test() -> int:
 
         artifact_doc_path = root / "Documentation/zigux/artifact-diff.md"
         _write(
-            artifact_doc_path,
+            root,
+            "Documentation/zigux/artifact-diff.md",
             artifact_doc_path.read_text(encoding="utf-8").replace(
                 "scripts/zigux/check-phase4-gate-evidence.py",
                 "scripts/zigux/missing-phase4-gate-check.py",
@@ -894,7 +924,8 @@ def run_self_test() -> int:
 
         _write_phase4_fixture_docs(root)
         _write(
-            artifact_doc_path,
+            root,
+            "Documentation/zigux/artifact-diff.md",
             artifact_doc_path.read_text(encoding="utf-8")
             + "- `zigux/tests/phase4_runtime_atomic64_diff_survey.zig`\n",
         )
@@ -905,7 +936,8 @@ def run_self_test() -> int:
         _write_phase4_fixture_docs(root)
         review_checklist_path = root / "Documentation/zigux/review-checklist.md"
         _write(
-            review_checklist_path,
+            root,
+            "Documentation/zigux/review-checklist.md",
             review_checklist_path.read_text(encoding="utf-8").replace(
                 "intentionally unapproved perf-threshold posture", "removed threshold note", 1
             ),
@@ -917,7 +949,8 @@ def run_self_test() -> int:
         _write_phase4_fixture_docs(root)
         script_readme_path = root / "scripts/zigux/README.md"
         _write(
-            script_readme_path,
+            root,
+            "scripts/zigux/README.md",
             script_readme_path.read_text(encoding="utf-8")
             + "make -C zigux phase4-perf-baseline-survey\n",
         )
@@ -929,7 +962,8 @@ def run_self_test() -> int:
         _write_phase4_fixture_docs(root)
         gate_evidence_path = root / "Documentation/zigux/phase4-gate-evidence.md"
         _write(
-            gate_evidence_path,
+            root,
+            "Documentation/zigux/phase4-gate-evidence.md",
             gate_evidence_path.read_text(encoding="utf-8").replace(
                 "- `PHASE4_GATE_EVIDENCE_SELF_TEST_CASE_COUNT=14`\n", "", 1
             ),
@@ -940,7 +974,8 @@ def run_self_test() -> int:
 
         _write_phase4_fixture_docs(root)
         _write(
-            gate_evidence_path,
+            root,
+            "Documentation/zigux/phase4-gate-evidence.md",
             gate_evidence_path.read_text(encoding="utf-8").replace(
                 "- `PHASE4_SHARED_VALIDATOR_EXPECTED_GATE_EVIDENCE_SELF_TEST_CASE_COUNT=14`\n",
                 "",
@@ -953,7 +988,8 @@ def run_self_test() -> int:
 
         _write_phase4_fixture_docs(root)
         _write(
-            gate_evidence_path,
+            root,
+            "Documentation/zigux/phase4-gate-evidence.md",
             gate_evidence_path.read_text(encoding="utf-8").replace(
                 "- hard perf thresholds for the shipped atomic64 and bitmap rollback gates remain intentionally unapproved.\n",
                 "",
@@ -967,7 +1003,8 @@ def run_self_test() -> int:
         _write_phase4_fixture_docs(root)
         phase4_matrix_path = root / "Documentation/zigux/phase4-validation-matrix.md"
         _write(
-            phase4_matrix_path,
+            root,
+            "Documentation/zigux/phase4-validation-matrix.md",
             phase4_matrix_path.read_text(encoding="utf-8").replace(
                 "### `zigux/tests/phase4_bitmap_live_helper_replay.zig`\n",
                 "",
@@ -981,7 +1018,8 @@ def run_self_test() -> int:
 
         _write_phase4_fixture_docs(root)
         _write(
-            phase4_matrix_path,
+            root,
+            "Documentation/zigux/phase4-validation-matrix.md",
             phase4_matrix_path.read_text(encoding="utf-8").replace(
                 "`zig build phase4-bitmap-live-helper-replay --build-file zigux/tests/phase4_build.zig`",
                 "`zig build phase4-bitmap-diff --build-file zigux/tests/phase4_build.zig`",
@@ -994,6 +1032,38 @@ def run_self_test() -> int:
         ]
 
         _write_phase4_fixture_docs(root)
+        tests_readme_path = root / "zigux/tests/README.md"
+        _write(
+            root,
+            "zigux/tests/README.md",
+            tests_readme_path.read_text(encoding="utf-8").replace(
+                "zigux/tests/phase4_bitmap_live_helper_replay.zig\n",
+                "",
+                1,
+            ),
+        )
+        assert validate_root(root) == [
+            "tests_readme:zigux/tests/phase4_bitmap_live_helper_replay.zig",
+            "tests_readme:exact_once:zigux/tests/phase4_bitmap_live_helper_replay.zig:0",
+        ]
+
+        _write_phase4_fixture_docs(root)
+        doc_readme_path = root / "Documentation/zigux/README.md"
+        _write(
+            root,
+            "Documentation/zigux/README.md",
+            doc_readme_path.read_text(encoding="utf-8").replace(
+                "zigux/tests/phase4_bitmap_live_helper_replay.zig\n",
+                "",
+                1,
+            ),
+        )
+        assert validate_root(root) == [
+            "doc_readme:zigux/tests/phase4_bitmap_live_helper_replay.zig",
+            "doc_readme:exact_once:zigux/tests/phase4_bitmap_live_helper_replay.zig:0",
+        ]
+
+        _write_phase4_fixture_docs(root)
         manifest = json.loads(
             (root / "zigux/tests/phase4_runtime_atomic64_diff_manifest.json").read_text(
                 encoding="utf-8"
@@ -1003,7 +1073,8 @@ def run_self_test() -> int:
         phase9_build_sha = _git_blob_sha1((root / "zigux/tests/phase9_build.zig").read_bytes())
         manifest["phase4_build_blob_sha"] = "1111111111111111111111111111111111111111"
         _write(
-            root / "zigux/tests/phase4_runtime_atomic64_diff_manifest.json",
+            root,
+            "zigux/tests/phase4_runtime_atomic64_diff_manifest.json",
             json.dumps(manifest, indent=2) + "\n",
         )
         assert run_phase4_runtime_atomic64_packet_check(root) == [
@@ -1015,7 +1086,8 @@ def run_self_test() -> int:
         _write_phase4_runtime_atomic64_packet_fixture(root)
         survey_path = root / "zigux/tests/phase4_runtime_atomic64_diff_survey.zig"
         _write(
-            survey_path,
+            root,
+            "zigux/tests/phase4_runtime_atomic64_diff_survey.zig",
             survey_path.read_text(encoding="utf-8").replace(
                 phase4_build_sha, "1111111111111111111111111111111111111111", 1
             ),
@@ -1033,7 +1105,8 @@ def run_self_test() -> int:
         )
         manifest["phase9_build_blob_sha"] = "0000000000000000000000000000000000000000"
         _write(
-            root / "zigux/tests/phase4_runtime_atomic64_diff_manifest.json",
+            root,
+            "zigux/tests/phase4_runtime_atomic64_diff_manifest.json",
             json.dumps(manifest, indent=2) + "\n",
         )
         assert run_phase4_runtime_atomic64_packet_check(root) == [
@@ -1044,7 +1117,8 @@ def run_self_test() -> int:
 
         _write_phase4_runtime_atomic64_packet_fixture(root)
         _write(
-            survey_path,
+            root,
+            "zigux/tests/phase4_runtime_atomic64_diff_survey.zig",
             survey_path.read_text(encoding="utf-8").replace(
                 phase9_build_sha, "2222222222222222222222222222222222222222", 1
             ),
