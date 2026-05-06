@@ -157,7 +157,7 @@ test "phase 9 runtime loader allocator/init-flow replay covers all shipped runti
         try expectExactLoadPlanParity(plan, pending_plan);
         try std.testing.expect(runtime_loader.keepsSelftestHookEvidenceConsistent(plan));
         try std.testing.expect(runtime_loader.keepsAllocatorInitFlowConsistent(
-            plan,
+            pending_plan,
             plan.allocator_handoff,
             plan.init_flow,
         ));
