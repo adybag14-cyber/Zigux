@@ -158,6 +158,9 @@ jobs:
       - name: Check bounded fixdep artifact parity and determinism
         run: python3 scripts/zigux/check-fixdep-diff.py
 
+      - name: Self-test bounded genksyms bridge parity checker
+        run: python3 scripts/zigux/check-genksyms-bridge.py --self-test
+
       - name: Check bounded genksyms bridge parity
         run: python3 scripts/zigux/check-genksyms-bridge.py
 
