@@ -104,9 +104,8 @@ pub fn extractArgv0Path(allocator: std.mem.Allocator, argv0: ?[]const u8) !?Extr
     }
 
     if (std.mem.lastIndexOfScalar(u8, text, '/')) |slash| {
-        const argv0_path = if (slash == 0) "/" else text[0..slash];
         return .{
-            .argv0_path = try allocator.dupe(u8, argv0_path),
+            .argv0_path = try allocator.dupe(u8, text[0..slash]),
             .command_name = text[slash + 1 ..],
         };
     }
@@ -421,7 +420,7 @@ test "extractArgv0Path splits command names from directory prefixes" {
 
     var root = (try extractArgv0Path(std.testing.allocator, "/perf")) orelse unreachable;
     defer root.deinit(std.testing.allocator);
-    try std.testing.expectEqualStrings("/", root.argv0_path.?);
+    try std.testing.expectEqualStrings("", root.argv0_path.?);
     try std.testing.expectEqualStrings("perf", root.command_name);
 
     var bare = (try extractArgv0Path(std.testing.allocator, "perf")) orelse unreachable;
@@ -686,6 +685,37 @@ test "setupPath updates PATH using stored exec path, argv0 path, and fallback de
         fallback,
     );
     try std.testing.expectEqualStrings(fallback, fallback_env.get("PATH").?);
+}
+
+test "setupPath preserves the rooted argv0 edge without injecting slash into PATH" {
+    const config = Config{
+        .exec_name = "perf",
+        .prefix = "/usr/libexec/perf-core",
+        .exec_path = "libexec/perf-core",
+        .exec_path_env = "PERF_EXEC_PATH",
+    };
+
+    var extracted = (try extractArgv0Path(std.testing.allocator, "/perf")) orelse unreachable;
+    defer extracted.deinit(std.testing.allocator);
+
+    var env = EnvMap.init(std.testing.allocator);
+    defer env.deinit();
+
+    var state = ExecCmdState{};
+    defer state.deinit(std.testing.allocator);
+
+    try execCmdInit(&env, config);
+    try setArgvExecPath(std.testing.allocator, &env, &state, config, "tools/bin");
+    try setArgv0Path(std.testing.allocator, &state, extracted.argv0_path);
+    try env.set("PATH", "/usr/bin:/bin");
+
+    const updated = try setupPath(std.testing.allocator, &env, state, config, "/repo");
+    defer std.testing.allocator.free(updated);
+
+    try std.testing.expectEqualStrings(
+        "/repo/tools/bin:/usr/bin:/bin",
+        updated,
+    );
 }
 
 test "setupPath preserves the C helper's logical PWD alias when PATH entries are relative" {
