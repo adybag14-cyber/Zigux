@@ -99,6 +99,10 @@ fn isTristateValue(raw_value: []const u8) bool {
         std.ascii.eqlIgnoreCase(raw_value, "n");
 }
 
+fn isConfigSymbol(name: []const u8) bool {
+    return std.mem.startsWith(u8, name, config_prefix) and name.len > config_prefix.len;
+}
+
 pub fn parseConfig(allocator: std.mem.Allocator, input: []const u8) !Summary {
     var entries = std.ArrayList(Entry).empty;
     errdefer entries.deinit(allocator);
@@ -113,7 +117,7 @@ pub fn parseConfig(allocator: std.mem.Allocator, input: []const u8) !Summary {
 
         if (std.mem.startsWith(u8, line, "# ") and std.mem.endsWith(u8, line, " is not set")) {
             const name = line[2 .. line.len - " is not set".len];
-            if (!std.mem.startsWith(u8, name, config_prefix)) continue;
+            if (!isConfigSymbol(name)) continue;
             try entries.append(allocator, .{
                 .name = try allocator.dupe(u8, name),
                 .kind = .unset,
@@ -125,7 +129,7 @@ pub fn parseConfig(allocator: std.mem.Allocator, input: []const u8) !Summary {
 
         const eq_index = std.mem.indexOfScalar(u8, line, '=') orelse continue;
         const name = line[0..eq_index];
-        if (!std.mem.startsWith(u8, name, config_prefix)) continue;
+        if (!isConfigSymbol(name)) continue;
         const raw_value = line[eq_index + 1 ..];
 
         const kind: EntryKind = if (isTristateValue(raw_value))
@@ -426,4 +430,22 @@ test "confdata bridge ignores non-CONFIG lines like upstream confdata" {
     try std.testing.expectEqual(@as(usize, 1), summary.entries.len);
     try std.testing.expectEqualStrings("CONFIG_ALPHA", summary.entries[0].name);
     try std.testing.expectEqual(EntryKind.tristate, summary.entries[0].kind);
+}
+
+test "confdata bridge ignores empty CONFIG symbol names" {
+    const allocator = std.testing.allocator;
+    var summary = try parseConfig(allocator,
+        \\CONFIG_=y
+        \\# CONFIG_ is not set
+        \\CONFIG_VALID=m
+        \\
+    );
+    defer deinitSummary(allocator, &summary);
+
+    try std.testing.expectEqual(@as(usize, 1), summary.set_count);
+    try std.testing.expectEqual(@as(usize, 0), summary.unset_count);
+    try std.testing.expectEqual(@as(usize, 1), summary.entries.len);
+    try std.testing.expectEqualStrings("CONFIG_VALID", summary.entries[0].name);
+    try std.testing.expectEqual(EntryKind.tristate, summary.entries[0].kind);
+    try std.testing.expectEqualStrings("m", summary.entries[0].value);
 }
