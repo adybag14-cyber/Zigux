@@ -14,6 +14,13 @@ const SurveySummary = struct {
     companion_c_files: []const CompanionFile,
 };
 
+const SegmentationNote = struct {
+    destination: []const u8,
+    landed_scope: []const []const u8,
+    queued_scope: []const []const u8,
+    why_now: []const u8,
+};
+
 const Segment = struct {
     id: []const u8,
     slug: []const u8,
@@ -30,12 +37,24 @@ const Manifest = struct {
     surveyed_commit: []const u8,
     anchor: []const u8,
     survey_summary: SurveySummary,
+    segmentation_notes: []const SegmentationNote,
     segments: []const Segment,
 };
 
 const ExpectedCompanionFile = struct {
     path: []const u8,
     lines: usize,
+};
+
+const ExpectedSegmentationNote = struct {
+    destination: []const u8,
+    landed_scope_count: usize,
+    queued_scope_count: usize,
+    first_landed_scope: []const u8,
+    last_landed_scope: []const u8,
+    first_queued_scope: []const u8,
+    last_queued_scope: []const u8,
+    why_now_fragment: []const u8,
 };
 
 const ExpectedSegment = struct {
@@ -56,6 +75,19 @@ const expected_companion_c_files = [_]ExpectedCompanionFile{
     .{ .path = "tools/lib/bpf/netlink.c", .lines = 938 },
     .{ .path = "tools/lib/bpf/nlattr.c", .lines = 194 },
     .{ .path = "tools/lib/bpf/ringbuf.c", .lines = 684 },
+};
+
+const expected_segmentation_notes = [_]ExpectedSegmentationNote{
+    .{
+        .destination = "tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig",
+        .landed_scope_count = 8,
+        .queued_scope_count = 2,
+        .first_landed_scope = "buildProcFdinfoPath() bounded /proc/<pid>/fdinfo/<fd> pathname shaping",
+        .last_landed_scope = "isMapReuseCompatible() helper-only reused-map compatibility comparison",
+        .first_queued_scope = "direct procfs reads and descriptor ownership flow",
+        .last_queued_scope = "token creation, bpffs reopen flow, and other fd-handle bridge side effects",
+        .why_now_fragment = "future surveys can keep promoting bounded bridge behavior",
+    },
 };
 
 const expected_segments = [_]ExpectedSegment{
@@ -194,6 +226,21 @@ fn expectCompanionCatalog(companion_c_files: []const CompanionFile) !void {
     }
 }
 
+fn expectSegmentationNotes(segmentation_notes: []const SegmentationNote) !void {
+    try std.testing.expectEqual(expected_segmentation_notes.len, segmentation_notes.len);
+
+    for (expected_segmentation_notes, segmentation_notes) |expected_note, actual_note| {
+        try std.testing.expectEqualStrings(expected_note.destination, actual_note.destination);
+        try std.testing.expectEqual(expected_note.landed_scope_count, actual_note.landed_scope.len);
+        try std.testing.expectEqual(expected_note.queued_scope_count, actual_note.queued_scope.len);
+        try std.testing.expectEqualStrings(expected_note.first_landed_scope, actual_note.landed_scope[0]);
+        try std.testing.expectEqualStrings(expected_note.last_landed_scope, actual_note.landed_scope[actual_note.landed_scope.len - 1]);
+        try std.testing.expectEqualStrings(expected_note.first_queued_scope, actual_note.queued_scope[0]);
+        try std.testing.expectEqualStrings(expected_note.last_queued_scope, actual_note.queued_scope[actual_note.queued_scope.len - 1]);
+        try expectContains(actual_note.why_now, expected_note.why_now_fragment);
+    }
+}
+
 fn expectSegmentCatalog(segments: []const Segment) !void {
     try std.testing.expectEqual(expected_segments.len, segments.len);
 
@@ -232,6 +279,7 @@ test "phase 8 libbpf segment manifest records the current helper-first catalog" 
     try std.testing.expect(!manifest.survey_summary.preexisting_zigux_segments_present);
     try std.testing.expect(!manifest.survey_summary.preexisting_phase8_libbpf_note_present);
     try expectCompanionCatalog(manifest.survey_summary.companion_c_files);
+    try expectSegmentationNotes(manifest.segmentation_notes);
     try expectSegmentCatalog(manifest.segments);
     try expectContains(manifest_json, "next explicit promotable helper slice");
     try expectContains(manifest_json, "shared bridge packet now covers the reused-map name chooser");
