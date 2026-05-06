@@ -14,18 +14,24 @@ This note records the current shared contributor replay surface for the shipped 
 - `zigux/tests/README.md`
 - `Documentation/zigux/review-checklist.md`
 - `Documentation/zigux/phase11-shared-replay-contract.md`
+- `Documentation/zigux/phase11-gpio-wdt-validation-matrix.md`
+- `Documentation/zigux/phase11-gpio-wdt-survey.md`
 - `Documentation/zigux/phase11-bcm2835-wdt-validation-matrix.md`
 - `Documentation/zigux/phase11-bcm2835-wdt-survey.md`
-- `Documentation/zigux/phase11-gpio-wdt-validation-matrix.md`
 - `Documentation/zigux/phase11-dw-wdt-validation-matrix.md`
+- `Documentation/zigux/phase11-dw-wdt-survey.md`
 - `Documentation/zigux/phase11-hvc-console-validation-matrix.md`
 - `Documentation/zigux/phase11-hvc-console-survey.md`
 - `Documentation/zigux/phase11-uapi-header-parity-survey.md`
 - `scripts/zigux/check-phase11-shared-replay-contract.py`
 - `scripts/zigux/check-phase11-header-boundary-packet.py`
 - `zigux/tests/phase11_build.zig`
+- `zigux/tests/phase11_gpio_wdt_manifest.json`
+- `zigux/tests/phase11_gpio_wdt_survey.zig`
 - `zigux/tests/phase11_bcm2835_wdt_manifest.json`
 - `zigux/tests/phase11_bcm2835_wdt_survey.zig`
+- `zigux/tests/phase11_dw_wdt_manifest.json`
+- `zigux/tests/phase11_dw_wdt_survey.zig`
 - `zigux/tests/phase11_hvc_cleanup.zig`
 - `zigux/tests/phase11_hvc_console_survey.zig`
 - `zigux/tests/phase11_uapi_header_parity_manifest.json`
@@ -43,19 +49,20 @@ Inside that shared `phase11_build.zig` route, the watchdog, shared header-parity
 - `zigux/tests/phase11_gpio_wdt.zig`
 - `zigux/tests/phase11_gpio_wdt_survey.zig`
 - `zigux/tests/phase11_bcm2835_wdt.zig`
+- `drivers/watchdog/bcm2835_wdt_verify.zig`
 - `zigux/tests/phase11_bcm2835_wdt_survey.zig`
 - `zigux/tests/phase11_dw_wdt.zig`
+- `drivers/watchdog/dw_wdt_verify.zig`
 - `zigux/tests/phase11_dw_wdt_survey.zig`
 - `zigux/tests/phase11_uapi_header_parity_survey.zig`
 - `zigux/tests/phase11_hvc_console.zig`
 - `zigux/tests/phase11_hvc_cleanup.zig`
 
-The active bcm2835 hardware-validation packet also stays explicit beside that shared route:
+The active watchdog validation packets also stay explicit beside that shared route:
 
-- `Documentation/zigux/phase11-bcm2835-wdt-validation-matrix.md`
-- `Documentation/zigux/phase11-bcm2835-wdt-survey.md`
-- `zigux/tests/phase11_bcm2835_wdt_manifest.json`
-- `zigux/tests/phase11_bcm2835_wdt_survey.zig`
+- gpio watchdog: `Documentation/zigux/phase11-gpio-wdt-validation-matrix.md`, `Documentation/zigux/phase11-gpio-wdt-survey.md`, `zigux/tests/phase11_gpio_wdt_manifest.json`, and `zigux/tests/phase11_gpio_wdt_survey.zig`
+- bcm2835 watchdog: `Documentation/zigux/phase11-bcm2835-wdt-validation-matrix.md`, `Documentation/zigux/phase11-bcm2835-wdt-survey.md`, `zigux/tests/phase11_bcm2835_wdt_manifest.json`, and `zigux/tests/phase11_bcm2835_wdt_survey.zig`
+- DesignWare watchdog: `Documentation/zigux/phase11-dw-wdt-validation-matrix.md`, `Documentation/zigux/phase11-dw-wdt-survey.md`, `zigux/tests/phase11_dw_wdt_manifest.json`, and `zigux/tests/phase11_dw_wdt_survey.zig`
 
 The dedicated archival HVC evidence still stays explicit beside that shared route:
 
@@ -84,4 +91,4 @@ The focused shared header-boundary evidence also stays explicit beside that repl
 
 ## Follow-Through Rule
 
-Future Phase 11 follow-through should stay inside the next smallest hardware-validation matrix, focused replay, teardown-parity note, failure-mode note, registration-facing handoff note, shared reviewability sync, or the already-shipped header-boundary checker packet now that the shipped watchdog, header-boundary, and HVC packet is explicit, and it should avoid broader validator assets until those files actually land.
+Future Phase 11 follow-through should stay inside the next smallest hardware-validation matrix, focused replay, teardown-parity note, failure-mode note, registration-facing handoff note, or shared review-surface sync across the gpio, bcm2835, dw, header-boundary, and HVC packet rather than widening into new driver behavior or broader validator assets before those files actually land.
