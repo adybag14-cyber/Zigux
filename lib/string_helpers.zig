@@ -52,6 +52,7 @@ pub const KasprintfStrarrayResult = struct {
 };
 
 pub const ParseIntArrayError = std.mem.Allocator.Error || error{NoEntry};
+pub const ParseIntArrayUserError = ParseIntArrayError || error{Fault};
 
 pub fn sysfsStreq(s1: []const u8, s2: []const u8) bool {
     return std.mem.eql(u8, sysfsComparablePrefix(s1), sysfsComparablePrefix(s2));
@@ -205,6 +206,23 @@ pub fn parseIntArray(allocator: std.mem.Allocator, buf: []const u8) ParseIntArra
 
     _ = cmdline.getOptions(current, ints.len, ints);
     return ints;
+}
+
+pub fn parseIntArrayUser(
+    allocator: std.mem.Allocator,
+    from: []const u8,
+    count: usize,
+) ParseIntArrayUserError![]i32 {
+    if (count > from.len) {
+        return error.Fault;
+    }
+
+    const buf = try allocator.alloc(u8, count + 1);
+    defer allocator.free(buf);
+
+    @memcpy(buf[0..count], from[0..count]);
+    buf[count] = 0;
+    return parseIntArray(allocator, buf);
 }
 
 pub fn freeIntArray(allocator: std.mem.Allocator, ints: []i32) void {
@@ -706,6 +724,22 @@ test "parseIntArray respects the first NUL and count-bounded parsing" {
 test "parseIntArray fails closed when no integers are present" {
     try std.testing.expectError(error.NoEntry, parseIntArray(std.testing.allocator, ""));
     try std.testing.expectError(error.NoEntry, parseIntArray(std.testing.allocator, "noints"));
+}
+
+test "parseIntArrayUser copies a bounded user buffer before parsing" {
+    const ints = try parseIntArrayUser(std.testing.allocator, "1-3,9 trailing", 5);
+    defer freeIntArray(std.testing.allocator, ints);
+
+    try std.testing.expectEqualSlices(i32, &[_]i32{ 4, 1, 2, 3, 9 }, ints);
+
+    const nul_bounded = try parseIntArrayUser(std.testing.allocator, "7,8\x00ignored,9", 11);
+    defer freeIntArray(std.testing.allocator, nul_bounded);
+    try std.testing.expectEqualSlices(i32, &[_]i32{ 2, 7, 8 }, nul_bounded);
+}
+
+test "parseIntArrayUser fails closed on short buffers and empty copied input" {
+    try std.testing.expectError(error.Fault, parseIntArrayUser(std.testing.allocator, "12", 3));
+    try std.testing.expectError(error.NoEntry, parseIntArrayUser(std.testing.allocator, "none", 4));
 }
 
 test "kasprintfStrarray returns sequential owned strings with a trailing null pointer" {
