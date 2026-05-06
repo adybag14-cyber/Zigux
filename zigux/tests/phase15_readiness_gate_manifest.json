@@ -1,0 +1,41 @@
+{
+  "lane_key": "P15-L01",
+  "phase": "Phase 15",
+  "surveyed_commit": "connector-read-2026-05-06",
+  "roadmap_phase_title": "Full-Parity Blockers and Long-Term Governance",
+  "roadmap_requirements": [
+    "freeze map",
+    "Architecture Council review process",
+    "parity scorecard",
+    "policy for code that remains in C indefinitely"
+  ],
+  "bootstrap_ledger_anchor": "docs(zigux): add documentation root, review checklist, and freeze map",
+  "ledger_scope": [
+    "Documentation/zigux/README.md",
+    "Documentation/zigux/review-checklist.md",
+    "Documentation/zigux/freeze-map.md"
+  ],
+  "repo_evidence": {
+    "freeze_map_present": true,
+    "review_checklist_present": true,
+    "review_process_present": true,
+    "parity_scorecard_present": true,
+    "indefinite_c_policy_present": true,
+    "handoff_next_steps_present": true,
+    "phase15_build_present": true,
+    "phase15_make_target_present": true,
+    "shared_ci_phase15_present": true,
+    "phase15_replay_green_on_current_master": true,
+    "deep_core_status_change_ready": false
+  },
+  "remaining_gaps": [
+    {
+      "id": "phase15-deep-core-status-change-blocker",
+      "status": "blocked_on_stay_in_c_evidence",
+      "kind": "freeze_map",
+      "zigux_destination": "Documentation/zigux/phase15-parity-scorecard.md",
+      "why_now": "The freeze-in-C posture still lacks enough evidence for any deep-core status change."
+    }
+  ],
+  "next_step": "Keep the Phase 15 governance lane in maintenance mode unless the shared Phase 15 replay drifts again, the deep-core blocker posture changes, or the validator-first route (`make -C zigux phase15`) needs another dedicated readiness guard refresh."
+}
