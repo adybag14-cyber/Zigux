@@ -105,6 +105,7 @@ REQUIRED_FIND_BIT_TEST_ANCHORS = [
     'test "tail mask ignores set bits beyond nbits"',
     'test "tail mask ignores zero bits beyond nbits"',
     'test "tail mask ignores shared bits beyond nbits"',
+    'test "head-word boundary scans keep the last in-range bit reachable from an inclusive start"',
 ]
 
 REQUIRED_BITMAP_TEST_ANCHORS = [
@@ -484,12 +485,23 @@ def run_self_test() -> None:
 
         make_fixture_root(tmp_root)
         find_bit_path.write_text(
-            "\n".join(REQUIRED_FIND_BIT_TEST_ANCHORS[:-1]) + "\n",
+            "\n".join(REQUIRED_FIND_BIT_TEST_ANCHORS[:6] + REQUIRED_FIND_BIT_TEST_ANCHORS[7:]) + "\n",
             encoding="utf-8",
         )
         missing_markers = collect_missing_markers(tmp_root)
         assert (
             'find_bit_test_anchor:test "tail mask ignores shared bits beyond nbits":expected=1:actual=0'
+            in missing_markers
+        )
+
+        make_fixture_root(tmp_root)
+        find_bit_path.write_text(
+            "\n".join(REQUIRED_FIND_BIT_TEST_ANCHORS[:-1]) + "\n",
+            encoding="utf-8",
+        )
+        missing_markers = collect_missing_markers(tmp_root)
+        assert (
+            'find_bit_test_anchor:test "head-word boundary scans keep the last in-range bit reachable from an inclusive start":expected=1:actual=0'
             in missing_markers
         )
 
@@ -604,7 +616,7 @@ def run_self_test() -> None:
         )
 
         print("PHASE1_VALIDATION_SELF_TEST=pass")
-        print("PHASE1_VALIDATION_SELF_TEST_CASE_COUNT=28")
+        print("PHASE1_VALIDATION_SELF_TEST_CASE_COUNT=29")
 
 
 def main() -> int:
