@@ -278,7 +278,7 @@ jobs:
         run: make -C zigux phase9
 
       - name: Run Phase 10 virtio helper tests
-        run: zig build test --build-file zigux/tests/phase10_build.zig
+        run: zig build test --build-file zigux/tests/phase10_build.zig --summary all
 
       - name: Self-test Phase 11 shared replay contract checker
         run: python3 scripts/zigux/check-phase11-shared-replay-contract.py --self-test
