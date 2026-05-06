@@ -65,7 +65,7 @@ REQUIRED_SNIPPETS = {
     "Documentation/zigux/phase6-checksum-slice.md": [
         "- `PHASE6_STATUS=parked`",
         "- `PHASE6_SLICE=checksum-leaf-helper`",
-        "- lane state: helper and fixture slice landed; parked unless a new `checksum.c` parity issue appears",
+        "- lane state: helper, fixture, perf, and direct C parity slice landed; parked unless a new `checksum.c` parity issue appears",
         "- `replaceByDiff`",
         "- `compute`",
         "- fixture-backed checksum vectors for empty, even, odd, and carry-heavy inputs",
