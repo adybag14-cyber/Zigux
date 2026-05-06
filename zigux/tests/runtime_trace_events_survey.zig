@@ -328,6 +328,8 @@ test "phase 9 runtime trace-events survey keeps the manifest-backed surveyed com
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "zig build phase9-runtime-loader-shared-tests --build-file zigux/tests/phase9_build.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "the trace-events starter still stops before a real module-loading substrate or live tracepoint registration lifecycle") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "the current bounded starter still advertises `requires_runtime_substrate=true` and `provides_selftest_hook=true`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "runtime task ownership or event-loop substrate parity remains blocked behind that same shared runtime-loader boundary") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "polling-backed wake or dispatch behavior also remains blocked until the shared runtime substrate exists") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "the manifest-backed ownership packet now records a four-entry `delivery_evidence_catalog` and a six-surface `ownership_map`") != null);
 
     try std.testing.expectEqual(@as(usize, 1), std.mem.count(u8, module_slice, surveyed_commit_marker));
@@ -339,6 +341,8 @@ test "phase 9 runtime trace-events survey keeps the manifest-backed surveyed com
     try std.testing.expect(std.mem.indexOf(u8, module_slice, "zig build phase9-runtime-loader-shared-tests --build-file zigux/tests/phase9_build.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, module_slice, "shared runtime loader substrate can consume the bounded loader-handoff plan") != null);
     try std.testing.expect(std.mem.indexOf(u8, module_slice, "keeping the roadmap-required selftest hook explicit through `provides_selftest_hook=true`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, module_slice, "runtime task ownership or event-loop substrate parity remains blocked behind that shared runtime-loader surface") != null);
+    try std.testing.expect(std.mem.indexOf(u8, module_slice, "polling-backed wake or dispatch behavior remains blocked behind the same shared runtime-loader surface") != null);
 
     try std.testing.expect(std.mem.indexOf(u8, freeze_map, "`kernel/workqueue.c`") != null);
     try std.testing.expect(std.mem.indexOf(u8, freeze_map, "`kernel/trace/ring_buffer.c`") != null);
