@@ -66,6 +66,14 @@ test "phase 7 rbtree survey manifest records the landed runtime leaf surface and
     );
     defer std.testing.allocator.free(validate_phase7);
 
+    const helper_tests = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "zigux/tests/phase7_rbtree.zig",
+        std.testing.allocator,
+        .limited(64 * 1024),
+    );
+    defer std.testing.allocator.free(helper_tests);
+
     const parsed = try std.json.parseFromSlice(Manifest, std.testing.allocator, manifest_json, .{});
     defer parsed.deinit();
 
@@ -123,12 +131,17 @@ test "phase 7 rbtree survey manifest records the landed runtime leaf surface and
     }
 
     try expectContains(slice_note, "PHASE7_LANE_KEY=P7-Y05");
+    try expectContains(slice_note, "erase-and-detach ownership reset via `eraseInit()`");
+    try expectContains(slice_note, "detached-node clearing semantics");
     try expectContains(validate_phase7, "\"scripts/zigux/check-phase7-rbtree-parity.py\",");
     try expectContains(validate_phase7, "\"zigux/tests/phase7_rbtree.zig\",");
     try expectContains(validate_phase7, "\"zigux/tests/phase7_rbtree_survey.zig\",");
     try expectContains(validate_phase7, "\"zigux/tests/phase7_rbtree_manifest.json\",");
     try expectContains(validate_phase7, "python3 scripts/zigux/check-phase7-rbtree-parity.py --self-test");
     try expectContains(validate_phase7, "python3 scripts/zigux/check-phase7-rbtree-parity.py");
+    try expectContains(helper_tests, "phase 7 rbtree eraseInit detaches erased nodes and keeps traversal stable");
+    try expectContains(helper_tests, "phase 7 rbtree detached nodes stay non-empty until callers clear them");
+    try expectContains(helper_tests, "phase 7 rbtree clearNode marks detached nodes as empty");
 
     try std.testing.expectEqual(manifest.gaps.len, starter_landed_count);
     try std.testing.expect(saw_helper);
