@@ -134,6 +134,8 @@ pub const RecoveryReplayRequest = struct {
     cached_prp_metadata_generation: u32,
     had_prp_metadata_plan: bool,
     had_admin_queue_plan: bool,
+    cached_descriptor_dma_bytes: u32,
+    cached_requires_descriptor_rebuild: bool,
 };
 
 pub const RecoveryReplaySummary = struct {
@@ -142,6 +144,8 @@ pub const RecoveryReplaySummary = struct {
     reset_generation: u32,
     queue_planning_blocked: bool,
     cached_prp_metadata_stale: bool,
+    descriptor_rebuild_required: bool,
+    descriptor_rebuild_dma_bytes: u32,
     admin_queue_must_be_replanned: bool,
     io_queues_must_be_rebuilt: bool,
     io_queues_dropped_by_reset: usize,
@@ -390,14 +394,23 @@ pub const NvmePciQueueLab = struct {
             self.planned_io_queues
         else
             self.last_reset_io_queue_count;
+        const cached_prp_metadata_stale = request.had_prp_metadata_plan and
+            request.cached_prp_metadata_generation != self.reset_generation;
+        const descriptor_rebuild_required = cached_prp_metadata_stale and
+            request.cached_requires_descriptor_rebuild;
+        const descriptor_rebuild_dma_bytes = if (descriptor_rebuild_required)
+            request.cached_descriptor_dma_bytes
+        else
+            0;
 
         return .{
             .anchor = descriptor().anchor,
             .state = self.recovery_state,
             .reset_generation = self.reset_generation,
             .queue_planning_blocked = self.recovery_state != .running,
-            .cached_prp_metadata_stale = request.had_prp_metadata_plan and
-                request.cached_prp_metadata_generation != self.reset_generation,
+            .cached_prp_metadata_stale = cached_prp_metadata_stale,
+            .descriptor_rebuild_required = descriptor_rebuild_required,
+            .descriptor_rebuild_dma_bytes = descriptor_rebuild_dma_bytes,
             .admin_queue_must_be_replanned = request.had_admin_queue_plan and self.reset_generation != 0,
             .io_queues_must_be_rebuilt = io_queues_dropped_by_reset != 0 and self.reset_generation != 0,
             .io_queues_dropped_by_reset = io_queues_dropped_by_reset,
