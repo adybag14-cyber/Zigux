@@ -58,7 +58,7 @@ test "phase14 workqueue bridge manifest records the boundary-map foothold and re
     defer parsed.deinit();
 
     const manifest = parsed.value;
-    try std.testing.expectEqualStrings("P14-L04", manifest.lane_key);
+    try std.testing.expectEqualStrings("P14-L01", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 14", manifest.phase);
     try std.testing.expectEqualStrings("kernel/workqueue.c", manifest.anchor);
     try std.testing.expectEqualStrings("9e278f632d6d5097cb8cfc2dc61744ae105baa8c", manifest.surveyed_commit);
@@ -218,7 +218,7 @@ test "phase14 workqueue bridge survey note pins the lane key and surveyed commit
     defer std.testing.allocator.free(survey_note);
 
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE14_STATUS=active") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE14_LANE_KEY=P14-L04") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE14_LANE_KEY=P14-L01") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE14_SURVEYED_COMMIT=9e278f632d6d5097cb8cfc2dc61744ae105baa8c") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE14_SLICE=workqueue-delayed-timer-expiry-audit") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase14-workqueue-delayed-submission-alias-followup") != null);
