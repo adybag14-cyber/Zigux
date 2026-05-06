@@ -18,6 +18,18 @@ const Manifest = struct {
     non_goals: []const []const u8,
 };
 
+fn isLowerHexCommitSha(value: []const u8) bool {
+    if (value.len != 40) return false;
+
+    for (value) |byte| {
+        if (!std.ascii.isDigit(byte) and (byte < 'a' or byte > 'f')) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
 test "phase 5 kobject manifest records the exact bounded checks" {
     var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
     defer io_instance.deinit();
@@ -36,6 +48,7 @@ test "phase 5 kobject manifest records the exact bounded checks" {
     const manifest = parsed.value;
     try std.testing.expectEqualStrings("P5-Y03", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 5", manifest.phase);
+    try std.testing.expect(isLowerHexCommitSha(manifest.surveyed_commit));
     try std.testing.expectEqualStrings("samples/kobject/kobject-example.c", manifest.anchor);
     try std.testing.expectEqualStrings("samples/zigux/kobject_example.zig", manifest.sample_path);
     try std.testing.expect(std.mem.indexOf(u8, manifest.validation_entrypoint, "phase5_build.zig") != null);
@@ -101,7 +114,8 @@ test "phase 5 kobject manifest records the exact bounded checks" {
         }
         if (std.mem.eql(u8, check.id, "pre-registration-boundary")) {
             saw_pre_registration = true;
-            try std.testing.expect(std.mem.indexOf(u8, check.expected, "activeAttrCount stays zero") != null);
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "activeAttrCount") != null);
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "stays zero") != null);
             try std.testing.expect(std.mem.indexOf(u8, check.expected, "InvalidLifecycleTransition") != null);
         }
         if (std.mem.eql(u8, check.id, "ownership-summary")) {
@@ -145,7 +159,7 @@ test "phase 5 kobject manifest records the exact bounded checks" {
     try std.testing.expect(std.mem.eql(u8, manifest.non_goals[1], "kernel_kobj integration"));
 }
 
-test "phase 5 kobject survey note stays repo-local, lane-scoped, and keeps the approved idiom explicit" {
+test "phase 5 kobject survey packet stays repo-local and keeps the shared review surfaces explicit" {
     var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
     defer io_instance.deinit();
 
@@ -178,6 +192,7 @@ test "phase 5 kobject survey note stays repo-local, lane-scoped, and keeps the a
     );
 
     const required_markers = [_][]const u8{
+        "PHASE5_STATUS=parked",
         "PHASE5_LANE_KEY=P5-Y03",
         "## Approved idiom for the landed kobject-style sample",
         "approved Phase 5 in-memory ownership-and-lifetime idiom",
@@ -188,6 +203,8 @@ test "phase 5 kobject survey note stays repo-local, lane-scoped, and keeps the a
         "manifest-backed replay",
         "keep sysfs creation, `kernel_kobj` integration, uevents, and module-registration claims out of scope",
         "zig build test --build-file zigux/tests/phase5_build.zig --summary all",
+        "`samples/zigux/README.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md`",
+        "shared docs-root, sample-root, scripts-root, and tests-root contributor packet should stay explicit here too",
     };
 
     for (required_markers) |needle| {
@@ -196,6 +213,26 @@ test "phase 5 kobject survey note stays repo-local, lane-scoped, and keeps the a
 
     try std.testing.expect(std.mem.indexOf(u8, survey_note, surveyed_commit_marker) != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "/workspace/agent_files") == null);
+
+    const docs_root = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "Documentation/zigux/README.md",
+        std.testing.allocator,
+        .limited(128 * 1024),
+    );
+    defer std.testing.allocator.free(docs_root);
+
+    const docs_root_markers = [_][]const u8{
+        "Documentation/zigux/phase5-kobject-sample-survey.md",
+        "samples/zigux/kobject_example.zig",
+        "registered exactly three attributes",
+        "remaining non-goals around sysfs creation, `kernel_kobj`, uevents, and module registration",
+        "sample-backed contributor guide",
+    };
+
+    for (docs_root_markers) |needle| {
+        try std.testing.expect(std.mem.indexOf(u8, docs_root, needle) != null);
+    }
 
     const review_checklist = try std.Io.Dir.cwd().readFileAlloc(
         io_instance.io(),
@@ -214,5 +251,87 @@ test "phase 5 kobject survey note stays repo-local, lane-scoped, and keeps the a
 
     for (checklist_markers) |needle| {
         try std.testing.expect(std.mem.indexOf(u8, review_checklist, needle) != null);
+    }
+
+    const samples_root = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "samples/zigux/README.md",
+        std.testing.allocator,
+        .limited(128 * 1024),
+    );
+    defer std.testing.allocator.free(samples_root);
+
+    const samples_root_markers = [_][]const u8{
+        "samples/zigux/kobject_example.zig",
+        "approved in-memory ownership-and-lifetime idiom",
+        "samples/kobject/kobject-example.c",
+        "phase5-kobject-sample-survey.md",
+        "phase5_kobject_example_survey.zig",
+    };
+
+    for (samples_root_markers) |needle| {
+        try std.testing.expect(std.mem.indexOf(u8, samples_root, needle) != null);
+    }
+
+    const scripts_root = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "scripts/zigux/README.md",
+        std.testing.allocator,
+        .limited(128 * 1024),
+    );
+    defer std.testing.allocator.free(scripts_root);
+
+    const scripts_root_markers = [_][]const u8{
+        "Phase 5 flow",
+        "Documentation/zigux/phase5-kobject-sample-survey.md",
+        "zigux/tests/phase5_kobject_example.zig",
+        "zigux/tests/phase5_kobject_example_manifest.json",
+        "zigux/tests/phase5_kobject_example_survey.zig",
+        "zigux/tests/phase5_build.zig",
+    };
+
+    for (scripts_root_markers) |needle| {
+        try std.testing.expect(std.mem.indexOf(u8, scripts_root, needle) != null);
+    }
+
+    const tests_root = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "zigux/tests/README.md",
+        std.testing.allocator,
+        .limited(128 * 1024),
+    );
+    defer std.testing.allocator.free(tests_root);
+
+    const tests_root_markers = [_][]const u8{
+        "keep the shared Phase 5 reference-sample checks wired through `zigux/tests/phase5_build.zig`",
+        "Documentation/zigux/phase5-kobject-sample-survey.md",
+        "zigux/tests/phase5_kobject_example_manifest.json",
+        "samples/zigux/kobject_example.zig",
+        "approved in-memory ownership-and-lifetime idiom",
+    };
+
+    for (tests_root_markers) |needle| {
+        try std.testing.expect(std.mem.indexOf(u8, tests_root, needle) != null);
+    }
+
+    const build_zig = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "zigux/tests/phase5_build.zig",
+        std.testing.allocator,
+        .limited(32 * 1024),
+    );
+    defer std.testing.allocator.free(build_zig);
+
+    const build_markers = [_][]const u8{
+        "../../samples/zigux/kobject_example.zig",
+        "phase5_kobject_example_survey.zig",
+        "phase5-kobject-example-tests",
+        "phase5-kobject-example-survey-tests",
+        "run_phase5_kobject_example_tests.step",
+        "run_phase5_kobject_example_survey_tests.step",
+    };
+
+    for (build_markers) |needle| {
+        try std.testing.expect(std.mem.indexOf(u8, build_zig, needle) != null);
     }
 }
