@@ -7,9 +7,11 @@ import tempfile
 
 
 ROOT = Path(__file__).resolve().parents[2]
+SURVEY_REL = "Documentation/zigux/phase3-export-uapi-boundary-survey.md"
 WORKFLOW_REL = ".github/workflows/zigux-bootstrap.yml"
 
 REQUIRED_FILES = (
+    SURVEY_REL,
     "zigux/kernel/export_shim.zig",
     "zigux/uapi/version.zig",
     "include/linux/zigux.h",
@@ -18,6 +20,11 @@ REQUIRED_FILES = (
 )
 
 REQUIRED_MARKERS = {
+    SURVEY_REL: (
+        "`PHASE3_SURVEY_PROVENANCE=packet-local-blob-first-with-legacy-head-anchor`",
+        "`PHASE3_C_HEADER_BOUNDARY_OWNERSHIP=export-uapi-packet-owns-boundary-wording-helper-slices-own-semantic-growth`",
+        "`PHASE3_C_HEADER_GROWTH_RULE=explicit-resurvey-required-before-new-c-header-entry-points`",
+    ),
     "zigux/kernel/export_shim.zig": (
         "pub const abi_version: u16 = uapi_version.abi_version;",
         "pub const header_size: u32 = uapi_version.header_size;",
@@ -117,6 +124,19 @@ def validate(root: Path) -> list[str]:
 def run_self_test() -> int:
     with tempfile.TemporaryDirectory(prefix="zigux_phase3_export_uapi_") as tmp_dir:
         root = Path(tmp_dir)
+        _write(
+            root / SURVEY_REL,
+            "\n".join(
+                (
+                    "# Phase 3 Export Shim and UAPI Boundary Survey",
+                    "## Status",
+                    "- `PHASE3_SURVEY_PROVENANCE=packet-local-blob-first-with-legacy-head-anchor`",
+                    "- `PHASE3_C_HEADER_BOUNDARY_OWNERSHIP=export-uapi-packet-owns-boundary-wording-helper-slices-own-semantic-growth`",
+                    "- `PHASE3_C_HEADER_GROWTH_RULE=explicit-resurvey-required-before-new-c-header-entry-points`",
+                    "",
+                )
+            ),
+        )
         _write(
             root / "zigux/kernel/export_shim.zig",
             "\n".join(
@@ -253,6 +273,37 @@ def run_self_test() -> int:
         baseline = validate(root)
         if baseline:
             raise SystemExit(f"phase3-export-uapi-self-test:baseline_failed:{baseline}")
+
+        survey_path = root / SURVEY_REL
+        survey_path.write_text(
+            survey_path.read_text(encoding="utf-8").replace(
+                "`PHASE3_C_HEADER_GROWTH_RULE=explicit-resurvey-required-before-new-c-header-entry-points`",
+                "`PHASE3_C_HEADER_GROWTH_RULE_MISSING=explicit-resurvey-required-before-new-c-header-entry-points`",
+                1,
+            ),
+            encoding="utf-8",
+            newline="\n",
+        )
+        issues = validate(root)
+        expected = (
+            "missing_marker:Documentation/zigux/phase3-export-uapi-boundary-survey.md:`PHASE3_C_HEADER_GROWTH_RULE=explicit-resurvey-required-before-new-c-header-entry-points`"
+        )
+        if issues != [expected]:
+            raise SystemExit(f"phase3-export-uapi-self-test:survey_growth_rule_guard_failed:{issues}")
+
+        _write(
+            root / SURVEY_REL,
+            "\n".join(
+                (
+                    "# Phase 3 Export Shim and UAPI Boundary Survey",
+                    "## Status",
+                    "- `PHASE3_SURVEY_PROVENANCE=packet-local-blob-first-with-legacy-head-anchor`",
+                    "- `PHASE3_C_HEADER_BOUNDARY_OWNERSHIP=export-uapi-packet-owns-boundary-wording-helper-slices-own-semantic-growth`",
+                    "- `PHASE3_C_HEADER_GROWTH_RULE=explicit-resurvey-required-before-new-c-header-entry-points`",
+                    "",
+                )
+            ),
+        )
 
         broken_root = root / "zigux/uapi/version.zig"
         broken_root.write_text(
@@ -393,7 +444,7 @@ def run_self_test() -> int:
             raise SystemExit(f"phase3-export-uapi-self-test:workflow_guard_failed:{issues}")
 
     print("PHASE3_EXPORT_UAPI_SURVEY_SELF_TEST=pass")
-    print("PHASE3_EXPORT_UAPI_SURVEY_SELF_TEST_CASE_COUNT=4")
+    print("PHASE3_EXPORT_UAPI_SURVEY_SELF_TEST_CASE_COUNT=5")
     return 0
 
 
@@ -417,7 +468,7 @@ def main() -> int:
         return 1
 
     print("PHASE3_EXPORT_UAPI_SURVEY=pass")
-    print("PHASE3_EXPORT_UAPI_REQUIRED_FILE_COUNT=5")
+    print("PHASE3_EXPORT_UAPI_REQUIRED_FILE_COUNT=6")
     return 0
 
 
