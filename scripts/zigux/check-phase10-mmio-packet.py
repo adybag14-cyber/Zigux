@@ -56,6 +56,7 @@ EXPECTED_HELPER_MARKERS = [
 EXPECTED_TEST_MARKERS = [
     'test "phase10 virtio mmio clears stale config words when a shorter window is restaged" {',
     'test "phase10 virtio mmio plans a bounded config-word write without mutating config space" {',
+    'test "phase10 virtio mmio summarizes a planned config-word write disposition without mutating config space" {',
     'test "phase10 virtio mmio summarizes bounded probe preflight readiness before lifecycle work" {',
     'test "phase10 virtio mmio marks probe preflight incomplete when identity presence falls away" {',
     'test "phase10 virtio mmio bounds queue selection and queue sizing before lifecycle work" {',
@@ -149,6 +150,7 @@ pub fn probePreflightSummary(self: *const Self) ProbePreflightSummary { _ = self
 """,
     "zigux/tests/phase10_virtio_mmio.zig": """test \"phase10 virtio mmio clears stale config words when a shorter window is restaged\" {}
 test \"phase10 virtio mmio plans a bounded config-word write without mutating config space\" {}
+test \"phase10 virtio mmio summarizes a planned config-word write disposition without mutating config space\" {}
 test \"phase10 virtio mmio summarizes bounded probe preflight readiness before lifecycle work\" {}
 test \"phase10 virtio mmio marks probe preflight incomplete when identity presence falls away\" {}
 test \"phase10 virtio mmio bounds queue selection and queue sizing before lifecycle work\" {}
@@ -473,6 +475,19 @@ def run_self_test() -> int:
             raise SystemExit("phase10-mmio-self-test:expected_test_marker_missing")
         test_path.write_text(original_test, encoding="utf-8")
 
+        test_path.write_text(
+            original_test.replace(
+                'test "phase10 virtio mmio summarizes a planned config-word write disposition without mutating config space" {',
+                'test "phase10 virtio mmio summarizes a planned config-word write drift without mutating config space" {',
+                1,
+            ),
+            encoding="utf-8",
+        )
+        _, missing_markers = validate(tmp_root)
+        if 'tests:test "phase10 virtio mmio summarizes a planned config-word write disposition without mutating config space" {' not in missing_markers:
+            raise SystemExit("phase10-mmio-self-test:expected_disposition_test_marker_missing")
+        test_path.write_text(original_test, encoding="utf-8")
+
         slice_path = tmp_root / "Documentation/zigux/phase10-virtio-mmio-slice.md"
         original_slice = slice_path.read_text(encoding="utf-8")
         slice_path.write_text(
@@ -495,7 +510,7 @@ def run_self_test() -> int:
             raise SystemExit("phase10-mmio-self-test:expected_survey_marker_missing")
 
     print("PHASE10_MMIO_PACKET_SELF_TEST=pass")
-    print("PHASE10_MMIO_PACKET_SELF_TEST_CASE_COUNT=10")
+    print("PHASE10_MMIO_PACKET_SELF_TEST_CASE_COUNT=11")
     return 0
 
 
