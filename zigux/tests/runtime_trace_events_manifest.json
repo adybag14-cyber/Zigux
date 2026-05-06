@@ -66,6 +66,24 @@
       "boundary": "Owns the sample-side loader-handoff scaffold and release-without-substrate behavior, while shared runtime loading stays separate."
     },
     {
+      "surface": "zigux/kernel/runtime_loader.zig",
+      "role": "shared_loader_facade",
+      "owner": "P9-L12",
+      "boundary": "Tracks the shared request-shaping facade that the trace-events loader scaffold consumes without claiming live runtime registration parity."
+    },
+    {
+      "surface": "zigux/kernel/runtime_loader_contract.zig",
+      "role": "shared_loader_contract",
+      "owner": "P9-L12",
+      "boundary": "Tracks the shared allocator-handoff and stage-contract surface that the trace-events loader scaffold reuses without widening into shared runtime-substrate implementation."
+    },
+    {
+      "surface": "zigux/tests/runtime_loader_allocator_init_flow.zig",
+      "role": "shared_allocator_init_flow_replay",
+      "owner": "P9-L12",
+      "boundary": "Keeps the shared allocator-handoff and init-flow replay explicit beside the trace-events packet so loader-plan drift stays reviewable without claiming live substrate parity."
+    },
+    {
       "surface": "zigux/tests/runtime_trace_events_survey.zig",
       "role": "survey_gate",
       "owner": "P9-L12",
