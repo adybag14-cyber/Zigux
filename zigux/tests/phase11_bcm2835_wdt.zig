@@ -149,6 +149,51 @@ test "phase11 bcm2835_wdt registration summary records watchdog registration and
     try std.testing.expect(!not_controller.poweroff_handler_conflict);
 }
 
+test "phase11 bcm2835_wdt registration outcome keeps poweroff ownership and failure paths explicit" {
+    var watchdog = try bcm2835_wdt.Bcm2835WatchdogLab.init(9);
+
+    const claimed = watchdog.registrationOutcomeSummary(true, false, true);
+    try std.testing.expectEqualStrings("drivers/watchdog/bcm2835_wdt.c", claimed.anchor);
+    try std.testing.expect(claimed.system_power_controller);
+    try std.testing.expect(claimed.registration_succeeded);
+    try std.testing.expect(claimed.register_device_requested);
+    try std.testing.expect(!claimed.probe_error_returned);
+    try std.testing.expect(!claimed.poweroff_handler_present);
+    try std.testing.expect(claimed.poweroff_handler_claimed);
+    try std.testing.expect(!claimed.poweroff_handler_conflict);
+    try std.testing.expect(!claimed.poweroff_handler_left_in_place);
+
+    const failed_claim = watchdog.registrationOutcomeSummary(true, false, false);
+    try std.testing.expect(failed_claim.system_power_controller);
+    try std.testing.expect(!failed_claim.registration_succeeded);
+    try std.testing.expect(failed_claim.register_device_requested);
+    try std.testing.expect(failed_claim.probe_error_returned);
+    try std.testing.expect(!failed_claim.poweroff_handler_present);
+    try std.testing.expect(!failed_claim.poweroff_handler_claimed);
+    try std.testing.expect(!failed_claim.poweroff_handler_conflict);
+    try std.testing.expect(!failed_claim.poweroff_handler_left_in_place);
+
+    const conflict = watchdog.registrationOutcomeSummary(true, true, true);
+    try std.testing.expect(conflict.system_power_controller);
+    try std.testing.expect(conflict.registration_succeeded);
+    try std.testing.expect(conflict.register_device_requested);
+    try std.testing.expect(!conflict.probe_error_returned);
+    try std.testing.expect(conflict.poweroff_handler_present);
+    try std.testing.expect(!conflict.poweroff_handler_claimed);
+    try std.testing.expect(conflict.poweroff_handler_conflict);
+    try std.testing.expect(conflict.poweroff_handler_left_in_place);
+
+    const non_controller_failure = watchdog.registrationOutcomeSummary(false, false, false);
+    try std.testing.expect(!non_controller_failure.system_power_controller);
+    try std.testing.expect(!non_controller_failure.registration_succeeded);
+    try std.testing.expect(non_controller_failure.register_device_requested);
+    try std.testing.expect(non_controller_failure.probe_error_returned);
+    try std.testing.expect(!non_controller_failure.poweroff_handler_present);
+    try std.testing.expect(!non_controller_failure.poweroff_handler_claimed);
+    try std.testing.expect(!non_controller_failure.poweroff_handler_conflict);
+    try std.testing.expect(!non_controller_failure.poweroff_handler_left_in_place);
+}
+
 test "phase11 bcm2835_wdt remove summary only clears the shared poweroff handler when bcm2835 owns it" {
     var watchdog = try bcm2835_wdt.Bcm2835WatchdogLab.init(9);
 
