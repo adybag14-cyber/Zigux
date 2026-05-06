@@ -8,6 +8,7 @@ from pathlib import Path
 import platform
 import re
 import shutil
+import subprocess
 import tarfile
 import tempfile
 import time
@@ -94,6 +95,40 @@ def copy_response_chunks(response, destination: Path, *, append: bool) -> None:
             out.write(chunk)
 
 
+def copy_url_to_file_with_curl(
+    url: str,
+    destination: Path,
+    *,
+    retries: int = DOWNLOAD_RETRIES,
+    timeout: float = DOWNLOAD_TIMEOUT,
+) -> None:
+    destination.parent.mkdir(parents=True, exist_ok=True)
+    cmd = [
+        'curl',
+        '--fail',
+        '--location',
+        '--silent',
+        '--show-error',
+        '--retry',
+        str(retries),
+        '--retry-all-errors',
+        '--retry-delay',
+        '2',
+        '--connect-timeout',
+        str(max(5, int(timeout // 4))),
+        '--speed-limit',
+        '1',
+        '--speed-time',
+        str(max(30, int(timeout))),
+        '--continue-at',
+        '-',
+        '--output',
+        str(destination),
+        url,
+    ]
+    subprocess.run(cmd, check=True)
+
+
 def copy_url_to_file(
     url: str,
     destination: Path,
@@ -102,6 +137,14 @@ def copy_url_to_file(
     timeout: float = DOWNLOAD_TIMEOUT,
 ) -> None:
     last_error: Exception | None = None
+    if shutil.which('curl') is not None:
+        try:
+            copy_url_to_file_with_curl(url, destination, retries=retries, timeout=timeout)
+            return
+        except (FileNotFoundError, subprocess.CalledProcessError) as exc:
+            last_error = exc
+            if destination.exists() and destination.stat().st_size == 0:
+                destination.unlink()
     for attempt in range(1, retries + 1):
         resume_offset = destination.stat().st_size if destination.exists() else 0
         request = build_download_request(url, resume_offset)
@@ -284,16 +327,69 @@ def run_self_test() -> int:
 
     temp_path = Path(tempfile.mkdtemp(prefix='zigux_install_zig_selftest_')) / 'archive.tar.xz'
     original_open_url = globals()['open_url']
+    original_which = shutil.which
     try:
+        shutil.which = lambda name: None if name == 'curl' else original_which(name)
         globals()['open_url'] = resumable_open_url
         copy_url_to_file('https://example.invalid/archive.tar.xz', temp_path, retries=2, timeout=1.0)
         assert temp_path.read_bytes() == b'zig-data'
         assert resume_headers == [None, 'bytes=4-']
     finally:
+        shutil.which = original_which
         globals()['open_url'] = original_open_url
         if temp_path.exists():
             temp_path.unlink()
         temp_path.parent.rmdir()
+
+    curl_commands: list[list[str]] = []
+
+    def fake_run(cmd: list[str], *, check: bool) -> None:
+        assert check is True
+        curl_commands.append(cmd)
+
+    original_run = subprocess.run
+    try:
+        subprocess.run = fake_run
+        copy_url_to_file_with_curl(
+            'https://example.invalid/archive.tar.xz',
+            Path('/tmp/zigux-install-zig-curl-test/archive.tar.xz'),
+            retries=5,
+            timeout=90.0,
+        )
+        assert len(curl_commands) == 1
+        assert curl_commands[0][0] == 'curl'
+        assert '--continue-at' in curl_commands[0]
+        assert '--retry-all-errors' in curl_commands[0]
+        assert curl_commands[0][-1] == 'https://example.invalid/archive.tar.xz'
+    finally:
+        subprocess.run = original_run
+
+    curl_copy_calls: list[tuple[str, Path, int, float]] = []
+
+    def fake_curl_copy(url: str, destination: Path, *, retries: int = DOWNLOAD_RETRIES, timeout: float = DOWNLOAD_TIMEOUT) -> None:
+        curl_copy_calls.append((url, destination, retries, timeout))
+
+    original_curl_copy = globals()['copy_url_to_file_with_curl']
+    try:
+        shutil.which = lambda name: '/usr/bin/curl' if name == 'curl' else original_which(name)
+        globals()['copy_url_to_file_with_curl'] = fake_curl_copy
+        copy_url_to_file(
+            'https://example.invalid/archive.tar.xz',
+            Path('/tmp/zigux-install-zig-curl-preferred/archive.tar.xz'),
+            retries=7,
+            timeout=9.0,
+        )
+        assert curl_copy_calls == [
+            (
+                'https://example.invalid/archive.tar.xz',
+                Path('/tmp/zigux-install-zig-curl-preferred/archive.tar.xz'),
+                7,
+                9.0,
+            )
+        ]
+    finally:
+        shutil.which = original_which
+        globals()['copy_url_to_file_with_curl'] = original_curl_copy
 
     try:
         normalize_os('plan9')
@@ -324,7 +420,7 @@ def run_self_test() -> int:
         raise AssertionError('expected resolve_target to reject unknown target')
 
     print('ZIG_INSTALL_SELF_TEST=pass')
-    print('ZIG_INSTALL_SELF_TEST_CASE_COUNT=13')
+    print('ZIG_INSTALL_SELF_TEST_CASE_COUNT=15')
     return 0
 
 
