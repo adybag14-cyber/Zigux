@@ -52,6 +52,8 @@ pub const RuntimeTraceEventsSummary = struct {
     registration_depth: usize,
     register_runs: usize,
     unregister_runs: usize,
+    registration_start_runs: usize,
+    registration_stop_runs: usize,
     main_iterations: usize,
     fn_iterations: usize,
     total_events: usize,
@@ -76,6 +78,8 @@ pub const RuntimeTraceEventsSample = struct {
     registration_depth: usize = 0,
     register_runs: usize = 0,
     unregister_runs: usize = 0,
+    registration_start_runs: usize = 0,
+    registration_stop_runs: usize = 0,
     main_iterations: usize = 0,
     fn_iterations: usize = 0,
     total_events: usize = 0,
@@ -111,6 +115,8 @@ pub const RuntimeTraceEventsSample = struct {
             .registration_depth = self.registration_depth,
             .register_runs = self.register_runs,
             .unregister_runs = self.unregister_runs,
+            .registration_start_runs = self.registration_start_runs,
+            .registration_stop_runs = self.registration_stop_runs,
             .main_iterations = self.main_iterations,
             .fn_iterations = self.fn_iterations,
             .total_events = self.total_events,
@@ -142,6 +148,8 @@ pub const RuntimeTraceEventsSample = struct {
         self.registration_depth = 0;
         self.register_runs = 0;
         self.unregister_runs = 0;
+        self.registration_start_runs = 0;
+        self.registration_stop_runs = 0;
         self.main_iterations = 0;
         self.fn_iterations = 0;
         self.total_events = 0;
@@ -160,8 +168,8 @@ pub const RuntimeTraceEventsSample = struct {
 
     pub fn registerFunctionThread(self: *Self) !void {
         try self.ensureMutable();
-        if (self.registration_depth != 0) return error.FunctionThreadAlreadyRegistered;
-        self.registration_depth = 1;
+        if (self.registration_depth == 0) self.registration_start_runs += 1;
+        self.registration_depth += 1;
         self.register_runs += 1;
     }
 
@@ -170,6 +178,7 @@ pub const RuntimeTraceEventsSample = struct {
         if (self.registration_depth == 0) return error.RegistrationUnderflow;
         self.registration_depth -= 1;
         self.unregister_runs += 1;
+        if (self.registration_depth == 0) self.registration_stop_runs += 1;
     }
 
     pub fn emitMainIteration(self: *Self, count: i32) !usize {
@@ -269,6 +278,8 @@ test "trace-events sample keeps selftest replay-summary continuity explicit afte
     try std.testing.expectEqual(@as(usize, 0), after_replay.registration_depth);
     try std.testing.expectEqual(@as(usize, 2), after_replay.register_runs);
     try std.testing.expectEqual(@as(usize, 2), after_replay.unregister_runs);
+    try std.testing.expectEqual(@as(usize, 2), after_replay.registration_start_runs);
+    try std.testing.expectEqual(@as(usize, 2), after_replay.registration_stop_runs);
     try std.testing.expectEqual(@as(usize, 2), after_replay.main_iterations);
     try std.testing.expectEqual(@as(usize, 2), after_replay.fn_iterations);
     try std.testing.expectEqual(@as(usize, 16), after_replay.total_events);
@@ -307,6 +318,8 @@ test "trace-events sample keeps initialized-stage failed-exit rollback explicit 
     try std.testing.expectEqual(@as(usize, 1), before_failed_exit.registration_depth);
     try std.testing.expectEqual(@as(usize, 1), before_failed_exit.register_runs);
     try std.testing.expectEqual(@as(usize, 0), before_failed_exit.unregister_runs);
+    try std.testing.expectEqual(@as(usize, 1), before_failed_exit.registration_start_runs);
+    try std.testing.expectEqual(@as(usize, 0), before_failed_exit.registration_stop_runs);
     try std.testing.expectEqual(@as(usize, 1), before_failed_exit.main_iterations);
     try std.testing.expectEqual(@as(usize, 1), before_failed_exit.fn_iterations);
     try std.testing.expectEqual(@as(usize, 8), before_failed_exit.total_events);
@@ -321,6 +334,8 @@ test "trace-events sample keeps initialized-stage failed-exit rollback explicit 
     try std.testing.expectEqual(before_failed_exit.registration_depth, after_failed_exit.registration_depth);
     try std.testing.expectEqual(before_failed_exit.register_runs, after_failed_exit.register_runs);
     try std.testing.expectEqual(before_failed_exit.unregister_runs, after_failed_exit.unregister_runs);
+    try std.testing.expectEqual(before_failed_exit.registration_start_runs, after_failed_exit.registration_start_runs);
+    try std.testing.expectEqual(before_failed_exit.registration_stop_runs, after_failed_exit.registration_stop_runs);
     try std.testing.expectEqual(before_failed_exit.main_iterations, after_failed_exit.main_iterations);
     try std.testing.expectEqual(before_failed_exit.fn_iterations, after_failed_exit.fn_iterations);
     try std.testing.expectEqual(before_failed_exit.total_events, after_failed_exit.total_events);
@@ -346,6 +361,7 @@ test "trace-events sample keeps initialized-stage failed-exit rollback explicit 
     try std.testing.expectEqual(before_failed_exit.total_events, exited_summary.total_events);
     try std.testing.expectEqual(before_failed_exit.last_main_count, exited_summary.last_main_count);
     try std.testing.expectEqual(before_failed_exit.last_fn_count, exited_summary.last_fn_count);
+    try std.testing.expectEqual(@as(usize, 1), exited_summary.registration_stop_runs);
     try std.testing.expectEqual(@as(usize, 1), exited_summary.exit_runs);
 }
 
@@ -363,6 +379,8 @@ test "trace-events sample keeps failed-exit rollback explicit after selftest-rea
     try std.testing.expectEqual(@as(usize, 1), before_failed_exit.registration_depth);
     try std.testing.expectEqual(@as(usize, 2), before_failed_exit.register_runs);
     try std.testing.expectEqual(@as(usize, 1), before_failed_exit.unregister_runs);
+    try std.testing.expectEqual(@as(usize, 2), before_failed_exit.registration_start_runs);
+    try std.testing.expectEqual(@as(usize, 1), before_failed_exit.registration_stop_runs);
     try std.testing.expectEqual(@as(usize, 2), before_failed_exit.main_iterations);
     try std.testing.expectEqual(@as(usize, 2), before_failed_exit.fn_iterations);
     try std.testing.expectEqual(@as(usize, 16), before_failed_exit.total_events);
@@ -377,6 +395,8 @@ test "trace-events sample keeps failed-exit rollback explicit after selftest-rea
     try std.testing.expectEqual(before_failed_exit.registration_depth, after_failed_exit.registration_depth);
     try std.testing.expectEqual(before_failed_exit.register_runs, after_failed_exit.register_runs);
     try std.testing.expectEqual(before_failed_exit.unregister_runs, after_failed_exit.unregister_runs);
+    try std.testing.expectEqual(before_failed_exit.registration_start_runs, after_failed_exit.registration_start_runs);
+    try std.testing.expectEqual(before_failed_exit.registration_stop_runs, after_failed_exit.registration_stop_runs);
     try std.testing.expectEqual(before_failed_exit.main_iterations, after_failed_exit.main_iterations);
     try std.testing.expectEqual(before_failed_exit.fn_iterations, after_failed_exit.fn_iterations);
     try std.testing.expectEqual(before_failed_exit.total_events, after_failed_exit.total_events);
@@ -392,6 +412,34 @@ test "trace-events sample keeps failed-exit rollback explicit after selftest-rea
     try std.testing.expectEqual(@as(usize, 0), exited_summary.registration_depth);
     try std.testing.expectEqual(@as(usize, 2), exited_summary.register_runs);
     try std.testing.expectEqual(@as(usize, 2), exited_summary.unregister_runs);
+    try std.testing.expectEqual(@as(usize, 2), exited_summary.registration_start_runs);
+    try std.testing.expectEqual(@as(usize, 2), exited_summary.registration_stop_runs);
     try std.testing.expectEqual(before_failed_exit.total_events, exited_summary.total_events);
     try std.testing.expectEqual(@as(usize, 1), exited_summary.exit_runs);
+}
+
+test "trace-events sample keeps callback-registration edge refcounts explicit" {
+    var module = RuntimeTraceEventsSample{};
+    try module.init();
+
+    try module.registerFunctionThread();
+    try module.registerFunctionThread();
+    try std.testing.expectEqual(@as(usize, 2), module.registration_depth);
+    try std.testing.expectEqual(@as(usize, 2), module.register_runs);
+    try std.testing.expectEqual(@as(usize, 1), module.registration_start_runs);
+
+    _ = try module.emitFunctionIteration(2);
+    try module.unregisterFunctionThread();
+    try std.testing.expectEqual(@as(usize, 1), module.registration_depth);
+    try std.testing.expectEqual(@as(usize, 1), module.unregister_runs);
+    try std.testing.expectEqual(@as(usize, 0), module.registration_stop_runs);
+    try std.testing.expectError(error.OutstandingRegistration, module.exit());
+
+    try module.unregisterFunctionThread();
+    try std.testing.expectEqual(@as(usize, 0), module.registration_depth);
+    try std.testing.expectEqual(@as(usize, 2), module.unregister_runs);
+    try std.testing.expectEqual(@as(usize, 1), module.registration_stop_runs);
+
+    try module.exit();
+    try std.testing.expectEqual(ModuleStage.exited, module.stage());
 }
