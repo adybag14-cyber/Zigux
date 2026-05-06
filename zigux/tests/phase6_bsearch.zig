@@ -48,10 +48,18 @@ fn compareDescendingU32(key: *const u32, item: *const u32) i32 {
     };
 }
 
+fn compareDescendingU32C(key: *const u32, item: *const u32) callconv(.c) i32 {
+    return compareDescendingU32(key, item);
+}
+
 fn compareDescendingOpaqueU32(key: *const anyopaque, item: *const anyopaque) i32 {
     const typed_key: *const u32 = @ptrCast(@alignCast(key));
     const typed_item: *const u32 = @ptrCast(@alignCast(item));
     return compareDescendingU32(typed_key, typed_item);
+}
+
+fn compareDescendingOpaqueU32C(key: *const anyopaque, item: *const anyopaque) callconv(.c) i32 {
+    return compareDescendingOpaqueU32(key, item);
 }
 
 fn compareSymbolName(key: *const []const u8, item: *const Symbol) i32 {
@@ -226,14 +234,23 @@ test "phase 6 bsearch accepts runtime-selected native comparator pointers" {
 }
 
 test "phase 6 bsearch accepts runtime-selected c abi comparator pointers" {
-    const values = [_]u32{ 3, 8, 13, 21, 34, 55, 89 };
-    const comparators = [_]bsearch.CComparator(u32, u32){ compareU32C, compareU32C };
+    const values = [_]u32{ 89, 55, 34, 21, 13, 8, 3 };
+    const ascending_comparators = [_]bsearch.CComparator(u32, u32){ compareU32C, compareU32C };
+    const descending_comparators = [_]bsearch.CComparator(u32, u32){ compareDescendingU32C, compareDescendingU32C };
 
-    for (comparators) |compare| {
-        try std.testing.expectEqual(@as(?usize, 4), bsearch.searchIndex(u32, u32, &@as(u32, 34), values[0..], compare));
+    for (ascending_comparators) |compare| {
+        const ascending_values = [_]u32{ 3, 8, 13, 21, 34, 55, 89 };
+        try std.testing.expectEqual(@as(?usize, 4), bsearch.searchIndex(u32, u32, &@as(u32, 34), ascending_values[0..], compare));
+        const found = bsearch.search(u32, u32, &@as(u32, 13), ascending_values[0..], compare) orelse return error.TestUnexpectedResult;
+        try std.testing.expectEqual(@as(u32, 13), found.*);
+        try std.testing.expect(bsearch.search(u32, u32, &@as(u32, 7), ascending_values[0..], compare) == null);
+    }
+
+    for (descending_comparators) |compare| {
+        try std.testing.expectEqual(@as(?usize, 3), bsearch.searchIndex(u32, u32, &@as(u32, 21), values[0..], compare));
         const found = bsearch.search(u32, u32, &@as(u32, 13), values[0..], compare) orelse return error.TestUnexpectedResult;
         try std.testing.expectEqual(@as(u32, 13), found.*);
-        try std.testing.expect(bsearch.search(u32, u32, &@as(u32, 7), values[0..], compare) == null);
+        try std.testing.expect(bsearch.search(u32, u32, &@as(u32, 22), values[0..], compare) == null);
     }
 }
 
@@ -296,6 +313,66 @@ test "phase 6 bsearch accepts runtime-selected raw c abi comparator pointers" {
         try std.testing.expect(
             bsearch.bsearch(&@as(u32, 8), @ptrCast(values[0..].ptr), values.len, @sizeOf(u32), compare) == null,
         );
+    }
+}
+
+test "phase 6 bsearch accepts runtime-selected descending raw c abi comparator pointers" {
+    var values = [_]u32{ 89, 55, 34, 21, 13, 8, 3 };
+    const comparators = [_]bsearch.CRawComparator{ compareDescendingOpaqueU32C, compareDescendingOpaqueU32C };
+
+    for (comparators) |compare| {
+        const index = bsearch.bsearchIndex(
+            &@as(u32, 21),
+            @ptrCast(values[0..].ptr),
+            values.len,
+            @sizeOf(u32),
+            compare,
+        ) orelse return error.TestUnexpectedResult;
+        try std.testing.expectEqual(@as(usize, 3), index);
+
+        const found = bsearch.bsearch(
+            &@as(u32, 13),
+            @ptrCast(values[0..].ptr),
+            values.len,
+            @sizeOf(u32),
+            compare,
+        ) orelse return error.TestUnexpectedResult;
+        const typed_found: *const u32 = @ptrCast(@alignCast(found));
+        try std.testing.expectEqual(@as(u32, 13), typed_found.*);
+        try std.testing.expectEqual(@intFromPtr(&values[4]), @intFromPtr(typed_found));
+
+        try std.testing.expectEqual(
+            @as(?usize, null),
+            bsearch.bsearchIndex(
+                &@as(u32, 22),
+                @ptrCast(values[0..].ptr),
+                values.len,
+                @sizeOf(u32),
+                compare,
+            ),
+        );
+        try std.testing.expect(
+            bsearch.bsearch(
+                &@as(u32, 22),
+                @ptrCast(values[0..].ptr),
+                values.len,
+                @sizeOf(u32),
+                compare,
+            ) == null,
+        );
+
+        const mutable = bsearch.bsearchMutable(
+            &@as(u32, 34),
+            @ptrCast(values[0..].ptr),
+            values.len,
+            @sizeOf(u32),
+            compare,
+        ) orelse return error.TestUnexpectedResult;
+        const typed_mutable: *u32 = @ptrCast(@alignCast(mutable));
+        try std.testing.expectEqual(@intFromPtr(&values[2]), @intFromPtr(typed_mutable));
+        typed_mutable.* = 35;
+        try std.testing.expectEqual(@as(u32, 35), values[2]);
+        typed_mutable.* = 34;
     }
 }
 
