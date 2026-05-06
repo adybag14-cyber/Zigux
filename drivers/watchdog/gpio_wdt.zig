@@ -161,6 +161,36 @@ pub const TimeoutPropertyCheckpointSummary = struct {
     blocked_on_platform_registration: bool,
 };
 
+pub const RegisterDeviceCallSummary = struct {
+    anchor: []const u8,
+    register_call: []const u8,
+    hw_algo: HardwareAlgorithm,
+    always_running: bool,
+    nowayout: bool,
+    requested_line: ProbeLineRequest,
+    descriptor_flags: DescriptorRequestFlags,
+    start_mode: ProbeStartMode,
+    reaches_registration_running: bool,
+    reaches_registration_line_state: bool,
+    reaches_registration_line_is_output: bool,
+    watchdog_info_ready: bool,
+    watchdog_ops_ready: bool,
+    watchdog_device_ready: bool,
+    watchdog_drvdata_set: bool,
+    descriptor_request_ready: bool,
+    timeout_init_requested: bool,
+    nowayout_applied: bool,
+    parent_attached: bool,
+    stop_on_reboot: bool,
+    min_timeout_sec: u32,
+    default_timeout_sec: u32,
+    max_hw_heartbeat_ms: u32,
+    register_device_requested: bool,
+    blocked_on_live_gpio_lookup: bool,
+    blocked_on_platform_registration: bool,
+    blocked_on_reboot_glue: bool,
+};
+
 pub const GpioWatchdogLab = struct {
     const Self = @This();
 
@@ -405,6 +435,41 @@ pub const GpioWatchdogLab = struct {
             .identity = "GPIO Watchdog",
             .supported_options = .{ .magicclose, .keepaliveping, .settimeout },
             .supported_ops = .{ .start, .stop, .ping },
+        };
+    }
+
+    pub fn registerDeviceCallSummary(self: *const Self, nowayout: bool) RegisterDeviceCallSummary {
+        const handoff = self.registrationHandoffSummary(nowayout);
+        const descriptor_preflight = self.descriptorPreflightSummary();
+
+        return .{
+            .anchor = descriptor().anchor,
+            .register_call = "devm_watchdog_register_device",
+            .hw_algo = self.hw_algo,
+            .always_running = self.always_running,
+            .nowayout = nowayout,
+            .requested_line = handoff.requested_line,
+            .descriptor_flags = descriptor_preflight.descriptor_flags,
+            .start_mode = handoff.start_mode,
+            .reaches_registration_running = handoff.reaches_registration_running,
+            .reaches_registration_line_state = handoff.reaches_registration_line_state,
+            .reaches_registration_line_is_output = handoff.reaches_registration_line_is_output,
+            .watchdog_info_ready = true,
+            .watchdog_ops_ready = true,
+            .watchdog_device_ready = true,
+            .watchdog_drvdata_set = true,
+            .descriptor_request_ready = descriptor_preflight.descriptor_lookup_required,
+            .timeout_init_requested = handoff.timeout_init_requested,
+            .nowayout_applied = nowayout,
+            .parent_attached = handoff.parent_attached,
+            .stop_on_reboot = handoff.stop_on_reboot,
+            .min_timeout_sec = soft_timeout_min,
+            .default_timeout_sec = soft_timeout_default,
+            .max_hw_heartbeat_ms = self.hw_margin_ms,
+            .register_device_requested = true,
+            .blocked_on_live_gpio_lookup = descriptor_preflight.blocked_on_live_gpio_lookup,
+            .blocked_on_platform_registration = true,
+            .blocked_on_reboot_glue = true,
         };
     }
 
