@@ -491,6 +491,18 @@ test "bitmap and andnot clamp tail bits in partial words" {
     try std.testing.expectEqualSlices(Word, &[_]Word{ 0, 0 }, &dst);
 }
 
+test "bitmap predicates ignore out-of-range tail bits" {
+    const nbits = bits_per_long + 5;
+    const in_range_only = [_]Word{ 0, @as(Word, 1) << 2 };
+    const with_tail_bits = [_]Word{ 0, (@as(Word, 1) << 2) | (@as(Word, 1) << 9) };
+    const tail_only = [_]Word{ 0, @as(Word, 1) << 9 };
+
+    try std.testing.expect(equal(&in_range_only, &with_tail_bits, nbits));
+    try std.testing.expect(!intersects(&in_range_only, &tail_only, nbits));
+    try std.testing.expect(subset(&in_range_only, &with_tail_bits, nbits));
+    try std.testing.expect(subset(&with_tail_bits, &in_range_only, nbits));
+}
+
 test "bitmap xor keeps caller-selected bit window" {
     const lhs = [_]Word{0b1_1111};
     const rhs = [_]Word{0b1_0001};
