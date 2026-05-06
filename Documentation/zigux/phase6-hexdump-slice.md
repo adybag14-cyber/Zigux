@@ -7,12 +7,15 @@ This document records a bounded Phase 6 leaf-helper validation slice for Zigux.
 - `PHASE6_STATUS=parked`
 - `PHASE6_SLICE=hexdump-leaf-helper`
 - scope: first low-risk hexdump helper coverage only
-- lane state: helper, fixture, and dedicated perf gate slices landed; parked unless a new `hexdump.c` parity issue appears
+- lane state: helper, fixture, dedicated perf gate, and external parity slices landed; parked unless a new `hexdump.c` parity issue appears
 - product boundary:
   - `lib/hexdump.zig`
   - `zigux/tests/phase6_hexdump.zig`
   - `zigux/tests/phase6_hexdump_perf.zig`
+  - `zigux/tests/phase6_hexdump_c_parity.zig`
   - `zigux/tests/fixtures/phase6_hexdump_vectors.zig`
+  - `zigux/tests/fixtures/phase6_hexdump_c_harness.c`
+  - `scripts/zigux/check-phase6-hexdump-c-parity.py`
   - `zigux/tests/phase6_build.zig`
   - `zigux/Makefile`
 
@@ -35,7 +38,11 @@ Phase 6 is where Zigux can keep proving low-risk in-kernel helper ports without 
 - `zig build phase6-hexdump-perf --build-file zigux/tests/phase6_build.zig -Doptimize=ReleaseSafe`
 - `make -C zigux phase6-hexdump-perf`
 
-3. keep the helper wired through the Zigux convenience targets
+3. run the bounded external C-vs-Zig parity spot check when formatter or conversion ownership drifts
+- `python3 scripts/zigux/check-phase6-hexdump-c-parity.py --self-test`
+- `python3 scripts/zigux/check-phase6-hexdump-c-parity.py`
+
+4. keep the helper wired through the Zigux convenience targets
 - `make -C zigux phase6`
 
 ## Current parity surface
@@ -69,6 +76,7 @@ The current tests check:
 - truncation behavior while still reporting the full required line length
 - the non-truncating helper path now uses a direct full-buffer formatter so the grouped ASCII perf replays do not pay the truncating writer's per-byte bounds checks
 - a dedicated perf replay that benchmarks the existing four-case perf fixture packet against the committed `fixtures.prepareExpectedLine(...)` reference path
+- an external C-vs-Zig parity packet through `zigux/tests/phase6_hexdump_c_parity.zig`, `zigux/tests/fixtures/phase6_hexdump_c_harness.c`, and `scripts/zigux/check-phase6-hexdump-c-parity.py`, currently covering `PHASE6_HEXDUMP_C_PARITY_CASES=29` deterministic lines with `PHASE6_HEXDUMP_C_PARITY_SELF_TEST_CASE_COUNT=8`
 
 The current perf fixture packet in `zigux/tests/fixtures/phase6_hexdump_vectors.zig` stays bounded to:
 
@@ -87,4 +95,4 @@ This slice does not yet claim:
 
 ## Next bounded step
 
-Keep the next Phase 6 follow-up inside the shared bundled `base64`, `bsearch`, `checksum`, and `hexdump` packet already gated by `zigux/tests/phase6_build.zig` and `make -C zigux phase6`. Reopen this slice only if fresh repo inspection finds a concrete new `hexdump.c` parity gap inside `lib/hexdump.zig`, `zigux/tests/phase6_hexdump.zig`, `zigux/tests/phase6_hexdump_perf.zig`, the shared fixture module, or that existing bundled gate.
+Keep the next Phase 6 follow-up inside the shared bundled `base64`, `bsearch`, `checksum`, and `hexdump` packet already gated by `zigux/tests/phase6_build.zig` and `make -C zigux phase6`. Reopen this slice only if fresh repo inspection finds a concrete new `hexdump.c` parity gap inside `lib/hexdump.zig`, `zigux/tests/phase6_hexdump.zig`, `zigux/tests/phase6_hexdump_perf.zig`, `zigux/tests/phase6_hexdump_c_parity.zig`, `zigux/tests/fixtures/phase6_hexdump_vectors.zig`, `zigux/tests/fixtures/phase6_hexdump_c_harness.c`, `scripts/zigux/check-phase6-hexdump-c-parity.py`, the shared fixture module, or that existing bundled gate.
