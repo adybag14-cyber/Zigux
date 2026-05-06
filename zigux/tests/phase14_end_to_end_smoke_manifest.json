@@ -46,6 +46,10 @@
       "required_marker": "PHASE14_VALIDATE_PACKET=shared_smoke"
     },
     {
+      "path": "scripts/zigux/check-phase14-docs-root-smoke-summary.py",
+      "required_marker": "PHASE14_CHECK_PACKET=docs_root_smoke_summary"
+    },
+    {
       "path": "scripts/zigux/check-phase14-rollback-threshold-sequencing.py",
       "required_marker": "PHASE14_CHECK_PACKET=rollback_threshold_sequencing"
     },
