@@ -31,12 +31,16 @@ test "phase 5 bytestream fifo sample stays in the reference-sample lane" {
 }
 
 test "phase 5 bytestream fifo sample replays exact queue behavior from the Linux anchor" {
+    const descriptor = sample.BytestreamFifoSample.descriptor();
+    const contract = sample.BytestreamFifoSample.reviewContract();
+
     var module = sample.BytestreamFifoSample{};
     try module.init();
     const replay = try module.runAnchorReplay();
 
     try std.testing.expectEqual(sample.SampleStage.initialized, replay.stage_before_replay);
     try std.testing.expectEqual(sample.SampleStage.replay_complete, replay.stage_after_replay);
+    try std.testing.expectEqualStrings(descriptor.anchor, replay.anchor);
     try std.testing.expectEqual(@as(usize, 5), replay.initial_string_copy_count);
     try std.testing.expectEqual(@as(usize, 15), replay.len_after_initial_fill);
     try std.testing.expectEqualStrings("hello", replay.first_out[0..]);
@@ -53,14 +57,10 @@ test "phase 5 bytestream fifo sample replays exact queue behavior from the Linux
     try std.testing.expectEqualSlices(u8, sample.expected_anchor_result[0..], replay.snapshot_sequence[0..]);
     try std.testing.expectEqual(@as(usize, sample.BytestreamFifoSample.capacity), replay.final_len);
     try std.testing.expectEqual(sample.StorageBacking.embedded_fixed_buffer, replay.storage_backing);
-    try std.testing.expectEqual(@as(usize, 7), replay.checked_focus.len);
-    try std.testing.expectEqual(sample.SampleFocus.bounded_fifo_order, replay.checked_focus[0]);
-    try std.testing.expectEqual(sample.SampleFocus.wraparound_requeue, replay.checked_focus[1]);
-    try std.testing.expectEqual(sample.SampleFocus.peek_and_skip, replay.checked_focus[2]);
-    try std.testing.expectEqual(sample.SampleFocus.non_destructive_snapshot, replay.checked_focus[3]);
-    try std.testing.expectEqual(sample.SampleFocus.preview_truncation, replay.checked_focus[4]);
-    try std.testing.expectEqual(sample.SampleFocus.reset_and_replay, replay.checked_focus[5]);
-    try std.testing.expectEqual(sample.SampleFocus.ownership_and_lifetime, replay.checked_focus[6]);
+    try std.testing.expectEqual(@as(usize, contract.focus.len), replay.checked_focus.len);
+    for (contract.focus, replay.checked_focus) |expected, actual| {
+        try std.testing.expectEqual(expected, actual);
+    }
     try std.testing.expectEqualSlices(u8, sample.expected_anchor_result[0..], replay.final_sequence[0..]);
     try std.testing.expectEqual(@as(usize, 0), module.count());
     try std.testing.expectEqual(sample.SampleStage.replay_complete, module.stage());
