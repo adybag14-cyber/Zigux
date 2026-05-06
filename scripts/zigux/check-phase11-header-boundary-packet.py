@@ -11,14 +11,63 @@ import tempfile
 
 
 EXPECTED_LANE_KEY = "P11-L18"
+EXPECTED_PHASE = "Phase 11"
+EXPECTED_ANCHOR = (
+    "include/uapi/linux/watchdog.h + include/uapi/asm-generic/termios.h + "
+    "drivers/tty/hvc/hvc_console.h"
+)
+EXPECTED_ROADMAP_DESTINATIONS = [
+    "drivers/watchdog/*.zig",
+    "drivers/tty/hvc/*.zig",
+    "zigux/tests/",
+    "Documentation/zigux/",
+]
+EXPECTED_SURVEY_SUMMARY = {
+    "shared_phase11_build_present": True,
+    "shared_phase11_header_note_present": True,
+    "shared_phase11_header_survey_present": True,
+    "watchdog_info_layout_assert_present": True,
+    "winsize_layout_assert_present": True,
+    "hvc_export_surface_checked": True,
+}
 
-REQUIRED_GAP_IDS = {
-    "phase11-build-gate",
-    "phase11-uapi-header-parity-survey-gate",
-    "phase11-uapi-header-parity-note",
-    "phase11-dw-wdt-watchdog-info-layout-assert",
-    "phase11-hvc-console-winsize-layout-assert",
-    "phase11-hvc-console-export-signature-assert",
+REQUIRED_GAP_SPECS = {
+    "phase11-build-gate": {
+        "status": "starter_landed",
+        "kind": "validation",
+        "zigux_destination": "zigux/tests/phase11_build.zig",
+        "why_now_contains": "shared Phase 11 build gate",
+    },
+    "phase11-uapi-header-parity-survey-gate": {
+        "status": "starter_landed",
+        "kind": "validation",
+        "zigux_destination": "zigux/tests/phase11_uapi_header_parity_survey.zig",
+        "why_now_contains": "watchdog_info and winsize layout checkpoints",
+    },
+    "phase11-uapi-header-parity-note": {
+        "status": "starter_landed",
+        "kind": "documentation",
+        "zigux_destination": "Documentation/zigux/phase11-uapi-header-parity-survey.md",
+        "why_now_contains": "shared-versus-dedicated replay split",
+    },
+    "phase11-dw-wdt-watchdog-info-layout-assert": {
+        "status": "starter_landed",
+        "kind": "header_layout",
+        "zigux_destination": "zigux/tests/phase11_uapi_header_parity_survey.zig",
+        "why_now_contains": "size 40, alignment 4",
+    },
+    "phase11-hvc-console-winsize-layout-assert": {
+        "status": "starter_landed",
+        "kind": "header_layout",
+        "zigux_destination": "zigux/tests/phase11_uapi_header_parity_survey.zig",
+        "why_now_contains": "size 8, alignment 2",
+    },
+    "phase11-hvc-console-export-signature-assert": {
+        "status": "starter_landed",
+        "kind": "export_surface",
+        "zigux_destination": "zigux/tests/phase11_uapi_header_parity_survey.zig",
+        "why_now_contains": "notifier_hangup_irq",
+    },
 }
 
 REQUIRED_NOTE_MARKERS = [
@@ -93,16 +142,36 @@ def require_markers(text: str, markers: list[str], label: str) -> None:
         raise SystemExit(f"{label} missing markers: {', '.join(missing)}")
 
 
-def check_repo(root: Path) -> None:
-    manifest = json.loads(read_text(root, "zigux/tests/phase11_uapi_header_parity_manifest.json"))
+def check_manifest(manifest: dict[str, object]) -> None:
     if manifest.get("lane_key") != EXPECTED_LANE_KEY:
         raise SystemExit("manifest lane_key mismatch")
-    if manifest.get("phase") != "Phase 11":
+    if manifest.get("phase") != EXPECTED_PHASE:
         raise SystemExit("manifest phase mismatch")
+    if manifest.get("anchor") != EXPECTED_ANCHOR:
+        raise SystemExit("manifest anchor mismatch")
+    if manifest.get("roadmap_destinations") != EXPECTED_ROADMAP_DESTINATIONS:
+        raise SystemExit("manifest roadmap destinations mismatch")
+    if manifest.get("survey_summary") != EXPECTED_SURVEY_SUMMARY:
+        raise SystemExit("manifest survey_summary mismatch")
 
-    gap_ids = {gap["id"] for gap in manifest.get("gaps", [])}
-    if gap_ids != REQUIRED_GAP_IDS:
-        raise SystemExit(f"manifest gap ids mismatch: {sorted(gap_ids)}")
+    gaps = manifest.get("gaps", [])
+    gap_specs = {gap["id"]: gap for gap in gaps}
+    if set(gap_specs) != set(REQUIRED_GAP_SPECS):
+        raise SystemExit(f"manifest gap ids mismatch: {sorted(gap_specs)}")
+
+    for gap_id, expected in REQUIRED_GAP_SPECS.items():
+        gap = gap_specs[gap_id]
+        for key in ("status", "kind", "zigux_destination"):
+            if gap.get(key) != expected[key]:
+                raise SystemExit(f"{gap_id} {key} mismatch")
+        why_now = gap.get("why_now")
+        if not isinstance(why_now, str) or expected["why_now_contains"] not in why_now:
+            raise SystemExit(f"{gap_id} why_now mismatch")
+
+
+def check_repo(root: Path) -> None:
+    manifest = json.loads(read_text(root, "zigux/tests/phase11_uapi_header_parity_manifest.json"))
+    check_manifest(manifest)
 
     note = read_text(root, "Documentation/zigux/phase11-uapi-header-parity-survey.md")
     survey = read_text(root, "zigux/tests/phase11_uapi_header_parity_survey.zig")
@@ -120,9 +189,21 @@ def check_repo(root: Path) -> None:
 def build_fixture_repo(root: Path) -> None:
     manifest = {
         "lane_key": EXPECTED_LANE_KEY,
-        "phase": "Phase 11",
+        "phase": EXPECTED_PHASE,
         "surveyed_commit": FIXTURE_SURVEYED_COMMIT,
-        "gaps": [{"id": gap_id} for gap_id in sorted(REQUIRED_GAP_IDS)],
+        "anchor": EXPECTED_ANCHOR,
+        "roadmap_destinations": EXPECTED_ROADMAP_DESTINATIONS,
+        "survey_summary": EXPECTED_SURVEY_SUMMARY,
+        "gaps": [
+            {
+                "id": gap_id,
+                "status": spec["status"],
+                "kind": spec["kind"],
+                "zigux_destination": spec["zigux_destination"],
+                "why_now": f"fixture {spec['why_now_contains']}",
+            }
+            for gap_id, spec in REQUIRED_GAP_SPECS.items()
+        ],
     }
     write_text(
         root,
@@ -199,8 +280,22 @@ def run_self_test() -> int:
             "extern void notifier_hangup_irq(struct hvc_struct *hp, unsigned long data);",
             "hvc_header missing markers",
         )
+        expect_failure(
+            root,
+            "zigux/tests/phase11_uapi_header_parity_manifest.json",
+            '"winsize_layout_assert_present": true',
+            '"winsize_layout_assert_present": false',
+            "manifest survey_summary mismatch",
+        )
+        expect_failure(
+            root,
+            "zigux/tests/phase11_uapi_header_parity_manifest.json",
+            '"zigux_destination": "zigux/tests/phase11_uapi_header_parity_survey.zig"',
+            '"zigux_destination": "zigux/tests/phase11_uapi_header_packet_survey.zig"',
+            "zigux_destination mismatch",
+        )
     print("phase11-header-boundary-packet: self-test passed")
-    print("phase11-header-boundary-packet: self-test cases=4")
+    print("phase11-header-boundary-packet: self-test cases=6")
     return 0
 
 
