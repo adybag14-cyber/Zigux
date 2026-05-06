@@ -309,7 +309,6 @@ def run_self_test() -> int:
             raise SystemExit("phase10-input-self-test:expected_freeze_boundary_marker_missing")
         manifest_path.write_text(original_manifest, encoding="utf-8")
 
-        manifest_path.writeText if False else None
         manifest_path.write_text(
             original_manifest.replace(
                 '"risky_transport_posture": "blocked_on_risky_transport"',
@@ -398,6 +397,7 @@ def run_self_test() -> int:
         _, missing_markers = validate(tmp_root)
         if "tests_readme:phase10_virtio_input_status_drain.zig" not in missing_markers:
             raise SystemExit("phase10-input-self-test:expected_tests_readme_marker_missing")
+        tests_readme_path.write_text(original_tests_readme, encoding="utf-8")
 
     print("PHASE10_INPUT_PACKET_SELF_TEST=pass")
     print("PHASE10_INPUT_PACKET_SELF_TEST_CASE_COUNT=10")
