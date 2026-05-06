@@ -87,7 +87,16 @@ EXPECTED_SLICE_MARKERS = [
 
 EXPECTED_SURVEY_NOTE_MARKERS = [
     "PHASE10_STATUS=parked",
+    "PHASE10_FREEZE_MAP=Documentation/zigux/freeze-map.md",
+    "PHASE10_FREEZE_BOUNDARY_STATUS=aligned",
+    "PHASE10_FREEZE_STATUS_CHANGE_CLAIMED=false",
     "PHASE10_RISKY_TRANSPORT_POSTURE=blocked_on_risky_transport",
+    "PHASE10_ARCHITECTURE_COUNCIL_REOPEN_REQUIRED=true",
+    "PHASE10_ARCHITECTURE_COUNCIL_REOPEN_ATTACHED=false",
+    "Allowed evidence for this lane remains limited to driver-local lab slices, survey manifests, and shared validation gates.",
+    "Allowed roadmap destinations for bounded follow-on work in this blocked packet remain `drivers/virtio/*.zig` plus justified `zigux/kernel/` or `zigux/helpers/` support surfaces; this survey does not claim a wider transport-facing home.",
+    "Forbidden transport claims remain queue setup or reset paths, IRQ parity, DMA paths, input registration lifecycle, and probe or remove lifecycle behavior.",
+    "Any status review beyond this blocked-on-risky-transport packet still needs an Architecture Council reopen request with fresh linked evidence attached; this survey does not attach one.",
     "scripts/zigux/check-phase10-mmio-packet.py",
     "phase10-mmio-config-write-disposition-helper",
     "phase10-mmio-probe-preflight-helper",
@@ -180,7 +189,16 @@ test \"phase10 virtio mmio keeps status and config-generation bookkeeping inside
 - `zig build test --build-file zigux/tests/phase10_build.zig`
 """,
     "Documentation/zigux/phase10-virtio-mmio-survey.md": """- `PHASE10_STATUS=parked`
+- `PHASE10_FREEZE_MAP=Documentation/zigux/freeze-map.md`
+- `PHASE10_FREEZE_BOUNDARY_STATUS=aligned`
+- `PHASE10_FREEZE_STATUS_CHANGE_CLAIMED=false`
 - `PHASE10_RISKY_TRANSPORT_POSTURE=blocked_on_risky_transport`
+- `PHASE10_ARCHITECTURE_COUNCIL_REOPEN_REQUIRED=true`
+- `PHASE10_ARCHITECTURE_COUNCIL_REOPEN_ATTACHED=false`
+- Allowed evidence for this lane remains limited to driver-local lab slices, survey manifests, and shared validation gates.
+- Allowed roadmap destinations for bounded follow-on work in this blocked packet remain `drivers/virtio/*.zig` plus justified `zigux/kernel/` or `zigux/helpers/` support surfaces; this survey does not claim a wider transport-facing home.
+- Forbidden transport claims remain queue setup or reset paths, IRQ parity, DMA paths, input registration lifecycle, and probe or remove lifecycle behavior.
+- Any status review beyond this blocked-on-risky-transport packet still needs an Architecture Council reopen request with fresh linked evidence attached; this survey does not attach one.
 - `scripts/zigux/check-phase10-mmio-packet.py`
 - `phase10-mmio-config-write-disposition-helper`
 - `phase10-mmio-probe-preflight-helper`
@@ -544,9 +562,31 @@ def run_self_test() -> int:
         _, missing_markers = validate(tmp_root)
         if "survey_note:phase10-mmio-config-write-disposition-helper" not in missing_markers:
             raise SystemExit("phase10-mmio-self-test:expected_survey_marker_missing")
+        survey_path.write_text(original_survey, encoding="utf-8")
+
+        survey_path.write_text(
+            original_survey.replace("PHASE10_FREEZE_MAP=Documentation/zigux/freeze-map.md", "PHASE10_FREEZE_MAP=Documentation/zigux/freeze-drift.md", 1),
+            encoding="utf-8",
+        )
+        _, missing_markers = validate(tmp_root)
+        if "survey_note:PHASE10_FREEZE_MAP=Documentation/zigux/freeze-map.md" not in missing_markers:
+            raise SystemExit("phase10-mmio-self-test:expected_freeze_map_survey_marker_missing")
+        survey_path.write_text(original_survey, encoding="utf-8")
+
+        survey_path.write_text(
+            original_survey.replace(
+                "Allowed evidence for this lane remains limited to driver-local lab slices, survey manifests, and shared validation gates.",
+                "Allowed evidence for this lane remains limited to driver-local lab slices and survey manifests.",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        _, missing_markers = validate(tmp_root)
+        if "survey_note:Allowed evidence for this lane remains limited to driver-local lab slices, survey manifests, and shared validation gates." not in missing_markers:
+            raise SystemExit("phase10-mmio-self-test:expected_allowed_evidence_survey_marker_missing")
 
     print("PHASE10_MMIO_PACKET_SELF_TEST=pass")
-    print("PHASE10_MMIO_PACKET_SELF_TEST_CASE_COUNT=13")
+    print("PHASE10_MMIO_PACKET_SELF_TEST_CASE_COUNT=15")
     return 0
 
 
