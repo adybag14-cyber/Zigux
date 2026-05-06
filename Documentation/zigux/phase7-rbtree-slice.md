@@ -63,7 +63,7 @@ Current `master` still ships no `samples/zigux/*rbtree*` Phase 5 reference sampl
 6. keep the shared Linux-style replay route explicit
 - `make -C zigux phase7`
 
-This lane is parked after the bounded helper surface compiled cleanly, the focused module tests passed, the shared Phase 7 helper gate continued to import and exercise the live `rbtree` slice, the shared validator-first and Linux-style `make -C zigux phase7-validate` plus `make -C zigux phase7` routes stayed aligned around the same parked packet, and the committed parity fixture now locks ordered insert, duplicate-range lookup, replace, reverse traversal, and postorder behavior against the C helper surface. The committed parity fixture is already part of the parked packet, so this slice does not carry an open parity-fixture follow-up.
+This lane is parked after the bounded helper surface compiled cleanly, the focused module tests passed, the shared Phase 7 helper gate continued to import and exercise the live `rbtree` slice, the shared validator-first and Linux-style `make -C zigux phase7-validate` plus `make -C zigux phase7` routes stayed aligned around the same parked packet, and the committed parity fixture now locks ordered insert, duplicate-range lookup, erase-and-detach reset, replace, reverse traversal, and postorder behavior against the C helper surface. The committed parity fixture is already part of the parked packet, so this slice does not carry an open parity-fixture follow-up.
 
 ## Current parity surface
 
@@ -90,7 +90,7 @@ The current starter slice covers:
 
 The current tests check:
 
-- committed C-vs-Zig parity for ordered insert, reverse traversal, replace, duplicate-key lookup order, and postorder traversal
+- committed C-vs-Zig parity for ordered insert, reverse traversal, replace, duplicate-key lookup order, erase-and-detach ownership reset, and postorder traversal
 - ordered inserts and sorted forward traversal
 - reverse traversal via `last()` and `prev()`
 - duplicate-key lookup ranges via `findFirst()` and `nextMatch()`
