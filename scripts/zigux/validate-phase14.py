@@ -511,7 +511,7 @@ def run_self_test() -> int:
             return 1
         write_text(root / "zigux/tests/phase14_end_to_end_smoke_manifest.json", json.dumps(manifest, indent=2) + "\n")
         broken_checker = root / "scripts/zigux/check-phase14-docs-root-smoke-summary.py"
-        broken_checker.writeText(
+        broken_checker.write_text(
             "#!/usr/bin/env python3\n"
             f"\"\"\"{DOCS_ROOT_CHECKER_MARKER}\"\"\"\n"
             "import sys\n"
