@@ -37,7 +37,7 @@ The live repo now has a bounded `runtime_kretprobe` starter, dedicated module te
 - the live repo now ships `samples/zigux/runtime_kretprobe.zig`, `samples/zigux/runtime_kretprobe_loader.zig`, `zigux/tests/runtime_kretprobe_module.zig`, `zigux/tests/runtime_kretprobe_diff.zig`, `zigux/tests/runtime_kretprobe_survey.zig`, and the shared `zigux/tests/phase9_build.zig` coverage for this lane.
 - the landed loader scaffold keeps `register_kretprobe` and `unregister_kretprobe` explicit as metadata-only labels inside a pre-execution handoff plan, together with the retargeted symbol name and private-data size, rather than claiming live initcall or runtime registration behavior.
 - the loader handoff now refuses to prepare a shared request while an entry timestamp is still armed or a probe instance is still active, keeping the metadata-only registration snapshot idle before the shared runtime-loader request begins.
-- the shared runtime-loader packet is now live on `master`: `zigux/kernel/runtime_loader.zig`, `zigux/kernel/runtime_loader_contract.zig`, `zigux/tests/runtime_loader_allocator_init_flow.zig`, and `make -C zigux phase9` all keep selftest-hook parity on pending load plans, allocator handoff, init-flow counts, the release-without-substrate path, and shared request-surface proof explicit for the shipped four-pilot bundle.
+- the shared runtime-loader packet is now live on `master`: `zigux/kernel/runtime_loader.zig`, `zigux/kernel/runtime_loader_contract.zig`, `zigux/tests/runtime_loader_allocator_init_flow.zig`, the focused `zig build phase9-runtime-loader-shared-tests --build-file zigux/tests/phase9_build.zig` shard, and `make -C zigux phase9` all keep selftest-hook parity on pending load plans, allocator handoff, init-flow counts, the release-without-substrate path, and shared request-surface proof explicit for the shipped four-pilot bundle.
 - runtime substrate work is still missing, so the starter intentionally stops at bounded lifecycle, bookkeeping, metadata-only registration labels, idle registration snapshot checks, and loader-handoff behavior rather than claiming real module registration parity.
 
 ## Recorded gaps
@@ -56,10 +56,13 @@ This keeps the lane concrete without pretending that Zigux already has real `reg
 
 ## Gates
 
-1. run the dedicated Phase 9 survey gate
+1. run the focused shared runtime-loader shard
+- `zig build phase9-runtime-loader-shared-tests --build-file zigux/tests/phase9_build.zig`
+
+2. run the dedicated Phase 9 survey gate
 - `zig build test --build-file zigux/tests/phase9_build.zig`
 
-2. run the convenience target
+3. run the convenience target
 - `make -C zigux phase9`
 
 ## Non-goals
