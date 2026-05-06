@@ -216,8 +216,8 @@ pub const parity_cases = [_]ParityCase{
         .ascii = true,
         .expected_length = 57,
         .expected_text = .{
-            .little = "32be 7bdb 180a b293 ba70 24c4 837d 9b34        .2.{....p..$}.4.",
-            .big = "be32 db7b 0a18 93b2 70ba c424 7d83 349b        .2.{....p..$}.4.",
+            .little = "32be 7bdb 180a b293 ba70 24c4 837d 9b34  .2.{....p..$}.4.",
+            .big = "be32 db7b 0a18 93b2 70ba c424 7d83 349b  .2.{....p..$}.4.",
         },
     },
     .{
@@ -447,6 +447,7 @@ pub const perf_cases = [_]PerfCase{
         .max_slowdown_pct = 600,
     },
 };
+
 
 test "phase 6 hexdump perf fixture packet stays bounded to the documented matrix" {
     const expected = [_]PerfCase{
