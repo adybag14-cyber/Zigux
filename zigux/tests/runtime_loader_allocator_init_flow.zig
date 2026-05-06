@@ -155,11 +155,13 @@ test "phase 9 runtime loader allocator/init-flow replay covers all shipped runti
         var request = try runtime_loader.prepareRequest(plan);
         const pending_plan = try request.requestRuntimeLoad();
         try expectExactLoadPlanParity(plan, pending_plan);
+        try std.testing.expect(runtime_loader.keepsSelftestHookEvidenceConsistent(plan));
         try std.testing.expect(runtime_loader.keepsAllocatorInitFlowConsistent(
             pending_plan,
             plan.allocator_handoff,
             plan.init_flow,
         ));
+        try std.testing.expect(runtime_loader.keepsSelftestHookEvidenceConsistent(pending_plan));
         try request.releaseWithoutSubstrate();
     }
 }
@@ -194,6 +196,48 @@ test "phase 9 runtime loader allocator/init-flow replay rejects exited or incomp
         },
     );
     try std.testing.expectError(error.InvalidInitFlow, runtime_loader.prepareRequest(incomplete_plan));
+}
+
+test "phase 9 runtime loader allocator/init-flow replay rejects selftest-hook evidence drift" {
+    var missing_hook_after_selftest = makePlan(
+        "runtime_trace_events",
+        "samples/trace_events/trace-events-sample.c",
+        "zigux_runtime_trace_events_init",
+        "zigux_runtime_trace_events_exit",
+        .caller_provided,
+        .{
+            .handoff_stage = .selftest_complete,
+            .init_runs = 1,
+            .selftest_runs = 1,
+            .exit_runs = 0,
+        },
+    );
+    missing_hook_after_selftest.provides_selftest_hook = false;
+    try std.testing.expect(!runtime_loader.keepsSelftestHookEvidenceConsistent(missing_hook_after_selftest));
+    try std.testing.expectError(
+        error.InvalidSelftestHookEvidence,
+        runtime_loader.prepareRequest(missing_hook_after_selftest),
+    );
+
+    var selftest_runs_without_hook = makePlan(
+        "runtime_bitmap",
+        "lib/test_bitmap.c",
+        "zigux_runtime_bitmap_init",
+        "zigux_runtime_bitmap_exit",
+        .arena,
+        .{
+            .handoff_stage = .initialized,
+            .init_runs = 1,
+            .selftest_runs = 1,
+            .exit_runs = 0,
+        },
+    );
+    selftest_runs_without_hook.provides_selftest_hook = false;
+    try std.testing.expect(!runtime_loader.keepsSelftestHookEvidenceConsistent(selftest_runs_without_hook));
+    try std.testing.expectError(
+        error.InvalidSelftestHookEvidence,
+        runtime_loader.prepareRequest(selftest_runs_without_hook),
+    );
 }
 
 test "phase 9 runtime loader allocator/init-flow replay rejects stale loader state transitions" {
