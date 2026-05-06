@@ -405,7 +405,7 @@ def validate_root(root: Path) -> list[str]:
             [sys.executable, str(root / "scripts" / "zigux" / "check-phase2-tests-readme-alignment.py"), "--self-test"],
             [
                 "PHASE2_TESTS_README_ALIGNMENT_SELF_TEST=pass",
-                "PHASE2_TESTS_README_ALIGNMENT_SELF_TEST_CASE_COUNT=16",
+                "PHASE2_TESTS_README_ALIGNMENT_SELF_TEST_CASE_COUNT=25",
             ],
         )
     )
@@ -496,68 +496,35 @@ def write_text(path: Path, content: str) -> None:
 
 
 def write_stub_guard(path: Path, *, self_test_marker: str, live_markers: list[str]) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
     lines = [
         "#!/usr/bin/env python3",
         "import sys",
         "if '--self-test' in sys.argv:",
-        f"    print({self_test_marker!r})",
-        "else:",
     ]
+    for line in self_test_marker.split("\n"):
+        lines.append(f"    print({line!r})")
+    lines.extend(
+        [
+            "else:",
+        ]
+    )
     for marker in live_markers:
         lines.append(f"    print({marker!r})")
-    write_text(path, "\n".join(lines) + "\n")
+    lines.append("")
+    path.write_text("\n".join(lines), encoding="utf-8")
 
 
 def build_script_readme_text() -> str:
-    return "\n".join(
-        [
-            "check-zig-toolchain.py",
-            "install-zig.py",
-            "check-phase2-tests-readme-alignment.py",
-            "check-phase2-cross-selftest-alignment.py",
-            "check-phase2-toolchain-pin-scope.py",
-            "validate-phase2.py",
-            "validate-phase2-closure.py",
-            "check-fixdep-diff.py",
-            "check-genksyms-bridge.py",
-            "check-genksyms-crc-diff.py",
-            "check-kconfig-bridge.py",
-            "check-phase2-cross.py",
-            "check-mk-elfconfig-diff.py",
-            "genksyms.zig",
-            "genksyms_crc.zig",
-            "kconfig/conf_bridge.zig",
-            "kconfig/confdata_bridge.zig",
-            "mk_elfconfig.zig",
-            "- `check-kconfig-bridge.py`",
-            "- `check-phase2-tests-readme-alignment.py`",
-            "- `check-phase2-cross-selftest-alignment.py`",
-            "- `check-phase2-toolchain-pin-scope.py`",
-            "- `check-phase2-cross.py`",
-            "- `check-mk-elfconfig-diff.py`",
-        ]
-    ) + "\n"
+    return "\n".join(REQUIRED_SCRIPT_MARKERS) + "\n\n" + REQUIRED_SCRIPT_HELPER_INDEX_MARKERS[0] + "\n"
 
 
 def build_self_test_root(root: Path) -> None:
     base_files = [
         "scripts/zigux/fixdep.zig",
-        "scripts/zigux/check-fixdep-diff.py",
         "scripts/zigux/genksyms.zig",
-        "scripts/zigux/check-genksyms-bridge.py",
-        "scripts/zigux/check-phase2-genksyms-bridge-selftest-alignment.py",
         "scripts/zigux/genksyms_crc.zig",
-        "scripts/zigux/check-genksyms-crc-diff.py",
-        "scripts/zigux/check-kconfig-bridge.py",
-        "scripts/zigux/check-phase2-cross.py",
-        "scripts/zigux/check-phase2-cross-selftest-alignment.py",
-        "scripts/zigux/check-phase2-kconfig-selftest-alignment.py",
-        "scripts/zigux/check-phase2-tests-readme-alignment.py",
-        "scripts/zigux/check-phase2-toolchain-pin-scope.py",
-        "scripts/zigux/check-zig-toolchain.py",
-        "scripts/zigux/install-zig.py",
         "scripts/zigux/mk_elfconfig.zig",
-        "scripts/zigux/check-mk-elfconfig-diff.py",
         "scripts/zigux/kconfig/conf_bridge.zig",
         "scripts/zigux/kconfig/confdata_bridge.zig",
         "Documentation/zigux/README.md",
@@ -570,7 +537,6 @@ def build_self_test_root(root: Path) -> None:
         "scripts/zigux/validate-phase2.py",
         "scripts/zigux/validate-phase2-closure.py",
         "scripts/zigux/zig-toolchain-policy.json",
-        "zigux/tests/fixtures/phase2_tool_manifest.json",
         "zigux/tests/fixtures/phase2_cross_targets.json",
         "zigux/tests/fixtures/fixdep/cases.json",
         "zigux/tests/fixtures/fixdep/sample.d",
@@ -628,7 +594,7 @@ def build_self_test_root(root: Path) -> None:
     write_stub_guard(root / "scripts/zigux/check-fixdep-diff.py", self_test_marker="FIXDEP_DIFF_SELF_TEST=pass\nFIXDEP_DIFF_SELF_TEST_CASE_COUNT=4", live_markers=["FIXDEP_DIFF=pass", "FIXDEP_DETERMINISM=pass"])
     write_stub_guard(root / "scripts/zigux/check-genksyms-bridge.py", self_test_marker="GENKSYMS_BRIDGE_SELF_TEST=pass\nGENKSYMS_BRIDGE_SELF_TEST_CASE_COUNT=6", live_markers=["GENKSYMS_BRIDGE_DIFF=pass"])
     write_stub_guard(root / "scripts/zigux/check-phase2-genksyms-bridge-selftest-alignment.py", self_test_marker="PHASE2_GENKSYMS_BRIDGE_SELFTEST_ALIGNMENT_SELF_TEST=pass\nPHASE2_GENKSYMS_BRIDGE_SELFTEST_ALIGNMENT_SELF_TEST_CASE_COUNT=4", live_markers=["PHASE2_GENKSYMS_BRIDGE_SELFTEST_ALIGNMENT=pass"])
-    write_stub_guard(root / "scripts/zigux/check-phase2-tests-readme-alignment.py", self_test_marker="PHASE2_TESTS_README_ALIGNMENT_SELF_TEST=pass\nPHASE2_TESTS_README_ALIGNMENT_SELF_TEST_CASE_COUNT=16", live_markers=["PHASE2_TESTS_README_ALIGNMENT=pass", "PHASE2_TESTS_README_ALIGNMENT_MARKER_COUNT=1"])
+    write_stub_guard(root / "scripts/zigux/check-phase2-tests-readme-alignment.py", self_test_marker="PHASE2_TESTS_README_ALIGNMENT_SELF_TEST=pass\nPHASE2_TESTS_README_ALIGNMENT_SELF_TEST_CASE_COUNT=25", live_markers=["PHASE2_TESTS_README_ALIGNMENT=pass", "PHASE2_TESTS_README_ALIGNMENT_MARKER_COUNT=1"])
     write_stub_guard(root / "scripts/zigux/check-phase2-cross-selftest-alignment.py", self_test_marker="PHASE2_CROSS_SELFTEST_ALIGNMENT_SELF_TEST=pass", live_markers=["PHASE2_CROSS_SELFTEST_ALIGNMENT=pass"])
     write_stub_guard(root / "scripts/zigux/check-phase2-toolchain-pin-scope.py", self_test_marker="PHASE2_TOOLCHAIN_PIN_SCOPE_SELF_TEST=pass\nPHASE2_TOOLCHAIN_PIN_SCOPE_SELF_TEST_CASE_COUNT=31", live_markers=["PHASE2_TOOLCHAIN_PIN_SCOPE=pass"])
     write_stub_guard(root / "scripts/zigux/check-phase2-kconfig-selftest-alignment.py", self_test_marker="PHASE2_KCONFIG_ALIGNMENT_SELF_TEST=pass\nPHASE2_KCONFIG_ALIGNMENT_SELF_TEST_CASE_COUNT=8", live_markers=["PHASE2_KCONFIG_ALIGNMENT=pass"])
