@@ -124,6 +124,14 @@ EXACT_MAKEFILE_RUN_COUNTS = {
     "scripts/zigux/check-phase2-toolchain-pin-scope.py": 1,
 }
 
+TOOLCHAIN_TARGET_NAME = "phase2-toolchain"
+PHASE2_VALIDATE_TARGET_NAME = "phase2-validate"
+TOOLCHAIN_TARGET_REQUIRED_LINES = [
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-zig-toolchain.py",
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test",
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-toolchain-pin-scope.py",
+]
+
 
 def reject_duplicate_json_keys(pairs: list[tuple[str, object]]) -> dict[str, object]:
     payload: dict[str, object] = {}
@@ -275,6 +283,50 @@ def validate_exact_makefile_runs(text: str) -> list[str]:
     return issues
 
 
+def extract_makefile_target_lines(text: str, target_name: str) -> list[str] | None:
+    target_header = f"{target_name}:"
+    lines = text.splitlines()
+    for index, line in enumerate(lines):
+        if line.startswith(target_header):
+            target_lines: list[str] = []
+            for following in lines[index + 1 :]:
+                if following.startswith("\t"):
+                    target_lines.append(following.strip())
+                    continue
+                if not following.strip():
+                    continue
+                break
+            return target_lines
+    return None
+
+
+def validate_toolchain_target_scope(text: str) -> list[str]:
+    issues: list[str] = []
+    toolchain_lines = extract_makefile_target_lines(text, TOOLCHAIN_TARGET_NAME)
+    if toolchain_lines is None:
+        issues.append(f"makefile_target_missing:{TOOLCHAIN_TARGET_NAME}")
+    elif toolchain_lines != TOOLCHAIN_TARGET_REQUIRED_LINES:
+        issues.append(
+            "makefile_target_scope:"
+            f"{TOOLCHAIN_TARGET_NAME}:actual={toolchain_lines!r}:"
+            f"expected={TOOLCHAIN_TARGET_REQUIRED_LINES!r}"
+        )
+
+    validate_lines = extract_makefile_target_lines(text, PHASE2_VALIDATE_TARGET_NAME)
+    if validate_lines is None:
+        issues.append(f"makefile_target_missing:{PHASE2_VALIDATE_TARGET_NAME}")
+    else:
+        forbidden = [
+            line for line in validate_lines if line in TOOLCHAIN_TARGET_REQUIRED_LINES
+        ]
+        if forbidden:
+            issues.append(
+                "makefile_target_scope:"
+                f"{PHASE2_VALIDATE_TARGET_NAME}:unexpected_toolchain_lines={forbidden!r}"
+            )
+    return issues
+
+
 def run_self_test() -> int:
     valid_policy = {
         "phase": "Phase 2",
@@ -360,10 +412,10 @@ def run_self_test() -> int:
     valid_makefile = "\n".join(
         [
             "phase2-toolchain:",
+            "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-zig-toolchain.py",
+            "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test",
+            "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-toolchain-pin-scope.py",
             "phase2-validate: phase2-toolchain",
-            "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-zig-toolchain.py",
-            "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test",
-            "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-toolchain-pin-scope.py",
             "phase2: phase2-validate phase2-tools phase2-kconfig phase2-cross",
         ]
     )
@@ -375,6 +427,8 @@ def run_self_test() -> int:
         raise SystemExit("phase2-toolchain-pin-scope:self-test:valid_makefile")
     if validate_exact_makefile_runs(valid_makefile):
         raise SystemExit("phase2-toolchain-pin-scope:self-test:valid_makefile_counts")
+    if validate_toolchain_target_scope(valid_makefile):
+        raise SystemExit("phase2-toolchain-pin-scope:self-test:valid_makefile_scope")
 
     bad_phase = dict(valid_policy)
     bad_phase["phase"] = "Phase 3"
@@ -579,6 +633,28 @@ def run_self_test() -> int:
     if "makefile_exact_run:scripts/zigux/check-phase2-toolchain-pin-scope.py:count=2:expected=1" not in makefile_count_issues:
         raise SystemExit("phase2-toolchain-pin-scope:self-test:makefile_gate_count_mismatch")
 
+    misplaced_toolchain_scope = "\n".join(
+        [
+            "phase2-toolchain:",
+            "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-zig-toolchain.py",
+            "phase2-validate: phase2-toolchain",
+            "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test",
+            "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-toolchain-pin-scope.py",
+            "phase2: phase2-validate phase2-tools phase2-kconfig phase2-cross",
+        ]
+    )
+    scope_issues = validate_toolchain_target_scope(misplaced_toolchain_scope)
+    if (
+        "makefile_target_scope:phase2-toolchain:actual=['cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-zig-toolchain.py']:expected=['cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-zig-toolchain.py', 'cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test', 'cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-toolchain-pin-scope.py']"
+        not in scope_issues
+    ):
+        raise SystemExit("phase2-toolchain-pin-scope:self-test:toolchain_scope_missing")
+    if (
+        "makefile_target_scope:phase2-validate:unexpected_toolchain_lines=['cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test', 'cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-toolchain-pin-scope.py']"
+        not in scope_issues
+    ):
+        raise SystemExit("phase2-toolchain-pin-scope:self-test:validate_scope_leak")
+
     with tempfile.TemporaryDirectory(prefix="phase2_toolchain_pin_scope_") as tmp_dir_str:
         tmp_root = Path(tmp_dir_str)
         manifest_path = tmp_root / "toolchain.json"
@@ -718,6 +794,7 @@ def main() -> int:
         )
     )
     issues.extend(validate_exact_makefile_runs(makefile_text))
+    issues.extend(validate_toolchain_target_scope(makefile_text))
     issues.extend(validate_exact_workflow_runs(WORKFLOW.read_text(encoding="utf-8"), payload=policy_payload))
 
     if issues:
