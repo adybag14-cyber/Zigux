@@ -191,6 +191,37 @@ test "phase 15 indefinite-C policy doc and linked artifacts keep exception and b
         "if a freeze-map anchor is closing review with a stay-in-C outcome, are the retained discussion state, the current blocker, and reopen triggers explicit?",
         "if the target stays in C, does the change record that ongoing policy honestly",
     });
+
+    try expectContains(io_instance.io(), "Documentation/zigux/README.md", &.{
+        "Phase 15 notes",
+        "`Documentation/zigux/phase15-indefinite-c-policy.md`",
+        "`zigux/tests/phase15_indefinite_c_policy.json`",
+        "`zigux/tests/phase15_indefinite_c_policy.zig`",
+        "`zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig`",
+        "`make -C zigux phase15-validate`",
+        "`make -C zigux phase15`",
+        "no Architecture Council approval is recorded yet",
+    });
+
+    try expectContains(io_instance.io(), "scripts/zigux/README.md", &.{
+        "Phase 15 flow",
+        "phase15-indefinite-c-policy.md",
+        "phase15_indefinite_c_policy.json",
+        "phase15_indefinite_c_policy.zig",
+        "phase15_indefinite_c_lane_owner_alignment.zig",
+        "make -C zigux phase15",
+    });
+
+    try expectContains(io_instance.io(), "zigux/tests/README.md", &.{
+        "keep the parked Phase 15 governance packet explicit in the tests root too",
+        "Documentation/zigux/phase15-indefinite-c-policy.md",
+        "zigux/tests/phase15_indefinite_c_policy.json",
+        "zigux/tests/phase15_indefinite_c_policy.zig",
+        "zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig",
+        "make -C zigux phase15-validate",
+        "make -C zigux phase15",
+        "without implying any Architecture Council approval for a freeze-map status change",
+    });
 }
 
 test "phase 15 indefinite-C evidence archives and build wiring stay aligned with the policy slice" {
