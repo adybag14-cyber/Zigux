@@ -22,6 +22,13 @@ This document tracks the first bounded Phase 9 runtime kretprobe starter under `
   - `zigux/tests/phase9_build.zig`
   - `zigux/Makefile`
 
+## Why this slice exists
+
+The Phase 9 roadmap explicitly names `samples/kprobes/kretprobe_example.c` as a runtime pilot anchor and recommends `zigux/tests/runtime_*` plus `samples/zigux/runtime_*` as the bounded Zigux destinations.
+
+The live repo already carries the bounded runtime kretprobe starter, but this Phase 9 runtime pair stays separate from the already-approved non-runtime Phase 5 reference-sample packet: `samples/zigux/runtime_kretprobe.zig` and `samples/zigux/runtime_kretprobe_loader.zig` remain the separate runtime family rooted in `samples/kprobes/kretprobe_example.c`, not a second owner for the approved non-runtime `samples/zigux/kretprobe_example.zig` cue under `Documentation/zigux/phase5-kretprobe-sample-survey.md`.
+The shared sample-root catalog at `samples/zigux/README.md` keeps the approved Phase 5 anchor explicit through `samples/zigux/kretprobe_example.zig` while listing the runtime kretprobe pair only under the separate Phase 9 runtime pilot family.
+
 ## Landed starter surface
 
 - a bounded `runtime_kretprobe_loader` scaffold that keeps the planned `register_kretprobe()` and `unregister_kretprobe()` labels, entry or exit symbol naming, private-data size, idle registration snapshot, and failed-exit state retention explicit while the real runtime substrate is still unavailable.
