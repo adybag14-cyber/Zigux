@@ -133,6 +133,11 @@
       "name": "uppercase_tristate",
       "input": "uppercase_tristate.config",
       "expected": "uppercase_tristate_expected.json"
+    },
+    {
+      "name": "non_config_lines",
+      "input": "non_config_lines.config",
+      "expected": "non_config_lines_expected.json"
     }
   ]
 }
