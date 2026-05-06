@@ -98,8 +98,9 @@ test "phase10 virtio input survey manifest records the live starter and remainin
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "drivers/virtio/virtio.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "drivers/virtio/virtio_ring.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "drivers/virtio/virtio_mmio.zig") != null);
-    try std.testing.expectEqual(@as(usize, 2), manifest.roadmap_destinations.len);
+    try std.testing.expectEqual(@as(usize, 3), manifest.roadmap_destinations.len);
     try std.testing.expect(containsString(manifest.roadmap_destinations, "drivers/virtio/*.zig"));
+    try std.testing.expect(containsString(manifest.roadmap_destinations, "zigux/kernel/"));
     try std.testing.expect(containsString(manifest.roadmap_destinations, "zigux/helpers/"));
     try std.testing.expectEqualStrings("Documentation/zigux/freeze-map.md", manifest.freeze_map);
     try std.testing.expectEqualStrings("aligned", manifest.freeze_boundary_status);
