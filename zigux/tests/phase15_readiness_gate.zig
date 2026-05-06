@@ -167,6 +167,14 @@ test "phase 15 readiness note keeps the roadmap, ledger, and current blocker inv
     );
     defer std.testing.allocator.free(workflow);
 
+    const docs_root = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "Documentation/zigux/README.md",
+        std.testing.allocator,
+        .limited(80 * 1024),
+    );
+    defer std.testing.allocator.free(docs_root);
+
     try std.testing.expect(std.mem.indexOf(u8, readiness_note, "## Roadmap Versus Ledger") != null);
     try std.testing.expect(std.mem.indexOf(u8, readiness_note, "## Current Repo Readiness") != null);
     try std.testing.expect(std.mem.indexOf(u8, readiness_note, "## Current Deep-Core Blockers") != null);
@@ -178,6 +186,7 @@ test "phase 15 readiness note keeps the roadmap, ledger, and current blocker inv
     try std.testing.expect(std.mem.indexOf(u8, readiness_note, "phase15-validate` checker stack") != null);
     try std.testing.expect(std.mem.indexOf(u8, readiness_note, "maintenance-mode ready") != null);
     try std.testing.expect(std.mem.indexOf(u8, readiness_note, "phase15-handoff-next-steps-survey.md") != null);
+    try std.testing.expect(std.mem.indexOf(u8, docs_root, "Documentation/zigux/phase15-readiness-gate-survey.md") != null);
     try std.testing.expect(std.mem.indexOf(u8, readiness_note, "check-phase15-scripts-readme-alignment.py") != null);
     try std.testing.expect(std.mem.indexOf(u8, readiness_note, "check-phase15-review-process-handoff.py") != null);
     try std.testing.expect(std.mem.indexOf(u8, readiness_note, "blocked_no_bounded_scheduler_seam") != null);
