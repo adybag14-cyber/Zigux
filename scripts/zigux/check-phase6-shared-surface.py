@@ -62,6 +62,12 @@ REQUIRED_SNIPPETS = {
         'const hexdump_perf_step = b.step("phase6-hexdump-perf", "Run Phase 6 hexdump perf gate");',
     ],
     "zigux/tests/phase6_base64.zig": [
+        'const fixtures = @import("fixtures/phase6_base64_vectors.zig");',
+        'for (fixtures.standard_cases) |case| {',
+        'for (fixtures.variant_cases) |case| {',
+        'for (fixtures.standard_decode_cases) |case| {',
+        'for (fixtures.invalid_decode_cases) |case| {',
+        'for (fixtures.variant_decode_cases) |case| {',
         'test "phase 6 base64 chars reports exact padded and unpadded lengths"',
         'test "phase 6 base64 bytes reports exact decoded lengths for kernel-aligned vectors"',
         'test "phase 6 base64 standard encode parity matches kernel vectors"',
