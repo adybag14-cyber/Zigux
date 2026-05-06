@@ -38,6 +38,26 @@ fn expectRuntimeCaseGroupCardinality(
     try std.testing.expectEqual(expected_case_count, countOccurrences(section, ".name = "));
 }
 
+fn expectOrderedMarkersInSection(
+    haystack: []const u8,
+    section_header: []const u8,
+    section_footer: []const u8,
+    expected_markers: []const []const u8,
+) !void {
+    const section_start = std.mem.indexOf(u8, haystack, section_header) orelse
+        return error.MissingOrderedMarkerSectionHeader;
+    const section_end = std.mem.indexOfPos(u8, haystack, section_start, section_footer) orelse
+        return error.MissingOrderedMarkerSectionFooter;
+    const section = haystack[section_start..section_end];
+
+    var cursor: usize = 0;
+    for (expected_markers) |marker| {
+        const offset = std.mem.indexOfPos(u8, section, cursor, marker) orelse
+            return error.MissingOrderedSectionMarker;
+        cursor = offset + marker.len;
+    }
+}
+
 fn atomic64MatrixSection() ![]const u8 {
     const section_start = std.mem.indexOf(
         u8,
@@ -191,6 +211,59 @@ test "atomic64 diff wrapper keeps the phase4 replay routes measurable" {
     try expectAtomic64MatrixMarkerCount(
         "`zig build phase4-runtime-atomic64-diff --build-file zigux/tests/phase4_build.zig`",
         1,
+    );
+}
+
+test "atomic64 diff wrapper records the exact bounded runtime case names" {
+    try expectOrderedMarkersInSection(
+        runtime_atomic64_diff_source,
+        "const cases = [_]DiffCase{",
+        "for (cases) |case| {",
+        &.{
+            ".name = \"v0 to v1 keeps the original counter visible as the exchange return value\"",
+            ".name = \"v1 to v2 keeps wide negative and positive 64-bit values distinct\"",
+            ".name = \"high-bit starter from atomic64_test.c still round-trips through exchange\"",
+        },
+    );
+    try expectOrderedMarkersInSection(
+        runtime_atomic64_diff_source,
+        "const compare_swap_cases = [_]CompareSwapCase{",
+        "for (compare_swap_cases) |case| {",
+        &.{
+            ".name = \"cmpxchg success path stores the desired value when the expected value matches\"",
+            ".name = \"cmpxchg mismatch keeps the original value visible\"",
+        },
+    );
+    try expectOrderedMarkersInSection(
+        runtime_atomic64_diff_source,
+        "const add_unless_cases = [_]AddUnlessCase{",
+        "for (add_unless_cases) |case| {",
+        &.{
+            ".name = \"add_unless leaves the counter untouched when it already matches the blocked value\"",
+            ".name = \"add_unless applies the addend when the current value differs from the blocked value\"",
+        },
+    );
+    try expectOrderedMarkersInSection(
+        runtime_atomic64_diff_source,
+        "const bitwise_cases = [_]BitwiseCase{",
+        "for (bitwise_cases) |case| {",
+        &.{
+            ".name = \"and preserves only the masked bits from an all-ones starter\"",
+            ".name = \"or lifts high and low flags into the running counter\"",
+            ".name = \"xor toggles separated flag groups without losing the wide value shape\"",
+        },
+    );
+    try expectOrderedMarkersInSection(
+        runtime_atomic64_diff_source,
+        "test \"runtime atomic64 diff gate keeps selftest family coverage explicit\" {",
+        "try module.exit();",
+        &.{
+            "summary.operation_families[0]",
+            "summary.operation_families[1]",
+            "summary.operation_families[2]",
+            "summary.operation_families[3]",
+            "summary.operation_families[4]",
+        },
     );
 }
 
