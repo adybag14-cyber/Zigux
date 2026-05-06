@@ -5,9 +5,9 @@ This document records the bounded Phase 15 handoff lane for surveying the remain
 ## Status
 
 - `PHASE15_LANE_KEY=P15-Y08`
-- `PHASE15_STATUS=handoff_shared_build_replay_landed`
+- `PHASE15_STATUS=docs_root_handoff_pointer_landed`
 - `PHASE15_SLICE=phase-handoff-and-next-bound-synthesis`
-- survey provenance refreshed against current `master` commit `3b2f945` observed on May 5, 2026
+- survey provenance refreshed against current `master` commit `ac2a87b` observed on May 6, 2026
 
 ## Roadmap Versus Ledger
 
@@ -24,13 +24,9 @@ This document records the bounded Phase 15 handoff lane for surveying the remain
 - the shared governance packet is present through the freeze map, review-process note, parity scorecard, indefinite-C policy, docs root, workflow, and `make -C zigux phase15`
 - this dedicated handoff note, its manifest, and its focused Zig guard are now wired into the shared `zigux/tests/phase15_build.zig` replay so the parked next-step synthesis remains reviewable as a bounded packet
 - the dedicated shared-build handoff replay gap is now closed on current `master`
-- the docs-root pointer back to this handoff packet is still missing from current `Documentation/zigux/README.md`
+- the docs-root pointer back to this handoff packet is now present in current `Documentation/zigux/README.md`
 
 ## Open Handoff Gaps
-
-### Docs-Root Pointer Gap
-
-- `phase15-docs-root-handoff-pointer-gap`: the current docs root still does not point back to this dedicated handoff packet
 
 ### Deep-Core Status Changes Still Blocked
 
@@ -38,8 +34,7 @@ This document records the bounded Phase 15 handoff lane for surveying the remain
 
 ## Pending Next Steps
 
-1. if the docs-root continuity lane reopens, add the missing `Documentation/zigux/phase15-handoff-next-steps-survey.md` pointer to `Documentation/zigux/README.md`
-2. otherwise keep this handoff lane parked unless the packet drifts again or the deep-core blocker posture changes
+1. keep this handoff lane parked unless the packet drifts again or the deep-core blocker posture changes
 
 ## Gates
 
