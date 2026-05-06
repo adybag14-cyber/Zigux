@@ -36,6 +36,7 @@ Shared smoke boundary:
 - `Documentation/zigux/review-checklist.md`
 - `scripts/zigux/README.md`
 - `scripts/zigux/validate-phase14.py`
+- `scripts/zigux/check-phase14-docs-root-smoke-summary.py`
 - `scripts/zigux/check-phase14-rollback-threshold-sequencing.py`
 - `scripts/zigux/check-phase14-release-boundary-exact-counts.py`
 - `zigux/tests/README.md`
@@ -96,7 +97,8 @@ Anchor packets in the current smoke bundle:
 
 ## Shared Smoke Findings
 
-- `zigux/Makefile`, `scripts/zigux/validate-phase14.py`, `scripts/zigux/check-phase14-rollback-threshold-sequencing.py`, `scripts/zigux/check-phase14-release-boundary-exact-counts.py`, and this smoke note align on the shipped validator, focused smoke shard, shared full-bundle replay, and convenience wrapper for the current study-only packet.
+- `zigux/Makefile`, `scripts/zigux/validate-phase14.py`, `scripts/zigux/check-phase14-docs-root-smoke-summary.py`, `scripts/zigux/check-phase14-rollback-threshold-sequencing.py`, `scripts/zigux/check-phase14-release-boundary-exact-counts.py`, and this smoke note align on the shipped validator, focused smoke shard, shared full-bundle replay, and convenience wrapper for the current study-only packet.
+- `scripts/zigux/check-phase14-docs-root-smoke-summary.py` now also keeps this shared smoke note and the manifest-backed packet inventory tied to the shipped `phase14-validate` route instead of leaving the docs-root smoke-summary checker implicit in `zigux/Makefile` alone.
 - `Documentation/zigux/phase14-core-boundary-traceability.md` keeps the current ring-buffer, skbuff, and RCU lane keys, surveyed commits, ready-next posture, blocked gaps, and stay-in-C decisions visible in one cross-anchor note instead of leaving that boundary evidence to separate lane notes or run memory alone.
 - `zigux/tests/phase14_build.zig` keeps one dedicated smoke shard for `phase14-end-to-end-smoke-tests`, while the four anchor-local artifacts remain `full_bundle_only` under the broader Phase 14 test replay.
 - `Documentation/zigux/freeze-map.md` still names the same four anchors, so the packet stays grounded in stay-in-C and blocked-evidence posture instead of drifting toward an implementation claim.
