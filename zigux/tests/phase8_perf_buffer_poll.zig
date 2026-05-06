@@ -34,6 +34,8 @@ test "phase 8 perf-buffer poll docs keep the bounded wait-result helper explicit
     try expectContains(note, "first failing ready buffer");
     try expectContains(note, "successful ready count");
     try expectContains(note, "first processing failure");
+    try expectContains(note, "buffer-window lookup plus return shaping");
+    try expectContains(note, "valid buffer windows, invalid indices, and missing buffers");
     try expectContains(note, "ready-buffer processing attempts cannot exceed observed ready events");
     try expectContains(note, "non-ready wait observations cannot claim record processing");
     try expectContains(note, "reject impossible post-wait buffer state combinations");
@@ -163,6 +165,38 @@ test "phase 8 perf-buffer poll helper keeps execution bookkeeping aligned with t
     try std.testing.expectEqual(@as(usize, 4), summary.processed_record_count);
     try std.testing.expectEqual(@as(?usize, 1), summary.first_process_error_index);
     try std.testing.expectEqual(@as(?i32, -11), summary.first_process_error);
+}
+
+test "phase 8 perf-buffer poll helper keeps buffer-window lookup and return shaping explicit" {
+    const buffers = [_]perf_buffer_poll.BufferWindowObservation{
+        .{ .base_token = 0x1000 },
+        .{},
+        .{ .base_token = 0x2000 },
+    };
+
+    const success = perf_buffer_poll.resolveBufferWindowResultFromSlots(&buffers, 2, 8192);
+    try std.testing.expectEqual(perf_buffer_poll.BufferWindowDisposition.buffer_window, success.disposition);
+    try std.testing.expectEqual(@as(i32, 0), success.return_value);
+    try std.testing.expectEqual(@as(?perf_buffer_poll.BufferWindow, .{
+        .base_token = 0x2000,
+        .mmap_size = 8192,
+    }), success.window);
+
+    const missing = perf_buffer_poll.resolveBufferWindowResultFromSlots(&buffers, 1, 8192);
+    try std.testing.expectEqual(perf_buffer_poll.BufferWindowDisposition.missing_buffer, missing.disposition);
+    try std.testing.expectEqual(
+        -@as(i32, @intFromEnum(std.os.linux.E.NOENT)),
+        missing.return_value,
+    );
+    try std.testing.expectEqual(@as(?perf_buffer_poll.BufferWindow, null), missing.window);
+
+    const invalid = perf_buffer_poll.resolveBufferWindowResultFromSlots(&buffers, 4, 8192);
+    try std.testing.expectEqual(perf_buffer_poll.BufferWindowDisposition.invalid_index, invalid.disposition);
+    try std.testing.expectEqual(
+        -@as(i32, @intFromEnum(std.os.linux.E.INVAL)),
+        invalid.return_value,
+    );
+    try std.testing.expectEqual(@as(?perf_buffer_poll.BufferWindow, null), invalid.window);
 }
 
 test "phase 8 perf-buffer poll helper keeps the final return-path choice explicit" {
