@@ -288,3 +288,48 @@ test "phase11 gpio_wdt registration handoff summary records startup state, stop 
     try std.testing.expect(dormant_handoff.module_owner_attached);
     try std.testing.expectEqualStrings("GPIO Watchdog", dormant_handoff.identity);
 }
+
+test "phase11 gpio_wdt register-device call summary keeps watchdog-core handoff reviewable" {
+    var prestarted_watchdog = try gpio_wdt.GpioWatchdogLab.init(.toggle, 20, true);
+    const prestarted_call = prestarted_watchdog.registerDeviceCallSummary(true);
+    try std.testing.expectEqualStrings("devm_watchdog_register_device", prestarted_call.register_call);
+    try std.testing.expectEqual(gpio_wdt.HardwareAlgorithm.toggle, prestarted_call.hw_algo);
+    try std.testing.expectEqual(gpio_wdt.ProbeLineRequest.input, prestarted_call.requested_line);
+    try std.testing.expectEqual(gpio_wdt.DescriptorRequestFlags.in, prestarted_call.descriptor_flags);
+    try std.testing.expectEqual(gpio_wdt.ProbeStartMode.start_before_register, prestarted_call.start_mode);
+    try std.testing.expect(prestarted_call.reaches_registration_running);
+    try std.testing.expect(prestarted_call.reaches_registration_line_state);
+    try std.testing.expect(prestarted_call.reaches_registration_line_is_output);
+    try std.testing.expect(prestarted_call.watchdog_info_ready);
+    try std.testing.expect(prestarted_call.watchdog_ops_ready);
+    try std.testing.expect(prestarted_call.watchdog_device_ready);
+    try std.testing.expect(prestarted_call.watchdog_drvdata_set);
+    try std.testing.expect(prestarted_call.descriptor_request_ready);
+    try std.testing.expect(prestarted_call.timeout_init_requested);
+    try std.testing.expect(prestarted_call.nowayout_applied);
+    try std.testing.expect(prestarted_call.parent_attached);
+    try std.testing.expect(prestarted_call.stop_on_reboot);
+    try std.testing.expectEqual(@as(u32, gpio_wdt.soft_timeout_min), prestarted_call.min_timeout_sec);
+    try std.testing.expectEqual(@as(u32, gpio_wdt.soft_timeout_default), prestarted_call.default_timeout_sec);
+    try std.testing.expectEqual(@as(u32, 20), prestarted_call.max_hw_heartbeat_ms);
+    try std.testing.expect(prestarted_call.register_device_requested);
+    try std.testing.expect(prestarted_call.blocked_on_live_gpio_lookup);
+    try std.testing.expect(prestarted_call.blocked_on_platform_registration);
+    try std.testing.expect(prestarted_call.blocked_on_reboot_glue);
+
+    var dormant_watchdog = try gpio_wdt.GpioWatchdogLab.init(.level, 500, false);
+    const dormant_call = dormant_watchdog.registerDeviceCallSummary(false);
+    try std.testing.expectEqual(gpio_wdt.HardwareAlgorithm.level, dormant_call.hw_algo);
+    try std.testing.expectEqual(gpio_wdt.ProbeLineRequest.output_low, dormant_call.requested_line);
+    try std.testing.expectEqual(gpio_wdt.DescriptorRequestFlags.out_low, dormant_call.descriptor_flags);
+    try std.testing.expectEqual(gpio_wdt.ProbeStartMode.register_only, dormant_call.start_mode);
+    try std.testing.expect(!dormant_call.reaches_registration_running);
+    try std.testing.expect(!dormant_call.reaches_registration_line_state);
+    try std.testing.expect(dormant_call.reaches_registration_line_is_output);
+    try std.testing.expect(!dormant_call.nowayout_applied);
+    try std.testing.expectEqual(@as(u32, 500), dormant_call.max_hw_heartbeat_ms);
+    try std.testing.expect(dormant_call.register_device_requested);
+    try std.testing.expect(dormant_call.blocked_on_live_gpio_lookup);
+    try std.testing.expect(dormant_call.blocked_on_platform_registration);
+    try std.testing.expect(dormant_call.blocked_on_reboot_glue);
+}
