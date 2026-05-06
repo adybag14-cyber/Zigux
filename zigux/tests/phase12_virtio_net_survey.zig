@@ -84,11 +84,14 @@ test "phase12 virtio_net survey manifest stays aligned with the landed driver pa
     try std.testing.expect(manifest.survey_summary.preexisting_phase12_virtio_net_survey_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase12_survey_note_present);
     try std.testing.expect(manifest.survey_summary.preexisting_virtio_net_zig_present);
-    try std.testing.expectEqual(@as(usize, 13), manifest.gaps.len);
+    try std.testing.expectEqual(@as(usize, 14), manifest.gaps.len);
 
     try std.testing.expect(std.mem.indexOf(u8, build_file, "phase12_virtio_net_module") != null);
     try std.testing.expect(std.mem.indexOf(u8, build_file, "phase12_virtio_net_tests") != null);
+    try std.testing.expect(std.mem.indexOf(u8, build_file, "phase12_virtio_net_syntax_lab_module") != null);
+    try std.testing.expect(std.mem.indexOf(u8, build_file, "phase12_virtio_net_syntax_lab_tests") != null);
     try std.testing.expect(std.mem.indexOf(u8, build_file, "run_phase12_virtio_net_tests.step") != null);
+    try std.testing.expect(std.mem.indexOf(u8, build_file, "run_phase12_virtio_net_syntax_lab_tests.step") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "segmented rollout boundary") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "runtime-data-path boundary remains blocked") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase12-virtio-net-segmented-rollout-boundary") != null);
@@ -101,6 +104,7 @@ test "phase12 virtio_net survey manifest stays aligned with the landed driver pa
     var saw_ring_foundation = false;
     var saw_survey_gate = false;
     var saw_survey_note = false;
+    var saw_syntax_lab = false;
     var saw_probe_starter = false;
     var saw_queue_recovery = false;
     var saw_receive_refill = false;
@@ -163,6 +167,14 @@ test "phase12 virtio_net survey manifest stays aligned with the landed driver pa
             saw_survey_note = true;
             try std.testing.expectEqualStrings("Documentation/zigux/phase12-virtio-net-survey.md", gap.zigux_destination);
             try std.testing.expectEqualStrings("starter_landed", gap.status);
+        }
+
+        if (std.mem.eql(u8, gap.id, "phase12-virtio-net-syntax-lab-gate")) {
+            saw_syntax_lab = true;
+            try std.testing.expectEqualStrings("zigux/tests/phase12_virtio_net_syntax_lab.zig", gap.zigux_destination);
+            try std.testing.expectEqualStrings("starter_landed", gap.status);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "direct syntax-lab gate") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "bounded probe exports") != null);
         }
 
         if (std.mem.eql(u8, gap.id, "phase12-virtio-net-probe-snapshot-starter")) {
@@ -234,7 +246,7 @@ test "phase12 virtio_net survey manifest stays aligned with the landed driver pa
         }
     }
 
-    try std.testing.expectEqual(@as(usize, 12), starter_landed_count);
+    try std.testing.expectEqual(@as(usize, 13), starter_landed_count);
     try std.testing.expectEqual(@as(usize, 1), blocked_count);
     try std.testing.expect(saw_build_gate);
     try std.testing.expect(saw_make_target);
@@ -242,6 +254,7 @@ test "phase12 virtio_net survey manifest stays aligned with the landed driver pa
     try std.testing.expect(saw_ring_foundation);
     try std.testing.expect(saw_survey_gate);
     try std.testing.expect(saw_survey_note);
+    try std.testing.expect(saw_syntax_lab);
     try std.testing.expect(saw_probe_starter);
     try std.testing.expect(saw_queue_recovery);
     try std.testing.expect(saw_receive_refill);
