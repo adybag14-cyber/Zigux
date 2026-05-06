@@ -21,6 +21,7 @@ pub const Command = union(enum) {
 pub const ParseFailure = union(enum) {
     invalid_option: []const u8,
     missing_option_argument: []const u8,
+    unexpected_option_argument: []const u8,
 };
 
 pub const ParseOutcome = union(enum) {
@@ -43,6 +44,37 @@ const usage_text =
     "  -V, --version         Print the release version\n";
 
 const version_text = "genksyms version 2.5.60\n";
+
+const LongOptionKind = enum {
+    help,
+    version,
+    debug,
+    warnings,
+    quiet,
+    dump,
+    reference,
+    dump_types,
+    preserve,
+};
+
+const LongOptionSpec = struct {
+    name: []const u8,
+    failure_name: []const u8,
+    kind: LongOptionKind,
+    takes_argument: bool = false,
+};
+
+const long_option_specs = [_]LongOptionSpec{
+    .{ .name = "help", .failure_name = "--help", .kind = .help },
+    .{ .name = "version", .failure_name = "--version", .kind = .version },
+    .{ .name = "debug", .failure_name = "--debug", .kind = .debug },
+    .{ .name = "warnings", .failure_name = "--warnings", .kind = .warnings },
+    .{ .name = "quiet", .failure_name = "--quiet", .kind = .quiet },
+    .{ .name = "dump", .failure_name = "--dump", .kind = .dump },
+    .{ .name = "reference", .failure_name = "--reference", .kind = .reference, .takes_argument = true },
+    .{ .name = "dump-types", .failure_name = "--dump-types", .kind = .dump_types, .takes_argument = true },
+    .{ .name = "preserve", .failure_name = "--preserve", .kind = .preserve },
+};
 
 fn writeJsonEscaped(writer: anytype, text: []const u8) !void {
     for (text) |c| switch (c) {
@@ -86,6 +118,16 @@ fn writeMissingOptionArgumentError(writer: anytype, option: []const u8) !void {
     try writer.print("option requires an argument -- '{s}'\n", .{rendered});
 }
 
+fn writeUnexpectedOptionArgumentError(writer: anytype, option: []const u8) !void {
+    if (std.mem.startsWith(u8, option, "--")) {
+        try writer.print("option '{s}' doesn't allow an argument\n", .{option});
+        return;
+    }
+
+    const rendered = if (option.len == 0) "?" else option[0..1];
+    try writer.print("option doesn't allow an argument -- '{s}'\n", .{rendered});
+}
+
 pub fn renderGenksymsBridge(writer: anytype, request: Request) !void {
     try writer.writeAll("{\"tool\":\"scripts/genksyms/genksyms\",\"stdin\":\"cpp-stream\",\"stdout\":\"symversions\",\"argv\":[\"scripts/genksyms/genksyms\"");
     for (request.rendered_args) |arg| {
@@ -121,58 +163,86 @@ const ParseAction = union(enum) {
     failure: ParseFailure,
 };
 
-fn parseLongOption(allocator: std.mem.Allocator, args: []const []const u8, index: *usize, request: *Request, references: *std.ArrayList([]const u8)) !ParseAction {
-    const arg = args[index.*];
-    if (std.mem.eql(u8, arg, "--help")) return .{ .command = .help };
-    if (std.mem.eql(u8, arg, "--version")) return .{ .command = .version };
-    if (std.mem.eql(u8, arg, "--debug")) {
-        request.debug_level += 1;
-        return .none;
-    }
-    if (std.mem.eql(u8, arg, "--warnings")) {
-        request.warnings = true;
-        return .none;
-    }
-    if (std.mem.eql(u8, arg, "--quiet")) {
-        request.warnings = false;
-        return .none;
-    }
-    if (std.mem.eql(u8, arg, "--dump")) {
-        request.dump_defs = true;
-        return .none;
-    }
-    if (std.mem.eql(u8, arg, "--preserve")) {
-        request.preserve = true;
-        return .none;
-    }
-    if (std.mem.startsWith(u8, arg, "--reference=")) {
-        try references.append(allocator, arg["--reference=".len..]);
-        return .none;
-    }
-    if (std.mem.eql(u8, arg, "--reference")) {
-        if (index.* + 1 >= args.len) {
-            return .{ .failure = .{ .missing_option_argument = "--reference" } };
+fn resolveLongOption(name: []const u8) ?LongOptionSpec {
+    var prefix_match: ?LongOptionSpec = null;
+    var prefix_count: usize = 0;
+    for (long_option_specs) |spec| {
+        if (std.mem.eql(u8, name, spec.name)) return spec;
+        if (std.mem.startsWith(u8, spec.name, name)) {
+            prefix_match = spec;
+            prefix_count += 1;
         }
-        index.* += 1;
-        try references.append(allocator, args[index.*]);
-        return .none;
     }
-    if (std.mem.startsWith(u8, arg, "--dump-types=")) {
-        request.dump_types_file = arg["--dump-types=".len..];
-        return .none;
-    }
-    if (std.mem.eql(u8, arg, "--dump-types")) {
-        if (index.* + 1 >= args.len) {
-            return .{ .failure = .{ .missing_option_argument = "--dump-types" } };
-        }
-        index.* += 1;
-        request.dump_types_file = args[index.*];
-        return .none;
-    }
-    return .{ .failure = .{ .invalid_option = arg } };
+    if (prefix_count == 1) return prefix_match;
+    return null;
 }
 
-fn parseShortOptions(allocator: std.mem.Allocator, args: []const []const u8, index: *usize, request: *Request, references: *std.ArrayList([]const u8)) !ParseAction {
+fn parseLongOption(
+    allocator: std.mem.Allocator,
+    args: []const []const u8,
+    index: *usize,
+    request: *Request,
+    references: *std.ArrayList([]const u8),
+) !ParseAction {
+    const arg = args[index.*];
+    const name_end = std.mem.indexOfScalar(u8, arg, '=') orelse arg.len;
+    const option = resolveLongOption(arg[2..name_end]) orelse {
+        return .{ .failure = .{ .invalid_option = arg } };
+    };
+    const inline_value = if (name_end < arg.len) arg[name_end + 1 ..] else null;
+
+    if (inline_value != null and !option.takes_argument) {
+        return .{ .failure = .{ .unexpected_option_argument = option.failure_name } };
+    }
+
+    switch (option.kind) {
+        .help => return .{ .command = .help },
+        .version => return .{ .command = .version },
+        .debug => {
+            request.debug_level += 1;
+            return .none;
+        },
+        .warnings => {
+            request.warnings = true;
+            return .none;
+        },
+        .quiet => {
+            request.warnings = false;
+            return .none;
+        },
+        .dump => {
+            request.dump_defs = true;
+            return .none;
+        },
+        .preserve => {
+            request.preserve = true;
+            return .none;
+        },
+        .reference, .dump_types => {
+            const value = inline_value orelse blk: {
+                if (index.* + 1 >= args.len) {
+                    return .{ .failure = .{ .missing_option_argument = option.failure_name } };
+                }
+                index.* += 1;
+                break :blk args[index.*];
+            };
+            if (option.kind == .reference) {
+                try references.append(allocator, value);
+            } else {
+                request.dump_types_file = value;
+            }
+            return .none;
+        },
+    }
+}
+
+fn parseShortOptions(
+    allocator: std.mem.Allocator,
+    args: []const []const u8,
+    index: *usize,
+    request: *Request,
+    references: *std.ArrayList([]const u8),
+) !ParseAction {
     const arg = args[index.*];
     var short_index: usize = 1;
     while (short_index < arg.len) : (short_index += 1) {
@@ -232,10 +302,11 @@ pub fn parseArgs(allocator: std.mem.Allocator, args: []const []const u8) !ParseO
             continue;
         }
         if (std.mem.startsWith(u8, arg, "--")) {
+            const long_option_index = index;
             switch (try parseLongOption(allocator, args, &index, &request, &references)) {
                 .none => {
                     try rendered_args.append(allocator, arg);
-                    if ((std.mem.eql(u8, arg, "--reference") or std.mem.eql(u8, arg, "--dump-types")) and index > 0 and index < args.len) {
+                    if (index != long_option_index and index < args.len) {
                         try rendered_args.append(allocator, args[index]);
                     }
                 },
@@ -288,6 +359,7 @@ pub fn main(init: std.process.Init) !void {
             switch (failure) {
                 .invalid_option => |option| try writeInvalidOptionError(&stderr_writer.interface, option),
                 .missing_option_argument => |option| try writeMissingOptionArgumentError(&stderr_writer.interface, option),
+                .unexpected_option_argument => |option| try writeUnexpectedOptionArgumentError(&stderr_writer.interface, option),
             }
             try stderr_writer.interface.flush();
             std.process.exit(1);
@@ -296,10 +368,10 @@ pub fn main(init: std.process.Init) !void {
 
     switch (command) {
         .help => {
-            var stderr_buffer: [512]u8 = undefined;
-            var stderr_writer = Io.File.stderr().writer(io, &stderr_buffer);
-            try stderr_writer.interface.writeAll(usage_text);
-            try stderr_writer.interface.flush();
+            var stdout_buffer: [512]u8 = undefined;
+            var stdout_writer = Io.File.stdout().writer(io, &stdout_buffer);
+            try stdout_writer.interface.writeAll(usage_text);
+            try stdout_writer.interface.flush();
         },
         .version => {
             var stderr_buffer: [128]u8 = undefined;
@@ -355,6 +427,39 @@ test "genksyms bridge parses long options and quiet override" {
             else => return error.UnexpectedCommand,
         },
         .failure => return error.UnexpectedFailure,
+    }
+}
+
+test "genksyms bridge accepts unambiguous abbreviated long options" {
+    const args = &.{ "--deb", "--warn", "--qui", "--ref=foo.symref", "--dump-t", "types.symtypes", "--pres" };
+    const outcome = try parseArgs(std.testing.allocator, args);
+    switch (outcome) {
+        .command => |command| switch (command) {
+            .request => |request| {
+                defer std.testing.allocator.free(request.reference_files);
+                defer std.testing.allocator.free(request.rendered_args);
+                try std.testing.expectEqual(@as(usize, 1), request.debug_level);
+                try std.testing.expect(!request.warnings);
+                try std.testing.expect(request.preserve);
+                try std.testing.expectEqualStrings("types.symtypes", request.dump_types_file.?);
+                try std.testing.expectEqual(@as(usize, 1), request.reference_files.len);
+                try std.testing.expectEqualStrings("foo.symref", request.reference_files[0]);
+                try std.testing.expectEqualSlices([]const u8, args, request.rendered_args);
+            },
+            else => return error.UnexpectedCommand,
+        },
+        .failure => return error.UnexpectedFailure,
+    }
+}
+
+test "genksyms bridge canonicalizes unexpected long option argument failures" {
+    const outcome = try parseArgs(std.testing.allocator, &.{"--hel=topic"});
+    switch (outcome) {
+        .failure => |failure| switch (failure) {
+            .unexpected_option_argument => |option| try std.testing.expectEqualStrings("--help", option),
+            else => return error.UnexpectedFailure,
+        },
+        .command => return error.UnexpectedCommand,
     }
 }
 
