@@ -31,6 +31,8 @@ EXPECTED_BUILD_MARKERS = [
 
 EXPECTED_MAKEFILE_MARKERS = [
     "phase10-test:",
+    "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase10-mmio-packet.py --self-test\n",
+    "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase10-mmio-packet.py\n",
     "$(ZIG) build test --build-file zigux/tests/phase10_build.zig",
 ]
 
@@ -115,6 +117,8 @@ BASELINE_FIXTURE = {
 \tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase10-core-packet.py
 \tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase10-input-packet.py --self-test
 \tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase10-input-packet.py
+\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase10-mmio-packet.py --self-test
+\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase10-mmio-packet.py
 \tcd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase10_build.zig
 """,
     "zigux/tests/phase10_build.zig": """const phase10_virtio_mmio_module = b.createModule(.{});
@@ -386,6 +390,19 @@ def run_self_test() -> int:
             raise SystemExit("phase10-mmio-self-test:expected_makefile_marker_missing")
         makefile_path.write_text(original_makefile, encoding="utf-8")
 
+        makefile_path.write_text(
+            original_makefile.replace(
+                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase10-mmio-packet.py --self-test\n",
+                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase10-mmio-drift.py --self-test\n",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        _, missing_markers = validate(tmp_root)
+        if "makefile:\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase10-mmio-packet.py --self-test\n" not in missing_markers:
+            raise SystemExit("phase10-mmio-self-test:expected_mmio_self_test_makefile_marker_missing")
+        makefile_path.write_text(original_makefile, encoding="utf-8")
+
         helper_path = tmp_root / "drivers/virtio/virtio_mmio.zig"
         original_helper = helper_path.read_text(encoding="utf-8")
         helper_path.write_text(
@@ -438,7 +455,7 @@ def run_self_test() -> int:
             raise SystemExit("phase10-mmio-self-test:expected_survey_marker_missing")
 
     print("PHASE10_MMIO_PACKET_SELF_TEST=pass")
-    print("PHASE10_MMIO_PACKET_SELF_TEST_CASE_COUNT=7")
+    print("PHASE10_MMIO_PACKET_SELF_TEST_CASE_COUNT=8")
     return 0
 
 
