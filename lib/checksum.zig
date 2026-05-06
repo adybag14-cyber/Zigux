@@ -66,6 +66,21 @@ pub fn tcpUdpNofold(sum: u32, saddr: u32, daddr: u32, len: u16, proto: u8) u32 {
     return normalize(result);
 }
 
+pub fn tcpUdpV6Nofold(sum: u32, saddr: *const [16]u8, daddr: *const [16]u8, len: u32, proto: u8) u32 {
+    var result = normalize(sum);
+
+    for (0..4) |index| {
+        const offset = index * 4;
+        result = add(result, readBigEndianU32(saddr[offset .. offset + 4]));
+        result = add(result, readBigEndianU32(daddr[offset .. offset + 4]));
+    }
+
+    result = add(result, len >> 16);
+    result = add(result, len & 0xffff);
+    result = add(result, proto);
+    return normalize(result);
+}
+
 pub fn partial(bytes: []const u8, seed: u32) u32 {
     var sum: u64 = normalize(seed);
     var index: usize = 0;
@@ -112,6 +127,11 @@ fn add16(sum: u16, addend: u16) u16 {
 
 fn sub16(sum: u16, addend: u16) u16 {
     return add16(sum, ~addend);
+}
+
+fn readBigEndianU32(bytes: []const u8) u32 {
+    const pair: *const [4]u8 = @ptrCast(bytes[0..4]);
+    return std.mem.readInt(u32, pair, .big);
 }
 
 test "negate wraps around unfolded checksum sums" {
@@ -224,6 +244,47 @@ test "tcpUdpNofold matches direct pseudo-header accumulation" {
     const pseudo_partial = partial(&pseudo_header, 0);
     const direct_combined = partial("", blockAdd(pseudo_partial, payload_partial, pseudo_header.len));
     const helper_combined = tcpUdpNofold(payload_partial, saddr, daddr, payload.len, proto);
+
+    try std.testing.expectEqual(direct_combined, helper_combined);
+    try std.testing.expectEqual(fold(direct_combined), fold(helper_combined));
+}
+
+test "tcpUdpV6Nofold matches direct IPv6 pseudo-header accumulation" {
+    const payload = [_]u8{
+        0xde, 0xad, 0xbe, 0xef,
+        0xfa, 0xce, 0x01, 0x23,
+        0x45, 0x67, 0x89,
+    };
+    const saddr = [_]u8{
+        0x20, 0x01, 0x0d, 0xb8,
+        0x00, 0x00, 0x00, 0x00,
+        0x00, 0x00, 0x00, 0x00,
+        0x00, 0x00, 0x00, 0x01,
+    };
+    const daddr = [_]u8{
+        0x20, 0x01, 0x0d, 0xb8,
+        0x00, 0x00, 0x00, 0x00,
+        0x00, 0x00, 0x00, 0x00,
+        0x00, 0x00, 0x00, 0x02,
+    };
+    const proto: u8 = 17;
+
+    var pseudo_header: [40]u8 = undefined;
+    @memcpy(pseudo_header[0..16], &saddr);
+    @memcpy(pseudo_header[16..32], &daddr);
+    pseudo_header[32] = 0;
+    pseudo_header[33] = 0;
+    pseudo_header[34] = 0;
+    pseudo_header[35] = payload.len;
+    pseudo_header[36] = 0;
+    pseudo_header[37] = 0;
+    pseudo_header[38] = 0;
+    pseudo_header[39] = proto;
+
+    const payload_partial = partial(&payload, 0);
+    const pseudo_partial = partial(&pseudo_header, 0);
+    const direct_combined = partial("", blockAdd(pseudo_partial, payload_partial, pseudo_header.len));
+    const helper_combined = tcpUdpV6Nofold(payload_partial, &saddr, &daddr, payload.len, proto);
 
     try std.testing.expectEqual(direct_combined, helper_combined);
     try std.testing.expectEqual(fold(direct_combined), fold(helper_combined));
