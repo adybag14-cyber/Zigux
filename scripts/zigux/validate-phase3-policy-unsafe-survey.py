@@ -12,6 +12,7 @@ SURVEY_REL = "Documentation/zigux/phase3-policy-unsafe-boundary-survey.md"
 MAKEFILE_REL = "zigux/Makefile"
 ALLOCATOR_POLICY_REL = "zigux/helpers/allocator_policy.zig"
 PANIC_POLICY_REL = "zigux/helpers/panic_policy.zig"
+UNSAFE_NARROW_REL = "zigux/unsafe/narrow.zig"
 
 PATH_MARKERS = {
     "PHASE3_LAYOUT_ASSERT_PATH": "zigux/helpers/layout_assert.zig",
@@ -78,6 +79,22 @@ REQUIRED_PANIC_POLICY_SNIPPETS = (
     "try std.testing.expect(canReturn(.warn));",
 )
 
+REQUIRED_NARROW_UNSAFE_SNIPPETS = (
+    "pub fn addressOf(ptr: anytype) usize {",
+    "pub fn byteOffset(base: usize, offset: usize) usize {",
+    'return std.math.add(usize, base, offset) catch @panic("phase3 narrow unsafe byte offset overflow");',
+    "pub fn pointerAt(comptime T: type, base: usize, offset: usize) *volatile T {",
+    "pub fn constSliceAt(comptime T: type, base: usize, len: usize) []const T {",
+    "pub fn constPointerAt(comptime T: type, addr: usize) *const T {",
+    "pub fn writeValueAt(comptime T: type, addr: usize, value: T) void {",
+    'test "phase3 narrow unsafe wrappers stay bounded" {',
+    "try std.testing.expectEqual(@as(usize, 12), byteOffset(9, 3));",
+    "const ptr = pointerAt(u32, base, 0);",
+    "const slice = constSliceAt(u32, base, 1);",
+    "const const_ptr = constPointerAt(u32, base);",
+    "writeValueAt(u32, base, 19);",
+)
+
 
 def git_blob_sha(path: Path) -> str:
     payload = path.read_bytes()
@@ -122,6 +139,7 @@ def validate(root: Path) -> list[str]:
     makefile_path = root / MAKEFILE_REL
     allocator_policy_path = root / ALLOCATOR_POLICY_REL
     panic_policy_path = root / PANIC_POLICY_REL
+    narrow_unsafe_path = root / UNSAFE_NARROW_REL
 
     try:
         survey = survey_path.read_text(encoding="utf-8")
@@ -175,6 +193,15 @@ def validate(root: Path) -> list[str]:
                 issues.append(f"missing_panic_policy_snippet:{snippet}")
 
     try:
+        narrow_unsafe = narrow_unsafe_path.read_text(encoding="utf-8")
+    except FileNotFoundError:
+        issues.append(f"missing_file:{UNSAFE_NARROW_REL}")
+    else:
+        for snippet in REQUIRED_NARROW_UNSAFE_SNIPPETS:
+            if snippet not in narrow_unsafe:
+                issues.append(f"missing_narrow_unsafe_snippet:{snippet}")
+
+    try:
         makefile = makefile_path.read_text(encoding="utf-8")
     except FileNotFoundError:
         issues.append(f"missing_makefile:{MAKEFILE_REL}")
@@ -196,8 +223,8 @@ def build_valid_workspace(root: Path) -> None:
         "zigux/helpers/layout_assert.zig": "// layout\n",
         PANIC_POLICY_REL: "\n".join(
             [
-                "const std = @import(\"std\");",
-                "const abi = @import(\"abi_bindings\");",
+                'const std = @import("std");',
+                'const abi = @import("abi_bindings");',
                 "",
                 "pub const Action = enum {",
                 "    abort_now,",
@@ -227,7 +254,7 @@ def build_valid_workspace(root: Path) -> None:
         ),
         ALLOCATOR_POLICY_REL: "\n".join(REQUIRED_ALLOCATOR_POLICY_SNIPPETS) + "\n",
         "zigux/helpers/mmio.zig": "// mmio\n",
-        "zigux/unsafe/narrow.zig": "// narrow\n",
+        UNSAFE_NARROW_REL: "\n".join(REQUIRED_NARROW_UNSAFE_SNIPPETS) + "\n",
         "zigux/tests/phase3_abi.zig": "// abi test\n",
         "zigux/tests/phase3_abi_dump.zig": "// abi dump\n",
         "zigux/tests/fixtures/phase3_abi_manifest.json": "{\n  \"phase\": \"Phase 3\"\n}\n",
@@ -356,6 +383,19 @@ def run_self_test() -> int:
         )
 
         build_valid_workspace(root)
+        broken_narrow_unsafe = (root / UNSAFE_NARROW_REL).read_text(encoding="utf-8").replace(
+            "writeValueAt(u32, base, 19);\n",
+            "",
+            1,
+        )
+        write_file(root / UNSAFE_NARROW_REL, broken_narrow_unsafe)
+        issues = validate(root)
+        assert (
+            "missing_narrow_unsafe_snippet:writeValueAt(u32, base, 19);"
+            in issues
+        )
+
+        build_valid_workspace(root)
         broken_makefile = (root / MAKEFILE_REL).read_text(encoding="utf-8").replace(
             MAKEFILE_REQUIRED_LINES[1] + "\n",
             "",
@@ -393,7 +433,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE3_POLICY_UNSAFE_SURVEY_SELF_TEST=pass")
-    print("PHASE3_POLICY_UNSAFE_SURVEY_SELF_TEST_CASE_COUNT=11")
+    print("PHASE3_POLICY_UNSAFE_SURVEY_SELF_TEST_CASE_COUNT=12")
     return 0
 
 
