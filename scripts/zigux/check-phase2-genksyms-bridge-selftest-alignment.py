@@ -22,7 +22,7 @@ REQUIRED_WORKFLOW_LINES = (
     "run: python3 scripts/zigux/check-genksyms-bridge.py",
     "run: zig test scripts/zigux/genksyms.zig",
 )
-EXPECTED_SELF_TEST_CASE_COUNT = 4
+EXPECTED_SELF_TEST_CASE_COUNT = 5
 
 
 def read_text(path: Path) -> str:
@@ -132,6 +132,13 @@ def run_self_test() -> int:
         root = Path(tmp_dir)
         build_self_test_root(root)
         assert collect_issues(root) == []
+
+        build_self_test_root(root)
+        path = root / BRIDGE_CHECKER
+        path.write_text(path.read_text(encoding="utf-8").replace(REQUIRED_BRIDGE_MARKERS[0], "", 1), encoding="utf-8")
+        issues = collect_issues(root)
+        assert ("MISSING_BRIDGE_MARKERS", REQUIRED_BRIDGE_MARKERS[0]) in issues
+        cases += 1
 
         build_self_test_root(root)
         path = root / BRIDGE_CHECKER
