@@ -130,6 +130,44 @@ test "phase10 virtio ring blocks publish, kick, poll, and callback snapshots whi
     try std.testing.expect(poll_summary.has_newly_used_chains);
 }
 
+test "phase10 virtio ring delayed callback pacing reports both thresholded and immediate poll cases" {
+    var ring = virtio_ring.VirtioRingLab{};
+    try ring.defineQueue(5, 8, .split, true, false);
+
+    inline for (0..4) |_| {
+        try ring.publishDescriptorChain(5);
+    }
+    _ = try ring.prepareKick(5);
+
+    try ring.recordUsedChains(5, 1);
+    try ring.disableCallback(5);
+
+    var delayed = try ring.enableCallbackDelayed(5);
+    try std.testing.expectEqualStrings("drivers/virtio/virtio_ring.c", delayed.anchor);
+    try std.testing.expectEqual(@as(u16, 5), delayed.queue_index);
+    try std.testing.expect(delayed.callback_enabled);
+    try std.testing.expectEqual(@as(u16, 1), delayed.last_used_idx);
+    try std.testing.expectEqual(@as(u16, 0), delayed.last_polled_used_idx);
+    try std.testing.expectEqual(@as(u16, 3), delayed.outstanding_chain_count);
+    try std.testing.expectEqual(@as(u16, 2), delayed.delay_budget_count);
+    try std.testing.expectEqual(@as(u16, 3), delayed.delayed_event_target_idx);
+    try std.testing.expectEqual(@as(u16, 1), delayed.pending_used_chain_count);
+    try std.testing.expect(!delayed.should_poll);
+
+    try ring.disableCallback(5);
+    try ring.recordUsedChains(5, 2);
+
+    delayed = try ring.enableCallbackDelayed(5);
+    try std.testing.expect(delayed.callback_enabled);
+    try std.testing.expectEqual(@as(u16, 3), delayed.last_used_idx);
+    try std.testing.expectEqual(@as(u16, 0), delayed.last_polled_used_idx);
+    try std.testing.expectEqual(@as(u16, 1), delayed.outstanding_chain_count);
+    try std.testing.expectEqual(@as(u16, 0), delayed.delay_budget_count);
+    try std.testing.expectEqual(@as(u16, 3), delayed.delayed_event_target_idx);
+    try std.testing.expectEqual(@as(u16, 3), delayed.pending_used_chain_count);
+    try std.testing.expect(delayed.should_poll);
+}
+
 test "phase10 virtio ring reset-readiness preflight reports the current queue blocker" {
     var ring = virtio_ring.VirtioRingLab{};
     try ring.defineQueue(4, 8, .split, true, false);
