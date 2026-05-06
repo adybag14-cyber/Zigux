@@ -263,9 +263,7 @@ EXACT_OCCURRENCE_MARKERS = {
 }
 
 REMOVED_PATHS = [
-    "Documentation/zigux/phase6-helper-parity-catalog.md",
     "Documentation/zigux/phase6-perf-gate-survey.md",
-    "zigux/tests/phase6_helper_parity_manifest.json",
     "scripts/zigux/validate-phase6.py",
 ]
 
