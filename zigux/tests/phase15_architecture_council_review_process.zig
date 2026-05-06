@@ -112,6 +112,7 @@ test "phase 15 architecture council review-process doc and manifest stay aligned
     try expectContains(survey_doc, "## Decision Buckets");
     try expectContains(survey_doc, "## Reopen Trigger Catalog");
     try expectContains(survey_doc, "## Current Approval Posture");
+    try expectContains(survey_doc, "`PHASE15_LANE_KEY=P15-L08`");
     try expectContains(
         survey_doc,
         "product boundary:\n  - `Documentation/zigux/freeze-map.md`",
@@ -216,6 +217,7 @@ test "phase 15 architecture council review-process doc and manifest stay aligned
     try expectContains(makefile, "phase15-test:");
     try expectContains(makefile, "zigux/tests/phase15_build.zig");
 
+    try expectContains(manifest_doc, "\"lane_key\": \"P15-L08\"");
     try expectContains(manifest_doc, "\"ownership_evidence_fields\"");
     try expectContains(manifest_doc, "\"phase\"");
     try expectContains(manifest_doc, "\"current status bucket\"");
