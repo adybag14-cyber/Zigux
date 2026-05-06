@@ -100,6 +100,7 @@ The closed Phase 1 host-tools packet also stays reviewable through these shared 
 - `Documentation/zigux/review-checklist.md`
 - `scripts/zigux/README.md`
 - `scripts/zigux/install-zig.py`
+- `scripts/zigux/check-phase1-installer-review-surfaces.py`
 - `scripts/zigux/validate-phase1.py`
 - `scripts/zigux/validate-phase1-closure.py`
 - `scripts/zigux/check-phase1-parity.py`
