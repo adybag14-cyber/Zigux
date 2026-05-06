@@ -24,6 +24,33 @@ test "phase 7 string helpers survey keeps the roadmap-backed helper packet revie
     try expectContains(slice_note, "make -C zigux phase7");
     try expectContains(slice_note, "This is intentionally not a Phase 5 `samples/zigux/` reference-sample lane.");
 
+    const docs_root = try readRepoFile(allocator, "Documentation/zigux/README.md");
+    defer allocator.free(docs_root);
+    try expectContains(docs_root, "Documentation/zigux/phase7-string-helpers-slice.md");
+    try expectContains(docs_root, "zigux/tests/phase7_string_helpers_sample_boundary.zig");
+    try expectContains(docs_root, "current `master` still ships no `samples/zigux/*string*` Phase 5 reference sample");
+    try expectContains(docs_root, "lib/string_helpers.zig");
+
+    const tests_root = try readRepoFile(allocator, "zigux/tests/README.md");
+    defer allocator.free(tests_root);
+    try expectContains(tests_root, "scripts/zigux/validate-phase7.py");
+    try expectContains(tests_root, "zigux/tests/phase7_string_helpers_sample_boundary.zig");
+    try expectContains(tests_root, "zigux/tests/phase7_build.zig");
+    try expectContains(tests_root, "the dedicated `zigux/tests/phase7_string_helpers_sample_boundary.zig` boundary replay");
+
+    const samples_root = try readRepoFile(allocator, "samples/zigux/README.md");
+    defer allocator.free(samples_root);
+    try expectContains(samples_root, "current `master` still ships no `samples/zigux/*string*` Phase 5 reference sample;");
+    try expectContains(samples_root, "treat any new `samples/zigux/*string*.zig` file as review-blocking");
+    try expectContains(samples_root, "Documentation/zigux/phase7-string-helpers-slice.md");
+    try expectContains(samples_root, "lib/string_helpers.zig");
+
+    const scripts_root = try readRepoFile(allocator, "scripts/zigux/README.md");
+    defer allocator.free(scripts_root);
+    try expectContains(scripts_root, "validate-phase7.py");
+    try expectContains(scripts_root, "zigux/tests/phase7_string_helpers_sample_boundary.zig");
+    try expectContains(scripts_root, "make -C zigux phase7-validate");
+
     const makefile = try readRepoFile(allocator, "zigux/Makefile");
     defer allocator.free(makefile);
     try expectContains(makefile, "phase7-validate:");
