@@ -5,7 +5,7 @@ pub fn addressOf(ptr: anytype) usize {
 }
 
 pub fn byteOffset(base: usize, offset: usize) usize {
-    return base + offset;
+    return std.math.add(usize, base, offset) catch @panic("phase3 narrow unsafe byte offset overflow");
 }
 
 pub fn pointerAt(comptime T: type, base: usize, offset: usize) *volatile T {
@@ -27,6 +27,9 @@ pub fn writeValueAt(comptime T: type, addr: usize, value: T) void {
 }
 
 test "phase3 narrow unsafe wrappers stay bounded" {
+    try std.testing.expectEqual(@as(usize, 12), byteOffset(9, 3));
+    try std.testing.expectEqual(std.math.maxInt(usize), byteOffset(std.math.maxInt(usize) - 4, 4));
+
     var value: u32 = 0;
     const base = addressOf(&value);
     const ptr = pointerAt(u32, base, 0);
