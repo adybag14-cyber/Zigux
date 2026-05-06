@@ -24,42 +24,47 @@ test "phase 8 exec-cmd focused replay keeps the integrated deferred-exec packet 
     try exec_cmd.setArgv0Path(std.testing.allocator, &state, "scripts");
     try env.set("PATH", "/usr/bin:/bin");
 
-    const updated = try exec_cmd.setupPath(
+    var deferred_execv = try exec_cmd.planDeferredExecvCall(
         std.testing.allocator,
         &env,
         state,
         config,
         "/repo",
-    );
-    defer std.testing.allocator.free(updated);
-    try std.testing.expectEqualStrings(
-        "/repo/tools/bin:/repo/scripts:/usr/bin:/bin",
-        updated,
-    );
-
-    var deferred_execv = try exec_cmd.buildDeferredExecvCall(
-        std.testing.allocator,
-        config,
         &[_][]const u8{ "record", "-a" },
     );
     defer deferred_execv.deinit(std.testing.allocator);
-    try std.testing.expectEqualStrings("perf", deferred_execv.argv[0].?);
-    try std.testing.expectEqualStrings("record", deferred_execv.argv[1].?);
-    try std.testing.expectEqualStrings("-a", deferred_execv.argv[2].?);
-    try std.testing.expectEqual(@as(?[]const u8, null), deferred_execv.argv[3]);
+    try std.testing.expectEqualStrings(
+        "/repo/tools/bin:/repo/scripts:/usr/bin:/bin",
+        deferred_execv.path,
+    );
+    try std.testing.expectEqualStrings(deferred_execv.path, env.get("PATH").?);
+    try std.testing.expectEqualStrings("perf", deferred_execv.call.argv[0].?);
+    try std.testing.expectEqualStrings("record", deferred_execv.call.argv[1].?);
+    try std.testing.expectEqualStrings("-a", deferred_execv.call.argv[2].?);
+    try std.testing.expectEqual(@as(?[]const u8, null), deferred_execv.call.argv[3]);
 
-    var deferred_execl = try exec_cmd.buildDeferredExeclCall(
+    try env.set("PATH", "/usr/bin:/bin");
+
+    var deferred_execl = try exec_cmd.planDeferredExeclCall(
         std.testing.allocator,
+        &env,
+        state,
         config,
+        "/repo",
         "record",
         &[_]?[]const u8{ "-a", "--stdio", null, "--ignored" },
     );
     defer deferred_execl.deinit(std.testing.allocator);
-    try std.testing.expectEqualStrings("perf", deferred_execl.argv[0].?);
-    try std.testing.expectEqualStrings("record", deferred_execl.argv[1].?);
-    try std.testing.expectEqualStrings("-a", deferred_execl.argv[2].?);
-    try std.testing.expectEqualStrings("--stdio", deferred_execl.argv[3].?);
-    try std.testing.expectEqual(@as(?[]const u8, null), deferred_execl.argv[4]);
+    try std.testing.expectEqualStrings(
+        "/repo/tools/bin:/repo/scripts:/usr/bin:/bin",
+        deferred_execl.path,
+    );
+    try std.testing.expectEqualStrings(deferred_execl.path, env.get("PATH").?);
+    try std.testing.expectEqualStrings("perf", deferred_execl.call.argv[0].?);
+    try std.testing.expectEqualStrings("record", deferred_execl.call.argv[1].?);
+    try std.testing.expectEqualStrings("-a", deferred_execl.call.argv[2].?);
+    try std.testing.expectEqualStrings("--stdio", deferred_execl.call.argv[3].?);
+    try std.testing.expectEqual(@as(?[]const u8, null), deferred_execl.call.argv[4]);
 }
 
 test "phase 8 exec-cmd slice note keeps the helper-vs-phase ownership boundary explicit" {
