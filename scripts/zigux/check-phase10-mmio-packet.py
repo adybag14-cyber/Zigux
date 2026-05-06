@@ -66,6 +66,10 @@ EXPECTED_TEST_MARKERS = [
 EXPECTED_SURVEY_TEST_MARKERS = [
     'test "phase10 virtio mmio survey manifest records the live helper-backed transport gap" {',
     'try std.testing.expectEqualStrings("P10-L10", manifest.lane_key);',
+    'try std.testing.expectEqual(@as(usize, 3), manifest.roadmap_destinations.len);',
+    'try std.testing.expectEqualStrings("drivers/virtio/*.zig", manifest.roadmap_destinations[0]);',
+    'try std.testing.expectEqualStrings("zigux/kernel/", manifest.roadmap_destinations[1]);',
+    'try std.testing.expectEqualStrings("zigux/helpers/", manifest.roadmap_destinations[2]);',
     'try std.testing.expectEqualStrings("blocked_on_risky_transport", manifest.risky_transport_posture);',
     'try std.testing.expect(std.mem.indexOf(u8, survey_note, "shorter restaged config window clears stale second-word data") != null);',
     'try std.testing.expect(std.mem.indexOf(u8, survey_note, "absolute end offset and changed-byte mask") != null);',
@@ -158,6 +162,10 @@ test \"phase10 virtio mmio keeps status and config-generation bookkeeping inside
 """,
     "zigux/tests/phase10_virtio_mmio_survey.zig": """test \"phase10 virtio mmio survey manifest records the live helper-backed transport gap\" {
     try std.testing.expectEqualStrings(\"P10-L10\", manifest.lane_key);
+    try std.testing.expectEqual(@as(usize, 3), manifest.roadmap_destinations.len);
+    try std.testing.expectEqualStrings(\"drivers/virtio/*.zig\", manifest.roadmap_destinations[0]);
+    try std.testing.expectEqualStrings(\"zigux/kernel/\", manifest.roadmap_destinations[1]);
+    try std.testing.expectEqualStrings(\"zigux/helpers/\", manifest.roadmap_destinations[2]);
     try std.testing.expectEqualStrings(\"blocked_on_risky_transport\", manifest.risky_transport_posture);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, \"shorter restaged config window clears stale second-word data\") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, \"absolute end offset and changed-byte mask\") != null);
