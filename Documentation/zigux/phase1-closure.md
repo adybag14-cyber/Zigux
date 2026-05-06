@@ -142,6 +142,14 @@ That means `test "head-word boundary scans keep the last in-range bit reachable 
 
 - `PHASE1_FIND_BIT_INCLUSIVE_BOUNDARY_REVIEW=helper-local inclusive boundary proof stays explicit through the direct find_bit test anchor so same-word next scans keep the last in-range head-word bit reachable from an inclusive start`
 
+For `tools/lib/find_bit.zig`, reviewers must also keep the helper-local zero-bit-window proof explicit through:
+
+- `tools/lib/find_bit.zig`
+
+That means `test "zero-bit windows return without reading bitmap words"` stays present and review-visible whenever `findFirstBit()`, `findFirstZeroBit()`, or `findFirstAndBit()` changes. This helper-local test is the bounded proof that the first-scan entrypoints return the empty-window boundary immediately instead of reading bitmap words outside a caller-visible zero-bit window.
+
+- `PHASE1_FIND_BIT_ZERO_WINDOW_REVIEW=helper-local zero-bit-window proof stays explicit through the direct find_bit test anchor so first-scan entrypoints return the empty-window boundary without reading bitmap words`
+
 For `tools/lib/find_bit.zig`, reviewers must also keep the helper-local past-`nbits` short-circuit proof explicit through:
 
 - `tools/lib/find_bit.zig`
