@@ -71,6 +71,8 @@ pub const RegistrationOutcomeSummary = struct {
     poweroff_handler_present: bool,
     poweroff_handler_claimed: bool,
     poweroff_handler_conflict: bool,
+    poweroff_handler_present_after_probe: bool,
+    poweroff_handler_owned_by_driver: bool,
     poweroff_handler_left_in_place: bool,
 };
 
@@ -199,6 +201,9 @@ pub const Bcm2835WatchdogLab = struct {
         _ = self;
         const poweroff_handler_claimed =
             registration_succeeded and system_power_controller and !poweroff_handler_present;
+        const poweroff_handler_owned_by_driver = poweroff_handler_claimed;
+        const poweroff_handler_present_after_probe =
+            poweroff_handler_present or poweroff_handler_owned_by_driver;
         return .{
             .anchor = descriptor().anchor,
             .system_power_controller = system_power_controller,
@@ -208,7 +213,9 @@ pub const Bcm2835WatchdogLab = struct {
             .poweroff_handler_present = poweroff_handler_present,
             .poweroff_handler_claimed = poweroff_handler_claimed,
             .poweroff_handler_conflict = system_power_controller and poweroff_handler_present,
-            .poweroff_handler_left_in_place = poweroff_handler_present and !poweroff_handler_claimed,
+            .poweroff_handler_present_after_probe = poweroff_handler_present_after_probe,
+            .poweroff_handler_owned_by_driver = poweroff_handler_owned_by_driver,
+            .poweroff_handler_left_in_place = poweroff_handler_present_after_probe and !poweroff_handler_owned_by_driver,
         };
     }
 
@@ -269,6 +276,24 @@ pub const Bcm2835WatchdogLab = struct {
             .clear_poweroff_handler_requested = clear_poweroff_handler_requested,
             .poweroff_handler_left_in_place = poweroff_handler_present and !clear_poweroff_handler_requested,
         };
+    }
+
+    pub fn removeAfterRegistrationSummary(
+        self: *const Self,
+        system_power_controller: bool,
+        poweroff_handler_present: bool,
+        registration_succeeded: bool,
+    ) RemoveSummary {
+        const registration = self.registrationOutcomeSummary(
+            system_power_controller,
+            poweroff_handler_present,
+            registration_succeeded,
+        );
+        return self.removeSummary(
+            system_power_controller,
+            registration.poweroff_handler_present_after_probe,
+            registration.poweroff_handler_owned_by_driver,
+        );
     }
 
     pub fn loadRegisters(self: *Self, registers: RegisterImage) RuntimeSnapshot {
@@ -332,4 +357,41 @@ pub fn ticksToMilliseconds(ticks: u32) u32 {
 fn validateTimeout(timeout_sec: u32) !void {
     if (timeout_sec < min_timeout_sec) return error.TimeoutTooSmall;
     if (timeout_sec > max_timeout_sec) return error.TimeoutTooLarge;
+}
+
+test "registration outcome exposes claimed poweroff ownership" {
+    const lab = try Bcm2835WatchdogLab.init(8);
+    const outcome = lab.registrationOutcomeSummary(true, false, true);
+
+    try std.testing.expect(outcome.poweroff_handler_claimed);
+    try std.testing.expect(outcome.poweroff_handler_owned_by_driver);
+    try std.testing.expect(outcome.poweroff_handler_present_after_probe);
+    try std.testing.expect(!outcome.poweroff_handler_left_in_place);
+}
+
+test "registration outcome keeps conflicting poweroff handler in place" {
+    const lab = try Bcm2835WatchdogLab.init(8);
+    const outcome = lab.registrationOutcomeSummary(true, true, true);
+
+    try std.testing.expect(!outcome.poweroff_handler_claimed);
+    try std.testing.expect(outcome.poweroff_handler_conflict);
+    try std.testing.expect(outcome.poweroff_handler_present_after_probe);
+    try std.testing.expect(!outcome.poweroff_handler_owned_by_driver);
+    try std.testing.expect(outcome.poweroff_handler_left_in_place);
+}
+
+test "remove after registration clears only driver-owned poweroff handler" {
+    const lab = try Bcm2835WatchdogLab.init(8);
+
+    const claimed_remove = lab.removeAfterRegistrationSummary(true, false, true);
+    try std.testing.expect(claimed_remove.clear_poweroff_handler_requested);
+    try std.testing.expect(!claimed_remove.poweroff_handler_left_in_place);
+
+    const conflicted_remove = lab.removeAfterRegistrationSummary(true, true, true);
+    try std.testing.expect(!conflicted_remove.clear_poweroff_handler_requested);
+    try std.testing.expect(conflicted_remove.poweroff_handler_left_in_place);
+
+    const failed_remove = lab.removeAfterRegistrationSummary(true, false, false);
+    try std.testing.expect(!failed_remove.clear_poweroff_handler_requested);
+    try std.testing.expect(!failed_remove.poweroff_handler_left_in_place);
 }
