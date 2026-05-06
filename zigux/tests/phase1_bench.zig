@@ -184,6 +184,7 @@ fn listSortBench() struct { checksum: u64 } {
 fn rbtreeBench() struct { checksum: u64 } {
     const RbEntry = struct {
         key: i32,
+        serial: usize = 0,
         node: rbtree.Node = rbtree.Node.init(),
     };
 
@@ -192,6 +193,37 @@ fn rbtreeBench() struct { checksum: u64 } {
             const lhs_entry: *const RbEntry = @fieldParentPtr("node", lhs);
             const rhs_entry: *const RbEntry = @fieldParentPtr("node", rhs);
             return lhs_entry.key < rhs_entry.key;
+        }
+    }.compare;
+
+    const duplicate_less = struct {
+        fn compare(lhs: *const rbtree.Node, rhs: *const rbtree.Node) bool {
+            const lhs_entry: *const RbEntry = @fieldParentPtr("node", lhs);
+            const rhs_entry: *const RbEntry = @fieldParentPtr("node", rhs);
+            if (lhs_entry.key != rhs_entry.key) {
+                return lhs_entry.key < rhs_entry.key;
+            }
+            return lhs_entry.serial < rhs_entry.serial;
+        }
+    }.compare;
+
+    const cmpNode = struct {
+        fn compare(lhs: *const rbtree.Node, rhs: *const rbtree.Node) i32 {
+            const lhs_entry: *const RbEntry = @fieldParentPtr("node", lhs);
+            const rhs_entry: *const RbEntry = @fieldParentPtr("node", rhs);
+            if (lhs_entry.key < rhs_entry.key) return -1;
+            if (lhs_entry.key > rhs_entry.key) return 1;
+            return 0;
+        }
+    }.compare;
+
+    const cmpKey = struct {
+        fn compare(key: *const anyopaque, node: *const rbtree.Node) i32 {
+            const wanted: *const i32 = @ptrCast(@alignCast(key));
+            const entry: *const RbEntry = @fieldParentPtr("node", node);
+            if (wanted.* < entry.key) return -1;
+            if (wanted.* > entry.key) return 1;
+            return 0;
         }
     }.compare;
 
@@ -228,6 +260,86 @@ fn rbtreeBench() struct { checksum: u64 } {
             const entry: *const RbEntry = @fieldParentPtr("node", node);
             checksum +%= @intCast(entry.key + 17);
         }
+
+        var find_add_entries = [_]RbEntry{
+            .{ .key = 10, .serial = 0 },
+            .{ .key = 20, .serial = 1 },
+            .{ .key = 5, .serial = 2 },
+            .{ .key = 10, .serial = 3 },
+            .{ .key = 15, .serial = 4 },
+        };
+        var find_add_root = rbtree.Root.init();
+        checksum +%= @as(u64, @intFromBool(rbtree.findAdd(&find_add_entries[0].node, &find_add_root, cmpNode) == null));
+        checksum +%= @as(u64, @intFromBool(rbtree.findAdd(&find_add_entries[1].node, &find_add_root, cmpNode) == null));
+        checksum +%= @as(u64, @intFromBool(rbtree.findAdd(&find_add_entries[2].node, &find_add_root, cmpNode) == null));
+        const existing = rbtree.findAdd(&find_add_entries[3].node, &find_add_root, cmpNode) orelse unreachable;
+        const existing_entry: *const RbEntry = @fieldParentPtr("node", existing);
+        checksum +%= @intCast(existing_entry.key + @as(i32, @intCast(existing_entry.serial)));
+        checksum +%= @as(u64, @intFromBool(rbtree.findAdd(&find_add_entries[4].node, &find_add_root, cmpNode) == null));
+
+        var duplicate_entries = [_]RbEntry{
+            .{ .key = 10, .serial = 0 },
+            .{ .key = 20, .serial = 1 },
+            .{ .key = 10, .serial = 2 },
+            .{ .key = 5, .serial = 3 },
+            .{ .key = 10, .serial = 4 },
+            .{ .key = 15, .serial = 5 },
+        };
+        var duplicate_root = rbtree.Root.init();
+        for (&duplicate_entries) |*entry| {
+            rbtree.add(&entry.node, &duplicate_root, duplicate_less);
+        }
+
+        const wanted = @as(i32, 10);
+        const found = rbtree.find(&wanted, &duplicate_root, cmpKey) orelse unreachable;
+        const found_entry: *const RbEntry = @fieldParentPtr("node", found);
+        checksum +%= @intCast(found_entry.key + @as(i32, @intCast(found_entry.serial)));
+
+        const missing = @as(i32, 17);
+        checksum +%= @as(u64, @intFromBool(rbtree.find(&missing, &duplicate_root, cmpKey) == null));
+
+        const first_match = rbtree.findFirst(&wanted, &duplicate_root, cmpKey) orelse unreachable;
+        var cursor = first_match;
+        while (true) {
+            const entry: *const RbEntry = @fieldParentPtr("node", cursor);
+            checksum +%= @intCast(entry.key + @as(i32, @intCast(entry.serial)));
+            cursor = rbtree.nextMatch(&wanted, cursor, cmpKey) orelse break;
+        }
+
+        var cached_entries = [_]RbEntry{
+            .{ .key = 10 },
+            .{ .key = 5 },
+            .{ .key = 20 },
+            .{ .key = 15 },
+        };
+        var cached_replacement = RbEntry{ .key = 10 };
+        var new_leftmost = RbEntry{ .key = 3 };
+        var cached_root = rbtree.RootCached.init();
+
+        for (&cached_entries) |*entry| {
+            rbtree.addCached(&entry.node, &cached_root, less);
+        }
+
+        checksum +%= @as(u64, @intFromBool(rbtree.first(&cached_root.root) == rbtree.firstCached(&cached_root)));
+        const initial_leftmost_entry: *const RbEntry = @fieldParentPtr("node", rbtree.firstCached(&cached_root).?);
+        checksum +%= @intCast(initial_leftmost_entry.key);
+        checksum +%= @as(u64, @intFromBool(rbtree.eraseCached(&cached_entries[2].node, &cached_root) == null));
+        const still_leftmost_entry: *const RbEntry = @fieldParentPtr("node", rbtree.firstCached(&cached_root).?);
+        checksum +%= @intCast(still_leftmost_entry.key);
+
+        const promoted_leftmost = rbtree.eraseCached(&cached_entries[1].node, &cached_root) orelse unreachable;
+        const promoted_leftmost_entry: *const RbEntry = @fieldParentPtr("node", promoted_leftmost);
+        checksum +%= @intCast(promoted_leftmost_entry.key);
+        checksum +%= @as(u64, @intFromBool(rbtree.first(&cached_root.root) == rbtree.firstCached(&cached_root)));
+
+        rbtree.replaceNodeCached(&cached_entries[0].node, &cached_replacement.node, &cached_root);
+        const replacement_leftmost_entry: *const RbEntry = @fieldParentPtr("node", rbtree.firstCached(&cached_root).?);
+        checksum +%= @intCast(replacement_leftmost_entry.key);
+
+        rbtree.addCached(&new_leftmost.node, &cached_root, less);
+        const new_leftmost_entry: *const RbEntry = @fieldParentPtr("node", rbtree.firstCached(&cached_root).?);
+        checksum +%= @intCast(new_leftmost_entry.key);
+        checksum +%= @as(u64, @intFromBool(rbtree.first(&cached_root.root) == rbtree.firstCached(&cached_root)));
     }
 
     return .{ .checksum = checksum };
