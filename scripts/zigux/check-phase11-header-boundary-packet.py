@@ -7,6 +7,7 @@ import argparse
 import json
 from pathlib import Path
 import sys
+import tempfile
 
 
 EXPECTED_LANE_KEY = "P11-L18"
@@ -76,9 +77,17 @@ REQUIRED_HVC_HEADER_MARKERS = [
     "extern void notifier_hangup_irq",
 ]
 
+FIXTURE_SURVEYED_COMMIT = "fixture-phase11-shared-header-packet"
+
 
 def read_text(root: Path, rel: str) -> str:
     return (root / rel).read_text(encoding="utf-8")
+
+
+def write_text(root: Path, rel: str, text: str) -> None:
+    path = root / rel
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(text, encoding="utf-8")
 
 
 def require_markers(text: str, markers: list[str], label: str) -> None:
@@ -113,18 +122,103 @@ def check_repo(root: Path) -> None:
     require_markers(hvc_header, REQUIRED_HVC_HEADER_MARKERS, "hvc_header")
 
 
+def build_fixture_repo(root: Path) -> None:
+    manifest = {
+        "lane_key": EXPECTED_LANE_KEY,
+        "phase": "Phase 11",
+        "surveyed_commit": FIXTURE_SURVEYED_COMMIT,
+        "gaps": [{"id": gap_id} for gap_id in sorted(REQUIRED_GAP_IDS)],
+    }
+    write_text(
+        root,
+        "zigux/tests/phase11_uapi_header_parity_manifest.json",
+        json.dumps(manifest, indent=2, sort_keys=True) + "\n",
+    )
+    write_text(
+        root,
+        "Documentation/zigux/phase11-uapi-header-parity-survey.md",
+        "\n".join(REQUIRED_NOTE_MARKERS + [FIXTURE_SURVEYED_COMMIT]) + "\n",
+    )
+    write_text(
+        root,
+        "zigux/tests/phase11_uapi_header_parity_survey.zig",
+        "\n".join(REQUIRED_SURVEY_MARKERS) + "\n",
+    )
+    write_text(
+        root,
+        "zigux/tests/phase11_build.zig",
+        "\n".join(REQUIRED_BUILD_MARKERS) + "\n",
+    )
+    write_text(
+        root,
+        "Documentation/zigux/phase11-shared-replay-contract.md",
+        "\n".join(REQUIRED_CONTRACT_MARKERS) + "\n",
+    )
+    write_text(
+        root,
+        "drivers/tty/hvc/hvc_console.zig",
+        "\n".join(REQUIRED_HVC_CONSOLE_MARKERS) + "\n",
+    )
+    write_text(
+        root,
+        "drivers/tty/hvc/hvc_console.h",
+        "\n".join(REQUIRED_HVC_HEADER_MARKERS) + "\n",
+    )
+
+
+def expect_failure(root: Path, rel: str, stale_marker: str, replacement: str, expected_fragment: str) -> None:
+    path = root / rel
+    original = path.read_text(encoding="utf-8")
+    if stale_marker not in original:
+        raise SystemExit(f"fixture is missing stale marker for {rel}: {stale_marker}")
+    path.write_text(original.replace(stale_marker, replacement, 1), encoding="utf-8")
+    try:
+        check_repo(root)
+    except SystemExit as exc:
+        if expected_fragment not in str(exc):
+            raise SystemExit(f"unexpected failure for {rel}: {exc}") from exc
+    else:
+        raise SystemExit(f"expected failure for {rel}")
+    finally:
+        path.write_text(original, encoding="utf-8")
+
+
+def run_self_test() -> int:
+    with tempfile.TemporaryDirectory(prefix="phase11-header-packet-") as tmp:
+        root = Path(tmp)
+        build_fixture_repo(root)
+        check_repo(root)
+        expect_failure(
+            root,
+            "Documentation/zigux/phase11-uapi-header-parity-survey.md",
+            "phase11-uapi-header-parity-surface",
+            "phase11-uapi-header-packet-absent",
+            "note missing markers",
+        )
+        expect_failure(
+            root,
+            "Documentation/zigux/phase11-shared-replay-contract.md",
+            "zigux/tests/phase11_uapi_header_parity_survey.zig",
+            "zigux/tests/phase11_header_packet_absent.zig",
+            "contract missing markers",
+        )
+    print("phase11-header-boundary-packet: self-test passed")
+    print("phase11-header-boundary-packet: self-test cases=3")
+    return 0
+
+
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--repo-root", default=".")
     parser.add_argument("--self-test", action="store_true")
     args = parser.parse_args()
 
+    if args.self_test:
+        return run_self_test()
+
     root = Path(args.repo_root).resolve()
     check_repo(root)
-    if args.self_test:
-        print("phase11-header-boundary-packet: self-test passed")
-    else:
-        print("phase11-header-boundary-packet: ok")
+    print("phase11-header-boundary-packet: ok")
     return 0
 
 
