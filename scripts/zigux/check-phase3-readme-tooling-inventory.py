@@ -493,6 +493,21 @@ def run_self_test() -> int:
 
         _write(
             root / README_REL,
+            baseline_readme.replace("- `validate-phase14.py`\n", "", 1),
+        )
+        _assert_only(
+            validate(root),
+            [
+                "missing_readme_helper_entry:validate-phase14.py",
+                "readme_helper_order_drift",
+            ],
+            "missing_phase14_validator_helper_entry_guard_failed",
+        )
+        _write(root / README_REL, baseline_readme)
+        case_count += 1
+
+        _write(
+            root / README_REL,
             baseline_readme.replace(
                 "- `check-mk-elfconfig-diff.py`\n",
                 "- `check-mk-elfconfig-diff.py`\n- `unexpected-helper.py`\n",
@@ -570,6 +585,27 @@ def run_self_test() -> int:
         _write(root / "scripts" / "zigux" / "check-phase13-devres-packet.py", "# stub\n")
         case_count += 1
 
+        (root / "scripts" / "zigux" / "validate-phase14.py").unlink()
+        _assert_only(
+            validate(root),
+            ["missing_repo_file:scripts/zigux/validate-phase14.py"],
+            "missing_phase14_validator_repo_file_guard_failed",
+        )
+        _write(root / "scripts" / "zigux" / "validate-phase14.py", "# stub\n")
+        case_count += 1
+
+        (root / "scripts" / "zigux" / "check-phase14-release-boundary-exact-counts.py").unlink()
+        _assert_only(
+            validate(root),
+            ["missing_repo_file:scripts/zigux/check-phase14-release-boundary-exact-counts.py"],
+            "missing_phase14_release_boundary_repo_file_guard_failed",
+        )
+        _write(
+            root / "scripts" / "zigux" / "check-phase14-release-boundary-exact-counts.py",
+            "# stub\n",
+        )
+        case_count += 1
+
         (root / "scripts" / "zigux" / "check-phase15-scripts-readme-alignment.py").unlink()
         _assert_only(
             validate(root),
@@ -577,6 +613,15 @@ def run_self_test() -> int:
             "missing_phase15_alignment_repo_file_guard_failed",
         )
         _write(root / "scripts" / "zigux" / "check-phase15-scripts-readme-alignment.py", "# stub\n")
+        case_count += 1
+
+        (root / "scripts" / "zigux" / "check-phase15-review-process-handoff.py").unlink()
+        _assert_only(
+            validate(root),
+            ["missing_repo_file:scripts/zigux/check-phase15-review-process-handoff.py"],
+            "missing_phase15_review_process_handoff_repo_file_guard_failed",
+        )
+        _write(root / "scripts" / "zigux" / "check-phase15-review-process-handoff.py", "# stub\n")
         case_count += 1
 
         (root / "scripts" / "zigux" / "check-phase10-input-packet.py").unlink()
