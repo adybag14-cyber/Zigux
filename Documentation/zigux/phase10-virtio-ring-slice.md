@@ -6,7 +6,7 @@ This document tracks the first bounded `drivers/virtio/virtio_ring.c` lab helper
 
 - `PHASE10_STATUS=active`
 - `PHASE10_SLICE=virtio-ring-lab-helper`
-- scope: queue index bounds, descriptor-count validation, split or packed layout metadata, avail and used index bookkeeping, used-buffer polling, callback re-enable bookkeeping, delayed-callback pacing bookkeeping, broken-queue discipline, reset-readiness preflight bookkeeping, notify-prepare accounting, dedicated Phase 10 ring tests, the committed ring survey manifest and survey gate, the dedicated ring packet review guard, the shared Phase 10 core, input, and MMIO packet guards, the shared reset-queue, driver-id, and input status-drain replays, and the shared Phase 10 build-and-make routes
+- scope: queue index bounds, descriptor-count validation, split or packed layout metadata, avail and used index bookkeeping, used-buffer polling, callback re-enable bookkeeping, delayed-callback pacing bookkeeping, broken-queue discipline, queue-local reset bookkeeping, reset-readiness preflight bookkeeping, notify-prepare accounting, dedicated Phase 10 ring tests, the committed ring survey manifest and survey gate, the dedicated ring packet review guard, the shared Phase 10 core, input, and MMIO packet guards, the shared reset-queue, driver-id, and input status-drain replays, and the shared Phase 10 build-and-make routes
 - product boundary:
   - `drivers/virtio/virtio_ring.zig`
   - `zigux/tests/phase10_virtio_ring.zig`
@@ -33,7 +33,7 @@ This document tracks the first bounded `drivers/virtio/virtio_ring.c` lab helper
 
 The Phase 10 roadmap puts virtqueue wrappers ahead of MMIO work and explicitly names `drivers/virtio/virtio_ring.c` as the next core anchor after `drivers/virtio/virtio.c`.
 
-The live repo already had a survey lane that made the queue-wrapper gap explicit. This slice lands the smallest honest follow-on: a lab-only helper that records queue shape, used-buffer polling, callback re-enable state, broken-queue discipline, reset-readiness preflight, and notification bookkeeping in memory without pretending to own DMA mapping, real descriptor memory, or interrupt delivery.
+The live repo already had a survey lane that made the queue-wrapper gap explicit. This slice lands the smallest honest follow-on: a lab-only helper that records queue shape, used-buffer polling, callback re-enable state, broken-queue discipline, a queue-local reset helper, reset-readiness preflight, and notification bookkeeping in memory without pretending to own DMA mapping, real descriptor memory, or interrupt delivery.
 
 ## Landed starter surface
 
@@ -46,6 +46,7 @@ The live repo already had a survey lane that made the queue-wrapper gap explicit
 - callback disable and re-enable bookkeeping that reports when the driver should poll for already-consumed chains
 - delayed-callback pacing bookkeeping that mirrors the bounded `virtqueue_enable_cb_delayed()` threshold shape without claiming interrupt delivery or event-index writes
 - broken-queue discipline that rejects fresh publish, kick-preparation, queue-local polling, and callback re-enable snapshots until the lab queue is cleared again
+- queue-local reset bookkeeping that clears avail, used, callback, outstanding-chain, and notification state while preserving descriptor-count and layout metadata for clean reuse
 - reset-readiness preflight bookkeeping that reports whether `resetQueue()` is safe and, if not, names the exact queue-local blocker before any transport-facing reset claim
 - kick-prepare notification bookkeeping that mirrors the smallest reviewable `num_added` flow from `virtio_ring.c`
 - used-chain accounting that drains outstanding lab work without touching real transport paths
