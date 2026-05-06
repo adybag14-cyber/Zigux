@@ -97,7 +97,7 @@ Phase 2 flow
 - `check-fixdep-diff.py` compares the bounded `fixdep.zig` output against the committed fixture set, including `zigux/tests/fixtures/fixdep/sample_multi_target_expected.txt`.
 - `check-genksyms-bridge.py` exercises the bounded `genksyms.zig` bridge parity lane.
 - `check-genksyms-crc-diff.py` checks the bounded `genksyms_crc.zig` artifact lane.
-- `check-phase2-kconfig-selftest-alignment.py --self-test` and `check-phase2-kconfig-selftest-alignment.py` keep `check-kconfig-bridge.py`, `zigux/Makefile`, and `.github/workflows/zigux-bootstrap.yml` aligned around the shipped kconfig self-test hooks before the bridge and Zig replays run.
+- `check-phase2-kconfig-selftest-alignment.py --self-test` and `check-phase2-kconfig-selftest-alignment.py` keep `check-kconfig-bridge.py`, `scripts/zigux/validate-phase2.py`, `zigux/Makefile`, and `.github/workflows/zigux-bootstrap.yml` aligned around the shipped kconfig self-test hooks before the bridge and Zig replays run, so the shared Phase 2 validator, the Linux-style `phase2-kconfig` route, and the workflow-backed replay surface stay on the same bounded packet.
 - `check-kconfig-bridge.py` covers the bounded `kconfig/conf_bridge.zig` and `kconfig/confdata_bridge.zig` bridge lanes.
 - `check-phase2-cross.py` runs the bounded Phase 2 cross-target compile checks.
 - `check-mk-elfconfig-diff.py` covers the bounded `mk_elfconfig.zig` artifact parity lane.
