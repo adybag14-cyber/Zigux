@@ -59,7 +59,10 @@ EXPECTED_CORE_TEST_MARKERS = [
     "phase10 virtio core tracks lifecycle guard bookkeeping across driver model milestones",
     "phase10 virtio core exposes reset replay bookkeeping before reset clears state",
     "phase10 virtio core reaches queue runtime readiness after validated feature narrowing",
+    "phase10 virtio core renders the bounded status_show surface after driver-model milestones",
+    "phase10 virtio core renders bounded features_show bitstrings across device, driver, and negotiated views",
     "const lifecycle = device.lifecycleGuardSummary();",
+    "const negotiated_bits = device.featureAttributeSummary(.negotiated);",
 ]
 
 EXPECTED_NOTE_MARKERS = [
@@ -363,6 +366,32 @@ def run_self_test() -> int:
             raise SystemExit("phase10-core-self-test:expected_core_test_marker_missing")
         core_test_path.write_text(original_core_test, encoding="utf-8")
 
+        core_test_path.write_text(
+            original_core_test.replace(
+                "phase10 virtio core renders the bounded status_show surface after driver-model milestones",
+                "phase10 virtio core status-show drift",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        _, missing_markers = validate(tmp_root)
+        if "core_test:phase10 virtio core renders the bounded status_show surface after driver-model milestones" not in missing_markers:
+            raise SystemExit("phase10-core-self-test:expected_status_show_marker_missing")
+        core_test_path.write_text(original_core_test, encoding="utf-8")
+
+        core_test_path.write_text(
+            original_core_test.replace(
+                "const negotiated_bits = device.featureAttributeSummary(.negotiated);",
+                "const negotiated_bits = device.featureAttributeSummary(.driver);",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        _, missing_markers = validate(tmp_root)
+        if "core_test:const negotiated_bits = device.featureAttributeSummary(.negotiated);" not in missing_markers:
+            raise SystemExit("phase10-core-self-test:expected_negotiated_feature_marker_missing")
+        core_test_path.write_text(original_core_test, encoding="utf-8")
+
         reset_queue_path = tmp_root / "zigux/tests/phase10_virtio_core_reset_queue.zig"
         original_reset_queue = reset_queue_path.read_text(encoding="utf-8")
         reset_queue_path.write_text(
@@ -475,7 +504,7 @@ def run_self_test() -> int:
             raise SystemExit("phase10-core-self-test:expected_surveyed_commit_alignment_missing")
 
     print("PHASE10_CORE_PACKET_SELF_TEST=pass")
-    print("PHASE10_CORE_PACKET_SELF_TEST_CASE_COUNT=18")
+    print("PHASE10_CORE_PACKET_SELF_TEST_CASE_COUNT=20")
     return 0
 
 
