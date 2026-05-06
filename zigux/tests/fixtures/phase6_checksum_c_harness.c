@@ -114,6 +114,29 @@ static uint32_t csum_tcpudp_nofold(uint32_t saddr, uint32_t daddr,
 	return partial_bytes((const unsigned char *)"", 0, acc);
 }
 
+static uint32_t read_be32(const unsigned char bytes[4])
+{
+	return ((uint32_t)bytes[0] << 24) | ((uint32_t)bytes[1] << 16) |
+	       ((uint32_t)bytes[2] << 8) | bytes[3];
+}
+
+static uint32_t csum_tcpudp_v6_nofold(const unsigned char saddr[16], const unsigned char daddr[16],
+				      uint32_t len, uint8_t proto, uint32_t sum)
+{
+	uint32_t acc = partial_bytes((const unsigned char *)"", 0, sum);
+	size_t index;
+
+	for (index = 0; index < 16; index += 4) {
+		acc = csum_add(acc, read_be32(&saddr[index]));
+		acc = csum_add(acc, read_be32(&daddr[index]));
+	}
+
+	acc = csum_add(acc, len >> 16);
+	acc = csum_add(acc, len & 0xffffU);
+	acc = csum_add(acc, proto);
+	return partial_bytes((const unsigned char *)"", 0, acc);
+}
+
 static void print_u16_case(const char *kind, const char *name, uint16_t value)
 {
 	printf("%s\t%s\t0x%04x\n", kind, name, value);
@@ -139,6 +162,23 @@ int main(void)
 	static const unsigned char carry_payload[] = { 0xff, 0xff, 0xff, 0xff, 0x7f };
 	static const unsigned char carry_phrase[] = "checksum fragments keep their carry";
 	static const unsigned char udp_payload[] = "zigux checksum";
+	static const unsigned char udp_v6_payload[] = {
+		0xde, 0xad, 0xbe, 0xef,
+		0xfa, 0xce, 0x01, 0x23,
+		0x45, 0x67, 0x89,
+	};
+	static const unsigned char udp_v6_saddr[] = {
+		0x20, 0x01, 0x0d, 0xb8,
+		0x00, 0x00, 0x00, 0x00,
+		0x00, 0x00, 0x00, 0x00,
+		0x00, 0x00, 0x00, 0x01,
+	};
+	static const unsigned char udp_v6_daddr[] = {
+		0x20, 0x01, 0x0d, 0xb8,
+		0x00, 0x00, 0x00, 0x00,
+		0x00, 0x00, 0x00, 0x00,
+		0x00, 0x00, 0x00, 0x02,
+	};
 	unsigned char payload[] = { 0x70, 0x68, 0x61, 0x73, 0x65, 0x36 };
 	unsigned char mutable_ipv4_header[] = {
 		0x45, 0x00, 0x00, 0x3c,
@@ -190,6 +230,25 @@ int main(void)
 	print_u32_case("tcpudp-nofold", "udp pseudo header",
 		       csum_tcpudp_nofold(udp_saddr, udp_daddr, sizeof(udp_payload) - 1, udp_proto,
 					  partial_bytes(udp_payload, sizeof(udp_payload) - 1, 0)));
+	print_u32_case("tcpudp-v6-nofold", "udp pseudo header v6",
+		       csum_tcpudp_v6_nofold(udp_v6_saddr, udp_v6_daddr, sizeof(udp_v6_payload), udp_proto,
+					     partial_bytes(udp_v6_payload, sizeof(udp_v6_payload), 0)));
+
+	print_u32_case("negate", "zero stays zero", 0U - 0x00000000U);
+	print_u32_case("negate", "one negates to all ones", 0U - 0x00000001U);
+	print_u32_case("negate", "all ones negates to one", 0U - 0xffffffffU);
+	print_u32_case("negate", "mixed payload preserves ones complement carry", 0U - 0xdeadbef0U);
+
+	print_u16_case("from32to16", "zero", csum_from32to16(0x00000000U));
+	print_u16_case("fold", "zero", csum_fold(0x00000000U));
+	print_u16_case("from32to16", "single carry into the low word", csum_from32to16(0x00010000U));
+	print_u16_case("fold", "single carry into the low word", csum_fold(0x00010000U));
+	print_u16_case("from32to16", "double carry collapse", csum_from32to16(0xffff0001U));
+	print_u16_case("fold", "double carry collapse", csum_fold(0xffff0001U));
+	print_u16_case("from32to16", "all ones saturates to sixteen bits", csum_from32to16(0xffffffffU));
+	print_u16_case("fold", "all ones saturates to sixteen bits", csum_fold(0xffffffffU));
+	print_u16_case("from32to16", "mixed words preserve the remaining payload", csum_from32to16(0x12345678U));
+	print_u16_case("fold", "mixed words preserve the remaining payload", csum_fold(0x12345678U));
 
 	old_partial = partial_bytes(payload, sizeof(payload), 0);
 	old_word = ((uint32_t)payload[0] << 8) | payload[1];
