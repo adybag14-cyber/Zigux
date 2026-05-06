@@ -44,6 +44,12 @@ pub const NegateCase = struct {
     expected_add_with_negate: u32,
 };
 
+pub const FoldCase = struct {
+    name: []const u8,
+    sum: u32,
+    expected_folded: u16,
+};
+
 pub const PerfCase = struct {
     label: []const u8,
     bytes: []const u8,
@@ -218,6 +224,14 @@ pub const negate_cases = [_]NegateCase{
         .expected_negate = 0x2152_4110,
         .expected_add_with_negate = 0x0000_0001,
     },
+};
+
+pub const fold_cases = [_]FoldCase{
+    .{ .name = "zero", .sum = 0x0000_0000, .expected_folded = 0x0000 },
+    .{ .name = "single carry into the low word", .sum = 0x0001_0000, .expected_folded = 0x0001 },
+    .{ .name = "double carry collapse", .sum = 0xffff_0001, .expected_folded = 0x0001 },
+    .{ .name = "all ones saturates to sixteen bits", .sum = 0xffff_ffff, .expected_folded = 0xffff },
+    .{ .name = "mixed words preserve the remaining payload", .sum = 0x1234_5678, .expected_folded = 0x68ac },
 };
 
 pub const perf_cases = [_]PerfCase{
