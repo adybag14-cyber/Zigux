@@ -27,6 +27,25 @@ REQUIRED_SNIPPETS = {
     "Documentation/zigux/review-checklist.md": [
         "  * if the change touches the shared Phase 6 leaf-helper packet, do `Documentation/zigux/README.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, `Documentation/zigux/phase6-base64-slice.md`, `Documentation/zigux/phase6-bsearch-slice.md`, `Documentation/zigux/phase6-checksum-slice.md`, `Documentation/zigux/phase6-hexdump-slice.md`, `scripts/zigux/check-phase6-shared-surface.py`, `zigux/tests/phase6_build.zig`, `zigux/tests/phase6_base64.zig`, `zigux/tests/phase6_bsearch.zig`, `zigux/tests/phase6_checksum.zig`, `zigux/tests/phase6_hexdump.zig`, `zigux/tests/phase6_checksum_perf.zig`, `zigux/tests/phase6_hexdump_perf.zig`, `zigux/Makefile`, `.github/workflows/zigux-bootstrap.yml`, `make -C zigux phase6-validate`, `make -C zigux phase6`, `make -C zigux phase6-checksum-perf`, and `make -C zigux phase6-hexdump-perf` still agree on the same bundled `base64`, `bsearch`, `checksum`, and `hexdump` helper packet without implying a removed shared `validate-phase6.py`, a broader external parity checker beyond `check-phase6-shared-surface.py`, or an aggregated `phase6-perf` route?",
     ],
+    "Documentation/zigux/phase6-base64-slice.md": [
+        "- `PHASE6_STATUS=parked`",
+        "- `PHASE6_SLICE=base64-leaf-helper`",
+        "- lane state: helper and fixture slice landed; parked unless a new `base64.c` parity issue appears",
+        "- `Variant.imap`",
+        "- fixture-backed decode-length parity through `bytes` across the full committed valid std, URL-safe, and IMAP decode corpus",
+        "- invalid-input rejection through both `bytes` and `decode` for malformed, embedded-NUL, and variant-mismatched decode inputs",
+        "- exhaustive canonical tail acceptance for padded and unpadded std, URL-safe, and IMAP decode paths",
+    ],
+    "Documentation/zigux/phase6-bsearch-slice.md": [
+        "- `PHASE6_STATUS=parked`",
+        "- `PHASE6_SLICE=bsearch-leaf-helper`",
+        "- lane state: helper slice landed; parked unless a new `bsearch.c` parity issue appears",
+        "- `searchIndex`",
+        "- `bsearchMutable`",
+        "- mutable typed and raw lookup write-through parity",
+        "- runtime-selected raw C ABI comparator pointer parity, including pointer-return duplicate hits and null misses",
+        "The current packet intentionally keeps its representative sorted inputs inline in `zigux/tests/phase6_bsearch.zig` instead of a separate fixture module so the helper bundle stays small and directly reviewable.",
+    ],
     "zigux/tests/README.md": [
         "  * `zigux/tests/phase6_hexdump_perf.zig`",
         "  * keep the shared Phase 6 leaf-helper packet wired through `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, `scripts/zigux/check-phase6-shared-surface.py`, `zigux/tests/phase6_build.zig`, including `zigux/tests/phase6_base64.zig`, `zigux/tests/phase6_bsearch.zig`, `zigux/tests/phase6_checksum.zig`, and `zigux/tests/phase6_hexdump.zig`, `zigux/Makefile`, `.github/workflows/zigux-bootstrap.yml`, `make -C zigux phase6-validate`, and `make -C zigux phase6`, so the landed `base64`, `bsearch`, `checksum`, and `hexdump` bundle stays reviewable through one bounded helper gate, and keep `zigux/tests/phase6_checksum_perf.zig` plus `make -C zigux phase6-checksum-perf` and `zigux/tests/phase6_hexdump_perf.zig` plus `make -C zigux phase6-hexdump-perf` explicit as the dedicated checksum and hexdump perf routes rather than implying a broader Phase 6 packet-wide perf target",
@@ -320,6 +339,7 @@ def run_self_test() -> None:
 
         docs_readme = root / "Documentation/zigux/README.md"
         original_docs_readme = docs_readme.read_text(encoding="utf-8")
+        docs_readme.writeText = None
         docs_readme.write_text(
             original_docs_readme.replace(
                 "phase6-hexdump-perf",
@@ -336,6 +356,44 @@ def run_self_test() -> None:
         else:
             raise AssertionError("expected docs README failure")
         docs_readme.write_text(original_docs_readme, encoding="utf-8")
+
+        base64_slice = root / "Documentation/zigux/phase6-base64-slice.md"
+        original_base64_slice = base64_slice.read_text(encoding="utf-8")
+        base64_slice.write_text(
+            original_base64_slice.replace(
+                "`Variant.imap`",
+                "`Variant.smtp`",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        try:
+            run_checks(root)
+        except ValidationError as exc:
+            if "Documentation/zigux/phase6-base64-slice.md" not in str(exc):
+                raise AssertionError(f"unexpected base64 slice failure: {exc}") from exc
+        else:
+            raise AssertionError("expected base64 slice failure")
+        base64_slice.write_text(original_base64_slice, encoding="utf-8")
+
+        bsearch_slice = root / "Documentation/zigux/phase6-bsearch-slice.md"
+        original_bsearch_slice = bsearch_slice.read_text(encoding="utf-8")
+        bsearch_slice.write_text(
+            original_bsearch_slice.replace(
+                "runtime-selected raw C ABI comparator pointer parity",
+                "runtime-selected raw foreign ABI comparator pointer parity",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        try:
+            run_checks(root)
+        except ValidationError as exc:
+            if "Documentation/zigux/phase6-bsearch-slice.md" not in str(exc):
+                raise AssertionError(f"unexpected bsearch slice failure: {exc}") from exc
+        else:
+            raise AssertionError("expected bsearch slice failure")
+        bsearch_slice.write_text(original_bsearch_slice, encoding="utf-8")
 
         workflow = root / ".github/workflows/zigux-bootstrap.yml"
         original_workflow = workflow.read_text(encoding="utf-8")
