@@ -17,6 +17,7 @@ This document tracks the first bounded Phase 9 runtime kretprobe starter under `
   - `zigux/tests/runtime_kretprobe_manifest.json`
   - `zigux/tests/runtime_kretprobe_survey.zig`
   - `Documentation/zigux/phase9-runtime-kretprobe-survey.md`
+  - `Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md`
   - `zigux/kernel/runtime_loader.zig`
   - `zigux/kernel/runtime_loader_contract.zig`
   - `zigux/tests/runtime_loader_allocator_init_flow.zig`
@@ -33,6 +34,7 @@ The shared sample-root catalog at `samples/zigux/README.md` keeps the approved P
 ## Landed starter surface
 
 - a bounded `runtime_kretprobe_loader` scaffold that keeps the planned `register_kretprobe()` and `unregister_kretprobe()` labels, entry or exit symbol naming, private-data size, idle registration snapshot, and failed-exit state retention explicit while the real runtime substrate is still unavailable.
+- `Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md` now stays inside this slice's shipped product boundary too, so the kretprobe starter keeps the pilot-family owner split explicit instead of leaving the shared loader lane versus pilot-local packet implicit.
 
 ## Roadmap gap vs current pilot
 
