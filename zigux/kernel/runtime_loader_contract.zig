@@ -417,3 +417,44 @@ test "shared runtime loader contract rejects request state or plan drift" {
     drifted_init_flow.init_flow.selftest_runs = 1;
     try std.testing.expect(!keepsRequestStateAndPlanExplicit(request, .prepared, drifted_init_flow));
 }
+
+test "shared runtime loader contract keeps command and environment control surfaces outside the request contract" {
+    try std.testing.expect(!@hasField(LoadPlan, "command_name"));
+    try std.testing.expect(!@hasField(LoadPlan, "argv_policy"));
+    try std.testing.expect(!@hasField(LoadPlan, "activation_env"));
+    try std.testing.expect(!@hasField(LoadPlan, "exec_path_env"));
+    try std.testing.expect(!@hasField(LoadPlan, "path_env"));
+    try std.testing.expect(!@hasField(LoadPlan, "lines_env"));
+    try std.testing.expect(!@hasField(LoadPlan, "columns_env"));
+    try std.testing.expect(!@hasField(LoadPlan, "register_api"));
+    try std.testing.expect(!@hasField(LoadPlan, "unregister_api"));
+    try std.testing.expect(!@hasField(PreparedRequest, "command_name"));
+    try std.testing.expect(!@hasField(PreparedRequest, "activation_env"));
+
+    const stable_plan = LoadPlan{
+        .module_name = "runtime_trace_events",
+        .anchor = "samples/trace_events/trace-events-sample.c",
+        .entry_symbol = "zigux_runtime_trace_events_init",
+        .exit_symbol = "zigux_runtime_trace_events_exit",
+        .requires_runtime_substrate = true,
+        .provides_selftest_hook = true,
+        .allocator_handoff = .caller_provided,
+        .init_flow = .{
+            .handoff_stage = .selftest_complete,
+            .init_runs = 1,
+            .selftest_runs = 1,
+            .exit_runs = 0,
+        },
+    };
+
+    var request = try prepareRequest(stable_plan);
+    const pending_plan = try request.requestRuntimeLoad();
+
+    try std.testing.expect(keepsRequestStateAndPlanExplicit(
+        request,
+        .waiting_on_runtime_substrate,
+        stable_plan,
+    ));
+    try std.testing.expectEqualStrings(stable_plan.module_name, pending_plan.module_name);
+    try std.testing.expectEqualStrings(stable_plan.anchor, pending_plan.anchor);
+}
