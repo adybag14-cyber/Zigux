@@ -23,7 +23,7 @@ test "phase 7 cmdline survey keeps the roadmap-backed helper packet reviewable" 
     try expectContains(slice_note, "- do not allocate");
     try expectContains(slice_note, "Linux-style hyphen range expansion, validation-only counting, and leading-plus numeric acceptance for `get_option()` and `get_options()`");
     try expectContains(slice_note, "memory-size suffix scaling, leading-plus numeric acceptance, and accurate parse-stop reporting in `memparse()`");
-    try expectContains(slice_note, "serialized `next_arg()` edge cases covering quoted values, quoted bare tokens, empty quoted bare tokens, quoted bare tokens that contain `=`, empty quoted or whitespace-only values, unquoted punctuation-rich values, first-equals splitting, leading-equals sentinel handling, unterminated quoted values, mixed-whitespace rest trimming, and empty-rest termination");
+    try expectContains(slice_note, "serialized `next_arg()` edge cases covering quoted values, quoted bare tokens, empty quoted bare tokens, leading quoted tokens that contain `=` and still split at the first equals, empty quoted or whitespace-only values, unquoted punctuation-rich values, first-equals splitting, leading-equals sentinel handling, unterminated quoted values, mixed-whitespace rest trimming, and empty-rest termination");
     try expectContains(slice_note, "the dedicated survey gate, the committed `zigux/tests/fixtures/phase7_cmdline_next_arg_vectors.zig` fixture module, the exact `zig build test --build-file zigux/tests/phase7_build.zig --summary all` shared compile-check replay, and the shared `validate-phase7.py`, `check-phase7-make-wrapper.py`, `phase7_build.zig`, and `make -C zigux phase7-validate` plus `make -C zigux phase7` routes keep the roadmap anchor, the leading-plus numeric replay, serialized `next_arg()` replay, focused helper replay, and Linux-style validator-first packet aligned around the same parked cmdline slice");
 
     const build_file = try readRepoFile(allocator, "zigux/tests/phase7_build.zig");
@@ -53,12 +53,13 @@ test "phase 7 cmdline survey keeps the roadmap-backed helper packet reviewable" 
     defer allocator.free(next_arg_fixture);
     try expectContains(next_arg_fixture, ".name = \"quoted bare token with trailing token\",");
     try expectContains(next_arg_fixture, ".name = \"empty quoted bare token stays empty and unsplit\",");
-    try expectContains(next_arg_fixture, ".name = \"quoted bare token with equals stays unsplit\",");
+    try expectContains(next_arg_fixture, ".name = \"leading quoted token with equals splits like Linux\",");
     try expectContains(next_arg_fixture, ".name = \"empty whitespace-separated value stays on the current token\",");
     try expectContains(next_arg_fixture, ".name = \"first equals wins inside the value\",");
     try expectContains(next_arg_fixture, ".name = \"leading equals sign stays in the parameter token\",");
     try expectContains(next_arg_fixture, ".expected_param = \"\",");
-    try expectContains(next_arg_fixture, ".expected_param = \"key=value\",");
+    try expectContains(next_arg_fixture, ".expected_param = \"key\",");
+    try expectContains(next_arg_fixture, ".expected_value = \"value\",");
     try expectContains(next_arg_fixture, ".expected_param = \"=bad\",");
     try expectContains(next_arg_fixture, ".expected_value = \"alpha=beta\",");
 }
