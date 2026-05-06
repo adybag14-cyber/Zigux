@@ -103,9 +103,9 @@ test "phase13 devres reviewability packet records the helper-only DMA/scatterlis
 
     try std.testing.expect(std.mem.indexOf(u8, slice_note, "devm_arch_io_reserve_memtype_wc()") != null);
     try std.testing.expect(std.mem.indexOf(u8, slice_note, "This slice does not claim live `devres_alloc_node()` ownership") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "reviewed against live `master`") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "devm_arch_phys_wc_add()") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "devm_arch_io_reserve_memtype_wc()") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "7a4454d0474106972cad7e164b79293bd54a40c6") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "devm_ioremap_wc()") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "dmam_alloc_*") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "dma_map_sgtable()") != null);
