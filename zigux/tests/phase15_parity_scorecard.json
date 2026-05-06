@@ -41,6 +41,16 @@
     "current_repo_handoff": "Documentation root and freeze-map governance are now carried forward by the landed Phase 15 review-process note, parity scorecard, evidence-archive templates, shared validator-first gate through scripts/zigux/check-phase15-scripts-readme-alignment.py, scripts/zigux/check-phase15-review-process-handoff.py, and make -C zigux phase15-validate, the focused zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig replay already wired through zigux/tests/phase15_build.zig, and make -C zigux phase15 target.",
     "maintenance_mode_next_step": "Wait for one of the named reopen triggers or the deep-core blocker posture to change before opening another Phase 15 slice."
   },
+  "metrics": {
+    "active_freeze_in_c_anchor_count": 4,
+    "total_tracked_line_count": 31437,
+    "anchors_with_phase14_blocker_evidence": 2,
+    "anchors_without_phase14_blocker_evidence": 2,
+    "architecture_council_owned_anchor_count": 2,
+    "specialist_lane_owned_anchor_count": 2,
+    "reserved_decision_record_template_count": 4,
+    "blocked_status_change_anchor_count": 4
+  },
   "anchors": [
     {
       "path": "kernel/sched/core.c",
@@ -302,6 +312,13 @@
       "kind": "reporting",
       "zigux_destination": "zigux/tests/phase15_parity_scorecard.json",
       "why_now": "The scorecard now machine-counts benchmark notes and replay command as required review-gate fields so the manifest matches the note and checklist instead of leaving those reporting cues implicit."
+    },
+    {
+      "id": "phase15-aggregate-scorecard-metrics",
+      "status": "starter_landed",
+      "kind": "reporting",
+      "zigux_destination": "zigux/tests/phase15_parity_scorecard.json",
+      "why_now": "The scorecard now publishes one machine-checked aggregate metrics block for anchor count, frozen-line footprint, carried-forward Phase 14 evidence, ownership split, reserved decision-record templates, and blocked status-change count so reviewers can understand the parked freeze set without recomputing totals from prose."
     },
     {
       "id": "phase15-deep-core-status-change-blocker",
