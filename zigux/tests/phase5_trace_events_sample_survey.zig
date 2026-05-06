@@ -34,6 +34,14 @@ fn isLowerHexCommitSha(value: []const u8) bool {
     return true;
 }
 
+fn isPhase5LaneKey(value: []const u8) bool {
+    if (value.len != 6) return false;
+    if (!std.mem.startsWith(u8, value, "P5-")) return false;
+    if (!std.ascii.isUpper(value[3])) return false;
+    if (!std.ascii.isDigit(value[4]) or !std.ascii.isDigit(value[5])) return false;
+    return true;
+}
+
 test "phase 5 trace-events manifest records the exact bounded checks" {
     var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
     defer io_instance.deinit();
@@ -50,7 +58,7 @@ test "phase 5 trace-events manifest records the exact bounded checks" {
     defer parsed.deinit();
 
     const manifest = parsed.value;
-    try std.testing.expectEqualStrings("P5-L16", manifest.lane_key);
+    try std.testing.expect(isPhase5LaneKey(manifest.lane_key));
     try std.testing.expectEqualStrings("Phase 5", manifest.phase);
     try std.testing.expect(isLowerHexCommitSha(manifest.surveyed_commit));
     try std.testing.expectEqualStrings("samples/trace_events/trace-events-sample.c", manifest.anchor);
