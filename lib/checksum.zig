@@ -207,3 +207,24 @@ test "replacement helpers match direct recomputation for payload and header edit
     ipv4_header[15] = 0x02;
     try std.testing.expectEqual(compute(&ipv4_header), replace4(checksum_before_addr_change, 0xc0a8_0001, 0xc0a8_0002));
 }
+
+test "tcpUdpNofold matches direct pseudo-header accumulation" {
+    const payload = [_]u8{ 0xde, 0xad, 0xbe, 0xef, 0xfa, 0xce };
+    const saddr: u32 = 0xc0a8_0001;
+    const daddr: u32 = 0xc0a8_0002;
+    const proto: u8 = 17;
+
+    var pseudo_header = [_]u8{
+        0xc0, 0xa8, 0x00, 0x01,
+        0xc0, 0xa8, 0x00, 0x02,
+        0x00, proto, 0x00, payload.len,
+    };
+
+    const payload_partial = partial(&payload, 0);
+    const pseudo_partial = partial(&pseudo_header, 0);
+    const direct_combined = partial("", blockAdd(pseudo_partial, payload_partial, pseudo_header.len));
+    const helper_combined = tcpUdpNofold(payload_partial, saddr, daddr, payload.len, proto);
+
+    try std.testing.expectEqual(direct_combined, helper_combined);
+    try std.testing.expectEqual(fold(direct_combined), fold(helper_combined));
+}
