@@ -9,6 +9,9 @@ const RepoEvidence = struct {
     handoff_next_steps_present: bool,
     phase15_build_present: bool,
     phase15_make_target_present: bool,
+    phase15_validate_target_present: bool,
+    phase15_scripts_alignment_checker_present: bool,
+    phase15_review_process_handoff_checker_present: bool,
     shared_ci_phase15_present: bool,
     phase15_replay_green_on_current_master: bool,
     deep_core_status_change_ready: bool,
@@ -87,6 +90,9 @@ test "phase 15 readiness manifest records the roadmap, ledger, and current repo 
     try std.testing.expect(manifest.repo_evidence.handoff_next_steps_present);
     try std.testing.expect(manifest.repo_evidence.phase15_build_present);
     try std.testing.expect(manifest.repo_evidence.phase15_make_target_present);
+    try std.testing.expect(manifest.repo_evidence.phase15_validate_target_present);
+    try std.testing.expect(manifest.repo_evidence.phase15_scripts_alignment_checker_present);
+    try std.testing.expect(manifest.repo_evidence.phase15_review_process_handoff_checker_present);
     try std.testing.expect(manifest.repo_evidence.shared_ci_phase15_present);
     try std.testing.expect(manifest.repo_evidence.phase15_replay_green_on_current_master);
     try std.testing.expect(!manifest.repo_evidence.deep_core_status_change_ready);
@@ -137,6 +143,7 @@ test "phase 15 readiness manifest records the roadmap, ledger, and current repo 
     try std.testing.expect(saw_status_change_blocker);
     try std.testing.expect(std.mem.indexOf(u8, manifest.next_step, "maintenance mode") != null);
     try std.testing.expect(std.mem.indexOf(u8, manifest.next_step, "four recorded deep-core blocker dispositions") != null);
+    try std.testing.expect(std.mem.indexOf(u8, manifest.next_step, "two dedicated `phase15-validate` checker routes") != null);
     try std.testing.expect(std.mem.indexOf(u8, manifest.next_step, "make -C zigux phase15") != null);
 }
 
@@ -168,8 +175,11 @@ test "phase 15 readiness note keeps the roadmap, ledger, and current blocker inv
     try std.testing.expect(std.mem.indexOf(u8, readiness_note, "Full-Parity Blockers and Long-Term Governance") != null);
     try std.testing.expect(std.mem.indexOf(u8, readiness_note, "docs(zigux): add documentation root, review checklist, and freeze map") != null);
     try std.testing.expect(std.mem.indexOf(u8, readiness_note, "shared replay surface is green on current `master`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, readiness_note, "phase15-validate` checker stack") != null);
     try std.testing.expect(std.mem.indexOf(u8, readiness_note, "maintenance-mode ready") != null);
     try std.testing.expect(std.mem.indexOf(u8, readiness_note, "phase15-handoff-next-steps-survey.md") != null);
+    try std.testing.expect(std.mem.indexOf(u8, readiness_note, "check-phase15-scripts-readme-alignment.py") != null);
+    try std.testing.expect(std.mem.indexOf(u8, readiness_note, "check-phase15-review-process-handoff.py") != null);
     try std.testing.expect(std.mem.indexOf(u8, readiness_note, "blocked_no_bounded_scheduler_seam") != null);
     try std.testing.expect(std.mem.indexOf(u8, readiness_note, "blocked_no_bounded_allocator_seam") != null);
     try std.testing.expect(std.mem.indexOf(u8, readiness_note, "blocked_phase14_followup_still_wider_than_allowed_rcu_seam") != null);
@@ -177,7 +187,7 @@ test "phase 15 readiness note keeps the roadmap, ledger, and current blocker inv
     try std.testing.expect(std.mem.indexOf(u8, readiness_note, "Documentation/zigux/phase14-rcu-tree-survey.md") != null);
     try std.testing.expect(std.mem.indexOf(u8, readiness_note, "Documentation/zigux/phase14-skbuff-bridge-survey.md") != null);
     try std.testing.expect(std.mem.indexOf(u8, readiness_note, "phase15-deep-core-status-change-blocker") != null);
-    try std.testing.expect(std.mem.indexOf(u8, readiness_note, "make -C zigux phase15") != null);
+    try std.testing.expect(std.mem.indexOf(u8, readiness_note, "make -C zigux phase15-validate") != null);
     try std.testing.expect(std.mem.indexOf(u8, readiness_note, "zig build test --build-file zigux/tests/phase15_build.zig") != null);
 
     try std.testing.expect(std.mem.indexOf(u8, workflow, "Validate Phase 14 shared smoke packet") != null);
@@ -241,6 +251,9 @@ test "phase 15 readiness survey stays aligned with the landed governance bundle"
     try std.testing.expect(std.mem.indexOf(u8, review_process, "## Required Review Packet") != null);
     try std.testing.expect(std.mem.indexOf(u8, parity_scorecard, "## Roadmap Handoff Evidence") != null);
     try std.testing.expect(std.mem.indexOf(u8, indefinite_c_policy, "## When the indefinite-C policy applies") != null);
+    try std.testing.expect(std.mem.indexOf(u8, makefile, "phase15-validate") != null);
+    try std.testing.expect(std.mem.indexOf(u8, makefile, "check-phase15-scripts-readme-alignment.py") != null);
+    try std.testing.expect(std.mem.indexOf(u8, makefile, "check-phase15-review-process-handoff.py") != null);
     try std.testing.expect(std.mem.indexOf(u8, makefile, "phase15-test") != null);
     try std.testing.expect(std.mem.indexOf(u8, makefile, "phase15: phase15-validate phase15-test") != null);
     try std.testing.expect(std.mem.indexOf(u8, parity_scorecard, "blocked_no_bounded_scheduler_seam") != null);
