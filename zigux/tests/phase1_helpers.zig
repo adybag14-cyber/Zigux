@@ -438,6 +438,14 @@ test "phase 1 helper ports match committed parity fixture" {
     try std.testing.expectEqual(fixture.slab.null_without_reclaim, slab.kmallocBytes(8, 0) == null);
     const slab_plain = slab.kmallocBytes(8, slab.GFP_KERNEL) orelse return error.TestUnexpectedResult;
     try std.testing.expectEqual(fixture.slab.alloc_count_after_kmalloc, slab.kmalloc_nr_allocated);
+    var slab_plain_zeroed = true;
+    for (slab_plain) |value| {
+        if (value != 0) {
+            slab_plain_zeroed = false;
+            break;
+        }
+    }
+    try std.testing.expectEqual(fixture.slab.zero_after_kmalloc, slab_plain_zeroed);
     for (slab_plain) |*value| {
         value.* = 0xaa;
     }
