@@ -101,6 +101,8 @@ test "phase11 gpio_wdt survey manifest records the refreshed starter state and r
             saw_doc_gate = true;
             try std.testing.expectEqualStrings("Documentation/zigux/phase11-gpio-wdt-survey.md", gap.zigux_destination);
             try std.testing.expectEqualStrings("starter_landed", gap.status);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "teardown") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "hardware-backed validation") != null);
         }
 
         if (std.mem.eql(u8, gap.id, "phase11-gpio-wdt-driver-starter")) {
@@ -128,6 +130,7 @@ test "phase11 gpio_wdt survey manifest records the refreshed starter state and r
             try std.testing.expectEqualStrings("Documentation/zigux/phase11-gpio-wdt-validation-matrix.md", gap.zigux_destination);
             try std.testing.expectEqualStrings("starter_landed", gap.status);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "validation posture") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "failure-mode") != null);
         }
 
         if (std.mem.eql(u8, gap.id, "phase11-gpio-wdt-probe-summary-followup")) {
@@ -171,6 +174,8 @@ test "phase11 gpio_wdt survey manifest records the refreshed starter state and r
             try std.testing.expectEqualStrings("zigux/tests/phase11_gpio_wdt.zig", gap.zigux_destination);
             try std.testing.expectEqualStrings("blocked_on_driver_scaffold", gap.status);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "watchdog core registration") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "teardown and failure-mode parity") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "hardware-backed validation") != null);
         }
 
         for (manifest.gaps[i + 1 ..]) |other| {
@@ -218,12 +223,16 @@ test "phase11 gpio_wdt survey note and validation matrix stay aligned" {
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "descriptorPreflightSummary()") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "timeoutPropertyCheckpointSummary()") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "live GPIO descriptor lookup") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "teardown and failure-mode parity") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "devm_watchdog_register_device()") != null);
 
     try std.testing.expect(std.mem.indexOf(u8, validation_matrix, "PHASE11_GPIO_WDT_STATUS=hardware_validation_matrix_landed") != null);
     try std.testing.expect(std.mem.indexOf(u8, validation_matrix, "descriptorPreflightSummary()") != null);
     try std.testing.expect(std.mem.indexOf(u8, validation_matrix, "timeoutPropertyCheckpointSummary()") != null);
     try std.testing.expect(std.mem.indexOf(u8, validation_matrix, "phase11_gpio_wdt.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, validation_matrix, "scripts/zigux/check-phase11-shared-replay-contract.py") != null);
+    try std.testing.expect(std.mem.indexOf(u8, validation_matrix, "teardown and failure-mode parity") != null);
+    try std.testing.expect(std.mem.indexOf(u8, validation_matrix, "hardware-backed validation") != null);
 }
 
 test "phase11 gpio_wdt module-slice note stays wired into the review packet" {
@@ -250,6 +259,7 @@ test "phase11 gpio_wdt module-slice note stays wired into the review packet" {
     try std.testing.expect(std.mem.indexOf(u8, module_slice, "descriptorPreflightSummary()") != null);
     try std.testing.expect(std.mem.indexOf(u8, module_slice, "timeoutPropertyCheckpointSummary()") != null);
     try std.testing.expect(std.mem.indexOf(u8, module_slice, "platform-driver registration") != null);
+    try std.testing.expect(std.mem.indexOf(u8, module_slice, "teardown and failure-mode parity") != null);
 
     try std.testing.expect(std.mem.indexOf(u8, validation_matrix, "Documentation/zigux/phase11-gpio-wdt-module-slice.md") != null);
     try std.testing.expect(std.mem.indexOf(u8, validation_matrix, "the module-slice note") != null);
