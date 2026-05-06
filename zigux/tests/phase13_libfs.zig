@@ -10,6 +10,7 @@ test "phase13 libfs exposes the statfs starter anchored to libfs.c" {
     try std.testing.expect(descriptor.provides_buffer_copy_helpers);
     try std.testing.expect(descriptor.provides_offset_seek_helpers);
     try std.testing.expect(descriptor.provides_directory_emit_planning);
+    try std.testing.expect(descriptor.provides_directory_cursor_open_planning);
     try std.testing.expect(descriptor.provides_transaction_buffer_planning);
     try std.testing.expect(descriptor.provides_transaction_publish_planning);
     try std.testing.expect(descriptor.provides_transaction_release_planning);
@@ -212,6 +213,19 @@ test "phase13 libfs directory emit planning advances after dots and tracks empty
 
     try std.testing.expectError(error.InvalidOffset, libfs.LibFsHelperLab.dcacheReaddirEmitPlan(-1, true, 0));
     try std.testing.expectError(error.PositionOutOfRange, libfs.LibFsHelperLab.dcacheReaddirEmitPlan(std.math.maxInt(i64), true, 1));
+}
+
+test "phase13 libfs directory open planning models cursor allocation and enomem fallback" {
+    const opened = libfs.LibFsHelperLab.dcacheDirOpenPlan(true);
+    try std.testing.expectEqualStrings("fs/libfs.c", opened.anchor);
+    try std.testing.expect(opened.allocates_cursor_from_path_dentry);
+    try std.testing.expect(opened.stores_cursor_in_private_data);
+    try std.testing.expectEqual(@as(i32, 0), opened.return_code);
+
+    const no_memory = libfs.LibFsHelperLab.dcacheDirOpenPlan(false);
+    try std.testing.expect(no_memory.allocates_cursor_from_path_dentry);
+    try std.testing.expect(!no_memory.stores_cursor_in_private_data);
+    try std.testing.expectEqual(@as(i32, -12), no_memory.return_code);
 }
 
 test "phase13 libfs transaction acquire planning stays page-bounded and single-write" {
