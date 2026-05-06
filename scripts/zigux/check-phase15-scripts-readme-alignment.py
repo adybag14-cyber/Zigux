@@ -15,6 +15,7 @@ MAKEFILE_REL = "zigux/Makefile"
 WORKFLOW_REL = ".github/workflows/zigux-bootstrap.yml"
 REVIEW_CHECKLIST_REL = "Documentation/zigux/review-checklist.md"
 REVIEW_PROCESS_NOTE_REL = "Documentation/zigux/phase15-architecture-council-review-process.md"
+PARITY_SCORECARD_NOTE_REL = "Documentation/zigux/phase15-parity-scorecard.md"
 TESTS_README_REL = "zigux/tests/README.md"
 HANDOFF_CHECKER_REL = "scripts/zigux/check-phase15-review-process-handoff.py"
 MANIFEST_REL = "zigux/tests/phase15_architecture_council_review_process_manifest.json"
@@ -33,7 +34,7 @@ REQUIRED_FILES = (
     BUILD_REL,
     "Documentation/zigux/freeze-map.md",
     "Documentation/zigux/phase15-freeze-map-governance.md",
-    "Documentation/zigux/phase15-parity-scorecard.md",
+    PARITY_SCORECARD_NOTE_REL,
     "Documentation/zigux/phase15-indefinite-c-policy.md",
     "zigux/tests/phase15_freeze_map_governance.zig",
     "zigux/tests/phase15_parity_scorecard.zig",
@@ -103,6 +104,17 @@ REVIEW_PROCESS_NOTE_MARKERS = (
     "no Architecture Council approval is currently recorded for a freeze-map status change",
     "reopen triggers",
     "Keep the Phase 15 governance lane in maintenance mode.",
+)
+
+PARITY_SCORECARD_MARKERS = (
+    "shared validator-first gate through",
+    "scripts/zigux/check-phase15-scripts-readme-alignment.py",
+    "scripts/zigux/check-phase15-review-process-handoff.py",
+    "make -C zigux phase15-validate",
+    "## Gates",
+    "1. run the shared validator-first gate",
+    "zig build test --build-file zigux/tests/phase15_build.zig",
+    "make -C zigux phase15",
 )
 
 TESTS_README_MARKERS = (
@@ -202,6 +214,7 @@ def validate(root: Path) -> list[str]:
     handoff_checker = _read(root / HANDOFF_CHECKER_REL)
     review_checklist = _read(root / REVIEW_CHECKLIST_REL)
     review_process_note = _read(root / REVIEW_PROCESS_NOTE_REL)
+    parity_scorecard = _read(root / PARITY_SCORECARD_NOTE_REL)
     tests_readme = _read(root / TESTS_README_REL)
     manifest = json.loads(_read(root / MANIFEST_REL))
     build = _read(root / BUILD_REL)
@@ -213,6 +226,7 @@ def validate(root: Path) -> list[str]:
     _require_markers_present(handoff_checker, HANDOFF_CHECKER_MARKERS, "handoff_checker", issues)
     _require_markers_present(review_checklist, REVIEW_CHECKLIST_MARKERS, "review_checklist", issues)
     _require_markers_present(review_process_note, REVIEW_PROCESS_NOTE_MARKERS, "review_process_note", issues)
+    _require_markers_present(parity_scorecard, PARITY_SCORECARD_MARKERS, "parity_scorecard", issues)
     _require_markers_present(tests_readme, TESTS_README_MARKERS, "tests_readme", issues)
 
     handoff_evidence = manifest.get("handoff_evidence")
@@ -341,6 +355,31 @@ def _baseline_review_process_note() -> str:
     )
 
 
+def _baseline_parity_scorecard() -> str:
+    return "\n".join(
+        (
+            "# Phase 15 Parity Scorecard",
+            "",
+            "## Roadmap Handoff Evidence",
+            "- current repo handoff: the landed Phase 15 review-process note, parity scorecard, and evidence-archive templates now stay aligned through the shared validator-first gate through `scripts/zigux/check-phase15-scripts-readme-alignment.py`, `scripts/zigux/check-phase15-review-process-handoff.py`, and `make -C zigux phase15-validate`, plus the workflow-backed replay and `make -C zigux phase15` convenience target",
+            "",
+            "## Gates",
+            "",
+            "1. run the shared validator-first gate",
+            "- `scripts/zigux/check-phase15-scripts-readme-alignment.py`",
+            "- `scripts/zigux/check-phase15-review-process-handoff.py`",
+            "- `make -C zigux phase15-validate`",
+            "",
+            "2. run the dedicated Phase 15 build",
+            "- `zig build test --build-file zigux/tests/phase15_build.zig`",
+            "",
+            "3. run the convenience target",
+            "- `make -C zigux phase15`",
+            "",
+        )
+    )
+
+
 def _baseline_tests_readme() -> str:
     return "\n".join(
         (
@@ -389,13 +428,13 @@ def _seed_fixture_tree(root: Path) -> None:
     _write(root / HANDOFF_CHECKER_REL, _baseline_handoff_checker())
     _write(root / REVIEW_CHECKLIST_REL, _baseline_review_checklist())
     _write(root / REVIEW_PROCESS_NOTE_REL, _baseline_review_process_note())
+    _write(root / PARITY_SCORECARD_NOTE_REL, _baseline_parity_scorecard())
     _write(root / TESTS_README_REL, _baseline_tests_readme())
     _write(root / MANIFEST_REL, _baseline_manifest())
     _write(root / BUILD_REL, _baseline_build())
     for rel in (
         "Documentation/zigux/freeze-map.md",
         "Documentation/zigux/phase15-freeze-map-governance.md",
-        "Documentation/zigux/phase15-parity-scorecard.md",
         "Documentation/zigux/phase15-indefinite-c-policy.md",
         "zigux/tests/phase15_freeze_map_governance.zig",
         "zigux/tests/phase15_parity_scorecard.zig",
@@ -712,6 +751,31 @@ def run_self_test() -> int:
         _write(root / TESTS_README_REL, baseline_tests_readme)
         case_count += 1
 
+        baseline_parity_scorecard = _read(root / PARITY_SCORECARD_NOTE_REL)
+        _write(
+            root / PARITY_SCORECARD_NOTE_REL,
+            baseline_parity_scorecard.replace("1. run the shared validator-first gate", "1. run the shared governance gate", 1),
+        )
+        _assert_only(
+            validate(root),
+            ["parity_scorecard:missing:1. run the shared validator-first gate"],
+            "missing_parity_scorecard_validator_first_heading_guard_failed",
+        )
+        _write(root / PARITY_SCORECARD_NOTE_REL, baseline_parity_scorecard)
+        case_count += 1
+
+        _write(
+            root / PARITY_SCORECARD_NOTE_REL,
+            baseline_parity_scorecard.replace("shared validator-first gate through", "shared governance gate through", 1),
+        )
+        _assert_only(
+            validate(root),
+            ["parity_scorecard:missing:shared validator-first gate through"],
+            "missing_parity_scorecard_validator_first_route_guard_failed",
+        )
+        _write(root / PARITY_SCORECARD_NOTE_REL, baseline_parity_scorecard)
+        case_count += 1
+
         build_path = root / BUILD_REL
         baseline_build = _read(build_path)
         _write(
@@ -819,7 +883,7 @@ def main() -> int:
     print("PHASE15_SCRIPTS_README_ALIGNMENT=pass")
     print(
         "PHASE15_SCRIPTS_README_ALIGNMENT_MARKER_COUNT="
-        f"{len(README_SNIPPETS) + len(DOCS_README_MARKERS) + len(MAKEFILE_REQUIRED) + len(HANDOFF_CHECKER_MARKERS) + len(REVIEW_CHECKLIST_MARKERS) + len(REVIEW_PROCESS_NOTE_MARKERS) + len(TESTS_README_MARKERS) + len(MANIFEST_LANE_MARKERS) + len(CURRENT_REPO_HANDOFF_MARKERS) + len(BUILD_MARKERS)}"
+        f"{len(README_SNIPPETS) + len(DOCS_README_MARKERS) + len(MAKEFILE_REQUIRED) + len(HANDOFF_CHECKER_MARKERS) + len(REVIEW_CHECKLIST_MARKERS) + len(REVIEW_PROCESS_NOTE_MARKERS) + len(PARITY_SCORECARD_MARKERS) + len(TESTS_README_MARKERS) + len(MANIFEST_LANE_MARKERS) + len(CURRENT_REPO_HANDOFF_MARKERS) + len(BUILD_MARKERS)}"
     )
     return 0
 
