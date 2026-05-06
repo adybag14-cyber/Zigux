@@ -27,6 +27,7 @@ The helper is allowed to model only the bounded in-memory planning surface that 
 - path-FD filtering and owned path handoff planning
 - path-beneath handoff planning, including the later `put_path()` release responsibility
 - ruleset release planning that keeps the retained `private_data` handoff, matching `landlock_put_ruleset()` release, and zero return contract explicit
+- ruleset_fops planning that keeps `fop_ruleset_release()` together with the dummy read-or-write `FMODE_CAN_READ` or `FMODE_CAN_WRITE` enablement and shared `-EINVAL` return contract explicit as data only
 
 The helper does not currently own or imply:
 
@@ -61,4 +62,4 @@ It does not transfer ownership of:
 
 ## Next honest follow-up
 
-Keep this packet parked unless a future lane can add another equally bounded planner without implying live file-operations wiring, FD ownership, credential work, or domain state. Do not treat the already-landed `fop_ruleset_release()` planner as permission to imply anonymous inode creation, live FD ownership, or enforcement.
+Keep this packet parked unless a future lane can add another equally bounded planner without implying live file-operations wiring, FD ownership, credential work, or domain state. Do not treat the already-landed `ruleset_fops` planner as permission to imply anonymous inode creation, live FD ownership, or enforcement.
