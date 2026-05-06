@@ -71,6 +71,7 @@ REQUIRED_REVIEW_CHECKLIST_MARKERS = [
     "the shipped build-only surface checker",
     "workflow-backed `make -C zigux phase9` route",
     "no-dedicated-`validate-phase9.py` posture",
+    "the Phase 2 config-surface references `scripts/zigux/kconfig/conf_bridge.zig` and `scripts/zigux/kconfig/confdata_bridge.zig`, and the Phase 3 export-boundary references `rust/exports.c` and `zigux/kernel/export_shim.zig`",
 ]
 
 REQUIRED_FREEZE_MAP_MARKERS = [
@@ -325,7 +326,7 @@ const runtime_loader_allocator_init_flow_tests = b.addTest(.{
 const run_runtime_loader_allocator_init_flow_tests = b.addRunArtifact(runtime_loader_allocator_init_flow_tests);
 const runtime_loader_shared_tests_step = b.step(
     "phase9-runtime-loader-shared-tests",
-    "Run the focused Phase 9 runtime-loader facade, contract, and allocator/init-flow tests",
+    "Run the focused Phase 9 runtime-loader facade, contract, and allocator-init-flow tests",
 );
 runtime_loader_shared_tests_step.dependOn(&run_runtime_loader_contract_tests.step);
 runtime_loader_shared_tests_step.dependOn(&run_runtime_loader_facade_tests.step);
@@ -558,6 +559,23 @@ def run_self_test() -> int:
         expect_failure(root, "phase9_build:test_step.dependOn(&run_runtime_trace_events_survey_tests.step);", "missing_trace_events_survey_dependency")
 
         write_fixture_tree(root)
+        review_checklist_path = root / REVIEW_CHECKLIST_PATH
+        review_checklist = review_checklist_path.read_text(encoding="utf-8")
+        review_checklist_path.write_text(
+            review_checklist.replace(
+                "scripts/zigux/kconfig/confdata_bridge.zig",
+                "scripts/zigux/confdata_bridge.zig",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_failure(
+            root,
+            "review_checklist:the Phase 2 config-surface references `scripts/zigux/kconfig/conf_bridge.zig` and `scripts/zigux/kconfig/confdata_bridge.zig`, and the Phase 3 export-boundary references `rust/exports.c` and `zigux/kernel/export_shim.zig`",
+            "missing_phase9_non_owner_boundary_paths",
+        )
+
+        write_fixture_tree(root)
         phase9_build_path = root / PHASE9_BUILD_PATH
         phase9_build = phase9_build_path.read_text(encoding="utf-8")
         phase9_build_path.write_text(
@@ -646,7 +664,7 @@ def run_self_test() -> int:
             )
 
     print("PHASE9_BUILD_ONLY_SURFACE_SELF_TEST=pass")
-    print("PHASE9_BUILD_ONLY_SURFACE_SELF_TEST_CASE_COUNT=13")
+    print("PHASE9_BUILD_ONLY_SURFACE_SELF_TEST_CASE_COUNT=14")
     return 0
 
 
