@@ -26,8 +26,8 @@ The live Phase 8 packet already carries a bounded fdinfo helper slice, but the a
 
 The currently landed bridge-side helper remains intentionally small:
 
-- `tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig` keeps exact `"/proc/%d/fdinfo/%d"` assembly and bounded fdinfo map-info parsing reviewable
-- `zigux/tests/phase8_file_path_handle_bridge.zig` keeps the helper packet wired to stable path, parsing, and summary expectations
+- `tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig` keeps exact `"/proc/%d/fdinfo/%d"` assembly, bounded fdinfo map-info parsing, explicit decimal or octal or hex numeric handling, and compact completion summaries reviewable
+- `zigux/tests/phase8_file_path_handle_bridge.zig` keeps the helper packet wired to stable path, ignored-line, repeated-field, numeric-base, and summary expectations
 - the adjacent `tools/lib/bpf/zigux_segments/perf_buffer_poll.zig` packet keeps bounded `perf_buffer__poll(timeout_ms)` wait-result classification, poll waits, ready-buffer bookkeeping, and ordered record-processing summaries reviewable without claiming live epoll wiring, per-CPU setup, mmap-backed ring ownership, or standalone timer or clockevent helper behavior
 - the helper family stays smaller than direct procfs reads, pinned-object reopen flow, token creation, descriptor lifecycle behavior, and the still-deferred `perf_buffer__new()` online-CPU routing packet
 
