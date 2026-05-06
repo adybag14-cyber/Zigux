@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import argparse
 import tempfile
+from collections import Counter
 from pathlib import Path
 
 
@@ -65,10 +66,42 @@ MAKEFILE_MARKERS = [
 ]
 
 
-def collect_marker_count_issues(text: str, markers: list[str], *, prefix: str) -> list[str]:
+def normalized_marker_lines(text: str) -> list[str]:
+    lines: list[str] = []
+    for raw_line in text.splitlines():
+        line = raw_line.strip()
+        if line.startswith("- "):
+            line = line[2:].strip()
+        if line.startswith("* "):
+            line = line[2:].strip()
+        if line.startswith("`") and line.endswith("`") and len(line) >= 2:
+            line = line[1:-1]
+        lines.append(line)
+    return lines
+
+
+def exact_marker_count(text: str, marker: str, *, normalized: bool) -> int:
+    if "\n" not in marker:
+        lines = normalized_marker_lines(text) if normalized else text.splitlines()
+        return Counter(lines).get(marker, 0)
+
+    haystack = normalized_marker_lines(text) if normalized else text.splitlines()
+    needle = marker.splitlines()
+    if normalized:
+        needle = normalized_marker_lines(marker)
+
+    count = 0
+    width = len(needle)
+    for index in range(0, len(haystack) - width + 1):
+        if haystack[index : index + width] == needle:
+            count += 1
+    return count
+
+
+def collect_marker_count_issues(text: str, markers: list[str], *, prefix: str, normalized: bool = True) -> list[str]:
     issues: list[str] = []
     for marker in markers:
-        count = text.count(marker)
+        count = exact_marker_count(text, marker, normalized=normalized)
         if count == 0:
             issues.append(f"{prefix}:{marker}")
         elif count != 1:
@@ -98,7 +131,7 @@ def validate_root(root: Path) -> list[str]:
     issues.extend(collect_marker_count_issues(abi_slice, ABI_SLICE_MARKERS, prefix="abi_slice"))
     issues.extend(collect_marker_count_issues(scripts_readme, SCRIPTS_README_MARKERS, prefix="scripts_readme"))
     issues.extend(collect_marker_count_issues(tests_readme, TESTS_README_MARKERS, prefix="tests_readme"))
-    issues.extend(collect_marker_count_issues(makefile, MAKEFILE_MARKERS, prefix="makefile"))
+    issues.extend(collect_marker_count_issues(makefile, MAKEFILE_MARKERS, prefix="makefile", normalized=False))
     return issues
 
 
@@ -146,6 +179,14 @@ def run_self_test() -> int:
             "duplicate_docs_root_marker:2:scripts/zigux/validate_phase3_selftest.py"
             in issues
         )
+
+        build_self_test_root(root)
+        write_text(
+            root / "Documentation/zigux/README.md",
+            "this sentence mentions scripts/zigux/validate_phase3_selftest.py without making it a marker\n",
+        )
+        issues = validate_root(root)
+        assert "docs_root:scripts/zigux/validate_phase3_selftest.py" in issues
 
         build_self_test_root(root)
         write_text(root / "Documentation/zigux/review-checklist.md", "scripts/zigux/validate_phase3_selftest.py\n")
@@ -244,7 +285,7 @@ def run_self_test() -> int:
         assert "missing_file:scripts/zigux/validate_phase3_selftest.py" in issues
 
     print("PHASE3_SELFTEST_SURFACE_SELF_TEST=pass")
-    print("PHASE3_SELFTEST_SURFACE_SELF_TEST_CASE_COUNT=13")
+    print("PHASE3_SELFTEST_SURFACE_SELF_TEST_CASE_COUNT=14")
     return 0
 
 
