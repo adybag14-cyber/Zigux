@@ -12,7 +12,7 @@
     "symbol retargeting stays a pre-init in-memory choice instead of implying module_param or runtime registration parity",
     "ownershipSummary keeps cold, initialized, armed, replay_complete, and exited snapshots explicit instead of leaving lifecycle review hidden in raw fields",
     "sample-behavior changes update the manifest-backed replay and teardown contract instead of leaving reviewers to infer it from code alone",
-    "docs and tests still keep register_kretprobe, unregister_kretprobe, pt_regs return extraction, and loadable module wiring out of scope for this Phase 5 sample"
+    "docs and tests still keep register_kretprobe, unregister_kretprobe, pt_regs return extraction, and runtime module wiring out of scope for this Phase 5 sample"
   ],
   "exact_checks": [
     {
@@ -60,6 +60,6 @@
     "register_kretprobe parity",
     "unregister_kretprobe parity",
     "pt_regs or regs_return_value parity",
-    "loadable module wiring"
+    "runtime module wiring"
   ]
 }
