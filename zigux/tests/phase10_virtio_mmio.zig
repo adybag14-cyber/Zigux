@@ -227,6 +227,27 @@ test "phase10 virtio mmio marks probe preflight incomplete when identity presenc
     try std.testing.expect(!summary.ready_for_probe_handoff);
 }
 
+test "phase10 virtio mmio marks probe preflight incomplete when transport identity drifts" {
+    var device = try virtio_mmio.VirtioMmioLab.init(71, &[_]u16{ 8, 16 });
+
+    device.seedTransportIdentity(0x0, 0x3, 71, virtio_mmio.default_vendor_id);
+
+    const identity = device.transportIdentitySummary();
+    const summary = device.probePreflightSummary();
+    try std.testing.expect(!identity.magic_matches);
+    try std.testing.expect(!identity.version_supported);
+    try std.testing.expect(identity.device_present);
+    try std.testing.expect(identity.vendor_id_present);
+    try std.testing.expect(!identity.requires_legacy_guest_page_size);
+    try std.testing.expect(!summary.magic_matches);
+    try std.testing.expect(!summary.version_supported);
+    try std.testing.expect(summary.device_present);
+    try std.testing.expect(summary.vendor_id_present);
+    try std.testing.expect(summary.bounded_queue_register_window_ready);
+    try std.testing.expect(summary.interrupt_ack_ready);
+    try std.testing.expect(!summary.ready_for_probe_handoff);
+}
+
 test "phase10 virtio mmio bounds queue selection and queue sizing before lifecycle work" {
     var device = try virtio_mmio.VirtioMmioLab.init(24, &[_]u16{8});
 
