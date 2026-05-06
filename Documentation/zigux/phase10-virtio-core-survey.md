@@ -65,6 +65,7 @@ This survey slice does not claim:
 ## Gates
 
 1. run the dedicated core governance checker
+- `python3 scripts/zigux/check-phase10-core-packet.py --self-test`
 - `python3 scripts/zigux/check-phase10-core-packet.py`
 
 2. run the restored core survey gate
