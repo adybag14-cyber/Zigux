@@ -34,8 +34,10 @@ pub const ReplaySummary = struct {
     comparable_match: bool,
     matched_index: i32,
     size_text: RenderedText,
+    compact_size_text: RenderedText,
     unescaped_text: RenderedText,
     escaped_text: RenderedText,
+    appended_escape_text: RenderedText,
     checked_focus: []const SampleFocus,
 };
 
@@ -79,6 +81,14 @@ pub const StringHelpersSample = struct {
             &size_text.bytes,
         );
 
+        var compact_size_text = RenderedText{};
+        compact_size_text.len = string_helpers.stringGetSize(
+            1536,
+            1,
+            string_helpers.STRING_UNITS_2 | string_helpers.STRING_UNITS_NO_SPACE | string_helpers.STRING_UNITS_NO_BYTES,
+            &compact_size_text.bytes,
+        );
+
         var unescaped_text = RenderedText{};
         unescaped_text.len = string_helpers.stringUnescape(
             "line\\n",
@@ -95,6 +105,14 @@ pub const StringHelpersSample = struct {
             null,
         );
 
+        var appended_escape_text = RenderedText{};
+        appended_escape_text.len = string_helpers.stringEscapeMem(
+            "A\nZ",
+            &appended_escape_text.bytes,
+            string_helpers.ESCAPE_NAP | string_helpers.ESCAPE_HEX | string_helpers.ESCAPE_APPEND,
+            "\n",
+        );
+
         self.stage_state = .replay_complete;
 
         return .{
@@ -104,8 +122,10 @@ pub const StringHelpersSample = struct {
             .comparable_match = string_helpers.sysfsStreq("mode", "mode\n"),
             .matched_index = string_helpers.sysfsMatchString(&values, values.len, "enabled\n"),
             .size_text = size_text,
+            .compact_size_text = compact_size_text,
             .unescaped_text = unescaped_text,
             .escaped_text = escaped_text,
+            .appended_escape_text = appended_escape_text,
             .checked_focus = &.{
                 .newline_tolerant_matching,
                 .bounded_size_rendering,
@@ -144,8 +164,11 @@ test "string helper sample replay keeps the existing helper surface reviewable" 
     try std.testing.expectEqual(string_helpers.EINVAL, string_helpers.matchString(&values, 2, "ignored"));
     try std.testing.expectEqualStrings("1.50 KiB", cStringPrefix(&replay.size_text.bytes));
     try std.testing.expectEqual(@as(usize, 8), replay.size_text.len);
+    try std.testing.expectEqualStrings("1.50Ki", cStringPrefix(&replay.compact_size_text.bytes));
+    try std.testing.expectEqual(@as(usize, 6), replay.compact_size_text.len);
     try std.testing.expectEqualSlices(u8, "line\n", replay.unescaped_text.bytes[0..replay.unescaped_text.len]);
     try std.testing.expectEqualSlices(u8, "\\x0a", replay.escaped_text.bytes[0..replay.escaped_text.len]);
+    try std.testing.expectEqualSlices(u8, "A\\x0aZ", replay.appended_escape_text.bytes[0..replay.appended_escape_text.len]);
     try std.testing.expectEqual(@as(usize, 4), replay.checked_focus.len);
 }
 
