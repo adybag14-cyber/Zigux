@@ -37,6 +37,7 @@ The shared sample-root catalog at `samples/zigux/README.md` keeps the approved P
 - the live Phase 9 bitmap lane already carried dedicated runtime bitmap test files before this survey note landed.
 - the live Phase 9 bitmap lane already carried a sample-backed runtime bitmap starter under `samples/zigux/`.
 - the live repo already carried shared `zigux/tests/phase9_build.zig` wiring and a bitmap module-slice note before this survey note landed.
+- the shared `zigux/tests/phase9_build.zig` gate still carries the direct `phase9-runtime-bitmap-sample-tests` leg, so the starter sample replay stays explicit beside the bitmap module, diff, loader, and survey gates.
 - the live repo now also carries the shared runtime-loader facade, contract, allocator/init-flow replay, and the focused `phase9-runtime-loader-shared-tests` build step that keep the bitmap loader handoff packet reviewable beside the lane-local sample, module, and diff gates.
 - the live repo still keeps that runtime bitmap family outside the four approved Phase 5 reference samples, so this survey packet stays reviewable as later runtime follow-on evidence rather than Phase 5 sample closure.
 - the shared `samples/zigux/README.md` catalog still lists the runtime bitmap pair only under the separate Phase 9 runtime pilot family and keeps the four approved Phase 5 anchors explicit.
