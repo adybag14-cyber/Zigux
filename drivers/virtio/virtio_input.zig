@@ -162,6 +162,24 @@ pub const RegistrationPreflightSummary = struct {
     ready_for_registration: bool,
 };
 
+pub const TeardownObservationSummary = struct {
+    anchor: []const u8,
+    name: []const u8,
+    serial: []const u8,
+    phys: []const u8,
+    event_queue_was_configured: bool,
+    status_queue_was_configured: bool,
+    queued_event_buffer_count: u16,
+    queued_status_count: usize,
+    suppressed_status_count: usize,
+    ready_before_reset: bool,
+    multitouch_was_enabled: bool,
+    planned_multitouch_slots: u16,
+    preserves_identity: bool,
+    clears_runtime_state: bool,
+    clears_capability_state: bool,
+};
+
 pub const VirtioInputLab = struct {
     const Self = @This();
     const ConfigBitmapBitSet = std.StaticBitSet(config_bitmap_bit_capacity);
@@ -491,6 +509,34 @@ pub const VirtioInputLab = struct {
             .multitouch_slots_ready = multitouch_slots_ready,
             .blocker = blocker,
             .ready_for_registration = blocker == null,
+        };
+    }
+
+    pub fn teardownObservationSummary(self: *const Self) TeardownObservationSummary {
+        const snapshot = self.configSnapshot();
+        return .{
+            .anchor = descriptor().anchor,
+            .name = snapshot.name,
+            .serial = snapshot.serial,
+            .phys = snapshot.phys,
+            .event_queue_was_configured = self.event_descriptor_count != 0,
+            .status_queue_was_configured = self.status_descriptor_count != 0,
+            .queued_event_buffer_count = self.queued_event_buffer_count,
+            .queued_status_count = self.queued_status_count,
+            .suppressed_status_count = self.suppressed_status_count,
+            .ready_before_reset = self.ready,
+            .multitouch_was_enabled = self.multitouch_enabled,
+            .planned_multitouch_slots = self.planned_multitouch_slots,
+            .preserves_identity = true,
+            .clears_runtime_state = self.event_descriptor_count != 0 or
+                self.status_descriptor_count != 0 or
+                self.queued_event_buffer_count != 0 or
+                self.queued_status_count != 0 or
+                self.suppressed_status_count != 0 or
+                self.ready or
+                self.multitouch_enabled or
+                self.planned_multitouch_slots != 0,
+            .clears_capability_state = self.config_bitmap_count != 0 or self.abs_info_count != 0,
         };
     }
 
