@@ -77,6 +77,8 @@ test "phase10 virtio input survey manifest records the live starter and remainin
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "lab-only driver validation") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "make -C zigux phase10-test") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "make -C zigux phase10") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase10-virtio-input-queue-callback-preflight-helper") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "queue-callback preflight summary") != null);
     try std.testing.expectEqual(@as(usize, 2), manifest.roadmap_destinations.len);
     try std.testing.expect(manifest.survey_summary.virtio_input_c_lines >= 400);
     try std.testing.expectEqual(@as(usize, 6), manifest.survey_summary.preexisting_phase10_test_files);
@@ -88,7 +90,7 @@ test "phase10 virtio input survey manifest records the live starter and remainin
     try std.testing.expect(manifest.survey_summary.preexisting_virtio_input_test_present);
     try std.testing.expect(manifest.survey_summary.preexisting_virtio_input_slice_note_present);
     try std.testing.expect(manifest.survey_summary.preexisting_virtio_input_module_note_present);
-    try std.testing.expect(manifest.gaps.len >= 12);
+    try std.testing.expect(manifest.gaps.len >= 13);
 
     var starter_landed_count: usize = 0;
     var ready_next_count: usize = 0;
@@ -99,6 +101,7 @@ test "phase10 virtio input survey manifest records the live starter and remainin
     var saw_survey_note = false;
     var saw_slot_helper = false;
     var saw_preflight_helper = false;
+    var saw_queue_callback_preflight_helper = false;
     var saw_status_drain_helper = false;
     var saw_blocker = false;
 
@@ -171,6 +174,16 @@ test "phase10 virtio input survey manifest records the live starter and remainin
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "input_register_device()") != null);
         }
 
+        if (std.mem.eql(u8, gap.id, "phase10-virtio-input-queue-callback-preflight-helper")) {
+            saw_queue_callback_preflight_helper = true;
+            try std.testing.expectEqualStrings("starter_landed", gap.status);
+            try std.testing.expectEqualStrings("drivers/virtio/virtio_input.zig", gap.zigux_destination);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "queue-callback preflight summary") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "event and status queue configuration") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "event-buffer fill state") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "transport-backed callback handoff") != null);
+        }
+
         if (std.mem.eql(u8, gap.id, "phase10-virtio-input-status-drain-helper")) {
             saw_status_drain_helper = true;
             try std.testing.expectEqualStrings("starter_landed", gap.status);
@@ -186,11 +199,12 @@ test "phase10 virtio input survey manifest records the live starter and remainin
             try std.testing.expectEqualStrings("zigux/tests/phase10_virtio_input.zig", gap.zigux_destination);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "input_register_device()") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "freeze or restore") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "queue-callback preflight") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "status-drain helpers landed") != null);
         }
     }
 
-    try std.testing.expect(starter_landed_count >= 12);
+    try std.testing.expect(starter_landed_count >= 13);
     try std.testing.expectEqual(@as(usize, 0), ready_next_count);
     try std.testing.expectEqual(@as(usize, 1), blocked_count);
     try std.testing.expect(saw_helper);
@@ -199,6 +213,7 @@ test "phase10 virtio input survey manifest records the live starter and remainin
     try std.testing.expect(saw_survey_note);
     try std.testing.expect(saw_slot_helper);
     try std.testing.expect(saw_preflight_helper);
+    try std.testing.expect(saw_queue_callback_preflight_helper);
     try std.testing.expect(saw_status_drain_helper);
     try std.testing.expect(saw_blocker);
 }
