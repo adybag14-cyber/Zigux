@@ -45,7 +45,7 @@ The live repo already had a survey lane that made the queue-wrapper gap explicit
 - used-buffer polling that reports only newly consumed chains since the last in-memory poll
 - callback disable and re-enable bookkeeping that reports when the driver should poll for already-consumed chains
 - delayed-callback pacing bookkeeping that mirrors the bounded `virtqueue_enable_cb_delayed()` threshold shape without claiming interrupt delivery or event-index writes
-- broken-queue discipline that rejects fresh publish, kick-preparation, queue-local polling, and callback re-enable snapshots until the lab queue is cleared again
+- broken-queue discipline that rejects fresh publish, kick-preparation, queue-local polling, and callback re-enable snapshots while the queue is marked broken, while still leaving existing queue debt reviewable until a follow-on clear-broken step reopens queue-local work
 - queue-local reset bookkeeping that clears avail, used, callback, outstanding-chain, and notification state while preserving descriptor-count and layout metadata for clean reuse
 - reset-readiness preflight bookkeeping that reports whether `resetQueue()` is safe and, if not, names the exact queue-local blocker before any transport-facing reset claim
 - kick-prepare notification bookkeeping that mirrors the smallest reviewable `num_added` flow from `virtio_ring.c`
