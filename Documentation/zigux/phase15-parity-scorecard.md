@@ -5,10 +5,10 @@ This document records the bounded Phase 15 governance lane for the deep-core fre
 ## Status
 
 - `PHASE15_STATUS=freeze_in_c_governance`
-- `PHASE15_SLICE=parity-scorecard-stale-evidence-cleanup`
-- `PHASE15_LANE_KEY=P15-L12`
+- `PHASE15_SLICE=parity-scorecard-roadmap-provenance-refresh`
+- `PHASE15_LANE_KEY=P15-L09`
 - scope: a reviewable scorecard that captures council inputs, evidence thresholds, validation gates, rollback ownership, evidence-archive reporting, reserved per-anchor decision-record templates, retained stay-in-C closeout state, and explicit per-anchor owner tracking for the active freeze-in-C anchors
-- survey provenance refreshed against verified `master` head `39cdd038909f9834a8702070a697a0bf2111cb66`
+- survey provenance refreshed against verified `master` head `a3bbe9cea22c4f8d9ad400354bbb298af2f4a3a5`
 - required review-process record fields tracked in the manifest: `10`
 - product boundary:
   - `Documentation/zigux/freeze-map.md`
@@ -31,7 +31,7 @@ That gap matters because the current anchors are still large and deeply coupled:
 - roadmap source: `zigux-alpha/ZAR_TO_ZIGUX_PRODUCT_ROADMAP.md` Phase 15, `Full-Parity Blockers and Long-Term Governance`
 - roadmap handoff: Phase 15 must keep the freeze map, Architecture Council review process, parity scorecard, and policy for code that remains in C indefinitely visible as one honest governance bundle
 - bootstrap ledger anchor: `docs(zigux): add documentation root, review checklist, and freeze map`
-- current repo handoff: the ledger's documentation root and freeze-map start point is now carried forward by the landed Phase 15 review-process note, parity scorecard, evidence-archive templates, shared validator-first gate through `scripts/zigux/check-phase15-scripts-readme-alignment.py`, `scripts/zigux/check-phase15-review-process-handoff.py`, and `make -C zigux phase15-validate`, the workflow-backed `make -C zigux phase15-test` replay in `.github/workflows/zigux-bootstrap.yml`, the focused `zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig` replay already wired through `zigux/tests/phase15_build.zig`, and the `make -C zigux phase15` convenience target
+- current repo handoff: the ledger's documentation root and freeze-map start point is now carried forward by the landed Phase 15 review-process note, parity scorecard, evidence-archive templates, shared validator-first gate through `scripts/zigux/check-phase15-scripts-readme-alignment.py`, `scripts/zigux/check-phase15-review-process-handoff.py`, and `make -C zigux phase15-validate`, the focused `zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig` replay already wired through `zigux/tests/phase15_build.zig`, and the `make -C zigux phase15` convenience target
 - maintenance-mode next step: keep the Phase 15 governance lane parked until one of the named reopen triggers fires or the deep-core blocker posture changes
 
 ## Scorecard Entries
