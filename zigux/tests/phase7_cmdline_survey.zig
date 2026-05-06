@@ -42,4 +42,12 @@ test "phase 7 cmdline survey keeps the roadmap-backed helper packet reviewable" 
     try expectContains(cmdline_tests, "phase 7 nextArg matches serialized edge fixtures");
     try expectContains(cmdline_tests, "for (next_arg_vectors.next_arg_cases) |fixture| {");
     try expectContains(cmdline_tests, "cmdline.nextArg");
+
+    const next_arg_fixture = try readRepoFile(allocator, "zigux/tests/fixtures/phase7_cmdline_next_arg_vectors.zig");
+    defer allocator.free(next_arg_fixture);
+    try expectContains(next_arg_fixture, ".name = \"quoted bare token with trailing token\",");
+    try expectContains(next_arg_fixture, ".name = \"empty quoted bare token stays empty and unsplit\",");
+    try expectContains(next_arg_fixture, ".name = \"quoted bare token with equals stays unsplit\",");
+    try expectContains(next_arg_fixture, ".expected_param = \"\",");
+    try expectContains(next_arg_fixture, ".expected_param = \"key=value\",");
 }
