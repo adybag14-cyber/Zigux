@@ -233,6 +233,8 @@ test "phase11 hvc_console survey manifest records the landed starter and tty han
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "notifier registration intent") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "deferred callback ownership") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "deferred unregister timing") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "never-registered path") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "unregister timing stays false") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "worker execution") != null);
         }
 
@@ -311,6 +313,7 @@ test "phase11 hvc_console survey gate proves validation matrix coverage directly
     try std.testing.expect(std.mem.indexOf(u8, matrix, "zig build test --build-file zigux/tests/phase11_build.zig --summary all") != null);
     try std.testing.expect(std.mem.indexOf(u8, matrix, "notifier callback boundary") != null);
     try std.testing.expect(std.mem.indexOf(u8, matrix, "deferred callback ownership") != null);
+    try std.testing.expect(std.mem.indexOf(u8, matrix, "never-registered path where unregister timing stays false because tty registration never became ready") != null);
     try std.testing.expect(std.mem.indexOf(u8, matrix, "do not claim notifier callbacks, khvcd execution, live sysrq dispatch, or host-backed I/O coverage until the Zig surface and tests for those behaviors exist") != null);
     try std.testing.expect(std.mem.indexOf(u8, matrix, "keep this handoff stable while the next follow-through stays inside shared review truthfulness instead of widening into live callback execution") != null);
 }
