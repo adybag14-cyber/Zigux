@@ -17,6 +17,7 @@ FILES = [
     "zigux/Makefile",
     "zigux/tests/phase10_build.zig",
     "drivers/virtio/virtio_input.zig",
+    "drivers/virtio/virtio_input_verify.zig",
     "zigux/tests/phase10_virtio_input.zig",
     "zigux/tests/phase10_virtio_input_status_drain.zig",
     "zigux/tests/phase10_virtio_input_survey.zig",
@@ -29,9 +30,11 @@ FILES = [
 EXPECTED_BUILD_MARKERS = [
     "phase10_virtio_input_module",
     "phase10_virtio_input_status_drain_module",
+    "phase10_virtio_input_verify_module",
     "phase10_virtio_input_survey_module",
     '"phase10-virtio-input-tests"',
     '"phase10-virtio-input-status-drain-tests"',
+    '"phase10-virtio-input-verify-tests"',
     '"phase10-virtio-input-survey-tests"',
 ]
 
@@ -60,6 +63,13 @@ EXPECTED_HELPER_MARKERS = [
     "pub const StatusDrainSummary = struct {",
     "pub fn registrationPreflightSummary(self: *const Self) RegistrationPreflightSummary {",
     "pub fn drainStatusQueue(self: *Self, completed_status_count: usize) !StatusDrainSummary {",
+]
+
+EXPECTED_VERIFY_MARKERS = [
+    'test "virtio input wrapper-facing queue preflight advances in bounded order" {',
+    'test "virtio input registration preflight keeps wrapper prerequisites ahead of registration claims" {',
+    'try std.testing.expectEqualStrings("event_buffers_unfilled", @tagName(summary.blocker.?));',
+    'try std.testing.expectEqualStrings("multitouch_slots_unplanned", @tagName(summary.blocker.?));',
 ]
 
 EXPECTED_TEST_MARKERS = [
@@ -93,12 +103,15 @@ EXPECTED_SURVEY_TEST_MARKERS = [
 ]
 
 EXPECTED_SLICE_MARKERS = [
+    "wrapper-facing `drivers/virtio/virtio_input_verify.zig` replay",
+    "drivers/virtio/virtio_input_verify.zig",
     "bounded status-completion drain summaries",
     "zigux/tests/phase10_virtio_input_status_drain.zig",
     "transport-backed probe, remove, freeze, restore, or reset paths",
 ]
 
 EXPECTED_MODULE_MARKERS = [
+    "drivers/virtio/virtio_input_verify.zig",
     "bounded status-drain helper",
     "reclaims queued status completions in memory",
     "queue callbacks",
@@ -107,6 +120,8 @@ EXPECTED_MODULE_MARKERS = [
 EXPECTED_SURVEY_NOTE_MARKERS = [
     "PHASE10_STATUS=parked",
     "PHASE10_LANE_KEY=P10-L13",
+    "drivers/virtio/virtio_input_verify.zig",
+    "wrapper-facing verify replay",
     "phase10-virtio-input-registration-preflight-helper",
     "phase10-virtio-input-queue-callback-preflight-helper",
     "phase10-virtio-input-status-drain-helper",
@@ -185,6 +200,11 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
     for marker in EXPECTED_HELPER_MARKERS:
         if marker not in helper_text:
             missing_markers.append(f"helper:{marker}")
+
+    verify_text = read_text(root, "drivers/virtio/virtio_input_verify.zig")
+    for marker in EXPECTED_VERIFY_MARKERS:
+        if marker not in verify_text:
+            missing_markers.append(f"verify:{marker}")
 
     test_text = read_text(root, "zigux/tests/phase10_virtio_input.zig")
     for marker in EXPECTED_TEST_MARKERS:
@@ -373,6 +393,17 @@ def run_self_test() -> int:
             raise SystemExit("phase10-input-self-test:expected_queue_callback_gap_marker_missing")
         manifest_path.write_text(original_manifest, encoding="utf-8")
 
+        verify_path = tmp_root / "drivers/virtio/virtio_input_verify.zig"
+        original_verify = verify_path.read_text(encoding="utf-8")
+        verify_path.write_text(
+            original_verify.replace("event_buffers_unfilled", "event_buffers_drifted", 1),
+            encoding="utf-8",
+        )
+        _, missing_markers = validate(tmp_root)
+        if 'verify:try std.testing.expectEqualStrings("event_buffers_unfilled", @tagName(summary.blocker.?));' not in missing_markers:
+            raise SystemExit("phase10-input-self-test:expected_verify_marker_missing")
+        verify_path.write_text(original_verify, encoding="utf-8")
+
         status_drain_path = tmp_root / "zigux/tests/phase10_virtio_input_status_drain.zig"
         original_status_drain = status_drain_path.read_text(encoding="utf-8")
         status_drain_path.write_text(
@@ -447,7 +478,7 @@ def run_self_test() -> int:
         tests_readme_path.write_text(original_tests_readme, encoding="utf-8")
 
     print("PHASE10_INPUT_PACKET_SELF_TEST=pass")
-    print("PHASE10_INPUT_PACKET_SELF_TEST_CASE_COUNT=13")
+    print("PHASE10_INPUT_PACKET_SELF_TEST_CASE_COUNT=14")
     return 0
 
 
