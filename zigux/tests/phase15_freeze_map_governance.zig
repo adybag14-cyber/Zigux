@@ -241,11 +241,16 @@ test "phase 15 freeze-map governance doc records the required gating language" {
     try std.testing.expect(std.mem.indexOf(u8, freeze_map, "## Governance For Freeze-Map Changes") != null);
     try std.testing.expect(std.mem.indexOf(u8, freeze_map, "Architecture Council") != null);
     try std.testing.expect(std.mem.indexOf(u8, freeze_map, "owner, phase, status bucket, validation gate, and rollback owner") != null);
+    try std.testing.expect(std.mem.indexOf(u8, freeze_map, "exact Linux anchor path") != null);
+    try std.testing.expect(std.mem.indexOf(u8, freeze_map, "current status bucket") != null);
     try std.testing.expect(std.mem.indexOf(u8, freeze_map, "evidence archive path") != null);
     try std.testing.expect(std.mem.indexOf(u8, freeze_map, "benchmark notes") != null);
     try std.testing.expect(std.mem.indexOf(u8, freeze_map, "replay command") != null);
     try std.testing.expect(std.mem.indexOf(u8, freeze_map, "latest blocker disposition") != null);
     try std.testing.expect(std.mem.indexOf(u8, freeze_map, "parity scorecard") != null);
+    try std.testing.expect(std.mem.indexOf(u8, freeze_map, "rollback threshold") != null);
+    try std.testing.expect(std.mem.indexOf(u8, freeze_map, "explicit non-goals") != null);
+    try std.testing.expect(std.mem.indexOf(u8, freeze_map, "written rationale") != null);
     try std.testing.expect(std.mem.indexOf(u8, freeze_map, "## Stay-In-C Policy") != null);
     try std.testing.expect(std.mem.indexOf(u8, freeze_map, "keep the code in C and record the blocker") != null);
     try std.testing.expect(std.mem.indexOf(u8, freeze_map, "retired_from_active_discussion") != null);
