@@ -117,6 +117,17 @@ pub const HelperBoundarySummary = struct {
     pop_after_reset: ?u8,
 };
 
+pub const ShortDrainSummary = struct {
+    initial_copy_count: usize,
+    first_drain: [3]u8,
+    first_drain_count: usize,
+    remaining_snapshot: [2]u8,
+    remaining_snapshot_len: usize,
+    remaining_drain: [2]u8,
+    remaining_drain_count: usize,
+    empty_follow_up_drain_count: usize,
+};
+
 pub const LifecycleSummary = struct {
     stage: SampleStage,
     init_run_count: usize,
@@ -295,6 +306,38 @@ pub const BytestreamFifoSample = struct {
             .count_after_skip = count_after_skip,
             .count_after_reset = count_after_reset,
             .pop_after_reset = pop_after_reset,
+        };
+    }
+
+    pub fn runShortDrainReplay(self: *Self) ShortDrainSummary {
+        const saved = self.*;
+        defer self.* = saved;
+
+        self.reset();
+
+        const initial_copy_count = self.enqueueSlice("hello");
+
+        var first_drain: [3]u8 = undefined;
+        const first_drain_count = self.dequeueSlice(first_drain[0..]);
+
+        var remaining_snapshot: [2]u8 = [_]u8{0} ** 2;
+        const remaining_snapshot_len = self.snapshotInto(remaining_snapshot[0..]);
+
+        var remaining_drain: [2]u8 = [_]u8{0} ** 2;
+        const remaining_drain_count = self.dequeueSlice(remaining_drain[0..]);
+
+        var empty_follow_up: [1]u8 = [_]u8{0};
+        const empty_follow_up_drain_count = self.dequeueSlice(empty_follow_up[0..]);
+
+        return .{
+            .initial_copy_count = initial_copy_count,
+            .first_drain = first_drain,
+            .first_drain_count = first_drain_count,
+            .remaining_snapshot = remaining_snapshot,
+            .remaining_snapshot_len = remaining_snapshot_len,
+            .remaining_drain = remaining_drain,
+            .remaining_drain_count = remaining_drain_count,
+            .empty_follow_up_drain_count = empty_follow_up_drain_count,
         };
     }
 
@@ -487,18 +530,28 @@ test "bytestream fifo sample keeps bounded helper behavior without runtime claim
     try std.testing.expect(!empty_preview.truncated);
     try std.testing.expectEqualSlices(u8, &.{ 0xaa, 0xaa, 0xaa, 0xaa }, preview_buf[0..]);
 
-    const replay = sample.runHelperBoundaryReplay();
+    const helper_replay = sample.runHelperBoundaryReplay();
 
-    try std.testing.expectEqual(@as(?u8, null), replay.peek_before_fill);
-    try std.testing.expectEqual(@as(?u8, null), replay.skip_before_fill);
-    try std.testing.expectEqual(@as(usize, 0), replay.empty_enqueue_len);
-    try std.testing.expectEqual(@as(usize, fifo_capacity), replay.count_at_capacity);
-    try std.testing.expect(replay.overflow_rejected);
-    try std.testing.expectEqual(@as(u8, 0), replay.peek_at_capacity);
-    try std.testing.expectEqual(@as(u8, 0), replay.skipped_at_capacity);
-    try std.testing.expectEqual(@as(usize, fifo_capacity - 1), replay.count_after_skip);
-    try std.testing.expectEqual(@as(usize, 0), replay.count_after_reset);
-    try std.testing.expectEqual(@as(?u8, null), replay.pop_after_reset);
+    try std.testing.expectEqual(@as(?u8, null), helper_replay.peek_before_fill);
+    try std.testing.expectEqual(@as(?u8, null), helper_replay.skip_before_fill);
+    try std.testing.expectEqual(@as(usize, 0), helper_replay.empty_enqueue_len);
+    try std.testing.expectEqual(@as(usize, fifo_capacity), helper_replay.count_at_capacity);
+    try std.testing.expect(helper_replay.overflow_rejected);
+    try std.testing.expectEqual(@as(u8, 0), helper_replay.peek_at_capacity);
+    try std.testing.expectEqual(@as(u8, 0), helper_replay.skipped_at_capacity);
+    try std.testing.expectEqual(@as(usize, fifo_capacity - 1), helper_replay.count_after_skip);
+    try std.testing.expectEqual(@as(usize, 0), helper_replay.count_after_reset);
+    try std.testing.expectEqual(@as(?u8, null), helper_replay.pop_after_reset);
+
+    const short_drain = sample.runShortDrainReplay();
+    try std.testing.expectEqual(@as(usize, 5), short_drain.initial_copy_count);
+    try std.testing.expectEqual(@as(usize, 3), short_drain.first_drain_count);
+    try std.testing.expectEqualSlices(u8, "hel", short_drain.first_drain[0..]);
+    try std.testing.expectEqual(@as(usize, 2), short_drain.remaining_snapshot_len);
+    try std.testing.expectEqualSlices(u8, "lo", short_drain.remaining_snapshot[0..]);
+    try std.testing.expectEqual(@as(usize, 2), short_drain.remaining_drain_count);
+    try std.testing.expectEqualSlices(u8, "lo", short_drain.remaining_drain[0..]);
+    try std.testing.expectEqual(@as(usize, 0), short_drain.empty_follow_up_drain_count);
     try std.testing.expectEqual(@as(usize, 0), sample.count());
     try std.testing.expectEqual(SampleStage.cold, sample.stage());
 }
