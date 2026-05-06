@@ -38,7 +38,7 @@ REQUIRED_SURVEY_MARKERS = [
     "phase11 shared header parity survey keeps a bounded winsize layout proof",
     "phase11 shared header parity survey keeps the note pinned to the manifest provenance",
     "phase11 shared header parity survey keeps shared replay markers explicit without a missing inventory fixture",
-    "phase11 shared header parity survey keeps the exported hvc surface explicit",
+    "phase11 shared header parity survey keeps the exported hvc header declarations explicit",
     "phase11 shared header parity survey keeps the shared build hook explicit",
     "layout_assert.assertSize(WatchdogInfo, 40);",
     "layout_assert.assertSize(WinSize, 8);",
@@ -49,7 +49,7 @@ REQUIRED_BUILD_MARKERS = [
     "phase11-uapi-header-parity-survey-tests",
     "phase11-hvc-console-survey-tests",
     "test_step.dependOn(&run_phase11_uapi_header_parity_survey_tests.step);",
-    "test_step.dependOn(&run_phase11_hvc_console_survey_tests.step);",
+    "hvc_console_survey_step.dependOn(&run_phase11_hvc_console_survey_tests.step);",
     'phase11_uapi_header_parity_survey_module.addImport("layout_assert", layout_assert_module);',
 ]
 
