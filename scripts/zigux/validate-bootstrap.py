@@ -5,7 +5,7 @@ import sys
 ROOT = Path(__file__).resolve().parents[2]
 WORKFLOW_EXACT_RUN_COUNTS = {
     'python3 scripts/zigux/check-zig-toolchain.py --self-test': 1,
-    'python3 scripts/zigux/check-zig-toolchain.py': 2,
+    'python3 scripts/zigux/check-zig-toolchain.py': 1,
 }
 required_files = [
     ROOT / 'zigux-alpha' / 'README.md',
