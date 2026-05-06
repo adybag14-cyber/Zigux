@@ -83,10 +83,22 @@ test "phase3 low-level wrappers cover the shipped helper surface directly" {
     try std.testing.expectEqual(@as(u32, 0xfeedbeef), mmio.read32(base, @sizeOf(u32)));
 }
 
-test "phase3 low-level wrappers keep non-seq-cst orderings reviewable" {
+test "phase3 low-level wrappers keep non-seq-cst orderings and signed atomic edges reviewable" {
     var handoff_value: u32 = 0;
     atomic.store(u32, &handoff_value, 41, .release);
     try std.testing.expectEqual(@as(u32, 41), atomic.load(u32, &handoff_value, .acquire));
+
+    var signed_value: i32 = 4;
+    try std.testing.expectEqual(@as(i32, 4), atomic.fetchMin(i32, &signed_value, -3, .seq_cst));
+    try std.testing.expectEqual(@as(i32, -3), signed_value);
+    try std.testing.expectEqual(@as(i32, -3), atomic.fetchMax(i32, &signed_value, 6, .seq_cst));
+    try std.testing.expectEqual(@as(i32, 6), signed_value);
+
+    var signed_arithmetic_value: i32 = -2;
+    try std.testing.expectEqual(@as(i32, -2), atomic.fetchAdd(i32, &signed_arithmetic_value, 5, .seq_cst));
+    try std.testing.expectEqual(@as(i32, 3), signed_arithmetic_value);
+    try std.testing.expectEqual(@as(i32, 3), atomic.fetchSub(i32, &signed_arithmetic_value, 7, .seq_cst));
+    try std.testing.expectEqual(@as(i32, -4), signed_arithmetic_value);
 
     var acq_rel_value: u32 = 7;
     try std.testing.expectEqual(
