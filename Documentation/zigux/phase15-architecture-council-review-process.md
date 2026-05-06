@@ -6,6 +6,7 @@ This document records the bounded Phase 15 governance lane around the Architectu
 
 - `PHASE15_STATUS=review_process_slice_landed`
 - `PHASE15_SLICE=architecture-council-review-process-reopen-trigger-catalog`
+- `PHASE15_LANE_KEY=P15-L08`
 - scope: one review-process note, one dedicated manifest and Zig test, the focused lane-owner vocabulary alignment replay already shipped in the shared Phase 15 build, the shared Phase 15 build wiring, and a small review-checklist update that now also names the retained stay-in-C closeout state and reopen triggers
 - survey provenance refreshed against verified `master` head `3eac40e856ac7673f705447a1d6025f3d0193b5e`
 - product boundary:
