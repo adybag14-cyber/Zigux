@@ -179,11 +179,37 @@ fn compareOpaqueInt(key: *const anyopaque, item: *const anyopaque) i32 {
     return compareInt(typed_key, typed_item);
 }
 
+var compare_call_count: usize = 0;
 var raw_compare_call_count: usize = 0;
+
+fn compareIntCounted(key: *const i32, item: *const i32) i32 {
+    compare_call_count += 1;
+    return compareInt(key, item);
+}
+
+fn compareIntDescending(key: *const i32, item: *const i32) i32 {
+    return compareInt(item, key);
+}
+
+fn compareIntDescendingCounted(key: *const i32, item: *const i32) i32 {
+    compare_call_count += 1;
+    return compareIntDescending(key, item);
+}
 
 fn compareOpaqueIntCounted(key: *const anyopaque, item: *const anyopaque) i32 {
     raw_compare_call_count += 1;
     return compareOpaqueInt(key, item);
+}
+
+fn compareOpaqueIntDescending(key: *const anyopaque, item: *const anyopaque) i32 {
+    const typed_key: *const i32 = @ptrCast(@alignCast(key));
+    const typed_item: *const i32 = @ptrCast(@alignCast(item));
+    return compareIntDescending(typed_key, typed_item);
+}
+
+fn compareOpaqueIntDescendingCounted(key: *const anyopaque, item: *const anyopaque) i32 {
+    raw_compare_call_count += 1;
+    return compareOpaqueIntDescending(key, item);
 }
 
 fn compareOpaqueIntC(key: *const anyopaque, item: *const anyopaque) callconv(.c) i32 {
@@ -285,6 +311,43 @@ test "search accepts explicitly typed c abi comparator pointers" {
     }
 }
 
+test "searchIndex keeps representative ascending and descending probes inside a binary-search budget" {
+    const ascending = [_]i32{ 3, 6, 9, 12, 15, 18, 21, 24, 27, 30, 33, 36, 39, 42, 45 };
+    const descending = [_]i32{ 45, 42, 39, 36, 33, 30, 27, 24, 21, 18, 15, 12, 9, 6, 3 };
+
+    compare_call_count = 0;
+    try std.testing.expectEqual(@as(?usize, 0), searchIndex(i32, i32, &@as(i32, 3), ascending[0..], compareIntCounted));
+    try std.testing.expect(compare_call_count <= 4);
+
+    compare_call_count = 0;
+    try std.testing.expectEqual(@as(?usize, 7), searchIndex(i32, i32, &@as(i32, 24), ascending[0..], compareIntCounted));
+    try std.testing.expect(compare_call_count <= 4);
+
+    compare_call_count = 0;
+    try std.testing.expectEqual(@as(?usize, 14), searchIndex(i32, i32, &@as(i32, 45), ascending[0..], compareIntCounted));
+    try std.testing.expect(compare_call_count <= 4);
+
+    compare_call_count = 0;
+    try std.testing.expectEqual(@as(?usize, null), searchIndex(i32, i32, &@as(i32, 26), ascending[0..], compareIntCounted));
+    try std.testing.expect(compare_call_count <= 4);
+
+    compare_call_count = 0;
+    try std.testing.expectEqual(@as(?usize, 0), searchIndex(i32, i32, &@as(i32, 45), descending[0..], compareIntDescendingCounted));
+    try std.testing.expect(compare_call_count <= 4);
+
+    compare_call_count = 0;
+    try std.testing.expectEqual(@as(?usize, 7), searchIndex(i32, i32, &@as(i32, 24), descending[0..], compareIntDescendingCounted));
+    try std.testing.expect(compare_call_count <= 4);
+
+    compare_call_count = 0;
+    try std.testing.expectEqual(@as(?usize, 14), searchIndex(i32, i32, &@as(i32, 3), descending[0..], compareIntDescendingCounted));
+    try std.testing.expect(compare_call_count <= 4);
+
+    compare_call_count = 0;
+    try std.testing.expectEqual(@as(?usize, null), searchIndex(i32, i32, &@as(i32, 26), descending[0..], compareIntDescendingCounted));
+    try std.testing.expect(compare_call_count <= 4);
+}
+
 test "raw helpers short-circuit empty input and accept c abi comparator pointers" {
     const empty = [_]i32{};
 
@@ -320,6 +383,67 @@ test "raw helpers short-circuit empty input and accept c abi comparator pointers
             bsearch(&@as(i32, 5), @ptrCast(values[0..].ptr), values.len, @sizeOf(i32), compare) == null,
         );
     }
+}
+
+test "bsearchIndex keeps representative ascending and descending probes inside a binary-search budget" {
+    const ascending = [_]i32{ 3, 6, 9, 12, 15, 18, 21, 24, 27, 30, 33, 36, 39, 42, 45 };
+    const descending = [_]i32{ 45, 42, 39, 36, 33, 30, 27, 24, 21, 18, 15, 12, 9, 6, 3 };
+
+    raw_compare_call_count = 0;
+    try std.testing.expectEqual(
+        @as(?usize, 0),
+        bsearchIndex(&@as(i32, 3), @ptrCast(ascending[0..].ptr), ascending.len, @sizeOf(i32), compareOpaqueIntCounted),
+    );
+    try std.testing.expect(raw_compare_call_count <= 4);
+
+    raw_compare_call_count = 0;
+    try std.testing.expectEqual(
+        @as(?usize, 7),
+        bsearchIndex(&@as(i32, 24), @ptrCast(ascending[0..].ptr), ascending.len, @sizeOf(i32), compareOpaqueIntCounted),
+    );
+    try std.testing.expect(raw_compare_call_count <= 4);
+
+    raw_compare_call_count = 0;
+    try std.testing.expectEqual(
+        @as(?usize, 14),
+        bsearchIndex(&@as(i32, 45), @ptrCast(ascending[0..].ptr), ascending.len, @sizeOf(i32), compareOpaqueIntCounted),
+    );
+    try std.testing.expect(raw_compare_call_count <= 4);
+
+    raw_compare_call_count = 0;
+    try std.testing.expectEqual(
+        @as(?usize, null),
+        bsearchIndex(&@as(i32, 26), @ptrCast(ascending[0..].ptr), ascending.len, @sizeOf(i32), compareOpaqueIntCounted),
+    );
+    try std.testing.expect(raw_compare_call_count <= 4);
+
+    raw_compare_call_count = 0;
+    try std.testing.expectEqual(
+        @as(?usize, 0),
+        bsearchIndex(&@as(i32, 45), @ptrCast(descending[0..].ptr), descending.len, @sizeOf(i32), compareOpaqueIntDescendingCounted),
+    );
+    try std.testing.expect(raw_compare_call_count <= 4);
+
+    raw_compare_call_count = 0;
+    try std.testing.expectEqual(
+        @as(?usize, 7),
+        bsearchIndex(&@as(i32, 24), @ptrCast(descending[0..].ptr), descending.len, @sizeOf(i32), compareOpaqueIntDescendingCounted),
+    );
+    try std.testing.expect(raw_compare_call_count <= 4);
+
+    raw_compare_call_count = 0;
+    try std.testing.expectEqual(
+        @as(?usize, 14),
+        bsearchIndex(&@as(i32, 3), @ptrCast(descending[0..].ptr), descending.len, @sizeOf(i32), compareOpaqueIntDescendingCounted),
+    );
+    try std.testing.expect(raw_compare_call_count <= 4);
+
+    raw_compare_call_count = 0;
+    try std.testing.expectEqual(
+        @as(?usize, null),
+        bsearchIndex(&@as(i32, 26), @ptrCast(descending[0..].ptr), descending.len, @sizeOf(i32), compareOpaqueIntDescendingCounted),
+    );
+    try std.testing.expect(raw_compare_call_count <= 4);
 }
 
 test "bsearchMutable returns a mutable pointer to the matching element" {
