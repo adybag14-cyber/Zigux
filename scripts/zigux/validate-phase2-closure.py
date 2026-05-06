@@ -389,6 +389,11 @@ def main() -> int:
         'x86_64-linux',
         'PHASE2_CLOSURE_GATE=python3 scripts/zigux/validate-phase2-closure.py',
         'PHASE2_FIXDEP_EMBEDDED_NUL_GUARD=fixdep.zig truncates depfile parsing at the first embedded NUL and keeps dep parsing skips bytes after the first embedded NUL as the bounded parser guard',
+        'PHASE2_GENKSYMS_BRIDGE_CASE_COUNT=14',
+        'PHASE2_GENKSYMS_BRIDGE_CASES=minimal,debug_reference_types,long_options,abbreviated_long_options,quiet_overrides_warning,explicit_option_terminator,positional_passthrough,help,version,invalid_option,missing_reference_argument,unsupported_long_option,missing_long_reference_argument,missing_long_dump_types_argument',
+        'PHASE2_GENKSYMS_BRIDGE_STDOUT_PACKET=minimal_expected.json,debug_reference_types_expected.json,long_options_expected.json,abbreviated_long_options_expected.json,quiet_overrides_warning_expected.json,explicit_option_terminator_expected.json,positional_passthrough_expected.json',
+        'PHASE2_GENKSYMS_BRIDGE_PROCESS_PACKET=help_expected.json,version_expected.json,invalid_option_expected.json,missing_reference_argument_expected.json,unsupported_long_option_expected.json,missing_long_reference_argument_expected.json,missing_long_dump_types_argument_expected.json',
+        'PHASE2_GENKSYMS_BRIDGE_NORMALIZED_STDERR_PACKET=invalid_option_expected.json,missing_reference_argument_expected.json,unsupported_long_option_expected.json,missing_long_reference_argument_expected.json,missing_long_dump_types_argument_expected.json',
         'PHASE2_ROLLBACK=keep C kbuild tools authoritative and remove failing Zigux bridge/tool from workflow wiring',
     ]
     required_closure_markers.extend(PHASE2_CROSS_ALIGNMENT_REQUIRED_SOURCE_MARKERS)
