@@ -30,8 +30,23 @@ def find_zig(explicit: str | None) -> str:
     raise SystemExit('zig not found; pass --zig or add zig to PATH')
 
 
+def reject_duplicate_json_keys(pairs: list[tuple[str, object]]) -> dict[str, object]:
+    payload: dict[str, object] = {}
+    for key, value in pairs:
+        if key in payload:
+            raise ValueError(f'duplicate_key:{key}')
+        payload[key] = value
+    return payload
+
+
 def load_json_object(path: Path, *, label: str) -> dict[str, object]:
-    payload = json.loads(path.read_text(encoding='utf-8'))
+    try:
+        payload = json.loads(
+            path.read_text(encoding='utf-8'),
+            object_pairs_hook=reject_duplicate_json_keys,
+        )
+    except ValueError as exc:
+        raise SystemExit(f'{label}:{exc}') from exc
     if not isinstance(payload, dict):
         raise SystemExit(f'{label}:expected_object')
     return payload
@@ -137,6 +152,17 @@ def run_self_test() -> int:
         assert resolve_targets(allowed_targets, ['aarch64-linux-musl']) == ['aarch64-linux-musl']
 
         manifest_path.write_text(
+            '{"phase":"Phase 2","status":"closed","tool_count":2,"tools":["scripts/zigux/fixdep.zig"],"tools":["scripts/zigux/genksyms.zig"]}',
+            encoding='utf-8',
+        )
+        try:
+            load_manifest_tools(manifest_path)
+        except SystemExit as exc:
+            assert str(exc) == 'phase2_tool_manifest:duplicate_key:tools'
+        else:
+            raise AssertionError('expected duplicate manifest key to fail')
+
+        manifest_path.write_text(
             json.dumps(
                 {
                     'phase': 'Phase 2',
@@ -192,6 +218,17 @@ def run_self_test() -> int:
             ),
             encoding='utf-8',
         )
+        targets_path.write_text(
+            '{"phase":"Phase 2","status":"closed","target_count":3,"targets":["x86_64-linux-musl"],"targets":["riscv64-linux-musl"]}',
+            encoding='utf-8',
+        )
+        try:
+            load_targets(targets_path)
+        except SystemExit as exc:
+            assert str(exc) == 'phase2_cross_targets:duplicate_key:targets'
+        else:
+            raise AssertionError('expected duplicate target key to fail')
+
         targets_path.write_text(
             json.dumps(
                 {
@@ -257,7 +294,7 @@ def run_self_test() -> int:
             raise AssertionError('expected unexpected explicit target to fail')
 
     print('PHASE2_CROSS_SELF_TEST=pass')
-    print('PHASE2_CROSS_SELF_TEST_CASE_COUNT=8')
+    print('PHASE2_CROSS_SELF_TEST_CASE_COUNT=10')
     return 0
 
 
