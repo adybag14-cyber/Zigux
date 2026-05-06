@@ -9,6 +9,7 @@ import sys
 
 ROOT = Path(__file__).resolve().parents[2]
 CHECK_PHASE2_CROSS_SELFTEST_ALIGNMENT = ROOT / 'scripts' / 'zigux' / 'check-phase2-cross-selftest-alignment.py'
+CHECK_PHASE2_KCONFIG_SELFTEST_ALIGNMENT = ROOT / 'scripts' / 'zigux' / 'check-phase2-kconfig-selftest-alignment.py'
 CHECK_PHASE2_TOOLCHAIN_PIN_SCOPE = ROOT / 'scripts' / 'zigux' / 'check-phase2-toolchain-pin-scope.py'
 CHECK_PHASE2_TESTS_README_ALIGNMENT = ROOT / 'scripts' / 'zigux' / 'check-phase2-tests-readme-alignment.py'
 DOCS_ROOT_README = ROOT / 'Documentation' / 'zigux' / 'README.md'
@@ -26,6 +27,10 @@ PHASE2_CROSS_ALIGNMENT_REQUIRED_SOURCE_MARKERS = [
     'PHASE2_CROSS_ALIGNMENT_SELF_TEST=python3 scripts/zigux/check-phase2-cross-selftest-alignment.py --self-test',
     'PHASE2_CROSS_ALIGNMENT_GATE=python3 scripts/zigux/check-phase2-cross-selftest-alignment.py',
 ]
+PHASE2_KCONFIG_ALIGNMENT_REQUIRED_SOURCE_MARKERS = [
+    'PHASE2_KCONFIG_ALIGNMENT_SELF_TEST=python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py --self-test',
+    'PHASE2_KCONFIG_ALIGNMENT_GATE=python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py',
+]
 PHASE2_TOOLCHAIN_PIN_SCOPE_REQUIRED_SOURCE_MARKERS = [
     'PHASE2_TOOLCHAIN_PIN_SCOPE_SELF_TEST=python3 scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test',
     'PHASE2_TOOLCHAIN_PIN_SCOPE_GATE=python3 scripts/zigux/check-phase2-toolchain-pin-scope.py',
@@ -42,6 +47,8 @@ PHASE2_MAKEFILE_RUN_COUNTS = {
     'scripts/zigux/check-phase2-tests-readme-alignment.py': 1,
     'scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test': 1,
     'scripts/zigux/check-phase2-toolchain-pin-scope.py': 1,
+    'scripts/zigux/check-phase2-kconfig-selftest-alignment.py --self-test': 1,
+    'scripts/zigux/check-phase2-kconfig-selftest-alignment.py': 1,
     'scripts/zigux/check-genksyms-bridge.py --self-test': 1,
     'scripts/zigux/check-genksyms-bridge.py': 1,
 }
@@ -55,6 +62,8 @@ PHASE2_WORKFLOW_RUN_COUNTS = {
     'python3 scripts/zigux/check-phase2-cross-selftest-alignment.py': 1,
     'python3 scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test': 1,
     'python3 scripts/zigux/check-phase2-toolchain-pin-scope.py': 1,
+    'python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py --self-test': 1,
+    'python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py': 1,
     'python3 scripts/zigux/check-genksyms-bridge.py --self-test': 1,
     'python3 scripts/zigux/check-genksyms-bridge.py': 1,
 }
@@ -70,6 +79,8 @@ def run_self_test() -> int:
         'cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-tests-readme-alignment.py',
         'cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test',
         'cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-toolchain-pin-scope.py',
+        'cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-kconfig-selftest-alignment.py --self-test',
+        'cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-kconfig-selftest-alignment.py',
         'cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-genksyms-bridge.py --self-test',
         'cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-genksyms-bridge.py',
     ])
@@ -83,6 +94,8 @@ def run_self_test() -> int:
         'run: python3 scripts/zigux/check-phase2-cross-selftest-alignment.py',
         'run: python3 scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test',
         'run: python3 scripts/zigux/check-phase2-toolchain-pin-scope.py',
+        'run: python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py --self-test',
+        'run: python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py',
         'run: python3 scripts/zigux/check-genksyms-bridge.py --self-test',
         'run: python3 scripts/zigux/check-genksyms-bridge.py',
     ]) + '\n'
@@ -137,6 +150,38 @@ def run_self_test() -> int:
             ['make_exact_run:scripts/zigux/check-phase2-tests-readme-alignment.py:count=2:expected=1'],
         ),
         (
+            'make_duplicate_toolchain_pin_scope_self_test',
+            validate_exact_makefile_runs(
+                make_ok
+                + '\ncd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test'
+            ),
+            ['make_exact_run:scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test:count=2:expected=1'],
+        ),
+        (
+            'make_duplicate_toolchain_pin_scope_gate',
+            validate_exact_makefile_runs(
+                make_ok
+                + '\ncd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-toolchain-pin-scope.py'
+            ),
+            ['make_exact_run:scripts/zigux/check-phase2-toolchain-pin-scope.py:count=2:expected=1'],
+        ),
+        (
+            'make_duplicate_kconfig_alignment_self_test',
+            validate_exact_makefile_runs(
+                make_ok
+                + '\ncd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-kconfig-selftest-alignment.py --self-test'
+            ),
+            ['make_exact_run:scripts/zigux/check-phase2-kconfig-selftest-alignment.py --self-test:count=2:expected=1'],
+        ),
+        (
+            'make_duplicate_kconfig_alignment_gate',
+            validate_exact_makefile_runs(
+                make_ok
+                + '\ncd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-kconfig-selftest-alignment.py'
+            ),
+            ['make_exact_run:scripts/zigux/check-phase2-kconfig-selftest-alignment.py:count=2:expected=1'],
+        ),
+        (
             'make_duplicate_genksyms_bridge_self_test',
             validate_exact_makefile_runs(
                 make_ok
@@ -182,20 +227,6 @@ def run_self_test() -> int:
             ['workflow_exact_run:python3 scripts/zigux/check-phase2-cross.py --self-test:count=2:expected=1'],
         ),
         (
-            'workflow_duplicate_genksyms_bridge_self_test',
-            validate_exact_workflow_runs(
-                workflow_ok + 'run: python3 scripts/zigux/check-genksyms-bridge.py --self-test\n'
-            ),
-            ['workflow_exact_run:python3 scripts/zigux/check-genksyms-bridge.py --self-test:count=2:expected=1'],
-        ),
-        (
-            'workflow_duplicate_genksyms_bridge_gate',
-            validate_exact_workflow_runs(
-                workflow_ok + 'run: python3 scripts/zigux/check-genksyms-bridge.py\n'
-            ),
-            ['workflow_exact_run:python3 scripts/zigux/check-genksyms-bridge.py:count=2:expected=1'],
-        ),
-        (
             'workflow_duplicate_phase2_cross_matrix_gate',
             validate_exact_workflow_runs(
                 workflow_ok
@@ -233,6 +264,35 @@ def run_self_test() -> int:
             ),
             ['workflow_exact_run:python3 scripts/zigux/check-phase2-toolchain-pin-scope.py:count=2:expected=1'],
         ),
+        (
+            'workflow_duplicate_kconfig_alignment_self_test',
+            validate_exact_workflow_runs(
+                workflow_ok
+                + 'run: python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py --self-test\n'
+            ),
+            ['workflow_exact_run:python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py --self-test:count=2:expected=1'],
+        ),
+        (
+            'workflow_duplicate_kconfig_alignment_gate',
+            validate_exact_workflow_runs(
+                workflow_ok + 'run: python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py\n'
+            ),
+            ['workflow_exact_run:python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py:count=2:expected=1'],
+        ),
+        (
+            'workflow_duplicate_genksyms_bridge_self_test',
+            validate_exact_workflow_runs(
+                workflow_ok + 'run: python3 scripts/zigux/check-genksyms-bridge.py --self-test\n'
+            ),
+            ['workflow_exact_run:python3 scripts/zigux/check-genksyms-bridge.py --self-test:count=2:expected=1'],
+        ),
+        (
+            'workflow_duplicate_genksyms_bridge_gate',
+            validate_exact_workflow_runs(
+                workflow_ok + 'run: python3 scripts/zigux/check-genksyms-bridge.py\n'
+            ),
+            ['workflow_exact_run:python3 scripts/zigux/check-genksyms-bridge.py:count=2:expected=1'],
+        ),
     ]
 
     failures: list[str] = []
@@ -260,6 +320,7 @@ required_files = [
     TOOLCHAIN_NOTES,
     ROOT / 'scripts' / 'zigux' / 'check-genksyms-bridge.py',
     ROOT / 'scripts' / 'zigux' / 'check-kconfig-bridge.py',
+    CHECK_PHASE2_KCONFIG_SELFTEST_ALIGNMENT,
     ROOT / 'scripts' / 'zigux' / 'check-phase2-cross.py',
     CHECK_PHASE2_CROSS_SELFTEST_ALIGNMENT,
     CHECK_PHASE2_TOOLCHAIN_PIN_SCOPE,
@@ -522,6 +583,7 @@ def main() -> int:
         'confdata bridge ignores non-CONFIG lines like upstream confdata',
     ])
     required_closure_markers.extend(PHASE2_CROSS_ALIGNMENT_REQUIRED_SOURCE_MARKERS)
+    required_closure_markers.extend(PHASE2_KCONFIG_ALIGNMENT_REQUIRED_SOURCE_MARKERS)
     required_closure_markers.extend(PHASE2_TOOLCHAIN_PIN_SCOPE_REQUIRED_SOURCE_MARKERS)
     required_closure_markers.extend(PHASE2_TESTS_README_ALIGNMENT_REQUIRED_SOURCE_MARKERS)
     required_workflow_markers = [
@@ -531,6 +593,8 @@ def main() -> int:
         'python3 scripts/zigux/check-phase2-tests-readme-alignment.py',
         'python3 scripts/zigux/check-phase2-cross.py --self-test',
         'python3 scripts/zigux/check-phase2-cross.py --target',
+        'python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py --self-test',
+        'python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py',
         'python3 scripts/zigux/validate-phase2-closure.py',
         'zig test scripts/zigux/genksyms.zig',
         'zig test scripts/zigux/kconfig/conf_bridge.zig',
@@ -569,6 +633,8 @@ def main() -> int:
         'check-phase2-cross-selftest-alignment.py',
         'check-phase2-toolchain-pin-scope.py --self-test',
         'check-phase2-toolchain-pin-scope.py',
+        'check-phase2-kconfig-selftest-alignment.py --self-test',
+        'check-phase2-kconfig-selftest-alignment.py',
         'check-genksyms-bridge.py --self-test',
         'check-genksyms-bridge.py',
         '$(ZIG) test scripts/zigux/genksyms.zig',
@@ -603,7 +669,7 @@ def main() -> int:
     if tool_manifest.get('tool_count') != 6:
         missing_markers.append('manifest:tool_count=6')
     if len(tool_manifest.get('tools', [])) != 6:
-        missing_markers.append(f'manifest:tools_len={len(tool_manifest.get("tools", []))}')
+        missing_markers.append(f"manifest:tools_len={len(tool_manifest.get('tools', []))}")
     for rel in tool_manifest.get('tools', []):
         if not (ROOT / rel).exists():
             missing_markers.append(f'manifest_file:{rel}')
@@ -615,7 +681,7 @@ def main() -> int:
     if targets_manifest.get('target_count') != 3:
         missing_markers.append('targets:target_count=3')
     if len(targets_manifest.get('targets', [])) != 3:
-        missing_markers.append(f'targets:len={len(targets_manifest.get("targets", []))}')
+        missing_markers.append(f"targets:len={len(targets_manifest.get('targets', []))}")
 
     if missing_markers:
         print('PHASE2_CLOSURE_VALIDATION=fail')
