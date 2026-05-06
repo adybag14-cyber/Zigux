@@ -19,6 +19,7 @@ This document tracks the first bounded Phase 9 runtime atomic64 starter under `s
   - `zigux/tests/runtime_atomic64_survey.zig`
   - `zigux/tests/runtime_loader_allocator_init_flow.zig`
   - `Documentation/zigux/phase9-runtime-atomic64-survey.md`
+  - `Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md`
   - `zigux/tests/phase9_build.zig`
   - `zigux/Makefile`
 
@@ -36,6 +37,7 @@ The live Phase 9 tree had already identified `lib/atomic64_test.c` as the runtim
 - a narrow `add_unless` guard-path pilot on top of the existing atomic helpers without pretending broader runtime-substrate support
 - a narrow differential gate under `zigux/tests/runtime_atomic64_diff.zig` for selected exchange, cmpxchg, and `add_unless` expectations
 - a bounded `runtime_atomic64_loader` scaffold that names the planned init and exit handoff, the current atomic64 operation-family summary, the shared `toSharedLoadPlan()` plus `runtime_loader.prepareRequest()` request path, the shared request-surface proof, and the no-substrate release path while the real runtime substrate remains unavailable
+- `Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md` now keeps that split explicit as the shared owner map, so this atomic64 starter stays in the pilot-family lane while the reusable loader facade, allocator/init-flow replay, and build-only surface checker remain shared-lane evidence
 - the shared `zigux/kernel/runtime_loader.zig` facade stays a review-only Phase 9 handoff packet under the freeze map's study-only `kernel/workqueue.c` and `kernel/trace/ring_buffer.c` boundary, so the starter keeps the shared request path explicit without implying scheduler-facing substrate closure or a freeze-map status change
 - dedicated Phase 9 tests, the runtime atomic64 survey note and survey gate, the focused `zig build phase9-runtime-loader-shared-tests --build-file zigux/tests/phase9_build.zig` shard for the shared runtime-loader facade plus allocator/init-flow contract packet, and a `make -C zigux phase9` entry
 
