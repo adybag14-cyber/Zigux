@@ -63,6 +63,10 @@ PHASE2_MAKEFILE_RUN_COUNTS = {
     'scripts/zigux/check-phase2-cross.py': 1,
 }
 PHASE2_WORKFLOW_RUN_COUNTS = {
+    'python3 scripts/zigux/install-zig.py --self-test': 1,
+    'python3 scripts/zigux/install-zig.py --channel 0.17.0-dev.87+9b177a7d2 --dest .zig-toolchain': 2,
+    'python3 scripts/zigux/check-zig-toolchain.py --self-test': 1,
+    'python3 scripts/zigux/check-zig-toolchain.py': 1,
     'python3 scripts/zigux/validate-phase2.py': 1,
     'python3 scripts/zigux/check-phase2-genksyms-bridge-selftest-alignment.py --self-test': 1,
     'python3 scripts/zigux/check-phase2-genksyms-bridge-selftest-alignment.py': 1,
@@ -110,6 +114,10 @@ def run_self_test() -> int:
         'cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-cross.py',
     ])
     workflow_ok = '\n'.join([
+        'run: python3 scripts/zigux/install-zig.py --self-test',
+        'run: python3 scripts/zigux/install-zig.py --channel 0.17.0-dev.87+9b177a7d2 --dest .zig-toolchain',
+        'run: python3 scripts/zigux/check-zig-toolchain.py --self-test',
+        'run: python3 scripts/zigux/check-zig-toolchain.py',
         'run: python3 scripts/zigux/validate-phase2.py',
         'run: python3 scripts/zigux/check-phase2-genksyms-bridge-selftest-alignment.py --self-test',
         'run: python3 scripts/zigux/check-phase2-genksyms-bridge-selftest-alignment.py',
@@ -129,6 +137,7 @@ def run_self_test() -> int:
         'run: python3 scripts/zigux/check-genksyms-bridge.py --self-test',
         'run: python3 scripts/zigux/check-genksyms-bridge.py',
         'run: python3 scripts/zigux/check-genksyms-crc-diff.py',
+        'run: python3 scripts/zigux/install-zig.py --channel 0.17.0-dev.87+9b177a7d2 --dest .zig-toolchain',
     ]) + '\n'
     cases = [
         ('make_ok', validate_exact_makefile_runs(make_ok), []),
@@ -746,6 +755,10 @@ def main() -> int:
         'python3 scripts/zigux/check-phase2-cross.py --target',
         'python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py --self-test',
         'python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py',
+        'python3 scripts/zigux/check-zig-toolchain.py --self-test',
+        'python3 scripts/zigux/check-zig-toolchain.py',
+        'python3 scripts/zigux/install-zig.py --self-test',
+        'python3 scripts/zigux/install-zig.py --channel 0.17.0-dev.87+9b177a7d2 --dest .zig-toolchain',
         'python3 scripts/zigux/validate-phase2-closure.py',
         'zig test scripts/zigux/genksyms.zig',
         'zig test scripts/zigux/kconfig/conf_bridge.zig',
