@@ -28,6 +28,9 @@ The Phase 9 roadmap explicitly names `samples/trace_events/trace-events-sample.c
 
 The live repo originally had no matching trace-events survey artifact, no dedicated `runtime_*` review gate, and no Zigux starter under `samples/zigux/`. That survey note now stays in place as the lane history and review anchor after the bounded starter sample, module tests, diff gate, sample-side loader scaffold, and shared-request bridge landed, so Phase 9 can keep recording what is shipped versus what still depends on the shared runtime substrate.
 
+The live Phase 9 runtime trace-events packet also stays separate from the already-approved non-runtime Phase 5 reference-sample packet: `samples/zigux/runtime_trace_events.zig` and `samples/zigux/runtime_trace_events_loader.zig` remain the separate runtime family rooted in `samples/trace_events/trace-events-sample.c`, not a second owner for the already-approved `samples/zigux/trace_events_sample.zig` cue under `Documentation/zigux/phase5-trace-events-sample-survey.md`.
+The shared sample-root catalog at `samples/zigux/README.md` keeps the approved Phase 5 anchor explicit through `samples/zigux/trace_events_sample.zig` while listing the runtime trace-events pair only under the separate Phase 9 runtime pilot family.
+
 ## Survey findings
 
 - `samples/trace_events/trace-events-sample.c` is present on `master` at 153 lines.
