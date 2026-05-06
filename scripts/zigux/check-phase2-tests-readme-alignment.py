@@ -133,6 +133,9 @@ EXACT_COUNT_CHECKS = {
         "make -C zigux phase2-validate": 1,
         "make -C zigux phase2": 1,
     },
+    "scripts/zigux/README.md": {
+        "check-phase2-kconfig-selftest-alignment.py": 1,
+    },
     "zigux/tests/README.md": {
         "make -C zigux phase2-validate": 1,
         "make -C zigux phase2": 1,
@@ -196,6 +199,13 @@ def validate_root(root: Path) -> list[str]:
     )
     issues.extend(collect_missing_markers(review, REVIEW_CHECKLIST_MARKERS, prefix="review_checklist"))
     issues.extend(collect_missing_markers(scripts_readme, SCRIPTS_README_MARKERS, prefix="scripts_readme"))
+    issues.extend(
+        collect_exact_count_issues(
+            scripts_readme,
+            EXACT_COUNT_CHECKS["scripts/zigux/README.md"],
+            prefix="scripts_readme",
+        )
+    )
     issues.extend(collect_missing_markers(tests_readme, TESTS_README_MARKERS, prefix="tests_readme"))
     issues.extend(collect_missing_markers(makefile, MAKEFILE_MARKERS, prefix="makefile"))
     issues.extend(
@@ -352,6 +362,18 @@ def run_self_test() -> int:
 
         build_self_test_root(root)
         write_text(
+            root / "scripts/zigux/README.md",
+            "\n".join(SCRIPTS_README_MARKERS)
+            + "\ncheck-phase2-kconfig-selftest-alignment.py\n",
+        )
+        issues = validate_root(root)
+        assert (
+            "scripts_readme:exact_count:check-phase2-kconfig-selftest-alignment.py:count=2:expected=1"
+            in issues
+        )
+
+        build_self_test_root(root)
+        write_text(
             root / "zigux/tests/README.md",
             "\n".join(
                 marker
@@ -376,7 +398,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE2_TESTS_README_ALIGNMENT_SELF_TEST=pass")
-    print("PHASE2_TESTS_README_ALIGNMENT_SELF_TEST_CASE_COUNT=33")
+    print("PHASE2_TESTS_README_ALIGNMENT_SELF_TEST_CASE_COUNT=34")
     return 0
 
 
