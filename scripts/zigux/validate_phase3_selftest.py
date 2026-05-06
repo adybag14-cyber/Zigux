@@ -10,8 +10,9 @@ from dataclasses import dataclass
 from pathlib import Path
 
 
-ROOT = Path(__file__).resolve().parents[2]
-PHASE3_VALIDATOR_SELF_TEST_CASE_COUNT = 29
+SCRIPT_PATH = Path(__file__).resolve()
+ROOT = SCRIPT_PATH.parents[2] if len(SCRIPT_PATH.parents) > 2 else SCRIPT_PATH.parent
+PHASE3_VALIDATOR_SELF_TEST_CASE_COUNT = 30
 
 
 @dataclass(frozen=True)
@@ -351,6 +352,40 @@ def run_self_test() -> int:
         issues = run_targets(tooling_inventory_marker_root)
         assert (
             "missing_pass_marker:scripts/zigux/check-phase3-readme-tooling-inventory.py:"
+            "PHASE3_README_TOOLING_INVENTORY_SELF_TEST=pass"
+            in issues
+        )
+
+        tooling_inventory_duplicate_marker_root = Path(tmp_dir) / "tooling-inventory-duplicate-marker"
+        for target in SELF_TEST_TARGETS:
+            path = tooling_inventory_duplicate_marker_root / target.relpath
+            if target.relpath.endswith("check-phase3-readme-tooling-inventory.py"):
+                path.parent.mkdir(parents=True, exist_ok=True)
+                path.write_text(
+                    "\n".join(
+                        [
+                            "#!/usr/bin/env python3",
+                            "from __future__ import annotations",
+                            "",
+                            "import sys",
+                            "",
+                            'if "--self-test" in sys.argv:',
+                            '    print("PHASE3_README_TOOLING_INVENTORY_SELF_TEST=pass")',
+                            '    print("PHASE3_README_TOOLING_INVENTORY_SELF_TEST=pass")',
+                            "    raise SystemExit(0)",
+                            "",
+                            'raise SystemExit("expected --self-test")',
+                            "",
+                        ]
+                    ),
+                    encoding="utf-8",
+                    newline="\n",
+                )
+                continue
+            write_script(path, target.marker or "PASS", extra_markers=target.extra_markers)
+        issues = run_targets(tooling_inventory_duplicate_marker_root)
+        assert (
+            "duplicate_pass_marker:scripts/zigux/check-phase3-readme-tooling-inventory.py:2:"
             "PHASE3_README_TOOLING_INVENTORY_SELF_TEST=pass"
             in issues
         )
