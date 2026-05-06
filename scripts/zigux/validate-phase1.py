@@ -131,6 +131,7 @@ REQUIRED_RBTREE_TEST_ANCHORS = [
     'test "rbtree eraseInit detaches erased node"',
     'test "rbtree postorder and empty node helpers behave"',
     'test "rbtree findAdd keeps the first duplicate and inserts new keys"',
+    'test "rbtree nextMatch walks the duplicate range in order"',
 ]
 
 REQUIRED_REVIEW_CHECKLIST_MARKERS = [
@@ -584,12 +585,12 @@ def run_self_test() -> None:
 
         make_fixture_root(tmp_root)
         rbtree_path.write_text(
-            "\n".join(REQUIRED_RBTREE_TEST_ANCHORS + [REQUIRED_RBTREE_TEST_ANCHORS[4]]) + "\n",
+            "\n".join(REQUIRED_RBTREE_TEST_ANCHORS + [REQUIRED_RBTREE_TEST_ANCHORS[5]]) + "\n",
             encoding="utf-8",
         )
         missing_markers = collect_missing_markers(tmp_root)
         assert (
-            'rbtree_test_anchor:test "rbtree findAdd keeps the first duplicate and inserts new keys":expected=1:actual=2'
+            'rbtree_test_anchor:test "rbtree nextMatch walks the duplicate range in order":expected=1:actual=2'
             in missing_markers
         )
 
