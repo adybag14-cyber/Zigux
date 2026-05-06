@@ -525,6 +525,22 @@ test "nextArg trims mixed trailing whitespace from rest and leaves whitespace-on
     try std.testing.expectEqualStrings("", cStringPrefix(parsed_whitespace_only.rest));
 }
 
+test "nextArg returns an empty sentinel token before leading whitespace and trims the following rest" {
+    var leading_whitespace = [_]u8{ ' ', '\t', 'f', 'o', 'o', '=', '1', 0 };
+    const parsed_leading_whitespace = nextArg(&leading_whitespace);
+
+    try std.testing.expectEqualStrings("", parsed_leading_whitespace.param);
+    try std.testing.expectEqual(@as(?[]const u8, null), parsed_leading_whitespace.value);
+    try std.testing.expectEqualStrings("foo=1", cStringPrefix(parsed_leading_whitespace.rest));
+
+    var whitespace_only = [_]u8{ ' ', '\t', '\n', 0 };
+    const parsed_whitespace_only = nextArg(&whitespace_only);
+
+    try std.testing.expectEqualStrings("", parsed_whitespace_only.param);
+    try std.testing.expectEqual(@as(?[]const u8, null), parsed_whitespace_only.value);
+    try std.testing.expectEqualStrings("", cStringPrefix(parsed_whitespace_only.rest));
+}
+
 test "nextArg does not treat a leading equals sign as a value separator" {
     var buffer = [_]u8{ '=', 'b', 'a', 'd', ' ', 'n', 'e', 'x', 't', 0 };
     const parsed = nextArg(&buffer);
