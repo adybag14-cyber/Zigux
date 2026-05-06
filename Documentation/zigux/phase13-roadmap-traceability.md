@@ -88,9 +88,9 @@ Current `master` keeps that anchor reviewable through:
   * `zigux/tests/phase13_landlock_syscalls.zig`
   * `zigux/tests/phase13_landlock_syscalls_reviewability.zig`
 
-That packet is truthful to the roadmap because it records only bounded helper planning and the next explicit release-side follow-up. The shipped helper surface now keeps ABI shape reporting, `landlock_create_ruleset()` query and mask validation, `landlock_restrict_self()` logging translation including the special `ruleset_fd == -1` mute-subdomains-only case, `landlock_add_rule()` dispatch, `get_ruleset_from_fd()` mode checks, `get_path_from_fd()` path-source validation, the focused `zigux/tests/phase13_landlock_syscalls_reviewability.zig` direct-evidence shard, and the current `add_rule_path_beneath()` handoff reviewable without implying anonymous inode creation, live file-operations wiring, path-backed rule import, credential mutation, or live syscall enforcement.
+That packet is truthful to the roadmap because it records only bounded helper planning and the current shipped syscall-helper surface. The shipped helper surface now keeps ABI shape reporting, `landlock_create_ruleset()` query and mask validation, `landlock_restrict_self()` logging translation including the special `ruleset_fd == -1` mute-subdomains-only case, `landlock_add_rule()` dispatch, `get_ruleset_from_fd()` mode checks, `get_path_from_fd()` path-source validation, the focused `zigux/tests/phase13_landlock_syscalls_reviewability.zig` direct-evidence shard, the current `add_rule_path_beneath()` handoff reviewable, and the bounded `fop_ruleset_release()` release-side handoff reviewable without implying anonymous inode creation, live file-operations wiring, path-backed rule import, credential mutation, or live syscall enforcement.
 
-The next honest same-lane step is still the tiny `fop_ruleset_release()` planner recorded in the survey manifest so the retained ruleset in `private_data`, the matching `landlock_put_ruleset()` release, and the zero return contract become explicit before any broader file-operations or FD-ownership claims are attempted.
+Keep this packet parked unless a future same-lane step can add another equally bounded planner without widening into live file-operations wiring, FD ownership, credential work, or domain state.
 
 ## Adjacent release evidence
 
@@ -119,5 +119,5 @@ The honest current roadmap read is:
   * `libfs` remains bounded to helper-first filesystem planning
   * `devres` remains bounded to helper-first MMIO-adjacent planning
   * `landlock ruleset` remains bounded to helper-first ruleset planning with live-tree state still explicitly blocked
-  * `landlock syscalls` remains bounded to helper-first syscall planning with the release-side handoff still explicitly queued next
+  * `landlock syscalls` remains bounded to helper-first syscall planning with the release-side handoff now explicitly shipped and the packet otherwise parked
   * release-facing docs must keep the shared replay count and the adjacent-evidence split exact so contributors do not mistake missing docs or implied replay expansion for product progress
