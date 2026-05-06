@@ -3,6 +3,22 @@ const help = @import("help");
 const phase8_help_options = @import("phase8_help_options");
 
 const phase8_help_slice = phase8_help_options.phase8_help_slice;
+const FixtureDir = struct {
+    path: []const u8,
+    entries: []const help.DirectoryEntry,
+};
+const FixtureSource = struct {
+    dirs: []const FixtureDir,
+
+    fn populate(self: *@This(), cmds: *help.CmdNames, path: []const u8, prefix: []const u8) !void {
+        for (self.dirs) |dir| {
+            if (std.mem.eql(u8, dir.path, path)) {
+                try help.addExecutableEntries(cmds, dir.entries, prefix);
+                return;
+            }
+        }
+    }
+};
 
 test "phase 8 help module imports cleanly" {
     _ = help;
@@ -20,7 +36,7 @@ test "phase 8 help slice note keeps helper-first output-stable posture and non-g
     try std.testing.expect(std.mem.containsAtLeast(u8, phase8_help_slice, 1, "direct environment reads or a full `cmd_help()`-adjacent CLI surface"));
 }
 
-test "phase 8 help starter slice covers command-list ownership, filtering, exclusion, terminal sizing, and layout planning" {
+test "phase 8 help slice covers command-list ownership, filtering, exclusion, terminal sizing, and layout planning" {
     var main_cmds = help.CmdNames.init(std.testing.allocator);
     defer main_cmds.deinit();
     try std.testing.expect(try help.addExecutableEntry(&main_cmds, "perf-trace", "perf-", true));
@@ -82,24 +98,6 @@ test "phase 8 help starter slice covers command-list ownership, filtering, exclu
 }
 
 test "phase 8 help command-source and terminal layers stay aligned with the current help.c slice" {
-    const FixtureDir = struct {
-        path: []const u8,
-        entries: []const help.DirectoryEntry,
-    };
-
-    const FixtureSource = struct {
-        dirs: []const FixtureDir,
-
-        fn populate(self: *@This(), cmds: *help.CmdNames, path: []const u8, prefix: []const u8) !void {
-            for (self.dirs) |dir| {
-                if (std.mem.eql(u8, dir.path, path)) {
-                    try help.addExecutableEntries(cmds, dir.entries, prefix);
-                    return;
-                }
-            }
-        }
-    };
-
     const exec_entries = [_]help.DirectoryEntry{
         .{ .name = "perf-stat", .is_executable = true },
         .{ .name = "perf-report.exe", .is_executable = true },
@@ -156,24 +154,6 @@ test "phase 8 help command-source and terminal layers stay aligned with the curr
 }
 
 test "phase 8 help raw PATH splitting keeps empty segments and exec-path exclusion aligned with help.c" {
-    const FixtureDir = struct {
-        path: []const u8,
-        entries: []const help.DirectoryEntry,
-    };
-
-    const FixtureSource = struct {
-        dirs: []const FixtureDir,
-
-        fn populate(self: *@This(), cmds: *help.CmdNames, path: []const u8, prefix: []const u8) !void {
-            for (self.dirs) |dir| {
-                if (std.mem.eql(u8, dir.path, path)) {
-                    try help.addExecutableEntries(cmds, dir.entries, prefix);
-                    return;
-                }
-            }
-        }
-    };
-
     var split_entries = try help.splitPathEntries(std.testing.allocator, ":/opt/perf/bin::/usr/bin:");
     defer split_entries.deinit();
     try std.testing.expectEqual(@as(usize, 5), split_entries.count());
