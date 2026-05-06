@@ -230,6 +230,21 @@ REQUIRED_PHASE9_BUILD_MARKERS = [
     "test_step.dependOn(&run_runtime_kretprobe_survey_tests.step);",
 ]
 
+REQUIRED_RUNTIME_LOADER_CONTRACT_MARKERS = [
+    'test "shared runtime loader contract keeps command, environment, and depmod-facing control surfaces outside the request contract" {',
+    'try std.testing.expect(!@hasField(LoadPlan, "modinfo"));',
+    'try std.testing.expect(!@hasField(LoadPlan, "module_alias"));',
+    'try std.testing.expect(!@hasField(LoadPlan, "module_aliases"));',
+    'try std.testing.expect(!@hasField(LoadPlan, "modules_alias_path"));',
+    'try std.testing.expect(!@hasField(LoadPlan, "depmod_script"));',
+    'try std.testing.expect(!@hasField(LoadPlan, "depmod_manifest"));',
+    'try std.testing.expect(!@hasField(LoadPlan, "depmod_aliases"));',
+    'try std.testing.expect(!@hasField(PreparedRequest, "modinfo"));',
+    'try std.testing.expect(!@hasField(PreparedRequest, "module_aliases"));',
+    'try std.testing.expect(!@hasField(PreparedRequest, "modules_alias_path"));',
+    'try std.testing.expect(!@hasField(PreparedRequest, "depmod_script"));',
+]
+
 REQUIRED_PHASE9_BUILD_EXACT_COUNTS = {marker: 1 for marker in REQUIRED_PHASE9_BUILD_MARKERS}
 
 FORBIDDEN_FILES = [
@@ -303,6 +318,7 @@ def validate(root: Path) -> list[str]:
     makefile = read_text(root, MAKEFILE_PATH)
     workflow = read_text(root, WORKFLOW_PATH)
     phase9_build = read_text(root, PHASE9_BUILD_PATH)
+    runtime_loader_contract = read_text(root, RUNTIME_LOADER_CONTRACT_PATH)
 
     ensure_contains(failures, "docs_readme", docs_readme, REQUIRED_DOCS_README_MARKERS)
     ensure_contains(failures, "scripts_readme", scripts_readme, REQUIRED_SCRIPT_README_MARKERS)
@@ -312,6 +328,12 @@ def validate(root: Path) -> list[str]:
     ensure_contains(failures, "makefile", makefile, REQUIRED_MAKEFILE_MARKERS)
     ensure_contains(failures, "workflow", workflow, REQUIRED_WORKFLOW_MARKERS)
     ensure_contains(failures, "phase9_build", phase9_build, REQUIRED_PHASE9_BUILD_MARKERS)
+    ensure_contains(
+        failures,
+        "runtime_loader_contract",
+        runtime_loader_contract,
+        REQUIRED_RUNTIME_LOADER_CONTRACT_MARKERS,
+    )
 
     ensure_exact_counts(failures, "docs_readme", docs_readme, REQUIRED_DOCS_README_EXACT_COUNTS)
     ensure_exact_counts(failures, "review_checklist", review_checklist, REQUIRED_REVIEW_CHECKLIST_EXACT_COUNTS)
@@ -326,6 +348,10 @@ def validate(root: Path) -> list[str]:
 
 def phase9_build_fixture() -> str:
     return "\n".join(REQUIRED_PHASE9_BUILD_MARKERS) + "\n"
+
+
+def runtime_loader_contract_fixture() -> str:
+    return "\n".join(REQUIRED_RUNTIME_LOADER_CONTRACT_MARKERS) + "\n"
 
 
 def minimal_marker_doc(title: str, markers: list[str]) -> str:
@@ -345,7 +371,7 @@ def write_fixture_tree(root: Path) -> None:
     write_text(root / WORKFLOW_PATH, "\n".join(REQUIRED_WORKFLOW_MARKERS + [""]))
     write_text(root / PHASE9_BUILD_PATH, phase9_build_fixture())
     write_text(root / RUNTIME_LOADER_PATH, "// facade placeholder\n")
-    write_text(root / RUNTIME_LOADER_CONTRACT_PATH, "// contract placeholder\n")
+    write_text(root / RUNTIME_LOADER_CONTRACT_PATH, runtime_loader_contract_fixture())
     write_text(root / "zigux/tests/runtime_loader_allocator_init_flow.zig", "// allocator/init-flow placeholder\n")
 
     for rel_path in REQUIRED_PHASE9_NOTE_PATHS + REQUIRED_PHASE9_LOADER_SCAFFOLD_PATHS:
@@ -451,6 +477,19 @@ def run_self_test() -> int:
             encoding="utf-8",
         )
         expect_failure(root, "phase9_build:test_step.dependOn(&run_runtime_trace_events_survey_tests.step);", "missing_trace_events_survey_dependency")
+
+        write_fixture_tree(root)
+        runtime_loader_contract_path = root / RUNTIME_LOADER_CONTRACT_PATH
+        runtime_loader_contract = runtime_loader_contract_path.read_text(encoding="utf-8")
+        runtime_loader_contract_path.write_text(
+            runtime_loader_contract.replace('try std.testing.expect(!@hasField(LoadPlan, "depmod_script"));\n', "", 1),
+            encoding="utf-8",
+        )
+        expect_failure(
+            root,
+            'runtime_loader_contract:try std.testing.expect(!@hasField(LoadPlan, "depmod_script"));',
+            "missing_depmod_script_boundary",
+        )
 
         write_fixture_tree(root)
         review_checklist_path = root / REVIEW_CHECKLIST_PATH
@@ -560,7 +599,7 @@ def run_self_test() -> int:
             )
 
     print("PHASE9_BUILD_ONLY_SURFACE_SELF_TEST=pass")
-    print("PHASE9_BUILD_ONLY_SURFACE_SELF_TEST_CASE_COUNT=18")
+    print("PHASE9_BUILD_ONLY_SURFACE_SELF_TEST_CASE_COUNT=19")
     return 0
 
 
@@ -596,7 +635,7 @@ def main() -> int:
     print("PHASE9_BUILD_ONLY_SURFACE=pass")
     print(
         "PHASE9_BUILD_ONLY_SURFACE_MARKER_COUNT="
-        f"{len(REQUIRED_DOCS_README_MARKERS) + len(REQUIRED_SCRIPT_README_MARKERS) + len(REQUIRED_TESTS_README_MARKERS) + len(REQUIRED_REVIEW_CHECKLIST_MARKERS) + len(REQUIRED_FREEZE_MAP_MARKERS) + len(REQUIRED_MAKEFILE_MARKERS) + len(REQUIRED_WORKFLOW_MARKERS) + len(REQUIRED_PHASE9_BUILD_MARKERS)}"
+        f"{len(REQUIRED_DOCS_README_MARKERS) + len(REQUIRED_SCRIPT_README_MARKERS) + len(REQUIRED_TESTS_README_MARKERS) + len(REQUIRED_REVIEW_CHECKLIST_MARKERS) + len(REQUIRED_FREEZE_MAP_MARKERS) + len(REQUIRED_MAKEFILE_MARKERS) + len(REQUIRED_WORKFLOW_MARKERS) + len(REQUIRED_PHASE9_BUILD_MARKERS) + len(REQUIRED_RUNTIME_LOADER_CONTRACT_MARKERS)}"
     )
     return 0
 
