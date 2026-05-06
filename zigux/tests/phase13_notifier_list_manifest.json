@@ -63,6 +63,13 @@
       "why_now": "A focused replay is the smallest honest way to keep the binding-only notifier foothold and list-surface posture reviewable."
     },
     {
+      "id": "phase13-notifier-focused-packet-checker",
+      "status": "starter_landed",
+      "kind": "validation",
+      "zigux_destination": "scripts/zigux/check-phase13-notifier-packet.py",
+      "why_now": "The adjacent notifier packet now ships a focused fail-closed checker so the survey note, manifest, helper, header, and adjacent-only build posture stay aligned without adding a shared replay step."
+    },
+    {
       "id": "phase13-notifier-survey-note",
       "status": "starter_landed",
       "kind": "documentation",
