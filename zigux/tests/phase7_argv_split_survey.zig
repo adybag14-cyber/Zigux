@@ -67,6 +67,18 @@ test "phase 7 argv_split survey manifest records the parked runtime leaf surface
     const tests_root = try readRepoFile(allocator, "zigux/tests/README.md");
     defer allocator.free(tests_root);
 
+    const docs_root = try readRepoFile(allocator, "Documentation/zigux/README.md");
+    defer allocator.free(docs_root);
+
+    const samples_root = try readRepoFile(allocator, "samples/zigux/README.md");
+    defer allocator.free(samples_root);
+
+    const validate_phase7 = try readRepoFile(allocator, "scripts/zigux/validate-phase7.py");
+    defer allocator.free(validate_phase7);
+
+    const zigux_makefile = try readRepoFile(allocator, "zigux/Makefile");
+    defer allocator.free(zigux_makefile);
+
     const parsed = try std.json.parseFromSlice(Manifest, allocator, manifest_json, .{});
     defer parsed.deinit();
 
@@ -127,6 +139,30 @@ test "phase 7 argv_split survey manifest records the parked runtime leaf surface
     try expectContains(tests_root, "the dedicated `zigux/tests/phase7_argv_split_survey.zig` argvSplit survey gate");
     try expectContains(tests_root, "`make -C zigux phase7-validate`");
     try expectContains(tests_root, "`make -C zigux phase7`");
+
+    try expectContains(docs_root, "Documentation/zigux/phase7-argv-split-slice.md");
+    try expectContains(docs_root, "current `master` still ships no `samples/zigux/*argv*` Phase 5 reference sample");
+    try expectContains(docs_root, "zigux/tests/phase7_argv_split_survey.zig");
+    try expectContains(docs_root, "scripts/zigux/check-phase7-argv-split-packet.py");
+    try expectContains(docs_root, "zigux/tests/phase7_build.zig");
+
+    try expectContains(samples_root, "current `master` still ships no `samples/zigux/*argv*` Phase 5 reference sample;");
+    try expectContains(samples_root, "Documentation/zigux/phase7-argv-split-slice.md");
+    try expectContains(samples_root, "zigux/tests/phase7_argv_split.zig");
+    try expectContains(samples_root, "zigux/tests/phase7_argv_split_survey.zig");
+    try expectContains(samples_root, "scripts/zigux/check-phase7-argv-split-packet.py");
+    try expectContains(samples_root, "zigux/tests/phase7_build.zig");
+
+    try expectContains(validate_phase7, "\"zigux/tests/phase7_argv_split.zig\"");
+    try expectContains(validate_phase7, "\"zigux/tests/phase7_argv_split_survey.zig\"");
+    try expectContains(validate_phase7, "\"zigux/tests/phase7_argv_split_manifest.json\"");
+    try expectContains(validate_phase7, "\"zigux/tests/fixtures/phase7_argv_split_vectors.zig\"");
+    try expectContains(validate_phase7, "\"scripts/zigux/check-phase7-argv-split-packet.py\"");
+
+    try expectContains(zigux_makefile, "phase7-validate:");
+    try expectContains(zigux_makefile, "scripts/zigux/check-phase7-argv-split-packet.py --self-test");
+    try expectContains(zigux_makefile, "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase7-argv-split-packet.py");
+    try expectContains(zigux_makefile, "phase7: phase7-validate phase7-test");
 
     var starter_landed_count: usize = 0;
     var ready_next_count: usize = 0;
