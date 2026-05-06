@@ -12,6 +12,8 @@ ROOT = Path(__file__).resolve().parents[2]
 
 FILES = [
     "scripts/zigux/check-phase10-input-packet.py",
+    "scripts/zigux/README.md",
+    "zigux/tests/README.md",
     "zigux/Makefile",
     "zigux/tests/phase10_build.zig",
     "drivers/virtio/virtio_input.zig",
@@ -31,6 +33,19 @@ EXPECTED_BUILD_MARKERS = [
     '"phase10-virtio-input-tests"',
     '"phase10-virtio-input-status-drain-tests"',
     '"phase10-virtio-input-survey-tests"',
+]
+
+EXPECTED_SCRIPTS_README_MARKERS = [
+    "check-phase10-input-packet.py",
+    "phase10_virtio_core_reset_queue.zig",
+    "phase10_virtio_input_status_drain.zig",
+    "make -C zigux phase10",
+]
+
+EXPECTED_TESTS_README_MARKERS = [
+    "phase10_virtio_input.zig",
+    "phase10_virtio_input_status_drain.zig",
+    "phase10_virtio_input_survey.zig",
 ]
 
 EXPECTED_MAKEFILE_MARKERS = [
@@ -137,6 +152,16 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
     for marker in EXPECTED_BUILD_MARKERS:
         if marker not in build_text:
             missing_markers.append(f"build:{marker}")
+
+    scripts_readme_text = read_text(root, "scripts/zigux/README.md")
+    for marker in EXPECTED_SCRIPTS_README_MARKERS:
+        if marker not in scripts_readme_text:
+            missing_markers.append(f"scripts_readme:{marker}")
+
+    tests_readme_text = read_text(root, "zigux/tests/README.md")
+    for marker in EXPECTED_TESTS_README_MARKERS:
+        if marker not in tests_readme_text:
+            missing_markers.append(f"tests_readme:{marker}")
 
     makefile_text = read_text(root, "zigux/Makefile")
     for marker in EXPECTED_MAKEFILE_MARKERS:
@@ -284,6 +309,7 @@ def run_self_test() -> int:
             raise SystemExit("phase10-input-self-test:expected_freeze_boundary_marker_missing")
         manifest_path.write_text(original_manifest, encoding="utf-8")
 
+        manifest_path.writeText if False else None
         manifest_path.write_text(
             original_manifest.replace(
                 '"risky_transport_posture": "blocked_on_risky_transport"',
@@ -350,9 +376,31 @@ def run_self_test() -> int:
         _, missing_markers = validate(tmp_root)
         if "makefile:scripts/zigux/check-phase10-input-packet.py --self-test" not in missing_markers:
             raise SystemExit("phase10-input-self-test:expected_makefile_marker_missing")
+        makefile_path.write_text(original_makefile, encoding="utf-8")
+
+        scripts_readme_path = tmp_root / "scripts/zigux/README.md"
+        original_scripts_readme = scripts_readme_path.read_text(encoding="utf-8")
+        scripts_readme_path.write_text(
+            original_scripts_readme.replace("phase10_virtio_input_status_drain.zig", "phase10_virtio_input_status_drift.zig", 1),
+            encoding="utf-8",
+        )
+        _, missing_markers = validate(tmp_root)
+        if "scripts_readme:phase10_virtio_input_status_drain.zig" not in missing_markers:
+            raise SystemExit("phase10-input-self-test:expected_scripts_readme_marker_missing")
+        scripts_readme_path.write_text(original_scripts_readme, encoding="utf-8")
+
+        tests_readme_path = tmp_root / "zigux/tests/README.md"
+        original_tests_readme = tests_readme_path.read_text(encoding="utf-8")
+        tests_readme_path.write_text(
+            original_tests_readme.replace("phase10_virtio_input_status_drain.zig", "phase10_virtio_input_status_drift.zig", 1),
+            encoding="utf-8",
+        )
+        _, missing_markers = validate(tmp_root)
+        if "tests_readme:phase10_virtio_input_status_drain.zig" not in missing_markers:
+            raise SystemExit("phase10-input-self-test:expected_tests_readme_marker_missing")
 
     print("PHASE10_INPUT_PACKET_SELF_TEST=pass")
-    print("PHASE10_INPUT_PACKET_SELF_TEST_CASE_COUNT=8")
+    print("PHASE10_INPUT_PACKET_SELF_TEST_CASE_COUNT=10")
     return 0
 
 
