@@ -113,6 +113,13 @@
       "why_now": "The live ring slice now keeps a queue marked broken from accepting fresh publish, kick-preparation, poll, or callback re-enable work, which mirrors the bounded virtqueue_is_broken() posture in memory without claiming transport recovery or device reset execution."
     },
     {
+      "id": "phase10-queue-reset-helper",
+      "status": "starter_landed",
+      "kind": "queue_wrapper",
+      "zigux_destination": "drivers/virtio/virtio_ring.zig",
+      "why_now": "The live ring slice now carries a queue-local `resetQueue()` helper that clears avail, used, callback, outstanding-chain, and notify bookkeeping while preserving descriptor-count and layout metadata for reuse, without claiming MMIO queue-register programming, transport reset execution, or device lifecycle parity."
+    },
+    {
       "id": "phase10-queue-reset-readiness-helper",
       "status": "starter_landed",
       "kind": "queue_wrapper",
