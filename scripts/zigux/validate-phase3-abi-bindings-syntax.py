@@ -13,10 +13,20 @@ DEFAULT_DEV_T_BINDINGS = ROOT / "zigux" / "bindings" / "dev_t.zig"
 DEFAULT_MANIFEST = ROOT / "zigux" / "tests" / "fixtures" / "phase3_abi_manifest.json"
 DEFAULT_DOC = ROOT / "Documentation" / "zigux" / "phase3-abi-slice.md"
 FUSED_MARKER = ";pub const "
-REQUIRED_MANIFEST_FILE = "scripts/zigux/validate-phase3-abi-bindings-syntax.py"
+REQUIRED_MANIFEST_FILES = (
+    "scripts/zigux/validate-phase3-abi-bindings-syntax.py",
+    "zigux/kernel/export_shim.zig",
+    "zigux/uapi/version.zig",
+)
 REQUIRED_DOC_MARKERS = (
     "python3 scripts/zigux/validate-phase3-abi-bindings-syntax.py",
     "python3 scripts/zigux/validate-phase3-abi-bindings-syntax.py --self-test",
+)
+REQUIRED_EXPORT_UAPI_DOC_MARKERS = (
+    "PHASE3_EXPORT_SHIM_PATH=zigux/kernel/export_shim.zig",
+    "PHASE3_UAPI_VERSION_PATH=zigux/uapi/version.zig",
+    "PHASE3_ABI_MANIFEST_PATH=zigux/tests/fixtures/phase3_abi_manifest.json",
+    "PHASE3_EXPORT_UAPI_SURVEY_MODE=shared-abi-slice",
 )
 
 
@@ -51,11 +61,15 @@ def validate_gate_contract(manifest_path: Path, doc_path: Path) -> list[str]:
     issues: list[str] = []
     manifest = _load_manifest(manifest_path)
     files = manifest.get("files")
-    if not isinstance(files, list) or REQUIRED_MANIFEST_FILE not in files:
-        issues.append(f"{manifest_path}:missing_manifest_file:{REQUIRED_MANIFEST_FILE}")
+    if not isinstance(files, list):
+        issues.append(f"{manifest_path}:missing_manifest_files")
+    else:
+        for required_file in REQUIRED_MANIFEST_FILES:
+            if required_file not in files:
+                issues.append(f"{manifest_path}:missing_manifest_file:{required_file}")
 
     doc_markers = _normalize_doc_lines(doc_path.read_text(encoding="utf-8"))
-    for marker in REQUIRED_DOC_MARKERS:
+    for marker in (*REQUIRED_DOC_MARKERS, *REQUIRED_EXPORT_UAPI_DOC_MARKERS):
         if marker not in doc_markers:
             issues.append(f"{doc_path}:missing_doc_marker:{marker}")
     return issues
@@ -119,8 +133,8 @@ def run_self_test() -> int:
                     "phase": "Phase 3",
                     "status": "active",
                     "slice": "abi-substrate-skeleton",
-                    "files": [REQUIRED_MANIFEST_FILE],
-                    "file_count": 1,
+                    "files": list(REQUIRED_MANIFEST_FILES),
+                    "file_count": len(REQUIRED_MANIFEST_FILES),
                 }
             ),
             encoding="utf-8",
@@ -131,6 +145,10 @@ def run_self_test() -> int:
                 [
                     "- `python3 scripts/zigux/validate-phase3-abi-bindings-syntax.py`",
                     "- `python3 scripts/zigux/validate-phase3-abi-bindings-syntax.py --self-test`",
+                    "- `PHASE3_EXPORT_SHIM_PATH=zigux/kernel/export_shim.zig`",
+                    "- `PHASE3_UAPI_VERSION_PATH=zigux/uapi/version.zig`",
+                    "- `PHASE3_ABI_MANIFEST_PATH=zigux/tests/fixtures/phase3_abi_manifest.json`",
+                    "- `PHASE3_EXPORT_UAPI_SURVEY_MODE=shared-abi-slice`",
                     "",
                 ]
             ),
@@ -194,7 +212,9 @@ def run_self_test() -> int:
             newline="\n",
         )
         manifest_issues = validate_gate_contract(manifest, doc)
-        assert manifest_issues == [f"{manifest}:missing_manifest_file:{REQUIRED_MANIFEST_FILE}"]
+        assert manifest_issues == [
+            f"{manifest}:missing_manifest_file:{required_file}" for required_file in REQUIRED_MANIFEST_FILES
+        ]
 
         manifest.write_text(
             json.dumps(
@@ -202,8 +222,8 @@ def run_self_test() -> int:
                     "phase": "Phase 3",
                     "status": "active",
                     "slice": "abi-substrate-skeleton",
-                    "files": [REQUIRED_MANIFEST_FILE],
-                    "file_count": 1,
+                    "files": list(REQUIRED_MANIFEST_FILES),
+                    "file_count": len(REQUIRED_MANIFEST_FILES),
                 }
             ),
             encoding="utf-8",
@@ -216,7 +236,11 @@ def run_self_test() -> int:
         )
         doc_issues = validate_gate_contract(manifest, doc)
         assert doc_issues == [
-            f"{doc}:missing_doc_marker:python3 scripts/zigux/validate-phase3-abi-bindings-syntax.py --self-test"
+            f"{doc}:missing_doc_marker:{marker}"
+            for marker in (
+                "python3 scripts/zigux/validate-phase3-abi-bindings-syntax.py --self-test",
+                *REQUIRED_EXPORT_UAPI_DOC_MARKERS,
+            )
         ]
 
     print("PHASE3_ABI_BINDINGS_SYNTAX_SELF_TEST=pass")
