@@ -88,6 +88,7 @@ That means:
 - explicit opt-in to Node 24 action execution on GitHub-hosted runners
 - no known dependency on the deprecated Node 20 runtime
 - Zig installation through an in-repo official-download step instead of a Node 20-bound action
+- `python3 scripts/zigux/install-zig.py --self-test` stays reviewable as the bounded installer-viability replay for that in-repo download step
 
 This is part of closure because a closed validation tranche that is about to stop executing is not actually closed.
 
@@ -117,6 +118,7 @@ The closed Phase 1 host-tools packet also stays reviewable through these shared 
 - `make -C zigux phase1-test`
 - `make -C zigux phase1-bench`
 - `make -C zigux phase1`
+- `python3 scripts/zigux/install-zig.py --self-test`
 - `python3 scripts/zigux/validate-phase1-closure.py`
 
 Reviewers should treat drift across those packet summaries, the committed helper and benchmark fixtures, the shared tests-root entrypoints, the bootstrap workflow replay, and the validator-first plus Linux-style replay routes as a closure regression even when the helper code itself is unchanged.
