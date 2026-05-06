@@ -34,6 +34,7 @@ It is not a closure claim, and it is not itself a shipped replay surface.
    - `make -C zigux phase12`
 3. The approved four-anchor packet stays reviewable and honest.
    - The active tranche remains the shipped `nvme_pci`, `virtio_net`, `virtio_scsi`, and libbpf survey-backed packet described by the committed Phase 12 manifests under `zigux/tests/`, the committed Phase 12 survey-backed test modules under `zigux/tests/`, and `tools/lib/bpf/zigux_segments/manifest.json`.
+   - The current driver-local doc split must stay explicit too: `nvme_pci` and `virtio_scsi` still ship dedicated slice-and-survey pairs, while `Documentation/zigux/phase12-virtio-net-survey.md` remains the truthful survey-only boundary until live `master` actually lands a separate `Documentation/zigux/phase12-virtio-net-slice.md` surface.
    - The bounded `Documentation/zigux/phase12-virtio-scsi-slice.md` rollback drill must remain described as lab-only reversible-delivery evidence rather than closure-ready runtime recovery.
 4. The public fallback split stays explicit.
    - Only `Documentation/zigux/phase12-nvme-pci-raw-github-fallback-map.md` and `Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md` are commit-pinned fallback artifacts.
@@ -45,6 +46,6 @@ It is not a closure claim, and it is not itself a shipped replay surface.
 
 ## Active release blocker
 - Phase 12 is still an active release-planning tranche, not a release-closed packet.
-- The remaining PMO job is drift control across the shipped docs-root, review checklist, `nvme_pci` slice-and-survey pair, `virtio_net` survey, `virtio_scsi` slice-and-survey pair, libbpf survey, scripts-root, tests-root, workflow, Makefile, sequencing, and fallback-note surfaces so they keep naming the same bounded release route.
+- The remaining PMO job is drift control across the shipped docs-root, review checklist, `nvme_pci` slice-and-survey pair, the `virtio_net` survey-only boundary, `virtio_scsi` slice-and-survey pair, libbpf survey, scripts-root, tests-root, workflow, Makefile, sequencing, this closure-checklist companion, and the two commit-pinned fallback-note surfaces so they keep naming the same bounded release route.
 - This checklist should be refreshed whenever the shipped packet changes, but it should stay companion-scoped until the shared replay packet itself satisfies the closure conditions.
 - Any future PMO follow-through should start by rerunning `scripts/zigux/check-build-only-phase12-surface.py` before widening into new wording or closure claims.
