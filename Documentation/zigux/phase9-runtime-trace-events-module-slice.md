@@ -45,6 +45,7 @@ The shared sample-root catalog at `samples/zigux/README.md` keeps the approved P
 - polling-backed wake or dispatch behavior remains blocked behind the same shared runtime-loader surface
 - dedicated Phase 9 sample, module, and diff tests that now assert those sample-local lifecycle proofs as well as the registration and payload-literal expectations through the shared `zigux/tests/phase9_build.zig` gate
 - dedicated Phase 9 loader, survey note, survey, and manifest coverage plus the focused `zig build phase9-runtime-loader-shared-tests --build-file zigux/tests/phase9_build.zig` shard for the shared runtime-loader facade, contract, and allocator/init-flow packet wired into the shared `zigux/tests/phase9_build.zig` gate and `make -C zigux phase9`
+- a manifest-backed ownership packet that now names the survey note, module-slice note, starter sample, loader scaffold, shared `zigux/kernel/runtime_loader.zig` facade, shared `zigux/kernel/runtime_loader_contract.zig` contract, shared `zigux/tests/runtime_loader_allocator_init_flow.zig` replay, dedicated survey gate, and shared `zigux/tests/phase9_build.zig` bundle together so this bounded packet stays reviewable without widening into runtime implementation
 
 ## Non-goals
 
