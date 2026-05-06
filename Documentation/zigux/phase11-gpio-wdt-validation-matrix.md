@@ -12,16 +12,22 @@ This document records the first bounded hardware-validation matrix for the Zigux
   - `zigux/tests/phase11_gpio_wdt_manifest.json`
   - `zigux/tests/phase11_gpio_wdt_survey.zig`
   - `zigux/tests/phase11_build.zig`
+  - `Documentation/zigux/README.md`
+  - `Documentation/zigux/review-checklist.md`
   - `Documentation/zigux/phase11-shared-replay-contract.md`
-  - `scripts/zigux/check-phase11-shared-replay-contract.py`
   - `Documentation/zigux/phase11-gpio-wdt-module-slice.md`
   - `Documentation/zigux/phase11-gpio-wdt-survey.md`
+  - `Documentation/zigux/phase11-uapi-header-parity-survey.md`
+  - `scripts/zigux/README.md`
+  - `scripts/zigux/check-phase11-shared-replay-contract.py`
+  - `scripts/zigux/check-phase11-header-boundary-packet.py`
   - `zigux/tests/README.md`
   - `zigux/Makefile`
+  - `.github/workflows/zigux-bootstrap.yml`
 
 ## Why This Exists
 
-The bounded starter now covers `hw_algo` parsing, heartbeat-margin validation, the toggle-versus-level runtime transitions, always-running startup, a tiny probe-time summary, a descriptor preflight summary, a timeout-property checkpoint, a nowayout-aware stop helper, and a registration-facing handoff summary. The live repo still needed one reviewable note that explains:
+The bounded starter now covers `hw_algo` parsing, heartbeat-margin validation, the toggle-versus-level runtime transitions, always-running startup, a tiny probe-time summary, a descriptor preflight summary, a timeout-property checkpoint, a nowayout-aware stop helper, and a registration-facing handoff summary. The live shared Phase 11 packet already couples those gpio-specific replays to `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/phase11-shared-replay-contract.md`, `Documentation/zigux/phase11-uapi-header-parity-survey.md`, `scripts/zigux/README.md`, `scripts/zigux/check-phase11-shared-replay-contract.py`, `scripts/zigux/check-phase11-header-boundary-packet.py`, `zigux/tests/README.md`, `zigux/Makefile`, and `.github/workflows/zigux-bootstrap.yml`, which keep the focused shared header-boundary packet and the wider shared build route explicit beside this watchdog-local matrix. This matrix keeps one reviewable note that explains:
 
 - which parts of the lane are already exercised by the shared Phase 11 gate
 - which GPIO-facing and watchdog-core-facing behaviors are already reviewable in bounded form versus still deferred
@@ -46,7 +52,7 @@ Without this matrix, the slice and survey named the right next step but did not 
 ## Review Rules
 
 - treat this lane as a bounded driver-starter plus validation-note lane until a registration-facing or live GPIO handoff actually lands
-- keep `Documentation/zigux/phase11-shared-replay-contract.md`, `scripts/zigux/check-phase11-shared-replay-contract.py`, `zigux/tests/README.md`, `zigux/tests/phase11_build.zig`, and `zigux/Makefile` aligned so this matrix does not drift away from the shipped shared Phase 11 replay route
+- keep `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/phase11-shared-replay-contract.md`, `Documentation/zigux/phase11-uapi-header-parity-survey.md`, `scripts/zigux/README.md`, `scripts/zigux/check-phase11-shared-replay-contract.py`, `scripts/zigux/check-phase11-header-boundary-packet.py`, `zigux/tests/README.md`, `zigux/tests/phase11_build.zig`, and `zigux/Makefile` aligned so this matrix does not drift away from the shipped shared Phase 11 replay route or the focused shared header-boundary packet
 - keep `zigux/tests/phase11_build.zig` as the shared replay path for the current starter instead of adding ad hoc Phase 11 CI steps
 - do not imply a removed `validate-phase11.py`, a missing `phase11_build_inventory.json` fixture, or a broader checker-script packet that is not on `master`
 - do not claim live GPIO descriptor lookup, watchdog-core registration, reboot integration, or hardware-backed execution until the Zig surface and tests for those behaviors exist
