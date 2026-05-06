@@ -26,7 +26,7 @@ ABI_SLICE_DOC_REL = "Documentation/zigux/phase3-abi-slice.md"
 ABI_MANIFEST_PHASE = "Phase 3"
 ABI_MANIFEST_STATUS = "active"
 ABI_MANIFEST_SLICE = "abi-substrate-skeleton"
-SELF_TEST_CASE_COUNT = 22
+SELF_TEST_CASE_COUNT = 23
 
 ABI_MANIFEST_REQUIRED_FILES = (
     "include/zigux/abi.h",
@@ -313,7 +313,7 @@ def validate(root: Path) -> list[str]:
             "`zigux/helpers/mmio.zig`",
             "`zigux/tests/phase3_low_level_wrappers.zig`",
             "non-`seq_cst` atomic ordering coverage",
-            "byte and 32-bit MMIO access",
+            "byte, 16-bit, and 32-bit MMIO access",
         ),
     )
 
@@ -521,7 +521,7 @@ def run_self_test() -> int:
                     "`zigux/helpers/mmio.zig`",
                     "`zigux/tests/phase3_low_level_wrappers.zig`",
                     "non-`seq_cst` atomic ordering coverage",
-                    "byte and 32-bit MMIO access",
+                    "byte, 16-bit, and 32-bit MMIO access",
                     "",
                 )
             ),
@@ -534,6 +534,25 @@ def run_self_test() -> int:
 
         (root / DOC_REL).write_text(bulletize_doc(plain_doc), encoding="utf-8")
         assert validate(root) == [], validate(root)
+
+        (root / ABI_SLICE_DOC_REL).write_text(
+            "\n".join(
+                (
+                    "`zigux/helpers/atomic.zig`",
+                    "`zigux/helpers/barrier.zig`",
+                    "`zigux/helpers/mmio.zig`",
+                    "`zigux/tests/phase3_low_level_wrappers.zig`",
+                    "non-`seq_cst` atomic ordering coverage",
+                    "byte and 32-bit MMIO access",
+                    "",
+                )
+            ),
+            encoding="utf-8",
+        )
+        stale_abi_slice_issues = validate(root)
+        assert stale_abi_slice_issues == [
+            "abi_slice_missing_token:byte, 16-bit, and 32-bit MMIO access"
+        ], stale_abi_slice_issues
 
     print("PHASE3_LOW_LEVEL_WRAPPER_SURVEY_SELF_TEST=pass")
     print(f"PHASE3_LOW_LEVEL_WRAPPER_SURVEY_SELF_TEST_CASE_COUNT={SELF_TEST_CASE_COUNT}")
