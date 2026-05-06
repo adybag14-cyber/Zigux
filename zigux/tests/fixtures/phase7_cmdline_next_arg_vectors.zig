@@ -15,6 +15,13 @@ pub const next_arg_cases = [_]NextArgCase{
         .expected_rest = "ro",
     },
     .{
+        .name = "quoted value keeps embedded equals inside the value",
+        .input = "mode=\"fast=boot\" next",
+        .expected_param = "mode",
+        .expected_value = "fast=boot",
+        .expected_rest = "next",
+    },
+    .{
         .name = "quoted bare token with trailing token",
         .input = "\"noparam value\" next",
         .expected_param = "noparam value",
