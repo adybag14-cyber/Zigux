@@ -75,6 +75,16 @@ fn compareU32Counted(key: *const u32, item: *const u32) i32 {
     return compareU32(key, item);
 }
 
+fn compareDescendingU32Counted(key: *const u32, item: *const u32) i32 {
+    counted_compare_calls += 1;
+    return compareDescendingU32(key, item);
+}
+
+fn compareDescendingOpaqueU32Counted(key: *const anyopaque, item: *const anyopaque) i32 {
+    counted_raw_compare_calls += 1;
+    return compareDescendingOpaqueU32(key, item);
+}
+
 test "phase 6 bsearch module imports cleanly" {
     _ = bsearch;
 }
@@ -164,6 +174,66 @@ test "phase 6 bsearch keeps representative lookup work inside a binary-search bu
     counted_compare_calls = 0;
     try std.testing.expectEqual(@as(?usize, null), bsearch.searchIndex(u32, u32, &@as(u32, 50), values[0..], compareU32Counted));
     try std.testing.expect(counted_compare_calls <= 4);
+}
+
+test "phase 6 bsearch keeps descending lookup work inside a binary-search budget" {
+    const values = [_]u32{ 45, 42, 39, 36, 33, 30, 27, 24, 21, 18, 15, 12, 9, 6, 3 };
+    const raw_values: [*]const u8 = @ptrCast(values[0..].ptr);
+
+    counted_compare_calls = 0;
+    try std.testing.expectEqual(@as(?usize, 0), bsearch.searchIndex(u32, u32, &@as(u32, 45), values[0..], compareDescendingU32Counted));
+    try std.testing.expect(counted_compare_calls <= 4);
+
+    counted_compare_calls = 0;
+    try std.testing.expectEqual(@as(?usize, 7), bsearch.searchIndex(u32, u32, &@as(u32, 24), values[0..], compareDescendingU32Counted));
+    try std.testing.expect(counted_compare_calls <= 4);
+
+    counted_compare_calls = 0;
+    try std.testing.expectEqual(@as(?usize, 14), bsearch.searchIndex(u32, u32, &@as(u32, 3), values[0..], compareDescendingU32Counted));
+    try std.testing.expect(counted_compare_calls <= 4);
+
+    counted_compare_calls = 0;
+    try std.testing.expectEqual(@as(?usize, null), bsearch.searchIndex(u32, u32, &@as(u32, 26), values[0..], compareDescendingU32Counted));
+    try std.testing.expect(counted_compare_calls <= 4);
+
+    counted_compare_calls = 0;
+    try std.testing.expectEqual(@as(?usize, null), bsearch.searchIndex(u32, u32, &@as(u32, 50), values[0..], compareDescendingU32Counted));
+    try std.testing.expect(counted_compare_calls <= 4);
+
+    counted_raw_compare_calls = 0;
+    try std.testing.expectEqual(
+        @as(?usize, 0),
+        bsearch.bsearchIndex(&@as(u32, 45), raw_values, values.len, @sizeOf(u32), compareDescendingOpaqueU32Counted),
+    );
+    try std.testing.expect(counted_raw_compare_calls <= 4);
+
+    counted_raw_compare_calls = 0;
+    try std.testing.expectEqual(
+        @as(?usize, 7),
+        bsearch.bsearchIndex(&@as(u32, 24), raw_values, values.len, @sizeOf(u32), compareDescendingOpaqueU32Counted),
+    );
+    try std.testing.expect(counted_raw_compare_calls <= 4);
+
+    counted_raw_compare_calls = 0;
+    try std.testing.expectEqual(
+        @as(?usize, 14),
+        bsearch.bsearchIndex(&@as(u32, 3), raw_values, values.len, @sizeOf(u32), compareDescendingOpaqueU32Counted),
+    );
+    try std.testing.expect(counted_raw_compare_calls <= 4);
+
+    counted_raw_compare_calls = 0;
+    try std.testing.expectEqual(
+        @as(?usize, null),
+        bsearch.bsearchIndex(&@as(u32, 26), raw_values, values.len, @sizeOf(u32), compareDescendingOpaqueU32Counted),
+    );
+    try std.testing.expect(counted_raw_compare_calls <= 4);
+
+    counted_raw_compare_calls = 0;
+    try std.testing.expectEqual(
+        @as(?usize, null),
+        bsearch.bsearchIndex(&@as(u32, 50), raw_values, values.len, @sizeOf(u32), compareDescendingOpaqueU32Counted),
+    );
+    try std.testing.expect(counted_raw_compare_calls <= 4);
 }
 
 test "phase 6 bsearch raw lookup returns null for empty input without invoking the comparator" {
