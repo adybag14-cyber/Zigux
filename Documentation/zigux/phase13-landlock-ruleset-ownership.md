@@ -36,9 +36,10 @@ Any helper-local change to `security/landlock/ruleset.zig` must keep these artif
 - `Documentation/zigux/phase13-landlock-ruleset-survey.md`
 - `zigux/tests/phase13_landlock_ruleset_manifest.json`
 - `zigux/tests/phase13_landlock_ruleset.zig`
+- `scripts/zigux/check-phase13-landlock-ruleset-packet.py`
 
-No lane should flip the live-tree blocker or broaden the helper-owned surface unless the helper behavior, the dedicated gate, and the survey wording all move together.
+No lane should flip the live-tree blocker or broaden the helper-owned surface unless the helper behavior, the dedicated gate, the packet checker, and the survey wording all move together.
 
 ## Next bounded step
 
-Leave this note parked unless future `ruleset.zig` work creates drift between helper ownership, the live-tree blocker, and the four review artifacts above.
+Leave this note parked unless future `ruleset.zig` work creates drift between helper ownership, the live-tree blocker, and the five review artifacts above.
