@@ -32,6 +32,7 @@ pub const ModuleDescriptor = struct {
     provides_queue_count_reservation_helper: bool,
     provides_prp_metadata_helper: bool,
     provides_recovery_replay_helper: bool,
+    provides_recovery_reservation_helper: bool,
     touches_live_dma: bool,
     touches_pci_probe: bool,
     touches_irq_recovery: bool,
@@ -134,8 +135,11 @@ pub const RecoveryReplayRequest = struct {
     cached_prp_metadata_generation: u32,
     had_prp_metadata_plan: bool,
     had_admin_queue_plan: bool,
-    cached_descriptor_dma_bytes: u32,
-    cached_requires_descriptor_rebuild: bool,
+    cached_descriptor_dma_bytes: u32 = 0,
+    cached_requires_descriptor_rebuild: bool = false,
+    cached_queue_reservation_generation: u32 = 0,
+    had_io_queue_reservation: bool = false,
+    cached_reserved_io_queues: usize = 0,
 };
 
 pub const RecoveryReplaySummary = struct {
@@ -146,6 +150,9 @@ pub const RecoveryReplaySummary = struct {
     cached_prp_metadata_stale: bool,
     descriptor_rebuild_required: bool,
     descriptor_rebuild_dma_bytes: u32,
+    cached_queue_reservation_stale: bool,
+    queue_reservation_replay_required: bool,
+    reserved_io_queues_to_renegotiate: usize,
     admin_queue_must_be_replanned: bool,
     io_queues_must_be_rebuilt: bool,
     io_queues_dropped_by_reset: usize,
@@ -174,6 +181,7 @@ pub const NvmePciQueueLab = struct {
             .provides_queue_count_reservation_helper = true,
             .provides_prp_metadata_helper = true,
             .provides_recovery_replay_helper = true,
+            .provides_recovery_reservation_helper = true,
             .touches_live_dma = false,
             .touches_pci_probe = false,
             .touches_irq_recovery = false,
@@ -402,6 +410,12 @@ pub const NvmePciQueueLab = struct {
             request.cached_descriptor_dma_bytes
         else
             0;
+        const cached_queue_reservation_stale = request.had_io_queue_reservation and
+            request.cached_queue_reservation_generation != self.reset_generation;
+        const reserved_io_queues_to_renegotiate = if (cached_queue_reservation_stale)
+            request.cached_reserved_io_queues
+        else
+            0;
 
         return .{
             .anchor = descriptor().anchor,
@@ -411,6 +425,9 @@ pub const NvmePciQueueLab = struct {
             .cached_prp_metadata_stale = cached_prp_metadata_stale,
             .descriptor_rebuild_required = descriptor_rebuild_required,
             .descriptor_rebuild_dma_bytes = descriptor_rebuild_dma_bytes,
+            .cached_queue_reservation_stale = cached_queue_reservation_stale,
+            .queue_reservation_replay_required = reserved_io_queues_to_renegotiate != 0,
+            .reserved_io_queues_to_renegotiate = reserved_io_queues_to_renegotiate,
             .admin_queue_must_be_replanned = request.had_admin_queue_plan and self.reset_generation != 0,
             .io_queues_must_be_rebuilt = io_queues_dropped_by_reset != 0 and self.reset_generation != 0,
             .io_queues_dropped_by_reset = io_queues_dropped_by_reset,
