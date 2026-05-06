@@ -5,6 +5,7 @@ This document records the first bounded kernel-integration validation matrix for
 ## Status
 
 - `PHASE11_HVC_CONSOLE_STATUS=hvc_notifier_handoff_landed`
+- lane: `P11-L16`
 - scope: keep the current `hvc_console` starter honest about what is already validated, name the next kernel-facing checkpoints, and avoid overclaiming tty or hypervisor integration before those behaviors exist in Zigux
 - current repo reality:
   - `drivers/tty/hvc/hvc_console.zig`
