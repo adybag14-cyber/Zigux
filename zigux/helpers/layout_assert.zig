@@ -69,6 +69,19 @@ fn assertInteropPolicyModeValues() void {
     assertInteropPolicyByteValue("unsafe_scope.raw_pointer_bridge", @intFromEnum(abi.UnsafeScope.raw_pointer_bridge), 2);
 }
 
+pub fn assertRbtreeRootViewLayout() void {
+    assertSize(abi.RbtreeRootView, @sizeOf(usize) * 2 + 8);
+    assertAlign(abi.RbtreeRootView, @alignOf(usize));
+    assertFieldType(abi.RbtreeRootView, "root_addr", usize);
+    assertFieldType(abi.RbtreeRootView, "leftmost_addr", usize);
+    assertFieldType(abi.RbtreeRootView, "flags", u32);
+    assertFieldType(abi.RbtreeRootView, "reserved", u32);
+    assertOffset(abi.RbtreeRootView, "root_addr", 0);
+    assertOffset(abi.RbtreeRootView, "leftmost_addr", @sizeOf(usize));
+    assertOffset(abi.RbtreeRootView, "flags", @sizeOf(usize) * 2);
+    assertOffset(abi.RbtreeRootView, "reserved", @sizeOf(usize) * 2 + 4);
+}
+
 test "phase3 layout assertions cover canonical bindings" {
     comptime {
         assertSize(abi.BoundaryHeader, 8);
@@ -94,5 +107,6 @@ test "phase3 layout assertions cover canonical bindings" {
         assertOffset(abi.InteropPolicy, "allocator_mode", 1);
         assertOffset(abi.InteropPolicy, "unsafe_scope", 2);
         assertInteropPolicyModeValues();
+        assertRbtreeRootViewLayout();
     }
 }
