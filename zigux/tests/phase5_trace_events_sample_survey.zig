@@ -50,7 +50,7 @@ test "phase 5 trace-events manifest records the exact bounded checks" {
     defer parsed.deinit();
 
     const manifest = parsed.value;
-    try std.testing.expectEqualStrings("P5-Y07", manifest.lane_key);
+    try std.testing.expectEqualStrings("P5-L16", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 5", manifest.phase);
     try std.testing.expect(isLowerHexCommitSha(manifest.surveyed_commit));
     try std.testing.expectEqualStrings("samples/trace_events/trace-events-sample.c", manifest.anchor);
