@@ -157,11 +157,9 @@ REQUIRED_SNIPPETS = {
         "test \"incremental checksum replacement helpers match direct recomputation\"",
     ],
     "zigux/tests/phase6_checksum_perf.zig": [
-        "try stdout_writer.interface.print(\"PHASE6_CHECKSUM_PERF_CASE_COUNT={d}\\n\", .{perf_cases.len});",
-        "        .label = \"64B\",",
-        "        .label = \"1501B\",",
-        "        .iterations = 200_000,",
-        "        .iterations = 12_000,",
+        "const fixtures = @import(\"fixtures/phase6_checksum_vectors.zig\");",
+        "try stdout_writer.interface.print(\"PHASE6_CHECKSUM_PERF_CASE_COUNT={d}\\n\", .{fixtures.perf_cases.len});",
+        "for (fixtures.perf_cases) |case| {",
         "try stdout_writer.interface.print(\"PHASE6_CHECKSUM_PERF_{s}_SLOWDOWN_PCT={d}\\n\", .{ case.label, slowdown_pct });",
         "try stdout_writer.interface.print(\"PHASE6_CHECKSUM_PERF_{s}_THRESHOLD_PCT={d}\\n\", .{ case.label, case.max_slowdown_pct });",
         "try stdout_writer.interface.print(\"PHASE6_CHECKSUM_PERF_{s}_CHECKSUM={d}\\n\", .{ case.label, helper_result.checksum_accumulator });",
@@ -184,6 +182,14 @@ REQUIRED_SNIPPETS = {
         ".name = \"two-byte no-carry seed stays one step below overflow\"",
         "pub const negate_cases = [_]NegateCase{",
         ".name = \"mixed payload preserves ones complement carry\"",
+        "pub const PerfCase = struct {",
+        "const payload_64 = makePatternedPayload(64, 0x31);",
+        "const payload_1501 = makePatternedPayload(1501, 0x6d);",
+        "pub const perf_cases = [_]PerfCase{",
+        ".label = \"64B\"",
+        ".label = \"1501B\"",
+        ".iterations = 200_000,",
+        ".iterations = 12_000,",
     ],
     "zigux/tests/phase6_hexdump.zig": [
         "test \"phase 6 hexdump serialized linux-derived vectors stay in sync\"",
@@ -251,7 +257,7 @@ EXACT_COUNT_MARKERS = {
 }
 
 EXACT_OCCURRENCE_MARKERS = {
-    "zigux/tests/phase6_checksum_perf.zig": [
+    "zigux/tests/fixtures/phase6_checksum_vectors.zig": [
         ('.max_slowdown_pct = 150,', 2),
     ],
 }
@@ -643,25 +649,6 @@ def run_self_test() -> None:
             raise AssertionError("expected checksum perf failure")
         checksum_perf.write_text(original_checksum_perf, encoding="utf-8")
 
-        checksum_perf.write_text(
-            original_checksum_perf.replace(
-                ".max_slowdown_pct = 150,",
-                ".max_slowdown_pct = 175,",
-                1,
-            ),
-            encoding="utf-8",
-        )
-        try:
-            run_checks(root)
-        except ValidationError as exc:
-            if "zigux/tests/phase6_checksum_perf.zig" not in str(exc):
-                raise AssertionError(
-                    f"unexpected checksum perf threshold failure: {exc}"
-                ) from exc
-        else:
-            raise AssertionError("expected checksum perf threshold failure")
-        checksum_perf.write_text(original_checksum_perf, encoding="utf-8")
-
         checksum_vectors = root / "zigux/tests/fixtures/phase6_checksum_vectors.zig"
         original_checksum_vectors = checksum_vectors.read_text(encoding="utf-8")
         checksum_vectors.write_text(
@@ -681,6 +668,25 @@ def run_self_test() -> None:
                 ) from exc
         else:
             raise AssertionError("expected checksum fixture failure")
+        checksum_vectors.write_text(original_checksum_vectors, encoding="utf-8")
+
+        checksum_vectors.write_text(
+            original_checksum_vectors.replace(
+                ".max_slowdown_pct = 150,",
+                ".max_slowdown_pct = 175,",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        try:
+            run_checks(root)
+        except ValidationError as exc:
+            if "zigux/tests/fixtures/phase6_checksum_vectors.zig" not in str(exc):
+                raise AssertionError(
+                    f"unexpected checksum perf threshold failure: {exc}"
+                ) from exc
+        else:
+            raise AssertionError("expected checksum perf threshold failure")
         checksum_vectors.write_text(original_checksum_vectors, encoding="utf-8")
 
         hexdump_tests = root / "zigux/tests/phase6_hexdump.zig"
