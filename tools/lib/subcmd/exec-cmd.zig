@@ -104,8 +104,9 @@ pub fn extractArgv0Path(allocator: std.mem.Allocator, argv0: ?[]const u8) !?Extr
     }
 
     if (std.mem.lastIndexOfScalar(u8, text, '/')) |slash| {
+        const argv0_path = if (slash == 0) "/" else text[0..slash];
         return .{
-            .argv0_path = try allocator.dupe(u8, text[0..slash]),
+            .argv0_path = try allocator.dupe(u8, argv0_path),
             .command_name = text[slash + 1 ..],
         };
     }
@@ -417,6 +418,11 @@ test "extractArgv0Path splits command names from directory prefixes" {
     defer extracted.deinit(std.testing.allocator);
     try std.testing.expectEqualStrings("/tmp", extracted.argv0_path.?);
     try std.testing.expectEqualStrings("perf", extracted.command_name);
+
+    var root = (try extractArgv0Path(std.testing.allocator, "/perf")) orelse unreachable;
+    defer root.deinit(std.testing.allocator);
+    try std.testing.expectEqualStrings("/", root.argv0_path.?);
+    try std.testing.expectEqualStrings("perf", root.command_name);
 
     var bare = (try extractArgv0Path(std.testing.allocator, "perf")) orelse unreachable;
     defer bare.deinit(std.testing.allocator);
