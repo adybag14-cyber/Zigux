@@ -311,7 +311,7 @@ REQUIRED_MARKERS = {
         "phase 8 file-path handle bridge helper stays wired into its focused Phase 8 build shard",
         "phase 8 file-path handle bridge helper stays wired into the shared Phase 8 build shard",
         "phase 8 file-path handle bridge helper keeps fdinfo map info parsing compact",
-        "map-reuse-compatibility remains queued",
+        "phase 8 file-path handle bridge helper keeps planning-only reopen attempts explicit",
     ],
     "zigux/tests/phase8_file_path_handle_bridge_only_build.zig": [
         "../../tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig",
