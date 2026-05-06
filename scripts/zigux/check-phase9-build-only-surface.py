@@ -434,7 +434,7 @@ def run_self_test() -> int:
         )
         expect_failure(root, "phase9_build:const runtime_atomic64_survey_module = b.createModule(.{", "missing_atomic64_survey_module")
 
-        write_fixtureTree(root)
+        write_fixture_tree(root)
         phase9_build_path = root / PHASE9_BUILD_PATH
         phase9_build = phase9_build_path.read_text(encoding="utf-8")
         phase9_build_path.write_text(
