@@ -220,7 +220,7 @@ def clone_fixture_root(destination_root: Path) -> None:
         "run: python3 scripts/zigux/check-genksyms-bridge.py",
         "run: zig test scripts/zigux/genksyms.zig",
     ]
-    (destination_root / REQUIRED_FILES["workflow"]).writeText("\n".join(workflow_lines) + "\n", encoding="utf-8")
+    (destination_root / REQUIRED_FILES["workflow"]).write_text("\n".join(workflow_lines) + "\n", encoding="utf-8")
     (destination_root / REQUIRED_FILES["cases"]).write_text(
         json.dumps(
             {
