@@ -86,6 +86,7 @@ The manifest now records:
 - the landed `runtime-bitmap-module-tests`
 - the landed `runtime-bitmap-diff-gate`
 - the landed `runtime-bitmap-loader-scaffold`
+- the landed `runtime-bitmap-top-bit-boundary`
 - the still-blocked `runtime-bitmap-live-loader-binding`
 
 This keeps the survey useful after the first starter, selftest-hook surface, module gate, diff gate, loader scaffold, shared loader-contract replay, and top-bit companion gate landed without pretending that Zigux already has a loadable runtime bitmap module or a live runtime loader binding waiting behind the blocker.
