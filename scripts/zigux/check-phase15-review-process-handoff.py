@@ -60,9 +60,11 @@ REQUIRED_REVIEW_PACKET_FIELD_MARKERS = [
     "latest blocker disposition",
     "benchmark notes",
     "replay command",
+    "rollback threshold",
     "retained discussion state",
     "reopen triggers",
     "parity scorecard link or blocker record",
+    "indefinite-C policy link or non-applicability note",
     "explicit non-goals",
     "written rationale",
 ]
@@ -72,10 +74,12 @@ REQUIRED_OWNERSHIP_EVIDENCE_FIELDS = [
     "owner",
     "rollback owner",
     "validation gate summary",
+    "indefinite-C policy link or non-applicability note",
     "evidence archive path",
     "latest blocker disposition",
     "benchmark notes",
     "replay command",
+    "rollback threshold",
     "retained discussion state",
     "reopen triggers",
     "parity scorecard link or blocker record",
@@ -84,6 +88,8 @@ REQUIRED_CURRENT_APPROVAL_POSTURE_MARKERS = [
     "current review-process evidence is limited to named `phase`",
     "`current status bucket`",
     "`validation gate summary`",
+    "`indefinite-C policy link or non-applicability note`",
+    "`rollback-threshold`",
     "landed `phase15-roadmap-minimum-field-sync`",
 ]
 
@@ -358,7 +364,7 @@ if the change touches the shared Phase 15 governance packet
   - `Documentation/zigux/phase15-parity-scorecard.md`
 
 ## Current Approval Posture
-- current review-process evidence is limited to named `phase`, `current status bucket`, `owner`, `rollback owner`, `validation gate summary`, evidence archive, blocker-disposition, benchmark-notes, replay-command, retained-discussion-state, and reopen-trigger records
+- current review-process evidence is limited to named `phase`, `current status bucket`, `owner`, `rollback owner`, `validation gate summary`, `indefinite-C policy link or non-applicability note`, evidence archive, blocker-disposition, benchmark-notes, replay-command, `rollback-threshold`, retained-discussion-state, and reopen-trigger records
 
 ## Recorded Gaps
 - landed `phase15-roadmap-minimum-field-sync`
@@ -406,7 +412,7 @@ if the change touches the shared Phase 15 governance packet
     script_readme = """# scripts/zigux
 Phase 15 flow
 - the current shared Phase 15 governance surface on `master` is `Documentation/zigux/freeze-map.md`, `Documentation/zigux/phase15-freeze-map-governance.md`, `Documentation/zigux/phase15-architecture-council-review-process.md`, `Documentation/zigux/phase15-parity-scorecard.md`, `Documentation/zigux/phase15-indefinite-c-policy.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/check-phase15-scripts-readme-alignment.py`, `scripts/zigux/check-phase15-review-process-handoff.py`, `zigux/tests/phase15_architecture_council_review_process_manifest.json`, `zigux/tests/phase15_freeze_map_governance.zig`, `zigux/tests/phase15_parity_scorecard.zig`, `zigux/tests/phase15_architecture_council_review_process.zig`, `zigux/tests/phase15_indefinite_c_policy.json`, `zigux/tests/phase15_indefinite_c_policy.zig`, and `zigux/tests/phase15_build.zig`.
-- `check-phase15-review-process-handoff.py` keeps the dedicated review-process note and its manifest-backed handoff evidence aligned around the self-reference, product-boundary, and parked-route markers that keep the Architecture Council packet reviewable without inventing a broader governance surface.
+- `check-phase15-review-process-handoff.py` keeps the dedicated review-process note and its manifest-backed handoff evidence aligned around the self-reference, product-boundary, parked-route, rollback-threshold, and indefinite-C-policy markers that keep the Architecture Council packet reviewable without inventing a broader governance surface.
 - `zig build test --build-file zigux/tests/phase15_build.zig` and `make -C zigux phase15` rerun the parked freeze-map governance, parity-scorecard, Architecture Council review-process, and dedicated indefinite-C policy packet without implying any new approval claim for a freeze-map anchor.
 """
     (root / SCRIPT_README_PATH).write_text(script_readme, encoding='utf-8')
@@ -472,6 +478,12 @@ def run_self_test() -> int:
         note_path.write_text(original_note.replace('`validation gate summary`', '`validation summary`', 1), encoding='utf-8')
         expect_failure(tmp_root, 'note_current_approval_posture:`validation gate summary`', 'missing_note_current_approval_posture_marker')
         note_path.write_text(original_note, encoding='utf-8')
+        note_path.write_text(original_note.replace('`indefinite-C policy link or non-applicability note`', '`indefinite-C policy link`', 1), encoding='utf-8')
+        expect_failure(tmp_root, 'note_current_approval_posture:`indefinite-C policy link or non-applicability note`', 'missing_note_indefinite_c_marker')
+        note_path.write_text(original_note, encoding='utf-8')
+        note_path.write_text(original_note.replace('`rollback-threshold`', '`rollback ceiling`', 1), encoding='utf-8')
+        expect_failure(tmp_root, 'note_current_approval_posture:`rollback-threshold`', 'missing_note_rollback_threshold_marker')
+        note_path.write_text(original_note, encoding='utf-8')
         manifest_path = tmp_root / MANIFEST_PATH
         manifest = json.loads(manifest_path.read_text(encoding='utf-8'))
         manifest['required_review_packet_fields'] = [field for field in manifest['required_review_packet_fields'] if field != 'rollback owner']
@@ -479,9 +491,19 @@ def run_self_test() -> int:
         expect_failure(tmp_root, 'manifest_required_review_packet_fields:rollback owner', 'missing_required_review_packet_field')
         write_fixture_tree(tmp_root)
         manifest = json.loads(manifest_path.read_text(encoding='utf-8'))
+        manifest['required_review_packet_fields'] = [field for field in manifest['required_review_packet_fields'] if field != 'rollback threshold']
+        manifest_path.write_text(json.dumps(manifest, indent=2) + '\n', encoding='utf-8')
+        expect_failure(tmp_root, 'manifest_required_review_packet_fields:rollback threshold', 'missing_required_review_packet_rollback_threshold')
+        write_fixture_tree(tmp_root)
+        manifest = json.loads(manifest_path.read_text(encoding='utf-8'))
         manifest['ownership_evidence_fields'] = [field for field in manifest['ownership_evidence_fields'] if field != 'phase']
         manifest_path.write_text(json.dumps(manifest, indent=2) + '\n', encoding='utf-8')
         expect_failure(tmp_root, 'manifest_ownership_evidence_fields:phase', 'missing_ownership_evidence_field')
+        write_fixture_tree(tmp_root)
+        manifest = json.loads(manifest_path.read_text(encoding='utf-8'))
+        manifest['ownership_evidence_fields'] = [field for field in manifest['ownership_evidence_fields'] if field != 'indefinite-C policy link or non-applicability note']
+        manifest_path.write_text(json.dumps(manifest, indent=2) + '\n', encoding='utf-8')
+        expect_failure(tmp_root, 'manifest_ownership_evidence_fields:indefinite-C policy link or non-applicability note', 'missing_ownership_indefinite_c_field')
         write_fixture_tree(tmp_root)
         manifest = json.loads(manifest_path.read_text(encoding='utf-8'))
         manifest['handoff_evidence']['current_repo_handoff'] = manifest['handoff_evidence']['current_repo_handoff'].replace('zigux/tests/phase15_build.zig', 'zigux/tests/phase15_phase_build.zig', 1)
@@ -596,7 +618,7 @@ def run_self_test() -> int:
         makefile_path.write_text(makefile.replace('cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase15-review-process-handoff.py --self-test\n', '', 1), encoding='utf-8')
         expect_failure(tmp_root, 'makefile:scripts/zigux/check-phase15-review-process-handoff.py --self-test', 'missing_makefile_self_test_marker')
         print('PHASE15_REVIEW_PROCESS_HANDOFF_SELF_TEST=pass')
-        print('PHASE15_REVIEW_PROCESS_HANDOFF_SELF_TEST_CASE_COUNT=31')
+        print('PHASE15_REVIEW_PROCESS_HANDOFF_SELF_TEST_CASE_COUNT=35')
         return 0
 
 def main() -> int:
