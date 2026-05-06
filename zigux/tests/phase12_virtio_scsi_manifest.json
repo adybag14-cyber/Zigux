@@ -64,7 +64,7 @@
       "status": "starter_landed",
       "kind": "documentation",
       "zigux_destination": "Documentation/zigux/phase12-virtio-scsi-survey.md",
-      "why_now": "The lane needs a note that compares the landed queue planner, probe snapshot helper, and recovery helper against the much larger virtio_scsi.c surface so future runs do not mistake this bounded foothold for a production SCSI HBA port."
+      "why_now": "The lane needs a note that compares the landed queue planner, probe snapshot helper, restore queue rebind summary, and rollback summary against the much larger virtio_scsi.c surface so future runs do not mistake this bounded foothold for a production SCSI HBA port."
     },
     {
       "id": "phase12-virtio-scsi-driver-starter",
@@ -93,6 +93,20 @@
       "kind": "complex_driver_starter",
       "zigux_destination": "drivers/scsi/virtio_scsi.zig",
       "why_now": "The first honest virtio_scsi probe follow-through is now landed as a bounded snapshot that records virtscsi_probe() config fields such as num_queues, seg_max, cmd_per_lun, max_target, max_lun, and max_sectors, plus the derived control or event versus request virtqueue layout before any blk-mq submission, TMF, or DMA-backed queue work is attempted."
+    },
+    {
+      "id": "phase12-virtio-scsi-restore-queue-rebind-summary-starter",
+      "status": "starter_landed",
+      "kind": "complex_driver_starter",
+      "zigux_destination": "drivers/scsi/virtio_scsi.zig",
+      "why_now": "The bounded recovery packet now records the virtscsi_restore() queue rebind order by naming the control and event queues, the default versus poll queue ranges, recreating request queues before device ready, and deferring event buffers until after device ready without claiming live DMA-backed submission."
+    },
+    {
+      "id": "phase12-virtio-scsi-recovery-rollback-summary-starter",
+      "status": "starter_landed",
+      "kind": "complex_driver_starter",
+      "zigux_destination": "drivers/scsi/virtio_scsi.zig",
+      "why_now": "The starter now also records one rollback-facing recovery summary that keeps the frozen queue layout available for restore, blocks queue planning and request access until restore, clears the live layout after restore, and requires replanning before queue reuse instead of pretending transport reset leaves request paths active."
     },
     {
       "id": "phase12-virtio-scsi-runtime-queues-and-scan",
