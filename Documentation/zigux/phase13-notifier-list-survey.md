@@ -2,7 +2,7 @@
 
 lane key: `P13-L18`
 phase: `Phase 13`
-surveyed commit: `master-read-only-helper`
+surveyed commit: `23d15e44622d2cedd7691c88f78709db6bf1eb7e`
 scope: roadmap-adjacent reviewability evidence only
 
 ## Why this packet exists
