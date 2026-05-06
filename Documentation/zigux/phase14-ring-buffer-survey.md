@@ -21,7 +21,7 @@ This document records the bounded Phase 14 survey lane around `kernel/trace/ring
 
 The Phase 14 roadmap explicitly names `kernel/trace/ring_buffer.c` as a boundary-study target first, not a rewrite target.
 It also says `kernel/trace/ring_buffer.zig` is only appropriate if years of evidence justify it.
-That caution matters because the live anchor is already 8,103 lines, its surrounding tracing surface is even larger, and the supporting docs expose consumer-facing behavior that sits on top of deep per-CPU page rotation, reserve and commit sequencing, reader handoff, overwrite and lost-event accounting, wakeups, mmap-facing state, and tracefs mapping lockouts around resize, snapshot, and splice behavior.
+That caution matters because the live anchor is already 8,103 lines, its surrounding tracing surface is even larger, and the supporting docs expose consumer-facing behavior that sits on top of deep per-CPU page rotation, reserve and commit sequencing, reader handoff, overwrite and lost-event accounting, wakeups, mmap-facing state, and tracefs mapping lockouts around resize, snapshot, splice, and mapped-reader teardown behavior.
 The honest Phase 14 move here is therefore not to start a `ring_buffer.zig` file.
 It is to make the blocked state reviewable and record the first stay-in-C checklist seams so future runs can stay disciplined about what remains study-only.
 
@@ -33,7 +33,7 @@ It is to make the blocked state reviewable and record the first stay-in-C checkl
 - `Documentation/trace/ring-buffer-map.rst` is present at 106 lines and adds mmap-facing reader, sub-buffer, and tracefs limitation behavior that would be easy to understate in a premature Zig wrapper.
 - `kernel/trace/simple_ring_buffer.c` exists as a much smaller 517-line companion, which reinforces that the full tracing ring buffer is the complex path and should not be treated like a straightforward helper port.
 - the live repo already had `zigux/tests/phase14_build.zig`, `zigux/Makefile` Phase 14 wiring, `Documentation/zigux/freeze-map.md`, and the workqueue bridge slice, so the highest-value non-overlapping ring-buffer step is a survey gate rather than another starter implementation.
-- the survey manifest now records a landed decision checklist plus the overwrite, remote-reader metadata, wakeup or mmap, tracefs mapping limitation, mapped-reader ioctl, reader-page consume, and exported-page copy-path audits so later runs can deepen the review without inventing `kernel/trace/ring_buffer.zig`.
+- the survey manifest now records a landed decision checklist plus the overwrite, remote-reader metadata, wakeup or mmap, tracefs mapping limitation, mapped-reader ioctl, reader-page consume, exported-page copy-path, and mapped-reader lifetime audits so later runs can deepen the review without inventing `kernel/trace/ring_buffer.zig`.
 
 ## Decision checklist
 
@@ -43,6 +43,7 @@ It is to make the blocked state reviewable and record the first stay-in-C checkl
 - `remote-reader-metadata`: keep `rb_read_remote_meta_page()` and `__rb_get_reader_page_from_remote()` in C because callback-driven metadata refresh and remote reader-page import rules sit on top of the already-coupled local model.
 - `wakeup-watermark-mmap-boundary`: keep `rb_wake_up_waiters()`, `rb_watermark_hit()`, `ring_buffer_wait()`, `ring_buffer_poll_wait()`, and `rb_update_meta_page()` in C because irq-work wakeups, full-waiter watermarks, and mapped-reader publication still describe one shared reader-visible contract.
 - `tracefs-mapping-limitations`: keep `ring_buffer_map()`, `ring_buffer_resize()`, `ring_buffer_swap_cpu()`, `ring_buffer_map_get_reader()`, and `tracing_buffers_splice_read()` in C because mapped-reader lockouts, snapshot restrictions, and splice fallback remain one shared tracefs-facing policy surface.
+- `mapped-reader-lifetime-teardown`: keep `ring_buffer_map_dup()`, `ring_buffer_unmap()`, `resize_disabled`, and `rb_free_meta_page()` in C because duplicated mappings, last-user teardown, and resize-lockout release still ride one shared lifetime contract.
 
 ## Overwrite and lost-event audit
 
@@ -126,6 +127,17 @@ When the head-page or commit-page choreography says a page cannot be detached cl
 - `tracing_buffers_splice_read()` reinforces the same conclusion.
 The tracefs splice path already allocates read pages and feeds them through `ring_buffer_read_page()` when mapped buffers or direct swaps cannot proceed, so exported-page copying remains reviewable stay-in-C evidence rather than momentum toward `kernel/trace/ring_buffer.zig`.
 
+## Mapped-reader lifetime audit
+
+- `ring_buffer_map_dup()` keeps duplicated user mappings inside the same mapped-reader lifetime contract instead of creating a second ownership seam.
+It reuses the existing `mapping_lock` path, increments both `user_mapped` and `mapped`, and refuses to fabricate mapping state when the buffer is not already user-mapped, so duplicated readers remain tied to the original tracefs mapping lifetime.
+- `ring_buffer_unmap()` only tears the mapping down on the last user.
+Intermediate unmaps simply decrement the shared counters through `__rb_inc_dec_mapped()`, while the final unmap drops `user_mapped` to zero under `buffer->mutex` plus `reader_lock`, frees `subbuf_ids`, releases the meta-page through `rb_free_meta_page()`, and decrements `resize_disabled`, which keeps teardown coupled to the same locks and shared state that created the mapping.
+- That means the resize lockout is part of one shared lifetime boundary, not a local flag flip.
+`resize_disabled` is acquired when the first user mapping publishes stable sub-buffer IDs and is only released after the last-user teardown has removed those IDs and the meta-page, so resize eligibility, mapping teardown, and exported reader metadata still move together in C.
+- The same shared contract also explains why this lane stays study-only.
+Because duplicated mappings, last-user teardown, and meta-page lifetime all remain serialized with the existing reader and buffer locks, Phase 14 should record the lifetime choreography rather than imply that Zigux can safely own one isolated helper in the middle of it.
+
 ## Recorded gaps
 
 The current lane state is:
@@ -143,6 +155,7 @@ The current lane state is:
 - landed `phase14-ring-buffer-mapped-reader-ioctl-followup`
 - landed `phase14-ring-buffer-reader-page-consume-followup`
 - landed `phase14-ring-buffer-read-page-copy-followup`
+- landed `phase14-ring-buffer-mapped-reader-lifetime-followup`
 - blocked `phase14-ring-buffer-zig-port-blocker`
 
 This keeps the lane honest: Zigux now has an explicit reviewable record that `kernel/trace/ring_buffer.c` belongs in the study-only set for now, and that the repo still does not ship `kernel/trace/ring_buffer.zig`.
@@ -156,7 +169,7 @@ This survey slice does not claim:
 - reader-page handoff parity for `rb_get_reader_page()`
 - remote-reader metadata parity for `rb_read_remote_meta_page()` and `__rb_get_reader_page_from_remote()`
 - consuming or non-consuming read parity for `ring_buffer_consume()` and `ring_buffer_read_start()`
-- overwrite, wakeup, resize, snapshot, or reset ownership
+- overwrite, wakeup, resize, snapshot, reset, or mapped-reader teardown ownership
 - mmap or splice ownership for the tracefs ring-buffer interfaces
 
 ## Gates
@@ -168,4 +181,4 @@ This survey slice does not claim:
 
 ## Next bounded step
 
-Leave this ring-buffer survey lane parked unless a later Phase 14 traceability or release-boundary refresh needs to restate the current reader-page, remote-reader, mapped-reader, or exported-page stay-in-C boundary after another anchor-local survey change. Any future ring-buffer work here should stay on the study-only side of reader, writer, wakeup, mapping, remote-reader, or exported-page boundary evidence rather than reopening a bridge or port claim.
+Leave this ring-buffer survey lane parked unless a later Phase 14 traceability or release-boundary refresh needs to restate the current reader-page, remote-reader, mapped-reader, exported-page, or mapped-reader lifetime stay-in-C boundary after another anchor-local survey change. Any future ring-buffer work here should stay on the study-only side of reader, writer, wakeup, mapping, remote-reader, exported-page, or mapping-lifetime boundary evidence rather than reopening a bridge or port claim.
