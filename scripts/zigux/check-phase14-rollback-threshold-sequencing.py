@@ -25,6 +25,11 @@ REQUIRED_FILE_MARKERS = {
     "Documentation/zigux/phase14-end-to-end-smoke-survey.md": [
         "`PHASE14_STAY_IN_C_BOUNDARY=explicit`",
         "- rollback owner: `keep the freeze-map anchors in C and reopen only with stronger evidence`",
+        "Attached-toolchain fallback examples:",
+        "- `make -C zigux phase14-validate ZIG=/absolute/path/to/attached-zig/zig`",
+        "- `make -C zigux phase14-smoke ZIG=/absolute/path/to/attached-zig/zig`",
+        "- `make -C zigux phase14-test ZIG=/absolute/path/to/attached-zig/zig`",
+        "- `make -C zigux phase14 ZIG=/absolute/path/to/attached-zig/zig`",
         "Fallback path:",
         "Keep `kernel/workqueue.c`, `net/core/skbuff.c`, `kernel/trace/ring_buffer.c`, and `kernel/rcu/tree.c` as the source of truth and keep the shared smoke packet limited to survey-backed reviewability evidence.",
         "Leave this shared smoke lane parked unless one of the four anchor-local manifests, the cross-anchor traceability note, the shared replay wiring, or the paired Phase 14 docs surfaces drift.",
@@ -121,6 +126,28 @@ def run_self_test() -> int:
             for error in errors
         ):
             print("self-test expected failure when shared smoke manifest inventory drifted", file=sys.stderr)
+            return 1
+
+        write_text(
+            broken_smoke_path,
+            "\n".join(REQUIRED_FILE_MARKERS["Documentation/zigux/phase14-end-to-end-smoke-survey.md"]) + "\n",
+        )
+
+        broken_smoke_path.write_text(
+            broken_smoke_path.read_text(encoding="utf-8").replace(
+                "- `make -C zigux phase14-test ZIG=/absolute/path/to/attached-zig/zig`\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        errors = check(root)
+        if not errors or not any(
+            "missing marker in Documentation/zigux/phase14-end-to-end-smoke-survey.md: - `make -C zigux phase14-test ZIG=/absolute/path/to/attached-zig/zig`"
+            in error
+            for error in errors
+        ):
+            print("self-test expected failure when the attached-toolchain fallback example drifted", file=sys.stderr)
             return 1
 
     return 0
