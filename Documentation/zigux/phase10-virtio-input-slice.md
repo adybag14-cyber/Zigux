@@ -46,11 +46,18 @@ This slice does not yet claim:
 
 ## Gates
 
-1. run the dedicated Phase 10 build
+1. run the dedicated input-packet review guard
+- `python3 scripts/zigux/check-phase10-input-packet.py --self-test`
+- `python3 scripts/zigux/check-phase10-input-packet.py`
+
+2. run the dedicated Phase 10 build
 - `zig build test --build-file zigux/tests/phase10_build.zig`
 
-2. run the convenience target
+3. run the Linux-style Phase 10 test entrypoints
+- `make -C zigux phase10-test`
 - `make -C zigux phase10`
+
+Taken together, these gates keep the bounded input helper plus the focused status-drain replay reviewable through the dedicated packet guard, the direct build replay, and the shipped Linux-style Phase 10 test entrypoints on `master`.
 
 ## Next bounded step
 
