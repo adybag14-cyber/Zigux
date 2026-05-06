@@ -12,10 +12,13 @@ import tarfile
 import tempfile
 import urllib.request
 import zipfile
+import time
+import urllib.error
 
 
 INDEX_URL = 'https://ziglang.org/download/index.json'
 VERSION_KEY_RE = re.compile(r'^\d+\.\d+\.\d+(?:-dev\.\d+(?:\+[0-9A-Za-z.-]+)?)?$')
+RETRYABLE_HTTP_STATUS_CODES = {500, 502, 503, 504}
 
 
 def normalize_os(name: str) -> str:
@@ -40,8 +43,31 @@ def normalize_arch(name: str) -> str:
     raise SystemExit(f'unsupported architecture for Zig installer: {name}')
 
 
+def is_explicit_version(channel: str) -> bool:
+    return VERSION_KEY_RE.fullmatch(channel) is not None
+
+
+def open_url(url: str, *, retries: int = 3, timeout: float = 30.0):
+    last_error: Exception | None = None
+    for attempt in range(1, retries + 1):
+        try:
+            return urllib.request.urlopen(url, timeout=timeout)
+        except urllib.error.HTTPError as exc:
+            if exc.code not in RETRYABLE_HTTP_STATUS_CODES or attempt == retries:
+                raise
+            last_error = exc
+        except urllib.error.URLError as exc:
+            if attempt == retries:
+                raise
+            last_error = exc
+        time.sleep(min(0.5 * attempt, 2.0))
+    if last_error is not None:
+        raise last_error
+    raise RuntimeError(f'failed to open URL after retries: {url}')
+
+
 def read_index() -> dict:
-    with urllib.request.urlopen(INDEX_URL) as response:
+    with open_url(INDEX_URL) as response:
         return json.load(response)
 
 
@@ -71,6 +97,19 @@ def resolve_target(index: dict, channel: str, arch_key: str, system_key: str) ->
     tarball_url = target['tarball']
     version = entry['version']
     return target_key, version, tarball_url
+
+
+def load_index(channel: str) -> dict:
+    try:
+        return read_index()
+    except urllib.error.HTTPError as exc:
+        if not is_explicit_version(channel):
+            raise
+        return {}
+    except urllib.error.URLError as exc:
+        if not is_explicit_version(channel):
+            raise
+        return {}
 
 
 def extract_archive(archive_path: Path, dest: Path) -> Path:
@@ -103,7 +142,6 @@ def run_self_test() -> int:
     assert normalize_arch('amd64') == 'x86_64'
     assert normalize_arch('aarch64') == 'aarch64'
     assert normalize_arch('i686') == 'x86'
-
     sample_index = {
         'master': {
             'version': '0.17.0-dev.87+9b177a7d2',
@@ -170,7 +208,7 @@ def run_self_test() -> int:
         raise AssertionError('expected resolve_target to reject unknown channel')
 
     try:
-        resolve_target(sample_index, 'master', 'riscv64', 'linux')
+        resolve_target(sample_index, 'master', 'loongarch64', 'linux')
     except SystemExit:
         pass
     else:
@@ -197,14 +235,13 @@ def main() -> int:
     system_key = args.system or normalize_os(platform.system())
     arch_key = args.arch or normalize_arch(platform.machine())
 
-    index = read_index()
+    index = load_index(args.channel)
     target_key, version, tarball_url = resolve_target(index, args.channel, arch_key, system_key)
 
     print(f'ZIG_INSTALL_CHANNEL={args.channel}')
     print(f'ZIG_INSTALL_VERSION={version}')
     print(f'ZIG_INSTALL_TARGET={target_key}')
     print(f'ZIG_INSTALL_URL={tarball_url}')
-
     if args.resolve_only:
         print('ZIG_INSTALL_STATUS=resolved')
         return 0
@@ -216,7 +253,7 @@ def main() -> int:
         tmpdir = Path(tmpdir_str)
         archive_name = tarball_url.rsplit('/', 1)[-1]
         archive_path = tmpdir / archive_name
-        with urllib.request.urlopen(tarball_url) as response, open(archive_path, 'wb') as out:
+        with open_url(tarball_url) as response, open(archive_path, 'wb') as out:
             shutil.copyfileobj(response, out)
 
         extracted_root = extract_archive(archive_path, tmpdir / 'extract')
