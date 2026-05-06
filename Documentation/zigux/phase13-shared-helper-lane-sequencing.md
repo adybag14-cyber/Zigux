@@ -64,6 +64,7 @@ Own the direct helper and packet surfaces under:
   * `security/landlock/syscalls.zig`
   * `zigux/tests/phase13_landlock_ruleset.zig`
   * `zigux/tests/phase13_landlock_syscalls.zig`
+  * `zigux/tests/phase13_landlock_syscalls_reviewability.zig`
   * `zigux/tests/phase13_landlock_ruleset_manifest.json`
   * `zigux/tests/phase13_landlock_syscalls_manifest.json`
   * `Documentation/zigux/phase13-landlock-ruleset-slice.md`
