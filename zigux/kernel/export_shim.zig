@@ -95,3 +95,22 @@ test "phase3 export shim keeps failure encoding explicit" {
     try std.testing.expectEqual(abi.ABI_VERSION, hdr.abi_version);
     try std.testing.expectEqual(@as(u16, 0x10), hdr.flags);
 }
+
+test "phase3 export shim reuses the shared boundary-header compatibility rules" {
+    const canonical = boundaryHeader(0x22);
+    const future_compatible = compatibleHeader(header_size + 16, 0x22);
+    const mismatched_version = versionedHeader(header_size, abi_version + 1, 0x22);
+
+    try std.testing.expect(isCanonicalHeader(canonical));
+    try std.testing.expect(isCompatibleHeader(canonical));
+    try std.testing.expectEqual(HeaderCompatibility.canonical, headerCompatibility(canonical).?);
+
+    try std.testing.expect(!isCanonicalHeader(future_compatible));
+    try std.testing.expect(isCompatibleHeader(future_compatible));
+    try std.testing.expectEqual(HeaderCompatibility.future_compatible, headerCompatibility(future_compatible).?);
+    try std.testing.expectEqual(boundaryHeader(0x22), canonicalizeHeader(future_compatible).?);
+
+    try std.testing.expect(headerCompatibility(mismatched_version) == null);
+    try std.testing.expect(!isCompatibleHeader(mismatched_version));
+    try std.testing.expect(canonicalizeHeader(mismatched_version) == null);
+}
