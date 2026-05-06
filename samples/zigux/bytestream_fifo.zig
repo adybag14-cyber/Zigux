@@ -491,7 +491,10 @@ test "bytestream fifo sample replays the Linux anchor result sequence" {
     const review_contract = BytestreamFifoSample.reviewContract();
     try std.testing.expectEqualStrings("samples/kfifo/bytestream-example.c", descriptor.anchor);
     try std.testing.expectEqual(StorageBacking.embedded_fixed_buffer, descriptor.storage_backing);
-    try std.testing.expectEqual(@as(usize, 7), review_contract.focus.len);
+    try std.testing.expectEqual(@as(usize, sample_review_focus.len), review_contract.focus.len);
+    for (sample_review_focus, review_contract.focus) |expected, actual| {
+        try std.testing.expectEqual(expected, actual);
+    }
     try std.testing.expectEqual(@as(usize, fifo_capacity), sample.available());
     try std.testing.expect(!sample.usesWrappedStorageWindow());
 
@@ -502,6 +505,7 @@ test "bytestream fifo sample replays the Linux anchor result sequence" {
     try std.testing.expect(!sample.usesWrappedStorageWindow());
     const replay = try sample.runAnchorReplay();
 
+    try std.testing.expectEqualStrings(descriptor.anchor, replay.anchor);
     try std.testing.expectEqual(SampleStage.initialized, replay.stage_before_replay);
     try std.testing.expectEqual(SampleStage.replay_complete, replay.stage_after_replay);
     try std.testing.expectEqual(@as(usize, 5), replay.initial_string_copy_count);
@@ -520,7 +524,10 @@ test "bytestream fifo sample replays the Linux anchor result sequence" {
     try std.testing.expectEqualSlices(u8, expected_anchor_result[0..], replay.snapshot_sequence[0..]);
     try std.testing.expectEqual(@as(usize, fifo_capacity), replay.final_len);
     try std.testing.expectEqual(StorageBacking.embedded_fixed_buffer, replay.storage_backing);
-    try std.testing.expectEqual(@as(usize, 7), replay.checked_focus.len);
+    try std.testing.expectEqual(@as(usize, sample_review_focus.len), replay.checked_focus.len);
+    for (sample_review_focus, replay.checked_focus) |expected, actual| {
+        try std.testing.expectEqual(expected, actual);
+    }
     try std.testing.expectEqualSlices(u8, expected_anchor_result[0..], replay.final_sequence[0..]);
     try std.testing.expectEqual(SampleStage.replay_complete, sample.stage());
     try std.testing.expectEqual(@as(usize, fifo_capacity), sample.available());
@@ -592,10 +599,10 @@ test "bytestream fifo sample keeps preview truncation explicit" {
     try std.testing.expect(preview.preview_truncated);
     try std.testing.expectEqualSlices(u8, &.{ 2, 3, 4, 5, 6, 7, 8, 9 }, preview.preview_prefix[0..]);
     try std.testing.expectEqual(@as(usize, 10), preview.queue_len_after_preview);
-    try std.testing.expectEqual(@as(usize, 3), preview.checked_focus.len);
-    try std.testing.expectEqual(SampleFocus.wraparound_requeue, preview.checked_focus[0]);
-    try std.testing.expectEqual(SampleFocus.non_destructive_snapshot, preview.checked_focus[1]);
-    try std.testing.expectEqual(SampleFocus.preview_truncation, preview.checked_focus[2]);
+    try std.testing.expectEqual(@as(usize, preview_boundary_focus.len), preview.checked_focus.len);
+    for (preview_boundary_focus, preview.checked_focus) |expected, actual| {
+        try std.testing.expectEqual(expected, actual);
+    }
     try std.testing.expectEqual(SampleStage.initialized, sample.stage());
     try std.testing.expectEqual(@as(usize, fifo_capacity - 10), sample.available());
     try std.testing.expect(!sample.usesWrappedStorageWindow());
