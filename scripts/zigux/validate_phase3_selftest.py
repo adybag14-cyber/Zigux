@@ -11,7 +11,7 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[2]
-PHASE3_VALIDATOR_SELF_TEST_CASE_COUNT = 18
+PHASE3_VALIDATOR_SELF_TEST_CASE_COUNT = 19
 
 
 @dataclass(frozen=True)
@@ -47,6 +47,7 @@ SELF_TEST_TARGETS = (
     SelfTestTarget(
         "scripts/zigux/phase3_catalog.py",
         "PHASE3_CATALOG_SELF_TEST=pass",
+        ("PHASE3_CATALOG_SELF_TEST_CASE_COUNT=6",),
     ),
     SelfTestTarget("scripts/zigux/phase3_check_lib.py", "PHASE3_CHECK_LIB_SELF_TEST=pass"),
     SelfTestTarget("scripts/zigux/run-phase3-checks.py", "PHASE3_RUNNER_SELF_TEST=pass"),
@@ -357,6 +358,44 @@ def run_self_test() -> int:
             in issues
         )
 
+        catalog_marker_root = Path(tmp_dir) / "catalog-marker"
+        for target in SELF_TEST_TARGETS:
+            marker = (
+                "WRONG_MARKER=pass"
+                if target.relpath.endswith("phase3_catalog.py")
+                else (target.marker or "PASS")
+            )
+            write_script(
+                catalog_marker_root / target.relpath,
+                marker,
+                extra_markers=target.extra_markers,
+            )
+        issues = run_targets(catalog_marker_root)
+        assert (
+            "missing_pass_marker:scripts/zigux/phase3_catalog.py:"
+            "PHASE3_CATALOG_SELF_TEST=pass"
+            in issues
+        )
+
+        catalog_count_root = Path(tmp_dir) / "catalog-count"
+        for target in SELF_TEST_TARGETS:
+            extra_markers = (
+                ()
+                if target.relpath.endswith("phase3_catalog.py")
+                else target.extra_markers
+            )
+            write_script(
+                catalog_count_root / target.relpath,
+                target.marker or "PASS",
+                extra_markers=extra_markers,
+            )
+        issues = run_targets(catalog_count_root)
+        assert (
+            "missing_aux_marker:scripts/zigux/phase3_catalog.py:"
+            "PHASE3_CATALOG_SELF_TEST_CASE_COUNT=6"
+            in issues
+        )
+
         policy_unsafe_marker_root = Path(tmp_dir) / "policy-unsafe-marker"
         for target in SELF_TEST_TARGETS:
             marker = (
@@ -392,25 +431,6 @@ def run_self_test() -> int:
         assert (
             "missing_pass_marker:scripts/zigux/validate-phase3-low-level-wrapper-survey.py:"
             "PHASE3_LOW_LEVEL_WRAPPER_SURVEY_SELF_TEST=pass"
-            in issues
-        )
-
-        catalog_marker_root = Path(tmp_dir) / "catalog-marker"
-        for target in SELF_TEST_TARGETS:
-            marker = (
-                "WRONG_MARKER=pass"
-                if target.relpath.endswith("phase3_catalog.py")
-                else (target.marker or "PASS")
-            )
-            write_script(
-                catalog_marker_root / target.relpath,
-                marker,
-                extra_markers=target.extra_markers,
-            )
-        issues = run_targets(catalog_marker_root)
-        assert (
-            "missing_pass_marker:scripts/zigux/phase3_catalog.py:"
-            "PHASE3_CATALOG_SELF_TEST=pass"
             in issues
         )
 
