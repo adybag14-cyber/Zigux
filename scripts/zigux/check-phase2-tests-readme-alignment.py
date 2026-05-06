@@ -74,10 +74,12 @@ TOOLCHAIN_NOTES_MARKERS = [
     "python3 scripts/zigux/check-phase2-cross.py",
     "python3 scripts/zigux/check-phase2-cross-selftest-alignment.py --self-test",
     "python3 scripts/zigux/check-phase2-cross-selftest-alignment.py",
+    "python3 scripts/zigux/check-genksyms-crc-diff.py",
     "- shared kconfig selftest-alignment self-test: `python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py --self-test`",
     "- shared kconfig selftest-alignment guard: `python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py`",
     "- shared kconfig bridge self-test: `python3 scripts/zigux/check-kconfig-bridge.py --self-test`",
     "- shared kconfig bridge parity gate: `python3 scripts/zigux/check-kconfig-bridge.py`",
+    "zig test scripts/zigux/genksyms_crc.zig",
     "zig test scripts/zigux/kconfig/conf_bridge.zig",
     "zig test scripts/zigux/kconfig/confdata_bridge.zig",
     "python3 scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test",
@@ -140,10 +142,12 @@ EXACT_COUNT_CHECKS = {
     },
     "Documentation/zigux/phase2-toolchain-bootstrap-notes.md": {
         "python3 scripts/zigux/check-phase2-tests-readme-alignment.py": 1,
+        "python3 scripts/zigux/check-genksyms-crc-diff.py": 1,
         "- shared kconfig selftest-alignment self-test: `python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py --self-test`": 1,
         "- shared kconfig selftest-alignment guard: `python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py`": 1,
         "- shared kconfig bridge self-test: `python3 scripts/zigux/check-kconfig-bridge.py --self-test`": 1,
         "- shared kconfig bridge parity gate: `python3 scripts/zigux/check-kconfig-bridge.py`": 1,
+        "zig test scripts/zigux/genksyms_crc.zig": 1,
         "zig test scripts/zigux/kconfig/conf_bridge.zig": 1,
         "zig test scripts/zigux/kconfig/confdata_bridge.zig": 1,
         "python3 scripts/zigux/validate-phase2.py": 1,
@@ -422,6 +426,31 @@ def run_self_test() -> int:
             "\n".join(
                 marker
                 for marker in TOOLCHAIN_NOTES_MARKERS
+                if marker != "python3 scripts/zigux/check-genksyms-crc-diff.py"
+            )
+            + "\n",
+        )
+        issues = validate_root(root)
+        assert "toolchain_notes:python3 scripts/zigux/check-genksyms-crc-diff.py" in issues
+
+        build_self_test_root(root)
+        write_text(
+            root / "Documentation/zigux/phase2-toolchain-bootstrap-notes.md",
+            "\n".join(TOOLCHAIN_NOTES_MARKERS)
+            + "\npython3 scripts/zigux/check-genksyms-crc-diff.py\n",
+        )
+        issues = validate_root(root)
+        assert (
+            "toolchain_notes:exact_count:python3 scripts/zigux/check-genksyms-crc-diff.py:count=2:expected=1"
+            in issues
+        )
+
+        build_self_test_root(root)
+        write_text(
+            root / "Documentation/zigux/phase2-toolchain-bootstrap-notes.md",
+            "\n".join(
+                marker
+                for marker in TOOLCHAIN_NOTES_MARKERS
                 if marker != "- shared kconfig bridge self-test: `python3 scripts/zigux/check-kconfig-bridge.py --self-test`"
             )
             + "\n",
@@ -469,6 +498,31 @@ def run_self_test() -> int:
         issues = validate_root(root)
         assert (
             "toolchain_notes:exact_count:- shared kconfig bridge parity gate: `python3 scripts/zigux/check-kconfig-bridge.py`:count=2:expected=1"
+            in issues
+        )
+
+        build_self_test_root(root)
+        write_text(
+            root / "Documentation/zigux/phase2-toolchain-bootstrap-notes.md",
+            "\n".join(
+                marker
+                for marker in TOOLCHAIN_NOTES_MARKERS
+                if marker != "zig test scripts/zigux/genksyms_crc.zig"
+            )
+            + "\n",
+        )
+        issues = validate_root(root)
+        assert "toolchain_notes:zig test scripts/zigux/genksyms_crc.zig" in issues
+
+        build_self_test_root(root)
+        write_text(
+            root / "Documentation/zigux/phase2-toolchain-bootstrap-notes.md",
+            "\n".join(TOOLCHAIN_NOTES_MARKERS)
+            + "\nzig test scripts/zigux/genksyms_crc.zig\n",
+        )
+        issues = validate_root(root)
+        assert (
+            "toolchain_notes:exact_count:zig test scripts/zigux/genksyms_crc.zig:count=2:expected=1"
             in issues
         )
 
@@ -678,7 +732,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE2_TESTS_README_ALIGNMENT_SELF_TEST=pass")
-    print("PHASE2_TESTS_README_ALIGNMENT_SELF_TEST_CASE_COUNT=57")
+    print("PHASE2_TESTS_README_ALIGNMENT_SELF_TEST_CASE_COUNT=61")
     return 0
 
 
