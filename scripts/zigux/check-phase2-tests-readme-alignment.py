@@ -105,9 +105,11 @@ TESTS_README_MARKERS = [
     "scripts/zigux/check-phase2-cross-selftest-alignment.py",
     "scripts/zigux/check-phase2-kconfig-selftest-alignment.py",
     "scripts/zigux/check-phase2-toolchain-pin-scope.py",
+    "scripts/zigux/check-genksyms-crc-diff.py",
     "zigux/tests/fixtures/phase2_cross_targets.json",
     "python3 scripts/zigux/install-zig.py --self-test",
     "python3 scripts/zigux/check-zig-toolchain.py --self-test",
+    "zig test scripts/zigux/genksyms_crc.zig",
     "make -C zigux phase2-validate",
     "make -C zigux phase2",
     "x86_64-linux",
@@ -144,6 +146,8 @@ EXACT_COUNT_CHECKS = {
         "make -C zigux phase2": 1,
         "scripts/zigux/check-phase2-tests-readme-alignment.py": 1,
         "scripts/zigux/check-phase2-kconfig-selftest-alignment.py": 1,
+        "scripts/zigux/check-genksyms-crc-diff.py": 1,
+        "zig test scripts/zigux/genksyms_crc.zig": 1,
     },
     "zigux/Makefile": {
         "check-phase2-tests-readme-alignment.py": 1,
@@ -430,8 +434,58 @@ def run_self_test() -> int:
             in issues
         )
 
+        build_self_test_root(root)
+        write_text(
+            root / "zigux/tests/README.md",
+            "\n".join(
+                marker
+                for marker in TESTS_README_MARKERS
+                if marker != "scripts/zigux/check-genksyms-crc-diff.py"
+            )
+            + "\n",
+        )
+        issues = validate_root(root)
+        assert "tests_readme:scripts/zigux/check-genksyms-crc-diff.py" in issues
+
+        build_self_test_root(root)
+        write_text(
+            root / "zigux/tests/README.md",
+            "\n".join(TESTS_README_MARKERS)
+            + "\nscripts/zigux/check-genksyms-crc-diff.py\n",
+        )
+        issues = validate_root(root)
+        assert (
+            "tests_readme:exact_count:scripts/zigux/check-genksyms-crc-diff.py:count=2:expected=1"
+            in issues
+        )
+
+        build_self_test_root(root)
+        write_text(
+            root / "zigux/tests/README.md",
+            "\n".join(
+                marker
+                for marker in TESTS_README_MARKERS
+                if marker != "zig test scripts/zigux/genksyms_crc.zig"
+            )
+            + "\n",
+        )
+        issues = validate_root(root)
+        assert "tests_readme:zig test scripts/zigux/genksyms_crc.zig" in issues
+
+        build_self_test_root(root)
+        write_text(
+            root / "zigux/tests/README.md",
+            "\n".join(TESTS_README_MARKERS)
+            + "\nzig test scripts/zigux/genksyms_crc.zig\n",
+        )
+        issues = validate_root(root)
+        assert (
+            "tests_readme:exact_count:zig test scripts/zigux/genksyms_crc.zig:count=2:expected=1"
+            in issues
+        )
+
     print("PHASE2_TESTS_README_ALIGNMENT_SELF_TEST=pass")
-    print("PHASE2_TESTS_README_ALIGNMENT_SELF_TEST_CASE_COUNT=37")
+    print("PHASE2_TESTS_README_ALIGNMENT_SELF_TEST_CASE_COUNT=41")
     return 0
 
 
