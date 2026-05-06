@@ -36,6 +36,8 @@ test "phase 7 string helpers survey keeps the roadmap-backed helper packet revie
     try expectContains(helper_tests, "phase 7 stringUnescape covers deterministic Linux escape fixtures");
     try expectContains(helper_tests, "phase 7 stringEscapeMem covers the bounded escape subset");
     try expectContains(helper_tests, "phase 7 kasprintfStrarray returns sequential owned strings with a null-pointer terminator");
+    try expectContains(helper_tests, "phase 7 kasprintfStrarray deinit resets exported views to the zero-count sentinel state");
+    try expectContains(helper_tests, "phase 7 kfreeStrarray keeps first-NUL prefixes, zero-count reuse, and repeated teardown safe");
     try expectContains(helper_tests, "phase 7 skipSpaces and strim honor C-string whitespace bounds");
 
     const helper_impl = try readRepoFile(allocator, "lib/string_helpers.zig");
