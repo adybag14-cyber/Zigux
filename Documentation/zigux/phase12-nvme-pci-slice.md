@@ -17,4 +17,6 @@ Ownership boundary:
 
 This slice does not claim PCI probe or remove wiring, interrupt registration, controller enable or shutdown sequences, live MMIO, PRP list construction, blk-mq integration, tagset setup, or hardware-backed recovery.
 
+The shared Phase 12 packet now keeps the direct smoke preflight explicit here too: `zig build smoke --build-file zigux/tests/phase12_build.zig --summary all` and `make -C zigux phase12-smoke` rerun this bounded `nvme pci` starter before the broader survey-backed replay, so the slice should stay aligned with that smoke-plus-build order instead of leaving it implicit in `zigux/tests/phase12_build.zig`, `zigux/Makefile`, or `Documentation/zigux/phase12-nvme-pci-raw-github-fallback-map.md` alone.
+
 The next honest bounded step inside the same Phase 12 lane is to keep the packet parked until an explicitly approved transport-facing follow-up is ready beyond the now-landed queue-planning, PRP buffer-shape, and PRP metadata helpers, without widening into live DMA mapping, blk-mq, or PCI lifecycle work.
