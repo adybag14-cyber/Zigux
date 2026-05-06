@@ -2,18 +2,22 @@ const std = @import("std");
 const Io = std.Io;
 
 pub const Mode = enum {
-    olddefconfig,
+    oldaskconfig,
+    syncconfig,
     oldconfig,
-    yes2modconfig,
-    mod2yesconfig,
-    defconfig,
-    savedefconfig,
     allnoconfig,
     allyesconfig,
     allmodconfig,
     alldefconfig,
     randconfig,
-    syncconfig,
+    defconfig,
+    savedefconfig,
+    listnewconfig,
+    helpnewconfig,
+    olddefconfig,
+    yes2modconfig,
+    mod2yesconfig,
+    mod2noconfig,
 
     pub fn parse(input_text: []const u8) ?Mode {
         inline for (std.meta.fields(Mode)) |field| {
@@ -26,35 +30,43 @@ pub const Mode = enum {
 
     pub fn flag(self: Mode) []const u8 {
         return switch (self) {
-            .olddefconfig => "--olddefconfig",
+            .oldaskconfig => "--oldaskconfig",
+            .syncconfig => "--syncconfig",
             .oldconfig => "--oldconfig",
-            .yes2modconfig => "--yes2modconfig",
-            .mod2yesconfig => "--mod2yesconfig",
-            .defconfig => "--defconfig",
-            .savedefconfig => "--savedefconfig",
             .allnoconfig => "--allnoconfig",
             .allyesconfig => "--allyesconfig",
             .allmodconfig => "--allmodconfig",
             .alldefconfig => "--alldefconfig",
             .randconfig => "--randconfig",
-            .syncconfig => "--syncconfig",
+            .defconfig => "--defconfig",
+            .savedefconfig => "--savedefconfig",
+            .listnewconfig => "--listnewconfig",
+            .helpnewconfig => "--helpnewconfig",
+            .olddefconfig => "--olddefconfig",
+            .yes2modconfig => "--yes2modconfig",
+            .mod2yesconfig => "--mod2yesconfig",
+            .mod2noconfig => "--mod2noconfig",
         };
     }
 
     pub fn text(self: Mode) []const u8 {
         return switch (self) {
-            .olddefconfig => "olddefconfig",
+            .oldaskconfig => "oldaskconfig",
+            .syncconfig => "syncconfig",
             .oldconfig => "oldconfig",
-            .yes2modconfig => "yes2modconfig",
-            .mod2yesconfig => "mod2yesconfig",
-            .defconfig => "defconfig",
-            .savedefconfig => "savedefconfig",
             .allnoconfig => "allnoconfig",
             .allyesconfig => "allyesconfig",
             .allmodconfig => "allmodconfig",
             .alldefconfig => "alldefconfig",
             .randconfig => "randconfig",
-            .syncconfig => "syncconfig",
+            .defconfig => "defconfig",
+            .savedefconfig => "savedefconfig",
+            .listnewconfig => "listnewconfig",
+            .helpnewconfig => "helpnewconfig",
+            .olddefconfig => "olddefconfig",
+            .yes2modconfig => "yes2modconfig",
+            .mod2yesconfig => "mod2yesconfig",
+            .mod2noconfig => "mod2noconfig",
         };
     }
 };
@@ -176,6 +188,37 @@ pub fn main(init: std.process.Init) !void {
         .mode_arg = mode_arg,
     });
     try stdout_writer.interface.flush();
+}
+
+test "conf bridge mode surface stays aligned with conf.c long options" {
+    const expected = [_]struct { mode: Mode, text: []const u8, flag: []const u8 }{
+        .{ .mode = .oldaskconfig, .text = "oldaskconfig", .flag = "--oldaskconfig" },
+        .{ .mode = .syncconfig, .text = "syncconfig", .flag = "--syncconfig" },
+        .{ .mode = .oldconfig, .text = "oldconfig", .flag = "--oldconfig" },
+        .{ .mode = .allnoconfig, .text = "allnoconfig", .flag = "--allnoconfig" },
+        .{ .mode = .allyesconfig, .text = "allyesconfig", .flag = "--allyesconfig" },
+        .{ .mode = .allmodconfig, .text = "allmodconfig", .flag = "--allmodconfig" },
+        .{ .mode = .alldefconfig, .text = "alldefconfig", .flag = "--alldefconfig" },
+        .{ .mode = .randconfig, .text = "randconfig", .flag = "--randconfig" },
+        .{ .mode = .defconfig, .text = "defconfig", .flag = "--defconfig" },
+        .{ .mode = .savedefconfig, .text = "savedefconfig", .flag = "--savedefconfig" },
+        .{ .mode = .listnewconfig, .text = "listnewconfig", .flag = "--listnewconfig" },
+        .{ .mode = .helpnewconfig, .text = "helpnewconfig", .flag = "--helpnewconfig" },
+        .{ .mode = .olddefconfig, .text = "olddefconfig", .flag = "--olddefconfig" },
+        .{ .mode = .yes2modconfig, .text = "yes2modconfig", .flag = "--yes2modconfig" },
+        .{ .mode = .mod2yesconfig, .text = "mod2yesconfig", .flag = "--mod2yesconfig" },
+        .{ .mode = .mod2noconfig, .text = "mod2noconfig", .flag = "--mod2noconfig" },
+    };
+
+    const fields = std.meta.fields(Mode);
+    try std.testing.expectEqual(expected.len, fields.len);
+
+    inline for (expected, 0..) |entry, index| {
+        try std.testing.expectEqualStrings(entry.text, fields[index].name);
+        try std.testing.expectEqual(entry.mode, Mode.parse(entry.text).?);
+        try std.testing.expectEqualStrings(entry.text, entry.mode.text());
+        try std.testing.expectEqualStrings(entry.flag, entry.mode.flag());
+    }
 }
 
 test "conf bridge emits olddefconfig argv and env" {
@@ -362,44 +405,6 @@ test "conf bridge emits yes2modconfig argv and env" {
 
     try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"mode\":\"yes2modconfig\"") != null);
     try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"--yes2modconfig\"") != null);
-    try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"KCONFIG_CONFIG\":\"rewrite/.config\"") != null);
-    try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"ARCH\":\"x86\"") != null);
-}
-
-test "conf bridge emits mod2yesconfig argv and env" {
-    const Capture = struct {
-        list: std.ArrayList(u8),
-        allocator: std.mem.Allocator,
-
-        fn init(allocator: std.mem.Allocator) !@This() {
-            return .{ .list = try std.ArrayList(u8).initCapacity(allocator, 144), .allocator = allocator };
-        }
-
-        fn deinit(self: *@This()) void {
-            self.list.deinit(self.allocator);
-        }
-
-        fn writeAll(self: *@This(), bytes: []const u8) !void {
-            try self.list.appendSlice(self.allocator, bytes);
-        }
-
-        fn writeByte(self: *@This(), byte: u8) !void {
-            try self.list.append(self.allocator, byte);
-        }
-    };
-
-    var capture = try Capture.init(std.testing.allocator);
-    defer capture.deinit();
-
-    try runConfBridge(&capture, .{
-        .mode = .mod2yesconfig,
-        .kconfig = "Kconfig",
-        .config = "rewrite/.config",
-        .arch = "x86",
-    });
-
-    try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"mode\":\"mod2yesconfig\"") != null);
-    try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"--mod2yesconfig\"") != null);
     try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"KCONFIG_CONFIG\":\"rewrite/.config\"") != null);
     try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"ARCH\":\"x86\"") != null);
 }
