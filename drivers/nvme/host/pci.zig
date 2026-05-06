@@ -134,8 +134,8 @@ pub const RecoveryReplayRequest = struct {
     cached_prp_metadata_generation: u32,
     had_prp_metadata_plan: bool,
     had_admin_queue_plan: bool,
-    cached_descriptor_dma_bytes: u32,
-    cached_requires_descriptor_rebuild: bool,
+    cached_descriptor_dma_bytes: u32 = 0,
+    cached_requires_descriptor_rebuild: bool = false,
 };
 
 pub const RecoveryReplaySummary = struct {
