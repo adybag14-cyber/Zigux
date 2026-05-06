@@ -79,6 +79,17 @@ pub const DeferredExecCall = struct {
     }
 };
 
+pub const DeferredExecPlan = struct {
+    path: []u8,
+    call: DeferredExecCall,
+
+    pub fn deinit(self: *DeferredExecPlan, allocator: std.mem.Allocator) void {
+        allocator.free(self.path);
+        self.call.deinit(allocator);
+        self.* = undefined;
+    }
+};
+
 pub const max_execl_slots: usize = 32;
 pub const CollectExeclArgsError = error{
     MissingNullTerminator,
@@ -383,6 +394,63 @@ pub fn buildDeferredExeclCall(
     return buildDeferredCallFromNullTerminatedArgs(allocator, config, args);
 }
 
+fn planDeferredCall(
+    allocator: std.mem.Allocator,
+    env: *EnvMap,
+    state: ExecCmdState,
+    config: Config,
+    cwd: []const u8,
+    call: DeferredExecCall,
+) !DeferredExecPlan {
+    var owned_call = call;
+    errdefer owned_call.deinit(allocator);
+
+    const path = try setupPath(allocator, env, state, config, cwd);
+    errdefer allocator.free(path);
+
+    return .{
+        .path = path,
+        .call = owned_call,
+    };
+}
+
+pub fn planDeferredExecvCall(
+    allocator: std.mem.Allocator,
+    env: *EnvMap,
+    state: ExecCmdState,
+    config: Config,
+    cwd: []const u8,
+    argv: []const []const u8,
+) !DeferredExecPlan {
+    return planDeferredCall(
+        allocator,
+        env,
+        state,
+        config,
+        cwd,
+        try buildDeferredExecvCall(allocator, config, argv),
+    );
+}
+
+pub fn planDeferredExeclCall(
+    allocator: std.mem.Allocator,
+    env: *EnvMap,
+    state: ExecCmdState,
+    config: Config,
+    cwd: []const u8,
+    cmd: []const u8,
+    argv_tail: []const ?[]const u8,
+) (CollectExeclArgsError || std.mem.Allocator.Error)!DeferredExecPlan {
+    return planDeferredCall(
+        allocator,
+        env,
+        state,
+        config,
+        cwd,
+        try buildDeferredExeclCall(allocator, config, cmd, argv_tail),
+    );
+}
+
 test "systemPath and getArgvExecPath preserve C-style precedence" {
     const config = Config{
         .exec_name = "perf",
@@ -577,6 +645,88 @@ test "buildDeferredExeclCall keeps the legacy collector guards before launch exi
             &[_]?[]const u8{ "-a", "--stdio" },
         ),
     );
+}
+
+test "planDeferredExecvCall bundles PATH setup with deferred argv handoff" {
+    const config = Config{
+        .exec_name = "perf",
+        .prefix = "/usr/libexec/perf-core",
+        .exec_path = "libexec/perf-core",
+        .exec_path_env = "PERF_EXEC_PATH",
+    };
+
+    var env = EnvMap.init(std.testing.allocator);
+    defer env.deinit();
+
+    var state = ExecCmdState{};
+    defer state.deinit(std.testing.allocator);
+
+    try execCmdInit(&env, config);
+    try setArgvExecPath(std.testing.allocator, &env, &state, config, "tools/bin");
+    try setArgv0Path(std.testing.allocator, &state, "scripts");
+    try env.set("PATH", "/usr/bin:/bin");
+
+    var planned = try planDeferredExecvCall(
+        std.testing.allocator,
+        &env,
+        state,
+        config,
+        "/repo",
+        &[_][]const u8{ "record", "-a" },
+    );
+    defer planned.deinit(std.testing.allocator);
+
+    try std.testing.expectEqualStrings(
+        "/repo/tools/bin:/repo/scripts:/usr/bin:/bin",
+        planned.path,
+    );
+    try std.testing.expectEqualStrings(planned.path, env.get("PATH").?);
+    try std.testing.expectEqualStrings("perf", planned.call.argv[0].?);
+    try std.testing.expectEqualStrings("record", planned.call.argv[1].?);
+    try std.testing.expectEqualStrings("-a", planned.call.argv[2].?);
+    try std.testing.expectEqual(@as(?[]const u8, null), planned.call.argv[3]);
+}
+
+test "planDeferredExeclCall bundles PATH setup with deferred argv collection" {
+    const config = Config{
+        .exec_name = "perf",
+        .prefix = "/usr/libexec/perf-core",
+        .exec_path = "libexec/perf-core",
+        .exec_path_env = "PERF_EXEC_PATH",
+    };
+
+    var env = EnvMap.init(std.testing.allocator);
+    defer env.deinit();
+
+    var state = ExecCmdState{};
+    defer state.deinit(std.testing.allocator);
+
+    try execCmdInit(&env, config);
+    try setArgvExecPath(std.testing.allocator, &env, &state, config, "tools/bin");
+    try setArgv0Path(std.testing.allocator, &state, "scripts");
+    try env.set("PATH", "/usr/bin:/bin");
+
+    var planned = try planDeferredExeclCall(
+        std.testing.allocator,
+        &env,
+        state,
+        config,
+        "/repo",
+        "record",
+        &[_]?[]const u8{ "-a", "--stdio", null, "--ignored" },
+    );
+    defer planned.deinit(std.testing.allocator);
+
+    try std.testing.expectEqualStrings(
+        "/repo/tools/bin:/repo/scripts:/usr/bin:/bin",
+        planned.path,
+    );
+    try std.testing.expectEqualStrings(planned.path, env.get("PATH").?);
+    try std.testing.expectEqualStrings("perf", planned.call.argv[0].?);
+    try std.testing.expectEqualStrings("record", planned.call.argv[1].?);
+    try std.testing.expectEqualStrings("-a", planned.call.argv[2].?);
+    try std.testing.expectEqualStrings("--stdio", planned.call.argv[3].?);
+    try std.testing.expectEqual(@as(?[]const u8, null), planned.call.argv[4]);
 }
 
 test "collectExeclArgs keeps the command head and first null terminator" {
