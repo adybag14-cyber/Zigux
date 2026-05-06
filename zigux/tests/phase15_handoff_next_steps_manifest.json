@@ -1,7 +1,7 @@
 {
   "lane_key": "P15-Y08",
   "phase": "Phase 15",
-  "surveyed_commit": "3b2f945",
+  "surveyed_commit": "ac2a87b",
   "roadmap_phase_title": "Full-Parity Blockers and Long-Term Governance",
   "roadmap_requirements": [
     "freeze map",
@@ -15,7 +15,7 @@
     "review_process_present": true,
     "parity_scorecard_present": true,
     "indefinite_c_policy_present": true,
-    "docs_index_handoff_pointer_present": false,
+    "docs_index_handoff_pointer_present": true,
     "phase15_make_target_present": true,
     "shared_ci_phase15_present": true,
     "dedicated_handoff_guard_present": true,
@@ -23,13 +23,6 @@
     "deep_core_status_change_ready": false
   },
   "open_handoff_gaps": [
-    {
-      "id": "phase15-docs-root-handoff-pointer-gap",
-      "status": "pending_docs_root_refresh",
-      "kind": "docs_index",
-      "zigux_destination": "Documentation/zigux/README.md",
-      "why_now": "The current docs root still does not point back to the dedicated Phase 15 handoff packet."
-    },
     {
       "id": "phase15-deep-core-status-change-blocker",
       "status": "blocked_on_stay_in_c_evidence",
@@ -39,7 +32,6 @@
     }
   ],
   "pending_next_steps": [
-    "If the docs-root continuity lane reopens, add the missing Documentation/zigux/phase15-handoff-next-steps-survey.md pointer to Documentation/zigux/README.md.",
-    "Otherwise keep this handoff lane parked unless the packet drifts again or the deep-core blocker posture changes."
+    "Keep this handoff lane parked unless the packet drifts again or the deep-core blocker posture changes."
   ]
 }
