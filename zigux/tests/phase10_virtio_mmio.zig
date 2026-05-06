@@ -171,16 +171,39 @@ test "phase10 virtio mmio summarizes a planned config-word write disposition wit
     try std.testing.expectError(error.ConfigWritePlanUnavailable, device.configWriteDispositionSummary());
 }
 
-test "phase10 virtio mmio summarizes bounded probe preflight readiness before lifecycle work" {
+test "phase10 virtio mmio summarizes transport identity before lifecycle work" {
     var device = try virtio_mmio.VirtioMmioLab.init(55, &[_]u16{ 8, 16 });
 
-    const summary = device.probePreflightSummary();
+    var summary = device.transportIdentitySummary();
     try std.testing.expectEqualStrings("drivers/virtio/virtio_mmio.c", summary.anchor);
+    try std.testing.expectEqual(@as(u32, virtio_mmio.mmio_magic_value), summary.magic_value);
+    try std.testing.expectEqual(@as(u32, virtio_mmio.mmio_version_modern), summary.version);
+    try std.testing.expectEqual(@as(u32, 55), summary.device_id);
+    try std.testing.expectEqual(@as(u32, virtio_mmio.default_vendor_id), summary.vendor_id);
     try std.testing.expect(summary.magic_matches);
     try std.testing.expect(summary.version_supported);
     try std.testing.expect(summary.device_present);
     try std.testing.expect(summary.vendor_id_present);
     try std.testing.expect(!summary.requires_legacy_guest_page_size);
+
+    device.device_id = 0;
+    device.vendor_id = 0;
+    summary = device.transportIdentitySummary();
+    try std.testing.expect(!summary.device_present);
+    try std.testing.expect(!summary.vendor_id_present);
+}
+
+test "phase10 virtio mmio summarizes bounded probe preflight readiness before lifecycle work" {
+    var device = try virtio_mmio.VirtioMmioLab.init(55, &[_]u16{ 8, 16 });
+
+    const identity = device.transportIdentitySummary();
+    const summary = device.probePreflightSummary();
+    try std.testing.expectEqualStrings("drivers/virtio/virtio_mmio.c", summary.anchor);
+    try std.testing.expectEqual(identity.magic_matches, summary.magic_matches);
+    try std.testing.expectEqual(identity.version_supported, summary.version_supported);
+    try std.testing.expectEqual(identity.device_present, summary.device_present);
+    try std.testing.expectEqual(identity.vendor_id_present, summary.vendor_id_present);
+    try std.testing.expectEqual(identity.requires_legacy_guest_page_size, summary.requires_legacy_guest_page_size);
     try std.testing.expect(summary.legacy_guest_page_size_register_ready);
     try std.testing.expect(summary.bounded_queue_register_window_ready);
     try std.testing.expect(summary.interrupt_ack_ready);
@@ -191,9 +214,12 @@ test "phase10 virtio mmio marks probe preflight incomplete when identity presenc
     var device = try virtio_mmio.VirtioMmioLab.init(0, &[_]u16{8});
     device.vendor_id = 0;
 
+    const identity = device.transportIdentitySummary();
     const summary = device.probePreflightSummary();
     try std.testing.expect(summary.magic_matches);
     try std.testing.expect(summary.version_supported);
+    try std.testing.expect(!identity.device_present);
+    try std.testing.expect(!identity.vendor_id_present);
     try std.testing.expect(!summary.device_present);
     try std.testing.expect(!summary.vendor_id_present);
     try std.testing.expect(summary.bounded_queue_register_window_ready);
