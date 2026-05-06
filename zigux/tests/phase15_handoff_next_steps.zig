@@ -86,7 +86,7 @@ test "phase 15 handoff note keeps the repaired docs-root pointer and remaining b
         io_instance.io(),
         "Documentation/zigux/README.md",
         std.testing.allocator,
-        .limited(16 * 1024),
+        .limited(64 * 1024),
     );
     defer std.testing.allocator.free(docs_root);
 
@@ -94,7 +94,7 @@ test "phase 15 handoff note keeps the repaired docs-root pointer and remaining b
         io_instance.io(),
         "zigux/tests/phase15_build.zig",
         std.testing.allocator,
-        .limited(12 * 1024),
+        .limited(16 * 1024),
     );
     defer std.testing.allocator.free(phase15_build);
 
@@ -102,7 +102,7 @@ test "phase 15 handoff note keeps the repaired docs-root pointer and remaining b
         io_instance.io(),
         ".github/workflows/zigux-bootstrap.yml",
         std.testing.allocator,
-        .limited(24 * 1024),
+        .limited(64 * 1024),
     );
     defer std.testing.allocator.free(workflow);
 
