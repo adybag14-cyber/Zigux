@@ -10,7 +10,7 @@
     "the manifest and survey test still describe the exact vararg-payload, message, relative-location, callback-path, and teardown contract run through phase5_build.zig",
     "the contributor packet still names runPayloadBoundaryReplay() as the approved public count-4 payload-boundary helper instead of implying private field inspection for the 1,2,3,4 prefix, zero sentinel, iter=%d replay, and selected-string branch",
     "the in-memory replay still keeps the array payload, selected string, and iter-format message reviewable instead of hiding them behind runtime thread state",
-    "function-callback replay stays a balanced register-then-unregister idiom rather than implying kthread creation or tracepoint enablement parity",
+    "runCallbackBoundaryReplay() keeps function-callback replay a balanced register-then-unregister idiom rather than implying kthread creation or tracepoint enablement parity",
     "sample-behavior changes update the manifest-backed replay contract instead of leaving reviewers to infer the new boundary from code alone",
     "docs and tests still keep CREATE_TRACE_POINTS, tracepoint macros, kernel scheduling, and module registration wiring out of scope for this Phase 5 sample"
   ],
@@ -53,7 +53,7 @@
     {
       "id": "callback-registration-balance",
       "kind": "ownership_lifetime",
-      "expected": "the function-callback replay requires registration first, marks that callback path as checked, and restores the registration balance to zero before the sample completes"
+      "expected": "the public runCallbackBoundaryReplay() helper records the callback path, the count-specific callback replay, and the restored registration balance at zero without private sample-state reads before the sample completes"
     },
     {
       "id": "post-exit-rejection",
