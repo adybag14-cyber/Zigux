@@ -8,6 +8,7 @@ const SurveySummary = struct {
     bcm2835_wdt_test_present: bool,
     bcm2835_wdt_slice_note_present: bool,
     bcm2835_wdt_validation_matrix_present: bool,
+    bcm2835_wdt_shared_contract_present: bool,
     bcm2835_wdt_platform_handoff_present: bool,
     bcm2835_wdt_poweroff_summary_present: bool,
     bcm2835_wdt_shared_replay_evidence_present: bool,
@@ -39,7 +40,7 @@ fn isAllowedStatus(status: []const u8) bool {
         std.mem.eql(u8, status, "blocked_on_driver_scaffold");
 }
 
-test "phase11 bcm2835_wdt survey manifest and validation matrix record the landed handoff plus poweroff review surface" {
+test "phase11 bcm2835_wdt survey manifest, shared contract, and validation matrix record the landed handoff plus poweroff review surface" {
     var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
     defer io_instance.deinit();
 
@@ -50,6 +51,14 @@ test "phase11 bcm2835_wdt survey manifest and validation matrix record the lande
         .limited(32 * 1024),
     );
     defer std.testing.allocator.free(manifest_json);
+
+    const contract_doc = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "Documentation/zigux/phase11-shared-replay-contract.md",
+        std.testing.allocator,
+        .limited(32 * 1024),
+    );
+    defer std.testing.allocator.free(contract_doc);
 
     const matrix_doc = try std.Io.Dir.cwd().readFileAlloc(
         io_instance.io(),
@@ -91,6 +100,7 @@ test "phase11 bcm2835_wdt survey manifest and validation matrix record the lande
     try std.testing.expect(manifest.survey_summary.bcm2835_wdt_test_present);
     try std.testing.expect(manifest.survey_summary.bcm2835_wdt_slice_note_present);
     try std.testing.expect(manifest.survey_summary.bcm2835_wdt_validation_matrix_present);
+    try std.testing.expect(manifest.survey_summary.bcm2835_wdt_shared_contract_present);
     try std.testing.expect(manifest.survey_summary.bcm2835_wdt_platform_handoff_present);
     try std.testing.expect(manifest.survey_summary.bcm2835_wdt_poweroff_summary_present);
     try std.testing.expect(manifest.survey_summary.bcm2835_wdt_shared_replay_evidence_present);
@@ -104,6 +114,15 @@ test "phase11 bcm2835_wdt survey manifest and validation matrix record the lande
         .{manifest.surveyed_commit},
     );
     defer std.testing.allocator.free(expected_commit_pin);
+
+    for (manifest.gaps) |gap| {
+        try std.testing.expect(isAllowedStatus(gap.status));
+    }
+
+    try std.testing.expect(std.mem.indexOf(u8, contract_doc, "`Documentation/zigux/phase11-bcm2835-wdt-survey.md`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, contract_doc, "`zigux/tests/phase11_bcm2835_wdt_manifest.json`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, contract_doc, "`zigux/tests/phase11_bcm2835_wdt_survey.zig`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, contract_doc, "The active bcm2835 hardware-validation packet also stays explicit beside that shared route:") != null);
 
     try std.testing.expect(std.mem.indexOf(u8, matrix_doc, "PHASE11_BCM2835_WDT_STATUS=platform_handoff_landed") != null);
     try std.testing.expect(std.mem.indexOf(u8, matrix_doc, expected_commit_pin) != null);
@@ -125,6 +144,8 @@ test "phase11 bcm2835_wdt survey manifest and validation matrix record the lande
     try std.testing.expect(std.mem.indexOf(u8, matrix_doc, "shared system-poweroff callback") != null);
     try std.testing.expect(std.mem.indexOf(u8, matrix_doc, "remove-time teardown boundary") != null);
     try std.testing.expect(std.mem.indexOf(u8, matrix_doc, "drivers/watchdog/bcm2835_wdt_verify.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, matrix_doc, "dedicated archival bcm2835 hardware-validation packet beside the shared replay route: `Documentation/zigux/phase11-bcm2835-wdt-survey.md`, `zigux/tests/phase11_bcm2835_wdt_manifest.json`, and `zigux/tests/phase11_bcm2835_wdt_survey.zig`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, matrix_doc, "keep `Documentation/zigux/phase11-shared-replay-contract.md`, `Documentation/zigux/phase11-bcm2835-wdt-survey.md`, `zigux/tests/phase11_bcm2835_wdt_manifest.json`, `zigux/tests/phase11_bcm2835_wdt_survey.zig`, `zigux/tests/phase11_build.zig`, and `zigux/Makefile` aligned so this matrix does not drift away from either the shipped shared replay route or the dedicated bcm2835 archival packet") != null);
 
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, expected_commit_pin) != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_doc, "archival checkpoint for the original Phase 11 roadmap gap") != null);
