@@ -19,13 +19,35 @@ REQUIRED_FILES = (
 
 REQUIRED_MARKERS = {
     "zigux/kernel/export_shim.zig": (
+        "pub const abi_version: u16 = uapi_version.abi_version;",
+        "pub const header_size: u32 = uapi_version.header_size;",
+        "pub const HeaderCompatibility = uapi_version.Compatibility;",
+        "pub fn versionedHeader(size: u32, version: u16, flags: u16) abi.BoundaryHeader {",
+        "return uapi_version.versionedHeader(size, version, flags);",
         "pub fn canonicalHeader(flags: u16) abi.BoundaryHeader {",
         "return uapi_version.canonicalHeader(flags);",
         "pub fn boundaryHeader(flags: u16) abi.BoundaryHeader {",
         "return uapi_version.boundaryHeader(flags);",
         "pub fn compatibleHeader(size: u32, flags: u16) abi.BoundaryHeader {",
+        "return uapi_version.compatibleHeader(size, flags);",
         "pub fn header(flags: u16) abi.BoundaryHeader {",
         "return canonicalHeader(flags);",
+        "pub fn isCurrentAbiVersion(version: u16) bool {",
+        "return uapi_version.isCurrentAbiVersion(version);",
+        "pub fn isCompatibleSize(size: u32) bool {",
+        "return uapi_version.isCompatibleSize(size);",
+        "pub fn isCanonicalSize(size: u32) bool {",
+        "return uapi_version.isCanonicalSize(size);",
+        "pub fn headerCompatibility(header_value: abi.BoundaryHeader) ?HeaderCompatibility {",
+        "return uapi_version.compatibility(header_value);",
+        "pub fn isCompatibleHeader(header_value: abi.BoundaryHeader) bool {",
+        "return uapi_version.isCompatible(header_value);",
+        "pub fn isCanonicalHeader(header_value: abi.BoundaryHeader) bool {",
+        "return uapi_version.isCanonical(header_value);",
+        "pub fn canonicalizeHeader(header_value: abi.BoundaryHeader) ?abi.BoundaryHeader {",
+        "return uapi_version.canonicalizeHeader(header_value);",
+        "pub fn normalize(status: abi.ExportStatus) abi.ExportStatus {",
+        "test \"phase3 export shim keeps failure encoding explicit\" {",
         "test \"phase3 export shim reuses the shared boundary-header compatibility rules\" {",
     ),
     "zigux/uapi/version.zig": (
@@ -99,6 +121,13 @@ def run_self_test() -> int:
             root / "zigux/kernel/export_shim.zig",
             "\n".join(
                 (
+                    "pub const abi_version: u16 = uapi_version.abi_version;",
+                    "pub const header_size: u32 = uapi_version.header_size;",
+                    "pub const HeaderCompatibility = uapi_version.Compatibility;",
+                    "pub fn versionedHeader(size: u32, version: u16, flags: u16) abi.BoundaryHeader {",
+                    "    _ = version;",
+                    "    return uapi_version.versionedHeader(size, version, flags);",
+                    "}",
                     "pub fn canonicalHeader(flags: u16) abi.BoundaryHeader {",
                     "    return uapi_version.canonicalHeader(flags);",
                     "}",
@@ -106,12 +135,37 @@ def run_self_test() -> int:
                     "    return uapi_version.boundaryHeader(flags);",
                     "}",
                     "pub fn compatibleHeader(size: u32, flags: u16) abi.BoundaryHeader {",
-                    "    _ = size;",
-                    "    _ = flags;",
-                    "    return undefined;",
+                    "    return uapi_version.compatibleHeader(size, flags);",
                     "}",
                     "pub fn header(flags: u16) abi.BoundaryHeader {",
                     "    return canonicalHeader(flags);",
+                    "}",
+                    "pub fn isCurrentAbiVersion(version: u16) bool {",
+                    "    return uapi_version.isCurrentAbiVersion(version);",
+                    "}",
+                    "pub fn isCompatibleSize(size: u32) bool {",
+                    "    return uapi_version.isCompatibleSize(size);",
+                    "}",
+                    "pub fn isCanonicalSize(size: u32) bool {",
+                    "    return uapi_version.isCanonicalSize(size);",
+                    "}",
+                    "pub fn headerCompatibility(header_value: abi.BoundaryHeader) ?HeaderCompatibility {",
+                    "    return uapi_version.compatibility(header_value);",
+                    "}",
+                    "pub fn isCompatibleHeader(header_value: abi.BoundaryHeader) bool {",
+                    "    return uapi_version.isCompatible(header_value);",
+                    "}",
+                    "pub fn isCanonicalHeader(header_value: abi.BoundaryHeader) bool {",
+                    "    return uapi_version.isCanonical(header_value);",
+                    "}",
+                    "pub fn canonicalizeHeader(header_value: abi.BoundaryHeader) ?abi.BoundaryHeader {",
+                    "    return uapi_version.canonicalizeHeader(header_value);",
+                    "}",
+                    "pub fn normalize(status: abi.ExportStatus) abi.ExportStatus {",
+                    "    return status;",
+                    "}",
+                    "test \"phase3 export shim keeps failure encoding explicit\" {",
+                    "    _ = .{};",
                     "}",
                     "test \"phase3 export shim reuses the shared boundary-header compatibility rules\" {",
                     "    _ = .{};",
@@ -246,6 +300,81 @@ def run_self_test() -> int:
             ),
         )
 
+        export_shim_path = root / "zigux/kernel/export_shim.zig"
+        export_shim_path.write_text(
+            export_shim_path.read_text(encoding="utf-8").replace(
+                "pub fn canonicalizeHeader(header_value: abi.BoundaryHeader) ?abi.BoundaryHeader {",
+                "pub fn canonicalizeHeaderMissing(header_value: abi.BoundaryHeader) ?abi.BoundaryHeader {",
+                1,
+            ),
+            encoding="utf-8",
+            newline="\n",
+        )
+        issues = validate(root)
+        expected = (
+            "missing_marker:zigux/kernel/export_shim.zig:pub fn canonicalizeHeader(header_value: abi.BoundaryHeader) ?abi.BoundaryHeader {"
+        )
+        if issues != [expected]:
+            raise SystemExit(f"phase3-export-uapi-self-test:export_shim_guard_failed:{issues}")
+
+        _write(
+            root / "zigux/kernel/export_shim.zig",
+            "\n".join(
+                (
+                    "pub const abi_version: u16 = uapi_version.abi_version;",
+                    "pub const header_size: u32 = uapi_version.header_size;",
+                    "pub const HeaderCompatibility = uapi_version.Compatibility;",
+                    "pub fn versionedHeader(size: u32, version: u16, flags: u16) abi.BoundaryHeader {",
+                    "    _ = version;",
+                    "    return uapi_version.versionedHeader(size, version, flags);",
+                    "}",
+                    "pub fn canonicalHeader(flags: u16) abi.BoundaryHeader {",
+                    "    return uapi_version.canonicalHeader(flags);",
+                    "}",
+                    "pub fn boundaryHeader(flags: u16) abi.BoundaryHeader {",
+                    "    return uapi_version.boundaryHeader(flags);",
+                    "}",
+                    "pub fn compatibleHeader(size: u32, flags: u16) abi.BoundaryHeader {",
+                    "    return uapi_version.compatibleHeader(size, flags);",
+                    "}",
+                    "pub fn header(flags: u16) abi.BoundaryHeader {",
+                    "    return canonicalHeader(flags);",
+                    "}",
+                    "pub fn isCurrentAbiVersion(version: u16) bool {",
+                    "    return uapi_version.isCurrentAbiVersion(version);",
+                    "}",
+                    "pub fn isCompatibleSize(size: u32) bool {",
+                    "    return uapi_version.isCompatibleSize(size);",
+                    "}",
+                    "pub fn isCanonicalSize(size: u32) bool {",
+                    "    return uapi_version.isCanonicalSize(size);",
+                    "}",
+                    "pub fn headerCompatibility(header_value: abi.BoundaryHeader) ?HeaderCompatibility {",
+                    "    return uapi_version.compatibility(header_value);",
+                    "}",
+                    "pub fn isCompatibleHeader(header_value: abi.BoundaryHeader) bool {",
+                    "    return uapi_version.isCompatible(header_value);",
+                    "}",
+                    "pub fn isCanonicalHeader(header_value: abi.BoundaryHeader) bool {",
+                    "    return uapi_version.isCanonical(header_value);",
+                    "}",
+                    "pub fn canonicalizeHeader(header_value: abi.BoundaryHeader) ?abi.BoundaryHeader {",
+                    "    return uapi_version.canonicalizeHeader(header_value);",
+                    "}",
+                    "pub fn normalize(status: abi.ExportStatus) abi.ExportStatus {",
+                    "    return status;",
+                    "}",
+                    "test \"phase3 export shim keeps failure encoding explicit\" {",
+                    "    _ = .{};",
+                    "}",
+                    "test \"phase3 export shim reuses the shared boundary-header compatibility rules\" {",
+                    "    _ = .{};",
+                    "}",
+                    "",
+                )
+            ),
+        )
+
         workflow_path = root / WORKFLOW_REL
         workflow_path.write_text(
             workflow_path.read_text(encoding="utf-8").replace(
@@ -264,7 +393,7 @@ def run_self_test() -> int:
             raise SystemExit(f"phase3-export-uapi-self-test:workflow_guard_failed:{issues}")
 
     print("PHASE3_EXPORT_UAPI_SURVEY_SELF_TEST=pass")
-    print("PHASE3_EXPORT_UAPI_SURVEY_SELF_TEST_CASE_COUNT=3")
+    print("PHASE3_EXPORT_UAPI_SURVEY_SELF_TEST_CASE_COUNT=4")
     return 0
 
 
