@@ -17,6 +17,7 @@
   "lifecycle_boundary_summary": {
     "pre_execution_handoff_only": true,
     "requires_idle_registration_snapshot": true,
+    "failed_exit_state_retained_until_drain": true,
     "metadata_only_registration_labels": [
       "register_kretprobe",
       "unregister_kretprobe"
@@ -51,7 +52,7 @@
       "status": "starter_landed",
       "kind": "validation",
       "zigux_destination": "zigux/tests/runtime_kretprobe_module.zig",
-      "why_now": "A dedicated Phase 9 test file keeps the starter reviewable and bounded around lifecycle transitions, symbol retargeting, and return-probe bookkeeping."
+      "why_now": "A dedicated Phase 9 test file keeps the starter reviewable and bounded around lifecycle transitions, symbol retargeting, return-probe bookkeeping, and failed-exit state retention until the active probe drains."
     },
     {
       "id": "runtime-kretprobe-diff-gate",
@@ -65,7 +66,7 @@
       "status": "starter_landed",
       "kind": "runtime_loader_scaffold",
       "zigux_destination": "samples/zigux/runtime_kretprobe_loader.zig",
-      "why_now": "A bounded loader handoff keeps the planned register_kretprobe and unregister_kretprobe lifecycle, entry or exit symbol naming, private-data size, and idle registration snapshot explicit while the real runtime substrate is still unavailable."
+      "why_now": "A bounded loader handoff keeps the planned register_kretprobe and unregister_kretprobe lifecycle, entry or exit symbol naming, private-data size, idle registration snapshot, and failed-exit state retention explicit while the real runtime substrate is still unavailable."
     },
     {
       "id": "runtime-kretprobe-substrate-handoff",
