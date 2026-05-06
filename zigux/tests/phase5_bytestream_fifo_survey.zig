@@ -305,6 +305,27 @@ test "phase 5 bytestream fifo survey packet stays repo-local and keeps shared re
         try std.testing.expect(std.mem.indexOf(u8, samples_root, needle) != null);
     }
 
+    const scripts_root = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "scripts/zigux/README.md",
+        std.testing.allocator,
+        .limited(128 * 1024),
+    );
+    defer std.testing.allocator.free(scripts_root);
+
+    const scripts_root_markers = [_][]const u8{
+        "Phase 5 flow",
+        "Documentation/zigux/phase5-kfifo-sample-survey.md",
+        "samples/zigux/bytestream_fifo.zig",
+        "zigux/tests/phase5_bytestream_fifo_manifest.json",
+        "zigux/tests/phase5_bytestream_fifo_survey.zig",
+        "zigux/tests/phase5_build.zig",
+    };
+
+    for (scripts_root_markers) |needle| {
+        try std.testing.expect(std.mem.indexOf(u8, scripts_root, needle) != null);
+    }
+
     const build_zig = try std.Io.Dir.cwd().readFileAlloc(
         io_instance.io(),
         "zigux/tests/phase5_build.zig",
