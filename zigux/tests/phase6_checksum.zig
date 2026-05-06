@@ -135,21 +135,12 @@ test "fixture-backed negate cases keep the public checksum helper reviewable" {
     }
 }
 
-test "from32to16 folds unfolded sums before the final complement" {
-    const Case = struct {
-        name: []const u8,
-        sum: u32,
-        expected_folded: u16,
-    };
-    const cases = [_]Case{
-        .{ .name = "zero", .sum = 0x0000_0000, .expected_folded = 0x0000 },
-        .{ .name = "single carry into the low word", .sum = 0x0001_0000, .expected_folded = 0x0001 },
-        .{ .name = "double carry collapse", .sum = 0xffff_0001, .expected_folded = 0x0001 },
-        .{ .name = "all ones saturates to sixteen bits", .sum = 0xffff_ffff, .expected_folded = 0xffff },
-        .{ .name = "mixed words preserve the remaining payload", .sum = 0x1234_5678, .expected_folded = 0x68ac },
-    };
+test "fixture-backed fold cases keep the public checksum helper reviewable" {
+    try std.testing.expectEqual(@as(usize, 5), fixtures.fold_cases.len);
+    try std.testing.expectEqualStrings("zero", fixtures.fold_cases[0].name);
+    try std.testing.expectEqual(@as(u16, 0x68ac), fixtures.fold_cases[4].expected_folded);
 
-    for (cases) |case| {
+    for (fixtures.fold_cases) |case| {
         try std.testing.expectEqual(case.expected_folded, checksum.from32to16(case.sum));
         try std.testing.expectEqual(case.expected_folded, @as(u16, @intCast(foldCarry(case.sum))));
         try std.testing.expectEqual(@as(u16, ~case.expected_folded), checksum.fold(case.sum));
