@@ -50,6 +50,7 @@ Without this matrix, the slice and survey named the right next step but did not 
 - shared replay posture for this watchdog lane:
   - `phase11-bcm2835-wdt-tests`, `phase11-bcm2835-wdt-verify-tests`, and `phase11-bcm2835-wdt-survey-tests` remain the shared Phase 11 artifacts that cover this bcm2835 packet
   - full-bundle green status for the wider current Phase 11 replay is intentionally tracked outside this watchdog-local matrix because unrelated non-watchdog drift can reopen elsewhere on `master`
+- dedicated archival bcm2835 hardware-validation packet beside the shared replay route: `Documentation/zigux/phase11-bcm2835-wdt-survey.md`, `zigux/tests/phase11_bcm2835_wdt_manifest.json`, and `zigux/tests/phase11_bcm2835_wdt_survey.zig`
 - included bcm2835 artifacts:
   - `phase11-bcm2835-wdt-tests`
   - `phase11-bcm2835-wdt-verify-tests`
@@ -61,5 +62,6 @@ Without this matrix, the slice and survey named the right next step but did not 
 
 - treat this lane as a bounded starter plus validation-note lane even after the platform-registration and PM-base handoff summary lands
 - keep `zigux/tests/phase11_build.zig` as the shared replay path for the current starter instead of adding ad hoc Phase 11 CI steps
+- keep `Documentation/zigux/phase11-shared-replay-contract.md`, `Documentation/zigux/phase11-bcm2835-wdt-survey.md`, `zigux/tests/phase11_bcm2835_wdt_manifest.json`, `zigux/tests/phase11_bcm2835_wdt_survey.zig`, `zigux/tests/phase11_build.zig`, and `zigux/Makefile` aligned so this matrix does not drift away from either the shipped shared replay route or the dedicated bcm2835 archival packet
 - do not claim PM base wiring, watchdog-core registration, poweroff handler installation, or live restart or poweroff coverage until the Zig surface and tests for those behaviors exist
 - if a later lane chooses live platform registration or PM base plumbing, update this matrix, the slice note, the survey note, and the survey manifest together so the lane keeps one truthful next step
