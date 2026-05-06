@@ -90,25 +90,25 @@ pub fn getOptions(str: []const u8, nints: usize, ints: []i32) []const u8 {
 }
 
 pub fn memparse(ptr: []const u8, ret_index: ?*usize) u64 {
-    const parsed = parseUnsignedPrefix(ptr) orelse {
+    const parsed = parseUnsignedPrefix(ptr);
+    var value: u64 = 0;
+    var index: usize = 0;
+    if (parsed) |result| {
+        value = result.value;
+        index = result.len;
+    } else if (ptr.len != 0 and memSuffixShift(ptr[0]) != 0) {
+        // `memparse()` in `lib/cmdline.c` still consumes a leading size suffix
+        // even when `simple_strtoull()` did not parse any digits.
+        index = 1;
+    } else {
         if (ret_index) |out| {
             out.* = 0;
         }
         return 0;
-    };
+    }
 
-    var value = parsed.value;
-    var index = parsed.len;
-    if (index < ptr.len) {
-        const shift_blocks: u6 = switch (ptr[index]) {
-            'E', 'e' => 6,
-            'P', 'p' => 5,
-            'T', 't' => 4,
-            'G', 'g' => 3,
-            'M', 'm' => 2,
-            'K', 'k' => 1,
-            else => 0,
-        };
+    if (parsed != null and index < ptr.len) {
+        const shift_blocks = memSuffixShift(ptr[index]);
         if (shift_blocks != 0) {
             value <<= shift_blocks * 10;
             index += 1;
@@ -308,6 +308,18 @@ fn isDigitForBase(ch: u8, base: u8) bool {
     return value < base;
 }
 
+fn memSuffixShift(ch: u8) u6 {
+    return switch (ch) {
+        'E', 'e' => 6,
+        'P', 'p' => 5,
+        'T', 't' => 4,
+        'G', 'g' => 3,
+        'M', 'm' => 2,
+        'K', 'k' => 1,
+        else => 0,
+    };
+}
+
 fn truncateToI32(value: i64) i32 {
     const bits: u32 = @truncate(@as(u64, @bitCast(value)));
     return @bitCast(bits);
@@ -400,6 +412,12 @@ test "memparse handles size suffixes, accepts leading plus, and reports where pa
 
     try std.testing.expectEqual(@as(u64, 1024), memparse("+1K", &index));
     try std.testing.expectEqual(@as(usize, 3), index);
+
+    try std.testing.expectEqual(@as(u64, 0), memparse("K", &index));
+    try std.testing.expectEqual(@as(usize, 1), index);
+
+    try std.testing.expectEqual(@as(u64, 0), memparse("krest", &index));
+    try std.testing.expectEqual(@as(usize, 1), index);
 
     try std.testing.expectEqual(@as(u64, 0), memparse("bad", &index));
     try std.testing.expectEqual(@as(usize, 0), index);
