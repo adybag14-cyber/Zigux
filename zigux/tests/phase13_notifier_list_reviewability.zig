@@ -31,18 +31,19 @@ const Manifest = struct {
 };
 
 fn readRepoFile(allocator: std.mem.Allocator, path: []const u8) ![]u8 {
-    return std.fs.cwd().readFileAlloc(allocator, path, 1 << 20);
+    return std.Io.Dir.cwd().readFileAlloc(
+        std.testing.io,
+        path,
+        allocator,
+        .limited(1 << 20),
+    );
 }
 
 fn expectContains(haystack: []const u8, needle: []const u8) !void {
     try std.testing.expect(std.mem.indexOf(u8, haystack, needle) != null);
 }
 
-fn expectMissing(path: []const u8) !void {
-    try std.testing.expectError(error.FileNotFound, std.fs.cwd().access(path, .{}));
-}
-
-test "phase13 notifier/list survey records the landed read-only helper foothold" {
+test "phase13 notifier/list survey records the landed adjacent notifier header surface" {
     var arena = std.heap.ArenaAllocator.init(std.testing.allocator);
     defer arena.deinit();
     const allocator = arena.allocator();
@@ -53,6 +54,7 @@ test "phase13 notifier/list survey records the landed read-only helper foothold"
     const hlist_view_text = try readRepoFile(allocator, "zigux/helpers/hlist_view.zig");
     const notifier_helper_text = try readRepoFile(allocator, "zigux/helpers/notifier_chain_view.zig");
     const exported_abi_text = try readRepoFile(allocator, "include/zigux/abi.h");
+    const exported_notifier_abi_text = try readRepoFile(allocator, "include/zigux/notifier_abi.h");
     const phase13_build_text = try readRepoFile(allocator, "zigux/tests/phase13_build.zig");
     const survey_note = try readRepoFile(allocator, "Documentation/zigux/phase13-notifier-list-survey.md");
 
@@ -76,7 +78,7 @@ test "phase13 notifier/list survey records the landed read-only helper foothold"
     try std.testing.expect(manifest.survey_summary.preexisting_hlist_view_present);
     try std.testing.expect(manifest.survey_summary.preexisting_exported_list_abi_present);
     try std.testing.expect(manifest.survey_summary.preexisting_notifier_helper_present);
-    try std.testing.expect(!manifest.survey_summary.preexisting_exported_notifier_abi_present);
+    try std.testing.expect(manifest.survey_summary.preexisting_exported_notifier_abi_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase13_notifier_reviewability_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase13_notifier_survey_note_present);
 
@@ -93,30 +95,30 @@ test "phase13 notifier/list survey records the landed read-only helper foothold"
     try expectContains(notifier_helper_text, "summarize clears the priority-order flag when priorities rise");
     try expectContains(exported_abi_text, "struct zigux_list_view");
     try expectContains(exported_abi_text, "struct zigux_hlist_view");
+    try expectContains(exported_notifier_abi_text, "zigux_notifier");
+    try expectContains(exported_notifier_abi_text, "ZIGUX_NOTIFIER_CHAIN_FLAG_PRIORITY_NONINCREASING");
     try std.testing.expect(std.mem.indexOf(u8, phase13_build_text, "phase13_notifier") == null);
     try expectContains(survey_note, "lane key: `P13-L18`");
+    try expectContains(survey_note, "`include/zigux/notifier_abi.h` is now shipped as adjacent notifier interop evidence");
     try expectContains(survey_note, "`zigux/helpers/notifier_chain_view.zig` now provides the matching read-only notifier-chain summary helpers");
-    try expectContains(survey_note, "no dedicated exported notifier C header yet");
     try expectContains(survey_note, "shared Phase 13 build intentionally omits this packet");
 
-    try expectMissing("include/zigux/notifier_abi.h");
-
     var landed_helper_gap = false;
-    var pending_header_gap = false;
+    var landed_header_surface = false;
     for (manifest.gaps) |gap| {
         if (std.mem.eql(u8, gap.id, "phase13-notifier-helper-surface")) {
             landed_helper_gap = true;
             try std.testing.expectEqualStrings("starter_landed", gap.status);
             try std.testing.expectEqualStrings("helper", gap.kind);
             try std.testing.expectEqualStrings("zigux/helpers/notifier_chain_view.zig", gap.zigux_destination);
-        } else if (std.mem.eql(u8, gap.id, "phase13-exported-notifier-c-header-gap")) {
-            pending_header_gap = true;
-            try std.testing.expectEqualStrings("ready_next", gap.status);
+        } else if (std.mem.eql(u8, gap.id, "phase13-exported-notifier-c-header-surface")) {
+            landed_header_surface = true;
+            try std.testing.expectEqualStrings("starter_landed", gap.status);
             try std.testing.expectEqualStrings("header", gap.kind);
             try std.testing.expectEqualStrings("include/zigux/notifier_abi.h", gap.zigux_destination);
         }
     }
 
     try std.testing.expect(landed_helper_gap);
-    try std.testing.expect(pending_header_gap);
+    try std.testing.expect(landed_header_surface);
 }
