@@ -70,6 +70,29 @@ test "phase12 virtio net syntax lab keeps current follow-up enums stable" {
     );
 }
 
+test "phase12 virtio net syntax lab keeps remaining recovery transitions reachable" {
+    try std.testing.expectEqual(
+        virtio_net.RecoveryState.renegotiate_features,
+        virtio_net.RecoveryState.renegotiate_features,
+    );
+    try std.testing.expectEqual(
+        virtio_net.QueueRecoveryAction.none,
+        virtio_net.QueueRecoveryAction.none,
+    );
+    try std.testing.expectEqual(
+        virtio_net.QueueRecoveryAction.degrade_to_single_queue,
+        virtio_net.QueueRecoveryAction.degrade_to_single_queue,
+    );
+    try std.testing.expectEqual(
+        virtio_net.QueueRecoveryAction.renegotiate_features,
+        virtio_net.QueueRecoveryAction.renegotiate_features,
+    );
+    try std.testing.expectEqual(
+        virtio_net.QueueResumeReadiness.requires_reset,
+        virtio_net.QueueResumeReadiness.requires_reset,
+    );
+}
+
 test "phase12 virtio net syntax lab keeps alternate recovery and throughput variants reachable" {
     try std.testing.expectEqual(
         virtio_net.RecoveryState.reset_required,
