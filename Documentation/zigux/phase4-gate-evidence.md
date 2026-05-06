@@ -6,7 +6,7 @@ This note records one exact readback snapshot for the current Phase 4 rollback-o
 - `PHASE4_EVIDENCE_MODE=github_connector_readback`
 - `PHASE4_EVIDENCE_SCOPE=rollback_ownership_and_lab_matrix_current_gate_definitions`
 - `PHASE4_EXACT_READBACK_REF=master`
-- `PHASE4_VALIDATION_MATRIX_BLOB_SHA=402b5f484c17b4f64e908bfec7bc8fe04bffa3ae`
+- `PHASE4_VALIDATION_MATRIX_BLOB_SHA=3e0405b1a50f8d9c2e17ca61d1326cc98c57e0a5`
 - `PHASE4_VALIDATOR_BLOB_SHA=3391f01bbc676c8f4da25833bff07dd38b2542aa`
 - `PHASE4_ARTIFACT_DIFF_DOC_BLOB_SHA=fa92a7946d40df00a1f04217ce133f869980c5b6`
 - `PHASE4_ARTIFACT_DIFF_CONTRACT_CHECKER_BLOB_SHA=31cf8c2b2c8da86e823fbc8c8a39fe61c530312f`
@@ -16,11 +16,11 @@ This note records one exact readback snapshot for the current Phase 4 rollback-o
 - `PHASE4_DOC_README_BLOB_SHA=526cf4a407f28ee99a81bb3e21122526ae470895`
 - `PHASE4_SCRIPT_README_BLOB_SHA=ff034c722f3cb68c84a2adeb15098bea093ac4dc`
 - `PHASE4_TESTS_README_BLOB_SHA=f72ec8fd5f3e01952269fda79d222c9b96ccf3bc`
-- `PHASE4_ATOMIC64_DIFF_BLOB_SHA=617461cca286dc0545b2fb4dc43a0c9b7c442723`
+- `PHASE4_ATOMIC64_DIFF_BLOB_SHA=43d2dbf6fcc3b3774f8977bddc0d8324bc91c6e4`
 - `PHASE4_RUNTIME_ATOMIC64_DIFF_BLOB_SHA=6dd5b8e0a84fe2f775011d552b629b20da222166`
 - `PHASE4_BITMAP_DIFF_BLOB_SHA=9d35b967233469b4a13975a67191483e89c75288`
 - `PHASE4_BITMAP_LIVE_HELPER_REPLAY_BLOB_SHA=75d26e94d322da8b9c14e5a9e53cded8576432d3`
-- `PHASE4_RUNTIME_ATOMIC64_MANIFEST_BLOB_SHA=60eae1ec178e47a8591460f85f847ee591b17d4d`
+- `PHASE4_RUNTIME_ATOMIC64_MANIFEST_BLOB_SHA=52e0fe9be3b35d063f525595c63b8bab99b2c9b6`
 - `PHASE4_RUNTIME_ATOMIC64_SURVEY_BLOB_SHA=079f02996d19dd3c9bab56c81b83ed46d85da911`
 - `PHASE4_SHIPPED_GATE_BLOB_TARGET_COUNT=16`
 - `PHASE4_GATE_EVIDENCE_SELF_TEST_CASE_COUNT=14`
@@ -44,7 +44,7 @@ This note records one exact readback snapshot for the current Phase 4 rollback-o
 - The current helper-backed bitmap rollback lab replay route remains `zig build phase4-bitmap-live-helper-replay --build-file zigux/tests/phase4_build.zig`, matching the live helper-backed row in `Documentation/zigux/phase4-validation-matrix.md`.
 - That same live helper-backed row still records `Shared Subsystems Pod` as both owner and rollback owner for `zigux/tests/phase4_bitmap_live_helper_replay.zig`, and it still keeps `threshold_pending_until_bitmap_gate_grows_beyond_bounded_correctness_checks` explicit until a later bounded Phase 4 perf packet intentionally approves a harder threshold.
 - `zigux/Makefile` still exposes `make -C zigux phase4-validate`, `make -C zigux phase4-test`, `make -C zigux phase4-runtime-atomic64-diff`, `make -C zigux phase4-runtime-atomic64-diff-survey`, `make -C zigux phase4-bitmap-diff`, `make -C zigux phase4-bitmap-live-helper-replay`, and `make -C zigux phase4`, so the Linux-style local replay surface matches the current shared Phase 4 packet instead of hiding those routes in the build file alone.
-- The exact-readback set is now current for the shipped validator-backed packet, and the manifest-backed runtime atomic64 survey pair now pins the same current `phase4_build.zig`, `validate-phase4.py`, `phase4-validation-matrix.md`, and `phase9_build.zig` blobs that this note names.
+- The exact-readback set is now current for the shipped validator-backed packet, and `zigux/tests/atomic64_diff.zig` now exact-checks the current gate-evidence blob pins for the wrapper, runtime replay, manifest, and survey while the manifest-backed runtime atomic64 survey pair still pins the same current `phase4_build.zig`, `validate-phase4.py`, `phase4-validation-matrix.md`, and `phase9_build.zig` blobs that this note names.
 - Current `master` still treats the roadmap-backed sample follow-ups as open gaps rather than shipped gate-evidence targets: `samples/zigux/kprobe_example.zig` remains absent and `samples/zigux/test_fsmount.zig` remains absent.
 - The explicit `PHASE4_SHARED_KPROBE_SURVEY_PACKET_PRESENT=false`, `PHASE4_SHARED_TEST_FSMOUNT_SURVEY_PACKET_PRESENT=false`, and `PHASE4_SHARED_PERF_BASELINE_SURVEY_PACKET_PRESENT=false` status lines therefore still mean this exact-readback packet stops at the current rollback-readiness note, matrix, helper-backed bitmap replay, runtime atomic64 survey pair, and shared validator route; it does not yet claim a shipped kprobe sample packet, test-fsmount sample packet, or approved perf-baseline packet on `master`.
 
