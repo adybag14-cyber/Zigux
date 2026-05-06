@@ -32,6 +32,10 @@ test "phase11 hvc console keeps hvc_cleanup tty-port release boundaries reviewab
     try std.testing.expectError(error.CleanupRequiresTtyPortReference, console.summarizeCleanupHandoff(.{
         .tty_port_reference_live = false,
     }));
+    try std.testing.expectError(error.CleanupRequiresTtyPortReference, console.summarizeCleanupHandoff(.{
+        .hung_up = true,
+        .tty_port_reference_live = false,
+    }));
 
     _ = console.teardown();
     try std.testing.expectError(error.ConsoleUnavailable, console.summarizeCleanupHandoff(.{}));
