@@ -300,6 +300,8 @@ fn expectNthCase(bits: []const u32, nbits: u32, expected: []const u32) !void {
 }
 
 pub fn runThresholdReplay(iterations: usize) !ThresholdReplaySummary {
+    if (iterations == 0) return error.EmptyThresholdReplayBatch;
+
     var bitmap = BitmapHarness{};
     var source = BitmapHarness{};
     var destination = BitmapHarness{};
@@ -645,8 +647,14 @@ test "bitmap diff gate keeps the current bounded source inventory explicit" {
     try expectMarker(bitmap_diff_source, "test_copy full-width replay from a cleared destination");
     try expectMarker(bitmap_diff_source, "test_copy full-width replay clears a pre-filled destination");
     try expectMarker(bitmap_diff_source, "test_zero_nbits zero-length copy leaves destination unchanged");
+    try expectMarker(bitmap_diff_source, "if (iterations == 0) return error.EmptyThresholdReplayBatch;");
+    try expectMarker(bitmap_diff_source, "try std.testing.expectError(error.EmptyThresholdReplayBatch, runThresholdReplay(0));");
     try expectMarker(bitmap_diff_source, "try std.testing.expectEqual(@as(u64, 6872226231820490607), single.checksum);");
     try expectMarker(bitmap_diff_source, "try std.testing.expectEqual(@as(u64, 17675807730989546160), repeated.checksum);");
+}
+
+test "bitmap diff gate rejects an empty threshold replay batch" {
+    try std.testing.expectError(error.EmptyThresholdReplayBatch, runThresholdReplay(0));
 }
 
 test "bitmap diff gate keeps a deterministic threshold replay batch ready for future perf baselines" {
