@@ -19,7 +19,7 @@ When a Phase 13 change is real, keep these surfaces aligned together:
   * validator-first wiring: `scripts/zigux/validate-phase13-release.py`, `scripts/zigux/check-phase13-devres-packet.py`, `scripts/zigux/README.md`, and `zigux/Makefile`
   * shared replay entrypoint: `zigux/tests/phase13_build.zig`
   * manifest-backed anchor packets: `zigux/tests/phase13_libfs_manifest.json`, `zigux/tests/phase13_devres_manifest.json`, `zigux/tests/phase13_landlock_ruleset_manifest.json`, and `zigux/tests/phase13_landlock_syscalls_manifest.json`
-  * direct replay files: `zigux/tests/phase13_libfs.zig`, `zigux/tests/phase13_devres.zig`, `zigux/tests/phase13_devres_reviewability.zig`, `zigux/tests/phase13_devres_dma_coherent.zig`, `zigux/tests/phase13_landlock_ruleset.zig`, `zigux/tests/phase13_landlock_syscalls.zig`, and `zigux/tests/phase13_libfs_reviewability.zig`
+  * direct replay files: `zigux/tests/phase13_libfs.zig`, `zigux/tests/phase13_devres.zig`, `zigux/tests/phase13_devres_reviewability.zig`, `zigux/tests/phase13_devres_dma_coherent.zig`, `zigux/tests/phase13_landlock_ruleset.zig`, `zigux/tests/phase13_landlock_syscalls.zig`, `zigux/tests/phase13_landlock_syscalls_reviewability.zig`, and `zigux/tests/phase13_libfs_reviewability.zig`
   * adjacent shipped release-surface evidence: `Documentation/zigux/phase13-release-notes-survey.md`, `Documentation/zigux/phase13-roadmap-traceability.md`, `Documentation/zigux/phase13-notifier-list-survey.md`, `zigux/tests/phase13_notifier_list_manifest.json`, `zigux/tests/phase13_notifier_list_reviewability.zig`, `zigux/bindings/notifier_abi.zig`, `include/zigux/notifier_abi.h`, and `zigux/helpers/notifier_chain_view.zig`
 
 ## Required Replay Order
@@ -70,6 +70,7 @@ Do not quietly erase these active Phase 13 limits from manifests, notes, or cont
 Before calling a Phase 13 change ready, confirm all of the following:
   * `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/phase10-phase11-phase13-contributor-surface-sync.md`, `Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md`, `zigux/tests/README.md`, `scripts/zigux/README.md`, the validator scripts, the build entrypoint, and the Make targets still name the same four manifest-backed anchors
   * `zigux/tests/phase13_build.zig` still exposes the same seven-test shared replay inventory or the contributor guidance explains the intentional change
+  * the focused `zigux/tests/phase13_landlock_syscalls_reviewability.zig` shard stays visible as direct helper evidence beside `zigux/tests/phase13_landlock_syscalls.zig` without being miscast as an extra shared replay step
   * the validator-first command order is unchanged across this guide, `scripts/zigux/README.md`, and `zigux/Makefile`
   * the change keeps the shipped release-notes, roadmap-traceability, notifier survey, notifier manifest, and `zigux/tests/phase13_notifier_list_reviewability.zig` evidence truthful without miscasting those surfaces as extra replay steps or omitting them from the broader shared release surface
   * the change does not overstate runtime parity or global Phase 13 closure
