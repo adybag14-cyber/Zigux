@@ -283,6 +283,61 @@ test "phase14 skbuff bridge notes and code agree the live ownership blocker is n
     ) != null);
     try std.testing.expect(std.mem.indexOf(
         u8,
+        survey_note,
+        "named owner: `Core-Adjacent Pod`",
+    ) != null);
+    try std.testing.expect(std.mem.indexOf(
+        u8,
+        survey_note,
+        "status bucket: `freeze_in_c`",
+    ) != null);
+    try std.testing.expect(std.mem.indexOf(
+        u8,
+        survey_note,
+        "validation gate: `zig build test --build-file zigux/tests/phase14_build.zig --summary all` plus `make -C zigux phase14`",
+    ) != null);
+    try std.testing.expect(std.mem.indexOf(
+        u8,
+        survey_note,
+        "rollback owner: `Repo Tooling Pod`",
+    ) != null);
+    try std.testing.expect(std.mem.indexOf(
+        u8,
+        survey_note,
+        "keep this packet in `freeze_in_c` posture",
+    ) != null);
+    try std.testing.expect(std.mem.indexOf(
+        u8,
+        survey_note,
+        "explicit stay-in-C wording for `segs->prev`, `tail->next`, and `validate_xmit_skb_list()`",
+    ) != null);
+    try std.testing.expect(std.mem.indexOf(
+        u8,
+        survey_note,
+        "qdisc-facing publication, queue ownership, skb lifetime ownership, checksum ownership, and destructor coordination remain in C",
+    ) != null);
+    try std.testing.expect(std.mem.indexOf(
+        u8,
+        survey_note,
+        "any edit that drops the named validation gate or rollback owner",
+    ) != null);
+    try std.testing.expect(std.mem.indexOf(
+        u8,
+        survey_note,
+        "missing freeze-in-C or stay-in-C wording for the exported tail-publication checkpoint",
+    ) != null);
+    try std.testing.expect(std.mem.indexOf(
+        u8,
+        survey_note,
+        "any manifest refresh that changes the blocked live-ownership gap without refreshing this survey note",
+    ) != null);
+    try std.testing.expect(std.mem.indexOf(
+        u8,
+        survey_note,
+        "any edit that weakens the explicit no-smaller-follow-up stance and silently implies a fresh skbuff wrapper step",
+    ) != null);
+    try std.testing.expect(std.mem.indexOf(
+        u8,
         slice_note,
         "three-entry concurrency-sensitive checkpoint catalog",
     ) != null);
