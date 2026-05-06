@@ -245,6 +245,13 @@ test "phase11 dw_wdt stop and restart stay bounded to reset-control and non-stop
     try std.testing.expectEqual(@as(u32, 5 * 65_536), runtime.registers.current_count);
     try std.testing.expect(runtime.interrupt_pending);
 
+    runtime = try unstoppable.ping();
+    try std.testing.expect(runtime.running);
+    try std.testing.expect(runtime.hardware_running);
+    try std.testing.expectEqual(dw_wdt.counter_restart_kick_value, runtime.registers.restart);
+    try std.testing.expectEqual(@as(u32, 5 * 65_536), runtime.registers.current_count);
+    try std.testing.expect(runtime.interrupt_pending);
+
     var stoppable = try dw_wdt.DwWdtLab.initFixedTops(65_536, true);
     _ = try stoppable.start();
     _ = stoppable.setCurrentCount(5 * 65_536);
