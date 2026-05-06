@@ -88,6 +88,9 @@ Key entrypoints
   * `zigux/tests/phase15_parity_scorecard.zig`
   * `zigux/tests/phase15_architecture_council_review_process.zig`
   * `zigux/tests/phase15_indefinite_c_policy.zig`
+  * `zigux/tests/phase15_handoff_next_steps.zig`
+  * `zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig`
+  * `zigux/tests/phase15_readiness_gate.zig`
   * `scripts/zigux/validate-phase3.py`
   * `scripts/zigux/validate_phase3_selftest.py`
   * `scripts/zigux/validate-phase4.py`
