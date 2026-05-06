@@ -35,7 +35,7 @@ NOTE_STATIC_MARKERS = [
 ]
 
 EXACT_WORKFLOW_RUN_COUNTS = {
-    "python3 scripts/zigux/check-zig-toolchain.py": 2,
+    "python3 scripts/zigux/check-zig-toolchain.py": 1,
     "python3 scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test": 1,
     "python3 scripts/zigux/check-phase2-toolchain-pin-scope.py": 1,
 }
@@ -488,7 +488,6 @@ def run_self_test() -> int:
             "run: python3 scripts/zigux/install-zig.py --channel 0.17.0-dev.87+9b177a7d2 --dest .zig-toolchain",
             "run: python3 scripts/zigux/install-zig.py --channel 0.17.0-dev.87+9b177a7d2 --dest .zig-toolchain",
             "run: python3 scripts/zigux/check-zig-toolchain.py",
-            "run: python3 scripts/zigux/check-zig-toolchain.py",
             "run: python3 scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test",
             "run: python3 scripts/zigux/check-phase2-toolchain-pin-scope.py",
         ]
@@ -503,14 +502,13 @@ def run_self_test() -> int:
                 "run: python3 scripts/zigux/install-zig.py --channel 0.17.0-dev.87+9b177a7d2 --dest .zig-toolchain",
                 "run: python3 scripts/zigux/check-zig-toolchain.py",
                 "run: python3 scripts/zigux/check-zig-toolchain.py",
-                "run: python3 scripts/zigux/check-zig-toolchain.py",
                 "run: python3 scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test",
                 "run: python3 scripts/zigux/check-phase2-toolchain-pin-scope.py",
             ]
         ),
         payload=valid_policy,
     )
-    if "workflow_exact_run:python3 scripts/zigux/check-zig-toolchain.py:count=3:expected=2" not in workflow_count_issues:
+    if "workflow_exact_run:python3 scripts/zigux/check-zig-toolchain.py:count=2:expected=1" not in workflow_count_issues:
         raise SystemExit("phase2-toolchain-pin-scope:self-test:workflow_count_mismatch")
 
     issues = validate_exact_workflow_runs(
