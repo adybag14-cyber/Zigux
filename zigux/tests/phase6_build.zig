@@ -22,6 +22,19 @@ pub fn build(b: *std.Build) void {
     });
     const run_base64_tests = b.addRunArtifact(base64_tests);
 
+    const base64_perf_root_module = b.createModule(.{
+        .root_source_file = b.path("phase6_base64_perf.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    base64_perf_root_module.addImport("base64", base64_module);
+
+    const base64_perf = b.addExecutable(.{
+        .name = "phase6-base64-perf",
+        .root_module = base64_perf_root_module,
+    });
+    const run_base64_perf = b.addRunArtifact(base64_perf);
+
     const bsearch_module = b.createModule(.{
         .root_source_file = b.path("../../lib/bsearch.zig"),
         .target = target,
@@ -114,6 +127,9 @@ pub fn build(b: *std.Build) void {
     test_step.dependOn(&run_bsearch_tests.step);
     test_step.dependOn(&run_checksum_tests.step);
     test_step.dependOn(&run_hexdump_tests.step);
+
+    const base64_perf_step = b.step("phase6-base64-perf", "Run Phase 6 base64 perf gate");
+    base64_perf_step.dependOn(&run_base64_perf.step);
 
     const checksum_perf_step = b.step("phase6-checksum-perf", "Run Phase 6 checksum perf gate");
     checksum_perf_step.dependOn(&run_checksum_perf.step);
