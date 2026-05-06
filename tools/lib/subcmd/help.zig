@@ -464,6 +464,48 @@ pub fn writePrettyPrintStringListForTerminal(
     try writePrettyPrintWithLayout(writer, cmds, layout);
 }
 
+pub fn longestNameLenAcross(main_cmds: CmdNames, other_cmds: CmdNames) usize {
+    return @max(main_cmds.longestNameLen(), other_cmds.longestNameLen());
+}
+
+fn writeRepeatedByte(writer: anytype, byte: u8, count: usize) !void {
+    if (count == 0) {
+        return;
+    }
+    try writer.splatByteAll(byte, count);
+}
+
+pub fn writeCommandSectionsForTerminal(
+    writer: anytype,
+    title: []const u8,
+    exec_path: []const u8,
+    main_cmds: CmdNames,
+    other_cmds: CmdNames,
+    env_lines: ?[]const u8,
+    env_columns: ?[]const u8,
+    fallback: ?TerminalDimensions,
+) !void {
+    const longest = longestNameLenAcross(main_cmds, other_cmds);
+
+    if (main_cmds.count() != 0) {
+        try writer.print("available {s} in '{s}'\n", .{ title, exec_path });
+        try writer.writeAll("----------------");
+        try writeRepeatedByte(writer, '-', title.len + exec_path.len);
+        try writer.writeByte('\n');
+        try writePrettyPrintStringListForTerminal(writer, main_cmds, longest, env_lines, env_columns, fallback);
+        try writer.writeByte('\n');
+    }
+
+    if (other_cmds.count() != 0) {
+        try writer.print("{s} available from elsewhere on your $PATH\n", .{title});
+        try writer.writeAll("---------------------------------------");
+        try writeRepeatedByte(writer, '-', title.len);
+        try writer.writeByte('\n');
+        try writePrettyPrintStringListForTerminal(writer, other_cmds, longest, env_lines, env_columns, fallback);
+        try writer.writeByte('\n');
+    }
+}
+
 test "addCmdName owns a copied slice and preserves the requested length" {
     var cmds = CmdNames.init(std.testing.allocator);
     defer cmds.deinit();
@@ -761,6 +803,77 @@ test "writePrettyPrintWithLayout keeps sparse rows and the last printed column s
     try std.testing.expectEqualStrings(
         "  alpha  delta  omega\n" ++
             "  beta   gamma\n",
+        rendered.writer.buffered(),
+    );
+}
+
+test "writeCommandSectionsForTerminal renders main and PATH sections with shared longest-name padding" {
+    var main_cmds = CmdNames.init(std.testing.allocator);
+    defer main_cmds.deinit();
+    try main_cmds.addCmdName("stat", 4);
+    try main_cmds.addCmdName("top", 3);
+    main_cmds.sort();
+
+    var other_cmds = CmdNames.init(std.testing.allocator);
+    defer other_cmds.deinit();
+    try other_cmds.addCmdName("annotate", 8);
+    other_cmds.sort();
+
+    var rendered: std.Io.Writer.Allocating = .init(std.testing.allocator);
+    defer rendered.deinit();
+
+    try writeCommandSectionsForTerminal(
+        &rendered.writer,
+        "tools",
+        "/opt/perf/bin",
+        main_cmds,
+        other_cmds,
+        "25",
+        "20",
+        null,
+    );
+
+    try std.testing.expectEqualStrings(
+        "available tools in '/opt/perf/bin'\n" ++
+            "----------------------------------\n" ++
+            "  stat     top\n" ++
+            "\n" ++
+            "tools available from elsewhere on your $PATH\n" ++
+            "--------------------------------------------\n" ++
+            "  annotate\n" ++
+            "\n",
+        rendered.writer.buffered(),
+    );
+}
+
+test "writeCommandSectionsForTerminal skips the main section when it is empty" {
+    var main_cmds = CmdNames.init(std.testing.allocator);
+    defer main_cmds.deinit();
+
+    var other_cmds = CmdNames.init(std.testing.allocator);
+    defer other_cmds.deinit();
+    try other_cmds.addCmdName("trace", 5);
+    other_cmds.sort();
+
+    var rendered: std.Io.Writer.Allocating = .init(std.testing.allocator);
+    defer rendered.deinit();
+
+    try writeCommandSectionsForTerminal(
+        &rendered.writer,
+        "tools",
+        "",
+        main_cmds,
+        other_cmds,
+        "25",
+        "20",
+        null,
+    );
+
+    try std.testing.expectEqualStrings(
+        "tools available from elsewhere on your $PATH\n" ++
+            "--------------------------------------------\n" ++
+            "  trace\n" ++
+            "\n",
         rendered.writer.buffered(),
     );
 }
