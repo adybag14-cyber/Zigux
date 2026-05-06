@@ -133,6 +133,7 @@ test "phase 7 rbtree survey manifest records the landed runtime leaf surface and
     try expectContains(slice_note, "PHASE7_LANE_KEY=P7-Y04");
     try expectContains(slice_note, "erase-and-detach ownership reset via `eraseInit()`");
     try expectContains(slice_note, "detached-node clearing semantics");
+    try expectContains(slice_note, "terminal postorder handoff accepts null input so callers can finish walks without a separate pre-check");
     try expectContains(validate_phase7, "\"scripts/zigux/check-phase7-rbtree-parity.py\",");
     try expectContains(validate_phase7, "\"zigux/tests/phase7_rbtree.zig\",");
     try expectContains(validate_phase7, "\"zigux/tests/phase7_rbtree_survey.zig\",");
@@ -142,6 +143,7 @@ test "phase 7 rbtree survey manifest records the landed runtime leaf surface and
     try expectContains(helper_tests, "phase 7 rbtree eraseInit detaches erased nodes and keeps traversal stable");
     try expectContains(helper_tests, "phase 7 rbtree detached nodes stay non-empty until callers clear them");
     try expectContains(helper_tests, "phase 7 rbtree clearNode marks detached nodes as empty");
+    try expectContains(helper_tests, "try std.testing.expectEqual(@as(?*Node, null), nextPostorder(null));");
 
     try std.testing.expectEqual(manifest.gaps.len, starter_landed_count);
     try std.testing.expect(saw_helper);
