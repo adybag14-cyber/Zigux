@@ -24,7 +24,7 @@ Phase 7 is where Zigux starts moving from earlier standalone helper ports into r
 - benefit from explicit pointer and termination handling
 - can be validated with a focused Zig gate before deeper formatting, escaping, or allocation-backed helpers are attempted
 - keep stronger ownership and pointer discipline explicit through bounded C-string prefix helpers, destination-size accounting, null-sentinel table handling, and Linux-style size rendering cues
-- keep integration with validation substrate explicit through `zigux/tests/phase7_build.zig`, `zigux/tests/phase7_string_helpers_sample_boundary.zig`, `scripts/zigux/validate-phase7.py`, and `make -C zigux phase7`
+- keep integration with validation substrate explicit through `zigux/tests/phase7_build.zig`, the shared `zig build test --build-file zigux/tests/phase7_build.zig --summary all` replay, `zigux/tests/phase7_string_helpers_sample_boundary.zig`, `scripts/zigux/validate-phase7.py`, and `make -C zigux phase7`
 
 This is intentionally not a Phase 5 `samples/zigux/` reference-sample lane.
 
@@ -33,7 +33,7 @@ The Phase 5 roadmap keeps approved reference idioms under four sample anchors in
 ## Gates
 
 1. run the focused Zig Phase 7 helper tests
-- `zig build test --build-file zigux/tests/phase7_build.zig`
+- `zig build test --build-file zigux/tests/phase7_build.zig --summary all`
 
 2. keep the helper wired through the Zigux convenience target
 - `make -C zigux phase7`
