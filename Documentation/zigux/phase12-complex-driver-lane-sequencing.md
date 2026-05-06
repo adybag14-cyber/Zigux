@@ -32,8 +32,8 @@ That asymmetry is honest, but it makes overlap easy unless the lane boundaries s
   The bounded live scope is the landed queue-count reservation, PRP buffer-shape, PRP metadata, and recovery replay packet.
   It stays parked unless the roadmap explicitly approves a transport-facing follow-up beyond that current storage-driver starter.
 - `virtio_scsi` lane:
-  Owns `Documentation/zigux/phase12-virtio-scsi-slice.md`, `Documentation/zigux/phase12-virtio-scsi-survey.md`, `Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md`, `zigux/tests/phase12_virtio_scsi_manifest.json`, `zigux/tests/phase12_virtio_scsi.zig`, and `zigux/tests/phase12_virtio_scsi_survey.zig`.
-  The bounded live scope is the landed queue-layout, probe-config snapshot, and recovery packet, plus the lab-only rollback drill recorded in `Documentation/zigux/phase12-virtio-scsi-slice.md`.
+  Owns `Documentation/zigux/phase12-virtio-scsi-slice.md`, `Documentation/zigux/phase12-virtio-scsi-survey.md`, `Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md`, `zigux/tests/phase12_virtio_scsi_manifest.json`, `zigux/tests/phase12_virtio_scsi.zig`, `zigux/tests/phase12_virtio_scsi_syntax_lab.zig`, and `zigux/tests/phase12_virtio_scsi_survey.zig`.
+  The bounded live scope is the landed queue-layout, probe-config snapshot, direct syntax-lab shard, and recovery packet, plus the lab-only rollback drill recorded in `Documentation/zigux/phase12-virtio-scsi-slice.md`.
   That rollback drill is storage-lane-local evidence, not a shared Phase 12 recovery claim.
 
 ## Shared non-owner surfaces
