@@ -23,6 +23,7 @@ REQUIRED_FILES = [
     "scripts/zigux/check-phase7-make-wrapper.py",
     "scripts/zigux/check-phase7-argv-split-packet.py",
     "scripts/zigux/check-phase7-rbtree-parity.py",
+    "scripts/zigux/check-phase7-build-wiring.py",
     "zigux/Makefile",
     "zigux/tests/README.md",
     "zigux/tests/phase7_build.zig",
@@ -64,6 +65,7 @@ REQUIRED_MARKERS = {
         "`scripts/zigux/check-phase7-make-wrapper.py`",
         "`scripts/zigux/check-phase7-argv-split-packet.py`",
         "`scripts/zigux/check-phase7-rbtree-parity.py`",
+        "`scripts/zigux/check-phase7-build-wiring.py`",
         "`zigux/Makefile`",
         "`zigux/tests/phase7_build.zig`",
         "`zigux/tests/phase7_string_helpers_survey.zig`",
@@ -115,6 +117,7 @@ REQUIRED_MARKERS = {
         "scripts/zigux/check-phase7-make-wrapper.py",
         "scripts/zigux/check-phase7-argv-split-packet.py",
         "scripts/zigux/check-phase7-rbtree-parity.py",
+        "scripts/zigux/check-phase7-build-wiring.py",
         "zigux/tests/phase7_cmdline_survey.zig",
         "zigux/tests/phase7_string_helpers_sample_boundary.zig",
         "zigux/tests/fixtures/phase7_cmdline_next_arg_vectors.zig",
@@ -140,6 +143,10 @@ REQUIRED_MARKERS = {
         "--self-test",
         "PHASE7_RBTREE_PARITY_SELF_TEST=pass",
     ],
+    "scripts/zigux/check-phase7-build-wiring.py": [
+        "--self-test",
+        "PHASE7_BUILD_WIRING_SELF_TEST=pass",
+    ],
     "zigux/tests/README.md": [
         "Documentation/zigux/README.md",
         "scripts/zigux/README.md",
@@ -147,6 +154,7 @@ REQUIRED_MARKERS = {
         "scripts/zigux/check-phase7-make-wrapper.py",
         "scripts/zigux/check-phase7-argv-split-packet.py",
         "scripts/zigux/check-phase7-rbtree-parity.py",
+        "scripts/zigux/check-phase7-build-wiring.py",
         "zigux/Makefile",
         ".github/workflows/zigux-bootstrap.yml",
         "make -C zigux phase7-validate",
@@ -175,6 +183,8 @@ REQUIRED_MARKERS = {
         "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase7-argv-split-packet.py",
         "scripts/zigux/check-phase7-rbtree-parity.py --self-test",
         "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase7-rbtree-parity.py",
+        "scripts/zigux/check-phase7-build-wiring.py --self-test",
+        "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase7-build-wiring.py",
         "phase7-test:",
         "build test --build-file zigux/tests/phase7_build.zig --summary all",
         "phase7: phase7-validate phase7-test",
@@ -251,6 +261,7 @@ EXACT_COUNT_MARKERS = {
         ("`scripts/zigux/check-phase7-make-wrapper.py`", 1),
         ("`scripts/zigux/check-phase7-argv-split-packet.py`", 1),
         ("`scripts/zigux/check-phase7-rbtree-parity.py`", 1),
+        ("`scripts/zigux/check-phase7-build-wiring.py`", 1),
         ("`zigux/tests/phase7_string_helpers_survey.zig`", 1),
         ("`make -C zigux phase7-validate`", 1),
         ("`make -C zigux phase7`", 1),
@@ -270,6 +281,7 @@ EXACT_COUNT_MARKERS = {
         ("scripts/zigux/check-phase7-make-wrapper.py", 1),
         ("scripts/zigux/check-phase7-argv-split-packet.py", 1),
         ("scripts/zigux/check-phase7-rbtree-parity.py", 1),
+        ("scripts/zigux/check-phase7-build-wiring.py", 1),
         ("make -C zigux phase7-validate", 1),
     ],
     "zigux/tests/README.md": [
@@ -279,6 +291,7 @@ EXACT_COUNT_MARKERS = {
         ("`scripts/zigux/check-phase7-make-wrapper.py`", 1),
         ("`scripts/zigux/check-phase7-argv-split-packet.py`", 1),
         ("`scripts/zigux/check-phase7-rbtree-parity.py`", 1),
+        ("`scripts/zigux/check-phase7-build-wiring.py`", 1),
         ("`zigux/Makefile`", 1),
         ("`.github/workflows/zigux-bootstrap.yml`", 1),
         ("`make -C zigux phase7-validate`", 1),
@@ -334,6 +347,10 @@ FIXTURE_OVERRIDES = {
     "lib/cmdline.zig": "// fixture\n",
     "lib/argv_split.zig": "// fixture\n",
     "lib/rbtree.zig": "// fixture\n",
+    "scripts/zigux/check-phase7-build-wiring.py": "\n".join(
+        REQUIRED_MARKERS["scripts/zigux/check-phase7-build-wiring.py"]
+    )
+    + "\n",
 }
 
 
