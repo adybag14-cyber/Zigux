@@ -29,14 +29,18 @@ REQUIRED_MAKEFILE_LINES = (
     "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-kconfig-selftest-alignment.py",
     "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-kconfig-bridge.py --self-test",
     "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-kconfig-bridge.py",
+    "cd $(ZIGUX_ROOT) && $(ZIG) test scripts/zigux/kconfig/conf_bridge.zig",
+    "cd $(ZIGUX_ROOT) && $(ZIG) test scripts/zigux/kconfig/confdata_bridge.zig",
 )
 REQUIRED_WORKFLOW_LINES = (
     "run: python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py --self-test",
     "run: python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py",
     "run: python3 scripts/zigux/check-kconfig-bridge.py --self-test",
     "run: python3 scripts/zigux/check-kconfig-bridge.py",
+    "run: zig test scripts/zigux/kconfig/conf_bridge.zig",
+    "run: zig test scripts/zigux/kconfig/confdata_bridge.zig",
 )
-EXPECTED_SELF_TEST_CASE_COUNT = 14
+EXPECTED_SELF_TEST_CASE_COUNT = 18
 
 
 def read_text(path: Path) -> str:
@@ -152,6 +156,8 @@ def build_self_test_root(root: Path) -> None:
                 "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-kconfig-selftest-alignment.py",
                 "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-kconfig-bridge.py --self-test",
                 "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-kconfig-bridge.py",
+                "\tcd $(ZIGUX_ROOT) && $(ZIG) test scripts/zigux/kconfig/conf_bridge.zig",
+                "\tcd $(ZIGUX_ROOT) && $(ZIG) test scripts/zigux/kconfig/confdata_bridge.zig",
                 "",
             )
         ),
@@ -171,6 +177,10 @@ def build_self_test_root(root: Path) -> None:
                 "        run: python3 scripts/zigux/check-kconfig-bridge.py --self-test",
                 "      - name: Check bounded kconfig bridge parity",
                 "        run: python3 scripts/zigux/check-kconfig-bridge.py",
+                "      - name: Run bounded kconfig bridge unit tests",
+                "        run: zig test scripts/zigux/kconfig/conf_bridge.zig",
+                "      - name: Run bounded confdata bridge unit tests",
+                "        run: zig test scripts/zigux/kconfig/confdata_bridge.zig",
                 "",
             )
         ),
@@ -295,9 +305,32 @@ def run_self_test() -> int:
 
         build_self_test_root(root)
         path = root / MAKEFILE
-        path.write_text(duplicate_exact_line(path.read_text(encoding="utf-8"), REQUIRED_MAKEFILE_LINES[3]), encoding="utf-8")
+        path.write_text(
+            duplicate_exact_line(path.read_text(encoding="utf-8"), REQUIRED_MAKEFILE_LINES[3]),
+            encoding="utf-8",
+        )
         issues = collect_issues(root)
         assert ("DUPLICATE_MAKEFILE_HOOKS", f"{REQUIRED_MAKEFILE_LINES[3]}:count=2") in issues
+        cases += 1
+
+        build_self_test_root(root)
+        path = root / MAKEFILE
+        path.write_text(
+            replace_exact_line(path.read_text(encoding="utf-8"), REQUIRED_MAKEFILE_LINES[4], "\ttrue"),
+            encoding="utf-8",
+        )
+        issues = collect_issues(root)
+        assert ("MISSING_MAKEFILE_HOOKS", REQUIRED_MAKEFILE_LINES[4]) in issues
+        cases += 1
+
+        build_self_test_root(root)
+        path = root / MAKEFILE
+        path.write_text(
+            duplicate_exact_line(path.read_text(encoding="utf-8"), REQUIRED_MAKEFILE_LINES[5]),
+            encoding="utf-8",
+        )
+        issues = collect_issues(root)
+        assert ("DUPLICATE_MAKEFILE_HOOKS", f"{REQUIRED_MAKEFILE_LINES[5]}:count=2") in issues
         cases += 1
 
         build_self_test_root(root)
@@ -312,7 +345,10 @@ def run_self_test() -> int:
 
         build_self_test_root(root)
         path = root / WORKFLOW
-        path.write_text(duplicate_exact_line(path.read_text(encoding="utf-8"), REQUIRED_WORKFLOW_LINES[1]), encoding="utf-8")
+        path.write_text(
+            duplicate_exact_line(path.read_text(encoding="utf-8"), REQUIRED_WORKFLOW_LINES[1]),
+            encoding="utf-8",
+        )
         issues = collect_issues(root)
         assert ("DUPLICATE_WORKFLOW_HOOKS", f"{REQUIRED_WORKFLOW_LINES[1]}:count=2") in issues
         cases += 1
@@ -329,9 +365,32 @@ def run_self_test() -> int:
 
         build_self_test_root(root)
         path = root / WORKFLOW
-        path.write_text(duplicate_exact_line(path.read_text(encoding="utf-8"), REQUIRED_WORKFLOW_LINES[3]), encoding="utf-8")
+        path.write_text(
+            duplicate_exact_line(path.read_text(encoding="utf-8"), REQUIRED_WORKFLOW_LINES[3]),
+            encoding="utf-8",
+        )
         issues = collect_issues(root)
         assert ("DUPLICATE_WORKFLOW_HOOKS", f"{REQUIRED_WORKFLOW_LINES[3]}:count=2") in issues
+        cases += 1
+
+        build_self_test_root(root)
+        path = root / WORKFLOW
+        path.write_text(
+            replace_exact_line(path.read_text(encoding="utf-8"), REQUIRED_WORKFLOW_LINES[4], "        run: zig test scripts/zigux/other.zig"),
+            encoding="utf-8",
+        )
+        issues = collect_issues(root)
+        assert ("MISSING_WORKFLOW_HOOKS", REQUIRED_WORKFLOW_LINES[4]) in issues
+        cases += 1
+
+        build_self_test_root(root)
+        path = root / WORKFLOW
+        path.write_text(
+            duplicate_exact_line(path.read_text(encoding="utf-8"), REQUIRED_WORKFLOW_LINES[5]),
+            encoding="utf-8",
+        )
+        issues = collect_issues(root)
+        assert ("DUPLICATE_WORKFLOW_HOOKS", f"{REQUIRED_WORKFLOW_LINES[5]}:count=2") in issues
         cases += 1
 
     assert cases == EXPECTED_SELF_TEST_CASE_COUNT
