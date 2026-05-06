@@ -8,14 +8,18 @@ This document records the bounded Phase 7 runtime leaf-helper slice for Zigux ar
 - `PHASE7_SLICE=rbtree-runtime-leaf`
 - `PHASE7_LANE_KEY=P7-Y05`
 - scope: first bounded balancing and traversal helpers
+- lane state: helper, fixture, dedicated survey, parity checker, shared validator, and make-wrapper slice landed; parked unless a new `lib/rbtree.c` parity issue appears
 - product boundary:
   - `lib/rbtree.zig`
+  - `scripts/zigux/validate-phase7.py`
+  - `scripts/zigux/check-phase7-rbtree-parity.py`
   - `zigux/tests/phase7_rbtree.zig`
   - `zigux/tests/phase7_rbtree_survey.zig`
   - `zigux/tests/phase7_rbtree_manifest.json`
   - `zigux/tests/phase7_build.zig`
   - `zigux/tests/fixtures/phase7_rbtree.json`
   - `zigux/tests/fixtures/phase7_rbtree_c_harness.c`
+  - `zigux/Makefile`
 
 ## Why this slice exists
 
@@ -30,6 +34,7 @@ This slice stays intentionally narrow and ports the first practical runtime-safe
 - comparison-based plain-tree lookup helpers
 - ordered erase, erase-and-detach, and direct node replacement
 - in-order and postorder traversal helpers
+- shared reviewability through `zigux/tests/phase7_rbtree_survey.zig`, `scripts/zigux/check-phase7-rbtree-parity.py`, `scripts/zigux/validate-phase7.py`, `zigux/tests/phase7_build.zig`, and `make -C zigux phase7`
 
 ## Gates
 
@@ -45,7 +50,15 @@ This slice stays intentionally narrow and ports the first practical runtime-safe
 4. check the committed C parity fixture
 - `python3 scripts/zigux/check-phase7-rbtree-parity.py`
 
-This lane is parked after the bounded helper surface compiled cleanly, the focused module tests passed, the shared Phase 7 helper gate continued to import and exercise the live `rbtree` slice, and the committed parity fixture now locks ordered insert, duplicate-range lookup, replace, reverse traversal, and postorder behavior against the C helper surface. The committed parity fixture is already part of the parked packet, so this slice does not carry an open parity-fixture follow-up.
+5. keep the shared validator-first packet explicit
+- `python3 scripts/zigux/validate-phase7.py`
+- `python3 scripts/zigux/check-phase7-rbtree-parity.py`
+- `make -C zigux phase7-validate`
+
+6. keep the shared Linux-style replay route explicit
+- `make -C zigux phase7`
+
+This lane is parked after the bounded helper surface compiled cleanly, the focused module tests passed, the shared Phase 7 helper gate continued to import and exercise the live `rbtree` slice, the shared validator-first and Linux-style `make -C zigux phase7-validate` plus `make -C zigux phase7` routes stayed aligned around the same parked packet, and the committed parity fixture now locks ordered insert, duplicate-range lookup, replace, reverse traversal, and postorder behavior against the C helper surface. The committed parity fixture is already part of the parked packet, so this slice does not carry an open parity-fixture follow-up.
 
 ## Current parity surface
 
