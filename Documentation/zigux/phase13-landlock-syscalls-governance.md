@@ -61,4 +61,4 @@ It does not transfer ownership of:
 
 ## Next honest follow-up
 
-After the `fop_ruleset_release()` planner, keep this packet parked unless a future lane can add another equally bounded planner without implying live file-operations wiring, FD ownership, credential work, or domain state.
+Keep this packet parked unless a future lane can add another equally bounded planner without implying live file-operations wiring, FD ownership, credential work, or domain state. Do not treat the already-landed `fop_ruleset_release()` planner as permission to imply anonymous inode creation, live FD ownership, or enforcement.
