@@ -26,6 +26,8 @@ REQUIRED_FILES = [
     "tools/lib/zalloc.zig",
     "scripts/zigux/artifact_diff.py",
     "scripts/zigux/check-phase1-parity.py",
+    ".github/workflows/zigux-bootstrap.yml",
+    "zigux-alpha/BOOTSTRAP_COMMIT_LEDGER.md",
     "zigux/tests/build.zig",
     "zigux/tests/README.md",
     "zigux/tests/phase1_helpers.zig",
@@ -635,7 +637,7 @@ def run_self_test() -> None:
         )
 
         make_fixture_root(tmp_root)
-        find_bit_path.write_text(
+        find_bit_path.writeText(
             "\n".join(REQUIRED_FIND_BIT_TEST_ANCHORS[:3] + REQUIRED_FIND_BIT_TEST_ANCHORS[4:]) + "\n",
             encoding="utf-8",
         )
