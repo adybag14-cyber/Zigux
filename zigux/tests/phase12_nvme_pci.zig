@@ -10,6 +10,7 @@ test "phase12 nvme pci descriptor and admin queue plan stay anchored to pci.c" {
     try std.testing.expect(descriptor.provides_queue_count_reservation_helper);
     try std.testing.expect(descriptor.provides_prp_metadata_helper);
     try std.testing.expect(descriptor.provides_recovery_replay_helper);
+    try std.testing.expect(descriptor.provides_recovery_reservation_helper);
     try std.testing.expect(!descriptor.touches_live_dma);
     try std.testing.expect(!descriptor.touches_pci_probe);
     try std.testing.expect(!descriptor.touches_irq_recovery);
@@ -265,6 +266,7 @@ test "phase12 nvme pci recovery replay summary marks cached metadata stale durin
     _ = try lab.planAdminQueue(48, 64, false);
     _ = try lab.planIoQueue(16, 64, false);
     _ = try lab.planIoQueue(32, 64, true);
+    const reservation = try lab.reserveIoQueues(8, 4);
     _ = try lab.planPrpMetadata(8192, 0x180);
 
     _ = lab.beginReset();
@@ -272,16 +274,22 @@ test "phase12 nvme pci recovery replay summary marks cached metadata stale durin
         .cached_prp_metadata_generation = 0,
         .had_prp_metadata_plan = true,
         .had_admin_queue_plan = true,
+        .cached_queue_reservation_generation = 0,
+        .had_io_queue_reservation = true,
+        .cached_reserved_io_queues = reservation.reserved_io_queues,
     });
     try std.testing.expectEqualStrings("drivers/nvme/host/pci.c", frozen_summary.anchor);
     try std.testing.expectEqual(nvme_pci.RecoveryState.reset_frozen, frozen_summary.state);
     try std.testing.expectEqual(@as(u32, 1), frozen_summary.reset_generation);
     try std.testing.expect(frozen_summary.queue_planning_blocked);
     try std.testing.expect(frozen_summary.cached_prp_metadata_stale);
+    try std.testing.expect(frozen_summary.cached_queue_reservation_stale);
+    try std.testing.expect(frozen_summary.queue_reservation_replay_required);
+    try std.testing.expectEqual(@as(usize, 4), frozen_summary.reserved_io_queues_to_renegotiate);
     try std.testing.expect(frozen_summary.admin_queue_must_be_replanned);
     try std.testing.expect(frozen_summary.io_queues_must_be_rebuilt);
-    try std.testing.expectEqual(@as(usize, 2), frozen_summary.io_queues_dropped_by_reset);
-    try std.testing.expectEqual(@as(u16, 3), frozen_summary.next_io_queue_id);
+    try std.testing.expectEqual(@as(usize, 6), frozen_summary.io_queues_dropped_by_reset);
+    try std.testing.expectEqual(@as(u16, 7), frozen_summary.next_io_queue_id);
     try std.testing.expectEqual(@as(u16, 48), frozen_summary.last_admin_queue_depth);
 
     _ = lab.completeReset();
@@ -289,15 +297,48 @@ test "phase12 nvme pci recovery replay summary marks cached metadata stale durin
         .cached_prp_metadata_generation = 0,
         .had_prp_metadata_plan = true,
         .had_admin_queue_plan = true,
+        .cached_queue_reservation_generation = 0,
+        .had_io_queue_reservation = true,
+        .cached_reserved_io_queues = reservation.reserved_io_queues,
     });
     try std.testing.expectEqual(nvme_pci.RecoveryState.running, replay_summary.state);
     try std.testing.expect(!replay_summary.queue_planning_blocked);
     try std.testing.expect(replay_summary.cached_prp_metadata_stale);
+    try std.testing.expect(replay_summary.cached_queue_reservation_stale);
+    try std.testing.expect(replay_summary.queue_reservation_replay_required);
+    try std.testing.expectEqual(@as(usize, 4), replay_summary.reserved_io_queues_to_renegotiate);
     try std.testing.expect(replay_summary.admin_queue_must_be_replanned);
     try std.testing.expect(replay_summary.io_queues_must_be_rebuilt);
-    try std.testing.expectEqual(@as(usize, 2), replay_summary.io_queues_dropped_by_reset);
+    try std.testing.expectEqual(@as(usize, 6), replay_summary.io_queues_dropped_by_reset);
     try std.testing.expectEqual(@as(u16, 1), replay_summary.next_io_queue_id);
     try std.testing.expectEqual(@as(u16, 48), replay_summary.last_admin_queue_depth);
+}
+
+test "phase12 nvme pci recovery replay reservation summary clears after fresh queue negotiation" {
+    var lab = try nvme_pci.NvmePciQueueLab.init(4096, 8);
+    _ = try lab.planAdminQueue(32, 64, false);
+    const reservation = try lab.reserveIoQueues(6, 4);
+    _ = lab.beginReset();
+    _ = lab.completeReset();
+
+    const current_generation = lab.recoverySummary().reset_generation;
+    const refreshed = lab.summarizeRecoveryReplay(.{
+        .cached_prp_metadata_generation = current_generation,
+        .had_prp_metadata_plan = false,
+        .had_admin_queue_plan = false,
+        .cached_queue_reservation_generation = current_generation,
+        .had_io_queue_reservation = true,
+        .cached_reserved_io_queues = reservation.reserved_io_queues,
+    });
+    try std.testing.expectEqual(@as(u32, 1), refreshed.reset_generation);
+    try std.testing.expect(!refreshed.cached_prp_metadata_stale);
+    try std.testing.expect(!refreshed.cached_queue_reservation_stale);
+    try std.testing.expect(!refreshed.queue_reservation_replay_required);
+    try std.testing.expectEqual(@as(usize, 0), refreshed.reserved_io_queues_to_renegotiate);
+    try std.testing.expect(!refreshed.admin_queue_must_be_replanned);
+    try std.testing.expect(refreshed.io_queues_must_be_rebuilt);
+    try std.testing.expectEqual(@as(usize, 4), refreshed.io_queues_dropped_by_reset);
+    try std.testing.expectEqual(@as(u16, 1), refreshed.next_io_queue_id);
 }
 
 test "phase12 nvme pci recovery replay summary clears rollback gate after helper refresh" {
@@ -312,6 +353,9 @@ test "phase12 nvme pci recovery replay summary clears rollback gate after helper
     try std.testing.expectEqual(nvme_pci.RecoveryState.running, before_reset.state);
     try std.testing.expect(!before_reset.queue_planning_blocked);
     try std.testing.expect(!before_reset.cached_prp_metadata_stale);
+    try std.testing.expect(!before_reset.cached_queue_reservation_stale);
+    try std.testing.expect(!before_reset.queue_reservation_replay_required);
+    try std.testing.expectEqual(@as(usize, 0), before_reset.reserved_io_queues_to_renegotiate);
     try std.testing.expect(!before_reset.admin_queue_must_be_replanned);
     try std.testing.expect(!before_reset.io_queues_must_be_rebuilt);
     try std.testing.expectEqual(@as(usize, 0), before_reset.io_queues_dropped_by_reset);
@@ -328,6 +372,9 @@ test "phase12 nvme pci recovery replay summary clears rollback gate after helper
     });
     try std.testing.expectEqual(@as(u32, 1), after_refresh.reset_generation);
     try std.testing.expect(!after_refresh.cached_prp_metadata_stale);
+    try std.testing.expect(!after_refresh.cached_queue_reservation_stale);
+    try std.testing.expect(!after_refresh.queue_reservation_replay_required);
+    try std.testing.expectEqual(@as(usize, 0), after_refresh.reserved_io_queues_to_renegotiate);
     try std.testing.expect(!after_refresh.admin_queue_must_be_replanned);
     try std.testing.expect(!after_refresh.io_queues_must_be_rebuilt);
     try std.testing.expectEqual(@as(usize, 0), after_refresh.io_queues_dropped_by_reset);
@@ -346,6 +393,9 @@ test "phase12 nvme pci recovery replay does not overclaim stale metadata when no
         .had_admin_queue_plan = true,
     });
     try std.testing.expect(!frozen_summary.cached_prp_metadata_stale);
+    try std.testing.expect(!frozen_summary.cached_queue_reservation_stale);
+    try std.testing.expect(!frozen_summary.queue_reservation_replay_required);
+    try std.testing.expectEqual(@as(usize, 0), frozen_summary.reserved_io_queues_to_renegotiate);
     try std.testing.expect(frozen_summary.admin_queue_must_be_replanned);
     try std.testing.expect(frozen_summary.io_queues_must_be_rebuilt);
 
@@ -356,6 +406,9 @@ test "phase12 nvme pci recovery replay does not overclaim stale metadata when no
         .had_admin_queue_plan = true,
     });
     try std.testing.expect(!replay_summary.cached_prp_metadata_stale);
+    try std.testing.expect(!replay_summary.cached_queue_reservation_stale);
+    try std.testing.expect(!replay_summary.queue_reservation_replay_required);
+    try std.testing.expectEqual(@as(usize, 0), replay_summary.reserved_io_queues_to_renegotiate);
     try std.testing.expect(replay_summary.admin_queue_must_be_replanned);
     try std.testing.expect(replay_summary.io_queues_must_be_rebuilt);
     try std.testing.expectEqual(@as(usize, 1), replay_summary.io_queues_dropped_by_reset);
