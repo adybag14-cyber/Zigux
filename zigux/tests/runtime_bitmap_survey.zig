@@ -282,8 +282,19 @@ test "phase 9 runtime bitmap survey source-checks the direct sample evidence pac
     try std.testing.expect(std.mem.indexOf(u8, module_tests, "try std.testing.expectEqual(@as(usize, 4), selftest.operation_families.len);") != null);
     try std.testing.expect(std.mem.indexOf(u8, module_tests, "try std.testing.expectEqual(sample.OperationFamily.summary, selftest.operation_families[2]);") != null);
     try std.testing.expect(std.mem.indexOf(u8, module_tests, "try std.testing.expectEqual(sample.OperationFamily.lifecycle, selftest.operation_families[3]);") != null);
+    try std.testing.expect(std.mem.indexOf(u8, module_tests, "try std.testing.expectEqual(sample.ModuleStage.exited, module.stage());") != null);
+    try std.testing.expect(std.mem.indexOf(u8, module_tests, "try std.testing.expectEqual(@as(usize, 1), module.exit_runs);") != null);
+    try std.testing.expect(std.mem.indexOf(u8, module_tests, "try std.testing.expectError(error.InvalidLifecycleTransition, module.exit());") != null);
     try std.testing.expect(std.mem.indexOf(u8, module_tests, "try std.testing.expectError(error.InvalidLifecycleTransition, module.initWithSetBits(&.{ 1, 2 }));") != null);
     try std.testing.expect(std.mem.indexOf(u8, module_tests, "try std.testing.expectError(error.BitRangeOutOfBounds, module.setRange(sample.RuntimeBitmapSample.bitmap_nbits - 1, 2));") != null);
+    try std.testing.expect(std.mem.indexOf(u8, module_tests, "try std.testing.expectError(error.BitRangeOutOfBounds, module.clearRange(sample.RuntimeBitmapSample.bitmap_nbits, 1));") != null);
+    try std.testing.expect(std.mem.indexOf(u8, module_tests, "const before = module.summary();") != null);
+    try std.testing.expect(std.mem.indexOf(u8, module_tests, "try module.setRange(5, 0);") != null);
+    try std.testing.expect(std.mem.indexOf(u8, module_tests, "try module.clearRange(sample.RuntimeBitmapSample.bitmap_nbits, 0);") != null);
+    try std.testing.expect(std.mem.indexOf(u8, module_tests, "const after = module.summary();") != null);
+    try std.testing.expect(std.mem.indexOf(u8, module_tests, "try std.testing.expectEqual(before.first_set, after.first_set);") != null);
+    try std.testing.expect(std.mem.indexOf(u8, module_tests, "try std.testing.expectEqual(before.first_zero, after.first_zero);") != null);
+    try std.testing.expect(std.mem.indexOf(u8, module_tests, "try std.testing.expectEqual(before.weight, after.weight);") != null);
     try std.testing.expect(std.mem.indexOf(u8, module_tests, "try std.testing.expectError(error.InvalidSourceLifecycle, module.copyFrom(&cold_source));") != null);
     try std.testing.expect(std.mem.indexOf(u8, module_tests, "try std.testing.expectError(error.InvalidSourceLifecycle, module.copyFrom(&exited_source));") != null);
 
