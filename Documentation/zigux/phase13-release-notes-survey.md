@@ -17,6 +17,7 @@ This note records the current shipped Phase 13 release-facing helper packet on `
   - `scripts/zigux/validate-phase13-release.py`
   - `scripts/zigux/check-phase13-devres-packet.py`
   - `make -C zigux phase13-validate`
+  - `zig build test --build-file zigux/tests/phase13_build.zig --summary all`
   - `make -C zigux phase13`
 
 ## Shared release packet
@@ -55,6 +56,6 @@ It remains an active helper-first release packet while these boundaries stay exp
 ## Replay commands
 
 1. `python3 scripts/zigux/validate-phase13-release.py`
-2. `python3 scripts/zigux/check-phase13-devres-packet.py`
+2. `make -C zigux phase13-validate`
 3. `zig build test --build-file zigux/tests/phase13_build.zig --summary all`
 4. `make -C zigux phase13`
