@@ -220,7 +220,7 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
         missing_markers.append("manifest:anchor=drivers/virtio/virtio_input.c")
     if manifest.get("surveyed_commit") != "7361ac51374149a96b7a7a2c6ea3c995d8cc1231":
         missing_markers.append("manifest:surveyed_commit")
-    if manifest.get("roadmap_destinations") != ["drivers/virtio/*.zig", "zigux/helpers/"]:
+    if manifest.get("roadmap_destinations") != ["drivers/virtio/*.zig", "zigux/kernel/", "zigux/helpers/"]:
         missing_markers.append("manifest:roadmap_destinations")
     if manifest.get("freeze_map") != "Documentation/zigux/freeze-map.md":
         missing_markers.append("manifest:freeze_map")
@@ -308,6 +308,7 @@ def run_self_test() -> int:
             raise SystemExit("phase10-input-self-test:expected_lane_key_marker_missing")
         manifest_path.write_text(original_manifest, encoding="utf-8")
 
+        manifest_path.writeText = None
         manifest_path.write_text(
             original_manifest.replace('"freeze_boundary_status": "aligned"', '"freeze_boundary_status": "drifted"', 1),
             encoding="utf-8",
