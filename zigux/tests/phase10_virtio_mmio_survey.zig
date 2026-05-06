@@ -120,6 +120,9 @@ test "phase10 virtio mmio survey manifest records the landed identity-backed pac
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "Allowed roadmap destinations for bounded follow-on work in this blocked packet remain `drivers/virtio/*.zig` plus justified `zigux/kernel/` or `zigux/helpers/` support surfaces; this survey does not claim a wider transport-facing home.") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "Forbidden transport claims remain queue setup or reset paths, IRQ parity, DMA paths, input registration lifecycle, and probe or remove lifecycle behavior.") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "Any status review beyond this blocked-on-risky-transport packet still needs an Architecture Council reopen request with fresh linked evidence attached; this survey does not attach one.") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "scripts/zigux/check-phase10-core-packet.py") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "scripts/zigux/check-phase10-ring-packet.py") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "scripts/zigux/check-phase10-input-packet.py") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "drivers/virtio/virtio_mmio.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "shorter restaged config window clears stale second-word data") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "plans one bounded config-word write") != null);
@@ -130,6 +133,13 @@ test "phase10 virtio mmio survey manifest records the landed identity-backed pac
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "transport-identity summary") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "consumes that identity snapshot") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "justified `zigux/kernel/` or `zigux/helpers/` support surfaces") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "zigux/tests/phase10_virtio_core_reset_queue.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "zigux/tests/phase10_virtio_driver_id.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "zigux/tests/phase10_virtio_input_status_drain.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "zig test zigux/tests/phase10_virtio_mmio_survey.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "zig build test --build-file zigux/tests/phase10_build.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "make -C zigux phase10-test") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "make -C zigux phase10") != null);
     try std.testing.expect(std.mem.indexOf(u8, slice_note, "PHASE10_STATUS=parked") != null);
     try std.testing.expect(std.mem.indexOf(u8, slice_note, "drivers/virtio/virtio_mmio.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, slice_note, "config-word write planning summary") != null);
