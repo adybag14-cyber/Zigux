@@ -200,6 +200,14 @@ test "single-word next scans honor start masks" {
     try std.testing.expectEqual(nbits, findNextAndBit(&and_lhs, &and_rhs, nbits, nbits));
 }
 
+test "zero-bit windows return without reading bitmap words" {
+    const empty = [_]Word{};
+
+    try std.testing.expectEqual(@as(usize, 0), findFirstBit(&empty, 0));
+    try std.testing.expectEqual(@as(usize, 0), findFirstZeroBit(&empty, 0));
+    try std.testing.expectEqual(@as(usize, 0), findFirstAndBit(&empty, &empty, 0));
+}
+
 test "next scans past nbits return without reading bitmap words" {
     const empty = [_]Word{};
 
