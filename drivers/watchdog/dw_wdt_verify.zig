@@ -159,6 +159,22 @@ test "dw_wdt verify keeps teardown split between reset-controlled and unstoppabl
     try std.testing.expect(running_remove.remove_leaves_hardware_running);
 }
 
+test "dw_wdt verify keeps idle remove-time no-reset path from fabricating continued heartbeat" {
+    var watchdog = try dw_wdt.DwWdtLab.initFixedTops(65_536, false);
+
+    const idle_remove = watchdog.removeSummary();
+    try std.testing.expectEqualStrings("drivers/watchdog/dw_wdt.c", idle_remove.anchor);
+    try std.testing.expect(idle_remove.debugfs_clear_requested);
+    try std.testing.expect(idle_remove.unregister_device_requested);
+    try std.testing.expect(!idle_remove.reset_control_available);
+    try std.testing.expect(!idle_remove.reset_assert_requested);
+    try std.testing.expect(!idle_remove.hardware_running_before_remove);
+    try std.testing.expect(!idle_remove.hardware_running_after_remove);
+    try std.testing.expect(!idle_remove.running_after_remove);
+    try std.testing.expect(!idle_remove.interrupt_pending_after_remove);
+    try std.testing.expect(!idle_remove.remove_leaves_hardware_running);
+}
+
 test "dw_wdt verify keeps irq-mode teardown summaries aligned with stop failure semantics" {
     var unstoppable = try dw_wdt.DwWdtLab.initFixedTops(65_536, false);
     _ = try unstoppable.setResponseMode(.irq);
