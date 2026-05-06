@@ -72,6 +72,8 @@ const Fixture = struct {
         remove_spaces: []const u8,
         replace_char: []const u8,
         replace_char_end: usize,
+        replace_char_cstr_end: usize,
+        replace_char_cstr_bytes: []const u8,
         memchr_inv_index: usize,
         memchr_inv_none: bool,
     },
@@ -315,6 +317,16 @@ test "phase 1 helper ports match committed parity fixture" {
         string.replaceChar(replace_buffer[0 .. replace_buffer.len - 1], '-', '_'),
     );
     try std.testing.expectEqualStrings(fixture.string.replace_char, replace_buffer[0..fixture.string.replace_char.len]);
+    var replace_cstr_buffer = [_]u8{ 'a', '-', 0, '-', 'z' };
+    try std.testing.expectEqual(
+        fixture.string.replace_char_cstr_end,
+        string.replaceChar(&replace_cstr_buffer, '-', '_'),
+    );
+    try std.testing.expectEqualSlices(
+        u8,
+        fixture.string.replace_char_cstr_bytes,
+        &replace_cstr_buffer,
+    );
     try std.testing.expectEqual(@as(?usize, fixture.string.memchr_inv_index), string.memchrInv("aaaaXaaa", 'a'));
     try std.testing.expectEqual(
         fixture.string.memchr_inv_none,
