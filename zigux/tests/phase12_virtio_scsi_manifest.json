@@ -78,7 +78,7 @@
       "status": "starter_landed",
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase12_virtio_scsi.zig",
-      "why_now": "Dedicated driver tests now keep the starter honest around queue-count validation, poll-queue clamping, stable global virtqueue indexes, the bounded probe-config snapshot, and the bounded freeze or restore contract for planning and event recycling intent."
+      "why_now": "Dedicated driver tests now keep the starter honest around queue-count validation, poll-queue clamping, stable global virtqueue indexes, repeated transport-reset replanning across recovery generations, the bounded probe-config snapshot, and the bounded freeze or restore contract for planning and event recycling intent."
     },
     {
       "id": "phase12-virtio-scsi-slice-note",
