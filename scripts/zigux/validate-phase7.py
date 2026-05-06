@@ -232,6 +232,7 @@ EXACT_COUNT_MARKERS = {
         ("Documentation/zigux/phase7-argv-split-slice.md", 1),
         ("`scripts/zigux/check-phase7-make-wrapper.py`", 1),
         ("`scripts/zigux/check-phase7-argv-split-packet.py`", 1),
+        ("`scripts/zigux/check-phase7-rbtree-parity.py`", 1),
         ("`make -C zigux phase7-validate`", 1),
         ("`make -C zigux phase7`", 1),
     ],
@@ -246,6 +247,7 @@ EXACT_COUNT_MARKERS = {
     "scripts/zigux/README.md": [
         ("scripts/zigux/check-phase7-make-wrapper.py", 1),
         ("scripts/zigux/check-phase7-argv-split-packet.py", 1),
+        ("scripts/zigux/check-phase7-rbtree-parity.py", 1),
         ("make -C zigux phase7-validate", 1),
     ],
     "zigux/tests/README.md": [
@@ -453,6 +455,7 @@ def run_self_test() -> None:
         ("docs_readme_phase7_notes_exact_count", "Documentation/zigux/README.md", "Phase 7 notes -", "Documentation/zigux/README.md: Phase 7 notes -:expected=1:actual=2"),
         ("docs_readme_phase7_make_wrapper_exact_count", "Documentation/zigux/README.md", "`scripts/zigux/check-phase7-make-wrapper.py`", "Documentation/zigux/README.md: `scripts/zigux/check-phase7-make-wrapper.py`:expected=1:actual=2"),
         ("docs_readme_phase7_argv_split_packet_exact_count", "Documentation/zigux/README.md", "`scripts/zigux/check-phase7-argv-split-packet.py`", "Documentation/zigux/README.md: `scripts/zigux/check-phase7-argv-split-packet.py`:expected=1:actual=2"),
+        ("docs_readme_phase7_rbtree_parity_exact_count", "Documentation/zigux/README.md", "`scripts/zigux/check-phase7-rbtree-parity.py`", "Documentation/zigux/README.md: `scripts/zigux/check-phase7-rbtree-parity.py`:expected=1:actual=2"),
         ("docs_readme_phase7_validate_exact_count", "Documentation/zigux/README.md", "`make -C zigux phase7-validate`", "Documentation/zigux/README.md: `make -C zigux phase7-validate`:expected=1:actual=2"),
         ("docs_readme_phase7_make_exact_count", "Documentation/zigux/README.md", "`make -C zigux phase7`", "Documentation/zigux/README.md: `make -C zigux phase7`:expected=1:actual=2"),
         ("review_checklist_phase7_packet_exact_count", "Documentation/zigux/review-checklist.md", "shared Phase 7 leaf-helper packet", "Documentation/zigux/review-checklist.md: shared Phase 7 leaf-helper packet:expected=1:actual=2"),
@@ -463,6 +466,7 @@ def run_self_test() -> None:
         ("review_checklist_phase7_no_inventory_exact_count", "Documentation/zigux/review-checklist.md", "without implying unshipped `check-phase7-build-inventory.py` or `phase7_build_inventory.json` surfaces?", "Documentation/zigux/review-checklist.md: without implying unshipped `check-phase7-build-inventory.py` or `phase7_build_inventory.json` surfaces?:expected=1:actual=2"),
         ("scripts_readme_make_wrapper_exact_count", "scripts/zigux/README.md", "scripts/zigux/check-phase7-make-wrapper.py", "scripts/zigux/README.md: scripts/zigux/check-phase7-make-wrapper.py:expected=1:actual=2"),
         ("scripts_readme_argv_split_packet_exact_count", "scripts/zigux/README.md", "scripts/zigux/check-phase7-argv-split-packet.py", "scripts/zigux/README.md: scripts/zigux/check-phase7-argv-split-packet.py:expected=1:actual=2"),
+        ("scripts_readme_rbtree_parity_exact_count", "scripts/zigux/README.md", "scripts/zigux/check-phase7-rbtree-parity.py", "scripts/zigux/README.md: scripts/zigux/check-phase7-rbtree-parity.py:expected=1:actual=2"),
         ("scripts_readme_phase7_validate_exact_count", "scripts/zigux/README.md", "make -C zigux phase7-validate", "scripts/zigux/README.md: make -C zigux phase7-validate:expected=1:actual=2"),
         ("tests_readme_phase7_docs_root_exact_count", "zigux/tests/README.md", "`Documentation/zigux/README.md`", "zigux/tests/README.md: `Documentation/zigux/README.md`:expected=1:actual=2"),
         ("tests_readme_phase7_scripts_root_exact_count", "zigux/tests/README.md", "`scripts/zigux/README.md`", "zigux/tests/README.md: `scripts/zigux/README.md`:expected=1:actual=2"),
