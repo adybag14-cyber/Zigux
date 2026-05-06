@@ -26,7 +26,7 @@ Phase 7 is where Zigux starts moving from earlier standalone helper ports into r
 - are runtime-adjacent without entering allocator-heavy or device-heavy paths
 - benefit from explicit pointer and termination handling
 - can be validated with a focused Zig gate before deeper formatting, escaping, or allocation-backed helpers are attempted
-- keep stronger ownership and pointer discipline explicit through bounded C-string prefix helpers, destination-size accounting, null-sentinel table handling, Linux-style size rendering cues, one count-prefixed integer-array starter, and one copied-user-buffer integer-array wrapper
+- keep stronger ownership and pointer discipline explicit through bounded C-string prefix helpers, destination-size accounting, null-sentinel table handling, Linux-style size rendering cues, one count-prefixed integer-array starter, one copied-user-buffer integer-array wrapper, and one duplicated-replacement helper
 - keep integration with validation substrate explicit through `zigux/tests/phase7_build.zig`, the dedicated `zigux/tests/phase7_string_helpers_survey.zig` survey gate, the shared `zig build test --build-file zigux/tests/phase7_build.zig --summary all` replay, `zigux/tests/phase7_string_helpers_sample_boundary.zig`, `scripts/zigux/validate-phase7.py`, and `make -C zigux phase7`
 
 This is intentionally not a Phase 5 `samples/zigux/` reference-sample lane.
@@ -62,6 +62,7 @@ The current starter slice covers:
 - `match_string()`
 - `__sysfs_match_string()`
 - `strreplace()`
+- `kstrdup_and_replace()`
 - `memcpy_and_pad()`
 - `string_is_terminated()`
 - `string_upper()`
@@ -82,6 +83,7 @@ The current tests check:
 - bounded null-sentinel string table matching
 - Linux-style `n = -1` string table scans that stop at the first NULL entry
 - in-place replacement behavior that stops at the first NUL
+- first-NUL-bounded duplicated replacement that returns an owned escaped-for-callers copy without mutating bytes beyond the exported C-string prefix
 - truncation, exact-fit, and padding behavior for fixed-size destinations
 - bounded termination checks that only scan the requested byte window
 - bounded ASCII case conversion that stops at the first NUL
@@ -103,7 +105,7 @@ The current tests check:
 
 This slice does not yet claim:
 
-- the broader allocation-backed duplication and string-array family beyond the current bounded starters
+- the broader allocation-backed duplication and string-array family beyond `kstrdup_and_replace()` and the current bounded starters
 - task-owned, file-owned, or device-managed quotable helper surfaces
 - a new `samples/zigux/` string-helper reference sample
 
@@ -111,4 +113,4 @@ This slice does not yet claim:
 
 Leave this lane parked unless fresh repo inspection finds one more concrete Phase 7 helper need or a renewed Phase 5-versus-Phase 7 boundary drift.
 
-If the string-helper family reopens, prefer one bounded `kstrdup_and_replace()` helper step before broader quotable, allocator-heavy, task-owned, file-owned, or device-managed follow-on work, because the live helper packet already covers the whitespace leaf pair, the dedicated survey gate, the bounded escape subset, `string_get_size()` sizing-path reviewability, the base count-prefixed integer-array starter, the copied-user-buffer integer-array wrapper, and one ownership-safe string-array starter.
+If the string-helper family reopens, prefer one bounded `kstrdup_quotable()` helper step before task-owned, file-owned, or device-managed follow-on work, because the live helper packet now covers the whitespace leaf pair, the dedicated survey gate, the bounded escape subset, `string_get_size()` sizing-path reviewability, the base count-prefixed integer-array starter, the copied-user-buffer integer-array wrapper, one duplicated-replacement helper, and one ownership-safe string-array starter.
