@@ -57,6 +57,7 @@ test "phase 5 kretprobe manifest records the exact bounded checks" {
     try std.testing.expectEqual(@as(usize, 4), manifest.non_goals.len);
 
     var saw_descriptor_prompt = false;
+    var saw_lifecycle_guard_prompt = false;
     var saw_private_data_prompt = false;
     var saw_symbol_prompt = false;
     var saw_ownership_prompt = false;
@@ -73,6 +74,12 @@ test "phase 5 kretprobe manifest records the exact bounded checks" {
         try std.testing.expect(prompt.len > 0);
         if (std.mem.indexOf(u8, prompt, "requires_runtime_substrate false") != null) {
             saw_descriptor_prompt = true;
+        }
+        if (std.mem.indexOf(u8, prompt, "runLifecycleGuardReplay()") != null and
+            std.mem.indexOf(u8, prompt, "pre-init") != null and
+            std.mem.indexOf(u8, prompt, "post-init") != null)
+        {
+            saw_lifecycle_guard_prompt = true;
         }
         if (std.mem.indexOf(u8, prompt, "private entry timestamp") != null and
             std.mem.indexOf(u8, prompt, "my_data") != null)
@@ -141,6 +148,7 @@ test "phase 5 kretprobe manifest records the exact bounded checks" {
     }
 
     try std.testing.expect(saw_descriptor_prompt);
+    try std.testing.expect(saw_lifecycle_guard_prompt);
     try std.testing.expect(saw_private_data_prompt);
     try std.testing.expect(saw_symbol_prompt);
     try std.testing.expect(saw_budget_prompt);
