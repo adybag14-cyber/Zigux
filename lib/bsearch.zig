@@ -237,6 +237,53 @@ fn compareName(key: *const []const u8, item: *const Entry) i32 {
     };
 }
 
+fn binarySearchBudget(len: usize) usize {
+    if (len == 0) {
+        return 0;
+    }
+
+    var budget: usize = 0;
+    var span: usize = 1;
+    while (span < len + 1) : (span <<= 1) {
+        budget += 1;
+    }
+
+    return budget;
+}
+
+fn linearSearchIndex(
+    comptime Key: type,
+    comptime T: type,
+    key: *const Key,
+    items: []const T,
+    compare: anytype,
+) ?usize {
+    for (items, 0..) |_, index| {
+        if (compare(key, &items[index]) == 0) {
+            return index;
+        }
+    }
+
+    return null;
+}
+
+fn linearRawSearchIndexI32(
+    key: *const anyopaque,
+    base: [*]const u8,
+    num_members: usize,
+    member_size: usize,
+    compare: anytype,
+) ?usize {
+    for (0..num_members) |index| {
+        const item: *const anyopaque = @ptrCast(base + (index * member_size));
+        if (compare(key, item) == 0) {
+            return index;
+        }
+    }
+
+    return null;
+}
+
 test "searchIndex finds values at the beginning middle and end of a sorted slice" {
     const values = [_]i32{ 2, 4, 7, 11, 16, 23, 42 };
 
@@ -382,6 +429,37 @@ test "searchIndex keeps representative ascending and descending probes inside a 
     compare_call_count = 0;
     try std.testing.expectEqual(@as(?usize, null), searchIndex(i32, i32, &@as(i32, 26), descending[0..], compareIntDescendingCounted));
     try std.testing.expect(compare_call_count <= 4);
+}
+
+test "searchIndex matches linear equality probes across bounded ascending and descending ranges" {
+    var ascending_storage: [32]i32 = undefined;
+    var descending_storage: [32]i32 = undefined;
+
+    for (0..ascending_storage.len + 1) |len| {
+        for (0..len) |index| {
+            const value = @as(i32, @intCast((index + 1) * 2));
+            ascending_storage[index] = value;
+            descending_storage[len - 1 - index] = value;
+        }
+
+        const ascending = ascending_storage[0..len];
+        const descending = descending_storage[0..len];
+        const budget = binarySearchBudget(len);
+        const max_probe: i32 = if (len == 0) 1 else @as(i32, @intCast((len * 2) + 1));
+
+        var probe: i32 = 1;
+        while (probe <= max_probe) : (probe += 1) {
+            compare_call_count = 0;
+            const expected_ascending = linearSearchIndex(i32, i32, &probe, ascending, compareInt);
+            try std.testing.expectEqual(expected_ascending, searchIndex(i32, i32, &probe, ascending, compareIntCounted));
+            try std.testing.expect(compare_call_count <= budget);
+
+            compare_call_count = 0;
+            const expected_descending = linearSearchIndex(i32, i32, &probe, descending, compareIntDescending);
+            try std.testing.expectEqual(expected_descending, searchIndex(i32, i32, &probe, descending, compareIntDescendingCounted));
+            try std.testing.expect(compare_call_count <= budget);
+        }
+    }
 }
 
 test "raw helpers short-circuit empty input and accept c abi comparator pointers" {
@@ -572,6 +650,43 @@ test "bsearchIndex keeps representative ascending and descending probes inside a
         bsearchIndex(&@as(i32, 26), @ptrCast(descending[0..].ptr), descending.len, @sizeOf(i32), compareOpaqueIntDescendingCounted),
     );
     try std.testing.expect(raw_compare_call_count <= 4);
+}
+
+test "bsearchIndex matches linear equality probes across bounded ascending and descending ranges" {
+    var ascending_storage: [32]i32 = undefined;
+    var descending_storage: [32]i32 = undefined;
+
+    for (0..ascending_storage.len + 1) |len| {
+        for (0..len) |index| {
+            const value = @as(i32, @intCast((index + 1) * 2));
+            ascending_storage[index] = value;
+            descending_storage[len - 1 - index] = value;
+        }
+
+        const ascending = ascending_storage[0..len];
+        const descending = descending_storage[0..len];
+        const budget = binarySearchBudget(len);
+        const max_probe: i32 = if (len == 0) 1 else @as(i32, @intCast((len * 2) + 1));
+
+        var probe: i32 = 1;
+        while (probe <= max_probe) : (probe += 1) {
+            raw_compare_call_count = 0;
+            const expected_ascending = linearRawSearchIndexI32(&probe, @ptrCast(ascending.ptr), ascending.len, @sizeOf(i32), compareOpaqueInt);
+            try std.testing.expectEqual(
+                expected_ascending,
+                bsearchIndex(&probe, @ptrCast(ascending.ptr), ascending.len, @sizeOf(i32), compareOpaqueIntCounted),
+            );
+            try std.testing.expect(raw_compare_call_count <= budget);
+
+            raw_compare_call_count = 0;
+            const expected_descending = linearRawSearchIndexI32(&probe, @ptrCast(descending.ptr), descending.len, @sizeOf(i32), compareOpaqueIntDescending);
+            try std.testing.expectEqual(
+                expected_descending,
+                bsearchIndex(&probe, @ptrCast(descending.ptr), descending.len, @sizeOf(i32), compareOpaqueIntDescendingCounted),
+            );
+            try std.testing.expect(raw_compare_call_count <= budget);
+        }
+    }
 }
 
 test "bsearchMutable returns a mutable pointer to the matching element" {
