@@ -316,6 +316,8 @@ test "phase 8 libbpf survey note stays aligned with the landed helper packet" {
     );
     try expectContains(phase8_note, "make -C zigux phase8-libbpf-segments-test");
     try expectContains(phase8_note, "zig build test --build-file zigux/tests/phase8_libbpf_segments_only_build.zig --summary all");
+    try expectContains(phase8_note, "make -C zigux phase8-file-path-handle-bridge-test");
+    try expectContains(phase8_note, "zig build test --build-file zigux/tests/phase8_file_path_handle_bridge_only_build.zig --summary all");
     try expectContains(phase8_note, "make -C zigux phase8-perf-buffer-poll-test");
     try expectContains(phase8_note, "zig build test --build-file zigux/tests/phase8_perf_buffer_poll_only_build.zig --summary all");
     try expectContains(phase8_note, "make -C zigux phase8-test");
@@ -349,6 +351,7 @@ test "phase 8 libbpf survey note stays aligned with the landed helper packet" {
     try expectContains(bridge_boundary_note, "Documentation/zigux/phase8-perf-buffer-poll-slice.md");
     try expectContains(bridge_boundary_note, "zigux/tests/phase8_perf_buffer_poll.zig");
     try expectContains(bridge_boundary_note, "make -C zigux phase8-validate");
+    try expectContains(bridge_boundary_note, "make -C zigux phase8-file-path-handle-bridge-test");
     try expectContains(bridge_boundary_note, "zig build test --build-file zigux/tests/phase8_file_path_handle_bridge_only_build.zig --summary all");
     try expectContains(bridge_boundary_note, "zig build test --build-file zigux/tests/phase8_perf_buffer_poll_only_build.zig --summary all");
     try expectContains(bridge_boundary_note, "zig build test --build-file zigux/tests/phase8_build.zig --summary all");
