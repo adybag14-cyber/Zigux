@@ -7,6 +7,11 @@ fn runKstrdupQuotableWithFailingAllocator(allocator: std.mem.Allocator, input: ?
     }
 }
 
+fn runKasprintfStrarrayWithFailingAllocator(allocator: std.mem.Allocator, prefix: []const u8, n: usize) !void {
+    var names = try string_helpers.kasprintfStrarray(allocator, prefix, n);
+    defer names.deinit(allocator);
+}
+
 test "phase 7 string helpers module imports cleanly" {
     _ = string_helpers;
 }
@@ -217,6 +222,14 @@ test "phase 7 kasprintfStrarray deinit resets exported views to the zero-count s
     names.deinit(std.testing.allocator);
     try std.testing.expect(names.cArray() == empty.cArray());
     try std.testing.expect(names.names_null_terminated.ptr == empty.names_null_terminated.ptr);
+}
+
+test "phase 7 kasprintfStrarray frees intermediate allocations when setup fails" {
+    try std.testing.checkAllAllocationFailures(
+        std.testing.allocator,
+        runKasprintfStrarrayWithFailingAllocator,
+        .{ "cpu", @as(usize, 3) },
+    );
 }
 
 test "phase 7 kfreeStrarray keeps first-NUL prefixes, zero-count reuse, and repeated teardown safe" {
