@@ -475,7 +475,7 @@ def validate_root(root: Path) -> list[str]:
             [sys.executable, str(root / "scripts" / "zigux" / "check-kconfig-bridge.py"), "--self-test"],
             [
                 "KCONFIG_BRIDGE_SELF_TEST=pass",
-                "KCONFIG_BRIDGE_SELF_TEST_CASE_COUNT=5",
+                "KCONFIG_BRIDGE_SELF_TEST_CASE_COUNT=11",
             ],
         )
     )
@@ -568,7 +568,7 @@ def build_self_test_root(root: Path) -> None:
     write_stub_guard(root / "scripts/zigux/check-phase2-cross-selftest-alignment.py", self_test_marker="PHASE2_CROSS_SELFTEST_ALIGNMENT_SELF_TEST=pass", live_markers=["PHASE2_CROSS_SELFTEST_ALIGNMENT=pass"])
     write_stub_guard(root / "scripts/zigux/check-phase2-toolchain-pin-scope.py", self_test_marker="PHASE2_TOOLCHAIN_PIN_SCOPE_SELF_TEST=pass\nPHASE2_TOOLCHAIN_PIN_SCOPE_SELF_TEST_CASE_COUNT=32", live_markers=["PHASE2_TOOLCHAIN_PIN_SCOPE=pass"])
     write_stub_guard(root / "scripts/zigux/check-phase2-kconfig-selftest-alignment.py", self_test_marker="PHASE2_KCONFIG_ALIGNMENT_SELF_TEST=pass\nPHASE2_KCONFIG_ALIGNMENT_SELF_TEST_CASE_COUNT=8", live_markers=["PHASE2_KCONFIG_ALIGNMENT=pass"])
-    write_stub_guard(root / "scripts/zigux/check-kconfig-bridge.py", self_test_marker="KCONFIG_BRIDGE_SELF_TEST=pass\nKCONFIG_BRIDGE_SELF_TEST_CASE_COUNT=5", live_markers=["KCONFIG_BRIDGE_DIFF=pass"])
+    write_stub_guard(root / "scripts/zigux/check-kconfig-bridge.py", self_test_marker="KCONFIG_BRIDGE_SELF_TEST=pass\nKCONFIG_BRIDGE_SELF_TEST_CASE_COUNT=11", live_markers=["KCONFIG_BRIDGE_DIFF=pass"])
     write_stub_guard(root / "scripts/zigux/check-mk-elfconfig-diff.py", self_test_marker="MK_ELFCONFIG_SELF_TEST=pass\nMK_ELFCONFIG_SELF_TEST_CASE_COUNT=4", live_markers=["MK_ELFCONFIG_DIFF=pass"])
 
 
@@ -724,7 +724,7 @@ def run_self_test() -> int:
         issues = validate_root(root)
         assert "review_exact_marker:zigux/tests/fixtures/phase2_cross_targets.json:count=2:expected=1" in issues
         build_self_test_root(root)
-        write_text(root / "Documentation/zigux/review-checklist.md", build_phase2_review_checklistLine(REQUIRED_REVIEW_MARKERS + [REQUIRED_REVIEW_MARKERS[-1]]))
+        write_text(root / "Documentation/zigux/review-checklist.md", build_phase2_review_checklist_line(REQUIRED_REVIEW_MARKERS + [REQUIRED_REVIEW_MARKERS[-1]]))
         issues = validate_root(root)
         assert "review_exact_marker:make -C zigux phase2:count=2:expected=1" in issues
         build_self_test_root(root)
@@ -762,9 +762,9 @@ def run_self_test() -> int:
         assert "scripts_helper_index:phase2_helper_block" in issues
         build_self_test_root(root)
         checker_path = root / "scripts" / "zigux" / "check-kconfig-bridge.py"
-        write_stub_guard(checker_path, self_test_marker="KCONFIG_BRIDGE_SELF_TEST=pass", live_markers=["KCONFIG_BRIDGE_DIFF=pass"])
+        write_stub_guard(checker_path, self_test_marker="KCONFIG_BRIDGE_SELF_TEST=pass\nKCONFIG_BRIDGE_SELF_TEST_CASE_COUNT=11", live_markers=["KCONFIG_BRIDGE_DIFF=pass"])
         issues = validate_root(root)
-        assert any(issue.startswith("guard_marker:") and "check-kconfig-bridge.py --self-test:KCONFIG_BRIDGE_SELF_TEST_CASE_COUNT=5" in issue for issue in issues)
+        assert any(issue.startswith("guard_marker:") and "check-kconfig-bridge.py --self-test:KCONFIG_BRIDGE_SELF_TEST_CASE_COUNT=11" in issue for issue in issues)
         build_self_test_root(root)
         checker_path = root / "scripts" / "zigux" / "check-mk-elfconfig-diff.py"
         write_stub_guard(checker_path, self_test_marker="MK_ELFCONFIG_SELF_TEST=pass", live_markers=["MK_ELFCONFIG_DIFF=pass"])
