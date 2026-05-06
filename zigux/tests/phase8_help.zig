@@ -235,3 +235,42 @@ test "phase 8 help output emission keeps column-major pretty-printing pure and t
         rendered.writer.buffered(),
     );
 }
+
+test "phase 8 help section rendering keeps the stable main and PATH headings reviewable" {
+    var main_cmds = help.CmdNames.init(std.testing.allocator);
+    defer main_cmds.deinit();
+    try main_cmds.addCmdName("stat", 4);
+    try main_cmds.addCmdName("top", 3);
+    main_cmds.sort();
+
+    var other_cmds = help.CmdNames.init(std.testing.allocator);
+    defer other_cmds.deinit();
+    try other_cmds.addCmdName("annotate", 8);
+    other_cmds.sort();
+
+    var rendered: std.Io.Writer.Allocating = .init(std.testing.allocator);
+    defer rendered.deinit();
+
+    try help.writeCommandSectionsForTerminal(
+        &rendered.writer,
+        "tools",
+        "/opt/perf/bin",
+        main_cmds,
+        other_cmds,
+        "25",
+        "20",
+        null,
+    );
+
+    try std.testing.expectEqualStrings(
+        "available tools in '/opt/perf/bin'\n" ++
+            "----------------------------------\n" ++
+            "  stat     top\n" ++
+            "\n" ++
+            "tools available from elsewhere on your $PATH\n" ++
+            "--------------------------------------------\n" ++
+            "  annotate\n" ++
+            "\n",
+        rendered.writer.buffered(),
+    );
+}
