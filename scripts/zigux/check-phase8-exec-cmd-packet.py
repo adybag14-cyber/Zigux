@@ -12,6 +12,7 @@ ROOT = SELF_PATH.parents[2] if len(SELF_PATH.parents) >= 3 else SELF_PATH.parent
 REQUIRED_FILES = [
     "Documentation/zigux/phase8-exec-cmd-slice.md",
     "Documentation/zigux/review-checklist.md",
+    "scripts/zigux/README.md",
     "zigux/Makefile",
     "zigux/tests/phase8_build.zig",
     "zigux/tests/phase8_exec_cmd.zig",
@@ -33,6 +34,15 @@ REQUIRED_MARKERS = {
         "helper-first, output-stable deferred-exec planning packet",
         "without widening into direct process-launch parity",
         "`kernel/workqueue.c`",
+    ],
+    "scripts/zigux/README.md": [
+        "Phase 8 flow",
+        "scripts/zigux/check-phase8-exec-cmd-packet.py",
+        "Documentation/zigux/phase8-exec-cmd-slice.md",
+        "zigux/tests/phase8_exec_cmd.zig",
+        "zigux/tests/phase8_exec_cmd_only_build.zig",
+        "make -C zigux phase8-validate",
+        "make -C zigux phase8-exec-cmd-test",
     ],
     "zigux/Makefile": [
         "phase8-validate:",
@@ -115,6 +125,7 @@ def run_self_test() -> None:
     missing_file_cases = [
         ("missing_slice", "Documentation/zigux/phase8-exec-cmd-slice.md"),
         ("missing_checklist", "Documentation/zigux/review-checklist.md"),
+        ("missing_scripts_readme", "scripts/zigux/README.md"),
         ("missing_makefile", "zigux/Makefile"),
         ("missing_phase8_build", "zigux/tests/phase8_build.zig"),
         ("missing_exec_cmd_test", "zigux/tests/phase8_exec_cmd.zig"),
@@ -128,6 +139,34 @@ def run_self_test() -> None:
             "PHASE8_SLICE=exec-cmd-deferred-exec-packet",
             "PHASE8_SLICE=exec-cmd-drift",
             "Documentation/zigux/phase8-exec-cmd-slice.md: PHASE8_SLICE=exec-cmd-deferred-exec-packet",
+        ),
+        (
+            "scripts_readme_phase8_flow",
+            "scripts/zigux/README.md",
+            "Phase 8 flow",
+            "Phase 8 route",
+            "scripts/zigux/README.md: Phase 8 flow",
+        ),
+        (
+            "scripts_readme_checker",
+            "scripts/zigux/README.md",
+            "scripts/zigux/check-phase8-exec-cmd-packet.py",
+            "scripts/zigux/check-phase8-exec-cmd-gate.py",
+            "scripts/zigux/README.md: scripts/zigux/check-phase8-exec-cmd-packet.py",
+        ),
+        (
+            "scripts_readme_focused_build",
+            "scripts/zigux/README.md",
+            "zigux/tests/phase8_exec_cmd_only_build.zig",
+            "zigux/tests/phase8_exec_cmd_build.zig",
+            "scripts/zigux/README.md: zigux/tests/phase8_exec_cmd_only_build.zig",
+        ),
+        (
+            "scripts_readme_make_route",
+            "scripts/zigux/README.md",
+            "make -C zigux phase8-exec-cmd-test",
+            "make -C zigux phase8-exec-test",
+            "scripts/zigux/README.md: make -C zigux phase8-exec-cmd-test",
         ),
         (
             "makefile_route",
