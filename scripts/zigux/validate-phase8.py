@@ -63,7 +63,7 @@ REQUIRED_SEGMENTS = {
     "cpu-mask-parsing": "starter_landed",
     "type-name-helpers": "starter_landed",
     "fdinfo-map-info-helpers": "ready_next",
-    "map-reuse-compatibility": "ready_next",
+    "map-reuse-compatibility": "starter_landed",
     "file-path-and-handle-bridge": "deferred_high_risk",
     "perf-buffer-online-cpu-routing": "deferred_high_risk",
     "skeleton-population": "blocked_on_object_model",
