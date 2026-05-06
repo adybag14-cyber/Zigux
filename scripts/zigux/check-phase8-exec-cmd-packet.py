@@ -31,6 +31,7 @@ REQUIRED_MARKERS = {
         "if the change touches the parked Phase 8 `exec-cmd` packet",
         "`make -C zigux phase8-exec-cmd-test`",
         "`make -C zigux phase8-validate`",
+        "`zigux/tests/phase8_exec_cmd_only_build.zig`",
         "helper-first, output-stable deferred-exec planning packet",
         "without widening into direct process-launch parity",
         "`kernel/workqueue.c`",
@@ -188,6 +189,13 @@ def run_self_test() -> None:
             "$(ZIG) build test --build-file zigux/tests/phase8_exec_cmd_only_build.zig --summary all",
             "$(ZIG) build test --build-file zigux/tests/phase8_exec_cmd_build.zig --summary all",
             "zigux/Makefile: $(ZIG) build test --build-file zigux/tests/phase8_exec_cmd_only_build.zig --summary all",
+        ),
+        (
+            "checklist_focused_build_shard",
+            "Documentation/zigux/review-checklist.md",
+            "`zigux/tests/phase8_exec_cmd_only_build.zig`",
+            "`zigux/tests/phase8_exec_cmd_build.zig`",
+            "Documentation/zigux/review-checklist.md: `zigux/tests/phase8_exec_cmd_only_build.zig`",
         ),
         (
             "checklist_boundary",
