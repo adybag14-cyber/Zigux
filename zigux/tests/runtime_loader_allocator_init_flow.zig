@@ -31,6 +31,7 @@ const OwnershipEntry = struct {
 
 const LifecycleBoundarySummary = struct {
     pre_execution_handoff_only: bool,
+    requires_idle_registration_snapshot: bool,
     metadata_only_registration_labels: []const []const u8,
     shared_request_surface: []const u8,
     live_registration_parity: []const u8,
@@ -446,6 +447,8 @@ test "phase 9 runtime loader allocator/init-flow replay keeps exact current init
     try std.testing.expectEqualStrings("samples/trace_events/trace-events-sample.c", trace_events.value.anchor);
     try std.testing.expectEqualStrings("Phase 9", kretprobe.value.phase);
     try std.testing.expectEqualStrings("samples/kprobes/kretprobe_example.c", kretprobe.value.anchor);
+    try std.testing.expectEqual(@as(usize, 4), trace_events.value.delivery_evidence_catalog.len);
+    try std.testing.expectEqual(@as(usize, 6), trace_events.value.ownership_map.len);
 
     const trace_events_survey_note = findDeliveryEvidence(
         trace_events.value.delivery_evidence_catalog,
@@ -549,6 +552,7 @@ test "phase 9 runtime loader allocator/init-flow replay keeps exact current init
     );
 
     try std.testing.expect(kretprobe.value.lifecycle_boundary_summary.pre_execution_handoff_only);
+    try std.testing.expect(kretprobe.value.lifecycle_boundary_summary.requires_idle_registration_snapshot);
     try std.testing.expectEqual(@as(usize, 2), kretprobe.value.lifecycle_boundary_summary.metadata_only_registration_labels.len);
     try std.testing.expectEqualStrings(
         "register_kretprobe",
