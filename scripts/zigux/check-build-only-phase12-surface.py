@@ -460,6 +460,27 @@ def run_self_test() -> int:
             return 1
         closure_path.write_text(original_closure, encoding="utf-8")
 
+        complex_driver_lane_path = root / PHASE12_COMPLEX_DRIVER_LANE_PATH
+        original_complex_driver_lane = complex_driver_lane_path.read_text(encoding="utf-8")
+        broken_complex_driver_lane = original_complex_driver_lane.replace(
+            "- complex-driver scope in this note: `virtio_net`, `nvme_pci`, and `virtio_scsi`\n",
+            "",
+            1,
+        )
+        complex_driver_lane_path.write_text(broken_complex_driver_lane, encoding="utf-8")
+        failures = validate(root)
+        expected = (
+            f"{PHASE12_COMPLEX_DRIVER_LANE_PATH}:"
+            "complex-driver scope in this note: `virtio_net`, `nvme_pci`, and `virtio_scsi`"
+        )
+        if expected not in failures:
+            print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST=fail")
+            print("complex-driver-lane-scope-marker-guard")
+            for failure in failures:
+                print(failure)
+            return 1
+        complex_driver_lane_path.write_text(original_complex_driver_lane, encoding="utf-8")
+
         raw_coverage_path = root / PHASE12_RAW_GITHUB_COVERAGE_PATH
         original_raw_coverage = raw_coverage_path.read_text(encoding="utf-8")
         broken_raw_coverage = original_raw_coverage.replace(
