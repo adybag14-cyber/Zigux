@@ -54,6 +54,7 @@ REQUIRED_HELPERS = (
     "check-build-only-phase12-surface.py",
     "validate-phase13-release.py",
     "check-phase13-devres-packet.py",
+    "check-phase13-landlock-ruleset-packet.py",
     "validate-phase14.py",
     "check-phase14-rollback-threshold-sequencing.py",
     "check-phase14-release-boundary-exact-counts.py",
@@ -136,6 +137,7 @@ PHASE13_VALIDATE_TARGET = "phase13-validate"
 PHASE13_VALIDATE_HELPERS = (
     "validate-phase13-release.py",
     "check-phase13-devres-packet.py",
+    "check-phase13-landlock-ruleset-packet.py",
 )
 PHASE15_VALIDATE_TARGET = "phase15-validate"
 PHASE15_VALIDATE_COMMANDS = (
@@ -157,12 +159,15 @@ REQUIRED_README_SNIPPETS = (
     "- `make -C zigux phase13-validate` keeps that same release packet wired through the Linux-style validation entrypoint.",
 )
 
+
 def _write(path: Path, text: str) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(text, encoding="utf-8", newline="\n")
 
+
 def _read(path: Path) -> str:
     return path.read_text(encoding="utf-8")
+
 
 def _collect_helper_entries(readme: str) -> tuple[list[str], list[str]]:
     found = False
@@ -186,6 +191,7 @@ def _collect_helper_entries(readme: str) -> tuple[list[str], list[str]]:
         issues.append("missing_readme_helper_entries")
     return entries, issues
 
+
 def _collect_makefile_target_lines(makefile: str, target: str) -> list[str] | None:
     in_target = False
     lines: list[str] = []
@@ -201,6 +207,7 @@ def _collect_makefile_target_lines(makefile: str, target: str) -> list[str] | No
         lines.append(raw)
     return lines if in_target else None
 
+
 def _collect_target_helpers(makefile: str, target: str) -> list[str]:
     lines = _collect_makefile_target_lines(makefile, target)
     if lines is None:
@@ -214,6 +221,7 @@ def _collect_target_helpers(makefile: str, target: str) -> list[str]:
         if rel.endswith(".py"):
             helpers.append(Path(rel).name)
     return helpers
+
 
 def _validate_target_helpers(issues: list[str], makefile: str, target: str, required_helpers: tuple[str, ...]) -> None:
     lines = _collect_makefile_target_lines(makefile, target)
@@ -233,6 +241,7 @@ def _validate_target_helpers(issues: list[str], makefile: str, target: str, requ
     if [helper for helper in helpers if helper in required_helpers] != list(required_helpers):
         issues.append(f"makefile_helper_order_drift:{target}")
 
+
 def _validate_target_commands(issues: list[str], makefile: str, target: str, required_commands: tuple[str, ...]) -> None:
     lines = _collect_makefile_target_lines(makefile, target)
     if lines is None:
@@ -251,6 +260,7 @@ def _validate_target_commands(issues: list[str], makefile: str, target: str, req
             issues.append(f"unexpected_makefile_command:{target}:{command}")
     if [command for command in commands if command in required_commands] != expected:
         issues.append(f"makefile_command_order_drift:{target}")
+
 
 def validate(root: Path) -> list[str]:
     issues: list[str] = []
@@ -298,6 +308,7 @@ def validate(root: Path) -> list[str]:
             issues.append(f"unexpected_readme_snippet_count:{count}:{snippet}")
     return issues
 
+
 def _baseline_readme() -> str:
     helper_lines = "\n".join(f"- `{helper}`" for helper in REQUIRED_HELPERS)
     sections = ["# scripts/zigux", "", README_HELPER_SECTION, helper_lines]
@@ -317,6 +328,7 @@ def _baseline_readme() -> str:
         sections.extend(("", title, snippet))
     sections.append("")
     return "\n".join(sections)
+
 
 def _baseline_makefile() -> str:
     return "\n".join((
@@ -405,6 +417,7 @@ def _baseline_makefile() -> str:
             "phase13-validate:",
             "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase13-release.py",
             "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase13-devres-packet.py",
+            "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase13-landlock-ruleset-packet.py",
             "",
             "phase15-validate:",
             "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase15-scripts-readme-alignment.py --self-test",
@@ -414,11 +427,13 @@ def _baseline_makefile() -> str:
             "",
         ))
 
+
 def _assert_only(issues: list[str], expected: list[str], label: str) -> None:
     if issues != expected:
         got = ",".join(issues) or "none"
         want = ",".join(expected) or "none"
         raise SystemExit(f"phase3-readme-tooling-inventory-self-test:{label}:got={got}:want={want}")
+
 
 def run_self_test() -> int:
     case_count = 0
@@ -507,6 +522,7 @@ def run_self_test() -> int:
             ("check-genksyms-crc-diff.py", "missing_phase2_genksyms_crc_diff_repo_file_guard_failed"),
             ("check-mk-elfconfig-diff.py", "missing_phase2_mk_elfconfig_diff_repo_file_guard_failed"),
             ("check-phase13-devres-packet.py", "missing_phase13_devres_packet_repo_file_guard_failed"),
+            ("check-phase13-landlock-ruleset-packet.py", "missing_phase13_landlock_ruleset_packet_repo_file_guard_failed"),
         ):
             path = root / "scripts" / "zigux" / helper
             path.unlink()
@@ -526,6 +542,7 @@ def run_self_test() -> int:
     print(f"PHASE3_README_TOOLING_INVENTORY_SELF_TEST_CASE_COUNT={case_count}")
     return 0
 
+
 def main() -> int:
     parser = argparse.ArgumentParser(description="Keep the scripts/zigux README tooling inventory aligned with the shipped repo-tooling packet.")
     parser.add_argument("--self-test", action="store_true", help="Run isolated checker coverage.")
@@ -543,6 +560,7 @@ def main() -> int:
     print("PHASE3_README_TOOLING_INVENTORY=pass")
     print(f"PHASE3_README_TOOLING_INVENTORY_HELPER_COUNT={len(REQUIRED_HELPERS)}")
     return 0
+
 
 if __name__ == "__main__":
     raise SystemExit(main())
