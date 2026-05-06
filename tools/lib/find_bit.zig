@@ -66,6 +66,10 @@ pub fn findFirstBit(addr: []const Word, nbits: usize) usize {
     return nbits;
 }
 
+pub fn _find_first_bit(addr: []const Word, nbits: usize) usize {
+    return findFirstBit(addr, nbits);
+}
+
 pub fn findFirstAndBit(addr1: []const Word, addr2: []const Word, nbits: usize) usize {
     assertBitmapLen(addr1, nbits);
     assertBitmapLen(addr2, nbits);
@@ -81,6 +85,10 @@ pub fn findFirstAndBit(addr1: []const Word, addr2: []const Word, nbits: usize) u
     return nbits;
 }
 
+pub fn _find_first_and_bit(addr1: []const Word, addr2: []const Word, nbits: usize) usize {
+    return findFirstAndBit(addr1, addr2, nbits);
+}
+
 pub fn findFirstZeroBit(addr: []const Word, nbits: usize) usize {
     assertBitmapLen(addr, nbits);
 
@@ -93,6 +101,10 @@ pub fn findFirstZeroBit(addr: []const Word, nbits: usize) usize {
     }
 
     return nbits;
+}
+
+pub fn _find_first_zero_bit(addr: []const Word, nbits: usize) usize {
+    return findFirstZeroBit(addr, nbits);
 }
 
 pub fn findNextBit(addr: []const Word, nbits: usize, start: usize) usize {
@@ -114,6 +126,10 @@ pub fn findNextBit(addr: []const Word, nbits: usize, start: usize) usize {
     }
 
     return bitIndex(idx, value, nbits);
+}
+
+pub fn _find_next_bit(addr: []const Word, nbits: usize, start: usize) usize {
+    return findNextBit(addr, nbits, start);
 }
 
 pub fn findNextAndBit(addr1: []const Word, addr2: []const Word, nbits: usize, start: usize) usize {
@@ -138,6 +154,10 @@ pub fn findNextAndBit(addr1: []const Word, addr2: []const Word, nbits: usize, st
     return bitIndex(idx, value, nbits);
 }
 
+pub fn _find_next_and_bit(addr1: []const Word, addr2: []const Word, nbits: usize, start: usize) usize {
+    return findNextAndBit(addr1, addr2, nbits, start);
+}
+
 pub fn findNextZeroBit(addr: []const Word, nbits: usize, start: usize) usize {
     if (start >= nbits) {
         return nbits;
@@ -159,6 +179,10 @@ pub fn findNextZeroBit(addr: []const Word, nbits: usize, start: usize) usize {
     return bitIndex(idx, value, nbits);
 }
 
+pub fn _find_next_zero_bit(addr: []const Word, nbits: usize, start: usize) usize {
+    return findNextZeroBit(addr, nbits, start);
+}
+
 pub fn findLastBit(addr: []const Word, nbits: usize) usize {
     assertBitmapLen(addr, nbits);
 
@@ -178,30 +202,6 @@ pub fn findLastBit(addr: []const Word, nbits: usize) usize {
     }
 
     return lastBitIndex(idx, value);
-}
-
-pub fn _find_first_bit(addr: []const Word, nbits: usize) usize {
-    return findFirstBit(addr, nbits);
-}
-
-pub fn _find_first_and_bit(addr1: []const Word, addr2: []const Word, nbits: usize) usize {
-    return findFirstAndBit(addr1, addr2, nbits);
-}
-
-pub fn _find_first_zero_bit(addr: []const Word, nbits: usize) usize {
-    return findFirstZeroBit(addr, nbits);
-}
-
-pub fn _find_next_bit(addr: []const Word, nbits: usize, start: usize) usize {
-    return findNextBit(addr, nbits, start);
-}
-
-pub fn _find_next_and_bit(addr1: []const Word, addr2: []const Word, nbits: usize, start: usize) usize {
-    return findNextAndBit(addr1, addr2, nbits, start);
-}
-
-pub fn _find_next_zero_bit(addr: []const Word, nbits: usize, start: usize) usize {
-    return findNextZeroBit(addr, nbits, start);
 }
 
 test "find first and next set bits across words" {
@@ -230,6 +230,21 @@ test "find and bit returns the first shared set bit" {
 
     try std.testing.expectEqual(@as(usize, 9), findFirstAndBit(&lhs, &rhs, bits_per_long * 2));
     try std.testing.expectEqual(@as(usize, bits_per_long + 2), findNextAndBit(&lhs, &rhs, bits_per_long * 2, 10));
+}
+
+test "underscore entry points reuse the public helper behavior" {
+    const nbits = bits_per_long * 2;
+    const set_map = [_]Word{ (@as(Word, 1) << 5) | (@as(Word, 1) << 9), @as(Word, 1) << 3 };
+    const zero_map = [_]Word{ ~(@as(Word, 1) << 7), ~@as(Word, 0) };
+    const and_lhs = [_]Word{ (@as(Word, 1) << 9), @as(Word, 1) << 3 };
+    const and_rhs = [_]Word{ (@as(Word, 1) << 9), @as(Word, 1) << 3 };
+
+    try std.testing.expectEqual(findFirstBit(&set_map, nbits), _find_first_bit(&set_map, nbits));
+    try std.testing.expectEqual(findFirstZeroBit(&zero_map, nbits), _find_first_zero_bit(&zero_map, nbits));
+    try std.testing.expectEqual(findFirstAndBit(&and_lhs, &and_rhs, nbits), _find_first_and_bit(&and_lhs, &and_rhs, nbits));
+    try std.testing.expectEqual(findNextBit(&set_map, nbits, 6), _find_next_bit(&set_map, nbits, 6));
+    try std.testing.expectEqual(findNextZeroBit(&zero_map, nbits, 7), _find_next_zero_bit(&zero_map, nbits, 7));
+    try std.testing.expectEqual(findNextAndBit(&and_lhs, &and_rhs, nbits, 10), _find_next_and_bit(&and_lhs, &and_rhs, nbits, 10));
 }
 
 test "single-word next scans honor start masks" {
@@ -303,6 +318,15 @@ test "tail mask ignores shared bits beyond nbits" {
 
     lhs[1] &= ~(@as(Word, 1) << 3);
     try std.testing.expectEqual(@as(usize, nbits), findFirstAndBit(&lhs, &rhs, nbits));
+}
+
+test "tail-word next set scans skip earlier in-range matches before clamping" {
+    const nbits = bits_per_long + 6;
+    const tail_map = [_]Word{ 0, (@as(Word, 1) << 1) | (@as(Word, 1) << 4) | (@as(Word, 1) << 9) };
+
+    try std.testing.expectEqual(@as(usize, bits_per_long + 1), findNextBit(&tail_map, nbits, bits_per_long + 1));
+    try std.testing.expectEqual(@as(usize, bits_per_long + 4), findNextBit(&tail_map, nbits, bits_per_long + 2));
+    try std.testing.expectEqual(@as(usize, nbits), findNextBit(&tail_map, nbits, bits_per_long + 5));
 }
 
 test "head-word boundary scans keep the last in-range bit reachable from an inclusive start" {
