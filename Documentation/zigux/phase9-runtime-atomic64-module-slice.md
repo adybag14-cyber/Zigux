@@ -36,6 +36,7 @@ The live Phase 9 tree had already identified `lib/atomic64_test.c` as the runtim
 - a narrow `add_unless` guard-path pilot on top of the existing atomic helpers without pretending broader runtime-substrate support
 - a narrow differential gate under `zigux/tests/runtime_atomic64_diff.zig` for selected exchange, cmpxchg, and `add_unless` expectations
 - a bounded `runtime_atomic64_loader` scaffold that names the planned init and exit handoff, the current atomic64 operation-family summary, the shared `toSharedLoadPlan()` plus `runtime_loader.prepareRequest()` request path, the shared request-surface proof, and the no-substrate release path while the real runtime substrate remains unavailable
+- the shared `zigux/kernel/runtime_loader.zig` facade stays a review-only Phase 9 handoff packet under the freeze map's study-only `kernel/workqueue.c` and `kernel/trace/ring_buffer.c` boundary, so the starter keeps the shared request path explicit without implying scheduler-facing substrate closure or a freeze-map status change
 - dedicated Phase 9 tests, the runtime atomic64 survey note and survey gate, the focused `zig build phase9-runtime-loader-shared-tests --build-file zigux/tests/phase9_build.zig` shard for the shared runtime-loader facade plus allocator/init-flow contract packet, and a `make -C zigux phase9` entry
 
 ## Non-goals
