@@ -112,7 +112,14 @@ REQUIRED_PHASE1_PARITY_REPLAY_MARKERS = [
     "fixture.string.replace_char_end,",
     "fixture.string.memchr_inv_index,",
     "fixture.string.memchr_inv_none,",
+    "fixture.rbtree.empty_root",
+    "fixture.rbtree.insert_order",
+    "fixture.rbtree.reverse_order",
     "fixture.rbtree.replace_order",
+    "fixture.rbtree.erase_init_order",
+    "fixture.rbtree.postorder_count",
+    "fixture.rbtree.erase_init_node_empty",
+    "fixture.rbtree.cleared_node_empty",
 ]
 
 REQUIRED_FIND_BIT_TAIL_CLAMP_FIELDS = [
@@ -551,6 +558,39 @@ def run_self_test() -> None:
 
         make_fixture_root(tmp_root)
         test_path.write_text(
+            "\n".join(
+                REQUIRED_TEST_MARKERS
+                + REQUIRED_PHASE1_PARITY_TEST_ANCHORS
+                + REQUIRED_HELPER_TEST_ANCHORS
+                + [
+                    marker
+                    for marker in REQUIRED_PHASE1_PARITY_REPLAY_MARKERS
+                    if marker != "fixture.rbtree.reverse_order"
+                ]
+            )
+            + "\n",
+            encoding="utf-8",
+        )
+        missing_markers = collect_missing_markers(tmp_root)
+        assert "phase1_parity_replay_marker:fixture.rbtree.reverse_order:expected=1:actual=0" in missing_markers
+
+        make_fixture_root(tmp_root)
+        test_path.write_text(
+            "\n".join(
+                REQUIRED_TEST_MARKERS
+                + REQUIRED_PHASE1_PARITY_TEST_ANCHORS
+                + REQUIRED_HELPER_TEST_ANCHORS
+                + REQUIRED_PHASE1_PARITY_REPLAY_MARKERS
+                + ["fixture.rbtree.reverse_order"]
+            )
+            + "\n",
+            encoding="utf-8",
+        )
+        missing_markers = collect_missing_markers(tmp_root)
+        assert "phase1_parity_replay_marker:fixture.rbtree.reverse_order:expected=1:actual=2" in missing_markers
+
+        make_fixture_root(tmp_root)
+        test_path.write_text(
             "\n".join(REQUIRED_TEST_MARKERS + REQUIRED_PHASE1_PARITY_TEST_ANCHORS) + "\n",
             encoding="utf-8",
         )
@@ -844,7 +884,7 @@ def run_self_test() -> None:
         )
 
         print("PHASE1_VALIDATION_SELF_TEST=pass")
-        print("PHASE1_VALIDATION_SELF_TEST_CASE_COUNT=41")
+        print("PHASE1_VALIDATION_SELF_TEST_CASE_COUNT=43")
 
 
 def main() -> int:
