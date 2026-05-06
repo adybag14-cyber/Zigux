@@ -31,6 +31,7 @@ REQUIRED_MANIFEST_BOUNDARY_MARKERS = [
     "Documentation/zigux/phase15-indefinite-c-policy.md",
     "Documentation/zigux/review-checklist.md",
     "scripts/zigux/README.md",
+    "zigux/tests/README.md",
     "zigux/Makefile",
     ".github/workflows/zigux-bootstrap.yml",
     "scripts/zigux/check-phase15-scripts-readme-alignment.py",
@@ -353,6 +354,7 @@ if the change touches the shared Phase 15 governance packet
                 'Documentation/zigux/phase15-indefinite-c-policy.md, '
                 'Documentation/zigux/review-checklist.md, '
                 'scripts/zigux/README.md, '
+                'zigux/tests/README.md, '
                 'zigux/Makefile, '
                 '.github/workflows/zigux-bootstrap.yml, '
                 'scripts/zigux/check-phase15-scripts-readme-alignment.py, '
@@ -380,7 +382,7 @@ if the change touches the shared Phase 15 governance packet
 Phase 15 flow
 - the current shared Phase 15 governance surface on `master` is `Documentation/zigux/freeze-map.md`, `Documentation/zigux/phase15-freeze-map-governance.md`, `Documentation/zigux/phase15-architecture-council-review-process.md`, `Documentation/zigux/phase15-parity-scorecard.md`, `Documentation/zigux/phase15-indefinite-c-policy.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/check-phase15-review-process-handoff.py`, `zigux/tests/phase15_architecture_council_review_process_manifest.json`, `zigux/tests/phase15_freeze_map_governance.zig`, `zigux/tests/phase15_parity_scorecard.zig`, `zigux/tests/phase15_architecture_council_review_process.zig`, `zigux/tests/phase15_indefinite_c_policy.json`, `zigux/tests/phase15_indefinite_c_policy.zig`, and `zigux/tests/phase15_build.zig`.
 - `check-phase15-review-process-handoff.py` keeps the dedicated review-process note and its manifest-backed handoff evidence aligned around the self-reference, product-boundary, and parked-route markers that keep the Architecture Council packet reviewable without inventing a broader governance surface.
-- `zig build test --build-file zigux/tests/phase15_build.zig` and `make -C zigux phase15` rerun the parked freeze-map governance, Architecture Council review-process, parity-scorecard, and dedicated indefinite-C policy packet without implying any new approval claim for a freeze-map anchor.
+- `zig build test --build-file zigux/tests/phase15_build.zig` and `make -C zigux phase15` rerun the parked freeze-map governance, parity-scorecard, Architecture Council review-process, and dedicated indefinite-C policy packet without implying any new approval claim for a freeze-map anchor.
 """
     (root / SCRIPT_README_PATH).write_text(script_readme, encoding='utf-8')
     tests_readme = """# zigux/tests
@@ -459,6 +461,11 @@ def run_self_test() -> int:
         expect_failure(tmp_root, 'manifest_handoff:scripts/zigux/README.md', 'missing_manifest_scripts_readme_marker')
         write_fixture_tree(tmp_root)
         manifest = json.loads(manifest_path.read_text(encoding='utf-8'))
+        manifest['handoff_evidence']['current_repo_handoff'] = manifest['handoff_evidence']['current_repo_handoff'].replace('zigux/tests/README.md', 'zigux/tests/PHASE15_README.md', 1)
+        manifest_path.write_text(json.dumps(manifest, indent=2) + '\n', encoding='utf-8')
+        expect_failure(tmp_root, 'manifest_handoff:zigux/tests/README.md', 'missing_manifest_tests_readme_marker')
+        write_fixture_tree(tmp_root)
+        manifest = json.loads(manifest_path.read_text(encoding='utf-8'))
         manifest['handoff_evidence']['current_repo_handoff'] = manifest['handoff_evidence']['current_repo_handoff'].replace('.github/workflows/zigux-bootstrap.yml', '.github/workflows/zigux-governance.yml', 1)
         manifest_path.write_text(json.dumps(manifest, indent=2) + '\n', encoding='utf-8')
         expect_failure(tmp_root, 'manifest_handoff:.github/workflows/zigux-bootstrap.yml', 'missing_manifest_workflow_marker')
@@ -524,7 +531,7 @@ def run_self_test() -> int:
         makefile_path.write_text(makefile.replace('cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase15-review-process-handoff.py --self-test\n', '', 1), encoding='utf-8')
         expect_failure(tmp_root, 'makefile:scripts/zigux/check-phase15-review-process-handoff.py --self-test', 'missing_makefile_self_test_marker')
         print('PHASE15_REVIEW_PROCESS_HANDOFF_SELF_TEST=pass')
-        print('PHASE15_REVIEW_PROCESS_HANDOFF_SELF_TEST_CASE_COUNT=22')
+        print('PHASE15_REVIEW_PROCESS_HANDOFF_SELF_TEST_CASE_COUNT=23')
         return 0
 
 def main() -> int:
