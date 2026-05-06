@@ -6,7 +6,7 @@ This document tracks the bounded Phase 8 userspace-adjacent tooling slice for Zi
 
 - `PHASE8_STATUS=parked`
 - `PHASE8_SLICE=libbpf-file-path-handle-bridge`
-- scope: `"/proc/%d/fdinfo/%d"` assembly plus bounded fdinfo text parsing for `map_type`, `key_size`, `value_size`, `max_entries`, and `map_flags` only
+- scope: `"/proc/%d/fdinfo/%d"` assembly plus bounded fdinfo text parsing for `map_type`, `key_size`, `value_size`, `max_entries`, `map_flags`, and `map_extra` only
 - product boundary:
   - `tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig`
   - `zigux/tests/phase8_file_path_handle_bridge.zig`
@@ -47,9 +47,9 @@ The current bounded helper covers:
 
 - exact `"/proc/%d/fdinfo/%d"` pathname assembly for a caller-provided pid and fd
 - bounded line splitting for libbpf-style `field:\tvalue` fdinfo text
-- numeric parsing for `map_type`, `key_size`, `value_size`, `max_entries`, and `map_flags`
+- numeric parsing for `map_type`, `key_size`, `value_size`, `max_entries`, `map_flags`, and `map_extra`
 - `map_flags` parsing that keeps decimal, octal, and hex prefixes explicit
-- compact summary state that tells callers whether all five legacy fdinfo fields were parsed
+- compact summary state that tells callers whether all five legacy fdinfo fields were parsed and whether `map_extra` was present
 - ignored unrelated fdinfo lines so the helper stays smaller than direct file reads
 
 The current tests check:
@@ -58,6 +58,7 @@ The current tests check:
 - explicit invalid pid, invalid fd, and path overflow failures
 - trimmed field-name and field-value parsing
 - complete five-field legacy fdinfo parsing with ignored unrelated lines
+- explicit `map_extra` parsing, including uppercase hex input
 - repeated field handling that keeps the latest parsed value
 - explicit malformed line and malformed integer failures
 - focused build wiring for the new Phase 8 helper packet
