@@ -345,8 +345,12 @@ test "phase 8 libbpf survey note stays aligned with the landed helper packet" {
 
     try expectContains(bridge_boundary_note, "PHASE8_STATUS=parked");
     try expectContains(bridge_boundary_note, "tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig");
+    try expectContains(bridge_boundary_note, "tools/lib/bpf/zigux_segments/perf_buffer_poll.zig");
+    try expectContains(bridge_boundary_note, "Documentation/zigux/phase8-perf-buffer-poll-slice.md");
+    try expectContains(bridge_boundary_note, "zigux/tests/phase8_perf_buffer_poll.zig");
     try expectContains(bridge_boundary_note, "make -C zigux phase8-validate");
     try expectContains(bridge_boundary_note, "zig build test --build-file zigux/tests/phase8_file_path_handle_bridge_only_build.zig --summary all");
+    try expectContains(bridge_boundary_note, "zig build test --build-file zigux/tests/phase8_perf_buffer_poll_only_build.zig --summary all");
     try expectContains(bridge_boundary_note, "zig build test --build-file zigux/tests/phase8_build.zig --summary all");
     try expectContains(bridge_boundary_note, "perf-buffer-online-cpu-routing");
     try expectContains(bridge_boundary_note, "/sys/devices/system/cpu/online");
@@ -357,6 +361,7 @@ test "phase 8 libbpf survey note stays aligned with the landed helper packet" {
     try expectContains(bridge_boundary_note, "perf-buffer ring `mmap()` setup");
     try expectContains(bridge_boundary_note, "`PERF_EVENT_IOC_ENABLE` enablement");
     try expectContains(bridge_boundary_note, "epoll-backed perf FD registration");
-    try expectContains(bridge_boundary_note, "poll waits");
+    try expectContains(bridge_boundary_note, "poll-loop ownership beyond the bounded `perf_buffer__poll(timeout_ms)` helper packet");
+    try expectContains(bridge_boundary_note, "standalone timer or clockevent helper behavior");
     try expectContains(bridge_boundary_note, "fd close or ownership semantics");
 }
