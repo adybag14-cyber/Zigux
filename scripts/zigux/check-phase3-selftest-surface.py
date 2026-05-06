@@ -119,10 +119,21 @@ def exact_marker_count(text: str, marker: str, *, normalized: bool) -> int:
     return count
 
 
-def collect_marker_count_issues(text: str, markers: list[str], *, prefix: str, normalized: bool = True) -> list[str]:
+def substring_marker_count(text: str, marker: str) -> int:
+    return text.count(marker)
+
+
+def collect_marker_count_issues(
+    text: str,
+    markers: list[str],
+    *,
+    prefix: str,
+    normalized: bool = True,
+    substring: bool = False,
+) -> list[str]:
     issues: list[str] = []
     for marker in markers:
-        count = exact_marker_count(text, marker, normalized=normalized)
+        count = substring_marker_count(text, marker) if substring else exact_marker_count(text, marker, normalized=normalized)
         if count == 0:
             issues.append(f"{prefix}:{marker}")
         elif count != 1:
@@ -147,11 +158,11 @@ def validate_root(root: Path) -> list[str]:
     tests_readme = (root / "zigux/tests/README.md").read_text(encoding="utf-8")
     makefile = (root / "zigux/Makefile").read_text(encoding="utf-8")
 
-    issues.extend(collect_marker_count_issues(docs_root, DOCS_ROOT_MARKERS, prefix="docs_root"))
-    issues.extend(collect_marker_count_issues(review, REVIEW_CHECKLIST_MARKERS, prefix="review_checklist"))
+    issues.extend(collect_marker_count_issues(docs_root, DOCS_ROOT_MARKERS, prefix="docs_root", substring=True))
+    issues.extend(collect_marker_count_issues(review, REVIEW_CHECKLIST_MARKERS, prefix="review_checklist", substring=True))
     issues.extend(collect_marker_count_issues(abi_slice, ABI_SLICE_MARKERS, prefix="abi_slice"))
-    issues.extend(collect_marker_count_issues(scripts_readme, SCRIPTS_README_MARKERS, prefix="scripts_readme"))
-    issues.extend(collect_marker_count_issues(tests_readme, TESTS_README_MARKERS, prefix="tests_readme"))
+    issues.extend(collect_marker_count_issues(scripts_readme, SCRIPTS_README_MARKERS, prefix="scripts_readme", substring=True))
+    issues.extend(collect_marker_count_issues(tests_readme, TESTS_README_MARKERS, prefix="tests_readme", substring=True))
     issues.extend(collect_marker_count_issues(makefile, MAKEFILE_MARKERS, prefix="makefile", normalized=False))
     return issues
 
@@ -202,7 +213,16 @@ def run_self_test() -> int:
         build_self_test_root(root)
         write_text(
             root / "Documentation/zigux/README.md",
-            "this sentence mentions scripts/zigux/validate_phase3_selftest.py without making it a marker\n",
+            "The docs-root summary keeps scripts/zigux/validate_phase3_selftest.py visible inside a longer sentence.\n"
+            + "\n".join(DOCS_ROOT_MARKERS[1:])
+            + "\n",
+        )
+        assert validate_root(root) == []
+
+        build_self_test_root(root)
+        write_text(
+            root / "Documentation/zigux/README.md",
+            "this sentence mentions scripts/zigux/validate_phase3_selftest without the .py marker\n",
         )
         issues = validate_root(root)
         assert "docs_root:scripts/zigux/validate_phase3_selftest.py" in issues
@@ -212,6 +232,13 @@ def run_self_test() -> int:
         issues = validate_root(root)
         assert "review_checklist:scripts/zigux/check-phase3-selftest-surface.py" in issues
         assert "review_checklist:make -C zigux phase3-selftest" in issues
+
+        build_self_test_root(root)
+        write_text(
+            root / "Documentation/zigux/review-checklist.md",
+            "\n".join(REVIEW_CHECKLIST_MARKERS[:2] + ["the review packet keeps make -C zigux phase3-selftest visible inside one longer checklist sentence"] + REVIEW_CHECKLIST_MARKERS[3:]) + "\n",
+        )
+        assert validate_root(root) == []
 
         build_self_test_root(root)
         write_text(
@@ -358,7 +385,7 @@ def run_self_test() -> int:
         assert "missing_file:scripts/zigux/validate_phase3_selftest.py" in issues
 
     print("PHASE3_SELFTEST_SURFACE_SELF_TEST=pass")
-    print("PHASE3_SELFTEST_SURFACE_SELF_TEST_CASE_COUNT=16")
+    print("PHASE3_SELFTEST_SURFACE_SELF_TEST_CASE_COUNT=18")
     return 0
 
 
