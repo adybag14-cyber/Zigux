@@ -317,6 +317,32 @@ test "phase 5 kretprobe survey packet stays repo-local and keeps shared review s
         try std.testing.expect(std.mem.indexOf(u8, samples_root, needle) != null);
     }
 
+    const tests_root = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "zigux/tests/README.md",
+        std.testing.allocator,
+        .limited(256 * 1024),
+    );
+    defer std.testing.allocator.free(tests_root);
+
+    const tests_root_markers = [_][]const u8{
+        "keep the landed Phase 5 `kretprobe` packet explicit in the tests root too",
+        "Documentation/zigux/phase5-kretprobe-sample-survey.md",
+        "samples/zigux/kretprobe_example.zig",
+        "zigux/tests/phase5_kretprobe_example_manifest.json",
+        "zigux/tests/phase5_kretprobe_example.zig",
+        "zigux/tests/phase5_kretprobe_example_survey.zig",
+        "pre-init retargeting",
+        "fixed `maxactiveBudget()` cue",
+        "timestamp-order rejection and recovery",
+        "post-exit handler rejection",
+        "Phase 9 `runtime_kretprobe` family",
+    };
+
+    for (tests_root_markers) |needle| {
+        try std.testing.expect(std.mem.indexOf(u8, tests_root, needle) != null);
+    }
+
     const build_zig = try std.Io.Dir.cwd().readFileAlloc(
         io_instance.io(),
         "zigux/tests/phase5_build.zig",
