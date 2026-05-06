@@ -85,7 +85,7 @@ The bounded outcomes for this review process are:
 - every decision must leave a written rationale in a reviewable artifact
 - the lane note must record the current status bucket, the chosen decision bucket, the decision record ID, the owner, the validation gate, the evidence archive path, the latest blocker disposition, the current benchmark-notes status, the replay command, the rollback threshold, the retained discussion state, the reopen triggers, and the rollback owner
 - if the council keeps the code in C, the blocker must remain explicit rather than disappearing into prose
-- if the council keeps the code in C and closes active discussion, the retained discussion state must be `retired_from_active_discussion` and the reopen triggers must stay attached to the evidence archive using one or more catalog items
+- if the council keeps the code in C and closes active discussion, the decision record ID, evidence archive path, latest blocker disposition, replay command, retained discussion state, and reopen triggers must remain explicit; the retained discussion state must be `retired_from_active_discussion`; and the reopen triggers must stay attached to the evidence archive using one or more catalog items
 - if the parity scorecard is missing, the record must say that clearly instead of implying silent approval
 
 ## Reopen Trigger Catalog
