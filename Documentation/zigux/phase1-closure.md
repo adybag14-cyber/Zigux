@@ -115,6 +115,14 @@ That means `test "single-word next scans honor start masks"` stays present and r
 
 - `PHASE1_FIND_BIT_SINGLE_WORD_REVIEW=helper-local single-word next-scan proof stays explicit through the direct find_bit test anchor because the shared Phase 1 parity fixture does not isolate same-word start-mask behavior`
 
+For `tools/lib/find_bit.zig`, reviewers must also keep the helper-local inclusive boundary proof explicit through:
+
+- `tools/lib/find_bit.zig`
+
+That means `test "head-word boundary scans keep the last in-range bit reachable from an inclusive start"` stays present and review-visible whenever `findNextBit()`, `findNextZeroBit()`, or `findNextAndBit()` changes. This helper-local test is the bounded proof that same-word next scans still keep the last live head-word bit reachable when the caller starts exactly on that in-range boundary instead of skipping forward into the next word.
+
+- `PHASE1_FIND_BIT_INCLUSIVE_BOUNDARY_REVIEW=helper-local inclusive boundary proof stays explicit through the direct find_bit test anchor so same-word next scans keep the last in-range head-word bit reachable from an inclusive start`
+
 The shared Phase 1 parity replay for `tools/lib/find_bit.zig` must also keep the tail-clamped `nbits` results explicit through:
 
 - `zigux/tests/fixtures/phase1_helpers.json`
