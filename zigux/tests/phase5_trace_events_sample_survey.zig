@@ -253,6 +253,8 @@ test "phase 5 trace-events survey note stays repo-local and keeps the formatting
     try expectContains(survey_note, surveyed_commit_marker);
     try expectContains(survey_note, "phase5_trace_events_sample_manifest.json");
     try expectContains(survey_note, "phase5_build.zig");
+    try expectContains(survey_note, "`samples/zigux/README.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md`");
+    try expectContains(survey_note, "shared docs-root, sample-root, scripts-root, and tests-root contributor packet should stay explicit here too");
     try expectContains(survey_note, "runtime_trace_events");
     try expectContains(survey_note, "runPayloadBoundaryReplay()");
     try expectContains(survey_note, "private field inspection");
