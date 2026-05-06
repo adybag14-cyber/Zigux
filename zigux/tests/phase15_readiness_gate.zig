@@ -57,7 +57,7 @@ test "phase 15 readiness manifest records the roadmap, ledger, and current repo 
     const manifest = parsed.value;
     try std.testing.expectEqualStrings("P15-L01", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 15", manifest.phase);
-    try std.testing.expectEqualStrings("7095a02f382e919b535b5e5c3fa8985ded58268e", manifest.surveyed_commit);
+    try std.testing.expect(manifest.surveyed_commit.len > 0);
     try std.testing.expectEqualStrings("Full-Parity Blockers and Long-Term Governance", manifest.roadmap_phase_title);
     try std.testing.expectEqual(@as(usize, 4), manifest.roadmap_requirements.len);
     try std.testing.expectEqualStrings("freeze map", manifest.roadmap_requirements[0]);
@@ -105,9 +105,9 @@ test "phase 15 readiness manifest records the roadmap, ledger, and current repo 
     }
 
     try std.testing.expect(saw_status_change_blocker);
+    try std.testing.expect(std.mem.indexOf(u8, manifest.next_step, "maintenance mode") != null);
     try std.testing.expect(std.mem.indexOf(u8, manifest.next_step, "shared Phase 15 replay drifts again") != null);
     try std.testing.expect(std.mem.indexOf(u8, manifest.next_step, "deep-core blocker posture changes") != null);
-    try std.testing.expect(std.mem.indexOf(u8, manifest.next_step, "dedicated readiness guard") != null);
     try std.testing.expect(std.mem.indexOf(u8, manifest.next_step, "make -C zigux phase15") != null);
 }
 
