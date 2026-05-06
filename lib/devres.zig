@@ -5,6 +5,7 @@ pub const ModuleDescriptor = struct {
     anchor: []const u8,
     provides_ioremap_lifetime_planning: bool,
     provides_ioremap_plain_wrapper_planning: bool,
+    provides_ioremap_uc_wrapper_planning: bool,
     provides_ioremap_wc_wrapper_planning: bool,
     provides_release_pointer_match: bool,
     provides_ioremap_resource_planning: bool,
@@ -254,6 +255,7 @@ pub const DevresHelperLab = struct {
             .anchor = "lib/devres.c",
             .provides_ioremap_lifetime_planning = true,
             .provides_ioremap_plain_wrapper_planning = true,
+            .provides_ioremap_uc_wrapper_planning = true,
             .provides_ioremap_wc_wrapper_planning = true,
             .provides_release_pointer_match = true,
             .provides_ioremap_resource_planning = true,
@@ -286,6 +288,14 @@ pub const DevresHelperLab = struct {
     pub fn planManagedIoremapAcquirePlain(input: ManagedIoremapAcquireWrapperInput) !ManagedIoremapAcquireResult {
         return planManagedIoremapAcquire(.{
             .kind = .plain,
+            .release_record_allocated = input.release_record_allocated,
+            .mapped_address = input.mapped_address,
+        });
+    }
+
+    pub fn planManagedIoremapAcquireUc(input: ManagedIoremapAcquireWrapperInput) !ManagedIoremapAcquireResult {
+        return planManagedIoremapAcquire(.{
+            .kind = .uncached,
             .release_record_allocated = input.release_record_allocated,
             .mapped_address = input.mapped_address,
         });
@@ -577,6 +587,35 @@ test "managed ioremap resource exposes owned pretty name cleanup" {
         },
         .err => return error.UnexpectedError,
     }
+}
+
+test "managed ioremap uc wrapper keeps explicit uncached lifetime selection" {
+    const result = try DevresHelperLab.planManagedIoremapAcquireUc(.{
+        .release_record_allocated = true,
+        .mapped_address = 0x2800,
+    });
+
+    try std.testing.expectEqualStrings("lib/devres.c", result.anchor);
+    try std.testing.expectEqual(.uncached, result.kind);
+    try std.testing.expectEqual(@as(?usize, 0x2800), result.mapped_address);
+    try std.testing.expect(result.added_to_devres);
+    try std.testing.expect(result.release_record_retained);
+    try std.testing.expect(!result.release_record_freed);
+    try std.testing.expect(result.should_unmap_on_detach);
+}
+
+test "managed ioremap uc wrapper frees the release record on map failure" {
+    const result = try DevresHelperLab.planManagedIoremapAcquireUc(.{
+        .release_record_allocated = true,
+        .mapped_address = null,
+    });
+
+    try std.testing.expectEqual(.uncached, result.kind);
+    try std.testing.expectEqual(@as(?usize, null), result.mapped_address);
+    try std.testing.expect(!result.added_to_devres);
+    try std.testing.expect(!result.release_record_retained);
+    try std.testing.expect(result.release_record_freed);
+    try std.testing.expect(!result.should_unmap_on_detach);
 }
 
 test "managed ioremap resource wc wrapper keeps explicit wc selection" {
