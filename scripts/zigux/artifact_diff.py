@@ -51,9 +51,11 @@ def compare_artifacts(mode: str, expected: Path, actual: Path) -> tuple[bool, di
         except ValueError as exc:
             details['actual_json_error'] = str(exc)
             return False, details
-    else:
+    elif mode == 'sha256':
         expected_value = sha256_digest(expected)
         actual_value = sha256_digest(actual)
+    else:
+        raise ValueError(f'unsupported artifact diff mode: {mode}')
 
     if mode == 'sha256':
         details['expected_sha256'] = expected_value
@@ -149,6 +151,7 @@ EXPECTED_SELF_TEST_CASES = [
     'sha256_missing_expected',
     'sha256_missing_actual',
     'sha256_missing_both',
+    'invalid_mode_rejected',
 ]
 
 
@@ -556,6 +559,14 @@ def run_self_test() -> int:
             False,
             render_result_lines(matched, details),
         )
+
+        try:
+            compare_artifacts('yaml', text_a, text_b)
+        except ValueError as exc:
+            assert str(exc) == 'unsupported artifact diff mode: yaml'
+        else:
+            raise AssertionError('expected compare_artifacts() to reject unsupported modes')
+        covered_cases.append('invalid_mode_rejected')
 
     if covered_cases != EXPECTED_SELF_TEST_CASES:
         raise AssertionError(
