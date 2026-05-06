@@ -185,6 +185,24 @@ test "phase 6 hexdump grouped ASCII output stays intact when buffer capacity is 
 }
 
 test "phase 6 hexdump covers normalization and empty-buffer edge cases" {
+    const normalized_parity_case = fixtures.parity_cases[7];
+    const uneven_group_parity_case = fixtures.parity_cases[8];
+    const normalized_overflow_case = fixtures.overflow_cases[3];
+    const normalized_length_case = fixtures.length_cases[7];
+    const uneven_group_length_case = fixtures.length_cases[8];
+
+    try std.testing.expectEqualStrings("normalized rowsize and groupsize fallback", normalized_parity_case.name);
+    try std.testing.expectEqualStrings("normalized uneven group fallback", uneven_group_parity_case.name);
+    try std.testing.expectEqualStrings("normalized ascii buffer truncates after fallback formatting", normalized_overflow_case.name);
+    try std.testing.expectEqualStrings("normalized rowsize and groupsize fallback line length", normalized_length_case.name);
+    try std.testing.expectEqualStrings("uneven group fallback line length", uneven_group_length_case.name);
+
+    try assertFixtureParityCase(normalized_parity_case);
+    try assertFixtureParityCase(uneven_group_parity_case);
+    try assertFixtureOverflowCase(normalized_overflow_case);
+    try assertFixtureLengthCase(normalized_length_case);
+    try assertFixtureLengthCase(uneven_group_length_case);
+
     try assertParityCase(0, 16, 1, false);
     try assertParityCase(12, 99, 3, true);
     try assertParityCase(9, 32, 4, false);
