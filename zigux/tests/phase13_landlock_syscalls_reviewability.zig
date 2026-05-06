@@ -65,18 +65,20 @@ test "phase13 landlock syscalls reviewability shard records the shipped direct e
     try std.testing.expect(!descriptor.touches_live_domains);
 
     try expectContains(survey_note, "landed `phase13-landlock-syscalls-governance-note`");
-    try expectContains(survey_note, "ready-next `phase13-landlock-ruleset-release-followup`");
-    try expectContains(survey_note, "next honest syscall-facing step is one tiny planner around `fop_ruleset_release()`");
+    try expectContains(survey_note, "landed `phase13-landlock-ruleset-release-followup`");
+    try expectContains(survey_note, "Do not treat this landed release planner as permission to imply anonymous inode creation, FD ownership, or live enforcement.");
 
     try expectContains(release_note, "`zigux/tests/phase13_landlock_syscalls_reviewability.zig`");
     try expectContains(release_note, "it stays outside that seven-test replay count");
     try expectContains(traceability_note, "`zigux/tests/phase13_landlock_syscalls_reviewability.zig`");
-    try expectContains(traceability_note, "the focused `zigux/tests/phase13_landlock_syscalls_reviewability.zig` direct-evidence shard");
+    try expectContains(traceability_note, "the bounded `fop_ruleset_release()` release-side handoff reviewable");
+    try expectContains(traceability_note, "Keep this packet parked unless a future same-lane step can add another equally bounded planner");
     try expectContains(contributor_guide, "`zigux/tests/phase13_landlock_syscalls_reviewability.zig`");
     try expectContains(contributor_guide, "it does not add an eighth shared replay step");
     try expectContains(governance_note, "SyscallsHelperLab.descriptor()");
     try expectContains(governance_note, "touches_live_fd_table");
     try expectContains(governance_note, "live syscall enforcement");
+    try expectContains(governance_note, "Keep this packet parked unless a future lane can add another equally bounded planner");
     try expectContains(phase13_release_validator, "\"zigux/tests/phase13_landlock_syscalls_reviewability.zig\"");
 
     try std.testing.expect(std.mem.indexOf(u8, phase13_build, "phase13_landlock_syscalls_reviewability") == null);
