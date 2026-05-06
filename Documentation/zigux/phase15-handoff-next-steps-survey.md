@@ -22,12 +22,13 @@ This document records the bounded Phase 15 handoff lane for surveying the remain
 
 ## Current Handoff Surface
 
-- the shared governance packet is present through the freeze map, review-process note, parity scorecard, indefinite-C policy, docs root, workflow, and `make -C zigux phase15`
+- the shared governance packet is present through the freeze map, review checklist, review-process note, parity scorecard, indefinite-C policy, docs root, the scripts root, the tests root, the Phase 15 scripts-root checkers `scripts/zigux/check-phase15-scripts-readme-alignment.py` and `scripts/zigux/check-phase15-review-process-handoff.py`, the validator-first route `make -C zigux phase15-validate`, the shared workflow, and `make -C zigux phase15`
 - this dedicated handoff note, its manifest, and its focused Zig guard are now wired into the shared `zigux/tests/phase15_build.zig` replay so the parked next-step synthesis remains reviewable as a bounded packet
 - the dedicated shared-build handoff replay gap is now closed on current `master`
 - the docs-root pointer back to this handoff packet is now present in current `Documentation/zigux/README.md`
+- the current handoff summary no longer leaves the validator-first route implicit when describing the parked governance packet
 - this packet's lane identity is refreshed to `P15-L08` so the dedicated handoff note matches the active Phase 15 handoff maintenance lane again
-- the parity scorecard, readiness packet, docs root, shared build replay, workflow, and this handoff packet now agree that the remaining blocked work is only the deep-core status-change evidence
+- the parity scorecard, readiness packet, docs root, review checklist, scripts-root validator-first route, shared build replay, workflow, and this handoff packet now agree that the remaining blocked work is only the deep-core status-change evidence
 
 ## Open Handoff Gaps
 
@@ -42,6 +43,8 @@ This document records the bounded Phase 15 handoff lane for surveying the remain
 
 ## Gates
 
-1. `zig test zigux/tests/phase15_handoff_next_steps.zig`
-2. `zig build test --build-file zigux/tests/phase15_build.zig`
-3. `make -C zigux phase15`
+1. `python3 scripts/zigux/check-phase15-scripts-readme-alignment.py`
+2. `zig test zigux/tests/phase15_handoff_next_steps.zig`
+3. `make -C zigux phase15-validate`
+4. `zig build test --build-file zigux/tests/phase15_build.zig`
+5. `make -C zigux phase15`
