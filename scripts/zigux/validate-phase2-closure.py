@@ -329,6 +329,7 @@ def main() -> int:
         'scripts/zigux/check-phase2-toolchain-pin-scope.py',
         'x86_64-linux',
         'PHASE2_CLOSURE_GATE=python3 scripts/zigux/validate-phase2-closure.py',
+        'PHASE2_FIXDEP_EMBEDDED_NUL_GUARD=fixdep.zig truncates depfile parsing at the first embedded NUL and keeps dep parsing skips bytes after the first embedded NUL as the bounded parser guard',
         'PHASE2_ROLLBACK=keep C kbuild tools authoritative and remove failing Zigux bridge/tool from workflow wiring',
     ]
     required_closure_markers.extend(PHASE2_CROSS_ALIGNMENT_REQUIRED_SOURCE_MARKERS)
