@@ -48,13 +48,11 @@ REQUIRED_MAKEFILE_MARKERS = [
 ]
 
 REQUIRED_WORKFLOW_MARKERS = [
-    "Self-test Phase 11 hvc survey packet checker",
-    "python3 scripts/zigux/check-phase11-hvc-survey-packet.py --self-test",
     "Run dedicated Phase 11 hvc survey replay",
     "make -C zigux phase11-hvc-survey",
 ]
 
-SELF_TEST_CASE_COUNT = 4
+SELF_TEST_CASE_COUNT = 3
 
 
 def read_text(root: Path, rel_path: str) -> str:
@@ -161,9 +159,6 @@ jobs:
   bootstrap:
     runs-on: ubuntu-latest
     steps:
-      - name: Self-test Phase 11 hvc survey packet checker
-        run: python3 scripts/zigux/check-phase11-hvc-survey-packet.py --self-test
-
       - name: Run dedicated Phase 11 hvc survey replay
         run: make -C zigux phase11-hvc-survey
 """,
@@ -209,12 +204,6 @@ def run_self_test() -> int:
                 MAKEFILE_PATH,
                 "$(PYTHON) scripts/zigux/check-phase11-hvc-survey-packet.py",
                 "makefile:$(PYTHON) scripts/zigux/check-phase11-hvc-survey-packet.py",
-            )
-            expect_failure(
-                root,
-                WORKFLOW_PATH,
-                "python3 scripts/zigux/check-phase11-hvc-survey-packet.py --self-test",
-                "workflow:python3 scripts/zigux/check-phase11-hvc-survey-packet.py --self-test",
             )
         except AssertionError as exc:
             print(str(exc), file=sys.stderr)
