@@ -135,6 +135,42 @@ test "phase10 virtio mmio plans a bounded config-word write without mutating con
     try std.testing.expectError(error.ConfigWindowReadOutOfRange, device.planConfigWriteOffset(virtio_mmio.mmio_window_bytes + 8, 0));
 }
 
+test "phase10 virtio mmio summarizes a planned config-word write disposition without mutating config space" {
+    var device = try virtio_mmio.VirtioMmioLab.init(54, &[_]u16{ 8, 16 });
+
+    try device.stageConfigBytes(&[_]u8{
+        0x78, 0x56, 0x34, 0x12,
+        0xef, 0xcd, 0xab, 0x90,
+    });
+    device.bumpConfigGeneration();
+
+    try std.testing.expectError(error.ConfigWritePlanUnavailable, device.configWriteDispositionSummary());
+
+    const plan = try device.planConfigWriteOffset(virtio_mmio.mmio_window_bytes + 4, 0x1122_3344);
+    try std.testing.expectEqual(@as(u32, 1), plan.config_generation);
+
+    const disposition = try device.configWriteDispositionSummary();
+    try std.testing.expectEqualStrings("drivers/virtio/virtio_mmio.c", disposition.anchor);
+    try std.testing.expectEqual(virtio_mmio.mmio_window_bytes + 4, disposition.absolute_offset);
+    try std.testing.expectEqual(@as(u32, 4), disposition.relative_offset);
+    try std.testing.expectEqual(virtio_mmio.mmio_window_bytes + 8, disposition.end_offset);
+    try std.testing.expectEqual(@as(u32, 1), disposition.config_generation);
+    try std.testing.expectEqual(@as(u32, 0x90ab_cdef), disposition.previous_value);
+    try std.testing.expectEqual(@as(u32, 0x1122_3344), disposition.planned_value);
+    try std.testing.expectEqual(@as(u8, 0b1111), disposition.changed_byte_mask);
+
+    const config_summary = try device.readConfigOffset(virtio_mmio.mmio_window_bytes + 4);
+    try std.testing.expectEqual(@as(u32, 0x90ab_cdef), config_summary.value);
+    try std.testing.expectEqual(@as(u32, 1), config_summary.config_generation);
+
+    _ = try device.planConfigWriteOffset(virtio_mmio.mmio_window_bytes + 4, 0x90ab_cdef);
+    const same_value = try device.configWriteDispositionSummary();
+    try std.testing.expectEqual(@as(u8, 0), same_value.changed_byte_mask);
+
+    device.bumpConfigGeneration();
+    try std.testing.expectError(error.ConfigWritePlanUnavailable, device.configWriteDispositionSummary());
+}
+
 test "phase10 virtio mmio summarizes bounded probe preflight readiness before lifecycle work" {
     var device = try virtio_mmio.VirtioMmioLab.init(55, &[_]u16{ 8, 16 });
 
