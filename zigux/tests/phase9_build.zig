@@ -271,6 +271,7 @@ pub fn build(b: *std.Build) void {
         .root_module = runtime_atomic64_survey_module,
     });
     const run_runtime_atomic64_survey_tests = b.addRunArtifact(runtime_atomic64_survey_tests);
+    run_runtime_atomic64_survey_tests.setCwd(b.path("../.."));
     const runtime_bitmap_survey_tests = b.addTest(.{
         .name = "phase9-runtime-bitmap-survey-tests",
         .root_module = runtime_bitmap_survey_module,
