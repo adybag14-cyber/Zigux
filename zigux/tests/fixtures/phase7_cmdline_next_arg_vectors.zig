@@ -36,10 +36,10 @@ pub const next_arg_cases = [_]NextArgCase{
         .expected_rest = "next",
     },
     .{
-        .name = "quoted bare token with equals stays unsplit",
+        .name = "leading quoted token with equals splits like Linux",
         .input = "\"key=value\" next",
-        .expected_param = "key=value",
-        .expected_value = null,
+        .expected_param = "key",
+        .expected_value = "value",
         .expected_rest = "next",
     },
     .{
