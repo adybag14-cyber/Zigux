@@ -106,7 +106,6 @@ def run_self_test() -> int:
         )
 
         broken_smoke_path = root / "Documentation/zigux/phase14-end-to-end-smoke-survey.md"
-        broken_smoke_path.writeText = None
         broken_smoke_path.write_text(
             broken_smoke_path.read_text(encoding="utf-8").replace(
                 "- `zigux/tests/phase14_rcu_tree_manifest.json`\n",
