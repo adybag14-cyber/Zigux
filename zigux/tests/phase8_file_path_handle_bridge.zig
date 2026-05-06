@@ -31,6 +31,7 @@ test "phase 8 file-path handle bridge docs keep the bounded fdinfo helper explic
     try expectContains(note, "value_size");
     try expectContains(note, "max_entries");
     try expectContains(note, "map_flags");
+    try expectContains(note, "map_extra");
     try expectContains(note, "no direct procfs reads");
     try expectContains(note, "no `fopen()` or `fgets()` parity");
     try expectContains(note, "no `bpf_map_get_info_by_fd()` fallback control flow");
@@ -109,13 +110,16 @@ test "phase 8 file-path handle bridge helper keeps fdinfo map info parsing compa
         \\value_size: 16
         \\max_entries: 1024
         \\map_flags: 0x20
+        \\map_extra: 0X2A
     );
     const summary = file_path_handle_bridge.summarizeFdinfoMapInfo(parsed);
 
     try std.testing.expectEqual(@as(?u32, 5), parsed.map_type);
     try std.testing.expectEqual(@as(?u32, 0x20), parsed.map_flags);
-    try std.testing.expectEqual(@as(usize, 5), summary.parsed_field_count);
+    try std.testing.expectEqual(@as(?u64, 42), parsed.map_extra);
+    try std.testing.expectEqual(@as(usize, 6), summary.parsed_field_count);
     try std.testing.expect(summary.has_complete_legacy_fields);
+    try std.testing.expect(summary.has_map_extra);
 }
 
 test "phase 8 file-path handle bridge helper keeps malformed fdinfo values explicit" {
@@ -124,6 +128,10 @@ test "phase 8 file-path handle bridge helper keeps malformed fdinfo values expli
     try std.testing.expectError(
         error.InvalidInteger,
         file_path_handle_bridge.applyFdinfoMapInfoLine(&info, "map_flags:\t-1"),
+    );
+    try std.testing.expectError(
+        error.InvalidInteger,
+        file_path_handle_bridge.applyFdinfoMapInfoLine(&info, "map_extra:\tnope"),
     );
     try std.testing.expectError(
         error.MissingSeparator,
