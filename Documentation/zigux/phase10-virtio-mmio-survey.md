@@ -34,6 +34,8 @@ The current MMIO packet stays aligned with `Documentation/zigux/freeze-map.md` b
 
 Allowed evidence for this lane remains limited to driver-local lab slices, survey manifests, and shared validation gates.
 
+Allowed roadmap destinations for bounded follow-on work in this blocked packet remain `drivers/virtio/*.zig` plus justified `zigux/kernel/` or `zigux/helpers/` support surfaces; this survey does not claim a wider transport-facing home.
+
 Forbidden transport claims remain queue setup or reset paths, IRQ parity, DMA paths, input registration lifecycle, and probe or remove lifecycle behavior.
 
 Any status review beyond this blocked-on-risky-transport packet still needs an Architecture Council reopen request with fresh linked evidence attached; this survey does not attach one.
