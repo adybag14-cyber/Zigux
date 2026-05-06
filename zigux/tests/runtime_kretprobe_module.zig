@@ -132,3 +132,57 @@ test "runtime kretprobe sample preserves summary state across failed exit until 
     try module.exit();
     try std.testing.expectEqual(sample.ModuleStage.exited, module.stage());
 }
+
+test "runtime kretprobe sample preserves selftest-ready failed-exit summary state until the active probe drains" {
+    var module = sample.RuntimeKretprobeSample{};
+    try module.init();
+
+    const selftest_summary = try module.runSelftest();
+    try std.testing.expectEqual(sample.ModuleStage.selftest_complete, module.stage());
+    try std.testing.expectEqualStrings(sample.RuntimeKretprobeSample.default_symbol_name, selftest_summary.symbol_name);
+    try std.testing.expectEqual(@as(usize, 42), selftest_summary.last_retval);
+    try std.testing.expectEqual(@as(i64, 75), selftest_summary.last_duration_ns);
+    try std.testing.expectEqual(@as(usize, 1), selftest_summary.nmissed);
+
+    try std.testing.expect(try module.entryHandler(true, 400));
+
+    const summary_before_failed_exit = module.summary();
+    try std.testing.expectEqual(sample.ModuleStage.selftest_complete, module.stage());
+    try std.testing.expectEqual(@as(usize, 1), summary_before_failed_exit.active_instances);
+    try std.testing.expectEqual(@as(usize, 1), summary_before_failed_exit.skipped_kernel_threads);
+    try std.testing.expectEqual(@as(usize, 1), summary_before_failed_exit.nmissed);
+    try std.testing.expectEqual(@as(usize, 42), summary_before_failed_exit.last_retval);
+    try std.testing.expectEqual(@as(i64, 75), summary_before_failed_exit.last_duration_ns);
+    try std.testing.expectEqual(@as(usize, 1), summary_before_failed_exit.selftest_runs);
+    try std.testing.expect(summary_before_failed_exit.entry_timestamp_armed);
+
+    try std.testing.expectError(error.OutstandingProbeInstance, module.exit());
+    try std.testing.expectEqual(sample.ModuleStage.selftest_complete, module.stage());
+
+    const summary_after_failed_exit = module.summary();
+    try std.testing.expectEqualStrings(summary_before_failed_exit.symbol_name, summary_after_failed_exit.symbol_name);
+    try std.testing.expectEqual(summary_before_failed_exit.maxactive, summary_after_failed_exit.maxactive);
+    try std.testing.expectEqual(summary_before_failed_exit.active_instances, summary_after_failed_exit.active_instances);
+    try std.testing.expectEqual(summary_before_failed_exit.skipped_kernel_threads, summary_after_failed_exit.skipped_kernel_threads);
+    try std.testing.expectEqual(summary_before_failed_exit.nmissed, summary_after_failed_exit.nmissed);
+    try std.testing.expectEqual(summary_before_failed_exit.last_retval, summary_after_failed_exit.last_retval);
+    try std.testing.expectEqual(summary_before_failed_exit.last_duration_ns, summary_after_failed_exit.last_duration_ns);
+    try std.testing.expectEqual(summary_before_failed_exit.selftest_runs, summary_after_failed_exit.selftest_runs);
+    try std.testing.expectEqual(summary_before_failed_exit.entry_timestamp_armed, summary_after_failed_exit.entry_timestamp_armed);
+
+    const recovered = try module.retHandler(7, 455);
+    try std.testing.expectEqual(@as(usize, 7), recovered.retval);
+    try std.testing.expectEqual(@as(i64, 55), recovered.duration_ns);
+
+    const summary_after_recovery = module.summary();
+    try std.testing.expectEqual(@as(usize, 0), summary_after_recovery.active_instances);
+    try std.testing.expectEqual(@as(usize, 1), summary_after_recovery.skipped_kernel_threads);
+    try std.testing.expectEqual(@as(usize, 1), summary_after_recovery.nmissed);
+    try std.testing.expectEqual(@as(usize, 7), summary_after_recovery.last_retval);
+    try std.testing.expectEqual(@as(i64, 55), summary_after_recovery.last_duration_ns);
+    try std.testing.expectEqual(@as(usize, 1), summary_after_recovery.selftest_runs);
+    try std.testing.expect(!summary_after_recovery.entry_timestamp_armed);
+
+    try module.exit();
+    try std.testing.expectEqual(sample.ModuleStage.exited, module.stage());
+}
