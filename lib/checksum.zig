@@ -170,3 +170,40 @@ test "shift and block helpers preserve odd-byte carry discipline" {
     try std.testing.expectEqual(seed, blockSub(even_added, fragment, 0));
     try std.testing.expectEqual(seed, blockSub(odd_added, fragment, 1));
 }
+
+test "replacement helpers match direct recomputation for payload and header edits" {
+    var payload = [_]u8{ 0x70, 0x68, 0x61, 0x73, 0x65, 0x36 };
+    const old_partial = partial(&payload, 0);
+    const old_word = (@as(u32, payload[0]) << 8) | payload[1];
+    payload[0] = 0x12;
+    payload[1] = 0x34;
+    const new_word = (@as(u32, payload[0]) << 8) | payload[1];
+    const replaced_partial = replace(old_partial, old_word, new_word);
+    try std.testing.expectEqual(partial(&payload, 0), partial("", replaced_partial));
+
+    var ipv4_header = [_]u8{
+        0x45, 0x00, 0x00, 0x3c,
+        0x1c, 0x46, 0x40, 0x00,
+        0x40, 0x06, 0x00, 0x00,
+        0xc0, 0xa8, 0x00, 0x01,
+        0xc0, 0xa8, 0x00, 0xc7,
+    };
+    const old_checksum = compute(&ipv4_header);
+    const old_total_length = (@as(u16, ipv4_header[2]) << 8) | ipv4_header[3];
+    ipv4_header[2] = 0x00;
+    ipv4_header[3] = 0x40;
+    const new_total_length = (@as(u16, ipv4_header[2]) << 8) | ipv4_header[3];
+    const diff = sub(new_total_length, old_total_length);
+    const recomputed_length_checksum = compute(&ipv4_header);
+    try std.testing.expectEqual(recomputed_length_checksum, replaceByDiff(old_checksum, diff));
+    try std.testing.expectEqual(recomputed_length_checksum, replace2(old_checksum, old_total_length, new_total_length));
+
+    ipv4_header[10] = 0;
+    ipv4_header[11] = 0;
+    const checksum_before_addr_change = compute(&ipv4_header);
+    ipv4_header[12] = 0xc0;
+    ipv4_header[13] = 0xa8;
+    ipv4_header[14] = 0x00;
+    ipv4_header[15] = 0x02;
+    try std.testing.expectEqual(compute(&ipv4_header), replace4(checksum_before_addr_change, 0xc0a8_0001, 0xc0a8_0002));
+}
