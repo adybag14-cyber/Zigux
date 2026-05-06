@@ -672,6 +672,10 @@ test "bitmap diff gate keeps the current bounded source inventory explicit" {
     try expectMarker(bitmap_diff_source, "try std.testing.expectError(error.EmptyThresholdReplayBatch, runThresholdReplay(0));");
     try expectMarker(bitmap_diff_source, "try std.testing.expectEqual(@as(u64, 5935933735089032221), single.checksum);");
     try expectMarker(bitmap_diff_source, "try std.testing.expectEqual(@as(u64, 16508146962659934480), repeated.checksum);");
+    try expectMarker(bitmap_diff_source, "try std.testing.expectEqual(@as(u32, 0), repeated.final_first_set);");
+    try expectMarker(bitmap_diff_source, "try std.testing.expectEqual(@as(u32, 97), repeated.final_first_zero);");
+    try expectMarker(bitmap_diff_source, "try std.testing.expectEqual(@as(u32, 993), repeated.final_weight);");
+    try expectMarker(bitmap_diff_source, "try std.testing.expectEqual(@as(u32, 123), repeated.final_nth_seven);");
 }
 
 test "bitmap diff gate rejects an empty threshold replay batch" {
@@ -688,6 +692,10 @@ test "bitmap diff gate keeps a deterministic threshold replay batch ready for fu
     try std.testing.expectEqual(@as(u32, 97), single.final_first_zero);
     try std.testing.expectEqual(@as(u32, 993), single.final_weight);
     try std.testing.expectEqual(@as(u32, 123), single.final_nth_seven);
+    try std.testing.expectEqual(@as(u32, 0), repeated.final_first_set);
+    try std.testing.expectEqual(@as(u32, 97), repeated.final_first_zero);
+    try std.testing.expectEqual(@as(u32, 993), repeated.final_weight);
+    try std.testing.expectEqual(@as(u32, 123), repeated.final_nth_seven);
     try std.testing.expectEqual(@as(u64, 5935933735089032221), single.checksum);
     try std.testing.expectEqual(@as(u64, 16508146962659934480), repeated.checksum);
     try std.testing.expect(repeated.checksum != single.checksum);
