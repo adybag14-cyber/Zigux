@@ -162,7 +162,7 @@ pub const NvmePciQueueLab = struct {
     pub fn ownershipSummary() OwnershipSummary {
         return .{
             .anchor = descriptor().anchor,
-            .owner_lane = "P12-Y02",
+            .owner_lane = "P12-L05",
             .queue_planning_owner = .starter_packet,
             .prp_shape_owner = .starter_packet,
             .live_dma_owner = .dma_transport_substrate,
