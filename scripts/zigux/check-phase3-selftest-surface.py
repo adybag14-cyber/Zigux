@@ -58,8 +58,12 @@ SCRIPTS_README_MARKERS = [
 ]
 
 TESTS_README_MARKERS = [
+    "scripts/zigux/check-phase3-selftest-surface.py",
     "scripts/zigux/validate_phase3_selftest.py",
     "scripts/zigux/phase3_catalog.py --self-test",
+    "scripts/zigux/phase3_check_lib.py --self-test",
+    "scripts/zigux/generate-phase3-check-wrappers.py --check",
+    "scripts/zigux/run-phase3-checks.py --self-test",
     "make -C zigux phase3-selftest",
     "opt-in safety check that complements but does not duplicate `make -C zigux phase3-validate`",
 ]
@@ -250,7 +254,11 @@ def run_self_test() -> int:
         build_self_test_root(root)
         write_text(root / "zigux/tests/README.md", "scripts/zigux/validate_phase3_selftest.py\n")
         issues = validate_root(root)
+        assert "tests_readme:scripts/zigux/check-phase3-selftest-surface.py" in issues
         assert "tests_readme:scripts/zigux/phase3_catalog.py --self-test" in issues
+        assert "tests_readme:scripts/zigux/phase3_check_lib.py --self-test" in issues
+        assert "tests_readme:scripts/zigux/generate-phase3-check-wrappers.py --check" in issues
+        assert "tests_readme:scripts/zigux/run-phase3-checks.py --self-test" in issues
         assert "tests_readme:make -C zigux phase3-selftest" in issues
         assert (
             "tests_readme:opt-in safety check that complements but does not duplicate `make -C zigux phase3-validate`"
@@ -260,7 +268,7 @@ def run_self_test() -> int:
         build_self_test_root(root)
         write_text(
             root / "zigux/tests/README.md",
-            "\n".join(TESTS_README_MARKERS + [TESTS_README_MARKERS[1]]) + "\n",
+            "\n".join(TESTS_README_MARKERS + [TESTS_README_MARKERS[2]]) + "\n",
         )
         issues = validate_root(root)
         assert (
