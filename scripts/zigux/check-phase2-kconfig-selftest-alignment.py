@@ -56,7 +56,7 @@ REQUIRED_WORKFLOW_LINES = (
     "run: zig test scripts/zigux/kconfig/conf_bridge.zig",
     "run: zig test scripts/zigux/kconfig/confdata_bridge.zig",
 )
-EXPECTED_SELF_TEST_CASE_COUNT = 26
+EXPECTED_SELF_TEST_CASE_COUNT = 30
 
 
 def read_text(path: Path) -> str:
@@ -316,6 +316,68 @@ def run_self_test() -> int:
         assert (
             "DUPLICATE_CHECKER_MARKERS",
             f"{REQUIRED_CHECKER_MARKERS[3]}:count=2:expected=1",
+        ) in issues
+        cases += 1
+
+        build_self_test_root(root)
+        path = root / VALIDATOR
+        path.write_text(
+            path.read_text(encoding="utf-8").replace(
+                REQUIRED_VALIDATOR_MARKERS[0] + "\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        issues = collect_issues(root)
+        assert ("MISSING_VALIDATOR_MARKERS", REQUIRED_VALIDATOR_MARKERS[0]) in issues
+        cases += 1
+
+        build_self_test_root(root)
+        path = root / VALIDATOR
+        path.write_text(
+            path.read_text(encoding="utf-8").replace(
+                REQUIRED_VALIDATOR_MARKERS[0] + "\n",
+                REQUIRED_VALIDATOR_MARKERS[0] + "\n" + REQUIRED_VALIDATOR_MARKERS[0] + "\n",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        issues = collect_issues(root)
+        assert (
+            "DUPLICATE_VALIDATOR_MARKERS",
+            f"{REQUIRED_VALIDATOR_MARKERS[0]}:count=2:expected=1",
+        ) in issues
+        cases += 1
+
+        build_self_test_root(root)
+        path = root / VALIDATOR
+        path.write_text(
+            path.read_text(encoding="utf-8").replace(
+                REQUIRED_VALIDATOR_MARKERS[1] + "\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        issues = collect_issues(root)
+        assert ("MISSING_VALIDATOR_MARKERS", REQUIRED_VALIDATOR_MARKERS[1]) in issues
+        cases += 1
+
+        build_self_test_root(root)
+        path = root / VALIDATOR
+        path.write_text(
+            path.read_text(encoding="utf-8").replace(
+                REQUIRED_VALIDATOR_MARKERS[1] + "\n",
+                REQUIRED_VALIDATOR_MARKERS[1] + "\n" + REQUIRED_VALIDATOR_MARKERS[1] + "\n",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        issues = collect_issues(root)
+        assert (
+            "DUPLICATE_VALIDATOR_MARKERS",
+            f"{REQUIRED_VALIDATOR_MARKERS[1]}:count=2:expected=1",
         ) in issues
         cases += 1
 
