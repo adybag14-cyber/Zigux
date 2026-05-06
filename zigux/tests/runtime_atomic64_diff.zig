@@ -1,6 +1,19 @@
 const std = @import("std");
 const sample = @import("runtime_atomic64_sample");
 
+const ArithmeticCase = struct {
+    name: []const u8,
+    seed: i64,
+    addend: i64,
+    subtrahend: i64,
+    after_add: i64,
+    after_sub: i64,
+    add_return: i64,
+    sub_return: i64,
+    inc_return: i64,
+    dec_return: i64,
+};
+
 const DiffCase = struct {
     name: []const u8,
     seed: i64,
@@ -41,6 +54,29 @@ const BitwiseCase = struct {
     previous: i64,
     final: i64,
 };
+
+fn expectArithmeticCase(case: ArithmeticCase) !void {
+    var module = sample.RuntimeAtomic64Sample{};
+    try module.init(case.seed);
+
+    try module.addCounter(case.addend);
+    try std.testing.expectEqual(case.after_add, module.snapshotCounter());
+
+    try module.subCounter(case.subtrahend);
+    try std.testing.expectEqual(case.after_sub, module.snapshotCounter());
+
+    try std.testing.expectEqual(case.add_return, try module.addReturnCounter(case.subtrahend));
+    try std.testing.expectEqual(case.add_return, module.snapshotCounter());
+
+    try std.testing.expectEqual(case.sub_return, try module.subReturnCounter(case.subtrahend));
+    try std.testing.expectEqual(case.sub_return, module.snapshotCounter());
+
+    try std.testing.expectEqual(case.inc_return, try module.incReturnCounter());
+    try std.testing.expectEqual(case.inc_return, module.snapshotCounter());
+
+    try std.testing.expectEqual(case.dec_return, try module.decReturnCounter());
+    try std.testing.expectEqual(case.dec_return, module.snapshotCounter());
+}
 
 fn expectExchangeCase(case: DiffCase) !void {
     var module = sample.RuntimeAtomic64Sample{};
@@ -89,7 +125,39 @@ fn expectBitwiseCase(case: BitwiseCase) !void {
     try std.testing.expectEqual(case.final, module.snapshotCounter());
 }
 
-test "runtime atomic64 diff gate replays bounded atomic64_test.c exchange, cmpxchg, add_unless, and bitwise expectations" {
+test "runtime atomic64 diff gate replays bounded atomic64_test.c arithmetic, exchange, cmpxchg, add_unless, and bitwise expectations" {
+    const arithmetic_cases = [_]ArithmeticCase{
+        .{
+            .name = "v0 arithmetic path mirrors add/sub/add_return/sub_return/inc_return/dec_return sequencing",
+            .seed = 0x2aaa_3137_4001_500d,
+            .addend = 0x1111_1111_2222_2222,
+            .subtrahend = 0x1111_1111_2222_2222,
+            .after_add = 0x3bbb_4248_6223_722f,
+            .after_sub = 0x2aaa_3137_4001_500d,
+            .add_return = 0x3bbb_4248_6223_722f,
+            .sub_return = 0x2aaa_3137_4001_500d,
+            .inc_return = 0x2aaa_3137_4001_500e,
+            .dec_return = 0x2aaa_3137_4001_500d,
+        },
+        .{
+            .name = "negative-one arithmetic path keeps decrement-style updates visible",
+            .seed = 0x2aaa_3137_4001_500d,
+            .addend = -1,
+            .subtrahend = -1,
+            .after_add = 0x2aaa_3137_4001_500c,
+            .after_sub = 0x2aaa_3137_4001_500d,
+            .add_return = 0x2aaa_3137_4001_500c,
+            .sub_return = 0x2aaa_3137_4001_500d,
+            .inc_return = 0x2aaa_3137_4001_500e,
+            .dec_return = 0x2aaa_3137_4001_500d,
+        },
+    };
+
+    for (arithmetic_cases) |case| {
+        _ = case.name;
+        try expectArithmeticCase(case);
+    }
+
     const cases = [_]DiffCase{
         .{
             .name = "v0 to v1 keeps the original counter visible as the exchange return value",
@@ -202,6 +270,9 @@ test "runtime atomic64 diff gate keeps selftest family coverage explicit" {
     var module = sample.RuntimeAtomic64Sample{};
     try module.init(std.math.minInt(i64));
 
+    const added = try module.addReturnCounter(1);
+    try std.testing.expectEqual(std.math.minInt(i64) + 1, added);
+
     const summary = try module.runSelftest();
     try std.testing.expectEqualStrings("lib/atomic64_test.c", summary.anchor);
     try std.testing.expectEqual(@as(usize, 5), summary.operation_families.len);
@@ -216,6 +287,7 @@ test "runtime atomic64 diff gate keeps selftest family coverage explicit" {
 
     try module.exit();
     try std.testing.expectEqual(sample.ModuleStage.exited, module.stage());
+    try std.testing.expectError(error.InvalidLifecycleTransition, module.addCounter(7));
     try std.testing.expectError(error.InvalidLifecycleTransition, module.swapCounter(7));
     try std.testing.expectError(error.InvalidLifecycleTransition, module.andCounter(7));
 }
