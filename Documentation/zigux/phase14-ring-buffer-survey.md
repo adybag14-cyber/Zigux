@@ -33,7 +33,7 @@ It is to make the blocked state reviewable and record the first stay-in-C checkl
 - `Documentation/trace/ring-buffer-map.rst` is present at 106 lines and adds mmap-facing reader, sub-buffer, and tracefs limitation behavior that would be easy to understate in a premature Zig wrapper.
 - `kernel/trace/simple_ring_buffer.c` exists as a much smaller 517-line companion, which reinforces that the full tracing ring buffer is the complex path and should not be treated like a straightforward helper port.
 - the live repo already had `zigux/tests/phase14_build.zig`, `zigux/Makefile` Phase 14 wiring, `Documentation/zigux/freeze-map.md`, and the workqueue bridge slice, so the highest-value non-overlapping ring-buffer step is a survey gate rather than another starter implementation.
-- the survey manifest now records a landed decision checklist around reserve or commit publication, head-page and reader-page handoff, remote-reader metadata, wakeup or mmap-facing publication, tracefs mapping limitations, the remote-reader metadata audit, the reader-page consume audit, and the exported-page copy-path audit so later runs can deepen the review without inventing `kernel/trace/ring_buffer.zig`.
+- the survey manifest now records a landed decision checklist plus the overwrite, remote-reader metadata, wakeup or mmap, tracefs mapping limitation, mapped-reader ioctl, reader-page consume, and exported-page copy-path audits so later runs can deepen the review without inventing `kernel/trace/ring_buffer.zig`.
 
 ## Decision checklist
 
@@ -168,4 +168,4 @@ This survey slice does not claim:
 
 ## Next bounded step
 
-Leave this ring-buffer survey lane parked unless a later Phase 14 traceability or release-boundary refresh needs to restate the new remote-reader metadata decision after another anchor-local survey change. Any future ring-buffer work here should stay on the study-only side of reader, writer, wakeup, mapping, remote-reader, or exported-page boundary evidence rather than reopening a bridge or port claim.
+Leave this ring-buffer survey lane parked unless a later Phase 14 traceability or release-boundary refresh needs to restate the current reader-page, remote-reader, mapped-reader, or exported-page stay-in-C boundary after another anchor-local survey change. Any future ring-buffer work here should stay on the study-only side of reader, writer, wakeup, mapping, remote-reader, or exported-page boundary evidence rather than reopening a bridge or port claim.
