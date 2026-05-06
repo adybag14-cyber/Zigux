@@ -375,4 +375,43 @@ test "phase 5 trace-events survey note stays repo-local and keeps the formatting
     for (scripts_root_markers) |needle| {
         try std.testing.expect(std.mem.indexOf(u8, scripts_root, needle) != null);
     }
+
+    const makefile = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "zigux/Makefile",
+        std.testing.allocator,
+        .limited(64 * 1024),
+    );
+    defer std.testing.allocator.free(makefile);
+
+    const makefile_markers = [_][]const u8{
+        "PHONY += phase5-test phase5",
+        "phase5-test:",
+        "$(ZIG) build test --build-file zigux/tests/phase5_build.zig --summary all",
+        "phase5: phase5-test",
+    };
+
+    for (makefile_markers) |needle| {
+        try std.testing.expect(std.mem.indexOf(u8, makefile, needle) != null);
+    }
+
+    const workflow = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        ".github/workflows/zigux-bootstrap.yml",
+        std.testing.allocator,
+        .limited(256 * 1024),
+    );
+    defer std.testing.allocator.free(workflow);
+
+    const workflow_markers = [_][]const u8{
+        "Run Phase 5 reference sample tests",
+        "zig build test --build-file zigux/tests/phase5_build.zig --summary all",
+        "Documentation/zigux/**",
+        "samples/zigux/README.md",
+        "zigux/**",
+    };
+
+    for (workflow_markers) |needle| {
+        try std.testing.expect(std.mem.indexOf(u8, workflow, needle) != null);
+    }
 }
