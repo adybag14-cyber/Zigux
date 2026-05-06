@@ -6,12 +6,13 @@ This document records the bounded Phase 13 survey lane around `lib/devres.c`.
 
 - `PHASE13_STATUS=active`
 - `PHASE13_SLICE=devres-dma-scatterlist-boundary-survey`
-- reviewed against live `master` `7a4454d0474106972cad7e164b79293bd54a40c6`
-- scope: the landed `lib/devres.zig` helper lab, its dedicated Phase 13 test, the focused reviewability gate, the shared Phase 13 build and make wiring, and the lane notes that compare the current helper-only DMA/scatterlist boundary against the roadmap
+- reviewed against live `master` `10369315cba5d146a7c6c4c6480ef9d279dc490f`
+- scope: the landed `lib/devres.zig` helper lab, its dedicated Phase 13 test, the focused reviewability gate, the dedicated coherent-DMA boundary replay, the shared Phase 13 build and make wiring, and the lane notes that compare the current helper-only DMA/scatterlist boundary against the roadmap
 - product boundary:
   - `lib/devres.zig`
   - `zigux/tests/phase13_devres.zig`
   - `zigux/tests/phase13_devres_reviewability.zig`
+  - `zigux/tests/phase13_devres_dma_coherent.zig`
   - `zigux/tests/phase13_devres_manifest.json`
   - `zigux/tests/phase13_build.zig`
   - `Documentation/zigux/phase13-devres-slice.md`
@@ -32,6 +33,7 @@ The live Zigux tree is no longer survey-only here. It already carries a helper-f
 - the landed `devm_of_iomap()` planner stays bounded to translated-resource selection by index, optional size reporting, and handoff into the existing managed-resource planner instead of pretending to walk a live device tree.
 - the adjacent `devm_arch_io_reserve_memtype_wc()` planner already records detach-time cleanup intent for WC reservations while keeping live arch memtype mutation out of scope.
 - the matching `devm_arch_phys_wc_add()` token planner now records retained removal tokens on success and frees release records on negative token returns while keeping `arch_phys_wc_del()` reviewable and out of live side-effect territory.
+- the dedicated `zigux/tests/phase13_devres_dma_coherent.zig` replay now keeps the broader survey packet honest by proving that the manifest summary still records the shipped devres test, reviewability gate, and survey note while the packet itself still blocks live DMA-backed helpers and live scatterlist ownership.
 - the shared Phase 13 build and make target already replay the devres packet, so the remaining lane-local gap is not new helper behavior first. It is keeping the helper-only DMA/scatterlist boundary explicit and machine-checkable wherever the survey packet records current Phase 13 evidence.
 - exact boundary evidence on current `master`: `lib/devres.zig` still exposes no `dmam_alloc_*`, `dma_map_*`, `dma_unmap_*`, `dma_map_sgtable()`, `struct scatterlist`, `sg_table`, or `sg_*` ownership surface; the shipped planner set still stops at helper-first ioremap, translated-resource, and WC memtype bookkeeping.
 
@@ -44,6 +46,7 @@ The current lane state is:
 - landed `phase13-devres-helper-starter`
 - landed `phase13-devres-test-gate`
 - landed `phase13-devres-reviewability-gate`
+- landed `phase13-devres-coherent-dma-replay`
 - landed `phase13-devres-slice-note`
 - landed `phase13-devres-survey-note`
 - landed `phase13-devres-managed-resource-planner`
@@ -56,7 +59,7 @@ The current lane state is:
 - blocked `phase13-devres-live-device-tree-walk`
 - blocked `phase13-devres-live-arch-memtype-state`
 
-This keeps the lane explicit without overstating progress: Zigux has a real helper-first devres foothold for managed resource planning and detach-time bookkeeping, but it still does not claim live MMIO mappings, live DMA-backed helpers, live scatter-gather ownership, live device-tree walking, or live arch memtype state transitions.
+This keeps the lane explicit without overstating progress: Zigux has a real helper-first devres foothold for managed resource planning, detach-time bookkeeping, and one dedicated coherent-DMA boundary replay, but it still does not claim live MMIO mappings, live DMA-backed helpers, live scatter-gather ownership, live device-tree walking, or live arch memtype state transitions.
 
 ## Non-goals
 
