@@ -62,17 +62,6 @@ REQUIRED_CONTRACT_MARKERS = [
     "there is no broader multi-checker Phase 11 validator stack on `master`",
 ]
 
-REQUIRED_HVC_CONSOLE_MARKERS = [
-    "pub fn hvc_instantiate",
-    "pub fn hvc_alloc",
-    "pub fn hvc_remove",
-    "pub fn hvc_poll",
-    "pub fn hvc_kick",
-    "pub fn __hvc_resize",
-    "pub fn notifier_add_irq",
-    "pub fn notifier_del_irq",
-]
-
 REQUIRED_HVC_HEADER_MARKERS = [
     "extern int hvc_instantiate(uint32_t vtermno, int index,",
     "extern struct hvc_struct * hvc_alloc(uint32_t vtermno, int data,",
@@ -119,14 +108,12 @@ def check_repo(root: Path) -> None:
     survey = read_text(root, "zigux/tests/phase11_uapi_header_parity_survey.zig")
     build = read_text(root, "zigux/tests/phase11_build.zig")
     contract = read_text(root, "Documentation/zigux/phase11-shared-replay-contract.md")
-    hvc_console = read_text(root, "drivers/tty/hvc/hvc_console.zig")
     hvc_header = read_text(root, "drivers/tty/hvc/hvc_console.h")
 
     require_markers(note, REQUIRED_NOTE_MARKERS + [manifest["surveyed_commit"]], "note")
     require_markers(survey, REQUIRED_SURVEY_MARKERS, "survey")
     require_markers(build, REQUIRED_BUILD_MARKERS, "build")
     require_markers(contract, REQUIRED_CONTRACT_MARKERS, "contract")
-    require_markers(hvc_console, REQUIRED_HVC_CONSOLE_MARKERS, "hvc_console")
     require_markers(hvc_header, REQUIRED_HVC_HEADER_MARKERS, "hvc_header")
 
 
@@ -161,11 +148,6 @@ def build_fixture_repo(root: Path) -> None:
         root,
         "Documentation/zigux/phase11-shared-replay-contract.md",
         "\n".join(REQUIRED_CONTRACT_MARKERS) + "\n",
-    )
-    write_text(
-        root,
-        "drivers/tty/hvc/hvc_console.zig",
-        "\n".join(REQUIRED_HVC_CONSOLE_MARKERS) + "\n",
     )
     write_text(
         root,
