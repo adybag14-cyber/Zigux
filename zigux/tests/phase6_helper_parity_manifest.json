@@ -2,7 +2,7 @@
   "phase": "Phase 6",
   "status": "parked",
   "tranche": "leaf-helper-parity",
-  "surveyed_commit": "24f7deaec43d83cdd09d54af0affc974459781ba",
+  "surveyed_commit": "51a8cd74aee315792f81feadf2995bb9d58e7018",
   "roadmap_anchors": [
     "lib/base64.c",
     "lib/bsearch.c",
@@ -33,11 +33,9 @@
       "helper": "lib/bsearch.zig",
       "tests": [
         "zigux/tests/phase6_bsearch.zig",
-        "zigux/tests/phase6_bsearch_perf.zig",
         "zigux/tests/phase6_bsearch_c_parity.zig"
       ],
       "fixtures": [
-        "zigux/tests/fixtures/phase6_bsearch_vectors.zig",
         "zigux/tests/fixtures/phase6_bsearch_c_harness.c"
       ],
       "slice_note": "Documentation/zigux/phase6-bsearch-slice.md",
@@ -77,9 +75,10 @@
   "shared_gates": [
     "zigux/tests/phase6_build.zig",
     "zigux/Makefile",
-    "scripts/zigux/validate-phase6.py",
+    "scripts/zigux/check-phase6-shared-surface.py",
     ".github/workflows/zigux-bootstrap.yml",
     "Documentation/zigux/README.md",
+    "Documentation/zigux/review-checklist.md",
     "Documentation/zigux/phase6-helper-parity-catalog.md",
     "Documentation/zigux/phase6-perf-gate-survey.md",
     "scripts/zigux/README.md",
@@ -100,7 +99,6 @@
   "fixture_posture": {
     "fixture_backed_helpers": [
       "base64",
-      "bsearch",
       "checksum",
       "hexdump"
     ],
@@ -122,8 +120,9 @@
     },
     "bsearch": {
       "inline_corpus": "sorted integer and symbol tables",
-      "perf_fixture_cases": 3,
-      "deterministic_probe_prefix_cases": 8,
+      "comparison_budget_typed_cases": 5,
+      "comparison_budget_raw_cases": 5,
+      "comparison_budget_max_compare_calls": 4,
       "c_parity_self_test_cases": 7,
       "c_parity_cases": 29
     },
@@ -144,7 +143,7 @@
       "required_length_vectors": 9,
       "perf_vectors": 4,
       "perf_labels": [
-        "16B-plain",
+        "16B-plain-g1",
         "32B-ascii-g2",
         "16B-ascii-g4",
         "16B-ascii-g8"
@@ -160,15 +159,14 @@
     "generated_fixture_artifacts_committed": false
   },
   "exact_checks": [
-    "python3 scripts/zigux/validate-phase6.py --self-test",
-    "python3 scripts/zigux/validate-phase6.py",
+    "python3 scripts/zigux/check-phase6-shared-surface.py --self-test",
+    "python3 scripts/zigux/check-phase6-shared-surface.py",
     "python3 scripts/zigux/check-phase6-docs-root-external-parity.py --self-test",
     "python3 scripts/zigux/check-phase6-docs-root-external-parity.py",
     "make -C zigux phase6-validate",
     "make -C zigux phase6",
     "make -C zigux phase6-perf",
     "make -C zigux phase6-base64-perf",
-    "make -C zigux phase6-bsearch-perf",
     "make -C zigux phase6-checksum-perf",
     "make -C zigux phase6-hexdump-perf",
     "python3 scripts/zigux/check-phase6-base64-c-parity.py --self-test",
