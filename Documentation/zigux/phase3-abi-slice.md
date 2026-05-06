@@ -48,8 +48,9 @@ It is a small substrate that makes future ports measurable:
 2. check C-vs-Zig ABI layout parity
 - `python3 scripts/zigux/run-phase3-checks.py --slug abi`
 
-3. run Zig substrate tests
+3. run Zig substrate tests and the direct ABI dump replay
 - `zig build phase3-test --build-file zigux/tests/build.zig`
+- `zig build phase3-dump --build-file zigux/tests/build.zig`
 
 4. catch fused top-level ABI binding declarations before they hide inside the wider Phase 3 packet
 - `python3 scripts/zigux/validate-phase3-abi-bindings-syntax.py`
@@ -60,6 +61,8 @@ It is a small substrate that makes future ports measurable:
 - `python3 scripts/zigux/check-phase3-selftest-surface.py`
 - `python3 scripts/zigux/check-phase3-readme-tooling-inventory.py --self-test`
 - `python3 scripts/zigux/check-phase3-readme-tooling-inventory.py`
+- `python3 scripts/zigux/check-phase3-abi-dump-gate.py --self-test`
+- `python3 scripts/zigux/check-phase3-abi-dump-gate.py`
 - `python3 scripts/zigux/phase3_catalog.py --self-test`
 - `python3 scripts/zigux/phase3_check_lib.py --self-test`
 - `python3 scripts/zigux/generate-phase3-check-wrappers.py --check`
@@ -72,6 +75,7 @@ It is a small substrate that makes future ports measurable:
 - `PHASE3_VALIDATE_GATE=python3 scripts/zigux/validate-phase3.py`
 - `PHASE3_INTEROP_GATE=python3 scripts/zigux/run-phase3-checks.py --slug abi`
 - `PHASE3_TEST_GATE=zig build phase3-test --build-file zigux/tests/build.zig`
+- `PHASE3_DUMP_GATE=zig build phase3-dump --build-file zigux/tests/build.zig`
 
 ## Low-Level Wrapper Reality
 
