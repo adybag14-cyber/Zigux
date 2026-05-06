@@ -155,12 +155,15 @@ REQUIRED_README_SNIPPETS = (
     "- `make -C zigux phase13-validate` keeps that same release packet wired through the Linux-style validation entrypoint.",
 )
 
+
 def _write(path: Path, text: str) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(text, encoding="utf-8", newline="\n")
 
+
 def _read(path: Path) -> str:
     return path.read_text(encoding="utf-8")
+
 
 def _collect_helper_entries(readme: str) -> tuple[list[str], list[str]]:
     found = False
@@ -184,6 +187,7 @@ def _collect_helper_entries(readme: str) -> tuple[list[str], list[str]]:
         issues.append("missing_readme_helper_entries")
     return entries, issues
 
+
 def _collect_makefile_target_lines(makefile: str, target: str) -> list[str] | None:
     in_target = False
     lines: list[str] = []
@@ -199,6 +203,7 @@ def _collect_makefile_target_lines(makefile: str, target: str) -> list[str] | No
         lines.append(raw)
     return lines if in_target else None
 
+
 def _collect_target_helpers(makefile: str, target: str) -> list[str]:
     lines = _collect_makefile_target_lines(makefile, target)
     if lines is None:
@@ -212,6 +217,7 @@ def _collect_target_helpers(makefile: str, target: str) -> list[str]:
         if rel.endswith(".py"):
             helpers.append(Path(rel).name)
     return helpers
+
 
 def _validate_target_helpers(issues: list[str], makefile: str, target: str, required_helpers: tuple[str, ...]) -> None:
     lines = _collect_makefile_target_lines(makefile, target)
@@ -231,6 +237,7 @@ def _validate_target_helpers(issues: list[str], makefile: str, target: str, requ
     if [helper for helper in helpers if helper in required_helpers] != list(required_helpers):
         issues.append(f"makefile_helper_order_drift:{target}")
 
+
 def _validate_target_commands(issues: list[str], makefile: str, target: str, required_commands: tuple[str, ...]) -> None:
     lines = _collect_makefile_target_lines(makefile, target)
     if lines is None:
@@ -249,6 +256,7 @@ def _validate_target_commands(issues: list[str], makefile: str, target: str, req
             issues.append(f"unexpected_makefile_command:{target}:{command}")
     if [command for command in commands if command in required_commands] != expected:
         issues.append(f"makefile_command_order_drift:{target}")
+
 
 def validate(root: Path) -> list[str]:
     issues: list[str] = []
@@ -296,6 +304,7 @@ def validate(root: Path) -> list[str]:
             issues.append(f"unexpected_readme_snippet_count:{count}:{snippet}")
     return issues
 
+
 def _baseline_readme() -> str:
     helper_lines = "\n".join(f"- `{helper}`" for helper in REQUIRED_HELPERS)
     sections = ["# scripts/zigux", "", README_HELPER_SECTION, helper_lines]
@@ -316,8 +325,10 @@ def _baseline_readme() -> str:
     sections.append("")
     return "\n".join(sections)
 
+
 def _baseline_makefile() -> str:
-    return "\n".join((
+    return "\n".join(
+        (
             "phase3-validate:",
             "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase3.py",
             "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase3.py --self-test",
@@ -410,13 +421,16 @@ def _baseline_makefile() -> str:
             "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase15-review-process-handoff.py --self-test",
             "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase15-review-process-handoff.py",
             "",
-        ))
+        )
+    )
+
 
 def _assert_only(issues: list[str], expected: list[str], label: str) -> None:
     if issues != expected:
         got = ",".join(issues) or "none"
         want = ",".join(expected) or "none"
         raise SystemExit(f"phase3-readme-tooling-inventory-self-test:{label}:got={got}:want={want}")
+
 
 def run_self_test() -> int:
     case_count = 0
@@ -432,31 +446,73 @@ def run_self_test() -> int:
         case_count += 1
         export_uapi_live = "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase3-export-uapi-survey.py\n"
         _write(root / MAKEFILE_REL, baseline_makefile.replace(export_uapi_live, "", 1))
-        _assert_only(validate(root), ["missing_makefile_command:phase3-validate:cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase3-export-uapi-survey.py", "makefile_command_order_drift:phase3-validate"], "missing_phase3_export_uapi_live_command_guard_failed")
+        _assert_only(
+            validate(root),
+            [
+                "missing_makefile_command:phase3-validate:cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase3-export-uapi-survey.py",
+                "makefile_command_order_drift:phase3-validate",
+            ],
+            "missing_phase3_export_uapi_live_command_guard_failed",
+        )
         _write(root / MAKEFILE_REL, baseline_makefile)
         case_count += 1
         export_uapi_selftest = "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase3-export-uapi-survey.py --self-test\n"
         _write(root / MAKEFILE_REL, baseline_makefile.replace(export_uapi_selftest, export_uapi_selftest + export_uapi_selftest, 1))
-        _assert_only(validate(root), ["unexpected_makefile_command_count:phase3-validate:2:cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase3-export-uapi-survey.py --self-test", "makefile_command_order_drift:phase3-validate"], "duplicate_phase3_export_uapi_selftest_command_guard_failed")
+        _assert_only(
+            validate(root),
+            [
+                "unexpected_makefile_command_count:phase3-validate:2:cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase3-export-uapi-survey.py --self-test",
+                "makefile_command_order_drift:phase3-validate",
+            ],
+            "duplicate_phase3_export_uapi_selftest_command_guard_failed",
+        )
         _write(root / MAKEFILE_REL, baseline_makefile)
         case_count += 1
         abi_dump_live = "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase3-abi-dump-gate.py\n"
         _write(root / MAKEFILE_REL, baseline_makefile.replace(abi_dump_live, abi_dump_live + abi_dump_live, 1))
-        _assert_only(validate(root), ["unexpected_makefile_command_count:phase3-validate:2:cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase3-abi-dump-gate.py", "makefile_command_order_drift:phase3-validate"], "duplicate_phase3_abi_dump_gate_live_command_guard_failed")
+        _assert_only(
+            validate(root),
+            [
+                "unexpected_makefile_command_count:phase3-validate:2:cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase3-abi-dump-gate.py",
+                "makefile_command_order_drift:phase3-validate",
+            ],
+            "duplicate_phase3_abi_dump_gate_live_command_guard_failed",
+        )
         _write(root / MAKEFILE_REL, baseline_makefile)
         case_count += 1
         catalog_selftest = "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase3-catalog-selftest.py --self-test\n"
         _write(root / MAKEFILE_REL, baseline_makefile.replace(catalog_selftest, "", 1))
-        _assert_only(validate(root), ["missing_makefile_command:phase3-validate:cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase3-catalog-selftest.py --self-test", "makefile_command_order_drift:phase3-validate"], "missing_phase3_catalog_selftest_command_guard_failed")
+        _assert_only(
+            validate(root),
+            [
+                "missing_makefile_command:phase3-validate:cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase3-catalog-selftest.py --self-test",
+                "makefile_command_order_drift:phase3-validate",
+            ],
+            "missing_phase3_catalog_selftest_command_guard_failed",
+        )
         _write(root / MAKEFILE_REL, baseline_makefile)
         case_count += 1
-        for helper in ("check-phase3-abi-dump-gate.py", "check-phase3-catalog-selftest.py", "validate-phase3-export-uapi-survey.py", "validate-phase3-abi-bindings-syntax.py"):
+        for helper in (
+            "check-phase3-abi-dump-gate.py",
+            "check-phase3-catalog-selftest.py",
+            "validate-phase3-export-uapi-survey.py",
+            "validate-phase3-abi-bindings-syntax.py",
+        ):
             marker = f"- `{helper}`\n"
             _write(root / README_REL, baseline_readme.replace(marker, "", 1))
-            _assert_only(validate(root), [f"missing_readme_helper_entry:{helper}", "readme_helper_order_drift"], f"missing_{helper}_readme_guard_failed")
+            _assert_only(
+                validate(root),
+                [f"missing_readme_helper_entry:{helper}", "readme_helper_order_drift"],
+                f"missing_{helper}_readme_guard_failed",
+            )
             _write(root / README_REL, baseline_readme)
             case_count += 1
-        for helper in ("check-phase3-abi-dump-gate.py", "check-phase3-catalog-selftest.py", "validate-phase3-export-uapi-survey.py", "validate-phase3-abi-bindings-syntax.py"):
+        for helper in (
+            "check-phase3-abi-dump-gate.py",
+            "check-phase3-catalog-selftest.py",
+            "validate-phase3-export-uapi-survey.py",
+            "validate-phase3-abi-bindings-syntax.py",
+        ):
             path = root / "scripts" / "zigux" / helper
             path.unlink()
             _assert_only(validate(root), [f"missing_repo_file:scripts/zigux/{helper}"], f"missing_{helper}_repo_file_guard_failed")
@@ -471,8 +527,19 @@ def run_self_test() -> int:
         _assert_only(validate(root), [f"unexpected_readme_snippet_count:2:{snippet}"], "duplicate_phase3_support_packet_snippet_guard_failed")
         _write(root / README_REL, baseline_readme)
         case_count += 1
-        _write(root / README_REL, baseline_readme.replace("- `check-phase3-abi-dump-gate.py`\n", "- `check-phase3-abi-dump-gate.py`\n- `check-phase3-abi-dump-gate.py`\n", 1))
-        _assert_only(validate(root), ["duplicate_readme_helper_entry:check-phase3-abi-dump-gate.py", "readme_helper_order_drift"], "duplicate_phase3_abi_dump_gate_helper_guard_failed")
+        _write(
+            root / README_REL,
+            baseline_readme.replace(
+                "- `check-phase3-abi-dump-gate.py`\n",
+                "- `check-phase3-abi-dump-gate.py`\n- `check-phase3-abi-dump-gate.py`\n",
+                1,
+            ),
+        )
+        _assert_only(
+            validate(root),
+            ["duplicate_readme_helper_entry:check-phase3-abi-dump-gate.py", "readme_helper_order_drift"],
+            "duplicate_phase3_abi_dump_gate_helper_guard_failed",
+        )
         _write(root / README_REL, baseline_readme)
         case_count += 1
         _write(root / MAKEFILE_REL, baseline_makefile + "phase9-validate:\n\t@true\n")
@@ -508,36 +575,89 @@ def run_self_test() -> int:
         _write(root / "scripts" / "zigux" / "validate-phase13-release.py", "# stub\n")
         case_count += 1
         (root / "scripts" / "zigux" / "check-phase2-genksyms-bridge-selftest-alignment.py").unlink()
-        _assert_only(validate(root), ["missing_repo_file:scripts/zigux/check-phase2-genksyms-bridge-selftest-alignment.py"], "missing_phase2_genksyms_selftest_alignment_repo_file_guard_failed")
+        _assert_only(
+            validate(root),
+            ["missing_repo_file:scripts/zigux/check-phase2-genksyms-bridge-selftest-alignment.py"],
+            "missing_phase2_genksyms_selftest_alignment_repo_file_guard_failed",
+        )
         _write(root / "scripts" / "zigux" / "check-phase2-genksyms-bridge-selftest-alignment.py", "# stub\n")
         case_count += 1
         (root / "scripts" / "zigux" / "check-phase2-kconfig-selftest-alignment.py").unlink()
-        _assert_only(validate(root), ["missing_repo_file:scripts/zigux/check-phase2-kconfig-selftest-alignment.py"], "missing_phase2_kconfig_selftest_alignment_repo_file_guard_failed")
+        _assert_only(
+            validate(root),
+            ["missing_repo_file:scripts/zigux/check-phase2-kconfig-selftest-alignment.py"],
+            "missing_phase2_kconfig_selftest_alignment_repo_file_guard_failed",
+        )
         _write(root / "scripts" / "zigux" / "check-phase2-kconfig-selftest-alignment.py", "# stub\n")
         case_count += 1
         (root / "scripts" / "zigux" / "check-phase2-tests-readme-alignment.py").unlink()
-        _assert_only(validate(root), ["missing_repo_file:scripts/zigux/check-phase2-tests-readme-alignment.py"], "missing_phase2_tests_readme_alignment_repo_file_guard_failed")
+        _assert_only(
+            validate(root),
+            ["missing_repo_file:scripts/zigux/check-phase2-tests-readme-alignment.py"],
+            "missing_phase2_tests_readme_alignment_repo_file_guard_failed",
+        )
         _write(root / "scripts" / "zigux" / "check-phase2-tests-readme-alignment.py", "# stub\n")
         case_count += 1
         (root / "scripts" / "zigux" / "check-phase2-cross-selftest-alignment.py").unlink()
-        _assert_only(validate(root), ["missing_repo_file:scripts/zigux/check-phase2-cross-selftest-alignment.py"], "missing_phase2_cross_selftest_alignment_repo_file_guard_failed")
+        _assert_only(
+            validate(root),
+            ["missing_repo_file:scripts/zigux/check-phase2-cross-selftest-alignment.py"],
+            "missing_phase2_cross_selftest_alignment_repo_file_guard_failed",
+        )
         _write(root / "scripts" / "zigux" / "check-phase2-cross-selftest-alignment.py", "# stub\n")
+        case_count += 1
+        (root / "scripts" / "zigux" / "check-phase2-toolchain-pin-scope.py").unlink()
+        _assert_only(
+            validate(root),
+            ["missing_repo_file:scripts/zigux/check-phase2-toolchain-pin-scope.py"],
+            "missing_phase2_toolchain_pin_scope_repo_file_guard_failed",
+        )
+        _write(root / "scripts" / "zigux" / "check-phase2-toolchain-pin-scope.py", "# stub\n")
         case_count += 1
         (root / "scripts" / "zigux" / "check-phase13-devres-packet.py").unlink()
         _assert_only(validate(root), ["missing_repo_file:scripts/zigux/check-phase13-devres-packet.py"], "missing_phase13_devres_packet_repo_file_guard_failed")
         _write(root / "scripts" / "zigux" / "check-phase13-devres-packet.py", "# stub\n")
         case_count += 1
-        _write(root / MAKEFILE_REL, baseline_makefile.replace("\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase7-rbtree-parity.py\n", "", 1))
-        _assert_only(validate(root), ["missing_makefile_command:phase7-validate:cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase7-rbtree-parity.py", "makefile_command_order_drift:phase7-validate"], "missing_phase7_rbtree_command_guard_failed")
+        _write(
+            root / MAKEFILE_REL,
+            baseline_makefile.replace(
+                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase7-rbtree-parity.py\n",
+                "",
+                1,
+            ),
+        )
+        _assert_only(
+            validate(root),
+            [
+                "missing_makefile_command:phase7-validate:cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase7-rbtree-parity.py",
+                "makefile_command_order_drift:phase7-validate",
+            ],
+            "missing_phase7_rbtree_command_guard_failed",
+        )
         _write(root / MAKEFILE_REL, baseline_makefile)
         case_count += 1
-        _write(root / MAKEFILE_REL, baseline_makefile.replace("\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase7-build-wiring.py\n", "", 1))
-        _assert_only(validate(root), ["missing_makefile_command:phase7-validate:cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase7-build-wiring.py", "makefile_command_order_drift:phase7-validate"], "missing_phase7_build_wiring_command_guard_failed")
+        _write(
+            root / MAKEFILE_REL,
+            baseline_makefile.replace(
+                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase7-build-wiring.py\n",
+                "",
+                1,
+            ),
+        )
+        _assert_only(
+            validate(root),
+            [
+                "missing_makefile_command:phase7-validate:cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase7-build-wiring.py",
+                "makefile_command_order_drift:phase7-validate",
+            ],
+            "missing_phase7_build_wiring_command_guard_failed",
+        )
         _write(root / MAKEFILE_REL, baseline_makefile)
         case_count += 1
     print("PHASE3_README_TOOLING_INVENTORY_SELF_TEST=pass")
     print(f"PHASE3_README_TOOLING_INVENTORY_SELF_TEST_CASE_COUNT={case_count}")
     return 0
+
 
 def main() -> int:
     parser = argparse.ArgumentParser(description="Keep the scripts/zigux README tooling inventory aligned with the shipped repo-tooling packet.")
@@ -556,6 +676,7 @@ def main() -> int:
     print("PHASE3_README_TOOLING_INVENTORY=pass")
     print(f"PHASE3_README_TOOLING_INVENTORY_HELPER_COUNT={len(REQUIRED_HELPERS)}")
     return 0
+
 
 if __name__ == "__main__":
     raise SystemExit(main())
