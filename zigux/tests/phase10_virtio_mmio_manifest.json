@@ -155,6 +155,13 @@
       "why_now": "With config-write planning already landed, the live MMIO helper can now summarize which bytes a prepared config-word write would change, including the absolute end of the prepared config-word window and a changed-byte mask, without mutating config space or claiming interrupt acknowledgement, queue discovery, reset flows, or probe or remove lifecycle behavior."
     },
     {
+      "id": "phase10-mmio-selected-queue-readiness-helper",
+      "status": "starter_landed",
+      "kind": "transport_wrapper",
+      "zigux_destination": "drivers/virtio/virtio_mmio.zig",
+      "why_now": "The live helper now summarizes the currently selected queue's queue_num_max, queue_num, queue_ready, programmed-size posture, and queue-ready-for-handoff posture so queue handling stays reviewable without widening into queue discovery, reset flows, or probe lifecycle behavior."
+    },
+    {
       "id": "phase10-mmio-lifecycle-and-irq-paths",
       "status": "blocked_on_risky_transport",
       "kind": "transport_wrapper",
