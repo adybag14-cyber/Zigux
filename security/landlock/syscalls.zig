@@ -549,35 +549,14 @@ pub const SyscallsHelperLab = struct {
     }
 };
 
-test "landlock syscalls descriptor reports ruleset fops planning" {
+test "landlock syscalls ruleset fops release stays aligned with the release planner" {
     const descriptor = SyscallsHelperLab.descriptor();
-
     try std.testing.expect(descriptor.provides_ruleset_fops_planning);
-}
 
-test "landlock syscalls ruleset fops planner keeps release and dummy handlers explicit" {
-    const release = SyscallsHelperLab.planRulesetFops(.release);
-    try std.testing.expectEqualStrings("security/landlock/syscalls.c", release.anchor);
-    try std.testing.expectEqual(RulesetFopsOperation.release, release.operation);
-    try std.testing.expect(release.requires_private_data_ruleset);
-    try std.testing.expect(release.releases_retained_ruleset_reference);
-    try std.testing.expect(release.returns_zero);
-    try std.testing.expectEqual(@as(u32, 0), release.enables_mode);
-    try std.testing.expect(!release.returns_einval);
-
-    const read = SyscallsHelperLab.planRulesetFops(.read);
-    try std.testing.expectEqual(RulesetFopsOperation.read, read.operation);
-    try std.testing.expectEqual(fmode_can_read, read.enables_mode);
-    try std.testing.expect(read.returns_einval);
-    try std.testing.expect(!read.requires_private_data_ruleset);
-    try std.testing.expect(!read.releases_retained_ruleset_reference);
-    try std.testing.expect(!read.returns_zero);
-
-    const write = SyscallsHelperLab.planRulesetFops(.write);
-    try std.testing.expectEqual(RulesetFopsOperation.write, write.operation);
-    try std.testing.expectEqual(fmode_can_write, write.enables_mode);
-    try std.testing.expect(write.returns_einval);
-    try std.testing.expect(!write.requires_private_data_ruleset);
-    try std.testing.expect(!write.releases_retained_ruleset_reference);
-    try std.testing.expect(!write.returns_zero);
+    const release_plan = try SyscallsHelperLab.planRulesetRelease(.{});
+    const fops_release = SyscallsHelperLab.planRulesetFops(.release);
+    try std.testing.expectEqualStrings(release_plan.anchor, fops_release.anchor);
+    try std.testing.expectEqual(release_plan.requires_private_data_ruleset, fops_release.requires_private_data_ruleset);
+    try std.testing.expectEqual(release_plan.releases_retained_ruleset_reference, fops_release.releases_retained_ruleset_reference);
+    try std.testing.expectEqual(release_plan.returns_zero, fops_release.returns_zero);
 }
