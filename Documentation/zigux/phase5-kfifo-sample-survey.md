@@ -116,7 +116,7 @@ This slice closes the `kfifo` survey-only gap by landing the first sample-backed
 
 A focused current-`master` replay was re-run on 2026-05-05 with the attached Zig toolchain `0.17.0-dev.87+9b177a7d2`.
 
-- `zig fmt --check` passed for the current `samples/zigux/bytestream_fifo.zig`, `zigux/tests/phase5_bytestream_fifo.zig`, `zigux/tests/phase5_bytestream_fifo_survey.zig`, and the focused scratch `zigux/tests/build.zig` used to replay only this packet
+- `zig fmt --check` passed for the current `samples/zigux/bytestream_fifo.zig`, `zigux/tests/phase5_bytestream_fifo.zig`, `zigux/tests/phase5_bytestream_fifo_survey.zig`, and the shared repo-local `zigux/tests/phase5_build.zig` entrypoint for the shipped Phase 5 sample packet
 - `zig test samples/zigux/bytestream_fifo.zig` passed `5/5` sample self-checks
 - a focused scratch replay assembled from the current `master` versions of `samples/zigux/bytestream_fifo.zig`, `zigux/tests/phase5_bytestream_fifo.zig`, `zigux/tests/phase5_bytestream_fifo_survey.zig`, and `zigux/tests/phase5_bytestream_fifo_manifest.json` passed `5/5` build steps and `8/8` tests via `zig build test --build-file zigux/tests/phase5_build.zig --summary all`
 - the observed sample markers matched the manifest-backed contract exactly: `len_after_initial_fill = 15`, `first_out = "hello"`, `second_out = {0, 1}`, `skipped_byte = 2`, `peek_value = 3`, `fill_start = 20`, `fill_end = 42`, `snapshot_len = 32`, `snapshot_sequence stayed [3,4,5,6,7,8,9,0,1,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42]`, `final_len = 32`, and the final drain sequence stayed `[3,4,5,6,7,8,9,0,1,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42]`
