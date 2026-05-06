@@ -76,6 +76,20 @@
       "why_now": "A bounded loader handoff keeps the planned register_kretprobe and unregister_kretprobe lifecycle, entry or exit symbol naming, private-data size, idle registration snapshot, and failed-exit state retention explicit while the real runtime substrate is still unavailable."
     },
     {
+      "id": "runtime-kretprobe-loader-contract",
+      "status": "starter_landed",
+      "kind": "runtime_loader_contract",
+      "zigux_destination": "zigux/kernel/runtime_loader_contract.zig",
+      "why_now": "The shared runtime-loader contract keeps the bounded register_kretprobe and unregister_kretprobe handoff, allocator ownership, and request-shape limits explicit so the kretprobe starter does not overclaim runtime substrate parity."
+    },
+    {
+      "id": "runtime-kretprobe-loader-init-flow",
+      "status": "starter_landed",
+      "kind": "validation",
+      "zigux_destination": "zigux/tests/runtime_loader_allocator_init_flow.zig",
+      "why_now": "The shared allocator/init-flow replay keeps the contract-backed request preparation and allocator handoff reviewable beside the kretprobe loader scaffold while the real runtime substrate remains blocked."
+    },
+    {
       "id": "runtime-kretprobe-substrate-handoff",
       "status": "blocked_on_runtime_substrate",
       "kind": "runtime_substrate",
