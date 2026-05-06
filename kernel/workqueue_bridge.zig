@@ -88,10 +88,10 @@ const boundary_areas = [_]BoundaryArea{
     },
     .{
         .id = "allocation-and-attrs",
-        .summary = "Document the workqueue allocation and attribute surface as a future wrapper candidate, not a live allocator port.",
+        .summary = "Document the workqueue allocation and attribute surface as study-only boundary evidence, not a live wrapper or allocator port.",
         .ownership = .boundary_map_only,
         .anchor_symbols = &[_][]const u8{ "__alloc_workqueue", "devm_alloc_workqueue" },
-        .rationale = "Allocation and attribute shaping are reviewable as metadata boundaries, but the real implementation still depends on worker_pool lifetime, rescue policy, pod affinity, and memory-ordering rules that remain in C.",
+        .rationale = "Allocation and attribute shaping are reviewable as metadata boundaries, but the real implementation still depends on worker_pool lifetime, rescue policy, pod affinity, and memory-ordering rules that remain in C, so Phase 14 should keep this surface descriptive rather than wrapper-shaped.",
     },
     .{
         .id = "flush-and-cancel",
@@ -293,7 +293,7 @@ pub const WorkqueueBridgeLab = struct {
     }
 
     pub fn nextAuditFocus() []const u8 {
-        return "Leave this lane in blocked maintenance; hotplug-driven worker migration and flush-drain ownership stay in C even after the delayed_work_timer_fn() handoff and mod_delayed_work_on() requeue governance note.";
+        return "Leave this lane in blocked maintenance; hotplug-driven worker migration and flush-drain ownership stay in C even after the delayed_work_timer_fn() handoff and the mod_delayed_work_on() stay-in-C requeue decision.";
     }
 };
 
@@ -337,6 +337,11 @@ test "workqueue bridge boundary map records stay-in-c decisions" {
     try std.testing.expect(std.mem.indexOf(u8, map.areas[2].rationale, "CPU affinity") != null);
     try std.testing.expect(std.mem.indexOf(u8, map.areas[2].rationale, "immediate queueing") != null);
 
+    try std.testing.expectEqualStrings("allocation-and-attrs", map.areas[3].id);
+    try std.testing.expect(std.mem.indexOf(u8, map.areas[3].summary, "study-only boundary evidence") != null);
+    try std.testing.expect(std.mem.indexOf(u8, map.areas[3].summary, "wrapper") != null);
+    try std.testing.expect(std.mem.indexOf(u8, map.areas[3].rationale, "descriptive rather than wrapper-shaped") != null);
+
     try std.testing.expectEqualStrings("worker-pool-concurrency", map.areas[5].id);
     try std.testing.expect(map.areas[5].ownership == .stay_in_c);
     try std.testing.expect(std.mem.indexOf(u8, map.areas[5].rationale, "forward-progress") != null);
@@ -357,6 +362,7 @@ test "workqueue bridge concurrency audit stays review-only" {
     try std.testing.expectEqual(@as(usize, 13), WorkqueueBridgeLab.auditCheckpointCount());
     try std.testing.expect(std.mem.indexOf(u8, audit.next_step, "blocked maintenance") != null);
     try std.testing.expect(std.mem.indexOf(u8, audit.next_step, "hotplug-driven worker migration") != null);
+    try std.testing.expect(std.mem.indexOf(u8, audit.next_step, "stay-in-C requeue decision") != null);
 
     try std.testing.expectEqualStrings("manager-role-serialization", audit.checkpoints[0].id);
     try std.testing.expect(audit.checkpoints[0].guard == .pool_lock_released_and_reacquired);
