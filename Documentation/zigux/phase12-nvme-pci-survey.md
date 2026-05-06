@@ -80,6 +80,8 @@ This survey slice does not claim:
 3. run the convenience target
 - `make -C zigux phase12`
 
+Use `Documentation/zigux/phase12-release-closure-checklist.md` as the PMO companion when judging whether this survey-backed packet is close enough to describe the active Phase 12 tranche as release-closed.
+
 ## Next bounded step
 
 Keep this Phase 12 nvme PCI lane parked unless the roadmap explicitly approves a transport-facing follow-up beyond the now-landed queue-planning, PRP buffer-shape, and PRP metadata helpers.
