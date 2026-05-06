@@ -539,6 +539,43 @@ def run_self_test() -> int:
             return 1
         raw_coverage_path.write_text(original_raw_coverage, encoding="utf-8")
 
+        libbpf_survey_path = root / LIBBPF_SURVEY_PATH
+        original_libbpf_survey = libbpf_survey_path.read_text(encoding="utf-8")
+        broken_libbpf_survey = original_libbpf_survey.replace(
+            "- Documentation/zigux/phase12-release-closure-checklist.md\n",
+            "",
+            1,
+        )
+        libbpf_survey_path.write_text(broken_libbpf_survey, encoding="utf-8")
+        failures = validate(root)
+        expected = f"{LIBBPF_SURVEY_PATH}:Documentation/zigux/phase12-release-closure-checklist.md"
+        if expected not in failures:
+            print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST=fail")
+            print("libbpf-survey-closure-companion-guard")
+            for failure in failures:
+                print(failure)
+            return 1
+        libbpf_survey_path.write_text(original_libbpf_survey, encoding="utf-8")
+
+        broken_libbpf_survey = original_libbpf_survey.replace(
+            "- the older segment catalog still leaves two bounded shared-bridge helpers explicitly nearer than the object-model wall\n",
+            "",
+            1,
+        )
+        libbpf_survey_path.write_text(broken_libbpf_survey, encoding="utf-8")
+        failures = validate(root)
+        expected = (
+            f"{LIBBPF_SURVEY_PATH}:"
+            "the older segment catalog still leaves two bounded shared-bridge helpers explicitly nearer than the object-model wall"
+        )
+        if expected not in failures:
+            print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST=fail")
+            print("libbpf-survey-shared-bridge-boundary-guard")
+            for failure in failures:
+                print(failure)
+            return 1
+        libbpf_survey_path.write_text(original_libbpf_survey, encoding="utf-8")
+
         scripts_readme_path = root / SCRIPTS_README_PATH
         original_scripts_readme = scripts_readme_path.read_text(encoding="utf-8")
         broken_scripts_readme = original_scripts_readme.replace(
