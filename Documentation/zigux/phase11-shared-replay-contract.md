@@ -57,6 +57,8 @@ The focused shared header-boundary evidence also stays explicit beside that repl
 
 - `Documentation/zigux/phase11-uapi-header-parity-survey.md`
 - `scripts/zigux/check-phase11-header-boundary-packet.py`
+- `python3 scripts/zigux/check-phase11-header-boundary-packet.py --self-test`
+- `python3 scripts/zigux/check-phase11-header-boundary-packet.py`
 - `zigux/tests/phase11_uapi_header_parity_manifest.json`
 - `zigux/tests/phase11_uapi_header_parity_survey.zig`
 
