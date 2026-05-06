@@ -249,6 +249,7 @@ test "phase 5 trace-events survey note stays repo-local and keeps the formatting
     try expectContains(survey_note, "runPayloadBoundaryReplay()");
     try expectContains(survey_note, "private field inspection");
     try expectContains(survey_note, "no standalone `samples/zigux/*printf*`, `*vsprintf*`, or `*format*` Phase 5 reference sample");
+    try expectContains(survey_note, "approved formatting idiom cue");
     try expectContains(survey_note, "selected-string plus `iter=%d` replay");
     try expectContains(survey_note, "tools/lib/vsprintf.zig");
     try expectContains(survey_note, "string_get_size()");
@@ -267,7 +268,8 @@ test "phase 5 trace-events survey note stays repo-local and keeps the formatting
     try expectContains(samples_root, "samples/zigux/trace_events_sample.zig");
     try expectContains(samples_root, "approved payload-and-callback idiom");
     try expectContains(samples_root, "balanced register-then-unregister callback review surface");
-    try expectContains(samples_root, "no standalone `samples/zigux/*printf*`, `*vsprintf*`, or `*format*` reference sample");
+    try expectContains(samples_root, "the Phase 5 trace-events packet still ships no standalone `samples/zigux/*printf*`, `*vsprintf*`, or `*format*` reference sample");
+    try expectContains(samples_root, "approved formatting idiom cue");
     try expectContains(samples_root, "selected-string plus `iter=%d` replay");
     try expectContains(samples_root, "closed Phase 1 `tools/lib/vsprintf.zig` packet");
     try expectContains(samples_root, "bounded Phase 7 `string_get_size()` helper packet");
@@ -286,7 +288,8 @@ test "phase 5 trace-events survey note stays repo-local and keeps the formatting
     try expectContains(docs_root, "Documentation/zigux/phase5-trace-events-sample-survey.md");
     try expectContains(docs_root, "samples/zigux/trace_events_sample.zig");
     try expectContains(docs_root, "formatted-message");
-    try expectContains(docs_root, "no standalone `samples/zigux/*printf*`, `*vsprintf*`, or `*format*` reference sample");
+    try expectContains(docs_root, "the trace-events Phase 5 packet still ships no standalone `samples/zigux/*printf*`, `*vsprintf*`, or `*format*` reference sample");
+    try expectContains(docs_root, "formatting idiom cue");
     try expectContains(docs_root, "selected-string plus `iter=%d` replay");
     try expectContains(docs_root, "closed Phase 1 `tools/lib/vsprintf.zig` packet");
     try expectContains(docs_root, "bounded Phase 7 `string_get_size()` helper packet");
