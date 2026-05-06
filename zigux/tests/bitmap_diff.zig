@@ -100,12 +100,19 @@ const BitmapHarness = struct {
         return nbits;
     }
 
+    fn roundedZeroPrefixLen(nbits: u32) !u32 {
+        if (nbits > bitmap_nbits) return error.BitRangeOutOfBounds;
+        if (nbits == 0) return 0;
+        const rounded = ((nbits + bits_per_long - 1) / bits_per_long) * bits_per_long;
+        return @min(bitmap_nbits, rounded);
+    }
+
     fn fillPrefix(self: *Self, nbits: u32) !void {
         try self.setRange(0, try boundedPrefixLen(nbits));
     }
 
     fn zeroPrefix(self: *Self, nbits: u32) !void {
-        try self.clearRange(0, try boundedPrefixLen(nbits));
+        try self.clearRange(0, try roundedZeroPrefixLen(nbits));
     }
 
     fn copyFrom(self: *Self, other: *const Self, nbits: u32) !void {
@@ -445,19 +452,19 @@ test "bitmap diff gate replays bounded lib/test_bitmap.c range expectations" {
             .must_be_clear = &.{ 0, 8 },
         },
         .{
-            .name = "test_zero_clear bitmap_zero keeps the exact 35-bit prefix",
+            .name = "test_zero_clear bitmap_zero rounds the 35-bit prefix up to one word",
             .init_bits = &.{},
             .set_ranges = &.{.{ .start = 0, .len = BitmapHarness.bitmap_nbits }},
             .clear_ranges = &.{},
             .fill_prefixes = &.{},
             .zero_prefixes = &.{35},
             .expected_summary = .{
-                .first_set = 35,
+                .first_set = 64,
                 .first_zero = 0,
-                .weight = BitmapHarness.bitmap_nbits - 35,
+                .weight = BitmapHarness.bitmap_nbits - 64,
             },
-            .must_be_set = &.{ 35, 63, BitmapHarness.bitmap_nbits - 1 },
-            .must_be_clear = &.{ 0, 34 },
+            .must_be_set = &.{ 64, 127, BitmapHarness.bitmap_nbits - 1 },
+            .must_be_clear = &.{ 0, 63 },
         },
         .{
             .name = "test_zero_clear cross-boundary cutout after exact prefix",
@@ -475,19 +482,19 @@ test "bitmap diff gate replays bounded lib/test_bitmap.c range expectations" {
             .must_be_clear = &.{ 0, 63, 79, 97 },
         },
         .{
-            .name = "test_zero_clear bitmap_zero keeps the exact 115-bit prefix",
+            .name = "test_zero_clear bitmap_zero rounds the 115-bit prefix up to two words",
             .init_bits = &.{},
             .set_ranges = &.{.{ .start = 0, .len = BitmapHarness.bitmap_nbits }},
             .clear_ranges = &.{},
             .fill_prefixes = &.{},
             .zero_prefixes = &.{115},
             .expected_summary = .{
-                .first_set = 115,
+                .first_set = 128,
                 .first_zero = 0,
-                .weight = BitmapHarness.bitmap_nbits - 115,
+                .weight = BitmapHarness.bitmap_nbits - 128,
             },
-            .must_be_set = &.{ 115, 127, BitmapHarness.bitmap_nbits - 1 },
-            .must_be_clear = &.{ 0, 114 },
+            .must_be_set = &.{ 128, BitmapHarness.bitmap_nbits - 1 },
+            .must_be_clear = &.{ 0, 127 },
         },
         .{
             .name = "test_zero_clear bitmap_zero reaches the empty 1024-bit extent",
@@ -653,6 +660,8 @@ test "bitmap diff gate keeps the current bounded source inventory explicit" {
     try expectMarker(bitmap_diff_source, "test_fill_set bitmap_fill keeps the exact 35-bit prefix");
     try expectMarker(bitmap_diff_source, "test_fill_set bitmap_fill keeps the exact 115-bit prefix");
     try expectMarker(bitmap_diff_source, "test_fill_set bitmap_fill reaches the full 1024-bit extent");
+    try expectMarker(bitmap_diff_source, "test_zero_clear bitmap_zero rounds the 35-bit prefix up to one word");
+    try expectMarker(bitmap_diff_source, "test_zero_clear bitmap_zero rounds the 115-bit prefix up to two words");
     try expectMarker(bitmap_diff_source, "test_zero_clear bitmap_zero reaches the empty 1024-bit extent");
     try expectMarker(bitmap_diff_source, "test_zero_nbits zero-length range and prefix edits leave seeded bits unchanged");
     try expectMarker(bitmap_diff_source, "test_copy exact 23-bit replay clears the stale tail in the destination word");
@@ -661,8 +670,8 @@ test "bitmap diff gate keeps the current bounded source inventory explicit" {
     try expectMarker(bitmap_diff_source, "test_zero_nbits zero-length copy leaves destination unchanged");
     try expectMarker(bitmap_diff_source, "if (iterations == 0) return error.EmptyThresholdReplayBatch;");
     try expectMarker(bitmap_diff_source, "try std.testing.expectError(error.EmptyThresholdReplayBatch, runThresholdReplay(0));");
-    try expectMarker(bitmap_diff_source, "try std.testing.expectEqual(@as(u64, 6872226231820490607), single.checksum);");
-    try expectMarker(bitmap_diff_source, "try std.testing.expectEqual(@as(u64, 17675807730989546160), repeated.checksum);");
+    try expectMarker(bitmap_diff_source, "try std.testing.expectEqual(@as(u64, 5935933735089032221), single.checksum);");
+    try expectMarker(bitmap_diff_source, "try std.testing.expectEqual(@as(u64, 16508146962659934480), repeated.checksum);");
 }
 
 test "bitmap diff gate rejects an empty threshold replay batch" {
@@ -679,8 +688,8 @@ test "bitmap diff gate keeps a deterministic threshold replay batch ready for fu
     try std.testing.expectEqual(@as(u32, 97), single.final_first_zero);
     try std.testing.expectEqual(@as(u32, 993), single.final_weight);
     try std.testing.expectEqual(@as(u32, 123), single.final_nth_seven);
-    try std.testing.expectEqual(@as(u64, 6872226231820490607), single.checksum);
-    try std.testing.expectEqual(@as(u64, 17675807730989546160), repeated.checksum);
+    try std.testing.expectEqual(@as(u64, 5935933735089032221), single.checksum);
+    try std.testing.expectEqual(@as(u64, 16508146962659934480), repeated.checksum);
     try std.testing.expect(repeated.checksum != single.checksum);
     try std.testing.expectEqualDeep(repeated, try runThresholdReplay(4));
 }
