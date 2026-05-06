@@ -31,7 +31,7 @@
       "status": "starter_landed",
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase11_hvc_console_survey.zig",
-      "why_now": "The archival survey gate now verifies that the bounded hvc_console starter includes the setup-state, close-boundary, cleanup handoff, remove-path handoff, tty-registration handoff helper, sysrq handoff helper, notifier handoff helper, and the dedicated struct winsize layout proof while keeping the remaining live notifier execution and host-backed behavior gaps reviewable."
+      "why_now": "The archival survey gate now verifies that the bounded hvc_console starter includes the setup-state, close-boundary, cleanup handoff, remove-path handoff, tty-registration handoff helper, sysrq handoff helper, notifier handoff helper, the never-registered no-unregister failure mode, the targetless no-unregister edge, and the dedicated struct winsize layout proof while keeping the remaining live notifier execution and host-backed behavior gaps reviewable."
     },
     {
       "id": "phase11-hvc-console-winsize-layout-assert",
@@ -73,14 +73,14 @@
       "status": "starter_landed",
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase11_hvc_console.zig",
-      "why_now": "Dedicated driver tests now cover setup-state slot validation, newline framing, retry-after-EAGAIN flush intent, final-close wait gating, remove-path teardown ordering, tty-registration handoff boundaries, the bounded sysrq handoff, the bounded notifier handoff, hung-up close short-circuiting, and teardown gating without touching tty core integration."
+      "why_now": "Dedicated driver tests now cover setup-state slot validation, newline framing, retry-after-EAGAIN flush intent, final-close wait gating, remove-path teardown ordering, tty-registration handoff boundaries, the bounded sysrq handoff, the bounded notifier handoff, the never-registered no-unregister edge, the targetless no-unregister edge, hung-up close short-circuiting, and teardown gating without touching tty core integration."
     },
     {
       "id": "phase11-hvc-console-validation-matrix",
       "status": "starter_landed",
       "kind": "documentation",
       "zigux_destination": "Documentation/zigux/phase11-hvc-console-validation-matrix.md",
-      "why_now": "The first kernel-integration validation matrix now makes the roadmap comparison reviewable by naming the shared Phase 11 test gate, the bounded cleanup replay, the landed tty-registration handoff, the landed sysrq handoff, the landed notifier-facing handoff, and the still-host-free teardown and failure-mode posture without claiming host-backed I/O."
+      "why_now": "The first kernel-integration validation matrix now makes the roadmap comparison reviewable by naming the shared Phase 11 test gate, the bounded cleanup replay, the landed tty-registration handoff, the landed sysrq handoff, the landed notifier-facing handoff, and the targetless notifier no-unregister edge while keeping the same host-free teardown and failure-mode posture without claiming host-backed I/O."
     },
     {
       "id": "phase11-hvc-console-tty-and-teardown-parity",
@@ -101,7 +101,7 @@
       "status": "starter_landed",
       "kind": "simple_driver_starter",
       "zigux_destination": "drivers/tty/hvc/hvc_console.zig",
-      "why_now": "A tiny notifier-facing handoff summary now keeps notifier registration intent, deferred callback ownership, deferred unregister timing, the still-deferred worker execution boundary, and the never-registered path where unregister timing stays false because tty registration never became ready, before any live notifier execution or host-backed hypervisor I/O lands."
+      "why_now": "A tiny notifier-facing handoff summary now keeps notifier registration intent, deferred callback ownership, deferred unregister timing, the still-deferred worker execution boundary, the never-registered path where unregister timing stays false because tty registration never became ready, and the targetless path where unregister timing also stays false because no notifier target was wired, before any live notifier execution or host-backed hypervisor I/O lands."
     }
   ]
 }
