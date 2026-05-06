@@ -45,6 +45,7 @@ The current base64 helper surface exercised by this slice covers:
 - `Variant.std`
 - `Variant.urlsafe`
 - `Variant.imap`
+- per-variant reverse lookup maps that mirror the kernel helper's decode classification shape for std, URL-safe, and IMAP inputs
 
 The current tests check:
 
