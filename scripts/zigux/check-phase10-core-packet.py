@@ -4,6 +4,7 @@ from __future__ import annotations
 import argparse
 import json
 from pathlib import Path
+import re
 import sys
 import tempfile
 
@@ -98,9 +99,15 @@ EXPECTED_GAPS = {
     "phase10-core-probe-remove-lifecycle": "blocked_on_risky_transport",
 }
 
+COMMIT_RE = re.compile(r"^[0-9a-f]{40}$")
+
 
 def read_text(root: Path, rel_path: str) -> str:
     return (root / rel_path).read_text(encoding="utf-8")
+
+
+def is_lower_hex_commit(value: object) -> bool:
+    return isinstance(value, str) and COMMIT_RE.fullmatch(value) is not None
 
 
 def validate(root: Path) -> tuple[list[str], list[str]]:
@@ -152,8 +159,13 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
         missing_markers.append("manifest:phase=Phase 10")
     if manifest.get("anchor") != "drivers/virtio/virtio.c":
         missing_markers.append("manifest:anchor=drivers/virtio/virtio.c")
-    if manifest.get("surveyed_commit") != "7a4454d0474106972cad7e164b79293bd54a40c6":
-        missing_markers.append("manifest:surveyed_commit")
+
+    surveyed_commit = manifest.get("surveyed_commit")
+    if not is_lower_hex_commit(surveyed_commit):
+        missing_markers.append("manifest:surveyed_commit_format")
+    elif surveyed_commit not in survey_note:
+        missing_markers.append("survey_note:surveyed_commit_alignment")
+
     if manifest.get("roadmap_destinations") != ["drivers/virtio/*.zig", "zigux/kernel/", "zigux/helpers/"]:
         missing_markers.append("manifest:roadmap_destinations")
 
@@ -246,7 +258,7 @@ def run_self_test() -> int:
         build_path.write_text(original_build, encoding="utf-8")
 
         build_path.write_text(
-            original_build.replace('run_phase10_virtio_core_tests', 'run_phase10_virtio_core_drift', 2),
+            original_build.replace("run_phase10_virtio_core_tests", "run_phase10_virtio_core_drift", 2),
             encoding="utf-8",
         )
         _, missing_markers = validate(tmp_root)
@@ -255,7 +267,11 @@ def run_self_test() -> int:
         build_path.write_text(original_build, encoding="utf-8")
 
         build_path.write_text(
-            original_build.replace('run_phase10_virtio_core_reset_queue_tests', 'run_phase10_virtio_core_reset_queue_drift', 2),
+            original_build.replace(
+                "run_phase10_virtio_core_reset_queue_tests",
+                "run_phase10_virtio_core_reset_queue_drift",
+                2,
+            ),
             encoding="utf-8",
         )
         _, missing_markers = validate(tmp_root)
@@ -264,7 +280,7 @@ def run_self_test() -> int:
         build_path.write_text(original_build, encoding="utf-8")
 
         build_path.write_text(
-            original_build.replace('run_phase10_virtio_driver_id_tests', 'run_phase10_virtio_driver_id_drift', 2),
+            original_build.replace("run_phase10_virtio_driver_id_tests", "run_phase10_virtio_driver_id_drift", 2),
             encoding="utf-8",
         )
         _, missing_markers = validate(tmp_root)
@@ -379,9 +395,27 @@ def run_self_test() -> int:
         _, missing_markers = validate(tmp_root)
         if "survey_note:zigux/helpers/" not in missing_markers:
             raise SystemExit("phase10-core-self-test:expected_helpers_survey_marker_missing")
+        survey_path.write_text(original_survey, encoding="utf-8")
+
+        manifest_path.write_text(
+            original_manifest.replace('"surveyed_commit": "7a4454d0474106972cad7e164b79293bd54a40c6"', '"surveyed_commit": "master"', 1),
+            encoding="utf-8",
+        )
+        _, missing_markers = validate(tmp_root)
+        if "manifest:surveyed_commit_format" not in missing_markers:
+            raise SystemExit("phase10-core-self-test:expected_surveyed_commit_format_missing")
+        manifest_path.write_text(original_manifest, encoding="utf-8")
+
+        survey_path.write_text(
+            original_survey.replace("7a4454d0474106972cad7e164b79293bd54a40c6", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", 1),
+            encoding="utf-8",
+        )
+        _, missing_markers = validate(tmp_root)
+        if "survey_note:surveyed_commit_alignment" not in missing_markers:
+            raise SystemExit("phase10-core-self-test:expected_surveyed_commit_alignment_missing")
 
     print("PHASE10_CORE_PACKET_SELF_TEST=pass")
-    print("PHASE10_CORE_PACKET_SELF_TEST_CASE_COUNT=14")
+    print("PHASE10_CORE_PACKET_SELF_TEST_CASE_COUNT=16")
     return 0
 
 
