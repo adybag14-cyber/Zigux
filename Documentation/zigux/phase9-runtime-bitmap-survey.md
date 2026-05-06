@@ -28,8 +28,8 @@ The Phase 9 roadmap explicitly names `lib/test_bitmap.c` as a runtime pilot-modu
 
 The live repo originally needed a survey-shaped review anchor that could record what the runtime bitmap lane had already shipped versus what still depends on a shared runtime substrate. This note stays in place after the bounded starter sample, module gate, diff gate, loader scaffold, and shared runtime-loader contract replay landed, so the lane can keep comparing the current pilot-module surface against the roadmap without pretending that Zigux already has a real loadable bitmap module.
 
-This survey note is also not a Phase 5 sample-root approval: `samples/zigux/runtime_bitmap.zig` and `samples/zigux/runtime_bitmap_loader.zig` stay here as the separate Phase 9 runtime bitmap family rooted in `lib/test_bitmap.c`, not as a fifth approved Phase 5 reference idiom under `samples/zigux/`.
-The shared sample-root catalog at `samples/zigux/README.md` keeps the approved Phase 5 anchors limited to `bytestream_fifo.zig`, `kobject_example.zig`, `kretprobe_example.zig`, and `trace_events_sample.zig`, while listing the runtime bitmap pair only under the separate Phase 9 runtime pilot family.
+This survey note is also not a Phase 5 sample-root approval: `samples/zigux/runtime_bitmap.zig`, `samples/zigux/runtime_bitmap_loader.zig`, and the focused `samples/zigux/runtime_bitmap_top_bit_{build,contract}.zig` companion replay stay here as the separate Phase 9 runtime bitmap family rooted in `lib/test_bitmap.c`, not as a fifth approved Phase 5 reference idiom under `samples/zigux/`.
+The shared sample-root catalog at `samples/zigux/README.md` keeps the approved Phase 5 anchors limited to `bytestream_fifo.zig`, `kobject_example.zig`, `kretprobe_example.zig`, and `trace_events_sample.zig`, while listing the runtime bitmap pair plus the focused top-bit companion replay only under the separate Phase 9 runtime pilot family.
 
 ## Survey findings
 
@@ -40,7 +40,7 @@ The shared sample-root catalog at `samples/zigux/README.md` keeps the approved P
 - the shared `zigux/tests/phase9_build.zig` gate still carries the direct `phase9-runtime-bitmap-sample-tests` leg, so the starter sample replay stays explicit beside the bitmap module, diff, loader, and survey gates.
 - the live repo now also carries the shared runtime-loader facade, contract, allocator/init-flow replay, and the focused `phase9-runtime-loader-shared-tests` build step that keep the bitmap loader handoff packet reviewable beside the lane-local sample, module, and diff gates.
 - the live repo still keeps that runtime bitmap family outside the four approved Phase 5 reference samples, so this survey packet stays reviewable as later runtime follow-on evidence rather than Phase 5 sample closure.
-- the shared `samples/zigux/README.md` catalog still lists the runtime bitmap pair only under the separate Phase 9 runtime pilot family and keeps the four approved Phase 5 anchors explicit.
+- the shared `samples/zigux/README.md` catalog still lists the runtime bitmap pair plus the focused top-bit companion replay only under the separate Phase 9 runtime pilot family and keeps the four approved Phase 5 anchors explicit.
 
 ## Roadmap snapshot
 
@@ -76,12 +76,13 @@ The manifest now records:
 - the landed `phase9-build-gate`
 - the landed `runtime-bitmap-survey-gate`
 - the landed `runtime-bitmap-sample-module` starter
+- the landed `runtime-bitmap-selftest-hook`
 - the landed `runtime-bitmap-module-tests`
 - the landed `runtime-bitmap-diff-gate`
 - the landed `runtime-bitmap-loader-scaffold`
 - the still-blocked `runtime-bitmap-live-loader-binding`
 
-This keeps the survey useful after the first starter, module gate, diff gate, loader scaffold, and shared loader-contract replay landed without pretending that Zigux already has a loadable runtime bitmap module or a live runtime loader binding waiting behind the blocker.
+This keeps the survey useful after the first starter, selftest-hook surface, module gate, diff gate, loader scaffold, and shared loader-contract replay landed without pretending that Zigux already has a loadable runtime bitmap module or a live runtime loader binding waiting behind the blocker.
 
 ## Gates
 
