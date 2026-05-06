@@ -13,6 +13,7 @@ test "phase 8 kallsyms slice note keeps helper-first output-stable tooling postu
     try std.testing.expect(std.mem.containsAtLeast(u8, phase8_kallsyms_slice, 1, "output-stable tooling behavior"));
     try std.testing.expect(std.mem.containsAtLeast(u8, phase8_kallsyms_slice, 1, "zig test tools/lib/symbol/kallsyms.zig"));
     try std.testing.expect(std.mem.containsAtLeast(u8, phase8_kallsyms_slice, 1, "one direct `kallsymsParse()` wrapper"));
+    try std.testing.expect(std.mem.containsAtLeast(u8, phase8_kallsyms_slice, 1, "oversized symbol names truncate to `KSYM_NAME_LEN`"));
 }
 
 test "phase 8 kallsyms parked slice covers symbol helpers and injected record parsing" {
@@ -59,10 +60,9 @@ test "phase 8 kallsyms parked slice covers symbol helpers and injected record pa
     );
     defer std.testing.allocator.free(oversized_line);
 
-    try std.testing.expectError(
-        error.SymbolNameTooLong,
-        kallsyms.forEachParsedLine(oversized_line, &symbols, Collector.append),
-    );
+    const oversized = (try kallsyms.parseLine(oversized_line)) orelse unreachable;
+    try std.testing.expectEqual(@as(usize, kallsyms.KSYM_NAME_LEN), oversized.name.len);
+    try std.testing.expectEqualStrings(too_long_name[0..kallsyms.KSYM_NAME_LEN], oversized.name);
 }
 
 test "phase 8 kallsyms injected parser preserves callback failures" {
