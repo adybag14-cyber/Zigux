@@ -66,7 +66,7 @@
       "status": "starter_landed",
       "kind": "documentation",
       "zigux_destination": "Documentation/zigux/phase13-landlock-ruleset-ownership.md",
-      "why_now": "A dedicated ownership note now fences `security/landlock/ruleset.zig` away from `security/landlock/syscalls.zig`, keeps `rb_replace_node()` and object ownership inside the blocked live-tree state, and makes the manifest, survey, slice, and test gate move together when the helper-owned surface changes."
+      "why_now": "A dedicated ownership note now fences `security/landlock/ruleset.zig` away from `security/landlock/syscalls.zig`, keeps old-rule cleanup after `rb_replace_node()` and object ownership inside the blocked live-tree state, and makes the manifest, survey, slice, and test gate move together when the helper-owned surface changes."
     },
     {
       "id": "phase13-landlock-rule-layer-merge-followup",
@@ -90,11 +90,18 @@
       "why_now": "The ruleset helper now includes one tiny in-memory planner for the no-match insertion branch around `rb_link_node()` and `rb_insert_color()` after the tree-search outcome is known, keeping the parent or root link mode explicit without mutating live rb-trees."
     },
     {
+      "id": "phase13-landlock-tree-replacement-followup",
+      "status": "starter_landed",
+      "kind": "security_helper_pilot",
+      "zigux_destination": "security/landlock/ruleset.zig",
+      "why_now": "The ruleset helper now includes one bounded matched-rule replacement planner around `create_rule()` and `rb_replace_node()` so Zigux can review the merged-layer replacement handoff and preserved rule count before claiming old-rule cleanup, object ownership, or other live tree state."
+    },
+    {
       "id": "phase13-landlock-live-tree-state-blocker",
       "status": "blocked_on_live_lsm_state",
       "kind": "security_helper_pilot",
       "zigux_destination": "security/landlock/ruleset.zig",
-      "why_now": "The next remaining ruleset gap crosses into `rb_replace_node()`, object ownership, hierarchy lifetime, and other live state that would overstate this helper lab if it were modeled as a pure in-memory followup."
+      "why_now": "The next remaining ruleset gap crosses into old-rule cleanup after `rb_replace_node()`, object ownership, hierarchy lifetime, and other live state that would overstate this helper lab if it were modeled as a pure in-memory followup."
     }
   ]
 }
