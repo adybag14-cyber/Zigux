@@ -14,6 +14,7 @@ This document tracks the first bounded `drivers/virtio/virtio_ring.c` lab helper
   - `zigux/tests/phase10_virtio_ring_survey.zig`
   - `zigux/tests/phase10_build.zig`
   - `zigux/Makefile`
+  - `scripts/zigux/check-phase10-ring-packet.py`
 - review surface:
   - `Documentation/zigux/phase10-virtio-ring-slice.md`
   - `Documentation/zigux/phase10-virtio-ring-survey.md`
