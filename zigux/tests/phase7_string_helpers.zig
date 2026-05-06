@@ -73,6 +73,21 @@ test "phase 7 parseIntArray respects first-NUL and no-entry behavior" {
     try std.testing.expectError(error.NoEntry, string_helpers.parseIntArray(std.testing.allocator, "none"));
 }
 
+test "phase 7 parseIntArrayUser copies a bounded user buffer before parsing" {
+    const ints = try string_helpers.parseIntArrayUser(std.testing.allocator, "1-3,9 trailing", 5);
+    defer string_helpers.freeIntArray(std.testing.allocator, ints);
+    try std.testing.expectEqualSlices(i32, &[_]i32{ 4, 1, 2, 3, 9 }, ints);
+
+    const nul_bounded = try string_helpers.parseIntArrayUser(std.testing.allocator, "7,8\x00ignored,9", 11);
+    defer string_helpers.freeIntArray(std.testing.allocator, nul_bounded);
+    try std.testing.expectEqualSlices(i32, &[_]i32{ 2, 7, 8 }, nul_bounded);
+}
+
+test "phase 7 parseIntArrayUser fails closed on short buffers and empty copied input" {
+    try std.testing.expectError(error.Fault, string_helpers.parseIntArrayUser(std.testing.allocator, "12", 3));
+    try std.testing.expectError(error.NoEntry, string_helpers.parseIntArrayUser(std.testing.allocator, "none", 4));
+}
+
 test "phase 7 stringUnescape covers deterministic Linux escape fixtures" {
     var out = [_]u8{0} ** 32;
 
