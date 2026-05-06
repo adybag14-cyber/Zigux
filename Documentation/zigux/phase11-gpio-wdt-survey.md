@@ -1,6 +1,6 @@
 # Phase 11 GPIO Watchdog Survey
 
-- `PHASE11_LANE_KEY=P11-Y07`
+- `PHASE11_LANE_KEY=P11-L04`
 
 This survey note now tracks the landed Phase 11 `gpio_wdt` starter anchored to `drivers/watchdog/gpio_wdt.c`.
 
@@ -10,6 +10,8 @@ The live repo state is now:
 - `zigux/tests/phase11_gpio_wdt.zig` keeps the toggle and level algorithms reviewable without claiming GPIO registration or hardware-backed execution, and now checks always-running startup, descriptor preflight ordering, timeout-property checkpoint ordering, pre-registration bookkeeping, stop-request outcomes, and registration handoff reporting
 - `zigux/tests/phase11_build.zig` runs the starter and survey paths together so lane-local freshness drift shows up in one place
 - `Documentation/zigux/phase11-gpio-wdt-validation-matrix.md` now records the bounded validation posture for the landed starter and the still-deferred kernel-facing follow-up
+
+This cleanup packet now carries lane identity `P11-L04` so the live manifest, focused survey gate, and survey note all point at the same gpio watchdog review record.
 
 This remains intentionally small. The lane still does not claim platform-driver registration, live GPIO descriptor lookup, watchdog core registration, reboot hooks, module parameters beyond summary bookkeeping, live GPIO execution, teardown and failure-mode parity beyond the bounded starter checks, or hardware-backed validation beyond the landed matrix.
 
