@@ -24,7 +24,7 @@ pub const InitFlow = struct {
     exit_runs: usize,
 
     pub fn readyForRuntimeLoad(self: InitFlow) bool {
-        if (self.init_runs == 0 or self.exit_runs != 0) return false;
+        if (self.init_runs != 1 or self.exit_runs != 0) return false;
 
         return switch (self.handoff_stage) {
             .initialized => self.selftest_runs == 0,
@@ -192,6 +192,23 @@ test "shared runtime loader contract rejects impossible, stale, or selftest-hook
         },
     };
     try std.testing.expectError(error.InvalidInitFlow, prepareRequest(missing_init));
+
+    const duplicate_init = LoadPlan{
+        .module_name = "runtime_trace_events",
+        .anchor = "samples/trace_events/trace-events-sample.c",
+        .entry_symbol = "zigux_runtime_trace_events_init",
+        .exit_symbol = "zigux_runtime_trace_events_exit",
+        .requires_runtime_substrate = true,
+        .provides_selftest_hook = true,
+        .allocator_handoff = .caller_provided,
+        .init_flow = .{
+            .handoff_stage = .selftest_complete,
+            .init_runs = 2,
+            .selftest_runs = 1,
+            .exit_runs = 0,
+        },
+    };
+    try std.testing.expectError(error.InvalidInitFlow, prepareRequest(duplicate_init));
 
     const exited_plan = LoadPlan{
         .module_name = "runtime_bitmap",
