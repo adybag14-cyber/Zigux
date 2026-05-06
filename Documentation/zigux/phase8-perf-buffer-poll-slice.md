@@ -6,7 +6,7 @@ This document tracks the bounded Phase 8 userspace-adjacent tooling slice for Zi
 
 - `PHASE8_STATUS=parked`
 - `PHASE8_SLICE=libbpf-perf-buffer-poll`
-- scope: observed wait-result normalization, ready-buffer bookkeeping, and ordered record-processing summaries only
+- scope: observed wait-result normalization, ready-buffer bookkeeping, bounded buffer-fd lookup and errno shaping, and ordered record-processing summaries only
 - product boundary:
   - `tools/lib/bpf/zigux_segments/perf_buffer_poll.zig`
   - `zigux/tests/phase8_perf_buffer_poll.zig`
@@ -52,6 +52,8 @@ The current bounded helper covers:
 - cumulative processed-record count across attempted ready buffers
 - first failing ready buffer and its error code
 - final return-path choice between a successful ready count and the first processing failure
+- explicit `perf_buffer__buffer_fd(buf_idx)` slot lookup classification
+- return shaping for valid buffer fds, invalid indices, and missing buffer fds
 - ready-buffer processing attempts cannot exceed observed ready events
 - non-ready wait observations cannot claim record processing
 - reject impossible post-wait buffer state combinations
@@ -64,6 +66,7 @@ The current tests check:
 - fail-fast processing summaries that stop on the first failing ready buffer
 - helper-local execution summaries that keep processed-record totals compact
 - return-path helpers that preserve the successful ready count until the first processing failure wins instead
+- buffer-fd slot lookups and errno-shaped invalid-index or missing-fd returns
 - impossible processing paths that overrun the observed ready-event budget
 - impossible post-wait buffer state combinations that must stay rejected
 
@@ -76,6 +79,7 @@ This slice does not yet claim:
 - direct `perf_event_open()` setup or enablement
 - epoll registration or wakeup-loop ownership
 - mmap-backed ring creation or teardown
+- descriptor ownership, duplication, or close semantics beyond bounded buffer-fd lookup results
 - broader perf-buffer-online-cpu-routing parity
 
 ## Next bounded step
