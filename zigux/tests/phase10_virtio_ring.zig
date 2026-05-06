@@ -90,6 +90,8 @@ test "phase10 virtio ring broken summary keeps queue-local debt reviewable while
 
     try ring.disableCallback(3);
     try ring.publishDescriptorChain(3);
+    _ = try ring.prepareKick(3);
+    try ring.publishDescriptorChain(3);
     try ring.recordUsedChains(3, 1);
 
     var broken_summary = try ring.markBroken(3);
@@ -99,7 +101,7 @@ test "phase10 virtio ring broken summary keeps queue-local debt reviewable while
     try std.testing.expect(!broken_summary.callback_enabled);
     try std.testing.expectEqual(@as(u16, 1), broken_summary.last_used_idx);
     try std.testing.expectEqual(@as(u16, 0), broken_summary.last_polled_used_idx);
-    try std.testing.expectEqual(@as(u16, 0), broken_summary.outstanding_chain_count);
+    try std.testing.expectEqual(@as(u16, 1), broken_summary.outstanding_chain_count);
     try std.testing.expectEqual(@as(u16, 1), broken_summary.unpublished_chain_count);
     try std.testing.expectEqual(@as(u16, 1), broken_summary.pending_used_chain_count);
 
@@ -112,11 +114,12 @@ test "phase10 virtio ring broken summary keeps queue-local debt reviewable while
 
     const summary_while_broken = try ring.notificationSummary(3);
     try std.testing.expectEqual(@as(u16, 1), summary_while_broken.num_added);
-    try std.testing.expectEqual(@as(usize, 0), summary_while_broken.notification_count);
+    try std.testing.expectEqual(@as(usize, 1), summary_while_broken.notification_count);
 
     broken_summary = try ring.clearBroken(3);
     try std.testing.expect(!broken_summary.broken);
     try std.testing.expect(!broken_summary.callback_enabled);
+    try std.testing.expectEqual(@as(u16, 1), broken_summary.outstanding_chain_count);
     try std.testing.expectEqual(@as(u16, 1), broken_summary.unpublished_chain_count);
     try std.testing.expectEqual(@as(u16, 1), broken_summary.pending_used_chain_count);
 
@@ -124,14 +127,32 @@ test "phase10 virtio ring broken summary keeps queue-local debt reviewable while
     const kick_summary = try ring.prepareKick(3);
     try std.testing.expect(kick_summary.needs_kick);
     try std.testing.expectEqual(@as(u16, 2), kick_summary.num_added);
-    try std.testing.expectEqual(@as(usize, 1), kick_summary.notification_count);
+    try std.testing.expectEqual(@as(usize, 2), kick_summary.notification_count);
 
     const poll_summary = try ring.pollUsedBuffers(3);
     try std.testing.expectEqual(@as(u16, 1), poll_summary.last_used_idx);
     try std.testing.expectEqual(@as(u16, 0), poll_summary.last_polled_used_idx);
     try std.testing.expectEqual(@as(u16, 1), poll_summary.newly_used_chain_count);
-    try std.testing.expectEqual(@as(u16, 1), poll_summary.outstanding_chain_count);
+    try std.testing.expectEqual(@as(u16, 2), poll_summary.outstanding_chain_count);
     try std.testing.expect(poll_summary.has_newly_used_chains);
+}
+
+test "phase10 virtio ring only records used chains that were already kicked" {
+    var ring = virtio_ring.VirtioRingLab{};
+    try ring.defineQueue(7, 8, .split, true, false);
+
+    try ring.publishDescriptorChain(7);
+    try std.testing.expectError(error.UsedBatchExceedsKickedChains, ring.recordUsedChains(7, 1));
+
+    _ = try ring.prepareKick(7);
+    try ring.publishDescriptorChain(7);
+    try std.testing.expectError(error.UsedBatchExceedsKickedChains, ring.recordUsedChains(7, 2));
+
+    try ring.recordUsedChains(7, 1);
+    const summary = try ring.notificationSummary(7);
+    try std.testing.expectEqual(@as(u16, 1), summary.outstanding_chain_count);
+    try std.testing.expectEqual(@as(u16, 1), summary.num_added);
+    try std.testing.expectEqual(@as(usize, 1), summary.notification_count);
 }
 
 test "phase10 virtio ring delayed callback pacing reports both thresholded and immediate poll cases" {
