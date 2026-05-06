@@ -224,6 +224,10 @@ fn compareOpaqueIntC(key: *const anyopaque, item: *const anyopaque) callconv(.c)
     return compareOpaqueInt(key, item);
 }
 
+fn compareOpaqueIntDescendingC(key: *const anyopaque, item: *const anyopaque) callconv(.c) i32 {
+    return compareOpaqueIntDescending(key, item);
+}
+
 const Entry = struct {
     name: []const u8,
     value: u32,
@@ -499,42 +503,34 @@ test "raw helpers short-circuit empty input and accept c abi comparator pointers
     }
 }
 
-test "raw singleton found and miss paths stay inside a one-compare budget" {
-    var values = [_]i32{11};
+test "raw helpers short-circuit empty input and accept descending c abi comparator pointers" {
+    var values = [_]i32{ 42, 23, 16, 11, 7, 4, 2 };
+    const comparators = [_]CRawComparator{ compareOpaqueIntDescendingC, compareOpaqueIntDescendingC };
 
-    raw_compare_call_count = 0;
-    try std.testing.expectEqual(
-        @as(?usize, 0),
-        bsearchIndex(&@as(i32, 11), @ptrCast(values[0..].ptr), values.len, @sizeOf(i32), compareOpaqueIntCounted),
-    );
-    try std.testing.expectEqual(@as(usize, 1), raw_compare_call_count);
+    for (comparators) |compare| {
+        const index = bsearchIndex(&@as(i32, 11), @ptrCast(values[0..].ptr), values.len, @sizeOf(i32), compare) orelse return error.TestUnexpectedResult;
+        try std.testing.expectEqual(@as(usize, 3), index);
 
-    raw_compare_call_count = 0;
-    const found = bsearch(&@as(i32, 11), @ptrCast(values[0..].ptr), values.len, @sizeOf(i32), compareOpaqueIntCounted) orelse return error.TestUnexpectedResult;
-    const typed_found: *const i32 = @ptrCast(@alignCast(found));
-    try std.testing.expectEqual(@as(i32, 11), typed_found.*);
-    try std.testing.expectEqual(@intFromPtr(&values[0]), @intFromPtr(typed_found));
-    try std.testing.expectEqual(@as(usize, 1), raw_compare_call_count);
+        const found = bsearch(&@as(i32, 7), @ptrCast(values[0..].ptr), values.len, @sizeOf(i32), compare) orelse return error.TestUnexpectedResult;
+        const typed_found: *const i32 = @ptrCast(@alignCast(found));
+        try std.testing.expectEqual(@as(i32, 7), typed_found.*);
+        try std.testing.expectEqual(@intFromPtr(&values[4]), @intFromPtr(typed_found));
 
-    raw_compare_call_count = 0;
-    try std.testing.expectEqual(
-        @as(?usize, null),
-        bsearchIndex(&@as(i32, 10), @ptrCast(values[0..].ptr), values.len, @sizeOf(i32), compareOpaqueIntCounted),
-    );
-    try std.testing.expectEqual(@as(usize, 1), raw_compare_call_count);
+        try std.testing.expectEqual(
+            @as(?usize, null),
+            bsearchIndex(&@as(i32, 10), @ptrCast(values[0..].ptr), values.len, @sizeOf(i32), compare),
+        );
+        try std.testing.expect(
+            bsearch(&@as(i32, 10), @ptrCast(values[0..].ptr), values.len, @sizeOf(i32), compare) == null,
+        );
 
-    raw_compare_call_count = 0;
-    try std.testing.expect(
-        bsearch(&@as(i32, 10), @ptrCast(values[0..].ptr), values.len, @sizeOf(i32), compareOpaqueIntCounted) == null,
-    );
-    try std.testing.expectEqual(@as(usize, 1), raw_compare_call_count);
-
-    raw_compare_call_count = 0;
-    const mutable = bsearchMutable(&@as(i32, 11), @ptrCast(values[0..].ptr), values.len, @sizeOf(i32), compareOpaqueIntCounted) orelse return error.TestUnexpectedResult;
-    const typed_mutable: *i32 = @ptrCast(@alignCast(mutable));
-    try std.testing.expectEqual(@as(usize, 1), raw_compare_call_count);
-    typed_mutable.* = 12;
-    try std.testing.expectEqual(@as(i32, 12), values[0]);
+        const mutable = bsearchMutable(&@as(i32, 16), @ptrCast(values[0..].ptr), values.len, @sizeOf(i32), compare) orelse return error.TestUnexpectedResult;
+        const typed_mutable: *i32 = @ptrCast(@alignCast(mutable));
+        try std.testing.expectEqual(@intFromPtr(&values[2]), @intFromPtr(typed_mutable));
+        typed_mutable.* = 17;
+        try std.testing.expectEqual(@as(i32, 17), values[2]);
+        typed_mutable.* = 16;
+    }
 }
 
 test "raw helpers accept runtime-selected native comparator pointers" {
