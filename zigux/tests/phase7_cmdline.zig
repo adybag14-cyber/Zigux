@@ -71,6 +71,12 @@ test "phase 7 memparse preserves suffix scaling, leading plus, and stop index se
 
     try std.testing.expectEqual(@as(u64, 1024), cmdline.memparse("+1K", &index));
     try std.testing.expectEqual(@as(usize, 3), index);
+
+    try std.testing.expectEqual(@as(u64, 0), cmdline.memparse("K", &index));
+    try std.testing.expectEqual(@as(usize, 1), index);
+
+    try std.testing.expectEqual(@as(u64, 0), cmdline.memparse("krest", &index));
+    try std.testing.expectEqual(@as(usize, 1), index);
 }
 
 test "phase 7 parseOptionStr matches only exact bare options" {
