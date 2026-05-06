@@ -112,6 +112,14 @@ The current Phase 3 low-level wrapper packet is still intentionally small, but i
 - export shims must return explicit status codes instead of hidden failure behavior.
 - future bindings generators are allowed later, but this slice stays curated and reviewable.
 
+## Linux Header Governance
+
+With the older dedicated export/UAPI note family gone from current `master`, this shared ABI slice now owns the header-growth rule for `include/linux/zigux.h`.
+
+- `PHASE3_C_HEADER_BOUNDARY_OWNERSHIP=include/linux/zigux.h remains the curated Linux-facing aggregation header for already-landed Phase 3 helper views and summaries, while canonical layout ownership stays in include/zigux/abi.h and include/zigux/dev_t.h.`
+- `PHASE3_C_HEADER_GROWTH_RULE=new top-level helpers or view families may land in include/linux/zigux.h only when the same change also updates this shared ABI note plus manifest-backed dump or focused replay evidence for the added surface.`
+- `include/linux/zigux.h` should relay and aggregate already-approved boundary helpers; it should not become a second source of truth for struct layout or policy definitions that belong in the curated ABI headers.
+
 ## Policy surfaces
 
 Panic policy:
