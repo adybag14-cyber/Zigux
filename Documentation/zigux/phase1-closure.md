@@ -178,6 +178,14 @@ That means `partial_xor_nbits` and `partial_xor_masked_values` stay present and 
 
 - `PHASE1_BITMAP_PARTIAL_XOR_REVIEW=partial_xor_nbits and partial_xor_masked_values stay explicit through the shared Phase 1 parity fixture and replay so caller-selected bit windows cannot silently leak tail bits beyond nbits`
 
+The helper-local first-word boundary proof must also stay explicit through:
+
+- `tools/lib/bitmap.zig`
+
+That means `test "bitmap range helpers honor exact first-word boundaries"` stays present and review-visible whenever `setRange()` or `clearRange()` changes. This helper-local test is the bounded proof that first-word masks stay exact when a range starts near the end of one word and stops exactly on that first-word boundary instead of spilling into the next word or clearing too much.
+
+- `PHASE1_BITMAP_FIRST_WORD_BOUNDARY_REVIEW=helper-local bitmap first-word boundary proof stays explicit through the direct bitmap test anchor so setRange and clearRange preserve exact first-word masks when a range ends on the first-word boundary`
+
 The helper-local `bitmap.scnprintf()` truncation proof must also stay explicit through:
 
 - `tools/lib/bitmap.zig`
