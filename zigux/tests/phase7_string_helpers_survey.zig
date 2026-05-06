@@ -38,6 +38,9 @@ test "phase 7 string helpers survey keeps the roadmap-backed helper packet revie
     try expectContains(build_file, "\"phase7-string-helpers-tests\"");
     try expectContains(build_file, "\"phase7-string-helpers-survey-tests\"");
     try expectContains(build_file, "run_string_helpers_survey_tests.setCwd(b.path(\"../..\"));");
+    try expectContains(build_file, "\"phase7_string_helpers_sample_boundary.zig\"");
+    try expectContains(build_file, "\"phase7-string-helpers-sample-boundary-tests\"");
+    try expectContains(build_file, "run_string_helpers_sample_boundary_tests.setCwd(b.path(\"../..\"));");
 
     const helper_tests = try readRepoFile(allocator, "zigux/tests/phase7_string_helpers.zig");
     defer allocator.free(helper_tests);
