@@ -20,6 +20,7 @@ REQUIRED_FILES = [
     "Documentation/zigux/phase8-libbpf-segment-survey.md",
     "Documentation/zigux/phase8-perf-buffer-poll-slice.md",
     "Documentation/zigux/phase8-userspace-kernel-bridge-boundary-survey.md",
+    "Documentation/zigux/review-checklist.md",
     "scripts/zigux/README.md",
     "scripts/zigux/check-phase8-exec-cmd-packet.py",
     "scripts/zigux/validate-phase8.py",
@@ -92,11 +93,6 @@ REQUIRED_MARKERS = {
         "make -C zigux phase8-exec-cmd-test",
         "stops before any ownership of `execv_cmd()` or `execvp()`",
     ],
-    "Documentation/zigux/phase8-libbpf-cpu-mask-slice.md": [
-        "parse_cpu_mask_str()",
-        "chunk-reader ingestion",
-        "tools/lib/bpf/zigux_segments/manifest.json",
-    ],
     "Documentation/zigux/phase8-file-path-handle-bridge-slice.md": [
         "\"/proc/%d/fdinfo/%d\" assembly plus bounded fdinfo text parsing",
         "zigux/tests/phase8_file_path_handle_bridge.zig",
@@ -144,6 +140,16 @@ REQUIRED_MARKERS = {
         "planTokenPreparation()",
         "resolveReusePinnedMapAttempt()",
         "fd close or ownership semantics",
+    ],
+    "Documentation/zigux/review-checklist.md": [
+        "if the change touches the parked Phase 8 `exec-cmd` packet",
+        "`make -C zigux phase8-exec-cmd-test`",
+        "helper-first, output-stable deferred-exec planning packet",
+        "if the change touches the shared active Phase 8 libbpf packet",
+        "`make -C zigux phase8-libbpf-segments-test`",
+        "`make -C zigux phase8-perf-buffer-poll-test`",
+        "`make -C zigux phase8-test`",
+        "without widening `perf-buffer-online-cpu-routing` into live epoll",
     ],
     "scripts/zigux/README.md": [
         "Phase 8 flow",
@@ -549,6 +555,7 @@ def run_self_test() -> None:
     missing_file_cases = [
         ("missing_validator", "scripts/zigux/validate-phase8.py"),
         ("missing_exec_cmd_slice", "Documentation/zigux/phase8-exec-cmd-slice.md"),
+        ("missing_review_checklist", "Documentation/zigux/review-checklist.md"),
         ("missing_exec_cmd_checker", "scripts/zigux/check-phase8-exec-cmd-packet.py"),
         ("missing_makefile", "zigux/Makefile"),
         ("missing_phase8_build", "zigux/tests/phase8_build.zig"),
@@ -565,6 +572,20 @@ def run_self_test() -> None:
             "PHASE8_SLICE=exec-cmd-deferred-exec-packet",
             "PHASE8_SLICE=exec-cmd-drift",
             "Documentation/zigux/phase8-exec-cmd-slice.md: PHASE8_SLICE=exec-cmd-deferred-exec-packet",
+        ),
+        (
+            "review_checklist_exec_cmd_packet",
+            "Documentation/zigux/review-checklist.md",
+            "if the change touches the parked Phase 8 `exec-cmd` packet",
+            "if the change touches the parked Phase 8 `help` packet",
+            "Documentation/zigux/review-checklist.md: if the change touches the parked Phase 8 `exec-cmd` packet",
+        ),
+        (
+            "review_checklist_libbpf_packet",
+            "Documentation/zigux/review-checklist.md",
+            "if the change touches the shared active Phase 8 libbpf packet",
+            "if the change touches the shared active Phase 8 cpu-mask packet",
+            "Documentation/zigux/review-checklist.md: if the change touches the shared active Phase 8 libbpf packet",
         ),
         (
             "scripts_readme_exec_cmd_checker",
