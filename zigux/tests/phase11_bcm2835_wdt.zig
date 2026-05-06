@@ -194,6 +194,68 @@ test "phase11 bcm2835_wdt registration outcome keeps poweroff ownership and fail
     try std.testing.expect(!non_controller_failure.poweroff_handler_left_in_place);
 }
 
+test "phase11 bcm2835_wdt platform handoff summary keeps PM-base and poweroff-claim boundaries explicit" {
+    var watchdog = try bcm2835_wdt.Bcm2835WatchdogLab.init(9);
+
+    const claimed = watchdog.platformHandoffSummary(true, true, false);
+    try std.testing.expectEqualStrings("drivers/watchdog/bcm2835_wdt.c", claimed.anchor);
+    try std.testing.expect(claimed.system_power_controller);
+    try std.testing.expect(claimed.parent_attached);
+    try std.testing.expect(claimed.pm_base_available);
+    try std.testing.expect(claimed.drvdata_ready);
+    try std.testing.expect(claimed.register_device_requested);
+    try std.testing.expect(!claimed.poweroff_handler_present);
+    try std.testing.expect(claimed.poweroff_handler_claimed);
+    try std.testing.expect(!claimed.poweroff_handler_conflict);
+
+    const conflict = watchdog.platformHandoffSummary(true, true, true);
+    try std.testing.expect(conflict.system_power_controller);
+    try std.testing.expect(conflict.pm_base_available);
+    try std.testing.expect(conflict.drvdata_ready);
+    try std.testing.expect(conflict.poweroff_handler_present);
+    try std.testing.expect(!conflict.poweroff_handler_claimed);
+    try std.testing.expect(conflict.poweroff_handler_conflict);
+
+    const blocked = watchdog.platformHandoffSummary(false, false, false);
+    try std.testing.expect(!blocked.system_power_controller);
+    try std.testing.expect(blocked.parent_attached);
+    try std.testing.expect(!blocked.pm_base_available);
+    try std.testing.expect(!blocked.drvdata_ready);
+    try std.testing.expect(blocked.register_device_requested);
+    try std.testing.expect(!blocked.poweroff_handler_present);
+    try std.testing.expect(!blocked.poweroff_handler_claimed);
+    try std.testing.expect(!blocked.poweroff_handler_conflict);
+}
+
+test "phase11 bcm2835_wdt poweroff summary keeps callback ownership and restart arming reviewable" {
+    var watchdog = try bcm2835_wdt.Bcm2835WatchdogLab.init(9);
+
+    const ready = watchdog.poweroffSummary(true, true, true);
+    try std.testing.expectEqualStrings("drivers/watchdog/bcm2835_wdt.c", ready.anchor);
+    try std.testing.expect(ready.system_power_controller);
+    try std.testing.expect(ready.poweroff_handler_present);
+    try std.testing.expect(ready.poweroff_handler_owned_by_driver);
+    try std.testing.expect(ready.poweroff_path_ready);
+    try std.testing.expect(ready.halt_partition_requested);
+    try std.testing.expect(ready.restart_armed);
+
+    const conflict = watchdog.poweroffSummary(true, true, false);
+    try std.testing.expect(conflict.system_power_controller);
+    try std.testing.expect(conflict.poweroff_handler_present);
+    try std.testing.expect(!conflict.poweroff_handler_owned_by_driver);
+    try std.testing.expect(!conflict.poweroff_path_ready);
+    try std.testing.expect(!conflict.halt_partition_requested);
+    try std.testing.expect(!conflict.restart_armed);
+
+    const blocked = watchdog.poweroffSummary(false, false, false);
+    try std.testing.expect(!blocked.system_power_controller);
+    try std.testing.expect(!blocked.poweroff_handler_present);
+    try std.testing.expect(!blocked.poweroff_handler_owned_by_driver);
+    try std.testing.expect(!blocked.poweroff_path_ready);
+    try std.testing.expect(!blocked.halt_partition_requested);
+    try std.testing.expect(!blocked.restart_armed);
+}
+
 test "phase11 bcm2835_wdt remove summary only clears the shared poweroff handler when bcm2835 owns it" {
     var watchdog = try bcm2835_wdt.Bcm2835WatchdogLab.init(9);
 
