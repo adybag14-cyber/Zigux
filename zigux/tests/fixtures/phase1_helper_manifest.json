@@ -64,6 +64,12 @@
         "test \"memparse saturates signed overflow instead of trapping\"",
         "test \"memparse consumes suffix after saturation\""
       ],
+      "memparse_review_anchors": [
+        "test \"memparse keeps original rest when sign is not followed by digits\"",
+        "test \"memparse saturates signed overflow instead of trapping\"",
+        "test \"memparse consumes suffix after saturation\""
+      ],
+      "memparse_review_summary": "helper-local memparse safety anchors stay explicit through the direct string tests so sign-prefixed invalid input preserves rest, signed overflow saturates, and suffixes are still consumed after saturation",
       "phase1_helper_replay_anchor": "test \"phase 1 string replaceChar stops at embedded NUL\"",
       "parity_fixture_keys": [
         "replace_char",
