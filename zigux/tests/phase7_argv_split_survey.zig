@@ -61,6 +61,12 @@ test "phase 7 argv_split survey manifest records the parked runtime leaf surface
     const checker = try readRepoFile(allocator, "scripts/zigux/check-phase7-argv-split-packet.py");
     defer allocator.free(checker);
 
+    const scripts_root = try readRepoFile(allocator, "scripts/zigux/README.md");
+    defer allocator.free(scripts_root);
+
+    const tests_root = try readRepoFile(allocator, "zigux/tests/README.md");
+    defer allocator.free(tests_root);
+
     const parsed = try std.json.parseFromSlice(Manifest, allocator, manifest_json, .{});
     defer parsed.deinit();
 
@@ -110,6 +116,17 @@ test "phase 7 argv_split survey manifest records the parked runtime leaf surface
     try expectContains(checker, "\"zigux/tests/phase7_argv_split_survey.zig\"");
     try expectContains(checker, "\"zigux/tests/phase7_argv_split_manifest.json\"");
     try expectContains(checker, "\"zigux/tests/fixtures/phase7_argv_split_vectors.zig\"");
+
+    try expectContains(scripts_root, "zigux/tests/phase7_argv_split_survey.zig");
+    try expectContains(scripts_root, "zigux/tests/phase7_argv_split_manifest.json");
+    try expectContains(scripts_root, "scripts/zigux/check-phase7-argv-split-packet.py");
+    try expectContains(scripts_root, "make -C zigux phase7-validate");
+    try expectContains(scripts_root, "make -C zigux phase7");
+
+    try expectContains(tests_root, "`scripts/zigux/check-phase7-argv-split-packet.py`");
+    try expectContains(tests_root, "the dedicated `zigux/tests/phase7_argv_split_survey.zig` argvSplit survey gate");
+    try expectContains(tests_root, "`make -C zigux phase7-validate`");
+    try expectContains(tests_root, "`make -C zigux phase7`");
 
     var starter_landed_count: usize = 0;
     var ready_next_count: usize = 0;
