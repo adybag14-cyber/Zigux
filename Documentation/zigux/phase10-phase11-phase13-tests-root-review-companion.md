@@ -81,14 +81,14 @@ Keep the shared validator-first release packet explicit:
   * `Documentation/zigux/review-checklist.md`
   * `zigux/tests/README.md`
   * `zigux/tests/phase13_build.zig`
+  * `zigux/tests/phase13_libfs.zig`
+  * `zigux/tests/phase13_devres.zig`
   * `zigux/tests/phase13_libfs_manifest.json`
   * `zigux/tests/phase13_devres_manifest.json`
   * `zigux/tests/phase13_landlock_ruleset_manifest.json`
   * `zigux/tests/phase13_landlock_syscalls_manifest.json`
   * `zigux/tests/phase13_notifier_list_manifest.json`
-  * `zigux/tests/phase13_libfs.zig`
   * `zigux/tests/phase13_libfs_reviewability.zig`
-  * `zigux/tests/phase13_devres.zig`
   * `zigux/tests/phase13_devres_reviewability.zig`
   * `zigux/tests/phase13_devres_dma_coherent.zig`
   * `zigux/tests/phase13_landlock_ruleset.zig`
