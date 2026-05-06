@@ -52,13 +52,16 @@ The current packet is productively landed, but the remaining bridge-facing work 
 3. run the shared Phase 8 validator
 - `python3 scripts/zigux/validate-phase8.py`
 
-4. run the focused file-path bridge replay
+4. run the focused file-path bridge wrapper
+- `make -C zigux phase8-file-path-handle-bridge-test`
 - `zig build test --build-file zigux/tests/phase8_file_path_handle_bridge_only_build.zig --summary all`
 
-5. run the focused perf-buffer poll replay
+5. run the focused perf-buffer poll wrapper
+- `make -C zigux phase8-perf-buffer-poll-test`
 - `zig build test --build-file zigux/tests/phase8_perf_buffer_poll_only_build.zig --summary all`
 
 6. run the shared Phase 8 replay
+- `make -C zigux phase8-test`
 - `zig build test --build-file zigux/tests/phase8_build.zig --summary all`
 - `make -C zigux phase8`
 
