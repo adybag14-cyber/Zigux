@@ -11,6 +11,6 @@ The module-facing surface stays intentionally narrow:
 - models the in-memory start, ping, stop, disable, and nowayout-aware stop-request paths without claiming GPIO descriptor ownership or watchdog-core registration
 - stays under the shared `zigux/tests/phase11_build.zig` review gate so the starter and survey lane remain aligned
 
-This slice does not claim platform-driver registration, live GPIO descriptor lookup, watchdog-core registration, reboot integration beyond summary bookkeeping, module parameter wiring beyond `nowayout` bookkeeping, or hardware validation coverage yet.
+This slice does not claim platform-driver registration, live GPIO descriptor lookup, watchdog-core registration, reboot integration beyond summary bookkeeping, module parameter wiring beyond `nowayout` bookkeeping, teardown and failure-mode parity beyond the bounded starter checks, or hardware validation coverage yet.
 
-The next honest bounded step inside the same Phase 11 lane is now one tiny drvdata-order checkpoint that stays immediately adjacent to the new timeout-property checkpoint and the existing registration handoff, before any live GPIO or broader platform glue lands.
+The next honest bounded step inside the same Phase 11 lane is now one registration-facing scaffold note or replay that keeps `devm_gpiod_get()`, `watchdog_set_drvdata()`, `devm_watchdog_register_device()`, teardown and failure-mode parity, and hardware-backed validation checkpoints explicit before any live GPIO or broader platform glue lands.
