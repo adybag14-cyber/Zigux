@@ -6,7 +6,7 @@ This document tracks the first bounded `drivers/virtio/virtio_ring.c` lab helper
 
 - `PHASE10_STATUS=active`
 - `PHASE10_SLICE=virtio-ring-lab-helper`
-- scope: queue index bounds, descriptor-count validation, split or packed layout metadata, avail and used index bookkeeping, used-buffer polling, callback re-enable bookkeeping, delayed-callback pacing bookkeeping, broken-queue discipline, reset-readiness preflight bookkeeping, notify-prepare accounting, dedicated Phase 10 ring tests, and a slice note only
+- scope: queue index bounds, descriptor-count validation, split or packed layout metadata, avail and used index bookkeeping, used-buffer polling, callback re-enable bookkeeping, delayed-callback pacing bookkeeping, broken-queue discipline, reset-readiness preflight bookkeeping, notify-prepare accounting, dedicated Phase 10 ring tests, the shared Phase 10 core/input/MMIO packet guards, the shared reset-queue, driver-id, and input status-drain replays, and a slice note only
 - product boundary:
   - `drivers/virtio/virtio_ring.zig`
   - `zigux/tests/phase10_virtio_ring.zig`
@@ -49,8 +49,11 @@ This slice does not yet claim:
 1. run the dedicated Phase 10 build
 - `zig build test --build-file zigux/tests/phase10_build.zig`
 
-2. run the convenience target
+2. run the Linux-style replay routes
+- `make -C zigux phase10-test`
 - `make -C zigux phase10`
+
+Taken together, these gates keep the ring helper reviewable through the direct build replay plus the shipped `scripts/zigux/check-phase10-core-packet.py`, `scripts/zigux/check-phase10-input-packet.py`, and `scripts/zigux/check-phase10-mmio-packet.py` guards, the shared `zigux/tests/phase10_virtio_core_reset_queue.zig`, `zigux/tests/phase10_virtio_driver_id.zig`, and `zigux/tests/phase10_virtio_input_status_drain.zig` replays, and the Linux-style `make -C zigux phase10-test` plus `make -C zigux phase10` routes.
 
 ## Next bounded step
 
