@@ -98,6 +98,8 @@ test "phase 7 cmdline survey keeps the roadmap-backed helper packet reviewable" 
 
     const next_arg_fixture = try readRepoFile(allocator, "zigux/tests/fixtures/phase7_cmdline_next_arg_vectors.zig");
     defer allocator.free(next_arg_fixture);
+    try expectContains(next_arg_fixture, ".name = \"quoted value with trailing token\",");
+    try expectContains(next_arg_fixture, ".name = \"quoted value keeps embedded equals inside the value\",");
     try expectContains(next_arg_fixture, ".name = \"quoted bare token with trailing token\",");
     try expectContains(next_arg_fixture, ".name = \"empty quoted bare token stays empty and unsplit\",");
     try expectContains(next_arg_fixture, ".name = \"leading quoted token with equals splits like Linux\",");
@@ -106,6 +108,7 @@ test "phase 7 cmdline survey keeps the roadmap-backed helper packet reviewable" 
     try expectContains(next_arg_fixture, ".name = \"leading equals sign stays in the parameter token\",");
     try expectContains(next_arg_fixture, ".expected_param = \"\",");
     try expectContains(next_arg_fixture, ".expected_param = \"key\",");
+    try expectContains(next_arg_fixture, ".expected_value = \"fast=boot\",");
     try expectContains(next_arg_fixture, ".expected_value = \"value\",");
     try expectContains(next_arg_fixture, ".expected_param = \"=bad\",");
     try expectContains(next_arg_fixture, ".expected_value = \"alpha=beta\",");
