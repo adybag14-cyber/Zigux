@@ -14,6 +14,7 @@ Update these surfaces together when they describe the same active contributor pa
 - `Documentation/zigux/README.md`
 - `Documentation/zigux/review-checklist.md`
 - `Documentation/zigux/phase13-contributor-workflow-guide.md`
+- `Documentation/zigux/phase13-shared-helper-lane-sequencing.md`
 - `Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md`
 - `scripts/zigux/README.md`
 - `zigux/tests/README.md`
@@ -26,7 +27,7 @@ Also refresh the packet-local docs-root or scripts-root note when the wording ch
 
 1. Start from the packet-local source of truth.
 2. Refresh `Documentation/zigux/README.md` so the exact checker stack, replay route, and evidence names stay visible from the top-level product index.
-3. Refresh `Documentation/zigux/phase13-contributor-workflow-guide.md` when the change sharpens the shared validator-first replay route or the broader shipped adjacent release-surface evidence for Phase 13 contributors.
+3. Refresh `Documentation/zigux/phase13-contributor-workflow-guide.md` and `Documentation/zigux/phase13-shared-helper-lane-sequencing.md` when the change sharpens the shared validator-first replay route, the owner-map split, or the broader shipped adjacent release-surface evidence for Phase 13 contributors.
 4. Refresh the compact tests-root companion so the same packet stays reviewable in the short form.
 5. Refresh `scripts/zigux/README.md` when the wording change affects the scripts-root validator-first replay summary, checker inventory, or Linux-style command wording.
 6. Refresh `Documentation/zigux/review-checklist.md` if the change alters a shared reviewer prompt or release-discipline question.
@@ -85,6 +86,7 @@ For the active shared-helper release packet, keep the shared validator-first rep
 - `Documentation/zigux/README.md`
 - `Documentation/zigux/review-checklist.md`
 - `Documentation/zigux/phase13-contributor-workflow-guide.md`
+- `Documentation/zigux/phase13-shared-helper-lane-sequencing.md`
 - `Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md`
 - `Documentation/zigux/phase13-libfs-slice.md`
 - `Documentation/zigux/phase13-libfs-survey.md`
