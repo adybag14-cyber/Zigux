@@ -50,6 +50,8 @@ The shipped Phase 12 release order on `master` remains:
 2. `zig build test --build-file zigux/tests/phase12_build.zig --summary all`
 3. `make -C zigux phase12`
 
+The shared build-only release guard for that smoke-first order is `scripts/zigux/check-build-only-phase12-surface.py`, and `.github/workflows/zigux-bootstrap.yml` reruns that checker so this fallback wording stays aligned with the shipped PMO release packet.
+
 This map should stay read-only and should not be used to imply an unshipped `validate-phase12.py`, any `check-phase12-*.py` packet, or a `make -C zigux phase12-validate` target.
 
 ## Update rule
