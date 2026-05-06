@@ -972,7 +972,7 @@ def run_self_test() -> int:
             newline="\n",
         )
         (paths.tests_dir / "phase3_bitmap_cpumask_dump.zig").write_text("// bitmap\n", encoding="utf-8", newline="\n")
-        (bitmap_fixture_dir / "expected.json").writeText("{}\n", encoding="utf-8", newline="\n")
+        (bitmap_fixture_dir / "expected.json").write_text("{}\n", encoding="utf-8", newline="\n")
         (bitmap_fixture_dir / "phase3_bitmap_cpumask_c_harness.c").write_text(
             "int main(void) { return 0; }\n",
             encoding="utf-8",
