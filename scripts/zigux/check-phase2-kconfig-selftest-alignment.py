@@ -34,7 +34,7 @@ REQUIRED_WORKFLOW_LINES = (
     "run: python3 scripts/zigux/check-kconfig-bridge.py --self-test",
     "run: python3 scripts/zigux/check-kconfig-bridge.py",
 )
-EXPECTED_SELF_TEST_CASE_COUNT = 10
+EXPECTED_SELF_TEST_CASE_COUNT = 12
 
 
 def read_text(path: Path) -> str:
@@ -193,6 +193,40 @@ def run_self_test() -> int:
         path.write_text(path.read_text(encoding="utf-8").replace(REQUIRED_CHECKER_MARKERS[1], "", 1), encoding="utf-8")
         issues = collect_issues(root)
         assert ("MISSING_CHECKER_MARKERS", REQUIRED_CHECKER_MARKERS[1]) in issues
+        cases += 1
+
+        build_self_test_root(root)
+        path = root / CHECKER
+        path.write_text(
+            path.read_text(encoding="utf-8").replace(
+                REQUIRED_CHECKER_MARKERS[0],
+                REQUIRED_CHECKER_MARKERS[0] + "\n" + REQUIRED_CHECKER_MARKERS[0],
+                1,
+            ),
+            encoding="utf-8",
+        )
+        issues = collect_issues(root)
+        assert (
+            "DUPLICATE_CHECKER_MARKERS",
+            f"{REQUIRED_CHECKER_MARKERS[0]}:count=2:expected=1",
+        ) in issues
+        cases += 1
+
+        build_self_test_root(root)
+        path = root / CHECKER
+        path.write_text(
+            path.read_text(encoding="utf-8").replace(
+                REQUIRED_CHECKER_MARKERS[1],
+                REQUIRED_CHECKER_MARKERS[1] + "\n" + REQUIRED_CHECKER_MARKERS[1],
+                1,
+            ),
+            encoding="utf-8",
+        )
+        issues = collect_issues(root)
+        assert (
+            "DUPLICATE_CHECKER_MARKERS",
+            f"{REQUIRED_CHECKER_MARKERS[1]}:count=2:expected=1",
+        ) in issues
         cases += 1
 
         build_self_test_root(root)
