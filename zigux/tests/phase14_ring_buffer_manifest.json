@@ -80,6 +80,18 @@
         "tracing_buffers_splice_read"
       ],
       "rationale": "A mapped reader pins `resize_disabled`, blocks snapshot-style buffer swaps for mapped pages, and forces tracefs splice reads onto the copying path, so the mapping limitations remain one shared C-owned contract rather than a wrapper-first seam."
+    },
+    {
+      "id": "mapped-reader-lifetime-teardown",
+      "summary": "Keep mapped-reader duplication, last-unmap teardown, and resize-disabled release in C while the survey records their shared lifetime boundary.",
+      "ownership": "stay_in_c",
+      "anchor_symbols": [
+        "ring_buffer_map_dup",
+        "ring_buffer_unmap",
+        "resize_disabled",
+        "rb_free_meta_page"
+      ],
+      "rationale": "Mapped-reader lifetime still couples duplicated user mappings, the last-user teardown path, `resize_disabled` release, and meta-page or sub-buffer-ID cleanup under the existing buffer and reader locks, so Phase 14 should keep that shared lifetime choreography in C instead of implying a detached wrapper seam."
     }
   ],
   "gaps": [
@@ -173,6 +185,13 @@
       "kind": "boundary_audit",
       "zigux_destination": "Documentation/zigux/phase14-ring-buffer-survey.md",
       "why_now": "The lane now records a narrow exported-page audit around `ring_buffer_read_page()`, partially read pages, and the forced copy path for mapped, remote, undersized, or writer-busy reads so exported-page reads stay explicit as one combined C-owned contract before any bridge candidate is entertained."
+    },
+    {
+      "id": "phase14-ring-buffer-mapped-reader-lifetime-followup",
+      "status": "starter_landed",
+      "kind": "boundary_audit",
+      "zigux_destination": "Documentation/zigux/phase14-ring-buffer-survey.md",
+      "why_now": "The lane now records a narrow mapped-reader lifetime audit around `ring_buffer_map_dup()`, `ring_buffer_unmap()`, `resize_disabled`, and `rb_free_meta_page()` so duplicated mappings, last-user teardown, and resize lockout release stay explicit as one shared C-owned contract before any bridge candidate is entertained."
     },
     {
       "id": "phase14-ring-buffer-zig-port-blocker",
