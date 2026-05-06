@@ -6,12 +6,27 @@ This document tracks the first bounded `drivers/virtio/virtio_ring.c` lab helper
 
 - `PHASE10_STATUS=active`
 - `PHASE10_SLICE=virtio-ring-lab-helper`
-- scope: queue index bounds, descriptor-count validation, split or packed layout metadata, avail and used index bookkeeping, used-buffer polling, callback re-enable bookkeeping, delayed-callback pacing bookkeeping, broken-queue discipline, reset-readiness preflight bookkeeping, notify-prepare accounting, dedicated Phase 10 ring tests, the shared Phase 10 core/input/MMIO packet guards, the shared reset-queue, driver-id, and input status-drain replays, and a slice note only
+- scope: queue index bounds, descriptor-count validation, split or packed layout metadata, avail and used index bookkeeping, used-buffer polling, callback re-enable bookkeeping, delayed-callback pacing bookkeeping, broken-queue discipline, reset-readiness preflight bookkeeping, notify-prepare accounting, dedicated Phase 10 ring tests, the committed ring survey manifest and survey gate, the shared Phase 10 core/input/MMIO packet guards, the shared reset-queue, driver-id, and input status-drain replays, and the shared Phase 10 build-and-make routes
 - product boundary:
   - `drivers/virtio/virtio_ring.zig`
   - `zigux/tests/phase10_virtio_ring.zig`
+  - `zigux/tests/phase10_virtio_ring_manifest.json`
+  - `zigux/tests/phase10_virtio_ring_survey.zig`
   - `zigux/tests/phase10_build.zig`
   - `zigux/Makefile`
+- review surface:
+  - `Documentation/zigux/phase10-virtio-ring-slice.md`
+  - `Documentation/zigux/phase10-virtio-ring-survey.md`
+  - `zigux/tests/phase10_virtio_ring.zig`
+  - `zigux/tests/phase10_virtio_ring_manifest.json`
+  - `zigux/tests/phase10_virtio_ring_survey.zig`
+  - `zigux/tests/phase10_build.zig`
+  - `zigux/Makefile`
+  - `scripts/zigux/check-phase10-core-packet.py`
+  - `scripts/zigux/check-phase10-input-packet.py`
+  - `scripts/zigux/check-phase10-mmio-packet.py`
+- current review note:
+  - current `master` carries an adjacent survey note, the committed `zigux/tests/phase10_virtio_ring_manifest.json` anchor, the dedicated `zigux/tests/phase10_virtio_ring_survey.zig` replay, the shared Phase 10 packet guards, the shared reset-queue, driver-id, and input status-drain replays, and the shared `phase10_build.zig` plus Linux-style `make -C zigux phase10-test` and `make -C zigux phase10` routes; reviewers should treat the ring lane as one bounded manifest-backed packet instead of a slice-note-only surface
 
 ## Why this slice exists
 
@@ -34,6 +49,7 @@ The live repo already had a survey lane that made the queue-wrapper gap explicit
 - kick-prepare notification bookkeeping that mirrors the smallest reviewable `num_added` flow from `virtio_ring.c`
 - used-chain accounting that drains outstanding lab work without touching real transport paths
 - dedicated Phase 10 tests and build wiring for the helper
+- an adjacent manifest-backed survey packet: the current ring lane is also reviewed through `Documentation/zigux/phase10-virtio-ring-survey.md`, `zigux/tests/phase10_virtio_ring_manifest.json`, `zigux/tests/phase10_virtio_ring_survey.zig`, the shared Phase 10 packet guards, the shared reset-queue, driver-id, and input status-drain replays, `phase10_build.zig`, and the shared `make -C zigux phase10-test` plus `make -C zigux phase10` routes
 
 ## Non-goals
 
@@ -46,14 +62,17 @@ This slice does not yet claim:
 
 ## Gates
 
-1. run the dedicated Phase 10 build
+1. run the dedicated ring survey gate
+- `zig test zigux/tests/phase10_virtio_ring_survey.zig`
+
+2. run the dedicated Phase 10 build
 - `zig build test --build-file zigux/tests/phase10_build.zig`
 
-2. run the Linux-style replay routes
+3. run the Linux-style replay routes
 - `make -C zigux phase10-test`
 - `make -C zigux phase10`
 
-Taken together, these gates keep the ring helper reviewable through the direct build replay plus the shipped `scripts/zigux/check-phase10-core-packet.py`, `scripts/zigux/check-phase10-input-packet.py`, and `scripts/zigux/check-phase10-mmio-packet.py` guards, the shared `zigux/tests/phase10_virtio_core_reset_queue.zig`, `zigux/tests/phase10_virtio_driver_id.zig`, and `zigux/tests/phase10_virtio_input_status_drain.zig` replays, and the Linux-style `make -C zigux phase10-test` plus `make -C zigux phase10` routes.
+Taken together, these gates keep the ring helper reviewable through the dedicated ring-survey replay, the direct build replay, the shipped `scripts/zigux/check-phase10-core-packet.py`, `scripts/zigux/check-phase10-input-packet.py`, and `scripts/zigux/check-phase10-mmio-packet.py` guards, the shared `zigux/tests/phase10_virtio_core_reset_queue.zig`, `zigux/tests/phase10_virtio_driver_id.zig`, and `zigux/tests/phase10_virtio_input_status_drain.zig` replays, and the Linux-style `make -C zigux phase10-test` plus `make -C zigux phase10` routes.
 
 ## Next bounded step
 
