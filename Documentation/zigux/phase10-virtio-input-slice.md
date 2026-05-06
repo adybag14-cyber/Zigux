@@ -67,14 +67,17 @@ This slice does not yet claim:
 - `python3 scripts/zigux/check-phase10-input-packet.py --self-test`
 - `python3 scripts/zigux/check-phase10-input-packet.py`
 
-2. run the dedicated Phase 10 build
+2. run the dedicated input survey gate
+- `zig test zigux/tests/phase10_virtio_input_survey.zig`
+
+3. run the dedicated Phase 10 build
 - `zig build test --build-file zigux/tests/phase10_build.zig`
 
-3. run the Linux-style Phase 10 test entrypoints
+4. run the Linux-style Phase 10 test entrypoints
 - `make -C zigux phase10-test`
 - `make -C zigux phase10`
 
-Taken together, these gates keep the bounded input helper plus the focused status-drain replay reviewable through the dedicated packet guard, the direct build replay, and the shipped Linux-style Phase 10 test entrypoints on `master`.
+Taken together, these gates keep the bounded input helper plus the dedicated survey replay and focused status-drain replay reviewable through the dedicated packet guard, the direct build replay, and the shipped Linux-style Phase 10 test entrypoints on `master`.
 
 ## Next bounded step
 
