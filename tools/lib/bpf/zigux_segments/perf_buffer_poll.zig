@@ -98,6 +98,7 @@ pub const PollExecutionResult = struct {
 
 pub const PollError = error{
     InvalidTimeout,
+    ObservedReadyEventsExceedBufferObservationCount,
     ReadyCountExceedsObservedEvents,
     ReadyEventsMissingReadyBuffer,
     TimeoutObservationHasReadyBuffer,
@@ -262,6 +263,9 @@ pub fn summarizePoll(
             };
         },
         .ready_events => |observed_ready_events| blk: {
+            if (observed_ready_events > buffers.len) {
+                return PollError.ObservedReadyEventsExceedBufferObservationCount;
+            }
             if (ready.ready_count > observed_ready_events) {
                 return PollError.ReadyCountExceedsObservedEvents;
             }
@@ -515,6 +519,17 @@ test "summarizePollFromWaitResult keeps raw wait-result normalization coupled to
     try std.testing.expectEqual(@as(usize, 2), summary.ready_count);
     try std.testing.expectEqual(@as(?usize, 0), summary.first_ready_index);
     try std.testing.expectEqual(@as(?i32, -32), summary.first_error);
+}
+
+test "summarizePoll rejects more observed ready events than buffer observations" {
+    try std.testing.expectError(
+        PollError.ObservedReadyEventsExceedBufferObservationCount,
+        summarizePoll(5, .{ .ready_events = 2 }, &.{.{ .ready = true }}),
+    );
+    try std.testing.expectError(
+        PollError.ObservedReadyEventsExceedBufferObservationCount,
+        summarizePollFromWaitResult(5, 2, &.{.{ .ready = true }}),
+    );
 }
 
 test "summarizePoll keeps timeout interruption and missing-ready mismatches explicit" {
