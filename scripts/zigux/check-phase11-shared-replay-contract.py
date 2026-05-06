@@ -40,6 +40,7 @@ REQUIRED_CONTRACT_MARKERS = [
     "`zigux/tests/phase11_uapi_header_parity_manifest.json`",
     "`drivers/watchdog/bcm2835_wdt_verify.zig`",
     "`drivers/watchdog/dw_wdt_verify.zig`",
+    "The shipped DesignWare watchdog sub-packet inside that shared route stays explicit as `phase11-dw-wdt-tests`, `phase11-dw-wdt-verify-tests`, and `phase11-dw-wdt-survey-tests`.",
     "`drivers/tty/hvc/hvc_console_verify.zig`",
     "`.github/workflows/zigux-bootstrap.yml`",
     "there is no dedicated shared `validate-phase11.py` on `master`",
@@ -125,7 +126,7 @@ FORBIDDEN_CONTRACT_MARKERS = [
     "the shipped checker only keeps the shared-versus-dedicated replay contract fail-closed",
 ]
 
-PHASE11_SHARED_REPLAY_CONTRACT_SELF_TEST_CASE_COUNT = 14
+PHASE11_SHARED_REPLAY_CONTRACT_SELF_TEST_CASE_COUNT = 15
 
 
 def read_text(root: Path, rel_path: str) -> str:
@@ -248,6 +249,8 @@ def write_fixture_tree(root: Path) -> None:
 ## Shared Replay Commands
 - `zig build test --build-file zigux/tests/phase11_build.zig --summary all`
 - `make -C zigux phase11`
+
+The shipped DesignWare watchdog sub-packet inside that shared route stays explicit as `phase11-dw-wdt-tests`, `phase11-dw-wdt-verify-tests`, and `phase11-dw-wdt-survey-tests`.
 
 ## What This Contract Does Not Claim
 - there is no shared `make -C zigux phase11-validate` target on `master`
@@ -447,6 +450,11 @@ def run_self_test() -> int:
                 PHASE11_CONTRACT_PATH,
                 "- `drivers/watchdog/dw_wdt_verify.zig`\n",
                 "phase11_contract:`drivers/watchdog/dw_wdt_verify.zig`",
+            ),
+            (
+                PHASE11_CONTRACT_PATH,
+                "The shipped DesignWare watchdog sub-packet inside that shared route stays explicit as `phase11-dw-wdt-tests`, `phase11-dw-wdt-verify-tests`, and `phase11-dw-wdt-survey-tests`.\n",
+                "phase11_contract:The shipped DesignWare watchdog sub-packet inside that shared route stays explicit as `phase11-dw-wdt-tests`, `phase11-dw-wdt-verify-tests`, and `phase11-dw-wdt-survey-tests`.",
             ),
             (
                 SCRIPTS_README_PATH,
