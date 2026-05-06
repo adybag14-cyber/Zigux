@@ -61,6 +61,20 @@ fn trimTrailingCarriageReturn(text: []const u8) []const u8 {
     return text;
 }
 
+fn nextConfigLine(input: []const u8, cursor: *usize) ?[]const u8 {
+    if (cursor.* >= input.len) return null;
+    const remaining = input[cursor.*..];
+    if (std.mem.indexOfScalar(u8, remaining, '\n')) |newline_index| {
+        cursor.* += newline_index + 1;
+        return trimTrailingCarriageReturn(remaining[0..newline_index]);
+    }
+
+    // Match getline_stripped() in upstream confdata.c: a trailing carriage
+    // return is only stripped when it precedes a newline.
+    cursor.* = input.len;
+    return remaining;
+}
+
 fn decodeEscapeByte(byte: u8) u8 {
     return switch (byte) {
         'n' => '\n',
@@ -109,10 +123,9 @@ pub fn parseConfig(allocator: std.mem.Allocator, input: []const u8) !Summary {
 
     var set_count: usize = 0;
     var unset_count: usize = 0;
+    var cursor: usize = 0;
 
-    var it = std.mem.splitScalar(u8, input, '\n');
-    while (it.next()) |raw_line| {
-        const line = trimTrailingCarriageReturn(raw_line);
+    while (nextConfigLine(input, &cursor)) |line| {
         if (line.len == 0) continue;
 
         if (std.mem.startsWith(u8, line, "# ") and std.mem.endsWith(u8, line, " is not set")) {
@@ -345,7 +358,7 @@ test "confdata bridge accepts CRLF config lines" {
     try std.testing.expectEqual(EntryKind.unset, summary.entries[2].kind);
 }
 
-test "confdata bridge trims trailing carriage return from final value line" {
+test "confdata bridge preserves trailing carriage return on final unterminated value line" {
     const allocator = std.testing.allocator;
     var summary = try parseConfig(allocator, "CONFIG_DECIMAL=7\r");
     defer deinitSummary(allocator, &summary);
@@ -355,10 +368,10 @@ test "confdata bridge trims trailing carriage return from final value line" {
     try std.testing.expectEqual(@as(usize, 1), summary.entries.len);
     try std.testing.expectEqual(EntryKind.value, summary.entries[0].kind);
     try std.testing.expectEqualStrings("CONFIG_DECIMAL", summary.entries[0].name);
-    try std.testing.expectEqualStrings("7", summary.entries[0].value);
+    try std.testing.expectEqualStrings("7\r", summary.entries[0].value);
 }
 
-test "confdata bridge accepts unterminated unset comment with trailing carriage return" {
+test "confdata bridge ignores unterminated unset comment with trailing carriage return" {
     const allocator = std.testing.allocator;
     var summary = try parseConfig(
         allocator,
@@ -368,12 +381,11 @@ test "confdata bridge accepts unterminated unset comment with trailing carriage 
     defer deinitSummary(allocator, &summary);
 
     try std.testing.expectEqual(@as(usize, 1), summary.set_count);
-    try std.testing.expectEqual(@as(usize, 1), summary.unset_count);
-    try std.testing.expectEqual(@as(usize, 2), summary.entries.len);
+    try std.testing.expectEqual(@as(usize, 0), summary.unset_count);
+    try std.testing.expectEqual(@as(usize, 1), summary.entries.len);
     try std.testing.expectEqual(EntryKind.tristate, summary.entries[0].kind);
-    try std.testing.expectEqual(EntryKind.unset, summary.entries[1].kind);
-    try std.testing.expectEqualStrings("CONFIG_DEBUG", summary.entries[1].name);
-    try std.testing.expectEqualStrings("n", summary.entries[1].value);
+    try std.testing.expectEqualStrings("CONFIG_ALPHA", summary.entries[0].name);
+    try std.testing.expectEqualStrings("y", summary.entries[0].value);
 }
 
 test "confdata bridge keeps explicit n assignments as tristate values" {
