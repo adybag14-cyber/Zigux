@@ -135,12 +135,12 @@ The bounded kconfig conf bridge packet now records the current request-plan fixt
 
 The bounded kconfig confdata bridge packet now records the committed config inputs and expected JSON artifacts explicitly so confdata review does not rely on the shared gate name alone:
 
-- `PHASE2_KCONFIG_BRIDGE_CONFDATA_CASE_COUNT=4`
-- `PHASE2_KCONFIG_BRIDGE_CONFDATA_CASES=sample,escaped_strings,sample_crlf,explicit_n_tristate`
-- `PHASE2_KCONFIG_BRIDGE_CONFDATA_EXPECTED_PACKET=sample_expected.json,escaped_strings_expected.json,sample_crlf_expected.json,explicit_n_tristate_expected.json`
-- input coverage stays anchored by `sample.config`, `escaped_strings.config`, `sample_crlf.config`, and `explicit_n_tristate.config` in `zigux/tests/fixtures/kconfig_bridge/`
-- expected-output coverage stays anchored by `sample_expected.json`, `escaped_strings_expected.json`, `sample_crlf_expected.json`, and `explicit_n_tristate_expected.json` in the same bounded packet
-- helper-local anchors in `zig test scripts/zigux/kconfig/confdata_bridge.zig` now include `confdata bridge decodes escaped quoted strings`, `confdata bridge accepts CRLF config lines`, and `confdata bridge keeps explicit n assignments as tristate values`
+- `PHASE2_KCONFIG_BRIDGE_CONFDATA_CASE_COUNT=6`
+- `PHASE2_KCONFIG_BRIDGE_CONFDATA_CASES=sample,escaped_strings,sample_crlf,explicit_n_tristate,final_trailing_carriage_return,final_unterminated_unset_comment`
+- `PHASE2_KCONFIG_BRIDGE_CONFDATA_EXPECTED_PACKET=sample_expected.json,escaped_strings_expected.json,sample_crlf_expected.json,explicit_n_tristate_expected.json,final_trailing_carriage_return_expected.json,final_unterminated_unset_comment_expected.json`
+- input coverage stays anchored by `sample.config`, `escaped_strings.config`, `sample_crlf.config`, `explicit_n_tristate.config`, `final_trailing_carriage_return.config`, and `final_unterminated_unset_comment.config` in `zigux/tests/fixtures/kconfig_bridge/`
+- expected-output coverage stays anchored by `sample_expected.json`, `escaped_strings_expected.json`, `sample_crlf_expected.json`, `explicit_n_tristate_expected.json`, `final_trailing_carriage_return_expected.json`, and `final_unterminated_unset_comment_expected.json` in the same bounded packet
+- helper-local anchors in `zig test scripts/zigux/kconfig/confdata_bridge.zig` now include `confdata bridge decodes escaped quoted strings`, `confdata bridge accepts CRLF config lines`, `confdata bridge trims trailing carriage return from final value line`, `confdata bridge accepts unterminated unset comment with trailing carriage return`, and `confdata bridge keeps explicit n assignments as tristate values`
 
 ## Toolchain Pin Boundary
 
