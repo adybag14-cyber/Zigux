@@ -29,6 +29,7 @@ REQUIRED_CONTRACT_MARKERS = [
     "`Documentation/zigux/phase11-dw-wdt-validation-matrix.md`",
     "`Documentation/zigux/phase11-hvc-console-validation-matrix.md`",
     "`Documentation/zigux/phase11-hvc-console-survey.md`",
+    "`Documentation/zigux/phase11-hvc-console-teardown-note.md`",
     "`Documentation/zigux/phase11-uapi-header-parity-survey.md`",
     "`scripts/zigux/check-phase11-shared-replay-contract.py`",
     "`scripts/zigux/check-phase11-header-boundary-packet.py`",
@@ -70,6 +71,7 @@ REQUIRED_HVC_CONSOLE_MATRIX_MARKERS = [
     "`zigux/tests/README.md`",
     "`zigux/Makefile`",
     "`zigux/tests/phase11_hvc_cleanup.zig`",
+    "`Documentation/zigux/phase11-hvc-console-teardown-note.md`",
     "keep `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/phase11-shared-replay-contract.md`, `Documentation/zigux/phase11-uapi-header-parity-survey.md`, `zigux/tests/README.md`, `scripts/zigux/check-phase11-shared-replay-contract.py`, `scripts/zigux/check-phase11-header-boundary-packet.py`, `zigux/tests/phase11_build.zig`, `zigux/Makefile`, and `.github/workflows/zigux-bootstrap.yml` aligned with this matrix whenever the shared-versus-dedicated HVC replay split changes",
 ]
 
@@ -115,7 +117,7 @@ FORBIDDEN_CONTRACT_MARKERS = [
     "the shipped checker only keeps the shared-versus-dedicated replay contract fail-closed",
 ]
 
-PHASE11_SHARED_REPLAY_CONTRACT_SELF_TEST_CASE_COUNT = 8
+PHASE11_SHARED_REPLAY_CONTRACT_SELF_TEST_CASE_COUNT = 9
 
 
 def read_text(root: Path, rel_path: str) -> str:
@@ -219,6 +221,7 @@ def write_fixture_tree(root: Path) -> None:
 * `Documentation/zigux/phase11-dw-wdt-validation-matrix.md`
 * `Documentation/zigux/phase11-hvc-console-validation-matrix.md`
 * `Documentation/zigux/phase11-hvc-console-survey.md`
+* `Documentation/zigux/phase11-hvc-console-teardown-note.md`
 * `Documentation/zigux/phase11-uapi-header-parity-survey.md`
 * `scripts/zigux/check-phase11-shared-replay-contract.py`
 * `scripts/zigux/check-phase11-header-boundary-packet.py`
@@ -309,6 +312,7 @@ Phase 11 notes
 - `zigux/tests/README.md`
 - `zigux/Makefile`
 - `zigux/tests/phase11_hvc_cleanup.zig`
+- `Documentation/zigux/phase11-hvc-console-teardown-note.md`
 
 ## Review Rules
 - keep `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/phase11-shared-replay-contract.md`, `Documentation/zigux/phase11-uapi-header-parity-survey.md`, `zigux/tests/README.md`, `scripts/zigux/check-phase11-shared-replay-contract.py`, `scripts/zigux/check-phase11-header-boundary-packet.py`, `zigux/tests/phase11_build.zig`, `zigux/Makefile`, and `.github/workflows/zigux-bootstrap.yml` aligned with this matrix whenever the shared-versus-dedicated HVC replay split changes
@@ -336,7 +340,7 @@ Phase 11 flow
         root / REVIEW_CHECKLIST_PATH,
         """# Zigux Review Checklist
 
-* if the change touches the shared Phase 11 simple-driver packet, do `Documentation/zigux/README.md`, `scripts/zigux/README.md`, `scripts/zigux/check-phase11-shared-replay-contract.py`, `scripts/zigux/check-phase11-header-boundary-packet.py`, `zigux/tests/README.md`, `Documentation/zigux/phase11-shared-replay-contract.md`, `Documentation/zigux/phase11-bcm2835-wdt-validation-matrix.md`, `Documentation/zigux/phase11-gpio-wdt-validation-matrix.md`, `Documentation/zigux/phase11-dw-wdt-validation-matrix.md`, `Documentation/zigux/phase11-hvc-console-validation-matrix.md`, `Documentation/zigux/phase11-hvc-console-survey.md`, `Documentation/zigux/phase11-uapi-header-parity-survey.md`, `Documentation/zigux/review-checklist.md`, `zigux/tests/phase11_build.zig`, `zigux/tests/phase11_hvc_cleanup.zig`, `zigux/tests/phase11_hvc_console_survey.zig`, `zigux/tests/phase11_uapi_header_parity_manifest.json`, `zigux/tests/phase11_uapi_header_parity_survey.zig`, `zigux/Makefile`, `.github/workflows/zigux-bootstrap.yml`, `zig build test --build-file zigux/tests/phase11_build.zig`, and `make -C zigux phase11` still agree on the same shared-versus-dedicated replay split, the focused header-boundary note plus manifest-backed survey packet, the four driver-local validation matrices, the bounded `hvc_cleanup()` teardown handoff, and the dedicated archival `hvc_console` survey without implying a removed `validate-phase11.py`, missing build-inventory fixture, or a broader validator stack than the shipped `check-phase11-shared-replay-contract.py` plus `check-phase11-header-boundary-packet.py` routes on `master`?
+* if the change touches the shared Phase 11 simple-driver packet, do `Documentation/zigux/README.md`, `scripts/zigux/README.md`, `scripts/zigux/check-phase11-shared-replay-contract.py`, `scripts/zigux/check-phase11-header-boundary-packet.py`, `zigux/tests/README.md`, `Documentation/zigux/phase11-shared-replay-contract.md`, `Documentation/zigux/phase11-bcm2835-wdt-validation-matrix.md`, `Documentation/zigux/phase11-gpio-wdt-validation-matrix.md`, `Documentation/zigux/phase11-dw-wdt-validation-matrix.md`, `Documentation/zigux/phase11-hvc-console-validation-matrix.md`, `Documentation/zigux/phase11-hvc-console-survey.md`, `Documentation/zigux/phase11-uapi-header-parity-survey.md`, `Documentation/zigux/review-checklist.md`, `zigux/tests/phase11_build.zig`, `zigux/tests/phase11_hvc_cleanup.zig`, `zigux/tests/phase11_hvc_console_survey.zig`, `zigux/tests/phase11_uapi_header_parity_manifest.json`, `zigux/tests/phase11_uapi_header_parity_survey.zig`, `zigux/Makefile`, `.github/workflows/zigux-bootstrap.yml`, `zig build test --build-file zigux/tests/phase11_build.zig`, and `make -C zigux phase11` still agree on the same shared-versus-dedicated replay split, the focused header-boundary note plus manifest-backed survey packet, the four driver-local validation matrices, the bounded `hvc_cleanup()` teardown handoff, and the dedicated archival `hvc_console` survey without implying a removed `validate-phase11.py`, missing build-inventory fixture, or a broader validator stack than the shipped `check-phase11-shared-replay-contract.py` plus `check-phase11-header-boundary-packet.py` routes on `master`?",
 """,
     )
     write(
@@ -424,6 +428,18 @@ def run_self_test() -> int:
         try:
             expect_failure(
                 root,
+                PHASE11_CONTRACT_PATH,
+                "* `Documentation/zigux/phase11-hvc-console-teardown-note.md`\n",
+                "phase11_contract:`Documentation/zigux/phase11-hvc-console-teardown-note.md`",
+            )
+        except AssertionError as exc:
+            print(str(exc), file=sys.stderr)
+            return 1
+
+        write_fixture_tree(root)
+        try:
+            expect_failure(
+                root,
                 SCRIPTS_README_PATH,
                 "`scripts/zigux/check-phase11-header-boundary-packet.py`, ",
                 "scripts_readme:- the current shared Phase 11 review surface on `master` is `Documentation/zigux/README.md`, `scripts/zigux/README.md`, `scripts/zigux/check-phase11-shared-replay-contract.py`, `scripts/zigux/check-phase11-header-boundary-packet.py`, `zigux/tests/README.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/phase11-shared-replay-contract.md`, `Documentation/zigux/phase11-bcm2835-wdt-validation-matrix.md`, `Documentation/zigux/phase11-gpio-wdt-validation-matrix.md`, `Documentation/zigux/phase11-dw-wdt-validation-matrix.md`, `Documentation/zigux/phase11-hvc-console-validation-matrix.md`, `Documentation/zigux/phase11-hvc-console-survey.md`, `Documentation/zigux/phase11-uapi-header-parity-survey.md`, `zigux/tests/phase11_build.zig`, `zigux/tests/phase11_hvc_cleanup.zig`, `zigux/tests/phase11_hvc_console_survey.zig`, `zigux/tests/phase11_uapi_header_parity_manifest.json`, `zigux/tests/phase11_uapi_header_parity_survey.zig`, `zigux/Makefile`, and `.github/workflows/zigux-bootstrap.yml`.",
@@ -475,6 +491,18 @@ def run_self_test() -> int:
                 HVC_CONSOLE_MATRIX_PATH,
                 "`zigux/tests/phase11_hvc_cleanup.zig`\n",
                 "hvc_console_matrix:`zigux/tests/phase11_hvc_cleanup.zig`",
+            )
+        except AssertionError as exc:
+            print(str(exc), file=sys.stderr)
+            return 1
+
+        write_fixture_tree(root)
+        try:
+            expect_failure(
+                root,
+                HVC_CONSOLE_MATRIX_PATH,
+                "`Documentation/zigux/phase11-hvc-console-teardown-note.md`\n",
+                "hvc_console_matrix:`Documentation/zigux/phase11-hvc-console-teardown-note.md`",
             )
         except AssertionError as exc:
             print(str(exc), file=sys.stderr)
