@@ -164,16 +164,24 @@ REQUIRED_TESTS_README_MARKERS = [
     "Documentation/zigux/phase15-parity-scorecard.md",
     "Documentation/zigux/phase15-indefinite-c-policy.md",
     "Documentation/zigux/review-checklist.md",
+    "scripts/zigux/README.md",
+    "scripts/zigux/check-phase15-scripts-readme-alignment.py",
     "scripts/zigux/check-phase15-review-process-handoff.py",
+    ".github/workflows/zigux-bootstrap.yml",
     "zigux/tests/phase15_architecture_council_review_process_manifest.json",
     "zigux/tests/phase15_freeze_map_governance.zig",
     "zigux/tests/phase15_parity_scorecard.zig",
     "zigux/tests/phase15_architecture_council_review_process.zig",
+    "zigux/tests/phase15_handoff_next_steps.zig",
     "zigux/tests/phase15_indefinite_c_policy.json",
     "zigux/tests/phase15_indefinite_c_policy.zig",
+    "zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig",
+    "zigux/tests/phase15_readiness_gate.zig",
     "zigux/Makefile",
+    "make -C zigux phase15-validate",
     "zig build test --build-file zigux/tests/phase15_build.zig",
     "make -C zigux phase15",
+    "without implying any Architecture Council approval for a freeze-map status change",
 ]
 
 REQUIRED_MAKEFILE_MARKERS = [
@@ -396,16 +404,24 @@ keep the parked Phase 15 governance packet explicit in the tests root too
 - Documentation/zigux/phase15-parity-scorecard.md
 - Documentation/zigux/phase15-indefinite-c-policy.md
 - Documentation/zigux/review-checklist.md
+- scripts/zigux/README.md
+- scripts/zigux/check-phase15-scripts-readme-alignment.py
 - scripts/zigux/check-phase15-review-process-handoff.py
+- .github/workflows/zigux-bootstrap.yml
 - zigux/tests/phase15_architecture_council_review_process_manifest.json
 - zigux/tests/phase15_freeze_map_governance.zig
 - zigux/tests/phase15_parity_scorecard.zig
 - zigux/tests/phase15_architecture_council_review_process.zig
+- zigux/tests/phase15_handoff_next_steps.zig
 - zigux/tests/phase15_indefinite_c_policy.json
 - zigux/tests/phase15_indefinite_c_policy.zig
+- zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig
+- zigux/tests/phase15_readiness_gate.zig
 - zigux/Makefile
+- make -C zigux phase15-validate
 - zig build test --build-file zigux/tests/phase15_build.zig
 - make -C zigux phase15
+- without implying any Architecture Council approval for a freeze-map status change
 """
     (root / TESTS_README_PATH).write_text(tests_readme, encoding='utf-8')
     makefile = """PHONY += phase15-validate phase15-test phase15
