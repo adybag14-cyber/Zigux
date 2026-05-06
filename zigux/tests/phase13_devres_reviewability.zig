@@ -114,6 +114,7 @@ test "phase13 devres reviewability packet records the helper-only DMA/scatterlis
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "sg_*") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "live scatter-gather ownership") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "live DMA-backed helpers") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "blocked `phase13-devres-live-mmio-side-effects`") != null);
 
     var starter_landed_count: usize = 0;
     var blocked_count: usize = 0;
@@ -121,6 +122,7 @@ test "phase13 devres reviewability packet records the helper-only DMA/scatterlis
     var saw_survey_note = false;
     var saw_arch_phys_wc = false;
     var saw_arch_io_memtype = false;
+    var saw_mmio_block = false;
     var saw_dma_block = false;
     var saw_scatterlist_block = false;
 
@@ -164,6 +166,11 @@ test "phase13 devres reviewability packet records the helper-only DMA/scatterlis
             try std.testing.expectEqualStrings("starter_landed", gap.status);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "arch_io_free_memtype_wc()") != null);
         }
+        if (std.mem.eql(u8, gap.id, "phase13-devres-live-mmio-side-effects")) {
+            saw_mmio_block = true;
+            try std.testing.expectEqualStrings("blocked_on_live_mmio_state", gap.status);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "real region mutation or address-space effects") != null);
+        }
         if (std.mem.eql(u8, gap.id, "phase13-devres-live-dma-backed-helpers")) {
             saw_dma_block = true;
             try std.testing.expectEqualStrings("blocked_on_dma_state", gap.status);
@@ -187,6 +194,7 @@ test "phase13 devres reviewability packet records the helper-only DMA/scatterlis
     try std.testing.expect(saw_survey_note);
     try std.testing.expect(saw_arch_phys_wc);
     try std.testing.expect(saw_arch_io_memtype);
+    try std.testing.expect(saw_mmio_block);
     try std.testing.expect(saw_dma_block);
     try std.testing.expect(saw_scatterlist_block);
 }
