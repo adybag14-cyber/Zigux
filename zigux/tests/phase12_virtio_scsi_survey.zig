@@ -237,7 +237,7 @@ test "phase12 virtio_scsi survey manifest records the landed queue starter and p
     try std.testing.expect(saw_survey_gate);
     try std.testing.expect(saw_survey_note);
     try std.testing.expect(saw_driver_starter);
-    try std.testing.expect(saw_driverTests);
+    try std.testing.expect(saw_driver_tests);
     try std.testing.expect(saw_slice_note);
     try std.testing.expect(saw_probe_snapshot);
     try std.testing.expect(saw_restore_queue_rebind);
