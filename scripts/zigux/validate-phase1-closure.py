@@ -223,6 +223,94 @@ REQUIRED_REVIEW_CHECKLIST_MARKERS = [
     ),
 ]
 
+EXPECTED_REVIEW_ANCHORS = {
+    "tools/lib/bitmap.zig": {
+        "helper_test_anchors": [
+            'test "bitmap allocator helpers size zero and free their buffers"',
+            'test "bitmap set clear weight and empty full helpers"',
+            'test "bitmap fill clamps tail bits in partial words"',
+            'test "bitmap and andnot equal intersects subset"',
+            'test "bitmap and andnot clamp tail bits in partial words"',
+            'test "bitmap xor keeps caller-selected bit window"',
+            'test "bitmap scnprintf collapses contiguous ranges"',
+            'test "bitmap scnprintf reports full length while truncating the buffer"',
+            'test "bitmap scnprintf handles terminator-only and zero-length caller views"',
+            'test "bitmap copy aliases preserve tail clearing and extension semantics"',
+        ],
+        "partial_xor_review_fields": [
+            "partial_xor_nbits",
+            "partial_xor_masked_values",
+        ],
+        "scnprintf_truncation_anchor": 'test "bitmap scnprintf reports full length while truncating the buffer"',
+        "copy_alias_anchor": 'test "bitmap copy aliases preserve tail clearing and extension semantics"',
+    },
+    "tools/lib/find_bit.zig": {
+        "same_word_start_masks": 'test "single-word next scans honor start masks"',
+        "inclusive_boundary_start": 'test "head-word boundary scans keep the last in-range bit reachable from an inclusive start"',
+        "zero_bit_window": 'test "zero-bit windows return without reading bitmap words"',
+        "past_nbits_short_circuit": 'test "next scans past nbits return without reading bitmap words"',
+        "tail_clamp_fixture_keys": [
+            "tail_clamped_first",
+            "tail_clamped_next",
+            "tail_zero_clamped_first",
+            "tail_zero_clamped_next",
+            "tail_and_clamped_first",
+            "tail_and_clamped_next",
+        ],
+    },
+    "tools/lib/rbtree.zig": {
+        "helper_test_anchors": [
+            'test "rbtree inserts and traverses in sorted order"',
+            'test "rbtree erase and replace keep traversal consistent"',
+            'test "rbtree eraseInit detaches erased node"',
+            'test "rbtree postorder and empty node helpers behave"',
+            'test "rbtree findAdd keeps the first duplicate and inserts new keys"',
+            'test "rbtree nextMatch walks the duplicate range in order"',
+            'test "rbtree cached root keeps the leftmost pointer in sync"',
+            'test "rbtree eraseCached returns null for a singleton cached tree"',
+        ],
+        "phase1_helper_replay_anchor": 'test "phase 1 helper ports match committed parity fixture"',
+        "parity_fixture_keys": [
+            "empty_root",
+            "insert_order",
+            "reverse_order",
+            "replace_order",
+            "erase_init_order",
+            "postorder_count",
+            "erase_init_node_empty",
+            "cleared_node_empty",
+        ],
+    },
+    "tools/lib/string.zig": {
+        "helper_test_anchors": [
+            'test "strtobool accepts common Linux forms"',
+            'test "strlcpy copies and returns the source length"',
+            'test "streq matches C-string equality semantics"',
+            'test "skip trim remove and replace spaces work in place"',
+            'test "strHasPrefix honors C-string boundaries"',
+            'test "memdup and memchrInv preserve byte content"',
+            'test "memchrInv keeps long-buffer first-dirty-byte results stable"',
+            'test "memparse handles decimal hexadecimal octal and suffixes"',
+            'test "memparse keeps original rest when sign is not followed by digits"',
+            'test "memparse saturates signed overflow instead of trapping"',
+            'test "memparse consumes suffix after saturation"',
+        ],
+        "memparse_review_anchors": [
+            'test "memparse keeps original rest when sign is not followed by digits"',
+            'test "memparse saturates signed overflow instead of trapping"',
+            'test "memparse consumes suffix after saturation"',
+        ],
+        "memparse_review_summary": "helper-local memparse safety anchors stay explicit through the direct string tests so sign-prefixed invalid input preserves rest, signed overflow saturates, and suffixes are still consumed after saturation",
+        "phase1_helper_replay_anchor": 'test "phase 1 string replaceChar stops at embedded NUL"',
+        "parity_fixture_keys": [
+            "replace_char",
+            "replace_char_end",
+            "memchr_inv_index",
+            "memchr_inv_none",
+        ],
+    },
+}
+
 
 def repo_root_from_arg(root_arg: str | None) -> Path:
     return DEFAULT_ROOT if root_arg is None else Path(root_arg).resolve()
@@ -286,6 +374,39 @@ def collect_workflow_markers(text: str) -> list[str]:
     return missing
 
 
+def collect_manifest_review_anchor_markers(manifest: dict[str, Any]) -> list[str]:
+    missing: list[str] = []
+    review_anchors = manifest.get("review_anchors")
+    if not isinstance(review_anchors, dict):
+        return ["manifest:review_anchors=dict"]
+
+    expected_helpers = set(EXPECTED_REVIEW_ANCHORS)
+    actual_helpers = set(review_anchors)
+    for helper in sorted(expected_helpers - actual_helpers):
+        missing.append(f"manifest:missing_review_anchor_helper={helper}")
+    for helper in sorted(actual_helpers - expected_helpers):
+        missing.append(f"manifest:unexpected_review_anchor_helper={helper}")
+
+    for helper, expected_fields in EXPECTED_REVIEW_ANCHORS.items():
+        helper_review = review_anchors.get(helper)
+        if not isinstance(helper_review, dict):
+            missing.append(f"manifest:review_anchor_object={helper}")
+            continue
+        expected_keys = set(expected_fields)
+        actual_keys = set(helper_review)
+        for key in sorted(expected_keys - actual_keys):
+            missing.append(f"manifest:missing_review_anchor_field={helper}:{key}")
+        for key in sorted(actual_keys - expected_keys):
+            missing.append(f"manifest:unexpected_review_anchor_field={helper}:{key}")
+
+        for key, expected_value in expected_fields.items():
+            if key not in helper_review:
+                continue
+            if helper_review[key] != expected_value:
+                missing.append(f"manifest:review_anchor_value={helper}:{key}")
+    return missing
+
+
 def collect_manifest_markers(manifest: object, root: Path) -> list[str]:
     if not isinstance(manifest, dict):
         return ["manifest:json_object"]
@@ -326,6 +447,7 @@ def collect_manifest_markers(manifest: object, root: Path) -> list[str]:
         missing.append(f"manifest:unexpected_helper={rel}")
     for rel in sorted(duplicates):
         missing.append(f"manifest:duplicate_helper={rel}")
+    missing.extend(collect_manifest_review_anchor_markers(manifest))
     return missing
 
 
@@ -381,6 +503,12 @@ def collect_bench_expectation_markers(expectations: object) -> list[str]:
     return missing
 
 
+def count_manifest_review_anchor_expectations() -> int:
+    return 1 + len(EXPECTED_REVIEW_ANCHORS) + sum(
+        len(fields) for fields in EXPECTED_REVIEW_ANCHORS.values()
+    )
+
+
 def render_marker_fixture(markers: list[tuple[str, str, int]]) -> str:
     return "\n".join(marker for _, marker, _ in markers) + "\n"
 
@@ -415,6 +543,7 @@ def make_fixture_root(tmp_root: Path) -> None:
         "status": "closed",
         "helper_count": len(EXPECTED_HELPERS),
         "helpers": EXPECTED_HELPERS,
+        "review_anchors": EXPECTED_REVIEW_ANCHORS,
     }
     (tmp_root / "zigux/tests/fixtures/phase1_helper_manifest.json").write_text(
         json.dumps(manifest, indent=2) + "\n",
@@ -497,6 +626,13 @@ def run_self_test() -> None:
         assert "manifest:helpers_len=13" in missing
         make_fixture_root(tmp_root)
 
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        del manifest["review_anchors"]["tools/lib/find_bit.zig"]["zero_bit_window"]
+        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+        missing = collect_missing_markers(tmp_root)
+        assert "manifest:missing_review_anchor_field=tools/lib/find_bit.zig:zero_bit_window" in missing
+        make_fixture_root(tmp_root)
+
         bench_path = tmp_root / "zigux/tests/fixtures/phase1_bench_expectations.json"
         bench = json.loads(bench_path.read_text(encoding="utf-8"))
         del bench["iterations"]["PHASE1_BENCH_STRING_ITERATIONS"]
@@ -531,7 +667,7 @@ def run_self_test() -> None:
         assert collect_missing_files(tmp_root) == [".github/workflows/zigux-bootstrap.yml"]
 
     print("PHASE1_CLOSURE_VALIDATOR_SELF_TEST=pass")
-    print("PHASE1_CLOSURE_VALIDATOR_SELF_TEST_CASE_COUNT=8")
+    print("PHASE1_CLOSURE_VALIDATOR_SELF_TEST_CASE_COUNT=9")
 
 
 def main() -> int:
@@ -567,7 +703,7 @@ def main() -> int:
     print(f"PHASE1_CLOSURE_REQUIRED_FILE_COUNT={len(REQUIRED_FILES)}")
     print(
         "PHASE1_CLOSURE_REQUIRED_MARKER_COUNT="
-        f"{len(REQUIRED_CLOSURE_MARKERS) + len(REQUIRED_WORKFLOW_MARKERS) + len(REQUIRED_EXACT_WORKFLOW_MARKERS) + len(REQUIRED_PHASE1_WORKFLOW_MARKERS) + len(REQUIRED_BUILD_MARKERS) + len(REQUIRED_LEDGER_MARKERS) + len(REQUIRED_MAKEFILE_MARKERS) + len(REQUIRED_DOCS_ROOT_MARKERS) + len(REQUIRED_SCRIPTS_README_MARKERS) + len(REQUIRED_TESTS_README_MARKERS) + len(REQUIRED_REVIEW_CHECKLIST_MARKERS)}"
+        f"{len(REQUIRED_CLOSURE_MARKERS) + len(REQUIRED_WORKFLOW_MARKERS) + len(REQUIRED_EXACT_WORKFLOW_MARKERS) + len(REQUIRED_PHASE1_WORKFLOW_MARKERS) + len(REQUIRED_BUILD_MARKERS) + len(REQUIRED_LEDGER_MARKERS) + len(REQUIRED_MAKEFILE_MARKERS) + len(REQUIRED_DOCS_ROOT_MARKERS) + len(REQUIRED_SCRIPTS_README_MARKERS) + len(REQUIRED_TESTS_README_MARKERS) + len(REQUIRED_REVIEW_CHECKLIST_MARKERS) + count_manifest_review_anchor_expectations()}"
     )
     return 0
 
