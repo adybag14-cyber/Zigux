@@ -152,6 +152,71 @@ test "phase 6 bsearch treats duplicate keys as found-or-null without claiming st
     try std.testing.expectEqual(@as(u32, 7), found.*);
 }
 
+test "phase 6 bsearch singleton typed and raw lookup paths stay inside a one-compare budget" {
+    var values = [_]u32{11};
+    const raw_values: [*]u8 = @ptrCast(values[0..].ptr);
+
+    counted_compare_calls = 0;
+    try std.testing.expectEqual(@as(?usize, 0), bsearch.searchIndex(u32, u32, &@as(u32, 11), values[0..], compareU32Counted));
+    try std.testing.expectEqual(@as(usize, 1), counted_compare_calls);
+
+    counted_compare_calls = 0;
+    const found = bsearch.search(u32, u32, &@as(u32, 11), values[0..], compareU32Counted) orelse return error.TestUnexpectedResult;
+    try std.testing.expectEqual(@as(u32, 11), found.*);
+    try std.testing.expectEqual(@intFromPtr(&values[0]), @intFromPtr(found));
+    try std.testing.expectEqual(@as(usize, 1), counted_compare_calls);
+
+    counted_compare_calls = 0;
+    try std.testing.expectEqual(@as(?usize, null), bsearch.searchIndex(u32, u32, &@as(u32, 10), values[0..], compareU32Counted));
+    try std.testing.expectEqual(@as(usize, 1), counted_compare_calls);
+
+    counted_compare_calls = 0;
+    try std.testing.expect(bsearch.search(u32, u32, &@as(u32, 10), values[0..], compareU32Counted) == null);
+    try std.testing.expectEqual(@as(usize, 1), counted_compare_calls);
+
+    counted_compare_calls = 0;
+    const mutable = bsearch.searchMutable(u32, u32, &@as(u32, 11), values[0..], compareU32Counted) orelse return error.TestUnexpectedResult;
+    try std.testing.expectEqual(@as(usize, 1), counted_compare_calls);
+    mutable.* = 12;
+    try std.testing.expectEqual(@as(u32, 12), values[0]);
+    mutable.* = 11;
+
+    counted_raw_compare_calls = 0;
+    try std.testing.expectEqual(
+        @as(?usize, 0),
+        bsearch.bsearchIndex(&@as(u32, 11), @ptrCast(values[0..].ptr), values.len, @sizeOf(u32), compareOpaqueU32Counted),
+    );
+    try std.testing.expectEqual(@as(usize, 1), counted_raw_compare_calls);
+
+    counted_raw_compare_calls = 0;
+    const raw_found = bsearch.bsearch(&@as(u32, 11), @ptrCast(values[0..].ptr), values.len, @sizeOf(u32), compareOpaqueU32Counted) orelse return error.TestUnexpectedResult;
+    const typed_raw_found: *const u32 = @ptrCast(@alignCast(raw_found));
+    try std.testing.expectEqual(@as(u32, 11), typed_raw_found.*);
+    try std.testing.expectEqual(@intFromPtr(&values[0]), @intFromPtr(typed_raw_found));
+    try std.testing.expectEqual(@as(usize, 1), counted_raw_compare_calls);
+
+    counted_raw_compare_calls = 0;
+    try std.testing.expectEqual(
+        @as(?usize, null),
+        bsearch.bsearchIndex(&@as(u32, 10), @ptrCast(values[0..].ptr), values.len, @sizeOf(u32), compareOpaqueU32Counted),
+    );
+    try std.testing.expectEqual(@as(usize, 1), counted_raw_compare_calls);
+
+    counted_raw_compare_calls = 0;
+    try std.testing.expect(
+        bsearch.bsearch(&@as(u32, 10), @ptrCast(values[0..].ptr), values.len, @sizeOf(u32), compareOpaqueU32Counted) == null,
+    );
+    try std.testing.expectEqual(@as(usize, 1), counted_raw_compare_calls);
+
+    counted_raw_compare_calls = 0;
+    const raw_mutable = bsearch.bsearchMutable(&@as(u32, 11), raw_values, values.len, @sizeOf(u32), compareOpaqueU32Counted) orelse return error.TestUnexpectedResult;
+    const typed_raw_mutable: *u32 = @ptrCast(@alignCast(raw_mutable));
+    try std.testing.expectEqual(@intFromPtr(&values[0]), @intFromPtr(typed_raw_mutable));
+    try std.testing.expectEqual(@as(usize, 1), counted_raw_compare_calls);
+    typed_raw_mutable.* = 12;
+    try std.testing.expectEqual(@as(u32, 12), values[0]);
+}
+
 test "phase 6 bsearch keeps representative lookup work inside a binary-search budget" {
     const values = [_]u32{ 3, 6, 9, 12, 15, 18, 21, 24, 27, 30, 33, 36, 39, 42, 45 };
 
