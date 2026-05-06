@@ -1,0 +1,222 @@
+#!/usr/bin/env python3
+from __future__ import annotations
+
+import argparse
+import tempfile
+from pathlib import Path
+
+
+ROOT = Path(__file__).resolve().parents[2]
+
+REQUIRED_FILES = [
+    "Documentation/zigux/README.md",
+    "Documentation/zigux/review-checklist.md",
+    "Documentation/zigux/phase1-closure.md",
+    "scripts/zigux/README.md",
+    "scripts/zigux/install-zig.py",
+]
+
+DOCS_ROOT_MARKERS = [
+    (
+        "docs_root_phase1_installer_packet",
+        "- `zig build test --build-file zigux/tests/build.zig`, `zig build bench --build-file zigux/tests/build.zig`, `make -C zigux phase1-validate`, `make -C zigux phase1-test`, `make -C zigux phase1-bench`, and `make -C zigux phase1` keep the closed host-side helper packet reviewable through the shared helper build entrypoint and the Linux-style replay route, while `Documentation/zigux/phase1-closure.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/install-zig.py`, `scripts/zigux/README.md`, `.github/workflows/zigux-bootstrap.yml`, and `zigux/Makefile` keep the closure, installer-backed workflow-viability replay, bootstrap-workflow replay, and validator-first contract explicit from the docs root instead of leaving the Phase 1 packet split across later review surfaces.",
+        1,
+    ),
+]
+
+SCRIPTS_README_MARKERS = [
+    (
+        "scripts_readme_phase1_installer_packet",
+        "- `Documentation/zigux/review-checklist.md`, `Documentation/zigux/phase1-closure.md`, `scripts/zigux/install-zig.py`, `.github/workflows/zigux-bootstrap.yml`, `zigux/Makefile`, `make -C zigux phase1-validate`, `make -C zigux phase1-test`, `make -C zigux phase1-bench`, and `make -C zigux phase1` keep that same closed host-side helper packet reviewable through the docs-root closure record, the reviewer-facing checklist, the workflow-viability installer, the bootstrap workflow replay, and the Linux-style replay routes instead of leaving the Phase 1 closure stack visible only through direct script and Zig commands.",
+        1,
+    ),
+]
+
+REVIEW_CHECKLIST_MARKERS = [
+    "  * if the change touches the closed Phase 1 host-tools packet, do `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/phase1-closure.md`, `scripts/zigux/README.md`, `scripts/zigux/install-zig.py`, `zigux/tests/README.md`, `zigux/tests/phase1_helpers.zig`, `zigux/tests/phase1_bench.zig`, `zigux/tests/fixtures/phase1_helper_manifest.json`, `zigux/tests/fixtures/phase1_bench_expectations.json`, `scripts/zigux/validate-phase1.py`, `scripts/zigux/validate-phase1-closure.py`, `scripts/zigux/check-phase1-parity.py`, `scripts/zigux/check-phase1-bench.py`, `.github/workflows/zigux-bootstrap.yml`, `zigux/Makefile`, `zig build test --build-file zigux/tests/build.zig`, `zig build bench --build-file zigux/tests/build.zig`, `make -C zigux phase1-validate`, `make -C zigux phase1-test`, `make -C zigux phase1-bench`, and `make -C zigux phase1` still agree on the same closed helper tranche and validator-first replay path without widening Phase 1 beyond the bounded host-side helper packet?",
+]
+
+CLOSURE_MARKERS = [
+    "- `scripts/zigux/install-zig.py`",
+    "- `python3 scripts/zigux/install-zig.py --self-test`",
+]
+
+
+def collect_missing_files(root: Path) -> list[str]:
+    return [rel for rel in REQUIRED_FILES if not (root / rel).exists()]
+
+
+def collect_exact_count_markers(text: str, markers: list[tuple[str, str, int]]) -> list[str]:
+    issues: list[str] = []
+    for label, marker, expected_count in markers:
+        actual_count = text.count(marker)
+        if actual_count != expected_count:
+            issues.append(f"{label}:expected={expected_count}:actual={actual_count}")
+    return issues
+
+
+def collect_presence_markers(text: str, label: str, markers: list[str]) -> list[str]:
+    issues: list[str] = []
+    for marker in markers:
+        actual_count = text.count(marker)
+        if actual_count < 1:
+            issues.append(f"{label}:{marker}:expected>=1:actual={actual_count}")
+    return issues
+
+
+def validate_root(root: Path) -> list[str]:
+    issues = collect_missing_files(root)
+    if issues:
+        return [f"missing_file:{item}" for item in issues]
+
+    docs_root = (root / "Documentation/zigux/README.md").read_text(encoding="utf-8")
+    review_checklist = (root / "Documentation/zigux/review-checklist.md").read_text(encoding="utf-8")
+    phase1_closure = (root / "Documentation/zigux/phase1-closure.md").read_text(encoding="utf-8")
+    scripts_readme = (root / "scripts/zigux/README.md").read_text(encoding="utf-8")
+
+    issues = []
+    issues.extend(collect_exact_count_markers(docs_root, DOCS_ROOT_MARKERS))
+    issues.extend(collect_exact_count_markers(scripts_readme, SCRIPTS_README_MARKERS))
+    issues.extend(
+        collect_presence_markers(
+            review_checklist,
+            "review_checklist_phase1_installer_packet",
+            REVIEW_CHECKLIST_MARKERS,
+        )
+    )
+    issues.extend(
+        collect_presence_markers(
+            phase1_closure,
+            "phase1_closure_installer_packet",
+            CLOSURE_MARKERS,
+        )
+    )
+    return issues
+
+
+def write_text(path: Path, content: str) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(content, encoding="utf-8")
+
+
+def build_self_test_root(root: Path) -> None:
+    for rel in REQUIRED_FILES:
+        write_text(root / rel, "// fixture\n")
+
+    write_text(
+        root / "Documentation/zigux/README.md",
+        "\n".join(marker for _, marker, _ in DOCS_ROOT_MARKERS) + "\n",
+    )
+    write_text(
+        root / "scripts/zigux/README.md",
+        "\n".join(marker for _, marker, _ in SCRIPTS_README_MARKERS) + "\n",
+    )
+    write_text(
+        root / "Documentation/zigux/review-checklist.md",
+        "\n".join(REVIEW_CHECKLIST_MARKERS) + "\n",
+    )
+    write_text(
+        root / "Documentation/zigux/phase1-closure.md",
+        "\n".join(CLOSURE_MARKERS) + "\n",
+    )
+
+
+def run_self_test() -> int:
+    with tempfile.TemporaryDirectory(prefix="phase1_installer_review_") as tmp_dir:
+        root = Path(tmp_dir)
+        build_self_test_root(root)
+        assert validate_root(root) == []
+
+        write_text(root / "Documentation/zigux/README.md", "")
+        issues = validate_root(root)
+        assert "docs_root_phase1_installer_packet:expected=1:actual=0" in issues
+
+        build_self_test_root(root)
+        write_text(
+            root / "Documentation/zigux/README.md",
+            "\n".join(marker for _, marker, _ in DOCS_ROOT_MARKERS)
+            + "\n"
+            + DOCS_ROOT_MARKERS[0][1]
+            + "\n",
+        )
+        issues = validate_root(root)
+        assert "docs_root_phase1_installer_packet:expected=1:actual=2" in issues
+
+        build_self_test_root(root)
+        write_text(root / "scripts/zigux/README.md", "")
+        issues = validate_root(root)
+        assert "scripts_readme_phase1_installer_packet:expected=1:actual=0" in issues
+
+        build_self_test_root(root)
+        write_text(
+            root / "scripts/zigux/README.md",
+            "\n".join(marker for _, marker, _ in SCRIPTS_README_MARKERS)
+            + "\n"
+            + SCRIPTS_README_MARKERS[0][1]
+            + "\n",
+        )
+        issues = validate_root(root)
+        assert "scripts_readme_phase1_installer_packet:expected=1:actual=2" in issues
+
+        build_self_test_root(root)
+        write_text(root / "Documentation/zigux/review-checklist.md", "")
+        issues = validate_root(root)
+        assert (
+            "review_checklist_phase1_installer_packet:"
+            + REVIEW_CHECKLIST_MARKERS[0]
+            + ":expected>=1:actual=0"
+            in issues
+        )
+
+        build_self_test_root(root)
+        write_text(root / "Documentation/zigux/phase1-closure.md", "")
+        issues = validate_root(root)
+        assert "phase1_closure_installer_packet:- `scripts/zigux/install-zig.py`:expected>=1:actual=0" in issues
+        assert (
+            "phase1_closure_installer_packet:- `python3 scripts/zigux/install-zig.py --self-test`:expected>=1:actual=0"
+            in issues
+        )
+
+        build_self_test_root(root)
+        (root / "scripts/zigux/install-zig.py").unlink()
+        issues = validate_root(root)
+        assert "missing_file:scripts/zigux/install-zig.py" in issues
+
+    print("PHASE1_INSTALLER_REVIEW_SURFACES_SELF_TEST=pass")
+    print("PHASE1_INSTALLER_REVIEW_SURFACES_SELF_TEST_CASE_COUNT=7")
+    return 0
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(
+        description="Check the Phase 1 installer-backed review surfaces stay aligned."
+    )
+    parser.add_argument(
+        "--self-test",
+        action="store_true",
+        help="Run built-in alignment coverage without a repo checkout.",
+    )
+    args = parser.parse_args()
+
+    if args.self_test:
+        return run_self_test()
+
+    issues = validate_root(ROOT)
+    if issues:
+        print("PHASE1_INSTALLER_REVIEW_SURFACES=fail")
+        print("PHASE1_INSTALLER_REVIEW_SURFACES_ISSUES_START")
+        for issue in issues:
+            print(issue)
+        print("PHASE1_INSTALLER_REVIEW_SURFACES_ISSUES_END")
+        return 1
+
+    print("PHASE1_INSTALLER_REVIEW_SURFACES=pass")
+    print(
+        "PHASE1_INSTALLER_REVIEW_SURFACES_MARKER_COUNT="
+        f"{len(DOCS_ROOT_MARKERS) + len(SCRIPTS_README_MARKERS) + len(REVIEW_CHECKLIST_MARKERS) + len(CLOSURE_MARKERS)}"
+    )
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
