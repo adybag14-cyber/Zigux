@@ -386,7 +386,7 @@ def run_self_test() -> int:
                 "lane_key": "P14-L08",
                 "surveyed_commit": "946d5c73fdb763ba860a20879b05da54e1896e8c",
                 "gaps": [
-                    {"id": "phase14-ring-buffer-reader-page-copy-followup", "status": "ready_next"},
+                    {"id": "phase14-ring-buffer-read-page-copy-followup", "status": "ready_next"},
                     {"id": "phase14-ring-buffer-zig-port-blocker", "status": "blocked_on_stay_in_c_evidence"},
                 ],
             },
