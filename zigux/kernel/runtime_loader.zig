@@ -165,6 +165,23 @@ test "runtime loader facade preserves shared runtime lifecycle failures" {
     };
     try std.testing.expectError(error.InvalidInitFlow, prepareRequest(duplicate_init));
 
+    const exited_plan = LoadPlan{
+        .module_name = "runtime_bitmap",
+        .anchor = "lib/test_bitmap.c",
+        .entry_symbol = "zigux_runtime_bitmap_init",
+        .exit_symbol = "zigux_runtime_bitmap_exit",
+        .requires_runtime_substrate = true,
+        .provides_selftest_hook = true,
+        .allocator_handoff = .arena,
+        .init_flow = .{
+            .handoff_stage = .selftest_complete,
+            .init_runs = 1,
+            .selftest_runs = 1,
+            .exit_runs = 1,
+        },
+    };
+    try std.testing.expectError(error.InvalidInitFlow, prepareRequest(exited_plan));
+
     const incomplete_selftest = LoadPlan{
         .module_name = "runtime_kretprobe",
         .anchor = "samples/kprobes/kretprobe_example.c",
@@ -216,6 +233,42 @@ test "runtime loader facade preserves shared runtime lifecycle failures" {
     };
     try std.testing.expect(!keepsSelftestHookEvidenceConsistent(missing_selftest_hook));
     try std.testing.expectError(error.InvalidSelftestHookEvidence, prepareRequest(missing_selftest_hook));
+
+    const initialized_without_selftest_hook = LoadPlan{
+        .module_name = "runtime_bitmap",
+        .anchor = "lib/test_bitmap.c",
+        .entry_symbol = "zigux_runtime_bitmap_init",
+        .exit_symbol = "zigux_runtime_bitmap_exit",
+        .requires_runtime_substrate = true,
+        .provides_selftest_hook = false,
+        .allocator_handoff = .arena,
+        .init_flow = .{
+            .handoff_stage = .initialized,
+            .init_runs = 1,
+            .selftest_runs = 0,
+            .exit_runs = 0,
+        },
+    };
+    try std.testing.expect(!keepsSelftestHookEvidenceConsistent(initialized_without_selftest_hook));
+    try std.testing.expectError(error.InvalidSelftestHookEvidence, prepareRequest(initialized_without_selftest_hook));
+
+    const selftest_runs_without_hook = LoadPlan{
+        .module_name = "runtime_bitmap",
+        .anchor = "lib/test_bitmap.c",
+        .entry_symbol = "zigux_runtime_bitmap_init",
+        .exit_symbol = "zigux_runtime_bitmap_exit",
+        .requires_runtime_substrate = true,
+        .provides_selftest_hook = false,
+        .allocator_handoff = .arena,
+        .init_flow = .{
+            .handoff_stage = .initialized,
+            .init_runs = 1,
+            .selftest_runs = 1,
+            .exit_runs = 0,
+        },
+    };
+    try std.testing.expect(!keepsSelftestHookEvidenceConsistent(selftest_runs_without_hook));
+    try std.testing.expectError(error.InvalidSelftestHookEvidence, prepareRequest(selftest_runs_without_hook));
 
     const stable_plan = LoadPlan{
         .module_name = "runtime_kretprobe",
@@ -270,4 +323,12 @@ test "runtime loader facade rejects request state or plan drift" {
     var drifted_plan = stable_plan;
     drifted_plan.exit_symbol = "zigux_runtime_atomic64_exit_drift";
     try std.testing.expect(!keepsRequestStateAndPlanExplicit(request, .prepared, drifted_plan));
+
+    var drifted_allocator = stable_plan;
+    drifted_allocator.allocator_handoff = .arena;
+    try std.testing.expect(!keepsRequestStateAndPlanExplicit(request, .prepared, drifted_allocator));
+
+    var drifted_init_flow = stable_plan;
+    drifted_init_flow.init_flow.selftest_runs = 0;
+    try std.testing.expect(!keepsRequestStateAndPlanExplicit(request, .prepared, drifted_init_flow));
 }
