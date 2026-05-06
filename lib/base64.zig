@@ -505,6 +505,26 @@ test "decode leaves caller bytes past the returned payload untouched" {
     }
 }
 
+test "variant-specific decode tables reject foreign alphabet bytes without writes" {
+    const cases = [_]struct {
+        input: []const u8,
+        padding: bool,
+        variant: Variant,
+    }{
+        .{ .input = "APv_f4A", .padding = false, .variant = .std },
+        .{ .input = "APv/f4A", .padding = false, .variant = .urlsafe },
+        .{ .input = "APv/f4A=", .padding = true, .variant = .imap },
+        .{ .input = "APv,f4A=", .padding = true, .variant = .std },
+    };
+
+    for (cases) |case| {
+        var decoded = [_]u8{0xdd} ** 8;
+        try std.testing.expectError(DecodeError.InvalidInput, bytes(case.input, case.padding, case.variant));
+        try std.testing.expectError(DecodeError.InvalidInput, decode(decoded[0..], case.input, case.padding, case.variant));
+        try std.testing.expectEqualSlices(u8, &([_]u8{0xdd} ** 8), decoded[0..]);
+    }
+}
+
 test "decode exhaustively accepts only canonical padded tails" {
     try expectExhaustiveTailCanonicality(true, .std);
     try expectExhaustiveTailCanonicality(true, .urlsafe);
