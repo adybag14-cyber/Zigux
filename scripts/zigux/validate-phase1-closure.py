@@ -30,6 +30,7 @@ EXPECTED_BENCH_ITERATIONS = {
     "PHASE1_BENCH_BITMAP_WEIGHT_ITERATIONS": 20000,
     "PHASE1_BENCH_BITMAP_WINDOW_ITERATIONS": 20000,
     "PHASE1_BENCH_FIND_NEXT_BIT_ITERATIONS": 20000,
+    "PHASE1_BENCH_FIND_BIT_EDGE_ITERATIONS": 20000,
     "PHASE1_BENCH_STRING_ITERATIONS": 40000,
     "PHASE1_BENCH_HWEIGHT_ITERATIONS": 100000,
     "PHASE1_BENCH_LIST_SORT_ITERATIONS": 1000,
@@ -39,6 +40,7 @@ EXPECTED_BENCH_CHECKSUMS = [
     "PHASE1_BENCH_BITMAP_WEIGHT_CHECKSUM",
     "PHASE1_BENCH_BITMAP_WINDOW_CHECKSUM",
     "PHASE1_BENCH_FIND_NEXT_BIT_CHECKSUM",
+    "PHASE1_BENCH_FIND_BIT_EDGE_CHECKSUM",
     "PHASE1_BENCH_STRING_CHECKSUM",
     "PHASE1_BENCH_HWEIGHT_CHECKSUM",
     "PHASE1_BENCH_LIST_SORT_CHECKSUM",
@@ -575,25 +577,23 @@ def run_self_test() -> None:
             in collect_bench_expectation_markers(unexpected_bench_checksum)
         )
 
-        parsed_manifest, manifest_parse_markers = load_json_file(
+        malformed_manifest, manifest_parse_markers = load_json_file(
             malformed_manifest_path,
             "manifest",
         )
-        assert parsed_manifest is None
-        assert (
+        assert malformed_manifest is None
+        assert manifest_parse_markers == [
             "manifest:json_decode_error:Expecting property name enclosed in double quotes:line=2:column=1"
-            in manifest_parse_markers
-        )
+        ]
 
-        parsed_bench, bench_parse_markers = load_json_file(
+        malformed_bench, bench_parse_markers = load_json_file(
             malformed_bench_path,
             "bench_expectations",
         )
-        assert parsed_bench is None
-        assert (
+        assert malformed_bench is None
+        assert bench_parse_markers == [
             "bench_expectations:json_decode_error:Expecting property name enclosed in double quotes:line=2:column=1"
-            in bench_parse_markers
-        )
+        ]
 
         valid_closure = render_marker_fixture(required_closure_markers)
         assert collect_exact_count_markers(valid_closure, required_closure_markers) == []
