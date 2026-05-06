@@ -182,7 +182,7 @@ test "atomic64 diff wrapper keeps the current manifest handoff explicit" {
     );
     try expectMarker(
         phase4_runtime_atomic64_manifest_source,
-        "\"phase4_validation_matrix_blob_sha\": \"402b5f484c17b4f64e908bfec7bc8fe04bffa3ae\"",
+        "\"phase4_validation_matrix_blob_sha\": \"3e0405b1a50f8d9c2e17ca61d1326cc98c57e0a5\"",
     );
     try expectMarker(
         phase4_runtime_atomic64_manifest_source,
@@ -289,7 +289,7 @@ test "atomic64 diff wrapper keeps rollback ownership and threshold posture expli
     try expectAtomic64MatrixMarkerCount("- owner: `ABI and Runtime Team`", 1);
     try expectAtomic64MatrixMarkerCount("- rollback owner: `ABI and Runtime Team`", 1);
     try expectAtomic64MatrixMarkerCount(
-        "- perf threshold status: correctness-only gate today; no hard timing threshold is approved until the lane widens beyond the current bounded exchange, cmpxchg, add_unless, and selftest-family replay set",
+        "- perf threshold status: correctness-only gate today; no hard timing threshold is approved until the lane widens beyond the current bounded exchange, cmpxchg, add_unless, bitwise, and selftest-family replay set",
         1,
     );
     try expectAtomic64MatrixMarkerCount(
@@ -305,6 +305,10 @@ test "atomic64 diff wrapper keeps the phase4 replay routes measurable" {
     );
     try expectAtomic64MatrixMarkerCount(
         "`zig build phase4-runtime-atomic64-diff --build-file zigux/tests/phase4_build.zig`",
+        1,
+    );
+    try expectAtomic64MatrixMarkerCount(
+        "`zigux/tests/atomic64_diff.zig` bounded atomic64 exchange, cmpxchg, add_unless, bitwise, and selftest-family replay via the shared runtime-backed gate",
         1,
     );
 }
