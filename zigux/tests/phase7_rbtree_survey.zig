@@ -1,6 +1,6 @@
 const std = @import("std");
 
-const active_lane_key = "P7-Y05";
+const active_lane_key = "P7-Y04";
 
 const SurveySummary = struct {
     rbtree_c_lines: usize,
@@ -130,7 +130,7 @@ test "phase 7 rbtree survey manifest records the landed runtime leaf surface and
         }
     }
 
-    try expectContains(slice_note, "PHASE7_LANE_KEY=P7-Y05");
+    try expectContains(slice_note, "PHASE7_LANE_KEY=P7-Y04");
     try expectContains(slice_note, "erase-and-detach ownership reset via `eraseInit()`");
     try expectContains(slice_note, "detached-node clearing semantics");
     try expectContains(validate_phase7, "\"scripts/zigux/check-phase7-rbtree-parity.py\",");
