@@ -70,6 +70,9 @@ test "phase11 hvc_console summarizes final-close wait boundaries without claimin
     try std.testing.expectError(error.InvalidOpenCount, console.summarizeCloseBoundary(.{
         .open_count_before_close = 0,
     }));
+
+    _ = console.teardown();
+    try std.testing.expectError(error.ConsoleUnavailable, console.summarizeCloseBoundary(.{}));
 }
 
 test "phase11 hvc console keeps remove-path teardown ordering reviewable" {
