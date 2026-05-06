@@ -62,3 +62,71 @@ test "dw_wdt platform handoff stays blocked-but-reviewable when drvdata or irq w
     try std.testing.expect(!handoff.imported_running_state);
     try std.testing.expect(handoff.needs_timeout_programming);
 }
+
+test "dw_wdt verify keeps custom timeout matrix ordering and nearest-top selection explicit" {
+    const custom_tops = [_]u32{
+        20_000, 4_000,  8_000,  12_000,
+        16_000, 24_000, 28_000, 32_000,
+        36_000, 40_000, 44_000, 48_000,
+        52_000, 56_000, 60_000, 64_000,
+    };
+
+    var watchdog = try dw_wdt.DwWdtLab.initCustomTops(1_000, false, custom_tops);
+    const windows = watchdog.timeoutWindows();
+    try std.testing.expectEqual(@as(usize, dw_wdt.num_tops), windows.len);
+    try std.testing.expectEqual(@as(u32, 1), windows[0].top_val);
+    try std.testing.expectEqual(@as(u32, 4), windows[0].sec);
+    try std.testing.expectEqual(@as(u32, 15), windows[15].top_val);
+    try std.testing.expectEqual(@as(u32, 64), windows[15].sec);
+
+    for (windows[1..], 1..) |window, idx| {
+        const previous = windows[idx - 1];
+        try std.testing.expect(window.sec >= previous.sec);
+        if (window.sec == previous.sec) {
+            try std.testing.expect(window.msec >= previous.msec);
+        }
+    }
+
+    const probe = try watchdog.probeSummary(.{
+        .requested_timeout_sec = 11,
+    });
+    try std.testing.expectEqual(dw_wdt.TopSource.custom, probe.top_source);
+    try std.testing.expectEqual(dw_wdt.ProbeTimeoutOrigin.default_selection, probe.timeout_origin);
+    try std.testing.expectEqual(@as(u32, 12), probe.timeout_sec);
+    try std.testing.expect(probe.stop_on_reboot);
+    try std.testing.expect(!probe.hardware_running);
+}
+
+test "dw_wdt verify keeps teardown split between reset-controlled and unstoppable hardware" {
+    var stoppable = try dw_wdt.DwWdtLab.initFixedTops(65_536, true);
+    _ = try stoppable.setResponseMode(.irq);
+    _ = try stoppable.setTimeout(9);
+    _ = try stoppable.start();
+    _ = stoppable.setCurrentCount(3 * 65_536);
+    _ = stoppable.setInterruptPending(true);
+
+    const stopped_remove = stoppable.removeSummary();
+    try std.testing.expect(stopped_remove.reset_control_available);
+    try std.testing.expect(stopped_remove.reset_assert_requested);
+    try std.testing.expect(stopped_remove.hardware_running_before_remove);
+    try std.testing.expect(!stopped_remove.hardware_running_after_remove);
+    try std.testing.expect(!stopped_remove.running_after_remove);
+    try std.testing.expect(!stopped_remove.interrupt_pending_after_remove);
+    try std.testing.expect(!stopped_remove.remove_leaves_hardware_running);
+
+    var unstoppable = try dw_wdt.DwWdtLab.initFixedTops(65_536, false);
+    _ = try unstoppable.setResponseMode(.irq);
+    _ = try unstoppable.setTimeout(9);
+    _ = try unstoppable.start();
+    _ = unstoppable.setCurrentCount(3 * 65_536);
+    _ = unstoppable.setInterruptPending(true);
+
+    const running_remove = unstoppable.removeSummary();
+    try std.testing.expect(!running_remove.reset_control_available);
+    try std.testing.expect(!running_remove.reset_assert_requested);
+    try std.testing.expect(running_remove.hardware_running_before_remove);
+    try std.testing.expect(running_remove.hardware_running_after_remove);
+    try std.testing.expect(running_remove.running_after_remove);
+    try std.testing.expect(running_remove.interrupt_pending_after_remove);
+    try std.testing.expect(running_remove.remove_leaves_hardware_running);
+}
