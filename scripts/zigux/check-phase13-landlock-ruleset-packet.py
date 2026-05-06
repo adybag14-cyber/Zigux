@@ -29,11 +29,13 @@ SLICE_MARKERS = [
 SURVEY_MARKERS = [
     "`PHASE13_LANE_KEY=P13-L12`",
     "phase13-landlock-ruleset-ownership.md",
+    "phase13-landlock-tree-replacement-followup",
     "rb_replace_node()",
     "scripts/zigux/check-phase13-landlock-ruleset-packet.py",
 ]
 
 OWNERSHIP_MARKERS = [
+    "matched-rule replacement planning",
     "scripts/zigux/check-phase13-landlock-ruleset-packet.py",
     "manifest, survey, slice, and test gate move together",
     "live-tree blocker",
@@ -205,6 +207,7 @@ def run_self_test() -> int:
             validate(root),
             [
                 "phase13-landlock-ruleset-survey:phase13-landlock-ruleset-ownership.md",
+                "phase13-landlock-ruleset-survey:phase13-landlock-tree-replacement-followup",
                 "phase13-landlock-ruleset-survey:rb_replace_node()",
                 "phase13-landlock-ruleset-survey:scripts/zigux/check-phase13-landlock-ruleset-packet.py",
             ],
@@ -217,6 +220,7 @@ def run_self_test() -> int:
         assert_only(
             validate(root),
             [
+                "phase13-landlock-ruleset-ownership:matched-rule replacement planning",
                 "phase13-landlock-ruleset-ownership:scripts/zigux/check-phase13-landlock-ruleset-packet.py",
                 "phase13-landlock-ruleset-ownership:manifest, survey, slice, and test gate move together",
             ],
