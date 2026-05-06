@@ -168,6 +168,45 @@ test "phase10 virtio ring delayed callback pacing reports both thresholded and i
     try std.testing.expect(delayed.should_poll);
 }
 
+test "phase10 virtio ring callback re-enable reports pending used work and settles after poll" {
+    var ring = virtio_ring.VirtioRingLab{};
+    try ring.defineQueue(6, 8, .split, true, false);
+
+    inline for (0..3) |_| {
+        try ring.publishDescriptorChain(6);
+    }
+    const kick_summary = try ring.prepareKick(6);
+    try std.testing.expect(kick_summary.needs_kick);
+    try std.testing.expectEqual(@as(u16, 3), kick_summary.num_added);
+    try std.testing.expectEqual(@as(usize, 1), kick_summary.notification_count);
+
+    try ring.recordUsedChains(6, 2);
+    try ring.disableCallback(6);
+
+    var callback_summary = try ring.enableCallback(6);
+    try std.testing.expectEqualStrings("drivers/virtio/virtio_ring.c", callback_summary.anchor);
+    try std.testing.expectEqual(@as(u16, 6), callback_summary.queue_index);
+    try std.testing.expect(callback_summary.callback_enabled);
+    try std.testing.expectEqual(@as(u16, 2), callback_summary.last_used_idx);
+    try std.testing.expectEqual(@as(u16, 0), callback_summary.last_polled_used_idx);
+    try std.testing.expectEqual(@as(u16, 2), callback_summary.pending_used_chain_count);
+    try std.testing.expect(callback_summary.should_poll);
+
+    const poll_summary = try ring.pollUsedBuffers(6);
+    try std.testing.expectEqual(@as(u16, 2), poll_summary.last_used_idx);
+    try std.testing.expectEqual(@as(u16, 0), poll_summary.last_polled_used_idx);
+    try std.testing.expectEqual(@as(u16, 2), poll_summary.newly_used_chain_count);
+    try std.testing.expectEqual(@as(u16, 1), poll_summary.outstanding_chain_count);
+    try std.testing.expect(poll_summary.has_newly_used_chains);
+
+    callback_summary = try ring.enableCallback(6);
+    try std.testing.expect(callback_summary.callback_enabled);
+    try std.testing.expectEqual(@as(u16, 2), callback_summary.last_used_idx);
+    try std.testing.expectEqual(@as(u16, 2), callback_summary.last_polled_used_idx);
+    try std.testing.expectEqual(@as(u16, 0), callback_summary.pending_used_chain_count);
+    try std.testing.expect(!callback_summary.should_poll);
+}
+
 test "phase10 virtio ring reset-readiness preflight reports the current queue blocker" {
     var ring = virtio_ring.VirtioRingLab{};
     try ring.defineQueue(4, 8, .split, true, false);
