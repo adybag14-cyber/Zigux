@@ -37,16 +37,19 @@ The current packet is productively landed, but the remaining bridge-facing work 
 
 ## Review gates
 
-1. run the shared Phase 8 validator self-test
+1. run the shared Phase 8 validator route first
+- `make -C zigux phase8-validate`
+
+2. run the shared Phase 8 validator self-test
 - `python3 scripts/zigux/validate-phase8.py --self-test`
 
-2. run the shared Phase 8 validator
+3. run the shared Phase 8 validator
 - `python3 scripts/zigux/validate-phase8.py`
 
-3. run the focused file-path bridge replay
+4. run the focused file-path bridge replay
 - `zig build test --build-file zigux/tests/phase8_file_path_handle_bridge_only_build.zig --summary all`
 
-4. run the shared Phase 8 replay
+5. run the shared Phase 8 replay
 - `zig build test --build-file zigux/tests/phase8_build.zig --summary all`
 - `make -C zigux phase8`
 
@@ -62,4 +65,4 @@ This survey does not claim:
 
 ## Next bounded step
 
-Keep this survey parked beside the landed fdinfo helper packet until one adjacent bridge step is ready to move as a single bounded review surface. The next honest reopen remains the smallest helper-first packet that can connect the current fdinfo note to queued reuse planning without widening into direct procfs reads, bpffs opens, token creation, or loader-facing libbpf work.
+Keep this survey parked beside the landed fdinfo helper packet until one adjacent bridge step is ready to move as a single bounded review surface. Keep the shared `make -C zigux phase8-validate` route explicit in that parked boundary so validator-first review stays ahead of the bridge-side replay. The next honest reopen remains the smallest helper-first packet that can connect the current fdinfo note to queued reuse planning without widening into direct procfs reads, bpffs opens, token creation, or loader-facing libbpf work.
