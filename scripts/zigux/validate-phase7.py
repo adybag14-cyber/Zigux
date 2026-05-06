@@ -240,6 +240,18 @@ EXACT_COUNT_MARKERS = {
         ("scripts/zigux/check-phase7-argv-split-packet.py", 1),
         ("make -C zigux phase7-validate", 1),
     ],
+    "zigux/tests/README.md": [
+        ("`Documentation/zigux/README.md`", 1),
+        ("`scripts/zigux/README.md`", 1),
+        ("`scripts/zigux/validate-phase7.py`", 1),
+        ("`scripts/zigux/check-phase7-make-wrapper.py`", 1),
+        ("`scripts/zigux/check-phase7-argv-split-packet.py`", 1),
+        ("`scripts/zigux/check-phase7-rbtree-parity.py`", 1),
+        ("`zigux/Makefile`", 1),
+        ("`.github/workflows/zigux-bootstrap.yml`", 1),
+        ("`make -C zigux phase7-validate`", 1),
+        ("`make -C zigux phase7`", 1),
+    ],
 }
 
 FIXTURE_OVERRIDES = {
@@ -434,6 +446,16 @@ def run_self_test() -> None:
         ("scripts_readme_make_wrapper_exact_count", "scripts/zigux/README.md", "scripts/zigux/check-phase7-make-wrapper.py", "scripts/zigux/README.md: scripts/zigux/check-phase7-make-wrapper.py:expected=1:actual=2"),
         ("scripts_readme_argv_split_packet_exact_count", "scripts/zigux/README.md", "scripts/zigux/check-phase7-argv-split-packet.py", "scripts/zigux/README.md: scripts/zigux/check-phase7-argv-split-packet.py:expected=1:actual=2"),
         ("scripts_readme_phase7_validate_exact_count", "scripts/zigux/README.md", "make -C zigux phase7-validate", "scripts/zigux/README.md: make -C zigux phase7-validate:expected=1:actual=2"),
+        ("tests_readme_phase7_docs_root_exact_count", "zigux/tests/README.md", "`Documentation/zigux/README.md`", "zigux/tests/README.md: `Documentation/zigux/README.md`:expected=1:actual=2"),
+        ("tests_readme_phase7_scripts_root_exact_count", "zigux/tests/README.md", "`scripts/zigux/README.md`", "zigux/tests/README.md: `scripts/zigux/README.md`:expected=1:actual=2"),
+        ("tests_readme_phase7_validator_exact_count", "zigux/tests/README.md", "`scripts/zigux/validate-phase7.py`", "zigux/tests/README.md: `scripts/zigux/validate-phase7.py`:expected=1:actual=2"),
+        ("tests_readme_phase7_make_wrapper_exact_count", "zigux/tests/README.md", "`scripts/zigux/check-phase7-make-wrapper.py`", "zigux/tests/README.md: `scripts/zigux/check-phase7-make-wrapper.py`:expected=1:actual=2"),
+        ("tests_readme_phase7_argv_split_packet_exact_count", "zigux/tests/README.md", "`scripts/zigux/check-phase7-argv-split-packet.py`", "zigux/tests/README.md: `scripts/zigux/check-phase7-argv-split-packet.py`:expected=1:actual=2"),
+        ("tests_readme_phase7_rbtree_parity_exact_count", "zigux/tests/README.md", "`scripts/zigux/check-phase7-rbtree-parity.py`", "zigux/tests/README.md: `scripts/zigux/check-phase7-rbtree-parity.py`:expected=1:actual=2"),
+        ("tests_readme_phase7_makefile_exact_count", "zigux/tests/README.md", "`zigux/Makefile`", "zigux/tests/README.md: `zigux/Makefile`:expected=1:actual=2"),
+        ("tests_readme_phase7_workflow_exact_count", "zigux/tests/README.md", "`.github/workflows/zigux-bootstrap.yml`", "zigux/tests/README.md: `.github/workflows/zigux-bootstrap.yml`:expected=1:actual=2"),
+        ("tests_readme_phase7_validate_command_exact_count", "zigux/tests/README.md", "`make -C zigux phase7-validate`", "zigux/tests/README.md: `make -C zigux phase7-validate`:expected=1:actual=2"),
+        ("tests_readme_phase7_make_command_exact_count", "zigux/tests/README.md", "`make -C zigux phase7`", "zigux/tests/README.md: `make -C zigux phase7`:expected=1:actual=2"),
     ]
 
     with tempfile.TemporaryDirectory(prefix="zigux_phase7_validator_") as tmp_dir_str:
