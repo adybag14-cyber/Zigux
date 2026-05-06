@@ -324,6 +324,15 @@ def run_self_test() -> int:
         phase4_build_sha = git_blob_sha1(
             read_bytes(root, PHASE4_RUNTIME_ATOMIC64_PACKET_BLOB_TARGETS["phase4_build_blob_sha"])
         )
+        phase4_validator_sha = git_blob_sha1(
+            read_bytes(root, PHASE4_RUNTIME_ATOMIC64_PACKET_BLOB_TARGETS["phase4_validator_blob_sha"])
+        )
+        phase4_validation_matrix_sha = git_blob_sha1(
+            read_bytes(
+                root,
+                PHASE4_RUNTIME_ATOMIC64_PACKET_BLOB_TARGETS["phase4_validation_matrix_blob_sha"],
+            )
+        )
         manifest["phase4_build_blob_sha"] = "0000000000000000000000000000000000000000"
         write_text(root / MANIFEST_PATH, json.dumps(manifest, indent=2) + "\n")
         manifest_blob_sha = git_blob_sha1(read_bytes(root, MANIFEST_PATH))
@@ -351,6 +360,70 @@ def run_self_test() -> int:
             f"{survey_blob_sha}:0",
             "phase4_gate_evidence:runtime_atomic64_survey_blob_exact_count:"
             f"phase4_build_blob_sha:{phase4_build_sha}:0",
+        ], missing
+
+        write_runtime_atomic64_packet_fixture(root)
+        write_text(root / NOTE_PATH, build_fixture_note(root))
+        manifest = json.loads(read_text(root, MANIFEST_PATH))
+        manifest["phase4_validator_blob_sha"] = "3333333333333333333333333333333333333333"
+        write_text(root / MANIFEST_PATH, json.dumps(manifest, indent=2) + "\n")
+        manifest_blob_sha = git_blob_sha1(read_bytes(root, MANIFEST_PATH))
+        missing = validate_root(root)
+        assert missing == [
+            "phase4_gate_evidence:blob_exact_count:PHASE4_RUNTIME_ATOMIC64_MANIFEST_BLOB_SHA:"
+            f"{manifest_blob_sha}:0",
+            "phase4_gate_evidence:runtime_atomic64_manifest_blob:phase4_validator_blob_sha:"
+            "3333333333333333333333333333333333333333:"
+            f"{phase4_validator_sha}",
+        ], missing
+
+        write_runtime_atomic64_packet_fixture(root)
+        write_text(root / NOTE_PATH, build_fixture_note(root))
+        write_text(
+            root / SURVEY_PATH,
+            read_text(root, SURVEY_PATH).replace(
+                phase4_validator_sha, "4444444444444444444444444444444444444444", 1
+            ),
+        )
+        survey_blob_sha = git_blob_sha1(read_bytes(root, SURVEY_PATH))
+        missing = validate_root(root)
+        assert missing == [
+            "phase4_gate_evidence:blob_exact_count:PHASE4_RUNTIME_ATOMIC64_SURVEY_BLOB_SHA:"
+            f"{survey_blob_sha}:0",
+            "phase4_gate_evidence:runtime_atomic64_survey_blob_exact_count:"
+            f"phase4_validator_blob_sha:{phase4_validator_sha}:0",
+        ], missing
+
+        write_runtime_atomic64_packet_fixture(root)
+        write_text(root / NOTE_PATH, build_fixture_note(root))
+        manifest = json.loads(read_text(root, MANIFEST_PATH))
+        manifest["phase4_validation_matrix_blob_sha"] = "5555555555555555555555555555555555555555"
+        write_text(root / MANIFEST_PATH, json.dumps(manifest, indent=2) + "\n")
+        manifest_blob_sha = git_blob_sha1(read_bytes(root, MANIFEST_PATH))
+        missing = validate_root(root)
+        assert missing == [
+            "phase4_gate_evidence:blob_exact_count:PHASE4_RUNTIME_ATOMIC64_MANIFEST_BLOB_SHA:"
+            f"{manifest_blob_sha}:0",
+            "phase4_gate_evidence:runtime_atomic64_manifest_blob:phase4_validation_matrix_blob_sha:"
+            "5555555555555555555555555555555555555555:"
+            f"{phase4_validation_matrix_sha}",
+        ], missing
+
+        write_runtime_atomic64_packet_fixture(root)
+        write_text(root / NOTE_PATH, build_fixture_note(root))
+        write_text(
+            root / SURVEY_PATH,
+            read_text(root, SURVEY_PATH).replace(
+                phase4_validation_matrix_sha, "6666666666666666666666666666666666666666", 1
+            ),
+        )
+        survey_blob_sha = git_blob_sha1(read_bytes(root, SURVEY_PATH))
+        missing = validate_root(root)
+        assert missing == [
+            "phase4_gate_evidence:blob_exact_count:PHASE4_RUNTIME_ATOMIC64_SURVEY_BLOB_SHA:"
+            f"{survey_blob_sha}:0",
+            "phase4_gate_evidence:runtime_atomic64_survey_blob_exact_count:"
+            f"phase4_validation_matrix_blob_sha:{phase4_validation_matrix_sha}:0",
         ], missing
 
         write_runtime_atomic64_packet_fixture(root)
