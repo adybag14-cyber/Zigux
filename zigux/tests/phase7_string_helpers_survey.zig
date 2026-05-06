@@ -102,6 +102,10 @@ test "phase 7 string helpers survey keeps the roadmap-backed helper packet revie
     try expectContains(helper_impl, "pub fn kasprintfStrarray");
     try expectContains(helper_impl, "pub fn skipSpaces");
     try expectContains(helper_impl, "pub fn strim");
+    try expectContains(helper_impl, "test \"stringGetSize formats decimal and binary units with Linux-style rounding\"");
+    try expectContains(helper_impl, "test \"stringGetSize respects no-space and no-bytes modifiers\"");
+    try expectContains(helper_impl, "test \"stringGetSize reports truncated output length without losing termination\"");
+    try expectContains(helper_impl, "test \"stringGetSize handles zero block size and zero-length outputs safely\"");
     try expectContains(helper_impl, "test \"kstrdupQuotable frees the owned copy when allocation fails\"");
     try expectContains(helper_impl, "test \"kasprintfStrarray frees intermediate allocations when setup fails\"");
     try expectContains(helper_impl, "std.testing.checkAllAllocationFailures");
