@@ -178,7 +178,7 @@ def run_self_test() -> int:
         _seed_fixture_tree(root)
         case_count += 1
 
-        (root / "Documentation/zigux/phase13-devres-survey.md").writeText("phase13-devres-arch-phys-wc-token-planner\n", encoding="utf-8")
+        (root / "Documentation/zigux/phase13-devres-survey.md").write_text("phase13-devres-arch-phys-wc-token-planner\n", encoding="utf-8")
         _assert_only(validate(root), [
             "phase13-devres-survey:blocked `phase13-devres-live-dma-backed-helpers`",
             "phase13-devres-survey:blocked `phase13-devres-live-scatterlist-ownership`",
