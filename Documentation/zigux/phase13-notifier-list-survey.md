@@ -16,6 +16,7 @@ Phase 13 is still scheduled around `fs/libfs.c`, `lib/devres.c`, and the two Lan
 - `zigux/helpers/notifier_chain_view.zig` now provides the matching read-only notifier-chain summary helpers, including the nonincreasing-priority signal.
 - `include/zigux/abi.h` already exports the list and hlist ABI carrier structs that those helpers depend on.
 - `include/zigux/notifier_abi.h` is now shipped as adjacent notifier interop evidence beside `zigux/bindings/notifier_abi.zig` and `zigux/helpers/notifier_chain_view.zig`.
+- `zigux/tests/phase13_notifier_list_manifest.json` and `zigux/tests/phase13_notifier_list_reviewability.zig` now keep that notifier-plus-list foothold pinned to roadmap-adjacent reviewability evidence instead of silently reading like an eighth shared replay step.
 - the shared Phase 13 build intentionally omits this packet from the seven-test release replay, so this survey stays adjacent release-surface evidence rather than another shared replay step.
 
 ## Remaining bounded gaps
