@@ -151,7 +151,9 @@ test "phase 9 runtime bitmap survey note keeps the phase boundary and exact chec
 
     try std.testing.expect(std.mem.indexOf(u8, note, "PHASE9_LANE_KEY=P9-Y05") != null);
     try std.testing.expect(std.mem.indexOf(u8, note, "not as a fifth approved Phase 5 reference idiom under `samples/zigux/`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, note, "The shared sample-root catalog at `samples/zigux/README.md` keeps the approved Phase 5 anchors limited to `bytestream_fifo.zig`, `kobject_example.zig`, `kretprobe_example.zig`, and `trace_events_sample.zig`, while listing the runtime bitmap pair only under the separate Phase 9 runtime pilot family.") != null);
     try std.testing.expect(std.mem.indexOf(u8, note, "the live repo still keeps that runtime bitmap family outside the four approved Phase 5 reference samples") != null);
+    try std.testing.expect(std.mem.indexOf(u8, note, "the shared `samples/zigux/README.md` catalog still lists the runtime bitmap pair only under the separate Phase 9 runtime pilot family and keeps the four approved Phase 5 anchors explicit") != null);
     try std.testing.expect(std.mem.indexOf(u8, note, "a Phase 5 approved `samples/zigux/` reference idiom") != null);
     try std.testing.expect(std.mem.indexOf(u8, note, "samples/zigux/runtime_bitmap.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, note, "samples/zigux/runtime_bitmap_loader.zig") != null);
@@ -164,6 +166,28 @@ test "phase 9 runtime bitmap survey note keeps the phase boundary and exact chec
     try std.testing.expect(std.mem.indexOf(u8, note, "shared-loader contract replay: the loader still imports `runtime_loader`, maps initialized and selftest-complete sample stages into the shared handoff flow, fixes `allocator_handoff=.arena`, keeps `init_runs=1` and `exit_runs=0`, and rejects snapshot drift in module name, allocator handoff, handoff stage, or selftest count") != null);
     try std.testing.expect(std.mem.indexOf(u8, note, "review-contract boundary: the direct sample still exposes the ordered review focus `descriptor_and_anchor`, `summary_replay`, and `selftest_lifecycle`; it does not claim standalone `initFromBitList()`, `formatSetBits()`, parse/print differential parity, or a loadable runtime bitmap module on `master`") != null);
     try std.testing.expect(std.mem.indexOf(u8, note, "diff-gate replay: the bounded parity cases still cover the single-word fill starter, the `79..97` cross-boundary clear cutout, the sparse `10,20,30,40,50,60,80,123` population replay, and the copied `0..108` tail-clear snapshot with `first_zero=109`") != null);
+}
+
+test "phase 9 runtime bitmap survey cross-checks the shared sample-root boundary catalog" {
+    var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
+    defer io_instance.deinit();
+
+    const sample_root = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "samples/zigux/README.md",
+        std.testing.allocator,
+        .limited(32 * 1024),
+    );
+    defer std.testing.allocator.free(sample_root);
+
+    try std.testing.expect(std.mem.indexOf(u8, sample_root, "Current Phase 5 reference anchors") != null);
+    try std.testing.expect(std.mem.indexOf(u8, sample_root, "- `samples/zigux/bytestream_fifo.zig`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, sample_root, "- `samples/zigux/kobject_example.zig`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, sample_root, "- `samples/zigux/kretprobe_example.zig`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, sample_root, "- `samples/zigux/trace_events_sample.zig`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, sample_root, "later runtime follow-ons stay under the separate Phase 9 `samples/zigux/runtime_*` family and should not be counted as extra Phase 5 reference anchors") != null);
+    try std.testing.expect(std.mem.indexOf(u8, sample_root, "Separate Phase 9 runtime pilot family") != null);
+    try std.testing.expect(std.mem.indexOf(u8, sample_root, "- `samples/zigux/runtime_bitmap.zig` and `samples/zigux/runtime_bitmap_loader.zig` keep the `lib/test_bitmap.c` starter and loader handoff distinct from the Phase 5 sample packet") != null);
 }
 
 test "phase 9 runtime bitmap module slice keeps the loader-backed survey packet explicit" {
