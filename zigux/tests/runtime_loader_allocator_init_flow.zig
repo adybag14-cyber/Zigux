@@ -131,6 +131,15 @@ fn expectExactLoadPlanParity(
     try std.testing.expectEqual(expected.init_flow.exit_runs, actual.init_flow.exit_runs);
 }
 
+fn expectInitializedSharedRequestShape(plan: runtime_loader.LoadPlan) !void {
+    try std.testing.expect(plan.requires_runtime_substrate);
+    try std.testing.expect(plan.provides_selftest_hook);
+    try std.testing.expectEqual(runtime_loader.HandoffStage.initialized, plan.init_flow.handoff_stage);
+    try std.testing.expectEqual(@as(usize, 1), plan.init_flow.init_runs);
+    try std.testing.expectEqual(@as(usize, 0), plan.init_flow.selftest_runs);
+    try std.testing.expectEqual(@as(usize, 0), plan.init_flow.exit_runs);
+}
+
 test "phase 9 runtime loader allocator/init-flow replay covers all shipped runtime pilot handoffs" {
     const plans = [_]runtime_loader.LoadPlan{
         makePlan(
@@ -200,6 +209,81 @@ test "phase 9 runtime loader allocator/init-flow replay covers all shipped runti
         try std.testing.expect(runtime_loader.keepsSelftestHookEvidenceConsistent(pending_plan));
         try request.releaseWithoutSubstrate();
     }
+}
+
+test "phase 9 runtime loader allocator/init-flow replay keeps the smallest shared bitmap and kretprobe request shape explicit" {
+    const expected_bitmap = makePlan(
+        "runtime_bitmap",
+        "lib/test_bitmap.c",
+        "zigux_runtime_bitmap_init",
+        "zigux_runtime_bitmap_exit",
+        .arena,
+        .{
+            .handoff_stage = .initialized,
+            .init_runs = 1,
+            .selftest_runs = 0,
+            .exit_runs = 0,
+        },
+    );
+
+    var bitmap_request = try runtime_loader.prepareRequest(expected_bitmap);
+    try std.testing.expect(runtime_loader.keepsRequestStateAndPlanExplicit(
+        bitmap_request,
+        .prepared,
+        expected_bitmap,
+    ));
+    const bitmap_pending = try bitmap_request.requestRuntimeLoad();
+    try expectExactLoadPlanParity(expected_bitmap, bitmap_pending);
+    try expectInitializedSharedRequestShape(bitmap_pending);
+    try std.testing.expectEqual(runtime_loader.AllocatorHandoff.arena, bitmap_pending.allocator_handoff);
+    try std.testing.expect(runtime_loader.keepsAllocatorInitFlowConsistent(
+        bitmap_pending,
+        .arena,
+        expected_bitmap.init_flow,
+    ));
+    try std.testing.expect(runtime_loader.keepsSelftestHookEvidenceConsistent(bitmap_pending));
+    try bitmap_request.releaseWithoutSubstrate();
+    try std.testing.expectEqual(runtime_loader.RequestState.released_without_substrate, bitmap_request.state);
+
+    const expected_kretprobe = makePlan(
+        "runtime_kretprobe",
+        "samples/kprobes/kretprobe_example.c",
+        "zigux_runtime_kretprobe_init",
+        "zigux_runtime_kretprobe_exit",
+        .kernel_heap,
+        .{
+            .handoff_stage = .initialized,
+            .init_runs = 1,
+            .selftest_runs = 0,
+            .exit_runs = 0,
+        },
+    );
+
+    var kretprobe_request = try runtime_loader.prepareRequest(expected_kretprobe);
+    try std.testing.expect(runtime_loader.keepsRequestStateAndPlanExplicit(
+        kretprobe_request,
+        .prepared,
+        expected_kretprobe,
+    ));
+    const kretprobe_pending = try kretprobe_request.requestRuntimeLoad();
+    try expectExactLoadPlanParity(expected_kretprobe, kretprobe_pending);
+    try expectInitializedSharedRequestShape(kretprobe_pending);
+    try std.testing.expectEqual(runtime_loader.AllocatorHandoff.kernel_heap, kretprobe_pending.allocator_handoff);
+    try std.testing.expect(runtime_loader.keepsAllocatorInitFlowConsistent(
+        kretprobe_pending,
+        .kernel_heap,
+        expected_kretprobe.init_flow,
+    ));
+    try std.testing.expect(runtime_loader.keepsSelftestHookEvidenceConsistent(kretprobe_pending));
+    try kretprobe_request.releaseWithoutSubstrate();
+    try std.testing.expectEqual(runtime_loader.RequestState.released_without_substrate, kretprobe_request.state);
+
+    try std.testing.expectEqual(bitmap_pending.init_flow.handoff_stage, kretprobe_pending.init_flow.handoff_stage);
+    try std.testing.expectEqual(bitmap_pending.init_flow.init_runs, kretprobe_pending.init_flow.init_runs);
+    try std.testing.expectEqual(bitmap_pending.init_flow.selftest_runs, kretprobe_pending.init_flow.selftest_runs);
+    try std.testing.expectEqual(bitmap_pending.init_flow.exit_runs, kretprobe_pending.init_flow.exit_runs);
+    try std.testing.expectEqual(bitmap_pending.requires_runtime_substrate, kretprobe_pending.requires_runtime_substrate);
+    try std.testing.expectEqual(bitmap_pending.provides_selftest_hook, kretprobe_pending.provides_selftest_hook);
 }
 
 test "phase 9 runtime loader allocator/init-flow replay rejects exited, duplicate-init, or incomplete handoffs" {
