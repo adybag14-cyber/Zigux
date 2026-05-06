@@ -1,6 +1,7 @@
 const std = @import("std");
 
 pub const page_size: u32 = 4096;
+pub const page_shift: u6 = 12;
 pub const name_max: u32 = 255;
 pub const simple_transaction_limit: usize = @as(usize, page_size) - @sizeOf(isize);
 
@@ -16,6 +17,7 @@ pub const ModuleDescriptor = struct {
     provides_transaction_buffer_planning: bool,
     provides_transaction_publish_planning: bool,
     provides_transaction_release_planning: bool,
+    provides_addressability_planning: bool,
     touches_live_dcache: bool,
     touches_live_inode_state: bool,
 };
@@ -128,6 +130,26 @@ pub const TransactionBufferReleasePlan = struct {
     return_code: i32,
 };
 
+pub const AddressabilityCaps = struct {
+    sector_bits: u16,
+    page_index_bits: u16,
+};
+
+pub const AddressabilityPlan = struct {
+    anchor: []const u8,
+    blocksize_bits: u32,
+    num_blocks: u64,
+    treats_zero_blocks_as_ok: bool,
+    checks_shift_overflow_first: bool,
+    checks_min_blocksize: bool,
+    checks_sector_limit: bool,
+    checks_page_limit: bool,
+    max_bytes_overflowed: bool,
+    sector_limit_exceeded: bool,
+    page_limit_exceeded: bool,
+    return_code: i32,
+};
+
 pub const LibFsHelperLab = struct {
     pub fn descriptor() ModuleDescriptor {
         return .{
@@ -142,6 +164,7 @@ pub const LibFsHelperLab = struct {
             .provides_transaction_buffer_planning = true,
             .provides_transaction_publish_planning = true,
             .provides_transaction_release_planning = true,
+            .provides_addressability_planning = true,
             .touches_live_dcache = false,
             .touches_live_inode_state = false,
         };
@@ -380,6 +403,107 @@ pub const LibFsHelperLab = struct {
             .requires_private_data = true,
             .publishes_after_barrier = true,
             .published_response_size = response_size,
+        };
+    }
+
+    fn exceedsLeftShift(value: u64, shift: u32) bool {
+        if (value == 0) {
+            return false;
+        }
+        if (shift >= @bitSizeOf(u64)) {
+            return true;
+        }
+        return value > (@as(u64, std.math.maxInt(u64)) >> @as(u6, @intCast(shift)));
+    }
+
+    fn maxValueForBits(bits: u16) u64 {
+        if (bits == 0) {
+            return 0;
+        }
+        if (bits >= @bitSizeOf(u64)) {
+            return std.math.maxInt(u64);
+        }
+        return (@as(u64, 1) << @as(u6, @intCast(bits))) - 1;
+    }
+
+    pub fn genericCheckAddressablePlan(blocksize_bits: u32, num_blocks: u64, caps: AddressabilityCaps) AddressabilityPlan {
+        const shift_overflow = exceedsLeftShift(num_blocks, blocksize_bits);
+        if (shift_overflow) {
+            return .{
+                .anchor = descriptor().anchor,
+                .blocksize_bits = blocksize_bits,
+                .num_blocks = num_blocks,
+                .treats_zero_blocks_as_ok = num_blocks == 0,
+                .checks_shift_overflow_first = true,
+                .checks_min_blocksize = false,
+                .checks_sector_limit = false,
+                .checks_page_limit = false,
+                .max_bytes_overflowed = true,
+                .sector_limit_exceeded = false,
+                .page_limit_exceeded = false,
+                .return_code = -27,
+            };
+        }
+
+        if (num_blocks == 0) {
+            return .{
+                .anchor = descriptor().anchor,
+                .blocksize_bits = blocksize_bits,
+                .num_blocks = num_blocks,
+                .treats_zero_blocks_as_ok = true,
+                .checks_shift_overflow_first = true,
+                .checks_min_blocksize = true,
+                .checks_sector_limit = false,
+                .checks_page_limit = false,
+                .max_bytes_overflowed = false,
+                .sector_limit_exceeded = false,
+                .page_limit_exceeded = false,
+                .return_code = 0,
+            };
+        }
+
+        if (blocksize_bits < 9) {
+            return .{
+                .anchor = descriptor().anchor,
+                .blocksize_bits = blocksize_bits,
+                .num_blocks = num_blocks,
+                .treats_zero_blocks_as_ok = false,
+                .checks_shift_overflow_first = true,
+                .checks_min_blocksize = true,
+                .checks_sector_limit = false,
+                .checks_page_limit = false,
+                .max_bytes_overflowed = false,
+                .sector_limit_exceeded = false,
+                .page_limit_exceeded = false,
+                .return_code = -22,
+            };
+        }
+
+        const last_fs_block = num_blocks - 1;
+        const shifted_bytes = (@as(u128, num_blocks) << @as(u7, @intCast(blocksize_bits)));
+        const last_fs_page: u128 = (shifted_bytes >> page_shift) - 1;
+        const sector_limit = maxValueForBits(caps.sector_bits);
+        const page_limit = maxValueForBits(caps.page_index_bits);
+        const sector_threshold = if (blocksize_bits - 9 >= @bitSizeOf(u64))
+            @as(u64, 0)
+        else
+            sector_limit >> @as(u6, @intCast(blocksize_bits - 9));
+        const sector_limit_exceeded = last_fs_block > sector_threshold;
+        const page_limit_exceeded = last_fs_page > page_limit;
+
+        return .{
+            .anchor = descriptor().anchor,
+            .blocksize_bits = blocksize_bits,
+            .num_blocks = num_blocks,
+            .treats_zero_blocks_as_ok = false,
+            .checks_shift_overflow_first = true,
+            .checks_min_blocksize = true,
+            .checks_sector_limit = true,
+            .checks_page_limit = true,
+            .max_bytes_overflowed = false,
+            .sector_limit_exceeded = sector_limit_exceeded,
+            .page_limit_exceeded = page_limit_exceeded,
+            .return_code = if (sector_limit_exceeded or page_limit_exceeded) -27 else 0,
         };
     }
 
