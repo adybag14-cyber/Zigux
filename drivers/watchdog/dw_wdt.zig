@@ -124,6 +124,19 @@ pub const RegistrationSummary = struct {
     needs_timeout_programming: bool,
 };
 
+pub const RemoveSummary = struct {
+    anchor: []const u8,
+    debugfs_clear_requested: bool,
+    unregister_device_requested: bool,
+    reset_control_available: bool,
+    reset_assert_requested: bool,
+    hardware_running_before_remove: bool,
+    hardware_running_after_remove: bool,
+    running_after_remove: bool,
+    interrupt_pending_after_remove: bool,
+    remove_leaves_hardware_running: bool,
+};
+
 pub const RuntimeSnapshot = struct {
     anchor: []const u8,
     running: bool,
@@ -364,6 +377,35 @@ pub const DwWdtLab = struct {
         return self.runtimeSnapshot();
     }
 
+    pub fn removeSummary(self: *Self) RemoveSummary {
+        const before = self.runtimeSnapshot();
+
+        if (self.has_reset_control) {
+            self.registers.control = 0;
+            self.registers.timeout_range = 0;
+            self.registers.current_count = 0;
+            self.registers.restart = 0;
+            self.registers.interrupt_status = 0;
+            self.hardware_running = false;
+        } else if (self.isEnabled()) {
+            self.hardware_running = true;
+        }
+
+        const after = self.runtimeSnapshot();
+        return .{
+            .anchor = descriptor().anchor,
+            .debugfs_clear_requested = true,
+            .unregister_device_requested = true,
+            .reset_control_available = self.has_reset_control,
+            .reset_assert_requested = self.has_reset_control,
+            .hardware_running_before_remove = before.hardware_running,
+            .hardware_running_after_remove = after.hardware_running,
+            .running_after_remove = after.running,
+            .interrupt_pending_after_remove = after.interrupt_pending,
+            .remove_leaves_hardware_running = after.hardware_running,
+        };
+    }
+
     pub fn armRestart(self: *Self) RuntimeSnapshot {
         self.response_mode = .reset;
         self.pretimeout_sec = 0;
@@ -484,4 +526,36 @@ fn fixedTopCycles(index: usize) u64 {
 
 fn divCeil(value: u32, divisor: u32) u32 {
     return @intCast((@as(u64, value) + divisor - 1) / divisor);
+}
+
+test "remove with reset control quiesces hardware and clears pending irq state" {
+    var lab = try DwWdtLab.initFixedTops(1_000_000, true);
+    _ = try lab.start();
+    _ = lab.setInterruptPending(true);
+
+    const summary = lab.removeSummary();
+    try std.testing.expect(summary.debugfs_clear_requested);
+    try std.testing.expect(summary.unregister_device_requested);
+    try std.testing.expect(summary.reset_control_available);
+    try std.testing.expect(summary.reset_assert_requested);
+    try std.testing.expect(summary.hardware_running_before_remove);
+    try std.testing.expect(!summary.hardware_running_after_remove);
+    try std.testing.expect(!summary.running_after_remove);
+    try std.testing.expect(!summary.interrupt_pending_after_remove);
+    try std.testing.expect(!summary.remove_leaves_hardware_running);
+}
+
+test "remove without reset control leaves active hardware running after unregister" {
+    var lab = try DwWdtLab.initFixedTops(1_000_000, false);
+    _ = try lab.start();
+
+    const summary = lab.removeSummary();
+    try std.testing.expect(summary.debugfs_clear_requested);
+    try std.testing.expect(summary.unregister_device_requested);
+    try std.testing.expect(!summary.reset_control_available);
+    try std.testing.expect(!summary.reset_assert_requested);
+    try std.testing.expect(summary.hardware_running_before_remove);
+    try std.testing.expect(summary.hardware_running_after_remove);
+    try std.testing.expect(summary.running_after_remove);
+    try std.testing.expect(summary.remove_leaves_hardware_running);
 }
