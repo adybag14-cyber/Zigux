@@ -123,6 +123,16 @@ test "phase3 low-level wrappers keep non-seq-cst orderings and signed atomic edg
         atomic.compareExchange(u32, &acq_rel_value, 7, 11, .acq_rel, .acquire),
     );
     try std.testing.expectEqual(@as(u32, 11), acq_rel_value);
+    const acq_rel_mismatch = atomic.compareExchange(
+        u32,
+        &acq_rel_value,
+        7,
+        15,
+        .acq_rel,
+        .acquire,
+    );
+    try std.testing.expectEqual(@as(?u32, 11), acq_rel_mismatch);
+    try std.testing.expectEqual(@as(u32, 11), acq_rel_value);
 
     var weak_release_value: u32 = 13;
     var attempts: usize = 0;
