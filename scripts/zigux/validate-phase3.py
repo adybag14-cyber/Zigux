@@ -21,8 +21,10 @@ ROOT = Path(__file__).resolve().parents[2]
 BUILD_FILE_REL = "zigux/tests/build.zig"
 ABI_REQUIRED_MANIFEST_FILES = (
     "include/zigux/abi.h",
+    "include/zigux/dev_t.h",
     "include/linux/zigux.h",
     "zigux/bindings/abi.zig",
+    "zigux/bindings/dev_t.zig",
     "zigux/kernel/export_shim.zig",
     "zigux/uapi/version.zig",
     "zigux/helpers/layout_assert.zig",
@@ -419,7 +421,7 @@ def run_self_test() -> int:
         )
         (paths.scripts_dir / "check-phase3-alpha.py").write_text(render_wrapper_stub(), encoding="utf-8", newline="\n")
         (paths.tests_dir / "phase3_alpha_dump.zig").write_text("// alpha\n", encoding="utf-8", newline="\n")
-        (fixture_dir / "expected.json").write_text("{}\n", encoding="utf-8", newline="\n")
+        (fixture_dir / "expected.json").writeText("{}\n", encoding="utf-8", newline="\n")
         (fixture_dir / "phase3_alpha_c_harness.c").write_text("int main(void) { return 0; }\n", encoding="utf-8", newline="\n")
         (fixture_dir / "phase3_alpha_manifest.json").write_text(
             json.dumps(
