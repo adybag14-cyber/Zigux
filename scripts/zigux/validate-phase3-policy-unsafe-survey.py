@@ -27,15 +27,15 @@ PATH_MARKERS = {
 }
 
 STATIC_MARKERS = (
-    "PHASE3_LAYOUT_ASSERT_SCOPE=canonical-bindings",
+    "PHASE3_LAYOUT_ASSERT_SCOPE=canonical-bindings-plus-mmio-and-rbtree-views",
     "PHASE3_PANIC_POLICY=explicit-modes-only",
     "PHASE3_ALLOCATOR_POLICY=explicit-modes-only",
     "PHASE3_UNSAFE_SCOPE=narrow-mmio-and-raw-pointer-bridge",
     "PHASE3_VALIDATE_GATE=python3 scripts/zigux/validate-phase3.py --slug abi",
     "PHASE3_INTEROP_GATE=python3 scripts/zigux/run-phase3-checks.py --slug abi",
     "PHASE3_TEST_GATE=zig build phase3-test --build-file zigux/tests/build.zig",
-    "PHASE3_BOUNDARY_GAP=no-dedicated-policy-unsafe-focused-replay-pair-beyond-the-shared-abi-packet",
-    "PHASE3_NEXT_BOUNDED_STEP=keep-this-note-aligned-with-the-shared-abi-packet-unless-a-dedicated-policy-unsafe-focused-replay-pair-lands",
+    "PHASE3_BOUNDARY_GAP=no-dedicated-policy-unsafe-subslice-beyond-the-shared-abi-packet",
+    "PHASE3_NEXT_BOUNDED_STEP=keep-this-note-aligned-with-the-shared-abi-packet-until-a-real-policy-or-unsafe-helper-expansion-lands",
 )
 
 BLOB_MARKERS = {
@@ -339,15 +339,28 @@ def run_self_test() -> int:
         )
 
         build_valid_workspace(root)
+        missing_layout_scope = (root / SURVEY_REL).read_text(encoding="utf-8").replace(
+            "- `PHASE3_LAYOUT_ASSERT_SCOPE=canonical-bindings-plus-mmio-and-rbtree-views`\n",
+            "",
+            1,
+        )
+        write_file(root / SURVEY_REL, missing_layout_scope)
+        issues = validate(root)
+        assert (
+            "missing_marker:PHASE3_LAYOUT_ASSERT_SCOPE=canonical-bindings-plus-mmio-and-rbtree-views"
+            in issues
+        )
+
+        build_valid_workspace(root)
         missing_boundary_gap = (root / SURVEY_REL).read_text(encoding="utf-8").replace(
-            "- `PHASE3_BOUNDARY_GAP=no-dedicated-policy-unsafe-focused-replay-pair-beyond-the-shared-abi-packet`\n",
+            "- `PHASE3_BOUNDARY_GAP=no-dedicated-policy-unsafe-subslice-beyond-the-shared-abi-packet`\n",
             "",
             1,
         )
         write_file(root / SURVEY_REL, missing_boundary_gap)
         issues = validate(root)
         assert (
-            "missing_marker:PHASE3_BOUNDARY_GAP=no-dedicated-policy-unsafe-focused-replay-pair-beyond-the-shared-abi-packet"
+            "missing_marker:PHASE3_BOUNDARY_GAP=no-dedicated-policy-unsafe-subslice-beyond-the-shared-abi-packet"
             in issues
         )
 
@@ -361,30 +374,29 @@ def run_self_test() -> int:
         issues = validate(root)
         assert "duplicate_marker:PHASE3_MMIO_PATH=zigux/helpers/mmio.zig:2" in issues
 
-        build_validWorkspace = build_valid_workspace
-        build_validWorkspace(root)
+        build_valid_workspace(root)
         duplicate_boundary_gap = (root / SURVEY_REL).read_text(encoding="utf-8").replace(
-            "- `PHASE3_BOUNDARY_GAP=no-dedicated-policy-unsafe-focused-replay-pair-beyond-the-shared-abi-packet`\n",
-            "- `PHASE3_BOUNDARY_GAP=no-dedicated-policy-unsafe-focused-replay-pair-beyond-the-shared-abi-packet`\n- `PHASE3_BOUNDARY_GAP=no-dedicated-policy-unsafe-focused-replay-pair-beyond-the-shared-abi-packet`\n",
+            "- `PHASE3_BOUNDARY_GAP=no-dedicated-policy-unsafe-subslice-beyond-the-shared-abi-packet`\n",
+            "- `PHASE3_BOUNDARY_GAP=no-dedicated-policy-unsafe-subslice-beyond-the-shared-abi-packet`\n- `PHASE3_BOUNDARY_GAP=no-dedicated-policy-unsafe-subslice-beyond-the-shared-abi-packet`\n",
             1,
         )
         write_file(root / SURVEY_REL, duplicate_boundary_gap)
         issues = validate(root)
         assert (
-            "duplicate_marker:PHASE3_BOUNDARY_GAP=no-dedicated-policy-unsafe-focused-replay-pair-beyond-the-shared-abi-packet:2"
+            "duplicate_marker:PHASE3_BOUNDARY_GAP=no-dedicated-policy-unsafe-subslice-beyond-the-shared-abi-packet:2"
             in issues
         )
 
         build_valid_workspace(root)
         missing_next_step = (root / SURVEY_REL).read_text(encoding="utf-8").replace(
-            "- `PHASE3_NEXT_BOUNDED_STEP=keep-this-note-aligned-with-the-shared-abi-packet-unless-a-dedicated-policy-unsafe-focused-replay-pair-lands`\n",
+            "- `PHASE3_NEXT_BOUNDED_STEP=keep-this-note-aligned-with-the-shared-abi-packet-until-a-real-policy-or-unsafe-helper-expansion-lands`\n",
             "",
             1,
         )
         write_file(root / SURVEY_REL, missing_next_step)
         issues = validate(root)
         assert (
-            "missing_marker:PHASE3_NEXT_BOUNDED_STEP=keep-this-note-aligned-with-the-shared-abi-packet-unless-a-dedicated-policy-unsafe-focused-replay-pair-lands"
+            "missing_marker:PHASE3_NEXT_BOUNDED_STEP=keep-this-note-aligned-with-the-shared-abi-packet-until-a-real-policy-or-unsafe-helper-expansion-lands"
             in issues
         )
 
@@ -491,7 +503,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE3_POLICY_UNSAFE_SURVEY_SELF_TEST=pass")
-    print("PHASE3_POLICY_UNSAFE_SURVEY_SELF_TEST_CASE_COUNT=14")
+    print("PHASE3_POLICY_UNSAFE_SURVEY_SELF_TEST_CASE_COUNT=15")
     return 0
 
 
