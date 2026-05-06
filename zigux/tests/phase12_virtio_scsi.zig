@@ -203,6 +203,31 @@ test "phase12 virtio scsi restore queue rebind summary keeps queue families expl
     try std.testing.expectError(error.TransportNotFrozen, lab.recoveryRestoreQueueRebindSummary());
 }
 
+test "phase12 virtio scsi event buffer ownership stays reserved to the event queue until restore rearm" {
+    var lab = virtio_scsi.VirtioScsiQueueLab.init();
+
+    try std.testing.expectError(error.TransportNotFrozen, lab.recoveryEventBufferOwnershipSummary());
+
+    _ = try lab.planQueueLayout(7, 2);
+    _ = try lab.freezeForTransportReset();
+
+    const summary = try lab.recoveryEventBufferOwnershipSummary();
+    try std.testing.expectEqualStrings("drivers/scsi/virtio_scsi.c", summary.anchor);
+    try std.testing.expectEqual(@as(u16, virtio_scsi.event_queue_index), summary.event_queue_index);
+    try std.testing.expectEqual(@as(u16, 7), summary.request_queues);
+    try std.testing.expectEqual(@as(u16, 5), summary.default_queues);
+    try std.testing.expectEqual(@as(u16, 2), summary.poll_queues);
+    try std.testing.expectEqual(@as(u16, virtio_scsi.event_buffer_count), summary.event_buffer_count);
+    try std.testing.expect(summary.event_queue_reserved_during_freeze);
+    try std.testing.expect(summary.event_buffers_stay_on_event_queue);
+    try std.testing.expect(summary.request_queues_cannot_borrow_event_buffers);
+    try std.testing.expect(summary.defers_event_buffers_until_after_device_ready);
+    try std.testing.expect(summary.requires_restore_rearm_before_reuse);
+
+    _ = try lab.restoreAfterTransportReset();
+    try std.testing.expectError(error.TransportNotFrozen, lab.recoveryEventBufferOwnershipSummary());
+}
+
 test "phase12 virtio scsi rollback summary keeps frozen topology gated until replanning" {
     var lab = virtio_scsi.VirtioScsiQueueLab.init();
 
