@@ -15,6 +15,7 @@ FILES = [
     "zigux/Makefile",
     "zigux/tests/phase10_build.zig",
     "drivers/virtio/virtio_ring.zig",
+    "drivers/virtio/virtio_ring_verify.zig",
     "zigux/tests/phase10_virtio_ring.zig",
     "zigux/tests/phase10_virtio_ring_survey.zig",
     "zigux/tests/phase10_virtio_ring_manifest.json",
@@ -26,8 +27,10 @@ FILES = [
 EXPECTED_BUILD_MARKERS = [
     "phase10_virtio_ring_module",
     "phase10_virtio_ring_survey_module",
+    "phase10_virtio_ring_verify_module",
     '\"phase10-virtio-ring-tests\"',
     '\"phase10-virtio-ring-survey-tests\"',
+    '\"phase10-virtio-ring-verify-tests\"',
 ]
 
 EXPECTED_MAKEFILE_MARKERS = [
@@ -65,6 +68,7 @@ EXPECTED_SLICE_MARKERS = [
     "dedicated ring packet review guard",
     "scripts/zigux/check-phase10-ring-packet.py",
     "zigux/tests/phase10_virtio_ring_manifest.json",
+    "drivers/virtio/virtio_ring_verify.zig",
     "zig test zigux/tests/phase10_virtio_ring.zig",
     "zig test zigux/tests/phase10_virtio_ring_survey.zig",
 ]
@@ -75,12 +79,14 @@ EXPECTED_SURVEY_NOTE_MARKERS = [
     "phase10-virtio-ring-survey-note",
     "phase10-queue-reset-readiness-helper",
     "phase10-mmio-probe-preflight-helper",
+    "`drivers/virtio/virtio_ring_verify.zig`",
     "zig test zigux/tests/phase10_virtio_ring.zig",
     "make -C zigux phase10-test",
 ]
 
 EXPECTED_COMPANION_MARKERS = [
     "scripts/zigux/check-phase10-ring-packet.py",
+    "drivers/virtio/virtio_ring_verify.zig",
     "zigux/tests/phase10_virtio_ring_manifest.json",
     "zigux/tests/phase10_virtio_ring_survey.zig",
     "make -C zigux phase10-test",
@@ -131,14 +137,17 @@ BASELINE_FIXTURE = {
 """,
     "zigux/tests/phase10_build.zig": """const phase10_virtio_ring_module = b.createModule(.{});
 const phase10_virtio_ring_survey_module = b.createModule(.{});
+const phase10_virtio_ring_verify_module = b.createModule(.{});
 const phase10_virtio_ring_tests = b.addTest(.{ .name = \"phase10-virtio-ring-tests\" });
 const phase10_virtio_ring_survey_tests = b.addTest(.{ .name = \"phase10-virtio-ring-survey-tests\" });
+const phase10_virtio_ring_verify_tests = b.addTest(.{ .name = \"phase10-virtio-ring-verify-tests\" });
 """,
     "drivers/virtio/virtio_ring.zig": """pub const QueueResetReadinessSummary = struct {};
 pub fn queueResetReadinessSummary(self: *const Self, queue_index: u16) !QueueResetReadinessSummary { _ = self; _ = queue_index; }
 pub fn resetQueue(self: *Self, queue_index: u16) !QueueResetSummary { _ = self; _ = queue_index; }
 pub fn markBroken(self: *Self, queue_index: u16) !BrokenQueueSummary { _ = self; _ = queue_index; }
 """,
+    "drivers/virtio/virtio_ring_verify.zig": "test \"virtio ring verify fixture\" {}\n",
     "zigux/tests/phase10_virtio_ring.zig": """test \"phase10 virtio ring reset-readiness preflight reports the current queue blocker\" {}
 test \"phase10 virtio ring broken summary keeps queue-local debt reviewable while blocking queue work\" {}
 test \"phase10 virtio ring delayed callback pacing reports both thresholded and immediate poll cases\" {}
@@ -156,6 +165,7 @@ test \"phase10 virtio ring callback re-enable reports pending used work and sett
     "Documentation/zigux/phase10-virtio-ring-slice.md": """- dedicated ring packet review guard
 - `scripts/zigux/check-phase10-ring-packet.py`
 - `zigux/tests/phase10_virtio_ring_manifest.json`
+- `drivers/virtio/virtio_ring_verify.zig`
 - `zig test zigux/tests/phase10_virtio_ring.zig`
 - `zig test zigux/tests/phase10_virtio_ring_survey.zig`
 """,
@@ -164,10 +174,12 @@ test \"phase10 virtio ring callback re-enable reports pending used work and sett
 - `phase10-virtio-ring-survey-note`
 - `phase10-queue-reset-readiness-helper`
 - `phase10-mmio-probe-preflight-helper`
+- `drivers/virtio/virtio_ring_verify.zig`
 - `zig test zigux/tests/phase10_virtio_ring.zig`
 - `make -C zigux phase10-test`
 """,
     "Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md": """- `scripts/zigux/check-phase10-ring-packet.py`
+- `drivers/virtio/virtio_ring_verify.zig`
 - `zigux/tests/phase10_virtio_ring_manifest.json`
 - `zigux/tests/phase10_virtio_ring_survey.zig`
 - `make -C zigux phase10-test`
@@ -394,6 +406,21 @@ def run_self_test() -> int:
             raise SystemExit("phase10-ring-self-test:expected_makefile_marker_missing")
         makefile_path.write_text(original_makefile, encoding="utf-8")
 
+        build_path = tmp_root / "zigux/tests/phase10_build.zig"
+        original_build = build_path.read_text(encoding="utf-8")
+        build_path.write_text(
+            original_build.replace(
+                '\"phase10-virtio-ring-verify-tests\"',
+                '\"phase10-virtio-ring-verify-drift-tests\"',
+                1,
+            ),
+            encoding="utf-8",
+        )
+        _, missing_markers = validate(tmp_root)
+        if 'build:\"phase10-virtio-ring-verify-tests\"' not in missing_markers:
+            raise SystemExit("phase10-ring-self-test:expected_build_verify_marker_missing")
+        build_path.write_text(original_build, encoding="utf-8")
+
         helper_path = tmp_root / "drivers/virtio/virtio_ring.zig"
         original_helper = helper_path.read_text(encoding="utf-8")
         helper_path.write_text(
@@ -481,9 +508,18 @@ def run_self_test() -> int:
         _, missing_markers = validate(tmp_root)
         if "companion:scripts/zigux/check-phase10-ring-packet.py" not in missing_markers:
             raise SystemExit("phase10-ring-self-test:expected_companion_marker_missing")
+        companion_path.write_text(original_companion, encoding="utf-8")
+
+        companion_path.write_text(
+            original_companion.replace("drivers/virtio/virtio_ring_verify.zig", "drivers/virtio/virtio_ring_verify_drift.zig", 1),
+            encoding="utf-8",
+        )
+        _, missing_markers = validate(tmp_root)
+        if "companion:drivers/virtio/virtio_ring_verify.zig" not in missing_markers:
+            raise SystemExit("phase10-ring-self-test:expected_companion_verify_marker_missing")
 
     print("PHASE10_RING_PACKET_SELF_TEST=pass")
-    print("PHASE10_RING_PACKET_SELF_TEST_CASE_COUNT=9")
+    print("PHASE10_RING_PACKET_SELF_TEST_CASE_COUNT=12")
     return 0
 
 
