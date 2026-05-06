@@ -7,8 +7,8 @@ It is a release-coordination artifact, not a closure claim.
 ## Current posture
 - `PHASE12_STATUS=active`
 - `PHASE12_RELEASE_CLOSED=no`
-- focused smoke preflight entrypoint: `make -C zigux phase12-smoke`
-- direct smoke preflight replay entrypoint: `zig build smoke --build-file zigux/tests/phase12_build.zig --summary all`
+- direct smoke preflight entrypoint: `zig build smoke --build-file zigux/tests/phase12_build.zig --summary all`
+- Linux-style smoke preflight replay entrypoint: `make -C zigux phase12-smoke`
 - shared build replay entrypoint: `zig build test --build-file zigux/tests/phase12_build.zig --summary all`
 - Linux-style replay entrypoint: `make -C zigux phase12`
 - PMO closure companion: `Documentation/zigux/phase12-release-closure-checklist.md`
