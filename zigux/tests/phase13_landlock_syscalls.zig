@@ -36,7 +36,7 @@ fn isAllowedStatus(status: []const u8) bool {
         std.mem.eql(u8, status, "blocked_on_live_lsm_state");
 }
 
-test "phase13 landlock syscalls manifest records the starter and remaining gap" {
+test "phase13 landlock syscalls manifest records the landed helper packet truthfully" {
     var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
     defer io_instance.deinit();
 
@@ -146,6 +146,7 @@ test "phase13 landlock syscalls manifest records the starter and remaining gap" 
             try std.testing.expect(std.mem.indexOf(u8, governance_note, "SyscallsHelperLab.descriptor()") != null);
             try std.testing.expect(std.mem.indexOf(u8, governance_note, "touches_live_fd_table") != null);
             try std.testing.expect(std.mem.indexOf(u8, governance_note, "live syscall enforcement") != null);
+            try std.testing.expect(std.mem.indexOf(u8, governance_note, "fop_ruleset_release()") != null);
         }
         if (std.mem.eql(u8, gap.id, "phase13-landlock-add-rule-followup")) {
             saw_add_rule = true;
@@ -177,10 +178,11 @@ test "phase13 landlock syscalls manifest records the starter and remaining gap" 
         }
         if (std.mem.eql(u8, gap.id, "phase13-landlock-ruleset-release-followup")) {
             saw_ruleset_release_followup = true;
-            try std.testing.expectEqualStrings("ready_next", gap.status);
+            try std.testing.expectEqualStrings("starter_landed", gap.status);
             try std.testing.expectEqualStrings("security/landlock/syscalls.zig", gap.zigux_destination);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "fop_ruleset_release()") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "landlock_put_ruleset()") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "private_data") != null);
         }
 
         for (manifest.gaps[i + 1 ..]) |other| {
@@ -188,8 +190,8 @@ test "phase13 landlock syscalls manifest records the starter and remaining gap" 
         }
     }
 
-    try std.testing.expectEqual(@as(usize, 11), starter_landed_count);
-    try std.testing.expectEqual(@as(usize, 1), ready_next_count);
+    try std.testing.expectEqual(@as(usize, 12), starter_landed_count);
+    try std.testing.expectEqual(@as(usize, 0), ready_next_count);
     try std.testing.expectEqual(@as(usize, 0), blocked_count);
     try std.testing.expect(saw_build_gate);
     try std.testing.expect(saw_make_target);
@@ -217,6 +219,7 @@ test "phase13 landlock syscalls descriptor stays anchored to syscalls.c" {
     try std.testing.expect(descriptor.provides_ruleset_fd_planning);
     try std.testing.expect(descriptor.provides_path_fd_planning);
     try std.testing.expect(descriptor.provides_path_beneath_handoff_planning);
+    try std.testing.expect(descriptor.provides_ruleset_release_planning);
     try std.testing.expect(!descriptor.touches_live_fd_table);
     try std.testing.expect(!descriptor.touches_live_paths);
     try std.testing.expect(!descriptor.touches_live_credentials);
@@ -238,6 +241,7 @@ test "phase13 landlock syscalls survey note records the active lane key" {
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "`PHASE13_LANE_KEY=P13-Y04`") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "special `ruleset_fd == -1` mute-subdomains-only case") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "new in-memory `add_rule_path_beneath()` planner") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "new in-memory `fop_ruleset_release()` planner") != null);
 }
 
 test "phase13 landlock syscalls abi shape report matches build_check_abi expectations" {
@@ -598,5 +602,26 @@ test "phase13 landlock syscalls path-beneath handoff planner rejects bad path so
         .parent_path = .{
             .mount_is_internal = true,
         },
+    }));
+}
+
+test "phase13 landlock syscalls ruleset release planner keeps retained private_data handoff explicit" {
+    const plan = try syscalls.SyscallsHelperLab.planRulesetRelease(.{});
+
+    try std.testing.expectEqualStrings("security/landlock/syscalls.c", plan.anchor);
+    try std.testing.expect(plan.requires_private_data_ruleset);
+    try std.testing.expect(plan.releases_retained_ruleset_reference);
+    try std.testing.expect(plan.returns_zero);
+}
+
+test "phase13 landlock syscalls ruleset release planner rejects missing or invalid private_data" {
+    try std.testing.expectError(error.MissingPrivateData, syscalls.SyscallsHelperLab.planRulesetRelease(.{
+        .private_data_present = false,
+    }));
+    try std.testing.expectError(error.InvalidPrivateData, syscalls.SyscallsHelperLab.planRulesetRelease(.{
+        .private_data_is_ruleset = false,
+    }));
+    try std.testing.expectError(error.UnownedRuleset, syscalls.SyscallsHelperLab.planRulesetRelease(.{
+        .private_data_ref_owned = false,
     }));
 }
