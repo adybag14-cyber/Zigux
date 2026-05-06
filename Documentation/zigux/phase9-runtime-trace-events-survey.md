@@ -47,7 +47,7 @@ The shared sample-root catalog at `samples/zigux/README.md` keeps the approved P
 - the trace-events starter still stops before a real module-loading substrate or live tracepoint registration lifecycle, so the shipped handoff remains reviewable as pre-execution request shaping, metadata-only registration labels, and release-without-substrate behavior rather than executable runtime registration parity.
 - runtime task ownership or event-loop substrate parity remains blocked behind that same shared runtime-loader boundary.
 - polling-backed wake or dispatch behavior also remains blocked until the shared runtime substrate exists.
-- the manifest-backed ownership packet now records a four-entry `delivery_evidence_catalog` and a six-surface `ownership_map`, tying the survey note, module-slice note, dedicated survey gate, shared `phase9_build` bundle, starter sample, and loader scaffold to lane `P9-L12` while leaving shared runtime-substrate work outside this packet.
+- the manifest-backed ownership packet now records a four-entry `delivery_evidence_catalog` and a nine-surface `ownership_map`, tying the survey note, module-slice note, starter sample, loader scaffold, shared `zigux/kernel/runtime_loader.zig` facade, shared `zigux/kernel/runtime_loader_contract.zig` contract, shared `zigux/tests/runtime_loader_allocator_init_flow.zig` replay, dedicated survey gate, and shared `phase9_build` bundle to lane `P9-L12` while still keeping live runtime-substrate execution work outside this packet.
 
 ## Recorded gaps
 
