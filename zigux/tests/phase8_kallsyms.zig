@@ -202,7 +202,7 @@ test "phase 8 kallsyms thin reader and path adapters preserve the shipped parser
     const contents =
         "ffffffff81000000 T startup_64\r\n" ++
         "bad line\n" ++
-        "ffffffff81000400 w weak_tail\n";
+        "ffffffff81000400 w weak_tail";
 
     var stream = SliceReader{ .bytes = contents };
     var scratch_buffer: [11]u8 = undefined;
