@@ -272,6 +272,22 @@ pub fn clearRange(map: []Word, start: usize, len: usize) void {
     }
 }
 
+pub fn copy(dst: []Word, src: []const Word, nbits: usize) void {
+    assertBitmapLen(dst, nbits);
+    assertBitmapLen(src, nbits);
+
+    const nwords = bitsToWords(nbits);
+    if (nwords == 0) {
+        return;
+    }
+
+    @memcpy(dst[0..nwords], src[0..nwords]);
+}
+
+pub fn bitmap_copy(dst: []Word, src: []const Word, nbits: usize) void {
+    copy(dst, src, nbits);
+}
+
 pub fn copyClearTail(dst: []Word, src: []const Word, nbits: usize) void {
     assertBitmapLen(dst, nbits);
     assertBitmapLen(src, nbits);
@@ -509,6 +525,24 @@ test "bitmap scnprintf handles terminator-only and zero-length caller views" {
     var zero_length = [_]u8{};
     const zero_length_len = scnprintf(&map, 32, &zero_length);
     try std.testing.expectEqual(@as(usize, 0), zero_length_len);
+}
+
+test "bitmap copy alias preserves raw source words without tail clearing" {
+    const count = bits_per_long + 5;
+    const src = [_]Word{ ~@as(Word, 0), ~@as(Word, 0) };
+
+    var copied = [_]Word{ 0, 0 };
+    copy(&copied, &src, count);
+    try std.testing.expectEqual(@as(Word, ~@as(Word, 0)), copied[0]);
+    try std.testing.expectEqual(@as(Word, ~@as(Word, 0)), copied[1]);
+
+    var alias_copied = [_]Word{ 0, 0 };
+    bitmap_copy(&alias_copied, &src, count);
+    try std.testing.expectEqualSlices(Word, &copied, &alias_copied);
+
+    var cleared = [_]Word{ 0, 0 };
+    bitmap_copy_clear_tail(&cleared, &src, count);
+    try std.testing.expectEqual(lastWordMask(count), cleared[1]);
 }
 
 test "bitmap copy aliases preserve tail clearing and extension semantics" {
