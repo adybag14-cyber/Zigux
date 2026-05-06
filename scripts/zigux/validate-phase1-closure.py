@@ -625,6 +625,7 @@ def run_self_test() -> None:
 
         for label, marker, _ in [
             REQUIRED_CLOSURE_MARKERS[12],
+            REQUIRED_CLOSURE_MARKERS[13],
             REQUIRED_CLOSURE_MARKERS[16],
             REQUIRED_CLOSURE_MARKERS[18],
         ]:
@@ -689,7 +690,7 @@ def run_self_test() -> None:
         assert collect_missing_files(tmp_root) == [".github/workflows/zigux-bootstrap.yml"]
 
     print("PHASE1_CLOSURE_VALIDATOR_SELF_TEST=pass")
-    print("PHASE1_CLOSURE_VALIDATOR_SELF_TEST_CASE_COUNT=10")
+    print("PHASE1_CLOSURE_VALIDATOR_SELF_TEST_CASE_COUNT=11")
 
 
 def main() -> int:
