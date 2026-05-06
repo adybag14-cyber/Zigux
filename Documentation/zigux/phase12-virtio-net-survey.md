@@ -83,6 +83,8 @@ This survey slice does not claim:
 3. run the convenience target
 - `make -C zigux phase12`
 
+Use `Documentation/zigux/phase12-release-closure-checklist.md` as the PMO companion when judging whether this survey-backed packet is close enough to describe the active Phase 12 tranche as release-closed.
+
 ## Next bounded step
 
 Keep this lane parked unless fresh repo inspection finds directly coupled drift in the landed probe snapshot, syntax-lab, queue-recovery, receive-refill, transmit-recycle, mergeable-buffer-length, or segmented-rollout-boundary packet.
