@@ -512,12 +512,13 @@ def main() -> int:
         'PHASE2_KCONFIG_BRIDGE_CONFDATA_EXPECTED_PACKET=' + ','.join(confdata_expected_packet),
         'confdata bridge decodes escaped quoted strings',
         'confdata bridge decodes escaped control sequences in quoted strings',
+        'confdata bridge keeps trailing escaped backslashes in quoted strings',
         'confdata bridge accepts CRLF config lines',
         'confdata bridge preserves trailing carriage return on final unterminated value line',
         'confdata bridge ignores unterminated unset comment with trailing carriage return',
         'confdata bridge keeps explicit n assignments as tristate values',
         'confdata bridge recognizes uppercase tristate assignments',
-        'confdata bridge keeps escaped quoted payloads before trailing suffix bytes',
+        'confdata bridge ignores non-CONFIG lines like upstream confdata',
     ])
     required_closure_markers.extend(PHASE2_CROSS_ALIGNMENT_REQUIRED_SOURCE_MARKERS)
     required_closure_markers.extend(PHASE2_TOOLCHAIN_PIN_SCOPE_REQUIRED_SOURCE_MARKERS)
