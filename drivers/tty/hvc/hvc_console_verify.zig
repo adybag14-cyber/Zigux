@@ -79,3 +79,17 @@ test "hvc_console verify keeps hung-up and detached teardown matrix truthful" {
     try std.testing.expect(!detached_remove.teardown_via_hangup_pending);
     try std.testing.expect(!detached_remove.host_io_pending);
 }
+
+test "hvc_console verify keeps cleanup missing-reference failures explicit" {
+    var console = try hvc_console.HvcConsoleLab.init(14);
+    _ = console.instantiate(0xe1);
+
+    try std.testing.expectError(error.CleanupRequiresTtyPortReference, console.summarizeCleanupHandoff(.{
+        .tty_port_reference_live = false,
+    }));
+    try std.testing.expectError(error.CleanupRequiresTtyPortReference, console.summarizeCleanupHandoff(.{
+        .hung_up = true,
+        .final_close = false,
+        .tty_port_reference_live = false,
+    }));
+}
