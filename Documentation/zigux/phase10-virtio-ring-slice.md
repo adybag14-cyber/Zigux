@@ -69,17 +69,20 @@ This slice does not yet claim:
 - `python3 scripts/zigux/check-phase10-ring-packet.py --self-test`
 - `python3 scripts/zigux/check-phase10-ring-packet.py`
 
-2. run the dedicated ring survey gate
+2. run the dedicated ring helper replay
+- `zig test zigux/tests/phase10_virtio_ring.zig`
+
+3. run the dedicated ring survey gate
 - `zig test zigux/tests/phase10_virtio_ring_survey.zig`
 
-3. run the dedicated Phase 10 build
+4. run the dedicated Phase 10 build
 - `zig build test --build-file zigux/tests/phase10_build.zig`
 
-4. run the Linux-style replay routes
+5. run the Linux-style replay routes
 - `make -C zigux phase10-test`
 - `make -C zigux phase10`
 
-Taken together, these gates keep the ring helper reviewable through the dedicated ring packet guard, the dedicated ring-survey replay, the direct build replay, the shipped `scripts/zigux/check-phase10-core-packet.py`, `scripts/zigux/check-phase10-input-packet.py`, and `scripts/zigux/check-phase10-mmio-packet.py` guards, the shared `zigux/tests/phase10_virtio_core_reset_queue.zig`, `zigux/tests/phase10_virtio_driver_id.zig`, and `zigux/tests/phase10_virtio_input_status_drain.zig` replays, and the Linux-style `make -C zigux phase10-test` plus `make -C zigux phase10` routes.
+Taken together, these gates keep the ring helper reviewable through the dedicated ring packet guard, the direct ring-helper replay, the dedicated ring-survey replay, the direct build replay, the shipped `scripts/zigux/check-phase10-core-packet.py`, `scripts/zigux/check-phase10-input-packet.py`, and `scripts/zigux/check-phase10-mmio-packet.py` guards, the shared `zigux/tests/phase10_virtio_core_reset_queue.zig`, `zigux/tests/phase10_virtio_driver_id.zig`, and `zigux/tests/phase10_virtio_input_status_drain.zig` replays, and the Linux-style `make -C zigux phase10-test` plus `make -C zigux phase10` routes.
 
 ## Next bounded step
 
