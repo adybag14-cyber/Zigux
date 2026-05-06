@@ -10,27 +10,54 @@ SELF_PATH = Path(__file__).resolve()
 ROOT = SELF_PATH.parents[2] if len(SELF_PATH.parents) >= 3 else SELF_PATH.parent
 TARGET = ROOT / "zigux/tests/phase7_build.zig"
 
-REQUIRED_MARKERS = [
-    '"../../lib/string_helpers.zig"',
-    'string_helpers_root_module.addImport("string_helpers", string_helpers_module);',
-    '"../../lib/cmdline.zig"',
-    'cmdline_root_module.addImport("cmdline", cmdline_module);',
-    '"../../lib/argv_split.zig"',
-    'argv_split_root_module.addImport("argv_split", argv_split_module);',
-    '"../../lib/rbtree.zig"',
-    'rbtree_root_module.addImport("rbtree", rbtree_module);',
+HELPER_SPECS = [
+    {
+        "key": "string_helpers",
+        "helper_path": '"../../lib/string_helpers.zig"',
+        "root_path": '"phase7_string_helpers.zig"',
+        "import_marker": 'string_helpers_root_module.addImport("string_helpers", string_helpers_module);',
+        "test_name_marker": '.name = "phase7-string-helpers-tests",',
+        "depend_marker": "test_step.dependOn(&run_string_helpers_tests.step);",
+    },
+    {
+        "key": "cmdline",
+        "helper_path": '"../../lib/cmdline.zig"',
+        "root_path": '"phase7_cmdline.zig"',
+        "import_marker": 'cmdline_root_module.addImport("cmdline", cmdline_module);',
+        "test_name_marker": '.name = "phase7-cmdline-tests",',
+        "depend_marker": "test_step.dependOn(&run_cmdline_tests.step);",
+    },
+    {
+        "key": "argv_split",
+        "helper_path": '"../../lib/argv_split.zig"',
+        "root_path": '"phase7_argv_split.zig"',
+        "import_marker": 'argv_split_root_module.addImport("argv_split", argv_split_module);',
+        "test_name_marker": '.name = "phase7-argv-split-tests",',
+        "depend_marker": "test_step.dependOn(&run_argv_split_tests.step);",
+    },
+    {
+        "key": "rbtree",
+        "helper_path": '"../../lib/rbtree.zig"',
+        "root_path": '"phase7_rbtree.zig"',
+        "import_marker": 'rbtree_root_module.addImport("rbtree", rbtree_module);',
+        "test_name_marker": '.name = "phase7-rbtree-tests",',
+        "depend_marker": "test_step.dependOn(&run_rbtree_tests.step);",
+    },
 ]
 
-EXACT_COUNT_MARKERS = [
-    ('"../../lib/string_helpers.zig"', 1),
-    ('string_helpers_root_module.addImport("string_helpers", string_helpers_module);', 1),
-    ('"../../lib/cmdline.zig"', 1),
-    ('cmdline_root_module.addImport("cmdline", cmdline_module);', 1),
-    ('"../../lib/argv_split.zig"', 1),
-    ('argv_split_root_module.addImport("argv_split", argv_split_module);', 1),
-    ('"../../lib/rbtree.zig"', 1),
-    ('rbtree_root_module.addImport("rbtree", rbtree_module);', 1),
+REQUIRED_MARKERS = [
+    marker
+    for spec in HELPER_SPECS
+    for marker in (
+        spec["helper_path"],
+        spec["root_path"],
+        spec["import_marker"],
+        spec["test_name_marker"],
+        spec["depend_marker"],
+    )
 ]
+
+EXACT_COUNT_MARKERS = [(marker, 1) for marker in REQUIRED_MARKERS]
 
 
 def collect_missing_markers(text: str) -> list[str]:
@@ -62,32 +89,58 @@ def duplicate_first_marker(text: str, marker: str) -> str:
 
 def run_self_test() -> None:
     fixture = "\n".join(REQUIRED_MARKERS) + "\n"
-    marker_cases = [
-        (
-            "string_helpers_import_alias_drift",
-            'string_helpers_root_module.addImport("string_helpers", string_helpers_module);',
-            'string_helpers_root_module.addImport("string_helpers_drift", string_helpers_module);',
-            'string_helpers_root_module.addImport("string_helpers", string_helpers_module);',
-        ),
-        (
-            "string_helpers_root_path_drift",
-            '"../../lib/string_helpers.zig"',
-            '"../../lib/string_helpers_drift.zig"',
-            '"../../lib/string_helpers.zig"',
-        ),
-    ]
-    exact_count_cases = [
-        (
-            "string_helpers_import_exact_count",
-            'string_helpers_root_module.addImport("string_helpers", string_helpers_module);',
-            'string_helpers_root_module.addImport("string_helpers", string_helpers_module);:expected=1:actual=2',
-        ),
-        (
-            "string_helpers_root_path_exact_count",
-            '"../../lib/string_helpers.zig"',
-            '"../../lib/string_helpers.zig":expected=1:actual=2',
-        ),
-    ]
+    marker_cases = []
+    exact_count_cases = []
+
+    for spec in HELPER_SPECS:
+        marker_cases.extend(
+            [
+                (
+                    f"{spec['key']}_helper_path_drift",
+                    spec["helper_path"],
+                    spec["helper_path"].replace(".zig", "_drift.zig"),
+                    spec["helper_path"],
+                ),
+                (
+                    f"{spec['key']}_root_path_drift",
+                    spec["root_path"],
+                    spec["root_path"].replace(".zig", "_drift.zig"),
+                    spec["root_path"],
+                ),
+                (
+                    f"{spec['key']}_import_alias_drift",
+                    spec["import_marker"],
+                    spec["import_marker"].replace(f'"{spec["key"]}"', f'"{spec["key"]}_drift"'),
+                    spec["import_marker"],
+                ),
+                (
+                    f"{spec['key']}_test_name_drift",
+                    spec["test_name_marker"],
+                    spec["test_name_marker"].replace("-tests", "-tests-drift"),
+                    spec["test_name_marker"],
+                ),
+                (
+                    f"{spec['key']}_depend_drift",
+                    spec["depend_marker"],
+                    spec["depend_marker"].replace(".step);", "_drift.step);"),
+                    spec["depend_marker"],
+                ),
+            ]
+        )
+        exact_count_cases.extend(
+            [
+                (
+                    f"{spec['key']}_import_exact_count",
+                    spec["import_marker"],
+                    f"{spec['import_marker']}:expected=1:actual=2",
+                ),
+                (
+                    f"{spec['key']}_depend_exact_count",
+                    spec["depend_marker"],
+                    f"{spec['depend_marker']}:expected=1:actual=2",
+                ),
+            ]
+        )
 
     with tempfile.TemporaryDirectory(prefix="zigux_phase7_build_wiring_") as tmp_dir_str:
         tmp_path = Path(tmp_dir_str) / "phase7_build.zig"
