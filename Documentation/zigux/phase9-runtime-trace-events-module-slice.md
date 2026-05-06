@@ -27,6 +27,9 @@ The Phase 9 roadmap explicitly names `samples/trace_events/trace-events-sample.c
 
 The live repo already had atomic64 and bitmap starters under the same Phase 9 review path, but it still had no trace-events pilot at all. This slice lands the smallest honest trace-events follow-on step: a sample-backed lifecycle scaffold that models bounded event families and callback registration without claiming kernel thread, tracepoint macro, or loadable-module parity.
 
+This runtime trace-events starter also stays outside the landed Phase 5 reference-sample packet: `samples/zigux/runtime_trace_events.zig` and `samples/zigux/runtime_trace_events_loader.zig` remain the separate Phase 9 runtime trace-events family rooted in `samples/trace_events/trace-events-sample.c`, not a second owner for the already-approved non-runtime `samples/zigux/trace_events_sample.zig` cue under `Documentation/zigux/phase5-trace-events-sample-survey.md`.
+The shared sample-root catalog at `samples/zigux/README.md` keeps the approved Phase 5 anchor explicit through `samples/zigux/trace_events_sample.zig` while listing the runtime trace-events pair only under the separate Phase 9 runtime pilot family.
+
 ## Landed starter surface
 
 - module descriptor metadata naming the `samples/trace_events/trace-events-sample.c` anchor and keeping the roadmap-required selftest hook explicit through `provides_selftest_hook=true`
