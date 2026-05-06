@@ -181,6 +181,22 @@ def validate_root(root: Path) -> list[str]:
         if count != 1:
             missing.append(f"phase4_gate_evidence:blob_exact_count:{marker}:{digest}:{count}")
 
+    review_checklist_digest = git_blob_sha1(
+        read_bytes(
+            root,
+            PHASE4_RUNTIME_ATOMIC64_PACKET_BLOB_TARGETS["phase4_review_checklist_blob_sha"],
+        )
+    )
+    count = exact_status_line_count(
+        note_text,
+        f"PHASE4_RUNTIME_ATOMIC64_REVIEW_CHECKLIST_BLOB_SHA={review_checklist_digest}",
+    )
+    if count != 1:
+        missing.append(
+            "phase4_gate_evidence:status_exact_count:"
+            f"PHASE4_RUNTIME_ATOMIC64_REVIEW_CHECKLIST_BLOB_SHA={review_checklist_digest}:{count}"
+        )
+
     missing.extend(validate_runtime_atomic64_packet(root))
     return missing
 
@@ -204,6 +220,14 @@ def build_fixture_note(root: Path) -> str:
         lines.append(f"- `{marker}={digest}`")
     lines.extend(
         [
+            "- `PHASE4_RUNTIME_ATOMIC64_REVIEW_CHECKLIST_BLOB_SHA="
+            + git_blob_sha1(
+                read_bytes(
+                    root,
+                    PHASE4_RUNTIME_ATOMIC64_PACKET_BLOB_TARGETS["phase4_review_checklist_blob_sha"],
+                )
+            )
+            + "`",
             f"- `PHASE4_SHIPPED_GATE_BLOB_TARGET_COUNT={len(PHASE4_GATE_EVIDENCE_BLOB_TARGETS)}`",
             f"- `PHASE4_GATE_EVIDENCE_SELF_TEST_CASE_COUNT={len(SELF_TEST_CASES)}`",
             "- `PHASE4_GATE_EVIDENCE_SELF_TEST_CASES=" + ",".join(SELF_TEST_CASES) + "`",
