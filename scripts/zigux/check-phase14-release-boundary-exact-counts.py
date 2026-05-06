@@ -2,12 +2,14 @@
 """PHASE14_CHECK_PACKET=release_boundary_exact_counts
 
 Fail-closed checker for the shared Phase 14 release-boundary exact counts.
-This packet keeps the shared smoke release note aligned with the roadmap and freeze map.
+This packet keeps the shared smoke release note aligned with the roadmap, freeze map,
+and manifest anchor-governance split.
 """
 
 from __future__ import annotations
 
 import argparse
+import json
 import sys
 import tempfile
 from pathlib import Path
@@ -35,6 +37,14 @@ FREEZE_IN_C_ANCHORS = [
 BOUNDARY_STUDY_ONLY_ANCHORS = [
     "kernel/workqueue.c",
     "kernel/trace/ring_buffer.c",
+]
+MANIFEST_STUDY_ONLY_ANCHORS = [
+    "kernel/workqueue.c",
+    "kernel/trace/ring_buffer.c",
+]
+MANIFEST_FREEZE_IN_C_ANCHORS = [
+    "kernel/rcu/tree.c",
+    "net/core/skbuff.c",
 ]
 
 
@@ -71,8 +81,9 @@ def check(root: Path) -> list[str]:
     smoke_path = root / "Documentation/zigux/phase14-end-to-end-smoke-survey.md"
     freeze_map_path = root / "Documentation/zigux/freeze-map.md"
     roadmap_path = root / "zigux-alpha/ZAR_TO_ZIGUX_PRODUCT_ROADMAP.md"
+    manifest_path = root / "zigux/tests/phase14_end_to_end_smoke_manifest.json"
 
-    for path in (release_path, smoke_path, freeze_map_path, roadmap_path):
+    for path in (release_path, smoke_path, freeze_map_path, roadmap_path, manifest_path):
         if not path.exists():
             errors.append(f"missing file: {path.relative_to(root).as_posix()}")
     if errors:
@@ -82,6 +93,7 @@ def check(root: Path) -> list[str]:
     smoke_text = read_text(smoke_path)
     freeze_map_text = read_text(freeze_map_path)
     roadmap_text = read_text(roadmap_path)
+    manifest = json.loads(read_text(manifest_path))
 
     if MARKER not in read_text(Path(__file__)):
         errors.append("checker marker missing from checker source")
@@ -105,6 +117,12 @@ def check(root: Path) -> list[str]:
     boundary_study_only = extract_bullets(freeze_map_text, "Boundary-study-only targets before any direct port decision:")
     if boundary_study_only != BOUNDARY_STUDY_ONLY_ANCHORS:
         errors.append("freeze-map boundary-study-only anchors drifted from the expected two-entry Phase 14 set")
+
+    if manifest.get("study_only_anchors") != MANIFEST_STUDY_ONLY_ANCHORS:
+        errors.append("phase14 manifest study_only_anchors drifted from the expected two-entry boundary-study-only set")
+
+    if manifest.get("freeze_in_c_anchors") != MANIFEST_FREEZE_IN_C_ANCHORS:
+        errors.append("phase14 manifest freeze_in_c_anchors drifted from the expected two-entry freeze-governed set")
 
     return errors
 
@@ -158,10 +176,21 @@ def run_self_test() -> int:
                 "",
             ]
         )
+        expected_manifest = {
+            "study_only_anchors": [
+                "kernel/workqueue.c",
+                "kernel/trace/ring_buffer.c",
+            ],
+            "freeze_in_c_anchors": [
+                "kernel/rcu/tree.c",
+                "net/core/skbuff.c",
+            ],
+        }
         write_text(root / "Documentation/zigux/phase14-release-boundary-survey.md", expected_release_text)
         write_text(root / "Documentation/zigux/phase14-end-to-end-smoke-survey.md", expected_smoke_text)
         write_text(root / "Documentation/zigux/freeze-map.md", expected_freeze_map_text)
         write_text(root / "zigux-alpha/ZAR_TO_ZIGUX_PRODUCT_ROADMAP.md", expected_roadmap_text)
+        write_text(root / "zigux/tests/phase14_end_to_end_smoke_manifest.json", json.dumps(expected_manifest, indent=2) + "\n")
 
         errors = check(root)
         if errors:
@@ -244,6 +273,31 @@ def run_self_test() -> int:
         errors = check(root)
         if not any("freeze-map boundary-study-only anchors drifted from the expected two-entry Phase 14 set" in error for error in errors):
             print("self-test expected failure when freeze-map boundary-study-only anchors drifted", file=sys.stderr)
+            return 1
+        write_text(freeze_map_path, expected_freeze_map_text)
+
+        manifest_path = root / "zigux/tests/phase14_end_to_end_smoke_manifest.json"
+        manifest_data = json.loads(read_text(manifest_path))
+        manifest_data["study_only_anchors"] = [
+            "kernel/workqueue.c",
+            "kernel/trace/ring_buffer_iter.c",
+        ]
+        write_text(manifest_path, json.dumps(manifest_data, indent=2) + "\n")
+        errors = check(root)
+        if not any("phase14 manifest study_only_anchors drifted from the expected two-entry boundary-study-only set" in error for error in errors):
+            print("self-test expected failure when manifest study-only anchors drifted", file=sys.stderr)
+            return 1
+        write_text(manifest_path, json.dumps(expected_manifest, indent=2) + "\n")
+
+        manifest_data = json.loads(read_text(manifest_path))
+        manifest_data["freeze_in_c_anchors"] = [
+            "kernel/rcu/tree.c",
+            "net/core/skbuff_fastpath.c",
+        ]
+        write_text(manifest_path, json.dumps(manifest_data, indent=2) + "\n")
+        errors = check(root)
+        if not any("phase14 manifest freeze_in_c_anchors drifted from the expected two-entry freeze-governed set" in error for error in errors):
+            print("self-test expected failure when manifest freeze-in-C anchors drifted", file=sys.stderr)
             return 1
 
     return 0
