@@ -154,6 +154,8 @@ test "phase11 shared header parity survey keeps the note pinned to the manifest 
     try expectContains(note, "phase11-hvc-console-export-signature-assert");
     try expectContains(note, "phase11-uapi-header-parity-surface");
     try expectContains(note, "notifier_hangup_irq");
+    try expectContains(note, "dedicated `zig build hvc-console-survey --build-file zigux/tests/phase11_build.zig --summary all` step");
+    try expectContains(note, "rather than the shared `test` step");
 }
 
 test "phase11 shared header parity survey keeps shared replay markers explicit without a missing inventory fixture" {
@@ -176,6 +178,8 @@ test "phase11 shared header parity survey keeps shared replay markers explicit w
     try expectContains(build_file, "phase11-hvc-console-survey-tests");
     try expectContains(build_file, "layout_assert_module");
     try expectContains(build_file, "phase11_uapi_header_parity_survey_module.addImport(\"layout_assert\", layout_assert_module);");
+    try expectContains(build_file, "const hvc_console_survey_step = b.step(\"hvc-console-survey\"");
+    try expectContains(build_file, "hvc_console_survey_step.dependOn(&run_phase11_hvc_console_survey_tests.step);");
 }
 
 test "phase11 shared header parity survey keeps the exported hvc header declarations explicit" {
