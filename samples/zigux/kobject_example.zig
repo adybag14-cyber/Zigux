@@ -65,6 +65,15 @@ pub const OwnershipReplaySummary = struct {
     registered_exit: ExitSummary,
 };
 
+pub const PreRegistrationBoundarySummary = struct {
+    anchor: []const u8,
+    stage_before_boundary_checks: SampleStage,
+    stage_after_boundary_checks: SampleStage,
+    active_attr_count: usize,
+    rejected_show: bool,
+    rejected_store: bool,
+};
+
 pub const RegisteredBoundarySummary = struct {
     anchor: []const u8,
     stage_before_boundary_checks: SampleStage,
@@ -145,11 +154,6 @@ pub const KobjectExampleSample = struct {
             .{ .name = "baz", .mode = 0o664, .uses_shared_b_handlers = true },
             .{ .name = "bar", .mode = 0o664, .uses_shared_b_handlers = true },
         };
-    }
-
-    pub fn attrNames() [3][]const u8 {
-        const specs = attributeSpecs();
-        return .{ specs[0].name, specs[1].name, specs[2].name };
     }
 
     pub fn stage(self: *const Self) SampleStage {
@@ -267,6 +271,24 @@ pub const KobjectExampleSample = struct {
             .replay_readiness = .{ false, true, false, false },
             .initialized_exit = initialized_exit,
             .registered_exit = registered_exit,
+        };
+    }
+
+    pub fn runPreRegistrationBoundaryReplay(self: *Self) !PreRegistrationBoundarySummary {
+        if (self.stage() != .cold) return error.InvalidLifecycleTransition;
+
+        try self.init();
+        const stage_before_boundary_checks = self.stage();
+        const rejected_show = rejectedLifecycleTransition(self.showValue("foo"));
+        const rejected_store = rejectedLifecycleTransition(self.storeValue("foo", "1\n"));
+
+        return .{
+            .anchor = descriptor().anchor,
+            .stage_before_boundary_checks = stage_before_boundary_checks,
+            .stage_after_boundary_checks = self.stage(),
+            .active_attr_count = self.activeAttrCount(),
+            .rejected_show = rejected_show,
+            .rejected_store = rejected_store,
         };
     }
 
@@ -397,20 +419,17 @@ test "kobject sample replay keeps the anchor reviewable and non-runtime" {
     try std.testing.expectEqual(@as(usize, 5), replay.checked_focus.len);
 }
 
-test "kobject sample keeps attributes inaccessible until registration" {
+test "kobject sample keeps the pre-registration boundary reviewable through a sample-owned replay" {
     var sample = KobjectExampleSample{};
+    const replay = try sample.runPreRegistrationBoundaryReplay();
 
-    try sample.init();
+    try std.testing.expectEqualStrings("samples/kobject/kobject-example.c", replay.anchor);
+    try std.testing.expectEqual(SampleStage.initialized, replay.stage_before_boundary_checks);
+    try std.testing.expectEqual(SampleStage.initialized, replay.stage_after_boundary_checks);
+    try std.testing.expectEqual(@as(usize, 0), replay.active_attr_count);
+    try std.testing.expect(replay.rejected_show);
+    try std.testing.expect(replay.rejected_store);
     try std.testing.expectEqual(SampleStage.initialized, sample.stage());
-    try std.testing.expectEqual(@as(usize, 0), sample.activeAttrCount());
-    try std.testing.expectError(error.InvalidLifecycleTransition, sample.showValue("foo"));
-    try std.testing.expectError(error.InvalidLifecycleTransition, sample.storeValue("foo", "1\n"));
-
-    try sample.registerAttributes();
-    try std.testing.expectEqual(@as(usize, 3), sample.activeAttrCount());
-    _ = try sample.storeValue("foo", "1\n");
-    const rendered = try sample.showValue("foo");
-    try std.testing.expectEqualStrings("1\n", rendered.text[0..rendered.len]);
 }
 
 test "kobject sample keeps shared attribute dispatch and parse failures explicit" {
