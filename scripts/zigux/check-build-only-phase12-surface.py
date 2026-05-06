@@ -54,6 +54,8 @@ REQUIRED_FILE_MARKERS = {
         "Phase 12 Release Closure Checklist",
         "scripts/zigux/check-build-only-phase12-surface.py",
         "now explicitly pins `Documentation/zigux/phase12-release-closure-checklist.md` inside its fail-closed marker set",
+        "`make -C zigux phase12-smoke ZIG=<attached-zig-path>`",
+        "`make -C zigux phase12 ZIG=<attached-zig-path>`",
         "the smallest same-lane follow-through is now shared-surface drift control",
     ],
     NVME_FALLBACK_MAP_PATH: [
@@ -188,6 +190,8 @@ Phase 12 notes
         """# Phase 12 Release Closure Checklist
 - scripts/zigux/check-build-only-phase12-surface.py
 - now explicitly pins `Documentation/zigux/phase12-release-closure-checklist.md` inside its fail-closed marker set
+- `make -C zigux phase12-smoke ZIG=<attached-zig-path>`
+- `make -C zigux phase12 ZIG=<attached-zig-path>`
 - the smallest same-lane follow-through is now shared-surface drift control
 """,
     )
@@ -308,6 +312,25 @@ def run_self_test() -> int:
         if expected not in failures:
             print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST=fail")
             print("closure-checklist-marker-guard")
+            for failure in failures:
+                print(failure)
+            return 1
+        closure_path.write_text(original_closure, encoding="utf-8")
+
+        broken_closure = original_closure.replace(
+            "- `make -C zigux phase12-smoke ZIG=<attached-zig-path>`\n",
+            "",
+            1,
+        )
+        closure_path.write_text(broken_closure, encoding="utf-8")
+        failures = validate(root)
+        expected = (
+            f"{PHASE12_CLOSURE_CHECKLIST_PATH}:"
+            "`make -C zigux phase12-smoke ZIG=<attached-zig-path>`"
+        )
+        if expected not in failures:
+            print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST=fail")
+            print("closure-checklist-attached-zig-smoke-guard")
             for failure in failures:
                 print(failure)
             return 1
