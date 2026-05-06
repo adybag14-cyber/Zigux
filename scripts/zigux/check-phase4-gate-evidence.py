@@ -401,7 +401,7 @@ def run_self_test() -> int:
             f"phase4_validator_blob_sha:{phase4_validator_sha}:0",
         ], missing
 
-        write_runtime_atomic64_packetFixture(root)
+        write_runtime_atomic64_packet_fixture(root)
         write_text(root / NOTE_PATH, build_fixture_note(root))
         manifest = json.loads(read_text(root, MANIFEST_PATH))
         manifest["phase4_validation_matrix_blob_sha"] = "5555555555555555555555555555555555555555"
