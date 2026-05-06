@@ -1,5 +1,5 @@
 {
-  "lane_key": "P5-Y07",
+  "lane_key": "P5-L16",
   "phase": "Phase 5",
   "surveyed_commit": "beb1065024e41b266c1492d7be5a446c04e42368",
   "anchor": "samples/trace_events/trace-events-sample.c",
