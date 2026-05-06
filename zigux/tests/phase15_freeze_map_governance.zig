@@ -86,9 +86,9 @@ test "phase 15 freeze-map governance manifest records the bounded governance sli
     try std.testing.expectEqualStrings("Documentation/zigux/freeze-map.md", manifest.anchor);
     try std.testing.expectEqual(@as(usize, 4), manifest.freeze_in_c_targets.len);
     try std.testing.expectEqual(@as(usize, 2), manifest.study_only_targets.len);
-    try std.testing.expectEqual(@as(usize, 5), manifest.governance_requirements.len);
+    try std.testing.expectEqual(@as(usize, 6), manifest.governance_requirements.len);
     try std.testing.expectEqual(@as(usize, 4), manifest.blocker_ownership.len);
-    try std.testing.expectEqual(@as(usize, 9), manifest.gaps.len);
+    try std.testing.expectEqual(@as(usize, 10), manifest.gaps.len);
 
     try std.testing.expectEqualStrings("kernel/sched/core.c", manifest.freeze_in_c_targets[0]);
     try std.testing.expectEqualStrings("mm/page_alloc.c", manifest.freeze_in_c_targets[1]);
@@ -125,6 +125,7 @@ test "phase 15 freeze-map governance manifest records the bounded governance sli
     var saw_closeout_sync = false;
     var saw_governance_family_alignment = false;
     var saw_blocker_ownership_sync = false;
+    var saw_review_process_required_field_sync = false;
     var saw_anchor_reporting_sync = false;
     var saw_blocker = false;
 
@@ -166,6 +167,16 @@ test "phase 15 freeze-map governance manifest records the bounded governance sli
             try std.testing.expectEqualStrings("Documentation/zigux/freeze-map.md", gap.zigux_destination);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "no-silent-exception wording") != null);
         }
+        if (std.mem.eql(u8, gap.id, "phase15-review-process-required-field-sync")) {
+            saw_review_process_required_field_sync = true;
+            try std.testing.expectEqualStrings("starter_landed", gap.status);
+            try std.testing.expectEqualStrings("Documentation/zigux/freeze-map.md", gap.zigux_destination);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "exact Linux anchor path") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "current status bucket") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "rollback threshold") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "explicit non-goals") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "written rationale") != null);
+        }
         if (std.mem.eql(u8, gap.id, "phase15-governance-family-alignment")) {
             saw_governance_family_alignment = true;
             try std.testing.expectEqualStrings("starter_landed", gap.status);
@@ -200,7 +211,7 @@ test "phase 15 freeze-map governance manifest records the bounded governance sli
         }
     }
 
-    try std.testing.expectEqual(@as(usize, 8), landed_count);
+    try std.testing.expectEqual(@as(usize, 9), landed_count);
     try std.testing.expectEqual(@as(usize, 0), ready_next_count);
     try std.testing.expectEqual(@as(usize, 1), blocked_count);
     try std.testing.expect(saw_freeze_doc);
@@ -208,6 +219,7 @@ test "phase 15 freeze-map governance manifest records the bounded governance sli
     try std.testing.expect(saw_build);
     try std.testing.expect(saw_make);
     try std.testing.expect(saw_closeout_sync);
+    try std.testing.expect(saw_review_process_required_field_sync);
     try std.testing.expect(saw_governance_family_alignment);
     try std.testing.expect(saw_blocker_ownership_sync);
     try std.testing.expect(saw_anchor_reporting_sync);
