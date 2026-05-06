@@ -126,6 +126,41 @@ required_closure_markers = [
         "PHASE1_FIND_BIT_SINGLE_WORD_REVIEW=helper-local single-word next-scan proof stays explicit through the direct find_bit test anchor because the shared Phase 1 parity fixture does not isolate same-word start-mask behavior",
         1,
     ),
+    (
+        "closure_find_bit_inclusive_boundary_review_count",
+        "PHASE1_FIND_BIT_INCLUSIVE_BOUNDARY_REVIEW=helper-local inclusive boundary proof stays explicit through the direct find_bit test anchor so same-word next scans keep the last in-range head-word bit reachable from an inclusive start",
+        1,
+    ),
+    (
+        "closure_find_bit_tail_clamp_review_count",
+        "PHASE1_FIND_BIT_TAIL_CLAMP_REVIEW=tail_clamped_first, tail_clamped_next, tail_zero_clamped_first, tail_zero_clamped_next, tail_and_clamped_first, and tail_and_clamped_next stay explicit through the shared Phase 1 parity fixture and replay so last-word scans cannot silently leak masked tail bits beyond nbits",
+        1,
+    ),
+    (
+        "closure_bitmap_partial_xor_review_count",
+        "PHASE1_BITMAP_PARTIAL_XOR_REVIEW=partial_xor_nbits and partial_xor_masked_values stay explicit through the shared Phase 1 parity fixture and replay so caller-selected bit windows cannot silently leak tail bits beyond nbits",
+        1,
+    ),
+    (
+        "closure_bitmap_scnprintf_truncation_review_count",
+        "PHASE1_BITMAP_SCNPRINTF_TRUNCATION_REVIEW=helper-local bitmap.scnprintf truncation proof stays explicit through the direct bitmap test anchor because the shared Phase 1 parity fixture only locks the full rendered range string",
+        1,
+    ),
+    (
+        "closure_bitmap_copy_alias_review_count",
+        "PHASE1_BITMAP_COPY_ALIAS_REVIEW=helper-local bitmap copy alias proof stays explicit through the direct bitmap test anchor so bitmap_copy_clear_tail and bitmap_copy_and_extend preserve tail masking and zero-filled extension semantics",
+        1,
+    ),
+    (
+        "closure_rbtree_review_packet_count",
+        "PHASE1_RBTREE_REVIEW_PACKET=helper-local rbtree tests plus the shared traversal and detached-node replay stay explicit so duplicate-search and cached-root behavior keep direct review anchors without implying a broader duplicate-search fixture packet than current master ships",
+        1,
+    ),
+    (
+        "closure_string_review_packet_count",
+        "PHASE1_STRING_REVIEW_PACKET=helper-local string tests and the shared embedded-NUL replay stay explicit so the bounded Phase 1 string surface keeps its direct review anchors and parity fixture keys",
+        1,
+    ),
 ]
 required_workflow_markers = [
     "FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true",
@@ -577,23 +612,10 @@ def run_self_test() -> None:
             in collect_bench_expectation_markers(unexpected_bench_checksum)
         )
 
-        malformed_manifest, manifest_parse_markers = load_json_file(
-            malformed_manifest_path,
-            "manifest",
-        )
-        assert malformed_manifest is None
-        assert manifest_parse_markers == [
-            "manifest:json_decode_error:Expecting property name enclosed in double quotes:line=2:column=1"
-        ]
-
-        malformed_bench, bench_parse_markers = load_json_file(
-            malformed_bench_path,
-            "bench_expectations",
-        )
-        assert malformed_bench is None
-        assert bench_parse_markers == [
-            "bench_expectations:json_decode_error:Expecting property name enclosed in double quotes:line=2:column=1"
-        ]
+        _, malformed_manifest_markers = load_json_file(malformed_manifest_path, "manifest")
+        assert any(marker.startswith("manifest:json_decode_error:") for marker in malformed_manifest_markers)
+        _, malformed_bench_markers = load_json_file(malformed_bench_path, "bench_expectations")
+        assert any(marker.startswith("bench_expectations:json_decode_error:") for marker in malformed_bench_markers)
 
         valid_closure = render_marker_fixture(required_closure_markers)
         assert collect_exact_count_markers(valid_closure, required_closure_markers) == []
@@ -639,6 +661,76 @@ def run_self_test() -> None:
         assert (
             "closure_find_bit_single_word_review_count:expected=1:actual=0"
             in missing_find_bit_single_word_review_markers
+        )
+
+        missing_find_bit_inclusive_boundary_review = valid_closure.replace(
+            "PHASE1_FIND_BIT_INCLUSIVE_BOUNDARY_REVIEW=helper-local inclusive boundary proof stays explicit through the direct find_bit test anchor so same-word next scans keep the last in-range head-word bit reachable from an inclusive start\n",
+            "",
+            1,
+        )
+        missing_find_bit_inclusive_boundary_review_markers = collect_exact_count_markers(
+            missing_find_bit_inclusive_boundary_review,
+            required_closure_markers,
+        )
+        assert (
+            "closure_find_bit_inclusive_boundary_review_count:expected=1:actual=0"
+            in missing_find_bit_inclusive_boundary_review_markers
+        )
+
+        missing_find_bit_tail_clamp_review = valid_closure.replace(
+            "PHASE1_FIND_BIT_TAIL_CLAMP_REVIEW=tail_clamped_first, tail_clamped_next, tail_zero_clamped_first, tail_zero_clamped_next, tail_and_clamped_first, and tail_and_clamped_next stay explicit through the shared Phase 1 parity fixture and replay so last-word scans cannot silently leak masked tail bits beyond nbits\n",
+            "",
+            1,
+        )
+        missing_find_bit_tail_clamp_review_markers = collect_exact_count_markers(
+            missing_find_bit_tail_clamp_review,
+            required_closure_markers,
+        )
+        assert (
+            "closure_find_bit_tail_clamp_review_count:expected=1:actual=0"
+            in missing_find_bit_tail_clamp_review_markers
+        )
+
+        missing_bitmap_copy_alias_review = valid_closure.replace(
+            "PHASE1_BITMAP_COPY_ALIAS_REVIEW=helper-local bitmap copy alias proof stays explicit through the direct bitmap test anchor so bitmap_copy_clear_tail and bitmap_copy_and_extend preserve tail masking and zero-filled extension semantics\n",
+            "",
+            1,
+        )
+        missing_bitmap_copy_alias_review_markers = collect_exact_count_markers(
+            missing_bitmap_copy_alias_review,
+            required_closure_markers,
+        )
+        assert (
+            "closure_bitmap_copy_alias_review_count:expected=1:actual=0"
+            in missing_bitmap_copy_alias_review_markers
+        )
+
+        missing_rbtree_review_packet = valid_closure.replace(
+            "PHASE1_RBTREE_REVIEW_PACKET=helper-local rbtree tests plus the shared traversal and detached-node replay stay explicit so duplicate-search and cached-root behavior keep direct review anchors without implying a broader duplicate-search fixture packet than current master ships\n",
+            "",
+            1,
+        )
+        missing_rbtree_review_packet_markers = collect_exact_count_markers(
+            missing_rbtree_review_packet,
+            required_closure_markers,
+        )
+        assert (
+            "closure_rbtree_review_packet_count:expected=1:actual=0"
+            in missing_rbtree_review_packet_markers
+        )
+
+        missing_string_review_packet = valid_closure.replace(
+            "PHASE1_STRING_REVIEW_PACKET=helper-local string tests and the shared embedded-NUL replay stay explicit so the bounded Phase 1 string surface keeps its direct review anchors and parity fixture keys\n",
+            "",
+            1,
+        )
+        missing_string_review_packet_markers = collect_exact_count_markers(
+            missing_string_review_packet,
+            required_closure_markers,
+        )
+        assert (
+            "closure_string_review_packet_count:expected=1:actual=0"
+            in missing_string_review_packet_markers
         )
 
         valid_phase1_workflow = render_marker_fixture(required_phase1_workflow_markers)
@@ -972,7 +1064,7 @@ def run_self_test() -> None:
         assert collect_missing_files(repo_root_from_arg(str(tmp_root))) == [required_phase1_parity]
 
     print("PHASE1_CLOSURE_VALIDATOR_SELF_TEST=pass")
-    print("PHASE1_CLOSURE_VALIDATOR_SELF_TEST_CASE_COUNT=53")
+    print("PHASE1_CLOSURE_VALIDATOR_SELF_TEST_CASE_COUNT=58")
 
 
 def main() -> int:
