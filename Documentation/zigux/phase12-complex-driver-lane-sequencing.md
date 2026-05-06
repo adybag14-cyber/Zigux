@@ -9,7 +9,7 @@ It is an anti-overlap companion for the current tranche, not a release-order not
 - complex-driver scope in this note: `virtio_net`, `nvme_pci`, and `virtio_scsi`
 - excluded from this note on purpose: the shared PMO release packet and the non-driver libbpf helper packet
 - shared replay routes that all three driver lanes may mention but do not own: `zig build smoke --build-file zigux/tests/phase12_build.zig --summary all`, `make -C zigux phase12-smoke`, `zig build test --build-file zigux/tests/phase12_build.zig --summary all`, and `make -C zigux phase12`
-- shared coordination surfaces that stay non-owner here: `Documentation/zigux/phase12-release-sequencing.md`, `Documentation/zigux/phase12-release-closure-checklist.md`, `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, `scripts/zigux/check-build-only-phase12-surface.py`, `.github/workflows/zigux-bootstrap.yml`, `zigux/tests/phase12_build.zig`, and `zigux/Makefile`
+- shared coordination surfaces that stay non-owner here: `Documentation/zigux/phase12-release-sequencing.md`, `Documentation/zigux/phase12-release-closure-checklist.md`, `Documentation/zigux/phase12-raw-github-coverage-survey.md`, `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, `scripts/zigux/check-build-only-phase12-surface.py`, `.github/workflows/zigux-bootstrap.yml`, `zigux/tests/phase12_build.zig`, and `zigux/Makefile`
 
 ## Why this note exists
 
@@ -39,6 +39,7 @@ That asymmetry is honest, but it makes overlap easy unless the lane boundaries s
 ## Shared non-owner surfaces
 - `Documentation/zigux/phase12-release-sequencing.md` owns the release-order story for the tranche, not the next driver-local implementation step.
 - `Documentation/zigux/phase12-release-closure-checklist.md` is the PMO closure companion, not a driver-lane planner.
+- `Documentation/zigux/phase12-raw-github-coverage-survey.md` owns the mixed fallback-overview split for the active tranche, so driver lanes should reread it beside this note instead of treating it as a driver-local fallback artifact.
 - `scripts/zigux/check-build-only-phase12-surface.py` and `.github/workflows/zigux-bootstrap.yml` enforce the shared build-only review surface, not driver-local ownership.
 - `Documentation/zigux/phase12-libbpf-segment-survey.md` and `tools/lib/bpf/zigux_segments/manifest.json` remain real Phase 12 evidence, but they belong to the non-driver helper packet and should not be absorbed into this driver-only map.
 
@@ -46,10 +47,10 @@ That asymmetry is honest, but it makes overlap easy unless the lane boundaries s
 - Do not let the `virtio_net` lane inherit the storage-lane fallback artifacts or the `virtio_scsi` rollback drill just because all three drivers share `phase12_build.zig`.
 - Do not let the `nvme_pci` lane reuse `virtio_scsi` rollback wording as storage-wide recovery proof; its live packet is still the smaller queue-count, PRP-shape, PRP-metadata, and recovery replay starter.
 - Do not let the `virtio_scsi` lane recast the `virtio_net` syntax-lab shard or the `nvme_pci` PRP helpers as shared storage evidence.
-- Do not treat the shared smoke, build, Makefile, workflow, README, or PMO notes as ownership transfer. Those surfaces coordinate the three driver lanes; they do not merge them.
+- Do not treat the shared smoke, build, Makefile, workflow, README, PMO notes, or the shared raw-coverage overview as ownership transfer. Those surfaces coordinate the three driver lanes; they do not merge them.
 
 ## Next bounded step
 
-Leave this note parked unless fresh repo inspection shows that the shared Phase 12 docs or review surfaces are blurring `virtio_net`, `nvme_pci`, and `virtio_scsi` back together.
+Leave this note parked unless fresh repo inspection shows that the shared Phase 12 docs, fallback-overview, or review surfaces are blurring `virtio_net`, `nvme_pci`, and `virtio_scsi` back together.
 
-If the lane reopens, keep the next step inside the smallest docs-root, tests-root, or checker wording repair that restores those three driver-local ownership boundaries without reopening PMO closure drift control or the separate libbpf helper packet.
+If the lane reopens, keep the next step inside the smallest docs-root, tests-root, fallback-overview, or checker wording repair that restores those three driver-local ownership boundaries without reopening PMO closure drift control or the separate libbpf helper packet.
