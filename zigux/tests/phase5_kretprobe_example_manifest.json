@@ -7,7 +7,7 @@
   "validation_entrypoint": "zig build test --build-file zigux/tests/phase5_build.zig --summary all",
   "review_prompts": [
     "descriptor keeps the Linux anchor path explicit and leaves requires_runtime_substrate false while provides_selfcheck stays true",
-    "the manifest and survey test still describe the exact skip, return-value, duration, missed-summary, and fixed maxactiveBudget() = 20 cue run through phase5_build.zig",
+    "the manifest and survey test still describe the exact skip, return-value, duration, missed-summary, lifecycle-guard, and fixed maxactiveBudget() = 20 cue run through phase5_build.zig, with runLifecycleGuardReplay() keeping pre-init and post-init guard boundaries explicit",
     "the sample keeps the Linux my_data-style private entry timestamp explicit and reviewable instead of burying it in unstructured state",
     "symbol retargeting stays a pre-init in-memory choice instead of implying module_param or runtime registration parity",
     "ownershipSummary keeps cold, initialized, armed, replay_complete, and exited snapshots explicit instead of leaving lifecycle review hidden in raw fields",
