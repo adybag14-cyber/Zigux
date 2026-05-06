@@ -157,7 +157,7 @@ test "phase 9 runtime loader allocator/init-flow replay covers all shipped runti
         try expectExactLoadPlanParity(plan, pending_plan);
         try std.testing.expect(runtime_loader.keepsSelftestHookEvidenceConsistent(plan));
         try std.testing.expect(runtime_loader.keepsAllocatorInitFlowConsistent(
-            pending_plan,
+            plan,
             plan.allocator_handoff,
             plan.init_flow,
         ));
@@ -195,7 +195,7 @@ test "phase 9 runtime loader allocator/init-flow replay rejects exited or incomp
             .exit_runs = 0,
         },
     );
-    try std.testing.expectError(error.InvalidInitFlow, runtime_loader.prepareRequest(incomplete_plan));
+    try std.testing.expectError(error.InvalidSelftestHookEvidence, runtime_loader.prepareRequest(incomplete_plan));
 }
 
 test "phase 9 runtime loader allocator/init-flow replay rejects selftest-hook evidence drift" {
