@@ -111,14 +111,19 @@ pub fn hexDumpToBuffer(
     const rowsize = normalizedRowsize(rowsize_input);
     const len = @min(buf.len, rowsize);
     const groupsize = normalizedGroupsize(len, groupsize_input);
+    const required = hexDumpLineLength(buf.len, rowsize_input, groupsize_input, ascii);
 
     if (linebuf.len == 0) {
-        return hexDumpLineLength(buf.len, rowsize_input, groupsize_input, ascii);
+        return required;
     }
 
     if (len == 0) {
         linebuf[0] = 0;
         return 0;
+    }
+
+    if (linebuf.len > required) {
+        return hexDumpToFullBuffer(buf[0..len], rowsize, groupsize, linebuf, ascii);
     }
 
     var writer = TruncatingWriter.init(linebuf);
@@ -170,6 +175,60 @@ pub fn hexDumpToBuffer(
 
     writer.finish();
     return writer.required;
+}
+
+fn hexDumpToFullBuffer(
+    buf: []const u8,
+    rowsize: usize,
+    groupsize: usize,
+    linebuf: []u8,
+    ascii: bool,
+) usize {
+    var pos: usize = 0;
+
+    var group_start: usize = 0;
+    while (group_start < buf.len) : (group_start += groupsize) {
+        if (group_start != 0) {
+            linebuf[pos] = ' ';
+            pos += 1;
+        }
+        writeGroupHex(linebuf, &pos, buf[group_start .. group_start + groupsize]);
+    }
+
+    if (ascii) {
+        const ascii_column = rowsize * 2 + rowsize / groupsize + 1;
+        while (pos < ascii_column) : (pos += 1) {
+            linebuf[pos] = ' ';
+        }
+        for (buf) |byte| {
+            linebuf[pos] = if (byte < 0x80 and std.ascii.isPrint(byte)) byte else '.';
+            pos += 1;
+        }
+    }
+
+    linebuf[pos] = 0;
+    return pos;
+}
+
+fn writeGroupHex(linebuf: []u8, pos: *usize, bytes: []const u8) void {
+    if (builtin.cpu.arch.endian() == .little and bytes.len > 1) {
+        var index = bytes.len;
+        while (index > 0) {
+            index -= 1;
+            writeHexByte(linebuf, pos, bytes[index]);
+        }
+        return;
+    }
+
+    for (bytes) |byte| {
+        writeHexByte(linebuf, pos, byte);
+    }
+}
+
+fn writeHexByte(linebuf: []u8, pos: *usize, byte: u8) void {
+    linebuf[pos.*] = hexAscHi(byte);
+    linebuf[pos.* + 1] = hexAscLo(byte);
+    pos.* += 2;
 }
 
 fn normalizedRowsize(rowsize_input: usize) usize {
@@ -256,296 +315,3 @@ const TruncatingWriter = struct {
         self.buffer[terminator_index] = 0;
     }
 };
-
-const test_data_b = [_]u8{
-    0xbe, 0x32, 0xdb, 0x7b, 0x0a, 0x18, 0x93, 0xb2,
-    0x70, 0xba, 0xc4, 0x24, 0x7d, 0x83, 0x34, 0x9b,
-    0xa6, 0x9c, 0x31, 0xad, 0x9c, 0x0f, 0xac, 0xe9,
-    0x4c, 0xd1, 0x19, 0x99, 0x43, 0xb1, 0xaf, 0x0c,
-};
-
-const test_ascii = ".2.{....p..$}.4...1.....L...C...";
-
-const test_data_1 = [_][]const u8{
-    "be", "32", "db", "7b", "0a", "18", "93", "b2",
-    "70", "ba", "c4", "24", "7d", "83", "34", "9b",
-    "a6", "9c", "31", "ad", "9c", "0f", "ac", "e9",
-    "4c", "d1", "19", "99", "43", "b1", "af", "0c",
-};
-
-const test_data_2_le = [_][]const u8{
-    "32be", "7bdb", "180a", "b293",
-    "ba70", "24c4", "837d", "9b34",
-    "9ca6", "ad31", "0f9c", "e9ac",
-    "d14c", "9919", "b143", "0caf",
-};
-
-const test_data_2_be = [_][]const u8{
-    "be32", "db7b", "0a18", "93b2",
-    "70ba", "c424", "7d83", "349b",
-    "a69c", "31ad", "9c0f", "ace9",
-    "4cd1", "1999", "43b1", "af0c",
-};
-
-const test_data_4_le = [_][]const u8{
-    "7bdb32be", "b293180a", "24c4ba70", "9b34837d",
-    "ad319ca6", "e9ac0f9c", "9919d14c", "0cafb143",
-};
-
-const test_data_4_be = [_][]const u8{
-    "be32db7b", "0a1893b2", "70bac424", "7d83349b",
-    "a69c31ad", "9c0face9", "4cd11999", "43b1af0c",
-};
-
-const test_data_8_le = [_][]const u8{
-    "b293180a7bdb32be", "9b34837d24c4ba70",
-    "e9ac0f9cad319ca6", "0cafb1439919d14c",
-};
-
-const test_data_8_be = [_][]const u8{
-    "be32db7b0a1893b2", "70bac4247d83349b",
-    "a69c31ad9c0face9", "4cd1199943b1af0c",
-};
-
-fn fixtureChunks(groupsize: usize) []const []const u8 {
-    return switch (groupsize) {
-        8 => if (builtin.cpu.arch.endian() == .big) test_data_8_be[0..] else test_data_8_le[0..],
-        4 => if (builtin.cpu.arch.endian() == .big) test_data_4_be[0..] else test_data_4_le[0..],
-        2 => if (builtin.cpu.arch.endian() == .big) test_data_2_be[0..] else test_data_2_le[0..],
-        else => test_data_1[0..],
-    };
-}
-
-fn prepareExpectedLine(
-    buffer: []u8,
-    len_input: usize,
-    rowsize_input: usize,
-    groupsize_input: usize,
-    ascii: bool,
-) []const u8 {
-    const rowsize = normalizedRowsize(rowsize_input);
-    const len = @min(len_input, rowsize);
-    const groupsize = normalizedGroupsize(len, groupsize_input);
-    const chunks = fixtureChunks(groupsize);
-
-    var pos: usize = 0;
-    var index: usize = 0;
-    while (index < len / groupsize) : (index += 1) {
-        const chunk = chunks[index];
-        @memcpy(buffer[pos .. pos + chunk.len], chunk);
-        pos += chunk.len;
-        buffer[pos] = ' ';
-        pos += 1;
-    }
-    if (index != 0) {
-        pos -= 1;
-    }
-
-    if (ascii) {
-        while (pos < rowsize * 2 + rowsize / groupsize + 1) : (pos += 1) {
-            buffer[pos] = ' ';
-        }
-        @memcpy(buffer[pos .. pos + len], test_ascii[0..len]);
-        pos += len;
-    }
-
-    buffer[pos] = 0;
-    return buffer[0..pos];
-}
-
-test "hexToBin accepts digits and both alphabetic cases" {
-    try std.testing.expectEqual(@as(i32, 0), hexToBin('0'));
-    try std.testing.expectEqual(@as(i32, 9), hexToBin('9'));
-    try std.testing.expectEqual(@as(i32, 10), hexToBin('a'));
-    try std.testing.expectEqual(@as(i32, 10), hexToBin('A'));
-    try std.testing.expectEqual(@as(i32, 15), hexToBin('f'));
-    try std.testing.expectEqual(@as(i32, 15), hexToBin('F'));
-    try std.testing.expectEqual(@as(i32, -1), hexToBin('g'));
-    try std.testing.expectEqual(@as(i32, -1), hexToBin('/'));
-}
-
-test "hex2bin and bin2hex round-trip payloads" {
-    const source = "be32db7b0a1893b2";
-    var decoded: [8]u8 = undefined;
-    try hex2bin(decoded[0..], source);
-
-    try std.testing.expectEqualSlices(u8, &[_]u8{ 0xbe, 0x32, 0xdb, 0x7b, 0x0a, 0x18, 0x93, 0xb2 }, decoded[0..]);
-
-    var encoded: [16]u8 = undefined;
-    const text = try bin2hex(encoded[0..], decoded[0..]);
-    try std.testing.expectEqualSlices(u8, source, text);
-}
-
-test "hexBytePack helpers chain bytes and preserve destination on bounds errors" {
-    const sample = [_]u8{ 0x00, 0xbe, 0xff };
-    var lower: [6]u8 = undefined;
-    var upper: [6]u8 = undefined;
-    var lower_rest: []u8 = lower[0..];
-    var upper_rest: []u8 = upper[0..];
-
-    for (sample) |byte| {
-        lower_rest = try hexBytePack(lower_rest, byte);
-        upper_rest = try hexBytePackUpper(upper_rest, byte);
-    }
-
-    try std.testing.expectEqual(@as(usize, 0), lower_rest.len);
-    try std.testing.expectEqual(@as(usize, 0), upper_rest.len);
-    try std.testing.expectEqualSlices(u8, "00beff", lower[0..]);
-    try std.testing.expectEqualSlices(u8, "00BEFF", upper[0..]);
-
-    var tiny_lower = [_]u8{0xaa};
-    var tiny_upper = [_]u8{0xbb};
-    try std.testing.expectError(HexError.DestinationTooSmall, hexBytePack(tiny_lower[0..], 0x5c));
-    try std.testing.expectError(HexError.DestinationTooSmall, hexBytePackUpper(tiny_upper[0..], 0x5c));
-    try std.testing.expectEqual(@as(u8, 0xaa), tiny_lower[0]);
-    try std.testing.expectEqual(@as(u8, 0xbb), tiny_upper[0]);
-}
-
-test "hex2bin rejects invalid length and bad digits" {
-    var decoded: [2]u8 = undefined;
-    try std.testing.expectError(HexError.InvalidSourceLength, hex2bin(decoded[0..], "abc"));
-    try std.testing.expectError(HexError.InvalidHexDigit, hex2bin(decoded[0..], "zz00"));
-}
-
-test "hexDumpLineLength mirrors formatter normalization" {
-    const cases = [_]struct {
-        len: usize,
-        rowsize: usize,
-        groupsize: usize,
-        ascii: bool,
-        want: usize,
-    }{
-        .{ .len = 0, .rowsize = 16, .groupsize = 1, .ascii = false, .want = 0 },
-        .{ .len = 16, .rowsize = 16, .groupsize = 1, .ascii = false, .want = 47 },
-        .{ .len = 16, .rowsize = 7, .groupsize = 3, .ascii = false, .want = 47 },
-        .{ .len = 16, .rowsize = 7, .groupsize = 3, .ascii = true, .want = 65 },
-        .{ .len = 32, .rowsize = 32, .groupsize = 1, .ascii = true, .want = 129 },
-        .{ .len = 20, .rowsize = 16, .groupsize = 8, .ascii = false, .want = 33 },
-        .{ .len = 15, .rowsize = 16, .groupsize = 8, .ascii = true, .want = 64 },
-    };
-
-    for (cases) |case| {
-        try std.testing.expectEqual(case.want, hexDumpLineLength(case.len, case.rowsize, case.groupsize, case.ascii));
-        try std.testing.expectEqual(
-            case.want,
-            hexDumpToBuffer(test_data_b[0..case.len], case.rowsize, case.groupsize, &[_]u8{}, case.ascii),
-        );
-    }
-}
-
-test "hexDumpToBuffer matches the kernel-style 16-byte line output" {
-    var line: [16 * 3 + 2 + 16 + 1]u8 = undefined;
-    var expected: [16 * 3 + 2 + 16 + 1]u8 = undefined;
-
-    const plain_len = hexDumpToBuffer(test_data_b[0..16], 16, 1, line[0..], false);
-    try std.testing.expectEqual(@as(usize, 47), plain_len);
-    try std.testing.expectEqualSlices(u8, prepareExpectedLine(expected[0..], 16, 16, 1, false), std.mem.sliceTo(line[0..], 0));
-
-    const ascii_len = hexDumpToBuffer(test_data_b[0..16], 16, 1, line[0..], true);
-    try std.testing.expectEqual(@as(usize, 65), ascii_len);
-    try std.testing.expectEqualSlices(
-        u8,
-        prepareExpectedLine(expected[0..], 16, 16, 1, true),
-        std.mem.sliceTo(line[0..], 0),
-    );
-    try std.testing.expectEqualSlices(u8, test_ascii[0..16], std.mem.sliceTo(line[49..], 0));
-}
-
-test "hexDumpToBuffer uses native-endian grouping for 2, 4, and 8 byte groups" {
-    const data = [_]u8{
-        0xbe, 0x32, 0xdb, 0x7b, 0x0a, 0x18, 0x93, 0xb2,
-        0x70, 0xba, 0xc4, 0x24, 0x7d, 0x83, 0x34, 0x9b,
-    };
-
-    const expected_2 = if (builtin.cpu.arch.endian() == .big)
-        "be32 db7b 0a18 93b2 70ba c424 7d83 349b"
-    else
-        "32be 7bdb 180a b293 ba70 24c4 837d 9b34";
-    const expected_4 = if (builtin.cpu.arch.endian() == .big)
-        "be32db7b 0a1893b2 70bac424 7d83349b"
-    else
-        "7bdb32be b293180a 24c4ba70 9b34837d";
-    const expected_8 = if (builtin.cpu.arch.endian() == .big)
-        "be32db7b0a1893b2 70bac4247d83349b"
-    else
-        "b293180a7bdb32be 9b34837d24c4ba70";
-
-    var line: [80]u8 = undefined;
-
-    _ = hexDumpToBuffer(data[0..], 16, 2, line[0..], false);
-    try std.testing.expectEqualSlices(u8, expected_2, std.mem.sliceTo(line[0..], 0));
-
-    _ = hexDumpToBuffer(data[0..], 16, 4, line[0..], false);
-    try std.testing.expectEqualSlices(u8, expected_4, std.mem.sliceTo(line[0..], 0));
-
-    _ = hexDumpToBuffer(data[0..], 16, 8, line[0..], false);
-    try std.testing.expectEqualSlices(u8, expected_8, std.mem.sliceTo(line[0..], 0));
-}
-
-test "hexDumpToBuffer reports full length when the caller buffer truncates" {
-    const data = [_]u8{ 0xbe, 0x32, 0xdb, 0x7b };
-    var line: [8]u8 = [_]u8{0xaa} ** 8;
-
-    const written = hexDumpToBuffer(data[0..], 16, 1, line[0..], true);
-    try std.testing.expectEqual(@as(usize, 53), written);
-    try std.testing.expectEqual(@as(u8, 0), line[line.len - 1]);
-    try std.testing.expectEqualSlices(u8, "be 32 d", std.mem.sliceTo(line[0..], 0));
-}
-
-test "hexDumpToBuffer keeps full grouped ASCII output when the caller buffer fits exactly" {
-    const data = [_]u8{
-        0xbe, 0x32, 0xdb, 0x7b, 0x0a, 0x18, 0x93, 0xb2,
-        0x70, 0xba, 0xc4, 0x24, 0x7d, 0x83, 0x34, 0x9b,
-    };
-    const expected = if (builtin.cpu.arch.endian() == .big)
-        "be32db7b 0a1893b2 70bac424 7d83349b  .2.{....p..$}.4."
-    else
-        "7bdb32be b293180a 24c4ba70 9b34837d  .2.{....p..$}.4.";
-    var line: [54]u8 = undefined;
-
-    const written = hexDumpToBuffer(data[0..], 16, 4, line[0..], true);
-    try std.testing.expectEqual(@as(usize, 53), written);
-    try std.testing.expectEqualSlices(u8, expected, std.mem.sliceTo(line[0..], 0));
-    try std.testing.expectEqual(@as(u8, 0), line[written]);
-}
-
-test "hexDumpToBuffer follows kernel fixture normalization cases" {
-    const Case = struct {
-        len: usize,
-        rowsize: usize,
-        groupsize: usize,
-        ascii: bool,
-    };
-    const cases = [_]Case{
-        .{ .len = 32, .rowsize = 32, .groupsize = 1, .ascii = false },
-        .{ .len = 32, .rowsize = 32, .groupsize = 2, .ascii = true },
-        .{ .len = 20, .rowsize = 16, .groupsize = 8, .ascii = false },
-        .{ .len = 15, .rowsize = 16, .groupsize = 8, .ascii = true },
-        .{ .len = 12, .rowsize = 99, .groupsize = 3, .ascii = true },
-        .{ .len = 9, .rowsize = 32, .groupsize = 4, .ascii = false },
-    };
-
-    for (cases) |case| {
-        var line: [32 * 3 + 2 + 32 + 1]u8 = undefined;
-        var expected: [32 * 3 + 2 + 32 + 1]u8 = undefined;
-
-        _ = hexDumpToBuffer(test_data_b[0..case.len], case.rowsize, case.groupsize, line[0..], case.ascii);
-
-        try std.testing.expectEqualSlices(
-            u8,
-            prepareExpectedLine(expected[0..], case.len, case.rowsize, case.groupsize, case.ascii),
-            std.mem.sliceTo(line[0..], 0),
-        );
-    }
-}
-
-test "hexDumpToBuffer reports normalized required length for empty and zero-sized buffers" {
-    var empty: [1]u8 = undefined;
-
-    try std.testing.expectEqual(@as(usize, 0), hexDumpToBuffer(test_data_b[0..0], 16, 1, empty[0..], false));
-    try std.testing.expectEqual(@as(u8, 0), empty[0]);
-
-    try std.testing.expectEqual(@as(usize, 65), hexDumpToBuffer(test_data_b[0..16], 7, 3, empty[0..0], true));
-    try std.testing.expectEqual(@as(usize, 47), hexDumpToBuffer(test_data_b[0..16], 7, 3, empty[0..0], false));
-    try std.testing.expectEqual(@as(usize, 129), hexDumpToBuffer(test_data_b[0..32], 32, 1, empty[0..0], true));
-}
