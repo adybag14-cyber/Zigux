@@ -65,6 +65,33 @@ pub const BufferFdResult = struct {
     return_value: i32,
 };
 
+pub const BufferWindowObservation = struct {
+    base_token: ?usize = null,
+};
+
+pub const BufferWindow = struct {
+    base_token: usize,
+    mmap_size: usize,
+};
+
+pub const BufferWindowLookup = union(enum) {
+    buffer_window: BufferWindow,
+    invalid_index,
+    missing_buffer,
+};
+
+pub const BufferWindowDisposition = enum {
+    buffer_window,
+    invalid_index,
+    missing_buffer,
+};
+
+pub const BufferWindowResult = struct {
+    disposition: BufferWindowDisposition,
+    return_value: i32,
+    window: ?BufferWindow,
+};
+
 pub const PollSummary = struct {
     wait_class: WaitClass,
     outcome: PollOutcome,
@@ -218,6 +245,50 @@ pub fn resolveBufferFdResultFromSlots(
     buffer_index: usize,
 ) BufferFdResult {
     return resolveBufferFdResult(lookupBufferFd(buffers, buffer_index));
+}
+
+pub fn lookupBufferWindow(
+    buffers: []const BufferWindowObservation,
+    buffer_index: usize,
+    mmap_size: usize,
+) BufferWindowLookup {
+    if (buffer_index >= buffers.len) {
+        return .invalid_index;
+    }
+
+    const base_token = buffers[buffer_index].base_token orelse return .missing_buffer;
+    return .{ .buffer_window = .{
+        .base_token = base_token,
+        .mmap_size = mmap_size,
+    } };
+}
+
+pub fn resolveBufferWindowResult(lookup: BufferWindowLookup) BufferWindowResult {
+    return switch (lookup) {
+        .buffer_window => |window| .{
+            .disposition = .buffer_window,
+            .return_value = 0,
+            .window = window,
+        },
+        .invalid_index => .{
+            .disposition = .invalid_index,
+            .return_value = -@as(i32, @intFromEnum(std.os.linux.E.INVAL)),
+            .window = null,
+        },
+        .missing_buffer => .{
+            .disposition = .missing_buffer,
+            .return_value = -@as(i32, @intFromEnum(std.os.linux.E.NOENT)),
+            .window = null,
+        },
+    };
+}
+
+pub fn resolveBufferWindowResultFromSlots(
+    buffers: []const BufferWindowObservation,
+    buffer_index: usize,
+    mmap_size: usize,
+) BufferWindowResult {
+    return resolveBufferWindowResult(lookupBufferWindow(buffers, buffer_index, mmap_size));
 }
 
 pub fn summarizePoll(
@@ -487,6 +558,62 @@ test "resolveBufferFdResult keeps perf_buffer__buffer_fd return shaping explicit
         -@as(i32, @intFromEnum(std.os.linux.E.INVAL)),
         invalid.return_value,
     );
+}
+
+test "lookupBufferWindow keeps perf_buffer__buffer slot selection explicit" {
+    const buffers = [_]BufferWindowObservation{
+        .{ .base_token = 0x1000 },
+        .{},
+        .{ .base_token = 0x2000 },
+    };
+
+    try std.testing.expectEqualDeep(
+        BufferWindowLookup{ .buffer_window = .{
+            .base_token = 0x1000,
+            .mmap_size = 4096,
+        } },
+        lookupBufferWindow(&buffers, 0, 4096),
+    );
+    try std.testing.expectEqualDeep(
+        BufferWindowLookup.missing_buffer,
+        lookupBufferWindow(&buffers, 1, 4096),
+    );
+    try std.testing.expectEqualDeep(
+        BufferWindowLookup.invalid_index,
+        lookupBufferWindow(&buffers, 3, 4096),
+    );
+}
+
+test "resolveBufferWindowResult keeps perf_buffer__buffer return shaping explicit" {
+    const buffers = [_]BufferWindowObservation{
+        .{ .base_token = 0x1000 },
+        .{},
+        .{ .base_token = 0x2000 },
+    };
+
+    const success = resolveBufferWindowResultFromSlots(&buffers, 2, 8192);
+    try std.testing.expectEqual(BufferWindowDisposition.buffer_window, success.disposition);
+    try std.testing.expectEqual(@as(i32, 0), success.return_value);
+    try std.testing.expectEqual(@as(?BufferWindow, .{
+        .base_token = 0x2000,
+        .mmap_size = 8192,
+    }), success.window);
+
+    const missing = resolveBufferWindowResultFromSlots(&buffers, 1, 8192);
+    try std.testing.expectEqual(BufferWindowDisposition.missing_buffer, missing.disposition);
+    try std.testing.expectEqual(
+        -@as(i32, @intFromEnum(std.os.linux.E.NOENT)),
+        missing.return_value,
+    );
+    try std.testing.expectEqual(@as(?BufferWindow, null), missing.window);
+
+    const invalid = resolveBufferWindowResultFromSlots(&buffers, 4, 8192);
+    try std.testing.expectEqual(BufferWindowDisposition.invalid_index, invalid.disposition);
+    try std.testing.expectEqual(
+        -@as(i32, @intFromEnum(std.os.linux.E.INVAL)),
+        invalid.return_value,
+    );
+    try std.testing.expectEqual(@as(?BufferWindow, null), invalid.window);
 }
 
 test "summarizePoll keeps bounded ready observations compact and reviewable" {
