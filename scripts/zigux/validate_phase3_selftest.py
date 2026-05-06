@@ -5,12 +5,13 @@ import argparse
 import subprocess
 import sys
 import tempfile
+from collections import Counter
 from dataclasses import dataclass
 from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[2]
-PHASE3_VALIDATOR_SELF_TEST_CASE_COUNT = 16
+PHASE3_VALIDATOR_SELF_TEST_CASE_COUNT = 18
 
 
 @dataclass(frozen=True)
@@ -56,6 +57,10 @@ SELF_TEST_TARGETS = (
 )
 
 
+def exact_output_marker_count(output: str, marker: str) -> int:
+    return Counter(output.splitlines()).get(marker, 0)
+
+
 def run_targets(root: Path, targets: tuple[SelfTestTarget, ...] = SELF_TEST_TARGETS) -> list[str]:
     issues: list[str] = []
     for target in targets:
@@ -80,11 +85,18 @@ def run_targets(root: Path, targets: tuple[SelfTestTarget, ...] = SELF_TEST_TARG
                 issues.append(f"self_test_stderr:{target.relpath}:{stderr}")
             continue
 
-        if target.marker and target.marker not in completed.stdout:
-            issues.append(f"missing_pass_marker:{target.relpath}:{target.marker}")
+        if target.marker:
+            marker_count = exact_output_marker_count(completed.stdout, target.marker)
+            if marker_count == 0:
+                issues.append(f"missing_pass_marker:{target.relpath}:{target.marker}")
+            elif marker_count != 1:
+                issues.append(f"duplicate_pass_marker:{target.relpath}:{marker_count}:{target.marker}")
         for marker in target.extra_markers:
-            if marker not in completed.stdout:
+            marker_count = exact_output_marker_count(completed.stdout, marker)
+            if marker_count == 0:
                 issues.append(f"missing_aux_marker:{target.relpath}:{marker}")
+            elif marker_count != 1:
+                issues.append(f"duplicate_aux_marker:{target.relpath}:{marker_count}:{marker}")
 
     return issues
 
@@ -185,6 +197,38 @@ def run_self_test() -> int:
             in issues
         )
 
+        substring_marker_root = Path(tmp_dir) / "substring-marker"
+        for target in SELF_TEST_TARGETS:
+            path = substring_marker_root / target.relpath
+            if target.relpath.endswith("validate-phase3.py"):
+                path.parent.mkdir(parents=True, exist_ok=True)
+                path.write_text(
+                    "\n".join(
+                        [
+                            "#!/usr/bin/env python3",
+                            "from __future__ import annotations",
+                            "",
+                            "import sys",
+                            "",
+                            'if "--self-test" in sys.argv:',
+                            '    print("note: PHASE3_VALIDATE_SELF_TEST=pass appears here but is not a standalone marker")',
+                            "    raise SystemExit(0)",
+                            "",
+                            'raise SystemExit("expected --self-test")',
+                            "",
+                        ]
+                    ),
+                    encoding="utf-8",
+                    newline="\n",
+                )
+                continue
+            write_script(path, target.marker or "PASS", extra_markers=target.extra_markers)
+        issues = run_targets(substring_marker_root)
+        assert (
+            "missing_pass_marker:scripts/zigux/validate-phase3.py:PHASE3_VALIDATE_SELF_TEST=pass"
+            in issues
+        )
+
         marker_root = Path(tmp_dir) / "marker"
         for target in SELF_TEST_TARGETS:
             marker = (
@@ -273,6 +317,40 @@ def run_self_test() -> int:
                 extra_markers=extra_markers,
             )
         issues = run_targets(catalog_selftest_count_root)
+        assert (
+            "missing_aux_marker:scripts/zigux/check-phase3-catalog-selftest.py:"
+            "PHASE3_CATALOG_SELF_TEST_CASE_COUNT=6"
+            in issues
+        )
+
+        catalog_selftest_count_substring_root = Path(tmp_dir) / "catalog-selftest-count-substring"
+        for target in SELF_TEST_TARGETS:
+            path = catalog_selftest_count_substring_root / target.relpath
+            if target.relpath.endswith("check-phase3-catalog-selftest.py"):
+                path.parent.mkdir(parents=True, exist_ok=True)
+                path.write_text(
+                    "\n".join(
+                        [
+                            "#!/usr/bin/env python3",
+                            "from __future__ import annotations",
+                            "",
+                            "import sys",
+                            "",
+                            'if "--self-test" in sys.argv:',
+                            '    print("PHASE3_CATALOG_SELF_TEST=pass")',
+                            '    print("note: PHASE3_CATALOG_SELF_TEST_CASE_COUNT=6 is mentioned here but is not exact")',
+                            "    raise SystemExit(0)",
+                            "",
+                            'raise SystemExit("expected --self-test")',
+                            "",
+                        ]
+                    ),
+                    encoding="utf-8",
+                    newline="\n",
+                )
+                continue
+            write_script(path, target.marker or "PASS", extra_markers=target.extra_markers)
+        issues = run_targets(catalog_selftest_count_substring_root)
         assert (
             "missing_aux_marker:scripts/zigux/check-phase3-catalog-selftest.py:"
             "PHASE3_CATALOG_SELF_TEST_CASE_COUNT=6"
