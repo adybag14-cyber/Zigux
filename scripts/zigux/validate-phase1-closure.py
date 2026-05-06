@@ -510,6 +510,14 @@ def count_manifest_review_anchor_expectations() -> int:
     )
 
 
+def count_manifest_metadata_expectations() -> int:
+    return 4 + len(EXPECTED_HELPERS)
+
+
+def count_bench_expectation_expectations() -> int:
+    return 1 + len(EXPECTED_BENCH_ITERATIONS) + len(EXPECTED_BENCH_CHECKSUMS)
+
+
 def render_marker_fixture(markers: list[tuple[str, str, int]]) -> str:
     return "\n".join(marker for _, marker, _ in markers) + "\n"
 
@@ -704,7 +712,7 @@ def main() -> int:
     print(f"PHASE1_CLOSURE_REQUIRED_FILE_COUNT={len(REQUIRED_FILES)}")
     print(
         "PHASE1_CLOSURE_REQUIRED_MARKER_COUNT="
-        f"{len(REQUIRED_CLOSURE_MARKERS) + len(REQUIRED_WORKFLOW_MARKERS) + len(REQUIRED_EXACT_WORKFLOW_MARKERS) + len(REQUIRED_PHASE1_WORKFLOW_MARKERS) + len(REQUIRED_BUILD_MARKERS) + len(REQUIRED_LEDGER_MARKERS) + len(REQUIRED_MAKEFILE_MARKERS) + len(REQUIRED_DOCS_ROOT_MARKERS) + len(REQUIRED_SCRIPTS_README_MARKERS) + len(REQUIRED_TESTS_README_MARKERS) + len(REQUIRED_REVIEW_CHECKLIST_MARKERS) + count_manifest_review_anchor_expectations()}"
+        f"{len(REQUIRED_CLOSURE_MARKERS) + len(REQUIRED_WORKFLOW_MARKERS) + len(REQUIRED_EXACT_WORKFLOW_MARKERS) + len(REQUIRED_PHASE1_WORKFLOW_MARKERS) + len(REQUIRED_BUILD_MARKERS) + len(REQUIRED_LEDGER_MARKERS) + len(REQUIRED_MAKEFILE_MARKERS) + len(REQUIRED_DOCS_ROOT_MARKERS) + len(REQUIRED_SCRIPTS_README_MARKERS) + len(REQUIRED_TESTS_README_MARKERS) + len(REQUIRED_REVIEW_CHECKLIST_MARKERS) + count_manifest_review_anchor_expectations() + count_manifest_metadata_expectations() + count_bench_expectation_expectations()}"
     )
     return 0
 
