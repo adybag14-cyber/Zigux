@@ -49,6 +49,22 @@ Without this matrix, the slice, survey, manifest, and shared review surfaces wou
 | registration-facing handoff | `registrationSummary()` now keeps watchdog info selection, parent linkage, timeout-programming intent, and the bounded `watchdog_register_device` call reviewable before any live platform-backed driver work | `zig build test --build-file zigux/tests/phase11_build.zig --summary all` via the new registration-summary checks in `zigux/tests/phase11_dw_wdt.zig` and the manifest-backed survey assertions in `zigux/tests/phase11_dw_wdt_survey.zig`, kept on the shared Phase 11 route by `Documentation/zigux/phase11-shared-replay-contract.md` | attach this handoff to platform-backed registration scaffolding plus a hardware-validation plan | actual `platform_device` lifetime, watchdog-core registration side effects, clock and reset acquisition, and IRQ ownership |
 | platform registration and PM behavior | no live Zigux implementation yet; the current repo only records these as the next kernel-facing checkpoint in the slice, survey, manifest, and shared replay contract | none beyond the survey or manifest guard that keeps the missing work explicit | keep the next step narrowed to one platform-backed registration and hardware-validation plan before any PM or MMIO scaffold | platform-driver registration, clock and reset acquisition, IRQ registration, debugfs support, suspend or resume handling, and live MMIO validation |
 
+## Shared Replay Surface
+
+- current shared replay wiring on `master` includes both `phase11-dw-wdt-tests` and `phase11-dw-wdt-survey-tests`
+- exact shared commands:
+  - `zig build test --build-file zigux/tests/phase11_build.zig --summary all`
+  - `make -C zigux phase11`
+- shared replay posture for this watchdog lane:
+  - `phase11-dw-wdt-tests` and `phase11-dw-wdt-survey-tests` remain the shared Phase 11 artifacts that cover this DesignWare packet
+  - the focused shared header-boundary packet from `Documentation/zigux/phase11-uapi-header-parity-survey.md` plus `scripts/zigux/check-phase11-header-boundary-packet.py` stays explicit beside those watchdog-local replays inside the same shipped Phase 11 route
+  - full-bundle green status for the wider current Phase 11 replay is intentionally tracked outside this watchdog-local matrix because unrelated non-watchdog drift can reopen elsewhere on `master`
+- included DesignWare artifacts:
+  - `phase11-dw-wdt-tests`
+  - `phase11-dw-wdt-survey-tests`
+- focused survey replay command:
+  - `zig test zigux/tests/phase11_dw_wdt_survey.zig`
+
 ## Review Rules
 
 - treat this lane as a bounded driver-starter plus validation-note lane until platform-backed registration scaffolding actually lands
