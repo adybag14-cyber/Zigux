@@ -8,7 +8,7 @@ The starter stays intentionally narrow:
 - preserves the Linux driver rule that poll queues are clamped so at least one default request queue remains
 - classifies each planned request queue as either `request` or `request_poll` with stable global virtqueue indexes starting after the control and event queues
 - records one bounded `virtscsi_probe()` config snapshot through `num_queues`, `seg_max`, `cmd_per_lun`, `max_target`, `max_lun`, `max_sectors`, and the derived control or event versus request virtqueue layout before any blk-mq submission or DMA-backed queue work
-- records the fixed event-buffer fanout used by the driver without claiming event work handling, request submission, or live transport reset completion
+- records the fixed event-buffer fanout used by the driver and derives one bounded restore-time event-buffer ownership summary so the event queue remains reserved across freeze and restore without claiming event work handling, request submission, or live transport reset completion
 - freezes queue planning and event recycling intent across a lab-only transport freeze or restore boundary, then clears the old queue snapshot so the next step must replan instead of pretending virtqueues stayed live
 - derives one bounded restore-sequencing summary from the frozen queue layout so the starter keeps `virtscsi_restore()` calling `find_vqs`, `virtio_device_ready()`, and event rearm reviewable without pretending to re-run `scsi_scan_host()`
 
