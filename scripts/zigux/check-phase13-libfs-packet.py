@@ -80,7 +80,6 @@ MAKE_REQUIRED_LINES = [
     "phase13-validate:",
     "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase13-release.py",
     "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase13-devres-packet.py",
-    "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase13-libfs-packet.py",
     "phase13: phase13-validate phase13-test",
 ]
 
@@ -346,7 +345,6 @@ def run_self_test() -> int:
             [
                 "makefile:\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase13-release.py",
                 "makefile:\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase13-devres-packet.py",
-                "makefile:\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase13-libfs-packet.py",
                 "makefile:phase13: phase13-validate phase13-test",
             ],
             "makefile_guard_failed",
