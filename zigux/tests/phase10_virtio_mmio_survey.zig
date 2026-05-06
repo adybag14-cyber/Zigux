@@ -80,11 +80,14 @@ test "phase10 virtio mmio survey manifest records the live helper-backed transpo
     defer parsed.deinit();
 
     const manifest = parsed.value;
-    try std.testing.expectEqualStrings("P10-L18", manifest.lane_key);
+    try std.testing.expectEqualStrings("P10-L10", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 10", manifest.phase);
     try std.testing.expectEqualStrings("drivers/virtio/virtio_mmio.c", manifest.anchor);
     try std.testing.expectEqualStrings("5f476437a4a3b91d840dd75fca0bf684d1ccc4dd", manifest.surveyed_commit);
-    try std.testing.expectEqual(@as(usize, 2), manifest.roadmap_destinations.len);
+    try std.testing.expectEqual(@as(usize, 3), manifest.roadmap_destinations.len);
+    try std.testing.expectEqualStrings("drivers/virtio/*.zig", manifest.roadmap_destinations[0]);
+    try std.testing.expectEqualStrings("zigux/kernel/", manifest.roadmap_destinations[1]);
+    try std.testing.expectEqualStrings("zigux/helpers/", manifest.roadmap_destinations[2]);
     try std.testing.expectEqualStrings("Documentation/zigux/freeze-map.md", manifest.freeze_map);
     try std.testing.expectEqualStrings("aligned", manifest.freeze_boundary_status);
     try std.testing.expect(!manifest.freeze_status_change_claimed);
@@ -115,6 +118,7 @@ test "phase10 virtio mmio survey manifest records the live helper-backed transpo
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "absolute end offset and changed-byte mask") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "without mutating config space") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "probe-preflight summary flips from ready to blocked") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "justified `zigux/kernel/` or `zigux/helpers/` support surfaces") != null);
     try std.testing.expect(std.mem.indexOf(u8, slice_note, "PHASE10_STATUS=parked") != null);
     try std.testing.expect(std.mem.indexOf(u8, slice_note, "drivers/virtio/virtio_mmio.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, slice_note, "config-word write planning summary") != null);
