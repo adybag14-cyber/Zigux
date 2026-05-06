@@ -11,6 +11,7 @@ This document records the live Phase 4 differential-validation ownership and rep
   - `scripts/zigux/check-phase4-gate-evidence.py`
   - `Documentation/zigux/artifact-diff.md`
   - `Documentation/zigux/phase4-gate-evidence.md`
+  - `Documentation/zigux/review-checklist.md`
   - `Documentation/zigux/README.md`
   - `scripts/zigux/README.md`
   - `zigux/tests/README.md`
@@ -23,7 +24,7 @@ This document records the live Phase 4 differential-validation ownership and rep
   - `zigux/tests/phase4_build.zig`
   - `scripts/zigux/validate-phase4.py`
   - `.github/workflows/zigux-bootstrap.yml`
-- roadmap note: live `master` now carries the roadmap-named Phase 4 entrypoints at `zigux/tests/atomic64_diff.zig` and `zigux/tests/bitmap_diff.zig`, while the manifest-backed `phase4_runtime_atomic64_diff` survey packet keeps the wrapper-to-runtime atomic64 handoff measurable until the still-absent `samples/zigux/kprobe_example.zig` and `samples/zigux/test_fsmount.zig` follow-up work is intentionally opened, and `Documentation/zigux/README.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md` keep that validator-first packet visible from the three shared root summaries
+- roadmap note: live `master` now carries the roadmap-named Phase 4 entrypoints at `zigux/tests/atomic64_diff.zig` and `zigux/tests/bitmap_diff.zig`, while the manifest-backed `phase4_runtime_atomic64_diff` survey packet keeps the wrapper-to-runtime atomic64 handoff measurable until the still-absent `samples/zigux/kprobe_example.zig` and `samples/zigux/test_fsmount.zig` follow-up work is intentionally opened, and `Documentation/zigux/review-checklist.md`, `Documentation/zigux/README.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md` keep that validator-first packet visible from the shared review and root summaries
 
 ## Why this exists
 
@@ -32,6 +33,7 @@ The roadmap says Phase 4 must make future Zigux ports measurable and reversible.
 - the current perf threshold status for those gates
 - the manifest-backed survey packet that keeps the atomic64 wrapper-to-runtime handoff measurable
 - the shipped host-side artifact-diff contract packet and the dedicated gate-evidence checker-plus-note packet that the broader validator already depends on
+- the shared review-checklist guardrail that keeps the same Phase 4 packet explicit when reviewers touch it
 - the remaining roadmap-backed gaps that are still intentionally outside the shipped Phase 4 packet
 
 Without that record, Phase 4 validation exists in code but not yet as a product-facing ownership note.
@@ -71,7 +73,7 @@ Without that record, Phase 4 validation exists in code but not yet as a product-
 - phase bucket: `Phase 4 reviewability survey for the runtime atomic64 wrapper handoff`
 - owner: `ABI and Runtime Team`
 - rollback owner: `ABI and Runtime Team`
-- implementation note: the survey keeps `zigux/tests/atomic64_diff.zig`, `zigux/tests/runtime_atomic64_diff.zig`, `zigux/tests/phase4_build.zig`, `scripts/zigux/validate-phase4.py`, and this matrix aligned around the same bounded wrapper-first handoff
+- implementation note: the survey keeps `zigux/tests/atomic64_diff.zig`, `zigux/tests/runtime_atomic64_diff.zig`, `zigux/tests/phase4_build.zig`, `scripts/zigux/validate-phase4.py`, `Documentation/zigux/review-checklist.md`, and this matrix aligned around the same bounded wrapper-first handoff
 - fallback path: keep the wrapper, the runtime replay body, and this matrix as the source of truth and remove the survey from the shared Phase 4 build entrypoint if the manifest drifts
 - perf threshold status: reviewability-only survey today; it inherits `threshold_pending_until_runtime_atomic64_scope_widens`
 
@@ -99,12 +101,12 @@ lane surface purpose owner rollback owner bootstrap CI replay local lab replay t
 `scripts/zigux/check-artifact-diff-contract.py` bounded host-side `artifact_diff.py` CLI contract replay for text, JSON, SHA-256, missing-path, malformed-input, and repeat-run determinism `Tooling and Validation Team` `Tooling and Validation Team` `python3 scripts/zigux/validate-phase4.py` in `.github/workflows/zigux-bootstrap.yml`, which reruns the contract checker before the Zig gates `python3 scripts/zigux/check-artifact-diff-contract.py` then `python3 scripts/zigux/validate-phase4.py` `reviewability_only_no_perf_threshold`
 `scripts/zigux/check-phase4-gate-evidence.py` dedicated exact-readback replay for the shipped rollback-ownership note, validator-backed blob pins, the runtime atomic64 manifest-backed survey pair, and the still-absent sample and perf-baseline packet flags `Tooling and Validation Team` `Tooling and Validation Team` `python3 scripts/zigux/validate-phase4.py` in `.github/workflows/zigux-bootstrap.yml`, which reruns the gate-evidence checker before the Zig gates `python3 scripts/zigux/check-phase4-gate-evidence.py` then `python3 scripts/zigux/validate-phase4.py` `reviewability_only_no_perf_threshold`
 `zigux/tests/atomic64_diff.zig` bounded atomic64 exchange, cmpxchg, add_unless, bitwise, and selftest-family replay via the shared runtime-backed gate `ABI and Runtime Team` `ABI and Runtime Team` `python3 scripts/zigux/validate-phase4.py` then `zig build test --build-file zigux/tests/phase4_build.zig` in `.github/workflows/zigux-bootstrap.yml` `zig build phase4-runtime-atomic64-diff --build-file zigux/tests/phase4_build.zig` `threshold_pending_until_runtime_atomic64_scope_widens`
-`zigux/tests/phase4_runtime_atomic64_diff_survey.zig` manifest-backed survey that keeps the wrapper, runtime replay body, validator, and matrix aligned around the same bounded atomic64 handoff `ABI and Runtime Team` `ABI and Runtime Team` `python3 scripts/zigux/validate-phase4.py` then `zig build test --build-file zigux/tests/phase4_build.zig` in `.github/workflows/zigux-bootstrap.yml` `zig build phase4-runtime-atomic64-diff-survey --build-file zigux/tests/phase4_build.zig` `threshold_pending_until_runtime_atomic64_scope_widens`
+`zigux/tests/phase4_runtime_atomic64_diff_survey.zig` manifest-backed survey that keeps the wrapper, runtime replay body, validator, matrix, and reviewer checklist aligned around the same bounded atomic64 handoff `ABI and Runtime Team` `ABI and Runtime Team` `python3 scripts/zigux/validate-phase4.py` then `zig build test --build-file zigux/tests/phase4_build.zig` in `.github/workflows/zigux-bootstrap.yml` `zig build phase4-runtime-atomic64-diff-survey --build-file zigux/tests/phase4_build.zig` `threshold_pending_until_runtime_atomic64_scope_widens`
 `zigux/tests/bitmap_diff.zig` bounded broad bitmap rollback-readiness replay covering range, prefix, copy, exact `find_nth_bit`, and checksum-pinned threshold-replay checkpoints `Shared Subsystems Pod` `Shared Subsystems Pod` `python3 scripts/zigux/validate-phase4.py` then `zig build test --build-file zigux/tests/phase4_build.zig` in `.github/workflows/zigux-bootstrap.yml` `zig build phase4-bitmap-diff --build-file zigux/tests/phase4_build.zig` `threshold_pending_until_bitmap_gate_grows_beyond_bounded_correctness_checks`
 `zigux/tests/phase4_bitmap_live_helper_replay.zig` helper-backed replay of the shipped `tools/lib/bitmap.zig` and `tools/lib/find_bit.zig` semantics on the shared Phase 4 entrypoint `Shared Subsystems Pod` `Shared Subsystems Pod` `python3 scripts/zigux/validate-phase4.py` then `zig build test --build-file zigux/tests/phase4_build.zig` in `.github/workflows/zigux-bootstrap.yml` `zig build phase4-bitmap-live-helper-replay --build-file zigux/tests/phase4_build.zig` `threshold_pending_until_bitmap_gate_grows_beyond_bounded_correctness_checks`
 The shared `zigux/tests/phase4_build.zig` entrypoint now runs `zigux/tests/phase4_runtime_atomic64_diff_survey.zig` beside `zigux/tests/atomic64_diff.zig`, `zigux/tests/bitmap_diff.zig`, and `zigux/tests/phase4_bitmap_live_helper_replay.zig` so the manifest-backed wrapper handoff and the shipped helper-backed bitmap semantics stay reviewable on the same bounded Phase 4 replay surface.
 The matching Linux-style local wrappers are `make -C zigux phase4-validate`, `make -C zigux phase4-test`, `make -C zigux phase4-runtime-atomic64-diff`, `make -C zigux phase4-runtime-atomic64-diff-survey`, `make -C zigux phase4-bitmap-diff`, `make -C zigux phase4-bitmap-live-helper-replay`, and `make -C zigux phase4`, so the lab matrix and the current `zigux/Makefile` replay surface stay aligned instead of leaving those local routes implicit beside the direct `python3` and `zig build` commands listed above.
-The same validator-first route also keeps `Documentation/zigux/artifact-diff.md` aligned with the shipped host-side helper contract, `Documentation/zigux/phase4-gate-evidence.md` aligned with the dedicated exact-readback checker, and the three shared root README summaries aligned with that same narrower validator-backed packet instead of leaving any of those review surfaces implied.
+The same validator-first route also keeps `Documentation/zigux/artifact-diff.md`, `Documentation/zigux/phase4-gate-evidence.md`, `Documentation/zigux/review-checklist.md`, and the three shared root README summaries aligned with the shipped host-side helper contract, the dedicated exact-readback checker, and the same narrower validator-backed packet instead of leaving any of those review surfaces implied.
 
 ## Remaining Roadmap Gaps
 
