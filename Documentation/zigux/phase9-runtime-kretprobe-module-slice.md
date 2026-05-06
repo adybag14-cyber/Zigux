@@ -27,6 +27,9 @@ The Phase 9 roadmap explicitly names `samples/kprobes/kretprobe_example.c` as a 
 
 The live repo already had runtime pilot starters for atomic64, bitmap, and trace-events, but it still had no kretprobe lane foothold. This slice lands the smallest honest kretprobe follow-on step: a sample-backed lifecycle scaffold that models entry timestamps, return values, duration, missed-instance bookkeeping, and now the loader handoff plan without claiming `register_kretprobe()` or loadable-module parity.
 
+This runtime kretprobe starter also stays outside the landed Phase 5 reference-sample packet: `samples/zigux/runtime_kretprobe.zig` and `samples/zigux/runtime_kretprobe_loader.zig` remain the separate Phase 9 runtime kretprobe family rooted in `samples/kprobes/kretprobe_example.c`, not a second owner for the already-approved non-runtime `samples/zigux/kretprobe_example.zig` cue under `Documentation/zigux/phase5-kretprobe-sample-survey.md`.
+The shared sample-root catalog at `samples/zigux/README.md` keeps the approved Phase 5 anchor explicit through `samples/zigux/kretprobe_example.zig` while listing the runtime kretprobe pair only under the separate Phase 9 runtime pilot family.
+
 ## Landed starter surface
 
 - module descriptor metadata naming the `samples/kprobes/kretprobe_example.c` anchor
