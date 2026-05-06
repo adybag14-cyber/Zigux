@@ -220,7 +220,7 @@ test "phase12 virtio_scsi survey manifest records the landed queue starter and p
     try std.testing.expectEqual(@as(usize, 0), ready_next_count);
     try std.testing.expectEqual(@as(usize, 1), blocked_count);
     try std.testing.expect(saw_build_gate);
-    try std.testing.expect(saw_makeTarget);
+    try std.testing.expect(saw_make_target);
     try std.testing.expect(saw_core_foundation);
     try std.testing.expect(saw_ring_foundation);
     try std.testing.expect(saw_survey_gate);
