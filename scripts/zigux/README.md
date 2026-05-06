@@ -22,6 +22,7 @@ Current bootstrap helpers
 - `validate_phase3_selftest.py`
 - `check-phase3-selftest-surface.py`
 - `check-phase3-readme-tooling-inventory.py`
+- `check-phase3-abi-dump-gate.py`
 - `check-phase3-catalog-selftest.py`
 - `validate-phase3-policy-unsafe-survey.py`
 - `validate-phase3-low-level-wrapper-survey.py`
