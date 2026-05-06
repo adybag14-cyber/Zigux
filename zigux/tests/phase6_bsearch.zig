@@ -428,7 +428,7 @@ test "phase 6 bsearch accepts runtime-selected raw c abi comparator pointers" {
 }
 
 test "phase 6 bsearch accepts runtime-selected descending raw c abi comparator pointers" {
-    var values = [_]u32{ 89, 55, 34, 21, 13, 8, 3 };
+    var values = [_]u32{ 89, 55, 34, 21, 21, 21, 13, 8, 3 };
     const comparators = [_]bsearch.CRawComparator{ compareDescendingOpaqueU32C, compareDescendingOpaqueU32C };
 
     for (comparators) |compare| {
@@ -439,18 +439,20 @@ test "phase 6 bsearch accepts runtime-selected descending raw c abi comparator p
             @sizeOf(u32),
             compare,
         ) orelse return error.TestUnexpectedResult;
-        try std.testing.expectEqual(@as(usize, 3), index);
+        try std.testing.expect(index >= 3 and index <= 5);
+        try std.testing.expectEqual(@as(u32, 21), values[index]);
 
         const found = bsearch.bsearch(
-            &@as(u32, 13),
+            &@as(u32, 21),
             @ptrCast(values[0..].ptr),
             values.len,
             @sizeOf(u32),
             compare,
         ) orelse return error.TestUnexpectedResult;
         const typed_found: *const u32 = @ptrCast(@alignCast(found));
-        try std.testing.expectEqual(@as(u32, 13), typed_found.*);
-        try std.testing.expectEqual(@intFromPtr(&values[4]), @intFromPtr(typed_found));
+        const found_index = (@intFromPtr(typed_found) - @intFromPtr(&values[0])) / @sizeOf(u32);
+        try std.testing.expect(found_index >= 3 and found_index <= 5);
+        try std.testing.expectEqual(@as(u32, 21), typed_found.*);
 
         try std.testing.expectEqual(
             @as(?usize, null),
