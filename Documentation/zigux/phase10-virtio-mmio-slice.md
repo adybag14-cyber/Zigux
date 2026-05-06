@@ -6,7 +6,7 @@ This document tracks the first bounded `drivers/virtio/virtio_mmio.c` lab helper
 
 - `PHASE10_STATUS=parked`
 - `PHASE10_SLICE=virtio-mmio-lab-helper`
-- scope: identity-register reads, one bounded device-feature selector and read window, one bounded transport-backed config-word window, one bounded config-word write planning summary, one bounded config-write disposition summary, one explicit transport-identity summary, one bounded probe-preflight summary, queue-selected register reads, queue_num_max and queue_num bookkeeping, queue_ready bookkeeping, helper-local status and config-generation bookkeeping, helper-local interrupt-status staging, dedicated Phase 10 MMIO tests, the committed MMIO survey manifest and survey gate, the dedicated MMIO packet review guard, the shared Phase 10 core, ring, and input packet guards, the shared reset-queue, driver-id, and input status-drain replays, the shorter-restage stale-data replay proof, and the shared Phase 10 build-and-make routes
+- scope: identity-register reads, one bounded device-feature selector and read window, one bounded transport-backed config-word window, one bounded config-word write planning summary, one bounded config-write disposition summary, one explicit transport-identity summary, one bounded probe-preflight summary, one bounded selected-queue readiness summary, queue-selected register reads, queue_num_max and queue_num bookkeeping, queue_ready bookkeeping, helper-local status and config-generation bookkeeping, helper-local interrupt-status staging, dedicated Phase 10 MMIO tests, the committed MMIO survey manifest and survey gate, the dedicated MMIO packet review guard, the shared Phase 10 core, ring, and input packet guards, the shared reset-queue, driver-id, and input status-drain replays, the shorter-restage stale-data replay proof, and the shared Phase 10 build-and-make routes
 - product boundary:
   - `drivers/virtio/virtio_mmio.zig`
   - `zigux/tests/phase10_virtio_mmio.zig`
@@ -31,13 +31,13 @@ This document tracks the first bounded `drivers/virtio/virtio_mmio.c` lab helper
   - `zigux/tests/phase10_build.zig`
   - `zigux/Makefile`
 - current review note:
-  - current `master` carries a dedicated survey note and survey gate, the committed `zigux/tests/phase10_virtio_mmio_manifest.json` anchor, the dedicated `check-phase10-mmio-packet.py` guard, the shared `scripts/zigux/check-phase10-core-packet.py`, `scripts/zigux/check-phase10-ring-packet.py`, and `scripts/zigux/check-phase10-input-packet.py` guards, the shared `zigux/tests/phase10_virtio_core_reset_queue.zig`, `zigux/tests/phase10_virtio_driver_id.zig`, and `zigux/tests/phase10_virtio_input_status_drain.zig` replays, the shorter-restage stale-data replay proof in `zigux/tests/phase10_virtio_mmio.zig`, and the shared `phase10_build.zig` plus Linux-style `make -C zigux phase10-test` and `make -C zigux phase10` routes; reviewers should treat the MMIO lane as one bounded manifest-backed checker-backed packet instead of a slice-note-only surface
+  - current `master` carries a dedicated survey note and survey gate, the committed `zigux/tests/phase10_virtio_mmio_manifest.json` anchor, the dedicated `check-phase10-mmio-packet.py` guard, the shared `scripts/zigux/check-phase10-core-packet.py`, `scripts/zigux/check-phase10-ring-packet.py`, and `scripts/zigux/check-phase10-input-packet.py` guards, the shared `zigux/tests/phase10_virtio_core_reset_queue.zig`, `zigux/tests/phase10_virtio_driver_id.zig`, and `zigux/tests/phase10_virtio_input_status_drain.zig` replays, the shorter-restage stale-data replay proof in `zigux/tests/phase10_virtio_mmio.zig`, the selected-queue readiness replay proof in `zigux/tests/phase10_virtio_mmio.zig`, and the shared `phase10_build.zig` plus Linux-style `make -C zigux phase10-test` and `make -C zigux phase10` routes; reviewers should treat the MMIO lane as one bounded manifest-backed checker-backed packet instead of a slice-note-only surface
 
 ## Why this slice exists
 
 The Phase 10 roadmap puts virtqueue wrappers ahead of MMIO work, but it also names `drivers/virtio/virtio_mmio.c` as the next transport-facing anchor after the earlier core, ring, and lab-driver footholds.
 
-The live repo already had a survey lane that made the MMIO gap explicit. This slice records the smallest honest landed follow-on: a lab-only helper that exposes a bounded queue-selected register window, queue size bookkeeping, one device-feature selector and read window, one small transport-backed config-word window, one config-word write planning summary, one config-write disposition summary for that prepared word window, one explicit transport-identity summary for magic, version, device ID, vendor ID, and legacy guest-page-size posture, one probe-preflight summary that consumes that identity snapshot for the earliest `virtio_mmio_probe()`-style checks, and helper-local status or generation bookkeeping without pretending to own interrupt acknowledgement, reset flows, queue discovery, or probe lifecycle behavior.
+The live repo already had a survey lane that made the MMIO gap explicit. This slice records the smallest honest landed follow-on: a lab-only helper that exposes a bounded queue-selected register window, queue size bookkeeping, one device-feature selector and read window, one small transport-backed config-word window, one config-word write planning summary, one config-write disposition summary for that prepared word window, one explicit transport-identity summary for magic, version, device ID, vendor ID, and legacy guest-page-size posture, one probe-preflight summary that consumes that identity snapshot for the earliest `virtio_mmio_probe()`-style checks, one selected-queue readiness summary that keeps `queue_num`, `queue_num_max`, and `queue_ready` reviewable as a compact queue-handoff snapshot, and helper-local status or generation bookkeeping without pretending to own interrupt acknowledgement, reset flows, queue discovery, or probe lifecycle behavior.
 
 That keeps the bounded MMIO review packet honest about what is really landed while preserving the same blocked posture for broader transport-facing lifecycle work.
 
@@ -51,6 +51,7 @@ That keeps the bounded MMIO review packet honest about what is really landed whi
 - one bounded config-write disposition summary that reports the absolute end of the prepared config-word window plus a changed-byte mask without mutating the staged config window
 - one explicit transport-identity summary for magic, version, device ID, vendor ID, and legacy guest-page-size posture before lifecycle work
 - one bounded probe-preflight summary that keeps the earliest `virtio_mmio_probe()`-style checks reviewable through the shared identity snapshot, device presence, vendor presence, legacy guest-page-size intent, bounded queue-register readiness, and interrupt-ack readiness
+- one bounded selected-queue readiness summary that keeps `queue_num_max`, `queue_num`, and `queue_ready` reviewable as a queue-handoff snapshot before broader transport work
 - queue-selected reads for `queue_num_max`, `queue_num`, and `queue_ready`
 - bounded queue selection with queue-count range checks
 - bounded queue-size programming that rejects zero, non-power-of-two, oversized, and above-maximum queue counts
@@ -62,7 +63,7 @@ That keeps the bounded MMIO review packet honest about what is really landed whi
 
 ## Ownership Handoff
 
-This MMIO slice owns only driver-local lab slices and shared validation gates for the landed register, feature-word, config-window, config-write planning, transport-identity, config-write disposition, probe-preflight, queue-size, status, generation, and interrupt-staging helper surface.
+This MMIO slice owns only driver-local lab slices and shared validation gates for the landed register, feature-word, config-window, config-write planning, transport-identity, config-write disposition, probe-preflight, selected-queue readiness, queue-size, status, generation, and interrupt-staging helper surface.
 
 It does not own queue setup or reset paths, IRQ parity, DMA paths, input registration lifecycle, and probe or remove lifecycle behavior.
 
