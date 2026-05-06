@@ -20,7 +20,7 @@ This note records the current atomic, barrier, and MMIO boundary for the bounded
 - `PHASE3_LOW_LEVEL_TEST_PATH=zigux/tests/phase3_low_level_wrappers.zig`
 - `PHASE3_LOW_LEVEL_TEST_SCOPE=focused-atomic-barrier-mmio-replay-plus-signed-atomic-edges-barrier-locality-and-non-seq-cst-ordering`
 - `PHASE3_LOW_LEVEL_TEST_STATUS=dedicated-focused-replay-widened-for-current-helper-surface`
-- `PHASE3_LOW_LEVEL_TEST_BLOB_SHA=95ff2816246af1c40534d053685e8e059ec268b4`
+- `PHASE3_LOW_LEVEL_TEST_BLOB_SHA=0e24ff85608b44d9e81d3075b89a5babc242b0a2`
 - `PHASE3_ABI_TEST_PATH=zigux/tests/phase3_abi.zig`
 - `PHASE3_ABI_TEST_BLOB_SHA=7c3c7887bb23d1acccd835ed3bb71eba3824c45d`
 - `PHASE3_ABI_DUMP_PATH=zigux/tests/phase3_abi_dump.zig`
