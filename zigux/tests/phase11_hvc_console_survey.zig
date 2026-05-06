@@ -132,6 +132,7 @@ test "phase11 hvc_console survey manifest records the landed starter and tty han
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "tty-registration handoff helper") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "sysrq handoff helper") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "notifier handoff helper") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "targetless no-unregister edge") != null);
         }
 
         if (std.mem.eql(u8, gap.id, "phase11-hvc-console-winsize-layout-assert")) {
@@ -194,6 +195,7 @@ test "phase11 hvc_console survey manifest records the landed starter and tty han
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "tty-registration handoff") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "sysrq handoff") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "notifier handoff") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "targetless no-unregister edge") != null);
         }
 
         if (std.mem.eql(u8, gap.id, "phase11-hvc-console-validation-matrix")) {
@@ -205,6 +207,7 @@ test "phase11 hvc_console survey manifest records the landed starter and tty han
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "tty-registration handoff") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "sysrq handoff") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "notifier-facing") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "targetless notifier no-unregister edge") != null);
         }
 
         if (std.mem.eql(u8, gap.id, "phase11-hvc-console-tty-and-teardown-parity")) {
@@ -235,6 +238,8 @@ test "phase11 hvc_console survey manifest records the landed starter and tty han
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "deferred unregister timing") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "never-registered path") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "unregister timing stays false") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "targetless path") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "no notifier target was wired") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "worker execution") != null);
         }
 
@@ -314,6 +319,7 @@ test "phase11 hvc_console survey gate proves validation matrix coverage directly
     try std.testing.expect(std.mem.indexOf(u8, matrix, "notifier callback boundary") != null);
     try std.testing.expect(std.mem.indexOf(u8, matrix, "deferred callback ownership") != null);
     try std.testing.expect(std.mem.indexOf(u8, matrix, "never-registered path where unregister timing stays false because tty registration never became ready") != null);
+    try std.testing.expect(std.mem.indexOf(u8, matrix, "targetless path where unregister timing also stays false because no notifier target was wired") != null);
     try std.testing.expect(std.mem.indexOf(u8, matrix, "do not claim notifier callbacks, khvcd execution, live sysrq dispatch, or host-backed I/O coverage until the Zig surface and tests for those behaviors exist") != null);
     try std.testing.expect(std.mem.indexOf(u8, matrix, "keep this handoff stable while the next follow-through stays inside shared review truthfulness instead of widening into live callback execution") != null);
 }
