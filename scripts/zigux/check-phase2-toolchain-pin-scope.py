@@ -102,19 +102,24 @@ PHASE2_CLOSURE_VALIDATOR_MARKERS = [
     "'PHASE2_TOOLCHAIN_PIN_SCOPE_SELF_TEST=python3 scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test',",
     "'PHASE2_TOOLCHAIN_PIN_SCOPE_GATE=python3 scripts/zigux/check-phase2-toolchain-pin-scope.py',",
     "PHASE2_MAKEFILE_RUN_COUNTS = {",
+    "'scripts/zigux/check-zig-toolchain.py': 1,",
     "'scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test': 1,",
     "'scripts/zigux/check-phase2-toolchain-pin-scope.py': 1,",
     "missing_markers.extend(validate_exact_makefile_runs(makefile))",
 ]
 
 MAKEFILE_MARKERS = [
+    "phase2-toolchain:",
+    "phase2-validate: phase2-toolchain",
     "phase2-validate:",
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-zig-toolchain.py",
     "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test",
     "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-toolchain-pin-scope.py",
     "phase2: phase2-validate phase2-tools phase2-kconfig phase2-cross",
 ]
 
 EXACT_MAKEFILE_RUN_COUNTS = {
+    "scripts/zigux/check-zig-toolchain.py": 1,
     "scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test": 1,
     "scripts/zigux/check-phase2-toolchain-pin-scope.py": 1,
 }
@@ -140,7 +145,6 @@ def load_json_object(path: Path, *, label: str) -> dict[str, object]:
     if not isinstance(payload, dict):
         raise SystemExit(f"{label}:expected_object")
     return payload
-
 
 
 def validate_policy(payload: dict[str, object]) -> list[str]:
@@ -183,7 +187,6 @@ def validate_policy(payload: dict[str, object]) -> list[str]:
     return issues
 
 
-
 def validate_phase2_notes(text: str, *, payload: dict[str, object]) -> list[str]:
     issues: list[str] = []
 
@@ -224,14 +227,12 @@ def validate_phase2_notes(text: str, *, payload: dict[str, object]) -> list[str]
     return issues
 
 
-
 def validate_required_markers(text: str, *, label: str, markers: list[str]) -> list[str]:
     issues: list[str] = []
     for marker in markers:
         if marker not in text:
             issues.append(f"{label}:missing_marker:{marker}")
     return issues
-
 
 
 def validate_exact_workflow_runs(text: str, *, payload: dict[str, object]) -> list[str]:
@@ -263,7 +264,6 @@ def validate_exact_workflow_runs(text: str, *, payload: dict[str, object]) -> li
     return issues
 
 
-
 def validate_exact_makefile_runs(text: str) -> list[str]:
     issues: list[str] = []
     lines = [line.strip() for line in text.splitlines()]
@@ -273,7 +273,6 @@ def validate_exact_makefile_runs(text: str) -> list[str]:
         if count != expected_count:
             issues.append(f"makefile_exact_run:{command}:count={count}:expected={expected_count}")
     return issues
-
 
 
 def run_self_test() -> int:
@@ -360,7 +359,9 @@ def run_self_test() -> int:
 
     valid_makefile = "\n".join(
         [
-            "phase2-validate:",
+            "phase2-toolchain:",
+            "phase2-validate: phase2-toolchain",
+            "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-zig-toolchain.py",
             "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test",
             "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-toolchain-pin-scope.py",
             "phase2: phase2-validate phase2-tools phase2-kconfig phase2-cross",
@@ -550,12 +551,19 @@ def run_self_test() -> int:
         raise SystemExit("phase2-toolchain-pin-scope:self-test:phase2_closure_validator_marker_failure")
 
     makefile_issues = validate_required_markers(
-        "phase2-validate:\ncd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test",
+        "phase2-toolchain:\nphase2-validate: phase2-toolchain\ncd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-zig-toolchain.py\ncd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test",
         label="phase2_makefile",
         markers=MAKEFILE_MARKERS,
     )
     if not any(issue.startswith("phase2_makefile:missing_marker:") for issue in makefile_issues):
         raise SystemExit("phase2-toolchain-pin-scope:self-test:makefile_marker_failure")
+
+    makefile_count_issues = validate_exact_makefile_runs(
+        valid_makefile
+        + "\ncd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-zig-toolchain.py"
+    )
+    if "makefile_exact_run:scripts/zigux/check-zig-toolchain.py:count=2:expected=1" not in makefile_count_issues:
+        raise SystemExit("phase2-toolchain-pin-scope:self-test:makefile_toolchain_count_mismatch")
 
     makefile_count_issues = validate_exact_makefile_runs(
         valid_makefile
@@ -608,7 +616,6 @@ def run_self_test() -> int:
     print("PHASE2_TOOLCHAIN_PIN_SCOPE_SELF_TEST=pass")
     print("PHASE2_TOOLCHAIN_PIN_SCOPE_SELF_TEST_CASE_COUNT=32")
     return 0
-
 
 
 def main() -> int:
