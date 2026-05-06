@@ -11,6 +11,7 @@ test "phase 8 kallsyms slice note keeps helper-first output-stable tooling postu
     try std.testing.expect(std.mem.containsAtLeast(u8, phase8_kallsyms_slice, 1, "PHASE8_SLICE=kallsyms-parse-wrapper-parked"));
     try std.testing.expect(std.mem.containsAtLeast(u8, phase8_kallsyms_slice, 1, "helper-first expansion"));
     try std.testing.expect(std.mem.containsAtLeast(u8, phase8_kallsyms_slice, 1, "output-stable tooling behavior"));
+    try std.testing.expect(std.mem.containsAtLeast(u8, phase8_kallsyms_slice, 1, "zig test tools/lib/symbol/kallsyms.zig"));
     try std.testing.expect(std.mem.containsAtLeast(u8, phase8_kallsyms_slice, 1, "one direct `kallsymsParse()` wrapper"));
 }
 
