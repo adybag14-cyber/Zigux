@@ -458,7 +458,7 @@ def validate_root(root: Path) -> list[str]:
             [sys.executable, str(root / "scripts" / "zigux" / "check-phase2-kconfig-selftest-alignment.py"), "--self-test"],
             [
                 "PHASE2_KCONFIG_ALIGNMENT_SELF_TEST=pass",
-                "PHASE2_KCONFIG_ALIGNMENT_SELF_TEST_CASE_COUNT=8",
+                "PHASE2_KCONFIG_ALIGNMENT_SELF_TEST_CASE_COUNT=18",
             ],
         )
     )
@@ -502,53 +502,106 @@ def write_stub_guard(path: Path, *, self_test_marker: str, live_markers: list[st
         "#!/usr/bin/env python3",
         "import argparse",
         "",
-        "parser = argparse.ArgumentParser()",
-        "parser.add_argument('--self-test', action='store_true')",
-        "args = parser.parse_args()",
-        "if args.self_test:",
+        "def main() -> int:",
+        "    parser = argparse.ArgumentParser()",
+        "    parser.add_argument('--self-test', action='store_true')",
+        "    args = parser.parse_args()",
+        "    if args.self_test:",
     ]
     for marker in self_test_marker.split("\n"):
-        lines.append(f"    print({marker!r})")
-    lines.append("else:")
+        lines.append(f"        print({marker!r})")
+    lines.append("        return 0")
     for marker in live_markers:
         lines.append(f"    print({marker!r})")
+    lines.append("    return 0")
     lines.append("")
-    write_text(path, "\n".join(lines))
+    lines.append("if __name__ == '__main__':")
+    lines.append("    raise SystemExit(main())")
+    write_text(path, "\n".join(lines) + "\n")
 
 
 def build_script_readme_text() -> str:
-    return (
-        "- `check-zig-toolchain.py`\n"
-        "- `install-zig.py`\n"
-        "- `check-phase2-tests-readme-alignment.py`\n"
-        "- `check-phase2-cross-selftest-alignment.py`\n"
-        "- `check-phase2-toolchain-pin-scope.py`\n"
-        "- `validate-phase2.py`\n"
-        "- `validate-phase2-closure.py`\n"
-        "- `check-fixdep-diff.py`\n"
-        "- `check-genksyms-bridge.py`\n"
-        "- `check-genksyms-crc-diff.py`\n"
-        "- `check-kconfig-bridge.py`\n"
-        "- `check-phase2-tests-readme-alignment.py`\n"
-        "- `check-phase2-cross-selftest-alignment.py`\n"
-        "- `check-phase2-toolchain-pin-scope.py`\n"
-        "- `check-phase2-cross.py`\n"
-        "- `check-mk-elfconfig-diff.py`\n"
-        "- `genksyms.zig`\n"
-        "- `genksyms_crc.zig`\n"
-        "- `kconfig/conf_bridge.zig`\n"
-        "- `kconfig/confdata_bridge.zig`\n"
-        "- `mk_elfconfig.zig`\n"
+    return "\n".join(
+        [
+            "- `check-zig-toolchain.py`",
+            "- `install-zig.py`",
+            "- `check-phase2-tests-readme-alignment.py`",
+            "- `check-phase2-cross-selftest-alignment.py`",
+            "- `check-phase2-toolchain-pin-scope.py`",
+            "- `validate-phase2.py`",
+            "- `validate-phase2-closure.py`",
+            "- `check-fixdep-diff.py`",
+            "- `check-genksyms-bridge.py`",
+            "- `check-genksyms-crc-diff.py`",
+            "- `check-kconfig-bridge.py`",
+            "- `check-phase2-cross.py`",
+            "- `genksyms.zig`",
+            "- `genksyms_crc.zig`",
+            "- `kconfig/conf_bridge.zig`",
+            "- `kconfig/confdata_bridge.zig`",
+            "- `check-mk-elfconfig-diff.py`",
+            "- `mk_elfconfig.zig`",
+            "",
+            "- `check-kconfig-bridge.py`",
+            "- `check-phase2-tests-readme-alignment.py`",
+            "- `check-phase2-cross-selftest-alignment.py`",
+            "- `check-phase2-toolchain-pin-scope.py`",
+            "- `check-phase2-cross.py`",
+            "- `check-mk-elfconfig-diff.py`",
+            "",
+        ]
     )
 
 
 def build_self_test_root(root: Path) -> None:
     for path in required_files(root):
-        if path.suffix:
-            write_text(path, "placeholder\n")
-        else:
-            path.mkdir(parents=True, exist_ok=True)
+        write_text(path, "placeholder\n")
+    write_text(root / "scripts/zigux/fixdep.zig", "// fixdep placeholder\n")
+    write_text(root / "scripts/zigux/genksyms.zig", "// genksyms placeholder\n")
+    write_text(root / "scripts/zigux/genksyms_crc.zig", "// genksyms crc placeholder\n")
+    write_text(root / "scripts/zigux/mk_elfconfig.zig", "// mk_elfconfig placeholder\n")
+    write_text(root / "scripts/zigux/kconfig/conf_bridge.zig", "// conf bridge placeholder\n")
+    write_text(root / "scripts/zigux/kconfig/confdata_bridge.zig", "// confdata bridge placeholder\n")
+    write_text(root / "zigux/tests/fixtures/fixdep/cases.json", "{}\n")
+    for rel in [
+        "sample.d",
+        "sample.c",
+        "sample.h",
+        "sample-config.h",
+        "sample.rmeta",
+        "sample_expected.txt",
+        "sample_multi_target.d",
+        "sample2.c",
+        "sample2-config.h",
+        "sample2.so",
+        "shared#config.h",
+        "sample_multi_target_expected.txt",
+        "sample_missing_dep.d",
+        "sample_missing_dep_source.c",
+        "sample_missing_dep_expected.txt",
+        "sample_missing_dep_expected.stderr.txt",
+    ]:
+        write_text(root / "zigux/tests/fixtures/fixdep" / rel, "fixture\n")
+    write_text(root / "zigux/tests/fixtures/genksyms_crc/genksyms_crc_c_harness.c", "int main(void) { return 0; }\n")
+    write_text(root / "zigux/tests/fixtures/genksyms_crc/inputs.txt", "input\n")
+    write_text(root / "zigux/tests/fixtures/genksyms_crc/expected.json", "{}\n")
+    write_text(root / "zigux/tests/fixtures/mk_elfconfig/cases.json", "{}\n")
+    for rel in [
+        "elf32.hex",
+        "elf64.hex",
+        "invalid_class.hex",
+        "not_elf.hex",
+        "truncated.hex",
+        "elf32_expected.json",
+        "elf64_expected.json",
+        "invalid_class_expected.json",
+        "not_elf_expected.json",
+        "truncated_expected.json",
+    ]:
+        write_text(root / "zigux/tests/fixtures/mk_elfconfig" / rel, "fixture\n")
+    write_text(root / "scripts/zigux/zig-toolchain-policy.json", json.dumps({"phase": "Phase 2", "channel": "0.17.0-dev.87+9b177a7d2", "minimum_version": "0.17.0-dev.87+9b177a7d2", "archive_sha256": {"x86_64-linux": "313b231e76f3cc9b718044602dbc3c42b531693507203a6baf2fa892c9533e77"}}, indent=2) + "\n")
     write_text(root / "zigux/tests/fixtures/phase2_tool_manifest.json", json.dumps({"phase": "Phase 2", "status": "closed", "tool_count": 6, "tools": ["scripts/zigux/fixdep.zig", "scripts/zigux/genksyms.zig", "scripts/zigux/genksyms_crc.zig", "scripts/zigux/mk_elfconfig.zig", "scripts/zigux/kconfig/conf_bridge.zig", "scripts/zigux/kconfig/confdata_bridge.zig"]}, indent=2) + "\n")
+    write_text(root / "zigux/tests/fixtures/phase2_cross_targets.json", json.dumps({"phase": "Phase 2", "status": "closed", "target_count": 3, "targets": ["x86_64-linux-musl", "aarch64-linux-musl", "riscv64-linux-musl"]}, indent=2) + "\n")
     write_text(root / "zigux/tests/fixtures/genksyms_bridge/cases.json", json.dumps({"cases": [{"expected": "minimal_expected.json"}]}, indent=2) + "\n")
     write_text(root / "zigux/tests/fixtures/genksyms_bridge/minimal_expected.json", "{}\n")
     write_text(root / "zigux/tests/fixtures/kconfig_bridge/cases.json", json.dumps({"conf_cases": [{"expected": "olddefconfig_expected.json"}], "confdata_cases": [{"input": "sample.config", "expected": "sample_expected.json"}]}, indent=2) + "\n")
@@ -556,7 +609,7 @@ def build_self_test_root(root: Path) -> None:
     write_text(root / "zigux/tests/fixtures/kconfig_bridge/sample.config", "\n")
     write_text(root / "zigux/tests/fixtures/kconfig_bridge/sample_expected.json", "{}\n")
     write_text(root / "zigux-alpha/BOOTSTRAP_COMMIT_LEDGER.md", "\n".join(REQUIRED_LEDGER_MARKERS) + "\n")
-    write_text(root / ".github" / "workflows" / "zigux-bootstrap.yml", "\n".join(f"run: {marker}" for marker in REQUIRED_WORKFLOW_MARKERS) + "\n")
+    write_text(root / ".github/workflows/zigux-bootstrap.yml", "\n".join(f"run: {marker}" for marker in REQUIRED_WORKFLOW_MARKERS) + "\n")
     write_text(root / "Documentation/zigux/artifact-diff.md", "\n".join(REQUIRED_DOC_MARKERS) + "\n")
     write_text(root / "scripts/zigux/README.md", build_script_readme_text())
     write_text(root / "Documentation/zigux/README.md", "\n".join(REQUIRED_DOCS_ROOT_MARKERS) + "\n")
@@ -567,7 +620,7 @@ def build_self_test_root(root: Path) -> None:
     write_stub_guard(root / "scripts/zigux/check-phase2-tests-readme-alignment.py", self_test_marker="PHASE2_TESTS_README_ALIGNMENT_SELF_TEST=pass\nPHASE2_TESTS_README_ALIGNMENT_SELF_TEST_CASE_COUNT=37", live_markers=["PHASE2_TESTS_README_ALIGNMENT=pass", "PHASE2_TESTS_README_ALIGNMENT_MARKER_COUNT=1"])
     write_stub_guard(root / "scripts/zigux/check-phase2-cross-selftest-alignment.py", self_test_marker="PHASE2_CROSS_SELFTEST_ALIGNMENT_SELF_TEST=pass", live_markers=["PHASE2_CROSS_SELFTEST_ALIGNMENT=pass"])
     write_stub_guard(root / "scripts/zigux/check-phase2-toolchain-pin-scope.py", self_test_marker="PHASE2_TOOLCHAIN_PIN_SCOPE_SELF_TEST=pass\nPHASE2_TOOLCHAIN_PIN_SCOPE_SELF_TEST_CASE_COUNT=32", live_markers=["PHASE2_TOOLCHAIN_PIN_SCOPE=pass"])
-    write_stub_guard(root / "scripts/zigux/check-phase2-kconfig-selftest-alignment.py", self_test_marker="PHASE2_KCONFIG_ALIGNMENT_SELF_TEST=pass\nPHASE2_KCONFIG_ALIGNMENT_SELF_TEST_CASE_COUNT=8", live_markers=["PHASE2_KCONFIG_ALIGNMENT=pass"])
+    write_stub_guard(root / "scripts/zigux/check-phase2-kconfig-selftest-alignment.py", self_test_marker="PHASE2_KCONFIG_ALIGNMENT_SELF_TEST=pass\nPHASE2_KCONFIG_ALIGNMENT_SELF_TEST_CASE_COUNT=18", live_markers=["PHASE2_KCONFIG_ALIGNMENT=pass"])
     write_stub_guard(root / "scripts/zigux/check-kconfig-bridge.py", self_test_marker="KCONFIG_BRIDGE_SELF_TEST=pass\nKCONFIG_BRIDGE_SELF_TEST_CASE_COUNT=11", live_markers=["KCONFIG_BRIDGE_DIFF=pass"])
     write_stub_guard(root / "scripts/zigux/check-mk-elfconfig-diff.py", self_test_marker="MK_ELFCONFIG_SELF_TEST=pass\nMK_ELFCONFIG_SELF_TEST_CASE_COUNT=4", live_markers=["MK_ELFCONFIG_DIFF=pass"])
 
@@ -755,7 +808,7 @@ def run_self_test() -> int:
         checker_path = root / "scripts" / "zigux" / "check-phase2-kconfig-selftest-alignment.py"
         write_stub_guard(checker_path, self_test_marker="PHASE2_KCONFIG_ALIGNMENT_SELF_TEST=pass", live_markers=["PHASE2_KCONFIG_ALIGNMENT=pass"])
         issues = validate_root(root)
-        assert any(issue.startswith("guard_marker:") and "check-phase2-kconfig-selftest-alignment.py --self-test:PHASE2_KCONFIG_ALIGNMENT_SELF_TEST_CASE_COUNT=8" in issue for issue in issues)
+        assert any(issue.startswith("guard_marker:") and "check-phase2-kconfig-selftest-alignment.py --self-test:PHASE2_KCONFIG_ALIGNMENT_SELF_TEST_CASE_COUNT=18" in issue for issue in issues)
         build_self_test_root(root)
         write_text(root / "scripts/zigux/README.md", build_script_readme_text().replace("- `check-phase2-cross-selftest-alignment.py`\n", ""))
         issues = validate_root(root)
