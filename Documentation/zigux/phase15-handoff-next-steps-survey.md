@@ -26,6 +26,7 @@ This document records the bounded Phase 15 handoff lane for surveying the remain
 - this dedicated handoff note, its manifest, and its focused Zig guard are now wired into the shared `zigux/tests/phase15_build.zig` replay so the parked next-step synthesis remains reviewable as a bounded packet
 - the dedicated shared-build handoff replay gap is now closed on current `master`
 - the docs-root pointer back to this handoff packet is now present in current `Documentation/zigux/README.md`
+- the paired readiness note remains visible at `Documentation/zigux/phase15-readiness-gate-survey.md` and still records the same deep-core-only blocker posture
 - the current handoff summary no longer leaves the validator-first route implicit when describing the parked governance packet
 - this packet's lane identity is refreshed to `P15-L08` so the dedicated handoff note matches the active Phase 15 handoff maintenance lane again
 - the parity scorecard, readiness packet, docs root, review checklist, scripts-root validator-first route, shared build replay, workflow, and this handoff packet now agree that the remaining blocked work is only the deep-core status-change evidence
