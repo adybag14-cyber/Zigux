@@ -254,7 +254,10 @@ test "phase13 libfs manifest records the landed helper surfaces and remaining he
 
     try std.testing.expect(std.mem.indexOf(u8, traceability_note, "## Libfs lane traceability") != null);
     try std.testing.expect(std.mem.indexOf(u8, traceability_note, "zigux/tests/phase13_libfs_reviewability.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, traceability_note, "transaction acquire, publish, and release helpers") != null);
     try std.testing.expect(std.mem.indexOf(u8, traceability_note, "simple_transaction_release()") != null);
     try std.testing.expect(std.mem.indexOf(u8, traceability_note, "dcache_dir_open()") != null);
+    try std.testing.expect(std.mem.indexOf(u8, traceability_note, "deeper `dcache_readdir()` cursor-precondition packet") != null);
+    try std.testing.expect(std.mem.indexOf(u8, traceability_note, "next bounded libfs follow-up on the tiny `simple_transaction_release()` lifetime planner") == null);
     try std.testing.expect(std.mem.indexOf(u8, traceability_note, "helper-first filesystem planning") != null);
 }
