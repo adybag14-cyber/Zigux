@@ -399,7 +399,7 @@ def run_self_test() -> int:
     covered_cases.append('contract_summary_status_drift')
 
     bad_base_count_lines = expected_contract_summary_lines()
-    bad_base_count_lines[1] = 'ARTIFACT_DIFF_CONTRACT_BASE_CASE_COUNT=20'
+    bad_base_count_lines[1] = 'ARTIFACT_DIFF_CONTRACT_BASE_CASE_COUNT=21'
     expect_assertion(
         'contract_summary_base_count_drift',
         lambda: assert_contract_output(bad_base_count_lines),
@@ -437,7 +437,7 @@ def run_self_test() -> int:
     covered_cases.append('contract_summary_repeat_case_order_drift')
 
     bad_case_count_lines = expected_contract_summary_lines()
-    bad_case_count_lines[5] = 'ARTIFACT_DIFF_CONTRACT_CASE_COUNT=24'
+    bad_case_count_lines[5] = 'ARTIFACT_DIFF_CONTRACT_CASE_COUNT=25'
     expect_assertion(
         'contract_summary_case_count_drift',
         lambda: assert_contract_output(bad_case_count_lines),
