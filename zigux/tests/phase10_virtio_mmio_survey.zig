@@ -94,7 +94,7 @@ test "phase10 virtio mmio survey manifest records the live helper-backed transpo
     try std.testing.expect(manifest.architecture_council_reopen_required);
     try std.testing.expect(!manifest.architecture_council_reopen_attached);
     try std.testing.expect(manifest.survey_summary.virtio_mmio_c_lines >= 800);
-    try std.testing.expectEqual(@as(usize, 10), manifest.survey_summary.preexisting_phase10_test_files);
+    try std.testing.expectEqual(@as(usize, 11), manifest.survey_summary.preexisting_phase10_test_files);
     try std.testing.expect(manifest.survey_summary.preexisting_virtio_core_zig_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase10_build_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase10_core_doc_present);
