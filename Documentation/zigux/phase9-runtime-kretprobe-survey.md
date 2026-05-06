@@ -50,6 +50,8 @@ The survey manifest now records:
 - the landed `runtime-kretprobe-module-tests`
 - the landed `runtime-kretprobe-diff-gate`
 - the landed `runtime-kretprobe-loader-plan`
+- the landed `runtime-kretprobe-loader-contract`
+- the landed `runtime-kretprobe-loader-init-flow`
 - the still-blocked shared runtime substrate handoff
 
 ## Next bounded step
