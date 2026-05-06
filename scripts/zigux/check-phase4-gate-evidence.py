@@ -401,7 +401,7 @@ def run_self_test() -> int:
             f"phase4_validator_blob_sha:{phase4_validator_sha}:0",
         ], missing
 
-        write_runtime_atomic64_packet_fixture(root)
+        write_runtime_atomic64_packetFixture(root)
         write_text(root / NOTE_PATH, build_fixture_note(root))
         manifest = json.loads(read_text(root, MANIFEST_PATH))
         manifest["phase4_validation_matrix_blob_sha"] = "5555555555555555555555555555555555555555"
@@ -549,6 +549,54 @@ def run_self_test() -> int:
         assert missing == [
             "phase4_gate_evidence:status_exact_count:"
             f"PHASE4_SHARED_VALIDATOR_EXPECTED_GATE_EVIDENCE_SELF_TEST_CASE_COUNT={len(SELF_TEST_CASES)}:0"
+        ], missing
+
+        # Keep the helper-backed rollback note fail-closed on the same dedicated
+        # ownership line, local replay command, and threshold posture the live
+        # Phase 4 matrix now depends on.
+        write_runtime_atomic64_packet_fixture(root)
+        write_text(root / NOTE_PATH, build_fixture_note(root))
+        write_text(
+            root / NOTE_PATH,
+            read_text(root, NOTE_PATH).replace(
+                "`zig build phase4-bitmap-live-helper-replay --build-file zigux/tests/phase4_build.zig`",
+                "`zig build phase4-bitmap-diff --build-file zigux/tests/phase4_build.zig`",
+                1,
+            ),
+        )
+        missing = validate_root(root)
+        assert missing == [
+            "phase4_gate_evidence:`zig build phase4-bitmap-live-helper-replay --build-file zigux/tests/phase4_build.zig`"
+        ], missing
+
+        write_runtime_atomic64_packet_fixture(root)
+        write_text(root / NOTE_PATH, build_fixture_note(root))
+        write_text(
+            root / NOTE_PATH,
+            read_text(root, NOTE_PATH).replace(
+                "`Shared Subsystems Pod` as both owner and rollback owner for `zigux/tests/phase4_bitmap_live_helper_replay.zig`",
+                "`Shared Subsystems Pod` keeps helper replay ownership noted elsewhere",
+                1,
+            ),
+        )
+        missing = validate_root(root)
+        assert missing == [
+            "phase4_gate_evidence:`Shared Subsystems Pod` as both owner and rollback owner for `zigux/tests/phase4_bitmap_live_helper_replay.zig`"
+        ], missing
+
+        write_runtime_atomic64_packet_fixture(root)
+        write_text(root / NOTE_PATH, build_fixture_note(root))
+        write_text(
+            root / NOTE_PATH,
+            read_text(root, NOTE_PATH).replace(
+                "`threshold_pending_until_bitmap_gate_grows_beyond_bounded_correctness_checks` explicit until a later bounded Phase 4 perf packet intentionally approves a harder threshold.",
+                "`bitmap helper threshold wording removed from the note`",
+                1,
+            ),
+        )
+        missing = validate_root(root)
+        assert missing == [
+            "phase4_gate_evidence:`threshold_pending_until_bitmap_gate_grows_beyond_bounded_correctness_checks` explicit until a later bounded Phase 4 perf packet intentionally approves a harder threshold."
         ], missing
 
         write_text(root / NOTE_PATH, build_fixture_note(root))
