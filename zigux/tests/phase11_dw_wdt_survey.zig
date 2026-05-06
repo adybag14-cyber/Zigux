@@ -144,7 +144,9 @@ test "phase11 dw_wdt survey manifest records the landed registration handoff and
             try std.testing.expectEqualStrings("blocked_on_driver_scaffold", gap.status);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "Platform-driver registration") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "suspend and resume handling") != null);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "hardware-validation plan") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "landed registration-facing handoff") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "platform-backed registration scaffold") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "hardware-validation matrix") != null);
         }
 
         for (manifest.gaps[i + 1 ..]) |other| {
@@ -189,11 +191,14 @@ test "phase11 dw_wdt survey note and validation matrix stay aligned" {
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "bounded hardware-validation posture") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "watchdog_register_device") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "`P11-L12`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "next honest same-lane move is one small platform-backed registration scaffold") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "reuses that matrix instead of rediscovering missing handoff state") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "`P11-L05`") == null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "`P11-L10`") == null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "`P11-L11`") == null);
     try std.testing.expect(std.mem.indexOf(u8, validation_matrix, "PHASE11_DW_WDT_STATUS=hardware_validation_matrix_landed") != null);
     try std.testing.expect(std.mem.indexOf(u8, validation_matrix, "watchdog_register_device") != null);
-    try std.testing.expect(std.mem.indexOf(u8, validation_matrix, "platform-backed registration") != null);
+    try std.testing.expect(std.mem.indexOf(u8, validation_matrix, "platform-backed registration scaffold") != null);
+    try std.testing.expect(std.mem.indexOf(u8, validation_matrix, "reuses this matrix as the hardware-validation plan") != null);
     try std.testing.expect(std.mem.indexOf(u8, validation_matrix, "phase11_dw_wdt.zig") != null);
 }
