@@ -66,7 +66,13 @@ Inside that shared `phase11_build.zig` route, the watchdog, shared header-parity
 - `drivers/tty/hvc/hvc_console_verify.zig`
 - `zigux/tests/phase11_hvc_cleanup.zig`
 
+The shipped gpio watchdog sub-packet inside that shared route stays explicit as `phase11-gpio-wdt-tests` and `phase11-gpio-wdt-survey-tests`.
+
+The shipped bcm2835 watchdog sub-packet inside that shared route stays explicit as `phase11-bcm2835-wdt-tests`, `phase11-bcm2835-wdt-verify-tests`, and `phase11-bcm2835-wdt-survey-tests`.
+
 The shipped DesignWare watchdog sub-packet inside that shared route stays explicit as `phase11-dw-wdt-tests`, `phase11-dw-wdt-verify-tests`, and `phase11-dw-wdt-survey-tests`.
+
+The shipped HVC starter sub-packet inside that shared route stays explicit as `phase11-hvc-console-tests`, `phase11-hvc-console-verify-tests`, and `phase11-hvc-cleanup-tests`, while the dedicated archival survey remains `phase11-hvc-console-survey-tests`.
 
 The active watchdog validation packets also stay explicit beside that shared route:
 
