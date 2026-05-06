@@ -139,6 +139,14 @@ That means `test "head-word boundary scans keep the last in-range bit reachable 
 
 - `PHASE1_FIND_BIT_INCLUSIVE_BOUNDARY_REVIEW=helper-local inclusive boundary proof stays explicit through the direct find_bit test anchor so same-word next scans keep the last in-range head-word bit reachable from an inclusive start`
 
+For `tools/lib/find_bit.zig`, reviewers must also keep the helper-local past-`nbits` short-circuit proof explicit through:
+
+- `tools/lib/find_bit.zig`
+
+That means `test "next scans past nbits return without reading bitmap words"` stays present and review-visible whenever `findNextBit()`, `findNextZeroBit()`, or `findNextAndBit()` changes. This helper-local test is the bounded proof that scans starting at or beyond the declared limit still short-circuit to `nbits` without reading bitmap words outside the caller-visible window.
+
+- `PHASE1_FIND_BIT_PAST_NBITS_REVIEW=helper-local past-nbits short-circuit proof stays explicit through the direct find_bit test anchor so next scans starting at or beyond nbits return the boundary without reading bitmap words outside the caller-visible window`
+
 The shared Phase 1 parity replay for `tools/lib/find_bit.zig` must also keep the tail-clamped `nbits` results explicit through:
 
 - `zigux/tests/fixtures/phase1_helpers.json`
