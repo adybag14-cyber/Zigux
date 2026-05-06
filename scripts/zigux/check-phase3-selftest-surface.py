@@ -37,6 +37,8 @@ DOCS_ROOT_MARKERS = [
     "scripts/zigux/check-phase3-selftest-surface.py",
     "scripts/zigux/check-phase3-readme-tooling-inventory.py",
     "scripts/zigux/check-phase3-catalog-selftest.py",
+    "scripts/zigux/validate-phase3-export-uapi-survey.py",
+    "scripts/zigux/validate-phase3-abi-bindings-syntax.py",
     "scripts/zigux/phase3_catalog.py --self-test",
     "make -C zigux phase3-selftest",
     "without duplicating the default `phase3-validate` route",
@@ -221,6 +223,8 @@ def run_self_test() -> int:
         assert "docs_root:scripts/zigux/check-phase3-selftest-surface.py" in issues
         assert "docs_root:scripts/zigux/check-phase3-readme-tooling-inventory.py" in issues
         assert "docs_root:scripts/zigux/check-phase3-catalog-selftest.py" in issues
+        assert "docs_root:scripts/zigux/validate-phase3-export-uapi-survey.py" in issues
+        assert "docs_root:scripts/zigux/validate-phase3-abi-bindings-syntax.py" in issues
         assert "docs_root:scripts/zigux/phase3_catalog.py --self-test" in issues
         assert "docs_root:without duplicating the default `phase3-validate` route" in issues
 
@@ -447,7 +451,7 @@ def run_self_test() -> int:
         assert "missing_file:scripts/zigux/validate-phase3-export-uapi-survey.py" in issues
 
     print("PHASE3_SELFTEST_SURFACE_SELF_TEST=pass")
-    print("PHASE3_SELFTEST_SURFACE_SELF_TEST_CASE_COUNT=20")
+    print("PHASE3_SELFTEST_SURFACE_SELF_TEST_CASE_COUNT=22")
     return 0
 
 
