@@ -15,7 +15,7 @@ class ValidationError(RuntimeError):
 REQUIRED_SNIPPETS = {
     "Documentation/zigux/README.md": [
         "- `Documentation/zigux/review-checklist.md`, `zigux/tests/README.md`, `scripts/zigux/README.md`, `scripts/zigux/check-phase6-shared-surface.py`, `zigux/tests/phase6_build.zig`, `zigux/tests/phase6_base64.zig`, `zigux/tests/phase6_bsearch.zig`, `zigux/tests/phase6_checksum.zig`, `zigux/tests/phase6_hexdump.zig`, `zigux/tests/phase6_checksum_perf.zig`, `zigux/tests/phase6_hexdump_perf.zig`, `zigux/Makefile`, `.github/workflows/zigux-bootstrap.yml`, `make -C zigux phase6-validate`, `make -C zigux phase6`, `make -C zigux phase6-checksum-perf`, and `make -C zigux phase6-hexdump-perf` now keep the current base64, bsearch, checksum, and hexdump helper bundle reviewable through the shared surface checker, the bundled replay, the dedicated checksum and hexdump perf gates, and the Linux-style helper lane together, so new helper slices should only land when that shared packet stays green as one unit.",
-        "- the current bounded Phase 6 decision is no longer whether one more tiny external fixture is still worth carrying; the live leaf-helper lane is the bundled `base64`, `bsearch`, `checksum`, and `hexdump` packet already kept reviewable through `zigux/tests/phase6_build.zig`, `zigux/tests/phase6_base64.zig`, `zigux/tests/phase6_bsearch.zig`, `zigux/tests/phase6_checksum.zig`, `zigux/tests/phase6_hexdump.zig`, `zigux/tests/phase6_checksum_perf.zig`, and `zigux/tests/phase6_hexdump_perf.zig`, `make -C zigux phase6`, `make -C zigux phase6-checksum-perf`, and `make -C zigux phase6-hexdump-perf`, so future follow-up here should reopen only for a concrete parity gap or another similarly small helper-first step inside that same packet.",
+        "- the current bounded Phase 6 decision is no longer whether one more tiny external fixture is still worth carrying; the live leaf-helper lane is the bundled `base64`, `bsearch`, `checksum`, and `hexdump` packet already kept reviewable through `zigux/tests/phase6_build.zig`, `zigux/tests/phase6_base64.zig`, `zigux/tests/phase6_bsearch.zig`, `zigux/tests/phase6_checksum.zig`, and `zigux/tests/phase6_hexdump.zig`, `zigux/tests/phase6_checksum_perf.zig`, and `zigux/tests/phase6_hexdump_perf.zig`, `make -C zigux phase6`, `make -C zigux phase6-checksum-perf`, and `make -C zigux phase6-hexdump-perf`, so future follow-up here should reopen only for a concrete parity gap or another similarly small helper-first step inside that same packet.",
     ],
     "scripts/zigux/README.md": [
         "Phase 6 flow - the current shared Phase 6 review surface on `master` is the four slice notes (`Documentation/zigux/phase6-base64-slice.md`, `Documentation/zigux/phase6-bsearch-slice.md`, `Documentation/zigux/phase6-checksum-slice.md`, and `Documentation/zigux/phase6-hexdump-slice.md`) plus `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `zigux/tests/README.md`, `scripts/zigux/check-phase6-shared-surface.py`, `zigux/tests/phase6_build.zig`, `zigux/Makefile`, and `.github/workflows/zigux-bootstrap.yml`.",
@@ -69,6 +69,17 @@ REQUIRED_SNIPPETS = {
         'test "phase 6 bsearch mutable raw lookup supports descending write-through"',
         'test "phase 6 bsearch accepts runtime-selected raw c abi comparator pointers"',
         'test "phase 6 bsearch mutable raw c abi lookup supports write-through"',
+    ],
+    "Documentation/zigux/phase6-checksum-slice.md": [
+        "- lane state: helper and fixture slice landed; parked unless a new `checksum.c` parity issue appears",
+        "- `add`",
+        "- `replaceByDiff`",
+        "- `tcpUdpNofold`",
+        "- fixture-backed checksum vectors for empty, even, odd, and carry-heavy inputs",
+        "- non-zero seeded `partial` accumulation parity across odd, carry-heavy, and pre-folded seed inputs",
+        "- a tiny KUnit-inspired carry-discipline matrix covering all-ones and no-spurious-carry seeded cases",
+        "- pseudo-header accumulation parity between `tcpUdpNofold` and manual `partial` plus `blockAdd`",
+        "- helper-local perf smoke on patterned 64-byte and 1501-byte payloads keeps `checksum.compute` within a 150% slowdown ceiling versus the bounded reference loop",
     ],
     "Documentation/zigux/phase6-hexdump-slice.md": [
         "- lane state: helper, fixture, and dedicated perf gate slices landed; parked unless a new `hexdump.c` parity issue appears",
@@ -263,7 +274,11 @@ def run_self_test() -> None:
 
         for rel_path, snippets in REQUIRED_SNIPPETS.items():
             exact_markers = EXACT_COUNT_MARKERS.get(rel_path, [])
-            occurrence_markers = [marker for marker, expected in EXACT_OCCURRENCE_MARKERS.get(rel_path, []) for _ in range(expected)]
+            occurrence_markers = [
+                marker
+                for marker, expected in EXACT_OCCURRENCE_MARKERS.get(rel_path, [])
+                for _ in range(expected)
+            ]
             scaffold_lines = unique_preserving_order(snippets + exact_markers)
             scaffold_lines.extend(occurrence_markers)
             write(
@@ -452,6 +467,27 @@ def run_self_test() -> None:
         else:
             raise AssertionError("expected bsearch replay failure")
         bsearch_tests.write_text(original_bsearch_tests, encoding="utf-8")
+
+        checksum_slice = root / "Documentation/zigux/phase6-checksum-slice.md"
+        original_checksum_slice = checksum_slice.read_text(encoding="utf-8")
+        checksum_slice.write_text(
+            original_checksum_slice.replace(
+                "`replaceByDiff`",
+                "`replaceByDelta`",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        try:
+            run_checks(root)
+        except ValidationError as exc:
+            if "Documentation/zigux/phase6-checksum-slice.md" not in str(exc):
+                raise AssertionError(
+                    f"unexpected checksum slice failure: {exc}"
+                ) from exc
+        else:
+            raise AssertionError("expected checksum slice failure")
+        checksum_slice.write_text(original_checksum_slice, encoding="utf-8")
 
         hexdump_slice = root / "Documentation/zigux/phase6-hexdump-slice.md"
         original_hexdump_slice = hexdump_slice.read_text(encoding="utf-8")
