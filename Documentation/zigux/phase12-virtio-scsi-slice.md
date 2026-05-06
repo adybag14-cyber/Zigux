@@ -14,4 +14,6 @@ The starter stays intentionally narrow:
 
 This slice does not claim DMA mapping, scatter-gather command assembly, `Scsi_Host` registration, blk-mq submission, event-work recycling, TMF handling, hotplug, or live transport reset recovery.
 
+The shared Phase 12 packet now keeps the direct smoke preflight explicit here too: `zig build smoke --build-file zigux/tests/phase12_build.zig --summary all` and `make -C zigux phase12-smoke` rerun this bounded `virtio scsi` starter before the broader survey-backed replay, so the slice should stay aligned with that smoke-plus-build order instead of leaving it implicit in `zigux/tests/phase12_build.zig`, `zigux/Makefile`, or `Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md` alone.
+
 The next honest bounded step inside the same Phase 12 lane is no longer another queue-family-only helper. Keep this slice parked until the roadmap approves queue ownership, SCSI host registration, or DMA-backed queue work beyond the now-landed `virtscsi_probe()` config snapshot.
