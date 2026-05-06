@@ -270,6 +270,9 @@ jobs:
       - name: Run Phase 7 runtime helper tests
         run: zig build test --build-file zigux/tests/phase7_build.zig --summary all
 
+      - name: Validate Phase 8 tooling packet
+        run: make -C zigux phase8-validate
+
       - name: Run Phase 8 tooling tests
         run: zig build test --build-file zigux/tests/phase8_build.zig --summary all
 
