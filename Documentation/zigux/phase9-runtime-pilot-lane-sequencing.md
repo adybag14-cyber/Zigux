@@ -96,7 +96,7 @@ Keep these boundaries explicit so Phase 9 pilot work does not drift sideways:
 
 ## Shared summary follow-through
 
-When the shared Phase 9 reminders in the docs root, scripts root, tests root, or sample-root boundary note are refreshed, they should point back to this sequencing note rather than trying to restate the owner split from scratch.
+When the shared Phase 9 reminders in the docs root, scripts root, tests root, sample-root boundary note, or reviewer-facing checklist are refreshed, they should point back to this sequencing note rather than trying to restate the owner split from scratch.
 
 Keep that follow-through bounded to one shared summary at a time:
 
@@ -104,13 +104,14 @@ Keep that follow-through bounded to one shared summary at a time:
 - `scripts/zigux/README.md` for the scripts-root validator and replay summary
 - `zigux/tests/README.md` for the shared tests-root replay reminder
 - `samples/zigux/README.md` only when the Phase 9 boundary wording there is being touched already
+- `Documentation/zigux/review-checklist.md` for the reviewer-facing Phase 9 prompt
 
 This keeps later closure-note work small while preserving the explicit split between the shared loader lane, the bitmap-only top-bit replay, and the four pilot-family packets.
 
 ## Current live follow-through state
 
 - `Documentation/zigux/README.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, and `samples/zigux/README.md` already keep this owner map or its shared-loader-versus-pilot split explicit on `master`
-- the next bounded shared-summary follow-through should therefore start with `Documentation/zigux/review-checklist.md` when the Phase 9 reviewer-facing prompt is next touched, instead of replaying the already-landed docs-root, scripts-root, tests-root, or sample-root reminders
+- `Documentation/zigux/review-checklist.md` is the next bounded reviewer-facing follow-through surface when the Phase 9 prompt is next touched; it should point back to this sequencing note instead of re-blurring the shared loader lane versus the four pilot-family packets
 
 ## Recommended next-step order
 
