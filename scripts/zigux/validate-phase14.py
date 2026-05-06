@@ -34,23 +34,56 @@ REQUIRED_COMMANDS = [
     "make -C zigux phase14",
 ]
 REQUIRED_SURFACES = {
+    "Documentation/zigux/README.md": "Phase 14 notes",
+    "Documentation/zigux/phase14-release-boundary-survey.md": "PHASE14_RELEASE_BOUNDARY=present",
+    "Documentation/zigux/phase14-end-to-end-smoke-survey.md": "PHASE14_VALIDATE_ENTRYPOINT=make -C zigux phase14-validate",
     TRACEABILITY_PATH: TRACEABILITY_TITLE,
+    "Documentation/zigux/freeze-map.md": "kernel/workqueue.c",
+    "Documentation/zigux/review-checklist.md": "shared Phase 14 smoke packet",
     "scripts/zigux/README.md": "Phase 14 flow",
     "scripts/zigux/validate-phase14.py": MARKER,
     "scripts/zigux/check-phase14-rollback-threshold-sequencing.py": CHECKER_MARKER,
     "scripts/zigux/check-phase14-release-boundary-exact-counts.py": RELEASE_BOUNDARY_CHECKER_MARKER,
-    "zigux/tests/README.md": "keep the current Phase 14 smoke packet reviewable through",
+    "zigux/tests/README.md": "keep the current Phase 14 smoke packet reviewable",
+    "zigux/tests/phase14_build.zig": "phase14-smoke",
+    "zigux/tests/phase14_workqueue_bridge.zig": "phase14 workqueue bridge manifest records the boundary-map foothold and remaining gap",
+    "zigux/tests/phase14_skbuff_bridge.zig": "phase14 skbuff bridge manifest records the boundary-map foothold and frozen ownership gap",
+    "zigux/tests/phase14_workqueue_bridge_manifest.json": "phase14-workqueue-live-execution-blocker",
+    "zigux/tests/phase14_skbuff_bridge_manifest.json": "phase14-skbuff-live-ownership-blocker",
+    "zigux/tests/phase14_end_to_end_smoke_survey.zig": "phase14 shared smoke survey confirms the current packet surfaces",
+    "zigux/tests/phase14_end_to_end_smoke_manifest.json": "phase14_shared_smoke_packet",
+    "zigux/tests/phase14_ring_buffer_manifest.json": "phase14-ring-buffer-zig-port-blocker",
+    "zigux/tests/phase14_ring_buffer_survey.zig": "phase 14 ring-buffer survey manifest records the study-only gap without inventing a port",
+    "zigux/tests/phase14_rcu_tree_manifest.json": "phase14-rcu-tree-bridge-blocker",
+    "zigux/tests/phase14_rcu_tree_survey.zig": "phase 14 rcu tree survey manifest records the freeze-boundary gap without inventing a bridge",
     "kernel/workqueue_bridge.zig": "pub const WorkqueueBridgeLab",
     "net/core/skbuff_bridge.zig": "pub const SkbuffBridgeLab",
 }
 REQUIRED_FILE_MARKERS = {
+    "Documentation/zigux/README.md": [
+        "Phase 14 notes",
+        "Documentation/zigux/phase14-core-boundary-traceability.md",
+        "make -C zigux phase14-validate",
+    ],
     "Documentation/zigux/phase14-end-to-end-smoke-survey.md": [
         "PHASE14_VALIDATE_ENTRYPOINT=make -C zigux phase14-validate",
         "PHASE14_VALIDATE_SCRIPT=python3 scripts/zigux/validate-phase14.py",
         "Documentation/zigux/phase14-core-boundary-traceability.md",
     ],
-    "Documentation/zigux/README.md": [
+    "Documentation/zigux/phase14-release-boundary-survey.md": [
+        "PHASE14_RELEASE_BOUNDARY=present",
         "Documentation/zigux/phase14-core-boundary-traceability.md",
+        "make -C zigux phase14-smoke",
+        "make -C zigux phase14-test",
+        "make -C zigux phase14",
+    ],
+    "Documentation/zigux/freeze-map.md": ["kernel/workqueue.c"],
+    "Documentation/zigux/review-checklist.md": [
+        "shared Phase 14 smoke packet",
+        "Documentation/zigux/phase14-core-boundary-traceability.md",
+        "scripts/zigux/validate-phase14.py",
+        "scripts/zigux/check-phase14-rollback-threshold-sequencing.py",
+        "scripts/zigux/check-phase14-release-boundary-exact-counts.py",
         "make -C zigux phase14-validate",
     ],
     TRACEABILITY_PATH: [TRACEABILITY_TITLE],
@@ -72,10 +105,29 @@ REQUIRED_FILE_MARKERS = {
         "make -C zigux phase14-test",
         "make -C zigux phase14",
     ],
+    "zigux/tests/phase14_build.zig": ["phase14-smoke"],
+    "zigux/tests/phase14_workqueue_bridge.zig": [
+        "phase14 workqueue bridge manifest records the boundary-map foothold and remaining gap",
+    ],
+    "zigux/tests/phase14_skbuff_bridge.zig": [
+        "phase14 skbuff bridge manifest records the boundary-map foothold and frozen ownership gap",
+    ],
+    "zigux/tests/phase14_workqueue_bridge_manifest.json": ["phase14-workqueue-live-execution-blocker"],
+    "zigux/tests/phase14_skbuff_bridge_manifest.json": ["phase14-skbuff-live-ownership-blocker"],
     "zigux/tests/phase14_end_to_end_smoke_survey.zig": [
         "make -C zigux phase14-validate",
         "phase14: phase14-validate phase14-smoke phase14-test",
         "Documentation/zigux/phase14-core-boundary-traceability.md",
+        "phase14 shared smoke survey confirms the current packet surfaces",
+    ],
+    "zigux/tests/phase14_end_to_end_smoke_manifest.json": ["phase14_shared_smoke_packet"],
+    "zigux/tests/phase14_ring_buffer_manifest.json": ["phase14-ring-buffer-zig-port-blocker"],
+    "zigux/tests/phase14_ring_buffer_survey.zig": [
+        "phase 14 ring-buffer survey manifest records the study-only gap without inventing a port",
+    ],
+    "zigux/tests/phase14_rcu_tree_manifest.json": ["phase14-rcu-tree-bridge-blocker"],
+    "zigux/tests/phase14_rcu_tree_survey.zig": [
+        "phase 14 rcu tree survey manifest records the freeze-boundary gap without inventing a bridge",
     ],
     "zigux/Makefile": [
         "phase14-validate:",
@@ -329,7 +381,7 @@ def run_self_test() -> int:
                 "lane_key": "P14-L08",
                 "surveyed_commit": "946d5c73fdb763ba860a20879b05da54e1896e8c",
                 "gaps": [
-                    {"id": "phase14-ring-buffer-reader-page-consume-followup", "status": "ready_next"},
+                    {"id": "phase14-ring-buffer-reader-page-copy-followup", "status": "ready_next"},
                     {"id": "phase14-ring-buffer-zig-port-blocker", "status": "blocked_on_stay_in_c_evidence"},
                 ],
             },
@@ -345,6 +397,13 @@ def run_self_test() -> int:
                 "surveyed_commit": "4c889233d157960514b241bcd5aff7cac5fda312",
                 "gaps": [
                     {"id": "phase14-rcu-tree-bridge-blocker", "status": "blocked_on_stay_in_c_evidence"},
+                ],
+            },
+            "zigux/tests/phase14_workqueue_bridge_manifest.json": {
+                "lane_key": "P14-L04",
+                "surveyed_commit": "9e278f632d6d5097cb8cfc2dc61744ae105baa8c",
+                "gaps": [
+                    {"id": "phase14-workqueue-live-execution-blocker", "status": "blocked_on_stay_in_c_evidence"},
                 ],
             },
         }
@@ -374,7 +433,10 @@ def run_self_test() -> int:
         broken_path = root / TRACEABILITY_PATH
         broken_path.write_text(f"{TRACEABILITY_TITLE}\n", encoding="utf-8")
         errors = check(root)
-        if not errors or not any("missing marker in Documentation/zigux/phase14-core-boundary-traceability.md: - lane key: `P14-L08`" in error for error in errors):
+        if not errors or not any(
+            "missing marker in Documentation/zigux/phase14-core-boundary-traceability.md: - lane key: `P14-L08`" in error
+            for error in errors
+        ):
             print("self-test expected failure when traceability note drifted", file=sys.stderr)
             return 1
 
@@ -399,6 +461,27 @@ def run_self_test() -> int:
         write_text(
             broken_docs_root_path,
             "\n".join(REQUIRED_FILE_MARKERS["Documentation/zigux/README.md"]) + "\n",
+        )
+
+        broken_review_checklist_path = root / "Documentation/zigux/review-checklist.md"
+        broken_review_checklist_path.write_text(
+            broken_review_checklist_path.read_text(encoding="utf-8").replace(
+                "shared Phase 14 smoke packet\n",
+                "",
+            ),
+            encoding="utf-8",
+        )
+        errors = check(root)
+        if not errors or not any(
+            "missing marker in Documentation/zigux/review-checklist.md: shared Phase 14 smoke packet" in error
+            for error in errors
+        ):
+            print("self-test expected failure when review checklist marker drifted", file=sys.stderr)
+            return 1
+
+        write_text(
+            broken_review_checklist_path,
+            "\n".join(REQUIRED_FILE_MARKERS["Documentation/zigux/review-checklist.md"]) + "\n",
         )
 
         broken_scripts_root_path = root / "scripts/zigux/README.md"
@@ -444,6 +527,27 @@ def run_self_test() -> int:
         )
 
         broken_manifest_path = root / "zigux/tests/phase14_end_to_end_smoke_manifest.json"
+        broken_manifest = json.loads(broken_manifest_path.read_text(encoding="utf-8"))
+        for surface in broken_manifest["surfaces"]:
+            if surface.get("path") == "Documentation/zigux/review-checklist.md":
+                surface["required_marker"] = "shared Phase 14 packet"
+                break
+        broken_manifest_path.write_text(json.dumps(broken_manifest, indent=2) + "\n", encoding="utf-8")
+        errors = check(root)
+        if not errors or not any(
+            "manifest surface drift for Documentation/zigux/review-checklist.md" in error
+            for error in errors
+        ):
+            print("self-test expected failure when manifest review-checklist surface drifted", file=sys.stderr)
+            return 1
+
+        broken_manifest["lane_key"] = EXPECTED_LANE_KEY
+        for surface in broken_manifest["surfaces"]:
+            if surface.get("path") == "Documentation/zigux/review-checklist.md":
+                surface["required_marker"] = REQUIRED_SURFACES["Documentation/zigux/review-checklist.md"]
+                break
+        broken_manifest_path.write_text(json.dumps(broken_manifest, indent=2) + "\n", encoding="utf-8")
+
         broken_manifest = json.loads(broken_manifest_path.read_text(encoding="utf-8"))
         broken_manifest["lane_key"] = "core-adjacent"
         broken_manifest_path.write_text(json.dumps(broken_manifest, indent=2) + "\n", encoding="utf-8")
