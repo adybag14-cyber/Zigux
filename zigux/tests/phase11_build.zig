@@ -37,6 +37,11 @@ pub fn build(b: *std.Build) void {
         .target = target,
         .optimize = optimize,
     });
+    const bcm2835_wdt_verify_module = b.createModule(.{
+        .root_source_file = b.path("../../drivers/watchdog/bcm2835_wdt_verify.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
     const phase11_bcm2835_wdt_module = b.createModule(.{
         .root_source_file = b.path("phase11_bcm2835_wdt.zig"),
         .target = target,
@@ -109,6 +114,11 @@ pub fn build(b: *std.Build) void {
         .root_module = phase11_bcm2835_wdt_module,
     });
     const run_phase11_bcm2835_wdt_tests = b.addRunArtifact(phase11_bcm2835_wdt_tests);
+    const bcm2835_wdt_verify_tests = b.addTest(.{
+        .name = "phase11-bcm2835-wdt-verify-tests",
+        .root_module = bcm2835_wdt_verify_module,
+    });
+    const run_bcm2835_wdt_verify_tests = b.addRunArtifact(bcm2835_wdt_verify_tests);
     const phase11_bcm2835_wdt_survey_tests = b.addTest(.{
         .name = "phase11-bcm2835-wdt-survey-tests",
         .root_module = phase11_bcm2835_wdt_survey_module,
@@ -149,6 +159,7 @@ pub fn build(b: *std.Build) void {
     test_step.dependOn(&run_phase11_gpio_wdt_tests.step);
     test_step.dependOn(&run_phase11_gpio_wdt_survey_tests.step);
     test_step.dependOn(&run_phase11_bcm2835_wdt_tests.step);
+    test_step.dependOn(&run_bcm2835_wdt_verify_tests.step);
     test_step.dependOn(&run_phase11_bcm2835_wdt_survey_tests.step);
     test_step.dependOn(&run_phase11_dw_wdt_tests.step);
     test_step.dependOn(&run_phase11_dw_wdt_survey_tests.step);
