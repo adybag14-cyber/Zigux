@@ -47,6 +47,8 @@ DOC_REQUIRED_MARKERS = [
     "zigux/tests/phase13_notifier_list_manifest.json",
     "zigux/bindings/notifier_abi.zig",
     "zigux/tests/phase13_devres_dma_coherent.zig",
+    "include/zigux/notifier_abi.h",
+    "zigux/helpers/notifier_chain_view.zig",
     "the current seven-test shared-helper release packet",
 ]
 
@@ -58,6 +60,8 @@ REVIEW_REQUIRED_MARKERS = [
     "zigux/tests/phase13_notifier_list_manifest.json",
     "zigux/bindings/notifier_abi.zig",
     "zigux/tests/phase13_devres_dma_coherent.zig",
+    "include/zigux/notifier_abi.h",
+    "zigux/helpers/notifier_chain_view.zig",
     "the same validator-first seven-test shared-helper release packet",
 ]
 
@@ -349,6 +353,8 @@ def run_self_test() -> int:
                 "docs-readme:zigux/tests/phase13_notifier_list_manifest.json",
                 "docs-readme:zigux/bindings/notifier_abi.zig",
                 "docs-readme:zigux/tests/phase13_devres_dma_coherent.zig",
+                "docs-readme:include/zigux/notifier_abi.h",
+                "docs-readme:zigux/helpers/notifier_chain_view.zig",
                 "docs-readme:the current seven-test shared-helper release packet",
             ],
             "docs_marker_guard_failed",
@@ -367,6 +373,8 @@ def run_self_test() -> int:
                 "review-checklist:zigux/tests/phase13_notifier_list_manifest.json",
                 "review-checklist:zigux/bindings/notifier_abi.zig",
                 "review-checklist:zigux/tests/phase13_devres_dma_coherent.zig",
+                "review-checklist:include/zigux/notifier_abi.h",
+                "review-checklist:zigux/helpers/notifier_chain_view.zig",
                 "review-checklist:the same validator-first seven-test shared-helper release packet",
             ],
             "review_marker_guard_failed",
