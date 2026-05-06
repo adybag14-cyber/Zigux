@@ -22,7 +22,7 @@
     "preexisting_phase14_workqueue_bridge_present": true,
     "preexisting_phase14_ring_buffer_manifest_present": true,
     "preexisting_phase14_skbuff_bridge_present": true,
-    "preexisting_tree_bridge_zig_present": false,
+    "preexisting_tree_bridge_zig_present": true,
     "preexisting_phase14_rcu_tree_manifest_present": true,
     "preexisting_phase14_rcu_tree_survey_test_present": true,
     "preexisting_phase14_rcu_tree_survey_note_present": true
@@ -133,7 +133,7 @@
       "status": "starter_landed",
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase14_rcu_tree_survey.zig",
-      "why_now": "A dedicated Phase 14 survey gate is the smallest truthful way to keep the live RCU tree size, design-doc context, and blocked bridge status reviewable without shipping `kernel/rcu/tree_bridge.zig`."
+      "why_now": "A dedicated Phase 14 survey gate is the smallest truthful way to keep the live RCU tree size, design-doc context, and blocked bridge status reviewable beside the new review-only bridge catalog."
     },
     {
       "id": "phase14-rcu-tree-survey-note",
@@ -150,6 +150,13 @@
       "why_now": "This lane now carries a small freeze-boundary checklist around grace-period sequencing, expedited-GP funnel state, and NOCB wakeup handoffs so future runs can deepen the survey without pretending Phase 14 already owns tree.c or NOCB behavior."
     },
     {
+      "id": "phase14-rcu-tree-boundary-map-starter",
+      "status": "starter_landed",
+      "kind": "boundary_audit",
+      "zigux_destination": "kernel/rcu/tree_bridge.zig",
+      "why_now": "A review-only `kernel/rcu/tree_bridge.zig` now exposes the current grace-period, ordering, expedited, NOCB, idle-watch, callback, public-wait, and CPU-hotplug stay-in-C checkpoints as queryable boundary evidence without reopening the freeze posture."
+    },
+    {
       "id": "phase14-rcu-tree-quiescent-state-followup",
       "status": "starter_landed",
       "kind": "boundary_audit",
@@ -161,42 +168,42 @@
       "status": "starter_landed",
       "kind": "boundary_audit",
       "zigux_destination": "Documentation/zigux/phase14-rcu-tree-survey.md",
-      "why_now": "The survey now records `__call_rcu_common()`, `call_rcu_core()`, and `rcu_do_batch()` as a landed stay-in-C audit so callback enqueue, grace-period kicks, and callback invocation remain reviewable without implying active `kernel/rcu/tree_bridge.zig` delivery."
+      "why_now": "The survey now records `__call_rcu_common()`, `call_rcu_core()`, and `rcu_do_batch()` as a landed stay-in-C audit so callback enqueue, grace-period kicks, and callback invocation remain reviewable without implying active live Tree RCU ownership."
     },
     {
       "id": "phase14-rcu-tree-callback-offload-followup",
       "status": "starter_landed",
       "kind": "boundary_audit",
       "zigux_destination": "Documentation/zigux/phase14-rcu-tree-survey.md",
-      "why_now": "The survey now records `call_rcu_nocb()`, `nocb_gp_wait()`, and `rcu_nocb_flush_deferred_wakeup()` as landed stay-in-C evidence so offloaded callback enqueue and wakeup behavior remain reviewable without reopening `kernel/rcu/tree_bridge.zig`."
+      "why_now": "The survey now records `call_rcu_nocb()`, `nocb_gp_wait()`, and `rcu_nocb_flush_deferred_wakeup()` as landed stay-in-C evidence so offloaded callback enqueue and wakeup behavior remain reviewable without reopening live bridge ownership."
     },
     {
       "id": "phase14-rcu-tree-idle-watch-followup",
       "status": "starter_landed",
       "kind": "boundary_audit",
       "zigux_destination": "Documentation/zigux/phase14-rcu-tree-survey.md",
-      "why_now": "The survey now records `rcu_is_watching()`, `rcu_watching_snap_save()`, and `invoke_rcu_core()` as landed stay-in-C evidence so idle-watch transitions, dyntick snapshots, and core re-entry remain reviewable without implying `kernel/rcu/tree_bridge.zig` ownership."
+      "why_now": "The survey now records `rcu_is_watching()`, `rcu_watching_snap_save()`, and `invoke_rcu_core()` as landed stay-in-C evidence so idle-watch transitions, dyntick snapshots, and core re-entry remain reviewable without implying live tree bridge ownership."
     },
     {
       "id": "phase14-rcu-tree-public-wait-and-barrier-followup",
       "status": "starter_landed",
       "kind": "boundary_audit",
       "zigux_destination": "Documentation/zigux/phase14-rcu-tree-survey.md",
-      "why_now": "The survey now records `synchronize_rcu()`, `start_poll_synchronize_rcu()`, `poll_state_synchronize_rcu_full()`, and `rcu_barrier()` as landed stay-in-C evidence so public wait, polling-cookie, and callback-barrier ownership remain reviewable without opening a bridge claim."
+      "why_now": "The survey now records `synchronize_rcu()`, `start_poll_synchronize_rcu()`, `poll_state_synchronize_rcu_full()`, and `rcu_barrier()` as landed stay-in-C evidence so public wait, polling-cookie, and callback-barrier ownership remain reviewable without opening a live bridge claim."
     },
     {
       "id": "phase14-rcu-tree-cpu-hotplug-followup",
       "status": "starter_landed",
       "kind": "boundary_audit",
       "zigux_destination": "Documentation/zigux/phase14-rcu-tree-survey.md",
-      "why_now": "The survey now records `rcutree_prepare_cpu()`, `rcutree_report_cpu_dead()`, and `rcutree_migrate_callbacks()` as landed stay-in-C evidence so CPU enrollment, teardown, and callback migration remain reviewable without implying `kernel/rcu/tree_bridge.zig` delivery."
+      "why_now": "The survey now records `rcutree_prepare_cpu()`, `rcutree_report_cpu_dead()`, and `rcutree_migrate_callbacks()` as landed stay-in-C evidence so CPU enrollment, teardown, and callback migration remain reviewable without implying `kernel/rcu/tree_bridge.zig` owns live hotplug behavior."
     },
     {
       "id": "phase14-rcu-tree-memory-ordering-followup",
       "status": "starter_landed",
       "kind": "boundary_audit",
       "zigux_destination": "Documentation/zigux/phase14-rcu-tree-survey.md",
-      "why_now": "The survey now records `raw_spin_lock_rcu_node()`, `smp_mb__after_unlock_lock()`, and `smp_store_release()` as landed stay-in-C evidence so the memory-ordering network shared by `tree.c`, `update.c`, polling APIs, and CPU-hotplug publication remains reviewable without implying a bridge candidate."
+      "why_now": "The survey now records `raw_spin_lock_rcu_node()`, `smp_mb__after_unlock_lock()`, and `smp_store_release()` as landed stay-in-C evidence so the memory-ordering network shared by `tree.c`, `update.c`, polling APIs, and CPU-hotplug publication remains reviewable without implying a live bridge candidate."
     },
     {
       "id": "phase14-rcu-tree-rollback-threshold-guardrail",
@@ -210,7 +217,7 @@
       "status": "blocked_on_stay_in_c_evidence",
       "kind": "freeze_map",
       "zigux_destination": "kernel/rcu/tree_bridge.zig",
-      "why_now": "The roadmap names `kernel/rcu/tree_bridge.zig`, but the current survey still shows gp_seq publication, expedited waits, public wait-and-barrier APIs, NOCB offload, idle-or-dyntick watching transitions, CPU hotplug migration, and memory-ordering behavior that are too coupled to the deep-core RCU implementation for a Phase 14 bridge claim."
+      "why_now": "The roadmap names `kernel/rcu/tree_bridge.zig`, and the repo now ships a review-only boundary map there, but gp_seq publication, expedited waits, public wait-and-barrier APIs, NOCB offload, idle-or-dyntick watching transitions, CPU hotplug migration, and memory-ordering behavior remain too coupled to the deep-core RCU implementation for any live bridge ownership claim."
     }
   ]
 }
