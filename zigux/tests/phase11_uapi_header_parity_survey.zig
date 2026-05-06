@@ -178,7 +178,7 @@ test "phase11 shared header parity survey keeps shared replay markers explicit w
     try expectContains(build_file, "phase11-hvc-console-survey-tests");
     try expectContains(build_file, "layout_assert_module");
     try expectContains(build_file, "phase11_uapi_header_parity_survey_module.addImport(\"layout_assert\", layout_assert_module);");
-    try expectContains(build_file, "const hvc_console_survey_step = b.step(\"hvc-console-survey\"");
+    try expectContains(build_file, "const hvc_console_survey_step = b.step(\"hvc-console-survey\", \"Run the dedicated Phase 11 hvc_console archival survey\");");
     try expectContains(build_file, "hvc_console_survey_step.dependOn(&run_phase11_hvc_console_survey_tests.step);");
 }
 
