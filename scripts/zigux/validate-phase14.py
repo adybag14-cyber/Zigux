@@ -468,6 +468,13 @@ def run_self_test() -> int:
         write_text(root / TRACEABILITY_PATH, "\n".join(expected_markers) + "\n")
 
         if expect_traceability_failure(
+            "- lane key: `P14-L08`",
+            "missing marker in Documentation/zigux/phase14-core-boundary-traceability.md: - lane key: `P14-L08`",
+            "ring-buffer lane-key",
+        ):
+            return 1
+
+        if expect_traceability_failure(
             "- ready-next gap: `phase14-ring-buffer-read-page-copy-followup`",
             "missing marker in Documentation/zigux/phase14-core-boundary-traceability.md: - ready-next gap: `phase14-ring-buffer-read-page-copy-followup`",
             "ring-buffer ready-next",
