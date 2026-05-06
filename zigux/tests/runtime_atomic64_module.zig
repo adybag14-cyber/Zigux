@@ -73,6 +73,7 @@ test "runtime atomic64 sample enforces lifecycle transitions and keeps a 64-bit 
     try std.testing.expectEqual(@as(usize, 1), module.exit_runs);
     try std.testing.expectError(error.InvalidLifecycleTransition, module.init(23));
     try std.testing.expectError(error.InvalidLifecycleTransition, module.exit());
+    try std.testing.expectError(error.InvalidLifecycleTransition, module.runSelftest());
     try std.testing.expectError(error.InvalidLifecycleTransition, module.swapCounter(7));
     try std.testing.expectError(error.InvalidLifecycleTransition, module.andCounter(7));
     try std.testing.expectError(error.InvalidLifecycleTransition, module.orCounter(7));
