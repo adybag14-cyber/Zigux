@@ -93,6 +93,42 @@ REVIEW_EXACT_COUNTS = {
     "the same validator-first seven-test shared-helper release packet": 1,
 }
 
+CONTRIBUTOR_GUIDE_REQUIRED_MARKERS = [
+    "Documentation/zigux/README.md",
+    "Documentation/zigux/review-checklist.md",
+    "Documentation/zigux/phase10-phase11-phase13-contributor-surface-sync.md",
+    "Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md",
+    "zigux/tests/README.md",
+    "scripts/zigux/README.md",
+    "scripts/zigux/validate-phase13-release.py",
+    "scripts/zigux/check-phase13-devres-packet.py",
+    "zigux/Makefile",
+    "zigux/tests/phase13_build.zig",
+    "Documentation/zigux/phase13-release-notes-survey.md",
+    "Documentation/zigux/phase13-roadmap-traceability.md",
+    "Documentation/zigux/phase13-notifier-list-survey.md",
+    "zigux/tests/phase13_notifier_list_manifest.json",
+    "zigux/bindings/notifier_abi.zig",
+    "include/zigux/notifier_abi.h",
+    "zigux/helpers/notifier_chain_view.zig",
+    "adjacent shipped release-surface evidence",
+    "they do not add extra shared replay steps beyond the validator-first route above",
+    "the Phase 13 release packet stays active until the shared replay and the remaining blocker posture say otherwise together",
+]
+
+CONTRIBUTOR_GUIDE_EXACT_COUNTS = {
+    "Documentation/zigux/phase13-release-notes-survey.md": 2,
+    "Documentation/zigux/phase13-roadmap-traceability.md": 2,
+    "Documentation/zigux/phase13-notifier-list-survey.md": 2,
+    "zigux/tests/phase13_notifier_list_manifest.json": 2,
+    "zigux/bindings/notifier_abi.zig": 2,
+    "include/zigux/notifier_abi.h": 2,
+    "zigux/helpers/notifier_chain_view.zig": 2,
+    "adjacent shipped release-surface evidence": 2,
+    "they do not add extra shared replay steps beyond the validator-first route above": 1,
+    "the Phase 13 release packet stays active until the shared replay and the remaining blocker posture say otherwise together": 1,
+}
+
 CONTRIBUTOR_SYNC_REQUIRED_MARKERS = [
     "Documentation/zigux/README.md",
     "Documentation/zigux/review-checklist.md",
@@ -264,6 +300,7 @@ def validate(root: Path) -> list[str]:
 
     docs_readme = _read(root / "Documentation/zigux/README.md")
     review_checklist = _read(root / "Documentation/zigux/review-checklist.md")
+    contributor_workflow_guide = _read(root / "Documentation/zigux/phase13-contributor-workflow-guide.md")
     contributor_surface_sync = _read(root / "Documentation/zigux/phase10-phase11-phase13-contributor-surface-sync.md")
     tests_review_companion = _read(root / "Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md")
     scripts_readme = _read(root / "scripts/zigux/README.md")
@@ -275,6 +312,8 @@ def validate(root: Path) -> list[str]:
     issues.extend(_collect_missing_markers(review_checklist, REVIEW_REQUIRED_MARKERS, "review-checklist"))
     issues.extend(_collect_exact_count_issues(docs_readme, DOC_EXACT_COUNTS, "docs-readme-exact"))
     issues.extend(_collect_exact_count_issues(review_checklist, REVIEW_EXACT_COUNTS, "review-checklist-exact"))
+    issues.extend(_collect_missing_markers(contributor_workflow_guide, CONTRIBUTOR_GUIDE_REQUIRED_MARKERS, "contributor-workflow-guide"))
+    issues.extend(_collect_exact_count_issues(contributor_workflow_guide, CONTRIBUTOR_GUIDE_EXACT_COUNTS, "contributor-workflow-guide-exact"))
     issues.extend(_collect_missing_markers(contributor_surface_sync, CONTRIBUTOR_SYNC_REQUIRED_MARKERS, "contributor-surface-sync"))
     issues.extend(_collect_missing_markers(tests_review_companion, TESTS_REVIEW_COMPANION_REQUIRED_MARKERS, "tests-review-companion"))
     issues.extend(_collect_missing_markers(scripts_readme, SCRIPTS_REQUIRED_MARKERS, "scripts-readme"))
@@ -354,13 +393,49 @@ def _baseline_phase13_build() -> str:
     )
 
 
+def _baseline_contributor_workflow_guide() -> str:
+    return "\n".join(
+        (
+            "Documentation/zigux/README.md",
+            "Documentation/zigux/review-checklist.md",
+            "Documentation/zigux/phase10-phase11-phase13-contributor-surface-sync.md",
+            "Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md",
+            "zigux/tests/README.md",
+            "scripts/zigux/README.md",
+            "scripts/zigux/validate-phase13-release.py",
+            "scripts/zigux/check-phase13-devres-packet.py",
+            "zigux/Makefile",
+            "zigux/tests/phase13_build.zig",
+            "Documentation/zigux/phase13-release-notes-survey.md",
+            "Documentation/zigux/phase13-roadmap-traceability.md",
+            "Documentation/zigux/phase13-notifier-list-survey.md",
+            "zigux/tests/phase13_notifier_list_manifest.json",
+            "zigux/bindings/notifier_abi.zig",
+            "include/zigux/notifier_abi.h",
+            "zigux/helpers/notifier_chain_view.zig",
+            "adjacent shipped release-surface evidence",
+            "Documentation/zigux/phase13-release-notes-survey.md",
+            "Documentation/zigux/phase13-roadmap-traceability.md",
+            "Documentation/zigux/phase13-notifier-list-survey.md",
+            "zigux/tests/phase13_notifier_list_manifest.json",
+            "zigux/bindings/notifier_abi.zig",
+            "include/zigux/notifier_abi.h",
+            "zigux/helpers/notifier_chain_view.zig",
+            "adjacent shipped release-surface evidence",
+            "they do not add extra shared replay steps beyond the validator-first route above",
+            "the Phase 13 release packet stays active until the shared replay and the remaining blocker posture say otherwise together",
+            "",
+        )
+    )
+
+
 def _seed_fixture_tree(root: Path) -> None:
     _write(root / "Documentation/zigux/README.md", "\n".join(DOC_REQUIRED_MARKERS) + "\n")
     _write(root / "Documentation/zigux/review-checklist.md", "\n".join(REVIEW_REQUIRED_MARKERS) + "\n")
     _write(root / "Documentation/zigux/phase13-release-notes-survey.md", "# stub\n")
     _write(root / "Documentation/zigux/phase13-roadmap-traceability.md", "# stub\n")
     _write(root / "Documentation/zigux/phase13-notifier-list-survey.md", "# stub\n")
-    _write(root / "Documentation/zigux/phase13-contributor-workflow-guide.md", "# stub\n")
+    _write(root / "Documentation/zigux/phase13-contributor-workflow-guide.md", _baseline_contributor_workflow_guide())
     _write(root / "Documentation/zigux/phase10-phase11-phase13-contributor-surface-sync.md", "\n".join(CONTRIBUTOR_SYNC_REQUIRED_MARKERS) + "\n")
     _write(root / "Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md", "\n".join(TESTS_REVIEW_COMPANION_REQUIRED_MARKERS) + "\n")
     _write(root / "scripts/zigux/README.md", "\n".join(SCRIPTS_REQUIRED_MARKERS) + "\n")
@@ -504,6 +579,31 @@ def run_self_test() -> int:
             "review_exact_count_guard_failed",
         )
         _write(root / "Documentation/zigux/review-checklist.md", "\n".join(REVIEW_REQUIRED_MARKERS) + "\n")
+        case_count += 1
+
+        contributor_workflow_guide_path = root / "Documentation/zigux/phase13-contributor-workflow-guide.md"
+        contributor_workflow_guide_path.write_text(
+            _baseline_contributor_workflow_guide().replace("zigux/tests/README.md\n", "", 1),
+            encoding="utf-8",
+        )
+        _assert_only(
+            validate(root),
+            ["contributor-workflow-guide:zigux/tests/README.md"],
+            "contributor_workflow_guide_marker_guard_failed",
+        )
+        _write(root / "Documentation/zigux/phase13-contributor-workflow-guide.md", _baseline_contributor_workflow_guide())
+        case_count += 1
+
+        contributor_workflow_guide_path.write_text(
+            _baseline_contributor_workflow_guide() + "zigux/helpers/notifier_chain_view.zig\n",
+            encoding="utf-8",
+        )
+        _assert_only(
+            validate(root),
+            ["contributor-workflow-guide-exact:zigux/helpers/notifier_chain_view.zig:expected=2:actual=3"],
+            "contributor_workflow_guide_exact_count_guard_failed",
+        )
+        _write(root / "Documentation/zigux/phase13-contributor-workflow-guide.md", _baseline_contributor_workflow_guide())
         case_count += 1
 
         contributor_surface_sync_path = root / "Documentation/zigux/phase10-phase11-phase13-contributor-surface-sync.md"
@@ -687,7 +787,7 @@ def run_self_test() -> int:
             ["missing_file:Documentation/zigux/phase13-contributor-workflow-guide.md"],
             "missing_contributor_workflow_guide_guard_failed",
         )
-        _write(root / "Documentation/zigux/phase13-contributor-workflow-guide.md", "# stub\n")
+        _write(root / "Documentation/zigux/phase13-contributor-workflow-guide.md", _baseline_contributor_workflow_guide())
         case_count += 1
 
         (root / "Documentation/zigux/phase13-landlock-syscalls-survey.md").unlink()
@@ -763,7 +863,7 @@ def main() -> int:
     print("PHASE13_RELEASE_VALIDATION=pass")
     print(
         "PHASE13_RELEASE_VALIDATION_MARKER_COUNT="
-        f"{len(REQUIRED_FILES) + len(DOC_REQUIRED_MARKERS) + len(REVIEW_REQUIRED_MARKERS) + len(DOC_EXACT_COUNTS) + len(REVIEW_EXACT_COUNTS) + len(CONTRIBUTOR_SYNC_REQUIRED_MARKERS) + len(TESTS_REVIEW_COMPANION_REQUIRED_MARKERS) + len(SCRIPTS_REQUIRED_MARKERS) + len(TESTS_REQUIRED_MARKERS) + len(MAKE_REQUIRED_LINES) + len(PHASE13_BUILD_EXACT_COUNTS) + len(PHASE13_BUILD_REQUIRED_MARKERS)}"
+        f"{len(REQUIRED_FILES) + len(DOC_REQUIRED_MARKERS) + len(REVIEW_REQUIRED_MARKERS) + len(DOC_EXACT_COUNTS) + len(REVIEW_EXACT_COUNTS) + len(CONTRIBUTOR_GUIDE_REQUIRED_MARKERS) + len(CONTRIBUTOR_GUIDE_EXACT_COUNTS) + len(CONTRIBUTOR_SYNC_REQUIRED_MARKERS) + len(TESTS_REVIEW_COMPANION_REQUIRED_MARKERS) + len(SCRIPTS_REQUIRED_MARKERS) + len(TESTS_REQUIRED_MARKERS) + len(MAKE_REQUIRED_LINES) + len(PHASE13_BUILD_EXACT_COUNTS) + len(PHASE13_BUILD_REQUIRED_MARKERS)}"
     )
     return 0
 
