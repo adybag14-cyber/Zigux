@@ -110,6 +110,11 @@
       "expected": "escaped_control_sequences_expected.json"
     },
     {
+      "name": "trailing_escaped_backslash",
+      "input": "trailing_escaped_backslash.config",
+      "expected": "trailing_escaped_backslash_expected.json"
+    },
+    {
       "name": "sample_crlf",
       "input": "sample_crlf.config",
       "expected": "sample_crlf_expected.json"
