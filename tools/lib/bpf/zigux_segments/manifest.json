@@ -50,14 +50,16 @@
         "parseFdinfoLine() field splitting and trimming",
         "applyFdinfoMapInfoLine() numeric field decoding for map_type/key_size/value_size/max_entries/map_flags/map_extra",
         "parseFdinfoMapInfo() line-by-line fdinfo map metadata parsing",
-        "summarizeFdinfoMapInfo() bounded completion reporting for the parsed map info packet"
+        "summarizeFdinfoMapInfo() bounded completion reporting for the parsed map info packet",
+        "resolveReusedMapName() object-name retention for truncated reused-map names",
+        "normalizeObservedReuseMapFlags() devmap readonly-prog normalization for reuse comparison",
+        "isMapReuseCompatible() helper-only reused-map compatibility comparison"
       ],
       "queued_scope": [
-        "reused-map name chooser and compatibility checks",
         "direct procfs reads and descriptor ownership flow",
         "token creation, bpffs reopen flow, and other fd-handle bridge side effects"
       ],
-      "why_now": "The shared file-path bridge destination already contains a landed fdinfo parsing helper foundation, so future surveys must distinguish capability-level progress from whole-file presence before promoting the heavier bridge tranche."
+      "why_now": "The shared file-path bridge destination now contains the fdinfo parsing foundation plus the helper-only reused-map compatibility packet, so future surveys can keep promoting bounded bridge behavior without crossing into live descriptor or reopen side effects."
     }
   ],
   "segments": [
@@ -121,13 +123,13 @@
     {
       "id": "P8-L15-S06",
       "slug": "map-reuse-compatibility",
-      "status": "ready_next",
+      "status": "starter_landed",
       "kind": "helper_first",
       "anchor_ranges": [
         "tools/lib/bpf/libbpf.c: bpf_map__reuse_fd() name selection and bpf_object__reuse_map() compatibility checks"
       ],
       "zigux_destination": "tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig",
-      "why_now": "This remains a bounded next helper beside the now-materialized fdinfo parsing foundation; the reused-map-name chooser and compatibility comparison are still reviewable without widening into FD duplication, close-on-replacement, or pinned-map reopen side effects."
+      "why_now": "The shared bridge packet now covers the reused-map name chooser and devmap-aware compatibility comparison without widening into FD duplication, close-on-replacement, or pinned-map reopen side effects."
     },
     {
       "id": "P8-L15-S07",
@@ -138,7 +140,7 @@
         "tools/lib/bpf/libbpf.c: bpf_object_prepare_token() and bpf_object__reuse_map() handle-bridging paths"
       ],
       "zigux_destination": "tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig",
-      "why_now": "The shared destination now holds only the bounded fdinfo helper foundation; the remaining bridge still crosses real procfs reads, bpffs opens, token creation, bpf_obj_get() reopen flow, and fd ownership semantics, so the helper-first packet should keep it deferred."
+      "why_now": "The shared destination now holds only the bounded fdinfo helper foundation plus the helper-only reuse packet; the remaining bridge still crosses real procfs reads, bpffs opens, token creation, bpf_obj_get() reopen flow, and fd ownership semantics, so the helper-first packet should keep it deferred."
     },
     {
       "id": "P8-L15-S08",
