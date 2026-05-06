@@ -39,6 +39,7 @@
       ],
       "scnprintf_truncation_anchor": "test \"bitmap scnprintf reports full length while truncating the buffer\"",
       "copy_alias_anchor": "test \"bitmap copy aliases preserve tail clearing and extension semantics\"",
+      "copy_raw_alias_anchor": "test \"bitmap copy alias preserves raw source words without tail clearing\"",
       "zero_bit_noop_anchor": "test \"bitmap zero-bit helpers stay explicit no-ops\""
     },
     "tools/lib/find_bit.zig": {
