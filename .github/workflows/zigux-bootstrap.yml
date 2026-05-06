@@ -175,6 +175,12 @@ jobs:
       - name: Check bounded genksyms CRC artifact parity
         run: python3 scripts/zigux/check-genksyms-crc-diff.py
 
+      - name: Self-test Phase 2 kconfig selftest alignment
+        run: python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py --self-test
+
+      - name: Check Phase 2 kconfig selftest alignment
+        run: python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py
+
       - name: Self-test bounded kconfig bridge parity checker
         run: python3 scripts/zigux/check-kconfig-bridge.py --self-test
 
