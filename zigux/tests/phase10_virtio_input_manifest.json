@@ -116,6 +116,13 @@
       "why_now": "The live repo now includes one bounded registration-preflight summary that reports queue, ready-state, capability-setup, and multitouch-slot blockers before any future `input_register_device()` handoff, which keeps the remaining lifecycle gap explicit without claiming transport-backed parity."
     },
     {
+      "id": "phase10-virtio-input-queue-callback-preflight-helper",
+      "status": "starter_landed",
+      "kind": "lab_driver_starter",
+      "zigux_destination": "drivers/virtio/virtio_input.zig",
+      "why_now": "The live repo now includes one bounded queue-callback preflight summary that reports event and status queue configuration, event-buffer fill state, and ready-state blockers before any future transport-backed callback handoff."
+    },
+    {
       "id": "phase10-virtio-input-status-drain-helper",
       "status": "starter_landed",
       "kind": "lab_driver_starter",
@@ -127,7 +134,7 @@
       "status": "blocked_on_risky_transport",
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase10_virtio_input.zig",
-      "why_now": "Real event delivery, `input_register_device()` lifecycle coverage, freeze or restore behavior, and transport-backed queue callbacks remain too risky even after the registration-preflight, multitouch slot, and status-drain helpers landed, until broader queue callback plumbing is in place."
+      "why_now": "Real event delivery, `input_register_device()` lifecycle coverage, freeze or restore behavior, and transport-backed queue callbacks remain too risky even after the registration-preflight, queue-callback preflight, multitouch slot, and status-drain helpers landed, until broader queue callback plumbing is in place."
     }
   ]
 }
