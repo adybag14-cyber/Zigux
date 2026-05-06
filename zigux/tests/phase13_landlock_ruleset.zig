@@ -86,7 +86,7 @@ test "phase13 landlock ruleset manifest records the shipped helper lab and remai
     try std.testing.expect(manifest.survey_summary.preexisting_phase13_landlock_test_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase13_landlock_slice_note_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase13_landlock_survey_note_present);
-    try std.testing.expectEqual(@as(usize, 11), manifest.gaps.len);
+    try std.testing.expectEqual(@as(usize, 12), manifest.gaps.len);
 
     var starter_landed_count: usize = 0;
     var ready_next_count: usize = 0;
@@ -101,6 +101,7 @@ test "phase13 landlock ruleset manifest records the shipped helper lab and remai
     var saw_merge_followup = false;
     var saw_search_followup = false;
     var saw_tree_link_followup = false;
+    var saw_tree_replacement_followup = false;
     var saw_live_state_blocker = false;
 
     for (manifest.gaps, 0..) |gap, i| {
@@ -177,6 +178,13 @@ test "phase13 landlock ruleset manifest records the shipped helper lab and remai
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "rb_link_node()") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "rb_insert_color()") != null);
         }
+        if (std.mem.eql(u8, gap.id, "phase13-landlock-tree-replacement-followup")) {
+            saw_tree_replacement_followup = true;
+            try std.testing.expectEqualStrings("starter_landed", gap.status);
+            try std.testing.expectEqualStrings("security/landlock/ruleset.zig", gap.zigux_destination);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "create_rule()") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "rb_replace_node()") != null);
+        }
         if (std.mem.eql(u8, gap.id, "phase13-landlock-live-tree-state-blocker")) {
             saw_live_state_blocker = true;
             try std.testing.expectEqualStrings("blocked_on_live_lsm_state", gap.status);
@@ -190,7 +198,7 @@ test "phase13 landlock ruleset manifest records the shipped helper lab and remai
         }
     }
 
-    try std.testing.expectEqual(@as(usize, 10), starter_landed_count);
+    try std.testing.expectEqual(@as(usize, 11), starter_landed_count);
     try std.testing.expectEqual(@as(usize, 0), ready_next_count);
     try std.testing.expectEqual(@as(usize, 1), blocked_count);
     try std.testing.expect(saw_build_gate);
@@ -203,6 +211,7 @@ test "phase13 landlock ruleset manifest records the shipped helper lab and remai
     try std.testing.expect(saw_merge_followup);
     try std.testing.expect(saw_search_followup);
     try std.testing.expect(saw_tree_link_followup);
+    try std.testing.expect(saw_tree_replacement_followup);
     try std.testing.expect(saw_live_state_blocker);
 }
 
@@ -218,6 +227,7 @@ test "phase13 landlock ruleset descriptor stays anchored to ruleset.c" {
     try std.testing.expect(descriptor.provides_rule_insertion_planning);
     try std.testing.expect(descriptor.provides_rule_tree_search_planning);
     try std.testing.expect(descriptor.provides_rule_tree_link_planning);
+    try std.testing.expect(descriptor.provides_rule_tree_replacement_planning);
     try std.testing.expect(!descriptor.touches_live_object_trees);
     try std.testing.expect(!descriptor.touches_live_hierarchy);
 }
@@ -288,6 +298,71 @@ test "phase13 landlock ruleset tree-link planner rejects matching-rule search re
     const search_plan = try ruleset.RulesetHelperLab.planRuleTreeSearch(.inode, true, 40, &.{ 10, 40, 80 }, 9);
 
     try std.testing.expectError(error.RuleAlreadyExists, ruleset.RulesetHelperLab.planRuleTreeLink(search_plan));
+}
+
+test "phase13 landlock ruleset tree-replacement planner records merged-layer replacement" {
+    const existing = ruleset.RulePlan{
+        .num_layers = 2,
+        .layers = [_]ruleset.Layer{
+            .{ .level = 1, .access = 0x1 },
+            .{ .level = 3, .access = 0x4 },
+        } ++ ([_]ruleset.Layer{.{ .level = 0, .access = 0 }} ** (ruleset.max_num_layers - 2)),
+    };
+
+    const plan = try ruleset.RulesetHelperLab.planRuleTreeReplacement(
+        .inode,
+        99,
+        existing,
+        .{ .level = 5, .access = 0x10 },
+        6,
+    );
+
+    try std.testing.expectEqualStrings("security/landlock/ruleset.c", plan.anchor);
+    try std.testing.expectEqual(ruleset.TreeRoot.inode, plan.root);
+    try std.testing.expectEqual(@as(u64, 99), plan.matched_key_data);
+    try std.testing.expectEqual(@as(usize, 3), plan.resulting_rule.num_layers);
+    try std.testing.expectEqual(@as(u16, 5), plan.resulting_rule.layers[2].level);
+    try std.testing.expectEqual(@as(u32, 0x10), plan.resulting_rule.layers[2].access);
+    try std.testing.expect(plan.performs_rb_replace_node);
+    try std.testing.expectEqual(@as(u32, 6), plan.resulting_num_rules);
+}
+
+test "phase13 landlock ruleset tree-replacement planner rejects access-extension branch" {
+    const existing = ruleset.RulePlan{
+        .num_layers = 1,
+        .layers = [_]ruleset.Layer{.{ .level = 0, .access = 0x1 }} ++
+            ([_]ruleset.Layer{.{ .level = 0, .access = 0 }} ** (ruleset.max_num_layers - 1)),
+    };
+
+    try std.testing.expectError(
+        error.RuleReplacementRequiresMergedLayer,
+        ruleset.RulesetHelperLab.planRuleTreeReplacement(
+            .inode,
+            7,
+            existing,
+            .{ .level = 0, .access = 0x2 },
+            3,
+        ),
+    );
+}
+
+test "phase13 landlock ruleset tree-replacement planner rejects empty matched-rule count" {
+    const existing = ruleset.RulePlan{
+        .num_layers = 1,
+        .layers = [_]ruleset.Layer{.{ .level = 1, .access = 0x1 }} ++
+            ([_]ruleset.Layer{.{ .level = 0, .access = 0 }} ** (ruleset.max_num_layers - 1)),
+    };
+
+    try std.testing.expectError(
+        error.InvalidResultingCount,
+        ruleset.RulesetHelperLab.planRuleTreeReplacement(
+            .net_port,
+            12,
+            existing,
+            .{ .level = 2, .access = 0x4 },
+            0,
+        ),
+    );
 }
 
 test "phase13 landlock ruleset insertion rejects duplicate incoming layers" {
