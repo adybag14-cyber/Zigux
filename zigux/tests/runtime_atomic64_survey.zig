@@ -215,6 +215,7 @@ test "phase 9 runtime atomic64 module slice keeps the loader-backed survey packe
     try std.testing.expect(std.mem.indexOf(u8, note, "toSharedLoadPlan()") != null);
     try std.testing.expect(std.mem.indexOf(u8, note, "runtime_loader.prepareRequest()") != null);
     try std.testing.expect(std.mem.indexOf(u8, note, "real runtime substrate remains unavailable") != null);
+    try std.testing.expect(std.mem.indexOf(u8, note, "the shared `zigux/kernel/runtime_loader.zig` facade stays a review-only Phase 9 handoff packet under the freeze map's study-only `kernel/workqueue.c` and `kernel/trace/ring_buffer.c` boundary, so the starter keeps the shared request path explicit without implying scheduler-facing substrate closure or a freeze-map status change") != null);
     try std.testing.expect(std.mem.indexOf(u8, note, "Documentation/zigux/phase9-runtime-atomic64-survey.md") != null);
     try std.testing.expect(std.mem.indexOf(u8, note, "zigux/tests/runtime_atomic64_manifest.json") != null);
     try std.testing.expect(std.mem.indexOf(u8, note, "zigux/tests/runtime_atomic64_survey.zig") != null);
