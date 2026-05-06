@@ -31,6 +31,7 @@ REQUIRED_MAKEFILE_LINES = (
     "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-kconfig-bridge.py",
     "cd $(ZIGUX_ROOT) && $(ZIG) test scripts/zigux/kconfig/conf_bridge.zig",
     "cd $(ZIGUX_ROOT) && $(ZIG) test scripts/zigux/kconfig/confdata_bridge.zig",
+    "phase2: phase2-validate phase2-tools phase2-kconfig phase2-cross",
 )
 REQUIRED_WORKFLOW_LINES = (
     "run: python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py --self-test",
@@ -40,7 +41,7 @@ REQUIRED_WORKFLOW_LINES = (
     "run: zig test scripts/zigux/kconfig/conf_bridge.zig",
     "run: zig test scripts/zigux/kconfig/confdata_bridge.zig",
 )
-EXPECTED_SELF_TEST_CASE_COUNT = 18
+EXPECTED_SELF_TEST_CASE_COUNT = 20
 
 
 def read_text(path: Path) -> str:
@@ -158,6 +159,7 @@ def build_self_test_root(root: Path) -> None:
                 "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-kconfig-bridge.py",
                 "\tcd $(ZIGUX_ROOT) && $(ZIG) test scripts/zigux/kconfig/conf_bridge.zig",
                 "\tcd $(ZIGUX_ROOT) && $(ZIG) test scripts/zigux/kconfig/confdata_bridge.zig",
+                "phase2: phase2-validate phase2-tools phase2-kconfig phase2-cross",
                 "",
             )
         ),
@@ -331,6 +333,26 @@ def run_self_test() -> int:
         )
         issues = collect_issues(root)
         assert ("DUPLICATE_MAKEFILE_HOOKS", f"{REQUIRED_MAKEFILE_LINES[5]}:count=2") in issues
+        cases += 1
+
+        build_self_test_root(root)
+        path = root / MAKEFILE
+        path.write_text(
+            replace_exact_line(path.read_text(encoding="utf-8"), REQUIRED_MAKEFILE_LINES[6], "phase2: phase2-validate phase2-tools phase2-cross"),
+            encoding="utf-8",
+        )
+        issues = collect_issues(root)
+        assert ("MISSING_MAKEFILE_HOOKS", REQUIRED_MAKEFILE_LINES[6]) in issues
+        cases += 1
+
+        build_self_test_root(root)
+        path = root / MAKEFILE
+        path.write_text(
+            duplicate_exact_line(path.read_text(encoding="utf-8"), REQUIRED_MAKEFILE_LINES[6]),
+            encoding="utf-8",
+        )
+        issues = collect_issues(root)
+        assert ("DUPLICATE_MAKEFILE_HOOKS", f"{REQUIRED_MAKEFILE_LINES[6]}:count=2") in issues
         cases += 1
 
         build_self_test_root(root)
