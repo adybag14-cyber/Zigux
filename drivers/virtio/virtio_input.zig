@@ -82,6 +82,14 @@ pub const StatusDrainSummary = struct {
     ready: bool,
 };
 
+pub const EventRefillSummary = struct {
+    anchor: []const u8,
+    completed_event_count: u16,
+    queued_event_buffer_count_before: u16,
+    queued_event_buffer_count_after: u16,
+    ready: bool,
+};
+
 pub const ConfigBitmapSummary = struct {
     anchor: []const u8,
     select: ConfigSelect,
@@ -578,6 +586,26 @@ pub const VirtioInputLab = struct {
             .pending_status_count_before = pending_status_count_before,
             .pending_status_count_after = self.queued_status_count,
             .suppressed_status_count = self.suppressed_status_count,
+            .ready = self.ready,
+        };
+    }
+
+    pub fn refillEventBuffers(self: *Self, completed_event_count: u16) !EventRefillSummary {
+        if (self.event_descriptor_count == 0) return error.EventQueueNotConfigured;
+        if (self.queued_event_buffer_count == 0) return error.EventBuffersNotFilled;
+        if (!self.ready) return error.DeviceNotReady;
+        if (completed_event_count == 0) return error.EmptyEventCompletionCount;
+        if (completed_event_count > self.queued_event_buffer_count) return error.EventCompletionCountExceedsQueued;
+
+        const queued_event_buffer_count_before = self.queued_event_buffer_count;
+        self.queued_event_buffer_count -= completed_event_count;
+        self.queued_event_buffer_count += completed_event_count;
+
+        return .{
+            .anchor = descriptor().anchor,
+            .completed_event_count = completed_event_count,
+            .queued_event_buffer_count_before = queued_event_buffer_count_before,
+            .queued_event_buffer_count_after = self.queued_event_buffer_count,
             .ready = self.ready,
         };
     }
