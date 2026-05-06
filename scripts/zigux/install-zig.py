@@ -21,6 +21,7 @@ VERSION_KEY_RE = re.compile(r'^\d+\.\d+\.\d+(?:-dev\.\d+(?:\+[0-9A-Za-z.-]+)?)?$
 RETRYABLE_HTTP_STATUS_CODES = {500, 502, 503, 504}
 DOWNLOAD_RETRIES = 4
 DOWNLOAD_TIMEOUT = 120.0
+DOWNLOAD_CHUNK_SIZE = 1024 * 1024
 
 
 def normalize_os(name: str) -> str:
@@ -49,7 +50,7 @@ def is_explicit_version(channel: str) -> bool:
     return VERSION_KEY_RE.fullmatch(channel) is not None
 
 
-def open_url(url: str, *, retries: int = 3, timeout: float = 30.0):
+def open_url(url: str | urllib.request.Request, *, retries: int = 3, timeout: float = 30.0):
     last_error: Exception | None = None
     for attempt in range(1, retries + 1):
         try:
@@ -68,6 +69,31 @@ def open_url(url: str, *, retries: int = 3, timeout: float = 30.0):
     raise RuntimeError(f'failed to open URL after retries: {url}')
 
 
+def response_status(response) -> int | None:
+    status = getattr(response, 'status', None)
+    if status is not None:
+        return status
+    if hasattr(response, 'getcode'):
+        return response.getcode()
+    return None
+
+
+def build_download_request(url: str, start_offset: int) -> urllib.request.Request | str:
+    if start_offset <= 0:
+        return url
+    return urllib.request.Request(url, headers={'Range': f'bytes={start_offset}-'})
+
+
+def copy_response_chunks(response, destination: Path, *, append: bool) -> None:
+    mode = 'ab' if append else 'wb'
+    with open(destination, mode) as out:
+        while True:
+            chunk = response.read(DOWNLOAD_CHUNK_SIZE)
+            if not chunk:
+                return
+            out.write(chunk)
+
+
 def copy_url_to_file(
     url: str,
     destination: Path,
@@ -77,16 +103,20 @@ def copy_url_to_file(
 ) -> None:
     last_error: Exception | None = None
     for attempt in range(1, retries + 1):
+        resume_offset = destination.stat().st_size if destination.exists() else 0
+        request = build_download_request(url, resume_offset)
         try:
-            with open_url(url, retries=1, timeout=timeout) as response, open(destination, 'wb') as out:
-                shutil.copyfileobj(response, out)
+            with open_url(request, retries=1, timeout=timeout) as response:
+                status = response_status(response)
+                append = resume_offset > 0 and status == 206
+                if not append and destination.exists():
+                    destination.unlink()
+                copy_response_chunks(response, destination, append=append)
             return
         except TimeoutError as exc:
             last_error = exc
         except urllib.error.URLError as exc:
             last_error = exc
-        if destination.exists():
-            destination.unlink()
         if attempt == retries:
             break
         time.sleep(min(1.5 * attempt, 5.0))
@@ -215,11 +245,10 @@ def run_self_test() -> int:
         'https://ziglang.org/builds/zig-x86_64-linux-0.17.0-dev.87+9b177a7d2.tar.xz',
     )
 
-    download_attempts = {'count': 0}
-
     class FakeResponse:
-        def __init__(self):
-            self._emitted = False
+        def __init__(self, events: list[bytes | BaseException], *, status: int):
+            self._events = list(events)
+            self.status = status
 
         def __enter__(self):
             return self
@@ -227,26 +256,39 @@ def run_self_test() -> int:
         def __exit__(self, exc_type, exc, tb):
             return False
 
-        def read(self, size: int = -1) -> bytes:
-            if size == 0 or self._emitted:
-                return b''
-            self._emitted = True
-            return b'zig-data'
+        def getcode(self) -> int:
+            return self.status
 
-    def flaky_open_url(url: str, *, retries: int = 3, timeout: float = 30.0):
-        del url, retries, timeout
-        download_attempts['count'] += 1
-        if download_attempts['count'] < 3:
-            raise TimeoutError('timed out')
-        return FakeResponse()
+        def read(self, size: int = -1) -> bytes:
+            del size
+            if not self._events:
+                return b''
+            event = self._events.pop(0)
+            if isinstance(event, BaseException):
+                raise event
+            return event
+
+    resume_headers: list[str | None] = []
+
+    def resumable_open_url(target: str | urllib.request.Request, *, retries: int = 3, timeout: float = 30.0):
+        del retries, timeout
+        if isinstance(target, urllib.request.Request):
+            range_header = target.headers.get('Range')
+        else:
+            range_header = None
+        resume_headers.append(range_header)
+        if range_header is None:
+            return FakeResponse([b'zig-', TimeoutError('timed out')], status=200)
+        assert range_header == 'bytes=4-'
+        return FakeResponse([b'data'], status=206)
 
     temp_path = Path(tempfile.mkdtemp(prefix='zigux_install_zig_selftest_')) / 'archive.tar.xz'
     original_open_url = globals()['open_url']
     try:
-        globals()['open_url'] = flaky_open_url
-        copy_url_to_file('https://example.invalid/archive.tar.xz', temp_path, retries=4, timeout=1.0)
+        globals()['open_url'] = resumable_open_url
+        copy_url_to_file('https://example.invalid/archive.tar.xz', temp_path, retries=2, timeout=1.0)
         assert temp_path.read_bytes() == b'zig-data'
-        assert download_attempts['count'] == 3
+        assert resume_headers == [None, 'bytes=4-']
     finally:
         globals()['open_url'] = original_open_url
         if temp_path.exists():
