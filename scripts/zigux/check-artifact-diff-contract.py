@@ -189,12 +189,27 @@ def assert_self_test_catalog_shape() -> None:
 
 
 def assert_review_note_markers(note_text: str) -> None:
-    missing_markers = [marker for marker in REQUIRED_REVIEW_NOTE_MARKERS if marker not in note_text]
-    if missing_markers:
-        raise AssertionError(
-            'artifact-diff review note missing required markers: '
-            f'{missing_markers}'
-        )
+    missing_markers: list[str] = []
+    duplicate_markers: list[str] = []
+    for marker in REQUIRED_REVIEW_NOTE_MARKERS:
+        count = note_text.count(marker)
+        if count == 0:
+            missing_markers.append(marker)
+        elif count != 1:
+            duplicate_markers.append(f'{marker}:{count}')
+    if missing_markers or duplicate_markers:
+        problems: list[str] = []
+        if missing_markers:
+            problems.append(
+                'artifact-diff review note missing required markers: '
+                f'{missing_markers}'
+            )
+        if duplicate_markers:
+            problems.append(
+                'artifact-diff review note duplicated required markers: '
+                f'{duplicate_markers}'
+            )
+        raise AssertionError('; '.join(problems))
 
 
 def helper_self_test_expected_lines() -> list[str]:
@@ -333,6 +348,12 @@ def run_self_test() -> int:
     expect_assertion(
         'review_note_marker_drift',
         lambda: assert_review_note_markers('\n'.join(REQUIRED_REVIEW_NOTE_MARKERS[1:])),
+    )
+    expect_assertion(
+        'review_note_marker_drift_duplicate',
+        lambda: assert_review_note_markers(
+            '\n'.join([*REQUIRED_REVIEW_NOTE_MARKERS, REQUIRED_REVIEW_NOTE_MARKERS[0]])
+        ),
     )
     covered_cases.append('review_note_marker_drift')
 
