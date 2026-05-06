@@ -490,6 +490,14 @@ def run_self_test() -> int:
         _assert_only(validate(root), ["missing_repo_file:scripts/zigux/check-phase8-exec-cmd-packet.py"], "missing_phase8_exec_cmd_packet_repo_file_guard_failed")
         _write(root / "scripts" / "zigux" / "check-phase8-exec-cmd-packet.py", "# stub\n")
         case_count += 1
+        (root / "scripts" / "zigux" / "validate-phase13-release.py").unlink()
+        _assert_only(validate(root), ["missing_repo_file:scripts/zigux/validate-phase13-release.py"], "missing_phase13_release_validator_repo_file_guard_failed")
+        _write(root / "scripts" / "zigux" / "validate-phase13-release.py", "# stub\n")
+        case_count += 1
+        (root / "scripts" / "zigux" / "check-phase13-devres-packet.py").unlink()
+        _assert_only(validate(root), ["missing_repo_file:scripts/zigux/check-phase13-devres-packet.py"], "missing_phase13_devres_packet_repo_file_guard_failed")
+        _write(root / "scripts" / "zigux" / "check-phase13-devres-packet.py", "# stub\n")
+        case_count += 1
         _write(root / MAKEFILE_REL, baseline_makefile.replace("\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase7-rbtree-parity.py\n", "", 1))
         _assert_only(validate(root), ["missing_makefile_command:phase7-validate:cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase7-rbtree-parity.py", "makefile_command_order_drift:phase7-validate"], "missing_phase7_rbtree_command_guard_failed")
         _write(root / MAKEFILE_REL, baseline_makefile)
