@@ -36,6 +36,7 @@ PHASE2_TESTS_README_ALIGNMENT_REQUIRED_SOURCE_MARKERS = [
 PHASE2_MAKEFILE_RUN_COUNTS = {
     'scripts/zigux/check-fixdep-diff.py --self-test': 1,
     'scripts/zigux/check-fixdep-diff.py': 1,
+    'scripts/zigux/check-zig-toolchain.py': 1,
     'scripts/zigux/validate-phase2.py': 1,
     'scripts/zigux/validate-phase2-closure.py': 1,
     'scripts/zigux/check-phase2-tests-readme-alignment.py': 1,
@@ -62,6 +63,7 @@ def run_self_test() -> int:
     make_ok = '\n'.join([
         'cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-fixdep-diff.py --self-test',
         'cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-fixdep-diff.py',
+        'cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-zig-toolchain.py',
         'cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase2.py',
         'cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase2-closure.py',
         'cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-tests-readme-alignment.py',
@@ -99,6 +101,14 @@ def run_self_test() -> int:
                 + '\ncd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-fixdep-diff.py'
             ),
             ['make_exact_run:scripts/zigux/check-fixdep-diff.py:count=2:expected=1'],
+        ),
+        (
+            'make_duplicate_check_zig_toolchain',
+            validate_exact_makefile_runs(
+                make_ok
+                + '\ncd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-zig-toolchain.py'
+            ),
+            ['make_exact_run:scripts/zigux/check-zig-toolchain.py:count=2:expected=1'],
         ),
         (
             'make_duplicate_validate_phase2',
@@ -253,9 +263,9 @@ required_files = [
     TOOLCHAIN_POLICY,
     GENKSYMS_CASES,
     KCONFIG_BRIDGE_CASES,
+    ROOT / 'zigux' / 'tests' / 'fixtures' / 'kconfig_bridge' / 'alldefconfig_expected.json',
     ROOT / 'zigux' / 'tests' / 'fixtures' / 'kconfig_bridge' / 'olddefconfig_expected.json',
     ROOT / 'zigux' / 'tests' / 'fixtures' / 'kconfig_bridge' / 'syncconfig_expected.json',
-    ROOT / 'zigux' / 'tests' / 'fixtures' / 'kconfig_bridge' / 'alldefconfig_expected.json',
     ROOT / 'zigux' / 'tests' / 'fixtures' / 'kconfig_bridge' / 'allmodconfig_expected.json',
     ROOT / 'zigux' / 'tests' / 'fixtures' / 'kconfig_bridge' / 'yes2modconfig_expected.json',
     ROOT / 'zigux' / 'tests' / 'fixtures' / 'kconfig_bridge' / 'defconfig_expected.json',
@@ -510,9 +520,12 @@ def main() -> int:
         'phase2_cross_targets.json',
     ]
     required_makefile_markers = [
+        'phase2-toolchain:',
+        'phase2-validate: phase2-toolchain',
         'phase2-validate:',
         'phase2-kconfig:',
         'phase2-cross:',
+        'check-zig-toolchain.py',
         'check-phase2-tests-readme-alignment.py',
         'check-phase2-cross-selftest-alignment.py --self-test',
         'check-phase2-cross-selftest-alignment.py',
