@@ -9,6 +9,8 @@ This document starts a bounded Phase 7 runtime leaf-helper slice for Zigux.
 - scope: first low-risk runtime-safe string helper batch only
 - product boundary:
   - `lib/string_helpers.zig`
+  - `samples/zigux/README.md`
+  - `scripts/zigux/validate-phase7.py`
   - `zigux/tests/phase7_string_helpers.zig`
   - `zigux/tests/phase7_string_helpers_sample_boundary.zig`
   - `zigux/tests/phase7_build.zig`
@@ -35,10 +37,15 @@ The Phase 5 roadmap keeps approved reference idioms under four sample anchors in
 1. run the focused Zig Phase 7 helper tests
 - `zig build test --build-file zigux/tests/phase7_build.zig --summary all`
 
-2. keep the helper wired through the Zigux convenience target
+2. keep the shared validator-first packet explicit
+- `python3 scripts/zigux/validate-phase7.py`
+- `make -C zigux phase7-validate`
+
+3. keep the helper wired through the Zigux convenience target
 - `make -C zigux phase7`
 
-3. keep the dedicated no-string-sample boundary guard reviewable
+4. keep the dedicated no-string-sample boundary guard reviewable
+- `samples/zigux/README.md`
 - `zigux/tests/phase7_string_helpers_sample_boundary.zig`
 
 ## Current parity surface
