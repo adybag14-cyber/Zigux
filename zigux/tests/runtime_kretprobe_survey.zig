@@ -110,7 +110,7 @@ test "phase 9 runtime kretprobe survey manifest records the landed loader plan a
     defer parsed.deinit();
 
     const manifest = parsed.value;
-    try std.testing.expectEqualStrings("P9-L16", manifest.lane_key);
+    try std.testing.expectEqualStrings("P9-L17", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 9", manifest.phase);
     try std.testing.expectEqualStrings("samples/kprobes/kretprobe_example.c", manifest.anchor);
     try std.testing.expectEqual(@as(usize, 2), manifest.roadmap_destinations.len);
@@ -142,7 +142,7 @@ test "phase 9 runtime kretprobe survey manifest records the landed loader plan a
     try std.testing.expect(manifest.gaps.len >= 6);
 
     try expectContains(survey_doc, "PHASE9_SLICE=runtime-kretprobe-survey");
-    try expectContains(survey_doc, "P9-L16");
+    try expectContains(survey_doc, "P9-L17");
     try expectContains(survey_doc, "samples/zigux/runtime_kretprobe_loader.zig");
     try expectContains(survey_doc, "zigux/kernel/runtime_loader.zig");
     try expectContains(survey_doc, "zigux/kernel/runtime_loader_contract.zig");
