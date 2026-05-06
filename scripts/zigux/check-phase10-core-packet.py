@@ -22,6 +22,8 @@ FILES = [
     "zigux/tests/phase10_virtio_core_survey.zig",
     "Documentation/zigux/phase10-virtio-core-survey.md",
     "Documentation/zigux/phase10-virtio-core-slice.md",
+    "drivers/virtio/virtio.zig",
+    "drivers/virtio/virtio_driver_id.zig",
 ]
 
 EXPECTED_BUILD_MARKERS = [
@@ -89,6 +91,22 @@ EXPECTED_RESET_QUEUE_MARKERS = [
     "try std.testing.expect(!cleared_summary.driver_ready);",
 ]
 
+EXPECTED_CORE_HELPER_MARKERS = [
+    'pub const default_driver_name = "anonymous_driver";',
+    "pub const DriverLifecycleBlocker = enum {",
+    "pub fn finalizeFeaturesWithDriverValidation(",
+    "pub fn queueDescriptorShapeSummary(self: *const Self, queue_index: u16) !QueueDescriptorShapeSummary {",
+    "pub fn resetReplaySummary(self: *const Self) ResetReplaySummary {",
+]
+
+EXPECTED_DRIVER_ID_HELPER_MARKERS = [
+    "pub const any_id: u32 = 0xffff_ffff;",
+    '.name = "virtio_driver_id_matcher_lab",',
+    "pub fn registrationSummary(self: *const Self) RegistrationIdentitySummary {",
+    "pub fn driverIdMatchSummary(",
+    '"virtio:d{x:0>8}v{x:0>8}"',
+]
+
 EXPECTED_GAPS = {
     "phase10-build-gate": "starter_landed",
     "phase10-virtio-core-survey-gate": "starter_landed",
@@ -141,6 +159,16 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
     for marker in EXPECTED_RESET_QUEUE_MARKERS:
         if marker not in reset_queue_text:
             missing_markers.append(f"reset_queue:{marker}")
+
+    core_helper_text = read_text(root, "drivers/virtio/virtio.zig")
+    for marker in EXPECTED_CORE_HELPER_MARKERS:
+        if marker not in core_helper_text:
+            missing_markers.append(f"core_helper:{marker}")
+
+    driver_id_helper_text = read_text(root, "drivers/virtio/virtio_driver_id.zig")
+    for marker in EXPECTED_DRIVER_ID_HELPER_MARKERS:
+        if marker not in driver_id_helper_text:
+            missing_markers.append(f"driver_id_helper:{marker}")
 
     survey_note = read_text(root, "Documentation/zigux/phase10-virtio-core-survey.md")
     for marker in EXPECTED_SURVEY_MARKERS:
@@ -220,6 +248,8 @@ def run_self_test() -> int:
         "zigux/tests/phase10_virtio_core_survey.zig": read_text(ROOT, "zigux/tests/phase10_virtio_core_survey.zig"),
         "Documentation/zigux/phase10-virtio-core-survey.md": read_text(ROOT, "Documentation/zigux/phase10-virtio-core-survey.md"),
         "Documentation/zigux/phase10-virtio-core-slice.md": read_text(ROOT, "Documentation/zigux/phase10-virtio-core-slice.md"),
+        "drivers/virtio/virtio.zig": read_text(ROOT, "drivers/virtio/virtio.zig"),
+        "drivers/virtio/virtio_driver_id.zig": read_text(ROOT, "drivers/virtio/virtio_driver_id.zig"),
     }
 
     with tempfile.TemporaryDirectory(prefix="zigux_phase10_core_packet_") as tmp_dir:
@@ -348,6 +378,36 @@ def run_self_test() -> int:
             raise SystemExit("phase10-core-self-test:expected_reset_queue_driver_ready_marker_missing")
         reset_queue_path.write_text(original_reset_queue, encoding="utf-8")
 
+        core_helper_path = tmp_root / "drivers/virtio/virtio.zig"
+        original_core_helper = core_helper_path.read_text(encoding="utf-8")
+        core_helper_path.write_text(
+            original_core_helper.replace(
+                "pub fn resetReplaySummary(self: *const Self) ResetReplaySummary {",
+                "pub fn resetReplayDrift(self: *const Self) ResetReplaySummary {",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        _, missing_markers = validate(tmp_root)
+        if "core_helper:pub fn resetReplaySummary(self: *const Self) ResetReplaySummary {" not in missing_markers:
+            raise SystemExit("phase10-core-self-test:expected_core_helper_marker_missing")
+        core_helper_path.write_text(original_core_helper, encoding="utf-8")
+
+        driver_id_helper_path = tmp_root / "drivers/virtio/virtio_driver_id.zig"
+        original_driver_id_helper = driver_id_helper_path.read_text(encoding="utf-8")
+        driver_id_helper_path.write_text(
+            original_driver_id_helper.replace(
+                "pub fn driverIdMatchSummary(",
+                "pub fn driverIdMatchSummaryDrift(",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        _, missing_markers = validate(tmp_root)
+        if "driver_id_helper:pub fn driverIdMatchSummary(" not in missing_markers:
+            raise SystemExit("phase10-core-self-test:expected_driver_id_helper_marker_missing")
+        driver_id_helper_path.write_text(original_driver_id_helper, encoding="utf-8")
+
         slice_path = tmp_root / "Documentation/zigux/phase10-virtio-core-slice.md"
         original_slice = slice_path.read_text(encoding="utf-8")
         slice_path.write_text(
@@ -415,7 +475,7 @@ def run_self_test() -> int:
             raise SystemExit("phase10-core-self-test:expected_surveyed_commit_alignment_missing")
 
     print("PHASE10_CORE_PACKET_SELF_TEST=pass")
-    print("PHASE10_CORE_PACKET_SELF_TEST_CASE_COUNT=16")
+    print("PHASE10_CORE_PACKET_SELF_TEST_CASE_COUNT=18")
     return 0
 
 
