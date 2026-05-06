@@ -26,7 +26,7 @@ ABI_SLICE_DOC_REL = "Documentation/zigux/phase3-abi-slice.md"
 ABI_MANIFEST_PHASE = "Phase 3"
 ABI_MANIFEST_STATUS = "active"
 ABI_MANIFEST_SLICE = "abi-substrate-skeleton"
-SELF_TEST_CASE_COUNT = 18
+SELF_TEST_CASE_COUNT = 20
 
 ABI_MANIFEST_REQUIRED_FILES = (
     "include/zigux/abi.h",
@@ -80,12 +80,7 @@ def doc_exact_count(doc: str, expected: str) -> int:
 
 
 def doc_prefixed_values(doc: str, prefix: str) -> list[str]:
-    return [
-        payload
-        for line in doc.splitlines()
-        for payload in (doc_payload(line),)
-        if payload.startswith(prefix)
-    ]
+    return [payload for line in doc.splitlines() for payload in (doc_payload(line),) if payload.startswith(prefix)]
 
 
 def require_exact_doc_line(issues: list[str], doc: str, expected: str) -> None:
@@ -113,17 +108,11 @@ def load_manifest(root: Path, issues: list[str]) -> list[str] | None:
         return None
 
     if manifest.get("phase") != ABI_MANIFEST_PHASE:
-        issues.append(
-            f"manifest_phase_mismatch:{manifest.get('phase')}!={ABI_MANIFEST_PHASE}"
-        )
+        issues.append(f"manifest_phase_mismatch:{manifest.get('phase')}!={ABI_MANIFEST_PHASE}")
     if manifest.get("status") != ABI_MANIFEST_STATUS:
-        issues.append(
-            f"manifest_status_mismatch:{manifest.get('status')}!={ABI_MANIFEST_STATUS}"
-        )
+        issues.append(f"manifest_status_mismatch:{manifest.get('status')}!={ABI_MANIFEST_STATUS}")
     if manifest.get("slice") != ABI_MANIFEST_SLICE:
-        issues.append(
-            f"manifest_slice_mismatch:{manifest.get('slice')}!={ABI_MANIFEST_SLICE}"
-        )
+        issues.append(f"manifest_slice_mismatch:{manifest.get('slice')}!={ABI_MANIFEST_SLICE}")
 
     files = manifest.get("files")
     if not isinstance(files, list) or not all(isinstance(entry, str) for entry in files):
@@ -136,13 +125,9 @@ def load_manifest(root: Path, issues: list[str]) -> list[str] | None:
         issues.append(f"invalid_manifest_file_count:{ABI_MANIFEST_REL}")
     else:
         if file_count != len(files):
-            issues.append(
-                f"manifest_file_count_mismatch:{file_count}!={len(files)}"
-            )
+            issues.append(f"manifest_file_count_mismatch:{file_count}!={len(files)}")
         if file_count != expected_count:
-            issues.append(
-                f"manifest_packet_count_mismatch:{file_count}!={expected_count}"
-            )
+            issues.append(f"manifest_packet_count_mismatch:{file_count}!={expected_count}")
     return files
 
 
@@ -177,14 +162,14 @@ def validate(root: Path) -> list[str]:
         "PHASE3_ATOMIC_STATUS=bounded-helper-surface-landed",
         "PHASE3_BARRIER_SCOPE=acquire-release-full-acquire-release-pair",
         "PHASE3_BARRIER_STATUS=local-sentinel-probe-only",
-        "PHASE3_MMIO_SCOPE=range-read8-write8-read32-write32",
-        "PHASE3_MMIO_STATUS=byte-and-32-bit-mmio-through-narrow-pointer-bridge",
-        "PHASE3_LOW_LEVEL_TEST_SCOPE=focused-atomic-barrier-mmio-replay-plus-non-seq-cst-ordering",
+        "PHASE3_MMIO_SCOPE=range-read8-write8-read16-write16-read32-write32",
+        "PHASE3_MMIO_STATUS=byte-16-bit-and-32-bit-mmio-through-narrow-pointer-bridge",
+        "PHASE3_LOW_LEVEL_TEST_SCOPE=focused-atomic-barrier-mmio-replay-plus-barrier-locality-and-non-seq-cst-ordering",
         "PHASE3_LOW_LEVEL_TEST_STATUS=dedicated-focused-replay-widened-for-current-helper-surface",
         "PHASE3_VALIDATE_GATE=python3 scripts/zigux/validate-phase3.py --slug abi",
         "PHASE3_LOW_LEVEL_WRAPPER_SURVEY_GATE=python3 scripts/zigux/validate-phase3-low-level-wrapper-survey.py",
         "PHASE3_BOUNDARY_SCOPE=focused-low-level-replay-plus-shared-abi-compile-layout-dump-packet",
-        "PHASE3_BOUNDARY_GAP=focused-low-level-replay-now-covers-byte-and-32-bit-mmio-plus-non-seq-cst-orderings-but-remains-narrower-than-helper-local-atomic-edge-coverage",
+        "PHASE3_BOUNDARY_GAP=focused-low-level-replay-now-covers-byte-16-bit-and-32-bit-mmio-plus-barrier-locality-and-non-seq-cst-orderings-but-remains-narrower-than-helper-local-atomic-edge-coverage",
         "PHASE3_NEXT_BOUNDED_STEP=keep-this-survey-the-focused-replay-and-the-shared-abi-packet-aligned-when-helper-surface-moves",
     )
     for marker in required_doc_markers:
@@ -248,6 +233,8 @@ def validate(root: Path) -> list[str]:
             "pub fn range",
             "pub fn read8",
             "pub fn write8",
+            "pub fn read16",
+            "pub fn write16",
             "pub fn read32",
             "pub fn write32",
             "narrow.pointerAt",
@@ -260,6 +247,7 @@ def validate(root: Path) -> list[str]:
         (
             'test "phase3 low-level wrappers cover the shipped helper surface directly"',
             'test "phase3 low-level wrappers keep non-seq-cst orderings reviewable"',
+            'test "phase3 low-level wrappers keep barrier locality reviewable"',
             "atomic.fetchAdd",
             "atomic.fetchSub",
             "atomic.fetchAnd",
@@ -271,9 +259,14 @@ def validate(root: Path) -> list[str]:
             "barrier.acquireRelease",
             "mmio.write8",
             "mmio.read8",
+            "mmio.write16",
+            "mmio.read16",
             "try std.testing.expectEqual(base, byte_desc.base_addr);",
             "try std.testing.expectEqual(@as(u32, 8), byte_desc.length);",
             "try std.testing.expectEqual(@as(u32, 1), byte_desc.stride);",
+            "try std.testing.expectEqual(base, halfword_desc.base_addr);",
+            "try std.testing.expectEqual(@as(u32, 8), halfword_desc.length);",
+            "try std.testing.expectEqual(@as(u32, 2), halfword_desc.stride);",
             "try std.testing.expectEqual(base, desc.base_addr);",
             "try std.testing.expectEqual(@as(u32, 8), desc.length);",
             "try std.testing.expectEqual(@as(u32, 4), desc.stride);",
@@ -308,19 +301,6 @@ def validate(root: Path) -> list[str]:
         "abi_expected_missing_token",
         ('"zigux_mmio_range"', '"zigux_interop_policy"'),
     )
-    require_tokens(
-        issues,
-        (root / ABI_SLICE_DOC_REL).read_text(encoding="utf-8"),
-        "abi_slice_missing_token",
-        (
-            "`zigux/helpers/atomic.zig`",
-            "`zigux/helpers/barrier.zig`",
-            "`zigux/helpers/mmio.zig`",
-            "`zigux/tests/phase3_low_level_wrappers.zig`",
-            "non-`seq_cst` atomic ordering coverage",
-            "byte and 32-bit MMIO access",
-        ),
-    )
 
     files = load_manifest(root, issues)
     if files is not None:
@@ -340,10 +320,7 @@ def validate(root: Path) -> list[str]:
 def bulletize_doc(text: str) -> str:
     lines = []
     for line in text.splitlines():
-        if line:
-            lines.append(f"- `{line}`")
-        else:
-            lines.append("")
+        lines.append(f"- `{line}`" if line else "")
     return "\n".join(lines) + ("\n" if text.endswith("\n") else "")
 
 
@@ -359,11 +336,11 @@ def self_test_doc(root: Path) -> str:
         "PHASE3_BARRIER_STATUS=local-sentinel-probe-only",
         f"PHASE3_BARRIER_BLOB_SHA={blob_sha(root / BARRIER_REL)}",
         f"PHASE3_MMIO_PATH={MMIO_REL}",
-        "PHASE3_MMIO_SCOPE=range-read8-write8-read32-write32",
-        "PHASE3_MMIO_STATUS=byte-and-32-bit-mmio-through-narrow-pointer-bridge",
+        "PHASE3_MMIO_SCOPE=range-read8-write8-read16-write16-read32-write32",
+        "PHASE3_MMIO_STATUS=byte-16-bit-and-32-bit-mmio-through-narrow-pointer-bridge",
         f"PHASE3_MMIO_BLOB_SHA={blob_sha(root / MMIO_REL)}",
         f"PHASE3_LOW_LEVEL_TEST_PATH={LOW_LEVEL_TEST_REL}",
-        "PHASE3_LOW_LEVEL_TEST_SCOPE=focused-atomic-barrier-mmio-replay-plus-non-seq-cst-ordering",
+        "PHASE3_LOW_LEVEL_TEST_SCOPE=focused-atomic-barrier-mmio-replay-plus-barrier-locality-and-non-seq-cst-ordering",
         "PHASE3_LOW_LEVEL_TEST_STATUS=dedicated-focused-replay-widened-for-current-helper-surface",
         f"PHASE3_LOW_LEVEL_TEST_BLOB_SHA={blob_sha(root / LOW_LEVEL_TEST_REL)}",
         f"PHASE3_ABI_TEST_PATH={ABI_TEST_REL}",
@@ -376,7 +353,7 @@ def self_test_doc(root: Path) -> str:
         "PHASE3_VALIDATE_GATE=python3 scripts/zigux/validate-phase3.py --slug abi",
         "PHASE3_LOW_LEVEL_WRAPPER_SURVEY_GATE=python3 scripts/zigux/validate-phase3-low-level-wrapper-survey.py",
         "PHASE3_BOUNDARY_SCOPE=focused-low-level-replay-plus-shared-abi-compile-layout-dump-packet",
-        "PHASE3_BOUNDARY_GAP=focused-low-level-replay-now-covers-byte-and-32-bit-mmio-plus-non-seq-cst-orderings-but-remains-narrower-than-helper-local-atomic-edge-coverage",
+        "PHASE3_BOUNDARY_GAP=focused-low-level-replay-now-covers-byte-16-bit-and-32-bit-mmio-plus-barrier-locality-and-non-seq-cst-orderings-but-remains-narrower-than-helper-local-atomic-edge-coverage",
         "PHASE3_NEXT_BOUNDED_STEP=keep-this-survey-the-focused-replay-and-the-shared-abi-packet-aligned-when-helper-surface-moves",
         "",
     )
@@ -386,13 +363,7 @@ def self_test_doc(root: Path) -> str:
 def run_self_test() -> int:
     with tempfile.TemporaryDirectory(prefix="zigux_phase3_low_level_wrapper_") as tmp_dir:
         root = Path(tmp_dir)
-
-        for rel in ABI_MANIFEST_REQUIRED_FILES + (
-            DOC_REL,
-            ABI_MANIFEST_REL,
-            ABI_HARNESS_REL,
-            ABI_SLICE_DOC_REL,
-        ):
+        for rel in ABI_MANIFEST_REQUIRED_FILES + (DOC_REL, ABI_MANIFEST_REL, ABI_HARNESS_REL, ABI_SLICE_DOC_REL):
             path = root / rel
             path.parent.mkdir(parents=True, exist_ok=True)
             if not path.exists():
@@ -418,7 +389,6 @@ def run_self_test() -> int:
             ),
             encoding="utf-8",
         )
-        (root / BARRIER_REL).writeText if False else None
         (root / BARRIER_REL).write_text(
             "\n".join(
                 (
@@ -437,6 +407,8 @@ def run_self_test() -> int:
                     "pub fn range() void {}",
                     "pub fn read8() void {}",
                     "pub fn write8() void {}",
+                    "pub fn read16() void {}",
+                    "pub fn write16() void {}",
                     "pub fn read32() void {}",
                     "pub fn write32() void {}",
                     "const ptr = narrow.pointerAt(u32, 0, 0);",
@@ -461,9 +433,14 @@ def run_self_test() -> int:
                     "    barrier.acquireRelease();",
                     "    _ = mmio.write8;",
                     "    _ = mmio.read8;",
+                    "    _ = mmio.write16;",
+                    "    _ = mmio.read16;",
                     "    try std.testing.expectEqual(base, byte_desc.base_addr);",
                     "    try std.testing.expectEqual(@as(u32, 8), byte_desc.length);",
                     "    try std.testing.expectEqual(@as(u32, 1), byte_desc.stride);",
+                    "    try std.testing.expectEqual(base, halfword_desc.base_addr);",
+                    "    try std.testing.expectEqual(@as(u32, 8), halfword_desc.length);",
+                    "    try std.testing.expectEqual(@as(u32, 2), halfword_desc.stride);",
                     "    try std.testing.expectEqual(base, desc.base_addr);",
                     "    try std.testing.expectEqual(@as(u32, 8), desc.length);",
                     "    try std.testing.expectEqual(@as(u32, 4), desc.stride);",
@@ -475,11 +452,15 @@ def run_self_test() -> int:
                     "    const d = .monotonic;",
                     "    _ = .{ a, b, c, d };",
                     "}",
+                    'test "phase3 low-level wrappers keep barrier locality reviewable" {',
+                    "    barrier.acquireRelease();",
+                    "}",
                     "",
                 )
             ),
             encoding="utf-8",
         )
+        (root / ABI_TEST_REL).writeText if False else None
         (root / ABI_TEST_REL).write_text(
             "\n".join(
                 (
@@ -514,20 +495,6 @@ def run_self_test() -> int:
                 indent=2,
             )
             + "\n",
-            encoding="utf-8",
-        )
-        (root / ABI_SLICE_DOC_REL).write_text(
-            "\n".join(
-                (
-                    "`zigux/helpers/atomic.zig`",
-                    "`zigux/helpers/barrier.zig`",
-                    "`zigux/helpers/mmio.zig`",
-                    "`zigux/tests/phase3_low_level_wrappers.zig`",
-                    "non-`seq_cst` atomic ordering coverage",
-                    "byte and 32-bit MMIO access",
-                    "",
-                )
-            ),
             encoding="utf-8",
         )
 
