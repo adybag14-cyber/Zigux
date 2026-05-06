@@ -176,3 +176,43 @@ test "phase 6 base64 reports destination bounds before decoding" {
     try std.testing.expectError(base64.DecodeError.DestinationTooSmall, base64.decode(unpadded_buf[0..], "Zm9v", false, .std));
     try std.testing.expectEqualSlices(u8, &[_]u8{ 0xdd, 0xdd }, unpadded_buf[0..]);
 }
+
+test "phase 6 base64 exact-fit encode and decode buffers stay accepted across std and imap variants" {
+    const encode_cases = [_]struct {
+        input: []const u8,
+        expected: []const u8,
+        padding: bool,
+        variant: base64.Variant,
+    }{
+        .{ .input = "fooba", .expected = "Zm9vYmE=", .padding = true, .variant = .std },
+        .{ .input = "fooba", .expected = "Zm9vYmE", .padding = false, .variant = .std },
+        .{ .input = &fixtures.variant_sample, .expected = "APv,f4A=", .padding = true, .variant = .imap },
+        .{ .input = &fixtures.variant_sample, .expected = "APv,f4A", .padding = false, .variant = .imap },
+    };
+
+    for (encode_cases) |case| {
+        var encoded = [_]u8{0xaa} ** 8;
+        const exact = encoded[0..base64.chars(case.input.len, case.padding)];
+        const written = try base64.encode(exact, case.input, case.padding, case.variant);
+
+        try std.testing.expectEqual(exact.len, written);
+        try std.testing.expectEqualStrings(case.expected, exact[0..written]);
+    }
+
+    const decode_cases = [_]DecodeCase{
+        .{ .input = "Zm9vYmE=", .expected = "fooba", .padding = true, .variant = .std },
+        .{ .input = "Zm9vYmE", .expected = "fooba", .padding = false, .variant = .std },
+        .{ .input = "APv,f4A=", .expected = &fixtures.variant_sample, .padding = true, .variant = .imap },
+        .{ .input = "APv,f4A", .expected = &fixtures.variant_sample, .padding = false, .variant = .imap },
+    };
+
+    for (decode_cases) |case| {
+        var decoded = [_]u8{0xdd} ** 5;
+        const exact_len = try base64.bytes(case.input, case.padding, case.variant);
+        const exact = decoded[0..exact_len];
+        const written = try base64.decode(exact, case.input, case.padding, case.variant);
+
+        try std.testing.expectEqual(exact.len, written);
+        try std.testing.expectEqualSlices(u8, case.expected, exact[0..written]);
+    }
+}
