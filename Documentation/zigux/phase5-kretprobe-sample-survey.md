@@ -13,6 +13,9 @@ This document tracks the bounded Phase 5 reference-sample survey for the roadmap
   - `Documentation/zigux/phase5-kretprobe-sample-survey.md`
   - `Documentation/zigux/README.md`
   - `Documentation/zigux/review-checklist.md`
+  - `samples/zigux/README.md`
+  - `scripts/zigux/README.md`
+  - `zigux/tests/README.md`
   - `samples/zigux/kretprobe_example.zig`
   - `zigux/tests/phase5_build.zig`
   - `zigux/tests/phase5_kretprobe_example.zig`
@@ -35,6 +38,7 @@ Fresh repo inspection already showed landed Phase 5 FIFO and kobject reference s
   - return-value and duration reporting from the stored entry timestamp
   - real registration and teardown substrate through `register_kretprobe()`, `unregister_kretprobe()`, `pt_regs`, and module init or exit hooks
 - the honest Phase 5 move is to make symbol choice, skip behavior, the one-word private timestamp record, return-duration bookkeeping, the fixed `maxactiveBudget()` review cue at `20`, the `nmissed` summary, and ownership snapshots reviewable in memory while leaving probe registration and module plumbing out of scope.
+- the live shared contributor packet for this landed sample is broader than the sample file and its paired manifest alone: `samples/zigux/README.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md` now keep this kretprobe note aligned with the same four-sample Phase 5 packet described from the docs root, sample root, scripts root, and tests root.
 
 ## Landed sample and exact checks
 
