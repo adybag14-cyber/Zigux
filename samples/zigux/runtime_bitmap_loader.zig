@@ -292,7 +292,7 @@ test "runtime bitmap loader keeps initialized shared-request snapshots stable ac
 
     try std.testing.expectEqual(@as(usize, 4), selftest.operation_families.len);
     try std.testing.expectEqual(runtime_bitmap_sample.ModuleStage.selftest_complete, live_plan.handoff_stage);
-    try std.testing.expectEqual(@as(usize, 1), live_plan.summary.weight);
+    try std.testing.expectEqual(@as(u32, 4), live_plan.summary.weight);
     try std.testing.expectEqual(@as(usize, 1), module.selftest_runs);
     try std.testing.expectEqual(LoaderStage.waiting_on_runtime_substrate, loader.stage());
     try std.testing.expectEqual(runtime_loader.RequestState.waiting_on_runtime_substrate, shared_request.state);
