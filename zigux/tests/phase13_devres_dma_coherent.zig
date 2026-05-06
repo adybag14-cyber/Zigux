@@ -36,11 +36,11 @@ test "phase13 devres coherent-dma boundary helper surface exposes no dma or scat
     try requireAbsent(helper, "sg_");
 }
 
-test "phase13 devres coherent-dma boundary note keeps dma-backed helpers and scatter-gather ownership out of scope" {
+test "phase13 devres coherent-dma boundary note keeps dma-backed helpers and scatterlist ownership out of scope" {
     const survey = @embedFile("../../Documentation/zigux/phase13-devres-survey.md");
     try requireContains(survey, "helper-source readback on current `master` shows");
     try requireContains(survey, "live DMA-backed helpers");
-    try requireContains(survey, "live scatter-gather ownership");
+    try requireContains(survey, "live scatterlist ownership");
     try requireContains(survey, "dmam_alloc_*");
     try requireContains(survey, "dma_unmap_*");
     try requireContains(survey, "sg_table lifecycle");
