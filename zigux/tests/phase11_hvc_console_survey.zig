@@ -38,18 +38,28 @@ const WinSize = extern struct {
     ws_ypixel: u16,
 };
 
-const HvOpsCallback = ?*const anyopaque;
+const HvcStruct = opaque {};
+
+const HvOpsGetChars = ?*const fn (vtermno: u32, buf: [*c]u8, count: usize) callconv(.c) isize;
+const HvOpsPutChars = ?*const fn (vtermno: u32, buf: [*c]const u8, count: usize) callconv(.c) isize;
+const HvOpsFlush = ?*const fn (vtermno: u32, wait: bool) callconv(.c) i32;
+const HvOpsNotifierAdd = ?*const fn (hp: ?*HvcStruct, irq: i32) callconv(.c) i32;
+const HvOpsNotifierDel = ?*const fn (hp: ?*HvcStruct, irq: i32) callconv(.c) void;
+const HvOpsNotifierHangup = ?*const fn (hp: ?*HvcStruct, irq: i32) callconv(.c) void;
+const HvOpsTiocmget = ?*const fn (hp: ?*HvcStruct) callconv(.c) i32;
+const HvOpsTiocmset = ?*const fn (hp: ?*HvcStruct, set: u32, clear: u32) callconv(.c) i32;
+const HvOpsDtrRts = ?*const fn (hp: ?*HvcStruct, active: bool) callconv(.c) void;
 
 const HvOps = extern struct {
-    get_chars: HvOpsCallback,
-    put_chars: HvOpsCallback,
-    flush: HvOpsCallback,
-    notifier_add: HvOpsCallback,
-    notifier_del: HvOpsCallback,
-    notifier_hangup: HvOpsCallback,
-    tiocmget: HvOpsCallback,
-    tiocmset: HvOpsCallback,
-    dtr_rts: HvOpsCallback,
+    get_chars: HvOpsGetChars,
+    put_chars: HvOpsPutChars,
+    flush: HvOpsFlush,
+    notifier_add: HvOpsNotifierAdd,
+    notifier_del: HvOpsNotifierDel,
+    notifier_hangup: HvOpsNotifierHangup,
+    tiocmget: HvOpsTiocmget,
+    tiocmset: HvOpsTiocmset,
+    dtr_rts: HvOpsDtrRts,
 };
 
 fn isAllowedStatus(status: []const u8) bool {
@@ -314,15 +324,15 @@ test "phase11 hvc console survey keeps a bounded hv_ops layout proof" {
     comptime {
         layout_assert.assertSize(HvOps, 72);
         layout_assert.assertAlign(HvOps, 8);
-        layout_assert.assertFieldType(HvOps, "get_chars", HvOpsCallback);
-        layout_assert.assertFieldType(HvOps, "put_chars", HvOpsCallback);
-        layout_assert.assertFieldType(HvOps, "flush", HvOpsCallback);
-        layout_assert.assertFieldType(HvOps, "notifier_add", HvOpsCallback);
-        layout_assert.assertFieldType(HvOps, "notifier_del", HvOpsCallback);
-        layout_assert.assertFieldType(HvOps, "notifier_hangup", HvOpsCallback);
-        layout_assert.assertFieldType(HvOps, "tiocmget", HvOpsCallback);
-        layout_assert.assertFieldType(HvOps, "tiocmset", HvOpsCallback);
-        layout_assert.assertFieldType(HvOps, "dtr_rts", HvOpsCallback);
+        layout_assert.assertFieldType(HvOps, "get_chars", HvOpsGetChars);
+        layout_assert.assertFieldType(HvOps, "put_chars", HvOpsPutChars);
+        layout_assert.assertFieldType(HvOps, "flush", HvOpsFlush);
+        layout_assert.assertFieldType(HvOps, "notifier_add", HvOpsNotifierAdd);
+        layout_assert.assertFieldType(HvOps, "notifier_del", HvOpsNotifierDel);
+        layout_assert.assertFieldType(HvOps, "notifier_hangup", HvOpsNotifierHangup);
+        layout_assert.assertFieldType(HvOps, "tiocmget", HvOpsTiocmget);
+        layout_assert.assertFieldType(HvOps, "tiocmset", HvOpsTiocmset);
+        layout_assert.assertFieldType(HvOps, "dtr_rts", HvOpsDtrRts);
         layout_assert.assertOffset(HvOps, "get_chars", 0);
         layout_assert.assertOffset(HvOps, "put_chars", 8);
         layout_assert.assertOffset(HvOps, "flush", 16);
