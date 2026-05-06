@@ -20,13 +20,14 @@ FILES = [
     "zigux/tests/phase10_virtio_ring_manifest.json",
     "Documentation/zigux/phase10-virtio-ring-slice.md",
     "Documentation/zigux/phase10-virtio-ring-survey.md",
+    "Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md",
 ]
 
 EXPECTED_BUILD_MARKERS = [
     "phase10_virtio_ring_module",
     "phase10_virtio_ring_survey_module",
-    '"phase10-virtio-ring-tests"',
-    '"phase10-virtio-ring-survey-tests"',
+    '\"phase10-virtio-ring-tests\"',
+    '\"phase10-virtio-ring-survey-tests\"',
 ]
 
 EXPECTED_MAKEFILE_MARKERS = [
@@ -44,15 +45,15 @@ EXPECTED_HELPER_MARKERS = [
 ]
 
 EXPECTED_TEST_MARKERS = [
-    'test "phase10 virtio ring reset-readiness preflight reports the current queue blocker" {',
-    'test "phase10 virtio ring blocks publish, kick, poll, and callback snapshots while a queue is broken" {',
-    'test "phase10 virtio ring delayed callback pacing reports both thresholded and immediate poll cases" {',
-    'test "phase10 virtio ring callback re-enable reports pending used work and settles after poll" {',
+    'test \"phase10 virtio ring reset-readiness preflight reports the current queue blocker\" {',
+    'test \"phase10 virtio ring blocks publish, kick, poll, and callback snapshots while a queue is broken\" {',
+    'test \"phase10 virtio ring delayed callback pacing reports both thresholded and immediate poll cases\" {',
+    'test \"phase10 virtio ring callback re-enable reports pending used work and settles after poll\" {',
 ]
 
 EXPECTED_SURVEY_TEST_MARKERS = [
-    'test "phase10 virtio ring survey manifest records the live queue-wrapper gap and freeze boundary" {',
-    'try std.testing.expectEqualStrings("P10-L07", manifest.lane_key);',
+    'test \"phase10 virtio ring survey manifest records the live queue-wrapper gap and freeze boundary\" {',
+    'try std.testing.expectEqualStrings(\"P10-L07\", manifest.lane_key);',
     'try std.testing.expectEqual(@as(usize, 0), ready_next_count);',
     'try std.testing.expectEqual(@as(usize, 1), blocked_count);',
     "var saw_broken_queue_poll_guard = false;",
@@ -73,6 +74,13 @@ EXPECTED_SURVEY_NOTE_MARKERS = [
     "phase10-virtio-ring-survey-note",
     "phase10-queue-reset-readiness-helper",
     "phase10-mmio-probe-preflight-helper",
+    "make -C zigux phase10-test",
+]
+
+EXPECTED_COMPANION_MARKERS = [
+    "scripts/zigux/check-phase10-ring-packet.py",
+    "zigux/tests/phase10_virtio_ring_manifest.json",
+    "zigux/tests/phase10_virtio_ring_survey.zig",
     "make -C zigux phase10-test",
 ]
 
@@ -121,21 +129,21 @@ BASELINE_FIXTURE = {
 """,
     "zigux/tests/phase10_build.zig": """const phase10_virtio_ring_module = b.createModule(.{});
 const phase10_virtio_ring_survey_module = b.createModule(.{});
-const phase10_virtio_ring_tests = b.addTest(.{ .name = "phase10-virtio-ring-tests" });
-const phase10_virtio_ring_survey_tests = b.addTest(.{ .name = "phase10-virtio-ring-survey-tests" });
+const phase10_virtio_ring_tests = b.addTest(.{ .name = \"phase10-virtio-ring-tests\" });
+const phase10_virtio_ring_survey_tests = b.addTest(.{ .name = \"phase10-virtio-ring-survey-tests\" });
 """,
     "drivers/virtio/virtio_ring.zig": """pub const QueueResetReadinessSummary = struct {};
 pub fn queueResetReadinessSummary(self: *const Self, queue_index: u16) !QueueResetReadinessSummary { _ = self; _ = queue_index; }
 pub fn resetQueue(self: *Self, queue_index: u16) !QueueResetSummary { _ = self; _ = queue_index; }
 pub fn markBroken(self: *Self, queue_index: u16) !BrokenQueueSummary { _ = self; _ = queue_index; }
 """,
-    "zigux/tests/phase10_virtio_ring.zig": """test "phase10 virtio ring reset-readiness preflight reports the current queue blocker" {}
-test "phase10 virtio ring blocks publish, kick, poll, and callback snapshots while a queue is broken" {}
-test "phase10 virtio ring delayed callback pacing reports both thresholded and immediate poll cases" {}
-test "phase10 virtio ring callback re-enable reports pending used work and settles after poll" {}
+    "zigux/tests/phase10_virtio_ring.zig": """test \"phase10 virtio ring reset-readiness preflight reports the current queue blocker\" {}
+test \"phase10 virtio ring blocks publish, kick, poll, and callback snapshots while a queue is broken\" {}
+test \"phase10 virtio ring delayed callback pacing reports both thresholded and immediate poll cases\" {}
+test \"phase10 virtio ring callback re-enable reports pending used work and settles after poll\" {}
 """,
-    "zigux/tests/phase10_virtio_ring_survey.zig": """test "phase10 virtio ring survey manifest records the live queue-wrapper gap and freeze boundary" {
-    try std.testing.expectEqualStrings("P10-L07", manifest.lane_key);
+    "zigux/tests/phase10_virtio_ring_survey.zig": """test \"phase10 virtio ring survey manifest records the live queue-wrapper gap and freeze boundary\" {
+    try std.testing.expectEqualStrings(\"P10-L07\", manifest.lane_key);
     try std.testing.expectEqual(@as(usize, 0), ready_next_count);
     try std.testing.expectEqual(@as(usize, 1), blocked_count);
     var saw_broken_queue_poll_guard = false;
@@ -153,6 +161,11 @@ test "phase10 virtio ring callback re-enable reports pending used work and settl
 - `phase10-virtio-ring-survey-note`
 - `phase10-queue-reset-readiness-helper`
 - `phase10-mmio-probe-preflight-helper`
+- `make -C zigux phase10-test`
+""",
+    "Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md": """- `scripts/zigux/check-phase10-ring-packet.py`
+- `zigux/tests/phase10_virtio_ring_manifest.json`
+- `zigux/tests/phase10_virtio_ring_survey.zig`
 - `make -C zigux phase10-test`
 """,
     "zigux/tests/phase10_virtio_ring_manifest.json": json.dumps(
@@ -253,6 +266,11 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
         if marker not in survey_note_text:
             missing_markers.append(f"survey_note:{marker}")
 
+    companion_text = read_text(root, "Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md")
+    for marker in EXPECTED_COMPANION_MARKERS:
+        if marker not in companion_text:
+            missing_markers.append(f"companion:{marker}")
+
     manifest = json.loads(read_text(root, "zigux/tests/phase10_virtio_ring_manifest.json"))
     if manifest.get("lane_key") != "P10-L07":
         missing_markers.append("manifest:lane_key=P10-L07")
@@ -340,7 +358,7 @@ def run_self_test() -> int:
         manifest_path = tmp_root / "zigux/tests/phase10_virtio_ring_manifest.json"
         original_manifest = manifest_path.read_text(encoding="utf-8")
         manifest_path.write_text(
-            original_manifest.replace('"lane_key": "P10-L07"', '"lane_key": "P10-drift"', 1),
+            original_manifest.replace('\"lane_key\": \"P10-L07\"', '\"lane_key\": \"P10-drift\"', 1),
             encoding="utf-8",
         )
         _, missing_markers = validate(tmp_root)
@@ -349,7 +367,7 @@ def run_self_test() -> int:
         manifest_path.write_text(original_manifest, encoding="utf-8")
 
         manifest_path.write_text(
-            original_manifest.replace('"freeze_boundary_status": "aligned"', '"freeze_boundary_status": "drifted"', 1),
+            original_manifest.replace('\"freeze_boundary_status\": \"aligned\"', '\"freeze_boundary_status\": \"drifted\"', 1),
             encoding="utf-8",
         )
         _, missing_markers = validate(tmp_root)
@@ -391,14 +409,14 @@ def run_self_test() -> int:
         original_test = test_path.read_text(encoding="utf-8")
         test_path.write_text(
             original_test.replace(
-                'test "phase10 virtio ring blocks publish, kick, poll, and callback snapshots while a queue is broken" {',
-                'test "phase10 virtio ring blocks publish drift while a queue is broken" {',
+                'test \"phase10 virtio ring blocks publish, kick, poll, and callback snapshots while a queue is broken\" {',
+                'test \"phase10 virtio ring blocks publish drift while a queue is broken\" {',
                 1,
             ),
             encoding="utf-8",
         )
         _, missing_markers = validate(tmp_root)
-        if 'tests:test "phase10 virtio ring blocks publish, kick, poll, and callback snapshots while a queue is broken" {' not in missing_markers:
+        if 'tests:test \"phase10 virtio ring blocks publish, kick, poll, and callback snapshots while a queue is broken\" {' not in missing_markers:
             raise SystemExit("phase10-ring-self-test:expected_test_marker_missing")
         test_path.write_text(original_test, encoding="utf-8")
 
@@ -422,9 +440,20 @@ def run_self_test() -> int:
         _, missing_markers = validate(tmp_root)
         if "survey_note:dedicated ring packet review guard" not in missing_markers:
             raise SystemExit("phase10-ring-self-test:expected_survey_marker_missing")
+        survey_path.write_text(original_survey, encoding="utf-8")
+
+        companion_path = tmp_root / "Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md"
+        original_companion = companion_path.read_text(encoding="utf-8")
+        companion_path.write_text(
+            original_companion.replace("scripts/zigux/check-phase10-ring-packet.py", "scripts/zigux/check-phase10-ring-drift.py", 1),
+            encoding="utf-8",
+        )
+        _, missing_markers = validate(tmp_root)
+        if "companion:scripts/zigux/check-phase10-ring-packet.py" not in missing_markers:
+            raise SystemExit("phase10-ring-self-test:expected_companion_marker_missing")
 
     print("PHASE10_RING_PACKET_SELF_TEST=pass")
-    print("PHASE10_RING_PACKET_SELF_TEST_CASE_COUNT=6")
+    print("PHASE10_RING_PACKET_SELF_TEST_CASE_COUNT=7")
     return 0
 
 
