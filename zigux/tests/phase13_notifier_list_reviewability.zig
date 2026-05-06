@@ -66,7 +66,7 @@ test "phase13 notifier/list survey records the landed adjacent notifier header s
 
     try std.testing.expectEqualStrings("P13-L18", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 13", manifest.phase);
-    try std.testing.expectEqualStrings("master-read-only-helper", manifest.surveyed_commit);
+    try std.testing.expectEqualStrings("23d15e44622d2cedd7691c88f78709db6bf1eb7e", manifest.surveyed_commit);
     try std.testing.expectEqual(@as(usize, 3), manifest.anchors.len);
     try std.testing.expectEqualStrings("include/linux/list.h", manifest.anchors[0]);
     try std.testing.expectEqualStrings("include/linux/notifier.h", manifest.anchors[1]);
@@ -99,6 +99,7 @@ test "phase13 notifier/list survey records the landed adjacent notifier header s
     try expectContains(exported_notifier_abi_text, "ZIGUX_NOTIFIER_CHAIN_FLAG_PRIORITY_NONINCREASING");
     try std.testing.expect(std.mem.indexOf(u8, phase13_build_text, "phase13_notifier") == null);
     try expectContains(survey_note, "lane key: `P13-L18`");
+    try expectContains(survey_note, "surveyed commit: `23d15e44622d2cedd7691c88f78709db6bf1eb7e`");
     try expectContains(survey_note, "`include/zigux/notifier_abi.h` is now shipped as adjacent notifier interop evidence");
     try expectContains(survey_note, "`zigux/helpers/notifier_chain_view.zig` now provides the matching read-only notifier-chain summary helpers");
     try expectContains(survey_note, "shared Phase 13 build intentionally omits this packet");
