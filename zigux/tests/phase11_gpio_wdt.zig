@@ -174,6 +174,65 @@ test "phase11 gpio_wdt stop requests distinguish nowayout gating from always-run
     try std.testing.expectEqual(@as(usize, 2), kept_running_runtime.ping_count);
 }
 
+test "phase11 gpio_wdt teardown summary keeps stopped, always-running, and nowayout-blocked outcomes truthful" {
+    var stoppable = try gpio_wdt.GpioWatchdogLab.init(.toggle, 20, false);
+    const stopped = try stoppable.teardownSummary(false);
+    try std.testing.expectEqualStrings("drivers/watchdog/gpio_wdt.c", stopped.anchor);
+    try std.testing.expectEqual(gpio_wdt.HardwareAlgorithm.toggle, stopped.hw_algo);
+    try std.testing.expect(!stopped.always_running);
+    try std.testing.expect(!stopped.nowayout);
+    try std.testing.expect(stopped.running_before_teardown);
+    try std.testing.expect(stopped.line_state_before_teardown);
+    try std.testing.expect(stopped.line_is_output_before_teardown);
+    try std.testing.expectEqual(gpio_wdt.StopDisposition.stopped, stopped.disposition);
+    try std.testing.expect(stopped.stop_allowed_by_watchdog_core);
+    try std.testing.expect(stopped.driver_stop_invoked);
+    try std.testing.expect(!stopped.running_after_teardown);
+    try std.testing.expect(stopped.line_state_after_teardown);
+    try std.testing.expect(!stopped.line_is_output_after_teardown);
+    try std.testing.expectEqual(@as(usize, 1), stopped.disable_count);
+    try std.testing.expectError(error.WatchdogNotRunning, stoppable.ping());
+
+    var always_running = try gpio_wdt.GpioWatchdogLab.init(.level, 500, true);
+    const kept_running = try always_running.teardownSummary(false);
+    try std.testing.expectEqual(gpio_wdt.HardwareAlgorithm.level, kept_running.hw_algo);
+    try std.testing.expect(kept_running.always_running);
+    try std.testing.expect(!kept_running.nowayout);
+    try std.testing.expect(kept_running.running_before_teardown);
+    try std.testing.expect(!kept_running.line_state_before_teardown);
+    try std.testing.expect(kept_running.line_is_output_before_teardown);
+    try std.testing.expectEqual(gpio_wdt.StopDisposition.kept_running, kept_running.disposition);
+    try std.testing.expect(kept_running.stop_allowed_by_watchdog_core);
+    try std.testing.expect(kept_running.driver_stop_invoked);
+    try std.testing.expect(kept_running.running_after_teardown);
+    try std.testing.expect(!kept_running.line_state_after_teardown);
+    try std.testing.expect(kept_running.line_is_output_after_teardown);
+    try std.testing.expectEqual(@as(usize, 0), kept_running.disable_count);
+    const kept_runtime = try always_running.ping();
+    try std.testing.expect(kept_runtime.running);
+    try std.testing.expectEqual(@as(usize, 2), kept_runtime.ping_count);
+
+    var blocked = try gpio_wdt.GpioWatchdogLab.init(.toggle, 50, false);
+    _ = try blocked.start();
+    const blocked_teardown = try blocked.teardownSummary(true);
+    try std.testing.expectEqual(gpio_wdt.HardwareAlgorithm.toggle, blocked_teardown.hw_algo);
+    try std.testing.expect(!blocked_teardown.always_running);
+    try std.testing.expect(blocked_teardown.nowayout);
+    try std.testing.expect(blocked_teardown.running_before_teardown);
+    try std.testing.expect(blocked_teardown.line_state_before_teardown);
+    try std.testing.expect(blocked_teardown.line_is_output_before_teardown);
+    try std.testing.expectEqual(gpio_wdt.StopDisposition.blocked_by_nowayout, blocked_teardown.disposition);
+    try std.testing.expect(!blocked_teardown.stop_allowed_by_watchdog_core);
+    try std.testing.expect(!blocked_teardown.driver_stop_invoked);
+    try std.testing.expect(blocked_teardown.running_after_teardown);
+    try std.testing.expect(blocked_teardown.line_state_after_teardown);
+    try std.testing.expect(blocked_teardown.line_is_output_after_teardown);
+    try std.testing.expectEqual(@as(usize, 0), blocked_teardown.disable_count);
+    const blocked_runtime = try blocked.ping();
+    try std.testing.expect(blocked_runtime.running);
+    try std.testing.expectEqual(@as(usize, 2), blocked_runtime.ping_count);
+}
+
 test "phase11 gpio_wdt descriptor preflight keeps the first devm_gpiod_get boundary explicit" {
     var toggle_watchdog = try gpio_wdt.GpioWatchdogLab.init(.toggle, 20, true);
     const toggle_preflight = toggle_watchdog.descriptorPreflightSummary();
