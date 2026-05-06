@@ -348,4 +348,25 @@ test "phase 5 trace-events survey note stays repo-local and keeps the formatting
     for (tests_root_markers) |needle| {
         try std.testing.expect(std.mem.indexOf(u8, tests_root, needle) != null);
     }
+
+    const scripts_root = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "scripts/zigux/README.md",
+        std.testing.allocator,
+        .limited(128 * 1024),
+    );
+    defer std.testing.allocator.free(scripts_root);
+
+    const scripts_root_markers = [_][]const u8{
+        "Phase 5 flow",
+        "Documentation/zigux/phase5-trace-events-sample-survey.md",
+        "samples/zigux/trace_events_sample.zig",
+        "zigux/tests/phase5_trace_events_sample_manifest.json",
+        "zigux/tests/phase5_trace_events_sample_survey.zig",
+        "zigux/tests/phase5_build.zig",
+    };
+
+    for (scripts_root_markers) |needle| {
+        try std.testing.expect(std.mem.indexOf(u8, scripts_root, needle) != null);
+    }
 }
