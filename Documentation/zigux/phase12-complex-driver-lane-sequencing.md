@@ -17,7 +17,7 @@ The Phase 12 roadmap names three high-risk driver anchors under one tranche: `dr
 
 Current `master` already keeps those lanes reviewable through one shared smoke-plus-build packet, but the live driver evidence is deliberately uneven:
 - `virtio_net` is still survey-backed and shared-tree-only, with no separate slice note or commit-pinned fallback artifact on `master`
-- `nvme_pci` has a dedicated slice note, survey note, and commit-pinned raw GitHub fallback map
+- `nvme_pci` has a dedicated slice note, survey note, commit-pinned raw GitHub fallback map, and a direct smoke verify shard
 - `virtio_scsi` has a dedicated slice note, survey note, commit-pinned raw GitHub fallback catalog, and the current lab-only rollback drill
 
 That asymmetry is honest, but it makes overlap easy unless the lane boundaries stay explicit.
@@ -28,8 +28,8 @@ That asymmetry is honest, but it makes overlap easy unless the lane boundaries s
   The bounded live scope is the probe snapshot starter plus the directly coupled syntax-lab, queue-recovery, receive-refill, transmit-recycle, and mergeable-buffer-length follow-ups.
   It must stay below live DMA-backed runtime data-path work and must remain a shared-tree-only anchor unless a real commit-pinned fallback artifact lands.
 - `nvme_pci` lane:
-  Owns `Documentation/zigux/phase12-nvme-pci-slice.md`, `Documentation/zigux/phase12-nvme-pci-survey.md`, `Documentation/zigux/phase12-nvme-pci-raw-github-fallback-map.md`, `zigux/tests/phase12_nvme_pci_manifest.json`, `zigux/tests/phase12_nvme_pci.zig`, and `zigux/tests/phase12_nvme_pci_survey.zig`.
-  The bounded live scope is the landed queue-count reservation, PRP buffer-shape, PRP metadata, and recovery replay packet.
+  Owns `Documentation/zigux/phase12-nvme-pci-slice.md`, `Documentation/zigux/phase12-nvme-pci-survey.md`, `Documentation/zigux/phase12-nvme-pci-raw-github-fallback-map.md`, `zigux/tests/phase12_nvme_pci_manifest.json`, `zigux/tests/phase12_nvme_pci.zig`, `zigux/tests/phase12_nvme_pci_survey.zig`, and `drivers/nvme/host/pci_verify.zig`.
+  The bounded live scope is the landed queue-count reservation, PRP buffer-shape, PRP metadata, recovery replay packet, and the direct verify shard that keeps that starter explicit inside the shared smoke packet.
   It stays parked unless the roadmap explicitly approves a transport-facing follow-up beyond that current storage-driver starter.
 - `virtio_scsi` lane:
   Owns `Documentation/zigux/phase12-virtio-scsi-slice.md`, `Documentation/zigux/phase12-virtio-scsi-survey.md`, `Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md`, `zigux/tests/phase12_virtio_scsi_manifest.json`, `zigux/tests/phase12_virtio_scsi.zig`, `zigux/tests/phase12_virtio_scsi_syntax_lab.zig`, and `zigux/tests/phase12_virtio_scsi_survey.zig`.
@@ -45,7 +45,7 @@ That asymmetry is honest, but it makes overlap easy unless the lane boundaries s
 
 ## Anti-overlap rules
 - Do not let the `virtio_net` lane inherit the storage-lane fallback artifacts or the `virtio_scsi` rollback drill just because all three drivers share `phase12_build.zig`.
-- Do not let the `nvme_pci` lane reuse `virtio_scsi` rollback wording as storage-wide recovery proof; its live packet is still the smaller queue-count, PRP-shape, PRP-metadata, and recovery replay starter.
+- Do not let the `nvme_pci` lane reuse `virtio_scsi` rollback wording as storage-wide recovery proof; its live packet is still the smaller queue-count, PRP-shape, PRP-metadata, recovery replay, and direct verify starter.
 - Do not let the `virtio_scsi` lane recast the `virtio_net` syntax-lab shard or the `nvme_pci` PRP helpers as shared storage evidence.
 - Do not treat the shared smoke, build, Makefile, workflow, README, PMO notes, or the shared raw-coverage overview as ownership transfer. Those surfaces coordinate the three driver lanes; they do not merge them.
 
