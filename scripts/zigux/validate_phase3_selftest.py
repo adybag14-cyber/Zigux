@@ -11,7 +11,7 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[2]
-PHASE3_VALIDATOR_SELF_TEST_CASE_COUNT = 22
+PHASE3_VALIDATOR_SELF_TEST_CASE_COUNT = 24
 
 
 @dataclass(frozen=True)
@@ -334,6 +334,41 @@ def run_self_test() -> int:
             in issues
         )
 
+        abi_dump_gate_duplicate_marker_root = Path(tmp_dir) / "abi-dump-gate-duplicate-marker"
+        for target in SELF_TEST_TARGETS:
+            path = abi_dump_gate_duplicate_marker_root / target.relpath
+            if target.relpath.endswith("check-phase3-abi-dump-gate.py"):
+                path.parent.mkdir(parents=True, exist_ok=True)
+                path.write_text(
+                    "\n".join(
+                        [
+                            "#!/usr/bin/env python3",
+                            "from __future__ import annotations",
+                            "",
+                            "import sys",
+                            "",
+                            'if "--self-test" in sys.argv:',
+                            '    print("PHASE3_ABI_DUMP_GATE_SELF_TEST=pass")',
+                            '    print("PHASE3_ABI_DUMP_GATE_SELF_TEST=pass")',
+                            '    print("PHASE3_ABI_DUMP_GATE_SELF_TEST_CASE_COUNT=4")',
+                            "    raise SystemExit(0)",
+                            "",
+                            'raise SystemExit("expected --self-test")',
+                            "",
+                        ]
+                    ),
+                    encoding="utf-8",
+                    newline="\n",
+                )
+                continue
+            write_script(path, target.marker or "PASS", extra_markers=target.extra_markers)
+        issues = run_targets(abi_dump_gate_duplicate_marker_root)
+        assert (
+            "duplicate_pass_marker:scripts/zigux/check-phase3-abi-dump-gate.py:2:"
+            "PHASE3_ABI_DUMP_GATE_SELF_TEST=pass"
+            in issues
+        )
+
         abi_dump_gate_count_root = Path(tmp_dir) / "abi-dump-gate-count"
         for target in SELF_TEST_TARGETS:
             extra_markers = (
@@ -349,6 +384,41 @@ def run_self_test() -> int:
         issues = run_targets(abi_dump_gate_count_root)
         assert (
             "missing_aux_marker:scripts/zigux/check-phase3-abi-dump-gate.py:"
+            "PHASE3_ABI_DUMP_GATE_SELF_TEST_CASE_COUNT=4"
+            in issues
+        )
+
+        abi_dump_gate_duplicate_count_root = Path(tmp_dir) / "abi-dump-gate-duplicate-count"
+        for target in SELF_TEST_TARGETS:
+            path = abi_dump_gate_duplicate_count_root / target.relpath
+            if target.relpath.endswith("check-phase3-abi-dump-gate.py"):
+                path.parent.mkdir(parents=True, exist_ok=True)
+                path.write_text(
+                    "\n".join(
+                        [
+                            "#!/usr/bin/env python3",
+                            "from __future__ import annotations",
+                            "",
+                            "import sys",
+                            "",
+                            'if "--self-test" in sys.argv:',
+                            '    print("PHASE3_ABI_DUMP_GATE_SELF_TEST=pass")',
+                            '    print("PHASE3_ABI_DUMP_GATE_SELF_TEST_CASE_COUNT=4")',
+                            '    print("PHASE3_ABI_DUMP_GATE_SELF_TEST_CASE_COUNT=4")',
+                            "    raise SystemExit(0)",
+                            "",
+                            'raise SystemExit("expected --self-test")',
+                            "",
+                        ]
+                    ),
+                    encoding="utf-8",
+                    newline="\n",
+                )
+                continue
+            write_script(path, target.marker or "PASS", extra_markers=target.extra_markers)
+        issues = run_targets(abi_dump_gate_duplicate_count_root)
+        assert (
+            "duplicate_aux_marker:scripts/zigux/check-phase3-abi-dump-gate.py:2:"
             "PHASE3_ABI_DUMP_GATE_SELF_TEST_CASE_COUNT=4"
             in issues
         )
