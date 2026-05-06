@@ -94,6 +94,18 @@ Keep these boundaries explicit so Phase 9 pilot work does not drift sideways:
 - `tools/lib/subcmd/exec-cmd.zig` still owns deferred command-path and environment-control cues
 - `tools/lib/subcmd/help.zig` still owns `LINES` and `COLUMNS` formatting cues
 
+## Shared summary follow-through
+
+When the shared Phase 9 reminders in the docs root, tests root, or sample-root boundary note are refreshed, they should point back to this sequencing note rather than trying to restate the owner split from scratch.
+
+Keep that follow-through bounded to one shared summary at a time:
+
+- `Documentation/zigux/README.md` for the docs-root packet summary
+- `zigux/tests/README.md` for the shared tests-root replay reminder
+- `samples/zigux/README.md` only when the Phase 9 boundary wording there is being touched already
+
+This keeps later closure-note work small while preserving the explicit split between the shared loader lane, the bitmap-only top-bit replay, and the four pilot-family packets.
+
 ## Recommended next-step order
 
 1. shared loader lane: only when the change is about request-contract, allocator/init-flow, or build-only reviewability
