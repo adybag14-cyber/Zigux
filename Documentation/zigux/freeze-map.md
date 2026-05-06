@@ -15,6 +15,7 @@ This file records code that should not move into active Zigux delivery without a
 ## Governance For Freeze-Map Changes
 - changes to either list require an explicit Architecture Council decision with written rationale
 - any lane that touches a listed anchor must declare owner, phase, status bucket, validation gate, and rollback owner in the reviewable record for that lane
+- freeze-map status-change requests must route through `Documentation/zigux/phase15-architecture-council-review-process.md` and keep the decision record ID, requested decision bucket, evidence archive path, latest blocker disposition, benchmark notes, replay command, retained discussion state, reopen triggers, parity scorecard link or blocker record, and indefinite-C policy link or non-applicability note explicit beside those minimum lane fields
 - direct Zig port or bridge claims for a freeze-in-C anchor stay blocked until the repo carries a parity scorecard entry and the Architecture Council records why the status can change
 
 ## Stay-In-C Policy
