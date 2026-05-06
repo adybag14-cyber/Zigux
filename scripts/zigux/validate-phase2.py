@@ -372,7 +372,7 @@ def validate_root(root: Path) -> list[str]:
             [sys.executable, str(root / "scripts" / "zigux" / "check-phase2-toolchain-pin-scope.py"), "--self-test"],
             [
                 "PHASE2_TOOLCHAIN_PIN_SCOPE_SELF_TEST=pass",
-                "PHASE2_TOOLCHAIN_PIN_SCOPE_SELF_TEST_CASE_COUNT=28",
+                "PHASE2_TOOLCHAIN_PIN_SCOPE_SELF_TEST_CASE_COUNT=31",
             ],
         )
     )
