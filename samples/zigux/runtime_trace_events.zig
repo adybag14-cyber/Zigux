@@ -292,6 +292,63 @@ test "trace-events sample keeps selftest replay-summary continuity explicit afte
     try std.testing.expectEqual(after_replay.unregister_runs, exited_summary.unregister_runs);
 }
 
+test "trace-events sample keeps initialized-stage failed-exit rollback explicit before selftest" {
+    var module = RuntimeTraceEventsSample{};
+    try module.init();
+
+    _ = try module.emitMainIteration(4);
+    try module.registerFunctionThread();
+    _ = try module.emitFunctionIteration(6);
+
+    const before_failed_exit = module.summary();
+    try std.testing.expectEqual(ModuleStage.initialized, before_failed_exit.stage);
+    try std.testing.expectEqual(@as(usize, 1), before_failed_exit.init_runs);
+    try std.testing.expectEqual(@as(usize, 0), before_failed_exit.selftest_runs);
+    try std.testing.expectEqual(@as(usize, 1), before_failed_exit.registration_depth);
+    try std.testing.expectEqual(@as(usize, 1), before_failed_exit.register_runs);
+    try std.testing.expectEqual(@as(usize, 0), before_failed_exit.unregister_runs);
+    try std.testing.expectEqual(@as(usize, 1), before_failed_exit.main_iterations);
+    try std.testing.expectEqual(@as(usize, 1), before_failed_exit.fn_iterations);
+    try std.testing.expectEqual(@as(usize, 8), before_failed_exit.total_events);
+    try std.testing.expectEqual(@as(i32, 4), before_failed_exit.last_main_count);
+    try std.testing.expectEqual(@as(i32, 6), before_failed_exit.last_fn_count);
+    try std.testing.expectEqual(@as(usize, 0), before_failed_exit.exit_runs);
+
+    try std.testing.expectError(error.OutstandingRegistration, module.exit());
+
+    const after_failed_exit = module.summary();
+    try std.testing.expectEqual(ModuleStage.initialized, after_failed_exit.stage);
+    try std.testing.expectEqual(before_failed_exit.registration_depth, after_failed_exit.registration_depth);
+    try std.testing.expectEqual(before_failed_exit.register_runs, after_failed_exit.register_runs);
+    try std.testing.expectEqual(before_failed_exit.unregister_runs, after_failed_exit.unregister_runs);
+    try std.testing.expectEqual(before_failed_exit.main_iterations, after_failed_exit.main_iterations);
+    try std.testing.expectEqual(before_failed_exit.fn_iterations, after_failed_exit.fn_iterations);
+    try std.testing.expectEqual(before_failed_exit.total_events, after_failed_exit.total_events);
+    try std.testing.expectEqual(before_failed_exit.last_main_count, after_failed_exit.last_main_count);
+    try std.testing.expectEqual(before_failed_exit.last_fn_count, after_failed_exit.last_fn_count);
+    try std.testing.expectEqual(before_failed_exit.selftest_runs, after_failed_exit.selftest_runs);
+    try std.testing.expectEqual(before_failed_exit.exit_runs, after_failed_exit.exit_runs);
+    const main_payload = after_failed_exit.last_main_payload orelse return error.ExpectedMainPayload;
+    try std.testing.expectEqualStrings("hello", main_payload.foo_bar_message);
+    try std.testing.expectEqualStrings("iter=%d", main_payload.format_template);
+    const function_payload = after_failed_exit.last_function_payload orelse return error.ExpectedFunctionPayload;
+    try std.testing.expectEqualStrings("Look at me", function_payload.foo_bar_message);
+    try std.testing.expectEqualStrings("Look at me too", function_payload.template_message);
+
+    try module.unregisterFunctionThread();
+    try module.exit();
+
+    const exited_summary = module.summary();
+    try std.testing.expectEqual(ModuleStage.exited, exited_summary.stage);
+    try std.testing.expectEqual(@as(usize, 0), exited_summary.registration_depth);
+    try std.testing.expectEqual(before_failed_exit.main_iterations, exited_summary.main_iterations);
+    try std.testing.expectEqual(before_failed_exit.fn_iterations, exited_summary.fn_iterations);
+    try std.testing.expectEqual(before_failed_exit.total_events, exited_summary.total_events);
+    try std.testing.expectEqual(before_failed_exit.last_main_count, exited_summary.last_main_count);
+    try std.testing.expectEqual(before_failed_exit.last_fn_count, exited_summary.last_fn_count);
+    try std.testing.expectEqual(@as(usize, 1), exited_summary.exit_runs);
+}
+
 test "trace-events sample keeps failed-exit rollback explicit after selftest-ready replay" {
     var module = RuntimeTraceEventsSample{};
     try module.init();
