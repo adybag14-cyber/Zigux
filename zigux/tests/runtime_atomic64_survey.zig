@@ -48,7 +48,7 @@ test "phase 9 runtime atomic64 survey manifest records the roadmap selftest hook
     defer parsed.deinit();
 
     const manifest = parsed.value;
-    try std.testing.expectEqualStrings("P9-L02", manifest.lane_key);
+    try std.testing.expectEqualStrings("P9-L01", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 9", manifest.phase);
     try std.testing.expectEqualStrings("lib/atomic64_test.c", manifest.anchor);
     try std.testing.expectEqual(@as(usize, 2), manifest.roadmap_destinations.len);
@@ -177,7 +177,7 @@ test "phase 9 runtime atomic64 survey note keeps exact selftest and loader snaps
 
     try std.testing.expectEqual(@as(usize, 1), std.mem.count(u8, note, lane_key_marker));
     try std.testing.expectEqual(@as(usize, 1), std.mem.count(u8, note, surveyed_commit_marker));
-    try std.testing.expect(std.mem.indexOf(u8, note, "The survey artifacts now advance to `P9-L02` because the bounded sample-side loader scaffold and shared request-surface proof are landed and reviewable on `master`.") != null);
+    try std.testing.expect(std.mem.indexOf(u8, note, "The survey artifacts now advance to `P9-L01` because the bounded sample-side loader scaffold, the shared runtime-loader facade plus allocator/init-flow contract replay, and the shared request-surface proof are landed and reviewable on `master`.") != null);
     try std.testing.expect(std.mem.indexOf(u8, note, "The current direct atomic64 sample contract is verified through these exact checks:") != null);
     try std.testing.expect(std.mem.indexOf(u8, note, "the roadmap's selftest-hook requirement is already landed through the sample descriptor and `runSelftest()` contract in `samples/zigux/runtime_atomic64.zig`.") != null);
     try std.testing.expect(std.mem.indexOf(u8, note, "guarded init, selftest, and exit transitions plus the bounded loader handoff make lifecycle evidence reviewable, but full runtime module lifecycle parity still depends on the shared runtime substrate.") != null);
@@ -202,7 +202,7 @@ test "phase 9 runtime atomic64 module slice keeps the loader-backed survey packe
     );
     defer std.testing.allocator.free(note);
 
-    try std.testing.expect(std.mem.indexOf(u8, note, "`PHASE9_LANE_KEY=P9-L02`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, note, "`PHASE9_LANE_KEY=P9-L01`") != null);
     try std.testing.expect(std.mem.indexOf(u8, note, "selftest hook surface") != null);
     try std.testing.expect(std.mem.indexOf(u8, note, "guarded lifecycle parity evidence") != null);
     try std.testing.expect(std.mem.indexOf(u8, note, "bounded loader-handoff scaffold") != null);
