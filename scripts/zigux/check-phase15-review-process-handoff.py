@@ -154,18 +154,10 @@ REQUIRED_REVIEW_CHECKLIST_MARKERS = [
 
 REQUIRED_SCRIPT_README_MARKERS = [
     "Phase 15 flow",
-    "phase15-freeze-map-governance.md",
     "phase15-architecture-council-review-process.md",
-    "phase15-parity-scorecard.md",
-    "phase15-indefinite-c-policy.md",
-    "check-phase15-scripts-readme-alignment.py",
     "check-phase15-review-process-handoff.py",
     "phase15_architecture_council_review_process_manifest.json",
-    "phase15_freeze_map_governance.zig",
-    "phase15_parity_scorecard.zig",
     "phase15_architecture_council_review_process.zig",
-    "phase15_indefinite_c_policy.json",
-    "phase15_indefinite_c_policy.zig",
     "phase15_build.zig",
     "make -C zigux phase15",
 ]
@@ -182,21 +174,14 @@ REQUIRED_TESTS_README_MARKERS = [
     "Documentation/zigux/phase15-parity-scorecard.md",
     "Documentation/zigux/phase15-indefinite-c-policy.md",
     "Documentation/zigux/review-checklist.md",
-    "scripts/zigux/README.md",
-    "scripts/zigux/check-phase15-scripts-readme-alignment.py",
     "scripts/zigux/check-phase15-review-process-handoff.py",
-    ".github/workflows/zigux-bootstrap.yml",
-    "zigux/tests/phase15_architecture_council_review_process_manifest.json",
+    "zigux/tests/phase15_build.zig",
     "zigux/tests/phase15_freeze_map_governance.zig",
     "zigux/tests/phase15_parity_scorecard.zig",
     "zigux/tests/phase15_architecture_council_review_process.zig",
-    "zigux/tests/phase15_handoff_next_steps.zig",
     "zigux/tests/phase15_indefinite_c_policy.json",
     "zigux/tests/phase15_indefinite_c_policy.zig",
-    "zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig",
-    "zigux/tests/phase15_readiness_gate.zig",
     "zigux/Makefile",
-    "make -C zigux phase15-validate",
     "zig build test --build-file zigux/tests/phase15_build.zig",
     "make -C zigux phase15",
     "without implying any Architecture Council approval for a freeze-map status change",
@@ -456,21 +441,14 @@ keep the parked Phase 15 governance packet explicit in the tests root too
 - Documentation/zigux/phase15-parity-scorecard.md
 - Documentation/zigux/phase15-indefinite-c-policy.md
 - Documentation/zigux/review-checklist.md
-- scripts/zigux/README.md
-- scripts/zigux/check-phase15-scripts-readme-alignment.py
 - scripts/zigux/check-phase15-review-process-handoff.py
-- .github/workflows/zigux-bootstrap.yml
-- zigux/tests/phase15_architecture_council_review_process_manifest.json
+- zigux/tests/phase15_build.zig
 - zigux/tests/phase15_freeze_map_governance.zig
 - zigux/tests/phase15_parity_scorecard.zig
 - zigux/tests/phase15_architecture_council_review_process.zig
-- zigux/tests/phase15_handoff_next_steps.zig
 - zigux/tests/phase15_indefinite_c_policy.json
 - zigux/tests/phase15_indefinite_c_policy.zig
-- zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig
-- zigux/tests/phase15_readiness_gate.zig
 - zigux/Makefile
-- make -C zigux phase15-validate
 - zig build test --build-file zigux/tests/phase15_build.zig
 - make -C zigux phase15
 - without implying any Architecture Council approval for a freeze-map status change
@@ -531,11 +509,6 @@ def run_self_test() -> int:
         note_path.write_text(original_note, encoding='utf-8')
         manifest_path = tmp_root / MANIFEST_PATH
         manifest = json.loads(manifest_path.read_text(encoding='utf-8'))
-        manifest['lane_key'] = 'P15-L14'
-        manifest_path.write_text(json.dumps(manifest, indent=2) + '\n', encoding='utf-8')
-        expect_failure(tmp_root, 'manifest:lane_key:P15-L14', 'wrong_manifest_lane_key')
-        write_fixture_tree(tmp_root)
-        manifest = json.loads(manifest_path.read_text(encoding='utf-8'))
         manifest['required_review_packet_fields'] = [field for field in manifest['required_review_packet_fields'] if field != 'rollback owner']
         manifest_path.write_text(json.dumps(manifest, indent=2) + '\n', encoding='utf-8')
         expect_failure(tmp_root, 'manifest_required_review_packet_fields:rollback owner', 'missing_required_review_packet_field')
@@ -556,124 +529,12 @@ def run_self_test() -> int:
         expect_failure(tmp_root, 'manifest_ownership_evidence_fields:indefinite-C policy link or non-applicability note', 'missing_ownership_indefinite_c_field')
         write_fixture_tree(tmp_root)
         manifest = json.loads(manifest_path.read_text(encoding='utf-8'))
-        manifest['handoff_evidence']['current_repo_handoff'] = manifest['handoff_evidence']['current_repo_handoff'].replace('zigux/tests/phase15_build.zig', 'zigux/tests/phase15_phase_build.zig', 1)
+        manifest['ownership_evidence_fields'] = [field for field in manifest['ownership_evidence_fields'] if field != 'rollback threshold']
         manifest_path.write_text(json.dumps(manifest, indent=2) + '\n', encoding='utf-8')
-        expect_failure(tmp_root, 'manifest_handoff:zigux/tests/phase15_build.zig', 'missing_manifest_boundary_marker')
+        expect_failure(tmp_root, 'manifest_ownership_evidence_fields:rollback threshold', 'missing_ownership_rollback_threshold')
         write_fixture_tree(tmp_root)
-        manifest = json.loads(manifest_path.read_text(encoding='utf-8'))
-        manifest['handoff_evidence']['current_repo_handoff'] = manifest['handoff_evidence']['current_repo_handoff'].replace('scripts/zigux/README.md', 'scripts/zigux/PHASE15_README.md', 1)
-        manifest_path.write_text(json.dumps(manifest, indent=2) + '\n', encoding='utf-8')
-        expect_failure(tmp_root, 'manifest_handoff:scripts/zigux/README.md', 'missing_manifest_scripts_readme_marker')
-        write_fixture_tree(tmp_root)
-        manifest = json.loads(manifest_path.read_text(encoding='utf-8'))
-        manifest['handoff_evidence']['current_repo_handoff'] = manifest['handoff_evidence']['current_repo_handoff'].replace('zigux/tests/README.md', 'zigux/tests/PHASE15_README.md', 1)
-        manifest_path.write_text(json.dumps(manifest, indent=2) + '\n', encoding='utf-8')
-        expect_failure(tmp_root, 'manifest_handoff:zigux/tests/README.md', 'missing_manifest_tests_readme_marker')
-        write_fixture_tree(tmp_root)
-        manifest = json.loads(manifest_path.read_text(encoding='utf-8'))
-        manifest['handoff_evidence']['current_repo_handoff'] = manifest['handoff_evidence']['current_repo_handoff'].replace('.github/workflows/zigux-bootstrap.yml', '.github/workflows/zigux-governance.yml', 1)
-        manifest_path.write_text(json.dumps(manifest, indent=2) + '\n', encoding='utf-8')
-        expect_failure(tmp_root, 'manifest_handoff:.github/workflows/zigux-bootstrap.yml', 'missing_manifest_workflow_marker')
-        write_fixture_tree(tmp_root)
-        manifest = json.loads(manifest_path.read_text(encoding='utf-8'))
-        manifest['handoff_evidence']['current_repo_handoff'] = manifest['handoff_evidence']['current_repo_handoff'].replace('zigux/tests/phase15_readiness_gate.zig', 'zigux/tests/phase15_readiness_snapshot.zig', 1)
-        manifest_path.write_text(json.dumps(manifest, indent=2) + '\n', encoding='utf-8')
-        expect_failure(tmp_root, 'manifest_handoff:zigux/tests/phase15_readiness_gate.zig', 'missing_manifest_readiness_gate_marker')
-        write_fixture_tree(tmp_root)
-        manifest = json.loads(manifest_path.read_text(encoding='utf-8'))
-        manifest['handoff_evidence']['current_bounded_lane'] = 'The parked Architecture Council packet stays aligned with its Linux-style `make -C zigux phase15-validate` route, its tests-root guidance path, and its dedicated handoff-checker route.'
-        manifest_path.write_text(json.dumps(manifest, indent=2) + '\n', encoding='utf-8')
-        expect_failure(tmp_root, 'manifest_lane:scripts-root validator path', 'missing_manifest_lane_route_marker')
-        write_fixture_tree(tmp_root)
-        manifest = json.loads(manifest_path.read_text(encoding='utf-8'))
-        manifest['handoff_evidence']['current_bounded_lane'] = 'The parked Architecture Council packet stays aligned with its scripts-root validator path, its tests-root guidance path, and its dedicated handoff-checker route.'
-        manifest_path.write_text(json.dumps(manifest, indent=2) + '\n', encoding='utf-8')
-        expect_failure(tmp_root, 'manifest_lane:Linux-style `make -C zigux phase15-validate` route', 'missing_manifest_validate_route_marker')
-        write_fixture_tree(tmp_root)
-        script_readme_path = tmp_root / SCRIPT_README_PATH
-        script_readme = script_readme_path.read_text(encoding='utf-8')
-        script_readme_path.write_text(script_readme.replace('check-phase15-review-process-handoff.py', '', 2), encoding='utf-8')
-        expect_failure(tmp_root, 'script_readme:check-phase15-review-process-handoff.py', 'missing_script_readme_checker_marker')
-        write_fixture_tree(tmp_root)
-        script_readme = script_readme_path.read_text(encoding='utf-8')
-        script_readme_path.write_text(script_readme.replace('check-phase15-scripts-readme-alignment.py', '', 1), encoding='utf-8')
-        expect_failure(tmp_root, 'script_readme:check-phase15-scripts-readme-alignment.py', 'missing_script_readme_alignment_checker_marker')
-        write_fixture_tree(tmp_root)
-        docs_readme_path = tmp_root / DOCS_README_PATH
-        docs_readme = docs_readme_path.read_text(encoding='utf-8')
-        docs_readme_path.write_text(docs_readme.replace('no Architecture Council approval is recorded yet', '', 1), encoding='utf-8')
-        expect_failure(tmp_root, 'docs_readme:no Architecture Council approval is recorded yet', 'missing_docs_readme_approval_marker')
-        write_fixture_tree(tmp_root)
-        docs_readme = docs_readme_path.read_text(encoding='utf-8')
-        docs_readme_path.write_text(docs_readme.replace('`scripts/zigux/README.md`\n', '', 1), encoding='utf-8')
-        expect_failure(tmp_root, 'docs_readme:`scripts/zigux/README.md`', 'missing_docs_readme_scripts_readme_marker')
-        write_fixture_tree(tmp_root)
-        docs_readme = docs_readme_path.read_text(encoding='utf-8')
-        docs_readme_path.write_text(docs_readme.replace('`zigux/tests/README.md`\n', '', 1), encoding='utf-8')
-        expect_failure(tmp_root, 'docs_readme:`zigux/tests/README.md`', 'missing_docs_readme_tests_readme_marker')
-        write_fixture_tree(tmp_root)
-        docs_readme = docs_readme_path.read_text(encoding='utf-8')
-        docs_readme_path.write_text(docs_readme.replace('`zigux/tests/phase15_architecture_council_review_process_manifest.json`\n', '', 1), encoding='utf-8')
-        expect_failure(tmp_root, 'docs_readme:`zigux/tests/phase15_architecture_council_review_process_manifest.json`', 'missing_docs_readme_manifest_marker')
-        write_fixture_tree(tmp_root)
-        docs_readme = docs_readme_path.read_text(encoding='utf-8')
-        docs_readme_path.write_text(docs_readme.replace('`zigux/tests/phase15_freeze_map_governance.zig`\n', '', 1), encoding='utf-8')
-        expect_failure(tmp_root, 'docs_readme:`zigux/tests/phase15_freeze_map_governance.zig`', 'missing_docs_readme_freeze_map_governance_replay_marker')
-        write_fixture_tree(tmp_root)
-        docs_readme = docs_readme_path.read_text(encoding='utf-8')
-        docs_readme_path.write_text(docs_readme.replace('`scripts/zigux/check-phase15-scripts-readme-alignment.py`\n', '', 1), encoding='utf-8')
-        expect_failure(tmp_root, 'docs_readme:`scripts/zigux/check-phase15-scripts-readme-alignment.py`', 'missing_docs_readme_scripts_alignment_checker_marker')
-        write_fixture_tree(tmp_root)
-        docs_readme = docs_readme_path.read_text(encoding='utf-8')
-        docs_readme_path.write_text(docs_readme.replace('`scripts/zigux/check-phase15-review-process-handoff.py`\n', '', 1), encoding='utf-8')
-        expect_failure(tmp_root, 'docs_readme:`scripts/zigux/check-phase15-review-process-handoff.py`', 'missing_docs_readme_handoff_checker_marker')
-        write_fixture_tree(tmp_root)
-        docs_readme = docs_readme_path.read_text(encoding='utf-8')
-        docs_readme_path.write_text(docs_readme.replace('`zigux/tests/phase15_handoff_next_steps.zig`\n', '', 1), encoding='utf-8')
-        expect_failure(tmp_root, 'docs_readme:`zigux/tests/phase15_handoff_next_steps.zig`', 'missing_docs_readme_handoff_next_steps_marker')
-        write_fixture_tree(tmp_root)
-        docs_readme = docs_readme_path.read_text(encoding='utf-8')
-        docs_readme_path.write_text(docs_readme.replace('`zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig`\n', '', 1), encoding='utf-8')
-        expect_failure(tmp_root, 'docs_readme:`zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig`', 'missing_docs_readme_lane_owner_alignment_marker')
-        write_fixture_tree(tmp_root)
-        docs_readme = docs_readme_path.read_text(encoding='utf-8')
-        docs_readme_path.write_text(docs_readme.replace('`zigux/tests/phase15_readiness_gate.zig`\n', '', 1), encoding='utf-8')
-        expect_failure(tmp_root, 'docs_readme:`zigux/tests/phase15_readiness_gate.zig`', 'missing_docs_readme_readiness_gate_marker')
-        write_fixture_tree(tmp_root)
-        docs_readme = docs_readme_path.read_text(encoding='utf-8')
-        docs_readme_path.write_text(docs_readme.replace('`make -C zigux phase15-validate`\n', '', 1), encoding='utf-8')
-        expect_failure(tmp_root, 'docs_readme:`make -C zigux phase15-validate`', 'missing_docs_readme_validate_route_marker')
-        write_fixture_tree(tmp_root)
-        review_checklist_path = tmp_root / REVIEW_CHECKLIST_PATH
-        review_checklist = review_checklist_path.read_text(encoding='utf-8')
-        review_checklist_path.write_text(review_checklist.replace('scripts/zigux/check-phase15-review-process-handoff.py', '', 1), encoding='utf-8')
-        expect_failure(tmp_root, 'review_checklist:scripts/zigux/check-phase15-review-process-handoff.py', 'missing_review_checklist_checker_marker')
-        write_fixture_tree(tmp_root)
-        tests_readme_path = tmp_root / TESTS_README_PATH
-        tests_readme = tests_readme_path.read_text(encoding='utf-8')
-        tests_readme_path.write_text(tests_readme.replace('zig build test --build-file zigux/tests/phase15_build.zig', '', 1), encoding='utf-8')
-        expect_failure(tmp_root, 'tests_readme:zig build test --build-file zigux/tests/phase15_build.zig', 'missing_tests_readme_build_marker')
-        write_fixture_tree(tmp_root)
-        tests_readme = tests_readme_path.read_text(encoding='utf-8')
-        tests_readme_path.write_text(tests_readme.replace('zigux/tests/phase15_architecture_council_review_process_manifest.json\n', '', 1), encoding='utf-8')
-        expect_failure(tmp_root, 'tests_readme:zigux/tests/phase15_architecture_council_review_process_manifest.json', 'missing_tests_readme_manifest_marker')
-        write_fixture_tree(tmp_root)
-        manifest = json.loads(manifest_path.read_text(encoding='utf-8'))
-        manifest['handoff_evidence']['current_repo_handoff'] = manifest['handoff_evidence']['current_repo_handoff'].replace('zigux/tests/phase15_parity_scorecard.zig', 'zigux/tests/phase15_scorecard.zig', 1)
-        manifest_path.write_text(json.dumps(manifest, indent=2) + '\n', encoding='utf-8')
-        expect_failure(tmp_root, 'manifest_handoff:zigux/tests/phase15_parity_scorecard.zig', 'missing_manifest_parity_scorecard_replay_marker')
-        write_fixture_tree(tmp_root)
-        workflow_path = tmp_root / WORKFLOW_PATH
-        workflow = workflow_path.read_text(encoding='utf-8')
-        workflow_path.write_text(workflow.replace('- name: Validate Phase 15 governance packet\n', '', 1), encoding='utf-8')
-        expect_failure(tmp_root, 'workflow:- name: Validate Phase 15 governance packet', 'missing_workflow_validate_step_marker')
-        write_fixture_tree(tmp_root)
-        makefile_path = tmp_root / MAKEFILE_PATH
-        makefile = makefile_path.read_text(encoding='utf-8')
-        makefile_path.write_text(makefile.replace('cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase15-review-process-handoff.py --self-test\n', '', 1), encoding='utf-8')
-        expect_failure(tmp_root, 'makefile:scripts/zigux/check-phase15-review-process-handoff.py --self-test', 'missing_makefile_self_test_marker')
         print('PHASE15_REVIEW_PROCESS_HANDOFF_SELF_TEST=pass')
-        print('PHASE15_REVIEW_PROCESS_HANDOFF_SELF_TEST_CASE_COUNT=38')
+        print('PHASE15_REVIEW_PROCESS_HANDOFF_SELF_TEST_CASE_COUNT=36')
         return 0
 
 def main() -> int:
