@@ -92,6 +92,9 @@ static void run_find_bit_section(void)
 	printf("\"inclusive_boundary_next\":%lu,", find_next_bit(boundary_set_map, boundary_nbits, boundary));
 	printf("\"inclusive_boundary_zero\":%lu,", find_next_zero_bit(boundary_zero_map, boundary_nbits, boundary));
 	printf("\"inclusive_boundary_and\":%lu,", find_next_and_bit(boundary_and_lhs, boundary_and_rhs, boundary_nbits, boundary));
+	printf("\"past_nbits_next\":%lu,", find_next_bit((unsigned long[]){0}, 7, 11));
+	printf("\"past_nbits_zero\":%lu,", find_next_zero_bit((unsigned long[]){0}, 7, 11));
+	printf("\"past_nbits_and\":%lu,", find_next_and_bit((unsigned long[]){0}, (unsigned long[]){0}, 7, 11));
 	printf("\"tail_clamped_first\":%lu,", find_first_bit(tail_bitmap, tail_nbits));
 	printf("\"tail_clamped_next\":%lu,", find_next_bit(tail_bitmap, tail_nbits, BITS_PER_LONG));
 	printf("\"tail_zero_clamped_first\":%lu,", find_first_zero_bit(tail_zero_bitmap, tail_nbits));
