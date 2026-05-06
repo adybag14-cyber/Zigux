@@ -39,6 +39,11 @@
       "expected": "tail fill succeeds for bytes 20 through 42 inclusive and then stops at the 32-byte capacity"
     },
     {
+      "id": "preview-truncation-boundary",
+      "kind": "queue_snapshot",
+      "expected": "runPreviewBoundaryReplay proves a truncated preview stays non-destructive: snapshotInto still begins with [2,3,4,5], previewInto copies [2,3,4,5,6,7,8,9], reports 10 visible bytes, and leaves the queued data intact"
+    },
+    {
       "id": "non-destructive-snapshot",
       "kind": "queue_snapshot",
       "expected": "snapshotInto captures [3,4,5,6,7,8,9,0,1,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42] before the final drain without mutating queue state"
