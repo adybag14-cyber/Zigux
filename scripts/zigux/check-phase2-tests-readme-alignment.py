@@ -16,6 +16,7 @@ REQUIRED_FILES = [
     "Documentation/zigux/review-checklist.md",
     "scripts/zigux/README.md",
     "scripts/zigux/check-phase2-genksyms-bridge-selftest-alignment.py",
+    "scripts/zigux/check-genksyms-crc-diff.py",
     "scripts/zigux/check-phase2-tests-readme-alignment.py",
     "scripts/zigux/check-phase2-kconfig-selftest-alignment.py",
     "scripts/zigux/validate-phase2.py",
@@ -25,6 +26,7 @@ REQUIRED_FILES = [
     "scripts/zigux/check-phase2-cross.py",
     "scripts/zigux/check-phase2-cross-selftest-alignment.py",
     "scripts/zigux/check-phase2-toolchain-pin-scope.py",
+    "scripts/zigux/genksyms_crc.zig",
     "zigux/Makefile",
     "zigux/tests/README.md",
     "zigux/tests/fixtures/phase2_cross_targets.json",
@@ -385,6 +387,16 @@ def run_self_test() -> int:
         assert "missing_file:scripts/zigux/check-phase2-genksyms-bridge-selftest-alignment.py" in issues
 
         build_self_test_root(root)
+        (root / "scripts/zigux/check-genksyms-crc-diff.py").unlink()
+        issues = validate_root(root)
+        assert "missing_file:scripts/zigux/check-genksyms-crc-diff.py" in issues
+
+        build_self_test_root(root)
+        (root / "scripts/zigux/genksyms_crc.zig").unlink()
+        issues = validate_root(root)
+        assert "missing_file:scripts/zigux/genksyms_crc.zig" in issues
+
+        build_self_test_root(root)
         write_text(
             root / "scripts/zigux/README.md",
             "\n".join(
@@ -485,7 +497,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE2_TESTS_README_ALIGNMENT_SELF_TEST=pass")
-    print("PHASE2_TESTS_README_ALIGNMENT_SELF_TEST_CASE_COUNT=41")
+    print("PHASE2_TESTS_README_ALIGNMENT_SELF_TEST_CASE_COUNT=43")
     return 0
 
 
