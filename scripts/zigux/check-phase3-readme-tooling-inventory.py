@@ -45,6 +45,7 @@ REQUIRED_HELPERS = (
     "check-phase8-exec-cmd-packet.py",
     "check-phase9-build-only-surface.py",
     "check-phase10-core-packet.py",
+    "check-phase10-ring-packet.py",
     "check-phase10-input-packet.py",
     "check-phase10-mmio-packet.py",
     "check-phase11-shared-replay-contract.py",
@@ -573,6 +574,10 @@ def run_self_test() -> int:
         (root / "scripts" / "zigux" / "validate-phase13-release.py").unlink()
         _assert_only(validate(root), ["missing_repo_file:scripts/zigux/validate-phase13-release.py"], "missing_phase13_release_validator_repo_file_guard_failed")
         _write(root / "scripts" / "zigux" / "validate-phase13-release.py", "# stub\n")
+        case_count += 1
+        (root / "scripts" / "zigux" / "check-phase10-ring-packet.py").unlink()
+        _assert_only(validate(root), ["missing_repo_file:scripts/zigux/check-phase10-ring-packet.py"], "missing_phase10_ring_packet_repo_file_guard_failed")
+        _write(root / "scripts" / "zigux" / "check-phase10-ring-packet.py", "# stub\n")
         case_count += 1
         (root / "scripts" / "zigux" / "check-phase2-genksyms-bridge-selftest-alignment.py").unlink()
         _assert_only(
