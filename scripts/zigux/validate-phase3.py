@@ -90,6 +90,16 @@ def select_slices(entries: list[object], selected_slugs: list[str]) -> list[obje
             raise SystemExit(f"unknown Phase 3 slugs: {', '.join(missing)}")
     return slices
 
+
+def _phase3_paths_for_root(root: Path) -> Phase3Paths:
+    return Phase3Paths(
+        root=root,
+        docs_dir=root / "Documentation" / "zigux",
+        scripts_dir=root / "scripts" / "zigux",
+        tests_dir=root / "zigux" / "tests",
+        fixtures_dir=root / "zigux" / "tests" / "fixtures",
+    )
+
 def validate_manifest(root: Path, path: Path | None, slug: str, issues: list[str]) -> dict[str, object] | None:
     if path is None:
         issues.append(f"{slug}:missing_manifest")
@@ -216,10 +226,18 @@ def validate_build_steps(root: Path, slices: list[object], issues: list[str]) ->
         if not _has_build_step(build_file, entry.build_step):
             issues.append(f"{entry.slug}:missing_build_step:{BUILD_FILE_REL}:{entry.build_step}")
 
-def validate_obsolete_wrappers(root: Path, slices: list[object], issues: list[str], *, check_all_wrappers: bool) -> None:
+def validate_obsolete_wrappers(
+    root: Path,
+    slices: list[object],
+    issues: list[str],
+    *,
+    check_all_wrappers: bool,
+    catalog_slices: list[object] | None = None,
+) -> None:
     if not check_all_wrappers:
         return
-    expected_paths = {entry.check_script.resolve() for entry in slices}
+    expected_entries = catalog_slices if catalog_slices is not None else slices
+    expected_paths = {entry.check_script.resolve() for entry in expected_entries}
     scripts_dir = root / "scripts" / "zigux"
     for path in sorted(scripts_dir.glob("check-phase3-*.py")):
         if path.resolve() in expected_paths:
@@ -263,6 +281,7 @@ def validate_slices(
     check_all_wrappers: bool = True,
 ) -> list[str]:
     issues: list[str] = []
+    catalog_slices = discover_phase3_slices(_phase3_paths_for_root(root))
 
     for entry in slices:
         required = {
@@ -281,7 +300,13 @@ def validate_slices(
         validate_low_level_wrapper_markers(root, entry.slug, issues)
 
     validate_build_steps(root, slices, issues)
-    validate_obsolete_wrappers(root, slices, issues, check_all_wrappers=check_all_wrappers)
+    validate_obsolete_wrappers(
+        root,
+        slices,
+        issues,
+        check_all_wrappers=check_all_wrappers,
+        catalog_slices=catalog_slices,
+    )
     if check_artifact_diff:
         validate_artifact_diff_phase3_section(root, slices, issues)
     if check_slug_sanity:
@@ -316,6 +341,7 @@ def run_self_test() -> int:
                 [
                     'const phase3_test_step = b.step("phase3-test", "Run Phase 3 tests");',
                     'const phase3_alpha_dump_step = b.step("phase3-alpha-dump", "Run Phase 3 alpha dump");',
+                    'const phase3_beta_dump_step = b.step("phase3-beta-dump", "Run Phase 3 beta dump");',
                     "",
                 ]
             ),
@@ -405,28 +431,41 @@ def run_self_test() -> int:
             encoding="utf-8",
             newline="\n",
         )
-        (paths.scripts_dir / "check-phase3-alpha.py").write_text(render_wrapper_stub(), encoding="utf-8", newline="\n")
-        (paths.tests_dir / "phase3_alpha_dump.zig").write_text("// alpha\n", encoding="utf-8", newline="\n")
-        (fixture_dir / "expected.json").write_text("{}\n", encoding="utf-8", newline="\n")
-        (fixture_dir / "phase3_alpha_c_harness.c").write_text("int main(void) { return 0; }\n", encoding="utf-8", newline="\n")
-        (fixture_dir / "phase3_alpha_manifest.json").write_text(
-            json.dumps(
-                {
-                    "phase": "Phase 3",
-                    "status": "ready",
-                    "slice": "alpha-slice",
-                    "files": [manifest_rel, manifest_rel],
-                    "file_count": 2,
-                }
+        (paths.docs_dir / "phase3-beta-slice.md").write_text(
+            "\n".join(
+                [
+                    "PHASE3_STATUS=ready",
+                    "PHASE3_SLICE=beta-slice",
+                    "PHASE3_VALIDATE_GATE=python3 scripts/zigux/validate-phase3.py",
+                    "PHASE3_INTEROP_GATE=python3 scripts/zigux/run-phase3-checks.py --slug beta",
+                    "PHASE3_TEST_GATE=zig build phase3-test --build-file zigux/tests/build.zig",
+                    "",
+                ]
             ),
             encoding="utf-8",
             newline="\n",
         )
-        duplicate_issues: list[str] = []
-        validate_manifest(root, fixture_dir / "phase3_alpha_manifest.json", "alpha", duplicate_issues)
-        assert duplicate_issues == [f"alpha:manifest_duplicate_file={manifest_rel}"]
-        (fixture_dir / "phase3_alpha_manifest.json").write_text(
-            json.dumps(manifest),
+        (paths.scripts_dir / "check-phase3-alpha.py").write_text(render_wrapper_stub(), encoding="utf-8", newline="\n")
+        (paths.scripts_dir / "check-phase3-beta.py").write_text(render_wrapper_stub(), encoding="utf-8", newline="\n")
+        (paths.tests_dir / "phase3_alpha_dump.zig").write_text("// alpha\n", encoding="utf-8", newline="\n")
+        (paths.tests_dir / "phase3_beta_dump.zig").write_text("// beta\n", encoding="utf-8", newline="\n")
+        (fixture_dir / "expected.json").write_text("{}\n", encoding="utf-8", newline="\n")
+        (fixture_dir / "phase3_alpha_c_harness.c").write_text("int main(void) { return 0; }\n", encoding="utf-8", newline="\n")
+        beta_fixture_dir = paths.fixtures_dir / "phase3_beta"
+        beta_fixture_dir.mkdir(parents=True, exist_ok=True)
+        beta_manifest_rel = "zigux/tests/fixtures/phase3_beta/expected.json"
+        (beta_fixture_dir / "expected.json").write_text("{}\n", encoding="utf-8", newline="\n")
+        (beta_fixture_dir / "phase3_beta_c_harness.c").write_text("int main(void) { return 0; }\n", encoding="utf-8", newline="\n")
+        (beta_fixture_dir / "phase3_beta_manifest.json").write_text(
+            json.dumps(
+                {
+                    "phase": "Phase 3",
+                    "status": "ready",
+                    "slice": "beta-slice",
+                    "files": [beta_manifest_rel],
+                    "file_count": 1,
+                }
+            ),
             encoding="utf-8",
             newline="\n",
         )
@@ -449,7 +488,7 @@ def run_self_test() -> int:
         )
 
         slices = discover_phase3_slices(paths)
-        assert [entry.slug for entry in select_slices(slices, [])] == ["alpha"]
+        assert [entry.slug for entry in select_slices(slices, [])] == ["alpha", "beta"]
         assert [entry.slug for entry in select_slices(slices, ["alpha"])] == ["alpha"]
         try:
             select_slices(slices, ["missing"])
@@ -457,20 +496,24 @@ def run_self_test() -> int:
             assert str(exc) == "unknown Phase 3 slugs: missing"
         else:
             raise AssertionError("expected missing slug to fail")
-        assert validate_slices(root, slices, check_artifact_diff=True) == []
+        alpha = [entry for entry in slices if entry.slug == "alpha"]
+        beta = [entry for entry in slices if entry.slug == "beta"]
+        assert len(alpha) == 1
+        assert len(beta) == 1
+        assert validate_slices(root, alpha) == []
 
         paths.scripts_dir.joinpath("check-phase3-alpha.py").unlink()
-        assert validate_slices(root, slices, check_artifact_diff=True) == []
+        assert validate_slices(root, alpha, check_artifact_diff=True) == []
 
         obsolete_wrapper = paths.scripts_dir / "check-phase3-stale.py"
         obsolete_wrapper.write_text(render_wrapper_stub(), encoding="utf-8", newline="\n")
-        issues = validate_slices(root, slices, check_artifact_diff=True)
+        issues = validate_slices(root, alpha, check_artifact_diff=True)
         assert "obsolete_wrapper:scripts/zigux/check-phase3-stale.py" in issues
         obsolete_wrapper.unlink()
 
         support_checker = paths.scripts_dir / "check-phase3-support.py"
         support_checker.write_text("# support\n", encoding="utf-8", newline="\n")
-        issues = validate_slices(root, slices, check_artifact_diff=True)
+        issues = validate_slices(root, alpha, check_artifact_diff=True)
         assert "obsolete_wrapper:scripts/zigux/check-phase3-support.py" not in issues
 
         (paths.docs_dir / "phase3-alpha-slice.md").write_text(
@@ -487,7 +530,7 @@ def run_self_test() -> int:
             encoding="utf-8",
             newline="\n",
         )
-        assert validate_slices(root, slices, check_artifact_diff=True) == []
+        assert validate_slices(root, alpha, check_artifact_diff=True) == []
 
         (fixture_dir / "phase3_alpha_manifest.json").write_text(
             json.dumps(
@@ -502,7 +545,7 @@ def run_self_test() -> int:
             encoding="utf-8",
             newline="\n",
         )
-        issues = validate_slices(root, slices, check_artifact_diff=True)
+        issues = validate_slices(root, alpha, check_artifact_diff=True)
         assert "alpha:manifest_legacy_wrapper_file=scripts/zigux/check-phase3-alpha.py" in issues
 
         (fixture_dir / "phase3_alpha_manifest.json").write_text(
@@ -511,12 +554,12 @@ def run_self_test() -> int:
             newline="\n",
         )
         (paths.scripts_dir / "check-phase3-alpha.py").write_text("# stale\n", encoding="utf-8", newline="\n")
-        issues = validate_slices(root, slices, check_artifact_diff=True)
+        issues = validate_slices(root, alpha, check_artifact_diff=True)
         assert "alpha:wrapper_template_mismatch:scripts/zigux/check-phase3-alpha.py" in issues
 
         (paths.scripts_dir / "check-phase3-alpha.py").write_text(render_wrapper_stub(), encoding="utf-8", newline="\n")
         (paths.docs_dir / "phase3-alpha-slice.md").write_text("PHASE3_STATUS=ready\n", encoding="utf-8", newline="\n")
-        issues = validate_slices(root, slices, check_artifact_diff=True)
+        issues = validate_slices(root, alpha, check_artifact_diff=True)
         assert "alpha:missing_doc_marker=PHASE3_VALIDATE_GATE=python3 scripts/zigux/validate-phase3.py" in issues
         assert (
             "alpha:missing_doc_marker_one_of="
@@ -539,7 +582,7 @@ def run_self_test() -> int:
             encoding="utf-8",
             newline="\n",
         )
-        issues = validate_slices(root, slices, check_artifact_diff=True)
+        issues = validate_slices(root, alpha, check_artifact_diff=True)
         assert (
             "alpha:duplicate_doc_marker=PHASE3_VALIDATE_GATE=python3 scripts/zigux/validate-phase3.py"
             in issues
@@ -560,7 +603,7 @@ def run_self_test() -> int:
             encoding="utf-8",
             newline="\n",
         )
-        issues = validate_slices(root, slices, check_artifact_diff=True)
+        issues = validate_slices(root, alpha, check_artifact_diff=True)
         assert (
             "alpha:duplicate_doc_marker_one_of="
             "PHASE3_INTEROP_GATE=python3 scripts/zigux/run-phase3-checks.py --slug alpha"
@@ -597,7 +640,7 @@ def run_self_test() -> int:
             encoding="utf-8",
             newline="\n",
         )
-        issues = validate_slices(root, slices, check_artifact_diff=True)
+        issues = validate_slices(root, alpha, check_artifact_diff=True)
         assert "artifact_diff:stale_phase3_section:Documentation/zigux/artifact-diff.md" in issues
 
         (paths.docs_dir / "artifact-diff.md").write_text(
@@ -605,7 +648,7 @@ def run_self_test() -> int:
             encoding="utf-8",
             newline="\n",
         )
-        issues = validate_slices(root, slices, check_artifact_diff=True)
+        issues = validate_slices(root, alpha, check_artifact_diff=True)
         assert "artifact_diff:missing_phase3_section:Documentation/zigux/artifact-diff.md" in issues
 
         (paths.tests_dir / "build.zig").write_text(
@@ -613,7 +656,7 @@ def run_self_test() -> int:
             encoding="utf-8",
             newline="\n",
         )
-        issues = validate_slices(root, slices, check_artifact_diff=False)
+        issues = validate_slices(root, alpha, check_artifact_diff=False)
         assert f"build:missing_step:{BUILD_FILE_REL}:phase3-test" in issues
 
         (paths.tests_dir / "build.zig").write_text(
@@ -621,7 +664,7 @@ def run_self_test() -> int:
             encoding="utf-8",
             newline="\n",
         )
-        issues = validate_slices(root, slices, check_artifact_diff=False)
+        issues = validate_slices(root, alpha, check_artifact_diff=False)
         assert f"alpha:missing_build_step:{BUILD_FILE_REL}:phase3-alpha-dump" in issues
 
         (paths.tests_dir / "build.zig").write_text(
@@ -629,6 +672,7 @@ def run_self_test() -> int:
                 [
                     'const phase3_test_step = b.step("phase3-test", "Run Phase 3 tests");',
                     'const phase3_alpha_dump_step = b.step("phase3-alpha-dump", "Run Phase 3 alpha dump");',
+                    'const phase3_beta_dump_step = b.step("phase3-beta-dump", "Run Phase 3 beta dump");',
                     "",
                 ]
             ),
@@ -778,7 +822,7 @@ def main() -> int:
         slices,
         check_artifact_diff=args.check_artifact_diff_phase3_section,
         check_slug_sanity=args.check_slug_sanity,
-        check_all_wrappers=not bool(args.slug),
+        check_all_wrappers=True,
     )
     if issues:
         print("PHASE3_VALIDATION=fail")
