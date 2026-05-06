@@ -63,6 +63,8 @@ REQUIRED_MARKERS = {
     "zigux/tests/fixtures/phase7_argv_split_vectors.zig": [
         "repeated whitespace collapses into separators",
         "blank input stays empty",
+        "whitespace before first NUL stays blank",
+        "leading NUL truncates to zero argv entries",
         "first NUL stops counting and splitting",
         "quote characters stay inside returned tokens",
     ],
@@ -254,6 +256,30 @@ def run_self_test() -> None:
 
         fixture_path = tmp_root / "zigux" / "tests" / "fixtures" / "phase7_argv_split_vectors.zig"
         original_fixture = fixture_path.read_text(encoding="utf-8")
+        fixture_path.write_text(
+            original_fixture.replace("whitespace before first NUL stays blank", "", 1),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "argv_split_whitespace_before_nul_fixture_marker",
+            tmp_root,
+            "zigux/tests/fixtures/phase7_argv_split_vectors.zig: whitespace before first NUL stays blank",
+        )
+        case_count += 1
+        fixture_path.write_text(original_fixture, encoding="utf-8")
+
+        fixture_path.write_text(
+            original_fixture.replace("leading NUL truncates to zero argv entries", "", 1),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "argv_split_leading_nul_fixture_marker",
+            tmp_root,
+            "zigux/tests/fixtures/phase7_argv_split_vectors.zig: leading NUL truncates to zero argv entries",
+        )
+        case_count += 1
+        fixture_path.write_text(original_fixture, encoding="utf-8")
+
         fixture_path.write_text(
             original_fixture.replace("quote characters stay inside returned tokens", "", 1),
             encoding="utf-8",
