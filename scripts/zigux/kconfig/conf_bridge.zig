@@ -6,6 +6,7 @@ pub const Mode = enum {
     oldconfig,
     yes2modconfig,
     defconfig,
+    savedefconfig,
     allnoconfig,
     allyesconfig,
     allmodconfig,
@@ -28,6 +29,7 @@ pub const Mode = enum {
             .oldconfig => "--oldconfig",
             .yes2modconfig => "--yes2modconfig",
             .defconfig => "--defconfig",
+            .savedefconfig => "--savedefconfig",
             .allnoconfig => "--allnoconfig",
             .allyesconfig => "--allyesconfig",
             .allmodconfig => "--allmodconfig",
@@ -43,6 +45,7 @@ pub const Mode = enum {
             .oldconfig => "oldconfig",
             .yes2modconfig => "yes2modconfig",
             .defconfig => "defconfig",
+            .savedefconfig => "savedefconfig",
             .allnoconfig => "allnoconfig",
             .allyesconfig => "allyesconfig",
             .allmodconfig => "allmodconfig",
@@ -60,6 +63,21 @@ pub const Request = struct {
     arch: []const u8,
     mode_arg: ?[]const u8 = null,
 };
+
+fn modeRequiresArgument(mode: Mode) bool {
+    return switch (mode) {
+        .defconfig, .savedefconfig => true,
+        else => false,
+    };
+}
+
+fn missingModeArgumentMessage(mode: Mode) []const u8 {
+    return switch (mode) {
+        .defconfig => "Error: defconfig mode requires <defconfig>\n",
+        .savedefconfig => "Error: savedefconfig mode requires <path>\n",
+        else => unreachable,
+    };
+}
 
 fn writeJsonEscaped(writer: anytype, text: []const u8) !void {
     for (text) |c| switch (c) {
@@ -118,14 +136,14 @@ pub fn main(init: std.process.Init) !void {
     };
 
     const mode_arg = if (args.len == 6) args[5] else null;
-    if (mode == .defconfig and mode_arg == null) {
+    if (modeRequiresArgument(mode) and mode_arg == null) {
         var stderr_buffer: [160]u8 = undefined;
         var stderr_writer = Io.File.stderr().writer(io, &stderr_buffer);
-        try stderr_writer.interface.writeAll("Error: defconfig mode requires <defconfig>\n");
+        try stderr_writer.interface.writeAll(missingModeArgumentMessage(mode));
         try stderr_writer.interface.flush();
         std.process.exit(1);
     }
-    if (mode != .defconfig and mode_arg != null) {
+    if (!modeRequiresArgument(mode) and mode_arg != null) {
         var stderr_buffer: [160]u8 = undefined;
         var stderr_writer = Io.File.stderr().writer(io, &stderr_buffer);
         try stderr_writer.interface.writeAll("Error: unexpected mode argument\n");
@@ -369,4 +387,42 @@ test "conf bridge emits defconfig mode argument before kconfig" {
     try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"mode\":\"defconfig\"") != null);
     try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"argv\":[\"scripts/kconfig/conf\",\"--defconfig\",\"arch/arm64/configs/defconfig\",\"Kconfig\"]") != null);
     try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"KCONFIG_CONFIG\":\"out/.config\"") != null);
+}
+
+test "conf bridge emits savedefconfig mode argument before kconfig" {
+    const Capture = struct {
+        list: std.ArrayList(u8),
+        allocator: std.mem.Allocator,
+
+        fn init(allocator: std.mem.Allocator) !@This() {
+            return .{ .list = try std.ArrayList(u8).initCapacity(allocator, 192), .allocator = allocator };
+        }
+
+        fn deinit(self: *@This()) void {
+            self.list.deinit(self.allocator);
+        }
+
+        fn writeAll(self: *@This(), bytes: []const u8) !void {
+            try self.list.appendSlice(self.allocator, bytes);
+        }
+
+        fn writeByte(self: *@This(), byte: u8) !void {
+            try self.list.append(self.allocator, byte);
+        }
+    };
+
+    var capture = try Capture.init(std.testing.allocator);
+    defer capture.deinit();
+
+    try runConfBridge(&capture, .{
+        .mode = .savedefconfig,
+        .kconfig = "Kconfig",
+        .config = ".config",
+        .arch = "x86_64",
+        .mode_arg = "defconfig.out",
+    });
+
+    try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"mode\":\"savedefconfig\"") != null);
+    try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"argv\":[\"scripts/kconfig/conf\",\"--savedefconfig\",\"defconfig.out\",\"Kconfig\"]") != null);
+    try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"KCONFIG_CONFIG\":\".config\"") != null);
 }
