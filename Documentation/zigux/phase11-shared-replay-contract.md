@@ -86,7 +86,7 @@ The dedicated archival HVC evidence still stays explicit beside that shared rout
 - `scripts/zigux/check-phase11-hvc-survey-packet.py`
 - `make -C zigux phase11-hvc-survey`
 
-The focused shared header-boundary evidence also stays explicit beside that replay route:
+The focused shared header-boundary evidence also stays explicit beside that shared route:
 
 - `Documentation/zigux/phase11-uapi-header-parity-survey.md`
 - `scripts/zigux/check-phase11-header-boundary-packet.py`
