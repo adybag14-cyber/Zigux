@@ -9,7 +9,7 @@ This note records the current policy and narrow-unsafe boundary for the bounded 
 - `PHASE3_LAYOUT_ASSERT_BLOB_SHA=8d9eb1068a058337823d91766fc15a147e525bb3`
 - `PHASE3_PANIC_POLICY_PATH=zigux/helpers/panic_policy.zig`
 - `PHASE3_PANIC_POLICY=explicit-modes-only`
-- `PHASE3_PANIC_POLICY_BLOB_SHA=94e0d91cd9673d137bd302a8c2aba1034d948805`
+- `PHASE3_PANIC_POLICY_BLOB_SHA=597951007e0f5a220b23fd2d111bf7f199034c43`
 - `PHASE3_ALLOCATOR_POLICY_PATH=zigux/helpers/allocator_policy.zig`
 - `PHASE3_ALLOCATOR_POLICY=explicit-modes-only`
 - `PHASE3_ALLOCATOR_POLICY_BLOB_SHA=09ab4d2ad69cc353151254cd8d40f23ed925a882`
@@ -49,14 +49,14 @@ This lane does not justify broad runtime policy machinery on its own.
 The current tree still carries a real bounded policy-and-unsafe packet, but it is smaller than older versions of this survey claimed:
 
 - `zigux/helpers/layout_assert.zig` keeps compile-time size, alignment, field-type, and offset checks for the canonical ABI root while also covering the shipped `MmioRange` and `RbtreeRootView` layouts that now sit inside the same bounded packet.
-- `zigux/helpers/panic_policy.zig` keeps panic action explicit through `abort`, `bug`, and `warn`, and its focused test still proves the return policy directly from those enum values.
+- `zigux/helpers/panic_policy.zig` now keeps panic action explicit both through the typed enum path and through `modeFromByte`, `actionForByte`, and `canReturnByte` so ABI panic-mode tags can stay reviewable without being re-decoded elsewhere in the packet.
 - `zigux/helpers/allocator_policy.zig` now keeps caller-provided ownership and global-fallback policy explicit both through the typed predicates and through `modeFromByte`, `requiresExplicitCallerByte`, and `permitsGlobalFallbackByte` so ABI byte tags do not need to be re-decoded elsewhere in the packet.
 - `zigux/unsafe/narrow.zig` still keeps the raw-pointer bridge deliberately small, but it now also decodes `InteropPolicy` unsafe-scope bytes explicitly through `scopeFromInteropPolicyBytes`, `recognizesInteropPolicyBytes`, `permitsVolatileMmioPolicyBytes`, and `permitsRawPointerBridgePolicyBytes` so unknown scopes and reserved-byte drift do not have to be inferred elsewhere in the packet.
 - `zigux/helpers/mmio.zig` still consumes that same narrow layer for `range()`, `read8()`, `write8()`, `read16()`, `write16()`, `read32()`, and `write32()` rather than widening into a larger policy substrate.
 - `zigux/tests/phase3_abi.zig` is the live shared Zig proof packet that imports these helpers today, and `zigux/tests/phase3_abi_dump.zig` keeps the ABI-side `InteropPolicy` and `MmioRange` layout and constant evidence visible on the shared dump path.
 - `zigux/tests/fixtures/phase3_abi_manifest.json`, `Documentation/zigux/phase3-abi-slice.md`, and `scripts/zigux/validate-phase3.py` already treat these helpers as part of the shared `abi` slice.
 
-The current tree now ships one narrow interop-policy scope-byte decode helper inside the unsafe layer, but it still does not ship a dedicated `phase3_policy_unsafe` replay pair or a broader policy-and-unsafe helper family. This note should stay tied to the real shared ABI packet instead of claiming more than that.
+The current tree still does not ship a dedicated `phase3_policy_unsafe` replay pair or a broader policy-and-unsafe helper family. This note should stay tied to the real shared ABI packet instead of claiming more than that.
 
 ## Ledger Alignment
 
@@ -66,10 +66,10 @@ That means this lane remains note-and-marker maintenance inside the shared ABI p
 
 ## Current Boundary Gap
 
-Current same-family progress already includes one helper-local unsafe-surface tightening:
+Current same-family progress already includes two helper-local byte-policy tightenings:
 
+- the panic helper now decodes ABI panic-mode bytes explicitly instead of forcing raw-byte callers to re-map `.abort`, `.bug`, and `.warn` elsewhere in the packet
 - the narrow unsafe helper now decodes the ABI unsafe-scope bytes explicitly instead of leaving reserved-byte and unknown-scope handling implicit
-- helper-local tests now prove valid `.none`, `.volatile_mmio`, and `.raw_pointer_bridge` decoding plus invalid-scope and reserved-byte rejection
 - the remaining same-lane gap is still the absence of a dedicated focused replay pair beyond the shared ABI packet, not a need for a broader runtime policy subsystem
 
 ## Next Bounded Step
