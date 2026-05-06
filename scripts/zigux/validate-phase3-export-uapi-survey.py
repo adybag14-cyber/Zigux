@@ -8,10 +8,14 @@ import tempfile
 
 ROOT = Path(__file__).resolve().parents[2]
 SURVEY_REL = "Documentation/zigux/phase3-export-uapi-boundary-survey.md"
+DOCS_ROOT_REL = "Documentation/zigux/README.md"
+SCRIPTS_README_REL = "scripts/zigux/README.md"
 WORKFLOW_REL = ".github/workflows/zigux-bootstrap.yml"
 
 REQUIRED_FILES = (
     SURVEY_REL,
+    DOCS_ROOT_REL,
+    SCRIPTS_README_REL,
     "zigux/kernel/export_shim.zig",
     "zigux/uapi/version.zig",
     "include/linux/zigux.h",
@@ -81,6 +85,16 @@ REQUIRED_MARKERS = {
     ),
 }
 
+DOCS_ROOT_REQUIRED_MARKERS = (
+    "Phase 3 notes - `Documentation/zigux/phase3-abi-slice.md` - `Documentation/zigux/phase3-policy-unsafe-boundary-survey.md` - `Documentation/zigux/phase3-low-level-wrapper-boundary-survey.md` - `scripts/zigux/validate-phase3.py` - `scripts/zigux/validate-phase3-policy-unsafe-survey.py` - `scripts/zigux/validate-phase3-low-level-wrapper-survey.py` - `scripts/zigux/validate-phase3-export-uapi-survey.py` - `scripts/zigux/validate-phase3-abi-bindings-syntax.py`",
+    "the export/UAPI boundary survey, the ABI-bindings syntax guard, the catalog-backed validator-support packet, the selftest review surface, and the Linux-style replay route instead of leaving the active Phase 3 packet implicit across the scripts root, tests root, and helper tree alone.",
+)
+
+SCRIPTS_README_REQUIRED_MARKERS = (
+    "`validate-phase3-export-uapi-survey.py`",
+    "`validate-phase3-export-uapi-survey.py` keeps the exported shim and UAPI boundary packet aligned around `Documentation/zigux/phase3-export-uapi-boundary-survey.md`, `zigux/kernel/export_shim.zig`, `zigux/uapi/version.zig`, the canonical ABI headers, and the workflow hooks that rerun that same survey surface.",
+)
+
 WORKFLOW_REQUIRED_MARKERS = (
     "- name: Validate Phase 3 export/UAPI survey",
     "run: python3 scripts/zigux/validate-phase3-export-uapi-survey.py",
@@ -92,6 +106,33 @@ WORKFLOW_REQUIRED_MARKERS = (
 def _write(path: Path, text: str) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(text, encoding="utf-8", newline="\n")
+
+
+def normalized_lines(text: str) -> list[str]:
+    values: list[str] = []
+    for raw_line in text.splitlines():
+        line = raw_line.strip()
+        if line.startswith("- "):
+            line = line[2:].strip()
+        values.append(line)
+    return values
+
+
+def require_exact_line_count(
+    issues: list[str],
+    text: str,
+    prefix: str,
+    line: str,
+    *,
+    expected_count: int = 1,
+) -> None:
+    count = normalized_lines(text).count(line)
+    if count == expected_count:
+        return
+    if count == 0:
+        issues.append(f"missing_{prefix}:{line}")
+        return
+    issues.append(f"duplicate_{prefix}:{count}:{line}")
 
 
 def validate(root: Path) -> list[str]:
@@ -107,6 +148,18 @@ def validate(root: Path) -> list[str]:
             for marker in REQUIRED_MARKERS[rel]:
                 if marker not in text:
                     issues.append(f"missing_marker:{rel}:{marker}")
+
+    docs_root_path = root / DOCS_ROOT_REL
+    if docs_root_path.exists():
+        docs_root = docs_root_path.read_text(encoding="utf-8")
+        for marker in DOCS_ROOT_REQUIRED_MARKERS:
+            require_exact_line_count(issues, docs_root, "docs_root_marker", marker)
+
+    scripts_readme_path = root / SCRIPTS_README_REL
+    if scripts_readme_path.exists():
+        scripts_readme = scripts_readme_path.read_text(encoding="utf-8")
+        for marker in SCRIPTS_README_REQUIRED_MARKERS:
+            require_exact_line_count(issues, scripts_readme, "scripts_readme_marker", marker)
 
     workflow_path = root / WORKFLOW_REL
     if workflow_path.exists():
@@ -133,6 +186,28 @@ def run_self_test() -> int:
                     "- `PHASE3_SURVEY_PROVENANCE=packet-local-blob-first-with-legacy-head-anchor`",
                     "- `PHASE3_C_HEADER_BOUNDARY_OWNERSHIP=export-uapi-packet-owns-boundary-wording-helper-slices-own-semantic-growth`",
                     "- `PHASE3_C_HEADER_GROWTH_RULE=explicit-resurvey-required-before-new-c-header-entry-points`",
+                    "",
+                )
+            ),
+        )
+        _write(
+            root / DOCS_ROOT_REL,
+            "\n".join(
+                (
+                    "# Zigux Documentation",
+                    "Phase 3 notes - `Documentation/zigux/phase3-abi-slice.md` - `Documentation/zigux/phase3-policy-unsafe-boundary-survey.md` - `Documentation/zigux/phase3-low-level-wrapper-boundary-survey.md` - `scripts/zigux/validate-phase3.py` - `scripts/zigux/validate-phase3-policy-unsafe-survey.py` - `scripts/zigux/validate-phase3-low-level-wrapper-survey.py` - `scripts/zigux/validate-phase3-export-uapi-survey.py` - `scripts/zigux/validate-phase3-abi-bindings-syntax.py`",
+                    "- the export/UAPI boundary survey, the ABI-bindings syntax guard, the catalog-backed validator-support packet, the selftest review surface, and the Linux-style replay route instead of leaving the active Phase 3 packet implicit across the scripts root, tests root, and helper tree alone.",
+                    "",
+                )
+            ),
+        )
+        _write(
+            root / SCRIPTS_README_REL,
+            "\n".join(
+                (
+                    "# scripts/zigux",
+                    "- `validate-phase3-export-uapi-survey.py`",
+                    "- `validate-phase3-export-uapi-survey.py` keeps the exported shim and UAPI boundary packet aligned around `Documentation/zigux/phase3-export-uapi-boundary-survey.md`, `zigux/kernel/export_shim.zig`, `zigux/uapi/version.zig`, the canonical ABI headers, and the workflow hooks that rerun that same survey surface.",
                     "",
                 )
             ),
@@ -305,6 +380,119 @@ def run_self_test() -> int:
             ),
         )
 
+        docs_root_path = root / DOCS_ROOT_REL
+        docs_root_path.write_text(
+            docs_root_path.read_text(encoding="utf-8").replace(
+                "the export/UAPI boundary survey, the ABI-bindings syntax guard, the catalog-backed validator-support packet, the selftest review surface, and the Linux-style replay route instead of leaving the active Phase 3 packet implicit across the scripts root, tests root, and helper tree alone.\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+            newline="\n",
+        )
+        issues = validate(root)
+        expected = (
+            "missing_docs_root_marker:the export/UAPI boundary survey, the ABI-bindings syntax guard, the catalog-backed validator-support packet, the selftest review surface, and the Linux-style replay route instead of leaving the active Phase 3 packet implicit across the scripts root, tests root, and helper tree alone."
+        )
+        if issues != [expected]:
+            raise SystemExit(f"phase3-export-uapi-self-test:docs_root_missing_guard_failed:{issues}")
+
+        _write(
+            root / DOCS_ROOT_REL,
+            "\n".join(
+                (
+                    "# Zigux Documentation",
+                    "Phase 3 notes - `Documentation/zigux/phase3-abi-slice.md` - `Documentation/zigux/phase3-policy-unsafe-boundary-survey.md` - `Documentation/zigux/phase3-low-level-wrapper-boundary-survey.md` - `scripts/zigux/validate-phase3.py` - `scripts/zigux/validate-phase3-policy-unsafe-survey.py` - `scripts/zigux/validate-phase3-low-level-wrapper-survey.py` - `scripts/zigux/validate-phase3-export-uapi-survey.py` - `scripts/zigux/validate-phase3-abi-bindings-syntax.py`",
+                    "- the export/UAPI boundary survey, the ABI-bindings syntax guard, the catalog-backed validator-support packet, the selftest review surface, and the Linux-style replay route instead of leaving the active Phase 3 packet implicit across the scripts root, tests root, and helper tree alone.",
+                    "",
+                )
+            ),
+        )
+
+        docs_root_path.write_text(
+            docs_root_path.read_text(encoding="utf-8").replace(
+                "Phase 3 notes - `Documentation/zigux/phase3-abi-slice.md` - `Documentation/zigux/phase3-policy-unsafe-boundary-survey.md` - `Documentation/zigux/phase3-low-level-wrapper-boundary-survey.md` - `scripts/zigux/validate-phase3.py` - `scripts/zigux/validate-phase3-policy-unsafe-survey.py` - `scripts/zigux/validate-phase3-low-level-wrapper-survey.py` - `scripts/zigux/validate-phase3-export-uapi-survey.py` - `scripts/zigux/validate-phase3-abi-bindings-syntax.py`\n",
+                "Phase 3 notes - `Documentation/zigux/phase3-abi-slice.md` - `Documentation/zigux/phase3-policy-unsafe-boundary-survey.md` - `Documentation/zigux/phase3-low-level-wrapper-boundary-survey.md` - `scripts/zigux/validate-phase3.py` - `scripts/zigux/validate-phase3-policy-unsafe-survey.py` - `scripts/zigux/validate-phase3-low-level-wrapper-survey.py` - `scripts/zigux/validate-phase3-export-uapi-survey.py` - `scripts/zigux/validate-phase3-abi-bindings-syntax.py`\n"
+                "Phase 3 notes - `Documentation/zigux/phase3-abi-slice.md` - `Documentation/zigux/phase3-policy-unsafe-boundary-survey.md` - `Documentation/zigux/phase3-low-level-wrapper-boundary-survey.md` - `scripts/zigux/validate-phase3.py` - `scripts/zigux/validate-phase3-policy-unsafe-survey.py` - `scripts/zigux/validate-phase3-low-level-wrapper-survey.py` - `scripts/zigux/validate-phase3-export-uapi-survey.py` - `scripts/zigux/validate-phase3-abi-bindings-syntax.py`\n",
+                1,
+            ),
+            encoding="utf-8",
+            newline="\n",
+        )
+        issues = validate(root)
+        expected = (
+            "duplicate_docs_root_marker:2:Phase 3 notes - `Documentation/zigux/phase3-abi-slice.md` - `Documentation/zigux/phase3-policy-unsafe-boundary-survey.md` - `Documentation/zigux/phase3-low-level-wrapper-boundary-survey.md` - `scripts/zigux/validate-phase3.py` - `scripts/zigux/validate-phase3-policy-unsafe-survey.py` - `scripts/zigux/validate-phase3-low-level-wrapper-survey.py` - `scripts/zigux/validate-phase3-export-uapi-survey.py` - `scripts/zigux/validate-phase3-abi-bindings-syntax.py`"
+        )
+        if issues != [expected]:
+            raise SystemExit(f"phase3-export-uapi-self-test:docs_root_duplicate_guard_failed:{issues}")
+
+        _write(
+            root / DOCS_ROOT_REL,
+            "\n".join(
+                (
+                    "# Zigux Documentation",
+                    "Phase 3 notes - `Documentation/zigux/phase3-abi-slice.md` - `Documentation/zigux/phase3-policy-unsafe-boundary-survey.md` - `Documentation/zigux/phase3-low-level-wrapper-boundary-survey.md` - `scripts/zigux/validate-phase3.py` - `scripts/zigux/validate-phase3-policy-unsafe-survey.py` - `scripts/zigux/validate-phase3-low-level-wrapper-survey.py` - `scripts/zigux/validate-phase3-export-uapi-survey.py` - `scripts/zigux/validate-phase3-abi-bindings-syntax.py`",
+                    "- the export/UAPI boundary survey, the ABI-bindings syntax guard, the catalog-backed validator-support packet, the selftest review surface, and the Linux-style replay route instead of leaving the active Phase 3 packet implicit across the scripts root, tests root, and helper tree alone.",
+                    "",
+                )
+            ),
+        )
+
+        scripts_readme_path = root / SCRIPTS_README_REL
+        scripts_readme_path.write_text(
+            scripts_readme_path.read_text(encoding="utf-8").replace(
+                "- `validate-phase3-export-uapi-survey.py` keeps the exported shim and UAPI boundary packet aligned around `Documentation/zigux/phase3-export-uapi-boundary-survey.md`, `zigux/kernel/export_shim.zig`, `zigux/uapi/version.zig`, the canonical ABI headers, and the workflow hooks that rerun that same survey surface.\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+            newline="\n",
+        )
+        issues = validate(root)
+        expected = (
+            "missing_scripts_readme_marker:`validate-phase3-export-uapi-survey.py` keeps the exported shim and UAPI boundary packet aligned around `Documentation/zigux/phase3-export-uapi-boundary-survey.md`, `zigux/kernel/export_shim.zig`, `zigux/uapi/version.zig`, the canonical ABI headers, and the workflow hooks that rerun that same survey surface."
+        )
+        if issues != [expected]:
+            raise SystemExit(f"phase3-export-uapi-self-test:scripts_readme_missing_guard_failed:{issues}")
+
+        _write(
+            root / SCRIPTS_README_REL,
+            "\n".join(
+                (
+                    "# scripts/zigux",
+                    "- `validate-phase3-export-uapi-survey.py`",
+                    "- `validate-phase3-export-uapi-survey.py` keeps the exported shim and UAPI boundary packet aligned around `Documentation/zigux/phase3-export-uapi-boundary-survey.md`, `zigux/kernel/export_shim.zig`, `zigux/uapi/version.zig`, the canonical ABI headers, and the workflow hooks that rerun that same survey surface.",
+                    "",
+                )
+            ),
+        )
+
+        scripts_readme_path.write_text(
+            scripts_readme_path.read_text(encoding="utf-8").replace(
+                "- `validate-phase3-export-uapi-survey.py`\n",
+                "- `validate-phase3-export-uapi-survey.py`\n- `validate-phase3-export-uapi-survey.py`\n",
+                1,
+            ),
+            encoding="utf-8",
+            newline="\n",
+        )
+        issues = validate(root)
+        expected = "duplicate_scripts_readme_marker:2:`validate-phase3-export-uapi-survey.py`"
+        if issues != [expected]:
+            raise SystemExit(f"phase3-export-uapi-self-test:scripts_readme_duplicate_guard_failed:{issues}")
+
+        _write(
+            root / SCRIPTS_README_REL,
+            "\n".join(
+                (
+                    "# scripts/zigux",
+                    "- `validate-phase3-export-uapi-survey.py`",
+                    "- `validate-phase3-export-uapi-survey.py` keeps the exported shim and UAPI boundary packet aligned around `Documentation/zigux/phase3-export-uapi-boundary-survey.md`, `zigux/kernel/export_shim.zig`, `zigux/uapi/version.zig`, the canonical ABI headers, and the workflow hooks that rerun that same survey surface.",
+                    "",
+                )
+            ),
+        )
+
         broken_root = root / "zigux/uapi/version.zig"
         broken_root.write_text(
             broken_root.read_text(encoding="utf-8").replace(
@@ -444,7 +632,7 @@ def run_self_test() -> int:
             raise SystemExit(f"phase3-export-uapi-self-test:workflow_guard_failed:{issues}")
 
     print("PHASE3_EXPORT_UAPI_SURVEY_SELF_TEST=pass")
-    print("PHASE3_EXPORT_UAPI_SURVEY_SELF_TEST_CASE_COUNT=5")
+    print("PHASE3_EXPORT_UAPI_SURVEY_SELF_TEST_CASE_COUNT=9")
     return 0
 
 
@@ -468,7 +656,7 @@ def main() -> int:
         return 1
 
     print("PHASE3_EXPORT_UAPI_SURVEY=pass")
-    print("PHASE3_EXPORT_UAPI_REQUIRED_FILE_COUNT=6")
+    print("PHASE3_EXPORT_UAPI_REQUIRED_FILE_COUNT=8")
     return 0
 
 
