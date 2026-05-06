@@ -56,6 +56,10 @@ MAKEFILE_REQUIRED_LINES = (
     "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase3-policy-unsafe-survey.py --self-test",
 )
 
+REQUIRED_SURVEY_SNIPPETS = (
+    "`zigux/helpers/mmio.zig` still consumes that same narrow layer for `range()`, `read8()`, `write8()`, `read16()`, `write16()`, `read32()`, and `write32()` rather than widening into a larger policy substrate.",
+)
+
 REQUIRED_ALLOCATOR_POLICY_SNIPPETS = (
     "pub fn requiresExplicitCaller(mode: abi.AllocatorMode) bool {",
     "return mode == .caller_provided;",
@@ -199,6 +203,8 @@ def validate(root: Path) -> list[str]:
     for marker in STATIC_MARKERS:
         require_exact_line_count(issues, survey, "marker", marker, normalized=True)
 
+    require_snippets(issues, survey, "survey", REQUIRED_SURVEY_SNIPPETS)
+
     for marker, rel in BLOB_MARKERS.items():
         path = root / rel
         if not path.exists():
@@ -330,6 +336,7 @@ def build_valid_workspace(root: Path) -> None:
         survey_lines.append(f"- `{marker}={rel}`")
     for marker in STATIC_MARKERS:
         survey_lines.append(f"- `{marker}`")
+    survey_lines.extend(f"- {snippet}" for snippet in REQUIRED_SURVEY_SNIPPETS)
     for marker, rel in BLOB_MARKERS.items():
         survey_lines.append(f"- `{marker}={git_blob_sha(root / rel)}`")
     write_file(root / SURVEY_REL, "\n".join(survey_lines) + "\n")
@@ -389,6 +396,19 @@ def run_self_test() -> int:
         issues = validate(root)
         assert (
             "missing_marker:PHASE3_BOUNDARY_GAP=no-dedicated-policy-unsafe-subslice-beyond-the-shared-abi-packet"
+            in issues
+        )
+
+        build_valid_workspace(root)
+        missing_mmio_surface = (root / SURVEY_REL).read_text(encoding="utf-8").replace(
+            "- `zigux/helpers/mmio.zig` still consumes that same narrow layer for `range()`, `read8()`, `write8()`, `read16()`, `write16()`, `read32()`, and `write32()` rather than widening into a larger policy substrate.\n",
+            "",
+            1,
+        )
+        write_file(root / SURVEY_REL, missing_mmio_surface)
+        issues = validate(root)
+        assert (
+            "missing_survey_snippet:`zigux/helpers/mmio.zig` still consumes that same narrow layer for `range()`, `read8()`, `write8()`, `read16()`, `write16()`, `read32()`, and `write32()` rather than widening into a larger policy substrate."
             in issues
         )
 
@@ -570,7 +590,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE3_POLICY_UNSAFE_SURVEY_SELF_TEST=pass")
-    print("PHASE3_POLICY_UNSAFE_SURVEY_SELF_TEST_CASE_COUNT=18")
+    print("PHASE3_POLICY_UNSAFE_SURVEY_SELF_TEST_CASE_COUNT=19")
     return 0
 
 
