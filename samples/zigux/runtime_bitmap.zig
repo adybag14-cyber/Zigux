@@ -104,26 +104,31 @@ pub const RuntimeBitmapSample = struct {
         if (len > bitmap_nbits - start) return error.BitRangeOutOfBounds;
     }
 
-    fn assignBit(self: *Self, bit: u32, value: bool) void {
+    fn assignBitToWords(words: []bitmap_view.Word, bit: u32, value: bool) void {
         const word_index: usize = @intCast(bit / bitmap_view.bits_per_long);
         const bit_index: u6 = @intCast(bit % bitmap_view.bits_per_long);
         const mask: bitmap_view.Word = @as(bitmap_view.Word, 1) << bit_index;
         if (value) {
-            self.words[word_index] |= mask;
+            words[word_index] |= mask;
         } else {
-            self.words[word_index] &= ~mask;
+            words[word_index] &= ~mask;
         }
+    }
+
+    fn assignBit(self: *Self, bit: u32, value: bool) void {
+        assignBitToWords(self.words[0..], bit, value);
     }
 
     pub fn initWithSetBits(self: *Self, bits: []const u32) !void {
         if (self.stage() != .cold) return error.InvalidLifecycleTransition;
 
-        @memset(self.words[0..], 0);
+        var next_words = [_]bitmap_view.Word{0} ** backing_word_count;
         for (bits) |bit| {
             if (bit >= bitmap_nbits) return error.BitRangeOutOfBounds;
-            self.assignBit(bit, true);
+            assignBitToWords(next_words[0..], bit, true);
         }
 
+        self.words = next_words;
         self.init_runs += 1;
         self.stage_state = .initialized;
     }
@@ -254,4 +259,23 @@ test "runtime bitmap sample keeps bounded view summaries stable" {
     try std.testing.expectEqual(@as(u32, 1), summary.first_zero);
     try std.testing.expectEqual(@as(u32, 4), summary.weight);
     try std.testing.expectEqual(RuntimeBitmapSample.bitmap_nbits, summary.nbits);
+}
+
+test "runtime bitmap sample failed init leaves the sample cold and empty" {
+    var module = RuntimeBitmapSample{};
+
+    try std.testing.expectError(error.BitRangeOutOfBounds, module.initWithSetBits(&.{ 1, RuntimeBitmapSample.bitmap_nbits }));
+    try std.testing.expectEqual(ModuleStage.cold, module.stage());
+    try std.testing.expectEqual(@as(usize, 0), module.init_runs);
+
+    const summary = module.summary();
+    try std.testing.expectEqual(@as(u32, RuntimeBitmapSample.bitmap_nbits), summary.first_set);
+    try std.testing.expectEqual(@as(u32, 0), summary.first_zero);
+    try std.testing.expectEqual(@as(u32, 0), summary.weight);
+    try std.testing.expect(!module.isSet(1));
+
+    try module.initWithSetBits(&.{1});
+    try std.testing.expectEqual(ModuleStage.initialized, module.stage());
+    try std.testing.expectEqual(@as(usize, 1), module.init_runs);
+    try std.testing.expect(module.isSet(1));
 }
