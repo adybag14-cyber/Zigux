@@ -640,6 +640,20 @@ def run_self_test() -> int:
 
         broken_manifest_path = root / "zigux/tests/phase14_end_to_end_smoke_manifest.json"
         broken_manifest = json.loads(broken_manifest_path.read_text(encoding="utf-8"))
+        broken_manifest["commands"] = REQUIRED_COMMANDS[:-1]
+        broken_manifest_path.write_text(json.dumps(broken_manifest, indent=2) + "\n", encoding="utf-8")
+        errors = check(root)
+        if not errors or not any(
+            "phase14 manifest commands drifted from the shared validate/smoke/test packet" in error
+            for error in errors
+        ):
+            print("self-test expected failure when manifest commands drifted", file=sys.stderr)
+            return 1
+
+        broken_manifest["commands"] = REQUIRED_COMMANDS
+        broken_manifest_path.write_text(json.dumps(broken_manifest, indent=2) + "\n", encoding="utf-8")
+
+        broken_manifest = json.loads(broken_manifest_path.read_text(encoding="utf-8"))
         for surface in broken_manifest["surfaces"]:
             if surface.get("path") == "Documentation/zigux/review-checklist.md":
                 surface["required_marker"] = "shared Phase 14 packet"
