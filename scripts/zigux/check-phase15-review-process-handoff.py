@@ -17,12 +17,16 @@ MANIFEST_PATH = "zigux/tests/phase15_architecture_council_review_process_manifes
 SCRIPT_README_PATH = "scripts/zigux/README.md"
 TESTS_README_PATH = "zigux/tests/README.md"
 MAKEFILE_PATH = "zigux/Makefile"
+EXPECTED_LANE_KEY = "P15-L08"
 
 SELF_REFERENCE_MARKER = "Documentation/zigux/phase15-architecture-council-review-process.md"
 PRODUCT_BOUNDARY_MARKER = (
     "product boundary:\n"
     "  - `Documentation/zigux/freeze-map.md`"
 )
+REQUIRED_NOTE_MARKERS = [
+    f"`PHASE15_LANE_KEY={EXPECTED_LANE_KEY}`",
+]
 REQUIRED_MANIFEST_BOUNDARY_MARKERS = [
     "Documentation/zigux/freeze-map.md",
     "Documentation/zigux/phase15-freeze-map-governance.md",
@@ -246,6 +250,9 @@ def validate(root: Path) -> list[str]:
     expect_exact_once(note, SELF_REFERENCE_MARKER, 'note_self_reference', failures)
     if PRODUCT_BOUNDARY_MARKER not in note:
         failures.append('note:product_boundary_self_reference')
+    for marker in REQUIRED_NOTE_MARKERS:
+        if marker not in note:
+            failures.append(f"note:{marker}")
     for marker in REQUIRED_CURRENT_APPROVAL_POSTURE_MARKERS:
         if marker not in note:
             failures.append(f"note_current_approval_posture:{marker}")
@@ -262,6 +269,8 @@ def validate(root: Path) -> list[str]:
             failures.append(f"makefile:{marker}")
     for marker in EXACT_ONCE_MAKEFILE_MARKERS:
         expect_exact_once(makefile, marker, 'makefile_exact_once', failures)
+    if manifest.get('lane_key') != EXPECTED_LANE_KEY:
+        failures.append(f"manifest:lane_key:{manifest.get('lane_key')}")
     required_review_packet_fields = manifest.get('required_review_packet_fields')
     if required_review_packet_fields is None:
         failures.append('manifest:required_review_packet_fields:missing')
@@ -356,8 +365,9 @@ if the change touches the shared Phase 15 governance packet
 - make -C zigux phase15
 """
     (root / REVIEW_CHECKLIST_PATH).write_text(review_checklist, encoding='utf-8')
-    note = """# Phase 15 Architecture Council Review Process Survey
+    note = f"""# Phase 15 Architecture Council Review Process Survey
 ## Status
+- `PHASE15_LANE_KEY={EXPECTED_LANE_KEY}`
 - product boundary:
   - `Documentation/zigux/freeze-map.md`
   - `Documentation/zigux/phase15-architecture-council-review-process.md`
@@ -371,7 +381,7 @@ if the change touches the shared Phase 15 governance packet
 """
     (root / NOTE_PATH).write_text(note, encoding='utf-8')
     manifest = {
-        'lane_key': 'P15-L14',
+        'lane_key': EXPECTED_LANE_KEY,
         'phase': 'Phase 15',
         'ownership_evidence_fields': REQUIRED_OWNERSHIP_EVIDENCE_FIELDS,
         'required_review_packet_fields': REQUIRED_REVIEW_PACKET_FIELD_MARKERS,
@@ -472,6 +482,9 @@ def run_self_test() -> int:
         note_path.write_text(original_note.replace('`Documentation/zigux/phase15-architecture-council-review-process.md`', '', 1), encoding='utf-8')
         expect_failure(tmp_root, 'note_self_reference:Documentation/zigux/phase15-architecture-council-review-process.md:count=0', 'missing_note_self_reference')
         note_path.write_text(original_note, encoding='utf-8')
+        note_path.write_text(original_note.replace(f'`PHASE15_LANE_KEY={EXPECTED_LANE_KEY}`\n', '', 1), encoding='utf-8')
+        expect_failure(tmp_root, f'note:`PHASE15_LANE_KEY={EXPECTED_LANE_KEY}`', 'missing_note_lane_key_marker')
+        note_path.write_text(original_note, encoding='utf-8')
         note_path.write_text(original_note.replace('product boundary:\n  - `Documentation/zigux/freeze-map.md`', 'product boundary:', 1), encoding='utf-8')
         expect_failure(tmp_root, 'note:product_boundary_self_reference', 'missing_product_boundary_marker')
         note_path.write_text(original_note, encoding='utf-8')
@@ -485,6 +498,11 @@ def run_self_test() -> int:
         expect_failure(tmp_root, 'note_current_approval_posture:`rollback-threshold`', 'missing_note_rollback_threshold_marker')
         note_path.write_text(original_note, encoding='utf-8')
         manifest_path = tmp_root / MANIFEST_PATH
+        manifest = json.loads(manifest_path.read_text(encoding='utf-8'))
+        manifest['lane_key'] = 'P15-L14'
+        manifest_path.write_text(json.dumps(manifest, indent=2) + '\n', encoding='utf-8')
+        expect_failure(tmp_root, 'manifest:lane_key:P15-L14', 'wrong_manifest_lane_key')
+        write_fixture_tree(tmp_root)
         manifest = json.loads(manifest_path.read_text(encoding='utf-8'))
         manifest['required_review_packet_fields'] = [field for field in manifest['required_review_packet_fields'] if field != 'rollback owner']
         manifest_path.write_text(json.dumps(manifest, indent=2) + '\n', encoding='utf-8')
@@ -618,7 +636,7 @@ def run_self_test() -> int:
         makefile_path.write_text(makefile.replace('cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase15-review-process-handoff.py --self-test\n', '', 1), encoding='utf-8')
         expect_failure(tmp_root, 'makefile:scripts/zigux/check-phase15-review-process-handoff.py --self-test', 'missing_makefile_self_test_marker')
         print('PHASE15_REVIEW_PROCESS_HANDOFF_SELF_TEST=pass')
-        print('PHASE15_REVIEW_PROCESS_HANDOFF_SELF_TEST_CASE_COUNT=35')
+        print('PHASE15_REVIEW_PROCESS_HANDOFF_SELF_TEST_CASE_COUNT=37')
         return 0
 
 def main() -> int:
@@ -637,7 +655,7 @@ def main() -> int:
         print('PHASE15_REVIEW_PROCESS_HANDOFF_FAILURES_END')
         return 1
     print('PHASE15_REVIEW_PROCESS_HANDOFF=pass')
-    print('PHASE15_REVIEW_PROCESS_HANDOFF_MARKER_COUNT=' f"{2 + len(REQUIRED_MANIFEST_BOUNDARY_MARKERS) + len(REQUIRED_REVIEW_PACKET_FIELD_MARKERS) + len(REQUIRED_OWNERSHIP_EVIDENCE_FIELDS) + len(REQUIRED_CURRENT_APPROVAL_POSTURE_MARKERS) + len(OPTIONAL_LANE_ROUTE_MARKERS) + len(REQUIRED_DOCS_README_MARKERS) + len(REQUIRED_REVIEW_CHECKLIST_MARKERS) + len(REQUIRED_SCRIPT_README_MARKERS) + len(EXACT_ONCE_SCRIPT_README_MARKERS) + len(REQUIRED_TESTS_README_MARKERS) + len(REQUIRED_MAKEFILE_MARKERS) + len(EXACT_ONCE_MAKEFILE_MARKERS)}")
+    print('PHASE15_REVIEW_PROCESS_HANDOFF_MARKER_COUNT=' f"{3 + len(REQUIRED_NOTE_MARKERS) + len(REQUIRED_MANIFEST_BOUNDARY_MARKERS) + len(REQUIRED_REVIEW_PACKET_FIELD_MARKERS) + len(REQUIRED_OWNERSHIP_EVIDENCE_FIELDS) + len(REQUIRED_CURRENT_APPROVAL_POSTURE_MARKERS) + len(OPTIONAL_LANE_ROUTE_MARKERS) + len(REQUIRED_DOCS_README_MARKERS) + len(REQUIRED_REVIEW_CHECKLIST_MARKERS) + len(REQUIRED_SCRIPT_README_MARKERS) + len(EXACT_ONCE_SCRIPT_README_MARKERS) + len(REQUIRED_TESTS_README_MARKERS) + len(REQUIRED_MAKEFILE_MARKERS) + len(EXACT_ONCE_MAKEFILE_MARKERS)}")
     return 0
 
 if __name__ == '__main__':
