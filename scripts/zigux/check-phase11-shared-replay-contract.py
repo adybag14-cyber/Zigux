@@ -37,6 +37,9 @@ REQUIRED_CONTRACT_MARKERS = [
     "`zigux/tests/phase11_hvc_cleanup.zig`",
     "`zigux/tests/phase11_hvc_console_survey.zig`",
     "`zigux/tests/phase11_uapi_header_parity_manifest.json`",
+    "`drivers/watchdog/bcm2835_wdt_verify.zig`",
+    "`drivers/watchdog/dw_wdt_verify.zig`",
+    "`drivers/tty/hvc/hvc_console_verify.zig`",
     "`.github/workflows/zigux-bootstrap.yml`",
     "there is no dedicated shared `validate-phase11.py` on `master`",
     "there is no shipped `zigux/tests/fixtures/phase11_build_inventory.json` on `master`",
@@ -47,8 +50,9 @@ REQUIRED_BCM2835_WDT_MATRIX_MARKERS = [
     "`Documentation/zigux/phase11-shared-replay-contract.md`",
     "`zigux/tests/README.md`",
     "`zigux/Makefile`",
-    "`phase11-bcm2835-wdt-tests` and `phase11-bcm2835-wdt-survey-tests` remain the shared Phase 11 artifacts that cover this bcm2835 packet",
-    "keep `Documentation/zigux/phase11-shared-replay-contract.md`, `zigux/tests/README.md`, `zigux/tests/phase11_build.zig`, and `zigux/Makefile` aligned so this matrix does not drift away from the shipped shared Phase 11 replay route",
+    "`drivers/watchdog/bcm2835_wdt_verify.zig`",
+    "`phase11-bcm2835-wdt-tests`, `phase11-bcm2835-wdt-verify-tests`, and `phase11-bcm2835-wdt-survey-tests` remain the shared Phase 11 artifacts that cover this bcm2835 packet",
+    "keep `Documentation/zigux/phase11-shared-replay-contract.md`, `Documentation/zigux/phase11-bcm2835-wdt-survey.md`, `zigux/tests/phase11_bcm2835_wdt_manifest.json`, `zigux/tests/phase11_bcm2835_wdt_survey.zig`, `zigux/tests/phase11_build.zig`, and `zigux/Makefile` aligned so this matrix does not drift away from either the shipped shared replay route or the dedicated bcm2835 archival packet",
 ]
 
 REQUIRED_GPIO_WDT_MATRIX_MARKERS = [
@@ -63,7 +67,8 @@ REQUIRED_DW_WDT_MATRIX_MARKERS = [
     "`Documentation/zigux/phase11-shared-replay-contract.md`",
     "`zigux/tests/README.md`",
     "`zigux/Makefile`",
-    "`phase11-dw-wdt-tests` and `phase11-dw-wdt-survey-tests` remain the shared Phase 11 artifacts that cover this DesignWare packet",
+    "`drivers/watchdog/dw_wdt_verify.zig`",
+    "`phase11-dw-wdt-tests`, `phase11-dw-wdt-verify-tests`, and `phase11-dw-wdt-survey-tests` remain the shared Phase 11 artifacts that cover this DesignWare packet",
     "keep `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/phase11-shared-replay-contract.md`, `Documentation/zigux/phase11-uapi-header-parity-survey.md`, `scripts/zigux/README.md`, `scripts/zigux/check-phase11-shared-replay-contract.py`, `scripts/zigux/check-phase11-header-boundary-packet.py`, `zigux/tests/README.md`, `zigux/tests/phase11_build.zig`, and `zigux/Makefile` aligned so this matrix does not drift away from the shipped shared Phase 11 replay route or the focused shared header-boundary packet",
 ]
 
@@ -71,9 +76,10 @@ REQUIRED_HVC_CONSOLE_MATRIX_MARKERS = [
     "`Documentation/zigux/phase11-shared-replay-contract.md`",
     "`zigux/tests/README.md`",
     "`zigux/Makefile`",
+    "`drivers/tty/hvc/hvc_console_verify.zig`",
     "`zigux/tests/phase11_hvc_cleanup.zig`",
     "`Documentation/zigux/phase11-hvc-console-teardown-note.md`",
-    "keep `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/phase11-shared-replay-contract.md`, `Documentation/zigux/phase11-uapi-header-parity-survey.md`, `zigux/tests/README.md`, `scripts/zigux/check-phase11-shared-replay-contract.py`, `scripts/zigux/check-phase11-header-boundary-packet.py`, `zigux/tests/phase11_build.zig`, `zigux/Makefile`, and `.github/workflows/zigux-bootstrap.yml` aligned with this matrix whenever the shared-versus-dedicated HVC replay split changes",
+    "keep `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/phase11-shared-replay-contract.md`, `Documentation/zigux/phase11-uapi-header-parity-survey.md`, `zigux/tests/README.md`, `scripts/zigux/check-phase11-shared-replay-contract.py`, `scripts/zigux/check-phase11-header-boundary-packet.py`, `scripts/zigux/check-phase11-hvc-survey-packet.py`, `zigux/tests/phase11_build.zig`, `zigux/Makefile`, and `.github/workflows/zigux-bootstrap.yml` aligned with this matrix whenever the shared-versus-dedicated HVC replay split changes so the dedicated `hvc_cleanup()` teardown replay and the compile-local `hvc_console_verify` replay stay explicit inside the wider Phase 11 packet, the focused shared header-boundary packet stays visible beside them, and the dedicated archival `phase11-hvc-survey` route keeps failing closed",
 ]
 
 REQUIRED_DOCS_README_MARKERS = [
@@ -118,7 +124,7 @@ FORBIDDEN_CONTRACT_MARKERS = [
     "the shipped checker only keeps the shared-versus-dedicated replay contract fail-closed",
 ]
 
-PHASE11_SHARED_REPLAY_CONTRACT_SELF_TEST_CASE_COUNT = 10
+PHASE11_SHARED_REPLAY_CONTRACT_SELF_TEST_CASE_COUNT = 13
 
 
 def read_text(root: Path, rel_path: str) -> str:
@@ -231,6 +237,9 @@ def write_fixture_tree(root: Path) -> None:
 - `zigux/tests/phase11_hvc_cleanup.zig`
 - `zigux/tests/phase11_hvc_console_survey.zig`
 - `zigux/tests/phase11_uapi_header_parity_manifest.json`
+- `drivers/watchdog/bcm2835_wdt_verify.zig`
+- `drivers/watchdog/dw_wdt_verify.zig`
+- `drivers/tty/hvc/hvc_console_verify.zig`
 - `.github/workflows/zigux-bootstrap.yml`
 - `zigux/Makefile`
 
@@ -267,12 +276,13 @@ Phase 11 notes
 - `Documentation/zigux/phase11-shared-replay-contract.md`
 - `zigux/tests/README.md`
 - `zigux/Makefile`
+- `drivers/watchdog/bcm2835_wdt_verify.zig`
 
 ## Shared Replay Surface
-- `phase11-bcm2835-wdt-tests` and `phase11-bcm2835-wdt-survey-tests` remain the shared Phase 11 artifacts that cover this bcm2835 packet
+- `phase11-bcm2835-wdt-tests`, `phase11-bcm2835-wdt-verify-tests`, and `phase11-bcm2835-wdt-survey-tests` remain the shared Phase 11 artifacts that cover this bcm2835 packet
 
 ## Review Rules
-- keep `Documentation/zigux/phase11-shared-replay-contract.md`, `zigux/tests/README.md`, `zigux/tests/phase11_build.zig`, and `zigux/Makefile` aligned so this matrix does not drift away from the shipped shared Phase 11 replay route
+- keep `Documentation/zigux/phase11-shared-replay-contract.md`, `Documentation/zigux/phase11-bcm2835-wdt-survey.md`, `zigux/tests/phase11_bcm2835_wdt_manifest.json`, `zigux/tests/phase11_bcm2835_wdt_survey.zig`, `zigux/tests/phase11_build.zig`, and `zigux/Makefile` aligned so this matrix does not drift away from either the shipped shared replay route or the dedicated bcm2835 archival packet
 """,
     )
     write(
@@ -297,9 +307,10 @@ Phase 11 notes
 - `Documentation/zigux/phase11-shared-replay-contract.md`
 - `zigux/tests/README.md`
 - `zigux/Makefile`
+- `drivers/watchdog/dw_wdt_verify.zig`
 
 ## Shared Replay Surface
-- `phase11-dw-wdt-tests` and `phase11-dw-wdt-survey-tests` remain the shared Phase 11 artifacts that cover this DesignWare packet
+- `phase11-dw-wdt-tests`, `phase11-dw-wdt-verify-tests`, and `phase11-dw-wdt-survey-tests` remain the shared Phase 11 artifacts that cover this DesignWare packet
 
 ## Review Rules
 - keep `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/phase11-shared-replay-contract.md`, `Documentation/zigux/phase11-uapi-header-parity-survey.md`, `scripts/zigux/README.md`, `scripts/zigux/check-phase11-shared-replay-contract.py`, `scripts/zigux/check-phase11-header-boundary-packet.py`, `zigux/tests/README.md`, `zigux/tests/phase11_build.zig`, and `zigux/Makefile` aligned so this matrix does not drift away from the shipped shared Phase 11 replay route or the focused shared header-boundary packet
@@ -313,11 +324,12 @@ Phase 11 notes
 - `Documentation/zigux/phase11-shared-replay-contract.md`
 - `zigux/tests/README.md`
 - `zigux/Makefile`
+- `drivers/tty/hvc/hvc_console_verify.zig`
 - `zigux/tests/phase11_hvc_cleanup.zig`
 - `Documentation/zigux/phase11-hvc-console-teardown-note.md`
 
 ## Review Rules
-- keep `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/phase11-shared-replay-contract.md`, `Documentation/zigux/phase11-uapi-header-parity-survey.md`, `zigux/tests/README.md`, `scripts/zigux/check-phase11-shared-replay-contract.py`, `scripts/zigux/check-phase11-header-boundary-packet.py`, `zigux/tests/phase11_build.zig`, `zigux/Makefile`, and `.github/workflows/zigux-bootstrap.yml` aligned with this matrix whenever the shared-versus-dedicated HVC replay split changes
+- keep `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/phase11-shared-replay-contract.md`, `Documentation/zigux/phase11-uapi-header-parity-survey.md`, `zigux/tests/README.md`, `scripts/zigux/check-phase11-shared-replay-contract.py`, `scripts/zigux/check-phase11-header-boundary-packet.py`, `scripts/zigux/check-phase11-hvc-survey-packet.py`, `zigux/tests/phase11_build.zig`, `zigux/Makefile`, and `.github/workflows/zigux-bootstrap.yml` aligned with this matrix whenever the shared-versus-dedicated HVC replay split changes so the dedicated `hvc_cleanup()` teardown replay and the compile-local `hvc_console_verify` replay stay explicit inside the wider Phase 11 packet, the focused shared header-boundary packet stays visible beside them, and the dedicated archival `phase11-hvc-survey` route keeps failing closed
 """,
     )
     write(
@@ -425,6 +437,11 @@ def run_self_test() -> int:
                 "phase11_contract:`Documentation/zigux/phase11-hvc-console-teardown-note.md`",
             ),
             (
+                PHASE11_CONTRACT_PATH,
+                "- `drivers/watchdog/dw_wdt_verify.zig`\n",
+                "phase11_contract:`drivers/watchdog/dw_wdt_verify.zig`",
+            ),
+            (
                 SCRIPTS_README_PATH,
                 "`scripts/zigux/check-phase11-header-boundary-packet.py`, ",
                 "scripts_readme:- the current shared Phase 11 review surface on `master` is `Documentation/zigux/README.md`, `scripts/zigux/README.md`, `scripts/zigux/check-phase11-shared-replay-contract.py`, `scripts/zigux/check-phase11-header-boundary-packet.py`, `zigux/tests/README.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/phase11-shared-replay-contract.md`, `Documentation/zigux/phase11-bcm2835-wdt-validation-matrix.md`, `Documentation/zigux/phase11-gpio-wdt-validation-matrix.md`, `Documentation/zigux/phase11-dw-wdt-validation-matrix.md`, `Documentation/zigux/phase11-hvc-console-validation-matrix.md`, `Documentation/zigux/phase11-hvc-console-survey.md`, `Documentation/zigux/phase11-uapi-header-parity-survey.md`, `zigux/tests/phase11_build.zig`, `zigux/tests/phase11_hvc_cleanup.zig`, `zigux/tests/phase11_hvc_console_survey.zig`, `zigux/tests/phase11_uapi_header_parity_manifest.json`, `zigux/tests/phase11_uapi_header_parity_survey.zig`, `zigux/Makefile`, and `.github/workflows/zigux-bootstrap.yml`.",
@@ -440,9 +457,19 @@ def run_self_test() -> int:
                 "gpio_wdt_matrix:`drivers/watchdog/gpio_wdt.zig`",
             ),
             (
+                BCM2835_WDT_MATRIX_PATH,
+                "`phase11-bcm2835-wdt-tests`, `phase11-bcm2835-wdt-verify-tests`, and `phase11-bcm2835-wdt-survey-tests` remain the shared Phase 11 artifacts that cover this bcm2835 packet\n",
+                "bcm2835_wdt_matrix:`phase11-bcm2835-wdt-tests`, `phase11-bcm2835-wdt-verify-tests`, and `phase11-bcm2835-wdt-survey-tests` remain the shared Phase 11 artifacts that cover this bcm2835 packet",
+            ),
+            (
                 DW_WDT_MATRIX_PATH,
-                "`phase11-dw-wdt-tests` and `phase11-dw-wdt-survey-tests` remain the shared Phase 11 artifacts that cover this DesignWare packet\n",
-                "dw_wdt_matrix:`phase11-dw-wdt-tests` and `phase11-dw-wdt-survey-tests` remain the shared Phase 11 artifacts that cover this DesignWare packet",
+                "`phase11-dw-wdt-tests`, `phase11-dw-wdt-verify-tests`, and `phase11-dw-wdt-survey-tests` remain the shared Phase 11 artifacts that cover this DesignWare packet\n",
+                "dw_wdt_matrix:`phase11-dw-wdt-tests`, `phase11-dw-wdt-verify-tests`, and `phase11-dw-wdt-survey-tests` remain the shared Phase 11 artifacts that cover this DesignWare packet",
+            ),
+            (
+                HVC_CONSOLE_MATRIX_PATH,
+                "`drivers/tty/hvc/hvc_console_verify.zig`\n",
+                "hvc_console_matrix:`drivers/tty/hvc/hvc_console_verify.zig`",
             ),
             (
                 HVC_CONSOLE_MATRIX_PATH,
@@ -453,6 +480,11 @@ def run_self_test() -> int:
                 HVC_CONSOLE_MATRIX_PATH,
                 "`Documentation/zigux/phase11-hvc-console-teardown-note.md`\n",
                 "hvc_console_matrix:`Documentation/zigux/phase11-hvc-console-teardown-note.md`",
+            ),
+            (
+                HVC_CONSOLE_MATRIX_PATH,
+                "compile-local `hvc_console_verify` replay stay explicit inside the wider Phase 11 packet",
+                "hvc_console_matrix:keep `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/phase11-shared-replay-contract.md`, `Documentation/zigux/phase11-uapi-header-parity-survey.md`, `zigux/tests/README.md`, `scripts/zigux/check-phase11-shared-replay-contract.py`, `scripts/zigux/check-phase11-header-boundary-packet.py`, `scripts/zigux/check-phase11-hvc-survey-packet.py`, `zigux/tests/phase11_build.zig`, `zigux/Makefile`, and `.github/workflows/zigux-bootstrap.yml` aligned with this matrix whenever the shared-versus-dedicated HVC replay split changes so the dedicated `hvc_cleanup()` teardown replay and the compile-local `hvc_console_verify` replay stay explicit inside the wider Phase 11 packet, the focused shared header-boundary packet stays visible beside them, and the dedicated archival `phase11-hvc-survey` route keeps failing closed",
             ),
         ]
 
