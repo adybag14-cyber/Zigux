@@ -36,6 +36,33 @@ pub const SlotSnapshot = struct {
     usable_for_console: bool,
 };
 
+pub const OpenHandoffRequest = struct {
+    open_count_before_open: usize = 0,
+    notifier_add_available: bool = true,
+    notifier_add_result: i32 = 0,
+    baud_configured: bool = true,
+    dtr_rts_available: bool = true,
+};
+
+pub const OpenHandoffSnapshot = struct {
+    anchor: []const u8,
+    slot_index: usize,
+    vtermno: u32,
+    adapter_present: bool,
+    open_count_before_open: usize,
+    open_count_after_open: usize,
+    already_open: bool,
+    tty_port_tty_set_requested: bool,
+    notifier_add_reviewable: bool,
+    notifier_add_requested: bool,
+    notifier_add_failed: bool,
+    dtr_rts_raise_requested: bool,
+    port_initialized: bool,
+    khvcd_wakeup_reviewable: bool,
+    khvcd_wakeup_requested: bool,
+    host_io_deferred: bool,
+};
+
 pub const CloseRequest = struct {
     hung_up: bool = false,
     port_initialized: bool = false,
@@ -222,6 +249,43 @@ pub const HvcConsoleLab = struct {
             .vtermno = self.vtermno,
             .adapter_present = self.adapter_present,
             .usable_for_console = self.adapter_present and self.vtermno != removed_vtermno,
+        };
+    }
+
+    pub fn summarizeOpenHandoff(
+        self: *const Self,
+        request: OpenHandoffRequest,
+    ) !OpenHandoffSnapshot {
+        const slot = self.slotSnapshot();
+        if (!slot.usable_for_console) return error.ConsoleUnavailable;
+        if (!request.notifier_add_available and request.notifier_add_result != 0) {
+            return error.NotifierAddResultWithoutNotifier;
+        }
+
+        const already_open = request.open_count_before_open > 0;
+        const notifier_add_requested = !already_open and request.notifier_add_available;
+        const notifier_add_failed = notifier_add_requested and request.notifier_add_result != 0;
+
+        return .{
+            .anchor = descriptor().anchor,
+            .slot_index = slot.slot_index,
+            .vtermno = slot.vtermno,
+            .adapter_present = slot.adapter_present,
+            .open_count_before_open = request.open_count_before_open,
+            .open_count_after_open = request.open_count_before_open + 1,
+            .already_open = already_open,
+            .tty_port_tty_set_requested = !already_open,
+            .notifier_add_reviewable = true,
+            .notifier_add_requested = notifier_add_requested,
+            .notifier_add_failed = notifier_add_failed,
+            .dtr_rts_raise_requested = !already_open and
+                !notifier_add_failed and
+                request.baud_configured and
+                request.dtr_rts_available,
+            .port_initialized = !already_open and !notifier_add_failed,
+            .khvcd_wakeup_reviewable = true,
+            .khvcd_wakeup_requested = true,
+            .host_io_deferred = true,
         };
     }
 
