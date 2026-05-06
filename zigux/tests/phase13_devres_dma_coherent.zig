@@ -22,4 +22,6 @@ test "phase13 devres coherent-dma boundary note keeps dma-backed helpers and sca
     const survey = @embedFile("../../Documentation/zigux/phase13-devres-survey.md");
     try requireContains(survey, "live DMA-backed helpers");
     try requireContains(survey, "live scatter-gather ownership");
+    try requireContains(survey, "dma_unmap_*");
+    try requireContains(survey, "sg_table lifecycle");
 }
