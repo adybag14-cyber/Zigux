@@ -60,7 +60,7 @@ The current tests check:
 - runtime-selected native comparator pointer parity
 - runtime-selected C ABI comparator pointer parity
 - runtime-selected raw native comparator pointer parity
-- runtime-selected raw C ABI comparator pointer parity, including pointer-return duplicate hits and null misses
+- runtime-selected raw C ABI comparator pointer parity, including descending-order lookup, pointer-return duplicate hits, mutable write-through, and null misses
 
 The current packet intentionally keeps its representative sorted inputs inline in `zigux/tests/phase6_bsearch.zig` instead of a separate fixture module so the helper bundle stays small and directly reviewable.
 
