@@ -476,6 +476,15 @@ def run_self_test() -> int:
         _seed_fixture_tree(root)
         case_count += 1
 
+        (root / HANDOFF_CHECKER_REL).unlink()
+        _assert_only(
+            validate(root),
+            ["missing_file:scripts/zigux/check-phase15-review-process-handoff.py"],
+            "missing_handoff_checker_file_guard_failed",
+        )
+        _seed_fixture_tree(root)
+        case_count += 1
+
         (root / "zigux/tests/phase15_readiness_gate.zig").unlink()
         _assert_only(
             validate(root),
