@@ -42,6 +42,10 @@ SELF_TEST_TARGETS = (
         ("PHASE3_CATALOG_SELF_TEST_CASE_COUNT=6",),
     ),
     SelfTestTarget(
+        "scripts/zigux/validate-phase3-abi-bindings-syntax.py",
+        "PHASE3_ABI_BINDINGS_SYNTAX_SELF_TEST=pass",
+    ),
+    SelfTestTarget(
         "scripts/zigux/validate-phase3-policy-unsafe-survey.py",
         "PHASE3_POLICY_UNSAFE_SURVEY_SELF_TEST=pass",
     ),
