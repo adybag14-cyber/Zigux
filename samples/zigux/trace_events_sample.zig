@@ -62,6 +62,17 @@ pub const PayloadBoundarySummary = struct {
     relative_location_path_checked: bool,
 };
 
+pub const CallbackBoundarySummary = struct {
+    stage_before_callback: SampleStage,
+    stage_after_callback: SampleStage,
+    function_count: i32,
+    function_callback_event_calls: usize,
+    total_event_calls_after_replay: usize,
+    function_callback_path_checked: bool,
+    registration_depth_after_register: usize,
+    registration_balance_restored: bool,
+};
+
 pub const TraceEventsReferenceSample = struct {
     const Self = @This();
 
@@ -206,9 +217,7 @@ pub const TraceEventsReferenceSample = struct {
         if (self.stage() != .initialized) return error.InvalidLifecycleTransition;
 
         try self.replayMainIteration(7);
-        try self.registerFunctionCallback();
-        try self.replayFunctionIteration(9);
-        try self.unregisterFunctionCallback();
+        const callback_boundary = try self.runCallbackBoundaryReplay(9);
 
         self.replay_runs += 1;
         self.stage_state = .replay_complete;
@@ -222,13 +231,13 @@ pub const TraceEventsReferenceSample = struct {
             .array_sentinel = self.array_payload[2],
             .bitmask_word = self.bitmask_word,
             .main_thread_event_calls = event_family_count,
-            .function_callback_event_calls = function_callback_family_count,
+            .function_callback_event_calls = callback_boundary.function_callback_event_calls,
             .total_event_calls = self.total_event_calls,
             .conditional_paths_checked = self.saw_conditional_path,
             .vararg_payload_path_checked = self.saw_vararg_payload,
             .relative_location_path_checked = self.saw_rel_loc_payload,
-            .function_callback_path_checked = self.saw_function_callback_path,
-            .registration_balance_restored = self.registration_depth == 0,
+            .function_callback_path_checked = callback_boundary.function_callback_path_checked,
+            .registration_balance_restored = callback_boundary.registration_balance_restored,
             .checked_focus = reviewContract().focus,
         };
     }
@@ -256,6 +265,28 @@ pub const TraceEventsReferenceSample = struct {
             .conditional_paths_checked = self.saw_conditional_path,
             .vararg_payload_path_checked = self.saw_vararg_payload,
             .relative_location_path_checked = self.saw_rel_loc_payload,
+        };
+    }
+
+    pub fn runCallbackBoundaryReplay(self: *Self, count: i32) !CallbackBoundarySummary {
+        if (self.stage() != .initialized) return error.InvalidLifecycleTransition;
+        if (self.registration_depth != 0) return error.OutstandingRegistration;
+
+        const events_before = self.total_event_calls;
+        try self.registerFunctionCallback();
+        const registration_depth_after_register = self.registration_depth;
+        try self.replayFunctionIteration(count);
+        try self.unregisterFunctionCallback();
+
+        return .{
+            .stage_before_callback = .initialized,
+            .stage_after_callback = self.stage(),
+            .function_count = self.last_function_count,
+            .function_callback_event_calls = self.total_event_calls - events_before,
+            .total_event_calls_after_replay = self.total_event_calls,
+            .function_callback_path_checked = self.saw_function_callback_path,
+            .registration_depth_after_register = registration_depth_after_register,
+            .registration_balance_restored = self.registration_depth == 0,
         };
     }
 
@@ -325,6 +356,7 @@ test "trace-events sample keeps payload and callback boundaries explicit" {
     var module = TraceEventsReferenceSample{};
 
     try std.testing.expectError(error.InvalidLifecycleTransition, module.runPayloadBoundaryReplay());
+    try std.testing.expectError(error.InvalidLifecycleTransition, module.runCallbackBoundaryReplay(3));
     try std.testing.expectError(error.InvalidLifecycleTransition, module.replayMainIteration(0));
     try module.init();
     try std.testing.expectError(error.InvalidIterationCount, module.replayMainIteration(-1));
@@ -348,13 +380,16 @@ test "trace-events sample keeps payload and callback boundaries explicit" {
 
     try std.testing.expectError(error.FunctionCallbackNotRegistered, module.replayFunctionIteration(0));
     try std.testing.expectError(error.RegistrationUnderflow, module.unregisterFunctionCallback());
-    try module.registerFunctionCallback();
-    try module.replayFunctionIteration(3);
-    try std.testing.expectEqual(@as(i32, 3), module.last_function_count);
-    try std.testing.expect(module.saw_function_callback_path);
-    try std.testing.expectEqual(@as(usize, 8), module.total_event_calls);
-    try module.unregisterFunctionCallback();
-    try std.testing.expectEqual(@as(usize, 0), module.registration_depth);
+    const callback_boundary = try module.runCallbackBoundaryReplay(3);
+    try std.testing.expectEqual(SampleStage.initialized, callback_boundary.stage_before_callback);
+    try std.testing.expectEqual(SampleStage.initialized, callback_boundary.stage_after_callback);
+    try std.testing.expectEqual(@as(i32, 3), callback_boundary.function_count);
+    try std.testing.expectEqual(TraceEventsReferenceSample.function_callback_family_count, callback_boundary.function_callback_event_calls);
+    try std.testing.expectEqual(@as(usize, 8), callback_boundary.total_event_calls_after_replay);
+    try std.testing.expect(callback_boundary.function_callback_path_checked);
+    try std.testing.expectEqual(@as(usize, 1), callback_boundary.registration_depth_after_register);
+    try std.testing.expect(callback_boundary.registration_balance_restored);
+    try std.testing.expectEqual(SampleStage.initialized, module.stage());
 }
 
 test "trace-events sample makes ownership and teardown boundaries explicit" {
@@ -369,6 +404,7 @@ test "trace-events sample makes ownership and teardown boundaries explicit" {
     try std.testing.expectError(error.InvalidLifecycleTransition, module.init());
     try module.registerFunctionCallback();
     try std.testing.expectError(error.OutstandingRegistration, module.exit());
+    try std.testing.expectError(error.OutstandingRegistration, module.runCallbackBoundaryReplay(1));
     try module.unregisterFunctionCallback();
     try module.exit();
     try std.testing.expectEqual(SampleStage.exited, module.stage());
