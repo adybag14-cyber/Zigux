@@ -78,7 +78,7 @@ The current tests check:
 - fixture-backed fold reviewability for `from32to16` and `fold`
 - IPv4 and IPv6 pseudo-header accumulation parity between the dedicated helper paths and manual `partial` plus `blockAdd` composition
 - incremental checksum replacement parity for payload word updates, 16-bit IPv4 header field replacement, diff-based checksum repair, and 32-bit IPv4 address replacement
-- a direct 27-case C-vs-Zig replay for compute, seeded partial, composition, IPv4 and IPv6 pseudo-header, carry-discipline, direct `add16` and `sub16`, and incremental replacement behavior
+- a direct 30-case C-vs-Zig replay for compute, seeded partial, composition, IPv4 and IPv6 pseudo-header, direct `negate`, direct `from32to16` and `fold`, and incremental replacement behavior
 - helper-local wraparound, double-negation, and one's-complement carry checks for `negate`
 - helper-local perf smoke on patterned 64-byte and 1501-byte payloads keeps `checksum.compute` within a 150% slowdown ceiling versus the bounded reference loop
 
