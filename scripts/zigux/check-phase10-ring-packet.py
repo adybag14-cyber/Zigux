@@ -339,7 +339,6 @@ def run_self_test() -> int:
 
         manifest_path = tmp_root / "zigux/tests/phase10_virtio_ring_manifest.json"
         original_manifest = manifest_path.read_text(encoding="utf-8")
-        manifest_path.writeText = None
         manifest_path.write_text(
             original_manifest.replace('"lane_key": "P10-L07"', '"lane_key": "P10-drift"', 1),
             encoding="utf-8",
