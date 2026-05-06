@@ -15,7 +15,7 @@
     "preexisting_hlist_view_present": true,
     "preexisting_exported_list_abi_present": true,
     "preexisting_notifier_helper_present": true,
-    "preexisting_exported_notifier_abi_present": false,
+    "preexisting_exported_notifier_abi_present": true,
     "preexisting_phase13_notifier_reviewability_present": true,
     "preexisting_phase13_notifier_survey_note_present": true
   },
@@ -25,7 +25,7 @@
       "status": "starter_landed",
       "kind": "reviewability",
       "zigux_destination": "zigux/tests/phase13_build.zig",
-      "why_now": "Current master keeps notifier/list evidence adjacent to the shared Phase 13 release replay instead of folding it into the six-test bundle."
+      "why_now": "Current master keeps notifier/list evidence adjacent to the shared Phase 13 release replay instead of folding it into the seven-test bundle."
     },
     {
       "id": "phase13-notifier-binding-surface",
@@ -77,11 +77,11 @@
       "why_now": "The next same-lane product step was a read-only notifier-chain helper rather than callback or registration behavior, and it is now present."
     },
     {
-      "id": "phase13-exported-notifier-c-header-gap",
-      "status": "ready_next",
+      "id": "phase13-exported-notifier-c-header-surface",
+      "status": "starter_landed",
       "kind": "header",
       "zigux_destination": "include/zigux/notifier_abi.h",
-      "why_now": "The current exported C side still lacks a dedicated notifier header even though the Zig notifier helper foothold is now present."
+      "why_now": "The dedicated notifier C header now ships as adjacent notifier interop evidence beside the Zig binding and read-only notifier helper footholds."
     }
   ]
 }
