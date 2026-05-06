@@ -59,6 +59,7 @@ PHASE2_MAKEFILE_RUN_COUNTS = {
     'scripts/zigux/check-mk-elfconfig-diff.py': 1,
     'scripts/zigux/check-genksyms-bridge.py --self-test': 1,
     'scripts/zigux/check-genksyms-bridge.py': 1,
+    'scripts/zigux/check-genksyms-crc-diff.py': 1,
     'scripts/zigux/check-phase2-cross.py': 1,
 }
 PHASE2_WORKFLOW_RUN_COUNTS = {
@@ -80,6 +81,7 @@ PHASE2_WORKFLOW_RUN_COUNTS = {
     'python3 scripts/zigux/check-mk-elfconfig-diff.py': 1,
     'python3 scripts/zigux/check-genksyms-bridge.py --self-test': 1,
     'python3 scripts/zigux/check-genksyms-bridge.py': 1,
+    'python3 scripts/zigux/check-genksyms-crc-diff.py': 1,
 }
 
 
@@ -104,6 +106,7 @@ def run_self_test() -> int:
         'cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-mk-elfconfig-diff.py',
         'cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-genksyms-bridge.py --self-test',
         'cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-genksyms-bridge.py',
+        'cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-genksyms-crc-diff.py',
         'cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-cross.py',
     ])
     workflow_ok = '\n'.join([
@@ -125,6 +128,7 @@ def run_self_test() -> int:
         'run: python3 scripts/zigux/check-mk-elfconfig-diff.py',
         'run: python3 scripts/zigux/check-genksyms-bridge.py --self-test',
         'run: python3 scripts/zigux/check-genksyms-bridge.py',
+        'run: python3 scripts/zigux/check-genksyms-crc-diff.py',
     ]) + '\n'
     cases = [
         ('make_ok', validate_exact_makefile_runs(make_ok), []),
@@ -288,6 +292,14 @@ def run_self_test() -> int:
             ),
             ['make_exact_run:scripts/zigux/check-genksyms-bridge.py:count=2:expected=1'],
         ),
+        (
+            'make_duplicate_genksyms_crc_diff_gate',
+            validate_exact_makefile_runs(
+                make_ok
+                + '\ncd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-genksyms-crc-diff.py'
+            ),
+            ['make_exact_run:scripts/zigux/check-genksyms-crc-diff.py:count=2:expected=1'],
+        ),
         ('workflow_ok', validate_exact_workflow_runs(workflow_ok), []),
         (
             'workflow_duplicate_validate_phase2',
@@ -418,6 +430,13 @@ def run_self_test() -> int:
                 workflow_ok + 'run: python3 scripts/zigux/check-genksyms-bridge.py\n'
             ),
             ['workflow_exact_run:python3 scripts/zigux/check-genksyms-bridge.py:count=2:expected=1'],
+        ),
+        (
+            'workflow_duplicate_genksyms_crc_diff_gate',
+            validate_exact_workflow_runs(
+                workflow_ok + 'run: python3 scripts/zigux/check-genksyms-crc-diff.py\n'
+            ),
+            ['workflow_exact_run:python3 scripts/zigux/check-genksyms-crc-diff.py:count=2:expected=1'],
         ),
     ]
 
@@ -718,6 +737,7 @@ def main() -> int:
         'python3 scripts/zigux/check-phase2-genksyms-bridge-selftest-alignment.py',
         'python3 scripts/zigux/check-genksyms-bridge.py --self-test',
         'python3 scripts/zigux/check-genksyms-bridge.py',
+        'python3 scripts/zigux/check-genksyms-crc-diff.py',
         'python3 scripts/zigux/check-kconfig-bridge.py',
         'python3 scripts/zigux/check-kconfig-bridge.py --self-test',
         'python3 scripts/zigux/check-mk-elfconfig-diff.py',
@@ -771,6 +791,7 @@ def main() -> int:
         'check-mk-elfconfig-diff.py',
         'check-genksyms-bridge.py --self-test',
         'check-genksyms-bridge.py',
+        'check-genksyms-crc-diff.py',
         '$(ZIG) test scripts/zigux/genksyms.zig',
         '$(ZIG) test scripts/zigux/mk_elfconfig.zig',
     ]
