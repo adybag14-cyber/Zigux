@@ -350,5 +350,13 @@ test "phase 8 libbpf survey note stays aligned with the landed helper packet" {
     try expectContains(bridge_boundary_note, "zig build test --build-file zigux/tests/phase8_build.zig --summary all");
     try expectContains(bridge_boundary_note, "perf-buffer-online-cpu-routing");
     try expectContains(bridge_boundary_note, "/sys/devices/system/cpu/online");
+    try expectContains(bridge_boundary_note, "cached `/sys/devices/system/cpu/possible` counts via `libbpf_num_possible_cpus()`");
+    try expectContains(bridge_boundary_note, "online CPU filtering");
+    try expectContains(bridge_boundary_note, "per-CPU perf-event-array map updates");
+    try expectContains(bridge_boundary_note, "per-CPU `perf_event_open()` setup");
+    try expectContains(bridge_boundary_note, "perf-buffer ring `mmap()` setup");
+    try expectContains(bridge_boundary_note, "`PERF_EVENT_IOC_ENABLE` enablement");
+    try expectContains(bridge_boundary_note, "epoll-backed perf FD registration");
+    try expectContains(bridge_boundary_note, "poll waits");
     try expectContains(bridge_boundary_note, "fd close or ownership semantics");
 }
