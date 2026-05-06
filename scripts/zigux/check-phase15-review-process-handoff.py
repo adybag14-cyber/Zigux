@@ -102,6 +102,7 @@ REQUIRED_DOCS_README_MARKERS = [
     "`Documentation/zigux/phase15-parity-scorecard.md`",
     "`Documentation/zigux/phase15-indefinite-c-policy.md`",
     "`scripts/zigux/README.md`",
+    "`zigux/tests/README.md`",
     "`zigux/tests/phase15_architecture_council_review_process_manifest.json`",
     "`zigux/tests/phase15_freeze_map_governance.zig`",
     "`zigux/tests/phase15_parity_scorecard.zig`",
@@ -294,6 +295,7 @@ Phase 15 notes
 - `Documentation/zigux/phase15-parity-scorecard.md`
 - `Documentation/zigux/phase15-indefinite-c-policy.md`
 - `scripts/zigux/README.md`
+- `zigux/tests/README.md`
 - `zigux/tests/phase15_architecture_council_review_process_manifest.json`
 - `zigux/tests/phase15_freeze_map_governance.zig`
 - `zigux/tests/phase15_parity_scorecard.zig`
@@ -500,6 +502,10 @@ def run_self_test() -> int:
         expect_failure(tmp_root, 'docs_readme:`scripts/zigux/README.md`', 'missing_docs_readme_scripts_readme_marker')
         write_fixture_tree(tmp_root)
         docs_readme = docs_readme_path.read_text(encoding='utf-8')
+        docs_readme_path.write_text(docs_readme.replace('`zigux/tests/README.md`\n', '', 1), encoding='utf-8')
+        expect_failure(tmp_root, 'docs_readme:`zigux/tests/README.md`', 'missing_docs_readme_tests_readme_marker')
+        write_fixture_tree(tmp_root)
+        docs_readme = docs_readme_path.read_text(encoding='utf-8')
         docs_readme_path.write_text(docs_readme.replace('`zigux/tests/phase15_architecture_council_review_process_manifest.json`\n', '', 1), encoding='utf-8')
         expect_failure(tmp_root, 'docs_readme:`zigux/tests/phase15_architecture_council_review_process_manifest.json`', 'missing_docs_readme_manifest_marker')
         write_fixture_tree(tmp_root)
@@ -531,7 +537,7 @@ def run_self_test() -> int:
         makefile_path.write_text(makefile.replace('cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase15-review-process-handoff.py --self-test\n', '', 1), encoding='utf-8')
         expect_failure(tmp_root, 'makefile:scripts/zigux/check-phase15-review-process-handoff.py --self-test', 'missing_makefile_self_test_marker')
         print('PHASE15_REVIEW_PROCESS_HANDOFF_SELF_TEST=pass')
-        print('PHASE15_REVIEW_PROCESS_HANDOFF_SELF_TEST_CASE_COUNT=23')
+        print('PHASE15_REVIEW_PROCESS_HANDOFF_SELF_TEST_CASE_COUNT=24')
         return 0
 
 def main() -> int:
