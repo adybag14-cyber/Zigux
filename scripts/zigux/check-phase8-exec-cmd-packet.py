@@ -13,7 +13,9 @@ REQUIRED_FILES = [
     "Documentation/zigux/phase8-exec-cmd-slice.md",
     "Documentation/zigux/review-checklist.md",
     "zigux/Makefile",
+    "zigux/tests/phase8_build.zig",
     "zigux/tests/phase8_exec_cmd.zig",
+    "zigux/tests/phase8_exec_cmd_only_build.zig",
 ]
 
 REQUIRED_MARKERS = {
@@ -38,6 +40,13 @@ REQUIRED_MARKERS = {
         "scripts/zigux/validate-phase8.py",
         "scripts/zigux/check-phase8-exec-cmd-packet.py --self-test",
         "scripts/zigux/check-phase8-exec-cmd-packet.py",
+        "phase8-exec-cmd-test:",
+        "$(ZIG) build test --build-file zigux/tests/phase8_exec_cmd_only_build.zig --summary all",
+    ],
+    "zigux/tests/phase8_build.zig": [
+        "../../tools/lib/subcmd/exec-cmd.zig",
+        "\"phase8_exec_cmd.zig\"",
+        "phase8-exec-cmd-tests",
     ],
     "zigux/tests/phase8_exec_cmd.zig": [
         "PHASE8_SLICE=exec-cmd-deferred-exec-packet",
@@ -45,6 +54,11 @@ REQUIRED_MARKERS = {
         "`kernel/workqueue.c` in the later Phase 14 boundary-study tranche",
         "phase 8 exec-cmd checklist hook keeps the parked deferred-exec packet explicit",
         "make -C zigux phase8-validate",
+    ],
+    "zigux/tests/phase8_exec_cmd_only_build.zig": [
+        "../../tools/lib/subcmd/exec-cmd.zig",
+        "\"phase8_exec_cmd.zig\"",
+        "phase8-exec-cmd-tests",
     ],
 }
 
@@ -77,6 +91,12 @@ def write_fixture_root(tmp_root: Path) -> None:
         path.write_text("\n".join(markers) + "\n", encoding="utf-8")
 
 
+def expect_missing_file(case: str, tmp_root: Path, rel: str) -> None:
+    missing_files, missing_markers = validate(tmp_root)
+    assert missing_markers == [], case
+    assert missing_files == [rel], case
+
+
 def expect_missing_marker(case: str, tmp_root: Path, marker: str) -> None:
     missing_files, missing_markers = validate(tmp_root)
     assert missing_files == [], case
@@ -92,6 +112,15 @@ def mutate_file(tmp_root: Path, rel: str, old: str, new: str, case: str) -> None
 
 
 def run_self_test() -> None:
+    missing_file_cases = [
+        ("missing_slice", "Documentation/zigux/phase8-exec-cmd-slice.md"),
+        ("missing_checklist", "Documentation/zigux/review-checklist.md"),
+        ("missing_makefile", "zigux/Makefile"),
+        ("missing_phase8_build", "zigux/tests/phase8_build.zig"),
+        ("missing_exec_cmd_test", "zigux/tests/phase8_exec_cmd.zig"),
+        ("missing_exec_cmd_only_build", "zigux/tests/phase8_exec_cmd_only_build.zig"),
+    ]
+
     marker_cases = [
         (
             "slice_marker",
@@ -108,11 +137,39 @@ def run_self_test() -> None:
             "zigux/Makefile: scripts/zigux/check-phase8-exec-cmd-packet.py --self-test",
         ),
         (
+            "makefile_target",
+            "zigux/Makefile",
+            "phase8-exec-cmd-test:",
+            "phase8-exec-test:",
+            "zigux/Makefile: phase8-exec-cmd-test:",
+        ),
+        (
+            "makefile_command",
+            "zigux/Makefile",
+            "$(ZIG) build test --build-file zigux/tests/phase8_exec_cmd_only_build.zig --summary all",
+            "$(ZIG) build test --build-file zigux/tests/phase8_exec_cmd_build.zig --summary all",
+            "zigux/Makefile: $(ZIG) build test --build-file zigux/tests/phase8_exec_cmd_only_build.zig --summary all",
+        ),
+        (
             "checklist_boundary",
             "Documentation/zigux/review-checklist.md",
             "`kernel/workqueue.c`",
             "`kernel/sched/core.c`",
             "Documentation/zigux/review-checklist.md: `kernel/workqueue.c`",
+        ),
+        (
+            "shared_build_source",
+            "zigux/tests/phase8_build.zig",
+            "\"phase8_exec_cmd.zig\"",
+            "\"phase8_exec_cmd_drift.zig\"",
+            "zigux/tests/phase8_build.zig: \"phase8_exec_cmd.zig\"",
+        ),
+        (
+            "shared_build_test_name",
+            "zigux/tests/phase8_build.zig",
+            "phase8-exec-cmd-tests",
+            "phase8-exec-tests",
+            "zigux/tests/phase8_build.zig: phase8-exec-cmd-tests",
         ),
         (
             "focused_test_guard",
@@ -121,6 +178,20 @@ def run_self_test() -> None:
             "shared Phase 8 tooling route",
             "zigux/tests/phase8_exec_cmd.zig: shared Phase 8 validator-first route",
         ),
+        (
+            "focused_build_root",
+            "zigux/tests/phase8_exec_cmd_only_build.zig",
+            "\"phase8_exec_cmd.zig\"",
+            "\"phase8_exec_cmd_drift.zig\"",
+            "zigux/tests/phase8_exec_cmd_only_build.zig: \"phase8_exec_cmd.zig\"",
+        ),
+        (
+            "focused_build_name",
+            "zigux/tests/phase8_exec_cmd_only_build.zig",
+            "phase8-exec-cmd-tests",
+            "phase8-exec-tests",
+            "zigux/tests/phase8_exec_cmd_only_build.zig: phase8-exec-cmd-tests",
+        ),
     ]
 
     with tempfile.TemporaryDirectory(prefix="zigux_phase8_exec_cmd_packet_") as tmp_dir_str:
@@ -128,13 +199,21 @@ def run_self_test() -> None:
         write_fixture_root(tmp_root)
         assert validate(tmp_root) == ([], [])
 
+        for case, rel in missing_file_cases:
+            (tmp_root / rel).unlink()
+            expect_missing_file(case, tmp_root, rel)
+            write_fixture_root(tmp_root)
+
         for case, rel, old, new, expected in marker_cases:
             mutate_file(tmp_root, rel, old, new, case)
             expect_missing_marker(case, tmp_root, expected)
             write_fixture_root(tmp_root)
 
     print("PHASE8_EXEC_CMD_PACKET_SELF_TEST=pass")
-    print(f"PHASE8_EXEC_CMD_PACKET_SELF_TEST_CASE_COUNT={len(marker_cases)}")
+    print(
+        "PHASE8_EXEC_CMD_PACKET_SELF_TEST_CASE_COUNT="
+        f"{len(missing_file_cases) + len(marker_cases)}"
+    )
 
 
 def main() -> int:
