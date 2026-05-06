@@ -64,6 +64,18 @@ pub fn build(b: *std.Build) void {
     });
     const run_phase15_indefinite_c_policy_tests = b.addRunArtifact(phase15_indefinite_c_policy_tests);
 
+    const phase15_indefinite_c_blocker_evidence_module = b.createModule(.{
+        .root_source_file = b.path("phase15_indefinite_c_blocker_evidence.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+
+    const phase15_indefinite_c_blocker_evidence_tests = b.addTest(.{
+        .name = "phase15-indefinite-c-blocker-evidence-tests",
+        .root_module = phase15_indefinite_c_blocker_evidence_module,
+    });
+    const run_phase15_indefinite_c_blocker_evidence_tests = b.addRunArtifact(phase15_indefinite_c_blocker_evidence_tests);
+
     const phase15_indefinite_c_lane_owner_alignment_module = b.createModule(.{
         .root_source_file = b.path("phase15_indefinite_c_lane_owner_alignment.zig"),
         .target = target,
@@ -106,6 +118,7 @@ pub fn build(b: *std.Build) void {
     test_step.dependOn(&run_phase15_architecture_council_review_process_tests.step);
     test_step.dependOn(&run_phase15_handoff_next_steps_tests.step);
     test_step.dependOn(&run_phase15_indefinite_c_policy_tests.step);
+    test_step.dependOn(&run_phase15_indefinite_c_blocker_evidence_tests.step);
     test_step.dependOn(&run_phase15_indefinite_c_lane_owner_alignment_tests.step);
     test_step.dependOn(&run_phase15_readiness_gate_tests.step);
     test_step.dependOn(&run_phase15_governance_lane_sequencing_tests.step);
