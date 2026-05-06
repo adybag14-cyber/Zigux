@@ -6,7 +6,7 @@ This document tracks the bounded Phase 8 userspace-adjacent tooling slice for Zi
 
 - `PHASE8_STATUS=parked`
 - `PHASE8_SLICE=kallsyms-parse-wrapper-parked`
-- scope: symbol-type helpers, injected line parsing, chunked reader iteration, thin reader or path adapters, and one direct parse wrapper only
+- scope: symbol-type helpers, injected line parsing, chunked reader iteration, thin reader or path adapters, an already-open-file adapter, and direct parse wrappers only
 - product boundary:
   - `tools/lib/symbol/kallsyms.zig`
   - `zigux/tests/phase8_kallsyms.zig`
@@ -20,7 +20,7 @@ The Phase 8 roadmap explicitly names `tools/lib/symbol/kallsyms.c` as a userspac
 
 This parked packet is helper-first expansion inside that `tools/lib/symbol/*.zig` family. Its review surface stays on output-stable tooling behavior rather than downstream symbol plumbing.
 
-The live repo already had the parse-first `kallsyms.zig` surface plus the injected chunked reader path, and the previous bounded follow-up added thin reader-backed and path-backed adapters. The remaining lane-local gap was one direct `kallsymsParse()`-adjacent wrapper that keeps the file-oriented callback shape visible to callers without widening into ELF emission or downstream symbol plumbing.
+The live repo already had the parse-first `kallsyms.zig` surface plus the injected chunked reader path, and the previous bounded follow-ups added thin reader-backed, path-backed, and already-open-file adapters. The parked review surface now includes one direct `kallsymsParseFile()` wrapper for caller-owned open files alongside one direct `kallsymsParse()` wrapper that opens a path, without widening into ELF emission or downstream symbol plumbing.
 
 The live C anchor for this family still concentrates review around `kallsyms2elf_type()`, `kallsyms__is_function()`, and `kallsyms__parse()` on top of `api/io.h`. This parked Zigux packet keeps those symbol-classification and parse-callback cues visible without claiming direct `api/io.h` parity or downstream symbol-emission ownership.
 
@@ -58,6 +58,7 @@ The current parked parser-and-wrapper slice covers:
 - injected chunked reader iteration that reconstructs split lines before reusing the same parser
 - thin reader-backed parsing that reuses the same malformed-line and callback semantics
 - thin path-backed parsing that opens a file and feeds the same reader-backed path
+- one direct `kallsymsParseFile()` wrapper that accepts an already-open file plus a C-shaped callback contract and stops on the same integer callback result the C helper returns
 - one direct `kallsymsParse()` wrapper that accepts a path plus a C-shaped callback contract and stops on the same integer callback result the C helper returns
 - a bounded symbol-name length guard that keeps the parked parser honest
 
@@ -67,8 +68,9 @@ The current tests check:
 - valid symbol lines expose the expected address, type, and name slices
 - malformed lines are skipped without stopping iteration
 - split records still parse correctly when a file-like reader delivers partial lines and CRLF endings across chunk boundaries
-- the new reader and path adapters preserve the same callback and malformed-line behavior as the lower-level parser
-- the direct wrapper reuses that same path surface while presenting a `void *arg` plus null-terminated symbol-name callback shape and preserving non-zero stop codes
+- the thin reader, path, and already-open-file adapters preserve the same callback and malformed-line behavior as the lower-level parser
+- the direct `kallsymsParseFile()` wrapper keeps an already-open file handle on the same callback-stop contract without reopening path ownership inside the helper
+- the direct `kallsymsParse()` wrapper reuses that same path surface while presenting a `void *arg` plus null-terminated symbol-name callback shape and preserving non-zero stop codes
 - the focused `phase8_kallsyms_only_build.zig` shard keeps the parked parser-and-wrapper packet reviewable without rerunning the whole Phase 8 bundle
 - the focused `phase8_help_kallsyms_only_build.zig` shard keeps the parked help-and-kallsyms packet reviewable without widening into unrelated Phase 8 tooling slices
 - oversized symbol names raise an explicit bounded error instead of silently widening the lane
