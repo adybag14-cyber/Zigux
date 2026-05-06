@@ -200,8 +200,8 @@ def assert_review_note_markers(note_text: str) -> None:
 def helper_self_test_expected_lines() -> list[str]:
     return [
         'ARTIFACT_DIFF_SELF_TEST=pass',
-        'ARTIFACT_DIFF_SELF_TEST_CASE_COUNT=18',
-        'ARTIFACT_DIFF_SELF_TEST_CASES=text_pass,text_mismatch,json_pass,json_mismatch,json_invalid_expected,json_invalid_actual,json_invalid_both,json_missing_expected,json_missing_actual,json_missing_both,sha256_pass,sha256_drift,text_missing_expected,text_missing_actual,text_missing_both,sha256_missing_expected,sha256_missing_actual,sha256_missing_both',
+        'ARTIFACT_DIFF_SELF_TEST_CASE_COUNT=19',
+        'ARTIFACT_DIFF_SELF_TEST_CASES=text_pass,text_mismatch,json_pass,json_mismatch,json_invalid_expected,json_invalid_actual,json_invalid_both,json_missing_expected,json_missing_actual,json_missing_both,sha256_pass,sha256_drift,text_missing_expected,text_missing_actual,text_missing_both,sha256_missing_expected,sha256_missing_actual,sha256_missing_both,invalid_mode_rejected',
     ]
 
 
@@ -259,6 +259,7 @@ def assert_helper_self_test_output(lines: list[str]) -> None:
         'sha256_missing_expected',
         'sha256_missing_actual',
         'sha256_missing_both',
+        'invalid_mode_rejected',
     ]
     if cases != expected_cases:
         raise AssertionError(
@@ -364,7 +365,8 @@ def run_self_test() -> int:
         'json_invalid_actual,json_invalid_both,json_missing_expected,'
         'json_missing_actual,json_missing_both,sha256_pass,sha256_drift,'
         'text_missing_expected,text_missing_actual,text_missing_both,'
-        'sha256_missing_expected,sha256_missing_actual,sha256_missing_both'
+        'sha256_missing_expected,sha256_missing_actual,sha256_missing_both,'
+        'invalid_mode_rejected'
     )
     expect_assertion(
         'helper_summary_duplicate_case_drift',
@@ -379,7 +381,8 @@ def run_self_test() -> int:
         'json_invalid_actual,json_invalid_both,json_missing_expected,'
         'json_missing_actual,json_missing_both,sha256_pass,sha256_drift,'
         'text_missing_expected,text_missing_actual,text_missing_both,'
-        'sha256_missing_expected,sha256_missing_actual,sha256_missing_both'
+        'sha256_missing_expected,sha256_missing_actual,sha256_missing_both,'
+        'invalid_mode_rejected'
     )
     expect_assertion(
         'helper_summary_case_order_drift',
