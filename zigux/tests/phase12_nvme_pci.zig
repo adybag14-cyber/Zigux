@@ -6,6 +6,7 @@ test "phase12 nvme pci descriptor and admin queue plan stay anchored to pci.c" {
     try std.testing.expectEqualStrings("nvme_pci_queue_lab", descriptor.name);
     try std.testing.expectEqualStrings("drivers/nvme/host/pci.c", descriptor.anchor);
     try std.testing.expect(descriptor.provides_lab_queue_planner);
+    try std.testing.expect(descriptor.provides_queue_count_helper);
     try std.testing.expect(descriptor.provides_prp_metadata_helper);
     try std.testing.expect(descriptor.provides_recovery_replay_helper);
     try std.testing.expect(!descriptor.touches_live_dma);
@@ -65,6 +66,66 @@ test "phase12 nvme pci separates queue footprint from host DMA when CMB backs SQ
     const recovery = lab.recoverySummary();
     try std.testing.expectEqual(@as(usize, 2), recovery.planned_io_queues);
     try std.testing.expectEqual(@as(u32, 0), recovery.reset_generation);
+}
+
+test "phase12 nvme pci io queue count helper negotiates controller and planner caps" {
+    var lab = try nvme_pci.NvmePciQueueLab.init(4096, 8);
+    _ = try lab.planAdminQueue(32, 64, false);
+    _ = try lab.planIoQueue(16, 64, false);
+
+    const controller_capped = try lab.planIoQueueCount(8, 4);
+    try std.testing.expectEqualStrings("drivers/nvme/host/pci.c", controller_capped.anchor);
+    try std.testing.expectEqual(@as(usize, 8), controller_capped.requested_io_queues);
+    try std.testing.expectEqual(@as(usize, 4), controller_capped.controller_io_queue_limit);
+    try std.testing.expectEqual(@as(usize, 63), controller_capped.planner_remaining_io_slots);
+    try std.testing.expectEqual(@as(usize, 4), controller_capped.selected_io_queues);
+    try std.testing.expectEqual(@as(u16, 2), controller_capped.first_queue_id);
+    try std.testing.expectEqual(@as(u16, 5), controller_capped.last_queue_id);
+    try std.testing.expectEqual(@as(usize, 6), controller_capped.queue_pairs_after_plan);
+    try std.testing.expect(controller_capped.controller_limited);
+    try std.testing.expect(!controller_capped.planner_limited);
+    try std.testing.expect(!controller_capped.queues_frozen);
+    try std.testing.expectEqual(@as(u32, 0), controller_capped.reset_generation);
+
+    var planner_capped_lab = try nvme_pci.NvmePciQueueLab.init(4096, 8);
+    _ = try planner_capped_lab.planAdminQueue(32, 64, false);
+    var counted: usize = 0;
+    while (counted < 62) : (counted += 1) {
+        _ = try planner_capped_lab.planIoQueue(8, 64, false);
+    }
+
+    const planner_capped = try planner_capped_lab.planIoQueueCount(8, 10);
+    try std.testing.expectEqual(@as(usize, 2), planner_capped.planner_remaining_io_slots);
+    try std.testing.expectEqual(@as(usize, 2), planner_capped.selected_io_queues);
+    try std.testing.expectEqual(@as(u16, 63), planner_capped.first_queue_id);
+    try std.testing.expectEqual(@as(u16, 64), planner_capped.last_queue_id);
+    try std.testing.expectEqual(@as(usize, 65), planner_capped.queue_pairs_after_plan);
+    try std.testing.expect(!planner_capped.controller_limited);
+    try std.testing.expect(planner_capped.planner_limited);
+}
+
+test "phase12 nvme pci io queue count helper rejects empty negotiation and respects reset freeze" {
+    var lab = try nvme_pci.NvmePciQueueLab.init(4096, 8);
+    try std.testing.expectError(error.InvalidRequestedIoQueues, lab.planIoQueueCount(0, 4));
+    try std.testing.expectError(error.InvalidControllerQueueCount, lab.planIoQueueCount(4, 0));
+
+    _ = try lab.planAdminQueue(32, 64, false);
+    var counted: usize = 0;
+    while (counted < nvme_pci.max_planned_io_queues) : (counted += 1) {
+        _ = try lab.planIoQueue(8, 64, false);
+    }
+    try std.testing.expectError(error.NoQueueIdsAvailable, lab.planIoQueueCount(1, 1));
+
+    var reset_lab = try nvme_pci.NvmePciQueueLab.init(4096, 8);
+    _ = reset_lab.beginReset();
+    try std.testing.expectError(error.QueuePlanningBlockedByReset, reset_lab.planIoQueueCount(1, 1));
+    _ = reset_lab.completeReset();
+
+    const after_reset = try reset_lab.planIoQueueCount(3, 5);
+    try std.testing.expectEqual(@as(usize, 3), after_reset.selected_io_queues);
+    try std.testing.expectEqual(@as(u16, 1), after_reset.first_queue_id);
+    try std.testing.expectEqual(@as(u16, 3), after_reset.last_queue_id);
+    try std.testing.expectEqual(@as(u32, 1), after_reset.reset_generation);
 }
 
 test "phase12 nvme pci plans PRP buffer shapes without claiming live DMA setup" {
