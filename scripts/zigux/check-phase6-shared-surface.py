@@ -85,7 +85,7 @@ REQUIRED_SNIPPETS = {
     "Documentation/zigux/phase6-hexdump-slice.md": [
         "- `PHASE6_STATUS=parked`",
         "- `PHASE6_SLICE=hexdump-leaf-helper`",
-        "- lane state: helper, fixture, and dedicated perf gate slices landed; parked unless a new `hexdump.c` parity issue appears",
+        "- lane state: helper, fixture, dedicated perf gate, and external parity slices landed; parked unless a new `hexdump.c` parity issue appears",
         "- `hexDumpToBuffer`",
         "- serialized required-length vectors for `hexDumpLineLength` and zero-buffer `hexDumpToBuffer`",
         "- a dedicated perf replay that benchmarks the existing four-case perf fixture packet against the committed `fixtures.prepareExpectedLine(...)` reference path",
@@ -351,6 +351,12 @@ def run_self_test() -> None:
             "Documentation/zigux/phase6-checksum-slice.md",
             "incremental partial-sum chaining across even and odd fragment boundaries",
             "partial sums compose across the fixture split matrix",
+        )
+        assert_failure(
+            root,
+            "Documentation/zigux/phase6-hexdump-slice.md",
+            "helper, fixture, dedicated perf gate, and external parity slices landed; parked unless a new `hexdump.c` parity issue appears",
+            "helper, fixture, and dedicated perf gate slices landed; parked unless a new `hexdump.c` parity issue appears",
         )
         assert_failure(
             root,
