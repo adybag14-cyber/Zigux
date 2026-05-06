@@ -9,7 +9,7 @@ This document tracks the bounded Phase 10 survey lane around `drivers/virtio/vir
 - lane: `P10-L07`
 - surveyed commit: `e42103fc02f544e1bd23a5ec2e5b584734f5af7d`
 - roadmap destinations: `drivers/virtio/*.zig`, `zigux/kernel/`, and `zigux/helpers/`
-- scope: survey manifest, dedicated survey gate, shared Phase 10 build wiring, the Linux-style replay route, and a lane-level note that records the current landed ring and adjacent MMIO footholds plus the remaining transport-facing gap against the roadmap
+- scope: survey manifest, dedicated survey gate, the adjacent MMIO packet guard reference, shared Phase 10 build wiring, the Linux-style replay route, and a lane-level note that records the current landed ring and adjacent MMIO footholds plus the remaining transport-facing gap against the roadmap
 - product boundary:
   - `zigux/tests/phase10_virtio_ring_manifest.json`
   - `zigux/tests/phase10_virtio_ring_survey.zig`
@@ -58,15 +58,15 @@ The survey manifest now records:
 - the still-blocked `phase10-mmio-lifecycle-and-irq-paths`
 - the landed `phase10-virtio-ring-slice-note`
 
-This keeps the lane concrete and reviewable without overstating `virtio_ring` progress: the queue-shape foothold is real, used-buffer polling, callback re-enable, delayed-callback pacing, notify-prepare bookkeeping, broken-queue discipline, the reset-readiness preflight, and the bounded MMIO register, queue-size, feature-word, config-window, config-write-plan, config-write-disposition, and probe-preflight helpers are all landed, with the shorter-restage stale-data replay keeping that adjacent MMIO packet honest, and the risky transport-facing lifecycle work is still intentionally blocked. That blocked MMIO lifecycle and IRQ follow-up remains owned by the adjacent `virtio_mmio` packet plus the shared `zigux/tests/phase10_build.zig` and `zigux/Makefile` replay surface, not by this queue-local ring survey note.
+This keeps the lane concrete and reviewable without overstating `virtio_ring` progress: the queue-shape foothold is real, used-buffer polling, callback re-enable, delayed-callback pacing, notify-prepare bookkeeping, broken-queue discipline, the reset-readiness preflight, and the bounded MMIO register, queue-size, feature-word, config-window, config-write-plan, config-write-disposition, and probe-preflight helpers are all landed, with the shorter-restage stale-data replay keeping that adjacent MMIO packet honest, and the risky transport-facing lifecycle work is still intentionally blocked. That blocked MMIO lifecycle and IRQ follow-up remains owned by the adjacent `virtio_mmio` packet plus the dedicated `scripts/zigux/check-phase10-mmio-packet.py` guard and the shared `zigux/tests/phase10_build.zig` and `zigux/Makefile` replay surface, not by this queue-local ring survey note.
 
 ## Freeze boundary
 
 - `Documentation/zigux/freeze-map.md` is the governing boundary note for this queue-local survey packet.
 - freeze-boundary owner: `P10-L10`
-- rollback owner: keep the shared `zigux/tests/phase10_build.zig` and `zigux/Makefile` replay routes aligned, including `make -C zigux phase10-test` and `make -C zigux phase10`, before widening this queue-local note.
+- rollback owner: keep the adjacent `scripts/zigux/check-phase10-mmio-packet.py` guard and the shared `zigux/tests/phase10_build.zig` and `zigux/Makefile` replay routes aligned, including `make -C zigux phase10-test` and `make -C zigux phase10`, before widening this queue-local note.
 - this ring survey stays inside `drivers/virtio/*.zig`; it does not reopen `kernel/workqueue.c` or `kernel/trace/ring_buffer.c`, which remain Phase 14 study-only anchors under the freeze map.
-- the allowed evidence here is the ring survey note, its manifest, its focused survey gate, the shared Phase 10 build packet, the Linux-style `make -C zigux phase10-test` and `make -C zigux phase10` replay routes, and the roadmap-backed destination boundary through `drivers/virtio/*.zig`, `zigux/kernel/`, and `zigux/helpers/`; this survey does not claim a freeze-map status change or an attached Architecture Council reopen request.
+- the allowed evidence here is the ring survey note, its manifest, its focused survey gate, the adjacent `scripts/zigux/check-phase10-mmio-packet.py` guard, the shared Phase 10 build packet, the Linux-style `make -C zigux phase10-test` and `make -C zigux phase10` replay routes, and the roadmap-backed destination boundary through `drivers/virtio/*.zig`, `zigux/kernel/`, and `zigux/helpers/`; this survey does not claim a freeze-map status change or an attached Architecture Council reopen request.
 
 ## Non-goals
 
