@@ -94,6 +94,7 @@ REQUIRED_DOCS_README_MARKERS = [
     "`Documentation/zigux/phase15-architecture-council-review-process.md`",
     "`Documentation/zigux/phase15-parity-scorecard.md`",
     "`Documentation/zigux/phase15-indefinite-c-policy.md`",
+    "`scripts/zigux/README.md`",
     "`zigux/tests/phase15_architecture_council_review_process_manifest.json`",
     "`zigux/tests/phase15_freeze_map_governance.zig`",
     "`zigux/tests/phase15_parity_scorecard.zig`",
@@ -313,6 +314,7 @@ Phase 15 notes
 - `Documentation/zigux/phase15-architecture-council-review-process.md`
 - `Documentation/zigux/phase15-parity-scorecard.md`
 - `Documentation/zigux/phase15-indefinite-c-policy.md`
+- `scripts/zigux/README.md`
 - `zigux/tests/phase15_architecture_council_review_process_manifest.json`
 - `zigux/tests/phase15_freeze_map_governance.zig`
 - `zigux/tests/phase15_parity_scorecard.zig`
@@ -581,6 +583,18 @@ def run_self_test() -> int:
         write_fixture_tree(tmp_root)
         docs_readme = docs_readme_path.read_text(encoding="utf-8")
         docs_readme_path.write_text(
+            docs_readme.replace("`scripts/zigux/README.md`\n", "", 1),
+            encoding="utf-8",
+        )
+        expect_failure(
+            tmp_root,
+            "docs_readme:`scripts/zigux/README.md`",
+            "missing_docs_readme_scripts_readme_marker",
+        )
+
+        write_fixture_tree(tmp_root)
+        docs_readme = docs_readme_path.read_text(encoding="utf-8")
+        docs_readme_path.write_text(
             docs_readme.replace("`zigux/tests/phase15_architecture_council_review_process_manifest.json`\n", "", 1),
             encoding="utf-8",
         )
@@ -670,7 +684,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE15_REVIEW_PROCESS_HANDOFF_SELF_TEST=pass")
-    print("PHASE15_REVIEW_PROCESS_HANDOFF_SELF_TEST_CASE_COUNT=18")
+    print("PHASE15_REVIEW_PROCESS_HANDOFF_SELF_TEST_CASE_COUNT=19")
     return 0
 
 
