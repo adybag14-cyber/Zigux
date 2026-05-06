@@ -84,6 +84,9 @@ test "hvc_console verify keeps cleanup missing-reference failures explicit" {
     var console = try hvc_console.HvcConsoleLab.init(14);
     _ = console.instantiate(0xe1);
 
+    try std.testing.expectError(error.CleanupRequiresFinalCloseOrHangup, console.summarizeCleanupHandoff(.{
+        .final_close = false,
+    }));
     try std.testing.expectError(error.CleanupRequiresTtyPortReference, console.summarizeCleanupHandoff(.{
         .tty_port_reference_live = false,
     }));
