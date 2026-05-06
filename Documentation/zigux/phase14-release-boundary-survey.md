@@ -13,6 +13,12 @@ This document records the current release-planning reading for the roadmap's Pha
   - `Documentation/zigux/phase14-release-boundary-survey.md`
   - `Documentation/zigux/phase14-end-to-end-smoke-survey.md`
   - `Documentation/zigux/phase14-core-boundary-traceability.md`
+  - `Documentation/zigux/README.md`
+  - `scripts/zigux/README.md`
+  - `scripts/zigux/validate-phase14.py`
+  - `scripts/zigux/check-phase14-rollback-threshold-sequencing.py`
+  - `scripts/zigux/check-phase14-release-boundary-exact-counts.py`
+  - `zigux/tests/README.md`
   - `zigux/tests/phase14_end_to_end_smoke_manifest.json`
   - `zigux/tests/phase14_end_to_end_smoke_survey.zig`
   - `zigux/tests/phase14_workqueue_bridge.zig`
@@ -25,7 +31,7 @@ This document records the current release-planning reading for the roadmap's Pha
   - `zigux/tests/phase14_rcu_tree_manifest.json`
   - `zigux/tests/phase14_build.zig`
   - `zigux/Makefile`
-  - `Documentation/zigux/README.md`
+  - `.github/workflows/zigux-bootstrap.yml`
   - `Documentation/zigux/phase15-readiness-gate-survey.md`
   - `Documentation/zigux/phase15-handoff-next-steps-survey.md`
 ## Why this record exists
@@ -43,7 +49,7 @@ The honest release reading is therefore precise. Phase 14 is still not an active
 It is a study-only release boundary with one shared smoke lane that keeps the core-adjacent roadmap tranche reviewable while the freeze map and governance notes decide what must remain study-only or frozen in C.
 ## Current release reading
 The current Phase 14 release-facing reading is:
-- shared smoke packet: `Documentation/zigux/phase14-end-to-end-smoke-survey.md`, `Documentation/zigux/phase14-release-boundary-survey.md`, `Documentation/zigux/phase14-core-boundary-traceability.md`, `zigux/tests/phase14_end_to_end_smoke_manifest.json`, `zigux/tests/phase14_end_to_end_smoke_survey.zig`, `zigux/tests/phase14_workqueue_bridge.zig`, `zigux/tests/phase14_workqueue_bridge_manifest.json`, `zigux/tests/phase14_skbuff_bridge.zig`, `zigux/tests/phase14_skbuff_bridge_manifest.json`, `zigux/tests/phase14_ring_buffer_survey.zig`, `zigux/tests/phase14_rcu_tree_survey.zig`, `zigux/tests/phase14_ring_buffer_manifest.json`, `zigux/tests/phase14_rcu_tree_manifest.json`, `zigux/tests/phase14_build.zig`, `make -C zigux phase14-smoke`, `zig build phase14-smoke --build-file zigux/tests/phase14_build.zig --summary all`, `make -C zigux phase14-test`, `zig build test --build-file zigux/tests/phase14_build.zig --summary all`, and `make -C zigux phase14` now keep the four-anchor boundary map, the cross-anchor traceability note, the focused smoke shard, the manifest-backed workqueue, skbuff, ring-buffer, and rcu-tree blocker evidence, and the shared full-bundle replay explicit from a study-only posture
+- shared smoke packet: `Documentation/zigux/phase14-end-to-end-smoke-survey.md`, `Documentation/zigux/phase14-release-boundary-survey.md`, `Documentation/zigux/phase14-core-boundary-traceability.md`, `Documentation/zigux/README.md`, `scripts/zigux/README.md`, `scripts/zigux/validate-phase14.py`, `scripts/zigux/check-phase14-rollback-threshold-sequencing.py`, `scripts/zigux/check-phase14-release-boundary-exact-counts.py`, `zigux/tests/README.md`, `zigux/tests/phase14_end_to_end_smoke_manifest.json`, `zigux/tests/phase14_end_to_end_smoke_survey.zig`, `zigux/tests/phase14_workqueue_bridge.zig`, `zigux/tests/phase14_workqueue_bridge_manifest.json`, `zigux/tests/phase14_skbuff_bridge.zig`, `zigux/tests/phase14_skbuff_bridge_manifest.json`, `zigux/tests/phase14_ring_buffer_survey.zig`, `zigux/tests/phase14_rcu_tree_survey.zig`, `zigux/tests/phase14_ring_buffer_manifest.json`, `zigux/tests/phase14_rcu_tree_manifest.json`, `zigux/tests/phase14_build.zig`, `make -C zigux phase14-validate`, `make -C zigux phase14-smoke`, `zig build phase14-smoke --build-file zigux/tests/phase14_build.zig --summary all`, `make -C zigux phase14-test`, `zig build test --build-file zigux/tests/phase14_build.zig --summary all`, `make -C zigux phase14`, and `.github/workflows/zigux-bootstrap.yml` now keep the four-anchor boundary map, the cross-anchor traceability note, the validator-first scripts packet, the focused smoke shard, the manifest-backed workqueue, skbuff, ring-buffer, and rcu-tree blocker evidence, and the shared full-bundle replay explicit from a study-only posture
 - compile-shard matrix: one focused `phase14-smoke` shard still covers only `phase14-end-to-end-smoke-tests`, while `phase14-workqueue-bridge-tests`, `phase14-skbuff-bridge-tests`, `phase14-ring-buffer-survey-tests`, and `phase14-rcu-tree-survey-tests` remain `full_bundle_only` under `zig build test --build-file zigux/tests/phase14_build.zig --summary all`
 - combined shared replay entrypoint: `make -C zigux phase14` remains the published convenience route for the shared smoke packet, so release-facing review and local replay still name the same one-command path as the shared smoke note and manifest instead of leaving that wrapper path implicit in `zigux/Makefile`
 - `kernel/workqueue.c`: boundary-study-only anchor; future work, if any, stays limited to boundary maps, concurrency audits, and wrapper-first or study-only review surfaces such as the roadmap's `kernel/workqueue_bridge.zig` destination
