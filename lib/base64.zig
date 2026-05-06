@@ -427,6 +427,27 @@ test "encode covers standard and variant alphabets" {
     try std.testing.expectEqualStrings("APv,f4A", imap_buf[0..imap_len]);
 }
 
+test "encode rejects undersized destinations without modifying caller bytes" {
+    const sample = [_]struct {
+        input: []const u8,
+        padding: bool,
+        variant: Variant,
+        fill: u8,
+    }{
+        .{ .input = "f", .padding = true, .variant = .std, .fill = 0xaa },
+        .{ .input = "foo", .padding = false, .variant = .urlsafe, .fill = 0xbb },
+        .{ .input = &[_]u8{ 0x00, 0xfb, 0xff }, .padding = true, .variant = .imap, .fill = 0xcc },
+    };
+
+    for (sample) |case| {
+        var buf = [_]u8{case.fill} ** 3;
+        try std.testing.expectError(EncodeError.DestinationTooSmall, encode(buf[0..], case.input, case.padding, case.variant));
+        for (buf) |byte| {
+            try std.testing.expectEqual(case.fill, byte);
+        }
+    }
+}
+
 test "decode covers padded, unpadded, and variant inputs" {
     var out: [16]u8 = undefined;
     var variant_out: [8]u8 = undefined;
