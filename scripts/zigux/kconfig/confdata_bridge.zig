@@ -262,7 +262,7 @@ test "confdata bridge accepts CRLF config lines" {
     try std.testing.expectEqual(EntryKind.unset, summary.entries[2].kind);
 }
 
-test "confdata bridge keeps trailing carriage return on final value line" {
+test "confdata bridge trims trailing carriage return from final value line" {
     const allocator = std.testing.allocator;
     var summary = try parseConfig(allocator, "CONFIG_DECIMAL=7\r");
     defer deinitSummary(allocator, &summary);
