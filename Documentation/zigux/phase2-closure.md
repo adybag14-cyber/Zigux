@@ -119,6 +119,16 @@ The bounded genksyms wrapper-first bridge packet now records the committed reque
 - bridge-plan coverage stays anchored by the minimal invocation, repeated short-flag request, long-option request, unambiguous abbreviated-long-option request, quiet-overrides-warning request, explicit option terminator request, and positional passthrough request fixtures in `zigux/tests/fixtures/genksyms_bridge/`
 - bridge-process coverage stays anchored by the help and version side-effect fixtures plus normalized invalid-option and missing-argument error fixtures in the same bounded packet
 
+## Kconfig Conf Bridge Closure Packet
+
+The bounded kconfig conf bridge packet now records the current request-plan fixtures explicitly so bridge-local review does not rely on the gate name alone:
+
+- `PHASE2_KCONFIG_BRIDGE_CONF_CASE_COUNT=6`
+- `PHASE2_KCONFIG_BRIDGE_CONF_CASES=olddefconfig,syncconfig,alldefconfig,allmodconfig,yes2modconfig,defconfig`
+- `PHASE2_KCONFIG_BRIDGE_CONF_STDOUT_PACKET=olddefconfig_expected.json,syncconfig_expected.json,alldefconfig_expected.json,allmodconfig_expected.json,yes2modconfig_expected.json,defconfig_expected.json`
+- request-plan coverage stays anchored by the olddefconfig baseline, syncconfig auto-output env injection, alldefconfig/allmodconfig/yes2modconfig mode selection, and defconfig mode-argument ordering fixtures in `zigux/tests/fixtures/kconfig_bridge/`
+- helper-local anchors in `zig test scripts/zigux/kconfig/conf_bridge.zig` now include `conf bridge emits syncconfig auto files`, `conf bridge emits alldefconfig argv and env`, `conf bridge emits allmodconfig argv and env`, `conf bridge emits yes2modconfig argv and env`, and `conf bridge emits defconfig mode argument before kconfig`
+
 ## Toolchain Pin Boundary
 
 The bounded Phase 2 bootstrap archive pin stays separate from the cross-target compile matrix:
