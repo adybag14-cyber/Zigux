@@ -7,7 +7,7 @@ This document tracks the first bounded Phase 9 runtime bitmap starter under `sam
 - `PHASE9_STATUS=active`
 - `PHASE9_SLICE=runtime-bitmap-module-starter`
 - `PHASE9_LANE_KEY=P9-Y05`
-- scope: lifecycle starter, sample-side loader scaffold, bitmap range mutation and copy behavior, bounded differential coverage, dedicated Phase 9 survey and test wiring, and lane-local survey-note plus manifest closure only
+- scope: lifecycle starter, sample-side loader scaffold, bitmap range mutation and copy behavior, bounded differential coverage, dedicated Phase 9 survey and test wiring, the shared runtime-loader facade plus allocator/init-flow contract replay, and lane-local survey-note plus manifest closure only
 - product boundary:
   - `samples/zigux/runtime_bitmap.zig`
   - `samples/zigux/runtime_bitmap_loader.zig`
@@ -16,7 +16,11 @@ This document tracks the first bounded Phase 9 runtime bitmap starter under `sam
   - `zigux/tests/runtime_bitmap_manifest.json`
   - `zigux/tests/runtime_bitmap_survey.zig`
   - `Documentation/zigux/phase9-runtime-bitmap-survey.md`
+  - `zigux/kernel/runtime_loader.zig`
+  - `zigux/kernel/runtime_loader_contract.zig`
+  - `zigux/tests/runtime_loader_allocator_init_flow.zig`
   - `zigux/tests/phase9_build.zig`
+  - `zigux/Makefile`
 
 ## Why this slice exists
 
@@ -32,8 +36,7 @@ The live repo already had an atomic64 starter under the same Phase 9 review path
 - summary checks that reuse `zigux/helpers/bitmap_view.zig` for `first_set`, `first_zero`, and `weight`
 - a table-driven differential gate that replays a few `lib/test_bitmap.c` expectations for set, clear, summary, and copy behavior
 - a tiny sample-side loader handoff scaffold that names bounded entry and exit symbols, captures the handoff bitmap summary, and keeps no-substrate release behavior explicit without claiming a real module loader
-- a dedicated survey gate and survey note that keep this runtime bitmap packet explicit as Phase 9 follow-on work rather than a fifth approved Phase 5 sample anchor
-- dedicated Phase 9 tests, survey coverage, manifest closure, and the focused `zig build phase9-runtime-loader-shared-tests --build-file zigux/tests/phase9_build.zig` shard for the shared runtime-loader facade plus allocator/init-flow contract packet wired into the shared `zigux/tests/phase9_build.zig` gate and `make -C zigux phase9`
+- dedicated Phase 9 tests, survey coverage, manifest closure, the shared `zigux/kernel/runtime_loader.zig` facade, the shared `zigux/kernel/runtime_loader_contract.zig` plus `zigux/tests/runtime_loader_allocator_init_flow.zig` replay, and the focused `zig build phase9-runtime-loader-shared-tests --build-file zigux/tests/phase9_build.zig` shard wired into the shared `zigux/tests/phase9_build.zig` gate and `make -C zigux phase9`
 
 ## Non-goals
 
