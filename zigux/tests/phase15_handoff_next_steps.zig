@@ -51,28 +51,26 @@ test "phase 15 handoff manifest records the current parked packet" {
     const manifest = parsed.value;
     try std.testing.expectEqualStrings("P15-Y08", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 15", manifest.phase);
-    try std.testing.expectEqualStrings("3b2f945", manifest.surveyed_commit);
+    try std.testing.expectEqualStrings("ac2a87b", manifest.surveyed_commit);
     try std.testing.expectEqualStrings("Full-Parity Blockers and Long-Term Governance", manifest.roadmap_phase_title);
     try std.testing.expectEqual(@as(usize, 4), manifest.roadmap_requirements.len);
     try std.testing.expect(manifest.repo_evidence.freeze_map_present);
     try std.testing.expect(manifest.repo_evidence.review_process_present);
     try std.testing.expect(manifest.repo_evidence.parity_scorecard_present);
     try std.testing.expect(manifest.repo_evidence.indefinite_c_policy_present);
-    try std.testing.expect(!manifest.repo_evidence.docs_index_handoff_pointer_present);
+    try std.testing.expect(manifest.repo_evidence.docs_index_handoff_pointer_present);
     try std.testing.expect(manifest.repo_evidence.phase15_make_target_present);
     try std.testing.expect(manifest.repo_evidence.shared_ci_phase15_present);
     try std.testing.expect(manifest.repo_evidence.dedicated_handoff_guard_present);
     try std.testing.expect(manifest.repo_evidence.shared_build_handoff_replay_present);
     try std.testing.expect(!manifest.repo_evidence.deep_core_status_change_ready);
-    try std.testing.expectEqual(@as(usize, 2), manifest.open_handoff_gaps.len);
-    try std.testing.expectEqual(@as(usize, 2), manifest.pending_next_steps.len);
-    try std.testing.expect(std.mem.indexOf(u8, manifest.pending_next_steps[0], "README.md") != null);
-    try std.testing.expect(std.mem.indexOf(u8, manifest.pending_next_steps[1], "deep-core blocker posture") != null);
-    try std.testing.expectEqualStrings("phase15-docs-root-handoff-pointer-gap", manifest.open_handoff_gaps[0].id);
-    try std.testing.expectEqualStrings("phase15-deep-core-status-change-blocker", manifest.open_handoff_gaps[1].id);
+    try std.testing.expectEqual(@as(usize, 1), manifest.open_handoff_gaps.len);
+    try std.testing.expectEqual(@as(usize, 1), manifest.pending_next_steps.len);
+    try std.testing.expect(std.mem.indexOf(u8, manifest.pending_next_steps[0], "deep-core blocker posture") != null);
+    try std.testing.expectEqualStrings("phase15-deep-core-status-change-blocker", manifest.open_handoff_gaps[0].id);
 }
 
-test "phase 15 handoff note keeps the remaining docs gap and landed build hook explicit" {
+test "phase 15 handoff note keeps the repaired docs-root pointer and remaining blocker explicit" {
     var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
     defer io_instance.deinit();
 
@@ -109,16 +107,16 @@ test "phase 15 handoff note keeps the remaining docs gap and landed build hook e
     defer std.testing.allocator.free(workflow);
 
     try std.testing.expect(std.mem.indexOf(u8, handoff_note, "PHASE15_LANE_KEY=P15-Y08") != null);
-    try std.testing.expect(std.mem.indexOf(u8, handoff_note, "commit `3b2f945` observed on May 5, 2026") != null);
+    try std.testing.expect(std.mem.indexOf(u8, handoff_note, "commit `ac2a87b` observed on May 6, 2026") != null);
     try std.testing.expect(std.mem.indexOf(u8, handoff_note, "## Current Handoff Surface") != null);
     try std.testing.expect(std.mem.indexOf(u8, handoff_note, "shared `zigux/tests/phase15_build.zig` replay") != null);
-    try std.testing.expect(std.mem.indexOf(u8, handoff_note, "phase15-docs-root-handoff-pointer-gap") != null);
+    try std.testing.expect(std.mem.indexOf(u8, handoff_note, "phase15-docs-root-handoff-pointer-gap") == null);
     try std.testing.expect(std.mem.indexOf(u8, handoff_note, "phase15-build-handoff-replay-gap") == null);
     try std.testing.expect(std.mem.indexOf(u8, handoff_note, "phase15-deep-core-status-change-blocker") != null);
     try std.testing.expect(std.mem.indexOf(u8, handoff_note, "Documentation/zigux/README.md") != null);
     try std.testing.expect(std.mem.indexOf(u8, handoff_note, "zigux/tests/phase15_build.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, handoff_note, "make -C zigux phase15") != null);
-    try std.testing.expect(std.mem.indexOf(u8, docs_root, "Documentation/zigux/phase15-handoff-next-steps-survey.md") == null);
+    try std.testing.expect(std.mem.indexOf(u8, docs_root, "Documentation/zigux/phase15-handoff-next-steps-survey.md") != null);
     try std.testing.expect(std.mem.indexOf(u8, phase15_build, "phase15_handoff_next_steps.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, phase15_build, "phase15-handoff-next-steps-tests") != null);
     try std.testing.expect(std.mem.indexOf(u8, phase15_build, "run_phase15_handoff_next_steps_tests") != null);
