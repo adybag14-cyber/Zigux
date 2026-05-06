@@ -51,7 +51,7 @@ REQUIRED_SNIPPETS = {
     "Documentation/zigux/phase6-bsearch-slice.md": [
         "- `PHASE6_STATUS=parked`",
         "- `PHASE6_SLICE=bsearch-leaf-helper`",
-        "- lane state: helper slice landed; parked unless a new `bsearch.c` parity issue appears",
+        "- lane state: helper slice landed; parked unless a new `bsearch.c` parity, comparison-budget, or packet-alignment drift appears",
         "- `searchIndex`",
         "- `search`",
         "- `searchMutable`",
@@ -100,6 +100,8 @@ REQUIRED_SNIPPETS = {
         "- shared replay note: the shared `make -C zigux phase6` route still stops at `phase6-validate` plus `phase6-test`; dedicated perf replays remain helper-local through `make -C zigux phase6-base64-perf`, `make -C zigux phase6-checksum-perf`, and `make -C zigux phase6-hexdump-perf`",
         "- base64 shared posture: `zigux/tests/phase6_base64_perf.zig` still emits dedicated encode and decode slowdown markers for four fixture-backed replay cases, `zigux/tests/phase6_build.zig` still defines `phase6-base64-perf`, and `zigux/Makefile` still exposes `make -C zigux phase6-base64-perf`, but neither the shared `phase6` target nor `.github/workflows/zigux-bootstrap.yml` replays that base64 perf gate on the bundled route",
         "- base64 exact thresholds: `zigux/tests/fixtures/phase6_base64_vectors.zig` still pins four perf cases (`STD_PAD`, `STD_NO_PAD`, `URLSAFE_PAD`, and `URLSAFE_NO_PAD`) at `iterations = 12000`, `max_encode_slowdown_pct = 150`, and `max_decode_slowdown_pct = 325`",
+        "- bsearch shared posture: the live executable measurement evidence remains the algorithmic comparison-budget replay inside `zigux/tests/phase6_bsearch.zig`, not a separate wall-clock perf harness",
+        "- bsearch review-surface posture: `Documentation/zigux/phase6-bsearch-slice.md`, `zigux/tests/phase6_bsearch.zig`, `zigux/tests/phase6_build.zig`, and `zigux/Makefile` now agree that the shipped bsearch packet uses inline sorted inputs plus the bundled comparison-budget replay rather than a separate fixture module or standalone `phase6_bsearch_perf` route",
         "- checksum shared posture: a dedicated slowdown gate remains wired through `zigux/tests/phase6_checksum_perf.zig`, `zigux/tests/phase6_build.zig`, `zigux/Makefile`, and `.github/workflows/zigux-bootstrap.yml`",
         "- hexdump shared posture: a dedicated slowdown gate remains wired through `zigux/tests/phase6_hexdump_perf.zig`, `zigux/tests/phase6_build.zig`, `zigux/Makefile`, and `.github/workflows/zigux-bootstrap.yml`",
     ],
@@ -334,6 +336,12 @@ def run_self_test() -> None:
         )
         assert_failure(
             root,
+            "Documentation/zigux/phase6-bsearch-slice.md",
+            "lane state: helper slice landed; parked unless a new `bsearch.c` parity, comparison-budget, or packet-alignment drift appears",
+            "lane state: helper slice landed; parked unless a new `bsearch.c` parity issue appears",
+        )
+        assert_failure(
+            root,
             "Documentation/zigux/phase6-checksum-slice.md",
             "`scripts/zigux/check-phase6-checksum-c-parity.py`",
             "`scripts/zigux/check-phase6-checksum-parity.py`",
@@ -349,6 +357,12 @@ def run_self_test() -> None:
             "Documentation/zigux/phase6-perf-gate-survey.md",
             "`zigux/Makefile` still exposes `make -C zigux phase6-base64-perf`, but neither the shared `phase6` target nor `.github/workflows/zigux-bootstrap.yml` replays that base64 perf gate on the bundled route",
             "`zigux/Makefile` no longer exposes `make -C zigux phase6-base64-perf`, and the bundled route replays it everywhere",
+        )
+        assert_failure(
+            root,
+            "Documentation/zigux/phase6-perf-gate-survey.md",
+            "the live executable measurement evidence remains the algorithmic comparison-budget replay inside `zigux/tests/phase6_bsearch.zig`, not a separate wall-clock perf harness",
+            "the live executable measurement evidence remains a standalone `phase6_bsearch_perf` route",
         )
         assert_failure(
             root,
