@@ -6,7 +6,7 @@ This document tracks the first bounded Phase 10 virtio-core starter under `drive
 
 - `PHASE10_STATUS=active`
 - `PHASE10_SLICE=virtio-core-lab-starter`
-- scope: status sequencing, bounded feature negotiation, driver-validation narrowing, driver-name bookkeeping, queue callback bookkeeping, config-change bookkeeping, config-generation bookkeeping, interrupt-ack bookkeeping, lifecycle guard bookkeeping, reset replay bookkeeping, bounded device-identity and driver-ID matching, dedicated Phase 10 test wiring, and a lab-only review note only
+- scope: status sequencing, bounded feature negotiation, driver-validation narrowing, driver-name bookkeeping, queue callback bookkeeping, config-change bookkeeping, config-generation bookkeeping, interrupt-ack bookkeeping, lifecycle guard bookkeeping, reset replay bookkeeping, bounded device-identity and driver-ID matching, the committed core survey manifest and survey gate, the dedicated Phase 10 core packet guard, the shared reset-queue and driver-id replays, dedicated Phase 10 build wiring, and the shared Phase 10 build-and-make routes
 - product boundary:
   - `drivers/virtio/virtio.zig`
   - `drivers/virtio/virtio_driver_id.zig`
