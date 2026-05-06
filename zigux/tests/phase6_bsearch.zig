@@ -275,20 +275,61 @@ test "phase 6 bsearch accepts runtime-selected raw native comparator pointers" {
 
 test "phase 6 bsearch mutable raw lookup supports descending write-through" {
     var values = [_]u32{ 89, 55, 34, 21, 13, 8, 3 };
-    const comparators = [_]bsearch.RawComparator{compareDescendingOpaqueU32};
+    const comparators = [_]bsearch.RawComparator{ compareDescendingOpaqueU32, compareDescendingOpaqueU32 };
 
     for (comparators) |compare| {
-        const found = bsearch.bsearchMutable(
+        const index = bsearch.bsearchIndex(
             &@as(u32, 21),
             @ptrCast(values[0..].ptr),
             values.len,
             @sizeOf(u32),
             compare,
         ) orelse return error.TestUnexpectedResult;
-        const typed_found: *u32 = @ptrCast(@alignCast(found));
-        typed_found.* = 22;
-        try std.testing.expectEqual(@as(u32, 22), values[3]);
-        typed_found.* = 21;
+        try std.testing.expectEqual(@as(usize, 3), index);
+
+        const found = bsearch.bsearch(
+            &@as(u32, 13),
+            @ptrCast(values[0..].ptr),
+            values.len,
+            @sizeOf(u32),
+            compare,
+        ) orelse return error.TestUnexpectedResult;
+        const typed_found: *const u32 = @ptrCast(@alignCast(found));
+        try std.testing.expectEqual(@as(u32, 13), typed_found.*);
+        try std.testing.expectEqual(@intFromPtr(&values[4]), @intFromPtr(typed_found));
+
+        try std.testing.expectEqual(
+            @as(?usize, null),
+            bsearch.bsearchIndex(
+                &@as(u32, 22),
+                @ptrCast(values[0..].ptr),
+                values.len,
+                @sizeOf(u32),
+                compare,
+            ),
+        );
+        try std.testing.expect(
+            bsearch.bsearch(
+                &@as(u32, 22),
+                @ptrCast(values[0..].ptr),
+                values.len,
+                @sizeOf(u32),
+                compare,
+            ) == null,
+        );
+
+        const mutable = bsearch.bsearchMutable(
+            &@as(u32, 34),
+            @ptrCast(values[0..].ptr),
+            values.len,
+            @sizeOf(u32),
+            compare,
+        ) orelse return error.TestUnexpectedResult;
+        const typed_mutable: *u32 = @ptrCast(@alignCast(mutable));
+        try std.testing.expectEqual(@intFromPtr(&values[2]), @intFromPtr(typed_mutable));
+        typed_mutable.* = 35;
+        try std.testing.expectEqual(@as(u32, 35), values[2]);
+        typed_mutable.* = 34;
     }
 }
 
