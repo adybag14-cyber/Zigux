@@ -10,7 +10,7 @@ The current bridge stays intentionally narrow:
 - records checksum and segmentation surfaces around `__skb_checksum_complete()` and `skb_segment()` as metadata-heavy boundaries only
 - marks `skb_shared_info.dataref`, `skb_header_cloned()`, and the shared header-write rules as explicit stay-in-C decisions
 - marks `skb_release_head_state()`, `skb_release_data()`, and `consume_skb()` as explicit stay-in-C decisions tied to destructor callbacks and frag-list teardown
-- adds a nine-checkpoint lifetime audit outline that names dataref splits, clone-before-expand mutation, destructor ordering, checksum-complete state caching, segmentation orphan-frag or zerocopy handoff, segmentation checksum-metadata handoff, the partial-GSO tail-owner transfer, the checksum-to-data-offset crossover, and the exported tail-publication consumer contract while keeping all live ownership in C
+- adds a nine-checkpoint lifetime audit outline plus a three-entry concurrency-sensitive checkpoint catalog that names dataref splits, clone-before-expand mutation, destructor ordering, checksum-complete state caching, segmentation orphan-frag or zerocopy handoff, segmentation checksum-metadata handoff, the partial-GSO tail-owner transfer, the checksum-to-data-offset crossover, and the exported tail-publication consumer contract while keeping all live ownership in C
 
 This slice still does not claim live allocation, refcount transitions, header-write eligibility, destructor callbacks, frag-list teardown, checksum completion, segmentation behavior, or a direct `net/core/skbuff.c` rewrite.
 
