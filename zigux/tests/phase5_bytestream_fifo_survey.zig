@@ -312,7 +312,7 @@ test "phase 5 bytestream fifo survey note records the latest verification snapsh
         "## Latest verification snapshot",
         "0.17.0-dev.87+9b177a7d2",
         "zig test samples/zigux/bytestream_fifo.zig",
-        "passed `3/3` sample self-checks",
+        "passed `5/5` sample self-checks",
         "passed `5/5` build steps and `8/8` tests",
         "len_after_initial_fill = 15",
         "first_out = \"hello\"",
