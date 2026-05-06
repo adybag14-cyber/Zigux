@@ -146,6 +146,33 @@ test "phase 5 kretprobe survey packet stays repo-local and keeps shared review s
     var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
     defer io_instance.deinit();
 
+    const manifest_json = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "zigux/tests/phase5_kretprobe_example_manifest.json",
+        std.testing.allocator,
+        .limited(32 * 1024),
+    );
+    defer std.testing.allocator.free(manifest_json);
+
+    const parsed = try std.json.parseFromSlice(Manifest, std.testing.allocator, manifest_json, .{});
+    defer parsed.deinit();
+
+    const manifest = parsed.value;
+
+    var surveyed_commit_marker_buf: [96]u8 = undefined;
+    const surveyed_commit_marker = try std.fmt.bufPrint(
+        surveyed_commit_marker_buf[0..],
+        "PHASE5_SURVEYED_COMMIT={s}",
+        .{manifest.surveyed_commit},
+    );
+
+    var lane_key_marker_buf: [64]u8 = undefined;
+    const lane_key_marker = try std.fmt.bufPrint(
+        lane_key_marker_buf[0..],
+        "PHASE5_LANE_KEY={s}",
+        .{manifest.lane_key},
+    );
+
     const survey_note = try std.Io.Dir.cwd().readFileAlloc(
         io_instance.io(),
         "Documentation/zigux/phase5-kretprobe-sample-survey.md",
@@ -155,7 +182,9 @@ test "phase 5 kretprobe survey packet stays repo-local and keeps shared review s
     defer std.testing.allocator.free(survey_note);
 
     const required_mentions = [_][]const u8{
-        "samples/kprobes/kretprobe_example.c|Phase 5",
+        "PHASE5_STATUS=active",
+        "PHASE5_SLICE=kretprobe-reference-sample-starter",
+        "samples/kprobes/kretprobe_example.c|PHASE5_LANE_KEY=P5-L18|PHASE5_SURVEYED_COMMIT=7361ac51374149a96b7a7a2c6ea3c995d8cc1231|Phase 5",
         "phase5_build.zig",
         "runtime_kretprobe",
         "## Latest verification snapshot",
@@ -194,6 +223,8 @@ test "phase 5 kretprobe survey packet stays repo-local and keeps shared review s
         try std.testing.expect(std.mem.indexOf(u8, survey_note, needle) != null);
     }
 
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, lane_key_marker) != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, surveyed_commit_marker) != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "one bounded self-check through `runAnchorReplay()`") == null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "/workspace/agent_files") == null);
 
