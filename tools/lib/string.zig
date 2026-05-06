@@ -331,6 +331,23 @@ test "memdup and memchrInv preserve byte content" {
     try std.testing.expectEqual(@as(?usize, null), memchrInv("bbbb", 'b'));
 }
 
+test "memchrInv keeps long-buffer first-dirty-byte results stable" {
+    var middle_dirty = [_]u8{'a'} ** 129;
+    middle_dirty[64] = 'X';
+    try std.testing.expectEqual(@as(?usize, 64), memchrInv(&middle_dirty, 'a'));
+
+    var tail_dirty = [_]u8{'a'} ** 129;
+    tail_dirty[128] = 'X';
+    try std.testing.expectEqual(@as(?usize, 128), memchrInv(&tail_dirty, 'a'));
+
+    var head_dirty = [_]u8{'a'} ** 129;
+    head_dirty[0] = 'X';
+    try std.testing.expectEqual(@as(?usize, 0), memchrInv(&head_dirty, 'a'));
+
+    const clean = [_]u8{'a'} ** 192;
+    try std.testing.expectEqual(@as(?usize, null), memchrInv(&clean, 'a'));
+}
+
 test "memparse handles decimal hexadecimal octal and suffixes" {
     const decimal = memparse("64K rest");
     try std.testing.expectEqual(@as(u64, 64 << 10), decimal.value);
