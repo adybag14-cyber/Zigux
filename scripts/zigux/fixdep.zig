@@ -57,6 +57,19 @@ fn emitOpenFileError(io: std.Io, path: []const u8, err: anyerror) !noreturn {
     std.process.exit(2);
 }
 
+fn writeOutputWriteError(writer: anytype) !void {
+    try writer.writeAll("fixdep: not all data was written to the output\n");
+}
+
+fn emitOutputWriteError(io: std.Io) !noreturn {
+    var stderr_buffer: [128]u8 = undefined;
+    var stderr_writer = Io.File.stderr().writer(io, &stderr_buffer);
+    const stderr = &stderr_writer.interface;
+    try writeOutputWriteError(stderr);
+    try stderr.flush();
+    std.process.exit(1);
+}
+
 const Processor = struct {
     io: std.Io,
     arena: std.heap.ArenaAllocator,
@@ -309,7 +322,9 @@ pub fn main(init: std.process.Init) !void {
         },
         else => return err,
     };
-    try stdout.flush();
+    stdout.flush() catch {
+        try emitOutputWriteError(io);
+    };
 }
 
 test "config parsing trims _MODULE and deduplicates symbols" {
@@ -440,4 +455,36 @@ test "ignored and no-parse file classification matches fixdep rules" {
 test "file read errors map to C-style messages" {
     try std.testing.expectEqualStrings("No such file or directory", describeFileReadError(error.FileNotFound));
     try std.testing.expectEqualStrings("Permission denied", describeFileReadError(error.AccessDenied));
+}
+
+test "output write failure uses C-style wording" {
+    const Capture = struct {
+        list: std.ArrayList(u8),
+        allocator: std.mem.Allocator,
+
+        fn init(allocator: std.mem.Allocator) !@This() {
+            return .{
+                .list = try std.ArrayList(u8).initCapacity(allocator, 64),
+                .allocator = allocator,
+            };
+        }
+
+        fn deinit(self: *@This()) void {
+            self.list.deinit(self.allocator);
+        }
+
+        fn writeAll(self: *@This(), bytes: []const u8) !void {
+            try self.list.appendSlice(self.allocator, bytes);
+        }
+    };
+
+    var capture = try Capture.init(std.testing.allocator);
+    defer capture.deinit();
+
+    try writeOutputWriteError(&capture);
+
+    try std.testing.expectEqualStrings(
+        "fixdep: not all data was written to the output\n",
+        capture.list.items,
+    );
 }
