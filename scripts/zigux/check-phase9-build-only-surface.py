@@ -233,7 +233,7 @@ REQUIRED_PHASE9_BUILD_MARKERS = [
 ]
 
 REQUIRED_RUNTIME_LOADER_CONTRACT_MARKERS = [
-    'test "shared runtime loader contract keeps command, environment, and depmod-facing control surfaces outside the request contract" {',
+    'test "shared runtime loader contract keeps command, environment, registration-summary, depmod-facing, and study-only core-boundary control surfaces outside the request contract" {',
     'try std.testing.expect(!@hasField(LoadPlan, "modinfo"));',
     'try std.testing.expect(!@hasField(LoadPlan, "module_alias"));',
     'try std.testing.expect(!@hasField(LoadPlan, "module_aliases"));',
