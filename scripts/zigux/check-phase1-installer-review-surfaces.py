@@ -14,6 +14,7 @@ REQUIRED_FILES = [
     "Documentation/zigux/phase1-closure.md",
     "scripts/zigux/README.md",
     "scripts/zigux/install-zig.py",
+    "zigux/tests/README.md",
 ]
 
 DOCS_ROOT_MARKERS = [
@@ -28,6 +29,14 @@ SCRIPTS_README_MARKERS = [
     (
         "scripts_readme_phase1_installer_packet",
         "- `Documentation/zigux/review-checklist.md`, `Documentation/zigux/phase1-closure.md`, `scripts/zigux/install-zig.py`, `scripts/zigux/check-phase1-installer-review-surfaces.py`, `.github/workflows/zigux-bootstrap.yml`, `zigux/Makefile`, `make -C zigux phase1-validate`, `make -C zigux phase1-test`, `make -C zigux phase1-bench`, and `make -C zigux phase1` keep that same closed host-side helper packet reviewable through the docs-root closure record, the reviewer-facing checklist, the workflow-viability installer, the dedicated installer-review alignment checker, the bootstrap workflow replay, and the Linux-style replay routes instead of leaving the Phase 1 closure stack visible only through direct script and Zig commands.",
+        1,
+    ),
+]
+
+TESTS_README_MARKERS = [
+    (
+        "tests_readme_phase1_installer_packet",
+        "  * keep the closed Phase 1 host-tools packet explicit in the tests root too: `Documentation/zigux/phase1-closure.md`, `scripts/zigux/README.md`, `scripts/zigux/install-zig.py`, `zigux/tests/phase1_helpers.zig`, `zigux/tests/phase1_bench.zig`, `zigux/tests/fixtures/phase1_helper_manifest.json`, `zigux/tests/fixtures/phase1_bench_expectations.json`, `scripts/zigux/validate-phase1.py`, `scripts/zigux/validate-phase1-closure.py`, `scripts/zigux/check-phase1-parity.py`, `scripts/zigux/check-phase1-bench.py`, `.github/workflows/zigux-bootstrap.yml`, `zigux/Makefile`, `zig build test --build-file zigux/tests/build.zig`, `zig build bench --build-file zigux/tests/build.zig`, `make -C zigux phase1-validate`, `make -C zigux phase1-test`, `make -C zigux phase1-bench`, and `make -C zigux phase1` should continue to keep the closed helper tranche reviewable from the tests root instead of leaving the host-tools closure stack split across the docs root, scripts root, and workflow replay surface",
         1,
     ),
 ]
@@ -73,10 +82,12 @@ def validate_root(root: Path) -> list[str]:
     review_checklist = (root / "Documentation/zigux/review-checklist.md").read_text(encoding="utf-8")
     phase1_closure = (root / "Documentation/zigux/phase1-closure.md").read_text(encoding="utf-8")
     scripts_readme = (root / "scripts/zigux/README.md").read_text(encoding="utf-8")
+    tests_readme = (root / "zigux/tests/README.md").read_text(encoding="utf-8")
 
     issues = []
     issues.extend(collect_exact_count_markers(docs_root, DOCS_ROOT_MARKERS))
     issues.extend(collect_exact_count_markers(scripts_readme, SCRIPTS_README_MARKERS))
+    issues.extend(collect_exact_count_markers(tests_readme, TESTS_README_MARKERS))
     issues.extend(
         collect_presence_markers(
             review_checklist,
@@ -110,6 +121,10 @@ def build_self_test_root(root: Path) -> None:
     write_text(
         root / "scripts/zigux/README.md",
         "\n".join(marker for _, marker, _ in SCRIPTS_README_MARKERS) + "\n",
+    )
+    write_text(
+        root / "zigux/tests/README.md",
+        "\n".join(marker for _, marker, _ in TESTS_README_MARKERS) + "\n",
     )
     write_text(
         root / "Documentation/zigux/review-checklist.md",
@@ -159,6 +174,22 @@ def run_self_test() -> int:
         assert "scripts_readme_phase1_installer_packet:expected=1:actual=2" in issues
 
         build_self_test_root(root)
+        write_text(root / "zigux/tests/README.md", "")
+        issues = validate_root(root)
+        assert "tests_readme_phase1_installer_packet:expected=1:actual=0" in issues
+
+        build_self_test_root(root)
+        write_text(
+            root / "zigux/tests/README.md",
+            "\n".join(marker for _, marker, _ in TESTS_README_MARKERS)
+            + "\n"
+            + TESTS_README_MARKERS[0][1]
+            + "\n",
+        )
+        issues = validate_root(root)
+        assert "tests_readme_phase1_installer_packet:expected=1:actual=2" in issues
+
+        build_self_test_root(root)
         write_text(root / "Documentation/zigux/review-checklist.md", "")
         issues = validate_root(root)
         assert (
@@ -183,7 +214,7 @@ def run_self_test() -> int:
         assert "missing_file:scripts/zigux/install-zig.py" in issues
 
     print("PHASE1_INSTALLER_REVIEW_SURFACES_SELF_TEST=pass")
-    print("PHASE1_INSTALLER_REVIEW_SURFACES_SELF_TEST_CASE_COUNT=7")
+    print("PHASE1_INSTALLER_REVIEW_SURFACES_SELF_TEST_CASE_COUNT=9")
     return 0
 
 
@@ -213,7 +244,7 @@ def main() -> int:
     print("PHASE1_INSTALLER_REVIEW_SURFACES=pass")
     print(
         "PHASE1_INSTALLER_REVIEW_SURFACES_MARKER_COUNT="
-        f"{len(DOCS_ROOT_MARKERS) + len(SCRIPTS_README_MARKERS) + len(REVIEW_CHECKLIST_MARKERS) + len(CLOSURE_MARKERS)}"
+        f"{len(DOCS_ROOT_MARKERS) + len(SCRIPTS_README_MARKERS) + len(TESTS_README_MARKERS) + len(REVIEW_CHECKLIST_MARKERS) + len(CLOSURE_MARKERS)}"
     )
     return 0
 
