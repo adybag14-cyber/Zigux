@@ -16,6 +16,7 @@ from collections import Counter
 from pathlib import Path
 
 MARKER = "PHASE14_VALIDATE_PACKET=shared_smoke"
+DOCS_ROOT_CHECKER_MARKER = "PHASE14_CHECK_PACKET=docs_root_smoke_summary"
 CHECKER_MARKER = "PHASE14_CHECK_PACKET=rollback_threshold_sequencing"
 RELEASE_BOUNDARY_CHECKER_MARKER = "PHASE14_CHECK_PACKET=release_boundary_exact_counts"
 EXPECTED_LANE_KEY = "P14-L07"
@@ -44,6 +45,7 @@ REQUIRED_SURFACES = {
     "Documentation/zigux/review-checklist.md": "shared Phase 14 smoke packet",
     "scripts/zigux/README.md": "Phase 14 flow",
     "scripts/zigux/validate-phase14.py": MARKER,
+    "scripts/zigux/check-phase14-docs-root-smoke-summary.py": DOCS_ROOT_CHECKER_MARKER,
     "scripts/zigux/check-phase14-rollback-threshold-sequencing.py": CHECKER_MARKER,
     "scripts/zigux/check-phase14-release-boundary-exact-counts.py": RELEASE_BOUNDARY_CHECKER_MARKER,
     "zigux/tests/README.md": "keep the current Phase 14 smoke packet reviewable",
@@ -100,6 +102,7 @@ REQUIRED_FILE_MARKERS = {
         "Documentation/zigux/phase14-core-boundary-traceability.md",
     ],
     "scripts/zigux/validate-phase14.py": [MARKER],
+    "scripts/zigux/check-phase14-docs-root-smoke-summary.py": [DOCS_ROOT_CHECKER_MARKER],
     "scripts/zigux/check-phase14-rollback-threshold-sequencing.py": [CHECKER_MARKER],
     "scripts/zigux/check-phase14-release-boundary-exact-counts.py": [RELEASE_BOUNDARY_CHECKER_MARKER],
     "zigux/tests/README.md": [
@@ -381,6 +384,12 @@ def run_self_test() -> int:
             json.dumps(manifest, indent=2) + "\n",
         )
         write_text(
+            root / "scripts/zigux/check-phase14-docs-root-smoke-summary.py",
+            "#!/usr/bin/env python3\n"
+            f"\"\"\"{DOCS_ROOT_CHECKER_MARKER}\"\"\"\n"
+            "raise SystemExit(0)\n",
+        )
+        write_text(
             root / "scripts/zigux/check-phase14-rollback-threshold-sequencing.py",
             "#!/usr/bin/env python3\n"
             f"\"\"\"{CHECKER_MARKER}\"\"\"\n"
@@ -620,6 +629,27 @@ def run_self_test() -> int:
             "\n".join(REQUIRED_FILE_MARKERS["scripts/zigux/README.md"]) + "\n",
         )
 
+        broken_docs_root_checker_path = root / "scripts/zigux/check-phase14-docs-root-smoke-summary.py"
+        broken_docs_root_checker_path.write_text(
+            broken_docs_root_checker_path.read_text(encoding="utf-8").replace(
+                DOCS_ROOT_CHECKER_MARKER,
+                "PHASE14_CHECK_PACKET=missing_docs_root_marker",
+            ),
+            encoding="utf-8",
+        )
+        errors = check(root)
+        if not errors or not any(
+            f"missing marker in scripts/zigux/check-phase14-docs-root-smoke-summary.py: {DOCS_ROOT_CHECKER_MARKER}" in error
+            for error in errors
+        ):
+            print("self-test expected failure when docs-root smoke-summary checker marker drifted", file=sys.stderr)
+            return 1
+
+        write_text(
+            broken_docs_root_checker_path,
+            "\n".join(REQUIRED_FILE_MARKERS["scripts/zigux/check-phase14-docs-root-smoke-summary.py"]) + "\n",
+        )
+
         broken_bridge_path = root / "kernel/workqueue_bridge.zig"
         broken_bridge_path.write_text(
             broken_bridge_path.read_text(encoding="utf-8").replace(
@@ -698,6 +728,29 @@ def run_self_test() -> int:
             for error in errors
         ):
             print("self-test expected failure when workflow smoke marker drifted", file=sys.stderr)
+            return 1
+
+        broken_manifest = json.loads(broken_manifest_path.read_text(encoding="utf-8"))
+        broken_manifest["lane_key"] = EXPECTED_LANE_KEY
+        for surface in broken_manifest["surfaces"]:
+            if surface.get("path") == ".github/workflows/zigux-bootstrap.yml":
+                surface["required_marker"] = REQUIRED_SURFACES[".github/workflows/zigux-bootstrap.yml"]
+                break
+        broken_manifest_path.write_text(json.dumps(broken_manifest, indent=2) + "\n", encoding="utf-8")
+
+        broken_manifest = json.loads(broken_manifest_path.read_text(encoding="utf-8"))
+        broken_manifest["surfaces"] = [
+            surface
+            for surface in broken_manifest["surfaces"]
+            if surface.get("path") != "scripts/zigux/check-phase14-docs-root-smoke-summary.py"
+        ]
+        broken_manifest_path.write_text(json.dumps(broken_manifest, indent=2) + "\n", encoding="utf-8")
+        errors = check(root)
+        if not errors or not any(
+            "manifest surface drift for scripts/zigux/check-phase14-docs-root-smoke-summary.py" in error
+            for error in errors
+        ):
+            print("self-test expected failure when manifest lost the docs-root smoke-summary checker surface", file=sys.stderr)
             return 1
 
     return 0
