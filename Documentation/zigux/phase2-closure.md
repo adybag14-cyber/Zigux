@@ -48,28 +48,32 @@ Phase 2 is only considered closed when all of the following are green:
 3. bounded genksyms wrapper-first bridge parity
 - `python3 scripts/zigux/check-genksyms-bridge.py`
 
-4. bounded mk_elfconfig artifact parity
+4. bounded Phase 2 genksyms bridge self-test alignment gate
+- `python3 scripts/zigux/check-phase2-genksyms-bridge-selftest-alignment.py --self-test`
+- `python3 scripts/zigux/check-phase2-genksyms-bridge-selftest-alignment.py`
+
+5. bounded mk_elfconfig artifact parity
 - `python3 scripts/zigux/check-mk-elfconfig-diff.py`
 
-5. bounded kconfig bridge parity
+6. bounded kconfig bridge parity
 - `python3 scripts/zigux/check-kconfig-bridge.py`
 
-6. bounded phase2 cross-target compile gate
+7. bounded phase2 cross-target compile gate
 - `python3 scripts/zigux/check-phase2-cross.py --self-test`
 - `python3 scripts/zigux/check-phase2-cross.py`
 
-7. bounded phase2 cross-target self-test alignment gate
+8. bounded phase2 cross-target self-test alignment gate
 - `python3 scripts/zigux/check-phase2-cross-selftest-alignment.py --self-test`
 - `python3 scripts/zigux/check-phase2-cross-selftest-alignment.py`
 
-8. bounded phase2 toolchain pin-scope gate
+9. bounded phase2 toolchain pin-scope gate
 - `python3 scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test`
 - `python3 scripts/zigux/check-phase2-toolchain-pin-scope.py`
 
-9. bounded phase2 tests README alignment gate
+10. bounded phase2 tests README alignment gate
 - `python3 scripts/zigux/check-phase2-tests-readme-alignment.py`
 
-10. bounded phase2 unit gates
+11. bounded phase2 unit gates
 - `zig test scripts/zigux/fixdep.zig`
 - `zig test scripts/zigux/genksyms.zig`
 - `zig test scripts/zigux/genksyms_crc.zig`
@@ -77,10 +81,12 @@ Phase 2 is only considered closed when all of the following are green:
 - `zig test scripts/zigux/kconfig/conf_bridge.zig`
 - `zig test scripts/zigux/kconfig/confdata_bridge.zig`
 
-11. closure validation
+12. closure validation
 - `python3 scripts/zigux/validate-phase2-closure.py`
 
 - `PHASE2_FIXDEP_SELF_TEST=python3 scripts/zigux/check-fixdep-diff.py --self-test`
+- `PHASE2_GENKSYMS_BRIDGE_ALIGNMENT_SELF_TEST=python3 scripts/zigux/check-phase2-genksyms-bridge-selftest-alignment.py --self-test`
+- `PHASE2_GENKSYMS_BRIDGE_ALIGNMENT_GATE=python3 scripts/zigux/check-phase2-genksyms-bridge-selftest-alignment.py`
 - `PHASE2_GENKSYMS_BRIDGE_GATE=python3 scripts/zigux/check-genksyms-bridge.py`
 - `PHASE2_KCONFIG_BRIDGE_GATE=python3 scripts/zigux/check-kconfig-bridge.py`
 - `PHASE2_CROSS_SELF_TEST=python3 scripts/zigux/check-phase2-cross.py --self-test`
