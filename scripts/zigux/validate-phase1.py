@@ -27,9 +27,11 @@ REQUIRED_FILES = [
     "scripts/zigux/artifact_diff.py",
     "scripts/zigux/check-phase1-parity.py",
     "zigux/tests/build.zig",
+    "zigux/tests/README.md",
     "zigux/tests/phase1_helpers.zig",
     "zigux/tests/fixtures/phase1_helpers_c_harness.c",
     "zigux/tests/fixtures/phase1_helpers.json",
+    "Documentation/zigux/README.md",
     "Documentation/zigux/review-checklist.md",
 ]
 
@@ -141,6 +143,14 @@ REQUIRED_REVIEW_CHECKLIST_MARKERS = [
     "  * if the change touches the closed Phase 1 host-tools packet, do `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/phase1-closure.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, `zigux/tests/phase1_helpers.zig`, `zigux/tests/phase1_bench.zig`, `zigux/tests/fixtures/phase1_helper_manifest.json`, `zigux/tests/fixtures/phase1_bench_expectations.json`, `scripts/zigux/install-zig.py`, `scripts/zigux/validate-phase1.py`, `scripts/zigux/validate-phase1-closure.py`, `scripts/zigux/check-phase1-parity.py`, `scripts/zigux/check-phase1-bench.py`, `.github/workflows/zigux-bootstrap.yml`, `zigux/Makefile`, `zig build test --build-file zigux/tests/build.zig`, `zig build bench --build-file zigux/tests/build.zig`, `make -C zigux phase1-validate`, `make -C zigux phase1-test`, `make -C zigux phase1-bench`, and `make -C zigux phase1` still agree on the same closed helper tranche and validator-first replay path without widening Phase 1 beyond the bounded host-side helper packet?",
 ]
 
+REQUIRED_DOCS_ROOT_MARKERS = [
+    "Phase 1 notes - `Documentation/zigux/phase1-closure.md` - `scripts/zigux/README.md` - `zigux/Makefile` - `zigux/tests/build.zig` - `zigux/tests/phase1_helpers.zig` - `zigux/tests/phase1_bench.zig` - `zigux/tests/fixtures/phase1_helper_manifest.json` - `zigux/tests/fixtures/phase1_bench_expectations.json` - `scripts/zigux/validate-phase1.py` - `scripts/zigux/validate-phase1-closure.py` - `scripts/zigux/check-phase1-parity.py` - `scripts/zigux/check-phase1-bench.py` - `zig build test --build-file zigux/tests/build.zig`, `zig build bench --build-file zigux/tests/build.zig`, `make -C zigux phase1-validate`, `make -C zigux phase1-test`, `make -C zigux phase1-bench`, and `make -C zigux phase1` keep the closed host-side helper packet reviewable through the shared helper build entrypoint and the Linux-style replay route, while `Documentation/zigux/phase1-closure.md`, `scripts/zigux/README.md`, `.github/workflows/zigux-bootstrap.yml`, and `zigux/Makefile` keep the closure, bootstrap-workflow replay, and validator-first contract explicit from the docs root instead of leaving the Phase 1 packet split across later review surfaces.",
+]
+
+REQUIRED_TESTS_ROOT_MARKERS = [
+    "  * keep the closed Phase 1 host-tools packet explicit in the tests root too: `Documentation/zigux/phase1-closure.md`, `scripts/zigux/README.md`, `zigux/tests/phase1_helpers.zig`, `zigux/tests/phase1_bench.zig`, `zigux/tests/fixtures/phase1_helper_manifest.json`, `zigux/tests/fixtures/phase1_bench_expectations.json`, `scripts/zigux/validate-phase1.py`, `scripts/zigux/validate-phase1-closure.py`, `scripts/zigux/check-phase1-parity.py`, `scripts/zigux/check-phase1-bench.py`, `.github/workflows/zigux-bootstrap.yml`, `zigux/Makefile`, `zig build test --build-file zigux/tests/build.zig`, `zig build bench --build-file zigux/tests/build.zig`, `make -C zigux phase1-validate`, `make -C zigux phase1-test`, `make -C zigux phase1-bench`, and `make -C zigux phase1` should continue to keep the closed helper tranche reviewable from the tests root instead of leaving the host-tools closure stack split across the docs root, scripts root, and workflow replay surface",
+]
+
 
 def collect_missing_files(root: Path) -> list[str]:
     missing: list[str] = []
@@ -206,10 +216,12 @@ def collect_missing_markers(root: Path) -> list[str]:
     ledger = (root / "zigux-alpha" / "BOOTSTRAP_COMMIT_LEDGER.md").read_text(encoding="utf-8")
     workflow = (root / ".github" / "workflows" / "zigux-bootstrap.yml").read_text(encoding="utf-8")
     test_root = (root / "zigux" / "tests" / "phase1_helpers.zig").read_text(encoding="utf-8")
+    tests_readme = (root / "zigux" / "tests" / "README.md").read_text(encoding="utf-8")
     find_bit_source = (root / "tools" / "lib" / "find_bit.zig").read_text(encoding="utf-8")
     bitmap_source = (root / "tools" / "lib" / "bitmap.zig").read_text(encoding="utf-8")
     string_source = (root / "tools" / "lib" / "string.zig").read_text(encoding="utf-8")
     rbtree_source = (root / "tools" / "lib" / "rbtree.zig").read_text(encoding="utf-8")
+    docs_readme = (root / "Documentation" / "zigux" / "README.md").read_text(encoding="utf-8")
     review_checklist = (root / "Documentation" / "zigux" / "review-checklist.md").read_text(
         encoding="utf-8"
     )
@@ -251,6 +263,20 @@ def collect_missing_markers(root: Path) -> list[str]:
     )
     missing_markers.extend(
         collect_exact_count_markers(rbtree_source, "rbtree_test_anchor", REQUIRED_RBTREE_TEST_ANCHORS)
+    )
+    missing_markers.extend(
+        collect_exact_count_markers(
+            docs_readme,
+            "docs_root_phase1_packet",
+            REQUIRED_DOCS_ROOT_MARKERS,
+        )
+    )
+    missing_markers.extend(
+        collect_exact_count_markers(
+            tests_readme,
+            "tests_root_phase1_packet",
+            REQUIRED_TESTS_ROOT_MARKERS,
+        )
     )
     missing_markers.extend(
         collect_exact_count_markers(
@@ -312,10 +338,24 @@ def make_fixture_root(tmp_root: Path) -> None:
         encoding="utf-8",
     )
 
+    docs_readme_path = tmp_root / "Documentation" / "zigux" / "README.md"
+    docs_readme_path.parent.mkdir(parents=True, exist_ok=True)
+    docs_readme_path.write_text(
+        "\n".join(REQUIRED_DOCS_ROOT_MARKERS) + "\n",
+        encoding="utf-8",
+    )
+
     review_checklist_path = tmp_root / "Documentation" / "zigux" / "review-checklist.md"
     review_checklist_path.parent.mkdir(parents=True, exist_ok=True)
     review_checklist_path.write_text(
         "\n".join(REQUIRED_REVIEW_CHECKLIST_MARKERS) + "\n",
+        encoding="utf-8",
+    )
+
+    tests_readme_path = tmp_root / "zigux" / "tests" / "README.md"
+    tests_readme_path.parent.mkdir(parents=True, exist_ok=True)
+    tests_readme_path.write_text(
+        "\n".join(REQUIRED_TESTS_ROOT_MARKERS) + "\n",
         encoding="utf-8",
     )
 
@@ -631,6 +671,24 @@ def run_self_test() -> None:
         )
 
         make_fixture_root(tmp_root)
+        docs_readme_path = tmp_root / "Documentation" / "zigux" / "README.md"
+        docs_readme_path.write_text("", encoding="utf-8")
+        missing_markers = collect_missing_markers(tmp_root)
+        assert (
+            "docs_root_phase1_packet:Phase 1 notes - `Documentation/zigux/phase1-closure.md` - `scripts/zigux/README.md` - `zigux/Makefile` - `zigux/tests/build.zig` - `zigux/tests/phase1_helpers.zig` - `zigux/tests/phase1_bench.zig` - `zigux/tests/fixtures/phase1_helper_manifest.json` - `zigux/tests/fixtures/phase1_bench_expectations.json` - `scripts/zigux/validate-phase1.py` - `scripts/zigux/validate-phase1-closure.py` - `scripts/zigux/check-phase1-parity.py` - `scripts/zigux/check-phase1-bench.py` - `zig build test --build-file zigux/tests/build.zig`, `zig build bench --build-file zigux/tests/build.zig`, `make -C zigux phase1-validate`, `make -C zigux phase1-test`, `make -C zigux phase1-bench`, and `make -C zigux phase1` keep the closed host-side helper packet reviewable through the shared helper build entrypoint and the Linux-style replay route, while `Documentation/zigux/phase1-closure.md`, `scripts/zigux/README.md`, `.github/workflows/zigux-bootstrap.yml`, and `zigux/Makefile` keep the closure, bootstrap-workflow replay, and validator-first contract explicit from the docs root instead of leaving the Phase 1 packet split across later review surfaces.:expected=1:actual=0"
+            in missing_markers
+        )
+
+        make_fixture_root(tmp_root)
+        tests_readme_path = tmp_root / "zigux" / "tests" / "README.md"
+        tests_readme_path.write_text("", encoding="utf-8")
+        missing_markers = collect_missing_markers(tmp_root)
+        assert (
+            "tests_root_phase1_packet:  * keep the closed Phase 1 host-tools packet explicit in the tests root too: `Documentation/zigux/phase1-closure.md`, `scripts/zigux/README.md`, `zigux/tests/phase1_helpers.zig`, `zigux/tests/phase1_bench.zig`, `zigux/tests/fixtures/phase1_helper_manifest.json`, `zigux/tests/fixtures/phase1_bench_expectations.json`, `scripts/zigux/validate-phase1.py`, `scripts/zigux/validate-phase1-closure.py`, `scripts/zigux/check-phase1-parity.py`, `scripts/zigux/check-phase1-bench.py`, `.github/workflows/zigux-bootstrap.yml`, `zigux/Makefile`, `zig build test --build-file zigux/tests/build.zig`, `zig build bench --build-file zigux/tests/build.zig`, `make -C zigux phase1-validate`, `make -C zigux phase1-test`, `make -C zigux phase1-bench`, and `make -C zigux phase1` should continue to keep the closed helper tranche reviewable from the tests root instead of leaving the host-tools closure stack split across the docs root, scripts root, and workflow replay surface:expected=1:actual=0"
+            in missing_markers
+        )
+
+        make_fixture_root(tmp_root)
         review_checklist_path = tmp_root / "Documentation" / "zigux" / "review-checklist.md"
         review_checklist_path.write_text("", encoding="utf-8")
         missing_markers = collect_missing_markers(tmp_root)
@@ -640,7 +698,7 @@ def run_self_test() -> None:
         )
 
         print("PHASE1_VALIDATION_SELF_TEST=pass")
-        print("PHASE1_VALIDATION_SELF_TEST_CASE_COUNT=31")
+        print("PHASE1_VALIDATION_SELF_TEST_CASE_COUNT=33")
 
 
 def main() -> int:
@@ -674,7 +732,7 @@ def main() -> int:
     print(f"PHASE1_REQUIRED_FILE_COUNT={len(REQUIRED_FILES)}")
     print(
         "PHASE1_REQUIRED_MARKER_COUNT="
-        f"{len(REQUIRED_LEDGER_MARKERS) + len(REQUIRED_WORKFLOW_PRESENCE_MARKERS) + len(REQUIRED_WORKFLOW_EXACT_MARKERS) + len(REQUIRED_TEST_MARKERS) + len(REQUIRED_PHASE1_PARITY_TEST_ANCHORS) + len(REQUIRED_HELPER_TEST_ANCHORS) + len(REQUIRED_PHASE1_PARITY_REPLAY_MARKERS) + len(REQUIRED_FIND_BIT_TAIL_CLAMP_FIELDS) + len(REQUIRED_FIND_BIT_TEST_ANCHORS) + len(REQUIRED_BITMAP_TEST_ANCHORS) + len(REQUIRED_STRING_TEST_ANCHORS) + len(REQUIRED_RBTREE_TEST_ANCHORS) + len(REQUIRED_REVIEW_CHECKLIST_MARKERS)}"
+        f"{len(REQUIRED_LEDGER_MARKERS) + len(REQUIRED_WORKFLOW_PRESENCE_MARKERS) + len(REQUIRED_WORKFLOW_EXACT_MARKERS) + len(REQUIRED_TEST_MARKERS) + len(REQUIRED_PHASE1_PARITY_TEST_ANCHORS) + len(REQUIRED_HELPER_TEST_ANCHORS) + len(REQUIRED_PHASE1_PARITY_REPLAY_MARKERS) + len(REQUIRED_FIND_BIT_TAIL_CLAMP_FIELDS) + len(REQUIRED_FIND_BIT_TEST_ANCHORS) + len(REQUIRED_BITMAP_TEST_ANCHORS) + len(REQUIRED_STRING_TEST_ANCHORS) + len(REQUIRED_RBTREE_TEST_ANCHORS) + len(REQUIRED_DOCS_ROOT_MARKERS) + len(REQUIRED_TESTS_ROOT_MARKERS) + len(REQUIRED_REVIEW_CHECKLIST_MARKERS)}"
     )
     return 0
 
