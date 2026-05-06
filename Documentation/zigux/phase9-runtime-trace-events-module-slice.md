@@ -7,7 +7,7 @@ This document tracks the first bounded Phase 9 runtime trace-events starter unde
 - `PHASE9_STATUS=active`
 - `PHASE9_SLICE=runtime-trace-events-module-starter`
 - `PHASE9_SURVEYED_COMMIT=e59df689d080aa11773adda87f00c2d650caade8`
-- scope: lifecycle starter, bounded event-emission and registration behavior, a tiny payload-oriented diff gate, a loader-handoff scaffold, dedicated Phase 9 test wiring, and lane-local survey-manifest closure only
+- scope: lifecycle starter, bounded event-emission and registration behavior, a tiny payload-oriented diff gate, a loader-handoff scaffold, the shared runtime-loader facade plus allocator/init-flow contract replay, dedicated Phase 9 test wiring, and lane-local survey-manifest closure only
 - product boundary:
   - `samples/zigux/runtime_trace_events.zig`
   - `samples/zigux/runtime_trace_events_loader.zig`
@@ -15,7 +15,11 @@ This document tracks the first bounded Phase 9 runtime trace-events starter unde
   - `zigux/tests/runtime_trace_events_diff.zig`
   - `zigux/tests/runtime_trace_events_manifest.json`
   - `zigux/tests/runtime_trace_events_survey.zig`
+  - `zigux/kernel/runtime_loader.zig`
+  - `zigux/kernel/runtime_loader_contract.zig`
+  - `zigux/tests/runtime_loader_allocator_init_flow.zig`
   - `zigux/tests/phase9_build.zig`
+  - `zigux/Makefile`
 
 ## Why this slice exists
 
@@ -33,7 +37,7 @@ The live repo already had atomic64 and bitmap starters under the same Phase 9 re
 - concrete function-callback payload labels for the current bounded replay path
 - a bounded `runtime_trace_events_loader` scaffold that names the planned entry and exit hooks, the tracepoint register and unregister handoff, the current event-family summary, the prepared snapshot that stays stable even if the sample mutates again before runtime handoff, and the no-substrate release path while the shared runtime-loader surface remains unavailable
 - dedicated Phase 9 sample, module, and diff tests that assert the sample-local lifecycle, registration, and payload-literal expectations through the shared `zigux/tests/phase9_build.zig` gate
-- dedicated Phase 9 loader, survey, and manifest coverage wired into the shared `zigux/tests/phase9_build.zig` gate
+- dedicated Phase 9 loader, survey, and manifest coverage plus the focused `zig build phase9-runtime-loader-shared-tests --build-file zigux/tests/phase9_build.zig` shard for the shared runtime-loader facade, contract, and allocator/init-flow packet wired into the shared `zigux/tests/phase9_build.zig` gate and `make -C zigux phase9`
 
 ## Non-goals
 
@@ -46,10 +50,13 @@ This slice does not yet claim:
 
 ## Gates
 
-1. run the dedicated Phase 9 build
+1. run the focused shared runtime-loader shard
+- `zig build phase9-runtime-loader-shared-tests --build-file zigux/tests/phase9_build.zig`
+
+2. run the dedicated Phase 9 build
 - `zig build test --build-file zigux/tests/phase9_build.zig`
 
-2. run the convenience target
+3. run the convenience target
 - `make -C zigux phase9`
 
 ## Next bounded step
