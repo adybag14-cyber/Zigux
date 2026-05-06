@@ -7,6 +7,7 @@ const RepoEvidence = struct {
     parity_scorecard_present: bool,
     indefinite_c_policy_present: bool,
     docs_index_handoff_pointer_present: bool,
+    readiness_note_present: bool,
     tests_root_phase15_surface_present: bool,
     phase15_validate_target_present: bool,
     scripts_alignment_guard_present: bool,
@@ -66,6 +67,7 @@ test "phase 15 handoff manifest records the current parked packet" {
     try std.testing.expect(manifest.repo_evidence.parity_scorecard_present);
     try std.testing.expect(manifest.repo_evidence.indefinite_c_policy_present);
     try std.testing.expect(manifest.repo_evidence.docs_index_handoff_pointer_present);
+    try std.testing.expect(manifest.repo_evidence.readiness_note_present);
     try std.testing.expect(manifest.repo_evidence.tests_root_phase15_surface_present);
     try std.testing.expect(manifest.repo_evidence.phase15_validate_target_present);
     try std.testing.expect(manifest.repo_evidence.scripts_alignment_guard_present);
@@ -102,6 +104,14 @@ test "phase 15 handoff note keeps the repaired validator-first surface and remai
         .limited(64 * 1024),
     );
     defer std.testing.allocator.free(docs_root);
+
+    const readiness_note = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "Documentation/zigux/phase15-readiness-gate-survey.md",
+        std.testing.allocator,
+        .limited(24 * 1024),
+    );
+    defer std.testing.allocator.free(readiness_note);
 
     const review_checklist = try std.Io.Dir.cwd().readFileAlloc(
         io_instance.io(),
@@ -154,12 +164,15 @@ test "phase 15 handoff note keeps the repaired validator-first surface and remai
     try std.testing.expect(std.mem.indexOf(u8, handoff_note, "scripts/zigux/check-phase15-review-process-handoff.py") != null);
     try std.testing.expect(std.mem.indexOf(u8, handoff_note, "make -C zigux phase15-validate") != null);
     try std.testing.expect(std.mem.indexOf(u8, handoff_note, "shared `zigux/tests/phase15_build.zig` replay") != null);
+    try std.testing.expect(std.mem.indexOf(u8, handoff_note, "Documentation/zigux/phase15-readiness-gate-survey.md") != null);
+    try std.testing.expect(std.mem.indexOf(u8, handoff_note, "deep-core-only blocker posture") != null);
     try std.testing.expect(std.mem.indexOf(u8, handoff_note, "phase15-deep-core-status-change-blocker") != null);
     try std.testing.expect(std.mem.indexOf(u8, handoff_note, "lane identity is refreshed to `P15-L08`") != null);
     try std.testing.expect(std.mem.indexOf(u8, handoff_note, "remaining blocked work is only the deep-core status-change evidence") != null);
     try std.testing.expect(std.mem.indexOf(u8, handoff_note, "Documentation/zigux/README.md") != null);
     try std.testing.expect(std.mem.indexOf(u8, handoff_note, "make -C zigux phase15") != null);
     try std.testing.expect(std.mem.indexOf(u8, docs_root, "Documentation/zigux/phase15-handoff-next-steps-survey.md") != null);
+    try std.testing.expect(std.mem.indexOf(u8, readiness_note, "phase15-deep-core-status-change-blocker") != null);
     try std.testing.expect(std.mem.indexOf(u8, review_checklist, "if the change touches the shared Phase 15 governance packet") != null);
     try std.testing.expect(std.mem.indexOf(u8, scripts_readme, "Phase 15 flow") != null);
     try std.testing.expect(std.mem.indexOf(u8, tests_readme, "keep the parked Phase 15 governance packet explicit in the tests root too") != null);
