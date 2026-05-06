@@ -6,7 +6,7 @@ This document tracks the first bounded `drivers/virtio/virtio_mmio.c` lab helper
 
 - `PHASE10_STATUS=parked`
 - `PHASE10_SLICE=virtio-mmio-lab-helper`
-- scope: identity-register reads, one bounded device-feature selector and read window, one bounded transport-backed config-word window, one bounded config-word write planning summary, one bounded config-write disposition summary, one bounded probe-preflight summary, queue-selected register reads, queue_num_max and queue_num bookkeeping, queue_ready bookkeeping, helper-local status and config-generation bookkeeping, helper-local interrupt-status staging, dedicated Phase 10 MMIO tests, the committed MMIO survey manifest and survey gate, the dedicated MMIO packet review guard, the shorter-restage stale-data replay proof, and the shared Phase 10 build-and-make routes
+- scope: identity-register reads, one bounded device-feature selector and read window, one bounded transport-backed config-word window, one bounded config-word write planning summary, one bounded config-write disposition summary, one bounded probe-preflight summary, queue-selected register reads, queue_num_max and queue_num bookkeeping, queue_ready bookkeeping, helper-local status and config-generation bookkeeping, helper-local interrupt-status staging, dedicated Phase 10 MMIO tests, the committed MMIO survey manifest and survey gate, the dedicated MMIO packet review guard, the shared Phase 10 core, ring, and input packet guards, the shared reset-queue, driver-id, and input status-drain replays, the shorter-restage stale-data replay proof, and the shared Phase 10 build-and-make routes
 - product boundary:
   - `drivers/virtio/virtio_mmio.zig`
   - `zigux/tests/phase10_virtio_mmio.zig`
@@ -18,14 +18,20 @@ This document tracks the first bounded `drivers/virtio/virtio_mmio.c` lab helper
 - review surface:
   - `Documentation/zigux/phase10-virtio-mmio-slice.md`
   - `Documentation/zigux/phase10-virtio-mmio-survey.md`
+  - `scripts/zigux/check-phase10-core-packet.py`
+  - `scripts/zigux/check-phase10-ring-packet.py`
+  - `scripts/zigux/check-phase10-input-packet.py`
   - `scripts/zigux/check-phase10-mmio-packet.py`
+  - `zigux/tests/phase10_virtio_core_reset_queue.zig`
+  - `zigux/tests/phase10_virtio_driver_id.zig`
+  - `zigux/tests/phase10_virtio_input_status_drain.zig`
   - `zigux/tests/phase10_virtio_mmio.zig`
   - `zigux/tests/phase10_virtio_mmio_manifest.json`
   - `zigux/tests/phase10_virtio_mmio_survey.zig`
   - `zigux/tests/phase10_build.zig`
   - `zigux/Makefile`
 - current review note:
-  - current `master` carries a dedicated survey note and survey gate, the committed `zigux/tests/phase10_virtio_mmio_manifest.json` anchor, the dedicated `check-phase10-mmio-packet.py` guard, the shorter-restage stale-data replay proof in `zigux/tests/phase10_virtio_mmio.zig`, and the shared `phase10_build.zig` plus Linux-style `make -C zigux phase10-test` and `make -C zigux phase10` routes; reviewers should treat the MMIO lane as one bounded survey-backed packet instead of a slice-note-only surface
+  - current `master` carries a dedicated survey note and survey gate, the committed `zigux/tests/phase10_virtio_mmio_manifest.json` anchor, the dedicated `check-phase10-mmio-packet.py` guard, the shared `scripts/zigux/check-phase10-core-packet.py`, `scripts/zigux/check-phase10-ring-packet.py`, and `scripts/zigux/check-phase10-input-packet.py` guards, the shared `zigux/tests/phase10_virtio_core_reset_queue.zig`, `zigux/tests/phase10_virtio_driver_id.zig`, and `zigux/tests/phase10_virtio_input_status_drain.zig` replays, the shorter-restage stale-data replay proof in `zigux/tests/phase10_virtio_mmio.zig`, and the shared `phase10_build.zig` plus Linux-style `make -C zigux phase10-test` and `make -C zigux phase10` routes; reviewers should treat the MMIO lane as one bounded manifest-backed checker-backed packet instead of a slice-note-only surface
 
 ## Why this slice exists
 
@@ -49,7 +55,7 @@ The live repo already had a survey lane that made the MMIO gap explicit. This sl
 - register-window validation that rejects unaligned, unsupported, and out-of-window offsets plus writes to read-only MMIO registers
 - dedicated Phase 10 tests and shared build wiring for the helper
 - the dedicated MMIO replay proves that a shorter restaged config window clears stale second-word data and shrinks the readable config window instead of leaving old bytes readable
-- an adjacent manifest-backed survey-and-checker packet: the current MMIO lane is also reviewed through `Documentation/zigux/phase10-virtio-mmio-survey.md`, `zigux/tests/phase10_virtio_mmio_manifest.json`, `zigux/tests/phase10_virtio_mmio_survey.zig`, the dedicated `scripts/zigux/check-phase10-mmio-packet.py` guard, `phase10_build.zig`, and the shared `make -C zigux phase10-test` plus `make -C zigux phase10` routes
+- an adjacent manifest-backed survey-and-checker packet: the current MMIO lane is also reviewed through `Documentation/zigux/phase10-virtio-mmio-survey.md`, `zigux/tests/phase10_virtio_mmio_manifest.json`, `zigux/tests/phase10_virtio_mmio_survey.zig`, the dedicated `scripts/zigux/check-phase10-mmio-packet.py` guard, the shared `scripts/zigux/check-phase10-core-packet.py`, `scripts/zigux/check-phase10-ring-packet.py`, and `scripts/zigux/check-phase10-input-packet.py` guards, the shared `zigux/tests/phase10_virtio_core_reset_queue.zig`, `zigux/tests/phase10_virtio_driver_id.zig`, and `zigux/tests/phase10_virtio_input_status_drain.zig` replays, `phase10_build.zig`, and the shared `make -C zigux phase10-test` plus `make -C zigux phase10` routes
 
 ## Ownership Handoff
 
@@ -82,7 +88,7 @@ This slice does not yet claim:
 - `make -C zigux phase10-test`
 - `make -C zigux phase10`
 
-Taken together, these gates keep the bounded MMIO packet reviewable through the dedicated packet guard, the direct build replay, and the shipped Linux-style Phase 10 test entrypoints on `master`.
+Taken together, these gates keep the bounded MMIO packet reviewable through the dedicated MMIO packet guard, the shipped `scripts/zigux/check-phase10-core-packet.py`, `scripts/zigux/check-phase10-ring-packet.py`, and `scripts/zigux/check-phase10-input-packet.py` guards, the shared `zigux/tests/phase10_virtio_core_reset_queue.zig`, `zigux/tests/phase10_virtio_driver_id.zig`, and `zigux/tests/phase10_virtio_input_status_drain.zig` replays, the direct build replay, and the shipped Linux-style Phase 10 test entrypoints on `master`.
 
 ## Next bounded step
 
