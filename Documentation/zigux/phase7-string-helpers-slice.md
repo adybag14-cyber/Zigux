@@ -26,10 +26,8 @@ Phase 7 is where Zigux starts moving from earlier standalone helper ports into r
 - are runtime-adjacent without entering allocator-heavy or device-heavy paths
 - benefit from explicit pointer and termination handling
 - can be validated with a focused Zig gate before deeper formatting, escaping, or allocation-backed helpers are attempted
-- keep stronger ownership and pointer discipline explicit through bounded C-string prefix helpers, destination-size accounting, null-sentinel table handling, and Linux-style size rendering cues
-- keep one count-prefixed integer-array starter explicit through the current `parse_int_array()` review surface
-- keep integration with validation substrate explicit through `zigux/tests/phase7_build.zig`, the shared `zig build test --build-file zigux/tests/phase7_build.zig --summary all` replay, `zigux/tests/phase7_string_helpers_sample_boundary.zig`, `scripts/zigux/validate-phase7.py`, and `make -C zigux phase7`
-- keep the dedicated `zigux/tests/phase7_string_helpers_survey.zig` survey gate reviewable alongside that shared replay
+- keep stronger ownership and pointer discipline explicit through bounded C-string prefix helpers, destination-size accounting, null-sentinel table handling, Linux-style size rendering cues, one count-prefixed integer-array starter, and one copied-user-buffer integer-array wrapper
+- keep integration with validation substrate explicit through `zigux/tests/phase7_build.zig`, the dedicated `zigux/tests/phase7_string_helpers_survey.zig` survey gate, the shared `zig build test --build-file zigux/tests/phase7_build.zig --summary all` replay, `zigux/tests/phase7_string_helpers_sample_boundary.zig`, `scripts/zigux/validate-phase7.py`, and `make -C zigux phase7`
 
 This is intentionally not a Phase 5 `samples/zigux/` reference-sample lane.
 
@@ -70,6 +68,7 @@ The current starter slice covers:
 - `string_lower()`
 - `string_get_size()`
 - `parse_int_array()`
+- `parse_int_array_user()` over the bounded copied-user-buffer wrapper path
 - `string_unescape()`
 - `string_escape_mem()` over the bounded runtime-safe escape subset
 - `kasprintf_strarray()` over the bounded sequential prefix-index ownership path
@@ -88,6 +87,7 @@ The current tests check:
 - bounded ASCII case conversion that stops at the first NUL
 - Linux-style three-significant-figure size rendering for decimal and binary units, including no-space and no-bytes modifiers plus zero-block and truncated-buffer behavior
 - mixed-base, negative-number, first-NUL-bounded, and empty-input integer-array parsing through the count-prefixed `parse_int_array()` starter
+- copied-user-buffer, first-NUL-bounded, truncated-count, and short-buffer-fault behavior through `parse_int_array_user()`
 - deterministic space, octal, hex, special, and combined unescape cases derived from `lib/tests/string_helpers_kunit.c`
 - in-place unescape behavior and bounded destination termination
 - deterministic escape-space, special, null, octal, and hex output cases
@@ -103,7 +103,6 @@ The current tests check:
 
 This slice does not yet claim:
 
-- the user-buffer integer parsing wrapper beyond the base `parse_int_array()` starter
 - the broader allocation-backed duplication and string-array family beyond the current bounded starters
 - task-owned, file-owned, or device-managed quotable helper surfaces
 - a new `samples/zigux/` string-helper reference sample
@@ -112,4 +111,4 @@ This slice does not yet claim:
 
 Leave this lane parked unless fresh repo inspection finds one more concrete Phase 7 helper need or a renewed Phase 5-versus-Phase 7 boundary drift.
 
-If the string-helper family reopens, prefer one bounded `parse_int_array_user()` wrapper step before broader quotable, allocator-heavy, task-owned, file-owned, or device-managed follow-on work, because the live helper packet already covers the whitespace leaf pair, the dedicated survey gate, the bounded escape subset, `string_get_size()` sizing-path reviewability, the base count-prefixed integer-array starter, and one ownership-safe string-array starter.
+If the string-helper family reopens, prefer one bounded `kstrdup_and_replace()` helper step before broader quotable, allocator-heavy, task-owned, file-owned, or device-managed follow-on work, because the live helper packet already covers the whitespace leaf pair, the dedicated survey gate, the bounded escape subset, `string_get_size()` sizing-path reviewability, the base count-prefixed integer-array starter, the copied-user-buffer integer-array wrapper, and one ownership-safe string-array starter.
