@@ -19,6 +19,7 @@ REQUIRED_FILES = [
     "scripts/zigux/check-genksyms-crc-diff.py",
     "scripts/zigux/check-phase2-tests-readme-alignment.py",
     "scripts/zigux/check-phase2-kconfig-selftest-alignment.py",
+    "scripts/zigux/check-kconfig-bridge.py",
     "scripts/zigux/validate-phase2.py",
     "scripts/zigux/validate-phase2-closure.py",
     "scripts/zigux/install-zig.py",
@@ -27,6 +28,8 @@ REQUIRED_FILES = [
     "scripts/zigux/check-phase2-cross-selftest-alignment.py",
     "scripts/zigux/check-phase2-toolchain-pin-scope.py",
     "scripts/zigux/genksyms_crc.zig",
+    "scripts/zigux/kconfig/conf_bridge.zig",
+    "scripts/zigux/kconfig/confdata_bridge.zig",
     "zigux/Makefile",
     "zigux/tests/README.md",
     "zigux/tests/fixtures/phase2_cross_targets.json",
@@ -560,6 +563,21 @@ def run_self_test() -> int:
         assert "missing_file:scripts/zigux/genksyms_crc.zig" in issues
 
         build_self_test_root(root)
+        (root / "scripts/zigux/check-kconfig-bridge.py").unlink()
+        issues = validate_root(root)
+        assert "missing_file:scripts/zigux/check-kconfig-bridge.py" in issues
+
+        build_self_test_root(root)
+        (root / "scripts/zigux/kconfig/conf_bridge.zig").unlink()
+        issues = validate_root(root)
+        assert "missing_file:scripts/zigux/kconfig/conf_bridge.zig" in issues
+
+        build_self_test_root(root)
+        (root / "scripts/zigux/kconfig/confdata_bridge.zig").unlink()
+        issues = validate_root(root)
+        assert "missing_file:scripts/zigux/kconfig/confdata_bridge.zig" in issues
+
+        build_self_test_root(root)
         write_text(
             root / "scripts/zigux/README.md",
             "\n".join(
@@ -660,7 +678,7 @@ def run_self_test() -> int:
         )
 
     print("PHASE2_TESTS_README_ALIGNMENT_SELF_TEST=pass")
-    print("PHASE2_TESTS_README_ALIGNMENT_SELF_TEST_CASE_COUNT=54")
+    print("PHASE2_TESTS_README_ALIGNMENT_SELF_TEST_CASE_COUNT=57")
     return 0
 
 
