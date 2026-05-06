@@ -297,6 +297,7 @@ test "phase 5 kretprobe survey packet stays repo-local and keeps shared review s
     const sample_root_markers = [_][]const u8{
         "Kretprobe review packet",
         "samples/zigux/kretprobe_example.zig",
+        "approved non-runtime probe-lifecycle idiom",
         "zigux/tests/phase5_kretprobe_example_survey.zig",
         "pre-init retargeting",
         "fixed `maxactiveBudget()` cue",
