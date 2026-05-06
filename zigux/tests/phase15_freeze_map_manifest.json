@@ -35,7 +35,17 @@
       "required_terms": [
         "exact Linux anchor path",
         "current status bucket",
+        "requested decision bucket",
+        "decision record ID",
+        "evidence archive path",
+        "latest blocker disposition",
+        "benchmark notes",
+        "replay command",
         "rollback threshold",
+        "retained discussion state",
+        "reopen triggers",
+        "parity scorecard link or blocker record",
+        "indefinite-C policy link or non-applicability note",
         "explicit non-goals",
         "written rationale"
       ]
@@ -157,7 +167,7 @@
       "status": "starter_landed",
       "kind": "policy_sync",
       "zigux_destination": "Documentation/zigux/freeze-map.md",
-      "why_now": "The root freeze map now needs the exact Linux anchor path, current status bucket, rollback threshold, explicit non-goals, and written rationale field sync that the landed review-process packet already treats as mandatory."
+      "why_now": "The root freeze map now needs the exact Linux anchor path, current status bucket, requested decision bucket, decision record ID, evidence archive path, latest blocker disposition, benchmark notes, replay command, rollback threshold, retained discussion state, reopen triggers, parity scorecard link or blocker record, indefinite-C policy link or non-applicability note, explicit non-goals, and written rationale field sync that the landed review-process packet already treats as mandatory."
     },
     {
       "id": "phase15-governance-family-alignment",
