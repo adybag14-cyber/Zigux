@@ -34,7 +34,7 @@ SELF_TEST_TARGETS = (
     SelfTestTarget(
         "scripts/zigux/check-phase3-abi-dump-gate.py",
         "PHASE3_ABI_DUMP_GATE_SELF_TEST=pass",
-        ("PHASE3_ABI_DUMP_GATE_SELF_TEST_CASE_COUNT=3",),
+        ("PHASE3_ABI_DUMP_GATE_SELF_TEST_CASE_COUNT=4",),
     ),
     SelfTestTarget(
         "scripts/zigux/check-phase3-catalog-selftest.py",
@@ -329,7 +329,7 @@ def run_self_test() -> int:
         issues = run_targets(abi_dump_gate_count_root)
         assert (
             "missing_aux_marker:scripts/zigux/check-phase3-abi-dump-gate.py:"
-            "PHASE3_ABI_DUMP_GATE_SELF_TEST_CASE_COUNT=3"
+            "PHASE3_ABI_DUMP_GATE_SELF_TEST_CASE_COUNT=4"
             in issues
         )
 
