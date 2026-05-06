@@ -230,11 +230,31 @@ test "phase 5 bytestream fifo survey packet stays repo-local and keeps shared re
         "if the change is a reference sample under `samples/zigux/`, is the self-check or behavior replay explicit and small enough to stay reviewable?",
         "if the change updates an existing Phase 5 sample, do the descriptor, manifest, and shared `phase5_build.zig` entrypoint still agree on the same Linux anchor and exact replay contract?",
         "if the change updates a landed Phase 5 sample that keeps a Linux concurrency or private-data cue only for reviewability, does the note or checklist still say clearly what remains in-memory-only and what runtime parity is still out of scope?",
-        "if the change is a landed Phase 5 sample, does it update the directly coupled survey note or manifest-backed contributor prompts when the sample contract changes?",
+        "if the change updates a landed Phase 5 sample, does it update the directly coupled survey note or manifest-backed contributor prompts when the sample contract changes?",
     };
 
     for (checklist_markers) |needle| {
         try std.testing.expect(std.mem.indexOf(u8, review_checklist, needle) != null);
+    }
+
+    const samples_root = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "samples/zigux/README.md",
+        std.testing.allocator,
+        .limited(64 * 1024),
+    );
+    defer std.testing.allocator.free(samples_root);
+
+    const samples_root_markers = [_][]const u8{
+        "samples/zigux/bytestream_fifo.zig",
+        "approved in-memory queue-order and ownership-and-lifetime idiom",
+        "samples/kfifo/bytestream-example.c",
+        "phase5-kfifo-sample-survey.md",
+        "phase5_bytestream_fifo_survey.zig",
+    };
+
+    for (samples_root_markers) |needle| {
+        try std.testing.expect(std.mem.indexOf(u8, samples_root, needle) != null);
     }
 
     const build_zig = try std.Io.Dir.cwd().readFileAlloc(
