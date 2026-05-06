@@ -76,6 +76,26 @@ ABSENT_VALIDATE_TARGETS = (
 PHASE6_VALIDATE_TARGET = "phase6-validate"
 PHASE6_VALIDATE_HELPERS = ("check-phase6-shared-surface.py",)
 
+PHASE7_VALIDATE_TARGET = "phase7-validate"
+PHASE7_VALIDATE_COMMANDS = (
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase7.py --self-test",
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase7.py",
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase7-make-wrapper.py --self-test",
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase7-make-wrapper.py",
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase7-argv-split-packet.py --self-test",
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase7-argv-split-packet.py",
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase7-rbtree-parity.py --self-test",
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase7-rbtree-parity.py",
+)
+
+PHASE8_VALIDATE_TARGET = "phase8-validate"
+PHASE8_VALIDATE_COMMANDS = (
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase8.py --self-test",
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase8.py",
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase8-exec-cmd-packet.py --self-test",
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase8-exec-cmd-packet.py",
+)
+
 PHASE13_VALIDATE_TARGET = "phase13-validate"
 PHASE13_VALIDATE_HELPERS = (
     "validate-phase13-release.py",
@@ -93,6 +113,10 @@ PHASE15_VALIDATE_COMMANDS = (
 REQUIRED_README_SNIPPETS = (
     "- The live support packet inside that same validator-first route is `check-phase3-readme-tooling-inventory.py`, `check-phase3-catalog-selftest.py`, `validate-phase3-policy-unsafe-survey.py`, `validate-phase3-low-level-wrapper-survey.py`, `phase3_catalog.py`, `phase3_check_lib.py`, `generate-phase3-check-wrappers.py`, and `run-phase3-checks.py`; the generated `check-phase3-*.py` wrappers stay as compatibility entrypoints derived from the discovered slice catalog instead of a second hand-maintained survey list.",
     "- there is no separate shared `validate-phase6.py`, external portability checker packet beyond `check-phase6-shared-surface.py`, or aggregated `phase6-perf` target on `master`; the shipped dedicated perf replays are `make -C zigux phase6-checksum-perf` and `make -C zigux phase6-hexdump-perf`, which keep the checksum slowdown ceiling and the formatter-sensitive hexdump fixture packet wired into Linux-style entrypoints without overstating perf coverage for the rest of the Phase 6 helper packet.",
+    "- the current shared Phase 7 review surface on `master` is `Documentation/zigux/README.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, `Documentation/zigux/phase7-string-helpers-slice.md`, `Documentation/zigux/phase7-cmdline-slice.md`, `Documentation/zigux/phase7-argv-split-slice.md`, `Documentation/zigux/phase7-rbtree-slice.md`, `samples/zigux/README.md`, `scripts/zigux/validate-phase7.py`, `scripts/zigux/check-phase7-make-wrapper.py`, `scripts/zigux/check-phase7-argv-split-packet.py`, `scripts/zigux/check-phase7-rbtree-parity.py`, `zigux/tests/phase7_build.zig`, `zigux/tests/phase7_string_helpers.zig`, `zigux/tests/phase7_string_helpers_sample_boundary.zig`, `zigux/tests/phase7_cmdline.zig`, `zigux/tests/phase7_cmdline_survey.zig`, `zigux/tests/fixtures/phase7_cmdline_next_arg_vectors.zig`, `zigux/tests/phase7_argv_split.zig`, `zigux/tests/phase7_argv_split_survey.zig`, `zigux/tests/phase7_argv_split_manifest.json`, `zigux/tests/fixtures/phase7_argv_split_vectors.zig`, `zigux/tests/phase7_rbtree.zig`, `zigux/tests/phase7_rbtree_survey.zig`, `zigux/tests/phase7_rbtree_manifest.json`, `zigux/tests/fixtures/phase7_rbtree.json`, `zigux/tests/fixtures/phase7_rbtree_c_harness.c`, `zigux/Makefile`, and `.github/workflows/zigux-bootstrap.yml`.",
+    "- `make -C zigux phase7-validate` keeps the shared Phase 7 validator plus the dedicated make-wrapper, argv_split packet, and rbtree parity checkers wired through the Linux-style validation entrypoint.",
+    "- the current shared Phase 8 review surface on `master` is `Documentation/zigux/README.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, `Documentation/zigux/phase8-exec-cmd-slice.md`, `Documentation/zigux/phase8-help-slice.md`, `Documentation/zigux/phase8-kallsyms-slice.md`, `Documentation/zigux/phase8-libbpf-cpu-mask-slice.md`, `Documentation/zigux/phase8-bpf-type-names-slice.md`, `Documentation/zigux/phase8-perf-buffer-poll-slice.md`, `Documentation/zigux/phase8-libbpf-segment-survey.md`, `scripts/zigux/validate-phase8.py`, `scripts/zigux/check-phase8-exec-cmd-packet.py`, `zigux/tests/phase8_build.zig`, `zigux/tests/phase8_exec_cmd.zig`, `zigux/tests/phase8_exec_cmd_only_build.zig`, `zigux/tests/phase8_help.zig`, `zigux/tests/phase8_help_only_build.zig`, `zigux/tests/phase8_help_kallsyms_only_build.zig`, `zigux/tests/phase8_kallsyms.zig`, `zigux/tests/phase8_kallsyms_only_build.zig`, `zigux/tests/phase8_cpu_mask.zig`, `zigux/tests/phase8_logging.zig`, `zigux/tests/phase8_pin_path.zig`, `zigux/tests/phase8_bpf_type_names.zig`, `zigux/tests/phase8_file_path_handle_bridge.zig`, `zigux/tests/phase8_file_path_handle_bridge_only_build.zig`, `zigux/tests/phase8_perf_buffer_poll.zig`, `zigux/tests/phase8_perf_buffer_poll_only_build.zig`, `zigux/tests/phase8_libbpf_segments.zig`, `zigux/tests/phase8_libbpf_segments_only_build.zig`, `zigux/Makefile`, and `.github/workflows/zigux-bootstrap.yml`.",
+    "- `make -C zigux phase8-validate` keeps `validate-phase8.py` plus the focused `check-phase8-exec-cmd-packet.py` checker wired through the Linux-style validation entrypoint before the tooling replays run.",
     "- there is no dedicated shared `validate-phase9.py`, `check-phase9-validation-flow.py`, `check-phase9-runtime-loader-commit-alignment.py`, or `phase9-validate` target on `master`; future runtime-pilot follow-through should stay inside the next smallest shared runtime-loader substrate, validation, or review-surface step that keeps those four loader handoffs plus the shared `zigux/kernel/runtime_loader.zig` facade and `zigux/kernel/runtime_loader_contract.zig` allocator/init-flow contract reviewable without widening into a larger runtime-module implementation.",
     "- `python3 scripts/zigux/check-phase10-core-packet.py` keeps the restored core survey note, core manifest, core survey gate, reset-queue replay, and driver-id replay aligned around that shared review packet, and `python3 scripts/zigux/check-phase10-input-packet.py` keeps the input slice, input module slice, input survey note, build wiring, and status-drain replay markers aligned inside that same bounded Phase 10 route while `zig build test --build-file zigux/tests/phase10_build.zig` and `make -C zigux phase10` rerun the same bounded virtio core, virtio ring, virtio input, and virtio mmio packet.",
     "- there is no dedicated shared `validate-phase12.py`, `check-phase12-*.py`, or `phase12-validate` target on `master`; future Phase 12 reviewability claims should name only shipped survey, build, and make surfaces until new validator files actually land.",
@@ -250,6 +274,8 @@ def validate(root: Path) -> list[str]:
             issues.append(f"unexpected_makefile_target:{target}")
 
     _validate_target_helpers(issues, makefile, PHASE6_VALIDATE_TARGET, PHASE6_VALIDATE_HELPERS)
+    _validate_target_commands(issues, makefile, PHASE7_VALIDATE_TARGET, PHASE7_VALIDATE_COMMANDS)
+    _validate_target_commands(issues, makefile, PHASE8_VALIDATE_TARGET, PHASE8_VALIDATE_COMMANDS)
     _validate_target_helpers(issues, makefile, PHASE13_VALIDATE_TARGET, PHASE13_VALIDATE_HELPERS)
     _validate_target_commands(issues, makefile, PHASE15_VALIDATE_TARGET, PHASE15_VALIDATE_COMMANDS)
 
@@ -265,33 +291,27 @@ def validate(root: Path) -> list[str]:
 
 def _baseline_readme() -> str:
     helper_lines = "\n".join(f"- `{helper}`" for helper in REQUIRED_HELPERS)
-    return "\n".join(
-        (
-            "# scripts/zigux",
-            "",
-            "Current bootstrap helpers",
-            helper_lines,
-            "",
-            "Phase 3 flow",
-            REQUIRED_README_SNIPPETS[0],
-            "",
-            "Phase 6 flow",
-            REQUIRED_README_SNIPPETS[1],
-            "",
-            "Phase 9 flow",
-            REQUIRED_README_SNIPPETS[2],
-            "",
-            "Phase 10 flow",
-            REQUIRED_README_SNIPPETS[3],
-            "",
-            "Phase 12 flow",
-            REQUIRED_README_SNIPPETS[4],
-            "",
-            "Phase 13 flow",
-            REQUIRED_README_SNIPPETS[5],
-            "",
-        )
-    )
+    sections = [
+        "# scripts/zigux",
+        "",
+        "Current bootstrap helpers",
+        helper_lines,
+    ]
+    for title, snippet in (
+        ("Phase 3 flow", REQUIRED_README_SNIPPETS[0]),
+        ("Phase 6 flow", REQUIRED_README_SNIPPETS[1]),
+        ("Phase 7 flow", REQUIRED_README_SNIPPETS[2]),
+        ("Phase 7 flow", REQUIRED_README_SNIPPETS[3]),
+        ("Phase 8 flow", REQUIRED_README_SNIPPETS[4]),
+        ("Phase 8 flow", REQUIRED_README_SNIPPETS[5]),
+        ("Phase 9 flow", REQUIRED_README_SNIPPETS[6]),
+        ("Phase 10 flow", REQUIRED_README_SNIPPETS[7]),
+        ("Phase 12 flow", REQUIRED_README_SNIPPETS[8]),
+        ("Phase 13 flow", REQUIRED_README_SNIPPETS[9]),
+    ):
+        sections.extend(("", title, snippet))
+    sections.append("")
+    return "\n".join(sections)
 
 
 def _baseline_makefile() -> str:
@@ -304,6 +324,32 @@ def _baseline_makefile() -> str:
             "\t@true",
             "",
             "phase6: phase6-validate phase6-test",
+            "",
+            "phase7-validate:",
+            "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase7.py --self-test",
+            "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase7.py",
+            "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase7-make-wrapper.py --self-test",
+            "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase7-make-wrapper.py",
+            "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase7-argv-split-packet.py --self-test",
+            "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase7-argv-split-packet.py",
+            "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase7-rbtree-parity.py --self-test",
+            "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase7-rbtree-parity.py",
+            "",
+            "phase7-test:",
+            "\t@true",
+            "",
+            "phase7: phase7-validate phase7-test",
+            "",
+            "phase8-validate:",
+            "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase8.py --self-test",
+            "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase8.py",
+            "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase8-exec-cmd-packet.py --self-test",
+            "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase8-exec-cmd-packet.py",
+            "",
+            "phase8-test:",
+            "\t@true",
+            "",
+            "phase8: phase8-validate phase8-test",
             "",
             "phase9-test:",
             "\t@true",
@@ -602,6 +648,84 @@ def run_self_test() -> int:
         _write(
             root / MAKEFILE_REL,
             baseline_makefile.replace(
+                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase7.py --self-test\n",
+                "",
+                1,
+            ),
+        )
+        _assert_only(
+            validate(root),
+            [
+                "missing_makefile_command:phase7-validate:cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase7.py --self-test",
+                "makefile_command_order_drift:phase7-validate",
+            ],
+            "missing_phase7_self_test_command_guard_failed",
+        )
+        _write(root / MAKEFILE_REL, baseline_makefile)
+        case_count += 1
+
+        _write(
+            root / MAKEFILE_REL,
+            baseline_makefile.replace(
+                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase7-rbtree-parity.py\n",
+                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase7-rbtree-parity.py\n"
+                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase7-rbtree-parity.py\n",
+                1,
+            ),
+        )
+        _assert_only(
+            validate(root),
+            [
+                "unexpected_makefile_command_count:phase7-validate:2:cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase7-rbtree-parity.py",
+                "makefile_command_order_drift:phase7-validate",
+            ],
+            "duplicate_phase7_rbtree_command_guard_failed",
+        )
+        _write(root / MAKEFILE_REL, baseline_makefile)
+        case_count += 1
+
+        _write(
+            root / MAKEFILE_REL,
+            baseline_makefile.replace(
+                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase8.py --self-test\n",
+                "",
+                1,
+            ),
+        )
+        _assert_only(
+            validate(root),
+            [
+                "missing_makefile_command:phase8-validate:cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase8.py --self-test",
+                "makefile_command_order_drift:phase8-validate",
+            ],
+            "missing_phase8_self_test_command_guard_failed",
+        )
+        _write(root / MAKEFILE_REL, baseline_makefile)
+        case_count += 1
+
+        _write(
+            root / MAKEFILE_REL,
+            baseline_makefile.replace(
+                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase8-exec-cmd-packet.py\n",
+                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase8-exec-cmd-packet.py\n"
+                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase8-exec-cmd-packet.py\n",
+                1,
+            ),
+        )
+        _assert_only(
+            validate(root),
+            [
+                "unexpected_makefile_command_count:phase8-validate:2:cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase8-exec-cmd-packet.py",
+                "makefile_command_order_drift:phase8-validate",
+            ],
+            "duplicate_phase8_exec_cmd_command_guard_failed",
+        )
+        _write(root / MAKEFILE_REL, baseline_makefile)
+        case_count += 1
+
+        _write(
+            root / MAKEFILE_REL,
+            baseline_makefile.replace(
                 "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase13-release.py\n"
                 "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase13-devres-packet.py\n",
                 "",
@@ -757,7 +881,7 @@ def run_self_test() -> int:
         _write(root / MAKEFILE_REL, baseline_makefile)
         case_count += 1
 
-        missing_snippet = REQUIRED_README_SNIPPETS[3]
+        missing_snippet = REQUIRED_README_SNIPPETS[7]
         _write(root / README_REL, baseline_readme.replace(missing_snippet, "", 1))
         _assert_only(
             validate(root),
@@ -767,7 +891,7 @@ def run_self_test() -> int:
         _write(root / README_REL, baseline_readme)
         case_count += 1
 
-        duplicate_snippet = REQUIRED_README_SNIPPETS[4]
+        duplicate_snippet = REQUIRED_README_SNIPPETS[8]
         _write(root / README_REL, baseline_readme + duplicate_snippet + "\n")
         _assert_only(
             validate(root),
