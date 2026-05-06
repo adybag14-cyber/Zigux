@@ -1,5 +1,6 @@
 const std = @import("std");
-const runtime_loader = @import("runtime_loader_contract");
+const runtime_loader = @import("runtime_loader");
+const runtime_loader_contract = @import("runtime_loader_contract");
 
 const Gap = struct {
     id: []const u8,
@@ -582,4 +583,6 @@ test "phase 9 runtime loader allocator/init-flow replay keeps exact current init
         "blocked_on_runtime_substrate",
         "real register_kretprobe parity",
     );
+
+    try std.testing.expectEqual(@as(usize, 3), @typeInfo(runtime_loader_contract.RequestState).@"enum".fields.len);
 }
