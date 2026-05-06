@@ -263,6 +263,7 @@ test "phase 5 bytestream fifo survey packet stays repo-local and keeps shared re
         "if the change is a reference sample under `samples/zigux/`, is the self-check or behavior replay explicit and small enough to stay reviewable?",
         "if the change updates an existing Phase 5 sample, do the descriptor, manifest, and shared `phase5_build.zig` entrypoint still agree on the same Linux anchor and exact replay contract?",
         "if the change updates a landed Phase 5 sample that keeps a Linux concurrency or private-data cue only for reviewability, does the note or checklist still say clearly what remains in-memory-only and what runtime parity is still out of scope?",
+        "if the change updates the landed Phase 5 `bytestream_fifo` sample packet, do the note, shared checklist text, and paired manifest-backed replays keep the exact queue-order drain contract, non-destructive `snapshotInto()` cue, short-drain `\"hel\"` plus queued `\"lo\"` helper boundary, and the `init()` -> `runAnchorReplay()` -> `exit()` ownership path explicit instead of implying procfs, user-copy, locking, or module-registration parity?",
         "if the change updates a landed Phase 5 sample, does it update the directly coupled survey note or manifest-backed contributor prompts when the sample contract changes?",
     };
 
