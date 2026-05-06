@@ -182,7 +182,7 @@ The helper-local `bitmap.scnprintf()` truncation proof must also stay explicit t
 
 - `tools/lib/bitmap.zig`
 
-That means `test "bitmap scnprintf reports full length while truncating the buffer"` stays present and review-visible whenever `bitmap.scnprintf()` changes. The shared Phase 1 parity fixture only locks the full rendered range string, so this helper-local test is the bounded proof that shorter caller buffers still receive the full logical length while preserving NUL-terminated truncation.
+That means `test "bitmap scnprintf reports full length while truncating the buffer"` stays present and review-visible whenever `bitmap.scnprintf()` changes. The shared Phase 1 parity fixture only locks the full rendered range string, so this helper-local test is the bounded proof that shorter caller buffers stay NUL-terminated and report only the bytes actually stored.
 
 - `PHASE1_BITMAP_SCNPRINTF_TRUNCATION_REVIEW=helper-local bitmap.scnprintf truncation proof stays explicit through the direct bitmap test anchor because the shared Phase 1 parity fixture only locks the full rendered range string`
 
