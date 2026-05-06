@@ -110,8 +110,8 @@ This keeps later closure-note work small while preserving the explicit split bet
 
 ## Current live follow-through state
 
-- `Documentation/zigux/README.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, and `samples/zigux/README.md` already keep this owner map or its shared-loader-versus-pilot split explicit on `master`
-- `Documentation/zigux/review-checklist.md` is the next bounded reviewer-facing follow-through surface when the Phase 9 prompt is next touched; it should point back to this sequencing note instead of re-blurring the shared loader lane versus the four pilot-family packets
+- `Documentation/zigux/README.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, `samples/zigux/README.md`, and `Documentation/zigux/review-checklist.md` already keep this owner map or its shared-loader-versus-pilot split explicit on `master`
+- the next same-lane follow-through should reopen only if one of those shared reminder surfaces drifts, or if the shared loader lane picks up a new bounded validation surface that needs to be named across the packet
 
 ## Recommended next-step order
 
