@@ -112,6 +112,9 @@ jobs:
       - name: Check Phase 3 selftest review surface
         run: python3 scripts/zigux/check-phase3-selftest-surface.py
 
+      - name: Validate Phase 3 export/UAPI survey
+        run: python3 scripts/zigux/validate-phase3-export-uapi-survey.py
+
       - name: Validate Phase 3 low-level wrapper survey
         run: python3 scripts/zigux/validate-phase3-low-level-wrapper-survey.py
 
@@ -132,6 +135,9 @@ jobs:
 
       - name: Self-test Phase 3 selftest review surface
         run: python3 scripts/zigux/check-phase3-selftest-surface.py --self-test
+
+      - name: Self-test Phase 3 export/UAPI survey
+        run: python3 scripts/zigux/validate-phase3-export-uapi-survey.py --self-test
 
       - name: Self-test Phase 3 low-level wrapper survey
         run: python3 scripts/zigux/validate-phase3-low-level-wrapper-survey.py --self-test
@@ -194,7 +200,7 @@ jobs:
         run: python3 scripts/zigux/check-kconfig-bridge.py
 
       - name: Check bounded mk_elfconfig artifact parity
-        run: python3 scripts/zigux/check-mk-elfconfig-diff.py
+        run: python3 scripts/zigux/check-mk_elfconfig-diff.py
 
       - name: Check discovered Phase 3 parity
         run: python3 scripts/zigux/run-phase3-checks.py
