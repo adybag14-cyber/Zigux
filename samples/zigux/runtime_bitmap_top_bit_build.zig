@@ -37,7 +37,7 @@ pub fn build(b: *std.Build) void {
     top_bit_contract_module.addImport("runtime_bitmap_sample", runtime_bitmap_sample_module);
 
     const top_bit_contract_tests = b.addTest(.{
-        .name = "phase5-runtime-bitmap-top-bit-contract-tests",
+        .name = "phase9-runtime-bitmap-top-bit-contract-tests",
         .root_module = top_bit_contract_module,
     });
     const run_top_bit_contract_tests = b.addRunArtifact(top_bit_contract_tests);
