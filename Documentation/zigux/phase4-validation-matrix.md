@@ -129,10 +129,11 @@ The same validator-first route also keeps `Documentation/zigux/artifact-diff.md`
 - current replay path: `make -C zigux phase4-validate` then `make -C zigux phase4-test`
 - gate owners: `ABI and Runtime Team` and `Shared Subsystems Pod`
 - rollback owners: `ABI and Runtime Team` and `Shared Subsystems Pod`
-- current measurable status: hard perf thresholds and acceptable limits for the atomic64 and bitmap gates remain intentionally unapproved on current `master`; there is not yet a committed dedicated perf-baseline manifest or survey packet that promotes those limits into the shipped Phase 4 replay surface
-- next bounded evidence step: land one bounded perf-baseline packet naming benchmark command, acceptable limit, owner, and rollback owner before the matrix claims timing coverage
+- current benchmark-command status: no dedicated committed benchmark-command packet is shipped on current `master` for `zigux/tests/atomic64_diff.zig` or `zigux/tests/bitmap_diff.zig`; the live rollback-readiness packet still stops at the shared correctness replays under `make -C zigux phase4-validate` and `make -C zigux phase4-test`
+- current acceptable-limit status: hard acceptable limits for the atomic64 and bitmap gates remain intentionally unapproved on current `master`; there is not yet a committed dedicated perf-baseline manifest or survey packet that promotes those limits into the shipped Phase 4 replay surface
+- next bounded evidence step: land one bounded perf-baseline packet naming one benchmark command per gate, one acceptable limit per gate, owner, and rollback owner before the matrix claims timing coverage
 
-This matrix, `scripts/zigux/validate-phase4.py`, and the shared `zigux/tests/phase4_build.zig` entrypoint should stay aligned around that still-pending threshold posture until a later Phase 4 lane intentionally lands a committed threshold-approval packet.
+This matrix, `scripts/zigux/validate-phase4.py`, and the shared `zigux/tests/phase4_build.zig` entrypoint should stay aligned around that still-pending benchmark-command and acceptable-limit posture until a later Phase 4 lane intentionally lands a committed threshold-approval packet.
 
 ## Review Rules
 - Phase 4 remains a rollback-readiness lane first, not a performance-claim lane
