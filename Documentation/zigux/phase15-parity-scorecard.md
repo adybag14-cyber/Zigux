@@ -7,7 +7,7 @@ This document records the bounded Phase 15 governance lane for the deep-core fre
 - `PHASE15_STATUS=freeze_in_c_governance`
 - `PHASE15_SLICE=parity-scorecard-stale-evidence-cleanup`
 - `PHASE15_LANE_KEY=P15-L12`
-- scope: a reviewable scorecard that captures council inputs, evidence thresholds, validation gates, rollback ownership, evidence-archive reporting, reserved per-anchor decision-record templates, retained stay-in-C closeout state, and explicit per-anchor owner tracking for the active freeze-in-C anchors
+- scope: a reviewable scorecard that captures council inputs, evidence thresholds, validation gates, rollback ownership, evidence-archive reporting, reserved per-anchor decision-record templates, retained stay-in-C closeout state, explicit per-anchor owner tracking, and one machine-checked aggregate metrics block for the active freeze-in-C anchors
 - survey provenance refreshed against verified `master` head `39cdd038909f9834a8702070a697a0bf2111cb66`
 - required review-process record fields tracked in the manifest: `10`
 - product boundary:
@@ -144,6 +144,21 @@ That gap matters because the current anchors are still large and deeply coupled:
   - replay command: `zig build test --build-file zigux/tests/phase15_build.zig`
   - latest blocker disposition: `blocked_packet_lifetime_boundary_still_too_wide`
 
+## Aggregate Metrics
+
+The machine-checked aggregate scorecard metrics currently record:
+
+- active freeze-in-C anchor count: `4`
+- total tracked line count across those anchors: `31,437`
+- anchors with carried-forward Phase 14 blocker evidence: `2`
+- anchors without carried-forward Phase 14 blocker evidence: `2`
+- Architecture Council-owned anchors: `2`
+- specialist lane-owned anchors: `2`
+- reserved decision-record templates: `4`
+- blocked status-change anchors: `4`
+
+These metrics do not claim forward implementation progress. They keep the parked freeze set reviewable without forcing later runs to recompute anchor totals, ownership split, or template coverage by hand from the prose packet.
+
 ## Recorded Gaps
 
 The current lane state is:
@@ -164,9 +179,10 @@ The current lane state is:
 - landed `phase15-reopen-trigger-catalog-followup`
 - landed `phase15-roadmap-handoff-evidence-followup`
 - landed `phase15-review-gate-benchmark-replay-field-sync`
+- landed `phase15-aggregate-scorecard-metrics`
 - blocked `phase15-deep-core-status-change-blocker`
 
-This keeps the lane honest: Zigux now has a reviewable Phase 15 scorecard for the frozen anchors, a concrete reporting block that says where Architecture Council evidence belongs, reserved packet templates at those paths, one explicit retained stay-in-C closeout state for anchors that leave active discussion without leaving C, and a machine-counted review-gate field list that keeps benchmark-note and replay-command reporting explicit, but it still does not claim a scheduler slice, allocator slice, new RCU bridge, or direct skbuff rewrite.
+This keeps the lane honest: Zigux now has a reviewable Phase 15 scorecard for the frozen anchors, a concrete reporting block that says where Architecture Council evidence belongs, reserved packet templates at those paths, one explicit retained stay-in-C closeout state for anchors that leave active discussion without leaving C, a machine-counted review-gate field list that keeps benchmark-note and replay-command reporting explicit, and one machine-checked aggregate metrics block that makes the parked freeze set easier to review, but it still does not claim a scheduler slice, allocator slice, new RCU bridge, or direct skbuff rewrite.
 
 ## Architecture Council Review Gate
 
