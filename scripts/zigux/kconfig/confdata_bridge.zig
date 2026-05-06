@@ -1,6 +1,8 @@
 const std = @import("std");
 const Io = std.Io;
 
+const config_prefix = "CONFIG_";
+
 const EntryKind = enum {
     tristate,
     string,
@@ -111,6 +113,7 @@ pub fn parseConfig(allocator: std.mem.Allocator, input: []const u8) !Summary {
 
         if (std.mem.startsWith(u8, line, "# ") and std.mem.endsWith(u8, line, " is not set")) {
             const name = line[2 .. line.len - " is not set".len];
+            if (!std.mem.startsWith(u8, name, config_prefix)) continue;
             try entries.append(allocator, .{
                 .name = try allocator.dupe(u8, name),
                 .kind = .unset,
@@ -122,6 +125,7 @@ pub fn parseConfig(allocator: std.mem.Allocator, input: []const u8) !Summary {
 
         const eq_index = std.mem.indexOfScalar(u8, line, '=') orelse continue;
         const name = line[0..eq_index];
+        if (!std.mem.startsWith(u8, name, config_prefix)) continue;
         const raw_value = line[eq_index + 1 ..];
 
         const kind: EntryKind = if (isTristateValue(raw_value))
@@ -404,4 +408,22 @@ test "confdata bridge recognizes uppercase tristate assignments" {
     try std.testing.expectEqualStrings("M", summary.entries[1].value);
     try std.testing.expectEqual(EntryKind.tristate, summary.entries[2].kind);
     try std.testing.expectEqualStrings("N", summary.entries[2].value);
+}
+
+test "confdata bridge ignores non-CONFIG lines like upstream confdata" {
+    const allocator = std.testing.allocator;
+    var summary = try parseConfig(allocator,
+        \\CONFIG_ALPHA=y
+        \\BROKEN_ENTRY=1
+        \\# BROKEN_DEBUG is not set
+        \\not-even-kconfig
+        \\
+    );
+    defer deinitSummary(allocator, &summary);
+
+    try std.testing.expectEqual(@as(usize, 1), summary.set_count);
+    try std.testing.expectEqual(@as(usize, 0), summary.unset_count);
+    try std.testing.expectEqual(@as(usize, 1), summary.entries.len);
+    try std.testing.expectEqualStrings("CONFIG_ALPHA", summary.entries[0].name);
+    try std.testing.expectEqual(EntryKind.tristate, summary.entries[0].kind);
 }
