@@ -328,6 +328,8 @@ test "runtime kretprobe loader emits the shared runtime-loader contract plan" {
     const shared_plan = toSharedLoadPlan(plan);
 
     try std.testing.expect(keepsSharedLoadPlanSnapshotExplicit(plan, shared_plan));
+    try std.testing.expect(shared_plan.provides_selftest_hook);
+    try std.testing.expect(runtime_loader.keepsSelftestHookEvidenceConsistent(shared_plan));
     try std.testing.expectEqual(runtime_loader.AllocatorHandoff.kernel_heap, shared_plan.allocator_handoff);
     try std.testing.expectEqual(runtime_loader.HandoffStage.selftest_complete, shared_plan.init_flow.handoff_stage);
     try std.testing.expectEqual(@as(usize, 1), shared_plan.init_flow.init_runs);
@@ -340,11 +342,13 @@ test "runtime kretprobe loader emits the shared runtime-loader contract plan" {
     const pending_plan = try shared_request.requestRuntimeLoad();
     try std.testing.expectEqual(runtime_loader.RequestState.waiting_on_runtime_substrate, shared_request.state);
     try std.testing.expect(keepsSharedLoadPlanSnapshotExplicit(plan, pending_plan));
+    try std.testing.expect(pending_plan.provides_selftest_hook);
     try std.testing.expect(runtime_loader.keepsAllocatorInitFlowConsistent(
         pending_plan,
         .kernel_heap,
         shared_plan.init_flow,
     ));
+    try std.testing.expect(runtime_loader.keepsSelftestHookEvidenceConsistent(pending_plan));
 
     try shared_request.releaseWithoutSubstrate();
     try std.testing.expectEqual(runtime_loader.RequestState.released_without_substrate, shared_request.state);
@@ -359,17 +363,21 @@ test "runtime kretprobe loader keeps initialized-stage shared contract plans exp
     const shared_plan = toSharedLoadPlan(plan);
 
     try std.testing.expect(keepsSharedLoadPlanSnapshotExplicit(plan, shared_plan));
+    try std.testing.expect(shared_plan.provides_selftest_hook);
+    try std.testing.expect(runtime_loader.keepsSelftestHookEvidenceConsistent(shared_plan));
     try std.testing.expectEqual(runtime_loader.HandoffStage.initialized, shared_plan.init_flow.handoff_stage);
     try std.testing.expectEqual(@as(usize, 0), shared_plan.init_flow.selftest_runs);
 
     var shared_request = try runtime_loader.prepareRequest(shared_plan);
     const pending_plan = try shared_request.requestRuntimeLoad();
     try std.testing.expect(keepsSharedLoadPlanSnapshotExplicit(plan, pending_plan));
+    try std.testing.expect(pending_plan.provides_selftest_hook);
     try std.testing.expect(runtime_loader.keepsAllocatorInitFlowConsistent(
         pending_plan,
         .kernel_heap,
         shared_plan.init_flow,
     ));
+    try std.testing.expect(runtime_loader.keepsSelftestHookEvidenceConsistent(pending_plan));
 }
 
 test "runtime kretprobe loader keeps initialized shared-request snapshots stable across later selftest activity" {
@@ -383,8 +391,10 @@ test "runtime kretprobe loader keeps initialized shared-request snapshots stable
     try std.testing.expectEqual(runtime_loader.RequestState.prepared, shared_request.state);
 
     const prepared_plan = shared_request.plan;
+    try std.testing.expect(prepared_plan.provides_selftest_hook);
     try std.testing.expectEqual(runtime_loader.HandoffStage.initialized, prepared_plan.init_flow.handoff_stage);
     try std.testing.expectEqual(@as(usize, 0), prepared_plan.init_flow.selftest_runs);
+    try std.testing.expect(runtime_loader.keepsSelftestHookEvidenceConsistent(prepared_plan));
 
     const selftest = try module.runSelftest();
     const live_plan = try RuntimeKretprobeLoader.planFor(&module);
@@ -403,6 +413,7 @@ test "runtime kretprobe loader keeps initialized shared-request snapshots stable
     try std.testing.expectEqualStrings(prepared_plan.anchor, pending_plan.anchor);
     try std.testing.expectEqualStrings(prepared_plan.entry_symbol, pending_plan.entry_symbol);
     try std.testing.expectEqualStrings(prepared_plan.exit_symbol, pending_plan.exit_symbol);
+    try std.testing.expect(pending_plan.provides_selftest_hook);
     try std.testing.expectEqual(runtime_loader.HandoffStage.initialized, pending_plan.init_flow.handoff_stage);
     try std.testing.expectEqual(@as(usize, 0), pending_plan.init_flow.selftest_runs);
     try std.testing.expect(runtime_loader.keepsAllocatorInitFlowConsistent(
@@ -438,6 +449,7 @@ test "runtime kretprobe loader bridges the shared request lifecycle without wide
     try std.testing.expectEqual(runtime_loader.RequestState.waiting_on_runtime_substrate, shared_request.state);
     try std.testing.expectEqualStrings("runtime_kretprobe", pending_plan.module_name);
     try std.testing.expectEqualStrings("samples/kprobes/kretprobe_example.c", pending_plan.anchor);
+    try std.testing.expect(pending_plan.provides_selftest_hook);
     try std.testing.expect(runtime_loader.keepsAllocatorInitFlowConsistent(
         pending_plan,
         .kernel_heap,
@@ -448,6 +460,7 @@ test "runtime kretprobe loader bridges the shared request lifecycle without wide
             .exit_runs = 0,
         },
     ));
+    try std.testing.expect(runtime_loader.keepsSelftestHookEvidenceConsistent(pending_plan));
 
     try loader.releaseSharedWithoutSubstrate(&shared_request);
     try std.testing.expectEqual(LoaderStage.released_without_substrate, loader.stage());
@@ -486,6 +499,10 @@ test "runtime kretprobe loader rejects shared-load-plan snapshot drift" {
     var drifted_module = shared_plan;
     drifted_module.module_name = "runtime_kretprobe_drift";
     try std.testing.expect(!keepsSharedLoadPlanSnapshotExplicit(plan, drifted_module));
+
+    var drifted_hook = shared_plan;
+    drifted_hook.provides_selftest_hook = false;
+    try std.testing.expect(!keepsSharedLoadPlanSnapshotExplicit(plan, drifted_hook));
 
     var drifted_allocator = shared_plan;
     drifted_allocator.allocator_handoff = .caller_provided;
