@@ -123,6 +123,7 @@ For the active shared-helper release packet, keep the shared validator-first rep
 ## Drift checks
 
 Before closing a contributor-guidance change, ask:
+- Did the compact tests-root companion now explicitly keep `Documentation/zigux/README.md` in its opening shared-surface sentence while this sync note or another shared contributor prompt still leaves the docs-root README implicit?
 - Did a short-form companion note gain wording that the broad tests-root prompt still skips?
 - Did a checklist prompt keep an old replay count after the docs-root summary changed?
 - Did docs-root or scripts-root add a new replay, checker, manifest, or survey file that the shared contributor prompts still compress into older shorthand?
