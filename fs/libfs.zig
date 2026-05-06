@@ -12,6 +12,7 @@ pub const ModuleDescriptor = struct {
     provides_buffer_copy_helpers: bool,
     provides_offset_seek_helpers: bool,
     provides_directory_emit_planning: bool,
+    provides_directory_cursor_open_planning: bool,
     provides_transaction_buffer_planning: bool,
     provides_transaction_publish_planning: bool,
     provides_transaction_release_planning: bool,
@@ -92,6 +93,13 @@ pub const DirectoryEmitPlan = struct {
     should_stop: bool,
 };
 
+pub const DirectoryCursorOpenPlan = struct {
+    anchor: []const u8,
+    allocates_cursor_from_path_dentry: bool,
+    stores_cursor_in_private_data: bool,
+    return_code: i32,
+};
+
 pub const TransactionBufferAcquirePlan = struct {
     anchor: []const u8,
     requested_size: usize,
@@ -127,6 +135,7 @@ pub const LibFsHelperLab = struct {
             .provides_buffer_copy_helpers = true,
             .provides_offset_seek_helpers = true,
             .provides_directory_emit_planning = true,
+            .provides_directory_cursor_open_planning = true,
             .provides_transaction_buffer_planning = true,
             .provides_transaction_publish_planning = true,
             .provides_transaction_release_planning = true,
@@ -323,6 +332,15 @@ pub const LibFsHelperLab = struct {
             .emitted_any_entries = emitted_entries != 0,
             .stays_in_dots_window = new_pos <= 2,
             .should_stop = emitted_entries == 0,
+        };
+    }
+
+    pub fn dcacheDirOpenPlan(cursor_allocated: bool) DirectoryCursorOpenPlan {
+        return .{
+            .anchor = descriptor().anchor,
+            .allocates_cursor_from_path_dentry = true,
+            .stores_cursor_in_private_data = cursor_allocated,
+            .return_code = if (cursor_allocated) 0 else -12,
         };
     }
 
