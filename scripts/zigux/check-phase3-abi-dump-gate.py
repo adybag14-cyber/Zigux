@@ -26,7 +26,7 @@ UAPI_VERSION_REL = "zigux/uapi/version.zig"
 DOC_EXACT_MARKERS = (
     "PHASE3_EXPORT_SHIM_PATH=zigux/kernel/export_shim.zig",
     "PHASE3_UAPI_VERSION_PATH=zigux/uapi/version.zig",
-    "PHASE3_EXPORT_UAPI_SURVEY_MODE=shared-abi-slice",
+    "PHASE3_EXPORT_UAPI_SURVEY_MODE=shared-abi-slice-plus-packet-local-starter-proof",
 )
 DOC_PREFIX_MARKERS = (
     "PHASE3_EXPORT_SCOPE=",
@@ -182,7 +182,7 @@ def run_self_test() -> int:
                     "PHASE3_UAPI_SCOPE=version-and-boundary-header starter nested inside the ABI substrate slice",
                     "PHASE3_UAPI_VERSION_PATH=zigux/uapi/version.zig",
                     "PHASE3_UAPI_VERSION_BLOB_SHA=cafebabe",
-                    "PHASE3_EXPORT_UAPI_SURVEY_MODE=shared-abi-slice",
+                    "PHASE3_EXPORT_UAPI_SURVEY_MODE=shared-abi-slice-plus-packet-local-starter-proof",
                     DUMP_GATE,
                     "",
                 ]
@@ -240,7 +240,11 @@ def run_self_test() -> int:
         assert "missing_doc_prefix:PHASE3_EXPORT_SHIM_BLOB_SHA=" in issues
         assert "missing_doc_marker:PHASE3_UAPI_VERSION_PATH=zigux/uapi/version.zig" in issues
         assert "missing_doc_prefix:PHASE3_UAPI_VERSION_BLOB_SHA=" in issues
-        assert "missing_doc_marker:PHASE3_EXPORT_UAPI_SURVEY_MODE=shared-abi-slice" in issues
+        assert (
+            "missing_doc_marker:"
+            "PHASE3_EXPORT_UAPI_SURVEY_MODE=shared-abi-slice-plus-packet-local-starter-proof"
+            in issues
+        )
         assert (
             f"missing_makefile_command:{MAKEFILE_TARGET}:{MAKEFILE_SELFTEST_CMD}" in issues
         )
@@ -255,7 +259,7 @@ def run_self_test() -> int:
                     "PHASE3_UAPI_SCOPE=version-and-boundary-header starter nested inside the ABI substrate slice",
                     "PHASE3_UAPI_VERSION_PATH=zigux/uapi/version.zig",
                     "PHASE3_UAPI_VERSION_BLOB_SHA=cafebabe",
-                    "PHASE3_EXPORT_UAPI_SURVEY_MODE=shared-abi-slice",
+                    "PHASE3_EXPORT_UAPI_SURVEY_MODE=shared-abi-slice-plus-packet-local-starter-proof",
                     DUMP_GATE,
                     "",
                 ]
@@ -323,6 +327,11 @@ def run_self_test() -> int:
         issues = validate(root)
         assert f"manifest_missing_file:{UAPI_VERSION_REL}" in issues
         assert f"missing_makefile_command:{MAKEFILE_TARGET}:{MAKEFILE_LIVE_CMD}" in issues
+        assert (
+            "missing_doc_marker:"
+            "PHASE3_EXPORT_UAPI_SURVEY_MODE=shared-abi-slice-plus-packet-local-starter-proof"
+            in issues
+        )
 
     print("PHASE3_ABI_DUMP_GATE_SELF_TEST=pass")
     print("PHASE3_ABI_DUMP_GATE_SELF_TEST_CASE_COUNT=4")
