@@ -149,6 +149,31 @@ test "phase 9 runtime bitmap survey note keeps the phase boundary and exact chec
     var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
     defer io_instance.deinit();
 
+    const manifest_json = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "zigux/tests/runtime_bitmap_manifest.json",
+        std.testing.allocator,
+        .limited(32 * 1024),
+    );
+    defer std.testing.allocator.free(manifest_json);
+
+    const parsed = try std.json.parseFromSlice(Manifest, std.testing.allocator, manifest_json, .{});
+    defer parsed.deinit();
+
+    const lane_key_marker = try std.fmt.allocPrint(
+        std.testing.allocator,
+        "`PHASE9_LANE_KEY={s}`",
+        .{parsed.value.lane_key},
+    );
+    defer std.testing.allocator.free(lane_key_marker);
+
+    const surveyed_commit_marker = try std.fmt.allocPrint(
+        std.testing.allocator,
+        "`PHASE9_SURVEYED_COMMIT={s}`",
+        .{parsed.value.surveyed_commit},
+    );
+    defer std.testing.allocator.free(surveyed_commit_marker);
+
     const note = try std.Io.Dir.cwd().readFileAlloc(
         io_instance.io(),
         "Documentation/zigux/phase9-runtime-bitmap-survey.md",
@@ -157,11 +182,13 @@ test "phase 9 runtime bitmap survey note keeps the phase boundary and exact chec
     );
     defer std.testing.allocator.free(note);
 
+    try std.testing.expectEqual(@as(usize, 1), std.mem.count(u8, note, lane_key_marker));
+    try std.testing.expectEqual(@as(usize, 1), std.mem.count(u8, note, surveyed_commit_marker));
     try std.testing.expect(std.mem.indexOf(u8, note, "PHASE9_LANE_KEY=P9-L05") != null);
     try std.testing.expect(std.mem.indexOf(u8, note, "not as a fifth approved Phase 5 reference idiom under `samples/zigux/`") != null);
-    try std.testing.expect(std.mem.indexOf(u8, note, "The shared sample-root catalog at `samples/zigux/README.md` keeps the approved Phase 5 anchors limited to `bytestream_fifo.zig`, `kobject_example.zig`, `kretprobe_example.zig`, and `trace_events_sample.zig`, while listing the runtime bitmap pair only under the separate Phase 9 runtime pilot family.") != null);
+    try std.testing.expect(std.mem.indexOf(u8, note, "The shared sample-root catalog at `samples/zigux/README.md` keeps the approved Phase 5 anchors limited to `bytestream_fifo.zig`, `kobject_example.zig`, `kretprobe_example.zig`, and `trace_events_sample.zig`, while listing the runtime bitmap pair plus the focused top-bit companion replay only under the separate Phase 9 runtime pilot family.") != null);
     try std.testing.expect(std.mem.indexOf(u8, note, "the live repo still keeps that runtime bitmap family outside the four approved Phase 5 reference samples") != null);
-    try std.testing.expect(std.mem.indexOf(u8, note, "the shared `samples/zigux/README.md` catalog still lists the runtime bitmap pair only under the separate Phase 9 runtime pilot family and keeps the four approved Phase 5 anchors explicit") != null);
+    try std.testing.expect(std.mem.indexOf(u8, note, "the shared `samples/zigux/README.md` catalog still lists the runtime bitmap pair plus the focused top-bit companion replay only under the separate Phase 9 runtime pilot family and keeps the four approved Phase 5 anchors explicit") != null);
     try std.testing.expect(std.mem.indexOf(u8, note, "a Phase 5 approved `samples/zigux/` reference idiom") != null);
     try std.testing.expect(std.mem.indexOf(u8, note, "samples/zigux/runtime_bitmap.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, note, "samples/zigux/runtime_bitmap_loader.zig") != null);
