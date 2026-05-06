@@ -122,6 +122,8 @@ pub const VirtioMmioLab = struct {
     interrupt_status: u32 = 0,
     config_generation: u32 = 0,
     driver_features: u32 = 0,
+    magic_value: u32 = mmio_magic_value,
+    version: u32 = mmio_version_modern,
     device_id: u32 = 0,
     vendor_id: u32 = default_vendor_id,
 
@@ -161,8 +163,8 @@ pub const VirtioMmioLab = struct {
             .register = register,
             .selected_queue = self.selected_queue,
             .value = switch (register) {
-                .magic_value => mmio_magic_value,
-                .version => mmio_version_modern,
+                .magic_value => self.magic_value,
+                .version => self.version,
                 .device_id => self.device_id,
                 .device_features => self.device_feature_words[try checkedFeatureWordIndex(self.selected_device_feature_word)],
                 .device_features_sel => self.selected_device_feature_word,
@@ -271,11 +273,11 @@ pub const VirtioMmioLab = struct {
     }
 
     pub fn probePreflightSummary(self: *const Self) ProbePreflightSummary {
-        const magic_matches = mmio_magic_value == 0x7472_6976;
-        const version_supported = mmio_version_modern == mmio_version_legacy or mmio_version_modern == mmio_version_modern;
+        const magic_matches = self.magic_value == mmio_magic_value;
+        const version_supported = self.version == mmio_version_legacy or self.version == mmio_version_modern;
         const device_present = self.device_id != 0;
         const vendor_id_present = self.vendor_id != 0;
-        const requires_legacy_guest_page_size = mmio_version_modern == mmio_version_legacy;
+        const requires_legacy_guest_page_size = self.version == mmio_version_legacy;
         const legacy_guest_page_size_register_ready = guest_page_size_register_offset == 0x028;
         const bounded_queue_register_window_ready = self.configured_queue_count != 0 and
             @intFromEnum(Register.queue_num_max) == 0x034 and
@@ -303,6 +305,13 @@ pub const VirtioMmioLab = struct {
                 bounded_queue_register_window_ready and
                 interrupt_ack_ready,
         };
+    }
+
+    pub fn seedTransportIdentity(self: *Self, magic_value: u32, version: u32, device_id: u32, vendor_id: u32) void {
+        self.magic_value = magic_value;
+        self.version = version;
+        self.device_id = device_id;
+        self.vendor_id = vendor_id;
     }
 
     pub fn stageConfigBytes(self: *Self, bytes: []const u8) !void {
@@ -491,4 +500,45 @@ test "phase10 virtio mmio summarizes config-write disposition without mutating c
 
     device.bumpConfigGeneration();
     try std.testing.expectError(error.ConfigWritePlanUnavailable, device.configWriteDispositionSummary());
+}
+
+test "phase10 virtio mmio preflight follows seeded transport identity" {
+    var device = try VirtioMmioLab.init(58, &[_]u16{ 8, 16 });
+    device.seedTransportIdentity(mmio_magic_value, mmio_version_legacy, 58, default_vendor_id);
+
+    const summary = device.probePreflightSummary();
+    try std.testing.expect(summary.magic_matches);
+    try std.testing.expect(summary.version_supported);
+    try std.testing.expect(summary.device_present);
+    try std.testing.expect(summary.vendor_id_present);
+    try std.testing.expect(summary.requires_legacy_guest_page_size);
+    try std.testing.expect(summary.legacy_guest_page_size_register_ready);
+    try std.testing.expect(summary.bounded_queue_register_window_ready);
+    try std.testing.expect(summary.interrupt_ack_ready);
+    try std.testing.expect(summary.ready_for_probe_handoff);
+
+    const magic_summary = try device.readRegister(.magic_value);
+    try std.testing.expectEqual(mmio_magic_value, magic_summary.value);
+    const version_summary = try device.readRegister(.version);
+    try std.testing.expectEqual(mmio_version_legacy, version_summary.value);
+}
+
+test "phase10 virtio mmio preflight rejects bad magic and unsupported version" {
+    var device = try VirtioMmioLab.init(59, &[_]u16{8});
+    device.seedTransportIdentity(0, 3, 59, default_vendor_id);
+
+    const summary = device.probePreflightSummary();
+    try std.testing.expect(!summary.magic_matches);
+    try std.testing.expect(!summary.version_supported);
+    try std.testing.expect(summary.device_present);
+    try std.testing.expect(summary.vendor_id_present);
+    try std.testing.expect(!summary.requires_legacy_guest_page_size);
+    try std.testing.expect(summary.bounded_queue_register_window_ready);
+    try std.testing.expect(summary.interrupt_ack_ready);
+    try std.testing.expect(!summary.ready_for_probe_handoff);
+
+    const magic_summary = try device.readRegister(.magic_value);
+    try std.testing.expectEqual(@as(u32, 0), magic_summary.value);
+    const version_summary = try device.readRegister(.version);
+    try std.testing.expectEqual(@as(u32, 3), version_summary.value);
 }
