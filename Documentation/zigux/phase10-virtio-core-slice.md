@@ -29,7 +29,7 @@ This document tracks the first bounded Phase 10 virtio-core starter under `drive
   - `zigux/tests/phase10_build.zig`
   - `zigux/Makefile`
 - current review note:
-  - current `master` again carries a standalone `zigux/tests/phase10_virtio_core_manifest.json`, `zigux/tests/phase10_virtio_core_survey.zig`, `Documentation/zigux/phase10-virtio-core-survey.md`, and `scripts/zigux/check-phase10-core-packet.py`; reviewers should treat the core lane as a manifest-backed survey packet plus build-and-test packet instead of a slice-note-only surface
+  - current `master` again carries a standalone `zigux/tests/phase10_virtio_core_manifest.json`, `zigux/tests/phase10_virtio_core_survey.zig`, `Documentation/zigux/phase10-virtio-core-survey.md`, and `scripts/zigux/check-phase10-core-packet.py`; reviewers should treat the core lane as a manifest-backed survey packet plus build-and-test packet instead of a slice-note-only surface, including the shared `make -C zigux phase10-test` and `make -C zigux phase10` replay routes
 
 ## Why this slice exists
 
@@ -60,7 +60,7 @@ This lane started from an empty `drivers/virtio/*.zig` footing. The live repo no
 - reset handling that clears queue callback registrations along with negotiated feature state
 - a transport-acceptance toggle so the Phase 10 gate can model both successful `FEATURES_OK` handshakes and refusal paths
 - dedicated Phase 10 tests and build wiring for the starter slice
-- a restored manifest-backed review packet: the current core lane is reviewed through this slice note, the dedicated survey note and gate, the packet checker, `phase10_virtio_core.zig`, `phase10_virtio_core_reset_queue.zig`, `phase10_virtio_driver_id.zig`, `phase10_build.zig`, and `make -C zigux phase10`
+- a restored manifest-backed review packet: the current core lane is reviewed through this slice note, the dedicated survey note and gate, the packet checker, `phase10_virtio_core.zig`, `phase10_virtio_core_reset_queue.zig`, `phase10_virtio_driver_id.zig`, `phase10_build.zig`, and the shared `make -C zigux phase10-test` plus `make -C zigux phase10` routes
 
 ## Roadmap Gap Snapshot
 
@@ -96,7 +96,8 @@ This slice does not yet claim:
 3. run the dedicated Phase 10 build
 - `zig build test --build-file zigux/tests/phase10_build.zig`
 
-4. run the convenience target
+4. run the Linux-style replay routes
+- `make -C zigux phase10-test`
 - `make -C zigux phase10`
 
 ## Next bounded step
