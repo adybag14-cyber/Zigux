@@ -64,6 +64,7 @@ PHASE2_MAKEFILE_RUN_COUNTS = {
 }
 PHASE2_MAKEFILE_EXACT_LINES = {
     'cd $(ZIGUX_ROOT) && $(ZIG) test scripts/zigux/genksyms.zig': 1,
+    'cd $(ZIGUX_ROOT) && $(ZIG) test scripts/zigux/mk_elfconfig.zig': 1,
 }
 PHASE2_WORKFLOW_RUN_COUNTS = {
     'python3 scripts/zigux/install-zig.py --self-test': 1,
@@ -92,6 +93,7 @@ PHASE2_WORKFLOW_RUN_COUNTS = {
 }
 PHASE2_WORKFLOW_EXACT_LINES = {
     'run: zig test scripts/zigux/genksyms.zig': 1,
+    'run: zig test scripts/zigux/mk_elfconfig.zig': 1,
 }
 
 
@@ -119,6 +121,7 @@ def run_self_test() -> int:
         'cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-genksyms-crc-diff.py',
         'cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-cross.py',
         'cd $(ZIGUX_ROOT) && $(ZIG) test scripts/zigux/genksyms.zig',
+        'cd $(ZIGUX_ROOT) && $(ZIG) test scripts/zigux/mk_elfconfig.zig',
     ])
     workflow_ok = '\n'.join([
         'run: python3 scripts/zigux/install-zig.py --self-test',
@@ -145,6 +148,7 @@ def run_self_test() -> int:
         'run: python3 scripts/zigux/check-genksyms-bridge.py',
         'run: python3 scripts/zigux/check-genksyms-crc-diff.py',
         'run: zig test scripts/zigux/genksyms.zig',
+        'run: zig test scripts/zigux/mk_elfconfig.zig',
         'run: python3 scripts/zigux/install-zig.py --channel 0.17.0-dev.87+9b177a7d2 --dest .zig-toolchain',
     ]) + '\n'
     cases = [
@@ -324,6 +328,13 @@ def run_self_test() -> int:
             ),
             ['make_exact_line:cd $(ZIGUX_ROOT) && $(ZIG) test scripts/zigux/genksyms.zig:count=2:expected=1'],
         ),
+        (
+            'make_duplicate_mk_elfconfig_unit_test',
+            validate_exact_makefile_runs(
+                make_ok + '\ncd $(ZIGUX_ROOT) && $(ZIG) test scripts/zigux/mk_elfconfig.zig'
+            ),
+            ['make_exact_line:cd $(ZIGUX_ROOT) && $(ZIG) test scripts/zigux/mk_elfconfig.zig:count=2:expected=1'],
+        ),
         ('workflow_ok', validate_exact_workflow_runs(workflow_ok), []),
         (
             'workflow_duplicate_validate_phase2',
@@ -468,6 +479,13 @@ def run_self_test() -> int:
                 workflow_ok + 'run: zig test scripts/zigux/genksyms.zig\n'
             ),
             ['workflow_exact_line:run: zig test scripts/zigux/genksyms.zig:count=2:expected=1'],
+        ),
+        (
+            'workflow_duplicate_mk_elfconfig_unit_test',
+            validate_exact_workflow_runs(
+                workflow_ok + 'run: zig test scripts/zigux/mk_elfconfig.zig\n'
+            ),
+            ['workflow_exact_line:run: zig test scripts/zigux/mk_elfconfig.zig:count=2:expected=1'],
         ),
     ]
 
