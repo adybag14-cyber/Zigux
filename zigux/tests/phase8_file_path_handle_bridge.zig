@@ -32,12 +32,14 @@ test "phase 8 file-path handle bridge docs keep the bounded fdinfo helper explic
     try expectContains(note, "max_entries");
     try expectContains(note, "map_flags");
     try expectContains(note, "map_extra");
+    try expectContains(note, "bounded reuse-pinned-map attempt planning");
+    try expectContains(note, "planning-only reopen-attempt disposition");
     try expectContains(note, "no direct procfs reads");
     try expectContains(note, "no `fopen()` or `fgets()` parity");
     try expectContains(note, "no `bpf_map_get_info_by_fd()` fallback control flow");
-    try expectContains(note, "no `bpf_obj_get()` reopen flow");
+    try expectContains(note, "no actual bpffs opens or `bpf_obj_get()` reopen calls");
     try expectContains(note, "no fd duplication or `F_DUPFD_CLOEXEC` handling");
-    try expectContains(note, "map-reuse-compatibility remains queued");
+    try expectContains(note, "no token materialization or handle transfer");
 }
 
 test "phase 8 userspace-kernel bridge boundary survey keeps queued bridge work explicit" {
@@ -54,6 +56,8 @@ test "phase 8 userspace-kernel bridge boundary survey keeps queued bridge work e
     try expectContains(survey, "Documentation/zigux/phase8-file-path-handle-bridge-slice.md");
     try expectContains(survey, "planTokenPreparation()");
     try expectContains(survey, "resolveReusePinnedMapAttempt()");
+    try expectContains(survey, "planning-only gate");
+    try expectContains(survey, "non-empty pinned path plus compatible fdinfo-derived map info");
     try expectContains(survey, "token materialization or capability handoff");
     try expectContains(survey, "map reopen or bpffs compatibility closure");
     try expectContains(survey, "fd close or ownership semantics");
@@ -139,4 +143,37 @@ test "phase 8 file-path handle bridge helper keeps malformed fdinfo values expli
         error.MissingSeparator,
         file_path_handle_bridge.parseFdinfoLine("map_type"),
     );
+}
+
+test "phase 8 file-path handle bridge helper keeps planning-only reopen attempts explicit" {
+    const expected = file_path_handle_bridge.MapReuseExpectation{
+        .name = "process_pinned_map",
+        .map_type = file_path_handle_bridge.bpf_map_type_devmap,
+        .key_size = 4,
+        .value_size = 8,
+        .max_entries = 64,
+        .map_flags = 0x20,
+        .map_extra = 7,
+    };
+
+    const plan = file_path_handle_bridge.resolveReusePinnedMapAttempt("/sys/fs/bpf/stats", expected, .{
+        .name = "process_pinned_",
+        .map_type = file_path_handle_bridge.bpf_map_type_devmap,
+        .key_size = 4,
+        .value_size = 8,
+        .max_entries = 64,
+        .map_flags = 0x20 | file_path_handle_bridge.bpf_f_rdonly_prog,
+        .map_extra = 7,
+    });
+    try std.testing.expectEqual(
+        file_path_handle_bridge.ReusePinnedMapAttemptDisposition.ready_for_reopen_attempt,
+        plan.disposition,
+    );
+    try std.testing.expectEqual(
+        file_path_handle_bridge.ReusedMapNameSource.object_name,
+        plan.resolved_name.?.source,
+    );
+    try std.testing.expectEqualStrings("process_pinned_map", plan.resolved_name.?.value);
+    try std.testing.expectEqualStrings("/sys/fs/bpf/stats", plan.pinned_path.?);
+    try std.testing.expect(plan.should_attempt_reopen);
 }
