@@ -260,10 +260,21 @@ test "phase13 libfs transaction publish planning validates response size and pub
     try std.testing.expectError(error.MissingPrivateData, libfs.LibFsHelperLab.simpleTransactionSetPlan(8, false));
 }
 
-test "phase13 libfs transaction release planning frees page-backed private data" {
-    const plan = libfs.LibFsHelperLab.simpleTransactionReleasePlan();
-    try std.testing.expectEqualStrings("fs/libfs.c", plan.anchor);
-    try std.testing.expect(plan.frees_private_data_page);
-    try std.testing.expect(plan.consumes_private_data_lifetime);
-    try std.testing.expectEqual(@as(i32, 0), plan.return_code);
+test "phase13 libfs transaction release planning clears the slot and tolerates null private data" {
+    const released = libfs.LibFsHelperLab.simpleTransactionReleasePlan(true);
+    try std.testing.expectEqualStrings("fs/libfs.c", released.anchor);
+    try std.testing.expect(released.had_private_data);
+    try std.testing.expect(released.frees_private_data_page);
+    try std.testing.expect(released.clears_private_data_slot);
+    try std.testing.expect(released.null_private_data_is_allowed);
+    try std.testing.expect(released.consumes_private_data_lifetime);
+    try std.testing.expectEqual(@as(i32, 0), released.return_code);
+
+    const empty = libfs.LibFsHelperLab.simpleTransactionReleasePlan(false);
+    try std.testing.expect(!empty.had_private_data);
+    try std.testing.expect(!empty.frees_private_data_page);
+    try std.testing.expect(empty.clears_private_data_slot);
+    try std.testing.expect(empty.null_private_data_is_allowed);
+    try std.testing.expect(empty.consumes_private_data_lifetime);
+    try std.testing.expectEqual(@as(i32, 0), empty.return_code);
 }
