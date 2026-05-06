@@ -50,10 +50,29 @@ REQUIRED_PHASE9_LOADER_SCAFFOLD_PATHS = [
     "samples/zigux/runtime_kretprobe_loader.zig",
 ]
 
+PHASE9_NON_OWNER_BOUNDARY_MARKER = (
+    "- the same shared Phase 9 summary should keep the older non-owner boundaries explicit: "
+    "`scripts/zigux/kconfig/conf_bridge.zig` and `scripts/zigux/kconfig/confdata_bridge.zig` remain "
+    "Phase 2 config-surface bridge references, while `rust/exports.c` and "
+    "`zigux/kernel/export_shim.zig` remain Phase 3 export-boundary references rather than "
+    "runtime-pilot evidence."
+)
+
+PHASE9_REVIEW_CHECKLIST_BOUNDARY_MARKER = (
+    "the Phase 2 config-surface references `scripts/zigux/kconfig/conf_bridge.zig` and "
+    "`scripts/zigux/kconfig/confdata_bridge.zig`, and the Phase 3 export-boundary references "
+    "`rust/exports.c` and `zigux/kernel/export_shim.zig`"
+)
+
 REQUIRED_DOCS_README_MARKERS = [
     "Phase 9 notes",
     "`Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, `zigux/kernel/runtime_loader.zig`, `zigux/kernel/runtime_loader_contract.zig`, `zigux/tests/runtime_loader_allocator_init_flow.zig`, `scripts/zigux/check-phase9-build-only-surface.py`, `zigux/tests/phase9_build.zig`, `zigux/Makefile`, `.github/workflows/zigux-bootstrap.yml`, and the four `samples/zigux/runtime_*_loader.zig` scaffolds now keep the current runtime atomic64, bitmap, trace-events, and kretprobe pilot bundle reviewable through one shared runtime-loader lane together with the shipped build-only surface checker, loader facade, contract, shared build, and workflow-backed Linux-style `make -C zigux phase9` replay route instead of widening into ad hoc per-slice checks or overstating removed loader-gap or dedicated-validator surfaces on `master`.",
+    PHASE9_NON_OWNER_BOUNDARY_MARKER,
 ]
+
+REQUIRED_DOCS_README_EXACT_COUNTS = {
+    PHASE9_NON_OWNER_BOUNDARY_MARKER: 1,
+}
 
 REQUIRED_SCRIPT_README_MARKERS = [
     "Phase 9 flow",
@@ -71,8 +90,12 @@ REQUIRED_REVIEW_CHECKLIST_MARKERS = [
     "the shipped build-only surface checker",
     "workflow-backed `make -C zigux phase9` route",
     "no-dedicated-`validate-phase9.py` posture",
-    "the Phase 2 config-surface references `scripts/zigux/kconfig/conf_bridge.zig` and `scripts/zigux/kconfig/confdata_bridge.zig`, and the Phase 3 export-boundary references `rust/exports.c` and `zigux/kernel/export_shim.zig`",
+    PHASE9_REVIEW_CHECKLIST_BOUNDARY_MARKER,
 ]
+
+REQUIRED_REVIEW_CHECKLIST_EXACT_COUNTS = {
+    PHASE9_REVIEW_CHECKLIST_BOUNDARY_MARKER: 1,
+}
 
 REQUIRED_FREEZE_MAP_MARKERS = [
     "the shared Phase 9 runtime-loader packet stays review-only beside `kernel/workqueue.c` and `kernel/trace/ring_buffer.c`: `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, `scripts/zigux/check-phase9-build-only-surface.py`, `zigux/tests/phase9_build.zig`, `zigux/kernel/runtime_loader.zig`, `zigux/kernel/runtime_loader_contract.zig`, and the four `samples/zigux/runtime_*_loader.zig` scaffolds keep the bounded loader handoff explicit without implying scheduler-facing substrate closure or a freeze-map status change",
@@ -262,6 +285,18 @@ def validate(root: Path) -> list[str]:
     for marker in REQUIRED_PHASE9_BUILD_MARKERS:
         if marker not in phase9_build:
             failures.append(f"phase9_build:{marker}")
+    for marker, expected_count in REQUIRED_DOCS_README_EXACT_COUNTS.items():
+        actual_count = docs_readme.count(marker)
+        if actual_count != expected_count:
+            failures.append(
+                f"docs_readme_exact_count:{marker}:expected={expected_count}:actual={actual_count}"
+            )
+    for marker, expected_count in REQUIRED_REVIEW_CHECKLIST_EXACT_COUNTS.items():
+        actual_count = review_checklist.count(marker)
+        if actual_count != expected_count:
+            failures.append(
+                f"review_checklist_exact_count:{marker}:expected={expected_count}:actual={actual_count}"
+            )
     for marker, expected_count in REQUIRED_PHASE9_BUILD_EXACT_COUNTS.items():
         actual_count = phase9_build.count(marker)
         if actual_count != expected_count:
@@ -326,7 +361,7 @@ const runtime_loader_allocator_init_flow_tests = b.addTest(.{
 const run_runtime_loader_allocator_init_flow_tests = b.addRunArtifact(runtime_loader_allocator_init_flow_tests);
 const runtime_loader_shared_tests_step = b.step(
     "phase9-runtime-loader-shared-tests",
-    "Run the focused Phase 9 runtime-loader facade, contract, and allocator-init-flow tests",
+    "Run the focused Phase 9 runtime-loader facade, contract, and allocator/init-flow tests",
 );
 runtime_loader_shared_tests_step.dependOn(&run_runtime_loader_contract_tests.step);
 runtime_loader_shared_tests_step.dependOn(&run_runtime_loader_facade_tests.step);
@@ -392,10 +427,11 @@ def write_fixture_tree(root: Path) -> None:
 
     write_text(
         root / DOCS_README_PATH,
-        """# Zigux Documentation
+        f"""# Zigux Documentation
 
 Phase 9 notes
 - `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, `zigux/kernel/runtime_loader.zig`, `zigux/kernel/runtime_loader_contract.zig`, `zigux/tests/runtime_loader_allocator_init_flow.zig`, `scripts/zigux/check-phase9-build-only-surface.py`, `zigux/tests/phase9_build.zig`, `zigux/Makefile`, `.github/workflows/zigux-bootstrap.yml`, and the four `samples/zigux/runtime_*_loader.zig` scaffolds now keep the current runtime atomic64, bitmap, trace-events, and kretprobe pilot bundle reviewable through one shared runtime-loader lane together with the shipped build-only surface checker, loader facade, contract, shared build, and workflow-backed Linux-style `make -C zigux phase9` replay route instead of widening into ad hoc per-slice checks or overstating removed loader-gap or dedicated-validator surfaces on `master`.
+{PHASE9_NON_OWNER_BOUNDARY_MARKER}
 """,
     )
     write_text(
@@ -417,7 +453,7 @@ Phase 9 flow
     )
     write_text(
         root / REVIEW_CHECKLIST_PATH,
-        """# Zigux Review Checklist
+        f"""# Zigux Review Checklist
 
 - if the change touches the shared Phase 9 runtime-loader packet, do `Documentation/zigux/README.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, `Documentation/zigux/review-checklist.md`, the four runtime survey-and-module note pairs, `zigux/kernel/runtime_loader.zig`, `zigux/kernel/runtime_loader_contract.zig`, `zigux/tests/runtime_loader_allocator_init_flow.zig`, `scripts/zigux/check-phase9-build-only-surface.py`, `zigux/tests/phase9_build.zig`, `zigux/Makefile`, `.github/workflows/zigux-bootstrap.yml`, the four `samples/zigux/runtime_*_loader.zig` scaffolds, the Phase 2 config-surface references `scripts/zigux/kconfig/conf_bridge.zig` and `scripts/zigux/kconfig/confdata_bridge.zig`, and the Phase 3 export-boundary references `rust/exports.c` and `zigux/kernel/export_shim.zig` still agree on the same bounded loader-handoff packet, the shipped build-only surface checker, the workflow-backed `make -C zigux phase9` route, and the no-dedicated-`validate-phase9.py` posture without recasting those earlier-phase references as Phase 9 runtime evidence or understating the shipped shared runtime-loader facade, contract, allocator/init-flow replay, or workflow-backed `make -C zigux phase9` route on `master`?
 """,
@@ -491,6 +527,19 @@ def run_self_test() -> int:
         workflow = workflow_path.read_text(encoding="utf-8")
         workflow_path.write_text(workflow.replace("make -C zigux phase9", "zig build test --build-file zigux/tests/phase9_build.zig", 1), encoding="utf-8")
         expect_failure(root, "workflow:make -C zigux phase9", "missing_workflow_make_route")
+
+        write_fixture_tree(root)
+        docs_readme_path = root / DOCS_README_PATH
+        docs_readme = docs_readme_path.read_text(encoding="utf-8")
+        docs_readme_path.write_text(
+            docs_readme.replace(
+                "Phase 3 export-boundary references rather than runtime-pilot evidence.",
+                "Phase 3 export references rather than runtime-pilot evidence.",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_failure(root, f"docs_readme:{PHASE9_NON_OWNER_BOUNDARY_MARKER}", "missing_docs_non_owner_boundary_marker")
 
         write_fixture_tree(root)
         phase9_build_path = root / PHASE9_BUILD_PATH
@@ -571,8 +620,21 @@ def run_self_test() -> int:
         )
         expect_failure(
             root,
-            "review_checklist:the Phase 2 config-surface references `scripts/zigux/kconfig/conf_bridge.zig` and `scripts/zigux/kconfig/confdata_bridge.zig`, and the Phase 3 export-boundary references `rust/exports.c` and `zigux/kernel/export_shim.zig`",
+            f"review_checklist:{PHASE9_REVIEW_CHECKLIST_BOUNDARY_MARKER}",
             "missing_phase9_non_owner_boundary_paths",
+        )
+
+        write_fixture_tree(root)
+        review_checklist_path = root / REVIEW_CHECKLIST_PATH
+        review_checklist = review_checklist_path.read_text(encoding="utf-8")
+        review_checklist_path.write_text(
+            review_checklist + review_checklist.splitlines()[-1] + "\n",
+            encoding="utf-8",
+        )
+        expect_failure(
+            root,
+            f"review_checklist_exact_count:{PHASE9_REVIEW_CHECKLIST_BOUNDARY_MARKER}:expected=1:actual=2",
+            "duplicate_phase9_non_owner_boundary_paths",
         )
 
         write_fixture_tree(root)
@@ -664,7 +726,7 @@ def run_self_test() -> int:
             )
 
     print("PHASE9_BUILD_ONLY_SURFACE_SELF_TEST=pass")
-    print("PHASE9_BUILD_ONLY_SURFACE_SELF_TEST_CASE_COUNT=14")
+    print("PHASE9_BUILD_ONLY_SURFACE_SELF_TEST_CASE_COUNT=16")
     return 0
 
 
