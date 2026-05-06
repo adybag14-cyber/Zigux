@@ -356,6 +356,29 @@ test "hex conversion helpers reject malformed sources and undersized destination
     try std.testing.expectError(HexError.DestinationTooSmall, hexBytePackUpper(tiny[0..], 0xbe));
 }
 
+test "hexdump grouped-2 ascii output stays exact at full buffer capacity" {
+    const input = [_]u8{
+        0xbe, 0x32, 0xdb, 0x7b,
+        0x0a, 0x18, 0x93, 0xb2,
+        0x70, 0xba, 0xc4, 0x24,
+        0x7d, 0x83, 0x34, 0x9b,
+    };
+    const expected = if (builtin.cpu.arch.endian() == .big)
+        "be32 db7b 0a18 93b2 70ba c424 7d83 349b  .2.{....p..$}.4."
+    else
+        "32be 7bdb 180a b293 ba70 24c4 837d 9b34  .2.{....p..$}.4.";
+    var exact: [58]u8 = undefined;
+
+    const required = hexDumpLineLength(input.len, 16, 2, true);
+    try std.testing.expectEqual(@as(usize, expected.len), required);
+    try std.testing.expectEqual(@as(usize, 57), required);
+
+    const written = hexDumpToBuffer(&input, 16, 2, exact[0..], true);
+    try std.testing.expectEqual(required, written);
+    try std.testing.expectEqualSlices(u8, expected, std.mem.sliceTo(exact[0..], 0));
+    try std.testing.expectEqual(@as(u8, 0), exact[required]);
+}
+
 test "hexdump grouped ascii path reports the same required length for exact and truncated buffers" {
     const input = [_]u8{
         0xbe, 0x32, 0xdb, 0x7b,
