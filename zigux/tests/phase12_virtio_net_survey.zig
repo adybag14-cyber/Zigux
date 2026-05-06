@@ -266,4 +266,9 @@ test "phase12 virtio_net survey manifest stays aligned with the landed driver pa
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "page-minus-room") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "`skb_shared_info`") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "ready-next `phase12-virtio-net-mergeable-buffer-length-summary`") == null);
+    try std.testing.expect(std.mem.indexOf(
+        u8,
+        survey_note,
+        "does not ship a separate `Documentation/zigux/phase12-virtio-net-slice.md`",
+    ) != null);
 }
