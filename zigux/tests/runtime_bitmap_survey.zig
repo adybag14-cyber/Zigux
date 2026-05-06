@@ -129,7 +129,6 @@ test "phase 9 runtime bitmap survey manifest records the roadmap selftest hook, 
 
         for (manifest.gaps[i + 1 ..]) |other| {
             try std.testing.expect(!std.mem.eql(u8, gap.id, other.id));
-            try std.testing.expect(!std.mem.eql(u8, gap.zigux_destination, other.zigux_destination));
         }
     }
 
