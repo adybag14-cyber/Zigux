@@ -118,6 +118,7 @@ For the active shared-helper release packet, keep the shared validator-first rep
 - `zigux/helpers/notifier_chain_view.zig`
 - `scripts/zigux/README.md`
 - `scripts/zigux/check-phase13-devres-packet.py`
+- `scripts/zigux/check-phase13-landlock-ruleset-packet.py`
 - `scripts/zigux/validate-phase13-release.py`
 - `zigux/Makefile`
 - `make -C zigux phase13-validate`
