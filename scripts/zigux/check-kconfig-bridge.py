@@ -83,6 +83,11 @@ def collect_manifest_issues(root: Path) -> list[tuple[str, str]]:
                 continue
             seen_names[name] = group_name
 
+    for case in cases["conf_cases"]:
+        rel_path = case["expected"]
+        if not (fixture_dir / rel_path).exists():
+            issues.append(("MISSING_CONF_CASE_EXPECTED_PATHS", f"{case['name']}:expected:{rel_path}"))
+
     for case in cases["confdata_cases"]:
         for field_name in ("input", "expected"):
             rel_path = case[field_name]
@@ -217,13 +222,19 @@ def run_self_test() -> int:
         assert ("DUPLICATE_KCONFIG_CASE_NAMES", "syncconfig:conf_cases,confdata_cases") in issues
 
         build_self_test_root(root)
+        missing_path = root / "zigux" / "tests" / "fixtures" / "kconfig_bridge" / "syncconfig_expected.json"
+        missing_path.unlink()
+        issues = collect_manifest_issues(root)
+        assert ("MISSING_CONF_CASE_EXPECTED_PATHS", "syncconfig:expected:syncconfig_expected.json") in issues
+
+        build_self_test_root(root)
         missing_path = root / "zigux" / "tests" / "fixtures" / "kconfig_bridge" / "sample_crlf_expected.json"
         missing_path.unlink()
         issues = collect_manifest_issues(root)
         assert ("MISSING_CONFDATA_CASE_PATHS", "sample_crlf:expected:sample_crlf_expected.json") in issues
 
     print("KCONFIG_BRIDGE_SELF_TEST=pass")
-    print("KCONFIG_BRIDGE_SELF_TEST_CASE_COUNT=4")
+    print("KCONFIG_BRIDGE_SELF_TEST_CASE_COUNT=5")
     return 0
 
 
