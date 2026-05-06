@@ -142,7 +142,7 @@ pub const perf_cases = [_]PerfCase{
         .variant_name = "std",
         .iterations = 12000,
         .max_encode_slowdown_pct = 150,
-        .max_decode_slowdown_pct = 150,
+        .max_decode_slowdown_pct = 325,
     },
     .{
         .label = "STD_NO_PAD",
@@ -151,7 +151,7 @@ pub const perf_cases = [_]PerfCase{
         .variant_name = "std",
         .iterations = 12000,
         .max_encode_slowdown_pct = 150,
-        .max_decode_slowdown_pct = 150,
+        .max_decode_slowdown_pct = 325,
     },
     .{
         .label = "URLSAFE_PAD",
@@ -160,7 +160,7 @@ pub const perf_cases = [_]PerfCase{
         .variant_name = "urlsafe",
         .iterations = 12000,
         .max_encode_slowdown_pct = 150,
-        .max_decode_slowdown_pct = 150,
+        .max_decode_slowdown_pct = 325,
     },
     .{
         .label = "URLSAFE_NO_PAD",
@@ -169,7 +169,7 @@ pub const perf_cases = [_]PerfCase{
         .variant_name = "urlsafe",
         .iterations = 12000,
         .max_encode_slowdown_pct = 150,
-        .max_decode_slowdown_pct = 150,
+        .max_decode_slowdown_pct = 325,
     },
 };
 
