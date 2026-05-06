@@ -6,6 +6,8 @@ ROOT = Path(__file__).resolve().parents[2]
 WORKFLOW_EXACT_RUN_COUNTS = {
     'python3 scripts/zigux/check-zig-toolchain.py --self-test': 1,
     'python3 scripts/zigux/check-zig-toolchain.py': 1,
+    'python3 scripts/zigux/check-phase9-build-only-surface.py --self-test': 1,
+    'python3 scripts/zigux/check-phase9-build-only-surface.py': 1,
 }
 required_files = [
     ROOT / 'zigux-alpha' / 'README.md',
@@ -16,10 +18,13 @@ required_files = [
     ROOT / 'scripts' / 'zigux' / 'README.md',
     ROOT / 'scripts' / 'zigux' / 'check-zig-toolchain.py',
     ROOT / 'scripts' / 'zigux' / 'check-phase6-shared-surface.py',
+    ROOT / 'scripts' / 'zigux' / 'check-phase9-build-only-surface.py',
     ROOT / '.github' / 'workflows' / 'zigux-bootstrap.yml',
     ROOT / 'zigux' / 'Makefile',
     ROOT / 'zigux' / 'tests' / 'README.md',
     ROOT / 'zigux' / 'tests' / 'phase6_build.zig',
+    ROOT / 'zigux' / 'tests' / 'phase9_build.zig',
+    ROOT / 'zigux' / 'tests' / 'runtime_loader_allocator_init_flow.zig',
 ]
 
 
@@ -82,6 +87,10 @@ required_workflow_markers = [
     'python3 scripts/zigux/check-phase6-shared-surface.py',
     'Run Phase 6 leaf helper tests',
     'zigux/tests/phase6_build.zig',
+    'Self-test Phase 9 build-only surface checker',
+    'python3 scripts/zigux/check-phase9-build-only-surface.py --self-test',
+    'Check Phase 9 build-only surface',
+    'python3 scripts/zigux/check-phase9-build-only-surface.py',
     'Run Phase 7 runtime helper tests',
     'zigux/tests/phase7_build.zig',
     'Run Phase 8 tooling tests',
