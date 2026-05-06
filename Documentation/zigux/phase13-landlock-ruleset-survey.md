@@ -15,6 +15,7 @@ This document records the bounded Phase 13 survey lane around `security/landlock
   - `zigux/tests/phase13_build.zig`
   - `Documentation/zigux/phase13-landlock-ruleset-slice.md`
   - `Documentation/zigux/phase13-landlock-ruleset-survey.md`
+  - `Documentation/zigux/phase13-landlock-ruleset-ownership.md`
 
 ## Why this slice exists
 
@@ -29,6 +30,8 @@ The highest-value honest step in this lane is therefore not to pretend Zigux own
 - `security/landlock/ruleset.c` is present on `master` and is broad enough to cross several security and lifetime boundaries at once: handled-access masks, per-layer request matrices, rb-tree keyed rules, hierarchy ownership, and domain merge semantics.
 - the live repo already had the shared Phase 13 build gate and `make -C zigux phase13` target, which made it practical to add a lane-local ruleset helper without widening into kernel build integration.
 - the current `security/landlock/ruleset.zig` helper lab stays intentionally narrow around `landlock_create_ruleset()` planning, handled-access unioning, per-layer mask initialization, `landlock_unmask_layers()` bit clearing, the matching-rule branch of `insert_rule()`, the tree-search outcome planning for `get_root()`, `walker_node`, and no-match insertion-count changes, and the explicit root or left or right tree-link mode for the `rb_link_node()` and `rb_insert_color()` branch.
+- the helper-only ownership note now makes the review boundary explicit: `ruleset.zig` owns only the in-memory helper planners above, while `security/landlock/syscalls.zig` keeps file-descriptor, path, and `landlock_restrict_self()` branches, and the live-tree blocker still owns `rb_replace_node()`, object ownership, and hierarchy lifetime.
+- the fixture-governance rule for this helper packet is now explicit as well: the ownership note, slice note, survey note, manifest, and dedicated test gate must move together whenever the helper-owned surface or blocked live-tree claim changes.
 - the helper lab does not claim object references, locking, rb-tree storage, hierarchy allocation, workqueue-backed deferred frees, or interaction with `security/landlock/syscalls.c`.
 - the remaining ruleset gap now starts where pure in-memory planning stops being honest: `rb_replace_node()`, object ownership, hierarchy lifetime, and other live ruleset state are still outside this helper lab.
 
@@ -42,12 +45,13 @@ The current lane state is:
 - landed `phase13-landlock-ruleset-test-gate`
 - landed `phase13-landlock-ruleset-slice-note`
 - landed `phase13-landlock-ruleset-survey-note`
+- landed `phase13-landlock-ruleset-ownership-note`
 - landed `phase13-landlock-rule-layer-merge-followup`
 - landed `phase13-landlock-tree-search-followup`
 - landed `phase13-landlock-tree-link-followup`
 - blocked `phase13-landlock-live-tree-state-blocker`
 
-This keeps the lane explicit without overstating progress: Zigux now has a real `ruleset.zig` helper foothold for access-mask accounting, matching-rule insertion planning, tree-search outcome planning, and no-match tree-link planning, but it still does not claim live rule storage, hierarchy ownership, or full Landlock policy enforcement.
+This keeps the lane explicit without overstating progress: Zigux now has a real `ruleset.zig` helper foothold for access-mask accounting, matching-rule insertion planning, tree-search outcome planning, and no-match tree-link planning, plus one dedicated ownership note that fences the helper packet off from adjacent syscall work and from live-tree claims, but it still does not claim live rule storage, hierarchy ownership, or full Landlock policy enforcement.
 
 ## Non-goals
 
