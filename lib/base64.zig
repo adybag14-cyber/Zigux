@@ -25,13 +25,18 @@ const std_reverse_map = initReverseMap('+', '/');
 const urlsafe_reverse_map = initReverseMap('-', '_');
 const imap_reverse_map = initReverseMap('+', ',');
 
+pub fn paddedChars(nbytes: usize) usize {
+    const full_groups = (nbytes / 3) * 4;
+    return full_groups + (if (nbytes % 3 == 0) @as(usize, 0) else @as(usize, 4));
+}
+
 pub fn chars(nbytes: usize, padding: bool) usize {
+    if (padding) {
+        return paddedChars(nbytes);
+    }
+
     const full_groups = (nbytes / 3) * 4;
     const remainder = nbytes % 3;
-
-    if (padding) {
-        return full_groups + (if (remainder == 0) @as(usize, 0) else @as(usize, 4));
-    }
 
     return full_groups + switch (remainder) {
         0 => @as(usize, 0),
@@ -362,6 +367,17 @@ fn expectExhaustiveShortRoundtrip(padding: bool, variant: Variant) !void {
     }
 }
 
+test "paddedChars mirrors Linux BASE64_CHARS sizing" {
+    try std.testing.expectEqual(@as(usize, 0), paddedChars(0));
+    try std.testing.expectEqual(@as(usize, 4), paddedChars(1));
+    try std.testing.expectEqual(@as(usize, 4), paddedChars(2));
+    try std.testing.expectEqual(@as(usize, 4), paddedChars(3));
+    try std.testing.expectEqual(@as(usize, 8), paddedChars(4));
+    try std.testing.expectEqual(@as(usize, 8), paddedChars(5));
+    try std.testing.expectEqual(@as(usize, 8), paddedChars(6));
+    try std.testing.expectEqual(@as(usize, 12), paddedChars(7));
+}
+
 test "chars matches padded and unpadded output sizes" {
     try std.testing.expectEqual(@as(usize, 0), chars(0, true));
     try std.testing.expectEqual(@as(usize, 4), chars(1, true));
@@ -374,6 +390,10 @@ test "chars matches padded and unpadded output sizes" {
     try std.testing.expectEqual(@as(usize, 3), chars(2, false));
     try std.testing.expectEqual(@as(usize, 4), chars(3, false));
     try std.testing.expectEqual(@as(usize, 6), chars(4, false));
+
+    for (0..16) |nbytes| {
+        try std.testing.expectEqual(paddedChars(nbytes), chars(nbytes, true));
+    }
 }
 
 test "bytes matches canonical padded and unpadded decode sizes" {
