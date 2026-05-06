@@ -108,6 +108,29 @@ pub fn memchrInv(buf: []const u8, value: u8) ?usize {
     return null;
 }
 
+fn cStringLen(buf: []const u8) usize {
+    for (buf, 0..) |ch, idx| {
+        if (ch == 0) {
+            return idx;
+        }
+    }
+    return buf.len;
+}
+
+pub fn strHasPrefix(str: []const u8, prefix: []const u8) bool {
+    const prefix_len = cStringLen(prefix);
+    const str_len = cStringLen(str);
+    if (prefix_len > str_len) {
+        return false;
+    }
+
+    return std.mem.eql(u8, str[0..prefix_len], prefix[0..prefix_len]);
+}
+
+pub fn str_has_prefix(str: []const u8, prefix: []const u8) bool {
+    return strHasPrefix(str, prefix);
+}
+
 test "strtobool accepts common Linux forms" {
     try std.testing.expect(try strtobool("y"));
     try std.testing.expect(try strtobool("On"));
@@ -139,6 +162,17 @@ test "skip trim remove and replace spaces work in place" {
     var replace_cstr_buf = [_]u8{ 'a', '-', 0, '-' };
     try std.testing.expectEqual(@as(usize, 2), replaceChar(&replace_cstr_buf, '-', '_'));
     try std.testing.expectEqualSlices(u8, &[_]u8{ 'a', '_', 0, '-' }, &replace_cstr_buf);
+}
+
+test "strHasPrefix honors C-string boundaries" {
+    try std.testing.expect(strHasPrefix("prefix", "pre"));
+    try std.testing.expect(str_has_prefix("prefix", "prefix"));
+    try std.testing.expect(!strHasPrefix("prefix", "suffix"));
+    try std.testing.expect(!strHasPrefix("pre", "prefix"));
+
+    const cstr = [_]u8{ 'a', 'b', 0, 'x' };
+    const embedded_prefix = [_]u8{ 'a', 'b', 0, 'y' };
+    try std.testing.expect(strHasPrefix(&cstr, &embedded_prefix));
 }
 
 test "memdup and memchrInv preserve byte content" {
