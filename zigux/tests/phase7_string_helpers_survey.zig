@@ -30,6 +30,7 @@ test "phase 7 string helpers survey keeps the roadmap-backed helper packet revie
     try expectContains(docs_root, "zigux/tests/phase7_string_helpers_sample_boundary.zig");
     try expectContains(docs_root, "current `master` still ships no `samples/zigux/*string*` Phase 5 reference sample");
     try expectContains(docs_root, "lib/string_helpers.zig");
+    try expectContains(docs_root, "scripts/zigux/check-phase7-build-wiring.py");
 
     const tests_root = try readRepoFile(allocator, "zigux/tests/README.md");
     defer allocator.free(tests_root);
@@ -48,6 +49,7 @@ test "phase 7 string helpers survey keeps the roadmap-backed helper packet revie
     const scripts_root = try readRepoFile(allocator, "scripts/zigux/README.md");
     defer allocator.free(scripts_root);
     try expectContains(scripts_root, "validate-phase7.py");
+    try expectContains(scripts_root, "check-phase7-build-wiring.py");
     try expectContains(scripts_root, "zigux/tests/phase7_string_helpers_sample_boundary.zig");
     try expectContains(scripts_root, "make -C zigux phase7-validate");
 
