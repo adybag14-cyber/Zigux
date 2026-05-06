@@ -313,4 +313,6 @@ test "phase12 libbpf survey note records the full landed helper set" {
     try std.testing.expect(std.mem.indexOf(u8, note, "rollback owner and reversible-delivery drill") != null);
     try std.testing.expect(std.mem.indexOf(u8, note, "python3 scripts/zigux/check-build-only-phase12-surface.py") != null);
     try std.testing.expect(std.mem.indexOf(u8, note, "make -C zigux phase12") != null);
+    try std.testing.expect(std.mem.indexOf(u8, note, "`zigux/tests/fixtures/phase12_libbpf_snapshot.json`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, note, "deterministic tracked-helper snapshot fixture") != null);
 }
