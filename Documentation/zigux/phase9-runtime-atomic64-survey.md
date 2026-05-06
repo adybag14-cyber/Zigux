@@ -6,7 +6,7 @@ This document tracks the bounded Phase 9 runtime pilot-module survey around `lib
 
 - `PHASE9_STATUS=active`
 - `PHASE9_SLICE=runtime-atomic64-survey`
-- `PHASE9_LANE_KEY=P9-L02`
+- `PHASE9_LANE_KEY=P9-L01`
 - `PHASE9_SURVEYED_COMMIT=ee124761ef3ef5fcc6bb9cd8b7fe8d1fce326839`
 - scope: survey manifest, dedicated runtime survey gate, landed sample-backed module starter, landed module gate, landed diff gate, the bounded sample-side loader scaffold, the shared runtime-loader facade plus allocator/init-flow contract replay, and the lane-level review note that keeps the still-unlanded shared runtime-loader substrate explicit without claiming loadable-module parity
 - product boundary:
@@ -27,7 +27,7 @@ This document tracks the bounded Phase 9 runtime pilot-module survey around `lib
 
 The Phase 9 roadmap explicitly names `lib/atomic64_test.c` as a runtime pilot-module anchor and recommends `zigux/tests/runtime_*` plus `samples/zigux/runtime_*` as the bounded Zigux destinations.
 
-The survey artifacts now advance to `P9-L02` because the bounded sample-side loader scaffold, the shared runtime-loader facade plus allocator/init-flow contract replay, and the shared request-surface proof are landed and reviewable on `master`. That keeps the survey history honest while also making the active packet metadata match the current runtime atomic64 review surface.
+The survey artifacts now advance to `P9-L01` because the bounded sample-side loader scaffold, the shared runtime-loader facade plus allocator/init-flow contract replay, and the shared request-surface proof are landed and reviewable on `master`. That keeps the survey history honest while also making the active packet metadata match the current runtime atomic64 review surface.
 
 The live repo now has a bounded `runtime_atomic64` starter, dedicated module tests, a dedicated diff gate, a bounded sample-side loader scaffold, the shared runtime-loader facade plus allocator/init-flow contract replay, and shared Phase 9 build coverage, so this survey note should reflect the landed pilot review surface instead of still reading like the lane stops before any loader-shaped lifecycle handoff.
 
