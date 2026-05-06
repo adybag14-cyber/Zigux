@@ -315,3 +315,72 @@ const TruncatingWriter = struct {
         self.buffer[terminator_index] = 0;
     }
 };
+
+test "hex conversion helpers cover mixed-case decoding and upper or lower encoding" {
+    const sample = [_]u8{ 0x00, 0xab, 0x7f, 0xf0 };
+    var decoded: [sample.len]u8 = undefined;
+    var lower: [sample.len * 2]u8 = undefined;
+    var upper: [sample.len * 2]u8 = undefined;
+    var upper_rest: []u8 = upper[0..];
+
+    try std.testing.expectEqual(@as(i32, 0), hexToBin('0'));
+    try std.testing.expectEqual(@as(i32, 9), hexToBin('9'));
+    try std.testing.expectEqual(@as(i32, 10), hexToBin('a'));
+    try std.testing.expectEqual(@as(i32, 10), hexToBin('A'));
+    try std.testing.expectEqual(@as(i32, 15), hexToBin('f'));
+    try std.testing.expectEqual(@as(i32, 15), hexToBin('F'));
+    try std.testing.expectEqual(@as(i32, -1), hexToBin('/'));
+    try std.testing.expectEqual(@as(i32, -1), hexToBin('g'));
+
+    try hex2bin(decoded[0..], "00Ab7fF0");
+    try std.testing.expectEqualSlices(u8, &sample, decoded[0..]);
+
+    try std.testing.expectEqualStrings("00ab7ff0", try bin2hex(lower[0..], &sample));
+
+    for (sample) |byte| {
+        upper_rest = try hexBytePackUpper(upper_rest, byte);
+    }
+    try std.testing.expectEqual(@as(usize, 0), upper_rest.len);
+    try std.testing.expectEqualStrings("00AB7FF0", upper[0..]);
+}
+
+test "hex conversion helpers reject malformed sources and undersized destinations" {
+    var decoded: [4]u8 = undefined;
+    var short_encoded: [7]u8 = undefined;
+    var tiny: [1]u8 = undefined;
+
+    try std.testing.expectError(HexError.InvalidSourceLength, hex2bin(decoded[0..], "00ab7ff"));
+    try std.testing.expectError(HexError.InvalidHexDigit, hex2bin(decoded[0..], "00ag7ff0"));
+    try std.testing.expectError(HexError.DestinationTooSmall, bin2hex(short_encoded[0..], &[_]u8{ 0x00, 0xab, 0x7f, 0xf0 }));
+    try std.testing.expectError(HexError.DestinationTooSmall, hexBytePack(tiny[0..], 0xbe));
+    try std.testing.expectError(HexError.DestinationTooSmall, hexBytePackUpper(tiny[0..], 0xbe));
+}
+
+test "hexdump grouped ascii path reports the same required length for exact and truncated buffers" {
+    const input = [_]u8{
+        0xbe, 0x32, 0xdb, 0x7b,
+        0x0a, 0x18, 0x93, 0xb2,
+        0x70, 0xba, 0xc4, 0x24,
+        0x7d, 0x83, 0x34, 0x9b,
+    };
+    const expected = if (builtin.cpu.arch.endian() == .big)
+        "be32db7b 0a1893b2 70bac424 7d83349b  .2.{....p..$}.4."
+    else
+        "7bdb32be b293180a 24c4ba70 9b34837d  .2.{....p..$}.4.";
+
+    const required = hexDumpLineLength(input.len, 16, 4, true);
+    try std.testing.expectEqual(@as(usize, expected.len), required);
+    try std.testing.expectEqual(@as(usize, 53), required);
+
+    var exact: [54]u8 = undefined;
+    const exact_written = hexDumpToBuffer(&input, 16, 4, exact[0..], true);
+    try std.testing.expectEqual(required, exact_written);
+    try std.testing.expectEqualSlices(u8, expected, std.mem.sliceTo(exact[0..], 0));
+    try std.testing.expectEqual(@as(u8, 0), exact[required]);
+
+    var truncated: [53]u8 = [_]u8{0xaa} ** 53;
+    const truncated_written = hexDumpToBuffer(&input, 16, 4, truncated[0..], true);
+    try std.testing.expectEqual(required, truncated_written);
+    try std.testing.expectEqualSlices(u8, expected[0 .. expected.len - 1], std.mem.sliceTo(truncated[0..], 0));
+    try std.testing.expectEqual(@as(u8, 0), truncated[truncated.len - 1]);
+}
