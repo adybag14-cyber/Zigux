@@ -11,6 +11,7 @@ This document records the bounded Phase 7 runtime leaf-helper slice for Zigux ar
 - lane state: helper, fixture, dedicated survey, parity checker, shared validator, and make-wrapper slice landed; parked unless a new `lib/rbtree.c` parity issue appears
 - product boundary:
   - `lib/rbtree.zig`
+  - `samples/zigux/README.md`
   - `scripts/zigux/validate-phase7.py`
   - `scripts/zigux/check-phase7-rbtree-parity.py`
   - `zigux/tests/phase7_rbtree.zig`
@@ -35,6 +36,10 @@ This slice stays intentionally narrow and ports the first practical runtime-safe
 - ordered erase, erase-and-detach, and direct node replacement
 - in-order and postorder traversal helpers
 - shared reviewability through `zigux/tests/phase7_rbtree_survey.zig`, `scripts/zigux/check-phase7-rbtree-parity.py`, `scripts/zigux/validate-phase7.py`, `zigux/tests/phase7_build.zig`, and `make -C zigux phase7`
+
+This is intentionally not a Phase 5 `samples/zigux/` reference-sample lane.
+
+Current `master` still ships no `samples/zigux/*rbtree*` Phase 5 reference sample; keep `rbtree` reviewability under this slice, `samples/zigux/README.md`, `lib/rbtree.zig`, `zigux/tests/phase7_rbtree.zig`, `zigux/tests/phase7_rbtree_survey.zig`, and `zigux/tests/phase7_build.zig` instead of counting it as a fifth Phase 5 sample.
 
 ## Gates
 
