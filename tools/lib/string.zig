@@ -50,6 +50,20 @@ pub fn skipSpaces(str: []const u8) []const u8 {
     return str[idx..];
 }
 
+pub fn strEq(lhs: []const u8, rhs: []const u8) bool {
+    const lhs_len = cStringLen(lhs);
+    const rhs_len = cStringLen(rhs);
+    if (lhs_len != rhs_len) {
+        return false;
+    }
+
+    return std.mem.eql(u8, lhs[0..lhs_len], rhs[0..rhs_len]);
+}
+
+pub fn streq(lhs: []const u8, rhs: []const u8) bool {
+    return strEq(lhs, rhs);
+}
+
 pub fn trimSpaces(buf: []u8) []u8 {
     if (buf.len == 0) {
         return buf[0..0];
@@ -144,6 +158,20 @@ test "strlcpy copies and returns the source length" {
     try std.testing.expectEqual(@as(usize, 5), strlcpy(&dst, "hello"));
     try std.testing.expectEqualSlices(u8, "hel", dst[0..3]);
     try std.testing.expectEqual(@as(u8, 0), dst[3]);
+}
+
+test "streq matches C-string equality semantics" {
+    try std.testing.expect(strEq("zigux", "zigux"));
+    try std.testing.expect(streq("zigux", "zigux"));
+    try std.testing.expect(streq("", ""));
+    try std.testing.expect(!streq("zigux", "zig"));
+    try std.testing.expect(!streq("zigux", "Zigux"));
+
+    const source = [_]u8{ 'z', 'i', 'g', 0, 'x' };
+    const embedded_match = [_]u8{ 'z', 'i', 'g', 0, 'u', 'x' };
+    const embedded_miss = [_]u8{ 'z', 'i', 'p', 0, 'u', 'x' };
+    try std.testing.expect(streq(&source, &embedded_match));
+    try std.testing.expect(!streq(&source, &embedded_miss));
 }
 
 test "skip trim remove and replace spaces work in place" {
