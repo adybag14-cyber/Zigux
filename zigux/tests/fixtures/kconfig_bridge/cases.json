@@ -50,6 +50,15 @@
       "expected": "defconfig_expected.json"
     },
     {
+      "name": "savedefconfig",
+      "mode": "savedefconfig",
+      "kconfig": "Kconfig",
+      "config": ".config",
+      "arch": "x86_64",
+      "mode_arg": "defconfig.out",
+      "expected": "savedefconfig_expected.json"
+    },
+    {
       "name": "listnewconfig",
       "mode": "listnewconfig",
       "kconfig": "Kconfig",
