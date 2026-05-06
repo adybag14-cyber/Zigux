@@ -45,6 +45,8 @@ REQUIRED_FILE_MARKERS = {
     REVIEW_CHECKLIST_PATH: [
         "if the change touches the shared Phase 12 complex-driver packet",
         "`Documentation/zigux/phase12-release-closure-checklist.md`",
+        "`Documentation/zigux/phase12-complex-driver-lane-sequencing.md`",
+        "`Documentation/zigux/phase12-raw-github-coverage-survey.md`",
         "`zigux/tests/phase12_virtio_net_syntax_lab.zig`",
         "`zig build smoke --build-file zigux/tests/phase12_build.zig --summary all`, `make -C zigux phase12-smoke`",
     ],
@@ -203,6 +205,8 @@ Phase 12 notes
         """# Zigux Review Checklist
 - if the change touches the shared Phase 12 complex-driver packet
 - `Documentation/zigux/phase12-release-closure-checklist.md`
+- `Documentation/zigux/phase12-complex-driver-lane-sequencing.md`
+- `Documentation/zigux/phase12-raw-github-coverage-survey.md`
 - `zigux/tests/phase12_virtio_net_syntax_lab.zig`
 - `zig build smoke --build-file zigux/tests/phase12_build.zig --summary all`, `make -C zigux phase12-smoke`
 """,
@@ -363,6 +367,40 @@ def run_self_test() -> int:
             for failure in failures:
                 print(failure)
             return 1
+
+        checklist_path = root / REVIEW_CHECKLIST_PATH
+        original_checklist = checklist_path.read_text(encoding="utf-8")
+        broken_checklist = original_checklist.replace(
+            "- `Documentation/zigux/phase12-complex-driver-lane-sequencing.md`\n",
+            "",
+            1,
+        )
+        checklist_path.write_text(broken_checklist, encoding="utf-8")
+        failures = validate(root)
+        expected = f"{REVIEW_CHECKLIST_PATH}:`Documentation/zigux/phase12-complex-driver-lane-sequencing.md`"
+        if expected not in failures:
+            print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST=fail")
+            print("review-checklist-complex-driver-lane-marker-guard")
+            for failure in failures:
+                print(failure)
+            return 1
+        checklist_path.write_text(original_checklist, encoding="utf-8")
+
+        broken_checklist = original_checklist.replace(
+            "- `Documentation/zigux/phase12-raw-github-coverage-survey.md`\n",
+            "",
+            1,
+        )
+        checklist_path.write_text(broken_checklist, encoding="utf-8")
+        failures = validate(root)
+        expected = f"{REVIEW_CHECKLIST_PATH}:`Documentation/zigux/phase12-raw-github-coverage-survey.md`"
+        if expected not in failures:
+            print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST=fail")
+            print("review-checklist-raw-coverage-marker-guard")
+            for failure in failures:
+                print(failure)
+            return 1
+        checklist_path.write_text(original_checklist, encoding="utf-8")
 
         sequence_path = root / PHASE12_SEQUENCE_PATH
         original_sequence = sequence_path.read_text(encoding="utf-8")
