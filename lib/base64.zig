@@ -427,6 +427,34 @@ test "decode rejects malformed input and reports destination bounds" {
     try std.testing.expectError(DecodeError.InvalidInput, decode(buf[0..], "Zg==", false, .urlsafe));
 }
 
+test "decode leaves caller bytes past the returned payload untouched" {
+    const sample = [_]u8{ 0x00, 0xfb, 0xff, 0x7f, 0x80 };
+    const cases = [_]struct {
+        input: []const u8,
+        expected: []const u8,
+        padding: bool,
+        variant: Variant,
+    }{
+        .{ .input = "Zg==", .expected = "f", .padding = true, .variant = .std },
+        .{ .input = "Zg", .expected = "f", .padding = false, .variant = .std },
+        .{ .input = "Zm8=", .expected = "fo", .padding = true, .variant = .std },
+        .{ .input = "Zm8", .expected = "fo", .padding = false, .variant = .std },
+        .{ .input = "APv_f4A", .expected = sample[0..], .padding = false, .variant = .urlsafe },
+        .{ .input = "APv,f4A=", .expected = sample[0..], .padding = true, .variant = .imap },
+    };
+
+    for (cases) |case| {
+        var decoded = [_]u8{0xaa} ** 8;
+        try std.testing.expectEqual(case.expected.len, try bytes(case.input, case.padding, case.variant));
+        const written = try decode(decoded[0..], case.input, case.padding, case.variant);
+        try std.testing.expectEqual(case.expected.len, written);
+        try std.testing.expectEqualSlices(u8, case.expected, decoded[0..written]);
+        for (decoded[written..]) |byte| {
+            try std.testing.expectEqual(@as(u8, 0xaa), byte);
+        }
+    }
+}
+
 test "decode exhaustively accepts only canonical padded tails" {
     try expectExhaustiveTailCanonicality(true, .std);
     try expectExhaustiveTailCanonicality(true, .urlsafe);
