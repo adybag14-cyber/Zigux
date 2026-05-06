@@ -81,10 +81,12 @@ EXPECTED_SURVEY_TEST_MARKERS = [
     'try std.testing.expect(std.mem.indexOf(u8, survey_note, "lab-only driver validation") != null);',
     'try std.testing.expect(std.mem.indexOf(u8, survey_note, "wrapper ownership stays with the already-landed shared Phase 10 packets") != null);',
     'if (std.mem.eql(u8, gap.id, "phase10-virtio-input-survey-note")) {',
+    'if (std.mem.eql(u8, gap.id, "phase10-virtio-input-queue-callback-preflight-helper")) {',
     'if (std.mem.eql(u8, gap.id, "phase10-virtio-input-wrapper-ownership-note")) {',
     'try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "lab-only driver validation evidence") != null);',
     'try std.testing.expectEqual(@as(usize, 6), manifest.survey_summary.preexisting_phase10_test_files);',
     '"phase10-virtio-input-status-drain-helper"',
+    'try std.testing.expect(saw_queue_callback_preflight_helper);',
     'try std.testing.expect(starter_landed_count >= 14);',
     'try std.testing.expectEqual(@as(usize, 0), ready_next_count);',
     'try std.testing.expectEqual(@as(usize, 1), blocked_count);',
@@ -106,8 +108,10 @@ EXPECTED_SURVEY_NOTE_MARKERS = [
     "PHASE10_STATUS=parked",
     "PHASE10_LANE_KEY=P10-L13",
     "phase10-virtio-input-registration-preflight-helper",
+    "phase10-virtio-input-queue-callback-preflight-helper",
     "phase10-virtio-input-status-drain-helper",
     "phase10-virtio-input-wrapper-ownership-note",
+    "queue-callback preflight summary",
     "wrapper ownership stays with the already-landed shared Phase 10 packets",
     "drivers/virtio/virtio_ring.zig",
     "drivers/virtio/virtio_mmio.zig",
@@ -400,6 +404,15 @@ def run_self_test() -> int:
             raise SystemExit("phase10-input-self-test:expected_survey_note_marker_missing")
         survey_path.write_text(original_survey, encoding="utf-8")
 
+        survey_path.write_text(
+            original_survey.replace("phase10-virtio-input-queue-callback-preflight-helper", "phase10-virtio-input-queue-callback-drift", 1),
+            encoding="utf-8",
+        )
+        _, missing_markers = validate(tmp_root)
+        if "survey_note:phase10-virtio-input-queue-callback-preflight-helper" not in missing_markers:
+            raise SystemExit("phase10-input-self-test:expected_queue_callback_note_marker_missing")
+        survey_path.write_text(original_survey, encoding="utf-8")
+
         makefile_path = tmp_root / "zigux/Makefile"
         original_makefile = makefile_path.read_text(encoding="utf-8")
         makefile_path.write_text(
@@ -434,7 +447,7 @@ def run_self_test() -> int:
         tests_readme_path.write_text(original_tests_readme, encoding="utf-8")
 
     print("PHASE10_INPUT_PACKET_SELF_TEST=pass")
-    print("PHASE10_INPUT_PACKET_SELF_TEST_CASE_COUNT=12")
+    print("PHASE10_INPUT_PACKET_SELF_TEST_CASE_COUNT=13")
     return 0
 
 
