@@ -74,6 +74,38 @@ test "phase 7 rbtree survey manifest records the landed runtime leaf surface and
     );
     defer std.testing.allocator.free(helper_tests);
 
+    const samples_readme = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "samples/zigux/README.md",
+        std.testing.allocator,
+        .limited(32 * 1024),
+    );
+    defer std.testing.allocator.free(samples_readme);
+
+    const zigux_makefile = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "zigux/Makefile",
+        std.testing.allocator,
+        .limited(32 * 1024),
+    );
+    defer std.testing.allocator.free(zigux_makefile);
+
+    const parity_checker = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "scripts/zigux/check-phase7-rbtree-parity.py",
+        std.testing.allocator,
+        .limited(32 * 1024),
+    );
+    defer std.testing.allocator.free(parity_checker);
+
+    const parity_fixture = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "zigux/tests/fixtures/phase7_rbtree.json",
+        std.testing.allocator,
+        .limited(8 * 1024),
+    );
+    defer std.testing.allocator.free(parity_fixture);
+
     const parsed = try std.json.parseFromSlice(Manifest, std.testing.allocator, manifest_json, .{});
     defer parsed.deinit();
 
@@ -144,6 +176,26 @@ test "phase 7 rbtree survey manifest records the landed runtime leaf surface and
     try expectContains(helper_tests, "phase 7 rbtree detached nodes stay non-empty until callers clear them");
     try expectContains(helper_tests, "phase 7 rbtree clearNode marks detached nodes as empty");
     try expectContains(helper_tests, "try std.testing.expectEqual(@as(?*Node, null), nextPostorder(null));");
+    try expectContains(samples_readme, "current `master` still ships no `samples/zigux/*rbtree*` Phase 5 reference sample;");
+    try expectContains(samples_readme, "Documentation/zigux/phase7-rbtree-slice.md");
+    try expectContains(samples_readme, "lib/rbtree.zig");
+    try expectContains(samples_readme, "zigux/tests/phase7_rbtree.zig");
+    try expectContains(samples_readme, "zigux/tests/phase7_rbtree_survey.zig");
+    try expectContains(samples_readme, "scripts/zigux/check-phase7-rbtree-parity.py");
+    try expectContains(samples_readme, "zigux/tests/phase7_build.zig");
+    try expectContains(zigux_makefile, "phase7-validate:");
+    try expectContains(zigux_makefile, "scripts/zigux/check-phase7-rbtree-parity.py --self-test");
+    try expectContains(zigux_makefile, "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase7-rbtree-parity.py");
+    try expectContains(zigux_makefile, "phase7-test:");
+    try expectContains(zigux_makefile, "phase7: phase7-validate phase7-test");
+    try expectContains(parity_checker, "PHASE7_RBTREE_PARITY_SELF_TEST=pass");
+    try expectContains(parity_checker, "zigux/tests/fixtures/phase7_rbtree.json");
+    try expectContains(parity_checker, "zigux/tests/fixtures/phase7_rbtree_c_harness.c");
+    try expectContains(parity_checker, "lib/rbtree.c");
+    try expectContains(parity_fixture, "\"ordered\"");
+    try expectContains(parity_fixture, "\"duplicates\"");
+    try expectContains(parity_fixture, "\"erase_init\"");
+    try expectContains(parity_fixture, "\"postorder\"");
 
     try std.testing.expectEqual(manifest.gaps.len, starter_landed_count);
     try std.testing.expect(saw_helper);
