@@ -232,22 +232,6 @@ test "phase11 hvc console keeps notifier handoff boundaries reviewable" {
     try std.testing.expect(missing_target.host_io_deferred);
     try std.testing.expect(missing_target.remove_handoff_still_required);
 
-    const unregistered_target = try console.summarizeNotifierHandoff(.{
-        .tty_registration_ready = false,
-        .sysrq_dispatch_requested = false,
-        .notifier_target_present = true,
-    });
-    try std.testing.expect(!unregistered_target.tty_registration_ready);
-    try std.testing.expect(!unregistered_target.sysrq_dispatch_requested);
-    try std.testing.expect(unregistered_target.notifier_target_present);
-    try std.testing.expect(unregistered_target.notifier_registration_reviewable);
-    try std.testing.expect(!unregistered_target.notifier_registration_requested);
-    try std.testing.expect(!unregistered_target.notifier_callbacks_deferred);
-    try std.testing.expect(!unregistered_target.notifier_unregister_deferred);
-    try std.testing.expect(unregistered_target.khvcd_worker_execution_deferred);
-    try std.testing.expect(unregistered_target.host_io_deferred);
-    try std.testing.expect(unregistered_target.remove_handoff_still_required);
-
     try std.testing.expectError(error.NotifierDispatchRequiresTtyRegistration, console.summarizeNotifierHandoff(.{
         .tty_registration_ready = false,
         .sysrq_dispatch_requested = true,
@@ -256,6 +240,30 @@ test "phase11 hvc console keeps notifier handoff boundaries reviewable" {
 
     _ = console.teardown();
     try std.testing.expectError(error.ConsoleUnavailable, console.summarizeNotifierHandoff(.{}));
+}
+
+test "phase11 hvc console keeps notifier unregister timing false before tty registration" {
+    var console = try hvc_console.HvcConsoleLab.init(7);
+    _ = console.instantiate(0x77);
+
+    const never_registered = try console.summarizeNotifierHandoff(.{
+        .tty_registration_ready = false,
+        .sysrq_dispatch_requested = false,
+        .notifier_target_present = true,
+    });
+    try std.testing.expectEqual(@as(usize, 7), never_registered.slot_index);
+    try std.testing.expectEqual(@as(u32, 0x77), never_registered.vtermno);
+    try std.testing.expect(never_registered.adapter_present);
+    try std.testing.expect(!never_registered.tty_registration_ready);
+    try std.testing.expect(!never_registered.sysrq_dispatch_requested);
+    try std.testing.expect(never_registered.notifier_target_present);
+    try std.testing.expect(never_registered.notifier_registration_reviewable);
+    try std.testing.expect(!never_registered.notifier_registration_requested);
+    try std.testing.expect(!never_registered.notifier_callbacks_deferred);
+    try std.testing.expect(!never_registered.notifier_unregister_deferred);
+    try std.testing.expect(never_registered.khvcd_worker_execution_deferred);
+    try std.testing.expect(never_registered.host_io_deferred);
+    try std.testing.expect(never_registered.remove_handoff_still_required);
 }
 
 test "phase11 hvc_console adds carriage returns and keeps final flush intent on successful writes" {
