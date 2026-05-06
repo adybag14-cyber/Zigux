@@ -105,6 +105,7 @@ REQUIRED_SNIPPETS = {
         'test "phase 6 hexdump serialized overflow vectors stay in sync"',
         'test "phase 6 hexdump serialized required-length vectors stay in sync"',
         'test "phase 6 hexdump perf fixture packet stays in sync"',
+        'test "phase 6 hexdump uppercase nibble helpers stay aligned with byte packing"',
         'test "phase 6 hexdump parity matrix matches kernel fixture preparation"',
         'test "phase 6 hexdump overflow contract matches truncation expectations"',
         'test "phase 6 hexdump grouped ASCII output stays intact when buffer capacity is exact"',
@@ -300,7 +301,7 @@ def run_self_test() -> None:
             raise AssertionError("expected workflow failure")
         workflow.write_text(original_workflow, encoding="utf-8")
 
-        workflow.write_text(
+        workflow.writeText(
             original_workflow
             + "- name: Run Phase 6 hexdump perf gate\n"
             + "        run: zig build phase6-hexdump-perf --build-file zigux/tests/phase6_build.zig -Doptimize=ReleaseSafe --summary all\n",
