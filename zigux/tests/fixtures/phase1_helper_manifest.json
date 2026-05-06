@@ -22,6 +22,7 @@
       "helper_test_anchors": [
         "test \"bitmap allocator helpers size zero and free their buffers\"",
         "test \"bitmap set clear weight and empty full helpers\"",
+        "test \"bitmap fill clamps tail bits in partial words\"",
         "test \"bitmap and andnot equal intersects subset\"",
         "test \"bitmap and andnot clamp tail bits in partial words\"",
         "test \"bitmap xor keeps caller-selected bit window\"",
