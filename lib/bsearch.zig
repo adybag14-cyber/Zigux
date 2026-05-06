@@ -398,6 +398,71 @@ test "search singleton found and miss paths stay inside a one-compare budget" {
     try std.testing.expectEqual(@as(i32, 12), values[0]);
 }
 
+test "descending singleton typed and raw lookup paths stay inside a one-compare budget" {
+    var values = [_]i32{11};
+    const raw_values: [*]u8 = @ptrCast(values[0..].ptr);
+
+    compare_call_count = 0;
+    try std.testing.expectEqual(@as(?usize, 0), searchIndex(i32, i32, &@as(i32, 11), values[0..], compareIntDescendingCounted));
+    try std.testing.expectEqual(@as(usize, 1), compare_call_count);
+
+    compare_call_count = 0;
+    const found = search(i32, i32, &@as(i32, 11), values[0..], compareIntDescendingCounted) orelse return error.TestUnexpectedResult;
+    try std.testing.expectEqual(@as(i32, 11), found.*);
+    try std.testing.expectEqual(@intFromPtr(&values[0]), @intFromPtr(found));
+    try std.testing.expectEqual(@as(usize, 1), compare_call_count);
+
+    compare_call_count = 0;
+    try std.testing.expectEqual(@as(?usize, null), searchIndex(i32, i32, &@as(i32, 10), values[0..], compareIntDescendingCounted));
+    try std.testing.expectEqual(@as(usize, 1), compare_call_count);
+
+    compare_call_count = 0;
+    try std.testing.expect(search(i32, i32, &@as(i32, 10), values[0..], compareIntDescendingCounted) == null);
+    try std.testing.expectEqual(@as(usize, 1), compare_call_count);
+
+    compare_call_count = 0;
+    const mutable = searchMutable(i32, i32, &@as(i32, 11), values[0..], compareIntDescendingCounted) orelse return error.TestUnexpectedResult;
+    try std.testing.expectEqual(@as(usize, 1), compare_call_count);
+    mutable.* = 12;
+    try std.testing.expectEqual(@as(i32, 12), values[0]);
+    mutable.* = 11;
+
+    raw_compare_call_count = 0;
+    try std.testing.expectEqual(
+        @as(?usize, 0),
+        bsearchIndex(&@as(i32, 11), @ptrCast(values[0..].ptr), values.len, @sizeOf(i32), compareOpaqueIntDescendingCounted),
+    );
+    try std.testing.expectEqual(@as(usize, 1), raw_compare_call_count);
+
+    raw_compare_call_count = 0;
+    const raw_found = bsearch(&@as(i32, 11), @ptrCast(values[0..].ptr), values.len, @sizeOf(i32), compareOpaqueIntDescendingCounted) orelse return error.TestUnexpectedResult;
+    const typed_raw_found: *const i32 = @ptrCast(@alignCast(raw_found));
+    try std.testing.expectEqual(@as(i32, 11), typed_raw_found.*);
+    try std.testing.expectEqual(@intFromPtr(&values[0]), @intFromPtr(typed_raw_found));
+    try std.testing.expectEqual(@as(usize, 1), raw_compare_call_count);
+
+    raw_compare_call_count = 0;
+    try std.testing.expectEqual(
+        @as(?usize, null),
+        bsearchIndex(&@as(i32, 10), @ptrCast(values[0..].ptr), values.len, @sizeOf(i32), compareOpaqueIntDescendingCounted),
+    );
+    try std.testing.expectEqual(@as(usize, 1), raw_compare_call_count);
+
+    raw_compare_call_count = 0;
+    try std.testing.expect(
+        bsearch(&@as(i32, 10), @ptrCast(values[0..].ptr), values.len, @sizeOf(i32), compareOpaqueIntDescendingCounted) == null,
+    );
+    try std.testing.expectEqual(@as(usize, 1), raw_compare_call_count);
+
+    raw_compare_call_count = 0;
+    const raw_mutable = bsearchMutable(&@as(i32, 11), raw_values, values.len, @sizeOf(i32), compareOpaqueIntDescendingCounted) orelse return error.TestUnexpectedResult;
+    const typed_raw_mutable: *i32 = @ptrCast(@alignCast(raw_mutable));
+    try std.testing.expectEqual(@intFromPtr(&values[0]), @intFromPtr(typed_raw_mutable));
+    try std.testing.expectEqual(@as(usize, 1), raw_compare_call_count);
+    typed_raw_mutable.* = 12;
+    try std.testing.expectEqual(@as(i32, 12), values[0]);
+}
+
 test "searchIndex keeps representative ascending and descending probes inside a binary-search budget" {
     const ascending = [_]i32{ 3, 6, 9, 12, 15, 18, 21, 24, 27, 30, 33, 36, 39, 42, 45 };
     const descending = [_]i32{ 45, 42, 39, 36, 33, 30, 27, 24, 21, 18, 15, 12, 9, 6, 3 };
