@@ -17,6 +17,11 @@ This document starts the first bounded Phase 3 slice for Zigux.
   - `zigux/uapi/version.zig`
   - `zigux/tests/phase3_abi.zig`
   - `zigux/tests/phase3_low_level_wrappers.zig`
+- current UAPI starter:
+  - `PHASE3_UAPI_SCOPE=version-only starter nested inside the ABI substrate slice`
+  - `PHASE3_UAPI_VERSION_PATH=zigux/uapi/version.zig`
+  - `PHASE3_UAPI_VERSION_BLOB_SHA=f6b080efc7d06998da6125f487b75181fe1d8ae8`
+  - no additional files currently ship under `zigux/uapi/`
 
 ## Why this slice exists
 
