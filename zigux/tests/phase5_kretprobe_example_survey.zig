@@ -182,7 +182,7 @@ test "phase 5 kretprobe survey packet stays repo-local and keeps shared review s
     defer std.testing.allocator.free(survey_note);
 
     const required_mentions = [_][]const u8{
-        "PHASE5_STATUS=active",
+        "PHASE5_STATUS=parked",
         "PHASE5_SLICE=kretprobe-reference-sample-starter",
         "samples/kprobes/kretprobe_example.c|PHASE5_LANE_KEY=P5-L18|PHASE5_SURVEYED_COMMIT=7361ac51374149a96b7a7a2c6ea3c995d8cc1231|Phase 5",
         "phase5_build.zig",
