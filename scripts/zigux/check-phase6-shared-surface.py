@@ -70,6 +70,17 @@ REQUIRED_SNIPPETS = {
         'test "phase 6 bsearch accepts runtime-selected raw c abi comparator pointers"',
         'test "phase 6 bsearch mutable raw c abi lookup supports write-through"',
     ],
+    "Documentation/zigux/phase6-hexdump-slice.md": [
+        "- lane state: helper, fixture, and dedicated perf gate slices landed; parked unless a new `hexdump.c` parity issue appears",
+        "- `hexDumpLineLength`",
+        "- `hexDumpToBuffer`",
+        "- serialized required-length vectors for `hexDumpLineLength` and zero-buffer `hexDumpToBuffer`",
+        "- a dedicated perf replay that benchmarks the existing four-case perf fixture packet against the committed `fixtures.prepareExpectedLine(...)` reference path",
+        "- `16B-plain-g1`",
+        "- `32B-ascii-g2`",
+        "- `16B-ascii-g4`",
+        "- `16B-ascii-g8`",
+    ],
     "zigux/tests/phase6_checksum.zig": [
         'test "fixture-backed compute parity covers the current checksum vectors"',
         'test "partial sums compose across the fixture split matrix"',
@@ -441,6 +452,27 @@ def run_self_test() -> None:
         else:
             raise AssertionError("expected bsearch replay failure")
         bsearch_tests.write_text(original_bsearch_tests, encoding="utf-8")
+
+        hexdump_slice = root / "Documentation/zigux/phase6-hexdump-slice.md"
+        original_hexdump_slice = hexdump_slice.read_text(encoding="utf-8")
+        hexdump_slice.write_text(
+            original_hexdump_slice.replace(
+                "`16B-ascii-g8`",
+                "`16B-ascii-g16`",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        try:
+            run_checks(root)
+        except ValidationError as exc:
+            if "Documentation/zigux/phase6-hexdump-slice.md" not in str(exc):
+                raise AssertionError(
+                    f"unexpected hexdump slice failure: {exc}"
+                ) from exc
+        else:
+            raise AssertionError("expected hexdump slice failure")
+        hexdump_slice.write_text(original_hexdump_slice, encoding="utf-8")
 
         checksum_tests = root / "zigux/tests/phase6_checksum.zig"
         original_checksum_tests = checksum_tests.read_text(encoding="utf-8")
