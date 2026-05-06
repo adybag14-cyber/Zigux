@@ -16,6 +16,7 @@ This document records the bounded Phase 13 survey lane around `security/landlock
   - `zigux/tests/phase13_build.zig`
   - `Documentation/zigux/phase13-landlock-syscalls-slice.md`
   - `Documentation/zigux/phase13-landlock-syscalls-survey.md`
+  - `Documentation/zigux/phase13-landlock-syscalls-governance.md`
 
 ## Why this slice exists
 
@@ -30,6 +31,7 @@ The highest-value honest step in this lane is therefore not to pretend Zigux own
 - `security/landlock/syscalls.c` is present on `master` and spans multiple user-facing and kernel-facing boundaries at once: ABI structure sizing, query-only create-ruleset calls, ruleset file-descriptor creation, rule import, and restrict-self credential updates.
 - the live repo already had the shared Phase 13 build gate and `make -C zigux phase13` target, which made it practical to add a lane-local syscall helper without widening into kernel build integration.
 - the current `security/landlock/syscalls.zig` slice now stays intentionally narrow around `build_check_abi()` sizing, `landlock_create_ruleset()` query and mask validation, `landlock_restrict_self()` logging-flag translation including the special `ruleset_fd == -1` mute-subdomains-only case, the first `landlock_add_rule()` planner for rule-type dispatch and bounded rule-shape validation, the in-memory `get_ruleset_from_fd()` planner for bad-FD rejection, ruleset-FD type checks, `FMODE_CAN_WRITE` or `FMODE_CAN_READ` access checks, and the single-layer guard, the in-memory `get_path_from_fd()` planner for ruleset-FD rejection, internal-mount filtering, non-user-visible inode rejection, and owned path reference handoff, plus a new in-memory `add_rule_path_beneath()` planner that combines copied path-beneath attrs with the bounded path-FD handoff and the later `put_path()` release responsibility.
+- the new helper-local governance note keeps ownership and fixture claims coupled to `SyscallsHelperLab.descriptor()` so future Phase 13 notes or fixtures cannot quietly turn this planning lab into an implied runtime wrapper while all live-surface flags remain false.
 - the helper still does not claim anonymous inode creation, live FD ownership, path-backed rule import, `prepare_creds()`, thread synchronization, or live domain merges.
 - the next honest syscall-facing step is one tiny planner around `fop_ruleset_release()` so the retained ruleset handoff, matching `landlock_put_ruleset()` release, and zero return contract stay explicit before any live file-operations wiring or FD ownership changes are attempted.
 
@@ -43,13 +45,14 @@ The current lane state is:
 - landed `phase13-landlock-syscalls-test-gate`
 - landed `phase13-landlock-syscalls-slice-note`
 - landed `phase13-landlock-syscalls-survey-note`
+- landed `phase13-landlock-syscalls-governance-note`
 - landed `phase13-landlock-add-rule-followup`
 - landed `phase13-landlock-ruleset-fd-mode-followup`
 - landed `phase13-landlock-path-fd-followup`
 - landed `phase13-landlock-path-beneath-handoff-followup`
 - ready-next `phase13-landlock-ruleset-release-followup`
 
-This keeps the lane explicit without overstating progress: Zigux now has a real `syscalls.zig` helper foothold for ABI, create-ruleset, restrict-self, add-rule, ruleset-FD, path-FD, and path-beneath handoff planning, but it still does not claim anonymous inode creation, live file-operations wiring, path import, or task enforcement.
+This keeps the lane explicit without overstating progress: Zigux now has a real `syscalls.zig` helper foothold for ABI, create-ruleset, restrict-self, add-rule, ruleset-FD, path-FD, and path-beneath handoff planning, plus one governance note that fences ownership and fixture claims, but it still does not claim anonymous inode creation, live file-operations wiring, path import, or task enforcement.
 
 ## Non-goals
 
