@@ -78,7 +78,7 @@ test "phase12 virtio_scsi survey manifest records the landed queue starter and p
     try std.testing.expect(manifest.survey_summary.preexisting_virtio_scsi_zig_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase12_virtio_scsi_test_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase12_virtio_scsi_slice_note_present);
-    try std.testing.expectEqual(@as(usize, 11), manifest.gaps.len);
+    try std.testing.expectEqual(@as(usize, 13), manifest.gaps.len);
 
     var starter_landed_count: usize = 0;
     var ready_next_count: usize = 0;
@@ -93,6 +93,8 @@ test "phase12 virtio_scsi survey manifest records the landed queue starter and p
     var saw_driver_tests = false;
     var saw_slice_note = false;
     var saw_probe_snapshot = false;
+    var saw_restore_queue_rebind = false;
+    var saw_recovery_rollback = false;
     var saw_blocker = false;
 
     for (manifest.gaps, 0..) |gap, i| {
@@ -183,6 +185,24 @@ test "phase12 virtio_scsi survey manifest records the landed queue starter and p
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "max_target") != null);
         }
 
+        if (std.mem.eql(u8, gap.id, "phase12-virtio-scsi-restore-queue-rebind-summary-starter")) {
+            saw_restore_queue_rebind = true;
+            try std.testing.expectEqualStrings("drivers/scsi/virtio_scsi.zig", gap.zigux_destination);
+            try std.testing.expectEqualStrings("starter_landed", gap.status);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "virtscsi_restore()") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "default versus poll queue ranges") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "event buffers until after device ready") != null);
+        }
+
+        if (std.mem.eql(u8, gap.id, "phase12-virtio-scsi-recovery-rollback-summary-starter")) {
+            saw_recovery_rollback = true;
+            try std.testing.expectEqualStrings("drivers/scsi/virtio_scsi.zig", gap.zigux_destination);
+            try std.testing.expectEqualStrings("starter_landed", gap.status);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "keeps the frozen queue layout available for restore") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "blocks queue planning and request access until restore") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "requires replanning before queue reuse") != null);
+        }
+
         if (std.mem.eql(u8, gap.id, "phase12-virtio-scsi-runtime-queues-and-scan")) {
             saw_blocker = true;
             try std.testing.expectEqualStrings("zigux/tests/phase12_virtio_scsi_survey.zig", gap.zigux_destination);
@@ -196,7 +216,7 @@ test "phase12 virtio_scsi survey manifest records the landed queue starter and p
         }
     }
 
-    try std.testing.expectEqual(@as(usize, 10), starter_landed_count);
+    try std.testing.expectEqual(@as(usize, 12), starter_landed_count);
     try std.testing.expectEqual(@as(usize, 0), ready_next_count);
     try std.testing.expectEqual(@as(usize, 1), blocked_count);
     try std.testing.expect(saw_build_gate);
@@ -209,6 +229,8 @@ test "phase12 virtio_scsi survey manifest records the landed queue starter and p
     try std.testing.expect(saw_driver_tests);
     try std.testing.expect(saw_slice_note);
     try std.testing.expect(saw_probe_snapshot);
+    try std.testing.expect(saw_restore_queue_rebind);
+    try std.testing.expect(saw_recovery_rollback);
     try std.testing.expect(saw_blocker);
 }
 
@@ -227,6 +249,8 @@ test "phase12 virtio_scsi survey note keeps the active lane identity and fallbac
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE12_LANE=P12-L13") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase12-virtio-scsi-raw-github-fallback-catalog.md") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "does not own the active survey packet") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "restore queue rebind summary") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "rollback summary") != null);
 }
 
 test "phase12 virtio_scsi raw fallback catalog stays aligned with the shipped build-only replay surface" {
