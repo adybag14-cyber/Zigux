@@ -30,6 +30,42 @@ pub const FdinfoMapInfoSummary = struct {
     has_map_extra: bool,
 };
 
+pub const bpf_obj_name_len: usize = 16;
+pub const bpf_obj_name_capacity_without_nul: usize = bpf_obj_name_len - 1;
+pub const bpf_f_rdonly_prog: u32 = 1 << 7;
+pub const bpf_map_type_devmap: u32 = 14;
+pub const bpf_map_type_devmap_hash: u32 = 25;
+
+pub const ReusedMapNameSource = enum {
+    object_name,
+    kernel_name,
+};
+
+pub const ReusedMapName = struct {
+    source: ReusedMapNameSource,
+    value: []const u8,
+};
+
+pub const MapReuseExpectation = struct {
+    name: []const u8,
+    map_type: u32,
+    key_size: u32,
+    value_size: u32,
+    max_entries: u32,
+    map_flags: u32,
+    map_extra: u64 = 0,
+};
+
+pub const MapReuseObservation = struct {
+    name: []const u8,
+    map_type: u32,
+    key_size: u32,
+    value_size: u32,
+    max_entries: u32,
+    map_flags: u32,
+    map_extra: u64 = 0,
+};
+
 fn noSpaceToPathTooLong(err: anyerror) BridgeError {
     return switch (err) {
         error.NoSpaceLeft => error.PathTooLong,
@@ -156,6 +192,51 @@ pub fn summarizeFdinfoMapInfo(info: FdinfoMapInfo) FdinfoMapInfoSummary {
     };
 }
 
+pub fn mapReuseObservationFromFdinfo(name: []const u8, info: FdinfoMapInfo) ?MapReuseObservation {
+    return .{
+        .name = name,
+        .map_type = info.map_type orelse return null,
+        .key_size = info.key_size orelse return null,
+        .value_size = info.value_size orelse return null,
+        .max_entries = info.max_entries orelse return null,
+        .map_flags = info.map_flags orelse return null,
+        .map_extra = info.map_extra orelse 0,
+    };
+}
+
+pub fn resolveReusedMapName(expected_name: []const u8, observed_name: []const u8) ReusedMapName {
+    if (observed_name.len == bpf_obj_name_capacity_without_nul and
+        expected_name.len >= observed_name.len and
+        std.mem.eql(u8, expected_name[0..observed_name.len], observed_name))
+    {
+        return .{
+            .source = .object_name,
+            .value = expected_name,
+        };
+    }
+
+    return .{
+        .source = .kernel_name,
+        .value = observed_name,
+    };
+}
+
+pub fn normalizeObservedReuseMapFlags(expected_map_type: u32, observed_map_flags: u32) u32 {
+    if (expected_map_type == bpf_map_type_devmap or expected_map_type == bpf_map_type_devmap_hash) {
+        return observed_map_flags & ~bpf_f_rdonly_prog;
+    }
+    return observed_map_flags;
+}
+
+pub fn isMapReuseCompatible(expected: MapReuseExpectation, observed: MapReuseObservation) bool {
+    return observed.map_type == expected.map_type and
+        observed.key_size == expected.key_size and
+        observed.value_size == expected.value_size and
+        observed.max_entries == expected.max_entries and
+        normalizeObservedReuseMapFlags(expected.map_type, observed.map_flags) == expected.map_flags and
+        observed.map_extra == expected.map_extra;
+}
+
 test "buildProcFdinfoPath keeps the bounded procfs pathname contract explicit" {
     var buffer: [64]u8 = undefined;
 
@@ -257,4 +338,92 @@ test "summarizeFdinfoMapInfo keeps bounded completion state reviewable" {
     try std.testing.expectEqual(@as(usize, 6), complete.parsed_field_count);
     try std.testing.expect(complete.has_complete_legacy_fields);
     try std.testing.expect(complete.has_map_extra);
+}
+
+test "mapReuseObservationFromFdinfo keeps the fdinfo bridge packet helper-only" {
+    try std.testing.expectEqual(@as(?MapReuseObservation, null), mapReuseObservationFromFdinfo("stats", .{
+        .map_type = 5,
+        .key_size = 8,
+    }));
+
+    const observation = mapReuseObservationFromFdinfo("stats", .{
+        .map_type = 5,
+        .key_size = 8,
+        .value_size = 16,
+        .max_entries = 1024,
+        .map_flags = 0x20,
+        .map_extra = 42,
+    }).?;
+    try std.testing.expectEqualStrings("stats", observation.name);
+    try std.testing.expectEqual(@as(u32, 5), observation.map_type);
+    try std.testing.expectEqual(@as(u64, 42), observation.map_extra);
+}
+
+test "resolveReusedMapName keeps truncated kernel names tied to the object-side name" {
+    const resolved = resolveReusedMapName("process_pinned_map", "process_pinned_");
+    try std.testing.expectEqual(ReusedMapNameSource.object_name, resolved.source);
+    try std.testing.expectEqualStrings("process_pinned_map", resolved.value);
+
+    const exact = resolveReusedMapName("process_pinned_", "process_pinned_");
+    try std.testing.expectEqual(ReusedMapNameSource.object_name, exact.source);
+    try std.testing.expectEqualStrings("process_pinned_", exact.value);
+
+    const unrelated = resolveReusedMapName("stats_map", "perf_map");
+    try std.testing.expectEqual(ReusedMapNameSource.kernel_name, unrelated.source);
+    try std.testing.expectEqualStrings("perf_map", unrelated.value);
+}
+
+test "normalizeObservedReuseMapFlags mirrors the devmap readonly-prog exception from libbpf.c" {
+    try std.testing.expectEqual(
+        @as(u32, 0x20),
+        normalizeObservedReuseMapFlags(bpf_map_type_devmap, 0x20 | bpf_f_rdonly_prog),
+    );
+    try std.testing.expectEqual(
+        @as(u32, 0x20),
+        normalizeObservedReuseMapFlags(bpf_map_type_devmap_hash, 0x20 | bpf_f_rdonly_prog),
+    );
+    try std.testing.expectEqual(
+        @as(u32, 0x20 | bpf_f_rdonly_prog),
+        normalizeObservedReuseMapFlags(5, 0x20 | bpf_f_rdonly_prog),
+    );
+}
+
+test "isMapReuseCompatible keeps the bounded reused-map comparison explicit" {
+    const expected = MapReuseExpectation{
+        .name = "stats_map",
+        .map_type = bpf_map_type_devmap,
+        .key_size = 4,
+        .value_size = 8,
+        .max_entries = 64,
+        .map_flags = 0x20,
+        .map_extra = 7,
+    };
+
+    try std.testing.expect(isMapReuseCompatible(expected, .{
+        .name = "stats_map",
+        .map_type = bpf_map_type_devmap,
+        .key_size = 4,
+        .value_size = 8,
+        .max_entries = 64,
+        .map_flags = 0x20 | bpf_f_rdonly_prog,
+        .map_extra = 7,
+    }));
+    try std.testing.expect(!isMapReuseCompatible(expected, .{
+        .name = "stats_map",
+        .map_type = bpf_map_type_devmap,
+        .key_size = 8,
+        .value_size = 8,
+        .max_entries = 64,
+        .map_flags = 0x20 | bpf_f_rdonly_prog,
+        .map_extra = 7,
+    }));
+    try std.testing.expect(!isMapReuseCompatible(expected, .{
+        .name = "stats_map",
+        .map_type = bpf_map_type_devmap,
+        .key_size = 4,
+        .value_size = 8,
+        .max_entries = 64,
+        .map_flags = 0x20 | bpf_f_rdonly_prog,
+        .map_extra = 9,
+    }));
 }
