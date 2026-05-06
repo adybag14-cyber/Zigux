@@ -111,6 +111,16 @@ test "phase10 virtio mmio survey manifest records the live helper-backed transpo
     try std.testing.expect(manifest.survey_summary.preexisting_virtio_mmio_test_present);
     try std.testing.expect(manifest.gaps.len >= 14);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE10_STATUS=parked") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE10_FREEZE_MAP=Documentation/zigux/freeze-map.md") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE10_FREEZE_BOUNDARY_STATUS=aligned") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE10_FREEZE_STATUS_CHANGE_CLAIMED=false") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE10_RISKY_TRANSPORT_POSTURE=blocked_on_risky_transport") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE10_ARCHITECTURE_COUNCIL_REOPEN_REQUIRED=true") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE10_ARCHITECTURE_COUNCIL_REOPEN_ATTACHED=false") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "Allowed evidence for this lane remains limited to driver-local lab slices, survey manifests, and shared validation gates.") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "Allowed roadmap destinations for bounded follow-on work in this blocked packet remain `drivers/virtio/*.zig` plus justified `zigux/kernel/` or `zigux/helpers/` support surfaces; this survey does not claim a wider transport-facing home.") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "Forbidden transport claims remain queue setup or reset paths, IRQ parity, DMA paths, input registration lifecycle, and probe or remove lifecycle behavior.") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "Any status review beyond this blocked-on-risky-transport packet still needs an Architecture Council reopen request with fresh linked evidence attached; this survey does not attach one.") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "drivers/virtio/virtio_mmio.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "shorter restaged config window clears stale second-word data") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "plans one bounded config-word write") != null);
