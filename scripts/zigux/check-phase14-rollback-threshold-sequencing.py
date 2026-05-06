@@ -25,8 +25,9 @@ REQUIRED_FILE_MARKERS = {
     "Documentation/zigux/phase14-end-to-end-smoke-survey.md": [
         "`PHASE14_STAY_IN_C_BOUNDARY=explicit`",
         "- rollback owner: `keep the freeze-map anchors in C and reopen only with stronger evidence`",
-        "- fallback path: keep `kernel/workqueue.c`, `net/core/skbuff.c`, `kernel/trace/ring_buffer.c`, and `kernel/rcu/tree.c` as the source of truth",
-        "Leave this shared smoke lane parked unless one of the four anchor-local manifests, the shared replay wiring, or the paired Phase 14 docs surfaces drift.",
+        "Fallback path:",
+        "Keep `kernel/workqueue.c`, `net/core/skbuff.c`, `kernel/trace/ring_buffer.c`, and `kernel/rcu/tree.c` as the source of truth and keep the shared smoke packet limited to survey-backed reviewability evidence.",
+        "Leave this shared smoke lane parked unless one of the four anchor-local manifests, the cross-anchor traceability note, the shared replay wiring, or the paired Phase 14 docs surfaces drift.",
         "- review blocker status: `blocked_on_stay_in_c_evidence`",
         "- `zigux/tests/phase14_workqueue_bridge_manifest.json`",
         "- `zigux/tests/phase14_skbuff_bridge_manifest.json`",
