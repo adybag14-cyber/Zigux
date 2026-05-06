@@ -66,7 +66,15 @@ PHASE9_REVIEW_CHECKLIST_BOUNDARY_MARKER = (
 
 REQUIRED_DOCS_README_MARKERS = [
     "Phase 9 notes",
-    "`Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, `zigux/kernel/runtime_loader.zig`, `zigux/kernel/runtime_loader_contract.zig`, `zigux/tests/runtime_loader_allocator_init_flow.zig`, `scripts/zigux/check-phase9-build-only-surface.py`, `zigux/tests/phase9_build.zig`, `zigux/Makefile`, `.github/workflows/zigux-bootstrap.yml`, and the four `samples/zigux/runtime_*_loader.zig` scaffolds now keep the current runtime atomic64, bitmap, trace-events, and kretprobe pilot bundle reviewable through one shared runtime-loader lane together with the shipped build-only surface checker, loader facade, contract, shared build, and workflow-backed Linux-style `make -C zigux phase9` replay route instead of widening into ad hoc per-slice checks or overstating removed loader-gap or dedicated-validator surfaces on `master`.",
+    "`Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, "
+    "`zigux/kernel/runtime_loader.zig`, `zigux/kernel/runtime_loader_contract.zig`, "
+    "`zigux/tests/runtime_loader_allocator_init_flow.zig`, `scripts/zigux/check-phase9-build-only-surface.py`, "
+    "`zigux/tests/phase9_build.zig`, `zigux/Makefile`, `.github/workflows/zigux-bootstrap.yml`, and the four "
+    "`samples/zigux/runtime_*_loader.zig` scaffolds now keep the current runtime atomic64, bitmap, trace-events, "
+    "and kretprobe pilot bundle reviewable through one shared runtime-loader lane together with the shipped "
+    "build-only surface checker, loader facade, contract, shared build, and workflow-backed Linux-style "
+    "`make -C zigux phase9` replay route instead of widening into ad hoc per-slice checks or overstating removed "
+    "loader-gap or dedicated-validator surfaces on `master`.",
     PHASE9_NON_OWNER_BOUNDARY_MARKER,
 ]
 
@@ -77,12 +85,25 @@ REQUIRED_DOCS_README_EXACT_COUNTS = {
 REQUIRED_SCRIPT_README_MARKERS = [
     "Phase 9 flow",
     "`Documentation/zigux/review-checklist.md`",
-    "`zig build test --build-file zigux/tests/phase9_build.zig` and `make -C zigux phase9` rerun that same bounded runtime atomic64, bitmap, trace-events, and kretprobe pilot bundle together with the shared runtime-loader facade, loader contract, allocator/init-flow replay, and Linux-style replay route.",
-    "there is no dedicated shared `validate-phase9.py`, `check-phase9-validation-flow.py`, `check-phase9-runtime-loader-commit-alignment.py`, or `phase9-validate` target on `master`",
+    "`zig build test --build-file zigux/tests/phase9_build.zig` and `make -C zigux phase9` rerun that same "
+    "bounded runtime atomic64, bitmap, trace-events, and kretprobe pilot bundle together with the shared "
+    "runtime-loader facade, loader contract, allocator/init-flow replay, and Linux-style replay route.",
+    "there is no dedicated shared `validate-phase9.py`, `check-phase9-validation-flow.py`, "
+    "`check-phase9-runtime-loader-commit-alignment.py`, or `phase9-validate` target on `master`",
 ]
 
 REQUIRED_TESTS_README_MARKERS = [
-    "keep the bounded Phase 9 runtime-loader packet wired through `Documentation/zigux/README.md`, `scripts/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/check-phase9-build-only-surface.py`, `zigux/tests/phase9_build.zig`, `zigux/tests/runtime_loader_allocator_init_flow.zig`, `zigux/Makefile`, `.github/workflows/zigux-bootstrap.yml`, `make -C zigux phase9`, the four survey entrypoints `zigux/tests/runtime_atomic64_survey.zig`, `zigux/tests/runtime_bitmap_survey.zig`, `zigux/tests/runtime_trace_events_survey.zig`, and `zigux/tests/runtime_kretprobe_survey.zig`, the four `samples/zigux/runtime_*_loader.zig` scaffolds, and the shared `zigux/kernel/runtime_loader.zig` plus `zigux/kernel/runtime_loader_contract.zig` surfaces so the loader-handoff packet stays reviewable through the same shipped build-only checker and workflow-backed replay route without implying shared runtime substrate closure or a dedicated `validate-phase9.py` surface that does not exist on `master`",
+    "keep the bounded Phase 9 runtime-loader packet wired through `Documentation/zigux/README.md`, "
+    "`scripts/zigux/README.md`, `Documentation/zigux/review-checklist.md`, "
+    "`scripts/zigux/check-phase9-build-only-surface.py`, `zigux/tests/phase9_build.zig`, "
+    "`zigux/tests/runtime_loader_allocator_init_flow.zig`, `zigux/Makefile`, `.github/workflows/zigux-bootstrap.yml`, "
+    "`make -C zigux phase9`, the four survey entrypoints `zigux/tests/runtime_atomic64_survey.zig`, "
+    "`zigux/tests/runtime_bitmap_survey.zig`, `zigux/tests/runtime_trace_events_survey.zig`, and "
+    "`zigux/tests/runtime_kretprobe_survey.zig`, the four `samples/zigux/runtime_*_loader.zig` scaffolds, "
+    "and the shared `zigux/kernel/runtime_loader.zig` plus `zigux/kernel/runtime_loader_contract.zig` surfaces "
+    "so the loader-handoff packet stays reviewable through the same shipped build-only checker and workflow-backed "
+    "replay route without implying shared runtime substrate closure or a dedicated `validate-phase9.py` surface "
+    "that does not exist on `master`",
 ]
 
 REQUIRED_REVIEW_CHECKLIST_MARKERS = [
@@ -98,7 +119,12 @@ REQUIRED_REVIEW_CHECKLIST_EXACT_COUNTS = {
 }
 
 REQUIRED_FREEZE_MAP_MARKERS = [
-    "the shared Phase 9 runtime-loader packet stays review-only beside `kernel/workqueue.c` and `kernel/trace/ring_buffer.c`: `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, `scripts/zigux/check-phase9-build-only-surface.py`, `zigux/tests/phase9_build.zig`, `zigux/kernel/runtime_loader.zig`, `zigux/kernel/runtime_loader_contract.zig`, and the four `samples/zigux/runtime_*_loader.zig` scaffolds keep the bounded loader handoff explicit without implying scheduler-facing substrate closure or a freeze-map status change",
+    "the shared Phase 9 runtime-loader packet stays review-only beside `kernel/workqueue.c` and "
+    "`kernel/trace/ring_buffer.c`: `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, "
+    "`zigux/tests/README.md`, `scripts/zigux/check-phase9-build-only-surface.py`, `zigux/tests/phase9_build.zig`, "
+    "`zigux/kernel/runtime_loader.zig`, `zigux/kernel/runtime_loader_contract.zig`, and the four "
+    "`samples/zigux/runtime_*_loader.zig` scaffolds keep the bounded loader handoff explicit without implying "
+    "scheduler-facing substrate closure or a freeze-map status change",
 ]
 
 REQUIRED_MAKEFILE_MARKERS = [
@@ -208,6 +234,10 @@ REQUIRED_PHASE9_BUILD_EXACT_COUNTS = {marker: 1 for marker in REQUIRED_PHASE9_BU
 
 FORBIDDEN_FILES = [
     "scripts/zigux/validate-phase9.py",
+    "Documentation/zigux/phase9-module-metadata-depmod-bridge-survey.md",
+    "zigux/tests/runtime_module_metadata_manifest.json",
+    "zigux/tests/runtime_module_metadata_survey.zig",
+    "scripts/zigux/check-phase9-module-metadata-packet.py",
 ]
 
 FORBIDDEN_MAKEFILE_MARKERS = [
@@ -223,6 +253,19 @@ def read_text(root: Path, rel_path: str) -> str:
 def write_text(path: Path, text: str) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(text, encoding="utf-8")
+
+
+def ensure_contains(failures: list[str], label: str, text: str, markers: list[str]) -> None:
+    for marker in markers:
+        if marker not in text:
+            failures.append(f"{label}:{marker}")
+
+
+def ensure_exact_counts(failures: list[str], label: str, text: str, counts: dict[str, int]) -> None:
+    for marker, expected_count in counts.items():
+        actual_count = text.count(marker)
+        if actual_count != expected_count:
+            failures.append(f"{label}_exact_count:{marker}:expected={expected_count}:actual={actual_count}")
 
 
 def validate(root: Path) -> list[str]:
@@ -261,48 +304,19 @@ def validate(root: Path) -> list[str]:
     workflow = read_text(root, WORKFLOW_PATH)
     phase9_build = read_text(root, PHASE9_BUILD_PATH)
 
-    for marker in REQUIRED_DOCS_README_MARKERS:
-        if marker not in docs_readme:
-            failures.append(f"docs_readme:{marker}")
-    for marker in REQUIRED_SCRIPT_README_MARKERS:
-        if marker not in scripts_readme:
-            failures.append(f"scripts_readme:{marker}")
-    for marker in REQUIRED_TESTS_README_MARKERS:
-        if marker not in tests_readme:
-            failures.append(f"tests_readme:{marker}")
-    for marker in REQUIRED_REVIEW_CHECKLIST_MARKERS:
-        if marker not in review_checklist:
-            failures.append(f"review_checklist:{marker}")
-    for marker in REQUIRED_FREEZE_MAP_MARKERS:
-        if marker not in freeze_map:
-            failures.append(f"freeze_map:{marker}")
-    for marker in REQUIRED_MAKEFILE_MARKERS:
-        if marker not in makefile:
-            failures.append(f"makefile:{marker}")
-    for marker in REQUIRED_WORKFLOW_MARKERS:
-        if marker not in workflow:
-            failures.append(f"workflow:{marker}")
-    for marker in REQUIRED_PHASE9_BUILD_MARKERS:
-        if marker not in phase9_build:
-            failures.append(f"phase9_build:{marker}")
-    for marker, expected_count in REQUIRED_DOCS_README_EXACT_COUNTS.items():
-        actual_count = docs_readme.count(marker)
-        if actual_count != expected_count:
-            failures.append(
-                f"docs_readme_exact_count:{marker}:expected={expected_count}:actual={actual_count}"
-            )
-    for marker, expected_count in REQUIRED_REVIEW_CHECKLIST_EXACT_COUNTS.items():
-        actual_count = review_checklist.count(marker)
-        if actual_count != expected_count:
-            failures.append(
-                f"review_checklist_exact_count:{marker}:expected={expected_count}:actual={actual_count}"
-            )
-    for marker, expected_count in REQUIRED_PHASE9_BUILD_EXACT_COUNTS.items():
-        actual_count = phase9_build.count(marker)
-        if actual_count != expected_count:
-            failures.append(
-                f"phase9_build_exact_count:{marker}:expected={expected_count}:actual={actual_count}"
-            )
+    ensure_contains(failures, "docs_readme", docs_readme, REQUIRED_DOCS_README_MARKERS)
+    ensure_contains(failures, "scripts_readme", scripts_readme, REQUIRED_SCRIPT_README_MARKERS)
+    ensure_contains(failures, "tests_readme", tests_readme, REQUIRED_TESTS_README_MARKERS)
+    ensure_contains(failures, "review_checklist", review_checklist, REQUIRED_REVIEW_CHECKLIST_MARKERS)
+    ensure_contains(failures, "freeze_map", freeze_map, REQUIRED_FREEZE_MAP_MARKERS)
+    ensure_contains(failures, "makefile", makefile, REQUIRED_MAKEFILE_MARKERS)
+    ensure_contains(failures, "workflow", workflow, REQUIRED_WORKFLOW_MARKERS)
+    ensure_contains(failures, "phase9_build", phase9_build, REQUIRED_PHASE9_BUILD_MARKERS)
+
+    ensure_exact_counts(failures, "docs_readme", docs_readme, REQUIRED_DOCS_README_EXACT_COUNTS)
+    ensure_exact_counts(failures, "review_checklist", review_checklist, REQUIRED_REVIEW_CHECKLIST_EXACT_COUNTS)
+    ensure_exact_counts(failures, "phase9_build", phase9_build, REQUIRED_PHASE9_BUILD_EXACT_COUNTS)
+
     for marker in FORBIDDEN_MAKEFILE_MARKERS:
         if marker in makefile:
             failures.append(f"makefile_forbidden:{marker}")
@@ -311,184 +325,24 @@ def validate(root: Path) -> list[str]:
 
 
 def phase9_build_fixture() -> str:
-    return """const runtime_loader_contract_module = b.createModule(.{
-    .root_source_file = b.path("../kernel/runtime_loader_contract.zig"),
-});
-const runtime_loader_facade_module = b.createModule(.{
-    .root_source_file = b.path("../kernel/runtime_loader.zig"),
-});
-const runtime_atomic64_loader_module = b.createModule(.{
-    .root_source_file = b.path("../../samples/zigux/runtime_atomic64_loader.zig"),
-});
-const runtime_bitmap_loader_module = b.createModule(.{
-    .root_source_file = b.path("../../samples/zigux/runtime_bitmap_loader.zig"),
-});
-const runtime_trace_events_loader_module = b.createModule(.{
-    .root_source_file = b.path("../../samples/zigux/runtime_trace_events_loader.zig"),
-});
-const runtime_kretprobe_loader_module = b.createModule(.{
-    .root_source_file = b.path("../../samples/zigux/runtime_kretprobe_loader.zig"),
-});
-const runtime_loader_allocator_init_flow_module = b.createModule(.{
-    .root_source_file = b.path("runtime_loader_allocator_init_flow.zig"),
-});
-const runtime_atomic64_survey_module = b.createModule(.{
-    .root_source_file = b.path("runtime_atomic64_survey.zig"),
-});
-const runtime_bitmap_survey_module = b.createModule(.{
-    .root_source_file = b.path("runtime_bitmap_survey.zig"),
-});
-const runtime_trace_events_survey_module = b.createModule(.{
-    .root_source_file = b.path("runtime_trace_events_survey.zig"),
-});
-const runtime_kretprobe_survey_module = b.createModule(.{
-    .root_source_file = b.path("runtime_kretprobe_survey.zig"),
-});
-const runtime_loader_contract_tests = b.addTest(.{
-    .name = "phase9-runtime-loader-contract-tests",
-    .root_module = runtime_loader_contract_module,
-});
-const run_runtime_loader_contract_tests = b.addRunArtifact(runtime_loader_contract_tests);
-const runtime_loader_facade_tests = b.addTest(.{
-    .name = "phase9-runtime-loader-facade-tests",
-    .root_module = runtime_loader_facade_module,
-});
-const run_runtime_loader_facade_tests = b.addRunArtifact(runtime_loader_facade_tests);
-const runtime_loader_allocator_init_flow_tests = b.addTest(.{
-    .name = "phase9-runtime-loader-allocator-init-flow-tests",
-    .root_module = runtime_loader_allocator_init_flow_module,
-});
-const run_runtime_loader_allocator_init_flow_tests = b.addRunArtifact(runtime_loader_allocator_init_flow_tests);
-const runtime_loader_shared_tests_step = b.step(
-    "phase9-runtime-loader-shared-tests",
-    "Run the focused Phase 9 runtime-loader facade, contract, and allocator/init-flow tests",
-);
-runtime_loader_shared_tests_step.dependOn(&run_runtime_loader_contract_tests.step);
-runtime_loader_shared_tests_step.dependOn(&run_runtime_loader_facade_tests.step);
-runtime_loader_shared_tests_step.dependOn(&run_runtime_loader_allocator_init_flow_tests.step);
-const runtime_atomic64_loader_tests = b.addTest(.{
-    .name = "phase9-runtime-atomic64-loader-tests",
-    .root_module = runtime_atomic64_loader_module,
-});
-const run_runtime_atomic64_loader_tests = b.addRunArtifact(runtime_atomic64_loader_tests);
-const runtime_bitmap_loader_tests = b.addTest(.{
-    .name = "phase9-runtime-bitmap-loader-tests",
-    .root_module = runtime_bitmap_loader_module,
-});
-const run_runtime_bitmap_loader_tests = b.addRunArtifact(runtime_bitmap_loader_tests);
-const runtime_trace_events_loader_tests = b.addTest(.{
-    .name = "phase9-runtime-trace-events-loader-tests",
-    .root_module = runtime_trace_events_loader_module,
-});
-const run_runtime_trace_events_loader_tests = b.addRunArtifact(runtime_trace_events_loader_tests);
-const runtime_kretprobe_loader_tests = b.addTest(.{
-    .name = "phase9-runtime-kretprobe-loader-tests",
-    .root_module = runtime_kretprobe_loader_module,
-});
-const run_runtime_kretprobe_loader_tests = b.addRunArtifact(runtime_kretprobe_loader_tests);
-const runtime_atomic64_survey_tests = b.addTest(.{
-    .name = "phase9-runtime-atomic64-survey-tests",
-    .root_module = runtime_atomic64_survey_module,
-});
-const run_runtime_atomic64_survey_tests = b.addRunArtifact(runtime_atomic64_survey_tests);
-const runtime_bitmap_survey_tests = b.addTest(.{
-    .name = "phase9-runtime-bitmap-survey-tests",
-    .root_module = runtime_bitmap_survey_module,
-});
-const run_runtime_bitmap_survey_tests = b.addRunArtifact(runtime_bitmap_survey_tests);
-const runtime_trace_events_survey_tests = b.addTest(.{
-    .name = "phase9-runtime-trace-events-survey-tests",
-    .root_module = runtime_trace_events_survey_module,
-});
-const run_runtime_trace_events_survey_tests = b.addRunArtifact(runtime_trace_events_survey_tests);
-const runtime_kretprobe_survey_tests = b.addTest(.{
-    .name = "phase9-runtime-kretprobe-survey-tests",
-    .root_module = runtime_kretprobe_survey_module,
-});
-const run_runtime_kretprobe_survey_tests = b.addRunArtifact(runtime_kretprobe_survey_tests);
-const test_step = b.step("test", "Run Phase 9 runtime pilot tests");
-test_step.dependOn(&run_runtime_loader_contract_tests.step);
-test_step.dependOn(&run_runtime_loader_facade_tests.step);
-test_step.dependOn(&run_runtime_loader_allocator_init_flow_tests.step);
-test_step.dependOn(&run_runtime_atomic64_loader_tests.step);
-test_step.dependOn(&run_runtime_bitmap_loader_tests.step);
-test_step.dependOn(&run_runtime_trace_events_loader_tests.step);
-test_step.dependOn(&run_runtime_kretprobe_loader_tests.step);
-test_step.dependOn(&run_runtime_atomic64_survey_tests.step);
-test_step.dependOn(&run_runtime_bitmap_survey_tests.step);
-test_step.dependOn(&run_runtime_trace_events_survey_tests.step);
-test_step.dependOn(&run_runtime_kretprobe_survey_tests.step);
-"""
+    return "\n".join(REQUIRED_PHASE9_BUILD_MARKERS) + "\n"
+
+
+def minimal_marker_doc(title: str, markers: list[str]) -> str:
+    return "\n".join([f"# {title}", *markers, ""])
 
 
 def write_fixture_tree(root: Path) -> None:
     if root.exists():
         shutil.rmtree(root)
 
-    write_text(
-        root / DOCS_README_PATH,
-        f"""# Zigux Documentation
-
-Phase 9 notes
-- `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, `zigux/kernel/runtime_loader.zig`, `zigux/kernel/runtime_loader_contract.zig`, `zigux/tests/runtime_loader_allocator_init_flow.zig`, `scripts/zigux/check-phase9-build-only-surface.py`, `zigux/tests/phase9_build.zig`, `zigux/Makefile`, `.github/workflows/zigux-bootstrap.yml`, and the four `samples/zigux/runtime_*_loader.zig` scaffolds now keep the current runtime atomic64, bitmap, trace-events, and kretprobe pilot bundle reviewable through one shared runtime-loader lane together with the shipped build-only surface checker, loader facade, contract, shared build, and workflow-backed Linux-style `make -C zigux phase9` replay route instead of widening into ad hoc per-slice checks or overstating removed loader-gap or dedicated-validator surfaces on `master`.
-{PHASE9_NON_OWNER_BOUNDARY_MARKER}
-""",
-    )
-    write_text(
-        root / SCRIPTS_README_PATH,
-        """# scripts/zigux
-
-Phase 9 flow
-- the current shared Phase 9 review surface on `master` is `Documentation/zigux/README.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, `Documentation/zigux/review-checklist.md`, the four runtime survey-and-module note pairs (`Documentation/zigux/phase9-runtime-atomic64-module-slice.md`, `Documentation/zigux/phase9-runtime-atomic64-survey.md`, `Documentation/zigux/phase9-runtime-bitmap-module-slice.md`, and `Documentation/zigux/phase9-runtime-bitmap-survey.md`, `Documentation/zigux/phase9-runtime-kretprobe-module-slice.md`, and `Documentation/zigux/phase9-runtime-kretprobe-survey.md`, `Documentation/zigux/phase9-runtime-trace-events-module-slice.md`, and `Documentation/zigux/phase9-runtime-trace-events-survey.md`), `zigux/kernel/runtime_loader.zig`, `zigux/kernel/runtime_loader_contract.zig`, `zigux/tests/runtime_loader_allocator_init_flow.zig`, `scripts/zigux/check-phase9-build-only-surface.py`, `zigux/tests/phase9_build.zig`, `zigux/Makefile`, `.github/workflows/zigux-bootstrap.yml`, and the four `samples/zigux/runtime_*_loader.zig` scaffolds.
-- `zig build test --build-file zigux/tests/phase9_build.zig` and `make -C zigux phase9` rerun that same bounded runtime atomic64, bitmap, trace-events, and kretprobe pilot bundle together with the shared runtime-loader facade, loader contract, allocator/init-flow replay, and Linux-style replay route.
-- there is no dedicated shared `validate-phase9.py`, `check-phase9-validation-flow.py`, `check-phase9-runtime-loader-commit-alignment.py`, or `phase9-validate` target on `master`; future runtime-pilot follow-through should stay inside the next smallest shared runtime-loader substrate, validation, or review-surface step that keeps those four loader handoffs plus the shared `zigux/kernel/runtime_loader.zig` facade and `zigux/kernel/runtime_loader_contract.zig` allocator/init-flow contract reviewable without widening into a larger runtime-module implementation.
-""",
-    )
-    write_text(
-        root / TESTS_README_PATH,
-        """# zigux/tests
-
-- keep the bounded Phase 9 runtime-loader packet wired through `Documentation/zigux/README.md`, `scripts/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/check-phase9-build-only-surface.py`, `zigux/tests/phase9_build.zig`, `zigux/tests/runtime_loader_allocator_init_flow.zig`, `zigux/Makefile`, `.github/workflows/zigux-bootstrap.yml`, `make -C zigux phase9`, the four survey entrypoints `zigux/tests/runtime_atomic64_survey.zig`, `zigux/tests/runtime_bitmap_survey.zig`, `zigux/tests/runtime_trace_events_survey.zig`, and `zigux/tests/runtime_kretprobe_survey.zig`, the four `samples/zigux/runtime_*_loader.zig` scaffolds, and the shared `zigux/kernel/runtime_loader.zig` plus `zigux/kernel/runtime_loader_contract.zig` surfaces so the loader-handoff packet stays reviewable through the same shipped build-only checker and workflow-backed replay route without implying shared runtime substrate closure or a dedicated `validate-phase9.py` surface that does not exist on `master`
-""",
-    )
-    write_text(
-        root / REVIEW_CHECKLIST_PATH,
-        f"""# Zigux Review Checklist
-
-- if the change touches the shared Phase 9 runtime-loader packet, do `Documentation/zigux/README.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, `Documentation/zigux/review-checklist.md`, the four runtime survey-and-module note pairs, `zigux/kernel/runtime_loader.zig`, `zigux/kernel/runtime_loader_contract.zig`, `zigux/tests/runtime_loader_allocator_init_flow.zig`, `scripts/zigux/check-phase9-build-only-surface.py`, `zigux/tests/phase9_build.zig`, `zigux/Makefile`, `.github/workflows/zigux-bootstrap.yml`, the four `samples/zigux/runtime_*_loader.zig` scaffolds, the Phase 2 config-surface references `scripts/zigux/kconfig/conf_bridge.zig` and `scripts/zigux/kconfig/confdata_bridge.zig`, and the Phase 3 export-boundary references `rust/exports.c` and `zigux/kernel/export_shim.zig` still agree on the same bounded loader-handoff packet, the shipped build-only surface checker, the workflow-backed `make -C zigux phase9` route, and the no-dedicated-`validate-phase9.py` posture without recasting those earlier-phase references as Phase 9 runtime evidence or understating the shipped shared runtime-loader facade, contract, allocator/init-flow replay, or workflow-backed `make -C zigux phase9` route on `master`?
-""",
-    )
-    write_text(
-        root / FREEZE_MAP_PATH,
-        """# Zigux Freeze Map
-
-- the shared Phase 9 runtime-loader packet stays review-only beside `kernel/workqueue.c` and `kernel/trace/ring_buffer.c`: `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, `scripts/zigux/check-phase9-build-only-surface.py`, `zigux/tests/phase9_build.zig`, `zigux/kernel/runtime_loader.zig`, `zigux/kernel/runtime_loader_contract.zig`, and the four `samples/zigux/runtime_*_loader.zig` scaffolds keep the bounded loader handoff explicit without implying scheduler-facing substrate closure or a freeze-map status change
-""",
-    )
-    write_text(
-        root / MAKEFILE_PATH,
-        """PHONY += phase9-test phase9
-
-phase9-test:
-	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase9-build-only-surface.py
-	cd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase9_build.zig
-
-phase9: phase9-test
-""",
-    )
-    write_text(
-        root / WORKFLOW_PATH,
-        """jobs:
-  bootstrap:
-    steps:
-      - name: Self-test Phase 9 build-only surface checker
-        run: python3 scripts/zigux/check-phase9-build-only-surface.py --self-test
-      - name: Check Phase 9 build-only surface
-        run: python3 scripts/zigux/check-phase9-build-only-surface.py
-      - name: Run Phase 9 runtime helper tests
-        run: make -C zigux phase9
-""",
-    )
+    write_text(root / DOCS_README_PATH, minimal_marker_doc("Zigux Documentation", REQUIRED_DOCS_README_MARKERS))
+    write_text(root / SCRIPTS_README_PATH, minimal_marker_doc("scripts/zigux", REQUIRED_SCRIPT_README_MARKERS))
+    write_text(root / TESTS_README_PATH, minimal_marker_doc("zigux/tests", REQUIRED_TESTS_README_MARKERS))
+    write_text(root / REVIEW_CHECKLIST_PATH, minimal_marker_doc("Zigux Review Checklist", REQUIRED_REVIEW_CHECKLIST_MARKERS))
+    write_text(root / FREEZE_MAP_PATH, minimal_marker_doc("Zigux Freeze Map", REQUIRED_FREEZE_MAP_MARKERS))
+    write_text(root / MAKEFILE_PATH, "\n".join(REQUIRED_MAKEFILE_MARKERS + [""]))
+    write_text(root / WORKFLOW_PATH, "\n".join(REQUIRED_WORKFLOW_MARKERS + [""]))
     write_text(root / PHASE9_BUILD_PATH, phase9_build_fixture())
     write_text(root / RUNTIME_LOADER_PATH, "// facade placeholder\n")
     write_text(root / RUNTIME_LOADER_CONTRACT_PATH, "// contract placeholder\n")
@@ -517,7 +371,7 @@ def run_self_test() -> int:
         makefile_path = root / MAKEFILE_PATH
         makefile = makefile_path.read_text(encoding="utf-8")
         makefile_path.write_text(
-            makefile.replace("cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase9-build-only-surface.py\n", "", 1),
+            makefile.replace("$(PYTHON) scripts/zigux/check-phase9-build-only-surface.py\n", "", 1),
             encoding="utf-8",
         )
         expect_failure(root, "makefile:$(PYTHON) scripts/zigux/check-phase9-build-only-surface.py", "missing_makefile_checker_call")
@@ -525,7 +379,10 @@ def run_self_test() -> int:
         write_fixture_tree(root)
         workflow_path = root / WORKFLOW_PATH
         workflow = workflow_path.read_text(encoding="utf-8")
-        workflow_path.write_text(workflow.replace("make -C zigux phase9", "zig build test --build-file zigux/tests/phase9_build.zig", 1), encoding="utf-8")
+        workflow_path.write_text(
+            workflow.replace("make -C zigux phase9", "zig build test --build-file zigux/tests/phase9_build.zig", 1),
+            encoding="utf-8",
+        )
         expect_failure(root, "workflow:make -C zigux phase9", "missing_workflow_make_route")
 
         write_fixture_tree(root)
@@ -557,30 +414,22 @@ def run_self_test() -> int:
             phase9_build.replace('const runtime_trace_events_loader_module = b.createModule(.{\n', "", 1),
             encoding="utf-8",
         )
-        expect_failure(
-            root,
-            "phase9_build:const runtime_trace_events_loader_module = b.createModule(.{",
-            "missing_trace_events_loader_module",
-        )
+        expect_failure(root, "phase9_build:const runtime_trace_events_loader_module = b.createModule(.{", "missing_trace_events_loader_module")
 
         write_fixture_tree(root)
         phase9_build_path = root / PHASE9_BUILD_PATH
         phase9_build = phase9_build_path.read_text(encoding="utf-8")
         phase9_build_path.write_text(
-            phase9_build.replace('    .name = "phase9-runtime-atomic64-loader-tests",\n', '    .name = "phase9-runtime-atomic64-build-tests",\n', 1),
+            phase9_build.replace('.name = "phase9-runtime-atomic64-loader-tests",\n', '.name = "phase9-runtime-atomic64-build-tests",\n', 1),
             encoding="utf-8",
         )
-        expect_failure(
-            root,
-            'phase9_build:.name = "phase9-runtime-atomic64-loader-tests",',
-            "missing_atomic64_loader_test_name",
-        )
+        expect_failure(root, 'phase9_build:.name = "phase9-runtime-atomic64-loader-tests",', "missing_atomic64_loader_test_name")
 
         write_fixture_tree(root)
         phase9_build_path = root / PHASE9_BUILD_PATH
         phase9_build = phase9_build_path.read_text(encoding="utf-8")
         phase9_build_path.write_text(
-            phase9_build.replace('    .name = "phase9-runtime-bitmap-survey-tests",\n', '    .name = "phase9-runtime-bitmap-build-tests",\n', 1),
+            phase9_build.replace('.name = "phase9-runtime-bitmap-survey-tests",\n', '.name = "phase9-runtime-bitmap-build-tests",\n', 1),
             encoding="utf-8",
         )
         expect_failure(root, 'phase9_build:.name = "phase9-runtime-bitmap-survey-tests",', "missing_bitmap_survey_test_name")
@@ -592,11 +441,7 @@ def run_self_test() -> int:
             phase9_build.replace("test_step.dependOn(&run_runtime_bitmap_loader_tests.step);\n", "", 1),
             encoding="utf-8",
         )
-        expect_failure(
-            root,
-            "phase9_build:test_step.dependOn(&run_runtime_bitmap_loader_tests.step);",
-            "missing_bitmap_loader_dependency",
-        )
+        expect_failure(root, "phase9_build:test_step.dependOn(&run_runtime_bitmap_loader_tests.step);", "missing_bitmap_loader_dependency")
 
         write_fixture_tree(root)
         phase9_build_path = root / PHASE9_BUILD_PATH
@@ -611,26 +456,15 @@ def run_self_test() -> int:
         review_checklist_path = root / REVIEW_CHECKLIST_PATH
         review_checklist = review_checklist_path.read_text(encoding="utf-8")
         review_checklist_path.write_text(
-            review_checklist.replace(
-                "scripts/zigux/kconfig/confdata_bridge.zig",
-                "scripts/zigux/confdata_bridge.zig",
-                1,
-            ),
+            review_checklist.replace("scripts/zigux/kconfig/confdata_bridge.zig", "scripts/zigux/confdata_bridge.zig", 1),
             encoding="utf-8",
         )
-        expect_failure(
-            root,
-            f"review_checklist:{PHASE9_REVIEW_CHECKLIST_BOUNDARY_MARKER}",
-            "missing_phase9_non_owner_boundary_paths",
-        )
+        expect_failure(root, f"review_checklist:{PHASE9_REVIEW_CHECKLIST_BOUNDARY_MARKER}", "missing_phase9_non_owner_boundary_paths")
 
         write_fixture_tree(root)
         review_checklist_path = root / REVIEW_CHECKLIST_PATH
         review_checklist = review_checklist_path.read_text(encoding="utf-8")
-        review_checklist_path.write_text(
-            review_checklist + review_checklist.splitlines()[-1] + "\n",
-            encoding="utf-8",
-        )
+        review_checklist_path.write_text(review_checklist + PHASE9_REVIEW_CHECKLIST_BOUNDARY_MARKER + "\n", encoding="utf-8")
         expect_failure(
             root,
             f"review_checklist_exact_count:{PHASE9_REVIEW_CHECKLIST_BOUNDARY_MARKER}:expected=1:actual=2",
@@ -667,35 +501,19 @@ def run_self_test() -> int:
         phase9_build_path = root / PHASE9_BUILD_PATH
         phase9_build = phase9_build_path.read_text(encoding="utf-8")
         phase9_build_path.write_text(
-            phase9_build.replace(
-                'const runtime_loader_contract_tests = b.addTest(.{\n',
-                "",
-                1,
-            ),
+            phase9_build.replace('const runtime_loader_contract_tests = b.addTest(.{\n', "", 1),
             encoding="utf-8",
         )
-        expect_failure(
-            root,
-            'phase9_build:const runtime_loader_contract_tests = b.addTest(.{',
-            "missing_phase9_build_contract_test_declaration",
-        )
+        expect_failure(root, 'phase9_build:const runtime_loader_contract_tests = b.addTest(.{', "missing_phase9_build_contract_test_declaration")
 
         write_fixture_tree(root)
         phase9_build_path = root / PHASE9_BUILD_PATH
         phase9_build = phase9_build_path.read_text(encoding="utf-8")
         phase9_build_path.write_text(
-            phase9_build.replace(
-                'const runtime_loader_shared_tests_step = b.step(\n',
-                "",
-                1,
-            ),
+            phase9_build.replace('const runtime_loader_shared_tests_step = b.step(\n', "", 1),
             encoding="utf-8",
         )
-        expect_failure(
-            root,
-            'phase9_build:const runtime_loader_shared_tests_step = b.step(',
-            "missing_phase9_build_shared_loader_step",
-        )
+        expect_failure(root, 'phase9_build:const runtime_loader_shared_tests_step = b.step(', "missing_phase9_build_shared_loader_step")
 
         write_fixture_tree(root)
         phase9_build_path = root / PHASE9_BUILD_PATH
@@ -708,6 +526,22 @@ def run_self_test() -> int:
             root,
             "phase9_build_exact_count:runtime_loader_shared_tests_step.dependOn(&run_runtime_loader_contract_tests.step);:expected=1:actual=2",
             "duplicate_phase9_build_shared_loader_contract_dependency",
+        )
+
+        write_fixture_tree(root)
+        write_text(root / "Documentation/zigux/phase9-module-metadata-depmod-bridge-survey.md", "# stale note\n")
+        expect_failure(
+            root,
+            "unexpected_file:Documentation/zigux/phase9-module-metadata-depmod-bridge-survey.md",
+            "unexpected_metadata_note",
+        )
+
+        write_fixture_tree(root)
+        write_text(root / "scripts/zigux/check-phase9-module-metadata-packet.py", "# stale checker\n")
+        expect_failure(
+            root,
+            "unexpected_file:scripts/zigux/check-phase9-module-metadata-packet.py",
+            "unexpected_metadata_checker",
         )
 
         write_fixture_tree(root)
@@ -726,7 +560,7 @@ def run_self_test() -> int:
             )
 
     print("PHASE9_BUILD_ONLY_SURFACE_SELF_TEST=pass")
-    print("PHASE9_BUILD_ONLY_SURFACE_SELF_TEST_CASE_COUNT=16")
+    print("PHASE9_BUILD_ONLY_SURFACE_SELF_TEST_CASE_COUNT=18")
     return 0
 
 
