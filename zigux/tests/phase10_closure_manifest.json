@@ -55,14 +55,15 @@
       "status": "starter_landed",
       "evidence": [
         "zigux/tests/phase10_build.zig",
-        "zigux/tests/phase10_virtio_ring_reset_reuse.zig",
-        "zigux/tests/phase10_virtio_input_multitouch_preflight.zig",
-        "zigux/tests/phase10_virtio_mmio_queue_isolation.zig",
-        "scripts/zigux/check-phase10-harness-coverage.py",
-        "scripts/zigux/check-phase10-closure-inventory.py",
-        "scripts/zigux/validate-phase10.py",
-        "scripts/zigux/validate-phase10-closure.py",
-        "Documentation/zigux/phase10-closure-evidence.md",
+        "zigux/tests/phase10_virtio_core_reset_queue.zig",
+        "zigux/tests/phase10_virtio_driver_id.zig",
+        "zigux/tests/phase10_virtio_input_status_drain.zig",
+        "zigux/tests/phase10_virtio_mmio.zig",
+        "zigux/tests/phase10_virtio_mmio_survey.zig",
+        "scripts/zigux/check-phase10-core-packet.py",
+        "scripts/zigux/check-phase10-ring-packet.py",
+        "scripts/zigux/check-phase10-input-packet.py",
+        "scripts/zigux/check-phase10-mmio-packet.py",
         "zigux/Makefile",
         ".github/workflows/zigux-bootstrap.yml"
       ]
@@ -251,13 +252,11 @@
     "zigux/tests/phase10_virtio_mmio_survey.zig"
   ],
   "exact_checks": [
-    "python3 scripts/zigux/check-phase10-closure-inventory.py",
     "python3 scripts/zigux/check-phase10-core-packet.py",
-    "python3 scripts/zigux/validate-phase10.py",
-    "python3 scripts/zigux/check-phase10-harness-coverage.py",
-    "python3 scripts/zigux/validate-phase10-closure.py",
+    "python3 scripts/zigux/check-phase10-ring-packet.py",
+    "python3 scripts/zigux/check-phase10-input-packet.py",
+    "python3 scripts/zigux/check-phase10-mmio-packet.py",
     "zig build test --build-file zigux/tests/phase10_build.zig --summary all",
-    "make -C zigux phase10-validate",
     "make -C zigux phase10-test",
     "make -C zigux phase10"
   ]
