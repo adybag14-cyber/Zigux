@@ -52,7 +52,7 @@ The current tree still carries a real bounded policy-and-unsafe packet, but it i
 - `zigux/helpers/panic_policy.zig` keeps panic action explicit through `abort`, `bug`, and `warn`, and its focused test still proves the return policy directly from those enum values.
 - `zigux/helpers/allocator_policy.zig` keeps caller-provided ownership and global-fallback policy explicit through the current helper-local predicates.
 - `zigux/unsafe/narrow.zig` still keeps the raw-pointer bridge deliberately small, but it now also decodes `InteropPolicy` unsafe-scope bytes explicitly through `scopeFromInteropPolicyBytes`, `recognizesInteropPolicyBytes`, `permitsVolatileMmioPolicyBytes`, and `permitsRawPointerBridgePolicyBytes` so unknown scopes and reserved-byte drift do not have to be inferred elsewhere in the packet.
-- `zigux/helpers/mmio.zig` still consumes that same narrow layer for `range()`, `read8()`, `write8()`, `read32()`, and `write32()` rather than widening into a larger policy substrate.
+- `zigux/helpers/mmio.zig` still consumes that same narrow layer for `range()`, `read8()`, `write8()`, `read16()`, `write16()`, `read32()`, and `write32()` rather than widening into a larger policy substrate.
 - `zigux/tests/phase3_abi.zig` is the live shared Zig proof packet that imports these helpers today, and `zigux/tests/phase3_abi_dump.zig` keeps the ABI-side `InteropPolicy` and `MmioRange` layout and constant evidence visible on the shared dump path.
 - `zigux/tests/fixtures/phase3_abi_manifest.json`, `Documentation/zigux/phase3-abi-slice.md`, and `scripts/zigux/validate-phase3.py` already treat these helpers as part of the shared `abi` slice.
 
