@@ -261,6 +261,42 @@ test "runtime bitmap sample keeps bounded view summaries stable" {
     try std.testing.expectEqual(RuntimeBitmapSample.bitmap_nbits, summary.nbits);
 }
 
+test "runtime bitmap sample keeps post-selftest mutation replay local to the sample" {
+    var module = RuntimeBitmapSample{};
+    const second_word_base = RuntimeBitmapSample.bitmap_nbits / 2;
+
+    try module.initWithSetBits(&.{ 0, 5, second_word_base, second_word_base + 6 });
+    const selftest = try module.runSelftest();
+    try std.testing.expectEqual(ModuleStage.selftest_complete, module.stage());
+    try std.testing.expectEqual(@as(usize, 4), selftest.operation_families.len);
+
+    try module.clearRange(0, 1);
+    try module.setRange(1, 2);
+
+    const replay_summary = module.summary();
+    try std.testing.expectEqual(ModuleStage.selftest_complete, module.stage());
+    try std.testing.expectEqual(@as(u32, 1), replay_summary.first_set);
+    try std.testing.expectEqual(@as(u32, 0), replay_summary.first_zero);
+    try std.testing.expectEqual(@as(u32, 5), replay_summary.weight);
+    try std.testing.expect(module.isSet(1));
+    try std.testing.expect(module.isSet(2));
+    try std.testing.expect(module.isSet(second_word_base));
+    try std.testing.expect(module.isSet(second_word_base + 6));
+
+    var mirror = RuntimeBitmapSample{};
+    try mirror.initWithSetBits(&.{});
+    try mirror.copyFrom(&module);
+
+    const mirror_summary = mirror.summary();
+    try std.testing.expectEqual(replay_summary.first_set, mirror_summary.first_set);
+    try std.testing.expectEqual(replay_summary.first_zero, mirror_summary.first_zero);
+    try std.testing.expectEqual(replay_summary.weight, mirror_summary.weight);
+    try std.testing.expect(mirror.isSet(1));
+    try std.testing.expect(mirror.isSet(2));
+    try std.testing.expect(mirror.isSet(second_word_base));
+    try std.testing.expect(mirror.isSet(second_word_base + 6));
+}
+
 test "runtime bitmap sample failed init leaves the sample cold and empty" {
     var module = RuntimeBitmapSample{};
 
