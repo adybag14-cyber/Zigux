@@ -269,6 +269,37 @@ pub const SkbuffBridgeLab = struct {
         return audit_checkpoints.len;
     }
 
+    pub fn checkpointById(id: []const u8) ?AuditCheckpoint {
+        for (audit_checkpoints) |checkpoint| {
+            if (std.mem.eql(u8, checkpoint.id, id)) {
+                return checkpoint;
+            }
+        }
+        return null;
+    }
+
+    pub fn hasAuditGuard(guard: AuditGuard) bool {
+        for (audit_checkpoints) |checkpoint| {
+            if (checkpoint.guard == guard) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    pub fn blockedBehaviorIndex(behavior: []const u8) ?usize {
+        for (blocked_live_behaviors, 0..) |blocked_behavior, index| {
+            if (std.mem.eql(u8, blocked_behavior, behavior)) {
+                return index;
+            }
+        }
+        return null;
+    }
+
+    pub fn blocksLiveBehavior(behavior: []const u8) bool {
+        return blockedBehaviorIndex(behavior) != null;
+    }
+
     pub fn nextAuditFocus() []const u8 {
         return "No smaller review-only skbuff checkpoint remains after the exported tail-publication audit; keep live allocation, dataref, checksum, segmentation, qdisc publication, and destructor ownership in C until stronger stay-in-C evidence exists.";
     }
@@ -339,35 +370,49 @@ test "skbuff bridge lifetime audit stays review-only" {
     try std.testing.expect(audit.checkpoints[3].guard == .checksum_complete_state_cache);
     try std.testing.expectEqualStrings("skb->csum_complete_sw", audit.checkpoints[3].observed_fields[3]);
 
-    try std.testing.expectEqualStrings("segmentation-orphan-and-zerocopy-handoff", audit.checkpoints[4].id);
-    try std.testing.expect(audit.checkpoints[4].guard == .segmentation_orphan_and_zerocopy_handoff);
-    try std.testing.expectEqualStrings("skb_shinfo(nskb)->nr_frags", audit.checkpoints[4].observed_fields[3]);
-    try std.testing.expect(std.mem.indexOf(u8, audit.checkpoints[4].blocked_by, "skb_orphan_frags(head_skb, GFP_ATOMIC)") != null);
-    try std.testing.expect(std.mem.indexOf(u8, audit.checkpoints[4].blocked_by, "SKBFL_SHARED_FRAG") != null);
+    const orphan_handoff = SkbuffBridgeLab.checkpointById("segmentation-orphan-and-zerocopy-handoff") orelse return error.MissingCheckpoint;
+    try std.testing.expect(orphan_handoff.guard == .segmentation_orphan_and_zerocopy_handoff);
+    try std.testing.expectEqualStrings("skb_shinfo(nskb)->nr_frags", orphan_handoff.observed_fields[3]);
+    try std.testing.expect(std.mem.indexOf(u8, orphan_handoff.blocked_by, "skb_orphan_frags(head_skb, GFP_ATOMIC)") != null);
+    try std.testing.expect(std.mem.indexOf(u8, orphan_handoff.blocked_by, "SKBFL_SHARED_FRAG") != null);
 
-    try std.testing.expectEqualStrings("segmentation-checksum-metadata-handoff", audit.checkpoints[5].id);
-    try std.testing.expect(audit.checkpoints[5].guard == .segmentation_checksum_metadata_handoff);
-    try std.testing.expectEqualStrings("SKB_GSO_CB(nskb)->csum_start", audit.checkpoints[5].observed_fields[3]);
-    try std.testing.expect(std.mem.indexOf(u8, audit.checkpoints[5].blocked_by, "CHECKSUM_NONE") != null);
-    try std.testing.expect(std.mem.indexOf(u8, audit.checkpoints[5].blocked_by, "skb_checksum()") != null);
+    const checksum_handoff = SkbuffBridgeLab.checkpointById("segmentation-checksum-metadata-handoff") orelse return error.MissingCheckpoint;
+    try std.testing.expect(checksum_handoff.guard == .segmentation_checksum_metadata_handoff);
+    try std.testing.expectEqualStrings("SKB_GSO_CB(nskb)->csum_start", checksum_handoff.observed_fields[3]);
+    try std.testing.expect(std.mem.indexOf(u8, checksum_handoff.blocked_by, "CHECKSUM_NONE") != null);
+    try std.testing.expect(std.mem.indexOf(u8, checksum_handoff.blocked_by, "skb_checksum()") != null);
 
-    try std.testing.expectEqualStrings("segmentation-partial-tail-owner-transfer", audit.checkpoints[6].id);
-    try std.testing.expect(audit.checkpoints[6].guard == .segmentation_partial_tail_owner_transfer);
-    try std.testing.expectEqualStrings("SKB_GSO_CB(iter)->data_offset", audit.checkpoints[6].observed_fields[3]);
-    try std.testing.expect(std.mem.indexOf(u8, audit.checkpoints[6].blocked_by, "SKB_GSO_PARTIAL") != null);
-    try std.testing.expect(std.mem.indexOf(u8, audit.checkpoints[6].blocked_by, "sock_wfree") != null);
+    const tail_owner = SkbuffBridgeLab.checkpointById("segmentation-partial-tail-owner-transfer") orelse return error.MissingCheckpoint;
+    try std.testing.expect(tail_owner.guard == .segmentation_partial_tail_owner_transfer);
+    try std.testing.expectEqualStrings("SKB_GSO_CB(iter)->data_offset", tail_owner.observed_fields[3]);
+    try std.testing.expect(std.mem.indexOf(u8, tail_owner.blocked_by, "SKB_GSO_PARTIAL") != null);
+    try std.testing.expect(std.mem.indexOf(u8, tail_owner.blocked_by, "sock_wfree") != null);
 
-    try std.testing.expectEqualStrings("segmentation-checksum-data-offset-crossover", audit.checkpoints[7].id);
-    try std.testing.expect(audit.checkpoints[7].guard == .segmentation_checksum_data_offset_crossover);
-    try std.testing.expectEqualStrings("remcsum_offload", audit.checkpoints[7].observed_fields[3]);
-    try std.testing.expectEqualStrings("segs->prev", audit.checkpoints[7].observed_fields[4]);
-    try std.testing.expect(std.mem.indexOf(u8, audit.checkpoints[7].blocked_by, "SKB_GSO_CB(nskb)->csum") != null);
-    try std.testing.expect(std.mem.indexOf(u8, audit.checkpoints[7].blocked_by, "tail chain") != null);
+    const checksum_crossover = SkbuffBridgeLab.checkpointById("segmentation-checksum-data-offset-crossover") orelse return error.MissingCheckpoint;
+    try std.testing.expect(checksum_crossover.guard == .segmentation_checksum_data_offset_crossover);
+    try std.testing.expectEqualStrings("remcsum_offload", checksum_crossover.observed_fields[3]);
+    try std.testing.expectEqualStrings("segs->prev", checksum_crossover.observed_fields[4]);
+    try std.testing.expect(std.mem.indexOf(u8, checksum_crossover.blocked_by, "SKB_GSO_CB(nskb)->csum") != null);
+    try std.testing.expect(std.mem.indexOf(u8, checksum_crossover.blocked_by, "tail chain") != null);
 
-    try std.testing.expectEqualStrings("segmentation-tail-publication-consumer-contract", audit.checkpoints[8].id);
-    try std.testing.expect(audit.checkpoints[8].guard == .segmentation_tail_publication_consumer_contract);
-    try std.testing.expectEqualStrings("skb_shinfo(tail)->gso_size", audit.checkpoints[8].observed_fields[2]);
-    try std.testing.expectEqualStrings("validate_xmit_skb_list()", audit.checkpoints[8].observed_fields[4]);
-    try std.testing.expect(std.mem.indexOf(u8, audit.checkpoints[8].blocked_by, "segs->prev") != null);
-    try std.testing.expect(std.mem.indexOf(u8, audit.checkpoints[8].blocked_by, "qdisc and xmit ownership model") != null);
+    const tail_publication = SkbuffBridgeLab.checkpointById("segmentation-tail-publication-consumer-contract") orelse return error.MissingCheckpoint;
+    try std.testing.expect(tail_publication.guard == .segmentation_tail_publication_consumer_contract);
+    try std.testing.expectEqualStrings("skb_shinfo(tail)->gso_size", tail_publication.observed_fields[2]);
+    try std.testing.expectEqualStrings("validate_xmit_skb_list()", tail_publication.observed_fields[4]);
+    try std.testing.expect(std.mem.indexOf(u8, tail_publication.blocked_by, "segs->prev") != null);
+    try std.testing.expect(std.mem.indexOf(u8, tail_publication.blocked_by, "qdisc and xmit ownership model") != null);
+}
+
+test "skbuff bridge lookup helpers keep the review-only catalog queryable" {
+    try std.testing.expect(SkbuffBridgeLab.hasAuditGuard(.segmentation_checksum_data_offset_crossover));
+    try std.testing.expect(SkbuffBridgeLab.hasAuditGuard(.segmentation_tail_publication_consumer_contract));
+    try std.testing.expect(SkbuffBridgeLab.checkpointById("segmentation-tail-publication-consumer-contract") != null);
+    try std.testing.expect(SkbuffBridgeLab.checkpointById("missing-skbuff-checkpoint") == null);
+}
+
+test "skbuff bridge blocked-behavior helpers stay aligned with the audit catalog" {
+    try std.testing.expectEqual(@as(?usize, 7), SkbuffBridgeLab.blockedBehaviorIndex("segmentation checksum and data-offset crossover before tail publication"));
+    try std.testing.expectEqual(@as(?usize, 8), SkbuffBridgeLab.blockedBehaviorIndex("segmentation tail-list publication and validate_xmit_skb_list consumer coordination"));
+    try std.testing.expect(SkbuffBridgeLab.blocksLiveBehavior("segmentation checksum metadata recompute and GSO handoff"));
+    try std.testing.expect(!SkbuffBridgeLab.blocksLiveBehavior("nonexistent skbuff bridge behavior"));
 }
