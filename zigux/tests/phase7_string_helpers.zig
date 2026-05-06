@@ -133,6 +133,23 @@ test "phase 7 kasprintfStrarray returns sequential owned strings with a null-poi
     try std.testing.expectEqual(@as(?[*:0]const u8, null), names.cArray()[3]);
 }
 
+test "phase 7 kasprintfStrarray deinit resets exported views to the zero-count sentinel state" {
+    var names = try string_helpers.kasprintfStrarray(std.testing.allocator, "cpu", 2);
+    var empty = try string_helpers.kasprintfStrarray(std.testing.allocator, "cpu", 0);
+    defer empty.deinit(std.testing.allocator);
+
+    names.deinit(std.testing.allocator);
+    try std.testing.expectEqual(@as(usize, 0), names.names.len);
+    try std.testing.expectEqual(@as(?[*:0]const u8, null), names.cArray()[0]);
+    try std.testing.expectEqual(@as(usize, 0), empty.names.len);
+    try std.testing.expect(names.cArray() == empty.cArray());
+    try std.testing.expect(names.names_null_terminated.ptr == empty.names_null_terminated.ptr);
+
+    names.deinit(std.testing.allocator);
+    try std.testing.expect(names.cArray() == empty.cArray());
+    try std.testing.expect(names.names_null_terminated.ptr == empty.names_null_terminated.ptr);
+}
+
 test "phase 7 kfreeStrarray keeps first-NUL prefixes, zero-count reuse, and repeated teardown safe" {
     var prefixed = try string_helpers.kasprintfStrarray(std.testing.allocator, "tty\x00ignored", 2);
     try std.testing.expectEqualStrings("tty-0", prefixed.names[0]);
