@@ -31,6 +31,7 @@ REQUIRED_CONTRACT_MARKERS = [
     "`Documentation/zigux/phase11-hvc-console-survey.md`",
     "`Documentation/zigux/phase11-hvc-console-teardown-note.md`",
     "`Documentation/zigux/phase11-uapi-header-parity-survey.md`",
+    "`Documentation/zigux/phase11-driver-lane-sequencing.md`",
     "`scripts/zigux/check-phase11-shared-replay-contract.py`",
     "`scripts/zigux/check-phase11-header-boundary-packet.py`",
     "- `scripts/zigux/check-phase11-hvc-survey-packet.py`\n- `zigux/tests/phase11_build.zig`",
@@ -124,7 +125,7 @@ FORBIDDEN_CONTRACT_MARKERS = [
     "the shipped checker only keeps the shared-versus-dedicated replay contract fail-closed",
 ]
 
-PHASE11_SHARED_REPLAY_CONTRACT_SELF_TEST_CASE_COUNT = 13
+PHASE11_SHARED_REPLAY_CONTRACT_SELF_TEST_CASE_COUNT = 14
 
 
 def read_text(root: Path, rel_path: str) -> str:
@@ -223,6 +224,7 @@ def write_fixture_tree(root: Path) -> None:
 - `zigux/tests/README.md`
 - `Documentation/zigux/review-checklist.md`
 - `Documentation/zigux/phase11-shared-replay-contract.md`
+- `Documentation/zigux/phase11-driver-lane-sequencing.md`
 - `Documentation/zigux/phase11-bcm2835-wdt-validation-matrix.md`
 - `Documentation/zigux/phase11-gpio-wdt-validation-matrix.md`
 - `Documentation/zigux/phase11-dw-wdt-validation-matrix.md`
@@ -420,6 +422,11 @@ def run_self_test() -> int:
                 PHASE11_CONTRACT_PATH,
                 "- `scripts/zigux/check-phase11-hvc-survey-packet.py`\n",
                 "phase11_contract:- `scripts/zigux/check-phase11-hvc-survey-packet.py`\n- `zigux/tests/phase11_build.zig`",
+            ),
+            (
+                PHASE11_CONTRACT_PATH,
+                "- `Documentation/zigux/phase11-driver-lane-sequencing.md`\n",
+                "phase11_contract:`Documentation/zigux/phase11-driver-lane-sequencing.md`",
             ),
             (
                 PHASE11_CONTRACT_PATH,
