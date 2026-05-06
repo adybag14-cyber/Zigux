@@ -154,6 +154,14 @@ pub const IoremapResourceInput = struct {
     remap_succeeds: bool = true,
 };
 
+pub const IoremapResourceWrapperInput = struct {
+    device_name: []const u8,
+    resource: ?Resource,
+    fail_pretty_name_allocation: bool = false,
+    request_region_granted: bool = true,
+    remap_succeeds: bool = true,
+};
+
 pub const ManagedMemtypeReserveInput = struct {
     start: u64,
     size: u64,
@@ -388,6 +396,20 @@ pub const DevresHelperLab = struct {
         };
     }
 
+    pub fn planManagedIoremapResourceWc(
+        allocator: std.mem.Allocator,
+        input: IoremapResourceWrapperInput,
+    ) !ManagedIoremapOutcome {
+        return planManagedIoremapResource(allocator, .{
+            .device_name = input.device_name,
+            .resource = input.resource,
+            .requested_type = .wc,
+            .fail_pretty_name_allocation = input.fail_pretty_name_allocation,
+            .request_region_granted = input.request_region_granted,
+            .remap_succeeds = input.remap_succeeds,
+        });
+    }
+
     pub fn planDeviceTreeIomap(
         allocator: std.mem.Allocator,
         input: DeviceTreeIomapInput,
@@ -531,6 +553,33 @@ test "managed ioremap resource exposes owned pretty name cleanup" {
             plan.deinit(allocator);
             try std.testing.expect(!plan.pretty_name_owned_by_plan);
             try std.testing.expectEqualStrings("", plan.pretty_name);
+        },
+        .err => return error.UnexpectedError,
+    }
+}
+
+test "managed ioremap resource wc wrapper keeps explicit wc selection" {
+    const allocator = std.testing.allocator;
+
+    const outcome = try DevresHelperLab.planManagedIoremapResourceWc(allocator, .{
+        .device_name = "virtio-wc",
+        .resource = .{
+            .start = 0x3000,
+            .end = 0x31ff,
+            .is_memory = true,
+            .nonposted = true,
+            .name = "fb",
+        },
+    });
+
+    switch (outcome) {
+        .mapped => |plan_value| {
+            var plan = plan_value;
+            defer plan.deinit(allocator);
+            try std.testing.expect(plan.pretty_name_owned_by_plan);
+            try std.testing.expectEqualStrings("virtio-wc fb", plan.pretty_name);
+            try std.testing.expectEqual(@as(u64, 0x200), plan.size);
+            try std.testing.expectEqual(.wc, plan.effective_type);
         },
         .err => return error.UnexpectedError,
     }
