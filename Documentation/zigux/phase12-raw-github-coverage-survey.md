@@ -40,6 +40,8 @@ The shipped Phase 12 packet on `master` still keeps a direct smoke-preflight bui
 
 Use `Documentation/zigux/phase12-release-closure-checklist.md` as the PMO companion when judging whether those same shipped surfaces are close enough to describe the active Phase 12 tranche as release-closed.
 
+`Documentation/zigux/phase12-complex-driver-lane-sequencing.md` remains the separate driver-only anti-overlap companion for `virtio_net`, `nvme_pci`, and `virtio_scsi`, so this shared fallback overview should be reread beside that lane map instead of letting the mixed fallback split blur those three driver lanes back together.
+
 The shared build-only release guard for that smoke-first order is `scripts/zigux/check-build-only-phase12-surface.py`, and `.github/workflows/zigux-bootstrap.yml` reruns that checker so this shared fallback-overview wording stays aligned with the shipped PMO release packet.
 
 This overview should stay read-only and should not be used to imply an unshipped `validate-phase12.py`, any `check-phase12-*.py` packet, a focused libbpf-only replay route, or a `make -C zigux phase12-validate` target.
