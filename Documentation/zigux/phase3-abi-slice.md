@@ -22,12 +22,12 @@ This document starts the first bounded Phase 3 slice for Zigux.
 - current export shim starter:
   - `PHASE3_EXPORT_SCOPE=shim-only starter nested inside the ABI substrate slice`
   - `PHASE3_EXPORT_SHIM_PATH=zigux/kernel/export_shim.zig`
-  - `PHASE3_EXPORT_SHIM_BLOB_SHA=8c905094d131e7221ae1d3ba7e2f552612bb2bd7`
-  - current helper surface remains `header`, `ok`, `errno`, and `isOk`
+  - `PHASE3_EXPORT_SHIM_BLOB_SHA=61513b232951d2f0fa5167fc7c90fa982f5949d1`
+  - current helper surface now keeps the named boundary-header relay and compatibility packet explicit through `versionedHeader`, `canonicalHeader`, `boundaryHeader`, `compatibleHeader`, `header`, `headerCompatibility`, `canonicalizeHeader`, `isCurrentAbiVersion`, `isCompatibleSize`, `isCanonicalSize`, `isCompatibleHeader`, `isCanonicalHeader`, `ok`, `errno`, `normalize`, and `isOk`
 - current UAPI starter:
-  - `PHASE3_UAPI_SCOPE=version-only starter nested inside the ABI substrate slice`
+  - `PHASE3_UAPI_SCOPE=version-and-boundary-header starter nested inside the ABI substrate slice`
   - `PHASE3_UAPI_VERSION_PATH=zigux/uapi/version.zig`
-  - `PHASE3_UAPI_VERSION_BLOB_SHA=f6b080efc7d06998da6125f487b75181fe1d8ae8`
+  - `PHASE3_UAPI_VERSION_BLOB_SHA=c3c05ea2384bba3882d7a79312f429ef3ec88ca0`
   - no additional files currently ship under `zigux/uapi/`
 - current export/UAPI survey shape:
   - `PHASE3_EXPORT_UAPI_SURVEY_MODE=shared-abi-slice`
