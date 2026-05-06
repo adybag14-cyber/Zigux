@@ -245,6 +245,10 @@ test "phase 5 bytestream fifo survey packet stays repo-local and keeps shared re
         "exact replay checks",
         "remaining non-goals around procfs, user-copy, and module registration parity",
         "descriptor, manifest, and shared build-entrypoint prompts",
+        "current `master` still ships no `samples/zigux/*rbtree*` Phase 5 reference sample",
+        "Documentation/zigux/phase7-rbtree-slice.md",
+        "lib/rbtree.zig",
+        "zigux/tests/phase7_build.zig",
     };
 
     for (docs_root_markers) |needle| {
