@@ -499,6 +499,7 @@ def run_self_test() -> int:
             ("check-genksyms-bridge.py", "missing_phase2_genksyms_bridge_repo_file_guard_failed"),
             ("check-phase2-genksyms-bridge-selftest-alignment.py", "missing_phase2_genksyms_selftest_alignment_repo_file_guard_failed"),
             ("check-phase2-kconfig-selftest-alignment.py", "missing_phase2_kconfig_selftest_alignment_repo_file_guard_failed"),
+            ("check-kconfig-bridge.py", "missing_phase2_kconfig_bridge_repo_file_guard_failed"),
             ("check-phase2-tests-readme-alignment.py", "missing_phase2_tests_readme_alignment_repo_file_guard_failed"),
             ("check-phase2-cross-selftest-alignment.py", "missing_phase2_cross_selftest_alignment_repo_file_guard_failed"),
             ("check-phase2-toolchain-pin-scope.py", "missing_phase2_toolchain_pin_scope_repo_file_guard_failed"),
