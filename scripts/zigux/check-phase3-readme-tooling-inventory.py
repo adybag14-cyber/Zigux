@@ -518,6 +518,8 @@ def run_self_test() -> int:
             ("check-phase8-exec-cmd-packet.py", "missing_phase8_exec_cmd_packet_repo_file_guard_failed"),
             ("validate-phase13-release.py", "missing_phase13_release_validator_repo_file_guard_failed"),
             ("check-phase14-docs-root-smoke-summary.py", "missing_phase14_docs_root_smoke_summary_repo_file_guard_failed"),
+            ("check-phase15-review-process-handoff.py", "missing_phase15_review_process_handoff_repo_file_guard_failed"),
+            ("check-phase15-scripts-readme-alignment.py", "missing_phase15_scripts_readme_alignment_repo_file_guard_failed"),
             ("check-phase10-core-packet.py", "missing_phase10_core_packet_repo_file_guard_failed"),
             ("check-phase10-ring-packet.py", "missing_phase10_ring_packet_repo_file_guard_failed"),
             ("check-phase10-input-packet.py", "missing_phase10_input_packet_repo_file_guard_failed"),
