@@ -14,6 +14,8 @@ This document tracks the bounded Phase 10 survey lane around `drivers/virtio/vir
   - `zigux/tests/phase10_virtio_input_manifest.json`
   - `zigux/tests/phase10_virtio_input_survey.zig`
   - `zigux/tests/phase10_build.zig`
+  - `Documentation/zigux/phase10-virtio-input-slice.md`
+  - `Documentation/zigux/phase10-virtio-input-module-slice.md`
   - `Documentation/zigux/phase10-virtio-input-survey.md`
 
 ## Why this slice exists
