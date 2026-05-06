@@ -40,6 +40,8 @@ REQUIRED_SURFACES = {
     "scripts/zigux/check-phase14-rollback-threshold-sequencing.py": CHECKER_MARKER,
     "scripts/zigux/check-phase14-release-boundary-exact-counts.py": RELEASE_BOUNDARY_CHECKER_MARKER,
     "zigux/tests/README.md": "keep the current Phase 14 smoke packet reviewable through",
+    "kernel/workqueue_bridge.zig": "pub const WorkqueueBridgeLab",
+    "net/core/skbuff_bridge.zig": "pub const SkbuffBridgeLab",
 }
 REQUIRED_FILE_MARKERS = {
     "Documentation/zigux/phase14-end-to-end-smoke-survey.md": [
@@ -82,6 +84,8 @@ REQUIRED_FILE_MARKERS = {
         "Validate Phase 14 shared smoke packet",
         "make -C zigux phase14-validate",
     ],
+    "kernel/workqueue_bridge.zig": ["pub const WorkqueueBridgeLab"],
+    "net/core/skbuff_bridge.zig": ["pub const SkbuffBridgeLab"],
 }
 
 
@@ -394,6 +398,27 @@ def run_self_test() -> int:
         write_text(
             broken_docs_root_path,
             "\n".join(REQUIRED_FILE_MARKERS["Documentation/zigux/README.md"]) + "\n",
+        )
+
+        broken_bridge_path = root / "kernel/workqueue_bridge.zig"
+        broken_bridge_path.write_text(
+            broken_bridge_path.read_text(encoding="utf-8").replace(
+                "pub const WorkqueueBridgeLab",
+                "pub const MissingWorkqueueBridgeLab",
+            ),
+            encoding="utf-8",
+        )
+        errors = check(root)
+        if not errors or not any(
+            "missing marker in kernel/workqueue_bridge.zig: pub const WorkqueueBridgeLab" in error
+            for error in errors
+        ):
+            print("self-test expected failure when workqueue bridge marker drifted", file=sys.stderr)
+            return 1
+
+        write_text(
+            broken_bridge_path,
+            "\n".join(REQUIRED_FILE_MARKERS["kernel/workqueue_bridge.zig"]) + "\n",
         )
 
         broken_manifest_path = root / "zigux/tests/phase14_end_to_end_smoke_manifest.json"
