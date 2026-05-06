@@ -549,6 +549,24 @@ def run_self_test() -> int:
         _write(root / "scripts" / "zigux" / "check-phase7-make-wrapper.py", "# stub\n")
         case_count += 1
 
+        (root / "scripts" / "zigux" / "check-phase7-argv-split-packet.py").unlink()
+        _assert_only(
+            validate(root),
+            ["missing_repo_file:scripts/zigux/check-phase7-argv-split-packet.py"],
+            "missing_phase7_argv_split_packet_repo_file_guard_failed",
+        )
+        _write(root / "scripts" / "zigux" / "check-phase7-argv-split-packet.py", "# stub\n")
+        case_count += 1
+
+        (root / "scripts" / "zigux" / "check-phase7-rbtree-parity.py").unlink()
+        _assert_only(
+            validate(root),
+            ["missing_repo_file:scripts/zigux/check-phase7-rbtree-parity.py"],
+            "missing_phase7_rbtree_parity_repo_file_guard_failed",
+        )
+        _write(root / "scripts" / "zigux" / "check-phase7-rbtree-parity.py", "# stub\n")
+        case_count += 1
+
         (root / "scripts" / "zigux" / "validate-phase8.py").unlink()
         _assert_only(
             validate(root),
