@@ -21,8 +21,33 @@ test "runtime atomic64 sample enforces lifecycle transitions and keeps a 64-bit 
     try std.testing.expectEqual(@as(i64, 0x1111_1111_2222_2222), module.snapshotCounter());
     try std.testing.expectEqual(@as(usize, 1), module.init_runs);
 
+    try module.addCounter(4);
+    try std.testing.expectEqual(@as(i64, 0x1111_1111_2222_2226), module.snapshotCounter());
+    try module.subCounter(2);
+    try std.testing.expectEqual(@as(i64, 0x1111_1111_2222_2224), module.snapshotCounter());
+
+    const previous_add = try module.fetchAddCounter(-3);
+    try std.testing.expectEqual(@as(i64, 0x1111_1111_2222_2224), previous_add);
+    try std.testing.expectEqual(@as(i64, 0x1111_1111_2222_2221), module.snapshotCounter());
+
+    const previous_sub = try module.fetchSubCounter(5);
+    try std.testing.expectEqual(@as(i64, 0x1111_1111_2222_2221), previous_sub);
+    try std.testing.expectEqual(@as(i64, 0x1111_1111_2222_221c), module.snapshotCounter());
+
+    const added = try module.addReturnCounter(6);
+    try std.testing.expectEqual(@as(i64, 0x1111_1111_2222_2222), added);
+    const subtracted = try module.subReturnCounter(4);
+    try std.testing.expectEqual(@as(i64, 0x1111_1111_2222_221e), subtracted);
+    const incremented = try module.incReturnCounter();
+    try std.testing.expectEqual(@as(i64, 0x1111_1111_2222_221f), incremented);
+    const decremented = try module.decReturnCounter();
+    try std.testing.expectEqual(@as(i64, 0x1111_1111_2222_221e), decremented);
+    try module.incCounter();
+    try module.decCounter();
+    try std.testing.expectEqual(@as(i64, 0x1111_1111_2222_221e), module.snapshotCounter());
+
     const previous = try module.swapCounter(-9);
-    try std.testing.expectEqual(@as(i64, 0x1111_1111_2222_2222), previous);
+    try std.testing.expectEqual(@as(i64, 0x1111_1111_2222_221e), previous);
     try std.testing.expectEqual(@as(i64, -9), module.snapshotCounter());
 
     const compare_success = try module.compareSwapCounter(-9, 17);
@@ -73,7 +98,16 @@ test "runtime atomic64 sample enforces lifecycle transitions and keeps a 64-bit 
     try std.testing.expectEqual(@as(usize, 1), module.exit_runs);
     try std.testing.expectError(error.InvalidLifecycleTransition, module.init(23));
     try std.testing.expectError(error.InvalidLifecycleTransition, module.exit());
-    try std.testing.expectError(error.InvalidLifecycleTransition, module.runSelftest());
+    try std.testing.expectError(error.InvalidLifecycleTransition, module.addCounter(1));
+    try std.testing.expectError(error.InvalidLifecycleTransition, module.subCounter(1));
+    try std.testing.expectError(error.InvalidLifecycleTransition, module.fetchAddCounter(1));
+    try std.testing.expectError(error.InvalidLifecycleTransition, module.fetchSubCounter(1));
+    try std.testing.expectError(error.InvalidLifecycleTransition, module.addReturnCounter(1));
+    try std.testing.expectError(error.InvalidLifecycleTransition, module.subReturnCounter(1));
+    try std.testing.expectError(error.InvalidLifecycleTransition, module.incCounter());
+    try std.testing.expectError(error.InvalidLifecycleTransition, module.decCounter());
+    try std.testing.expectError(error.InvalidLifecycleTransition, module.incReturnCounter());
+    try std.testing.expectError(error.InvalidLifecycleTransition, module.decReturnCounter());
     try std.testing.expectError(error.InvalidLifecycleTransition, module.swapCounter(7));
     try std.testing.expectError(error.InvalidLifecycleTransition, module.andCounter(7));
     try std.testing.expectError(error.InvalidLifecycleTransition, module.orCounter(7));
