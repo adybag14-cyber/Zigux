@@ -6,28 +6,29 @@ from pathlib import Path
 import tempfile
 
 
-_SELF_PATH = Path(__file__).resolve()
-ROOT = _SELF_PATH.parents[2] if len(_SELF_PATH.parents) >= 3 else Path.cwd()
+SELF_PATH = Path(__file__).resolve()
+ROOT = SELF_PATH.parents[2] if len(SELF_PATH.parents) >= 3 else Path.cwd()
 CHECKER = Path("scripts/zigux/check-kconfig-bridge.py")
 MAKEFILE = Path("zigux/Makefile")
 WORKFLOW = Path(".github/workflows/zigux-bootstrap.yml")
 
 REQUIRED_CHECKER_MARKERS = (
-    'env["KCONFIG_ALLCONFIG"] = case["allconfig_env"]',
-    'env["KCONFIG_AUTOCONFIG"] = case["autoconfig"]',
-    'env["KCONFIG_AUTOHEADER"] = case["autoheader"]',
-    'env["KCONFIG_NOSILENTUPDATE"] = case["nosilentupdate"]',
+    "REQUIRED_CONFDATA_CASES = [",
+    "EXPECTED_SELF_TEST_CASE_COUNT = 11",
+    'print("KCONFIG_BRIDGE_SELF_TEST=pass")',
+    'print(f"KCONFIG_BRIDGE_SELF_TEST_CASE_COUNT={checks_run}")',
 )
 REQUIRED_MAKEFILE_LINES = (
-    'cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-kconfig-selftest-alignment.py --self-test',
-    'cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-kconfig-selftest-alignment.py',
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-kconfig-selftest-alignment.py --self-test",
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-kconfig-selftest-alignment.py",
 )
 REQUIRED_WORKFLOW_LINES = (
-    'run: python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py --self-test',
-    'run: python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py',
-    'run: python3 scripts/zigux/check-kconfig-bridge.py --self-test',
-    'run: python3 scripts/zigux/check-kconfig-bridge.py',
+    "run: python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py --self-test",
+    "run: python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py",
+    "run: python3 scripts/zigux/check-kconfig-bridge.py --self-test",
+    "run: python3 scripts/zigux/check-kconfig-bridge.py",
 )
+EXPECTED_SELF_TEST_CASE_COUNT = 8
 
 
 def read_text(path: Path) -> str:
@@ -108,93 +109,122 @@ def duplicate_exact_line(text: str, marker: str) -> str:
 def build_self_test_root(root: Path) -> None:
     write_text(
         root / CHECKER,
-        "\n".join((
-            "def replay(case, env):",
-            '    env["KCONFIG_ALLCONFIG"] = case["allconfig_env"]',
-            '    env["KCONFIG_AUTOCONFIG"] = case["autoconfig"]',
-            '    env["KCONFIG_AUTOHEADER"] = case["autoheader"]',
-            '    env["KCONFIG_NOSILENTUPDATE"] = case["nosilentupdate"]',
-            "",
-        )),
+        "\n".join(
+            (
+                "REQUIRED_CONFDATA_CASES = [",
+                "    'sample',",
+                "]",
+                "EXPECTED_SELF_TEST_CASE_COUNT = 11",
+                'print("KCONFIG_BRIDGE_SELF_TEST=pass")',
+                'print(f"KCONFIG_BRIDGE_SELF_TEST_CASE_COUNT={checks_run}")',
+                "",
+            )
+        ),
     )
     write_text(
         root / MAKEFILE,
-        "\n".join((
-            "phase2-kconfig:",
-            "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-kconfig-selftest-alignment.py --self-test",
-            "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-kconfig-selftest-alignment.py",
-            "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-kconfig-bridge.py",
-            "",
-        )),
+        "\n".join(
+            (
+                "phase2-kconfig:",
+                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-kconfig-selftest-alignment.py --self-test",
+                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-kconfig-selftest-alignment.py",
+                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-kconfig-bridge.py",
+                "",
+            )
+        ),
     )
     write_text(
         root / WORKFLOW,
-        "\n".join((
-            "jobs:",
-            "  bootstrap:",
-            "    steps:",
-            "      - name: Self-test Phase 2 kconfig selftest alignment",
-            "        run: python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py --self-test",
-            "      - name: Check Phase 2 kconfig selftest alignment",
-            "        run: python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py",
-            "      - name: Self-test bounded kconfig bridge parity checker",
-            "        run: python3 scripts/zigux/check-kconfig-bridge.py --self-test",
-            "      - name: Check bounded kconfig bridge parity",
-            "        run: python3 scripts/zigux/check-kconfig-bridge.py",
-            "",
-        )),
+        "\n".join(
+            (
+                "jobs:",
+                "  bootstrap:",
+                "    steps:",
+                "      - name: Self-test Phase 2 kconfig selftest alignment",
+                "        run: python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py --self-test",
+                "      - name: Check Phase 2 kconfig selftest alignment",
+                "        run: python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py",
+                "      - name: Self-test bounded kconfig bridge parity checker",
+                "        run: python3 scripts/zigux/check-kconfig-bridge.py --self-test",
+                "      - name: Check bounded kconfig bridge parity",
+                "        run: python3 scripts/zigux/check-kconfig-bridge.py",
+                "",
+            )
+        ),
     )
 
 
 def run_self_test() -> int:
+    cases = 0
     with tempfile.TemporaryDirectory(prefix="zigux_p2_kconfig_alignment_") as tmp_dir:
         root = Path(tmp_dir)
         build_self_test_root(root)
         assert collect_issues(root) == []
 
-        cases = 0
-        for marker in REQUIRED_CHECKER_MARKERS:
-            build_self_test_root(root)
-            path = root / CHECKER
-            path.write_text(path.read_text(encoding="utf-8").replace(marker, "# removed", 1), encoding="utf-8")
-            issues = collect_issues(root)
-            assert ("MISSING_CHECKER_MARKERS", marker) in issues
-            cases += 1
+        build_self_test_root(root)
+        path = root / CHECKER
+        path.write_text(path.read_text(encoding="utf-8").replace(REQUIRED_CHECKER_MARKERS[0], "", 1), encoding="utf-8")
+        issues = collect_issues(root)
+        assert ("MISSING_CHECKER_MARKERS", REQUIRED_CHECKER_MARKERS[0]) in issues
+        cases += 1
 
-        for marker in REQUIRED_MAKEFILE_LINES:
-            build_self_test_root(root)
-            path = root / MAKEFILE
-            path.write_text(replace_exact_line(path.read_text(encoding="utf-8"), marker, "\ttrue"), encoding="utf-8")
-            issues = collect_issues(root)
-            assert ("MISSING_MAKEFILE_HOOKS", marker) in issues
-            cases += 1
+        build_self_test_root(root)
+        path = root / CHECKER
+        path.write_text(path.read_text(encoding="utf-8").replace(REQUIRED_CHECKER_MARKERS[1], "", 1), encoding="utf-8")
+        issues = collect_issues(root)
+        assert ("MISSING_CHECKER_MARKERS", REQUIRED_CHECKER_MARKERS[1]) in issues
+        cases += 1
 
-        for marker in REQUIRED_MAKEFILE_LINES:
-            build_self_test_root(root)
-            path = root / MAKEFILE
-            path.write_text(duplicate_exact_line(path.read_text(encoding="utf-8"), marker), encoding="utf-8")
-            issues = collect_issues(root)
-            assert ("DUPLICATE_MAKEFILE_HOOKS", f"{marker}:count=2") in issues
-            cases += 1
+        build_self_test_root(root)
+        path = root / MAKEFILE
+        path.write_text(
+            replace_exact_line(path.read_text(encoding="utf-8"), REQUIRED_MAKEFILE_LINES[0], "\ttrue"),
+            encoding="utf-8",
+        )
+        issues = collect_issues(root)
+        assert ("MISSING_MAKEFILE_HOOKS", REQUIRED_MAKEFILE_LINES[0]) in issues
+        cases += 1
 
-        for marker in REQUIRED_WORKFLOW_LINES:
-            build_self_test_root(root)
-            path = root / WORKFLOW
-            path.write_text(
-                replace_exact_line(path.read_text(encoding="utf-8"), marker, "        run: python3 other.py"),
-                encoding="utf-8",
-            )
-            issues = collect_issues(root)
-            assert ("MISSING_WORKFLOW_HOOKS", marker) in issues
-            cases += 1
+        build_self_test_root(root)
+        path = root / MAKEFILE
+        path.write_text(duplicate_exact_line(path.read_text(encoding="utf-8"), REQUIRED_MAKEFILE_LINES[1]), encoding="utf-8")
+        issues = collect_issues(root)
+        assert ("DUPLICATE_MAKEFILE_HOOKS", f"{REQUIRED_MAKEFILE_LINES[1]}:count=2") in issues
+        cases += 1
 
-        for marker in REQUIRED_WORKFLOW_LINES:
-            build_self_test_root(root)
-            path = root / WORKFLOW
-            path.write_text(duplicate_exact_line(path.read_text(encoding="utf-8"), marker), encoding="utf-8")
-            issues = collect_issues(root)
-            assert ("DUPLICATE_WORKFLOW_HOOKS", f"{marker}:count=2") in issues
-            cases += 1
+        build_self_test_root(root)
+        path = root / WORKFLOW
+        path.write_text(
+            replace_exact_line(path.read_text(encoding="utf-8"), REQUIRED_WORKFLOW_LINES[0], "        run: python3 other.py"),
+            encoding="utf-8",
+        )
+        issues = collect_issues(root)
+        assert ("MISSING_WORKFLOW_HOOKS", REQUIRED_WORKFLOW_LINES[0]) in issues
+        cases += 1
+
+        build_self_test_root(root)
+        path = root / WORKFLOW
+        path.write_text(duplicate_exact_line(path.read_text(encoding="utf-8"), REQUIRED_WORKFLOW_LINES[1]), encoding="utf-8")
+        issues = collect_issues(root)
+        assert ("DUPLICATE_WORKFLOW_HOOKS", f"{REQUIRED_WORKFLOW_LINES[1]}:count=2") in issues
+        cases += 1
+
+        build_self_test_root(root)
+        path = root / WORKFLOW
+        path.write_text(
+            replace_exact_line(path.read_text(encoding="utf-8"), REQUIRED_WORKFLOW_LINES[2], "        run: python3 other.py --self-test"),
+            encoding="utf-8",
+        )
+        issues = collect_issues(root)
+        assert ("MISSING_WORKFLOW_HOOKS", REQUIRED_WORKFLOW_LINES[2]) in issues
+        cases += 1
+
+        build_self_test_root(root)
+        path = root / WORKFLOW
+        path.write_text(duplicate_exact_line(path.read_text(encoding="utf-8"), REQUIRED_WORKFLOW_LINES[3]), encoding="utf-8")
+        issues = collect_issues(root)
+        assert ("DUPLICATE_WORKFLOW_HOOKS", f"{REQUIRED_WORKFLOW_LINES[3]}:count=2") in issues
+        cases += 1
 
     print("PHASE2_KCONFIG_ALIGNMENT_SELF_TEST=pass")
     print(f"PHASE2_KCONFIG_ALIGNMENT_SELF_TEST_CASE_COUNT={cases}")
