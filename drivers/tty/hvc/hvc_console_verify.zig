@@ -80,6 +80,23 @@ test "hvc_console verify keeps hung-up and detached teardown matrix truthful" {
     try std.testing.expect(!detached_remove.host_io_pending);
 }
 
+test "hvc_console verify keeps remove handoff explicit when tty teardown outlives console binding" {
+    var console = try hvc_console.HvcConsoleLab.init(15);
+    _ = console.instantiate(0xf1);
+
+    const detached_binding = try console.summarizeRemoveHandoff(.{
+        .console_index_registered = false,
+        .tty_present = true,
+    });
+    try std.testing.expect(!detached_binding.clears_console_slot_binding);
+    try std.testing.expect(detached_binding.keeps_irq_for_followup_hangup);
+    try std.testing.expect(detached_binding.drops_init_kref_port_reference);
+    try std.testing.expect(detached_binding.tty_vhangup_requested);
+    try std.testing.expect(detached_binding.tty_kref_put_after_vhangup);
+    try std.testing.expect(detached_binding.teardown_via_hangup_pending);
+    try std.testing.expect(detached_binding.host_io_pending);
+}
+
 test "hvc_console verify keeps cleanup missing-reference failures explicit" {
     var console = try hvc_console.HvcConsoleLab.init(14);
     _ = console.instantiate(0xe1);
