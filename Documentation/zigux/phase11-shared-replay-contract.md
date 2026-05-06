@@ -27,6 +27,7 @@ This note records the current shared contributor replay surface for the shipped 
 - `Documentation/zigux/phase11-uapi-header-parity-survey.md`
 - `scripts/zigux/check-phase11-shared-replay-contract.py`
 - `scripts/zigux/check-phase11-header-boundary-packet.py`
+- `scripts/zigux/check-phase11-hvc-survey-packet.py`
 - `zigux/tests/phase11_build.zig`
 - `zigux/tests/phase11_gpio_wdt_manifest.json`
 - `zigux/tests/phase11_gpio_wdt_survey.zig`
@@ -82,6 +83,8 @@ The dedicated archival HVC evidence still stays explicit beside that shared rout
 - `Documentation/zigux/phase11-hvc-console-survey.md`
 - `Documentation/zigux/phase11-hvc-console-validation-matrix.md`
 - `Documentation/zigux/phase11-hvc-console-teardown-note.md`
+- `scripts/zigux/check-phase11-hvc-survey-packet.py`
+- `make -C zigux phase11-hvc-survey`
 
 The focused shared header-boundary evidence also stays explicit beside that replay route:
 
@@ -99,7 +102,7 @@ The focused shared header-boundary evidence also stays explicit beside that repl
 - there is no shared `make -C zigux phase11-validate` target on `master`
 - there is no dedicated shared `validate-phase11.py` on `master`
 - there is no shipped `zigux/tests/fixtures/phase11_build_inventory.json` on `master`
-- beyond the focused `scripts/zigux/check-phase11-header-boundary-packet.py` route and its coupled manifest, survey note, and survey replay, there is no broader multi-checker Phase 11 validator stack on `master`
+- beyond `scripts/zigux/check-phase11-shared-replay-contract.py`, the focused `scripts/zigux/check-phase11-header-boundary-packet.py` route, and the dedicated `scripts/zigux/check-phase11-hvc-survey-packet.py` route, there is no broader multi-checker Phase 11 validator stack on `master`
 - this contract does not claim tty registration, notifier execution, khvcd execution, sysrq dispatch, platform registration, PM base plumbing, poweroff-handler coordination, or host-backed teardown validation
 
 ## Follow-Through Rule
