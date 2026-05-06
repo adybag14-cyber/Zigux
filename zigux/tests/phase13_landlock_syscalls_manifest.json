@@ -62,6 +62,13 @@
       "why_now": "The survey note compares the 592-line `syscalls.c` anchor against the new starter and keeps the remaining gap around rule insertion, file descriptors, path import, and credential changes explicit."
     },
     {
+      "id": "phase13-landlock-syscalls-governance-note",
+      "status": "starter_landed",
+      "kind": "documentation",
+      "zigux_destination": "Documentation/zigux/phase13-landlock-syscalls-governance.md",
+      "why_now": "The helper-local governance note now anchors fixture and ownership claims to `SyscallsHelperLab.descriptor()` so review surfaces cannot quietly imply live syscall enforcement while the live-state flags remain false."
+    },
+    {
       "id": "phase13-landlock-add-rule-followup",
       "status": "starter_landed",
       "kind": "security_helper_pilot",
