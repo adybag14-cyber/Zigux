@@ -1,7 +1,7 @@
 const std = @import("std");
 const Io = std.Io;
 
-const max_file_bytes: usize = 1024 * 1024;
+const max_file_bytes: usize = std.math.maxInt(usize);
 
 const FixdepError = error{
     NoTargets,
@@ -485,6 +485,67 @@ test "output write failure uses C-style wording" {
 
     try std.testing.expectEqualStrings(
         "fixdep: not all data was written to the output\n",
+        capture.list.items,
+    );
+}
+
+test "dependency file reads beyond the legacy one mebibyte ceiling" {
+    const Capture = struct {
+        list: std.ArrayList(u8),
+        allocator: std.mem.Allocator,
+
+        fn init(allocator: std.mem.Allocator) !@This() {
+            return .{
+                .list = try std.ArrayList(u8).initCapacity(allocator, 128),
+                .allocator = allocator,
+            };
+        }
+
+        fn deinit(self: *@This()) void {
+            self.list.deinit(self.allocator);
+        }
+
+        fn print(self: *@This(), comptime fmt: []const u8, args: anytype) !void {
+            const rendered = try std.fmt.allocPrint(self.allocator, fmt, args);
+            defer self.allocator.free(rendered);
+            try self.list.appendSlice(self.allocator, rendered);
+        }
+    };
+
+    var processor = Processor.init(std.testing.allocator, std.testing.io);
+    defer processor.deinit();
+
+    var capture = try Capture.init(std.testing.allocator);
+    defer capture.deinit();
+
+    var tmp = std.testing.tmpDir(.{});
+    defer tmp.cleanup();
+
+    const padding_len = (1024 * 1024) + 64;
+    const header = "sample.o: sample.rmeta\n# ";
+    var file_bytes = try std.ArrayList(u8).initCapacity(std.testing.allocator, header.len + padding_len + 1);
+    defer file_bytes.deinit(std.testing.allocator);
+    try file_bytes.appendSlice(std.testing.allocator, header);
+    try file_bytes.appendNTimes(std.testing.allocator, 'a', padding_len);
+    try file_bytes.append(std.testing.allocator, '\n');
+
+    try tmp.dir.writeFile(std.testing.io, .{
+        .sub_path = "large.d",
+        .data = file_bytes.items,
+    });
+
+    const depfile_path = try std.fmt.allocPrint(
+        std.testing.allocator,
+        ".zig-cache/tmp/{s}/large.d",
+        .{tmp.sub_path[0..]},
+    );
+    defer std.testing.allocator.free(depfile_path);
+
+    const dep_text = try processor.readDependencyFile(depfile_path);
+    try std.testing.expect(dep_text.len > 1024 * 1024);
+    try processor.parseDepFile(&capture, dep_text, "sample.o");
+    try std.testing.expectEqualStrings(
+        "source_sample.o := sample.rmeta\n\ndeps_sample.o := \\\n\nsample.o: $(deps_sample.o)\n\n$(deps_sample.o):\n",
         capture.list.items,
     );
 }
