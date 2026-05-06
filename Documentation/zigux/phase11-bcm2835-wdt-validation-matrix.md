@@ -6,6 +6,7 @@ This document records the first bounded hardware-validation matrix for the Zigux
 
 - `PHASE11_BCM2835_WDT_STATUS=platform_handoff_landed`
 - reviewed against live `master` `55568844ac3ce835b0e0bef624c24c17f22b78a1`
+- archival packet identity remains `P11-L08`, while current scheduled continuity for this archived bcm2835 watchdog packet is tracked through `P11-L10`; keep later DesignWare follow-up on `P11-L11`
 - scope: keep the current `bcm2835_wdt` starter honest about what is already validated, name the current timeout-window and register-image evidence alongside the registration-outcome, platform-handoff, poweroff-path, and remove-time callback-identity evidence, and avoid overclaiming live platform registration, PM wiring, or poweroff coordination before those behaviors exist in Zigux
 - latest focused replays: `zig test zigux/tests/phase11_bcm2835_wdt.zig`, `zig test drivers/watchdog/bcm2835_wdt_verify.zig`, and `zig test zigux/tests/phase11_bcm2835_wdt_survey.zig` still pass for the bounded bcm2835 packet on current `master`
 - shared replay boundary: `zig build test --build-file zigux/tests/phase11_build.zig --summary all` still includes `phase11-bcm2835-wdt-tests`, `phase11-bcm2835-wdt-verify-tests`, and `phase11-bcm2835-wdt-survey-tests`, but this watchdog-local matrix no longer claims that the whole current shared Phase 11 replay is green when unrelated non-watchdog drift can reopen elsewhere on `master`
