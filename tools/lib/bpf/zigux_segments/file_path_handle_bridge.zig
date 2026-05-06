@@ -654,6 +654,24 @@ test "resolveReusePinnedMapAttempt keeps path presence and fdinfo reuse compatib
     try std.testing.expect(!missing_path.should_attempt_reopen);
     try std.testing.expectEqual(@as(?MapReuseCompatibilitySummary, null), missing_path.compatibility);
 
+    const blank_path = resolveReusePinnedMapAttempt(" \t\r\n ", expected, .{
+        .name = "process_pinned_",
+        .map_type = bpf_map_type_devmap,
+        .key_size = 4,
+        .value_size = 8,
+        .max_entries = 64,
+        .map_flags = 0x20 | bpf_f_rdonly_prog,
+        .map_extra = 7,
+    });
+    try std.testing.expectEqual(
+        ReusePinnedMapAttemptDisposition.missing_pinned_path,
+        blank_path.disposition,
+    );
+    try std.testing.expectEqual(@as(?[]const u8, null), blank_path.pinned_path);
+    try std.testing.expectEqual(@as(?ReusedMapName, null), blank_path.resolved_name);
+    try std.testing.expect(!blank_path.should_attempt_reopen);
+    try std.testing.expectEqual(@as(?MapReuseCompatibilitySummary, null), blank_path.compatibility);
+
     const missing_observation = resolveReusePinnedMapAttempt(" /sys/fs/bpf/stats ", expected, null);
     try std.testing.expectEqual(
         ReusePinnedMapAttemptDisposition.missing_map_observation,
