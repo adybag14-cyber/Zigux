@@ -125,11 +125,11 @@ The bounded genksyms wrapper-first bridge packet now records the committed reque
 
 The bounded kconfig conf bridge packet now records the current request-plan fixtures explicitly so bridge-local review does not rely on the gate name alone:
 
-- `PHASE2_KCONFIG_BRIDGE_CONF_CASE_COUNT=6`
-- `PHASE2_KCONFIG_BRIDGE_CONF_CASES=olddefconfig,syncconfig,alldefconfig,allmodconfig,yes2modconfig,defconfig`
-- `PHASE2_KCONFIG_BRIDGE_CONF_STDOUT_PACKET=olddefconfig_expected.json,syncconfig_expected.json,alldefconfig_expected.json,allmodconfig_expected.json,yes2modconfig_expected.json,defconfig_expected.json`
-- request-plan coverage stays anchored by the olddefconfig baseline, syncconfig auto-output env injection, alldefconfig/allmodconfig/yes2modconfig mode selection, and defconfig mode-argument ordering fixtures in `zigux/tests/fixtures/kconfig_bridge/`
-- helper-local anchors in `zig test scripts/zigux/kconfig/conf_bridge.zig` now include `conf bridge emits syncconfig auto files`, `conf bridge emits alldefconfig argv and env`, `conf bridge emits allmodconfig argv and env`, `conf bridge emits yes2modconfig argv and env`, and `conf bridge emits defconfig mode argument before kconfig`
+- `PHASE2_KCONFIG_BRIDGE_CONF_CASE_COUNT=8`
+- `PHASE2_KCONFIG_BRIDGE_CONF_CASES=olddefconfig,syncconfig,alldefconfig,allmodconfig,yes2modconfig,defconfig,savedefconfig,listnewconfig`
+- `PHASE2_KCONFIG_BRIDGE_CONF_STDOUT_PACKET=olddefconfig_expected.json,syncconfig_expected.json,alldefconfig_expected.json,allmodconfig_expected.json,yes2modconfig_expected.json,defconfig_expected.json,savedefconfig_expected.json,listnewconfig_expected.json`
+- request-plan coverage stays anchored by the olddefconfig baseline, syncconfig auto-output env injection, alldefconfig/allmodconfig/yes2modconfig mode selection, defconfig/savedefconfig mode-argument ordering, and listnewconfig request-plan fixtures in `zigux/tests/fixtures/kconfig_bridge/`
+- helper-local anchors in `zig test scripts/zigux/kconfig/conf_bridge.zig` now include `conf bridge emits syncconfig auto files`, `conf bridge emits alldefconfig argv and env`, `conf bridge emits allmodconfig argv and env`, `conf bridge emits yes2modconfig argv and env`, `conf bridge emits defconfig mode argument before kconfig`, and `conf bridge emits savedefconfig mode argument before kconfig`
 
 ## Kconfig Confdata Bridge Closure Packet
 
