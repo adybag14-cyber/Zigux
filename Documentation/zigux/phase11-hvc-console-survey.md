@@ -14,4 +14,4 @@ The live repo state is now:
 
 This lane is no longer survey-only, but the archival survey still does not claim live tty-driver registration, notifier callback execution, hvc polling kthread behavior, live sysrq handling, early-console registration, or live hypervisor I/O.
 
-The next honest bounded step inside the same Phase 11 lane is now the docs-root truthfulness sync that keeps the shipped UAPI header parity packet explicit beside the shared replay checker, `zigux/tests/phase11_build.zig`, and the workflow-backed replay path without widening into live callback execution or host-backed I/O.
+The next honest bounded step inside the same Phase 11 lane is now the shared-review checker hardening that keeps `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, and `.github/workflows/zigux-bootstrap.yml` fail-closed against the shipped `scripts/zigux/check-phase11-shared-replay-contract.py` contract instead of reopening the already-landed docs-root truthfulness sync or widening into live callback execution or host-backed I/O.
