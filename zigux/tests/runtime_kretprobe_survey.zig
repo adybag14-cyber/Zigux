@@ -160,6 +160,7 @@ test "phase 9 runtime kretprobe survey manifest records the roadmap gap between 
     try expectContains(survey_doc, "zigux/kernel/runtime_loader.zig");
     try expectContains(survey_doc, "zigux/kernel/runtime_loader_contract.zig");
     try expectContains(survey_doc, "zigux/tests/runtime_loader_allocator_init_flow.zig");
+    try expectContains(survey_doc, "freeze map's study-only `kernel/workqueue.c` and `kernel/trace/ring_buffer.c` boundary");
     try expectContains(survey_doc, "metadata-only labels");
     try expectContains(survey_doc, "idle registration snapshot");
     try expectContains(survey_doc, "failed-exit state");
