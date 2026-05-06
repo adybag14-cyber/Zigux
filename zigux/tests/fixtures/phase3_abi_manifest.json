@@ -2,7 +2,7 @@
   "phase": "Phase 3",
   "status": "active",
   "slice": "abi-substrate-skeleton",
-  "file_count": 16,
+  "file_count": 17,
   "files": [
     "include/zigux/abi.h",
     "include/linux/zigux.h",
@@ -19,6 +19,7 @@
     "zigux/tests/phase3_abi.zig",
     "zigux/tests/phase3_abi_dump.zig",
     "zigux/tests/phase3_low_level_wrappers.zig",
+    "zigux/tests/fixtures/phase3_abi/expected.json",
     "zigux/tests/fixtures/phase3_abi/phase3_abi_c_harness.c"
   ]
 }
