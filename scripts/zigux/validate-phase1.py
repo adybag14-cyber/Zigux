@@ -116,6 +116,7 @@ REQUIRED_BITMAP_TEST_ANCHORS = [
     'test "bitmap xor keeps caller-selected bit window"',
     'test "bitmap scnprintf collapses contiguous ranges"',
     'test "bitmap scnprintf reports full length while truncating the buffer"',
+    'test "bitmap scnprintf handles terminator-only and zero-length caller views"',
     'test "bitmap copy aliases preserve tail clearing and extension semantics"',
 ]
 
@@ -527,6 +528,17 @@ def run_self_test() -> None:
 
         make_fixture_root(tmp_root)
         bitmap_path.write_text(
+            "\n".join(REQUIRED_BITMAP_TEST_ANCHORS[:7] + REQUIRED_BITMAP_TEST_ANCHORS[8:]) + "\n",
+            encoding="utf-8",
+        )
+        missing_markers = collect_missing_markers(tmp_root)
+        assert (
+            'bitmap_test_anchor:test "bitmap scnprintf handles terminator-only and zero-length caller views":expected=1:actual=0'
+            in missing_markers
+        )
+
+        make_fixture_root(tmp_root)
+        bitmap_path.write_text(
             "\n".join(REQUIRED_BITMAP_TEST_ANCHORS[:-1]) + "\n",
             encoding="utf-8",
         )
@@ -616,7 +628,7 @@ def run_self_test() -> None:
         )
 
         print("PHASE1_VALIDATION_SELF_TEST=pass")
-        print("PHASE1_VALIDATION_SELF_TEST_CASE_COUNT=29")
+        print("PHASE1_VALIDATION_SELF_TEST_CASE_COUNT=30")
 
 
 def main() -> int:
