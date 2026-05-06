@@ -63,6 +63,7 @@ PHASE2_MAKEFILE_RUN_COUNTS = {
     'scripts/zigux/check-phase2-cross.py': 1,
 }
 PHASE2_MAKEFILE_EXACT_LINES = {
+    'cd $(ZIGUX_ROOT) && $(ZIG) test scripts/zigux/fixdep.zig': 1,
     'cd $(ZIGUX_ROOT) && $(ZIG) test scripts/zigux/genksyms.zig': 1,
     'cd $(ZIGUX_ROOT) && $(ZIG) test scripts/zigux/mk_elfconfig.zig': 1,
 }
@@ -92,6 +93,7 @@ PHASE2_WORKFLOW_RUN_COUNTS = {
     'python3 scripts/zigux/check-genksyms-crc-diff.py': 1,
 }
 PHASE2_WORKFLOW_EXACT_LINES = {
+    'run: zig test scripts/zigux/fixdep.zig': 1,
     'run: zig test scripts/zigux/genksyms.zig': 1,
     'run: zig test scripts/zigux/mk_elfconfig.zig': 1,
 }
@@ -120,6 +122,7 @@ def run_self_test() -> int:
         'cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-genksyms-bridge.py',
         'cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-genksyms-crc-diff.py',
         'cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-cross.py',
+        'cd $(ZIGUX_ROOT) && $(ZIG) test scripts/zigux/fixdep.zig',
         'cd $(ZIGUX_ROOT) && $(ZIG) test scripts/zigux/genksyms.zig',
         'cd $(ZIGUX_ROOT) && $(ZIG) test scripts/zigux/mk_elfconfig.zig',
     ])
@@ -147,6 +150,7 @@ def run_self_test() -> int:
         'run: python3 scripts/zigux/check-genksyms-bridge.py --self-test',
         'run: python3 scripts/zigux/check-genksyms-bridge.py',
         'run: python3 scripts/zigux/check-genksyms-crc-diff.py',
+        'run: zig test scripts/zigux/fixdep.zig',
         'run: zig test scripts/zigux/genksyms.zig',
         'run: zig test scripts/zigux/mk_elfconfig.zig',
         'run: python3 scripts/zigux/install-zig.py --channel 0.17.0-dev.87+9b177a7d2 --dest .zig-toolchain',
@@ -322,6 +326,13 @@ def run_self_test() -> int:
             ['make_exact_run:scripts/zigux/check-genksyms-crc-diff.py:count=2:expected=1'],
         ),
         (
+            'make_duplicate_fixdep_unit_test',
+            validate_exact_makefile_runs(
+                make_ok + '\ncd $(ZIGUX_ROOT) && $(ZIG) test scripts/zigux/fixdep.zig'
+            ),
+            ['make_exact_line:cd $(ZIGUX_ROOT) && $(ZIG) test scripts/zigux/fixdep.zig:count=2:expected=1'],
+        ),
+        (
             'make_duplicate_genksyms_bridge_unit_test',
             validate_exact_makefile_runs(
                 make_ok + '\ncd $(ZIGUX_ROOT) && $(ZIG) test scripts/zigux/genksyms.zig'
@@ -472,6 +483,13 @@ def run_self_test() -> int:
                 workflow_ok + 'run: python3 scripts/zigux/check-genksyms-crc-diff.py\n'
             ),
             ['workflow_exact_run:python3 scripts/zigux/check-genksyms-crc-diff.py:count=2:expected=1'],
+        ),
+        (
+            'workflow_duplicate_fixdep_unit_test',
+            validate_exact_workflow_runs(
+                workflow_ok + 'run: zig test scripts/zigux/fixdep.zig\n'
+            ),
+            ['workflow_exact_line:run: zig test scripts/zigux/fixdep.zig:count=2:expected=1'],
         ),
         (
             'workflow_duplicate_genksyms_bridge_unit_test',
@@ -812,6 +830,7 @@ def main() -> int:
         'python3 scripts/zigux/install-zig.py --self-test',
         'python3 scripts/zigux/install-zig.py --channel 0.17.0-dev.87+9b177a7d2 --dest .zig-toolchain',
         'python3 scripts/zigux/validate-phase2-closure.py',
+        'zig test scripts/zigux/fixdep.zig',
         'zig test scripts/zigux/genksyms.zig',
         'zig test scripts/zigux/kconfig/conf_bridge.zig',
         'zig test scripts/zigux/kconfig/confdata_bridge.zig',
@@ -857,6 +876,7 @@ def main() -> int:
         'check-genksyms-bridge.py --self-test',
         'check-genksyms-bridge.py',
         'check-genksyms-crc-diff.py',
+        '$(ZIG) test scripts/zigux/fixdep.zig',
         '$(ZIG) test scripts/zigux/genksyms.zig',
         '$(ZIG) test scripts/zigux/mk_elfconfig.zig',
     ]
