@@ -117,6 +117,11 @@ REQUIRED_CLOSURE_MARKERS = [
         1,
     ),
     (
+        "closure_bitmap_first_word_boundary_review_count",
+        "PHASE1_BITMAP_FIRST_WORD_BOUNDARY_REVIEW=helper-local bitmap first-word boundary proof stays explicit through the direct bitmap test anchor so setRange and clearRange preserve exact first-word masks when a range ends on the first-word boundary",
+        1,
+    ),
+    (
         "closure_bitmap_scnprintf_truncation_review_count",
         "PHASE1_BITMAP_SCNPRINTF_TRUNCATION_REVIEW=helper-local bitmap.scnprintf truncation proof stays explicit through the direct bitmap test anchor because the shared Phase 1 parity fixture only locks the full rendered range string",
         1,
@@ -238,6 +243,7 @@ EXPECTED_REVIEW_ANCHORS = {
             'test "bitmap scnprintf handles terminator-only and zero-length caller views"',
             'test "bitmap copy aliases preserve tail clearing and extension semantics"',
         ],
+        "first_word_boundary_anchor": 'test "bitmap range helpers honor exact first-word boundaries"',
         "partial_xor_review_fields": [
             "partial_xor_nbits",
             "partial_xor_masked_values",
@@ -619,7 +625,7 @@ def run_self_test() -> None:
 
         for label, marker, _ in [
             REQUIRED_CLOSURE_MARKERS[12],
-            REQUIRED_CLOSURE_MARKERS[13],
+            REQUIRED_CLOSURE_MARKERS[16],
             REQUIRED_CLOSURE_MARKERS[18],
         ]:
             closure_path.write_text(closure_text.replace(marker + "\n", "", 1), encoding="utf-8")
