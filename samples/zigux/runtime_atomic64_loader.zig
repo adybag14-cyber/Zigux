@@ -281,6 +281,7 @@ test "runtime atomic64 loader emits the shared runtime-loader contract plan" {
 
     try std.testing.expect(keepsSharedLoadPlanSnapshotExplicit(plan, shared_plan));
     try std.testing.expect(shared_plan.provides_selftest_hook);
+    try std.testing.expect(runtime_loader.keepsSelftestHookEvidenceConsistent(shared_plan));
     try std.testing.expectEqual(runtime_loader.AllocatorHandoff.caller_provided, shared_plan.allocator_handoff);
     try std.testing.expectEqual(runtime_loader.HandoffStage.selftest_complete, shared_plan.init_flow.handoff_stage);
     try std.testing.expectEqual(@as(usize, 1), shared_plan.init_flow.init_runs);
@@ -315,6 +316,7 @@ test "runtime atomic64 loader keeps initialized-stage shared contract plans expl
 
     try std.testing.expect(keepsSharedLoadPlanSnapshotExplicit(plan, shared_plan));
     try std.testing.expect(shared_plan.provides_selftest_hook);
+    try std.testing.expect(runtime_loader.keepsSelftestHookEvidenceConsistent(shared_plan));
     try std.testing.expectEqual(runtime_loader.HandoffStage.initialized, shared_plan.init_flow.handoff_stage);
     try std.testing.expectEqual(@as(usize, 0), shared_plan.init_flow.selftest_runs);
 
@@ -444,6 +446,10 @@ test "runtime atomic64 loader rejects shared-load-plan snapshot drift" {
     var drifted_module = shared_plan;
     drifted_module.module_name = "runtime_atomic64_drift";
     try std.testing.expect(!keepsSharedLoadPlanSnapshotExplicit(plan, drifted_module));
+
+    var drifted_hook = shared_plan;
+    drifted_hook.provides_selftest_hook = false;
+    try std.testing.expect(!keepsSharedLoadPlanSnapshotExplicit(plan, drifted_hook));
 
     var drifted_allocator = shared_plan;
     drifted_allocator.allocator_handoff = .kernel_heap;
