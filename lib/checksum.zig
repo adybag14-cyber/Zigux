@@ -152,3 +152,21 @@ test "add plus negate keeps one's-complement carry semantics" {
         try std.testing.expectEqual(case.expected, add(case.sum, negate(case.sum)));
     }
 }
+
+test "shift and block helpers preserve odd-byte carry discipline" {
+    const seed = 0x1357_9bdf;
+    const fragment = 0x2468_ace0;
+
+    try std.testing.expectEqual(fragment, shift(fragment, 0));
+    try std.testing.expectEqual(std.math.rotr(u32, fragment, 8), shift(fragment, 1));
+    try std.testing.expectEqual(fragment, shift(fragment, 2));
+    try std.testing.expectEqual(std.math.rotr(u32, fragment, 8), shift(fragment, 3));
+
+    const even_added = blockAdd(seed, fragment, 0);
+    const odd_added = blockAdd(seed, fragment, 1);
+
+    try std.testing.expectEqual(add(seed, fragment), even_added);
+    try std.testing.expectEqual(add(seed, std.math.rotr(u32, fragment, 8)), odd_added);
+    try std.testing.expectEqual(seed, blockSub(even_added, fragment, 0));
+    try std.testing.expectEqual(seed, blockSub(odd_added, fragment, 1));
+}
