@@ -12,6 +12,8 @@ test "phase13 devres coherent-dma boundary packet records blocked dma and scatte
     try requireContains(manifest, "\"preexisting_phase13_devres_test_present\": true");
     try requireContains(manifest, "\"preexisting_phase13_devres_reviewability_present\": true");
     try requireContains(manifest, "\"preexisting_phase13_devres_survey_present\": true");
+    try requireContains(manifest, "\"id\": \"phase13-devres-coherent-dma-replay\"");
+    try requireContains(manifest, "\"status\": \"starter_landed\"");
     try requireContains(manifest, "\"id\": \"phase13-devres-live-dma-backed-helpers\"");
     try requireContains(manifest, "\"id\": \"phase13-devres-live-scatterlist-ownership\"");
     try requireContains(manifest, "\"status\": \"blocked_on_dma_state\"");
