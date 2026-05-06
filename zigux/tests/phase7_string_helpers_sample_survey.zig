@@ -1,4 +1,6 @@
 const std = @import("std");
+const escape_vectors = @import("fixtures/phase7_string_helpers_escape_vectors.zig");
+const string_helpers_sample = @import("../../samples/zigux/string_helpers_sample.zig");
 
 const SurveySummary = struct {
     string_helpers_c_lines: usize,
@@ -65,6 +67,34 @@ fn countOccurrences(haystack: []const u8, needle: []const u8) usize {
         cursor = index + needle.len;
     }
     return total;
+}
+
+fn findUniqueUnescapeCase(name: []const u8) !escape_vectors.UnescapeCase {
+    var found: ?escape_vectors.UnescapeCase = null;
+
+    for (escape_vectors.unescape_cases) |case| {
+        if (std.mem.eql(u8, case.name, name)) {
+            try std.testing.expect(found == null);
+            found = case;
+        }
+    }
+
+    try std.testing.expect(found != null);
+    return found.?;
+}
+
+fn findUniqueEscapeCase(name: []const u8) !escape_vectors.EscapeCase {
+    var found: ?escape_vectors.EscapeCase = null;
+
+    for (escape_vectors.escape_cases) |case| {
+        if (std.mem.eql(u8, case.name, name)) {
+            try std.testing.expect(found == null);
+            found = case;
+        }
+    }
+
+    try std.testing.expect(found != null);
+    return found.?;
 }
 
 test "phase 7 string helper sample survey manifest records the bounded sample-backed review packet" {
@@ -262,6 +292,7 @@ test "phase 7 string helper sample survey manifest records the bounded sample-ba
         "phase7-string-helpers-sample-tests",
         "phase7-string-helpers-sample-survey-tests",
         "phase7_string_helpers_sample_survey.zig",
+        "string_helpers_sample_survey_root_module.addImport(\"string_helpers\", string_helpers_module);",
         "run_string_helpers_sample_survey_tests.setCwd(repo_root);",
         "test_step.dependOn(&run_string_helpers_sample_tests.step);",
         "test_step.dependOn(&run_string_helpers_sample_survey_tests.step);",
@@ -281,4 +312,23 @@ test "phase 7 string helper sample survey manifest records the bounded sample-ba
     for (expected_doc_markers) |marker| {
         try expectContains(slice_note, marker);
     }
+}
+
+test "phase 7 string helper sample survey replays the shared fixture-backed outputs directly" {
+    const newline_suffix = try findUniqueUnescapeCase("sample replay newline suffix");
+    const newline_hex_escape = try findUniqueEscapeCase("sample replay newline hex escape");
+
+    var sample = string_helpers_sample.StringHelpersSample{};
+    try sample.init();
+    const replay = try sample.runAnchorReplay();
+
+    try std.testing.expectEqual(@as(i32, 1), replay.matched_index);
+    try std.testing.expectEqual(@as(usize, 4), replay.checked_focus.len);
+    try std.testing.expectEqual(newline_suffix.expected_len, replay.unescaped_text.len);
+    try std.testing.expectEqualSlices(u8, newline_suffix.expected, replay.unescaped_text.bytes[0..replay.unescaped_text.len]);
+    try std.testing.expectEqual(newline_hex_escape.expected_len, replay.escaped_text.len);
+    try std.testing.expectEqualSlices(u8, newline_hex_escape.expected, replay.escaped_text.bytes[0..replay.escaped_text.len]);
+
+    try sample.exit();
+    try std.testing.expectEqual(string_helpers_sample.SampleStage.exited, sample.stage());
 }
