@@ -91,6 +91,7 @@ pub fn build(b: *std.Build) void {
         .target = target,
         .optimize = optimize,
     });
+    string_helpers_sample_survey_root_module.addImport("string_helpers", string_helpers_module);
     const string_helpers_sample_survey_tests = b.addTest(.{
         .name = "phase7-string-helpers-sample-survey-tests",
         .root_module = string_helpers_sample_survey_root_module,
