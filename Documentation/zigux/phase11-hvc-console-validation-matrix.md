@@ -14,14 +14,16 @@ This document records the first bounded kernel-integration validation matrix for
   - `zigux/tests/phase11_hvc_console_survey.zig`
   - `zigux/tests/phase11_build.zig`
   - `Documentation/zigux/phase11-shared-replay-contract.md`
+  - `Documentation/zigux/phase11-uapi-header-parity-survey.md`
   - `zigux/tests/README.md`
   - `scripts/zigux/check-phase11-shared-replay-contract.py`
+  - `scripts/zigux/check-phase11-header-boundary-packet.py`
   - `zigux/Makefile`
   - `.github/workflows/zigux-bootstrap.yml`
 
 ## Why This Exists
 
-The bounded starter now covers slot validation, CRLF framing, flush-progress intent, the oversized-write failure guard, teardown, the final-close wait boundary, the `hvc_cleanup()` tty-port release handoff, the remove-path handoff, the tty-registration handoff summary, the sysrq handoff summary, and the notifier-facing handoff summary, including the targetless notifier no-unregister edge. The live shared Phase 11 packet already couples those HVC-specific replays to `Documentation/zigux/phase11-shared-replay-contract.md`, `zigux/tests/README.md`, `scripts/zigux/check-phase11-shared-replay-contract.py`, and `zigux/Makefile`, which keep the dedicated `zigux/tests/phase11_hvc_cleanup.zig` teardown replay explicit inside the wider `make -C zigux phase11` route. This matrix keeps one reviewable note that explains:
+The bounded starter now covers slot validation, CRLF framing, flush-progress intent, the oversized-write failure guard, teardown, the final-close wait boundary, the `hvc_cleanup()` tty-port release handoff, the remove-path handoff, the tty-registration handoff summary, the sysrq handoff summary, and the notifier-facing handoff summary, including the targetless notifier no-unregister edge. The live shared Phase 11 packet already couples those HVC-specific replays to `Documentation/zigux/phase11-shared-replay-contract.md`, `Documentation/zigux/phase11-uapi-header-parity-survey.md`, `zigux/tests/README.md`, `scripts/zigux/check-phase11-shared-replay-contract.py`, `scripts/zigux/check-phase11-header-boundary-packet.py`, and `zigux/Makefile`, which keep the dedicated `zigux/tests/phase11_hvc_cleanup.zig` teardown replay explicit inside the wider `make -C zigux phase11` route while preserving the focused shared header-boundary packet beside the broader driver-local HVC note and survey. This matrix keeps one reviewable note that explains:
 
 - which parts of the lane are already exercised by the shared Phase 11 gate
 - which teardown-facing behaviors are already reviewable in bounded form versus still deferred
@@ -47,7 +49,7 @@ Without this matrix, the slice named the right next step but did not yet preserv
 
 - treat this lane as a bounded driver-starter plus handoff-note lane while live notifier registration, callback execution, and host-backed I/O stay out of scope
 - treat `zigux/tests/phase11_hvc_console_manifest.json` and `Documentation/zigux/phase11-hvc-console-survey.md` as the archival landing checkpoint for the bounded starter, not as a rolling promise about the current `master` head
-- keep `Documentation/zigux/phase11-shared-replay-contract.md`, `zigux/tests/README.md`, `scripts/zigux/check-phase11-shared-replay-contract.py`, `zigux/tests/phase11_build.zig`, and `zigux/Makefile` aligned with this matrix whenever the shared-versus-dedicated HVC replay split changes so the dedicated `hvc_cleanup()` teardown replay stays explicit inside the wider Phase 11 packet
+- keep `Documentation/zigux/phase11-shared-replay-contract.md`, `Documentation/zigux/phase11-uapi-header-parity-survey.md`, `zigux/tests/README.md`, `scripts/zigux/check-phase11-shared-replay-contract.py`, `scripts/zigux/check-phase11-header-boundary-packet.py`, `zigux/tests/phase11_build.zig`, and `zigux/Makefile` aligned with this matrix whenever the shared-versus-dedicated HVC replay split changes so the dedicated `hvc_cleanup()` teardown replay stays explicit inside the wider Phase 11 packet and the focused shared header-boundary packet stays visible beside it
 - keep `zigux/tests/phase11_build.zig` as the shared replay path for the current starter while the dedicated archival `make -C zigux phase11-hvc-survey` bootstrap replay remains the only extra CI step for the separate survey route
 - do not claim notifier callbacks, khvcd execution, live sysrq dispatch, or host-backed I/O coverage until the Zig surface and tests for those behaviors exist
 - when a later callback-execution slice lands, update this matrix, the slice note, the survey note, and the survey manifest together so the lane keeps one truthful next step
