@@ -119,57 +119,49 @@ def run_self_test() -> int:
         root = Path(tmpdir)
         checker_path = root / "scripts/zigux/check-phase14-release-boundary-exact-counts.py"
         write_text(checker_path, Path(__file__).read_text(encoding="utf-8"))
-        write_text(
-            root / "Documentation/zigux/phase14-release-boundary-survey.md",
-            "\n".join(
-                [
-                    "# Phase 14 Release Boundary Survey",
-                    "## Current release reading",
-                    "- `PHASE14_ROADMAP_ANCHOR_COUNT=4`",
-                    "- `PHASE14_STUDY_ONLY_ANCHOR_COUNT=2`",
-                    "- `PHASE14_FREEZE_IN_C_GOVERNED_COUNT=2`",
-                    "- `PHASE14_SHARED_SMOKE_GATE_COUNT=1`",
-                    "- `PHASE14_ACTIVE_DELIVERY_GATE_COUNT=0`",
-                    "",
-                ]
-            ),
+        expected_release_text = "\n".join(
+            [
+                "# Phase 14 Release Boundary Survey",
+                "## Current release reading",
+                "- `PHASE14_ROADMAP_ANCHOR_COUNT=4`",
+                "- `PHASE14_STUDY_ONLY_ANCHOR_COUNT=2`",
+                "- `PHASE14_FREEZE_IN_C_GOVERNED_COUNT=2`",
+                "- `PHASE14_SHARED_SMOKE_GATE_COUNT=1`",
+                "- `PHASE14_ACTIVE_DELIVERY_GATE_COUNT=0`",
+                "",
+            ]
         )
-        write_text(
-            root / "Documentation/zigux/phase14-end-to-end-smoke-survey.md",
-            "# Phase 14 End-to-End Smoke Survey\n- `PHASE14_ANCHOR_PACKET_COUNT=4`\n",
+        expected_smoke_text = "# Phase 14 End-to-End Smoke Survey\n- `PHASE14_ANCHOR_PACKET_COUNT=4`\n"
+        expected_freeze_map_text = "\n".join(
+            [
+                "# Freeze Map",
+                "Active freeze-in-C targets for the current product plan:",
+                "- kernel/sched/core.c",
+                "- mm/page_alloc.c",
+                "- kernel/rcu/tree.c",
+                "- net/core/skbuff.c",
+                "",
+                "Boundary-study-only targets before any direct port decision:",
+                "- kernel/workqueue.c",
+                "- kernel/trace/ring_buffer.c",
+                "",
+            ]
         )
-        write_text(
-            root / "Documentation/zigux/freeze-map.md",
-            "\n".join(
-                [
-                    "# Freeze Map",
-                    "Active freeze-in-C targets for the current product plan:",
-                    "- kernel/sched/core.c",
-                    "- mm/page_alloc.c",
-                    "- kernel/rcu/tree.c",
-                    "- net/core/skbuff.c",
-                    "",
-                    "Boundary-study-only targets before any direct port decision:",
-                    "- kernel/workqueue.c",
-                    "- kernel/trace/ring_buffer.c",
-                    "",
-                ]
-            ),
+        expected_roadmap_text = "\n".join(
+            [
+                "## Phase 14: Core-Adjacent Bounded Internals",
+                "Primary Linux anchors:",
+                "- kernel/workqueue.c",
+                "- kernel/trace/ring_buffer.c",
+                "- net/core/skbuff.c",
+                "- kernel/rcu/tree.c",
+                "",
+            ]
         )
-        write_text(
-            root / "zigux-alpha/ZAR_TO_ZIGUX_PRODUCT_ROADMAP.md",
-            "\n".join(
-                [
-                    "## Phase 14: Core-Adjacent Bounded Internals",
-                    "Primary Linux anchors:",
-                    "- kernel/workqueue.c",
-                    "- kernel/trace/ring_buffer.c",
-                    "- net/core/skbuff.c",
-                    "- kernel/rcu/tree.c",
-                    "",
-                ]
-            ),
-        )
+        write_text(root / "Documentation/zigux/phase14-release-boundary-survey.md", expected_release_text)
+        write_text(root / "Documentation/zigux/phase14-end-to-end-smoke-survey.md", expected_smoke_text)
+        write_text(root / "Documentation/zigux/freeze-map.md", expected_freeze_map_text)
+        write_text(root / "zigux-alpha/ZAR_TO_ZIGUX_PRODUCT_ROADMAP.md", expected_roadmap_text)
 
         errors = check(root)
         if errors:
@@ -181,7 +173,7 @@ def run_self_test() -> int:
         release_path = root / "Documentation/zigux/phase14-release-boundary-survey.md"
         write_text(
             release_path,
-            release_path.read_text(encoding="utf-8").replace(
+            read_text(release_path).replace(
                 "- `PHASE14_SHARED_SMOKE_GATE_COUNT=1`",
                 "- `PHASE14_SHARED_SMOKE_GATE_COUNT=2`",
             ),
@@ -189,6 +181,40 @@ def run_self_test() -> int:
         errors = check(root)
         if not any("PHASE14_SHARED_SMOKE_GATE_COUNT=1" in error for error in errors):
             print("self-test expected count-marker failure when release-boundary counts drifted", file=sys.stderr)
+            return 1
+        write_text(release_path, expected_release_text)
+
+        smoke_path = root / "Documentation/zigux/phase14-end-to-end-smoke-survey.md"
+        write_text(
+            smoke_path,
+            read_text(smoke_path).replace(
+                "- `PHASE14_ANCHOR_PACKET_COUNT=4`",
+                "- `PHASE14_ANCHOR_PACKET_COUNT=3`",
+            ),
+        )
+        errors = check(root)
+        if not any("shared smoke survey drifted from the four-anchor packet count" in error for error in errors):
+            print("self-test expected failure when shared smoke anchor count drifted", file=sys.stderr)
+            return 1
+        write_text(smoke_path, expected_smoke_text)
+
+        roadmap_path = root / "zigux-alpha/ZAR_TO_ZIGUX_PRODUCT_ROADMAP.md"
+        write_text(
+            roadmap_path,
+            "\n".join(
+                [
+                    "## Phase 14: Core-Adjacent Bounded Internals",
+                    "Primary Linux anchors:",
+                    "- kernel/workqueue.c",
+                    "- kernel/trace/ring_buffer.c",
+                    "- kernel/rcu/tree.c",
+                    "",
+                ]
+            ),
+        )
+        errors = check(root)
+        if not any("roadmap Phase 14 anchor list drifted from the four-anchor shared smoke packet" in error for error in errors):
+            print("self-test expected failure when roadmap anchor inventory drifted", file=sys.stderr)
             return 1
 
     return 0
