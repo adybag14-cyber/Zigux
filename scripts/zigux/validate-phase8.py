@@ -757,6 +757,27 @@ def run_self_test() -> None:
             "Documentation/zigux/phase8-libbpf-segment-survey.md: zig build test --build-file zigux/tests/phase8_file_path_handle_bridge_only_build.zig --summary all",
         ),
         (
+            "survey_libbpf_wrapper_route",
+            "Documentation/zigux/phase8-libbpf-segment-survey.md",
+            "make -C zigux phase8-libbpf-segments-test",
+            "make -C zigux phase8-libbpf-survey-test",
+            "Documentation/zigux/phase8-libbpf-segment-survey.md: make -C zigux phase8-libbpf-segments-test",
+        ),
+        (
+            "survey_perf_buffer_poll_wrapper_route",
+            "Documentation/zigux/phase8-libbpf-segment-survey.md",
+            "make -C zigux phase8-perf-buffer-poll-test",
+            "make -C zigux phase8-perf-buffer-poll",
+            "Documentation/zigux/phase8-libbpf-segment-survey.md: make -C zigux phase8-perf-buffer-poll-test",
+        ),
+        (
+            "survey_shared_phase8_wrapper_route",
+            "Documentation/zigux/phase8-libbpf-segment-survey.md",
+            "make -C zigux phase8-test",
+            "make -C zigux phase8-shared-test",
+            "Documentation/zigux/phase8-libbpf-segment-survey.md: make -C zigux phase8-test",
+        ),
+        (
             "survey_exact_once_duplicate",
             "Documentation/zigux/phase8-libbpf-segment-survey.md",
             "  - `zigux/tests/phase8_libbpf_segments_only_build.zig`\n",
