@@ -20,7 +20,7 @@
       "status": "starter_landed",
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase9_build.zig",
-      "why_now": "The existing Phase 9 build step is the narrowest honest place to widen runtime pilot coverage from atomic64 into bitmap without inventing a broader runtime substrate."
+      "why_now": "The existing Phase 9 build step already carries the direct `phase9-runtime-bitmap-sample-tests` leg and is still the narrowest honest place to keep the runtime starter replay visible beside the module, diff, loader, and survey gates without inventing a broader runtime substrate."
     },
     {
       "id": "runtime-bitmap-survey-gate",
