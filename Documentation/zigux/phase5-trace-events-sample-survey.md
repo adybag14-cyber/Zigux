@@ -4,7 +4,7 @@ This document tracks the bounded Phase 5 reference-sample survey for the roadmap
 
 ## Status
 
-- `PHASE5_STATUS=active`
+- `PHASE5_STATUS=parked`
 - `PHASE5_SLICE=trace-events-reference-sample-starter`
 - `PHASE5_LANE_KEY=P5-L24`
 - `PHASE5_SURVEYED_COMMIT=c9b956c155281407bf86bf56d122b08d6fc634ea`
