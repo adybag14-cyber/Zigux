@@ -23,6 +23,11 @@ This document tracks the bounded Phase 9 runtime pilot-module survey around `sam
   - `zigux/Makefile`
   - `Documentation/zigux/phase9-runtime-kretprobe-survey.md`
 
+The Phase 9 roadmap explicitly names `samples/kprobes/kretprobe_example.c` as a runtime pilot-module anchor and recommends `zigux/tests/runtime_*` plus `samples/zigux/runtime_*` as the bounded Zigux destinations.
+
+The live Phase 9 runtime kretprobe packet also stays separate from the already-approved non-runtime Phase 5 reference-sample packet: `samples/zigux/runtime_kretprobe.zig` and `samples/zigux/runtime_kretprobe_loader.zig` remain the separate runtime family rooted in `samples/kprobes/kretprobe_example.c`, not a second owner for the already-approved `samples/zigux/kretprobe_example.zig` cue under `Documentation/zigux/phase5-kretprobe-sample-survey.md`.
+The shared sample-root catalog at `samples/zigux/README.md` keeps the approved Phase 5 anchor explicit through `samples/zigux/kretprobe_example.zig` while listing the runtime kretprobe pair only under the separate Phase 9 runtime pilot family.
+
 ## Survey findings
 
 - `samples/kprobes/kretprobe_example.c` is present on `master` at 108 lines.
