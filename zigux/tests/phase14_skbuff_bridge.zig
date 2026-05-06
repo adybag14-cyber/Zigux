@@ -109,15 +109,19 @@ test "phase14 skbuff bridge manifest records the boundary-map foothold and froze
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "consume_skb") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "stay-in-C") != null);
         }
-        if (std.mem.eql(u8, gap.id, "phase14-skbuff-lifetime-audit-outline")) {
+        if (std.mem.eql(u8, gap.id, "phase14-skbuff-concurrency-audit-outline")) {
             saw_audit_outline = true;
+            try std.testing.expectEqualStrings("lifetime_audit", gap.kind);
             try std.testing.expectEqualStrings("net/core/skbuff_bridge.zig", gap.zigux_destination);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "dataref") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "destructor_arg") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "concurrency-sensitive checkpoint catalog") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "roadmap's concurrency-audit requirement") != null);
         }
         if (std.mem.eql(u8, gap.id, "phase14-skbuff-checksum-state-audit")) {
             saw_checksum_audit = true;
             try std.testing.expectEqualStrings("starter_landed", gap.status);
+            try std.testing.expectEqualStrings("lifetime_audit", gap.kind);
             try std.testing.expectEqualStrings("net/core/skbuff_bridge.zig", gap.zigux_destination);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "skb->csum") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "skb_checksum_complete_unset") != null);
@@ -125,6 +129,7 @@ test "phase14 skbuff bridge manifest records the boundary-map foothold and froze
         if (std.mem.eql(u8, gap.id, "phase14-skbuff-segmentation-followup")) {
             saw_segmentation_audit = true;
             try std.testing.expectEqualStrings("starter_landed", gap.status);
+            try std.testing.expectEqualStrings("lifetime_audit", gap.kind);
             try std.testing.expectEqualStrings("net/core/skbuff_bridge.zig", gap.zigux_destination);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "skb_segment") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "skb_zerocopy_clone") != null);
@@ -132,6 +137,7 @@ test "phase14 skbuff bridge manifest records the boundary-map foothold and froze
         if (std.mem.eql(u8, gap.id, "phase14-skbuff-segmentation-tail-owner-followup")) {
             saw_tail_owner_audit = true;
             try std.testing.expectEqualStrings("starter_landed", gap.status);
+            try std.testing.expectEqualStrings("lifetime_audit", gap.kind);
             try std.testing.expectEqualStrings("net/core/skbuff_bridge.zig", gap.zigux_destination);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "SKB_GSO_PARTIAL") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "sock_wfree") != null);
@@ -139,12 +145,14 @@ test "phase14 skbuff bridge manifest records the boundary-map foothold and froze
         if (std.mem.eql(u8, gap.id, "phase14-skbuff-segmentation-csum-data-offset-followup")) {
             saw_followup = true;
             try std.testing.expectEqualStrings("starter_landed", gap.status);
+            try std.testing.expectEqualStrings("lifetime_audit", gap.kind);
             try std.testing.expectEqualStrings("net/core/skbuff_bridge.zig", gap.zigux_destination);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "SKB_GSO_CB(nskb)->csum") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "remcsum_offload") != null);
         }
         if (std.mem.eql(u8, gap.id, "phase14-skbuff-segs-prev-tail-publication-followup")) {
             try std.testing.expectEqualStrings("starter_landed", gap.status);
+            try std.testing.expectEqualStrings("lifetime_audit", gap.kind);
             try std.testing.expectEqualStrings("net/core/skbuff_bridge.zig", gap.zigux_destination);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "segs->prev") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "validate_xmit_skb_list") != null);
@@ -256,6 +264,16 @@ test "phase14 skbuff bridge notes and code agree the live ownership blocker is n
     try std.testing.expect(std.mem.indexOf(
         u8,
         survey_note,
+        "concurrency-sensitive checkpoint catalog",
+    ) != null);
+    try std.testing.expect(std.mem.indexOf(
+        u8,
+        survey_note,
+        "roadmap's concurrency-audit requirement",
+    ) != null);
+    try std.testing.expect(std.mem.indexOf(
+        u8,
+        survey_note,
         "no smaller review-only skbuff follow-up remains before the live ownership blocker",
     ) != null);
     try std.testing.expect(std.mem.indexOf(
@@ -266,8 +284,10 @@ test "phase14 skbuff bridge notes and code agree the live ownership blocker is n
     try std.testing.expect(std.mem.indexOf(
         u8,
         slice_note,
-        "no smaller review-only skbuff follow-up remains inside this bridge packet",
+        "three-entry concurrency-sensitive checkpoint catalog",
     ) != null);
+    try std.testing.expectEqual(@as(usize, 3), skbuff_bridge.SkbuffBridgeLab.concurrencySensitiveCheckpointCount());
+    try std.testing.expect(skbuff_bridge.SkbuffBridgeLab.isConcurrencySensitiveCheckpoint("segmentation-tail-publication-consumer-contract"));
     try std.testing.expect(std.mem.indexOf(
         u8,
         slice_note,
