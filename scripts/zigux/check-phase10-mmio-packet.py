@@ -127,7 +127,7 @@ pub fn bumpConfigGeneration(self: *Self) void { self.pending_config_write = null
         {
             "lane_key": "P10-L10",
             "phase": "Phase 10",
-            "surveyed_commit": "5f476437a4a3b91d840dd75fca0bf684d1ccc4dd",
+            "surveyed_commit": "84f90e23ad1c28ae345905d5293a8c5395f37d43",
             "anchor": "drivers/virtio/virtio_mmio.c",
             "roadmap_destinations": ["drivers/virtio/*.zig", "zigux/kernel/", "zigux/helpers/"],
             "freeze_map": "Documentation/zigux/freeze-map.md",
@@ -217,7 +217,7 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
         missing_markers.append("manifest:phase=Phase 10")
     if manifest.get("anchor") != "drivers/virtio/virtio_mmio.c":
         missing_markers.append("manifest:anchor=drivers/virtio/virtio_mmio.c")
-    if manifest.get("surveyed_commit") != "5f476437a4a3b91d840dd75fca0bf684d1ccc4dd":
+    if manifest.get("surveyed_commit") != "84f90e23ad1c28ae345905d5293a8c5395f37d43":
         missing_markers.append("manifest:surveyed_commit")
     if manifest.get("roadmap_destinations") != ["drivers/virtio/*.zig", "zigux/kernel/", "zigux/helpers/"]:
         missing_markers.append("manifest:roadmap_destinations")
