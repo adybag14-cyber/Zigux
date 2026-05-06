@@ -64,7 +64,7 @@
       "status": "starter_landed",
       "kind": "documentation",
       "zigux_destination": "Documentation/zigux/phase12-virtio-scsi-survey.md",
-      "why_now": "The lane needs a note that compares the landed queue planner, probe snapshot helper, restore queue rebind summary, event-buffer ownership summary, and rollback summary against the much larger virtio_scsi.c surface so future runs do not mistake this bounded foothold for a production SCSI HBA port."
+      "why_now": "The lane needs a note that compares the landed queue planner, probe snapshot helper, restore queue rebind summary, recovery event-rearm summary, event-buffer ownership summary, and rollback summary against the much larger virtio_scsi.c surface so future runs do not mistake this bounded foothold for a production SCSI HBA port."
     },
     {
       "id": "phase12-virtio-scsi-driver-starter",
@@ -100,6 +100,13 @@
       "kind": "complex_driver_starter",
       "zigux_destination": "drivers/scsi/virtio_scsi.zig",
       "why_now": "The bounded recovery packet now records the virtscsi_restore() queue rebind order by naming the control and event queues, the default versus poll queue ranges, recreating request queues before device ready, and deferring event buffers until after device ready without claiming live DMA-backed submission."
+    },
+    {
+      "id": "phase12-virtio-scsi-recovery-event-rearm-summary-starter",
+      "status": "starter_landed",
+      "kind": "complex_driver_starter",
+      "zigux_destination": "drivers/scsi/virtio_scsi.zig",
+      "why_now": "The bounded recovery packet now also records restore-time event rearm ordering by reusing the frozen event queue index, requiring device ready before rearm, and rearming the event queue before event recycling or request queue reuse without claiming live completion handling."
     },
     {
       "id": "phase12-virtio-scsi-recovery-event-buffer-ownership-summary-starter",
