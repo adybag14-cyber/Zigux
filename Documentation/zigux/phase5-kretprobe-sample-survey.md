@@ -84,7 +84,7 @@ When a contributor updates `samples/zigux/kretprobe_example.zig` or its directly
 - does `ownershipSummary()` still keep the `cold`, `initialized`, `armed`, `replay_complete`, and `exited` lifecycle packet explicit without implying the separate Phase 9 runtime summary surface?
 - does symbol retargeting stay a pre-init in-memory choice instead of implying `module_param` or runtime registration parity?
 - if the sample behavior changes, is the manifest updated alongside the replay and teardown contract instead of leaving reviewers to infer the new boundary from code alone?
-- do the docs and tests still say clearly that `register_kretprobe()`, `unregister_kretprobe()`, `pt_regs` return extraction, and loadable module wiring remain out of scope for this Phase 5 sample?
+- do the docs and tests still say clearly that `register_kretprobe()`, `unregister_kretprobe()`, `pt_regs` return extraction, and runtime module wiring remain out of scope for this Phase 5 sample?
 
 ## Recorded gap vs roadmap
 
@@ -110,7 +110,7 @@ This survey does not yet claim:
 - `register_kretprobe()` parity
 - `unregister_kretprobe()` parity
 - `pt_regs` or `regs_return_value()` parity
-- loadable module wiring
+- runtime module wiring
 
 ## Next bounded step
 
