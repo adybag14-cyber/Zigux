@@ -78,6 +78,7 @@ The next honest same-lane step is still the tiny `fop_ruleset_release()` planner
 
 The broader shipped Phase 13 release surface also includes adjacent evidence that stays outside the shared replay count:
 
+  * `zigux/tests/phase13_landlock_syscalls_reviewability.zig`
   * `Documentation/zigux/phase13-release-notes-survey.md`
   * `Documentation/zigux/phase13-roadmap-traceability.md`
   * `Documentation/zigux/phase13-notifier-list-survey.md`
@@ -86,6 +87,8 @@ The broader shipped Phase 13 release surface also includes adjacent evidence tha
   * `zigux/bindings/notifier_abi.zig`
   * `include/zigux/notifier_abi.h`
   * `zigux/helpers/notifier_chain_view.zig`
+
+The direct `zigux/tests/phase13_landlock_syscalls_reviewability.zig` shard stays in that adjacent release-evidence set for the same reason already recorded in the syscall lane section and the release-notes packet: it is shipped focused direct evidence on current `master`, but it does not expand the shared replay beyond the seven build-backed tests.
 
 These files keep the shipped release surface reviewable, but they do not change the fact that the active shared replay remains the seven-test helper packet.
 
