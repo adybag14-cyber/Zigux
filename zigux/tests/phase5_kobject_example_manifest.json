@@ -9,10 +9,10 @@
     "descriptor keeps the Linux anchor path explicit and leaves requires_runtime_substrate false while provides_selfcheck stays true",
     "the manifest and survey test still describe the approved Phase 5 in-memory ownership-and-lifetime idiom: the exact registration, integer roundtrip, shared baz/bar dispatch, and pre-registration access boundary run through phase5_build.zig",
     "the manifest prompts keep the initialized-but-not-registered zero-active-attributes and no-show-or-store boundary explicit before registerAttributes() opens the sample",
-    "the manifest prompts keep ownershipSummary() explicit across cold, initialized, registered, and exited instead of leaving the lifecycle packet implicit",
+    "the manifest prompts keep ownershipSummary() and sample-owned runOwnershipReplay() explicit across cold, initialized, registered, and exited instead of leaving the lifecycle packet implicit",
     "the manifest prompts keep the unnamed attribute group shape and post-exit show/store rejection boundary explicit instead of implying sysfs registration",
     "the manifest prompts keep initialized-only exit reporting abandoned_before_registration and registered exit reporting tore_down_registered_attributes",
-    "sample-behavior changes update the manifest-backed registration and lifecycle contract instead of leaving reviewers to infer it from code alone",
+    "sample-behavior changes update the manifest-backed registration and lifecycle contract, including runOwnershipReplay(), instead of leaving reviewers to infer it from code alone",
     "docs and tests still keep sysfs creation, kernel_kobj integration, uevents, and module registration out of scope for this Phase 5 sample"
   ],
   "exact_checks": [
@@ -34,7 +34,7 @@
     {
       "id": "ownership-summary",
       "kind": "ownership_lifetime",
-      "expected": "ownershipSummary reports the cold, initialized, registered, and exited stages with active attribute counts 0, 0, 3, and 0"
+      "expected": "ownershipSummary() and runOwnershipReplay() report the cold, initialized, registered, and exited stages with active attribute counts 0, 0, 3, and 0"
     },
     {
       "id": "initialized-exit-disposition",
