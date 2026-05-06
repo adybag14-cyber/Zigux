@@ -32,6 +32,7 @@ This document starts the first bounded Phase 3 slice for Zigux.
 - current export/UAPI survey shape:
   - `PHASE3_EXPORT_UAPI_SURVEY_MODE=shared-abi-slice`
   - current `master` no longer ships the older dedicated `phase3_export_uapi*` replay or `phase3-export-uapi-boundary-survey.md` note family
+  - the focused `scripts/zigux/validate-phase3-export-uapi-survey.py` checker and its bootstrap-workflow steps still fail-close the shipped header and export-status packet even though that packet now lives in this shared ABI slice instead of a separate export/UAPI note family
   - current boundary evidence therefore lives in this shared ABI slice plus `include/linux/zigux.h`, `zigux/kernel/export_shim.zig`, and `zigux/uapi/version.zig`
 - current shared ABI replay:
   - `PHASE3_ABI_MANIFEST_PATH=zigux/tests/fixtures/phase3_abi_manifest.json`
