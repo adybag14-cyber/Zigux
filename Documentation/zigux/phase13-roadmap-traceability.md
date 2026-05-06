@@ -80,6 +80,7 @@ The broader shipped Phase 13 release surface also includes adjacent evidence tha
   * `Documentation/zigux/phase13-roadmap-traceability.md`
   * `Documentation/zigux/phase13-notifier-list-survey.md`
   * `zigux/tests/phase13_notifier_list_manifest.json`
+  * `zigux/tests/phase13_notifier_list_reviewability.zig`
   * `zigux/bindings/notifier_abi.zig`
   * `include/zigux/notifier_abi.h`
   * `zigux/helpers/notifier_chain_view.zig`
