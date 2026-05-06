@@ -74,7 +74,7 @@ test "phase13 landlock ruleset manifest records the shipped helper lab and remai
     try std.testing.expectEqual(@as(usize, 3), manifest.roadmap_destinations.len);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE13_LANE_KEY=P13-L12") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase13-landlock-ruleset-ownership.md") != null);
-    try std.testing.expect(std.mem.indexOf(u8, ownership_note, "PHASE13_LANE_KEY=P13-Y03") != null);
+    try std.testing.expect(std.mem.indexOf(u8, ownership_note, "PHASE13_LANE_KEY=P13-L12") != null);
     try std.testing.expect(std.mem.indexOf(u8, ownership_note, "security/landlock/syscalls.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, ownership_note, "rb_replace_node()") != null);
     try std.testing.expect(std.mem.indexOf(u8, ownership_note, "phase13_landlock_ruleset_manifest.json") != null);
