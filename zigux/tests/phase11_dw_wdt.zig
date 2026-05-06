@@ -274,3 +274,31 @@ test "phase11 dw_wdt stop and restart stay bounded to reset-control and non-stop
     try std.testing.expect(!runtime.running);
     try std.testing.expect(!runtime.hardware_running);
 }
+
+test "phase11 dw_wdt non-stoppable stop preserves irq-mode bookkeeping and follow-up ping semantics" {
+    var watchdog = try dw_wdt.DwWdtLab.initFixedTops(65_536, false);
+    _ = try watchdog.setResponseMode(.irq);
+    _ = try watchdog.setTimeout(9);
+    _ = try watchdog.start();
+    _ = watchdog.setCurrentCount(3 * 65_536);
+    _ = watchdog.setInterruptPending(true);
+
+    var runtime = watchdog.stop();
+    try std.testing.expect(runtime.running);
+    try std.testing.expect(runtime.hardware_running);
+    try std.testing.expectEqual(dw_wdt.ResponseMode.irq, runtime.response_mode);
+    try std.testing.expectEqual(@as(u32, 16), runtime.timeout_sec);
+    try std.testing.expectEqual(@as(u32, 8), runtime.pretimeout_sec);
+    try std.testing.expectEqual(@as(u32, 3), runtime.time_left_sec);
+    try std.testing.expectEqual(@as(u32, 3 * 65_536), runtime.registers.current_count);
+    try std.testing.expect(runtime.interrupt_pending);
+
+    runtime = try watchdog.ping();
+    try std.testing.expect(runtime.running);
+    try std.testing.expect(runtime.hardware_running);
+    try std.testing.expectEqual(dw_wdt.ResponseMode.irq, runtime.response_mode);
+    try std.testing.expectEqual(@as(u32, 8), runtime.pretimeout_sec);
+    try std.testing.expectEqual(dw_wdt.counter_restart_kick_value, runtime.registers.restart);
+    try std.testing.expectEqual(@as(u32, 3 * 65_536), runtime.registers.current_count);
+    try std.testing.expect(runtime.interrupt_pending);
+}
