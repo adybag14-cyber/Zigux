@@ -48,7 +48,7 @@ test "phase14 shared smoke manifest records the bounded study-only packet" {
     try std.testing.expectEqualStrings("phase14_shared_smoke_packet", manifest.packet_name);
     try std.testing.expectEqualStrings("study_only_shared_smoke_packet", manifest.focus);
     try std.testing.expectEqual(@as(usize, 6), manifest.commands.len);
-    try std.testing.expectEqual(@as(usize, 25), manifest.surfaces.len);
+    try std.testing.expectEqual(@as(usize, 26), manifest.surfaces.len);
     try std.testing.expectEqual(@as(usize, 4), manifest.blocked_anchors.len);
     try std.testing.expectEqualStrings("make -C zigux phase14-validate", manifest.commands[0]);
     try std.testing.expectEqualStrings("make -C zigux phase14-smoke", manifest.commands[1]);
@@ -57,6 +57,7 @@ test "phase14 shared smoke manifest records the bounded study-only packet" {
     try std.testing.expect(hasSurfacePath(manifest.surfaces, "Documentation/zigux/phase14-release-boundary-survey.md"));
     try std.testing.expect(hasSurfacePath(manifest.surfaces, "Documentation/zigux/phase14-end-to-end-smoke-survey.md"));
     try std.testing.expect(hasSurfacePath(manifest.surfaces, "Documentation/zigux/phase14-core-boundary-traceability.md"));
+    try std.testing.expect(hasSurfacePath(manifest.surfaces, "scripts/zigux/check-phase14-docs-root-smoke-summary.py"));
     try std.testing.expect(hasSurfacePath(manifest.surfaces, "scripts/zigux/check-phase14-rollback-threshold-sequencing.py"));
     try std.testing.expect(hasSurfacePath(manifest.surfaces, "scripts/zigux/check-phase14-release-boundary-exact-counts.py"));
     try std.testing.expect(hasSurfacePath(manifest.surfaces, "zigux/tests/phase14_build.zig"));
@@ -110,6 +111,7 @@ test "phase14 shared smoke survey confirms the current packet surfaces" {
     defer std.testing.allocator.free(makefile_text);
     try std.testing.expect(containsMarker(makefile_text, "phase14-smoke:"));
     try std.testing.expect(containsMarker(makefile_text, "phase14-test:"));
+    try std.testing.expect(containsMarker(makefile_text, "scripts/zigux/check-phase14-docs-root-smoke-summary.py"));
     try std.testing.expect(containsMarker(makefile_text, "phase14: phase14-validate phase14-smoke phase14-test"));
     try std.testing.expect(containsMarker(makefile_text, "zigux/tests/phase14_build.zig"));
 
