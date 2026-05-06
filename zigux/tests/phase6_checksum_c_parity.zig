@@ -2,6 +2,26 @@ const std = @import("std");
 const checksum = @import("checksum");
 const fixtures = @import("phase6_checksum_vectors");
 
+const ipv6_payload = [_]u8{
+    0xde, 0xad, 0xbe, 0xef,
+    0xfa, 0xce, 0x01, 0x23,
+    0x45, 0x67, 0x89,
+};
+
+const ipv6_saddr = [_]u8{
+    0x20, 0x01, 0x0d, 0xb8,
+    0x00, 0x00, 0x00, 0x00,
+    0x00, 0x00, 0x00, 0x00,
+    0x00, 0x00, 0x00, 0x01,
+};
+
+const ipv6_daddr = [_]u8{
+    0x20, 0x01, 0x0d, 0xb8,
+    0x00, 0x00, 0x00, 0x00,
+    0x00, 0x00, 0x00, 0x00,
+    0x00, 0x00, 0x00, 0x02,
+};
+
 pub fn main(init: std.process.Init) !void {
     const io = init.io;
     var stdout_buffer: [2048]u8 = undefined;
@@ -29,6 +49,20 @@ pub fn main(init: std.process.Init) !void {
             "tcpudp-nofold\t{s}\t0x{x:0>8}\n",
             .{ case.name, checksum.tcpUdpNofold(payload_partial, case.saddr, case.daddr, @intCast(case.payload.len), case.proto) },
         );
+    }
+
+    try writer.print(
+        "tcpudp-v6-nofold\tudp pseudo header v6\t0x{x:0>8}\n",
+        .{checksum.tcpUdpV6Nofold(checksum.partial(&ipv6_payload, 0), &ipv6_saddr, &ipv6_daddr, ipv6_payload.len, 17)},
+    );
+
+    for (fixtures.negate_cases) |case| {
+        try writer.print("negate\t{s}\t0x{x:0>8}\n", .{ case.name, checksum.negate(case.sum) });
+    }
+
+    for (fixtures.fold_cases) |case| {
+        try writer.print("from32to16\t{s}\t0x{x:0>4}\n", .{ case.name, checksum.from32to16(case.sum) });
+        try writer.print("fold\t{s}\t0x{x:0>4}\n", .{ case.name, checksum.fold(case.sum) });
     }
 
     var payload = [_]u8{ 0x70, 0x68, 0x61, 0x73, 0x65, 0x36 };
