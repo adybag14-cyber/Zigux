@@ -169,6 +169,13 @@ test "phase 5 bytestream fifo survey packet stays repo-local and keeps shared re
         .{manifest.lane_key},
     );
 
+    var review_gate_marker_buf: [160]u8 = undefined;
+    const review_gate_marker = try std.fmt.bufPrint(
+        review_gate_marker_buf[0..],
+        "samples/kfifo/bytestream-example.c|PHASE5_LANE_KEY={s}|PHASE5_SURVEYED_COMMIT={s}|Phase 5",
+        .{ manifest.lane_key, manifest.surveyed_commit },
+    );
+
     const survey_note = try std.Io.Dir.cwd().readFileAlloc(
         io_instance.io(),
         "Documentation/zigux/phase5-kfifo-sample-survey.md",
@@ -201,7 +208,7 @@ test "phase 5 bytestream fifo survey packet stays repo-local and keeps shared re
     try std.testing.expect(std.mem.indexOf(u8, survey_note, lane_key_marker) != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, surveyed_commit_marker) != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "/workspace/agent_files") == null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "samples/kfifo/bytestream-example.c|PHASE5_LANE_KEY=P5-L01|PHASE5_SURVEYED_COMMIT=c9b956c155281407bf86bf56d122b08d6fc634ea|Phase 5") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, review_gate_marker) != null);
 
     const docs_root = try std.Io.Dir.cwd().readFileAlloc(
         io_instance.io(),
