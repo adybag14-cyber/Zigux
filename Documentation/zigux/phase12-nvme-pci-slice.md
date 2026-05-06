@@ -14,7 +14,7 @@ The starter stays intentionally narrow:
 - records one bounded recovery replay helper by reporting reset-generation staleness for cached PRP metadata, admin-queue replay need, dropped I/O queue rebuild count, and post-reset queue numbering without claiming live timeout recovery, IRQ routing, or hardware-backed reset transport
 
 Ownership boundary:
-- `P12-Y02` owns only the queue-planning, PRP buffer-shape, PRP metadata, and recovery replay starter surface
+- `P12-L05` owns only the queue-planning, PRP buffer-shape, PRP metadata, and recovery replay starter surface
 - blocked DMA and recovery transport work stays outside this starter and remains owned by the broader Phase 12 transport substrate until the roadmap explicitly approves a deeper follow-up
 
 This slice does not claim PCI probe or remove wiring, interrupt registration, controller enable or shutdown sequences, live MMIO, PRP list construction, blk-mq integration, tagset setup, or hardware-backed recovery.
