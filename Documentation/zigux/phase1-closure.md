@@ -159,6 +159,18 @@ That means `test "bitmap copy aliases preserve tail clearing and extension seman
 
 - `PHASE1_BITMAP_COPY_ALIAS_REVIEW=helper-local bitmap copy alias proof stays explicit through the direct bitmap test anchor so bitmap_copy_clear_tail and bitmap_copy_and_extend preserve tail masking and zero-filled extension semantics`
 
+## String Review Rule
+
+For `tools/lib/string.zig`, reviewers must keep the current bounded host-side string surface explicit through:
+
+- `tools/lib/string.zig`
+- `zigux/tests/phase1_helpers.zig`
+- `zigux/tests/fixtures/phase1_helpers.json`
+
+That means `test "strtobool accepts common Linux forms"`, `test "strlcpy copies and returns the source length"`, `test "skip trim remove and replace spaces work in place"`, and `test "memdup and memchrInv preserve byte content"` stay present and review-visible whenever the helper changes. The shared replay must also keep `test "phase 1 string replaceChar stops at embedded NUL"` plus the `replace_char`, `replace_char_end`, `memchr_inv_index`, and `memchr_inv_none` fixture fields explicit so the packet still proves the embedded-NUL stop rule and the committed byte-search parity without reopening broader helper growth.
+
+- `PHASE1_STRING_REVIEW_PACKET=helper-local string tests and the shared embedded-NUL replay stay explicit so the bounded Phase 1 string surface keeps its direct review anchors and parity fixture keys`
+
 ## Rollback
 
 Rollback owner:
