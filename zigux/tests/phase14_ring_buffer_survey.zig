@@ -79,8 +79,10 @@ test "phase 14 ring-buffer survey manifest records the study-only gap without in
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE14_LANE_KEY=P14-L08") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE14_SURVEYED_COMMIT=946d5c73fdb763ba860a20879b05da54e1896e8c") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "## Reader-page consume audit") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "## Exported-page copy-path audit") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "ring_buffer_read_start()") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "ring_buffer_consume()") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "ring_buffer_read_page()") != null);
     try std.testing.expectEqual(@as(usize, 3), manifest.roadmap_destinations.len);
     try std.testing.expect(manifest.survey_summary.ring_buffer_c_lines >= 8000);
     try std.testing.expect(manifest.survey_summary.ring_buffer_design_doc_lines >= 900);
@@ -174,10 +176,11 @@ test "phase 14 ring-buffer survey manifest records the study-only gap without in
 
         if (std.mem.eql(u8, gap.id, "phase14-ring-buffer-read-page-copy-followup")) {
             saw_read_page_copy_followup = true;
-            try std.testing.expectEqualStrings("ready_next", gap.status);
+            try std.testing.expectEqualStrings("starter_landed", gap.status);
             try std.testing.expectEqualStrings("Documentation/zigux/phase14-ring-buffer-survey.md", gap.zigux_destination);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "ring_buffer_read_page()") != null);
             try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "forced copy path") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "writer-busy") != null);
         }
 
         if (std.mem.eql(u8, gap.id, "phase14-ring-buffer-zig-port-blocker")) {
@@ -191,8 +194,8 @@ test "phase 14 ring-buffer survey manifest records the study-only gap without in
         }
     }
 
-    try std.testing.expectEqual(@as(usize, 11), landed_count);
-    try std.testing.expectEqual(@as(usize, 1), ready_next_count);
+    try std.testing.expectEqual(@as(usize, 12), landed_count);
+    try std.testing.expectEqual(@as(usize, 0), ready_next_count);
     try std.testing.expectEqual(@as(usize, 1), blocked_count);
     try std.testing.expect(saw_boundary_checklist);
     try std.testing.expect(saw_overwrite_audit);
