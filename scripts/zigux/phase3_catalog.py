@@ -540,6 +540,15 @@ def discover_artifact_diff_phase3_order(
     return ordered_entries
 
 
+def _artifact_diff_phase3_bounds(lines: list[str]) -> tuple[int, int]:
+    start = lines.index("Current Phase 3 use")
+    try:
+        end = lines.index("Current Phase 4 use")
+    except ValueError:
+        end = lines.index("Rules")
+    return start, end
+
+
 def artifact_diff_phase3_lines(
     entries: list[Phase3Slice],
     artifact_diff_path: Path = ARTIFACT_DIFF_PATH,
@@ -562,12 +571,11 @@ def rewrite_artifact_diff_phase3_section(
     original = artifact_diff_path.read_text(encoding="utf-8")
     lines = original.splitlines()
     try:
-        start = lines.index("Current Phase 3 use")
-        end = lines.index("Rules")
+        start, end = _artifact_diff_phase3_bounds(lines)
     except ValueError as exc:
         raise ValueError(f"artifact diff headings missing in {artifact_diff_path}") from exc
-    replacement = ["Current Phase 3 use", *artifact_diff_phase3_lines(entries), "", "Rules"]
-    updated_lines = [*lines[:start], *replacement, *lines[end + 1 :]]
+    replacement = ["Current Phase 3 use", *artifact_diff_phase3_lines(entries), ""]
+    updated_lines = [*lines[:start], *replacement, *lines[end:]]
     updated = "\n".join(updated_lines) + "\n"
     if updated == original:
         return False
@@ -585,12 +593,11 @@ def artifact_diff_phase3_section_needs_rewrite(
         return True
     lines = original.splitlines()
     try:
-        start = lines.index("Current Phase 3 use")
-        end = lines.index("Rules")
+        start, end = _artifact_diff_phase3_bounds(lines)
     except ValueError:
         return True
-    replacement = ["Current Phase 3 use", *artifact_diff_phase3_lines(entries, artifact_diff_path), "", "Rules"]
-    updated_lines = [*lines[:start], *replacement, *lines[end + 1 :]]
+    replacement = ["Current Phase 3 use", *artifact_diff_phase3_lines(entries, artifact_diff_path), ""]
+    updated_lines = [*lines[:start], *replacement, *lines[end:]]
     updated = "\n".join(updated_lines) + "\n"
     return updated != original
 
@@ -965,7 +972,7 @@ def run_self_test() -> int:
             newline="\n",
         )
         (paths.tests_dir / "phase3_bitmap_cpumask_dump.zig").write_text("// bitmap\n", encoding="utf-8", newline="\n")
-        (bitmap_fixture_dir / "expected.json").write_text("{}\n", encoding="utf-8", newline="\n")
+        (bitmap_fixture_dir / "expected.json").writeText("{}\n", encoding="utf-8", newline="\n")
         (bitmap_fixture_dir / "phase3_bitmap_cpumask_c_harness.c").write_text(
             "int main(void) { return 0; }\n",
             encoding="utf-8",
