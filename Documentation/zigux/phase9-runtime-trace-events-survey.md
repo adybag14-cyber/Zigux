@@ -36,6 +36,7 @@ The live repo originally had no matching trace-events survey artifact, no dedica
 - the repo had zero `zigux/tests/runtime_trace_events*` files before this survey landed.
 - the repo now carries `samples/zigux/runtime_trace_events.zig`, `samples/zigux/runtime_trace_events_loader.zig`, `zigux/tests/runtime_trace_events_module.zig`, the survey manifest and gate, and shared `zigux/tests/phase9_build.zig` coverage for the trace-events starter lane.
 - the current bounded starter now exports a stable `RuntimeTraceEventsSummary`, and the focused diff gate uses that summary to keep the concrete main-thread payload literals, function-callback payload labels, and selftest totals machine-checkable without reaching back into raw payload-only state.
+- the starter now also carries direct sample-local lifecycle proofs for post-selftest replay-summary continuity, initialized-stage failed-exit rollback before selftest, and selftest-ready failed-exit rollback until registration is balanced, so rollback evidence stays reviewable where the runtime sample lives instead of only through the dedicated module test file.
 - the current bounded starter still advertises `requires_runtime_substrate=true` and `provides_selftest_hook=true`, so the roadmap's selftest-hook requirement stays explicit in the sample descriptor while the pilot remains an in-memory starter.
 - the current loader scaffold now records explicit tracepoint register and unregister API names, the prepared handoff-stage summary, and prepared and initialized-stage snapshots that stay stable even if later sample replay or selftest activity mutates local counters before runtime handoff.
 - the live repo now also carries `zigux/kernel/runtime_loader.zig` as the shared request surface for the bounded Phase 9 loader-handoff packet, and the trace-events starter consumes that shared request lifecycle through `prepareSharedRequest`, `requestSharedRuntimeLoad`, `releaseSharedWithoutSubstrate`, and a focused shared-plan drift check before any live registration claim, including an initialized-stage request snapshot that remains explicit if the sample runs its selftest after prepare.
@@ -51,7 +52,7 @@ The manifest started as a survey-only inventory and now records:
 
 - the landed `phase9-build-gate`
 - the landed `runtime-trace-events-survey-gate`
-- the landed `runtime-trace-events-sample-module` starter
+- the landed `runtime-trace-events-sample-module`
 - the landed `runtime-trace-events-selftest-hook`
 - the landed `runtime-trace-events-module-tests`
 - the landed `runtime-trace-events-diff-gate`
