@@ -79,6 +79,12 @@ fn missingModeArgumentMessage(mode: Mode) []const u8 {
     };
 }
 
+fn writeHexLower(writer: anytype, value: u8) !void {
+    const digits = "0123456789abcdef";
+    try writer.writeByte(digits[value >> 4]);
+    try writer.writeByte(digits[value & 0x0f]);
+}
+
 fn writeJsonEscaped(writer: anytype, text: []const u8) !void {
     for (text) |c| switch (c) {
         '\\' => try writer.writeAll("\\\\"),
@@ -86,6 +92,12 @@ fn writeJsonEscaped(writer: anytype, text: []const u8) !void {
         '\n' => try writer.writeAll("\\n"),
         '\r' => try writer.writeAll("\\r"),
         '\t' => try writer.writeAll("\\t"),
+        '\x08' => try writer.writeAll("\\b"),
+        '\x0c' => try writer.writeAll("\\f"),
+        0...0x07, 0x0b, 0x0e...0x1f => {
+            try writer.writeAll("\\u00");
+            try writeHexLower(writer, c);
+        },
         else => try writer.writeByte(c),
     };
 }
@@ -425,4 +437,33 @@ test "conf bridge emits savedefconfig mode argument before kconfig" {
     try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"mode\":\"savedefconfig\"") != null);
     try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"argv\":[\"scripts/kconfig/conf\",\"--savedefconfig\",\"defconfig.out\",\"Kconfig\"]") != null);
     try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"KCONFIG_CONFIG\":\".config\"") != null);
+}
+
+test "conf bridge escapes low control bytes in JSON strings" {
+    const Capture = struct {
+        list: std.ArrayList(u8),
+        allocator: std.mem.Allocator,
+
+        fn init(allocator: std.mem.Allocator) !@This() {
+            return .{ .list = try std.ArrayList(u8).initCapacity(allocator, 32), .allocator = allocator };
+        }
+
+        fn deinit(self: *@This()) void {
+            self.list.deinit(self.allocator);
+        }
+
+        fn writeAll(self: *@This(), bytes: []const u8) !void {
+            try self.list.appendSlice(self.allocator, bytes);
+        }
+
+        fn writeByte(self: *@This(), byte: u8) !void {
+            try self.list.append(self.allocator, byte);
+        }
+    };
+
+    var capture = try Capture.init(std.testing.allocator);
+    defer capture.deinit();
+
+    try writeJsonEscaped(&capture, "\x01\x08\x0c");
+    try std.testing.expectEqualStrings("\\u0001\\b\\f", capture.list.items);
 }
