@@ -133,6 +133,7 @@ def required_files(root: Path) -> list[Path]:
     )
     return files
 
+
 REQUIRED_LEDGER_MARKERS = [
     "feat(tools/lib): add phase-1 memory and formatting helper ports",
     "feat(scripts/zigux): add bounded Phase 2 fixdep dual-implementation lane",
@@ -236,11 +237,13 @@ REQUIRED_REVIEW_MARKERS = [
 ]
 PHASE2_REVIEW_PACKET_LEAD = "if the change touches the shared Phase 2 toolchain packet"
 
+
 def workflow_has_run_marker(workflow_run_lines: list[str], marker: str) -> bool:
     expected = f"run: {marker}"
     if marker.endswith("--target"):
         return any(line == expected or line.startswith(expected + " ") for line in workflow_run_lines)
     return expected in workflow_run_lines
+
 
 def count_workflow_run_marker(workflow_run_lines: list[str], marker: str) -> int:
     expected = f"run: {marker}"
@@ -248,9 +251,11 @@ def count_workflow_run_marker(workflow_run_lines: list[str], marker: str) -> int
         return sum(1 for line in workflow_run_lines if line == expected or line.startswith(expected + " "))
     return sum(1 for line in workflow_run_lines if line == expected)
 
+
 def count_marker_occurrences(text: str, marker: str) -> int:
     pattern = rf"(?<![A-Za-z0-9_./-]){re.escape(marker)}(?![A-Za-z0-9_./-])"
     return len(re.findall(pattern, text))
+
 
 def build_phase2_review_checklist_line(markers: list[str]) -> str:
     quoted_markers = ", ".join(f"`{marker}`" for marker in markers[:-2])
@@ -260,11 +265,13 @@ def build_phase2_review_checklist_line(markers: list[str]) -> str:
         "and bounded kbuild-facing replay surface?\n"
     )
 
+
 def extract_phase2_review_packet_line(review_checklist: str) -> str | None:
     for line in review_checklist.splitlines():
         if PHASE2_REVIEW_PACKET_LEAD in line:
             return line
     return None
+
 
 def validate_exact_review_markers(text: str) -> list[str]:
     issues: list[str] = []
@@ -274,6 +281,7 @@ def validate_exact_review_markers(text: str) -> list[str]:
             issues.append(f"review_exact_marker:{marker}:count={count}:expected=1")
     return issues
 
+
 def validate_exact_workflow_runs(workflow_run_lines: list[str]) -> list[str]:
     issues: list[str] = []
     for marker, expected in REQUIRED_EXACT_WORKFLOW_RUN_COUNTS.items():
@@ -281,6 +289,7 @@ def validate_exact_workflow_runs(workflow_run_lines: list[str]) -> list[str]:
         if count != expected:
             issues.append(f"workflow_exact_marker:{marker}:count={count}:expected={expected}")
     return issues
+
 
 def validate_root(root: Path) -> list[str]:
     missing = [str(path.relative_to(root)) for path in required_files(root) if not path.exists()]
@@ -334,6 +343,16 @@ def validate_root(root: Path) -> list[str]:
             [
                 "FIXDEP_DIFF_SELF_TEST=pass",
                 "FIXDEP_DIFF_SELF_TEST_CASE_COUNT=4",
+            ],
+        )
+    )
+    guard_issues.extend(
+        run_guard(
+            root,
+            [sys.executable, str(root / "scripts" / "zigux" / "check-fixdep-diff.py")],
+            [
+                "FIXDEP_DIFF=pass",
+                "FIXDEP_DETERMINISM=pass",
             ],
         )
     )
@@ -420,9 +439,11 @@ def validate_root(root: Path) -> list[str]:
     )
     return guard_issues
 
+
 def write_text(path: Path, content: str) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(content, encoding="utf-8")
+
 
 def write_stub_guard(path: Path, *, self_test_marker: str, live_markers: list[str]) -> None:
     lines = [
@@ -435,6 +456,7 @@ def write_stub_guard(path: Path, *, self_test_marker: str, live_markers: list[st
     for marker in live_markers:
         lines.append(f"    print({marker!r})")
     write_text(path, "\n".join(lines) + "\n")
+
 
 def build_script_readme_text() -> str:
     return "\n".join(
@@ -465,6 +487,7 @@ def build_script_readme_text() -> str:
             "- `check-mk-elfconfig-diff.py`",
         ]
     ) + "\n"
+
 
 def build_self_test_root(root: Path) -> None:
     base_files = [
@@ -550,13 +573,14 @@ def build_self_test_root(root: Path) -> None:
     write_text(root / "scripts/zigux/README.md", build_script_readme_text())
     write_text(root / "Documentation/zigux/README.md", "\n".join(REQUIRED_DOCS_ROOT_MARKERS) + "\n")
     write_text(root / "Documentation/zigux/review-checklist.md", build_phase2_review_checklist_line(REQUIRED_REVIEW_MARKERS))
-    write_stub_guard(root / "scripts/zigux/check-fixdep-diff.py", self_test_marker="FIXDEP_DIFF_SELF_TEST=pass\nFIXDEP_DIFF_SELF_TEST_CASE_COUNT=4", live_markers=["FIXDEP_DIFF=pass"])
+    write_stub_guard(root / "scripts/zigux/check-fixdep-diff.py", self_test_marker="FIXDEP_DIFF_SELF_TEST=pass\nFIXDEP_DIFF_SELF_TEST_CASE_COUNT=4", live_markers=["FIXDEP_DIFF=pass", "FIXDEP_DETERMINISM=pass"])
     write_stub_guard(root / "scripts/zigux/check-genksyms-bridge.py", self_test_marker="GENKSYMS_BRIDGE_SELF_TEST=pass\nGENKSYMS_BRIDGE_SELF_TEST_CASE_COUNT=4", live_markers=["GENKSYMS_BRIDGE_DIFF=pass"])
     write_stub_guard(root / "scripts/zigux/check-phase2-tests-readme-alignment.py", self_test_marker="PHASE2_TESTS_README_ALIGNMENT_SELF_TEST=pass\nPHASE2_TESTS_README_ALIGNMENT_SELF_TEST_CASE_COUNT=16", live_markers=["PHASE2_TESTS_README_ALIGNMENT=pass", "PHASE2_TESTS_README_ALIGNMENT_MARKER_COUNT=1"])
     write_stub_guard(root / "scripts/zigux/check-phase2-cross-selftest-alignment.py", self_test_marker="PHASE2_CROSS_SELFTEST_ALIGNMENT_SELF_TEST=pass", live_markers=["PHASE2_CROSS_SELFTEST_ALIGNMENT=pass"])
     write_stub_guard(root / "scripts/zigux/check-phase2-toolchain-pin-scope.py", self_test_marker="PHASE2_TOOLCHAIN_PIN_SCOPE_SELF_TEST=pass\nPHASE2_TOOLCHAIN_PIN_SCOPE_SELF_TEST_CASE_COUNT=31", live_markers=["PHASE2_TOOLCHAIN_PIN_SCOPE=pass"])
     write_stub_guard(root / "scripts/zigux/check-kconfig-bridge.py", self_test_marker="KCONFIG_BRIDGE_SELF_TEST=pass\nKCONFIG_BRIDGE_SELF_TEST_CASE_COUNT=4", live_markers=["KCONFIG_BRIDGE_DIFF=pass"])
     write_stub_guard(root / "scripts/zigux/check-mk-elfconfig-diff.py", self_test_marker="MK_ELFCONFIG_SELF_TEST=pass\nMK_ELFCONFIG_SELF_TEST_CASE_COUNT=4", live_markers=["MK_ELFCONFIG_DIFF=pass"])
+
 
 def run_self_test() -> int:
     with tempfile.TemporaryDirectory(prefix="phase2_validate_") as tmp_dir:
@@ -656,7 +680,7 @@ def run_self_test() -> int:
         assert "docs_root:scripts/zigux/check-phase2-toolchain-pin-scope.py" in issues
         build_self_test_root(root)
         checker_path = root / "scripts" / "zigux" / "check-fixdep-diff.py"
-        write_stub_guard(checker_path, self_test_marker="FIXDEP_DIFF_SELF_TEST=pass", live_markers=["FIXDEP_DIFF=pass"])
+        write_stub_guard(checker_path, self_test_marker="FIXDEP_DIFF_SELF_TEST=pass", live_markers=["FIXDEP_DIFF=pass", "FIXDEP_DETERMINISM=pass"])
         issues = validate_root(root)
         assert any(issue.startswith("guard_marker:") and "check-fixdep-diff.py --self-test:FIXDEP_DIFF_SELF_TEST_CASE_COUNT=4" in issue for issue in issues)
         build_self_test_root(root)
@@ -687,6 +711,7 @@ def run_self_test() -> int:
     print("PHASE2_VALIDATION_SELF_TEST_CASE_COUNT=28")
     return 0
 
+
 def main() -> int:
     parser = argparse.ArgumentParser(description="Validate the bounded Phase 2 toolchain packet.")
     parser.add_argument("--self-test", action="store_true", help="Run checkout-free validator self-tests.")
@@ -715,6 +740,7 @@ def main() -> int:
     print(f"PHASE2_REQUIRED_FILE_COUNT={len(required_files(ROOT))}")
     print("PHASE2_REQUIRED_MARKER_COUNT=" f"{len(REQUIRED_LEDGER_MARKERS) + len(REQUIRED_WORKFLOW_MARKERS) + len(REQUIRED_DOC_MARKERS) + len(REQUIRED_SCRIPT_MARKERS) + len(REQUIRED_SCRIPT_HELPER_INDEX_MARKERS) + len(REQUIRED_DOCS_ROOT_MARKERS) + len(REQUIRED_REVIEW_MARKERS)}")
     return 0
+
 
 if __name__ == "__main__":
     raise SystemExit(main())
