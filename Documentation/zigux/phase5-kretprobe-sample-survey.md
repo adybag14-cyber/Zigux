@@ -71,8 +71,8 @@ A focused current-`master` scratch replay was re-run on 2026-05-06 with the atta
 - the observed sample markers matched the manifest-backed replay contract exactly: `symbol_name = kernel_clone`, `private_data_size_bytes = 8`, `return_value = 42`, `duration_ns = 75`, `maxactive_budget = 20`, `nmissed = 1`, `maxactive = 20`, and `replay_runs = 1`
 - the lifecycle-guard replay also held: `pre_init_anchor_rejected = true`, `pre_init_exit_rejected = true`, `double_init_rejected = true`, `post_init_retarget_rejected = true`, and `stage_after_init = initialized`
 - `ownershipSummary()` also stayed explicit across the sample-owned lifecycle packet: `cold`, `initialized`, `armed`, `replay_complete`, and `exited` all remained reviewable through one helper, with `active_instances = 1` plus `entry_timestamp_armed = true` only in the armed state
-- the focused boundary checks also still held: `entryHandler(false, 11) still skips the kernel-thread path`, `entryHandler(true, 120) still rejects an outstanding tracked instance`, `retHandler(37, 145) still yields duration 45`, `retHandler(9, 199) still rejects invalid timestamp order`, and `retHandler(9, 260) still recovers with duration 60`
-- the ownership and teardown path stayed explicit across both shipped replays: `cold -> initialized -> replay_complete` for the bounded anchor replay, and `cold -> initialized -> exited` after the teardown-focused recovery path completes
+- the focused `zigux/tests/phase5_kretprobe_example.zig` boundary replay also still held: `entryHandler(false, 11) still skips the kernel-thread path`, `entryHandler(true, 120) still rejects an outstanding tracked instance`, `retHandler(37, 145) still yields duration 45`, `retHandler(9, 199) still rejects invalid timestamp order`, and `retHandler(9, 260) still recovers with duration 60`
+- the ownership and teardown path stayed explicit across the sample-owned anchor replay and the focused retarget-and-recovery replay: `cold -> initialized -> replay_complete` for the bounded anchor replay, and `cold -> initialized -> exited` after the teardown-focused recovery path completes
 
 ## Contributor refresh prompts for the landed sample
 
@@ -81,6 +81,7 @@ When a contributor updates `samples/zigux/kretprobe_example.zig` or its directly
 - does `KretprobeExampleSample.descriptor()` still name `samples/kprobes/kretprobe_example.c` and keep `requires_runtime_substrate = false` plus `provides_selfcheck = true`?
 - do `zigux/tests/phase5_kretprobe_example_manifest.json` and `zigux/tests/phase5_kretprobe_example_survey.zig` still describe the exact skip, private-data, return-value, duration, and missed-summary contract run through `zigux/tests/phase5_build.zig`?
 - do the survey note and focused survey gate still name both `runAnchorReplay()` and `runLifecycleGuardReplay()` so the sample-owned replay and lifecycle-guard surfaces stay explicit?
+- does the focused `zigux/tests/phase5_kretprobe_example.zig` replay still keep direct retargeting, outstanding-instance rejection, timestamp-order rejection and recovery, and post-exit teardown rejection explicit while the sample-owned helpers stay bounded?
 - do the sample-owned prompts still keep the fixed `maxactiveBudget()` cue at `20`, timestamp-order rejection and recovery, and post-exit handler rejection explicit instead of leaving those probe-lifecycle boundaries implied?
 - does `ownershipSummary()` still keep the `cold`, `initialized`, `armed`, `replay_complete`, and `exited` lifecycle packet explicit without implying the separate Phase 9 runtime summary surface?
 - does symbol retargeting stay a pre-init in-memory choice instead of implying `module_param` or runtime registration parity?
