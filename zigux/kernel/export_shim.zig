@@ -1,23 +1,80 @@
 const std = @import("std");
 const abi = @import("abi_bindings");
+const uapi_version = @import("uapi_version");
+
+pub const abi_version: u16 = uapi_version.abi_version;
+pub const header_size: u32 = uapi_version.header_size;
+pub const HeaderCompatibility = uapi_version.Compatibility;
+
+pub fn versionedHeader(size: u32, version: u16, flags: u16) abi.BoundaryHeader {
+    return uapi_version.versionedHeader(size, version, flags);
+}
+
+pub fn canonicalHeader(flags: u16) abi.BoundaryHeader {
+    return uapi_version.canonicalHeader(flags);
+}
+
+pub fn boundaryHeader(flags: u16) abi.BoundaryHeader {
+    return uapi_version.boundaryHeader(flags);
+}
+
+pub fn compatibleHeader(size: u32, flags: u16) abi.BoundaryHeader {
+    return uapi_version.compatibleHeader(size, flags);
+}
 
 pub fn header(flags: u16) abi.BoundaryHeader {
-    return abi.defaultHeader(flags);
+    return canonicalHeader(flags);
+}
+
+pub fn isCurrentAbiVersion(version: u16) bool {
+    return uapi_version.isCurrentAbiVersion(version);
+}
+
+pub fn isCompatibleSize(size: u32) bool {
+    return uapi_version.isCompatibleSize(size);
+}
+
+pub fn isCanonicalSize(size: u32) bool {
+    return uapi_version.isCanonicalSize(size);
+}
+
+pub fn headerCompatibility(header_value: abi.BoundaryHeader) ?HeaderCompatibility {
+    return uapi_version.compatibility(header_value);
+}
+
+pub fn isCompatibleHeader(header_value: abi.BoundaryHeader) bool {
+    return uapi_version.isCompatible(header_value);
+}
+
+pub fn isCanonicalHeader(header_value: abi.BoundaryHeader) bool {
+    return uapi_version.isCanonical(header_value);
+}
+
+pub fn canonicalizeHeader(header_value: abi.BoundaryHeader) ?abi.BoundaryHeader {
+    return uapi_version.canonicalizeHeader(header_value);
 }
 
 pub fn ok(facility: abi.Facility) abi.ExportStatus {
-    return .{
+    return normalize(.{
         .code = 0,
         .facility = @intFromEnum(facility),
         .flags = 0,
-    };
+    });
 }
 
 pub fn errno(code: i32, facility: abi.Facility) abi.ExportStatus {
-    return .{
+    return normalize(.{
         .code = code,
         .facility = @intFromEnum(facility),
-        .flags = if (code < 0) abi.STATUS_FLAG_ERROR else 0,
+        .flags = 0,
+    });
+}
+
+pub fn normalize(status: abi.ExportStatus) abi.ExportStatus {
+    return .{
+        .code = status.code,
+        .facility = status.facility,
+        .flags = if (status.code < 0) abi.STATUS_FLAG_ERROR else 0,
     };
 }
 
