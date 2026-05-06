@@ -282,13 +282,16 @@ test "phase 1 helper ports match committed parity fixture" {
         truncated_buffer[0 .. truncated_buffer.len - 1],
     );
 
+    var single_bit_bitmap = [_]bitmap.Word{0};
+    bitmap.setRange(&single_bit_bitmap, 9, 1);
+
     var terminator_only = [_]u8{0xaa};
-    const terminator_only_len = bitmap.scnprintf(&bitmap_truncated_render, 32, &terminator_only);
+    const terminator_only_len = bitmap.scnprintf(&single_bit_bitmap, 32, &terminator_only);
     try std.testing.expectEqual(fixture.bitmap.terminator_only_scnprintf_len, terminator_only_len);
     try std.testing.expectEqual(fixture.bitmap.terminator_only_nul, terminator_only[0]);
 
     var zero_length = [_]u8{};
-    const zero_length_len = bitmap.scnprintf(&bitmap_truncated_render, 32, &zero_length);
+    const zero_length_len = bitmap.scnprintf(&single_bit_bitmap, 32, &zero_length);
     try std.testing.expectEqual(fixture.bitmap.zero_length_scnprintf_len, zero_length_len);
 
     try std.testing.expectEqual(fixture.string.strtobool_y, try string.strtobool("y"));
