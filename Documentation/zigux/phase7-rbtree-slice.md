@@ -98,6 +98,7 @@ The current tests check:
 - replacement of dirty detached nodes by copying the full victim link-and-color shape before reconnecting the new node
 - erase-and-detach ownership reset via `eraseInit()`
 - postorder walking on a minimally balanced tree
+- terminal postorder handoff accepts null input so callers can finish walks without a separate pre-check
 - detached-node clearing semantics
 - a machine-checked manifest that records the `lib/rbtree.c` anchor and the landed Phase 7 review surfaces
 
