@@ -53,17 +53,19 @@ test "phase 5 kretprobe manifest records the exact bounded checks" {
     try std.testing.expectEqualStrings("samples/zigux/kretprobe_example.zig", manifest.sample_path);
     try std.testing.expect(std.mem.indexOf(u8, manifest.validation_entrypoint, "phase5_build.zig") != null);
     try std.testing.expectEqual(@as(usize, 7), manifest.review_prompts.len);
-    try std.testing.expectEqual(@as(usize, 8), manifest.exact_checks.len);
+    try std.testing.expectEqual(@as(usize, 9), manifest.exact_checks.len);
     try std.testing.expectEqual(@as(usize, 4), manifest.non_goals.len);
 
     var saw_descriptor_prompt = false;
     var saw_private_data_prompt = false;
     var saw_symbol_prompt = false;
     var saw_ownership_prompt = false;
+    var saw_budget_prompt = false;
     var saw_non_goal_prompt = false;
     var saw_private_data_check = false;
     var saw_symbol_check = false;
     var saw_duration_check = false;
+    var saw_budget_check = false;
     var saw_ownership_check = false;
     var saw_exit_check = false;
 
@@ -81,6 +83,11 @@ test "phase 5 kretprobe manifest records the exact bounded checks" {
             std.mem.indexOf(u8, prompt, "module_param") != null)
         {
             saw_symbol_prompt = true;
+        }
+        if (std.mem.indexOf(u8, prompt, "maxactiveBudget()") != null and
+            std.mem.indexOf(u8, prompt, "20") != null)
+        {
+            saw_budget_prompt = true;
         }
         if (std.mem.indexOf(u8, prompt, "ownershipSummary") != null and
             std.mem.indexOf(u8, prompt, "replay_complete") != null)
@@ -113,6 +120,11 @@ test "phase 5 kretprobe manifest records the exact bounded checks" {
             try std.testing.expect(std.mem.indexOf(u8, check.expected, "retval 42") != null);
             try std.testing.expect(std.mem.indexOf(u8, check.expected, "75 ns") != null);
         }
+        if (std.mem.eql(u8, check.id, "maxactive-budget")) {
+            saw_budget_check = true;
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "maxactiveBudget()") != null);
+            try std.testing.expect(std.mem.indexOf(u8, check.expected, "20") != null);
+        }
         if (std.mem.eql(u8, check.id, "ownership-summary-snapshots")) {
             saw_ownership_check = true;
             try std.testing.expect(std.mem.indexOf(u8, check.expected, "cold, initialized, armed, replay_complete, and exited") != null);
@@ -131,11 +143,13 @@ test "phase 5 kretprobe manifest records the exact bounded checks" {
     try std.testing.expect(saw_descriptor_prompt);
     try std.testing.expect(saw_private_data_prompt);
     try std.testing.expect(saw_symbol_prompt);
+    try std.testing.expect(saw_budget_prompt);
     try std.testing.expect(saw_ownership_prompt);
     try std.testing.expect(saw_non_goal_prompt);
     try std.testing.expect(saw_private_data_check);
     try std.testing.expect(saw_symbol_check);
     try std.testing.expect(saw_duration_check);
+    try std.testing.expect(saw_budget_check);
     try std.testing.expect(saw_ownership_check);
     try std.testing.expect(saw_exit_check);
     try std.testing.expect(std.mem.eql(u8, manifest.non_goals[0], "register_kretprobe parity"));
@@ -197,6 +211,7 @@ test "phase 5 kretprobe survey packet stays repo-local and keeps shared review s
         "private_data_size_bytes = 8",
         "return_value = 42",
         "duration_ns = 75",
+        "maxactive_budget = 20",
         "nmissed = 1",
         "maxactive = 20",
         "replay_runs = 1",
@@ -281,7 +296,7 @@ test "phase 5 kretprobe survey packet stays repo-local and keeps shared review s
         "samples/zigux/kretprobe_example.zig",
         "zigux/tests/phase5_kretprobe_example_survey.zig",
         "pre-init retargeting",
-        "fixed `maxactive = 20` ceiling",
+        "fixed `maxactiveBudget()` cue",
         "timestamp-order rejection and recovery",
         "post-exit handler rejection",
     };
