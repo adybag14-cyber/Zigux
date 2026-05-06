@@ -8,7 +8,7 @@ This document records the bounded Phase 15 governance lane for checking whether 
 - `PHASE15_LANE_KEY=P15-L01`
 - `PHASE15_SLICE=phase15-readiness-gate-current-blocker-inventory`
 - survey provenance refreshed against current `master` via the GitHub connector on May 6, 2026
-- the shared replay surface is green on current `master` once this dedicated readiness note, its manifest, and the focused `zigux/tests/phase15_readiness_gate.zig` guard are present together
+- the shared replay surface is green on current `master` once this dedicated readiness note, its manifest, the focused `zigux/tests/phase15_readiness_gate.zig` guard, and the shipped `phase15-validate` checker stack are present together
 
 ## Roadmap Versus Ledger
 
@@ -22,7 +22,8 @@ This document records the bounded Phase 15 governance lane for checking whether 
 
 ## Current Repo Readiness
 
-- the shared governance packet is present through `Documentation/zigux/freeze-map.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/phase15-architecture-council-review-process.md`, `Documentation/zigux/phase15-parity-scorecard.md`, `Documentation/zigux/phase15-indefinite-c-policy.md`, `Documentation/zigux/phase15-handoff-next-steps-survey.md`, the Phase 15 scripts-root checkers, `.github/workflows/zigux-bootstrap.yml`, the shared `zigux/tests/phase15_build.zig` replay, and `make -C zigux phase15`
+- the shared governance packet is present through `Documentation/zigux/freeze-map.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/phase15-architecture-council-review-process.md`, `Documentation/zigux/phase15-parity-scorecard.md`, `Documentation/zigux/phase15-indefinite-c-policy.md`, `Documentation/zigux/phase15-handoff-next-steps-survey.md`, the Phase 15 scripts-root checkers `scripts/zigux/check-phase15-scripts-readme-alignment.py` and `scripts/zigux/check-phase15-review-process-handoff.py`, `.github/workflows/zigux-bootstrap.yml`, the shared `zigux/tests/phase15_build.zig` replay, `make -C zigux phase15-validate`, and `make -C zigux phase15`
+- `zigux/Makefile` still exposes `phase15-validate`, and that validator-first route still reruns both dedicated Phase 15 checker paths before the shared `zigux/tests/phase15_build.zig` replay, so the current governance packet carries explicit release evidence for the shipped review route instead of relying on the build replay alone
 - `Documentation/zigux/phase15-handoff-next-steps-survey.md` keeps the bounded handoff record and parked next-step packet visible beside this readiness gate
 - `Documentation/zigux/README.md` is the docs-root entry point for this parked governance packet, so `Documentation/zigux/phase15-readiness-gate-survey.md` must stay named there beside the freeze map, review process, parity scorecard, handoff note, and indefinite-C policy instead of leaving the maintenance-mode blocker inventory implicit
 - maintenance-mode ready: the parked Phase 15 packet is reviewable and rerunnable, but no freeze-map status-change approval is recorded
@@ -46,4 +47,4 @@ This document records the bounded Phase 15 governance lane for checking whether 
 
 ## Next bounded step
 
-Keep the Phase 15 governance lane in maintenance mode unless the shared Phase 15 replay drifts again, the docs-root readiness pointer disappears, or one of the four recorded deep-core blocker dispositions changes.
+Keep the Phase 15 governance lane in maintenance mode unless the shared Phase 15 replay drifts again, the docs-root readiness pointer disappears, one of the two dedicated `phase15-validate` checker routes disappears, or one of the four recorded deep-core blocker dispositions changes.
