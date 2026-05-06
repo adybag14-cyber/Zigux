@@ -77,6 +77,33 @@ pub const InterruptAckSummary = struct {
     unacknowledged_interrupt_count: usize,
 };
 
+pub const FeatureAttributeKind = enum {
+    device,
+    driver,
+    negotiated,
+};
+
+pub const StatusAttributeSummary = struct {
+    anchor: []const u8,
+    value_buffer: [11]u8,
+    value_len: usize,
+
+    pub fn value(self: *const @This()) []const u8 {
+        return self.value_buffer[0..self.value_len];
+    }
+};
+
+pub const FeatureAttributeSummary = struct {
+    anchor: []const u8,
+    kind: FeatureAttributeKind,
+    value_buffer: [feature_bit_capacity + 1]u8,
+    value_len: usize,
+
+    pub fn value(self: *const @This()) []const u8 {
+        return self.value_buffer[0..self.value_len];
+    }
+};
+
 pub const DriverLifecycleBlocker = enum {
     missing_acknowledge,
     reset_required,
@@ -517,6 +544,39 @@ pub const VirtioCoreLabDevice = struct {
         };
     }
 
+    pub fn statusAttributeSummary(self: *const Self) !StatusAttributeSummary {
+        var summary = StatusAttributeSummary{
+            .anchor = descriptor().anchor,
+            .value_buffer = undefined,
+            .value_len = 0,
+        };
+        const rendered = try std.fmt.bufPrint(
+            summary.value_buffer[0..],
+            "0x{x:0>8}\n",
+            .{self.status},
+        );
+        summary.value_len = rendered.len;
+        return summary;
+    }
+
+    pub fn featureAttributeSummary(
+        self: *const Self,
+        kind: FeatureAttributeKind,
+    ) FeatureAttributeSummary {
+        var summary = FeatureAttributeSummary{
+            .anchor = descriptor().anchor,
+            .kind = kind,
+            .value_buffer = undefined,
+            .value_len = feature_bit_capacity + 1,
+        };
+        const features = self.featureSetForAttribute(kind);
+        for (0..feature_bit_capacity) |index| {
+            summary.value_buffer[index] = if (features.isSet(index)) '1' else '0';
+        }
+        summary.value_buffer[feature_bit_capacity] = '\n';
+        return summary;
+    }
+
     pub fn lifecycleGuardSummary(self: *const Self) LifecycleGuardSummary {
         const has_acknowledge = self.hasStatus(DeviceStatus.acknowledge);
         const driver_attached = self.hasStatus(DeviceStatus.driver);
@@ -652,6 +712,14 @@ pub const VirtioCoreLabDevice = struct {
         return slot;
     }
 
+    fn featureSetForAttribute(self: *const Self, kind: FeatureAttributeKind) FeatureSet {
+        return switch (kind) {
+            .device => self.device_features,
+            .driver => self.driver_features,
+            .negotiated => self.negotiated_features,
+        };
+    }
+
     fn allowedInterruptReasonBits() u8 {
         return VirtioInterruptReason.queue_used | VirtioInterruptReason.config_change;
     }
@@ -774,4 +842,59 @@ test "virtio core reset replay exposes failed status before reset clears it" {
     try std.testing.expect(!summary.will_clear_failed_status);
     try std.testing.expect(!summary.will_clear_negotiated_features);
     try std.testing.expect(!summary.will_clear_queue_callbacks);
+}
+
+test "virtio core renders the bounded status_show surface after driver-model milestones" {
+    var device = try VirtioCoreLabDevice.init(&.{ 1, 7, 33 });
+
+    var summary = try device.statusAttributeSummary();
+    try std.testing.expectEqualStrings("drivers/virtio/virtio.c", summary.anchor);
+    try std.testing.expectEqualStrings("0x00000000\n", summary.value());
+
+    device.acknowledge();
+    try device.attachDriverNamed("virtio_blk_lab");
+    try device.offerDriverFeature(1);
+    try device.offerDriverFeature(33);
+    _ = try device.finalizeFeatures();
+    try device.markDriverReady();
+
+    summary = try device.statusAttributeSummary();
+    try std.testing.expectEqualStrings("0x0000000f\n", summary.value());
+}
+
+test "virtio core renders bounded features_show bitstrings across device, driver, and negotiated views" {
+    var device = try VirtioCoreLabDevice.init(&.{ 1, 7, 33 });
+    device.acknowledge();
+    try device.attachDriverNamed("virtio_blk_lab");
+    try device.offerDriverFeature(1);
+    try device.offerDriverFeature(7);
+    try device.offerDriverFeature(33);
+
+    var device_bits = device.featureAttributeSummary(.device);
+    try std.testing.expectEqualStrings("drivers/virtio/virtio.c", device_bits.anchor);
+    try std.testing.expectEqual(FeatureAttributeKind.device, device_bits.kind);
+    try std.testing.expectEqual(@as(usize, feature_bit_capacity + 1), device_bits.value().len);
+    try std.testing.expectEqual(@as(u8, '1'), device_bits.value()[1]);
+    try std.testing.expectEqual(@as(u8, '1'), device_bits.value()[7]);
+    try std.testing.expectEqual(@as(u8, '1'), device_bits.value()[33]);
+    try std.testing.expectEqual(@as(u8, '\n'), device_bits.value()[feature_bit_capacity]);
+
+    var driver_bits = device.featureAttributeSummary(.driver);
+    try std.testing.expectEqual(FeatureAttributeKind.driver, driver_bits.kind);
+    try std.testing.expectEqual(@as(u8, '1'), driver_bits.value()[1]);
+    try std.testing.expectEqual(@as(u8, '1'), driver_bits.value()[7]);
+    try std.testing.expectEqual(@as(u8, '1'), driver_bits.value()[33]);
+
+    _ = try device.finalizeFeaturesWithDriverValidation(&.{ 1, 33 });
+
+    driver_bits = device.featureAttributeSummary(.driver);
+    try std.testing.expectEqual(@as(u8, '1'), driver_bits.value()[1]);
+    try std.testing.expectEqual(@as(u8, '0'), driver_bits.value()[7]);
+    try std.testing.expectEqual(@as(u8, '1'), driver_bits.value()[33]);
+
+    const negotiated_bits = device.featureAttributeSummary(.negotiated);
+    try std.testing.expectEqual(FeatureAttributeKind.negotiated, negotiated_bits.kind);
+    try std.testing.expectEqual(@as(u8, '1'), negotiated_bits.value()[1]);
+    try std.testing.expectEqual(@as(u8, '0'), negotiated_bits.value()[7]);
+    try std.testing.expectEqual(@as(u8, '1'), negotiated_bits.value()[33]);
 }
