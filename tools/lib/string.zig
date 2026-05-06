@@ -74,16 +74,17 @@ pub fn trimSpaces(buf: []u8) []u8 {
         return buf[0..0];
     }
 
+    const string_len = cStringLen(buf);
     var start: usize = 0;
-    while (start < buf.len and std.ascii.isWhitespace(buf[start])) : (start += 1) {}
-    if (start == buf.len) {
+    while (start < string_len and std.ascii.isWhitespace(buf[start])) : (start += 1) {}
+    if (start == string_len) {
         buf[0] = 0;
         return buf[0..0];
     }
 
-    var end = buf.len;
+    var end = string_len;
     while (end > start and std.ascii.isWhitespace(buf[end - 1])) : (end -= 1) {}
-    if (end < buf.len) {
+    if (end < string_len) {
         buf[end] = 0;
     }
 
@@ -173,7 +174,7 @@ fn parseBase(text: []const u8, start: usize) struct {
 
 fn saturatingMulAdd(value: u64, base: u8, digit: u8) u64 {
     const mul = std.math.mul(u64, value, base) catch return std.math.maxInt(u64);
-    return std.math.add(u64, mul, digit) catch std.math.maxInt(u64);
+    return std.math.add(u64, mul, digit) catch return std.math.maxInt(u64);
 }
 
 fn applySuffix(value: u64, suffix: u8) u64 {
@@ -292,6 +293,10 @@ test "skip trim remove and replace spaces work in place" {
 
     var trim_buf = [_]u8{ ' ', '\t', 'h', 'i', ' ', '\n' };
     try std.testing.expectEqualStrings("hi", trimSpaces(&trim_buf));
+
+    var trim_cstr_buf = [_]u8{ ' ', 'h', 'i', ' ', '\n', 0, 'x', 'y' };
+    try std.testing.expectEqualStrings("hi", trimSpaces(&trim_cstr_buf));
+    try std.testing.expectEqualSlices(u8, &[_]u8{ ' ', 'h', 'i', 0, '\n', 0, 'x', 'y' }, &trim_cstr_buf);
 
     var remove_buf = [_]u8{ 'a', ' ', 'b', ' ', 'c' };
     try std.testing.expectEqualStrings("abc", removeSpaces(&remove_buf));
