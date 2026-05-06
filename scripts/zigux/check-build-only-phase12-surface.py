@@ -123,6 +123,7 @@ REQUIRED_FILE_MARKERS = {
         'const test_step = b.step("test", "Run Phase 12 driver and survey tests");',
         "phase12_virtio_net_syntax_lab_module",
         "phase12_virtio_scsi_syntax_lab_module",
+        "run_phase12_nvme_pci_verify_tests.step",
         "run_phase12_virtio_scsi_syntax_lab_tests.step",
         "phase12_libbpf_reviewability_module",
     ],
@@ -325,6 +326,7 @@ Phase 12 flow
 const test_step = b.step("test", "Run Phase 12 driver and survey tests");
 const phase12_virtio_net_syntax_lab_module = b.createModule(.{});
 const phase12_virtio_scsi_syntax_lab_module = b.createModule(.{});
+run_phase12_nvme_pci_verify_tests.step
 run_phase12_virtio_scsi_syntax_lab_tests.step
 const phase12_libbpf_reviewability_module = b.createModule(.{});
 """,
@@ -554,6 +556,24 @@ def run_self_test() -> int:
                 print(failure)
             return 1
         scripts_readme_path.write_text(original_scripts_readme, encoding="utf-8")
+
+        build_path = root / PHASE12_BUILD_PATH
+        original_build = build_path.read_text(encoding="utf-8")
+        broken_build = original_build.replace(
+            "run_phase12_nvme_pci_verify_tests.step\n",
+            "",
+            1,
+        )
+        build_path.write_text(broken_build, encoding="utf-8")
+        failures = validate(root)
+        expected = f"{PHASE12_BUILD_PATH}:run_phase12_nvme_pci_verify_tests.step"
+        if expected not in failures:
+            print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST=fail")
+            print("phase12-build-nvme-verify-smoke-guard")
+            for failure in failures:
+                print(failure)
+            return 1
+        build_path.write_text(original_build, encoding="utf-8")
 
         workflow_path = root / WORKFLOW_PATH
         original_workflow = workflow_path.read_text(encoding="utf-8")
