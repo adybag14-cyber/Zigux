@@ -97,10 +97,10 @@ REQUIRED_SNIPPETS = {
     "Documentation/zigux/phase6-perf-gate-survey.md": [
         "- `PHASE6_PERF_SURVEY_STATUS=active`",
         "- `PHASE6_PERF_PACKET=base64-bsearch-checksum-hexdump`",
-        "- shared replay note: there is still no aggregated `phase6-perf` route on current `master`; `make -C zigux phase6` remains the shared validation-plus-tests route, while dedicated perf replays stay helper-local",
-        "- base64: a dedicated slowdown harness exists in `zigux/tests/phase6_base64_perf.zig`, and `zigux/tests/phase6_build.zig` still defines `phase6-base64-perf`, but `zigux/Makefile` and `.github/workflows/zigux-bootstrap.yml` do not currently replay that harness on the shared route",
-        "- checksum: a dedicated slowdown gate remains wired through `zigux/tests/phase6_checksum_perf.zig`, `zigux/Makefile`, and `.github/workflows/zigux-bootstrap.yml`, with the current 150% ceiling still applied to the `64B` and `1501B` replay cases",
-        "- hexdump: a dedicated slowdown gate remains wired through `zigux/tests/phase6_hexdump_perf.zig`, `zigux/Makefile`, and `.github/workflows/zigux-bootstrap.yml`, with the current grouped slowdown ceilings still set to `175` for `16B-plain-g1`, `550` for `32B-ascii-g2` and `16B-ascii-g4`, and `600` for `16B-ascii-g8`",
+        "- shared replay note: the shared `make -C zigux phase6` route still stops at `phase6-validate` plus `phase6-test`; dedicated perf replays remain helper-local through `make -C zigux phase6-base64-perf`, `make -C zigux phase6-checksum-perf`, and `make -C zigux phase6-hexdump-perf`",
+        "- base64 shared posture: `zigux/tests/phase6_base64_perf.zig` still emits dedicated encode and decode slowdown markers for four fixture-backed replay cases, `zigux/tests/phase6_build.zig` still defines `phase6-base64-perf`, and `zigux/Makefile` still exposes `make -C zigux phase6-base64-perf`, but neither the shared `phase6` target nor `.github/workflows/zigux-bootstrap.yml` replays that base64 perf gate on the bundled route",
+        "- checksum shared posture: a dedicated slowdown gate remains wired through `zigux/tests/phase6_checksum_perf.zig`, `zigux/tests/phase6_build.zig`, `zigux/Makefile`, and `.github/workflows/zigux-bootstrap.yml`",
+        "- hexdump shared posture: a dedicated slowdown gate remains wired through `zigux/tests/phase6_hexdump_perf.zig`, `zigux/tests/phase6_build.zig`, `zigux/Makefile`, and `.github/workflows/zigux-bootstrap.yml`",
     ],
     "zigux/tests/phase6_build.zig": [
         'const test_step = b.step("test", "Run Phase 6 leaf helper tests");',
@@ -340,8 +340,8 @@ def run_self_test() -> None:
         assert_failure(
             root,
             "Documentation/zigux/phase6-perf-gate-survey.md",
-            "a dedicated slowdown harness exists in `zigux/tests/phase6_base64_perf.zig`, and `zigux/tests/phase6_build.zig` still defines `phase6-base64-perf`",
-            "the dedicated slowdown harness only exists in unpublished notes",
+            "`zigux/Makefile` still exposes `make -C zigux phase6-base64-perf`, but neither the shared `phase6` target nor `.github/workflows/zigux-bootstrap.yml` replays that base64 perf gate on the bundled route",
+            "`zigux/Makefile` no longer exposes `make -C zigux phase6-base64-perf`, and the bundled route replays it everywhere",
         )
         assert_failure(
             root,
