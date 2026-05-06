@@ -22,6 +22,8 @@ The live repo still benefits from keeping `exec-cmd` parked as a helper-first, o
 
 That same parked command-boundary packet now also sits inside the shared Phase 8 validator-first route, so reviewers can recheck the command slice through `make -C zigux phase8-validate` before widening back out to the broader tooling bundle.
 
+The live helper already carries the low-level trailing-colon `PATH` edge, rooted `argv[0]` slash-avoidance edge, logical-`PWD` alias acceptance proof, and the `collectExeclArgs()` overflow and missing-null guards in its own unit tests. The focused Phase 8 replay stays on the integrated deferred-exec packet, live C helper anchors, checklist hook, and validator route instead of restaging every helper-local edge.
+
 That validator-first coverage still needs a strict boundary. This Phase 8 slice stops before any ownership of `execv_cmd()` or `execvp()`, avoids scheduler-facing transport or queue claims, and leaves `kernel/workqueue.c` in the later Phase 14 boundary-study tranche rather than treating this tooling helper as an early workqueue port.
 
 ## Gates
@@ -56,16 +58,8 @@ The current parked deferred-exec packet covers:
 
 The current tests check:
 
-- path fallback precedence stays stable
-- relative search-path entries become absolute against the current working directory input
-- empty inherited `PATH` values preserve the C helper's trailing-colon shape instead of silently falling back to default search roots
-- directory-prefixed `argv[0]` values split cleanly into path and command name
-- the injected environment wrapper keeps `PREFIX`, the configured exec-path environment key, and the resulting `PATH` value aligned
-- `choosePwdCwd()` still supports caller-provided same-location proofs while the shared logical-`PWD` replay now proves that a symlinked alias to the same directory is accepted by the new filesystem-backed helper path
-- prepared argv vectors start with the configured executable name and keep a trailing null terminator, including the empty-tail case
-- the pure deferred `execv` and `execl` handoff helpers keep the parked argv packet reviewable before any direct `execv_cmd()` or `execvp()` ownership exists
-- the pure `execl_cmd()` collector preserves the command head, stops at the first null terminator, and rejects the C helper's overflow shape before any real `execvp()` call exists
-- the focused `phase8_exec_cmd_only_build.zig` replay isolates the parked `exec-cmd` slice from the broader Phase 8 tooling packet when review needs a smaller build-backed proof, and the published `make -C zigux phase8-exec-cmd-test` wrapper now exposes that replay as a one-command route
+- the focused Phase 8 replay stays on integrated environment setup, path shaping, deferred-handoff behavior, and the review surfaces that tie this parked packet back to the live C helper, checklist hook, and validator-first route
+- helper-local unit tests in `tools/lib/subcmd/exec-cmd.zig` own the low-level trailing-colon `PATH` edge, rooted `argv[0]` slash-avoidance edge, logical-`PWD` alias acceptance proof, and the `collectExeclArgs()` overflow and missing-null guards instead of duplicating them in the coupled Phase 8 replay
 - the shared `make -C zigux phase8-validate` route now keeps this parked command-boundary slice aligned with the live Phase 8 validator-first packet before the broader tooling replay runs
 
 ## Non-goals
