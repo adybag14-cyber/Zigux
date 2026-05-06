@@ -1,6 +1,6 @@
 # Phase 11 DesignWare Watchdog Survey
 
-This survey note tracks the Phase 11 gap around `drivers/watchdog/dw_wdt.c` after re-reading `master` `0ddb982b08ffa3f1a34bddc0520f50af0b3e346f`.
+This survey note tracks the Phase 11 gap around `drivers/watchdog/dw_wdt.c` after re-reading `master` `23d15e44622d2cedd7691c88f78709db6bf1eb7e`.
 
 The live repo state is now:
   * `drivers/watchdog/gpio_wdt.zig` and `drivers/watchdog/bcm2835_wdt.zig` already give the simple-driver watchdog tranche two landed Phase 11 footholds
@@ -8,5 +8,5 @@ The live repo state is now:
   * `zigux/tests/phase11_dw_wdt.zig` and `Documentation/zigux/phase11-dw-wdt-slice.md` keep that starter reviewable without claiming platform registration, live MMIO, IRQ wiring, PM behavior, or hardware-backed execution
   * `Documentation/zigux/phase11-dw-wdt-validation-matrix.md` now records the bounded hardware-validation posture for the current starter so the shared replay path and deferred ownership boundaries stay reviewable in one place
   * `zigux/tests/phase11_build.zig` now runs the gpio starter checks, bcm2835 starter and survey checks, the dw_wdt starter checks, and the dw_wdt survey check together so watchdog-lane drift is visible in one place
-This cleanup packet now carries lane identity `P11-L05` so the live manifest, focused survey gate, and survey note all point at the same DesignWare watchdog review record.
+This cleanup packet now carries lane identity `P11-L11` so the live manifest, focused survey gate, and survey note all point at the same DesignWare watchdog review record.
 This lane still does not claim platform-driver registration, clock or reset acquisition, IRQ registration, suspend or resume handling, debugfs support, or live MMIO access. Hardware-validation coverage remains bounded to the review matrix already recorded for the current starter rather than any hardware-backed validation beyond the bounded matrix evidence already recorded for the current starter.
