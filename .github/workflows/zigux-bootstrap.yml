@@ -152,6 +152,9 @@ jobs:
       - name: Check Phase 1 helper benchmark output
         run: python3 scripts/zigux/check-phase1-bench.py
 
+      - name: Self-test bounded fixdep parity checker
+        run: python3 scripts/zigux/check-fixdep-diff.py --self-test
+
       - name: Check bounded fixdep artifact parity and determinism
         run: python3 scripts/zigux/check-fixdep-diff.py
 
