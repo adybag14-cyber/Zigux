@@ -28,6 +28,10 @@ REQUIRED_FILE_MARKERS = {
         "- fallback path: keep `kernel/workqueue.c`, `net/core/skbuff.c`, `kernel/trace/ring_buffer.c`, and `kernel/rcu/tree.c` as the source of truth",
         "Leave this shared smoke lane parked unless one of the four anchor-local manifests, the shared replay wiring, or the paired Phase 14 docs surfaces drift.",
         "- review blocker status: `blocked_on_stay_in_c_evidence`",
+        "- `zigux/tests/phase14_workqueue_bridge_manifest.json`",
+        "- `zigux/tests/phase14_skbuff_bridge_manifest.json`",
+        "- `zigux/tests/phase14_ring_buffer_manifest.json`",
+        "- `zigux/tests/phase14_rcu_tree_manifest.json`",
     ],
     "Documentation/zigux/phase14-release-boundary-survey.md": [
         "`PHASE14_STUDY_ONLY_ANCHOR_COUNT=2`",
@@ -94,6 +98,29 @@ def run_self_test() -> int:
         errors = check(root)
         if not errors or not any("PHASE14_FREEZE_IN_C_GOVERNED_COUNT=2" in error for error in errors):
             print("self-test expected failure when release-boundary markers drifted", file=sys.stderr)
+            return 1
+
+        write_text(
+            broken_path,
+            "\n".join(REQUIRED_FILE_MARKERS["Documentation/zigux/phase14-release-boundary-survey.md"]) + "\n",
+        )
+
+        broken_smoke_path = root / "Documentation/zigux/phase14-end-to-end-smoke-survey.md"
+        broken_smoke_path.writeText = None
+        broken_smoke_path.write_text(
+            broken_smoke_path.read_text(encoding="utf-8").replace(
+                "- `zigux/tests/phase14_rcu_tree_manifest.json`\n",
+                "",
+            ),
+            encoding="utf-8",
+        )
+        errors = check(root)
+        if not errors or not any(
+            "missing marker in Documentation/zigux/phase14-end-to-end-smoke-survey.md: - `zigux/tests/phase14_rcu_tree_manifest.json`"
+            in error
+            for error in errors
+        ):
+            print("self-test expected failure when shared smoke manifest inventory drifted", file=sys.stderr)
             return 1
 
     return 0
