@@ -1,0 +1,1 @@
+{"tool":"scripts/kconfig/conf","mode":"randconfig","argv":["scripts/kconfig/conf","--randconfig","Kconfig"],"env":{"ARCH":"x86_64","KCONFIG_CONFIG":"rand/.config","KCONFIG_SEED":"0xC0FFEE","KCONFIG_PROBABILITY":"15:25"}}
