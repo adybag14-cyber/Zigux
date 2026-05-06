@@ -69,7 +69,7 @@ The current tests check:
 - exact bare-option matching for comma-delimited flags
 - C-style stop-at-NUL handling for bare-option scans
 - serialized `next_arg()` edge cases covering quoted values, quoted bare tokens, empty quoted bare tokens, quoted bare tokens that contain `=`, empty quoted or whitespace-only values, unquoted punctuation-rich values, first-equals splitting, leading-equals sentinel handling, unterminated quoted values, mixed-whitespace rest trimming, and empty-rest termination
-- the dedicated survey gate, the committed `zigux/tests/fixtures/phase7_cmdline_next_arg_vectors.zig` fixture module, and the shared `validate-phase7.py`, `check-phase7-make-wrapper.py`, `phase7_build.zig`, and `make -C zigux phase7-validate` plus `make -C zigux phase7` routes keep the roadmap anchor, the empty quoted bare-token plus quoted-bare-token-with-equals `next_arg()` replays, the focused helper replay, and the Linux-style validator-first packet aligned around the same parked cmdline slice
+- the dedicated survey gate, the committed `zigux/tests/fixtures/phase7_cmdline_next_arg_vectors.zig` fixture module, the exact `zig build test --build-file zigux/tests/phase7_build.zig --summary all` shared compile-check replay, and the shared `validate-phase7.py`, `check-phase7-make-wrapper.py`, `phase7_build.zig`, and `make -C zigux phase7-validate` plus `make -C zigux phase7` routes keep the roadmap anchor, the empty quoted bare-token plus quoted-bare-token-with-equals `next_arg()` replays, the focused helper replay, and the Linux-style validator-first packet aligned around the same parked cmdline slice
 
 ## Non-goals
 
@@ -80,4 +80,4 @@ This slice still does not yet claim:
 
 ## Next bounded step
 
-Move the next Phase 7 schedule to another unfinished leaf helper family. Reopen this lane only if fresh repo inspection finds one more real `cmdline.c` parity gap inside the existing helper, fixture, dedicated survey, shared validator, make-wrapper, or shared-gate surface.
+Move the next Phase 7 schedule to another unfinished leaf helper family. Reopen this lane only if fresh repo inspection finds one more real `cmdline.c` parity gap inside the existing helper, fixture, dedicated survey, shared validator, exact shared compile-check replay, make-wrapper, or shared-gate surface.
