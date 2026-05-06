@@ -12,13 +12,14 @@ It is a fallback-read catalog, not a closure claim and not a validator-first rou
 - `PHASE12_SLICE=virtio-scsi-raw-github-fallback-catalog`
 - `active_survey_lane: P12-L13`
 - `historical_fallback_lane: P12-L09`
-- scope: public tree and raw URL coverage for the shipped `virtio_scsi` starter, survey, build wiring, manifest, and shared replay surfaces
+- scope: public tree and raw URL coverage for the shipped `virtio_scsi` starter, survey, build wiring, manifest, shared replay surfaces, and the PMO closure companion that now travels with the active release-order packet
 
 ## Tree views
 
 - driver starter: `https://github.com/adybag14-cyber/Zigux/blob/master/drivers/scsi/virtio_scsi.zig`
 - slice note: `https://github.com/adybag14-cyber/Zigux/blob/master/Documentation/zigux/phase12-virtio-scsi-slice.md`
 - survey note: `https://github.com/adybag14-cyber/Zigux/blob/master/Documentation/zigux/phase12-virtio-scsi-survey.md`
+- PMO closure companion: `https://github.com/adybag14-cyber/Zigux/blob/master/Documentation/zigux/phase12-release-closure-checklist.md`
 - shared tests index: `https://github.com/adybag14-cyber/Zigux/blob/master/zigux/tests/README.md`
 - shared build wiring: `https://github.com/adybag14-cyber/Zigux/blob/master/zigux/tests/phase12_build.zig`
 - direct test gate: `https://github.com/adybag14-cyber/Zigux/blob/master/zigux/tests/phase12_virtio_scsi.zig`
@@ -33,6 +34,7 @@ It is a fallback-read catalog, not a closure claim and not a validator-first rou
 - driver starter: `https://raw.githubusercontent.com/adybag14-cyber/Zigux/master/drivers/scsi/virtio_scsi.zig`
 - slice note: `https://raw.githubusercontent.com/adybag14-cyber/Zigux/master/Documentation/zigux/phase12-virtio-scsi-slice.md`
 - survey note: `https://raw.githubusercontent.com/adybag14-cyber/Zigux/master/Documentation/zigux/phase12-virtio-scsi-survey.md`
+- PMO closure companion: `https://raw.githubusercontent.com/adybag14-cyber/Zigux/master/Documentation/zigux/phase12-release-closure-checklist.md`
 - shared tests index: `https://raw.githubusercontent.com/adybag14-cyber/Zigux/master/zigux/tests/README.md`
 - shared build wiring: `https://raw.githubusercontent.com/adybag14-cyber/Zigux/master/zigux/tests/phase12_build.zig`
 - direct test gate: `https://raw.githubusercontent.com/adybag14-cyber/Zigux/master/zigux/tests/phase12_virtio_scsi.zig`
@@ -50,6 +52,8 @@ The shipped Phase 12 release order on `master` remains:
 2. `make -C zigux phase12-smoke`
 3. `zig build test --build-file zigux/tests/phase12_build.zig --summary all`
 4. `make -C zigux phase12`
+
+Use `Documentation/zigux/phase12-release-closure-checklist.md` as the PMO companion when judging whether those same shipped surfaces are close enough to describe the active Phase 12 tranche as release-closed.
 
 The shared build-only release guard for that smoke-first order is `scripts/zigux/check-build-only-phase12-surface.py`, and `.github/workflows/zigux-bootstrap.yml` reruns that checker so this fallback wording stays aligned with the shipped PMO release packet.
 
