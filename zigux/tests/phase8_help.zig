@@ -24,7 +24,7 @@ test "phase 8 help module imports cleanly" {
     _ = help;
 }
 
-test "phase 8 help slice note keeps helper-first output-stable posture and non-goals explicit" {
+test "phase 8 help slice note keeps helper-first output-stable tooling posture and non-goals explicit" {
     try std.testing.expect(std.mem.containsAtLeast(u8, phase8_help_slice, 1, "serious repo-hosted tooling"));
     try std.testing.expect(std.mem.containsAtLeast(u8, phase8_help_slice, 1, "tools/lib/subcmd/*.zig"));
     try std.testing.expect(std.mem.containsAtLeast(u8, phase8_help_slice, 1, "output-stable tooling behavior"));
@@ -82,6 +82,10 @@ test "phase 8 help slice covers command-list ownership, filtering, exclusion, te
     });
     try std.testing.expectEqual(@as(usize, 20), fallback_terminal.rows);
     try std.testing.expectEqual(@as(usize, 60), fallback_terminal.cols);
+
+    const default_terminal = help.resolveTerminalDimensions(null, null, null);
+    try std.testing.expectEqual(@as(usize, 25), default_terminal.rows);
+    try std.testing.expectEqual(@as(usize, 80), default_terminal.cols);
 
     const env_layout = help.planPrettyPrintForTerminal(7, 8, "31", "37", .{
         .rows = 24,
