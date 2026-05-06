@@ -94,3 +94,32 @@ test "phase4 bitmap live helper replay keeps fill exact and zero rounded" {
     try std.testing.expect(!bitmap.isSet(127));
     try std.testing.expect(bitmap.isSet(128));
 }
+
+test "phase4 bitmap live helper replay keeps copy-tail clearing and extension explicit" {
+    const count = live_bitmap.bits_per_long + 5;
+    const size = live_bitmap.bits_per_long * 3;
+    const src = [_]live_bitmap.Word{ ~@as(live_bitmap.Word, 0), ~@as(live_bitmap.Word, 0), ~@as(live_bitmap.Word, 0) };
+
+    var cleared = [_]live_bitmap.Word{ 0, 0, 0 };
+    live_bitmap.bitmap_copy_clear_tail(cleared[0..], src[0..], count);
+    try std.testing.expectEqual(@as(live_bitmap.Word, ~@as(live_bitmap.Word, 0)), cleared[0]);
+    try std.testing.expectEqual(live_bitmap.lastWordMask(count), cleared[1]);
+    try std.testing.expectEqual(@as(live_bitmap.Word, 0), cleared[2]);
+
+    var extended = [_]live_bitmap.Word{ ~@as(live_bitmap.Word, 0), ~@as(live_bitmap.Word, 0), ~@as(live_bitmap.Word, 0) };
+    live_bitmap.bitmap_copy_and_extend(extended[0..], src[0..], count, size);
+    try std.testing.expectEqual(@as(live_bitmap.Word, ~@as(live_bitmap.Word, 0)), extended[0]);
+    try std.testing.expectEqual(live_bitmap.lastWordMask(count), extended[1]);
+    try std.testing.expectEqual(@as(live_bitmap.Word, 0), extended[2]);
+
+    var zero_copy = [_]live_bitmap.Word{
+        0x55aa55aa55aa55aa,
+        0x1122334455667788,
+        0x99aabbccddeeff00,
+    };
+    const zero_before = zero_copy;
+    live_bitmap.bitmap_copy_clear_tail(zero_copy[0..0], src[0..0], 0);
+    try std.testing.expectEqualDeep(zero_before, zero_copy);
+    live_bitmap.bitmap_copy_and_extend(zero_copy[0..0], src[0..0], 0, 0);
+    try std.testing.expectEqualDeep(zero_before, zero_copy);
+}
