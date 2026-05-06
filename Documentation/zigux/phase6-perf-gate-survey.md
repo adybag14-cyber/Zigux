@@ -13,7 +13,8 @@ This document records the current shared measurement posture for the bounded Pha
 
 - base64: a dedicated slowdown harness exists in `zigux/tests/phase6_base64_perf.zig`, and `zigux/tests/phase6_build.zig` still defines `phase6-base64-perf`, but `zigux/Makefile` and `.github/workflows/zigux-bootstrap.yml` do not currently replay that harness on the shared route
 - base64 thresholds: the live harness still carries the current encode and decode slowdown ceilings through `zigux/tests/fixtures/phase6_base64_vectors.zig`, with the shared packet still relying on helper-local evidence rather than a shipped `make -C zigux phase6-base64-perf` route
-- bsearch: the current measurement evidence is the comparison-budget replay inside `zigux/tests/phase6_bsearch.zig`, where representative typed and raw lookups over the current 15-element packet stay within four comparator calls instead of using a separate wall-clock perf gate
+- bsearch: the live executable measurement evidence is still the comparison-budget replay inside `zigux/tests/phase6_bsearch.zig`, where representative typed and raw lookups over the current 15-element packet stay within four comparator calls instead of using a separate wall-clock perf gate
+- bsearch survey drift: `Documentation/zigux/phase6-bsearch-slice.md` now names `zigux/tests/phase6_bsearch_perf.zig`, `zigux/tests/fixtures/phase6_bsearch_vectors.zig`, and `make -C zigux phase6-perf`, but those files and routes are not present in `zigux/tests/phase6_build.zig`, `zigux/Makefile`, or `.github/workflows/zigux-bootstrap.yml` on current `master`
 - checksum: a dedicated slowdown gate remains wired through `zigux/tests/phase6_checksum_perf.zig`, `zigux/Makefile`, and `.github/workflows/zigux-bootstrap.yml`, with the current 150% ceiling still applied to the `64B` and `1501B` replay cases
 - hexdump: a dedicated slowdown gate remains wired through `zigux/tests/phase6_hexdump_perf.zig`, `zigux/Makefile`, and `.github/workflows/zigux-bootstrap.yml`, with the current grouped slowdown ceilings still set to `175` for `16B-plain-g1`, `550` for `32B-ascii-g2` and `16B-ascii-g4`, and `600` for `16B-ascii-g8`
 
@@ -21,9 +22,9 @@ This document records the current shared measurement posture for the bounded Pha
 
 - the current packet fully ships dedicated slowdown gates for `checksum` and `hexdump`
 - the current packet carries helper-local slowdown evidence for `base64`, but that harness is not part of the shared `make` or workflow replay path on `master`
-- the current packet keeps `bsearch` reviewable through an algorithmic comparison-budget check rather than a dedicated timing gate
+- the current packet keeps `bsearch` reviewable through an algorithmic comparison-budget check rather than a dedicated timing gate, and the helper-local slice prose currently overstates what is actually wired into the live build and workflow packet
 - future same-lane follow-up should stay inside survey truthfulness or the smallest shared perf-routing repair that closes one of those explicit gaps without widening into helper-semantic work
 
 ## Next Bounded Step
 
-If this survey reopens, first diff `Documentation/zigux/phase6-perf-gate-survey.md`, `zigux/tests/phase6_base64_perf.zig`, `zigux/tests/phase6_bsearch.zig`, `zigux/tests/phase6_checksum_perf.zig`, `zigux/tests/phase6_hexdump_perf.zig`, `zigux/tests/phase6_build.zig`, `zigux/Makefile`, and `.github/workflows/zigux-bootstrap.yml` together on current `master`, then decide whether the next honest move is another survey refresh or a narrowly scoped shared perf-route repair.
+If this survey reopens, first diff `Documentation/zigux/phase6-perf-gate-survey.md`, `Documentation/zigux/phase6-bsearch-slice.md`, `zigux/tests/phase6_base64_perf.zig`, `zigux/tests/phase6_bsearch.zig`, `zigux/tests/phase6_checksum_perf.zig`, `zigux/tests/phase6_hexdump_perf.zig`, `zigux/tests/phase6_build.zig`, `zigux/Makefile`, and `.github/workflows/zigux-bootstrap.yml` together on current `master`, then decide whether the next honest move is another survey refresh or a narrowly scoped shared perf-route repair.
